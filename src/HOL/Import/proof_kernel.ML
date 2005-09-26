@@ -182,6 +182,22 @@ fun mk_syn thy c =
 fun quotename c =
   if Syntax.is_identifier c andalso not (OuterSyntax.is_keyword c) then c else quote c
 
+fun simple_smart_string_of_cterm ct =
+    let
+	val {sign,t,T,...} = rep_cterm ct
+	(* Hack to avoid parse errors with Trueprop *)
+	val ct  = (cterm_of sign (HOLogic.dest_Trueprop t)
+			   handle TERM _ => ct)
+    in
+	quote(
+	Library.setmp print_mode [] (
+	Library.setmp show_brackets false (
+	Library.setmp show_all_types true (
+	Library.setmp Syntax.ambiguity_is_error false (
+	Library.setmp show_sorts true string_of_cterm))))
+	ct)
+    end
+
 fun smart_string_of_cterm ct =
     let
 	val {sign,t,T,...} = rep_cterm ct
@@ -189,29 +205,24 @@ fun smart_string_of_cterm ct =
 	val ct  = (cterm_of sign (HOLogic.dest_Trueprop t)
 		   handle TERM _ => ct)
 	fun match cu = t aconv (term_of cu)
-	fun G 0 = I
-	  | G 1 = Library.setmp show_types true
-	  | G 2 = Library.setmp show_all_types true
-	  | G _ = error ("ProofKernel.smart_string_of_cterm internal error: " ^ (G 2 string_of_cterm ct))
-	fun F sh_br n =
+	fun G 0 = Library.setmp show_types true (Library.setmp show_sorts true)
+	  | G 1 = Library.setmp show_all_types true (G 0)
+          | G _ = error ("ProofKernel.smart_string_of_cterm internal error")
+	fun F n =
 	    let
-		val str = Library.setmp show_brackets sh_br (G n string_of_cterm) ct
+		val str = Library.setmp show_brackets false (G n string_of_cterm) ct
 		val cu  = transform_error (read_cterm sign) (str,T)
 	    in
 		if match cu
 		then quote str
-		else F false (n+1)
+		else F (n+1)
 	    end
-	    handle ERROR_MESSAGE mesg =>
-		   if String.isPrefix "Ambiguous" mesg andalso
-		      not sh_br
-		   then F true n
-		   else F false (n+1)
+	    handle ERROR_MESSAGE mesg => F (n+1)
     in
-	transform_error (Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true (F false))) 0
+	transform_error (Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true F)) 0
     end
-    handle ERROR_MESSAGE mesg => quote (string_of_cterm ct)
-
+    handle ERROR_MESSAGE mesg => simple_smart_string_of_cterm ct
+ 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
 fun prth th = writeln ((Library.setmp print_mode [] string_of_thm) th)

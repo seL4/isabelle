@@ -96,7 +96,7 @@ lemma EXCLUDED_MIDDLE: "ALL t::bool. t | ~ t"
   by (import hollight EXCLUDED_MIDDLE)
 
 constdefs
-  COND :: "bool => 'A::type => 'A::type => 'A::type" 
+  COND :: "bool => 'A => 'A => 'A" 
   "COND ==
 %(t::bool) (t1::'A::type) t2::'A::type.
    SOME x::'A::type. (t = True --> x = t1) & (t = False --> x = t2)"
@@ -174,14 +174,14 @@ lemma th_cond: "(P::'A::type => bool => bool) (COND (b::bool) (x::'A::type) (y::
   by (import hollight th_cond)
 
 constdefs
-  LET_END :: "'A::type => 'A::type" 
+  LET_END :: "'A => 'A" 
   "LET_END == %t::'A::type. t"
 
 lemma DEF_LET_END: "LET_END = (%t::'A::type. t)"
   by (import hollight DEF_LET_END)
 
 constdefs
-  GABS :: "('A::type => bool) => 'A::type" 
+  GABS :: "('A => bool) => 'A" 
   "(op ==::(('A::type => bool) => 'A::type)
         => (('A::type => bool) => 'A::type) => prop)
  (GABS::('A::type => bool) => 'A::type)
@@ -194,7 +194,7 @@ lemma DEF_GABS: "(op =::(('A::type => bool) => 'A::type)
   by (import hollight DEF_GABS)
 
 constdefs
-  GEQ :: "'A::type => 'A::type => bool" 
+  GEQ :: "'A => 'A => bool" 
   "(op ==::('A::type => 'A::type => bool)
         => ('A::type => 'A::type => bool) => prop)
  (GEQ::'A::type => 'A::type => bool) (op =::'A::type => 'A::type => bool)"
@@ -209,7 +209,7 @@ lemma PAIR_EXISTS_THM: "EX (x::'A::type => 'B::type => bool) (a::'A::type) b::'B
   by (import hollight PAIR_EXISTS_THM)
 
 constdefs
-  CURRY :: "('A::type * 'B::type => 'C::type) => 'A::type => 'B::type => 'C::type" 
+  CURRY :: "('A * 'B => 'C) => 'A => 'B => 'C" 
   "CURRY ==
 %(u::'A::type * 'B::type => 'C::type) (ua::'A::type) ub::'B::type.
    u (ua, ub)"
@@ -220,7 +220,7 @@ lemma DEF_CURRY: "CURRY =
   by (import hollight DEF_CURRY)
 
 constdefs
-  UNCURRY :: "('A::type => 'B::type => 'C::type) => 'A::type * 'B::type => 'C::type" 
+  UNCURRY :: "('A => 'B => 'C) => 'A * 'B => 'C" 
   "UNCURRY ==
 %(u::'A::type => 'B::type => 'C::type) ua::'A::type * 'B::type.
    u (fst ua) (snd ua)"
@@ -231,8 +231,7 @@ lemma DEF_UNCURRY: "UNCURRY =
   by (import hollight DEF_UNCURRY)
 
 constdefs
-  PASSOC :: "(('A::type * 'B::type) * 'C::type => 'D::type)
-=> 'A::type * 'B::type * 'C::type => 'D::type" 
+  PASSOC :: "(('A * 'B) * 'C => 'D) => 'A * 'B * 'C => 'D" 
   "PASSOC ==
 %(u::('A::type * 'B::type) * 'C::type => 'D::type)
    ua::'A::type * 'B::type * 'C::type.
@@ -245,12 +244,11 @@ lemma DEF_PASSOC: "PASSOC =
   by (import hollight DEF_PASSOC)
 
 lemma num_Axiom: "ALL (e::'A::type) f::'A::type => nat => 'A::type.
-   EX! fn::nat => 'A::type.
-      fn (0::nat) = e & (ALL n::nat. fn (Suc n) = f (fn n) n)"
+   EX! fn::nat => 'A::type. fn 0 = e & (ALL n::nat. fn (Suc n) = f (fn n) n)"
   by (import hollight num_Axiom)
 
-lemma ADD_CLAUSES: "(ALL x::nat. (0::nat) + x = x) &
-(ALL x::nat. x + (0::nat) = x) &
+lemma ADD_CLAUSES: "(ALL x::nat. 0 + x = x) &
+(ALL x::nat. x + 0 = x) &
 (ALL (x::nat) xa::nat. Suc x + xa = Suc (x + xa)) &
 (ALL (x::nat) xa::nat. x + Suc xa = Suc (x + xa))"
   by (import hollight ADD_CLAUSES)
@@ -259,25 +257,25 @@ lemma ADD_AC: "(m::nat) + (n::nat) = n + m &
 m + n + (p::nat) = m + (n + p) & m + (n + p) = n + (m + p)"
   by (import hollight ADD_AC)
 
-lemma EQ_ADD_LCANCEL_0: "ALL (m::nat) n::nat. (m + n = m) = (n = (0::nat))"
+lemma EQ_ADD_LCANCEL_0: "ALL (m::nat) n::nat. (m + n = m) = (n = 0)"
   by (import hollight EQ_ADD_LCANCEL_0)
 
-lemma EQ_ADD_RCANCEL_0: "ALL (x::nat) xa::nat. (x + xa = xa) = (x = (0::nat))"
+lemma EQ_ADD_RCANCEL_0: "ALL (x::nat) xa::nat. (x + xa = xa) = (x = 0)"
   by (import hollight EQ_ADD_RCANCEL_0)
 
-lemma ONE: "NUMERAL_BIT1 (0::nat) = Suc (0::nat)"
+lemma ONE: "NUMERAL_BIT1 0 = Suc 0"
   by (import hollight ONE)
 
-lemma TWO: "NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) = Suc (NUMERAL_BIT1 (0::nat))"
+lemma TWO: "NUMERAL_BIT0 (NUMERAL_BIT1 0) = Suc (NUMERAL_BIT1 0)"
   by (import hollight TWO)
 
-lemma ADD1: "ALL x::nat. Suc x = x + NUMERAL_BIT1 (0::nat)"
+lemma ADD1: "ALL x::nat. Suc x = x + NUMERAL_BIT1 0"
   by (import hollight ADD1)
 
-lemma MULT_CLAUSES: "(ALL x::nat. (0::nat) * x = (0::nat)) &
-(ALL x::nat. x * (0::nat) = (0::nat)) &
-(ALL x::nat. NUMERAL_BIT1 (0::nat) * x = x) &
-(ALL x::nat. x * NUMERAL_BIT1 (0::nat) = x) &
+lemma MULT_CLAUSES: "(ALL x::nat. 0 * x = 0) &
+(ALL x::nat. x * 0 = 0) &
+(ALL x::nat. NUMERAL_BIT1 0 * x = x) &
+(ALL x::nat. x * NUMERAL_BIT1 0 = x) &
 (ALL (x::nat) xa::nat. Suc x * xa = x * xa + xa) &
 (ALL (x::nat) xa::nat. x * Suc xa = x + x * xa)"
   by (import hollight MULT_CLAUSES)
@@ -286,40 +284,39 @@ lemma MULT_AC: "(m::nat) * (n::nat) = n * m &
 m * n * (p::nat) = m * (n * p) & m * (n * p) = n * (m * p)"
   by (import hollight MULT_AC)
 
-lemma MULT_2: "ALL n::nat. NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n = n + n"
+lemma MULT_2: "ALL n::nat. NUMERAL_BIT0 (NUMERAL_BIT1 0) * n = n + n"
   by (import hollight MULT_2)
 
 lemma MULT_EQ_1: "ALL (m::nat) n::nat.
-   (m * n = NUMERAL_BIT1 (0::nat)) =
-   (m = NUMERAL_BIT1 (0::nat) & n = NUMERAL_BIT1 (0::nat))"
+   (m * n = NUMERAL_BIT1 0) = (m = NUMERAL_BIT1 0 & n = NUMERAL_BIT1 0)"
   by (import hollight MULT_EQ_1)
 
 constdefs
   EXP :: "nat => nat => nat" 
   "EXP ==
 SOME EXP::nat => nat => nat.
-   (ALL m::nat. EXP m (0::nat) = NUMERAL_BIT1 (0::nat)) &
+   (ALL m::nat. EXP m 0 = NUMERAL_BIT1 0) &
    (ALL (m::nat) n::nat. EXP m (Suc n) = m * EXP m n)"
 
 lemma DEF_EXP: "EXP =
 (SOME EXP::nat => nat => nat.
-    (ALL m::nat. EXP m (0::nat) = NUMERAL_BIT1 (0::nat)) &
+    (ALL m::nat. EXP m 0 = NUMERAL_BIT1 0) &
     (ALL (m::nat) n::nat. EXP m (Suc n) = m * EXP m n))"
   by (import hollight DEF_EXP)
 
-lemma EXP_EQ_0: "ALL (m::nat) n::nat. (EXP m n = (0::nat)) = (m = (0::nat) & n ~= (0::nat))"
+lemma EXP_EQ_0: "ALL (m::nat) n::nat. (EXP m n = 0) = (m = 0 & n ~= 0)"
   by (import hollight EXP_EQ_0)
 
 lemma EXP_ADD: "ALL (m::nat) (n::nat) p::nat. EXP m (n + p) = EXP m n * EXP m p"
   by (import hollight EXP_ADD)
 
-lemma EXP_ONE: "ALL n::nat. EXP (NUMERAL_BIT1 (0::nat)) n = NUMERAL_BIT1 (0::nat)"
+lemma EXP_ONE: "ALL n::nat. EXP (NUMERAL_BIT1 0) n = NUMERAL_BIT1 0"
   by (import hollight EXP_ONE)
 
-lemma EXP_1: "ALL x::nat. EXP x (NUMERAL_BIT1 (0::nat)) = x"
+lemma EXP_1: "ALL x::nat. EXP x (NUMERAL_BIT1 0) = x"
   by (import hollight EXP_1)
 
-lemma EXP_2: "ALL x::nat. EXP x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = x * x"
+lemma EXP_2: "ALL x::nat. EXP x (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = x * x"
   by (import hollight EXP_2)
 
 lemma MULT_EXP: "ALL (p::nat) (m::nat) n::nat. EXP (m * n) p = EXP m p * EXP n p"
@@ -334,12 +331,12 @@ consts
 defs
   "<=_def": "<= ==
 SOME u::nat => nat => bool.
-   (ALL m::nat. u m (0::nat) = (m = (0::nat))) &
+   (ALL m::nat. u m 0 = (m = 0)) &
    (ALL (m::nat) n::nat. u m (Suc n) = (m = Suc n | u m n))"
 
 lemma DEF__lessthan__equal_: "<= =
 (SOME u::nat => nat => bool.
-    (ALL m::nat. u m (0::nat) = (m = (0::nat))) &
+    (ALL m::nat. u m 0 = (m = 0)) &
     (ALL (m::nat) n::nat. u m (Suc n) = (m = Suc n | u m n)))"
   by (import hollight DEF__lessthan__equal_)
 
@@ -349,12 +346,12 @@ consts
 defs
   "<_def": "< ==
 SOME u::nat => nat => bool.
-   (ALL m::nat. u m (0::nat) = False) &
+   (ALL m::nat. u m 0 = False) &
    (ALL (m::nat) n::nat. u m (Suc n) = (m = n | u m n))"
 
 lemma DEF__lessthan_: "< =
 (SOME u::nat => nat => bool.
-    (ALL m::nat. u m (0::nat) = False) &
+    (ALL m::nat. u m 0 = False) &
     (ALL (m::nat) n::nat. u m (Suc n) = (m = n | u m n)))"
   by (import hollight DEF__lessthan_)
 
@@ -388,10 +385,10 @@ lemma LE_SUC: "ALL (x::nat) xa::nat. <= (Suc x) (Suc xa) = <= x xa"
 lemma LT_SUC: "ALL (x::nat) xa::nat. < (Suc x) (Suc xa) = < x xa"
   by (import hollight LT_SUC)
 
-lemma LE_0: "All (<= (0::nat))"
+lemma LE_0: "All (<= 0)"
   by (import hollight LE_0)
 
-lemma LT_0: "ALL x::nat. < (0::nat) (Suc x)"
+lemma LT_0: "ALL x::nat. < 0 (Suc x)"
   by (import hollight LT_0)
 
 lemma LE_REFL: "ALL n::nat. <= n n"
@@ -436,7 +433,7 @@ lemma LET_CASES: "ALL (m::nat) n::nat. <= m n | < n m"
 lemma LTE_CASES: "ALL (x::nat) xa::nat. < x xa | <= xa x"
   by (import hollight LTE_CASES)
 
-lemma LT_NZ: "ALL n::nat. < (0::nat) n = (n ~= (0::nat))"
+lemma LT_NZ: "ALL n::nat. < 0 n = (n ~= 0)"
   by (import hollight LT_NZ)
 
 lemma LE_LT: "ALL (m::nat) n::nat. <= m n = (< m n | m = n)"
@@ -469,10 +466,10 @@ lemma LE_ADD: "ALL (m::nat) n::nat. <= m (m + n)"
 lemma LE_ADDR: "ALL (x::nat) xa::nat. <= xa (x + xa)"
   by (import hollight LE_ADDR)
 
-lemma LT_ADD: "ALL (m::nat) n::nat. < m (m + n) = < (0::nat) n"
+lemma LT_ADD: "ALL (m::nat) n::nat. < m (m + n) = < 0 n"
   by (import hollight LT_ADD)
 
-lemma LT_ADDR: "ALL (x::nat) xa::nat. < xa (x + xa) = < (0::nat) x"
+lemma LT_ADDR: "ALL (x::nat) xa::nat. < xa (x + xa) = < 0 x"
   by (import hollight LT_ADDR)
 
 lemma LE_ADD_LCANCEL: "ALL (x::nat) (xa::nat) xb::nat. <= (x + xa) (x + xb) = <= xa xb"
@@ -501,28 +498,26 @@ lemma LTE_ADD2: "ALL (x::nat) (xa::nat) (xb::nat) xc::nat.
 lemma LT_ADD2: "ALL (m::nat) (n::nat) (p::nat) q::nat. < m p & < n q --> < (m + n) (p + q)"
   by (import hollight LT_ADD2)
 
-lemma LT_MULT: "ALL (m::nat) n::nat. < (0::nat) (m * n) = (< (0::nat) m & < (0::nat) n)"
+lemma LT_MULT: "ALL (m::nat) n::nat. < 0 (m * n) = (< 0 m & < 0 n)"
   by (import hollight LT_MULT)
 
 lemma LE_MULT2: "ALL (m::nat) (n::nat) (p::nat) q::nat.
    <= m n & <= p q --> <= (m * p) (n * q)"
   by (import hollight LE_MULT2)
 
-lemma LT_LMULT: "ALL (m::nat) (n::nat) p::nat. m ~= (0::nat) & < n p --> < (m * n) (m * p)"
+lemma LT_LMULT: "ALL (m::nat) (n::nat) p::nat. m ~= 0 & < n p --> < (m * n) (m * p)"
   by (import hollight LT_LMULT)
 
-lemma LE_MULT_LCANCEL: "ALL (m::nat) (n::nat) p::nat. <= (m * n) (m * p) = (m = (0::nat) | <= n p)"
+lemma LE_MULT_LCANCEL: "ALL (m::nat) (n::nat) p::nat. <= (m * n) (m * p) = (m = 0 | <= n p)"
   by (import hollight LE_MULT_LCANCEL)
 
-lemma LE_MULT_RCANCEL: "ALL (x::nat) (xa::nat) xb::nat.
-   <= (x * xb) (xa * xb) = (<= x xa | xb = (0::nat))"
+lemma LE_MULT_RCANCEL: "ALL (x::nat) (xa::nat) xb::nat. <= (x * xb) (xa * xb) = (<= x xa | xb = 0)"
   by (import hollight LE_MULT_RCANCEL)
 
-lemma LT_MULT_LCANCEL: "ALL (m::nat) (n::nat) p::nat. < (m * n) (m * p) = (m ~= (0::nat) & < n p)"
+lemma LT_MULT_LCANCEL: "ALL (m::nat) (n::nat) p::nat. < (m * n) (m * p) = (m ~= 0 & < n p)"
   by (import hollight LT_MULT_LCANCEL)
 
-lemma LT_MULT_RCANCEL: "ALL (x::nat) (xa::nat) xb::nat.
-   < (x * xb) (xa * xb) = (< x xa & xb ~= (0::nat))"
+lemma LT_MULT_RCANCEL: "ALL (x::nat) (xa::nat) xb::nat. < (x * xb) (xa * xb) = (< x xa & xb ~= 0)"
   by (import hollight LT_MULT_RCANCEL)
 
 lemma LT_MULT2: "ALL (m::nat) (n::nat) (p::nat) q::nat. < m n & < p q --> < (m * p) (n * q)"
@@ -558,22 +553,21 @@ constdefs
   EVEN :: "nat => bool" 
   "EVEN ==
 SOME EVEN::nat => bool.
-   EVEN (0::nat) = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n))"
+   EVEN 0 = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n))"
 
 lemma DEF_EVEN: "EVEN =
 (SOME EVEN::nat => bool.
-    EVEN (0::nat) = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n)))"
+    EVEN 0 = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n)))"
   by (import hollight DEF_EVEN)
 
 constdefs
   ODD :: "nat => bool" 
   "ODD ==
-SOME ODD::nat => bool.
-   ODD (0::nat) = False & (ALL n::nat. ODD (Suc n) = (~ ODD n))"
+SOME ODD::nat => bool. ODD 0 = False & (ALL n::nat. ODD (Suc n) = (~ ODD n))"
 
 lemma DEF_ODD: "ODD =
 (SOME ODD::nat => bool.
-    ODD (0::nat) = False & (ALL n::nat. ODD (Suc n) = (~ ODD n)))"
+    ODD 0 = False & (ALL n::nat. ODD (Suc n) = (~ ODD n)))"
   by (import hollight DEF_ODD)
 
 lemma NOT_EVEN: "ALL n::nat. (~ EVEN n) = ODD n"
@@ -594,7 +588,7 @@ lemma EVEN_ADD: "ALL (m::nat) n::nat. EVEN (m + n) = (EVEN m = EVEN n)"
 lemma EVEN_MULT: "ALL (m::nat) n::nat. EVEN (m * n) = (EVEN m | EVEN n)"
   by (import hollight EVEN_MULT)
 
-lemma EVEN_EXP: "ALL (m::nat) n::nat. EVEN (EXP m n) = (EVEN m & n ~= (0::nat))"
+lemma EVEN_EXP: "ALL (m::nat) n::nat. EVEN (EXP m n) = (EVEN m & n ~= 0)"
   by (import hollight EVEN_EXP)
 
 lemma ODD_ADD: "ALL (m::nat) n::nat. ODD (m + n) = (ODD m ~= ODD n)"
@@ -603,83 +597,76 @@ lemma ODD_ADD: "ALL (m::nat) n::nat. ODD (m + n) = (ODD m ~= ODD n)"
 lemma ODD_MULT: "ALL (m::nat) n::nat. ODD (m * n) = (ODD m & ODD n)"
   by (import hollight ODD_MULT)
 
-lemma ODD_EXP: "ALL (m::nat) n::nat. ODD (EXP m n) = (ODD m | n = (0::nat))"
+lemma ODD_EXP: "ALL (m::nat) n::nat. ODD (EXP m n) = (ODD m | n = 0)"
   by (import hollight ODD_EXP)
 
-lemma EVEN_DOUBLE: "ALL n::nat. EVEN (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n)"
+lemma EVEN_DOUBLE: "ALL n::nat. EVEN (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n)"
   by (import hollight EVEN_DOUBLE)
 
-lemma ODD_DOUBLE: "ALL x::nat. ODD (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * x))"
+lemma ODD_DOUBLE: "ALL x::nat. ODD (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 0) * x))"
   by (import hollight ODD_DOUBLE)
 
 lemma EVEN_EXISTS_LEMMA: "ALL n::nat.
-   (EVEN n --> (EX m::nat. n = NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * m)) &
-   (~ EVEN n -->
-    (EX m::nat. n = Suc (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * m)))"
+   (EVEN n --> (EX m::nat. n = NUMERAL_BIT0 (NUMERAL_BIT1 0) * m)) &
+   (~ EVEN n --> (EX m::nat. n = Suc (NUMERAL_BIT0 (NUMERAL_BIT1 0) * m)))"
   by (import hollight EVEN_EXISTS_LEMMA)
 
-lemma EVEN_EXISTS: "ALL n::nat.
-   EVEN n = (EX m::nat. n = NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * m)"
+lemma EVEN_EXISTS: "ALL n::nat. EVEN n = (EX m::nat. n = NUMERAL_BIT0 (NUMERAL_BIT1 0) * m)"
   by (import hollight EVEN_EXISTS)
 
-lemma ODD_EXISTS: "ALL n::nat.
-   ODD n = (EX m::nat. n = Suc (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * m))"
+lemma ODD_EXISTS: "ALL n::nat. ODD n = (EX m::nat. n = Suc (NUMERAL_BIT0 (NUMERAL_BIT1 0) * m))"
   by (import hollight ODD_EXISTS)
 
 lemma EVEN_ODD_DECOMPOSITION: "ALL n::nat.
    (EX (k::nat) m::nat.
-       ODD m & n = EXP (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) k * m) =
-   (n ~= (0::nat))"
+       ODD m & n = EXP (NUMERAL_BIT0 (NUMERAL_BIT1 0)) k * m) =
+   (n ~= 0)"
   by (import hollight EVEN_ODD_DECOMPOSITION)
 
-lemma SUB_0: "ALL x::nat. (0::nat) - x = (0::nat) & x - (0::nat) = x"
+lemma SUB_0: "ALL x::nat. 0 - x = 0 & x - 0 = x"
   by (import hollight SUB_0)
 
 lemma SUB_PRESUC: "ALL (m::nat) n::nat. Pred (Suc m - n) = m - n"
   by (import hollight SUB_PRESUC)
 
-lemma SUB_EQ_0: "ALL (m::nat) n::nat. (m - n = (0::nat)) = <= m n"
+lemma SUB_EQ_0: "ALL (m::nat) n::nat. (m - n = 0) = <= m n"
   by (import hollight SUB_EQ_0)
 
-lemma ADD_SUBR: "ALL (x::nat) xa::nat. xa - (x + xa) = (0::nat)"
+lemma ADD_SUBR: "ALL (x::nat) xa::nat. xa - (x + xa) = 0"
   by (import hollight ADD_SUBR)
 
 lemma SUB_ADD: "ALL (x::nat) xa::nat. <= xa x --> x - xa + xa = x"
   by (import hollight SUB_ADD)
 
-lemma SUC_SUB1: "ALL x::nat. Suc x - NUMERAL_BIT1 (0::nat) = x"
+lemma SUC_SUB1: "ALL x::nat. Suc x - NUMERAL_BIT1 0 = x"
   by (import hollight SUC_SUB1)
 
 constdefs
   FACT :: "nat => nat" 
   "FACT ==
 SOME FACT::nat => nat.
-   FACT (0::nat) = NUMERAL_BIT1 (0::nat) &
-   (ALL n::nat. FACT (Suc n) = Suc n * FACT n)"
+   FACT 0 = NUMERAL_BIT1 0 & (ALL n::nat. FACT (Suc n) = Suc n * FACT n)"
 
 lemma DEF_FACT: "FACT =
 (SOME FACT::nat => nat.
-    FACT (0::nat) = NUMERAL_BIT1 (0::nat) &
-    (ALL n::nat. FACT (Suc n) = Suc n * FACT n))"
+    FACT 0 = NUMERAL_BIT1 0 & (ALL n::nat. FACT (Suc n) = Suc n * FACT n))"
   by (import hollight DEF_FACT)
 
-lemma FACT_LT: "ALL n::nat. < (0::nat) (FACT n)"
+lemma FACT_LT: "ALL n::nat. < 0 (FACT n)"
   by (import hollight FACT_LT)
 
-lemma FACT_LE: "ALL x::nat. <= (NUMERAL_BIT1 (0::nat)) (FACT x)"
+lemma FACT_LE: "ALL x::nat. <= (NUMERAL_BIT1 0) (FACT x)"
   by (import hollight FACT_LE)
 
 lemma FACT_MONO: "ALL (m::nat) n::nat. <= m n --> <= (FACT m) (FACT n)"
   by (import hollight FACT_MONO)
 
-lemma DIVMOD_EXIST: "ALL (m::nat) n::nat.
-   n ~= (0::nat) --> (EX (q::nat) r::nat. m = q * n + r & < r n)"
+lemma DIVMOD_EXIST: "ALL (m::nat) n::nat. n ~= 0 --> (EX (q::nat) r::nat. m = q * n + r & < r n)"
   by (import hollight DIVMOD_EXIST)
 
 lemma DIVMOD_EXIST_0: "ALL (m::nat) n::nat.
    EX (x::nat) xa::nat.
-      COND (n = (0::nat)) (x = (0::nat) & xa = (0::nat))
-       (m = x * n + xa & < xa n)"
+      COND (n = 0) (x = 0 & xa = 0) (m = x * n + xa & < xa n)"
   by (import hollight DIVMOD_EXIST_0)
 
 constdefs
@@ -688,14 +675,14 @@ constdefs
 SOME q::nat => nat => nat.
    EX r::nat => nat => nat.
       ALL (m::nat) n::nat.
-         COND (n = (0::nat)) (q m n = (0::nat) & r m n = (0::nat))
+         COND (n = 0) (q m n = 0 & r m n = 0)
           (m = q m n * n + r m n & < (r m n) n)"
 
 lemma DEF_DIV: "DIV =
 (SOME q::nat => nat => nat.
     EX r::nat => nat => nat.
        ALL (m::nat) n::nat.
-          COND (n = (0::nat)) (q m n = (0::nat) & r m n = (0::nat))
+          COND (n = 0) (q m n = 0 & r m n = 0)
            (m = q m n * n + r m n & < (r m n) n))"
   by (import hollight DEF_DIV)
 
@@ -704,18 +691,17 @@ constdefs
   "MOD ==
 SOME r::nat => nat => nat.
    ALL (m::nat) n::nat.
-      COND (n = (0::nat)) (DIV m n = (0::nat) & r m n = (0::nat))
+      COND (n = 0) (DIV m n = 0 & r m n = 0)
        (m = DIV m n * n + r m n & < (r m n) n)"
 
 lemma DEF_MOD: "MOD =
 (SOME r::nat => nat => nat.
     ALL (m::nat) n::nat.
-       COND (n = (0::nat)) (DIV m n = (0::nat) & r m n = (0::nat))
+       COND (n = 0) (DIV m n = 0 & r m n = 0)
         (m = DIV m n * n + r m n & < (r m n) n))"
   by (import hollight DEF_MOD)
 
-lemma DIVISION: "ALL (m::nat) n::nat.
-   n ~= (0::nat) --> m = DIV m n * n + MOD m n & < (MOD m n) n"
+lemma DIVISION: "ALL (m::nat) n::nat. n ~= 0 --> m = DIV m n * n + MOD m n & < (MOD m n) n"
   by (import hollight DIVISION)
 
 lemma DIVMOD_UNIQ_LEMMA: "ALL (m::nat) (n::nat) (q1::nat) (r1::nat) (q2::nat) r2::nat.
@@ -733,14 +719,13 @@ lemma MOD_UNIQ: "ALL (m::nat) (n::nat) (q::nat) r::nat. m = q * n + r & < r n --
 lemma DIV_UNIQ: "ALL (m::nat) (n::nat) (q::nat) r::nat. m = q * n + r & < r n --> DIV m n = q"
   by (import hollight DIV_UNIQ)
 
-lemma MOD_MULT: "ALL (x::nat) xa::nat. x ~= (0::nat) --> MOD (x * xa) x = (0::nat)"
+lemma MOD_MULT: "ALL (x::nat) xa::nat. x ~= 0 --> MOD (x * xa) x = 0"
   by (import hollight MOD_MULT)
 
-lemma DIV_MULT: "ALL (x::nat) xa::nat. x ~= (0::nat) --> DIV (x * xa) x = xa"
+lemma DIV_MULT: "ALL (x::nat) xa::nat. x ~= 0 --> DIV (x * xa) x = xa"
   by (import hollight DIV_MULT)
 
-lemma DIV_DIV: "ALL (m::nat) (n::nat) p::nat.
-   n * p ~= (0::nat) --> DIV (DIV m n) p = DIV m (n * p)"
+lemma DIV_DIV: "ALL (m::nat) (n::nat) p::nat. n * p ~= 0 --> DIV (DIV m n) p = DIV m (n * p)"
   by (import hollight DIV_DIV)
 
 lemma MOD_LT: "ALL (m::nat) n::nat. < m n --> MOD m n = m"
@@ -750,166 +735,150 @@ lemma MOD_EQ: "ALL (m::nat) (n::nat) (p::nat) q::nat. m = n + q * p --> MOD m p 
   by (import hollight MOD_EQ)
 
 lemma DIV_MOD: "ALL (m::nat) (n::nat) p::nat.
-   n * p ~= (0::nat) --> MOD (DIV m n) p = DIV (MOD m (n * p)) n"
+   n * p ~= 0 --> MOD (DIV m n) p = DIV (MOD m (n * p)) n"
   by (import hollight DIV_MOD)
 
-lemma DIV_1: "ALL n::nat. DIV n (NUMERAL_BIT1 (0::nat)) = n"
+lemma DIV_1: "ALL n::nat. DIV n (NUMERAL_BIT1 0) = n"
   by (import hollight DIV_1)
 
-lemma EXP_LT_0: "ALL (x::nat) xa::nat.
-   < (0::nat) (EXP xa x) = (xa ~= (0::nat) | x = (0::nat))"
+lemma EXP_LT_0: "ALL (x::nat) xa::nat. < 0 (EXP xa x) = (xa ~= 0 | x = 0)"
   by (import hollight EXP_LT_0)
 
-lemma DIV_LE: "ALL (m::nat) n::nat. n ~= (0::nat) --> <= (DIV m n) m"
+lemma DIV_LE: "ALL (m::nat) n::nat. n ~= 0 --> <= (DIV m n) m"
   by (import hollight DIV_LE)
 
 lemma DIV_MUL_LE: "ALL (m::nat) n::nat. <= (n * DIV m n) m"
   by (import hollight DIV_MUL_LE)
 
-lemma DIV_0: "ALL n::nat. n ~= (0::nat) --> DIV (0::nat) n = (0::nat)"
+lemma DIV_0: "ALL n::nat. n ~= 0 --> DIV 0 n = 0"
   by (import hollight DIV_0)
 
-lemma MOD_0: "ALL n::nat. n ~= (0::nat) --> MOD (0::nat) n = (0::nat)"
+lemma MOD_0: "ALL n::nat. n ~= 0 --> MOD 0 n = 0"
   by (import hollight MOD_0)
 
-lemma DIV_LT: "ALL (m::nat) n::nat. < m n --> DIV m n = (0::nat)"
+lemma DIV_LT: "ALL (m::nat) n::nat. < m n --> DIV m n = 0"
   by (import hollight DIV_LT)
 
-lemma MOD_MOD: "ALL (m::nat) (n::nat) p::nat.
-   n * p ~= (0::nat) --> MOD (MOD m (n * p)) n = MOD m n"
+lemma MOD_MOD: "ALL (m::nat) (n::nat) p::nat. n * p ~= 0 --> MOD (MOD m (n * p)) n = MOD m n"
   by (import hollight MOD_MOD)
 
-lemma MOD_MOD_REFL: "ALL (m::nat) n::nat. n ~= (0::nat) --> MOD (MOD m n) n = MOD m n"
+lemma MOD_MOD_REFL: "ALL (m::nat) n::nat. n ~= 0 --> MOD (MOD m n) n = MOD m n"
   by (import hollight MOD_MOD_REFL)
 
 lemma DIV_MULT2: "ALL (x::nat) (xa::nat) xb::nat.
-   x * xb ~= (0::nat) --> DIV (x * xa) (x * xb) = DIV xa xb"
+   x * xb ~= 0 --> DIV (x * xa) (x * xb) = DIV xa xb"
   by (import hollight DIV_MULT2)
 
 lemma MOD_MULT2: "ALL (x::nat) (xa::nat) xb::nat.
-   x * xb ~= (0::nat) --> MOD (x * xa) (x * xb) = x * MOD xa xb"
+   x * xb ~= 0 --> MOD (x * xa) (x * xb) = x * MOD xa xb"
   by (import hollight MOD_MULT2)
 
-lemma MOD_1: "ALL n::nat. MOD n (NUMERAL_BIT1 (0::nat)) = (0::nat)"
+lemma MOD_1: "ALL n::nat. MOD n (NUMERAL_BIT1 0) = 0"
   by (import hollight MOD_1)
 
 lemma MOD_EXISTS: "ALL (m::nat) n::nat.
-   (EX q::nat. m = n * q) =
-   COND (n = (0::nat)) (m = (0::nat)) (MOD m n = (0::nat))"
+   (EX q::nat. m = n * q) = COND (n = 0) (m = 0) (MOD m n = 0)"
   by (import hollight MOD_EXISTS)
 
 lemma LT_EXP: "ALL (x::nat) (m::nat) n::nat.
    < (EXP x m) (EXP x n) =
-   (<= (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) x & < m n |
-    x = (0::nat) & m ~= (0::nat) & n = (0::nat))"
+   (<= (NUMERAL_BIT0 (NUMERAL_BIT1 0)) x & < m n | x = 0 & m ~= 0 & n = 0)"
   by (import hollight LT_EXP)
 
 lemma LE_EXP: "ALL (x::nat) (m::nat) n::nat.
    <= (EXP x m) (EXP x n) =
-   COND (x = (0::nat)) (m = (0::nat) --> n = (0::nat))
-    (x = NUMERAL_BIT1 (0::nat) | <= m n)"
+   COND (x = 0) (m = 0 --> n = 0) (x = NUMERAL_BIT1 0 | <= m n)"
   by (import hollight LE_EXP)
 
-lemma DIV_MONO: "ALL (m::nat) (n::nat) p::nat.
-   p ~= (0::nat) & <= m n --> <= (DIV m p) (DIV n p)"
+lemma DIV_MONO: "ALL (m::nat) (n::nat) p::nat. p ~= 0 & <= m n --> <= (DIV m p) (DIV n p)"
   by (import hollight DIV_MONO)
 
 lemma DIV_MONO_LT: "ALL (m::nat) (n::nat) p::nat.
-   p ~= (0::nat) & <= (m + p) n --> < (DIV m p) (DIV n p)"
+   p ~= 0 & <= (m + p) n --> < (DIV m p) (DIV n p)"
   by (import hollight DIV_MONO_LT)
 
-lemma LE_LDIV: "ALL (a::nat) (b::nat) n::nat.
-   a ~= (0::nat) & <= b (a * n) --> <= (DIV b a) n"
+lemma LE_LDIV: "ALL (a::nat) (b::nat) n::nat. a ~= 0 & <= b (a * n) --> <= (DIV b a) n"
   by (import hollight LE_LDIV)
 
-lemma LE_RDIV_EQ: "ALL (a::nat) (b::nat) n::nat.
-   a ~= (0::nat) --> <= n (DIV b a) = <= (a * n) b"
+lemma LE_RDIV_EQ: "ALL (a::nat) (b::nat) n::nat. a ~= 0 --> <= n (DIV b a) = <= (a * n) b"
   by (import hollight LE_RDIV_EQ)
 
 lemma LE_LDIV_EQ: "ALL (a::nat) (b::nat) n::nat.
-   a ~= (0::nat) --> <= (DIV b a) n = < b (a * (n + NUMERAL_BIT1 (0::nat)))"
+   a ~= 0 --> <= (DIV b a) n = < b (a * (n + NUMERAL_BIT1 0))"
   by (import hollight LE_LDIV_EQ)
 
-lemma DIV_EQ_0: "ALL (m::nat) n::nat. n ~= (0::nat) --> (DIV m n = (0::nat)) = < m n"
+lemma DIV_EQ_0: "ALL (m::nat) n::nat. n ~= 0 --> (DIV m n = 0) = < m n"
   by (import hollight DIV_EQ_0)
 
-lemma MOD_EQ_0: "ALL (m::nat) n::nat.
-   n ~= (0::nat) --> (MOD m n = (0::nat)) = (EX q::nat. m = q * n)"
+lemma MOD_EQ_0: "ALL (m::nat) n::nat. n ~= 0 --> (MOD m n = 0) = (EX q::nat. m = q * n)"
   by (import hollight MOD_EQ_0)
 
-lemma EVEN_MOD: "ALL n::nat.
-   EVEN n = (MOD n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = (0::nat))"
+lemma EVEN_MOD: "ALL n::nat. EVEN n = (MOD n (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = 0)"
   by (import hollight EVEN_MOD)
 
-lemma ODD_MOD: "ALL n::nat.
-   ODD n =
-   (MOD n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = NUMERAL_BIT1 (0::nat))"
+lemma ODD_MOD: "ALL n::nat. ODD n = (MOD n (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = NUMERAL_BIT1 0)"
   by (import hollight ODD_MOD)
 
-lemma MOD_MULT_RMOD: "ALL (m::nat) (n::nat) p::nat.
-   n ~= (0::nat) --> MOD (m * MOD p n) n = MOD (m * p) n"
+lemma MOD_MULT_RMOD: "ALL (m::nat) (n::nat) p::nat. n ~= 0 --> MOD (m * MOD p n) n = MOD (m * p) n"
   by (import hollight MOD_MULT_RMOD)
 
 lemma MOD_MULT_LMOD: "ALL (x::nat) (xa::nat) xb::nat.
-   xa ~= (0::nat) --> MOD (MOD x xa * xb) xa = MOD (x * xb) xa"
+   xa ~= 0 --> MOD (MOD x xa * xb) xa = MOD (x * xb) xa"
   by (import hollight MOD_MULT_LMOD)
 
 lemma MOD_MULT_MOD2: "ALL (x::nat) (xa::nat) xb::nat.
-   xa ~= (0::nat) --> MOD (MOD x xa * MOD xb xa) xa = MOD (x * xb) xa"
+   xa ~= 0 --> MOD (MOD x xa * MOD xb xa) xa = MOD (x * xb) xa"
   by (import hollight MOD_MULT_MOD2)
 
 lemma MOD_EXP_MOD: "ALL (m::nat) (n::nat) p::nat.
-   n ~= (0::nat) --> MOD (EXP (MOD m n) p) n = MOD (EXP m p) n"
+   n ~= 0 --> MOD (EXP (MOD m n) p) n = MOD (EXP m p) n"
   by (import hollight MOD_EXP_MOD)
 
 lemma MOD_MULT_ADD: "ALL (m::nat) (n::nat) p::nat. MOD (m * n + p) n = MOD p n"
   by (import hollight MOD_MULT_ADD)
 
 lemma MOD_ADD_MOD: "ALL (a::nat) (b::nat) n::nat.
-   n ~= (0::nat) --> MOD (MOD a n + MOD b n) n = MOD (a + b) n"
+   n ~= 0 --> MOD (MOD a n + MOD b n) n = MOD (a + b) n"
   by (import hollight MOD_ADD_MOD)
 
 lemma DIV_ADD_MOD: "ALL (a::nat) (b::nat) n::nat.
-   n ~= (0::nat) -->
+   n ~= 0 -->
    (MOD (a + b) n = MOD a n + MOD b n) = (DIV (a + b) n = DIV a n + DIV b n)"
   by (import hollight DIV_ADD_MOD)
 
-lemma DIV_REFL: "ALL n::nat. n ~= (0::nat) --> DIV n n = NUMERAL_BIT1 (0::nat)"
+lemma DIV_REFL: "ALL n::nat. n ~= 0 --> DIV n n = NUMERAL_BIT1 0"
   by (import hollight DIV_REFL)
 
-lemma MOD_LE: "ALL (m::nat) n::nat. n ~= (0::nat) --> <= (MOD m n) m"
+lemma MOD_LE: "ALL (m::nat) n::nat. n ~= 0 --> <= (MOD m n) m"
   by (import hollight MOD_LE)
 
-lemma DIV_MONO2: "ALL (m::nat) (n::nat) p::nat.
-   p ~= (0::nat) & <= p m --> <= (DIV n m) (DIV n p)"
+lemma DIV_MONO2: "ALL (m::nat) (n::nat) p::nat. p ~= 0 & <= p m --> <= (DIV n m) (DIV n p)"
   by (import hollight DIV_MONO2)
 
 lemma DIV_LE_EXCLUSION: "ALL (a::nat) (b::nat) (c::nat) d::nat.
-   b ~= (0::nat) & < (b * c) ((a + NUMERAL_BIT1 (0::nat)) * d) -->
-   <= (DIV c d) (DIV a b)"
+   b ~= 0 & < (b * c) ((a + NUMERAL_BIT1 0) * d) --> <= (DIV c d) (DIV a b)"
   by (import hollight DIV_LE_EXCLUSION)
 
-lemma DIV_EQ_EXCLUSION: "< ((b::nat) * (c::nat)) (((a::nat) + NUMERAL_BIT1 (0::nat)) * (d::nat)) &
-< (a * d) ((c + NUMERAL_BIT1 (0::nat)) * b) -->
+lemma DIV_EQ_EXCLUSION: "< ((b::nat) * (c::nat)) (((a::nat) + NUMERAL_BIT1 0) * (d::nat)) &
+< (a * d) ((c + NUMERAL_BIT1 0) * b) -->
 DIV a b = DIV c d"
   by (import hollight DIV_EQ_EXCLUSION)
 
 lemma SUB_ELIM_THM: "(P::nat => bool) ((a::nat) - (b::nat)) =
-(ALL x::nat. (b = a + x --> P (0::nat)) & (a = b + x --> P x))"
+(ALL x::nat. (b = a + x --> P 0) & (a = b + x --> P x))"
   by (import hollight SUB_ELIM_THM)
 
 lemma PRE_ELIM_THM: "(P::nat => bool) (Pred (n::nat)) =
-(ALL m::nat. (n = (0::nat) --> P (0::nat)) & (n = Suc m --> P m))"
+(ALL m::nat. (n = 0 --> P 0) & (n = Suc m --> P m))"
   by (import hollight PRE_ELIM_THM)
 
 lemma DIVMOD_ELIM_THM: "(P::nat => nat => bool) (DIV (m::nat) (n::nat)) (MOD m n) =
-(n = (0::nat) & P (0::nat) (0::nat) |
- n ~= (0::nat) & (ALL (q::nat) r::nat. m = q * n + r & < r n --> P q r))"
+(n = 0 & P 0 0 |
+ n ~= 0 & (ALL (q::nat) r::nat. m = q * n + r & < r n --> P q r))"
   by (import hollight DIVMOD_ELIM_THM)
 
 constdefs
-  eqeq :: "'q_9910::type
-=> 'q_9909::type => ('q_9910::type => 'q_9909::type => bool) => bool" 
+  eqeq :: "'q_9910 => 'q_9909 => ('q_9910 => 'q_9909 => bool) => bool" 
   "eqeq ==
 %(u::'q_9910::type) (ua::'q_9909::type)
    ub::'q_9910::type => 'q_9909::type => bool. ub u ua"
@@ -942,7 +911,7 @@ lemma MINIMAL: "ALL P::nat => bool.
   by (import hollight MINIMAL)
 
 constdefs
-  WF :: "('A::type => 'A::type => bool) => bool" 
+  WF :: "('A => 'A => bool) => bool" 
   "WF ==
 %u::'A::type => 'A::type => bool.
    ALL P::'A::type => bool.
@@ -1081,7 +1050,7 @@ lemma WF_REC_num: "ALL H::(nat => 'A::type) => nat => 'A::type.
   by (import hollight WF_REC_num)
 
 consts
-  measure :: "('q_11107::type => nat) => 'q_11107::type => 'q_11107::type => bool" 
+  measure :: "('q_11107 => nat) => 'q_11107 => 'q_11107 => bool" 
 
 defs
   measure_def: "hollight.measure ==
@@ -1128,73 +1097,216 @@ lemma WF_REC_TAIL_GENERAL: "ALL (P::('A::type => 'B::type) => 'A::type => bool)
        ALL x::'A::type. f x = COND (P f x) (f (G f x)) (H f x))"
   by (import hollight WF_REC_TAIL_GENERAL)
 
-lemma ARITH_ZERO: "(0::nat) = (0::nat) & NUMERAL_BIT0 (0::nat) = (0::nat)"
+lemma ARITH_ZERO: "(op &::bool => bool => bool) ((op =::nat => nat => bool) (0::nat) (0::nat))
+ ((op =::nat => nat => bool) ((NUMERAL_BIT0::nat => nat) (0::nat)) (0::nat))"
   by (import hollight ARITH_ZERO)
 
 lemma ARITH_SUC: "(ALL x::nat. Suc x = Suc x) &
-Suc (0::nat) = NUMERAL_BIT1 (0::nat) &
+Suc 0 = NUMERAL_BIT1 0 &
 (ALL x::nat. Suc (NUMERAL_BIT0 x) = NUMERAL_BIT1 x) &
 (ALL x::nat. Suc (NUMERAL_BIT1 x) = NUMERAL_BIT0 (Suc x))"
   by (import hollight ARITH_SUC)
 
 lemma ARITH_PRE: "(ALL x::nat. Pred x = Pred x) &
-Pred (0::nat) = (0::nat) &
+Pred 0 = 0 &
 (ALL x::nat.
-    Pred (NUMERAL_BIT0 x) =
-    COND (x = (0::nat)) (0::nat) (NUMERAL_BIT1 (Pred x))) &
+    Pred (NUMERAL_BIT0 x) = COND (x = 0) 0 (NUMERAL_BIT1 (Pred x))) &
 (ALL x::nat. Pred (NUMERAL_BIT1 x) = NUMERAL_BIT0 x)"
   by (import hollight ARITH_PRE)
 
-lemma ARITH_ADD: "(ALL (x::nat) xa::nat. x + xa = x + xa) &
-(0::nat) + (0::nat) = (0::nat) &
-(ALL x::nat. (0::nat) + NUMERAL_BIT0 x = NUMERAL_BIT0 x) &
-(ALL x::nat. (0::nat) + NUMERAL_BIT1 x = NUMERAL_BIT1 x) &
-(ALL x::nat. NUMERAL_BIT0 x + (0::nat) = NUMERAL_BIT0 x) &
-(ALL x::nat. NUMERAL_BIT1 x + (0::nat) = NUMERAL_BIT1 x) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT0 x + NUMERAL_BIT0 xa = NUMERAL_BIT0 (x + xa)) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT0 x + NUMERAL_BIT1 xa = NUMERAL_BIT1 (x + xa)) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT1 x + NUMERAL_BIT0 xa = NUMERAL_BIT1 (x + xa)) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT1 x + NUMERAL_BIT1 xa = NUMERAL_BIT0 (Suc (x + xa)))"
+lemma ARITH_ADD: "(op &::bool => bool => bool)
+ ((All::(nat => bool) => bool)
+   (%x::nat.
+       (All::(nat => bool) => bool)
+        (%xa::nat.
+            (op =::nat => nat => bool) ((op +::nat => nat => nat) x xa)
+             ((op +::nat => nat => nat) x xa))))
+ ((op &::bool => bool => bool)
+   ((op =::nat => nat => bool) ((op +::nat => nat => nat) (0::nat) (0::nat))
+     (0::nat))
+   ((op &::bool => bool => bool)
+     ((All::(nat => bool) => bool)
+       (%x::nat.
+           (op =::nat => nat => bool)
+            ((op +::nat => nat => nat) (0::nat)
+              ((NUMERAL_BIT0::nat => nat) x))
+            ((NUMERAL_BIT0::nat => nat) x)))
+     ((op &::bool => bool => bool)
+       ((All::(nat => bool) => bool)
+         (%x::nat.
+             (op =::nat => nat => bool)
+              ((op +::nat => nat => nat) (0::nat)
+                ((NUMERAL_BIT1::nat => nat) x))
+              ((NUMERAL_BIT1::nat => nat) x)))
+       ((op &::bool => bool => bool)
+         ((All::(nat => bool) => bool)
+           (%x::nat.
+               (op =::nat => nat => bool)
+                ((op +::nat => nat => nat) ((NUMERAL_BIT0::nat => nat) x)
+                  (0::nat))
+                ((NUMERAL_BIT0::nat => nat) x)))
+         ((op &::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%x::nat.
+                 (op =::nat => nat => bool)
+                  ((op +::nat => nat => nat) ((NUMERAL_BIT1::nat => nat) x)
+                    (0::nat))
+                  ((NUMERAL_BIT1::nat => nat) x)))
+           ((op &::bool => bool => bool)
+             ((All::(nat => bool) => bool)
+               (%x::nat.
+                   (All::(nat => bool) => bool)
+                    (%xa::nat.
+                        (op =::nat => nat => bool)
+                         ((op +::nat => nat => nat)
+                           ((NUMERAL_BIT0::nat => nat) x)
+                           ((NUMERAL_BIT0::nat => nat) xa))
+                         ((NUMERAL_BIT0::nat => nat)
+                           ((op +::nat => nat => nat) x xa)))))
+             ((op &::bool => bool => bool)
+               ((All::(nat => bool) => bool)
+                 (%x::nat.
+                     (All::(nat => bool) => bool)
+                      (%xa::nat.
+                          (op =::nat => nat => bool)
+                           ((op +::nat => nat => nat)
+                             ((NUMERAL_BIT0::nat => nat) x)
+                             ((NUMERAL_BIT1::nat => nat) xa))
+                           ((NUMERAL_BIT1::nat => nat)
+                             ((op +::nat => nat => nat) x xa)))))
+               ((op &::bool => bool => bool)
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::nat => nat => bool)
+                             ((op +::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((NUMERAL_BIT0::nat => nat) xa))
+                             ((NUMERAL_BIT1::nat => nat)
+                               ((op +::nat => nat => nat) x xa)))))
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::nat => nat => bool)
+                             ((op +::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((NUMERAL_BIT1::nat => nat) xa))
+                             ((NUMERAL_BIT0::nat => nat)
+                               ((Suc::nat => nat)
+                                 ((op +::nat => nat => nat) x
+                                   xa))))))))))))))"
   by (import hollight ARITH_ADD)
 
-lemma ARITH_MULT: "(ALL (x::nat) xa::nat. x * xa = x * xa) &
-(0::nat) * (0::nat) = (0::nat) &
-(ALL x::nat. (0::nat) * NUMERAL_BIT0 x = (0::nat)) &
-(ALL x::nat. (0::nat) * NUMERAL_BIT1 x = (0::nat)) &
-(ALL x::nat. NUMERAL_BIT0 x * (0::nat) = (0::nat)) &
-(ALL x::nat. NUMERAL_BIT1 x * (0::nat) = (0::nat)) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT0 x * NUMERAL_BIT0 xa =
-    NUMERAL_BIT0 (NUMERAL_BIT0 (x * xa))) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT0 x * NUMERAL_BIT1 xa =
-    NUMERAL_BIT0 x + NUMERAL_BIT0 (NUMERAL_BIT0 (x * xa))) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT1 x * NUMERAL_BIT0 xa =
-    NUMERAL_BIT0 xa + NUMERAL_BIT0 (NUMERAL_BIT0 (x * xa))) &
-(ALL (x::nat) xa::nat.
-    NUMERAL_BIT1 x * NUMERAL_BIT1 xa =
-    NUMERAL_BIT1 x +
-    (NUMERAL_BIT0 xa + NUMERAL_BIT0 (NUMERAL_BIT0 (x * xa))))"
+lemma ARITH_MULT: "(op &::bool => bool => bool)
+ ((All::(nat => bool) => bool)
+   (%x::nat.
+       (All::(nat => bool) => bool)
+        (%xa::nat.
+            (op =::nat => nat => bool) ((op *::nat => nat => nat) x xa)
+             ((op *::nat => nat => nat) x xa))))
+ ((op &::bool => bool => bool)
+   ((op =::nat => nat => bool) ((op *::nat => nat => nat) (0::nat) (0::nat))
+     (0::nat))
+   ((op &::bool => bool => bool)
+     ((All::(nat => bool) => bool)
+       (%x::nat.
+           (op =::nat => nat => bool)
+            ((op *::nat => nat => nat) (0::nat)
+              ((NUMERAL_BIT0::nat => nat) x))
+            (0::nat)))
+     ((op &::bool => bool => bool)
+       ((All::(nat => bool) => bool)
+         (%x::nat.
+             (op =::nat => nat => bool)
+              ((op *::nat => nat => nat) (0::nat)
+                ((NUMERAL_BIT1::nat => nat) x))
+              (0::nat)))
+       ((op &::bool => bool => bool)
+         ((All::(nat => bool) => bool)
+           (%x::nat.
+               (op =::nat => nat => bool)
+                ((op *::nat => nat => nat) ((NUMERAL_BIT0::nat => nat) x)
+                  (0::nat))
+                (0::nat)))
+         ((op &::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%x::nat.
+                 (op =::nat => nat => bool)
+                  ((op *::nat => nat => nat) ((NUMERAL_BIT1::nat => nat) x)
+                    (0::nat))
+                  (0::nat)))
+           ((op &::bool => bool => bool)
+             ((All::(nat => bool) => bool)
+               (%x::nat.
+                   (All::(nat => bool) => bool)
+                    (%xa::nat.
+                        (op =::nat => nat => bool)
+                         ((op *::nat => nat => nat)
+                           ((NUMERAL_BIT0::nat => nat) x)
+                           ((NUMERAL_BIT0::nat => nat) xa))
+                         ((NUMERAL_BIT0::nat => nat)
+                           ((NUMERAL_BIT0::nat => nat)
+                             ((op *::nat => nat => nat) x xa))))))
+             ((op &::bool => bool => bool)
+               ((All::(nat => bool) => bool)
+                 (%x::nat.
+                     (All::(nat => bool) => bool)
+                      (%xa::nat.
+                          (op =::nat => nat => bool)
+                           ((op *::nat => nat => nat)
+                             ((NUMERAL_BIT0::nat => nat) x)
+                             ((NUMERAL_BIT1::nat => nat) xa))
+                           ((op +::nat => nat => nat)
+                             ((NUMERAL_BIT0::nat => nat) x)
+                             ((NUMERAL_BIT0::nat => nat)
+                               ((NUMERAL_BIT0::nat => nat)
+                                 ((op *::nat => nat => nat) x xa)))))))
+               ((op &::bool => bool => bool)
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::nat => nat => bool)
+                             ((op *::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((NUMERAL_BIT0::nat => nat) xa))
+                             ((op +::nat => nat => nat)
+                               ((NUMERAL_BIT0::nat => nat) xa)
+                               ((NUMERAL_BIT0::nat => nat)
+                                 ((NUMERAL_BIT0::nat => nat)
+                                   ((op *::nat => nat => nat) x xa)))))))
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::nat => nat => bool)
+                             ((op *::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((NUMERAL_BIT1::nat => nat) xa))
+                             ((op +::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((op +::nat => nat => nat)
+                                 ((NUMERAL_BIT0::nat => nat) xa)
+                                 ((NUMERAL_BIT0::nat => nat)
+                                   ((NUMERAL_BIT0::nat => nat)
+                                     ((op *::nat => nat => nat) x
+ xa))))))))))))))))"
   by (import hollight ARITH_MULT)
 
 lemma ARITH_EXP: "(ALL (x::nat) xa::nat. EXP x xa = EXP x xa) &
-EXP (0::nat) (0::nat) = NUMERAL_BIT1 (0::nat) &
-(ALL m::nat. EXP (NUMERAL_BIT0 m) (0::nat) = NUMERAL_BIT1 (0::nat)) &
-(ALL m::nat. EXP (NUMERAL_BIT1 m) (0::nat) = NUMERAL_BIT1 (0::nat)) &
-(ALL n::nat.
-    EXP (0::nat) (NUMERAL_BIT0 n) = EXP (0::nat) n * EXP (0::nat) n) &
+EXP 0 0 = NUMERAL_BIT1 0 &
+(ALL m::nat. EXP (NUMERAL_BIT0 m) 0 = NUMERAL_BIT1 0) &
+(ALL m::nat. EXP (NUMERAL_BIT1 m) 0 = NUMERAL_BIT1 0) &
+(ALL n::nat. EXP 0 (NUMERAL_BIT0 n) = EXP 0 n * EXP 0 n) &
 (ALL (m::nat) n::nat.
     EXP (NUMERAL_BIT0 m) (NUMERAL_BIT0 n) =
     EXP (NUMERAL_BIT0 m) n * EXP (NUMERAL_BIT0 m) n) &
 (ALL (m::nat) n::nat.
     EXP (NUMERAL_BIT1 m) (NUMERAL_BIT0 n) =
     EXP (NUMERAL_BIT1 m) n * EXP (NUMERAL_BIT1 m) n) &
-(ALL n::nat. EXP (0::nat) (NUMERAL_BIT1 n) = (0::nat)) &
+(ALL n::nat. EXP 0 (NUMERAL_BIT1 n) = 0) &
 (ALL (m::nat) n::nat.
     EXP (NUMERAL_BIT0 m) (NUMERAL_BIT1 n) =
     NUMERAL_BIT0 m * (EXP (NUMERAL_BIT0 m) n * EXP (NUMERAL_BIT0 m) n)) &
@@ -1204,23 +1316,23 @@ EXP (0::nat) (0::nat) = NUMERAL_BIT1 (0::nat) &
   by (import hollight ARITH_EXP)
 
 lemma ARITH_EVEN: "(ALL x::nat. EVEN x = EVEN x) &
-EVEN (0::nat) = True &
+EVEN 0 = True &
 (ALL x::nat. EVEN (NUMERAL_BIT0 x) = True) &
 (ALL x::nat. EVEN (NUMERAL_BIT1 x) = False)"
   by (import hollight ARITH_EVEN)
 
 lemma ARITH_ODD: "(ALL x::nat. ODD x = ODD x) &
-ODD (0::nat) = False &
+ODD 0 = False &
 (ALL x::nat. ODD (NUMERAL_BIT0 x) = False) &
 (ALL x::nat. ODD (NUMERAL_BIT1 x) = True)"
   by (import hollight ARITH_ODD)
 
 lemma ARITH_LE: "(ALL (x::nat) xa::nat. <= x xa = <= x xa) &
-<= (0::nat) (0::nat) = True &
-(ALL x::nat. <= (NUMERAL_BIT0 x) (0::nat) = (x = (0::nat))) &
-(ALL x::nat. <= (NUMERAL_BIT1 x) (0::nat) = False) &
-(ALL x::nat. <= (0::nat) (NUMERAL_BIT0 x) = True) &
-(ALL x::nat. <= (0::nat) (NUMERAL_BIT1 x) = True) &
+<= 0 0 = True &
+(ALL x::nat. <= (NUMERAL_BIT0 x) 0 = (x = 0)) &
+(ALL x::nat. <= (NUMERAL_BIT1 x) 0 = False) &
+(ALL x::nat. <= 0 (NUMERAL_BIT0 x) = True) &
+(ALL x::nat. <= 0 (NUMERAL_BIT1 x) = True) &
 (ALL (x::nat) xa::nat. <= (NUMERAL_BIT0 x) (NUMERAL_BIT0 xa) = <= x xa) &
 (ALL (x::nat) xa::nat. <= (NUMERAL_BIT0 x) (NUMERAL_BIT1 xa) = <= x xa) &
 (ALL (x::nat) xa::nat. <= (NUMERAL_BIT1 x) (NUMERAL_BIT0 xa) = < x xa) &
@@ -1228,44 +1340,181 @@ lemma ARITH_LE: "(ALL (x::nat) xa::nat. <= x xa = <= x xa) &
   by (import hollight ARITH_LE)
 
 lemma ARITH_LT: "(ALL (x::nat) xa::nat. < x xa = < x xa) &
-< (0::nat) (0::nat) = False &
-(ALL x::nat. < (NUMERAL_BIT0 x) (0::nat) = False) &
-(ALL x::nat. < (NUMERAL_BIT1 x) (0::nat) = False) &
-(ALL x::nat. < (0::nat) (NUMERAL_BIT0 x) = < (0::nat) x) &
-(ALL x::nat. < (0::nat) (NUMERAL_BIT1 x) = True) &
+< 0 0 = False &
+(ALL x::nat. < (NUMERAL_BIT0 x) 0 = False) &
+(ALL x::nat. < (NUMERAL_BIT1 x) 0 = False) &
+(ALL x::nat. < 0 (NUMERAL_BIT0 x) = < 0 x) &
+(ALL x::nat. < 0 (NUMERAL_BIT1 x) = True) &
 (ALL (x::nat) xa::nat. < (NUMERAL_BIT0 x) (NUMERAL_BIT0 xa) = < x xa) &
 (ALL (x::nat) xa::nat. < (NUMERAL_BIT0 x) (NUMERAL_BIT1 xa) = <= x xa) &
 (ALL (x::nat) xa::nat. < (NUMERAL_BIT1 x) (NUMERAL_BIT0 xa) = < x xa) &
 (ALL (x::nat) xa::nat. < (NUMERAL_BIT1 x) (NUMERAL_BIT1 xa) = < x xa)"
   by (import hollight ARITH_LT)
 
-lemma ARITH_EQ: "(ALL (x::nat) xa::nat. (x = xa) = (x = xa)) &
-((0::nat) = (0::nat)) = True &
-(ALL x::nat. (NUMERAL_BIT0 x = (0::nat)) = (x = (0::nat))) &
-(ALL x::nat. (NUMERAL_BIT1 x = (0::nat)) = False) &
-(ALL x::nat. ((0::nat) = NUMERAL_BIT0 x) = ((0::nat) = x)) &
-(ALL x::nat. ((0::nat) = NUMERAL_BIT1 x) = False) &
-(ALL (x::nat) xa::nat. (NUMERAL_BIT0 x = NUMERAL_BIT0 xa) = (x = xa)) &
-(ALL (x::nat) xa::nat. (NUMERAL_BIT0 x = NUMERAL_BIT1 xa) = False) &
-(ALL (x::nat) xa::nat. (NUMERAL_BIT1 x = NUMERAL_BIT0 xa) = False) &
-(ALL (x::nat) xa::nat. (NUMERAL_BIT1 x = NUMERAL_BIT1 xa) = (x = xa))"
+lemma ARITH_EQ: "(op &::bool => bool => bool)
+ ((All::(nat => bool) => bool)
+   (%x::nat.
+       (All::(nat => bool) => bool)
+        (%xa::nat.
+            (op =::bool => bool => bool) ((op =::nat => nat => bool) x xa)
+             ((op =::nat => nat => bool) x xa))))
+ ((op &::bool => bool => bool)
+   ((op =::bool => bool => bool)
+     ((op =::nat => nat => bool) (0::nat) (0::nat)) (True::bool))
+   ((op &::bool => bool => bool)
+     ((All::(nat => bool) => bool)
+       (%x::nat.
+           (op =::bool => bool => bool)
+            ((op =::nat => nat => bool) ((NUMERAL_BIT0::nat => nat) x)
+              (0::nat))
+            ((op =::nat => nat => bool) x (0::nat))))
+     ((op &::bool => bool => bool)
+       ((All::(nat => bool) => bool)
+         (%x::nat.
+             (op =::bool => bool => bool)
+              ((op =::nat => nat => bool) ((NUMERAL_BIT1::nat => nat) x)
+                (0::nat))
+              (False::bool)))
+       ((op &::bool => bool => bool)
+         ((All::(nat => bool) => bool)
+           (%x::nat.
+               (op =::bool => bool => bool)
+                ((op =::nat => nat => bool) (0::nat)
+                  ((NUMERAL_BIT0::nat => nat) x))
+                ((op =::nat => nat => bool) (0::nat) x)))
+         ((op &::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%x::nat.
+                 (op =::bool => bool => bool)
+                  ((op =::nat => nat => bool) (0::nat)
+                    ((NUMERAL_BIT1::nat => nat) x))
+                  (False::bool)))
+           ((op &::bool => bool => bool)
+             ((All::(nat => bool) => bool)
+               (%x::nat.
+                   (All::(nat => bool) => bool)
+                    (%xa::nat.
+                        (op =::bool => bool => bool)
+                         ((op =::nat => nat => bool)
+                           ((NUMERAL_BIT0::nat => nat) x)
+                           ((NUMERAL_BIT0::nat => nat) xa))
+                         ((op =::nat => nat => bool) x xa))))
+             ((op &::bool => bool => bool)
+               ((All::(nat => bool) => bool)
+                 (%x::nat.
+                     (All::(nat => bool) => bool)
+                      (%xa::nat.
+                          (op =::bool => bool => bool)
+                           ((op =::nat => nat => bool)
+                             ((NUMERAL_BIT0::nat => nat) x)
+                             ((NUMERAL_BIT1::nat => nat) xa))
+                           (False::bool))))
+               ((op &::bool => bool => bool)
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::bool => bool => bool)
+                             ((op =::nat => nat => bool)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((NUMERAL_BIT0::nat => nat) xa))
+                             (False::bool))))
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::bool => bool => bool)
+                             ((op =::nat => nat => bool)
+                               ((NUMERAL_BIT1::nat => nat) x)
+                               ((NUMERAL_BIT1::nat => nat) xa))
+                             ((op =::nat => nat => bool) x xa))))))))))))"
   by (import hollight ARITH_EQ)
 
-lemma ARITH_SUB: "(ALL (x::nat) xa::nat. x - xa = x - xa) &
-(0::nat) - (0::nat) = (0::nat) &
-(ALL x::nat. (0::nat) - NUMERAL_BIT0 x = (0::nat)) &
-(ALL x::nat. (0::nat) - NUMERAL_BIT1 x = (0::nat)) &
-(ALL x::nat. NUMERAL_BIT0 x - (0::nat) = NUMERAL_BIT0 x) &
-(ALL x::nat. NUMERAL_BIT1 x - (0::nat) = NUMERAL_BIT1 x) &
-(ALL (m::nat) n::nat.
-    NUMERAL_BIT0 m - NUMERAL_BIT0 n = NUMERAL_BIT0 (m - n)) &
-(ALL (m::nat) n::nat.
-    NUMERAL_BIT0 m - NUMERAL_BIT1 n = Pred (NUMERAL_BIT0 (m - n))) &
-(ALL (m::nat) n::nat.
-    NUMERAL_BIT1 m - NUMERAL_BIT0 n =
-    COND (<= n m) (NUMERAL_BIT1 (m - n)) (0::nat)) &
-(ALL (m::nat) n::nat.
-    NUMERAL_BIT1 m - NUMERAL_BIT1 n = NUMERAL_BIT0 (m - n))"
+lemma ARITH_SUB: "(op &::bool => bool => bool)
+ ((All::(nat => bool) => bool)
+   (%x::nat.
+       (All::(nat => bool) => bool)
+        (%xa::nat.
+            (op =::nat => nat => bool) ((op -::nat => nat => nat) x xa)
+             ((op -::nat => nat => nat) x xa))))
+ ((op &::bool => bool => bool)
+   ((op =::nat => nat => bool) ((op -::nat => nat => nat) (0::nat) (0::nat))
+     (0::nat))
+   ((op &::bool => bool => bool)
+     ((All::(nat => bool) => bool)
+       (%x::nat.
+           (op =::nat => nat => bool)
+            ((op -::nat => nat => nat) (0::nat)
+              ((NUMERAL_BIT0::nat => nat) x))
+            (0::nat)))
+     ((op &::bool => bool => bool)
+       ((All::(nat => bool) => bool)
+         (%x::nat.
+             (op =::nat => nat => bool)
+              ((op -::nat => nat => nat) (0::nat)
+                ((NUMERAL_BIT1::nat => nat) x))
+              (0::nat)))
+       ((op &::bool => bool => bool)
+         ((All::(nat => bool) => bool)
+           (%x::nat.
+               (op =::nat => nat => bool)
+                ((op -::nat => nat => nat) ((NUMERAL_BIT0::nat => nat) x)
+                  (0::nat))
+                ((NUMERAL_BIT0::nat => nat) x)))
+         ((op &::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%x::nat.
+                 (op =::nat => nat => bool)
+                  ((op -::nat => nat => nat) ((NUMERAL_BIT1::nat => nat) x)
+                    (0::nat))
+                  ((NUMERAL_BIT1::nat => nat) x)))
+           ((op &::bool => bool => bool)
+             ((All::(nat => bool) => bool)
+               (%m::nat.
+                   (All::(nat => bool) => bool)
+                    (%n::nat.
+                        (op =::nat => nat => bool)
+                         ((op -::nat => nat => nat)
+                           ((NUMERAL_BIT0::nat => nat) m)
+                           ((NUMERAL_BIT0::nat => nat) n))
+                         ((NUMERAL_BIT0::nat => nat)
+                           ((op -::nat => nat => nat) m n)))))
+             ((op &::bool => bool => bool)
+               ((All::(nat => bool) => bool)
+                 (%m::nat.
+                     (All::(nat => bool) => bool)
+                      (%n::nat.
+                          (op =::nat => nat => bool)
+                           ((op -::nat => nat => nat)
+                             ((NUMERAL_BIT0::nat => nat) m)
+                             ((NUMERAL_BIT1::nat => nat) n))
+                           ((Pred::nat => nat)
+                             ((NUMERAL_BIT0::nat => nat)
+                               ((op -::nat => nat => nat) m n))))))
+               ((op &::bool => bool => bool)
+                 ((All::(nat => bool) => bool)
+                   (%m::nat.
+                       (All::(nat => bool) => bool)
+                        (%n::nat.
+                            (op =::nat => nat => bool)
+                             ((op -::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) m)
+                               ((NUMERAL_BIT0::nat => nat) n))
+                             ((COND::bool => nat => nat => nat)
+                               ((<=::nat => nat => bool) n m)
+                               ((NUMERAL_BIT1::nat => nat)
+                                 ((op -::nat => nat => nat) m n))
+                               (0::nat)))))
+                 ((All::(nat => bool) => bool)
+                   (%m::nat.
+                       (All::(nat => bool) => bool)
+                        (%n::nat.
+                            (op =::nat => nat => bool)
+                             ((op -::nat => nat => nat)
+                               ((NUMERAL_BIT1::nat => nat) m)
+                               ((NUMERAL_BIT1::nat => nat) n))
+                             ((NUMERAL_BIT0::nat => nat)
+                               ((op -::nat => nat => nat) m n)))))))))))))"
   by (import hollight ARITH_SUB)
 
 lemma right_th: "(s::nat) * NUMERAL_BIT1 (x::nat) = s + NUMERAL_BIT0 (s * x)"
@@ -1282,7 +1531,7 @@ lemma SEMIRING_PTHS: "(ALL (x::'A::type) (y::'A::type) z::'A::type.
 (ALL x::'A::type. mul r0 x = r0) &
 (ALL (x::'A::type) (y::'A::type) z::'A::type.
     mul x (add y z) = add (mul x y) (mul x z)) &
-(ALL x::'A::type. (pwr::'A::type => nat => 'A::type) x (0::nat) = r1) &
+(ALL x::'A::type. (pwr::'A::type => nat => 'A::type) x 0 = r1) &
 (ALL (x::'A::type) n::nat. pwr x (Suc n) = mul x (pwr x n)) -->
 mul r1 (x::'A::type) = x &
 add (mul (a::'A::type) (m::'A::type)) (mul (b::'A::type) m) =
@@ -1318,24 +1567,24 @@ add a (add c d) = add (add a c) d &
 mul (pwr x (p::nat)) (pwr x (q::nat)) = pwr x (p + q) &
 mul x (pwr x q) = pwr x (Suc q) &
 mul (pwr x q) x = pwr x (Suc q) &
-mul x x = pwr x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) &
+mul x x = pwr x (NUMERAL_BIT0 (NUMERAL_BIT1 0)) &
 pwr (mul x (y::'A::type)) q = mul (pwr x q) (pwr y q) &
 pwr (pwr x p) q = pwr x (p * q) &
-pwr x (0::nat) = r1 &
-pwr x (NUMERAL_BIT1 (0::nat)) = x &
+pwr x 0 = r1 &
+pwr x (NUMERAL_BIT1 0) = x &
 mul x (add y (z::'A::type)) = add (mul x y) (mul x z) &
 pwr x (Suc q) = mul x (pwr x q)"
   by (import hollight SEMIRING_PTHS)
 
 lemma sth: "(ALL (x::nat) (y::nat) z::nat. x + (y + z) = x + y + z) &
 (ALL (x::nat) y::nat. x + y = y + x) &
-(ALL x::nat. (0::nat) + x = x) &
+(ALL x::nat. 0 + x = x) &
 (ALL (x::nat) (y::nat) z::nat. x * (y * z) = x * y * z) &
 (ALL (x::nat) y::nat. x * y = y * x) &
-(ALL x::nat. NUMERAL_BIT1 (0::nat) * x = x) &
-(ALL x::nat. (0::nat) * x = (0::nat)) &
+(ALL x::nat. NUMERAL_BIT1 0 * x = x) &
+(ALL x::nat. 0 * x = 0) &
 (ALL (x::nat) (xa::nat) xb::nat. x * (xa + xb) = x * xa + x * xb) &
-(ALL x::nat. EXP x (0::nat) = NUMERAL_BIT1 (0::nat)) &
+(ALL x::nat. EXP x 0 = NUMERAL_BIT1 0) &
 (ALL (x::nat) xa::nat. EXP x (Suc xa) = x * EXP x xa)"
   by (import hollight sth)
 
@@ -1343,7 +1592,7 @@ lemma NUM_INTEGRAL_LEMMA: "(w::nat) = (x::nat) + (d::nat) & (y::nat) = (z::nat) 
 (w * y + x * z = w * z + x * y) = (w = x | y = z)"
   by (import hollight NUM_INTEGRAL_LEMMA)
 
-lemma NUM_INTEGRAL: "(ALL x::nat. (0::nat) * x = (0::nat)) &
+lemma NUM_INTEGRAL: "(ALL x::nat. 0 * x = 0) &
 (ALL (x::nat) (xa::nat) xb::nat. (x + xa = x + xb) = (xa = xb)) &
 (ALL (w::nat) (x::nat) (y::nat) z::nat.
     (w * y + x * z = w * z + x * y) = (w = x | y = z))"
@@ -1360,13 +1609,13 @@ constdefs
   NUMPAIR :: "nat => nat => nat" 
   "NUMPAIR ==
 %(u::nat) ua::nat.
-   EXP (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) u *
-   (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * ua + NUMERAL_BIT1 (0::nat))"
+   EXP (NUMERAL_BIT0 (NUMERAL_BIT1 0)) u *
+   (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua + NUMERAL_BIT1 0)"
 
 lemma DEF_NUMPAIR: "NUMPAIR =
 (%(u::nat) ua::nat.
-    EXP (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) u *
-    (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * ua + NUMERAL_BIT1 (0::nat)))"
+    EXP (NUMERAL_BIT0 (NUMERAL_BIT1 0)) u *
+    (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua + NUMERAL_BIT1 0))"
   by (import hollight DEF_NUMPAIR)
 
 lemma NUMPAIR_INJ_LEMMA: "ALL (x::nat) (xa::nat) (xb::nat) xc::nat.
@@ -1405,13 +1654,13 @@ constdefs
   NUMSUM :: "bool => nat => nat" 
   "NUMSUM ==
 %(u::bool) ua::nat.
-   COND u (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * ua))
-    (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * ua)"
+   COND u (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua))
+    (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua)"
 
 lemma DEF_NUMSUM: "NUMSUM =
 (%(u::bool) ua::nat.
-    COND u (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * ua))
-     (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * ua))"
+    COND u (Suc (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua))
+     (NUMERAL_BIT0 (NUMERAL_BIT1 0) * ua))"
   by (import hollight DEF_NUMSUM)
 
 lemma NUMSUM_INJ: "ALL (b1::bool) (x1::nat) (b2::bool) x2::nat.
@@ -1443,7 +1692,7 @@ lemma DEF_NUMRIGHT: "NUMRIGHT =
   by (import hollight DEF_NUMRIGHT)
 
 constdefs
-  INJN :: "nat => nat => 'A::type => bool" 
+  INJN :: "nat => nat => 'A => bool" 
   "INJN == %(u::nat) (n::nat) a::'A::type. n = u"
 
 lemma DEF_INJN: "INJN = (%(u::nat) (n::nat) a::'A::type. n = u)"
@@ -1462,7 +1711,7 @@ lemma INJN_INJ: "(All::(nat => bool) => bool)
   by (import hollight INJN_INJ)
 
 constdefs
-  INJA :: "'A::type => nat => 'A::type => bool" 
+  INJA :: "'A => nat => 'A => bool" 
   "INJA == %(u::'A::type) (n::nat) b::'A::type. b = u"
 
 lemma DEF_INJA: "INJA = (%(u::'A::type) (n::nat) b::'A::type. b = u)"
@@ -1472,7 +1721,7 @@ lemma INJA_INJ: "ALL (a1::'A::type) a2::'A::type. (INJA a1 = INJA a2) = (a1 = a2
   by (import hollight INJA_INJ)
 
 constdefs
-  INJF :: "(nat => nat => 'A::type => bool) => nat => 'A::type => bool" 
+  INJF :: "(nat => nat => 'A => bool) => nat => 'A => bool" 
   "INJF == %(u::nat => nat => 'A::type => bool) n::nat. u (NUMFST n) (NUMSND n)"
 
 lemma DEF_INJF: "INJF =
@@ -1484,8 +1733,7 @@ lemma INJF_INJ: "ALL (f1::nat => nat => 'A::type => bool) f2::nat => nat => 'A::
   by (import hollight INJF_INJ)
 
 constdefs
-  INJP :: "(nat => 'A::type => bool)
-=> (nat => 'A::type => bool) => nat => 'A::type => bool" 
+  INJP :: "(nat => 'A => bool) => (nat => 'A => bool) => nat => 'A => bool" 
   "INJP ==
 %(u::nat => 'A::type => bool) (ua::nat => 'A::type => bool) (n::nat)
    a::'A::type. COND (NUMLEFT n) (u (NUMRIGHT n) a) (ua (NUMRIGHT n) a)"
@@ -1501,8 +1749,7 @@ lemma INJP_INJ: "ALL (f1::nat => 'A::type => bool) (f1'::nat => 'A::type => bool
   by (import hollight INJP_INJ)
 
 constdefs
-  ZCONSTR :: "nat
-=> 'A::type => (nat => nat => 'A::type => bool) => nat => 'A::type => bool" 
+  ZCONSTR :: "nat => 'A => (nat => nat => 'A => bool) => nat => 'A => bool" 
   "ZCONSTR ==
 %(u::nat) (ua::'A::type) ub::nat => nat => 'A::type => bool.
    INJP (INJN (Suc u)) (INJP (INJA ua) (INJF ub))"
@@ -1513,10 +1760,10 @@ lemma DEF_ZCONSTR: "ZCONSTR =
   by (import hollight DEF_ZCONSTR)
 
 constdefs
-  ZBOT :: "nat => 'A::type => bool" 
-  "ZBOT == INJP (INJN (0::nat)) (SOME z::nat => 'A::type => bool. True)"
+  ZBOT :: "nat => 'A => bool" 
+  "ZBOT == INJP (INJN 0) (SOME z::nat => 'A::type => bool. True)"
 
-lemma DEF_ZBOT: "ZBOT = INJP (INJN (0::nat)) (SOME z::nat => 'A::type => bool. True)"
+lemma DEF_ZBOT: "ZBOT = INJP (INJN 0) (SOME z::nat => 'A::type => bool. True)"
   by (import hollight DEF_ZBOT)
 
 lemma ZCONSTR_ZBOT: "ALL (x::nat) (xa::'A::type) xb::nat => nat => 'A::type => bool.
@@ -1524,7 +1771,7 @@ lemma ZCONSTR_ZBOT: "ALL (x::nat) (xa::'A::type) xb::nat => nat => 'A::type => b
   by (import hollight ZCONSTR_ZBOT)
 
 constdefs
-  ZRECSPACE :: "(nat => 'A::type => bool) => bool" 
+  ZRECSPACE :: "(nat => 'A => bool) => bool" 
   "ZRECSPACE ==
 %a::nat => 'A::type => bool.
    ALL ZRECSPACE'::(nat => 'A::type => bool) => bool.
@@ -1559,29 +1806,74 @@ syntax
   "_mk_rec" :: _ ("'_mk'_rec")
 
 lemmas "TYDEF_recspace_@intern" = typedef_hol2hollight 
-  [where a="a :: 'A::type recspace" and r=r ,
+  [where a="a :: 'A recspace" and r=r ,
    OF type_definition_recspace]
 
 constdefs
-  BOTTOM :: "'A::type recspace" 
-  "BOTTOM == _mk_rec ZBOT"
+  BOTTOM :: "'A recspace" 
+  "(op ==::'A::type recspace => 'A::type recspace => prop)
+ (BOTTOM::'A::type recspace)
+ ((_mk_rec::(nat => 'A::type => bool) => 'A::type recspace)
+   (ZBOT::nat => 'A::type => bool))"
 
-lemma DEF_BOTTOM: "BOTTOM = _mk_rec ZBOT"
+lemma DEF_BOTTOM: "(op =::'A::type recspace => 'A::type recspace => bool)
+ (BOTTOM::'A::type recspace)
+ ((_mk_rec::(nat => 'A::type => bool) => 'A::type recspace)
+   (ZBOT::nat => 'A::type => bool))"
   by (import hollight DEF_BOTTOM)
 
 constdefs
-  CONSTR :: "nat => 'A::type => (nat => 'A::type recspace) => 'A::type recspace" 
-  "CONSTR ==
-%(u::nat) (ua::'A::type) ub::nat => 'A::type recspace.
-   _mk_rec (ZCONSTR u ua (%n::nat. _dest_rec (ub n)))"
+  CONSTR :: "nat => 'A => (nat => 'A recspace) => 'A recspace" 
+  "(op ==::(nat => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+        => (nat
+            => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+           => prop)
+ (CONSTR::nat
+          => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+ (%(u::nat) (ua::'A::type) ub::nat => 'A::type recspace.
+     (_mk_rec::(nat => 'A::type => bool) => 'A::type recspace)
+      ((ZCONSTR::nat
+                 => 'A::type
+                    => (nat => nat => 'A::type => bool)
+                       => nat => 'A::type => bool)
+        u ua
+        (%n::nat.
+            (_dest_rec::'A::type recspace => nat => 'A::type => bool)
+             (ub n))))"
 
-lemma DEF_CONSTR: "CONSTR =
-(%(u::nat) (ua::'A::type) ub::nat => 'A::type recspace.
-    _mk_rec (ZCONSTR u ua (%n::nat. _dest_rec (ub n))))"
+lemma DEF_CONSTR: "(op =::(nat => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+       => (nat
+           => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+          => bool)
+ (CONSTR::nat
+          => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+ (%(u::nat) (ua::'A::type) ub::nat => 'A::type recspace.
+     (_mk_rec::(nat => 'A::type => bool) => 'A::type recspace)
+      ((ZCONSTR::nat
+                 => 'A::type
+                    => (nat => nat => 'A::type => bool)
+                       => nat => 'A::type => bool)
+        u ua
+        (%n::nat.
+            (_dest_rec::'A::type recspace => nat => 'A::type => bool)
+             (ub n))))"
   by (import hollight DEF_CONSTR)
 
-lemma MK_REC_INJ: "ALL (x::nat => 'A::type => bool) y::nat => 'A::type => bool.
-   _mk_rec x = _mk_rec y --> ZRECSPACE x & ZRECSPACE y --> x = y"
+lemma MK_REC_INJ: "(All::((nat => 'A::type => bool) => bool) => bool)
+ (%x::nat => 'A::type => bool.
+     (All::((nat => 'A::type => bool) => bool) => bool)
+      (%y::nat => 'A::type => bool.
+          (op -->::bool => bool => bool)
+           ((op =::'A::type recspace => 'A::type recspace => bool)
+             ((_mk_rec::(nat => 'A::type => bool) => 'A::type recspace) x)
+             ((_mk_rec::(nat => 'A::type => bool) => 'A::type recspace) y))
+           ((op -->::bool => bool => bool)
+             ((op &::bool => bool => bool)
+               ((ZRECSPACE::(nat => 'A::type => bool) => bool) x)
+               ((ZRECSPACE::(nat => 'A::type => bool) => bool) y))
+             ((op =::(nat => 'A::type => bool)
+                     => (nat => 'A::type => bool) => bool)
+               x y))))"
   by (import hollight MK_REC_INJ)
 
 lemma CONSTR_BOT: "ALL (c::nat) (i::'A::type) r::nat => 'A::type recspace.
@@ -1609,24 +1901,24 @@ lemma CONSTR_REC: "ALL Fn::nat
   by (import hollight CONSTR_REC)
 
 constdefs
-  FCONS :: "'A::type => (nat => 'A::type) => nat => 'A::type" 
+  FCONS :: "'A => (nat => 'A) => nat => 'A" 
   "FCONS ==
 SOME FCONS::'A::type => (nat => 'A::type) => nat => 'A::type.
-   (ALL (a::'A::type) f::nat => 'A::type. FCONS a f (0::nat) = a) &
+   (ALL (a::'A::type) f::nat => 'A::type. FCONS a f 0 = a) &
    (ALL (a::'A::type) (f::nat => 'A::type) n::nat. FCONS a f (Suc n) = f n)"
 
 lemma DEF_FCONS: "FCONS =
 (SOME FCONS::'A::type => (nat => 'A::type) => nat => 'A::type.
-    (ALL (a::'A::type) f::nat => 'A::type. FCONS a f (0::nat) = a) &
+    (ALL (a::'A::type) f::nat => 'A::type. FCONS a f 0 = a) &
     (ALL (a::'A::type) (f::nat => 'A::type) n::nat.
         FCONS a f (Suc n) = f n))"
   by (import hollight DEF_FCONS)
 
-lemma FCONS_UNDO: "ALL f::nat => 'A::type. f = FCONS (f (0::nat)) (f o Suc)"
+lemma FCONS_UNDO: "ALL f::nat => 'A::type. f = FCONS (f 0) (f o Suc)"
   by (import hollight FCONS_UNDO)
 
 constdefs
-  FNIL :: "nat => 'A::type" 
+  FNIL :: "nat => 'A" 
   "FNIL == %u::nat. SOME x::'A::type. True"
 
 lemma DEF_FNIL: "FNIL = (%u::nat. SOME x::'A::type. True)"
@@ -1695,35 +1987,77 @@ syntax
   "_mk_sum" :: _ ("'_mk'_sum")
 
 lemmas "TYDEF_sum_@intern" = typedef_hol2hollight 
-  [where a="a :: ('A::type, 'B::type) sum" and r=r ,
+  [where a="a :: ('A, 'B) sum" and r=r ,
    OF type_definition_sum]
 
 constdefs
-  INL :: "'A::type => ('A::type, 'B::type) sum" 
-  "INL ==
-%a::'A::type.
-   _mk_sum (CONSTR (0::nat) (a, SOME v::'B::type. True) (%n::nat. BOTTOM))"
+  INL :: "'A => ('A, 'B) sum" 
+  "(op ==::('A::type => ('A::type, 'B::type) sum)
+        => ('A::type => ('A::type, 'B::type) sum) => prop)
+ (INL::'A::type => ('A::type, 'B::type) sum)
+ (%a::'A::type.
+     (_mk_sum::('A::type * 'B::type) recspace => ('A::type, 'B::type) sum)
+      ((CONSTR::nat
+                => 'A::type * 'B::type
+                   => (nat => ('A::type * 'B::type) recspace)
+                      => ('A::type * 'B::type) recspace)
+        (0::nat)
+        ((Pair::'A::type => 'B::type => 'A::type * 'B::type) a
+          ((Eps::('B::type => bool) => 'B::type)
+            (%v::'B::type. True::bool)))
+        (%n::nat. BOTTOM::('A::type * 'B::type) recspace)))"
 
-lemma DEF_INL: "INL =
-(%a::'A::type.
-    _mk_sum (CONSTR (0::nat) (a, SOME v::'B::type. True) (%n::nat. BOTTOM)))"
+lemma DEF_INL: "(op =::('A::type => ('A::type, 'B::type) sum)
+       => ('A::type => ('A::type, 'B::type) sum) => bool)
+ (INL::'A::type => ('A::type, 'B::type) sum)
+ (%a::'A::type.
+     (_mk_sum::('A::type * 'B::type) recspace => ('A::type, 'B::type) sum)
+      ((CONSTR::nat
+                => 'A::type * 'B::type
+                   => (nat => ('A::type * 'B::type) recspace)
+                      => ('A::type * 'B::type) recspace)
+        (0::nat)
+        ((Pair::'A::type => 'B::type => 'A::type * 'B::type) a
+          ((Eps::('B::type => bool) => 'B::type)
+            (%v::'B::type. True::bool)))
+        (%n::nat. BOTTOM::('A::type * 'B::type) recspace)))"
   by (import hollight DEF_INL)
 
 constdefs
-  INR :: "'B::type => ('A::type, 'B::type) sum" 
-  "INR ==
-%a::'B::type.
-   _mk_sum
-    (CONSTR (Suc (0::nat)) (SOME v::'A::type. True, a) (%n::nat. BOTTOM))"
+  INR :: "'B => ('A, 'B) sum" 
+  "(op ==::('B::type => ('A::type, 'B::type) sum)
+        => ('B::type => ('A::type, 'B::type) sum) => prop)
+ (INR::'B::type => ('A::type, 'B::type) sum)
+ (%a::'B::type.
+     (_mk_sum::('A::type * 'B::type) recspace => ('A::type, 'B::type) sum)
+      ((CONSTR::nat
+                => 'A::type * 'B::type
+                   => (nat => ('A::type * 'B::type) recspace)
+                      => ('A::type * 'B::type) recspace)
+        ((Suc::nat => nat) (0::nat))
+        ((Pair::'A::type => 'B::type => 'A::type * 'B::type)
+          ((Eps::('A::type => bool) => 'A::type) (%v::'A::type. True::bool))
+          a)
+        (%n::nat. BOTTOM::('A::type * 'B::type) recspace)))"
 
-lemma DEF_INR: "INR =
-(%a::'B::type.
-    _mk_sum
-     (CONSTR (Suc (0::nat)) (SOME v::'A::type. True, a) (%n::nat. BOTTOM)))"
+lemma DEF_INR: "(op =::('B::type => ('A::type, 'B::type) sum)
+       => ('B::type => ('A::type, 'B::type) sum) => bool)
+ (INR::'B::type => ('A::type, 'B::type) sum)
+ (%a::'B::type.
+     (_mk_sum::('A::type * 'B::type) recspace => ('A::type, 'B::type) sum)
+      ((CONSTR::nat
+                => 'A::type * 'B::type
+                   => (nat => ('A::type * 'B::type) recspace)
+                      => ('A::type * 'B::type) recspace)
+        ((Suc::nat => nat) (0::nat))
+        ((Pair::'A::type => 'B::type => 'A::type * 'B::type)
+          ((Eps::('A::type => bool) => 'A::type) (%v::'A::type. True::bool))
+          a)
+        (%n::nat. BOTTOM::('A::type * 'B::type) recspace)))"
   by (import hollight DEF_INR)
 
 consts
-  OUTL :: "('A::type, 'B::type) sum => 'A::type" 
+  OUTL :: "('A, 'B) sum => 'A" 
 
 defs
   OUTL_def: "hollight.OUTL ==
@@ -1736,7 +2070,7 @@ lemma DEF_OUTL: "hollight.OUTL =
   by (import hollight DEF_OUTL)
 
 consts
-  OUTR :: "('A::type, 'B::type) sum => 'B::type" 
+  OUTR :: "('A, 'B) sum => 'B" 
 
 defs
   OUTR_def: "hollight.OUTR ==
@@ -1790,26 +2124,55 @@ syntax
   "_mk_option" :: _ ("'_mk'_option")
 
 lemmas "TYDEF_option_@intern" = typedef_hol2hollight 
-  [where a="a :: 'A::type hollight.option" and r=r ,
+  [where a="a :: 'A hollight.option" and r=r ,
    OF type_definition_option]
 
 constdefs
-  NONE :: "'A::type hollight.option" 
-  "NONE ==
-_mk_option (CONSTR (0::nat) (SOME v::'A::type. True) (%n::nat. BOTTOM))"
+  NONE :: "'A hollight.option" 
+  "(op ==::'A::type hollight.option => 'A::type hollight.option => prop)
+ (NONE::'A::type hollight.option)
+ ((_mk_option::'A::type recspace => 'A::type hollight.option)
+   ((CONSTR::nat
+             => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+     (0::nat)
+     ((Eps::('A::type => bool) => 'A::type) (%v::'A::type. True::bool))
+     (%n::nat. BOTTOM::'A::type recspace)))"
 
-lemma DEF_NONE: "NONE =
-_mk_option (CONSTR (0::nat) (SOME v::'A::type. True) (%n::nat. BOTTOM))"
+lemma DEF_NONE: "(op =::'A::type hollight.option => 'A::type hollight.option => bool)
+ (NONE::'A::type hollight.option)
+ ((_mk_option::'A::type recspace => 'A::type hollight.option)
+   ((CONSTR::nat
+             => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+     (0::nat)
+     ((Eps::('A::type => bool) => 'A::type) (%v::'A::type. True::bool))
+     (%n::nat. BOTTOM::'A::type recspace)))"
   by (import hollight DEF_NONE)
 
 consts
-  SOME :: "'A::type => 'A::type hollight.option" ("SOME")
+  SOME :: "'A => 'A hollight.option" ("SOME")
 
 defs
-  SOME_def: "SOME == %a::'A::type. _mk_option (CONSTR (Suc (0::nat)) a (%n::nat. BOTTOM))"
+  SOME_def: "(op ==::('A::type => 'A::type hollight.option)
+        => ('A::type => 'A::type hollight.option) => prop)
+ (SOME::'A::type => 'A::type hollight.option)
+ (%a::'A::type.
+     (_mk_option::'A::type recspace => 'A::type hollight.option)
+      ((CONSTR::nat
+                => 'A::type
+                   => (nat => 'A::type recspace) => 'A::type recspace)
+        ((Suc::nat => nat) (0::nat)) a
+        (%n::nat. BOTTOM::'A::type recspace)))"
 
-lemma DEF_SOME: "SOME =
-(%a::'A::type. _mk_option (CONSTR (Suc (0::nat)) a (%n::nat. BOTTOM)))"
+lemma DEF_SOME: "(op =::('A::type => 'A::type hollight.option)
+       => ('A::type => 'A::type hollight.option) => bool)
+ (SOME::'A::type => 'A::type hollight.option)
+ (%a::'A::type.
+     (_mk_option::'A::type recspace => 'A::type hollight.option)
+      ((CONSTR::nat
+                => 'A::type
+                   => (nat => 'A::type recspace) => 'A::type recspace)
+        ((Suc::nat => nat) (0::nat)) a
+        (%n::nat. BOTTOM::'A::type recspace)))"
   by (import hollight DEF_SOME)
 
 typedef (open) ('A) list = "(Collect::('A::type recspace => bool) => 'A::type recspace set)
@@ -1859,27 +2222,61 @@ syntax
   "_mk_list" :: _ ("'_mk'_list")
 
 lemmas "TYDEF_list_@intern" = typedef_hol2hollight 
-  [where a="a :: 'A::type hollight.list" and r=r ,
+  [where a="a :: 'A hollight.list" and r=r ,
    OF type_definition_list]
 
 constdefs
-  NIL :: "'A::type hollight.list" 
-  "NIL == _mk_list (CONSTR (0::nat) (SOME v::'A::type. True) (%n::nat. BOTTOM))"
+  NIL :: "'A hollight.list" 
+  "(op ==::'A::type hollight.list => 'A::type hollight.list => prop)
+ (NIL::'A::type hollight.list)
+ ((_mk_list::'A::type recspace => 'A::type hollight.list)
+   ((CONSTR::nat
+             => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+     (0::nat)
+     ((Eps::('A::type => bool) => 'A::type) (%v::'A::type. True::bool))
+     (%n::nat. BOTTOM::'A::type recspace)))"
 
-lemma DEF_NIL: "NIL = _mk_list (CONSTR (0::nat) (SOME v::'A::type. True) (%n::nat. BOTTOM))"
+lemma DEF_NIL: "(op =::'A::type hollight.list => 'A::type hollight.list => bool)
+ (NIL::'A::type hollight.list)
+ ((_mk_list::'A::type recspace => 'A::type hollight.list)
+   ((CONSTR::nat
+             => 'A::type => (nat => 'A::type recspace) => 'A::type recspace)
+     (0::nat)
+     ((Eps::('A::type => bool) => 'A::type) (%v::'A::type. True::bool))
+     (%n::nat. BOTTOM::'A::type recspace)))"
   by (import hollight DEF_NIL)
 
 constdefs
-  CONS :: "'A::type => 'A::type hollight.list => 'A::type hollight.list" 
-  "CONS ==
-%(a0::'A::type) a1::'A::type hollight.list.
-   _mk_list
-    (CONSTR (Suc (0::nat)) a0 (FCONS (_dest_list a1) (%n::nat. BOTTOM)))"
+  CONS :: "'A => 'A hollight.list => 'A hollight.list" 
+  "(op ==::('A::type => 'A::type hollight.list => 'A::type hollight.list)
+        => ('A::type => 'A::type hollight.list => 'A::type hollight.list)
+           => prop)
+ (CONS::'A::type => 'A::type hollight.list => 'A::type hollight.list)
+ (%(a0::'A::type) a1::'A::type hollight.list.
+     (_mk_list::'A::type recspace => 'A::type hollight.list)
+      ((CONSTR::nat
+                => 'A::type
+                   => (nat => 'A::type recspace) => 'A::type recspace)
+        ((Suc::nat => nat) (0::nat)) a0
+        ((FCONS::'A::type recspace
+                 => (nat => 'A::type recspace) => nat => 'A::type recspace)
+          ((_dest_list::'A::type hollight.list => 'A::type recspace) a1)
+          (%n::nat. BOTTOM::'A::type recspace))))"
 
-lemma DEF_CONS: "CONS =
-(%(a0::'A::type) a1::'A::type hollight.list.
-    _mk_list
-     (CONSTR (Suc (0::nat)) a0 (FCONS (_dest_list a1) (%n::nat. BOTTOM))))"
+lemma DEF_CONS: "(op =::('A::type => 'A::type hollight.list => 'A::type hollight.list)
+       => ('A::type => 'A::type hollight.list => 'A::type hollight.list)
+          => bool)
+ (CONS::'A::type => 'A::type hollight.list => 'A::type hollight.list)
+ (%(a0::'A::type) a1::'A::type hollight.list.
+     (_mk_list::'A::type recspace => 'A::type hollight.list)
+      ((CONSTR::nat
+                => 'A::type
+                   => (nat => 'A::type recspace) => 'A::type recspace)
+        ((Suc::nat => nat) (0::nat)) a0
+        ((FCONS::'A::type recspace
+                 => (nat => 'A::type recspace) => nat => 'A::type recspace)
+          ((_dest_list::'A::type hollight.list => 'A::type recspace) a1)
+          (%n::nat. BOTTOM::'A::type recspace))))"
   by (import hollight DEF_CONS)
 
 lemma pair_RECURSION: "ALL PAIR'::'A::type => 'B::type => 'C::type.
@@ -1888,12 +2285,11 @@ lemma pair_RECURSION: "ALL PAIR'::'A::type => 'B::type => 'C::type.
   by (import hollight pair_RECURSION)
 
 lemma num_RECURSION_STD: "ALL (e::'Z::type) f::nat => 'Z::type => 'Z::type.
-   EX fn::nat => 'Z::type.
-      fn (0::nat) = e & (ALL n::nat. fn (Suc n) = f n (fn n))"
+   EX fn::nat => 'Z::type. fn 0 = e & (ALL n::nat. fn (Suc n) = f n (fn n))"
   by (import hollight num_RECURSION_STD)
 
 constdefs
-  ISO :: "('A::type => 'B::type) => ('B::type => 'A::type) => bool" 
+  ISO :: "('A => 'B) => ('B => 'A) => bool" 
   "ISO ==
 %(u::'A::type => 'B::type) ua::'B::type => 'A::type.
    (ALL x::'B::type. u (ua x) = x) & (ALL y::'A::type. ua (u y) = y)"
@@ -1922,14 +2318,12 @@ lemma ISO_USAGE: "ISO (f::'q_16585::type => 'q_16582::type)
 typedef (open) N_2 = "{a::bool recspace.
  ALL u::bool recspace => bool.
     (ALL a::bool recspace.
+        a = CONSTR (NUMERAL 0) (SOME x::bool. True) (%n::nat. BOTTOM) |
         a =
-        CONSTR (NUMERAL (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM) |
-        a =
-        CONSTR (Suc (NUMERAL (0::nat))) (SOME x::bool. True)
-         (%n::nat. BOTTOM) -->
+        CONSTR (Suc (NUMERAL 0)) (SOME x::bool. True) (%n::nat. BOTTOM) -->
         u a) -->
     u a}"  morphisms "_dest_2" "_mk_2"
-  apply (rule light_ex_imp_nonempty[where t="CONSTR (NUMERAL (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM)"])
+  apply (rule light_ex_imp_nonempty[where t="CONSTR (NUMERAL 0) (SOME x::bool. True) (%n::nat. BOTTOM)"])
   by (import hollight TYDEF_2)
 
 syntax
@@ -1946,20 +2340,36 @@ consts
   "_10288" :: "N_2" ("'_10288")
 
 defs
-  "_10288_def": "_10288 == _mk_2 (CONSTR (0::nat) (SOME x::bool. True) (%n::nat. BOTTOM))"
+  "_10288_def": "(op ==::N_2 => N_2 => prop) (_10288::N_2)
+ ((_mk_2::bool recspace => N_2)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     (0::nat) ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
 
-lemma DEF__10288: "_10288 = _mk_2 (CONSTR (0::nat) (SOME x::bool. True) (%n::nat. BOTTOM))"
+lemma DEF__10288: "(op =::N_2 => N_2 => bool) (_10288::N_2)
+ ((_mk_2::bool recspace => N_2)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     (0::nat) ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10288)
 
 consts
   "_10289" :: "N_2" ("'_10289")
 
 defs
-  "_10289_def": "_10289 ==
-_mk_2 (CONSTR (Suc (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM))"
+  "_10289_def": "(op ==::N_2 => N_2 => prop) (_10289::N_2)
+ ((_mk_2::bool recspace => N_2)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     ((Suc::nat => nat) (0::nat))
+     ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
 
-lemma DEF__10289: "_10289 =
-_mk_2 (CONSTR (Suc (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM))"
+lemma DEF__10289: "(op =::N_2 => N_2 => bool) (_10289::N_2)
+ ((_mk_2::bool recspace => N_2)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     ((Suc::nat => nat) (0::nat))
+     ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10289)
 
 constdefs
@@ -1979,17 +2389,15 @@ lemma DEF_two_2: "two_2 = _10289"
 typedef (open) N_3 = "{a::bool recspace.
  ALL u::bool recspace => bool.
     (ALL a::bool recspace.
+        a = CONSTR (NUMERAL 0) (SOME x::bool. True) (%n::nat. BOTTOM) |
         a =
-        CONSTR (NUMERAL (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM) |
+        CONSTR (Suc (NUMERAL 0)) (SOME x::bool. True) (%n::nat. BOTTOM) |
         a =
-        CONSTR (Suc (NUMERAL (0::nat))) (SOME x::bool. True)
-         (%n::nat. BOTTOM) |
-        a =
-        CONSTR (Suc (Suc (NUMERAL (0::nat)))) (SOME x::bool. True)
+        CONSTR (Suc (Suc (NUMERAL 0))) (SOME x::bool. True)
          (%n::nat. BOTTOM) -->
         u a) -->
     u a}"  morphisms "_dest_3" "_mk_3"
-  apply (rule light_ex_imp_nonempty[where t="CONSTR (NUMERAL (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM)"])
+  apply (rule light_ex_imp_nonempty[where t="CONSTR (NUMERAL 0) (SOME x::bool. True) (%n::nat. BOTTOM)"])
   by (import hollight TYDEF_3)
 
 syntax
@@ -2006,31 +2414,55 @@ consts
   "_10312" :: "N_3" ("'_10312")
 
 defs
-  "_10312_def": "_10312 == _mk_3 (CONSTR (0::nat) (SOME x::bool. True) (%n::nat. BOTTOM))"
+  "_10312_def": "(op ==::N_3 => N_3 => prop) (_10312::N_3)
+ ((_mk_3::bool recspace => N_3)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     (0::nat) ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
 
-lemma DEF__10312: "_10312 = _mk_3 (CONSTR (0::nat) (SOME x::bool. True) (%n::nat. BOTTOM))"
+lemma DEF__10312: "(op =::N_3 => N_3 => bool) (_10312::N_3)
+ ((_mk_3::bool recspace => N_3)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     (0::nat) ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10312)
 
 consts
   "_10313" :: "N_3" ("'_10313")
 
 defs
-  "_10313_def": "_10313 ==
-_mk_3 (CONSTR (Suc (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM))"
+  "_10313_def": "(op ==::N_3 => N_3 => prop) (_10313::N_3)
+ ((_mk_3::bool recspace => N_3)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     ((Suc::nat => nat) (0::nat))
+     ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
 
-lemma DEF__10313: "_10313 =
-_mk_3 (CONSTR (Suc (0::nat)) (SOME x::bool. True) (%n::nat. BOTTOM))"
+lemma DEF__10313: "(op =::N_3 => N_3 => bool) (_10313::N_3)
+ ((_mk_3::bool recspace => N_3)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     ((Suc::nat => nat) (0::nat))
+     ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10313)
 
 consts
   "_10314" :: "N_3" ("'_10314")
 
 defs
-  "_10314_def": "_10314 ==
-_mk_3 (CONSTR (Suc (Suc (0::nat))) (SOME x::bool. True) (%n::nat. BOTTOM))"
+  "_10314_def": "(op ==::N_3 => N_3 => prop) (_10314::N_3)
+ ((_mk_3::bool recspace => N_3)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     ((Suc::nat => nat) ((Suc::nat => nat) (0::nat)))
+     ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
 
-lemma DEF__10314: "_10314 =
-_mk_3 (CONSTR (Suc (Suc (0::nat))) (SOME x::bool. True) (%n::nat. BOTTOM))"
+lemma DEF__10314: "(op =::N_3 => N_3 => bool) (_10314::N_3)
+ ((_mk_3::bool recspace => N_3)
+   ((CONSTR::nat => bool => (nat => bool recspace) => bool recspace)
+     ((Suc::nat => nat) ((Suc::nat => nat) (0::nat)))
+     ((Eps::(bool => bool) => bool) (%x::bool. True::bool))
+     (%n::nat. BOTTOM::bool recspace)))"
   by (import hollight DEF__10314)
 
 constdefs
@@ -2062,7 +2494,7 @@ lemma list_INDUCT: "ALL P::'A::type hollight.list => bool.
   by (import hollight list_INDUCT)
 
 constdefs
-  HD :: "'A::type hollight.list => 'A::type" 
+  HD :: "'A hollight.list => 'A" 
   "HD ==
 SOME HD::'A::type hollight.list => 'A::type.
    ALL (t::'A::type hollight.list) h::'A::type. HD (CONS h t) = h"
@@ -2073,7 +2505,7 @@ lemma DEF_HD: "HD =
   by (import hollight DEF_HD)
 
 constdefs
-  TL :: "'A::type hollight.list => 'A::type hollight.list" 
+  TL :: "'A hollight.list => 'A hollight.list" 
   "TL ==
 SOME TL::'A::type hollight.list => 'A::type hollight.list.
    ALL (h::'A::type) t::'A::type hollight.list. TL (CONS h t) = t"
@@ -2084,7 +2516,7 @@ lemma DEF_TL: "TL =
   by (import hollight DEF_TL)
 
 constdefs
-  APPEND :: "'A::type hollight.list => 'A::type hollight.list => 'A::type hollight.list" 
+  APPEND :: "'A hollight.list => 'A hollight.list => 'A hollight.list" 
   "APPEND ==
 SOME APPEND::'A::type hollight.list
              => 'A::type hollight.list => 'A::type hollight.list.
@@ -2102,7 +2534,7 @@ lemma DEF_APPEND: "APPEND =
   by (import hollight DEF_APPEND)
 
 constdefs
-  REVERSE :: "'A::type hollight.list => 'A::type hollight.list" 
+  REVERSE :: "'A hollight.list => 'A hollight.list" 
   "REVERSE ==
 SOME REVERSE::'A::type hollight.list => 'A::type hollight.list.
    REVERSE NIL = NIL &
@@ -2117,22 +2549,22 @@ lemma DEF_REVERSE: "REVERSE =
   by (import hollight DEF_REVERSE)
 
 constdefs
-  LENGTH :: "'A::type hollight.list => nat" 
+  LENGTH :: "'A hollight.list => nat" 
   "LENGTH ==
 SOME LENGTH::'A::type hollight.list => nat.
-   LENGTH NIL = (0::nat) &
+   LENGTH NIL = 0 &
    (ALL (h::'A::type) t::'A::type hollight.list.
        LENGTH (CONS h t) = Suc (LENGTH t))"
 
 lemma DEF_LENGTH: "LENGTH =
 (SOME LENGTH::'A::type hollight.list => nat.
-    LENGTH NIL = (0::nat) &
+    LENGTH NIL = 0 &
     (ALL (h::'A::type) t::'A::type hollight.list.
         LENGTH (CONS h t) = Suc (LENGTH t)))"
   by (import hollight DEF_LENGTH)
 
 constdefs
-  MAP :: "('A::type => 'B::type) => 'A::type hollight.list => 'B::type hollight.list" 
+  MAP :: "('A => 'B) => 'A hollight.list => 'B hollight.list" 
   "MAP ==
 SOME MAP::('A::type => 'B::type)
           => 'A::type hollight.list => 'B::type hollight.list.
@@ -2149,7 +2581,7 @@ lemma DEF_MAP: "MAP =
   by (import hollight DEF_MAP)
 
 constdefs
-  LAST :: "'A::type hollight.list => 'A::type" 
+  LAST :: "'A hollight.list => 'A" 
   "LAST ==
 SOME LAST::'A::type hollight.list => 'A::type.
    ALL (h::'A::type) t::'A::type hollight.list.
@@ -2162,22 +2594,22 @@ lemma DEF_LAST: "LAST =
   by (import hollight DEF_LAST)
 
 constdefs
-  REPLICATE :: "nat => 'q_16809::type => 'q_16809::type hollight.list" 
+  REPLICATE :: "nat => 'q_16809 => 'q_16809 hollight.list" 
   "REPLICATE ==
 SOME REPLICATE::nat => 'q_16809::type => 'q_16809::type hollight.list.
-   (ALL x::'q_16809::type. REPLICATE (0::nat) x = NIL) &
+   (ALL x::'q_16809::type. REPLICATE 0 x = NIL) &
    (ALL (n::nat) x::'q_16809::type.
        REPLICATE (Suc n) x = CONS x (REPLICATE n x))"
 
 lemma DEF_REPLICATE: "REPLICATE =
 (SOME REPLICATE::nat => 'q_16809::type => 'q_16809::type hollight.list.
-    (ALL x::'q_16809::type. REPLICATE (0::nat) x = NIL) &
+    (ALL x::'q_16809::type. REPLICATE 0 x = NIL) &
     (ALL (n::nat) x::'q_16809::type.
         REPLICATE (Suc n) x = CONS x (REPLICATE n x)))"
   by (import hollight DEF_REPLICATE)
 
 constdefs
-  NULL :: "'q_16824::type hollight.list => bool" 
+  NULL :: "'q_16824 hollight.list => bool" 
   "NULL ==
 SOME NULL::'q_16824::type hollight.list => bool.
    NULL NIL = True &
@@ -2192,7 +2624,7 @@ lemma DEF_NULL: "NULL =
   by (import hollight DEF_NULL)
 
 constdefs
-  ALL_list :: "('q_16844::type => bool) => 'q_16844::type hollight.list => bool" 
+  ALL_list :: "('q_16844 => bool) => 'q_16844 hollight.list => bool" 
   "ALL_list ==
 SOME u::('q_16844::type => bool) => 'q_16844::type hollight.list => bool.
    (ALL P::'q_16844::type => bool. u P NIL = True) &
@@ -2207,7 +2639,7 @@ lemma DEF_ALL: "ALL_list =
   by (import hollight DEF_ALL)
 
 consts
-  EX :: "('q_16865::type => bool) => 'q_16865::type hollight.list => bool" ("EX")
+  EX :: "('q_16865 => bool) => 'q_16865 hollight.list => bool" ("EX")
 
 defs
   EX_def: "EX ==
@@ -2224,8 +2656,8 @@ lemma DEF_EX: "EX =
   by (import hollight DEF_EX)
 
 constdefs
-  ITLIST :: "('q_16888::type => 'q_16887::type => 'q_16887::type)
-=> 'q_16888::type hollight.list => 'q_16887::type => 'q_16887::type" 
+  ITLIST :: "('q_16888 => 'q_16887 => 'q_16887)
+=> 'q_16888 hollight.list => 'q_16887 => 'q_16887" 
   "ITLIST ==
 SOME ITLIST::('q_16888::type => 'q_16887::type => 'q_16887::type)
              => 'q_16888::type hollight.list
@@ -2250,7 +2682,7 @@ lemma DEF_ITLIST: "ITLIST =
   by (import hollight DEF_ITLIST)
 
 constdefs
-  MEM :: "'q_16913::type => 'q_16913::type hollight.list => bool" 
+  MEM :: "'q_16913 => 'q_16913 hollight.list => bool" 
   "MEM ==
 SOME MEM::'q_16913::type => 'q_16913::type hollight.list => bool.
    (ALL x::'q_16913::type. MEM x NIL = False) &
@@ -2267,8 +2699,8 @@ lemma DEF_MEM: "MEM =
   by (import hollight DEF_MEM)
 
 constdefs
-  ALL2 :: "('q_16946::type => 'q_16953::type => bool)
-=> 'q_16946::type hollight.list => 'q_16953::type hollight.list => bool" 
+  ALL2 :: "('q_16946 => 'q_16953 => bool)
+=> 'q_16946 hollight.list => 'q_16953 hollight.list => bool" 
   "ALL2 ==
 SOME ALL2::('q_16946::type => 'q_16953::type => bool)
            => 'q_16946::type hollight.list
@@ -2301,9 +2733,9 @@ ALL2 P (CONS h1 t1) (CONS h2 t2) = (P h1 h2 & ALL2 P t1 t2)"
   by (import hollight ALL2)
 
 constdefs
-  MAP2 :: "('q_17038::type => 'q_17045::type => 'q_17035::type)
-=> 'q_17038::type hollight.list
-   => 'q_17045::type hollight.list => 'q_17035::type hollight.list" 
+  MAP2 :: "('q_17038 => 'q_17045 => 'q_17035)
+=> 'q_17038 hollight.list
+   => 'q_17045 hollight.list => 'q_17035 hollight.list" 
   "MAP2 ==
 SOME MAP2::('q_17038::type => 'q_17045::type => 'q_17035::type)
            => 'q_17038::type hollight.list
@@ -2336,23 +2768,22 @@ CONS (f h1 h2) (MAP2 f t1 t2)"
   by (import hollight MAP2)
 
 constdefs
-  EL :: "nat => 'q_17106::type hollight.list => 'q_17106::type" 
+  EL :: "nat => 'q_17106 hollight.list => 'q_17106" 
   "EL ==
 SOME EL::nat => 'q_17106::type hollight.list => 'q_17106::type.
-   (ALL l::'q_17106::type hollight.list. EL (0::nat) l = HD l) &
+   (ALL l::'q_17106::type hollight.list. EL 0 l = HD l) &
    (ALL (n::nat) l::'q_17106::type hollight.list.
        EL (Suc n) l = EL n (TL l))"
 
 lemma DEF_EL: "EL =
 (SOME EL::nat => 'q_17106::type hollight.list => 'q_17106::type.
-    (ALL l::'q_17106::type hollight.list. EL (0::nat) l = HD l) &
+    (ALL l::'q_17106::type hollight.list. EL 0 l = HD l) &
     (ALL (n::nat) l::'q_17106::type hollight.list.
         EL (Suc n) l = EL n (TL l)))"
   by (import hollight DEF_EL)
 
 constdefs
-  FILTER :: "('q_17131::type => bool)
-=> 'q_17131::type hollight.list => 'q_17131::type hollight.list" 
+  FILTER :: "('q_17131 => bool) => 'q_17131 hollight.list => 'q_17131 hollight.list" 
   "FILTER ==
 SOME FILTER::('q_17131::type => bool)
              => 'q_17131::type hollight.list
@@ -2374,8 +2805,7 @@ lemma DEF_FILTER: "FILTER =
   by (import hollight DEF_FILTER)
 
 constdefs
-  ASSOC :: "'q_17160::type
-=> ('q_17160::type * 'q_17154::type) hollight.list => 'q_17154::type" 
+  ASSOC :: "'q_17160 => ('q_17160 * 'q_17154) hollight.list => 'q_17154" 
   "ASSOC ==
 SOME ASSOC::'q_17160::type
             => ('q_17160::type * 'q_17154::type) hollight.list
@@ -2394,9 +2824,8 @@ lemma DEF_ASSOC: "ASSOC =
   by (import hollight DEF_ASSOC)
 
 constdefs
-  ITLIST2 :: "('q_17184::type => 'q_17192::type => 'q_17182::type => 'q_17182::type)
-=> 'q_17184::type hollight.list
-   => 'q_17192::type hollight.list => 'q_17182::type => 'q_17182::type" 
+  ITLIST2 :: "('q_17184 => 'q_17192 => 'q_17182 => 'q_17182)
+=> 'q_17184 hollight.list => 'q_17192 hollight.list => 'q_17182 => 'q_17182" 
   "ITLIST2 ==
 SOME ITLIST2::('q_17184::type
                => 'q_17192::type => 'q_17182::type => 'q_17182::type)
@@ -2443,9 +2872,8 @@ f h1 h2 (ITLIST2 f t1 t2 b)"
   by (import hollight ITLIST2)
 
 consts
-  ZIP :: "'q_17256::type hollight.list
-=> 'q_17264::type hollight.list
-   => ('q_17256::type * 'q_17264::type) hollight.list" 
+  ZIP :: "'q_17256 hollight.list
+=> 'q_17264 hollight.list => ('q_17256 * 'q_17264) hollight.list" 
 
 defs
   ZIP_def: "hollight.ZIP ==
@@ -2544,7 +2972,7 @@ lemma LENGTH_MAP: "ALL (l::'A::type hollight.list) f::'A::type => 'B::type.
    LENGTH (MAP f l) = LENGTH l"
   by (import hollight LENGTH_MAP)
 
-lemma LENGTH_EQ_NIL: "ALL l::'A::type hollight.list. (LENGTH l = (0::nat)) = (l = NIL)"
+lemma LENGTH_EQ_NIL: "ALL l::'A::type hollight.list. (LENGTH l = 0) = (l = NIL)"
   by (import hollight LENGTH_EQ_NIL)
 
 lemma LENGTH_EQ_CONS: "ALL (l::'q_17608::type hollight.list) n::nat.
@@ -2748,13 +3176,13 @@ constdefs
 lemma DEF_dist: "dist = (%u::nat * nat. fst u - snd u + (snd u - fst u))"
   by (import hollight DEF_dist)
 
-lemma DIST_REFL: "ALL x::nat. dist (x, x) = (0::nat)"
+lemma DIST_REFL: "ALL x::nat. dist (x, x) = 0"
   by (import hollight DIST_REFL)
 
-lemma DIST_LZERO: "ALL x::nat. dist (0::nat, x) = x"
+lemma DIST_LZERO: "ALL x::nat. dist (0, x) = x"
   by (import hollight DIST_LZERO)
 
-lemma DIST_RZERO: "ALL x::nat. dist (x, 0::nat) = x"
+lemma DIST_RZERO: "ALL x::nat. dist (x, 0) = x"
   by (import hollight DIST_RZERO)
 
 lemma DIST_SYM: "ALL (x::nat) xa::nat. dist (x, xa) = dist (xa, x)"
@@ -2778,7 +3206,7 @@ lemma DIST_LMUL: "ALL (x::nat) (xa::nat) xb::nat. x * dist (xa, xb) = dist (x * 
 lemma DIST_RMUL: "ALL (x::nat) (xa::nat) xb::nat. dist (x, xa) * xb = dist (x * xb, xa * xb)"
   by (import hollight DIST_RMUL)
 
-lemma DIST_EQ_0: "ALL (x::nat) xa::nat. (dist (x, xa) = (0::nat)) = (x = xa)"
+lemma DIST_EQ_0: "ALL (x::nat) xa::nat. (dist (x, xa) = 0) = (x = xa)"
   by (import hollight DIST_EQ_0)
 
 lemma DIST_ELIM_THM: "(P::nat => bool) (dist (x::nat, y::nat)) =
@@ -2815,7 +3243,7 @@ lemma DIST_TRIANGLES_LE: "ALL (m::nat) (n::nat) (p::nat) (q::nat) (r::nat) s::na
 lemma BOUNDS_LINEAR: "ALL (A::nat) (B::nat) C::nat. (ALL n::nat. <= (A * n) (B * n + C)) = <= A B"
   by (import hollight BOUNDS_LINEAR)
 
-lemma BOUNDS_LINEAR_0: "ALL (A::nat) B::nat. (ALL n::nat. <= (A * n) B) = (A = (0::nat))"
+lemma BOUNDS_LINEAR_0: "ALL (A::nat) B::nat. (ALL n::nat. <= (A * n) B) = (A = 0)"
   by (import hollight BOUNDS_LINEAR_0)
 
 lemma BOUNDS_DIVIDED: "ALL P::nat => nat.
@@ -2824,8 +3252,7 @@ lemma BOUNDS_DIVIDED: "ALL P::nat => nat.
   by (import hollight BOUNDS_DIVIDED)
 
 lemma BOUNDS_NOTZERO: "ALL (P::nat => nat => nat) (A::nat) B::nat.
-   P (0::nat) (0::nat) = (0::nat) &
-   (ALL (m::nat) n::nat. <= (P m n) (A * (m + n) + B)) -->
+   P 0 0 = 0 & (ALL (m::nat) n::nat. <= (P m n) (A * (m + n) + B)) -->
    (EX x::nat. ALL (m::nat) n::nat. <= (P m n) (x * (m + n)))"
   by (import hollight BOUNDS_NOTZERO)
 
@@ -2847,11 +3274,11 @@ lemma DEF_is_nadd: "is_nadd =
        ALL (m::nat) n::nat. <= (dist (m * u n, n * u m)) (B * (m + n)))"
   by (import hollight DEF_is_nadd)
 
-lemma is_nadd_0: "is_nadd (%n::nat. 0::nat)"
+lemma is_nadd_0: "is_nadd (%n::nat. 0)"
   by (import hollight is_nadd_0)
 
 typedef (open) nadd = "Collect is_nadd"  morphisms "dest_nadd" "mk_nadd"
-  apply (rule light_ex_imp_nonempty[where t="%n::nat. NUMERAL (0::nat)"])
+  apply (rule light_ex_imp_nonempty[where t="%n::nat. NUMERAL 0"])
   by (import hollight TYDEF_nadd)
 
 syntax
@@ -2978,8 +3405,7 @@ lemma NADD_LE_ANTISYM: "ALL (x::nadd) y::nadd. (nadd_le x y & nadd_le y x) = nad
 
 lemma NADD_LE_TOTAL_LEMMA: "ALL (x::nadd) y::nadd.
    ~ nadd_le x y -->
-   (ALL B::nat.
-       EX n::nat. n ~= (0::nat) & < (dest_nadd y n + B) (dest_nadd x n))"
+   (ALL B::nat. EX n::nat. n ~= 0 & < (dest_nadd y n + B) (dest_nadd x n))"
   by (import hollight NADD_LE_TOTAL_LEMMA)
 
 lemma NADD_LE_TOTAL: "ALL (x::nadd) y::nadd. nadd_le x y | nadd_le y x"
@@ -3015,7 +3441,7 @@ lemma NADD_ADD_ASSOC: "ALL (x::nadd) (y::nadd) z::nadd.
    nadd_eq (nadd_add x (nadd_add y z)) (nadd_add (nadd_add x y) z)"
   by (import hollight NADD_ADD_ASSOC)
 
-lemma NADD_ADD_LID: "ALL x::nadd. nadd_eq (nadd_add (nadd_of_num (0::nat)) x) x"
+lemma NADD_ADD_LID: "ALL x::nadd. nadd_eq (nadd_add (nadd_of_num 0) x) x"
   by (import hollight NADD_ADD_LID)
 
 lemma NADD_ADD_LCANCEL: "ALL (x::nadd) (y::nadd) z::nadd.
@@ -3054,7 +3480,7 @@ lemma NADD_MUL_ASSOC: "ALL (x::nadd) (y::nadd) z::nadd.
    nadd_eq (nadd_mul x (nadd_mul y z)) (nadd_mul (nadd_mul x y) z)"
   by (import hollight NADD_MUL_ASSOC)
 
-lemma NADD_MUL_LID: "ALL x::nadd. nadd_eq (nadd_mul (nadd_of_num (NUMERAL_BIT1 (0::nat))) x) x"
+lemma NADD_MUL_LID: "ALL x::nadd. nadd_eq (nadd_mul (nadd_of_num (NUMERAL_BIT1 0)) x) x"
   by (import hollight NADD_MUL_LID)
 
 lemma NADD_LDISTRIB: "ALL (x::nadd) (y::nadd) z::nadd.
@@ -3075,7 +3501,7 @@ lemma NADD_OF_NUM_MUL: "ALL (x::nat) xa::nat.
     (nadd_of_num (x * xa))"
   by (import hollight NADD_OF_NUM_MUL)
 
-lemma NADD_LE_0: "All (nadd_le (nadd_of_num (0::nat)))"
+lemma NADD_LE_0: "All (nadd_le (nadd_of_num 0))"
   by (import hollight NADD_LE_0)
 
 lemma NADD_EQ_IMP_LE: "ALL (x::nadd) y::nadd. nadd_eq x y --> nadd_le x y"
@@ -3103,13 +3529,13 @@ lemma NADD_RDISTRIB: "ALL (x::nadd) (y::nadd) z::nadd.
   by (import hollight NADD_RDISTRIB)
 
 lemma NADD_ARCH_MULT: "ALL (x::nadd) k::nat.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX xa::nat. nadd_le (nadd_of_num k) (nadd_mul (nadd_of_num xa) x))"
   by (import hollight NADD_ARCH_MULT)
 
 lemma NADD_ARCH_ZERO: "ALL (x::nadd) k::nadd.
    (ALL n::nat. nadd_le (nadd_mul (nadd_of_num n) x) k) -->
-   nadd_eq x (nadd_of_num (0::nat))"
+   nadd_eq x (nadd_of_num 0)"
   by (import hollight NADD_ARCH_ZERO)
 
 lemma NADD_ARCH_LEMMA: "ALL (x::nadd) (y::nadd) z::nadd.
@@ -3131,12 +3557,12 @@ lemma NADD_UBOUND: "ALL x::nadd.
   by (import hollight NADD_UBOUND)
 
 lemma NADD_NONZERO: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
-   (EX N::nat. ALL n::nat. <= N n --> dest_nadd x n ~= (0::nat))"
+   ~ nadd_eq x (nadd_of_num 0) -->
+   (EX N::nat. ALL n::nat. <= N n --> dest_nadd x n ~= 0)"
   by (import hollight NADD_NONZERO)
 
 lemma NADD_LBOUND: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX (A::nat) N::nat. ALL n::nat. <= N n --> <= n (A * dest_nadd x n))"
   by (import hollight NADD_LBOUND)
 
@@ -3148,17 +3574,17 @@ lemma DEF_nadd_rinv: "nadd_rinv = (%(u::nadd) n::nat. DIV (n * n) (dest_nadd u n
   by (import hollight DEF_nadd_rinv)
 
 lemma NADD_MUL_LINV_LEMMA0: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX (xa::nat) B::nat. ALL i::nat. <= (nadd_rinv x i) (xa * i + B))"
   by (import hollight NADD_MUL_LINV_LEMMA0)
 
 lemma NADD_MUL_LINV_LEMMA1: "ALL (x::nadd) n::nat.
-   dest_nadd x n ~= (0::nat) -->
+   dest_nadd x n ~= 0 -->
    <= (dist (dest_nadd x n * nadd_rinv x n, n * n)) (dest_nadd x n)"
   by (import hollight NADD_MUL_LINV_LEMMA1)
 
 lemma NADD_MUL_LINV_LEMMA2: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX N::nat.
        ALL n::nat.
           <= N n -->
@@ -3166,7 +3592,7 @@ lemma NADD_MUL_LINV_LEMMA2: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA2)
 
 lemma NADD_MUL_LINV_LEMMA3: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX N::nat.
        ALL (m::nat) n::nat.
           <= N n -->
@@ -3177,7 +3603,7 @@ lemma NADD_MUL_LINV_LEMMA3: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA3)
 
 lemma NADD_MUL_LINV_LEMMA4: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX N::nat.
        ALL (m::nat) n::nat.
           <= N m & <= N n -->
@@ -3188,7 +3614,7 @@ lemma NADD_MUL_LINV_LEMMA4: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA4)
 
 lemma NADD_MUL_LINV_LEMMA5: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX (B::nat) N::nat.
        ALL (m::nat) n::nat.
           <= N m & <= N n -->
@@ -3198,7 +3624,7 @@ lemma NADD_MUL_LINV_LEMMA5: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA5)
 
 lemma NADD_MUL_LINV_LEMMA6: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX (B::nat) N::nat.
        ALL (m::nat) n::nat.
           <= N m & <= N n -->
@@ -3207,7 +3633,7 @@ lemma NADD_MUL_LINV_LEMMA6: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA6)
 
 lemma NADD_MUL_LINV_LEMMA7: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX (B::nat) N::nat.
        ALL (m::nat) n::nat.
           <= N m & <= N n -->
@@ -3215,7 +3641,7 @@ lemma NADD_MUL_LINV_LEMMA7: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA7)
 
 lemma NADD_MUL_LINV_LEMMA7a: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (ALL N::nat.
        EX (A::nat) B::nat.
           ALL (m::nat) n::nat.
@@ -3224,7 +3650,7 @@ lemma NADD_MUL_LINV_LEMMA7a: "ALL x::nadd.
   by (import hollight NADD_MUL_LINV_LEMMA7a)
 
 lemma NADD_MUL_LINV_LEMMA8: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
+   ~ nadd_eq x (nadd_of_num 0) -->
    (EX B::nat.
        ALL (m::nat) n::nat.
           <= (dist (m * nadd_rinv x n, n * nadd_rinv x m)) (B * (m + n)))"
@@ -3234,26 +3660,25 @@ constdefs
   nadd_inv :: "nadd => nadd" 
   "nadd_inv ==
 %u::nadd.
-   COND (nadd_eq u (nadd_of_num (0::nat))) (nadd_of_num (0::nat))
-    (mk_nadd (nadd_rinv u))"
+   COND (nadd_eq u (nadd_of_num 0)) (nadd_of_num 0) (mk_nadd (nadd_rinv u))"
 
 lemma DEF_nadd_inv: "nadd_inv =
 (%u::nadd.
-    COND (nadd_eq u (nadd_of_num (0::nat))) (nadd_of_num (0::nat))
+    COND (nadd_eq u (nadd_of_num 0)) (nadd_of_num 0)
      (mk_nadd (nadd_rinv u)))"
   by (import hollight DEF_nadd_inv)
 
 lemma NADD_INV: "ALL x::nadd.
    dest_nadd (nadd_inv x) =
-   COND (nadd_eq x (nadd_of_num (0::nat))) (%n::nat. 0::nat) (nadd_rinv x)"
+   COND (nadd_eq x (nadd_of_num 0)) (%n::nat. 0) (nadd_rinv x)"
   by (import hollight NADD_INV)
 
 lemma NADD_MUL_LINV: "ALL x::nadd.
-   ~ nadd_eq x (nadd_of_num (0::nat)) -->
-   nadd_eq (nadd_mul (nadd_inv x) x) (nadd_of_num (NUMERAL_BIT1 (0::nat)))"
+   ~ nadd_eq x (nadd_of_num 0) -->
+   nadd_eq (nadd_mul (nadd_inv x) x) (nadd_of_num (NUMERAL_BIT1 0))"
   by (import hollight NADD_MUL_LINV)
 
-lemma NADD_INV_0: "nadd_eq (nadd_inv (nadd_of_num (0::nat))) (nadd_of_num (0::nat))"
+lemma NADD_INV_0: "nadd_eq (nadd_inv (nadd_of_num 0)) (nadd_of_num 0)"
   by (import hollight NADD_INV_0)
 
 lemma NADD_INV_WELLDEF: "ALL (x::nadd) y::nadd. nadd_eq x y --> nadd_eq (nadd_inv x) (nadd_inv y)"
@@ -3361,7 +3786,7 @@ lemma HREAL_LE_ADD_RCANCEL: "ALL (x::hreal) (xa::hreal) xb::hreal.
    hreal_le (hreal_add x xb) (hreal_add xa xb) = hreal_le x xa"
   by (import hollight HREAL_LE_ADD_RCANCEL)
 
-lemma HREAL_ADD_RID: "ALL x::hreal. hreal_add x (hreal_of_num (0::nat)) = x"
+lemma HREAL_ADD_RID: "ALL x::hreal. hreal_add x (hreal_of_num 0) = x"
   by (import hollight HREAL_ADD_RID)
 
 lemma HREAL_ADD_RDISTRIB: "ALL (x::hreal) (xa::hreal) xb::hreal.
@@ -3369,10 +3794,10 @@ lemma HREAL_ADD_RDISTRIB: "ALL (x::hreal) (xa::hreal) xb::hreal.
    hreal_add (hreal_mul x xb) (hreal_mul xa xb)"
   by (import hollight HREAL_ADD_RDISTRIB)
 
-lemma HREAL_MUL_LZERO: "ALL m::hreal. hreal_mul (hreal_of_num (0::nat)) m = hreal_of_num (0::nat)"
+lemma HREAL_MUL_LZERO: "ALL m::hreal. hreal_mul (hreal_of_num 0) m = hreal_of_num 0"
   by (import hollight HREAL_MUL_LZERO)
 
-lemma HREAL_MUL_RZERO: "ALL x::hreal. hreal_mul x (hreal_of_num (0::nat)) = hreal_of_num (0::nat)"
+lemma HREAL_MUL_RZERO: "ALL x::hreal. hreal_mul x (hreal_of_num 0) = hreal_of_num 0"
   by (import hollight HREAL_MUL_RZERO)
 
 lemma HREAL_ADD_AC: "hreal_add (m::hreal) (n::hreal) = hreal_add n m &
@@ -3390,9 +3815,9 @@ lemma HREAL_LE_MUL_RCANCEL_IMP: "ALL (a::hreal) (b::hreal) c::hreal.
 
 constdefs
   treal_of_num :: "nat => hreal * hreal" 
-  "treal_of_num == %u::nat. (hreal_of_num u, hreal_of_num (0::nat))"
+  "treal_of_num == %u::nat. (hreal_of_num u, hreal_of_num 0)"
 
-lemma DEF_treal_of_num: "treal_of_num = (%u::nat. (hreal_of_num u, hreal_of_num (0::nat)))"
+lemma DEF_treal_of_num: "treal_of_num = (%u::nat. (hreal_of_num u, hreal_of_num 0))"
   by (import hollight DEF_treal_of_num)
 
 constdefs
@@ -3441,20 +3866,20 @@ constdefs
   treal_inv :: "hreal * hreal => hreal * hreal" 
   "treal_inv ==
 %u::hreal * hreal.
-   COND (fst u = snd u) (hreal_of_num (0::nat), hreal_of_num (0::nat))
+   COND (fst u = snd u) (hreal_of_num 0, hreal_of_num 0)
     (COND (hreal_le (snd u) (fst u))
       (hreal_inv (SOME d::hreal. fst u = hreal_add (snd u) d),
-       hreal_of_num (0::nat))
-      (hreal_of_num (0::nat),
+       hreal_of_num 0)
+      (hreal_of_num 0,
        hreal_inv (SOME d::hreal. snd u = hreal_add (fst u) d)))"
 
 lemma DEF_treal_inv: "treal_inv =
 (%u::hreal * hreal.
-    COND (fst u = snd u) (hreal_of_num (0::nat), hreal_of_num (0::nat))
+    COND (fst u = snd u) (hreal_of_num 0, hreal_of_num 0)
      (COND (hreal_le (snd u) (fst u))
        (hreal_inv (SOME d::hreal. fst u = hreal_add (snd u) d),
-        hreal_of_num (0::nat))
-       (hreal_of_num (0::nat),
+        hreal_of_num 0)
+       (hreal_of_num 0,
         hreal_inv (SOME d::hreal. snd u = hreal_add (fst u) d))))"
   by (import hollight DEF_treal_inv)
 
@@ -3512,11 +3937,10 @@ lemma TREAL_ADD_ASSOC: "ALL (x::hreal * hreal) (y::hreal * hreal) z::hreal * hre
    treal_eq (treal_add x (treal_add y z)) (treal_add (treal_add x y) z)"
   by (import hollight TREAL_ADD_ASSOC)
 
-lemma TREAL_ADD_LID: "ALL x::hreal * hreal. treal_eq (treal_add (treal_of_num (0::nat)) x) x"
+lemma TREAL_ADD_LID: "ALL x::hreal * hreal. treal_eq (treal_add (treal_of_num 0) x) x"
   by (import hollight TREAL_ADD_LID)
 
-lemma TREAL_ADD_LINV: "ALL x::hreal * hreal.
-   treal_eq (treal_add (treal_neg x) x) (treal_of_num (0::nat))"
+lemma TREAL_ADD_LINV: "ALL x::hreal * hreal. treal_eq (treal_add (treal_neg x) x) (treal_of_num 0)"
   by (import hollight TREAL_ADD_LINV)
 
 lemma TREAL_MUL_SYM: "ALL (x::hreal * hreal) y::hreal * hreal.
@@ -3528,7 +3952,7 @@ lemma TREAL_MUL_ASSOC: "ALL (x::hreal * hreal) (y::hreal * hreal) z::hreal * hre
   by (import hollight TREAL_MUL_ASSOC)
 
 lemma TREAL_MUL_LID: "ALL x::hreal * hreal.
-   treal_eq (treal_mul (treal_of_num (NUMERAL_BIT1 (0::nat))) x) x"
+   treal_eq (treal_mul (treal_of_num (NUMERAL_BIT1 0)) x) x"
   by (import hollight TREAL_MUL_LID)
 
 lemma TREAL_ADD_LDISTRIB: "ALL (x::hreal * hreal) (y::hreal * hreal) z::hreal * hreal.
@@ -3555,18 +3979,16 @@ lemma TREAL_LE_LADD_IMP: "ALL (x::hreal * hreal) (y::hreal * hreal) z::hreal * h
   by (import hollight TREAL_LE_LADD_IMP)
 
 lemma TREAL_LE_MUL: "ALL (x::hreal * hreal) y::hreal * hreal.
-   treal_le (treal_of_num (0::nat)) x &
-   treal_le (treal_of_num (0::nat)) y -->
-   treal_le (treal_of_num (0::nat)) (treal_mul x y)"
+   treal_le (treal_of_num 0) x & treal_le (treal_of_num 0) y -->
+   treal_le (treal_of_num 0) (treal_mul x y)"
   by (import hollight TREAL_LE_MUL)
 
-lemma TREAL_INV_0: "treal_eq (treal_inv (treal_of_num (0::nat))) (treal_of_num (0::nat))"
+lemma TREAL_INV_0: "treal_eq (treal_inv (treal_of_num 0)) (treal_of_num 0)"
   by (import hollight TREAL_INV_0)
 
 lemma TREAL_MUL_LINV: "ALL x::hreal * hreal.
-   ~ treal_eq x (treal_of_num (0::nat)) -->
-   treal_eq (treal_mul (treal_inv x) x)
-    (treal_of_num (NUMERAL_BIT1 (0::nat)))"
+   ~ treal_eq x (treal_of_num 0) -->
+   treal_eq (treal_mul (treal_inv x) x) (treal_of_num (NUMERAL_BIT1 0))"
   by (import hollight TREAL_MUL_LINV)
 
 lemma TREAL_OF_NUM_WELLDEF: "ALL (m::nat) n::nat. m = n --> treal_eq (treal_of_num m) (treal_of_num n)"
@@ -3749,25 +4171,23 @@ lemma DEF_real_gt: "hollight.real_gt = (%(u::hollight.real) ua::hollight.real. r
 constdefs
   real_abs :: "hollight.real => hollight.real" 
   "real_abs ==
-%u::hollight.real. COND (real_le (real_of_num (0::nat)) u) u (real_neg u)"
+%u::hollight.real. COND (real_le (real_of_num 0) u) u (real_neg u)"
 
 lemma DEF_real_abs: "real_abs =
-(%u::hollight.real. COND (real_le (real_of_num (0::nat)) u) u (real_neg u))"
+(%u::hollight.real. COND (real_le (real_of_num 0) u) u (real_neg u))"
   by (import hollight DEF_real_abs)
 
 constdefs
   real_pow :: "hollight.real => nat => hollight.real" 
   "real_pow ==
 SOME real_pow::hollight.real => nat => hollight.real.
-   (ALL x::hollight.real.
-       real_pow x (0::nat) = real_of_num (NUMERAL_BIT1 (0::nat))) &
+   (ALL x::hollight.real. real_pow x 0 = real_of_num (NUMERAL_BIT1 0)) &
    (ALL (x::hollight.real) n::nat.
        real_pow x (Suc n) = real_mul x (real_pow x n))"
 
 lemma DEF_real_pow: "real_pow =
 (SOME real_pow::hollight.real => nat => hollight.real.
-    (ALL x::hollight.real.
-        real_pow x (0::nat) = real_of_num (NUMERAL_BIT1 (0::nat))) &
+    (ALL x::hollight.real. real_pow x 0 = real_of_num (NUMERAL_BIT1 0)) &
     (ALL (x::hollight.real) n::nat.
         real_pow x (Suc n) = real_mul x (real_pow x n)))"
   by (import hollight DEF_real_pow)
@@ -3795,20 +4215,19 @@ lemma DEF_real_min: "real_min = (%(u::hollight.real) ua::hollight.real. COND (re
 
 lemma REAL_HREAL_LEMMA1: "EX x::hreal => hollight.real.
    (ALL xa::hollight.real.
-       real_le (real_of_num (0::nat)) xa = (EX y::hreal. xa = x y)) &
+       real_le (real_of_num 0) xa = (EX y::hreal. xa = x y)) &
    (ALL (y::hreal) z::hreal. hreal_le y z = real_le (x y) (x z))"
   by (import hollight REAL_HREAL_LEMMA1)
 
 lemma REAL_HREAL_LEMMA2: "EX (x::hollight.real => hreal) r::hreal => hollight.real.
    (ALL xa::hreal. x (r xa) = xa) &
-   (ALL xa::hollight.real.
-       real_le (real_of_num (0::nat)) xa --> r (x xa) = xa) &
-   (ALL x::hreal. real_le (real_of_num (0::nat)) (r x)) &
+   (ALL xa::hollight.real. real_le (real_of_num 0) xa --> r (x xa) = xa) &
+   (ALL x::hreal. real_le (real_of_num 0) (r x)) &
    (ALL (x::hreal) y::hreal. hreal_le x y = real_le (r x) (r y))"
   by (import hollight REAL_HREAL_LEMMA2)
 
 lemma REAL_COMPLETE_SOMEPOS: "ALL P::hollight.real => bool.
-   (EX x::hollight.real. P x & real_le (real_of_num (0::nat)) x) &
+   (EX x::hollight.real. P x & real_le (real_of_num 0) x) &
    (EX M::hollight.real. ALL x::hollight.real. P x --> real_le x M) -->
    (EX M::hollight.real.
        (ALL x::hollight.real. P x --> real_le x M) &
@@ -3830,7 +4249,7 @@ real_add (real_add m n) (p::hollight.real) = real_add m (real_add n p) &
 real_add m (real_add n p) = real_add n (real_add m p)"
   by (import hollight REAL_ADD_AC)
 
-lemma REAL_ADD_RINV: "ALL x::hollight.real. real_add x (real_neg x) = real_of_num (0::nat)"
+lemma REAL_ADD_RINV: "ALL x::hollight.real. real_add x (real_neg x) = real_of_num 0"
   by (import hollight REAL_ADD_RINV)
 
 lemma REAL_EQ_ADD_LCANCEL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -3852,11 +4271,11 @@ lemma REAL_MUL_LNEG: "ALL (x::hollight.real) y::hollight.real.
    real_mul (real_neg x) y = real_neg (real_mul x y)"
   by (import hollight REAL_MUL_LNEG)
 
-lemma REAL_ADD_RID: "ALL x::hollight.real. real_add x (real_of_num (0::nat)) = x"
+lemma REAL_ADD_RID: "ALL x::hollight.real. real_add x (real_of_num 0) = x"
   by (import hollight REAL_ADD_RID)
 
 lemma REAL_LE_LNEG: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_neg x) y = real_le (real_of_num (0::nat)) (real_add x y)"
+   real_le (real_neg x) y = real_le (real_of_num 0) (real_add x y)"
   by (import hollight REAL_LE_LNEG)
 
 lemma REAL_LE_NEG2: "ALL (x::hollight.real) y::hollight.real.
@@ -3864,7 +4283,7 @@ lemma REAL_LE_NEG2: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight REAL_LE_NEG2)
 
 lemma REAL_LE_RNEG: "ALL (x::hollight.real) y::hollight.real.
-   real_le x (real_neg y) = real_le (real_add x y) (real_of_num (0::nat))"
+   real_le x (real_neg y) = real_le (real_add x y) (real_of_num 0)"
   by (import hollight REAL_LE_RNEG)
 
 lemma REAL_OF_NUM_POW: "ALL (x::nat) n::nat. real_pow (real_of_num x) n = real_of_num (EXP x n)"
@@ -3896,8 +4315,8 @@ lemma REAL_LT_TRANS: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real
   by (import hollight REAL_LT_TRANS)
 
 lemma REAL_LE_ADD: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) y -->
-   real_le (real_of_num (0::nat)) (real_add x y)"
+   real_le (real_of_num 0) x & real_le (real_of_num 0) y -->
+   real_le (real_of_num 0) (real_add x y)"
   by (import hollight REAL_LE_ADD)
 
 lemma REAL_LTE_ANTISYM: "ALL (x::hollight.real) y::hollight.real. ~ (real_lt x y & real_le y x)"
@@ -3907,46 +4326,40 @@ lemma REAL_LT_REFL: "ALL x::hollight.real. ~ real_lt x x"
   by (import hollight REAL_LT_REFL)
 
 lemma REAL_LET_ADD: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
-   real_lt (real_of_num (0::nat)) (real_add x y)"
+   real_le (real_of_num 0) x & real_lt (real_of_num 0) y -->
+   real_lt (real_of_num 0) (real_add x y)"
   by (import hollight REAL_LET_ADD)
 
 lemma REAL_ENTIRE: "ALL (x::hollight.real) y::hollight.real.
-   (real_mul x y = real_of_num (0::nat)) =
-   (x = real_of_num (0::nat) | y = real_of_num (0::nat))"
+   (real_mul x y = real_of_num 0) = (x = real_of_num 0 | y = real_of_num 0)"
   by (import hollight REAL_ENTIRE)
 
 lemma REAL_POW_2: "ALL x::hollight.real.
-   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = real_mul x x"
+   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = real_mul x x"
   by (import hollight REAL_POW_2)
 
 lemma REAL_POLY_CLAUSES: "(ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
     real_add x (real_add y z) = real_add (real_add x y) z) &
 (ALL (x::hollight.real) y::hollight.real. real_add x y = real_add y x) &
-(ALL x::hollight.real. real_add (real_of_num (0::nat)) x = x) &
+(ALL x::hollight.real. real_add (real_of_num 0) x = x) &
 (ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
     real_mul x (real_mul y z) = real_mul (real_mul x y) z) &
 (ALL (x::hollight.real) y::hollight.real. real_mul x y = real_mul y x) &
-(ALL x::hollight.real.
-    real_mul (real_of_num (NUMERAL_BIT1 (0::nat))) x = x) &
-(ALL x::hollight.real.
-    real_mul (real_of_num (0::nat)) x = real_of_num (0::nat)) &
+(ALL x::hollight.real. real_mul (real_of_num (NUMERAL_BIT1 0)) x = x) &
+(ALL x::hollight.real. real_mul (real_of_num 0) x = real_of_num 0) &
 (ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
     real_mul x (real_add xa xb) =
     real_add (real_mul x xa) (real_mul x xb)) &
-(ALL x::hollight.real.
-    real_pow x (0::nat) = real_of_num (NUMERAL_BIT1 (0::nat))) &
+(ALL x::hollight.real. real_pow x 0 = real_of_num (NUMERAL_BIT1 0)) &
 (ALL (x::hollight.real) xa::nat.
     real_pow x (Suc xa) = real_mul x (real_pow x xa))"
   by (import hollight REAL_POLY_CLAUSES)
 
 lemma REAL_POLY_NEG_CLAUSES: "(ALL x::hollight.real.
-    real_neg x =
-    real_mul (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x) &
+    real_neg x = real_mul (real_neg (real_of_num (NUMERAL_BIT1 0))) x) &
 (ALL (x::hollight.real) xa::hollight.real.
     real_sub x xa =
-    real_add x
-     (real_mul (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) xa))"
+    real_add x (real_mul (real_neg (real_of_num (NUMERAL_BIT1 0))) xa))"
   by (import hollight REAL_POLY_NEG_CLAUSES)
 
 lemma REAL_OF_NUM_LT: "ALL (x::nat) xa::nat. real_lt (real_of_num x) (real_of_num xa) = < x xa"
@@ -3961,7 +4374,7 @@ lemma REAL_OF_NUM_GT: "ALL (x::nat) xa::nat.
   by (import hollight REAL_OF_NUM_GT)
 
 lemma REAL_OF_NUM_SUC: "ALL x::nat.
-   real_add (real_of_num x) (real_of_num (NUMERAL_BIT1 (0::nat))) =
+   real_add (real_of_num x) (real_of_num (NUMERAL_BIT1 0)) =
    real_of_num (Suc x)"
   by (import hollight REAL_OF_NUM_SUC)
 
@@ -3983,16 +4396,16 @@ lemma REAL_LT_LADD_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.r
   by (import hollight REAL_LT_LADD_IMP)
 
 lemma REAL_LT_MUL: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
-   real_lt (real_of_num (0::nat)) (real_mul x y)"
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) y -->
+   real_lt (real_of_num 0) (real_mul x y)"
   by (import hollight REAL_LT_MUL)
 
 lemma REAL_EQ_ADD_LCANCEL_0: "ALL (x::hollight.real) y::hollight.real.
-   (real_add x y = x) = (y = real_of_num (0::nat))"
+   (real_add x y = x) = (y = real_of_num 0)"
   by (import hollight REAL_EQ_ADD_LCANCEL_0)
 
 lemma REAL_EQ_ADD_RCANCEL_0: "ALL (x::hollight.real) y::hollight.real.
-   (real_add x y = y) = (x = real_of_num (0::nat))"
+   (real_add x y = y) = (x = real_of_num 0)"
   by (import hollight REAL_EQ_ADD_RCANCEL_0)
 
 lemma REAL_NOT_EQ: "ALL (x::hollight.real) y::hollight.real.
@@ -4009,7 +4422,7 @@ lemma REAL_LET_ANTISYM: "ALL (x::hollight.real) y::hollight.real. ~ (real_le x y
 lemma REAL_LT_TOTAL: "ALL (x::hollight.real) y::hollight.real. x = y | real_lt x y | real_lt y x"
   by (import hollight REAL_LT_TOTAL)
 
-lemma REAL_LE_01: "real_le (real_of_num (0::nat)) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+lemma REAL_LE_01: "real_le (real_of_num 0) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight REAL_LE_01)
 
 lemma REAL_LE_ADD2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.real)
@@ -4018,34 +4431,33 @@ lemma REAL_LE_ADD2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.real
   by (import hollight REAL_LE_ADD2)
 
 lemma REAL_LT_LNEG: "ALL (x::hollight.real) xa::hollight.real.
-   real_lt (real_neg x) xa = real_lt (real_of_num (0::nat)) (real_add x xa)"
+   real_lt (real_neg x) xa = real_lt (real_of_num 0) (real_add x xa)"
   by (import hollight REAL_LT_LNEG)
 
 lemma REAL_LT_RNEG: "ALL (x::hollight.real) xa::hollight.real.
-   real_lt x (real_neg xa) = real_lt (real_add x xa) (real_of_num (0::nat))"
+   real_lt x (real_neg xa) = real_lt (real_add x xa) (real_of_num 0)"
   by (import hollight REAL_LT_RNEG)
 
-lemma REAL_NEG_EQ_0: "ALL x::hollight.real.
-   (real_neg x = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+lemma REAL_NEG_EQ_0: "ALL x::hollight.real. (real_neg x = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight REAL_NEG_EQ_0)
 
 lemma REAL_ADD_SUB: "ALL (x::hollight.real) y::hollight.real. real_sub (real_add x y) x = y"
   by (import hollight REAL_ADD_SUB)
 
 lemma REAL_LE_ADDR: "ALL (x::hollight.real) y::hollight.real.
-   real_le x (real_add x y) = real_le (real_of_num (0::nat)) y"
+   real_le x (real_add x y) = real_le (real_of_num 0) y"
   by (import hollight REAL_LE_ADDR)
 
 lemma REAL_LE_ADDL: "ALL (x::hollight.real) y::hollight.real.
-   real_le y (real_add x y) = real_le (real_of_num (0::nat)) x"
+   real_le y (real_add x y) = real_le (real_of_num 0) x"
   by (import hollight REAL_LE_ADDL)
 
 lemma REAL_LT_ADDR: "ALL (x::hollight.real) y::hollight.real.
-   real_lt x (real_add x y) = real_lt (real_of_num (0::nat)) y"
+   real_lt x (real_add x y) = real_lt (real_of_num 0) y"
   by (import hollight REAL_LT_ADDR)
 
 lemma REAL_LT_ADDL: "ALL (x::hollight.real) y::hollight.real.
-   real_lt y (real_add x y) = real_lt (real_of_num (0::nat)) x"
+   real_lt y (real_add x y) = real_lt (real_of_num 0) x"
   by (import hollight REAL_LT_ADDL)
 
 lemma REAL_ADD2_SUB2: "ALL (a::hollight.real) (b::hollight.real) (c::hollight.real)
@@ -4086,15 +4498,13 @@ lemma REAL_LT_NEG2: "ALL (x::hollight.real) y::hollight.real.
    real_lt (real_neg x) (real_neg y) = real_lt y x"
   by (import hollight REAL_LT_NEG2)
 
-lemma REAL_ABS_ZERO: "ALL x::hollight.real.
-   (real_abs x = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+lemma REAL_ABS_ZERO: "ALL x::hollight.real. (real_abs x = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight REAL_ABS_ZERO)
 
-lemma REAL_ABS_0: "real_abs (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma REAL_ABS_0: "real_abs (real_of_num 0) = real_of_num 0"
   by (import hollight REAL_ABS_0)
 
-lemma REAL_ABS_1: "real_abs (real_of_num (NUMERAL_BIT1 (0::nat))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma REAL_ABS_1: "real_abs (real_of_num (NUMERAL_BIT1 0)) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_ABS_1)
 
 lemma REAL_ABS_TRIANGLE: "ALL (x::hollight.real) y::hollight.real.
@@ -4111,7 +4521,7 @@ lemma REAL_ABS_TRIANGLE_LT: "ALL (x::hollight.real) (y::hollight.real) z::hollig
    real_lt (real_abs y) z"
   by (import hollight REAL_ABS_TRIANGLE_LT)
 
-lemma REAL_ABS_POS: "ALL x::hollight.real. real_le (real_of_num (0::nat)) (real_abs x)"
+lemma REAL_ABS_POS: "ALL x::hollight.real. real_le (real_of_num 0) (real_abs x)"
   by (import hollight REAL_ABS_POS)
 
 lemma REAL_ABS_SUB: "ALL (x::hollight.real) y::hollight.real.
@@ -4119,7 +4529,7 @@ lemma REAL_ABS_SUB: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight REAL_ABS_SUB)
 
 lemma REAL_ABS_NZ: "ALL x::hollight.real.
-   (x ~= real_of_num (0::nat)) = real_lt (real_of_num (0::nat)) (real_abs x)"
+   (x ~= real_of_num 0) = real_lt (real_of_num 0) (real_abs x)"
   by (import hollight REAL_ABS_NZ)
 
 lemma REAL_ABS_ABS: "ALL x::hollight.real. real_abs (real_abs x) = real_abs x"
@@ -4128,11 +4538,11 @@ lemma REAL_ABS_ABS: "ALL x::hollight.real. real_abs (real_abs x) = real_abs x"
 lemma REAL_ABS_LE: "ALL x::hollight.real. real_le x (real_abs x)"
   by (import hollight REAL_ABS_LE)
 
-lemma REAL_ABS_REFL: "ALL x::hollight.real. (real_abs x = x) = real_le (real_of_num (0::nat)) x"
+lemma REAL_ABS_REFL: "ALL x::hollight.real. (real_abs x = x) = real_le (real_of_num 0) x"
   by (import hollight REAL_ABS_REFL)
 
 lemma REAL_ABS_BETWEEN: "ALL (x::hollight.real) (y::hollight.real) d::hollight.real.
-   (real_lt (real_of_num (0::nat)) d &
+   (real_lt (real_of_num 0) d &
     real_lt (real_sub x d) y & real_lt y (real_add x d)) =
    real_lt (real_abs (real_sub y x)) d"
   by (import hollight REAL_ABS_BETWEEN)
@@ -4142,12 +4552,11 @@ lemma REAL_ABS_BOUND: "ALL (x::hollight.real) (y::hollight.real) d::hollight.rea
   by (import hollight REAL_ABS_BOUND)
 
 lemma REAL_ABS_STILLNZ: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_abs (real_sub x y)) (real_abs y) -->
-   x ~= real_of_num (0::nat)"
+   real_lt (real_abs (real_sub x y)) (real_abs y) --> x ~= real_of_num 0"
   by (import hollight REAL_ABS_STILLNZ)
 
 lemma REAL_ABS_CASES: "ALL x::hollight.real.
-   x = real_of_num (0::nat) | real_lt (real_of_num (0::nat)) (real_abs x)"
+   x = real_of_num 0 | real_lt (real_of_num 0) (real_abs x)"
   by (import hollight REAL_ABS_CASES)
 
 lemma REAL_ABS_BETWEEN1: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -4156,12 +4565,12 @@ lemma REAL_ABS_BETWEEN1: "ALL (x::hollight.real) (y::hollight.real) z::hollight.
   by (import hollight REAL_ABS_BETWEEN1)
 
 lemma REAL_ABS_SIGN: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_abs (real_sub x y)) y --> real_lt (real_of_num (0::nat)) x"
+   real_lt (real_abs (real_sub x y)) y --> real_lt (real_of_num 0) x"
   by (import hollight REAL_ABS_SIGN)
 
 lemma REAL_ABS_SIGN2: "ALL (x::hollight.real) y::hollight.real.
    real_lt (real_abs (real_sub x y)) (real_neg y) -->
-   real_lt x (real_of_num (0::nat))"
+   real_lt x (real_of_num 0)"
   by (import hollight REAL_ABS_SIGN2)
 
 lemma REAL_ABS_CIRCLE: "ALL (x::hollight.real) (y::hollight.real) h::hollight.real.
@@ -4178,11 +4587,11 @@ lemma REAL_ABS_BETWEEN2: "ALL (x0::hollight.real) (x::hollight.real) (y0::hollig
    y::hollight.real.
    real_lt x0 y0 &
    real_lt
-    (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+    (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
       (real_abs (real_sub x x0)))
     (real_sub y0 x0) &
    real_lt
-    (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+    (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
       (real_abs (real_sub y y0)))
     (real_sub y0 x0) -->
    real_lt x y"
@@ -4271,13 +4680,11 @@ lemma REAL_ABS_MUL: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight REAL_ABS_MUL)
 
 lemma REAL_POW_LE: "ALL (x::hollight.real) n::nat.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (real_of_num (0::nat)) (real_pow x n)"
+   real_le (real_of_num 0) x --> real_le (real_of_num 0) (real_pow x n)"
   by (import hollight REAL_POW_LE)
 
 lemma REAL_POW_LT: "ALL (x::hollight.real) n::nat.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (0::nat)) (real_pow x n)"
+   real_lt (real_of_num 0) x --> real_lt (real_of_num 0) (real_pow x n)"
   by (import hollight REAL_POW_LT)
 
 lemma REAL_ABS_POW: "ALL (x::hollight.real) n::nat.
@@ -4285,89 +4692,82 @@ lemma REAL_ABS_POW: "ALL (x::hollight.real) n::nat.
   by (import hollight REAL_ABS_POW)
 
 lemma REAL_LE_LMUL: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le xa xb -->
+   real_le (real_of_num 0) x & real_le xa xb -->
    real_le (real_mul x xa) (real_mul x xb)"
   by (import hollight REAL_LE_LMUL)
 
 lemma REAL_LE_RMUL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_le x y & real_le (real_of_num (0::nat)) z -->
+   real_le x y & real_le (real_of_num 0) z -->
    real_le (real_mul x z) (real_mul y z)"
   by (import hollight REAL_LE_RMUL)
 
 lemma REAL_LT_LMUL: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt xa xb -->
+   real_lt (real_of_num 0) x & real_lt xa xb -->
    real_lt (real_mul x xa) (real_mul x xb)"
   by (import hollight REAL_LT_LMUL)
 
 lemma REAL_LT_RMUL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt x y & real_lt (real_of_num (0::nat)) z -->
+   real_lt x y & real_lt (real_of_num 0) z -->
    real_lt (real_mul x z) (real_mul y z)"
   by (import hollight REAL_LT_RMUL)
 
 lemma REAL_EQ_MUL_LCANCEL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   (real_mul x y = real_mul x z) = (x = real_of_num (0::nat) | y = z)"
+   (real_mul x y = real_mul x z) = (x = real_of_num 0 | y = z)"
   by (import hollight REAL_EQ_MUL_LCANCEL)
 
 lemma REAL_EQ_MUL_RCANCEL: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   (real_mul x xb = real_mul xa xb) = (x = xa | xb = real_of_num (0::nat))"
+   (real_mul x xb = real_mul xa xb) = (x = xa | xb = real_of_num 0)"
   by (import hollight REAL_EQ_MUL_RCANCEL)
 
 lemma REAL_MUL_LINV_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   real_mul x y = real_of_num (NUMERAL_BIT1 (0::nat)) --> real_inv y = x"
+   real_mul x y = real_of_num (NUMERAL_BIT1 0) --> real_inv y = x"
   by (import hollight REAL_MUL_LINV_UNIQ)
 
 lemma REAL_MUL_RINV_UNIQ: "ALL (x::hollight.real) xa::hollight.real.
-   real_mul x xa = real_of_num (NUMERAL_BIT1 (0::nat)) --> real_inv x = xa"
+   real_mul x xa = real_of_num (NUMERAL_BIT1 0) --> real_inv x = xa"
   by (import hollight REAL_MUL_RINV_UNIQ)
 
 lemma REAL_INV_INV: "ALL x::hollight.real. real_inv (real_inv x) = x"
   by (import hollight REAL_INV_INV)
 
-lemma REAL_INV_EQ_0: "ALL x::hollight.real.
-   (real_inv x = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+lemma REAL_INV_EQ_0: "ALL x::hollight.real. (real_inv x = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight REAL_INV_EQ_0)
 
 lemma REAL_LT_INV: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (0::nat)) (real_inv x)"
+   real_lt (real_of_num 0) x --> real_lt (real_of_num 0) (real_inv x)"
   by (import hollight REAL_LT_INV)
 
 lemma REAL_LT_INV_EQ: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) (real_inv x) =
-   real_lt (real_of_num (0::nat)) x"
+   real_lt (real_of_num 0) (real_inv x) = real_lt (real_of_num 0) x"
   by (import hollight REAL_LT_INV_EQ)
 
 lemma REAL_INV_NEG: "ALL x::hollight.real. real_inv (real_neg x) = real_neg (real_inv x)"
   by (import hollight REAL_INV_NEG)
 
 lemma REAL_LE_INV_EQ: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) (real_inv x) =
-   real_le (real_of_num (0::nat)) x"
+   real_le (real_of_num 0) (real_inv x) = real_le (real_of_num 0) x"
   by (import hollight REAL_LE_INV_EQ)
 
 lemma REAL_LE_INV: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (real_of_num (0::nat)) (real_inv x)"
+   real_le (real_of_num 0) x --> real_le (real_of_num 0) (real_inv x)"
   by (import hollight REAL_LE_INV)
 
-lemma REAL_INV_1: "real_inv (real_of_num (NUMERAL_BIT1 (0::nat))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma REAL_INV_1: "real_inv (real_of_num (NUMERAL_BIT1 0)) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_INV_1)
 
-lemma REAL_DIV_1: "ALL x::hollight.real. real_div x (real_of_num (NUMERAL_BIT1 (0::nat))) = x"
+lemma REAL_DIV_1: "ALL x::hollight.real. real_div x (real_of_num (NUMERAL_BIT1 0)) = x"
   by (import hollight REAL_DIV_1)
 
 lemma REAL_DIV_REFL: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) -->
-   real_div x x = real_of_num (NUMERAL_BIT1 (0::nat))"
+   x ~= real_of_num 0 --> real_div x x = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_DIV_REFL)
 
 lemma REAL_DIV_RMUL: "ALL (x::hollight.real) xa::hollight.real.
-   xa ~= real_of_num (0::nat) --> real_mul (real_div x xa) xa = x"
+   xa ~= real_of_num 0 --> real_mul (real_div x xa) xa = x"
   by (import hollight REAL_DIV_RMUL)
 
 lemma REAL_DIV_LMUL: "ALL (x::hollight.real) xa::hollight.real.
-   xa ~= real_of_num (0::nat) --> real_mul xa (real_div x xa) = x"
+   xa ~= real_of_num 0 --> real_mul xa (real_div x xa) = x"
   by (import hollight REAL_DIV_LMUL)
 
 lemma REAL_ABS_INV: "ALL x::hollight.real. real_abs (real_inv x) = real_inv (real_abs x)"
@@ -4402,190 +4802,179 @@ lemma REAL_POW_ADD: "ALL (x::hollight.real) (m::nat) n::nat.
   by (import hollight REAL_POW_ADD)
 
 lemma REAL_POW_NZ: "ALL (x::hollight.real) n::nat.
-   x ~= real_of_num (0::nat) --> real_pow x n ~= real_of_num (0::nat)"
+   x ~= real_of_num 0 --> real_pow x n ~= real_of_num 0"
   by (import hollight REAL_POW_NZ)
 
 lemma REAL_POW_SUB: "ALL (x::hollight.real) (m::nat) n::nat.
-   x ~= real_of_num (0::nat) & <= m n -->
+   x ~= real_of_num 0 & <= m n -->
    real_pow x (n - m) = real_div (real_pow x n) (real_pow x m)"
   by (import hollight REAL_POW_SUB)
 
-lemma REAL_LT_IMP_NZ: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x --> x ~= real_of_num (0::nat)"
+lemma REAL_LT_IMP_NZ: "ALL x::hollight.real. real_lt (real_of_num 0) x --> x ~= real_of_num 0"
   by (import hollight REAL_LT_IMP_NZ)
 
 lemma REAL_LT_LCANCEL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt (real_mul x y) (real_mul x z) -->
+   real_lt (real_of_num 0) x & real_lt (real_mul x y) (real_mul x z) -->
    real_lt y z"
   by (import hollight REAL_LT_LCANCEL_IMP)
 
 lemma REAL_LT_RCANCEL_IMP: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb &
-   real_lt (real_mul x xb) (real_mul xa xb) -->
+   real_lt (real_of_num 0) xb & real_lt (real_mul x xb) (real_mul xa xb) -->
    real_lt x xa"
   by (import hollight REAL_LT_RCANCEL_IMP)
 
 lemma REAL_LE_LCANCEL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_le (real_mul x y) (real_mul x z) -->
+   real_lt (real_of_num 0) x & real_le (real_mul x y) (real_mul x z) -->
    real_le y z"
   by (import hollight REAL_LE_LCANCEL_IMP)
 
 lemma REAL_LE_RCANCEL_IMP: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb &
-   real_le (real_mul x xb) (real_mul xa xb) -->
+   real_lt (real_of_num 0) xb & real_le (real_mul x xb) (real_mul xa xb) -->
    real_le x xa"
   by (import hollight REAL_LE_RCANCEL_IMP)
 
 lemma REAL_LE_LMUL_EQ: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
+   real_lt (real_of_num 0) z -->
    real_le (real_mul z x) (real_mul z y) = real_le x y"
   by (import hollight REAL_LE_LMUL_EQ)
 
 lemma REAL_LE_RDIV_EQ: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
+   real_lt (real_of_num 0) z -->
    real_le x (real_div y z) = real_le (real_mul x z) y"
   by (import hollight REAL_LE_RDIV_EQ)
 
 lemma REAL_LE_LDIV_EQ: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
+   real_lt (real_of_num 0) z -->
    real_le (real_div x z) y = real_le x (real_mul y z)"
   by (import hollight REAL_LE_LDIV_EQ)
 
 lemma REAL_LT_RDIV_EQ: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb -->
+   real_lt (real_of_num 0) xb -->
    real_lt x (real_div xa xb) = real_lt (real_mul x xb) xa"
   by (import hollight REAL_LT_RDIV_EQ)
 
 lemma REAL_LT_LDIV_EQ: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb -->
+   real_lt (real_of_num 0) xb -->
    real_lt (real_div x xb) xa = real_lt x (real_mul xa xb)"
   by (import hollight REAL_LT_LDIV_EQ)
 
 lemma REAL_EQ_RDIV_EQ: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb -->
+   real_lt (real_of_num 0) xb -->
    (x = real_div xa xb) = (real_mul x xb = xa)"
   by (import hollight REAL_EQ_RDIV_EQ)
 
 lemma REAL_EQ_LDIV_EQ: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb -->
+   real_lt (real_of_num 0) xb -->
    (real_div x xb = xa) = (x = real_mul xa xb)"
   by (import hollight REAL_EQ_LDIV_EQ)
 
 lemma REAL_LT_DIV2_EQ: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb -->
+   real_lt (real_of_num 0) xb -->
    real_lt (real_div x xb) (real_div xa xb) = real_lt x xa"
   by (import hollight REAL_LT_DIV2_EQ)
 
 lemma REAL_LE_DIV2_EQ: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_lt (real_of_num (0::nat)) xb -->
+   real_lt (real_of_num 0) xb -->
    real_le (real_div x xb) (real_div xa xb) = real_le x xa"
   by (import hollight REAL_LE_DIV2_EQ)
 
 lemma REAL_MUL_2: "ALL x::hollight.real.
-   real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x =
-   real_add x x"
+   real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x = real_add x x"
   by (import hollight REAL_MUL_2)
 
 lemma REAL_POW_EQ_0: "ALL (x::hollight.real) n::nat.
-   (real_pow x n = real_of_num (0::nat)) =
-   (x = real_of_num (0::nat) & n ~= (0::nat))"
+   (real_pow x n = real_of_num 0) = (x = real_of_num 0 & n ~= 0)"
   by (import hollight REAL_POW_EQ_0)
 
 lemma REAL_LE_MUL2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.real)
    z::hollight.real.
-   real_le (real_of_num (0::nat)) w &
-   real_le w x & real_le (real_of_num (0::nat)) y & real_le y z -->
+   real_le (real_of_num 0) w &
+   real_le w x & real_le (real_of_num 0) y & real_le y z -->
    real_le (real_mul w y) (real_mul x z)"
   by (import hollight REAL_LE_MUL2)
 
 lemma REAL_LT_MUL2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.real)
    z::hollight.real.
-   real_le (real_of_num (0::nat)) w &
-   real_lt w x & real_le (real_of_num (0::nat)) y & real_lt y z -->
+   real_le (real_of_num 0) w &
+   real_lt w x & real_le (real_of_num 0) y & real_lt y z -->
    real_lt (real_mul w y) (real_mul x z)"
   by (import hollight REAL_LT_MUL2)
 
 lemma REAL_LT_SQUARE: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) (real_mul x x) =
-   (x ~= real_of_num (0::nat))"
+   real_lt (real_of_num 0) (real_mul x x) = (x ~= real_of_num 0)"
   by (import hollight REAL_LT_SQUARE)
 
 lemma REAL_INV_LE_1: "ALL x::hollight.real.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) x -->
-   real_le (real_inv x) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_of_num (NUMERAL_BIT1 0)) x -->
+   real_le (real_inv x) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight REAL_INV_LE_1)
 
 lemma REAL_POW_LE_1: "ALL (n::nat) x::hollight.real.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) x -->
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) (real_pow x n)"
+   real_le (real_of_num (NUMERAL_BIT1 0)) x -->
+   real_le (real_of_num (NUMERAL_BIT1 0)) (real_pow x n)"
   by (import hollight REAL_POW_LE_1)
 
 lemma REAL_POW_1_LE: "ALL (n::nat) x::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   real_le (real_pow x n) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_of_num 0) x & real_le x (real_of_num (NUMERAL_BIT1 0)) -->
+   real_le (real_pow x n) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight REAL_POW_1_LE)
 
-lemma REAL_POW_1: "ALL x::hollight.real. real_pow x (NUMERAL_BIT1 (0::nat)) = x"
+lemma REAL_POW_1: "ALL x::hollight.real. real_pow x (NUMERAL_BIT1 0) = x"
   by (import hollight REAL_POW_1)
 
 lemma REAL_POW_ONE: "ALL n::nat.
-   real_pow (real_of_num (NUMERAL_BIT1 (0::nat))) n =
-   real_of_num (NUMERAL_BIT1 (0::nat))"
+   real_pow (real_of_num (NUMERAL_BIT1 0)) n = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_POW_ONE)
 
 lemma REAL_LT_INV2: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt x y -->
+   real_lt (real_of_num 0) x & real_lt x y -->
    real_lt (real_inv y) (real_inv x)"
   by (import hollight REAL_LT_INV2)
 
 lemma REAL_LE_INV2: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_le x y -->
+   real_lt (real_of_num 0) x & real_le x y -->
    real_le (real_inv y) (real_inv x)"
   by (import hollight REAL_LE_INV2)
 
 lemma REAL_INV_1_LE: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_le x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) (real_inv x)"
+   real_lt (real_of_num 0) x & real_le x (real_of_num (NUMERAL_BIT1 0)) -->
+   real_le (real_of_num (NUMERAL_BIT1 0)) (real_inv x)"
   by (import hollight REAL_INV_1_LE)
 
 lemma REAL_SUB_INV: "ALL (x::hollight.real) xa::hollight.real.
-   x ~= real_of_num (0::nat) & xa ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 & xa ~= real_of_num 0 -->
    real_sub (real_inv x) (real_inv xa) =
    real_div (real_sub xa x) (real_mul x xa)"
   by (import hollight REAL_SUB_INV)
 
 lemma REAL_DOWN: "ALL d::hollight.real.
-   real_lt (real_of_num (0::nat)) d -->
-   (EX x::hollight.real. real_lt (real_of_num (0::nat)) x & real_lt x d)"
+   real_lt (real_of_num 0) d -->
+   (EX x::hollight.real. real_lt (real_of_num 0) x & real_lt x d)"
   by (import hollight REAL_DOWN)
 
 lemma REAL_DOWN2: "ALL (d1::hollight.real) d2::hollight.real.
-   real_lt (real_of_num (0::nat)) d1 & real_lt (real_of_num (0::nat)) d2 -->
+   real_lt (real_of_num 0) d1 & real_lt (real_of_num 0) d2 -->
    (EX e::hollight.real.
-       real_lt (real_of_num (0::nat)) e & real_lt e d1 & real_lt e d2)"
+       real_lt (real_of_num 0) e & real_lt e d1 & real_lt e d2)"
   by (import hollight REAL_DOWN2)
 
 lemma REAL_POW_LE2: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le x y -->
+   real_le (real_of_num 0) x & real_le x y -->
    real_le (real_pow x n) (real_pow y n)"
   by (import hollight REAL_POW_LE2)
 
 lemma REAL_POW_MONO: "ALL (m::nat) (n::nat) x::hollight.real.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) x & <= m n -->
+   real_le (real_of_num (NUMERAL_BIT1 0)) x & <= m n -->
    real_le (real_pow x m) (real_pow x n)"
   by (import hollight REAL_POW_MONO)
 
 lemma REAL_POW_LT2: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   n ~= (0::nat) & real_le (real_of_num (0::nat)) x & real_lt x y -->
+   n ~= 0 & real_le (real_of_num 0) x & real_lt x y -->
    real_lt (real_pow x n) (real_pow y n)"
   by (import hollight REAL_POW_LT2)
 
 lemma REAL_POW_MONO_LT: "ALL (m::nat) (n::nat) x::hollight.real.
-   real_lt (real_of_num (NUMERAL_BIT1 (0::nat))) x & < m n -->
+   real_lt (real_of_num (NUMERAL_BIT1 0)) x & < m n -->
    real_lt (real_pow x m) (real_pow x n)"
   by (import hollight REAL_POW_MONO_LT)
 
@@ -4594,54 +4983,54 @@ lemma REAL_POW_POW: "ALL (x::hollight.real) (m::nat) n::nat.
   by (import hollight REAL_POW_POW)
 
 lemma REAL_EQ_RCANCEL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   z ~= real_of_num (0::nat) & real_mul x z = real_mul y z --> x = y"
+   z ~= real_of_num 0 & real_mul x z = real_mul y z --> x = y"
   by (import hollight REAL_EQ_RCANCEL_IMP)
 
 lemma REAL_EQ_LCANCEL_IMP: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   xb ~= real_of_num (0::nat) & real_mul xb x = real_mul xb xa --> x = xa"
+   xb ~= real_of_num 0 & real_mul xb x = real_mul xb xa --> x = xa"
   by (import hollight REAL_EQ_LCANCEL_IMP)
 
 lemma REAL_LT_DIV: "ALL (x::hollight.real) xa::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) xa -->
-   real_lt (real_of_num (0::nat)) (real_div x xa)"
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) xa -->
+   real_lt (real_of_num 0) (real_div x xa)"
   by (import hollight REAL_LT_DIV)
 
 lemma REAL_LE_DIV: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
-   real_le (real_of_num (0::nat)) (real_div x xa)"
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
+   real_le (real_of_num 0) (real_div x xa)"
   by (import hollight REAL_LE_DIV)
 
 lemma REAL_DIV_POW2: "ALL (x::hollight.real) (m::nat) n::nat.
-   x ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 -->
    real_div (real_pow x m) (real_pow x n) =
    COND (<= n m) (real_pow x (m - n)) (real_inv (real_pow x (n - m)))"
   by (import hollight REAL_DIV_POW2)
 
 lemma REAL_DIV_POW2_ALT: "ALL (x::hollight.real) (m::nat) n::nat.
-   x ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 -->
    real_div (real_pow x m) (real_pow x n) =
    COND (< n m) (real_pow x (m - n)) (real_inv (real_pow x (n - m)))"
   by (import hollight REAL_DIV_POW2_ALT)
 
 lemma REAL_LT_POW2: "ALL x::nat.
-   real_lt (real_of_num (0::nat))
-    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x)"
+   real_lt (real_of_num 0)
+    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x)"
   by (import hollight REAL_LT_POW2)
 
 lemma REAL_LE_POW2: "ALL n::nat.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat)))
-    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) n)"
+   real_le (real_of_num (NUMERAL_BIT1 0))
+    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) n)"
   by (import hollight REAL_LE_POW2)
 
 lemma REAL_POW2_ABS: "ALL x::hollight.real.
-   real_pow (real_abs x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) =
-   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))"
+   real_pow (real_abs x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)) =
+   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))"
   by (import hollight REAL_POW2_ABS)
 
 lemma REAL_LE_SQUARE_ABS: "ALL (x::hollight.real) y::hollight.real.
    real_le (real_abs x) (real_abs y) =
-   real_le (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-    (real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   real_le (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
+    (real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight REAL_LE_SQUARE_ABS)
 
 lemma REAL_WLOG_LE: "(ALL (x::hollight.real) y::hollight.real.
@@ -4674,39 +5063,39 @@ constdefs
 lemma DEF_DECIMAL: "DECIMAL = (%(u::nat) ua::nat. real_div (real_of_num u) (real_of_num ua))"
   by (import hollight DEF_DECIMAL)
 
-lemma RAT_LEMMA1: "(y1::hollight.real) ~= real_of_num (0::nat) &
-(y2::hollight.real) ~= real_of_num (0::nat) -->
+lemma RAT_LEMMA1: "(y1::hollight.real) ~= real_of_num 0 &
+(y2::hollight.real) ~= real_of_num 0 -->
 real_add (real_div (x1::hollight.real) y1)
  (real_div (x2::hollight.real) y2) =
 real_mul (real_add (real_mul x1 y2) (real_mul x2 y1))
  (real_mul (real_inv y1) (real_inv y2))"
   by (import hollight RAT_LEMMA1)
 
-lemma RAT_LEMMA2: "real_lt (real_of_num (0::nat)) (y1::hollight.real) &
-real_lt (real_of_num (0::nat)) (y2::hollight.real) -->
+lemma RAT_LEMMA2: "real_lt (real_of_num 0) (y1::hollight.real) &
+real_lt (real_of_num 0) (y2::hollight.real) -->
 real_add (real_div (x1::hollight.real) y1)
  (real_div (x2::hollight.real) y2) =
 real_mul (real_add (real_mul x1 y2) (real_mul x2 y1))
  (real_mul (real_inv y1) (real_inv y2))"
   by (import hollight RAT_LEMMA2)
 
-lemma RAT_LEMMA3: "real_lt (real_of_num (0::nat)) (y1::hollight.real) &
-real_lt (real_of_num (0::nat)) (y2::hollight.real) -->
+lemma RAT_LEMMA3: "real_lt (real_of_num 0) (y1::hollight.real) &
+real_lt (real_of_num 0) (y2::hollight.real) -->
 real_sub (real_div (x1::hollight.real) y1)
  (real_div (x2::hollight.real) y2) =
 real_mul (real_sub (real_mul x1 y2) (real_mul x2 y1))
  (real_mul (real_inv y1) (real_inv y2))"
   by (import hollight RAT_LEMMA3)
 
-lemma RAT_LEMMA4: "real_lt (real_of_num (0::nat)) (y1::hollight.real) &
-real_lt (real_of_num (0::nat)) (y2::hollight.real) -->
+lemma RAT_LEMMA4: "real_lt (real_of_num 0) (y1::hollight.real) &
+real_lt (real_of_num 0) (y2::hollight.real) -->
 real_le (real_div (x1::hollight.real) y1)
  (real_div (x2::hollight.real) y2) =
 real_le (real_mul x1 y2) (real_mul x2 y1)"
   by (import hollight RAT_LEMMA4)
 
-lemma RAT_LEMMA5: "real_lt (real_of_num (0::nat)) (y1::hollight.real) &
-real_lt (real_of_num (0::nat)) (y2::hollight.real) -->
+lemma RAT_LEMMA5: "real_lt (real_of_num 0) (y1::hollight.real) &
+real_lt (real_of_num 0) (y2::hollight.real) -->
 (real_div (x1::hollight.real) y1 = real_div (x2::hollight.real) y2) =
 (real_mul x1 y2 = real_mul x2 y1)"
   by (import hollight RAT_LEMMA5)
@@ -4723,7 +5112,7 @@ lemma DEF_is_int: "is_int =
   by (import hollight DEF_is_int)
 
 typedef (open) int = "Collect is_int"  morphisms "dest_int" "mk_int"
-  apply (rule light_ex_imp_nonempty[where t="real_of_num (NUMERAL (0::nat))"])
+  apply (rule light_ex_imp_nonempty[where t="real_of_num (NUMERAL 0)"])
   by (import hollight TYDEF_int)
 
 syntax
@@ -4902,29 +5291,29 @@ lemma INT_IMAGE: "ALL x::hollight.int.
   by (import hollight INT_IMAGE)
 
 lemma INT_LT_DISCRETE: "ALL (x::hollight.int) y::hollight.int.
-   int_lt x y = int_le (int_add x (int_of_num (NUMERAL_BIT1 (0::nat)))) y"
+   int_lt x y = int_le (int_add x (int_of_num (NUMERAL_BIT1 0))) y"
   by (import hollight INT_LT_DISCRETE)
 
 lemma INT_GT_DISCRETE: "ALL (x::hollight.int) xa::hollight.int.
-   int_gt x xa = int_ge x (int_add xa (int_of_num (NUMERAL_BIT1 (0::nat))))"
+   int_gt x xa = int_ge x (int_add xa (int_of_num (NUMERAL_BIT1 0)))"
   by (import hollight INT_GT_DISCRETE)
 
 lemma INT_FORALL_POS: "(ALL n::nat. (P::hollight.int => bool) (int_of_num n)) =
-(ALL i::hollight.int. int_le (int_of_num (0::nat)) i --> P i)"
+(ALL i::hollight.int. int_le (int_of_num 0) i --> P i)"
   by (import hollight INT_FORALL_POS)
 
 lemma INT_ABS_MUL_1: "ALL (x::hollight.int) y::hollight.int.
-   (int_abs (int_mul x y) = int_of_num (NUMERAL_BIT1 (0::nat))) =
-   (int_abs x = int_of_num (NUMERAL_BIT1 (0::nat)) &
-    int_abs y = int_of_num (NUMERAL_BIT1 (0::nat)))"
+   (int_abs (int_mul x y) = int_of_num (NUMERAL_BIT1 0)) =
+   (int_abs x = int_of_num (NUMERAL_BIT1 0) &
+    int_abs y = int_of_num (NUMERAL_BIT1 0))"
   by (import hollight INT_ABS_MUL_1)
 
-lemma INT_POW: "int_pow (x::hollight.int) (0::nat) = int_of_num (NUMERAL_BIT1 (0::nat)) &
+lemma INT_POW: "int_pow (x::hollight.int) 0 = int_of_num (NUMERAL_BIT1 0) &
 (ALL xa::nat. int_pow x (Suc xa) = int_mul x (int_pow x xa))"
   by (import hollight INT_POW)
 
 lemma INT_ABS: "ALL x::hollight.int.
-   int_abs x = COND (int_le (int_of_num (0::nat)) x) x (int_neg x)"
+   int_abs x = COND (int_le (int_of_num 0) x) x (int_neg x)"
   by (import hollight INT_ABS)
 
 lemma INT_GE: "ALL (x::hollight.int) xa::hollight.int. int_ge x xa = int_le xa x"
@@ -4937,7 +5326,7 @@ lemma INT_LT: "ALL (x::hollight.int) xa::hollight.int. int_lt x xa = (~ int_le x
   by (import hollight INT_LT)
 
 lemma INT_ARCH: "ALL (x::hollight.int) d::hollight.int.
-   d ~= int_of_num (0::nat) --> (EX c::hollight.int. int_lt x (int_mul c d))"
+   d ~= int_of_num 0 --> (EX c::hollight.int. int_lt x (int_mul c d))"
   by (import hollight INT_ARCH)
 
 constdefs
@@ -4952,7 +5341,7 @@ lemma DEF_mod_int: "mod_int =
   by (import hollight DEF_mod_int)
 
 constdefs
-  IN :: "'A::type => ('A::type => bool) => bool" 
+  IN :: "'A => ('A => bool) => bool" 
   "IN == %(u::'A::type) ua::'A::type => bool. ua u"
 
 lemma DEF_IN: "IN = (%(u::'A::type) ua::'A::type => bool. ua u)"
@@ -4963,14 +5352,14 @@ lemma EXTENSION: "ALL (x::'A::type => bool) xa::'A::type => bool.
   by (import hollight EXTENSION)
 
 constdefs
-  GSPEC :: "('A::type => bool) => 'A::type => bool" 
+  GSPEC :: "('A => bool) => 'A => bool" 
   "GSPEC == %u::'A::type => bool. u"
 
 lemma DEF_GSPEC: "GSPEC = (%u::'A::type => bool. u)"
   by (import hollight DEF_GSPEC)
 
 constdefs
-  SETSPEC :: "'q_36941::type => bool => 'q_36941::type => bool" 
+  SETSPEC :: "'q_36941 => bool => 'q_36941 => bool" 
   "SETSPEC == %(u::'q_36941::type) (ua::bool) ub::'q_36941::type. ua & u = ub"
 
 lemma DEF_SETSPEC: "SETSPEC = (%(u::'q_36941::type) (ua::bool) ub::'q_36941::type. ua & u = ub)"
@@ -4993,14 +5382,14 @@ lemma IN_ELIM_THM: "(ALL (P::(bool => 'q_36974::type => bool) => bool) x::'q_369
   by (import hollight IN_ELIM_THM)
 
 constdefs
-  EMPTY :: "'A::type => bool" 
+  EMPTY :: "'A => bool" 
   "EMPTY == %x::'A::type. False"
 
 lemma DEF_EMPTY: "EMPTY = (%x::'A::type. False)"
   by (import hollight DEF_EMPTY)
 
 constdefs
-  INSERT :: "'A::type => ('A::type => bool) => 'A::type => bool" 
+  INSERT :: "'A => ('A => bool) => 'A => bool" 
   "INSERT == %(u::'A::type) (ua::'A::type => bool) y::'A::type. IN y ua | y = u"
 
 lemma DEF_INSERT: "INSERT =
@@ -5008,7 +5397,7 @@ lemma DEF_INSERT: "INSERT =
   by (import hollight DEF_INSERT)
 
 consts
-  UNIV :: "'A::type => bool" 
+  UNIV :: "'A => bool" 
 
 defs
   UNIV_def: "hollight.UNIV == %x::'A::type. True"
@@ -5017,7 +5406,7 @@ lemma DEF_UNIV: "hollight.UNIV = (%x::'A::type. True)"
   by (import hollight DEF_UNIV)
 
 consts
-  UNION :: "('A::type => bool) => ('A::type => bool) => 'A::type => bool" 
+  UNION :: "('A => bool) => ('A => bool) => 'A => bool" 
 
 defs
   UNION_def: "hollight.UNION ==
@@ -5030,7 +5419,7 @@ lemma DEF_UNION: "hollight.UNION =
   by (import hollight DEF_UNION)
 
 constdefs
-  UNIONS :: "(('A::type => bool) => bool) => 'A::type => bool" 
+  UNIONS :: "(('A => bool) => bool) => 'A => bool" 
   "UNIONS ==
 %u::('A::type => bool) => bool.
    GSPEC
@@ -5047,7 +5436,7 @@ lemma DEF_UNIONS: "UNIONS =
   by (import hollight DEF_UNIONS)
 
 consts
-  INTER :: "('A::type => bool) => ('A::type => bool) => 'A::type => bool" 
+  INTER :: "('A => bool) => ('A => bool) => 'A => bool" 
 
 defs
   INTER_def: "hollight.INTER ==
@@ -5060,7 +5449,7 @@ lemma DEF_INTER: "hollight.INTER =
   by (import hollight DEF_INTER)
 
 constdefs
-  INTERS :: "(('A::type => bool) => bool) => 'A::type => bool" 
+  INTERS :: "(('A => bool) => bool) => 'A => bool" 
   "INTERS ==
 %u::('A::type => bool) => bool.
    GSPEC
@@ -5077,7 +5466,7 @@ lemma DEF_INTERS: "INTERS =
   by (import hollight DEF_INTERS)
 
 constdefs
-  DIFF :: "('A::type => bool) => ('A::type => bool) => 'A::type => bool" 
+  DIFF :: "('A => bool) => ('A => bool) => 'A => bool" 
   "DIFF ==
 %(u::'A::type => bool) ua::'A::type => bool.
    GSPEC (%ub::'A::type. EX x::'A::type. SETSPEC ub (IN x u & ~ IN x ua) x)"
@@ -5093,7 +5482,7 @@ GSPEC (%u::'A::type. EX y::'A::type. SETSPEC u (IN y s | y = x) y)"
   by (import hollight INSERT)
 
 constdefs
-  DELETE :: "('A::type => bool) => 'A::type => 'A::type => bool" 
+  DELETE :: "('A => bool) => 'A => 'A => bool" 
   "DELETE ==
 %(u::'A::type => bool) ua::'A::type.
    GSPEC (%ub::'A::type. EX y::'A::type. SETSPEC ub (IN y u & y ~= ua) y)"
@@ -5104,7 +5493,7 @@ lemma DEF_DELETE: "DELETE =
   by (import hollight DEF_DELETE)
 
 constdefs
-  SUBSET :: "('A::type => bool) => ('A::type => bool) => bool" 
+  SUBSET :: "('A => bool) => ('A => bool) => bool" 
   "SUBSET ==
 %(u::'A::type => bool) ua::'A::type => bool.
    ALL x::'A::type. IN x u --> IN x ua"
@@ -5115,7 +5504,7 @@ lemma DEF_SUBSET: "SUBSET =
   by (import hollight DEF_SUBSET)
 
 constdefs
-  PSUBSET :: "('A::type => bool) => ('A::type => bool) => bool" 
+  PSUBSET :: "('A => bool) => ('A => bool) => bool" 
   "PSUBSET ==
 %(u::'A::type => bool) ua::'A::type => bool. SUBSET u ua & u ~= ua"
 
@@ -5124,7 +5513,7 @@ lemma DEF_PSUBSET: "PSUBSET =
   by (import hollight DEF_PSUBSET)
 
 constdefs
-  DISJOINT :: "('A::type => bool) => ('A::type => bool) => bool" 
+  DISJOINT :: "('A => bool) => ('A => bool) => bool" 
   "DISJOINT ==
 %(u::'A::type => bool) ua::'A::type => bool. hollight.INTER u ua = EMPTY"
 
@@ -5133,14 +5522,14 @@ lemma DEF_DISJOINT: "DISJOINT =
   by (import hollight DEF_DISJOINT)
 
 constdefs
-  SING :: "('A::type => bool) => bool" 
+  SING :: "('A => bool) => bool" 
   "SING == %u::'A::type => bool. EX x::'A::type. u = INSERT x EMPTY"
 
 lemma DEF_SING: "SING = (%u::'A::type => bool. EX x::'A::type. u = INSERT x EMPTY)"
   by (import hollight DEF_SING)
 
 constdefs
-  FINITE :: "('A::type => bool) => bool" 
+  FINITE :: "('A => bool) => bool" 
   "FINITE ==
 %a::'A::type => bool.
    ALL FINITE'::('A::type => bool) => bool.
@@ -5163,14 +5552,14 @@ lemma DEF_FINITE: "FINITE =
   by (import hollight DEF_FINITE)
 
 constdefs
-  INFINITE :: "('A::type => bool) => bool" 
+  INFINITE :: "('A => bool) => bool" 
   "INFINITE == %u::'A::type => bool. ~ FINITE u"
 
 lemma DEF_INFINITE: "INFINITE = (%u::'A::type => bool. ~ FINITE u)"
   by (import hollight DEF_INFINITE)
 
 constdefs
-  IMAGE :: "('A::type => 'B::type) => ('A::type => bool) => 'B::type => bool" 
+  IMAGE :: "('A => 'B) => ('A => bool) => 'B => bool" 
   "IMAGE ==
 %(u::'A::type => 'B::type) ua::'A::type => bool.
    GSPEC
@@ -5185,7 +5574,7 @@ lemma DEF_IMAGE: "IMAGE =
   by (import hollight DEF_IMAGE)
 
 constdefs
-  INJ :: "('A::type => 'B::type) => ('A::type => bool) => ('B::type => bool) => bool" 
+  INJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" 
   "INJ ==
 %(u::'A::type => 'B::type) (ua::'A::type => bool) ub::'B::type => bool.
    (ALL x::'A::type. IN x ua --> IN (u x) ub) &
@@ -5199,7 +5588,7 @@ lemma DEF_INJ: "INJ =
   by (import hollight DEF_INJ)
 
 constdefs
-  SURJ :: "('A::type => 'B::type) => ('A::type => bool) => ('B::type => bool) => bool" 
+  SURJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" 
   "SURJ ==
 %(u::'A::type => 'B::type) (ua::'A::type => bool) ub::'B::type => bool.
    (ALL x::'A::type. IN x ua --> IN (u x) ub) &
@@ -5212,7 +5601,7 @@ lemma DEF_SURJ: "SURJ =
   by (import hollight DEF_SURJ)
 
 constdefs
-  BIJ :: "('A::type => 'B::type) => ('A::type => bool) => ('B::type => bool) => bool" 
+  BIJ :: "('A => 'B) => ('A => bool) => ('B => bool) => bool" 
   "BIJ ==
 %(u::'A::type => 'B::type) (ua::'A::type => bool) ub::'B::type => bool.
    INJ u ua ub & SURJ u ua ub"
@@ -5223,21 +5612,21 @@ lemma DEF_BIJ: "BIJ =
   by (import hollight DEF_BIJ)
 
 constdefs
-  CHOICE :: "('A::type => bool) => 'A::type" 
+  CHOICE :: "('A => bool) => 'A" 
   "CHOICE == %u::'A::type => bool. SOME x::'A::type. IN x u"
 
 lemma DEF_CHOICE: "CHOICE = (%u::'A::type => bool. SOME x::'A::type. IN x u)"
   by (import hollight DEF_CHOICE)
 
 constdefs
-  REST :: "('A::type => bool) => 'A::type => bool" 
+  REST :: "('A => bool) => 'A => bool" 
   "REST == %u::'A::type => bool. DELETE u (CHOICE u)"
 
 lemma DEF_REST: "REST = (%u::'A::type => bool. DELETE u (CHOICE u))"
   by (import hollight DEF_REST)
 
 constdefs
-  CARD_GE :: "('q_37578::type => bool) => ('q_37575::type => bool) => bool" 
+  CARD_GE :: "('q_37578 => bool) => ('q_37575 => bool) => bool" 
   "CARD_GE ==
 %(u::'q_37578::type => bool) ua::'q_37575::type => bool.
    EX f::'q_37578::type => 'q_37575::type.
@@ -5252,7 +5641,7 @@ lemma DEF_CARD_GE: "CARD_GE =
   by (import hollight DEF_CARD_GE)
 
 constdefs
-  CARD_LE :: "('q_37587::type => bool) => ('q_37586::type => bool) => bool" 
+  CARD_LE :: "('q_37587 => bool) => ('q_37586 => bool) => bool" 
   "CARD_LE ==
 %(u::'q_37587::type => bool) ua::'q_37586::type => bool. CARD_GE ua u"
 
@@ -5261,7 +5650,7 @@ lemma DEF_CARD_LE: "CARD_LE =
   by (import hollight DEF_CARD_LE)
 
 constdefs
-  CARD_EQ :: "('q_37597::type => bool) => ('q_37598::type => bool) => bool" 
+  CARD_EQ :: "('q_37597 => bool) => ('q_37598 => bool) => bool" 
   "CARD_EQ ==
 %(u::'q_37597::type => bool) ua::'q_37598::type => bool.
    CARD_LE u ua & CARD_LE ua u"
@@ -5272,7 +5661,7 @@ lemma DEF_CARD_EQ: "CARD_EQ =
   by (import hollight DEF_CARD_EQ)
 
 constdefs
-  CARD_GT :: "('q_37612::type => bool) => ('q_37613::type => bool) => bool" 
+  CARD_GT :: "('q_37612 => bool) => ('q_37613 => bool) => bool" 
   "CARD_GT ==
 %(u::'q_37612::type => bool) ua::'q_37613::type => bool.
    CARD_GE u ua & ~ CARD_GE ua u"
@@ -5283,7 +5672,7 @@ lemma DEF_CARD_GT: "CARD_GT =
   by (import hollight DEF_CARD_GT)
 
 constdefs
-  CARD_LT :: "('q_37628::type => bool) => ('q_37629::type => bool) => bool" 
+  CARD_LT :: "('q_37628 => bool) => ('q_37629 => bool) => bool" 
   "CARD_LT ==
 %(u::'q_37628::type => bool) ua::'q_37629::type => bool.
    CARD_LE u ua & ~ CARD_LE ua u"
@@ -5294,7 +5683,7 @@ lemma DEF_CARD_LT: "CARD_LT =
   by (import hollight DEF_CARD_LT)
 
 constdefs
-  COUNTABLE :: "('q_37642::type => bool) => bool" 
+  COUNTABLE :: "('q_37642 => bool) => bool" 
   "(op ==::(('q_37642::type => bool) => bool)
         => (('q_37642::type => bool) => bool) => prop)
  (COUNTABLE::('q_37642::type => bool) => bool)
@@ -5884,9 +6273,8 @@ lemma FINITE_DIFF: "ALL (s::'q_41555::type => bool) t::'q_41555::type => bool.
   by (import hollight FINITE_DIFF)
 
 constdefs
-  FINREC :: "('q_41615::type => 'q_41614::type => 'q_41614::type)
-=> 'q_41614::type
-   => ('q_41615::type => bool) => 'q_41614::type => nat => bool" 
+  FINREC :: "('q_41615 => 'q_41614 => 'q_41614)
+=> 'q_41614 => ('q_41615 => bool) => 'q_41614 => nat => bool" 
   "FINREC ==
 SOME FINREC::('q_41615::type => 'q_41614::type => 'q_41614::type)
              => 'q_41614::type
@@ -5894,7 +6282,7 @@ SOME FINREC::('q_41615::type => 'q_41614::type => 'q_41614::type)
                    => 'q_41614::type => nat => bool.
    (ALL (f::'q_41615::type => 'q_41614::type => 'q_41614::type)
        (s::'q_41615::type => bool) (a::'q_41614::type) b::'q_41614::type.
-       FINREC f b s a (0::nat) = (s = EMPTY & a = b)) &
+       FINREC f b s a 0 = (s = EMPTY & a = b)) &
    (ALL (b::'q_41614::type) (s::'q_41615::type => bool) (n::nat)
        (a::'q_41614::type)
        f::'q_41615::type => 'q_41614::type => 'q_41614::type.
@@ -5909,7 +6297,7 @@ lemma DEF_FINREC: "FINREC =
                     => 'q_41614::type => nat => bool.
     (ALL (f::'q_41615::type => 'q_41614::type => 'q_41614::type)
         (s::'q_41615::type => bool) (a::'q_41614::type) b::'q_41614::type.
-        FINREC f b s a (0::nat) = (s = EMPTY & a = b)) &
+        FINREC f b s a 0 = (s = EMPTY & a = b)) &
     (ALL (b::'q_41614::type) (s::'q_41615::type => bool) (n::nat)
         (a::'q_41614::type)
         f::'q_41615::type => 'q_41614::type => 'q_41614::type.
@@ -5920,7 +6308,7 @@ lemma DEF_FINREC: "FINREC =
 
 lemma FINREC_1_LEMMA: "ALL (x::'q_41660::type => 'q_41659::type => 'q_41659::type)
    (xa::'q_41659::type) (xb::'q_41660::type => bool) xc::'q_41659::type.
-   FINREC x xa xb xc (Suc (0::nat)) =
+   FINREC x xa xb xc (Suc 0) =
    (EX xd::'q_41660::type. xb = INSERT xd EMPTY & xc = x xd xa)"
   by (import hollight FINREC_1_LEMMA)
 
@@ -5973,8 +6361,8 @@ lemma SET_RECURSION_LEMMA: "ALL (f::'A::type => 'B::type => 'B::type) b::'B::typ
   by (import hollight SET_RECURSION_LEMMA)
 
 constdefs
-  ITSET :: "('q_42316::type => 'q_42315::type => 'q_42315::type)
-=> ('q_42316::type => bool) => 'q_42315::type => 'q_42315::type" 
+  ITSET :: "('q_42316 => 'q_42315 => 'q_42315)
+=> ('q_42316 => bool) => 'q_42315 => 'q_42315" 
   "ITSET ==
 %(u::'q_42316::type => 'q_42315::type => 'q_42315::type)
    (ua::'q_42316::type => bool) ub::'q_42315::type.
@@ -6045,12 +6433,10 @@ lemma FINITE_RESTRICT: "ALL (s::'A::type => bool) p::'q_42673::type.
   by (import hollight FINITE_RESTRICT)
 
 constdefs
-  CARD :: "('q_42709::type => bool) => nat" 
-  "CARD ==
-%u::'q_42709::type => bool. ITSET (%x::'q_42709::type. Suc) u (0::nat)"
+  CARD :: "('q_42709 => bool) => nat" 
+  "CARD == %u::'q_42709::type => bool. ITSET (%x::'q_42709::type. Suc) u 0"
 
-lemma DEF_CARD: "CARD =
-(%u::'q_42709::type => bool. ITSET (%x::'q_42709::type. Suc) u (0::nat))"
+lemma DEF_CARD: "CARD = (%u::'q_42709::type => bool. ITSET (%x::'q_42709::type. Suc) u 0)"
   by (import hollight DEF_CARD)
 
 lemma CARD_CLAUSES: "(op &::bool => bool => bool)
@@ -6081,8 +6467,7 @@ lemma CARD_UNION: "ALL (x::'A::type => bool) xa::'A::type => bool.
 
 lemma CARD_DELETE: "ALL (x::'A::type) s::'A::type => bool.
    FINITE s -->
-   CARD (DELETE s x) =
-   COND (IN x s) (CARD s - NUMERAL_BIT1 (0::nat)) (CARD s)"
+   CARD (DELETE s x) = COND (IN x s) (CARD s - NUMERAL_BIT1 0) (CARD s)"
   by (import hollight CARD_DELETE)
 
 lemma CARD_UNION_EQ: "ALL (s::'q_42954::type => bool) (t::'q_42954::type => bool)
@@ -6092,7 +6477,7 @@ lemma CARD_UNION_EQ: "ALL (s::'q_42954::type => bool) (t::'q_42954::type => bool
   by (import hollight CARD_UNION_EQ)
 
 constdefs
-  HAS_SIZE :: "('q_42990::type => bool) => nat => bool" 
+  HAS_SIZE :: "('q_42990 => bool) => nat => bool" 
   "HAS_SIZE == %(u::'q_42990::type => bool) ua::nat. FINITE u & CARD u = ua"
 
 lemma DEF_HAS_SIZE: "HAS_SIZE = (%(u::'q_42990::type => bool) ua::nat. FINITE u & CARD u = ua)"
@@ -6101,8 +6486,7 @@ lemma DEF_HAS_SIZE: "HAS_SIZE = (%(u::'q_42990::type => bool) ua::nat. FINITE u 
 lemma HAS_SIZE_CARD: "ALL (x::'q_43009::type => bool) xa::nat. HAS_SIZE x xa --> CARD x = xa"
   by (import hollight HAS_SIZE_CARD)
 
-lemma HAS_SIZE_0: "ALL (s::'A::type => bool) n::'q_43025::type.
-   HAS_SIZE s (0::nat) = (s = EMPTY)"
+lemma HAS_SIZE_0: "ALL (s::'A::type => bool) n::'q_43025::type. HAS_SIZE s 0 = (s = EMPTY)"
   by (import hollight HAS_SIZE_0)
 
 lemma HAS_SIZE_SUC: "ALL (s::'A::type => bool) n::nat.
@@ -6130,7 +6514,7 @@ lemma HAS_SIZE_UNIONS: "ALL (x::'A::type => bool) (xa::'A::type => 'B::type => b
     (xb * xc)"
   by (import hollight HAS_SIZE_UNIONS)
 
-lemma HAS_SIZE_CLAUSES: "HAS_SIZE (s::'q_43395::type => bool) (0::nat) = (s = EMPTY) &
+lemma HAS_SIZE_CLAUSES: "HAS_SIZE (s::'q_43395::type => bool) 0 = (s = EMPTY) &
 HAS_SIZE s (Suc (n::nat)) =
 (EX (a::'q_43395::type) t::'q_43395::type => bool.
     HAS_SIZE t n & ~ IN a t & s = INSERT a t)"
@@ -6148,8 +6532,7 @@ lemma CARD_SUBSET_LE: "ALL (a::'A::type => bool) b::'A::type => bool.
    FINITE b & SUBSET a b & <= (CARD b) (CARD a) --> a = b"
   by (import hollight CARD_SUBSET_LE)
 
-lemma CARD_EQ_0: "ALL s::'q_43711::type => bool.
-   FINITE s --> (CARD s = (0::nat)) = (s = EMPTY)"
+lemma CARD_EQ_0: "ALL s::'q_43711::type => bool. FINITE s --> (CARD s = 0) = (s = EMPTY)"
   by (import hollight CARD_EQ_0)
 
 lemma CARD_PSUBSET: "ALL (a::'A::type => bool) b::'A::type => bool.
@@ -6293,7 +6676,7 @@ lemma HAS_SIZE_POWERSET: "ALL (s::'A::type => bool) n::nat.
     (GSPEC
       (%u::'A::type => bool.
           EX t::'A::type => bool. SETSPEC u (SUBSET t s) t))
-    (EXP (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) n)"
+    (EXP (NUMERAL_BIT0 (NUMERAL_BIT1 0)) n)"
   by (import hollight HAS_SIZE_POWERSET)
 
 lemma CARD_POWERSET: "ALL s::'A::type => bool.
@@ -6302,7 +6685,7 @@ lemma CARD_POWERSET: "ALL s::'A::type => bool.
     (GSPEC
       (%u::'A::type => bool.
           EX t::'A::type => bool. SETSPEC u (SUBSET t s) t)) =
-   EXP (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) (CARD s)"
+   EXP (NUMERAL_BIT0 (NUMERAL_BIT1 0)) (CARD s)"
   by (import hollight CARD_POWERSET)
 
 lemma FINITE_POWERSET: "ALL s::'A::type => bool.
@@ -6336,7 +6719,7 @@ lemma FINITE_NUMSEG_LT: "ALL x::nat. FINITE (GSPEC (%u::nat. EX m::nat. SETSPEC 
 
 lemma HAS_SIZE_NUMSEG_LE: "ALL x::nat.
    HAS_SIZE (GSPEC (%xa::nat. EX xb::nat. SETSPEC xa (<= xb x) xb))
-    (x + NUMERAL_BIT1 (0::nat))"
+    (x + NUMERAL_BIT1 0)"
   by (import hollight HAS_SIZE_NUMSEG_LE)
 
 lemma FINITE_NUMSEG_LE: "ALL x::nat. FINITE (GSPEC (%u::nat. EX m::nat. SETSPEC u (<= m x) m))"
@@ -6344,7 +6727,7 @@ lemma FINITE_NUMSEG_LE: "ALL x::nat. FINITE (GSPEC (%u::nat. EX m::nat. SETSPEC 
 
 lemma CARD_NUMSEG_LE: "ALL x::nat.
    CARD (GSPEC (%u::nat. EX m::nat. SETSPEC u (<= m x) m)) =
-   x + NUMERAL_BIT1 (0::nat)"
+   x + NUMERAL_BIT1 0"
   by (import hollight CARD_NUMSEG_LE)
 
 lemma num_FINITE: "ALL s::nat => bool. FINITE s = (EX a::nat. ALL x::nat. IN x s --> <= x a)"
@@ -6364,7 +6747,7 @@ lemma HAS_SIZE_INDEX: "ALL (x::'A::type => bool) n::nat.
   by (import hollight HAS_SIZE_INDEX)
 
 constdefs
-  set_of_list :: "'q_45759::type hollight.list => 'q_45759::type => bool" 
+  set_of_list :: "'q_45759 hollight.list => 'q_45759 => bool" 
   "set_of_list ==
 SOME set_of_list::'q_45759::type hollight.list => 'q_45759::type => bool.
    set_of_list NIL = EMPTY &
@@ -6379,7 +6762,7 @@ lemma DEF_set_of_list: "set_of_list =
   by (import hollight DEF_set_of_list)
 
 constdefs
-  list_of_set :: "('q_45777::type => bool) => 'q_45777::type hollight.list" 
+  list_of_set :: "('q_45777 => bool) => 'q_45777 hollight.list" 
   "list_of_set ==
 %u::'q_45777::type => bool.
    SOME l::'q_45777::type hollight.list.
@@ -6419,8 +6802,7 @@ lemma SET_OF_LIST_APPEND: "ALL (x::'q_45930::type hollight.list) xa::'q_45930::t
   by (import hollight SET_OF_LIST_APPEND)
 
 constdefs
-  pairwise :: "('q_45989::type => 'q_45989::type => bool)
-=> ('q_45989::type => bool) => bool" 
+  pairwise :: "('q_45989 => 'q_45989 => bool) => ('q_45989 => bool) => bool" 
   "pairwise ==
 %(u::'q_45989::type => 'q_45989::type => bool) ua::'q_45989::type => bool.
    ALL (x::'q_45989::type) y::'q_45989::type.
@@ -6433,8 +6815,7 @@ lemma DEF_pairwise: "pairwise =
   by (import hollight DEF_pairwise)
 
 constdefs
-  PAIRWISE :: "('q_46011::type => 'q_46011::type => bool)
-=> 'q_46011::type hollight.list => bool" 
+  PAIRWISE :: "('q_46011 => 'q_46011 => bool) => 'q_46011 hollight.list => bool" 
   "PAIRWISE ==
 SOME PAIRWISE::('q_46011::type => 'q_46011::type => bool)
                => 'q_46011::type hollight.list => bool.
@@ -6477,7 +6858,7 @@ syntax
   mk_finite_image :: _ 
 
 lemmas "TYDEF_finite_image_@intern" = typedef_hol2hollight 
-  [where a="a :: 'A::type finite_image" and r=r ,
+  [where a="a :: 'A finite_image" and r=r ,
    OF type_definition_finite_image]
 
 lemma FINITE_IMAGE_IMAGE: "(op =::('A::type finite_image => bool)
@@ -6497,7 +6878,7 @@ lemma FINITE_IMAGE_IMAGE: "(op =::('A::type finite_image => bool)
   by (import hollight FINITE_IMAGE_IMAGE)
 
 constdefs
-  dimindex :: "('A::type => bool) => nat" 
+  dimindex :: "('A => bool) => nat" 
   "(op ==::(('A::type => bool) => nat) => (('A::type => bool) => nat) => prop)
  (dimindex::('A::type => bool) => nat)
  (%u::'A::type => bool.
@@ -6536,10 +6917,10 @@ lemma FINITE_FINITE_IMAGE: "(FINITE::('A::type finite_image => bool) => bool)
  (hollight.UNIV::'A::type finite_image => bool)"
   by (import hollight FINITE_FINITE_IMAGE)
 
-lemma DIMINDEX_NONZERO: "ALL s::'A::type => bool. dimindex s ~= (0::nat)"
+lemma DIMINDEX_NONZERO: "ALL s::'A::type => bool. dimindex s ~= 0"
   by (import hollight DIMINDEX_NONZERO)
 
-lemma DIMINDEX_GE_1: "ALL x::'A::type => bool. <= (NUMERAL_BIT1 (0::nat)) (dimindex x)"
+lemma DIMINDEX_GE_1: "ALL x::'A::type => bool. <= (NUMERAL_BIT1 0) (dimindex x)"
   by (import hollight DIMINDEX_GE_1)
 
 lemma DIMINDEX_FINITE_IMAGE: "ALL (s::'A::type finite_image => bool) t::'A::type => bool.
@@ -6547,7 +6928,7 @@ lemma DIMINDEX_FINITE_IMAGE: "ALL (s::'A::type finite_image => bool) t::'A::type
   by (import hollight DIMINDEX_FINITE_IMAGE)
 
 constdefs
-  finite_index :: "nat => 'A::type" 
+  finite_index :: "nat => 'A" 
   "(op ==::(nat => 'A::type) => (nat => 'A::type) => prop)
  (finite_index::nat => 'A::type)
  ((Eps::((nat => 'A::type) => bool) => nat => 'A::type)
@@ -6669,11 +7050,11 @@ syntax
   mk_cart :: _ 
 
 lemmas "TYDEF_cart_@intern" = typedef_hol2hollight 
-  [where a="a :: ('A::type, 'B::type) cart" and r=r ,
+  [where a="a :: ('A, 'B) cart" and r=r ,
    OF type_definition_cart]
 
 consts
-  "$" :: "('q_46418::type, 'q_46425::type) cart => nat => 'q_46418::type" ("$")
+  "$" :: "('q_46418, 'q_46425) cart => nat => 'q_46418" ("$")
 
 defs
   "$_def": "$ ==
@@ -6709,7 +7090,7 @@ lemma CART_EQ: "(All::(('A::type, 'B::type) cart => bool) => bool)
   by (import hollight CART_EQ)
 
 constdefs
-  lambda :: "(nat => 'A::type) => ('A::type, 'B::type) cart" 
+  lambda :: "(nat => 'A) => ('A, 'B) cart" 
   "(op ==::((nat => 'A::type) => ('A::type, 'B::type) cart)
         => ((nat => 'A::type) => ('A::type, 'B::type) cart) => prop)
  (lambda::(nat => 'A::type) => ('A::type, 'B::type) cart)
@@ -6806,13 +7187,11 @@ syntax
   mk_finite_sum :: _ 
 
 lemmas "TYDEF_finite_sum_@intern" = typedef_hol2hollight 
-  [where a="a :: ('A::type, 'B::type) finite_sum" and r=r ,
+  [where a="a :: ('A, 'B) finite_sum" and r=r ,
    OF type_definition_finite_sum]
 
 constdefs
-  pastecart :: "('A::type, 'M::type) cart
-=> ('A::type, 'N::type) cart
-   => ('A::type, ('M::type, 'N::type) finite_sum) cart" 
+  pastecart :: "('A, 'M) cart => ('A, 'N) cart => ('A, ('M, 'N) finite_sum) cart" 
   "(op ==::(('A::type, 'M::type) cart
          => ('A::type, 'N::type) cart
             => ('A::type, ('M::type, 'N::type) finite_sum) cart)
@@ -6863,8 +7242,7 @@ lemma DEF_pastecart: "(op =::(('A::type, 'M::type) cart
   by (import hollight DEF_pastecart)
 
 constdefs
-  fstcart :: "('A::type, ('M::type, 'N::type) finite_sum) cart
-=> ('A::type, 'M::type) cart" 
+  fstcart :: "('A, ('M, 'N) finite_sum) cart => ('A, 'M) cart" 
   "fstcart ==
 %u::('A::type, ('M::type, 'N::type) finite_sum) cart. lambda ($ u)"
 
@@ -6873,8 +7251,7 @@ lemma DEF_fstcart: "fstcart =
   by (import hollight DEF_fstcart)
 
 constdefs
-  sndcart :: "('A::type, ('M::type, 'N::type) finite_sum) cart
-=> ('A::type, 'N::type) cart" 
+  sndcart :: "('A, ('M, 'N) finite_sum) cart => ('A, 'N) cart" 
   "(op ==::(('A::type, ('M::type, 'N::type) finite_sum) cart
          => ('A::type, 'N::type) cart)
         => (('A::type, ('M::type, 'N::type) finite_sum) cart
@@ -7057,24 +7434,20 @@ lemma FINITE_NUMSEG: "ALL (m::nat) n::nat. FINITE (dotdot m n)"
 
 lemma NUMSEG_COMBINE_R: "ALL (x::'q_47957::type) (p::nat) m::nat.
    <= m p & <= p (n::nat) -->
-   hollight.UNION (dotdot m p) (dotdot (p + NUMERAL_BIT1 (0::nat)) n) =
-   dotdot m n"
+   hollight.UNION (dotdot m p) (dotdot (p + NUMERAL_BIT1 0) n) = dotdot m n"
   by (import hollight NUMSEG_COMBINE_R)
 
 lemma NUMSEG_COMBINE_L: "ALL (x::'q_47995::type) (p::nat) m::nat.
    <= m p & <= p (n::nat) -->
-   hollight.UNION (dotdot m (p - NUMERAL_BIT1 (0::nat))) (dotdot p n) =
-   dotdot m n"
+   hollight.UNION (dotdot m (p - NUMERAL_BIT1 0)) (dotdot p n) = dotdot m n"
   by (import hollight NUMSEG_COMBINE_L)
 
 lemma NUMSEG_LREC: "ALL (x::nat) xa::nat.
-   <= x xa -->
-   INSERT x (dotdot (x + NUMERAL_BIT1 (0::nat)) xa) = dotdot x xa"
+   <= x xa --> INSERT x (dotdot (x + NUMERAL_BIT1 0) xa) = dotdot x xa"
   by (import hollight NUMSEG_LREC)
 
 lemma NUMSEG_RREC: "ALL (x::nat) xa::nat.
-   <= x xa -->
-   INSERT xa (dotdot x (xa - NUMERAL_BIT1 (0::nat))) = dotdot x xa"
+   <= x xa --> INSERT xa (dotdot x (xa - NUMERAL_BIT1 0)) = dotdot x xa"
   by (import hollight NUMSEG_RREC)
 
 lemma NUMSEG_REC: "ALL (x::nat) xa::nat.
@@ -7090,24 +7463,22 @@ lemma NUMSEG_SING: "ALL x::nat. dotdot x x = INSERT x EMPTY"
 lemma NUMSEG_EMPTY: "ALL (x::nat) xa::nat. (dotdot x xa = EMPTY) = < xa x"
   by (import hollight NUMSEG_EMPTY)
 
-lemma CARD_NUMSEG_LEMMA: "ALL (m::nat) d::nat. CARD (dotdot m (m + d)) = d + NUMERAL_BIT1 (0::nat)"
+lemma CARD_NUMSEG_LEMMA: "ALL (m::nat) d::nat. CARD (dotdot m (m + d)) = d + NUMERAL_BIT1 0"
   by (import hollight CARD_NUMSEG_LEMMA)
 
-lemma CARD_NUMSEG: "ALL (m::nat) n::nat. CARD (dotdot m n) = n + NUMERAL_BIT1 (0::nat) - m"
+lemma CARD_NUMSEG: "ALL (m::nat) n::nat. CARD (dotdot m n) = n + NUMERAL_BIT1 0 - m"
   by (import hollight CARD_NUMSEG)
 
-lemma HAS_SIZE_NUMSEG: "ALL (x::nat) xa::nat.
-   HAS_SIZE (dotdot x xa) (xa + NUMERAL_BIT1 (0::nat) - x)"
+lemma HAS_SIZE_NUMSEG: "ALL (x::nat) xa::nat. HAS_SIZE (dotdot x xa) (xa + NUMERAL_BIT1 0 - x)"
   by (import hollight HAS_SIZE_NUMSEG)
 
-lemma CARD_NUMSEG_1: "ALL x::nat. CARD (dotdot (NUMERAL_BIT1 (0::nat)) x) = x"
+lemma CARD_NUMSEG_1: "ALL x::nat. CARD (dotdot (NUMERAL_BIT1 0) x) = x"
   by (import hollight CARD_NUMSEG_1)
 
-lemma HAS_SIZE_NUMSEG_1: "ALL x::nat. HAS_SIZE (dotdot (NUMERAL_BIT1 (0::nat)) x) x"
+lemma HAS_SIZE_NUMSEG_1: "ALL x::nat. HAS_SIZE (dotdot (NUMERAL_BIT1 0) x) x"
   by (import hollight HAS_SIZE_NUMSEG_1)
 
-lemma NUMSEG_CLAUSES: "(ALL m::nat.
-    dotdot m (0::nat) = COND (m = (0::nat)) (INSERT (0::nat) EMPTY) EMPTY) &
+lemma NUMSEG_CLAUSES: "(ALL m::nat. dotdot m 0 = COND (m = 0) (INSERT 0 EMPTY) EMPTY) &
 (ALL (m::nat) n::nat.
     dotdot m (Suc n) =
     COND (<= m (Suc n)) (INSERT (Suc n) (dotdot m n)) (dotdot m n))"
@@ -7117,10 +7488,10 @@ lemma FINITE_INDEX_NUMSEG: "ALL s::'A::type => bool.
    FINITE s =
    (EX f::nat => 'A::type.
        (ALL (i::nat) j::nat.
-           IN i (dotdot (NUMERAL_BIT1 (0::nat)) (CARD s)) &
-           IN j (dotdot (NUMERAL_BIT1 (0::nat)) (CARD s)) & f i = f j -->
+           IN i (dotdot (NUMERAL_BIT1 0) (CARD s)) &
+           IN j (dotdot (NUMERAL_BIT1 0) (CARD s)) & f i = f j -->
            i = j) &
-       s = IMAGE f (dotdot (NUMERAL_BIT1 (0::nat)) (CARD s)))"
+       s = IMAGE f (dotdot (NUMERAL_BIT1 0) (CARD s)))"
   by (import hollight FINITE_INDEX_NUMSEG)
 
 lemma FINITE_INDEX_NUMBERS: "ALL s::'A::type => bool.
@@ -7136,10 +7507,9 @@ lemma DISJOINT_NUMSEG: "ALL (x::nat) (xa::nat) (xb::nat) xc::nat.
   by (import hollight DISJOINT_NUMSEG)
 
 lemma NUMSEG_ADD_SPLIT: "ALL (x::nat) (xa::nat) xb::nat.
-   <= x (xa + NUMERAL_BIT1 (0::nat)) -->
+   <= x (xa + NUMERAL_BIT1 0) -->
    dotdot x (xa + xb) =
-   hollight.UNION (dotdot x xa)
-    (dotdot (xa + NUMERAL_BIT1 (0::nat)) (xa + xb))"
+   hollight.UNION (dotdot x xa) (dotdot (xa + NUMERAL_BIT1 0) (xa + xb))"
   by (import hollight NUMSEG_ADD_SPLIT)
 
 lemma NUMSEG_OFFSET_IMAGE: "ALL (x::nat) (xa::nat) xb::nat.
@@ -7151,7 +7521,7 @@ lemma SUBSET_NUMSEG: "ALL (m::nat) (n::nat) (p::nat) q::nat.
   by (import hollight SUBSET_NUMSEG)
 
 constdefs
-  neutral :: "('q_48776::type => 'q_48776::type => 'q_48776::type) => 'q_48776::type" 
+  neutral :: "('q_48776 => 'q_48776 => 'q_48776) => 'q_48776" 
   "neutral ==
 %u::'q_48776::type => 'q_48776::type => 'q_48776::type.
    SOME x::'q_48776::type. ALL y::'q_48776::type. u x y = y & u y x = y"
@@ -7162,7 +7532,7 @@ lemma DEF_neutral: "neutral =
   by (import hollight DEF_neutral)
 
 constdefs
-  monoidal :: "('A::type => 'A::type => 'A::type) => bool" 
+  monoidal :: "('A => 'A => 'A) => bool" 
   "monoidal ==
 %u::'A::type => 'A::type => 'A::type.
    (ALL (x::'A::type) y::'A::type. u x y = u y x) &
@@ -7179,8 +7549,7 @@ lemma DEF_monoidal: "monoidal =
   by (import hollight DEF_monoidal)
 
 constdefs
-  support :: "('B::type => 'B::type => 'B::type)
-=> ('A::type => 'B::type) => ('A::type => bool) => 'A::type => bool" 
+  support :: "('B => 'B => 'B) => ('A => 'B) => ('A => bool) => 'A => bool" 
   "support ==
 %(u::'B::type => 'B::type => 'B::type) (ua::'A::type => 'B::type)
    ub::'A::type => bool.
@@ -7197,8 +7566,8 @@ lemma DEF_support: "support =
   by (import hollight DEF_support)
 
 constdefs
-  iterate :: "('q_48881::type => 'q_48881::type => 'q_48881::type)
-=> ('A::type => bool) => ('A::type => 'q_48881::type) => 'q_48881::type" 
+  iterate :: "('q_48881 => 'q_48881 => 'q_48881)
+=> ('A => bool) => ('A => 'q_48881) => 'q_48881" 
   "iterate ==
 %(u::'q_48881::type => 'q_48881::type => 'q_48881::type)
    (ua::'A::type => bool) ub::'A::type => 'q_48881::type.
@@ -7406,7 +7775,7 @@ lemma ITERATE_IMAGE: "ALL u_4215::'q_50327::type => 'q_50327::type => 'q_50327::
   by (import hollight ITERATE_IMAGE)
 
 constdefs
-  nsum :: "('q_50348::type => bool) => ('q_50348::type => nat) => nat" 
+  nsum :: "('q_50348 => bool) => ('q_50348 => nat) => nat" 
   "(op ==::(('q_50348::type => bool) => ('q_50348::type => nat) => nat)
         => (('q_50348::type => bool) => ('q_50348::type => nat) => nat)
            => prop)
@@ -7424,10 +7793,11 @@ lemma DEF_nsum: "(op =::(('q_50348::type => bool) => ('q_50348::type => nat) => 
    (op +::nat => nat => nat))"
   by (import hollight DEF_nsum)
 
-lemma NEUTRAL_ADD: "neutral op + = (0::nat)"
+lemma NEUTRAL_ADD: "(op =::nat => nat => bool)
+ ((neutral::(nat => nat => nat) => nat) (op +::nat => nat => nat)) (0::nat)"
   by (import hollight NEUTRAL_ADD)
 
-lemma NEUTRAL_MUL: "neutral op * = NUMERAL_BIT1 (0::nat)"
+lemma NEUTRAL_MUL: "neutral op * = NUMERAL_BIT1 0"
   by (import hollight NEUTRAL_MUL)
 
 lemma MONOIDAL_ADD: "(monoidal::(nat => nat => nat) => bool) (op +::nat => nat => nat)"
@@ -7436,7 +7806,7 @@ lemma MONOIDAL_ADD: "(monoidal::(nat => nat => nat) => bool) (op +::nat => nat =
 lemma MONOIDAL_MUL: "(monoidal::(nat => nat => nat) => bool) (op *::nat => nat => nat)"
   by (import hollight MONOIDAL_MUL)
 
-lemma NSUM_CLAUSES: "(ALL x::'q_50386::type => nat. nsum EMPTY x = (0::nat)) &
+lemma NSUM_CLAUSES: "(ALL x::'q_50386::type => nat. nsum EMPTY x = 0) &
 (ALL (x::'q_50425::type) (xa::'q_50425::type => nat)
     xb::'q_50425::type => bool.
     FINITE xb -->
@@ -7498,28 +7868,27 @@ lemma NSUM_CONST: "ALL (c::nat) s::'q_50862::type => bool.
   by (import hollight NSUM_CONST)
 
 lemma NSUM_EQ_0: "ALL (x::'A::type => nat) xa::'A::type => bool.
-   (ALL xb::'A::type. IN xb xa --> x xb = (0::nat)) --> nsum xa x = (0::nat)"
+   (ALL xb::'A::type. IN xb xa --> x xb = 0) --> nsum xa x = 0"
   by (import hollight NSUM_EQ_0)
 
-lemma NSUM_0: "ALL x::'A::type => bool. nsum x (%n::'A::type. 0::nat) = (0::nat)"
+lemma NSUM_0: "ALL x::'A::type => bool. nsum x (%n::'A::type. 0) = 0"
   by (import hollight NSUM_0)
 
 lemma NSUM_POS_LE: "ALL (x::'q_50941::type => nat) xa::'q_50941::type => bool.
-   FINITE xa & (ALL xb::'q_50941::type. IN xb xa --> <= (0::nat) (x xb)) -->
-   <= (0::nat) (nsum xa x)"
+   FINITE xa & (ALL xb::'q_50941::type. IN xb xa --> <= 0 (x xb)) -->
+   <= 0 (nsum xa x)"
   by (import hollight NSUM_POS_LE)
 
 lemma NSUM_POS_BOUND: "ALL (f::'A::type => nat) (b::nat) x::'A::type => bool.
    FINITE x &
-   (ALL xa::'A::type. IN xa x --> <= (0::nat) (f xa)) & <= (nsum x f) b -->
+   (ALL xa::'A::type. IN xa x --> <= 0 (f xa)) & <= (nsum x f) b -->
    (ALL xa::'A::type. IN xa x --> <= (f xa) b)"
   by (import hollight NSUM_POS_BOUND)
 
 lemma NSUM_POS_EQ_0: "ALL (x::'q_51076::type => nat) xa::'q_51076::type => bool.
    FINITE xa &
-   (ALL xb::'q_51076::type. IN xb xa --> <= (0::nat) (x xb)) &
-   nsum xa x = (0::nat) -->
-   (ALL xb::'q_51076::type. IN xb xa --> x xb = (0::nat))"
+   (ALL xb::'q_51076::type. IN xb xa --> <= 0 (x xb)) & nsum xa x = 0 -->
+   (ALL xb::'q_51076::type. IN xb xa --> x xb = 0)"
   by (import hollight NSUM_POS_EQ_0)
 
 lemma NSUM_SING: "ALL (x::'q_51096::type => nat) xa::'q_51096::type.
@@ -7527,8 +7896,7 @@ lemma NSUM_SING: "ALL (x::'q_51096::type => nat) xa::'q_51096::type.
   by (import hollight NSUM_SING)
 
 lemma NSUM_DELTA: "ALL (x::'A::type => bool) xa::'A::type.
-   nsum x (%x::'A::type. COND (x = xa) (b::nat) (0::nat)) =
-   COND (IN xa x) b (0::nat)"
+   nsum x (%x::'A::type. COND (x = xa) (b::nat) 0) = COND (IN xa x) b 0"
   by (import hollight NSUM_DELTA)
 
 lemma NSUM_SWAP: "ALL (f::'A::type => 'B::type => nat) (x::'A::type => bool)
@@ -7548,23 +7916,23 @@ lemma NSUM_IMAGE: "ALL (x::'q_51236::type => 'q_51212::type) (xa::'q_51212::type
 
 lemma NSUM_SUPERSET: "ALL (f::'A::type => nat) (u::'A::type => bool) v::'A::type => bool.
    FINITE u &
-   SUBSET u v & (ALL x::'A::type. IN x v & ~ IN x u --> f x = (0::nat)) -->
+   SUBSET u v & (ALL x::'A::type. IN x v & ~ IN x u --> f x = 0) -->
    nsum v f = nsum u f"
   by (import hollight NSUM_SUPERSET)
 
 lemma NSUM_UNION_RZERO: "ALL (f::'A::type => nat) (u::'A::type => bool) v::'A::type => bool.
-   FINITE u & (ALL x::'A::type. IN x v & ~ IN x u --> f x = (0::nat)) -->
+   FINITE u & (ALL x::'A::type. IN x v & ~ IN x u --> f x = 0) -->
    nsum (hollight.UNION u v) f = nsum u f"
   by (import hollight NSUM_UNION_RZERO)
 
 lemma NSUM_UNION_LZERO: "ALL (f::'A::type => nat) (u::'A::type => bool) v::'A::type => bool.
-   FINITE v & (ALL x::'A::type. IN x u & ~ IN x v --> f x = (0::nat)) -->
+   FINITE v & (ALL x::'A::type. IN x u & ~ IN x v --> f x = 0) -->
    nsum (hollight.UNION u v) f = nsum v f"
   by (import hollight NSUM_UNION_LZERO)
 
 lemma NSUM_RESTRICT: "ALL (f::'q_51457::type => nat) s::'q_51457::type => bool.
    FINITE s -->
-   nsum s (%x::'q_51457::type. COND (IN x s) (f x) (0::nat)) = nsum s f"
+   nsum s (%x::'q_51457::type. COND (IN x s) (f x) 0) = nsum s f"
   by (import hollight NSUM_RESTRICT)
 
 lemma NSUM_BOUND: "ALL (x::'A::type => bool) (xa::'A::type => nat) xb::nat.
@@ -7610,7 +7978,7 @@ lemma NSUM_EQ_SUPERSET: "ALL (f::'A::type => nat) (s::'A::type => bool) t::'A::t
    FINITE t &
    SUBSET t s &
    (ALL x::'A::type. IN x t --> f x = (g::'A::type => nat) x) &
-   (ALL x::'A::type. IN x s & ~ IN x t --> f x = (0::nat)) -->
+   (ALL x::'A::type. IN x s & ~ IN x t --> f x = 0) -->
    nsum s f = nsum t g"
   by (import hollight NSUM_EQ_SUPERSET)
 
@@ -7621,7 +7989,7 @@ lemma NSUM_RESTRICT_SET: "ALL (s::'A::type => bool) (f::'A::type => nat) r::'q_5
       (%u::'A::type.
           EX x::'A::type. SETSPEC u (IN x s & (P::'A::type => bool) x) x))
     f =
-   nsum s (%x::'A::type. COND (P x) (f x) (0::nat))"
+   nsum s (%x::'A::type. COND (P x) (f x) 0)"
   by (import hollight NSUM_RESTRICT_SET)
 
 lemma NSUM_NSUM_RESTRICT: "ALL (R::'q_52016::type => 'q_52015::type => bool)
@@ -7645,7 +8013,7 @@ lemma NSUM_NSUM_RESTRICT: "ALL (R::'q_52016::type => 'q_52015::type => bool)
   by (import hollight NSUM_NSUM_RESTRICT)
 
 lemma CARD_EQ_NSUM: "ALL x::'q_52035::type => bool.
-   FINITE x --> CARD x = nsum x (%x::'q_52035::type. NUMERAL_BIT1 (0::nat))"
+   FINITE x --> CARD x = nsum x (%x::'q_52035::type. NUMERAL_BIT1 0)"
   by (import hollight CARD_EQ_NSUM)
 
 lemma NSUM_MULTICOUNT_GEN: "ALL (R::'A::type => 'B::type => bool) (s::'A::type => bool)
@@ -7696,8 +8064,7 @@ lemma NSUM_IMAGE_GEN: "ALL (f::'A::type => 'B::type) (g::'A::type => nat) s::'A:
   by (import hollight NSUM_IMAGE_GEN)
 
 lemma NSUM_SUBSET: "ALL (u::'A::type => bool) (v::'A::type => bool) f::'A::type => nat.
-   FINITE u &
-   FINITE v & (ALL x::'A::type. IN x (DIFF u v) --> f x = (0::nat)) -->
+   FINITE u & FINITE v & (ALL x::'A::type. IN x (DIFF u v) --> f x = 0) -->
    <= (nsum u f) (nsum v f)"
   by (import hollight NSUM_SUBSET)
 
@@ -7726,35 +8093,32 @@ lemma NSUM_EQ_NUMSEG: "ALL (f::nat => nat) (g::nat => nat) (m::nat) n::nat.
   by (import hollight NSUM_EQ_NUMSEG)
 
 lemma NSUM_CONST_NUMSEG: "ALL (x::nat) (xa::nat) xb::nat.
-   nsum (dotdot xa xb) (%n::nat. x) = (xb + NUMERAL_BIT1 (0::nat) - xa) * x"
+   nsum (dotdot xa xb) (%n::nat. x) = (xb + NUMERAL_BIT1 0 - xa) * x"
   by (import hollight NSUM_CONST_NUMSEG)
 
 lemma NSUM_EQ_0_NUMSEG: "ALL (x::nat => nat) xa::'q_52734::type.
-   (ALL i::nat. <= (m::nat) i & <= i (n::nat) --> x i = (0::nat)) -->
-   nsum (dotdot m n) x = (0::nat)"
+   (ALL i::nat. <= (m::nat) i & <= i (n::nat) --> x i = 0) -->
+   nsum (dotdot m n) x = 0"
   by (import hollight NSUM_EQ_0_NUMSEG)
 
-lemma NSUM_TRIV_NUMSEG: "ALL (f::nat => nat) (m::nat) n::nat.
-   < n m --> nsum (dotdot m n) f = (0::nat)"
+lemma NSUM_TRIV_NUMSEG: "ALL (f::nat => nat) (m::nat) n::nat. < n m --> nsum (dotdot m n) f = 0"
   by (import hollight NSUM_TRIV_NUMSEG)
 
 lemma NSUM_POS_LE_NUMSEG: "ALL (x::nat) (xa::nat) xb::nat => nat.
-   (ALL p::nat. <= x p & <= p xa --> <= (0::nat) (xb p)) -->
-   <= (0::nat) (nsum (dotdot x xa) xb)"
+   (ALL p::nat. <= x p & <= p xa --> <= 0 (xb p)) -->
+   <= 0 (nsum (dotdot x xa) xb)"
   by (import hollight NSUM_POS_LE_NUMSEG)
 
 lemma NSUM_POS_EQ_0_NUMSEG: "ALL (f::nat => nat) (m::nat) n::nat.
-   (ALL p::nat. <= m p & <= p n --> <= (0::nat) (f p)) &
-   nsum (dotdot m n) f = (0::nat) -->
-   (ALL p::nat. <= m p & <= p n --> f p = (0::nat))"
+   (ALL p::nat. <= m p & <= p n --> <= 0 (f p)) &
+   nsum (dotdot m n) f = 0 -->
+   (ALL p::nat. <= m p & <= p n --> f p = 0)"
   by (import hollight NSUM_POS_EQ_0_NUMSEG)
 
 lemma NSUM_SING_NUMSEG: "ALL (x::nat => nat) xa::nat. nsum (dotdot xa xa) x = x xa"
   by (import hollight NSUM_SING_NUMSEG)
 
-lemma NSUM_CLAUSES_NUMSEG: "(ALL x::nat.
-    nsum (dotdot x (0::nat)) (f::nat => nat) =
-    COND (x = (0::nat)) (f (0::nat)) (0::nat)) &
+lemma NSUM_CLAUSES_NUMSEG: "(ALL x::nat. nsum (dotdot x 0) (f::nat => nat) = COND (x = 0) (f 0) 0) &
 (ALL (x::nat) xa::nat.
     nsum (dotdot x (Suc xa)) f =
     COND (<= x (Suc xa)) (nsum (dotdot x xa) f + f (Suc xa))
@@ -7767,10 +8131,9 @@ lemma NSUM_SWAP_NUMSEG: "ALL (a::nat) (b::nat) (c::nat) (d::nat) f::nat => nat =
   by (import hollight NSUM_SWAP_NUMSEG)
 
 lemma NSUM_ADD_SPLIT: "ALL (x::nat => nat) (xa::nat) (xb::nat) xc::nat.
-   <= xa (xb + NUMERAL_BIT1 (0::nat)) -->
+   <= xa (xb + NUMERAL_BIT1 0) -->
    nsum (dotdot xa (xb + xc)) x =
-   nsum (dotdot xa xb) x +
-   nsum (dotdot (xb + NUMERAL_BIT1 (0::nat)) (xb + xc)) x"
+   nsum (dotdot xa xb) x + nsum (dotdot (xb + NUMERAL_BIT1 0) (xb + xc)) x"
   by (import hollight NSUM_ADD_SPLIT)
 
 lemma NSUM_OFFSET: "ALL (x::nat => nat) (xa::nat) xb::nat.
@@ -7780,24 +8143,21 @@ lemma NSUM_OFFSET: "ALL (x::nat => nat) (xa::nat) xb::nat.
 
 lemma NSUM_OFFSET_0: "ALL (x::nat => nat) (xa::nat) xb::nat.
    <= xa xb -->
-   nsum (dotdot xa xb) x =
-   nsum (dotdot (0::nat) (xb - xa)) (%i::nat. x (i + xa))"
+   nsum (dotdot xa xb) x = nsum (dotdot 0 (xb - xa)) (%i::nat. x (i + xa))"
   by (import hollight NSUM_OFFSET_0)
 
 lemma NSUM_CLAUSES_LEFT: "ALL (x::nat => nat) (xa::nat) xb::nat.
    <= xa xb -->
-   nsum (dotdot xa xb) x =
-   x xa + nsum (dotdot (xa + NUMERAL_BIT1 (0::nat)) xb) x"
+   nsum (dotdot xa xb) x = x xa + nsum (dotdot (xa + NUMERAL_BIT1 0) xb) x"
   by (import hollight NSUM_CLAUSES_LEFT)
 
 lemma NSUM_CLAUSES_RIGHT: "ALL (f::nat => nat) (m::nat) n::nat.
-   < (0::nat) n & <= m n -->
-   nsum (dotdot m n) f = nsum (dotdot m (n - NUMERAL_BIT1 (0::nat))) f + f n"
+   < 0 n & <= m n -->
+   nsum (dotdot m n) f = nsum (dotdot m (n - NUMERAL_BIT1 0)) f + f n"
   by (import hollight NSUM_CLAUSES_RIGHT)
 
 consts
-  sum :: "('q_53311::type => bool)
-=> ('q_53311::type => hollight.real) => hollight.real" 
+  sum :: "('q_53311 => bool) => ('q_53311 => hollight.real) => hollight.real" 
 
 defs
   sum_def: "(op ==::(('q_53311::type => bool)
@@ -7825,10 +8185,10 @@ lemma DEF_sum: "(op =::(('q_53311::type => bool)
    (real_add::hollight.real => hollight.real => hollight.real))"
   by (import hollight DEF_sum)
 
-lemma NEUTRAL_REAL_ADD: "neutral real_add = real_of_num (0::nat)"
+lemma NEUTRAL_REAL_ADD: "neutral real_add = real_of_num 0"
   by (import hollight NEUTRAL_REAL_ADD)
 
-lemma NEUTRAL_REAL_MUL: "neutral real_mul = real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma NEUTRAL_REAL_MUL: "neutral real_mul = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight NEUTRAL_REAL_MUL)
 
 lemma MONOIDAL_REAL_ADD: "monoidal real_add"
@@ -7838,7 +8198,7 @@ lemma MONOIDAL_REAL_MUL: "monoidal real_mul"
   by (import hollight MONOIDAL_REAL_MUL)
 
 lemma SUM_CLAUSES: "(ALL x::'q_53353::type => hollight.real.
-    hollight.sum EMPTY x = real_of_num (0::nat)) &
+    hollight.sum EMPTY x = real_of_num 0) &
 (ALL (x::'q_53394::type) (xa::'q_53394::type => hollight.real)
     xb::'q_53394::type => bool.
     FINITE xb -->
@@ -7876,24 +8236,22 @@ lemma SUM_LT_ALL: "ALL (f::'q_53825::type => hollight.real)
 
 lemma SUM_POS_LE: "ALL (x::'q_54040::type => hollight.real) xa::'q_54040::type => bool.
    FINITE xa &
-   (ALL xb::'q_54040::type.
-       IN xb xa --> real_le (real_of_num (0::nat)) (x xb)) -->
-   real_le (real_of_num (0::nat)) (hollight.sum xa x)"
+   (ALL xb::'q_54040::type. IN xb xa --> real_le (real_of_num 0) (x xb)) -->
+   real_le (real_of_num 0) (hollight.sum xa x)"
   by (import hollight SUM_POS_LE)
 
 lemma SUM_POS_BOUND: "ALL (f::'A::type => hollight.real) (b::hollight.real) x::'A::type => bool.
    FINITE x &
-   (ALL xa::'A::type. IN xa x --> real_le (real_of_num (0::nat)) (f xa)) &
+   (ALL xa::'A::type. IN xa x --> real_le (real_of_num 0) (f xa)) &
    real_le (hollight.sum x f) b -->
    (ALL xa::'A::type. IN xa x --> real_le (f xa) b)"
   by (import hollight SUM_POS_BOUND)
 
 lemma SUM_POS_EQ_0: "ALL (x::'q_54187::type => hollight.real) xa::'q_54187::type => bool.
    FINITE xa &
-   (ALL xb::'q_54187::type.
-       IN xb xa --> real_le (real_of_num (0::nat)) (x xb)) &
-   hollight.sum xa x = real_of_num (0::nat) -->
-   (ALL xb::'q_54187::type. IN xb xa --> x xb = real_of_num (0::nat))"
+   (ALL xb::'q_54187::type. IN xb xa --> real_le (real_of_num 0) (x xb)) &
+   hollight.sum xa x = real_of_num 0 -->
+   (ALL xb::'q_54187::type. IN xb xa --> x xb = real_of_num 0)"
   by (import hollight SUM_POS_EQ_0)
 
 lemma SUM_SING: "ALL (x::'q_54209::type => hollight.real) xa::'q_54209::type.
@@ -7902,9 +8260,8 @@ lemma SUM_SING: "ALL (x::'q_54209::type => hollight.real) xa::'q_54209::type.
 
 lemma SUM_DELTA: "ALL (x::'A::type => bool) xa::'A::type.
    hollight.sum x
-    (%x::'A::type.
-        COND (x = xa) (b::hollight.real) (real_of_num (0::nat))) =
-   COND (IN xa x) b (real_of_num (0::nat))"
+    (%x::'A::type. COND (x = xa) (b::hollight.real) (real_of_num 0)) =
+   COND (IN xa x) b (real_of_num 0)"
   by (import hollight SUM_DELTA)
 
 lemma SUM_IMAGE: "ALL (x::'q_54353::type => 'q_54329::type)
@@ -7919,28 +8276,28 @@ lemma SUM_SUPERSET: "ALL (f::'A::type => hollight.real) (u::'A::type => bool)
    v::'A::type => bool.
    FINITE u &
    SUBSET u v &
-   (ALL x::'A::type. IN x v & ~ IN x u --> f x = real_of_num (0::nat)) -->
+   (ALL x::'A::type. IN x v & ~ IN x u --> f x = real_of_num 0) -->
    hollight.sum v f = hollight.sum u f"
   by (import hollight SUM_SUPERSET)
 
 lemma SUM_UNION_RZERO: "ALL (f::'A::type => hollight.real) (u::'A::type => bool)
    v::'A::type => bool.
    FINITE u &
-   (ALL x::'A::type. IN x v & ~ IN x u --> f x = real_of_num (0::nat)) -->
+   (ALL x::'A::type. IN x v & ~ IN x u --> f x = real_of_num 0) -->
    hollight.sum (hollight.UNION u v) f = hollight.sum u f"
   by (import hollight SUM_UNION_RZERO)
 
 lemma SUM_UNION_LZERO: "ALL (f::'A::type => hollight.real) (u::'A::type => bool)
    v::'A::type => bool.
    FINITE v &
-   (ALL x::'A::type. IN x u & ~ IN x v --> f x = real_of_num (0::nat)) -->
+   (ALL x::'A::type. IN x u & ~ IN x v --> f x = real_of_num 0) -->
    hollight.sum (hollight.UNION u v) f = hollight.sum v f"
   by (import hollight SUM_UNION_LZERO)
 
 lemma SUM_RESTRICT: "ALL (f::'q_54580::type => hollight.real) s::'q_54580::type => bool.
    FINITE s -->
    hollight.sum s
-    (%x::'q_54580::type. COND (IN x s) (f x) (real_of_num (0::nat))) =
+    (%x::'q_54580::type. COND (IN x s) (f x) (real_of_num 0)) =
    hollight.sum s f"
   by (import hollight SUM_RESTRICT)
 
@@ -7996,7 +8353,7 @@ lemma SUM_EQ_SUPERSET: "ALL (f::'A::type => hollight.real) (s::'A::type => bool)
    FINITE t &
    SUBSET t s &
    (ALL x::'A::type. IN x t --> f x = (g::'A::type => hollight.real) x) &
-   (ALL x::'A::type. IN x s & ~ IN x t --> f x = real_of_num (0::nat)) -->
+   (ALL x::'A::type. IN x s & ~ IN x t --> f x = real_of_num 0) -->
    hollight.sum s f = hollight.sum t g"
   by (import hollight SUM_EQ_SUPERSET)
 
@@ -8007,7 +8364,7 @@ lemma SUM_RESTRICT_SET: "ALL (s::'A::type => bool) (f::'A::type => hollight.real
       (%u::'A::type.
           EX x::'A::type. SETSPEC u (IN x s & (P::'A::type => bool) x) x))
     f =
-   hollight.sum s (%x::'A::type. COND (P x) (f x) (real_of_num (0::nat)))"
+   hollight.sum s (%x::'A::type. COND (P x) (f x) (real_of_num 0))"
   by (import hollight SUM_RESTRICT_SET)
 
 lemma SUM_SUM_RESTRICT: "ALL (R::'q_55171::type => 'q_55170::type => bool)
@@ -8033,7 +8390,7 @@ lemma SUM_SUM_RESTRICT: "ALL (R::'q_55171::type => 'q_55170::type => bool)
 lemma CARD_EQ_SUM: "ALL x::'q_55192::type => bool.
    FINITE x -->
    real_of_num (CARD x) =
-   hollight.sum x (%x::'q_55192::type. real_of_num (NUMERAL_BIT1 (0::nat)))"
+   hollight.sum x (%x::'q_55192::type. real_of_num (NUMERAL_BIT1 0))"
   by (import hollight CARD_EQ_SUM)
 
 lemma SUM_MULTICOUNT_GEN: "ALL (R::'A::type => 'B::type => bool) (s::'A::type => bool)
@@ -8098,10 +8455,8 @@ lemma SUM_SUBSET: "ALL (u::'A::type => bool) (v::'A::type => bool)
    f::'A::type => hollight.real.
    FINITE u &
    FINITE v &
-   (ALL x::'A::type.
-       IN x (DIFF u v) --> real_le (f x) (real_of_num (0::nat))) &
-   (ALL x::'A::type.
-       IN x (DIFF v u) --> real_le (real_of_num (0::nat)) (f x)) -->
+   (ALL x::'A::type. IN x (DIFF u v) --> real_le (f x) (real_of_num 0)) &
+   (ALL x::'A::type. IN x (DIFF v u) --> real_le (real_of_num 0) (f x)) -->
    real_le (hollight.sum u f) (hollight.sum v f)"
   by (import hollight SUM_SUBSET)
 
@@ -8109,8 +8464,7 @@ lemma SUM_SUBSET_SIMPLE: "ALL (u::'A::type => bool) (v::'A::type => bool)
    f::'A::type => hollight.real.
    FINITE v &
    SUBSET u v &
-   (ALL x::'A::type.
-       IN x (DIFF v u) --> real_le (real_of_num (0::nat)) (f x)) -->
+   (ALL x::'A::type. IN x (DIFF v u) --> real_le (real_of_num 0) (f x)) -->
    real_le (hollight.sum u f) (hollight.sum v f)"
   by (import hollight SUM_SUBSET_SIMPLE)
 
@@ -8151,37 +8505,35 @@ lemma SUM_ABS_NUMSEG: "ALL (x::nat => hollight.real) (xa::nat) xb::nat.
 
 lemma SUM_CONST_NUMSEG: "ALL (x::hollight.real) (xa::nat) xb::nat.
    hollight.sum (dotdot xa xb) (%n::nat. x) =
-   real_mul (real_of_num (xb + NUMERAL_BIT1 (0::nat) - xa)) x"
+   real_mul (real_of_num (xb + NUMERAL_BIT1 0 - xa)) x"
   by (import hollight SUM_CONST_NUMSEG)
 
 lemma SUM_EQ_0_NUMSEG: "ALL (x::nat => hollight.real) xa::'q_56115::type.
-   (ALL i::nat.
-       <= (m::nat) i & <= i (n::nat) --> x i = real_of_num (0::nat)) -->
-   hollight.sum (dotdot m n) x = real_of_num (0::nat)"
+   (ALL i::nat. <= (m::nat) i & <= i (n::nat) --> x i = real_of_num 0) -->
+   hollight.sum (dotdot m n) x = real_of_num 0"
   by (import hollight SUM_EQ_0_NUMSEG)
 
 lemma SUM_TRIV_NUMSEG: "ALL (f::nat => hollight.real) (m::nat) n::nat.
-   < n m --> hollight.sum (dotdot m n) f = real_of_num (0::nat)"
+   < n m --> hollight.sum (dotdot m n) f = real_of_num 0"
   by (import hollight SUM_TRIV_NUMSEG)
 
 lemma SUM_POS_LE_NUMSEG: "ALL (x::nat) (xa::nat) xb::nat => hollight.real.
-   (ALL p::nat.
-       <= x p & <= p xa --> real_le (real_of_num (0::nat)) (xb p)) -->
-   real_le (real_of_num (0::nat)) (hollight.sum (dotdot x xa) xb)"
+   (ALL p::nat. <= x p & <= p xa --> real_le (real_of_num 0) (xb p)) -->
+   real_le (real_of_num 0) (hollight.sum (dotdot x xa) xb)"
   by (import hollight SUM_POS_LE_NUMSEG)
 
 lemma SUM_POS_EQ_0_NUMSEG: "ALL (f::nat => hollight.real) (m::nat) n::nat.
-   (ALL p::nat. <= m p & <= p n --> real_le (real_of_num (0::nat)) (f p)) &
-   hollight.sum (dotdot m n) f = real_of_num (0::nat) -->
-   (ALL p::nat. <= m p & <= p n --> f p = real_of_num (0::nat))"
+   (ALL p::nat. <= m p & <= p n --> real_le (real_of_num 0) (f p)) &
+   hollight.sum (dotdot m n) f = real_of_num 0 -->
+   (ALL p::nat. <= m p & <= p n --> f p = real_of_num 0)"
   by (import hollight SUM_POS_EQ_0_NUMSEG)
 
 lemma SUM_SING_NUMSEG: "ALL (x::nat => hollight.real) xa::nat. hollight.sum (dotdot xa xa) x = x xa"
   by (import hollight SUM_SING_NUMSEG)
 
 lemma SUM_CLAUSES_NUMSEG: "(ALL x::nat.
-    hollight.sum (dotdot x (0::nat)) (f::nat => hollight.real) =
-    COND (x = (0::nat)) (f (0::nat)) (real_of_num (0::nat))) &
+    hollight.sum (dotdot x 0) (f::nat => hollight.real) =
+    COND (x = 0) (f 0) (real_of_num 0)) &
 (ALL (x::nat) xa::nat.
     hollight.sum (dotdot x (Suc xa)) f =
     COND (<= x (Suc xa))
@@ -8196,28 +8548,28 @@ lemma SUM_SWAP_NUMSEG: "ALL (a::nat) (b::nat) (c::nat) (d::nat) f::nat => nat =>
   by (import hollight SUM_SWAP_NUMSEG)
 
 lemma SUM_ADD_SPLIT: "ALL (x::nat => hollight.real) (xa::nat) (xb::nat) xc::nat.
-   <= xa (xb + NUMERAL_BIT1 (0::nat)) -->
+   <= xa (xb + NUMERAL_BIT1 0) -->
    hollight.sum (dotdot xa (xb + xc)) x =
    real_add (hollight.sum (dotdot xa xb) x)
-    (hollight.sum (dotdot (xb + NUMERAL_BIT1 (0::nat)) (xb + xc)) x)"
+    (hollight.sum (dotdot (xb + NUMERAL_BIT1 0) (xb + xc)) x)"
   by (import hollight SUM_ADD_SPLIT)
 
 lemma SUM_OFFSET_0: "ALL (x::nat => hollight.real) (xa::nat) xb::nat.
    <= xa xb -->
    hollight.sum (dotdot xa xb) x =
-   hollight.sum (dotdot (0::nat) (xb - xa)) (%i::nat. x (i + xa))"
+   hollight.sum (dotdot 0 (xb - xa)) (%i::nat. x (i + xa))"
   by (import hollight SUM_OFFSET_0)
 
 lemma SUM_CLAUSES_LEFT: "ALL (x::nat => hollight.real) (xa::nat) xb::nat.
    <= xa xb -->
    hollight.sum (dotdot xa xb) x =
-   real_add (x xa) (hollight.sum (dotdot (xa + NUMERAL_BIT1 (0::nat)) xb) x)"
+   real_add (x xa) (hollight.sum (dotdot (xa + NUMERAL_BIT1 0) xb) x)"
   by (import hollight SUM_CLAUSES_LEFT)
 
 lemma SUM_CLAUSES_RIGHT: "ALL (f::nat => hollight.real) (m::nat) n::nat.
-   < (0::nat) n & <= m n -->
+   < 0 n & <= m n -->
    hollight.sum (dotdot m n) f =
-   real_add (hollight.sum (dotdot m (n - NUMERAL_BIT1 (0::nat))) f) (f n)"
+   real_add (hollight.sum (dotdot m (n - NUMERAL_BIT1 0)) f) (f n)"
   by (import hollight SUM_CLAUSES_RIGHT)
 
 lemma REAL_OF_NUM_SUM_NUMSEG: "ALL (x::nat => nat) (xa::nat) xb::nat.
@@ -8226,9 +8578,8 @@ lemma REAL_OF_NUM_SUM_NUMSEG: "ALL (x::nat => nat) (xa::nat) xb::nat.
   by (import hollight REAL_OF_NUM_SUM_NUMSEG)
 
 constdefs
-  CASEWISE :: "(('q_56787::type => 'q_56791::type) *
- ('q_56792::type => 'q_56787::type => 'q_56751::type)) hollight.list
-=> 'q_56792::type => 'q_56791::type => 'q_56751::type" 
+  CASEWISE :: "(('q_56787 => 'q_56791) * ('q_56792 => 'q_56787 => 'q_56751)) hollight.list
+=> 'q_56792 => 'q_56791 => 'q_56751" 
   "CASEWISE ==
 SOME CASEWISE::(('q_56787::type => 'q_56791::type) *
                 ('q_56792::type
@@ -8346,12 +8697,10 @@ lemma CASEWISE_WORKS: "ALL (x::(('P::type => 'A::type) *
   by (import hollight CASEWISE_WORKS)
 
 constdefs
-  admissible :: "('q_57089::type => 'q_57082::type => bool)
-=> (('q_57089::type => 'q_57085::type) => 'q_57095::type => bool)
-   => ('q_57095::type => 'q_57082::type)
-      => (('q_57089::type => 'q_57085::type)
-          => 'q_57095::type => 'q_57090::type)
-         => bool" 
+  admissible :: "('q_57089 => 'q_57082 => bool)
+=> (('q_57089 => 'q_57085) => 'q_57095 => bool)
+   => ('q_57095 => 'q_57082)
+      => (('q_57089 => 'q_57085) => 'q_57095 => 'q_57090) => bool" 
   "admissible ==
 %(u::'q_57089::type => 'q_57082::type => bool)
    (ua::('q_57089::type => 'q_57085::type) => 'q_57095::type => bool)
@@ -8378,10 +8727,9 @@ lemma DEF_admissible: "admissible =
   by (import hollight DEF_admissible)
 
 constdefs
-  tailadmissible :: "('A::type => 'A::type => bool)
-=> (('A::type => 'B::type) => 'P::type => bool)
-   => ('P::type => 'A::type)
-      => (('A::type => 'B::type) => 'P::type => 'B::type) => bool" 
+  tailadmissible :: "('A => 'A => bool)
+=> (('A => 'B) => 'P => bool)
+   => ('P => 'A) => (('A => 'B) => 'P => 'B) => bool" 
   "tailadmissible ==
 %(u::'A::type => 'A::type => bool)
    (ua::('A::type => 'B::type) => 'P::type => bool)
@@ -8416,12 +8764,10 @@ lemma DEF_tailadmissible: "tailadmissible =
   by (import hollight DEF_tailadmissible)
 
 constdefs
-  superadmissible :: "('q_57239::type => 'q_57239::type => bool)
-=> (('q_57239::type => 'q_57241::type) => 'q_57247::type => bool)
-   => ('q_57247::type => 'q_57239::type)
-      => (('q_57239::type => 'q_57241::type)
-          => 'q_57247::type => 'q_57241::type)
-         => bool" 
+  superadmissible :: "('q_57239 => 'q_57239 => bool)
+=> (('q_57239 => 'q_57241) => 'q_57247 => bool)
+   => ('q_57247 => 'q_57239)
+      => (('q_57239 => 'q_57241) => 'q_57247 => 'q_57241) => bool" 
   "superadmissible ==
 %(u::'q_57239::type => 'q_57239::type => bool)
    (ua::('q_57239::type => 'q_57241::type) => 'q_57247::type => bool)
@@ -8695,19 +9041,19 @@ tailadmissible u_354
 lemma SUB_SUB: "ALL (x::nat) xa::nat. <= xa x --> (ALL a::nat. a - (x - xa) = a + xa - x)"
   by (import hollight SUB_SUB)
 
-lemma SUB_OLD: "(ALL m::nat. (0::nat) - m = (0::nat)) &
-(ALL (m::nat) n::nat. Suc m - n = COND (< m n) (0::nat) (Suc (m - n)))"
+lemma SUB_OLD: "(ALL m::nat. 0 - m = 0) &
+(ALL (m::nat) n::nat. Suc m - n = COND (< m n) 0 (Suc (m - n)))"
   by (import hollight SUB_OLD)
 
 lemma real_le: "ALL (x::hollight.real) xa::hollight.real. real_le x xa = (~ real_lt xa x)"
   by (import hollight real_le)
 
-lemma REAL_MUL_RID: "ALL x::hollight.real. real_mul x (real_of_num (NUMERAL_BIT1 (0::nat))) = x"
+lemma REAL_MUL_RID: "ALL x::hollight.real. real_mul x (real_of_num (NUMERAL_BIT1 0)) = x"
   by (import hollight REAL_MUL_RID)
 
 lemma REAL_MUL_RINV: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) -->
-   real_mul x (real_inv x) = real_of_num (NUMERAL_BIT1 (0::nat))"
+   x ~= real_of_num 0 -->
+   real_mul x (real_inv x) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_MUL_RINV)
 
 lemma REAL_RDISTRIB: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -8723,31 +9069,29 @@ lemma REAL_EQ_RADD: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
   by (import hollight REAL_EQ_RADD)
 
 lemma REAL_ADD_LID_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   (real_add x y = y) = (x = real_of_num (0::nat))"
+   (real_add x y = y) = (x = real_of_num 0)"
   by (import hollight REAL_ADD_LID_UNIQ)
 
 lemma REAL_ADD_RID_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   (real_add x y = x) = (y = real_of_num (0::nat))"
+   (real_add x y = x) = (y = real_of_num 0)"
   by (import hollight REAL_ADD_RID_UNIQ)
 
 lemma REAL_LNEG_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   (real_add x y = real_of_num (0::nat)) = (x = real_neg y)"
+   (real_add x y = real_of_num 0) = (x = real_neg y)"
   by (import hollight REAL_LNEG_UNIQ)
 
 lemma REAL_RNEG_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   (real_add x y = real_of_num (0::nat)) = (y = real_neg x)"
+   (real_add x y = real_of_num 0) = (y = real_neg x)"
   by (import hollight REAL_RNEG_UNIQ)
 
 lemma REAL_NEG_ADD: "ALL (x::hollight.real) y::hollight.real.
    real_neg (real_add x y) = real_add (real_neg x) (real_neg y)"
   by (import hollight REAL_NEG_ADD)
 
-lemma REAL_MUL_LZERO: "ALL x::hollight.real.
-   real_mul (real_of_num (0::nat)) x = real_of_num (0::nat)"
+lemma REAL_MUL_LZERO: "ALL x::hollight.real. real_mul (real_of_num 0) x = real_of_num 0"
   by (import hollight REAL_MUL_LZERO)
 
-lemma REAL_MUL_RZERO: "ALL x::hollight.real.
-   real_mul x (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma REAL_MUL_RZERO: "ALL x::hollight.real. real_mul x (real_of_num 0) = real_of_num 0"
   by (import hollight REAL_MUL_RZERO)
 
 lemma REAL_NEG_LMUL: "ALL (x::hollight.real) y::hollight.real.
@@ -8807,45 +9151,39 @@ lemma REAL_LE_TRANS: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real
   by (import hollight REAL_LE_TRANS)
 
 lemma REAL_NEG_LT0: "ALL x::hollight.real.
-   real_lt (real_neg x) (real_of_num (0::nat)) =
-   real_lt (real_of_num (0::nat)) x"
+   real_lt (real_neg x) (real_of_num 0) = real_lt (real_of_num 0) x"
   by (import hollight REAL_NEG_LT0)
 
 lemma REAL_NEG_GT0: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) (real_neg x) =
-   real_lt x (real_of_num (0::nat))"
+   real_lt (real_of_num 0) (real_neg x) = real_lt x (real_of_num 0)"
   by (import hollight REAL_NEG_GT0)
 
 lemma REAL_NEG_LE0: "ALL x::hollight.real.
-   real_le (real_neg x) (real_of_num (0::nat)) =
-   real_le (real_of_num (0::nat)) x"
+   real_le (real_neg x) (real_of_num 0) = real_le (real_of_num 0) x"
   by (import hollight REAL_NEG_LE0)
 
 lemma REAL_NEG_GE0: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) (real_neg x) =
-   real_le x (real_of_num (0::nat))"
+   real_le (real_of_num 0) (real_neg x) = real_le x (real_of_num 0)"
   by (import hollight REAL_NEG_GE0)
 
 lemma REAL_LT_NEGTOTAL: "ALL x::hollight.real.
-   x = real_of_num (0::nat) |
-   real_lt (real_of_num (0::nat)) x |
-   real_lt (real_of_num (0::nat)) (real_neg x)"
+   x = real_of_num 0 |
+   real_lt (real_of_num 0) x | real_lt (real_of_num 0) (real_neg x)"
   by (import hollight REAL_LT_NEGTOTAL)
 
 lemma REAL_LE_NEGTOTAL: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x |
-   real_le (real_of_num (0::nat)) (real_neg x)"
+   real_le (real_of_num 0) x | real_le (real_of_num 0) (real_neg x)"
   by (import hollight REAL_LE_NEGTOTAL)
 
 lemma REAL_LE_MUL: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) y -->
-   real_le (real_of_num (0::nat)) (real_mul x y)"
+   real_le (real_of_num 0) x & real_le (real_of_num 0) y -->
+   real_le (real_of_num 0) (real_mul x y)"
   by (import hollight REAL_LE_MUL)
 
-lemma REAL_LE_SQUARE: "ALL x::hollight.real. real_le (real_of_num (0::nat)) (real_mul x x)"
+lemma REAL_LE_SQUARE: "ALL x::hollight.real. real_le (real_of_num 0) (real_mul x x)"
   by (import hollight REAL_LE_SQUARE)
 
-lemma REAL_LT_01: "real_lt (real_of_num (0::nat)) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+lemma REAL_LT_01: "real_lt (real_of_num 0) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight REAL_LT_01)
 
 lemma REAL_LE_LADD: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -8862,8 +9200,8 @@ lemma REAL_LT_ADD2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.real
   by (import hollight REAL_LT_ADD2)
 
 lemma REAL_LT_ADD: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
-   real_lt (real_of_num (0::nat)) (real_add x y)"
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) y -->
+   real_lt (real_of_num 0) (real_add x y)"
   by (import hollight REAL_LT_ADD)
 
 lemma REAL_LT_ADDNEG: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -8875,8 +9213,7 @@ lemma REAL_LT_ADDNEG2: "ALL (x::hollight.real) (y::hollight.real) z::hollight.re
   by (import hollight REAL_LT_ADDNEG2)
 
 lemma REAL_LT_ADD1: "ALL (x::hollight.real) y::hollight.real.
-   real_le x y -->
-   real_lt x (real_add y (real_of_num (NUMERAL_BIT1 (0::nat))))"
+   real_le x y --> real_lt x (real_add y (real_of_num (NUMERAL_BIT1 0)))"
   by (import hollight REAL_LT_ADD1)
 
 lemma REAL_SUB_ADD: "ALL (x::hollight.real) y::hollight.real. real_add (real_sub x y) y = x"
@@ -8885,31 +9222,27 @@ lemma REAL_SUB_ADD: "ALL (x::hollight.real) y::hollight.real. real_add (real_sub
 lemma REAL_SUB_ADD2: "ALL (x::hollight.real) y::hollight.real. real_add y (real_sub x y) = x"
   by (import hollight REAL_SUB_ADD2)
 
-lemma REAL_SUB_REFL: "ALL x::hollight.real. real_sub x x = real_of_num (0::nat)"
+lemma REAL_SUB_REFL: "ALL x::hollight.real. real_sub x x = real_of_num 0"
   by (import hollight REAL_SUB_REFL)
 
 lemma REAL_SUB_0: "ALL (x::hollight.real) y::hollight.real.
-   (real_sub x y = real_of_num (0::nat)) = (x = y)"
+   (real_sub x y = real_of_num 0) = (x = y)"
   by (import hollight REAL_SUB_0)
 
 lemma REAL_LE_DOUBLE: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) (real_add x x) =
-   real_le (real_of_num (0::nat)) x"
+   real_le (real_of_num 0) (real_add x x) = real_le (real_of_num 0) x"
   by (import hollight REAL_LE_DOUBLE)
 
-lemma REAL_LE_NEGL: "ALL x::hollight.real.
-   real_le (real_neg x) x = real_le (real_of_num (0::nat)) x"
+lemma REAL_LE_NEGL: "ALL x::hollight.real. real_le (real_neg x) x = real_le (real_of_num 0) x"
   by (import hollight REAL_LE_NEGL)
 
-lemma REAL_LE_NEGR: "ALL x::hollight.real.
-   real_le x (real_neg x) = real_le x (real_of_num (0::nat))"
+lemma REAL_LE_NEGR: "ALL x::hollight.real. real_le x (real_neg x) = real_le x (real_of_num 0)"
   by (import hollight REAL_LE_NEGR)
 
-lemma REAL_NEG_EQ0: "ALL x::hollight.real.
-   (real_neg x = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+lemma REAL_NEG_EQ0: "ALL x::hollight.real. (real_neg x = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight REAL_NEG_EQ0)
 
-lemma REAL_NEG_0: "real_neg (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma REAL_NEG_0: "real_neg (real_of_num 0) = real_of_num 0"
   by (import hollight REAL_NEG_0)
 
 lemma REAL_NEG_SUB: "ALL (x::hollight.real) y::hollight.real.
@@ -8917,19 +9250,19 @@ lemma REAL_NEG_SUB: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight REAL_NEG_SUB)
 
 lemma REAL_SUB_LT: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) (real_sub x y) = real_lt y x"
+   real_lt (real_of_num 0) (real_sub x y) = real_lt y x"
   by (import hollight REAL_SUB_LT)
 
 lemma REAL_SUB_LE: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) (real_sub x y) = real_le y x"
+   real_le (real_of_num 0) (real_sub x y) = real_le y x"
   by (import hollight REAL_SUB_LE)
 
 lemma REAL_EQ_LMUL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   (real_mul x y = real_mul x z) = (x = real_of_num (0::nat) | y = z)"
+   (real_mul x y = real_mul x z) = (x = real_of_num 0 | y = z)"
   by (import hollight REAL_EQ_LMUL)
 
 lemma REAL_EQ_RMUL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   (real_mul x z = real_mul y z) = (z = real_of_num (0::nat) | x = y)"
+   (real_mul x z = real_mul y z) = (z = real_of_num 0 | x = y)"
   by (import hollight REAL_EQ_RMUL)
 
 lemma REAL_SUB_LDISTRIB: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -8944,80 +9277,73 @@ lemma REAL_NEG_EQ: "ALL (x::hollight.real) y::hollight.real. (real_neg x = y) = 
   by (import hollight REAL_NEG_EQ)
 
 lemma REAL_NEG_MINUS1: "ALL x::hollight.real.
-   real_neg x = real_mul (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x"
+   real_neg x = real_mul (real_neg (real_of_num (NUMERAL_BIT1 0))) x"
   by (import hollight REAL_NEG_MINUS1)
 
-lemma REAL_INV_NZ: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) --> real_inv x ~= real_of_num (0::nat)"
+lemma REAL_INV_NZ: "ALL x::hollight.real. x ~= real_of_num 0 --> real_inv x ~= real_of_num 0"
   by (import hollight REAL_INV_NZ)
 
-lemma REAL_INVINV: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) --> real_inv (real_inv x) = x"
+lemma REAL_INVINV: "ALL x::hollight.real. x ~= real_of_num 0 --> real_inv (real_inv x) = x"
   by (import hollight REAL_INVINV)
 
 lemma REAL_LT_IMP_NE: "ALL (x::hollight.real) y::hollight.real. real_lt x y --> x ~= y"
   by (import hollight REAL_LT_IMP_NE)
 
 lemma REAL_INV_POS: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (0::nat)) (real_inv x)"
+   real_lt (real_of_num 0) x --> real_lt (real_of_num 0) (real_inv x)"
   by (import hollight REAL_INV_POS)
 
 lemma REAL_LT_LMUL_0: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (0::nat)) (real_mul x y) =
-   real_lt (real_of_num (0::nat)) y"
+   real_lt (real_of_num 0) x -->
+   real_lt (real_of_num 0) (real_mul x y) = real_lt (real_of_num 0) y"
   by (import hollight REAL_LT_LMUL_0)
 
 lemma REAL_LT_RMUL_0: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) y -->
-   real_lt (real_of_num (0::nat)) (real_mul x y) =
-   real_lt (real_of_num (0::nat)) x"
+   real_lt (real_of_num 0) y -->
+   real_lt (real_of_num 0) (real_mul x y) = real_lt (real_of_num 0) x"
   by (import hollight REAL_LT_RMUL_0)
 
 lemma REAL_LT_LMUL_EQ: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
+   real_lt (real_of_num 0) x -->
    real_lt (real_mul x y) (real_mul x z) = real_lt y z"
   by (import hollight REAL_LT_LMUL_EQ)
 
 lemma REAL_LT_RMUL_EQ: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
+   real_lt (real_of_num 0) z -->
    real_lt (real_mul x z) (real_mul y z) = real_lt x y"
   by (import hollight REAL_LT_RMUL_EQ)
 
 lemma REAL_LT_RMUL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt x y & real_lt (real_of_num (0::nat)) z -->
+   real_lt x y & real_lt (real_of_num 0) z -->
    real_lt (real_mul x z) (real_mul y z)"
   by (import hollight REAL_LT_RMUL_IMP)
 
 lemma REAL_LT_LMUL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt y z & real_lt (real_of_num (0::nat)) x -->
+   real_lt y z & real_lt (real_of_num 0) x -->
    real_lt (real_mul x y) (real_mul x z)"
   by (import hollight REAL_LT_LMUL_IMP)
 
 lemma REAL_LINV_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   real_mul x y = real_of_num (NUMERAL_BIT1 (0::nat)) --> x = real_inv y"
+   real_mul x y = real_of_num (NUMERAL_BIT1 0) --> x = real_inv y"
   by (import hollight REAL_LINV_UNIQ)
 
 lemma REAL_RINV_UNIQ: "ALL (x::hollight.real) y::hollight.real.
-   real_mul x y = real_of_num (NUMERAL_BIT1 (0::nat)) --> y = real_inv x"
+   real_mul x y = real_of_num (NUMERAL_BIT1 0) --> y = real_inv x"
   by (import hollight REAL_RINV_UNIQ)
 
 lemma REAL_NEG_INV: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) -->
-   real_neg (real_inv x) = real_inv (real_neg x)"
+   x ~= real_of_num 0 --> real_neg (real_inv x) = real_inv (real_neg x)"
   by (import hollight REAL_NEG_INV)
 
-lemma REAL_INV_1OVER: "ALL x::hollight.real.
-   real_inv x = real_div (real_of_num (NUMERAL_BIT1 (0::nat))) x"
+lemma REAL_INV_1OVER: "ALL x::hollight.real. real_inv x = real_div (real_of_num (NUMERAL_BIT1 0)) x"
   by (import hollight REAL_INV_1OVER)
 
 lemma REAL: "ALL x::nat.
    real_of_num (Suc x) =
-   real_add (real_of_num x) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_add (real_of_num x) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight REAL)
 
-lemma REAL_POS: "ALL n::nat. real_le (real_of_num (0::nat)) (real_of_num n)"
+lemma REAL_POS: "ALL n::nat. real_le (real_of_num 0) (real_of_num n)"
   by (import hollight REAL_POS)
 
 lemma REAL_LE: "ALL (m::nat) n::nat. real_le (real_of_num m) (real_of_num n) = <= m n"
@@ -9040,71 +9366,64 @@ lemma REAL_MUL: "ALL (m::nat) n::nat.
    real_mul (real_of_num m) (real_of_num n) = real_of_num (m * n)"
   by (import hollight REAL_MUL)
 
-lemma REAL_INV1: "real_inv (real_of_num (NUMERAL_BIT1 (0::nat))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma REAL_INV1: "real_inv (real_of_num (NUMERAL_BIT1 0)) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_INV1)
 
-lemma REAL_DIV_LZERO: "ALL x::hollight.real.
-   real_div (real_of_num (0::nat)) x = real_of_num (0::nat)"
+lemma REAL_DIV_LZERO: "ALL x::hollight.real. real_div (real_of_num 0) x = real_of_num 0"
   by (import hollight REAL_DIV_LZERO)
 
 lemma REAL_LT_NZ: "ALL n::nat.
-   (real_of_num n ~= real_of_num (0::nat)) =
-   real_lt (real_of_num (0::nat)) (real_of_num n)"
+   (real_of_num n ~= real_of_num 0) =
+   real_lt (real_of_num 0) (real_of_num n)"
   by (import hollight REAL_LT_NZ)
 
-lemma REAL_NZ_IMP_LT: "ALL n::nat. n ~= (0::nat) --> real_lt (real_of_num (0::nat)) (real_of_num n)"
+lemma REAL_NZ_IMP_LT: "ALL n::nat. n ~= 0 --> real_lt (real_of_num 0) (real_of_num n)"
   by (import hollight REAL_NZ_IMP_LT)
 
 lemma REAL_LT_RDIV_0: "ALL (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
-   real_lt (real_of_num (0::nat)) (real_div y z) =
-   real_lt (real_of_num (0::nat)) y"
+   real_lt (real_of_num 0) z -->
+   real_lt (real_of_num 0) (real_div y z) = real_lt (real_of_num 0) y"
   by (import hollight REAL_LT_RDIV_0)
 
 lemma REAL_LT_RDIV: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
+   real_lt (real_of_num 0) z -->
    real_lt (real_div x z) (real_div y z) = real_lt x y"
   by (import hollight REAL_LT_RDIV)
 
 lemma REAL_LT_FRACTION_0: "ALL (n::nat) d::hollight.real.
-   n ~= (0::nat) -->
-   real_lt (real_of_num (0::nat)) (real_div d (real_of_num n)) =
-   real_lt (real_of_num (0::nat)) d"
+   n ~= 0 -->
+   real_lt (real_of_num 0) (real_div d (real_of_num n)) =
+   real_lt (real_of_num 0) d"
   by (import hollight REAL_LT_FRACTION_0)
 
 lemma REAL_LT_MULTIPLE: "ALL (x::nat) xa::hollight.real.
-   < (NUMERAL_BIT1 (0::nat)) x -->
-   real_lt xa (real_mul (real_of_num x) xa) =
-   real_lt (real_of_num (0::nat)) xa"
+   < (NUMERAL_BIT1 0) x -->
+   real_lt xa (real_mul (real_of_num x) xa) = real_lt (real_of_num 0) xa"
   by (import hollight REAL_LT_MULTIPLE)
 
 lemma REAL_LT_FRACTION: "ALL (n::nat) d::hollight.real.
-   < (NUMERAL_BIT1 (0::nat)) n -->
-   real_lt (real_div d (real_of_num n)) d = real_lt (real_of_num (0::nat)) d"
+   < (NUMERAL_BIT1 0) n -->
+   real_lt (real_div d (real_of_num n)) d = real_lt (real_of_num 0) d"
   by (import hollight REAL_LT_FRACTION)
 
 lemma REAL_LT_HALF1: "ALL d::hollight.real.
-   real_lt (real_of_num (0::nat))
-    (real_div d (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) =
-   real_lt (real_of_num (0::nat)) d"
+   real_lt (real_of_num 0)
+    (real_div d (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) =
+   real_lt (real_of_num 0) d"
   by (import hollight REAL_LT_HALF1)
 
 lemma REAL_LT_HALF2: "ALL d::hollight.real.
-   real_lt (real_div d (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
-    d =
-   real_lt (real_of_num (0::nat)) d"
+   real_lt (real_div d (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) d =
+   real_lt (real_of_num 0) d"
   by (import hollight REAL_LT_HALF2)
 
 lemma REAL_DOUBLE: "ALL x::hollight.real.
-   real_add x x =
-   real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x"
+   real_add x x = real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x"
   by (import hollight REAL_DOUBLE)
 
 lemma REAL_HALF_DOUBLE: "ALL x::hollight.real.
-   real_add
-    (real_div x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
-    (real_div x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) =
+   real_add (real_div x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
+    (real_div x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) =
    x"
   by (import hollight REAL_HALF_DOUBLE)
 
@@ -9140,10 +9459,10 @@ lemma REAL_LE_NEG: "ALL (x::hollight.real) y::hollight.real.
    real_le (real_neg x) (real_neg y) = real_le y x"
   by (import hollight REAL_LE_NEG)
 
-lemma REAL_SUB_LZERO: "ALL x::hollight.real. real_sub (real_of_num (0::nat)) x = real_neg x"
+lemma REAL_SUB_LZERO: "ALL x::hollight.real. real_sub (real_of_num 0) x = real_neg x"
   by (import hollight REAL_SUB_LZERO)
 
-lemma REAL_SUB_RZERO: "ALL x::hollight.real. real_sub x (real_of_num (0::nat)) = x"
+lemma REAL_SUB_RZERO: "ALL x::hollight.real. real_sub x (real_of_num 0) = x"
   by (import hollight REAL_SUB_RZERO)
 
 lemma REAL_LTE_ADD2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.real)
@@ -9152,14 +9471,14 @@ lemma REAL_LTE_ADD2: "ALL (w::hollight.real) (x::hollight.real) (y::hollight.rea
   by (import hollight REAL_LTE_ADD2)
 
 lemma REAL_LTE_ADD: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) y -->
-   real_lt (real_of_num (0::nat)) (real_add x y)"
+   real_lt (real_of_num 0) x & real_le (real_of_num 0) y -->
+   real_lt (real_of_num 0) (real_add x y)"
   by (import hollight REAL_LTE_ADD)
 
 lemma REAL_LT_MUL2_ALT: "ALL (x1::hollight.real) (x2::hollight.real) (y1::hollight.real)
    y2::hollight.real.
-   real_le (real_of_num (0::nat)) x1 &
-   real_le (real_of_num (0::nat)) y1 & real_lt x1 x2 & real_lt y1 y2 -->
+   real_le (real_of_num 0) x1 &
+   real_le (real_of_num 0) y1 & real_lt x1 x2 & real_lt y1 y2 -->
    real_lt (real_mul x1 y1) (real_mul x2 y2)"
   by (import hollight REAL_LT_MUL2_ALT)
 
@@ -9180,22 +9499,22 @@ lemma REAL_SUB_TRIANGLE: "ALL (a::hollight.real) (b::hollight.real) c::hollight.
   by (import hollight REAL_SUB_TRIANGLE)
 
 lemma REAL_INV_MUL_WEAK: "ALL (x::hollight.real) xa::hollight.real.
-   x ~= real_of_num (0::nat) & xa ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 & xa ~= real_of_num 0 -->
    real_inv (real_mul x xa) = real_mul (real_inv x) (real_inv xa)"
   by (import hollight REAL_INV_MUL_WEAK)
 
 lemma REAL_LE_LMUL_LOCAL: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
+   real_lt (real_of_num 0) x -->
    real_le (real_mul x y) (real_mul x z) = real_le y z"
   by (import hollight REAL_LE_LMUL_LOCAL)
 
 lemma REAL_LE_RMUL_EQ: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) z -->
+   real_lt (real_of_num 0) z -->
    real_le (real_mul x z) (real_mul y z) = real_le x y"
   by (import hollight REAL_LE_RMUL_EQ)
 
 lemma REAL_SUB_INV2: "ALL (x::hollight.real) y::hollight.real.
-   x ~= real_of_num (0::nat) & y ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 & y ~= real_of_num 0 -->
    real_sub (real_inv x) (real_inv y) =
    real_div (real_sub y x) (real_mul x y)"
   by (import hollight REAL_SUB_INV2)
@@ -9208,77 +9527,74 @@ lemma REAL_MEAN: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight REAL_MEAN)
 
 lemma REAL_EQ_LMUL2: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   x ~= real_of_num (0::nat) --> (y = z) = (real_mul x y = real_mul x z)"
+   x ~= real_of_num 0 --> (y = z) = (real_mul x y = real_mul x z)"
   by (import hollight REAL_EQ_LMUL2)
 
 lemma REAL_LE_MUL2V: "ALL (x1::hollight.real) (x2::hollight.real) (y1::hollight.real)
    y2::hollight.real.
-   real_le (real_of_num (0::nat)) x1 &
-   real_le (real_of_num (0::nat)) y1 & real_le x1 x2 & real_le y1 y2 -->
+   real_le (real_of_num 0) x1 &
+   real_le (real_of_num 0) y1 & real_le x1 x2 & real_le y1 y2 -->
    real_le (real_mul x1 y1) (real_mul x2 y2)"
   by (import hollight REAL_LE_MUL2V)
 
 lemma REAL_LE_LDIV: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_le y (real_mul z x) -->
+   real_lt (real_of_num 0) x & real_le y (real_mul z x) -->
    real_le (real_div y x) z"
   by (import hollight REAL_LE_LDIV)
 
 lemma REAL_LE_RDIV: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_le (real_mul y x) z -->
+   real_lt (real_of_num 0) x & real_le (real_mul y x) z -->
    real_le y (real_div z x)"
   by (import hollight REAL_LE_RDIV)
 
 lemma REAL_LT_1: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_lt x y -->
-   real_lt (real_div x y) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_of_num 0) x & real_lt x y -->
+   real_lt (real_div x y) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight REAL_LT_1)
 
 lemma REAL_LE_LMUL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le y z -->
+   real_le (real_of_num 0) x & real_le y z -->
    real_le (real_mul x y) (real_mul x z)"
   by (import hollight REAL_LE_LMUL_IMP)
 
 lemma REAL_LE_RMUL_IMP: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le xa xb -->
+   real_le (real_of_num 0) x & real_le xa xb -->
    real_le (real_mul xa x) (real_mul xb x)"
   by (import hollight REAL_LE_RMUL_IMP)
 
 lemma REAL_INV_LT1: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   real_lt (real_of_num (NUMERAL_BIT1 (0::nat))) (real_inv x)"
+   real_lt (real_of_num 0) x & real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
+   real_lt (real_of_num (NUMERAL_BIT1 0)) (real_inv x)"
   by (import hollight REAL_INV_LT1)
 
-lemma REAL_POS_NZ: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x --> x ~= real_of_num (0::nat)"
+lemma REAL_POS_NZ: "ALL x::hollight.real. real_lt (real_of_num 0) x --> x ~= real_of_num 0"
   by (import hollight REAL_POS_NZ)
 
 lemma REAL_EQ_RMUL_IMP: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
-   z ~= real_of_num (0::nat) & real_mul x z = real_mul y z --> x = y"
+   z ~= real_of_num 0 & real_mul x z = real_mul y z --> x = y"
   by (import hollight REAL_EQ_RMUL_IMP)
 
 lemma REAL_EQ_LMUL_IMP: "ALL (x::hollight.real) (xa::hollight.real) xb::hollight.real.
-   x ~= real_of_num (0::nat) & real_mul x xa = real_mul x xb --> xa = xb"
+   x ~= real_of_num 0 & real_mul x xa = real_mul x xb --> xa = xb"
   by (import hollight REAL_EQ_LMUL_IMP)
 
-lemma REAL_FACT_NZ: "ALL n::nat. real_of_num (FACT n) ~= real_of_num (0::nat)"
+lemma REAL_FACT_NZ: "ALL n::nat. real_of_num (FACT n) ~= real_of_num 0"
   by (import hollight REAL_FACT_NZ)
 
 lemma REAL_POSSQ: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) (real_mul x x) =
-   (x ~= real_of_num (0::nat))"
+   real_lt (real_of_num 0) (real_mul x x) = (x ~= real_of_num 0)"
   by (import hollight REAL_POSSQ)
 
 lemma REAL_SUMSQ: "ALL (x::hollight.real) y::hollight.real.
-   (real_add (real_mul x x) (real_mul y y) = real_of_num (0::nat)) =
-   (x = real_of_num (0::nat) & y = real_of_num (0::nat))"
+   (real_add (real_mul x x) (real_mul y y) = real_of_num 0) =
+   (x = real_of_num 0 & y = real_of_num 0)"
   by (import hollight REAL_SUMSQ)
 
 lemma REAL_EQ_NEG: "ALL (x::hollight.real) y::hollight.real. (real_neg x = real_neg y) = (x = y)"
   by (import hollight REAL_EQ_NEG)
 
 lemma REAL_DIV_MUL2: "ALL (x::hollight.real) z::hollight.real.
-   x ~= real_of_num (0::nat) & z ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 & z ~= real_of_num 0 -->
    (ALL y::hollight.real.
        real_div y z = real_div (real_mul x y) (real_mul x z))"
   by (import hollight REAL_DIV_MUL2)
@@ -9286,27 +9602,23 @@ lemma REAL_DIV_MUL2: "ALL (x::hollight.real) z::hollight.real.
 lemma REAL_MIDDLE1: "ALL (a::hollight.real) b::hollight.real.
    real_le a b -->
    real_le a
-    (real_div (real_add a b)
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+    (real_div (real_add a b) (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight REAL_MIDDLE1)
 
 lemma REAL_MIDDLE2: "ALL (a::hollight.real) b::hollight.real.
    real_le a b -->
    real_le
-    (real_div (real_add a b)
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+    (real_div (real_add a b) (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
     b"
   by (import hollight REAL_MIDDLE2)
 
-lemma ABS_ZERO: "ALL x::hollight.real.
-   (real_abs x = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+lemma ABS_ZERO: "ALL x::hollight.real. (real_abs x = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight ABS_ZERO)
 
-lemma ABS_0: "real_abs (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma ABS_0: "real_abs (real_of_num 0) = real_of_num 0"
   by (import hollight ABS_0)
 
-lemma ABS_1: "real_abs (real_of_num (NUMERAL_BIT1 (0::nat))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma ABS_1: "real_abs (real_of_num (NUMERAL_BIT1 0)) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight ABS_1)
 
 lemma ABS_NEG: "ALL x::hollight.real. real_abs (real_neg x) = real_abs x"
@@ -9316,7 +9628,7 @@ lemma ABS_TRIANGLE: "ALL (x::hollight.real) y::hollight.real.
    real_le (real_abs (real_add x y)) (real_add (real_abs x) (real_abs y))"
   by (import hollight ABS_TRIANGLE)
 
-lemma ABS_POS: "ALL x::hollight.real. real_le (real_of_num (0::nat)) (real_abs x)"
+lemma ABS_POS: "ALL x::hollight.real. real_le (real_of_num 0) (real_abs x)"
   by (import hollight ABS_POS)
 
 lemma ABS_MUL: "ALL (x::hollight.real) y::hollight.real.
@@ -9334,12 +9646,11 @@ lemma ABS_SUB: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight ABS_SUB)
 
 lemma ABS_NZ: "ALL x::hollight.real.
-   (x ~= real_of_num (0::nat)) = real_lt (real_of_num (0::nat)) (real_abs x)"
+   (x ~= real_of_num 0) = real_lt (real_of_num 0) (real_abs x)"
   by (import hollight ABS_NZ)
 
 lemma ABS_INV: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) -->
-   real_abs (real_inv x) = real_inv (real_abs x)"
+   x ~= real_of_num 0 --> real_abs (real_inv x) = real_inv (real_abs x)"
   by (import hollight ABS_INV)
 
 lemma ABS_ABS: "ALL x::hollight.real. real_abs (real_abs x) = real_abs x"
@@ -9348,14 +9659,14 @@ lemma ABS_ABS: "ALL x::hollight.real. real_abs (real_abs x) = real_abs x"
 lemma ABS_LE: "ALL x::hollight.real. real_le x (real_abs x)"
   by (import hollight ABS_LE)
 
-lemma ABS_REFL: "ALL x::hollight.real. (real_abs x = x) = real_le (real_of_num (0::nat)) x"
+lemma ABS_REFL: "ALL x::hollight.real. (real_abs x = x) = real_le (real_of_num 0) x"
   by (import hollight ABS_REFL)
 
 lemma ABS_N: "ALL n::nat. real_abs (real_of_num n) = real_of_num n"
   by (import hollight ABS_N)
 
 lemma ABS_BETWEEN: "ALL (x::hollight.real) (y::hollight.real) d::hollight.real.
-   (real_lt (real_of_num (0::nat)) d &
+   (real_lt (real_of_num 0) d &
     real_lt (real_sub x d) y & real_lt y (real_add x d)) =
    real_lt (real_abs (real_sub y x)) d"
   by (import hollight ABS_BETWEEN)
@@ -9365,12 +9676,11 @@ lemma ABS_BOUND: "ALL (x::hollight.real) (y::hollight.real) d::hollight.real.
   by (import hollight ABS_BOUND)
 
 lemma ABS_STILLNZ: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_abs (real_sub x y)) (real_abs y) -->
-   x ~= real_of_num (0::nat)"
+   real_lt (real_abs (real_sub x y)) (real_abs y) --> x ~= real_of_num 0"
   by (import hollight ABS_STILLNZ)
 
 lemma ABS_CASES: "ALL x::hollight.real.
-   x = real_of_num (0::nat) | real_lt (real_of_num (0::nat)) (real_abs x)"
+   x = real_of_num 0 | real_lt (real_of_num 0) (real_abs x)"
   by (import hollight ABS_CASES)
 
 lemma ABS_BETWEEN1: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -9379,16 +9689,16 @@ lemma ABS_BETWEEN1: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
   by (import hollight ABS_BETWEEN1)
 
 lemma ABS_SIGN: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_abs (real_sub x y)) y --> real_lt (real_of_num (0::nat)) x"
+   real_lt (real_abs (real_sub x y)) y --> real_lt (real_of_num 0) x"
   by (import hollight ABS_SIGN)
 
 lemma ABS_SIGN2: "ALL (x::hollight.real) y::hollight.real.
    real_lt (real_abs (real_sub x y)) (real_neg y) -->
-   real_lt x (real_of_num (0::nat))"
+   real_lt x (real_of_num 0)"
   by (import hollight ABS_SIGN2)
 
 lemma ABS_DIV: "ALL y::hollight.real.
-   y ~= real_of_num (0::nat) -->
+   y ~= real_of_num 0 -->
    (ALL x::hollight.real.
        real_abs (real_div x y) = real_div (real_abs x) (real_abs y))"
   by (import hollight ABS_DIV)
@@ -9412,10 +9722,10 @@ lemma ABS_BETWEEN2: "ALL (x0::hollight.real) (x::hollight.real) (y0::hollight.re
    real_lt x0 y0 &
    real_lt (real_abs (real_sub x x0))
     (real_div (real_sub y0 x0)
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
    real_lt (real_abs (real_sub y y0))
     (real_div (real_sub y0 x0)
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
    real_lt x y"
   by (import hollight ABS_BETWEEN2)
 
@@ -9423,16 +9733,15 @@ lemma ABS_BOUNDS: "ALL (x::hollight.real) k::hollight.real.
    real_le (real_abs x) k = (real_le (real_neg k) x & real_le x k)"
   by (import hollight ABS_BOUNDS)
 
-lemma POW_0: "ALL n::nat. real_pow (real_of_num (0::nat)) (Suc n) = real_of_num (0::nat)"
+lemma POW_0: "ALL n::nat. real_pow (real_of_num 0) (Suc n) = real_of_num 0"
   by (import hollight POW_0)
 
 lemma POW_NZ: "ALL (c::hollight.real) n::nat.
-   c ~= real_of_num (0::nat) --> real_pow c n ~= real_of_num (0::nat)"
+   c ~= real_of_num 0 --> real_pow c n ~= real_of_num 0"
   by (import hollight POW_NZ)
 
 lemma POW_INV: "ALL (c::hollight.real) x::nat.
-   c ~= real_of_num (0::nat) -->
-   real_inv (real_pow c x) = real_pow (real_inv c) x"
+   c ~= real_of_num 0 --> real_inv (real_pow c x) = real_pow (real_inv c) x"
   by (import hollight POW_INV)
 
 lemma POW_ABS: "ALL (c::hollight.real) n::nat.
@@ -9440,37 +9749,35 @@ lemma POW_ABS: "ALL (c::hollight.real) n::nat.
   by (import hollight POW_ABS)
 
 lemma POW_PLUS1: "ALL (e::hollight.real) x::nat.
-   real_lt (real_of_num (0::nat)) e -->
+   real_lt (real_of_num 0) e -->
    real_le
-    (real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-      (real_mul (real_of_num x) e))
-    (real_pow (real_add (real_of_num (NUMERAL_BIT1 (0::nat))) e) x)"
+    (real_add (real_of_num (NUMERAL_BIT1 0)) (real_mul (real_of_num x) e))
+    (real_pow (real_add (real_of_num (NUMERAL_BIT1 0)) e) x)"
   by (import hollight POW_PLUS1)
 
 lemma POW_ADD: "ALL (c::hollight.real) (m::nat) n::nat.
    real_pow c (m + n) = real_mul (real_pow c m) (real_pow c n)"
   by (import hollight POW_ADD)
 
-lemma POW_1: "ALL x::hollight.real. real_pow x (NUMERAL_BIT1 (0::nat)) = x"
+lemma POW_1: "ALL x::hollight.real. real_pow x (NUMERAL_BIT1 0) = x"
   by (import hollight POW_1)
 
 lemma POW_2: "ALL x::hollight.real.
-   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = real_mul x x"
+   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = real_mul x x"
   by (import hollight POW_2)
 
 lemma POW_POS: "ALL (x::hollight.real) xa::nat.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (real_of_num (0::nat)) (real_pow x xa)"
+   real_le (real_of_num 0) x --> real_le (real_of_num 0) (real_pow x xa)"
   by (import hollight POW_POS)
 
 lemma POW_LE: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le x y -->
+   real_le (real_of_num 0) x & real_le x y -->
    real_le (real_pow x n) (real_pow y n)"
   by (import hollight POW_LE)
 
 lemma POW_M1: "ALL n::nat.
-   real_abs (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) n) =
-   real_of_num (NUMERAL_BIT1 (0::nat))"
+   real_abs (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0))) n) =
+   real_of_num (NUMERAL_BIT1 0)"
   by (import hollight POW_M1)
 
 lemma POW_MUL: "ALL (n::nat) (x::hollight.real) y::hollight.real.
@@ -9478,46 +9785,45 @@ lemma POW_MUL: "ALL (n::nat) (x::hollight.real) y::hollight.real.
   by (import hollight POW_MUL)
 
 lemma REAL_LE_SQUARE_POW: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat))
-    (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   real_le (real_of_num 0) (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight REAL_LE_SQUARE_POW)
 
 lemma ABS_POW2: "ALL x::hollight.real.
-   real_abs (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))"
+   real_abs (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+   real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))"
   by (import hollight ABS_POW2)
 
 lemma REAL_LE1_POW2: "ALL x::hollight.real.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) x -->
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat)))
-    (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   real_le (real_of_num (NUMERAL_BIT1 0)) x -->
+   real_le (real_of_num (NUMERAL_BIT1 0))
+    (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight REAL_LE1_POW2)
 
 lemma REAL_LT1_POW2: "ALL x::hollight.real.
-   real_lt (real_of_num (NUMERAL_BIT1 (0::nat))) x -->
-   real_lt (real_of_num (NUMERAL_BIT1 (0::nat)))
-    (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   real_lt (real_of_num (NUMERAL_BIT1 0)) x -->
+   real_lt (real_of_num (NUMERAL_BIT1 0))
+    (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight REAL_LT1_POW2)
 
 lemma POW_POS_LT: "ALL (x::hollight.real) n::nat.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (0::nat)) (real_pow x (Suc n))"
+   real_lt (real_of_num 0) x -->
+   real_lt (real_of_num 0) (real_pow x (Suc n))"
   by (import hollight POW_POS_LT)
 
 lemma POW_2_LE1: "ALL n::nat.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat)))
-    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) n)"
+   real_le (real_of_num (NUMERAL_BIT1 0))
+    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) n)"
   by (import hollight POW_2_LE1)
 
 lemma POW_2_LT: "ALL n::nat.
    real_lt (real_of_num n)
-    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) n)"
+    (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) n)"
   by (import hollight POW_2_LT)
 
 lemma POW_MINUS1: "ALL n::nat.
-   real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-    (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n) =
-   real_of_num (NUMERAL_BIT1 (0::nat))"
+   real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+    (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n) =
+   real_of_num (NUMERAL_BIT1 0)"
   by (import hollight POW_MINUS1)
 
 lemma REAL_SUP_EXISTS: "ALL P::hollight.real => bool.
@@ -9588,22 +9894,21 @@ lemma REAL_ARCH_SIMPLE: "ALL x::hollight.real. EX n::nat. real_le x (real_of_num
   by (import hollight REAL_ARCH_SIMPLE)
 
 lemma REAL_ARCH: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
+   real_lt (real_of_num 0) x -->
    (ALL y::hollight.real. EX n::nat. real_lt y (real_mul (real_of_num n) x))"
   by (import hollight REAL_ARCH)
 
 lemma REAL_ARCH_LEAST: "ALL y::hollight.real.
-   real_lt (real_of_num (0::nat)) y -->
+   real_lt (real_of_num 0) y -->
    (ALL x::hollight.real.
-       real_le (real_of_num (0::nat)) x -->
+       real_le (real_of_num 0) x -->
        (EX n::nat.
            real_le (real_mul (real_of_num n) y) x &
            real_lt x (real_mul (real_of_num (Suc n)) y)))"
   by (import hollight REAL_ARCH_LEAST)
 
 lemma sum_EXISTS: "EX x::nat * nat => (nat => hollight.real) => hollight.real.
-   (ALL (f::nat => hollight.real) n::nat.
-       x (n, 0::nat) f = real_of_num (0::nat)) &
+   (ALL (f::nat => hollight.real) n::nat. x (n, 0) f = real_of_num 0) &
    (ALL (f::nat => hollight.real) (m::nat) n::nat.
        x (n, Suc m) f = real_add (x (n, m) f) (f (n + m)))"
   by (import hollight sum_EXISTS)
@@ -9612,20 +9917,18 @@ constdefs
   psum :: "nat * nat => (nat => hollight.real) => hollight.real" 
   "psum ==
 SOME sum::nat * nat => (nat => hollight.real) => hollight.real.
-   (ALL (f::nat => hollight.real) n::nat.
-       sum (n, 0::nat) f = real_of_num (0::nat)) &
+   (ALL (f::nat => hollight.real) n::nat. sum (n, 0) f = real_of_num 0) &
    (ALL (f::nat => hollight.real) (m::nat) n::nat.
        sum (n, Suc m) f = real_add (sum (n, m) f) (f (n + m)))"
 
 lemma DEF_psum: "psum =
 (SOME sum::nat * nat => (nat => hollight.real) => hollight.real.
-    (ALL (f::nat => hollight.real) n::nat.
-        sum (n, 0::nat) f = real_of_num (0::nat)) &
+    (ALL (f::nat => hollight.real) n::nat. sum (n, 0) f = real_of_num 0) &
     (ALL (f::nat => hollight.real) (m::nat) n::nat.
         sum (n, Suc m) f = real_add (sum (n, m) f) (f (n + m))))"
   by (import hollight DEF_psum)
 
-lemma sum: "psum (n::nat, 0::nat) (f::nat => hollight.real) = real_of_num (0::nat) &
+lemma sum: "psum (n::nat, 0) (f::nat => hollight.real) = real_of_num 0 &
 psum (n, Suc (m::nat)) f = real_add (psum (n, m) f) (f (n + m))"
   by (import hollight sum)
 
@@ -9636,16 +9939,16 @@ lemma PSUM_SUM: "ALL (f::nat => hollight.real) (m::nat) n::nat.
   by (import hollight PSUM_SUM)
 
 lemma PSUM_SUM_NUMSEG: "ALL (f::nat => hollight.real) (m::nat) n::nat.
-   ~ (m = (0::nat) & n = (0::nat)) -->
-   psum (m, n) f = hollight.sum (dotdot m (m + n - NUMERAL_BIT1 (0::nat))) f"
+   ~ (m = 0 & n = 0) -->
+   psum (m, n) f = hollight.sum (dotdot m (m + n - NUMERAL_BIT1 0)) f"
   by (import hollight PSUM_SUM_NUMSEG)
 
 lemma SUM_TWO: "ALL (f::nat => hollight.real) (n::nat) p::nat.
-   real_add (psum (0::nat, n) f) (psum (n, p) f) = psum (0::nat, n + p) f"
+   real_add (psum (0, n) f) (psum (n, p) f) = psum (0, n + p) f"
   by (import hollight SUM_TWO)
 
 lemma SUM_DIFF: "ALL (f::nat => hollight.real) (m::nat) n::nat.
-   psum (m, n) f = real_sub (psum (0::nat, m + n) f) (psum (0::nat, m) f)"
+   psum (m, n) f = real_sub (psum (0, m + n) f) (psum (0, m) f)"
   by (import hollight SUM_DIFF)
 
 lemma ABS_SUM: "ALL (f::nat => hollight.real) (m::nat) n::nat.
@@ -9664,13 +9967,13 @@ lemma SUM_EQ: "ALL (f::nat => hollight.real) (g::nat => hollight.real) (m::nat) 
   by (import hollight SUM_EQ)
 
 lemma SUM_POS: "ALL f::nat => hollight.real.
-   (ALL n::nat. real_le (real_of_num (0::nat)) (f n)) -->
-   (ALL (m::nat) n::nat. real_le (real_of_num (0::nat)) (psum (m, n) f))"
+   (ALL n::nat. real_le (real_of_num 0) (f n)) -->
+   (ALL (m::nat) n::nat. real_le (real_of_num 0) (psum (m, n) f))"
   by (import hollight SUM_POS)
 
 lemma SUM_POS_GEN: "ALL (f::nat => hollight.real) (m::nat) n::nat.
-   (ALL n::nat. <= m n --> real_le (real_of_num (0::nat)) (f n)) -->
-   real_le (real_of_num (0::nat)) (psum (m, n) f)"
+   (ALL n::nat. <= m n --> real_le (real_of_num 0) (f n)) -->
+   real_le (real_of_num 0) (psum (m, n) f)"
   by (import hollight SUM_POS_GEN)
 
 lemma SUM_ABS: "ALL (f::nat => hollight.real) (m::nat) x::nat.
@@ -9684,8 +9987,8 @@ lemma SUM_ABS_LE: "ALL (f::nat => hollight.real) (m::nat) n::nat.
   by (import hollight SUM_ABS_LE)
 
 lemma SUM_ZERO: "ALL (f::nat => hollight.real) N::nat.
-   (ALL n::nat. >= n N --> f n = real_of_num (0::nat)) -->
-   (ALL (m::nat) n::nat. >= m N --> psum (m, n) f = real_of_num (0::nat))"
+   (ALL n::nat. >= n N --> f n = real_of_num 0) -->
+   (ALL (m::nat) n::nat. >= m N --> psum (m, n) f = real_of_num 0)"
   by (import hollight SUM_ZERO)
 
 lemma SUM_ADD: "ALL (f::nat => hollight.real) (g::nat => hollight.real) (m::nat) n::nat.
@@ -9712,8 +10015,8 @@ lemma SUM_SUBST: "ALL (f::nat => hollight.real) (g::nat => hollight.real) (m::na
   by (import hollight SUM_SUBST)
 
 lemma SUM_NSUB: "ALL (n::nat) (f::nat => hollight.real) c::hollight.real.
-   real_sub (psum (0::nat, n) f) (real_mul (real_of_num n) c) =
-   psum (0::nat, n) (%p::nat. real_sub (f p) c)"
+   real_sub (psum (0, n) f) (real_mul (real_of_num n) c) =
+   psum (0, n) (%p::nat. real_sub (f p) c)"
   by (import hollight SUM_NSUB)
 
 lemma SUM_BOUND: "ALL (f::nat => hollight.real) (K::hollight.real) (m::nat) n::nat.
@@ -9722,29 +10025,27 @@ lemma SUM_BOUND: "ALL (f::nat => hollight.real) (K::hollight.real) (m::nat) n::n
   by (import hollight SUM_BOUND)
 
 lemma SUM_GROUP: "ALL (n::nat) (k::nat) f::nat => hollight.real.
-   psum (0::nat, n) (%m::nat. psum (m * k, k) f) = psum (0::nat, n * k) f"
+   psum (0, n) (%m::nat. psum (m * k, k) f) = psum (0, n * k) f"
   by (import hollight SUM_GROUP)
 
-lemma SUM_1: "ALL (f::nat => hollight.real) n::nat.
-   psum (n, NUMERAL_BIT1 (0::nat)) f = f n"
+lemma SUM_1: "ALL (f::nat => hollight.real) n::nat. psum (n, NUMERAL_BIT1 0) f = f n"
   by (import hollight SUM_1)
 
 lemma SUM_2: "ALL (f::nat => hollight.real) n::nat.
-   psum (n, NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) f =
-   real_add (f n) (f (n + NUMERAL_BIT1 (0::nat)))"
+   psum (n, NUMERAL_BIT0 (NUMERAL_BIT1 0)) f =
+   real_add (f n) (f (n + NUMERAL_BIT1 0))"
   by (import hollight SUM_2)
 
 lemma SUM_OFFSET: "ALL (f::nat => hollight.real) (n::nat) k::nat.
-   psum (0::nat, n) (%m::nat. f (m + k)) =
-   real_sub (psum (0::nat, n + k) f) (psum (0::nat, k) f)"
+   psum (0, n) (%m::nat. f (m + k)) =
+   real_sub (psum (0, n + k) f) (psum (0, k) f)"
   by (import hollight SUM_OFFSET)
 
 lemma SUM_REINDEX: "ALL (f::nat => hollight.real) (m::nat) (k::nat) n::nat.
    psum (m + k, n) f = psum (m, n) (%r::nat. f (r + k))"
   by (import hollight SUM_REINDEX)
 
-lemma SUM_0: "ALL (m::nat) n::nat.
-   psum (m, n) (%r::nat. real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma SUM_0: "ALL (m::nat) n::nat. psum (m, n) (%r::nat. real_of_num 0) = real_of_num 0"
   by (import hollight SUM_0)
 
 lemma SUM_CANCEL: "ALL (f::nat => hollight.real) (n::nat) d::nat.
@@ -9753,14 +10054,14 @@ lemma SUM_CANCEL: "ALL (f::nat => hollight.real) (n::nat) d::nat.
   by (import hollight SUM_CANCEL)
 
 lemma SUM_HORNER: "ALL (f::nat => hollight.real) (n::nat) x::hollight.real.
-   psum (0::nat, Suc n) (%i::nat. real_mul (f i) (real_pow x i)) =
-   real_add (f (0::nat))
+   psum (0, Suc n) (%i::nat. real_mul (f i) (real_pow x i)) =
+   real_add (f 0)
     (real_mul x
-      (psum (0::nat, n) (%i::nat. real_mul (f (Suc i)) (real_pow x i))))"
+      (psum (0, n) (%i::nat. real_mul (f (Suc i)) (real_pow x i))))"
   by (import hollight SUM_HORNER)
 
 lemma SUM_CONST: "ALL (c::hollight.real) n::nat.
-   psum (0::nat, n) (%m::nat. c) = real_mul (real_of_num n) c"
+   psum (0, n) (%m::nat. c) = real_mul (real_of_num n) c"
   by (import hollight SUM_CONST)
 
 lemma SUM_SPLIT: "ALL (f::nat => hollight.real) (n::nat) p::nat.
@@ -9774,15 +10075,15 @@ lemma SUM_SWAP: "ALL (f::nat => nat => hollight.real) (m1::nat) (n1::nat) (m2::n
 
 lemma SUM_EQ_0: "(ALL r::nat.
     <= (m::nat) r & < r (m + (n::nat)) -->
-    (f::nat => hollight.real) r = real_of_num (0::nat)) -->
-psum (m, n) f = real_of_num (0::nat)"
+    (f::nat => hollight.real) r = real_of_num 0) -->
+psum (m, n) f = real_of_num 0"
   by (import hollight SUM_EQ_0)
 
 lemma SUM_MORETERMS_EQ: "ALL (m::nat) (n::nat) p::nat.
    <= n p &
    (ALL r::nat.
        <= (m + n) r & < r (m + p) -->
-       (f::nat => hollight.real) r = real_of_num (0::nat)) -->
+       (f::nat => hollight.real) r = real_of_num 0) -->
    psum (m, p) f = psum (m, n) f"
   by (import hollight SUM_MORETERMS_EQ)
 
@@ -9796,7 +10097,7 @@ lemma SUM_DIFFERENCES_EQ: "ALL (x::nat) (xa::nat) xb::nat.
   by (import hollight SUM_DIFFERENCES_EQ)
 
 constdefs
-  re_Union :: "(('A::type => bool) => bool) => 'A::type => bool" 
+  re_Union :: "(('A => bool) => bool) => 'A => bool" 
   "re_Union ==
 %(u::('A::type => bool) => bool) x::'A::type.
    EX s::'A::type => bool. u s & s x"
@@ -9807,7 +10108,7 @@ lemma DEF_re_Union: "re_Union =
   by (import hollight DEF_re_Union)
 
 constdefs
-  re_union :: "('A::type => bool) => ('A::type => bool) => 'A::type => bool" 
+  re_union :: "('A => bool) => ('A => bool) => 'A => bool" 
   "re_union ==
 %(u::'A::type => bool) (ua::'A::type => bool) x::'A::type. u x | ua x"
 
@@ -9816,7 +10117,7 @@ lemma DEF_re_union: "re_union =
   by (import hollight DEF_re_union)
 
 constdefs
-  re_intersect :: "('A::type => bool) => ('A::type => bool) => 'A::type => bool" 
+  re_intersect :: "('A => bool) => ('A => bool) => 'A => bool" 
   "re_intersect ==
 %(u::'A::type => bool) (ua::'A::type => bool) x::'A::type. u x & ua x"
 
@@ -9825,21 +10126,21 @@ lemma DEF_re_intersect: "re_intersect =
   by (import hollight DEF_re_intersect)
 
 constdefs
-  re_null :: "'A::type => bool" 
+  re_null :: "'A => bool" 
   "re_null == %x::'A::type. False"
 
 lemma DEF_re_null: "re_null = (%x::'A::type. False)"
   by (import hollight DEF_re_null)
 
 constdefs
-  re_universe :: "'A::type => bool" 
+  re_universe :: "'A => bool" 
   "re_universe == %x::'A::type. True"
 
 lemma DEF_re_universe: "re_universe = (%x::'A::type. True)"
   by (import hollight DEF_re_universe)
 
 constdefs
-  re_subset :: "('A::type => bool) => ('A::type => bool) => bool" 
+  re_subset :: "('A => bool) => ('A => bool) => bool" 
   "re_subset ==
 %(u::'A::type => bool) ua::'A::type => bool. ALL x::'A::type. u x --> ua x"
 
@@ -9848,7 +10149,7 @@ lemma DEF_re_subset: "re_subset =
   by (import hollight DEF_re_subset)
 
 constdefs
-  re_compl :: "('A::type => bool) => 'A::type => bool" 
+  re_compl :: "('A => bool) => 'A => bool" 
   "re_compl == %(u::'A::type => bool) x::'A::type. ~ u x"
 
 lemma DEF_re_compl: "re_compl = (%(u::'A::type => bool) x::'A::type. ~ u x)"
@@ -9869,7 +10170,7 @@ lemma SUBSETA_TRANS: "ALL (P::'A::type => bool) (Q::'A::type => bool) R::'A::typ
   by (import hollight SUBSETA_TRANS)
 
 constdefs
-  istopology :: "(('A::type => bool) => bool) => bool" 
+  istopology :: "(('A => bool) => bool) => bool" 
   "istopology ==
 %u::('A::type => bool) => bool.
    u re_null &
@@ -9901,7 +10202,7 @@ syntax
   topology :: _ 
 
 lemmas "TYDEF_topology_@intern" = typedef_hol2hollight 
-  [where a="a :: 'A::type topology" and r=r ,
+  [where a="a :: 'A topology" and r=r ,
    OF type_definition_topology]
 
 lemma TOPOLOGY: "ALL L::'A::type topology.
@@ -9918,7 +10219,7 @@ lemma TOPOLOGY_UNION: "ALL (x::'A::type topology) xa::('A::type => bool) => bool
   by (import hollight TOPOLOGY_UNION)
 
 constdefs
-  neigh :: "'A::type topology => ('A::type => bool) * 'A::type => bool" 
+  neigh :: "'A topology => ('A => bool) * 'A => bool" 
   "neigh ==
 %(u::'A::type topology) ua::('A::type => bool) * 'A::type.
    EX P::'A::type => bool. open u P & re_subset P (fst ua) & P (snd ua)"
@@ -9952,7 +10253,7 @@ lemma OPEN_NEIGH: "ALL (S::'A::type => bool) top::'A::type topology.
   by (import hollight OPEN_NEIGH)
 
 constdefs
-  closed :: "'A::type topology => ('A::type => bool) => bool" 
+  closed :: "'A topology => ('A => bool) => bool" 
   "closed == %(u::'A::type topology) ua::'A::type => bool. open u (re_compl ua)"
 
 lemma DEF_closed: "closed =
@@ -9960,7 +10261,7 @@ lemma DEF_closed: "closed =
   by (import hollight DEF_closed)
 
 constdefs
-  limpt :: "'A::type topology => 'A::type => ('A::type => bool) => bool" 
+  limpt :: "'A topology => 'A => ('A => bool) => bool" 
   "limpt ==
 %(u::'A::type topology) (ua::'A::type) ub::'A::type => bool.
    ALL N::'A::type => bool.
@@ -9977,18 +10278,16 @@ lemma CLOSED_LIMPT: "ALL (top::'A::type topology) S::'A::type => bool.
   by (import hollight CLOSED_LIMPT)
 
 constdefs
-  ismet :: "('A::type * 'A::type => hollight.real) => bool" 
+  ismet :: "('A * 'A => hollight.real) => bool" 
   "ismet ==
 %u::'A::type * 'A::type => hollight.real.
-   (ALL (x::'A::type) y::'A::type.
-       (u (x, y) = real_of_num (0::nat)) = (x = y)) &
+   (ALL (x::'A::type) y::'A::type. (u (x, y) = real_of_num 0) = (x = y)) &
    (ALL (x::'A::type) (y::'A::type) z::'A::type.
        real_le (u (y, z)) (real_add (u (x, y)) (u (x, z))))"
 
 lemma DEF_ismet: "ismet =
 (%u::'A::type * 'A::type => hollight.real.
-    (ALL (x::'A::type) y::'A::type.
-        (u (x, y) = real_of_num (0::nat)) = (x = y)) &
+    (ALL (x::'A::type) y::'A::type. (u (x, y) = real_of_num 0) = (x = y)) &
     (ALL (x::'A::type) (y::'A::type) z::'A::type.
         real_le (u (y, z)) (real_add (u (x, y)) (u (x, z)))))"
   by (import hollight DEF_ismet)
@@ -10008,21 +10307,21 @@ syntax
   metric :: _ 
 
 lemmas "TYDEF_metric_@intern" = typedef_hol2hollight 
-  [where a="a :: 'A::type metric" and r=r ,
+  [where a="a :: 'A metric" and r=r ,
    OF type_definition_metric]
 
 lemma METRIC_ISMET: "ALL m::'A::type metric. ismet (mdist m)"
   by (import hollight METRIC_ISMET)
 
 lemma METRIC_ZERO: "ALL (m::'A::type metric) (x::'A::type) y::'A::type.
-   (mdist m (x, y) = real_of_num (0::nat)) = (x = y)"
+   (mdist m (x, y) = real_of_num 0) = (x = y)"
   by (import hollight METRIC_ZERO)
 
-lemma METRIC_SAME: "ALL (m::'A::type metric) x::'A::type. mdist m (x, x) = real_of_num (0::nat)"
+lemma METRIC_SAME: "ALL (m::'A::type metric) x::'A::type. mdist m (x, x) = real_of_num 0"
   by (import hollight METRIC_SAME)
 
 lemma METRIC_POS: "ALL (m::'A::type metric) (x::'A::type) y::'A::type.
-   real_le (real_of_num (0::nat)) (mdist m (x, y))"
+   real_le (real_of_num 0) (mdist m (x, y))"
   by (import hollight METRIC_POS)
 
 lemma METRIC_SYM: "ALL (m::'A::type metric) (x::'A::type) y::'A::type.
@@ -10034,11 +10333,11 @@ lemma METRIC_TRIANGLE: "ALL (m::'A::type metric) (x::'A::type) (y::'A::type) z::
   by (import hollight METRIC_TRIANGLE)
 
 lemma METRIC_NZ: "ALL (m::'A::type metric) (x::'A::type) y::'A::type.
-   x ~= y --> real_lt (real_of_num (0::nat)) (mdist m (x, y))"
+   x ~= y --> real_lt (real_of_num 0) (mdist m (x, y))"
   by (import hollight METRIC_NZ)
 
 constdefs
-  mtop :: "'A::type metric => 'A::type topology" 
+  mtop :: "'A metric => 'A topology" 
   "mtop ==
 %u::'A::type metric.
    topology
@@ -10046,7 +10345,7 @@ constdefs
         ALL x::'A::type.
            S x -->
            (EX e::hollight.real.
-               real_lt (real_of_num (0::nat)) e &
+               real_lt (real_of_num 0) e &
                (ALL y::'A::type. real_lt (mdist u (x, y)) e --> S y)))"
 
 lemma DEF_mtop: "mtop =
@@ -10056,7 +10355,7 @@ lemma DEF_mtop: "mtop =
          ALL x::'A::type.
             S x -->
             (EX e::hollight.real.
-                real_lt (real_of_num (0::nat)) e &
+                real_lt (real_of_num 0) e &
                 (ALL y::'A::type. real_lt (mdist u (x, y)) e --> S y))))"
   by (import hollight DEF_mtop)
 
@@ -10066,7 +10365,7 @@ lemma mtop_istopology: "ALL m::'A::type metric.
         ALL x::'A::type.
            S x -->
            (EX e::hollight.real.
-               real_lt (real_of_num (0::nat)) e &
+               real_lt (real_of_num 0) e &
                (ALL y::'A::type. real_lt (mdist m (x, y)) e --> S y)))"
   by (import hollight mtop_istopology)
 
@@ -10075,12 +10374,12 @@ lemma MTOP_OPEN: "ALL m::'A::type metric.
    (ALL x::'A::type.
        S x -->
        (EX e::hollight.real.
-           real_lt (real_of_num (0::nat)) e &
+           real_lt (real_of_num 0) e &
            (ALL y::'A::type. real_lt (mdist m (x, y)) e --> S y)))"
   by (import hollight MTOP_OPEN)
 
 constdefs
-  ball :: "'A::type metric => 'A::type * hollight.real => 'A::type => bool" 
+  ball :: "'A metric => 'A * hollight.real => 'A => bool" 
   "ball ==
 %(u::'A::type metric) (ua::'A::type * hollight.real) y::'A::type.
    real_lt (mdist u (fst ua, y)) (snd ua)"
@@ -10091,17 +10390,17 @@ lemma DEF_ball: "ball =
   by (import hollight DEF_ball)
 
 lemma BALL_OPEN: "ALL (m::'A::type metric) (x::'A::type) e::hollight.real.
-   real_lt (real_of_num (0::nat)) e --> open (mtop m) (ball m (x, e))"
+   real_lt (real_of_num 0) e --> open (mtop m) (ball m (x, e))"
   by (import hollight BALL_OPEN)
 
 lemma BALL_NEIGH: "ALL (m::'A::type metric) (x::'A::type) e::hollight.real.
-   real_lt (real_of_num (0::nat)) e --> neigh (mtop m) (ball m (x, e), x)"
+   real_lt (real_of_num 0) e --> neigh (mtop m) (ball m (x, e), x)"
   by (import hollight BALL_NEIGH)
 
 lemma MTOP_LIMPT: "ALL (m::'A::type metric) (x::'A::type) S::'A::type => bool.
    limpt (mtop m) x S =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX y::'A::type. x ~= y & S y & real_lt (mdist m (x, y)) e))"
   by (import hollight MTOP_LIMPT)
 
@@ -10142,19 +10441,19 @@ lemma MR1_SUB: "ALL (x::hollight.real) d::hollight.real.
   by (import hollight MR1_SUB)
 
 lemma MR1_ADD_LE: "ALL (x::hollight.real) d::hollight.real.
-   real_le (real_of_num (0::nat)) d --> mdist mr1 (x, real_add x d) = d"
+   real_le (real_of_num 0) d --> mdist mr1 (x, real_add x d) = d"
   by (import hollight MR1_ADD_LE)
 
 lemma MR1_SUB_LE: "ALL (x::hollight.real) d::hollight.real.
-   real_le (real_of_num (0::nat)) d --> mdist mr1 (x, real_sub x d) = d"
+   real_le (real_of_num 0) d --> mdist mr1 (x, real_sub x d) = d"
   by (import hollight MR1_SUB_LE)
 
 lemma MR1_ADD_LT: "ALL (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d --> mdist mr1 (x, real_add x d) = d"
+   real_lt (real_of_num 0) d --> mdist mr1 (x, real_add x d) = d"
   by (import hollight MR1_ADD_LT)
 
 lemma MR1_SUB_LT: "ALL (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d --> mdist mr1 (x, real_sub x d) = d"
+   real_lt (real_of_num 0) d --> mdist mr1 (x, real_sub x d) = d"
   by (import hollight MR1_SUB_LT)
 
 lemma MR1_BETWEEN1: "ALL (x::hollight.real) (y::hollight.real) z::hollight.real.
@@ -10165,7 +10464,7 @@ lemma MR1_LIMPT: "ALL x::hollight.real. limpt (mtop mr1) x re_universe"
   by (import hollight MR1_LIMPT)
 
 constdefs
-  dorder :: "('A::type => 'A::type => bool) => bool" 
+  dorder :: "('A => 'A => bool) => bool" 
   "dorder ==
 %u::'A::type => 'A::type => bool.
    ALL (x::'A::type) y::'A::type.
@@ -10180,8 +10479,7 @@ lemma DEF_dorder: "dorder =
   by (import hollight DEF_dorder)
 
 constdefs
-  tends :: "('B::type => 'A::type)
-=> 'A::type => 'A::type topology * ('B::type => 'B::type => bool) => bool" 
+  tends :: "('B => 'A) => 'A => 'A topology * ('B => 'B => bool) => bool" 
   "tends ==
 %(u::'B::type => 'A::type) (ua::'A::type)
    ub::'A::type topology * ('B::type => 'B::type => bool).
@@ -10200,8 +10498,7 @@ lemma DEF_tends: "tends =
   by (import hollight DEF_tends)
 
 constdefs
-  bounded :: "'A::type metric * ('B::type => 'B::type => bool)
-=> ('B::type => 'A::type) => bool" 
+  bounded :: "'A metric * ('B => 'B => bool) => ('B => 'A) => bool" 
   "bounded ==
 %(u::'A::type metric * ('B::type => 'B::type => bool))
    ua::'B::type => 'A::type.
@@ -10218,15 +10515,15 @@ lemma DEF_bounded: "bounded =
   by (import hollight DEF_bounded)
 
 constdefs
-  tendsto :: "'A::type metric * 'A::type => 'A::type => 'A::type => bool" 
+  tendsto :: "'A metric * 'A => 'A => 'A => bool" 
   "tendsto ==
 %(u::'A::type metric * 'A::type) (ua::'A::type) ub::'A::type.
-   real_lt (real_of_num (0::nat)) (mdist (fst u) (snd u, ua)) &
+   real_lt (real_of_num 0) (mdist (fst u) (snd u, ua)) &
    real_le (mdist (fst u) (snd u, ua)) (mdist (fst u) (snd u, ub))"
 
 lemma DEF_tendsto: "tendsto =
 (%(u::'A::type metric * 'A::type) (ua::'A::type) ub::'A::type.
-    real_lt (real_of_num (0::nat)) (mdist (fst u) (snd u, ua)) &
+    real_lt (real_of_num 0) (mdist (fst u) (snd u, ua)) &
     real_le (mdist (fst u) (snd u, ua)) (mdist (fst u) (snd u, ub)))"
   by (import hollight DEF_tendsto)
 
@@ -10248,7 +10545,7 @@ lemma MTOP_TENDS: "ALL (d::'A::type metric) (g::'B::type => 'B::type => bool)
    (x::'B::type => 'A::type) x0::'A::type.
    tends x x0 (mtop d, g) =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX n::'B::type.
            g n n &
            (ALL m::'B::type. g m n --> real_lt (mdist d (x m, x0)) e)))"
@@ -10264,7 +10561,7 @@ lemma MTOP_TENDS_UNIQ: "ALL (g::'B::type => 'B::type => bool) d::'A::type metric
 lemma SEQ_TENDS: "ALL (d::'A::type metric) (x::nat => 'A::type) x0::'A::type.
    tends x x0 (mtop d, >=) =
    (ALL xa::hollight.real.
-       real_lt (real_of_num (0::nat)) xa -->
+       real_lt (real_of_num 0) xa -->
        (EX xb::nat.
            ALL xc::nat. >= xc xb --> real_lt (mdist d (x xc, x0)) xa))"
   by (import hollight SEQ_TENDS)
@@ -10274,11 +10571,11 @@ lemma LIM_TENDS: "ALL (m1::'A::type metric) (m2::'B::type metric) (f::'A::type =
    limpt (mtop m1) x0 re_universe -->
    tends f y0 (mtop m2, tendsto (m1, x0)) =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX d::hollight.real.
-           real_lt (real_of_num (0::nat)) d &
+           real_lt (real_of_num 0) d &
            (ALL x::'A::type.
-               real_lt (real_of_num (0::nat)) (mdist m1 (x, x0)) &
+               real_lt (real_of_num 0) (mdist m1 (x, x0)) &
                real_le (mdist m1 (x, x0)) d -->
                real_lt (mdist m2 (f x, y0)) e)))"
   by (import hollight LIM_TENDS)
@@ -10288,11 +10585,11 @@ lemma LIM_TENDS2: "ALL (m1::'A::type metric) (m2::'B::type metric) (f::'A::type 
    limpt (mtop m1) x0 re_universe -->
    tends f y0 (mtop m2, tendsto (m1, x0)) =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX d::hollight.real.
-           real_lt (real_of_num (0::nat)) d &
+           real_lt (real_of_num 0) d &
            (ALL x::'A::type.
-               real_lt (real_of_num (0::nat)) (mdist m1 (x, x0)) &
+               real_lt (real_of_num 0) (mdist m1 (x, x0)) &
                real_lt (mdist m1 (x, x0)) d -->
                real_lt (mdist m2 (f x, y0)) e)))"
   by (import hollight LIM_TENDS2)
@@ -10306,8 +10603,7 @@ lemma MR1_BOUNDED: "ALL (g::'A::type => 'A::type => bool) f::'A::type => holligh
 lemma NET_NULL: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.real)
    x0::hollight.real.
    tends x x0 (mtop mr1, g) =
-   tends (%n::'A::type. real_sub (x n) x0) (real_of_num (0::nat))
-    (mtop mr1, g)"
+   tends (%n::'A::type. real_sub (x n) x0) (real_of_num 0) (mtop mr1, g)"
   by (import hollight NET_NULL)
 
 lemma NET_CONV_BOUNDED: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.real)
@@ -10316,39 +10612,38 @@ lemma NET_CONV_BOUNDED: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => h
 
 lemma NET_CONV_NZ: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.real)
    x0::hollight.real.
-   tends x x0 (mtop mr1, g) & x0 ~= real_of_num (0::nat) -->
+   tends x x0 (mtop mr1, g) & x0 ~= real_of_num 0 -->
    (EX N::'A::type.
-       g N N & (ALL n::'A::type. g n N --> x n ~= real_of_num (0::nat)))"
+       g N N & (ALL n::'A::type. g n N --> x n ~= real_of_num 0))"
   by (import hollight NET_CONV_NZ)
 
 lemma NET_CONV_IBOUNDED: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.real)
    x0::hollight.real.
-   tends x x0 (mtop mr1, g) & x0 ~= real_of_num (0::nat) -->
+   tends x x0 (mtop mr1, g) & x0 ~= real_of_num 0 -->
    bounded (mr1, g) (%n::'A::type. real_inv (x n))"
   by (import hollight NET_CONV_IBOUNDED)
 
 lemma NET_NULL_ADD: "ALL g::'A::type => 'A::type => bool.
    dorder g -->
    (ALL (x::'A::type => hollight.real) y::'A::type => hollight.real.
-       tends x (real_of_num (0::nat)) (mtop mr1, g) &
-       tends y (real_of_num (0::nat)) (mtop mr1, g) -->
-       tends (%n::'A::type. real_add (x n) (y n)) (real_of_num (0::nat))
+       tends x (real_of_num 0) (mtop mr1, g) &
+       tends y (real_of_num 0) (mtop mr1, g) -->
+       tends (%n::'A::type. real_add (x n) (y n)) (real_of_num 0)
         (mtop mr1, g))"
   by (import hollight NET_NULL_ADD)
 
 lemma NET_NULL_MUL: "ALL g::'A::type => 'A::type => bool.
    dorder g -->
    (ALL (x::'A::type => hollight.real) y::'A::type => hollight.real.
-       bounded (mr1, g) x & tends y (real_of_num (0::nat)) (mtop mr1, g) -->
-       tends (%n::'A::type. real_mul (x n) (y n)) (real_of_num (0::nat))
+       bounded (mr1, g) x & tends y (real_of_num 0) (mtop mr1, g) -->
+       tends (%n::'A::type. real_mul (x n) (y n)) (real_of_num 0)
         (mtop mr1, g))"
   by (import hollight NET_NULL_MUL)
 
 lemma NET_NULL_CMUL: "ALL (g::'A::type => 'A::type => bool) (k::hollight.real)
    x::'A::type => hollight.real.
-   tends x (real_of_num (0::nat)) (mtop mr1, g) -->
-   tends (%n::'A::type. real_mul k (x n)) (real_of_num (0::nat))
-    (mtop mr1, g)"
+   tends x (real_of_num 0) (mtop mr1, g) -->
+   tends (%n::'A::type. real_mul k (x n)) (real_of_num 0) (mtop mr1, g)"
   by (import hollight NET_NULL_CMUL)
 
 lemma NET_ADD: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.real)
@@ -10383,7 +10678,7 @@ lemma NET_MUL: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.r
 lemma NET_INV: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.real)
    x0::hollight.real.
    dorder g -->
-   tends x x0 (mtop mr1, g) & x0 ~= real_of_num (0::nat) -->
+   tends x x0 (mtop mr1, g) & x0 ~= real_of_num 0 -->
    tends (%n::'A::type. real_inv (x n)) (real_inv x0) (mtop mr1, g)"
   by (import hollight NET_INV)
 
@@ -10391,7 +10686,7 @@ lemma NET_DIV: "ALL (g::'A::type => 'A::type => bool) (x::'A::type => hollight.r
    (x0::hollight.real) (y::'A::type => hollight.real) y0::hollight.real.
    dorder g -->
    tends x x0 (mtop mr1, g) &
-   tends y y0 (mtop mr1, g) & y0 ~= real_of_num (0::nat) -->
+   tends y y0 (mtop mr1, g) & y0 ~= real_of_num 0 -->
    tends (%xa::'A::type. real_div (x xa) (y xa)) (real_div x0 y0)
     (mtop mr1, g)"
   by (import hollight NET_DIV)
@@ -10403,7 +10698,7 @@ lemma NET_ABS: "ALL (x::'A::type => hollight.real) x0::hollight.real.
 
 lemma NET_SUM: "ALL g::'q_71813::type => 'q_71813::type => bool.
    dorder g &
-   tends (%x::'q_71813::type. real_of_num (0::nat)) (real_of_num (0::nat))
+   tends (%x::'q_71813::type. real_of_num 0) (real_of_num 0)
     (mtop mr1, g) -->
    (ALL (x::nat) n::nat.
        (ALL r::nat.
@@ -10436,7 +10731,7 @@ lemma DEF_tends_num_real: "tends_num_real =
 lemma SEQ: "ALL (x::nat => hollight.real) x0::hollight.real.
    tends_num_real x x0 =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX N::nat.
            ALL n::nat. >= n N --> real_lt (real_abs (real_sub (x n) x0)) e))"
   by (import hollight SEQ)
@@ -10462,7 +10757,7 @@ lemma SEQ_NEG: "ALL (x::nat => hollight.real) x0::hollight.real.
   by (import hollight SEQ_NEG)
 
 lemma SEQ_INV: "ALL (x::nat => hollight.real) x0::hollight.real.
-   tends_num_real x x0 & x0 ~= real_of_num (0::nat) -->
+   tends_num_real x x0 & x0 ~= real_of_num 0 -->
    tends_num_real (%n::nat. real_inv (x n)) (real_inv x0)"
   by (import hollight SEQ_INV)
 
@@ -10474,8 +10769,7 @@ lemma SEQ_SUB: "ALL (x::nat => hollight.real) (x0::hollight.real) (y::nat => hol
 
 lemma SEQ_DIV: "ALL (x::nat => hollight.real) (x0::hollight.real) (y::nat => hollight.real)
    y0::hollight.real.
-   tends_num_real x x0 &
-   tends_num_real y y0 & y0 ~= real_of_num (0::nat) -->
+   tends_num_real x x0 & tends_num_real y y0 & y0 ~= real_of_num 0 -->
    tends_num_real (%n::nat. real_div (x n) (y n)) (real_div x0 y0)"
   by (import hollight SEQ_DIV)
 
@@ -10485,7 +10779,7 @@ lemma SEQ_UNIQ: "ALL (x::nat => hollight.real) (x1::hollight.real) x2::hollight.
 
 lemma SEQ_NULL: "ALL (s::nat => hollight.real) l::hollight.real.
    tends_num_real s l =
-   tends_num_real (%n::nat. real_sub (s n) l) (real_of_num (0::nat))"
+   tends_num_real (%n::nat. real_sub (s n) l) (real_of_num 0)"
   by (import hollight SEQ_NULL)
 
 lemma SEQ_SUM: "ALL (f::nat => nat => hollight.real) (l::nat => hollight.real) (m::nat)
@@ -10512,7 +10806,7 @@ constdefs
   "cauchy ==
 %u::nat => hollight.real.
    ALL e::hollight.real.
-      real_lt (real_of_num (0::nat)) e -->
+      real_lt (real_of_num 0) e -->
       (EX N::nat.
           ALL (m::nat) n::nat.
              >= m N & >= n N -->
@@ -10521,7 +10815,7 @@ constdefs
 lemma DEF_cauchy: "cauchy =
 (%u::nat => hollight.real.
     ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX N::nat.
            ALL (m::nat) n::nat.
               >= m N & >= n N -->
@@ -10630,11 +10924,11 @@ lemma SEQ_LE: "ALL (f::nat => hollight.real) (g::nat => hollight.real) (l::holli
   by (import hollight SEQ_LE)
 
 lemma SEQ_LE_0: "ALL (x::nat => hollight.real) xa::nat => hollight.real.
-   tends_num_real x (real_of_num (0::nat)) &
+   tends_num_real x (real_of_num 0) &
    (EX xb::nat.
        ALL xc::nat.
           >= xc xb --> real_le (real_abs (xa xc)) (real_abs (x xc))) -->
-   tends_num_real xa (real_of_num (0::nat))"
+   tends_num_real xa (real_of_num 0)"
   by (import hollight SEQ_LE_0)
 
 lemma SEQ_SUC: "ALL (f::nat => hollight.real) l::hollight.real.
@@ -10642,8 +10936,8 @@ lemma SEQ_SUC: "ALL (f::nat => hollight.real) l::hollight.real.
   by (import hollight SEQ_SUC)
 
 lemma SEQ_ABS: "ALL f::nat => hollight.real.
-   tends_num_real (%n::nat. real_abs (f n)) (real_of_num (0::nat)) =
-   tends_num_real f (real_of_num (0::nat))"
+   tends_num_real (%n::nat. real_abs (f n)) (real_of_num 0) =
+   tends_num_real f (real_of_num 0)"
   by (import hollight SEQ_ABS)
 
 lemma SEQ_ABS_IMP: "ALL (f::nat => hollight.real) l::hollight.real.
@@ -10654,17 +10948,17 @@ lemma SEQ_ABS_IMP: "ALL (f::nat => hollight.real) l::hollight.real.
 lemma SEQ_INV0: "ALL f::nat => hollight.real.
    (ALL y::hollight.real.
        EX N::nat. ALL n::nat. >= n N --> hollight.real_gt (f n) y) -->
-   tends_num_real (%n::nat. real_inv (f n)) (real_of_num (0::nat))"
+   tends_num_real (%n::nat. real_inv (f n)) (real_of_num 0)"
   by (import hollight SEQ_INV0)
 
 lemma SEQ_POWER_ABS: "ALL c::hollight.real.
-   real_lt (real_abs c) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   tends_num_real (real_pow (real_abs c)) (real_of_num (0::nat))"
+   real_lt (real_abs c) (real_of_num (NUMERAL_BIT1 0)) -->
+   tends_num_real (real_pow (real_abs c)) (real_of_num 0)"
   by (import hollight SEQ_POWER_ABS)
 
 lemma SEQ_POWER: "ALL c::hollight.real.
-   real_lt (real_abs c) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   tends_num_real (real_pow c) (real_of_num (0::nat))"
+   real_lt (real_abs c) (real_of_num (NUMERAL_BIT1 0)) -->
+   tends_num_real (real_pow c) (real_of_num 0)"
   by (import hollight SEQ_POWER)
 
 lemma NEST_LEMMA: "ALL (f::nat => hollight.real) g::nat => hollight.real.
@@ -10681,7 +10975,7 @@ lemma NEST_LEMMA_UNIQ: "ALL (f::nat => hollight.real) g::nat => hollight.real.
    (ALL n::nat. hollight.real_ge (f (Suc n)) (f n)) &
    (ALL n::nat. real_le (g (Suc n)) (g n)) &
    (ALL n::nat. real_le (f n) (g n)) &
-   tends_num_real (%n::nat. real_sub (f n) (g n)) (real_of_num (0::nat)) -->
+   tends_num_real (%n::nat. real_sub (f n) (g n)) (real_of_num 0) -->
    (EX l::hollight.real.
        ((ALL n::nat. real_le (f n) l) & tends_num_real f l) &
        (ALL n::nat. real_le l (g n)) & tends_num_real g l)"
@@ -10692,7 +10986,7 @@ lemma BOLZANO_LEMMA: "ALL P::hollight.real * hollight.real => bool.
        real_le a b & real_le b c & P (a, b) & P (b, c) --> P (a, c)) &
    (ALL x::hollight.real.
        EX d::hollight.real.
-          real_lt (real_of_num (0::nat)) d &
+          real_lt (real_of_num 0) d &
           (ALL (a::hollight.real) b::hollight.real.
               real_le a x & real_le x b & real_lt (real_sub b a) d -->
               P (a, b))) -->
@@ -10701,11 +10995,9 @@ lemma BOLZANO_LEMMA: "ALL P::hollight.real * hollight.real => bool.
 
 constdefs
   sums :: "(nat => hollight.real) => hollight.real => bool" 
-  "sums ==
-%u::nat => hollight.real. tends_num_real (%n::nat. psum (0::nat, n) u)"
+  "sums == %u::nat => hollight.real. tends_num_real (%n::nat. psum (0, n) u)"
 
-lemma DEF_sums: "sums =
-(%u::nat => hollight.real. tends_num_real (%n::nat. psum (0::nat, n) u))"
+lemma DEF_sums: "sums = (%u::nat => hollight.real. tends_num_real (%n::nat. psum (0, n) u))"
   by (import hollight DEF_sums)
 
 constdefs
@@ -10736,25 +11028,21 @@ lemma SER_UNIQ: "ALL (f::nat => hollight.real) (x::hollight.real) y::hollight.re
   by (import hollight SER_UNIQ)
 
 lemma SER_0: "ALL (f::nat => hollight.real) n::nat.
-   (ALL m::nat. <= n m --> f m = real_of_num (0::nat)) -->
-   sums f (psum (0::nat, n) f)"
+   (ALL m::nat. <= n m --> f m = real_of_num 0) --> sums f (psum (0, n) f)"
   by (import hollight SER_0)
 
 lemma SER_POS_LE: "ALL (f::nat => hollight.real) n::nat.
-   summable f &
-   (ALL m::nat. <= n m --> real_le (real_of_num (0::nat)) (f m)) -->
-   real_le (psum (0::nat, n) f) (suminf f)"
+   summable f & (ALL m::nat. <= n m --> real_le (real_of_num 0) (f m)) -->
+   real_le (psum (0, n) f) (suminf f)"
   by (import hollight SER_POS_LE)
 
 lemma SER_POS_LT: "ALL (f::nat => hollight.real) n::nat.
-   summable f &
-   (ALL m::nat. <= n m --> real_lt (real_of_num (0::nat)) (f m)) -->
-   real_lt (psum (0::nat, n) f) (suminf f)"
+   summable f & (ALL m::nat. <= n m --> real_lt (real_of_num 0) (f m)) -->
+   real_lt (psum (0, n) f) (suminf f)"
   by (import hollight SER_POS_LT)
 
 lemma SER_GROUP: "ALL (f::nat => hollight.real) k::nat.
-   summable f & < (0::nat) k -->
-   sums (%n::nat. psum (n * k, k) f) (suminf f)"
+   summable f & < 0 k --> sums (%n::nat. psum (n * k, k) f) (suminf f)"
   by (import hollight SER_GROUP)
 
 lemma SER_PAIR: "ALL f::nat => hollight.real.
@@ -10762,8 +11050,7 @@ lemma SER_PAIR: "ALL f::nat => hollight.real.
    sums
     (%n::nat.
         psum
-         (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n,
-          NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))
+         (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n, NUMERAL_BIT0 (NUMERAL_BIT1 0))
          f)
     (suminf f)"
   by (import hollight SER_PAIR)
@@ -10771,23 +11058,22 @@ lemma SER_PAIR: "ALL f::nat => hollight.real.
 lemma SER_OFFSET: "ALL f::nat => hollight.real.
    summable f -->
    (ALL k::nat.
-       sums (%n::nat. f (n + k)) (real_sub (suminf f) (psum (0::nat, k) f)))"
+       sums (%n::nat. f (n + k)) (real_sub (suminf f) (psum (0, k) f)))"
   by (import hollight SER_OFFSET)
 
 lemma SER_OFFSET_REV: "ALL (f::nat => hollight.real) k::nat.
    summable (%n::nat. f (n + k)) -->
-   sums f (real_add (psum (0::nat, k) f) (suminf (%n::nat. f (n + k))))"
+   sums f (real_add (psum (0, k) f) (suminf (%n::nat. f (n + k))))"
   by (import hollight SER_OFFSET_REV)
 
 lemma SER_POS_LT_PAIR: "ALL (f::nat => hollight.real) n::nat.
    summable f &
    (ALL d::nat.
-       real_lt (real_of_num (0::nat))
-        (real_add (f (n + NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * d))
+       real_lt (real_of_num 0)
+        (real_add (f (n + NUMERAL_BIT0 (NUMERAL_BIT1 0) * d))
           (f (n +
-              (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * d +
-               NUMERAL_BIT1 (0::nat)))))) -->
-   real_lt (psum (0::nat, n) f) (suminf f)"
+              (NUMERAL_BIT0 (NUMERAL_BIT1 0) * d + NUMERAL_BIT1 0))))) -->
+   real_lt (psum (0, n) f) (suminf f)"
   by (import hollight SER_POS_LT_PAIR)
 
 lemma SER_ADD: "ALL (x::nat => hollight.real) (x0::hollight.real) (y::nat => hollight.real)
@@ -10817,14 +11103,13 @@ lemma SER_CDIV: "ALL (x::nat => hollight.real) (x0::hollight.real) c::hollight.r
 lemma SER_CAUCHY: "ALL f::nat => hollight.real.
    summable f =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX N::nat.
            ALL (m::nat) n::nat.
               >= m N --> real_lt (real_abs (psum (m, n) f)) e))"
   by (import hollight SER_CAUCHY)
 
-lemma SER_ZERO: "ALL f::nat => hollight.real.
-   summable f --> tends_num_real f (real_of_num (0::nat))"
+lemma SER_ZERO: "ALL f::nat => hollight.real. summable f --> tends_num_real f (real_of_num 0)"
   by (import hollight SER_ZERO)
 
 lemma SER_COMPAR: "ALL (f::nat => hollight.real) g::nat => hollight.real.
@@ -10859,28 +11144,25 @@ lemma SER_ABS: "ALL f::nat => hollight.real.
   by (import hollight SER_ABS)
 
 lemma GP_FINITE: "ALL x::hollight.real.
-   x ~= real_of_num (NUMERAL_BIT1 (0::nat)) -->
+   x ~= real_of_num (NUMERAL_BIT1 0) -->
    (ALL n::nat.
-       psum (0::nat, n) (real_pow x) =
-       real_div
-        (real_sub (real_pow x n) (real_of_num (NUMERAL_BIT1 (0::nat))))
-        (real_sub x (real_of_num (NUMERAL_BIT1 (0::nat)))))"
+       psum (0, n) (real_pow x) =
+       real_div (real_sub (real_pow x n) (real_of_num (NUMERAL_BIT1 0)))
+        (real_sub x (real_of_num (NUMERAL_BIT1 0))))"
   by (import hollight GP_FINITE)
 
 lemma GP: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   sums (real_pow x)
-    (real_inv (real_sub (real_of_num (NUMERAL_BIT1 (0::nat))) x))"
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
+   sums (real_pow x) (real_inv (real_sub (real_of_num (NUMERAL_BIT1 0)) x))"
   by (import hollight GP)
 
 lemma ABS_NEG_LEMMA: "ALL (c::hollight.real) (x::hollight.real) y::hollight.real.
-   real_le c (real_of_num (0::nat)) -->
-   real_le (real_abs x) (real_mul c (real_abs y)) -->
-   x = real_of_num (0::nat)"
+   real_le c (real_of_num 0) -->
+   real_le (real_abs x) (real_mul c (real_abs y)) --> x = real_of_num 0"
   by (import hollight ABS_NEG_LEMMA)
 
 lemma SER_RATIO: "ALL (f::nat => hollight.real) (c::hollight.real) N::nat.
-   real_lt c (real_of_num (NUMERAL_BIT1 (0::nat))) &
+   real_lt c (real_of_num (NUMERAL_BIT1 0)) &
    (ALL n::nat.
        >= n N -->
        real_le (real_abs (f (Suc n))) (real_mul c (real_abs (f n)))) -->
@@ -10889,7 +11171,7 @@ lemma SER_RATIO: "ALL (f::nat => hollight.real) (c::hollight.real) N::nat.
 
 lemma SEQ_TRUNCATION: "ALL (f::nat => hollight.real) (l::hollight.real) (n::nat) b::hollight.real.
    sums f l & (ALL m::nat. real_le (real_abs (psum (n, m) f)) b) -->
-   real_le (real_abs (real_sub l (psum (0::nat, n) f))) b"
+   real_le (real_abs (real_sub l (psum (0, n) f))) b"
   by (import hollight SEQ_TRUNCATION)
 
 constdefs
@@ -10907,11 +11189,11 @@ lemma LIM: "ALL (f::hollight.real => hollight.real) (y0::hollight.real)
    x0::hollight.real.
    tends_real_real f y0 x0 =
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX d::hollight.real.
-           real_lt (real_of_num (0::nat)) d &
+           real_lt (real_of_num 0) d &
            (ALL x::hollight.real.
-               real_lt (real_of_num (0::nat)) (real_abs (real_sub x x0)) &
+               real_lt (real_of_num 0) (real_abs (real_sub x x0)) &
                real_lt (real_abs (real_sub x x0)) d -->
                real_lt (real_abs (real_sub (f x) y0)) e)))"
   by (import hollight LIM)
@@ -10939,7 +11221,7 @@ lemma LIM_NEG: "ALL (f::hollight.real => hollight.real) l::hollight.real.
   by (import hollight LIM_NEG)
 
 lemma LIM_INV: "ALL (f::hollight.real => hollight.real) l::hollight.real.
-   tends_real_real f l (x::hollight.real) & l ~= real_of_num (0::nat) -->
+   tends_real_real f l (x::hollight.real) & l ~= real_of_num 0 -->
    tends_real_real (%x::hollight.real. real_inv (f x)) (real_inv l) x"
   by (import hollight LIM_INV)
 
@@ -10953,15 +11235,14 @@ lemma LIM_SUB: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hol
 lemma LIM_DIV: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (l::hollight.real) m::hollight.real.
    tends_real_real f l (x::hollight.real) &
-   tends_real_real g m x & m ~= real_of_num (0::nat) -->
+   tends_real_real g m x & m ~= real_of_num 0 -->
    tends_real_real (%x::hollight.real. real_div (f x) (g x)) (real_div l m)
     x"
   by (import hollight LIM_DIV)
 
 lemma LIM_NULL: "ALL (f::hollight.real => hollight.real) (l::hollight.real) x::hollight.real.
    tends_real_real f l x =
-   tends_real_real (%x::hollight.real. real_sub (f x) l)
-    (real_of_num (0::nat)) x"
+   tends_real_real (%x::hollight.real. real_sub (f x) l) (real_of_num 0) x"
   by (import hollight LIM_NULL)
 
 lemma LIM_SUM: "ALL (f::nat => hollight.real => hollight.real) (l::nat => hollight.real)
@@ -10988,8 +11269,8 @@ lemma LIM_EQUAL: "ALL (f::hollight.real => hollight.real) (g::hollight.real => h
 
 lemma LIM_TRANSFORM: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (x0::hollight.real) l::hollight.real.
-   tends_real_real (%x::hollight.real. real_sub (f x) (g x))
-    (real_of_num (0::nat)) x0 &
+   tends_real_real (%x::hollight.real. real_sub (f x) (g x)) (real_of_num 0)
+    x0 &
    tends_real_real g l x0 -->
    tends_real_real f l x0"
   by (import hollight LIM_TRANSFORM)
@@ -11000,13 +11281,13 @@ constdefs
 %(u::hollight.real => hollight.real) (ua::hollight.real) ub::hollight.real.
    tends_real_real
     (%h::hollight.real. real_div (real_sub (u (real_add ub h)) (u ub)) h) ua
-    (real_of_num (0::nat))"
+    (real_of_num 0)"
 
 lemma DEF_diffl: "diffl =
 (%(u::hollight.real => hollight.real) (ua::hollight.real) ub::hollight.real.
     tends_real_real
      (%h::hollight.real. real_div (real_sub (u (real_add ub h)) (u ub)) h)
-     ua (real_of_num (0::nat)))"
+     ua (real_of_num 0))"
   by (import hollight DEF_diffl)
 
 constdefs
@@ -11014,12 +11295,12 @@ constdefs
   "contl ==
 %(u::hollight.real => hollight.real) ua::hollight.real.
    tends_real_real (%h::hollight.real. u (real_add ua h)) (u ua)
-    (real_of_num (0::nat))"
+    (real_of_num 0)"
 
 lemma DEF_contl: "contl =
 (%(u::hollight.real => hollight.real) ua::hollight.real.
     tends_real_real (%h::hollight.real. u (real_add ua h)) (u ua)
-     (real_of_num (0::nat)))"
+     (real_of_num 0))"
   by (import hollight DEF_contl)
 
 constdefs
@@ -11069,8 +11350,7 @@ lemma CONT_NEG: "ALL x::hollight.real.
   by (import hollight CONT_NEG)
 
 lemma CONT_INV: "ALL x::hollight.real.
-   contl (f::hollight.real => hollight.real) x &
-   f x ~= real_of_num (0::nat) -->
+   contl (f::hollight.real => hollight.real) x & f x ~= real_of_num 0 -->
    contl (%x::hollight.real. real_inv (f x)) x"
   by (import hollight CONT_INV)
 
@@ -11082,8 +11362,7 @@ lemma CONT_SUB: "ALL x::hollight.real.
 
 lemma CONT_DIV: "ALL x::hollight.real.
    contl (f::hollight.real => hollight.real) x &
-   contl (g::hollight.real => hollight.real) x &
-   g x ~= real_of_num (0::nat) -->
+   contl (g::hollight.real => hollight.real) x & g x ~= real_of_num 0 -->
    contl (%x::hollight.real. real_div (f x) (g x)) x"
   by (import hollight CONT_DIV)
 
@@ -11108,8 +11387,7 @@ lemma IVT2: "ALL (f::hollight.real => hollight.real) (a::hollight.real)
    (EX x::hollight.real. real_le a x & real_le x b & f x = y)"
   by (import hollight IVT2)
 
-lemma DIFF_CONST: "ALL k::hollight.real.
-   All (diffl (%x::hollight.real. k) (real_of_num (0::nat)))"
+lemma DIFF_CONST: "ALL k::hollight.real. All (diffl (%x::hollight.real. k) (real_of_num 0))"
   by (import hollight DIFF_CONST)
 
 lemma DIFF_ADD: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
@@ -11155,37 +11433,33 @@ lemma DIFF_CHAIN: "ALL (f::hollight.real => hollight.real) (g::hollight.real => 
    diffl (%x::hollight.real. f (g x)) (real_mul l m) x"
   by (import hollight DIFF_CHAIN)
 
-lemma DIFF_X: "All (diffl (%x::hollight.real. x) (real_of_num (NUMERAL_BIT1 (0::nat))))"
+lemma DIFF_X: "All (diffl (%x::hollight.real. x) (real_of_num (NUMERAL_BIT1 0)))"
   by (import hollight DIFF_X)
 
 lemma DIFF_POW: "ALL (n::nat) x::hollight.real.
    diffl (%x::hollight.real. real_pow x n)
-    (real_mul (real_of_num n) (real_pow x (n - NUMERAL_BIT1 (0::nat)))) x"
+    (real_mul (real_of_num n) (real_pow x (n - NUMERAL_BIT1 0))) x"
   by (import hollight DIFF_POW)
 
 lemma DIFF_XM1: "ALL x::hollight.real.
-   x ~= real_of_num (0::nat) -->
+   x ~= real_of_num 0 -->
    diffl real_inv
-    (real_neg
-      (real_pow (real_inv x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
-    x"
+    (real_neg (real_pow (real_inv x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) x"
   by (import hollight DIFF_XM1)
 
 lemma DIFF_INV: "ALL (f::hollight.real => hollight.real) (l::hollight.real) x::hollight.real.
-   diffl f l x & f x ~= real_of_num (0::nat) -->
+   diffl f l x & f x ~= real_of_num 0 -->
    diffl (%x::hollight.real. real_inv (f x))
-    (real_neg
-      (real_div l (real_pow (f x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div l (real_pow (f x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     x"
   by (import hollight DIFF_INV)
 
 lemma DIFF_DIV: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (l::hollight.real) m::hollight.real.
-   diffl f l (x::hollight.real) &
-   diffl g m x & g x ~= real_of_num (0::nat) -->
+   diffl f l (x::hollight.real) & diffl g m x & g x ~= real_of_num 0 -->
    diffl (%x::hollight.real. real_div (f x) (g x))
     (real_div (real_sub (real_mul l (g x)) (real_mul m (f x)))
-      (real_pow (g x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+      (real_pow (g x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
     x"
   by (import hollight DIFF_DIV)
 
@@ -11254,54 +11528,54 @@ lemma CONT_ATTAINS_ALL: "ALL (f::hollight.real => hollight.real) (a::hollight.re
   by (import hollight CONT_ATTAINS_ALL)
 
 lemma DIFF_LINC: "ALL (f::hollight.real => hollight.real) (x::hollight.real) l::hollight.real.
-   diffl f l x & real_lt (real_of_num (0::nat)) l -->
+   diffl f l x & real_lt (real_of_num 0) l -->
    (EX d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL h::hollight.real.
-           real_lt (real_of_num (0::nat)) h & real_lt h d -->
+           real_lt (real_of_num 0) h & real_lt h d -->
            real_lt (f x) (f (real_add x h))))"
   by (import hollight DIFF_LINC)
 
 lemma DIFF_LDEC: "ALL (f::hollight.real => hollight.real) (x::hollight.real) l::hollight.real.
-   diffl f l x & real_lt l (real_of_num (0::nat)) -->
+   diffl f l x & real_lt l (real_of_num 0) -->
    (EX d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL h::hollight.real.
-           real_lt (real_of_num (0::nat)) h & real_lt h d -->
+           real_lt (real_of_num 0) h & real_lt h d -->
            real_lt (f x) (f (real_sub x h))))"
   by (import hollight DIFF_LDEC)
 
 lemma DIFF_LMAX: "ALL (f::hollight.real => hollight.real) (x::hollight.real) l::hollight.real.
    diffl f l x &
    (EX d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL y::hollight.real.
            real_lt (real_abs (real_sub x y)) d --> real_le (f y) (f x))) -->
-   l = real_of_num (0::nat)"
+   l = real_of_num 0"
   by (import hollight DIFF_LMAX)
 
 lemma DIFF_LMIN: "ALL (f::hollight.real => hollight.real) (x::hollight.real) l::hollight.real.
    diffl f l x &
    (EX d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL y::hollight.real.
            real_lt (real_abs (real_sub x y)) d --> real_le (f x) (f y))) -->
-   l = real_of_num (0::nat)"
+   l = real_of_num 0"
   by (import hollight DIFF_LMIN)
 
 lemma DIFF_LCONST: "ALL (f::hollight.real => hollight.real) (x::hollight.real) l::hollight.real.
    diffl f l x &
    (EX d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL y::hollight.real.
            real_lt (real_abs (real_sub x y)) d --> f y = f x)) -->
-   l = real_of_num (0::nat)"
+   l = real_of_num 0"
   by (import hollight DIFF_LCONST)
 
 lemma INTERVAL_LEMMA_LT: "ALL (a::hollight.real) (b::hollight.real) x::hollight.real.
    real_lt a x & real_lt x b -->
    (EX xa::hollight.real.
-       real_lt (real_of_num (0::nat)) xa &
+       real_lt (real_of_num 0) xa &
        (ALL xb::hollight.real.
            real_lt (real_abs (real_sub x xb)) xa -->
            real_lt a xb & real_lt xb b))"
@@ -11310,7 +11584,7 @@ lemma INTERVAL_LEMMA_LT: "ALL (a::hollight.real) (b::hollight.real) x::hollight.
 lemma INTERVAL_LEMMA: "ALL (a::hollight.real) (b::hollight.real) x::hollight.real.
    real_lt a x & real_lt x b -->
    (EX xa::hollight.real.
-       real_lt (real_of_num (0::nat)) xa &
+       real_lt (real_of_num 0) xa &
        (ALL y::hollight.real.
            real_lt (real_abs (real_sub x y)) xa -->
            real_le a y & real_le y b))"
@@ -11323,7 +11597,7 @@ lemma ROLLE: "ALL (f::hollight.real => hollight.real) (a::hollight.real) b::holl
    (ALL x::hollight.real.
        real_lt a x & real_lt x b --> differentiable f x) -->
    (EX z::hollight.real.
-       real_lt a z & real_lt z b & diffl f (real_of_num (0::nat)) z)"
+       real_lt a z & real_lt z b & diffl f (real_of_num 0) z)"
   by (import hollight ROLLE)
 
 lemma MVT_LEMMA: "ALL (f::hollight.real => hollight.real) (a::hollight.real) b::hollight.real.
@@ -11358,7 +11632,7 @@ lemma DIFF_ISCONST_END: "ALL (f::hollight.real => hollight.real) (a::hollight.re
    real_lt a b &
    (ALL x::hollight.real. real_le a x & real_le x b --> contl f x) &
    (ALL x::hollight.real.
-       real_lt a x & real_lt x b --> diffl f (real_of_num (0::nat)) x) -->
+       real_lt a x & real_lt x b --> diffl f (real_of_num 0) x) -->
    f b = f a"
   by (import hollight DIFF_ISCONST_END)
 
@@ -11366,19 +11640,19 @@ lemma DIFF_ISCONST: "ALL (f::hollight.real => hollight.real) (a::hollight.real) 
    real_lt a b &
    (ALL x::hollight.real. real_le a x & real_le x b --> contl f x) &
    (ALL x::hollight.real.
-       real_lt a x & real_lt x b --> diffl f (real_of_num (0::nat)) x) -->
+       real_lt a x & real_lt x b --> diffl f (real_of_num 0) x) -->
    (ALL x::hollight.real. real_le a x & real_le x b --> f x = f a)"
   by (import hollight DIFF_ISCONST)
 
 lemma DIFF_ISCONST_END_SIMPLE: "ALL (f::hollight.real => hollight.real) (a::hollight.real) b::hollight.real.
    real_lt a b &
    (ALL x::hollight.real.
-       real_le a x & real_le x b --> diffl f (real_of_num (0::nat)) x) -->
+       real_le a x & real_le x b --> diffl f (real_of_num 0) x) -->
    f b = f a"
   by (import hollight DIFF_ISCONST_END_SIMPLE)
 
 lemma DIFF_ISCONST_ALL: "ALL (x::hollight.real => hollight.real) (xa::hollight.real)
-   xb::hollight.real. All (diffl x (real_of_num (0::nat))) --> x xa = x xb"
+   xb::hollight.real. All (diffl x (real_of_num 0)) --> x xa = x xb"
   by (import hollight DIFF_ISCONST_ALL)
 
 lemma INTERVAL_ABS: "ALL (x::hollight.real) (z::hollight.real) d::hollight.real.
@@ -11388,7 +11662,7 @@ lemma INTERVAL_ABS: "ALL (x::hollight.real) (z::hollight.real) d::hollight.real.
 
 lemma CONT_INJ_LEMMA: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d &
+   real_lt (real_of_num 0) d &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> g (f z) = z) &
    (ALL z::hollight.real.
@@ -11399,7 +11673,7 @@ lemma CONT_INJ_LEMMA: "ALL (f::hollight.real => hollight.real) (g::hollight.real
 
 lemma CONT_INJ_LEMMA2: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d &
+   real_lt (real_of_num 0) d &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> g (f z) = z) &
    (ALL z::hollight.real.
@@ -11410,13 +11684,13 @@ lemma CONT_INJ_LEMMA2: "ALL (f::hollight.real => hollight.real) (g::hollight.rea
 
 lemma CONT_INJ_RANGE: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d &
+   real_lt (real_of_num 0) d &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> g (f z) = z) &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> contl f z) -->
    (EX e::hollight.real.
-       real_lt (real_of_num (0::nat)) e &
+       real_lt (real_of_num 0) e &
        (ALL y::hollight.real.
            real_le (real_abs (real_sub y (f x))) e -->
            (EX z::hollight.real.
@@ -11425,7 +11699,7 @@ lemma CONT_INJ_RANGE: "ALL (f::hollight.real => hollight.real) (g::hollight.real
 
 lemma CONT_INVERSE: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d &
+   real_lt (real_of_num 0) d &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> g (f z) = z) &
    (ALL z::hollight.real.
@@ -11435,23 +11709,23 @@ lemma CONT_INVERSE: "ALL (f::hollight.real => hollight.real) (g::hollight.real =
 
 lemma DIFF_INVERSE: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (l::hollight.real) (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d &
+   real_lt (real_of_num 0) d &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> g (f z) = z) &
    (ALL z::hollight.real.
        real_le (real_abs (real_sub z x)) d --> contl f z) &
-   diffl f l x & l ~= real_of_num (0::nat) -->
+   diffl f l x & l ~= real_of_num 0 -->
    diffl g (real_inv l) (f x)"
   by (import hollight DIFF_INVERSE)
 
 lemma DIFF_INVERSE_LT: "ALL (f::hollight.real => hollight.real) (g::hollight.real => hollight.real)
    (l::hollight.real) (x::hollight.real) d::hollight.real.
-   real_lt (real_of_num (0::nat)) d &
+   real_lt (real_of_num 0) d &
    (ALL z::hollight.real.
        real_lt (real_abs (real_sub z x)) d --> g (f z) = z) &
    (ALL z::hollight.real.
        real_lt (real_abs (real_sub z x)) d --> contl f z) &
-   diffl f l x & l ~= real_of_num (0::nat) -->
+   diffl f l x & l ~= real_of_num 0 -->
    diffl g (real_inv l) (f x)"
   by (import hollight DIFF_INVERSE_LT)
 
@@ -11459,10 +11733,9 @@ lemma IVT_DERIVATIVE_0: "ALL (f::hollight.real => hollight.real) (f'::hollight.r
    (a::hollight.real) b::hollight.real.
    real_le a b &
    (ALL x::hollight.real. real_le a x & real_le x b --> diffl f (f' x) x) &
-   hollight.real_gt (f' a) (real_of_num (0::nat)) &
-   real_lt (f' b) (real_of_num (0::nat)) -->
-   (EX z::hollight.real.
-       real_lt a z & real_lt z b & f' z = real_of_num (0::nat))"
+   hollight.real_gt (f' a) (real_of_num 0) &
+   real_lt (f' b) (real_of_num 0) -->
+   (EX z::hollight.real. real_lt a z & real_lt z b & f' z = real_of_num 0)"
   by (import hollight IVT_DERIVATIVE_0)
 
 lemma IVT_DERIVATIVE_POS: "ALL (x::hollight.real => hollight.real) (xa::hollight.real => hollight.real)
@@ -11486,9 +11759,9 @@ lemma IVT_DERIVATIVE_NEG: "ALL (x::hollight.real => hollight.real) (xa::hollight
 lemma SEQ_CONT_UNIFORM: "ALL (s::nat => hollight.real => hollight.real)
    (f::hollight.real => hollight.real) x0::hollight.real.
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX (N::nat) d::hollight.real.
-           real_lt (real_of_num (0::nat)) d &
+           real_lt (real_of_num 0) d &
            (ALL (x::hollight.real) n::nat.
                real_lt (real_abs (real_sub x x0)) d & >= n N -->
                real_lt (real_abs (real_sub (s n x) (f x))) e))) &
@@ -11499,60 +11772,60 @@ lemma SEQ_CONT_UNIFORM: "ALL (s::nat => hollight.real => hollight.real)
 lemma SER_COMPARA_UNIFORM: "ALL (s::hollight.real => nat => hollight.real) (x0::hollight.real)
    g::nat => hollight.real.
    (EX (N::nat) d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL (n::nat) x::hollight.real.
            real_lt (real_abs (real_sub x x0)) d & >= n N -->
            real_le (real_abs (s x n)) (g n))) &
    summable g -->
    (EX (f::hollight.real => hollight.real) d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL e::hollight.real.
-           real_lt (real_of_num (0::nat)) e -->
+           real_lt (real_of_num 0) e -->
            (EX N::nat.
                ALL (x::hollight.real) n::nat.
                   real_lt (real_abs (real_sub x x0)) d & >= n N -->
-                  real_lt
-                   (real_abs (real_sub (psum (0::nat, n) (s x)) (f x))) e)))"
+                  real_lt (real_abs (real_sub (psum (0, n) (s x)) (f x)))
+                   e)))"
   by (import hollight SER_COMPARA_UNIFORM)
 
 lemma SER_COMPARA_UNIFORM_WEAK: "ALL (s::hollight.real => nat => hollight.real) (x0::hollight.real)
    g::nat => hollight.real.
    (EX (N::nat) d::hollight.real.
-       real_lt (real_of_num (0::nat)) d &
+       real_lt (real_of_num 0) d &
        (ALL (n::nat) x::hollight.real.
            real_lt (real_abs (real_sub x x0)) d & >= n N -->
            real_le (real_abs (s x n)) (g n))) &
    summable g -->
    (EX f::hollight.real => hollight.real.
        ALL e::hollight.real.
-          real_lt (real_of_num (0::nat)) e -->
+          real_lt (real_of_num 0) e -->
           (EX (N::nat) d::hollight.real.
-              real_lt (real_of_num (0::nat)) d &
+              real_lt (real_of_num 0) d &
               (ALL (x::hollight.real) n::nat.
                   real_lt (real_abs (real_sub x x0)) d & >= n N -->
-                  real_lt
-                   (real_abs (real_sub (psum (0::nat, n) (s x)) (f x))) e)))"
+                  real_lt (real_abs (real_sub (psum (0, n) (s x)) (f x)))
+                   e)))"
   by (import hollight SER_COMPARA_UNIFORM_WEAK)
 
 lemma POWDIFF_LEMMA: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   psum (0::nat, Suc n)
+   psum (0, Suc n)
     (%p::nat. real_mul (real_pow x p) (real_pow y (Suc n - p))) =
    real_mul y
-    (psum (0::nat, Suc n)
+    (psum (0, Suc n)
       (%p::nat. real_mul (real_pow x p) (real_pow y (n - p))))"
   by (import hollight POWDIFF_LEMMA)
 
 lemma POWDIFF: "ALL (n::nat) (x::hollight.real) y::hollight.real.
    real_sub (real_pow x (Suc n)) (real_pow y (Suc n)) =
    real_mul (real_sub x y)
-    (psum (0::nat, Suc n)
+    (psum (0, Suc n)
       (%p::nat. real_mul (real_pow x p) (real_pow y (n - p))))"
   by (import hollight POWDIFF)
 
 lemma POWREV: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   psum (0::nat, Suc n)
+   psum (0, Suc n)
     (%xa::nat. real_mul (real_pow x xa) (real_pow y (n - xa))) =
-   psum (0::nat, Suc n)
+   psum (0, Suc n)
     (%xa::nat. real_mul (real_pow x (n - xa)) (real_pow y xa))"
   by (import hollight POWREV)
 
@@ -11584,25 +11857,24 @@ lemma DIFFS_NEG: "ALL c::nat => hollight.real.
   by (import hollight DIFFS_NEG)
 
 lemma DIFFS_LEMMA: "ALL (n::nat) (c::nat => hollight.real) x::hollight.real.
-   psum (0::nat, n) (%n::nat. real_mul (diffs c n) (real_pow x n)) =
+   psum (0, n) (%n::nat. real_mul (diffs c n) (real_pow x n)) =
    real_add
-    (psum (0::nat, n)
+    (psum (0, n)
       (%n::nat.
           real_mul (real_of_num n)
-           (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 (0::nat))))))
+           (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 0)))))
     (real_mul (real_of_num n)
-      (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 (0::nat)))))"
+      (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 0))))"
   by (import hollight DIFFS_LEMMA)
 
 lemma DIFFS_LEMMA2: "ALL (n::nat) (c::nat => hollight.real) x::hollight.real.
-   psum (0::nat, n)
+   psum (0, n)
     (%n::nat.
         real_mul (real_of_num n)
-         (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 (0::nat))))) =
-   real_sub
-    (psum (0::nat, n) (%n::nat. real_mul (diffs c n) (real_pow x n)))
+         (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 0)))) =
+   real_sub (psum (0, n) (%n::nat. real_mul (diffs c n) (real_pow x n)))
     (real_mul (real_of_num n)
-      (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 (0::nat)))))"
+      (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 0))))"
   by (import hollight DIFFS_LEMMA2)
 
 lemma DIFFS_EQUIV: "ALL (c::nat => hollight.real) x::hollight.real.
@@ -11610,73 +11882,70 @@ lemma DIFFS_EQUIV: "ALL (c::nat => hollight.real) x::hollight.real.
    sums
     (%n::nat.
         real_mul (real_of_num n)
-         (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 (0::nat)))))
+         (real_mul (c n) (real_pow x (n - NUMERAL_BIT1 0))))
     (suminf (%n::nat. real_mul (diffs c n) (real_pow x n)))"
   by (import hollight DIFFS_EQUIV)
 
 lemma TERMDIFF_LEMMA1: "ALL (m::nat) (z::hollight.real) h::hollight.real.
-   psum (0::nat, m)
+   psum (0, m)
     (%p::nat.
         real_sub (real_mul (real_pow (real_add z h) (m - p)) (real_pow z p))
          (real_pow z m)) =
-   psum (0::nat, m)
+   psum (0, m)
     (%p::nat.
         real_mul (real_pow z p)
          (real_sub (real_pow (real_add z h) (m - p)) (real_pow z (m - p))))"
   by (import hollight TERMDIFF_LEMMA1)
 
 lemma TERMDIFF_LEMMA2: "ALL (z::hollight.real) h::hollight.real.
-   h ~= real_of_num (0::nat) -->
+   h ~= real_of_num 0 -->
    real_sub
     (real_div (real_sub (real_pow (real_add z h) (n::nat)) (real_pow z n))
       h)
-    (real_mul (real_of_num n) (real_pow z (n - NUMERAL_BIT1 (0::nat)))) =
+    (real_mul (real_of_num n) (real_pow z (n - NUMERAL_BIT1 0))) =
    real_mul h
-    (psum (0::nat, n - NUMERAL_BIT1 (0::nat))
+    (psum (0, n - NUMERAL_BIT1 0)
       (%p::nat.
           real_mul (real_pow z p)
-           (psum (0::nat, n - NUMERAL_BIT1 (0::nat) - p)
+           (psum (0, n - NUMERAL_BIT1 0 - p)
              (%q::nat.
                  real_mul (real_pow (real_add z h) q)
                   (real_pow z
-                    (n - NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) - p - q))))))"
+                    (n - NUMERAL_BIT0 (NUMERAL_BIT1 0) - p - q))))))"
   by (import hollight TERMDIFF_LEMMA2)
 
 lemma TERMDIFF_LEMMA3: "ALL (z::hollight.real) (h::hollight.real) (n::nat) K::hollight.real.
-   h ~= real_of_num (0::nat) &
+   h ~= real_of_num 0 &
    real_le (real_abs z) K & real_le (real_abs (real_add z h)) K -->
    real_le
     (real_abs
       (real_sub
         (real_div (real_sub (real_pow (real_add z h) n) (real_pow z n)) h)
-        (real_mul (real_of_num n)
-          (real_pow z (n - NUMERAL_BIT1 (0::nat))))))
+        (real_mul (real_of_num n) (real_pow z (n - NUMERAL_BIT1 0)))))
     (real_mul (real_of_num n)
-      (real_mul (real_of_num (n - NUMERAL_BIT1 (0::nat)))
-        (real_mul (real_pow K (n - NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+      (real_mul (real_of_num (n - NUMERAL_BIT1 0))
+        (real_mul (real_pow K (n - NUMERAL_BIT0 (NUMERAL_BIT1 0)))
           (real_abs h))))"
   by (import hollight TERMDIFF_LEMMA3)
 
 lemma TERMDIFF_LEMMA4: "ALL (f::hollight.real => hollight.real) (K::hollight.real) k::hollight.real.
-   real_lt (real_of_num (0::nat)) k &
+   real_lt (real_of_num 0) k &
    (ALL h::hollight.real.
-       real_lt (real_of_num (0::nat)) (real_abs h) &
-       real_lt (real_abs h) k -->
+       real_lt (real_of_num 0) (real_abs h) & real_lt (real_abs h) k -->
        real_le (real_abs (f h)) (real_mul K (real_abs h))) -->
-   tends_real_real f (real_of_num (0::nat)) (real_of_num (0::nat))"
+   tends_real_real f (real_of_num 0) (real_of_num 0)"
   by (import hollight TERMDIFF_LEMMA4)
 
 lemma TERMDIFF_LEMMA5: "ALL (f::nat => hollight.real) (g::hollight.real => nat => hollight.real)
    k::hollight.real.
-   real_lt (real_of_num (0::nat)) k &
+   real_lt (real_of_num 0) k &
    summable f &
    (ALL h::hollight.real.
-       real_lt (real_of_num (0::nat)) (real_abs h) &
-       real_lt (real_abs h) k -->
+       real_lt (real_of_num 0) (real_abs h) & real_lt (real_abs h) k -->
        (ALL n::nat.
            real_le (real_abs (g h n)) (real_mul (f n) (real_abs h)))) -->
-   tends_real_real (%h::hollight.real. suminf (g h)) (real_of_num (0::nat))
-    (real_of_num (0::nat))"
+   tends_real_real (%h::hollight.real. suminf (g h)) (real_of_num 0)
+    (real_of_num 0)"
   by (import hollight TERMDIFF_LEMMA5)
 
 lemma TERMDIFF: "ALL (c::nat => hollight.real) K::hollight.real.
@@ -11690,9 +11959,9 @@ lemma TERMDIFF: "ALL (c::nat => hollight.real) K::hollight.real.
   by (import hollight TERMDIFF)
 
 lemma SEQ_NPOW: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    tends_num_real (%n::nat. real_mul (real_of_num n) (real_pow x n))
-    (real_of_num (0::nat))"
+    (real_of_num 0)"
   by (import hollight SEQ_NPOW)
 
 lemma TERMDIFF_CONVERGES: "ALL K::hollight.real.
@@ -11715,52 +11984,48 @@ lemma TERMDIFF_STRONG: "ALL (c::nat => hollight.real) (K::hollight.real) x::holl
   by (import hollight TERMDIFF_STRONG)
 
 lemma POWSER_0: "ALL a::nat => hollight.real.
-   sums (%n::nat. real_mul (a n) (real_pow (real_of_num (0::nat)) n))
-    (a (0::nat))"
+   sums (%n::nat. real_mul (a n) (real_pow (real_of_num 0) n)) (a 0)"
   by (import hollight POWSER_0)
 
 lemma POWSER_LIMIT_0: "ALL (f::hollight.real => hollight.real) (a::nat => hollight.real)
    s::hollight.real.
-   real_lt (real_of_num (0::nat)) s &
+   real_lt (real_of_num 0) s &
    (ALL x::hollight.real.
        real_lt (real_abs x) s -->
        sums (%n::nat. real_mul (a n) (real_pow x n)) (f x)) -->
-   tends_real_real f (a (0::nat)) (real_of_num (0::nat))"
+   tends_real_real f (a 0) (real_of_num 0)"
   by (import hollight POWSER_LIMIT_0)
 
 lemma POWSER_LIMIT_0_STRONG: "ALL (f::hollight.real => hollight.real) (a::nat => hollight.real)
    s::hollight.real.
-   real_lt (real_of_num (0::nat)) s &
+   real_lt (real_of_num 0) s &
    (ALL x::hollight.real.
-       real_lt (real_of_num (0::nat)) (real_abs x) &
-       real_lt (real_abs x) s -->
+       real_lt (real_of_num 0) (real_abs x) & real_lt (real_abs x) s -->
        sums (%n::nat. real_mul (a n) (real_pow x n)) (f x)) -->
-   tends_real_real f (a (0::nat)) (real_of_num (0::nat))"
+   tends_real_real f (a 0) (real_of_num 0)"
   by (import hollight POWSER_LIMIT_0_STRONG)
 
 lemma POWSER_EQUAL_0: "ALL (f::hollight.real => hollight.real) (a::nat => hollight.real)
    (b::nat => hollight.real) P::hollight.real => bool.
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX x::hollight.real.
            P x &
-           real_lt (real_of_num (0::nat)) (real_abs x) &
-           real_lt (real_abs x) e)) &
+           real_lt (real_of_num 0) (real_abs x) & real_lt (real_abs x) e)) &
    (ALL x::hollight.real.
-       real_lt (real_of_num (0::nat)) (real_abs x) & P x -->
+       real_lt (real_of_num 0) (real_abs x) & P x -->
        sums (%n::nat. real_mul (a n) (real_pow x n)) (f x) &
        sums (%n::nat. real_mul (b n) (real_pow x n)) (f x)) -->
-   a (0::nat) = b (0::nat)"
+   a 0 = b 0"
   by (import hollight POWSER_EQUAL_0)
 
 lemma POWSER_EQUAL: "ALL (f::hollight.real => hollight.real) (a::nat => hollight.real)
    (b::nat => hollight.real) P::hollight.real => bool.
    (ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX x::hollight.real.
            P x &
-           real_lt (real_of_num (0::nat)) (real_abs x) &
-           real_lt (real_abs x) e)) &
+           real_lt (real_of_num 0) (real_abs x) & real_lt (real_abs x) e)) &
    (ALL x::hollight.real.
        P x -->
        sums (%n::nat. real_mul (a n) (real_pow x n)) (f x) &
@@ -11769,35 +12034,32 @@ lemma POWSER_EQUAL: "ALL (f::hollight.real => hollight.real) (a::nat => hollight
   by (import hollight POWSER_EQUAL)
 
 lemma MULT_DIV_2: "ALL n::nat.
-   DIV (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n)
-    (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) =
+   DIV (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n) (NUMERAL_BIT0 (NUMERAL_BIT1 0)) =
    n"
   by (import hollight MULT_DIV_2)
 
 lemma EVEN_DIV2: "ALL n::nat.
    ~ EVEN n -->
-   DIV (Suc n) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) =
-   Suc (DIV (n - NUMERAL_BIT1 (0::nat))
-         (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   DIV (Suc n) (NUMERAL_BIT0 (NUMERAL_BIT1 0)) =
+   Suc (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight EVEN_DIV2)
 
 lemma POW_ZERO: "ALL (n::nat) x::hollight.real.
-   real_pow x n = real_of_num (0::nat) --> x = real_of_num (0::nat)"
+   real_pow x n = real_of_num 0 --> x = real_of_num 0"
   by (import hollight POW_ZERO)
 
 lemma POW_ZERO_EQ: "ALL (n::nat) x::hollight.real.
-   (real_pow x (Suc n) = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+   (real_pow x (Suc n) = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight POW_ZERO_EQ)
 
 lemma POW_LT: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_lt x y -->
+   real_le (real_of_num 0) x & real_lt x y -->
    real_lt (real_pow x (Suc n)) (real_pow y (Suc n))"
   by (import hollight POW_LT)
 
 lemma POW_EQ: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le (real_of_num (0::nat)) y &
-   real_pow x (Suc n) = real_pow y (Suc n) -->
+   real_le (real_of_num 0) x &
+   real_le (real_of_num 0) y & real_pow x (Suc n) = real_pow y (Suc n) -->
    x = y"
   by (import hollight POW_EQ)
 
@@ -11821,11 +12083,10 @@ constdefs
    suminf
     (%n::nat.
         real_mul
-         (COND (EVEN n) (real_of_num (0::nat))
+         (COND (EVEN n) (real_of_num 0)
            (real_div
-             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-               (DIV (n - NUMERAL_BIT1 (0::nat))
-                 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+               (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
              (real_of_num (FACT n))))
          (real_pow u n))"
 
@@ -11834,11 +12095,10 @@ lemma DEF_sin: "sin =
     suminf
      (%n::nat.
          real_mul
-          (COND (EVEN n) (real_of_num (0::nat))
+          (COND (EVEN n) (real_of_num 0)
             (real_div
-              (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                (DIV (n - NUMERAL_BIT1 (0::nat))
-                  (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+              (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
               (real_of_num (FACT n))))
           (real_pow u n)))"
   by (import hollight DEF_sin)
@@ -11852,10 +12112,10 @@ constdefs
         real_mul
          (COND (EVEN n)
            (real_div
-             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-               (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+               (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
              (real_of_num (FACT n)))
-           (real_of_num (0::nat)))
+           (real_of_num 0))
          (real_pow u n))"
 
 lemma DEF_cos: "cos =
@@ -11865,10 +12125,10 @@ lemma DEF_cos: "cos =
          real_mul
           (COND (EVEN n)
             (real_div
-              (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+              (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
               (real_of_num (FACT n)))
-            (real_of_num (0::nat)))
+            (real_of_num 0))
           (real_pow u n)))"
   by (import hollight DEF_cos)
 
@@ -11881,11 +12141,10 @@ lemma SIN_CONVERGES: "ALL x::hollight.real.
    sums
     (%n::nat.
         real_mul
-         (COND (EVEN n) (real_of_num (0::nat))
+         (COND (EVEN n) (real_of_num 0)
            (real_div
-             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-               (DIV (n - NUMERAL_BIT1 (0::nat))
-                 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+               (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
              (real_of_num (FACT n))))
          (real_pow x n))
     (sin x)"
@@ -11897,10 +12156,10 @@ lemma COS_CONVERGES: "ALL x::hollight.real.
         real_mul
          (COND (EVEN n)
            (real_div
-             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-               (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+               (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
              (real_of_num (FACT n)))
-           (real_of_num (0::nat)))
+           (real_of_num 0))
          (real_pow x n))
     (cos x)"
   by (import hollight COS_CONVERGES)
@@ -11911,36 +12170,34 @@ lemma REAL_EXP_FDIFF: "diffs (%n::nat. real_inv (real_of_num (FACT n))) =
 
 lemma SIN_FDIFF: "diffs
  (%n::nat.
-     COND (EVEN n) (real_of_num (0::nat))
+     COND (EVEN n) (real_of_num 0)
       (real_div
-        (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-          (DIV (n - NUMERAL_BIT1 (0::nat))
-            (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+        (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+          (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
         (real_of_num (FACT n)))) =
 (%n::nat.
     COND (EVEN n)
      (real_div
-       (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-         (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+       (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+         (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
        (real_of_num (FACT n)))
-     (real_of_num (0::nat)))"
+     (real_of_num 0))"
   by (import hollight SIN_FDIFF)
 
 lemma COS_FDIFF: "diffs
  (%n::nat.
      COND (EVEN n)
       (real_div
-        (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-          (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+        (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+          (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
         (real_of_num (FACT n)))
-      (real_of_num (0::nat))) =
+      (real_of_num 0)) =
 (%n::nat.
     real_neg
-     (COND (EVEN n) (real_of_num (0::nat))
+     (COND (EVEN n) (real_of_num 0)
        (real_div
-         (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-           (DIV (n - NUMERAL_BIT1 (0::nat))
-             (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+         (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+           (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
          (real_of_num (FACT n)))))"
   by (import hollight COS_FDIFF)
 
@@ -11950,11 +12207,10 @@ lemma SIN_NEGLEMMA: "ALL x::hollight.real.
     (%n::nat.
         real_neg
          (real_mul
-           (COND (EVEN n) (real_of_num (0::nat))
+           (COND (EVEN n) (real_of_num 0)
              (real_div
-               (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                 (DIV (n - NUMERAL_BIT1 (0::nat))
-                   (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+               (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                 (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                (real_of_num (FACT n))))
            (real_pow x n)))"
   by (import hollight SIN_NEGLEMMA)
@@ -11970,17 +12226,16 @@ lemma DIFF_COS: "ALL x::hollight.real. diffl cos (real_neg (sin x)) x"
 
 lemma DIFF_COMPOSITE: "(diffl (f::hollight.real => hollight.real) (l::hollight.real)
   (x::hollight.real) &
- f x ~= real_of_num (0::nat) -->
+ f x ~= real_of_num 0 -->
  diffl (%x::hollight.real. real_inv (f x))
-  (real_neg
-    (real_div l (real_pow (f x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+  (real_neg (real_div l (real_pow (f x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
   x) &
 (diffl f l x &
  diffl (g::hollight.real => hollight.real) (m::hollight.real) x &
- g x ~= real_of_num (0::nat) -->
+ g x ~= real_of_num 0 -->
  diffl (%x::hollight.real. real_div (f x) (g x))
   (real_div (real_sub (real_mul l (g x)) (real_mul m (f x)))
-    (real_pow (g x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+    (real_pow (g x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
   x) &
 (diffl f l x & diffl g m x -->
  diffl (%x::hollight.real. real_add (f x) (g x)) (real_add l m) x) &
@@ -11992,8 +12247,7 @@ lemma DIFF_COMPOSITE: "(diffl (f::hollight.real => hollight.real) (l::hollight.r
 (diffl f l x --> diffl (%x::hollight.real. real_neg (f x)) (real_neg l) x) &
 (diffl g m x -->
  diffl (%x::hollight.real. real_pow (g x) (n::nat))
-  (real_mul
-    (real_mul (real_of_num n) (real_pow (g x) (n - NUMERAL_BIT1 (0::nat))))
+  (real_mul (real_mul (real_of_num n) (real_pow (g x) (n - NUMERAL_BIT1 0)))
     m)
   x) &
 (diffl g m x -->
@@ -12004,17 +12258,17 @@ lemma DIFF_COMPOSITE: "(diffl (f::hollight.real => hollight.real) (l::hollight.r
  diffl (%x::hollight.real. cos (g x)) (real_mul (real_neg (sin (g x))) m) x)"
   by (import hollight DIFF_COMPOSITE)
 
-lemma REAL_EXP_0: "exp (real_of_num (0::nat)) = real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma REAL_EXP_0: "exp (real_of_num 0) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_EXP_0)
 
 lemma REAL_EXP_LE_X: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (real_add (real_of_num (NUMERAL_BIT1 (0::nat))) x) (exp x)"
+   real_le (real_of_num 0) x -->
+   real_le (real_add (real_of_num (NUMERAL_BIT1 0)) x) (exp x)"
   by (import hollight REAL_EXP_LE_X)
 
 lemma REAL_EXP_LT_1: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (NUMERAL_BIT1 (0::nat))) (exp x)"
+   real_lt (real_of_num 0) x -->
+   real_lt (real_of_num (NUMERAL_BIT1 0)) (exp x)"
   by (import hollight REAL_EXP_LT_1)
 
 lemma REAL_EXP_ADD_MUL: "ALL (x::hollight.real) y::hollight.real.
@@ -12022,11 +12276,11 @@ lemma REAL_EXP_ADD_MUL: "ALL (x::hollight.real) y::hollight.real.
   by (import hollight REAL_EXP_ADD_MUL)
 
 lemma REAL_EXP_NEG_MUL: "ALL x::hollight.real.
-   real_mul (exp x) (exp (real_neg x)) = real_of_num (NUMERAL_BIT1 (0::nat))"
+   real_mul (exp x) (exp (real_neg x)) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_EXP_NEG_MUL)
 
 lemma REAL_EXP_NEG_MUL2: "ALL x::hollight.real.
-   real_mul (exp (real_neg x)) (exp x) = real_of_num (NUMERAL_BIT1 (0::nat))"
+   real_mul (exp (real_neg x)) (exp x) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight REAL_EXP_NEG_MUL2)
 
 lemma REAL_EXP_NEG: "ALL x::hollight.real. exp (real_neg x) = real_inv (exp x)"
@@ -12036,13 +12290,13 @@ lemma REAL_EXP_ADD: "ALL (x::hollight.real) y::hollight.real.
    exp (real_add x y) = real_mul (exp x) (exp y)"
   by (import hollight REAL_EXP_ADD)
 
-lemma REAL_EXP_POS_LE: "ALL x::hollight.real. real_le (real_of_num (0::nat)) (exp x)"
+lemma REAL_EXP_POS_LE: "ALL x::hollight.real. real_le (real_of_num 0) (exp x)"
   by (import hollight REAL_EXP_POS_LE)
 
-lemma REAL_EXP_NZ: "ALL x::hollight.real. exp x ~= real_of_num (0::nat)"
+lemma REAL_EXP_NZ: "ALL x::hollight.real. exp x ~= real_of_num 0"
   by (import hollight REAL_EXP_NZ)
 
-lemma REAL_EXP_POS_LT: "ALL x::hollight.real. real_lt (real_of_num (0::nat)) (exp x)"
+lemma REAL_EXP_POS_LT: "ALL x::hollight.real. real_lt (real_of_num 0) (exp x)"
   by (import hollight REAL_EXP_POS_LT)
 
 lemma REAL_EXP_N: "ALL (n::nat) x::hollight.real.
@@ -12069,24 +12323,22 @@ lemma REAL_EXP_INJ: "ALL (x::hollight.real) y::hollight.real. (exp x = exp y) = 
   by (import hollight REAL_EXP_INJ)
 
 lemma REAL_EXP_TOTAL_LEMMA: "ALL y::hollight.real.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) y -->
+   real_le (real_of_num (NUMERAL_BIT1 0)) y -->
    (EX x::hollight.real.
-       real_le (real_of_num (0::nat)) x &
-       real_le x (real_sub y (real_of_num (NUMERAL_BIT1 (0::nat)))) &
-       exp x = y)"
+       real_le (real_of_num 0) x &
+       real_le x (real_sub y (real_of_num (NUMERAL_BIT1 0))) & exp x = y)"
   by (import hollight REAL_EXP_TOTAL_LEMMA)
 
 lemma REAL_EXP_TOTAL: "ALL y::hollight.real.
-   real_lt (real_of_num (0::nat)) y --> (EX x::hollight.real. exp x = y)"
+   real_lt (real_of_num 0) y --> (EX x::hollight.real. exp x = y)"
   by (import hollight REAL_EXP_TOTAL)
 
 lemma REAL_EXP_BOUND_LEMMA: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le x
-    (real_inv (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
+   real_le (real_of_num 0) x &
+   real_le x (real_inv (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
    real_le (exp x)
-    (real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-      (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x))"
+    (real_add (real_of_num (NUMERAL_BIT1 0))
+      (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x))"
   by (import hollight REAL_EXP_BOUND_LEMMA)
 
 constdefs
@@ -12099,67 +12351,66 @@ lemma DEF_ln: "ln = (%u::hollight.real. SOME ua::hollight.real. exp ua = u)"
 lemma LN_EXP: "ALL x::hollight.real. ln (exp x) = x"
   by (import hollight LN_EXP)
 
-lemma REAL_EXP_LN: "ALL x::hollight.real. (exp (ln x) = x) = real_lt (real_of_num (0::nat)) x"
+lemma REAL_EXP_LN: "ALL x::hollight.real. (exp (ln x) = x) = real_lt (real_of_num 0) x"
   by (import hollight REAL_EXP_LN)
 
 lemma LN_MUL: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) y -->
    ln (real_mul x y) = real_add (ln x) (ln y)"
   by (import hollight LN_MUL)
 
 lemma LN_INJ: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) y -->
    (ln x = ln y) = (x = y)"
   by (import hollight LN_INJ)
 
-lemma LN_1: "ln (real_of_num (NUMERAL_BIT1 (0::nat))) = real_of_num (0::nat)"
+lemma LN_1: "ln (real_of_num (NUMERAL_BIT1 0)) = real_of_num 0"
   by (import hollight LN_1)
 
 lemma LN_INV: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x --> ln (real_inv x) = real_neg (ln x)"
+   real_lt (real_of_num 0) x --> ln (real_inv x) = real_neg (ln x)"
   by (import hollight LN_INV)
 
 lemma LN_DIV: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt (real_of_num (0::nat)) (y::hollight.real) -->
+   real_lt (real_of_num 0) x &
+   real_lt (real_of_num 0) (y::hollight.real) -->
    ln (real_div x y) = real_sub (ln x) (ln y)"
   by (import hollight LN_DIV)
 
 lemma LN_MONO_LT: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) y -->
    real_lt (ln x) (ln y) = real_lt x y"
   by (import hollight LN_MONO_LT)
 
 lemma LN_MONO_LE: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt (real_of_num (0::nat)) y -->
+   real_lt (real_of_num 0) x & real_lt (real_of_num 0) y -->
    real_le (ln x) (ln y) = real_le x y"
   by (import hollight LN_MONO_LE)
 
 lemma LN_POW: "ALL (n::nat) x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
+   real_lt (real_of_num 0) x -->
    ln (real_pow x n) = real_mul (real_of_num n) (ln x)"
   by (import hollight LN_POW)
 
 lemma LN_LE: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (ln (real_add (real_of_num (NUMERAL_BIT1 (0::nat))) x)) x"
+   real_le (real_of_num 0) x -->
+   real_le (ln (real_add (real_of_num (NUMERAL_BIT1 0)) x)) x"
   by (import hollight LN_LE)
 
-lemma LN_LT_X: "ALL x::hollight.real. real_lt (real_of_num (0::nat)) x --> real_lt (ln x) x"
+lemma LN_LT_X: "ALL x::hollight.real. real_lt (real_of_num 0) x --> real_lt (ln x) x"
   by (import hollight LN_LT_X)
 
 lemma LN_POS: "ALL x::hollight.real.
-   real_le (real_of_num (NUMERAL_BIT1 (0::nat))) x -->
-   real_le (real_of_num (0::nat)) (ln x)"
+   real_le (real_of_num (NUMERAL_BIT1 0)) x -->
+   real_le (real_of_num 0) (ln x)"
   by (import hollight LN_POS)
 
 lemma LN_POS_LT: "ALL x::hollight.real.
-   real_lt (real_of_num (NUMERAL_BIT1 (0::nat))) x -->
-   real_lt (real_of_num (0::nat)) (ln x)"
+   real_lt (real_of_num (NUMERAL_BIT1 0)) x -->
+   real_lt (real_of_num 0) (ln x)"
   by (import hollight LN_POS_LT)
 
-lemma DIFF_LN: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x --> diffl ln (real_inv x) x"
+lemma DIFF_LN: "ALL x::hollight.real. real_lt (real_of_num 0) x --> diffl ln (real_inv x) x"
   by (import hollight DIFF_LN)
 
 constdefs
@@ -12167,15 +12418,13 @@ constdefs
   "root ==
 %(u::nat) ua::hollight.real.
    SOME ub::hollight.real.
-      (real_lt (real_of_num (0::nat)) ua -->
-       real_lt (real_of_num (0::nat)) ub) &
+      (real_lt (real_of_num 0) ua --> real_lt (real_of_num 0) ub) &
       real_pow ub u = ua"
 
 lemma DEF_root: "root =
 (%(u::nat) ua::hollight.real.
     SOME ub::hollight.real.
-       (real_lt (real_of_num (0::nat)) ua -->
-        real_lt (real_of_num (0::nat)) ub) &
+       (real_lt (real_of_num 0) ua --> real_lt (real_of_num 0) ub) &
        real_pow ub u = ua)"
   by (import hollight DEF_root)
 
@@ -12184,243 +12433,233 @@ constdefs
   "sqrt ==
 %u::hollight.real.
    SOME y::hollight.real.
-      real_le (real_of_num (0::nat)) y &
-      real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = u"
+      real_le (real_of_num 0) y &
+      real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = u"
 
 lemma DEF_sqrt: "sqrt =
 (%u::hollight.real.
     SOME y::hollight.real.
-       real_le (real_of_num (0::nat)) y &
-       real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = u)"
+       real_le (real_of_num 0) y &
+       real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = u)"
   by (import hollight DEF_sqrt)
 
-lemma sqrt: "sqrt (x::hollight.real) = root (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) x"
+lemma sqrt: "sqrt (x::hollight.real) = root (NUMERAL_BIT0 (NUMERAL_BIT1 0)) x"
   by (import hollight sqrt)
 
 lemma ROOT_LT_LEMMA: "ALL (n::nat) x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
+   real_lt (real_of_num 0) x -->
    real_pow (exp (real_div (ln x) (real_of_num (Suc n)))) (Suc n) = x"
   by (import hollight ROOT_LT_LEMMA)
 
 lemma ROOT_LN: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
+   real_lt (real_of_num 0) x -->
    (ALL n::nat.
        root (Suc n) x = exp (real_div (ln x) (real_of_num (Suc n))))"
   by (import hollight ROOT_LN)
 
-lemma ROOT_0: "ALL n::nat. root (Suc n) (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma ROOT_0: "ALL n::nat. root (Suc n) (real_of_num 0) = real_of_num 0"
   by (import hollight ROOT_0)
 
 lemma ROOT_1: "ALL n::nat.
-   root (Suc n) (real_of_num (NUMERAL_BIT1 (0::nat))) =
-   real_of_num (NUMERAL_BIT1 (0::nat))"
+   root (Suc n) (real_of_num (NUMERAL_BIT1 0)) =
+   real_of_num (NUMERAL_BIT1 0)"
   by (import hollight ROOT_1)
 
 lemma ROOT_POW_POS: "ALL (n::nat) x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   real_pow (root (Suc n) x) (Suc n) = x"
+   real_le (real_of_num 0) x --> real_pow (root (Suc n) x) (Suc n) = x"
   by (import hollight ROOT_POW_POS)
 
 lemma POW_ROOT_POS: "ALL (n::nat) x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   root (Suc n) (real_pow x (Suc n)) = x"
+   real_le (real_of_num 0) x --> root (Suc n) (real_pow x (Suc n)) = x"
   by (import hollight POW_ROOT_POS)
 
 lemma ROOT_POS_POSITIVE: "ALL (x::hollight.real) n::nat.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (real_of_num (0::nat)) (root (Suc n) x)"
+   real_le (real_of_num 0) x --> real_le (real_of_num 0) (root (Suc n) x)"
   by (import hollight ROOT_POS_POSITIVE)
 
 lemma ROOT_POS_UNIQ: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le (real_of_num (0::nat)) y & real_pow y (Suc n) = x -->
+   real_le (real_of_num 0) x &
+   real_le (real_of_num 0) y & real_pow y (Suc n) = x -->
    root (Suc n) x = y"
   by (import hollight ROOT_POS_UNIQ)
 
 lemma ROOT_MUL: "ALL (n::nat) (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) y -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) y -->
    root (Suc n) (real_mul x y) = real_mul (root (Suc n) x) (root (Suc n) y)"
   by (import hollight ROOT_MUL)
 
 lemma ROOT_INV: "ALL (n::nat) x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
+   real_le (real_of_num 0) x -->
    root (Suc n) (real_inv x) = real_inv (root (Suc n) x)"
   by (import hollight ROOT_INV)
 
 lemma ROOT_DIV: "ALL (x::nat) (xa::hollight.real) xb::hollight.real.
-   real_le (real_of_num (0::nat)) xa & real_le (real_of_num (0::nat)) xb -->
+   real_le (real_of_num 0) xa & real_le (real_of_num 0) xb -->
    root (Suc x) (real_div xa xb) =
    real_div (root (Suc x) xa) (root (Suc x) xb)"
   by (import hollight ROOT_DIV)
 
 lemma ROOT_MONO_LT: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_lt x y -->
+   real_le (real_of_num 0) x & real_lt x y -->
    real_lt (root (Suc (n::nat)) x) (root (Suc n) y)"
   by (import hollight ROOT_MONO_LT)
 
 lemma ROOT_MONO_LE: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le x y -->
+   real_le (real_of_num 0) x & real_le x y -->
    real_le (root (Suc (n::nat)) x) (root (Suc n) y)"
   by (import hollight ROOT_MONO_LE)
 
 lemma ROOT_MONO_LT_EQ: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) y -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) y -->
    real_lt (root (Suc (n::nat)) x) (root (Suc n) y) = real_lt x y"
   by (import hollight ROOT_MONO_LT_EQ)
 
 lemma ROOT_MONO_LE_EQ: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) y -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) y -->
    real_le (root (Suc (n::nat)) x) (root (Suc n) y) = real_le x y"
   by (import hollight ROOT_MONO_LE_EQ)
 
 lemma ROOT_INJ: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
    (root (Suc (n::nat)) x = root (Suc n) xa) = (x = xa)"
   by (import hollight ROOT_INJ)
 
-lemma SQRT_0: "sqrt (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma SQRT_0: "sqrt (real_of_num 0) = real_of_num 0"
   by (import hollight SQRT_0)
 
-lemma SQRT_1: "sqrt (real_of_num (NUMERAL_BIT1 (0::nat))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma SQRT_1: "sqrt (real_of_num (NUMERAL_BIT1 0)) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight SQRT_1)
 
 lemma SQRT_POS_LT: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x -->
-   real_lt (real_of_num (0::nat)) (sqrt x)"
+   real_lt (real_of_num 0) x --> real_lt (real_of_num 0) (sqrt x)"
   by (import hollight SQRT_POS_LT)
 
 lemma SQRT_POS_LE: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   real_le (real_of_num (0::nat)) (sqrt x)"
+   real_le (real_of_num 0) x --> real_le (real_of_num 0) (sqrt x)"
   by (import hollight SQRT_POS_LE)
 
 lemma SQRT_POW2: "ALL x::hollight.real.
-   (real_pow (sqrt x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = x) =
-   real_le (real_of_num (0::nat)) x"
+   (real_pow (sqrt x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = x) =
+   real_le (real_of_num 0) x"
   by (import hollight SQRT_POW2)
 
 lemma SQRT_POW_2: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   real_pow (sqrt x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = x"
+   real_le (real_of_num 0) x -->
+   real_pow (sqrt x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = x"
   by (import hollight SQRT_POW_2)
 
-lemma POW_2_SQRT: "real_le (real_of_num (0::nat)) (x::hollight.real) -->
-sqrt (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) = x"
+lemma POW_2_SQRT: "real_le (real_of_num 0) (x::hollight.real) -->
+sqrt (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))) = x"
   by (import hollight POW_2_SQRT)
 
 lemma SQRT_POS_UNIQ: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le (real_of_num (0::nat)) xa &
-   real_pow xa (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))) = x -->
+   real_le (real_of_num 0) x &
+   real_le (real_of_num 0) xa &
+   real_pow xa (NUMERAL_BIT0 (NUMERAL_BIT1 0)) = x -->
    sqrt x = xa"
   by (import hollight SQRT_POS_UNIQ)
 
 lemma SQRT_MUL: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
    sqrt (real_mul x xa) = real_mul (sqrt x) (sqrt xa)"
   by (import hollight SQRT_MUL)
 
 lemma SQRT_INV: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   sqrt (real_inv x) = real_inv (sqrt x)"
+   real_le (real_of_num 0) x --> sqrt (real_inv x) = real_inv (sqrt x)"
   by (import hollight SQRT_INV)
 
 lemma SQRT_DIV: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
    sqrt (real_div x xa) = real_div (sqrt x) (sqrt xa)"
   by (import hollight SQRT_DIV)
 
 lemma SQRT_MONO_LT: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_lt x xa -->
-   real_lt (sqrt x) (sqrt xa)"
+   real_le (real_of_num 0) x & real_lt x xa --> real_lt (sqrt x) (sqrt xa)"
   by (import hollight SQRT_MONO_LT)
 
 lemma SQRT_MONO_LE: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le x xa -->
-   real_le (sqrt x) (sqrt xa)"
+   real_le (real_of_num 0) x & real_le x xa --> real_le (sqrt x) (sqrt xa)"
   by (import hollight SQRT_MONO_LE)
 
 lemma SQRT_MONO_LT_EQ: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
    real_lt (sqrt x) (sqrt xa) = real_lt x xa"
   by (import hollight SQRT_MONO_LT_EQ)
 
 lemma SQRT_MONO_LE_EQ: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
    real_le (sqrt x) (sqrt xa) = real_le x xa"
   by (import hollight SQRT_MONO_LE_EQ)
 
 lemma SQRT_INJ: "ALL (x::hollight.real) xa::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le (real_of_num (0::nat)) xa -->
+   real_le (real_of_num 0) x & real_le (real_of_num 0) xa -->
    (sqrt x = sqrt xa) = (x = xa)"
   by (import hollight SQRT_INJ)
 
 lemma SQRT_EVEN_POW2: "ALL n::nat.
    EVEN n -->
-   sqrt (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) n) =
-   real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-    (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   sqrt (real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) n) =
+   real_pow (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
+    (DIV n (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight SQRT_EVEN_POW2)
 
 lemma REAL_DIV_SQRT: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x --> real_div x (sqrt x) = sqrt x"
+   real_le (real_of_num 0) x --> real_div x (sqrt x) = sqrt x"
   by (import hollight REAL_DIV_SQRT)
 
 lemma POW_2_SQRT_ABS: "ALL x::hollight.real.
-   sqrt (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) = real_abs x"
+   sqrt (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))) = real_abs x"
   by (import hollight POW_2_SQRT_ABS)
 
 lemma SQRT_EQ_0: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x -->
-   (sqrt x = real_of_num (0::nat)) = (x = real_of_num (0::nat))"
+   real_le (real_of_num 0) x -->
+   (sqrt x = real_of_num 0) = (x = real_of_num 0)"
   by (import hollight SQRT_EQ_0)
 
 lemma REAL_LE_LSQRT: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le (real_of_num (0::nat)) y &
-   real_le x (real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) -->
+   real_le (real_of_num 0) x &
+   real_le (real_of_num 0) y &
+   real_le x (real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 0))) -->
    real_le (sqrt x) y"
   by (import hollight REAL_LE_LSQRT)
 
 lemma REAL_LE_POW_2: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat))
-    (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   real_le (real_of_num 0) (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight REAL_LE_POW_2)
 
 lemma REAL_LE_RSQRT: "ALL (x::hollight.real) y::hollight.real.
-   real_le (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) y -->
+   real_le (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))) y -->
    real_le x (sqrt y)"
   by (import hollight REAL_LE_RSQRT)
 
-lemma SIN_0: "sin (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma SIN_0: "sin (real_of_num 0) = real_of_num 0"
   by (import hollight SIN_0)
 
-lemma COS_0: "cos (real_of_num (0::nat)) = real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma COS_0: "cos (real_of_num 0) = real_of_num (NUMERAL_BIT1 0)"
   by (import hollight COS_0)
 
 lemma SIN_CIRCLE: "ALL x::hollight.real.
-   real_add (real_pow (sin x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-    (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-   real_of_num (NUMERAL_BIT1 (0::nat))"
+   real_add (real_pow (sin x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
+    (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+   real_of_num (NUMERAL_BIT1 0)"
   by (import hollight SIN_CIRCLE)
 
 lemma SIN_BOUND: "ALL x::hollight.real.
-   real_le (real_abs (sin x)) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_abs (sin x)) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight SIN_BOUND)
 
 lemma SIN_BOUNDS: "ALL x::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) (sin x) &
-   real_le (sin x) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) (sin x) &
+   real_le (sin x) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight SIN_BOUNDS)
 
 lemma COS_BOUND: "ALL x::hollight.real.
-   real_le (real_abs (cos x)) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_abs (cos x)) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight COS_BOUND)
 
 lemma COS_BOUNDS: "ALL x::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) (cos x) &
-   real_le (cos x) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) (cos x) &
+   real_le (cos x) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight COS_BOUNDS)
 
 lemma SIN_COS_ADD: "ALL (x::hollight.real) y::hollight.real.
@@ -12428,21 +12667,21 @@ lemma SIN_COS_ADD: "ALL (x::hollight.real) y::hollight.real.
     (real_pow
       (real_sub (sin (real_add x y))
         (real_add (real_mul (sin x) (cos y)) (real_mul (cos x) (sin y))))
-      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+      (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
     (real_pow
       (real_sub (cos (real_add x y))
         (real_sub (real_mul (cos x) (cos y)) (real_mul (sin x) (sin y))))
-      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-   real_of_num (0::nat)"
+      (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+   real_of_num 0"
   by (import hollight SIN_COS_ADD)
 
 lemma SIN_COS_NEG: "ALL x::hollight.real.
    real_add
     (real_pow (real_add (sin (real_neg x)) (sin x))
-      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+      (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
     (real_pow (real_sub (cos (real_neg x)) (cos x))
-      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-   real_of_num (0::nat)"
+      (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+   real_of_num 0"
   by (import hollight SIN_COS_NEG)
 
 lemma SIN_ADD: "ALL (x::hollight.real) y::hollight.real.
@@ -12462,15 +12701,15 @@ lemma COS_NEG: "ALL x::hollight.real. cos (real_neg x) = cos x"
   by (import hollight COS_NEG)
 
 lemma SIN_DOUBLE: "ALL x::hollight.real.
-   sin (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x) =
-   real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+   sin (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x) =
+   real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
     (real_mul (sin x) (cos x))"
   by (import hollight SIN_DOUBLE)
 
 lemma COS_DOUBLE: "ALL x::hollight.real.
-   cos (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x) =
-   real_sub (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-    (real_pow (sin x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+   cos (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x) =
+   real_sub (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
+    (real_pow (sin x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight COS_DOUBLE)
 
 lemma COS_ABS: "ALL x::hollight.real. cos (real_abs x) = cos x"
@@ -12480,103 +12719,94 @@ lemma SIN_PAIRED: "ALL x::hollight.real.
    sums
     (%n::nat.
         real_mul
-         (real_div
-           (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) n)
+         (real_div (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0))) n)
            (real_of_num
-             (FACT
-               (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n +
-                NUMERAL_BIT1 (0::nat)))))
-         (real_pow x
-           (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n +
-            NUMERAL_BIT1 (0::nat))))
+             (FACT (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n + NUMERAL_BIT1 0))))
+         (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n + NUMERAL_BIT1 0)))
     (sin x)"
   by (import hollight SIN_PAIRED)
 
 lemma SIN_POS: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) -->
-   real_lt (real_of_num (0::nat)) (sin x)"
+   real_lt (real_of_num 0) x &
+   real_lt x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) -->
+   real_lt (real_of_num 0) (sin x)"
   by (import hollight SIN_POS)
 
 lemma COS_PAIRED: "ALL x::hollight.real.
    sums
     (%n::nat.
         real_mul
-         (real_div
-           (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) n)
-           (real_of_num (FACT (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n))))
-         (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)) * n)))
+         (real_div (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0))) n)
+           (real_of_num (FACT (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n))))
+         (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0) * n)))
     (cos x)"
   by (import hollight COS_PAIRED)
 
-lemma COS_2: "real_lt (cos (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
- (real_of_num (0::nat))"
+lemma COS_2: "real_lt (cos (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) (real_of_num 0)"
   by (import hollight COS_2)
 
 lemma COS_ISZERO: "EX! x::hollight.real.
-   real_le (real_of_num (0::nat)) x &
-   real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) &
-   cos x = real_of_num (0::nat)"
+   real_le (real_of_num 0) x &
+   real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) &
+   cos x = real_of_num 0"
   by (import hollight COS_ISZERO)
 
 constdefs
   pi :: "hollight.real" 
   "pi ==
-real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
  (SOME x::hollight.real.
-     real_le (real_of_num (0::nat)) x &
-     real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) &
-     cos x = real_of_num (0::nat))"
+     real_le (real_of_num 0) x &
+     real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) &
+     cos x = real_of_num 0)"
 
 lemma DEF_pi: "pi =
-real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
+real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
  (SOME x::hollight.real.
-     real_le (real_of_num (0::nat)) x &
-     real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) &
-     cos x = real_of_num (0::nat))"
+     real_le (real_of_num 0) x &
+     real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) &
+     cos x = real_of_num 0)"
   by (import hollight DEF_pi)
 
-lemma PI2: "real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
+lemma PI2: "real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
 (SOME x::hollight.real.
-    real_le (real_of_num (0::nat)) x &
-    real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) &
-    cos x = real_of_num (0::nat))"
+    real_le (real_of_num 0) x &
+    real_le x (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) &
+    cos x = real_of_num 0)"
   by (import hollight PI2)
 
-lemma COS_PI2: "cos (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) =
-real_of_num (0::nat)"
+lemma COS_PI2: "cos (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) =
+real_of_num 0"
   by (import hollight COS_PI2)
 
-lemma PI2_BOUNDS: "real_lt (real_of_num (0::nat))
- (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
-real_lt (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
- (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))"
+lemma PI2_BOUNDS: "real_lt (real_of_num 0)
+ (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
+real_lt (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
+ (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))"
   by (import hollight PI2_BOUNDS)
 
-lemma PI_POS: "real_lt (real_of_num (0::nat)) pi"
+lemma PI_POS: "real_lt (real_of_num 0) pi"
   by (import hollight PI_POS)
 
-lemma SIN_PI2: "sin (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+lemma SIN_PI2: "sin (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) =
+real_of_num (NUMERAL_BIT1 0)"
   by (import hollight SIN_PI2)
 
-lemma COS_PI: "cos pi = real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))"
+lemma COS_PI: "cos pi = real_neg (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight COS_PI)
 
-lemma SIN_PI: "sin pi = real_of_num (0::nat)"
+lemma SIN_PI: "sin pi = real_of_num 0"
   by (import hollight SIN_PI)
 
 lemma SIN_COS: "ALL x::hollight.real.
    sin x =
-   cos (real_sub
-         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+   cos (real_sub (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
          x)"
   by (import hollight SIN_COS)
 
 lemma COS_SIN: "ALL x::hollight.real.
    cos x =
-   sin (real_sub
-         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+   sin (real_sub (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
          x)"
   by (import hollight COS_SIN)
 
@@ -12588,152 +12818,139 @@ lemma COS_PERIODIC_PI: "ALL x::hollight.real. cos (real_add x pi) = real_neg (co
 
 lemma SIN_PERIODIC: "ALL x::hollight.real.
    sin (real_add x
-         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-           pi)) =
+         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) pi)) =
    sin x"
   by (import hollight SIN_PERIODIC)
 
 lemma COS_PERIODIC: "ALL x::hollight.real.
    cos (real_add x
-         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-           pi)) =
+         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) pi)) =
    cos x"
   by (import hollight COS_PERIODIC)
 
 lemma COS_NPI: "ALL n::nat.
    cos (real_mul (real_of_num n) pi) =
-   real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) n"
+   real_pow (real_neg (real_of_num (NUMERAL_BIT1 0))) n"
   by (import hollight COS_NPI)
 
-lemma SIN_NPI: "ALL n::nat. sin (real_mul (real_of_num n) pi) = real_of_num (0::nat)"
+lemma SIN_NPI: "ALL n::nat. sin (real_mul (real_of_num n) pi) = real_of_num 0"
   by (import hollight SIN_NPI)
 
 lemma SIN_POS_PI2: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt x
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
-   real_lt (real_of_num (0::nat)) (sin x)"
+   real_lt (real_of_num 0) x &
+   real_lt x (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
+   real_lt (real_of_num 0) (sin x)"
   by (import hollight SIN_POS_PI2)
 
 lemma COS_POS_PI2: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt x
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
-   real_lt (real_of_num (0::nat)) (cos x)"
+   real_lt (real_of_num 0) x &
+   real_lt x (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
+   real_lt (real_of_num 0) (cos x)"
   by (import hollight COS_POS_PI2)
 
 lemma COS_POS_PI: "ALL x::hollight.real.
    real_lt
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     x &
-   real_lt x
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
-   real_lt (real_of_num (0::nat)) (cos x)"
+   real_lt x (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
+   real_lt (real_of_num 0) (cos x)"
   by (import hollight COS_POS_PI)
 
 lemma SIN_POS_PI: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x & real_lt x pi -->
-   real_lt (real_of_num (0::nat)) (sin x)"
+   real_lt (real_of_num 0) x & real_lt x pi -->
+   real_lt (real_of_num 0) (sin x)"
   by (import hollight SIN_POS_PI)
 
 lemma SIN_POS_PI_LE: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le x pi -->
-   real_le (real_of_num (0::nat)) (sin x)"
+   real_le (real_of_num 0) x & real_le x pi -->
+   real_le (real_of_num 0) (sin x)"
   by (import hollight SIN_POS_PI_LE)
 
 lemma COS_TOTAL: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
    (EX! x::hollight.real.
-       real_le (real_of_num (0::nat)) x & real_le x pi & cos x = y)"
+       real_le (real_of_num 0) x & real_le x pi & cos x = y)"
   by (import hollight COS_TOTAL)
 
 lemma SIN_TOTAL: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
    (EX! x::hollight.real.
        real_le
         (real_neg
-          (real_div pi
-            (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+          (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
         x &
        real_le x
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
        sin x = y)"
   by (import hollight SIN_TOTAL)
 
 lemma COS_ZERO_LEMMA: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x & cos x = real_of_num (0::nat) -->
+   real_le (real_of_num 0) x & cos x = real_of_num 0 -->
    (EX n::nat.
        ~ EVEN n &
        x =
        real_mul (real_of_num n)
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight COS_ZERO_LEMMA)
 
 lemma SIN_ZERO_LEMMA: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x & sin x = real_of_num (0::nat) -->
+   real_le (real_of_num 0) x & sin x = real_of_num 0 -->
    (EX n::nat.
        EVEN n &
        x =
        real_mul (real_of_num n)
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight SIN_ZERO_LEMMA)
 
 lemma COS_ZERO: "ALL x::hollight.real.
-   (cos x = real_of_num (0::nat)) =
+   (cos x = real_of_num 0) =
    ((EX n::nat.
         ~ EVEN n &
         x =
         real_mul (real_of_num n)
-         (real_div pi
-           (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))) |
+         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))) |
     (EX n::nat.
         ~ EVEN n &
         x =
         real_neg
          (real_mul (real_of_num n)
-           (real_div pi
-             (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))))"
+           (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))))"
   by (import hollight COS_ZERO)
 
 lemma SIN_ZERO: "ALL x::hollight.real.
-   (sin x = real_of_num (0::nat)) =
+   (sin x = real_of_num 0) =
    ((EX n::nat.
         EVEN n &
         x =
         real_mul (real_of_num n)
-         (real_div pi
-           (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))) |
+         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))) |
     (EX n::nat.
         EVEN n &
         x =
         real_neg
          (real_mul (real_of_num n)
-           (real_div pi
-             (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))))"
+           (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))))"
   by (import hollight SIN_ZERO)
 
 lemma SIN_ZERO_PI: "ALL x::hollight.real.
-   (sin x = real_of_num (0::nat)) =
+   (sin x = real_of_num 0) =
    ((EX n::nat. x = real_mul (real_of_num n) pi) |
     (EX n::nat. x = real_neg (real_mul (real_of_num n) pi)))"
   by (import hollight SIN_ZERO_PI)
 
 lemma COS_ONE_2PI: "ALL x::hollight.real.
-   (cos x = real_of_num (NUMERAL_BIT1 (0::nat))) =
+   (cos x = real_of_num (NUMERAL_BIT1 0)) =
    ((EX n::nat.
         x =
         real_mul (real_of_num n)
-         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-           pi)) |
+         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) pi)) |
     (EX n::nat.
         x =
         real_neg
          (real_mul (real_of_num n)
-           (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-             pi))))"
+           (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) pi))))"
   by (import hollight COS_ONE_2PI)
 
 constdefs
@@ -12743,13 +12960,13 @@ constdefs
 lemma DEF_tan: "tan = (%u::hollight.real. real_div (sin u) (cos u))"
   by (import hollight DEF_tan)
 
-lemma TAN_0: "tan (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma TAN_0: "tan (real_of_num 0) = real_of_num 0"
   by (import hollight TAN_0)
 
-lemma TAN_PI: "tan pi = real_of_num (0::nat)"
+lemma TAN_PI: "tan pi = real_of_num 0"
   by (import hollight TAN_PI)
 
-lemma TAN_NPI: "ALL n::nat. tan (real_mul (real_of_num n) pi) = real_of_num (0::nat)"
+lemma TAN_NPI: "ALL n::nat. tan (real_mul (real_of_num n) pi) = real_of_num 0"
   by (import hollight TAN_NPI)
 
 lemma TAN_NEG: "ALL x::hollight.real. tan (real_neg x) = real_neg (tan x)"
@@ -12757,8 +12974,7 @@ lemma TAN_NEG: "ALL x::hollight.real. tan (real_neg x) = real_neg (tan x)"
 
 lemma TAN_PERIODIC: "ALL x::hollight.real.
    tan (real_add x
-         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-           pi)) =
+         (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) pi)) =
    tan x"
   by (import hollight TAN_PERIODIC)
 
@@ -12770,64 +12986,58 @@ lemma TAN_PERIODIC_NPI: "ALL (x::hollight.real) n::nat.
   by (import hollight TAN_PERIODIC_NPI)
 
 lemma TAN_ADD: "ALL (x::hollight.real) y::hollight.real.
-   cos x ~= real_of_num (0::nat) &
-   cos y ~= real_of_num (0::nat) &
-   cos (real_add x y) ~= real_of_num (0::nat) -->
+   cos x ~= real_of_num 0 &
+   cos y ~= real_of_num 0 & cos (real_add x y) ~= real_of_num 0 -->
    tan (real_add x y) =
    real_div (real_add (tan x) (tan y))
-    (real_sub (real_of_num (NUMERAL_BIT1 (0::nat)))
-      (real_mul (tan x) (tan y)))"
+    (real_sub (real_of_num (NUMERAL_BIT1 0)) (real_mul (tan x) (tan y)))"
   by (import hollight TAN_ADD)
 
 lemma TAN_DOUBLE: "ALL x::hollight.real.
-   cos x ~= real_of_num (0::nat) &
-   cos (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x) ~=
-   real_of_num (0::nat) -->
-   tan (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) x) =
-   real_div
-    (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) (tan x))
-    (real_sub (real_of_num (NUMERAL_BIT1 (0::nat)))
-      (real_pow (tan x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+   cos x ~= real_of_num 0 &
+   cos (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x) ~=
+   real_of_num 0 -->
+   tan (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) x) =
+   real_div (real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) (tan x))
+    (real_sub (real_of_num (NUMERAL_BIT1 0))
+      (real_pow (tan x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight TAN_DOUBLE)
 
 lemma TAN_POS_PI2: "ALL x::hollight.real.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt x
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
-   real_lt (real_of_num (0::nat)) (tan x)"
+   real_lt (real_of_num 0) x &
+   real_lt x (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
+   real_lt (real_of_num 0) (tan x)"
   by (import hollight TAN_POS_PI2)
 
 lemma DIFF_TAN: "ALL x::hollight.real.
-   cos x ~= real_of_num (0::nat) -->
-   diffl tan
-    (real_inv (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) x"
+   cos x ~= real_of_num 0 -->
+   diffl tan (real_inv (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) x"
   by (import hollight DIFF_TAN)
 
 lemma DIFF_TAN_COMPOSITE: "diffl (g::hollight.real => hollight.real) (m::hollight.real)
  (x::hollight.real) &
-cos (g x) ~= real_of_num (0::nat) -->
+cos (g x) ~= real_of_num 0 -->
 diffl (%x::hollight.real. tan (g x))
- (real_mul
-   (real_inv (real_pow (cos (g x)) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+ (real_mul (real_inv (real_pow (cos (g x)) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
    m)
  x"
   by (import hollight DIFF_TAN_COMPOSITE)
 
 lemma TAN_TOTAL_LEMMA: "ALL y::hollight.real.
-   real_lt (real_of_num (0::nat)) y -->
+   real_lt (real_of_num 0) y -->
    (EX x::hollight.real.
-       real_lt (real_of_num (0::nat)) x &
+       real_lt (real_of_num 0) x &
        real_lt x
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
        real_lt y (tan x))"
   by (import hollight TAN_TOTAL_LEMMA)
 
 lemma TAN_TOTAL_POS: "ALL y::hollight.real.
-   real_le (real_of_num (0::nat)) y -->
+   real_le (real_of_num 0) y -->
    (EX x::hollight.real.
-       real_le (real_of_num (0::nat)) x &
+       real_le (real_of_num 0) x &
        real_lt x
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
        tan x = y)"
   by (import hollight TAN_TOTAL_POS)
 
@@ -12835,27 +13045,25 @@ lemma TAN_TOTAL: "ALL y::hollight.real.
    EX! x::hollight.real.
       real_lt
        (real_neg
-         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
        x &
       real_lt x
-       (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+       (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
       tan x = y"
   by (import hollight TAN_TOTAL)
 
-lemma PI2_PI4: "real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
- (real_div pi
-   (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+lemma PI2_PI4: "real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+real_mul (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
+ (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight PI2_PI4)
 
 lemma TAN_PI4: "tan (real_div pi
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))) =
-real_of_num (NUMERAL_BIT1 (0::nat))"
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0))))) =
+real_of_num (NUMERAL_BIT1 0)"
   by (import hollight TAN_PI4)
 
 lemma TAN_COT: "ALL x::hollight.real.
-   tan (real_sub
-         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+   tan (real_sub (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
          x) =
    real_inv (tan x)"
   by (import hollight TAN_COT)
@@ -12863,14 +13071,13 @@ lemma TAN_COT: "ALL x::hollight.real.
 lemma TAN_BOUND_PI2: "ALL x::hollight.real.
    real_lt (real_abs x)
     (real_div pi
-      (real_of_num
-        (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))) -->
-   real_lt (real_abs (tan x)) (real_of_num (NUMERAL_BIT1 (0::nat)))"
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0))))) -->
+   real_lt (real_abs (tan x)) (real_of_num (NUMERAL_BIT1 0))"
   by (import hollight TAN_BOUND_PI2)
 
 lemma TAN_ABS_GE_X: "ALL x::hollight.real.
    real_lt (real_abs x)
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
+    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
    real_le (real_abs x) (real_abs (tan x))"
   by (import hollight TAN_ABS_GE_X)
 
@@ -12881,10 +13088,10 @@ constdefs
    SOME x::hollight.real.
       real_le
        (real_neg
-         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
        x &
       real_le x
-       (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+       (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
       sin x = u"
 
 lemma DEF_asn: "asn =
@@ -12892,11 +13099,10 @@ lemma DEF_asn: "asn =
     SOME x::hollight.real.
        real_le
         (real_neg
-          (real_div pi
-            (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+          (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
         x &
        real_le x
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
        sin x = u)"
   by (import hollight DEF_asn)
 
@@ -12905,12 +13111,12 @@ constdefs
   "acs ==
 %u::hollight.real.
    SOME x::hollight.real.
-      real_le (real_of_num (0::nat)) x & real_le x pi & cos x = u"
+      real_le (real_of_num 0) x & real_le x pi & cos x = u"
 
 lemma DEF_acs: "acs =
 (%u::hollight.real.
     SOME x::hollight.real.
-       real_le (real_of_num (0::nat)) x & real_le x pi & cos x = u)"
+       real_le (real_of_num 0) x & real_le x pi & cos x = u)"
   by (import hollight DEF_acs)
 
 constdefs
@@ -12920,10 +13126,10 @@ constdefs
    SOME x::hollight.real.
       real_lt
        (real_neg
-         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+         (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
        x &
       real_lt x
-       (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+       (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
       tan x = u"
 
 lemma DEF_atn: "atn =
@@ -12931,100 +13137,92 @@ lemma DEF_atn: "atn =
     SOME x::hollight.real.
        real_lt
         (real_neg
-          (real_div pi
-            (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+          (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
         x &
        real_lt x
-        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+        (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
        tan x = u)"
   by (import hollight DEF_atn)
 
 lemma ASN: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
    real_le
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     (asn y) &
    real_le (asn y)
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
    sin (asn y) = y"
   by (import hollight ASN)
 
 lemma ASN_SIN: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
    sin (asn y) = y"
   by (import hollight ASN_SIN)
 
 lemma ASN_BOUNDS: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
    real_le
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     (asn y) &
    real_le (asn y)
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight ASN_BOUNDS)
 
 lemma ASN_BOUNDS_LT: "ALL y::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_lt y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_lt y (real_of_num (NUMERAL_BIT1 0)) -->
    real_lt
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     (asn y) &
    real_lt (asn y)
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight ASN_BOUNDS_LT)
 
 lemma SIN_ASN: "ALL x::hollight.real.
    real_le
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     x &
-   real_le x
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
+   real_le x (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
    asn (sin x) = x"
   by (import hollight SIN_ASN)
 
 lemma ACS: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   real_le (real_of_num (0::nat)) (acs y) &
-   real_le (acs y) pi & cos (acs y) = y"
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
+   real_le (real_of_num 0) (acs y) & real_le (acs y) pi & cos (acs y) = y"
   by (import hollight ACS)
 
 lemma ACS_COS: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
    cos (acs y) = y"
   by (import hollight ACS_COS)
 
 lemma ACS_BOUNDS: "ALL y::hollight.real.
-   real_le (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_le y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   real_le (real_of_num (0::nat)) (acs y) & real_le (acs y) pi"
+   real_le (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_le y (real_of_num (NUMERAL_BIT1 0)) -->
+   real_le (real_of_num 0) (acs y) & real_le (acs y) pi"
   by (import hollight ACS_BOUNDS)
 
 lemma ACS_BOUNDS_LT: "ALL y::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) y &
-   real_lt y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   real_lt (real_of_num (0::nat)) (acs y) & real_lt (acs y) pi"
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) y &
+   real_lt y (real_of_num (NUMERAL_BIT1 0)) -->
+   real_lt (real_of_num 0) (acs y) & real_lt (acs y) pi"
   by (import hollight ACS_BOUNDS_LT)
 
 lemma COS_ACS: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) x & real_le x pi --> acs (cos x) = x"
+   real_le (real_of_num 0) x & real_le x pi --> acs (cos x) = x"
   by (import hollight COS_ACS)
 
 lemma ATN: "ALL y::hollight.real.
    real_lt
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     (atn y) &
    real_lt (atn y)
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) &
+    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) &
    tan (atn y) = y"
   by (import hollight ATN)
 
@@ -13033,49 +13231,45 @@ lemma ATN_TAN: "ALL x::hollight.real. tan (atn x) = x"
 
 lemma ATN_BOUNDS: "ALL x::hollight.real.
    real_lt
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     (atn x) &
    real_lt (atn x)
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight ATN_BOUNDS)
 
 lemma TAN_ATN: "ALL x::hollight.real.
    real_lt
-    (real_neg
-      (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+    (real_neg (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     x &
-   real_lt x
-    (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))) -->
+   real_lt x (real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT1 0)))) -->
    atn (tan x) = x"
   by (import hollight TAN_ATN)
 
-lemma ATN_0: "atn (real_of_num (0::nat)) = real_of_num (0::nat)"
+lemma ATN_0: "atn (real_of_num 0) = real_of_num 0"
   by (import hollight ATN_0)
 
-lemma ATN_1: "atn (real_of_num (NUMERAL_BIT1 (0::nat))) =
-real_div pi
- (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+lemma ATN_1: "atn (real_of_num (NUMERAL_BIT1 0)) =
+real_div pi (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight ATN_1)
 
 lemma ATN_NEG: "ALL x::hollight.real. atn (real_neg x) = real_neg (atn x)"
   by (import hollight ATN_NEG)
 
-lemma COS_ATN_NZ: "ALL x::hollight.real. cos (atn x) ~= real_of_num (0::nat)"
+lemma COS_ATN_NZ: "ALL x::hollight.real. cos (atn x) ~= real_of_num 0"
   by (import hollight COS_ATN_NZ)
 
 lemma TAN_SEC: "ALL x::hollight.real.
-   cos x ~= real_of_num (0::nat) -->
-   real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-    (real_pow (tan x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-   real_pow (real_inv (cos x)) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))"
+   cos x ~= real_of_num 0 -->
+   real_add (real_of_num (NUMERAL_BIT1 0))
+    (real_pow (tan x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+   real_pow (real_inv (cos x)) (NUMERAL_BIT0 (NUMERAL_BIT1 0))"
   by (import hollight TAN_SEC)
 
 lemma DIFF_ATN: "ALL x::hollight.real.
    diffl atn
     (real_inv
-      (real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-        (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+      (real_add (real_of_num (NUMERAL_BIT1 0))
+        (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     x"
   by (import hollight DIFF_ATN)
 
@@ -13084,8 +13278,8 @@ lemma DIFF_ATN_COMPOSITE: "diffl (g::hollight.real => hollight.real) (m::holligh
 diffl (%x::hollight.real. atn (g x))
  (real_mul
    (real_inv
-     (real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-       (real_pow (g x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+     (real_add (real_of_num (NUMERAL_BIT1 0))
+       (real_pow (g x) (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
    m)
  x"
   by (import hollight DIFF_ATN_COMPOSITE)
@@ -13105,139 +13299,136 @@ lemma ATN_MONO_LE_EQ: "ALL (x::hollight.real) xa::hollight.real.
 lemma ATN_INJ: "ALL (x::hollight.real) xa::hollight.real. (atn x = atn xa) = (x = xa)"
   by (import hollight ATN_INJ)
 
-lemma ATN_POS_LT: "real_lt (real_of_num (0::nat)) (atn (x::hollight.real)) =
-real_lt (real_of_num (0::nat)) x"
+lemma ATN_POS_LT: "real_lt (real_of_num 0) (atn (x::hollight.real)) = real_lt (real_of_num 0) x"
   by (import hollight ATN_POS_LT)
 
-lemma ATN_POS_LE: "real_le (real_of_num (0::nat)) (atn (x::hollight.real)) =
-real_le (real_of_num (0::nat)) x"
+lemma ATN_POS_LE: "real_le (real_of_num 0) (atn (x::hollight.real)) = real_le (real_of_num 0) x"
   by (import hollight ATN_POS_LE)
 
 lemma ATN_LT_PI4_POS: "ALL x::hollight.real.
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
    real_lt (atn x)
     (real_div pi
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight ATN_LT_PI4_POS)
 
 lemma ATN_LT_PI4_NEG: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x -->
    real_lt
     (real_neg
       (real_div pi
-        (real_of_num
-          (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))))
+        (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0))))))
     (atn x)"
   by (import hollight ATN_LT_PI4_NEG)
 
 lemma ATN_LT_PI4: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    real_lt (real_abs (atn x))
     (real_div pi
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight ATN_LT_PI4)
 
 lemma ATN_LE_PI4: "ALL x::hollight.real.
-   real_le (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_le (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    real_le (real_abs (atn x))
     (real_div pi
-      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+      (real_of_num (NUMERAL_BIT0 (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight ATN_LE_PI4)
 
 lemma COS_SIN_SQRT: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) (cos x) -->
+   real_le (real_of_num 0) (cos x) -->
    cos x =
    sqrt
-    (real_sub (real_of_num (NUMERAL_BIT1 (0::nat)))
-      (real_pow (sin x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+    (real_sub (real_of_num (NUMERAL_BIT1 0))
+      (real_pow (sin x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight COS_SIN_SQRT)
 
 lemma COS_ASN_NZ: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   cos (asn x) ~= real_of_num (0::nat)"
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
+   cos (asn x) ~= real_of_num 0"
   by (import hollight COS_ASN_NZ)
 
 lemma DIFF_ASN_COS: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
    diffl asn (real_inv (cos (asn x))) x"
   by (import hollight DIFF_ASN_COS)
 
 lemma DIFF_ASN: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
    diffl asn
     (real_inv
       (sqrt
-        (real_sub (real_of_num (NUMERAL_BIT1 (0::nat)))
-          (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))))
+        (real_sub (real_of_num (NUMERAL_BIT1 0))
+          (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0))))))
     x"
   by (import hollight DIFF_ASN)
 
 lemma SIN_COS_SQRT: "ALL x::hollight.real.
-   real_le (real_of_num (0::nat)) (sin x) -->
+   real_le (real_of_num 0) (sin x) -->
    sin x =
    sqrt
-    (real_sub (real_of_num (NUMERAL_BIT1 (0::nat)))
-      (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))"
+    (real_sub (real_of_num (NUMERAL_BIT1 0))
+      (real_pow (cos x) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))"
   by (import hollight SIN_COS_SQRT)
 
 lemma SIN_ACS_NZ: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
-   sin (acs x) ~= real_of_num (0::nat)"
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
+   sin (acs x) ~= real_of_num 0"
   by (import hollight SIN_ACS_NZ)
 
 lemma DIFF_ACS_SIN: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
    diffl acs (real_inv (real_neg (sin (acs x)))) x"
   by (import hollight DIFF_ACS_SIN)
 
 lemma DIFF_ACS: "ALL x::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) -->
    diffl acs
     (real_neg
       (real_inv
         (sqrt
-          (real_sub (real_of_num (NUMERAL_BIT1 (0::nat)))
-            (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))))
+          (real_sub (real_of_num (NUMERAL_BIT1 0))
+            (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))))
     x"
   by (import hollight DIFF_ACS)
 
 lemma CIRCLE_SINCOS: "ALL (x::hollight.real) y::hollight.real.
-   real_add (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))
-    (real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))) =
-   real_of_num (NUMERAL_BIT1 (0::nat)) -->
+   real_add (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))
+    (real_pow y (NUMERAL_BIT0 (NUMERAL_BIT1 0))) =
+   real_of_num (NUMERAL_BIT1 0) -->
    (EX t::hollight.real. x = cos t & y = sin t)"
   by (import hollight CIRCLE_SINCOS)
 
 lemma ACS_MONO_LT: "ALL (x::hollight.real) y::hollight.real.
-   real_lt (real_neg (real_of_num (NUMERAL_BIT1 (0::nat)))) x &
-   real_lt x y & real_lt y (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_neg (real_of_num (NUMERAL_BIT1 0))) x &
+   real_lt x y & real_lt y (real_of_num (NUMERAL_BIT1 0)) -->
    real_lt (acs y) (acs x)"
   by (import hollight ACS_MONO_LT)
 
 lemma LESS_SUC_EQ: "ALL (m::nat) n::nat. < m (Suc n) = <= m n"
   by (import hollight LESS_SUC_EQ)
 
-lemma LESS_1: "ALL x::nat. < x (NUMERAL_BIT1 (0::nat)) = (x = (0::nat))"
+lemma LESS_1: "ALL x::nat. < x (NUMERAL_BIT1 0) = (x = 0)"
   by (import hollight LESS_1)
 
 constdefs
   division :: "hollight.real * hollight.real => (nat => hollight.real) => bool" 
   "division ==
 %(u::hollight.real * hollight.real) ua::nat => hollight.real.
-   ua (0::nat) = fst u &
+   ua 0 = fst u &
    (EX N::nat.
        (ALL n::nat. < n N --> real_lt (ua n) (ua (Suc n))) &
        (ALL n::nat. >= n N --> ua n = snd u))"
 
 lemma DEF_division: "division =
 (%(u::hollight.real * hollight.real) ua::nat => hollight.real.
-    ua (0::nat) = fst u &
+    ua 0 = fst u &
     (EX N::nat.
         (ALL n::nat. < n N --> real_lt (ua n) (ua (Suc n))) &
         (ALL n::nat. >= n N --> ua n = snd u)))"
@@ -13281,11 +13472,11 @@ constdefs
   gauge :: "(hollight.real => bool) => (hollight.real => hollight.real) => bool" 
   "gauge ==
 %(u::hollight.real => bool) ua::hollight.real => hollight.real.
-   ALL x::hollight.real. u x --> real_lt (real_of_num (0::nat)) (ua x)"
+   ALL x::hollight.real. u x --> real_lt (real_of_num 0) (ua x)"
 
 lemma DEF_gauge: "gauge =
 (%(u::hollight.real => bool) ua::hollight.real => hollight.real.
-    ALL x::hollight.real. u x --> real_lt (real_of_num (0::nat)) (ua x))"
+    ALL x::hollight.real. u x --> real_lt (real_of_num 0) (ua x))"
   by (import hollight DEF_gauge)
 
 constdefs
@@ -13312,13 +13503,13 @@ constdefs
   "rsum ==
 %(u::(nat => hollight.real) * (nat => hollight.real))
    ua::hollight.real => hollight.real.
-   psum (0::nat, dsize (fst u))
+   psum (0, dsize (fst u))
     (%n::nat. real_mul (ua (snd u n)) (real_sub (fst u (Suc n)) (fst u n)))"
 
 lemma DEF_rsum: "rsum =
 (%(u::(nat => hollight.real) * (nat => hollight.real))
     ua::hollight.real => hollight.real.
-    psum (0::nat, dsize (fst u))
+    psum (0, dsize (fst u))
      (%n::nat.
          real_mul (ua (snd u n)) (real_sub (fst u (Suc n)) (fst u n))))"
   by (import hollight DEF_rsum)
@@ -13330,7 +13521,7 @@ constdefs
 %(u::hollight.real * hollight.real) (ua::hollight.real => hollight.real)
    ub::hollight.real.
    ALL e::hollight.real.
-      real_lt (real_of_num (0::nat)) e -->
+      real_lt (real_of_num 0) e -->
       (EX g::hollight.real => hollight.real.
           gauge (%x::hollight.real. real_le (fst u) x & real_le x (snd u))
            g &
@@ -13342,7 +13533,7 @@ lemma DEF_defint: "defint =
 (%(u::hollight.real * hollight.real) (ua::hollight.real => hollight.real)
     ub::hollight.real.
     ALL e::hollight.real.
-       real_lt (real_of_num (0::nat)) e -->
+       real_lt (real_of_num 0) e -->
        (EX g::hollight.real => hollight.real.
            gauge (%x::hollight.real. real_le (fst u) x & real_le x (snd u))
             g &
@@ -13352,25 +13543,24 @@ lemma DEF_defint: "defint =
   by (import hollight DEF_defint)
 
 lemma DIVISION_0: "ALL (a::hollight.real) b::hollight.real.
-   a = b --> dsize (%n::nat. COND (n = (0::nat)) a b) = (0::nat)"
+   a = b --> dsize (%n::nat. COND (n = 0) a b) = 0"
   by (import hollight DIVISION_0)
 
 lemma DIVISION_1: "ALL (a::hollight.real) b::hollight.real.
-   real_lt a b -->
-   dsize (%n::nat. COND (n = (0::nat)) a b) = NUMERAL_BIT1 (0::nat)"
+   real_lt a b --> dsize (%n::nat. COND (n = 0) a b) = NUMERAL_BIT1 0"
   by (import hollight DIVISION_1)
 
 lemma DIVISION_SINGLE: "ALL (a::hollight.real) b::hollight.real.
-   real_le a b --> division (a, b) (%n::nat. COND (n = (0::nat)) a b)"
+   real_le a b --> division (a, b) (%n::nat. COND (n = 0) a b)"
   by (import hollight DIVISION_SINGLE)
 
 lemma DIVISION_LHS: "ALL (D::nat => hollight.real) (a::hollight.real) b::hollight.real.
-   division (a, b) D --> D (0::nat) = a"
+   division (a, b) D --> D 0 = a"
   by (import hollight DIVISION_LHS)
 
 lemma DIVISION_THM: "ALL (D::nat => hollight.real) (a::hollight.real) b::hollight.real.
    division (a, b) D =
-   (D (0::nat) = a &
+   (D 0 = a &
     (ALL n::nat. < n (dsize D) --> real_lt (D n) (D (Suc n))) &
     (ALL n::nat. >= n (dsize D) --> D n = b))"
   by (import hollight DIVISION_THM)
@@ -13386,7 +13576,7 @@ lemma DIVISION_LT_GEN: "ALL (D::nat => hollight.real) (a::hollight.real) (b::hol
 
 lemma DIVISION_LT: "ALL (D::nat => hollight.real) (a::hollight.real) b::hollight.real.
    division (a, b) D -->
-   (ALL n::nat. < n (dsize D) --> real_lt (D (0::nat)) (D (Suc n)))"
+   (ALL n::nat. < n (dsize D) --> real_lt (D 0) (D (Suc n)))"
   by (import hollight DIVISION_LT)
 
 lemma DIVISION_LE: "ALL (D::nat => hollight.real) (a::hollight.real) b::hollight.real.
@@ -13399,7 +13589,7 @@ lemma DIVISION_GT: "ALL (D::nat => hollight.real) (a::hollight.real) b::hollight
   by (import hollight DIVISION_GT)
 
 lemma DIVISION_EQ: "ALL (D::nat => hollight.real) (a::hollight.real) b::hollight.real.
-   division (a, b) D --> (a = b) = (dsize D = (0::nat))"
+   division (a, b) D --> (a = b) = (dsize D = 0)"
   by (import hollight DIVISION_EQ)
 
 lemma DIVISION_LBOUND: "ALL (x::nat => hollight.real) (xa::hollight.real) (xb::hollight.real)
@@ -13407,8 +13597,7 @@ lemma DIVISION_LBOUND: "ALL (x::nat => hollight.real) (xa::hollight.real) (xb::h
   by (import hollight DIVISION_LBOUND)
 
 lemma DIVISION_LBOUND_LT: "ALL (x::nat => hollight.real) (xa::hollight.real) (xb::hollight.real)
-   xc::nat.
-   division (xa, xb) x & dsize x ~= (0::nat) --> real_lt xa (x (Suc xc))"
+   xc::nat. division (xa, xb) x & dsize x ~= 0 --> real_lt xa (x (Suc xc))"
   by (import hollight DIVISION_LBOUND_LT)
 
 lemma DIVISION_UBOUND: "ALL (x::nat => hollight.real) (xa::hollight.real) (xb::hollight.real)
@@ -13478,13 +13667,13 @@ lemma DINT_UNIQ: "ALL (a::hollight.real) (b::hollight.real)
   by (import hollight DINT_UNIQ)
 
 lemma INTEGRAL_NULL: "ALL (f::hollight.real => hollight.real) a::hollight.real.
-   defint (a, a) f (real_of_num (0::nat))"
+   defint (a, a) f (real_of_num 0)"
   by (import hollight INTEGRAL_NULL)
 
 lemma STRADDLE_LEMMA: "ALL (f::hollight.real => hollight.real) (f'::hollight.real => hollight.real)
    (a::hollight.real) (b::hollight.real) e::hollight.real.
    (ALL x::hollight.real. real_le a x & real_le x b --> diffl f (f' x) x) &
-   real_lt (real_of_num (0::nat)) e -->
+   real_lt (real_of_num 0) e -->
    (EX x::hollight.real => hollight.real.
        gauge (%x::hollight.real. real_le a x & real_le x b) x &
        (ALL (xa::hollight.real) (u::hollight.real) v::hollight.real.
@@ -13508,22 +13697,21 @@ lemma FTC1: "ALL (f::hollight.real => hollight.real) (f'::hollight.real => holli
 
 lemma MCLAURIN: "ALL (f::hollight.real => hollight.real)
    (diff::nat => hollight.real => hollight.real) (h::hollight.real) n::nat.
-   real_lt (real_of_num (0::nat)) h &
-   < (0::nat) n &
-   diff (0::nat) = f &
+   real_lt (real_of_num 0) h &
+   < 0 n &
+   diff 0 = f &
    (ALL (m::nat) t::hollight.real.
-       < m n & real_le (real_of_num (0::nat)) t & real_le t h -->
+       < m n & real_le (real_of_num 0) t & real_le t h -->
        diffl (diff m) (diff (Suc m) t) t) -->
    (EX t::hollight.real.
-       real_lt (real_of_num (0::nat)) t &
+       real_lt (real_of_num 0) t &
        real_lt t h &
        f h =
        real_add
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
-               (real_div (diff m (real_of_num (0::nat)))
-                 (real_of_num (FACT m)))
+               (real_div (diff m (real_of_num 0)) (real_of_num (FACT m)))
                (real_pow h m)))
         (real_mul (real_div (diff n t) (real_of_num (FACT n)))
           (real_pow h n)))"
@@ -13531,22 +13719,21 @@ lemma MCLAURIN: "ALL (f::hollight.real => hollight.real)
 
 lemma MCLAURIN_NEG: "ALL (f::hollight.real => hollight.real)
    (diff::nat => hollight.real => hollight.real) (h::hollight.real) n::nat.
-   real_lt h (real_of_num (0::nat)) &
-   < (0::nat) n &
-   diff (0::nat) = f &
+   real_lt h (real_of_num 0) &
+   < 0 n &
+   diff 0 = f &
    (ALL (m::nat) t::hollight.real.
-       < m n & real_le h t & real_le t (real_of_num (0::nat)) -->
+       < m n & real_le h t & real_le t (real_of_num 0) -->
        diffl (diff m) (diff (Suc m) t) t) -->
    (EX t::hollight.real.
        real_lt h t &
-       real_lt t (real_of_num (0::nat)) &
+       real_lt t (real_of_num 0) &
        f h =
        real_add
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
-               (real_div (diff m (real_of_num (0::nat)))
-                 (real_of_num (FACT m)))
+               (real_div (diff m (real_of_num 0)) (real_of_num (FACT m)))
                (real_pow h m)))
         (real_mul (real_div (diff n t) (real_of_num (FACT n)))
           (real_pow h n)))"
@@ -13554,7 +13741,7 @@ lemma MCLAURIN_NEG: "ALL (f::hollight.real => hollight.real)
 
 lemma MCLAURIN_BI_LE: "ALL (f::hollight.real => hollight.real)
    (diff::nat => hollight.real => hollight.real) (x::hollight.real) n::nat.
-   diff (0::nat) = f &
+   diff 0 = f &
    (ALL (m::nat) t::hollight.real.
        < m n & real_le (real_abs t) (real_abs x) -->
        diffl (diff m) (diff (Suc m) t) t) -->
@@ -13562,11 +13749,10 @@ lemma MCLAURIN_BI_LE: "ALL (f::hollight.real => hollight.real)
        real_le (real_abs xa) (real_abs x) &
        f x =
        real_add
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
-               (real_div (diff m (real_of_num (0::nat)))
-                 (real_of_num (FACT m)))
+               (real_div (diff m (real_of_num 0)) (real_of_num (FACT m)))
                (real_pow x m)))
         (real_mul (real_div (diff n xa) (real_of_num (FACT n)))
           (real_pow x n)))"
@@ -13574,19 +13760,19 @@ lemma MCLAURIN_BI_LE: "ALL (f::hollight.real => hollight.real)
 
 lemma MCLAURIN_ALL_LT: "ALL (f::hollight.real => hollight.real)
    diff::nat => hollight.real => hollight.real.
-   diff (0::nat) = f &
+   diff 0 = f &
    (ALL (m::nat) x::hollight.real. diffl (diff m) (diff (Suc m) x) x) -->
    (ALL (x::hollight.real) n::nat.
-       x ~= real_of_num (0::nat) & < (0::nat) n -->
+       x ~= real_of_num 0 & < 0 n -->
        (EX t::hollight.real.
-           real_lt (real_of_num (0::nat)) (real_abs t) &
+           real_lt (real_of_num 0) (real_abs t) &
            real_lt (real_abs t) (real_abs x) &
            f x =
            real_add
-            (psum (0::nat, n)
+            (psum (0, n)
               (%m::nat.
                   real_mul
-                   (real_div (diff m (real_of_num (0::nat)))
+                   (real_div (diff m (real_of_num 0))
                      (real_of_num (FACT m)))
                    (real_pow x m)))
             (real_mul (real_div (diff n t) (real_of_num (FACT n)))
@@ -13594,29 +13780,27 @@ lemma MCLAURIN_ALL_LT: "ALL (f::hollight.real => hollight.real)
   by (import hollight MCLAURIN_ALL_LT)
 
 lemma MCLAURIN_ZERO: "ALL (diff::nat => hollight.real => hollight.real) (n::nat) x::hollight.real.
-   x = real_of_num (0::nat) & < (0::nat) n -->
-   psum (0::nat, n)
+   x = real_of_num 0 & < 0 n -->
+   psum (0, n)
     (%m::nat.
-        real_mul
-         (real_div (diff m (real_of_num (0::nat))) (real_of_num (FACT m)))
+        real_mul (real_div (diff m (real_of_num 0)) (real_of_num (FACT m)))
          (real_pow x m)) =
-   diff (0::nat) (real_of_num (0::nat))"
+   diff 0 (real_of_num 0)"
   by (import hollight MCLAURIN_ZERO)
 
 lemma MCLAURIN_ALL_LE: "ALL (f::hollight.real => hollight.real)
    diff::nat => hollight.real => hollight.real.
-   diff (0::nat) = f &
+   diff 0 = f &
    (ALL (m::nat) x::hollight.real. diffl (diff m) (diff (Suc m) x) x) -->
    (ALL (x::hollight.real) n::nat.
        EX t::hollight.real.
           real_le (real_abs t) (real_abs x) &
           f x =
           real_add
-           (psum (0::nat, n)
+           (psum (0, n)
              (%m::nat.
                  real_mul
-                  (real_div (diff m (real_of_num (0::nat)))
-                    (real_of_num (FACT m)))
+                  (real_div (diff m (real_of_num 0)) (real_of_num (FACT m)))
                   (real_pow x m)))
            (real_mul (real_div (diff n t) (real_of_num (FACT n)))
              (real_pow x n)))"
@@ -13626,13 +13810,13 @@ lemma MCLAURIN_EXP_LEMMA: "exp = exp & (ALL (x::nat) xa::hollight.real. diffl ex
   by (import hollight MCLAURIN_EXP_LEMMA)
 
 lemma MCLAURIN_EXP_LT: "ALL (x::hollight.real) n::nat.
-   x ~= real_of_num (0::nat) & < (0::nat) n -->
+   x ~= real_of_num 0 & < 0 n -->
    (EX t::hollight.real.
-       real_lt (real_of_num (0::nat)) (real_abs t) &
+       real_lt (real_of_num 0) (real_abs t) &
        real_lt (real_abs t) (real_abs x) &
        exp x =
        real_add
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat. real_div (real_pow x m) (real_of_num (FACT m))))
         (real_mul (real_div (exp t) (real_of_num (FACT n))) (real_pow x n)))"
   by (import hollight MCLAURIN_EXP_LT)
@@ -13642,67 +13826,61 @@ lemma MCLAURIN_EXP_LE: "ALL (x::hollight.real) n::nat.
       real_le (real_abs t) (real_abs x) &
       exp x =
       real_add
-       (psum (0::nat, n)
+       (psum (0, n)
          (%m::nat. real_div (real_pow x m) (real_of_num (FACT m))))
        (real_mul (real_div (exp t) (real_of_num (FACT n))) (real_pow x n))"
   by (import hollight MCLAURIN_EXP_LE)
 
 lemma DIFF_LN_COMPOSITE: "ALL (g::hollight.real => hollight.real) (m::hollight.real) x::hollight.real.
-   diffl g m x & real_lt (real_of_num (0::nat)) (g x) -->
+   diffl g m x & real_lt (real_of_num 0) (g x) -->
    diffl (%x::hollight.real. ln (g x)) (real_mul (real_inv (g x)) m) x"
   by (import hollight DIFF_LN_COMPOSITE)
 
 lemma MCLAURIN_LN_POS: "ALL (x::hollight.real) n::nat.
-   real_lt (real_of_num (0::nat)) x & < (0::nat) n -->
+   real_lt (real_of_num 0) x & < 0 n -->
    (EX t::hollight.real.
-       real_lt (real_of_num (0::nat)) t &
+       real_lt (real_of_num 0) t &
        real_lt t x &
-       ln (real_add (real_of_num (NUMERAL_BIT1 (0::nat))) x) =
+       ln (real_add (real_of_num (NUMERAL_BIT1 0)) x) =
        real_add
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
-               (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                 (Suc m))
+               (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0))) (Suc m))
                (real_div (real_pow x m) (real_of_num m))))
         (real_mul
-          (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-            (Suc n))
+          (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0))) (Suc n))
           (real_div (real_pow x n)
             (real_mul (real_of_num n)
-              (real_pow (real_add (real_of_num (NUMERAL_BIT1 (0::nat))) t)
-                n)))))"
+              (real_pow (real_add (real_of_num (NUMERAL_BIT1 0)) t) n)))))"
   by (import hollight MCLAURIN_LN_POS)
 
 lemma MCLAURIN_LN_NEG: "ALL (x::hollight.real) n::nat.
-   real_lt (real_of_num (0::nat)) x &
-   real_lt x (real_of_num (NUMERAL_BIT1 (0::nat))) & < (0::nat) n -->
+   real_lt (real_of_num 0) x &
+   real_lt x (real_of_num (NUMERAL_BIT1 0)) & < 0 n -->
    (EX t::hollight.real.
-       real_lt (real_of_num (0::nat)) t &
+       real_lt (real_of_num 0) t &
        real_lt t x &
-       real_neg (ln (real_sub (real_of_num (NUMERAL_BIT1 (0::nat))) x)) =
+       real_neg (ln (real_sub (real_of_num (NUMERAL_BIT1 0)) x)) =
        real_add
-        (psum (0::nat, n)
-          (%m::nat. real_div (real_pow x m) (real_of_num m)))
+        (psum (0, n) (%m::nat. real_div (real_pow x m) (real_of_num m)))
         (real_div (real_pow x n)
           (real_mul (real_of_num n)
-            (real_pow (real_sub (real_of_num (NUMERAL_BIT1 (0::nat))) t)
-              n))))"
+            (real_pow (real_sub (real_of_num (NUMERAL_BIT1 0)) t) n))))"
   by (import hollight MCLAURIN_LN_NEG)
 
 lemma MCLAURIN_SIN: "ALL (x::hollight.real) n::nat.
    real_le
     (real_abs
       (real_sub (sin x)
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
-               (COND (EVEN m) (real_of_num (0::nat))
+               (COND (EVEN m) (real_of_num 0)
                  (real_div
-                   (real_pow
-                     (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                     (DIV (m - NUMERAL_BIT1 (0::nat))
-                       (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                   (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                     (DIV (m - NUMERAL_BIT1 0)
+                       (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                    (real_of_num (FACT m))))
                (real_pow x m)))))
     (real_mul (real_inv (real_of_num (FACT n))) (real_pow (real_abs x) n))"
@@ -13712,143 +13890,138 @@ lemma MCLAURIN_COS: "ALL (x::hollight.real) n::nat.
    real_le
     (real_abs
       (real_sub (cos x)
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
                (COND (EVEN m)
                  (real_div
-                   (real_pow
-                     (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                     (DIV m (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                   (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                     (DIV m (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                    (real_of_num (FACT m)))
-                 (real_of_num (0::nat)))
+                 (real_of_num 0))
                (real_pow x m)))))
     (real_mul (real_inv (real_of_num (FACT n))) (real_pow (real_abs x) n))"
   by (import hollight MCLAURIN_COS)
 
 lemma REAL_ATN_POWSER_SUMMABLE: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    summable
     (%n::nat.
         real_mul
-         (COND (EVEN n) (real_of_num (0::nat))
+         (COND (EVEN n) (real_of_num 0)
            (real_div
-             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-               (DIV (n - NUMERAL_BIT1 (0::nat))
-                 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+               (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
              (real_of_num n)))
          (real_pow x n))"
   by (import hollight REAL_ATN_POWSER_SUMMABLE)
 
 lemma REAL_ATN_POWSER_DIFFS_SUMMABLE: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    summable
     (%xa::nat.
         real_mul
          (diffs
            (%n::nat.
-               COND (EVEN n) (real_of_num (0::nat))
+               COND (EVEN n) (real_of_num 0)
                 (real_div
-                  (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                    (DIV (n - NUMERAL_BIT1 (0::nat))
-                      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                  (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                    (DIV (n - NUMERAL_BIT1 0)
+                      (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                   (real_of_num n)))
            xa)
          (real_pow x xa))"
   by (import hollight REAL_ATN_POWSER_DIFFS_SUMMABLE)
 
 lemma REAL_ATN_POWSER_DIFFS_SUM: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    sums
     (%n::nat.
         real_mul
          (diffs
            (%n::nat.
-               COND (EVEN n) (real_of_num (0::nat))
+               COND (EVEN n) (real_of_num 0)
                 (real_div
-                  (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                    (DIV (n - NUMERAL_BIT1 (0::nat))
-                      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                  (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                    (DIV (n - NUMERAL_BIT1 0)
+                      (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                   (real_of_num n)))
            n)
          (real_pow x n))
     (real_inv
-      (real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-        (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))"
+      (real_add (real_of_num (NUMERAL_BIT1 0))
+        (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))"
   by (import hollight REAL_ATN_POWSER_DIFFS_SUM)
 
 lemma REAL_ATN_POWSER_DIFFS_DIFFS_SUMMABLE: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    summable
     (%xa::nat.
         real_mul
          (diffs
            (diffs
              (%n::nat.
-                 COND (EVEN n) (real_of_num (0::nat))
+                 COND (EVEN n) (real_of_num 0)
                   (real_div
-                    (real_pow
-                      (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                      (DIV (n - NUMERAL_BIT1 (0::nat))
-                        (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                    (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                      (DIV (n - NUMERAL_BIT1 0)
+                        (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                     (real_of_num n))))
            xa)
          (real_pow x xa))"
   by (import hollight REAL_ATN_POWSER_DIFFS_DIFFS_SUMMABLE)
 
 lemma REAL_ATN_POWSER_DIFFL: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    diffl
     (%x::hollight.real.
         suminf
          (%n::nat.
              real_mul
-              (COND (EVEN n) (real_of_num (0::nat))
+              (COND (EVEN n) (real_of_num 0)
                 (real_div
-                  (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                    (DIV (n - NUMERAL_BIT1 (0::nat))
-                      (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                  (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                    (DIV (n - NUMERAL_BIT1 0)
+                      (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                   (real_of_num n)))
               (real_pow x n)))
     (real_inv
-      (real_add (real_of_num (NUMERAL_BIT1 (0::nat)))
-        (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat))))))
+      (real_add (real_of_num (NUMERAL_BIT1 0))
+        (real_pow x (NUMERAL_BIT0 (NUMERAL_BIT1 0)))))
     x"
   by (import hollight REAL_ATN_POWSER_DIFFL)
 
 lemma REAL_ATN_POWSER: "ALL x::hollight.real.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    sums
     (%n::nat.
         real_mul
-         (COND (EVEN n) (real_of_num (0::nat))
+         (COND (EVEN n) (real_of_num 0)
            (real_div
-             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-               (DIV (n - NUMERAL_BIT1 (0::nat))
-                 (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+             (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+               (DIV (n - NUMERAL_BIT1 0) (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
              (real_of_num n)))
          (real_pow x n))
     (atn x)"
   by (import hollight REAL_ATN_POWSER)
 
 lemma MCLAURIN_ATN: "ALL (x::hollight.real) n::nat.
-   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 (0::nat))) -->
+   real_lt (real_abs x) (real_of_num (NUMERAL_BIT1 0)) -->
    real_le
     (real_abs
       (real_sub (atn x)
-        (psum (0::nat, n)
+        (psum (0, n)
           (%m::nat.
               real_mul
-               (COND (EVEN m) (real_of_num (0::nat))
+               (COND (EVEN m) (real_of_num 0)
                  (real_div
-                   (real_pow
-                     (real_neg (real_of_num (NUMERAL_BIT1 (0::nat))))
-                     (DIV (m - NUMERAL_BIT1 (0::nat))
-                       (NUMERAL_BIT0 (NUMERAL_BIT1 (0::nat)))))
+                   (real_pow (real_neg (real_of_num (NUMERAL_BIT1 0)))
+                     (DIV (m - NUMERAL_BIT1 0)
+                       (NUMERAL_BIT0 (NUMERAL_BIT1 0))))
                    (real_of_num m)))
                (real_pow x m)))))
     (real_div (real_pow (real_abs x) n)
-      (real_sub (real_of_num (NUMERAL_BIT1 (0::nat))) (real_abs x)))"
+      (real_sub (real_of_num (NUMERAL_BIT1 0)) (real_abs x)))"
   by (import hollight MCLAURIN_ATN)
 
 ;end_setup

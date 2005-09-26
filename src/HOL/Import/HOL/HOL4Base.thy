@@ -5,21 +5,21 @@ theory HOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin
 ;setup_theory bool
 
 constdefs
-  ARB :: "'a::type" 
+  ARB :: "'a" 
   "ARB == SOME x::'a::type. True"
 
 lemma ARB_DEF: "ARB = (SOME x::'a::type. True)"
   by (import bool ARB_DEF)
 
 constdefs
-  IN :: "'a::type => ('a::type => bool) => bool" 
+  IN :: "'a => ('a => bool) => bool" 
   "IN == %(x::'a::type) f::'a::type => bool. f x"
 
 lemma IN_DEF: "IN = (%(x::'a::type) f::'a::type => bool. f x)"
   by (import bool IN_DEF)
 
 constdefs
-  RES_FORALL :: "('a::type => bool) => ('a::type => bool) => bool" 
+  RES_FORALL :: "('a => bool) => ('a => bool) => bool" 
   "RES_FORALL ==
 %(p::'a::type => bool) m::'a::type => bool. ALL x::'a::type. IN x p --> m x"
 
@@ -29,7 +29,7 @@ lemma RES_FORALL_DEF: "RES_FORALL =
   by (import bool RES_FORALL_DEF)
 
 constdefs
-  RES_EXISTS :: "('a::type => bool) => ('a::type => bool) => bool" 
+  RES_EXISTS :: "('a => bool) => ('a => bool) => bool" 
   "RES_EXISTS ==
 %(p::'a::type => bool) m::'a::type => bool. EX x::'a::type. IN x p & m x"
 
@@ -38,7 +38,7 @@ lemma RES_EXISTS_DEF: "RES_EXISTS =
   by (import bool RES_EXISTS_DEF)
 
 constdefs
-  RES_EXISTS_UNIQUE :: "('a::type => bool) => ('a::type => bool) => bool" 
+  RES_EXISTS_UNIQUE :: "('a => bool) => ('a => bool) => bool" 
   "RES_EXISTS_UNIQUE ==
 %(p::'a::type => bool) m::'a::type => bool.
    RES_EXISTS p m &
@@ -53,7 +53,7 @@ lemma RES_EXISTS_UNIQUE_DEF: "RES_EXISTS_UNIQUE =
   by (import bool RES_EXISTS_UNIQUE_DEF)
 
 constdefs
-  RES_SELECT :: "('a::type => bool) => ('a::type => bool) => 'a::type" 
+  RES_SELECT :: "('a => bool) => ('a => bool) => 'a" 
   "RES_SELECT ==
 %(p::'a::type => bool) m::'a::type => bool. SOME x::'a::type. IN x p & m x"
 
@@ -240,7 +240,7 @@ lemma UEXISTS_SIMP: "(EX! x::'a::type. (t::bool)) = (t & (ALL x::'a::type. All (
   by (import bool UEXISTS_SIMP)
 
 consts
-  RES_ABSTRACT :: "('a::type => bool) => ('a::type => 'b::type) => 'a::type => 'b::type" 
+  RES_ABSTRACT :: "('a => bool) => ('a => 'b) => 'a => 'b" 
 
 specification (RES_ABSTRACT) RES_ABSTRACT_DEF: "(ALL (p::'a::type => bool) (m::'a::type => 'b::type) x::'a::type.
     IN x p --> RES_ABSTRACT p m x = m x) &
@@ -265,15 +265,14 @@ lemma BOOL_FUN_INDUCT: "ALL P::(bool => bool) => bool.
 ;setup_theory combin
 
 constdefs
-  K :: "'a::type => 'b::type => 'a::type" 
+  K :: "'a => 'b => 'a" 
   "K == %(x::'a::type) y::'b::type. x"
 
 lemma K_DEF: "K = (%(x::'a::type) y::'b::type. x)"
   by (import combin K_DEF)
 
 constdefs
-  S :: "('a::type => 'b::type => 'c::type)
-=> ('a::type => 'b::type) => 'a::type => 'c::type" 
+  S :: "('a => 'b => 'c) => ('a => 'b) => 'a => 'c" 
   "S ==
 %(f::'a::type => 'b::type => 'c::type) (g::'a::type => 'b::type)
    x::'a::type. f x (g x)"
@@ -284,7 +283,7 @@ lemma S_DEF: "S =
   by (import combin S_DEF)
 
 constdefs
-  I :: "'a::type => 'a::type" 
+  I :: "'a => 'a" 
   "(op ==::('a::type => 'a::type) => ('a::type => 'a::type) => prop)
  (I::'a::type => 'a::type)
  ((S::('a::type => ('a::type => 'a::type) => 'a::type)
@@ -301,7 +300,7 @@ lemma I_DEF: "(op =::('a::type => 'a::type) => ('a::type => 'a::type) => bool)
   by (import combin I_DEF)
 
 constdefs
-  C :: "('a::type => 'b::type => 'c::type) => 'b::type => 'a::type => 'c::type" 
+  C :: "('a => 'b => 'c) => 'b => 'a => 'c" 
   "C == %(f::'a::type => 'b::type => 'c::type) (x::'b::type) y::'a::type. f y x"
 
 lemma C_DEF: "C =
@@ -309,7 +308,7 @@ lemma C_DEF: "C =
   by (import combin C_DEF)
 
 constdefs
-  W :: "('a::type => 'a::type => 'b::type) => 'a::type => 'b::type" 
+  W :: "('a => 'a => 'b) => 'a => 'b" 
   "W == %(f::'a::type => 'a::type => 'b::type) x::'a::type. f x x"
 
 lemma W_DEF: "W = (%(f::'a::type => 'a::type => 'b::type) x::'a::type. f x x)"
@@ -547,7 +546,7 @@ lemma option_case_cong: "ALL (M::'a::type option) (M'::'a::type option) (u::'b::
 ;setup_theory marker
 
 consts
-  stmarker :: "'a::type => 'a::type" 
+  stmarker :: "'a => 'a" 
 
 defs
   stmarker_primdef: "stmarker == %x::'a::type. x"
@@ -584,7 +583,7 @@ lemma move_right_disj: "ALL (x::bool) (xa::bool) xb::bool.
 ;setup_theory relation
 
 constdefs
-  TC :: "('a::type => 'a::type => bool) => 'a::type => 'a::type => bool" 
+  TC :: "('a => 'a => bool) => 'a => 'a => bool" 
   "TC ==
 %(R::'a::type => 'a::type => bool) (a::'a::type) b::'a::type.
    ALL P::'a::type => 'a::type => bool.
@@ -603,7 +602,7 @@ lemma TC_DEF: "ALL (R::'a::type => 'a::type => bool) (a::'a::type) b::'a::type.
   by (import relation TC_DEF)
 
 constdefs
-  RTC :: "('a::type => 'a::type => bool) => 'a::type => 'a::type => bool" 
+  RTC :: "('a => 'a => bool) => 'a => 'a => bool" 
   "RTC ==
 %(R::'a::type => 'a::type => bool) (a::'a::type) b::'a::type.
    ALL P::'a::type => 'a::type => bool.
@@ -622,7 +621,7 @@ lemma RTC_DEF: "ALL (R::'a::type => 'a::type => bool) (a::'a::type) b::'a::type.
   by (import relation RTC_DEF)
 
 consts
-  RC :: "('a::type => 'a::type => bool) => 'a::type => 'a::type => bool" 
+  RC :: "('a => 'a => bool) => 'a => 'a => bool" 
 
 defs
   RC_primdef: "RC ==
@@ -633,7 +632,7 @@ lemma RC_def: "ALL (R::'a::type => 'a::type => bool) (x::'a::type) y::'a::type.
   by (import relation RC_def)
 
 consts
-  transitive :: "('a::type => 'a::type => bool) => bool" 
+  transitive :: "('a => 'a => bool) => bool" 
 
 defs
   transitive_primdef: "transitive ==
@@ -646,7 +645,7 @@ lemma transitive_def: "ALL R::'a::type => 'a::type => bool.
   by (import relation transitive_def)
 
 constdefs
-  pred_reflexive :: "('a::type => 'a::type => bool) => bool" 
+  pred_reflexive :: "('a => 'a => bool) => bool" 
   "pred_reflexive == %R::'a::type => 'a::type => bool. ALL x::'a::type. R x x"
 
 lemma reflexive_def: "ALL R::'a::type => 'a::type => bool.
@@ -790,7 +789,7 @@ lemma RTC_MONOTONE: "ALL (R::'a::type => 'a::type => bool) Q::'a::type => 'a::ty
   by (import relation RTC_MONOTONE)
 
 constdefs
-  WF :: "('a::type => 'a::type => bool) => bool" 
+  WF :: "('a => 'a => bool) => bool" 
   "WF ==
 %R::'a::type => 'a::type => bool.
    ALL B::'a::type => bool.
@@ -816,7 +815,7 @@ lemma WF_NOT_REFL: "ALL (x::'a::type => 'a::type => bool) (xa::'a::type) xb::'a:
   by (import relation WF_NOT_REFL)
 
 constdefs
-  EMPTY_REL :: "'a::type => 'a::type => bool" 
+  EMPTY_REL :: "'a => 'a => bool" 
   "EMPTY_REL == %(x::'a::type) y::'a::type. False"
 
 lemma EMPTY_REL_DEF: "ALL (x::'a::type) y::'a::type. EMPTY_REL x y = False"
@@ -833,8 +832,7 @@ lemma WF_TC: "ALL R::'a::type => 'a::type => bool. WF R --> WF (TC R)"
   by (import relation WF_TC)
 
 consts
-  inv_image :: "('b::type => 'b::type => bool)
-=> ('a::type => 'b::type) => 'a::type => 'a::type => bool" 
+  inv_image :: "('b => 'b => bool) => ('a => 'b) => 'a => 'a => bool" 
 
 defs
   inv_image_primdef: "relation.inv_image ==
@@ -850,8 +848,7 @@ lemma WF_inv_image: "ALL (R::'b::type => 'b::type => bool) f::'a::type => 'b::ty
   by (import relation WF_inv_image)
 
 constdefs
-  RESTRICT :: "('a::type => 'b::type)
-=> ('a::type => 'a::type => bool) => 'a::type => 'a::type => 'b::type" 
+  RESTRICT :: "('a => 'b) => ('a => 'a => bool) => 'a => 'a => 'b" 
   "RESTRICT ==
 %(f::'a::type => 'b::type) (R::'a::type => 'a::type => bool) (x::'a::type)
    y::'a::type. if R y x then f y else ARB"
@@ -865,9 +862,7 @@ lemma RESTRICT_LEMMA: "ALL (x::'a::type => 'b::type) (xa::'a::type => 'a::type =
   by (import relation RESTRICT_LEMMA)
 
 consts
-  approx :: "('a::type => 'a::type => bool)
-=> (('a::type => 'b::type) => 'a::type => 'b::type)
-   => 'a::type => ('a::type => 'b::type) => bool" 
+  approx :: "('a => 'a => bool) => (('a => 'b) => 'a => 'b) => 'a => ('a => 'b) => bool" 
 
 defs
   approx_primdef: "approx ==
@@ -883,9 +878,7 @@ lemma approx_def: "ALL (R::'a::type => 'a::type => bool)
   by (import relation approx_def)
 
 consts
-  the_fun :: "('a::type => 'a::type => bool)
-=> (('a::type => 'b::type) => 'a::type => 'b::type)
-   => 'a::type => 'a::type => 'b::type" 
+  the_fun :: "('a => 'a => bool) => (('a => 'b) => 'a => 'b) => 'a => 'a => 'b" 
 
 defs
   the_fun_primdef: "the_fun ==
@@ -899,8 +892,7 @@ lemma the_fun_def: "ALL (R::'a::type => 'a::type => bool)
   by (import relation the_fun_def)
 
 constdefs
-  WFREC :: "('a::type => 'a::type => bool)
-=> (('a::type => 'b::type) => 'a::type => 'b::type) => 'a::type => 'b::type" 
+  WFREC :: "('a => 'a => bool) => (('a => 'b) => 'a => 'b) => 'a => 'b" 
   "WFREC ==
 %(R::'a::type => 'a::type => bool)
    (M::('a::type => 'b::type) => 'a::type => 'b::type) x::'a::type.
@@ -1061,9 +1053,7 @@ lemma pair_case_cong: "ALL (x::'a::type * 'b::type) (xa::'a::type * 'b::type)
   by (import pair pair_case_cong)
 
 constdefs
-  LEX :: "('a::type => 'a::type => bool)
-=> ('b::type => 'b::type => bool)
-   => 'a::type * 'b::type => 'a::type * 'b::type => bool" 
+  LEX :: "('a => 'a => bool) => ('b => 'b => bool) => 'a * 'b => 'a * 'b => bool" 
   "LEX ==
 %(R1::'a::type => 'a::type => bool) (R2::'b::type => 'b::type => bool)
    (s::'a::type, t::'b::type) (u::'a::type, v::'b::type).
@@ -1080,9 +1070,7 @@ lemma WF_LEX: "ALL (x::'a::type => 'a::type => bool) xa::'b::type => 'b::type =>
   by (import pair WF_LEX)
 
 constdefs
-  RPROD :: "('a::type => 'a::type => bool)
-=> ('b::type => 'b::type => bool)
-   => 'a::type * 'b::type => 'a::type * 'b::type => bool" 
+  RPROD :: "('a => 'a => bool) => ('b => 'b => bool) => 'a * 'b => 'a * 'b => bool" 
   "RPROD ==
 %(R1::'a::type => 'a::type => bool) (R2::'b::type => 'b::type => bool)
    (s::'a::type, t::'b::type) (u::'a::type, v::'b::type). R1 s u & R2 t v"
@@ -1104,7 +1092,7 @@ lemma WF_RPROD: "ALL (R::'a::type => 'a::type => bool) Q::'b::type => 'b::type =
 
 ;setup_theory prim_rec
 
-lemma LESS_0_0: "(0::nat) < Suc (0::nat)"
+lemma LESS_0_0: "0 < Suc 0"
   by (import prim_rec LESS_0_0)
 
 lemma LESS_LEMMA1: "ALL (x::nat) xa::nat. x < Suc xa --> x = xa | x < xa"
@@ -1126,7 +1114,7 @@ lemma NOT_LESS_EQ: "ALL (m::nat) n::nat. m = n --> ~ m < n"
   by (import prim_rec NOT_LESS_EQ)
 
 constdefs
-  SIMP_REC_REL :: "(nat => 'a::type) => 'a::type => ('a::type => 'a::type) => nat => bool" 
+  SIMP_REC_REL :: "(nat => 'a) => 'a => ('a => 'a) => nat => bool" 
   "(op ==::((nat => 'a::type)
          => 'a::type => ('a::type => 'a::type) => nat => bool)
         => ((nat => 'a::type)
@@ -1184,7 +1172,7 @@ lemma SIMP_REC_REL_UNIQUE_RESULT: "ALL (x::'a::type) (f::'a::type => 'a::type) n
   by (import prim_rec SIMP_REC_REL_UNIQUE_RESULT)
 
 consts
-  SIMP_REC :: "'a::type => ('a::type => 'a::type) => nat => 'a::type" 
+  SIMP_REC :: "'a => ('a => 'a) => nat => 'a" 
 
 specification (SIMP_REC) SIMP_REC: "ALL (x::'a::type) (f'::'a::type => 'a::type) n::nat.
    EX g::nat => 'a::type.
@@ -1195,23 +1183,22 @@ lemma LESS_SUC_SUC: "ALL m::nat. m < Suc m & m < Suc (Suc m)"
   by (import prim_rec LESS_SUC_SUC)
 
 lemma SIMP_REC_THM: "ALL (x::'a::type) f::'a::type => 'a::type.
-   SIMP_REC x f (0::nat) = x &
+   SIMP_REC x f 0 = x &
    (ALL m::nat. SIMP_REC x f (Suc m) = f (SIMP_REC x f m))"
   by (import prim_rec SIMP_REC_THM)
 
 constdefs
   PRE :: "nat => nat" 
-  "PRE == %m::nat. if m = (0::nat) then 0::nat else SOME n::nat. m = Suc n"
+  "PRE == %m::nat. if m = 0 then 0 else SOME n::nat. m = Suc n"
 
-lemma PRE_DEF: "ALL m::nat.
-   PRE m = (if m = (0::nat) then 0::nat else SOME n::nat. m = Suc n)"
+lemma PRE_DEF: "ALL m::nat. PRE m = (if m = 0 then 0 else SOME n::nat. m = Suc n)"
   by (import prim_rec PRE_DEF)
 
-lemma PRE: "PRE (0::nat) = (0::nat) & (ALL m::nat. PRE (Suc m) = m)"
+lemma PRE: "PRE 0 = 0 & (ALL m::nat. PRE (Suc m) = m)"
   by (import prim_rec PRE)
 
 constdefs
-  PRIM_REC_FUN :: "'a::type => ('a::type => nat => 'a::type) => nat => nat => 'a::type" 
+  PRIM_REC_FUN :: "'a => ('a => nat => 'a) => nat => nat => 'a" 
   "PRIM_REC_FUN ==
 %(x::'a::type) f::'a::type => nat => 'a::type.
    SIMP_REC (%n::nat. x) (%(fun::nat => 'a::type) n::nat. f (fun (PRE n)) n)"
@@ -1222,13 +1209,13 @@ lemma PRIM_REC_FUN: "ALL (x::'a::type) f::'a::type => nat => 'a::type.
   by (import prim_rec PRIM_REC_FUN)
 
 lemma PRIM_REC_EQN: "ALL (x::'a::type) f::'a::type => nat => 'a::type.
-   (ALL n::nat. PRIM_REC_FUN x f (0::nat) n = x) &
+   (ALL n::nat. PRIM_REC_FUN x f 0 n = x) &
    (ALL (m::nat) n::nat.
        PRIM_REC_FUN x f (Suc m) n = f (PRIM_REC_FUN x f m (PRE n)) n)"
   by (import prim_rec PRIM_REC_EQN)
 
 constdefs
-  PRIM_REC :: "'a::type => ('a::type => nat => 'a::type) => nat => 'a::type" 
+  PRIM_REC :: "'a => ('a => nat => 'a) => nat => 'a" 
   "PRIM_REC ==
 %(x::'a::type) (f::'a::type => nat => 'a::type) m::nat.
    PRIM_REC_FUN x f m (PRE m)"
@@ -1238,28 +1225,27 @@ lemma PRIM_REC: "ALL (x::'a::type) (f::'a::type => nat => 'a::type) m::nat.
   by (import prim_rec PRIM_REC)
 
 lemma PRIM_REC_THM: "ALL (x::'a::type) f::'a::type => nat => 'a::type.
-   PRIM_REC x f (0::nat) = x &
+   PRIM_REC x f 0 = x &
    (ALL m::nat. PRIM_REC x f (Suc m) = f (PRIM_REC x f m) m)"
   by (import prim_rec PRIM_REC_THM)
 
 lemma DC: "ALL (P::'a::type => bool) (R::'a::type => 'a::type => bool) a::'a::type.
    P a & (ALL x::'a::type. P x --> (EX y::'a::type. P y & R x y)) -->
    (EX x::nat => 'a::type.
-       x (0::nat) = a & (ALL n::nat. P (x n) & R (x n) (x (Suc n))))"
+       x 0 = a & (ALL n::nat. P (x n) & R (x n) (x (Suc n))))"
   by (import prim_rec DC)
 
 lemma num_Axiom_old: "ALL (e::'a::type) f::'a::type => nat => 'a::type.
    EX! fn1::nat => 'a::type.
-      fn1 (0::nat) = e & (ALL n::nat. fn1 (Suc n) = f (fn1 n) n)"
+      fn1 0 = e & (ALL n::nat. fn1 (Suc n) = f (fn1 n) n)"
   by (import prim_rec num_Axiom_old)
 
 lemma num_Axiom: "ALL (e::'a::type) f::nat => 'a::type => 'a::type.
-   EX x::nat => 'a::type.
-      x (0::nat) = e & (ALL n::nat. x (Suc n) = f n (x n))"
+   EX x::nat => 'a::type. x 0 = e & (ALL n::nat. x (Suc n) = f n (x n))"
   by (import prim_rec num_Axiom)
 
 consts
-  wellfounded :: "('a::type => 'a::type => bool) => bool" 
+  wellfounded :: "('a => 'a => bool) => bool" 
 
 defs
   wellfounded_primdef: "wellfounded ==
@@ -1281,7 +1267,7 @@ lemma WF_LESS: "(WF::(nat => nat => bool) => bool) (op <::nat => nat => bool)"
   by (import prim_rec WF_LESS)
 
 consts
-  measure :: "('a::type => nat) => 'a::type => 'a::type => bool" 
+  measure :: "('a => nat) => 'a => 'a => bool" 
 
 defs
   measure_primdef: "prim_rec.measure == relation.inv_image op <"
@@ -1310,28 +1296,28 @@ lemma nat_elim__magic: "ALL n::nat. nat_elim__magic n = n"
 consts
   EVEN :: "nat => bool" 
 
-specification (EVEN) EVEN: "EVEN (0::nat) = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n))"
+specification (EVEN) EVEN: "EVEN 0 = True & (ALL n::nat. EVEN (Suc n) = (~ EVEN n))"
   by (import arithmetic EVEN)
 
 consts
   ODD :: "nat => bool" 
 
-specification (ODD) ODD: "ODD (0::nat) = False & (ALL n::nat. ODD (Suc n) = (~ ODD n))"
+specification (ODD) ODD: "ODD 0 = False & (ALL n::nat. ODD (Suc n) = (~ ODD n))"
   by (import arithmetic ODD)
 
-lemma TWO: "(2::nat) = Suc (1::nat)"
+lemma TWO: "2 = Suc 1"
   by (import arithmetic TWO)
 
-lemma NORM_0: "(0::nat) = (0::nat)"
+lemma NORM_0: "(op =::nat => nat => bool) (0::nat) (0::nat)"
   by (import arithmetic NORM_0)
 
 lemma num_case_compute: "ALL n::nat.
    nat_case (f::'a::type) (g::nat => 'a::type) n =
-   (if n = (0::nat) then f else g (PRE n))"
+   (if n = 0 then f else g (PRE n))"
   by (import arithmetic num_case_compute)
 
-lemma ADD_CLAUSES: "(0::nat) + (m::nat) = m &
-m + (0::nat) = m & Suc m + (n::nat) = Suc (m + n) & m + Suc n = Suc (m + n)"
+lemma ADD_CLAUSES: "0 + (m::nat) = m &
+m + 0 = m & Suc m + (n::nat) = Suc (m + n) & m + Suc n = Suc (m + n)"
   by (import arithmetic ADD_CLAUSES)
 
 lemma LESS_ADD: "ALL (m::nat) n::nat. n < m --> (EX p::nat. p + n = m)"
@@ -1350,7 +1336,7 @@ lemma FUN_EQ_LEMMA: "ALL (f::'a::type => bool) (x1::'a::type) x2::'a::type.
 lemma LESS_NOT_SUC: "ALL (m::nat) n::nat. m < n & n ~= Suc m --> Suc m < n"
   by (import arithmetic LESS_NOT_SUC)
 
-lemma LESS_0_CASES: "ALL m::nat. (0::nat) = m | (0::nat) < m"
+lemma LESS_0_CASES: "ALL m::nat. 0 = m | 0 < m"
   by (import arithmetic LESS_0_CASES)
 
 lemma LESS_CASES_IMP: "ALL (m::nat) n::nat. ~ m < n & m ~= n --> n < m"
@@ -1362,44 +1348,41 @@ lemma LESS_CASES: "ALL (m::nat) n::nat. m < n | n <= m"
 lemma LESS_EQ_SUC_REFL: "ALL m::nat. m <= Suc m"
   by (import arithmetic LESS_EQ_SUC_REFL)
 
-lemma LESS_ADD_NONZERO: "ALL (m::nat) n::nat. n ~= (0::nat) --> m < m + n"
+lemma LESS_ADD_NONZERO: "ALL (m::nat) n::nat. n ~= 0 --> m < m + n"
   by (import arithmetic LESS_ADD_NONZERO)
 
 lemma LESS_EQ_ANTISYM: "ALL (x::nat) xa::nat. ~ (x < xa & xa <= x)"
   by (import arithmetic LESS_EQ_ANTISYM)
 
-lemma SUB_0: "ALL m::nat. (0::nat) - m = (0::nat) & m - (0::nat) = m"
+lemma SUB_0: "ALL m::nat. 0 - m = 0 & m - 0 = m"
   by (import arithmetic SUB_0)
 
-lemma SUC_SUB1: "ALL m::nat. Suc m - (1::nat) = m"
+lemma SUC_SUB1: "ALL m::nat. Suc m - 1 = m"
   by (import arithmetic SUC_SUB1)
 
-lemma PRE_SUB1: "ALL m::nat. PRE m = m - (1::nat)"
+lemma PRE_SUB1: "ALL m::nat. PRE m = m - 1"
   by (import arithmetic PRE_SUB1)
 
 lemma MULT_CLAUSES: "ALL (x::nat) xa::nat.
-   (0::nat) * x = (0::nat) &
-   x * (0::nat) = (0::nat) &
-   (1::nat) * x = x &
-   x * (1::nat) = x & Suc x * xa = x * xa + xa & x * Suc xa = x + x * xa"
+   0 * x = 0 &
+   x * 0 = 0 &
+   1 * x = x &
+   x * 1 = x & Suc x * xa = x * xa + xa & x * Suc xa = x + x * xa"
   by (import arithmetic MULT_CLAUSES)
 
 lemma PRE_SUB: "ALL (m::nat) n::nat. PRE (m - n) = PRE m - n"
   by (import arithmetic PRE_SUB)
 
-lemma ADD_EQ_1: "ALL (m::nat) n::nat.
-   (m + n = (1::nat)) =
-   (m = (1::nat) & n = (0::nat) | m = (0::nat) & n = (1::nat))"
+lemma ADD_EQ_1: "ALL (m::nat) n::nat. (m + n = 1) = (m = 1 & n = 0 | m = 0 & n = 1)"
   by (import arithmetic ADD_EQ_1)
 
-lemma ADD_INV_0_EQ: "ALL (m::nat) n::nat. (m + n = m) = (n = (0::nat))"
+lemma ADD_INV_0_EQ: "ALL (m::nat) n::nat. (m + n = m) = (n = 0)"
   by (import arithmetic ADD_INV_0_EQ)
 
-lemma PRE_SUC_EQ: "ALL (m::nat) n::nat. (0::nat) < n --> (m = PRE n) = (Suc m = n)"
+lemma PRE_SUC_EQ: "ALL (m::nat) n::nat. 0 < n --> (m = PRE n) = (Suc m = n)"
   by (import arithmetic PRE_SUC_EQ)
 
-lemma INV_PRE_EQ: "ALL (m::nat) n::nat.
-   (0::nat) < m & (0::nat) < n --> (PRE m = PRE n) = (m = n)"
+lemma INV_PRE_EQ: "ALL (m::nat) n::nat. 0 < m & 0 < n --> (PRE m = PRE n) = (m = n)"
   by (import arithmetic INV_PRE_EQ)
 
 lemma LESS_SUC_NOT: "ALL (m::nat) n::nat. m < n --> ~ n < Suc m"
@@ -1408,7 +1391,7 @@ lemma LESS_SUC_NOT: "ALL (m::nat) n::nat. m < n --> ~ n < Suc m"
 lemma ADD_EQ_SUB: "ALL (m::nat) (n::nat) p::nat. n <= p --> (m + n = p) = (m = p - n)"
   by (import arithmetic ADD_EQ_SUB)
 
-lemma LESS_ADD_1: "ALL (x::nat) xa::nat. xa < x --> (EX xb::nat. x = xa + (xb + (1::nat)))"
+lemma LESS_ADD_1: "ALL (x::nat) xa::nat. xa < x --> (EX xb::nat. x = xa + (xb + 1))"
   by (import arithmetic LESS_ADD_1)
 
 lemma NOT_ODD_EQ_EVEN: "ALL (n::nat) m::nat. Suc (n + n) ~= m + m"
@@ -1440,16 +1423,16 @@ lemma WOP: "(All::((nat => bool) => bool) => bool)
                     ((Not::bool => bool) (P m)))))))"
   by (import arithmetic WOP)
 
-lemma INV_PRE_LESS: "ALL m>0::nat. ALL n::nat. (PRE m < PRE n) = (m < n)"
+lemma INV_PRE_LESS: "ALL m>0. ALL n::nat. (PRE m < PRE n) = (m < n)"
   by (import arithmetic INV_PRE_LESS)
 
-lemma INV_PRE_LESS_EQ: "ALL n>0::nat. ALL m::nat. (PRE m <= PRE n) = (m <= n)"
+lemma INV_PRE_LESS_EQ: "ALL n>0. ALL m::nat. (PRE m <= PRE n) = (m <= n)"
   by (import arithmetic INV_PRE_LESS_EQ)
 
-lemma SUB_EQ_EQ_0: "ALL (m::nat) n::nat. (m - n = m) = (m = (0::nat) | n = (0::nat))"
+lemma SUB_EQ_EQ_0: "ALL (m::nat) n::nat. (m - n = m) = (m = 0 | n = 0)"
   by (import arithmetic SUB_EQ_EQ_0)
 
-lemma SUB_LESS_OR: "ALL (m::nat) n::nat. n < m --> n <= m - (1::nat)"
+lemma SUB_LESS_OR: "ALL (m::nat) n::nat. n < m --> n <= m - 1"
   by (import arithmetic SUB_LESS_OR)
 
 lemma LESS_SUB_ADD_LESS: "ALL (n::nat) (m::nat) i::nat. i < n - m --> i + m < n"
@@ -1468,15 +1451,13 @@ lemma SUB_CANCEL: "ALL (x::nat) (xa::nat) xb::nat.
    xa <= x & xb <= x --> (x - xa = x - xb) = (xa = xb)"
   by (import arithmetic SUB_CANCEL)
 
-lemma NOT_EXP_0: "ALL (m::nat) n::nat. Suc n ^ m ~= (0::nat)"
+lemma NOT_EXP_0: "ALL (m::nat) n::nat. Suc n ^ m ~= 0"
   by (import arithmetic NOT_EXP_0)
 
-lemma ZERO_LESS_EXP: "ALL (m::nat) n::nat. (0::nat) < Suc n ^ m"
+lemma ZERO_LESS_EXP: "ALL (m::nat) n::nat. 0 < Suc n ^ m"
   by (import arithmetic ZERO_LESS_EXP)
 
-lemma ODD_OR_EVEN: "ALL x::nat.
-   EX xa::nat.
-      x = Suc (Suc (0::nat)) * xa | x = Suc (Suc (0::nat)) * xa + (1::nat)"
+lemma ODD_OR_EVEN: "ALL x::nat. EX xa::nat. x = Suc (Suc 0) * xa | x = Suc (Suc 0) * xa + 1"
   by (import arithmetic ODD_OR_EVEN)
 
 lemma LESS_EXP_SUC_MONO: "ALL (n::nat) m::nat. Suc (Suc m) ^ n < Suc (Suc m) ^ Suc n"
@@ -1491,16 +1472,16 @@ lemma LESS_EQUAL_ADD: "ALL (m::nat) n::nat. m <= n --> (EX p::nat. n = m + p)"
 lemma LESS_EQ_EXISTS: "ALL (m::nat) n::nat. (m <= n) = (EX p::nat. n = m + p)"
   by (import arithmetic LESS_EQ_EXISTS)
 
-lemma MULT_EQ_1: "ALL (x::nat) y::nat. (x * y = (1::nat)) = (x = (1::nat) & y = (1::nat))"
+lemma MULT_EQ_1: "ALL (x::nat) y::nat. (x * y = 1) = (x = 1 & y = 1)"
   by (import arithmetic MULT_EQ_1)
 
 consts
   FACT :: "nat => nat" 
 
-specification (FACT) FACT: "FACT (0::nat) = (1::nat) & (ALL n::nat. FACT (Suc n) = Suc n * FACT n)"
+specification (FACT) FACT: "FACT 0 = 1 & (ALL n::nat. FACT (Suc n) = Suc n * FACT n)"
   by (import arithmetic FACT)
 
-lemma FACT_LESS: "ALL n::nat. (0::nat) < FACT n"
+lemma FACT_LESS: "ALL n::nat. 0 < FACT n"
   by (import arithmetic FACT_LESS)
 
 lemma EVEN_ODD: "ALL n::nat. EVEN n = (~ ODD n)"
@@ -1527,24 +1508,24 @@ lemma ODD_ADD: "ALL (m::nat) n::nat. ODD (m + n) = (ODD m ~= ODD n)"
 lemma ODD_MULT: "ALL (m::nat) n::nat. ODD (m * n) = (ODD m & ODD n)"
   by (import arithmetic ODD_MULT)
 
-lemma EVEN_DOUBLE: "ALL n::nat. EVEN ((2::nat) * n)"
+lemma EVEN_DOUBLE: "ALL n::nat. EVEN (2 * n)"
   by (import arithmetic EVEN_DOUBLE)
 
-lemma ODD_DOUBLE: "ALL x::nat. ODD (Suc ((2::nat) * x))"
+lemma ODD_DOUBLE: "ALL x::nat. ODD (Suc (2 * x))"
   by (import arithmetic ODD_DOUBLE)
 
 lemma EVEN_ODD_EXISTS: "ALL x::nat.
-   (EVEN x --> (EX m::nat. x = (2::nat) * m)) &
-   (ODD x --> (EX m::nat. x = Suc ((2::nat) * m)))"
+   (EVEN x --> (EX m::nat. x = 2 * m)) &
+   (ODD x --> (EX m::nat. x = Suc (2 * m)))"
   by (import arithmetic EVEN_ODD_EXISTS)
 
-lemma EVEN_EXISTS: "ALL n::nat. EVEN n = (EX m::nat. n = (2::nat) * m)"
+lemma EVEN_EXISTS: "ALL n::nat. EVEN n = (EX m::nat. n = 2 * m)"
   by (import arithmetic EVEN_EXISTS)
 
-lemma ODD_EXISTS: "ALL n::nat. ODD n = (EX m::nat. n = Suc ((2::nat) * m))"
+lemma ODD_EXISTS: "ALL n::nat. ODD n = (EX m::nat. n = Suc (2 * m))"
   by (import arithmetic ODD_EXISTS)
 
-lemma NOT_SUC_LESS_EQ_0: "ALL x::nat. ~ Suc x <= (0::nat)"
+lemma NOT_SUC_LESS_EQ_0: "ALL x::nat. ~ Suc x <= 0"
   by (import arithmetic NOT_SUC_LESS_EQ_0)
 
 lemma NOT_LEQ: "ALL (x::nat) xa::nat. (~ x <= xa) = (Suc xa <= x)"
@@ -1573,45 +1554,41 @@ lemma SUB_LEFT_SUB: "ALL (m::nat) (n::nat) p::nat.
    m - (n - p) = (if n <= p then m else m + p - n)"
   by (import arithmetic SUB_LEFT_SUB)
 
-lemma SUB_LEFT_SUC: "ALL (m::nat) n::nat.
-   Suc (m - n) = (if m <= n then Suc (0::nat) else Suc m - n)"
+lemma SUB_LEFT_SUC: "ALL (m::nat) n::nat. Suc (m - n) = (if m <= n then Suc 0 else Suc m - n)"
   by (import arithmetic SUB_LEFT_SUC)
 
-lemma SUB_LEFT_LESS_EQ: "ALL (m::nat) (n::nat) p::nat. (m <= n - p) = (m + p <= n | m <= (0::nat))"
+lemma SUB_LEFT_LESS_EQ: "ALL (m::nat) (n::nat) p::nat. (m <= n - p) = (m + p <= n | m <= 0)"
   by (import arithmetic SUB_LEFT_LESS_EQ)
 
 lemma SUB_RIGHT_LESS_EQ: "ALL (m::nat) (n::nat) p::nat. (m - n <= p) = (m <= n + p)"
   by (import arithmetic SUB_RIGHT_LESS_EQ)
 
-lemma SUB_RIGHT_LESS: "ALL (m::nat) (n::nat) p::nat. (m - n < p) = (m < n + p & (0::nat) < p)"
+lemma SUB_RIGHT_LESS: "ALL (m::nat) (n::nat) p::nat. (m - n < p) = (m < n + p & 0 < p)"
   by (import arithmetic SUB_RIGHT_LESS)
 
-lemma SUB_RIGHT_GREATER_EQ: "ALL (m::nat) (n::nat) p::nat. (p <= m - n) = (n + p <= m | p <= (0::nat))"
+lemma SUB_RIGHT_GREATER_EQ: "ALL (m::nat) (n::nat) p::nat. (p <= m - n) = (n + p <= m | p <= 0)"
   by (import arithmetic SUB_RIGHT_GREATER_EQ)
 
-lemma SUB_LEFT_GREATER: "ALL (m::nat) (n::nat) p::nat. (n - p < m) = (n < m + p & (0::nat) < m)"
+lemma SUB_LEFT_GREATER: "ALL (m::nat) (n::nat) p::nat. (n - p < m) = (n < m + p & 0 < m)"
   by (import arithmetic SUB_LEFT_GREATER)
 
 lemma SUB_RIGHT_GREATER: "ALL (m::nat) (n::nat) p::nat. (p < m - n) = (n + p < m)"
   by (import arithmetic SUB_RIGHT_GREATER)
 
-lemma SUB_LEFT_EQ: "ALL (m::nat) (n::nat) p::nat.
-   (m = n - p) = (m + p = n | m <= (0::nat) & n <= p)"
+lemma SUB_LEFT_EQ: "ALL (m::nat) (n::nat) p::nat. (m = n - p) = (m + p = n | m <= 0 & n <= p)"
   by (import arithmetic SUB_LEFT_EQ)
 
-lemma SUB_RIGHT_EQ: "ALL (m::nat) (n::nat) p::nat.
-   (m - n = p) = (m = n + p | m <= n & p <= (0::nat))"
+lemma SUB_RIGHT_EQ: "ALL (m::nat) (n::nat) p::nat. (m - n = p) = (m = n + p | m <= n & p <= 0)"
   by (import arithmetic SUB_RIGHT_EQ)
 
-lemma LE: "(ALL n::nat. (n <= (0::nat)) = (n = (0::nat))) &
+lemma LE: "(ALL n::nat. (n <= 0) = (n = 0)) &
 (ALL (m::nat) n::nat. (m <= Suc n) = (m = Suc n | m <= n))"
   by (import arithmetic LE)
 
-lemma DA: "ALL (k::nat) n::nat.
-   (0::nat) < n --> (EX (x::nat) q::nat. k = q * n + x & x < n)"
+lemma DA: "ALL (k::nat) n::nat. 0 < n --> (EX (x::nat) q::nat. k = q * n + x & x < n)"
   by (import arithmetic DA)
 
-lemma DIV_LESS_EQ: "ALL n>0::nat. ALL k::nat. k div n <= k"
+lemma DIV_LESS_EQ: "ALL n>0. ALL k::nat. k div n <= k"
   by (import arithmetic DIV_LESS_EQ)
 
 lemma DIV_UNIQUE: "ALL (n::nat) (k::nat) q::nat.
@@ -1625,92 +1602,108 @@ lemma MOD_UNIQUE: "ALL (n::nat) (k::nat) r::nat.
 lemma DIV_MULT: "ALL (n::nat) r::nat. r < n --> (ALL q::nat. (q * n + r) div n = q)"
   by (import arithmetic DIV_MULT)
 
-lemma MOD_EQ_0: "ALL n>0::nat. ALL k::nat. k * n mod n = (0::nat)"
+lemma MOD_EQ_0: "ALL n>0. ALL k::nat. k * n mod n = 0"
   by (import arithmetic MOD_EQ_0)
 
-lemma ZERO_MOD: "ALL n>0::nat. (0::nat) mod n = (0::nat)"
+lemma ZERO_MOD: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op -->::bool => bool => bool) ((op <::nat => nat => bool) (0::nat) n)
+      ((op =::nat => nat => bool) ((op mod::nat => nat => nat) (0::nat) n)
+        (0::nat)))"
   by (import arithmetic ZERO_MOD)
 
-lemma ZERO_DIV: "ALL n>0::nat. (0::nat) div n = (0::nat)"
+lemma ZERO_DIV: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op -->::bool => bool => bool) ((op <::nat => nat => bool) (0::nat) n)
+      ((op =::nat => nat => bool) ((op div::nat => nat => nat) (0::nat) n)
+        (0::nat)))"
   by (import arithmetic ZERO_DIV)
 
 lemma MOD_MULT: "ALL (n::nat) r::nat. r < n --> (ALL q::nat. (q * n + r) mod n = r)"
   by (import arithmetic MOD_MULT)
 
-lemma MOD_TIMES: "ALL n>0::nat. ALL (q::nat) r::nat. (q * n + r) mod n = r mod n"
+lemma MOD_TIMES: "ALL n>0. ALL (q::nat) r::nat. (q * n + r) mod n = r mod n"
   by (import arithmetic MOD_TIMES)
 
-lemma MOD_PLUS: "ALL n>0::nat. ALL (j::nat) k::nat. (j mod n + k mod n) mod n = (j + k) mod n"
+lemma MOD_PLUS: "ALL n>0. ALL (j::nat) k::nat. (j mod n + k mod n) mod n = (j + k) mod n"
   by (import arithmetic MOD_PLUS)
 
-lemma MOD_MOD: "ALL n>0::nat. ALL k::nat. k mod n mod n = k mod n"
+lemma MOD_MOD: "ALL n>0. ALL k::nat. k mod n mod n = k mod n"
   by (import arithmetic MOD_MOD)
 
-lemma ADD_DIV_ADD_DIV: "ALL x>0::nat. ALL (xa::nat) r::nat. (xa * x + r) div x = xa + r div x"
+lemma ADD_DIV_ADD_DIV: "ALL x>0. ALL (xa::nat) r::nat. (xa * x + r) div x = xa + r div x"
   by (import arithmetic ADD_DIV_ADD_DIV)
 
 lemma MOD_MULT_MOD: "ALL (m::nat) n::nat.
-   (0::nat) < n & (0::nat) < m -->
-   (ALL x::nat. x mod (n * m) mod n = x mod n)"
+   0 < n & 0 < m --> (ALL x::nat. x mod (n * m) mod n = x mod n)"
   by (import arithmetic MOD_MULT_MOD)
 
-lemma DIVMOD_ID: "ALL n>0::nat. n div n = (1::nat) & n mod n = (0::nat)"
+lemma DIVMOD_ID: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op -->::bool => bool => bool) ((op <::nat => nat => bool) (0::nat) n)
+      ((op &::bool => bool => bool)
+        ((op =::nat => nat => bool) ((op div::nat => nat => nat) n n)
+          (1::nat))
+        ((op =::nat => nat => bool) ((op mod::nat => nat => nat) n n)
+          (0::nat))))"
   by (import arithmetic DIVMOD_ID)
 
 lemma DIV_DIV_DIV_MULT: "ALL (x::nat) xa::nat.
-   (0::nat) < x & (0::nat) < xa -->
-   (ALL xb::nat. xb div x div xa = xb div (x * xa))"
+   0 < x & 0 < xa --> (ALL xb::nat. xb div x div xa = xb div (x * xa))"
   by (import arithmetic DIV_DIV_DIV_MULT)
 
 lemma DIV_P: "ALL (P::nat => bool) (p::nat) q::nat.
-   (0::nat) < q -->
-   P (p div q) = (EX (k::nat) r::nat. p = k * q + r & r < q & P k)"
+   0 < q --> P (p div q) = (EX (k::nat) r::nat. p = k * q + r & r < q & P k)"
   by (import arithmetic DIV_P)
 
 lemma MOD_P: "ALL (P::nat => bool) (p::nat) q::nat.
-   (0::nat) < q -->
-   P (p mod q) = (EX (k::nat) r::nat. p = k * q + r & r < q & P r)"
+   0 < q --> P (p mod q) = (EX (k::nat) r::nat. p = k * q + r & r < q & P r)"
   by (import arithmetic MOD_P)
 
-lemma MOD_TIMES2: "ALL n>0::nat. ALL (j::nat) k::nat. j mod n * (k mod n) mod n = j * k mod n"
+lemma MOD_TIMES2: "ALL n>0. ALL (j::nat) k::nat. j mod n * (k mod n) mod n = j * k mod n"
   by (import arithmetic MOD_TIMES2)
 
 lemma MOD_COMMON_FACTOR: "ALL (n::nat) (p::nat) q::nat.
-   (0::nat) < n & (0::nat) < q --> n * (p mod q) = n * p mod (n * q)"
+   0 < n & 0 < q --> n * (p mod q) = n * p mod (n * q)"
   by (import arithmetic MOD_COMMON_FACTOR)
 
 lemma num_case_cong: "ALL (M::nat) (M'::nat) (b::'a::type) f::nat => 'a::type.
    M = M' &
-   (M' = (0::nat) --> b = (b'::'a::type)) &
+   (M' = 0 --> b = (b'::'a::type)) &
    (ALL n::nat. M' = Suc n --> f n = (f'::nat => 'a::type) n) -->
    nat_case b f M = nat_case b' f' M'"
   by (import arithmetic num_case_cong)
 
 lemma SUC_ELIM_THM: "ALL P::nat => nat => bool.
-   (ALL n::nat. P (Suc n) n) = (ALL n>0::nat. P n (n - (1::nat)))"
+   (ALL n::nat. P (Suc n) n) = (ALL n>0. P n (n - 1))"
   by (import arithmetic SUC_ELIM_THM)
 
 lemma SUB_ELIM_THM: "(P::nat => bool) ((a::nat) - (b::nat)) =
-(ALL x::nat. (b = a + x --> P (0::nat)) & (a = b + x --> P x))"
+(ALL x::nat. (b = a + x --> P 0) & (a = b + x --> P x))"
   by (import arithmetic SUB_ELIM_THM)
 
 lemma PRE_ELIM_THM: "(P::nat => bool) (PRE (n::nat)) =
-(ALL m::nat. (n = (0::nat) --> P (0::nat)) & (n = Suc m --> P m))"
+(ALL m::nat. (n = 0 --> P 0) & (n = Suc m --> P m))"
   by (import arithmetic PRE_ELIM_THM)
 
-lemma MULT_INCREASES: "ALL (m::nat) n::nat. (1::nat) < m & (0::nat) < n --> Suc n <= m * n"
+lemma MULT_INCREASES: "ALL (m::nat) n::nat. 1 < m & 0 < n --> Suc n <= m * n"
   by (import arithmetic MULT_INCREASES)
 
-lemma EXP_ALWAYS_BIG_ENOUGH: "ALL b>1::nat. ALL n::nat. EX m::nat. n <= b ^ m"
+lemma EXP_ALWAYS_BIG_ENOUGH: "ALL b>1. ALL n::nat. EX m::nat. n <= b ^ m"
   by (import arithmetic EXP_ALWAYS_BIG_ENOUGH)
 
-lemma EXP_EQ_0: "ALL (n::nat) m::nat. (n ^ m = (0::nat)) = (n = (0::nat) & (0::nat) < m)"
+lemma EXP_EQ_0: "ALL (n::nat) m::nat. (n ^ m = 0) = (n = 0 & 0 < m)"
   by (import arithmetic EXP_EQ_0)
 
-lemma EXP_1: "ALL x::nat. (1::nat) ^ x = (1::nat) & x ^ (1::nat) = x"
+lemma EXP_1: "(All::(nat => bool) => bool)
+ (%x::nat.
+     (op &::bool => bool => bool)
+      ((op =::nat => nat => bool) ((op ^::nat => nat => nat) (1::nat) x)
+        (1::nat))
+      ((op =::nat => nat => bool) ((op ^::nat => nat => nat) x (1::nat)) x))"
   by (import arithmetic EXP_1)
 
-lemma EXP_EQ_1: "ALL (n::nat) m::nat. (n ^ m = (1::nat)) = (n = (1::nat) | m = (0::nat))"
+lemma EXP_EQ_1: "ALL (n::nat) m::nat. (n ^ m = 1) = (n = 1 | m = 0)"
   by (import arithmetic EXP_EQ_1)
 
 lemma MIN_MAX_EQ: "ALL (x::nat) xa::nat. (min x xa = max x xa) = (x = xa)"
@@ -1741,10 +1734,10 @@ lemma MIN_LE: "ALL (x::nat) xa::nat. min xa x <= xa & min xa x <= x"
 lemma MAX_LE: "ALL (x::nat) xa::nat. xa <= max xa x & x <= max xa x"
   by (import arithmetic MAX_LE)
 
-lemma MIN_0: "ALL x::nat. min x (0::nat) = (0::nat) & min (0::nat) x = (0::nat)"
+lemma MIN_0: "ALL x::nat. min x 0 = 0 & min 0 x = 0"
   by (import arithmetic MIN_0)
 
-lemma MAX_0: "ALL x::nat. max x (0::nat) = x & max (0::nat) x = x"
+lemma MAX_0: "ALL x::nat. max x 0 = x & max 0 x = x"
   by (import arithmetic MAX_0)
 
 lemma EXISTS_GREATEST: "ALL P::nat => bool.
@@ -1758,9 +1751,9 @@ lemma EXISTS_GREATEST: "ALL P::nat => bool.
 
 constdefs
   trat_1 :: "nat * nat" 
-  "trat_1 == (0::nat, 0::nat)"
+  "trat_1 == (0, 0)"
 
-lemma trat_1: "trat_1 = (0::nat, 0::nat)"
+lemma trat_1: "trat_1 = (0, 0)"
   by (import hrat trat_1)
 
 constdefs
@@ -1794,7 +1787,7 @@ lemma trat_mul: "ALL (x::nat) (y::nat) (x'::nat) y'::nat.
 consts
   trat_sucint :: "nat => nat * nat" 
 
-specification (trat_sucint) trat_sucint: "trat_sucint (0::nat) = trat_1 &
+specification (trat_sucint) trat_sucint: "trat_sucint 0 = trat_1 &
 (ALL n::nat. trat_sucint (Suc n) = trat_add (trat_sucint n) trat_1)"
   by (import hrat trat_sucint)
 
@@ -1882,14 +1875,14 @@ lemma TRAT_ADD_TOTAL: "ALL (h::nat * nat) i::nat * nat.
    (EX d::nat * nat. trat_eq i (trat_add h d))"
   by (import hrat TRAT_ADD_TOTAL)
 
-lemma TRAT_SUCINT_0: "ALL n::nat. trat_eq (trat_sucint n) (n, 0::nat)"
+lemma TRAT_SUCINT_0: "ALL n::nat. trat_eq (trat_sucint n) (n, 0)"
   by (import hrat TRAT_SUCINT_0)
 
 lemma TRAT_ARCH: "ALL h::nat * nat.
    EX (n::nat) d::nat * nat. trat_eq (trat_sucint n) (trat_add h d)"
   by (import hrat TRAT_ARCH)
 
-lemma TRAT_SUCINT: "trat_eq (trat_sucint (0::nat)) trat_1 &
+lemma TRAT_SUCINT: "trat_eq (trat_sucint 0) trat_1 &
 (ALL n::nat.
     trat_eq (trat_sucint (Suc n)) (trat_add (trat_sucint n) trat_1))"
   by (import hrat TRAT_SUCINT)
@@ -1989,7 +1982,7 @@ lemma HRAT_ADD_TOTAL: "ALL (h::hrat) i::hrat.
 lemma HRAT_ARCH: "ALL h::hrat. EX (x::nat) xa::hrat. hrat_sucint x = hrat_add h xa"
   by (import hrat HRAT_ARCH)
 
-lemma HRAT_SUCINT: "hrat_sucint (0::nat) = hrat_1 &
+lemma HRAT_SUCINT: "hrat_sucint 0 = hrat_1 &
 (ALL x::nat. hrat_sucint (Suc x) = hrat_add (hrat_sucint x) hrat_1)"
   by (import hrat HRAT_SUCINT)
 
@@ -2382,40 +2375,243 @@ constdefs
 lemma iiSUC: "ALL n::nat. iiSUC n = Suc (Suc n)"
   by (import numeral iiSUC)
 
-lemma numeral_distrib: "(ALL x::nat. (0::nat) + x = x) &
-(ALL x::nat. x + (0::nat) = x) &
-(ALL (x::nat) xa::nat. NUMERAL x + NUMERAL xa = NUMERAL (iZ (x + xa))) &
-(ALL x::nat. (0::nat) * x = (0::nat)) &
-(ALL x::nat. x * (0::nat) = (0::nat)) &
-(ALL (x::nat) xa::nat. NUMERAL x * NUMERAL xa = NUMERAL (x * xa)) &
-(ALL x::nat. (0::nat) - x = (0::nat)) &
-(ALL x::nat. x - (0::nat) = x) &
-(ALL (x::nat) xa::nat. NUMERAL x - NUMERAL xa = NUMERAL (x - xa)) &
-(ALL x::nat. (0::nat) ^ NUMERAL (NUMERAL_BIT1 x) = (0::nat)) &
-(ALL x::nat. (0::nat) ^ NUMERAL (NUMERAL_BIT2 x) = (0::nat)) &
-(ALL x::nat. x ^ (0::nat) = (1::nat)) &
-(ALL (x::nat) xa::nat. NUMERAL x ^ NUMERAL xa = NUMERAL (x ^ xa)) &
-Suc (0::nat) = (1::nat) &
-(ALL x::nat. Suc (NUMERAL x) = NUMERAL (Suc x)) &
-PRE (0::nat) = (0::nat) &
-(ALL x::nat. PRE (NUMERAL x) = NUMERAL (PRE x)) &
-(ALL x::nat. (NUMERAL x = (0::nat)) = (x = ALT_ZERO)) &
-(ALL x::nat. ((0::nat) = NUMERAL x) = (x = ALT_ZERO)) &
-(ALL (x::nat) xa::nat. (NUMERAL x = NUMERAL xa) = (x = xa)) &
-(ALL x::nat. (x < (0::nat)) = False) &
-(ALL x::nat. ((0::nat) < NUMERAL x) = (ALT_ZERO < x)) &
-(ALL (x::nat) xa::nat. (NUMERAL x < NUMERAL xa) = (x < xa)) &
-(ALL x::nat. (x < (0::nat)) = False) &
-(ALL x::nat. ((0::nat) < NUMERAL x) = (ALT_ZERO < x)) &
-(ALL (x::nat) xa::nat. (NUMERAL xa < NUMERAL x) = (xa < x)) &
-(ALL x::nat. ((0::nat) <= x) = True) &
-(ALL x::nat. (NUMERAL x <= (0::nat)) = (x <= ALT_ZERO)) &
-(ALL (x::nat) xa::nat. (NUMERAL x <= NUMERAL xa) = (x <= xa)) &
-(ALL x::nat. ((0::nat) <= x) = True) &
-(ALL x::nat. (x <= (0::nat)) = (x = (0::nat))) &
-(ALL (x::nat) xa::nat. (NUMERAL xa <= NUMERAL x) = (xa <= x)) &
-(ALL x::nat. ODD (NUMERAL x) = ODD x) &
-(ALL x::nat. EVEN (NUMERAL x) = EVEN x) & ~ ODD (0::nat) & EVEN (0::nat)"
+lemma numeral_distrib: "(op &::bool => bool => bool)
+ ((All::(nat => bool) => bool)
+   (%x::nat.
+       (op =::nat => nat => bool) ((op +::nat => nat => nat) (0::nat) x) x))
+ ((op &::bool => bool => bool)
+   ((All::(nat => bool) => bool)
+     (%x::nat.
+         (op =::nat => nat => bool) ((op +::nat => nat => nat) x (0::nat))
+          x))
+   ((op &::bool => bool => bool)
+     ((All::(nat => bool) => bool)
+       (%x::nat.
+           (All::(nat => bool) => bool)
+            (%xa::nat.
+                (op =::nat => nat => bool)
+                 ((op +::nat => nat => nat) ((NUMERAL::nat => nat) x)
+                   ((NUMERAL::nat => nat) xa))
+                 ((NUMERAL::nat => nat)
+                   ((iZ::nat => nat) ((op +::nat => nat => nat) x xa))))))
+     ((op &::bool => bool => bool)
+       ((All::(nat => bool) => bool)
+         (%x::nat.
+             (op =::nat => nat => bool)
+              ((op *::nat => nat => nat) (0::nat) x) (0::nat)))
+       ((op &::bool => bool => bool)
+         ((All::(nat => bool) => bool)
+           (%x::nat.
+               (op =::nat => nat => bool)
+                ((op *::nat => nat => nat) x (0::nat)) (0::nat)))
+         ((op &::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%x::nat.
+                 (All::(nat => bool) => bool)
+                  (%xa::nat.
+                      (op =::nat => nat => bool)
+                       ((op *::nat => nat => nat) ((NUMERAL::nat => nat) x)
+                         ((NUMERAL::nat => nat) xa))
+                       ((NUMERAL::nat => nat)
+                         ((op *::nat => nat => nat) x xa)))))
+           ((op &::bool => bool => bool)
+             ((All::(nat => bool) => bool)
+               (%x::nat.
+                   (op =::nat => nat => bool)
+                    ((op -::nat => nat => nat) (0::nat) x) (0::nat)))
+             ((op &::bool => bool => bool)
+               ((All::(nat => bool) => bool)
+                 (%x::nat.
+                     (op =::nat => nat => bool)
+                      ((op -::nat => nat => nat) x (0::nat)) x))
+               ((op &::bool => bool => bool)
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (All::(nat => bool) => bool)
+                        (%xa::nat.
+                            (op =::nat => nat => bool)
+                             ((op -::nat => nat => nat)
+                               ((NUMERAL::nat => nat) x)
+                               ((NUMERAL::nat => nat) xa))
+                             ((NUMERAL::nat => nat)
+                               ((op -::nat => nat => nat) x xa)))))
+                 ((op &::bool => bool => bool)
+                   ((All::(nat => bool) => bool)
+                     (%x::nat.
+                         (op =::nat => nat => bool)
+                          ((op ^::nat => nat => nat) (0::nat)
+                            ((NUMERAL::nat => nat)
+                              ((NUMERAL_BIT1::nat => nat) x)))
+                          (0::nat)))
+                   ((op &::bool => bool => bool)
+                     ((All::(nat => bool) => bool)
+                       (%x::nat.
+                           (op =::nat => nat => bool)
+                            ((op ^::nat => nat => nat) (0::nat)
+                              ((NUMERAL::nat => nat)
+                                ((NUMERAL_BIT2::nat => nat) x)))
+                            (0::nat)))
+                     ((op &::bool => bool => bool)
+                       ((All::(nat => bool) => bool)
+                         (%x::nat.
+                             (op =::nat => nat => bool)
+                              ((op ^::nat => nat => nat) x (0::nat))
+                              (1::nat)))
+                       ((op &::bool => bool => bool)
+                         ((All::(nat => bool) => bool)
+                           (%x::nat.
+                               (All::(nat => bool) => bool)
+                                (%xa::nat.
+                                    (op =::nat => nat => bool)
+                                     ((op ^::nat => nat => nat)
+ ((NUMERAL::nat => nat) x) ((NUMERAL::nat => nat) xa))
+                                     ((NUMERAL::nat => nat)
+ ((op ^::nat => nat => nat) x xa)))))
+                         ((op &::bool => bool => bool)
+                           ((op =::nat => nat => bool)
+                             ((Suc::nat => nat) (0::nat)) (1::nat))
+                           ((op &::bool => bool => bool)
+                             ((All::(nat => bool) => bool)
+                               (%x::nat.
+                                   (op =::nat => nat => bool)
+                                    ((Suc::nat => nat)
+((NUMERAL::nat => nat) x))
+                                    ((NUMERAL::nat => nat)
+((Suc::nat => nat) x))))
+                             ((op &::bool => bool => bool)
+                               ((op =::nat => nat => bool)
+                                 ((PRE::nat => nat) (0::nat)) (0::nat))
+                               ((op &::bool => bool => bool)
+                                 ((All::(nat => bool) => bool)
+                                   (%x::nat.
+ (op =::nat => nat => bool) ((PRE::nat => nat) ((NUMERAL::nat => nat) x))
+  ((NUMERAL::nat => nat) ((PRE::nat => nat) x))))
+                                 ((op &::bool => bool => bool)
+                                   ((All::(nat => bool) => bool)
+                                     (%x::nat.
+   (op =::bool => bool => bool)
+    ((op =::nat => nat => bool) ((NUMERAL::nat => nat) x) (0::nat))
+    ((op =::nat => nat => bool) x (ALT_ZERO::nat))))
+                                   ((op &::bool => bool => bool)
+                                     ((All::(nat => bool) => bool)
+ (%x::nat.
+     (op =::bool => bool => bool)
+      ((op =::nat => nat => bool) (0::nat) ((NUMERAL::nat => nat) x))
+      ((op =::nat => nat => bool) x (ALT_ZERO::nat))))
+                                     ((op &::bool => bool => bool)
+ ((All::(nat => bool) => bool)
+   (%x::nat.
+       (All::(nat => bool) => bool)
+        (%xa::nat.
+            (op =::bool => bool => bool)
+             ((op =::nat => nat => bool) ((NUMERAL::nat => nat) x)
+               ((NUMERAL::nat => nat) xa))
+             ((op =::nat => nat => bool) x xa))))
+ ((op &::bool => bool => bool)
+   ((All::(nat => bool) => bool)
+     (%x::nat.
+         (op =::bool => bool => bool)
+          ((op <::nat => nat => bool) x (0::nat)) (False::bool)))
+   ((op &::bool => bool => bool)
+     ((All::(nat => bool) => bool)
+       (%x::nat.
+           (op =::bool => bool => bool)
+            ((op <::nat => nat => bool) (0::nat) ((NUMERAL::nat => nat) x))
+            ((op <::nat => nat => bool) (ALT_ZERO::nat) x)))
+     ((op &::bool => bool => bool)
+       ((All::(nat => bool) => bool)
+         (%x::nat.
+             (All::(nat => bool) => bool)
+              (%xa::nat.
+                  (op =::bool => bool => bool)
+                   ((op <::nat => nat => bool) ((NUMERAL::nat => nat) x)
+                     ((NUMERAL::nat => nat) xa))
+                   ((op <::nat => nat => bool) x xa))))
+       ((op &::bool => bool => bool)
+         ((All::(nat => bool) => bool)
+           (%x::nat.
+               (op =::bool => bool => bool)
+                ((op <::nat => nat => bool) x (0::nat)) (False::bool)))
+         ((op &::bool => bool => bool)
+           ((All::(nat => bool) => bool)
+             (%x::nat.
+                 (op =::bool => bool => bool)
+                  ((op <::nat => nat => bool) (0::nat)
+                    ((NUMERAL::nat => nat) x))
+                  ((op <::nat => nat => bool) (ALT_ZERO::nat) x)))
+           ((op &::bool => bool => bool)
+             ((All::(nat => bool) => bool)
+               (%x::nat.
+                   (All::(nat => bool) => bool)
+                    (%xa::nat.
+                        (op =::bool => bool => bool)
+                         ((op <::nat => nat => bool)
+                           ((NUMERAL::nat => nat) xa)
+                           ((NUMERAL::nat => nat) x))
+                         ((op <::nat => nat => bool) xa x))))
+             ((op &::bool => bool => bool)
+               ((All::(nat => bool) => bool)
+                 (%x::nat.
+                     (op =::bool => bool => bool)
+                      ((op <=::nat => nat => bool) (0::nat) x)
+                      (True::bool)))
+               ((op &::bool => bool => bool)
+                 ((All::(nat => bool) => bool)
+                   (%x::nat.
+                       (op =::bool => bool => bool)
+                        ((op <=::nat => nat => bool)
+                          ((NUMERAL::nat => nat) x) (0::nat))
+                        ((op <=::nat => nat => bool) x (ALT_ZERO::nat))))
+                 ((op &::bool => bool => bool)
+                   ((All::(nat => bool) => bool)
+                     (%x::nat.
+                         (All::(nat => bool) => bool)
+                          (%xa::nat.
+                              (op =::bool => bool => bool)
+                               ((op <=::nat => nat => bool)
+                                 ((NUMERAL::nat => nat) x)
+                                 ((NUMERAL::nat => nat) xa))
+                               ((op <=::nat => nat => bool) x xa))))
+                   ((op &::bool => bool => bool)
+                     ((All::(nat => bool) => bool)
+                       (%x::nat.
+                           (op =::bool => bool => bool)
+                            ((op <=::nat => nat => bool) (0::nat) x)
+                            (True::bool)))
+                     ((op &::bool => bool => bool)
+                       ((All::(nat => bool) => bool)
+                         (%x::nat.
+                             (op =::bool => bool => bool)
+                              ((op <=::nat => nat => bool) x (0::nat))
+                              ((op =::nat => nat => bool) x (0::nat))))
+                       ((op &::bool => bool => bool)
+                         ((All::(nat => bool) => bool)
+                           (%x::nat.
+                               (All::(nat => bool) => bool)
+                                (%xa::nat.
+                                    (op =::bool => bool => bool)
+                                     ((op <=::nat => nat => bool)
+ ((NUMERAL::nat => nat) xa) ((NUMERAL::nat => nat) x))
+                                     ((op <=::nat => nat => bool) xa x))))
+                         ((op &::bool => bool => bool)
+                           ((All::(nat => bool) => bool)
+                             (%x::nat.
+                                 (op =::bool => bool => bool)
+                                  ((ODD::nat => bool)
+                                    ((NUMERAL::nat => nat) x))
+                                  ((ODD::nat => bool) x)))
+                           ((op &::bool => bool => bool)
+                             ((All::(nat => bool) => bool)
+                               (%x::nat.
+                                   (op =::bool => bool => bool)
+                                    ((EVEN::nat => bool)
+((NUMERAL::nat => nat) x))
+                                    ((EVEN::nat => bool) x)))
+                             ((op &::bool => bool => bool)
+                               ((Not::bool => bool)
+                                 ((ODD::nat => bool) (0::nat)))
+                               ((EVEN::nat => bool)
+                                 (0::nat))))))))))))))))))))))))))))))))))))"
   by (import numeral numeral_distrib)
 
 lemma numeral_iisuc: "iiSUC ALT_ZERO = NUMERAL_BIT2 ALT_ZERO &
@@ -2496,7 +2692,7 @@ lemma bit_initiality: "ALL (zf::'a::type) (b1f::nat => 'a::type => 'a::type)
   by (import numeral bit_initiality)
 
 consts
-  iBIT_cases :: "nat => 'a::type => (nat => 'a::type) => (nat => 'a::type) => 'a::type" 
+  iBIT_cases :: "nat => 'a => (nat => 'a) => (nat => 'a) => 'a" 
 
 specification (iBIT_cases) iBIT_cases: "(ALL (zf::'a::type) (bf1::nat => 'a::type) bf2::nat => 'a::type.
     iBIT_cases ALT_ZERO zf bf1 bf2 = zf) &
@@ -2561,17 +2757,8 @@ lemma iSUB_THM: "ALL (xa::bool) (xb::nat) xc::nat.
    NUMERAL_BIT1 (iSUB False xb xc)"
   by (import numeral iSUB_THM)
 
-lemma numeral_sub: "(All::(nat => bool) => bool)
- (%x::nat.
-     (All::(nat => bool) => bool)
-      (%xa::nat.
-          (op =::nat => nat => bool)
-           ((NUMERAL::nat => nat) ((op -::nat => nat => nat) x xa))
-           ((If::bool => nat => nat => nat)
-             ((op <::nat => nat => bool) xa x)
-             ((NUMERAL::nat => nat)
-               ((iSUB::bool => nat => nat => nat) (True::bool) x xa))
-             (0::nat))))"
+lemma numeral_sub: "ALL (x::nat) xa::nat.
+   NUMERAL (x - xa) = (if xa < x then NUMERAL (iSUB True x xa) else 0)"
   by (import numeral numeral_sub)
 
 lemma iDUB_removal: "ALL x::nat.
@@ -2606,12 +2793,12 @@ lemma numeral_evenodd: "ALL x::nat.
    ~ ODD ALT_ZERO & ~ ODD (NUMERAL_BIT2 x) & ODD (NUMERAL_BIT1 x)"
   by (import numeral numeral_evenodd)
 
-lemma numeral_fact: "ALL n::nat. FACT n = (if n = (0::nat) then 1::nat else n * FACT (PRE n))"
+lemma numeral_fact: "ALL n::nat. FACT n = (if n = 0 then 1 else n * FACT (PRE n))"
   by (import numeral numeral_fact)
 
 lemma numeral_funpow: "ALL n::nat.
    ((f::'a::type => 'a::type) ^ n) (x::'a::type) =
-   (if n = (0::nat) then x else (f ^ (n - (1::nat))) (f x))"
+   (if n = 0 then x else (f ^ (n - 1)) (f x))"
   by (import numeral numeral_funpow)
 
 ;end_setup
@@ -2627,9 +2814,9 @@ lemma INJ_INVERSE2: "ALL P::'A::type => 'B::type => 'C::type.
 
 constdefs
   NUMPAIR :: "nat => nat => nat" 
-  "NUMPAIR == %(x::nat) y::nat. (2::nat) ^ x * ((2::nat) * y + (1::nat))"
+  "NUMPAIR == %(x::nat) y::nat. 2 ^ x * (2 * y + 1)"
 
-lemma NUMPAIR: "ALL (x::nat) y::nat. NUMPAIR x y = (2::nat) ^ x * ((2::nat) * y + (1::nat))"
+lemma NUMPAIR: "ALL (x::nat) y::nat. NUMPAIR x y = 2 ^ x * (2 * y + 1)"
   by (import ind_type NUMPAIR)
 
 lemma NUMPAIR_INJ_LEMMA: "ALL (x::nat) (xa::nat) (xb::nat) xc::nat.
@@ -2649,10 +2836,9 @@ specification (NUMFST NUMSND) NUMPAIR_DEST: "ALL (x::nat) y::nat. NUMFST (NUMPAI
 
 constdefs
   NUMSUM :: "bool => nat => nat" 
-  "NUMSUM == %(b::bool) x::nat. if b then Suc ((2::nat) * x) else (2::nat) * x"
+  "NUMSUM == %(b::bool) x::nat. if b then Suc (2 * x) else 2 * x"
 
-lemma NUMSUM: "ALL (b::bool) x::nat.
-   NUMSUM b x = (if b then Suc ((2::nat) * x) else (2::nat) * x)"
+lemma NUMSUM: "ALL (b::bool) x::nat. NUMSUM b x = (if b then Suc (2 * x) else 2 * x)"
   by (import ind_type NUMSUM)
 
 lemma NUMSUM_INJ: "ALL (b1::bool) (x1::nat) (b2::bool) x2::nat.
@@ -2667,7 +2853,7 @@ specification (NUMLEFT NUMRIGHT) NUMSUM_DEST: "ALL (x::bool) y::nat. NUMLEFT (NU
   by (import ind_type NUMSUM_DEST)
 
 constdefs
-  INJN :: "nat => nat => 'a::type => bool" 
+  INJN :: "nat => nat => 'a => bool" 
   "INJN == %(m::nat) (n::nat) a::'a::type. n = m"
 
 lemma INJN: "ALL m::nat. INJN m = (%(n::nat) a::'a::type. n = m)"
@@ -2677,7 +2863,7 @@ lemma INJN_INJ: "ALL (n1::nat) n2::nat. (INJN n1 = INJN n2) = (n1 = n2)"
   by (import ind_type INJN_INJ)
 
 constdefs
-  INJA :: "'a::type => nat => 'a::type => bool" 
+  INJA :: "'a => nat => 'a => bool" 
   "INJA == %(a::'a::type) (n::nat) b::'a::type. b = a"
 
 lemma INJA: "ALL a::'a::type. INJA a = (%(n::nat) b::'a::type. b = a)"
@@ -2687,7 +2873,7 @@ lemma INJA_INJ: "ALL (a1::'a::type) a2::'a::type. (INJA a1 = INJA a2) = (a1 = a2
   by (import ind_type INJA_INJ)
 
 constdefs
-  INJF :: "(nat => nat => 'a::type => bool) => nat => 'a::type => bool" 
+  INJF :: "(nat => nat => 'a => bool) => nat => 'a => bool" 
   "INJF == %(f::nat => nat => 'a::type => bool) n::nat. f (NUMFST n) (NUMSND n)"
 
 lemma INJF: "ALL f::nat => nat => 'a::type => bool.
@@ -2699,8 +2885,7 @@ lemma INJF_INJ: "ALL (f1::nat => nat => 'a::type => bool) f2::nat => nat => 'a::
   by (import ind_type INJF_INJ)
 
 constdefs
-  INJP :: "(nat => 'a::type => bool)
-=> (nat => 'a::type => bool) => nat => 'a::type => bool" 
+  INJP :: "(nat => 'a => bool) => (nat => 'a => bool) => nat => 'a => bool" 
   "INJP ==
 %(f1::nat => 'a::type => bool) (f2::nat => 'a::type => bool) (n::nat)
    a::'a::type. if NUMLEFT n then f1 (NUMRIGHT n) a else f2 (NUMRIGHT n) a"
@@ -2717,8 +2902,7 @@ lemma INJP_INJ: "ALL (f1::nat => 'a::type => bool) (f1'::nat => 'a::type => bool
   by (import ind_type INJP_INJ)
 
 constdefs
-  ZCONSTR :: "nat
-=> 'a::type => (nat => nat => 'a::type => bool) => nat => 'a::type => bool" 
+  ZCONSTR :: "nat => 'a => (nat => nat => 'a => bool) => nat => 'a => bool" 
   "ZCONSTR ==
 %(c::nat) (i::'a::type) r::nat => nat => 'a::type => bool.
    INJP (INJN (Suc c)) (INJP (INJA i) (INJF r))"
@@ -2728,10 +2912,10 @@ lemma ZCONSTR: "ALL (c::nat) (i::'a::type) r::nat => nat => 'a::type => bool.
   by (import ind_type ZCONSTR)
 
 constdefs
-  ZBOT :: "nat => 'a::type => bool" 
-  "ZBOT == INJP (INJN (0::nat)) (SOME z::nat => 'a::type => bool. True)"
+  ZBOT :: "nat => 'a => bool" 
+  "ZBOT == INJP (INJN 0) (SOME z::nat => 'a::type => bool. True)"
 
-lemma ZBOT: "ZBOT = INJP (INJN (0::nat)) (SOME z::nat => 'a::type => bool. True)"
+lemma ZBOT: "ZBOT = INJP (INJN 0) (SOME z::nat => 'a::type => bool. True)"
   by (import ind_type ZBOT)
 
 lemma ZCONSTR_ZBOT: "ALL (x::nat) (xa::'a::type) xb::nat => nat => 'a::type => bool.
@@ -2739,7 +2923,7 @@ lemma ZCONSTR_ZBOT: "ALL (x::nat) (xa::'a::type) xb::nat => nat => 'a::type => b
   by (import ind_type ZCONSTR_ZBOT)
 
 constdefs
-  ZRECSPACE :: "(nat => 'a::type => bool) => bool" 
+  ZRECSPACE :: "(nat => 'a => bool) => bool" 
   "ZRECSPACE ==
 %a0::nat => 'a::type => bool.
    ALL ZRECSPACE'::(nat => 'a::type => bool) => bool.
@@ -2805,22 +2989,22 @@ typedef (open) ('a) recspace = "(Collect::((nat => 'a::type => bool) => bool)
 lemmas recspace_TY_DEF = typedef_hol2hol4 [OF type_definition_recspace]
 
 consts
-  mk_rec :: "(nat => 'a::type => bool) => 'a::type recspace" 
-  dest_rec :: "'a::type recspace => nat => 'a::type => bool" 
+  mk_rec :: "(nat => 'a => bool) => 'a recspace" 
+  dest_rec :: "'a recspace => nat => 'a => bool" 
 
 specification (dest_rec mk_rec) recspace_repfns: "(ALL a::'a::type recspace. mk_rec (dest_rec a) = a) &
 (ALL r::nat => 'a::type => bool. ZRECSPACE r = (dest_rec (mk_rec r) = r))"
   by (import ind_type recspace_repfns)
 
 constdefs
-  BOTTOM :: "'a::type recspace" 
+  BOTTOM :: "'a recspace" 
   "BOTTOM == mk_rec ZBOT"
 
 lemma BOTTOM: "BOTTOM = mk_rec ZBOT"
   by (import ind_type BOTTOM)
 
 constdefs
-  CONSTR :: "nat => 'a::type => (nat => 'a::type recspace) => 'a::type recspace" 
+  CONSTR :: "nat => 'a => (nat => 'a recspace) => 'a recspace" 
   "CONSTR ==
 %(c::nat) (i::'a::type) r::nat => 'a::type recspace.
    mk_rec (ZCONSTR c i (%n::nat. dest_rec (r n)))"
@@ -2862,21 +3046,21 @@ lemma CONSTR_REC: "ALL Fn::nat
   by (import ind_type CONSTR_REC)
 
 consts
-  FCONS :: "'a::type => (nat => 'a::type) => nat => 'a::type" 
+  FCONS :: "'a => (nat => 'a) => nat => 'a" 
 
-specification (FCONS) FCONS: "(ALL (a::'a::type) f::nat => 'a::type. FCONS a f (0::nat) = a) &
+specification (FCONS) FCONS: "(ALL (a::'a::type) f::nat => 'a::type. FCONS a f 0 = a) &
 (ALL (a::'a::type) (f::nat => 'a::type) n::nat. FCONS a f (Suc n) = f n)"
   by (import ind_type FCONS)
 
 constdefs
-  FNIL :: "nat => 'a::type" 
+  FNIL :: "nat => 'a" 
   "FNIL == %n::nat. SOME x::'a::type. True"
 
 lemma FNIL: "ALL n::nat. FNIL n = (SOME x::'a::type. True)"
   by (import ind_type FNIL)
 
 constdefs
-  ISO :: "('a::type => 'b::type) => ('b::type => 'a::type) => bool" 
+  ISO :: "('a => 'b) => ('b => 'a) => bool" 
   "ISO ==
 %(f::'a::type => 'b::type) g::'b::type => 'a::type.
    (ALL x::'b::type. f (g x) = x) & (ALL y::'a::type. g (f y) = y)"
@@ -2905,16 +3089,16 @@ lemma ISO_USAGE: "ISO (f::'a::type => 'b::type) (g::'b::type => 'a::type) -->
 
 ;setup_theory divides
 
-lemma ONE_DIVIDES_ALL: "All (op dvd (1::nat))"
+lemma ONE_DIVIDES_ALL: "(All::(nat => bool) => bool) ((op dvd::nat => nat => bool) (1::nat))"
   by (import divides ONE_DIVIDES_ALL)
 
 lemma DIVIDES_ADD_2: "ALL (a::nat) (b::nat) c::nat. a dvd b & a dvd b + c --> a dvd c"
   by (import divides DIVIDES_ADD_2)
 
-lemma DIVIDES_FACT: "ALL b>0::nat. b dvd FACT b"
+lemma DIVIDES_FACT: "ALL b>0. b dvd FACT b"
   by (import divides DIVIDES_FACT)
 
-lemma DIVIDES_MULT_LEFT: "ALL (x::nat) xa::nat. (x * xa dvd xa) = (xa = (0::nat) | x = (1::nat))"
+lemma DIVIDES_MULT_LEFT: "ALL (x::nat) xa::nat. (x * xa dvd xa) = (xa = 0 | x = 1)"
   by (import divides DIVIDES_MULT_LEFT)
 
 ;end_setup
@@ -2925,18 +3109,16 @@ consts
   prime :: "nat => bool" 
 
 defs
-  prime_primdef: "prime.prime ==
-%a::nat. a ~= (1::nat) & (ALL b::nat. b dvd a --> b = a | b = (1::nat))"
+  prime_primdef: "prime.prime == %a::nat. a ~= 1 & (ALL b::nat. b dvd a --> b = a | b = 1)"
 
 lemma prime_def: "ALL a::nat.
-   prime.prime a =
-   (a ~= (1::nat) & (ALL b::nat. b dvd a --> b = a | b = (1::nat)))"
+   prime.prime a = (a ~= 1 & (ALL b::nat. b dvd a --> b = a | b = 1))"
   by (import prime prime_def)
 
-lemma NOT_PRIME_0: "~ prime.prime (0::nat)"
+lemma NOT_PRIME_0: "~ prime.prime 0"
   by (import prime NOT_PRIME_0)
 
-lemma NOT_PRIME_1: "~ prime.prime (1::nat)"
+lemma NOT_PRIME_1: "~ prime.prime 1"
   by (import prime NOT_PRIME_1)
 
 ;end_setup
@@ -2944,9 +3126,9 @@ lemma NOT_PRIME_1: "~ prime.prime (1::nat)"
 ;setup_theory list
 
 consts
-  EL :: "nat => 'a::type list => 'a::type" 
+  EL :: "nat => 'a list => 'a" 
 
-specification (EL) EL: "(ALL l::'a::type list. EL (0::nat) l = hd l) &
+specification (EL) EL: "(ALL l::'a::type list. EL 0 l = hd l) &
 (ALL (l::'a::type list) n::nat. EL (Suc n) l = EL n (tl l))"
   by (import list EL)
 
@@ -3047,7 +3229,7 @@ lemma LENGTH_EQ_CONS: "ALL (P::'a::type list => bool) n::nat.
   by (import list LENGTH_EQ_CONS)
 
 lemma LENGTH_EQ_NIL: "ALL P::'a::type list => bool.
-   (ALL l::'a::type list. length l = (0::nat) --> P l) = P []"
+   (ALL l::'a::type list. length l = 0 --> P l) = P []"
   by (import list LENGTH_EQ_NIL)
 
 lemma CONS_ACYCLIC: "ALL (l::'a::type list) x::'a::type. l ~= x # l & x # l ~= l"
@@ -3066,8 +3248,7 @@ lemma APPEND_11: "(ALL (l1::'a::type list) (l2::'a::type list) l3::'a::type list
   by (import list APPEND_11)
 
 lemma EL_compute: "ALL n::nat.
-   EL n (l::'a::type list) =
-   (if n = (0::nat) then hd l else EL (PRE n) (tl l))"
+   EL n (l::'a::type list) = (if n = 0 then hd l else EL (PRE n) (tl l))"
   by (import list EL_compute)
 
 lemma WF_LIST_PRED: "WF (%(L1::'a::type list) L2::'a::type list. EX h::'a::type. L2 = h # L1)"
@@ -3245,7 +3426,7 @@ lemma NUM_SET_WOP: "ALL s::nat => bool.
   by (import pred_set NUM_SET_WOP)
 
 consts
-  GSPEC :: "('b::type => 'a::type * bool) => 'a::type => bool" 
+  GSPEC :: "('b => 'a * bool) => 'a => bool" 
 
 specification (GSPEC) GSPECIFICATION: "ALL (f::'b::type => 'a::type * bool) v::'a::type.
    IN v (GSPEC f) = (EX x::'b::type. (v, True) = f x)"
@@ -3257,7 +3438,7 @@ lemma SET_MINIMUM: "ALL (s::'a::type => bool) M::'a::type => nat.
   by (import pred_set SET_MINIMUM)
 
 constdefs
-  EMPTY :: "'a::type => bool" 
+  EMPTY :: "'a => bool" 
   "EMPTY == %x::'a::type. False"
 
 lemma EMPTY_DEF: "EMPTY = (%x::'a::type. False)"
@@ -3270,7 +3451,7 @@ lemma MEMBER_NOT_EMPTY: "ALL x::'a::type => bool. (EX xa::'a::type. IN xa x) = (
   by (import pred_set MEMBER_NOT_EMPTY)
 
 consts
-  UNIV :: "'a::type => bool" 
+  UNIV :: "'a => bool" 
 
 defs
   UNIV_def: "pred_set.UNIV == %x::'a::type. True"
@@ -3291,7 +3472,7 @@ lemma EQ_UNIV: "(ALL x::'a::type. IN x (s::'a::type => bool)) = (s = pred_set.UN
   by (import pred_set EQ_UNIV)
 
 constdefs
-  SUBSET :: "('a::type => bool) => ('a::type => bool) => bool" 
+  SUBSET :: "('a => bool) => ('a => bool) => bool" 
   "SUBSET ==
 %(s::'a::type => bool) t::'a::type => bool.
    ALL x::'a::type. IN x s --> IN x t"
@@ -3324,7 +3505,7 @@ lemma UNIV_SUBSET: "ALL x::'a::type => bool. SUBSET pred_set.UNIV x = (x = pred_
   by (import pred_set UNIV_SUBSET)
 
 constdefs
-  PSUBSET :: "('a::type => bool) => ('a::type => bool) => bool" 
+  PSUBSET :: "('a => bool) => ('a => bool) => bool" 
   "PSUBSET == %(s::'a::type => bool) t::'a::type => bool. SUBSET s t & s ~= t"
 
 lemma PSUBSET_DEF: "ALL (s::'a::type => bool) t::'a::type => bool.
@@ -3349,7 +3530,7 @@ lemma PSUBSET_UNIV: "ALL x::'a::type => bool.
   by (import pred_set PSUBSET_UNIV)
 
 consts
-  UNION :: "('a::type => bool) => ('a::type => bool) => 'a::type => bool" 
+  UNION :: "('a => bool) => ('a => bool) => 'a => bool" 
 
 defs
   UNION_def: "pred_set.UNION ==
@@ -3403,7 +3584,7 @@ lemma EMPTY_UNION: "ALL (x::'a::type => bool) xa::'a::type => bool.
   by (import pred_set EMPTY_UNION)
 
 consts
-  INTER :: "('a::type => bool) => ('a::type => bool) => 'a::type => bool" 
+  INTER :: "('a => bool) => ('a => bool) => 'a => bool" 
 
 defs
   INTER_def: "pred_set.INTER ==
@@ -3463,7 +3644,7 @@ lemma INTER_OVER_UNION: "ALL (x::'a::type => bool) (xa::'a::type => bool) xb::'a
   by (import pred_set INTER_OVER_UNION)
 
 constdefs
-  DISJOINT :: "('a::type => bool) => ('a::type => bool) => bool" 
+  DISJOINT :: "('a => bool) => ('a => bool) => bool" 
   "DISJOINT ==
 %(s::'a::type => bool) t::'a::type => bool. pred_set.INTER s t = EMPTY"
 
@@ -3495,7 +3676,7 @@ lemma DISJOINT_UNION_BOTH: "ALL (s::'a::type => bool) (t::'a::type => bool) u::'
   by (import pred_set DISJOINT_UNION_BOTH)
 
 constdefs
-  DIFF :: "('a::type => bool) => ('a::type => bool) => 'a::type => bool" 
+  DIFF :: "('a => bool) => ('a => bool) => 'a => bool" 
   "DIFF ==
 %(s::'a::type => bool) t::'a::type => bool.
    GSPEC (%x::'a::type. (x, IN x s & ~ IN x t))"
@@ -3525,7 +3706,7 @@ lemma DIFF_EQ_EMPTY: "ALL x::'a::type => bool. DIFF x x = EMPTY"
   by (import pred_set DIFF_EQ_EMPTY)
 
 constdefs
-  INSERT :: "'a::type => ('a::type => bool) => 'a::type => bool" 
+  INSERT :: "'a => ('a => bool) => 'a => bool" 
   "INSERT ==
 %(x::'a::type) s::'a::type => bool.
    GSPEC (%y::'a::type. (y, y = x | IN y s))"
@@ -3601,7 +3782,7 @@ lemma INSERT_DIFF: "ALL (s::'a::type => bool) (t::'a::type => bool) x::'a::type.
   by (import pred_set INSERT_DIFF)
 
 constdefs
-  DELETE :: "('a::type => bool) => 'a::type => 'a::type => bool" 
+  DELETE :: "('a => bool) => 'a => 'a => bool" 
   "DELETE == %(s::'a::type => bool) x::'a::type. DIFF s (INSERT x EMPTY)"
 
 lemma DELETE_DEF: "ALL (s::'a::type => bool) x::'a::type. DELETE s x = DIFF s (INSERT x EMPTY)"
@@ -3669,13 +3850,13 @@ lemma DISJOINT_DELETE_SYM: "ALL (x::'a::type => bool) (xa::'a::type => bool) xb:
   by (import pred_set DISJOINT_DELETE_SYM)
 
 consts
-  CHOICE :: "('a::type => bool) => 'a::type" 
+  CHOICE :: "('a => bool) => 'a" 
 
 specification (CHOICE) CHOICE_DEF: "ALL x::'a::type => bool. x ~= EMPTY --> IN (CHOICE x) x"
   by (import pred_set CHOICE_DEF)
 
 constdefs
-  REST :: "('a::type => bool) => 'a::type => bool" 
+  REST :: "('a => bool) => 'a => bool" 
   "REST == %s::'a::type => bool. DELETE s (CHOICE s)"
 
 lemma REST_DEF: "ALL s::'a::type => bool. REST s = DELETE s (CHOICE s)"
@@ -3694,7 +3875,7 @@ lemma REST_PSUBSET: "ALL x::'a::type => bool. x ~= EMPTY --> PSUBSET (REST x) x"
   by (import pred_set REST_PSUBSET)
 
 constdefs
-  SING :: "('a::type => bool) => bool" 
+  SING :: "('a => bool) => bool" 
   "SING == %s::'a::type => bool. EX x::'a::type. s = INSERT x EMPTY"
 
 lemma SING_DEF: "ALL s::'a::type => bool. SING s = (EX x::'a::type. s = INSERT x EMPTY)"
@@ -3740,7 +3921,7 @@ lemma SING_IFF_EMPTY_REST: "ALL x::'a::type => bool. SING x = (x ~= EMPTY & REST
   by (import pred_set SING_IFF_EMPTY_REST)
 
 constdefs
-  IMAGE :: "('a::type => 'b::type) => ('a::type => bool) => 'b::type => bool" 
+  IMAGE :: "('a => 'b) => ('a => bool) => 'b => bool" 
   "IMAGE ==
 %(f::'a::type => 'b::type) s::'a::type => bool.
    GSPEC (%x::'a::type. (f x, IN x s))"
@@ -3794,7 +3975,7 @@ lemma IMAGE_INTER: "ALL (f::'a::type => 'b::type) (s::'a::type => bool) t::'a::t
   by (import pred_set IMAGE_INTER)
 
 constdefs
-  INJ :: "('a::type => 'b::type) => ('a::type => bool) => ('b::type => bool) => bool" 
+  INJ :: "('a => 'b) => ('a => bool) => ('b => bool) => bool" 
   "INJ ==
 %(f::'a::type => 'b::type) (s::'a::type => bool) t::'b::type => bool.
    (ALL x::'a::type. IN x s --> IN (f x) t) &
@@ -3821,7 +4002,7 @@ lemma INJ_EMPTY: "ALL x::'a::type => 'b::type.
   by (import pred_set INJ_EMPTY)
 
 constdefs
-  SURJ :: "('a::type => 'b::type) => ('a::type => bool) => ('b::type => bool) => bool" 
+  SURJ :: "('a => 'b) => ('a => bool) => ('b => bool) => bool" 
   "SURJ ==
 %(f::'a::type => 'b::type) (s::'a::type => bool) t::'b::type => bool.
    (ALL x::'a::type. IN x s --> IN (f x) t) &
@@ -3851,7 +4032,7 @@ lemma IMAGE_SURJ: "ALL (x::'a::type => 'b::type) (xa::'a::type => bool) xb::'b::
   by (import pred_set IMAGE_SURJ)
 
 constdefs
-  BIJ :: "('a::type => 'b::type) => ('a::type => bool) => ('b::type => bool) => bool" 
+  BIJ :: "('a => 'b) => ('a => bool) => ('b => bool) => bool" 
   "BIJ ==
 %(f::'a::type => 'b::type) (s::'a::type => bool) t::'b::type => bool.
    INJ f s t & SURJ f s t"
@@ -3874,21 +4055,21 @@ lemma BIJ_COMPOSE: "ALL (x::'a::type => 'b::type) (xa::'b::type => 'c::type)
   by (import pred_set BIJ_COMPOSE)
 
 consts
-  LINV :: "('a::type => 'b::type) => ('a::type => bool) => 'b::type => 'a::type" 
+  LINV :: "('a => 'b) => ('a => bool) => 'b => 'a" 
 
 specification (LINV) LINV_DEF: "ALL (f::'a::type => 'b::type) (s::'a::type => bool) t::'b::type => bool.
    INJ f s t --> (ALL x::'a::type. IN x s --> LINV f s (f x) = x)"
   by (import pred_set LINV_DEF)
 
 consts
-  RINV :: "('a::type => 'b::type) => ('a::type => bool) => 'b::type => 'a::type" 
+  RINV :: "('a => 'b) => ('a => bool) => 'b => 'a" 
 
 specification (RINV) RINV_DEF: "ALL (f::'a::type => 'b::type) (s::'a::type => bool) t::'b::type => bool.
    SURJ f s t --> (ALL x::'b::type. IN x t --> f (RINV f s x) = x)"
   by (import pred_set RINV_DEF)
 
 constdefs
-  FINITE :: "('a::type => bool) => bool" 
+  FINITE :: "('a => bool) => bool" 
   "FINITE ==
 %s::'a::type => bool.
    ALL P::('a::type => bool) => bool.
@@ -3954,7 +4135,7 @@ lemma IMAGE_FINITE: "ALL s::'a::type => bool.
   by (import pred_set IMAGE_FINITE)
 
 consts
-  CARD :: "('a::type => bool) => nat" 
+  CARD :: "('a => bool) => nat" 
 
 specification (CARD) CARD_DEF: "(op &::bool => bool => bool)
  ((op =::nat => nat => bool)
@@ -3977,7 +4158,7 @@ specification (CARD) CARD_DEF: "(op &::bool => bool => bool)
                    ((CARD::('a::type => bool) => nat) s)))))))"
   by (import pred_set CARD_DEF)
 
-lemma CARD_EMPTY: "CARD EMPTY = (0::nat)"
+lemma CARD_EMPTY: "CARD EMPTY = 0"
   by (import pred_set CARD_EMPTY)
 
 lemma CARD_INSERT: "ALL s::'a::type => bool.
@@ -3986,13 +4167,13 @@ lemma CARD_INSERT: "ALL s::'a::type => bool.
        CARD (INSERT x s) = (if IN x s then CARD s else Suc (CARD s)))"
   by (import pred_set CARD_INSERT)
 
-lemma CARD_EQ_0: "ALL s::'a::type => bool. FINITE s --> (CARD s = (0::nat)) = (s = EMPTY)"
+lemma CARD_EQ_0: "ALL s::'a::type => bool. FINITE s --> (CARD s = 0) = (s = EMPTY)"
   by (import pred_set CARD_EQ_0)
 
 lemma CARD_DELETE: "ALL s::'a::type => bool.
    FINITE s -->
    (ALL x::'a::type.
-       CARD (DELETE s x) = (if IN x s then CARD s - (1::nat) else CARD s))"
+       CARD (DELETE s x) = (if IN x s then CARD s - 1 else CARD s))"
   by (import pred_set CARD_DELETE)
 
 lemma CARD_INTER_LESS_EQ: "ALL s::'a::type => bool.
@@ -4016,10 +4197,10 @@ lemma CARD_PSUBSET: "ALL s::'a::type => bool.
    FINITE s --> (ALL t::'a::type => bool. PSUBSET t s --> CARD t < CARD s)"
   by (import pred_set CARD_PSUBSET)
 
-lemma CARD_SING: "ALL x::'a::type. CARD (INSERT x EMPTY) = (1::nat)"
+lemma CARD_SING: "ALL x::'a::type. CARD (INSERT x EMPTY) = 1"
   by (import pred_set CARD_SING)
 
-lemma SING_IFF_CARD1: "ALL x::'a::type => bool. SING x = (CARD x = (1::nat) & FINITE x)"
+lemma SING_IFF_CARD1: "ALL x::'a::type => bool. SING x = (CARD x = 1 & FINITE x)"
   by (import pred_set SING_IFF_CARD1)
 
 lemma CARD_DIFF: "ALL t::'a::type => bool.
@@ -4031,7 +4212,7 @@ lemma CARD_DIFF: "ALL t::'a::type => bool.
 lemma LESS_CARD_DIFF: "ALL t::'a::type => bool.
    FINITE t -->
    (ALL s::'a::type => bool.
-       FINITE s --> CARD t < CARD s --> (0::nat) < CARD (DIFF s t))"
+       FINITE s --> CARD t < CARD s --> 0 < CARD (DIFF s t))"
   by (import pred_set LESS_CARD_DIFF)
 
 lemma FINITE_COMPLETE_INDUCTION: "ALL P::('a::type => bool) => bool.
@@ -4042,7 +4223,7 @@ lemma FINITE_COMPLETE_INDUCTION: "ALL P::('a::type => bool) => bool.
   by (import pred_set FINITE_COMPLETE_INDUCTION)
 
 constdefs
-  INFINITE :: "('a::type => bool) => bool" 
+  INFINITE :: "('a => bool) => bool" 
   "INFINITE == %s::'a::type => bool. ~ FINITE s"
 
 lemma INFINITE_DEF: "ALL s::'a::type => bool. INFINITE s = (~ FINITE s)"
@@ -4143,7 +4324,7 @@ lemma FINITE_WEAK_ENUMERATE: "(All::(('a::type => bool) => bool) => bool)
   by (import pred_set FINITE_WEAK_ENUMERATE)
 
 constdefs
-  BIGUNION :: "(('a::type => bool) => bool) => 'a::type => bool" 
+  BIGUNION :: "(('a => bool) => bool) => 'a => bool" 
   "BIGUNION ==
 %P::('a::type => bool) => bool.
    GSPEC (%x::'a::type. (x, EX p::'a::type => bool. IN p P & IN x p))"
@@ -4190,7 +4371,7 @@ lemma FINITE_BIGUNION: "ALL x::('a::type => bool) => bool.
   by (import pred_set FINITE_BIGUNION)
 
 constdefs
-  BIGINTER :: "(('a::type => bool) => bool) => 'a::type => bool" 
+  BIGINTER :: "(('a => bool) => bool) => 'a => bool" 
   "BIGINTER ==
 %B::('a::type => bool) => bool.
    GSPEC (%x::'a::type. (x, ALL P::'a::type => bool. IN P B --> IN x P))"
@@ -4229,7 +4410,7 @@ lemma DISJOINT_BIGINTER: "ALL (x::'a::type => bool) (xa::'a::type => bool)
   by (import pred_set DISJOINT_BIGINTER)
 
 constdefs
-  CROSS :: "('a::type => bool) => ('b::type => bool) => 'a::type * 'b::type => bool" 
+  CROSS :: "('a => bool) => ('b => bool) => 'a * 'b => bool" 
   "CROSS ==
 %(P::'a::type => bool) Q::'b::type => bool.
    GSPEC (%p::'a::type * 'b::type. (p, IN (fst p) P & IN (snd p) Q))"
@@ -4283,7 +4464,7 @@ lemma FINITE_CROSS_EQ: "ALL (P::'a::type => bool) Q::'b::type => bool.
   by (import pred_set FINITE_CROSS_EQ)
 
 constdefs
-  COMPL :: "('a::type => bool) => 'a::type => bool" 
+  COMPL :: "('a => bool) => 'a => bool" 
   "COMPL == DIFF pred_set.UNIV"
 
 lemma COMPL_DEF: "ALL P::'a::type => bool. COMPL P = DIFF pred_set.UNIV P"
@@ -4323,7 +4504,7 @@ lemma count_def: "ALL n::nat. count n = GSPEC (%m::nat. (m, m < n))"
 lemma IN_COUNT: "ALL (m::nat) n::nat. IN m (count n) = (m < n)"
   by (import pred_set IN_COUNT)
 
-lemma COUNT_ZERO: "count (0::nat) = EMPTY"
+lemma COUNT_ZERO: "count 0 = EMPTY"
   by (import pred_set COUNT_ZERO)
 
 lemma COUNT_SUC: "ALL n::nat. count (Suc n) = INSERT n (count n)"
@@ -4336,8 +4517,7 @@ lemma CARD_COUNT: "ALL n::nat. CARD (count n) = n"
   by (import pred_set CARD_COUNT)
 
 constdefs
-  ITSET_tupled :: "('a::type => 'b::type => 'b::type)
-=> ('a::type => bool) * 'b::type => 'b::type" 
+  ITSET_tupled :: "('a => 'b => 'b) => ('a => bool) * 'b => 'b" 
   "ITSET_tupled ==
 %f::'a::type => 'b::type => 'b::type.
    WFREC
@@ -4370,8 +4550,7 @@ lemma ITSET_tupled_primitive_def: "ALL f::'a::type => 'b::type => 'b::type.
   by (import pred_set ITSET_tupled_primitive_def)
 
 constdefs
-  ITSET :: "('a::type => 'b::type => 'b::type)
-=> ('a::type => bool) => 'b::type => 'b::type" 
+  ITSET :: "('a => 'b => 'b) => ('a => bool) => 'b => 'b" 
   "ITSET ==
 %(f::'a::type => 'b::type => 'b::type) (x::'a::type => bool) x1::'b::type.
    ITSET_tupled f (x, x1)"
@@ -4403,7 +4582,7 @@ lemma ITSET_EMPTY: "ALL (x::'a::type => 'b::type => 'b::type) xa::'b::type.
 ;setup_theory operator
 
 constdefs
-  ASSOC :: "('a::type => 'a::type => 'a::type) => bool" 
+  ASSOC :: "('a => 'a => 'a) => bool" 
   "ASSOC ==
 %f::'a::type => 'a::type => 'a::type.
    ALL (x::'a::type) (y::'a::type) z::'a::type. f x (f y z) = f (f x y) z"
@@ -4414,7 +4593,7 @@ lemma ASSOC_DEF: "ALL f::'a::type => 'a::type => 'a::type.
   by (import operator ASSOC_DEF)
 
 constdefs
-  COMM :: "('a::type => 'a::type => 'b::type) => bool" 
+  COMM :: "('a => 'a => 'b) => bool" 
   "COMM ==
 %f::'a::type => 'a::type => 'b::type.
    ALL (x::'a::type) y::'a::type. f x y = f y x"
@@ -4424,8 +4603,7 @@ lemma COMM_DEF: "ALL f::'a::type => 'a::type => 'b::type.
   by (import operator COMM_DEF)
 
 constdefs
-  FCOMM :: "('a::type => 'b::type => 'a::type)
-=> ('c::type => 'a::type => 'a::type) => bool" 
+  FCOMM :: "('a => 'b => 'a) => ('c => 'a => 'a) => bool" 
   "FCOMM ==
 %(f::'a::type => 'b::type => 'a::type) g::'c::type => 'a::type => 'a::type.
    ALL (x::'c::type) (y::'a::type) z::'b::type. g x (f y z) = f (g x y) z"
@@ -4437,7 +4615,7 @@ lemma FCOMM_DEF: "ALL (f::'a::type => 'b::type => 'a::type)
   by (import operator FCOMM_DEF)
 
 constdefs
-  RIGHT_ID :: "('a::type => 'b::type => 'a::type) => 'b::type => bool" 
+  RIGHT_ID :: "('a => 'b => 'a) => 'b => bool" 
   "RIGHT_ID ==
 %(f::'a::type => 'b::type => 'a::type) e::'b::type.
    ALL x::'a::type. f x e = x"
@@ -4447,7 +4625,7 @@ lemma RIGHT_ID_DEF: "ALL (f::'a::type => 'b::type => 'a::type) e::'b::type.
   by (import operator RIGHT_ID_DEF)
 
 constdefs
-  LEFT_ID :: "('a::type => 'b::type => 'b::type) => 'a::type => bool" 
+  LEFT_ID :: "('a => 'b => 'b) => 'a => bool" 
   "LEFT_ID ==
 %(f::'a::type => 'b::type => 'b::type) e::'a::type.
    ALL x::'b::type. f e x = x"
@@ -4457,7 +4635,7 @@ lemma LEFT_ID_DEF: "ALL (f::'a::type => 'b::type => 'b::type) e::'a::type.
   by (import operator LEFT_ID_DEF)
 
 constdefs
-  MONOID :: "('a::type => 'a::type => 'a::type) => 'a::type => bool" 
+  MONOID :: "('a => 'a => 'a) => 'a => bool" 
   "MONOID ==
 %(f::'a::type => 'a::type => 'a::type) e::'a::type.
    ASSOC f & RIGHT_ID f e & LEFT_ID f e"
@@ -4486,7 +4664,7 @@ lemma MONOID_DISJ_F: "MONOID op | False"
 ;setup_theory rich_list
 
 consts
-  SNOC :: "'a::type => 'a::type list => 'a::type list" 
+  SNOC :: "'a => 'a list => 'a list" 
 
 specification (SNOC) SNOC: "(ALL x::'a::type. SNOC x [] = [x]) &
 (ALL (x::'a::type) (x'::'a::type) l::'a::type list.
@@ -4494,8 +4672,7 @@ specification (SNOC) SNOC: "(ALL x::'a::type. SNOC x [] = [x]) &
   by (import rich_list SNOC)
 
 consts
-  SCANL :: "('b::type => 'a::type => 'b::type)
-=> 'b::type => 'a::type list => 'b::type list" 
+  SCANL :: "('b => 'a => 'b) => 'b => 'a list => 'b list" 
 
 specification (SCANL) SCANL: "(ALL (f::'b::type => 'a::type => 'b::type) e::'b::type.
     SCANL f e [] = [e]) &
@@ -4504,8 +4681,7 @@ specification (SCANL) SCANL: "(ALL (f::'b::type => 'a::type => 'b::type) e::'b::
   by (import rich_list SCANL)
 
 consts
-  SCANR :: "('a::type => 'b::type => 'b::type)
-=> 'b::type => 'a::type list => 'b::type list" 
+  SCANR :: "('a => 'b => 'b) => 'b => 'a list => 'b list" 
 
 specification (SCANR) SCANR: "(ALL (f::'a::type => 'b::type => 'b::type) e::'b::type.
     SCANR f e [] = [e]) &
@@ -4532,27 +4708,27 @@ lemma OR_EL_DEF: "OR_EL = list_exists I"
   by (import rich_list OR_EL_DEF)
 
 consts
-  FIRSTN :: "nat => 'a::type list => 'a::type list" 
+  FIRSTN :: "nat => 'a list => 'a list" 
 
-specification (FIRSTN) FIRSTN: "(ALL l::'a::type list. FIRSTN (0::nat) l = []) &
+specification (FIRSTN) FIRSTN: "(ALL l::'a::type list. FIRSTN 0 l = []) &
 (ALL (n::nat) (x::'a::type) l::'a::type list.
     FIRSTN (Suc n) (x # l) = x # FIRSTN n l)"
   by (import rich_list FIRSTN)
 
 consts
-  BUTFIRSTN :: "nat => 'a::type list => 'a::type list" 
+  BUTFIRSTN :: "nat => 'a list => 'a list" 
 
-specification (BUTFIRSTN) BUTFIRSTN: "(ALL l::'a::type list. BUTFIRSTN (0::nat) l = l) &
+specification (BUTFIRSTN) BUTFIRSTN: "(ALL l::'a::type list. BUTFIRSTN 0 l = l) &
 (ALL (n::nat) (x::'a::type) l::'a::type list.
     BUTFIRSTN (Suc n) (x # l) = BUTFIRSTN n l)"
   by (import rich_list BUTFIRSTN)
 
 consts
-  SEG :: "nat => nat => 'a::type list => 'a::type list" 
+  SEG :: "nat => nat => 'a list => 'a list" 
 
-specification (SEG) SEG: "(ALL (k::nat) l::'a::type list. SEG (0::nat) k l = []) &
+specification (SEG) SEG: "(ALL (k::nat) l::'a::type list. SEG 0 k l = []) &
 (ALL (m::nat) (x::'a::type) l::'a::type list.
-    SEG (Suc m) (0::nat) (x # l) = x # SEG m (0::nat) l) &
+    SEG (Suc m) 0 (x # l) = x # SEG m 0 l) &
 (ALL (m::nat) (k::nat) (x::'a::type) l::'a::type list.
     SEG (Suc m) (Suc k) (x # l) = SEG (Suc m) k l)"
   by (import rich_list SEG)
@@ -4564,34 +4740,34 @@ lemma BUTLAST: "ALL (x::'a::type) l::'a::type list. butlast (SNOC x l) = l"
   by (import rich_list BUTLAST)
 
 consts
-  LASTN :: "nat => 'a::type list => 'a::type list" 
+  LASTN :: "nat => 'a list => 'a list" 
 
-specification (LASTN) LASTN: "(ALL l::'a::type list. LASTN (0::nat) l = []) &
+specification (LASTN) LASTN: "(ALL l::'a::type list. LASTN 0 l = []) &
 (ALL (n::nat) (x::'a::type) l::'a::type list.
     LASTN (Suc n) (SNOC x l) = SNOC x (LASTN n l))"
   by (import rich_list LASTN)
 
 consts
-  BUTLASTN :: "nat => 'a::type list => 'a::type list" 
+  BUTLASTN :: "nat => 'a list => 'a list" 
 
-specification (BUTLASTN) BUTLASTN: "(ALL l::'a::type list. BUTLASTN (0::nat) l = l) &
+specification (BUTLASTN) BUTLASTN: "(ALL l::'a::type list. BUTLASTN 0 l = l) &
 (ALL (n::nat) (x::'a::type) l::'a::type list.
     BUTLASTN (Suc n) (SNOC x l) = BUTLASTN n l)"
   by (import rich_list BUTLASTN)
 
-lemma EL: "(ALL x::'a::type list. EL (0::nat) x = hd x) &
+lemma EL: "(ALL x::'a::type list. EL 0 x = hd x) &
 (ALL (x::nat) xa::'a::type list. EL (Suc x) xa = EL x (tl xa))"
   by (import rich_list EL)
 
 consts
-  ELL :: "nat => 'a::type list => 'a::type" 
+  ELL :: "nat => 'a list => 'a" 
 
-specification (ELL) ELL: "(ALL l::'a::type list. ELL (0::nat) l = last l) &
+specification (ELL) ELL: "(ALL l::'a::type list. ELL 0 l = last l) &
 (ALL (n::nat) l::'a::type list. ELL (Suc n) l = ELL n (butlast l))"
   by (import rich_list ELL)
 
 consts
-  IS_PREFIX :: "'a::type list => 'a::type list => bool" 
+  IS_PREFIX :: "'a list => 'a list => bool" 
 
 specification (IS_PREFIX) IS_PREFIX: "(ALL l::'a::type list. IS_PREFIX l [] = True) &
 (ALL (x::'a::type) l::'a::type list. IS_PREFIX [] (x # l) = False) &
@@ -4616,7 +4792,7 @@ lemma SNOC_Axiom: "ALL (e::'b::type) f::'a::type => 'a::type list => 'b::type =>
   by (import rich_list SNOC_Axiom)
 
 consts
-  IS_SUFFIX :: "'a::type list => 'a::type list => bool" 
+  IS_SUFFIX :: "'a list => 'a list => bool" 
 
 specification (IS_SUFFIX) IS_SUFFIX: "(ALL l::'a::type list. IS_SUFFIX l [] = True) &
 (ALL (x::'a::type) l::'a::type list. IS_SUFFIX [] (SNOC x l) = False) &
@@ -4625,7 +4801,7 @@ specification (IS_SUFFIX) IS_SUFFIX: "(ALL l::'a::type list. IS_SUFFIX l [] = Tr
   by (import rich_list IS_SUFFIX)
 
 consts
-  IS_SUBLIST :: "'a::type list => 'a::type list => bool" 
+  IS_SUBLIST :: "'a list => 'a list => bool" 
 
 specification (IS_SUBLIST) IS_SUBLIST: "(ALL l::'a::type list. IS_SUBLIST l [] = True) &
 (ALL (x::'a::type) l::'a::type list. IS_SUBLIST [] (x # l) = False) &
@@ -4635,7 +4811,7 @@ specification (IS_SUBLIST) IS_SUBLIST: "(ALL l::'a::type list. IS_SUBLIST l [] =
   by (import rich_list IS_SUBLIST)
 
 consts
-  SPLITP :: "('a::type => bool) => 'a::type list => 'a::type list * 'a::type list" 
+  SPLITP :: "('a => bool) => 'a list => 'a list * 'a list" 
 
 specification (SPLITP) SPLITP: "(ALL P::'a::type => bool. SPLITP P [] = ([], [])) &
 (ALL (P::'a::type => bool) (x::'a::type) l::'a::type list.
@@ -4644,7 +4820,7 @@ specification (SPLITP) SPLITP: "(ALL P::'a::type => bool. SPLITP P [] = ([], [])
   by (import rich_list SPLITP)
 
 constdefs
-  PREFIX :: "('a::type => bool) => 'a::type list => 'a::type list" 
+  PREFIX :: "('a => bool) => 'a list => 'a list" 
   "PREFIX == %(P::'a::type => bool) l::'a::type list. fst (SPLITP (Not o P) l)"
 
 lemma PREFIX_DEF: "ALL (P::'a::type => bool) l::'a::type list.
@@ -4652,7 +4828,7 @@ lemma PREFIX_DEF: "ALL (P::'a::type => bool) l::'a::type list.
   by (import rich_list PREFIX_DEF)
 
 constdefs
-  SUFFIX :: "('a::type => bool) => 'a::type list => 'a::type list" 
+  SUFFIX :: "('a => bool) => 'a list => 'a list" 
   "SUFFIX ==
 %P::'a::type => bool.
    foldl (%(l'::'a::type list) x::'a::type. if P x then SNOC x l' else [])
@@ -4665,31 +4841,31 @@ lemma SUFFIX_DEF: "ALL (P::'a::type => bool) l::'a::type list.
   by (import rich_list SUFFIX_DEF)
 
 constdefs
-  UNZIP_FST :: "('a::type * 'b::type) list => 'a::type list" 
+  UNZIP_FST :: "('a * 'b) list => 'a list" 
   "UNZIP_FST == %l::('a::type * 'b::type) list. fst (unzip l)"
 
 lemma UNZIP_FST_DEF: "ALL l::('a::type * 'b::type) list. UNZIP_FST l = fst (unzip l)"
   by (import rich_list UNZIP_FST_DEF)
 
 constdefs
-  UNZIP_SND :: "('a::type * 'b::type) list => 'b::type list" 
+  UNZIP_SND :: "('a * 'b) list => 'b list" 
   "UNZIP_SND == %l::('a::type * 'b::type) list. snd (unzip l)"
 
 lemma UNZIP_SND_DEF: "ALL l::('a::type * 'b::type) list. UNZIP_SND l = snd (unzip l)"
   by (import rich_list UNZIP_SND_DEF)
 
 consts
-  GENLIST :: "(nat => 'a::type) => nat => 'a::type list" 
+  GENLIST :: "(nat => 'a) => nat => 'a list" 
 
-specification (GENLIST) GENLIST: "(ALL f::nat => 'a::type. GENLIST f (0::nat) = []) &
+specification (GENLIST) GENLIST: "(ALL f::nat => 'a::type. GENLIST f 0 = []) &
 (ALL (f::nat => 'a::type) n::nat.
     GENLIST f (Suc n) = SNOC (f n) (GENLIST f n))"
   by (import rich_list GENLIST)
 
 consts
-  REPLICATE :: "nat => 'a::type => 'a::type list" 
+  REPLICATE :: "nat => 'a => 'a list" 
 
-specification (REPLICATE) REPLICATE: "(ALL x::'a::type. REPLICATE (0::nat) x = []) &
+specification (REPLICATE) REPLICATE: "(ALL x::'a::type. REPLICATE 0 x = []) &
 (ALL (n::nat) x::'a::type. REPLICATE (Suc n) x = x # REPLICATE n x)"
   by (import rich_list REPLICATE)
 
@@ -4706,7 +4882,7 @@ lemma NULL_EQ_NIL: "ALL l::'a::type list. null l = (l = [])"
 lemma LENGTH_EQ: "ALL (x::'a::type list) y::'a::type list. x = y --> length x = length y"
   by (import rich_list LENGTH_EQ)
 
-lemma LENGTH_NOT_NULL: "ALL l::'a::type list. ((0::nat) < length l) = (~ null l)"
+lemma LENGTH_NOT_NULL: "ALL l::'a::type list. (0 < length l) = (~ null l)"
   by (import rich_list LENGTH_NOT_NULL)
 
 lemma SNOC_INDUCT: "ALL P::'a::type list => bool.
@@ -4755,11 +4931,10 @@ lemma FOLDR_FOLDL: "ALL (f::'a::type => 'a::type => 'a::type) e::'a::type.
    MONOID f e --> (ALL l::'a::type list. foldr f l e = foldl f e l)"
   by (import rich_list FOLDR_FOLDL)
 
-lemma LENGTH_FOLDR: "ALL l::'a::type list. length l = foldr (%x::'a::type. Suc) l (0::nat)"
+lemma LENGTH_FOLDR: "ALL l::'a::type list. length l = foldr (%x::'a::type. Suc) l 0"
   by (import rich_list LENGTH_FOLDR)
 
-lemma LENGTH_FOLDL: "ALL l::'a::type list.
-   length l = foldl (%(l'::nat) x::'a::type. Suc l') (0::nat) l"
+lemma LENGTH_FOLDL: "ALL l::'a::type list. length l = foldl (%(l'::nat) x::'a::type. Suc l') 0 l"
   by (import rich_list LENGTH_FOLDL)
 
 lemma MAP_FOLDR: "ALL (f::'a::type => 'b::type) l::'a::type list.
@@ -4870,7 +5045,7 @@ lemma IS_EL_SNOC: "ALL (y::'a::type) (x::'a::type) l::'a::type list.
 lemma SUM_SNOC: "ALL (x::nat) l::nat list. sum (SNOC x l) = sum l + x"
   by (import rich_list SUM_SNOC)
 
-lemma SUM_FOLDL: "ALL l::nat list. sum l = foldl op + (0::nat) l"
+lemma SUM_FOLDL: "ALL l::nat list. sum l = foldl op + 0 l"
   by (import rich_list SUM_FOLDL)
 
 lemma IS_PREFIX_APPEND: "ALL (l1::'a::type list) l2::'a::type list.
@@ -5077,7 +5252,7 @@ lemma NULL_FOLDR: "ALL l::'a::type list. null l = foldr (%(x::'a::type) l'::bool
 lemma NULL_FOLDL: "ALL l::'a::type list. null l = foldl (%(x::bool) l'::'a::type. False) True l"
   by (import rich_list NULL_FOLDL)
 
-lemma SEG_LENGTH_ID: "ALL l::'a::type list. SEG (length l) (0::nat) l = l"
+lemma SEG_LENGTH_ID: "ALL l::'a::type list. SEG (length l) 0 l = l"
   by (import rich_list SEG_LENGTH_ID)
 
 lemma SEG_SUC_CONS: "ALL (m::nat) (n::nat) (l::'a::type list) x::'a::type.
@@ -5085,11 +5260,11 @@ lemma SEG_SUC_CONS: "ALL (m::nat) (n::nat) (l::'a::type list) x::'a::type.
   by (import rich_list SEG_SUC_CONS)
 
 lemma SEG_0_SNOC: "ALL (m::nat) (l::'a::type list) x::'a::type.
-   m <= length l --> SEG m (0::nat) (SNOC x l) = SEG m (0::nat) l"
+   m <= length l --> SEG m 0 (SNOC x l) = SEG m 0 l"
   by (import rich_list SEG_0_SNOC)
 
 lemma BUTLASTN_SEG: "ALL (n::nat) l::'a::type list.
-   n <= length l --> BUTLASTN n l = SEG (length l - n) (0::nat) l"
+   n <= length l --> BUTLASTN n l = SEG (length l - n) 0 l"
   by (import rich_list BUTLASTN_SEG)
 
 lemma LASTN_CONS: "ALL (n::nat) l::'a::type list.
@@ -5160,7 +5335,7 @@ lemma BUTLASTN_LENGTH_CONS: "ALL (l::'a::type list) x::'a::type. BUTLASTN (lengt
   by (import rich_list BUTLASTN_LENGTH_CONS)
 
 lemma LAST_LASTN_LAST: "ALL (n::nat) l::'a::type list.
-   n <= length l --> (0::nat) < n --> last (LASTN n l) = last l"
+   n <= length l --> 0 < n --> last (LASTN n l) = last l"
   by (import rich_list LAST_LASTN_LAST)
 
 lemma BUTLASTN_LASTN_NIL: "ALL (n::nat) l::'a::type list. n <= length l --> BUTLASTN n (LASTN n l) = []"
@@ -5176,10 +5351,10 @@ lemma BUTLASTN_LASTN: "ALL (m::nat) (n::nat) l::'a::type list.
    BUTLASTN m (LASTN n l) = LASTN (n - m) (BUTLASTN m l)"
   by (import rich_list BUTLASTN_LASTN)
 
-lemma LASTN_1: "ALL l::'a::type list. l ~= [] --> LASTN (1::nat) l = [last l]"
+lemma LASTN_1: "ALL l::'a::type list. l ~= [] --> LASTN 1 l = [last l]"
   by (import rich_list LASTN_1)
 
-lemma BUTLASTN_1: "ALL l::'a::type list. l ~= [] --> BUTLASTN (1::nat) l = butlast l"
+lemma BUTLASTN_1: "ALL l::'a::type list. l ~= [] --> BUTLASTN 1 l = butlast l"
   by (import rich_list BUTLASTN_1)
 
 lemma BUTLASTN_APPEND1: "ALL (l2::'a::type list) n::nat.
@@ -5292,8 +5467,7 @@ lemma LASTN_SEG: "ALL (n::nat) l::'a::type list.
    n <= length l --> LASTN n l = SEG n (length l - n) l"
   by (import rich_list LASTN_SEG)
 
-lemma FIRSTN_SEG: "ALL (n::nat) l::'a::type list.
-   n <= length l --> FIRSTN n l = SEG n (0::nat) l"
+lemma FIRSTN_SEG: "ALL (n::nat) l::'a::type list. n <= length l --> FIRSTN n l = SEG n 0 l"
   by (import rich_list FIRSTN_SEG)
 
 lemma BUTFIRSTN_SEG: "ALL (n::nat) l::'a::type list.
@@ -5331,11 +5505,10 @@ lemma SEG_FIRSTN_BUTFISTN: "ALL (n::nat) (m::nat) l::'a::type list.
 lemma SEG_APPEND: "ALL (m::nat) (l1::'a::type list) (n::nat) l2::'a::type list.
    m < length l1 & length l1 <= n + m & n + m <= length l1 + length l2 -->
    SEG n m (l1 @ l2) =
-   SEG (length l1 - m) m l1 @ SEG (n + m - length l1) (0::nat) l2"
+   SEG (length l1 - m) m l1 @ SEG (n + m - length l1) 0 l2"
   by (import rich_list SEG_APPEND)
 
-lemma SEG_LENGTH_SNOC: "ALL (x::'a::type list) xa::'a::type.
-   SEG (1::nat) (length x) (SNOC xa x) = [xa]"
+lemma SEG_LENGTH_SNOC: "ALL (x::'a::type list) xa::'a::type. SEG 1 (length x) (SNOC xa x) = [xa]"
   by (import rich_list SEG_LENGTH_SNOC)
 
 lemma SEG_SNOC: "ALL (n::nat) (m::nat) l::'a::type list.
@@ -5343,7 +5516,7 @@ lemma SEG_SNOC: "ALL (n::nat) (m::nat) l::'a::type list.
   by (import rich_list SEG_SNOC)
 
 lemma ELL_SEG: "ALL (n::nat) l::'a::type list.
-   n < length l --> ELL n l = hd (SEG (1::nat) (PRE (length l - n)) l)"
+   n < length l --> ELL n l = hd (SEG 1 (PRE (length l - n)) l)"
   by (import rich_list ELL_SEG)
 
 lemma SNOC_FOLDR: "ALL (x::'a::type) l::'a::type list. SNOC x l = foldr op # l [x]"
@@ -5405,13 +5578,13 @@ lemma COMM_ASSOC_FOLDL_REVERSE: "ALL f::'a::type => 'a::type => 'a::type.
    (ALL (e::'a::type) l::'a::type list. foldl f e (rev l) = foldl f e l)"
   by (import rich_list COMM_ASSOC_FOLDL_REVERSE)
 
-lemma ELL_LAST: "ALL l::'a::type list. ~ null l --> ELL (0::nat) l = last l"
+lemma ELL_LAST: "ALL l::'a::type list. ~ null l --> ELL 0 l = last l"
   by (import rich_list ELL_LAST)
 
-lemma ELL_0_SNOC: "ALL (l::'a::type list) x::'a::type. ELL (0::nat) (SNOC x l) = x"
+lemma ELL_0_SNOC: "ALL (l::'a::type list) x::'a::type. ELL 0 (SNOC x l) = x"
   by (import rich_list ELL_0_SNOC)
 
-lemma ELL_SNOC: "ALL n>0::nat.
+lemma ELL_SNOC: "ALL n>0.
    ALL (x::'a::type) l::'a::type list. ELL n (SNOC x l) = ELL (PRE n) l"
   by (import rich_list ELL_SNOC)
 
@@ -5642,12 +5815,10 @@ lemma EL_MAP: "ALL (n::nat) l::'a::type list.
    (ALL f::'a::type => 'b::type. EL n (map f l) = f (EL n l))"
   by (import rich_list EL_MAP)
 
-lemma EL_CONS: "ALL n>0::nat.
-   ALL (x::'a::type) l::'a::type list. EL n (x # l) = EL (PRE n) l"
+lemma EL_CONS: "ALL n>0. ALL (x::'a::type) l::'a::type list. EL n (x # l) = EL (PRE n) l"
   by (import rich_list EL_CONS)
 
-lemma EL_SEG: "ALL (n::nat) l::'a::type list.
-   n < length l --> EL n l = hd (SEG (1::nat) n l)"
+lemma EL_SEG: "ALL (n::nat) l::'a::type list. n < length l --> EL n l = hd (SEG 1 n l)"
   by (import rich_list EL_SEG)
 
 lemma EL_IS_EL: "ALL (n::nat) l::'a::type list. n < length l --> EL n l mem l"
@@ -5726,7 +5897,7 @@ lemma LENGTH_GENLIST: "ALL (f::nat => 'a::type) n::nat. length (GENLIST f n) = n
 lemma LENGTH_REPLICATE: "ALL (n::nat) x::'a::type. length (REPLICATE n x) = n"
   by (import rich_list LENGTH_REPLICATE)
 
-lemma IS_EL_REPLICATE: "ALL n>0::nat. ALL x::'a::type. x mem REPLICATE n x"
+lemma IS_EL_REPLICATE: "ALL n>0. ALL x::'a::type. x mem REPLICATE n x"
   by (import rich_list IS_EL_REPLICATE)
 
 lemma ALL_EL_REPLICATE: "ALL (x::'a::type) n::nat. list_all (op = x) (REPLICATE n x)"
@@ -5749,7 +5920,7 @@ lemma OR_EL_FOLDR: "ALL l::bool list. OR_EL l = foldr op | l False"
 ;setup_theory state_transformer
 
 constdefs
-  UNIT :: "'b::type => 'a::type => 'b::type * 'a::type" 
+  UNIT :: "'b => 'a => 'b * 'a" 
   "(op ==::('b::type => 'a::type => 'b::type * 'a::type)
         => ('b::type => 'a::type => 'b::type * 'a::type) => prop)
  (UNIT::'b::type => 'a::type => 'b::type * 'a::type)
@@ -5759,9 +5930,7 @@ lemma UNIT_DEF: "ALL x::'b::type. UNIT x = Pair x"
   by (import state_transformer UNIT_DEF)
 
 constdefs
-  BIND :: "('a::type => 'b::type * 'a::type)
-=> ('b::type => 'a::type => 'c::type * 'a::type)
-   => 'a::type => 'c::type * 'a::type" 
+  BIND :: "('a => 'b * 'a) => ('b => 'a => 'c * 'a) => 'a => 'c * 'a" 
   "(op ==::(('a::type => 'b::type * 'a::type)
          => ('b::type => 'a::type => 'c::type * 'a::type)
             => 'a::type => 'c::type * 'a::type)
@@ -5802,8 +5971,7 @@ lemma BIND_DEF: "(All::(('a::type => 'b::type * 'a::type) => bool) => bool)
   by (import state_transformer BIND_DEF)
 
 constdefs
-  MMAP :: "('c::type => 'b::type)
-=> ('a::type => 'c::type * 'a::type) => 'a::type => 'b::type * 'a::type" 
+  MMAP :: "('c => 'b) => ('a => 'c * 'a) => 'a => 'b * 'a" 
   "MMAP ==
 %(f::'c::type => 'b::type) m::'a::type => 'c::type * 'a::type.
    BIND m (UNIT o f)"
@@ -5813,8 +5981,7 @@ lemma MMAP_DEF: "ALL (f::'c::type => 'b::type) m::'a::type => 'c::type * 'a::typ
   by (import state_transformer MMAP_DEF)
 
 constdefs
-  JOIN :: "('a::type => ('a::type => 'b::type * 'a::type) * 'a::type)
-=> 'a::type => 'b::type * 'a::type" 
+  JOIN :: "('a => ('a => 'b * 'a) * 'a) => 'a => 'b * 'a" 
   "JOIN ==
 %z::'a::type => ('a::type => 'b::type * 'a::type) * 'a::type. BIND z I"
 

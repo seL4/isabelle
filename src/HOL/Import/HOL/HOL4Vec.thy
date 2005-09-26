@@ -142,50 +142,47 @@ typedef (open) ('a) word = "(Collect::('a::type list recspace => bool) => 'a::ty
 lemmas word_TY_DEF = typedef_hol2hol4 [OF type_definition_word]
 
 consts
-  mk_word :: "'a::type list recspace => 'a::type word" 
-  dest_word :: "'a::type word => 'a::type list recspace" 
+  mk_word :: "'a list recspace => 'a word" 
+  dest_word :: "'a word => 'a list recspace" 
 
 specification (dest_word mk_word) word_repfns: "(ALL a::'a::type word. mk_word (dest_word a) = a) &
 (ALL r::'a::type list recspace.
     (ALL word::'a::type list recspace => bool.
         (ALL a0::'a::type list recspace.
-            (EX a::'a::type list.
-                a0 = CONSTR (0::nat) a (%n::nat. BOTTOM)) -->
+            (EX a::'a::type list. a0 = CONSTR 0 a (%n::nat. BOTTOM)) -->
             word a0) -->
         word r) =
     (dest_word (mk_word r) = r))"
   by (import word_base word_repfns)
 
 consts
-  word_base0 :: "'a::type list => 'a::type word" 
+  word_base0 :: "'a list => 'a word" 
 
 defs
-  word_base0_primdef: "word_base0 ==
-%a::'a::type list. mk_word (CONSTR (0::nat) a (%n::nat. BOTTOM))"
+  word_base0_primdef: "word_base0 == %a::'a::type list. mk_word (CONSTR 0 a (%n::nat. BOTTOM))"
 
-lemma word_base0_def: "word_base0 =
-(%a::'a::type list. mk_word (CONSTR (0::nat) a (%n::nat. BOTTOM)))"
+lemma word_base0_def: "word_base0 = (%a::'a::type list. mk_word (CONSTR 0 a (%n::nat. BOTTOM)))"
   by (import word_base word_base0_def)
 
 constdefs
-  WORD :: "'a::type list => 'a::type word" 
+  WORD :: "'a list => 'a word" 
   "WORD == word_base0"
 
 lemma WORD: "WORD = word_base0"
   by (import word_base WORD)
 
 consts
-  word_case :: "('a::type list => 'b::type) => 'a::type word => 'b::type" 
+  word_case :: "('a list => 'b) => 'a word => 'b" 
 
 specification (word_case_primdef: word_case) word_case_def: "ALL (f::'a::type list => 'b::type) a::'a::type list.
    word_case f (WORD a) = f a"
   by (import word_base word_case_def)
 
 consts
-  word_size :: "('a::type => nat) => 'a::type word => nat" 
+  word_size :: "('a => nat) => 'a word => nat" 
 
 specification (word_size_primdef: word_size) word_size_def: "ALL (f::'a::type => nat) a::'a::type list.
-   word_size f (WORD a) = (1::nat) + list_size f a"
+   word_size f (WORD a) = 1 + list_size f a"
   by (import word_base word_size_def)
 
 lemma word_11: "ALL (a::'a::type list) a'::'a::type list. (WORD a = WORD a') = (a = a')"
@@ -222,13 +219,13 @@ lemma word_cases: "ALL x::'a::type word. EX l::'a::type list. x = WORD l"
   by (import word_base word_cases)
 
 consts
-  WORDLEN :: "'a::type word => nat" 
+  WORDLEN :: "'a word => nat" 
 
 specification (WORDLEN) WORDLEN_DEF: "ALL l::'a::type list. WORDLEN (WORD l) = length l"
   by (import word_base WORDLEN_DEF)
 
 consts
-  PWORDLEN :: "nat => 'a::type word => bool" 
+  PWORDLEN :: "nat => 'a word => bool" 
 
 defs
   PWORDLEN_primdef: "PWORDLEN == %n::nat. GSPEC (%w::'a::type word. (w, WORDLEN w = n))"
@@ -242,20 +239,20 @@ lemma IN_PWORDLEN: "ALL (n::nat) l::'a::type list. IN (WORD l) (PWORDLEN n) = (l
 lemma PWORDLEN: "ALL (n::nat) w::'a::type word. IN w (PWORDLEN n) = (WORDLEN w = n)"
   by (import word_base PWORDLEN)
 
-lemma PWORDLEN0: "ALL w::'a::type word. IN w (PWORDLEN (0::nat)) --> w = WORD []"
+lemma PWORDLEN0: "ALL w::'a::type word. IN w (PWORDLEN 0) --> w = WORD []"
   by (import word_base PWORDLEN0)
 
-lemma PWORDLEN1: "ALL x::'a::type. IN (WORD [x]) (PWORDLEN (1::nat))"
+lemma PWORDLEN1: "ALL x::'a::type. IN (WORD [x]) (PWORDLEN 1)"
   by (import word_base PWORDLEN1)
 
 consts
-  WSEG :: "nat => nat => 'a::type word => 'a::type word" 
+  WSEG :: "nat => nat => 'a word => 'a word" 
 
 specification (WSEG) WSEG_DEF: "ALL (m::nat) (k::nat) l::'a::type list.
    WSEG m k (WORD l) = WORD (LASTN m (BUTLASTN k l))"
   by (import word_base WSEG_DEF)
 
-lemma WSEG0: "ALL (k::nat) w::'a::type word. WSEG (0::nat) k w = WORD []"
+lemma WSEG0: "ALL (k::nat) w::'a::type word. WSEG 0 k w = WORD []"
   by (import word_base WSEG0)
 
 lemma WSEG_PWORDLEN: "ALL n::nat.
@@ -271,17 +268,16 @@ lemma WSEG_WORDLEN: "ALL x::nat.
            xb + xc <= x --> WORDLEN (WSEG xb xc xa) = xb)"
   by (import word_base WSEG_WORDLEN)
 
-lemma WSEG_WORD_LENGTH: "ALL n::nat.
-   RES_FORALL (PWORDLEN n) (%w::'a::type word. WSEG n (0::nat) w = w)"
+lemma WSEG_WORD_LENGTH: "ALL n::nat. RES_FORALL (PWORDLEN n) (%w::'a::type word. WSEG n 0 w = w)"
   by (import word_base WSEG_WORD_LENGTH)
 
 consts
-  bit :: "nat => 'a::type word => 'a::type" 
+  bit :: "nat => 'a word => 'a" 
 
 specification (bit) BIT_DEF: "ALL (k::nat) l::'a::type list. bit k (WORD l) = ELL k l"
   by (import word_base BIT_DEF)
 
-lemma BIT0: "ALL x::'a::type. bit (0::nat) (WORD [x]) = x"
+lemma BIT0: "ALL x::'a::type. bit 0 (WORD [x]) = x"
   by (import word_base BIT0)
 
 lemma WSEG_BIT: "(All::(nat => bool) => bool)
@@ -311,36 +307,35 @@ lemma BIT_WSEG: "ALL n::nat.
   by (import word_base BIT_WSEG)
 
 consts
-  MSB :: "'a::type word => 'a::type" 
+  MSB :: "'a word => 'a" 
 
 specification (MSB) MSB_DEF: "ALL l::'a::type list. MSB (WORD l) = hd l"
   by (import word_base MSB_DEF)
 
 lemma MSB: "ALL n::nat.
    RES_FORALL (PWORDLEN n)
-    (%w::'a::type word. (0::nat) < n --> MSB w = bit (PRE n) w)"
+    (%w::'a::type word. 0 < n --> MSB w = bit (PRE n) w)"
   by (import word_base MSB)
 
 consts
-  LSB :: "'a::type word => 'a::type" 
+  LSB :: "'a word => 'a" 
 
 specification (LSB) LSB_DEF: "ALL l::'a::type list. LSB (WORD l) = last l"
   by (import word_base LSB_DEF)
 
 lemma LSB: "ALL n::nat.
-   RES_FORALL (PWORDLEN n)
-    (%w::'a::type word. (0::nat) < n --> LSB w = bit (0::nat) w)"
+   RES_FORALL (PWORDLEN n) (%w::'a::type word. 0 < n --> LSB w = bit 0 w)"
   by (import word_base LSB)
 
 consts
-  WSPLIT :: "nat => 'a::type word => 'a::type word * 'a::type word" 
+  WSPLIT :: "nat => 'a word => 'a word * 'a word" 
 
 specification (WSPLIT) WSPLIT_DEF: "ALL (m::nat) l::'a::type list.
    WSPLIT m (WORD l) = (WORD (BUTLASTN m l), WORD (LASTN m l))"
   by (import word_base WSPLIT_DEF)
 
 consts
-  WCAT :: "'a::type word * 'a::type word => 'a::type word" 
+  WCAT :: "'a word * 'a word => 'a word" 
 
 specification (WCAT) WCAT_DEF: "ALL (l1::'a::type list) l2::'a::type list.
    WCAT (WORD l1, WORD l2) = WORD (l1 @ l2)"
@@ -451,7 +446,7 @@ lemma WCAT_PWORDLEN: "ALL n1::nat.
 
 lemma WORDLEN_SUC_WCAT: "ALL (n::nat) w::'a::type word.
    IN w (PWORDLEN (Suc n)) -->
-   RES_EXISTS (PWORDLEN (1::nat))
+   RES_EXISTS (PWORDLEN 1)
     (%b::'a::type word.
         RES_EXISTS (PWORDLEN n) (%w'::'a::type word. w = WCAT (b, w')))"
   by (import word_base WORDLEN_SUC_WCAT)
@@ -538,25 +533,25 @@ lemma WCAT_WSEG_WSEG: "ALL n::nat.
 
 lemma WORD_SPLIT: "ALL (x::nat) xa::nat.
    RES_FORALL (PWORDLEN (x + xa))
-    (%w::'a::type word. w = WCAT (WSEG x xa w, WSEG xa (0::nat) w))"
+    (%w::'a::type word. w = WCAT (WSEG x xa w, WSEG xa 0 w))"
   by (import word_base WORD_SPLIT)
 
 lemma WORDLEN_SUC_WCAT_WSEG_WSEG: "RES_FORALL (PWORDLEN (Suc (n::nat)))
- (%w::'a::type word. w = WCAT (WSEG (1::nat) n w, WSEG n (0::nat) w))"
+ (%w::'a::type word. w = WCAT (WSEG 1 n w, WSEG n 0 w))"
   by (import word_base WORDLEN_SUC_WCAT_WSEG_WSEG)
 
 lemma WORDLEN_SUC_WCAT_WSEG_WSEG_RIGHT: "RES_FORALL (PWORDLEN (Suc (n::nat)))
- (%w::'a::type word. w = WCAT (WSEG n (1::nat) w, WSEG (1::nat) (0::nat) w))"
+ (%w::'a::type word. w = WCAT (WSEG n 1 w, WSEG 1 0 w))"
   by (import word_base WORDLEN_SUC_WCAT_WSEG_WSEG_RIGHT)
 
 lemma WORDLEN_SUC_WCAT_BIT_WSEG: "ALL n::nat.
    RES_FORALL (PWORDLEN (Suc n))
-    (%w::'a::type word. w = WCAT (WORD [bit n w], WSEG n (0::nat) w))"
+    (%w::'a::type word. w = WCAT (WORD [bit n w], WSEG n 0 w))"
   by (import word_base WORDLEN_SUC_WCAT_BIT_WSEG)
 
 lemma WORDLEN_SUC_WCAT_BIT_WSEG_RIGHT: "ALL n::nat.
    RES_FORALL (PWORDLEN (Suc n))
-    (%w::'a::type word. w = WCAT (WSEG n (1::nat) w, WORD [bit (0::nat) w]))"
+    (%w::'a::type word. w = WCAT (WSEG n 1 w, WORD [bit 0 w]))"
   by (import word_base WORDLEN_SUC_WCAT_BIT_WSEG_RIGHT)
 
 lemma WSEG_WCAT1: "ALL (n1::nat) n2::nat.
@@ -570,7 +565,7 @@ lemma WSEG_WCAT2: "ALL (n1::nat) n2::nat.
    RES_FORALL (PWORDLEN n1)
     (%w1::'a::type word.
         RES_FORALL (PWORDLEN n2)
-         (%w2::'a::type word. WSEG n2 (0::nat) (WCAT (w1, w2)) = w2))"
+         (%w2::'a::type word. WSEG n2 0 (WCAT (w1, w2)) = w2))"
   by (import word_base WSEG_WCAT2)
 
 lemma WSEG_SUC: "ALL n::nat.
@@ -578,7 +573,7 @@ lemma WSEG_SUC: "ALL n::nat.
     (%w::'a::type word.
         ALL (k::nat) m1::nat.
            k + Suc m1 < n -->
-           WSEG (Suc m1) k w = WCAT (WSEG (1::nat) (k + m1) w, WSEG m1 k w))"
+           WSEG (Suc m1) k w = WCAT (WSEG 1 (k + m1) w, WSEG m1 k w))"
   by (import word_base WSEG_SUC)
 
 lemma WORD_CONS_WCAT: "ALL (x::'a::type) l::'a::type list. WORD (x # l) = WCAT (WORD [x], WORD l)"
@@ -657,7 +652,7 @@ lemma WSEG_WCAT_WSEG: "ALL (n1::nat) n2::nat.
              ALL (m::nat) k::nat.
                 m + k <= n1 + n2 & k < n2 & n2 <= m + k -->
                 WSEG m k (WCAT (w1, w2)) =
-                WCAT (WSEG (m + k - n2) (0::nat) w1, WSEG (n2 - k) k w2)))"
+                WCAT (WSEG (m + k - n2) 0 w1, WSEG (n2 - k) k w2)))"
   by (import word_base WSEG_WCAT_WSEG)
 
 lemma BIT_EQ_IMP_WORD_EQ: "(All::(nat => bool) => bool)
@@ -686,23 +681,22 @@ lemma BIT_EQ_IMP_WORD_EQ: "(All::(nat => bool) => bool)
 ;setup_theory word_num
 
 constdefs
-  LVAL :: "('a::type => nat) => nat => 'a::type list => nat" 
+  LVAL :: "('a => nat) => nat => 'a list => nat" 
   "LVAL ==
-%(f::'a::type => nat) b::nat.
-   foldl (%(e::nat) x::'a::type. b * e + f x) (0::nat)"
+%(f::'a::type => nat) b::nat. foldl (%(e::nat) x::'a::type. b * e + f x) 0"
 
 lemma LVAL_DEF: "ALL (f::'a::type => nat) (b::nat) l::'a::type list.
-   LVAL f b l = foldl (%(e::nat) x::'a::type. b * e + f x) (0::nat) l"
+   LVAL f b l = foldl (%(e::nat) x::'a::type. b * e + f x) 0 l"
   by (import word_num LVAL_DEF)
 
 consts
-  NVAL :: "('a::type => nat) => nat => 'a::type word => nat" 
+  NVAL :: "('a => nat) => nat => 'a word => nat" 
 
 specification (NVAL) NVAL_DEF: "ALL (f::'a::type => nat) (b::nat) l::'a::type list.
    NVAL f b (WORD l) = LVAL f b l"
   by (import word_num NVAL_DEF)
 
-lemma LVAL: "(ALL (x::'a::type => nat) xa::nat. LVAL x xa [] = (0::nat)) &
+lemma LVAL: "(ALL (x::'a::type => nat) xa::nat. LVAL x xa [] = 0) &
 (ALL (x::'a::type list) (xa::'a::type => nat) (xb::nat) xc::'a::type.
     LVAL xa xb (xc # x) = xa xc * xb ^ length x + LVAL xa xb x)"
   by (import word_num LVAL)
@@ -721,16 +715,15 @@ lemma NVAL_MAX: "ALL (f::'a::type => nat) b::nat.
        RES_FORALL (PWORDLEN n) (%w::'a::type word. NVAL f b w < b ^ n))"
   by (import word_num NVAL_MAX)
 
-lemma NVAL0: "ALL (x::'a::type => nat) xa::nat. NVAL x xa (WORD []) = (0::nat)"
+lemma NVAL0: "ALL (x::'a::type => nat) xa::nat. NVAL x xa (WORD []) = 0"
   by (import word_num NVAL0)
 
 lemma NVAL1: "ALL (x::'a::type => nat) (xa::nat) xb::'a::type.
    NVAL x xa (WORD [xb]) = x xb"
   by (import word_num NVAL1)
 
-lemma NVAL_WORDLEN_0: "RES_FORALL (PWORDLEN (0::nat))
- (%w::'a::type word.
-     ALL (fv::'a::type => nat) r::nat. NVAL fv r w = (0::nat))"
+lemma NVAL_WORDLEN_0: "RES_FORALL (PWORDLEN 0)
+ (%w::'a::type word. ALL (fv::'a::type => nat) r::nat. NVAL fv r w = 0)"
   by (import word_num NVAL_WORDLEN_0)
 
 lemma NVAL_WCAT1: "ALL (w::'a::type word) (f::'a::type => nat) (b::nat) x::'a::type.
@@ -755,17 +748,16 @@ lemma NVAL_WCAT: "ALL (n::nat) m::nat.
   by (import word_num NVAL_WCAT)
 
 consts
-  NLIST :: "nat => (nat => 'a::type) => nat => nat => 'a::type list" 
+  NLIST :: "nat => (nat => 'a) => nat => nat => 'a list" 
 
-specification (NLIST) NLIST_DEF: "(ALL (frep::nat => 'a::type) (b::nat) m::nat.
-    NLIST (0::nat) frep b m = []) &
+specification (NLIST) NLIST_DEF: "(ALL (frep::nat => 'a::type) (b::nat) m::nat. NLIST 0 frep b m = []) &
 (ALL (n::nat) (frep::nat => 'a::type) (b::nat) m::nat.
     NLIST (Suc n) frep b m =
     SNOC (frep (m mod b)) (NLIST n frep b (m div b)))"
   by (import word_num NLIST_DEF)
 
 constdefs
-  NWORD :: "nat => (nat => 'a::type) => nat => nat => 'a::type word" 
+  NWORD :: "nat => (nat => 'a) => nat => nat => 'a word" 
   "NWORD ==
 %(n::nat) (frep::nat => 'a::type) (b::nat) m::nat. WORD (NLIST n frep b m)"
 
@@ -786,7 +778,7 @@ lemma NWORD_PWORDLEN: "ALL (x::nat) (xa::nat => 'a::type) (xb::nat) xc::nat.
 ;setup_theory word_bitop
 
 consts
-  PBITOP :: "('a::type word => 'b::type word) => bool" 
+  PBITOP :: "('a word => 'b word) => bool" 
 
 defs
   PBITOP_primdef: "PBITOP ==
@@ -867,7 +859,7 @@ lemma PBITOP_BIT: "(RES_FORALL::(('a::type word => 'b::type word) => bool)
   by (import word_bitop PBITOP_BIT)
 
 consts
-  PBITBOP :: "('a::type word => 'b::type word => 'c::type word) => bool" 
+  PBITBOP :: "('a word => 'b word => 'c word) => bool" 
 
 defs
   PBITBOP_primdef: "PBITBOP ==
@@ -944,7 +936,7 @@ lemma PBITBOP_EXISTS: "ALL f::'a::type => 'b::type => 'c::type.
   by (import word_bitop PBITBOP_EXISTS)
 
 consts
-  WMAP :: "('a::type => 'b::type) => 'a::type word => 'b::type word" 
+  WMAP :: "('a => 'b) => 'a word => 'b word" 
 
 specification (WMAP) WMAP_DEF: "ALL (f::'a::type => 'b::type) l::'a::type list.
    WMAP f (WORD l) = WORD (map f l)"
@@ -1000,7 +992,7 @@ lemma WMAP_o: "ALL (w::'a::type word) (f::'a::type => 'b::type) g::'b::type => '
   by (import word_bitop WMAP_o)
 
 consts
-  FORALLBITS :: "('a::type => bool) => 'a::type word => bool" 
+  FORALLBITS :: "('a => bool) => 'a word => bool" 
 
 specification (FORALLBITS) FORALLBITS_DEF: "ALL (P::'a::type => bool) l::'a::type list.
    FORALLBITS P (WORD l) = list_all P l"
@@ -1038,7 +1030,7 @@ lemma FORALLBITS_WCAT: "ALL (w1::'a::type word) (w2::'a::type word) P::'a::type 
   by (import word_bitop FORALLBITS_WCAT)
 
 consts
-  EXISTSABIT :: "('a::type => bool) => 'a::type word => bool" 
+  EXISTSABIT :: "('a => bool) => 'a word => bool" 
 
 specification (EXISTSABIT) EXISTSABIT_DEF: "ALL (P::'a::type => bool) l::'a::type list.
    EXISTSABIT P (WORD l) = list_exists P l"
@@ -1085,37 +1077,33 @@ lemma EXISTSABIT_WCAT: "ALL (w1::'a::type word) (w2::'a::type word) P::'a::type 
   by (import word_bitop EXISTSABIT_WCAT)
 
 constdefs
-  SHR :: "bool => 'a::type => 'a::type word => 'a::type word * 'a::type" 
+  SHR :: "bool => 'a => 'a word => 'a word * 'a" 
   "SHR ==
 %(f::bool) (b::'a::type) w::'a::type word.
    (WCAT
-     (if f then WSEG (1::nat) (PRE (WORDLEN w)) w else WORD [b],
-      WSEG (PRE (WORDLEN w)) (1::nat) w),
-    bit (0::nat) w)"
+     (if f then WSEG 1 (PRE (WORDLEN w)) w else WORD [b],
+      WSEG (PRE (WORDLEN w)) 1 w),
+    bit 0 w)"
 
 lemma SHR_DEF: "ALL (f::bool) (b::'a::type) w::'a::type word.
    SHR f b w =
    (WCAT
-     (if f then WSEG (1::nat) (PRE (WORDLEN w)) w else WORD [b],
-      WSEG (PRE (WORDLEN w)) (1::nat) w),
-    bit (0::nat) w)"
+     (if f then WSEG 1 (PRE (WORDLEN w)) w else WORD [b],
+      WSEG (PRE (WORDLEN w)) 1 w),
+    bit 0 w)"
   by (import word_bitop SHR_DEF)
 
 constdefs
-  SHL :: "bool => 'a::type word => 'a::type => 'a::type * 'a::type word" 
+  SHL :: "bool => 'a word => 'a => 'a * 'a word" 
   "SHL ==
 %(f::bool) (w::'a::type word) b::'a::type.
    (bit (PRE (WORDLEN w)) w,
-    WCAT
-     (WSEG (PRE (WORDLEN w)) (0::nat) w,
-      if f then WSEG (1::nat) (0::nat) w else WORD [b]))"
+    WCAT (WSEG (PRE (WORDLEN w)) 0 w, if f then WSEG 1 0 w else WORD [b]))"
 
 lemma SHL_DEF: "ALL (f::bool) (w::'a::type word) b::'a::type.
    SHL f w b =
    (bit (PRE (WORDLEN w)) w,
-    WCAT
-     (WSEG (PRE (WORDLEN w)) (0::nat) w,
-      if f then WSEG (1::nat) (0::nat) w else WORD [b]))"
+    WCAT (WSEG (PRE (WORDLEN w)) 0 w, if f then WSEG 1 0 w else WORD [b]))"
   by (import word_bitop SHL_DEF)
 
 lemma SHR_WSEG: "ALL n::nat.
@@ -1123,14 +1111,12 @@ lemma SHR_WSEG: "ALL n::nat.
     (%w::'a::type word.
         ALL (m::nat) k::nat.
            m + k <= n -->
-           (0::nat) < m -->
+           0 < m -->
            (ALL (f::bool) b::'a::type.
                SHR f b (WSEG m k w) =
                (if f
-                then WCAT
-                      (WSEG (1::nat) (k + (m - (1::nat))) w,
-                       WSEG (m - (1::nat)) (k + (1::nat)) w)
-                else WCAT (WORD [b], WSEG (m - (1::nat)) (k + (1::nat)) w),
+                then WCAT (WSEG 1 (k + (m - 1)) w, WSEG (m - 1) (k + 1) w)
+                else WCAT (WORD [b], WSEG (m - 1) (k + 1) w),
                 bit k w)))"
   by (import word_bitop SHR_WSEG)
 
@@ -1139,9 +1125,9 @@ lemma SHR_WSEG_1F: "ALL n::nat.
     (%w::'a::type word.
         ALL (b::'a::type) (m::nat) k::nat.
            m + k <= n -->
-           (0::nat) < m -->
+           0 < m -->
            SHR False b (WSEG m k w) =
-           (WCAT (WORD [b], WSEG (m - (1::nat)) (k + (1::nat)) w), bit k w))"
+           (WCAT (WORD [b], WSEG (m - 1) (k + 1) w), bit k w))"
   by (import word_bitop SHR_WSEG_1F)
 
 lemma SHR_WSEG_NF: "ALL n::nat.
@@ -1149,9 +1135,9 @@ lemma SHR_WSEG_NF: "ALL n::nat.
     (%w::'a::type word.
         ALL (m::nat) k::nat.
            m + k < n -->
-           (0::nat) < m -->
+           0 < m -->
            SHR False (bit (m + k) w) (WSEG m k w) =
-           (WSEG m (k + (1::nat)) w, bit k w))"
+           (WSEG m (k + 1) w, bit k w))"
   by (import word_bitop SHR_WSEG_NF)
 
 lemma SHL_WSEG: "ALL n::nat.
@@ -1159,12 +1145,12 @@ lemma SHL_WSEG: "ALL n::nat.
     (%w::'a::type word.
         ALL (m::nat) k::nat.
            m + k <= n -->
-           (0::nat) < m -->
+           0 < m -->
            (ALL (f::bool) b::'a::type.
                SHL f (WSEG m k w) b =
-               (bit (k + (m - (1::nat))) w,
-                if f then WCAT (WSEG (m - (1::nat)) k w, WSEG (1::nat) k w)
-                else WCAT (WSEG (m - (1::nat)) k w, WORD [b]))))"
+               (bit (k + (m - 1)) w,
+                if f then WCAT (WSEG (m - 1) k w, WSEG 1 k w)
+                else WCAT (WSEG (m - 1) k w, WORD [b]))))"
   by (import word_bitop SHL_WSEG)
 
 lemma SHL_WSEG_1F: "ALL n::nat.
@@ -1172,10 +1158,9 @@ lemma SHL_WSEG_1F: "ALL n::nat.
     (%w::'a::type word.
         ALL (b::'a::type) (m::nat) k::nat.
            m + k <= n -->
-           (0::nat) < m -->
+           0 < m -->
            SHL False (WSEG m k w) b =
-           (bit (k + (m - (1::nat))) w,
-            WCAT (WSEG (m - (1::nat)) k w, WORD [b])))"
+           (bit (k + (m - 1)) w, WCAT (WSEG (m - 1) k w, WORD [b])))"
   by (import word_bitop SHL_WSEG_1F)
 
 lemma SHL_WSEG_NF: "ALL n::nat.
@@ -1183,31 +1168,28 @@ lemma SHL_WSEG_NF: "ALL n::nat.
     (%w::'a::type word.
         ALL (m::nat) k::nat.
            m + k <= n -->
-           (0::nat) < m -->
-           (0::nat) < k -->
-           SHL False (WSEG m k w) (bit (k - (1::nat)) w) =
-           (bit (k + (m - (1::nat))) w, WSEG m (k - (1::nat)) w))"
+           0 < m -->
+           0 < k -->
+           SHL False (WSEG m k w) (bit (k - 1) w) =
+           (bit (k + (m - 1)) w, WSEG m (k - 1) w))"
   by (import word_bitop SHL_WSEG_NF)
 
 lemma WSEG_SHL: "ALL n::nat.
    RES_FORALL (PWORDLEN (Suc n))
     (%w::'a::type word.
         ALL (m::nat) k::nat.
-           (0::nat) < k & m + k <= Suc n -->
+           0 < k & m + k <= Suc n -->
            (ALL b::'a::type.
-               WSEG m k (snd (SHL (f::bool) w b)) =
-               WSEG m (k - (1::nat)) w))"
+               WSEG m k (snd (SHL (f::bool) w b)) = WSEG m (k - 1) w))"
   by (import word_bitop WSEG_SHL)
 
 lemma WSEG_SHL_0: "ALL n::nat.
    RES_FORALL (PWORDLEN (Suc n))
     (%w::'a::type word.
         ALL (m::nat) b::'a::type.
-           (0::nat) < m & m <= Suc n -->
-           WSEG m (0::nat) (snd (SHL (f::bool) w b)) =
-           WCAT
-            (WSEG (m - (1::nat)) (0::nat) w,
-             if f then WSEG (1::nat) (0::nat) w else WORD [b]))"
+           0 < m & m <= Suc n -->
+           WSEG m 0 (snd (SHL (f::bool) w b)) =
+           WCAT (WSEG (m - 1) 0 w, if f then WSEG 1 0 w else WORD [b]))"
   by (import word_bitop WSEG_SHL_0)
 
 ;end_setup
@@ -1216,24 +1198,24 @@ lemma WSEG_SHL_0: "ALL n::nat.
 
 constdefs
   BV :: "bool => nat" 
-  "(BV == (%(b::bool). (if b then (Suc (0::nat)) else (0::nat))))"
+  "BV == %b::bool. if b then Suc 0 else 0"
 
-lemma BV_DEF: "(ALL (b::bool). ((BV b) = (if b then (Suc (0::nat)) else (0::nat))))"
+lemma BV_DEF: "ALL b::bool. BV b = (if b then Suc 0 else 0)"
   by (import bword_num BV_DEF)
 
 consts
   BNVAL :: "bool word => nat" 
 
-specification (BNVAL) BNVAL_DEF: "ALL l::bool list. BNVAL (WORD l) = LVAL BV (2::nat) l"
+specification (BNVAL) BNVAL_DEF: "ALL l::bool list. BNVAL (WORD l) = LVAL BV 2 l"
   by (import bword_num BNVAL_DEF)
 
-lemma BV_LESS_2: "ALL x::bool. BV x < (2::nat)"
+lemma BV_LESS_2: "ALL x::bool. BV x < 2"
   by (import bword_num BV_LESS_2)
 
-lemma BNVAL_NVAL: "ALL w::bool word. BNVAL w = NVAL BV (2::nat) w"
+lemma BNVAL_NVAL: "ALL w::bool word. BNVAL w = NVAL BV 2 w"
   by (import bword_num BNVAL_NVAL)
 
-lemma BNVAL0: "BNVAL (WORD []) = (0::nat)"
+lemma BNVAL0: "BNVAL (WORD []) = 0"
   by (import bword_num BNVAL0)
 
 lemma BNVAL_11: "ALL (w1::bool word) w2::bool word.
@@ -1243,20 +1225,19 @@ lemma BNVAL_11: "ALL (w1::bool word) w2::bool word.
 lemma BNVAL_ONTO: "ALL w::bool word. Ex (op = (BNVAL w))"
   by (import bword_num BNVAL_ONTO)
 
-lemma BNVAL_MAX: "ALL n::nat. RES_FORALL (PWORDLEN n) (%w::bool word. BNVAL w < (2::nat) ^ n)"
+lemma BNVAL_MAX: "ALL n::nat. RES_FORALL (PWORDLEN n) (%w::bool word. BNVAL w < 2 ^ n)"
   by (import bword_num BNVAL_MAX)
 
 lemma BNVAL_WCAT1: "ALL n::nat.
    RES_FORALL (PWORDLEN n)
     (%w::bool word.
-        ALL x::bool. BNVAL (WCAT (w, WORD [x])) = BNVAL w * (2::nat) + BV x)"
+        ALL x::bool. BNVAL (WCAT (w, WORD [x])) = BNVAL w * 2 + BV x)"
   by (import bword_num BNVAL_WCAT1)
 
 lemma BNVAL_WCAT2: "ALL n::nat.
    RES_FORALL (PWORDLEN n)
     (%w::bool word.
-        ALL x::bool.
-           BNVAL (WCAT (WORD [x], w)) = BV x * (2::nat) ^ n + BNVAL w)"
+        ALL x::bool. BNVAL (WCAT (WORD [x], w)) = BV x * 2 ^ n + BNVAL w)"
   by (import bword_num BNVAL_WCAT2)
 
 lemma BNVAL_WCAT: "ALL (n::nat) m::nat.
@@ -1264,24 +1245,24 @@ lemma BNVAL_WCAT: "ALL (n::nat) m::nat.
     (%w1::bool word.
         RES_FORALL (PWORDLEN m)
          (%w2::bool word.
-             BNVAL (WCAT (w1, w2)) = BNVAL w1 * (2::nat) ^ m + BNVAL w2))"
+             BNVAL (WCAT (w1, w2)) = BNVAL w1 * 2 ^ m + BNVAL w2))"
   by (import bword_num BNVAL_WCAT)
 
 constdefs
   VB :: "nat => bool" 
-  "VB == %n::nat. n mod (2::nat) ~= (0::nat)"
+  "VB == %n::nat. n mod 2 ~= 0"
 
-lemma VB_DEF: "ALL n::nat. VB n = (n mod (2::nat) ~= (0::nat))"
+lemma VB_DEF: "ALL n::nat. VB n = (n mod 2 ~= 0)"
   by (import bword_num VB_DEF)
 
 constdefs
   NBWORD :: "nat => nat => bool word" 
-  "NBWORD == %(n::nat) m::nat. WORD (NLIST n VB (2::nat) m)"
+  "NBWORD == %(n::nat) m::nat. WORD (NLIST n VB 2 m)"
 
-lemma NBWORD_DEF: "ALL (n::nat) m::nat. NBWORD n m = WORD (NLIST n VB (2::nat) m)"
+lemma NBWORD_DEF: "ALL (n::nat) m::nat. NBWORD n m = WORD (NLIST n VB 2 m)"
   by (import bword_num NBWORD_DEF)
 
-lemma NBWORD0: "ALL x::nat. NBWORD (0::nat) x = WORD []"
+lemma NBWORD0: "ALL x::nat. NBWORD 0 x = WORD []"
   by (import bword_num NBWORD0)
 
 lemma WORDLEN_NBWORD: "ALL (x::nat) xa::nat. WORDLEN (NBWORD x xa) = x"
@@ -1291,8 +1272,7 @@ lemma PWORDLEN_NBWORD: "ALL (x::nat) xa::nat. IN (NBWORD x xa) (PWORDLEN x)"
   by (import bword_num PWORDLEN_NBWORD)
 
 lemma NBWORD_SUC: "ALL (n::nat) m::nat.
-   NBWORD (Suc n) m =
-   WCAT (NBWORD n (m div (2::nat)), WORD [VB (m mod (2::nat))])"
+   NBWORD (Suc n) m = WCAT (NBWORD n (m div 2), WORD [VB (m mod 2)])"
   by (import bword_num NBWORD_SUC)
 
 lemma VB_BV: "ALL x::bool. VB (BV x) = x"
@@ -1313,21 +1293,18 @@ lemma BV_VB: "(All::(nat => bool) => bool)
 lemma NBWORD_BNVAL: "ALL n::nat. RES_FORALL (PWORDLEN n) (%w::bool word. NBWORD n (BNVAL w) = w)"
   by (import bword_num NBWORD_BNVAL)
 
-lemma BNVAL_NBWORD: "ALL (n::nat) m::nat. m < (2::nat) ^ n --> BNVAL (NBWORD n m) = m"
+lemma BNVAL_NBWORD: "ALL (n::nat) m::nat. m < 2 ^ n --> BNVAL (NBWORD n m) = m"
   by (import bword_num BNVAL_NBWORD)
 
 lemma ZERO_WORD_VAL: "RES_FORALL (PWORDLEN (n::nat))
- (%w::bool word. (w = NBWORD n (0::nat)) = (BNVAL w = (0::nat)))"
+ (%w::bool word. (w = NBWORD n 0) = (BNVAL w = 0))"
   by (import bword_num ZERO_WORD_VAL)
 
-lemma WCAT_NBWORD_0: "ALL (n1::nat) n2::nat.
-   WCAT (NBWORD n1 (0::nat), NBWORD n2 (0::nat)) = NBWORD (n1 + n2) (0::nat)"
+lemma WCAT_NBWORD_0: "ALL (n1::nat) n2::nat. WCAT (NBWORD n1 0, NBWORD n2 0) = NBWORD (n1 + n2) 0"
   by (import bword_num WCAT_NBWORD_0)
 
 lemma WSPLIT_NBWORD_0: "ALL (n::nat) m::nat.
-   m <= n -->
-   WSPLIT m (NBWORD n (0::nat)) =
-   (NBWORD (n - m) (0::nat), NBWORD m (0::nat))"
+   m <= n --> WSPLIT m (NBWORD n 0) = (NBWORD (n - m) 0, NBWORD m 0)"
   by (import bword_num WSPLIT_NBWORD_0)
 
 lemma EQ_NBWORD0_SPLIT: "(All::(nat => bool) => bool)
@@ -1354,43 +1331,41 @@ lemma EQ_NBWORD0_SPLIT: "(All::(nat => bool) => bool)
                       ((NBWORD::nat => nat => bool word) m (0::nat))))))))"
   by (import bword_num EQ_NBWORD0_SPLIT)
 
-lemma NBWORD_MOD: "ALL (n::nat) m::nat. NBWORD n (m mod (2::nat) ^ n) = NBWORD n m"
+lemma NBWORD_MOD: "ALL (n::nat) m::nat. NBWORD n (m mod 2 ^ n) = NBWORD n m"
   by (import bword_num NBWORD_MOD)
 
-lemma WSEG_NBWORD_SUC: "ALL (n::nat) m::nat. WSEG n (0::nat) (NBWORD (Suc n) m) = NBWORD n m"
+lemma WSEG_NBWORD_SUC: "ALL (n::nat) m::nat. WSEG n 0 (NBWORD (Suc n) m) = NBWORD n m"
   by (import bword_num WSEG_NBWORD_SUC)
 
 lemma NBWORD_SUC_WSEG: "ALL n::nat.
    RES_FORALL (PWORDLEN (Suc n))
-    (%w::bool word. NBWORD n (BNVAL w) = WSEG n (0::nat) w)"
+    (%w::bool word. NBWORD n (BNVAL w) = WSEG n 0 w)"
   by (import bword_num NBWORD_SUC_WSEG)
 
-lemma DOUBL_EQ_SHL: "ALL x>0::nat.
+lemma DOUBL_EQ_SHL: "ALL x>0.
    RES_FORALL (PWORDLEN x)
     (%xa::bool word.
         ALL xb::bool.
            NBWORD x (BNVAL xa + BNVAL xa + BV xb) = snd (SHL False xa xb))"
   by (import bword_num DOUBL_EQ_SHL)
 
-lemma MSB_NBWORD: "ALL (n::nat) m::nat.
-   bit n (NBWORD (Suc n) m) = VB (m div (2::nat) ^ n mod (2::nat))"
+lemma MSB_NBWORD: "ALL (n::nat) m::nat. bit n (NBWORD (Suc n) m) = VB (m div 2 ^ n mod 2)"
   by (import bword_num MSB_NBWORD)
 
 lemma NBWORD_SPLIT: "ALL (n1::nat) (n2::nat) m::nat.
-   NBWORD (n1 + n2) m = WCAT (NBWORD n1 (m div (2::nat) ^ n2), NBWORD n2 m)"
+   NBWORD (n1 + n2) m = WCAT (NBWORD n1 (m div 2 ^ n2), NBWORD n2 m)"
   by (import bword_num NBWORD_SPLIT)
 
 lemma WSEG_NBWORD: "ALL (m::nat) (k::nat) n::nat.
    m + k <= n -->
-   (ALL l::nat. WSEG m k (NBWORD n l) = NBWORD m (l div (2::nat) ^ k))"
+   (ALL l::nat. WSEG m k (NBWORD n l) = NBWORD m (l div 2 ^ k))"
   by (import bword_num WSEG_NBWORD)
 
 lemma NBWORD_SUC_FST: "ALL (n::nat) x::nat.
-   NBWORD (Suc n) x =
-   WCAT (WORD [VB (x div (2::nat) ^ n mod (2::nat))], NBWORD n x)"
+   NBWORD (Suc n) x = WCAT (WORD [VB (x div 2 ^ n mod 2)], NBWORD n x)"
   by (import bword_num NBWORD_SUC_FST)
 
-lemma BIT_NBWORD0: "ALL (k::nat) n::nat. k < n --> bit k (NBWORD n (0::nat)) = False"
+lemma BIT_NBWORD0: "ALL (k::nat) n::nat. k < n --> bit k (NBWORD n 0) = False"
   by (import bword_num BIT_NBWORD0)
 
 lemma ADD_BNVAL_LEFT: "ALL n::nat.
@@ -1399,8 +1374,8 @@ lemma ADD_BNVAL_LEFT: "ALL n::nat.
         RES_FORALL (PWORDLEN (Suc n))
          (%w2::bool word.
              BNVAL w1 + BNVAL w2 =
-             (BV (bit n w1) + BV (bit n w2)) * (2::nat) ^ n +
-             (BNVAL (WSEG n (0::nat) w1) + BNVAL (WSEG n (0::nat) w2))))"
+             (BV (bit n w1) + BV (bit n w2)) * 2 ^ n +
+             (BNVAL (WSEG n 0 w1) + BNVAL (WSEG n 0 w2))))"
   by (import bword_num ADD_BNVAL_LEFT)
 
 lemma ADD_BNVAL_RIGHT: "ALL n::nat.
@@ -1409,9 +1384,8 @@ lemma ADD_BNVAL_RIGHT: "ALL n::nat.
         RES_FORALL (PWORDLEN (Suc n))
          (%w2::bool word.
              BNVAL w1 + BNVAL w2 =
-             (BNVAL (WSEG n (1::nat) w1) + BNVAL (WSEG n (1::nat) w2)) *
-             (2::nat) +
-             (BV (bit (0::nat) w1) + BV (bit (0::nat) w2))))"
+             (BNVAL (WSEG n 1 w1) + BNVAL (WSEG n 1 w2)) * 2 +
+             (BV (bit 0 w1) + BV (bit 0 w2))))"
   by (import bword_num ADD_BNVAL_RIGHT)
 
 lemma ADD_BNVAL_SPLIT: "ALL (n1::nat) n2::nat.
@@ -1420,9 +1394,8 @@ lemma ADD_BNVAL_SPLIT: "ALL (n1::nat) n2::nat.
         RES_FORALL (PWORDLEN (n1 + n2))
          (%w2::bool word.
              BNVAL w1 + BNVAL w2 =
-             (BNVAL (WSEG n1 n2 w1) + BNVAL (WSEG n1 n2 w2)) *
-             (2::nat) ^ n2 +
-             (BNVAL (WSEG n2 (0::nat) w1) + BNVAL (WSEG n2 (0::nat) w2))))"
+             (BNVAL (WSEG n1 n2 w1) + BNVAL (WSEG n1 n2 w2)) * 2 ^ n2 +
+             (BNVAL (WSEG n2 0 w1) + BNVAL (WSEG n2 0 w2))))"
   by (import bword_num ADD_BNVAL_SPLIT)
 
 ;end_setup
@@ -1432,19 +1405,16 @@ lemma ADD_BNVAL_SPLIT: "ALL (n1::nat) n2::nat.
 consts
   ACARRY :: "nat => bool word => bool word => bool => bool" 
 
-specification (ACARRY) ACARRY_DEF: "(ALL (w1::bool word) (w2::bool word) cin::bool.
-    ACARRY (0::nat) w1 w2 cin = cin) &
+specification (ACARRY) ACARRY_DEF: "(ALL (w1::bool word) (w2::bool word) cin::bool. ACARRY 0 w1 w2 cin = cin) &
 (ALL (n::nat) (w1::bool word) (w2::bool word) cin::bool.
     ACARRY (Suc n) w1 w2 cin =
-    VB ((BV (bit n w1) + BV (bit n w2) + BV (ACARRY n w1 w2 cin)) div
-        (2::nat)))"
+    VB ((BV (bit n w1) + BV (bit n w2) + BV (ACARRY n w1 w2 cin)) div 2))"
   by (import bword_arith ACARRY_DEF)
 
 consts
   ICARRY :: "nat => bool word => bool word => bool => bool" 
 
-specification (ICARRY) ICARRY_DEF: "(ALL (w1::bool word) (w2::bool word) cin::bool.
-    ICARRY (0::nat) w1 w2 cin = cin) &
+specification (ICARRY) ICARRY_DEF: "(ALL (w1::bool word) (w2::bool word) cin::bool. ICARRY 0 w1 w2 cin = cin) &
 (ALL (n::nat) (w1::bool word) (w2::bool word) cin::bool.
     ICARRY (Suc n) w1 w2 cin =
     (bit n w1 & bit n w2 | (bit n w1 | bit n w2) & ICARRY n w1 w2 cin))"
@@ -1459,9 +1429,7 @@ lemma ACARRY_EQ_ICARRY: "ALL n::nat.
                 k <= n --> ACARRY k w1 w2 cin = ICARRY k w1 w2 cin))"
   by (import bword_arith ACARRY_EQ_ICARRY)
 
-lemma BNVAL_LESS_EQ: "ALL n::nat.
-   RES_FORALL (PWORDLEN n)
-    (%w::bool word. BNVAL w <= (2::nat) ^ n - (1::nat))"
+lemma BNVAL_LESS_EQ: "ALL n::nat. RES_FORALL (PWORDLEN n) (%w::bool word. BNVAL w <= 2 ^ n - 1)"
   by (import bword_arith BNVAL_LESS_EQ)
 
 lemma ADD_BNVAL_LESS_EQ1: "ALL (n::nat) cin::bool.
@@ -1469,8 +1437,7 @@ lemma ADD_BNVAL_LESS_EQ1: "ALL (n::nat) cin::bool.
     (%w1::bool word.
         RES_FORALL (PWORDLEN n)
          (%w2::bool word.
-             (BNVAL w1 + (BNVAL w2 + BV cin)) div (2::nat) ^ n
-             <= Suc (0::nat)))"
+             (BNVAL w1 + (BNVAL w2 + BV cin)) div 2 ^ n <= Suc 0))"
   by (import bword_arith ADD_BNVAL_LESS_EQ1)
 
 lemma ADD_BV_BNVAL_DIV_LESS_EQ1: "ALL (n::nat) (x1::bool) (x2::bool) cin::bool.
@@ -1479,9 +1446,9 @@ lemma ADD_BV_BNVAL_DIV_LESS_EQ1: "ALL (n::nat) (x1::bool) (x2::bool) cin::bool.
         RES_FORALL (PWORDLEN n)
          (%w2::bool word.
              (BV x1 + BV x2 +
-              (BNVAL w1 + (BNVAL w2 + BV cin)) div (2::nat) ^ n) div
-             (2::nat)
-             <= (1::nat)))"
+              (BNVAL w1 + (BNVAL w2 + BV cin)) div 2 ^ n) div
+             2
+             <= 1))"
   by (import bword_arith ADD_BV_BNVAL_DIV_LESS_EQ1)
 
 lemma ADD_BV_BNVAL_LESS_EQ: "ALL (n::nat) (x1::bool) (x2::bool) cin::bool.
@@ -1490,7 +1457,7 @@ lemma ADD_BV_BNVAL_LESS_EQ: "ALL (n::nat) (x1::bool) (x2::bool) cin::bool.
         RES_FORALL (PWORDLEN n)
          (%w2::bool word.
              BV x1 + BV x2 + (BNVAL w1 + (BNVAL w2 + BV cin))
-             <= Suc ((2::nat) ^ Suc n)))"
+             <= Suc (2 ^ Suc n)))"
   by (import bword_arith ADD_BV_BNVAL_LESS_EQ)
 
 lemma ADD_BV_BNVAL_LESS_EQ1: "ALL (n::nat) (x1::bool) (x2::bool) cin::bool.
@@ -1499,8 +1466,8 @@ lemma ADD_BV_BNVAL_LESS_EQ1: "ALL (n::nat) (x1::bool) (x2::bool) cin::bool.
         RES_FORALL (PWORDLEN n)
          (%w2::bool word.
              (BV x1 + BV x2 + (BNVAL w1 + (BNVAL w2 + BV cin))) div
-             (2::nat) ^ Suc n
-             <= (1::nat)))"
+             2 ^ Suc n
+             <= 1))"
   by (import bword_arith ADD_BV_BNVAL_LESS_EQ1)
 
 lemma ACARRY_EQ_ADD_DIV: "(All::(nat => bool) => bool)
@@ -1552,9 +1519,7 @@ lemma ADD_WORD_SPLIT: "ALL (n1::nat) n2::nat.
                    (BNVAL (WSEG n1 n2 w1) + BNVAL (WSEG n1 n2 w2) +
                     BV (ACARRY n2 w1 w2 cin)),
                   NBWORD n2
-                   (BNVAL (WSEG n2 (0::nat) w1) +
-                    BNVAL (WSEG n2 (0::nat) w2) +
-                    BV cin))))"
+                   (BNVAL (WSEG n2 0 w1) + BNVAL (WSEG n2 0 w2) + BV cin))))"
   by (import bword_arith ADD_WORD_SPLIT)
 
 lemma WSEG_NBWORD_ADD: "ALL n::nat.
@@ -1577,16 +1542,14 @@ lemma ADD_NBWORD_EQ0_SPLIT: "ALL (n1::nat) n2::nat.
          (%w2::bool word.
              ALL cin::bool.
                 (NBWORD (n1 + n2) (BNVAL w1 + BNVAL w2 + BV cin) =
-                 NBWORD (n1 + n2) (0::nat)) =
+                 NBWORD (n1 + n2) 0) =
                 (NBWORD n1
                   (BNVAL (WSEG n1 n2 w1) + BNVAL (WSEG n1 n2 w2) +
                    BV (ACARRY n2 w1 w2 cin)) =
-                 NBWORD n1 (0::nat) &
+                 NBWORD n1 0 &
                  NBWORD n2
-                  (BNVAL (WSEG n2 (0::nat) w1) +
-                   BNVAL (WSEG n2 (0::nat) w2) +
-                   BV cin) =
-                 NBWORD n2 (0::nat))))"
+                  (BNVAL (WSEG n2 0 w1) + BNVAL (WSEG n2 0 w2) + BV cin) =
+                 NBWORD n2 0)))"
   by (import bword_arith ADD_NBWORD_EQ0_SPLIT)
 
 lemma ACARRY_MSB: "ALL n::nat.
@@ -1606,7 +1569,7 @@ lemma ACARRY_WSEG: "ALL n::nat.
          (%w2::bool word.
              ALL (cin::bool) (k::nat) m::nat.
                 k < m & m <= n -->
-                ACARRY k (WSEG m (0::nat) w1) (WSEG m (0::nat) w2) cin =
+                ACARRY k (WSEG m 0 w1) (WSEG m 0 w2) cin =
                 ACARRY k w1 w2 cin))"
   by (import bword_arith ACARRY_WSEG)
 
@@ -1617,7 +1580,7 @@ lemma ICARRY_WSEG: "ALL n::nat.
          (%w2::bool word.
              ALL (cin::bool) (k::nat) m::nat.
                 k < m & m <= n -->
-                ICARRY k (WSEG m (0::nat) w1) (WSEG m (0::nat) w2) cin =
+                ICARRY k (WSEG m 0 w1) (WSEG m 0 w2) cin =
                 ICARRY k w1 w2 cin))"
   by (import bword_arith ICARRY_WSEG)
 

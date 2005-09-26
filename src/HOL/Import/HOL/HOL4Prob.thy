@@ -9,14 +9,11 @@ lemma BOOL_BOOL_CASES_THM: "ALL f::bool => bool.
    f = (%b::bool. True) | f = (%b::bool. b) | f = Not"
   by (import prob_extra BOOL_BOOL_CASES_THM)
 
-lemma EVEN_ODD_BASIC: "EVEN (0::nat) &
-~ EVEN (1::nat) &
-EVEN (2::nat) & ~ ODD (0::nat) & ODD (1::nat) & ~ ODD (2::nat)"
+lemma EVEN_ODD_BASIC: "EVEN 0 & ~ EVEN 1 & EVEN 2 & ~ ODD 0 & ODD 1 & ~ ODD 2"
   by (import prob_extra EVEN_ODD_BASIC)
 
 lemma EVEN_ODD_EXISTS_EQ: "ALL n::nat.
-   EVEN n = (EX m::nat. n = (2::nat) * m) &
-   ODD n = (EX m::nat. n = Suc ((2::nat) * m))"
+   EVEN n = (EX m::nat. n = 2 * m) & ODD n = (EX m::nat. n = Suc (2 * m))"
   by (import prob_extra EVEN_ODD_EXISTS_EQ)
 
 lemma DIV_THEN_MULT: "ALL (p::nat) q::nat. Suc q * (p div Suc q) <= p"
@@ -60,20 +57,42 @@ lemma DIV_TWO_UNIQUE: "(All::(nat => bool) => bool)
                           (bit.B0::bit)))))))))"
   by (import prob_extra DIV_TWO_UNIQUE)
 
-lemma DIVISION_TWO: "ALL n::nat.
-   n = (2::nat) * (n div (2::nat)) + n mod (2::nat) &
-   (n mod (2::nat) = (0::nat) | n mod (2::nat) = (1::nat))"
+lemma DIVISION_TWO: "ALL n::nat. n = 2 * (n div 2) + n mod 2 & (n mod 2 = 0 | n mod 2 = 1)"
   by (import prob_extra DIVISION_TWO)
 
-lemma DIV_TWO: "ALL n::nat. n = (2::nat) * (n div (2::nat)) + n mod (2::nat)"
+lemma DIV_TWO: "ALL n::nat. n = 2 * (n div 2) + n mod 2"
   by (import prob_extra DIV_TWO)
 
-lemma MOD_TWO: "(ALL (n::nat).
-    ((n mod (2::nat)) = (if (EVEN n) then (0::nat) else (1::nat))))"
+lemma MOD_TWO: "ALL n::nat. n mod 2 = (if EVEN n then 0 else 1)"
   by (import prob_extra MOD_TWO)
 
-lemma DIV_TWO_BASIC: "(0::nat) div (2::nat) = (0::nat) &
-(1::nat) div (2::nat) = (0::nat) & (2::nat) div (2::nat) = (1::nat)"
+lemma DIV_TWO_BASIC: "(op &::bool => bool => bool)
+ ((op =::nat => nat => bool)
+   ((op div::nat => nat => nat) (0::nat)
+     ((number_of::bin => nat)
+       ((op BIT::bin => bit => bin)
+         ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+         (bit.B0::bit))))
+   (0::nat))
+ ((op &::bool => bool => bool)
+   ((op =::nat => nat => bool)
+     ((op div::nat => nat => nat) (1::nat)
+       ((number_of::bin => nat)
+         ((op BIT::bin => bit => bin)
+           ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+           (bit.B0::bit))))
+     (0::nat))
+   ((op =::nat => nat => bool)
+     ((op div::nat => nat => nat)
+       ((number_of::bin => nat)
+         ((op BIT::bin => bit => bin)
+           ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+           (bit.B0::bit)))
+       ((number_of::bin => nat)
+         ((op BIT::bin => bit => bin)
+           ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+           (bit.B0::bit))))
+     (1::nat)))"
   by (import prob_extra DIV_TWO_BASIC)
 
 lemma DIV_TWO_MONO: "(All::(nat => bool) => bool)
@@ -119,18 +138,35 @@ lemma DIV_TWO_MONO_EVEN: "(All::(nat => bool) => bool)
              ((op <::nat => nat => bool) m n))))"
   by (import prob_extra DIV_TWO_MONO_EVEN)
 
-lemma DIV_TWO_CANCEL: "ALL n::nat.
-   (2::nat) * n div (2::nat) = n & Suc ((2::nat) * n) div (2::nat) = n"
+lemma DIV_TWO_CANCEL: "ALL n::nat. 2 * n div 2 = n & Suc (2 * n) div 2 = n"
   by (import prob_extra DIV_TWO_CANCEL)
 
-lemma EXP_DIV_TWO: "ALL n::nat. (2::nat) ^ Suc n div (2::nat) = (2::nat) ^ n"
+lemma EXP_DIV_TWO: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op =::nat => nat => bool)
+      ((op div::nat => nat => nat)
+        ((op ^::nat => nat => nat)
+          ((number_of::bin => nat)
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit)))
+          ((Suc::nat => nat) n))
+        ((number_of::bin => nat)
+          ((op BIT::bin => bit => bin)
+            ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+            (bit.B0::bit))))
+      ((op ^::nat => nat => nat)
+        ((number_of::bin => nat)
+          ((op BIT::bin => bit => bin)
+            ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+            (bit.B0::bit)))
+        n))"
   by (import prob_extra EXP_DIV_TWO)
 
-lemma EVEN_EXP_TWO: "ALL n::nat. EVEN ((2::nat) ^ n) = (n ~= (0::nat))"
+lemma EVEN_EXP_TWO: "ALL n::nat. EVEN (2 ^ n) = (n ~= 0)"
   by (import prob_extra EVEN_EXP_TWO)
 
-lemma DIV_TWO_EXP: "ALL (n::nat) k::nat.
-   (k div (2::nat) < (2::nat) ^ n) = (k < (2::nat) ^ Suc n)"
+lemma DIV_TWO_EXP: "ALL (n::nat) k::nat. (k div 2 < 2 ^ n) = (k < 2 ^ Suc n)"
   by (import prob_extra DIV_TWO_EXP)
 
 consts
@@ -195,13 +231,38 @@ lemma REAL_INF_MIN: "(All::((real => bool) => bool) => bool)
              z)))"
   by (import prob_extra REAL_INF_MIN)
 
-lemma HALF_POS: "(0::real) < (1::real) / (2::real)"
+lemma HALF_POS: "(op <::real => real => bool) (0::real)
+ ((op /::real => real => real) (1::real)
+   ((number_of::bin => real)
+     ((op BIT::bin => bit => bin)
+       ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+       (bit.B0::bit))))"
   by (import prob_extra HALF_POS)
 
-lemma HALF_CANCEL: "(2::real) * ((1::real) / (2::real)) = (1::real)"
+lemma HALF_CANCEL: "(op =::real => real => bool)
+ ((op *::real => real => real)
+   ((number_of::bin => real)
+     ((op BIT::bin => bit => bin)
+       ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+       (bit.B0::bit)))
+   ((op /::real => real => real) (1::real)
+     ((number_of::bin => real)
+       ((op BIT::bin => bit => bin)
+         ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+         (bit.B0::bit)))))
+ (1::real)"
   by (import prob_extra HALF_CANCEL)
 
-lemma POW_HALF_POS: "ALL n::nat. (0::real) < ((1::real) / (2::real)) ^ n"
+lemma POW_HALF_POS: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op <::real => real => bool) (0::real)
+      ((op ^::real => nat => real)
+        ((op /::real => real => real) (1::real)
+          ((number_of::bin => real)
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit))))
+        n))"
   by (import prob_extra POW_HALF_POS)
 
 lemma POW_HALF_MONO: "(All::(nat => bool) => bool)
@@ -228,11 +289,32 @@ lemma POW_HALF_MONO: "(All::(nat => bool) => bool)
                m))))"
   by (import prob_extra POW_HALF_MONO)
 
-lemma POW_HALF_TWICE: "ALL n::nat.
-   ((1::real) / (2::real)) ^ n = (2::real) * ((1::real) / (2::real)) ^ Suc n"
+lemma POW_HALF_TWICE: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op =::real => real => bool)
+      ((op ^::real => nat => real)
+        ((op /::real => real => real) (1::real)
+          ((number_of::bin => real)
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit))))
+        n)
+      ((op *::real => real => real)
+        ((number_of::bin => real)
+          ((op BIT::bin => bit => bin)
+            ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+            (bit.B0::bit)))
+        ((op ^::real => nat => real)
+          ((op /::real => real => real) (1::real)
+            ((number_of::bin => real)
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))
+          ((Suc::nat => nat) n))))"
   by (import prob_extra POW_HALF_TWICE)
 
-lemma X_HALF_HALF: "ALL x::real. (1::real) / (2::real) * x + (1::real) / (2::real) * x = x"
+lemma X_HALF_HALF: "ALL x::real. 1 / 2 * x + 1 / 2 * x = x"
   by (import prob_extra X_HALF_HALF)
 
 lemma REAL_SUP_LE_X: "(All::((real => bool) => bool) => bool)
@@ -271,27 +353,60 @@ lemma REAL_X_LE_SUP: "(All::((real => bool) => bool) => bool)
   by (import prob_extra REAL_X_LE_SUP)
 
 lemma ABS_BETWEEN_LE: "ALL (x::real) (y::real) d::real.
-   ((0::real) <= d & x - d <= y & y <= x + d) = (abs (y - x) <= d)"
+   (0 <= d & x - d <= y & y <= x + d) = (abs (y - x) <= d)"
   by (import prob_extra ABS_BETWEEN_LE)
 
-lemma ONE_MINUS_HALF: "(1::real) - (1::real) / (2::real) = (1::real) / (2::real)"
+lemma ONE_MINUS_HALF: "(op =::real => real => bool)
+ ((op -::real => real => real) (1::real)
+   ((op /::real => real => real) (1::real)
+     ((number_of::bin => real)
+       ((op BIT::bin => bit => bin)
+         ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+         (bit.B0::bit)))))
+ ((op /::real => real => real) (1::real)
+   ((number_of::bin => real)
+     ((op BIT::bin => bit => bin)
+       ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+       (bit.B0::bit))))"
   by (import prob_extra ONE_MINUS_HALF)
 
-lemma HALF_LT_1: "(1::real) / (2::real) < (1::real)"
+lemma HALF_LT_1: "(op <::real => real => bool)
+ ((op /::real => real => real) (1::real)
+   ((number_of::bin => real)
+     ((op BIT::bin => bit => bin)
+       ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+       (bit.B0::bit))))
+ (1::real)"
   by (import prob_extra HALF_LT_1)
 
-lemma POW_HALF_EXP: "ALL n::nat. ((1::real) / (2::real)) ^ n = inverse (real ((2::nat) ^ n))"
+lemma POW_HALF_EXP: "(All::(nat => bool) => bool)
+ (%n::nat.
+     (op =::real => real => bool)
+      ((op ^::real => nat => real)
+        ((op /::real => real => real) (1::real)
+          ((number_of::bin => real)
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit))))
+        n)
+      ((inverse::real => real)
+        ((real::nat => real)
+          ((op ^::nat => nat => nat)
+            ((number_of::bin => nat)
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))
+            n))))"
   by (import prob_extra POW_HALF_EXP)
 
-lemma INV_SUC_POS: "ALL n::nat. (0::real) < (1::real) / real (Suc n)"
+lemma INV_SUC_POS: "ALL n::nat. 0 < 1 / real (Suc n)"
   by (import prob_extra INV_SUC_POS)
 
-lemma INV_SUC_MAX: "ALL x::nat. (1::real) / real (Suc x) <= (1::real)"
+lemma INV_SUC_MAX: "ALL x::nat. 1 / real (Suc x) <= 1"
   by (import prob_extra INV_SUC_MAX)
 
-lemma INV_SUC: "ALL n::nat.
-   (0::real) < (1::real) / real (Suc n) &
-   (1::real) / real (Suc n) <= (1::real)"
+lemma INV_SUC: "ALL n::nat. 0 < 1 / real (Suc n) & 1 / real (Suc n) <= 1"
   by (import prob_extra INV_SUC)
 
 lemma ABS_UNIT_INTERVAL: "(All::(real => bool) => bool)
@@ -894,12 +1009,10 @@ consts
 
 defs
   alg_longest_primdef: "alg_longest ==
-FOLDR (%(h::bool list) t::nat. if t <= length h then length h else t)
- (0::nat)"
+FOLDR (%(h::bool list) t::nat. if t <= length h then length h else t) 0"
 
 lemma alg_longest_def: "alg_longest =
-FOLDR (%(h::bool list) t::nat. if t <= length h then length h else t)
- (0::nat)"
+FOLDR (%(h::bool list) t::nat. if t <= length h then length h else t) 0"
   by (import prob_canon alg_longest_def)
 
 consts
@@ -1948,9 +2061,9 @@ consts
   SHD :: "(nat => bool) => bool" 
 
 defs
-  SHD_primdef: "SHD == %f::nat => bool. f (0::nat)"
+  SHD_primdef: "SHD == %f::nat => bool. f 0"
 
-lemma SHD_def: "ALL f::nat => bool. SHD f = f (0::nat)"
+lemma SHD_def: "ALL f::nat => bool. SHD f = f 0"
   by (import boolean_sequence SHD_def)
 
 consts
@@ -1965,7 +2078,7 @@ lemma STL_def: "ALL (f::nat => bool) n::nat. STL f n = f (Suc n)"
 consts
   SCONS :: "bool => (nat => bool) => nat => bool" 
 
-specification (SCONS_primdef: SCONS) SCONS_def: "(ALL (h::bool) t::nat => bool. SCONS h t (0::nat) = h) &
+specification (SCONS_primdef: SCONS) SCONS_def: "(ALL (h::bool) t::nat => bool. SCONS h t 0 = h) &
 (ALL (h::bool) (t::nat => bool) n::nat. SCONS h t (Suc n) = t n)"
   by (import boolean_sequence SCONS_def)
 
@@ -1990,14 +2103,14 @@ lemma SCONST_def: "SCONST = K"
 consts
   STAKE :: "nat => (nat => bool) => bool list" 
 
-specification (STAKE_primdef: STAKE) STAKE_def: "(ALL s::nat => bool. STAKE (0::nat) s = []) &
+specification (STAKE_primdef: STAKE) STAKE_def: "(ALL s::nat => bool. STAKE 0 s = []) &
 (ALL (n::nat) s::nat => bool. STAKE (Suc n) s = SHD s # STAKE n (STL s))"
   by (import boolean_sequence STAKE_def)
 
 consts
   SDROP :: "nat => (nat => bool) => nat => bool" 
 
-specification (SDROP_primdef: SDROP) SDROP_def: "SDROP (0::nat) = I & (ALL n::nat. SDROP (Suc n) = SDROP n o STL)"
+specification (SDROP_primdef: SDROP) SDROP_def: "SDROP 0 = I & (ALL n::nat. SDROP (Suc n) = SDROP n o STL)"
   by (import boolean_sequence SDROP_def)
 
 lemma SCONS_SURJ: "ALL x::nat => bool. EX (xa::bool) t::nat => bool. x = SCONS xa t"
@@ -2271,10 +2384,9 @@ lemma MEASURABLE_INTER_SHD: "ALL (b::bool) p::(nat => bool) => bool.
 consts
   alg_measure :: "bool list list => real" 
 
-specification (alg_measure_primdef: alg_measure) alg_measure_def: "alg_measure [] = (0::real) &
+specification (alg_measure_primdef: alg_measure) alg_measure_def: "alg_measure [] = 0 &
 (ALL (l::bool list) rest::bool list list.
-    alg_measure (l # rest) =
-    ((1::real) / (2::real)) ^ length l + alg_measure rest)"
+    alg_measure (l # rest) = (1 / 2) ^ length l + alg_measure rest)"
   by (import prob alg_measure_def)
 
 consts
@@ -2311,18 +2423,42 @@ lemma prob_def: "ALL s::(nat => bool) => bool.
               algebra_measure b = r & SUBSET (algebra_embed b) s)"
   by (import prob prob_def)
 
-lemma ALG_TWINS_MEASURE: "ALL l::bool list.
-   ((1::real) / (2::real)) ^ length (SNOC True l) +
-   ((1::real) / (2::real)) ^ length (SNOC False l) =
-   ((1::real) / (2::real)) ^ length l"
+lemma ALG_TWINS_MEASURE: "(All::(bool list => bool) => bool)
+ (%l::bool list.
+     (op =::real => real => bool)
+      ((op +::real => real => real)
+        ((op ^::real => nat => real)
+          ((op /::real => real => real) (1::real)
+            ((number_of::bin => real)
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))
+          ((size::bool list => nat)
+            ((SNOC::bool => bool list => bool list) (True::bool) l)))
+        ((op ^::real => nat => real)
+          ((op /::real => real => real) (1::real)
+            ((number_of::bin => real)
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))
+          ((size::bool list => nat)
+            ((SNOC::bool => bool list => bool list) (False::bool) l))))
+      ((op ^::real => nat => real)
+        ((op /::real => real => real) (1::real)
+          ((number_of::bin => real)
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit))))
+        ((size::bool list => nat) l)))"
   by (import prob ALG_TWINS_MEASURE)
 
-lemma ALG_MEASURE_BASIC: "alg_measure [] = (0::real) &
-alg_measure [[]] = (1::real) &
-(ALL b::bool. alg_measure [[b]] = (1::real) / (2::real))"
+lemma ALG_MEASURE_BASIC: "alg_measure [] = 0 &
+alg_measure [[]] = 1 & (ALL b::bool. alg_measure [[b]] = 1 / 2)"
   by (import prob ALG_MEASURE_BASIC)
 
-lemma ALG_MEASURE_POS: "ALL l::bool list list. (0::real) <= alg_measure l"
+lemma ALG_MEASURE_POS: "ALL l::bool list list. 0 <= alg_measure l"
   by (import prob ALG_MEASURE_POS)
 
 lemma ALG_MEASURE_APPEND: "ALL (l1::bool list list) l2::bool list list.
@@ -2330,7 +2466,7 @@ lemma ALG_MEASURE_APPEND: "ALL (l1::bool list list) l2::bool list list.
   by (import prob ALG_MEASURE_APPEND)
 
 lemma ALG_MEASURE_TLS: "ALL (l::bool list list) b::bool.
-   (2::real) * alg_measure (map (op # b) l) = alg_measure l"
+   2 * alg_measure (map (op # b) l) = alg_measure l"
   by (import prob ALG_MEASURE_TLS)
 
 lemma ALG_CANON_PREFS_MONO: "ALL (l::bool list) b::bool list list.
@@ -2357,9 +2493,8 @@ lemma ALG_CANON_MONO: "ALL l::bool list list. alg_measure (alg_canon l) <= alg_m
 lemma ALGEBRA_MEASURE_DEF_ALT: "ALL l::bool list list. algebra_measure l = alg_measure (alg_canon l)"
   by (import prob ALGEBRA_MEASURE_DEF_ALT)
 
-lemma ALGEBRA_MEASURE_BASIC: "algebra_measure [] = (0::real) &
-algebra_measure [[]] = (1::real) &
-(ALL b::bool. algebra_measure [[b]] = (1::real) / (2::real))"
+lemma ALGEBRA_MEASURE_BASIC: "algebra_measure [] = 0 &
+algebra_measure [[]] = 1 & (ALL b::bool. algebra_measure [[b]] = 1 / 2)"
   by (import prob ALGEBRA_MEASURE_BASIC)
 
 lemma ALGEBRA_CANON_MEASURE_MAX: "(All::(bool list list => bool) => bool)
@@ -2370,7 +2505,7 @@ lemma ALGEBRA_CANON_MEASURE_MAX: "(All::(bool list list => bool) => bool)
         ((alg_measure::bool list list => real) l) (1::real)))"
   by (import prob ALGEBRA_CANON_MEASURE_MAX)
 
-lemma ALGEBRA_MEASURE_MAX: "ALL l::bool list list. algebra_measure l <= (1::real)"
+lemma ALGEBRA_MEASURE_MAX: "ALL l::bool list list. algebra_measure l <= 1"
   by (import prob ALGEBRA_MEASURE_MAX)
 
 lemma ALGEBRA_MEASURE_MONO_EMBED: "(All::(bool list list => bool) => bool)
@@ -2458,9 +2593,9 @@ lemma ALG_MEASURE_ADDITIVE: "(All::(bool list list => bool) => bool)
 lemma PROB_ALGEBRA: "ALL l::bool list list. prob (algebra_embed l) = algebra_measure l"
   by (import prob PROB_ALGEBRA)
 
-lemma PROB_BASIC: "prob EMPTY = (0::real) &
-prob pred_set.UNIV = (1::real) &
-(ALL b::bool. prob (%s::nat => bool. SHD s = b) = (1::real) / (2::real))"
+lemma PROB_BASIC: "prob EMPTY = 0 &
+prob pred_set.UNIV = 1 &
+(ALL b::bool. prob (%s::nat => bool. SHD s = b) = 1 / 2)"
   by (import prob PROB_BASIC)
 
 lemma PROB_ADDITIVE: "(All::(((nat => bool) => bool) => bool) => bool)
@@ -2578,7 +2713,7 @@ lemma PROB_SUBSET_MONO: "(All::(((nat => bool) => bool) => bool) => bool)
              ((prob::((nat => bool) => bool) => real) t))))"
   by (import prob PROB_SUBSET_MONO)
 
-lemma PROB_ALG: "ALL x::bool list. prob (alg_embed x) = ((1::real) / (2::real)) ^ length x"
+lemma PROB_ALG: "ALL x::bool list. prob (alg_embed x) = (1 / 2) ^ length x"
   by (import prob PROB_ALG)
 
 lemma PROB_STL: "(All::(((nat => bool) => bool) => bool) => bool)
@@ -2662,26 +2797,25 @@ lemma PROB_INTER_SHD: "(All::(bool => bool) => bool)
                ((prob::((nat => bool) => bool) => real) p)))))"
   by (import prob PROB_INTER_SHD)
 
-lemma ALGEBRA_MEASURE_POS: "ALL l::bool list list. (0::real) <= algebra_measure l"
+lemma ALGEBRA_MEASURE_POS: "ALL l::bool list list. 0 <= algebra_measure l"
   by (import prob ALGEBRA_MEASURE_POS)
 
-lemma ALGEBRA_MEASURE_RANGE: "ALL l::bool list list.
-   (0::real) <= algebra_measure l & algebra_measure l <= (1::real)"
+lemma ALGEBRA_MEASURE_RANGE: "ALL l::bool list list. 0 <= algebra_measure l & algebra_measure l <= 1"
   by (import prob ALGEBRA_MEASURE_RANGE)
 
-lemma PROB_POS: "ALL p::(nat => bool) => bool. (0::real) <= prob p"
+lemma PROB_POS: "ALL p::(nat => bool) => bool. 0 <= prob p"
   by (import prob PROB_POS)
 
-lemma PROB_MAX: "ALL p::(nat => bool) => bool. prob p <= (1::real)"
+lemma PROB_MAX: "ALL p::(nat => bool) => bool. prob p <= 1"
   by (import prob PROB_MAX)
 
-lemma PROB_RANGE: "ALL p::(nat => bool) => bool. (0::real) <= prob p & prob p <= (1::real)"
+lemma PROB_RANGE: "ALL p::(nat => bool) => bool. 0 <= prob p & prob p <= 1"
   by (import prob PROB_RANGE)
 
 lemma ABS_PROB: "ALL p::(nat => bool) => bool. abs (prob p) = prob p"
   by (import prob ABS_PROB)
 
-lemma PROB_SHD: "ALL b::bool. prob (%s::nat => bool. SHD s = b) = (1::real) / (2::real)"
+lemma PROB_SHD: "ALL b::bool. prob (%s::nat => bool. SHD s = b) = 1 / 2"
   by (import prob PROB_SHD)
 
 lemma PROB_COMPL_LE1: "(All::(((nat => bool) => bool) => bool) => bool)
@@ -2719,11 +2853,10 @@ consts
 
 defs
   pseudo_linear_tl_primdef: "pseudo_linear_tl ==
-%(a::nat) (b::nat) (n::nat) x::nat.
-   (a * x + b) mod ((2::nat) * n + (1::nat))"
+%(a::nat) (b::nat) (n::nat) x::nat. (a * x + b) mod (2 * n + 1)"
 
 lemma pseudo_linear_tl_def: "ALL (a::nat) (b::nat) (n::nat) x::nat.
-   pseudo_linear_tl a b n x = (a * x + b) mod ((2::nat) * n + (1::nat))"
+   pseudo_linear_tl a b n x = (a * x + b) mod (2 * n + 1)"
   by (import prob_pseudo pseudo_linear_tl_def)
 
 lemma PSEUDO_LINEAR1_EXECUTE: "EX x::nat => nat => bool.
@@ -2828,7 +2961,7 @@ lemma alg_cover_def: "ALL (l::bool list list) x::nat => bool.
   by (import prob_indep alg_cover_def)
 
 consts
-  indep :: "((nat => bool) => 'a::type * (nat => bool)) => bool" 
+  indep :: "((nat => bool) => 'a * (nat => bool)) => bool" 
 
 defs
   indep_primdef: "indep ==
@@ -3520,21 +3653,19 @@ consts
 defs
   unif_bound_primdef: "unif_bound ==
 WFREC
- (SOME R::nat => nat => bool.
-     WF R & (ALL v::nat. R (Suc v div (2::nat)) (Suc v)))
+ (SOME R::nat => nat => bool. WF R & (ALL v::nat. R (Suc v div 2) (Suc v)))
  (%unif_bound::nat => nat.
-     nat_case (0::nat) (%v1::nat. Suc (unif_bound (Suc v1 div (2::nat)))))"
+     nat_case 0 (%v1::nat. Suc (unif_bound (Suc v1 div 2))))"
 
 lemma unif_bound_primitive_def: "unif_bound =
 WFREC
- (SOME R::nat => nat => bool.
-     WF R & (ALL v::nat. R (Suc v div (2::nat)) (Suc v)))
+ (SOME R::nat => nat => bool. WF R & (ALL v::nat. R (Suc v div 2) (Suc v)))
  (%unif_bound::nat => nat.
-     nat_case (0::nat) (%v1::nat. Suc (unif_bound (Suc v1 div (2::nat)))))"
+     nat_case 0 (%v1::nat. Suc (unif_bound (Suc v1 div 2))))"
   by (import prob_uniform unif_bound_primitive_def)
 
-lemma unif_bound_def: "unif_bound (0::nat) = (0::nat) &
-unif_bound (Suc (v::nat)) = Suc (unif_bound (Suc v div (2::nat)))"
+lemma unif_bound_def: "unif_bound 0 = 0 &
+unif_bound (Suc (v::nat)) = Suc (unif_bound (Suc v div 2))"
   by (import prob_uniform unif_bound_def)
 
 lemma unif_bound_ind: "(All::((nat => bool) => bool) => bool)
@@ -3559,30 +3690,24 @@ constdefs
   "unif_tupled ==
 WFREC
  (SOME R::nat * (nat => bool) => nat * (nat => bool) => bool.
-     WF R &
-     (ALL (s::nat => bool) v2::nat. R (Suc v2 div (2::nat), s) (Suc v2, s)))
+     WF R & (ALL (s::nat => bool) v2::nat. R (Suc v2 div 2, s) (Suc v2, s)))
  (%(unif_tupled::nat * (nat => bool) => nat * (nat => bool)) (v::nat,
      v1::nat => bool).
-     case v of 0 => (0::nat, v1)
+     case v of 0 => (0, v1)
      | Suc (v3::nat) =>
-         let (m::nat, s'::nat => bool) =
-               unif_tupled (Suc v3 div (2::nat), v1)
-         in (if SHD s' then (2::nat) * m + (1::nat) else (2::nat) * m,
-             STL s'))"
+         let (m::nat, s'::nat => bool) = unif_tupled (Suc v3 div 2, v1)
+         in (if SHD s' then 2 * m + 1 else 2 * m, STL s'))"
 
 lemma unif_tupled_primitive_def: "unif_tupled =
 WFREC
  (SOME R::nat * (nat => bool) => nat * (nat => bool) => bool.
-     WF R &
-     (ALL (s::nat => bool) v2::nat. R (Suc v2 div (2::nat), s) (Suc v2, s)))
+     WF R & (ALL (s::nat => bool) v2::nat. R (Suc v2 div 2, s) (Suc v2, s)))
  (%(unif_tupled::nat * (nat => bool) => nat * (nat => bool)) (v::nat,
      v1::nat => bool).
-     case v of 0 => (0::nat, v1)
+     case v of 0 => (0, v1)
      | Suc (v3::nat) =>
-         let (m::nat, s'::nat => bool) =
-               unif_tupled (Suc v3 div (2::nat), v1)
-         in (if SHD s' then (2::nat) * m + (1::nat) else (2::nat) * m,
-             STL s'))"
+         let (m::nat, s'::nat => bool) = unif_tupled (Suc v3 div 2, v1)
+         in (if SHD s' then 2 * m + 1 else 2 * m, STL s'))"
   by (import prob_uniform unif_tupled_primitive_def)
 
 consts
@@ -3594,10 +3719,10 @@ defs
 lemma unif_curried_def: "ALL (x::nat) x1::nat => bool. unif x x1 = unif_tupled (x, x1)"
   by (import prob_uniform unif_curried_def)
 
-lemma unif_def: "unif (0::nat) (s::nat => bool) = (0::nat, s) &
+lemma unif_def: "unif 0 (s::nat => bool) = (0, s) &
 unif (Suc (v2::nat)) s =
-(let (m::nat, s'::nat => bool) = unif (Suc v2 div (2::nat)) s
- in (if SHD s' then (2::nat) * m + (1::nat) else (2::nat) * m, STL s'))"
+(let (m::nat, s'::nat => bool) = unif (Suc v2 div 2) s
+ in (if SHD s' then 2 * m + 1 else 2 * m, STL s'))"
   by (import prob_uniform unif_def)
 
 lemma unif_ind: "(All::((nat => (nat => bool) => bool) => bool) => bool)
@@ -3871,19 +3996,19 @@ lemma uniform_ind: "(All::((nat => nat => (nat => bool) => bool) => bool) => boo
              (%xa::nat. (All::((nat => bool) => bool) => bool) (P x xa)))))"
   by (import prob_uniform uniform_ind)
 
-lemma uniform_def: "uniform (0::nat) (Suc (n::nat)) (s::nat => bool) = (0::nat, s) &
+lemma uniform_def: "uniform 0 (Suc (n::nat)) (s::nat => bool) = (0, s) &
 uniform (Suc (t::nat)) (Suc n) s =
 (let (xa::nat, x::nat => bool) = unif n s
  in if xa < Suc n then (xa, x) else uniform t (Suc n) x)"
   by (import prob_uniform uniform_def)
 
-lemma SUC_DIV_TWO_ZERO: "ALL n::nat. (Suc n div (2::nat) = (0::nat)) = (n = (0::nat))"
+lemma SUC_DIV_TWO_ZERO: "ALL n::nat. (Suc n div 2 = 0) = (n = 0)"
   by (import prob_uniform SUC_DIV_TWO_ZERO)
 
-lemma UNIF_BOUND_LOWER: "ALL n::nat. n < (2::nat) ^ unif_bound n"
+lemma UNIF_BOUND_LOWER: "ALL n::nat. n < 2 ^ unif_bound n"
   by (import prob_uniform UNIF_BOUND_LOWER)
 
-lemma UNIF_BOUND_LOWER_SUC: "ALL n::nat. Suc n <= (2::nat) ^ unif_bound n"
+lemma UNIF_BOUND_LOWER_SUC: "ALL n::nat. Suc n <= 2 ^ unif_bound n"
   by (import prob_uniform UNIF_BOUND_LOWER_SUC)
 
 lemma UNIF_BOUND_UPPER: "(All::(nat => bool) => bool)
@@ -3905,20 +4030,18 @@ lemma UNIF_BOUND_UPPER: "(All::(nat => bool) => bool)
           n)))"
   by (import prob_uniform UNIF_BOUND_UPPER)
 
-lemma UNIF_BOUND_UPPER_SUC: "ALL n::nat. (2::nat) ^ unif_bound n <= Suc ((2::nat) * n)"
+lemma UNIF_BOUND_UPPER_SUC: "ALL n::nat. 2 ^ unif_bound n <= Suc (2 * n)"
   by (import prob_uniform UNIF_BOUND_UPPER_SUC)
 
-lemma UNIF_DEF_MONAD: "unif (0::nat) = UNIT (0::nat) &
+lemma UNIF_DEF_MONAD: "unif 0 = UNIT 0 &
 (ALL n::nat.
     unif (Suc n) =
-    BIND (unif (Suc n div (2::nat)))
+    BIND (unif (Suc n div 2))
      (%m::nat.
-         BIND SDEST
-          (%b::bool.
-              UNIT (if b then (2::nat) * m + (1::nat) else (2::nat) * m))))"
+         BIND SDEST (%b::bool. UNIT (if b then 2 * m + 1 else 2 * m))))"
   by (import prob_uniform UNIF_DEF_MONAD)
 
-lemma UNIFORM_DEF_MONAD: "(ALL x::nat. uniform (0::nat) (Suc x) = UNIT (0::nat)) &
+lemma UNIFORM_DEF_MONAD: "(ALL x::nat. uniform 0 (Suc x) = UNIT 0) &
 (ALL (x::nat) xa::nat.
     uniform (Suc x) (Suc xa) =
     BIND (unif xa)
@@ -3931,45 +4054,18 @@ lemma INDEP_UNIF: "ALL n::nat. indep (unif n)"
 lemma INDEP_UNIFORM: "ALL (t::nat) n::nat. indep (uniform t (Suc n))"
   by (import prob_uniform INDEP_UNIFORM)
 
-lemma PROB_UNIF: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(nat => bool) => bool)
-      (%k::nat.
-          (op =::real => real => bool)
-           ((prob::((nat => bool) => bool) => real)
-             (%s::nat => bool.
-                 (op =::nat => nat => bool)
-                  ((fst::nat * (nat => bool) => nat)
-                    ((unif::nat => (nat => bool) => nat * (nat => bool)) n
-                      s))
-                  k))
-           ((If::bool => real => real => real)
-             ((op <::nat => nat => bool) k
-               ((op ^::nat => nat => nat)
-                 ((number_of::bin => nat)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit)))
-                 ((unif_bound::nat => nat) n)))
-             ((op ^::real => nat => real)
-               ((op /::real => real => real) (1::real)
-                 ((number_of::bin => real)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit))))
-               ((unif_bound::nat => nat) n))
-             (0::real))))"
+lemma PROB_UNIF: "ALL (n::nat) k::nat.
+   prob (%s::nat => bool. fst (unif n s) = k) =
+   (if k < 2 ^ unif_bound n then (1 / 2) ^ unif_bound n else 0)"
   by (import prob_uniform PROB_UNIF)
 
-lemma UNIF_RANGE: "ALL (n::nat) s::nat => bool. fst (unif n s) < (2::nat) ^ unif_bound n"
+lemma UNIF_RANGE: "ALL (n::nat) s::nat => bool. fst (unif n s) < 2 ^ unif_bound n"
   by (import prob_uniform UNIF_RANGE)
 
 lemma PROB_UNIF_PAIR: "ALL (n::nat) (k::nat) k'::nat.
    (prob (%s::nat => bool. fst (unif n s) = k) =
     prob (%s::nat => bool. fst (unif n s) = k')) =
-   ((k < (2::nat) ^ unif_bound n) = (k' < (2::nat) ^ unif_bound n))"
+   ((k < 2 ^ unif_bound n) = (k' < 2 ^ unif_bound n))"
   by (import prob_uniform PROB_UNIF_PAIR)
 
 lemma PROB_UNIF_BOUND: "(All::(nat => bool) => bool)
@@ -4004,8 +4100,7 @@ lemma PROB_UNIF_BOUND: "(All::(nat => bool) => bool)
                  ((unif_bound::nat => nat) n))))))"
   by (import prob_uniform PROB_UNIF_BOUND)
 
-lemma PROB_UNIF_GOOD: "ALL n::nat.
-   (1::real) / (2::real) <= prob (%s::nat => bool. fst (unif n s) < Suc n)"
+lemma PROB_UNIF_GOOD: "ALL n::nat. 1 / 2 <= prob (%s::nat => bool. fst (unif n s) < Suc n)"
   by (import prob_uniform PROB_UNIF_GOOD)
 
 lemma UNIFORM_RANGE: "ALL (t::nat) (n::nat) s::nat => bool. fst (uniform t (Suc n) s) < Suc n"
