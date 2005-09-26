@@ -154,7 +154,7 @@ datatype ('a,'v)expr = Cex 'v
                      | Vex 'a
                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr"
 
-consts value :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v"
+consts "value" :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v"
 primrec
 "value (Cex v) env = v"
 "value (Vex a) env = env a"
