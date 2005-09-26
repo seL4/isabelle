@@ -37,7 +37,7 @@ thm_maps
   "bool_case_thm" > "HOL4Base.bool.bool_case_thm"
   "bool_case_ID" > "HOL4Base.bool.bool_case_ID"
   "bool_case_DEF" > "HOL4Compat.bool_case_DEF"
-  "bool_INDUCT" > "Datatype.bool.induct"
+  "bool_INDUCT" > "Datatype.bool.induct_correctness"
   "boolAxiom" > "HOL4Base.bool.boolAxiom"
   "UNWIND_THM2" > "HOL.simp_thms_39"
   "UNWIND_THM1" > "HOL.simp_thms_40"
