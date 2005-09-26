@@ -217,7 +217,7 @@ chmod -R g=o "$DISTNAME"
 chgrp -R isabelle "$DISTNAME" Isabelle
 
 mkdir -p "pdf/$DISTNAME/doc"
-mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
+mv "$DISTNAME/doc/"*.pdf "$DISTNAME/doc/Contents" "pdf/$DISTNAME/doc"
 
 echo "$DISTNAME.tar.gz"
 "$TAR" cf "$DISTNAME.tar" Isabelle "$DISTNAME"
