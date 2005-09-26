@@ -16,7 +16,7 @@ Formalization of section 4 of
     publisher = {Springer}
 }
 
-Slides available from http://isabelle.in.tum.de/HOLCF/1-Buffer.ps.gz
+Slides available from http://ddvo.net/talks/1-Buffer.ps.gz
 
 *)
 
