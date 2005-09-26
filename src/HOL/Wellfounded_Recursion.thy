@@ -283,9 +283,9 @@ done
 subsection {* Code generator setup *}
 
 consts_code
-  "wfrec"   ("\<module>wf'_rec?")
+  "wfrec"   ("\<module>wfrec?")
 attach {*
-fun wf_rec f x = f (wf_rec f) x;
+fun wfrec f x = f (wfrec f) x;
 *}
 
 
