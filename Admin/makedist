@@ -227,7 +227,7 @@ echo "${DISTNAME}_pdf.tar.gz"
 ( cd pdf; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
 gzip "${DISTNAME}_pdf.tar"
 
-mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
+mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc/Contents" "$DISTNAME/doc"
 rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 
 
