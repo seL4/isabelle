@@ -697,18 +697,27 @@ Isabelle/HOL instantiates these mechanisms in a way that is amenable to
 end-user applications.  See \cite{isabelle-HOL} for further information (this
 actually covers the new-style theory format as well).
 
-\indexisarcmd{generate-code}\indexisarcmd{consts-code}\indexisarcmd{types-code}
+\indexisarcmd{code-module}\indexisarcmd{code-library}\indexisarcmd{consts-code}\indexisarcmd{types-code}
 \indexisaratt{code}
 
 \begin{matharray}{rcl}
-  \isarcmd{generate_code} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_module} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_library} & : & \isartrans{theory}{theory} \\
   \isarcmd{consts_code} & : & \isartrans{theory}{theory} \\
   \isarcmd{types_code} & : & \isartrans{theory}{theory} \\  
   code & : & \isaratt \\
 \end{matharray}
 
-\railalias{generatecode}{generate\_code}
-\railterm{generatecode}
+\railalias{verblbrace}{\texttt{\ttlbrace*}}
+\railalias{verbrbrace}{\texttt{*\ttrbrace}}
+\railterm{verblbrace}
+\railterm{verbrbrace}
+
+\railalias{codemodule}{code\_module}
+\railterm{codemodule}
+
+\railalias{codelibrary}{code\_library}
+\railterm{codelibrary}
 
 \railalias{constscode}{consts\_code}
 \railterm{constscode}
@@ -717,17 +726,25 @@ actually covers the new-style theory format as well).
 \railterm{typescode}
 
 \begin{rail}
-  generatecode ( () | '(' name ')') ((name '=' term) +)
-  ;
-  constscode (name ('::' type)? template +)
-  ;
-  typescode (name template +)
-  ;
-  template: '(' string ')'
-  ;
+( codemodule | codelibrary ) modespec ? name ? \\
+  ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
+  'contains' ( ( name '=' term ) + | term + );
 
-  'code' (name)?
-  ;
+modespec : '(' ( name * ) ')';
+
+constscode (codespec +);
+
+codespec : name ( '::' type) ? template attachment ?;
+
+typescode (tycodespec +);
+
+tycodespec : name template attachment ?;
+
+template: '(' string ')';
+
+attachment: 'attach' modespec ? verblbrace text verbrbrace;
+
+'code' (name)?;
 \end{rail}
 
 

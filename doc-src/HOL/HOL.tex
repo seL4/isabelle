@@ -2772,45 +2772,82 @@ of executing specifications is to translate them into a functional
 programming language such as ML. Isabelle's built-in code generator
 supports this.
 
+\railalias{verblbrace}{\texttt{\ttlbrace*}}
+\railalias{verbrbrace}{\texttt{*\ttrbrace}}
+\railterm{verblbrace}
+\railterm{verbrbrace}
+
 \begin{figure}
 \begin{rail}
-codegen : 'generate_code' ( () | '(' name ')') (code +);
+codegen : ( 'code_module' | 'code_library' ) modespec ? name ? \\
+  ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
+  'contains' ( ( name '=' term ) + | term + );
 
-code : name '=' term;
+modespec : '(' ( name * ) ')';
+\end{rail}
+\caption{Code generator invocation syntax}
+\label{fig:HOL:codegen-invocation}
+\end{figure}
 
+\begin{figure}
+\begin{rail}
 constscode : 'consts_code' (codespec +);
 
-codespec : name ( () | '::' type) template;
+codespec : name ( '::' type) ? template attachment ?;
 
 typescode : 'types_code' (tycodespec +);
 
-tycodespec : name template;
+tycodespec : name template attachment ?;
 
 template: '(' string ')';
+
+attachment: 'attach' modespec ? verblbrace text verbrbrace;
 \end{rail}
-\caption{Code generator syntax}
-\label{fig:HOL:codegen}
+\caption{Code generator configuration syntax}
+\label{fig:HOL:codegen-configuration}
 \end{figure}
 
 \subsection{Invoking the code generator}
 
-The code generator is invoked via the \ttindex{generate_code} command
-(see Fig.~\ref{fig:HOL:codegen}). The code can either be written to a file,
-in which case a file name has to be specified in parentheses, or be
+The code generator is invoked via the \ttindex{code_module} and
+\ttindex{code_library} commands (see Fig.~\ref{fig:HOL:codegen-invocation}),
+which correspond to {\em modular} and {\em incremental} code generation,
+respectively.
+\begin{description}
+\item[Modular] For each theory, an ML structure is generated, containing the
+  code generated from the constants defined in this theory.
+\item[Incremental] All the generated code is emitted into the same structure.
+  This structure may import code from previously generated structures, which
+  can be specified via \texttt{imports}.
+  Moreover, the generated structure may also be referred to in later invocations
+  of the code generator.
+\end{description}
+After the \texttt{code_module} and \texttt{code_library} keywords, the user
+may specify an optional list of ``modes'' in parentheses. These can be used
+to instruct the code generator to emit additional code for special purposes,
+e.g.\ functions for converting elements of generated datatypes to Isabelle terms,
+or test data generators. The list of modes is followed by a module name.
+The module name is optional for modular code generation, but must be specified
+for incremental code generation.
+The code can either be written to a file,
+in which case a file name has to be specified after the \texttt{file} keyword, or be
 loaded directly into Isabelle's ML environment. In the latter case,
 the \texttt{ML} theory command can be used to inspect the results
 interactively.
-The \texttt{generate_code} command takes a list of pairs, consisting
-of an ML identifier and a string representing a term. The result of
-compiling the term is bound to the corresponding ML identifier.
+The terms from which to generate code can be specified after the
+\texttt{contains} keyword, either as a list of bindings, or just as
+a list of terms. In the latter case, the code generator just produces
+code for all constants and types occuring in the term, but does not
+bind the compiled terms to ML identifiers.
 For example,
 \begin{ttbox}
-generate_code
+code_module Test
+contains
   test = "foldl op + (0::int) [1,2,3,4,5]"
 \end{ttbox}
 binds the result of compiling the term
 \texttt{foldl op + (0::int) [1,2,3,4,5]}
-(i.e.~\texttt{15}) to the ML identifier \texttt{test}.
+(i.e.~\texttt{15}) to the ML identifier \texttt{Test.test}.
 
 \subsection{Configuring the code generator}
 
@@ -2821,7 +2858,7 @@ generator is to look up its definition and try to generate code for it.
 Constants which have no definitions that
 are immediately executable, may be associated with a piece of ML
 code manually using the \ttindex{consts_code} command
-(see Fig.~\ref{fig:HOL:codegen}).
+(see Fig.~\ref{fig:HOL:codegen-configuration}).
 It takes a list whose elements consist of a constant name, together
 with an optional type constraint (to account for overloading), and a
 mixfix template describing the ML code. The latter is very much the
@@ -2838,8 +2875,27 @@ types_code
 consts_code
   "Pair"    ("(_,/ _)")
 \end{ttbox}
-in theory \texttt{Main} describes how the product type of Isabelle/HOL
-should be compiled to ML.
+in theory \texttt{Product_Type} describes how the product type of Isabelle/HOL
+should be compiled to ML. Sometimes, the code associated with a
+constant or type may need to refer to auxiliary functions, which
+have to be emitted when the constant is used. Code for such auxiliary
+functions can be declared using \texttt{attach}. For example, the
+\texttt{wfrec} function from theory \texttt{Wellfounded_Recursion}
+is implemented as follows:
+\begin{ttbox}
+consts_code
+  "wfrec"   ("\bs<module>wfrec?")
+attach \{*
+fun wfrec f x = f (wfrec f) x;
+*\}
+\end{ttbox}
+If the code containing a call to \texttt{wfrec} resides in an ML structure
+different from the one containing the function definition attached to
+\texttt{wfrec}, the name of the ML structure (followed by a ``\texttt{.}'')
+is inserted in place of ``\texttt{\bs<module>}'' in the above template.
+The ``\texttt{?}'' means that the code generator should ignore the first
+argument of \texttt{wfrec}, i.e.\ the termination relation, which is
+usually not executable.
 
 Another possibility of configuring the code generator is to register
 theorems to be used for code generation. Theorems can be registered
@@ -2852,10 +2908,11 @@ constructors and distinct variables, whereas horn clauses must have
 the same format as introduction rules of inductive definitions.
 For example, the declaration
 \begin{ttbox}
+lemma Suc_less_eq [iff, code]: "(Suc m < Suc n) = (m < n)" \(\langle\ldots\rangle\)
 lemma [code]: "((n::nat) < 0) = False" by simp
-declare less_Suc_eq [code]
+lemma [code]: "(0 < Suc n) = True" by simp
 \end{ttbox}
-in theory \texttt{Main} specifies two equations from which to generate
+in theory \texttt{Nat} specifies three equations from which to generate
 code for \texttt{<} on natural numbers.
 
 \subsection{Specific HOL code generators}
@@ -2873,16 +2930,17 @@ terms, the expression evaluates to a boolean value.
 \begin{alltt}
   theory Test = Lambda:
 
-  generate_code
+  code_module Test
+  contains
     test1 = "Abs (Var 0) \(\circ\) Var 0 -> Var 0"
     test2 = "Abs (Abs (Var 0 \(\circ\) Var 0) \(\circ\) (Abs (Var 0) \(\circ\) Var 0)) -> _"
 \end{alltt}
 \end{small}
-In the above example, \texttt{test1} evaluates to the boolean
-value \texttt{true}, whereas \texttt{test2} is a sequence whose
+In the above example, \texttt{Test.test1} evaluates to the boolean
+value \texttt{true}, whereas \texttt{Test.test2} is a sequence whose
 elements can be inspected using \texttt{Seq.pull} or similar functions.
 \begin{ttbox}
-ML \{* Seq.pull test2 *\}  -- \{* This is the first answer *\}
+ML \{* Seq.pull Test.test2 *\}  -- \{* This is the first answer *\}
 ML \{* Seq.pull (snd (the it)) *\}  -- \{* This is the second answer *\}
 \end{ttbox}
 The theory
