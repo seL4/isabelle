@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Complex-Generate-HOL HOL-Complex-Generate-HOLLight
-images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix TLA HOL4
+images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -299,6 +299,13 @@ $(LOG)/HOL4.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES) \
   Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy Import/HOL/HOL4Vec.thy \
   Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy Import/HOL/ROOT.ML
 	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL4
+
+HOLLight: HOL-Complex $(LOG)/HOLLight.gz
+
+$(LOG)/HOLLight.gz: $(OUT)/HOL-Complex $(IMPORTER_HOLLIGHT_FILES) \
+  Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy \
+  Import/HOLLight/ROOT.ML
+	@cd Import/HOLLight; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOLLight
 
 
 ## HOL-NumberTheory
