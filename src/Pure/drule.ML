@@ -149,7 +149,6 @@ sig
   val abs_def: thm -> thm
   val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
   val read_instantiate': (indexname * string) list -> thm -> thm
-  val disambiguate_frees : thm -> thm
 end;
 
 structure Drule: DRULE =
@@ -1145,58 +1144,6 @@ val conj_intr_thm = store_standard_thm_open "conjunctionI"
   (implies_intr_list [A, B] (conj_intr (Thm.assume A) (Thm.assume B)));
 
 end;
-
-fun disambiguate_frees thm =
-    let
-      fun ERR s = error ("Drule.disambiguate_frees: "^s)
-      val ct = cprop_of thm
-      val t = term_of ct
-      val thy = theory_of_cterm ct
-      val frees = term_frees t
-      val freenames = add_term_free_names (t, [])
-      fun is_old_name n = n mem_string freenames
-      fun name_of (Free (n, _)) = n
-        | name_of _ = ERR "name_of"
-      fun new_name' bump map n =
-          let val n' = n^bump in
-            if is_old_name n' orelse Symtab.lookup map n' <> NONE then 
-              new_name' (Symbol.bump_string bump) map n
-            else
-              n'
-          end              
-      val new_name = new_name' "a"
-      fun replace_name n' (Free (n, t)) = Free (n', t)
-        | replace_name n' _ = ERR "replace_name"
-      (* map: old oder fresh name -> old free, 
-         invmap: old free which has fresh name assigned to it -> fresh name *)
-      fun dis (v, mapping as (map,invmap)) =
-          let val n = name_of v in
-            case Symtab.lookup map n of
-              NONE => (Symtab.update (n, v) map, invmap)
-            | SOME v' => 
-              if v=v' then 
-                mapping 
-              else
-                let val n' = new_name map n in
-                  (Symtab.update (n', v) map, 
-                   Termtab.update (v, n') invmap)
-                end
-          end
-    in
-      if (length freenames = length frees) then
-        thm
-      else
-        let 
-          val (_, invmap) = 
-              List.foldl dis (Symtab.empty, Termtab.empty) frees 
-          fun make_subst ((oldfree, newname), (intros, elims)) =
-              (cterm_of thy oldfree :: intros, 
-               cterm_of thy (replace_name newname oldfree) :: elims)
-          val (intros, elims) = List.foldl make_subst ([], []) (Termtab.dest invmap)
-        in 
-          forall_elim_list elims (forall_intr_list intros thm)
-        end     
-    end
 
 end;
 

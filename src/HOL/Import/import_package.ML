@@ -54,7 +54,7 @@ fun import_tac (thyname,thmname) =
 	    val prew = ProofKernel.rewrite_hol4_term prem thy
 	    val prem' = #2 (Logic.dest_equals (prop_of prew))
             val _ = message ("Import proved " ^ (string_of_thm thm))    
-            val thm = Drule.disambiguate_frees thm
+            val thm = ProofKernel.disambiguate_frees thm
 	    val _ = message ("Disambiguate: " ^ (string_of_thm thm))  
 	in
 	    case Shuffler.set_prop thy prem' [("",thm)] of
