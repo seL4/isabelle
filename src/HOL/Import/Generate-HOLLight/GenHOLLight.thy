@@ -5,10 +5,6 @@
 
 theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin;
 
-ML {* reset ProofKernel.debug; *}
-ML {* reset Shuffler.debug; *}
-ML {* set show_types; set show_sorts; *}
-
 ;import_segment "hollight";
 
 setup_dump "../HOLLight" "HOLLight";

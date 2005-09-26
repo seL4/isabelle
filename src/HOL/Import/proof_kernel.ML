@@ -1290,13 +1290,14 @@ fun intern_store_thm gen_output thyname thmname hth thy =
     let
 	val sg = sign_of thy
 	val (hth' as HOLThm (args as (_,th))) = norm_hthm sg hth
-	val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
-		else ()
 	val rew = rewrite_hol4_term (concl_of th) thy
 	val th  = equal_elim rew th
 	val thy' = add_hol4_pending thyname thmname args thy
+        val th = Drule.disambiguate_frees th
 	val thy2 = if gen_output
-		   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^ (smart_string_of_thm th) ^ "\n  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")") thy'
+		   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^ 
+                                  (smart_string_of_thm th) ^ "\n  by (import " ^ 
+                                  thyname ^ " " ^ (quotename thmname) ^ ")") thy'
 		   else thy'
     in
 	(thy2,hth')

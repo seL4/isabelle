@@ -333,9 +333,10 @@ fun follow_cname thmname thy =
     end
 
 fun add_hol4_mapping bthy bthm isathm thy =
-    let
-	val isathm = follow_name isathm thy
-	val _ = message ("Adding theorem map: " ^ bthy ^ "." ^ bthm ^ " --> " ^ isathm)
+    let	
+       (* val _ = writeln ("Before follow_name: "^isathm)  *)
+      val isathm = follow_name isathm thy
+       (* val _ = writeln ("Adding theorem map: " ^ bthy ^ "." ^ bthm ^ " --> " ^ isathm)*)
 	val curmaps = HOL4Maps.get thy
 	val newmaps = StringPair.update_new ((bthy,bthm),SOME isathm) curmaps
 	val upd_thy = HOL4Maps.put newmaps thy

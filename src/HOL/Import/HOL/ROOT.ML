@@ -3,5 +3,6 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-setmp quick_and_dirty true use_thy "HOL4Prob";
-setmp quick_and_dirty true use_thy "HOL4";
+set show_types; set show_sorts;
+use_thy "HOL4Prob";
+use_thy "HOL4";

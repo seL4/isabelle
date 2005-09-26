@@ -50,6 +50,8 @@ fun end_import toks =
 		val segname = get_import_segment thy
 		val (int_thms,facts) = Replay.setup_int_thms thyname thy
 		val thmnames = List.filter (not o should_ignore thyname thy) facts
+               (* val _ = set show_types
+                val _ = set show_sorts*)
 	    in
 		thy |> clear_import_thy
 		    |> set_segment thyname segname

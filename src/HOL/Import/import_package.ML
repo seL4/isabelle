@@ -41,6 +41,7 @@ fun import_tac (thyname,thmname) =
 	let
             val sg = sign_of_thm th
 	    val prem = hd (prems_of th)
+            val _ = message ("Import_tac: thyname="^thyname^", thmname="^thmname)
 	    val _ = message ("Import trying to prove " ^ (string_of_cterm (cterm_of sg prem)))
 	    val int_thms = case ImportData.get thy of
 			       NONE => fst (Replay.setup_int_thms thyname thy)
@@ -52,6 +53,7 @@ fun import_tac (thyname,thmname) =
 	    val thm = equal_elim rew thm
 	    val prew = ProofKernel.rewrite_hol4_term prem thy
 	    val prem' = #2 (Logic.dest_equals (prop_of prew))
+            val thm = Drule.disambiguate_frees thm
 	    val _ = message ("Import proved " ^ (string_of_thm thm))  
 	in
 	    case Shuffler.set_prop thy prem' [("",thm)] of
