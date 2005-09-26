@@ -7,7 +7,6 @@
 
 ## global settings
 
-DISTBASE=~/tmp/isadist
 TMP="/var/tmp/isabelle-makebin$$"
 
 TAR=tar
