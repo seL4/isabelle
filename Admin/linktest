@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# leightweight link checker for the isabelle website
+
+
+PRG=`basename "$0"`
+
+usage()
+{
+  echo
+  echo "Usage: $PRG URL"
+  echo
+  exit 1
+}
+
+fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+url="$1"
+if [ -z "$url" ]
+then
+  usage;
+fi
+
+type -p ggrep > /dev/zero && GREP=ggrep || GREP=grep
+
+mkdir -p /tmp/isa_linktest
+dir=$(pwd)
+cd /tmp/isa_linktest
+exec wget --non-verbose --cookies=off --recursive --convert-links --page-requisites \
+   --delete-after \
+  "$url" \
+  2>&1 | "$GREP" -i -B1 "ERROR"
+cd "$dir"
+rm -rf /tmp/isa_linktest
+#   --spider --domains="isabelle.in.tum.de isabelle.informatik.tu-muenchen.de" 
