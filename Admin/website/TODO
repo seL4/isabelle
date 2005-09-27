@@ -1,11 +1,10 @@
-For the next release:
-
-- add CONTRIBUTORS and COPYRIGHT to Packages
-
-- clarify purpose of the rsync daemon, consider
-  a rsyncd module for *both* main and dist;
-  upgrade rsync on atbroy1 to protocol 28,
-  to handle symlinks appropriately (?)
+For the release:
+- make build bed (~/isabelle/website_build)
+- abandon old scripts: mirror-*, rsyncisabelle
+- abandon old cache
+- cleanup old dist
+- redirect link -> proper sublinks
+- cleanup website mess (new dir "projects/")
 
 In the mid-time:
 
