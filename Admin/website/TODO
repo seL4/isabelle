@@ -1,5 +1,5 @@
 For the release:
-- make build bed (~/isabelle/website_build)
+- make build bed ()
 - abandon old scripts: mirror-*, rsyncisabelle
 - abandon old cache
 - cleanup old dist
