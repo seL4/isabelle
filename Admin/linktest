@@ -38,4 +38,3 @@ exec wget --non-verbose --cookies=off --recursive --convert-links --page-requisi
   2>&1 | "$GREP" -i -B1 "ERROR"
 cd "$dir"
 rm -rf /tmp/isa_linktest
-#   --spider --domains="isabelle.in.tum.de isabelle.informatik.tu-muenchen.de" 
