@@ -204,7 +204,9 @@ Note that non-logical types should be declared as 'nonterminals'
 rather than 'types'.  INCOMPATIBILITY for new object-logic
 specifications.
 
-* 'defs': more well-formedness checks of overloaded definitions.
+* 'defs': more well-formedness checks of overloaded definitions, but
+still does not cover all situations.  Even fails to recognize certain
+ill-formed definitions that Isabelle2004 would have rejected outright!
 
 * Attributes 'induct' and 'cases': type or set names may now be
 locally fixed variables as well.
