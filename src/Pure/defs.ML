@@ -8,7 +8,7 @@ Algorithm for Determining Definitional Cycles in Higher-Order Logic
 with Overloading", Steven Obua, technical report, to be written :-)
 
 ATTENTION:
-Currently this implementation of the cylce test contains a bug of which the author is fully aware.
+Currently this implementation of the cycle test contains a bug of which the author is fully aware.
 This bug makes it possible to introduce inconsistent definitional cycles in Isabelle. 
 *)
 
