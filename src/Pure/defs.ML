@@ -6,6 +6,10 @@ Checks if definitions preserve consistency of logic by enforcing that
 there are no cyclic definitions. The algorithm is described in "An
 Algorithm for Determining Definitional Cycles in Higher-Order Logic
 with Overloading", Steven Obua, technical report, to be written :-)
+
+ATTENTION:
+Currently this implementation of the cylce test contains a bug of which the author is fully aware.
+This bug makes it possible to introduce inconsistent definitional cycles in Isabelle. 
 *)
 
 signature DEFS =
@@ -80,7 +84,7 @@ fun no_forwards defs =
     (true, defs)
 
 fun checkT' (Type (a, Ts)) = Type (a, map checkT' Ts)
-  | checkT' (TFree (a, _)) = TVar ((a, 0), [])        (* FIXME !? *)
+  | checkT' (TFree (a, _)) = TVar ((a, 0), [])        
   | checkT' (TVar ((a, 0), _)) = TVar ((a, 0), [])
   | checkT' (T as TVar _) = raise TYPE ("Illegal schematic type variable encountered", [T], []);
 
