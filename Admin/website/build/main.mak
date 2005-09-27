@@ -96,7 +96,7 @@ $(DEP_FILE): $(CONF)
 	done; \
 	echo "DEP_ALLSTATIC=$$allstatic" >> $(DEP_FILE); \
 	echo >> $(DEP_FILE); \
-	echo 'DEP_HTML=$$(DEP_ALLSTATIC) $$(DEP_SYMLINKS) include/documentationdist.include.html $(DEP_FILE) $(CONF)' >> $(DEP_FILE); \
+	echo 'DEP_HTML=$$(DEP_ALLSTATIC) include/documentationdist.include.html $(DEP_FILE) $(CONF)' >> $(DEP_FILE); \
 	echo >> $(DEP_FILE); \
 	allhtml=''; \
 	for html in `$(FIND) . -name "*.html" -a ! -name "*.include.html"`; \

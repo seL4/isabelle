@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# mirrors the Isabelle website
+
+HOST=$(hostname)
+
+case ${HOST} in
+  sunbroy2)
+    DEST=/home/html/isabelle/html-data
+    ;;
+  atbroy1)
+    DEST=/home/html/isabelle/html-data
+    ;;
+  *.cl.cam.ac.uk)
+    USER=paulson
+    DEST=/anfs/www/html/Research/HVG/Isabelle
+    ;;
+  *)
+    echo "Unknown destination directory for ${HOST}"
+    exit 2
+    ;;
+esac
+
+exec $(dirname $0)/isasync -dw $DEST

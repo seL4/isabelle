@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# mirror script for Isabelle distribution or website
+
+
+## diagnostics
+
+PRG=`basename "$0"`
+
+usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS] DEST"
+  echo
+  echo "  Options are:"
+  echo "    -h    print help message"
+  echo "    -n    dry run, don't do anything, just report what would happen"
+  echo "    -w    mirror whole Isabelle website"
+  echo "    -d    delete files that are not on the server (BEWARE!)"
+  echo
+  exit 1
+}
+
+fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+HELP=""
+ARGS=""
+SRC="isabelle-distribution"
+
+while getopts "hnwd" OPT
+do
+  case "$OPT" in
+    h)
+      HELP=true
+      ;;
+    n)
+      ARGS="$ARGS -n"
+      ;;
+    w)
+      SRC="isabelle-website"
+      ;;
+    d)
+      ARGS="$ARGS --delete"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
+
+# help
+
+if [ -n "$HELP" ]; then
+  cat <<EOF
+
+Mirroring the Isabelle distribution or website
+==============================================
+
+The Munich site maintains an rsync server for the Isabelle
+distribution or website.
+
+The rsync tool is very smart and efficient in mirroring large
+directory hierarchies.  See http://rsync.samba.org/ for more
+information.  The rsync-isabelle script provides a simple front-end
+for easy access to the Isabelle distribution.
+
+The script can be either run in conservative or clean-sweep mode.
+
+1) Basic mirroring works like this:
+
+  $PRG /foo/bar
+
+where /foo/bar refers to your local copy of the Isabelle distribution
+(the base directory has to exist already).  This operation is
+conservative in the sense that files are never deleted, thus garbage
+may accumulate over time as our master copy is changed.
+
+Avoiding garbage in your local copy requires some care.  Rsync
+provides a way to delete all additional local files that are absent in
+the master copy.  This provides an efficient way to purge large
+directory hierarchies, even unwillingly in case that a wrong
+destination is given!
+
+2a) This will invoke a safe dry-run of clean-sweep mirroring:
+
+  $PRG -dn /foo/bar
+
+where additions and deletions will be printed without any actual
+changes performed so far.
+
+2b) Exact mirroring with actual deletion of garbage may be performed
+like this:
+
+  $PRG -d /foo/bar
+
+
+After gaining some confidence in the workings of rsync-isabelle one
+would usually set up some automatic mirror scheme, e.g. a daily cron
+job run by the 'nobody' user.
+
+Add -w to the option list in order to mirror the whole Isabelle website
+
+EOF
+  exit 0
+fi
+
+
+# arguments
+
+[ $# -ne 1 ] && { echo "Bad arguments: $*"; usage; }
+
+DEST="$1"; shift;
+
+
+## main
+
+exec rsync -va $ARGS "rsync://isabelle.in.tum.de/$SRC/." "$DEST/."
