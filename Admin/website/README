@@ -103,3 +103,20 @@ If nothing seems to be sensible any more, try
 
 * the site is not monolithic
 * it must fit neatlessly into the Isabelle distribution and regression framework
+
+
+(5) the website build bed on sunbroy2
+=====================================
+
+For convenience, there is a completely configured
+website build bed on sunbroy2:
+* log in to sunbroy2
+* go to ~/isabelle/website_build
+* there do an CVS update if desired
+* do your changes
+* just type make - the website is builded to the website synchronization cache
+* then do CVS commit
+* for updating the webpage in Munich, just use Admin/mirror-website
+* if the Isabelle distribution files themselves change, some handwired updating
+  is neceassary; however, for casual content changes the build bed should work
+  properly
