@@ -7,7 +7,6 @@ For the release:
 - cleanup website mess (new dir "projects/")
 
 In the mid-time:
-
 - a gentle intro enumeration on Home - "Why Isabelle?"
     * stably running, mature system
     * (something to say about Isar?)
@@ -16,7 +15,6 @@ In the mid-time:
     * it's free
     * ...
   (to discuss)
-
 - clarify relationship of "overview" and "logics":
     * overview: Isabelle/HOL   
     * logics:   Isabelle system
