@@ -246,6 +246,17 @@ in proof mode print all local facts (cf. 'print_facts');
 * More efficient treatment of intermediate checkpoints in interactive
 theory development.
 
+* Code generator is now invoked via code_module (incremental code
+  generation) and code_library (modular code generation, ML structures
+  for each theory).
+  INCOMPATIBILITY: new keywords "file" and "contains" must be quoted
+  when used as identifier names.
+
+* New "value" command for parsing, evaluating and printing terms
+  using the code generator.
+  INCOMPATIBILITY: new keyword "value" must be quoted when used as
+  identifier name.
+
 
 *** Locales ***
 
