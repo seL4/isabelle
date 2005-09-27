@@ -23,7 +23,7 @@ OUTPUTROOT=$(HOME)/isabelle/website_test
 ISABELLE_DIST=/home/proj/isabelle/dist/dist-Isabelle2005
 
 # location of doc content file
-ISABELLE_DOC_CONTENT_FILE=/home/proj/isabelle/dist/dist-Isabelle2005/doc/Contents
+ISABELLE_DOC_CONTENT_FILE=/home/proj/isabelle/dist/dist-Isabelle2005/Isabelle2005/doc/Contents
 
 # umask for target files
 TARGET_UMASK_FILE=664
