@@ -346,12 +346,15 @@ fun preprocess_term thy t =
     
 fun unfold_attr (thy, eqn) =
   let
-    val (name, _) = dest_Const (head_of
-      (fst (Logic.dest_equals (prop_of eqn))));
+    val names = term_consts
+      (fst (Logic.dest_equals (prop_of eqn)));
     fun prep thy = map (fn th =>
-      if name mem term_consts (prop_of th) then
-        rewrite_rule [eqn] (Thm.transfer thy th)
-      else th)
+      let val prop = prop_of th
+      in
+        if forall (fn name => exists_Const (equal name o fst) prop) names
+        then rewrite_rule [eqn] (Thm.transfer thy th)
+        else th
+      end)
   in (add_preprocessor prep thy, eqn) end;
 
 val _ = Context.add_setup [add_attribute "unfold" (Scan.succeed unfold_attr)];
