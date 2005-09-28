@@ -151,7 +151,7 @@ class Functions:
         handler.endElement(u"a")
         handler.endElement(u"td")
         handler.startElement(u"td", {})
-        handler.characters(u"%i%sKB" % (size / 1024, unichr(160)))
+        handler.characters(u"%.1f%sMB" % (size / (1024.0 * 1024), unichr(160)))
         handler.endElement(u"td")
 
     def mirror(self, handler, prefix, title, stripprefix = u""):
