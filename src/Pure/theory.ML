@@ -12,7 +12,7 @@ sig
   val sign_of: theory -> theory    (*obsolete*)
   val rep_theory: theory ->
    {axioms: term NameSpace.table,
-    defs: Defs.graph,
+    defs: Defs.T,
     oracles: ((theory * Object.T -> term) * stamp) NameSpace.table}
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
@@ -38,7 +38,7 @@ sig
   val oracle_space: theory -> NameSpace.T
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
-  val defs_of : theory -> Defs.graph
+  val defs_of : theory -> Defs.T
   val self_ref: theory -> theory_ref
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory                     (*exception TERM*)
@@ -95,7 +95,7 @@ open SignTheory;
 
 datatype thy = Thy of
  {axioms: term NameSpace.table,
-  defs: Defs.graph,
+  defs: Defs.T,
   oracles: ((theory * Object.T -> term) * stamp) NameSpace.table};
 
 fun make_thy (axioms, defs, oracles) =
@@ -119,7 +119,7 @@ structure ThyData = TheoryDataFun
       val Thy {axioms = _, defs = defs2, oracles = oracles2} = thy2;
 
       val axioms = NameSpace.empty_table;
-      val defs = Defs.merge pp defs1 defs2;
+      val defs = Defs.merge pp (defs1, defs2);
       val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
         handle Symtab.DUPS dups => err_dup_oras dups;
     in make_thy (axioms, defs, oracles) end;
@@ -224,6 +224,9 @@ end;
 
 (** add constant definitions **)
 
+fun prep_const thy (c, T) = (c, Compress.typ thy (Type.varifyT T));
+
+
 (* check_overloading *)
 
 fun check_overloading thy overloaded (c, T) =
@@ -296,17 +299,15 @@ fun check_def thy overloaded (bname, tm) defs =
     fun prt_const (c, T) =
      [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
-    fun declared (c, _) = (c, Sign.the_const_type thy c);
 
     val _ = no_vars pp tm;
+    val name = Sign.full_name thy bname;
     val (const, rhs) = dest_def pp tm handle TERM (msg, _) => error msg;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded const;
   in
-    defs
-    |> Defs.declare thy (declared const)
-    |> fold (Defs.declare thy o declared) rhs_consts
-    |> Defs.define thy const (Sign.full_name thy bname) rhs_consts
+    defs |> Defs.define (Sign.the_const_type thy)
+      name (prep_const thy const) (map (prep_const thy) rhs_consts)
   end
   handle ERROR => error (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
@@ -336,27 +337,20 @@ end;
 
 local
 
-fun gen_add_finals prep_term overloaded raw_terms thy =
+fun gen_add_finals prep_term overloaded args thy =
   let
-    val pp = Sign.pp thy;
-    fun finalize tm =
-      let
-        val _ = no_vars pp tm;
-        val const as (c, _) =
-          (case tm of Const x => x
-          | Free _ => error "Attempt to finalize variable (or undeclared constant)"
-          | _ => error "Attempt to finalize non-constant term")
-          |> check_overloading thy overloaded;
-      in Defs.declare thy (c, Sign.the_const_type thy c) #> Defs.finalize thy const end;
-  in thy |> map_defs (fold (finalize o prep_term thy) raw_terms) end;
-
-fun read_term thy = Sign.simple_read_term thy TypeInfer.logicT;
-fun cert_term thy = #1 o Sign.certify_term (Sign.pp thy) thy;
+    fun const_of (Const const) = const
+      | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
+      | const_of _ = error "Attempt to finalize non-constant term";
+    fun specify (c, T) = Defs.define (Sign.the_const_type thy) (c ^ " axiom") (c, T) [];
+    val finalize = specify o check_overloading thy overloaded o
+      const_of o no_vars (Sign.pp thy) o prep_term thy;
+  in thy |> map_defs (fold finalize args) end;
 
 in
 
-val add_finals = gen_add_finals read_term;
-val add_finals_i = gen_add_finals cert_term;
+val add_finals = gen_add_finals Sign.read_term;
+val add_finals_i = gen_add_finals Sign.cert_term;
 
 end;
 
