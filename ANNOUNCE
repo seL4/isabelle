@@ -26,6 +26,6 @@ intro/elim/simp rules etc.).
 
 You may get Isabelle2005 from the following mirror sites:
 
-  Cambridge (UK)       http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
-  Munich (Germany)     http://isabelle.in.tum.de/dist/
+  Cambridge (UK)       http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
+  Munich (Germany)     http://isabelle.in.tum.de/
   Sydney (Australia)   http://mirror.cse.unsw.edu.au/pub/isabelle/
