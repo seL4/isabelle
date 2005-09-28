@@ -10,7 +10,7 @@ signature DEFS =
 sig
   type T
   val monomorphic: T -> string -> bool
-  val define: string -> string * typ -> (string * typ) list -> T -> T
+  val define: (string -> typ) -> string -> string * typ -> (string * typ) list -> T -> T
   val empty: T
   val merge: Pretty.pp -> T * T -> T
 end
