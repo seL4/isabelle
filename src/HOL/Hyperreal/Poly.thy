@@ -640,19 +640,16 @@ apply (rule_tac x = "qa *** qaa" in exI)
 apply (auto simp add: poly_mult fun_eq real_mult_assoc)
 done
 
-lemma le_iff_add: "(m::nat) \<le> n = (\<exists>d. n = m + d)"
-by (auto simp add: le_eq_less_or_eq less_iff_Suc_add)
-
 lemma poly_divides_exp: "m \<le> n ==> (p %^ m) divides (p %^ n)"
 apply (auto simp add: le_iff_add)
-apply (induct_tac "d")
+apply (induct_tac k)
 apply (rule_tac [2] poly_divides_trans)
 apply (auto simp add: divides_def)
 apply (rule_tac x = p in exI)
 apply (auto simp add: poly_mult fun_eq mult_ac)
 done
 
-lemma poly_exp_divides: "[| (p %^ n) divides q;  m \<le> n |] ==> (p %^ m) divides q"
+lemma poly_exp_divides: "[| (p %^ n) divides q;  m\<le>n |] ==> (p %^ m) divides q"
 by (blast intro: poly_divides_exp poly_divides_trans)
 
 lemma poly_divides_add:
@@ -1119,7 +1116,6 @@ val poly_pderiv_welldef = thm "poly_pderiv_welldef";
 val poly_primes = thm "poly_primes";
 val poly_divides_refl = thm "poly_divides_refl";
 val poly_divides_trans = thm "poly_divides_trans";
-val le_iff_add = thm "le_iff_add";
 val poly_divides_exp = thm "poly_divides_exp";
 val poly_exp_divides = thm "poly_exp_divides";
 val poly_divides_add = thm "poly_divides_add";

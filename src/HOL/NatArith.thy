@@ -14,6 +14,9 @@ setup arith_setup
 
 text{*The following proofs may rely on the arithmetic proof procedures.*}
 
+lemma le_iff_add: "(m::nat) \<le> n = (\<exists>k. n = m + k)"
+  by (auto simp: le_eq_less_or_eq dest: less_imp_Suc_add)
+
 lemma pred_nat_trancl_eq_le: "((m, n) : pred_nat^*) = (m \<le> n)"
 by (simp add: less_eq reflcl_trancl [symmetric]
             del: reflcl_trancl, arith)
