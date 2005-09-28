@@ -396,7 +396,7 @@ fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}
 
 (*attributes subsume any kind of rules or context modifiers*)
 type 'a attribute = 'a * thm -> 'a * thm;
-  
+
 fun no_attributes x = (x, []);
 fun simple_fact x = [(x, [])];
 fun apply_attributes (x_th, atts) = Library.apply atts x_th;
@@ -814,6 +814,7 @@ fun abstract_rule a
     (Cterm {t = x, T, sorts, ...})
     (th as Thm {thy_ref, der, maxidx, hyps, shyps, tpairs, prop}) =
   let
+    val string_of = Sign.string_of_term (Theory.deref thy_ref);
     val (t, u) = Logic.dest_equals prop
       handle TERM _ => raise THM ("abstract_rule: premise not an equality", 0, [th]);
     val result =
@@ -827,13 +828,13 @@ fun abstract_rule a
           (Abs (a, T, abstract_over (x, t)), Abs (a, T, abstract_over (x, u)))};
     fun check_occs x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
-        raise THM ("abstract_rule: variable free in assumptions", 0, [th])
+        raise THM ("abstract_rule: variable free in assumptions " ^ string_of x, 0, [th])
       else ();
   in
     case x of
       Free _ => (check_occs x hyps; check_occs x (terms_of_tpairs tpairs); result)
     | Var _ => (check_occs x (terms_of_tpairs tpairs); result)
-    | _ => raise THM ("abstract_rule: not a variable", 0, [th])
+    | _ => raise THM ("abstract_rule: not a variable " ^ string_of x, 0, [th])
   end;
 
 (*The combination rule
