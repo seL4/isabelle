@@ -182,3 +182,7 @@ table.download tr td.downloadheader {
 table.download tr td + td + td {
     text-align: right;
 }
+
+table.download tr.rowspan td + td {
+    text-align: right;
+}
