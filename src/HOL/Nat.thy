@@ -24,7 +24,9 @@ axioms
   -- {* the axiom of infinity in 2 parts *}
   inj_Suc_Rep:          "inj Suc_Rep"
   Suc_Rep_not_Zero_Rep: "Suc_Rep x \<noteq> Zero_Rep"
-
+finalconsts
+  Zero_Rep
+  Suc_Rep
 
 subsection {* Type nat *}
 

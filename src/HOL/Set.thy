@@ -305,6 +305,9 @@ text {* Isomorphisms between predicates and sets. *}
 axioms
   mem_Collect_eq: "(a : {x. P(x)}) = P(a)"
   Collect_mem_eq: "{x. x:A} = A"
+finalconsts
+  Collect
+  "op :"
 
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"

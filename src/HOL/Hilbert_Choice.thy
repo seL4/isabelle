@@ -34,6 +34,8 @@ print_translation {*
 
 axioms
   someI: "P (x::'a) ==> P (SOME x. P x)"
+finalconsts
+  Eps
 
 
 constdefs
