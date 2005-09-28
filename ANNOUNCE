@@ -5,7 +5,7 @@ Isabelle2005 is now available.
 
 This release provides substantial advances over Isabelle2004, see the
 first 1000 lines of NEWS in the distribution for more details.  Some
-notable features are:
+highlights are:
 
 * Interpretation of locale expressions in theories, locales, and proof
 contexts.
@@ -17,14 +17,11 @@ contexts.
 * General 'find_theorems' command (by term patterns, as
 intro/elim/simp rules etc.).
 
-* Commands for generating adhoc draft documents.
+* Commands for generating ad-hoc draft documents.
 
 * Support for Unicode proof documents (UTF-8).
 
 * Major internal reorganizations and performance improvements.
-
-* 'defs': more checks for overloading, but less checks for cyclic
-dependencies!
 
 
 You may get Isabelle2005 from the following mirror sites:
