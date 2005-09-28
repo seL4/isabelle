@@ -4,8 +4,11 @@
 %% smart url or hyperref setup
 %%
 
-\@ifundefined{pdfoutput}
-{\usepackage{url}}
-{\usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}
+\RequirePackage{ifpdf}
+\ifpdf
+  \usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}
   \usepackage[pdftex,a4paper,colorlinks=true,linkcolor=darkblue,citecolor=darkblue,filecolor=darkblue,pagecolor=darkblue,urlcolor=darkblue]{hyperref}
-  \IfFileExists{thumbpdf.sty}{\usepackage{thumbpdf}}{}}
+  \IfFileExists{thumbpdf.sty}{\usepackage{thumbpdf}}{}
+\else
+  \usepackage{url}
+\fi
