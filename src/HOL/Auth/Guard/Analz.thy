@@ -237,11 +237,6 @@ lemma analz_kparts_insert: "X:analz (kparts (insert Z H)) ==>
 X:analz (kparts {Z} Un kparts H)"
 by (rule analz_sub, auto)
 
-lemma Key_analz_kparts_insert: "Key K:analz (kparts {Z} Un H)
-==> Key K:analz (insert Z H)"
-apply (subgoal_tac "Key K:analz ({Z} Un H)", simp)
-by (rule_tac in_analz_subset_cong, auto dest: analz_kparts_analz)
-
 lemma Nonce_kparts_synth [rule_format]: "Y:synth (analz G)
 ==> Nonce n:kparts {Y} --> Nonce n:analz G"
 by (erule synth.induct, auto)

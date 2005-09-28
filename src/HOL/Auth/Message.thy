@@ -240,6 +240,12 @@ by (erule parts.induct, blast+)
 lemma parts_idem [simp]: "parts (parts H) = parts H"
 by blast
 
+lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
+apply (rule iffI)
+apply (iprover intro: subset_trans parts_increasing)  
+apply (frule parts_mono, simp) 
+done
+
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (drule parts_mono, blast)
 
@@ -288,13 +294,11 @@ apply (erule parts.induct, auto)
 done
 
 lemma parts_insert_Crypt [simp]:
-     "parts (insert (Crypt K X) H) =  
-          insert (Crypt K X) (parts (insert X H))"
+     "parts (insert (Crypt K X) H) = insert (Crypt K X) (parts (insert X H))"
 apply (rule equalityI)
 apply (rule subsetI)
 apply (erule parts.induct, auto)
-apply (erule parts.induct)
-apply (blast intro: parts.Body)+
+apply (blast intro: parts.Body)
 done
 
 lemma parts_insert_MPair [simp]:
@@ -303,7 +307,6 @@ lemma parts_insert_MPair [simp]:
 apply (rule equalityI)
 apply (rule subsetI)
 apply (erule parts.induct, auto)
-apply (erule parts.induct)
 apply (blast intro: parts.Fst parts.Snd)+
 done
 
@@ -507,6 +510,12 @@ by (erule analz.induct, blast+)
 lemma analz_idem [simp]: "analz (analz H) = analz H"
 by blast
 
+lemma analz_subset_iff [simp]: "(analz G \<subseteq> analz H) = (G \<subseteq> analz H)"
+apply (rule iffI)
+apply (iprover intro: subset_trans analz_increasing)  
+apply (frule analz_mono, simp) 
+done
+
 lemma analz_trans: "[| X\<in> analz G;  G \<subseteq> analz H |] ==> X\<in> analz H"
 by (drule analz_mono, blast)
 
@@ -528,16 +537,15 @@ by (blast intro: analz_cut analz_insertI)
 text{*A congruence rule for "analz" *}
 
 lemma analz_subset_cong:
-     "[| analz G \<subseteq> analz G'; analz H \<subseteq> analz H'  
-               |] ==> analz (G \<union> H) \<subseteq> analz (G' \<union> H')"
-apply clarify
-apply (erule analz.induct)
-apply (best intro: analz_mono [THEN subsetD])+
+     "[| analz G \<subseteq> analz G'; analz H \<subseteq> analz H' |] 
+      ==> analz (G \<union> H) \<subseteq> analz (G' \<union> H')"
+apply simp
+apply (iprover intro: conjI subset_trans analz_mono Un_upper1 Un_upper2) 
 done
 
 lemma analz_cong:
-     "[| analz G = analz G'; analz H = analz H'  
-               |] ==> analz (G \<union> H) = analz (G' \<union> H')"
+     "[| analz G = analz G'; analz H = analz H' |] 
+      ==> analz (G \<union> H) = analz (G' \<union> H')"
 by (intro equalityI analz_subset_cong, simp_all) 
 
 lemma analz_insert_cong:
@@ -612,6 +620,12 @@ by (erule synth.induct, blast+)
 
 lemma synth_idem: "synth (synth H) = synth H"
 by blast
+
+lemma synth_subset_iff [simp]: "(synth G \<subseteq> synth H) = (G \<subseteq> synth H)"
+apply (rule iffI)
+apply (iprover intro: subset_trans synth_increasing)  
+apply (frule synth_mono, simp add: synth_idem) 
+done
 
 lemma synth_trans: "[| X\<in> synth G;  G \<subseteq> synth H |] ==> X\<in> synth H"
 by (drule synth_mono, blast)
@@ -896,7 +910,7 @@ lemma Hash_notin_image_Key [simp] :"Hash X \<notin> Key ` A"
 by auto
 
 lemma synth_analz_mono: "G\<subseteq>H ==> synth (analz(G)) \<subseteq> synth (analz(H))"
-by (simp add: synth_mono analz_mono) 
+by (iprover intro: synth_mono analz_mono) 
 
 lemma Fake_analz_eq [simp]:
      "X \<in> synth(analz H) ==> synth (analz (insert X H)) = synth (analz H)"
@@ -904,7 +918,9 @@ apply (drule Fake_analz_insert[of _ _ "H"])
 apply (simp add: synth_increasing[THEN Un_absorb2])
 apply (drule synth_mono)
 apply (simp add: synth_idem)
-apply (blast intro: synth_analz_mono [THEN [2] rev_subsetD]) 
+apply (rule equalityI)
+apply (simp add: );
+apply (rule synth_analz_mono, blast)   
 done
 
 text{*Two generalizations of @{text analz_insert_eq}*}
@@ -922,8 +938,9 @@ done
 lemma Fake_parts_sing:
      "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) \<union> parts H";
 apply (rule subset_trans) 
- apply (erule_tac [2] Fake_parts_insert) 
-apply (simp add: parts_mono) 
+ apply (erule_tac [2] Fake_parts_insert)
+apply (rule parts_mono)  
+apply (blast intro: elim:); 
 done
 
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]

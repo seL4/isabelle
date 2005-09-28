@@ -151,7 +151,8 @@ apply (erule finite_induct, simp)
 by (rule parts_insert_substI, simp)
 
 lemma parts_parts: "[| X:parts {Y}; Y:parts G |] ==> X:parts G"
-by (drule_tac x=Y in in_sub, drule parts_mono, auto)
+by (frule parts_cut, auto) 
+
 
 lemma parts_parts_parts: "[| X:parts {Y}; Y:parts {Z}; Z:parts G |] ==> X:parts G"
 by (auto dest: parts_parts)

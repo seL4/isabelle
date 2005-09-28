@@ -397,11 +397,11 @@ subsection{*The Guarantees for Sender and Recipient*}
 text{*A Sender's guarantee:
       If Spy gets the key then @{term R} is bad and @{term S} moreover
       gets his return receipt (and therefore has no grounds for complaint).*}
-theorem Spy_see_encrypted_key_imp:
+theorem S_fairness_bad_R:
       "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
                      Number cleartext, Nonce q, S2TTP|} \<in> set evs;
          S2TTP = Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|};
-         Key K \<in> analz(spies evs);
+         Key K \<in> analz (spies evs);
 	 evs \<in> certified_mail;
          S\<noteq>Spy|]
       ==> R \<in> bad & Gets S (Crypt (priSK TTP) S2TTP) \<in> set evs"
@@ -432,34 +432,33 @@ theorem Spy_not_see_encrypted_key:
 	 evs \<in> certified_mail;
          S\<noteq>Spy; R \<notin> bad|]
       ==> Key K \<notin> analz(spies evs)"
-by (blast dest: Spy_see_encrypted_key_imp) 
+by (blast dest: S_fairness_bad_R) 
 
 
 text{*Agent @{term R}, who may be the Spy, doesn't receive the key
  until @{term S} has access to the return receipt.*} 
 theorem S_guarantee:
-      "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
-                     Number cleartext, Nonce q, S2TTP|} \<in> set evs;
-         S2TTP = Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|};
-         Notes R {|Agent TTP, Agent R, Key K, hs|} \<in> set evs;
-         S\<noteq>Spy;  evs \<in> certified_mail|]
-      ==> Gets S (Crypt (priSK TTP) S2TTP) \<in> set evs"
+     "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
+		    Number cleartext, Nonce q, S2TTP|} \<in> set evs;
+	S2TTP = Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|};
+	Notes R {|Agent TTP, Agent R, Key K, hs|} \<in> set evs;
+	S\<noteq>Spy;  evs \<in> certified_mail|]
+     ==> Gets S (Crypt (priSK TTP) S2TTP) \<in> set evs"
 apply (erule rev_mp)
 apply (erule ssubst)
 apply (erule rev_mp)
 apply (erule certified_mail.induct, simp_all)
 txt{*Message 1*}
 apply (blast dest: Notes_imp_used) 
-txt{*Message 3*} 
-apply (blast dest: Notes_SSL_imp_used S2TTP_sender Key_unique 
-                   Spy_see_encrypted_key_imp) 
+txt{*Message 3*}
+apply (blast dest: Notes_SSL_imp_used S2TTP_sender Key_unique S_fairness_bad_R) 
 done
 
 
-text{*Recipient's guarantee: if @{term R} sends message 2, and
-     a delivery certificate exists, then @{term R}
-     receives the necessary key.*}
-theorem R_guarantee:
+text{*If @{term R} sends message 2, and a delivery certificate exists, 
+ then @{term R} receives the necessary key.  This result is also important
+ to @{term S}, as it confirms the validity of the return receipt.*}
+theorem RR_validity:
   "[|Crypt (priSK TTP) S2TTP \<in> used evs;
      S2TTP = Crypt (pubEK TTP)
                {|Agent S, Number AO, Key K, Agent R, 
