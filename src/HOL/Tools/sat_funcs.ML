@@ -12,12 +12,12 @@ Proof reconstruction from SAT solvers.
     SAT solver on a propositional goal in clausal form.
 
     We use a sequent presentation of clauses to speed up resolution
-    proof reconstruction. 
-    We call such clauses as "raw clauses", which are of the form
+    proof reconstruction.
+    We call such clauses "raw clauses", which are of the form
           [| c1; c2; ...; ck |] ==> False
     where each clause ci is of the form
-          [|l1,  l2,  ..., lm |] ==> False,
-    where li is a literal  (see also comments in cnf_funcs.ML).
+          [| l1; l2; ...; lm |] ==> False,
+    where each li is a literal (see also comments in cnf_funcs.ML).
 
     -- observe that this is the "dualized" version of the standard
        clausal form
@@ -26,14 +26,13 @@ Proof reconstruction from SAT solvers.
        The tactic produces a clause representation of the given goal
        in DIMACS format and invokes a SAT solver, which should return
        a proof consisting of a sequence of resolution steps, indicating
-       the two input clauses and the variable resolved upon, and resulting
-       in new clauses, leading to the empty clause (i.e., False).
-       The tactic replays this proof in Isabelle and thus solves the
-       overall goal.
+       the two input clauses, and resulting in new clauses, leading to
+       the empty clause (i.e., False).  The tactic replays this proof
+       in Isabelle and thus solves the overall goal.
 
    There are two SAT tactics available. They differ in the CNF transformation
    used. The "sat_tac" uses naive CNF transformation to transform the theorem
-   to be proved before giving it to SAT solver. The naive transformation in 
+   to be proved before giving it to SAT solver. The naive transformation in
    some worst case can lead to explonential blow up in formula size.
    The other tactic, the "satx_tac" uses the "definitional CNF transformation"
    which produces formula of linear size increase compared to the input formula.
@@ -47,6 +46,8 @@ Proof reconstruction from SAT solvers.
    - The environment variable ZCHAFF_VERSION must be set according to
      the version of zChaff used. Current supported version of zChaff:
      zChaff version 2004.11.15
+   - zChaff must have been compiled with proof generation enabled
+     (#define VERIFY_ON).
 *)
 
 signature SAT =
