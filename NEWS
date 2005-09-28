@@ -55,11 +55,6 @@ General interface.  Here are some simple examples (cf. src/HOL/ex):
 Classical Reasoner.  Typical big applications run around 2 times
 faster.
 
-* ProofGeneral interface: the default settings no longer prefer xemacs
-over GNU emacs.  Users typically need to experiment with various
-variations on PROOFGENERAL_OPTIONS="... -p emacs" to find the most
-stable Emacs version on their platform.
-
 
 *** Document preparation ***
 
@@ -197,16 +192,12 @@ Before that distinction was only partially implemented via type class
 "logic" vs. "{}".  Potential INCOMPATIBILITY in rare cases of improper
 use of 'types'/'consts' instead of 'nonterminals'/'syntax'.  Some very
 exotic syntax specifications may require further adaption
-(e.g. Cube/Base.thy).
+(e.g. Cube/Cube.thy).
 
 * Removed obsolete type class "logic", use the top sort {} instead.
 Note that non-logical types should be declared as 'nonterminals'
 rather than 'types'.  INCOMPATIBILITY for new object-logic
 specifications.
-
-* 'defs': more well-formedness checks of overloaded definitions, but
-still does not cover all situations.  Even fails to recognize certain
-ill-formed definitions that Isabelle2004 would have rejected outright!
 
 * Attributes 'induct' and 'cases': type or set names may now be
 locally fixed variables as well.
