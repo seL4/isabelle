@@ -3,5 +3,5 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-use_thy "HOL4Prob";
-use_thy "HOL4";
+setmp quick_and_dirty true use_thy "HOL4Prob";
+setmp quick_and_dirty true use_thy "HOL4";

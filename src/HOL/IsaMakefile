@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Complex-Generate-HOL HOL-Complex-Generate-HOLLight
-images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix TLA
+images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
