@@ -104,7 +104,7 @@ fun fold_table f =
           fold right (f p2 (fold mid (f p1 (fold left x))));
   in fold end;
 
-fun fold_map_table f = 
+fun fold_map_table f =
   let
     fun fold_map Empty s = (Empty, s)
       | fold_map (Branch2 (left, p as (k, x), right)) s =
@@ -224,7 +224,7 @@ fun modify key f tab =
 
 fun update (key, x) tab = modify key (fn _ => x) tab;
 fun update_new (key, x) tab = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
-fun default (p as (key, x)) tab = if defined tab key then tab else update p tab;
+fun default (key, x) tab = modify key (fn NONE => x | SOME _ => raise SAME) tab;
 fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
 
 
