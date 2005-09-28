@@ -81,7 +81,6 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
-  val revert_bound: simpset -> string -> string option
   val inherit_bounds: simpset -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
@@ -251,30 +250,30 @@ fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
     fun subst (((b, T), _), x') = (Free (b, T), Syntax.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 
-fun prtm warn a ss thy t = prnt warn (a ^ "\n" ^
-  Sign.string_of_term thy (if ! debug_simp then t else show_bounds ss t));
-
 in
+
+fun print_term warn a ss thy t = prnt warn (a ^ "\n" ^
+  Sign.string_of_term thy (if ! debug_simp then t else show_bounds ss t));
 
 fun debug warn a = if ! debug_simp then prnt warn a else ();
 fun trace warn a = if ! trace_simp then prnt warn a else ();
 
-fun debug_term warn a ss thy t = if ! debug_simp then prtm warn a ss thy t else ();
-fun trace_term warn a ss thy t = if ! trace_simp then prtm warn a ss thy t else ();
+fun debug_term warn a ss thy t = if ! debug_simp then print_term warn a ss thy t else ();
+fun trace_term warn a ss thy t = if ! trace_simp then print_term warn a ss thy t else ();
 
 fun trace_cterm warn a ss ct =
-  if ! trace_simp then prtm warn a ss (Thm.theory_of_cterm ct) (Thm.term_of ct) else ();
+  if ! trace_simp then print_term warn a ss (Thm.theory_of_cterm ct) (Thm.term_of ct) else ();
 
 fun trace_thm a ss th =
-  if ! trace_simp then prtm false a ss (Thm.theory_of_thm th) (Thm.full_prop_of th) else ();
+  if ! trace_simp then print_term false a ss (Thm.theory_of_thm th) (Thm.full_prop_of th) else ();
 
 fun trace_named_thm a ss (th, name) =
   if ! trace_simp then
-    prtm false (if name = "" then a else a ^ " " ^ quote name ^ ":") ss
+    print_term false (if name = "" then a else a ^ " " ^ quote name ^ ":") ss
       (Thm.theory_of_thm th) (Thm.full_prop_of th)
   else ();
 
-fun warn_thm a ss th = prtm true a ss (Thm.theory_of_thm th) (Thm.full_prop_of th);
+fun warn_thm a ss th = print_term true a ss (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
 end;
 
@@ -381,8 +380,6 @@ fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
 (* bounds and prems *)
 
 fun eq_bound (x: string, (y, _)) = x = y;
-
-fun revert_bound (Simpset ({bounds = (_, bs), ...}, _)) = AList.lookup eq_bound bs;
 
 fun inherit_bounds (Simpset ({bounds, ...}, _)) =
   map_simpset1 (fn (rules, prems, _) => (rules, prems, bounds));
@@ -1114,14 +1111,20 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
-fun check_bounds ss ct = conditional (! debug_simp) (fn () =>
+val debug_bounds = ref false;
+
+fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
   let
     val Simpset ({bounds = (_, bounds), ...}, _) = ss;
     val bs = fold_aterms (fn Free (x, _) =>
         if Term.is_bound x andalso not (AList.defined eq_bound bounds x)
         then insert (op =) x else I
       | _ => I) (term_of ct) [];
-  in if null bs then () else warning ("Simplifier: term contains loose bounds: " ^ commas bs) end);
+  in
+    if null bs then ()
+    else print_term true ("Simplifier: term contains loose bounds: " ^ commas bs) ss
+      (Thm.theory_of_cterm ct) (Thm.term_of ct)
+  end);
 
 fun rewrite_cterm mode prover ss ct =
   (inc simp_depth;
