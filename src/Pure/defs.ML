@@ -15,7 +15,7 @@ sig
   val merge: Pretty.pp -> T * T -> T
 end
 
-structure Defs (* FIXME : DEFS *) =
+structure Defs: DEFS =
 struct
 
 (** datatype T **)
