@@ -509,7 +509,8 @@ val proto_pure =
     [Const ("==", [aT, aT] ---> propT),
      Const ("==>", [propT, propT] ---> propT),
      Const ("all", (aT --> propT) --> propT),
-     Const ("TYPE", a_itselfT)]
+     Const ("TYPE", a_itselfT),
+     Const (Term.dummy_patternN, aT)]
   |> Theory.add_modesyntax ("", false)
     (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
   |> Theory.add_trfuns Syntax.pure_trfuns

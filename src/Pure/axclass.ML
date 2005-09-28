@@ -218,6 +218,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
     (*store info*)
     val final_thy =
       axms_thy
+      |> Theory.add_finals_i false [Const (Sign.const_of_class class, a_itselfT --> propT)]
       |> (#1 o PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts))
       |> Theory.restore_naming class_thy
       |> AxclassesData.map (Symtab.update (class, info));
