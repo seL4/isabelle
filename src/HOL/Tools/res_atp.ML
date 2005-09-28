@@ -12,6 +12,7 @@ sig
   val destdir: string ref
   val hook_count: int ref
   val problem_name: string ref
+  val time_limit: int ref
 end;
 
 structure ResAtp: RES_ATP =
@@ -19,11 +20,11 @@ struct
 
 val call_atp = ref false;
 val hook_count = ref 0;
+val time_limit = ref 60;
 
 val prover = ref "E";   (* use E as the default prover *)
 val custom_spass =   (*specialized options for SPASS*)
-      ref ["Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub",
-           "-DocProof","-TimeLimit=60"];
+      ref ["-Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub"];
 
 val destdir = ref "";   (*Empty means write files to /tmp*)
 val problem_name = ref "prob";
@@ -104,6 +105,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
             val _ = debug ("goalstring in make_atp_lists is " ^ goalstring)
 
             val probfile = prob_pathname() ^ "_" ^ Int.toString n
+            val time = Int.toString (!time_limit)
             val _ = debug ("problem file in watcher_call_provers is " ^ probfile)
           in
             (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
@@ -114,8 +116,9 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
 		      if !AtpCommunication.reconstruct 
 		          (*Proof reconstruction works for only a limited set of 
 		            inference rules*)
-                      then "-" ^ space_implode "%-" (!custom_spass)
-                      else "-DocProof%-TimeLimit=60%-SOS%-FullRed=0" (*Auto mode*)
+                      then space_implode "%" (!custom_spass) ^
+                           "%-DocProof%-TimeLimit=" ^ time
+                      else "-DocProof%-SOS%-FullRed=0%-TimeLimit=" ^ time (*Auto mode*)
                   val _ = debug ("SPASS option string is " ^ optionline)
                   val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
                     (*We've checked that SPASS is there for ATP/spassshell to run.*)
@@ -129,7 +132,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
 	    then 
               let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vampire"
               in
-                ([("vampire", goalstring, vampire, "-t 60%-m 100000", probfile)] @
+                ([("vampire", goalstring, vampire, "-m 100000%-t " ^ time, probfile)] @
                  (make_atp_list xs (n+1)))       (*BEWARE! spaces in options!*)
               end
       	     else if !prover = "E"
@@ -137,7 +140,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
 	       let val Eprover = ResLib.helper_path "E_HOME" "eproof"
 	       in
 		  ([("E", goalstring, Eprover, 
-		     "--tptp-in%-l5%-xAuto%-tAuto%--soft-cpu-limit=60",
+		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time,
 		     probfile)] @
 		   (make_atp_list xs (n+1)))
 	       end
@@ -237,7 +240,7 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     hook_count := !hook_count +1;
     debug ("in hook for time: " ^(Int.toString (!hook_count)) );
     ResClause.init thy;
-    if !destdir = "" then isar_atp (ctxt, goal)
+    if !destdir = "" andalso !time_limit > 0 then isar_atp (ctxt, goal)
     else isar_atp_writeonly (ctxt, goal)
   end);
 

@@ -103,9 +103,8 @@ fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause
        startTransfer (end_V8, fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
      else if (String.isPrefix "Satisfiability detected" thisLine) orelse
              (String.isPrefix "Refutation not found" thisLine)
-     then
-       (signal_parent (toParent, ppid, "Failure\n", goalstring);
-	true)
+     then (signal_parent (toParent, ppid, "Failure\n", goalstring);
+	   true)
      else
         checkVampProofFound  (fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
   end
@@ -124,13 +123,11 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr
      then      
        startTransfer (end_E, fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
      else if String.isPrefix "# Problem is satisfiable" thisLine
-     then  
-       (signal_parent (toParent, ppid, "Invalid\n", goalstring);
-	true)
-     else if String.isPrefix "# Failure: Resource limit exceeded" thisLine
-     then  (*In fact, E distingishes "out of time" and "out of memory"*)
-       (signal_parent (toParent, ppid, "Failure\n", goalstring);
-	true)
+     then (signal_parent (toParent, ppid, "Invalid\n", goalstring);
+	   true)
+     else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
+     then (signal_parent (toParent, ppid, "Failure\n", goalstring);
+	   true)
      else
 	checkEProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
  end

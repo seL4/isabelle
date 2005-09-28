@@ -147,8 +147,6 @@ fun numstr [] = ""
 fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums = 
     let val clasimp_nums = List.filter (is_clasimp_ax (Array.length clause_arr - 1)) 
 	                   (map subone step_nums)
-(*	val _ = File.write (File.tmp_path (Path.basic "axnums")) 
-                     (numstr clasimp_nums) *)
     in
 	map (fn x =>  Array.sub(clause_arr, x)) clasimp_nums
     end
@@ -169,8 +167,6 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums =
   
       val clasimp_names_cls = get_clasimp_cls clause_arr step_nums 
       val clasimp_names = map (ResClause.get_axiomName o #1) clasimp_names_cls
-      val _ = File.write (File.tmp_path (Path.basic "clasimp_names"))                                                               
-                         (concat clasimp_names)
       val _ = (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
    in
       clasimp_names
