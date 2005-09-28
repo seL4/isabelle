@@ -975,7 +975,7 @@ components are maintained by the following theory operations:
   Classical.del_context_unsafe_wrapper
 
 IMPORTANT NOTE: proof tools (methods etc.) need to use
-local_simpset_of and local_claset_of to instead of the primitive
+local_simpset_of and local_claset_of instead of the primitive
 Simplifier.get_local_simpset and Classical.get_local_claset,
 respectively, in order to see the context dependent fields!
 
