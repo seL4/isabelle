@@ -1323,228 +1323,88 @@ lemma NET_LE: "ALL g::'a::type => 'a::type => bool.
 ;setup_theory seq
 
 consts
-  "-->" :: "(nat => real) => real => bool" ("-->")
+  "hol4-->" :: "(nat => real) => real => bool" ("hol4-->")
 
 defs
-  "-->_def": "--> == %(x::nat => real) x0::real. tends x x0 (mtop mr1, nat_ge)"
+  "hol4-->_def": "hol4--> == %(x::nat => real) x0::real. tends x x0 (mtop mr1, nat_ge)"
 
-lemma tends_num_real: "ALL (x::nat => real) x0::real. --> x x0 = tends x x0 (mtop mr1, nat_ge)"
+lemma tends_num_real: "ALL (x::nat => real) x0::real. hol4--> x x0 = tends x x0 (mtop mr1, nat_ge)"
   by (import seq tends_num_real)
 
-lemma SEQ: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (op =::bool => bool => bool)
-           ((-->::(nat => real) => real => bool) x x0)
-           ((All::(real => bool) => bool)
-             (%e::real.
-                 (op -->::bool => bool => bool)
-                  ((op <::real => real => bool) (0::real) e)
-                  ((Ex::(nat => bool) => bool)
-                    (%N::nat.
-                        (All::(nat => bool) => bool)
-                         (%n::nat.
-                             (op -->::bool => bool => bool)
-                              ((op <=::nat => nat => bool) N n)
-                              ((op <::real => real => bool)
-                                ((abs::real => real)
-                                  ((op -::real => real => real) (x n) x0))
-                                e))))))))"
+lemma SEQ: "ALL (x::nat => real) x0::real.
+   hol4--> x x0 =
+   (ALL e>0. EX N::nat. ALL n::nat. N <= n --> abs (x n - x0) < e)"
   by (import seq SEQ)
 
-lemma SEQ_CONST: "ALL k::real. --> (%x::nat. k) k"
+lemma SEQ_CONST: "ALL k::real. hol4--> (%x::nat. k) k"
   by (import seq SEQ_CONST)
 
-lemma SEQ_ADD: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::((nat => real) => bool) => bool)
-           (%y::nat => real.
-               (All::(real => bool) => bool)
-                (%y0::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((-->::(nat => real) => real => bool) x x0)
-                       ((-->::(nat => real) => real => bool) y y0))
-                     ((-->::(nat => real) => real => bool)
-                       (%n::nat. (op +::real => real => real) (x n) (y n))
-                       ((op +::real => real => real) x0 y0))))))"
+lemma SEQ_ADD: "ALL (x::nat => real) (x0::real) (y::nat => real) y0::real.
+   hol4--> x x0 & hol4--> y y0 --> hol4--> (%n::nat. x n + y n) (x0 + y0)"
   by (import seq SEQ_ADD)
 
-lemma SEQ_MUL: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::((nat => real) => bool) => bool)
-           (%y::nat => real.
-               (All::(real => bool) => bool)
-                (%y0::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((-->::(nat => real) => real => bool) x x0)
-                       ((-->::(nat => real) => real => bool) y y0))
-                     ((-->::(nat => real) => real => bool)
-                       (%n::nat. (op *::real => real => real) (x n) (y n))
-                       ((op *::real => real => real) x0 y0))))))"
+lemma SEQ_MUL: "ALL (x::nat => real) (x0::real) (y::nat => real) y0::real.
+   hol4--> x x0 & hol4--> y y0 --> hol4--> (%n::nat. x n * y n) (x0 * y0)"
   by (import seq SEQ_MUL)
 
-lemma SEQ_NEG: "ALL (x::nat => real) x0::real. --> x x0 = --> (%n::nat. - x n) (- x0)"
+lemma SEQ_NEG: "ALL (x::nat => real) x0::real.
+   hol4--> x x0 = hol4--> (%n::nat. - x n) (- x0)"
   by (import seq SEQ_NEG)
 
-lemma SEQ_INV: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((-->::(nat => real) => real => bool) x x0)
-             ((Not::bool => bool)
-               ((op =::real => real => bool) x0 (0::real))))
-           ((-->::(nat => real) => real => bool)
-             (%n::nat. (inverse::real => real) (x n))
-             ((inverse::real => real) x0))))"
+lemma SEQ_INV: "ALL (x::nat => real) x0::real.
+   hol4--> x x0 & x0 ~= 0 --> hol4--> (%n::nat. inverse (x n)) (inverse x0)"
   by (import seq SEQ_INV)
 
-lemma SEQ_SUB: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::((nat => real) => bool) => bool)
-           (%y::nat => real.
-               (All::(real => bool) => bool)
-                (%y0::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((-->::(nat => real) => real => bool) x x0)
-                       ((-->::(nat => real) => real => bool) y y0))
-                     ((-->::(nat => real) => real => bool)
-                       (%n::nat. (op -::real => real => real) (x n) (y n))
-                       ((op -::real => real => real) x0 y0))))))"
+lemma SEQ_SUB: "ALL (x::nat => real) (x0::real) (y::nat => real) y0::real.
+   hol4--> x x0 & hol4--> y y0 --> hol4--> (%n::nat. x n - y n) (x0 - y0)"
   by (import seq SEQ_SUB)
 
-lemma SEQ_DIV: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::((nat => real) => bool) => bool)
-           (%y::nat => real.
-               (All::(real => bool) => bool)
-                (%y0::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((-->::(nat => real) => real => bool) x x0)
-                       ((op &::bool => bool => bool)
-                         ((-->::(nat => real) => real => bool) y y0)
-                         ((Not::bool => bool)
-                           ((op =::real => real => bool) y0 (0::real)))))
-                     ((-->::(nat => real) => real => bool)
-                       (%n::nat. (op /::real => real => real) (x n) (y n))
-                       ((op /::real => real => real) x0 y0))))))"
+lemma SEQ_DIV: "ALL (x::nat => real) (x0::real) (y::nat => real) y0::real.
+   hol4--> x x0 & hol4--> y y0 & y0 ~= 0 -->
+   hol4--> (%n::nat. x n / y n) (x0 / y0)"
   by (import seq SEQ_DIV)
 
-lemma SEQ_UNIQ: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x1::real.
-          (All::(real => bool) => bool)
-           (%x2::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((-->::(nat => real) => real => bool) x x1)
-                  ((-->::(nat => real) => real => bool) x x2))
-                ((op =::real => real => bool) x1 x2))))"
+lemma SEQ_UNIQ: "ALL (x::nat => real) (x1::real) x2::real.
+   hol4--> x x1 & hol4--> x x2 --> x1 = x2"
   by (import seq SEQ_UNIQ)
 
 constdefs
   convergent :: "(nat => real) => bool" 
-  "convergent == %f::nat => real. Ex (--> f)"
+  "convergent == %f::nat => real. Ex (hol4--> f)"
 
-lemma convergent: "ALL f::nat => real. convergent f = Ex (--> f)"
+lemma convergent: "ALL f::nat => real. convergent f = Ex (hol4--> f)"
   by (import seq convergent)
 
 constdefs
   cauchy :: "(nat => real) => bool" 
-  "(op ==::((nat => real) => bool) => ((nat => real) => bool) => prop)
- (cauchy::(nat => real) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%e::real.
-          (op -->::bool => bool => bool)
-           ((op <::real => real => bool) (0::real) e)
-           ((Ex::(nat => bool) => bool)
-             (%N::nat.
-                 (All::(nat => bool) => bool)
-                  (%m::nat.
-                      (All::(nat => bool) => bool)
-                       (%n::nat.
-                           (op -->::bool => bool => bool)
-                            ((op &::bool => bool => bool)
-                              ((op <=::nat => nat => bool) N m)
-                              ((op <=::nat => nat => bool) N n))
-                            ((op <::real => real => bool)
-                              ((abs::real => real)
-                                ((op -::real => real => real) (f m) (f n)))
-                              e)))))))"
+  "cauchy ==
+%f::nat => real.
+   ALL e>0.
+      EX N::nat.
+         ALL (m::nat) n::nat. N <= m & N <= n --> abs (f m - f n) < e"
 
-lemma cauchy: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op =::bool => bool => bool) ((cauchy::(nat => real) => bool) f)
-      ((All::(real => bool) => bool)
-        (%e::real.
-            (op -->::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) e)
-             ((Ex::(nat => bool) => bool)
-               (%N::nat.
-                   (All::(nat => bool) => bool)
-                    (%m::nat.
-                        (All::(nat => bool) => bool)
-                         (%n::nat.
-                             (op -->::bool => bool => bool)
-                              ((op &::bool => bool => bool)
-                                ((op <=::nat => nat => bool) N m)
-                                ((op <=::nat => nat => bool) N n))
-                              ((op <::real => real => bool)
-                                ((abs::real => real)
-                                  ((op -::real => real => real) (f m)
-                                    (f n)))
-                                e))))))))"
+lemma cauchy: "ALL f::nat => real.
+   cauchy f =
+   (ALL e>0.
+       EX N::nat.
+          ALL (m::nat) n::nat. N <= m & N <= n --> abs (f m - f n) < e)"
   by (import seq cauchy)
 
 constdefs
   lim :: "(nat => real) => real" 
-  "lim == %f::nat => real. Eps (--> f)"
+  "lim == %f::nat => real. Eps (hol4--> f)"
 
-lemma lim: "ALL f::nat => real. lim f = Eps (--> f)"
+lemma lim: "ALL f::nat => real. lim f = Eps (hol4--> f)"
   by (import seq lim)
 
-lemma SEQ_LIM: "ALL f::nat => real. convergent f = --> f (lim f)"
+lemma SEQ_LIM: "ALL f::nat => real. convergent f = hol4--> f (lim f)"
   by (import seq SEQ_LIM)
 
 constdefs
   subseq :: "(nat => nat) => bool" 
-  "(op ==::((nat => nat) => bool) => ((nat => nat) => bool) => prop)
- (subseq::(nat => nat) => bool)
- (%f::nat => nat.
-     (All::(nat => bool) => bool)
-      (%m::nat.
-          (All::(nat => bool) => bool)
-           (%n::nat.
-               (op -->::bool => bool => bool)
-                ((op <::nat => nat => bool) m n)
-                ((op <::nat => nat => bool) (f m) (f n)))))"
+  "subseq == %f::nat => nat. ALL (m::nat) n::nat. m < n --> f m < f n"
 
-lemma subseq: "(All::((nat => nat) => bool) => bool)
- (%f::nat => nat.
-     (op =::bool => bool => bool) ((subseq::(nat => nat) => bool) f)
-      ((All::(nat => bool) => bool)
-        (%m::nat.
-            (All::(nat => bool) => bool)
-             (%n::nat.
-                 (op -->::bool => bool => bool)
-                  ((op <::nat => nat => bool) m n)
-                  ((op <::nat => nat => bool) (f m) (f n))))))"
+lemma subseq: "ALL f::nat => nat. subseq f = (ALL (m::nat) n::nat. m < n --> f m < f n)"
   by (import seq subseq)
 
 lemma SUBSEQ_SUC: "ALL f::nat => nat. subseq f = (ALL n::nat. f n < f (Suc n))"
@@ -1554,43 +1414,15 @@ consts
   mono :: "(nat => real) => bool" 
 
 defs
-  mono_def: "(op ==::((nat => real) => bool) => ((nat => real) => bool) => prop)
- (seq.mono::(nat => real) => bool)
- (%f::nat => real.
-     (op |::bool => bool => bool)
-      ((All::(nat => bool) => bool)
-        (%m::nat.
-            (All::(nat => bool) => bool)
-             (%n::nat.
-                 (op -->::bool => bool => bool)
-                  ((op <=::nat => nat => bool) m n)
-                  ((op <=::real => real => bool) (f m) (f n)))))
-      ((All::(nat => bool) => bool)
-        (%m::nat.
-            (All::(nat => bool) => bool)
-             (%n::nat.
-                 (op -->::bool => bool => bool)
-                  ((op <=::nat => nat => bool) m n)
-                  ((op <=::real => real => bool) (f n) (f m))))))"
+  mono_def: "seq.mono ==
+%f::nat => real.
+   (ALL (m::nat) n::nat. m <= n --> f m <= f n) |
+   (ALL (m::nat) n::nat. m <= n --> f n <= f m)"
 
-lemma mono: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op =::bool => bool => bool) ((seq.mono::(nat => real) => bool) f)
-      ((op |::bool => bool => bool)
-        ((All::(nat => bool) => bool)
-          (%m::nat.
-              (All::(nat => bool) => bool)
-               (%n::nat.
-                   (op -->::bool => bool => bool)
-                    ((op <=::nat => nat => bool) m n)
-                    ((op <=::real => real => bool) (f m) (f n)))))
-        ((All::(nat => bool) => bool)
-          (%m::nat.
-              (All::(nat => bool) => bool)
-               (%n::nat.
-                   (op -->::bool => bool => bool)
-                    ((op <=::nat => nat => bool) m n)
-                    ((op <=::real => real => bool) (f n) (f m)))))))"
+lemma mono: "ALL f::nat => real.
+   seq.mono f =
+   ((ALL (m::nat) n::nat. m <= n --> f m <= f n) |
+    (ALL (m::nat) n::nat. m <= n --> f n <= f m))"
   by (import seq mono)
 
 lemma MONO_SUC: "ALL f::nat => real.
@@ -1616,58 +1448,17 @@ lemma SEQ_BOUNDED: "ALL s::nat => real.
    bounded (mr1, nat_ge) s = (EX k::real. ALL n::nat. abs (s n) < k)"
   by (import seq SEQ_BOUNDED)
 
-lemma SEQ_BOUNDED_2: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%k::real.
-          (All::(real => bool) => bool)
-           (%k'::real.
-               (op -->::bool => bool => bool)
-                ((All::(nat => bool) => bool)
-                  (%n::nat.
-                      (op &::bool => bool => bool)
-                       ((op <=::real => real => bool) k (f n))
-                       ((op <=::real => real => bool) (f n) k')))
-                ((bounded::real metric * (nat => nat => bool)
-                           => (nat => real) => bool)
-                  ((Pair::real metric
-                          => (nat => nat => bool)
-                             => real metric * (nat => nat => bool))
-                    (mr1::real metric) (nat_ge::nat => nat => bool))
-                  f))))"
+lemma SEQ_BOUNDED_2: "ALL (f::nat => real) (k::real) k'::real.
+   (ALL n::nat. k <= f n & f n <= k') --> bounded (mr1, nat_ge) f"
   by (import seq SEQ_BOUNDED_2)
 
-lemma SEQ_CBOUNDED: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool) ((cauchy::(nat => real) => bool) f)
-      ((bounded::real metric * (nat => nat => bool)
-                 => (nat => real) => bool)
-        ((Pair::real metric
-                => (nat => nat => bool)
-                   => real metric * (nat => nat => bool))
-          (mr1::real metric) (nat_ge::nat => nat => bool))
-        f))"
+lemma SEQ_CBOUNDED: "ALL f::nat => real. cauchy f --> bounded (mr1, nat_ge) f"
   by (import seq SEQ_CBOUNDED)
 
-lemma SEQ_ICONV: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((bounded::real metric * (nat => nat => bool)
-                   => (nat => real) => bool)
-          ((Pair::real metric
-                  => (nat => nat => bool)
-                     => real metric * (nat => nat => bool))
-            (mr1::real metric) (nat_ge::nat => nat => bool))
-          f)
-        ((All::(nat => bool) => bool)
-          (%m::nat.
-              (All::(nat => bool) => bool)
-               (%n::nat.
-                   (op -->::bool => bool => bool)
-                    ((op <=::nat => nat => bool) n m)
-                    ((op <=::real => real => bool) (f n) (f m))))))
-      ((convergent::(nat => real) => bool) f))"
+lemma SEQ_ICONV: "ALL f::nat => real.
+   bounded (mr1, nat_ge) f &
+   (ALL (m::nat) n::nat. n <= m --> f n <= f m) -->
+   convergent f"
   by (import seq SEQ_ICONV)
 
 lemma SEQ_NEG_CONV: "ALL f::nat => real. convergent f = convergent (%n::nat. - f n)"
@@ -1677,264 +1468,87 @@ lemma SEQ_NEG_BOUNDED: "ALL f::nat => real.
    bounded (mr1, nat_ge) (%n::nat. - f n) = bounded (mr1, nat_ge) f"
   by (import seq SEQ_NEG_BOUNDED)
 
-lemma SEQ_BCONV: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((bounded::real metric * (nat => nat => bool)
-                   => (nat => real) => bool)
-          ((Pair::real metric
-                  => (nat => nat => bool)
-                     => real metric * (nat => nat => bool))
-            (mr1::real metric) (nat_ge::nat => nat => bool))
-          f)
-        ((seq.mono::(nat => real) => bool) f))
-      ((convergent::(nat => real) => bool) f))"
+lemma SEQ_BCONV: "ALL f::nat => real. bounded (mr1, nat_ge) f & seq.mono f --> convergent f"
   by (import seq SEQ_BCONV)
 
 lemma SEQ_MONOSUB: "ALL s::nat => real. EX f::nat => nat. subseq f & seq.mono (%n::nat. s (f n))"
   by (import seq SEQ_MONOSUB)
 
-lemma SEQ_SBOUNDED: "(All::((nat => real) => bool) => bool)
- (%s::nat => real.
-     (All::((nat => nat) => bool) => bool)
-      (%f::nat => nat.
-          (op -->::bool => bool => bool)
-           ((bounded::real metric * (nat => nat => bool)
-                      => (nat => real) => bool)
-             ((Pair::real metric
-                     => (nat => nat => bool)
-                        => real metric * (nat => nat => bool))
-               (mr1::real metric) (nat_ge::nat => nat => bool))
-             s)
-           ((bounded::real metric * (nat => nat => bool)
-                      => (nat => real) => bool)
-             ((Pair::real metric
-                     => (nat => nat => bool)
-                        => real metric * (nat => nat => bool))
-               (mr1::real metric) (nat_ge::nat => nat => bool))
-             (%n::nat. s (f n)))))"
+lemma SEQ_SBOUNDED: "ALL (s::nat => real) f::nat => nat.
+   bounded (mr1, nat_ge) s --> bounded (mr1, nat_ge) (%n::nat. s (f n))"
   by (import seq SEQ_SBOUNDED)
 
-lemma SEQ_SUBLE: "(All::((nat => nat) => bool) => bool)
- (%f::nat => nat.
-     (op -->::bool => bool => bool) ((subseq::(nat => nat) => bool) f)
-      ((All::(nat => bool) => bool)
-        (%n::nat. (op <=::nat => nat => bool) n (f n))))"
+lemma SEQ_SUBLE: "ALL f::nat => nat. subseq f --> (ALL n::nat. n <= f n)"
   by (import seq SEQ_SUBLE)
 
-lemma SEQ_DIRECT: "(All::((nat => nat) => bool) => bool)
- (%f::nat => nat.
-     (op -->::bool => bool => bool) ((subseq::(nat => nat) => bool) f)
-      ((All::(nat => bool) => bool)
-        (%N1::nat.
-            (All::(nat => bool) => bool)
-             (%N2::nat.
-                 (Ex::(nat => bool) => bool)
-                  (%x::nat.
-                      (op &::bool => bool => bool)
-                       ((op <=::nat => nat => bool) N1 x)
-                       ((op <=::nat => nat => bool) N2 (f x)))))))"
+lemma SEQ_DIRECT: "ALL f::nat => nat.
+   subseq f --> (ALL (N1::nat) N2::nat. EX x::nat. N1 <= x & N2 <= f x)"
   by (import seq SEQ_DIRECT)
 
 lemma SEQ_CAUCHY: "ALL f::nat => real. cauchy f = convergent f"
   by (import seq SEQ_CAUCHY)
 
-lemma SEQ_LE: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((-->::(nat => real) => real => bool) f l)
-                       ((op &::bool => bool => bool)
-                         ((-->::(nat => real) => real => bool) g m)
-                         ((Ex::(nat => bool) => bool)
-                           (%x::nat.
-                               (All::(nat => bool) => bool)
-                                (%xa::nat.
-                                    (op -->::bool => bool => bool)
-                                     ((op <=::nat => nat => bool) x xa)
-                                     ((op <=::real => real => bool) (f xa)
- (g xa)))))))
-                     ((op <=::real => real => bool) l m)))))"
+lemma SEQ_LE: "ALL (f::nat => real) (g::nat => real) (l::real) m::real.
+   hol4--> f l &
+   hol4--> g m & (EX x::nat. ALL xa::nat. x <= xa --> f xa <= g xa) -->
+   l <= m"
   by (import seq SEQ_LE)
 
-lemma SEQ_SUC: "ALL (f::nat => real) l::real. --> f l = --> (%n::nat. f (Suc n)) l"
+lemma SEQ_SUC: "ALL (f::nat => real) l::real. hol4--> f l = hol4--> (%n::nat. f (Suc n)) l"
   by (import seq SEQ_SUC)
 
-lemma SEQ_ABS: "ALL f::nat => real. --> (%n::nat. abs (f n)) 0 = --> f 0"
+lemma SEQ_ABS: "ALL f::nat => real. hol4--> (%n::nat. abs (f n)) 0 = hol4--> f 0"
   by (import seq SEQ_ABS)
 
-lemma SEQ_ABS_IMP: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (op -->::bool => bool => bool)
-           ((-->::(nat => real) => real => bool) f l)
-           ((-->::(nat => real) => real => bool)
-             (%n::nat. (abs::real => real) (f n)) ((abs::real => real) l))))"
+lemma SEQ_ABS_IMP: "ALL (f::nat => real) l::real.
+   hol4--> f l --> hol4--> (%n::nat. abs (f n)) (abs l)"
   by (import seq SEQ_ABS_IMP)
 
-lemma SEQ_INV0: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool)
-      ((All::(real => bool) => bool)
-        (%y::real.
-            (Ex::(nat => bool) => bool)
-             (%N::nat.
-                 (All::(nat => bool) => bool)
-                  (%n::nat.
-                      (op -->::bool => bool => bool)
-                       ((op <=::nat => nat => bool) N n)
-                       ((op <::real => real => bool) y (f n))))))
-      ((-->::(nat => real) => real => bool)
-        (%n::nat. (inverse::real => real) (f n)) (0::real)))"
+lemma SEQ_INV0: "ALL f::nat => real.
+   (ALL y::real. EX N::nat. ALL n::nat. N <= n --> y < f n) -->
+   hol4--> (%n::nat. inverse (f n)) 0"
   by (import seq SEQ_INV0)
 
-lemma SEQ_POWER_ABS: "(All::(real => bool) => bool)
- (%c::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) ((abs::real => real) c) (1::real))
-      ((-->::(nat => real) => real => bool)
-        ((op ^::real => nat => real) ((abs::real => real) c)) (0::real)))"
+lemma SEQ_POWER_ABS: "ALL c::real. abs c < 1 --> hol4--> (op ^ (abs c)) 0"
   by (import seq SEQ_POWER_ABS)
 
-lemma SEQ_POWER: "(All::(real => bool) => bool)
- (%c::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) ((abs::real => real) c) (1::real))
-      ((-->::(nat => real) => real => bool) ((op ^::real => nat => real) c)
-        (0::real)))"
+lemma SEQ_POWER: "ALL c::real. abs c < 1 --> hol4--> (op ^ c) 0"
   by (import seq SEQ_POWER)
 
-lemma NEST_LEMMA: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((All::(nat => bool) => bool)
-               (%n::nat.
-                   (op <=::real => real => bool) (f n)
-                    (f ((Suc::nat => nat) n))))
-             ((op &::bool => bool => bool)
-               ((All::(nat => bool) => bool)
-                 (%n::nat.
-                     (op <=::real => real => bool) (g ((Suc::nat => nat) n))
-                      (g n)))
-               ((All::(nat => bool) => bool)
-                 (%n::nat. (op <=::real => real => bool) (f n) (g n)))))
-           ((Ex::(real => bool) => bool)
-             (%l::real.
-                 (Ex::(real => bool) => bool)
-                  (%m::real.
-                      (op &::bool => bool => bool)
-                       ((op <=::real => real => bool) l m)
-                       ((op &::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((All::(nat => bool) => bool)
-                             (%n::nat.
-                                 (op <=::real => real => bool) (f n) l))
-                           ((-->::(nat => real) => real => bool) f l))
-                         ((op &::bool => bool => bool)
-                           ((All::(nat => bool) => bool)
-                             (%n::nat.
-                                 (op <=::real => real => bool) m (g n)))
-                           ((-->::(nat => real) => real => bool) g m))))))))"
+lemma NEST_LEMMA: "ALL (f::nat => real) g::nat => real.
+   (ALL n::nat. f n <= f (Suc n)) &
+   (ALL n::nat. g (Suc n) <= g n) & (ALL n::nat. f n <= g n) -->
+   (EX (l::real) m::real.
+       l <= m &
+       ((ALL n::nat. f n <= l) & hol4--> f l) &
+       (ALL n::nat. m <= g n) & hol4--> g m)"
   by (import seq NEST_LEMMA)
 
-lemma NEST_LEMMA_UNIQ: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((All::(nat => bool) => bool)
-               (%n::nat.
-                   (op <=::real => real => bool) (f n)
-                    (f ((Suc::nat => nat) n))))
-             ((op &::bool => bool => bool)
-               ((All::(nat => bool) => bool)
-                 (%n::nat.
-                     (op <=::real => real => bool) (g ((Suc::nat => nat) n))
-                      (g n)))
-               ((op &::bool => bool => bool)
-                 ((All::(nat => bool) => bool)
-                   (%n::nat. (op <=::real => real => bool) (f n) (g n)))
-                 ((-->::(nat => real) => real => bool)
-                   (%n::nat. (op -::real => real => real) (f n) (g n))
-                   (0::real)))))
-           ((Ex::(real => bool) => bool)
-             (%x::real.
-                 (op &::bool => bool => bool)
-                  ((op &::bool => bool => bool)
-                    ((All::(nat => bool) => bool)
-                      (%n::nat. (op <=::real => real => bool) (f n) x))
-                    ((-->::(nat => real) => real => bool) f x))
-                  ((op &::bool => bool => bool)
-                    ((All::(nat => bool) => bool)
-                      (%n::nat. (op <=::real => real => bool) x (g n)))
-                    ((-->::(nat => real) => real => bool) g x))))))"
+lemma NEST_LEMMA_UNIQ: "ALL (f::nat => real) g::nat => real.
+   (ALL n::nat. f n <= f (Suc n)) &
+   (ALL n::nat. g (Suc n) <= g n) &
+   (ALL n::nat. f n <= g n) & hol4--> (%n::nat. f n - g n) 0 -->
+   (EX x::real.
+       ((ALL n::nat. f n <= x) & hol4--> f x) &
+       (ALL n::nat. x <= g n) & hol4--> g x)"
   by (import seq NEST_LEMMA_UNIQ)
 
-lemma BOLZANO_LEMMA: "(All::((real * real => bool) => bool) => bool)
- (%P::real * real => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::(real => bool) => bool)
-          (%a::real.
-              (All::(real => bool) => bool)
-               (%b::real.
-                   (All::(real => bool) => bool)
-                    (%c::real.
-                        (op -->::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) a b)
-                           ((op &::bool => bool => bool)
-                             ((op <=::real => real => bool) b c)
-                             ((op &::bool => bool => bool)
-                               (P ((Pair::real => real => real * real) a b))
-                               (P ((Pair::real => real => real * real) b
-                                    c)))))
-                         (P ((Pair::real => real => real * real) a c))))))
-        ((All::(real => bool) => bool)
-          (%x::real.
-              (Ex::(real => bool) => bool)
-               (%d::real.
-                   (op &::bool => bool => bool)
-                    ((op <::real => real => bool) (0::real) d)
-                    ((All::(real => bool) => bool)
-                      (%a::real.
-                          (All::(real => bool) => bool)
-                           (%b::real.
-                               (op -->::bool => bool => bool)
-                                ((op &::bool => bool => bool)
-                                  ((op <=::real => real => bool) a x)
-                                  ((op &::bool => bool => bool)
-                                    ((op <=::real => real => bool) x b)
-                                    ((op <::real => real => bool)
-((op -::real => real => real) b a) d)))
-                                (P ((Pair::real => real => real * real) a
-                                     b)))))))))
-      ((All::(real => bool) => bool)
-        (%a::real.
-            (All::(real => bool) => bool)
-             (%b::real.
-                 (op -->::bool => bool => bool)
-                  ((op <=::real => real => bool) a b)
-                  (P ((Pair::real => real => real * real) a b))))))"
+lemma BOLZANO_LEMMA: "ALL P::real * real => bool.
+   (ALL (a::real) (b::real) c::real.
+       a <= b & b <= c & P (a, b) & P (b, c) --> P (a, c)) &
+   (ALL x::real.
+       EX d>0.
+          ALL (a::real) b::real.
+             a <= x & x <= b & b - a < d --> P (a, b)) -->
+   (ALL (a::real) b::real. a <= b --> P (a, b))"
   by (import seq BOLZANO_LEMMA)
 
 constdefs
   sums :: "(nat => real) => real => bool" 
-  "sums == %f::nat => real. --> (%n::nat. real.sum (0, n) f)"
+  "sums == %f::nat => real. hol4--> (%n::nat. real.sum (0, n) f)"
 
-lemma sums: "ALL (f::nat => real) s::real. sums f s = --> (%n::nat. real.sum (0, n) f) s"
+lemma sums: "ALL (f::nat => real) s::real.
+   sums f s = hol4--> (%n::nat. real.sum (0, n) f) s"
   by (import seq sums)
 
 constdefs
@@ -1951,386 +1565,109 @@ constdefs
 lemma suminf: "ALL f::nat => real. suminf f = Eps (sums f)"
   by (import seq suminf)
 
-lemma SUM_SUMMABLE: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (op -->::bool => bool => bool)
-           ((sums::(nat => real) => real => bool) f l)
-           ((summable::(nat => real) => bool) f)))"
+lemma SUM_SUMMABLE: "ALL (f::nat => real) l::real. sums f l --> summable f"
   by (import seq SUM_SUMMABLE)
 
-lemma SUMMABLE_SUM: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool) ((summable::(nat => real) => bool) f)
-      ((sums::(nat => real) => real => bool) f
-        ((suminf::(nat => real) => real) f)))"
+lemma SUMMABLE_SUM: "ALL f::nat => real. summable f --> sums f (suminf f)"
   by (import seq SUMMABLE_SUM)
 
-lemma SUM_UNIQ: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((sums::(nat => real) => real => bool) f x)
-           ((op =::real => real => bool) x
-             ((suminf::(nat => real) => real) f))))"
+lemma SUM_UNIQ: "ALL (f::nat => real) x::real. sums f x --> x = suminf f"
   by (import seq SUM_UNIQ)
 
-lemma SER_0: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((All::(nat => bool) => bool)
-             (%m::nat.
-                 (op -->::bool => bool => bool)
-                  ((op <=::nat => nat => bool) n m)
-                  ((op =::real => real => bool) (f m) (0::real))))
-           ((sums::(nat => real) => real => bool) f
-             ((real.sum::nat * nat => (nat => real) => real)
-               ((Pair::nat => nat => nat * nat) (0::nat) n) f))))"
+lemma SER_0: "ALL (f::nat => real) n::nat.
+   (ALL m::nat. n <= m --> f m = 0) --> sums f (real.sum (0, n) f)"
   by (import seq SER_0)
 
-lemma SER_POS_LE: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((summable::(nat => real) => bool) f)
-             ((All::(nat => bool) => bool)
-               (%m::nat.
-                   (op -->::bool => bool => bool)
-                    ((op <=::nat => nat => bool) n m)
-                    ((op <=::real => real => bool) (0::real) (f m)))))
-           ((op <=::real => real => bool)
-             ((real.sum::nat * nat => (nat => real) => real)
-               ((Pair::nat => nat => nat * nat) (0::nat) n) f)
-             ((suminf::(nat => real) => real) f))))"
+lemma SER_POS_LE: "ALL (f::nat => real) n::nat.
+   summable f & (ALL m::nat. n <= m --> 0 <= f m) -->
+   real.sum (0, n) f <= suminf f"
   by (import seq SER_POS_LE)
 
-lemma SER_POS_LT: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((summable::(nat => real) => bool) f)
-             ((All::(nat => bool) => bool)
-               (%m::nat.
-                   (op -->::bool => bool => bool)
-                    ((op <=::nat => nat => bool) n m)
-                    ((op <::real => real => bool) (0::real) (f m)))))
-           ((op <::real => real => bool)
-             ((real.sum::nat * nat => (nat => real) => real)
-               ((Pair::nat => nat => nat * nat) (0::nat) n) f)
-             ((suminf::(nat => real) => real) f))))"
+lemma SER_POS_LT: "ALL (f::nat => real) n::nat.
+   summable f & (ALL m::nat. n <= m --> 0 < f m) -->
+   real.sum (0, n) f < suminf f"
   by (import seq SER_POS_LT)
 
-lemma SER_GROUP: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(nat => bool) => bool)
-      (%k::nat.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((summable::(nat => real) => bool) f)
-             ((op <::nat => nat => bool) (0::nat) k))
-           ((sums::(nat => real) => real => bool)
-             (%n::nat.
-                 (real.sum::nat * nat => (nat => real) => real)
-                  ((Pair::nat => nat => nat * nat)
-                    ((op *::nat => nat => nat) n k) k)
-                  f)
-             ((suminf::(nat => real) => real) f))))"
+lemma SER_GROUP: "ALL (f::nat => real) k::nat.
+   summable f & 0 < k --> sums (%n::nat. real.sum (n * k, k) f) (suminf f)"
   by (import seq SER_GROUP)
 
-lemma SER_PAIR: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool) ((summable::(nat => real) => bool) f)
-      ((sums::(nat => real) => real => bool)
-        (%n::nat.
-            (real.sum::nat * nat => (nat => real) => real)
-             ((Pair::nat => nat => nat * nat)
-               ((op *::nat => nat => nat)
-                 ((number_of::bin => nat)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit)))
-                 n)
-               ((number_of::bin => nat)
-                 ((op BIT::bin => bit => bin)
-                   ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                     (bit.B1::bit))
-                   (bit.B0::bit))))
-             f)
-        ((suminf::(nat => real) => real) f)))"
+lemma SER_PAIR: "ALL f::nat => real.
+   summable f --> sums (%n::nat. real.sum (2 * n, 2) f) (suminf f)"
   by (import seq SER_PAIR)
 
-lemma SER_OFFSET: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool) ((summable::(nat => real) => bool) f)
-      ((All::(nat => bool) => bool)
-        (%k::nat.
-            (sums::(nat => real) => real => bool)
-             (%n::nat. f ((op +::nat => nat => nat) n k))
-             ((op -::real => real => real)
-               ((suminf::(nat => real) => real) f)
-               ((real.sum::nat * nat => (nat => real) => real)
-                 ((Pair::nat => nat => nat * nat) (0::nat) k) f)))))"
+lemma SER_OFFSET: "ALL f::nat => real.
+   summable f -->
+   (ALL k::nat. sums (%n::nat. f (n + k)) (suminf f - real.sum (0, k) f))"
   by (import seq SER_OFFSET)
 
-lemma SER_POS_LT_PAIR: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((summable::(nat => real) => bool) f)
-             ((All::(nat => bool) => bool)
-               (%d::nat.
-                   (op <::real => real => bool) (0::real)
-                    ((op +::real => real => real)
-                      (f ((op +::nat => nat => nat) n
-                           ((op *::nat => nat => nat)
-                             ((number_of::bin => nat)
-                               ((op BIT::bin => bit => bin)
-                                 ((op BIT::bin => bit => bin)
-                                   (Numeral.Pls::bin) (bit.B1::bit))
-                                 (bit.B0::bit)))
-                             d)))
-                      (f ((op +::nat => nat => nat) n
-                           ((op +::nat => nat => nat)
-                             ((op *::nat => nat => nat)
-                               ((number_of::bin => nat)
-                                 ((op BIT::bin => bit => bin)
-                                   ((op BIT::bin => bit => bin)
-                                     (Numeral.Pls::bin) (bit.B1::bit))
-                                   (bit.B0::bit)))
-                               d)
-                             (1::nat))))))))
-           ((op <::real => real => bool)
-             ((real.sum::nat * nat => (nat => real) => real)
-               ((Pair::nat => nat => nat * nat) (0::nat) n) f)
-             ((suminf::(nat => real) => real) f))))"
+lemma SER_POS_LT_PAIR: "ALL (f::nat => real) n::nat.
+   summable f & (ALL d::nat. 0 < f (n + 2 * d) + f (n + (2 * d + 1))) -->
+   real.sum (0, n) f < suminf f"
   by (import seq SER_POS_LT_PAIR)
 
-lemma SER_ADD: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::((nat => real) => bool) => bool)
-           (%y::nat => real.
-               (All::(real => bool) => bool)
-                (%y0::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((sums::(nat => real) => real => bool) x x0)
-                       ((sums::(nat => real) => real => bool) y y0))
-                     ((sums::(nat => real) => real => bool)
-                       (%n::nat. (op +::real => real => real) (x n) (y n))
-                       ((op +::real => real => real) x0 y0))))))"
+lemma SER_ADD: "ALL (x::nat => real) (x0::real) (y::nat => real) y0::real.
+   sums x x0 & sums y y0 --> sums (%n::nat. x n + y n) (x0 + y0)"
   by (import seq SER_ADD)
 
-lemma SER_CMUL: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::(real => bool) => bool)
-           (%c::real.
-               (op -->::bool => bool => bool)
-                ((sums::(nat => real) => real => bool) x x0)
-                ((sums::(nat => real) => real => bool)
-                  (%n::nat. (op *::real => real => real) c (x n))
-                  ((op *::real => real => real) c x0)))))"
+lemma SER_CMUL: "ALL (x::nat => real) (x0::real) c::real.
+   sums x x0 --> sums (%n::nat. c * x n) (c * x0)"
   by (import seq SER_CMUL)
 
-lemma SER_NEG: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (op -->::bool => bool => bool)
-           ((sums::(nat => real) => real => bool) x x0)
-           ((sums::(nat => real) => real => bool)
-             (%xa::nat. (uminus::real => real) (x xa))
-             ((uminus::real => real) x0))))"
+lemma SER_NEG: "ALL (x::nat => real) x0::real. sums x x0 --> sums (%xa::nat. - x xa) (- x0)"
   by (import seq SER_NEG)
 
-lemma SER_SUB: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::((nat => real) => bool) => bool)
-           (%y::nat => real.
-               (All::(real => bool) => bool)
-                (%y0::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((sums::(nat => real) => real => bool) x x0)
-                       ((sums::(nat => real) => real => bool) y y0))
-                     ((sums::(nat => real) => real => bool)
-                       (%xa::nat.
-                           (op -::real => real => real) (x xa) (y xa))
-                       ((op -::real => real => real) x0 y0))))))"
+lemma SER_SUB: "ALL (x::nat => real) (x0::real) (y::nat => real) y0::real.
+   sums x x0 & sums y y0 --> sums (%xa::nat. x xa - y xa) (x0 - y0)"
   by (import seq SER_SUB)
 
-lemma SER_CDIV: "(All::((nat => real) => bool) => bool)
- (%x::nat => real.
-     (All::(real => bool) => bool)
-      (%x0::real.
-          (All::(real => bool) => bool)
-           (%c::real.
-               (op -->::bool => bool => bool)
-                ((sums::(nat => real) => real => bool) x x0)
-                ((sums::(nat => real) => real => bool)
-                  (%xa::nat. (op /::real => real => real) (x xa) c)
-                  ((op /::real => real => real) x0 c)))))"
+lemma SER_CDIV: "ALL (x::nat => real) (x0::real) c::real.
+   sums x x0 --> sums (%xa::nat. x xa / c) (x0 / c)"
   by (import seq SER_CDIV)
 
-lemma SER_CAUCHY: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op =::bool => bool => bool) ((summable::(nat => real) => bool) f)
-      ((All::(real => bool) => bool)
-        (%e::real.
-            (op -->::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) e)
-             ((Ex::(nat => bool) => bool)
-               (%N::nat.
-                   (All::(nat => bool) => bool)
-                    (%m::nat.
-                        (All::(nat => bool) => bool)
-                         (%n::nat.
-                             (op -->::bool => bool => bool)
-                              ((op <=::nat => nat => bool) N m)
-                              ((op <::real => real => bool)
-                                ((abs::real => real)
-                                  ((real.sum::nat * nat
-        => (nat => real) => real)
-                                    ((Pair::nat => nat => nat * nat) m n)
-                                    f))
-                                e))))))))"
+lemma SER_CAUCHY: "ALL f::nat => real.
+   summable f =
+   (ALL e>0.
+       EX N::nat.
+          ALL (m::nat) n::nat. N <= m --> abs (real.sum (m, n) f) < e)"
   by (import seq SER_CAUCHY)
 
-lemma SER_ZERO: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool) ((summable::(nat => real) => bool) f)
-      ((-->::(nat => real) => real => bool) f (0::real)))"
+lemma SER_ZERO: "ALL f::nat => real. summable f --> hol4--> f 0"
   by (import seq SER_ZERO)
 
-lemma SER_COMPAR: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((Ex::(nat => bool) => bool)
-               (%x::nat.
-                   (All::(nat => bool) => bool)
-                    (%xa::nat.
-                        (op -->::bool => bool => bool)
-                         ((op <=::nat => nat => bool) x xa)
-                         ((op <=::real => real => bool)
-                           ((abs::real => real) (f xa)) (g xa)))))
-             ((summable::(nat => real) => bool) g))
-           ((summable::(nat => real) => bool) f)))"
+lemma SER_COMPAR: "ALL (f::nat => real) g::nat => real.
+   (EX x::nat. ALL xa::nat. x <= xa --> abs (f xa) <= g xa) & summable g -->
+   summable f"
   by (import seq SER_COMPAR)
 
-lemma SER_COMPARA: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((Ex::(nat => bool) => bool)
-               (%x::nat.
-                   (All::(nat => bool) => bool)
-                    (%xa::nat.
-                        (op -->::bool => bool => bool)
-                         ((op <=::nat => nat => bool) x xa)
-                         ((op <=::real => real => bool)
-                           ((abs::real => real) (f xa)) (g xa)))))
-             ((summable::(nat => real) => bool) g))
-           ((summable::(nat => real) => bool)
-             (%k::nat. (abs::real => real) (f k)))))"
+lemma SER_COMPARA: "ALL (f::nat => real) g::nat => real.
+   (EX x::nat. ALL xa::nat. x <= xa --> abs (f xa) <= g xa) & summable g -->
+   summable (%k::nat. abs (f k))"
   by (import seq SER_COMPARA)
 
-lemma SER_LE: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((All::(nat => bool) => bool)
-               (%n::nat. (op <=::real => real => bool) (f n) (g n)))
-             ((op &::bool => bool => bool)
-               ((summable::(nat => real) => bool) f)
-               ((summable::(nat => real) => bool) g)))
-           ((op <=::real => real => bool)
-             ((suminf::(nat => real) => real) f)
-             ((suminf::(nat => real) => real) g))))"
+lemma SER_LE: "ALL (f::nat => real) g::nat => real.
+   (ALL n::nat. f n <= g n) & summable f & summable g -->
+   suminf f <= suminf g"
   by (import seq SER_LE)
 
-lemma SER_LE2: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((nat => real) => bool) => bool)
-      (%g::nat => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((All::(nat => bool) => bool)
-               (%n::nat.
-                   (op <=::real => real => bool) ((abs::real => real) (f n))
-                    (g n)))
-             ((summable::(nat => real) => bool) g))
-           ((op &::bool => bool => bool)
-             ((summable::(nat => real) => bool) f)
-             ((op <=::real => real => bool)
-               ((suminf::(nat => real) => real) f)
-               ((suminf::(nat => real) => real) g)))))"
+lemma SER_LE2: "ALL (f::nat => real) g::nat => real.
+   (ALL n::nat. abs (f n) <= g n) & summable g -->
+   summable f & suminf f <= suminf g"
   by (import seq SER_LE2)
 
-lemma SER_ACONV: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool)
-      ((summable::(nat => real) => bool)
-        (%n::nat. (abs::real => real) (f n)))
-      ((summable::(nat => real) => bool) f))"
+lemma SER_ACONV: "ALL f::nat => real. summable (%n::nat. abs (f n)) --> summable f"
   by (import seq SER_ACONV)
 
-lemma SER_ABS: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (op -->::bool => bool => bool)
-      ((summable::(nat => real) => bool)
-        (%n::nat. (abs::real => real) (f n)))
-      ((op <=::real => real => bool)
-        ((abs::real => real) ((suminf::(nat => real) => real) f))
-        ((suminf::(nat => real) => real)
-          (%n::nat. (abs::real => real) (f n)))))"
+lemma SER_ABS: "ALL f::nat => real.
+   summable (%n::nat. abs (f n)) -->
+   abs (suminf f) <= suminf (%n::nat. abs (f n))"
   by (import seq SER_ABS)
 
-lemma GP_FINITE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((Not::bool => bool) ((op =::real => real => bool) x (1::real)))
-      ((All::(nat => bool) => bool)
-        (%n::nat.
-            (op =::real => real => bool)
-             ((real.sum::nat * nat => (nat => real) => real)
-               ((Pair::nat => nat => nat * nat) (0::nat) n)
-               ((op ^::real => nat => real) x))
-             ((op /::real => real => real)
-               ((op -::real => real => real)
-                 ((op ^::real => nat => real) x n) (1::real))
-               ((op -::real => real => real) x (1::real))))))"
+lemma GP_FINITE: "ALL x::real.
+   x ~= 1 --> (ALL n::nat. real.sum (0, n) (op ^ x) = (x ^ n - 1) / (x - 1))"
   by (import seq GP_FINITE)
 
-lemma GP: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) ((abs::real => real) x) (1::real))
-      ((sums::(nat => real) => real => bool) ((op ^::real => nat => real) x)
-        ((inverse::real => real)
-          ((op -::real => real => real) (1::real) x))))"
+lemma GP: "ALL x::real. abs x < 1 --> sums (op ^ x) (inverse (1 - x))"
   by (import seq GP)
 
 lemma ABS_NEG_LEMMA: "(All::(real => bool) => bool)
@@ -2348,24 +1685,9 @@ lemma ABS_NEG_LEMMA: "(All::(real => bool) => bool)
                   ((op =::real => real => bool) x (0::real))))))"
   by (import seq ABS_NEG_LEMMA)
 
-lemma SER_RATIO: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%c::real.
-          (All::(nat => bool) => bool)
-           (%N::nat.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) c (1::real))
-                  ((All::(nat => bool) => bool)
-                    (%n::nat.
-                        (op -->::bool => bool => bool)
-                         ((op <=::nat => nat => bool) N n)
-                         ((op <=::real => real => bool)
-                           ((abs::real => real) (f ((Suc::nat => nat) n)))
-                           ((op *::real => real => real) c
-                             ((abs::real => real) (f n)))))))
-                ((summable::(nat => real) => bool) f))))"
+lemma SER_RATIO: "ALL (f::nat => real) (c::real) N::nat.
+   c < 1 & (ALL n::nat. N <= n --> abs (f (Suc n)) <= c * abs (f n)) -->
+   summable f"
   by (import seq SER_RATIO)
 
 ;end_setup
@@ -2382,161 +1704,44 @@ lemma tends_real_real: "ALL (f::real => real) (l::real) x0::real.
    tends_real_real f l x0 = tends f l (mtop mr1, tendsto (mr1, x0))"
   by (import lim tends_real_real)
 
-lemma LIM: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%y0::real.
-          (All::(real => bool) => bool)
-           (%x0::real.
-               (op =::bool => bool => bool)
-                ((tends_real_real::(real => real) => real => real => bool) f
-                  y0 x0)
-                ((All::(real => bool) => bool)
-                  (%e::real.
-                      (op -->::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) e)
-                       ((Ex::(real => bool) => bool)
-                         (%d::real.
-                             (op &::bool => bool => bool)
-                              ((op <::real => real => bool) (0::real) d)
-                              ((All::(real => bool) => bool)
-                                (%x::real.
-                                    (op -->::bool => bool => bool)
-                                     ((op &::bool => bool => bool)
- ((op <::real => real => bool) (0::real)
-   ((abs::real => real) ((op -::real => real => real) x x0)))
- ((op <::real => real => bool)
-   ((abs::real => real) ((op -::real => real => real) x x0)) d))
-                                     ((op <::real => real => bool)
- ((abs::real => real) ((op -::real => real => real) (f x) y0)) e))))))))))"
+lemma LIM: "ALL (f::real => real) (y0::real) x0::real.
+   tends_real_real f y0 x0 =
+   (ALL e>0.
+       EX d>0.
+          ALL x::real.
+             0 < abs (x - x0) & abs (x - x0) < d --> abs (f x - y0) < e)"
   by (import lim LIM)
 
 lemma LIM_CONST: "ALL k::real. All (tends_real_real (%x::real. k) k)"
   by (import lim LIM_CONST)
 
-lemma LIM_ADD: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              f l x)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              g m x))
-                          ((tends_real_real::(real => real)
-       => real => real => bool)
-                            (%x::real.
-                                (op +::real => real => real) (f x) (g x))
-                            ((op +::real => real => real) l m) x))))))"
+lemma LIM_ADD: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   tends_real_real f l x & tends_real_real g m x -->
+   tends_real_real (%x::real. f x + g x) (l + m) x"
   by (import lim LIM_ADD)
 
-lemma LIM_MUL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              f l x)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              g m x))
-                          ((tends_real_real::(real => real)
-       => real => real => bool)
-                            (%x::real.
-                                (op *::real => real => real) (f x) (g x))
-                            ((op *::real => real => real) l m) x))))))"
+lemma LIM_MUL: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   tends_real_real f l x & tends_real_real g m x -->
+   tends_real_real (%x::real. f x * g x) (l * m) x"
   by (import lim LIM_MUL)
 
 lemma LIM_NEG: "ALL (f::real => real) (l::real) x::real.
    tends_real_real f l x = tends_real_real (%x::real. - f x) (- l) x"
   by (import lim LIM_NEG)
 
-lemma LIM_INV: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((tends_real_real::(real => real) => real => real => bool)
-                    f l x)
-                  ((Not::bool => bool)
-                    ((op =::real => real => bool) l (0::real))))
-                ((tends_real_real::(real => real) => real => real => bool)
-                  (%x::real. (inverse::real => real) (f x))
-                  ((inverse::real => real) l) x))))"
+lemma LIM_INV: "ALL (f::real => real) (l::real) x::real.
+   tends_real_real f l x & l ~= 0 -->
+   tends_real_real (%x::real. inverse (f x)) (inverse l) x"
   by (import lim LIM_INV)
 
-lemma LIM_SUB: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              f l x)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              g m x))
-                          ((tends_real_real::(real => real)
-       => real => real => bool)
-                            (%x::real.
-                                (op -::real => real => real) (f x) (g x))
-                            ((op -::real => real => real) l m) x))))))"
+lemma LIM_SUB: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   tends_real_real f l x & tends_real_real g m x -->
+   tends_real_real (%x::real. f x - g x) (l - m) x"
   by (import lim LIM_SUB)
 
-lemma LIM_DIV: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((tends_real_real::(real => real)
-         => real => real => bool)
-                              f l x)
-                            ((op &::bool => bool => bool)
-                              ((tends_real_real::(real => real)
-           => real => real => bool)
-                                g m x)
-                              ((Not::bool => bool)
-                                ((op =::real => real => bool) m
-                                  (0::real)))))
-                          ((tends_real_real::(real => real)
-       => real => real => bool)
-                            (%x::real.
-                                (op /::real => real => real) (f x) (g x))
-                            ((op /::real => real => real) l m) x))))))"
+lemma LIM_DIV: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   tends_real_real f l x & tends_real_real g m x & m ~= 0 -->
+   tends_real_real (%x::real. f x / g x) (l / m) x"
   by (import lim LIM_DIV)
 
 lemma LIM_NULL: "ALL (f::real => real) (l::real) x::real.
@@ -2546,70 +1751,18 @@ lemma LIM_NULL: "ALL (f::real => real) (l::real) x::real.
 lemma LIM_X: "ALL x0::real. tends_real_real (%x::real. x) x0 x0"
   by (import lim LIM_X)
 
-lemma LIM_UNIQ: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (All::(real => bool) => bool)
-           (%m::real.
-               (All::(real => bool) => bool)
-                (%x::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((tends_real_real::(real => real)
-    => real => real => bool)
-                         f l x)
-                       ((tends_real_real::(real => real)
-    => real => real => bool)
-                         f m x))
-                     ((op =::real => real => bool) l m)))))"
+lemma LIM_UNIQ: "ALL (f::real => real) (l::real) (m::real) x::real.
+   tends_real_real f l x & tends_real_real f m x --> l = m"
   by (import lim LIM_UNIQ)
 
-lemma LIM_EQUAL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%x0::real.
-                    (op -->::bool => bool => bool)
-                     ((All::(real => bool) => bool)
-                       (%x::real.
-                           (op -->::bool => bool => bool)
-                            ((Not::bool => bool)
-                              ((op =::real => real => bool) x x0))
-                            ((op =::real => real => bool) (f x) (g x))))
-                     ((op =::bool => bool => bool)
-                       ((tends_real_real::(real => real)
-    => real => real => bool)
-                         f l x0)
-                       ((tends_real_real::(real => real)
-    => real => real => bool)
-                         g l x0))))))"
+lemma LIM_EQUAL: "ALL (f::real => real) (g::real => real) (l::real) x0::real.
+   (ALL x::real. x ~= x0 --> f x = g x) -->
+   tends_real_real f l x0 = tends_real_real g l x0"
   by (import lim LIM_EQUAL)
 
-lemma LIM_TRANSFORM: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x0::real.
-               (All::(real => bool) => bool)
-                (%l::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((tends_real_real::(real => real)
-    => real => real => bool)
-                         (%x::real.
-                             (op -::real => real => real) (f x) (g x))
-                         (0::real) x0)
-                       ((tends_real_real::(real => real)
-    => real => real => bool)
-                         g l x0))
-                     ((tends_real_real::(real => real)
-  => real => real => bool)
-                       f l x0)))))"
+lemma LIM_TRANSFORM: "ALL (f::real => real) (g::real => real) (x0::real) l::real.
+   tends_real_real (%x::real. f x - g x) 0 x0 & tends_real_real g l x0 -->
+   tends_real_real f l x0"
   by (import lim LIM_TRANSFORM)
 
 constdefs
@@ -2639,32 +1792,11 @@ lemma differentiable: "ALL (f::real => real) x::real.
    differentiable f x = (EX l::real. diffl f l x)"
   by (import lim differentiable)
 
-lemma DIFF_UNIQ: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (All::(real => bool) => bool)
-           (%m::real.
-               (All::(real => bool) => bool)
-                (%x::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((diffl::(real => real) => real => real => bool) f l
-                         x)
-                       ((diffl::(real => real) => real => real => bool) f m
-                         x))
-                     ((op =::real => real => bool) l m)))))"
+lemma DIFF_UNIQ: "ALL (f::real => real) (l::real) (m::real) x::real.
+   diffl f l x & diffl f m x --> l = m"
   by (import lim DIFF_UNIQ)
 
-lemma DIFF_CONT: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((diffl::(real => real) => real => real => bool) f l x)
-                ((contl::(real => real) => real => bool) f x))))"
+lemma DIFF_CONT: "ALL (f::real => real) (l::real) x::real. diffl f l x --> contl f x"
   by (import lim DIFF_CONT)
 
 lemma CONTL_LIM: "ALL (f::real => real) x::real. contl f x = tends_real_real f (f x) x"
@@ -2679,285 +1811,71 @@ lemma DIFF_CARAT: "ALL (f::real => real) (l::real) x::real.
 lemma CONT_CONST: "ALL k::real. All (contl (%x::real. k))"
   by (import lim CONT_CONST)
 
-lemma CONT_ADD: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((contl::(real => real) => real => bool) f x)
-                  ((contl::(real => real) => real => bool) g x))
-                ((contl::(real => real) => real => bool)
-                  (%x::real. (op +::real => real => real) (f x) (g x)) x))))"
+lemma CONT_ADD: "ALL (f::real => real) (g::real => real) x::real.
+   contl f x & contl g x --> contl (%x::real. f x + g x) x"
   by (import lim CONT_ADD)
 
-lemma CONT_MUL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((contl::(real => real) => real => bool) f x)
-                  ((contl::(real => real) => real => bool) g x))
-                ((contl::(real => real) => real => bool)
-                  (%x::real. (op *::real => real => real) (f x) (g x)) x))))"
+lemma CONT_MUL: "ALL (f::real => real) (g::real => real) x::real.
+   contl f x & contl g x --> contl (%x::real. f x * g x) x"
   by (import lim CONT_MUL)
 
-lemma CONT_NEG: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((contl::(real => real) => real => bool) f x)
-           ((contl::(real => real) => real => bool)
-             (%x::real. (uminus::real => real) (f x)) x)))"
+lemma CONT_NEG: "ALL (f::real => real) x::real. contl f x --> contl (%x::real. - f x) x"
   by (import lim CONT_NEG)
 
-lemma CONT_INV: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((contl::(real => real) => real => bool) f x)
-             ((Not::bool => bool)
-               ((op =::real => real => bool) (f x) (0::real))))
-           ((contl::(real => real) => real => bool)
-             (%x::real. (inverse::real => real) (f x)) x)))"
+lemma CONT_INV: "ALL (f::real => real) x::real.
+   contl f x & f x ~= 0 --> contl (%x::real. inverse (f x)) x"
   by (import lim CONT_INV)
 
-lemma CONT_SUB: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((contl::(real => real) => real => bool) f x)
-                  ((contl::(real => real) => real => bool) g x))
-                ((contl::(real => real) => real => bool)
-                  (%x::real. (op -::real => real => real) (f x) (g x)) x))))"
+lemma CONT_SUB: "ALL (f::real => real) (g::real => real) x::real.
+   contl f x & contl g x --> contl (%x::real. f x - g x) x"
   by (import lim CONT_SUB)
 
-lemma CONT_DIV: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((contl::(real => real) => real => bool) f x)
-                  ((op &::bool => bool => bool)
-                    ((contl::(real => real) => real => bool) g x)
-                    ((Not::bool => bool)
-                      ((op =::real => real => bool) (g x) (0::real)))))
-                ((contl::(real => real) => real => bool)
-                  (%x::real. (op /::real => real => real) (f x) (g x)) x))))"
+lemma CONT_DIV: "ALL (f::real => real) (g::real => real) x::real.
+   contl f x & contl g x & g x ~= 0 --> contl (%x::real. f x / g x) x"
   by (import lim CONT_DIV)
 
-lemma CONT_COMPOSE: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((contl::(real => real) => real => bool) f x)
-                  ((contl::(real => real) => real => bool) g (f x)))
-                ((contl::(real => real) => real => bool) (%x::real. g (f x))
-                  x))))"
+lemma CONT_COMPOSE: "ALL (f::real => real) (g::real => real) x::real.
+   contl f x & contl g (f x) --> contl (%x::real. g (f x)) x"
   by (import lim CONT_COMPOSE)
 
-lemma IVT: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (All::(real => bool) => bool)
-                (%y::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <=::real => real => bool) a b)
-                       ((op &::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) (f a) y)
-                           ((op <=::real => real => bool) y (f b)))
-                         ((All::(real => bool) => bool)
-                           (%x::real.
-                               (op -->::bool => bool => bool)
-                                ((op &::bool => bool => bool)
-                                  ((op <=::real => real => bool) a x)
-                                  ((op <=::real => real => bool) x b))
-                                ((contl::(real => real) => real => bool) f
-                                  x)))))
-                     ((Ex::(real => bool) => bool)
-                       (%x::real.
-                           (op &::bool => bool => bool)
-                            ((op <=::real => real => bool) a x)
-                            ((op &::bool => bool => bool)
-                              ((op <=::real => real => bool) x b)
-                              ((op =::real => real => bool) (f x) y))))))))"
+lemma IVT: "ALL (f::real => real) (a::real) (b::real) y::real.
+   a <= b &
+   (f a <= y & y <= f b) & (ALL x::real. a <= x & x <= b --> contl f x) -->
+   (EX x::real. a <= x & x <= b & f x = y)"
   by (import lim IVT)
 
-lemma IVT2: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (All::(real => bool) => bool)
-                (%y::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <=::real => real => bool) a b)
-                       ((op &::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) (f b) y)
-                           ((op <=::real => real => bool) y (f a)))
-                         ((All::(real => bool) => bool)
-                           (%x::real.
-                               (op -->::bool => bool => bool)
-                                ((op &::bool => bool => bool)
-                                  ((op <=::real => real => bool) a x)
-                                  ((op <=::real => real => bool) x b))
-                                ((contl::(real => real) => real => bool) f
-                                  x)))))
-                     ((Ex::(real => bool) => bool)
-                       (%x::real.
-                           (op &::bool => bool => bool)
-                            ((op <=::real => real => bool) a x)
-                            ((op &::bool => bool => bool)
-                              ((op <=::real => real => bool) x b)
-                              ((op =::real => real => bool) (f x) y))))))))"
+lemma IVT2: "ALL (f::real => real) (a::real) (b::real) y::real.
+   a <= b &
+   (f b <= y & y <= f a) & (ALL x::real. a <= x & x <= b --> contl f x) -->
+   (EX x::real. a <= x & x <= b & f x = y)"
   by (import lim IVT2)
 
 lemma DIFF_CONST: "ALL k::real. All (diffl (%x::real. k) 0)"
   by (import lim DIFF_CONST)
 
-lemma DIFF_ADD: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((diffl::(real => real) => real => real => bool)
-                              f l x)
-                            ((diffl::(real => real) => real => real => bool)
-                              g m x))
-                          ((diffl::(real => real) => real => real => bool)
-                            (%x::real.
-                                (op +::real => real => real) (f x) (g x))
-                            ((op +::real => real => real) l m) x))))))"
+lemma DIFF_ADD: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   diffl f l x & diffl g m x --> diffl (%x::real. f x + g x) (l + m) x"
   by (import lim DIFF_ADD)
 
-lemma DIFF_MUL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((diffl::(real => real) => real => real => bool)
-                              f l x)
-                            ((diffl::(real => real) => real => real => bool)
-                              g m x))
-                          ((diffl::(real => real) => real => real => bool)
-                            (%x::real.
-                                (op *::real => real => real) (f x) (g x))
-                            ((op +::real => real => real)
-                              ((op *::real => real => real) l (g x))
-                              ((op *::real => real => real) m (f x)))
-                            x))))))"
+lemma DIFF_MUL: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   diffl f l x & diffl g m x -->
+   diffl (%x::real. f x * g x) (l * g x + m * f x) x"
   by (import lim DIFF_MUL)
 
-lemma DIFF_CMUL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%c::real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%x::real.
-                    (op -->::bool => bool => bool)
-                     ((diffl::(real => real) => real => real => bool) f l x)
-                     ((diffl::(real => real) => real => real => bool)
-                       (%x::real. (op *::real => real => real) c (f x))
-                       ((op *::real => real => real) c l) x)))))"
+lemma DIFF_CMUL: "ALL (f::real => real) (c::real) (l::real) x::real.
+   diffl f l x --> diffl (%x::real. c * f x) (c * l) x"
   by (import lim DIFF_CMUL)
 
-lemma DIFF_NEG: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((diffl::(real => real) => real => real => bool) f l x)
-                ((diffl::(real => real) => real => real => bool)
-                  (%x::real. (uminus::real => real) (f x))
-                  ((uminus::real => real) l) x))))"
+lemma DIFF_NEG: "ALL (f::real => real) (l::real) x::real.
+   diffl f l x --> diffl (%x::real. - f x) (- l) x"
   by (import lim DIFF_NEG)
 
-lemma DIFF_SUB: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((diffl::(real => real) => real => real => bool)
-                              f l x)
-                            ((diffl::(real => real) => real => real => bool)
-                              g m x))
-                          ((diffl::(real => real) => real => real => bool)
-                            (%x::real.
-                                (op -::real => real => real) (f x) (g x))
-                            ((op -::real => real => real) l m) x))))))"
+lemma DIFF_SUB: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   diffl f l x & diffl g m x --> diffl (%x::real. f x - g x) (l - m) x"
   by (import lim DIFF_SUB)
 
-lemma DIFF_CHAIN: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((diffl::(real => real) => real => real => bool)
-                              f l (g x))
-                            ((diffl::(real => real) => real => real => bool)
-                              g m x))
-                          ((diffl::(real => real) => real => real => bool)
-                            (%x::real. f (g x))
-                            ((op *::real => real => real) l m) x))))))"
+lemma DIFF_CHAIN: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   diffl f l (g x) & diffl g m x --> diffl (%x::real. f (g x)) (l * m) x"
   by (import lim DIFF_CHAIN)
 
 lemma DIFF_X: "All (diffl (%x::real. x) 1)"
@@ -2966,141 +1884,29 @@ lemma DIFF_X: "All (diffl (%x::real. x) 1)"
 lemma DIFF_POW: "ALL (n::nat) x::real. diffl (%x::real. x ^ n) (real n * x ^ (n - 1)) x"
   by (import lim DIFF_POW)
 
-lemma DIFF_XM1: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((Not::bool => bool) ((op =::real => real => bool) x (0::real)))
-      ((diffl::(real => real) => real => real => bool)
-        (inverse::real => real)
-        ((uminus::real => real)
-          ((op ^::real => nat => real) ((inverse::real => real) x)
-            ((number_of::bin => nat)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))))
-        x))"
+lemma DIFF_XM1: "ALL x::real. x ~= 0 --> diffl inverse (- (inverse x ^ 2)) x"
   by (import lim DIFF_XM1)
 
-lemma DIFF_INV: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%l::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) f l x)
-                  ((Not::bool => bool)
-                    ((op =::real => real => bool) (f x) (0::real))))
-                ((diffl::(real => real) => real => real => bool)
-                  (%x::real. (inverse::real => real) (f x))
-                  ((uminus::real => real)
-                    ((op /::real => real => real) l
-                      ((op ^::real => nat => real) (f x)
-                        ((number_of::bin => nat)
-                          ((op BIT::bin => bit => bin)
-                            ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                              (bit.B1::bit))
-                            (bit.B0::bit))))))
-                  x))))"
+lemma DIFF_INV: "ALL (f::real => real) (l::real) x::real.
+   diffl f l x & f x ~= 0 -->
+   diffl (%x::real. inverse (f x)) (- (l / f x ^ 2)) x"
   by (import lim DIFF_INV)
 
-lemma DIFF_DIV: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%m::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((diffl::(real => real) => real => real => bool)
-                              f l x)
-                            ((op &::bool => bool => bool)
-                              ((diffl::(real => real)
- => real => real => bool)
-                                g m x)
-                              ((Not::bool => bool)
-                                ((op =::real => real => bool) (g x)
-                                  (0::real)))))
-                          ((diffl::(real => real) => real => real => bool)
-                            (%x::real.
-                                (op /::real => real => real) (f x) (g x))
-                            ((op /::real => real => real)
-                              ((op -::real => real => real)
-                                ((op *::real => real => real) l (g x))
-                                ((op *::real => real => real) m (f x)))
-                              ((op ^::real => nat => real) (g x)
-                                ((number_of::bin => nat)
-                                  ((op BIT::bin => bit => bin)
-                                    ((op BIT::bin => bit => bin)
-(Numeral.Pls::bin) (bit.B1::bit))
-                                    (bit.B0::bit)))))
-                            x))))))"
+lemma DIFF_DIV: "ALL (f::real => real) (g::real => real) (l::real) (m::real) x::real.
+   diffl f l x & diffl g m x & g x ~= 0 -->
+   diffl (%x::real. f x / g x) ((l * g x - m * f x) / g x ^ 2) x"
   by (import lim DIFF_DIV)
 
-lemma DIFF_SUM: "(All::((nat => real => real) => bool) => bool)
- (%f::nat => real => real.
-     (All::((nat => real => real) => bool) => bool)
-      (%f'::nat => real => real.
-          (All::(nat => bool) => bool)
-           (%m::nat.
-               (All::(nat => bool) => bool)
-                (%n::nat.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (op -->::bool => bool => bool)
-                          ((All::(nat => bool) => bool)
-                            (%r::nat.
-                                (op -->::bool => bool => bool)
-                                 ((op &::bool => bool => bool)
-                                   ((op <=::nat => nat => bool) m r)
-                                   ((op <::nat => nat => bool) r
-                                     ((op +::nat => nat => nat) m n)))
-                                 ((diffl::(real => real)
-    => real => real => bool)
-                                   (f r) (f' r x) x)))
-                          ((diffl::(real => real) => real => real => bool)
-                            (%x::real.
-                                (real.sum::nat * nat
-     => (nat => real) => real)
-                                 ((Pair::nat => nat => nat * nat) m n)
-                                 (%n::nat. f n x))
-                            ((real.sum::nat * nat => (nat => real) => real)
-                              ((Pair::nat => nat => nat * nat) m n)
-                              (%r::nat. f' r x))
-                            x))))))"
+lemma DIFF_SUM: "ALL (f::nat => real => real) (f'::nat => real => real) (m::nat) (n::nat)
+   x::real.
+   (ALL r::nat. m <= r & r < m + n --> diffl (f r) (f' r x) x) -->
+   diffl (%x::real. real.sum (m, n) (%n::nat. f n x))
+    (real.sum (m, n) (%r::nat. f' r x)) x"
   by (import lim DIFF_SUM)
 
-lemma CONT_BOUNDED: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) a b)
-                  ((All::(real => bool) => bool)
-                    (%x::real.
-                        (op -->::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) a x)
-                           ((op <=::real => real => bool) x b))
-                         ((contl::(real => real) => real => bool) f x))))
-                ((Ex::(real => bool) => bool)
-                  (%M::real.
-                      (All::(real => bool) => bool)
-                       (%x::real.
-                           (op -->::bool => bool => bool)
-                            ((op &::bool => bool => bool)
-                              ((op <=::real => real => bool) a x)
-                              ((op <=::real => real => bool) x b))
-                            ((op <=::real => real => bool) (f x) M)))))))"
+lemma CONT_BOUNDED: "ALL (f::real => real) (a::real) b::real.
+   a <= b & (ALL x::real. a <= x & x <= b --> contl f x) -->
+   (EX M::real. ALL x::real. a <= x & x <= b --> f x <= M)"
   by (import lim CONT_BOUNDED)
 
 lemma CONT_HASSUP: "(All::((real => real) => bool) => bool)
@@ -3142,733 +1948,156 @@ lemma CONT_HASSUP: "(All::((real => real) => bool) => bool)
  ((op <::real => real => bool) N (f x))))))))))))"
   by (import lim CONT_HASSUP)
 
-lemma CONT_ATTAINS: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) a b)
-                  ((All::(real => bool) => bool)
-                    (%x::real.
-                        (op -->::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) a x)
-                           ((op <=::real => real => bool) x b))
-                         ((contl::(real => real) => real => bool) f x))))
-                ((Ex::(real => bool) => bool)
-                  (%x::real.
-                      (op &::bool => bool => bool)
-                       ((All::(real => bool) => bool)
-                         (%xa::real.
-                             (op -->::bool => bool => bool)
-                              ((op &::bool => bool => bool)
-                                ((op <=::real => real => bool) a xa)
-                                ((op <=::real => real => bool) xa b))
-                              ((op <=::real => real => bool) (f xa) x)))
-                       ((Ex::(real => bool) => bool)
-                         (%xa::real.
-                             (op &::bool => bool => bool)
-                              ((op <=::real => real => bool) a xa)
-                              ((op &::bool => bool => bool)
-                                ((op <=::real => real => bool) xa b)
-                                ((op =::real => real => bool) (f xa)
-                                  x)))))))))"
+lemma CONT_ATTAINS: "ALL (f::real => real) (a::real) b::real.
+   a <= b & (ALL x::real. a <= x & x <= b --> contl f x) -->
+   (EX x::real.
+       (ALL xa::real. a <= xa & xa <= b --> f xa <= x) &
+       (EX xa::real. a <= xa & xa <= b & f xa = x))"
   by (import lim CONT_ATTAINS)
 
-lemma CONT_ATTAINS2: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) a b)
-                  ((All::(real => bool) => bool)
-                    (%x::real.
-                        (op -->::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) a x)
-                           ((op <=::real => real => bool) x b))
-                         ((contl::(real => real) => real => bool) f x))))
-                ((Ex::(real => bool) => bool)
-                  (%x::real.
-                      (op &::bool => bool => bool)
-                       ((All::(real => bool) => bool)
-                         (%xa::real.
-                             (op -->::bool => bool => bool)
-                              ((op &::bool => bool => bool)
-                                ((op <=::real => real => bool) a xa)
-                                ((op <=::real => real => bool) xa b))
-                              ((op <=::real => real => bool) x (f xa))))
-                       ((Ex::(real => bool) => bool)
-                         (%xa::real.
-                             (op &::bool => bool => bool)
-                              ((op <=::real => real => bool) a xa)
-                              ((op &::bool => bool => bool)
-                                ((op <=::real => real => bool) xa b)
-                                ((op =::real => real => bool) (f xa)
-                                  x)))))))))"
+lemma CONT_ATTAINS2: "ALL (f::real => real) (a::real) b::real.
+   a <= b & (ALL x::real. a <= x & x <= b --> contl f x) -->
+   (EX x::real.
+       (ALL xa::real. a <= xa & xa <= b --> x <= f xa) &
+       (EX xa::real. a <= xa & xa <= b & f xa = x))"
   by (import lim CONT_ATTAINS2)
 
-lemma CONT_ATTAINS_ALL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) a b)
-                  ((All::(real => bool) => bool)
-                    (%x::real.
-                        (op -->::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <=::real => real => bool) a x)
-                           ((op <=::real => real => bool) x b))
-                         ((contl::(real => real) => real => bool) f x))))
-                ((Ex::(real => bool) => bool)
-                  (%x::real.
-                      (Ex::(real => bool) => bool)
-                       (%M::real.
-                           (op &::bool => bool => bool)
-                            ((op <=::real => real => bool) x M)
-                            ((op &::bool => bool => bool)
-                              ((All::(real => bool) => bool)
-                                (%y::real.
-                                    (op -->::bool => bool => bool)
-                                     ((op &::bool => bool => bool)
- ((op <=::real => real => bool) x y) ((op <=::real => real => bool) y M))
-                                     ((Ex::(real => bool) => bool)
- (%x::real.
-     (op &::bool => bool => bool) ((op <=::real => real => bool) a x)
-      ((op &::bool => bool => bool) ((op <=::real => real => bool) x b)
-        ((op =::real => real => bool) (f x) y))))))
-                              ((All::(real => bool) => bool)
-                                (%xa::real.
-                                    (op -->::bool => bool => bool)
-                                     ((op &::bool => bool => bool)
- ((op <=::real => real => bool) a xa) ((op <=::real => real => bool) xa b))
-                                     ((op &::bool => bool => bool)
- ((op <=::real => real => bool) x (f xa))
- ((op <=::real => real => bool) (f xa) M)))))))))))"
+lemma CONT_ATTAINS_ALL: "ALL (f::real => real) (a::real) b::real.
+   a <= b & (ALL x::real. a <= x & x <= b --> contl f x) -->
+   (EX (x::real) M::real.
+       x <= M &
+       (ALL y::real.
+           x <= y & y <= M --> (EX x::real. a <= x & x <= b & f x = y)) &
+       (ALL xa::real. a <= xa & xa <= b --> x <= f xa & f xa <= M))"
   by (import lim CONT_ATTAINS_ALL)
 
-lemma DIFF_LINC: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) f l x)
-                  ((op <::real => real => bool) (0::real) l))
-                ((Ex::(real => bool) => bool)
-                  (%d::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((All::(real => bool) => bool)
-                         (%h::real.
-                             (op -->::bool => bool => bool)
-                              ((op &::bool => bool => bool)
-                                ((op <::real => real => bool) (0::real) h)
-                                ((op <::real => real => bool) h d))
-                              ((op <::real => real => bool) (f x)
-                                (f ((op +::real => real => real) x
-                                     h))))))))))"
+lemma DIFF_LINC: "ALL (f::real => real) (x::real) l::real.
+   diffl f l x & 0 < l -->
+   (EX d>0. ALL h::real. 0 < h & h < d --> f x < f (x + h))"
   by (import lim DIFF_LINC)
 
-lemma DIFF_LDEC: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) f l x)
-                  ((op <::real => real => bool) l (0::real)))
-                ((Ex::(real => bool) => bool)
-                  (%d::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((All::(real => bool) => bool)
-                         (%h::real.
-                             (op -->::bool => bool => bool)
-                              ((op &::bool => bool => bool)
-                                ((op <::real => real => bool) (0::real) h)
-                                ((op <::real => real => bool) h d))
-                              ((op <::real => real => bool) (f x)
-                                (f ((op -::real => real => real) x
-                                     h))))))))))"
+lemma DIFF_LDEC: "ALL (f::real => real) (x::real) l::real.
+   diffl f l x & l < 0 -->
+   (EX d>0. ALL h::real. 0 < h & h < d --> f x < f (x - h))"
   by (import lim DIFF_LDEC)
 
-lemma DIFF_LMAX: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) f l x)
-                  ((Ex::(real => bool) => bool)
-                    (%d::real.
-                        (op &::bool => bool => bool)
-                         ((op <::real => real => bool) (0::real) d)
-                         ((All::(real => bool) => bool)
-                           (%y::real.
-                               (op -->::bool => bool => bool)
-                                ((op <::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) x y))
-                                  d)
-                                ((op <=::real => real => bool) (f y)
-                                  (f x)))))))
-                ((op =::real => real => bool) l (0::real)))))"
+lemma DIFF_LMAX: "ALL (f::real => real) (x::real) l::real.
+   diffl f l x & (EX d>0. ALL y::real. abs (x - y) < d --> f y <= f x) -->
+   l = 0"
   by (import lim DIFF_LMAX)
 
-lemma DIFF_LMIN: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) f l x)
-                  ((Ex::(real => bool) => bool)
-                    (%d::real.
-                        (op &::bool => bool => bool)
-                         ((op <::real => real => bool) (0::real) d)
-                         ((All::(real => bool) => bool)
-                           (%y::real.
-                               (op -->::bool => bool => bool)
-                                ((op <::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) x y))
-                                  d)
-                                ((op <=::real => real => bool) (f x)
-                                  (f y)))))))
-                ((op =::real => real => bool) l (0::real)))))"
+lemma DIFF_LMIN: "ALL (f::real => real) (x::real) l::real.
+   diffl f l x & (EX d>0. ALL y::real. abs (x - y) < d --> f x <= f y) -->
+   l = 0"
   by (import lim DIFF_LMIN)
 
-lemma DIFF_LCONST: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) f l x)
-                  ((Ex::(real => bool) => bool)
-                    (%d::real.
-                        (op &::bool => bool => bool)
-                         ((op <::real => real => bool) (0::real) d)
-                         ((All::(real => bool) => bool)
-                           (%y::real.
-                               (op -->::bool => bool => bool)
-                                ((op <::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) x y))
-                                  d)
-                                ((op =::real => real => bool) (f y)
-                                  (f x)))))))
-                ((op =::real => real => bool) l (0::real)))))"
+lemma DIFF_LCONST: "ALL (f::real => real) (x::real) l::real.
+   diffl f l x & (EX d>0. ALL y::real. abs (x - y) < d --> f y = f x) -->
+   l = 0"
   by (import lim DIFF_LCONST)
 
-lemma INTERVAL_LEMMA: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a x)
-                  ((op <::real => real => bool) x b))
-                ((Ex::(real => bool) => bool)
-                  (%d::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((All::(real => bool) => bool)
-                         (%y::real.
-                             (op -->::bool => bool => bool)
-                              ((op <::real => real => bool)
-                                ((abs::real => real)
-                                  ((op -::real => real => real) x y))
-                                d)
-                              ((op &::bool => bool => bool)
-                                ((op <=::real => real => bool) a y)
-                                ((op <=::real => real => bool) y b)))))))))"
+lemma INTERVAL_LEMMA: "ALL (a::real) (b::real) x::real.
+   a < x & x < b -->
+   (EX d>0. ALL y::real. abs (x - y) < d --> a <= y & y <= b)"
   by (import lim INTERVAL_LEMMA)
 
-lemma ROLLE: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a b)
-                  ((op &::bool => bool => bool)
-                    ((op =::real => real => bool) (f a) (f b))
-                    ((op &::bool => bool => bool)
-                      ((All::(real => bool) => bool)
-                        (%x::real.
-                            (op -->::bool => bool => bool)
-                             ((op &::bool => bool => bool)
-                               ((op <=::real => real => bool) a x)
-                               ((op <=::real => real => bool) x b))
-                             ((contl::(real => real) => real => bool) f x)))
-                      ((All::(real => bool) => bool)
-                        (%x::real.
-                            (op -->::bool => bool => bool)
-                             ((op &::bool => bool => bool)
-                               ((op <::real => real => bool) a x)
-                               ((op <::real => real => bool) x b))
-                             ((differentiable::(real => real)
-         => real => bool)
-                               f x))))))
-                ((Ex::(real => bool) => bool)
-                  (%z::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) a z)
-                       ((op &::bool => bool => bool)
-                         ((op <::real => real => bool) z b)
-                         ((diffl::(real => real) => real => real => bool) f
-                           (0::real) z)))))))"
+lemma ROLLE: "ALL (f::real => real) (a::real) b::real.
+   a < b &
+   f a = f b &
+   (ALL x::real. a <= x & x <= b --> contl f x) &
+   (ALL x::real. a < x & x < b --> differentiable f x) -->
+   (EX z::real. a < z & z < b & diffl f 0 z)"
   by (import lim ROLLE)
 
 lemma MVT_LEMMA: "ALL (f::real => real) (a::real) b::real.
    f a - (f b - f a) / (b - a) * a = f b - (f b - f a) / (b - a) * b"
   by (import lim MVT_LEMMA)
 
-lemma MVT: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a b)
-                  ((op &::bool => bool => bool)
-                    ((All::(real => bool) => bool)
-                      (%x::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <=::real => real => bool) a x)
-                             ((op <=::real => real => bool) x b))
-                           ((contl::(real => real) => real => bool) f x)))
-                    ((All::(real => bool) => bool)
-                      (%x::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <::real => real => bool) a x)
-                             ((op <::real => real => bool) x b))
-                           ((differentiable::(real => real) => real => bool)
-                             f x)))))
-                ((Ex::(real => bool) => bool)
-                  (%l::real.
-                      (Ex::(real => bool) => bool)
-                       (%z::real.
-                           (op &::bool => bool => bool)
-                            ((op <::real => real => bool) a z)
-                            ((op &::bool => bool => bool)
-                              ((op <::real => real => bool) z b)
-                              ((op &::bool => bool => bool)
-                                ((diffl::(real => real)
-   => real => real => bool)
-                                  f l z)
-                                ((op =::real => real => bool)
-                                  ((op -::real => real => real) (f b) (f a))
-                                  ((op *::real => real => real)
-                                    ((op -::real => real => real) b a)
-                                    l))))))))))"
+lemma MVT: "ALL (f::real => real) (a::real) b::real.
+   a < b &
+   (ALL x::real. a <= x & x <= b --> contl f x) &
+   (ALL x::real. a < x & x < b --> differentiable f x) -->
+   (EX (l::real) z::real.
+       a < z & z < b & diffl f l z & f b - f a = (b - a) * l)"
   by (import lim MVT)
 
-lemma DIFF_ISCONST_END: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a b)
-                  ((op &::bool => bool => bool)
-                    ((All::(real => bool) => bool)
-                      (%x::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <=::real => real => bool) a x)
-                             ((op <=::real => real => bool) x b))
-                           ((contl::(real => real) => real => bool) f x)))
-                    ((All::(real => bool) => bool)
-                      (%x::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <::real => real => bool) a x)
-                             ((op <::real => real => bool) x b))
-                           ((diffl::(real => real) => real => real => bool)
-                             f (0::real) x)))))
-                ((op =::real => real => bool) (f b) (f a)))))"
+lemma DIFF_ISCONST_END: "ALL (f::real => real) (a::real) b::real.
+   a < b &
+   (ALL x::real. a <= x & x <= b --> contl f x) &
+   (ALL x::real. a < x & x < b --> diffl f 0 x) -->
+   f b = f a"
   by (import lim DIFF_ISCONST_END)
 
-lemma DIFF_ISCONST: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a b)
-                  ((op &::bool => bool => bool)
-                    ((All::(real => bool) => bool)
-                      (%x::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <=::real => real => bool) a x)
-                             ((op <=::real => real => bool) x b))
-                           ((contl::(real => real) => real => bool) f x)))
-                    ((All::(real => bool) => bool)
-                      (%x::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <::real => real => bool) a x)
-                             ((op <::real => real => bool) x b))
-                           ((diffl::(real => real) => real => real => bool)
-                             f (0::real) x)))))
-                ((All::(real => bool) => bool)
-                  (%x::real.
-                      (op -->::bool => bool => bool)
-                       ((op &::bool => bool => bool)
-                         ((op <=::real => real => bool) a x)
-                         ((op <=::real => real => bool) x b))
-                       ((op =::real => real => bool) (f x) (f a)))))))"
+lemma DIFF_ISCONST: "ALL (f::real => real) (a::real) b::real.
+   a < b &
+   (ALL x::real. a <= x & x <= b --> contl f x) &
+   (ALL x::real. a < x & x < b --> diffl f 0 x) -->
+   (ALL x::real. a <= x & x <= b --> f x = f a)"
   by (import lim DIFF_ISCONST)
 
-lemma DIFF_ISCONST_ALL: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (op -->::bool => bool => bool)
-      ((All::(real => bool) => bool)
-        ((diffl::(real => real) => real => real => bool) f (0::real)))
-      ((All::(real => bool) => bool)
-        (%x::real.
-            (All::(real => bool) => bool)
-             (%y::real. (op =::real => real => bool) (f x) (f y)))))"
+lemma DIFF_ISCONST_ALL: "ALL f::real => real. All (diffl f 0) --> (ALL (x::real) y::real. f x = f y)"
   by (import lim DIFF_ISCONST_ALL)
 
 lemma INTERVAL_ABS: "ALL (x::real) (z::real) d::real.
    (x - d <= z & z <= x + d) = (abs (z - x) <= d)"
   by (import lim INTERVAL_ABS)
 
-lemma CONT_INJ_LEMMA: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (All::(real => bool) => bool)
-                (%d::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((op &::bool => bool => bool)
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((op =::real => real => bool) (g (f z)) z)))
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((contl::(real => real) => real => bool) f
-                                  z)))))
-                     ((Not::bool => bool)
-                       ((All::(real => bool) => bool)
-                         (%z::real.
-                             (op -->::bool => bool => bool)
-                              ((op <=::real => real => bool)
-                                ((abs::real => real)
-                                  ((op -::real => real => real) z x))
-                                d)
-                              ((op <=::real => real => bool) (f z)
-                                (f x)))))))))"
+lemma CONT_INJ_LEMMA: "ALL (f::real => real) (g::real => real) (x::real) d::real.
+   0 < d &
+   (ALL z::real. abs (z - x) <= d --> g (f z) = z) &
+   (ALL z::real. abs (z - x) <= d --> contl f z) -->
+   ~ (ALL z::real. abs (z - x) <= d --> f z <= f x)"
   by (import lim CONT_INJ_LEMMA)
 
-lemma CONT_INJ_LEMMA2: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (All::(real => bool) => bool)
-                (%d::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((op &::bool => bool => bool)
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((op =::real => real => bool) (g (f z)) z)))
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((contl::(real => real) => real => bool) f
-                                  z)))))
-                     ((Not::bool => bool)
-                       ((All::(real => bool) => bool)
-                         (%z::real.
-                             (op -->::bool => bool => bool)
-                              ((op <=::real => real => bool)
-                                ((abs::real => real)
-                                  ((op -::real => real => real) z x))
-                                d)
-                              ((op <=::real => real => bool) (f x)
-                                (f z)))))))))"
+lemma CONT_INJ_LEMMA2: "ALL (f::real => real) (g::real => real) (x::real) d::real.
+   0 < d &
+   (ALL z::real. abs (z - x) <= d --> g (f z) = z) &
+   (ALL z::real. abs (z - x) <= d --> contl f z) -->
+   ~ (ALL z::real. abs (z - x) <= d --> f x <= f z)"
   by (import lim CONT_INJ_LEMMA2)
 
-lemma CONT_INJ_RANGE: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (All::(real => bool) => bool)
-                (%d::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((op &::bool => bool => bool)
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((op =::real => real => bool) (g (f z)) z)))
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((contl::(real => real) => real => bool) f
-                                  z)))))
-                     ((Ex::(real => bool) => bool)
-                       (%e::real.
-                           (op &::bool => bool => bool)
-                            ((op <::real => real => bool) (0::real) e)
-                            ((All::(real => bool) => bool)
-                              (%y::real.
-                                  (op -->::bool => bool => bool)
-                                   ((op <=::real => real => bool)
-                                     ((abs::real => real)
- ((op -::real => real => real) y (f x)))
-                                     e)
-                                   ((Ex::(real => bool) => bool)
-                                     (%z::real.
-   (op &::bool => bool => bool)
-    ((op <=::real => real => bool)
-      ((abs::real => real) ((op -::real => real => real) z x)) d)
-    ((op =::real => real => bool) (f z) y)))))))))))"
+lemma CONT_INJ_RANGE: "ALL (f::real => real) (g::real => real) (x::real) d::real.
+   0 < d &
+   (ALL z::real. abs (z - x) <= d --> g (f z) = z) &
+   (ALL z::real. abs (z - x) <= d --> contl f z) -->
+   (EX e>0.
+       ALL y::real.
+          abs (y - f x) <= e --> (EX z::real. abs (z - x) <= d & f z = y))"
   by (import lim CONT_INJ_RANGE)
 
-lemma CONT_INVERSE: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (All::(real => bool) => bool)
-                (%d::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((op &::bool => bool => bool)
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((op =::real => real => bool) (g (f z)) z)))
-                         ((All::(real => bool) => bool)
-                           (%z::real.
-                               (op -->::bool => bool => bool)
-                                ((op <=::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real) z x))
-                                  d)
-                                ((contl::(real => real) => real => bool) f
-                                  z)))))
-                     ((contl::(real => real) => real => bool) g (f x))))))"
+lemma CONT_INVERSE: "ALL (f::real => real) (g::real => real) (x::real) d::real.
+   0 < d &
+   (ALL z::real. abs (z - x) <= d --> g (f z) = z) &
+   (ALL z::real. abs (z - x) <= d --> contl f z) -->
+   contl g (f x)"
   by (import lim CONT_INVERSE)
 
-lemma DIFF_INVERSE: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%x::real.
-                    (All::(real => bool) => bool)
-                     (%d::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((op <::real => real => bool) (0::real) d)
-                            ((op &::bool => bool => bool)
-                              ((All::(real => bool) => bool)
-                                (%z::real.
-                                    (op -->::bool => bool => bool)
-                                     ((op <=::real => real => bool)
- ((abs::real => real) ((op -::real => real => real) z x)) d)
-                                     ((op =::real => real => bool) (g (f z))
- z)))
-                              ((op &::bool => bool => bool)
-                                ((All::(real => bool) => bool)
-                                  (%z::real.
-(op -->::bool => bool => bool)
- ((op <=::real => real => bool)
-   ((abs::real => real) ((op -::real => real => real) z x)) d)
- ((contl::(real => real) => real => bool) f z)))
-                                ((op &::bool => bool => bool)
-                                  ((diffl::(real => real)
-     => real => real => bool)
-                                    f l x)
-                                  ((Not::bool => bool)
-                                    ((op =::real => real => bool) l
-(0::real)))))))
-                          ((diffl::(real => real) => real => real => bool) g
-                            ((inverse::real => real) l) (f x)))))))"
+lemma DIFF_INVERSE: "ALL (f::real => real) (g::real => real) (l::real) (x::real) d::real.
+   0 < d &
+   (ALL z::real. abs (z - x) <= d --> g (f z) = z) &
+   (ALL z::real. abs (z - x) <= d --> contl f z) & diffl f l x & l ~= 0 -->
+   diffl g (inverse l) (f x)"
   by (import lim DIFF_INVERSE)
 
-lemma DIFF_INVERSE_LT: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%x::real.
-                    (All::(real => bool) => bool)
-                     (%d::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((op <::real => real => bool) (0::real) d)
-                            ((op &::bool => bool => bool)
-                              ((All::(real => bool) => bool)
-                                (%z::real.
-                                    (op -->::bool => bool => bool)
-                                     ((op <::real => real => bool)
- ((abs::real => real) ((op -::real => real => real) z x)) d)
-                                     ((op =::real => real => bool) (g (f z))
- z)))
-                              ((op &::bool => bool => bool)
-                                ((All::(real => bool) => bool)
-                                  (%z::real.
-(op -->::bool => bool => bool)
- ((op <::real => real => bool)
-   ((abs::real => real) ((op -::real => real => real) z x)) d)
- ((contl::(real => real) => real => bool) f z)))
-                                ((op &::bool => bool => bool)
-                                  ((diffl::(real => real)
-     => real => real => bool)
-                                    f l x)
-                                  ((Not::bool => bool)
-                                    ((op =::real => real => bool) l
-(0::real)))))))
-                          ((diffl::(real => real) => real => real => bool) g
-                            ((inverse::real => real) l) (f x)))))))"
+lemma DIFF_INVERSE_LT: "ALL (f::real => real) (g::real => real) (l::real) (x::real) d::real.
+   0 < d &
+   (ALL z::real. abs (z - x) < d --> g (f z) = z) &
+   (ALL z::real. abs (z - x) < d --> contl f z) & diffl f l x & l ~= 0 -->
+   diffl g (inverse l) (f x)"
   by (import lim DIFF_INVERSE_LT)
 
-lemma INTERVAL_CLEMMA: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a x)
-                  ((op <::real => real => bool) x b))
-                ((Ex::(real => bool) => bool)
-                  (%d::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) d)
-                       ((All::(real => bool) => bool)
-                         (%y::real.
-                             (op -->::bool => bool => bool)
-                              ((op <=::real => real => bool)
-                                ((abs::real => real)
-                                  ((op -::real => real => real) y x))
-                                d)
-                              ((op &::bool => bool => bool)
-                                ((op <::real => real => bool) a y)
-                                ((op <::real => real => bool) y b)))))))))"
+lemma INTERVAL_CLEMMA: "ALL (a::real) (b::real) x::real.
+   a < x & x < b -->
+   (EX d>0. ALL y::real. abs (y - x) <= d --> a < y & y < b)"
   by (import lim INTERVAL_CLEMMA)
 
-lemma DIFF_INVERSE_OPEN: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (All::(real => bool) => bool)
-           (%l::real.
-               (All::(real => bool) => bool)
-                (%a::real.
-                    (All::(real => bool) => bool)
-                     (%x::real.
-                         (All::(real => bool) => bool)
-                          (%b::real.
-                              (op -->::bool => bool => bool)
-                               ((op &::bool => bool => bool)
-                                 ((op <::real => real => bool) a x)
-                                 ((op &::bool => bool => bool)
-                                   ((op <::real => real => bool) x b)
-                                   ((op &::bool => bool => bool)
-                                     ((All::(real => bool) => bool)
- (%z::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) ((op <::real => real => bool) a z)
-        ((op <::real => real => bool) z b))
-      ((op &::bool => bool => bool)
-        ((op =::real => real => bool) (g (f z)) z)
-        ((contl::(real => real) => real => bool) f z))))
-                                     ((op &::bool => bool => bool)
- ((diffl::(real => real) => real => real => bool) f l x)
- ((Not::bool => bool) ((op =::real => real => bool) l (0::real)))))))
-                               ((diffl::(real => real)
-  => real => real => bool)
-                                 g ((inverse::real => real) l) (f x))))))))"
+lemma DIFF_INVERSE_OPEN: "ALL (f::real => real) (g::real => real) (l::real) (a::real) (x::real)
+   b::real.
+   a < x &
+   x < b &
+   (ALL z::real. a < z & z < b --> g (f z) = z & contl f z) &
+   diffl f l x & l ~= 0 -->
+   diffl g (inverse l) (f x)"
   by (import lim DIFF_INVERSE_OPEN)
 
 ;end_setup
@@ -3890,45 +2119,14 @@ lemma POWREV: "ALL (n::nat) (x::real) y::real.
    real.sum (0, Suc n) (%xa::nat. x ^ (n - xa) * y ^ xa)"
   by (import powser POWREV)
 
-lemma POWSER_INSIDEA: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%z::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((summable::(nat => real) => bool)
-                    (%n::nat.
-                        (op *::real => real => real) (f n)
-                         ((op ^::real => nat => real) x n)))
-                  ((op <::real => real => bool) ((abs::real => real) z)
-                    ((abs::real => real) x)))
-                ((summable::(nat => real) => bool)
-                  (%n::nat.
-                      (op *::real => real => real)
-                       ((abs::real => real) (f n))
-                       ((op ^::real => nat => real) z n))))))"
+lemma POWSER_INSIDEA: "ALL (f::nat => real) (x::real) z::real.
+   summable (%n::nat. f n * x ^ n) & abs z < abs x -->
+   summable (%n::nat. abs (f n) * z ^ n)"
   by (import powser POWSER_INSIDEA)
 
-lemma POWSER_INSIDE: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%z::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((summable::(nat => real) => bool)
-                    (%n::nat.
-                        (op *::real => real => real) (f n)
-                         ((op ^::real => nat => real) x n)))
-                  ((op <::real => real => bool) ((abs::real => real) z)
-                    ((abs::real => real) x)))
-                ((summable::(nat => real) => bool)
-                  (%n::nat.
-                      (op *::real => real => real) (f n)
-                       ((op ^::real => nat => real) z n))))))"
+lemma POWSER_INSIDE: "ALL (f::nat => real) (x::real) z::real.
+   summable (%n::nat. f n * x ^ n) & abs z < abs x -->
+   summable (%n::nat. f n * z ^ n)"
   by (import powser POWSER_INSIDE)
 
 constdefs
@@ -3953,27 +2151,10 @@ lemma DIFFS_LEMMA2: "ALL (n::nat) (c::nat => real) x::real.
    real n * (c n * x ^ (n - 1))"
   by (import powser DIFFS_LEMMA2)
 
-lemma DIFFS_EQUIV: "(All::((nat => real) => bool) => bool)
- (%c::nat => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((summable::(nat => real) => bool)
-             (%n::nat.
-                 (op *::real => real => real)
-                  ((diffs::(nat => real) => nat => real) c n)
-                  ((op ^::real => nat => real) x n)))
-           ((sums::(nat => real) => real => bool)
-             (%n::nat.
-                 (op *::real => real => real) ((real::nat => real) n)
-                  ((op *::real => real => real) (c n)
-                    ((op ^::real => nat => real) x
-                      ((op -::nat => nat => nat) n (1::nat)))))
-             ((suminf::(nat => real) => real)
-               (%n::nat.
-                   (op *::real => real => real)
-                    ((diffs::(nat => real) => nat => real) c n)
-                    ((op ^::real => nat => real) x n))))))"
+lemma DIFFS_EQUIV: "ALL (c::nat => real) x::real.
+   summable (%n::nat. diffs c n * x ^ n) -->
+   sums (%n::nat. real n * (c n * x ^ (n - 1)))
+    (suminf (%n::nat. diffs c n * x ^ n))"
   by (import powser DIFFS_EQUIV)
 
 lemma TERMDIFF_LEMMA1: "ALL (m::nat) (z::real) h::real.
@@ -3981,194 +2162,44 @@ lemma TERMDIFF_LEMMA1: "ALL (m::nat) (z::real) h::real.
    real.sum (0, m) (%p::nat. z ^ p * ((z + h) ^ (m - p) - z ^ (m - p)))"
   by (import powser TERMDIFF_LEMMA1)
 
-lemma TERMDIFF_LEMMA2: "(All::(real => bool) => bool)
- (%z::real.
-     (All::(real => bool) => bool)
-      (%h::real.
-          (All::(nat => bool) => bool)
-           (%n::nat.
-               (op -->::bool => bool => bool)
-                ((Not::bool => bool)
-                  ((op =::real => real => bool) h (0::real)))
-                ((op =::real => real => bool)
-                  ((op -::real => real => real)
-                    ((op /::real => real => real)
-                      ((op -::real => real => real)
-                        ((op ^::real => nat => real)
-                          ((op +::real => real => real) z h) n)
-                        ((op ^::real => nat => real) z n))
-                      h)
-                    ((op *::real => real => real) ((real::nat => real) n)
-                      ((op ^::real => nat => real) z
-                        ((op -::nat => nat => nat) n (1::nat)))))
-                  ((op *::real => real => real) h
-                    ((real.sum::nat * nat => (nat => real) => real)
-                      ((Pair::nat => nat => nat * nat) (0::nat)
-                        ((op -::nat => nat => nat) n (1::nat)))
-                      (%p::nat.
-                          (op *::real => real => real)
-                           ((op ^::real => nat => real) z p)
-                           ((real.sum::nat * nat => (nat => real) => real)
-                             ((Pair::nat => nat => nat * nat) (0::nat)
-                               ((op -::nat => nat => nat)
-                                 ((op -::nat => nat => nat) n (1::nat)) p))
-                             (%q::nat.
-                                 (op *::real => real => real)
-                                  ((op ^::real => nat => real)
-                                    ((op +::real => real => real) z h) q)
-                                  ((op ^::real => nat => real) z
-                                    ((op -::nat => nat => nat)
-((op -::nat => nat => nat)
-  ((op -::nat => nat => nat) n
-    ((number_of::bin => nat)
-      ((op BIT::bin => bit => bin)
-        ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-        (bit.B0::bit))))
-  p)
-q)))))))))))"
+lemma TERMDIFF_LEMMA2: "ALL (z::real) (h::real) n::nat.
+   h ~= 0 -->
+   ((z + h) ^ n - z ^ n) / h - real n * z ^ (n - 1) =
+   h *
+   real.sum (0, n - 1)
+    (%p::nat.
+        z ^ p *
+        real.sum (0, n - 1 - p)
+         (%q::nat. (z + h) ^ q * z ^ (n - 2 - p - q)))"
   by (import powser TERMDIFF_LEMMA2)
 
-lemma TERMDIFF_LEMMA3: "(All::(real => bool) => bool)
- (%z::real.
-     (All::(real => bool) => bool)
-      (%h::real.
-          (All::(nat => bool) => bool)
-           (%n::nat.
-               (All::(real => bool) => bool)
-                (%k'::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((Not::bool => bool)
-                         ((op =::real => real => bool) h (0::real)))
-                       ((op &::bool => bool => bool)
-                         ((op <=::real => real => bool)
-                           ((abs::real => real) z) k')
-                         ((op <=::real => real => bool)
-                           ((abs::real => real)
-                             ((op +::real => real => real) z h))
-                           k')))
-                     ((op <=::real => real => bool)
-                       ((abs::real => real)
-                         ((op -::real => real => real)
-                           ((op /::real => real => real)
-                             ((op -::real => real => real)
-                               ((op ^::real => nat => real)
-                                 ((op +::real => real => real) z h) n)
-                               ((op ^::real => nat => real) z n))
-                             h)
-                           ((op *::real => real => real)
-                             ((real::nat => real) n)
-                             ((op ^::real => nat => real) z
-                               ((op -::nat => nat => nat) n (1::nat))))))
-                       ((op *::real => real => real) ((real::nat => real) n)
-                         ((op *::real => real => real)
-                           ((real::nat => real)
-                             ((op -::nat => nat => nat) n (1::nat)))
-                           ((op *::real => real => real)
-                             ((op ^::real => nat => real) k'
-                               ((op -::nat => nat => nat) n
-                                 ((number_of::bin => nat)
-                                   ((op BIT::bin => bit => bin)
-                                     ((op BIT::bin => bit => bin)
- (Numeral.Pls::bin) (bit.B1::bit))
-                                     (bit.B0::bit)))))
-                             ((abs::real => real) h)))))))))"
+lemma TERMDIFF_LEMMA3: "ALL (z::real) (h::real) (n::nat) k'::real.
+   h ~= 0 & abs z <= k' & abs (z + h) <= k' -->
+   abs (((z + h) ^ n - z ^ n) / h - real n * z ^ (n - 1))
+   <= real n * (real (n - 1) * (k' ^ (n - 2) * abs h))"
   by (import powser TERMDIFF_LEMMA3)
 
-lemma TERMDIFF_LEMMA4: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::(real => bool) => bool)
-      (%k'::real.
-          (All::(real => bool) => bool)
-           (%k::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) (0::real) k)
-                  ((All::(real => bool) => bool)
-                    (%h::real.
-                        (op -->::bool => bool => bool)
-                         ((op &::bool => bool => bool)
-                           ((op <::real => real => bool) (0::real)
-                             ((abs::real => real) h))
-                           ((op <::real => real => bool)
-                             ((abs::real => real) h) k))
-                         ((op <=::real => real => bool)
-                           ((abs::real => real) (f h))
-                           ((op *::real => real => real) k'
-                             ((abs::real => real) h))))))
-                ((tends_real_real::(real => real) => real => real => bool) f
-                  (0::real) (0::real)))))"
+lemma TERMDIFF_LEMMA4: "ALL (f::real => real) (k'::real) k::real.
+   0 < k &
+   (ALL h::real. 0 < abs h & abs h < k --> abs (f h) <= k' * abs h) -->
+   tends_real_real f 0 0"
   by (import powser TERMDIFF_LEMMA4)
 
-lemma TERMDIFF_LEMMA5: "(All::((nat => real) => bool) => bool)
- (%f::nat => real.
-     (All::((real => nat => real) => bool) => bool)
-      (%g::real => nat => real.
-          (All::(real => bool) => bool)
-           (%k::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) (0::real) k)
-                  ((op &::bool => bool => bool)
-                    ((summable::(nat => real) => bool) f)
-                    ((All::(real => bool) => bool)
-                      (%h::real.
-                          (op -->::bool => bool => bool)
-                           ((op &::bool => bool => bool)
-                             ((op <::real => real => bool) (0::real)
-                               ((abs::real => real) h))
-                             ((op <::real => real => bool)
-                               ((abs::real => real) h) k))
-                           ((All::(nat => bool) => bool)
-                             (%n::nat.
-                                 (op <=::real => real => bool)
-                                  ((abs::real => real) (g h n))
-                                  ((op *::real => real => real) (f n)
-                                    ((abs::real => real) h))))))))
-                ((tends_real_real::(real => real) => real => real => bool)
-                  (%h::real. (suminf::(nat => real) => real) (g h))
-                  (0::real) (0::real)))))"
+lemma TERMDIFF_LEMMA5: "ALL (f::nat => real) (g::real => nat => real) k::real.
+   0 < k &
+   summable f &
+   (ALL h::real.
+       0 < abs h & abs h < k -->
+       (ALL n::nat. abs (g h n) <= f n * abs h)) -->
+   tends_real_real (%h::real. suminf (g h)) 0 0"
   by (import powser TERMDIFF_LEMMA5)
 
-lemma TERMDIFF: "(All::((nat => real) => bool) => bool)
- (%c::nat => real.
-     (All::(real => bool) => bool)
-      (%k'::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((summable::(nat => real) => bool)
-                    (%n::nat.
-                        (op *::real => real => real) (c n)
-                         ((op ^::real => nat => real) k' n)))
-                  ((op &::bool => bool => bool)
-                    ((summable::(nat => real) => bool)
-                      (%n::nat.
-                          (op *::real => real => real)
-                           ((diffs::(nat => real) => nat => real) c n)
-                           ((op ^::real => nat => real) k' n)))
-                    ((op &::bool => bool => bool)
-                      ((summable::(nat => real) => bool)
-                        (%n::nat.
-                            (op *::real => real => real)
-                             ((diffs::(nat => real) => nat => real)
-                               ((diffs::(nat => real) => nat => real) c) n)
-                             ((op ^::real => nat => real) k' n)))
-                      ((op <::real => real => bool) ((abs::real => real) x)
-                        ((abs::real => real) k')))))
-                ((diffl::(real => real) => real => real => bool)
-                  (%x::real.
-                      (suminf::(nat => real) => real)
-                       (%n::nat.
-                           (op *::real => real => real) (c n)
-                            ((op ^::real => nat => real) x n)))
-                  ((suminf::(nat => real) => real)
-                    (%n::nat.
-                        (op *::real => real => real)
-                         ((diffs::(nat => real) => nat => real) c n)
-                         ((op ^::real => nat => real) x n)))
-                  x))))"
+lemma TERMDIFF: "ALL (c::nat => real) (k'::real) x::real.
+   summable (%n::nat. c n * k' ^ n) &
+   summable (%n::nat. diffs c n * k' ^ n) &
+   summable (%n::nat. diffs (diffs c) n * k' ^ n) & abs x < abs k' -->
+   diffl (%x::real. suminf (%n::nat. c n * x ^ n))
+    (suminf (%n::nat. diffs c n * x ^ n)) x"
   by (import powser TERMDIFF)
 
 ;end_setup
@@ -4262,113 +2293,20 @@ lemma DIFF_SIN: "ALL x::real. diffl sin (cos x) x"
 lemma DIFF_COS: "ALL x::real. diffl cos (- sin x) x"
   by (import transc DIFF_COS)
 
-lemma DIFF_COMPOSITE: "(op &::bool => bool => bool)
- ((op -->::bool => bool => bool)
-   ((op &::bool => bool => bool)
-     ((diffl::(real => real) => real => real => bool) (f::real => real)
-       (l::real) (x::real))
-     ((Not::bool => bool) ((op =::real => real => bool) (f x) (0::real))))
-   ((diffl::(real => real) => real => real => bool)
-     (%x::real. (inverse::real => real) (f x))
-     ((uminus::real => real)
-       ((op /::real => real => real) l
-         ((op ^::real => nat => real) (f x)
-           ((number_of::bin => nat)
-             ((op BIT::bin => bit => bin)
-               ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                 (bit.B1::bit))
-               (bit.B0::bit))))))
-     x))
- ((op &::bool => bool => bool)
-   ((op -->::bool => bool => bool)
-     ((op &::bool => bool => bool)
-       ((diffl::(real => real) => real => real => bool) f l x)
-       ((op &::bool => bool => bool)
-         ((diffl::(real => real) => real => real => bool) (g::real => real)
-           (m::real) x)
-         ((Not::bool => bool)
-           ((op =::real => real => bool) (g x) (0::real)))))
-     ((diffl::(real => real) => real => real => bool)
-       (%x::real. (op /::real => real => real) (f x) (g x))
-       ((op /::real => real => real)
-         ((op -::real => real => real)
-           ((op *::real => real => real) l (g x))
-           ((op *::real => real => real) m (f x)))
-         ((op ^::real => nat => real) (g x)
-           ((number_of::bin => nat)
-             ((op BIT::bin => bit => bin)
-               ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                 (bit.B1::bit))
-               (bit.B0::bit)))))
-       x))
-   ((op &::bool => bool => bool)
-     ((op -->::bool => bool => bool)
-       ((op &::bool => bool => bool)
-         ((diffl::(real => real) => real => real => bool) f l x)
-         ((diffl::(real => real) => real => real => bool) g m x))
-       ((diffl::(real => real) => real => real => bool)
-         (%x::real. (op +::real => real => real) (f x) (g x))
-         ((op +::real => real => real) l m) x))
-     ((op &::bool => bool => bool)
-       ((op -->::bool => bool => bool)
-         ((op &::bool => bool => bool)
-           ((diffl::(real => real) => real => real => bool) f l x)
-           ((diffl::(real => real) => real => real => bool) g m x))
-         ((diffl::(real => real) => real => real => bool)
-           (%x::real. (op *::real => real => real) (f x) (g x))
-           ((op +::real => real => real)
-             ((op *::real => real => real) l (g x))
-             ((op *::real => real => real) m (f x)))
-           x))
-       ((op &::bool => bool => bool)
-         ((op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((diffl::(real => real) => real => real => bool) f l x)
-             ((diffl::(real => real) => real => real => bool) g m x))
-           ((diffl::(real => real) => real => real => bool)
-             (%x::real. (op -::real => real => real) (f x) (g x))
-             ((op -::real => real => real) l m) x))
-         ((op &::bool => bool => bool)
-           ((op -->::bool => bool => bool)
-             ((diffl::(real => real) => real => real => bool) f l x)
-             ((diffl::(real => real) => real => real => bool)
-               (%x::real. (uminus::real => real) (f x))
-               ((uminus::real => real) l) x))
-           ((op &::bool => bool => bool)
-             ((op -->::bool => bool => bool)
-               ((diffl::(real => real) => real => real => bool) g m x)
-               ((diffl::(real => real) => real => real => bool)
-                 (%x::real. (op ^::real => nat => real) (g x) (n::nat))
-                 ((op *::real => real => real)
-                   ((op *::real => real => real) ((real::nat => real) n)
-                     ((op ^::real => nat => real) (g x)
-                       ((op -::nat => nat => nat) n (1::nat))))
-                   m)
-                 x))
-             ((op &::bool => bool => bool)
-               ((op -->::bool => bool => bool)
-                 ((diffl::(real => real) => real => real => bool) g m x)
-                 ((diffl::(real => real) => real => real => bool)
-                   (%x::real. (exp::real => real) (g x))
-                   ((op *::real => real => real) ((exp::real => real) (g x))
-                     m)
-                   x))
-               ((op &::bool => bool => bool)
-                 ((op -->::bool => bool => bool)
-                   ((diffl::(real => real) => real => real => bool) g m x)
-                   ((diffl::(real => real) => real => real => bool)
-                     (%x::real. (sin::real => real) (g x))
-                     ((op *::real => real => real)
-                       ((cos::real => real) (g x)) m)
-                     x))
-                 ((op -->::bool => bool => bool)
-                   ((diffl::(real => real) => real => real => bool) g m x)
-                   ((diffl::(real => real) => real => real => bool)
-                     (%x::real. (cos::real => real) (g x))
-                     ((op *::real => real => real)
-                       ((uminus::real => real) ((sin::real => real) (g x)))
-                       m)
-                     x))))))))))"
+lemma DIFF_COMPOSITE: "(diffl (f::real => real) (l::real) (x::real) & f x ~= 0 -->
+ diffl (%x::real. inverse (f x)) (- (l / f x ^ 2)) x) &
+(diffl f l x & diffl (g::real => real) (m::real) x & g x ~= 0 -->
+ diffl (%x::real. f x / g x) ((l * g x - m * f x) / g x ^ 2) x) &
+(diffl f l x & diffl g m x --> diffl (%x::real. f x + g x) (l + m) x) &
+(diffl f l x & diffl g m x -->
+ diffl (%x::real. f x * g x) (l * g x + m * f x) x) &
+(diffl f l x & diffl g m x --> diffl (%x::real. f x - g x) (l - m) x) &
+(diffl f l x --> diffl (%x::real. - f x) (- l) x) &
+(diffl g m x -->
+ diffl (%x::real. g x ^ (n::nat)) (real n * g x ^ (n - 1) * m) x) &
+(diffl g m x --> diffl (%x::real. exp (g x)) (exp (g x) * m) x) &
+(diffl g m x --> diffl (%x::real. sin (g x)) (cos (g x) * m) x) &
+(diffl g m x --> diffl (%x::real. cos (g x)) (- sin (g x) * m) x)"
   by (import transc DIFF_COMPOSITE)
 
 lemma EXP_0: "exp 0 = 1"
@@ -4410,13 +2348,7 @@ lemma EXP_N: "ALL (n::nat) x::real. exp (real n * x) = exp x ^ n"
 lemma EXP_SUB: "ALL (x::real) y::real. exp (x - y) = exp x / exp y"
   by (import transc EXP_SUB)
 
-lemma EXP_MONO_IMP: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool) ((op <::real => real => bool) x y)
-           ((op <::real => real => bool) ((exp::real => real) x)
-             ((exp::real => real) y))))"
+lemma EXP_MONO_IMP: "ALL (x::real) y::real. x < y --> exp x < exp y"
   by (import transc EXP_MONO_IMP)
 
 lemma EXP_MONO_LT: "ALL (x::real) y::real. (exp x < exp y) = (x < y)"
@@ -4447,32 +2379,10 @@ lemma LN_EXP: "ALL x::real. ln (exp x) = x"
 lemma EXP_LN: "ALL x::real. (exp (ln x) = x) = (0 < x)"
   by (import transc EXP_LN)
 
-lemma LN_MUL: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op <::real => real => bool) (0::real) y))
-           ((op =::real => real => bool)
-             ((ln::real => real) ((op *::real => real => real) x y))
-             ((op +::real => real => real) ((ln::real => real) x)
-               ((ln::real => real) y)))))"
+lemma LN_MUL: "ALL (x::real) y::real. 0 < x & 0 < y --> ln (x * y) = ln x + ln y"
   by (import transc LN_MUL)
 
-lemma LN_INJ: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op <::real => real => bool) (0::real) y))
-           ((op =::bool => bool => bool)
-             ((op =::real => real => bool) ((ln::real => real) x)
-               ((ln::real => real) y))
-             ((op =::real => real => bool) x y))))"
+lemma LN_INJ: "ALL (x::real) y::real. 0 < x & 0 < y --> (ln x = ln y) = (x = y)"
   by (import transc LN_INJ)
 
 lemma LN_1: "ln 1 = 0"
@@ -4481,58 +2391,16 @@ lemma LN_1: "ln 1 = 0"
 lemma LN_INV: "ALL x>0. ln (inverse x) = - ln x"
   by (import transc LN_INV)
 
-lemma LN_DIV: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op <::real => real => bool) (0::real) y))
-           ((op =::real => real => bool)
-             ((ln::real => real) ((op /::real => real => real) x y))
-             ((op -::real => real => real) ((ln::real => real) x)
-               ((ln::real => real) y)))))"
+lemma LN_DIV: "ALL (x::real) y::real. 0 < x & 0 < y --> ln (x / y) = ln x - ln y"
   by (import transc LN_DIV)
 
-lemma LN_MONO_LT: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op <::real => real => bool) (0::real) y))
-           ((op =::bool => bool => bool)
-             ((op <::real => real => bool) ((ln::real => real) x)
-               ((ln::real => real) y))
-             ((op <::real => real => bool) x y))))"
+lemma LN_MONO_LT: "ALL (x::real) y::real. 0 < x & 0 < y --> (ln x < ln y) = (x < y)"
   by (import transc LN_MONO_LT)
 
-lemma LN_MONO_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op <::real => real => bool) (0::real) y))
-           ((op =::bool => bool => bool)
-             ((op <=::real => real => bool) ((ln::real => real) x)
-               ((ln::real => real) y))
-             ((op <=::real => real => bool) x y))))"
+lemma LN_MONO_LE: "ALL (x::real) y::real. 0 < x & 0 < y --> (ln x <= ln y) = (x <= y)"
   by (import transc LN_MONO_LE)
 
-lemma LN_POW: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <::real => real => bool) (0::real) x)
-           ((op =::real => real => bool)
-             ((ln::real => real) ((op ^::real => nat => real) x n))
-             ((op *::real => real => real) ((real::nat => real) n)
-               ((ln::real => real) x)))))"
+lemma LN_POW: "ALL (n::nat) x::real. 0 < x --> ln (x ^ n) = real n * ln x"
   by (import transc LN_POW)
 
 lemma LN_LE: "ALL x>=0. ln (1 + x) <= x"
@@ -4546,31 +2414,10 @@ lemma LN_POS: "ALL x>=1. 0 <= ln x"
 
 constdefs
   root :: "nat => real => real" 
-  "(op ==::(nat => real => real) => (nat => real => real) => prop)
- (root::nat => real => real)
- (%(n::nat) x::real.
-     (Eps::(real => bool) => real)
-      (%u::real.
-          (op &::bool => bool => bool)
-           ((op -->::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op <::real => real => bool) (0::real) u))
-           ((op =::real => real => bool) ((op ^::real => nat => real) u n)
-             x)))"
+  "root == %(n::nat) x::real. SOME u::real. (0 < x --> 0 < u) & u ^ n = x"
 
-lemma root: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op =::real => real => bool) ((root::nat => real => real) n x)
-           ((Eps::(real => bool) => real)
-             (%u::real.
-                 (op &::bool => bool => bool)
-                  ((op -->::bool => bool => bool)
-                    ((op <::real => real => bool) (0::real) x)
-                    ((op <::real => real => bool) (0::real) u))
-                  ((op =::real => real => bool)
-                    ((op ^::real => nat => real) u n) x)))))"
+lemma root: "ALL (n::nat) x::real.
+   root n x = (SOME u::real. (0 < x --> 0 < u) & u ^ n = x)"
   by (import transc root)
 
 constdefs
@@ -4580,32 +2427,10 @@ constdefs
 lemma sqrt: "ALL x::real. sqrt x = root 2 x"
   by (import transc sqrt)
 
-lemma ROOT_LT_LEMMA: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <::real => real => bool) (0::real) x)
-           ((op =::real => real => bool)
-             ((op ^::real => nat => real)
-               ((exp::real => real)
-                 ((op /::real => real => real) ((ln::real => real) x)
-                   ((real::nat => real) ((Suc::nat => nat) n))))
-               ((Suc::nat => nat) n))
-             x)))"
+lemma ROOT_LT_LEMMA: "ALL (n::nat) x::real. 0 < x --> exp (ln x / real (Suc n)) ^ Suc n = x"
   by (import transc ROOT_LT_LEMMA)
 
-lemma ROOT_LN: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <::real => real => bool) (0::real) x)
-           ((op =::real => real => bool)
-             ((root::nat => real => real) ((Suc::nat => nat) n) x)
-             ((exp::real => real)
-               ((op /::real => real => real) ((ln::real => real) x)
-                 ((real::nat => real) ((Suc::nat => nat) n)))))))"
+lemma ROOT_LN: "ALL (n::nat) x::real. 0 < x --> root (Suc n) x = exp (ln x / real (Suc n))"
   by (import transc ROOT_LN)
 
 lemma ROOT_0: "ALL n::nat. root (Suc n) 0 = 0"
@@ -4614,132 +2439,38 @@ lemma ROOT_0: "ALL n::nat. root (Suc n) 0 = 0"
 lemma ROOT_1: "ALL n::nat. root (Suc n) 1 = 1"
   by (import transc ROOT_1)
 
-lemma ROOT_POS_LT: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <::real => real => bool) (0::real) x)
-           ((op <::real => real => bool) (0::real)
-             ((root::nat => real => real) ((Suc::nat => nat) n) x))))"
+lemma ROOT_POS_LT: "ALL (n::nat) x::real. 0 < x --> 0 < root (Suc n) x"
   by (import transc ROOT_POS_LT)
 
-lemma ROOT_POW_POS: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <=::real => real => bool) (0::real) x)
-           ((op =::real => real => bool)
-             ((op ^::real => nat => real)
-               ((root::nat => real => real) ((Suc::nat => nat) n) x)
-               ((Suc::nat => nat) n))
-             x)))"
+lemma ROOT_POW_POS: "ALL (n::nat) x::real. 0 <= x --> root (Suc n) x ^ Suc n = x"
   by (import transc ROOT_POW_POS)
 
-lemma POW_ROOT_POS: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <=::real => real => bool) (0::real) x)
-           ((op =::real => real => bool)
-             ((root::nat => real => real) ((Suc::nat => nat) n)
-               ((op ^::real => nat => real) x ((Suc::nat => nat) n)))
-             x)))"
+lemma POW_ROOT_POS: "ALL (n::nat) x::real. 0 <= x --> root (Suc n) (x ^ Suc n) = x"
   by (import transc POW_ROOT_POS)
 
-lemma ROOT_POS: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <=::real => real => bool) (0::real) x)
-           ((op <=::real => real => bool) (0::real)
-             ((root::nat => real => real) ((Suc::nat => nat) n) x))))"
+lemma ROOT_POS: "ALL (n::nat) x::real. 0 <= x --> 0 <= root (Suc n) x"
   by (import transc ROOT_POS)
 
-lemma ROOT_POS_UNIQ: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%y::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) (0::real) x)
-                  ((op &::bool => bool => bool)
-                    ((op <=::real => real => bool) (0::real) y)
-                    ((op =::real => real => bool)
-                      ((op ^::real => nat => real) y ((Suc::nat => nat) n))
-                      x)))
-                ((op =::real => real => bool)
-                  ((root::nat => real => real) ((Suc::nat => nat) n) x)
-                  y))))"
+lemma ROOT_POS_UNIQ: "ALL (n::nat) (x::real) y::real.
+   0 <= x & 0 <= y & y ^ Suc n = x --> root (Suc n) x = y"
   by (import transc ROOT_POS_UNIQ)
 
-lemma ROOT_MUL: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%y::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) (0::real) x)
-                  ((op <=::real => real => bool) (0::real) y))
-                ((op =::real => real => bool)
-                  ((root::nat => real => real) ((Suc::nat => nat) n)
-                    ((op *::real => real => real) x y))
-                  ((op *::real => real => real)
-                    ((root::nat => real => real) ((Suc::nat => nat) n) x)
-                    ((root::nat => real => real) ((Suc::nat => nat) n)
-                      y))))))"
+lemma ROOT_MUL: "ALL (n::nat) (x::real) y::real.
+   0 <= x & 0 <= y -->
+   root (Suc n) (x * y) = root (Suc n) x * root (Suc n) y"
   by (import transc ROOT_MUL)
 
-lemma ROOT_INV: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op <=::real => real => bool) (0::real) x)
-           ((op =::real => real => bool)
-             ((root::nat => real => real) ((Suc::nat => nat) n)
-               ((inverse::real => real) x))
-             ((inverse::real => real)
-               ((root::nat => real => real) ((Suc::nat => nat) n) x)))))"
+lemma ROOT_INV: "ALL (n::nat) x::real.
+   0 <= x --> root (Suc n) (inverse x) = inverse (root (Suc n) x)"
   by (import transc ROOT_INV)
 
-lemma ROOT_DIV: "(All::(nat => bool) => bool)
- (%x::nat.
-     (All::(real => bool) => bool)
-      (%xa::real.
-          (All::(real => bool) => bool)
-           (%xb::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) (0::real) xa)
-                  ((op <=::real => real => bool) (0::real) xb))
-                ((op =::real => real => bool)
-                  ((root::nat => real => real) ((Suc::nat => nat) x)
-                    ((op /::real => real => real) xa xb))
-                  ((op /::real => real => real)
-                    ((root::nat => real => real) ((Suc::nat => nat) x) xa)
-                    ((root::nat => real => real) ((Suc::nat => nat) x)
-                      xb))))))"
+lemma ROOT_DIV: "ALL (x::nat) (xa::real) xb::real.
+   0 <= xa & 0 <= xb -->
+   root (Suc x) (xa / xb) = root (Suc x) xa / root (Suc x) xb"
   by (import transc ROOT_DIV)
 
-lemma ROOT_MONO_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op <=::real => real => bool) x y))
-           ((op <=::real => real => bool)
-             ((root::nat => real => real) ((Suc::nat => nat) (n::nat)) x)
-             ((root::nat => real => real) ((Suc::nat => nat) n) y))))"
+lemma ROOT_MONO_LE: "ALL (x::real) y::real.
+   0 <= x & x <= y --> root (Suc (n::nat)) x <= root (Suc n) y"
   by (import transc ROOT_MONO_LE)
 
 lemma SQRT_0: "sqrt 0 = 0"
@@ -4760,125 +2491,33 @@ lemma SQRT_POW2: "ALL x::real. (sqrt x ^ 2 = x) = (0 <= x)"
 lemma SQRT_POW_2: "ALL x>=0. sqrt x ^ 2 = x"
   by (import transc SQRT_POW_2)
 
-lemma POW_2_SQRT: "(op -->::bool => bool => bool)
- ((op <=::real => real => bool) (0::real) (x::real))
- ((op =::real => real => bool)
-   ((sqrt::real => real)
-     ((op ^::real => nat => real) x
-       ((number_of::bin => nat)
-         ((op BIT::bin => bit => bin)
-           ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-           (bit.B0::bit)))))
-   x)"
+lemma POW_2_SQRT: "0 <= (x::real) --> sqrt (x ^ 2) = x"
   by (import transc POW_2_SQRT)
 
-lemma SQRT_POS_UNIQ: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%xa::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op &::bool => bool => bool)
-               ((op <=::real => real => bool) (0::real) xa)
-               ((op =::real => real => bool)
-                 ((op ^::real => nat => real) xa
-                   ((number_of::bin => nat)
-                     ((op BIT::bin => bit => bin)
-                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                         (bit.B1::bit))
-                       (bit.B0::bit))))
-                 x)))
-           ((op =::real => real => bool) ((sqrt::real => real) x) xa)))"
+lemma SQRT_POS_UNIQ: "ALL (x::real) xa::real. 0 <= x & 0 <= xa & xa ^ 2 = x --> sqrt x = xa"
   by (import transc SQRT_POS_UNIQ)
 
-lemma SQRT_MUL: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%xa::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op <=::real => real => bool) (0::real) xa))
-           ((op =::real => real => bool)
-             ((sqrt::real => real) ((op *::real => real => real) x xa))
-             ((op *::real => real => real) ((sqrt::real => real) x)
-               ((sqrt::real => real) xa)))))"
+lemma SQRT_MUL: "ALL (x::real) xa::real.
+   0 <= x & 0 <= xa --> sqrt (x * xa) = sqrt x * sqrt xa"
   by (import transc SQRT_MUL)
 
 lemma SQRT_INV: "ALL x>=0. sqrt (inverse x) = inverse (sqrt x)"
   by (import transc SQRT_INV)
 
-lemma SQRT_DIV: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%xa::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op <=::real => real => bool) (0::real) xa))
-           ((op =::real => real => bool)
-             ((sqrt::real => real) ((op /::real => real => real) x xa))
-             ((op /::real => real => real) ((sqrt::real => real) x)
-               ((sqrt::real => real) xa)))))"
+lemma SQRT_DIV: "ALL (x::real) xa::real.
+   0 <= x & 0 <= xa --> sqrt (x / xa) = sqrt x / sqrt xa"
   by (import transc SQRT_DIV)
 
-lemma SQRT_MONO_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%xa::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op <=::real => real => bool) x xa))
-           ((op <=::real => real => bool) ((sqrt::real => real) x)
-             ((sqrt::real => real) xa))))"
+lemma SQRT_MONO_LE: "ALL (x::real) xa::real. 0 <= x & x <= xa --> sqrt x <= sqrt xa"
   by (import transc SQRT_MONO_LE)
 
-lemma SQRT_EVEN_POW2: "(All::(nat => bool) => bool)
- (%n::nat.
-     (op -->::bool => bool => bool) ((EVEN::nat => bool) n)
-      ((op =::real => real => bool)
-        ((sqrt::real => real)
-          ((op ^::real => nat => real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))
-            n))
-        ((op ^::real => nat => real)
-          ((number_of::bin => real)
-            ((op BIT::bin => bit => bin)
-              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-              (bit.B0::bit)))
-          ((op div::nat => nat => nat) n
-            ((number_of::bin => nat)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))))))"
+lemma SQRT_EVEN_POW2: "ALL n::nat. EVEN n --> sqrt (2 ^ n) = 2 ^ (n div 2)"
   by (import transc SQRT_EVEN_POW2)
 
 lemma REAL_DIV_SQRT: "ALL x>=0. x / sqrt x = sqrt x"
   by (import transc REAL_DIV_SQRT)
 
-lemma SQRT_EQ: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op =::real => real => bool)
-               ((op ^::real => nat => real) x
-                 ((number_of::bin => nat)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit))))
-               y)
-             ((op <=::real => real => bool) (0::real) x))
-           ((op =::real => real => bool) x ((sqrt::real => real) y))))"
+lemma SQRT_EQ: "ALL (x::real) y::real. x ^ 2 = y & 0 <= x --> x = sqrt y"
   by (import transc SQRT_EQ)
 
 lemma SIN_0: "sin 0 = 0"
@@ -4934,17 +2573,7 @@ lemma SIN_PAIRED: "ALL x::real.
     (sin x)"
   by (import transc SIN_PAIRED)
 
-lemma SIN_POS: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) (0::real) x)
-        ((op <::real => real => bool) x
-          ((number_of::bin => real)
-            ((op BIT::bin => bit => bin)
-              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-              (bit.B0::bit)))))
-      ((op <::real => real => bool) (0::real) ((sin::real => real) x)))"
+lemma SIN_POS: "ALL x::real. 0 < x & x < 2 --> 0 < sin x"
   by (import transc SIN_POS)
 
 lemma COS_PAIRED: "ALL x::real.
@@ -5009,211 +2638,45 @@ lemma COS_NPI: "ALL n::nat. cos (real n * pi) = (- 1) ^ n"
 lemma SIN_NPI: "ALL n::nat. sin (real n * pi) = 0"
   by (import transc SIN_NPI)
 
-lemma SIN_POS_PI2: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) (0::real) x)
-        ((op <::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <::real => real => bool) (0::real) ((sin::real => real) x)))"
+lemma SIN_POS_PI2: "ALL x::real. 0 < x & x < pi / 2 --> 0 < sin x"
   by (import transc SIN_POS_PI2)
 
-lemma COS_POS_PI2: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) (0::real) x)
-        ((op <::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <::real => real => bool) (0::real) ((cos::real => real) x)))"
+lemma COS_POS_PI2: "ALL x::real. 0 < x & x < pi / 2 --> 0 < cos x"
   by (import transc COS_POS_PI2)
 
-lemma COS_POS_PI: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          x)
-        ((op <::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <::real => real => bool) (0::real) ((cos::real => real) x)))"
+lemma COS_POS_PI: "ALL x::real. - (pi / 2) < x & x < pi / 2 --> 0 < cos x"
   by (import transc COS_POS_PI)
 
-lemma SIN_POS_PI: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) (0::real) x)
-        ((op <::real => real => bool) x (pi::real)))
-      ((op <::real => real => bool) (0::real) ((sin::real => real) x)))"
+lemma SIN_POS_PI: "ALL x::real. 0 < x & x < pi --> 0 < sin x"
   by (import transc SIN_POS_PI)
 
-lemma COS_POS_PI2_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op <=::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <=::real => real => bool) (0::real) ((cos::real => real) x)))"
+lemma COS_POS_PI2_LE: "ALL x::real. 0 <= x & x <= pi / 2 --> 0 <= cos x"
   by (import transc COS_POS_PI2_LE)
 
-lemma COS_POS_PI_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          x)
-        ((op <=::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <=::real => real => bool) (0::real) ((cos::real => real) x)))"
+lemma COS_POS_PI_LE: "ALL x::real. - (pi / 2) <= x & x <= pi / 2 --> 0 <= cos x"
   by (import transc COS_POS_PI_LE)
 
-lemma SIN_POS_PI2_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op <=::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <=::real => real => bool) (0::real) ((sin::real => real) x)))"
+lemma SIN_POS_PI2_LE: "ALL x::real. 0 <= x & x <= pi / 2 --> 0 <= sin x"
   by (import transc SIN_POS_PI2_LE)
 
-lemma SIN_POS_PI_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op <=::real => real => bool) x (pi::real)))
-      ((op <=::real => real => bool) (0::real) ((sin::real => real) x)))"
+lemma SIN_POS_PI_LE: "ALL x::real. 0 <= x & x <= pi --> 0 <= sin x"
   by (import transc SIN_POS_PI_LE)
 
-lemma COS_TOTAL: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((Ex1::(real => bool) => bool)
-        (%x::real.
-            (op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op &::bool => bool => bool)
-               ((op <=::real => real => bool) x (pi::real))
-               ((op =::real => real => bool) ((cos::real => real) x) y)))))"
+lemma COS_TOTAL: "ALL y::real.
+   - 1 <= y & y <= 1 --> (EX! x::real. 0 <= x & x <= pi & cos x = y)"
   by (import transc COS_TOTAL)
 
-lemma SIN_TOTAL: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((Ex1::(real => bool) => bool)
-        (%x::real.
-            (op &::bool => bool => bool)
-             ((op <=::real => real => bool)
-               ((uminus::real => real)
-                 ((op /::real => real => real) (pi::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bit => bin)
-                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                         (bit.B1::bit))
-                       (bit.B0::bit)))))
-               x)
-             ((op &::bool => bool => bool)
-               ((op <=::real => real => bool) x
-                 ((op /::real => real => real) (pi::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bit => bin)
-                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                         (bit.B1::bit))
-                       (bit.B0::bit)))))
-               ((op =::real => real => bool) ((sin::real => real) x) y)))))"
+lemma SIN_TOTAL: "ALL y::real.
+   - 1 <= y & y <= 1 -->
+   (EX! x::real. - (pi / 2) <= x & x <= pi / 2 & sin x = y)"
   by (import transc SIN_TOTAL)
 
-lemma COS_ZERO_LEMMA: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op =::real => real => bool) ((cos::real => real) x) (0::real)))
-      ((Ex::(nat => bool) => bool)
-        (%n::nat.
-            (op &::bool => bool => bool)
-             ((Not::bool => bool) ((EVEN::nat => bool) n))
-             ((op =::real => real => bool) x
-               ((op *::real => real => real) ((real::nat => real) n)
-                 ((op /::real => real => real) (pi::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bit => bin)
-                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                         (bit.B1::bit))
-                       (bit.B0::bit)))))))))"
+lemma COS_ZERO_LEMMA: "ALL x::real.
+   0 <= x & cos x = 0 --> (EX n::nat. ~ EVEN n & x = real n * (pi / 2))"
   by (import transc COS_ZERO_LEMMA)
 
-lemma SIN_ZERO_LEMMA: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op =::real => real => bool) ((sin::real => real) x) (0::real)))
-      ((Ex::(nat => bool) => bool)
-        (%n::nat.
-            (op &::bool => bool => bool) ((EVEN::nat => bool) n)
-             ((op =::real => real => bool) x
-               ((op *::real => real => real) ((real::nat => real) n)
-                 ((op /::real => real => real) (pi::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bit => bin)
-                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                         (bit.B1::bit))
-                       (bit.B0::bit)))))))))"
+lemma SIN_ZERO_LEMMA: "ALL x::real.
+   0 <= x & sin x = 0 --> (EX n::nat. EVEN n & x = real n * (pi / 2))"
   by (import transc SIN_ZERO_LEMMA)
 
 lemma COS_ZERO: "ALL x::real.
@@ -5250,105 +2713,20 @@ lemma TAN_NEG: "ALL x::real. tan (- x) = - tan x"
 lemma TAN_PERIODIC: "ALL x::real. tan (x + 2 * pi) = tan x"
   by (import transc TAN_PERIODIC)
 
-lemma TAN_ADD: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((Not::bool => bool)
-               ((op =::real => real => bool) ((cos::real => real) x)
-                 (0::real)))
-             ((op &::bool => bool => bool)
-               ((Not::bool => bool)
-                 ((op =::real => real => bool) ((cos::real => real) y)
-                   (0::real)))
-               ((Not::bool => bool)
-                 ((op =::real => real => bool)
-                   ((cos::real => real) ((op +::real => real => real) x y))
-                   (0::real)))))
-           ((op =::real => real => bool)
-             ((tan::real => real) ((op +::real => real => real) x y))
-             ((op /::real => real => real)
-               ((op +::real => real => real) ((tan::real => real) x)
-                 ((tan::real => real) y))
-               ((op -::real => real => real) (1::real)
-                 ((op *::real => real => real) ((tan::real => real) x)
-                   ((tan::real => real) y)))))))"
+lemma TAN_ADD: "ALL (x::real) y::real.
+   cos x ~= 0 & cos y ~= 0 & cos (x + y) ~= 0 -->
+   tan (x + y) = (tan x + tan y) / (1 - tan x * tan y)"
   by (import transc TAN_ADD)
 
-lemma TAN_DOUBLE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((Not::bool => bool)
-          ((op =::real => real => bool) ((cos::real => real) x) (0::real)))
-        ((Not::bool => bool)
-          ((op =::real => real => bool)
-            ((cos::real => real)
-              ((op *::real => real => real)
-                ((number_of::bin => real)
-                  ((op BIT::bin => bit => bin)
-                    ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                      (bit.B1::bit))
-                    (bit.B0::bit)))
-                x))
-            (0::real))))
-      ((op =::real => real => bool)
-        ((tan::real => real)
-          ((op *::real => real => real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))
-            x))
-        ((op /::real => real => real)
-          ((op *::real => real => real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))
-            ((tan::real => real) x))
-          ((op -::real => real => real) (1::real)
-            ((op ^::real => nat => real) ((tan::real => real) x)
-              ((number_of::bin => nat)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit))))))))"
+lemma TAN_DOUBLE: "ALL x::real.
+   cos x ~= 0 & cos (2 * x) ~= 0 -->
+   tan (2 * x) = 2 * tan x / (1 - tan x ^ 2)"
   by (import transc TAN_DOUBLE)
 
-lemma TAN_POS_PI2: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) (0::real) x)
-        ((op <::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op <::real => real => bool) (0::real) ((tan::real => real) x)))"
+lemma TAN_POS_PI2: "ALL x::real. 0 < x & x < pi / 2 --> 0 < tan x"
   by (import transc TAN_POS_PI2)
 
-lemma DIFF_TAN: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((Not::bool => bool)
-        ((op =::real => real => bool) ((cos::real => real) x) (0::real)))
-      ((diffl::(real => real) => real => real => bool) (tan::real => real)
-        ((inverse::real => real)
-          ((op ^::real => nat => real) ((cos::real => real) x)
-            ((number_of::bin => nat)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))))
-        x))"
+lemma DIFF_TAN: "ALL x::real. cos x ~= 0 --> diffl tan (inverse (cos x ^ 2)) x"
   by (import transc DIFF_TAN)
 
 lemma TAN_TOTAL_LEMMA: "ALL y>0. EX x>0. x < pi / 2 & y < tan x"
@@ -5382,172 +2760,37 @@ constdefs
 lemma atn: "ALL y::real. atn y = (SOME x::real. - (pi / 2) < x & x < pi / 2 & tan x = y)"
   by (import transc atn)
 
-lemma ASN: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          ((asn::real => real) y))
-        ((op &::bool => bool => bool)
-          ((op <=::real => real => bool) ((asn::real => real) y)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          ((op =::real => real => bool)
-            ((sin::real => real) ((asn::real => real) y)) y))))"
+lemma ASN: "ALL y::real.
+   - 1 <= y & y <= 1 -->
+   - (pi / 2) <= asn y & asn y <= pi / 2 & sin (asn y) = y"
   by (import transc ASN)
 
-lemma ASN_SIN: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((op =::real => real => bool)
-        ((sin::real => real) ((asn::real => real) y)) y))"
+lemma ASN_SIN: "ALL y::real. - 1 <= y & y <= 1 --> sin (asn y) = y"
   by (import transc ASN_SIN)
 
-lemma ASN_BOUNDS: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          ((asn::real => real) y))
-        ((op <=::real => real => bool) ((asn::real => real) y)
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))))))"
+lemma ASN_BOUNDS: "ALL y::real. - 1 <= y & y <= 1 --> - (pi / 2) <= asn y & asn y <= pi / 2"
   by (import transc ASN_BOUNDS)
 
-lemma ASN_BOUNDS_LT: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <::real => real => bool) y (1::real)))
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          ((asn::real => real) y))
-        ((op <::real => real => bool) ((asn::real => real) y)
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))))))"
+lemma ASN_BOUNDS_LT: "ALL y::real. - 1 < y & y < 1 --> - (pi / 2) < asn y & asn y < pi / 2"
   by (import transc ASN_BOUNDS_LT)
 
-lemma SIN_ASN: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          x)
-        ((op <=::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op =::real => real => bool)
-        ((asn::real => real) ((sin::real => real) x)) x))"
+lemma SIN_ASN: "ALL x::real. - (pi / 2) <= x & x <= pi / 2 --> asn (sin x) = x"
   by (import transc SIN_ASN)
 
-lemma ACS: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) ((acs::real => real) y))
-        ((op &::bool => bool => bool)
-          ((op <=::real => real => bool) ((acs::real => real) y) (pi::real))
-          ((op =::real => real => bool)
-            ((cos::real => real) ((acs::real => real) y)) y))))"
+lemma ACS: "ALL y::real.
+   - 1 <= y & y <= 1 --> 0 <= acs y & acs y <= pi & cos (acs y) = y"
   by (import transc ACS)
 
-lemma ACS_COS: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((op =::real => real => bool)
-        ((cos::real => real) ((acs::real => real) y)) y))"
+lemma ACS_COS: "ALL y::real. - 1 <= y & y <= 1 --> cos (acs y) = y"
   by (import transc ACS_COS)
 
-lemma ACS_BOUNDS: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <=::real => real => bool) y (1::real)))
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) ((acs::real => real) y))
-        ((op <=::real => real => bool) ((acs::real => real) y) (pi::real))))"
+lemma ACS_BOUNDS: "ALL y::real. - 1 <= y & y <= 1 --> 0 <= acs y & acs y <= pi"
   by (import transc ACS_BOUNDS)
 
-lemma ACS_BOUNDS_LT: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) y)
-        ((op <::real => real => bool) y (1::real)))
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) (0::real) ((acs::real => real) y))
-        ((op <::real => real => bool) ((acs::real => real) y) (pi::real))))"
+lemma ACS_BOUNDS_LT: "ALL y::real. - 1 < y & y < 1 --> 0 < acs y & acs y < pi"
   by (import transc ACS_BOUNDS_LT)
 
-lemma COS_ACS: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op <=::real => real => bool) x (pi::real)))
-      ((op =::real => real => bool)
-        ((acs::real => real) ((cos::real => real) x)) x))"
+lemma COS_ACS: "ALL x::real. 0 <= x & x <= pi --> acs (cos x) = x"
   by (import transc COS_ACS)
 
 lemma ATN: "ALL y::real. - (pi / 2) < atn y & atn y < pi / 2 & tan (atn y) = y"
@@ -5559,219 +2802,46 @@ lemma ATN_TAN: "ALL x::real. tan (atn x) = x"
 lemma ATN_BOUNDS: "ALL x::real. - (pi / 2) < atn x & atn x < pi / 2"
   by (import transc ATN_BOUNDS)
 
-lemma TAN_ATN: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          x)
-        ((op <::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op =::real => real => bool)
-        ((atn::real => real) ((tan::real => real) x)) x))"
+lemma TAN_ATN: "ALL x::real. - (pi / 2) < x & x < pi / 2 --> atn (tan x) = x"
   by (import transc TAN_ATN)
 
-lemma TAN_SEC: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((Not::bool => bool)
-        ((op =::real => real => bool) ((cos::real => real) x) (0::real)))
-      ((op =::real => real => bool)
-        ((op +::real => real => real) (1::real)
-          ((op ^::real => nat => real) ((tan::real => real) x)
-            ((number_of::bin => nat)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit)))))
-        ((op ^::real => nat => real)
-          ((inverse::real => real) ((cos::real => real) x))
-          ((number_of::bin => nat)
-            ((op BIT::bin => bit => bin)
-              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-              (bit.B0::bit))))))"
+lemma TAN_SEC: "ALL x::real. cos x ~= 0 --> 1 + tan x ^ 2 = inverse (cos x) ^ 2"
   by (import transc TAN_SEC)
 
-lemma SIN_COS_SQ: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool) (0::real) x)
-        ((op <=::real => real => bool) x (pi::real)))
-      ((op =::real => real => bool) ((sin::real => real) x)
-        ((sqrt::real => real)
-          ((op -::real => real => real) (1::real)
-            ((op ^::real => nat => real) ((cos::real => real) x)
-              ((number_of::bin => nat)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit))))))))"
+lemma SIN_COS_SQ: "ALL x::real. 0 <= x & x <= pi --> sin x = sqrt (1 - cos x ^ 2)"
   by (import transc SIN_COS_SQ)
 
-lemma COS_SIN_SQ: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <=::real => real => bool)
-          ((uminus::real => real)
-            ((op /::real => real => real) (pi::real)
-              ((number_of::bin => real)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit)))))
-          x)
-        ((op <=::real => real => bool) x
-          ((op /::real => real => real) (pi::real)
-            ((number_of::bin => real)
-              ((op BIT::bin => bit => bin)
-                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                  (bit.B1::bit))
-                (bit.B0::bit))))))
-      ((op =::real => real => bool) ((cos::real => real) x)
-        ((sqrt::real => real)
-          ((op -::real => real => real) (1::real)
-            ((op ^::real => nat => real) ((sin::real => real) x)
-              ((number_of::bin => nat)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit))))))))"
+lemma COS_SIN_SQ: "ALL x::real. - (pi / 2) <= x & x <= pi / 2 --> cos x = sqrt (1 - sin x ^ 2)"
   by (import transc COS_SIN_SQ)
 
 lemma COS_ATN_NZ: "ALL x::real. cos (atn x) ~= 0"
   by (import transc COS_ATN_NZ)
 
-lemma COS_ASN_NZ: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) x)
-        ((op <::real => real => bool) x (1::real)))
-      ((Not::bool => bool)
-        ((op =::real => real => bool)
-          ((cos::real => real) ((asn::real => real) x)) (0::real))))"
+lemma COS_ASN_NZ: "ALL x::real. - 1 < x & x < 1 --> cos (asn x) ~= 0"
   by (import transc COS_ASN_NZ)
 
-lemma SIN_ACS_NZ: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) x)
-        ((op <::real => real => bool) x (1::real)))
-      ((Not::bool => bool)
-        ((op =::real => real => bool)
-          ((sin::real => real) ((acs::real => real) x)) (0::real))))"
+lemma SIN_ACS_NZ: "ALL x::real. - 1 < x & x < 1 --> sin (acs x) ~= 0"
   by (import transc SIN_ACS_NZ)
 
-lemma COS_SIN_SQRT: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) ((cos::real => real) x))
-      ((op =::real => real => bool) ((cos::real => real) x)
-        ((sqrt::real => real)
-          ((op -::real => real => real) (1::real)
-            ((op ^::real => nat => real) ((sin::real => real) x)
-              ((number_of::bin => nat)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit))))))))"
+lemma COS_SIN_SQRT: "ALL x::real. 0 <= cos x --> cos x = sqrt (1 - sin x ^ 2)"
   by (import transc COS_SIN_SQRT)
 
-lemma SIN_COS_SQRT: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) ((sin::real => real) x))
-      ((op =::real => real => bool) ((sin::real => real) x)
-        ((sqrt::real => real)
-          ((op -::real => real => real) (1::real)
-            ((op ^::real => nat => real) ((cos::real => real) x)
-              ((number_of::bin => nat)
-                ((op BIT::bin => bit => bin)
-                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                    (bit.B1::bit))
-                  (bit.B0::bit))))))))"
+lemma SIN_COS_SQRT: "ALL x::real. 0 <= sin x --> sin x = sqrt (1 - cos x ^ 2)"
   by (import transc SIN_COS_SQRT)
 
 lemma DIFF_LN: "ALL x>0. diffl ln (inverse x) x"
   by (import transc DIFF_LN)
 
-lemma DIFF_ASN_LEMMA: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) x)
-        ((op <::real => real => bool) x (1::real)))
-      ((diffl::(real => real) => real => real => bool) (asn::real => real)
-        ((inverse::real => real)
-          ((cos::real => real) ((asn::real => real) x)))
-        x))"
+lemma DIFF_ASN_LEMMA: "ALL x::real. - 1 < x & x < 1 --> diffl asn (inverse (cos (asn x))) x"
   by (import transc DIFF_ASN_LEMMA)
 
-lemma DIFF_ASN: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) x)
-        ((op <::real => real => bool) x (1::real)))
-      ((diffl::(real => real) => real => real => bool) (asn::real => real)
-        ((inverse::real => real)
-          ((sqrt::real => real)
-            ((op -::real => real => real) (1::real)
-              ((op ^::real => nat => real) x
-                ((number_of::bin => nat)
-                  ((op BIT::bin => bit => bin)
-                    ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                      (bit.B1::bit))
-                    (bit.B0::bit)))))))
-        x))"
+lemma DIFF_ASN: "ALL x::real. - 1 < x & x < 1 --> diffl asn (inverse (sqrt (1 - x ^ 2))) x"
   by (import transc DIFF_ASN)
 
-lemma DIFF_ACS_LEMMA: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) x)
-        ((op <::real => real => bool) x (1::real)))
-      ((diffl::(real => real) => real => real => bool) (acs::real => real)
-        ((inverse::real => real)
-          ((uminus::real => real)
-            ((sin::real => real) ((acs::real => real) x))))
-        x))"
+lemma DIFF_ACS_LEMMA: "ALL x::real. - 1 < x & x < 1 --> diffl acs (inverse (- sin (acs x))) x"
   by (import transc DIFF_ACS_LEMMA)
 
-lemma DIFF_ACS: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((op <::real => real => bool) ((uminus::real => real) (1::real)) x)
-        ((op <::real => real => bool) x (1::real)))
-      ((diffl::(real => real) => real => real => bool) (acs::real => real)
-        ((uminus::real => real)
-          ((inverse::real => real)
-            ((sqrt::real => real)
-              ((op -::real => real => real) (1::real)
-                ((op ^::real => nat => real) x
-                  ((number_of::bin => nat)
-                    ((op BIT::bin => bit => bin)
-                      ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                        (bit.B1::bit))
-                      (bit.B0::bit))))))))
-        x))"
+lemma DIFF_ACS: "ALL x::real. - 1 < x & x < 1 --> diffl acs (- inverse (sqrt (1 - x ^ 2))) x"
   by (import transc DIFF_ACS)
 
 lemma DIFF_ATN: "ALL x::real. diffl atn (inverse (1 + x ^ 2)) x"
@@ -5882,25 +2952,10 @@ lemma tdiv: "ALL (a::real) (b::real) (D::nat => real) p::nat => real.
 
 constdefs
   gauge :: "(real => bool) => (real => real) => bool" 
-  "(op ==::((real => bool) => (real => real) => bool)
-        => ((real => bool) => (real => real) => bool) => prop)
- (gauge::(real => bool) => (real => real) => bool)
- (%(E::real => bool) g::real => real.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool) (E x)
-           ((op <::real => real => bool) (0::real) (g x))))"
+  "gauge == %(E::real => bool) g::real => real. ALL x::real. E x --> 0 < g x"
 
-lemma gauge: "(All::((real => bool) => bool) => bool)
- (%E::real => bool.
-     (All::((real => real) => bool) => bool)
-      (%g::real => real.
-          (op =::bool => bool => bool)
-           ((gauge::(real => bool) => (real => real) => bool) E g)
-           ((All::(real => bool) => bool)
-             (%x::real.
-                 (op -->::bool => bool => bool) (E x)
-                  ((op <::real => real => bool) (0::real) (g x))))))"
+lemma gauge: "ALL (E::real => bool) g::real => real.
+   gauge E g = (ALL x::real. E x --> 0 < g x)"
   by (import transc gauge)
 
 constdefs
@@ -5960,153 +3015,36 @@ lemma rsum: "ALL (D::nat => real) (p::nat => real) f::real => real.
 
 constdefs
   Dint :: "real * real => (real => real) => real => bool" 
-  "(op ==::(real * real => (real => real) => real => bool)
-        => (real * real => (real => real) => real => bool) => prop)
- (Dint::real * real => (real => real) => real => bool)
- ((split::(real => real => (real => real) => real => bool)
-          => real * real => (real => real) => real => bool)
-   (%(a::real) (b::real) (f::real => real) k::real.
-       (All::(real => bool) => bool)
-        (%e::real.
-            (op -->::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) e)
-             ((Ex::((real => real) => bool) => bool)
-               (%g::real => real.
-                   (op &::bool => bool => bool)
-                    ((gauge::(real => bool) => (real => real) => bool)
-                      (%x::real.
-                          (op &::bool => bool => bool)
-                           ((op <=::real => real => bool) a x)
-                           ((op <=::real => real => bool) x b))
-                      g)
-                    ((All::((nat => real) => bool) => bool)
-                      (%D::nat => real.
-                          (All::((nat => real) => bool) => bool)
-                           (%p::nat => real.
-                               (op -->::bool => bool => bool)
-                                ((op &::bool => bool => bool)
-                                  ((tdiv::real * real
-    => (nat => real) * (nat => real) => bool)
-                                    ((Pair::real => real => real * real) a
-b)
-                                    ((Pair::(nat => real)
-      => (nat => real) => (nat => real) * (nat => real))
-D p))
-                                  ((fine::(real => real)
-    => (nat => real) * (nat => real) => bool)
-                                    g ((Pair::(nat => real)
-        => (nat => real) => (nat => real) * (nat => real))
-  D p)))
-                                ((op <::real => real => bool)
-                                  ((abs::real => real)
-                                    ((op -::real => real => real)
-((rsum::(nat => real) * (nat => real) => (real => real) => real)
-  ((Pair::(nat => real) => (nat => real) => (nat => real) * (nat => real)) D
-    p)
-  f)
-k))
-                                  e)))))))))"
+  "Dint ==
+%(a::real, b::real) (f::real => real) k::real.
+   ALL e>0.
+      EX g::real => real.
+         gauge (%x::real. a <= x & x <= b) g &
+         (ALL (D::nat => real) p::nat => real.
+             tdiv (a, b) (D, p) & fine g (D, p) -->
+             abs (rsum (D, p) f - k) < e)"
 
-lemma Dint: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (All::((real => real) => bool) => bool)
-           (%f::real => real.
-               (All::(real => bool) => bool)
-                (%k::real.
-                    (op =::bool => bool => bool)
-                     ((Dint::real * real => (real => real) => real => bool)
-                       ((Pair::real => real => real * real) a b) f k)
-                     ((All::(real => bool) => bool)
-                       (%e::real.
-                           (op -->::bool => bool => bool)
-                            ((op <::real => real => bool) (0::real) e)
-                            ((Ex::((real => real) => bool) => bool)
-                              (%g::real => real.
-                                  (op &::bool => bool => bool)
-                                   ((gauge::(real => bool)
-      => (real => real) => bool)
-                                     (%x::real.
-   (op &::bool => bool => bool) ((op <=::real => real => bool) a x)
-    ((op <=::real => real => bool) x b))
-                                     g)
-                                   ((All::((nat => real) => bool) => bool)
-                                     (%D::nat => real.
-   (All::((nat => real) => bool) => bool)
-    (%p::nat => real.
-        (op -->::bool => bool => bool)
-         ((op &::bool => bool => bool)
-           ((tdiv::real * real => (nat => real) * (nat => real) => bool)
-             ((Pair::real => real => real * real) a b)
-             ((Pair::(nat => real)
-                     => (nat => real) => (nat => real) * (nat => real))
-               D p))
-           ((fine::(real => real) => (nat => real) * (nat => real) => bool)
-             g ((Pair::(nat => real)
-                       => (nat => real) => (nat => real) * (nat => real))
-                 D p)))
-         ((op <::real => real => bool)
-           ((abs::real => real)
-             ((op -::real => real => real)
-               ((rsum::(nat => real) * (nat => real)
-                       => (real => real) => real)
-                 ((Pair::(nat => real)
-                         => (nat => real) => (nat => real) * (nat => real))
-                   D p)
-                 f)
-               k))
-           e))))))))))))"
+lemma Dint: "ALL (a::real) (b::real) (f::real => real) k::real.
+   Dint (a, b) f k =
+   (ALL e>0.
+       EX g::real => real.
+          gauge (%x::real. a <= x & x <= b) g &
+          (ALL (D::nat => real) p::nat => real.
+              tdiv (a, b) (D, p) & fine g (D, p) -->
+              abs (rsum (D, p) f - k) < e))"
   by (import transc Dint)
 
-lemma DIVISION_0: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (op -->::bool => bool => bool) ((op =::real => real => bool) a b)
-           ((op =::nat => nat => bool)
-             ((dsize::(nat => real) => nat)
-               (%n::nat.
-                   (If::bool => real => real => real)
-                    ((op =::nat => nat => bool) n (0::nat)) a b))
-             (0::nat))))"
+lemma DIVISION_0: "ALL (a::real) b::real. a = b --> dsize (%n::nat. if n = 0 then a else b) = 0"
   by (import transc DIVISION_0)
 
-lemma DIVISION_1: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (op -->::bool => bool => bool) ((op <::real => real => bool) a b)
-           ((op =::nat => nat => bool)
-             ((dsize::(nat => real) => nat)
-               (%n::nat.
-                   (If::bool => real => real => real)
-                    ((op =::nat => nat => bool) n (0::nat)) a b))
-             (1::nat))))"
+lemma DIVISION_1: "ALL (a::real) b::real. a < b --> dsize (%n::nat. if n = 0 then a else b) = 1"
   by (import transc DIVISION_1)
 
-lemma DIVISION_SINGLE: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (op -->::bool => bool => bool) ((op <=::real => real => bool) a b)
-           ((division::real * real => (nat => real) => bool)
-             ((Pair::real => real => real * real) a b)
-             (%n::nat.
-                 (If::bool => real => real => real)
-                  ((op =::nat => nat => bool) n (0::nat)) a b))))"
+lemma DIVISION_SINGLE: "ALL (a::real) b::real.
+   a <= b --> division (a, b) (%n::nat. if n = 0 then a else b)"
   by (import transc DIVISION_SINGLE)
 
-lemma DIVISION_LHS: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((division::real * real => (nat => real) => bool)
-                  ((Pair::real => real => real * real) a b) D)
-                ((op =::real => real => bool) (D (0::nat)) a))))"
+lemma DIVISION_LHS: "ALL (D::nat => real) (a::real) b::real. division (a, b) D --> D 0 = a"
   by (import transc DIVISION_LHS)
 
 lemma DIVISION_THM: "(All::((nat => real) => bool) => bool)
@@ -6136,39 +3074,12 @@ lemma DIVISION_THM: "(All::((nat => real) => bool) => bool)
                            ((op =::real => real => bool) (D n) b))))))))"
   by (import transc DIVISION_THM)
 
-lemma DIVISION_RHS: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((division::real * real => (nat => real) => bool)
-                  ((Pair::real => real => real * real) a b) D)
-                ((op =::real => real => bool)
-                  (D ((dsize::(nat => real) => nat) D)) b))))"
+lemma DIVISION_RHS: "ALL (D::nat => real) (a::real) b::real.
+   division (a, b) D --> D (dsize D) = b"
   by (import transc DIVISION_RHS)
 
-lemma DIVISION_LT_GEN: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (All::(nat => bool) => bool)
-                (%m::nat.
-                    (All::(nat => bool) => bool)
-                     (%n::nat.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((division::real * real
-  => (nat => real) => bool)
-                              ((Pair::real => real => real * real) a b) D)
-                            ((op &::bool => bool => bool)
-                              ((op <::nat => nat => bool) m n)
-                              ((op <=::nat => nat => bool) n
-                                ((dsize::(nat => real) => nat) D))))
-                          ((op <::real => real => bool) (D m) (D n)))))))"
+lemma DIVISION_LT_GEN: "ALL (D::nat => real) (a::real) (b::real) (m::nat) n::nat.
+   division (a, b) D & m < n & n <= dsize D --> D m < D n"
   by (import transc DIVISION_LT_GEN)
 
 lemma DIVISION_LT: "(All::((nat => real) => bool) => bool)
@@ -6189,16 +3100,7 @@ lemma DIVISION_LT: "(All::((nat => real) => bool) => bool)
                          (D ((Suc::nat => nat) n))))))))"
   by (import transc DIVISION_LT)
 
-lemma DIVISION_LE: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((division::real * real => (nat => real) => bool)
-                  ((Pair::real => real => real * real) a b) D)
-                ((op <=::real => real => bool) a b))))"
+lemma DIVISION_LE: "ALL (D::nat => real) (a::real) b::real. division (a, b) D --> a <= b"
   by (import transc DIVISION_LE)
 
 lemma DIVISION_GT: "(All::((nat => real) => bool) => bool)
@@ -6219,525 +3121,125 @@ lemma DIVISION_GT: "(All::((nat => real) => bool) => bool)
                          (D ((dsize::(nat => real) => nat) D))))))))"
   by (import transc DIVISION_GT)
 
-lemma DIVISION_EQ: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((division::real * real => (nat => real) => bool)
-                  ((Pair::real => real => real * real) a b) D)
-                ((op =::bool => bool => bool)
-                  ((op =::real => real => bool) a b)
-                  ((op =::nat => nat => bool)
-                    ((dsize::(nat => real) => nat) D) (0::nat))))))"
+lemma DIVISION_EQ: "ALL (D::nat => real) (a::real) b::real.
+   division (a, b) D --> (a = b) = (dsize D = 0)"
   by (import transc DIVISION_EQ)
 
-lemma DIVISION_LBOUND: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((division::real * real => (nat => real) => bool)
-                  ((Pair::real => real => real * real) a b) D)
-                ((All::(nat => bool) => bool)
-                  (%r::nat. (op <=::real => real => bool) a (D r))))))"
+lemma DIVISION_LBOUND: "ALL (D::nat => real) (a::real) b::real.
+   division (a, b) D --> (ALL r::nat. a <= D r)"
   by (import transc DIVISION_LBOUND)
 
-lemma DIVISION_LBOUND_LT: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((division::real * real => (nat => real) => bool)
-                    ((Pair::real => real => real * real) a b) D)
-                  ((Not::bool => bool)
-                    ((op =::nat => nat => bool)
-                      ((dsize::(nat => real) => nat) D) (0::nat))))
-                ((All::(nat => bool) => bool)
-                  (%n::nat.
-                      (op <::real => real => bool) a
-                       (D ((Suc::nat => nat) n)))))))"
+lemma DIVISION_LBOUND_LT: "ALL (D::nat => real) (a::real) b::real.
+   division (a, b) D & dsize D ~= 0 --> (ALL n::nat. a < D (Suc n))"
   by (import transc DIVISION_LBOUND_LT)
 
-lemma DIVISION_UBOUND: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((division::real * real => (nat => real) => bool)
-                  ((Pair::real => real => real * real) a b) D)
-                ((All::(nat => bool) => bool)
-                  (%r::nat. (op <=::real => real => bool) (D r) b)))))"
+lemma DIVISION_UBOUND: "ALL (D::nat => real) (a::real) b::real.
+   division (a, b) D --> (ALL r::nat. D r <= b)"
   by (import transc DIVISION_UBOUND)
 
-lemma DIVISION_UBOUND_LT: "(All::((nat => real) => bool) => bool)
- (%D::nat => real.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (All::(nat => bool) => bool)
-                (%n::nat.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((division::real * real => (nat => real) => bool)
-                         ((Pair::real => real => real * real) a b) D)
-                       ((op <::nat => nat => bool) n
-                         ((dsize::(nat => real) => nat) D)))
-                     ((op <::real => real => bool) (D n) b)))))"
+lemma DIVISION_UBOUND_LT: "ALL (D::nat => real) (a::real) (b::real) n::nat.
+   division (a, b) D & n < dsize D --> D n < b"
   by (import transc DIVISION_UBOUND_LT)
 
-lemma DIVISION_APPEND: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (All::(real => bool) => bool)
-           (%c::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((Ex::((nat => real) => bool) => bool)
-                    (%D1::nat => real.
-                        (Ex::((nat => real) => bool) => bool)
-                         (%p1::nat => real.
-                             (op &::bool => bool => bool)
-                              ((tdiv::real * real
-=> (nat => real) * (nat => real) => bool)
-                                ((Pair::real => real => real * real) a b)
-                                ((Pair::(nat => real)
-  => (nat => real) => (nat => real) * (nat => real))
-                                  D1 p1))
-                              ((fine::(real => real)
-=> (nat => real) * (nat => real) => bool)
-                                (g::real => real)
-                                ((Pair::(nat => real)
-  => (nat => real) => (nat => real) * (nat => real))
-                                  D1 p1)))))
-                  ((Ex::((nat => real) => bool) => bool)
-                    (%D2::nat => real.
-                        (Ex::((nat => real) => bool) => bool)
-                         (%p2::nat => real.
-                             (op &::bool => bool => bool)
-                              ((tdiv::real * real
-=> (nat => real) * (nat => real) => bool)
-                                ((Pair::real => real => real * real) b c)
-                                ((Pair::(nat => real)
-  => (nat => real) => (nat => real) * (nat => real))
-                                  D2 p2))
-                              ((fine::(real => real)
-=> (nat => real) * (nat => real) => bool)
-                                g ((Pair::(nat => real)
-    => (nat => real) => (nat => real) * (nat => real))
-                                    D2 p2))))))
-                ((Ex::((nat => real) => bool) => bool)
-                  (%x::nat => real.
-                      (Ex::((nat => real) => bool) => bool)
-                       (%p::nat => real.
-                           (op &::bool => bool => bool)
-                            ((tdiv::real * real
-                                    => (nat => real) * (nat => real)
- => bool)
-                              ((Pair::real => real => real * real) a c)
-                              ((Pair::(nat => real)
-=> (nat => real) => (nat => real) * (nat => real))
-                                x p))
-                            ((fine::(real => real)
-                                    => (nat => real) * (nat => real)
- => bool)
-                              g ((Pair::(nat => real)
-  => (nat => real) => (nat => real) * (nat => real))
-                                  x p))))))))"
+lemma DIVISION_APPEND: "ALL (a::real) (b::real) c::real.
+   (EX (D1::nat => real) p1::nat => real.
+       tdiv (a, b) (D1, p1) & fine (g::real => real) (D1, p1)) &
+   (EX (D2::nat => real) p2::nat => real.
+       tdiv (b, c) (D2, p2) & fine g (D2, p2)) -->
+   (EX (x::nat => real) p::nat => real. tdiv (a, c) (x, p) & fine g (x, p))"
   by (import transc DIVISION_APPEND)
 
-lemma DIVISION_EXISTS: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (All::((real => real) => bool) => bool)
-           (%g::real => real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <=::real => real => bool) a b)
-                  ((gauge::(real => bool) => (real => real) => bool)
-                    (%x::real.
-                        (op &::bool => bool => bool)
-                         ((op <=::real => real => bool) a x)
-                         ((op <=::real => real => bool) x b))
-                    g))
-                ((Ex::((nat => real) => bool) => bool)
-                  (%D::nat => real.
-                      (Ex::((nat => real) => bool) => bool)
-                       (%p::nat => real.
-                           (op &::bool => bool => bool)
-                            ((tdiv::real * real
-                                    => (nat => real) * (nat => real)
- => bool)
-                              ((Pair::real => real => real * real) a b)
-                              ((Pair::(nat => real)
-=> (nat => real) => (nat => real) * (nat => real))
-                                D p))
-                            ((fine::(real => real)
-                                    => (nat => real) * (nat => real)
- => bool)
-                              g ((Pair::(nat => real)
-  => (nat => real) => (nat => real) * (nat => real))
-                                  D p))))))))"
+lemma DIVISION_EXISTS: "ALL (a::real) (b::real) g::real => real.
+   a <= b & gauge (%x::real. a <= x & x <= b) g -->
+   (EX (D::nat => real) p::nat => real. tdiv (a, b) (D, p) & fine g (D, p))"
   by (import transc DIVISION_EXISTS)
 
-lemma GAUGE_MIN: "(All::((real => bool) => bool) => bool)
- (%E::real => bool.
-     (All::((real => real) => bool) => bool)
-      (%g1::real => real.
-          (All::((real => real) => bool) => bool)
-           (%g2::real => real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((gauge::(real => bool) => (real => real) => bool) E g1)
-                  ((gauge::(real => bool) => (real => real) => bool) E g2))
-                ((gauge::(real => bool) => (real => real) => bool) E
-                  (%x::real.
-                      (If::bool => real => real => real)
-                       ((op <::real => real => bool) (g1 x) (g2 x)) (g1 x)
-                       (g2 x))))))"
+lemma GAUGE_MIN: "ALL (E::real => bool) (g1::real => real) g2::real => real.
+   gauge E g1 & gauge E g2 -->
+   gauge E (%x::real. if g1 x < g2 x then g1 x else g2 x)"
   by (import transc GAUGE_MIN)
 
-lemma FINE_MIN: "(All::((real => real) => bool) => bool)
- (%g1::real => real.
-     (All::((real => real) => bool) => bool)
-      (%g2::real => real.
-          (All::((nat => real) => bool) => bool)
-           (%D::nat => real.
-               (All::((nat => real) => bool) => bool)
-                (%p::nat => real.
-                    (op -->::bool => bool => bool)
-                     ((fine::(real => real)
-                             => (nat => real) * (nat => real) => bool)
-                       (%x::real.
-                           (If::bool => real => real => real)
-                            ((op <::real => real => bool) (g1 x) (g2 x))
-                            (g1 x) (g2 x))
-                       ((Pair::(nat => real)
-                               => (nat => real)
-                                  => (nat => real) * (nat => real))
-                         D p))
-                     ((op &::bool => bool => bool)
-                       ((fine::(real => real)
-                               => (nat => real) * (nat => real) => bool)
-                         g1 ((Pair::(nat => real)
-                                    => (nat => real)
- => (nat => real) * (nat => real))
-                              D p))
-                       ((fine::(real => real)
-                               => (nat => real) * (nat => real) => bool)
-                         g2 ((Pair::(nat => real)
-                                    => (nat => real)
- => (nat => real) * (nat => real))
-                              D p)))))))"
+lemma FINE_MIN: "ALL (g1::real => real) (g2::real => real) (D::nat => real) p::nat => real.
+   fine (%x::real. if g1 x < g2 x then g1 x else g2 x) (D, p) -->
+   fine g1 (D, p) & fine g2 (D, p)"
   by (import transc FINE_MIN)
 
-lemma DINT_UNIQ: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real => bool) => bool)
-      (%b::real.
-          (All::((real => real) => bool) => bool)
-           (%f::real => real.
-               (All::(real => bool) => bool)
-                (%k1::real.
-                    (All::(real => bool) => bool)
-                     (%k2::real.
-                         (op -->::bool => bool => bool)
-                          ((op &::bool => bool => bool)
-                            ((op <=::real => real => bool) a b)
-                            ((op &::bool => bool => bool)
-                              ((Dint::real * real
-=> (real => real) => real => bool)
-                                ((Pair::real => real => real * real) a b) f
-                                k1)
-                              ((Dint::real * real
-=> (real => real) => real => bool)
-                                ((Pair::real => real => real * real) a b) f
-                                k2)))
-                          ((op =::real => real => bool) k1 k2))))))"
+lemma DINT_UNIQ: "ALL (a::real) (b::real) (f::real => real) (k1::real) k2::real.
+   a <= b & Dint (a, b) f k1 & Dint (a, b) f k2 --> k1 = k2"
   by (import transc DINT_UNIQ)
 
 lemma INTEGRAL_NULL: "ALL (f::real => real) a::real. Dint (a, a) f 0"
   by (import transc INTEGRAL_NULL)
 
-lemma FTC1: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((real => real) => bool) => bool)
-      (%f'::real => real.
-          (All::(real => bool) => bool)
-           (%a::real.
-               (All::(real => bool) => bool)
-                (%b::real.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <=::real => real => bool) a b)
-                       ((All::(real => bool) => bool)
-                         (%x::real.
-                             (op -->::bool => bool => bool)
-                              ((op &::bool => bool => bool)
-                                ((op <=::real => real => bool) a x)
-                                ((op <=::real => real => bool) x b))
-                              ((diffl::(real => real)
- => real => real => bool)
-                                f (f' x) x))))
-                     ((Dint::real * real => (real => real) => real => bool)
-                       ((Pair::real => real => real * real) a b) f'
-                       ((op -::real => real => real) (f b) (f a)))))))"
+lemma FTC1: "ALL (f::real => real) (f'::real => real) (a::real) b::real.
+   a <= b & (ALL x::real. a <= x & x <= b --> diffl f (f' x) x) -->
+   Dint (a, b) f' (f b - f a)"
   by (import transc FTC1)
 
-lemma MCLAURIN: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((nat => real => real) => bool) => bool)
-      (%diff::nat => real => real.
-          (All::(real => bool) => bool)
-           (%h::real.
-               (All::(nat => bool) => bool)
-                (%n::nat.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::real => real => bool) (0::real) h)
-                       ((op &::bool => bool => bool)
-                         ((op <::nat => nat => bool) (0::nat) n)
-                         ((op &::bool => bool => bool)
-                           ((op =::(real => real) => (real => real) => bool)
-                             (diff (0::nat)) f)
-                           ((All::(nat => bool) => bool)
-                             (%m::nat.
-                                 (All::(real => bool) => bool)
-                                  (%t::real.
-(op -->::bool => bool => bool)
- ((op &::bool => bool => bool) ((op <::nat => nat => bool) m n)
-   ((op &::bool => bool => bool) ((op <=::real => real => bool) (0::real) t)
-     ((op <=::real => real => bool) t h)))
- ((diffl::(real => real) => real => real => bool) (diff m)
-   (diff ((Suc::nat => nat) m) t) t)))))))
-                     ((Ex::(real => bool) => bool)
-                       (%t::real.
-                           (op &::bool => bool => bool)
-                            ((op <::real => real => bool) (0::real) t)
-                            ((op &::bool => bool => bool)
-                              ((op <::real => real => bool) t h)
-                              ((op =::real => real => bool) (f h)
-                                ((op +::real => real => real)
-                                  ((real.sum::nat * nat
-        => (nat => real) => real)
-                                    ((Pair::nat => nat => nat * nat)
-(0::nat) n)
-                                    (%m::nat.
-  (op *::real => real => real)
-   ((op /::real => real => real) (diff m (0::real))
-     ((real::nat => real) ((FACT::nat => nat) m)))
-   ((op ^::real => nat => real) h m)))
-                                  ((op *::real => real => real)
-                                    ((op /::real => real => real) (diff n t)
-((real::nat => real) ((FACT::nat => nat) n)))
-                                    ((op ^::real => nat => real) h
-n)))))))))))"
+lemma MCLAURIN: "ALL (f::real => real) (diff::nat => real => real) (h::real) n::nat.
+   0 < h &
+   0 < n &
+   diff 0 = f &
+   (ALL (m::nat) t::real.
+       m < n & 0 <= t & t <= h --> diffl (diff m) (diff (Suc m) t) t) -->
+   (EX t>0.
+       t < h &
+       f h =
+       real.sum (0, n) (%m::nat. diff m 0 / real (FACT m) * h ^ m) +
+       diff n t / real (FACT n) * h ^ n)"
   by (import transc MCLAURIN)
 
-lemma MCLAURIN_NEG: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((nat => real => real) => bool) => bool)
-      (%diff::nat => real => real.
-          (All::(real => bool) => bool)
-           (%h::real.
-               (All::(nat => bool) => bool)
-                (%n::nat.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::real => real => bool) h (0::real))
-                       ((op &::bool => bool => bool)
-                         ((op <::nat => nat => bool) (0::nat) n)
-                         ((op &::bool => bool => bool)
-                           ((op =::(real => real) => (real => real) => bool)
-                             (diff (0::nat)) f)
-                           ((All::(nat => bool) => bool)
-                             (%m::nat.
-                                 (All::(real => bool) => bool)
-                                  (%t::real.
-(op -->::bool => bool => bool)
- ((op &::bool => bool => bool) ((op <::nat => nat => bool) m n)
-   ((op &::bool => bool => bool) ((op <=::real => real => bool) h t)
-     ((op <=::real => real => bool) t (0::real))))
- ((diffl::(real => real) => real => real => bool) (diff m)
-   (diff ((Suc::nat => nat) m) t) t)))))))
-                     ((Ex::(real => bool) => bool)
-                       (%t::real.
-                           (op &::bool => bool => bool)
-                            ((op <::real => real => bool) h t)
-                            ((op &::bool => bool => bool)
-                              ((op <::real => real => bool) t (0::real))
-                              ((op =::real => real => bool) (f h)
-                                ((op +::real => real => real)
-                                  ((real.sum::nat * nat
-        => (nat => real) => real)
-                                    ((Pair::nat => nat => nat * nat)
-(0::nat) n)
-                                    (%m::nat.
-  (op *::real => real => real)
-   ((op /::real => real => real) (diff m (0::real))
-     ((real::nat => real) ((FACT::nat => nat) m)))
-   ((op ^::real => nat => real) h m)))
-                                  ((op *::real => real => real)
-                                    ((op /::real => real => real) (diff n t)
-((real::nat => real) ((FACT::nat => nat) n)))
-                                    ((op ^::real => nat => real) h
-n)))))))))))"
+lemma MCLAURIN_NEG: "ALL (f::real => real) (diff::nat => real => real) (h::real) n::nat.
+   h < 0 &
+   0 < n &
+   diff 0 = f &
+   (ALL (m::nat) t::real.
+       m < n & h <= t & t <= 0 --> diffl (diff m) (diff (Suc m) t) t) -->
+   (EX t::real.
+       h < t &
+       t < 0 &
+       f h =
+       real.sum (0, n) (%m::nat. diff m 0 / real (FACT m) * h ^ m) +
+       diff n t / real (FACT n) * h ^ n)"
   by (import transc MCLAURIN_NEG)
 
-lemma MCLAURIN_ALL_LT: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((nat => real => real) => bool) => bool)
-      (%diff::nat => real => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op =::(real => real) => (real => real) => bool)
-               (diff (0::nat)) f)
-             ((All::(nat => bool) => bool)
-               (%m::nat.
-                   (All::(real => bool) => bool)
-                    (%x::real.
-                        (diffl::(real => real) => real => real => bool)
-                         (diff m) (diff ((Suc::nat => nat) m) x) x))))
-           ((All::(real => bool) => bool)
-             (%x::real.
-                 (All::(nat => bool) => bool)
-                  (%n::nat.
-                      (op -->::bool => bool => bool)
-                       ((op &::bool => bool => bool)
-                         ((Not::bool => bool)
-                           ((op =::real => real => bool) x (0::real)))
-                         ((op <::nat => nat => bool) (0::nat) n))
-                       ((Ex::(real => bool) => bool)
-                         (%t::real.
-                             (op &::bool => bool => bool)
-                              ((op <::real => real => bool) (0::real)
-                                ((abs::real => real) t))
-                              ((op &::bool => bool => bool)
-                                ((op <::real => real => bool)
-                                  ((abs::real => real) t)
-                                  ((abs::real => real) x))
-                                ((op =::real => real => bool) (f x)
-                                  ((op +::real => real => real)
-                                    ((real.sum::nat * nat
-          => (nat => real) => real)
-((Pair::nat => nat => nat * nat) (0::nat) n)
-(%m::nat.
-    (op *::real => real => real)
-     ((op /::real => real => real) (diff m (0::real))
-       ((real::nat => real) ((FACT::nat => nat) m)))
-     ((op ^::real => nat => real) x m)))
-                                    ((op *::real => real => real)
-((op /::real => real => real) (diff n t)
-  ((real::nat => real) ((FACT::nat => nat) n)))
-((op ^::real => nat => real) x n))))))))))))"
+lemma MCLAURIN_ALL_LT: "ALL (f::real => real) diff::nat => real => real.
+   diff 0 = f &
+   (ALL (m::nat) x::real. diffl (diff m) (diff (Suc m) x) x) -->
+   (ALL (x::real) n::nat.
+       x ~= 0 & 0 < n -->
+       (EX t::real.
+           0 < abs t &
+           abs t < abs x &
+           f x =
+           real.sum (0, n) (%m::nat. diff m 0 / real (FACT m) * x ^ m) +
+           diff n t / real (FACT n) * x ^ n))"
   by (import transc MCLAURIN_ALL_LT)
 
-lemma MCLAURIN_ZERO: "(All::((nat => real => real) => bool) => bool)
- (%diff::nat => real => real.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op =::real => real => bool) x (0::real))
-                  ((op <::nat => nat => bool) (0::nat) n))
-                ((op =::real => real => bool)
-                  ((real.sum::nat * nat => (nat => real) => real)
-                    ((Pair::nat => nat => nat * nat) (0::nat) n)
-                    (%m::nat.
-                        (op *::real => real => real)
-                         ((op /::real => real => real) (diff m (0::real))
-                           ((real::nat => real) ((FACT::nat => nat) m)))
-                         ((op ^::real => nat => real) x m)))
-                  (diff (0::nat) (0::real))))))"
+lemma MCLAURIN_ZERO: "ALL (diff::nat => real => real) (n::nat) x::real.
+   x = 0 & 0 < n -->
+   real.sum (0, n) (%m::nat. diff m 0 / real (FACT m) * x ^ m) = diff 0 0"
   by (import transc MCLAURIN_ZERO)
 
-lemma MCLAURIN_ALL_LE: "(All::((real => real) => bool) => bool)
- (%f::real => real.
-     (All::((nat => real => real) => bool) => bool)
-      (%diff::nat => real => real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op =::(real => real) => (real => real) => bool)
-               (diff (0::nat)) f)
-             ((All::(nat => bool) => bool)
-               (%m::nat.
-                   (All::(real => bool) => bool)
-                    (%x::real.
-                        (diffl::(real => real) => real => real => bool)
-                         (diff m) (diff ((Suc::nat => nat) m) x) x))))
-           ((All::(real => bool) => bool)
-             (%x::real.
-                 (All::(nat => bool) => bool)
-                  (%n::nat.
-                      (Ex::(real => bool) => bool)
-                       (%t::real.
-                           (op &::bool => bool => bool)
-                            ((op <=::real => real => bool)
-                              ((abs::real => real) t)
-                              ((abs::real => real) x))
-                            ((op =::real => real => bool) (f x)
-                              ((op +::real => real => real)
-                                ((real.sum::nat * nat
-      => (nat => real) => real)
-                                  ((Pair::nat => nat => nat * nat) (0::nat)
-                                    n)
-                                  (%m::nat.
-(op *::real => real => real)
- ((op /::real => real => real) (diff m (0::real))
-   ((real::nat => real) ((FACT::nat => nat) m)))
- ((op ^::real => nat => real) x m)))
-                                ((op *::real => real => real)
-                                  ((op /::real => real => real) (diff n t)
-                                    ((real::nat => real)
-((FACT::nat => nat) n)))
-                                  ((op ^::real => nat => real) x n))))))))))"
+lemma MCLAURIN_ALL_LE: "ALL (f::real => real) diff::nat => real => real.
+   diff 0 = f &
+   (ALL (m::nat) x::real. diffl (diff m) (diff (Suc m) x) x) -->
+   (ALL (x::real) n::nat.
+       EX t::real.
+          abs t <= abs x &
+          f x =
+          real.sum (0, n) (%m::nat. diff m 0 / real (FACT m) * x ^ m) +
+          diff n t / real (FACT n) * x ^ n)"
   by (import transc MCLAURIN_ALL_LE)
 
-lemma MCLAURIN_EXP_LT: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((Not::bool => bool)
-               ((op =::real => real => bool) x (0::real)))
-             ((op <::nat => nat => bool) (0::nat) n))
-           ((Ex::(real => bool) => bool)
-             (%xa::real.
-                 (op &::bool => bool => bool)
-                  ((op <::real => real => bool) (0::real)
-                    ((abs::real => real) xa))
-                  ((op &::bool => bool => bool)
-                    ((op <::real => real => bool) ((abs::real => real) xa)
-                      ((abs::real => real) x))
-                    ((op =::real => real => bool) ((exp::real => real) x)
-                      ((op +::real => real => real)
-                        ((real.sum::nat * nat => (nat => real) => real)
-                          ((Pair::nat => nat => nat * nat) (0::nat) n)
-                          (%m::nat.
-                              (op /::real => real => real)
-                               ((op ^::real => nat => real) x m)
-                               ((real::nat => real)
-                                 ((FACT::nat => nat) m))))
-                        ((op *::real => real => real)
-                          ((op /::real => real => real)
-                            ((exp::real => real) xa)
-                            ((real::nat => real) ((FACT::nat => nat) n)))
-                          ((op ^::real => nat => real) x n)))))))))"
+lemma MCLAURIN_EXP_LT: "ALL (x::real) n::nat.
+   x ~= 0 & 0 < n -->
+   (EX xa::real.
+       0 < abs xa &
+       abs xa < abs x &
+       exp x =
+       real.sum (0, n) (%m::nat. x ^ m / real (FACT m)) +
+       exp xa / real (FACT n) * x ^ n)"
   by (import transc MCLAURIN_EXP_LT)
 
 lemma MCLAURIN_EXP_LE: "ALL (x::real) n::nat.
@@ -6748,21 +3250,9 @@ lemma MCLAURIN_EXP_LE: "ALL (x::real) n::nat.
       exp xa / real (FACT n) * x ^ n"
   by (import transc MCLAURIN_EXP_LE)
 
-lemma DIFF_LN_COMPOSITE: "(All::((real => real) => bool) => bool)
- (%g::real => real.
-     (All::(real => bool) => bool)
-      (%m::real.
-          (All::(real => bool) => bool)
-           (%x::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((diffl::(real => real) => real => real => bool) g m x)
-                  ((op <::real => real => bool) (0::real) (g x)))
-                ((diffl::(real => real) => real => real => bool)
-                  (%x::real. (ln::real => real) (g x))
-                  ((op *::real => real => real)
-                    ((inverse::real => real) (g x)) m)
-                  x))))"
+lemma DIFF_LN_COMPOSITE: "ALL (g::real => real) (m::real) x::real.
+   diffl g m x & 0 < g x -->
+   diffl (%x::real. ln (g x)) (inverse (g x) * m) x"
   by (import transc DIFF_LN_COMPOSITE)
 
 ;end_setup
@@ -6885,78 +3375,20 @@ lemma POLY_DIFFERENTIABLE: "ALL l::real list. All (differentiable (poly l))"
 lemma POLY_CONT: "ALL l::real list. All (contl (poly l))"
   by (import poly POLY_CONT)
 
-lemma POLY_IVT_POS: "(All::(real list => bool) => bool)
- (%x::real list.
-     (All::(real => bool) => bool)
-      (%xa::real.
-          (All::(real => bool) => bool)
-           (%xb::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) xa xb)
-                  ((op &::bool => bool => bool)
-                    ((op <::real => real => bool)
-                      ((poly::real list => real => real) x xa) (0::real))
-                    ((op <::real => real => bool) (0::real)
-                      ((poly::real list => real => real) x xb))))
-                ((Ex::(real => bool) => bool)
-                  (%xc::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) xa xc)
-                       ((op &::bool => bool => bool)
-                         ((op <::real => real => bool) xc xb)
-                         ((op =::real => real => bool)
-                           ((poly::real list => real => real) x xc)
-                           (0::real))))))))"
+lemma POLY_IVT_POS: "ALL (x::real list) (xa::real) xb::real.
+   xa < xb & poly x xa < 0 & 0 < poly x xb -->
+   (EX xc::real. xa < xc & xc < xb & poly x xc = 0)"
   by (import poly POLY_IVT_POS)
 
-lemma POLY_IVT_NEG: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op <::real => real => bool) a b)
-                  ((op &::bool => bool => bool)
-                    ((op <::real => real => bool) (0::real)
-                      ((poly::real list => real => real) p a))
-                    ((op <::real => real => bool)
-                      ((poly::real list => real => real) p b) (0::real))))
-                ((Ex::(real => bool) => bool)
-                  (%x::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) a x)
-                       ((op &::bool => bool => bool)
-                         ((op <::real => real => bool) x b)
-                         ((op =::real => real => bool)
-                           ((poly::real list => real => real) p x)
-                           (0::real))))))))"
+lemma POLY_IVT_NEG: "ALL (p::real list) (a::real) b::real.
+   a < b & 0 < poly p a & poly p b < 0 -->
+   (EX x::real. a < x & x < b & poly p x = 0)"
   by (import poly POLY_IVT_NEG)
 
-lemma POLY_MVT: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(real => bool) => bool)
-           (%b::real.
-               (op -->::bool => bool => bool)
-                ((op <::real => real => bool) a b)
-                ((Ex::(real => bool) => bool)
-                  (%x::real.
-                      (op &::bool => bool => bool)
-                       ((op <::real => real => bool) a x)
-                       ((op &::bool => bool => bool)
-                         ((op <::real => real => bool) x b)
-                         ((op =::real => real => bool)
-                           ((op -::real => real => real)
-                             ((poly::real list => real => real) p b)
-                             ((poly::real list => real => real) p a))
-                           ((op *::real => real => real)
-                             ((op -::real => real => real) b a)
-                             ((poly::real list => real => real)
-                               ((diff::real list => real list) p) x)))))))))"
+lemma POLY_MVT: "ALL (p::real list) (a::real) b::real.
+   a < b -->
+   (EX x::real.
+       a < x & x < b & poly p b - poly p a = (b - a) * poly (diff p) x)"
   by (import poly POLY_MVT)
 
 lemma POLY_ADD_RZERO: "ALL x::real list. poly (poly_add x []) = poly x"
@@ -7146,25 +3578,8 @@ lemma POLY_ROOTS_FINITE: "(All::(real list => bool) => bool)
                               ((op =::real => real => bool) x (i n)))))))))"
   by (import poly POLY_ROOTS_FINITE)
 
-lemma POLY_ENTIRE_LEMMA: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((Not::bool => bool)
-               ((op =::(real => real) => (real => real) => bool)
-                 ((poly::real list => real => real) p)
-                 ((poly::real list => real => real) ([]::real list))))
-             ((Not::bool => bool)
-               ((op =::(real => real) => (real => real) => bool)
-                 ((poly::real list => real => real) q)
-                 ((poly::real list => real => real) ([]::real list)))))
-           ((Not::bool => bool)
-             ((op =::(real => real) => (real => real) => bool)
-               ((poly::real list => real => real)
-                 ((poly_mul::real list => real list => real list) p q))
-               ((poly::real list => real => real) ([]::real list))))))"
+lemma POLY_ENTIRE_LEMMA: "ALL (p::real list) q::real list.
+   poly p ~= poly [] & poly q ~= poly [] --> poly (poly_mul p q) ~= poly []"
   by (import poly POLY_ENTIRE_LEMMA)
 
 lemma POLY_ENTIRE: "ALL (p::real list) q::real list.
@@ -7186,20 +3601,8 @@ lemma POLY_PRIME_EQ_0: "ALL a::real. poly [a, 1] ~= poly []"
 lemma POLY_EXP_PRIME_EQ_0: "ALL (a::real) n::nat. poly (poly_exp [a, 1] n) ~= poly []"
   by (import poly POLY_EXP_PRIME_EQ_0)
 
-lemma POLY_ZERO_LEMMA: "(All::(real => bool) => bool)
- (%h::real.
-     (All::(real list => bool) => bool)
-      (%t::real list.
-          (op -->::bool => bool => bool)
-           ((op =::(real => real) => (real => real) => bool)
-             ((poly::real list => real => real)
-               ((op #::real => real list => real list) h t))
-             ((poly::real list => real => real) ([]::real list)))
-           ((op &::bool => bool => bool)
-             ((op =::real => real => bool) h (0::real))
-             ((op =::(real => real) => (real => real) => bool)
-               ((poly::real list => real => real) t)
-               ((poly::real list => real => real) ([]::real list))))))"
+lemma POLY_ZERO_LEMMA: "ALL (h::real) t::real list.
+   poly (h # t) = poly [] --> h = 0 & poly t = poly []"
   by (import poly POLY_ZERO_LEMMA)
 
 lemma POLY_ZERO: "ALL t::real list. (poly t = poly []) = list_all (%c::real. c = 0) t"
@@ -7210,47 +3613,15 @@ lemma POLY_DIFF_AUX_ISZERO: "ALL (t::real list) n::nat.
    list_all (%c::real. c = 0) t"
   by (import poly POLY_DIFF_AUX_ISZERO)
 
-lemma POLY_DIFF_ISZERO: "(All::(real list => bool) => bool)
- (%x::real list.
-     (op -->::bool => bool => bool)
-      ((op =::(real => real) => (real => real) => bool)
-        ((poly::real list => real => real)
-          ((diff::real list => real list) x))
-        ((poly::real list => real => real) ([]::real list)))
-      ((Ex::(real => bool) => bool)
-        (%h::real.
-            (op =::(real => real) => (real => real) => bool)
-             ((poly::real list => real => real) x)
-             ((poly::real list => real => real)
-               ((op #::real => real list => real list) h
-                 ([]::real list))))))"
+lemma POLY_DIFF_ISZERO: "ALL x::real list.
+   poly (diff x) = poly [] --> (EX h::real. poly x = poly [h])"
   by (import poly POLY_DIFF_ISZERO)
 
-lemma POLY_DIFF_ZERO: "(All::(real list => bool) => bool)
- (%x::real list.
-     (op -->::bool => bool => bool)
-      ((op =::(real => real) => (real => real) => bool)
-        ((poly::real list => real => real) x)
-        ((poly::real list => real => real) ([]::real list)))
-      ((op =::(real => real) => (real => real) => bool)
-        ((poly::real list => real => real)
-          ((diff::real list => real list) x))
-        ((poly::real list => real => real) ([]::real list))))"
+lemma POLY_DIFF_ZERO: "ALL x::real list. poly x = poly [] --> poly (diff x) = poly []"
   by (import poly POLY_DIFF_ZERO)
 
-lemma POLY_DIFF_WELLDEF: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (op -->::bool => bool => bool)
-           ((op =::(real => real) => (real => real) => bool)
-             ((poly::real list => real => real) p)
-             ((poly::real list => real => real) q))
-           ((op =::(real => real) => (real => real) => bool)
-             ((poly::real list => real => real)
-               ((diff::real list => real list) p))
-             ((poly::real list => real => real)
-               ((diff::real list => real list) q)))))"
+lemma POLY_DIFF_WELLDEF: "ALL (p::real list) q::real list.
+   poly p = poly q --> poly (diff p) = poly (diff q)"
   by (import poly POLY_DIFF_WELLDEF)
 
 constdefs
@@ -7271,168 +3642,45 @@ lemma POLY_PRIMES: "ALL (a::real) (p::real list) q::real list.
 lemma POLY_DIVIDES_REFL: "ALL p::real list. poly_divides p p"
   by (import poly POLY_DIVIDES_REFL)
 
-lemma POLY_DIVIDES_TRANS: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real list => bool) => bool)
-           (%r::real list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((poly_divides::real list => real list => bool) p q)
-                  ((poly_divides::real list => real list => bool) q r))
-                ((poly_divides::real list => real list => bool) p r))))"
+lemma POLY_DIVIDES_TRANS: "ALL (p::real list) (q::real list) r::real list.
+   poly_divides p q & poly_divides q r --> poly_divides p r"
   by (import poly POLY_DIVIDES_TRANS)
 
-lemma POLY_DIVIDES_EXP: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(nat => bool) => bool)
-      (%m::nat.
-          (All::(nat => bool) => bool)
-           (%n::nat.
-               (op -->::bool => bool => bool)
-                ((op <=::nat => nat => bool) m n)
-                ((poly_divides::real list => real list => bool)
-                  ((poly_exp::real list => nat => real list) p m)
-                  ((poly_exp::real list => nat => real list) p n)))))"
+lemma POLY_DIVIDES_EXP: "ALL (p::real list) (m::nat) n::nat.
+   m <= n --> poly_divides (poly_exp p m) (poly_exp p n)"
   by (import poly POLY_DIVIDES_EXP)
 
-lemma POLY_EXP_DIVIDES: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(nat => bool) => bool)
-           (%m::nat.
-               (All::(nat => bool) => bool)
-                (%n::nat.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((poly_divides::real list => real list => bool)
-                         ((poly_exp::real list => nat => real list) p n) q)
-                       ((op <=::nat => nat => bool) m n))
-                     ((poly_divides::real list => real list => bool)
-                       ((poly_exp::real list => nat => real list) p m)
-                       q)))))"
+lemma POLY_EXP_DIVIDES: "ALL (p::real list) (q::real list) (m::nat) n::nat.
+   poly_divides (poly_exp p n) q & m <= n --> poly_divides (poly_exp p m) q"
   by (import poly POLY_EXP_DIVIDES)
 
-lemma POLY_DIVIDES_ADD: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real list => bool) => bool)
-           (%r::real list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((poly_divides::real list => real list => bool) p q)
-                  ((poly_divides::real list => real list => bool) p r))
-                ((poly_divides::real list => real list => bool) p
-                  ((poly_add::real list => real list => real list) q r)))))"
+lemma POLY_DIVIDES_ADD: "ALL (p::real list) (q::real list) r::real list.
+   poly_divides p q & poly_divides p r --> poly_divides p (poly_add q r)"
   by (import poly POLY_DIVIDES_ADD)
 
-lemma POLY_DIVIDES_SUB: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real list => bool) => bool)
-           (%r::real list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((poly_divides::real list => real list => bool) p q)
-                  ((poly_divides::real list => real list => bool) p
-                    ((poly_add::real list => real list => real list) q r)))
-                ((poly_divides::real list => real list => bool) p r))))"
+lemma POLY_DIVIDES_SUB: "ALL (p::real list) (q::real list) r::real list.
+   poly_divides p q & poly_divides p (poly_add q r) --> poly_divides p r"
   by (import poly POLY_DIVIDES_SUB)
 
-lemma POLY_DIVIDES_SUB2: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real list => bool) => bool)
-           (%r::real list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((poly_divides::real list => real list => bool) p r)
-                  ((poly_divides::real list => real list => bool) p
-                    ((poly_add::real list => real list => real list) q r)))
-                ((poly_divides::real list => real list => bool) p q))))"
+lemma POLY_DIVIDES_SUB2: "ALL (p::real list) (q::real list) r::real list.
+   poly_divides p r & poly_divides p (poly_add q r) --> poly_divides p q"
   by (import poly POLY_DIVIDES_SUB2)
 
-lemma POLY_DIVIDES_ZERO: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (op -->::bool => bool => bool)
-           ((op =::(real => real) => (real => real) => bool)
-             ((poly::real list => real => real) p)
-             ((poly::real list => real => real) ([]::real list)))
-           ((poly_divides::real list => real list => bool) q p)))"
+lemma POLY_DIVIDES_ZERO: "ALL (p::real list) q::real list. poly p = poly [] --> poly_divides q p"
   by (import poly POLY_DIVIDES_ZERO)
 
-lemma POLY_ORDER_EXISTS: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(nat => bool) => bool)
-      (%d::nat.
-          (All::(real list => bool) => bool)
-           (%p::real list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op =::nat => nat => bool) ((size::real list => nat) p)
-                    d)
-                  ((Not::bool => bool)
-                    ((op =::(real => real) => (real => real) => bool)
-                      ((poly::real list => real => real) p)
-                      ((poly::real list => real => real) ([]::real list)))))
-                ((Ex::(nat => bool) => bool)
-                  (%x::nat.
-                      (op &::bool => bool => bool)
-                       ((poly_divides::real list => real list => bool)
-                         ((poly_exp::real list => nat => real list)
-                           ((op #::real => real list => real list)
-                             ((uminus::real => real) a)
-                             ((op #::real => real list => real list)
-                               (1::real) ([]::real list)))
-                           x)
-                         p)
-                       ((Not::bool => bool)
-                         ((poly_divides::real list => real list => bool)
-                           ((poly_exp::real list => nat => real list)
-                             ((op #::real => real list => real list)
-                               ((uminus::real => real) a)
-                               ((op #::real => real list => real list)
-                                 (1::real) ([]::real list)))
-                             ((Suc::nat => nat) x))
-                           p)))))))"
+lemma POLY_ORDER_EXISTS: "ALL (a::real) (d::nat) p::real list.
+   length p = d & poly p ~= poly [] -->
+   (EX x::nat.
+       poly_divides (poly_exp [- a, 1] x) p &
+       ~ poly_divides (poly_exp [- a, 1] (Suc x)) p)"
   by (import poly POLY_ORDER_EXISTS)
 
-lemma POLY_ORDER: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (op -->::bool => bool => bool)
-           ((Not::bool => bool)
-             ((op =::(real => real) => (real => real) => bool)
-               ((poly::real list => real => real) p)
-               ((poly::real list => real => real) ([]::real list))))
-           ((Ex1::(nat => bool) => bool)
-             (%n::nat.
-                 (op &::bool => bool => bool)
-                  ((poly_divides::real list => real list => bool)
-                    ((poly_exp::real list => nat => real list)
-                      ((op #::real => real list => real list)
-                        ((uminus::real => real) a)
-                        ((op #::real => real list => real list) (1::real)
-                          ([]::real list)))
-                      n)
-                    p)
-                  ((Not::bool => bool)
-                    ((poly_divides::real list => real list => bool)
-                      ((poly_exp::real list => nat => real list)
-                        ((op #::real => real list => real list)
-                          ((uminus::real => real) a)
-                          ((op #::real => real list => real list) (1::real)
-                            ([]::real list)))
-                        ((Suc::nat => nat) n))
-                      p))))))"
+lemma POLY_ORDER: "ALL (p::real list) a::real.
+   poly p ~= poly [] -->
+   (EX! n::nat.
+       poly_divides (poly_exp [- a, 1] n) p &
+       ~ poly_divides (poly_exp [- a, 1] (Suc n)) p)"
   by (import poly POLY_ORDER)
 
 constdefs
@@ -7456,83 +3704,21 @@ lemma ORDER: "ALL (p::real list) (a::real) n::nat.
    (n = poly_order a p & poly p ~= poly [])"
   by (import poly ORDER)
 
-lemma ORDER_THM: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (op -->::bool => bool => bool)
-           ((Not::bool => bool)
-             ((op =::(real => real) => (real => real) => bool)
-               ((poly::real list => real => real) p)
-               ((poly::real list => real => real) ([]::real list))))
-           ((op &::bool => bool => bool)
-             ((poly_divides::real list => real list => bool)
-               ((poly_exp::real list => nat => real list)
-                 ((op #::real => real list => real list)
-                   ((uminus::real => real) a)
-                   ((op #::real => real list => real list) (1::real)
-                     ([]::real list)))
-                 ((poly_order::real => real list => nat) a p))
-               p)
-             ((Not::bool => bool)
-               ((poly_divides::real list => real list => bool)
-                 ((poly_exp::real list => nat => real list)
-                   ((op #::real => real list => real list)
-                     ((uminus::real => real) a)
-                     ((op #::real => real list => real list) (1::real)
-                       ([]::real list)))
-                   ((Suc::nat => nat)
-                     ((poly_order::real => real list => nat) a p)))
-                 p)))))"
+lemma ORDER_THM: "ALL (p::real list) a::real.
+   poly p ~= poly [] -->
+   poly_divides (poly_exp [- a, 1] (poly_order a p)) p &
+   ~ poly_divides (poly_exp [- a, 1] (Suc (poly_order a p))) p"
   by (import poly ORDER_THM)
 
-lemma ORDER_UNIQUE: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (All::(nat => bool) => bool)
-           (%n::nat.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((Not::bool => bool)
-                    ((op =::(real => real) => (real => real) => bool)
-                      ((poly::real list => real => real) p)
-                      ((poly::real list => real => real) ([]::real list))))
-                  ((op &::bool => bool => bool)
-                    ((poly_divides::real list => real list => bool)
-                      ((poly_exp::real list => nat => real list)
-                        ((op #::real => real list => real list)
-                          ((uminus::real => real) a)
-                          ((op #::real => real list => real list) (1::real)
-                            ([]::real list)))
-                        n)
-                      p)
-                    ((Not::bool => bool)
-                      ((poly_divides::real list => real list => bool)
-                        ((poly_exp::real list => nat => real list)
-                          ((op #::real => real list => real list)
-                            ((uminus::real => real) a)
-                            ((op #::real => real list => real list)
-                              (1::real) ([]::real list)))
-                          ((Suc::nat => nat) n))
-                        p))))
-                ((op =::nat => nat => bool) n
-                  ((poly_order::real => real list => nat) a p)))))"
+lemma ORDER_UNIQUE: "ALL (p::real list) (a::real) n::nat.
+   poly p ~= poly [] &
+   poly_divides (poly_exp [- a, 1] n) p &
+   ~ poly_divides (poly_exp [- a, 1] (Suc n)) p -->
+   n = poly_order a p"
   by (import poly ORDER_UNIQUE)
 
-lemma ORDER_POLY: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real => bool) => bool)
-           (%a::real.
-               (op -->::bool => bool => bool)
-                ((op =::(real => real) => (real => real) => bool)
-                  ((poly::real list => real => real) p)
-                  ((poly::real list => real => real) q))
-                ((op =::nat => nat => bool)
-                  ((poly_order::real => real list => nat) a p)
-                  ((poly_order::real => real list => nat) a q)))))"
+lemma ORDER_POLY: "ALL (p::real list) (q::real list) a::real.
+   poly p = poly q --> poly_order a p = poly_order a q"
   by (import poly ORDER_POLY)
 
 lemma ORDER_ROOT: "ALL (p::real list) a::real.
@@ -7544,128 +3730,30 @@ lemma ORDER_DIVIDES: "ALL (p::real list) (a::real) n::nat.
    (poly p = poly [] | n <= poly_order a p)"
   by (import poly ORDER_DIVIDES)
 
-lemma ORDER_DECOMP: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (op -->::bool => bool => bool)
-           ((Not::bool => bool)
-             ((op =::(real => real) => (real => real) => bool)
-               ((poly::real list => real => real) p)
-               ((poly::real list => real => real) ([]::real list))))
-           ((Ex::(real list => bool) => bool)
-             (%x::real list.
-                 (op &::bool => bool => bool)
-                  ((op =::(real => real) => (real => real) => bool)
-                    ((poly::real list => real => real) p)
-                    ((poly::real list => real => real)
-                      ((poly_mul::real list => real list => real list)
-                        ((poly_exp::real list => nat => real list)
-                          ((op #::real => real list => real list)
-                            ((uminus::real => real) a)
-                            ((op #::real => real list => real list)
-                              (1::real) ([]::real list)))
-                          ((poly_order::real => real list => nat) a p))
-                        x)))
-                  ((Not::bool => bool)
-                    ((poly_divides::real list => real list => bool)
-                      ((op #::real => real list => real list)
-                        ((uminus::real => real) a)
-                        ((op #::real => real list => real list) (1::real)
-                          ([]::real list)))
-                      x))))))"
+lemma ORDER_DECOMP: "ALL (p::real list) a::real.
+   poly p ~= poly [] -->
+   (EX x::real list.
+       poly p = poly (poly_mul (poly_exp [- a, 1] (poly_order a p)) x) &
+       ~ poly_divides [- a, 1] x)"
   by (import poly ORDER_DECOMP)
 
-lemma ORDER_MUL: "(All::(real => bool) => bool)
- (%a::real.
-     (All::(real list => bool) => bool)
-      (%p::real list.
-          (All::(real list => bool) => bool)
-           (%q::real list.
-               (op -->::bool => bool => bool)
-                ((Not::bool => bool)
-                  ((op =::(real => real) => (real => real) => bool)
-                    ((poly::real list => real => real)
-                      ((poly_mul::real list => real list => real list) p q))
-                    ((poly::real list => real => real) ([]::real list))))
-                ((op =::nat => nat => bool)
-                  ((poly_order::real => real list => nat) a
-                    ((poly_mul::real list => real list => real list) p q))
-                  ((op +::nat => nat => nat)
-                    ((poly_order::real => real list => nat) a p)
-                    ((poly_order::real => real list => nat) a q))))))"
+lemma ORDER_MUL: "ALL (a::real) (p::real list) q::real list.
+   poly (poly_mul p q) ~= poly [] -->
+   poly_order a (poly_mul p q) = poly_order a p + poly_order a q"
   by (import poly ORDER_MUL)
 
-lemma ORDER_DIFF: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((Not::bool => bool)
-               ((op =::(real => real) => (real => real) => bool)
-                 ((poly::real list => real => real)
-                   ((diff::real list => real list) p))
-                 ((poly::real list => real => real) ([]::real list))))
-             ((Not::bool => bool)
-               ((op =::nat => nat => bool)
-                 ((poly_order::real => real list => nat) a p) (0::nat))))
-           ((op =::nat => nat => bool)
-             ((poly_order::real => real list => nat) a p)
-             ((Suc::nat => nat)
-               ((poly_order::real => real list => nat) a
-                 ((diff::real list => real list) p))))))"
+lemma ORDER_DIFF: "ALL (p::real list) a::real.
+   poly (diff p) ~= poly [] & poly_order a p ~= 0 -->
+   poly_order a p = Suc (poly_order a (diff p))"
   by (import poly ORDER_DIFF)
 
-lemma POLY_SQUAREFREE_DECOMP_ORDER: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real list => bool) => bool)
-           (%d::real list.
-               (All::(real list => bool) => bool)
-                (%e::real list.
-                    (All::(real list => bool) => bool)
-                     (%r::real list.
-                         (All::(real list => bool) => bool)
-                          (%s::real list.
-                              (op -->::bool => bool => bool)
-                               ((op &::bool => bool => bool)
-                                 ((Not::bool => bool)
-                                   ((op =::(real => real)
-     => (real => real) => bool)
-                                     ((poly::real list => real => real)
- ((diff::real list => real list) p))
-                                     ((poly::real list => real => real)
- ([]::real list))))
-                                 ((op &::bool => bool => bool)
-                                   ((op =::(real => real)
-     => (real => real) => bool)
-                                     ((poly::real list => real => real) p)
-                                     ((poly::real list => real => real)
- ((poly_mul::real list => real list => real list) q d)))
-                                   ((op &::bool => bool => bool)
-                                     ((op =::(real => real)
-       => (real => real) => bool)
- ((poly::real list => real => real) ((diff::real list => real list) p))
- ((poly::real list => real => real)
-   ((poly_mul::real list => real list => real list) e d)))
-                                     ((op =::(real => real)
-       => (real => real) => bool)
- ((poly::real list => real => real) d)
- ((poly::real list => real => real)
-   ((poly_add::real list => real list => real list)
-     ((poly_mul::real list => real list => real list) r p)
-     ((poly_mul::real list => real list => real list) s
-       ((diff::real list => real list) p))))))))
-                               ((All::(real => bool) => bool)
-                                 (%a::real.
-                                     (op =::nat => nat => bool)
-((poly_order::real => real list => nat) a q)
-((If::bool => nat => nat => nat)
-  ((op =::nat => nat => bool) ((poly_order::real => real list => nat) a p)
-    (0::nat))
-  (0::nat) (1::nat))))))))))"
+lemma POLY_SQUAREFREE_DECOMP_ORDER: "ALL (p::real list) (q::real list) (d::real list) (e::real list)
+   (r::real list) s::real list.
+   poly (diff p) ~= poly [] &
+   poly p = poly (poly_mul q d) &
+   poly (diff p) = poly (poly_mul e d) &
+   poly d = poly (poly_add (poly_mul r p) (poly_mul s (diff p))) -->
+   (ALL a::real. poly_order a q = (if poly_order a p = 0 then 0 else 1))"
   by (import poly POLY_SQUAREFREE_DECOMP_ORDER)
 
 constdefs
@@ -7685,83 +3773,18 @@ lemma RSQUAREFREE_ROOTS: "ALL p::real list.
    rsquarefree p = (ALL a::real. ~ (poly p a = 0 & poly (diff p) a = 0))"
   by (import poly RSQUAREFREE_ROOTS)
 
-lemma RSQUAREFREE_DECOMP: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real => bool) => bool)
-      (%a::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((rsquarefree::real list => bool) p)
-             ((op =::real => real => bool)
-               ((poly::real list => real => real) p a) (0::real)))
-           ((Ex::(real list => bool) => bool)
-             (%q::real list.
-                 (op &::bool => bool => bool)
-                  ((op =::(real => real) => (real => real) => bool)
-                    ((poly::real list => real => real) p)
-                    ((poly::real list => real => real)
-                      ((poly_mul::real list => real list => real list)
-                        ((op #::real => real list => real list)
-                          ((uminus::real => real) a)
-                          ((op #::real => real list => real list) (1::real)
-                            ([]::real list)))
-                        q)))
-                  ((Not::bool => bool)
-                    ((op =::real => real => bool)
-                      ((poly::real list => real => real) q a)
-                      (0::real)))))))"
+lemma RSQUAREFREE_DECOMP: "ALL (p::real list) a::real.
+   rsquarefree p & poly p a = 0 -->
+   (EX q::real list. poly p = poly (poly_mul [- a, 1] q) & poly q a ~= 0)"
   by (import poly RSQUAREFREE_DECOMP)
 
-lemma POLY_SQUAREFREE_DECOMP: "(All::(real list => bool) => bool)
- (%p::real list.
-     (All::(real list => bool) => bool)
-      (%q::real list.
-          (All::(real list => bool) => bool)
-           (%d::real list.
-               (All::(real list => bool) => bool)
-                (%e::real list.
-                    (All::(real list => bool) => bool)
-                     (%r::real list.
-                         (All::(real list => bool) => bool)
-                          (%s::real list.
-                              (op -->::bool => bool => bool)
-                               ((op &::bool => bool => bool)
-                                 ((Not::bool => bool)
-                                   ((op =::(real => real)
-     => (real => real) => bool)
-                                     ((poly::real list => real => real)
- ((diff::real list => real list) p))
-                                     ((poly::real list => real => real)
- ([]::real list))))
-                                 ((op &::bool => bool => bool)
-                                   ((op =::(real => real)
-     => (real => real) => bool)
-                                     ((poly::real list => real => real) p)
-                                     ((poly::real list => real => real)
- ((poly_mul::real list => real list => real list) q d)))
-                                   ((op &::bool => bool => bool)
-                                     ((op =::(real => real)
-       => (real => real) => bool)
- ((poly::real list => real => real) ((diff::real list => real list) p))
- ((poly::real list => real => real)
-   ((poly_mul::real list => real list => real list) e d)))
-                                     ((op =::(real => real)
-       => (real => real) => bool)
- ((poly::real list => real => real) d)
- ((poly::real list => real => real)
-   ((poly_add::real list => real list => real list)
-     ((poly_mul::real list => real list => real list) r p)
-     ((poly_mul::real list => real list => real list) s
-       ((diff::real list => real list) p))))))))
-                               ((op &::bool => bool => bool)
-                                 ((rsquarefree::real list => bool) q)
-                                 ((All::(real => bool) => bool)
-                                   (%x::real.
- (op =::bool => bool => bool)
-  ((op =::real => real => bool) ((poly::real list => real => real) q x)
-    (0::real))
-  ((op =::real => real => bool) ((poly::real list => real => real) p x)
-    (0::real)))))))))))"
+lemma POLY_SQUAREFREE_DECOMP: "ALL (p::real list) (q::real list) (d::real list) (e::real list)
+   (r::real list) s::real list.
+   poly (diff p) ~= poly [] &
+   poly p = poly (poly_mul q d) &
+   poly (diff p) = poly (poly_mul e d) &
+   poly d = poly (poly_add (poly_mul r p) (poly_mul s (diff p))) -->
+   rsquarefree q & (ALL x::real. (poly q x = 0) = (poly p x = 0))"
   by (import poly POLY_SQUAREFREE_DECOMP)
 
 consts
@@ -7784,45 +3807,15 @@ constdefs
 lemma degree: "ALL p::real list. degree p = PRE (length (normalize p))"
   by (import poly degree)
 
-lemma DEGREE_ZERO: "(All::(real list => bool) => bool)
- (%p::real list.
-     (op -->::bool => bool => bool)
-      ((op =::(real => real) => (real => real) => bool)
-        ((poly::real list => real => real) p)
-        ((poly::real list => real => real) ([]::real list)))
-      ((op =::nat => nat => bool) ((degree::real list => nat) p) (0::nat)))"
+lemma DEGREE_ZERO: "ALL p::real list. poly p = poly [] --> degree p = 0"
   by (import poly DEGREE_ZERO)
 
-lemma POLY_ROOTS_FINITE_SET: "(All::(real list => bool) => bool)
- (%p::real list.
-     (op -->::bool => bool => bool)
-      ((Not::bool => bool)
-        ((op =::(real => real) => (real => real) => bool)
-          ((poly::real list => real => real) p)
-          ((poly::real list => real => real) ([]::real list))))
-      ((FINITE::(real => bool) => bool)
-        ((GSPEC::(real => real * bool) => real => bool)
-          (%x::real.
-              (Pair::real => bool => real * bool) x
-               ((op =::real => real => bool)
-                 ((poly::real list => real => real) p x) (0::real))))))"
+lemma POLY_ROOTS_FINITE_SET: "ALL p::real list.
+   poly p ~= poly [] --> FINITE (GSPEC (%x::real. (x, poly p x = 0)))"
   by (import poly POLY_ROOTS_FINITE_SET)
 
-lemma POLY_MONO: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%k::real.
-          (All::(real list => bool) => bool)
-           (%xa::real list.
-               (op -->::bool => bool => bool)
-                ((op <=::real => real => bool) ((abs::real => real) x) k)
-                ((op <=::real => real => bool)
-                  ((abs::real => real)
-                    ((poly::real list => real => real) xa x))
-                  ((poly::real list => real => real)
-                    ((map::(real => real) => real list => real list)
-                      (abs::real => real) xa)
-                    k)))))"
+lemma POLY_MONO: "ALL (x::real) (k::real) xa::real list.
+   abs x <= k --> abs (poly xa x) <= poly (map abs xa) k"
   by (import poly POLY_MONO)
 
 ;end_setup

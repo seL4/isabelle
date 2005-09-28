@@ -19,42 +19,8 @@ lemma EVEN_ODD_EXISTS_EQ: "ALL n::nat.
 lemma DIV_THEN_MULT: "ALL (p::nat) q::nat. Suc q * (p div Suc q) <= p"
   by (import prob_extra DIV_THEN_MULT)
 
-lemma DIV_TWO_UNIQUE: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(nat => bool) => bool)
-      (%q::nat.
-          (All::(nat => bool) => bool)
-           (%r::nat.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op =::nat => nat => bool) n
-                    ((op +::nat => nat => nat)
-                      ((op *::nat => nat => nat)
-                        ((number_of::bin => nat)
-                          ((op BIT::bin => bit => bin)
-                            ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                              (bit.B1::bit))
-                            (bit.B0::bit)))
-                        q)
-                      r))
-                  ((op |::bool => bool => bool)
-                    ((op =::nat => nat => bool) r (0::nat))
-                    ((op =::nat => nat => bool) r (1::nat))))
-                ((op &::bool => bool => bool)
-                  ((op =::nat => nat => bool) q
-                    ((op div::nat => nat => nat) n
-                      ((number_of::bin => nat)
-                        ((op BIT::bin => bit => bin)
-                          ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                            (bit.B1::bit))
-                          (bit.B0::bit)))))
-                  ((op =::nat => nat => bool) r
-                    ((op mod::nat => nat => nat) n
-                      ((number_of::bin => nat)
-                        ((op BIT::bin => bit => bin)
-                          ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                            (bit.B1::bit))
-                          (bit.B0::bit)))))))))"
+lemma DIV_TWO_UNIQUE: "ALL (n::nat) (q::nat) r::nat.
+   n = 2 * q + r & (r = 0 | r = 1) --> q = n div 2 & r = n mod 2"
   by (import prob_extra DIV_TWO_UNIQUE)
 
 lemma DIVISION_TWO: "ALL n::nat. n = 2 * (n div 2) + n mod 2 & (n mod 2 = 0 | n mod 2 = 1)"
@@ -95,47 +61,10 @@ lemma DIV_TWO_BASIC: "(op &::bool => bool => bool)
      (1::nat)))"
   by (import prob_extra DIV_TWO_BASIC)
 
-lemma DIV_TWO_MONO: "(All::(nat => bool) => bool)
- (%m::nat.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((op <::nat => nat => bool)
-             ((op div::nat => nat => nat) m
-               ((number_of::bin => nat)
-                 ((op BIT::bin => bit => bin)
-                   ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                     (bit.B1::bit))
-                   (bit.B0::bit))))
-             ((op div::nat => nat => nat) n
-               ((number_of::bin => nat)
-                 ((op BIT::bin => bit => bin)
-                   ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                     (bit.B1::bit))
-                   (bit.B0::bit)))))
-           ((op <::nat => nat => bool) m n)))"
+lemma DIV_TWO_MONO: "ALL (m::nat) n::nat. m div 2 < n div 2 --> m < n"
   by (import prob_extra DIV_TWO_MONO)
 
-lemma DIV_TWO_MONO_EVEN: "(All::(nat => bool) => bool)
- (%m::nat.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool) ((EVEN::nat => bool) n)
-           ((op =::bool => bool => bool)
-             ((op <::nat => nat => bool)
-               ((op div::nat => nat => nat) m
-                 ((number_of::bin => nat)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit))))
-               ((op div::nat => nat => nat) n
-                 ((number_of::bin => nat)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit)))))
-             ((op <::nat => nat => bool) m n))))"
+lemma DIV_TWO_MONO_EVEN: "ALL (m::nat) n::nat. EVEN n --> (m div 2 < n div 2) = (m < n)"
   by (import prob_extra DIV_TWO_MONO_EVEN)
 
 lemma DIV_TWO_CANCEL: "ALL n::nat. 2 * n div 2 = n & Suc (2 * n) div 2 = n"
@@ -181,54 +110,17 @@ lemma inf_def: "ALL P::real => bool. inf P = - sup (IMAGE uminus P)"
 lemma INF_DEF_ALT: "ALL P::real => bool. inf P = - sup (%r::real. P (- r))"
   by (import prob_extra INF_DEF_ALT)
 
-lemma REAL_SUP_EXISTS_UNIQUE: "(All::((real => bool) => bool) => bool)
- (%P::real => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) ((Ex::(real => bool) => bool) P)
-        ((Ex::(real => bool) => bool)
-          (%z::real.
-              (All::(real => bool) => bool)
-               (%x::real.
-                   (op -->::bool => bool => bool) (P x)
-                    ((op <=::real => real => bool) x z)))))
-      ((Ex1::(real => bool) => bool)
-        (%s::real.
-            (All::(real => bool) => bool)
-             (%y::real.
-                 (op =::bool => bool => bool)
-                  ((Ex::(real => bool) => bool)
-                    (%x::real.
-                        (op &::bool => bool => bool) (P x)
-                         ((op <::real => real => bool) y x)))
-                  ((op <::real => real => bool) y s)))))"
+lemma REAL_SUP_EXISTS_UNIQUE: "ALL P::real => bool.
+   Ex P & (EX z::real. ALL x::real. P x --> x <= z) -->
+   (EX! s::real. ALL y::real. (EX x::real. P x & y < x) = (y < s))"
   by (import prob_extra REAL_SUP_EXISTS_UNIQUE)
 
-lemma REAL_SUP_MAX: "(All::((real => bool) => bool) => bool)
- (%P::real => bool.
-     (All::(real => bool) => bool)
-      (%z::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool) (P z)
-             ((All::(real => bool) => bool)
-               (%x::real.
-                   (op -->::bool => bool => bool) (P x)
-                    ((op <=::real => real => bool) x z))))
-           ((op =::real => real => bool) ((sup::(real => bool) => real) P)
-             z)))"
+lemma REAL_SUP_MAX: "ALL (P::real => bool) z::real.
+   P z & (ALL x::real. P x --> x <= z) --> sup P = z"
   by (import prob_extra REAL_SUP_MAX)
 
-lemma REAL_INF_MIN: "(All::((real => bool) => bool) => bool)
- (%P::real => bool.
-     (All::(real => bool) => bool)
-      (%z::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool) (P z)
-             ((All::(real => bool) => bool)
-               (%x::real.
-                   (op -->::bool => bool => bool) (P x)
-                    ((op <=::real => real => bool) z x))))
-           ((op =::real => real => bool) ((inf::(real => bool) => real) P)
-             z)))"
+lemma REAL_INF_MIN: "ALL (P::real => bool) z::real.
+   P z & (ALL x::real. P x --> z <= x) --> inf P = z"
   by (import prob_extra REAL_INF_MIN)
 
 lemma HALF_POS: "(op <::real => real => bool) (0::real)
@@ -317,39 +209,15 @@ lemma POW_HALF_TWICE: "(All::(nat => bool) => bool)
 lemma X_HALF_HALF: "ALL x::real. 1 / 2 * x + 1 / 2 * x = x"
   by (import prob_extra X_HALF_HALF)
 
-lemma REAL_SUP_LE_X: "(All::((real => bool) => bool) => bool)
- (%P::real => bool.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool) ((Ex::(real => bool) => bool) P)
-             ((All::(real => bool) => bool)
-               (%r::real.
-                   (op -->::bool => bool => bool) (P r)
-                    ((op <=::real => real => bool) r x))))
-           ((op <=::real => real => bool) ((sup::(real => bool) => real) P)
-             x)))"
+lemma REAL_SUP_LE_X: "ALL (P::real => bool) x::real.
+   Ex P & (ALL r::real. P r --> r <= x) --> sup P <= x"
   by (import prob_extra REAL_SUP_LE_X)
 
-lemma REAL_X_LE_SUP: "(All::((real => bool) => bool) => bool)
- (%P::real => bool.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool) ((Ex::(real => bool) => bool) P)
-             ((op &::bool => bool => bool)
-               ((Ex::(real => bool) => bool)
-                 (%z::real.
-                     (All::(real => bool) => bool)
-                      (%r::real.
-                          (op -->::bool => bool => bool) (P r)
-                           ((op <=::real => real => bool) r z))))
-               ((Ex::(real => bool) => bool)
-                 (%r::real.
-                     (op &::bool => bool => bool) (P r)
-                      ((op <=::real => real => bool) x r)))))
-           ((op <=::real => real => bool) x
-             ((sup::(real => bool) => real) P))))"
+lemma REAL_X_LE_SUP: "ALL (P::real => bool) x::real.
+   Ex P &
+   (EX z::real. ALL r::real. P r --> r <= z) &
+   (EX r::real. P r & x <= r) -->
+   x <= sup P"
   by (import prob_extra REAL_X_LE_SUP)
 
 lemma ABS_BETWEEN_LE: "ALL (x::real) (y::real) d::real.
@@ -409,21 +277,8 @@ lemma INV_SUC_MAX: "ALL x::nat. 1 / real (Suc x) <= 1"
 lemma INV_SUC: "ALL n::nat. 0 < 1 / real (Suc n) & 1 / real (Suc n) <= 1"
   by (import prob_extra INV_SUC)
 
-lemma ABS_UNIT_INTERVAL: "(All::(real => bool) => bool)
- (%x::real.
-     (All::(real => bool) => bool)
-      (%y::real.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op &::bool => bool => bool)
-               ((op <=::real => real => bool) x (1::real))
-               ((op &::bool => bool => bool)
-                 ((op <=::real => real => bool) (0::real) y)
-                 ((op <=::real => real => bool) y (1::real)))))
-           ((op <=::real => real => bool)
-             ((abs::real => real) ((op -::real => real => real) x y))
-             (1::real))))"
+lemma ABS_UNIT_INTERVAL: "ALL (x::real) y::real.
+   0 <= x & x <= 1 & 0 <= y & y <= 1 --> abs (x - y) <= 1"
   by (import prob_extra ABS_UNIT_INTERVAL)
 
 lemma MEM_NIL: "ALL l::'a::type list. (ALL x::'a::type. ~ x mem l) = (l = [])"
@@ -442,32 +297,12 @@ lemma FILTER_TRUE: "ALL l::'a::type list. [x::'a::type:l. True] = l"
 lemma FILTER_FALSE: "ALL l::'a::type list. [x::'a::type:l. False] = []"
   by (import prob_extra FILTER_FALSE)
 
-lemma FILTER_MEM: "(All::(('a::type => bool) => bool) => bool)
- (%P::'a::type => bool.
-     (All::('a::type => bool) => bool)
-      (%x::'a::type.
-          (All::('a::type list => bool) => bool)
-           (%l::'a::type list.
-               (op -->::bool => bool => bool)
-                ((op mem::'a::type => 'a::type list => bool) x
-                  ((filter::('a::type => bool)
-                            => 'a::type list => 'a::type list)
-                    P l))
-                (P x))))"
+lemma FILTER_MEM: "ALL (P::'a::type => bool) (x::'a::type) l::'a::type list.
+   x mem filter P l --> P x"
   by (import prob_extra FILTER_MEM)
 
-lemma MEM_FILTER: "(All::(('a::type => bool) => bool) => bool)
- (%P::'a::type => bool.
-     (All::('a::type list => bool) => bool)
-      (%l::'a::type list.
-          (All::('a::type => bool) => bool)
-           (%x::'a::type.
-               (op -->::bool => bool => bool)
-                ((op mem::'a::type => 'a::type list => bool) x
-                  ((filter::('a::type => bool)
-                            => 'a::type list => 'a::type list)
-                    P l))
-                ((op mem::'a::type => 'a::type list => bool) x l))))"
+lemma MEM_FILTER: "ALL (P::'a::type => bool) (l::'a::type list) x::'a::type.
+   x mem filter P l --> x mem l"
   by (import prob_extra MEM_FILTER)
 
 lemma FILTER_OUT_ELT: "ALL (x::'a::type) l::'a::type list. x mem l | [y::'a::type:l. y ~= x] = l"
@@ -479,53 +314,23 @@ lemma IS_PREFIX_NIL: "ALL x::'a::type list. IS_PREFIX x [] & IS_PREFIX [] x = (x
 lemma IS_PREFIX_REFL: "ALL x::'a::type list. IS_PREFIX x x"
   by (import prob_extra IS_PREFIX_REFL)
 
-lemma IS_PREFIX_ANTISYM: "(All::('a::type list => bool) => bool)
- (%x::'a::type list.
-     (All::('a::type list => bool) => bool)
-      (%y::'a::type list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((IS_PREFIX::'a::type list => 'a::type list => bool) y x)
-             ((IS_PREFIX::'a::type list => 'a::type list => bool) x y))
-           ((op =::'a::type list => 'a::type list => bool) x y)))"
+lemma IS_PREFIX_ANTISYM: "ALL (x::'a::type list) y::'a::type list.
+   IS_PREFIX y x & IS_PREFIX x y --> x = y"
   by (import prob_extra IS_PREFIX_ANTISYM)
 
-lemma IS_PREFIX_TRANS: "(All::('a::type list => bool) => bool)
- (%x::'a::type list.
-     (All::('a::type list => bool) => bool)
-      (%y::'a::type list.
-          (All::('a::type list => bool) => bool)
-           (%z::'a::type list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((IS_PREFIX::'a::type list => 'a::type list => bool) x y)
-                  ((IS_PREFIX::'a::type list => 'a::type list => bool) y z))
-                ((IS_PREFIX::'a::type list => 'a::type list => bool) x z))))"
+lemma IS_PREFIX_TRANS: "ALL (x::'a::type list) (y::'a::type list) z::'a::type list.
+   IS_PREFIX x y & IS_PREFIX y z --> IS_PREFIX x z"
   by (import prob_extra IS_PREFIX_TRANS)
 
 lemma IS_PREFIX_BUTLAST: "ALL (x::'a::type) y::'a::type list. IS_PREFIX (x # y) (butlast (x # y))"
   by (import prob_extra IS_PREFIX_BUTLAST)
 
-lemma IS_PREFIX_LENGTH: "(All::('a::type list => bool) => bool)
- (%x::'a::type list.
-     (All::('a::type list => bool) => bool)
-      (%y::'a::type list.
-          (op -->::bool => bool => bool)
-           ((IS_PREFIX::'a::type list => 'a::type list => bool) y x)
-           ((op <=::nat => nat => bool) ((size::'a::type list => nat) x)
-             ((size::'a::type list => nat) y))))"
+lemma IS_PREFIX_LENGTH: "ALL (x::'a::type list) y::'a::type list.
+   IS_PREFIX y x --> length x <= length y"
   by (import prob_extra IS_PREFIX_LENGTH)
 
-lemma IS_PREFIX_LENGTH_ANTI: "(All::('a::type list => bool) => bool)
- (%x::'a::type list.
-     (All::('a::type list => bool) => bool)
-      (%y::'a::type list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((IS_PREFIX::'a::type list => 'a::type list => bool) y x)
-             ((op =::nat => nat => bool) ((size::'a::type list => nat) x)
-               ((size::'a::type list => nat) y)))
-           ((op =::'a::type list => 'a::type list => bool) x y)))"
+lemma IS_PREFIX_LENGTH_ANTI: "ALL (x::'a::type list) y::'a::type list.
+   IS_PREFIX y x & length x = length y --> x = y"
   by (import prob_extra IS_PREFIX_LENGTH_ANTI)
 
 lemma IS_PREFIX_SNOC: "ALL (x::'a::type) (y::'a::type list) z::'a::type list.
@@ -544,29 +349,10 @@ lemma LAST_MAP_CONS: "ALL (b::bool) (h::bool list) t::bool list list.
    EX x::bool list. last (map (op # b) (h # t)) = b # x"
   by (import prob_extra LAST_MAP_CONS)
 
-lemma EXISTS_LONGEST: "(All::('a::type list => bool) => bool)
- (%x::'a::type list.
-     (All::('a::type list list => bool) => bool)
-      (%y::'a::type list list.
-          (Ex::('a::type list => bool) => bool)
-           (%z::'a::type list.
-               (op &::bool => bool => bool)
-                ((op mem::'a::type list => 'a::type list list => bool) z
-                  ((op #::'a::type list
-                          => 'a::type list list => 'a::type list list)
-                    x y))
-                ((All::('a::type list => bool) => bool)
-                  (%w::'a::type list.
-                      (op -->::bool => bool => bool)
-                       ((op mem::'a::type list
-                                 => 'a::type list list => bool)
-                         w ((op #::'a::type list
-                                   => 'a::type list list
-=> 'a::type list list)
-                             x y))
-                       ((op <=::nat => nat => bool)
-                         ((size::'a::type list => nat) w)
-                         ((size::'a::type list => nat) z)))))))"
+lemma EXISTS_LONGEST: "ALL (x::'a::type list) y::'a::type list list.
+   EX z::'a::type list.
+      z mem x # y &
+      (ALL w::'a::type list. w mem x # y --> length w <= length z)"
   by (import prob_extra EXISTS_LONGEST)
 
 lemma UNION_DEF_ALT: "ALL (s::'a::type => bool) t::'a::type => bool.
@@ -586,36 +372,10 @@ lemma INTER_IS_EMPTY: "ALL (s::'a::type => bool) t::'a::type => bool.
    (pred_set.INTER s t = EMPTY) = (ALL x::'a::type. ~ s x | ~ t x)"
   by (import prob_extra INTER_IS_EMPTY)
 
-lemma UNION_DISJOINT_SPLIT: "(All::(('a::type => bool) => bool) => bool)
- (%s::'a::type => bool.
-     (All::(('a::type => bool) => bool) => bool)
-      (%t::'a::type => bool.
-          (All::(('a::type => bool) => bool) => bool)
-           (%u::'a::type => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((op =::('a::type => bool) => ('a::type => bool) => bool)
-                    ((pred_set.UNION::('a::type => bool)
-=> ('a::type => bool) => 'a::type => bool)
-                      s t)
-                    ((pred_set.UNION::('a::type => bool)
-=> ('a::type => bool) => 'a::type => bool)
-                      s u))
-                  ((op &::bool => bool => bool)
-                    ((op =::('a::type => bool)
-                            => ('a::type => bool) => bool)
-                      ((pred_set.INTER::('a::type => bool)
-  => ('a::type => bool) => 'a::type => bool)
-                        s t)
-                      (EMPTY::'a::type => bool))
-                    ((op =::('a::type => bool)
-                            => ('a::type => bool) => bool)
-                      ((pred_set.INTER::('a::type => bool)
-  => ('a::type => bool) => 'a::type => bool)
-                        s u)
-                      (EMPTY::'a::type => bool))))
-                ((op =::('a::type => bool) => ('a::type => bool) => bool) t
-                  u))))"
+lemma UNION_DISJOINT_SPLIT: "ALL (s::'a::type => bool) (t::'a::type => bool) u::'a::type => bool.
+   pred_set.UNION s t = pred_set.UNION s u &
+   pred_set.INTER s t = EMPTY & pred_set.INTER s u = EMPTY -->
+   t = u"
   by (import prob_extra UNION_DISJOINT_SPLIT)
 
 lemma GSPEC_DEF_ALT: "ALL f::'a::type => 'b::type * bool.
@@ -770,39 +530,13 @@ defs
 lemma alg_order_curried_def: "ALL (x::bool list) x1::bool list. alg_order x x1 = alg_order_tupled (x, x1)"
   by (import prob_canon alg_order_curried_def)
 
-lemma alg_order_ind: "(All::((bool list => bool list => bool) => bool) => bool)
- (%P::bool list => bool list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::(bool => bool) => bool)
-          (%x::bool.
-              (All::(bool list => bool) => bool)
-               (%xa::bool list.
-                   P ([]::bool list)
-                    ((op #::bool => bool list => bool list) x xa))))
-        ((op &::bool => bool => bool) (P ([]::bool list) ([]::bool list))
-          ((op &::bool => bool => bool)
-            ((All::(bool => bool) => bool)
-              (%x::bool.
-                  (All::(bool list => bool) => bool)
-                   (%xa::bool list.
-                       P ((op #::bool => bool list => bool list) x xa)
-                        ([]::bool list))))
-            ((All::(bool => bool) => bool)
-              (%x::bool.
-                  (All::(bool list => bool) => bool)
-                   (%xa::bool list.
-                       (All::(bool => bool) => bool)
-                        (%xb::bool.
-                            (All::(bool list => bool) => bool)
-                             (%xc::bool list.
-                                 (op -->::bool => bool => bool) (P xa xc)
-                                  (P ((op #::bool => bool list => bool list)
- x xa)
-                                    ((op #::bool => bool list => bool list)
-xb xc))))))))))
-      ((All::(bool list => bool) => bool)
-        (%x::bool list. (All::(bool list => bool) => bool) (P x))))"
+lemma alg_order_ind: "ALL P::bool list => bool list => bool.
+   (ALL (x::bool) xa::bool list. P [] (x # xa)) &
+   P [] [] &
+   (ALL (x::bool) xa::bool list. P (x # xa) []) &
+   (ALL (x::bool) (xa::bool list) (xb::bool) xc::bool list.
+       P xa xc --> P (x # xa) (xb # xc)) -->
+   (ALL x::bool list. All (P x))"
   by (import prob_canon alg_order_ind)
 
 lemma alg_order_def: "alg_order [] ((v6::bool) # (v7::bool list)) = True &
@@ -843,32 +577,11 @@ WFREC
                alg_order v2 v6 & alg_sorted (v6 # v7))))"
   by (import prob_canon alg_sorted_primitive_def)
 
-lemma alg_sorted_ind: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::(bool list => bool) => bool)
-          (%x::bool list.
-              (All::(bool list => bool) => bool)
-               (%y::bool list.
-                   (All::(bool list list => bool) => bool)
-                    (%z::bool list list.
-                        (op -->::bool => bool => bool)
-                         (P ((op #::bool list
-                                    => bool list list => bool list list)
-                              y z))
-                         (P ((op #::bool list
-                                    => bool list list => bool list list)
-                              x ((op #::bool list
-  => bool list list => bool list list)
-                                  y z)))))))
-        ((op &::bool => bool => bool)
-          ((All::(bool list => bool) => bool)
-            (%v::bool list.
-                P ((op #::bool list => bool list list => bool list list) v
-                    ([]::bool list list))))
-          (P ([]::bool list list))))
-      ((All::(bool list list => bool) => bool) P))"
+lemma alg_sorted_ind: "ALL P::bool list list => bool.
+   (ALL (x::bool list) (y::bool list) z::bool list list.
+       P (y # z) --> P (x # y # z)) &
+   (ALL v::bool list. P [v]) & P [] -->
+   All P"
   by (import prob_canon alg_sorted_ind)
 
 lemma alg_sorted_def: "alg_sorted ((x::bool list) # (y::bool list) # (z::bool list list)) =
@@ -907,32 +620,11 @@ WFREC
                ~ IS_PREFIX v6 v2 & alg_prefixfree (v6 # v7))))"
   by (import prob_canon alg_prefixfree_primitive_def)
 
-lemma alg_prefixfree_ind: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::(bool list => bool) => bool)
-          (%x::bool list.
-              (All::(bool list => bool) => bool)
-               (%y::bool list.
-                   (All::(bool list list => bool) => bool)
-                    (%z::bool list list.
-                        (op -->::bool => bool => bool)
-                         (P ((op #::bool list
-                                    => bool list list => bool list list)
-                              y z))
-                         (P ((op #::bool list
-                                    => bool list list => bool list list)
-                              x ((op #::bool list
-  => bool list list => bool list list)
-                                  y z)))))))
-        ((op &::bool => bool => bool)
-          ((All::(bool list => bool) => bool)
-            (%v::bool list.
-                P ((op #::bool list => bool list list => bool list list) v
-                    ([]::bool list list))))
-          (P ([]::bool list list))))
-      ((All::(bool list list => bool) => bool) P))"
+lemma alg_prefixfree_ind: "ALL P::bool list list => bool.
+   (ALL (x::bool list) (y::bool list) z::bool list list.
+       P (y # z) --> P (x # y # z)) &
+   (ALL v::bool list. P [v]) & P [] -->
+   All P"
   by (import prob_canon alg_prefixfree_ind)
 
 lemma alg_prefixfree_def: "alg_prefixfree ((x::bool list) # (y::bool list) # (z::bool list list)) =
@@ -971,32 +663,11 @@ WFREC
                ~ alg_twin v2 v6 & alg_twinfree (v6 # v7))))"
   by (import prob_canon alg_twinfree_primitive_def)
 
-lemma alg_twinfree_ind: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::(bool list => bool) => bool)
-          (%x::bool list.
-              (All::(bool list => bool) => bool)
-               (%y::bool list.
-                   (All::(bool list list => bool) => bool)
-                    (%z::bool list list.
-                        (op -->::bool => bool => bool)
-                         (P ((op #::bool list
-                                    => bool list list => bool list list)
-                              y z))
-                         (P ((op #::bool list
-                                    => bool list list => bool list list)
-                              x ((op #::bool list
-  => bool list list => bool list list)
-                                  y z)))))))
-        ((op &::bool => bool => bool)
-          ((All::(bool list => bool) => bool)
-            (%v::bool list.
-                P ((op #::bool list => bool list list => bool list list) v
-                    ([]::bool list list))))
-          (P ([]::bool list list))))
-      ((All::(bool list list => bool) => bool) P))"
+lemma alg_twinfree_ind: "ALL P::bool list list => bool.
+   (ALL (x::bool list) (y::bool list) z::bool list list.
+       P (y # z) --> P (x # y # z)) &
+   (ALL v::bool list. P [v]) & P [] -->
+   All P"
   by (import prob_canon alg_twinfree_ind)
 
 lemma alg_twinfree_def: "alg_twinfree ((x::bool list) # (y::bool list) # (z::bool list list)) =
@@ -1097,20 +768,9 @@ lemma ALG_TWIN_REDUCE: "ALL (h::bool) (t::bool list) t'::bool list.
    alg_twin (h # t) (h # t') = alg_twin t t'"
   by (import prob_canon ALG_TWIN_REDUCE)
 
-lemma ALG_TWINS_PREFIX: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%l::bool list.
-          (op -->::bool => bool => bool)
-           ((IS_PREFIX::bool list => bool list => bool) x l)
-           ((op |::bool => bool => bool)
-             ((op =::bool list => bool list => bool) x l)
-             ((op |::bool => bool => bool)
-               ((IS_PREFIX::bool list => bool list => bool) x
-                 ((SNOC::bool => bool list => bool list) (True::bool) l))
-               ((IS_PREFIX::bool list => bool list => bool) x
-                 ((SNOC::bool => bool list => bool list) (False::bool)
-                   l))))))"
+lemma ALG_TWINS_PREFIX: "ALL (x::bool list) l::bool list.
+   IS_PREFIX x l -->
+   x = l | IS_PREFIX x (SNOC True l) | IS_PREFIX x (SNOC False l)"
   by (import prob_canon ALG_TWINS_PREFIX)
 
 lemma ALG_ORDER_NIL: "ALL x::bool list. alg_order [] x & alg_order x [] = (x = [])"
@@ -1119,140 +779,47 @@ lemma ALG_ORDER_NIL: "ALL x::bool list. alg_order [] x & alg_order x [] = (x = [
 lemma ALG_ORDER_REFL: "ALL x::bool list. alg_order x x"
   by (import prob_canon ALG_ORDER_REFL)
 
-lemma ALG_ORDER_ANTISYM: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_order::bool list => bool list => bool) x y)
-             ((alg_order::bool list => bool list => bool) y x))
-           ((op =::bool list => bool list => bool) x y)))"
+lemma ALG_ORDER_ANTISYM: "ALL (x::bool list) y::bool list. alg_order x y & alg_order y x --> x = y"
   by (import prob_canon ALG_ORDER_ANTISYM)
 
-lemma ALG_ORDER_TRANS: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (All::(bool list => bool) => bool)
-           (%z::bool list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_order::bool list => bool list => bool) x y)
-                  ((alg_order::bool list => bool list => bool) y z))
-                ((alg_order::bool list => bool list => bool) x z))))"
+lemma ALG_ORDER_TRANS: "ALL (x::bool list) (y::bool list) z::bool list.
+   alg_order x y & alg_order y z --> alg_order x z"
   by (import prob_canon ALG_ORDER_TRANS)
 
 lemma ALG_ORDER_TOTAL: "ALL (x::bool list) y::bool list. alg_order x y | alg_order y x"
   by (import prob_canon ALG_ORDER_TOTAL)
 
-lemma ALG_ORDER_PREFIX: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (op -->::bool => bool => bool)
-           ((IS_PREFIX::bool list => bool list => bool) y x)
-           ((alg_order::bool list => bool list => bool) x y)))"
+lemma ALG_ORDER_PREFIX: "ALL (x::bool list) y::bool list. IS_PREFIX y x --> alg_order x y"
   by (import prob_canon ALG_ORDER_PREFIX)
 
-lemma ALG_ORDER_PREFIX_ANTI: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_order::bool list => bool list => bool) x y)
-             ((IS_PREFIX::bool list => bool list => bool) x y))
-           ((op =::bool list => bool list => bool) x y)))"
+lemma ALG_ORDER_PREFIX_ANTI: "ALL (x::bool list) y::bool list. alg_order x y & IS_PREFIX x y --> x = y"
   by (import prob_canon ALG_ORDER_PREFIX_ANTI)
 
-lemma ALG_ORDER_PREFIX_MONO: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (All::(bool list => bool) => bool)
-           (%z::bool list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_order::bool list => bool list => bool) x y)
-                  ((op &::bool => bool => bool)
-                    ((alg_order::bool list => bool list => bool) y z)
-                    ((IS_PREFIX::bool list => bool list => bool) z x)))
-                ((IS_PREFIX::bool list => bool list => bool) y x))))"
+lemma ALG_ORDER_PREFIX_MONO: "ALL (x::bool list) (y::bool list) z::bool list.
+   alg_order x y & alg_order y z & IS_PREFIX z x --> IS_PREFIX y x"
   by (import prob_canon ALG_ORDER_PREFIX_MONO)
 
-lemma ALG_ORDER_PREFIX_TRANS: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (All::(bool list => bool) => bool)
-           (%z::bool list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_order::bool list => bool list => bool) x y)
-                  ((IS_PREFIX::bool list => bool list => bool) y z))
-                ((op |::bool => bool => bool)
-                  ((alg_order::bool list => bool list => bool) x z)
-                  ((IS_PREFIX::bool list => bool list => bool) x z)))))"
+lemma ALG_ORDER_PREFIX_TRANS: "ALL (x::bool list) (y::bool list) z::bool list.
+   alg_order x y & IS_PREFIX y z --> alg_order x z | IS_PREFIX x z"
   by (import prob_canon ALG_ORDER_PREFIX_TRANS)
 
 lemma ALG_ORDER_SNOC: "ALL (x::bool) l::bool list. ~ alg_order (SNOC x l) l"
   by (import prob_canon ALG_ORDER_SNOC)
 
-lemma ALG_SORTED_MIN: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_sorted::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) h t))
-           ((All::(bool list => bool) => bool)
-             (%x::bool list.
-                 (op -->::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) x t)
-                  ((alg_order::bool list => bool list => bool) h x)))))"
+lemma ALG_SORTED_MIN: "ALL (h::bool list) t::bool list list.
+   alg_sorted (h # t) --> (ALL x::bool list. x mem t --> alg_order h x)"
   by (import prob_canon ALG_SORTED_MIN)
 
-lemma ALG_SORTED_DEF_ALT: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op =::bool => bool => bool)
-           ((alg_sorted::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) h t))
-           ((op &::bool => bool => bool)
-             ((All::(bool list => bool) => bool)
-               (%x::bool list.
-                   (op -->::bool => bool => bool)
-                    ((op mem::bool list => bool list list => bool) x t)
-                    ((alg_order::bool list => bool list => bool) h x)))
-             ((alg_sorted::bool list list => bool) t))))"
+lemma ALG_SORTED_DEF_ALT: "ALL (h::bool list) t::bool list list.
+   alg_sorted (h # t) =
+   ((ALL x::bool list. x mem t --> alg_order h x) & alg_sorted t)"
   by (import prob_canon ALG_SORTED_DEF_ALT)
 
-lemma ALG_SORTED_TL: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_sorted::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) h t))
-           ((alg_sorted::bool list list => bool) t)))"
+lemma ALG_SORTED_TL: "ALL (h::bool list) t::bool list list. alg_sorted (h # t) --> alg_sorted t"
   by (import prob_canon ALG_SORTED_TL)
 
-lemma ALG_SORTED_MONO: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (All::(bool list list => bool) => bool)
-           (%z::bool list list.
-               (op -->::bool => bool => bool)
-                ((alg_sorted::bool list list => bool)
-                  ((op #::bool list => bool list list => bool list list) x
-                    ((op #::bool list => bool list list => bool list list) y
-                      z)))
-                ((alg_sorted::bool list list => bool)
-                  ((op #::bool list => bool list list => bool list list) x
-                    z)))))"
+lemma ALG_SORTED_MONO: "ALL (x::bool list) (y::bool list) z::bool list list.
+   alg_sorted (x # y # z) --> alg_sorted (x # z)"
   by (import prob_canon ALG_SORTED_MONO)
 
 lemma ALG_SORTED_TLS: "ALL (l::bool list list) b::bool. alg_sorted (map (op # b) l) = alg_sorted l"
@@ -1268,69 +835,22 @@ lemma ALG_SORTED_APPEND: "ALL (h::bool list) (h'::bool list) (t::bool list list)
    (alg_sorted (h # t) & alg_sorted (h' # t') & alg_order (last (h # t)) h')"
   by (import prob_canon ALG_SORTED_APPEND)
 
-lemma ALG_SORTED_FILTER: "(All::((bool list => bool) => bool) => bool)
- (%P::bool list => bool.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_sorted::bool list list => bool) b)
-           ((alg_sorted::bool list list => bool)
-             ((filter::(bool list => bool)
-                       => bool list list => bool list list)
-               P b))))"
+lemma ALG_SORTED_FILTER: "ALL (P::bool list => bool) b::bool list list.
+   alg_sorted b --> alg_sorted (filter P b)"
   by (import prob_canon ALG_SORTED_FILTER)
 
-lemma ALG_PREFIXFREE_TL: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_prefixfree::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) h t))
-           ((alg_prefixfree::bool list list => bool) t)))"
+lemma ALG_PREFIXFREE_TL: "ALL (h::bool list) t::bool list list.
+   alg_prefixfree (h # t) --> alg_prefixfree t"
   by (import prob_canon ALG_PREFIXFREE_TL)
 
-lemma ALG_PREFIXFREE_MONO: "(All::(bool list => bool) => bool)
- (%x::bool list.
-     (All::(bool list => bool) => bool)
-      (%y::bool list.
-          (All::(bool list list => bool) => bool)
-           (%z::bool list list.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_sorted::bool list list => bool)
-                    ((op #::bool list => bool list list => bool list list) x
-                      ((op #::bool list => bool list list => bool list list)
-                        y z)))
-                  ((alg_prefixfree::bool list list => bool)
-                    ((op #::bool list => bool list list => bool list list) x
-                      ((op #::bool list => bool list list => bool list list)
-                        y z))))
-                ((alg_prefixfree::bool list list => bool)
-                  ((op #::bool list => bool list list => bool list list) x
-                    z)))))"
+lemma ALG_PREFIXFREE_MONO: "ALL (x::bool list) (y::bool list) z::bool list list.
+   alg_sorted (x # y # z) & alg_prefixfree (x # y # z) -->
+   alg_prefixfree (x # z)"
   by (import prob_canon ALG_PREFIXFREE_MONO)
 
-lemma ALG_PREFIXFREE_ELT: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool)
-               ((op #::bool list => bool list list => bool list list) h t))
-             ((alg_prefixfree::bool list list => bool)
-               ((op #::bool list => bool list list => bool list list) h t)))
-           ((All::(bool list => bool) => bool)
-             (%x::bool list.
-                 (op -->::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) x t)
-                  ((op &::bool => bool => bool)
-                    ((Not::bool => bool)
-                      ((IS_PREFIX::bool list => bool list => bool) x h))
-                    ((Not::bool => bool)
-                      ((IS_PREFIX::bool list => bool list => bool) h
-                        x)))))))"
+lemma ALG_PREFIXFREE_ELT: "ALL (h::bool list) t::bool list list.
+   alg_sorted (h # t) & alg_prefixfree (h # t) -->
+   (ALL x::bool list. x mem t --> ~ IS_PREFIX x h & ~ IS_PREFIX h x)"
   by (import prob_canon ALG_PREFIXFREE_ELT)
 
 lemma ALG_PREFIXFREE_TLS: "ALL (l::bool list list) b::bool.
@@ -1348,105 +868,32 @@ lemma ALG_PREFIXFREE_APPEND: "ALL (h::bool list) (h'::bool list) (t::bool list l
     alg_prefixfree (h' # t') & ~ IS_PREFIX h' (last (h # t)))"
   by (import prob_canon ALG_PREFIXFREE_APPEND)
 
-lemma ALG_PREFIXFREE_FILTER: "(All::((bool list => bool) => bool) => bool)
- (%P::bool list => bool.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool) b)
-             ((alg_prefixfree::bool list list => bool) b))
-           ((alg_prefixfree::bool list list => bool)
-             ((filter::(bool list => bool)
-                       => bool list list => bool list list)
-               P b))))"
+lemma ALG_PREFIXFREE_FILTER: "ALL (P::bool list => bool) b::bool list list.
+   alg_sorted b & alg_prefixfree b --> alg_prefixfree (filter P b)"
   by (import prob_canon ALG_PREFIXFREE_FILTER)
 
-lemma ALG_TWINFREE_TL: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_twinfree::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) h t))
-           ((alg_twinfree::bool list list => bool) t)))"
+lemma ALG_TWINFREE_TL: "ALL (h::bool list) t::bool list list.
+   alg_twinfree (h # t) --> alg_twinfree t"
   by (import prob_canon ALG_TWINFREE_TL)
 
 lemma ALG_TWINFREE_TLS: "ALL (l::bool list list) b::bool.
    alg_twinfree (map (op # b) l) = alg_twinfree l"
   by (import prob_canon ALG_TWINFREE_TLS)
 
-lemma ALG_TWINFREE_STEP1: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_twinfree::bool list list => bool)
-             ((op @::bool list list => bool list list => bool list list)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (True::bool)) l1)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (False::bool))
-                 l2)))
-           ((op &::bool => bool => bool)
-             ((alg_twinfree::bool list list => bool) l1)
-             ((alg_twinfree::bool list list => bool) l2))))"
+lemma ALG_TWINFREE_STEP1: "ALL (l1::bool list list) l2::bool list list.
+   alg_twinfree (map (op # True) l1 @ map (op # False) l2) -->
+   alg_twinfree l1 & alg_twinfree l2"
   by (import prob_canon ALG_TWINFREE_STEP1)
 
-lemma ALG_TWINFREE_STEP2: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op |::bool => bool => bool)
-               ((Not::bool => bool)
-                 ((op mem::bool list => bool list list => bool)
-                   ([]::bool list) l1))
-               ((Not::bool => bool)
-                 ((op mem::bool list => bool list list => bool)
-                   ([]::bool list) l2)))
-             ((op &::bool => bool => bool)
-               ((alg_twinfree::bool list list => bool) l1)
-               ((alg_twinfree::bool list list => bool) l2)))
-           ((alg_twinfree::bool list list => bool)
-             ((op @::bool list list => bool list list => bool list list)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (True::bool)) l1)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (False::bool))
-                 l2)))))"
+lemma ALG_TWINFREE_STEP2: "ALL (l1::bool list list) l2::bool list list.
+   (~ [] mem l1 | ~ [] mem l2) & alg_twinfree l1 & alg_twinfree l2 -->
+   alg_twinfree (map (op # True) l1 @ map (op # False) l2)"
   by (import prob_canon ALG_TWINFREE_STEP2)
 
-lemma ALG_TWINFREE_STEP: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (op -->::bool => bool => bool)
-           ((op |::bool => bool => bool)
-             ((Not::bool => bool)
-               ((op mem::bool list => bool list list => bool)
-                 ([]::bool list) l1))
-             ((Not::bool => bool)
-               ((op mem::bool list => bool list list => bool)
-                 ([]::bool list) l2)))
-           ((op =::bool => bool => bool)
-             ((alg_twinfree::bool list list => bool)
-               ((op @::bool list list => bool list list => bool list list)
-                 ((map::(bool list => bool list)
-                        => bool list list => bool list list)
-                   ((op #::bool => bool list => bool list) (True::bool)) l1)
-                 ((map::(bool list => bool list)
-                        => bool list list => bool list list)
-                   ((op #::bool => bool list => bool list) (False::bool))
-                   l2)))
-             ((op &::bool => bool => bool)
-               ((alg_twinfree::bool list list => bool) l1)
-               ((alg_twinfree::bool list list => bool) l2)))))"
+lemma ALG_TWINFREE_STEP: "ALL (l1::bool list list) l2::bool list list.
+   ~ [] mem l1 | ~ [] mem l2 -->
+   alg_twinfree (map (op # True) l1 @ map (op # False) l2) =
+   (alg_twinfree l1 & alg_twinfree l2)"
   by (import prob_canon ALG_TWINFREE_STEP)
 
 lemma ALG_LONGEST_HD: "ALL (h::bool list) t::bool list list. length h <= alg_longest (h # t)"
@@ -1467,124 +914,41 @@ lemma ALG_LONGEST_APPEND: "ALL (l1::bool list list) l2::bool list list.
 lemma ALG_CANON_PREFS_HD: "ALL (l::bool list) b::bool list list. hd (alg_canon_prefs l b) = l"
   by (import prob_canon ALG_CANON_PREFS_HD)
 
-lemma ALG_CANON_PREFS_DELETES: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (All::(bool list => bool) => bool)
-           (%x::bool list.
-               (op -->::bool => bool => bool)
-                ((op mem::bool list => bool list list => bool) x
-                  ((alg_canon_prefs::bool list
-                                     => bool list list => bool list list)
-                    l b))
-                ((op mem::bool list => bool list list => bool) x
-                  ((op #::bool list => bool list list => bool list list) l
-                    b)))))"
+lemma ALG_CANON_PREFS_DELETES: "ALL (l::bool list) (b::bool list list) x::bool list.
+   x mem alg_canon_prefs l b --> x mem l # b"
   by (import prob_canon ALG_CANON_PREFS_DELETES)
 
-lemma ALG_CANON_PREFS_SORTED: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_sorted::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) l b))
-           ((alg_sorted::bool list list => bool)
-             ((alg_canon_prefs::bool list
-                                => bool list list => bool list list)
-               l b))))"
+lemma ALG_CANON_PREFS_SORTED: "ALL (l::bool list) b::bool list list.
+   alg_sorted (l # b) --> alg_sorted (alg_canon_prefs l b)"
   by (import prob_canon ALG_CANON_PREFS_SORTED)
 
-lemma ALG_CANON_PREFS_PREFIXFREE: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool) b)
-             ((alg_prefixfree::bool list list => bool) b))
-           ((alg_prefixfree::bool list list => bool)
-             ((alg_canon_prefs::bool list
-                                => bool list list => bool list list)
-               l b))))"
+lemma ALG_CANON_PREFS_PREFIXFREE: "ALL (l::bool list) b::bool list list.
+   alg_sorted b & alg_prefixfree b --> alg_prefixfree (alg_canon_prefs l b)"
   by (import prob_canon ALG_CANON_PREFS_PREFIXFREE)
 
-lemma ALG_CANON_PREFS_CONSTANT: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_prefixfree::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) l b))
-           ((op =::bool list list => bool list list => bool)
-             ((alg_canon_prefs::bool list
-                                => bool list list => bool list list)
-               l b)
-             ((op #::bool list => bool list list => bool list list) l b))))"
+lemma ALG_CANON_PREFS_CONSTANT: "ALL (l::bool list) b::bool list list.
+   alg_prefixfree (l # b) --> alg_canon_prefs l b = l # b"
   by (import prob_canon ALG_CANON_PREFS_CONSTANT)
 
 lemma ALG_CANON_FIND_HD: "ALL (l::bool list) (h::bool list) t::bool list list.
    hd (alg_canon_find l (h # t)) = l | hd (alg_canon_find l (h # t)) = h"
   by (import prob_canon ALG_CANON_FIND_HD)
 
-lemma ALG_CANON_FIND_DELETES: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (All::(bool list => bool) => bool)
-           (%x::bool list.
-               (op -->::bool => bool => bool)
-                ((op mem::bool list => bool list list => bool) x
-                  ((alg_canon_find::bool list
-                                    => bool list list => bool list list)
-                    l b))
-                ((op mem::bool list => bool list list => bool) x
-                  ((op #::bool list => bool list list => bool list list) l
-                    b)))))"
+lemma ALG_CANON_FIND_DELETES: "ALL (l::bool list) (b::bool list list) x::bool list.
+   x mem alg_canon_find l b --> x mem l # b"
   by (import prob_canon ALG_CANON_FIND_DELETES)
 
-lemma ALG_CANON_FIND_SORTED: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_sorted::bool list list => bool) b)
-           ((alg_sorted::bool list list => bool)
-             ((alg_canon_find::bool list
-                               => bool list list => bool list list)
-               l b))))"
+lemma ALG_CANON_FIND_SORTED: "ALL (l::bool list) b::bool list list.
+   alg_sorted b --> alg_sorted (alg_canon_find l b)"
   by (import prob_canon ALG_CANON_FIND_SORTED)
 
-lemma ALG_CANON_FIND_PREFIXFREE: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool) b)
-             ((alg_prefixfree::bool list list => bool) b))
-           ((alg_prefixfree::bool list list => bool)
-             ((alg_canon_find::bool list
-                               => bool list list => bool list list)
-               l b))))"
+lemma ALG_CANON_FIND_PREFIXFREE: "ALL (l::bool list) b::bool list list.
+   alg_sorted b & alg_prefixfree b --> alg_prefixfree (alg_canon_find l b)"
   by (import prob_canon ALG_CANON_FIND_PREFIXFREE)
 
-lemma ALG_CANON_FIND_CONSTANT: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool)
-               ((op #::bool list => bool list list => bool list list) l b))
-             ((alg_prefixfree::bool list list => bool)
-               ((op #::bool list => bool list list => bool list list) l b)))
-           ((op =::bool list list => bool list list => bool)
-             ((alg_canon_find::bool list
-                               => bool list list => bool list list)
-               l b)
-             ((op #::bool list => bool list list => bool list list) l b))))"
+lemma ALG_CANON_FIND_CONSTANT: "ALL (l::bool list) b::bool list list.
+   alg_sorted (l # b) & alg_prefixfree (l # b) -->
+   alg_canon_find l b = l # b"
   by (import prob_canon ALG_CANON_FIND_CONSTANT)
 
 lemma ALG_CANON1_SORTED: "ALL x::bool list list. alg_sorted (alg_canon1 x)"
@@ -1593,180 +957,48 @@ lemma ALG_CANON1_SORTED: "ALL x::bool list list. alg_sorted (alg_canon1 x)"
 lemma ALG_CANON1_PREFIXFREE: "ALL l::bool list list. alg_prefixfree (alg_canon1 l)"
   by (import prob_canon ALG_CANON1_PREFIXFREE)
 
-lemma ALG_CANON1_CONSTANT: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) ((alg_sorted::bool list list => bool) l)
-        ((alg_prefixfree::bool list list => bool) l))
-      ((op =::bool list list => bool list list => bool)
-        ((alg_canon1::bool list list => bool list list) l) l))"
+lemma ALG_CANON1_CONSTANT: "ALL l::bool list list. alg_sorted l & alg_prefixfree l --> alg_canon1 l = l"
   by (import prob_canon ALG_CANON1_CONSTANT)
 
-lemma ALG_CANON_MERGE_SORTED_PREFIXFREE_TWINFREE: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool)
-               ((op #::bool list => bool list list => bool list list) l b))
-             ((op &::bool => bool => bool)
-               ((alg_prefixfree::bool list list => bool)
-                 ((op #::bool list => bool list list => bool list list) l
-                   b))
-               ((alg_twinfree::bool list list => bool) b)))
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool)
-               ((alg_canon_merge::bool list
-                                  => bool list list => bool list list)
-                 l b))
-             ((op &::bool => bool => bool)
-               ((alg_prefixfree::bool list list => bool)
-                 ((alg_canon_merge::bool list
-                                    => bool list list => bool list list)
-                   l b))
-               ((alg_twinfree::bool list list => bool)
-                 ((alg_canon_merge::bool list
-                                    => bool list list => bool list list)
-                   l b))))))"
+lemma ALG_CANON_MERGE_SORTED_PREFIXFREE_TWINFREE: "ALL (l::bool list) b::bool list list.
+   alg_sorted (l # b) & alg_prefixfree (l # b) & alg_twinfree b -->
+   alg_sorted (alg_canon_merge l b) &
+   alg_prefixfree (alg_canon_merge l b) & alg_twinfree (alg_canon_merge l b)"
   by (import prob_canon ALG_CANON_MERGE_SORTED_PREFIXFREE_TWINFREE)
 
-lemma ALG_CANON_MERGE_PREFIXFREE_PRESERVE: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (All::(bool list => bool) => bool)
-           (%h::bool list.
-               (op -->::bool => bool => bool)
-                ((All::(bool list => bool) => bool)
-                  (%x::bool list.
-                      (op -->::bool => bool => bool)
-                       ((op mem::bool list => bool list list => bool) x
-                         ((op #::bool list
-                                 => bool list list => bool list list)
-                           l b))
-                       ((op &::bool => bool => bool)
-                         ((Not::bool => bool)
-                           ((IS_PREFIX::bool list => bool list => bool) h
-                             x))
-                         ((Not::bool => bool)
-                           ((IS_PREFIX::bool list => bool list => bool) x
-                             h)))))
-                ((All::(bool list => bool) => bool)
-                  (%x::bool list.
-                      (op -->::bool => bool => bool)
-                       ((op mem::bool list => bool list list => bool) x
-                         ((alg_canon_merge::bool list
-      => bool list list => bool list list)
-                           l b))
-                       ((op &::bool => bool => bool)
-                         ((Not::bool => bool)
-                           ((IS_PREFIX::bool list => bool list => bool) h
-                             x))
-                         ((Not::bool => bool)
-                           ((IS_PREFIX::bool list => bool list => bool) x
-                             h))))))))"
+lemma ALG_CANON_MERGE_PREFIXFREE_PRESERVE: "ALL (l::bool list) (b::bool list list) h::bool list.
+   (ALL x::bool list. x mem l # b --> ~ IS_PREFIX h x & ~ IS_PREFIX x h) -->
+   (ALL x::bool list.
+       x mem alg_canon_merge l b --> ~ IS_PREFIX h x & ~ IS_PREFIX x h)"
   by (import prob_canon ALG_CANON_MERGE_PREFIXFREE_PRESERVE)
 
-lemma ALG_CANON_MERGE_SHORTENS: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (All::(bool list => bool) => bool)
-           (%x::bool list.
-               (op -->::bool => bool => bool)
-                ((op mem::bool list => bool list list => bool) x
-                  ((alg_canon_merge::bool list
-                                     => bool list list => bool list list)
-                    l b))
-                ((Ex::(bool list => bool) => bool)
-                  (%y::bool list.
-                      (op &::bool => bool => bool)
-                       ((op mem::bool list => bool list list => bool) y
-                         ((op #::bool list
-                                 => bool list list => bool list list)
-                           l b))
-                       ((IS_PREFIX::bool list => bool list => bool) y
-                         x))))))"
+lemma ALG_CANON_MERGE_SHORTENS: "ALL (l::bool list) (b::bool list list) x::bool list.
+   x mem alg_canon_merge l b -->
+   (EX y::bool list. y mem l # b & IS_PREFIX y x)"
   by (import prob_canon ALG_CANON_MERGE_SHORTENS)
 
-lemma ALG_CANON_MERGE_CONSTANT: "(All::(bool list => bool) => bool)
- (%l::bool list.
-     (All::(bool list list => bool) => bool)
-      (%b::bool list list.
-          (op -->::bool => bool => bool)
-           ((alg_twinfree::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) l b))
-           ((op =::bool list list => bool list list => bool)
-             ((alg_canon_merge::bool list
-                                => bool list list => bool list list)
-               l b)
-             ((op #::bool list => bool list list => bool list list) l b))))"
+lemma ALG_CANON_MERGE_CONSTANT: "ALL (l::bool list) b::bool list list.
+   alg_twinfree (l # b) --> alg_canon_merge l b = l # b"
   by (import prob_canon ALG_CANON_MERGE_CONSTANT)
 
-lemma ALG_CANON2_PREFIXFREE_PRESERVE: "(All::(bool list list => bool) => bool)
- (%x::bool list list.
-     (All::(bool list => bool) => bool)
-      (%xa::bool list.
-          (op -->::bool => bool => bool)
-           ((All::(bool list => bool) => bool)
-             (%xb::bool list.
-                 (op -->::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) xb x)
-                  ((op &::bool => bool => bool)
-                    ((Not::bool => bool)
-                      ((IS_PREFIX::bool list => bool list => bool) xa xb))
-                    ((Not::bool => bool)
-                      ((IS_PREFIX::bool list => bool list => bool) xb
-                        xa)))))
-           ((All::(bool list => bool) => bool)
-             (%xb::bool list.
-                 (op -->::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) xb
-                    ((alg_canon2::bool list list => bool list list) x))
-                  ((op &::bool => bool => bool)
-                    ((Not::bool => bool)
-                      ((IS_PREFIX::bool list => bool list => bool) xa xb))
-                    ((Not::bool => bool)
-                      ((IS_PREFIX::bool list => bool list => bool) xb
-                        xa)))))))"
+lemma ALG_CANON2_PREFIXFREE_PRESERVE: "ALL (x::bool list list) xa::bool list.
+   (ALL xb::bool list.
+       xb mem x --> ~ IS_PREFIX xa xb & ~ IS_PREFIX xb xa) -->
+   (ALL xb::bool list.
+       xb mem alg_canon2 x --> ~ IS_PREFIX xa xb & ~ IS_PREFIX xb xa)"
   by (import prob_canon ALG_CANON2_PREFIXFREE_PRESERVE)
 
-lemma ALG_CANON2_SHORTENS: "(All::(bool list list => bool) => bool)
- (%x::bool list list.
-     (All::(bool list => bool) => bool)
-      (%xa::bool list.
-          (op -->::bool => bool => bool)
-           ((op mem::bool list => bool list list => bool) xa
-             ((alg_canon2::bool list list => bool list list) x))
-           ((Ex::(bool list => bool) => bool)
-             (%y::bool list.
-                 (op &::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) y x)
-                  ((IS_PREFIX::bool list => bool list => bool) y xa)))))"
+lemma ALG_CANON2_SHORTENS: "ALL (x::bool list list) xa::bool list.
+   xa mem alg_canon2 x --> (EX y::bool list. y mem x & IS_PREFIX y xa)"
   by (import prob_canon ALG_CANON2_SHORTENS)
 
-lemma ALG_CANON2_SORTED_PREFIXFREE_TWINFREE: "(All::(bool list list => bool) => bool)
- (%x::bool list list.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) ((alg_sorted::bool list list => bool) x)
-        ((alg_prefixfree::bool list list => bool) x))
-      ((op &::bool => bool => bool)
-        ((alg_sorted::bool list list => bool)
-          ((alg_canon2::bool list list => bool list list) x))
-        ((op &::bool => bool => bool)
-          ((alg_prefixfree::bool list list => bool)
-            ((alg_canon2::bool list list => bool list list) x))
-          ((alg_twinfree::bool list list => bool)
-            ((alg_canon2::bool list list => bool list list) x)))))"
+lemma ALG_CANON2_SORTED_PREFIXFREE_TWINFREE: "ALL x::bool list list.
+   alg_sorted x & alg_prefixfree x -->
+   alg_sorted (alg_canon2 x) &
+   alg_prefixfree (alg_canon2 x) & alg_twinfree (alg_canon2 x)"
   by (import prob_canon ALG_CANON2_SORTED_PREFIXFREE_TWINFREE)
 
-lemma ALG_CANON2_CONSTANT: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((alg_twinfree::bool list list => bool) l)
-      ((op =::bool list list => bool list list => bool)
-        ((alg_canon2::bool list list => bool list list) l) l))"
+lemma ALG_CANON2_CONSTANT: "ALL l::bool list list. alg_twinfree l --> alg_canon2 l = l"
   by (import prob_canon ALG_CANON2_CONSTANT)
 
 lemma ALG_CANON_SORTED_PREFIXFREE_TWINFREE: "ALL l::bool list list.
@@ -1774,15 +1006,8 @@ lemma ALG_CANON_SORTED_PREFIXFREE_TWINFREE: "ALL l::bool list list.
    alg_prefixfree (alg_canon l) & alg_twinfree (alg_canon l)"
   by (import prob_canon ALG_CANON_SORTED_PREFIXFREE_TWINFREE)
 
-lemma ALG_CANON_CONSTANT: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) ((alg_sorted::bool list list => bool) l)
-        ((op &::bool => bool => bool)
-          ((alg_prefixfree::bool list list => bool) l)
-          ((alg_twinfree::bool list list => bool) l)))
-      ((op =::bool list list => bool list list => bool)
-        ((alg_canon::bool list list => bool list list) l) l))"
+lemma ALG_CANON_CONSTANT: "ALL l::bool list list.
+   alg_sorted l & alg_prefixfree l & alg_twinfree l --> alg_canon l = l"
   by (import prob_canon ALG_CANON_CONSTANT)
 
 lemma ALG_CANON_IDEMPOT: "ALL l::bool list list. alg_canon (alg_canon l) = alg_canon l"
@@ -1800,14 +1025,8 @@ lemma ALG_CANON_BASIC: "alg_canon [] = [] &
 alg_canon [[]] = [[]] & (ALL x::bool list. alg_canon [x] = [x])"
   by (import prob_canon ALG_CANON_BASIC)
 
-lemma ALGEBRA_CANON_TL: "(All::(bool list => bool) => bool)
- (%h::bool list.
-     (All::(bool list list => bool) => bool)
-      (%t::bool list list.
-          (op -->::bool => bool => bool)
-           ((algebra_canon::bool list list => bool)
-             ((op #::bool list => bool list list => bool list list) h t))
-           ((algebra_canon::bool list list => bool) t)))"
+lemma ALGEBRA_CANON_TL: "ALL (h::bool list) t::bool list list.
+   algebra_canon (h # t) --> algebra_canon t"
   by (import prob_canon ALGEBRA_CANON_TL)
 
 lemma ALGEBRA_CANON_NIL_MEM: "ALL l::bool list list. (algebra_canon l & [] mem l) = (l = [[]])"
@@ -1817,211 +1036,52 @@ lemma ALGEBRA_CANON_TLS: "ALL (l::bool list list) b::bool.
    algebra_canon (map (op # b) l) = algebra_canon l"
   by (import prob_canon ALGEBRA_CANON_TLS)
 
-lemma ALGEBRA_CANON_STEP1: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (op -->::bool => bool => bool)
-           ((algebra_canon::bool list list => bool)
-             ((op @::bool list list => bool list list => bool list list)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (True::bool)) l1)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (False::bool))
-                 l2)))
-           ((op &::bool => bool => bool)
-             ((algebra_canon::bool list list => bool) l1)
-             ((algebra_canon::bool list list => bool) l2))))"
+lemma ALGEBRA_CANON_STEP1: "ALL (l1::bool list list) l2::bool list list.
+   algebra_canon (map (op # True) l1 @ map (op # False) l2) -->
+   algebra_canon l1 & algebra_canon l2"
   by (import prob_canon ALGEBRA_CANON_STEP1)
 
-lemma ALGEBRA_CANON_STEP2: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((op |::bool => bool => bool)
-               ((Not::bool => bool)
-                 ((op =::bool list list => bool list list => bool) l1
-                   ((op #::bool list => bool list list => bool list list)
-                     ([]::bool list) ([]::bool list list))))
-               ((Not::bool => bool)
-                 ((op =::bool list list => bool list list => bool) l2
-                   ((op #::bool list => bool list list => bool list list)
-                     ([]::bool list) ([]::bool list list)))))
-             ((op &::bool => bool => bool)
-               ((algebra_canon::bool list list => bool) l1)
-               ((algebra_canon::bool list list => bool) l2)))
-           ((algebra_canon::bool list list => bool)
-             ((op @::bool list list => bool list list => bool list list)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (True::bool)) l1)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 ((op #::bool => bool list => bool list) (False::bool))
-                 l2)))))"
+lemma ALGEBRA_CANON_STEP2: "ALL (l1::bool list list) l2::bool list list.
+   (l1 ~= [[]] | l2 ~= [[]]) & algebra_canon l1 & algebra_canon l2 -->
+   algebra_canon (map (op # True) l1 @ map (op # False) l2)"
   by (import prob_canon ALGEBRA_CANON_STEP2)
 
-lemma ALGEBRA_CANON_STEP: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (op -->::bool => bool => bool)
-           ((op |::bool => bool => bool)
-             ((Not::bool => bool)
-               ((op =::bool list list => bool list list => bool) l1
-                 ((op #::bool list => bool list list => bool list list)
-                   ([]::bool list) ([]::bool list list))))
-             ((Not::bool => bool)
-               ((op =::bool list list => bool list list => bool) l2
-                 ((op #::bool list => bool list list => bool list list)
-                   ([]::bool list) ([]::bool list list)))))
-           ((op =::bool => bool => bool)
-             ((algebra_canon::bool list list => bool)
-               ((op @::bool list list => bool list list => bool list list)
-                 ((map::(bool list => bool list)
-                        => bool list list => bool list list)
-                   ((op #::bool => bool list => bool list) (True::bool)) l1)
-                 ((map::(bool list => bool list)
-                        => bool list list => bool list list)
-                   ((op #::bool => bool list => bool list) (False::bool))
-                   l2)))
-             ((op &::bool => bool => bool)
-               ((algebra_canon::bool list list => bool) l1)
-               ((algebra_canon::bool list list => bool) l2)))))"
+lemma ALGEBRA_CANON_STEP: "ALL (l1::bool list list) l2::bool list list.
+   l1 ~= [[]] | l2 ~= [[]] -->
+   algebra_canon (map (op # True) l1 @ map (op # False) l2) =
+   (algebra_canon l1 & algebra_canon l2)"
   by (import prob_canon ALGEBRA_CANON_STEP)
 
-lemma ALGEBRA_CANON_CASES_THM: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((op |::bool => bool => bool)
-        ((op =::bool list list => bool list list => bool) l
-          ([]::bool list list))
-        ((op |::bool => bool => bool)
-          ((op =::bool list list => bool list list => bool) l
-            ((op #::bool list => bool list list => bool list list)
-              ([]::bool list) ([]::bool list list)))
-          ((Ex::(bool list list => bool) => bool)
-            (%l1::bool list list.
-                (Ex::(bool list list => bool) => bool)
-                 (%l2::bool list list.
-                     (op &::bool => bool => bool)
-                      ((algebra_canon::bool list list => bool) l1)
-                      ((op &::bool => bool => bool)
-                        ((algebra_canon::bool list list => bool) l2)
-                        ((op =::bool list list => bool list list => bool) l
-                          ((op @::bool list list
-                                  => bool list list => bool list list)
-                            ((map::(bool list => bool list)
-                                   => bool list list => bool list list)
-                              ((op #::bool => bool list => bool list)
-                                (True::bool))
-                              l1)
-                            ((map::(bool list => bool list)
-                                   => bool list list => bool list list)
-                              ((op #::bool => bool list => bool list)
-                                (False::bool))
-                              l2))))))))))"
+lemma ALGEBRA_CANON_CASES_THM: "ALL l::bool list list.
+   algebra_canon l -->
+   l = [] |
+   l = [[]] |
+   (EX (l1::bool list list) l2::bool list list.
+       algebra_canon l1 &
+       algebra_canon l2 & l = map (op # True) l1 @ map (op # False) l2)"
   by (import prob_canon ALGEBRA_CANON_CASES_THM)
 
-lemma ALGEBRA_CANON_CASES: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) (P ([]::bool list list))
-        ((op &::bool => bool => bool)
-          (P ((op #::bool list => bool list list => bool list list)
-               ([]::bool list) ([]::bool list list)))
-          ((All::(bool list list => bool) => bool)
-            (%l1::bool list list.
-                (All::(bool list list => bool) => bool)
-                 (%l2::bool list list.
-                     (op -->::bool => bool => bool)
-                      ((op &::bool => bool => bool)
-                        ((algebra_canon::bool list list => bool) l1)
-                        ((op &::bool => bool => bool)
-                          ((algebra_canon::bool list list => bool) l2)
-                          ((algebra_canon::bool list list => bool)
-                            ((op @::bool list list
-                                    => bool list list => bool list list)
-                              ((map::(bool list => bool list)
-                                     => bool list list => bool list list)
-                                ((op #::bool => bool list => bool list)
-                                  (True::bool))
-                                l1)
-                              ((map::(bool list => bool list)
-                                     => bool list list => bool list list)
-                                ((op #::bool => bool list => bool list)
-                                  (False::bool))
-                                l2)))))
-                      (P ((op @::bool list list
-                                 => bool list list => bool list list)
-                           ((map::(bool list => bool list)
-                                  => bool list list => bool list list)
-                             ((op #::bool => bool list => bool list)
-                               (True::bool))
-                             l1)
-                           ((map::(bool list => bool list)
-                                  => bool list list => bool list list)
-                             ((op #::bool => bool list => bool list)
-                               (False::bool))
-                             l2))))))))
-      ((All::(bool list list => bool) => bool)
-        (%l::bool list list.
-            (op -->::bool => bool => bool)
-             ((algebra_canon::bool list list => bool) l) (P l))))"
+lemma ALGEBRA_CANON_CASES: "ALL P::bool list list => bool.
+   P [] &
+   P [[]] &
+   (ALL (l1::bool list list) l2::bool list list.
+       algebra_canon l1 &
+       algebra_canon l2 &
+       algebra_canon (map (op # True) l1 @ map (op # False) l2) -->
+       P (map (op # True) l1 @ map (op # False) l2)) -->
+   (ALL l::bool list list. algebra_canon l --> P l)"
   by (import prob_canon ALGEBRA_CANON_CASES)
 
-lemma ALGEBRA_CANON_INDUCTION: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) (P ([]::bool list list))
-        ((op &::bool => bool => bool)
-          (P ((op #::bool list => bool list list => bool list list)
-               ([]::bool list) ([]::bool list list)))
-          ((All::(bool list list => bool) => bool)
-            (%l1::bool list list.
-                (All::(bool list list => bool) => bool)
-                 (%l2::bool list list.
-                     (op -->::bool => bool => bool)
-                      ((op &::bool => bool => bool)
-                        ((algebra_canon::bool list list => bool) l1)
-                        ((op &::bool => bool => bool)
-                          ((algebra_canon::bool list list => bool) l2)
-                          ((op &::bool => bool => bool) (P l1)
-                            ((op &::bool => bool => bool) (P l2)
-                              ((algebra_canon::bool list list => bool)
-                                ((op @::bool list list
-  => bool list list => bool list list)
-                                  ((map::(bool list => bool list)
-   => bool list list => bool list list)
-                                    ((op #::bool => bool list => bool list)
-(True::bool))
-                                    l1)
-                                  ((map::(bool list => bool list)
-   => bool list list => bool list list)
-                                    ((op #::bool => bool list => bool list)
-(False::bool))
-                                    l2)))))))
-                      (P ((op @::bool list list
-                                 => bool list list => bool list list)
-                           ((map::(bool list => bool list)
-                                  => bool list list => bool list list)
-                             ((op #::bool => bool list => bool list)
-                               (True::bool))
-                             l1)
-                           ((map::(bool list => bool list)
-                                  => bool list list => bool list list)
-                             ((op #::bool => bool list => bool list)
-                               (False::bool))
-                             l2))))))))
-      ((All::(bool list list => bool) => bool)
-        (%l::bool list list.
-            (op -->::bool => bool => bool)
-             ((algebra_canon::bool list list => bool) l) (P l))))"
+lemma ALGEBRA_CANON_INDUCTION: "ALL P::bool list list => bool.
+   P [] &
+   P [[]] &
+   (ALL (l1::bool list list) l2::bool list list.
+       algebra_canon l1 &
+       algebra_canon l2 &
+       P l1 &
+       P l2 & algebra_canon (map (op # True) l1 @ map (op # False) l2) -->
+       P (map (op # True) l1 @ map (op # False) l2)) -->
+   (ALL l::bool list list. algebra_canon l --> P l)"
   by (import prob_canon ALGEBRA_CANON_INDUCTION)
 
 lemma MEM_NIL_STEP: "ALL (l1::bool list list) l2::bool list list.
@@ -2032,25 +1092,10 @@ lemma ALG_SORTED_PREFIXFREE_MEM_NIL: "ALL l::bool list list.
    (alg_sorted l & alg_prefixfree l & [] mem l) = (l = [[]])"
   by (import prob_canon ALG_SORTED_PREFIXFREE_MEM_NIL)
 
-lemma ALG_SORTED_PREFIXFREE_EQUALITY: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l'::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((All::(bool list => bool) => bool)
-               (%x::bool list.
-                   (op =::bool => bool => bool)
-                    ((op mem::bool list => bool list list => bool) x l)
-                    ((op mem::bool list => bool list list => bool) x l')))
-             ((op &::bool => bool => bool)
-               ((alg_sorted::bool list list => bool) l)
-               ((op &::bool => bool => bool)
-                 ((alg_sorted::bool list list => bool) l')
-                 ((op &::bool => bool => bool)
-                   ((alg_prefixfree::bool list list => bool) l)
-                   ((alg_prefixfree::bool list list => bool) l')))))
-           ((op =::bool list list => bool list list => bool) l l')))"
+lemma ALG_SORTED_PREFIXFREE_EQUALITY: "ALL (l::bool list list) l'::bool list list.
+   (ALL x::bool list. x mem l = x mem l') &
+   alg_sorted l & alg_sorted l' & alg_prefixfree l & alg_prefixfree l' -->
+   l = l'"
   by (import prob_canon ALG_SORTED_PREFIXFREE_EQUALITY)
 
 ;end_setup
@@ -2187,19 +1232,8 @@ lemma ALG_EMBED_NIL: "ALL c::bool list. All (alg_embed c) = (c = [])"
 lemma ALG_EMBED_POPULATED: "ALL b::bool list. Ex (alg_embed b)"
   by (import prob_algebra ALG_EMBED_POPULATED)
 
-lemma ALG_EMBED_PREFIX: "(All::(bool list => bool) => bool)
- (%b::bool list.
-     (All::(bool list => bool) => bool)
-      (%c::bool list.
-          (All::((nat => bool) => bool) => bool)
-           (%s::nat => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_embed::bool list => (nat => bool) => bool) b s)
-                  ((alg_embed::bool list => (nat => bool) => bool) c s))
-                ((op |::bool => bool => bool)
-                  ((IS_PREFIX::bool list => bool list => bool) b c)
-                  ((IS_PREFIX::bool list => bool list => bool) c b)))))"
+lemma ALG_EMBED_PREFIX: "ALL (b::bool list) (c::bool list) s::nat => bool.
+   alg_embed b s & alg_embed c s --> IS_PREFIX b c | IS_PREFIX c b"
   by (import prob_algebra ALG_EMBED_PREFIX)
 
 lemma ALG_EMBED_PREFIX_SUBSET: "ALL (b::bool list) c::bool list.
@@ -2216,17 +1250,8 @@ algebra_embed [[]] = pred_set.UNIV &
 (ALL b::bool. algebra_embed [[b]] = (%s::nat => bool. SHD s = b))"
   by (import prob_algebra ALGEBRA_EMBED_BASIC)
 
-lemma ALGEBRA_EMBED_MEM: "(All::(bool list list => bool) => bool)
- (%b::bool list list.
-     (All::((nat => bool) => bool) => bool)
-      (%x::nat => bool.
-          (op -->::bool => bool => bool)
-           ((algebra_embed::bool list list => (nat => bool) => bool) b x)
-           ((Ex::(bool list => bool) => bool)
-             (%l::bool list.
-                 (op &::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) l b)
-                  ((alg_embed::bool list => (nat => bool) => bool) l x)))))"
+lemma ALGEBRA_EMBED_MEM: "ALL (b::bool list list) x::nat => bool.
+   algebra_embed b x --> (EX l::bool list. l mem b & alg_embed l x)"
   by (import prob_algebra ALGEBRA_EMBED_MEM)
 
 lemma ALGEBRA_EMBED_APPEND: "ALL (l1::bool list list) l2::bool list list.
@@ -2260,47 +1285,20 @@ lemma ALG_CANON2_EMBED: "ALL x::bool list list. algebra_embed (alg_canon2 x) = a
 lemma ALG_CANON_EMBED: "ALL l::bool list list. algebra_embed (alg_canon l) = algebra_embed l"
   by (import prob_algebra ALG_CANON_EMBED)
 
-lemma ALGEBRA_CANON_UNIV: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((op -->::bool => bool => bool)
-        ((op =::((nat => bool) => bool) => ((nat => bool) => bool) => bool)
-          ((algebra_embed::bool list list => (nat => bool) => bool) l)
-          (pred_set.UNIV::(nat => bool) => bool))
-        ((op =::bool list list => bool list list => bool) l
-          ((op #::bool list => bool list list => bool list list)
-            ([]::bool list) ([]::bool list list)))))"
+lemma ALGEBRA_CANON_UNIV: "ALL l::bool list list.
+   algebra_canon l --> algebra_embed l = pred_set.UNIV --> l = [[]]"
   by (import prob_algebra ALGEBRA_CANON_UNIV)
 
 lemma ALG_CANON_REP: "ALL (b::bool list list) c::bool list list.
    (alg_canon b = alg_canon c) = (algebra_embed b = algebra_embed c)"
   by (import prob_algebra ALG_CANON_REP)
 
-lemma ALGEBRA_CANON_EMBED_EMPTY: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((op =::bool => bool => bool)
-        ((All::((nat => bool) => bool) => bool)
-          (%v::nat => bool.
-              (Not::bool => bool)
-               ((algebra_embed::bool list list => (nat => bool) => bool) l
-                 v)))
-        ((op =::bool list list => bool list list => bool) l
-          ([]::bool list list))))"
+lemma ALGEBRA_CANON_EMBED_EMPTY: "ALL l::bool list list.
+   algebra_canon l --> (ALL v::nat => bool. ~ algebra_embed l v) = (l = [])"
   by (import prob_algebra ALGEBRA_CANON_EMBED_EMPTY)
 
-lemma ALGEBRA_CANON_EMBED_UNIV: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((op =::bool => bool => bool)
-        ((All::((nat => bool) => bool) => bool)
-          ((algebra_embed::bool list list => (nat => bool) => bool) l))
-        ((op =::bool list list => bool list list => bool) l
-          ((op #::bool list => bool list list => bool list list)
-            ([]::bool list) ([]::bool list list)))))"
+lemma ALGEBRA_CANON_EMBED_UNIV: "ALL l::bool list list.
+   algebra_canon l --> All (algebra_embed l) = (l = [[]])"
   by (import prob_algebra ALGEBRA_CANON_EMBED_UNIV)
 
 lemma MEASURABLE_ALGEBRA: "ALL b::bool list list. measurable (algebra_embed b)"
@@ -2321,34 +1319,12 @@ lemma ALGEBRA_EMBED_COMPL: "ALL l::bool list list.
 lemma MEASURABLE_COMPL: "ALL s::(nat => bool) => bool. measurable (COMPL s) = measurable s"
   by (import prob_algebra MEASURABLE_COMPL)
 
-lemma MEASURABLE_UNION: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%t::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((measurable::((nat => bool) => bool) => bool) s)
-             ((measurable::((nat => bool) => bool) => bool) t))
-           ((measurable::((nat => bool) => bool) => bool)
-             ((pred_set.UNION::((nat => bool) => bool)
-                               => ((nat => bool) => bool)
-                                  => (nat => bool) => bool)
-               s t))))"
+lemma MEASURABLE_UNION: "ALL (s::(nat => bool) => bool) t::(nat => bool) => bool.
+   measurable s & measurable t --> measurable (pred_set.UNION s t)"
   by (import prob_algebra MEASURABLE_UNION)
 
-lemma MEASURABLE_INTER: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%t::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((measurable::((nat => bool) => bool) => bool) s)
-             ((measurable::((nat => bool) => bool) => bool) t))
-           ((measurable::((nat => bool) => bool) => bool)
-             ((pred_set.INTER::((nat => bool) => bool)
-                               => ((nat => bool) => bool)
-                                  => (nat => bool) => bool)
-               s t))))"
+lemma MEASURABLE_INTER: "ALL (s::(nat => bool) => bool) t::(nat => bool) => bool.
+   measurable s & measurable t --> measurable (pred_set.INTER s t)"
   by (import prob_algebra MEASURABLE_INTER)
 
 lemma MEASURABLE_STL: "ALL p::(nat => bool) => bool. measurable (p o STL) = measurable p"
@@ -2497,97 +1473,35 @@ lemma ALGEBRA_MEASURE_BASIC: "algebra_measure [] = 0 &
 algebra_measure [[]] = 1 & (ALL b::bool. algebra_measure [[b]] = 1 / 2)"
   by (import prob ALGEBRA_MEASURE_BASIC)
 
-lemma ALGEBRA_CANON_MEASURE_MAX: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((op <=::real => real => bool)
-        ((alg_measure::bool list list => real) l) (1::real)))"
+lemma ALGEBRA_CANON_MEASURE_MAX: "ALL l::bool list list. algebra_canon l --> alg_measure l <= 1"
   by (import prob ALGEBRA_CANON_MEASURE_MAX)
 
 lemma ALGEBRA_MEASURE_MAX: "ALL l::bool list list. algebra_measure l <= 1"
   by (import prob ALGEBRA_MEASURE_MAX)
 
-lemma ALGEBRA_MEASURE_MONO_EMBED: "(All::(bool list list => bool) => bool)
- (%x::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%xa::bool list list.
-          (op -->::bool => bool => bool)
-           ((SUBSET::((nat => bool) => bool)
-                     => ((nat => bool) => bool) => bool)
-             ((algebra_embed::bool list list => (nat => bool) => bool) x)
-             ((algebra_embed::bool list list => (nat => bool) => bool) xa))
-           ((op <=::real => real => bool)
-             ((algebra_measure::bool list list => real) x)
-             ((algebra_measure::bool list list => real) xa))))"
+lemma ALGEBRA_MEASURE_MONO_EMBED: "ALL (x::bool list list) xa::bool list list.
+   SUBSET (algebra_embed x) (algebra_embed xa) -->
+   algebra_measure x <= algebra_measure xa"
   by (import prob ALGEBRA_MEASURE_MONO_EMBED)
 
-lemma ALG_MEASURE_COMPL: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((All::(bool list list => bool) => bool)
-        (%c::bool list list.
-            (op -->::bool => bool => bool)
-             ((algebra_canon::bool list list => bool) c)
-             ((op -->::bool => bool => bool)
-               ((op =::((nat => bool) => bool)
-                       => ((nat => bool) => bool) => bool)
-                 ((COMPL::((nat => bool) => bool) => (nat => bool) => bool)
-                   ((algebra_embed::bool list list => (nat => bool) => bool)
-                     l))
-                 ((algebra_embed::bool list list => (nat => bool) => bool)
-                   c))
-               ((op =::real => real => bool)
-                 ((op +::real => real => real)
-                   ((alg_measure::bool list list => real) l)
-                   ((alg_measure::bool list list => real) c))
-                 (1::real))))))"
+lemma ALG_MEASURE_COMPL: "ALL l::bool list list.
+   algebra_canon l -->
+   (ALL c::bool list list.
+       algebra_canon c -->
+       COMPL (algebra_embed l) = algebra_embed c -->
+       alg_measure l + alg_measure c = 1)"
   by (import prob ALG_MEASURE_COMPL)
 
-lemma ALG_MEASURE_ADDITIVE: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((algebra_canon::bool list list => bool) l)
-      ((All::(bool list list => bool) => bool)
-        (%c::bool list list.
-            (op -->::bool => bool => bool)
-             ((algebra_canon::bool list list => bool) c)
-             ((All::(bool list list => bool) => bool)
-               (%d::bool list list.
-                   (op -->::bool => bool => bool)
-                    ((algebra_canon::bool list list => bool) d)
-                    ((op -->::bool => bool => bool)
-                      ((op &::bool => bool => bool)
-                        ((op =::((nat => bool) => bool)
-                                => ((nat => bool) => bool) => bool)
-                          ((pred_set.INTER::((nat => bool) => bool)
-      => ((nat => bool) => bool) => (nat => bool) => bool)
-                            ((algebra_embed::bool list list
-       => (nat => bool) => bool)
-                              c)
-                            ((algebra_embed::bool list list
-       => (nat => bool) => bool)
-                              d))
-                          (EMPTY::(nat => bool) => bool))
-                        ((op =::((nat => bool) => bool)
-                                => ((nat => bool) => bool) => bool)
-                          ((algebra_embed::bool list list
-     => (nat => bool) => bool)
-                            l)
-                          ((pred_set.UNION::((nat => bool) => bool)
-      => ((nat => bool) => bool) => (nat => bool) => bool)
-                            ((algebra_embed::bool list list
-       => (nat => bool) => bool)
-                              c)
-                            ((algebra_embed::bool list list
-       => (nat => bool) => bool)
-                              d))))
-                      ((op =::real => real => bool)
-                        ((alg_measure::bool list list => real) l)
-                        ((op +::real => real => real)
-                          ((alg_measure::bool list list => real) c)
-                          ((alg_measure::bool list list => real) d)))))))))"
+lemma ALG_MEASURE_ADDITIVE: "ALL l::bool list list.
+   algebra_canon l -->
+   (ALL c::bool list list.
+       algebra_canon c -->
+       (ALL d::bool list list.
+           algebra_canon d -->
+           pred_set.INTER (algebra_embed c) (algebra_embed d) = EMPTY &
+           algebra_embed l =
+           pred_set.UNION (algebra_embed c) (algebra_embed d) -->
+           alg_measure l = alg_measure c + alg_measure d))"
   by (import prob ALG_MEASURE_ADDITIVE)
 
 lemma PROB_ALGEBRA: "ALL l::bool list list. prob (algebra_embed l) = algebra_measure l"
@@ -2598,42 +1512,12 @@ prob pred_set.UNIV = 1 &
 (ALL b::bool. prob (%s::nat => bool. SHD s = b) = 1 / 2)"
   by (import prob PROB_BASIC)
 
-lemma PROB_ADDITIVE: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%t::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((measurable::((nat => bool) => bool) => bool) s)
-             ((op &::bool => bool => bool)
-               ((measurable::((nat => bool) => bool) => bool) t)
-               ((op =::((nat => bool) => bool)
-                       => ((nat => bool) => bool) => bool)
-                 ((pred_set.INTER::((nat => bool) => bool)
-                                   => ((nat => bool) => bool)
-=> (nat => bool) => bool)
-                   s t)
-                 (EMPTY::(nat => bool) => bool))))
-           ((op =::real => real => bool)
-             ((prob::((nat => bool) => bool) => real)
-               ((pred_set.UNION::((nat => bool) => bool)
-                                 => ((nat => bool) => bool)
-                                    => (nat => bool) => bool)
-                 s t))
-             ((op +::real => real => real)
-               ((prob::((nat => bool) => bool) => real) s)
-               ((prob::((nat => bool) => bool) => real) t)))))"
+lemma PROB_ADDITIVE: "ALL (s::(nat => bool) => bool) t::(nat => bool) => bool.
+   measurable s & measurable t & pred_set.INTER s t = EMPTY -->
+   prob (pred_set.UNION s t) = prob s + prob t"
   by (import prob PROB_ADDITIVE)
 
-lemma PROB_COMPL: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (op -->::bool => bool => bool)
-      ((measurable::((nat => bool) => bool) => bool) s)
-      ((op =::real => real => bool)
-        ((prob::((nat => bool) => bool) => real)
-          ((COMPL::((nat => bool) => bool) => (nat => bool) => bool) s))
-        ((op -::real => real => real) (1::real)
-          ((prob::((nat => bool) => bool) => real) s))))"
+lemma PROB_COMPL: "ALL s::(nat => bool) => bool. measurable s --> prob (COMPL s) = 1 - prob s"
   by (import prob PROB_COMPL)
 
 lemma PROB_SUP_EXISTS1: "ALL s::(nat => bool) => bool.
@@ -2641,160 +1525,51 @@ lemma PROB_SUP_EXISTS1: "ALL s::(nat => bool) => bool.
       algebra_measure b = x & SUBSET (algebra_embed b) s"
   by (import prob PROB_SUP_EXISTS1)
 
-lemma PROB_SUP_EXISTS2: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (Ex::(real => bool) => bool)
-      (%x::real.
-          (All::(real => bool) => bool)
-           (%r::real.
-               (op -->::bool => bool => bool)
-                ((Ex::(bool list list => bool) => bool)
-                  (%b::bool list list.
-                      (op &::bool => bool => bool)
-                       ((op =::real => real => bool)
-                         ((algebra_measure::bool list list => real) b) r)
-                       ((SUBSET::((nat => bool) => bool)
-                                 => ((nat => bool) => bool) => bool)
-                         ((algebra_embed::bool list list
-    => (nat => bool) => bool)
-                           b)
-                         s)))
-                ((op <=::real => real => bool) r x))))"
+lemma PROB_SUP_EXISTS2: "ALL s::(nat => bool) => bool.
+   EX x::real.
+      ALL r::real.
+         (EX b::bool list list.
+             algebra_measure b = r & SUBSET (algebra_embed b) s) -->
+         r <= x"
   by (import prob PROB_SUP_EXISTS2)
 
-lemma PROB_LE_X: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((All::(((nat => bool) => bool) => bool) => bool)
-             (%s'::(nat => bool) => bool.
-                 (op -->::bool => bool => bool)
-                  ((op &::bool => bool => bool)
-                    ((measurable::((nat => bool) => bool) => bool) s')
-                    ((SUBSET::((nat => bool) => bool)
-                              => ((nat => bool) => bool) => bool)
-                      s' s))
-                  ((op <=::real => real => bool)
-                    ((prob::((nat => bool) => bool) => real) s') x)))
-           ((op <=::real => real => bool)
-             ((prob::((nat => bool) => bool) => real) s) x)))"
+lemma PROB_LE_X: "ALL (s::(nat => bool) => bool) x::real.
+   (ALL s'::(nat => bool) => bool.
+       measurable s' & SUBSET s' s --> prob s' <= x) -->
+   prob s <= x"
   by (import prob PROB_LE_X)
 
-lemma X_LE_PROB: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (All::(real => bool) => bool)
-      (%x::real.
-          (op -->::bool => bool => bool)
-           ((Ex::(((nat => bool) => bool) => bool) => bool)
-             (%s'::(nat => bool) => bool.
-                 (op &::bool => bool => bool)
-                  ((measurable::((nat => bool) => bool) => bool) s')
-                  ((op &::bool => bool => bool)
-                    ((SUBSET::((nat => bool) => bool)
-                              => ((nat => bool) => bool) => bool)
-                      s' s)
-                    ((op <=::real => real => bool) x
-                      ((prob::((nat => bool) => bool) => real) s')))))
-           ((op <=::real => real => bool) x
-             ((prob::((nat => bool) => bool) => real) s))))"
+lemma X_LE_PROB: "ALL (s::(nat => bool) => bool) x::real.
+   (EX s'::(nat => bool) => bool.
+       measurable s' & SUBSET s' s & x <= prob s') -->
+   x <= prob s"
   by (import prob X_LE_PROB)
 
-lemma PROB_SUBSET_MONO: "(All::(((nat => bool) => bool) => bool) => bool)
- (%s::(nat => bool) => bool.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%t::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((SUBSET::((nat => bool) => bool)
-                     => ((nat => bool) => bool) => bool)
-             s t)
-           ((op <=::real => real => bool)
-             ((prob::((nat => bool) => bool) => real) s)
-             ((prob::((nat => bool) => bool) => real) t))))"
+lemma PROB_SUBSET_MONO: "ALL (s::(nat => bool) => bool) t::(nat => bool) => bool.
+   SUBSET s t --> prob s <= prob t"
   by (import prob PROB_SUBSET_MONO)
 
 lemma PROB_ALG: "ALL x::bool list. prob (alg_embed x) = (1 / 2) ^ length x"
   by (import prob PROB_ALG)
 
-lemma PROB_STL: "(All::(((nat => bool) => bool) => bool) => bool)
- (%p::(nat => bool) => bool.
-     (op -->::bool => bool => bool)
-      ((measurable::((nat => bool) => bool) => bool) p)
-      ((op =::real => real => bool)
-        ((prob::((nat => bool) => bool) => real)
-          ((op o::((nat => bool) => bool)
-                  => ((nat => bool) => nat => bool)
-                     => (nat => bool) => bool)
-            p (STL::(nat => bool) => nat => bool)))
-        ((prob::((nat => bool) => bool) => real) p)))"
+lemma PROB_STL: "ALL p::(nat => bool) => bool. measurable p --> prob (p o STL) = prob p"
   by (import prob PROB_STL)
 
-lemma PROB_SDROP: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%p::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((measurable::((nat => bool) => bool) => bool) p)
-           ((op =::real => real => bool)
-             ((prob::((nat => bool) => bool) => real)
-               ((op o::((nat => bool) => bool)
-                       => ((nat => bool) => nat => bool)
-                          => (nat => bool) => bool)
-                 p ((SDROP::nat => (nat => bool) => nat => bool) n)))
-             ((prob::((nat => bool) => bool) => real) p))))"
+lemma PROB_SDROP: "ALL (n::nat) p::(nat => bool) => bool.
+   measurable p --> prob (p o SDROP n) = prob p"
   by (import prob PROB_SDROP)
 
-lemma PROB_INTER_HALVES: "(All::(((nat => bool) => bool) => bool) => bool)
- (%p::(nat => bool) => bool.
-     (op -->::bool => bool => bool)
-      ((measurable::((nat => bool) => bool) => bool) p)
-      ((op =::real => real => bool)
-        ((op +::real => real => real)
-          ((prob::((nat => bool) => bool) => real)
-            ((pred_set.INTER::((nat => bool) => bool)
-                              => ((nat => bool) => bool)
-                                 => (nat => bool) => bool)
-              (%x::nat => bool.
-                  (op =::bool => bool => bool)
-                   ((SHD::(nat => bool) => bool) x) (True::bool))
-              p))
-          ((prob::((nat => bool) => bool) => real)
-            ((pred_set.INTER::((nat => bool) => bool)
-                              => ((nat => bool) => bool)
-                                 => (nat => bool) => bool)
-              (%x::nat => bool.
-                  (op =::bool => bool => bool)
-                   ((SHD::(nat => bool) => bool) x) (False::bool))
-              p)))
-        ((prob::((nat => bool) => bool) => real) p)))"
+lemma PROB_INTER_HALVES: "ALL p::(nat => bool) => bool.
+   measurable p -->
+   prob (pred_set.INTER (%x::nat => bool. SHD x = True) p) +
+   prob (pred_set.INTER (%x::nat => bool. SHD x = False) p) =
+   prob p"
   by (import prob PROB_INTER_HALVES)
 
-lemma PROB_INTER_SHD: "(All::(bool => bool) => bool)
- (%b::bool.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%p::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((measurable::((nat => bool) => bool) => bool) p)
-           ((op =::real => real => bool)
-             ((prob::((nat => bool) => bool) => real)
-               ((pred_set.INTER::((nat => bool) => bool)
-                                 => ((nat => bool) => bool)
-                                    => (nat => bool) => bool)
-                 (%x::nat => bool.
-                     (op =::bool => bool => bool)
-                      ((SHD::(nat => bool) => bool) x) b)
-                 ((op o::((nat => bool) => bool)
-                         => ((nat => bool) => nat => bool)
-                            => (nat => bool) => bool)
-                   p (STL::(nat => bool) => nat => bool))))
-             ((op *::real => real => real)
-               ((op /::real => real => real) (1::real)
-                 ((number_of::bin => real)
-                   ((op BIT::bin => bit => bin)
-                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                       (bit.B1::bit))
-                     (bit.B0::bit))))
-               ((prob::((nat => bool) => bool) => real) p)))))"
+lemma PROB_INTER_SHD: "ALL (b::bool) p::(nat => bool) => bool.
+   measurable p -->
+   prob (pred_set.INTER (%x::nat => bool. SHD x = b) (p o STL)) =
+   1 / 2 * prob p"
   by (import prob PROB_INTER_SHD)
 
 lemma ALGEBRA_MEASURE_POS: "ALL l::bool list list. 0 <= algebra_measure l"
@@ -2818,21 +1593,8 @@ lemma ABS_PROB: "ALL p::(nat => bool) => bool. abs (prob p) = prob p"
 lemma PROB_SHD: "ALL b::bool. prob (%s::nat => bool. SHD s = b) = 1 / 2"
   by (import prob PROB_SHD)
 
-lemma PROB_COMPL_LE1: "(All::(((nat => bool) => bool) => bool) => bool)
- (%p::(nat => bool) => bool.
-     (All::(real => bool) => bool)
-      (%r::real.
-          (op -->::bool => bool => bool)
-           ((measurable::((nat => bool) => bool) => bool) p)
-           ((op =::bool => bool => bool)
-             ((op <=::real => real => bool)
-               ((prob::((nat => bool) => bool) => real)
-                 ((COMPL::((nat => bool) => bool) => (nat => bool) => bool)
-                   p))
-               r)
-             ((op <=::real => real => bool)
-               ((op -::real => real => real) (1::real) r)
-               ((prob::((nat => bool) => bool) => real) p)))))"
+lemma PROB_COMPL_LE1: "ALL (p::(nat => bool) => bool) r::real.
+   measurable p --> (prob (COMPL p) <= r) = (1 - r <= prob p)"
   by (import prob PROB_COMPL_LE1)
 
 ;end_setup
@@ -2981,103 +1743,34 @@ lemma indep_def: "ALL f::(nat => bool) => 'a::type * (nat => bool).
            (let c::bool list = alg_cover l s in (r c, SDROP (length c) s))))"
   by (import prob_indep indep_def)
 
-lemma INDEP_SET_BASIC: "(All::(((nat => bool) => bool) => bool) => bool)
- (%p::(nat => bool) => bool.
-     (op -->::bool => bool => bool)
-      ((measurable::((nat => bool) => bool) => bool) p)
-      ((op &::bool => bool => bool)
-        ((indep_set::((nat => bool) => bool)
-                     => ((nat => bool) => bool) => bool)
-          (EMPTY::(nat => bool) => bool) p)
-        ((indep_set::((nat => bool) => bool)
-                     => ((nat => bool) => bool) => bool)
-          (pred_set.UNIV::(nat => bool) => bool) p)))"
+lemma INDEP_SET_BASIC: "ALL p::(nat => bool) => bool.
+   measurable p --> indep_set EMPTY p & indep_set pred_set.UNIV p"
   by (import prob_indep INDEP_SET_BASIC)
 
 lemma INDEP_SET_SYM: "ALL (p::(nat => bool) => bool) q::(nat => bool) => bool.
    indep_set p q = indep_set p q"
   by (import prob_indep INDEP_SET_SYM)
 
-lemma INDEP_SET_DISJOINT_DECOMP: "(All::(((nat => bool) => bool) => bool) => bool)
- (%p::(nat => bool) => bool.
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%q::(nat => bool) => bool.
-          (All::(((nat => bool) => bool) => bool) => bool)
-           (%r::(nat => bool) => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((indep_set::((nat => bool) => bool)
-                               => ((nat => bool) => bool) => bool)
-                    p r)
-                  ((op &::bool => bool => bool)
-                    ((indep_set::((nat => bool) => bool)
-                                 => ((nat => bool) => bool) => bool)
-                      q r)
-                    ((op =::((nat => bool) => bool)
-                            => ((nat => bool) => bool) => bool)
-                      ((pred_set.INTER::((nat => bool) => bool)
-  => ((nat => bool) => bool) => (nat => bool) => bool)
-                        p q)
-                      (EMPTY::(nat => bool) => bool))))
-                ((indep_set::((nat => bool) => bool)
-                             => ((nat => bool) => bool) => bool)
-                  ((pred_set.UNION::((nat => bool) => bool)
-                                    => ((nat => bool) => bool)
- => (nat => bool) => bool)
-                    p q)
-                  r))))"
+lemma INDEP_SET_DISJOINT_DECOMP: "ALL (p::(nat => bool) => bool) (q::(nat => bool) => bool)
+   r::(nat => bool) => bool.
+   indep_set p r & indep_set q r & pred_set.INTER p q = EMPTY -->
+   indep_set (pred_set.UNION p q) r"
   by (import prob_indep INDEP_SET_DISJOINT_DECOMP)
 
 lemma ALG_COVER_SET_BASIC: "~ alg_cover_set [] & alg_cover_set [[]] & alg_cover_set [[True], [False]]"
   by (import prob_indep ALG_COVER_SET_BASIC)
 
-lemma ALG_COVER_WELL_DEFINED: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (All::((nat => bool) => bool) => bool)
-      (%x::nat => bool.
-          (op -->::bool => bool => bool)
-           ((alg_cover_set::bool list list => bool) l)
-           ((op &::bool => bool => bool)
-             ((op mem::bool list => bool list list => bool)
-               ((alg_cover::bool list list => (nat => bool) => bool list) l
-                 x)
-               l)
-             ((alg_embed::bool list => (nat => bool) => bool)
-               ((alg_cover::bool list list => (nat => bool) => bool list) l
-                 x)
-               x))))"
+lemma ALG_COVER_WELL_DEFINED: "ALL (l::bool list list) x::nat => bool.
+   alg_cover_set l --> alg_cover l x mem l & alg_embed (alg_cover l x) x"
   by (import prob_indep ALG_COVER_WELL_DEFINED)
 
 lemma ALG_COVER_UNIV: "alg_cover [[]] = K []"
   by (import prob_indep ALG_COVER_UNIV)
 
-lemma MAP_CONS_TL_FILTER: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (All::(bool => bool) => bool)
-      (%b::bool.
-          (op -->::bool => bool => bool)
-           ((Not::bool => bool)
-             ((op mem::bool list => bool list list => bool) ([]::bool list)
-               l))
-           ((op =::bool list list => bool list list => bool)
-             ((map::(bool list => bool list)
-                    => bool list list => bool list list)
-               ((op #::bool => bool list => bool list) b)
-               ((map::(bool list => bool list)
-                      => bool list list => bool list list)
-                 (tl::bool list => bool list)
-                 ((filter::(bool list => bool)
-                           => bool list list => bool list list)
-                   (%x::bool list.
-                       (op =::bool => bool => bool)
-                        ((hd::bool list => bool) x) b)
-                   l)))
-             ((filter::(bool list => bool)
-                       => bool list list => bool list list)
-               (%x::bool list.
-                   (op =::bool => bool => bool) ((hd::bool list => bool) x)
-                    b)
-               l))))"
+lemma MAP_CONS_TL_FILTER: "ALL (l::bool list list) b::bool.
+   ~ [] mem l -->
+   map (op # b) (map tl [x::bool list:l. hd x = b]) =
+   [x::bool list:l. hd x = b]"
   by (import prob_indep MAP_CONS_TL_FILTER)
 
 lemma ALG_COVER_SET_CASES_THM: "ALL l::bool list list.
@@ -3088,409 +1781,100 @@ lemma ALG_COVER_SET_CASES_THM: "ALL l::bool list list.
         alg_cover_set xa & l = map (op # True) x @ map (op # False) xa))"
   by (import prob_indep ALG_COVER_SET_CASES_THM)
 
-lemma ALG_COVER_SET_CASES: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        (P ((op #::bool list => bool list list => bool list list)
-             ([]::bool list) ([]::bool list list)))
-        ((All::(bool list list => bool) => bool)
-          (%l1::bool list list.
-              (All::(bool list list => bool) => bool)
-               (%l2::bool list list.
-                   (op -->::bool => bool => bool)
-                    ((op &::bool => bool => bool)
-                      ((alg_cover_set::bool list list => bool) l1)
-                      ((op &::bool => bool => bool)
-                        ((alg_cover_set::bool list list => bool) l2)
-                        ((alg_cover_set::bool list list => bool)
-                          ((op @::bool list list
-                                  => bool list list => bool list list)
-                            ((map::(bool list => bool list)
-                                   => bool list list => bool list list)
-                              ((op #::bool => bool list => bool list)
-                                (True::bool))
-                              l1)
-                            ((map::(bool list => bool list)
-                                   => bool list list => bool list list)
-                              ((op #::bool => bool list => bool list)
-                                (False::bool))
-                              l2)))))
-                    (P ((op @::bool list list
-                               => bool list list => bool list list)
-                         ((map::(bool list => bool list)
-                                => bool list list => bool list list)
-                           ((op #::bool => bool list => bool list)
-                             (True::bool))
-                           l1)
-                         ((map::(bool list => bool list)
-                                => bool list list => bool list list)
-                           ((op #::bool => bool list => bool list)
-                             (False::bool))
-                           l2)))))))
-      ((All::(bool list list => bool) => bool)
-        (%l::bool list list.
-            (op -->::bool => bool => bool)
-             ((alg_cover_set::bool list list => bool) l) (P l))))"
+lemma ALG_COVER_SET_CASES: "ALL P::bool list list => bool.
+   P [[]] &
+   (ALL (l1::bool list list) l2::bool list list.
+       alg_cover_set l1 &
+       alg_cover_set l2 &
+       alg_cover_set (map (op # True) l1 @ map (op # False) l2) -->
+       P (map (op # True) l1 @ map (op # False) l2)) -->
+   (ALL l::bool list list. alg_cover_set l --> P l)"
   by (import prob_indep ALG_COVER_SET_CASES)
 
-lemma ALG_COVER_SET_INDUCTION: "(All::((bool list list => bool) => bool) => bool)
- (%P::bool list list => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        (P ((op #::bool list => bool list list => bool list list)
-             ([]::bool list) ([]::bool list list)))
-        ((All::(bool list list => bool) => bool)
-          (%l1::bool list list.
-              (All::(bool list list => bool) => bool)
-               (%l2::bool list list.
-                   (op -->::bool => bool => bool)
-                    ((op &::bool => bool => bool)
-                      ((alg_cover_set::bool list list => bool) l1)
-                      ((op &::bool => bool => bool)
-                        ((alg_cover_set::bool list list => bool) l2)
-                        ((op &::bool => bool => bool) (P l1)
-                          ((op &::bool => bool => bool) (P l2)
-                            ((alg_cover_set::bool list list => bool)
-                              ((op @::bool list list
-=> bool list list => bool list list)
-                                ((map::(bool list => bool list)
- => bool list list => bool list list)
-                                  ((op #::bool => bool list => bool list)
-                                    (True::bool))
-                                  l1)
-                                ((map::(bool list => bool list)
- => bool list list => bool list list)
-                                  ((op #::bool => bool list => bool list)
-                                    (False::bool))
-                                  l2)))))))
-                    (P ((op @::bool list list
-                               => bool list list => bool list list)
-                         ((map::(bool list => bool list)
-                                => bool list list => bool list list)
-                           ((op #::bool => bool list => bool list)
-                             (True::bool))
-                           l1)
-                         ((map::(bool list => bool list)
-                                => bool list list => bool list list)
-                           ((op #::bool => bool list => bool list)
-                             (False::bool))
-                           l2)))))))
-      ((All::(bool list list => bool) => bool)
-        (%l::bool list list.
-            (op -->::bool => bool => bool)
-             ((alg_cover_set::bool list list => bool) l) (P l))))"
+lemma ALG_COVER_SET_INDUCTION: "ALL P::bool list list => bool.
+   P [[]] &
+   (ALL (l1::bool list list) l2::bool list list.
+       alg_cover_set l1 &
+       alg_cover_set l2 &
+       P l1 &
+       P l2 & alg_cover_set (map (op # True) l1 @ map (op # False) l2) -->
+       P (map (op # True) l1 @ map (op # False) l2)) -->
+   (ALL l::bool list list. alg_cover_set l --> P l)"
   by (import prob_indep ALG_COVER_SET_INDUCTION)
 
-lemma ALG_COVER_EXISTS_UNIQUE: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((alg_cover_set::bool list list => bool) l)
-      ((All::((nat => bool) => bool) => bool)
-        (%s::nat => bool.
-            (Ex1::(bool list => bool) => bool)
-             (%x::bool list.
-                 (op &::bool => bool => bool)
-                  ((op mem::bool list => bool list list => bool) x l)
-                  ((alg_embed::bool list => (nat => bool) => bool) x s)))))"
+lemma ALG_COVER_EXISTS_UNIQUE: "ALL l::bool list list.
+   alg_cover_set l -->
+   (ALL s::nat => bool. EX! x::bool list. x mem l & alg_embed x s)"
   by (import prob_indep ALG_COVER_EXISTS_UNIQUE)
 
-lemma ALG_COVER_UNIQUE: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (All::(bool list => bool) => bool)
-      (%x::bool list.
-          (All::((nat => bool) => bool) => bool)
-           (%s::nat => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_cover_set::bool list list => bool) l)
-                  ((op &::bool => bool => bool)
-                    ((op mem::bool list => bool list list => bool) x l)
-                    ((alg_embed::bool list => (nat => bool) => bool) x s)))
-                ((op =::bool list => bool list => bool)
-                  ((alg_cover::bool list list => (nat => bool) => bool list)
-                    l s)
-                  x))))"
+lemma ALG_COVER_UNIQUE: "ALL (l::bool list list) (x::bool list) s::nat => bool.
+   alg_cover_set l & x mem l & alg_embed x s --> alg_cover l s = x"
   by (import prob_indep ALG_COVER_UNIQUE)
 
-lemma ALG_COVER_STEP: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (All::(bool => bool) => bool)
-           (%h::bool.
-               (All::((nat => bool) => bool) => bool)
-                (%t::nat => bool.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((alg_cover_set::bool list list => bool) l1)
-                       ((alg_cover_set::bool list list => bool) l2))
-                     ((op =::bool list => bool list => bool)
-                       ((alg_cover::bool list list
-                                    => (nat => bool) => bool list)
-                         ((op @::bool list list
-                                 => bool list list => bool list list)
-                           ((map::(bool list => bool list)
-                                  => bool list list => bool list list)
-                             ((op #::bool => bool list => bool list)
-                               (True::bool))
-                             l1)
-                           ((map::(bool list => bool list)
-                                  => bool list list => bool list list)
-                             ((op #::bool => bool list => bool list)
-                               (False::bool))
-                             l2))
-                         ((SCONS::bool => (nat => bool) => nat => bool) h
-                           t))
-                       ((If::bool => bool list => bool list => bool list) h
-                         ((op #::bool => bool list => bool list)
-                           (True::bool)
-                           ((alg_cover::bool list list
-  => (nat => bool) => bool list)
-                             l1 t))
-                         ((op #::bool => bool list => bool list)
-                           (False::bool)
-                           ((alg_cover::bool list list
-  => (nat => bool) => bool list)
-                             l2 t))))))))"
+lemma ALG_COVER_STEP: "ALL (l1::bool list list) (l2::bool list list) (h::bool) t::nat => bool.
+   alg_cover_set l1 & alg_cover_set l2 -->
+   alg_cover (map (op # True) l1 @ map (op # False) l2) (SCONS h t) =
+   (if h then True # alg_cover l1 t else False # alg_cover l2 t)"
   by (import prob_indep ALG_COVER_STEP)
 
-lemma ALG_COVER_HEAD: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((alg_cover_set::bool list list => bool) l)
-      ((All::((bool list => bool) => bool) => bool)
-        (%f::bool list => bool.
-            (op =::((nat => bool) => bool)
-                   => ((nat => bool) => bool) => bool)
-             ((op o::(bool list => bool)
-                     => ((nat => bool) => bool list)
-                        => (nat => bool) => bool)
-               f ((alg_cover::bool list list => (nat => bool) => bool list)
-                   l))
-             ((algebra_embed::bool list list => (nat => bool) => bool)
-               ((filter::(bool list => bool)
-                         => bool list list => bool list list)
-                 f l)))))"
+lemma ALG_COVER_HEAD: "ALL l::bool list list.
+   alg_cover_set l -->
+   (ALL f::bool list => bool. f o alg_cover l = algebra_embed (filter f l))"
   by (import prob_indep ALG_COVER_HEAD)
 
-lemma ALG_COVER_TAIL_STEP: "(All::(bool list list => bool) => bool)
- (%l1::bool list list.
-     (All::(bool list list => bool) => bool)
-      (%l2::bool list list.
-          (All::(((nat => bool) => bool) => bool) => bool)
-           (%q::(nat => bool) => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((alg_cover_set::bool list list => bool) l1)
-                  ((alg_cover_set::bool list list => bool) l2))
-                ((op =::((nat => bool) => bool)
-                        => ((nat => bool) => bool) => bool)
-                  ((op o::((nat => bool) => bool)
-                          => ((nat => bool) => nat => bool)
-                             => (nat => bool) => bool)
-                    q (%x::nat => bool.
-                          (SDROP::nat => (nat => bool) => nat => bool)
-                           ((size::bool list => nat)
-                             ((alg_cover::bool list list
-    => (nat => bool) => bool list)
-                               ((op @::bool list list
- => bool list list => bool list list)
-                                 ((map::(bool list => bool list)
-  => bool list list => bool list list)
-                                   ((op #::bool => bool list => bool list)
-                                     (True::bool))
-                                   l1)
-                                 ((map::(bool list => bool list)
-  => bool list list => bool list list)
-                                   ((op #::bool => bool list => bool list)
-                                     (False::bool))
-                                   l2))
-                               x))
-                           x))
-                  ((pred_set.UNION::((nat => bool) => bool)
-                                    => ((nat => bool) => bool)
- => (nat => bool) => bool)
-                    ((pred_set.INTER::((nat => bool) => bool)
-=> ((nat => bool) => bool) => (nat => bool) => bool)
-                      (%x::nat => bool.
-                          (op =::bool => bool => bool)
-                           ((SHD::(nat => bool) => bool) x) (True::bool))
-                      ((op o::((nat => bool) => bool)
-                              => ((nat => bool) => nat => bool)
-                                 => (nat => bool) => bool)
-                        q ((op o::((nat => bool) => nat => bool)
-                                  => ((nat => bool) => nat => bool)
-                                     => (nat => bool) => nat => bool)
-                            (%x::nat => bool.
-                                (SDROP::nat => (nat => bool) => nat => bool)
-                                 ((size::bool list => nat)
-                                   ((alg_cover::bool list list
-          => (nat => bool) => bool list)
-                                     l1 x))
-                                 x)
-                            (STL::(nat => bool) => nat => bool))))
-                    ((pred_set.INTER::((nat => bool) => bool)
-=> ((nat => bool) => bool) => (nat => bool) => bool)
-                      (%x::nat => bool.
-                          (op =::bool => bool => bool)
-                           ((SHD::(nat => bool) => bool) x) (False::bool))
-                      ((op o::((nat => bool) => bool)
-                              => ((nat => bool) => nat => bool)
-                                 => (nat => bool) => bool)
-                        q ((op o::((nat => bool) => nat => bool)
-                                  => ((nat => bool) => nat => bool)
-                                     => (nat => bool) => nat => bool)
-                            (%x::nat => bool.
-                                (SDROP::nat => (nat => bool) => nat => bool)
-                                 ((size::bool list => nat)
-                                   ((alg_cover::bool list list
-          => (nat => bool) => bool list)
-                                     l2 x))
-                                 x)
-                            (STL::(nat => bool) => nat => bool)))))))))"
+lemma ALG_COVER_TAIL_STEP: "ALL (l1::bool list list) (l2::bool list list) q::(nat => bool) => bool.
+   alg_cover_set l1 & alg_cover_set l2 -->
+   q o
+   (%x::nat => bool.
+       SDROP
+        (length (alg_cover (map (op # True) l1 @ map (op # False) l2) x))
+        x) =
+   pred_set.UNION
+    (pred_set.INTER (%x::nat => bool. SHD x = True)
+      (q o ((%x::nat => bool. SDROP (length (alg_cover l1 x)) x) o STL)))
+    (pred_set.INTER (%x::nat => bool. SHD x = False)
+      (q o ((%x::nat => bool. SDROP (length (alg_cover l2 x)) x) o STL)))"
   by (import prob_indep ALG_COVER_TAIL_STEP)
 
-lemma ALG_COVER_TAIL_MEASURABLE: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((alg_cover_set::bool list list => bool) l)
-      ((All::(((nat => bool) => bool) => bool) => bool)
-        (%q::(nat => bool) => bool.
-            (op =::bool => bool => bool)
-             ((measurable::((nat => bool) => bool) => bool)
-               ((op o::((nat => bool) => bool)
-                       => ((nat => bool) => nat => bool)
-                          => (nat => bool) => bool)
-                 q (%x::nat => bool.
-                       (SDROP::nat => (nat => bool) => nat => bool)
-                        ((size::bool list => nat)
-                          ((alg_cover::bool list list
- => (nat => bool) => bool list)
-                            l x))
-                        x)))
-             ((measurable::((nat => bool) => bool) => bool) q))))"
+lemma ALG_COVER_TAIL_MEASURABLE: "ALL l::bool list list.
+   alg_cover_set l -->
+   (ALL q::(nat => bool) => bool.
+       measurable
+        (q o (%x::nat => bool. SDROP (length (alg_cover l x)) x)) =
+       measurable q)"
   by (import prob_indep ALG_COVER_TAIL_MEASURABLE)
 
-lemma ALG_COVER_TAIL_PROB: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((alg_cover_set::bool list list => bool) l)
-      ((All::(((nat => bool) => bool) => bool) => bool)
-        (%q::(nat => bool) => bool.
-            (op -->::bool => bool => bool)
-             ((measurable::((nat => bool) => bool) => bool) q)
-             ((op =::real => real => bool)
-               ((prob::((nat => bool) => bool) => real)
-                 ((op o::((nat => bool) => bool)
-                         => ((nat => bool) => nat => bool)
-                            => (nat => bool) => bool)
-                   q (%x::nat => bool.
-                         (SDROP::nat => (nat => bool) => nat => bool)
-                          ((size::bool list => nat)
-                            ((alg_cover::bool list list
-   => (nat => bool) => bool list)
-                              l x))
-                          x)))
-               ((prob::((nat => bool) => bool) => real) q)))))"
+lemma ALG_COVER_TAIL_PROB: "ALL l::bool list list.
+   alg_cover_set l -->
+   (ALL q::(nat => bool) => bool.
+       measurable q -->
+       prob (q o (%x::nat => bool. SDROP (length (alg_cover l x)) x)) =
+       prob q)"
   by (import prob_indep ALG_COVER_TAIL_PROB)
 
-lemma INDEP_INDEP_SET_LEMMA: "(All::(bool list list => bool) => bool)
- (%l::bool list list.
-     (op -->::bool => bool => bool)
-      ((alg_cover_set::bool list list => bool) l)
-      ((All::(((nat => bool) => bool) => bool) => bool)
-        (%q::(nat => bool) => bool.
-            (op -->::bool => bool => bool)
-             ((measurable::((nat => bool) => bool) => bool) q)
-             ((All::(bool list => bool) => bool)
-               (%x::bool list.
-                   (op -->::bool => bool => bool)
-                    ((op mem::bool list => bool list list => bool) x l)
-                    ((op =::real => real => bool)
-                      ((prob::((nat => bool) => bool) => real)
-                        ((pred_set.INTER::((nat => bool) => bool)
-    => ((nat => bool) => bool) => (nat => bool) => bool)
-                          ((alg_embed::bool list => (nat => bool) => bool)
-                            x)
-                          ((op o::((nat => bool) => bool)
-                                  => ((nat => bool) => nat => bool)
-                                     => (nat => bool) => bool)
-                            q (%x::nat => bool.
-                                  (SDROP::nat
-    => (nat => bool) => nat => bool)
-                                   ((size::bool list => nat)
-                                     ((alg_cover::bool list list
-            => (nat => bool) => bool list)
- l x))
-                                   x))))
-                      ((op *::real => real => real)
-                        ((op ^::real => nat => real)
-                          ((op /::real => real => real) (1::real)
-                            ((number_of::bin => real)
-                              ((op BIT::bin => bit => bin)
-                                ((op BIT::bin => bit => bin)
-                                  (Numeral.Pls::bin) (bit.B1::bit))
-                                (bit.B0::bit))))
-                          ((size::bool list => nat) x))
-                        ((prob::((nat => bool) => bool) => real) q))))))))"
+lemma INDEP_INDEP_SET_LEMMA: "ALL l::bool list list.
+   alg_cover_set l -->
+   (ALL q::(nat => bool) => bool.
+       measurable q -->
+       (ALL x::bool list.
+           x mem l -->
+           prob
+            (pred_set.INTER (alg_embed x)
+              (q o (%x::nat => bool. SDROP (length (alg_cover l x)) x))) =
+           (1 / 2) ^ length x * prob q))"
   by (import prob_indep INDEP_INDEP_SET_LEMMA)
 
-lemma INDEP_SET_LIST: "(All::(((nat => bool) => bool) => bool) => bool)
- (%q::(nat => bool) => bool.
-     (All::(bool list list => bool) => bool)
-      (%l::bool list list.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((alg_sorted::bool list list => bool) l)
-             ((op &::bool => bool => bool)
-               ((alg_prefixfree::bool list list => bool) l)
-               ((op &::bool => bool => bool)
-                 ((measurable::((nat => bool) => bool) => bool) q)
-                 ((All::(bool list => bool) => bool)
-                   (%x::bool list.
-                       (op -->::bool => bool => bool)
-                        ((op mem::bool list => bool list list => bool) x l)
-                        ((indep_set::((nat => bool) => bool)
-                                     => ((nat => bool) => bool) => bool)
-                          ((alg_embed::bool list => (nat => bool) => bool)
-                            x)
-                          q))))))
-           ((indep_set::((nat => bool) => bool)
-                        => ((nat => bool) => bool) => bool)
-             ((algebra_embed::bool list list => (nat => bool) => bool) l)
-             q)))"
+lemma INDEP_SET_LIST: "ALL (q::(nat => bool) => bool) l::bool list list.
+   alg_sorted l &
+   alg_prefixfree l &
+   measurable q &
+   (ALL x::bool list. x mem l --> indep_set (alg_embed x) q) -->
+   indep_set (algebra_embed l) q"
   by (import prob_indep INDEP_SET_LIST)
 
-lemma INDEP_INDEP_SET: "(All::(((nat => bool) => 'a::type * (nat => bool)) => bool) => bool)
- (%f::(nat => bool) => 'a::type * (nat => bool).
-     (All::(('a::type => bool) => bool) => bool)
-      (%p::'a::type => bool.
-          (All::(((nat => bool) => bool) => bool) => bool)
-           (%q::(nat => bool) => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((indep::((nat => bool) => 'a::type * (nat => bool))
-                           => bool)
-                    f)
-                  ((measurable::((nat => bool) => bool) => bool) q))
-                ((indep_set::((nat => bool) => bool)
-                             => ((nat => bool) => bool) => bool)
-                  ((op o::('a::type => bool)
-                          => ((nat => bool) => 'a::type)
-                             => (nat => bool) => bool)
-                    p ((op o::('a::type * (nat => bool) => 'a::type)
-                              => ((nat => bool) => 'a::type * (nat => bool))
-                                 => (nat => bool) => 'a::type)
-                        (fst::'a::type * (nat => bool) => 'a::type) f))
-                  ((op o::((nat => bool) => bool)
-                          => ((nat => bool) => nat => bool)
-                             => (nat => bool) => bool)
-                    q ((op o::('a::type * (nat => bool) => nat => bool)
-                              => ((nat => bool) => 'a::type * (nat => bool))
-                                 => (nat => bool) => nat => bool)
-                        (snd::'a::type * (nat => bool) => nat => bool)
-                        f))))))"
+lemma INDEP_INDEP_SET: "ALL (f::(nat => bool) => 'a::type * (nat => bool)) (p::'a::type => bool)
+   q::(nat => bool) => bool.
+   indep f & measurable q --> indep_set (p o (fst o f)) (q o (snd o f))"
   by (import prob_indep INDEP_INDEP_SET)
 
 lemma INDEP_UNIT: "ALL x::'a::type. indep (UNIT x)"
@@ -3503,144 +1887,35 @@ lemma BIND_STEP: "ALL f::(nat => bool) => 'a::type * (nat => bool).
    BIND SDEST (%k::bool. f o SCONS k) = f"
   by (import prob_indep BIND_STEP)
 
-lemma INDEP_BIND_SDEST: "(All::((bool => (nat => bool) => 'a::type * (nat => bool)) => bool) => bool)
- (%f::bool => (nat => bool) => 'a::type * (nat => bool).
-     (op -->::bool => bool => bool)
-      ((All::(bool => bool) => bool)
-        (%x::bool.
-            (indep::((nat => bool) => 'a::type * (nat => bool)) => bool)
-             (f x)))
-      ((indep::((nat => bool) => 'a::type * (nat => bool)) => bool)
-        ((BIND::((nat => bool) => bool * (nat => bool))
-                => (bool => (nat => bool) => 'a::type * (nat => bool))
-                   => (nat => bool) => 'a::type * (nat => bool))
-          (SDEST::(nat => bool) => bool * (nat => bool)) f)))"
+lemma INDEP_BIND_SDEST: "ALL f::bool => (nat => bool) => 'a::type * (nat => bool).
+   (ALL x::bool. indep (f x)) --> indep (BIND SDEST f)"
   by (import prob_indep INDEP_BIND_SDEST)
 
-lemma INDEP_BIND: "(All::(((nat => bool) => 'a::type * (nat => bool)) => bool) => bool)
- (%f::(nat => bool) => 'a::type * (nat => bool).
-     (All::(('a::type => (nat => bool) => 'b::type * (nat => bool)) => bool)
-           => bool)
-      (%g::'a::type => (nat => bool) => 'b::type * (nat => bool).
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((indep::((nat => bool) => 'a::type * (nat => bool)) => bool)
-               f)
-             ((All::('a::type => bool) => bool)
-               (%x::'a::type.
-                   (indep::((nat => bool) => 'b::type * (nat => bool))
-                           => bool)
-                    (g x))))
-           ((indep::((nat => bool) => 'b::type * (nat => bool)) => bool)
-             ((BIND::((nat => bool) => 'a::type * (nat => bool))
-                     => ('a::type
-                         => (nat => bool) => 'b::type * (nat => bool))
-                        => (nat => bool) => 'b::type * (nat => bool))
-               f g))))"
+lemma INDEP_BIND: "ALL (f::(nat => bool) => 'a::type * (nat => bool))
+   g::'a::type => (nat => bool) => 'b::type * (nat => bool).
+   indep f & (ALL x::'a::type. indep (g x)) --> indep (BIND f g)"
   by (import prob_indep INDEP_BIND)
 
-lemma INDEP_PROB: "(All::(((nat => bool) => 'a::type * (nat => bool)) => bool) => bool)
- (%f::(nat => bool) => 'a::type * (nat => bool).
-     (All::(('a::type => bool) => bool) => bool)
-      (%p::'a::type => bool.
-          (All::(((nat => bool) => bool) => bool) => bool)
-           (%q::(nat => bool) => bool.
-               (op -->::bool => bool => bool)
-                ((op &::bool => bool => bool)
-                  ((indep::((nat => bool) => 'a::type * (nat => bool))
-                           => bool)
-                    f)
-                  ((measurable::((nat => bool) => bool) => bool) q))
-                ((op =::real => real => bool)
-                  ((prob::((nat => bool) => bool) => real)
-                    ((pred_set.INTER::((nat => bool) => bool)
-=> ((nat => bool) => bool) => (nat => bool) => bool)
-                      ((op o::('a::type => bool)
-                              => ((nat => bool) => 'a::type)
-                                 => (nat => bool) => bool)
-                        p ((op o::('a::type * (nat => bool) => 'a::type)
-                                  => ((nat => bool)
-=> 'a::type * (nat => bool))
-                                     => (nat => bool) => 'a::type)
-                            (fst::'a::type * (nat => bool) => 'a::type) f))
-                      ((op o::((nat => bool) => bool)
-                              => ((nat => bool) => nat => bool)
-                                 => (nat => bool) => bool)
-                        q ((op o::('a::type * (nat => bool) => nat => bool)
-                                  => ((nat => bool)
-=> 'a::type * (nat => bool))
-                                     => (nat => bool) => nat => bool)
-                            (snd::'a::type * (nat => bool) => nat => bool)
-                            f))))
-                  ((op *::real => real => real)
-                    ((prob::((nat => bool) => bool) => real)
-                      ((op o::('a::type => bool)
-                              => ((nat => bool) => 'a::type)
-                                 => (nat => bool) => bool)
-                        p ((op o::('a::type * (nat => bool) => 'a::type)
-                                  => ((nat => bool)
-=> 'a::type * (nat => bool))
-                                     => (nat => bool) => 'a::type)
-                            (fst::'a::type * (nat => bool) => 'a::type) f)))
-                    ((prob::((nat => bool) => bool) => real) q))))))"
+lemma INDEP_PROB: "ALL (f::(nat => bool) => 'a::type * (nat => bool)) (p::'a::type => bool)
+   q::(nat => bool) => bool.
+   indep f & measurable q -->
+   prob (pred_set.INTER (p o (fst o f)) (q o (snd o f))) =
+   prob (p o (fst o f)) * prob q"
   by (import prob_indep INDEP_PROB)
 
-lemma INDEP_MEASURABLE1: "(All::(((nat => bool) => 'a::type * (nat => bool)) => bool) => bool)
- (%f::(nat => bool) => 'a::type * (nat => bool).
-     (All::(('a::type => bool) => bool) => bool)
-      (%p::'a::type => bool.
-          (op -->::bool => bool => bool)
-           ((indep::((nat => bool) => 'a::type * (nat => bool)) => bool) f)
-           ((measurable::((nat => bool) => bool) => bool)
-             ((op o::('a::type => bool)
-                     => ((nat => bool) => 'a::type)
-                        => (nat => bool) => bool)
-               p ((op o::('a::type * (nat => bool) => 'a::type)
-                         => ((nat => bool) => 'a::type * (nat => bool))
-                            => (nat => bool) => 'a::type)
-                   (fst::'a::type * (nat => bool) => 'a::type) f)))))"
+lemma INDEP_MEASURABLE1: "ALL (f::(nat => bool) => 'a::type * (nat => bool)) p::'a::type => bool.
+   indep f --> measurable (p o (fst o f))"
   by (import prob_indep INDEP_MEASURABLE1)
 
-lemma INDEP_MEASURABLE2: "(All::(((nat => bool) => 'a::type * (nat => bool)) => bool) => bool)
- (%f::(nat => bool) => 'a::type * (nat => bool).
-     (All::(((nat => bool) => bool) => bool) => bool)
-      (%q::(nat => bool) => bool.
-          (op -->::bool => bool => bool)
-           ((op &::bool => bool => bool)
-             ((indep::((nat => bool) => 'a::type * (nat => bool)) => bool)
-               f)
-             ((measurable::((nat => bool) => bool) => bool) q))
-           ((measurable::((nat => bool) => bool) => bool)
-             ((op o::((nat => bool) => bool)
-                     => ((nat => bool) => nat => bool)
-                        => (nat => bool) => bool)
-               q ((op o::('a::type * (nat => bool) => nat => bool)
-                         => ((nat => bool) => 'a::type * (nat => bool))
-                            => (nat => bool) => nat => bool)
-                   (snd::'a::type * (nat => bool) => nat => bool) f)))))"
+lemma INDEP_MEASURABLE2: "ALL (f::(nat => bool) => 'a::type * (nat => bool)) q::(nat => bool) => bool.
+   indep f & measurable q --> measurable (q o (snd o f))"
   by (import prob_indep INDEP_MEASURABLE2)
 
-lemma PROB_INDEP_BOUND: "(All::(((nat => bool) => nat * (nat => bool)) => bool) => bool)
- (%f::(nat => bool) => nat * (nat => bool).
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (op -->::bool => bool => bool)
-           ((indep::((nat => bool) => nat * (nat => bool)) => bool) f)
-           ((op =::real => real => bool)
-             ((prob::((nat => bool) => bool) => real)
-               (%s::nat => bool.
-                   (op <::nat => nat => bool)
-                    ((fst::nat * (nat => bool) => nat) (f s))
-                    ((Suc::nat => nat) n)))
-             ((op +::real => real => real)
-               ((prob::((nat => bool) => bool) => real)
-                 (%s::nat => bool.
-                     (op <::nat => nat => bool)
-                      ((fst::nat * (nat => bool) => nat) (f s)) n))
-               ((prob::((nat => bool) => bool) => real)
-                 (%s::nat => bool.
-                     (op =::nat => nat => bool)
-                      ((fst::nat * (nat => bool) => nat) (f s)) n))))))"
+lemma PROB_INDEP_BOUND: "ALL (f::(nat => bool) => nat * (nat => bool)) n::nat.
+   indep f -->
+   prob (%s::nat => bool. fst (f s) < Suc n) =
+   prob (%s::nat => bool. fst (f s) < n) +
+   prob (%s::nat => bool. fst (f s) = n)"
   by (import prob_indep PROB_INDEP_BOUND)
 
 ;end_setup
@@ -3668,21 +1943,8 @@ lemma unif_bound_def: "unif_bound 0 = 0 &
 unif_bound (Suc (v::nat)) = Suc (unif_bound (Suc v div 2))"
   by (import prob_uniform unif_bound_def)
 
-lemma unif_bound_ind: "(All::((nat => bool) => bool) => bool)
- (%P::nat => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool) (P (0::nat))
-        ((All::(nat => bool) => bool)
-          (%v::nat.
-              (op -->::bool => bool => bool)
-               (P ((op div::nat => nat => nat) ((Suc::nat => nat) v)
-                    ((number_of::bin => nat)
-                      ((op BIT::bin => bit => bin)
-                        ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                          (bit.B1::bit))
-                        (bit.B0::bit)))))
-               (P ((Suc::nat => nat) v)))))
-      ((All::(nat => bool) => bool) P))"
+lemma unif_bound_ind: "ALL P::nat => bool.
+   P 0 & (ALL v::nat. P (Suc v div 2) --> P (Suc v)) --> All P"
   by (import prob_uniform unif_bound_ind)
 
 constdefs
@@ -3725,223 +1987,57 @@ unif (Suc (v2::nat)) s =
  in (if SHD s' then 2 * m + 1 else 2 * m, STL s'))"
   by (import prob_uniform unif_def)
 
-lemma unif_ind: "(All::((nat => (nat => bool) => bool) => bool) => bool)
- (%P::nat => (nat => bool) => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::((nat => bool) => bool) => bool) (P (0::nat)))
-        ((All::(nat => bool) => bool)
-          (%v2::nat.
-              (All::((nat => bool) => bool) => bool)
-               (%s::nat => bool.
-                   (op -->::bool => bool => bool)
-                    (P ((op div::nat => nat => nat) ((Suc::nat => nat) v2)
-                         ((number_of::bin => nat)
-                           ((op BIT::bin => bit => bin)
-                             ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                               (bit.B1::bit))
-                             (bit.B0::bit))))
-                      s)
-                    (P ((Suc::nat => nat) v2) s)))))
-      ((All::(nat => bool) => bool)
-        (%v::nat. (All::((nat => bool) => bool) => bool) (P v))))"
+lemma unif_ind: "ALL P::nat => (nat => bool) => bool.
+   All (P 0) &
+   (ALL (v2::nat) s::nat => bool. P (Suc v2 div 2) s --> P (Suc v2) s) -->
+   (ALL v::nat. All (P v))"
   by (import prob_uniform unif_ind)
 
 constdefs
   uniform_tupled :: "nat * nat * (nat => bool) => nat * (nat => bool)" 
-  "(op ==::(nat * nat * (nat => bool) => nat * (nat => bool))
-        => (nat * nat * (nat => bool) => nat * (nat => bool)) => prop)
- (uniform_tupled::nat * nat * (nat => bool) => nat * (nat => bool))
- ((WFREC::(nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool)
-          => ((nat * nat * (nat => bool) => nat * (nat => bool))
-              => nat * nat * (nat => bool) => nat * (nat => bool))
-             => nat * nat * (nat => bool) => nat * (nat => bool))
-   ((Eps::((nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool)
-           => bool)
-          => nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool)
-     (%R::nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool.
-         (op &::bool => bool => bool)
-          ((WF::(nat * nat * (nat => bool)
-                 => nat * nat * (nat => bool) => bool)
-                => bool)
-            R)
-          ((All::(nat => bool) => bool)
-            (%t::nat.
-                (All::((nat => bool) => bool) => bool)
-                 (%s::nat => bool.
-                     (All::(nat => bool) => bool)
-                      (%n::nat.
-                          (All::(nat => bool) => bool)
-                           (%res::nat.
-                               (All::((nat => bool) => bool) => bool)
-                                (%s'::nat => bool.
-                                    (op -->::bool => bool => bool)
-                                     ((op &::bool => bool => bool)
- ((op =::nat * (nat => bool) => nat * (nat => bool) => bool)
-   ((Pair::nat => (nat => bool) => nat * (nat => bool)) res s')
-   ((unif::nat => (nat => bool) => nat * (nat => bool)) n s))
- ((Not::bool => bool)
-   ((op <::nat => nat => bool) res ((Suc::nat => nat) n))))
-                                     (R
- ((Pair::nat => nat * (nat => bool) => nat * nat * (nat => bool)) t
-   ((Pair::nat => (nat => bool) => nat * (nat => bool))
-     ((Suc::nat => nat) n) s'))
- ((Pair::nat => nat * (nat => bool) => nat * nat * (nat => bool))
-   ((Suc::nat => nat) t)
-   ((Pair::nat => (nat => bool) => nat * (nat => bool))
-     ((Suc::nat => nat) n) s)))))))))))
-   (%uniform_tupled::nat * nat * (nat => bool) => nat * (nat => bool).
-       (split::(nat => nat * (nat => bool) => nat * (nat => bool))
-               => nat * nat * (nat => bool) => nat * (nat => bool))
-        (%(v::nat) v1::nat * (nat => bool).
-            (nat_case::nat * (nat => bool)
-                       => (nat => nat * (nat => bool))
-                          => nat => nat * (nat => bool))
-             ((split::(nat => (nat => bool) => nat * (nat => bool))
-                      => nat * (nat => bool) => nat * (nat => bool))
-               (%(v3::nat) v4::nat => bool.
-                   (nat_case::nat * (nat => bool)
-                              => (nat => nat * (nat => bool))
-                                 => nat => nat * (nat => bool))
-                    (ARB::nat * (nat => bool))
-                    (%v5::nat.
-                        (Pair::nat => (nat => bool) => nat * (nat => bool))
-                         (0::nat) v4)
-                    v3)
-               v1)
-             (%v2::nat.
-                 (split::(nat => (nat => bool) => nat * (nat => bool))
-                         => nat * (nat => bool) => nat * (nat => bool))
-                  (%(v7::nat) v8::nat => bool.
-                      (nat_case::nat * (nat => bool)
-                                 => (nat => nat * (nat => bool))
-                                    => nat => nat * (nat => bool))
-                       (ARB::nat * (nat => bool))
-                       (%v9::nat.
-                           (Let::nat * (nat => bool)
-                                 => (nat * (nat => bool)
-                                     => nat * (nat => bool))
-                                    => nat * (nat => bool))
-                            ((unif::nat
-                                    => (nat => bool) => nat * (nat => bool))
-                              v9 v8)
-                            ((split::(nat
-=> (nat => bool) => nat * (nat => bool))
-                                     => nat * (nat => bool)
-  => nat * (nat => bool))
-                              (%(res::nat) s'::nat => bool.
-                                  (If::bool
- => nat * (nat => bool) => nat * (nat => bool) => nat * (nat => bool))
-                                   ((op <::nat => nat => bool) res
-                                     ((Suc::nat => nat) v9))
-                                   ((Pair::nat
-     => (nat => bool) => nat * (nat => bool))
-                                     res s')
-                                   (uniform_tupled
-                                     ((Pair::nat
-       => nat * (nat => bool) => nat * nat * (nat => bool))
- v2 ((Pair::nat => (nat => bool) => nat * (nat => bool))
-      ((Suc::nat => nat) v9) s'))))))
-                       v7)
-                  v1)
-             v)))"
+  "uniform_tupled ==
+WFREC
+ (SOME R::nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool.
+     WF R &
+     (ALL (t::nat) (s::nat => bool) (n::nat) (res::nat) s'::nat => bool.
+         (res, s') = unif n s & ~ res < Suc n -->
+         R (t, Suc n, s') (Suc t, Suc n, s)))
+ (%(uniform_tupled::nat * nat * (nat => bool) => nat * (nat => bool))
+     (v::nat, v1::nat * (nat => bool)).
+     case v of
+     0 => (%(v3::nat, v4::nat => bool).
+              case v3 of 0 => ARB | Suc (v5::nat) => (0, v4))
+           v1
+     | Suc (v2::nat) =>
+         (%(v7::nat, v8::nat => bool).
+             case v7 of 0 => ARB
+             | Suc (v9::nat) =>
+                 let (res::nat, s'::nat => bool) = unif v9 v8
+                 in if res < Suc v9 then (res, s')
+                    else uniform_tupled (v2, Suc v9, s'))
+          v1)"
 
-lemma uniform_tupled_primitive_def: "(op =::(nat * nat * (nat => bool) => nat * (nat => bool))
-       => (nat * nat * (nat => bool) => nat * (nat => bool)) => bool)
- (uniform_tupled::nat * nat * (nat => bool) => nat * (nat => bool))
- ((WFREC::(nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool)
-          => ((nat * nat * (nat => bool) => nat * (nat => bool))
-              => nat * nat * (nat => bool) => nat * (nat => bool))
-             => nat * nat * (nat => bool) => nat * (nat => bool))
-   ((Eps::((nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool)
-           => bool)
-          => nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool)
-     (%R::nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool.
-         (op &::bool => bool => bool)
-          ((WF::(nat * nat * (nat => bool)
-                 => nat * nat * (nat => bool) => bool)
-                => bool)
-            R)
-          ((All::(nat => bool) => bool)
-            (%t::nat.
-                (All::((nat => bool) => bool) => bool)
-                 (%s::nat => bool.
-                     (All::(nat => bool) => bool)
-                      (%n::nat.
-                          (All::(nat => bool) => bool)
-                           (%res::nat.
-                               (All::((nat => bool) => bool) => bool)
-                                (%s'::nat => bool.
-                                    (op -->::bool => bool => bool)
-                                     ((op &::bool => bool => bool)
- ((op =::nat * (nat => bool) => nat * (nat => bool) => bool)
-   ((Pair::nat => (nat => bool) => nat * (nat => bool)) res s')
-   ((unif::nat => (nat => bool) => nat * (nat => bool)) n s))
- ((Not::bool => bool)
-   ((op <::nat => nat => bool) res ((Suc::nat => nat) n))))
-                                     (R
- ((Pair::nat => nat * (nat => bool) => nat * nat * (nat => bool)) t
-   ((Pair::nat => (nat => bool) => nat * (nat => bool))
-     ((Suc::nat => nat) n) s'))
- ((Pair::nat => nat * (nat => bool) => nat * nat * (nat => bool))
-   ((Suc::nat => nat) t)
-   ((Pair::nat => (nat => bool) => nat * (nat => bool))
-     ((Suc::nat => nat) n) s)))))))))))
-   (%uniform_tupled::nat * nat * (nat => bool) => nat * (nat => bool).
-       (split::(nat => nat * (nat => bool) => nat * (nat => bool))
-               => nat * nat * (nat => bool) => nat * (nat => bool))
-        (%(v::nat) v1::nat * (nat => bool).
-            (nat_case::nat * (nat => bool)
-                       => (nat => nat * (nat => bool))
-                          => nat => nat * (nat => bool))
-             ((split::(nat => (nat => bool) => nat * (nat => bool))
-                      => nat * (nat => bool) => nat * (nat => bool))
-               (%(v3::nat) v4::nat => bool.
-                   (nat_case::nat * (nat => bool)
-                              => (nat => nat * (nat => bool))
-                                 => nat => nat * (nat => bool))
-                    (ARB::nat * (nat => bool))
-                    (%v5::nat.
-                        (Pair::nat => (nat => bool) => nat * (nat => bool))
-                         (0::nat) v4)
-                    v3)
-               v1)
-             (%v2::nat.
-                 (split::(nat => (nat => bool) => nat * (nat => bool))
-                         => nat * (nat => bool) => nat * (nat => bool))
-                  (%(v7::nat) v8::nat => bool.
-                      (nat_case::nat * (nat => bool)
-                                 => (nat => nat * (nat => bool))
-                                    => nat => nat * (nat => bool))
-                       (ARB::nat * (nat => bool))
-                       (%v9::nat.
-                           (Let::nat * (nat => bool)
-                                 => (nat * (nat => bool)
-                                     => nat * (nat => bool))
-                                    => nat * (nat => bool))
-                            ((unif::nat
-                                    => (nat => bool) => nat * (nat => bool))
-                              v9 v8)
-                            ((split::(nat
-=> (nat => bool) => nat * (nat => bool))
-                                     => nat * (nat => bool)
-  => nat * (nat => bool))
-                              (%(res::nat) s'::nat => bool.
-                                  (If::bool
- => nat * (nat => bool) => nat * (nat => bool) => nat * (nat => bool))
-                                   ((op <::nat => nat => bool) res
-                                     ((Suc::nat => nat) v9))
-                                   ((Pair::nat
-     => (nat => bool) => nat * (nat => bool))
-                                     res s')
-                                   (uniform_tupled
-                                     ((Pair::nat
-       => nat * (nat => bool) => nat * nat * (nat => bool))
- v2 ((Pair::nat => (nat => bool) => nat * (nat => bool))
-      ((Suc::nat => nat) v9) s'))))))
-                       v7)
-                  v1)
-             v)))"
+lemma uniform_tupled_primitive_def: "uniform_tupled =
+WFREC
+ (SOME R::nat * nat * (nat => bool) => nat * nat * (nat => bool) => bool.
+     WF R &
+     (ALL (t::nat) (s::nat => bool) (n::nat) (res::nat) s'::nat => bool.
+         (res, s') = unif n s & ~ res < Suc n -->
+         R (t, Suc n, s') (Suc t, Suc n, s)))
+ (%(uniform_tupled::nat * nat * (nat => bool) => nat * (nat => bool))
+     (v::nat, v1::nat * (nat => bool)).
+     case v of
+     0 => (%(v3::nat, v4::nat => bool).
+              case v3 of 0 => ARB | Suc (v5::nat) => (0, v4))
+           v1
+     | Suc (v2::nat) =>
+         (%(v7::nat, v8::nat => bool).
+             case v7 of 0 => ARB
+             | Suc (v9::nat) =>
+                 let (res::nat, s'::nat => bool) = unif v9 v8
+                 in if res < Suc v9 then (res, s')
+                    else uniform_tupled (v2, Suc v9, s'))
+          v1)"
   by (import prob_uniform uniform_tupled_primitive_def)
 
 consts
@@ -3954,46 +2050,15 @@ lemma uniform_curried_def: "ALL (x::nat) (x1::nat) x2::nat => bool.
    uniform x x1 x2 = uniform_tupled (x, x1, x2)"
   by (import prob_uniform uniform_curried_def)
 
-lemma uniform_ind: "(All::((nat => nat => (nat => bool) => bool) => bool) => bool)
- (%P::nat => nat => (nat => bool) => bool.
-     (op -->::bool => bool => bool)
-      ((op &::bool => bool => bool)
-        ((All::(nat => bool) => bool)
-          (%x::nat.
-              (All::((nat => bool) => bool) => bool)
-               (P ((Suc::nat => nat) x) (0::nat))))
-        ((op &::bool => bool => bool)
-          ((All::((nat => bool) => bool) => bool) (P (0::nat) (0::nat)))
-          ((op &::bool => bool => bool)
-            ((All::(nat => bool) => bool)
-              (%x::nat.
-                  (All::((nat => bool) => bool) => bool)
-                   (P (0::nat) ((Suc::nat => nat) x))))
-            ((All::(nat => bool) => bool)
-              (%x::nat.
-                  (All::(nat => bool) => bool)
-                   (%xa::nat.
-                       (All::((nat => bool) => bool) => bool)
-                        (%xb::nat => bool.
-                            (op -->::bool => bool => bool)
-                             ((All::(nat => bool) => bool)
-                               (%xc::nat.
-                                   (All::((nat => bool) => bool) => bool)
-                                    (%xd::nat => bool.
-  (op -->::bool => bool => bool)
-   ((op &::bool => bool => bool)
-     ((op =::nat * (nat => bool) => nat * (nat => bool) => bool)
-       ((Pair::nat => (nat => bool) => nat * (nat => bool)) xc xd)
-       ((unif::nat => (nat => bool) => nat * (nat => bool)) xa xb))
-     ((Not::bool => bool)
-       ((op <::nat => nat => bool) xc ((Suc::nat => nat) xa))))
-   (P x ((Suc::nat => nat) xa) xd))))
-                             (P ((Suc::nat => nat) x) ((Suc::nat => nat) xa)
-                               xb))))))))
-      ((All::(nat => bool) => bool)
-        (%x::nat.
-            (All::(nat => bool) => bool)
-             (%xa::nat. (All::((nat => bool) => bool) => bool) (P x xa)))))"
+lemma uniform_ind: "ALL P::nat => nat => (nat => bool) => bool.
+   (ALL x::nat. All (P (Suc x) 0)) &
+   All (P 0 0) &
+   (ALL x::nat. All (P 0 (Suc x))) &
+   (ALL (x::nat) (xa::nat) xb::nat => bool.
+       (ALL (xc::nat) xd::nat => bool.
+           (xc, xd) = unif xa xb & ~ xc < Suc xa --> P x (Suc xa) xd) -->
+       P (Suc x) (Suc xa) xb) -->
+   (ALL (x::nat) xa::nat. All (P x xa))"
   by (import prob_uniform uniform_ind)
 
 lemma uniform_def: "uniform 0 (Suc (n::nat)) (s::nat => bool) = (0, s) &
@@ -4011,23 +2076,7 @@ lemma UNIF_BOUND_LOWER: "ALL n::nat. n < 2 ^ unif_bound n"
 lemma UNIF_BOUND_LOWER_SUC: "ALL n::nat. Suc n <= 2 ^ unif_bound n"
   by (import prob_uniform UNIF_BOUND_LOWER_SUC)
 
-lemma UNIF_BOUND_UPPER: "(All::(nat => bool) => bool)
- (%n::nat.
-     (op -->::bool => bool => bool)
-      ((Not::bool => bool) ((op =::nat => nat => bool) n (0::nat)))
-      ((op <=::nat => nat => bool)
-        ((op ^::nat => nat => nat)
-          ((number_of::bin => nat)
-            ((op BIT::bin => bit => bin)
-              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-              (bit.B0::bit)))
-          ((unif_bound::nat => nat) n))
-        ((op *::nat => nat => nat)
-          ((number_of::bin => nat)
-            ((op BIT::bin => bit => bin)
-              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
-              (bit.B0::bit)))
-          n)))"
+lemma UNIF_BOUND_UPPER: "ALL n::nat. n ~= 0 --> 2 ^ unif_bound n <= 2 * n"
   by (import prob_uniform UNIF_BOUND_UPPER)
 
 lemma UNIF_BOUND_UPPER_SUC: "ALL n::nat. 2 ^ unif_bound n <= Suc (2 * n)"
@@ -4068,36 +2117,10 @@ lemma PROB_UNIF_PAIR: "ALL (n::nat) (k::nat) k'::nat.
    ((k < 2 ^ unif_bound n) = (k' < 2 ^ unif_bound n))"
   by (import prob_uniform PROB_UNIF_PAIR)
 
-lemma PROB_UNIF_BOUND: "(All::(nat => bool) => bool)
- (%n::nat.
-     (All::(nat => bool) => bool)
-      (%k::nat.
-          (op -->::bool => bool => bool)
-           ((op <=::nat => nat => bool) k
-             ((op ^::nat => nat => nat)
-               ((number_of::bin => nat)
-                 ((op BIT::bin => bit => bin)
-                   ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                     (bit.B1::bit))
-                   (bit.B0::bit)))
-               ((unif_bound::nat => nat) n)))
-           ((op =::real => real => bool)
-             ((prob::((nat => bool) => bool) => real)
-               (%s::nat => bool.
-                   (op <::nat => nat => bool)
-                    ((fst::nat * (nat => bool) => nat)
-                      ((unif::nat => (nat => bool) => nat * (nat => bool)) n
-                        s))
-                    k))
-             ((op *::real => real => real) ((real::nat => real) k)
-               ((op ^::real => nat => real)
-                 ((op /::real => real => real) (1::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bit => bin)
-                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                         (bit.B1::bit))
-                       (bit.B0::bit))))
-                 ((unif_bound::nat => nat) n))))))"
+lemma PROB_UNIF_BOUND: "ALL (n::nat) k::nat.
+   k <= 2 ^ unif_bound n -->
+   prob (%s::nat => bool. fst (unif n s) < k) =
+   real k * (1 / 2) ^ unif_bound n"
   by (import prob_uniform PROB_UNIF_BOUND)
 
 lemma PROB_UNIF_GOOD: "ALL n::nat. 1 / 2 <= prob (%s::nat => bool. fst (unif n s) < Suc n)"
@@ -4177,108 +2200,24 @@ lemma PROB_UNIFORM_UPPER_BOUND: "(All::(real => bool) => bool)
                       ((Suc::nat => nat) m)))))))"
   by (import prob_uniform PROB_UNIFORM_UPPER_BOUND)
 
-lemma PROB_UNIFORM_PAIR_SUC: "(All::(nat => bool) => bool)
- (%t::nat.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (All::(nat => bool) => bool)
-           (%k::nat.
-               (All::(nat => bool) => bool)
-                (%k'::nat.
-                    (op -->::bool => bool => bool)
-                     ((op &::bool => bool => bool)
-                       ((op <::nat => nat => bool) k ((Suc::nat => nat) n))
-                       ((op <::nat => nat => bool) k'
-                         ((Suc::nat => nat) n)))
-                     ((op <=::real => real => bool)
-                       ((abs::real => real)
-                         ((op -::real => real => real)
-                           ((prob::((nat => bool) => bool) => real)
-                             (%s::nat => bool.
-                                 (op =::nat => nat => bool)
-                                  ((fst::nat * (nat => bool) => nat)
-                                    ((uniform::nat
-         => nat => (nat => bool) => nat * (nat => bool))
-t ((Suc::nat => nat) n) s))
-                                  k))
-                           ((prob::((nat => bool) => bool) => real)
-                             (%s::nat => bool.
-                                 (op =::nat => nat => bool)
-                                  ((fst::nat * (nat => bool) => nat)
-                                    ((uniform::nat
-         => nat => (nat => bool) => nat * (nat => bool))
-t ((Suc::nat => nat) n) s))
-                                  k'))))
-                       ((op ^::real => nat => real)
-                         ((op /::real => real => real) (1::real)
-                           ((number_of::bin => real)
-                             ((op BIT::bin => bit => bin)
-                               ((op BIT::bin => bit => bin)
-                                 (Numeral.Pls::bin) (bit.B1::bit))
-                               (bit.B0::bit))))
-                         t))))))"
+lemma PROB_UNIFORM_PAIR_SUC: "ALL (t::nat) (n::nat) (k::nat) k'::nat.
+   k < Suc n & k' < Suc n -->
+   abs (prob (%s::nat => bool. fst (uniform t (Suc n) s) = k) -
+        prob (%s::nat => bool. fst (uniform t (Suc n) s) = k'))
+   <= (1 / 2) ^ t"
   by (import prob_uniform PROB_UNIFORM_PAIR_SUC)
 
-lemma PROB_UNIFORM_SUC: "(All::(nat => bool) => bool)
- (%t::nat.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (All::(nat => bool) => bool)
-           (%k::nat.
-               (op -->::bool => bool => bool)
-                ((op <::nat => nat => bool) k ((Suc::nat => nat) n))
-                ((op <=::real => real => bool)
-                  ((abs::real => real)
-                    ((op -::real => real => real)
-                      ((prob::((nat => bool) => bool) => real)
-                        (%s::nat => bool.
-                            (op =::nat => nat => bool)
-                             ((fst::nat * (nat => bool) => nat)
-                               ((uniform::nat
-    => nat => (nat => bool) => nat * (nat => bool))
-                                 t ((Suc::nat => nat) n) s))
-                             k))
-                      ((op /::real => real => real) (1::real)
-                        ((real::nat => real) ((Suc::nat => nat) n)))))
-                  ((op ^::real => nat => real)
-                    ((op /::real => real => real) (1::real)
-                      ((number_of::bin => real)
-                        ((op BIT::bin => bit => bin)
-                          ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                            (bit.B1::bit))
-                          (bit.B0::bit))))
-                    t)))))"
+lemma PROB_UNIFORM_SUC: "ALL (t::nat) (n::nat) k::nat.
+   k < Suc n -->
+   abs (prob (%s::nat => bool. fst (uniform t (Suc n) s) = k) -
+        1 / real (Suc n))
+   <= (1 / 2) ^ t"
   by (import prob_uniform PROB_UNIFORM_SUC)
 
-lemma PROB_UNIFORM: "(All::(nat => bool) => bool)
- (%t::nat.
-     (All::(nat => bool) => bool)
-      (%n::nat.
-          (All::(nat => bool) => bool)
-           (%k::nat.
-               (op -->::bool => bool => bool)
-                ((op <::nat => nat => bool) k n)
-                ((op <=::real => real => bool)
-                  ((abs::real => real)
-                    ((op -::real => real => real)
-                      ((prob::((nat => bool) => bool) => real)
-                        (%s::nat => bool.
-                            (op =::nat => nat => bool)
-                             ((fst::nat * (nat => bool) => nat)
-                               ((uniform::nat
-    => nat => (nat => bool) => nat * (nat => bool))
-                                 t n s))
-                             k))
-                      ((op /::real => real => real) (1::real)
-                        ((real::nat => real) n))))
-                  ((op ^::real => nat => real)
-                    ((op /::real => real => real) (1::real)
-                      ((number_of::bin => real)
-                        ((op BIT::bin => bit => bin)
-                          ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
-                            (bit.B1::bit))
-                          (bit.B0::bit))))
-                    t)))))"
+lemma PROB_UNIFORM: "ALL (t::nat) (n::nat) k::nat.
+   k < n -->
+   abs (prob (%s::nat => bool. fst (uniform t n s) = k) - 1 / real n)
+   <= (1 / 2) ^ t"
   by (import prob_uniform PROB_UNIFORM)
 
 ;end_setup

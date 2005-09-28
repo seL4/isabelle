@@ -9,9 +9,9 @@ def_maps
   "subseq" > "subseq_def"
   "mono" > "mono_def"
   "lim" > "lim_def"
+  "hol4-->" > "hol4-->_def"
   "convergent" > "convergent_def"
   "cauchy" > "cauchy_def"
-  "-->" > "-->_def"
 
 const_maps
   "sums" > "HOL4Real.seq.sums"
@@ -20,9 +20,12 @@ const_maps
   "subseq" > "HOL4Real.seq.subseq"
   "mono" > "HOL4Real.seq.mono"
   "lim" > "HOL4Real.seq.lim"
+  "hol4-->" > "HOL4Real.seq.hol4-->"
   "convergent" > "HOL4Real.seq.convergent"
   "cauchy" > "HOL4Real.seq.cauchy"
-  "-->" > "HOL4Real.seq.-->"
+
+const_renames
+  "-->" > "hol4-->"
 
 thm_maps
   "tends_num_real" > "HOL4Real.seq.tends_num_real"
@@ -38,6 +41,7 @@ thm_maps
   "mono" > "HOL4Real.seq.mono"
   "lim_def" > "HOL4Real.seq.lim_def"
   "lim" > "HOL4Real.seq.lim"
+  "hol4-->_def" > "HOL4Real.seq.hol4-->_def"
   "convergent_def" > "HOL4Real.seq.convergent_def"
   "convergent" > "HOL4Real.seq.convergent"
   "cauchy_def" > "HOL4Real.seq.cauchy_def"
@@ -104,6 +108,5 @@ thm_maps
   "GP" > "HOL4Real.seq.GP"
   "BOLZANO_LEMMA" > "HOL4Real.seq.BOLZANO_LEMMA"
   "ABS_NEG_LEMMA" > "HOL4Real.seq.ABS_NEG_LEMMA"
-  "-->_def" > "HOL4Real.seq.-->_def"
 
 end

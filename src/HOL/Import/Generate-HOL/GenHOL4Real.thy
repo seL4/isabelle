@@ -67,6 +67,9 @@ import_theory nets;
 end_import;
 
 import_theory seq;
+const_renames
+"-->" > "hol4-->";
+
 end_import;
 
 import_theory lim;
