@@ -194,7 +194,7 @@ let
 	val _ = prove_clause empty_id
 
 	val _ = if !trace_sat then
-			tracing (string_of_int (!counter) ^ " resolution steps total.")
+			tracing (string_of_int (!counter) ^ " resolution step(s) total.")
 		else ()
 in
 	(valOf o Array.sub) (clauses, empty_id)
@@ -203,9 +203,6 @@ end;
 (* ------------------------------------------------------------------------- *)
 (* Functions to build the sat tactic                                         *)
 (* ------------------------------------------------------------------------- *)
-
-(* A trivial tactic, used in preprocessing before calling the main tactic *)
-val pre_sat_tac = (REPEAT (etac conjE 1)) THEN (REPEAT ((atac 1) ORELSE (etac FalseE 1)));
 
 fun collect_atoms (Const ("Trueprop", _) $ x) ls = collect_atoms x ls
   | collect_atoms (Const ("op |", _) $ x $ y) ls = collect_atoms x (collect_atoms y ls)
@@ -273,10 +270,13 @@ in
 	METAHYPS (fn prems => rtac (rawsat_thm sg prems) 1) 1 state
 end;
 
-(* Tactic for calling external SAT solver, taking as input CNF clauses *)
+(* a trivial tactic, used in preprocessing before calling the main tactic *)
+val pre_sat_tac = (REPEAT (etac conjE 1)) THEN (REPEAT ((atac 1) ORELSE (etac FalseE 1)));
+
+(* tactic for calling external SAT solver, taking as input CNF clauses *)
 val cnfsat_tac = pre_sat_tac THEN (IF_UNSOLVED cnfsat_basic_tac);
 
-(* Tactic for calling external SAT solver, taking as input arbitrary formula *)
+(* tactic for calling external SAT solver, taking as input arbitrary formula *)
 val sat_tac = cnf.cnf_thin_tac THEN cnfsat_tac;
 
 (*
