@@ -196,8 +196,14 @@ lemma atLeastAtMost_empty [simp]: "n < m ==> {m::'a::order..n} = {}";
 lemma atLeastLessThan_empty[simp]: "n \<le> m ==> {m..<n::'a::order} = {}"
 by (auto simp add: atLeastLessThan_def)
 
+lemma greaterThanAtMost_empty[simp]:"l \<le> k ==> {k<..(l::'a::order)} = {}"
+by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
+
+lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..(l::'a::order)} = {}"
+by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
+
 lemma atLeastAtMost_singleton [simp]: "{a::'a::order..a} = {a}";
-  by (auto simp add: atLeastAtMost_def atMost_def atLeast_def);
+by (auto simp add: atLeastAtMost_def atMost_def atLeast_def);
 
 subsection {* Intervals of natural numbers *}
 
