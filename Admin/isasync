@@ -75,7 +75,7 @@ distribution or website.
 
 The rsync tool is very smart and efficient in mirroring large
 directory hierarchies.  See http://rsync.samba.org/ for more
-information.  The rsync-isabelle script provides a simple front-end
+information.  The $PRG script provides a simple front-end
 for easy access to the Isabelle distribution.
 
 The script can be either run in conservative or clean-sweep mode.
@@ -108,7 +108,7 @@ like this:
   $PRG -d /foo/bar
 
 
-After gaining some confidence in the workings of rsync-isabelle one
+After gaining some confidence in the workings of $PRG one
 would usually set up some automatic mirror scheme, e.g. a daily cron
 job run by the 'nobody' user.
 
