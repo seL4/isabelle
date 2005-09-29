@@ -202,7 +202,7 @@ lemma Some_eq_map_of_iff[simp]:
  "distinct(map fst xys) \<Longrightarrow> (Some y = map_of xys x) = ((x,y) \<in> set xys)"
 by(auto simp del:map_of_eq_Some_iff simp add:map_of_eq_Some_iff[symmetric])
 
-lemma [simp]: "\<lbrakk> distinct(map fst xys); (x,y) \<in> set xys \<rbrakk>
+lemma map_of_is_SomeI [simp]: "\<lbrakk> distinct(map fst xys); (x,y) \<in> set xys \<rbrakk>
   \<Longrightarrow> map_of xys x = Some y"
 apply (induct xys)
  apply simp
@@ -553,13 +553,13 @@ subsection {* @{text "map_le"} *}
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
 by(simp add:map_le_def)
 
-lemma [simp]: "f(x := None) \<subseteq>\<^sub>m f"
+lemma upd_None_map_le [simp]: "f(x := None) \<subseteq>\<^sub>m f"
 by(force simp add:map_le_def)
 
 lemma map_le_upd[simp]: "f \<subseteq>\<^sub>m g ==> f(a := b) \<subseteq>\<^sub>m g(a := b)"
 by(fastsimp simp add:map_le_def)
 
-lemma [simp]: "m1 \<subseteq>\<^sub>m m2 \<Longrightarrow> m1(x := None) \<subseteq>\<^sub>m m2(x \<mapsto> y)"
+lemma map_le_imp_upd_le [simp]: "m1 \<subseteq>\<^sub>m m2 \<Longrightarrow> m1(x := None) \<subseteq>\<^sub>m m2(x \<mapsto> y)"
 by(force simp add:map_le_def)
 
 lemma map_le_upds[simp]:

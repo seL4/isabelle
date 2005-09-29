@@ -1774,7 +1774,7 @@ apply simp
 apply blast
 done
 
-lemma [simp]: "distinct xs ==> set(remove1 x xs) = set xs - {x}"
+lemma set_remove1_eq [simp]: "distinct xs ==> set(remove1 x xs) = set xs - {x}"
 apply(induct xs)
  apply simp
 apply simp
@@ -2180,7 +2180,7 @@ constdefs
   set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
   "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
 
-lemma [simp]: "set_Cons A {[]} = (%x. [x])`A"
+lemma set_Cons_sing_Nil [simp]: "set_Cons A {[]} = (%x. [x])`A"
 by (auto simp add: set_Cons_def)
 
 text{*Yields the set of lists, all of the same length as the argument and
