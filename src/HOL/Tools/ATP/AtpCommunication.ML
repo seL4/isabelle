@@ -27,6 +27,11 @@ struct
 (* switch for whether to reconstruct a proof found, or just list the lemmas used *)
 val reconstruct = ref false;
 
+val trace_path = Path.basic "atp_trace";
+
+fun trace s = if !Output.show_debug_msgs then File.append (File.tmp_path trace_path) s 
+              else ();
+
 exception EOF;
 
 val start_E = "# Proof object starts here."
@@ -64,18 +69,17 @@ fun startTransfer (endS, fromChild, toParent, ppid, goalstring, childCmd, clause
       let val thisLine = TextIO.inputLine fromChild
       in
 	if thisLine = "" (*end of file?*)
-	then (File.write (File.tmp_path (Path.basic"extraction_failed")) 
-	                 ("end bracket: " ^ endS ^
-	                  "\naccumulated text: " ^ currentString);
+	then (trace ("\n extraction_failed.  End bracket: " ^ endS ^
+	             "\naccumulated text: " ^ currentString);
 	      raise EOF)                    
 	else if String.isPrefix endS thisLine
 	then let val proofextract = extract_proof (currentString^thisLine)
+	         val lemma_list = if endS = end_V8 
+			  	  then Recon_Transfer.vamp_lemma_list
+			  	  else Recon_Transfer.e_lemma_list
 	     in
-	       File.write (File.tmp_path (Path.basic"extracted_prf")) proofextract; 
-	       (if endS = end_V8 (*vampire?*)
-		then Recon_Transfer.vamp_lemma_list
-		else Recon_Transfer.e_lemma_list)
-	           proofextract goalstring toParent ppid clause_arr
+	       trace ("\nExtracted_prf\n" ^ proofextract); 
+	       lemma_list proofextract goalstring toParent ppid clause_arr
 	     end
 	else transferInput (currentString^thisLine)
       end
@@ -87,17 +91,16 @@ fun signal_parent (toParent, ppid, msg, goalstring) =
  (TextIO.output (toParent, msg);
   TextIO.output (toParent, goalstring^"\n");
   TextIO.flushOut toParent;
+  trace ("\nSignalled parent: " ^ msg);
   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
 fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr) =
  let val thisLine = TextIO.inputLine fromChild
  in   
-     File.append (File.tmp_path (Path.basic "proof")) thisLine;
+     trace thisLine;
      if thisLine = "" 
-     then (File.append (File.tmp_path (Path.basic "proof"))
-                      "No proof output seen \n";
-	   false)
+     then (trace "No proof output seen\n"; false)
      else if String.isPrefix start_V8 thisLine
      then
        startTransfer (end_V8, fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
@@ -114,11 +117,9 @@ fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause
 fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr) = 
  let val thisLine = TextIO.inputLine fromChild  
  in   
-     File.append (File.tmp_path (Path.basic "proof")) thisLine;
+     trace thisLine;
      if thisLine = "" 
-     then (File.append (File.tmp_path (Path.basic "proof"))
-                      "No proof output seen \n";
-	   false)
+     then (trace "No proof output seen\n"; false)
      else if String.isPrefix start_E thisLine
      then      
        startTransfer (end_E, fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
@@ -152,13 +153,13 @@ fun transferSpassInput (fromChild, toParent, ppid, goalstring,
  let val thisLine = TextIO.inputLine fromChild 
  in 
     if thisLine = "" (*end of file?*)
-    then (File.write (File.tmp_path (Path.basic"spass_extraction_failed")) currentString;
+    then (trace ("\nspass_extraction_failed: " ^ currentString);
 	  raise EOF)                    
     else if String.isPrefix "--------------------------SPASS-STOP" thisLine
     then 
       let val proofextract = extract_proof (currentString^thisLine)
       in 
-	 File.write (File.tmp_path (Path.basic"extracted_prf")) proofextract;
+	 trace ("\nextracted spass proof: " ^ proofextract);
 	 if !reconstruct 
 	 then (spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
 		clause_arr thm; ())
@@ -182,8 +183,7 @@ fun startSpassTransfer (fromChild, toParent, ppid, goalstring,childCmd,
    in                 
       if thisLine = "" then false
       else if String.isPrefix "Here is a proof" thisLine then     
-	 (File.append (File.tmp_path (Path.basic "spass_transfer"))
-		      ("about to transfer proof, thm is: " ^ string_of_thm thm ^ "\n");
+	 (trace ("\nabout to transfer proof, thm is " ^ string_of_thm thm);
 	  transferSpassInput (fromChild, toParent, ppid, goalstring,thisLine, 
  	                     thm, sg_num,clause_arr);
 	  true) handle EOF => false
@@ -192,40 +192,26 @@ fun startSpassTransfer (fromChild, toParent, ppid, goalstring,childCmd,
     end
 
 
-(*Called from watcher. Returns true if the E process has returned a verdict.*)
+(*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
 fun checkSpassProofFound (fromChild, toParent, ppid, goalstring, childCmd,
                           thm, sg_num, clause_arr) = 
- let val spass_proof_file = TextIO.openAppend
-           (File.platform_path(File.tmp_path (Path.basic "spass_proof")))
-     val thisLine = TextIO.inputLine fromChild  
+ let val thisLine = TextIO.inputLine fromChild  
  in    
-     File.write (File.tmp_path (Path.basic "spass_response")) thisLine;
-     if thisLine = "" 
-     then (TextIO.output (spass_proof_file, ("No proof output seen \n"));
-	   TextIO.closeOut spass_proof_file;
-	   false)
+     trace thisLine;
+     if thisLine = "" then (trace "No proof output seen\n"; false)
      else if thisLine = "SPASS beiseite: Proof found.\n"
      then      
         startSpassTransfer (fromChild, toParent, ppid, goalstring,
 	                    childCmd, thm, sg_num, clause_arr)
      else if thisLine = "SPASS beiseite: Completion found.\n"
-     then  
-       (TextIO.output (spass_proof_file, thisLine);
-	TextIO.closeOut spass_proof_file;
-	signal_parent (toParent, ppid, "Invalid\n", goalstring);
-	true)
+     then (signal_parent (toParent, ppid, "Invalid\n", goalstring);
+	   true)
      else if thisLine = "SPASS beiseite: Ran out of time.\n" orelse
              thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
-     then  
-       (signal_parent (toParent, ppid, "Failure\n", goalstring);
-	TextIO.output (spass_proof_file, "signalled parent\n");
-	TextIO.closeOut spass_proof_file;
-	true)
-    else
-       (TextIO.output (spass_proof_file, thisLine);
-       TextIO.flushOut spass_proof_file;
-       checkSpassProofFound  (fromChild, toParent, ppid, goalstring,
-       childCmd, thm, sg_num, clause_arr))
+     then (signal_parent (toParent, ppid, "Failure\n", goalstring);
+	   true)
+    else checkSpassProofFound (fromChild, toParent, ppid, goalstring,
+                          childCmd, thm, sg_num, clause_arr)
  end
 
 end;
