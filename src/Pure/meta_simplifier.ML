@@ -1134,7 +1134,7 @@ fun rewrite_cterm mode prover ss ct =
    trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ss ct;
    check_bounds ss ct;
    let val {thy, t, maxidx, ...} = Thm.rep_cterm ct
-       val res = bottomc (mode, prover, thy, maxidx) ss ct
+       val res = bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ss ct
          handle THM (s, _, thms) =>
          error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
            Pretty.string_of (Display.pretty_thms thms))
