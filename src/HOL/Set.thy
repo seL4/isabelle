@@ -1175,7 +1175,8 @@ lemma insert_is_Un: "insert a A = {a} Un A"
 lemma insert_not_empty [simp]: "insert a A \<noteq> {}"
   by blast
 
-lemmas empty_not_insert [simp] = insert_not_empty [symmetric, standard]
+lemmas empty_not_insert = insert_not_empty [symmetric, standard]
+declare empty_not_insert [simp]
 
 lemma insert_absorb: "a \<in> A ==> insert a A = A"
   -- {* @{text "[simp]"} causes recursive calls when there are nested inserts *}
