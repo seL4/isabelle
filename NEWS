@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in Isabelle2005 (September 2005)
-------------------------------------
+New in Isabelle2005 (October 2005)
+----------------------------------
 
 *** General ***
 
@@ -124,6 +124,9 @@ proof context (such as 'locale' or 'theorem (in loc) ...').
 
 * Delimiters of outer tokens (string etc.) now produce separate LaTeX
 macros (\isachardoublequoteopen, isachardoublequoteclose etc.).
+
+* Isabelle's pdfsetup.sty now requires ifpdf.sty (which is part of
+common LaTeX distributions) for robust checking of PDF output mode.
 
 * isatool usedir: new option -C (default true) controls whether option
 -D should include a copy of the original document directory; -C false
@@ -952,32 +955,9 @@ elapsed wall-clock time that the outer shell wrapper produces.
 * Simplifier: improved handling of bound variables (nameless
 representation, avoid allocating new strings).  Simprocs that invoke
 the Simplifier recursively should use Simplifier.inherit_bounds to
-avoid local name clashes.
-
-* Provers: Simplifier and Classical Reasoner now support proof context
-dependent plug-ins (simprocs, solvers, wrappers etc.).  These extra
-components are stored in the theory and patched into the
-simpset/claset when used in an Isar proof context.  Context dependent
-components are maintained by the following theory operations:
-
-  Simplifier.add_context_simprocs
-  Simplifier.del_context_simprocs
-  Simplifier.set_context_subgoaler
-  Simplifier.reset_context_subgoaler
-  Simplifier.add_context_looper
-  Simplifier.del_context_looper
-  Simplifier.add_context_unsafe_solver
-  Simplifier.add_context_safe_solver
-
-  Classical.add_context_safe_wrapper
-  Classical.del_context_safe_wrapper
-  Classical.add_context_unsafe_wrapper
-  Classical.del_context_unsafe_wrapper
-
-IMPORTANT NOTE: proof tools (methods etc.) need to use
-local_simpset_of and local_claset_of instead of the primitive
-Simplifier.get_local_simpset and Classical.get_local_claset,
-respectively, in order to see the context dependent fields!
+avoid local name clashes.  Failure to do so produces warnings
+"Simplifier: renamed bound variable ..."; set Simplifier.debug_bounds
+for further details.
 
 * ML functions legacy_bindings and use_legacy_bindings produce ML fact
 bindings for all theorems stored within a given theory; this may help
