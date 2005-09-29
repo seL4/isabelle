@@ -1469,9 +1469,6 @@ lemma LESS_LESS_CASES: "ALL (m::nat) n::nat. m = n | m < n | n < m"
 lemma LESS_EQUAL_ADD: "ALL (m::nat) n::nat. m <= n --> (EX p::nat. n = m + p)"
   by (import arithmetic LESS_EQUAL_ADD)
 
-lemma LESS_EQ_EXISTS: "ALL (m::nat) n::nat. (m <= n) = (EX p::nat. n = m + p)"
-  by (import arithmetic LESS_EQ_EXISTS)
-
 lemma MULT_EQ_1: "ALL (x::nat) y::nat. (x * y = 1) = (x = 1 & y = 1)"
   by (import arithmetic MULT_EQ_1)
 

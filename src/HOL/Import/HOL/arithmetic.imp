@@ -185,7 +185,7 @@ thm_maps
   "LESS_EQ_LESS_TRANS" > "Nat.le_less_trans"
   "LESS_EQ_LESS_EQ_MONO" > "Nat.add_le_mono"
   "LESS_EQ_IMP_LESS_SUC" > "Nat.le_imp_less_Suc"
-  "LESS_EQ_EXISTS" > "HOL4Base.arithmetic.LESS_EQ_EXISTS"
+  "LESS_EQ_EXISTS" > "NatArith.le_iff_add"
   "LESS_EQ_CASES" > "Nat.nat_le_linear"
   "LESS_EQ_ANTISYM" > "HOL4Base.arithmetic.LESS_EQ_ANTISYM"
   "LESS_EQ_ADD_SUB" > "NatArith.add_diff_assoc"
