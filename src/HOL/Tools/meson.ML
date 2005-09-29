@@ -84,10 +84,7 @@ fun has_consts bs =
 	| has (Abs(_,_,t)) = has t
 	| has _ = false
   in  has  end;
-
-(* for tracing: encloses each string element in brackets. *)
-val concat_with_and = space_implode " & " o map (enclose "(" ")");
-
+  
 
 (**** Clause handling ****)
 

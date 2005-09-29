@@ -220,8 +220,11 @@ fun getInIoDesc someInstr =
 
 fun getProofCmd (a,c,d,e,f) = d
 
+(* for tracing: encloses each string element in brackets. *)
+val concat_with_and = space_implode " & " o map (enclose "(" ")");
+
 fun prems_string_of th =
-  Meson.concat_with_and (map (Sign.string_of_term (sign_of_thm th)) (prems_of th))
+  concat_with_and (map (Sign.string_of_term (sign_of_thm th)) (prems_of th))
 
 fun killChild proc = (Unix.kill(proc, Posix.Signal.kill); Unix.reap proc);
 
@@ -324,6 +327,7 @@ fun setupWatcher (thm,clause_arr) =
 		     then (* child has found a proof and transferred it *)
 			(* Remove this child and go on to check others*)
 			(Unix.reap child_handle;
+			 OS.FileSys.remove childCmd;
 			 checkChildren(otherChildren, toParentStr))
 		     else (* Keep this child and go on to check others  *)
 		       childProc :: checkChildren (otherChildren, toParentStr)
@@ -519,7 +523,7 @@ fun createWatcher (thm, clause_arr) =
 	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
 	   then 
-	     (trace ("\nReaping a watcher, childpid = "^
+	     (debug ("\nReaping a watcher, childpid = "^
 		     LargeWord.toString (Posix.Process.pidToWord childpid));
 	      killWatcher childpid; reapWatcher (childpid,childin, childout))
 	    else ())
