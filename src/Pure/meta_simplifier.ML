@@ -81,6 +81,7 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
+  val debug_bounds: bool ref
   val inherit_bounds: simpset -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
@@ -1122,7 +1123,7 @@ fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
       | _ => I) (term_of ct) [];
   in
     if null bs then ()
-    else print_term true ("Simplifier: term contains loose bounds: " ^ commas bs) ss
+    else print_term true ("Simplifier: term contains loose bounds: " ^ commas_quote bs) ss
       (Thm.theory_of_cterm ct) (Thm.term_of ct)
   end);
 

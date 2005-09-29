@@ -53,6 +53,7 @@ signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
   val clear_ss: simpset -> simpset
+  val debug_bounds: bool ref
   val inherit_bounds: simpset -> simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
