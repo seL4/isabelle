@@ -78,7 +78,7 @@ text {*
 (*                       This value is ignored under some ML compilers.      *)
 (* "satsolver"   string  Name of the SAT solver to be used.                  *)
 (*                                                                           *)
-(* See 'HOL/Main.thy' for default values.                                    *)
+(* See 'HOL/SAT.thy' for default values.                                     *)
 (*                                                                           *)
 (* The size of particular types can be specified in the form type=size       *)
 (* (where 'type' is a string, and 'size' is an int).  Examples:              *)
@@ -97,7 +97,7 @@ text {*
 (*                            syntax                                         *)
 (* HOL/Refute.thy             This file: loads the ML files, basic setup,    *)
 (*                            documentation                                  *)
-(* HOL/Main.thy               Sets default parameters                        *)
+(* HOL/SAT.thy                Sets default parameters                        *)
 (* HOL/ex/RefuteExamples.thy  Examples                                       *)
 (* ------------------------------------------------------------------------- *)
 \end{verbatim}
