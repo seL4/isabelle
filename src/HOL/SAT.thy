@@ -8,13 +8,25 @@ Basic setup for the 'sat' and 'satx' tactic.
 
 header {* Reconstructing external resolution proofs for propositional logic *}
 
-theory SAT imports HOL
+theory SAT imports Refute
 
-uses (* "Tools/sat_solver.ML" -- already loaded by Refute.thy *)
+uses
      "Tools/cnf_funcs.ML"
      "Tools/sat_funcs.ML"
 
 begin
+
+text {* \medskip Late package setup: default values for refute, see
+  also theory @{text Refute}. *}
+
+refute_params
+ ["itself"=1,
+  minsize=1,
+  maxsize=8,
+  maxvars=10000,
+  maxtime=60,
+  satsolver="auto"]
+
 
 ML {* structure sat = SATFunc(structure cnf = cnf); *}
 
@@ -23,19 +35,5 @@ method_setup sat = {* Method.no_args (Method.SIMPLE_METHOD sat.sat_tac) *}
 
 method_setup satx = {* Method.no_args (Method.SIMPLE_METHOD sat.satx_tac) *}
   "SAT solver (with definitional CNF)"
-
-(*
-method_setup cnf = {* Method.no_args (Method.SIMPLE_METHOD cnf.cnf_tac) *}
-  "Transforming hypotheses in a goal into CNF"
-
-method_setup cnf_concl = {* Method.no_args (Method.SIMPLE_METHOD cnf.cnf_concl_tac) *}
-  "Transforming the conclusion of a goal to CNF"
-
-method_setup cnf_thin = {* Method.no_args (Method.SIMPLE_METHOD cnf.cnf_thin_tac) *}
-  "Same as cnf, but remove the original hypotheses"
-
-method_setup cnfx_thin = {* Method.no_args (Method.SIMPLE_METHOD cnf.cnfx_thin_tac) *}
-  "Same as cnf_thin, but may introduce extra variables"
-*)
 
 end
