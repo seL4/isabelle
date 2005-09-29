@@ -125,9 +125,6 @@ proof context (such as 'locale' or 'theorem (in loc) ...').
 * Delimiters of outer tokens (string etc.) now produce separate LaTeX
 macros (\isachardoublequoteopen, isachardoublequoteclose etc.).
 
-* Isabelle's pdfsetup.sty now requires ifpdf.sty (which is part of
-common LaTeX distributions) for robust checking of PDF output mode.
-
 * isatool usedir: new option -C (default true) controls whether option
 -D should include a copy of the original document directory; -C false
 prevents unwanted effects such as copying of administrative CVS data.
