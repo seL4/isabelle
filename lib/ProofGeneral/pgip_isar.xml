@@ -16,9 +16,53 @@ STATUS: incomplete and experimental.
 
 <displayconfig>
 
-  <!-- basic prover information and pointers to documentation -->
-
   <welcomemsg>Welcome to Isabelle/Isar 2005.</welcomemsg>
+
+  <!-- Icon for Isabelle interface -->
+  <icon>
+    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
+  </icon>
 
   <helpdoc name="Isabelle/HOL Tutorial" 
 	   descr="A gentle introduction to Isabelle/HOL"
@@ -44,7 +88,8 @@ STATUS: incomplete and experimental.
 	   descr="System Manual: interfaces, output, building logics."
            url="http://isabelle.in.tum.de/dist/Isabelle/doc/system.pdf"
   >system</helpdoc>
-
+  
+ 
   <!-- objtypes -->
   <objtype name="toplevel" descr="top-level context (PGIP internal)">
   <contains objtype="theory"/>
