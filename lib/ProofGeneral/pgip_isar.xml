@@ -15,6 +15,36 @@ STATUS: incomplete and experimental.
 -->
 
 <displayconfig>
+
+  <!-- basic prover information and pointers to documentation -->
+
+  <welcomemsg>Welcome to Isabelle/Isar 2005.</welcomemsg>
+
+  <helpdoc name="Isabelle/HOL Tutorial" 
+	   descr="A gentle introduction to Isabelle/HOL"
+           url="http://isabelle.in.tum.de/dist/Isabelle/doc/tutorial.pdf"
+  >tutorial</helpdoc>
+  <helpdoc name="Isabelle HOL Logic Reference" 
+	   descr="The Isabelle HOL Logic in detail"
+           url="http://isabelle.in.tum.de/dist/Isabelle/doc/logics-HOL.pdf"
+  >logics-HOL</helpdoc>
+  <helpdoc name="Isar Tutorial" 
+	   descr="An Introduction to the Isar proof language"
+           url="http://isabelle.in.tum.de/dist/Isabelle/doc/isar-overview.pdf"
+  >isar-overview</helpdoc>
+  <helpdoc name="Isabelle/Isar Reference" 
+	   descr="Reference Manual for Isabelle/Isar"
+           url="http://isabelle.in.tum.de/dist/Isabelle/doc/isar-ref.pdf"
+  >isar-ref</helpdoc>
+  <helpdoc name="Isabelle Reference manual"
+	   descr="Reference Manual for Isabelle"
+           url="http://isabelle.in.tum.de/dist/Isabelle/doc/ref.pdf"
+  >ref</helpdoc>
+  <helpdoc name="Isabelle System manual"
+	   descr="System Manual: interfaces, output, building logics."
+           url="http://isabelle.in.tum.de/dist/Isabelle/doc/system.pdf"
+  >system</helpdoc>
+
   <!-- objtypes -->
   <objtype name="toplevel" descr="top-level context (PGIP internal)">
   <contains objtype="theory"/>
