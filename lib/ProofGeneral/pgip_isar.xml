@@ -14,7 +14,7 @@ This file is a contributed part of the Isabelle Distribution.
 STATUS: incomplete and experimental.
 -->
 
-<guiconfig>
+<displayconfig>
   <!-- objtypes -->
   <objtype name="toplevel" descr="top-level context (PGIP internal)">
   <contains objtype="theory"/>
@@ -24,27 +24,27 @@ STATUS: incomplete and experimental.
   <contains objtype="theory"/>
   </objtype>
   <objtype name="theorem" descr="Isabelle theorem">
-  <hasprefs prefcategory="Theorem attributes">
-   <haspref name="thm-kind" descr="Theorem kind">
-    <pgipchoice>
-     <pgipconst name="Theorem">theorem</pgipconst>
-     <pgipconst name="Lemma">lemma</pgipconst>
-     <pgipconst name="Corollary">corollary</pgipconst>
-    </pgipchoice>
-   </haspref>
-   <haspref name="thm-simp" descr="Include in simplifier set">
-    <pgipbool/>
-   </haspref>
-   <haspref name="thm-intro" descr="Flag as introduction rule">
-    <pgipbool/>
-   </haspref>
-   <haspref name="thm-elim" descr="Flag as elimination rule">
-    <pgipbool/>
-   </haspref>
-   <haspref name="thm-dest" descr="Flag as destruction rule">
-    <pgipbool/>
-   </haspref>
-  </hasprefs>
+    <hasprefs prefcategory="Theorem attributes">
+      <haspref name="thm-kind" descr="Theorem kind">
+	<pgipchoice>
+	  <pgipconst name="Theorem">theorem</pgipconst>
+	  <pgipconst name="Lemma">lemma</pgipconst>
+	  <pgipconst name="Corollary">corollary</pgipconst>
+	</pgipchoice>
+      </haspref>
+      <haspref name="thm-simp" descr="Include in simplifier set">
+	<pgipbool/>
+      </haspref>
+      <haspref name="thm-intro" descr="Flag as introduction rule">
+	<pgipbool/>
+      </haspref>
+      <haspref name="thm-elim" descr="Flag as elimination rule">
+	<pgipbool/>
+      </haspref>
+      <haspref name="thm-dest" descr="Flag as destruction rule">
+	<pgipbool/>
+      </haspref>
+    </hasprefs>
   </objtype>
   <objtype name="term"      descr="Isabelle term">
     <icon>
@@ -127,7 +127,7 @@ STATUS: incomplete and experimental.
   </opn>
 
   <!-- introduce new goal -->
-  <!-- [FIXME: ideally need to generalise substitution for options? in pgipchoice -->
+  <!-- [FIXME: ideally need to generalise substitution for options? in pgipchoice] -->
   <opn name="openlemma">
     <inputform>
       <field name="name"><pgipstring/><prompt>Input a name:</prompt></field>
@@ -143,5 +143,5 @@ STATUS: incomplete and experimental.
     <opcmd>lemma %attributes %name : "%term"</opcmd>
   </opn>
 
-</guiconfig>
+</displayconfig>
 
