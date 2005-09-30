@@ -1,0 +1,80 @@
+# 
+# RELAX NG Schema for PGML, the Proof General Markup Language
+# 
+# Authors:  David Aspinall, LFCS, University of Edinburgh       
+#           Christoph Lueth, University of Bremen       
+# Version: $Id$    
+# 
+# Status:  Complete, prototype.
+# 
+# For additional commentary, see accompanying commentary document
+# (available at http://proofgeneral.inf.ed.ac.uk/kit)
+# 
+# Advertised version: 1.0
+# 
+
+pgml_version_attr = attribute version { xsd:NMTOKEN }
+
+pgml =
+  element pgml {
+    pgml_version_attr?,
+    (statedisplay | termdisplay | information | warning | error)*
+  }
+
+termitem      = action | nonactionitem
+nonactionitem = term | pgmltype | atom | sym
+
+pgml_mixed    = text | termitem | statepart 
+
+pgml_name_attr = attribute name { text }
+
+kind_attr = attribute kind { text }
+systemid_attr = attribute systemid { text }
+
+statedisplay =
+  element statedisplay {
+    pgml_name_attr?, kind_attr?, systemid_attr?,
+    pgml_mixed*
+  }
+
+pgmltext    = element pgmltext { (text | termitem)* }
+
+information = element information { pgml_name_attr?, kind_attr?, pgmltext }
+
+warning     = element warning     { pgml_name_attr?, kind_attr?, pgmltext }
+error       = element error       { pgml_name_attr?, kind_attr?, pgmltext }
+statepart   = element statepart   { pgml_name_attr?, kind_attr?, pgmltext }
+termdisplay = element termdisplay { pgml_name_attr?, kind_attr?, pgmltext }
+
+pos_attr    = attribute pos { text }
+
+term        = element term { pos_attr?, kind_attr?, pgmltext }
+
+# maybe combine this with term and add extra attr to term?
+pgmltype    = element type { kind_attr?, pgmltext }
+
+action      = element action { kind_attr?, (text | nonactionitem)* }
+
+fullname_attr = attribute fullname { text }
+atom = element atom { kind_attr?, fullname_attr?, text }
+
+
+## Symbols
+##
+## Element sym can be rendered in three alternative ways, 
+## in descending preference order:
+##
+## 1) the PGML symbol given by the name attribute
+## 2) the text content of the SYM element, if non-empty
+## 3) one of the previously configured text alternatives advertised
+##    by the component who produced this output.
+##
+symname_attr = attribute name { token }        # names must be [a-zA-Z][a-zA-Z0-9]+
+sym          = element sym { symname_attr, text }
+
+
+pgmlconfigure = symconfig              # inform symbol support (I/O) for given sym
+
+textalt = attribute alt { text }       # text alternative for given sym
+
+symconfig = element symconfig { symname_attr, textalt* }

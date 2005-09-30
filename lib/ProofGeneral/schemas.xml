@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+  <uri resource="pgip_isar.xml" uri="pgip.rnc"/>
+  <uri resource="pgip_isar.xml" typeId="RELAX NG"/>
+</locatingRules>
