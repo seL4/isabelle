@@ -226,7 +226,8 @@ text{*Added to simplify arguments to parts, analz and synth.
 
 text{*This allows @{text blast} to simplify occurrences of 
   @{term "parts(G\<union>H)"} in the assumption.*}
-declare parts_Un [THEN equalityD1, THEN subsetD, THEN UnE, elim!] 
+lemmas in_parts_UnE = parts_Un [THEN equalityD1, THEN subsetD, THEN UnE] 
+declare in_parts_UnE [elim!]
 
 
 lemma parts_insert_subset: "insert X (parts H) \<subseteq> parts(insert X H)"
