@@ -1,0 +1,21 @@
+This directory contains a PGIP configuration file "pgip_isar.xml"
+which can be used to configure the behaviour of PGIP-aware interfaces
+communicating in PGIP with Isabelle.  The current version of this file
+is incomplete and experimental, because interfaces that use it are
+still in development.
+
+Note that Isabelle does not do anything with the configurations
+specified here, it simply passes the file directly on to the interface
+during startup inside an XML message.
+
+The file which is sent can be overridden at run time by setting the
+variable ISABELLE_PGIPCONFIG to point to an alternative location.
+
+The file here is valid wrt to the RELAX compact schema in "pgip.rnc".
+
+See http://proofgeneral.inf.ed.ac.uk/kit for more details of the
+Proof General Kit project.
+
+
+				    -- David Aspinall, Sep 2005.
+
