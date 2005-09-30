@@ -1,0 +1,906 @@
+# 
+# RELAX NG Schema for PGIP, the Proof General Interface Protocol                   
+# 
+# Authors:  David Aspinall, LFCS, University of Edinburgh       
+#           Christoph Lueth, University of Bremen       
+#
+# Version: $Id$    
+# 
+# Status:   Prototype.
+#
+# For additional commentary, see accompanying commentary document available at
+# http://proofgeneral.inf.ed.ac.uk/Kit/docs/commentary.pdf
+#
+# Advertised version: 2.0
+# 
+# Contents
+# ========
+#
+#  0. Prelude
+#  1. Top-level 
+#  2. Component Control messages
+#  3. Display Commands
+#  4. Prover Configuration
+#  5. Interface Configuration
+#  6. Prover Control
+#  7. Proof script markup and proof control
+#
+
+# ==============================================================================
+# 0. Prelude
+# ==============================================================================
+
+include "pgml.rnc"                           # include PGML grammar
+
+name_attr = attribute name { text }          # names are user-level textual identifiers
+thyname_attr = attribute thyname { text }    # names for theories (special case of name)
+thmname_attr = attribute thmname { text }    # names for theorems (special case of name)
+
+datetime_attr = 
+   attribute datetime { xsd:dateTime }       # CCYY-MM-DDHH:MM:SS plus timezone info
+url_attr  = attribute url { xsd:anyURI }     # URLs  (often as "file:///localfilename.extn")
+dir_attr  = attribute dir { text }           # Unix-style directory name (no final slash)
+
+systemdata_attr  = 
+            attribute systemdata { text }?   # system-specific data (useful for "stateless" RPC)
+
+
+objname = string
+termobjname = string                         # (User-level) object names, semi-colon terminated
+objnames = string                            # A sequence of objnames
+
+#termobjname  = xsd:string { pattern = "[^;]+;" }  # unfortunately these declarations don't 
+#objnames = objname+                               #  work with the RNC->DTD tool trang
+
+
+# ==============================================================================
+# 1. Top-level Messages/documents
+# ==============================================================================
+
+start = pgip                                 # Single message
+      | pgips                                # A log of messages between components
+      | displayconfig                        # displayconfig as a standalone element
+      | pgipconfig                           # pgipconfig as a standalone element
+
+pgip = element pgip {                        #  A PGIP packet contains:
+   pgip_attrs,                               #   - attributes with header information;
+   (toprovermsg | todisplaymsg |             #   - a message with one of four channel types
+    fromprovermsg | fromdisplaymsg 
+   | internalmsg ) 
+  }
+
+pgips = element pgips { pgip+ }
+
+pgip_attrs =
+ attribute tag { text }?,                   # message tag, e.g. name of origin component (diagnostic)
+ attribute id { text },                     # (unique) session id of this component 
+ attribute destid { text }?,                # session id of destination component
+ attribute class { pgip_class },            # general categorization of message
+ attribute refid { text }?,                 # component id this message responds to (usually destid)
+ attribute refseq { xsd:positiveInteger }?, # message sequence this message responds to
+ attribute seq { xsd:positiveInteger }      # sequence number of this message
+
+pgip_class = "pg"      # message sent TO proof general broker
+           | "pa"      # message sent TO the proof assistant/other component
+           | "pd"      # message sent TO display/front-end components
+
+toprovermsg =          # Messages sent to the prover (class "pa"):
+   proverconfig        #   query Prover configuration, triggering interface configuration
+ | provercontrol       #   control some aspect of Prover
+ | improperproofcmd    #   issue a proof command 
+ | improperfilecmd     #   issue a file command
+ | properproofcmd      #   [ NB: not strictly needed: input PGIP processing not expected ]
+ | properfilecmd       #   [ NB: not strictly needed: input PGIP processing not expected ]
+ | proofctxt           #   issue a context command
+
+fromprovermsg =        # Messages from the prover to PG (class "pg"):
+   kitconfig           #   messages to configure the interface 
+ | proveroutput        #   output messages from the prover, usually display in interface
+ | fileinfomsg         #   information messages concerning file-system access / prover state
+
+todisplaymsg =         # Messages sent to display components (class "pd"):
+   brokermsg           #   status reports from broker
+ | dispmsg             #   display commands
+                       #   - Further, all fromprovermsg can be relayed to display
+
+fromdisplaymsg =       # Messages sent from display components (class "pg"):
+   dispcmd             #   display messages 
+ | brokercontrol       #   messages controlling broker & prover processes
+		       #   - Further, all toprovermsg to be relayed to prover
+
+# ===========================================================================
+# 2. Component Control
+# ===========================================================================
+
+#
+# Idea:  - broker knows how to manage some components (inc provers) as child processes,
+#          communicate via pipes.  Configured by a fixed PGIP config file read on startup.
+#        - other components may connect to running broker
+#
+# TODO: - describe startup protocol for component connecting to to running broker dynamically.
+
+# This is the element contained in the configuration file read by the 
+# broker on startup.
+pgipconfig = element pgipconfig { componentspec* }
+
+componentspec = 
+   element componentspec {
+      componentid_attr,         # Unique identifier for component class
+      componentname_attr,       # Textual name of component class
+      componenttype,            # Type of component: prover, display, auxiliary
+      systemattrs,              # System attributes for connecting to component
+      componentconnect          # How to connect to component
+   }
+
+componentid_attr   = attribute componentid   { token }
+componentname_attr = attribute componentname { text }
+
+componenttype = element componenttype {
+     provercomponent 
+   | displaycomponent 
+ # | filehandlercomponent 
+   | parsercomponent 
+   | othercomponent }
+
+provercomponent  = element provercomponent { empty }
+displaycomponent = element displaycomponent { attribute active { xsd:boolean}? }
+parsercomponent  = element parsercomponent  { componentid_attr }
+othercomponent   = element othercomponent { empty }
+
+componentconnect =
+   componentsubprocess | componentsocket | connectbyproxy
+
+componentsubprocess = 
+   element syscommand { text }
+componentsocket = 
+   (element host { text }, element port { text })
+connectbyproxy = 
+   (element proxy { attribute host { text }    # Host to connect to
+		  , attribute connect { 
+                           "rsh" | "ssh" # Launch proxy via RSH or SSH, needs
+			                 # authentication 
+                         | "server"  # connect to running proxy on given port
+                         }?
+                  , attribute user { text } ? # user to connect as with RSH/SSH
+		  , attribute port { text } ? # port to connect to running proxy
+		  , componentconnect
+		  })
+
+systemattrs = (
+   attribute timeout { xsd:integer }?,  # timeout for communications
+   attribute sync { xsd:boolean }?,     # whether to wait for ready
+   attribute startup {		# what to do on broker startup:
+             "boot"   |		# always start this component (default with displays)
+             "manual" |		# start manually (default with provers)
+             "ignore"		# never start this
+             }?
+   )
+
+# Control commands from display to broker
+brokercontrol = 
+    launchprover		# Launch a new prover
+  | exitprover			# Request to terminate a running prover
+  | restartprover		# Request to restart/reset a running prover
+  | proversquery		# Query about known provers, running provers
+  | shutdownbroker		# Ask broker to exit (should be wary of this!)
+  | brokerstatusquery		# Ask broker for status report
+  | pgipconfig			# Send config to broker
+
+provername_attr    = attribute provername { provername }
+provername         = token
+
+proverid_attr     = attribute proverid  { proverid }
+proverid          = token
+
+launchprover      = element launchprover { componentid_attr }
+exitprover        = element exitprover { proverid_attr }
+restartprover     = element restartprover { proverid_attr }
+proversquery      = element proversavailable { empty }
+brokerstatusquery = element brokerstatusquery { empty } 
+shutdownbroker    = element shutdownbroker { attribute force { xsd:boolean }? } 
+
+# Control messages from broker to interface
+brokermsg  = 
+    brokerstatus		# response to brokerstatusquery:
+  | proveravailmsg		# announce new prover is available
+  | newprovermsg		# new prover has started 
+  | proverstatemsg		# prover state has changed (busy/ready/exit)
+
+brokerstatus  = element brokerstatus 
+                       { knownprovers, runningprovers, brokerinformation }
+
+knownprover   = element knownprover   { componentid_attr, provername }
+runningprover = element runningprover { proverid_attr, provername }
+
+knownprovers   = element knownprovers { knownprover* }
+runningprovers = element runningprovers { runningprover* }
+brokerinformation = element brokerinformation { text }
+
+proveravailmsg  = element proveravailable { provername_attr,
+                                            componentid_attr }
+newprovermsg    = element proverstarted { provername_attr, 
+		                          proverid_attr }
+                  # QUESTION: do we want  componentid_attr 
+                  # here as well, and do we want to be able to run multiple
+                  # copies of the same prover? 
+proverstatemsg = element proverstate { 
+                       proverid_attr, provername_attr,
+                       attribute proverstate {proverstate} } 
+
+proverstate    = ("ready" | "busy" | "exitus")
+
+# FIXME: This only allows provers to be available which are configured.
+#        In the long run, we want to change configurations while running.
+
+
+# ===========================================================================
+# 3. Display Commands
+# ===========================================================================
+
+# Messages exchanged between broker and display
+
+                        
+dispcmd = dispfilecmd | dispobjcmd  # display commands go from display to broker
+dispmsg = dispfilemsg | dispobjmsg  # display messages go from broker to display
+   
+
+dispfilecmd = 
+    loadparsefile		# parse and load file
+  | newfilewith			# create new source file with given text
+  | dispopenfile		# open (or create) new file 
+  | savefile			# save opened file
+  | discardfile			# discard changes to opened file
+
+dispfilemsg =
+    newfile			# announce creation of new file (in response to load/open)
+  | filestatus			#announce change in status of file in broker
+
+# unique identifier of loaded files
+srcid_attr = attribute srcid { text }
+
+loadparsefile = element loadparsefile { url_attr, proverid_attr }
+newfilewith   = element newfilewith   { url_attr, proverid_attr, text }
+dispopenfile  = element dispopenfile { url_attr,
+                                       proverid_attr,
+                                       attribute overwrite { xsd:boolean }?}
+savefile      = element savefile { srcid_attr,     
+                                   url_attr? }
+discardfile   = element discardfile { srcid_attr }
+
+newfile       = element newfile  { proverid_attr, srcid_attr, url_attr }
+filestatus    = element filestatus  { proverid_attr, srcid_attr, newstatus_attr, 
+				      datetime_attr} 
+
+newstatus_attr = attribute newstatus { "saved" | "changed" | "discarded" }
+
+dispobjcmd =
+    setobjstate			# request of change of state 
+  | editobj			# request edit operation of opbjects
+  | createobj			# request creation of new objects
+  | inputcmd		        # process the command (generated by an input event)
+  | interruptprover		# send interrupt or kill signal to prover
+
+dispobjmsg = element dispobjmsg { 
+      newobj+			# new objects have been created
+    | delobj+			# objects have been deleted
+    | replaceobjs		# objects are being replaced
+    | objectstate+		# objects have changed state
+    }
+
+newobj = element newobj {
+	    proverid_attr,
+            srcid_attr, 
+	    objid_attr, 
+            attribute objposition { objid } ?,
+            objtype_attr ?,
+            attribute objparent { objid }?,
+            attribute objstate { objstate },
+            (properscriptcmd | unparseable) }
+
+replaceobjs = element replaceobjs {
+	                srcid_attr,
+	                attribute replacedfrom { objid }? ,
+			attribute replacedto { objid }?,
+                        delobj*,
+                        newobj+ }
+
+delobj = element delobj   { proverid_attr, srcid_attr, objid_attr }
+
+objectstate = element objstate
+                       { proverid_attr, srcid_attr, objid_attr,
+                         attribute newstate {objstate} }
+
+setobjstate = element setobjstate
+                  {  objid_attr, attribute newstate {objstate} }
+
+editobj = element editobj { srcid_attr ?,
+	                    attribute editfrom { objid }?,
+                            attribute editto   { objid }?,
+                            text }
+createobj = element createobj { srcid_attr ?, 
+                                attribute objposition { objid }?, 
+                                text}
+
+inputcmd       = element inputcmd { improper_attr, text }
+improper_attr  = attribute improper { xsd:boolean }
+
+interruptprover = element interruptprover 
+                          { interruptlevel_attr, proverid_attr }
+
+interruptlevel_attr  = attribute interruptlevel { "interrupt" | "stop" | "kill" }
+
+objid_attr = attribute objid { objid } 
+objid      = text 
+
+objstate = 
+  ( "unparseable" | "parsed" | "being_processed" | "processed" | "outdated" )
+
+
+# ==============================================================================
+#  4. Prover Configuration
+# ==============================================================================
+
+proverconfig =      
+   askpgip			# what version of PGIP do you support?
+ | askpgml			# what version of PGML do you support?
+ | askconfig			# tell me about objects and operations
+ | askprefs			# what preference settings do you offer?
+ | setpref			# please set this preference value 
+ | getpref			# please tell me this preference value
+
+
+
+prefcat_attr = attribute prefcategory { text}   # e.g. "expert", "internal", etc.
+                                                # could be used for tabs in dialog
+
+askpgip   = element askpgip   { empty }
+askpgml   = element askpgml   { empty }
+askconfig = element askconfig { empty }
+askprefs  = element askprefs  { prefcat_attr? }
+setpref   = element setpref   { name_attr, prefcat_attr?, pgipvalue }
+getpref   = element getpref   { name_attr, prefcat_attr? }
+
+ 
+
+# ==============================================================================
+#  5. Interface Configuration
+# ==============================================================================
+
+kitconfig =        
+    usespgip			# I support PGIP, version ..
+  | usespgml			# I support PGML, version ..
+  | pgmlconfig			# configure PGML symbols
+  | proverinfo			# Report assistant information
+  | hasprefs			# I have preference settings ...
+  | prefval			# the current value of a preference is
+  | displayconfig		# configure the following object types and operations
+  | setids			# inform the interface about some known objects
+  | addids			# add some known identifiers
+  | delids			# retract some known identifers
+  | idvalue			# display the value of some identifier
+  | menuadd			# add a menu entry
+  | menudel			# remove a menu entry
+
+# version reporting
+version_attr  = attribute version { text }
+usespgml = element usespgml  { version_attr }
+usespgip = element usespgip  { version_attr 
+	                     , activecompspec
+			     }
+
+# These data from the component spec which an active component can override, or which
+# components initiating contact with the broker (e.g. incoming socket connections).
+# There are some restrictions: if we start a tool, the componentid and the type must be the
+# same as initially specified.
+activecompspec =  ( componentid_attr?   # unique identifier of component class
+	          , componentname_attr? # Textual name of this component (overrides initial spec)
+		  , componenttype?      # Type of component
+		  , acceptedpgipelems?  # list of accepted elements
+		  )
+
+
+acceptedpgipelems = element acceptedpgipelems { singlepgipelem* }
+
+singlepgipelem    = element pgipelem { 
+   attribute async { xsd:boolean }?,  # true if this command supported asynchronously (deflt false)
+   text }                             # (otherwise part of ready/sync stream)
+
+# PGML configuration
+pgmlconfig = element pgmlconfig { pgmlconfigure+ }
+
+# Types for config settings: corresponding data values should conform to canonical
+# representation for corresponding XML Schema 1.0 Datatypes.  (This representation is verbose
+# but helps for error checking later)
+#
+# In detail:
+#  pgipbool   = xsd:boolean = true | false
+#  pgipint    = xsd:integer = (-)?(0-9)+     (canonical: no leading zeroes)
+#  pgipstring = xsd:string  =  <any character sequence>
+#  pgipchoice = cf xs:choice  = type1 | type2 | ... | typen
+
+pgiptype   = pgipbool | pgipint | pgipstring | pgipchoice | pgipconst
+pgipbool   = element pgipbool { empty }
+
+pgipint    = element pgipint  { min_attr?, max_attr?, empty }
+min_attr   = attribute min { xsd:integer }
+max_attr   = attribute max { xsd:integer }
+pgipstring = element pgipstring { empty }
+pgipchoice = element pgipchoice { pgiptype+ }
+pgipconst  = element pgipconst { name_attr?, text }
+
+pgipvalue  = text
+
+icon  = element icon { xsd:base64Binary }  # image data for an icon
+
+default_attr = attribute default { text }
+descr_attr   = attribute descr { text }
+
+# icons for preference recommended size: 32x32 
+# top level preferences: may be used in dialog for preference setting
+# object preferences: may be used as an "emblem" to decorate 
+# object icon (boolean preferences with default false, only)
+haspref = element haspref  { 
+   name_attr, descr_attr?, 
+   default_attr?, icon?,
+   pgiptype
+}
+
+hasprefs = element hasprefs { prefcat_attr?, haspref* }
+
+prefval = element prefval { name_attr, pgipvalue } 
+
+# menu items (incomplete, FIXME)
+path_attr = attribute path { text }
+
+menuadd  = element menuadd  { path_attr?, name_attr?, opn_attr? }
+menudel  = element menudel  { path_attr?, name_attr? }
+opn_attr = attribute operation { token }
+
+
+# Display configuration information: 
+# basic prover information, lexical structure of files, 
+# an icon for the prover, help documents, and the 
+# objects, types, and operations for building proof commands.
+
+# NB: the following object types have a fixed interpretation 
+# in PGIP:  "comment", "theorem", "theory", "file" 
+
+displayconfig =
+  element displayconfig { 
+     welcomemsg?, icon?, helpdoc*, lexicalstructure*,
+     objtype*, opn* }
+
+objtype = element objtype { name_attr, descr_attr?, icon?, hasprefs?, contains* }
+
+objtype_attr = attribute objtype { token }           # the name of an objtype
+contains = element contains { objtype_attr, empty }  #  a container for other objtypes
+
+opn   = element opn { name_attr, inputform?, opsrc, optrg, opcmd, improper_attr? }
+
+opsrc = element opsrc { list { token* } }  # source types: a space separated list
+optrg = element optrg { token }?           # single target type, empty for proof command
+opcmd = element opcmd { text }             # prover command, with printf-style "%1"-args
+
+# interactive operations - require some input
+inputform = element inputform { field+ }  
+
+# a field has a PGIP config type (int, string, bool, choice(c1...cn)) and a name; under that
+# name, it will be substituted into the command Ex. field name=number opcmd="rtac %1 %number"
+
+field = element field { 
+   name_attr, pgiptype,
+   element prompt { text }
+}
+
+# identifier tables: these list known items of particular objtype.
+# Might be used for completion or menu selection, and inspection.
+# May have a nested structure (but objtypes do not).
+
+setids  = element setids { idtable* }   # (with an empty idtable, clear table)
+addids  = element addids { idtable* }
+delids  = element delids { idtable* }
+
+# give value of some identifier (response to showid)
+idvalue = element idvalue               
+   {  name_attr, objtype_attr, pgmltext }
+
+idtable    = element idtable { context_attr?, objtype_attr, identifier* }
+identifier = element identifier { token }
+
+context_attr = attribute context { token } # parent identifier (context) 
+
+instance_attr = attribute instance { text }
+
+# prover information: 
+# name, instance (e.g. in case of major parameter of invocation);
+# description, version, homepage,  welcome message, docs available
+proverinfo = element proverinfo 
+   { name_attr, version_attr?, instance_attr?,
+     descr_attr?, url_attr?, filenameextns_attr?, 
+## TEMP: these elements are duplicated in displayconfig, as they're
+## moving there.  
+      welcomemsg?, icon?, helpdoc*, lexicalstructure* }
+
+welcomemsg = element welcomemsg { text }
+
+# helpdoc: advertise availability of some documentation, given a canonical
+# name, textual description, and URL or viewdoc argument.
+# 
+helpdoc = element helpdoc { name_attr, descr_attr, url_attr?, text } # text is arg to "viewdoc"
+
+filenameextns_attr = attribute filenameextns { objnames }
+
+# lexical structure of proof texts
+lexicalstructure = 
+   element lexicalstructure {
+      keyword*,
+      stringdelimiter*,
+      escapecharacter?,
+      commentdelimiter*,
+      identifiersyntax?
+   }
+
+keyword = element keyword {
+   attribute word { text },
+   shorthelp?,
+   longhelp? }
+
+shorthelp = element shorthelp { text }   # one-line (tooltip style) help 
+longhelp  = element longhelp { text }    # multi-line help
+
+stringdelimiter = element stringdelimiter { text }  # should be a single char
+
+# The escape character is used to escape strings and other special characters - in most languages it is \
+escapecharacter = element escapecharacter { text }  # should be a single char
+
+commentdelimiter = element commentdelimiter { 
+   attribute start { text },
+   attribute end { text }?,
+   empty
+  }
+
+
+# syntax for ids: id = initial allowed*  or id = allowed+ if initial empty
+identifiersyntax = element identifiersyntax { 
+   attribute initialchars { text }?,
+   attribute allowedchars { text }
+}
+
+# ==============================================================================
+# 6. Prover Control
+# ==============================================================================
+
+provercontrol = 
+   proverinit			# reset prover to its initial state
+ | proverexit			# exit prover
+ | startquiet			# stop prover sending proof state displays, non-urgent messages
+ | stopquiet			# turn on normal proof state & message displays
+ | pgmlsymbolson		# activate use of symbols in PGML output (input always understood)
+ | pgmlsymbolsoff		# deactivate use of symbols in PGML output
+
+proverinit     = element proverinit { empty }  
+proverexit     = element proverexit { empty }
+startquiet     = element startquiet { empty }  
+stopquiet      = element stopquiet  { empty }  
+pgmlsymbolson  = element pgmlsymbolson { empty }
+pgmlsymbolsoff = element pgmlsymbolsoff { empty }
+
+
+# General prover output/responses
+
+# Nearly all prover output has an optional proverid attribute, except for the one which is 
+# never seen by any display. This is set by the Broker to indicate the originating or referring
+# prover. 
+# Displays rendering these messages can rely on this attribute being set.
+
+proveroutput =
+   ready			# prover is ready for input
+ | cleardisplay			# prover requests a display area to be cleared
+ | proofstate			# prover outputs the proof state
+ | normalresponse		# prover outputs some display
+ | errorresponse		# prover indicates an error/warning/debug condition, with message
+ | scriptinsert			# some text to insert literally into the proof script
+ | metainforesponse		# prover outputs some other meta-information to interface
+ | parseresult			# results of a <parsescript> request (see later)
+
+ready = element ready { empty }
+
+displayarea = "status"		# a status line
+	    | "message"		# the message area (e.g. response buffer)
+            | "display"		# the main display area (e.g. goals buffer)
+	    | token		# prover-specified window name
+
+cleardisplay = 
+   element cleardisplay {
+      proverid_attr?,
+      attribute area { 
+         displayarea | "all" } }           
+
+
+proofstate = 
+  element proofstate { proverid_attr?, pgml }
+
+messagecategory =		# attribution of message
+   "internal"			#  - internal debug message (interface should usually hide)
+ | "information"		#  - user-level debug/info message (interface may hide)
+ | "tracing"			#  - user-level "tracing" message (possibly voluminous)
+
+normalresponse =                           
+  element normalresponse { 
+    proverid_attr?,
+    attribute area { displayarea },
+    attribute messagecategory { messagecategory }?, # optional extra category (e.g. tracing/debug)
+    attribute urgent { "y" }?,                      # indication that message must be displayed
+    pgmltext 
+}
+
+## Error messages:  these are different from ordinary messages in that
+##		    they indicate an error condition in the prover, with a notion
+##		    of fatality and (optionally) a location.  The interface may collect these
+##		    messages in a log, display in a modal dialog, or in the specified
+##		    display area if one is specified.
+
+errorresponse = 
+   element errorresponse { 
+     proverid_attr?,
+     attribute area { displayarea }?,
+     attribute fatality { fatality },
+     location_attrs,
+     pgmltext
+  }
+
+fatality =	  # degree of error conditions:
+   "nonfatal"     #  - warning message (interface should show message)
+ | "fatal"        #  - error message (interface must show message)
+ | "panic"        #  - shutdown condition, component exits (interface may show message)
+ | "log"          #  - log message (interface must not show message, write to broker log file)
+ | "debug"        #  - debug message (interface may show message, write to broker log file)
+		   ## FIXME da: wondering if this is more appropriate than normal/internal above
+
+
+# attributes describing a file location (for error messages, etc)
+location_attrs = 
+     attribute location_descr    { text }?,
+     attribute location_url      { xsd:anyURI }?,
+     attribute locationline      { xsd:positiveInteger }?,
+     attribute locationcolumn    { xsd:positiveInteger }?,
+     attribute locationcharacter { xsd:positiveInteger }?
+
+scriptinsert = element scriptinsert { proverid_attr?, metavarid_attr?, text }
+
+
+# metainformation is an extensible place to put system-specific information
+
+value = element value { name_attr?, text }   # generic value holder
+
+metainforesponse = 
+   element metainforesponse { 
+      proverid_attr?,
+      attribute infotype { text },      # categorization of data
+      value* }                          # data values
+
+
+# ==============================================================================
+# 7. Proof script markup and proof control 
+# ==============================================================================
+
+# properproofcmds are purely markup on native proof script text
+properproofcmd =
+    opengoal        # open a goal in ambient context
+  | proofstep       # a specific proof command (perhaps configured via opcmd) 
+  | closegoal       # complete & close current open proof (succeeds iff proven, may close nested pf)
+  | giveupgoal      # close current open proof, retaining attempt in script (Isar oops)
+  | postponegoal    # close current open proof, record as proof obl'n  (Isar sorry)  
+  | comment         # a proof script comment; text probably ignored by prover 
+  | whitespace      # a whitespace comment; text ignored by prover
+  | spuriouscmd     # command ignored for undo, e.g. "print x", could be pruned from script
+  | badcmd          # a command which should not be stored in the script (e.g. an improperproofcmd)
+  | litcomment      # a literate comment (never passed to prover)
+  | pragma	    # a document generating instruction (never passed to prover)
+
+# improperproofcmds are commands which are never stored in the script
+improperproofcmd =
+    dostep        # issue a properproofcmd (without passing in markup)
+  | undostep      # undo the last proof step issued in currently open goal 
+  | redostep      # redo the last undone step issued in currently open goal (optionally supported)
+  | abortgoal     # give up on current open proof, close proof state, discard history
+  | forget        # forget a theorem (or named target), outdating dependent theorems
+  | restoregoal   # re-open previously postponed proof, outdating dependent theorems
+
+opengoal     = element opengoal     { display_attr?, thmname_attr?, text } # FIXME: add objprefval
+proofstep    = element proofstep    { display_attr?, name_attr?, objtype_attr?, text }
+closegoal    = element closegoal    { display_attr?, text }
+giveupgoal   = element giveupgoal   { display_attr?, text }
+postponegoal = element postponegoal { display_attr?, text }
+comment      = element comment      { display_attr?, text }
+whitespace   = element whitespace   { display_attr?, text }
+
+display_attr = attribute nodisplay { xsd:boolean }  # whether to display in documentation
+
+spuriouscmd  = element spuriouscmd { text }
+badcmd       = element badcmd { text }
+
+litcomment  = element litcomment { format_attr?, (text | directive)* }
+directive   = element directive { (proofctxt,pgml) }
+format_attr = attribute format { token }
+
+pragma       = showhidecode | setformat
+showhidecode = element showcode { attribute show { xsd:boolean } }
+setformat    = element setformat { format_attr }
+
+dostep       = element dostep { text }
+undostep     = element undostep { empty }
+redostep     = element redostep { empty }
+abortgoal    = element abortgoal { empty }
+forget       = element forget { thyname_attr?, name_attr?, objtype_attr? }
+restoregoal  = element restoregoal { thmname_attr }
+
+# empty objprefval element is used for object prefs in script markup 
+objprefval = element objprefval { name_attr, val_attr, empty }
+val_attr   = attribute value { text }
+
+
+
+
+# =======================================================
+# Inspecting the proof context, etc.
+
+proofctxt =
+    askids         # please tell me about identifiers (given objtype in a theory)
+  | showid         # print value of an object
+  | askguise       # please tell me about the current state of the prover
+  | parsescript    # parse a raw proof script into proofcmds
+  | showproofstate # (re)display proof state (empty if outside a proof)
+  | showctxt       # show proof context
+  | searchtheorems # search for theorems (prover-specific arguments)  
+  | setlinewidth   # set line width for printing
+  | viewdoc        # request some on-line help (prover-specific arg)
+
+askids = element askids  { thyname_attr?, objtype_attr? }
+	# Note that thyname_attr is *required* for certain objtypes (e.g. theorem).
+	# This is because otherwise the list is enormous.
+	# Perhaps we should make thyname_attr obligatory? 
+	# With a blank entry (i.e. thyname="") allowed for listing theories, or for when 
+	# you really do want to see everything.
+
+showid = element showid  { thyname_attr?, objtype_attr, name_attr }
+
+askguise = element askguise { empty }
+
+
+# =======================================================
+# Parsing proof scripts
+
+# NB: parsing needs only be supported for "proper" proof commands,
+# which may appear in proof texts.  The groupdelimiters are purely
+# markup hints to the interface for display structure on concrete syntax.
+# The location attributes can be used by the prover in <parsescript> to
+# generate error messages for particular locations; they can be used 
+# in <parseresult> to pass position information back to the display,
+# particularly in the case of (re-)parsing only part of a file.
+# The parsing component MUST return the same location attributes
+# (and system data attribute) that was passed in.
+
+parsescript = element parsescript
+                 { location_attrs, systemdata_attr, text }
+       
+parseresult = element parseresult { location_attrs, systemdata_attr,
+				    singleparseresult* }
+
+singleparseresult  = properscriptcmd | unparseable | errorresponse
+
+unparseable = element unparseable { text }
+properscriptcmd = properproofcmd | properfilecmd | groupdelimiter
+
+
+groupdelimiter = openblock | closeblock
+openblock  = element openblock { metavarid_attr? }
+closeblock = element closeblock { empty }
+
+# 
+metavarid_attr = attribute metavarid { token }
+
+showproofstate = element showproofstate { empty }
+showctxt       = element showctxt { empty }
+searchtheorems = element searchtheorems { text }
+setlinewidth   = element setlinewidth { xsd:positiveInteger }
+viewdoc        = element viewdoc { text }
+
+
+# =======================================================
+# Theory/file handling
+
+properfilecmd =     # (NB: properfilecmds are purely markup on proof script text)
+    opentheory      # begin construction of a new theory.  
+  | theoryitem      # a step in a theory (e.g. declaration/definition of type/constant).
+  | closetheory     # complete construction of the currently open theory
+
+improperfilecmd = 
+    doitem	    # issue a proper file command (without passing in markup)
+  | undoitem	    # undo last step (or named item) in theory construction
+  | redoitem	    # redo last step (or named item) in theory construction (optionally supported)
+  | aborttheory     # abort currently open theory
+  | retracttheory   # retract a named theory
+  | openfile        # lock a file for constructing a proof text 
+  | closefile       # unlock a file, suggesting it has been processed
+  | abortfile       # unlock a file, suggesting it hasn't been processed
+  | loadfile        # load a file possibly containing theory definition(s)
+  | changecwd       # change prover's working directory (or load path) for files
+  | systemcmd       # system (other) command, parsed internally
+
+fileinfomsg = 
+   informfileloaded       # prover informs interface a particular file is loaded
+ | informfileretracted    # prover informs interface a particular file is outdated
+ | informguise		  # prover informs interface about current state
+
+opentheory    = element opentheory    { thyname_attr, parentnames_attr?, text }
+closetheory   = element closetheory   { text }
+theoryitem    = element theoryitem    { name_attr?, objtype_attr?, text } # FIXME: add objprefval
+
+doitem        = element doitem        { text } 
+undoitem      = element undoitem      { name_attr?, objtype_attr? } 
+redoitem      = element redoitem      { name_attr?, objtype_attr? } 
+aborttheory   = element aborttheory   { empty }
+retracttheory = element retracttheory { thyname_attr }
+
+parentnames_attr = attribute parentnames { objnames }
+
+
+# Below, url_attr will often be a file URL.  We assume for now that
+# the prover and interface are running on same filesystem.
+#
+
+openfile      = element openfile  { url_attr }	    # notify begin reading from given file
+closefile     = element closefile { empty }	    # notify currently open file is complete
+abortfile     = element abortfile { empty }	    # notify currently open file is discarded
+loadfile      = element loadfile  { url_attr }	    # ask prover to read file directly
+changecwd     = element changecwd { dir_attr }	    # ask prover to change current working dir
+
+# this one not yet implemented, but would be handy.  Perhaps could be 
+# locatethy/locatefile instead.
+#locateobj     = element locateobj { name_attr, objtype_attr } # ask prover for file defining obj
+
+informfileloaded    = element informfileloaded    { url_attr }  # prover indicates a processed file
+informfileretracted = element informfileretracted { url_attr }  # prover indicates an undone file
+informfilelocation  = element informfilelocation  { url_attr }  # response to locateobj
+
+informguise = 
+   element informguise {
+      element guisefile { url_attr }?,
+      element guisetheory { thyname_attr }?,
+      element guiseproof { thmname_attr?, proofpos_attr? }?
+   }
+
+proofpos_attr = attribute proofpos { xsd:nonNegativeInteger }
+
+systemcmd     = element systemcmd     { text }		# "shell escape", arbitrary prover command!
+
+# ==============================================================================
+# 8. Internal messages-- only used between communicating brokers.
+# ==============================================================================
+internalmsg  = launchcomp | stopcomp | registercomp | compstatus
+
+launchcomp   = element launchcomponent { componentspec }
+	               # request to start an instance of this component remotely
+stopcomp     = element stopcomponent { attribute sessionid { string } }
+                       # request to stop component with this session id remotely
+
+registercomp = element registercomponent { activecompspec } 
+                       # component has been started successfully
+compstatus   = element componentstatus { componentstatus_attr    # status
+	                               , componentid_attr?       # component id (for failure)
+	                               , element text { text }?  # user-visible error message
+				       , element info { text }?  # Additional info for log files.
+				       }	
+                       # component status: failed to start, or exited
+
+componentstatus_attr = attribute status { ("fail"   # component failed to start
+ 		                          |"exit"  # component exited
+					  )}	
+
+# Local variables:
+# fill-column: 95
+# End:
+# ==============================================================================
+# end of `pgip.rnc'.
+
