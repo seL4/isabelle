@@ -22,13 +22,13 @@
     
       <ul>
         <li>The ML system these notes apply to is <a href=
-        "http://www.smlnj.org/">Standard ML of New Jersey</a>; it is <em>not</em>
-        known yet how to get Isabelle run completely with <a href=
-        "http://www.polyml.org/">Poly/ML</a>. See <a href="#polyml">a note on Poly/ML</a>
-        down this page.</li>
+        "http://www.smlnj.org/">Standard ML of New Jersey</a>, which
+        provides explicit Cygwin support.  Poly/ML is not covered
+        here.</li>
     
-        <li>It is assumed you have some experience with an Unix operating system
-        (e.g. what a shell is for and how to use it).</li>
+        <li>It is assumed you have some experience with an Unix
+        operating system (e.g. what a shell is for and how to use
+        it).</li>
       </ul>
 
       <p>Any suggestions and improvements concerning this hints are welcomed!</p>
@@ -174,15 +174,6 @@
     
       <h2>Running Isabelle with ProofGeneral</h2>
     
-      <p>On Linux, Isabelle can be started by two scripts located in
-      <tt class="shellcmd">Isabelle/bin</tt>: <tt class="shellcmd">Isabelle</tt> and <tt class="shellcmd">isabelle</tt>.
-      <tt class="shellcmd">Isabelle</tt> attempts to start ProofGeneral with XEmacs, and isabelle
-      starts it in an SML shell session. However Windows treats the two names as
-      one. To get around this, just rename <tt class="shellcmd">/opt/Isabelle/bin/isabelle</tt> to
-      <tt class="shellcmd">/opt/Isabelle/bin/Isabelle</tt>. This script
-      will start Isabelle with ProofGeneral; the <tt class="shellcmd">isabelle</tt>
-      script in any case is available as <tt class="shellcmd">isabelle-process</tt>.</p>
-    
       <p>Now everything should be ready. To test, start the cygwin shell and
       type</p>
     
@@ -212,17 +203,6 @@
       </blockquote>
       
       <p>and assigning a shortcut in the start menu to it.</p>
-    
-      <h2 id="polyml">A note on Poly/ML</h2>
-    
-      <p>As indicated above, Isabelle does <em>not</em> run neatly with <a href=
-      "http://www.polyml.org/">Poly/ML</a> on Windows, since it is not clear
-      how Poly/ML has to be compiled for Cygwin, and the native Windows port
-      of PolyML does not provide some Posix signals Isabelle/ProofGeneral relies on.</p>
-    
-      <p>If you know how to circumvent (fully or partially) any of these problems,
-      please let us know.</p>
-
     </div>
     <div class="hr"><hr/></div>
     <?include file="//include/footer.include.html"?>
