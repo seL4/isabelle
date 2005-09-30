@@ -616,20 +616,24 @@ end;
 
 (* Configuration: GUI config, proverinfo messages *)
 
+
+fun orenv v d = case (getenv v) of "" => d  | s => s
+
 local
-    val config_file = "~~/lib/ProofGeneral/pgip_isar.xml"
-    val name_attr = pair "name"
-    val version_attr = pair "version"
-    val isabelle_www = "http://isabelle.in.tum.de/"
+    fun config_file()  = orenv "ISABELLE_PGIPCONFIG" "~~/lib/ProofGeneral/pgip_isar.xml"
+    fun isabelle_www() = orenv "ISABELLE_HOMEPAGE" "http://isabelle.in.tum.de/"
 in
 fun send_pgip_config () =
     let
-        val path = Path.unpack config_file
+        val path = Path.unpack (config_file())
         val exists = File.exists path
         val proverinfo =
             XML.element "proverinfo"
-              [("name",Session.name()), ("version", version),
-               ("url", isabelle_www), ("filenameextns", ".thy;")]
+              [("name",     	 "Isabelle"), 
+	       ("version",  	 version),
+	       ("instance", 	 Session.name()), 
+	       ("url",      	 isabelle_www()),   
+	       ("filenameextns", ".thy;")]
             [XML.element "welcomemsg" [] [XML.text (Session.welcome())],
              XML.element "helpdoc"
          (* NB: would be nice to generate/display docs from isatool
@@ -642,7 +646,7 @@ fun send_pgip_config () =
     in
         if exists then
             (issue_pgips [proverinfo]; issue_pgips [File.read path])
-        else panic ("PGIP configuration file " ^ config_file ^ " not found")
+        else panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
     end;
 end
 
@@ -1431,9 +1435,9 @@ fun init_setup isar pgip =
     set initialized; ()));
   sync_thy_loader ();
   change print_mode (cons proof_generalN o remove (op =) proof_generalN);
+  init_pgip_session_id();
   if pgip then
-      (init_pgip_session_id();
-       change print_mode (append [pgmlN, pgmlatomsN] o fold (remove (op =)) [pgmlN, pgmlatomsN]))
+      (change print_mode (append [pgmlN, pgmlatomsN] o fold (remove (op =)) [pgmlN, pgmlatomsN]))
   else
     pgip_emacs_compatibility_flag := true;  (* assume this for PG <3.6 compatibility *)
   set quick_and_dirty;
