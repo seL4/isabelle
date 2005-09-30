@@ -632,17 +632,10 @@ fun send_pgip_config () =
               [("name",     	 "Isabelle"), 
 	       ("version",  	 version),
 	       ("instance", 	 Session.name()), 
+	       ("descr",	 "The Isabelle/Isar theorem prover"),
 	       ("url",      	 isabelle_www()),   
 	       ("filenameextns", ".thy;")]
-            [XML.element "welcomemsg" [] [XML.text (Session.welcome())],
-             XML.element "helpdoc"
-         (* NB: would be nice to generate/display docs from isatool
-          doc, but that program may not be running on same machine;
-          front end should be responsible for launching viewer, etc. *)
-                      [("name", "Isabelle/HOL Tutorial"),
-                       ("descr", "A Gentle Introduction to Isabelle/HOL"),
-                       ("url",  "http://isabelle.in.tum.de/dist/Isabelle2004/doc/tutorial.pdf")]
-              []]
+            []
     in
         if exists then
             (issue_pgips [proverinfo]; issue_pgips [File.read path])
