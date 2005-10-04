@@ -103,7 +103,8 @@ by blast
 lemma shrK_neq [simp]: "Key K \<notin> used evs ==> shrK B \<noteq> K"
 by blast
 
-declare shrK_neq [THEN not_sym, simp]
+lemmas shrK_sym_neq = shrK_neq [THEN not_sym]
+declare shrK_sym_neq [simp]
 
 
 subsection{*Fresh nonces*}
