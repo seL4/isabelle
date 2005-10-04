@@ -15,9 +15,12 @@ ISABELLE_DOC_CONTENT_FILE=$(ISABELLE_DIST)/Isabelle2005/doc/Contents
 STATICDIRS=css img media misc
 
 # umask/group for target files
-TARGET_UMASK_FILE=664
-TARGET_UMASK_DIR=775
+TARGET_UMASK_FILE=u=rw,g=rw,o=r
+TARGET_UMASK_DIR=u=rwx,g=rwx,o=rx,g+s
 TARGET_GROUP=isabelle
+LOCAL_UMASK_FILE=u=rw,g=rw,o=r
+LOCAL_UMASK_DIR=u=rwx,g=rwx,o=rx,g+s
+LOCAL_GROUP=isabelle
 
 # python interpreter (>= 2.3)
 PYTHON=python

@@ -25,3 +25,7 @@ conf/distname.mak:
 	echo 'echo "DISTNAME=Isabelle1705" > conf/distname.mak'; \
 	echo; \
 	false; \
+
+perms:
+	build/set_perm.bash $(FIND) $(LOCAL_UMASK_FILE) $(LOCAL_UMASK_DIR) $(LOCAL_GROUP)
+.PHONY: perms

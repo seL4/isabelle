@@ -113,9 +113,10 @@ website build bed on sunbroy2:
 * log in to sunbroy2
 * go to ~/isabelle/website_build
 * there do an CVS update if desired
+* do "make perms" to set file owner group (isabelle) and permissions
+  (rw-rw-r--, rwxrwsr-x)
 * do your changes
 * just type make - the website is builded to the website synchronization cache
-* for sure, check groups (isabelle) and permissions (rw-/rwx)
 * then do CVS commit
 * for updating the webpage in Munich, just use Admin/mirror-website
 * if the Isabelle distribution files themselves change, some handwired updating
