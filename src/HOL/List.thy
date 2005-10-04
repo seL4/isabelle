@@ -995,6 +995,13 @@ lemma last_appendR[simp]: "ys \<noteq> [] \<Longrightarrow> last(xs @ ys) = last
 by(simp add:last_append)
 
 
+lemma hd_rev: "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
+by(rule rev_exhaust[of xs]) simp_all
+
+lemma last_rev: "xs \<noteq> [] \<Longrightarrow> last(rev xs) = hd xs"
+by(cases xs) simp_all
+
+
 lemma length_butlast [simp]: "length (butlast xs) = length xs - 1"
 by (induct xs rule: rev_induct) auto
 
