@@ -7,8 +7,6 @@ Compatibility file for Poplog/PML (version 15.6/2.1).
 
 (** Basis structures **)
 
-fun pointer_eq (_: 'a, _: 'a) = false;
-
 structure General =
 struct
   exception Subscript = Array.Subscript;
@@ -233,8 +231,15 @@ struct
 end;
 
 
-(* ML toplevel *)
+(* Compiler and runtime options *)
 
+val _ = Compile.filetype := ".ML";
+val _ = Memory.hilim := 5 * 1024 * 1024;
+
+fun pointer_eq (_: 'a, _: 'a) = false;
+
+
+(* ML toplevel *)
 
 fun ml_prompts p1 p2 = ();
 
