@@ -74,48 +74,7 @@ include build/project.mak
 
 # build dependencies
 $(DEP_FILE): $(CONF)
-	rm -f $(DEP_FILE); \
-	touch $(DEP_FILE); \
-	echo '# This is a generated file; do not edit' >> $(DEP_FILE); \
-	echo >> $(DEP_FILE); \
-	allstatic=''; \
-	for dir in $(STATICDIRS); \
-	do \
-		for file in `$(FIND) $$dir -follow -type f -a ! -path "*/CVS/*"`; \
-		do \
-			outputfile=$(OUTPUTROOT)/$$file; \
-			outputdir=`dirname $$outputfile`; \
-			echo "$$outputfile: $$file" >> $(DEP_FILE); \
-			echo "	mkdir -p $$outputdir" >> $(DEP_FILE); \
-			echo "	-chmod $(TARGET_UMASK_DIR) $$outputdir" >> $(DEP_FILE); \
-			echo '	cp $$< $$@' >> $(DEP_FILE); \
-			echo '	chmod $(TARGET_UMASK_FILE) $$@' >> $(DEP_FILE); \
-			allstatic="$$allstatic$$outputfile "; \
-			echo >> $(DEP_FILE); \
-		done; \
-	done; \
-	echo "DEP_ALLSTATIC=$$allstatic" >> $(DEP_FILE); \
-	echo >> $(DEP_FILE); \
-	echo 'DEP_HTML=$$(DEP_ALLSTATIC) include/documentationdist.include.html $(DEP_FILE) $(CONF)' >> $(DEP_FILE); \
-	echo >> $(DEP_FILE); \
-	allhtml=''; \
-	for html in `$(FIND) . -name "*.html" -a ! -name "*.include.html"`; \
-	do \
-		outputfile=$(OUTPUTROOT)/$$html; \
-		outputdir=`dirname $$outputfile`; \
-		echo "$$outputfile: $$html"' $$(DEP_HTML)' >> $(DEP_FILE); \
-		echo "	mkdir -p $$outputdir" >> $(DEP_FILE); \
-		echo "	-chmod $(TARGET_UMASK_DIR) $$outputdir" >> $(DEP_FILE); \
-		echo '	$(PYTHON) build/pypager.py --dtd="dtd/" $(FORCE_ENC_CMD) --srcroot="." --dstroot="$(OUTPUTROOT)" distname="$(DISTNAME)" $$< $$@' >> $(DEP_FILE); \
-		echo '	-$(TIDYCMD) $$@' >> $(DEP_FILE); \
-		echo '	chmod $(TARGET_UMASK_FILE) $$@' >> $(DEP_FILE); \
-		allhtml="$$allhtml$$outputfile "; \
-		echo >> $(DEP_FILE); \
-	done; \
-	echo "DEP_ALLHTML=$$allhtml" >> $(DEP_FILE); \
-	echo >> $(DEP_FILE); \
-	echo 'allsite: $$(DEP_ALLHTML) $$(DEP_ALLSTATIC)' >> $(DEP_FILE); \
-	echo ".PHONY: allsite" >> $(DEP_FILE)
+	build/make_dep.bash "$(FIND)" "$(OUTPUTROOT)" "$(DEP_FILE)" "$(STATICDIRS)"
 
 # build dependencies explicitly
 depends:
