@@ -89,7 +89,7 @@ fun startTransfer (endS, fromChild, toParent, ppid, goalstring, childCmd, clause
 
 fun signal_parent (toParent, ppid, msg, goalstring) =
  (TextIO.output (toParent, msg);
-  TextIO.output (toParent, goalstring^"\n");
+  TextIO.output (toParent, goalstring);
   TextIO.flushOut toParent;
   trace ("\nSignalled parent: " ^ msg);
   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));

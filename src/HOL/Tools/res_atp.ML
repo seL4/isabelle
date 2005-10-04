@@ -38,18 +38,6 @@ fun probfile_nosuffix _ =
 fun prob_pathname n = probfile_nosuffix n ^ "_" ^ Int.toString n;
 
 
-(**** for Isabelle/ML interface  ****)
-
-(*Remove unwanted characters such as ? and newline from the textural 
-  representation of a theorem (surely they don't need to be produced in 
-  the first place?) *)
-
-fun is_proof_char ch = (#" " <= ch andalso ch <= #"~" andalso ch <> #"?");
-
-val proofstring =
-    String.translate (fn c => if is_proof_char c then str c else "");
-
-
 (**** For running in Isar ****)
 
 (* same function as that in res_axioms.ML *)
@@ -99,7 +87,7 @@ fun watcher_call_provers sign sg_terms (childin, childout,pid) =
     fun make_atp_list [] n = []
       | make_atp_list (sg_term::xs) n =
           let
-            val goalstring = proofstring (Sign.string_of_term sign sg_term)
+            val goalstring = Sign.string_of_term sign sg_term
             val _ = debug ("goalstring in make_atp_lists is " ^ goalstring)
             val probfile = prob_pathname n
             val time = Int.toString (!time_limit)
@@ -235,7 +223,7 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   end);
 
 val call_atpP =
-  OuterSyntax.improper_command 
+  OuterSyntax.command 
     "ProofGeneral.call_atp" 
     "call automatic theorem provers" 
     OuterKeyword.diag

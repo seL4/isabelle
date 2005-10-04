@@ -145,8 +145,9 @@ fun callResProvers (toWatcherStr,  []) =
 		         (["\ncallResProvers:",prover,goalstring,proverCmd,settings,
 			  probfile]))
       in TextIO.output (toWatcherStr,    
-            (prover^"$"^goalstring^"$"^proverCmd^"$"^
-             settings^"$"^probfile^"\n"));
+                        prover^"$"^proverCmd^"$"^ settings^"$"^probfile^"$\n");
+         TextIO.output (toWatcherStr, String.toString goalstring^"\n");
+              (*goalstring is a single string literal, with all specials escaped.*)
          goals_being_watched := (!goals_being_watched) + 1;
 	 TextIO.flushOut toWatcherStr;
 	 callResProvers (toWatcherStr,args)
@@ -161,24 +162,7 @@ fun callResProvers (toWatcherStr,  []) =
 fun callSlayer toWatcherStr = (TextIO.output (toWatcherStr, "Kill vampires\n"); 
                             TextIO.flushOut toWatcherStr)
 
-
-(**************************************************************)
-(* Remove \n token from a vampire goal filename and extract   *)
-(* prover, proverCmd, settings and file from input string     *)
-(**************************************************************)
-
-val remove_newlines = String.translate (fn c => if c = #"\n" then "" else str c);
-
-fun getCmd cmdStr = 
-  let val [prover,goalstring,proverCmd,settingstr,probfile] = 
-            String.tokens (fn c => c = #"$") (remove_newlines cmdStr)
-      val settings = String.tokens (fn c => c = #"%") settingstr
-      val _ = trace ("getCmd: " ^ cmdStr ^
-		    "\nprover" ^ prover ^ " goalstr:  "^goalstring^
-		    "\nprovercmd: " ^ proverCmd^
-		    "\nprob  " ^ probfile ^ "\n\n")
-  in (prover,goalstring, proverCmd, settings, probfile) end
-                      
+                    
 (**************************************************************)
 (* Get commands from Isabelle                                 *)
 (**************************************************************)
@@ -191,8 +175,18 @@ fun getCmds (toParentStr,fromParentStr, cmdList) =
      then (TextIO.output (toParentStr,thisLine ); 
 	   TextIO.flushOut toParentStr;
 	   (("","","Kill children",[],"")::cmdList)  )
-     else let val thisCmd = getCmd thisLine 
-	   in getCmds (toParentStr, fromParentStr, thisCmd::cmdList) end
+     else
+       let val [prover,proverCmd,settingstr,probfile,_] = 
+                   String.tokens (fn c => c = #"$") thisLine
+           val settings = String.tokens (fn c => c = #"%") settingstr
+	   val goalstring = TextIO.inputLine fromParentStr 
+       in
+           trace ("\nprover: " ^ prover ^ "  prover path: " ^ proverCmd^
+                  "  problem file: " ^ probfile ^ 
+		  "\ngoalstring:  "^goalstring);
+           getCmds (toParentStr, fromParentStr, 
+                    (prover, goalstring, proverCmd, settings, probfile)::cmdList) 
+       end
   end
 	    
                                                                   
@@ -317,7 +311,7 @@ fun setupWatcher (thm,clause_arr) =
 		   (* check here for prover label on child*)
 		   let val _ = trace ("\nInput available from child: " ^
 				      childCmd ^ 
-				      "\ngoalstring is " ^ goalstring ^ "\n\n")
+				      "\ngoalstring is " ^ goalstring)
 		       val childDone = (case prover of
 			   "vampire" => AtpCommunication.checkVampProofFound(childInput, toParentStr, parentID,goalstring, childCmd, clause_arr)  
 			    | "E" => AtpCommunication.checkEProofFound(childInput, toParentStr, parentID,goalstring, childCmd, clause_arr)             
@@ -530,7 +524,7 @@ fun createWatcher (thm, clause_arr) =
      val _ = debug ("subgoals forked to createWatcher: "^ prems_string_of thm);
      fun proofHandler n = 
        let val outcome = TextIO.inputLine childin
-	   val goalstring = TextIO.inputLine childin
+	   val goalstring = valOf (String.fromString (TextIO.inputLine childin))
 	   val _ = debug ("In signal handler. outcome = \"" ^ outcome ^ 
 		        "\"\ngoalstring = " ^ goalstring ^
 		        "\ngoals_being_watched: "^  Int.toString (!goals_being_watched))
@@ -539,18 +533,18 @@ fun createWatcher (thm, clause_arr) =
 	 then (priority (Recon_Transfer.apply_res_thm outcome goalstring);
 	       decr_watched())
 	 else if String.isPrefix "Invalid" outcome
-	 then (priority (goalstring ^ "is not provable");
+	 then (priority ("Subgoal is not provable:\n" ^ goalstring);
 	       decr_watched())
 	 else if String.isPrefix "Failure" outcome
-	 then (priority (goalstring ^ "proof attempt failed");
+	 then (priority ("Proof attempt failed:\n" ^ goalstring);
 	       decr_watched()) 
 	(* print out a list of rules used from clasimpset*)
 	 else if String.isPrefix "Success" outcome
-	 then (priority (goalstring^outcome);
+	 then (priority (outcome ^ goalstring);
 	       decr_watched())
 	  (* if proof translation failed *)
 	 else if String.isPrefix "Translation failed" outcome
-	 then (priority (goalstring ^ outcome);
+	 then (priority (outcome ^ goalstring);
 	       decr_watched())
 	 else (priority "System error in proof handler";
 	       decr_watched())

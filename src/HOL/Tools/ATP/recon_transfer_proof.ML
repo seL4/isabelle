@@ -279,24 +279,19 @@ fun get_axioms_used proof_steps thms clause_arr  =
 fun rules_to_string [] = "NONE"
   | rules_to_string xs = "[" ^ space_implode ", " xs ^ "]"
 
-fun subst_for a b = String.translate (fn c => str (if c=a then b else c));
-
-val remove_linebreaks = subst_for #"\n" #"\t";
-val restore_linebreaks = subst_for #"\t" #"\n";
-
 
 fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr = 
  let val _ = trace
                ("\nGetting lemma names. proofstr is " ^ proofstr ^
-                "\ngoalstr is " ^ goalstring ^
-                "\nnum of clauses is " ^ string_of_int (Array.length clause_arr))
+                "\ngoalstring is " ^ goalstring ^
+                "num of clauses is " ^ string_of_int (Array.length clause_arr))
      val axiom_names = getax proofstr clause_arr
      val ax_str = rules_to_string axiom_names
     in 
 	 trace ("\nDone. Lemma list is " ^ ax_str);
          TextIO.output (toParent, "Success. Lemmas used in automatic proof: " ^
                   ax_str ^ "\n");
-	 TextIO.output (toParent, "goalstring: "^goalstring^"\n");
+	 TextIO.output (toParent, goalstring);
 	 TextIO.flushOut toParent;
 	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2)
     end
@@ -304,8 +299,8 @@ fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr =
      (trace ("\nprover_lemma_list_aux: In exception handler: " ^ 
              Toplevel.exn_message exn);
       TextIO.output (toParent, "Translation failed for the proof: " ^ 
-                     remove_linebreaks proofstr ^ "\n");
-      TextIO.output (toParent, remove_linebreaks goalstring ^ "\n");
+                     String.toString proofstr ^ "\n");
+      TextIO.output (toParent, goalstring);
       TextIO.flushOut toParent;
       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
@@ -367,7 +362,7 @@ fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr =
       val _ = trace ("\nReconstruction:\n" ^ reconstr)
   in 
        TextIO.output (toParent, reconstr^"\n");
-       TextIO.output (toParent, goalstring^"\n");
+       TextIO.output (toParent, goalstring);
        TextIO.flushOut toParent;
        Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
        all_tac
@@ -375,8 +370,8 @@ fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr =
   handle exn => (*FIXME: exn handler is too general!*)
    (trace ("\nspass_reconstruct. In exception handler: " ^ Toplevel.exn_message exn);
     TextIO.output (toParent,"Translation failed for the proof:"^
-         (remove_linebreaks proofstr) ^"\n");
-    TextIO.output (toParent, goalstring^"\n");
+         String.toString proofstr ^"\n");
+    TextIO.output (toParent, goalstring);
     TextIO.flushOut toParent;
     Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2); all_tac)
 
@@ -677,7 +672,8 @@ fun to_isar_proof (frees, xs, goalstring) =
 
 fun apply_res_thm str goalstring  = 
   let val tokens = #1 (lex str);
-      val _ = trace ("\napply_res_thm. str is: "^str^" goalstr is: "^goalstring^"\n")	
+      val _ = trace ("\napply_res_thm. str is: "^str^
+                     "\ngoalstring is: \n"^goalstring^"\n")	
       val (frees,recon_steps) = parse_step tokens 
   in 
       to_isar_proof (frees, recon_steps, goalstring)
