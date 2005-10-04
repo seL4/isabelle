@@ -32,9 +32,9 @@ type -p ggrep > /dev/zero && GREP=ggrep || GREP=grep
 mkdir -p /tmp/isa_linktest
 dir=$(pwd)
 cd /tmp/isa_linktest
-exec wget --non-verbose --cookies=off --recursive --convert-links --page-requisites \
+exec wget --non-verbose --cookies=off --recursive --reject='GraphBrowser.class' --convert-links --page-requisites \
    --delete-after \
   "$url" \
-  2>&1 | "$GREP" -i -B1 "ERROR"
+  2>&1 | tee /tmp/isa_linktest.report | "$GREP" -i -B1 "ERROR"
 cd "$dir"
 rm -rf /tmp/isa_linktest

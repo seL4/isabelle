@@ -2,9 +2,7 @@ For the release:
 - announce build bed
 - abandon old scripts: mirror-*, rsyncisabelle
 - abandon old cache
-- cleanup old dist
-- redirect link -> proper sublinks
-- cleanup website mess (new dir "projects/")
+- cleanup website mess
 
 In the mid-time:
 - a gentle intro enumeration on Home - "Why Isabelle?"
