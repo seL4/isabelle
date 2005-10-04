@@ -177,6 +177,9 @@ proof -
   qed
 qed
 
+lemma finite_Collect_subset: "finite A \<Longrightarrow> finite{x \<in> A. P x}"
+using finite_subset[of "{x \<in> A. P x}" "A"] by blast
+
 lemma finite_Un [iff]: "finite (F Un G) = (finite F & finite G)"
   by (blast intro: finite_subset [of _ "X Un Y", standard] finite_UnI)
 
