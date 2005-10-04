@@ -490,8 +490,13 @@ def main():
         ostream = sys.stdout
 
     # process file
-    transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func)
-    parseWithER(istream, transformer)
+    try:
+        transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func)
+        parseWithER(istream, transformer)
+    except Exception:
+        if dst is not None:
+            os.unlink(dst)
+        raise
 
     # close handles
     ostream.close()

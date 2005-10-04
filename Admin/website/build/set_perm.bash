@@ -20,7 +20,7 @@ do
         else
             if [ -x "$file" ]
             then
-                chmod "$LOCAL_UMASK_FILE",u+x,g+x,o+x "$file"
+                chmod "$LOCAL_UMASK_FILE",u+x,g+x "$file"
             else
                 chmod "$LOCAL_UMASK_FILE" "$file"
             fi
