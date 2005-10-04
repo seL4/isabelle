@@ -275,7 +275,7 @@ val curr_defs = ref Defs.empty;
 
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
-fun init thy = (curr_defs := Theory.defs_of thy);
+fun init thy = (id_ref := 0; curr_defs := Theory.defs_of thy);
 
 fun no_types_needed s = Defs.monomorphic (!curr_defs) s;
     
