@@ -22,3 +22,9 @@ struct
   open TextIO;
   fun inputLine is = Option.getOpt (TextIO.inputLine is, "");
 end;
+
+structure Substring =
+struct
+  open Substring;
+  val all = full;
+end;
