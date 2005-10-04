@@ -1,6 +1,15 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in this Isabelle release
+----------------------------
+
+*** General ***
+
+* Command 'find_theorems': support "*" wildcard in "name:" criterion.
+
+
+
 New in Isabelle2005 (October 2005)
 ----------------------------------
 
