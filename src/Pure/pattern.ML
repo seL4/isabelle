@@ -444,12 +444,12 @@ fun matches thy po = (match thy po; true) handle MATCH => false;
 (* Does pat match a subterm of obj? *)
 fun matches_subterm thy (pat,obj) =
   let fun msub(bounds,obj) = matches thy (pat,obj) orelse
-            case obj of
+            (case obj of
               Abs(x,T,t) => let val y = variant bounds x
                                 val f = Free(":" ^ y,T)
                             in msub(x::bounds,subst_bound(f,t)) end
             | s$t => msub(bounds,s) orelse msub(bounds,t)
-            | _ => false
+            | _ => false)
   in msub([],obj) end;
 
 fun first_order(Abs(_,_,t)) = first_order t

@@ -110,10 +110,10 @@ fun make_tsig (classes, default, types, arities, log_types, witness) =
 fun build_tsig (classes, default, types, arities) =
   let
     val log_types =
-      Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (#2 types) []
-      |> Library.sort (Library.int_ord o pairself #2) |> map #1;
+      Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (snd types) []
+      |> Library.sort (Library.int_ord o pairself snd) |> map fst;
     val witness =
-      (case Sorts.witness_sorts (#2 classes, arities) log_types [] [Graph.keys (#2 classes)] of
+      (case Sorts.witness_sorts (snd classes, arities) log_types [] [Graph.keys (snd classes)] of
         [w] => SOME w | _ => NONE);
   in make_tsig (classes, default, types, arities, log_types, witness) end;
 
@@ -488,7 +488,7 @@ in
 fun add_arities pp decls tsig = tsig |> map_tsig (fn (classes, default, types, arities) =>
   let
     fun prep (t, Ss, S) =
-      (case Symtab.lookup (#2 types) t of
+      (case Symtab.lookup (snd types) t of
         SOME (LogicalType n, _) =>
           if length Ss = n then
             (t, map (cert_sort tsig) Ss, cert_sort tsig S)
@@ -498,7 +498,7 @@ fun add_arities pp decls tsig = tsig |> map_tsig (fn (classes, default, types, a
       | NONE => error (undecl_type t));
 
     val ars = decls |> map ((fn (t, Ss, S) => (t, map (fn c => (c, Ss)) S)) o prep);
-    val arities' = fold (insert_arities pp (#2 classes)) ars arities;
+    val arities' = fold (insert_arities pp (snd classes)) ars arities;
   in (classes, default, types, arities') end);
 
 fun rebuild_arities pp classes arities =

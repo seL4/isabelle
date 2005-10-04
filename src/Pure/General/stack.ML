@@ -7,7 +7,7 @@ Non-empty stacks.
 
 signature STACK =
 sig
-  type 'a T = 'a * 'a list
+  type 'a T (*= 'a * 'a list*)
   val level: 'a T -> int
   val init: 'a -> 'a T
   val top: 'a T -> 'a

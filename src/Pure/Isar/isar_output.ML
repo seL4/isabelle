@@ -206,22 +206,21 @@ val newline_token = basic_token T.is_newline;
 (* command spans *)
 
 type command = string * Position.T * string list;   (*name, position, tags*)
-type tok = token * string * int;         (*token, markup flag, meta-comment depth*)
-type source = tok list;
+type source = (token * (string * int)) list;        (*token, markup flag, meta-comment depth*)
 
 datatype span = Span of command * (source * source * source * source) * bool;
 
 fun make_span cmd src =
   let
-    fun take_newline ((tok: tok) :: toks) =
-          if newline_token (#1 tok) then ([tok], toks, true)
+    fun take_newline (tok :: toks) =
+          if newline_token (fst tok) then ([tok], toks, true)
           else ([], tok :: toks, false)
       | take_newline [] = ([], [], false);
     val (((src_prefix, src_main), src_suffix1), (src_suffix2, src_appendix, newline)) =
       src
-      |> take_prefix (improper_token o #1)
-      ||>> take_suffix (improper_token o #1)
-      ||>> take_prefix (comment_token o #1)
+      |> take_prefix (improper_token o fst)
+      ||>> take_suffix (improper_token o fst)
+      ||>> take_prefix (comment_token o fst)
       ||> take_newline;
   in Span (cmd, (src_prefix, src_main, src_suffix1 @ src_suffix2, src_appendix), newline) end;
 
@@ -246,7 +245,7 @@ in
 fun present_span lex default_tags span state state'
     (tag_stack, active_tag, newline, buffer, present_cont) =
   let
-    val present = fold (fn (tok, flag, 0) =>
+    val present = fold (fn (tok, (flag, 0)) =>
         Buffer.add (output_token lex state' tok)
         #> Buffer.add flag
       | _ => I);
@@ -332,7 +331,7 @@ fun present_thy lex default_tags is_markup trs src =
     (* tokens *)
 
     val ignored = Scan.state --| ignore
-      >> (fn d => (NONE, (NoToken, "", d)));
+      >> (fn d => (NONE, (NoToken, ("", d))));
 
     fun markup mark mk flag = Scan.peek (fn d =>
       improper |-- P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.val_of)) --
@@ -340,21 +339,21 @@ fun present_thy lex default_tags is_markup trs src =
       P.!!!! ((improper -- locale -- improper) |-- P.position P.text --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
         let val name = T.val_of tok
-        in (SOME (name, pos, tags), (mk (name, txt), flag, d)) end));
+        in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       P.position (Scan.one (T.is_kind T.Command)) --
       Scan.repeat tag
       >> (fn ((tok, pos), tags) =>
         let val name = T.val_of tok
-        in (SOME (name, pos, tags), (BasicToken tok, Latex.markup_false, d)) end));
+        in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
       P.$$$ "--" |-- P.!!!! (improper |-- P.position P.text)
-      >> (fn txt => (NONE, (MarkupToken ("cmt", txt), "", d))));
+      >> (fn txt => (NONE, (MarkupToken ("cmt", txt), ("", d)))));
 
     val other = Scan.peek (fn d =>
-       Scan.one T.not_eof >> (fn tok => (NONE, (BasicToken tok, "", d))));
+       Scan.one T.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
 
     val token =
       ignored ||
@@ -367,15 +366,15 @@ fun present_thy lex default_tags is_markup trs src =
     (* spans *)
 
     val stopper =
-      ((NONE, (BasicToken (#1 T.stopper), "", 0)),
-        fn (_, (BasicToken x, _, _)) => #2 T.stopper x | _ => false);
+      ((NONE, (BasicToken (#1 T.stopper), ("", 0))),
+        fn (_, (BasicToken x, _)) => #2 T.stopper x | _ => false);
 
-    val cmd = Scan.one (is_some o #1);
-    val non_cmd = Scan.one (is_none o #1 andf not o #2 stopper) >> #2;
+    val cmd = Scan.one (is_some o fst);
+    val non_cmd = Scan.one (is_none o fst andf not o #2 stopper) >> #2;
 
-    val comments = Scan.any (comment_token o #1 o #2);
-    val blank = Scan.one (blank_token o #1 o #2);
-    val newline = Scan.one (newline_token o #1 o #2);
+    val comments = Scan.any (comment_token o fst o snd);
+    val blank = Scan.one (blank_token o fst o snd);
+    val newline = Scan.one (newline_token o fst o snd);
     val before_cmd =
       Scan.option (newline -- comments) --
       Scan.option (newline -- comments) --
@@ -384,9 +383,9 @@ fun present_thy lex default_tags is_markup trs src =
     val span =
       Scan.repeat non_cmd -- cmd --
         Scan.repeat (Scan.unless before_cmd non_cmd) --
-        Scan.option (newline >> (single o #2))
+        Scan.option (newline >> (single o snd))
       >> (fn (((toks1, (cmd, tok2)), toks3), tok4) =>
-          make_span (the cmd) (toks1 @ tok2 :: toks3 @ the_default [] tok4));
+          make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans =
       src

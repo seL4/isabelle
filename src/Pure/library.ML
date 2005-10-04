@@ -1165,7 +1165,7 @@ fun one_of xs = nth_elem (random_range 0 (length xs - 1), xs);
 fun frequency xs =
   let
     val sum = foldl op + (0, map fst xs);
-    fun pick n ((k, x) :: xs) =
+    fun pick n ((k: int, x) :: xs) =
       if n <= k then x else pick (n - k) xs
   in pick (random_range 1 sum) xs end;
 

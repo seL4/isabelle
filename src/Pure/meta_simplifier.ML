@@ -296,8 +296,8 @@ fun print_ss ss =
     val prcs = Net.entries procs |>
       map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
       |> partition_eq (eq_snd (op =))
-      |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
-      |> Library.sort_wrt #1;
+      |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps))
+      |> Library.sort_wrt fst;
   in
     [Pretty.big_list "simplification rules:" (pretty_thms smps),
       Pretty.big_list "simplification procedures:" (map pretty_proc prcs),
@@ -595,7 +595,7 @@ fun del_cong (ss, thm) = ss |>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;
       val alist2 = List.filter (fn (x, _) => x <> a) alist;
-      val weak2 = alist2 |> List.mapPartial (fn (a, {thm, ...}) =>
+      val weak2 = alist2 |> List.mapPartial (fn (a, {thm, ...}: cong) =>
         if is_full_cong thm then NONE else SOME a);
     in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
@@ -692,7 +692,7 @@ fun ss addloop (name, tac) = ss |>
 
 fun ss delloop name = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    let val loop_tacs' = filter_out (equal name o #1) loop_tacs in
+    let val loop_tacs' = filter_out (equal name o fst) loop_tacs in
       if length loop_tacs <> length loop_tacs' then ()
       else warning ("No such looper in simpset: " ^ quote name);
       (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs', solvers)

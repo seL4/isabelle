@@ -50,7 +50,7 @@ sig
   val custom_accesses: (string list -> string list list) -> naming -> naming
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     naming -> naming
-  type 'a table = T * 'a Symtab.table
+  type 'a table (*= T * 'a Symtab.table*)
   val empty_table: 'a table
   val extend_table: naming -> 'a table * (bstring * 'a) list -> 'a table
   val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table

@@ -78,7 +78,7 @@ struct
 datatype T =
   Block of T list * int * int |         (*body, indentation, length*)
   String of string * int |              (*text, length*)
-  Break of bool * int;                  (*mandatory flag, width if not taken*);
+  Break of bool * int;                  (*mandatory flag, width if not taken*)
 
 
 
@@ -88,19 +88,21 @@ val output_spaces = Output.output o Symbol.spaces;
 val add_indent = Buffer.add o output_spaces;
 fun set_indent wd = Buffer.empty |> add_indent wd;
 
-val empty =
+type text = {tx: Buffer.T, ind: Buffer.T, pos: int, nl: int};
+
+val empty: text =
  {tx = Buffer.empty,
   ind = Buffer.empty,
   pos = 0,
   nl = 0};
 
-fun newline {tx, ind, pos, nl} =
+fun newline {tx, ind, pos, nl} : text =
  {tx = Buffer.add (Output.output "\n") tx,
   ind = Buffer.empty,
   pos = 0,
   nl = nl + 1};
 
-fun string (s, len) {tx, ind, pos: int, nl} =
+fun string (s, len) {tx, ind, pos: int, nl} : text =
  {tx = Buffer.add s tx,
   ind = Buffer.add s ind,
   pos = pos + len,
@@ -108,7 +110,7 @@ fun string (s, len) {tx, ind, pos: int, nl} =
 
 fun blanks wd = string (output_spaces wd, wd);
 
-fun indentation (buf, len) {tx, ind, pos, nl} =
+fun indentation (buf, len) {tx, ind, pos, nl} : text =
   let val s = Buffer.content buf in
    {tx = Buffer.add (Output.indent (s, len)) tx,
     ind = Buffer.add s ind,
@@ -160,7 +162,7 @@ fun format ([], _, _) text = text
             val block' =
               if pos' < emergencypos then (ind |> add_indent indent, pos')
               else (set_indent pos'', pos'');
-            val btext = format (bes, block', breakdist (es, after)) text;
+            val btext: text = format (bes, block', breakdist (es, after)) text;
             (*if this block was broken then force the next break*)
             val es2 = if nl < #nl btext then forcenext es else es;
           in format (es2, block, after) btext end

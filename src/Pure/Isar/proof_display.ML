@@ -45,7 +45,7 @@ fun pretty_results ctxt ((kind, ""), facts) =
 fun name_results "" res = res
   | name_results name res =
       let
-        val n = length (List.concat (map #2 res));
+        val n = length (List.concat (map snd res));
         fun name_res (a, ths) i =
           let
             val m = length ths;
@@ -57,7 +57,7 @@ fun name_results "" res = res
               ((PureThy.string_of_thmref (NameSelection (name, [Single i])), ths), j)
             else ((PureThy.string_of_thmref (NameSelection (name, [FromTo (i, j - 1)])), ths), j)
           end;
-      in #1 (fold_map name_res res 1) end;
+      in fst (fold_map name_res res 1) end;
 
 in
 

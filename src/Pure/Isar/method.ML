@@ -149,11 +149,11 @@ end;
 
 (* datatype method *)
 
-datatype method = Method of thm list -> RuleCases.tactic;
+datatype method = Meth of thm list -> RuleCases.tactic;
 
-fun apply (Method m) = m;
+fun apply (Meth m) = m;
 
-val RAW_METHOD_CASES = Method;
+val RAW_METHOD_CASES = Meth;
 
 fun RAW_METHOD tac = RAW_METHOD_CASES (NO_CASES o tac);
 

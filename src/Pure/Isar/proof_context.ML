@@ -9,7 +9,7 @@ val show_structs = ref false;
 
 signature PROOF_CONTEXT =
 sig
-  type context = Context.proof
+  type context (*= Context.proof*)
   type exporter
   exception CONTEXT of string * context
   val theory_of: context -> theory

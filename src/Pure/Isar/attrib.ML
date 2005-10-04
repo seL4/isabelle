@@ -282,7 +282,7 @@ fun read_instantiate init mixed_insts (context, thm) =
     val ctxt = init context;
     val thy = ProofContext.theory_of ctxt;
 
-    val (type_insts, term_insts) = List.partition (is_tvar o #1) (map #2 mixed_insts);
+    val (type_insts, term_insts) = List.partition (is_tvar o fst) (map snd mixed_insts);
     val internal_insts = term_insts |> List.mapPartial
       (fn (xi, Args.Term t) => SOME (xi, t)
       | (_, Args.Name _) => NONE

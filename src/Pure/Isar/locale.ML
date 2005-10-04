@@ -32,15 +32,15 @@ See also:
 
 signature LOCALE =
 sig
-  type context = Proof.context
+  type context (*= Proof.context*)
   datatype ('typ, 'term, 'fact) elem =
     Fixes of (string * 'typ option * mixfix option) list |
     Constrains of (string * 'typ) list |
     Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
     Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
     Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
-  type element = (string, string, thmref) elem
-  type element_i = (typ, term, thm list) elem
+  type element (*= (string, string, thmref) elem*)
+  type element_i (*= (typ, term, thm list) elem*)
   datatype expr =
     Locale of string |
     Rename of expr * (string * mixfix option) option list |
@@ -859,7 +859,7 @@ fun unify_elemss _ _ [] = []
   | unify_elemss _ [] [elems] = [elems]
   | unify_elemss ctxt fixed_parms elemss =
       let
-        val envs = unify_parms ctxt fixed_parms (map (#2 o #1 o #1) elemss);
+        val envs = unify_parms ctxt fixed_parms (map (snd o fst o fst) elemss);
         fun inst ((((name, ps), mode), elems), env) =
           (((name, map (apsnd (Option.map (inst_type env))) ps), 
               map_mode (map (inst_thm ctxt env)) mode),
@@ -873,7 +873,7 @@ fun unify_elemss' _ _ [] [] = []
   | unify_elemss' _ [] [elems] [] = [elems]
   | unify_elemss' ctxt fixed_parms elemss c_parms =
       let
-        val envs = unify_parms ctxt fixed_parms (map (#2 o #1 o #1) elemss @ map single c_parms);
+        val envs = unify_parms ctxt fixed_parms (map (snd o fst o fst) elemss @ map single c_parms);
         fun inst ((((name, ps), (ps', mode)), elems), env) =
           (((name, map (apsnd (Option.map (inst_type env))) ps),
               (ps', mode)),
@@ -1997,7 +1997,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     val import = prep_expr thy raw_import;
 
     val extraTs = foldr Term.add_term_tfrees [] exts' \\
-      foldr Term.add_typ_tfrees [] (map #2 parms);
+      foldr Term.add_typ_tfrees [] (map snd parms);
     val _ = if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 

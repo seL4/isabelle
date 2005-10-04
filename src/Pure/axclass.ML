@@ -192,7 +192,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
       if null (term_tfrees ax) then
         Logic.mk_implies (Logic.mk_inclass (aT [], class), ax)
       else map_term_tfrees (K (aT [class])) ax;
-    val abs_axms = map (abs_axm o #2) axms;
+    val abs_axms = map (abs_axm o snd) axms;
 
     fun axm_sort (name, ax) =
       (case term_tfrees ax of

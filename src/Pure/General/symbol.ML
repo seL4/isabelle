@@ -132,7 +132,7 @@ fun is_ascii_quasi "_" = true
   | is_ascii_quasi _ = false;
 
 val is_ascii_blank =
-  fn " " => true | "\t" => true | "\r" => true | "\n" => true | "\^L" => true
+  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\^M" => true
     | _ => false;
 
 
@@ -389,8 +389,8 @@ val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
 local
 
 val scan_encoded_newline =
-  $$ "\r" -- $$ "\n" >> K "\n" ||
-  $$ "\r" >> K "\n" ||
+  $$ "\^M" -- $$ "\n" >> K "\n" ||
+  $$ "\^M" >> K "\n" ||
   $$ "\\" -- Scan.optional ($$ "\\") "" -- Scan.this_string "<^newline>" >> K "\n";
 
 val scan_raw =
@@ -422,7 +422,7 @@ fun source do_recover src =
 
 fun no_explode [] = true
   | no_explode ("\\" :: "<" :: _) = false
-  | no_explode ("\r" :: _) = false
+  | no_explode ("\^M" :: _) = false
   | no_explode (_ :: cs) = no_explode cs;
 
 fun sym_explode str =

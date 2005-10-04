@@ -47,11 +47,11 @@ fun encode "<" = "&lt;"
   | encode "\"" = "&quot;"
   | encode c = c;
 
-fun encode_charref c = "&#"^Int.toString (Char.ord c)^ ";"
+fun encode_charref c = "&#" ^ Int.toString (ord c) ^ ";"
 
 val text = Library.translate_string encode
 
-val text_charref = implode o (map encode_charref) o String.explode
+val text_charref = translate_string encode_charref;
 
 val cdata = enclose "<![CDATA[" "]]>\n"
 

@@ -218,7 +218,7 @@ fun filter_crit _ _ (Name name) = filter_name name
 
 fun opt_not x = if isSome x then NONE else SOME (0, 0);
 
-fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y)
+fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y : int)
  |  opt_add _ _ = NONE;
 
 in

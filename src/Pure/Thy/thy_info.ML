@@ -364,7 +364,7 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
 
         val thy = if not really then SOME (get_theory name) else NONE;
         val result =
-          if current andalso forall #1 parent_results then true
+          if current andalso forall fst parent_results then true
           else
             ((case new_deps of
               SOME deps => change_thys (update_node name (map base_of_path parents) (deps, thy))

@@ -7,8 +7,8 @@ The Isar/VM proof language interpreter.
 
 signature PROOF =
 sig
-  type context = Context.proof
-  type method = Method.method
+  type context (*= Context.proof*)
+  type method (*= Method.method*)
   type state
   exception STATE of string * state
   val init: context -> state

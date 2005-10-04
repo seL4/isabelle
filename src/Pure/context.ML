@@ -314,7 +314,8 @@ fun merge_refs (ref1, ref2) =
 
 fun create_thy name self id ids iids data ancestry history =
   let
-    val intermediate = #version history > 0;
+    val {version, name = _, intermediates = _} = history;
+    val intermediate = version > 0;
     val (ids', iids') = check_insert intermediate id (ids, iids);
     val id' = (serial (), name);
     val _ = check_insert intermediate id' (ids', iids');

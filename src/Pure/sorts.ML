@@ -240,7 +240,7 @@ fun witness_aux (classes, arities) log_types hyps sorts =
                 witn_types path ts (solved_failed, S)
               else
                 let val ((solved', failed'), ws) = witn_sorts (S :: path) (solved_failed, SS) in
-                  if forall isSome ws then
+                  if forall is_some ws then
                     let val w = (Type (t, map (#1 o valOf) ws), S)
                     in ((w :: solved', failed'), SOME w) end
                   else witn_types path ts ((solved', failed'), S)
