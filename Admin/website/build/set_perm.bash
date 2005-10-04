@@ -25,5 +25,6 @@ do
                 chmod "$LOCAL_UMASK_FILE" "$file"
             fi
         fi
+        chgrp "$LOCAL_GROUP" "$file"
     fi
 done
