@@ -109,16 +109,20 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
 (* filter_name *)
 
-fun is_substring pat str =
-  if String.size pat = 0 then true
-  else if String.size pat > String.size str then false
-  else if String.substring (str, 0, String.size pat) = pat then true
-  else is_substring pat (String.extract (str, 1, NONE));
+fun match_string pat str =
+  let
+    fun match [] _ = true
+      | match (p :: ps) s =
+          size p <= size s andalso
+            (case try (unprefix p) s of
+              SOME s' => match ps s'
+            | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
+  in match (space_explode "*" pat) str end;
 
 (*filter that just looks for a string in the name,
   substring match only (no regexps are performed)*)
 fun filter_name str_pat (thmref, _) =
-  if is_substring str_pat (PureThy.name_of_thmref thmref)
+  if match_string str_pat (PureThy.name_of_thmref thmref)
   then SOME (0, 0) else NONE;
 
 

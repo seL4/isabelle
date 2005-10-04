@@ -1425,7 +1425,7 @@ way to include formal items into the printed text document.
 \indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \indexisarcmd{print-commands}\indexisarcmd{print-syntax}
 \indexisarcmd{print-methods}\indexisarcmd{print-attributes}
-\indexisarcmd{thms-containing}\indexisarcmd{thm-deps}
+\indexisarcmd{find-theorems}\indexisarcmd{thm-deps}
 \indexisarcmd{print-theorems}
 \begin{matharray}{rcl}
   \isarcmd{print_commands}^* & : & \isarkeep{\cdot} \\
@@ -1433,25 +1433,19 @@ way to include formal items into the printed text document.
   \isarcmd{print_methods}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_attributes}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_theorems}^* & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{thms_containing}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{find_theorems}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{thms_deps}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_facts}^* & : & \isarkeep{proof} \\
   \isarcmd{print_binds}^* & : & \isarkeep{proof} \\
 \end{matharray}
 
-\railalias{thmscontaining}{thms\_containing}
-\railterm{thmscontaining}
-
-\railalias{thmdeps}{thm\_deps}
-\railterm{thmdeps}
-
 \begin{rail}
-  thmscontaining (('(' nat ')')?) (criterion *)
+  'find\_theorems' (('(' nat ')')?) (criterion *)
   ;
   criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
     'simp' ':' term | term)
   ;
-  thmdeps thmrefs
+  'thm\_deps' thmrefs
   ;
 \end{rail}
 
@@ -1482,16 +1476,16 @@ for simplifications.
   transaction; this allows to inspect the result of advanced definitional
   packages, such as $\isarkeyword{datatype}$.
   
-\item [$\isarkeyword{thms_containing}~\vec c$] retrieves facts from the theory
-  or proof context matching all of the search criteria $\vec c$.  The criterion
-  $name: s$ selects all theorems that contain $s$ in their fully qualified
-  name.  The criteria $intro$, $elim$, and $dest$ select theorems that match
-  the current goal as introduction, elimination or destruction rules,
-  respectively.  The criterion $simp: t$ selects all rewrite rules whose
-  left-hand side matches the given term.  The criterion term $t$ selects all
-  theorems that contain the pattern $t$ -- as usual, patterns may contain
-  occurrences of the dummy ``$\_$'', schematic variables, and type
-  constraints.
+\item [$\isarkeyword{find_theorems}~\vec c$] retrieves facts from the theory
+  or proof context matching all of the search criteria $\vec c$.  The
+  criterion $name: p$ selects all theorems whose fully qualified name matches
+  pattern $p$, which may contain ``$*$'' wildcards.  The criteria $intro$,
+  $elim$, and $dest$ select theorems that match the current goal as
+  introduction, elimination or destruction rules, respectively.  The criterion
+  $simp: t$ selects all rewrite rules whose left-hand side matches the given
+  term.  The criterion term $t$ selects all theorems that contain the pattern
+  $t$ -- as usual, patterns may contain occurrences of the dummy ``$\_$'',
+  schematic variables, and type constraints.
   
   Criteria can be preceded by ``$-$'' to select theorems that do \emph{not}
   match. Note that giving the empty list of criteria yields \emph{all}
