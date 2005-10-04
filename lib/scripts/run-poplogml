@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# Poplog/PML startup script (version 15.6/2.1).
+
+export -n INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE
+
+
+## diagnostics
+
+function fail_out()
+{
+  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
+  exit 2
+}
+
+function check_mlhome_file()
+{
+  if [ ! -f "$1" ]; then
+    echo "Unable to locate $1" >&2
+    echo "Please check your ML_HOME setting!" >&2
+    exit 2
+  fi
+}
+
+function check_heap_file()
+{
+  if [ ! -f "$1" ]; then
+    echo "Expected to find ML heap file $1" >&2
+    return 1
+  else
+    return 0
+  fi
+}
+
+
+## prepare databases
+
+if [ -z "$INFILE" ]; then
+  EXIT="fun exit (i: int) = OS.execve \"/bin/sh\" [\"sh\", \"-c\", \"exit \" ^ makestring i] (OS.envlist());"
+  DB=""
+else
+  EXIT=""
+  DB="+$INFILE"
+fi
+
+if [ -z "$OUTFILE" ]; then
+  COMMIT='fun commit () = (StdIO.output (StdIO.std_err, "Error - Database is not opened for writing.\n"); false);'
+else
+  if [ -z "$NOWRITE" ]; then
+    COMMIT="fun commit () = if System.make {image =\"$OUTFILE\", lock = false, share = false, banner = false, init = false} then System.restart() else true;"
+  else
+    COMMIT="fun commit () = if System.make {image =\"$OUTFILE\", lock = true, share = true, banner = false, init = false} then System.restart() else true;"
+  fi
+  [ -f "${OUTFILE}.psv" ] && { chmod +w "${OUTFILE}.psv" || fail_out; }
+fi
+
+
+## run it!
+
+POPLOG="$ML_HOME/poplog"
+check_mlhome_file "$POPLOG"
+
+MLTEXT="val use = Compile.use; $EXIT $COMMIT $MLTEXT"
+MLEXIT="commit();"
+
+if [ -z "$TERMINATE" ]; then
+  FEEDER_OPTS=""
+else
+  FEEDER_OPTS="-q"
+fi
+
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$POPLOG" pml "$DB" $ML_OPTIONS; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+RC="$?"
+
+
+## fix heap file name and permissions
+
+if [ -n "$OUTFILE" ]; then
+  check_heap_file "${OUTFILE}.psv" && \
+    [ -n "$NOWRITE" ] && chmod -w "${OUTFILE}.psv"
+fi
+
+exit "$RC"
