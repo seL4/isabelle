@@ -43,6 +43,13 @@ ML_DBASE=""
 #ML_PLATFORM=""
 #ML_OPTIONS=""
 
+# Poplog/PML version 15.6/2.1 (experimental!)
+#ML_SYSTEM=poplogml
+#ML_HOME="$ISABELLE_HOME/contrib/poplog/current-poplog/bin"
+#ML_PLATFORM=""
+#ML_OPTIONS="-noinit"
+
+
 
 ###
 ### Compilation options (cf. isatool usedir)
