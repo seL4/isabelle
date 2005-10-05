@@ -68,7 +68,7 @@ fun relevant_axioms goal thmTab n =
     let val consts = consts_in_goal goal
 	fun relevant_axioms_aux1 cs k =
 	    let val thms1 = axioms_having_consts cs thmTab
-		val cs1 = ResLib.flat_noDup (map consts_of_thm thms1)
+		val cs1 = foldl (op union_string) [] (map consts_of_thm thms1)
 	    in
 		if ((cs1 subset cs) orelse n <= k) then (k,thms1) 
 		else (relevant_axioms_aux1 (cs1 union cs) (k+1))

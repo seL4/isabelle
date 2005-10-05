@@ -50,6 +50,8 @@ fun repeat_RS thm1 thm2 =
 (* a special version of repeat_RS *)
 fun repeat_someI_ex th = repeat_RS th someI_ex;
 
+fun writeln_strs _   []      = ()
+  | writeln_strs out (s::ss) = (TextIO.output (out, s); TextIO.output (out, "\n"); writeln_strs out ss);
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
@@ -61,8 +63,8 @@ fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
       val arity_cls = map ResClause.tptp_arity_clause arity_clauses
       val out = TextIO.openOut(pf n)
     in
-      ResLib.writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
-      ResLib.writeln_strs out (tfree_clss @ tptp_clss @ classrel_cls @ arity_cls);
+      writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
+      writeln_strs out (tfree_clss @ tptp_clss @ classrel_cls @ arity_cls);
       TextIO.closeOut out
     end;
 
@@ -74,7 +76,7 @@ fun dfg_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
                         axclauses [] [] []    
 	val out = TextIO.openOut(pf n)
     in
-	ResLib.writeln_strs out [probN]; TextIO.closeOut out
+	writeln_strs out [probN]; TextIO.closeOut out
     end;
 
 
@@ -82,19 +84,20 @@ fun dfg_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
 (* call prover with settings and problem file for the current subgoal *)
 (*********************************************************************)
 (* now passing in list of skolemized thms and list of sgterms to go with them *)
-fun watcher_call_provers sign sg_terms (childin, childout,pid) =
+fun watcher_call_provers sign sg_terms (childin, childout, pid) =
   let
     fun make_atp_list [] n = []
       | make_atp_list (sg_term::xs) n =
           let
             val goalstring = Sign.string_of_term sign sg_term
-            val _ = debug ("goalstring in make_atp_lists is " ^ goalstring)
             val probfile = prob_pathname n
             val time = Int.toString (!time_limit)
-            val _ = debug ("problem file in watcher_call_provers is " ^ probfile)
           in
+            debug ("goalstring in make_atp_lists is\n" ^ goalstring);
+            debug ("problem file in watcher_call_provers is " ^ probfile);
             (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
               versions of Unix.execute treat them differently!*)
+            (*options are separated by Watcher.setting_sep, currently #"%"*)
             if !prover = "spass"
             then
               let val optionline = 
@@ -165,7 +168,8 @@ fun write_problem_files pf (ctxt,th)  =
 	    ())
       in writenext (length prems); clause_arr end;
 
-val last_watcher_pid = ref (NONE : Posix.Process.pid option);
+val last_watcher_pid =
+  ref (NONE : (TextIO.instream * TextIO.outstream * Posix.Process.pid) option);
 
 
 (*writes out the current clasimpset to a tptp file;
@@ -175,8 +179,13 @@ val isar_atp = setmp print_mode []
   if Thm.no_prems th then ()
   else
     let
+      val _ = (*Set up signal handler to tidy away dead processes*)
+	      IsaSignal.signal (IsaSignal.chld, 
+	        IsaSignal.SIG_HANDLE (fn _ =>
+		  (Posix.Process.waitpid_nh(Posix.Process.W_ANY_CHILD, []);
+		   debug "Child signal received\n")));  
       val _ = (case !last_watcher_pid of NONE => ()
-               | SOME pid => (*FIXME: should kill ATP processes too; at least they time out*)
+               | SOME (_, childout, pid) => 
                   (debug ("Killing old watcher, pid = " ^ 
                           Int.toString (ResLib.intOfPid pid));
                    Watcher.killWatcher pid))
@@ -184,7 +193,7 @@ val isar_atp = setmp print_mode []
       val clause_arr = write_problem_files prob_pathname (ctxt,th)
       val (childin, childout, pid) = Watcher.createWatcher (th, clause_arr)
     in
-      last_watcher_pid := SOME pid;
+      last_watcher_pid := SOME (childin, childout, pid);
       debug ("proof state: " ^ string_of_thm th);
       debug ("pid: " ^ Int.toString (ResLib.intOfPid pid));
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
@@ -208,9 +217,9 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
         handle Proof.STATE _ => error "No goal present";
     val thy = ProofContext.theory_of ctxt;
   in
-    debug ("initial thm in isar_atp: " ^ 
+    debug ("initial thm in isar_atp:\n" ^ 
            Pretty.string_of (ProofContext.pretty_thm ctxt goal));
-    debug ("subgoals in isar_atp: " ^ 
+    debug ("subgoals in isar_atp:\n" ^ 
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));
     debug ("number of subgoals in isar_atp: " ^ Int.toString (Thm.nprems_of goal));

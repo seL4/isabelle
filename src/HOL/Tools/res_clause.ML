@@ -32,7 +32,6 @@ signature RES_CLAUSE =
   val isTaut : clause -> bool
   val num_of_clauses : clause -> int
 
-  val dfg_clauses2str : string list -> string
   val clause2dfg : clause -> string * string list
   val clauses2dfg : clause list -> string -> clause list -> clause list ->
 	   (string * int) list -> (string * int) list -> string
@@ -41,7 +40,6 @@ signature RES_CLAUSE =
   val tptp_arity_clause : arityClause -> string
   val tptp_classrelClause : classrelClause -> string
   val tptp_clause : clause -> string list
-  val tptp_clauses2str : string list -> string
   val clause2tptp : clause -> string * string list
   val tfree_clause : string -> string
   val schematic_var_prefix : string
@@ -293,11 +291,11 @@ fun type_of (Type (a, [])) =
 	  val funcs' = ResLib.flat_noDup funcslist
 	  val t = make_fixed_type_const a
       in    
-	  ((t ^ paren_pack folTyps), (ts', (t, length Ts)::funcs') )
+	  ((t ^ paren_pack folTyps), (ts', (t, length Ts)::funcs'))
       end
   | type_of (TFree (a, s)) = 
       let val t = make_fixed_type_var a
-      in (t, ([((FOLTFree a),s)],[(t,0)]) ) end
+      in (t, ([((FOLTFree a),s)],[(t,0)])) end
   | type_of (TVar (v, s)) = (make_schematic_type_var v, ([((FOLTVar v),s)], []))
 
 
@@ -617,7 +615,7 @@ fun make_axiom_arity_clause (tcons,(res,args)) =
 	 val conclLit = make_TConsLit(true,(res,tcons,tvars))
          val tvars_srts = ListPair.zip (tvars,args)
 	 val tvars_srts' = ResLib.flat_noDup(map pack_sort tvars_srts)
-         val false_tvars_srts' = ResLib.pair_ins false tvars_srts'
+         val false_tvars_srts' = map (pair false) tvars_srts'
 	 val premLits = map make_TVarLit false_tvars_srts'
      in
 	 make_arity_clause (cls_id,Axiom,conclLit,premLits)
@@ -773,7 +771,7 @@ fun uvar_name (UVar(a,_)) = a
 |   uvar_name (Fun (a,_,_)) = raise CLAUSE("Not a variable", Const(a,dummyT));
 
 fun mergelist [] = []
-|   mergelist (x::xs ) = x @ mergelist xs
+|   mergelist (x::xs) = x @ mergelist xs
 
 fun dfg_vars (Clause cls) =
     let val lits = #literals cls
@@ -861,9 +859,6 @@ fun string_of_start name = "%---------------------------------------------------
 
 fun string_of_end () = "end_problem.\n%------------------------------------------------------------------------------";
 
-val delim = "\n";
-val dfg_clauses2str = ResLib.list2str_sep delim; 
-     
 
 fun clause2dfg cls =
     let val (lits,tfree_lits) = dfg_clause_aux cls 
@@ -890,16 +885,16 @@ fun tfree_dfg_clause tfree_lit =
 fun gen_dfg_file probname axioms conjectures funcs preds = 
     let val axstrs_tfrees = (map clause2dfg axioms)
 	val (axstrs, atfrees) = ListPair.unzip axstrs_tfrees
-        val axstr = ResLib.list2str_sep delim axstrs
+        val axstr = (space_implode "\n" axstrs) ^ "\n\n"
         val conjstrs_tfrees = (map clause2dfg conjectures)
 	val (conjstrs, atfrees) = ListPair.unzip conjstrs_tfrees
         val tfree_clss = map tfree_dfg_clause (ResLib.flat_noDup atfrees) 
-        val conjstr = ResLib.list2str_sep delim (tfree_clss@conjstrs)
+        val conjstr = (space_implode "\n" (tfree_clss@conjstrs)) ^ "\n\n"
         val funcstr = string_of_funcs funcs
         val predstr = string_of_preds preds
     in
        (string_of_start probname) ^ (string_of_descrip ()) ^ 
-       (string_of_symbols funcstr predstr ) ^  
+       (string_of_symbols funcstr predstr) ^  
        (string_of_axioms axstr) ^
        (string_of_conjectures conjstr) ^ (string_of_end ())
     end;
@@ -1042,9 +1037,6 @@ fun clause2tptp cls =
 fun tfree_clause tfree_lit =
     "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).";
 
-val delim = "\n";
-val tptp_clauses2str = ResLib.list2str_sep delim; 
-     
 
 fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
       let val pol = if b then "++" else "--"
