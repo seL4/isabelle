@@ -174,6 +174,12 @@ fun signal (signo, sh) = fromAction (Signals.setHandler (signo, toAction sh));
 
 val usr1 = UnixSignals.sigUSR1
 val usr2 = UnixSignals.sigUSR2
+val alrm = UnixSignals.sigALRM
+val chld = UnixSignals.sigCHLD
+val cont = UnixSignals.sigCONT
+val int = UnixSignals.sigINT
+val quit = UnixSignals.sigQUIT
+val term = UnixSignals.sigTERM
 
 end;
 
