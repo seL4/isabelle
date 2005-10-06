@@ -280,18 +280,19 @@ fun rules_to_string [] = "NONE"
   | rules_to_string xs = "[" ^ space_implode ", " xs ^ "]"
 
 
-fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr = 
+(*The signal handler in watcher.ML must be able to read the output of this.*)
+fun prover_lemma_list_aux getax proofstr probfile toParent ppid clause_arr = 
  let val _ = trace
                ("\nGetting lemma names. proofstr is " ^ proofstr ^
-                "\ngoalstring is " ^ goalstring ^
-                "num of clauses is " ^ string_of_int (Array.length clause_arr))
+                "\nprobfile is " ^ probfile ^
+                "  num of clauses is " ^ string_of_int (Array.length clause_arr))
      val axiom_names = getax proofstr clause_arr
      val ax_str = rules_to_string axiom_names
     in 
 	 trace ("\nDone. Lemma list is " ^ ax_str);
          TextIO.output (toParent, "Success. Lemmas used in automatic proof: " ^
                   ax_str ^ "\n");
-	 TextIO.output (toParent, goalstring);
+	 TextIO.output (toParent, probfile ^ "\n");
 	 TextIO.flushOut toParent;
 	 Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2)
     end
@@ -300,7 +301,7 @@ fun prover_lemma_list_aux getax proofstr goalstring toParent ppid clause_arr =
              Toplevel.exn_message exn);
       TextIO.output (toParent, "Translation failed for the proof: " ^ 
                      String.toString proofstr ^ "\n");
-      TextIO.output (toParent, goalstring);
+      TextIO.output (toParent, probfile);
       TextIO.flushOut toParent;
       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
@@ -313,7 +314,7 @@ val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 
 (**** Full proof reconstruction for SPASS (not really working) ****)
 
-fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr = 
+fun spass_reconstruct proofstr probfile toParent ppid thms clause_arr = 
   let val _ = trace ("\nspass_reconstruct. Proofstr is "^proofstr)
       val tokens = #1(lex proofstr)
 
@@ -362,16 +363,16 @@ fun spass_reconstruct proofstr goalstring toParent ppid thms clause_arr =
       val _ = trace ("\nReconstruction:\n" ^ reconstr)
   in 
        TextIO.output (toParent, reconstr^"\n");
-       TextIO.output (toParent, goalstring);
+       TextIO.output (toParent, probfile ^ "\n");
        TextIO.flushOut toParent;
        Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
        all_tac
   end
   handle exn => (*FIXME: exn handler is too general!*)
    (trace ("\nspass_reconstruct. In exception handler: " ^ Toplevel.exn_message exn);
-    TextIO.output (toParent,"Translation failed for the proof:"^
+    TextIO.output (toParent,"Translation failed for SPASS proof:"^
          String.toString proofstr ^"\n");
-    TextIO.output (toParent, goalstring);
+    TextIO.output (toParent, probfile ^ "\n");
     TextIO.flushOut toParent;
     Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2); all_tac)
 
@@ -483,19 +484,6 @@ val term_lists_step = a (Other "[")  ++ a (Other "]")
                        || a (Other "[") ++ term_list_step ++ a (Other "]")
                         >>(fn (_,(a,_)) => a)
                      
-
-
-
-fun anytoken_step input  = (word>> (fn (a) => a)  ) input
-                       handle NOPARSE_WORD => (number>> (fn (a) => string_of_int a)  ) input
-                      handle NOPARSE_NUMBER => (other_char >> (fn(a) => a)) input
-
-
-
-fun goalstring_step input= (anytoken_step ++ many (anytoken_step )
-                  >> (fn (a,b) =>  (a^" "^(implode b)))) input
-
-
 
  val linestep = number ++ methodstep ++ term_lists_step ++ term_lists_step
                 >> (fn (a, (b, (c,d))) => (a,(b,c,d)))
@@ -630,7 +618,7 @@ fun isar_lines [] str = str
 fun last_isar_line (numb,( step, clstrs,thmstrs)) = "show \"False\"\n"^(by_isar_line step)
 
 
-fun to_isar_proof (frees, xs, goalstring) =
+fun to_isar_proof (frees, xs) =
     let val extraaxioms = get_extraaxioms xs
 	val extraax_num = length extraaxioms
 	val origaxioms_and_steps = Library.drop (extraax_num, xs)  
@@ -643,10 +631,9 @@ fun to_isar_proof (frees, xs, goalstring) =
 	val steps = Library.drop (origax_num, axioms_and_steps)
 	val firststeps = ReconOrderClauses.butlast steps
 	val laststep = List.last steps
-	val goalstring = implode(ReconOrderClauses.butlast(explode goalstring))
 	
 	val isar_proof = 
-		("show \""^goalstring^"\"\n")^
+		("show \"[your goal]\"\n")^
 		("proof (rule ccontr,skolemize, make_clauses) \n")^
 		("fix "^(frees_to_isar_str frees)^"\n")^
 		(assume_isar_extraaxioms extraaxioms)^
@@ -670,13 +657,12 @@ fun to_isar_proof (frees, xs, goalstring) =
 (* be passed over to the watcher, e.g.  numcls25       *)
 (*******************************************************)
 
-fun apply_res_thm str goalstring  = 
+fun apply_res_thm str  = 
   let val tokens = #1 (lex str);
-      val _ = trace ("\napply_res_thm. str is: "^str^
-                     "\ngoalstring is: \n"^goalstring^"\n")	
+      val _ = trace ("\napply_res_thm. str is: "^str^"\n")	
       val (frees,recon_steps) = parse_step tokens 
   in 
-      to_isar_proof (frees, recon_steps, goalstring)
+      to_isar_proof (frees, recon_steps)
   end 
 
 end;

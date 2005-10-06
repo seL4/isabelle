@@ -89,11 +89,9 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     fun make_atp_list [] n = []
       | make_atp_list (sg_term::xs) n =
           let
-            val goalstring = Sign.string_of_term sign sg_term
             val probfile = prob_pathname n
             val time = Int.toString (!time_limit)
           in
-            debug ("goalstring in make_atp_lists is\n" ^ goalstring);
             debug ("problem file in watcher_call_provers is " ^ probfile);
             (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
               versions of Unix.execute treat them differently!*)
@@ -111,7 +109,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
                   val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
                     (*We've checked that SPASS is there for ATP/spassshell to run.*)
               in 
-                  ([("spass", goalstring,
+                  ([("spass", 
                      getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",
                      optionline, probfile)] @ 
                   (make_atp_list xs (n+1)))
@@ -120,14 +118,14 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 	    then 
               let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vampire"
               in
-                ([("vampire", goalstring, vampire, "-m 100000%-t " ^ time, probfile)] @
+                ([("vampire", vampire, "-m 100000%-t " ^ time, probfile)] @
                  (make_atp_list xs (n+1)))       (*BEWARE! spaces in options!*)
               end
       	     else if !prover = "E"
       	     then
 	       let val Eprover = ResLib.helper_path "E_HOME" "eproof"
 	       in
-		  ([("E", goalstring, Eprover, 
+		  ([("E", Eprover, 
 		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time,
 		     probfile)] @
 		   (make_atp_list xs (n+1)))
@@ -156,21 +154,20 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val write = if !prover = "spass" then dfg_inputs_tfrees else tptp_inputs_tfrees
       fun writenext n =
-	if n=0 then ()
+	if n=0 then []
 	 else
 	   (SELECT_GOAL
 	    (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
 	      METAHYPS(fn negs => 
 		(write (make_clauses negs) pf n 
 		       (axclauses,classrel_clauses,arity_clauses);
-		 writenext (n-1); 
 		 all_tac))]) n th;
-	    ())
-      in writenext (length prems); clause_arr end;
+	    pf n :: writenext (n-1))
+      in (writenext (length prems), clause_arr) end;
 
 val last_watcher_pid =
-  ref (NONE : (TextIO.instream * TextIO.outstream * Posix.Process.pid) option);
-
+  ref (NONE : (TextIO.instream * TextIO.outstream * 
+               Posix.Process.pid * string list) option);
 
 (*writes out the current clasimpset to a tptp file;
   turns off xsymbol at start of function, restoring it at end    *)
@@ -179,22 +176,24 @@ val isar_atp = setmp print_mode []
   if Thm.no_prems th then ()
   else
     let
-      val _ = (*Set up signal handler to tidy away dead processes*)
-	      IsaSignal.signal (IsaSignal.chld, 
-	        IsaSignal.SIG_HANDLE (fn _ =>
-		  (Posix.Process.waitpid_nh(Posix.Process.W_ANY_CHILD, []);
-		   debug "Child signal received\n")));  
+      fun reap s = (*Signal handler to tidy away dead processes*)
+	   (case Posix.Process.waitpid_nh(Posix.Process.W_ANY_CHILD, []) of
+		SOME _ => reap s | NONE => ()) 
+           handle OS.SysErr _ => ()
+      val _ = 
+	      IsaSignal.signal (IsaSignal.chld, IsaSignal.SIG_HANDLE reap)
       val _ = (case !last_watcher_pid of NONE => ()
-               | SOME (_, childout, pid) => 
+               | SOME (_, childout, pid, files) => 
                   (debug ("Killing old watcher, pid = " ^ 
                           Int.toString (ResLib.intOfPid pid));
-                   Watcher.killWatcher pid))
+                   Watcher.killWatcher pid;
+                   ignore (map (try OS.FileSys.remove) files)))
               handle OS.SysErr _ => debug "Attempt to kill watcher failed";
-      val clause_arr = write_problem_files prob_pathname (ctxt,th)
+      val (files,clause_arr) = write_problem_files prob_pathname (ctxt,th)
       val (childin, childout, pid) = Watcher.createWatcher (th, clause_arr)
     in
-      last_watcher_pid := SOME (childin, childout, pid);
-      debug ("proof state: " ^ string_of_thm th);
+      last_watcher_pid := SOME (childin, childout, pid, files);
+      debug ("problem files: " ^ space_implode ", " files); 
       debug ("pid: " ^ Int.toString (ResLib.intOfPid pid));
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end);
@@ -217,8 +216,6 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
         handle Proof.STATE _ => error "No goal present";
     val thy = ProofContext.theory_of ctxt;
   in
-    debug ("initial thm in isar_atp:\n" ^ 
-           Pretty.string_of (ProofContext.pretty_thm ctxt goal));
     debug ("subgoals in isar_atp:\n" ^ 
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));

@@ -12,13 +12,13 @@ signature ATP_COMMUNICATION =
     val reconstruct : bool ref
     val checkEProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string * (ResClause.clause * thm) Array.array -> bool
+          string * (ResClause.clause * thm) Array.array -> bool
     val checkVampProofFound: 
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string * (ResClause.clause * thm) Array.array -> bool
+          string * (ResClause.clause * thm) Array.array -> bool
     val checkSpassProofFound:  
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
-          string * string * thm * int * (ResClause.clause * thm) Array.array -> bool
+          string * thm * int * (ResClause.clause * thm) Array.array -> bool
   end;
 
 structure AtpCommunication : ATP_COMMUNICATION =
@@ -64,7 +64,7 @@ end;
 (*  and if so, transfer output to the input pipe of the main Isabelle process    *)
 (*********************************************************************************)
 
-fun startTransfer (endS, fromChild, toParent, ppid, goalstring, childCmd, clause_arr) =
+fun startTransfer (endS, fromChild, toParent, ppid, probfile, clause_arr) =
  let fun transferInput currentString =
       let val thisLine = TextIO.inputLine fromChild
       in
@@ -78,8 +78,8 @@ fun startTransfer (endS, fromChild, toParent, ppid, goalstring, childCmd, clause
 			  	  then Recon_Transfer.vamp_lemma_list
 			  	  else Recon_Transfer.e_lemma_list
 	     in
-	       trace ("\nExtracted_prf\n" ^ proofextract); 
-	       lemma_list proofextract goalstring toParent ppid clause_arr
+	       trace ("\nExtracted proof:\n" ^ proofextract); 
+	       lemma_list proofextract probfile toParent ppid clause_arr
 	     end
 	else transferInput (currentString^thisLine)
       end
@@ -87,34 +87,35 @@ fun startTransfer (endS, fromChild, toParent, ppid, goalstring, childCmd, clause
      transferInput "";  true
  end handle EOF => false
 
-fun signal_parent (toParent, ppid, msg, goalstring) =
+
+(*The signal handler in watcher.ML must be able to read the output of this.*)
+fun signal_parent (toParent, ppid, msg, probfile) =
  (TextIO.output (toParent, msg);
-  TextIO.output (toParent, goalstring);
+  TextIO.output (toParent, probfile ^ "\n");
   TextIO.flushOut toParent;
-  trace ("\nSignalled parent: " ^ msg);
+  trace ("\nSignalled parent: " ^ msg ^ probfile);
   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
-fun checkVampProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr) =
+fun checkVampProofFound (fromChild, toParent, ppid, probfile, clause_arr) =
  let val thisLine = TextIO.inputLine fromChild
  in   
      trace thisLine;
      if thisLine = "" 
-     then (trace "No proof output seen\n"; false)
+     then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_V8 thisLine
-     then
-       startTransfer (end_V8, fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
+     then startTransfer (end_V8, fromChild, toParent, ppid, probfile, clause_arr)
      else if (String.isPrefix "Satisfiability detected" thisLine) orelse
              (String.isPrefix "Refutation not found" thisLine)
-     then (signal_parent (toParent, ppid, "Failure\n", goalstring);
+     then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
      else
-        checkVampProofFound  (fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
+        checkVampProofFound  (fromChild, toParent, ppid, probfile, clause_arr)
   end
 
 
 (*Called from watcher. Returns true if the E process has returned a verdict.*)
-fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr) = 
+fun checkEProofFound (fromChild, toParent, ppid, probfile, clause_arr) = 
  let val thisLine = TextIO.inputLine fromChild  
  in   
      trace thisLine;
@@ -122,15 +123,15 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr
      then (trace "No proof output seen\n"; false)
      else if String.isPrefix start_E thisLine
      then      
-       startTransfer (end_E, fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
+       startTransfer (end_E, fromChild, toParent, ppid, probfile, clause_arr)
      else if String.isPrefix "# Problem is satisfiable" thisLine
-     then (signal_parent (toParent, ppid, "Invalid\n", goalstring);
+     then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
      else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
-     then (signal_parent (toParent, ppid, "Failure\n", goalstring);
+     then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
      else
-	checkEProofFound (fromChild, toParent, ppid, goalstring, childCmd, clause_arr)
+	checkEProofFound (fromChild, toParent, ppid, probfile, clause_arr)
  end
 
 
@@ -140,18 +141,19 @@ fun checkEProofFound (fromChild, toParent, ppid,goalstring, childCmd, clause_arr
 (*  steps as a string to the input pipe of the main Isabelle process  *)
 (**********************************************************************)
 
-fun spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
-                    clause_arr = 
+fun spass_reconstruct_tac proofextract toParent ppid probfile sg_num clause_arr = 
  SELECT_GOAL
   (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
 	   METAHYPS(fn negs => 
-  Recon_Transfer.spass_reconstruct proofextract goalstring toParent ppid negs clause_arr)]) sg_num;
+		  Recon_Transfer.spass_reconstruct proofextract probfile 
+				toParent ppid negs clause_arr)]) sg_num;
 
 
-fun transferSpassInput (fromChild, toParent, ppid, goalstring, 
+fun transferSpassInput (fromChild, toParent, ppid, probfile,
                         currentString, thm, sg_num, clause_arr) = 
  let val thisLine = TextIO.inputLine fromChild 
  in 
+    trace thisLine;
     if thisLine = "" (*end of file?*)
     then (trace ("\nspass_extraction_failed: " ^ currentString);
 	  raise EOF)                    
@@ -161,12 +163,12 @@ fun transferSpassInput (fromChild, toParent, ppid, goalstring,
       in 
 	 trace ("\nextracted spass proof: " ^ proofextract);
 	 if !reconstruct 
-	 then (spass_reconstruct_tac proofextract goalstring toParent ppid sg_num 
+	 then (spass_reconstruct_tac proofextract toParent ppid probfile sg_num 
 		clause_arr thm; ())
-	 else Recon_Transfer.spass_lemma_list proofextract goalstring 
-	        toParent ppid clause_arr 
+	 else Recon_Transfer.spass_lemma_list proofextract probfile toParent
+	        ppid clause_arr 
       end
-    else transferSpassInput (fromChild, toParent, ppid, goalstring,
+    else transferSpassInput (fromChild, toParent, ppid, probfile,
 			     (currentString^thisLine), thm, sg_num, clause_arr)
  end;
 
@@ -177,23 +179,22 @@ fun transferSpassInput (fromChild, toParent, ppid, goalstring,
 (*********************************************************************************)
 
  
-fun startSpassTransfer (fromChild, toParent, ppid, goalstring,childCmd,
+fun startSpassTransfer (fromChild, toParent, ppid, probfile,
                         thm, sg_num,clause_arr) = 
    let val thisLine = TextIO.inputLine fromChild  
    in                 
       if thisLine = "" then false
       else if String.isPrefix "Here is a proof" thisLine then     
-	 (trace ("\nabout to transfer proof, thm is " ^ string_of_thm thm);
-	  transferSpassInput (fromChild, toParent, ppid, goalstring,thisLine, 
+	 (trace ("\nabout to transfer SPASS proof\n:");
+	  transferSpassInput (fromChild, toParent, ppid, probfile, thisLine, 
  	                     thm, sg_num,clause_arr);
 	  true) handle EOF => false
-      else startSpassTransfer (fromChild, toParent, ppid, goalstring,
-                               childCmd, thm, sg_num,clause_arr)
+      else startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num,clause_arr)
     end
 
 
 (*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
-fun checkSpassProofFound (fromChild, toParent, ppid, goalstring, childCmd,
+fun checkSpassProofFound (fromChild, toParent, ppid, probfile,
                           thm, sg_num, clause_arr) = 
  let val thisLine = TextIO.inputLine fromChild  
  in    
@@ -201,17 +202,15 @@ fun checkSpassProofFound (fromChild, toParent, ppid, goalstring, childCmd,
      if thisLine = "" then (trace "No proof output seen\n"; false)
      else if thisLine = "SPASS beiseite: Proof found.\n"
      then      
-        startSpassTransfer (fromChild, toParent, ppid, goalstring,
-	                    childCmd, thm, sg_num, clause_arr)
+        startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num, clause_arr)
      else if thisLine = "SPASS beiseite: Completion found.\n"
-     then (signal_parent (toParent, ppid, "Invalid\n", goalstring);
+     then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
      else if thisLine = "SPASS beiseite: Ran out of time.\n" orelse
              thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
-     then (signal_parent (toParent, ppid, "Failure\n", goalstring);
+     then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-    else checkSpassProofFound (fromChild, toParent, ppid, goalstring,
-                          childCmd, thm, sg_num, clause_arr)
+    else checkSpassProofFound (fromChild, toParent, ppid, probfile, thm, sg_num, clause_arr)
  end
 
 end;
