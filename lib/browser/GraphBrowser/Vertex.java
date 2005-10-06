@@ -134,22 +134,24 @@ abstract class Vertex {
 	/********************************************************************/
 
 	public Vector getPreds() {
-		Vector v1=new Vector(10,10);
-		Vertex vx1,vx2;
-		Enumeration e1,e2;
+	    Vector preds=new Vector(10,10);
+	    Vector todo=(Vector)(parents.clone());
+	    Vertex vx1,vx2;
+	    Enumeration e;
 
-		e1=getParents();
-		while (e1.hasMoreElements()) {
-			vx1=(Vertex)(e1.nextElement());
-			if (v1.indexOf(vx1)<0) v1.addElement(vx1);
-			e2=vx1.getPreds().elements();
-			while (e2.hasMoreElements()) {
-				vx2=(Vertex)(e2.nextElement());
-				if (v1.indexOf(vx2)<0) v1.addElement(vx2);			
-			}
+	    while (!todo.isEmpty()) {
+		vx1=(Vertex)(todo.lastElement());
+		todo.removeElementAt(todo.size()-1);
+		preds.addElement(vx1);
+		e=vx1.parents.elements();
+		while (e.hasMoreElements()) {
+		    vx2=(Vertex)(e.nextElement());
+		    if (preds.indexOf(vx2)<0 && todo.indexOf(vx2)<0)
+			todo.addElement(vx2);
 		}
+	    }
 
-		return v1;
+	    return preds;
 	}
 
 	/********************************************************************/
@@ -157,22 +159,24 @@ abstract class Vertex {
 	/********************************************************************/
 
 	public Vector getSuccs() {
-		Vector v1=new Vector(10,10);
-		Vertex vx1,vx2;
-		Enumeration e1,e2;
+	    Vector succs=new Vector(10,10);
+	    Vector todo=(Vector)(children.clone());
+	    Vertex vx1,vx2;
+	    Enumeration e;
 
-		e1=getChildren();
-		while (e1.hasMoreElements()) {
-			vx1=(Vertex)(e1.nextElement());
-			if (v1.indexOf(vx1)<0) v1.addElement(vx1);
-			e2=vx1.getSuccs().elements();
-			while (e2.hasMoreElements()) {
-				vx2=(Vertex)(e2.nextElement());
-				if (v1.indexOf(vx2)<0) v1.addElement(vx2);			
-			}
+	    while (!todo.isEmpty()) {
+		vx1=(Vertex)(todo.lastElement());
+		todo.removeElementAt(todo.size()-1);
+		succs.addElement(vx1);
+		e=vx1.children.elements();
+		while (e.hasMoreElements()) {
+		    vx2=(Vertex)(e.nextElement());
+		    if (succs.indexOf(vx2)<0 && todo.indexOf(vx2)<0)
+			todo.addElement(vx2);
 		}
+	    }
 
-		return v1;
+	    return succs;
 	}
 
 	public void setX(int x) {this.x=x;}
