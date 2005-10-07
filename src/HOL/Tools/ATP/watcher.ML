@@ -132,19 +132,32 @@ fun getCmds (toParentStr, fromParentStr, cmdList) =
   end
 	    
                                                                   
-(*  Get Io-descriptor for polling of an input stream          *)
+(*Get Io-descriptor for polling of an input stream*)
 fun getInIoDesc someInstr = 
     let val (rd, buf) = TextIO.StreamIO.getReader(TextIO.getInstream someInstr)
         val _ = TextIO.output (TextIO.stdOut, buf)
         val ioDesc = 
 	    case rd
-	      of TextPrimIO.RD{ioDesc = SOME iod, ...} =>SOME iod
+	      of TextPrimIO.RD{ioDesc = SOME iod, ...} => SOME iod
 	       | _ => NONE
      in (* since getting the reader will have terminated the stream, we need
 	 * to build a new stream. *)
 	TextIO.setInstream(someInstr, TextIO.StreamIO.mkInstream(rd, buf));
 	ioDesc
     end
+
+fun pollChild fromStr = 
+   case getInIoDesc fromStr of
+     SOME iod => 
+       (case OS.IO.pollDesc iod of
+	  SOME pd =>
+	      let val pd' = OS.IO.pollIn pd in
+		case OS.IO.poll ([pd'], SOME (Time.fromSeconds 2)) of
+		    [] => false
+		  | pd''::_ => OS.IO.isIn pd''
+	      end
+	 | NONE => false)
+   | NONE => false
 
 
 (*************************************)
@@ -153,18 +166,25 @@ fun getInIoDesc someInstr =
 
 fun killChild proc = (Unix.kill(proc, Posix.Signal.kill); Unix.reap proc);
 
-fun killChildren procs = List.app (ignore o killChild) procs;
+val killChildren = List.app (ignore o killChild o #proc_handle) : cmdproc list -> unit;
 
- (* take an instream and poll its underlying reader for input *)
- fun pollParentInput (fromParentIOD, fromParentStr, toParentStr) = 
-   case OS.IO.pollDesc fromParentIOD of
-      SOME pd =>
-	 (case OS.IO.poll ([OS.IO.pollIn pd], SOME (Time.fromSeconds 2)) of
-	      [] => NONE
-	    | pd''::_ => if OS.IO.isIn pd''
-	 	         then SOME (getCmds (toParentStr, fromParentStr, []))
-	 	         else NONE)
-   | NONE => NONE;
+fun killWatcher (toParentStr, procList) =
+      (trace "\nWatcher timeout: Killing proof processes";
+       TextIO.output(toParentStr, "Timeout: Killing proof processes!\n");
+       TextIO.flushOut toParentStr;
+       killChildren procList;
+       Posix.Process.exit 0w0);
+
+(* take an instream and poll its underlying reader for input *)
+fun pollParentInput (fromParentIOD, fromParentStr, toParentStr) = 
+  case OS.IO.pollDesc fromParentIOD of
+     SOME pd =>
+	(case OS.IO.poll ([OS.IO.pollIn pd], SOME (Time.fromSeconds 2)) of
+	     [] => NONE
+	   | pd''::_ => if OS.IO.isIn pd''
+			then SOME (getCmds (toParentStr, fromParentStr, []))
+			else NONE)
+  | NONE => NONE;
 
 (*get the number of the subgoal from the filename: the last digit string*)
 fun number_from_filename s =
@@ -173,151 +193,112 @@ fun number_from_filename s =
              raise ERROR)
     | numbers => valOf (Int.fromString (List.last numbers));
 
-fun setupWatcher (thm,clause_arr) = 
+(* call ATP.  Settings should be a list of strings  ["-t300", "-m100000"]*)
+fun execCmds [] procList = procList
+  | execCmds ((prover,proverCmd,settings,file)::cmds) procList  =
+      let val _ = trace ("\nAbout to execute command: " ^ proverCmd ^ " " ^ file)
+	  val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
+	       Unix.execute(proverCmd, settings@[file])
+	  val (instr, outstr) = Unix.streamsOf childhandle
+	  val newProcList = {prover=prover, file=file, proc_handle=childhandle,
+			     instr=instr, outstr=outstr} :: procList
+	  val _ = trace ("\nFinished at " ^
+			 Date.toString(Date.fromTimeLocal(Time.now())))
+      in execCmds cmds newProcList end
+
+fun checkChildren (th, clause_arr, toParentStr, children) = 
+  let fun check [] = []  (* no children to check *)
+	| check (child::children) = 
+	   let val {prover, file, proc_handle, instr=childIn, ...} : cmdproc =
+		   child
+	       val _ = trace ("\nprobfile = " ^ file)
+	       val sgno = number_from_filename file
+	       val ppid = Posix.ProcEnv.getppid()
+	   in 
+	     if pollChild childIn
+	     then (* check here for prover label on child*)
+	       let val _ = trace ("\nInput available from child: " ^ file)
+		   val childDone = (case prover of
+		       "vampire" => AtpCommunication.checkVampProofFound
+			    (childIn, toParentStr, ppid, file, clause_arr)  
+		     | "E" => AtpCommunication.checkEProofFound
+			    (childIn, toParentStr, ppid, file, clause_arr)             
+		     | "spass" => AtpCommunication.checkSpassProofFound
+			    (childIn, toParentStr, ppid, file, th, sgno,clause_arr)  
+		     | _ => (trace ("\nBad prover! " ^ prover); true) )
+		in
+		 if childDone (*child has found a proof and transferred it*)
+		 then (Unix.reap proc_handle; OS.FileSys.remove file;
+		       check children)
+		 else child :: check children
+	      end
+	    else (trace "\nNo child output";  child :: check children)
+	   end
+  in 
+    trace ("\nIn checkChildren, length of queue: " ^  Int.toString(length children));
+    check children 
+  end;
+
+
+fun setupWatcher (th,clause_arr) = 
   let
     val p1 = Posix.IO.pipe()   (*pipes for communication between parent and watcher*)
     val p2 = Posix.IO.pipe()
-    fun closep () = 
-	 (Posix.IO.close (#outfd p1); Posix.IO.close (#infd p1);
-	  Posix.IO.close (#outfd p2); Posix.IO.close (#infd p2))
     (****** fork a watcher process and get it set up and going ******)
     fun startWatcher procList =
-     (case  Posix.Process.fork() 
-      of SOME pid => pid (* parent - i.e. main Isabelle process *)
-       | NONE => let                (* child - i.e. watcher  *)
-	  val oldchildin = #infd p1  
-	  val fromParent = Posix.FileSys.wordToFD 0w0
-	  val oldchildout = #outfd p2
-	  val toParent = Posix.FileSys.wordToFD 0w1
-	  val fromParentIOD = Posix.FileSys.fdToIOD fromParent
-	  val fromParentStr = openInFD ("_exec_in_parent", fromParent)
-	  val toParentStr = openOutFD ("_exec_out_parent", toParent)
-	  val pid = Posix.ProcEnv.getpid()
-	  val () = Posix.ProcEnv.setpgid {pid = SOME pid, pgid = SOME pid}
-                   (*set process group id: allows killing all children*)
-	  val () = trace "\nsubgoals forked to startWatcher"
-	  fun pollChild fromStr = 
-	     case getInIoDesc fromStr of
-	       SOME iod => 
-		 (case OS.IO.pollDesc iod of
-		    SOME pd =>
-			let val pd' = OS.IO.pollIn pd in
-			  case OS.IO.poll ([pd'], SOME (Time.fromSeconds 2)) of
-			      [] => false
-			    | pd''::_ => OS.IO.isIn pd''
-			end
-		   | NONE => false)
-	     | NONE => false
-	  (* Check all ATP processes currently running for output                 *)
-	  fun checkChildren ([], toParentStr) = []  (* no children to check *)
-	  |   checkChildren (childProc::otherChildren, toParentStr) = 
-	       let val _ = trace ("\nIn check child, length of queue:"^
-			          Int.toString (length (childProc::otherChildren)))
-		   val {prover, file, proc_handle, instr=childIn, ...} : cmdproc =
-		       childProc
-		   val _ = trace ("\nprobfile = " ^ file)
-		   val sgno = number_from_filename file
-		   val ppid = Posix.ProcEnv.getppid()
-	       in 
-		 if pollChild childIn
-		 then (* check here for prover label on child*)
-		   let val _ = trace ("\nInput available from child: " ^ file)
-		       val childDone = (case prover of
-			   "vampire" => AtpCommunication.checkVampProofFound
-			        (childIn, toParentStr, ppid, file, clause_arr)  
-		         | "E" => AtpCommunication.checkEProofFound
-		                (childIn, toParentStr, ppid, file, clause_arr)             
-			 | "spass" => AtpCommunication.checkSpassProofFound
-			        (childIn, toParentStr, ppid, file, thm, sgno,clause_arr)  
-			 | _ => (trace ("\nBad prover! " ^ prover); true) )
-		    in
-		     if childDone (*child has found a proof and transferred it*)
-		     then (*Remove this child and go on to check others*)
-		          (Unix.reap proc_handle; OS.FileSys.remove file;
-			   checkChildren(otherChildren, toParentStr))
-		     else (* Keep this child and go on to check others  *)
-		       childProc :: checkChildren (otherChildren, toParentStr)
-		  end
-		else (trace "\nNo child output";
-		      childProc::(checkChildren (otherChildren, toParentStr)))
-	       end
-	
-	(* call resolution processes                                        *)
-	(* settings should be a list of strings  ["-t300", "-m100000"]    *)
-	fun execCmds [] procList = procList
-	|   execCmds ((prover,proverCmd,settings,file)::cmds) procList  =
-	      let val _ = trace ("\nAbout to execute command: " ^ proverCmd ^ " " ^ file)
-	          val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
-		       Unix.execute(proverCmd, settings@[file])
-		  val (instr, outstr) = Unix.streamsOf childhandle
-		  val newProcList = {prover = prover,
-					    file = file,
-					    proc_handle = childhandle,
-					    instr = instr,
-					    outstr = outstr} :: procList
-     		  val _ = trace ("\nFinished at " ^
-			         Date.toString(Date.fromTimeLocal(Time.now())))
-	      in execCmds cmds newProcList end
-
-         (******** Watcher Loop ********)
-         val limit = ref 200;  (*don't let it run forever*)
-
-	 fun keepWatching procList = 
-	   let val _ = trace ("\npollParentInput. Limit = " ^ Int.toString (!limit) ^ 
-			      "  length(procList) = " ^ Int.toString (length procList));
-	       val cmdsFromIsa = pollParentInput 
-				  (fromParentIOD, fromParentStr, toParentStr)
-	   in 
-	     OS.Process.sleep (Time.fromMilliseconds 100);
-	     limit := !limit - 1;
-	     if !limit < 0 
-	     then 
-	      (trace "\nTimeout: Killing proof processes";
-	       TextIO.output(toParentStr, "Timeout: Killing proof processes!\n");
-	       TextIO.flushOut toParentStr;
-	       killChildren (map #proc_handle procList);
-	       Posix.Process.exit 0w0)
-	     else 
-	       case cmdsFromIsa of
-		 SOME [(_,"Kill children",_,_)] => 
-		   let val child_handles = map #proc_handle procList 
-		   in  trace "\nReceived command to kill children";
-		       killChildren child_handles; keepWatching [] 
-		   end
-	       | SOME cmds => (*  deal with commands from Isabelle process *)
-		   if length procList < 40
-		   then                        (* Execute locally  *)
-		     let 
-		       val _ = trace("\nCommands from parent: " ^ 
-		                     Int.toString(length cmds))
-		       val newProcList = execCmds cmds procList
-		       val newProcList' = checkChildren (newProcList, toParentStr) 
-		     in
-		       trace "\nCommands executed"; keepWatching newProcList'
-		     end
-		   else  (* Execute remotely [FIXME: NOT REALLY]  *)
-		     let 
-		       val newProcList = execCmds cmds procList
-		       val newProcList' = checkChildren (newProcList, toParentStr) 
-		     in keepWatching newProcList' end
-	       | NONE => (* No new input from Isabelle *)
-		   let val newProcList = checkChildren (procList, toParentStr)
-		   in trace "\nNothing from parent, still watching"; 
-		      keepWatching newProcList
-		   end
-	   end
-	   handle exn => (*FIXME: exn handler is too general!*)
-	     (trace ("\nkeepWatching: In exception handler: " ^ Toplevel.exn_message exn);
-	      keepWatching procList);
-	 in
-	   (*** Sort out pipes ********)
-	   Posix.IO.close (#outfd p1);  Posix.IO.close (#infd p2);
-	   Posix.IO.dup2{old = oldchildin, new = fromParent};
-	   Posix.IO.close oldchildin;
-	   Posix.IO.dup2{old = oldchildout, new = toParent};
-	   Posix.IO.close oldchildout;
-	   keepWatching (procList)
-	 end);   (* end case *)
+      case  Posix.Process.fork() of
+         SOME pid => pid (* parent - i.e. main Isabelle process *)
+       | NONE => 
+          let            (* child - i.e. watcher  *)
+	    val oldchildin = #infd p1  
+	    val fromParent = Posix.FileSys.wordToFD 0w0
+	    val oldchildout = #outfd p2
+	    val toParent = Posix.FileSys.wordToFD 0w1
+	    val fromParentIOD = Posix.FileSys.fdToIOD fromParent
+	    val fromParentStr = openInFD ("_exec_in_parent", fromParent)
+	    val toParentStr = openOutFD ("_exec_out_parent", toParent)
+	    val pid = Posix.ProcEnv.getpid()
+	    val () = Posix.ProcEnv.setpgid {pid = SOME pid, pgid = SOME pid}
+		     (*set process group id: allows killing all children*)
+	    val () = trace "\nsubgoals forked to startWatcher"
+	    val limit = ref 200;  (*don't let watcher run forever*)
+	    (*Watcher Loop : Check running ATP processes for output*)
+	    fun keepWatching procList = 
+	      (trace ("\npollParentInput. Limit = " ^ Int.toString (!limit) ^ 
+				"  length(procList) = " ^ Int.toString(length procList));
+	       OS.Process.sleep (Time.fromMilliseconds 100);  limit := !limit - 1;
+	       if !limit < 0 then killWatcher (toParentStr, procList) 
+	       else 
+	       case pollParentInput(fromParentIOD, fromParentStr, toParentStr) of
+		  SOME [(_,"Kill children",_,_)] => 
+		    (trace "\nReceived Kill command"; 
+		     killChildren procList; keepWatching [])
+		| SOME cmds => (*  deal with commands from Isabelle process *)
+		    if length procList < 40 then    (* Execute locally  *)                    
+		      let val _ = trace("\nCommands from parent: " ^ 
+					Int.toString(length cmds))
+			  val newProcList' = checkChildren(th, clause_arr, toParentStr, 
+						execCmds cmds procList) 
+		      in trace "\nCommands executed"; keepWatching newProcList' end
+		    else  (* Execute remotely [FIXME: NOT REALLY]  *)
+		      let val newProcList' = checkChildren (th, clause_arr, toParentStr, 
+						execCmds cmds procList) 
+		      in keepWatching newProcList' end
+		| NONE => (* No new input from Isabelle *)
+		    (trace "\nNothing from parent...";  
+		     keepWatching(checkChildren(th, clause_arr, toParentStr, procList))))
+	     handle exn => (*FIXME: exn handler is too general!*)
+	       (trace ("\nkeepWatching exception handler: " ^ Toplevel.exn_message exn);
+		keepWatching procList);
+	  in
+	    (*** Sort out pipes ********)
+	    Posix.IO.close (#outfd p1);  Posix.IO.close (#infd p2);
+	    Posix.IO.dup2{old = oldchildin, new = fromParent};
+	    Posix.IO.close oldchildin;
+	    Posix.IO.dup2{old = oldchildout, new = toParent};
+	    Posix.IO.close oldchildout;
+	    keepWatching (procList)
+	  end; 
 
     val _ = TextIO.flushOut TextIO.stdOut
     val pid = startWatcher []
