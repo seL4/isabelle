@@ -78,8 +78,12 @@ fun applC_ast_tr [f, args] = Ast.Appl (f :: Ast.unfold_ast "_cargs" args)
 
 (* abstraction *)
 
-fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Ast.Appl [Ast.Constant SynExt.constrainC, x, ty]
+fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Ast.Appl [Ast.Constant "_constrain", x, ty]
   | idtyp_ast_tr (*"_idtyp"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
+
+fun idtypdummy_ast_tr (*"_idtypdummy"*) [ty] =
+      Ast.Appl [Ast.Constant "_constrain", Ast.Constant "_idtdummy", ty]
+  | idtypdummy_ast_tr (*"_idtypdummy"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
 
 fun lambda_ast_tr (*"_lambda"*) [pats, body] =
       Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
@@ -87,18 +91,13 @@ fun lambda_ast_tr (*"_lambda"*) [pats, body] =
 
 val constrainAbsC = "_constrainAbs";
 
-fun abs_tr (*"_abs"*) [Free (x, T), body] = Term.absfree (x, T, body)
-  | abs_tr (*"_abs"*) (ts as [Const (c, _) $ Free (x, T) $ tT, body]) =
-      if c = SynExt.constrainC
-        then Lexicon.const constrainAbsC $ Term.absfree (x, T, body) $ tT
-      else raise TERM ("abs_tr", ts)
+fun abs_tr (*"_abs"*) [Free (x, T), t] = Term.absfree (x, T, t)
+  | abs_tr (*"_abs"*) [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
+  | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Free (x, T) $ tT, t] =
+      Lexicon.const constrainAbsC $ Term.absfree (x, T, t) $ tT
+  | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t] =
+      Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT
   | abs_tr (*"_abs"*) ts = raise TERM ("abs_tr", ts);
-
-
-(* nondependent abstraction *)
-
-fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, Term.incr_boundvars 1 t)
-  | k_tr (*"_K"*) ts = raise TERM ("k_tr", ts);
 
 
 (* binder *)
@@ -106,11 +105,12 @@ fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, Term.incr_boundvars 1 t)
 fun mk_binder_tr (sy, name) =
   let
     fun tr (Free (x, T), t) = Lexicon.const name $ Term.absfree (x, T, t)
-      | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
-      | tr (t1 as Const (c, _) $ Free (x, T) $ tT, t) =
-          if c = SynExt.constrainC then
+      | tr (Const ("_idtdummy", T), t) = Lexicon.const name $ Term.absdummy (T, t)
+      | tr (Const ("_constrain", _) $ Free (x, T) $ tT, t) =
             Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absfree (x, T, t) $ tT)
-          else raise TERM ("binder_tr", [t1, t])
+      | tr (Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t) =
+            Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT)
+      | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
       | tr (t1, t2) = raise TERM ("binder_tr", [t1, t2]);
 
     fun binder_tr (*sy*) [idts, body] = tr (idts, body)
@@ -120,11 +120,11 @@ fun mk_binder_tr (sy, name) =
 
 (* meta propositions *)
 
-fun aprop_tr (*"_aprop"*) [t] = Lexicon.const SynExt.constrainC $ t $ Lexicon.const "prop"
+fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "prop"
   | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
 
 fun ofclass_tr (*"_ofclass"*) [ty, cls] =
-      cls $ (Lexicon.const SynExt.constrainC $ Lexicon.const "TYPE" $
+      cls $ (Lexicon.const "_constrain" $ Lexicon.const "TYPE" $
         (Lexicon.const "itself" $ ty))
   | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
 
@@ -143,7 +143,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
 (* type reflection *)
 
 fun type_tr (*"_TYPE"*) [ty] =
-      Lexicon.const SynExt.constrainC $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty)
+      Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty)
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
 
 
@@ -307,7 +307,7 @@ fun mk_binder_tr' (name, sy) =
 (* idtyp constraints *)
 
 fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
-      if c = SynExt.constrainC then
+      if c = "_constrain" then
         Ast.Appl [ Ast.Constant a,  Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
       else raise Match
   | idtyp_ast_tr' _ _ = raise Match;
@@ -436,11 +436,11 @@ fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
 
 val pure_trfuns =
  ([("_constify", constify_ast_tr), ("_appl", appl_ast_tr), ("_applC", applC_ast_tr),
-   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_bigimpl", bigimpl_ast_tr),
-   ("_indexdefault", indexdefault_ast_tr), ("_indexnum", indexnum_ast_tr),
-   ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
+   ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_idtypdummy", idtypdummy_ast_tr),
+   ("_bigimpl", bigimpl_ast_tr), ("_indexdefault", indexdefault_ast_tr),
+   ("_indexnum", indexnum_ast_tr), ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_TYPE", type_tr), ("_DDDOT", dddot_tr), ("_K", k_tr),
+   ("_TYPE", type_tr), ("_DDDOT", dddot_tr),
    ("_index", index_tr)],
   [("all", meta_conjunction_tr')],
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
