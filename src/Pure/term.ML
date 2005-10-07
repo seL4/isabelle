@@ -112,6 +112,7 @@ sig
   val abstract_over: term * term -> term
   val lambda: term -> term -> term
   val absfree: string * typ * term -> term
+  val absdummy: typ * term -> term
   val list_abs_free: (string * typ) list * term -> term
   val list_all_free: (string * typ) list * term -> term
   val list_all: (string * typ) list * term -> term
@@ -894,6 +895,7 @@ fun lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
 
 (*Form an abstraction over a free variable.*)
 fun absfree (a,T,body) = Abs(a, T, abstract_over (Free(a,T), body));
+fun absdummy (T, body) = Abs ("uu", T, body);
 
 (*Abstraction over a list of free variables*)
 fun list_abs_free ([ ] ,     t) = t
