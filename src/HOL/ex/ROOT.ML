@@ -17,7 +17,6 @@ time_use_thy "BinEx";
 setmp proofs 2 time_use_thy "Hilbert_Classical";
 time_use_thy "Antiquote";
 time_use_thy "Multiquote";
-time_use_thy "Tuple";
 
 time_use_thy "NatSum";
 time_use_thy "Intuitionistic";
