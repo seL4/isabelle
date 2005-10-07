@@ -119,8 +119,6 @@ fun match_string pat str =
             | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
   in match (space_explode "*" pat) str end;
 
-(*filter that just looks for a string in the name,
-  substring match only (no regexps are performed)*)
 fun filter_name str_pat (thmref, _) =
   if match_string str_pat (PureThy.name_of_thmref thmref)
   then SOME (0, 0) else NONE;
