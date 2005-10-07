@@ -210,6 +210,7 @@ sig
   val adhoc_freeze_vars: term -> term * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
+  val str_of_term: term -> string
 end;
 
 structure Term: TERM =
@@ -1346,6 +1347,16 @@ fun string_of_vname (x, i) =
 
 fun string_of_vname' (x, ~1) = x
   | string_of_vname' xi = string_of_vname xi;
+
+
+(* str_of_term *)
+
+fun str_of_term (Const (c, _)) = c
+  | str_of_term (Free (x, _)) = x
+  | str_of_term (Var (xi, _)) = string_of_vname xi
+  | str_of_term (Bound i) = string_of_int i
+  | str_of_term (Abs (x, _, t)) = "%" ^ x ^ ". " ^ str_of_term t
+  | str_of_term (t $ u) = "(" ^ str_of_term t ^ " " ^ str_of_term u ^ ")";
 
 end;
 
