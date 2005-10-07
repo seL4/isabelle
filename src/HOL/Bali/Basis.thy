@@ -352,16 +352,4 @@ apply simp
 done 
 
 
-section "dummy pattern for quantifiers, let, etc."
-
-syntax
-  "@dummy_pat"   :: pttrn    ("'_")
-
-parse_translation {*
-let fun dummy_pat_tr [] = Free ("_",dummyT)
-  | dummy_pat_tr ts = raise TERM ("dummy_pat_tr", ts);
-in [("@dummy_pat", dummy_pat_tr)] 
-end
-*}
-
 end
