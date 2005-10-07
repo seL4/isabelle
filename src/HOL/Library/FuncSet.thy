@@ -35,7 +35,7 @@ syntax (HTML output)
 
 translations
   "PI x:A. B" => "Pi A (%x. B)"
-  "A -> B" => "Pi A (_K B)"
+  "A -> B" => "Pi A (%_. B)"
   "%x:A. f" == "restrict (%x. f) A"
 
 constdefs

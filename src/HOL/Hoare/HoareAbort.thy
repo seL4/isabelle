@@ -103,7 +103,7 @@ fun com_tr (Const("@assign",_) $ Free (a,_) $ e) xs =
   | com_tr t _ = t (* if t is just a Free/Var *)
 *}
 
-(* triple_tr *)
+(* triple_tr *)  (* FIXME does not handle "_idtdummy" *)
 ML{*
 local
 

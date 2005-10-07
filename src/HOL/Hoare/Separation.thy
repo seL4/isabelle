@@ -55,6 +55,7 @@ syntax
  "@star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "**" 60)
  "@wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
 
+(* FIXME does not handle "_idtdummy" *)
 ML{*
 (* free_tr takes care of free vars in the scope of sep. logic connectives:
    they are implicitly applied to the heap *)

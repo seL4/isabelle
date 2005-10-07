@@ -56,6 +56,7 @@ syntax
 ML {*
 (** Quantifier translations: variable binding **)
 
+(* FIXME does not handle "_idtdummy" *)
 (* FIXME should use Syntax.mark_bound(T), Syntax.variant_abs' *)
 
 fun let_tr [Free(id,T),a,b] = Const("let",dummyT) $ a $ absfree(id,T,b);
