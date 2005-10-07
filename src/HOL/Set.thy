@@ -251,7 +251,7 @@ parse_translation {*
         val eq = Syntax.const "op =" $ Bound (nvars idts) $ e;
         val P = Syntax.const "op &" $ eq $ b;
         val exP = ex_tr [idts, P];
-      in Syntax.const "Collect" $ Abs ("", dummyT, exP) end;
+      in Syntax.const "Collect" $ Term.absdummy (dummyT, exP) end;
 
   in [("@SetCompr", setcompr_tr)] end;
 *}
