@@ -8,10 +8,7 @@ Some auxiliary functions frequently used by files in this directory.
 
 signature RES_LIB =
 sig
-val flat_noDup : ''a list list -> ''a list
 val helper_path : string -> string -> string
-val no_rep_add : ''a -> ''a list -> ''a list
-val no_rep_app : ''a list -> ''a list -> ''a list
 val intOfPid : Posix.Process.pid -> Int.int
 val pidOfInt : Int.int -> Posix.Process.pid
 end;
@@ -20,16 +17,6 @@ end;
 structure ResLib : RES_LIB =
 struct
 
-fun no_rep_add x []     = [x]
-  | no_rep_add x (y::z) = if x=y then y::z else y::(no_rep_add x z);
-
-fun no_rep_app l1 []     = l1
-  | no_rep_app l1 (x::y) = no_rep_app (no_rep_add x l1) y;
-
-fun flat_noDup []     = []
-  | flat_noDup (x::y) = no_rep_app x (flat_noDup y);
-
- 
 (*Return the path to a "helper" like SPASS or tptp2X, first checking that
   it exists. --lcp *)  
 fun helper_path evar base =

@@ -156,27 +156,9 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums =
 	map (fn x =>  Array.sub(clause_arr, x)) clasimp_nums
     end
 
-
-(*****************************************************)
-(* get names of clasimp axioms used                  *)
-(*****************************************************)
-
+(* get names of clasimp axioms used*)
  fun get_axiom_names step_nums clause_arr =
-   let 
-     (* not sure why this is necessary again, but seems to be *)
-      val _ = (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-  
-     (***********************************************)
-     (* here need to add the clauses from clause_arr*)
-     (***********************************************)
-  
-      val clasimp_names_cls = get_clasimp_cls clause_arr step_nums 
-      val clasimp_names = map (ResClause.get_axiomName o #1) clasimp_names_cls
-      val _ = (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
-   in
-      clasimp_names
-   end
-   
+   map (ResClause.get_axiomName o #1) (get_clasimp_cls clause_arr step_nums);   
 
 fun get_axiom_names_spass proofstr clause_arr =
   let (* parse spass proof into datatype *)
@@ -227,9 +209,7 @@ fun numclstr (vars, []) str = str
 fun addvars c (a,b)  = (a,b,c)
 
 fun get_axioms_used proof_steps thms clause_arr  =
-  let 
-     val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-     val axioms = (List.filter is_axiom) proof_steps
+ let val axioms = (List.filter is_axiom) proof_steps
      val step_nums = get_step_nums axioms []
 
      val clauses = make_clauses thms    (*FIXME: must this be repeated??*)
@@ -266,9 +246,9 @@ fun get_axioms_used proof_steps thms clause_arr  =
      val extra_with_vars = if (not (extra_metas = []) ) 
 			   then ListPair.zip (extra_metas,extra_vars)
 			   else []
-  in
-     (distfrees,distvars, extra_with_vars,ax_with_vars, ListPair.zip (step_nums,ax_metas))
-  end;
+ in
+    (distfrees,distvars, extra_with_vars,ax_with_vars, ListPair.zip (step_nums,ax_metas))
+ end;
                                             
 
 (*********************************************************************)
@@ -277,7 +257,7 @@ fun get_axioms_used proof_steps thms clause_arr  =
 (*********************************************************************)
 
 fun rules_to_string [] = "NONE"
-  | rules_to_string xs = "[" ^ space_implode ", " xs ^ "]"
+  | rules_to_string xs = space_implode "  " xs
 
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)

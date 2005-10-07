@@ -77,8 +77,10 @@ val tconst_prefix = "tc_";
 val class_prefix = "class_"; 
 
 
-(**** some useful functions ****)
+fun union_all xss = foldl (op union) [] xss;
+
  
+(*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
       Symtab.make [("op =", "equal"),
 	  	   ("op <=", "lessequals"),
@@ -287,8 +289,8 @@ fun type_of (Type (a, [])) =
       let val foltyps_ts = map type_of Ts 
 	  val (folTyps,ts_funcs) = ListPair.unzip foltyps_ts
 	  val (ts, funcslist) = ListPair.unzip ts_funcs
-	  val ts' = ResLib.flat_noDup ts
-	  val funcs' = ResLib.flat_noDup funcslist
+	  val ts' = union_all ts
+	  val funcs' = union_all funcslist
 	  val t = make_fixed_type_const a
       in    
 	  ((t ^ paren_pack folTyps), (ts', (t, length Ts)::funcs'))
@@ -366,8 +368,8 @@ fun term_of (Var(ind_nm,T)) =
 	      let val (funName,(funType,ts1),funcs) = fun_name_type f args
 		  val (args',ts_funcs) = ListPair.unzip (map term_of args)
 		  val (ts2,funcs') = ListPair.unzip ts_funcs
-		  val ts3 = ResLib.flat_noDup (ts1::ts2)
-		  val funcs'' = ResLib.flat_noDup((funcs::funcs'))
+		  val ts3 = union_all (ts1::ts2)
+		  val funcs'' = union_all(funcs::funcs')
 	      in
 		  (Fun(funName,funType,args'), (ts3,funcs''))
 	      end
@@ -378,8 +380,8 @@ fun term_of (Var(ind_nm,T)) =
 		  val equal_name = make_fixed_const ("op =")
 	      in
 		  (Fun(equal_name,arg_typ,args'),
-		   (ResLib.flat_noDup ts, 
-		    (make_fixed_var equal_name, 2):: ResLib.flat_noDup funcs))
+		   (union_all ts, 
+		    (make_fixed_var equal_name, 2):: union_all funcs))
 	      end
       in
 	 case f of Const ("op =", typ) => term_of_eq (f,args)
@@ -400,16 +402,16 @@ fun pred_of (Const("op =", typ), args) =
 	  val equal_name = make_fixed_const "op ="
       in
 	  (Predicate(equal_name,arg_typ,args'),
-	   ResLib.flat_noDup ts, 
+	   union_all ts, 
 	   [((make_fixed_var equal_name), 2)], 
-	   (ResLib.flat_noDup funcs))
+	   union_all funcs)
       end
   | pred_of (pred,args) = 
       let val (predName,(predType,ts1), pfuncs) = pred_name_type pred
 	  val (args',ts_funcs) = ListPair.unzip (map term_of args)
 	  val (ts2,ffuncs) = ListPair.unzip ts_funcs
-	  val ts3 = ResLib.flat_noDup (ts1::ts2)
-	  val ffuncs' = (ResLib.flat_noDup ffuncs)
+	  val ts3 = union_all (ts1::ts2)
+	  val ffuncs' = union_all ffuncs
 	  val newfuncs = distinct (pfuncs@ffuncs')
 	  val arity = 
 	    case pred of
@@ -445,9 +447,8 @@ fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts, preds, funcs) =
       let val ((pred,ts', preds', funcs'), pol, tag) = 
               predicate_of (P,true,false)
 	  val lits' = Literal(pol,pred,tag) :: lits
-	  val ts'' = ResLib.no_rep_app ts ts' 
       in
-	  (lits',ts'', distinct(preds'@preds), distinct(funcs'@funcs))
+	  (lits', ts union ts', distinct(preds'@preds), distinct(funcs'@funcs))
       end;
 
 
@@ -487,14 +488,14 @@ fun add_typs_aux [] preds  = ([],[], preds)
           val preds' = (map pred_of_sort vs)@preds
 	  val (vss,fss, preds'') = add_typs_aux tss preds'
       in
-	  (ResLib.no_rep_app vs vss, fss, preds'')
+	  (vs union vss, fss, preds'')
       end
   | add_typs_aux ((FOLTFree x,s)::tss) preds  =
       let val fs = sorts_on_typs (FOLTFree x, s)
           val preds' = (map pred_of_sort fs)@preds
 	  val (vss,fss, preds'') = add_typs_aux tss preds'
       in
-	  (vss, ResLib.no_rep_app fs fss,preds'')
+	  (vss, fs union fss, preds'')
       end;
 
 fun add_typs (Clause cls) preds  = add_typs_aux (#types_sorts cls) preds 
@@ -614,7 +615,7 @@ fun make_axiom_arity_clause (tcons,(res,args)) =
 	 val tvars = get_TVars nargs
 	 val conclLit = make_TConsLit(true,(res,tcons,tvars))
          val tvars_srts = ListPair.zip (tvars,args)
-	 val tvars_srts' = ResLib.flat_noDup(map pack_sort tvars_srts)
+	 val tvars_srts' = union_all(map pack_sort tvars_srts)
          val false_tvars_srts' = map (pair false) tvars_srts'
 	 val premLits = map make_TVarLit false_tvars_srts'
      in
@@ -761,7 +762,7 @@ fun dfg_folterms (Literal(pol,pred,tag)) =
 
  
 fun get_uvars (UVar(a,typ)) = [a] 
-|   get_uvars (Fun (_,typ,tlist)) = ResLib.flat_noDup(map get_uvars tlist)
+|   get_uvars (Fun (_,typ,tlist)) = union_all(map get_uvars tlist)
 
 
 fun is_uvar (UVar _) = true
@@ -777,7 +778,7 @@ fun dfg_vars (Clause cls) =
     let val lits = #literals cls
         val folterms = mergelist(map dfg_folterms lits)
     in 
-        ResLib.flat_noDup(map get_uvars folterms)
+        union_all(map get_uvars folterms)
     end
 
 
@@ -888,7 +889,7 @@ fun gen_dfg_file probname axioms conjectures funcs preds =
         val axstr = (space_implode "\n" axstrs) ^ "\n\n"
         val conjstrs_tfrees = (map clause2dfg conjectures)
 	val (conjstrs, atfrees) = ListPair.unzip conjstrs_tfrees
-        val tfree_clss = map tfree_dfg_clause (ResLib.flat_noDup atfrees) 
+        val tfree_clss = map tfree_dfg_clause (union_all atfrees) 
         val conjstr = (space_implode "\n" (tfree_clss@conjstrs)) ^ "\n\n"
         val funcstr = string_of_funcs funcs
         val predstr = string_of_preds preds
@@ -900,8 +901,8 @@ fun gen_dfg_file probname axioms conjectures funcs preds =
     end;
    
 fun clauses2dfg [] probname axioms conjectures funcs preds = 
-      let val funcs' = (ResLib.flat_noDup(map funcs_of_cls axioms)) @ funcs
-	  val preds' = (ResLib.flat_noDup(map preds_of_cls axioms)) @ preds
+      let val funcs' = (union_all(map funcs_of_cls axioms)) @ funcs
+	  val preds' = (union_all(map preds_of_cls axioms)) @ preds
       in
 	 gen_dfg_file probname axioms conjectures funcs' preds' 
       end

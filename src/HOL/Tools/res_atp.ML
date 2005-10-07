@@ -55,18 +55,18 @@ fun writeln_strs _   []      = ()
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
-    let
-      val clss = map (ResClause.make_conjecture_clause_thm) thms
-      val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
-      val tfree_clss = map ResClause.tfree_clause (ResLib.flat_noDup tfree_litss)
-      val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
-      val arity_cls = map ResClause.tptp_arity_clause arity_clauses
-      val out = TextIO.openOut(pf n)
-    in
-      writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
-      writeln_strs out (tfree_clss @ tptp_clss @ classrel_cls @ arity_cls);
-      TextIO.closeOut out
-    end;
+  let
+    val clss = map (ResClause.make_conjecture_clause_thm) thms
+    val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
+    val tfree_clss = map ResClause.tfree_clause (foldl (op union_string) [] tfree_litss)
+    val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
+    val arity_cls = map ResClause.tptp_arity_clause arity_clauses
+    val out = TextIO.openOut(pf n)
+  in
+    writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
+    writeln_strs out (tfree_clss @ tptp_clss @ classrel_cls @ arity_cls);
+    TextIO.closeOut out
+  end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
 fun dfg_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) = 
@@ -165,9 +165,17 @@ fun write_problem_files pf (ctxt,th)  =
 	    pf n :: writenext (n-1))
       in (writenext (length prems), clause_arr) end;
 
-val last_watcher_pid =
-  ref (NONE : (TextIO.instream * TextIO.outstream * 
-               Posix.Process.pid * string list) option);
+val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
+                                    Posix.Process.pid * string list) option);
+
+fun kill_last_watcher () =
+    (case !last_watcher_pid of 
+         NONE => ()
+       | SOME (_, childout, pid, files) => 
+	  (debug ("Killing old watcher, pid = " ^ Int.toString (ResLib.intOfPid pid));
+	   Watcher.killWatcher pid;  
+	   ignore (map (try OS.FileSys.remove) files)))
+     handle OS.SysErr _ => debug "Attempt to kill watcher failed";
 
 (*writes out the current clasimpset to a tptp file;
   turns off xsymbol at start of function, restoring it at end    *)
@@ -176,13 +184,7 @@ val isar_atp = setmp print_mode []
   if Thm.no_prems th then ()
   else
     let
-      val _ = (case !last_watcher_pid of NONE => ()
-               | SOME (_, childout, pid, files) => 
-                  (debug ("Killing old watcher, pid = " ^ 
-                          Int.toString (ResLib.intOfPid pid));
-                   Watcher.killWatcher pid;  
-                   ignore (map (try OS.FileSys.remove) files)))
-              handle OS.SysErr _ => debug "Attempt to kill watcher failed";
+      val _ = kill_last_watcher()
       val (files,clause_arr) = write_problem_files prob_pathname (ctxt,th)
       val (childin, childout, pid) = Watcher.createWatcher (th, clause_arr)
     in
