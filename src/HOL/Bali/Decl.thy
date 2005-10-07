@@ -385,9 +385,7 @@ lemma ObjectC_neq_SXcptC [simp]: "ObjectC \<noteq> SXcptC xn"
 by (simp add: ObjectC_def SXcptC_def Object_def SXcpt_def)
 
 lemma SXcptC_inject [simp]: "(SXcptC xn = SXcptC xm) = (xn = xm)"
-apply (simp add: SXcptC_def)
-apply auto
-done
+by (simp add: SXcptC_def)
 
 constdefs standard_classes :: "cdecl list"
          "standard_classes \<equiv> [ObjectC, SXcptC Throwable,

@@ -302,7 +302,7 @@ lemma priK_parts_Friend_imp_bad [rule_format,dest]:
       ==> (Key (priK A):parts (knows (Friend B) evs)) --> (A:bad)"
 apply (erule p2.induct)
 apply (simp_all add: initState.simps knows.simps pro_def prom_def
-                req_def reqm_def anchor_def chain_def sign_def, blast) 
+                req_def reqm_def anchor_def chain_def sign_def) 
 apply (blast dest: no_Key_in_agl)
 apply (auto del: parts_invKey disjE  dest: parts_trans
             simp add: no_Key_in_appdel)

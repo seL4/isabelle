@@ -176,7 +176,7 @@ lemma Says_Server_not_range [simp]:
      "[| Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|}
            \<in> set evs;   evs \<in> yahalom |]
       ==> K \<notin> range shrK"
-by (erule rev_mp, erule yahalom.induct, simp_all, blast)
+by (erule rev_mp, erule yahalom.induct, simp_all)
 
 
 subsection{*Secrecy Theorems*}

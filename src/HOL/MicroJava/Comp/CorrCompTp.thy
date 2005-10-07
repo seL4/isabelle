@@ -112,23 +112,17 @@ lemma map_upds_takeWhile [rule_format]:
   "\<forall> ks. (empty(rev ks[\<mapsto>]rev xs)) k = Some x \<longrightarrow> length ks = length xs \<longrightarrow>
     xs ! length (takeWhile (\<lambda>z. z \<noteq> k) ks) = x"
 apply (induct xs)
-apply simp
+ apply simp
 apply (intro strip)
 apply (subgoal_tac "\<exists> k' kr. ks = k' # kr")
-apply (clarify)
-apply (drule_tac x=kr in spec)
-apply (simp only: rev.simps)
-apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
-apply (simp only:)
-apply (case_tac "k' = k")
-apply simp
-apply simp 
-apply (case_tac "k = k'")
-apply simp
-apply (simp add: empty_def)
-apply (simp add: map_upds_append [THEN sym])
+ apply (clarify)
+ apply (drule_tac x=kr in spec)
+ apply (simp only: rev.simps)
+ apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
+  apply (simp split:split_if_asm)
+ apply (simp add: map_upds_append [THEN sym])
 apply (case_tac ks)
-apply auto
+ apply auto
 done
 
 

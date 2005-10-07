@@ -161,7 +161,7 @@ lemma Says_Server_message_form:
          evs \<in> otway |]
       ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
 apply (erule rev_mp)
-apply (erule otway.induct, simp_all, blast)
+apply (erule otway.induct, simp_all)
 done
 
 

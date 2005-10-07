@@ -296,9 +296,6 @@ lemma "VARS tl p
   {p = X}"
 apply vcg_simp
   apply blast
- apply clarsimp
- apply(erule disjE)
-  apply clarsimp
  apply fastsimp
 apply clarsimp
 done

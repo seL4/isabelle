@@ -156,7 +156,7 @@ lemma Says_Server_message_form:
      "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, Key K|}|} \<in> set evs;
          evs \<in> otway |]
       ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
-by (erule rev_mp, erule otway.induct, simp_all, blast)
+by (erule rev_mp, erule otway.induct, simp_all)
 
 
 (****

@@ -609,7 +609,6 @@ by (asm_full_simp_tac (simpset() delsimps mem_simps
 by (safe_tac HOL_cs);
 by (excluded_middle_tac "ev=x" 1);
 by (asm_full_simp_tac (simpset() addsimps [ve_app_owr2, te_app_owr2]) 1);
-by (Blast_tac 1);
 by (asm_simp_tac (simpset() addsimps [ve_app_owr1, te_app_owr1]) 1);
 qed "hasty_env1";
 
@@ -653,12 +652,9 @@ by (asm_simp_tac (simpset() delsimps mem_simps addsimps [ve_dom_owr]) 1);
 by (safe_tac HOL_cs);
 by (excluded_middle_tac "ev2=ev1a" 1);
 by (asm_full_simp_tac (simpset() addsimps [ve_app_owr2, te_app_owr2]) 1);
-by (Blast_tac 1);
 
 by (asm_simp_tac (simpset() delsimps mem_simps
                            addsimps [ve_app_owr1, te_app_owr1]) 1);
-by (hyp_subst_tac 1);
-by (etac subst 1);
 by (Blast_tac 1);
 qed "consistency_fix";
 

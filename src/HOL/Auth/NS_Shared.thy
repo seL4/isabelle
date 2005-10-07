@@ -308,8 +308,6 @@ apply (analz_mono_contra, simp_all, blast)
 txt{*NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} and
     @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"} *} 
 apply (force dest!: Crypt_imp_keysFor)
-txt{*NS3*}
-apply blast
 txt{*NS4*}
 apply (blast dest: B_trusts_NS3
 	           Says_imp_knows_Spy [THEN analz.Inj]
@@ -339,8 +337,6 @@ apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, anal
 apply (simp_all add: ex_disj_distrib, blast)
 txt{*NS2*}
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
-txt{*NS3*}
-apply blast
 txt{*NS4*}
 apply (blast dest: B_trusts_NS3
 	     dest: Says_imp_knows_Spy [THEN analz.Inj]
@@ -359,8 +355,6 @@ lemma B_trusts_NS5_lemma [rule_format]:
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, analz_mono_contra, simp_all, blast)
 txt{*NS2*}
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
-txt{*NS3*}
-apply (blast dest!: cert_A_form)
 txt{*NS5*}
 apply (blast dest!: A_trusts_NS2
 	     dest: Says_imp_knows_Spy [THEN analz.Inj]

@@ -5,7 +5,9 @@
 
 (* Index of variable in list of parameter names and local variables *)
 
-theory Index imports  AuxLemmas DefsComp begin
+theory Index
+imports AuxLemmas DefsComp
+begin
 
 (*indexing a variable name among all variable declarations in a method body*)
 constdefs
@@ -76,7 +78,6 @@ apply (case_tac "(gmb G C S)", simp)
 apply (case_tac b, simp)
 apply (rule conjI)
 apply (simp add: gl_def)
-apply (intro strip, simp)
 apply (simp add: galldefs del: set_append map_append)
 done
 

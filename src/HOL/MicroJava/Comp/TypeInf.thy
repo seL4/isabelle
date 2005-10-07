@@ -4,7 +4,9 @@
 *)
 
 (* Exact position in theory hierarchy still to be determined *)
-theory TypeInf imports  WellType begin
+theory TypeInf
+imports "../J/WellType"
+begin
 
 
 

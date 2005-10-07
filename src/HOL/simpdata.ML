@@ -135,6 +135,39 @@ val defALL_regroup =
   Simplifier.simproc (Theory.sign_of (the_context ()))
     "defined ALL" ["ALL x. P x"] Quantifier1.rearrange_all;
 
+
+(*** simproc for proving "(y = x) == False" from prmise "~(x = y)" ***)
+
+val use_neq_simproc = ref true;
+
+local
+
+val neq_to_EQ_False = thm "not_sym" RS Eq_FalseI;
+
+fun neq_prover sg ss (eq $ lhs $ rhs) =
+let
+  fun test thm = (case #prop(rep_thm thm) of
+                    _ $ (Not $ (eq' $ l' $ r')) =>
+                      Not = HOLogic.Not andalso eq' = eq andalso
+                      r' aconv lhs andalso l' aconv rhs
+                  | _ => false)
+in
+  if !use_neq_simproc then
+    case Library.find_first test (prems_of_ss ss) of NONE => NONE
+    | SOME thm => SOME (thm RS neq_to_EQ_False)
+  else NONE
+end
+
+in
+
+val neq_simproc =
+  Simplifier.simproc (the_context ()) "neq_simproc" ["x = y"] neq_prover;
+
+end;
+
+
+
+
 (*** Simproc for Let ***)
 
 val use_let_simproc = ref true;
@@ -336,7 +369,7 @@ val HOL_ss =
        disj_not1, not_all, not_ex, cases_simp,
        thm "the_eq_trivial", the_sym_eq_trivial]
      @ ex_simps @ all_simps @ simp_thms)
-     addsimprocs [defALL_regroup,defEX_regroup,let_simproc]
+     addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc]
      addcongs [imp_cong, simp_implies_cong]
      addsplits [split_if];
 
