@@ -9,6 +9,18 @@ New in this Isabelle release
 * Command 'find_theorems': support "*" wildcard in "name:" criterion.
 
 
+*** Pure ***
+
+* Input syntax now supports dummy variable binding "%_. b", where the
+body does not mention the bound variable.  Note that dummy patterns
+implicitly depend on their context of bounds, which makes "{_. _}"
+match any set comprehension as expected.
+
+* Removed obsolete syntactic constant _K and its associated parse
+translation.  INCOMPATIBILITY, use dummy abstraction instead, for
+example "A -> B" => "Pi A (%_. B)".
+
+
 
 New in Isabelle2005 (October 2005)
 ----------------------------------
