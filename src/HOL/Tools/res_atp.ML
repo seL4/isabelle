@@ -176,17 +176,11 @@ val isar_atp = setmp print_mode []
   if Thm.no_prems th then ()
   else
     let
-      fun reap s = (*Signal handler to tidy away dead processes*)
-	   (case Posix.Process.waitpid_nh(Posix.Process.W_ANY_CHILD, []) of
-		SOME _ => reap s | NONE => ()) 
-           handle OS.SysErr _ => ()
-      val _ = 
-	      IsaSignal.signal (IsaSignal.chld, IsaSignal.SIG_HANDLE reap)
       val _ = (case !last_watcher_pid of NONE => ()
                | SOME (_, childout, pid, files) => 
                   (debug ("Killing old watcher, pid = " ^ 
                           Int.toString (ResLib.intOfPid pid));
-                   Watcher.killWatcher pid;
+                   Watcher.killWatcher pid;  
                    ignore (map (try OS.FileSys.remove) files)))
               handle OS.SysErr _ => debug "Attempt to kill watcher failed";
       val (files,clause_arr) = write_problem_files prob_pathname (ctxt,th)

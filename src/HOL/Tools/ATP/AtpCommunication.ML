@@ -19,6 +19,8 @@ signature ATP_COMMUNICATION =
     val checkSpassProofFound:  
           TextIO.instream * TextIO.outstream * Posix.Process.pid * 
           string * thm * int * (ResClause.clause * thm) Array.array -> bool
+    val signal_parent:  
+          TextIO.outstream * Posix.Process.pid * string * string -> unit
   end;
 
 structure AtpCommunication : ATP_COMMUNICATION =
@@ -94,7 +96,9 @@ fun signal_parent (toParent, ppid, msg, probfile) =
   TextIO.output (toParent, probfile ^ "\n");
   TextIO.flushOut toParent;
   trace ("\nSignalled parent: " ^ msg ^ probfile);
-  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
+  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+  (*Give the parent time to respond before possibly sending another signal*)
+  OS.Process.sleep (Time.fromMilliseconds 600));
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
 fun checkVampProofFound (fromChild, toParent, ppid, probfile, clause_arr) =
@@ -120,7 +124,7 @@ fun checkEProofFound (fromChild, toParent, ppid, probfile, clause_arr) =
  in   
      trace thisLine;
      if thisLine = "" 
-     then (trace "No proof output seen\n"; false)
+     then (trace "\nNo proof output seen"; false)
      else if String.isPrefix start_E thisLine
      then      
        startTransfer (end_E, fromChild, toParent, ppid, probfile, clause_arr)
@@ -199,7 +203,7 @@ fun checkSpassProofFound (fromChild, toParent, ppid, probfile,
  let val thisLine = TextIO.inputLine fromChild  
  in    
      trace thisLine;
-     if thisLine = "" then (trace "No proof output seen\n"; false)
+     if thisLine = "" then (trace "\nNo proof output seen"; false)
      else if thisLine = "SPASS beiseite: Proof found.\n"
      then      
         startSpassTransfer (fromChild, toParent, ppid, probfile, thm, sg_num, clause_arr)
