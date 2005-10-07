@@ -64,9 +64,9 @@ syntax
 
 translations
   "PROD x:A. B" => "Prod(A, %x. B)"
-  "A --> B"     => "Prod(A, _K(B))"
+  "A --> B"     => "Prod(A, %_. B)"
   "SUM x:A. B"  => "Sum(A, %x. B)"
-  "A * B"       => "Sum(A, _K(B))"
+  "A * B"       => "Sum(A, %_. B)"
 
 print_translation {*
   [("Prod", dependent_tr' ("@PROD", "@-->")),

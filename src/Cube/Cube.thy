@@ -39,7 +39,7 @@ translations
   ("prop") "x:X" == ("prop") "|- x:X"
   "Lam x:A. B"   == "Abs(A, %x. B)"
   "Pi x:A. B"    => "Prod(A, %x. B)"
-  "A -> B"       => "Prod(A, _K(B))"
+  "A -> B"       => "Prod(A, %_. B)"
 
 syntax (xsymbols)
   Trueprop      :: "[context_, typing_] => prop"        ("(_/ \<turnstile> _)")

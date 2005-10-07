@@ -128,7 +128,7 @@ translations
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
 
   "SIGMA x:A. B" => "Sigma A (%x. B)"
-  "A <*> B"      => "Sigma A (_K B)"
+  "A <*> B"      => "Sigma A (%_. B)"
 
 (* reconstructs pattern from (nested) splits, avoiding eta-contraction of body*)
 (* works best with enclosing "let", if "let" does not avoid eta-contraction   *)

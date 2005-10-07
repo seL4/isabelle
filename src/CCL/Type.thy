@@ -41,9 +41,9 @@ syntax
 
 translations
   "PROD x:A. B" => "Pi(A, %x. B)"
-  "A -> B"      => "Pi(A, _K(B))"
+  "A -> B"      => "Pi(A, %_. B)"
   "SUM x:A. B"  => "Sigma(A, %x. B)"
-  "A * B"       => "Sigma(A, _K(B))"
+  "A * B"       => "Sigma(A, %_. B)"
   "{x: A. B}"   == "Subtype(A, %x. B)"
 
 print_translation {*

@@ -840,7 +840,7 @@ syntax
 
 parse_translation {*
   let
-    fun Setsum_tr [A] = Syntax.const "setsum" $ Abs ("", dummyT, Bound 0) $ A
+    fun Setsum_tr [A] = Syntax.const "setsum" $ Term.absdummy (dummyT, Bound 0) $ A
   in [("_Setsum", Setsum_tr)] end;
 *}
 

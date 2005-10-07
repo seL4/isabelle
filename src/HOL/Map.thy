@@ -66,7 +66,7 @@ syntax (latex output)
   --"requires amssymb!"
 
 translations
-  "empty"    => "_K None"
+  "empty"    => "%_. None"
   "empty"    <= "%x. None"
 
   "m(x\<mapsto>\<lambda>y. f)" == "chg_map (\<lambda>y. f) x m"

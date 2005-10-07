@@ -46,7 +46,7 @@ syntax
 
 translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
-  "A <*> B"      => "QSigma(A, _K(B))"
+  "A <*> B"      => "QSigma(A, %_. B)"
 
 constdefs
   qsum    :: "[i,i]=>i"                         (infixr "<+>" 65)
