@@ -48,7 +48,7 @@ ML_DBASE=""
 #ML_HOME="$ISABELLE_HOME/contrib/poplog/current-poplog/bin"
 #ML_PLATFORM=""
 #ML_OPTIONS="-noinit"
-
+#ML_SUFFIX=".psv"
 
 
 ###
