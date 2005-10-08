@@ -129,12 +129,12 @@ struct
    Note: not stable of eta-contraction: embedding eta-expands term,
    thus we assume eta-expanded *)
 fun fo_term_height (a $ b) =
-    IsaPLib.max (1 + fo_term_height b, (fo_term_height a))
+    Int.max (1 + fo_term_height b, (fo_term_height a))
   | fo_term_height (Abs(_,_,t)) = fo_term_height t
   | fo_term_height _ = 0;
 
 fun ho_term_height  (a $ b) =
-    1 + (IsaPLib.max (ho_term_height b, ho_term_height a))
+    1 + (Int.max (ho_term_height b, ho_term_height a))
   | ho_term_height (Abs(_,_,t)) = ho_term_height t
   | ho_term_height _ = 0;
 
