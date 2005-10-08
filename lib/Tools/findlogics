@@ -34,7 +34,7 @@ do
   for FILE in "$DIR"/*
   do
     if [ -f "$FILE" ]; then
-      NAME=$(basename "$FILE")
+      NAME=$(basename "$FILE" "$ML_SUFFIX")
       LOGICS="$LOGICS $NAME"
     fi
   done

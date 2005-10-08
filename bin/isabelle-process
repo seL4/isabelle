@@ -153,7 +153,7 @@ case "$INPUT" in
     INFILE=""
     ;;
   */*)
-    INFILE="$INPUT"
+    INFILE="$INPUT$ML_SUFFIX"
     [ ! -f "$INFILE" ] && fail "Bad heap file: \"$INFILE\""
     ;;
   *)
@@ -166,7 +166,7 @@ case "$INPUT" in
     do
       DIR="$DIR/$ML_IDENTIFIER"
       ISA_PATH="$ISA_PATH  $DIR\n"
-      [ -z "$INFILE" -a -f "$DIR/$INPUT" ] && INFILE="$DIR/$INPUT"
+      [ -z "$INFILE" -a -f "$DIR/$INPUT$ML_SUFFIX" ] && INFILE="$DIR/$INPUT$ML_SUFFIX"
     done
     IFS="$ORIG_IFS"
 
@@ -186,11 +186,11 @@ case "$OUTPUT" in
     [ -z "$READONLY" -a -w "$INFILE" ] && OUTFILE="$INFILE"
     ;;
   */*)
-    OUTFILE="$OUTPUT"
+    OUTFILE="$OUTPUT$ML_SUFFIX"
     ;;
   *)
     mkdir -p "$ISABELLE_OUTPUT"
-    OUTFILE="$ISABELLE_OUTPUT/$OUTPUT"
+    OUTFILE="$ISABELLE_OUTPUT/$OUTPUT$ML_SUFFIX"
     ;;
 esac
 
@@ -199,7 +199,7 @@ esac
 
 [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
 ISABELLE_PID="$$"
-ISABELLE_TMP="$ISABELLE_TMP_PREFIX${ISABELLE_PID}"
+ISABELLE_TMP="$ISABELLE_TMP_PREFIX$ISABELLE_PID"
 mkdir -p "$ISABELLE_TMP"
 
 
