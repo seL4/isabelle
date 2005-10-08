@@ -58,6 +58,7 @@ sig
   exception TUNIFY
   val unify: tsig -> typ * typ -> tyenv * int -> tyenv * int
   val raw_unify: typ * typ -> tyenv -> tyenv
+  val could_unify: typ * typ -> bool
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
@@ -355,6 +356,7 @@ fun devar tye (T as TVar v) =
       | NONE => T)
   | devar tye T = T;
 
+(*order-sorted unification*)
 fun unify (tsig as TSig {classes = (_, classes), arities, ...}) TU (tyenv, maxidx) =
   let
     val tyvar_count = ref maxidx;
@@ -422,8 +424,17 @@ fun raw_unify (ty1, ty2) tye =
 and raw_unifys (T :: Ts, U :: Us) tye = raw_unifys (Ts, Us) (raw_unify (T, U) tye)
   | raw_unifys _ tye = tye;
 
+(*fast unification filter*)
+fun could_unify (Type (a, Ts), Type (b, Us)) = a = b andalso could_unifys (Ts, Us)
+  | could_unify (TFree (a, _), TFree (b, _)) = a = b
+  | could_unify (TVar _, _) = true
+  | could_unify (_, TVar _) = true
+  | could_unify _ = false
+and could_unifys (T :: Ts, U :: Us) = could_unify (T, U) andalso could_unifys (Ts, Us)
+  | could_unifys _ = true;
 
-(*check whether two types are equal with respect to a type environment*)
+
+(*equality with respect to a type environment*)
 fun eq_type tye (T, T') =
   (case (devar tye T, devar tye T') of
      (Type (s, Ts), Type (s', Ts')) =>
