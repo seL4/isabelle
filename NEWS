@@ -22,6 +22,11 @@ the binding position.
 translation.  INCOMPATIBILITY -- use dummy abstraction instead, for
 example "A -> B" => "Pi A (%_. B)".
 
+*** HOL ***
+
+* In the context of the assumption "~(s = t)" the simplifier rewrites
+"t = s" to False (by simproc "neq_simproc"). For backward compatibility
+this can be disabled by ML"reset use_neq_simproc".
 
 
 New in Isabelle2005 (October 2005)
