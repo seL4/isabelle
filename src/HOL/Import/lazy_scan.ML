@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/lazy_scan.ML
+(*  Title:      HOL/Import/lazy_scan.ML
     ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
 

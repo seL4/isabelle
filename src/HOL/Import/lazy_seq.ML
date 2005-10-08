@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/lazy_seq.ML
+(*  Title:      HOL/Import/lazy_seq.ML
     ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
 
@@ -404,8 +404,8 @@ fun op APPEND (f, g) x =
 	make (fn () => copy (f x))
     end
 
-fun EVERY fs = foldr THEN succeed fs
-fun FIRST fs = foldr ORELSE fail fs
+fun EVERY fs = foldr (op THEN) succeed fs
+fun FIRST fs = foldr (op ORELSE) fail fs
 
 fun TRY f x =
     make (fn () =>
@@ -428,7 +428,7 @@ fun REPEAT f =
      fn x => make (fn () => rep [] x)
     end
 
-fun REPEAT1 f = THEN (f, REPEAT f);
+fun REPEAT1 f = op THEN (f, REPEAT f);
 
 fun INTERVAL f i =
     let

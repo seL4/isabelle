@@ -21,15 +21,15 @@ LOG = $(OUT)/log
 
 ## Pure
 
-Pure: $(OUT)/Pure
+Pure: $(OUT)/Pure$(ML_SUFFIX)
 
-$(OUT)/Pure: CPure.thy General/ROOT.ML General/alist.ML                 \
+$(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML     \
   General/buffer.ML                                                     \
   General/file.ML General/graph.ML General/heap.ML General/history.ML   \
-  General/lazy_scan.ML General/lazy_seq.ML General/name_space.ML        \
+  General/name_space.ML        \
   General/ord_list.ML General/output.ML General/path.ML                 \
   General/position.ML General/pretty.ML General/scan.ML General/seq.ML  \
-  General/source.ML General/stack.ML General/susp.ML General/symbol.ML  \
+  General/source.ML General/stack.ML General/symbol.ML  \
   General/table.ML General/url.ML General/xml.ML IsaPlanner/focus_term_lib.ML \
   IsaPlanner/isa_fterm.ML IsaPlanner/isand.ML IsaPlanner/isaplib.ML     \
   IsaPlanner/rw_inst.ML IsaPlanner/rw_tools.ML IsaPlanner/term_lib.ML   \
@@ -44,7 +44,7 @@ $(OUT)/Pure: CPure.thy General/ROOT.ML General/alist.ML                 \
   Isar/proof_history.ML Isar/rule_cases.ML Isar/session.ML              \
   Isar/skip_proof.ML Isar/term_style.ML Isar/thy_header.ML              \
   Isar/toplevel.ML ML-Systems/cpu-timer-basis.ML                        \
-  ML-Systems/cpu-timer-gc.ML                                            \
+  ML-Systems/cpu-timer-gc.ML ML-Systems/poplogml.ML                     \
   ML-Systems/polyml-time-limit.ML ML-Systems/polyml.ML                  \
   ML-Systems/polyml-posix.ML ML-Systems/smlnj-basis-compat.ML           \
   ML-Systems/smlnj-compiler.ML ML-Systems/smlnj-ptreql.ML               \
@@ -82,4 +82,4 @@ RAW-copied:
 ## clean
 
 clean:
-	@rm -f $(OUT)/Pure $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz
+	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz

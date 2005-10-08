@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/susp.ML
+(*  Title:      HOL/Import/susp.ML
     ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
 
