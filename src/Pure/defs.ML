@@ -40,12 +40,10 @@ fun disjoint_types T U =
   (Type.raw_unify (T, Logic.incr_tvar (maxidx_of_typ T + 1) U) Vartab.empty; false)
     handle Type.TUNIFY => true;
 
-fun check_specified c specified =
-  specified |> Inttab.forall (fn (i, (a, T)) =>
-    specified |> Inttab.forall (fn (j, (b, U)) =>
-      i = j orelse disjoint_types T U orelse
-        error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
-          " for constant " ^ quote c)));
+fun check_specified c (i, (a, T)) = Inttab.forall (fn (j, (b, U)) =>
+  i = j orelse not (Type.could_unify (T, U)) orelse disjoint_types T U orelse
+    error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
+      " for constant " ^ quote c));
 
 
 (* monomorphic constants *)
@@ -77,14 +75,16 @@ fun define const_type name lhs rhs = map_defs (fn (consts, specified, monomorphi
       handle Graph.CYCLES cycles => err_cyclic cycles;
 
     val (c, T) = lhs;
+    val spec = (serial (), (name, T));
     val no_overloading = Type.raw_instance (const_type c, T);
 
     val consts' =
       consts |> declare lhs |> fold declare rhs
       |> K no_overloading ? add_deps (c, map #1 rhs);
-    val specified' =
-      specified |> Symtab.default (c, Inttab.empty)
-      |> Symtab.map_entry c (Inttab.update (serial (), (name, T)) #> tap (check_specified c));
+    val specified' = specified
+      |> Symtab.default (c, Inttab.empty)
+      |> Symtab.map_entry c (fn specs =>
+        (check_specified c spec specs; Inttab.update spec specs));
     val monomorphic' = monomorphic |> update_monomorphic specified' c;
   in (consts', specified', monomorphic') end);
 
@@ -99,8 +99,9 @@ fun merge pp
   let
     val consts' = (consts1, consts2) |> Graph.merge_acyclic (K true)
       handle Graph.CYCLES cycles => err_cyclic cycles;
-    val specified' = (specified1, specified2)
-      |> Symtab.join (fn c => Inttab.merge (K true) #> tap (check_specified c) #> SOME);
+    val specified' = (specified1, specified2) |> Symtab.join (fn c => fn (orig_specs1, specs2) =>
+      SOME (Inttab.fold (fn spec2 => fn specs1 =>
+        (check_specified c spec2 orig_specs1; Inttab.update spec2 specs1)) specs2 orig_specs1));
     val monomorphic' = monomorphic
       |> Symtab.fold (update_monomorphic specified' o #1) specified';
   in make_defs (consts', specified', monomorphic') end;
