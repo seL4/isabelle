@@ -12,9 +12,6 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 signature ISAP_LIB =
 sig
-  (* ints *)
-  val max : int * int -> int
-
   (* seq operations *)
   val ALL_BUT_LAST : ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
   val FST : ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
@@ -66,12 +63,9 @@ end;
 
 
 
-structure IsaPLib :> ISAP_LIB = 
+structure IsaPLib : ISAP_LIB = 
 struct
  
-(* Int *)
-fun max (x,y) = if x > y then x else y;
-
 (* Seq *)
 fun seq_map_to_some_filter f s0 =
     let 
