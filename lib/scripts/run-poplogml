@@ -88,6 +88,7 @@ fi
 if [ -z "$OUTFILE" ]; then
   COMMIT='fun commit () = (StdIO.output (StdIO.std_err, "Error - Database is not opened for writing.\n"); false);'
 else
+  ML_OPTIONS="$ML_OPTIONS -nort"
   if [ -z "$NOWRITE" ]; then
     COMMIT="fun commit () = if System.make {image =\"$OUTFILE\", lock = false, share = false, banner = false, init = false} then System.restart() else true;"
   else
