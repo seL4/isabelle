@@ -5,6 +5,29 @@
 Compatibility file for Poplog/PML (version 15.6/2.1).
 *)
 
+(* Compiler and runtime options *)
+
+val _ = Compile.filetype := ".ML";
+val _ = Memory.hilim := 10 * ! Memory.hilim;
+val _ = Memory.stacklim := 10 * ! Memory.stacklim;
+
+fun pointer_eq (_: 'a, _: 'a) = false;
+
+
+(* ML toplevel *)
+
+fun ml_prompts p1 p2 = ();
+
+fun make_pp path pprint = ();
+fun install_pp _ = ();
+
+fun print_depth _ = ();
+
+fun exception_trace f = f ();
+fun profile (n: int) f x = f x;
+
+
+
 (** Basis structures **)
 
 structure General =
@@ -52,6 +75,18 @@ struct
   val toString: int -> string = makestring;
   fun fromInt (i: int) = i;
   val fromString = String.stringint;
+  val op + = op + : int * int -> int;
+  val op - = op - : int * int -> int;
+  val op * = op * : int * int -> int;
+  val op div = op div : int * int -> int;
+  val op mod = op mod : int * int -> int;
+  fun pow (x, y) = power x y : int;
+  val op < = op < : int * int -> bool;
+  val op > = op > : int * int -> bool;
+  val op <= = op <= : int * int -> bool;
+  val op >= = op >= : int * int -> bool;
+  val abs = abs: int -> int;
+  val sign = sign: int -> int;
   fun max (x, y) : int = if x < y then y else x;
   fun min (x, y) : int = if x < y then x else y;
   fun compare (x: int, y) = if x = y then EQUAL else if x < y then LESS else GREATER;
@@ -87,27 +122,21 @@ struct
     handle String.Substring => raise Subscript;
 end;
 
-
-exception Empty;
-fun null [] = true | null _ = false;
-fun hd (x :: _) = x | hd _ = raise Empty;
-fun tl (_ :: xs) = xs | tl _ = raise Empty;
-val app = List.app;
-val length = List.length;
-
-fun foldl f b [] = b
-  | foldl f b (x :: xs) = foldl f (f (x, b)) xs;
-
-fun foldr f b [] = b
-  | foldr f b (x :: xs) = f (x, foldr f b xs);
-
 structure List =
 struct
   open List;
-  val null = null;
-  val hd = hd;
-  val tl = tl;
+
+  exception Empty;
+  fun null [] = true | null _ = false;
+  fun hd (x :: _) = x | hd _ = raise Empty;
+  fun tl (_ :: xs) = xs | tl _ = raise Empty;
   val map = map;
+
+  fun foldl f b [] = b
+    | foldl f b (x :: xs) = foldl f (f (x, b)) xs;
+
+  fun foldr f b [] = b
+    | foldr f b (x :: xs) = f (x, foldr f b xs);
 
   fun last []      = raise Empty
     | last [x]     = x
@@ -156,6 +185,15 @@ struct
       in  part (rev ys, ([], []))  end;
 
 end;
+exception Empty = List.Empty;
+val null = List.null;
+val hd = List.hd;
+val tl = List.tl;
+val map = List.map;
+val foldl = List.foldl;
+val foldr = List.foldr;
+val app = List.app;
+val length = List.length;
 
 structure ListPair =
 struct
@@ -229,27 +267,6 @@ struct
   fun (x: int) + y = x + y;
   fun (x: int) - y = x - y;
 end;
-
-
-(* Compiler and runtime options *)
-
-val _ = Compile.filetype := ".ML";
-val _ = Memory.hilim := 5 * 1024 * 1024;
-
-fun pointer_eq (_: 'a, _: 'a) = false;
-
-
-(* ML toplevel *)
-
-fun ml_prompts p1 p2 = ();
-
-fun make_pp path pprint = ();
-fun install_pp _ = ();
-
-fun print_depth _ = ();
-
-fun exception_trace f = f ();
-fun profile (n: int) f x = f x;
 
 
 
@@ -340,4 +357,19 @@ end;
 end;
 
 
-fun use_text (print, err) verbose txt = raise Fail ("FIXME use_text: " ^ txt);
+(* use *)
+
+local val pml_use = use in
+
+fun use name =
+  if name = "ROOT.ML" then   (*workaround error about looping compilations*)
+    let
+      val instream = TextIO.openIn name;
+      val txt = TextIO.inputAll instream;
+      val _ = TextIO.closeIn;
+    in use_string txt end
+  else pml_use name;
+
+end;
+
+fun use_text _ _ txt = use_string txt;
