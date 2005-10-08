@@ -103,21 +103,24 @@ fi
 POPLOG="$ML_HOME/poplog"
 check_mlhome_file "$POPLOG"
 
-MLTEXT="$EXIT $USE $COMMIT $MLTEXT"
-MLEXIT="commit();"
+INIT="$ISABELLE_TMP/init.ml"
+echo 'pop11
+section $-ml;
+false -> ml_quiet;
+endsection;
+ml' > "$INIT"
 
-if [ -z "$TERMINATE" ]; then
-  FEEDER_OPTS=""
-else
-  FEEDER_OPTS="-q"
+echo "$EXIT $USE $COMMIT $MLTEXT" >> "$INIT"
+
+if [ -n "$TERMINATE" ]; then
+  ML_OPTIONS="$ML_OPTIONS -nostdin"
+  echo "commit();" >> "$INIT"
 fi
 
-"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; "$POPLOG" pml "$DB" $ML_OPTIONS; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+"$POPLOG" pml "$DB" $ML_OPTIONS -load "$INIT" 2>&1
 RC="$?"
 
-
-## check heap
+rm -f "$INIT"
 
 [ -n "$OUTFILE" ] && check_heap_file "$OUTFILE" && \
   [ -n "$NOWRITE" ] && chmod -w "$OUTFILE"
