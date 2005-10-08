@@ -68,7 +68,7 @@ Goal
   by (asm_simp_tac (simpset() addsimps 
                       [count_addm_simp,Multiset.delm_nonempty_def,
                        Multiset.countm_nonempty_def,pos_count_imp_pos_countm]) 1);
-  by (asm_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
+  by (Auto_tac);
 qed "countm_done_delm";
 
 
