@@ -5,7 +5,7 @@
 
 signature AM_UTIL = sig
 
-    type naming = string -> int
+    type naming (* = string -> int *)
 
     exception Parse of string
     exception Tokenize
@@ -45,32 +45,29 @@ exception Tokenize;
 
 fun tokenize s =
     let
-        val s = String.explode s
-        fun str c = Char.toString c
-        fun app s c = s^(str c)
-        fun tz TokenNone [] = []
-          | tz x [] = [x]
-          | tz TokenNone (c::cs) =
-            if Char.isSpace c then tz TokenNone cs
-            else if Char.isLower c then (tz (TokenVar (str c)) cs)
-            else if Char.isAlphaNum c then (tz (TokenConst (str c)) cs)
-            else if c = #"%" then (TokenLambda :: (tz TokenNone cs))
-            else if c = #"." then (TokenDot :: (tz TokenNone cs))
-            else if c = #"(" then (TokenLeft :: (tz TokenNone cs))
-            else if c = #")" then (TokenRight :: (tz TokenNone cs))
-            else if c = #"=" then (TokenEq :: (tz TokenNone cs))
-            else raise Tokenize
-          | tz (TokenConst s) (c::cs) =
-            if Char.isAlphaNum c then (tz (TokenConst (app s c)) cs)
-            else (TokenConst s)::(tz TokenNone (c::cs))
-          | tz (TokenVar s) (c::cs) =
-            if Char.isAlphaNum c then (tz (TokenVar (app s c)) cs)
-            else (TokenVar s)::(tz TokenNone (c::cs))
-          | tz _ _ = raise Tokenize
-    in
-        tz TokenNone s
-    end
-
+      fun is_lower c = "a" <= c andalso c <= "z";
+      val is_alphanum = Symbol.is_ascii_letter orf Symbol.is_ascii_digit;
+      fun tz TokenNone [] = []
+        | tz x [] = [x]
+        | tz TokenNone (c::cs) =
+          if Symbol.is_ascii_blank c then tz TokenNone cs
+          else if is_lower c then (tz (TokenVar c) cs)
+          else if is_alphanum c then (tz (TokenConst c) cs)
+          else if c = "%" then (TokenLambda :: (tz TokenNone cs))
+          else if c = "." then (TokenDot :: (tz TokenNone cs))
+          else if c = "(" then (TokenLeft :: (tz TokenNone cs))
+          else if c = ")" then (TokenRight :: (tz TokenNone cs))
+          else if c = "=" then (TokenEq :: (tz TokenNone cs))
+          else raise Tokenize
+        | tz (TokenConst s) (c::cs) =
+          if is_alphanum c then (tz (TokenConst (s ^ c)) cs)
+          else (TokenConst s)::(tz TokenNone (c::cs))
+        | tz (TokenVar s) (c::cs) =
+          if is_alphanum c then (tz (TokenVar (s ^ c)) cs)
+          else (TokenVar s)::(tz TokenNone (c::cs))
+        | tz _ _ = raise Tokenize
+    in tz TokenNone (explode s) end
+    
 exception Parse of string;
 
 fun cons x xs =
