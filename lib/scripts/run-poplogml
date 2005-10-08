@@ -40,9 +40,48 @@ function check_heap_file()
 
 if [ -z "$INFILE" ]; then
   EXIT="fun exit (i: int) = OS.execve \"/bin/sh\" [\"sh\", \"-c\", \"exit \" ^ makestring i] (OS.envlist());"
+  USE='pop11
+section $-ml;
+
+ml_exception Use of string;
+
+ml_val use : string -> unit =
+procedure(name) with_props use;
+        lvars name, path;
+        lconstant UseExn = exception("Use");
+
+        define dlocal pop_exception_handler(n, msg, idstring, severity);
+                returnunless(severity == `E` or severity == `R`)(false);
+                erasenum(n);
+                raise(UseExn(name));
+        enddefine;
+
+        unless sourcefile(name) ->> path then raise(UseExn(name)) endunless;
+        ml_load(path);
+        ml_unit;
+endprocedure;
+
+ml_val use_string : string -> unit =
+procedure(str) with_props use_string;
+        lvars str;
+        lconstant UseExn = exception("Use");
+
+        define dlocal pop_exception_handler(n, msg, idstring, severity);
+                returnunless(severity == `E` or severity == `R`)(false);
+                erasenum(n);
+                raise(UseExn(str));
+        enddefine;
+
+        ml_compile(stringin(str));
+        ml_unit;
+endprocedure;
+
+endsection;
+ml'
   DB=""
 else
   EXIT=""
+  USE=""
   DB="+$INFILE"
 fi
 
@@ -54,7 +93,7 @@ else
   else
     COMMIT="fun commit () = if System.make {image =\"$OUTFILE\", lock = true, share = true, banner = false, init = false} then System.restart() else true;"
   fi
-  [ -f "${OUTFILE}.psv" ] && { chmod +w "${OUTFILE}.psv" || fail_out; }
+  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
 fi
 
 
@@ -63,7 +102,7 @@ fi
 POPLOG="$ML_HOME/poplog"
 check_mlhome_file "$POPLOG"
 
-MLTEXT="val use = Compile.use; $EXIT $COMMIT $MLTEXT"
+MLTEXT="$EXIT $USE $COMMIT $MLTEXT"
 MLEXIT="commit();"
 
 if [ -z "$TERMINATE" ]; then
@@ -77,11 +116,9 @@ fi
 RC="$?"
 
 
-## fix heap file name and permissions
+## check heap
 
-if [ -n "$OUTFILE" ]; then
-  check_heap_file "${OUTFILE}.psv" && \
-    [ -n "$NOWRITE" ] && chmod -w "${OUTFILE}.psv"
-fi
+[ -n "$OUTFILE" ] && check_heap_file "$OUTFILE" && \
+  [ -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 exit "$RC"
