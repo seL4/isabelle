@@ -35,7 +35,7 @@ sig
   type LeafT (* type for other leaf types in term sturcture *)
 
   (* the type to be encoded into *)
-  datatype TermT = op $ of TermT * TermT
+  datatype TermT = $ of TermT * TermT
     | Abs of string * TypeT * TermT
     | lf of LeafT
 
@@ -56,10 +56,10 @@ sig
      exception focus_term_exp of string;
      exception out_of_term_exception of string;
 
-     type Term = MinTermS.TermT;
-     type Type = MinTermS.TypeT;
+     type Term (* = MinTermS.TermT *)
+     type Type (* = MinTermS.TypeT *)
 
-     type UpTerm = (Term,Type) UpTermLib.T;
+     type UpTerm (* = (Term,Type) UpTermLib.T *)
 
 (*   datatype
        UpTerm =

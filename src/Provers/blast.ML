@@ -78,7 +78,7 @@ signature BLAST =
     | Var   of term option ref
     | Bound of int
     | Abs   of string*term
-    | op $  of term*term;
+    | $  of term*term;
   type branch
   val depth_tac 	: claset -> int -> int -> tactic
   val depth_limit : int ref
@@ -833,7 +833,7 @@ fun clashVar [] = (fn _ => false)
   next branch have been updated.*)
 fun prune (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow 
 					     backtracking over bad proofs*)
-  | prune (nbrs, nxtVars, choices) =
+  | prune (nbrs: int, nxtVars, choices) =
       let fun traceIt last =
 		let val ll = length last
 		    and lc = length choices

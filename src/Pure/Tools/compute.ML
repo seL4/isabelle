@@ -20,7 +20,7 @@ signature COMPUTE = sig
 
 end
 
-structure Compute :> COMPUTE = struct
+structure Compute : COMPUTE = struct
 
 exception Make of string;
 
@@ -36,8 +36,8 @@ fun is_mono_term (Const (_, t)) = is_mono_typ t
 
 structure AMTermTab = TableFun (type key = AbstractMachine.term val ord = AM_Util.term_ord)
 
-fun add x y = Int.+ (x, y)
-fun inc x = Int.+ (x, 1)
+fun add x y = x + y : int;
+fun inc x = x + 1;
 
 exception Mono of term;
 
@@ -153,8 +153,9 @@ fun infer_types naming =
         infer
     end
 
-type computer = theory_ref * (AbstractMachine.term Termtab.table * term AMTermTab.table * int *
-                              AbstractMachine.program)
+datatype computer =
+  Computer of theory_ref *
+    (AbstractMachine.term Termtab.table * term AMTermTab.table * int * AbstractMachine.program)
 
 fun basic_make thy raw_ths =
     let
@@ -240,9 +241,7 @@ fun basic_make thy raw_ths =
 
         val prog = AbstractMachine.compile rules
 
-    in
-        (Theory.self_ref thy, (table, invtable, ccount, prog))
-    end
+    in Computer (Theory.self_ref thy, (table, invtable, ccount, prog)) end
 
 fun make thy ths =
     let
@@ -253,7 +252,7 @@ fun make thy ths =
       basic_make thy (app mk (app mk_eq_True ths))
     end
 
-fun compute r naming ct =
+fun compute (Computer r) naming ct =
     let
         val {t=t, T=ty, thy=ctthy, ...} = rep_cterm ct
         val (rthy, (table, invtable, ccount, prog)) = r
@@ -265,7 +264,7 @@ fun compute r naming ct =
         t
     end
 
-fun theory_of (rthy, _) = Theory.deref rthy
+fun theory_of (Computer (rthy, _)) = Theory.deref rthy
 
 fun default_naming i = "v_" ^ Int.toString i
 

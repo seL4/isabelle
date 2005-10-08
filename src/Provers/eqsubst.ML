@@ -33,18 +33,8 @@ sig
   exception eqsubst_occL_exp of
             string * (int list) * (thm list) * int * thm;
 
-
-  type match =
-       ((indexname * (sort * typ)) list (* type instantiations *)
-        * (indexname * (typ * term)) list) (* term instantiations *)
-       * (string * typ) list (* fake named type abs env *)
-       * (string * typ) list (* type abs env *)
-       * term (* outer term *)
-
-  type searchinfo =
-       theory (* sign for matching *)
-       * int (* maxidx *)
-       * BasicIsaFTerm.FcTerm (* focusterm to search under *)
+  type match
+  type searchinfo
 
   val prep_subst_in_asm :
          int (* subgoal to subst in *)

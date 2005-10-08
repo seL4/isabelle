@@ -13,18 +13,26 @@
 *)   
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 
-signature ISA_ENCODE_TERM = 
-  F_ENCODE_TERM_SIG
-    where type term = Term.term type TypeT = Term.typ;
-
+signature ISA_ENCODE_TERM =  (* cf. F_ENCODE_TERM_SIG *)
+sig
+  type term
+  type typ
+  type LeafT
+  datatype TermT = $ of TermT * TermT
+    | Abs of string * typ * TermT
+    | lf of LeafT
+  val fakebounds : string * typ -> term -> term
+  val encode : term -> TermT
+  val decode : TermT -> term
+end;
 
 (* signature BASIC_ISA_FTERM = 
 FOCUS_TERM_SIG where type Term = ISA_ENCODE_TERM.Term *)
 
 signature ISA_FTERM =
   sig
-    type Term = EncodeIsaFTerm.TermT
-    type Type = Term.typ
+    type Term (*= EncodeIsaFTerm.TermT*)
+    type Type (*= Term.typ*)
     type UpTerm
     datatype FcTerm = focus of Term * UpTerm
     structure MinTermS : F_ENCODE_TERM_SIG

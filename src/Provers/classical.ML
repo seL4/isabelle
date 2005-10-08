@@ -578,14 +578,14 @@ fun cs addWrapper new_uwrapper = update_uwrappers cs (fn uwrappers =>
 
 (*Remove a safe wrapper*)
 fun cs delSWrapper name = update_swrappers cs (fn swrappers =>
-  let val swrappers' = filter_out (equal name o #1) swrappers in
+  let val swrappers' = filter_out (equal name o fst) swrappers in
     if length swrappers <> length swrappers' then swrappers'
     else (warning ("No such safe wrapper in claset: "^ name); swrappers)
   end);
 
 (*Remove an unsafe wrapper*)
 fun cs delWrapper name = update_uwrappers cs (fn uwrappers =>
-  let val uwrappers' = filter_out (equal name o #1) uwrappers in
+  let val uwrappers' = filter_out (equal name o fst) uwrappers in
     if length uwrappers <> length uwrappers' then uwrappers'
     else (warning ("No such unsafe wrapper in claset: " ^ name); uwrappers)
   end);

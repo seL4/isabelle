@@ -20,7 +20,7 @@ val run : program -> term -> term
 
 end
 
-structure AM_Interpreter :> ABSTRACT_MACHINE = struct
+structure AM_Interpreter : ABSTRACT_MACHINE = struct
 
 datatype term = Var of int | Const of int | App of term * term | Abs of term
 
@@ -32,7 +32,7 @@ datatype closure = CVar of int | CConst of int
 
 structure prog_struct = TableFun(type key = int*int val ord = prod_ord int_ord int_ord);
 
-type program = ((pattern * closure) list) prog_struct.table
+datatype program = Program of ((pattern * closure) list) prog_struct.table
 
 datatype stack = SEmpty | SAppL of closure * stack | SAppR of closure * stack | SAbs of stack
 
@@ -95,7 +95,7 @@ fun compile eqs =
         val eqs = map (fn (p, r) => (check_freevars (count_patternvars p) r;
                                      (pattern_key p, (p, clos_of_term r)))) eqs
     in
-        prog_struct.make (map (fn (k, a) => (k, [a])) eqs)
+        Program (prog_struct.make (map (fn (k, a) => (k, [a])) eqs))
     end
 
 fun match_rules n [] clos = NONE
@@ -104,7 +104,7 @@ fun match_rules n [] clos = NONE
         NONE => match_rules (n+1) rs clos
       | SOME args => SOME (Closure (args, eq))
 
-fun match_closure prog clos =
+fun match_closure (Program prog) clos =
     case len_head_of_closure 0 clos of
         (len, CConst c) =>
         (case prog_struct.lookup prog (c, len) of

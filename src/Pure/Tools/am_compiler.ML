@@ -15,7 +15,7 @@ sig
   val list_map : ('a -> 'b) -> 'a list -> 'b list
 end
 
-structure AM_Compiler :> COMPILING_AM = struct
+structure AM_Compiler : COMPILING_AM = struct
 
 val list_nth = List.nth;
 val list_map = map;
@@ -86,7 +86,7 @@ fun print_rule (p, t) =
 
 	val (n, pattern) = print_pattern 0 p
 	val pattern =
-            if List.exists Char.isSpace (String.explode pattern) then "("^pattern^")"
+            if exists_string Symbol.is_ascii_blank pattern then "(" ^ pattern ^")"
             else pattern
 	
 	fun print_term d (Var x) = (*if x < d then "Var "^(str x) else "x"^(str (n-(x-d)-1))*)
@@ -178,7 +178,7 @@ fun load_rules sname name prog =
 		"  | strong_last stack clos = (stack, clos)",
 		""]
 	
-	val ic = "(case c of "^(String.concat (map (fn c => (str c)^" => c"^(str c)^" | ") constants))^" _ => Const c)"						  	
+	val ic = "(case c of "^(implode (map (fn c => (str c)^" => c"^(str c)^" | ") constants))^" _ => Const c)"						  	
 	val _ = writelist [
 		"fun importTerm ("^sname^".Var x) = Var x",
 		"  | importTerm ("^sname^".Const c) =  "^ic,
