@@ -4,7 +4,8 @@
 *)
 
 theory HOL4Setup imports MakeEqual
-  uses ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import_package.ML") begin
+  uses "susp.ML" "lazy_seq.ML" "lazy_scan.ML"
+    ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import_package.ML") begin
 
 section {* General Setup *}
 
