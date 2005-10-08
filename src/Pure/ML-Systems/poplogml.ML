@@ -8,7 +8,7 @@ Compatibility file for Poplog/PML (version 15.6/2.1).
 (* Compiler and runtime options *)
 
 val _ = Compile.filetype := ".ML";
-val _ = Memory.hilim := 10 * ! Memory.hilim;
+val _ = Memory.hilim := let fun MB n = n div 4 * 1024 * 1024 in MB 120 end;
 val _ = Memory.stacklim := 10 * ! Memory.stacklim;
 
 fun pointer_eq (_: 'a, _: 'a) = false;
