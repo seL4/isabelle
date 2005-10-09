@@ -19,7 +19,7 @@ Proof reconstruction from SAT solvers.
           [| l1; l2; ...; lm |] ==> False,
     where each li is a literal (see also comments in cnf_funcs.ML).
 
-    -- observe that this is the "dualized" version of the standard
+    -- Observe that this is the "dualized" version of the standard
        clausal form
            l1' \/ l2' \/ ... \/ lm', where li is the negation normal
        form of ~li'.
@@ -53,8 +53,8 @@ Proof reconstruction from SAT solvers.
 signature SAT =
 sig
 	val trace_sat : bool ref  (* print trace messages *)
-	val sat_tac   : Tactical.tactic
-	val satx_tac  : Tactical.tactic
+	val sat_tac   : int -> Tactical.tactic
+	val satx_tac  : int -> Tactical.tactic
 end
 
 functor SATFunc (structure cnf : CNF) : SAT =
@@ -65,193 +65,190 @@ val trace_sat = ref false;
 val counter = ref 0;
 
 (* ------------------------------------------------------------------------- *)
-(* rev_lookup: look up the Isabelle/HOL atom corresponding to a DIMACS       *)
-(*      variable index in the dictionary.  This index should exist in the    *)
-(*      dictionary, otherwise exception Option is raised.                    *)
+(* swap_prem: convert raw clauses of the form                                *)
+(*        [| l1; l2; ...; li; ... |] ==> False                               *)
+(*      to                                                                   *)
+(*        [| l1; l2; ... |] ==> ~li .                                        *)
+(*      Note that ~li may be equal to ~~a for some atom a.                   *)
 (* ------------------------------------------------------------------------- *)
 
-(* 'b -> ('a * 'b) list -> 'a *)
+(* Thm.thm -> int -> Thm.thm *)
 
-fun rev_lookup idx []                   = raise Option
-  | rev_lookup idx ((key, entry)::dict) = if entry=idx then key else rev_lookup idx dict;
-
-(* ------------------------------------------------------------------------- *)
-(* swap_prem: convert rules of the form                                      *)
-(*       l1 ==> l2 ==> .. ==> li ==> .. ==> False                            *)
-(*     to                                                                    *)
-(*       l1 ==> l2 ==> .... ==> ~li                                          *)
-(* ------------------------------------------------------------------------- *)
-
-fun swap_prem rslv c =
-let
-	val thm1 = rule_by_tactic (metacut_tac c 1 THEN (atac 1) THEN (REPEAT_SOME atac)) rslv
-in
-	rule_by_tactic (ALLGOALS (cnf.weakening_tac)) thm1
-end;
+fun swap_prem raw_cl i =
+	Seq.hd ((metacut_tac raw_cl 1  (* [| [| ?P; False |] ==> False; ?P ==> l1; ...; ?P ==> li; ... |] ==> ~ ?P *)
+		THEN atac (i+1)            (* [| [| li; False |] ==> False; li ==> l1; ... |] ==> ~ li *)
+		THEN atac 1                (* [| li ==> l1; ... |] ==> ~ li *)
+		THEN ALLGOALS cnf.weakening_tac) notI);
 
 (* ------------------------------------------------------------------------- *)
-(* is_dual: check if two atoms are dual to each other                        *)
-(* ------------------------------------------------------------------------- *)
-
-(* Term.term -> Term.term -> bool *)
-
-fun is_dual (Const ("Trueprop", _) $ x) y = is_dual x y
-  | is_dual x (Const ("Trueprop", _) $ y) = is_dual x y
-  | is_dual (Const ("Not", _) $ x) y      = (x = y)
-  | is_dual x (Const ("Not", _) $ y)      = (x = y)
-  | is_dual x y                           = false;
-
-(* ------------------------------------------------------------------------- *)
-(* dual_mem: check if an atom has a dual in a list of atoms                  *)
-(* ------------------------------------------------------------------------- *)
-
-(* Term.term -> Term.term list -> bool *)
-
-fun dual_mem x []      = false
-  | dual_mem x (y::ys) = is_dual x y orelse dual_mem x ys;
-
-(* ------------------------------------------------------------------------- *)
-(* replay_chain: proof reconstruction: given two clauses                     *)
-(*        [| x1 ; .. ; a ; .. ; xn |] ==> False                              *)
+(* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
+(*      resolution over the list (starting with its head), i.e. with two raw *)
+(*      clauses                                                              *)
+(*        [| x1; ... ; a; ...; xn |] ==> False                               *)
 (*      and                                                                  *)
-(*        [| y1 ; .. ; ~a ; .. ; ym |] ==> False ,                           *)
-(*      we first convert the first clause into                               *)
-(*        [| x1 ; ... ; xn |] ==> ~a     (using swap_prem)                   *)
-(*      and do a resolution with the second clause to produce                *)
-(*        [| y1 ; ... ; x1 ; ... ; xn ; ... ; yn |] ==> False                *)
+(*        [| y1; ... ; a'; ...; ym |] ==> False                              *)
+(*      (where a and a' are dual to each other), we first convert the first  *)
+(*      clause to                                                            *)
+(*        [| x1; ...; xn |] ==> a'                                           *)
+(*      (using swap_prem and perhaps notnotD), and then do a resolution with *)
+(*      the second clause to produce                                         *)
+(*        [| y1; ...; x1; ...; xn; ...; yn |] ==> False                      *)
+(*      amd finally remove duplicate literals.                               *)
 (* ------------------------------------------------------------------------- *)
 
-(* Theory.theory -> Thm.thm option Array.array -> int -> int list -> unit *)
+(* Thm.thm list -> Thm.thm *)
 
-fun replay_chain sg clauses idx (c::cs) =
-let
-	val fc = (valOf o Array.sub) (clauses, c)
+fun resolve_raw_clauses [] =
+	raise THM ("Proof reconstruction failed (empty list of resolvents)!", 0, [])
+  | resolve_raw_clauses (c::cs) =
+	let
+		fun dual (Const ("Not", _) $ x) = x
+		  | dual x                      = HOLogic.Not $ x
 
-	fun strip_neg (Const ("Trueprop", _) $ x) = strip_neg x
-	  | strip_neg (Const ("Not", _) $ x)      = x
-	  | strip_neg x                           = x
+		fun is_neg (Const ("Not", _) $ _) = true
+		  | is_neg _                      = false
 
-	(* find out which atom (literal) is used in the resolution *)
-	fun res_atom []      _  = raise THM ("Proof reconstruction failed!", 0, [])
-	  | res_atom (x::xs) ys = if dual_mem x ys then strip_neg x else res_atom xs ys
-
-	fun replay old []        =
-		old
-	  | replay old (cl::cls) =
-		let
-			val icl  = (valOf o Array.sub) (clauses, cl)
-			val var  = res_atom (prems_of old) (prems_of icl)
-			val atom = cterm_of sg var
-			val rslv = instantiate' [] [SOME atom] notI
-			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ string_of_thm old ^
-						"\nwith clause: " ^ string_of_thm icl ^
-						"\nusing literal " ^ string_of_cterm atom ^ ".")
-				else ()
-			val thm1 = (rule_by_tactic (REPEAT_SOME (rtac (swap_prem rslv old))) icl
-				handle THM _ => rule_by_tactic (REPEAT_SOME (rtac (swap_prem rslv icl))) old)
-			val new  = rule_by_tactic distinct_subgoals_tac thm1
-			val _    = if !trace_sat then tracing ("Resulting clause: " ^ string_of_thm new) else ()
-			val _    = inc counter
-		in
-			replay new cls
-		end
-
-	val _ = Array.update (clauses, idx, SOME (replay fc cs))
-
-	val _ = if !trace_sat then
-			tracing ("Replay chain successful; clause stored at #" ^ string_of_int idx)
-		else ()
-in
-	()
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* replay_proof: replay the resolution proof returned by the SAT solver; cf. *)
-(*      SatSolver.proof for details of the proof format.  Returns the        *)
-(*      theorem established by the proof (which is just False).              *)
-(* ------------------------------------------------------------------------- *)
-
-(* Theory.theory -> Thm.thm option Array.array -> SatSolver.proof -> Thm.thm *)
-
-fun replay_proof sg clauses (clause_table, empty_id) =
-let
-	(* int -> unit *)
-	fun prove_clause id =
-		case Array.sub (clauses, id) of
-		  SOME _ =>
-			()
-		| NONE   =>
+		(* find out which premises are used in the resolution *)
+		(* Term.term list -> Term.term list -> int -> (int * int * bool) *)
+		fun res_prems []      _  _    =
+			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+		  | res_prems (x::xs) ys idx1 =
 			let
-				val ids = valOf (Inttab.lookup clause_table id)
-				val _   = map prove_clause ids
+				val x'   = HOLogic.dest_Trueprop x
+				val idx2 = find_index_eq (dual x') ys
 			in
-				replay_chain sg clauses id ids
+				if idx2 = (~1) then
+					res_prems xs ys (idx1+1)
+				else
+					(idx1, idx2, is_neg x')
 			end
 
-	val _ = counter := 0
+		(* Thm.thm -> Thm.thm -> Thm.thm *)
+		fun resolution c1 c2 =
+		let
+			val _ = if !trace_sat then
+					tracing ("Resolving clause: " ^ string_of_thm c1 ^ "\nwith clause: " ^ string_of_thm c2)
+				else ()
 
-	val _ = prove_clause empty_id
+			val prems2                   = map HOLogic.dest_Trueprop (prems_of c2)
+			val (idx1, idx2, is_neg_lit) = res_prems (prems_of c1) prems2 0
+			val swap_c1                  = swap_prem c1 (idx1+1)
+			val swap_c1_nnf              = if is_neg_lit then Seq.hd (rtac swap_c1 1 notnotD) else swap_c1  (* deal with double-negation *)
+			val c_new                    = Seq.hd ((rtac swap_c1_nnf (idx2+1) THEN distinct_subgoals_tac) c2)
 
-	val _ = if !trace_sat then
-			tracing (string_of_int (!counter) ^ " resolution step(s) total.")
-		else ()
+			val _ = if !trace_sat then tracing ("Resulting clause: " ^ string_of_thm c_new) else ()
+			val _ = inc counter
+		in
+			c_new
+		end
+	in
+		fold resolution cs c
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* replay_proof: replays the resolution proof returned by the SAT solver;    *)
+(*      cf. SatSolver.proof for details of the proof format.  Updates the    *)
+(*      'clauses' array with derived clauses, and returns the derived clause *)
+(*      at index 'empty_id' (which should just be "False" if proof           *)
+(*      reconstruction was successful, with the used clauses as hyps).       *)
+(* ------------------------------------------------------------------------- *)
+
+(* Thm.thm option Array.array -> SatSolver.proof -> Thm.thm *)
+
+fun replay_proof clauses (clause_table, empty_id) =
+let
+	(* int -> Thm.thm *)
+	fun prove_clause id =
+		case Array.sub (clauses, id) of
+		  SOME thm =>
+			thm
+		| NONE     =>
+			let
+				val _   = if !trace_sat then tracing ("Proving clause #" ^ string_of_int id ^ " ...") else ()
+				val ids = valOf (Inttab.lookup clause_table id)
+				val thm = resolve_raw_clauses (map prove_clause ids)
+				val _   = Array.update (clauses, id, SOME thm)
+				val _   = if !trace_sat then tracing ("Replay chain successful; clause stored at #" ^ string_of_int id) else ()
+			in
+				thm
+			end
+
+	val _            = counter := 0
+	val empty_clause = prove_clause empty_id
+	val _            = if !trace_sat then tracing ("Proof reconstruction successful; " ^ string_of_int (!counter) ^ " resolution step(s) total.") else ()
 in
-	(valOf o Array.sub) (clauses, empty_id)
+	empty_clause
 end;
 
-(* ------------------------------------------------------------------------- *)
-(* Functions to build the sat tactic                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun collect_atoms (Const ("Trueprop", _) $ x) ls = collect_atoms x ls
-  | collect_atoms (Const ("op |", _) $ x $ y) ls = collect_atoms x (collect_atoms y ls)
-  | collect_atoms x                           ls = x ins ls;
-
-fun has_duals []      = false
-  | has_duals (x::xs) = dual_mem x xs orelse has_duals xs;
-
-fun is_trivial_clause (Const ("True", _)) = true
-  | is_trivial_clause c                   = has_duals (collect_atoms c []);
+(* PropLogic.prop_formula -> string *)
+fun string_of_prop_formula PropLogic.True             = "True"
+  | string_of_prop_formula PropLogic.False            = "False"
+  | string_of_prop_formula (PropLogic.BoolVar i)      = "x" ^ string_of_int i
+  | string_of_prop_formula (PropLogic.Not fm)         = "~" ^ string_of_prop_formula fm
+  | string_of_prop_formula (PropLogic.Or (fm1, fm2))  = "(" ^ string_of_prop_formula fm1 ^ " v " ^ string_of_prop_formula fm2 ^ ")"
+  | string_of_prop_formula (PropLogic.And (fm1, fm2)) = "(" ^ string_of_prop_formula fm1 ^ " & " ^ string_of_prop_formula fm2 ^ ")";
 
 (* ------------------------------------------------------------------------- *)
 (* rawsat_thm: run external SAT solver with the given clauses.  Reconstructs *)
-(*      a proof from the resulting proof trace of the SAT solver.            *)
+(*      a proof from the resulting proof trace of the SAT solver.  Each      *)
+(*      premise in 'prems' that is not a clause is ignored, and the theorem  *)
+(*      returned is just "False" (with some clauses as hyps).                *)
 (* ------------------------------------------------------------------------- *)
 
-fun rawsat_thm sg prems =
+(* Thm.thm list -> Thm.thm *)
+
+fun rawsat_thm prems =
 let
-	val thms       = filter (not o is_trivial_clause o term_of o cprop_of) prems  (* remove trivial clauses *)
-	val (fm, dict) = cnf.cnf2prop thms
-	val _          = if !trace_sat then tracing "Invoking SAT solver ..." else ()
+	(* remove premises that equal "True" *)
+	val non_triv_prems    = filter (fn thm =>
+		(not_equal HOLogic.true_const o HOLogic.dest_Trueprop o prop_of) thm
+			handle TERM ("dest_Trueprop", _) => true) prems
+	(* remove non-clausal premises -- of course this shouldn't actually   *)
+	(* remove anything as long as 'rawsat_thm' is only called after the   *)
+	(* premises have been converted to clauses                            *)
+	val clauses           = filter (fn thm =>
+		((cnf.is_clause o HOLogic.dest_Trueprop o prop_of) thm handle TERM ("dest_Trueprop", _) => false)
+		orelse (warning ("Ignoring non-clausal premise " ^ (string_of_cterm o cprop_of) thm); false)) non_triv_prems
+	(* remove trivial clauses -- this is necessary because zChaff removes *)
+	(* trivial clauses during preprocessing, and otherwise our clause     *)
+	(* numbering would be off                                             *)
+	val non_triv_clauses  = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o prop_of) clauses
+	(* translate clauses from HOL terms to PropLogic.prop_formula *)
+	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o prop_of) non_triv_clauses Termtab.empty
+	val _                 = if !trace_sat then
+			tracing ("Invoking SAT solver on clauses:\n" ^ space_implode "\n" (map string_of_prop_formula fms))
+		else ()
+	val fm                = PropLogic.all fms
 in
 	case SatSolver.invoke_solver "zchaff_with_proofs" fm of
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) =>
 		let
-			val _         = if !trace_sat then
+			val _          = if !trace_sat then
 					tracing ("Proof trace from SAT solver:\n" ^
 						"clauses: [" ^ commas (map (fn (c, cs) =>
 							"(" ^ string_of_int c ^ ", [" ^ commas (map string_of_int cs) ^ "])") (Inttab.dest clause_table)) ^ "]\n" ^
 						"empty clause: " ^ string_of_int empty_id)
 				else ()
-			val raw_thms  = cnf.cnf2raw_thms thms
-			val raw_thms' = map (rule_by_tactic distinct_subgoals_tac) raw_thms
-			(* initialize the clause array with the original clauses *)
-			val max_idx   = valOf (Inttab.max_key clause_table)
-			val clauses   = Array.array (max_idx + 1, NONE)
-			val _         = fold (fn thm => fn idx => (Array.update (clauses, idx, SOME thm); idx+1)) raw_thms' 0
+			(* initialize the clause array with the given clauses, *)
+			(* but converted to raw clause format                  *)
+			val max_idx     = valOf (Inttab.max_key clause_table)
+			val clause_arr  = Array.array (max_idx + 1, NONE)
+			val raw_clauses = map (Seq.hd o distinct_subgoals_tac o cnf.clause2raw_thm) non_triv_clauses
+			val _           = fold (fn thm => fn idx => (Array.update (clause_arr, idx, SOME thm); idx+1)) raw_clauses 0
 		in
-			replay_proof sg clauses (clause_table, empty_id)
+			(* replay the proof to derive the empty clause *)
+			replay_proof clause_arr (clause_table, empty_id)
 		end
 	| SatSolver.UNSATISFIABLE NONE =>
 		raise THM ("SAT solver claims the formula to be unsatisfiable, but did not provide a proof", 0, [])
 	| SatSolver.SATISFIABLE assignment =>
 		let
 			val msg = "SAT solver found a countermodel:\n"
-				^ (enclose "{" "}"
-					o commas
-					o map (Sign.string_of_term sg o fst)
-					o filter (fn (_, idx) => getOpt (assignment idx, false))) dict
+				^ (commas
+					o map (fn (term, idx) =>
+						Sign.string_of_term (the_context ()) term ^ ": "
+							^ (case assignment idx of NONE => "arbitrary" | SOME true => "true" | SOME false => "false")))
+					(Termtab.dest atom_table)
 		in
 			raise THM (msg, 0, [])
 		end
@@ -263,27 +260,73 @@ end;
 (* Tactics                                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun cnfsat_basic_tac state =
-let
-	val sg = Thm.sign_of_thm state
-in
-	METAHYPS (fn prems => rtac (rawsat_thm sg prems) 1) 1 state
-end;
+(* ------------------------------------------------------------------------- *)
+(* rawsat_tac: solves the i-th subgoal of the proof state; this subgoal      *)
+(*      should be of the form                                                *)
+(*        [| c1; c2; ...; ck |] ==> False                                    *)
+(*      where each cj is a non-empty clause (i.e. a disjunction of literals) *)
+(*      or "True"                                                            *)
+(* ------------------------------------------------------------------------- *)
 
-(* a trivial tactic, used in preprocessing before calling the main tactic *)
-val pre_sat_tac = (REPEAT (etac conjE 1)) THEN (REPEAT ((atac 1) ORELSE (etac FalseE 1)));
+(* int -> Tactical.tactic *)
 
-(* tactic for calling external SAT solver, taking as input CNF clauses *)
-val cnfsat_tac = pre_sat_tac THEN (IF_UNSOLVED cnfsat_basic_tac);
+fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm prems) 1) i;
 
-(* tactic for calling external SAT solver, taking as input arbitrary formula *)
-val sat_tac = cnf.cnf_thin_tac THEN cnfsat_tac;
+(* ------------------------------------------------------------------------- *)
+(* pre_cnf_tac: converts the i-th subgoal                                    *)
+(*        [| A1 ; ... ; An |] ==> B                                          *)
+(*      to                                                                   *)
+(*        [| A1; ... ; An ; ~B |] ==> False                                  *)
+(*      (handling meta-logical connectives in B properly before negating),   *)
+(*      then replaces meta-logical connectives in the premises (i.e. "==>",  *)
+(*      "!!" and "==") by connectives of the HOL object-logic (i.e. by       *)
+(*      "-->", "!", and "=")                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-(*
-  Tactic for calling external SAT solver, taking as input arbitrary formula.
-  The input is translated to CNF (in primitive form), possibly introducing
-  new literals.
-*)
-val satx_tac = cnf.cnfx_thin_tac THEN cnfsat_tac;
+(* int -> Tactical.tactic *)
+
+fun pre_cnf_tac i = rtac ccontr i THEN ObjectLogic.atomize_tac i;
+
+(* ------------------------------------------------------------------------- *)
+(* cnfsat_tac: checks if the empty clause "False" occurs among the premises; *)
+(*      if not, eliminates conjunctions (i.e. each clause of the CNF formula *)
+(*      becomes a separate premise), then applies 'rawsat_tac' to solve the  *)
+(*      subgoal                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+(* int -> Tactical.tactic *)
+
+fun cnfsat_tac i = (etac FalseE i) ORELSE (REPEAT_DETERM (etac conjE i) THEN rawsat_tac i);
+
+(* ------------------------------------------------------------------------- *)
+(* cnfxsat_tac: checks if the empty clause "False" occurs among the          *)
+(*      premises; if not, eliminates conjunctions (i.e. each clause of the   *)
+(*      CNF formula becomes a separate premise) and existential quantifiers, *)
+(*      then applies 'rawsat_tac' to solve the subgoal                       *)
+(* ------------------------------------------------------------------------- *)
+
+(* int -> Tactical.tactic *)
+
+fun cnfxsat_tac i = (etac FalseE i) ORELSE (REPEAT_DETERM (etac conjE i ORELSE etac exE i) THEN rawsat_tac i);
+
+(* ------------------------------------------------------------------------- *)
+(* sat_tac: tactic for calling an external SAT solver, taking as input an    *)
+(*      arbitrary formula.  The input is translated to CNF, possibly causing *)
+(*      an exponential blowup.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+(* int -> Tactical.tactic *)
+
+fun sat_tac i = pre_cnf_tac i THEN cnf.cnf_rewrite_tac i THEN cnfsat_tac i;
+
+(* ------------------------------------------------------------------------- *)
+(* satx_tac: tactic for calling an external SAT solver, taking as input an   *)
+(*      arbitrary formula.  The input is translated to CNF, possibly         *)
+(*      introducing new literals.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+(* int -> Tactical.tactic *)
+
+fun satx_tac i = pre_cnf_tac i THEN cnf.cnfx_rewrite_tac i THEN cnfxsat_tac i;
 
 end;  (* of structure *)

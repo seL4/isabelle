@@ -30,10 +30,10 @@ refute_params
 
 ML {* structure sat = SATFunc(structure cnf = cnf); *}
 
-method_setup sat = {* Method.no_args (Method.SIMPLE_METHOD sat.sat_tac) *}
+method_setup sat = {* Method.no_args (Method.SIMPLE_METHOD (sat.sat_tac 1)) *}
   "SAT solver"
 
-method_setup satx = {* Method.no_args (Method.SIMPLE_METHOD sat.satx_tac) *}
+method_setup satx = {* Method.no_args (Method.SIMPLE_METHOD (sat.satx_tac 1)) *}
   "SAT solver (with definitional CNF)"
 
 end

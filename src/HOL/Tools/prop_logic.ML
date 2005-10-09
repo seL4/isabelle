@@ -34,6 +34,9 @@ sig
 	val defcnf : prop_formula -> prop_formula  (* definitional cnf *)
 
 	val eval : (int -> bool) -> prop_formula -> bool  (* semantics *)
+
+	val prop_formula_of_term : Term.term -> int Termtab.table -> prop_formula * int Termtab.table
+		(* propositional representation of HOL terms *)
 end;
 
 structure PropLogic : PROP_LOGIC =
@@ -420,5 +423,67 @@ struct
 	  | eval a (Not fm)        = not (eval a fm)
 	  | eval a (Or (fm1,fm2))  = (eval a fm1) orelse (eval a fm2)
 	  | eval a (And (fm1,fm2)) = (eval a fm1) andalso (eval a fm2);
+
+(* ------------------------------------------------------------------------- *)
+(* prop_formula_of_term: returns the propositional structure of a HOL term,  *)
+(*      with subterms replaced by Boolean variables.  Also returns a table   *)
+(*      of terms and corresponding variables that extends the table that was *)
+(*      given as an argument.  Usually, you'll just want to use              *)
+(*      'Termtab.empty' as value for 'table'.                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Note: The implementation is somewhat optimized; the next index to be used *)
+(*       is computed only when it is actually needed.  However, when         *)
+(*       'prop_formula_of_term' is invoked many times, it might be more      *)
+(*       efficient to pass and return this value as an additional parameter, *)
+(*       so that it does not have to be recomputed (by folding over the      *)
+(*       table) for each invocation.                                         *)
+
+	(* Term.term -> int Termtab.table -> prop_formula * int Termtab.table *)
+	fun prop_formula_of_term t table =
+	let
+		val next_idx_is_valid = ref false
+		val next_idx          = ref 0
+		fun get_next_idx () =
+			if !next_idx_is_valid then
+				inc next_idx
+			else (
+				next_idx          := Termtab.fold (curry Int.max o snd) table 0;
+				next_idx_is_valid := true;
+				inc next_idx
+			)
+		fun aux (Const ("True", _))         table =
+			(True, table)
+		  | aux (Const ("False", _))        table =
+			(False, table)
+		  | aux (Const ("Not", _) $ x)      table =
+			apfst Not (aux x table)
+		  | aux (Const ("op |", _) $ x $ y) table =
+			let
+				val (fm1, table1) = aux x table
+				val (fm2, table2) = aux y table1
+			in
+				(Or (fm1, fm2), table2)
+			end
+		  | aux (Const ("op &", _) $ x $ y) table =
+			let
+				val (fm1, table1) = aux x table
+				val (fm2, table2) = aux y table1
+			in
+				(And (fm1, fm2), table2)
+			end
+		  | aux x                           table =
+			(case Termtab.lookup table x of
+			  SOME i =>
+				(BoolVar i, table)
+			| NONE   =>
+				let
+					val i = get_next_idx ()
+				in
+					(BoolVar i, Termtab.update (x, i) table)
+				end)
+	in
+		aux t table
+	end;
 
 end;
