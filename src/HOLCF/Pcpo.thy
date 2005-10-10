@@ -1,8 +1,6 @@
 (*  Title:      HOLCF/Pcpo.thy
     ID:         $Id$
     Author:     Franz Regensburger
-
-Introduction of the classes cpo and pcpo.
 *)
 
 header {* Classes cpo and pcpo *}
@@ -54,11 +52,11 @@ apply (erule chain_shift)
 apply (rule is_lub_thelub)
 apply assumption
 apply (rule ub_rangeI)
-apply (rule trans_less)
-apply (rule_tac [2] is_ub_thelub)
-apply (erule_tac [2] chain_shift)
+apply (rule_tac y="Y (i + j)" in trans_less)
 apply (erule chain_mono3)
 apply (rule le_add1)
+apply (rule is_ub_thelub)
+apply (erule chain_shift)
 done
 
 lemma maxinch_is_thelub:
@@ -94,22 +92,13 @@ by (simp only: expand_fun_eq [symmetric])
 text {* more results about mono and = of lubs of chains *}
 
 lemma lub_mono2:
-  "\<lbrakk>\<exists>j::nat. \<forall>i>j. X i = Y i; chain (X::nat=>'a::cpo); chain Y\<rbrakk>
+  "\<lbrakk>\<exists>j. \<forall>i>j. X i = Y i; chain (X::nat \<Rightarrow> 'a::cpo); chain Y\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
 apply (erule exE)
-apply (rule is_lub_thelub)
-apply assumption
-apply (rule ub_rangeI)
-apply (case_tac "j < i")
-apply (rule_tac s="Y i" and t="X i" in subst)
+apply (subgoal_tac "(\<Squnion>i. X (i + Suc j)) \<sqsubseteq> (\<Squnion>i. Y (i + Suc j))")
+apply (thin_tac "\<forall>i>j. X i = Y i")
+apply (simp only: lub_range_shift)
 apply simp
-apply (erule is_ub_thelub)
-apply (rule_tac y = "X (Suc j)" in trans_less)
-apply (erule chain_mono)
-apply (erule not_less_eq [THEN iffD1])
-apply (rule_tac s="Y (Suc j)" and t="X (Suc j)" in subst)
-apply simp
-apply (erule is_ub_thelub)
 done
 
 lemma lub_equal2:
@@ -120,8 +109,7 @@ by (blast intro: antisym_less lub_mono2 sym)
 lemma lub_mono3:
   "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); chain X; \<forall>i. \<exists>j. Y i \<sqsubseteq> X j\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. X i)"
-apply (rule is_lub_thelub)
-apply assumption
+apply (erule is_lub_thelub)
 apply (rule ub_rangeI)
 apply (erule allE)
 apply (erule exE)
@@ -185,7 +173,7 @@ axclass pcpo < cpo
 
 constdefs
   UU :: "'a::pcpo"
-  "UU \<equiv> THE x. ALL y. x \<sqsubseteq> y"
+  "UU \<equiv> THE x. \<forall>y. x \<sqsubseteq> y"
 
 syntax (xsymbols)
   UU :: "'a::pcpo" ("\<bottom>")
@@ -225,13 +213,7 @@ Addsimprocs [UU_reorient_simproc];
 text {* useful lemmas about @{term \<bottom>} *}
 
 lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
-apply (rule iffI)
-apply (erule ssubst)
-apply (rule refl_less)
-apply (rule antisym_less)
-apply assumption
-apply (rule minimal)
-done
+by (simp add: po_eq_conv)
 
 lemma UU_I: "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
 by (subst eq_UU_iff)
@@ -296,9 +278,7 @@ apply simp
 apply (erule exE)
 apply (rule_tac x="i" in exI)
 apply clarify
-apply (erule le_imp_less_or_eq [THEN disjE])
-apply safe
-apply (blast dest: chain_mono ax_flat [rule_format])
+apply (blast dest: chain_mono3 ax_flat [rule_format])
 done
 
 instance flat < chfin
