@@ -35,17 +35,13 @@ defs
 subsection {* Binder syntax for @{term fix} *}
 
 syntax
-  "@FIX" :: "('a => 'a) => 'a"  (binder "FIX " 10)
-  "@FIXP" :: "[patterns, 'a] => 'a"  ("(3FIX <_>./ _)" [0, 10] 10)
+  "_FIX" :: "[pttrn, 'a] => 'a" ("(3FIX _./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "FIX " :: "[idt, 'a] => 'a"  ("(3\<mu>_./ _)" [0, 10] 10)
-  "@FIXP" :: "[patterns, 'a] => 'a"  ("(3\<mu>()<_>./ _)" [0, 10] 10)
+  "_FIX" :: "[pttrn, 'a] => 'a" ("(3\<mu>_./ _)" [0, 10] 10)
 
 translations
-  "FIX x. LAM y. t" == "fix\<cdot>(LAM x y. t)"
-  "FIX x. t" == "fix\<cdot>(LAM x. t)"
-  "FIX <xs>. t" == "fix\<cdot>(LAM <xs>. t)"
+  "FIX x. t" == "fix$(LAM x. t)"
 
 subsection {* Properties of @{term iterate} and @{term fix} *}
 

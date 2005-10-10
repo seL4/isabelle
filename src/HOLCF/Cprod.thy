@@ -195,48 +195,18 @@ translations
   "<x, y, z>" == "<x, <y, z>>"
   "<x, y>"    == "cpair$x$y"
 
+syntax
+  "_ctuple_pttrn" :: "[pttrn, patterns] => pttrn"  ("<_,/ _>")
+
+translations
+  "LAM <x,y,zs>. t"       == "csplit$(LAM x <y,zs>. t)"
+  "LAM <x,y>. t"          == "csplit$(LAM x y. t)"
+
 defs
   cpair_def:  "cpair  \<equiv> (\<Lambda> x y. (x, y))"
   cfst_def:   "cfst   \<equiv> (\<Lambda> p. fst p)"
   csnd_def:   "csnd   \<equiv> (\<Lambda> p. snd p)"      
   csplit_def: "csplit \<equiv> (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
-
-subsection {* Syntax *}
-
-text {* syntax for @{text "LAM <x,y,z>.e"} *}
-
-syntax
-  "_LAM" :: "[patterns, 'a \<Rightarrow> 'b] \<Rightarrow> ('a \<rightarrow> 'b)"  ("(3LAM <_>./ _)" [0, 10] 10)
-
-translations
-  "LAM <x,y,zs>. b"       == "csplit$(LAM x. LAM <y,zs>. b)"
-  "LAM <x,y>. LAM zs. b"  <= "csplit$(LAM x y zs. b)"
-  "LAM <x,y>.b"           == "csplit$(LAM x y. b)"
-
-syntax (xsymbols)
-  "_LAM" :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\<Lambda>()<_>./ _)" [0, 10] 10)
-
-text {* syntax for Let *}
-
-constdefs
-  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b"
-  "CLet \<equiv> \<Lambda> s f. f\<cdot>s"
-
-nonterminals
-  Cletbinds  Cletbind
-
-syntax
-  "_Cbind"  :: "[pttrn, 'a] => Cletbind"             ("(2_ =/ _)" 10)
-  "_Cbindp" :: "[patterns, 'a] => Cletbind"          ("(2<_> =/ _)" 10)
-  ""        :: "Cletbind => Cletbinds"               ("_")
-  "_Cbinds" :: "[Cletbind, Cletbinds] => Cletbinds"  ("_;/ _")
-  "_CLet"   :: "[Cletbinds, 'a] => 'a"               ("(Let (_)/ in (_))" 10)
-
-translations
-  "_CLet (_Cbinds b bs) e"  == "_CLet b (_CLet bs e)"
-  "Let x = a in LAM ys. e"  == "CLet$a$(LAM x ys. e)"
-  "Let x = a in e"          == "CLet$a$(LAM x. e)"
-  "Let <xs> = a in e"       == "CLet$a$(LAM <xs>. e)"
 
 subsection {* Convert all lemmas to the continuous versions *}
 

@@ -25,20 +25,56 @@ by (rule admI, rule cont_lub_fun)
 cpodef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}"
 by (simp add: Ex_cont adm_cont)
 
-syntax
-  Rep_CFun :: "('a -> 'b) => ('a => 'b)" ("_$_" [999,1000] 999)
-                                                (* application *)
-  Abs_CFun :: "('a => 'b) => ('a -> 'b)" (binder "LAM " 10)
-                                                (* abstraction *)
-
 syntax (xsymbols)
   "->"     :: "[type, type] => type"      ("(_ \<rightarrow>/ _)" [1,0]0)
-  "LAM "   :: "[idts, 'a => 'b] => ('a -> 'b)"
-					("(3\<Lambda>_./ _)" [0, 10] 10)
-  Rep_CFun :: "('a -> 'b) => ('a => 'b)" ("(_\<cdot>_)" [999,1000] 999)
+
+syntax
+  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("_$_" [999,1000] 999)
+  "_Lambda" :: "[pttrns, 'a] \<Rightarrow> logic"  ("(3LAM _./ _)" [0, 10] 10)
+
+syntax (xsymbols)
+  "_Lambda"   :: "[pttrns, 'a] \<Rightarrow> logic" ("(3\<Lambda>_./ _)" [0, 10] 10)
+  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>_)" [999,1000] 999)
 
 syntax (HTML output)
-  Rep_CFun :: "('a -> 'b) => ('a => 'b)" ("(_\<cdot>_)" [999,1000] 999)
+  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>_)" [999,1000] 999)
+
+syntax
+  "_cabs" :: "[pttrn, 'a] \<Rightarrow> logic"
+translations
+  "_cabs x t" == "Abs_CFun (%x. t)"
+
+(* To avoid eta-contraction of body: *)
+print_translation {*
+let
+  fun cabs_tr' [Abs abs] =
+    let val (x,t) = atomic_abs_tr' abs
+    in Syntax.const "_cabs" $ x $ t end
+in [("Abs_CFun", cabs_tr')] end
+*}
+
+parse_ast_translation {*
+(* rewrites (LAM x y z. t) --> (LAM x. LAM y. LAM z. t) *)
+(* c.f. Syntax.lambda_ast_tr from Syntax/syn_trans.ML *)
+let
+  fun Lambda_ast_tr [pats, body] =
+        Syntax.fold_ast_p "_cabs" (Syntax.unfold_ast "_pttrns" pats, body)
+    | Lambda_ast_tr asts = raise Syntax.AST ("lambda_ast_tr", asts);
+in [("_Lambda", Lambda_ast_tr)] end
+*}
+
+print_ast_translation {*
+(* rewrites (LAM x. LAM y. LAM z. t) --> (LAM x y z. t) *)
+(* c.f. Syntax.abs_ast_tr' from Syntax/syn_trans.ML *)
+let
+  fun cabs_ast_tr' asts =
+    (case Syntax.unfold_ast_p "_cabs"
+        (Syntax.Appl (Syntax.Constant "_cabs" :: asts)) of
+      ([], _) => raise Syntax.AST ("abs_ast_tr'", asts)
+    | (xs, body) => Syntax.Appl
+        [Syntax.Constant "_Lambda", Syntax.fold_ast "_pttrns" xs, body]);
+in [("_cabs", cabs_ast_tr')] end
+*}
 
 subsection {* Class instances *}
 
@@ -447,5 +483,18 @@ by (simp add: strictify_conv_if)
 
 lemma strictify2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strictify\<cdot>f\<cdot>x = f\<cdot>x"
 by (simp add: strictify_conv_if)
+
+subsection {* Continuous let-bindings *}
+
+constdefs
+  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b"
+  "CLet \<equiv> \<Lambda> s f. f\<cdot>s"
+
+syntax
+  "_CLet" :: "[letbinds, 'a] => 'a" ("(Let (_)/ in (_))" 10)
+
+translations
+  "_CLet (_binds b bs) e" == "_CLet b (_CLet bs e)"
+  "Let x = a in e" == "CLet$a$(LAM x. e)"
 
 end

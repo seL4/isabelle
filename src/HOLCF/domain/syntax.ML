@@ -75,9 +75,8 @@ local open Syntax in
 	fun case1 n (con,mx,args) = mk_appl (Constant "_case1")
 		 [Library.foldl (app "Rep_CFun") (c_ast con mx, (mapn (argvar n) 1 args)),
 		  expvar n];
-	fun arg1 n (con,_,args) = if args = [] then expvar n 
-				  else mk_appl (Constant "LAM ") 
-		 [foldr1 (app "_idts") (mapn (argvar n) 1 args) , expvar n];
+	fun cabs (x,t) = mk_appl (Constant "_cabs") [x,t];
+	fun arg1 n (con,_,args) = foldr cabs (expvar n) (mapn (argvar n) 1 args);
   in
     ParsePrintRule
       (mk_appl (Constant "_case_syntax") [Variable "x", foldr1
