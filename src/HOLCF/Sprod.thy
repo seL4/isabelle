@@ -15,7 +15,7 @@ defaultsort pcpo
 
 subsection {* Definition of strict product type *}
 
-pcpodef (Sprod)  ('a, 'b) "**" (infixr 20) =
+pcpodef (Sprod)  ('a, 'b) "**" (infixr "**" 20) =
         "{p::'a \<times> 'b. p = \<bottom> \<or> (cfst\<cdot>p \<noteq> \<bottom> \<and> csnd\<cdot>p \<noteq> \<bottom>)}"
 by simp
 

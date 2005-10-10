@@ -15,7 +15,7 @@ defaultsort pcpo
 
 subsection {* Definition of strict sum type *}
 
-pcpodef (Ssum)  ('a, 'b) "++" (infixr 10) = 
+pcpodef (Ssum)  ('a, 'b) "++" (infixr "++" 10) = 
         "{p::'a \<times> 'b. cfst\<cdot>p = \<bottom> \<or> csnd\<cdot>p = \<bottom>}"
 by simp
 

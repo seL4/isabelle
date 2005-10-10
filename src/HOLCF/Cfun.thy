@@ -22,7 +22,7 @@ by (rule exI, rule cont_const)
 lemma adm_cont: "adm cont"
 by (rule admI, rule cont_lub_fun)
 
-cpodef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}"
+cpodef (CFun)  ('a, 'b) "->" (infixr "->" 0) = "{f::'a => 'b. cont f}"
 by (simp add: Ex_cont adm_cont)
 
 syntax (xsymbols)
