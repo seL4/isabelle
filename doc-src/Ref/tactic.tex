@@ -634,7 +634,7 @@ SUBGOAL (fn (t,i) => {\it tactic-valued expression})
 \index{tracing!of tactics}
 \begin{ttbox} 
 pause_tac: tactic
-print_tac: tactic
+print_tac: string -> tactic
 \end{ttbox}
 These tactics print tracing information when they are applied to a proof
 state.  Their output may be difficult to interpret.  Note that certain of
@@ -646,7 +646,7 @@ prints {\footnotesize\tt** Press RETURN to continue:} and then reads a line
 from the terminal.  If this line is blank then it returns the proof state
 unchanged; otherwise it fails (which may terminate a repetition).
 
-\item[\ttindexbold{print_tac}] 
+\item[\ttindexbold{print_tac}~$msg$] 
 returns the proof state unchanged, with the side effect of printing it at
 the terminal.
 \end{ttdescription}
