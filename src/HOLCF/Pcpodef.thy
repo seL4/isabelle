@@ -30,6 +30,29 @@ theorem typedef_po:
 done
 
 
+subsection {* Proving a subtype is chain-finite *}
+
+lemma monofun_Rep:
+  assumes less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+  shows "monofun Rep"
+by (rule monofunI, unfold less)
+
+lemmas ch2ch_Rep = ch2ch_monofun [OF monofun_Rep]
+lemmas ub2ub_Rep = ub2ub_monofun [OF monofun_Rep]
+
+theorem typedef_chfin:
+  fixes Abs :: "'a::chfin \<Rightarrow> 'b::po"
+  assumes type: "type_definition Rep Abs A"
+    and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+  shows "OFCLASS('b, chfin_class)"
+ apply (intro_classes, clarify)
+ apply (drule ch2ch_Rep [OF less])
+ apply (drule chfin [rule_format])
+ apply (unfold max_in_chain_def)
+ apply (simp add: type_definition.Rep_inject [OF type])
+done
+
+
 subsection {* Proving a subtype is complete *}
 
 text {*
@@ -39,14 +62,6 @@ text {*
   closed if and only if membership in the set is an
   admissible predicate.
 *}
-
-lemma monofun_Rep:
-  assumes less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  shows "monofun Rep"
-by (rule monofunI, unfold less)
-
-lemmas ch2ch_Rep = ch2ch_monofun [OF monofun_Rep]
-lemmas ub2ub_Rep = ub2ub_monofun [OF monofun_Rep]
 
 lemma Abs_inverse_lub_Rep:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
