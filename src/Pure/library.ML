@@ -266,6 +266,7 @@ sig
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
   val scanwords: (string -> bool) -> string list -> string list
+  val string_of_pid: Posix.Process.pid -> string
   type stamp
   val stamp: unit -> stamp
   type serial
@@ -1283,6 +1284,10 @@ in
 fun gensym pre = pre ^ (#1(newid (!seedr), inc seedr));
 
 end;
+
+(*Convert a process ID to a decimal string (chiefly for tracing)*)
+fun string_of_pid pid = 
+    Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
 
 
 (* lexical scanning *)

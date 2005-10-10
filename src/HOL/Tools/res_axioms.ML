@@ -313,9 +313,24 @@ fun univ_vars_of_aux (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,body)) vars =
 fun univ_vars_of t = univ_vars_of_aux t [];
 
 
+(**** Generating Skoklem Functions ****)
+
+val skolem_prefix = "sk_";
+val skolem_id = ref 0;
+
+fun gen_skolem_name () =
+  let val sk_fun = skolem_prefix ^ string_of_int (! skolem_id);
+  in inc skolem_id; sk_fun end;
+
+fun gen_skolem univ_vars tp =
+  let
+    val skolem_type = map Term.fastype_of univ_vars ---> tp
+    val skolem_term = Const (gen_skolem_name (), skolem_type)
+  in Term.list_comb (skolem_term, univ_vars) end;
+
 fun get_new_skolem epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,tp,_)))  = 
     let val all_vars = univ_vars_of t
-	val sk_term = ResSkolemFunction.gen_skolem all_vars tp
+	val sk_term = gen_skolem all_vars tp
     in
 	(sk_term,(t,sk_term)::epss)
     end;

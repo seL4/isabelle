@@ -29,6 +29,17 @@ val custom_spass =   (*specialized options for SPASS*)
 val destdir = ref "";   (*Empty means write files to /tmp*)
 val problem_name = ref "prob";
 
+(*Return the path to a "helper" like SPASS or tptp2X, first checking that
+  it exists.  FIXME: modify to use Path primitives and move to some central place.*)  
+fun helper_path evar base =
+  case getenv evar of
+      "" => error  ("Isabelle environment variable " ^ evar ^ " not defined")
+    | home => 
+        let val path = home ^ "/" ^ base
+        in  if File.exists (File.unpack_platform_path path) then path 
+	    else error ("Could not find the file " ^ path)
+	end;  
+
 fun probfile_nosuffix _ = 
   if !destdir = "" then File.platform_path (File.tmp_path (Path.basic (!problem_name)))
   else if File.exists (File.unpack_platform_path (!destdir))
@@ -106,7 +117,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
                            "%-DocProof%-TimeLimit=" ^ time
                       else "-DocProof%-SOS%-FullRed=0%-TimeLimit=" ^ time (*Auto mode*)
                   val _ = debug ("SPASS option string is " ^ optionline)
-                  val _ = ResLib.helper_path "SPASS_HOME" "SPASS"
+                  val _ = helper_path "SPASS_HOME" "SPASS"
                     (*We've checked that SPASS is there for ATP/spassshell to run.*)
               in 
                   ([("spass", 
@@ -116,14 +127,14 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
               end
             else if !prover = "vampire"
 	    then 
-              let val vampire = ResLib.helper_path "VAMPIRE_HOME" "vampire"
+              let val vampire = helper_path "VAMPIRE_HOME" "vampire"
               in
                 ([("vampire", vampire, "-m 100000%-t " ^ time, probfile)] @
                  (make_atp_list xs (n+1)))       (*BEWARE! spaces in options!*)
               end
       	     else if !prover = "E"
       	     then
-	       let val Eprover = ResLib.helper_path "E_HOME" "eproof"
+	       let val Eprover = helper_path "E_HOME" "eproof"
 	       in
 		  ([("E", Eprover, 
 		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time,
@@ -172,7 +183,7 @@ fun kill_last_watcher () =
     (case !last_watcher_pid of 
          NONE => ()
        | SOME (_, childout, pid, files) => 
-	  (debug ("Killing old watcher, pid = " ^ Int.toString (ResLib.intOfPid pid));
+	  (debug ("Killing old watcher, pid = " ^ string_of_pid pid);
 	   Watcher.killWatcher pid;  
 	   ignore (map (try OS.FileSys.remove) files)))
      handle OS.SysErr _ => debug "Attempt to kill watcher failed";
@@ -190,7 +201,7 @@ val isar_atp = setmp print_mode []
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
       debug ("problem files: " ^ space_implode ", " files); 
-      debug ("pid: " ^ Int.toString (ResLib.intOfPid pid));
+      debug ("pid: " ^ string_of_pid pid);
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end);
 

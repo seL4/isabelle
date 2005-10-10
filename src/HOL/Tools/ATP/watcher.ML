@@ -350,8 +350,7 @@ fun createWatcher (th, clause_arr) =
 	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
 	   then 
-	     (debug ("\nReaping a watcher, childpid = "^
-		     Int.toString (ResLib.intOfPid childpid));
+	     (debug ("\nReaping a watcher, childpid = " ^ string_of_pid childpid);
 	      killWatcher childpid (*???; reapWatcher (childpid, childin, childout)*) )
 	    else ())
      val _ = debug ("subgoals forked to createWatcher: "^ prems_string_of th);
