@@ -405,67 +405,47 @@ subsection {* Strictified functions *}
 
 defaultsort pcpo
 
-consts  
-  Istrictify :: "('a \<rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+constdefs
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b"
-
-defs
-  Istrictify_def: "Istrictify f x \<equiv> if x = \<bottom> then \<bottom> else f\<cdot>x"    
-  strictify_def:  "strictify \<equiv> (\<Lambda> f x. Istrictify f x)"
+  "strictify \<equiv> (\<Lambda> f x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 
 text {* results about strictify *}
 
-lemma Istrictify1: "Istrictify f \<bottom> = \<bottom>"
-by (simp add: Istrictify_def)
+lemma cont_strictify1: "cont (\<lambda>f. if x = \<bottom> then \<bottom> else f\<cdot>x)"
+by (simp add: cont_if)
 
-lemma Istrictify2: "x \<noteq> \<bottom> \<Longrightarrow> Istrictify f x = f\<cdot>x"
-by (simp add: Istrictify_def)
-
-lemma cont_Istrictify1: "cont (\<lambda>f. Istrictify f x)"
-apply (case_tac "x = \<bottom>")
-apply (simp add: Istrictify1)
-apply (simp add: Istrictify2)
-done
-
-lemma monofun_Istrictify2: "monofun (\<lambda>x. Istrictify f x)"
+lemma monofun_strictify2: "monofun (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule monofunI)
-apply (simp add: Istrictify_def monofun_cfun_arg)
-apply clarify
-apply (simp add: eq_UU_iff)
+apply (auto simp add: monofun_cfun_arg eq_UU_iff [symmetric])
 done
 
-lemma contlub_Istrictify2: "contlub (\<lambda>x. Istrictify f x)"
+(*FIXME: long proof*)
+lemma contlub_strictify2: "contlub (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule contlubI)
 apply (case_tac "lub (range Y) = \<bottom>")
 apply (drule (1) chain_UU_I)
-apply (simp add: Istrictify1 thelub_const)
-apply (simp add: Istrictify2)
-apply (simp add: contlub_cfun_arg)
+apply (simp add: thelub_const)
+apply (simp del: if_image_distrib)
+apply (simp only: contlub_cfun_arg)
 apply (rule lub_equal2)
 apply (rule chain_mono2 [THEN exE])
 apply (erule chain_UU_I_inverse2)
 apply (assumption)
-apply (blast intro: Istrictify2 [symmetric])
+apply (rule_tac x=x in exI, clarsimp)
 apply (erule chain_monofun)
-apply (erule monofun_Istrictify2 [THEN ch2ch_monofun])
+apply (erule monofun_strictify2 [THEN ch2ch_monofun])
 done
 
-lemmas cont_Istrictify2 =
-  monocontlub2cont [OF monofun_Istrictify2 contlub_Istrictify2, standard]
-
-lemma strictify1 [simp]: "strictify\<cdot>f\<cdot>\<bottom> = \<bottom>"
-apply (unfold strictify_def)
-apply (simp add: cont_Istrictify1 cont_Istrictify2)
-apply (rule Istrictify1)
-done
-
-lemma strictify2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strictify\<cdot>f\<cdot>x = f\<cdot>x"
-apply (unfold strictify_def)
-apply (simp add: cont_Istrictify1 cont_Istrictify2)
-apply (erule Istrictify2)
-done
+lemmas cont_strictify2 =
+  monocontlub2cont [OF monofun_strictify2 contlub_strictify2, standard]
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
-by simp
+by (unfold strictify_def, simp add: cont_strictify1 cont_strictify2)
+
+lemma strictify1 [simp]: "strictify\<cdot>f\<cdot>\<bottom> = \<bottom>"
+by (simp add: strictify_conv_if)
+
+lemma strictify2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strictify\<cdot>f\<cdot>x = f\<cdot>x"
+by (simp add: strictify_conv_if)
 
 end
