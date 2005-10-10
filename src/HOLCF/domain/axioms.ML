@@ -39,7 +39,7 @@ let
 			(if recu andalso is_rec arg then (cproj (Bound z) eqs
 				  (rec_of arg))`Bound(z-x) else Bound(z-x));
      fun parms [] = %%:ONE_N
-     |   parms vs = foldr'(fn(x,t)=> %%:spairN`x`t)(mapn (idxs(length vs))1 vs);
+     |   parms vs = foldr1(fn(x,t)=> %%:spairN`x`t)(mapn (idxs(length vs))1 vs);
      fun inj y 1 _ = y
      |   inj y _ 0 = %%:sinlN`y
      |   inj y i j = %%:sinrN`(inj y (i-1) (j-1));
@@ -105,7 +105,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%:(dname^"_copy")`Bound 0;
   val copy_def = ("copy_def" , %%:(comp_dname^"_copy") ==
-				    /\"f"(foldr' cpair (map copy_app dnames)));
+				    /\"f"(foldr1 cpair (map copy_app dnames)));
   val bisim_def = ("bisim_def",%%:(comp_dname^"_bisim")==mk_lam("R",
     let
       fun one_con (con,args) = let
@@ -132,9 +132,9 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 			      (map (defined o Bound) nonlazy_idxs,capps)) allvns end;
       fun one_comp n (_,cons) =mk_all(x_name(n+1),mk_all(x_name(n+1)^"'",mk_imp(
 	 		proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
-         		foldr' mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)
+         		foldr1 mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)
 					::map one_con cons))));
-    in foldr' mk_conj (mapn one_comp 0 eqs)end ));
+    in foldr1 mk_conj (mapn one_comp 0 eqs)end ));
   fun add_one (thy,(dnam,axs,dfs)) = thy
 	|> Theory.add_path dnam
 	|> add_axioms_infer dfs(*add_defs_i*)

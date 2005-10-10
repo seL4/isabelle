@@ -19,13 +19,13 @@ let
 local
   fun opt_lazy (lazy,_,t) = if lazy then mk_uT t else t
   fun prod     (_,_,args) = if args = [] then oneT
-			    else foldr' mk_sprodT (map opt_lazy args);
+			    else foldr1 mk_sprodT (map opt_lazy args);
   fun freetvar s = let val tvar = mk_TFree s in
 		   if tvar mem typevars then freetvar ("t"^s) else tvar end;
   fun when_type (_   ,_,args) = foldr (op ->>) (freetvar "t") (map third args);
 in
   val dtype  = Type(dname,typevars);
-  val dtype2 = foldr' mk_ssumT (map prod cons');
+  val dtype2 = foldr1 mk_ssumT (map prod cons');
   val dnam = Sign.base_name dname;
   val const_rep  = (dnam^"_rep" ,              dtype  ->> dtype2, NoSyn);
   val const_abs  = (dnam^"_abs" ,              dtype2 ->> dtype , NoSyn);
@@ -77,10 +77,10 @@ local open Syntax in
 		  expvar n];
 	fun arg1 n (con,_,args) = if args = [] then expvar n 
 				  else mk_appl (Constant "LAM ") 
-		 [foldr' (app "_idts") (mapn (argvar n) 1 args) , expvar n];
+		 [foldr1 (app "_idts") (mapn (argvar n) 1 args) , expvar n];
   in
     ParsePrintRule
-      (mk_appl (Constant "_case_syntax") [Variable "x", foldr'
+      (mk_appl (Constant "_case_syntax") [Variable "x", foldr1
 				(fn (c,cs) => mk_appl (Constant"_case2") [c,cs])
 				 (mapn case1 1 cons')],
        mk_appl (Constant "Rep_CFun") [Library.foldl 
@@ -105,8 +105,8 @@ fun add_syntax (comp_dnam,eqs': ((string * typ list) *
 let
   val dtypes  = map (Type o fst) eqs';
   val boolT   = HOLogic.boolT;
-  val funprod = foldr' HOLogic.mk_prodT (map (fn tp => tp ->> tp          ) dtypes);
-  val relprod = foldr' HOLogic.mk_prodT (map (fn tp => tp --> tp --> boolT) dtypes);
+  val funprod = foldr1 HOLogic.mk_prodT (map (fn tp => tp ->> tp          ) dtypes);
+  val relprod = foldr1 HOLogic.mk_prodT (map (fn tp => tp --> tp --> boolT) dtypes);
   val const_copy   = (comp_dnam^"_copy"  ,funprod ->> funprod, NoSyn);
   val const_bisim  = (comp_dnam^"_bisim" ,relprod --> boolT  , NoSyn);
   val ctt           = map (calc_syntax funprod) eqs';

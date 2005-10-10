@@ -134,9 +134,9 @@ end;
 local 
   val iso_swap = iso_locale RS iso_iso_swap;
   fun one_con (con,args) = let val vns = map vname args in
-    Library.foldr mk_ex (vns, foldr' mk_conj ((%:x_name === con_app2 con %: vns)::
+    Library.foldr mk_ex (vns, foldr1 mk_conj ((%:x_name === con_app2 con %: vns)::
                               map (defined o %:) (nonlazy args))) end;
-  val exh = foldr' mk_disj ((%:x_name===UU)::map one_con cons);
+  val exh = foldr1 mk_disj ((%:x_name===UU)::map one_con cons);
   val my_ctyp = cons2ctyp cons;
   val thm1 = instantiate' [SOME my_ctyp] [] exh_start;
   val thm2 = rewrite_rule (map mk_meta_eq ex_defined_iffs) thm1;
@@ -280,7 +280,7 @@ local
     let
       fun append s = upd_vname(fn v => v^s);
       val (largs,rargs) = (args, map (append "'") args);
-      val concl = mk_trp (foldr' mk_conj (ListPair.map rel (map %# largs, map %# rargs)));
+      val concl = mk_trp (foldr1 mk_conj (ListPair.map rel (map %# largs, map %# rargs)));
       val prem = mk_trp (rel(con_app con largs,con_app con rargs));
       val prop = prem ===> lift_defined %: (nonlazy largs, concl);
     in pg con_appls prop end;
@@ -380,7 +380,7 @@ local
   val iterate_Cprod_ss = simpset_of Fix.thy;
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
-  val take_stricts=pg copy_take_defs(mk_trp(foldr' mk_conj(map(fn((dn,args),_)=>
+  val take_stricts=pg copy_take_defs(mk_trp(foldr1 mk_conj(map(fn((dn,args),_)=>
             strict(dc_take dn $ %:"n")) eqs))) ([
                         induct_tac "n" 1,
                          simp_tac iterate_Cprod_ss 1,
@@ -390,7 +390,7 @@ local
                                                         `%x_name n === UU))[
                                 simp_tac iterate_Cprod_ss 1]) 1 dnames;
   val c_UU_tac = case_UU_tac (take_stricts'::copy_con_rews) 1;
-  val take_apps = pg copy_take_defs (mk_trp(foldr' mk_conj 
+  val take_apps = pg copy_take_defs (mk_trp(foldr1 mk_conj 
             (List.concat(map (fn ((dn,_),cons) => map (fn (con,args) => Library.foldr mk_all 
         (map vname args,(dc_take dn $ (%%:"Suc" $ %:"n"))`(con_app con args) ===
          con_app2 con (app_rec_arg (fn n=>dc_take (List.nth(dnames,n))$ %:"n"))
@@ -418,7 +418,7 @@ local
   fun one_eq ((p,cons),concl) = (mk_trp(%:p $ UU) ===> 
                            Library.foldr (op ===>) (map (one_con p) cons,concl));
   fun ind_term concf = Library.foldr one_eq (mapn (fn n => fn x => (P_name n, x))1conss,
-                        mk_trp(foldr' mk_conj (mapn concf 1 dnames)));
+                        mk_trp(foldr1 mk_conj (mapn concf 1 dnames)));
   val take_ss = HOL_ss addsimps take_rews;
   fun quant_tac i = EVERY(mapn(fn n=> fn _=> res_inst_tac[("x",x_name n)]spec i)
                                1 dnames);
@@ -500,7 +500,7 @@ val (finites,ind) = if is_finite then
                                 resolve_tac take_lemmas 1,
                                 asm_simp_tac take_ss 1,
                                 atac 1]) dnames;
-    val finite_lemma1b = pg [] (mk_trp (mk_all("n",foldr' mk_conj (mapn 
+    val finite_lemma1b = pg [] (mk_trp (mk_all("n",foldr1 mk_conj (mapn 
         (fn n => fn ((dn,args),_) => mk_constrainall(x_name n,Type(dn,args),
          mk_disj(dc_take dn $ Bound 1 ` Bound 0 === UU,
                  dc_take dn $ Bound 1 ` Bound 0 === Bound 0))) 1 eqs)))) ([
@@ -571,7 +571,7 @@ local
                 Library.foldr (fn (x,t)=> mk_all(x,mk_all(x^"'",t))) (xs,
                   Library.foldr mk_imp (mapn (fn n => K(proj (%:"R") eqs n $ 
                                       bnd_arg n 0 $ bnd_arg n 1)) 0 dnames,
-                    foldr' mk_conj (mapn (fn n => fn dn => 
+                    foldr1 mk_conj (mapn (fn n => fn dn => 
                                 (dc_take dn $ %:"n" `bnd_arg n 0 === 
                                 (dc_take dn $ %:"n" `bnd_arg n 1)))0 dnames))))))
                              ([ rtac impI 1,
@@ -590,7 +590,7 @@ in
 val coind = pg [] (mk_trp(%%:(comp_dname^"_bisim") $ %:"R") ===>
                 Library.foldr (op ===>) (mapn (fn n => fn x => 
                   mk_trp(proj (%:"R") eqs n $ %:x $ %:(x^"'"))) 0 xs,
-                  mk_trp(foldr' mk_conj (map (fn x => %:x === %:(x^"'")) xs)))) ([
+                  mk_trp(foldr1 mk_conj (map (fn x => %:x === %:(x^"'")) xs)))) ([
                                 TRY(safe_tac HOL_cs)] @
                                 List.concat(map (fn take_lemma => [
                                   rtac take_lemma 1,

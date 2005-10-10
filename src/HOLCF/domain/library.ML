@@ -15,7 +15,6 @@ fun foldr'' f (l,f2) = let fun itr []  = raise Fail "foldr''"
 			     | itr [a] = f2 a
 			     | itr (a::l) = f(a, itr l)
 in  itr l  end;
-fun foldr' f l = foldr'' f (l,I);
 fun map_cumulr f start xs = foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
 						  (y::ys,res2)) ([],start) xs;
 
@@ -193,7 +192,7 @@ fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
 fun cproj x      = prj (fn S => K(%%:cfstN`S)) (fn S => K(%%:csndN`S)) x;
 fun prj' _  _  x (   _::[]) _ = x
-|   prj' f1 _  x (_::   ys) 0 = f1 x (foldr' HOLogic.mk_prodT ys)
+|   prj' f1 _  x (_::   ys) 0 = f1 x (foldr1 HOLogic.mk_prodT ys)
 |   prj' f1 f2 x (y::   ys) j = prj' f1 f2 (f2 x y) ys (j-1);
 fun cproj' T eqs = prj'
 	(fn S => fn t => Const(cfstN, HOLogic.mk_prodT(dummyT,t)->>dummyT)`S)
@@ -242,5 +241,5 @@ fun when_body cons funarg = let
 			) end;
 in (if length cons = 1 andalso length(snd(hd cons)) <= 1
     then fn t => %%:strictifyN`t else I)
-     (foldr' (fn (x,y)=> %%:sscaseN`x`y) (mapn one_fun 1 cons)) end;
+     (foldr1 (fn (x,y)=> %%:sscaseN`x`y) (mapn one_fun 1 cons)) end;
 end; (* struct *)
