@@ -33,6 +33,25 @@ locale iso =
 lemma (in iso) swap: "iso rep abs"
 by (rule iso.intro [OF rep_iso abs_iso])
 
+lemma (in iso) abs_less: "(abs\<cdot>x \<sqsubseteq> abs\<cdot>y) = (x \<sqsubseteq> y)"
+proof
+  assume "abs\<cdot>x \<sqsubseteq> abs\<cdot>y"
+  hence "rep\<cdot>(abs\<cdot>x) \<sqsubseteq> rep\<cdot>(abs\<cdot>y)" by (rule monofun_cfun_arg)
+  thus "x \<sqsubseteq> y" by simp
+next
+  assume "x \<sqsubseteq> y"
+  thus "abs\<cdot>x \<sqsubseteq> abs\<cdot>y" by (rule monofun_cfun_arg)
+qed
+
+lemma (in iso) rep_less: "(rep\<cdot>x \<sqsubseteq> rep\<cdot>y) = (x \<sqsubseteq> y)"
+by (rule iso.abs_less [OF swap])
+
+lemma (in iso) abs_eq: "(abs\<cdot>x = abs\<cdot>y) = (x = y)"
+by (simp add: po_eq_conv abs_less)
+
+lemma (in iso) rep_eq: "(rep\<cdot>x = rep\<cdot>y) = (x = y)"
+by (rule iso.abs_eq [OF swap])
+
 lemma (in iso) abs_strict: "abs\<cdot>\<bottom> = \<bottom>"
 proof -
   have "\<bottom> \<sqsubseteq> rep\<cdot>\<bottom>" ..
@@ -44,13 +63,12 @@ qed
 lemma (in iso) rep_strict: "rep\<cdot>\<bottom> = \<bottom>"
 by (rule iso.abs_strict [OF swap])
 
-lemma (in iso) abs_defin': "abs\<cdot>z = \<bottom> \<Longrightarrow> z = \<bottom>"
+lemma (in iso) abs_defin': "abs\<cdot>x = \<bottom> \<Longrightarrow> x = \<bottom>"
 proof -
-  assume A: "abs\<cdot>z = \<bottom>"
-  have "z = rep\<cdot>(abs\<cdot>z)" by simp
-  also have "\<dots> = rep\<cdot>\<bottom>" by (simp only: A)
+  have "x = rep\<cdot>(abs\<cdot>x)" by simp
+  also assume "abs\<cdot>x = \<bottom>"
   also note rep_strict
-  finally show "z = \<bottom>" .
+  finally show "x = \<bottom>" .
 qed
 
 lemma (in iso) rep_defin': "rep\<cdot>z = \<bottom> \<Longrightarrow> z = \<bottom>"
@@ -60,7 +78,13 @@ lemma (in iso) abs_defined: "z \<noteq> \<bottom> \<Longrightarrow> abs\<cdot>z 
 by (erule contrapos_nn, erule abs_defin')
 
 lemma (in iso) rep_defined: "z \<noteq> \<bottom> \<Longrightarrow> rep\<cdot>z \<noteq> \<bottom>"
-by (erule contrapos_nn, erule rep_defin')
+by (rule iso.abs_defined [OF iso.swap])
+
+lemma (in iso) abs_defined_iff: "(abs\<cdot>x = \<bottom>) = (x = \<bottom>)"
+by (auto elim: abs_defin' intro: abs_strict)
+
+lemma (in iso) rep_defined_iff: "(rep\<cdot>x = \<bottom>) = (x = \<bottom>)"
+by (rule iso.abs_defined_iff [OF iso.swap])
 
 lemma (in iso) iso_swap: "(x = abs\<cdot>y) = (rep\<cdot>x = y)"
 proof
@@ -127,8 +151,8 @@ lemma ex_ssum_defined_iff:
    apply (rule disjI1, fast)
   apply (rule disjI2, fast)
  apply (erule disjE)
-  apply (force intro: sinl_defined)
- apply (force intro: sinr_defined)
+  apply force
+ apply force
 done
 
 lemma exh_start: "p = \<bottom> \<or> (\<exists>x. p = x \<and> x \<noteq> \<bottom>)"
