@@ -215,7 +215,7 @@ text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
 
 lemma mono2mono_MF1L_rev: "\<forall>y. monofun (\<lambda>x. f x y) \<Longrightarrow> monofun f"
 apply (rule monofunI)
-apply (rule less_fun [THEN iffD2])
+apply (rule less_fun_ext)
 apply (blast dest: monofunE)
 done
 

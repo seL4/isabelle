@@ -5,7 +5,7 @@
 Goalw [Ifix_def] "Ifix F= lub (range (%i.%G. iterate i G UU)) F";
 by (stac thelub_fun 1);
 by (rtac refl 2);
-by (blast_tac (claset() addIs [ch2ch_fun, chainI, less_fun RS iffD2,
+by (blast_tac (claset() addIs [ch2ch_fun, chainI, expand_fun_less RS iffD2,
                                chain_iterate RS chainE]) 1); 
 qed "loeckx_sieber";
 

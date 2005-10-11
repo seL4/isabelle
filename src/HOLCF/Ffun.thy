@@ -42,21 +42,11 @@ by intro_classes
 
 text {* make the symbol @{text "<<"} accessible for type fun *}
 
-lemma less_fun: "(f \<sqsubseteq> g) = (\<forall>x. f x \<sqsubseteq> g x)"
+lemma expand_fun_less: "(f \<sqsubseteq> g) = (\<forall>x. f x \<sqsubseteq> g x)"
 by (simp add: less_fun_def)
 
 lemma less_fun_ext: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
 by (simp add: less_fun_def)
-
-subsection {* Type @{typ "'a::type => 'b::pcpo"} is pointed *}
-
-lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
-by (simp add: less_fun_def)
-
-lemma least_fun: "\<exists>x::'a \<Rightarrow> 'b::pcpo. \<forall>y. x \<sqsubseteq> y"
-apply (rule_tac x = "\<lambda>x. \<bottom>" in exI)
-apply (rule minimal_fun [THEN allI])
-done
 
 subsection {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
 
@@ -103,11 +93,21 @@ by (rule exI, erule lub_fun)
 instance fun  :: (type, cpo) cpo
 by intro_classes (rule cpo_fun)
 
+subsection {* Type @{typ "'a::type => 'b::pcpo"} is pointed *}
+
+lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
+by (simp add: less_fun_def)
+
+lemma least_fun: "\<exists>x::'a \<Rightarrow> 'b::pcpo. \<forall>y. x \<sqsubseteq> y"
+apply (rule_tac x = "\<lambda>x. \<bottom>" in exI)
+apply (rule minimal_fun [THEN allI])
+done
+
 instance fun  :: (type, pcpo) pcpo
 by intro_classes (rule least_fun)
 
 text {* for compatibility with old HOLCF-Version *}
-lemma inst_fun_pcpo: "UU = (%x. UU)"
+lemma inst_fun_pcpo: "\<bottom> = (\<lambda>x. \<bottom>)"
 by (rule minimal_fun [THEN UU_I, symmetric])
 
 text {* function application is strict in the left argument *}
