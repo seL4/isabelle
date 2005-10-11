@@ -23,12 +23,12 @@ LOG = $(OUT)/log
 
 ## ZF
 
-ZF: FOL $(OUT)/ZF
+ZF: FOL $(OUT)/ZF$(ML_SUFFIX)
 
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy \
+$(OUT)/ZF$(ML_SUFFIX): $(OUT)/FOL$(ML_SUFFIX) AC.thy Arith.thy \
   ArithSimp.thy Bool.thy Cardinal.thy		\
   CardinalArith.thy Cardinal_AC.thy \
   Datatype.ML Datatype.thy Epsilon.thy Finite.thy	\
@@ -54,7 +54,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy \
 
 ZF-AC: ZF $(LOG)/ZF-AC.gz
 
-$(LOG)/ZF-AC.gz: $(OUT)/ZF \
+$(LOG)/ZF-AC.gz: $(OUT)/ZF$(ML_SUFFIX) \
   AC/ROOT.ML  AC/AC15_WO6.thy AC/AC16_WO4.thy \
   AC/AC16_lemmas.thy AC/AC17_AC1.thy AC/AC18_AC19.thy AC/AC7_AC9.thy \
   AC/AC_Equiv.thy AC/Cardinal_aux.thy \
@@ -67,7 +67,7 @@ $(LOG)/ZF-AC.gz: $(OUT)/ZF \
 
 ZF-Coind: ZF $(LOG)/ZF-Coind.gz
 
-$(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
+$(LOG)/ZF-Coind.gz: $(OUT)/ZF$(ML_SUFFIX) Coind/Dynamic.thy \
   Coind/ECR.thy Coind/Language.thy Coind/Map.thy Coind/ROOT.ML \
   Coind/Static.thy Coind/Types.thy Coind/Values.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Coind
@@ -77,7 +77,7 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
 
 ZF-Constructible: ZF $(LOG)/ZF-Constructible.gz
 
-$(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
+$(LOG)/ZF-Constructible.gz: $(OUT)/ZF$(ML_SUFFIX)  Constructible/ROOT.ML \
   Constructible/Datatype_absolute.thy Constructible/DPow_absolute.thy\
   Constructible/Formula.thy Constructible/Internalize.thy \
   Constructible/AC_in_L.thy Constructible/Relative.thy \
@@ -95,7 +95,7 @@ $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
 
 ZF-IMP: ZF $(LOG)/ZF-IMP.gz
 
-$(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy \
+$(LOG)/ZF-IMP.gz: $(OUT)/ZF$(ML_SUFFIX) IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy \
   IMP/ROOT.ML IMP/document/root.bib IMP/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/ZF IMP
 
@@ -104,7 +104,7 @@ $(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy \
 
 ZF-Resid: ZF $(LOG)/ZF-Resid.gz
 
-$(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML \
+$(LOG)/ZF-Resid.gz: $(OUT)/ZF$(ML_SUFFIX) Resid/ROOT.ML \
   Resid/Confluence.thy  Resid/Redex.thy \
   Resid/Reduction.thy Resid/Residuals.thy Resid/Substitution.thy 
 	@$(ISATOOL) usedir $(OUT)/ZF Resid
@@ -114,7 +114,7 @@ $(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML \
 
 ZF-UNITY: ZF $(LOG)/ZF-UNITY.gz
 
-$(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
+$(LOG)/ZF-UNITY.gz: $(OUT)/ZF$(ML_SUFFIX) UNITY/ROOT.ML \
   UNITY/Comp.thy UNITY/Constrains.thy UNITY/FP.thy\
   UNITY/GenPrefix.thy UNITY/Guar.thy UNITY/Mutex.thy UNITY/State.thy \
   UNITY/SubstAx.thy UNITY/UNITY.thy UNITY/Union.thy \
@@ -129,7 +129,7 @@ $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
 
 ZF-Induct: ZF $(LOG)/ZF-Induct.gz
 
-$(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.thy \
+$(LOG)/ZF-Induct.gz: $(OUT)/ZF$(ML_SUFFIX)  Induct/ROOT.ML Induct/Acc.thy \
   Induct/Binary_Trees.thy Induct/Brouwer.thy Induct/Comb.thy \
   Induct/Datatypes.thy Induct/FoldSet.thy \
   Induct/ListN.thy Induct/Multiset.thy Induct/Mutil.thy \
@@ -142,7 +142,7 @@ $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.thy \
 
 ZF-ex: ZF $(LOG)/ZF-ex.gz
 
-$(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
+$(LOG)/ZF-ex.gz: $(OUT)/ZF$(ML_SUFFIX) ex/ROOT.ML \
   ex/BinEx.thy ex/CoUnit.thy ex/Commutation.thy ex/Group.thy\
   ex/Limit.thy ex/LList.thy ex/Primes.thy \
   ex/NatSum.thy ex/Ramsey.thy ex/Ring.thy ex/misc.thy
@@ -152,7 +152,7 @@ $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
 ## clean
 
 clean:
-	@rm -f $(OUT)/ZF $(LOG)/ZF.gz $(LOG)/ZF-AC.gz $(LOG)/ZF-Coind.gz \
+	@rm -f $(OUT)/ZF$(ML_SUFFIX) $(LOG)/ZF.gz $(LOG)/ZF-AC.gz $(LOG)/ZF-Coind.gz \
 	  $(LOG)/ZF-Constructible.gz $(LOG)/ZF-ex.gz \
           $(LOG)/ZF-IMP.gz $(LOG)/ZF-Resid.gz \
 	  $(LOG)/ZF-UNITY.gz

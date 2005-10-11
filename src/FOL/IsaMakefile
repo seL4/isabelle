@@ -21,14 +21,14 @@ LOG = $(OUT)/log
 
 ## FOL
 
-FOL: Pure $(OUT)/FOL
+FOL: Pure $(OUT)/FOL$(ML_SUFFIX)
 
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/Pure: Pure
+$(OUT)/Pure$(ML_SUFFIX): Pure
 
-$(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
+$(OUT)/FOL$(ML_SUFFIX): $(OUT)/Pure$(ML_SUFFIX) $(SRC)/Provers/blast.ML				\
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML			\
   $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML			\
   $(SRC)/Provers/ind.ML $(SRC)/Provers/induct_method.ML			\
@@ -44,7 +44,7 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
 
 FOL-ex: FOL $(LOG)/FOL-ex.gz
 
-$(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy \
+$(LOG)/FOL-ex.gz: $(OUT)/FOL$(ML_SUFFIX) ex/First_Order_Logic.thy \
   ex/If.thy ex/IffOracle.thy ex/List.ML ex/List.thy ex/LocaleTest.thy \
   ex/Nat.ML ex/Nat.thy ex/Nat2.ML ex/Nat2.thy ex/Natural_Numbers.thy	\
   ex/Prolog.ML ex/Prolog.thy ex/ROOT.ML ex/Classical.thy ex/document/root.tex\
@@ -55,4 +55,4 @@ $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy \
 ## clean
 
 clean:
-	@rm -f $(OUT)/FOL $(LOG)/FOL.gz $(LOG)/FOL-ex.gz
+	@rm -f $(OUT)/FOL$(ML_SUFFIX) $(LOG)/FOL.gz $(LOG)/FOL-ex.gz
