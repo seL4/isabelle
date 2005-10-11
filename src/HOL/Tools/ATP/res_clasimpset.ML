@@ -103,7 +103,6 @@ signature RES_CLASIMP =
   sig
   val relevant : int ref
   val use_simpset: bool ref
-  val use_nameless: bool ref
   val get_clasimp_lemmas : 
          Proof.context -> term -> 
          (ResClause.clause * thm) Array.array * ResClause.clause list 
@@ -112,7 +111,6 @@ signature RES_CLASIMP =
 structure ResClasimp : RES_CLASIMP =
 struct
 val use_simpset = ref false;   (*Performance is much better without simprules*)
-val use_nameless = ref true;
 
 val relevant = ref 0;  (*Relevance filtering is off by default*)
 
@@ -122,11 +120,14 @@ val plain_string_of_thm =
       (setmp print_mode [] 
 	(Pretty.setmp_margin 999 string_of_thm));
 	
+(*Returns the first substring enclosed in quotation marks, typically omitting 
+  the [.] of meta-level assumptions.*)
+val firstquoted = hd o (String.tokens (fn c => c = #"\""))
+	
 fun fake_thm_name th = 
-    Context.theory_name (theory_of_thm th) ^ "." ^ unenclose (plain_string_of_thm th);
+    Context.theory_name (theory_of_thm th) ^ "." ^ firstquoted (plain_string_of_thm th);
 
-fun put_name_pair ("",th) = if !use_nameless then (fake_thm_name th, th)
-                            else ("HOL.TrueI",TrueI)
+fun put_name_pair ("",th) = (fake_thm_name th, th)
   | put_name_pair (a,th)  = (a,th);
 
 (* outputs a list of (thm,clause) pairs *)
@@ -145,35 +146,27 @@ fun clause_numbering ((clause, theorem), num_of_cls) =
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
 fun get_clasimp_lemmas ctxt goal = 
-    let val claset_rules = 
-              map put_name_pair
-	        (ReduceAxiomsN.relevant_filter (!relevant) goal 
-		  (ResAxioms.claset_rules_of_ctxt ctxt));
-	val claset_cls_thms = #1 (ResAxioms.clausify_rules_pairs claset_rules []);
-
-	val simpset_rules =
-	      ReduceAxiomsN.relevant_filter (!relevant) goal 
-                (ResAxioms.simpset_rules_of_ctxt ctxt);
-	val named_simpset = map put_name_pair simpset_rules
-	val simpset_cls_thms = #1 (ResAxioms.clausify_rules_pairs named_simpset []);
-
-	val cls_thms = if !use_simpset then (claset_cls_thms@simpset_cls_thms) 
-	               else claset_cls_thms;
-	val cls_thms_list = List.concat cls_thms;
-	(*************************************************)
+    let val claset_cls_thms =
+              ResAxioms.clausify_rules_pairs
+		(map put_name_pair
+		  (ReduceAxiomsN.relevant_filter (!relevant) goal 
+		    (ResAxioms.claset_rules_of_ctxt ctxt)))
+	val simpset_cls_thms = 
+	      if !use_simpset then  
+		  ResAxioms.clausify_rules_pairs 
+		    (map put_name_pair 
+		      (ReduceAxiomsN.relevant_filter (!relevant) goal
+		        (ResAxioms.simpset_rules_of_ctxt ctxt))) 
+	      else []
+	val cls_thms_list = List.concat (claset_cls_thms@simpset_cls_thms)
 	(* Identify the set of clauses to be written out *)
-	(*************************************************)
 	val clauses = map #1(cls_thms_list);
 	val cls_nums = map ResClause.num_of_clauses clauses;
         val whole_list = List.concat 
               (map clause_numbering (ListPair.zip (cls_thms_list, cls_nums)));
- 
-        (*********************************************************)
-	(* create array and put clausename, number pairs into it *)
-	(*********************************************************)
-	val clause_arr = Array.fromList whole_list;
-  in
-	(clause_arr, clauses)
+ 	
+  in  (* create array of put clausename, number pairs into it *)
+      (Array.fromList whole_list, clauses)
   end;
 
 
