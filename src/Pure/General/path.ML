@@ -145,17 +145,15 @@ val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
   | (cs, e) => (Path [Basic (implode (Library.take (length cs - 1, cs)))], implode e)));
 
 
-(* evaluate variables *)
+(* expand variables *)
 
-fun eval env (Variable s) = rep (env s)
-  | eval _ x = [x];
+fun eval (Variable s) =
+    (case getenv s of
+      "" => error ("Undefined Isabelle environment variable: " ^ quote s)
+    | path => rep (unpack path))
+  | eval x = [x];
 
-fun evaluate env (Path xs) =
-  Path (norm (List.concat (map (eval env) xs)));
-
-val expand = evaluate (unpack o getenv);
-
-val position = Position.line_name 1 o quote o pack o expand;
-
+val expand = rep #> map eval #> List.concat #> norm #> Path;
+val position = expand #> pack #> quote #> Position.line_name 1;
 
 end;
