@@ -20,8 +20,7 @@ signature RES_AXIOMS =
   val simpset_rules_of_thy : theory -> (string * thm) list
   val claset_rules_of_ctxt: Proof.context -> (string * thm) list
   val simpset_rules_of_ctxt : Proof.context -> (string * thm) list
-  val clausify_rules_pairs : 
-        (string*thm) list -> thm list -> (ResClause.clause*thm) list list * thm list
+  val clausify_rules_pairs : (string*thm) list -> (ResClause.clause*thm) list list
   val clause_setup : (theory -> theory) list
   val meson_method_setup : (theory -> theory) list
   end;
@@ -174,7 +173,7 @@ fun is_taut th =
 (* remove tautologous clauses *)
 val rm_redundant_cls = List.filter (not o is_taut);
 
-(* transform an Isabelle thm into CNF *)
+(* transform an Isabelle theorem into CNF *)
 fun cnf_axiom_aux th =
     map zero_var_indexes
         (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
@@ -356,9 +355,9 @@ fun rm_Eps_cls epss th = rm_Eps_cls_aux epss (prop_of th);
 
 (* replace the epsilon terms in a formula by skolem terms. *)
 fun rm_Eps _ [] = []
-  | rm_Eps epss (th::thms) = 
+  | rm_Eps epss (th::ths) = 
       let val (th',epss') = rm_Eps_cls epss th
-      in th' :: (rm_Eps epss' thms) end;
+      in th' :: (rm_Eps epss' ths) end;
 
 
 
@@ -406,8 +405,8 @@ fun simpset_rules_of_ctxt ctxt = rules_of_simpset (local_simpset_of ctxt);
 
 (* classical rules *)
 fun cnf_rules [] err_list = ([],err_list)
-  | cnf_rules ((name,th) :: thms) err_list = 
-      let val (ts,es) = cnf_rules thms err_list
+  | cnf_rules ((name,th) :: ths) err_list = 
+      let val (ts,es) = cnf_rules ths err_list
       in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  
 
 
@@ -416,9 +415,9 @@ fun cnf_rules [] err_list = ([],err_list)
 fun addclause (c,th) l =
   if ResClause.isTaut c then l else (c,th) :: l;
 
-(* outputs a list of (clause,thm) pairs *)
-fun clausify_axiom_pairs (thm_name,thm) =
-    let val isa_clauses = cnf_axiom (thm_name,thm) 
+(* outputs a list of (clause,theorem) pairs *)
+fun clausify_axiom_pairs (thm_name,th) =
+    let val isa_clauses = cnf_axiom (thm_name,th) 
         val isa_clauses' = rm_Eps [] isa_clauses
         val clauses_n = length isa_clauses
 	fun make_axiom_clauses _ [] []= []
@@ -429,20 +428,18 @@ fun clausify_axiom_pairs (thm_name,thm) =
 	make_axiom_clauses 0 isa_clauses' isa_clauses		
     end
 
-fun clausify_rules_pairs [] err_list = ([],err_list)
-  | clausify_rules_pairs ((name,thm)::thms) err_list =
-      let val (ts,es) = clausify_rules_pairs thms err_list
-      in
-	  ((clausify_axiom_pairs (name,thm))::ts, es) 
-	  handle THM (msg,_,_) =>  
-		  (debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
-		   (ts, (thm::es)))
-             |  ResClause.CLAUSE (msg,t) => 
-                  (debug ("Cannot clausify " ^ name ^ ": " ^ msg ^
-                          ": " ^ TermLib.string_of_term t); 
-		   (ts, (thm::es)))
+fun clausify_rules_pairs_aux result [] = result
+  | clausify_rules_pairs_aux result ((name,th)::ths) =
+      clausify_rules_pairs_aux (clausify_axiom_pairs (name,th) :: result) ths
+      handle THM (msg,_,_) =>  
+	      (debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
+	       clausify_rules_pairs_aux result ths)
+	 |  ResClause.CLAUSE (msg,t) => 
+	      (debug ("Cannot clausify " ^ name ^ ": " ^ msg ^
+		      ": " ^ TermLib.string_of_term t); 
+	       clausify_rules_pairs_aux result ths)
 
-      end;
+val clausify_rules_pairs = clausify_rules_pairs_aux []
 
 
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
