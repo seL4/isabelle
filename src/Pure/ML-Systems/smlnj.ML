@@ -206,6 +206,11 @@ fun execute command =
 val system = OS.Process.system: string -> int;
 
 
+(*Convert a process ID to a decimal string (chiefly for tracing)*)
+fun string_of_pid pid = 
+    Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
+
+
 (* getenv *)
 
 fun getenv var =

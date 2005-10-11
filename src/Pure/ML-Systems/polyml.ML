@@ -178,6 +178,11 @@ fun system cmd =
   if OS.Process.isSuccess (OS.Process.system cmd) then 0 else 1;
 
 
+(*Convert a process ID to a decimal string (chiefly for tracing)*)
+fun string_of_pid pid = 
+    Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
+
+
 (* getenv *)
 
 fun getenv var =

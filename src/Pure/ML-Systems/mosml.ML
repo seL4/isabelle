@@ -156,6 +156,9 @@ fun system cmd =
   if Process.system cmd = Process.success then 0 else 1;
 
 
+val string_of_pid = Int.toString;
+
+
 (* getenv *)
 
 fun getenv var =

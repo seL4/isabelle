@@ -331,6 +331,8 @@ fun system cmdline =
   let val (rc, result) = execute_result cmdline
   in TextIO.output (TextIO.stdOut, result); TextIO.flushOut TextIO.stdOut; rc end;
 
+val string_of_pid: int -> string = makestring;
+
 fun getenv var = (case OS.translate var of NONE => "" | SOME s => s);
 
 structure OS =
