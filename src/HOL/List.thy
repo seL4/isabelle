@@ -637,8 +637,8 @@ by (induct xs) auto
 lemma set_append [simp]: "set (xs @ ys) = (set xs \<union> set ys)"
 by (induct xs) auto
 
-lemma hd_in_set: "l = x#xs \<Longrightarrow> x\<in>set l"
-by (case_tac l, auto)
+lemma hd_in_set[simp]: "xs \<noteq> [] \<Longrightarrow> hd xs : set xs"
+by(cases xs) auto
 
 lemma set_subset_Cons: "set xs \<subseteq> set (x # xs)"
 by auto
