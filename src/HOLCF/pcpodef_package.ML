@@ -29,6 +29,7 @@ val typedef_cpo = thm "typedef_cpo";
 val typedef_pcpo = thm "typedef_pcpo";
 val typedef_lub = thm "typedef_lub";
 val typedef_thelub = thm "typedef_thelub";
+val typedef_compact = thm "typedef_compact";
 val cont_Rep = thm "typedef_cont_Rep";
 val cont_Abs = thm "typedef_cont_Abs";
 val Rep_strict = thm "typedef_Rep_strict";
@@ -119,8 +120,9 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
             ([(("adm_" ^ name, admissible'), []),
               (("cont_" ^ Rep_name, cont_Rep OF cpo_thms), []),
               (("cont_" ^ Abs_name, cont_Abs OF cpo_thms), []),
-              (("lub_"    ^ name, typedef_lub    OF cpo_thms), []),
-              (("thelub_" ^ name, typedef_thelub OF cpo_thms), [])])
+              (("lub_"     ^ name, typedef_lub     OF cpo_thms), []),
+              (("thelub_"  ^ name, typedef_thelub  OF cpo_thms), []),
+              (("compact_" ^ name, typedef_compact OF cpo_thms), [])])
           |>> Theory.parent_path;
       in (theory', defs) end;
 

@@ -156,6 +156,22 @@ theorem typedef_cont_Abs:
  apply (erule cont_f [THEN contE])
 done
 
+subsection {* Proving subtype elements are compact *}
+
+theorem typedef_compact:
+  fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
+  assumes type: "type_definition Rep Abs A"
+    and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+    and adm: "adm (\<lambda>x. x \<in> A)"
+  shows "compact (Rep k) \<Longrightarrow> compact k"
+proof (unfold compact_def)
+  have cont_Rep: "cont Rep"
+    by (rule typedef_cont_Rep [OF type less adm])
+  assume "adm (\<lambda>x. \<not> Rep k \<sqsubseteq> x)"
+  with cont_Rep have "adm (\<lambda>x. \<not> Rep k \<sqsubseteq> Rep x)" by (rule adm_subst)
+  thus "adm (\<lambda>x. \<not> k \<sqsubseteq> x)" by (unfold less)
+qed
+
 subsection {* Proving a subtype is pointed *}
 
 text {*
