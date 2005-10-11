@@ -48,6 +48,12 @@ by (unfold sinl_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
 lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = <\<bottom>, b>"
 by (unfold sinr_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
 
+lemma compact_sinl [simp]: "compact x \<Longrightarrow> compact (sinl\<cdot>x)"
+by (rule compact_Ssum, simp add: Rep_Ssum_sinl)
+
+lemma compact_sinr [simp]: "compact x \<Longrightarrow> compact (sinr\<cdot>x)"
+by (rule compact_Ssum, simp add: Rep_Ssum_sinr)
+
 lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
 by (simp add: sinl_Abs_Ssum Abs_Ssum_strict cpair_strict)
 
@@ -67,14 +73,10 @@ lemma sinr_inject: "sinr\<cdot>x = sinr\<cdot>y \<Longrightarrow> x = y"
 by (rule sinr_eq [THEN iffD1])
 
 lemma sinl_defined_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
-apply (rule sinl_strict [THEN subst])
-apply (rule sinl_eq)
-done
+by (cut_tac sinl_eq [of "x" "\<bottom>"], simp)
 
 lemma sinr_defined_iff [simp]: "(sinr\<cdot>x = \<bottom>) = (x = \<bottom>)"
-apply (rule sinr_strict [THEN subst])
-apply (rule sinr_eq)
-done
+by (cut_tac sinr_eq [of "x" "\<bottom>"], simp)
 
 lemma sinl_defined [intro!]: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
 by simp

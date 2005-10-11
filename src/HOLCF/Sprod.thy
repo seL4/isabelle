@@ -110,6 +110,15 @@ by (rule spair_eq [THEN iffD1])
 lemma inst_sprod_pcpo2: "UU = (:UU,UU:)"
 by simp
 
+lemma Rep_Sprod_spair:
+  "Rep_Sprod (:a, b:) = <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
+apply (unfold spair_def)
+apply (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
+done
+
+lemma compact_spair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (:x, y:)"
+by (rule compact_Sprod, simp add: Rep_Sprod_spair strictify_conv_if)
+
 subsection {* Properties of @{term sfst} and @{term ssnd} *}
 
 lemma sfst_strict [simp]: "sfst\<cdot>\<bottom> = \<bottom>"
@@ -117,12 +126,6 @@ by (simp add: sfst_def cont_Rep_Sprod Rep_Sprod_strict)
 
 lemma ssnd_strict [simp]: "ssnd\<cdot>\<bottom> = \<bottom>"
 by (simp add: ssnd_def cont_Rep_Sprod Rep_Sprod_strict)
-
-lemma Rep_Sprod_spair:
-  "Rep_Sprod (:a, b:) = <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
-apply (unfold spair_def)
-apply (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
-done
 
 lemma sfst_spair [simp]: "y \<noteq> \<bottom> \<Longrightarrow> sfst\<cdot>(:x, y:) = x"
 by (simp add: sfst_def cont_Rep_Sprod Rep_Sprod_spair)
