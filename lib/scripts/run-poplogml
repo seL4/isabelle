@@ -67,6 +67,7 @@ procedure(str) with_props use_string;
         lconstant UseExn = exception("Use");
 
         define dlocal pop_exception_handler(n, msg, idstring, severity);
+                [n ^n msg ^msg  idstring ^idstring severity ^severity] ==>
                 returnunless(severity == `E` or severity == `R`)(false);
                 erasenum(n);
                 raise(UseExn(str));
@@ -122,7 +123,9 @@ RC="$?"
 
 rm -f "$INIT"
 
-[ -n "$OUTFILE" ] && check_heap_file "$OUTFILE" && \
+if [ -n "$OUTFILE" ] && check_heap_file "$OUTFILE"; then
   [ -n "$NOWRITE" ] && chmod -w "$OUTFILE"
+  rm -f "$OUTFILE-"
+fi
 
 exit "$RC"
