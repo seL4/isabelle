@@ -86,6 +86,23 @@ by (auto elim: abs_defin' intro: abs_strict)
 lemma (in iso) rep_defined_iff: "(rep\<cdot>x = \<bottom>) = (x = \<bottom>)"
 by (rule iso.abs_defined_iff [OF iso.swap])
 
+lemma (in iso) compact_abs_rev: "compact (abs\<cdot>x) \<Longrightarrow> compact x"
+proof (unfold compact_def)
+  assume "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> y)"
+  with cont_Rep_CFun2
+  have "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> abs\<cdot>y)" by (rule adm_subst)
+  thus "adm (\<lambda>y. \<not> x \<sqsubseteq> y)" using abs_less by simp
+qed
+
+lemma (in iso) compact_rep_rev: "compact (rep\<cdot>x) \<Longrightarrow> compact x"
+by (rule iso.compact_abs_rev [OF iso.swap])
+
+lemma (in iso) compact_abs: "compact x \<Longrightarrow> compact (abs\<cdot>x)"
+by (rule compact_rep_rev, simp)
+
+lemma (in iso) compact_rep: "compact x \<Longrightarrow> compact (rep\<cdot>x)"
+by (rule iso.compact_abs [OF iso.swap])
+
 lemma (in iso) iso_swap: "(x = abs\<cdot>y) = (rep\<cdot>x = y)"
 proof
   assume "x = abs\<cdot>y"
