@@ -69,7 +69,7 @@ struct
   string, may be of the following form:
 
     (1) ASCII symbols: a
-    (2) printable symbols: \<ident>
+    (2) regular symbols: \<ident>
     (3) control symbols: \<^ident>
     (4) raw control symbols: \<^raw:...>, where "..." may be any printable
         character excluding ">", or \<^raw000>
@@ -138,7 +138,8 @@ val is_ascii_blank =
 
 (* encode_raw *)
 
-fun raw_chr c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">";
+fun raw_chr c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">"
+  orelse ord c >= 128;
 
 fun encode_raw str =
   let
