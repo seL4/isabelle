@@ -182,31 +182,41 @@ done
 
 subsection {* Continuous versions of constants *}
 
-consts
-  cpair  :: "'a \<rightarrow> 'b \<rightarrow> ('a * 'b)" (* continuous pairing *)
-  cfst   :: "('a * 'b) \<rightarrow> 'a"
-  csnd   :: "('a * 'b) \<rightarrow> 'b"
+constdefs
+  cpair :: "'a \<rightarrow> 'b \<rightarrow> ('a * 'b)" (* continuous pairing *)
+  "cpair \<equiv> (\<Lambda> x y. (x, y))"
+
+  cfst :: "('a * 'b) \<rightarrow> 'a"
+  "cfst \<equiv> (\<Lambda> p. fst p)"
+
+  csnd :: "('a * 'b) \<rightarrow> 'b"
+  "csnd \<equiv> (\<Lambda> p. snd p)"      
+
   csplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a * 'b) \<rightarrow> 'c"
+  "csplit \<equiv> (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
 
 syntax
-  "@ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1<_,/ _>)")
+  "_ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1<_,/ _>)")
+
+syntax (xsymbols)
+  "_ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1\<langle>_,/ _\<rangle>)")
 
 translations
   "<x, y, z>" == "<x, <y, z>>"
   "<x, y>"    == "cpair$x$y"
 
+text {* syntax for @{text "LAM <x,y,z>.e"} *}
+
 syntax
   "_ctuple_pttrn" :: "[pttrn, patterns] => pttrn"  ("<_,/ _>")
+
+syntax (xsymbols)
+  "_ctuple_pttrn" :: "[pttrn, patterns] => pttrn"  ("\<langle>_,/ _\<rangle>")
 
 translations
   "LAM <x,y,zs>. t"       == "csplit$(LAM x <y,zs>. t)"
   "LAM <x,y>. t"          == "csplit$(LAM x y. t)"
 
-defs
-  cpair_def:  "cpair  \<equiv> (\<Lambda> x y. (x, y))"
-  cfst_def:   "cfst   \<equiv> (\<Lambda> p. fst p)"
-  csnd_def:   "csnd   \<equiv> (\<Lambda> p. snd p)"      
-  csplit_def: "csplit \<equiv> (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
 
 subsection {* Convert all lemmas to the continuous versions *}
 
