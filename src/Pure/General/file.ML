@@ -19,6 +19,12 @@ sig
   val tmp_path: Path.T -> Path.T
   val isatool: string -> int
   val system_command: string -> unit
+  eqtype info
+  val info: Path.T -> info option
+  val exists: Path.T -> bool
+  val assert: Path.T -> unit
+  val rm: Path.T -> unit
+  val mkdir: Path.T -> unit
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
@@ -27,11 +33,6 @@ sig
   val eq: Path.T * Path.T -> bool
   val copy: Path.T -> Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
-  eqtype info
-  val info: Path.T -> info option
-  val exists: Path.T -> bool
-  val rm: Path.T -> unit
-  val mkdir: Path.T -> unit
   val use: Path.T -> unit
 end;
 
@@ -92,6 +93,10 @@ fun info path =
   Option.map (Info o Time.toString) (try OS.FileSys.modTime (platform_path path));
 
 val exists = is_some o info;
+
+fun assert path =
+  if exists path then ()
+  else error ("No such file or directory: " ^ quote (Path.pack path));
 
 val rm = OS.FileSys.remove o platform_path;
 
