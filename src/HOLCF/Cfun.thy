@@ -30,21 +30,21 @@ syntax (xsymbols)
 
 syntax
   Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("_$_" [999,1000] 999)
-  "_Lambda" :: "[pttrns, 'a] \<Rightarrow> logic"  ("(3LAM _./ _)" [0, 10] 10)
 
 syntax (xsymbols)
-  "_Lambda"   :: "[pttrns, 'a] \<Rightarrow> logic" ("(3\<Lambda>_./ _)" [0, 10] 10)
   Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>_)" [999,1000] 999)
 
 syntax (HTML output)
   Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>_)" [999,1000] 999)
+
+subsection {* Syntax for continuous lambda abstraction *}
 
 syntax
   "_cabs" :: "[pttrn, 'a] \<Rightarrow> logic"
 translations
   "_cabs x t" == "Abs_CFun (%x. t)"
 
-(* To avoid eta-contraction of body: *)
+text {* To avoid eta-contraction of body: *}
 print_translation {*
 let
   fun cabs_tr' [Abs abs] =
@@ -53,30 +53,38 @@ let
 in [("Abs_CFun", cabs_tr')] end
 *}
 
+text {* syntax for nested abstractions *}
+
+syntax
+  "_Lambda" :: "[pttrns, 'a] \<Rightarrow> logic"  ("(3LAM _./ _)" [0, 10] 10)
+
+syntax (xsymbols)
+  "_Lambda" :: "[pttrns, 'a] \<Rightarrow> logic" ("(3\<Lambda>_./ _)" [0, 10] 10)
+
 parse_ast_translation {*
-(* rewrites (LAM x y z. t) --> (LAM x. LAM y. LAM z. t) *)
+(* rewrites (LAM x y z. t) --> (_cabs x (_cabs y (_cabs z t))) *)
 (* c.f. Syntax.lambda_ast_tr from Syntax/syn_trans.ML *)
 let
   fun Lambda_ast_tr [pats, body] =
         Syntax.fold_ast_p "_cabs" (Syntax.unfold_ast "_pttrns" pats, body)
-    | Lambda_ast_tr asts = raise Syntax.AST ("lambda_ast_tr", asts);
+    | Lambda_ast_tr asts = raise Syntax.AST ("Lambda_ast_tr", asts);
 in [("_Lambda", Lambda_ast_tr)] end
 *}
 
 print_ast_translation {*
-(* rewrites (LAM x. LAM y. LAM z. t) --> (LAM x y z. t) *)
+(* rewrites (_cabs x (_cabs y (_cabs z t))) --> (LAM x y z. t) *)
 (* c.f. Syntax.abs_ast_tr' from Syntax/syn_trans.ML *)
 let
   fun cabs_ast_tr' asts =
     (case Syntax.unfold_ast_p "_cabs"
         (Syntax.Appl (Syntax.Constant "_cabs" :: asts)) of
-      ([], _) => raise Syntax.AST ("abs_ast_tr'", asts)
+      ([], _) => raise Syntax.AST ("cabs_ast_tr'", asts)
     | (xs, body) => Syntax.Appl
         [Syntax.Constant "_Lambda", Syntax.fold_ast "_pttrns" xs, body]);
 in [("_cabs", cabs_ast_tr')] end
 *}
 
-subsection {* Class instances *}
+subsection {* Continuous function space is pointed *}
 
 lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo cont_const)
@@ -90,13 +98,21 @@ lemmas Rep_CFun_strict =
 lemmas Abs_CFun_strict =
   typedef_Abs_strict [OF type_definition_CFun less_CFun_def UU_CFun]
 
-text {* Additional lemma about the isomorphism between
-        @{typ "'a -> 'b"} and @{term CFun} *}
+text {* function application is strict in its first argument *}
+
+lemma Rep_CFun_strict1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
+by (simp add: Rep_CFun_strict)
+
+text {* for compatibility with old HOLCF-Version *}
+lemma inst_cfun_pcpo: "\<bottom> = (\<Lambda> x. \<bottom>)"
+by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
+
+subsection {* Basic properties of continuous functions *}
+
+text {* Beta-equality for continuous functions *}
 
 lemma Abs_CFun_inverse2: "cont f \<Longrightarrow> Rep_CFun (Abs_CFun f) = f"
 by (simp add: Abs_CFun_inverse CFun_def)
-
-text {* Beta-equality for continuous functions *}
 
 lemma beta_cfun [simp]: "cont f \<Longrightarrow> (\<Lambda> x. f x)\<cdot>u = f u"
 by (simp add: Abs_CFun_inverse2)
@@ -108,10 +124,21 @@ by (rule Rep_CFun_inverse)
 
 text {* Extensionality for continuous functions *}
 
-lemma ext_cfun: "(\<And>x. f\<cdot>x = g\<cdot>x) \<Longrightarrow> f = g"
-by (simp add: Rep_CFun_inject [symmetric] ext)
+lemma expand_cfun_eq: "(f = g) = (\<forall>x. f\<cdot>x = g\<cdot>x)"
+by (simp add: Rep_CFun_inject [symmetric] expand_fun_eq)
 
-text {* lemmas about application of continuous functions *}
+lemma ext_cfun: "(\<And>x. f\<cdot>x = g\<cdot>x) \<Longrightarrow> f = g"
+by (simp add: expand_cfun_eq)
+
+text {* Extensionality wrt. ordering for continuous functions *}
+
+lemma expand_cfun_less: "f \<sqsubseteq> g = (\<forall>x. f\<cdot>x \<sqsubseteq> g\<cdot>x)" 
+by (simp add: less_CFun_def expand_fun_less)
+
+lemma less_cfun_ext: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
+by (simp add: expand_cfun_less)
+
+text {* Congruence for continuous function application *}
 
 lemma cfun_cong: "\<lbrakk>f = g; x = y\<rbrakk> \<Longrightarrow> f\<cdot>x = g\<cdot>y"
 by simp
@@ -155,15 +182,10 @@ by (rule contlub_Rep_CFun1 [THEN contlubE])
 lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| lub (range F)\<cdot>x"
 by (rule cont_Rep_CFun1 [THEN contE])
 
-text {* Extensionality wrt. @{term "op <<"} in @{typ "'a -> 'b"} *}
-
-lemma less_cfun_ext: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
-by (simp add: less_CFun_def less_fun_def)
-
 text {* monotonicity of application *}
 
 lemma monofun_cfun_fun: "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>x"
-by (simp add: less_CFun_def less_fun_def)
+by (simp add: expand_cfun_less)
 
 lemma monofun_cfun_arg: "x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubseteq> f\<cdot>y"
 by (rule monofun_Rep_CFun2 [THEN monofunE])
@@ -246,19 +268,7 @@ by (simp only: contlub_cfun_fun [symmetric] eta_cfun thelubE)
 lemma thelub_cfun: "chain F \<Longrightarrow> lub (range F) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
 by (rule lub_cfun [THEN thelubI])
 
-subsection {* Miscellaneous *}
-
-text {* Monotonicity of @{term Abs_CFun} *}
-
-lemma semi_monofun_Abs_CFun:
-  "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_CFun f \<sqsubseteq> Abs_CFun g"
-by (simp add: less_CFun_def Abs_CFun_inverse2)
-
-text {* for compatibility with old HOLCF-Version *}
-lemma inst_cfun_pcpo: "\<bottom> = (\<Lambda> x. \<bottom>)"
-by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
-
-subsection {* Continuity of application *}
+subsection {* Continuity simplification procedure *}
 
 text {* cont2cont lemma for @{term Rep_CFun} *}
 
@@ -286,7 +296,7 @@ assumes p2: "!!y. cont(%x. c1 x y)"
 shows "cont(%x. LAM y. c1 x y)"
 apply (rule cont_Abs_CFun)
 apply (simp add: p1 CFun_def)
-apply (simp add: p2 cont2cont_CF1L_rev)
+apply (simp add: p2 cont2cont_lambda)
 done
 
 text {* continuity simplification procedure *}
@@ -300,10 +310,13 @@ setup ContProc.setup;
 (*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)
 (*val cont_tacR = (fn i => (REPEAT (cont_tac i)));*)
 
-text {* function application is strict in its first argument *}
+subsection {* Miscellaneous *}
 
-lemma Rep_CFun_strict1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
-by (simp add: Rep_CFun_strict)
+text {* Monotonicity of @{term Abs_CFun} *}
+
+lemma semi_monofun_Abs_CFun:
+  "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_CFun f \<sqsubseteq> Abs_CFun g"
+by (simp add: less_CFun_def Abs_CFun_inverse2)
 
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
