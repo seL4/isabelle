@@ -55,6 +55,7 @@ sig
 	val trace_sat : bool ref  (* print trace messages *)
 	val sat_tac   : int -> Tactical.tactic
 	val satx_tac  : int -> Tactical.tactic
+	val counter   : int ref  (* number of resolution steps during last proof replay *)
 end
 
 functor SATFunc (structure cnf : CNF) : SAT =
