@@ -211,6 +211,8 @@ val iso_abs_defin'  = thm "iso.abs_defin'";
 val iso_rep_defin'  = thm "iso.rep_defin'";
 val iso_abs_defined = thm "iso.abs_defined";
 val iso_rep_defined = thm "iso.rep_defined";
+val iso_compact_abs = thm "iso.compact_abs";
+val iso_compact_rep = thm "iso.compact_rep";
 val iso_iso_swap    = thm "iso.iso_swap";
 
 val exh_start = thm "exh_start";
