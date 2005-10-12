@@ -2,6 +2,8 @@
 (* legacy ML bindings *)
 
 val beta_sscase = thm "beta_sscase";
+val compact_sinl = thm "compact_sinl";
+val compact_sinr = thm "compact_sinr";
 val cont_Iwhen1 = thm "cont_Iwhen1";
 val cont_Iwhen2 = thm "cont_Iwhen2";
 val cont_Iwhen3 = thm "cont_Iwhen3";

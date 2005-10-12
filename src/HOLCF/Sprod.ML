@@ -1,6 +1,7 @@
 
 (* legacy ML bindings *)
 
+val compact_spair = thm "compact_spair";
 val eq_sprod = thm "eq_sprod";
 val Exh_Sprod2 = thm "Exh_Sprod2"; (* *)
 val inst_sprod_pcpo2 = thm "inst_sprod_pcpo2"; (* *)

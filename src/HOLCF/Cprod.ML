@@ -6,6 +6,7 @@ val cfst_cpair = thm "cfst_cpair";
 val cfst_def = thm "cfst_def";
 val cfst_strict = thm "cfst_strict";
 val CLet_def = thm "CLet_def";
+val compact_cpair = thm "compact_cpair";
 val cont_fst = thm "cont_fst";
 val contlub_fst = thm "contlub_fst";
 val contlub_pair1 = thm "contlub_pair1";

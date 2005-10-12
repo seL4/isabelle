@@ -45,4 +45,7 @@ apply (unfold ONE_def)
 apply simp_all
 done
 
+lemma compact_ONE [simp]: "compact ONE"
+by (rule compact_chfin)
+
 end

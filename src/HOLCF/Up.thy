@@ -122,7 +122,7 @@ apply (rule thelubE [OF _ refl])
 apply (erule (1) up_lemma4)
 done
 
-lemma up_chain_cases:
+lemma up_chain_lemma:
   "chain Y \<Longrightarrow>
    (\<exists>A. chain A \<and> lub (range Y) = Iup (lub (range A)) \<and>
    (\<exists>j. \<forall>i. Y (i + j) = Iup (A i))) \<or> (Y = (\<lambda>i. Ibottom))"
@@ -137,9 +137,9 @@ apply (simp add: up_lemma3)
 done
 
 lemma cpo_up: "chain (Y::nat \<Rightarrow> 'a u) \<Longrightarrow> \<exists>x. range Y <<| x"
-apply (frule up_chain_cases, safe)
+apply (frule up_chain_lemma, safe)
 apply (rule_tac x="Iup (lub (range A))" in exI)
-apply (erule_tac j1="j" in is_lub_range_shift [THEN iffD1])
+apply (erule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
 apply (simp add: is_lub_Iup thelubE)
 apply (rule exI, rule lub_const)
 done
@@ -185,8 +185,8 @@ done
 
 lemma cont_Ifup2: "cont (\<lambda>x. Ifup f x)"
 apply (rule contI)
-apply (frule up_chain_cases, safe)
-apply (rule_tac j1="j" in is_lub_range_shift [THEN iffD1])
+apply (frule up_chain_lemma, safe)
+apply (rule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
 apply (erule monofun_Ifup2 [THEN ch2ch_monofun])
 apply (simp add: cont_cfun_arg)
 apply (simp add: thelub_const lub_const)
@@ -202,7 +202,7 @@ constdefs
   "fup \<equiv> \<Lambda> f p. Ifup f p"
 
 translations
-"case l of up\<cdot>x \<Rightarrow> t" == "fup\<cdot>(LAM x. t)\<cdot>l"
+  "case l of up\<cdot>x \<Rightarrow> t" == "fup\<cdot>(LAM x. t)\<cdot>l"
 
 text {* continuous versions of lemmas for @{typ "('a)u"} *}
 
@@ -218,7 +218,7 @@ by (simp add: up_def cont_Iup)
 lemma up_inject: "up\<cdot>x = up\<cdot>y \<Longrightarrow> x = y"
 by simp
 
-lemma up_defined [simp]: " up\<cdot>x \<noteq> \<bottom>"
+lemma up_defined [simp]: "up\<cdot>x \<noteq> \<bottom>"
 by (simp add: up_def cont_Iup inst_up_pcpo)
 
 lemma not_up_less_UU [simp]: "\<not> up\<cdot>x \<sqsubseteq> \<bottom>"
@@ -232,6 +232,26 @@ apply (case_tac p)
 apply (simp add: inst_up_pcpo)
 apply (simp add: up_def cont_Iup)
 done
+
+lemma up_chain_cases:
+  "chain Y \<Longrightarrow>
+  (\<exists>A. chain A \<and> (\<Squnion>i. Y i) = up\<cdot>(\<Squnion>i. A i) \<and>
+  (\<exists>j. \<forall>i. Y (i + j) = up\<cdot>(A i))) \<or> Y = (\<lambda>i. \<bottom>)"
+by (simp add: inst_up_pcpo up_def cont_Iup up_chain_lemma)
+
+lemma compact_up [simp]: "compact x \<Longrightarrow> compact (up\<cdot>x)"
+apply (unfold compact_def)
+apply (rule admI)
+apply (drule up_chain_cases)
+apply (elim disjE exE conjE)
+apply simp
+apply (erule (1) admD)
+apply (rule allI, drule_tac x="i + j" in spec)
+apply simp
+apply (simp add: thelub_const)
+done
+
+text {* properties of fup *}
 
 lemma fup1 [simp]: "fup\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: fup_def cont_Ifup1 cont_Ifup2 inst_up_pcpo)

@@ -2,6 +2,7 @@
 (* legacy ML bindings *)
 
 val antisym_less_up = thm "antisym_less_up";
+val compact_up = thm "compact_up";
 val cont_Ifup1 = thm "cont_Ifup1";
 val cont_Ifup2 = thm "cont_Ifup2";
 val cont_Iup = thm "cont_Iup";
