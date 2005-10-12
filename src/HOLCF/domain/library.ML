@@ -104,6 +104,7 @@ fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
 val lessN      = "Porder.<<"
 val UU_N       = "Pcpo.UU";
 val admN       = "Adm.adm";
+val compactN   = "Adm.compact";
 val Rep_CFunN  = "Cfun.Rep_CFun";
 val Abs_CFunN  = "Cfun.Abs_CFun";
 val ID_N       = "Cfun.ID";

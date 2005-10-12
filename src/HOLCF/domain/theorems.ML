@@ -217,6 +217,14 @@ val con_defins = map (fn (con,args) => pg []
                           asm_simp_tac (HOLCF_ss addsimps dis_rews) 1] )) cons;
 val con_rews = con_stricts @ con_defins;
 
+val con_compacts =
+  let
+    val rules = [compact_sinl, compact_sinr, compact_spair, compact_up, compact_ONE];
+    fun one_compact (con,args) = pg con_appls
+      (lift (fn x => %%:compactN $ %:(vname x)) (args, mk_trp(%%:compactN $ (con_app con args))))
+      [rtac (iso_locale RS iso_compact_abs) 1, REPEAT (resolve_tac rules 1 ORELSE atac 1)];
+  in map one_compact cons end;
+
 val sel_stricts = let fun one_sel sel = pg axs_sel_def (mk_trp(strict(%%:sel))) [
                                 simp_tac (HOLCF_ss addsimps when_rews) 1];
 in List.concat(map (fn (_,args) => List.mapPartial (fn arg => Option.map one_sel (sel_of arg)) args) cons) end;
@@ -330,6 +338,7 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("exhaust"  , [exhaust] ),
 		("casedist" , [casedist]),
 		("when_rews", when_rews ),
+		("compacts", con_compacts),
 		("con_rews", con_rews),
 		("sel_rews", sel_rews),
 		("dis_rews", dis_rews),
