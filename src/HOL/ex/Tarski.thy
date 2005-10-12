@@ -66,8 +66,8 @@ constdefs
 
   CompleteLattice :: "('a potype) set"
   "CompleteLattice == {cl. cl: PartialOrder &
-                        (\<forall>S. S <= pset cl --> (\<exists>L. isLub S cl L)) &
-                        (\<forall>S. S <= pset cl --> (\<exists>G. isGlb S cl G))}"
+                        (\<forall>S. S \<subseteq> pset cl --> (\<exists>L. isLub S cl L)) &
+                        (\<forall>S. S \<subseteq> pset cl --> (\<exists>G. isGlb S cl G))}"
 
   CLF :: "('a potype * ('a => 'a)) set"
   "CLF == SIGMA cl: CompleteLattice.
@@ -81,14 +81,14 @@ constdefs
   sublattice :: "('a potype * 'a set)set"
   "sublattice ==
       SIGMA cl: CompleteLattice.
-          {S. S <= pset cl &
+          {S. S \<subseteq> pset cl &
            (| pset = S, order = induced S (order cl) |): CompleteLattice }"
 
 syntax
-  "@SL"  :: "['a set, 'a potype] => bool" ("_ <<= _" [51,50]50)
+  "@SL"  :: "['a set, 'a potype] => bool" ("_ <\<subseteq> _" [51,50]50)
 
 translations
-  "S <<= cl" == "S : sublattice `` {cl}"
+  "S <\<subseteq> cl" == "S : sublattice `` {cl}"
 
 constdefs
   dual :: "'a potype => 'a potype"
@@ -117,7 +117,7 @@ locale (open) Tarski = CLF +
     and intY1 :: "'a set"
     and v     :: "'a"
   assumes
-    Y_ss: "Y <= P"
+    Y_ss: "Y \<subseteq> P"
   defines
     intY1_def: "intY1 == interval r (lub Y cl) (Top cl)"
     and v_def: "v == glb {x. ((%x: intY1. f x) x, x): induced intY1 r &
@@ -163,7 +163,7 @@ lemma (in PO) monotoneE:
 by (simp add: monotone_def)
 
 lemma (in PO) po_subset_po:
-     "S <= A ==> (| pset = S, order = induced S r |) \<in> PartialOrder"
+     "S \<subseteq> A ==> (| pset = S, order = induced S r |) \<in> PartialOrder"
 apply (simp (no_asm) add: PartialOrder_def)
 apply auto
 -- {* refl *}
@@ -177,13 +177,13 @@ apply (simp add: trans_def induced_def)
 apply (blast intro: PO_imp_trans [THEN transE])
 done
 
-lemma (in PO) indE: "[| (x, y) \<in> induced S r; S <= A |] ==> (x, y) \<in> r"
+lemma (in PO) indE: "[| (x, y) \<in> induced S r; S \<subseteq> A |] ==> (x, y) \<in> r"
 by (simp add: add: induced_def)
 
 lemma (in PO) indI: "[| (x, y) \<in> r; x \<in> S; y \<in> S |] ==> (x, y) \<in> induced S r"
 by (simp add: add: induced_def)
 
-lemma (in CL) CL_imp_ex_isLub: "S <= A ==> \<exists>L. isLub S cl L"
+lemma (in CL) CL_imp_ex_isLub: "S \<subseteq> A ==> \<exists>L. isLub S cl L"
 apply (insert cl_co)
 apply (simp add: CompleteLattice_def A_def)
 done
@@ -209,8 +209,8 @@ apply (simp add: PartialOrder_def dual_def refl_converse
 done
 
 lemma Rdual:
-     "\<forall>S. (S <= A -->( \<exists>L. isLub S (| pset = A, order = r|) L))
-      ==> \<forall>S. (S <= A --> (\<exists>G. isGlb S (| pset = A, order = r|) G))"
+     "\<forall>S. (S \<subseteq> A -->( \<exists>L. isLub S (| pset = A, order = r|) L))
+      ==> \<forall>S. (S \<subseteq> A --> (\<exists>G. isGlb S (| pset = A, order = r|) G))"
 apply safe
 apply (rule_tac x = "lub {y. y \<in> A & (\<forall>k \<in> S. (y, k) \<in> r)}
                       (|pset = A, order = r|) " in exI)
@@ -226,7 +226,7 @@ by (simp add: lub_def glb_def least_def greatest_def dual_def converse_def)
 lemma glb_dual_lub: "glb S cl = lub S (dual cl)"
 by (simp add: lub_def glb_def least_def greatest_def dual_def converse_def)
 
-lemma CL_subset_PO: "CompleteLattice <= PartialOrder"
+lemma CL_subset_PO: "CompleteLattice \<subseteq> PartialOrder"
 by (simp add: PartialOrder_def CompleteLattice_def, fast)
 
 lemmas CL_imp_PO = CL_subset_PO [THEN subsetD]
@@ -245,8 +245,8 @@ lemma (in CL) CO_trans: "trans r"
 by (rule PO_imp_trans)
 
 lemma CompleteLatticeI:
-     "[| po \<in> PartialOrder; (\<forall>S. S <= pset po --> (\<exists>L. isLub S po L));
-         (\<forall>S. S <= pset po --> (\<exists>G. isGlb S po G))|]
+     "[| po \<in> PartialOrder; (\<forall>S. S \<subseteq> pset po --> (\<exists>L. isLub S po L));
+         (\<forall>S. S \<subseteq> pset po --> (\<exists>G. isGlb S po G))|]
       ==> po \<in> CompleteLattice"
 apply (unfold CompleteLattice_def, blast)
 done
@@ -303,24 +303,24 @@ done
 subsection {* sublattice *}
 
 lemma (in PO) sublattice_imp_CL:
-     "S <<= cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
+     "S <\<subseteq> cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
 by (simp add: sublattice_def CompleteLattice_def A_def r_def)
 
 lemma (in CL) sublatticeI:
-     "[| S <= A; (| pset = S, order = induced S r |) \<in> CompleteLattice |]
-      ==> S <<= cl"
+     "[| S \<subseteq> A; (| pset = S, order = induced S r |) \<in> CompleteLattice |]
+      ==> S <\<subseteq> cl"
 by (simp add: sublattice_def A_def r_def)
 
 
 subsection {* lub *}
 
-lemma (in CL) lub_unique: "[| S <= A; isLub S cl x; isLub S cl L|] ==> x = L"
+lemma (in CL) lub_unique: "[| S \<subseteq> A; isLub S cl x; isLub S cl L|] ==> x = L"
 apply (rule antisymE)
 apply (rule CO_antisym)
 apply (auto simp add: isLub_def r_def)
 done
 
-lemma (in CL) lub_upper: "[|S <= A; x \<in> S|] ==> (x, lub S cl) \<in> r"
+lemma (in CL) lub_upper: "[|S \<subseteq> A; x \<in> S|] ==> (x, lub S cl) \<in> r"
 apply (rule CL_imp_ex_isLub [THEN exE], assumption)
 apply (unfold lub_def least_def)
 apply (rule some_equality [THEN ssubst])
@@ -330,7 +330,7 @@ apply (simp add: isLub_def r_def)
 done
 
 lemma (in CL) lub_least:
-     "[| S <= A; L \<in> A; \<forall>x \<in> S. (x,L) \<in> r |] ==> (lub S cl, L) \<in> r"
+     "[| S \<subseteq> A; L \<in> A; \<forall>x \<in> S. (x,L) \<in> r |] ==> (lub S cl, L) \<in> r"
 apply (rule CL_imp_ex_isLub [THEN exE], assumption)
 apply (unfold lub_def least_def)
 apply (rule_tac s=x in some_equality [THEN ssubst])
@@ -339,7 +339,7 @@ apply (rule_tac s=x in some_equality [THEN ssubst])
 apply (simp add: isLub_def r_def A_def)
 done
 
-lemma (in CL) lub_in_lattice: "S <= A ==> lub S cl \<in> A"
+lemma (in CL) lub_in_lattice: "S \<subseteq> A ==> lub S cl \<in> A"
 apply (rule CL_imp_ex_isLub [THEN exE], assumption)
 apply (unfold lub_def least_def)
 apply (subst some_equality)
@@ -349,7 +349,7 @@ apply (simp add: lub_unique A_def isLub_def)
 done
 
 lemma (in CL) lubI:
-     "[| S <= A; L \<in> A; \<forall>x \<in> S. (x,L) \<in> r;
+     "[| S \<subseteq> A; L \<in> A; \<forall>x \<in> S. (x,L) \<in> r;
          \<forall>z \<in> A. (\<forall>y \<in> S. (y,z) \<in> r) --> (L,z) \<in> r |] ==> L = lub S cl"
 apply (rule lub_unique, assumption)
 apply (simp add: isLub_def A_def r_def)
@@ -360,7 +360,7 @@ apply (rule lub_in_lattice, assumption)
 apply (simp add: lub_upper lub_least)
 done
 
-lemma (in CL) lubIa: "[| S <= A; isLub S cl L |] ==> L = lub S cl"
+lemma (in CL) lubIa: "[| S \<subseteq> A; isLub S cl L |] ==> L = lub S cl"
 by (simp add: lubI isLub_def A_def r_def)
 
 lemma (in CL) isLub_in_lattice: "isLub S cl L ==> L \<in> A"
@@ -381,7 +381,7 @@ by (simp add: isLub_def A_def r_def)
 
 subsection {* glb *}
 
-lemma (in CL) glb_in_lattice: "S <= A ==> glb S cl \<in> A"
+lemma (in CL) glb_in_lattice: "S \<subseteq> A ==> glb S cl \<in> A"
 apply (subst glb_dual_lub)
 apply (simp add: A_def)
 apply (rule dualA_iff [THEN subst])
@@ -391,11 +391,11 @@ apply (rule CL_dualCL)
 apply (simp add: dualA_iff)
 done
 
-lemma (in CL) glb_lower: "[|S <= A; x \<in> S|] ==> (glb S cl, x) \<in> r"
+lemma (in CL) glb_lower: "[|S \<subseteq> A; x \<in> S|] ==> (glb S cl, x) \<in> r"
 apply (subst glb_dual_lub)
 apply (simp add: r_def)
 apply (rule dualr_iff [THEN subst])
-apply (rule Tarski.lub_upper [rule_format])
+apply (rule Tarski.lub_upper)
 apply (rule dualPO)
 apply (rule CL_dualCL)
 apply (simp add: dualA_iff A_def, assumption)
@@ -429,16 +429,15 @@ done
 
 subsection {* fixed points *}
 
-lemma fix_subset: "fix f A <= A"
+lemma fix_subset: "fix f A \<subseteq> A"
 by (simp add: fix_def, fast)
 
 lemma fix_imp_eq: "x \<in> fix f A ==> f x = x"
 by (simp add: fix_def)
 
 lemma fixf_subset:
-     "[| A <= B; x \<in> fix (%y: A. f y) A |] ==> x \<in> fix f B"
-apply (simp add: fix_def, auto)
-done
+     "[| A \<subseteq> B; x \<in> fix (%y: A. f y) A |] ==> x \<in> fix f B"
+by (simp add: fix_def, auto)
 
 
 subsection {* lemmas for Tarski, lub *}
@@ -547,42 +546,39 @@ apply (insert CO_refl)
 apply (simp add: refl_def, blast)
 done
 
-lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b <= A"
+lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
 apply (simp add: interval_def)
 apply (blast intro: rel_imp_elem)
 done
 
 lemma (in CLF) intervalI:
      "[| (a, x) \<in> r; (x, b) \<in> r |] ==> x \<in> interval r a b"
-apply (simp add: interval_def)
-done
+by (simp add: interval_def)
 
 lemma (in CLF) interval_lemma1:
-     "[| S <= interval r a b; x \<in> S |] ==> (a, x) \<in> r"
-apply (unfold interval_def, fast)
-done
+     "[| S \<subseteq> interval r a b; x \<in> S |] ==> (a, x) \<in> r"
+by (unfold interval_def, fast)
 
 lemma (in CLF) interval_lemma2:
-     "[| S <= interval r a b; x \<in> S |] ==> (x, b) \<in> r"
-apply (unfold interval_def, fast)
-done
+     "[| S \<subseteq> interval r a b; x \<in> S |] ==> (x, b) \<in> r"
+by (unfold interval_def, fast)
 
 lemma (in CLF) a_less_lub:
-     "[| S <= A; S \<noteq> {};
+     "[| S \<subseteq> A; S \<noteq> {};
          \<forall>x \<in> S. (a,x) \<in> r; \<forall>y \<in> S. (y, L) \<in> r |] ==> (a,L) \<in> r"
 by (blast intro: transE PO_imp_trans)
 
 lemma (in CLF) glb_less_b:
-     "[| S <= A; S \<noteq> {};
+     "[| S \<subseteq> A; S \<noteq> {};
          \<forall>x \<in> S. (x,b) \<in> r; \<forall>y \<in> S. (G, y) \<in> r |] ==> (G,b) \<in> r"
 by (blast intro: transE PO_imp_trans)
 
 lemma (in CLF) S_intv_cl:
-     "[| a \<in> A; b \<in> A; S <= interval r a b |]==> S <= A"
+     "[| a \<in> A; b \<in> A; S \<subseteq> interval r a b |]==> S \<subseteq> A"
 by (simp add: subset_trans [OF _ interval_subset])
 
 lemma (in CLF) L_in_interval:
-     "[| a \<in> A; b \<in> A; S <= interval r a b;
+     "[| a \<in> A; b \<in> A; S \<subseteq> interval r a b;
          S \<noteq> {}; isLub S cl L; interval r a b \<noteq> {} |] ==> L \<in> interval r a b"
 apply (rule intervalI)
 apply (rule a_less_lub)
@@ -596,7 +592,7 @@ apply (simp add: isLub_least interval_lemma2)
 done
 
 lemma (in CLF) G_in_interval:
-     "[| a \<in> A; b \<in> A; interval r a b \<noteq> {}; S <= interval r a b; isGlb S cl G;
+     "[| a \<in> A; b \<in> A; interval r a b \<noteq> {}; S \<subseteq> interval r a b; isGlb S cl G;
          S \<noteq> {} |] ==> G \<in> interval r a b"
 apply (simp add: interval_dual)
 apply (simp add: Tarski.L_in_interval [of _ f]
@@ -613,7 +609,7 @@ done
 
 lemma (in CLF) intv_CL_lub:
  "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |]
-  ==> \<forall>S. S <= interval r a b -->
+  ==> \<forall>S. S \<subseteq> interval r a b -->
           (\<exists>L. isLub S (| pset = interval r a b,
                           order = induced (interval r a b) r |)  L)"
 apply (intro strip)
@@ -667,7 +663,7 @@ lemmas (in CLF) intv_CL_glb = intv_CL_lub [THEN Rdual]
 
 lemma (in CLF) interval_is_sublattice:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |]
-        ==> interval r a b <<= cl"
+        ==> interval r a b <\<subseteq> cl"
 apply (rule sublatticeI)
 apply (simp add: interval_subset)
 apply (rule CompleteLatticeI)
@@ -689,14 +685,9 @@ by (simp add: Top_def Bot_def least_def greatest_def dualA_iff dualr_iff)
 
 lemma (in CLF) Bot_in_lattice: "Bot cl \<in> A"
 apply (simp add: Bot_def least_def)
-apply (rule someI2)
-apply (fold A_def)
-apply (erule_tac [2] conjunct1)
-apply (rule conjI)
-apply (rule glb_in_lattice)
-apply (rule subset_refl)
-apply (fold r_def)
-apply (simp add: glb_lower)
+apply (rule_tac a="glb A cl" in someI2)
+apply (simp_all add: glb_in_lattice glb_lower 
+                     r_def [symmetric] A_def [symmetric])
 done
 
 lemma (in CLF) Top_in_lattice: "Top cl \<in> A"
@@ -707,12 +698,10 @@ done
 
 lemma (in CLF) Top_prop: "x \<in> A ==> (x, Top cl) \<in> r"
 apply (simp add: Top_def greatest_def)
+apply (rule_tac a="lub A cl" in someI2)
 apply (rule someI2)
-apply (fold r_def  A_def)
-prefer 2 apply fast
-apply (intro conjI ballI)
-apply (rule_tac [2] lub_upper)
-apply (auto simp add: lub_in_lattice)
+apply (simp_all add: lub_in_lattice lub_upper 
+                     r_def [symmetric] A_def [symmetric])
 done
 
 lemma (in CLF) Bot_prop: "x \<in> A ==> (Bot cl, x) \<in> r"
@@ -746,7 +735,7 @@ subsection {* fixed points form a partial order *}
 lemma (in CLF) fixf_po: "(| pset = P, order = induced P r|) \<in> PartialOrder"
 by (simp add: P_def fix_subset po_subset_po)
 
-lemma (in Tarski) Y_subset_A: "Y <= A"
+lemma (in Tarski) Y_subset_A: "Y \<subseteq> A"
 apply (rule subset_trans [OF _ fix_subset])
 apply (rule Y_ss [simplified P_def])
 done
@@ -759,7 +748,7 @@ apply (rule lub_least)
 apply (rule Y_subset_A)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (rule lubY_in_A)
--- {* @{text "Y <= P ==> f x = x"} *}
+-- {* @{text "Y \<subseteq> P ==> f x = x"} *}
 apply (rule ballI)
 apply (rule_tac t = "x" in fix_imp_eq [THEN subst])
 apply (erule Y_ss [simplified P_def, THEN subsetD])
@@ -771,7 +760,7 @@ apply (rule lubY_in_A)
 apply (simp add: lub_upper Y_subset_A)
 done
 
-lemma (in Tarski) intY1_subset: "intY1 <= A"
+lemma (in Tarski) intY1_subset: "intY1 \<subseteq> A"
 apply (unfold intY1_def)
 apply (rule interval_subset)
 apply (rule lubY_in_A)
@@ -887,7 +876,7 @@ done
 
 lemma CompleteLatticeI_simp:
      "[| (| pset = A, order = r |) \<in> PartialOrder;
-         \<forall>S. S <= A --> (\<exists>L. isLub S (| pset = A, order = r |)  L) |]
+         \<forall>S. S \<subseteq> A --> (\<exists>L. isLub S (| pset = A, order = r |)  L) |]
     ==> (| pset = A, order = r |) \<in> CompleteLattice"
 by (simp add: CompleteLatticeI Rdual)
 
