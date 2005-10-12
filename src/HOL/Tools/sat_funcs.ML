@@ -219,28 +219,46 @@ let
 			tracing ("Invoking SAT solver on clauses:\n" ^ space_implode "\n" (map string_of_prop_formula fms))
 		else ()
 	val fm                = PropLogic.all fms
+	(* unit -> Thm.thm *)
+	fun make_quick_and_dirty_thm () = (
+		if !trace_sat then
+			tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
+		else ();
+		(* of course just returning "False" is unsound; what we should return *)
+		(* instead is "False" with all 'non_triv_clauses' as hyps -- but this *)
+		(* might be rather slow, and it makes no real difference as long as   *)
+		(* 'rawsat_thm' is only called from 'rawsat_tac'                      *)
+		SkipProof.make_thm (the_context ()) (HOLogic.Trueprop $ HOLogic.false_const)
+	)
 in
 	case SatSolver.invoke_solver "zchaff_with_proofs" fm of
-	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) =>
-		let
-			val _          = if !trace_sat then
-					tracing ("Proof trace from SAT solver:\n" ^
-						"clauses: [" ^ commas (map (fn (c, cs) =>
-							"(" ^ string_of_int c ^ ", [" ^ commas (map string_of_int cs) ^ "])") (Inttab.dest clause_table)) ^ "]\n" ^
-						"empty clause: " ^ string_of_int empty_id)
-				else ()
-			(* initialize the clause array with the given clauses, *)
-			(* but converted to raw clause format                  *)
-			val max_idx     = valOf (Inttab.max_key clause_table)
-			val clause_arr  = Array.array (max_idx + 1, NONE)
-			val raw_clauses = map (Seq.hd o distinct_subgoals_tac o cnf.clause2raw_thm) non_triv_clauses
-			val _           = fold (fn thm => fn idx => (Array.update (clause_arr, idx, SOME thm); idx+1)) raw_clauses 0
-		in
-			(* replay the proof to derive the empty clause *)
-			replay_proof clause_arr (clause_table, empty_id)
-		end
+	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
+		if !trace_sat then
+			tracing ("Proof trace from SAT solver:\n" ^
+				"clauses: [" ^ commas (map (fn (c, cs) =>
+					"(" ^ string_of_int c ^ ", [" ^ commas (map string_of_int cs) ^ "])") (Inttab.dest clause_table)) ^ "]\n" ^
+				"empty clause: " ^ string_of_int empty_id)
+		else ();
+		if !quick_and_dirty then
+			make_quick_and_dirty_thm ()
+		else
+			let
+				(* initialize the clause array with the given clauses, *)
+				(* but converted to raw clause format                  *)
+				val max_idx     = valOf (Inttab.max_key clause_table)
+				val clause_arr  = Array.array (max_idx + 1, NONE)
+				val raw_clauses = map (Seq.hd o distinct_subgoals_tac o cnf.clause2raw_thm) non_triv_clauses
+				val _           = fold (fn thm => fn idx => (Array.update (clause_arr, idx, SOME thm); idx+1)) raw_clauses 0
+			in
+				(* replay the proof to derive the empty clause *)
+				replay_proof clause_arr (clause_table, empty_id)
+			end)
 	| SatSolver.UNSATISFIABLE NONE =>
-		raise THM ("SAT solver claims the formula to be unsatisfiable, but did not provide a proof", 0, [])
+		if !quick_and_dirty then (
+			warning "SAT solver claims the formula to be unsatisfiable, but did not provide a proof";
+			make_quick_and_dirty_thm ()
+		) else
+			raise THM ("SAT solver claims the formula to be unsatisfiable, but did not provide a proof", 0, [])
 	| SatSolver.SATISFIABLE assignment =>
 		let
 			val msg = "SAT solver found a countermodel:\n"
