@@ -485,8 +485,12 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output (fn _ => f
   Pretty.chunks (Proof.pretty_goals main_goal (Toplevel.proof_of state
       handle Toplevel.UNDEF => error "No proof state")))) src state;
 
-fun output_ml src ctxt txt =
- (Context.use_mltext ("fn _ => (" ^ txt ^ ")") false (SOME (ProofContext.theory_of ctxt));
+fun ml_val txt = "fn _ => (" ^ txt ^ ");";
+fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
+fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
+
+fun output_ml ml src ctxt txt =
+ (Context.use_mltext (ml txt) false (SOME (ProofContext.theory_of ctxt));
   (if ! source then str_of_source src else txt)
   |> (if ! quotes then quote else I)
   |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
@@ -513,6 +517,8 @@ val _ = add_commands
   ("subgoals", output_goals false),
   ("prf", args Attrib.local_thmss (output (pretty_prf false))),
   ("full_prf", args Attrib.local_thmss (output (pretty_prf true))),
-  ("ML", args (Scan.lift Args.name) output_ml)];
+  ("ML", args (Scan.lift Args.name) (output_ml ml_val)),
+  ("ML_type", args (Scan.lift Args.name) (output_ml ml_type)),
+  ("ML_struct", args (Scan.lift Args.name) (output_ml ml_struct))];
 
 end;
