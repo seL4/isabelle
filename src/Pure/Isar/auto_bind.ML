@@ -13,6 +13,7 @@ sig
   val goal: theory -> term list -> (indexname * term option) list
   val cases: theory -> term list -> (string * RuleCases.T option) list
   val facts: theory -> term list -> (indexname * term option) list
+  val no_facts: (indexname * term option) list
 end;
 
 structure AutoBind: AUTO_BIND =
@@ -51,5 +52,6 @@ fun facts _ [] = []
       let val prop = Library.last_elem props
       in [(Syntax.dddot_indexname, get_arg thy prop)] @ statement_binds thy thisN prop end;
 
+val no_facts = [(Syntax.dddot_indexname, NONE), ((thisN, 0), NONE)];
 
 end;
