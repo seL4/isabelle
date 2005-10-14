@@ -304,8 +304,7 @@ fun execute_rc cmdline =
 
 fun squote s = "'" ^ s ^ "'";
 fun remove name = (execute_rc ("/bin/rm -- " ^ squote name); ());
-fun is_dir name = execute_rc ("test -d " ^ squote name) = 0;
-fun is_present name = execute_rc ("test -e " ^ squote name) = 0;
+fun is_dir name = execute_rc ("perl -e \"exit (-d " ^ squote name ^ " ? 0 : 1)\"") = 0;
 
 fun execute_result cmdline =
   let
@@ -316,9 +315,6 @@ fun execute_result cmdline =
     val _ = TextIO.closeIn instream;
     val _ = remove tmp;
   in (rc, result) end;
-
-fun int_of_string s =
-  Int.fromString (if String.isSuffix "\n" s then String.substring (s, 0, size s - 1) else s);
 
 in
 
@@ -347,12 +343,13 @@ struct
     val compare = Int.compare;
 
     fun modTime name =
-      if is_present name then int_of_string (execute ("stat -c '%Y' " ^ squote name))
-      else raise TextIO.Io "OS.FileSys.modTime";
-
+      (case execute ("perl -e '@_ = stat(q:" ^ name ^ ":); print $_[9]'") of
+        "" => raise TextIO.Io "OS.FileSys.modTime"
+      | s => Int.fromString s);
     fun fileId name =
-      if is_present name then int_of_string (execute ("stat -c '%i' " ^ squote name))
-      else raise TextIO.Io "OS.FileSys.fileId";
+      (case execute ("perl -e '@_ = stat(q:" ^ name ^ ":); print $_[1]'") of
+        "" => raise TextIO.Io "OS.FileSys.fileId"
+      | s => Int.fromString s);
   end;
 end;
 
