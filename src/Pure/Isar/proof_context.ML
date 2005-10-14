@@ -33,6 +33,7 @@ sig
   val pretty_proof_of: context -> bool -> thm -> Pretty.T
   val string_of_typ: context -> typ -> string
   val string_of_term: context -> term -> string
+  val string_of_thm: context -> thm -> string
   val default_type: context -> string -> typ option
   val used_types: context -> string list
   val read_typ: context -> string -> typ
@@ -107,30 +108,28 @@ sig
   val put_thms: string * thm list option -> context -> context
   val note_thmss:
     ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
-      context -> context * (bstring * thm list) list
+      context -> (bstring * thm list) list * context
   val note_thmss_i:
     ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
-      context -> context * (bstring * thm list) list
+      context -> (bstring * thm list) list * context
   val export_assume: exporter
   val export_presume: exporter
   val cert_def: context -> term -> string * term
   val export_def: exporter
   val assume: exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
-    -> context -> context * (bstring * thm list) list
+    -> context -> (bstring * thm list) list * context
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> context -> context * (bstring * thm list) list
+    -> context -> (bstring * thm list) list * context
   val add_view: context -> cterm list -> context -> context
   val export_standard_view: cterm list -> context -> context -> thm -> thm
-  val read_vars: context * (string list * string option)
-    -> context * (string list * typ option)
-  val cert_vars: context * (string list * typ option)
-    -> context * (string list * typ option)
-  val read_vars_liberal: context * (string list * string option)
-    -> context * (string list * typ option)
-  val cert_vars_liberal: context * (string list * typ option)
-    -> context * (string list * typ option)
+  val read_vars: (string list * string option) -> context -> (string list * typ option) * context
+  val cert_vars: (string list * typ option) -> context -> (string list * typ option) * context
+  val read_vars_liberal: (string list * string option) -> context ->
+    (string list * typ option) * context
+  val cert_vars_liberal: (string list * typ option) -> context ->
+    (string list * typ option) * context
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
   val add_fixes: (string * typ option * Syntax.mixfix option) list -> context -> context
@@ -139,7 +138,7 @@ sig
   val auto_fix: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_skolem: context -> string list -> term -> term
   val apply_case: RuleCases.T -> context
-    -> context * ((indexname * term option) list * (string * term list) list)
+    -> ((indexname * term option) list * (string * term list) list) * context
   val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T option) list -> context -> context
   val verbose: bool ref
@@ -219,7 +218,7 @@ val prems_of = List.concat o map #2 o #2 o #1 o #asms o rep_context;
 val fixes_of = #2 o #asms o rep_context;
 val fixed_names_of = map #2 o fixes_of;
 
-val binds_of =  #binds o rep_context;
+val binds_of = #binds o rep_context;
 
 val thms_of = #thms o rep_context;
 val fact_index_of = #3 o thms_of;
@@ -339,9 +338,6 @@ fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
 fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
   pretty_classrel ctxt, pretty_arity ctxt);
 
-val string_of_typ = Pretty.string_of oo pretty_typ;
-val string_of_term = Pretty.string_of oo pretty_term;
-
 fun pretty_thm ctxt th =
   Display.pretty_thm_aux (pp ctxt) false true (assms_of ctxt) th;
 
@@ -360,6 +356,10 @@ fun pretty_proof ctxt prf =
 
 fun pretty_proof_of ctxt full th =
   pretty_proof ctxt (ProofSyntax.proof_of full th);
+
+val string_of_typ = Pretty.string_of oo pretty_typ;
+val string_of_term = Pretty.string_of oo pretty_term;
+val string_of_thm = Pretty.string_of oo pretty_thm;
 
 
 
@@ -676,7 +676,7 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
   in
     if null extras then ()
     else warning ("Introduced fixed type variable(s): " ^ commas tfrees ^ " in " ^
-      space_implode " or " frees);
+      space_implode " or " (map (string_of_term ctxt2 o Syntax.free) frees));
     ctxt2
   end;
 
@@ -840,18 +840,18 @@ end;
 
 local
 
-fun prep_bind prep_pats (ctxt, (raw_pats, t)) =
+fun prep_bind prep_pats (raw_pats, t) ctxt =
   let
     val ctxt' = declare_term t ctxt;
     val pats = prep_pats (fastype_of t) ctxt' raw_pats;
     val binds = simult_matches ctxt' (map (rpair t) pats);
-  in (ctxt', binds) end;
+  in (binds, ctxt') end;
 
 fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
   let
     val ts = prep_terms ctxt (map snd raw_binds);
-    val (ctxt', binds) =
-      apsnd List.concat (foldl_map (prep_bind prep_pats) (ctxt, map fst raw_binds ~~ ts));
+    val (binds, ctxt') =
+      apfst List.concat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
     val binds' =
       if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
       else binds;
@@ -877,14 +877,14 @@ local
 
 fun prep_propp schematic prep_props prep_pats (context, args) =
   let
-    fun prep ((ctxt, prop :: props), (_, (raw_pats1, raw_pats2))) =
+    fun prep (_, (raw_pats1, raw_pats2)) (ctxt, prop :: props) =
           let
             val ctxt' = declare_term prop ctxt;
             val pats = prep_pats ctxt' (raw_pats1 @ raw_pats2);    (*simultaneous type inference!*)
-          in ((ctxt', props), (prop, splitAt(length raw_pats1, pats))) end
-      | prep _ = sys_error "prep_propp";
-    val ((context', _), propp) = foldl_map (foldl_map prep)
-        ((context, prep_props schematic context (List.concat (map (map fst) args))), args);
+          in ((prop, splitAt (length raw_pats1, pats)), (ctxt', props)) end
+      | prep _ _ = sys_error "prep_propp";
+    val (propp, (context', _)) = (fold_map o fold_map) prep args
+      (context, prep_props schematic context (List.concat (map (map fst) args)));
   in (context', propp) end;
 
 fun matches ctxt (prop, (pats1, pats2)) =
@@ -1003,17 +1003,14 @@ fun put_thms ("", _) ctxt = ctxt
 
 local
 
-fun gen_note_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
+fun gen_note_thmss get = fold_map (fn ((name, more_attrs), ths_attrs) => fn ctxt =>
   let
     fun app (th, attrs) (ct, ths) =
       let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
     val thms = List.concat (rev rev_thms);
-  in (ctxt' |> put_thms (name, SOME thms), (name, thms)) end;
-
-fun gen_note_thmss get args ctxt =
-  foldl_map (gen_note_thss get) (ctxt, args);
+  in ((name, thms), ctxt' |> put_thms (name, SOME thms)) end);
 
 in
 
@@ -1078,22 +1075,22 @@ fun export_def _ cprops thm =
 
 local
 
-fun add_assm (ctxt, ((name, attrs), props)) =
+fun add_assm ((name, attrs), props) ctxt =
   let
     val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
     val asms = map (Tactic.norm_hhf_rule o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
-    val (ctxt', [(_, thms)]) =
+    val ([(_, thms)], ctxt') =
       ctxt
       |> auto_bind_facts props
       |> note_thmss_i [((name, attrs), ths)];
-  in (ctxt', (cprops, (name, asms), (name, thms))) end;
+  in ((cprops, (name, asms), (name, thms)), ctxt') end;
 
 fun gen_assms prepp exp args ctxt =
   let
     val (ctxt1, propss) = prepp (ctxt, map snd args);
-    val (ctxt2, results) = foldl_map add_assm (ctxt1, map fst args ~~ propss);
+    val (results, ctxt2) = fold_map add_assm (map fst args ~~ propss) ctxt1;
 
     val cprops = List.concat (map #1 results);
     val asmss = map #2 results;
@@ -1103,7 +1100,7 @@ fun gen_assms prepp exp args ctxt =
         (syntax, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
           cases, defs));
     val ctxt4 = ctxt3 |> put_thms ("prems", SOME (prems_of ctxt3));
-  in (warn_extra_tfrees ctxt ctxt4, thmss) end;
+  in (thmss, warn_extra_tfrees ctxt ctxt4) end;
 
 in
 
@@ -1130,7 +1127,7 @@ fun export_standard_view view inner outer =
 
 local
 
-fun prep_vars prep_typ internal liberal (ctxt, (xs, raw_T)) =
+fun prep_vars prep_typ internal liberal (xs, raw_T) ctxt =
   let
     fun cond_tvars T =
       if internal then T
@@ -1143,7 +1140,7 @@ fun prep_vars prep_typ internal liberal (ctxt, (xs, raw_T)) =
     val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
     val T = if_none opt_T TypeInfer.logicT;
     val ctxt' = ctxt |> fold declare_term_syntax (map (fn x => Free (x, T)) xs);
-  in (ctxt', (xs, opt_T)) end;
+  in ((xs, opt_T), ctxt') end;
 
 in
 
@@ -1173,7 +1170,7 @@ fun add_vars xs Ts ctxt =
   let val xs' = Term.variantlist (map Syntax.skolem xs, map #2 (fixes_of ctxt)) in
     ctxt
     |> declare (xs' ~~ Ts)
-    |> map_fixes (fn fixes => (xs ~~ xs') @ fixes)
+    |> map_fixes (append (xs ~~ xs'))
   end;
 
 fun add_vars_direct xs Ts ctxt =
@@ -1187,7 +1184,7 @@ fun add_vars_direct xs Ts ctxt =
 
 fun gen_fix prep add raw_vars ctxt =
   let
-    val (ctxt', varss) = foldl_map prep (ctxt, raw_vars);
+    val (varss, ctxt') = fold_map prep raw_vars ctxt;
     val vars = rev (List.concat (map (fn (xs, T) => map (rpair T) xs) varss));
     val xs = map #1 vars;
     val Ts = map #2 vars;
@@ -1240,10 +1237,10 @@ fun bind_skolem ctxt xs =
 
 fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
   let
-    fun bind (c, (x, T)) = (c |> fix_i [([x], SOME T)], bind_skolem c [x] (Free (x, T)));
-    val (ctxt', xs) = foldl_map bind (ctxt, fixes);
+    fun bind (x, T) c = (bind_skolem c [x] (Free (x, T)), c |> fix_i [([x], SOME T)]);
+    val (xs, ctxt') = fold_map bind fixes ctxt;
     fun app t = Library.foldl Term.betapply (t, xs);
-  in (ctxt', (map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes)) end;
+  in ((map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes), ctxt') end;
 
 local
 
@@ -1353,7 +1350,7 @@ fun pretty_cases ctxt =
   in
     if null cases andalso not (! verbose) then []
     else [Pretty.big_list "cases:"
-      (map (prt_case o apsnd (fn c => (#fixes c, #2 (apply_case c ctxt)))) (rev cases))]
+      (map (prt_case o apsnd (fn c => (#fixes c, #1 (apply_case c ctxt)))) (rev cases))]
   end;
 
 val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
