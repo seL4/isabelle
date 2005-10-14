@@ -63,6 +63,8 @@ sig
     Orelse of text list |
     Try of text |
     Repeat1 of text
+  val primitive_text: (thm -> thm) -> text
+  val succeed_text: text
   val default_text: text
   val this_text: text
   val done_text: text
@@ -522,6 +524,8 @@ datatype text =
   Try of text |
   Repeat1 of text;
 
+val primitive_text = Basic o K o SIMPLE_METHOD o PRIMITIVE;
+val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
