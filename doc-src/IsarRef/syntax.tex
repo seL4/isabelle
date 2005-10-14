@@ -425,6 +425,8 @@ $\ASSUMENAME$ in \S\ref{sec:proof-context}.
   prf & : & \isarantiq \\
   full_prf & : & \isarantiq \\
   ML & : & \isarantiq \\
+  ML_type & : & \isarantiq \\
+  ML_struct & : & \isarantiq \\
 \end{matharray}
 
 The text body of formal comments (see also \S\ref{sec:comments}) may contain
@@ -446,6 +448,7 @@ which are easier to read.
 \indexisarant{typeof}\indexisarant{typ}\indexisarant{thm-style}
 \indexisarant{term-style}\indexisarant{text}\indexisarant{goals}
 \indexisarant{subgoals}\indexisarant{prf}\indexisarant{full-prf}\indexisarant{ML}
+\indexisarant{ML-type}\indexisarant{ML-struct}
 
 \begin{rail}
   atsign lbrace antiquotation rbrace
@@ -465,7 +468,9 @@ which are easier to read.
     'subgoals' options |
     'prf' options thmrefs |
     'full\_prf' options thmrefs |
-    'ML' options name
+    'ML' options name |
+    'ML\_type' options name |
+    'ML\_struct' options name
   ;
   options: '[' (option * ',') ']'
   ;
@@ -522,8 +527,9 @@ Note that the syntax of antiquotations may \emph{not} include source comments
   full proof terms, i.e.\ also displays information omitted in the compact
   proof term, which is denoted by ``$_$'' placeholders there.
   
-\item [$\at\{ML~s\}$] checks text $s$ as an ML expression in the current
-  runtime environment, and displays the source verbatim.
+\item [$\at\{ML~s\}$, $\at\{ML_type~s\}$, and $\at\{ML_struct~s\}$] check text
+  $s$ as ML value, type, and structure, respectively.  If successful, the
+  source is displayed verbatim.
 
 \end{descr}
 
