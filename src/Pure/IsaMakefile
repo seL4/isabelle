@@ -26,11 +26,13 @@ Pure: $(OUT)/Pure$(ML_SUFFIX)
 $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML     \
   General/buffer.ML                                                     \
   General/file.ML General/graph.ML General/heap.ML General/history.ML   \
-  General/name_space.ML        \
+  General/name_space.ML                                                 \
   General/ord_list.ML General/output.ML General/path.ML                 \
   General/position.ML General/pretty.ML General/scan.ML General/seq.ML  \
-  General/source.ML General/stack.ML General/symbol.ML  \
-  General/table.ML General/url.ML General/xml.ML IsaPlanner/focus_term_lib.ML \
+  General/rat.ML                                                        \
+  General/source.ML General/stack.ML General/symbol.ML                  \
+  General/table.ML General/url.ML General/xml.ML                        \
+  IsaPlanner/focus_term_lib.ML                                          \
   IsaPlanner/isa_fterm.ML IsaPlanner/isand.ML IsaPlanner/isaplib.ML     \
   IsaPlanner/rw_inst.ML IsaPlanner/rw_tools.ML IsaPlanner/term_lib.ML   \
   IsaPlanner/upterm_lib.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML  \
@@ -40,7 +42,8 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML     \
   Isar/isar_syn.ML Isar/isar_thy.ML Isar/locale.ML Isar/method.ML       \
   Isar/net_rules.ML Isar/object_logic.ML Isar/obtain.ML                 \
   Isar/outer_keyword.ML Isar/outer_lex.ML Isar/outer_parse.ML           \
-  Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML \
+  Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML              \
+  Isar/proof_display.ML                                                 \
   Isar/proof_history.ML Isar/rule_cases.ML Isar/session.ML              \
   Isar/skip_proof.ML Isar/term_style.ML Isar/thy_header.ML              \
   Isar/toplevel.ML ML-Systems/cpu-timer-basis.ML                        \
