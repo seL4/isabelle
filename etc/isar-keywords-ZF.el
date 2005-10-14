@@ -67,6 +67,7 @@
     "from"
     "full_prf"
     "global"
+    "guess"
     "have"
     "header"
     "hence"
@@ -436,7 +437,8 @@
     "presume"))
 
 (defconst isar-keywords-proof-asm-goal
-  '("obtain"))
+  '("guess"
+    "obtain"))
 
 (defconst isar-keywords-proof-script
   '("apply"
