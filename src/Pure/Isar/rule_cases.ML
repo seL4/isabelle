@@ -15,6 +15,7 @@ sig
   val get: thm -> string list * int
   val add: thm -> thm * (string list * int)
   type T
+  val strip_params: term -> (string * typ) list
   val make: bool -> term option -> theory * term -> string list -> (string * T option) list
   val simple: bool -> theory * term -> string -> string * T option
   val rename_params: string list list -> thm -> thm
@@ -95,14 +96,14 @@ type T =
   assumes: (string * term list) list,
   binds: (indexname * term option) list};
 
-fun unskolem x =
-  (case try Syntax.dest_skolem x of SOME x' => x' | NONE => x);
+val strip_params =
+  Logic.strip_params #> map (fn (x, T) => (the_default x (try Syntax.dest_skolem x), T));
 
 fun prep_case is_open thy (split, raw_prop) name =
   let
     val prop = Drule.norm_hhf thy raw_prop;
 
-    val xs = map (apfst unskolem) (Logic.strip_params prop);
+    val xs = strip_params prop;
     val rename = if is_open then I else map (apfst Syntax.internal);
     val named_xs =
       (case split of
