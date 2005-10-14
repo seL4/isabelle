@@ -91,20 +91,22 @@ sig
   val note_thmss_i: string -> string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     theory -> (theory * ProofContext.context) * (bstring * thm list) list
-  val theorem: string -> (context * thm list -> thm list list -> theory -> theory) ->
+  val theorem: string -> Method.text option ->
+    (context * thm list -> thm list list -> theory -> theory) ->
     string * Attrib.src list -> element elem_expr list ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     theory -> Proof.state
-  val theorem_i: string -> (context * thm list -> thm list list -> theory -> theory) ->
+  val theorem_i: string -> Method.text option ->
+    (context * thm list -> thm list list -> theory -> theory) ->
     string * theory attribute list -> element_i elem_expr list ->
     ((string * theory attribute list) * (term * (term list * term list)) list) list ->
     theory -> Proof.state
-  val theorem_in_locale: string ->
+  val theorem_in_locale: string -> Method.text option ->
     ((context * context) * thm list -> thm list list -> theory -> theory) ->
     xstring -> string * Attrib.src list -> element elem_expr list ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     theory -> Proof.state
-  val theorem_in_locale_i: string ->
+  val theorem_in_locale_i: string -> Method.text option ->
     ((context * context) * thm list -> thm list list -> theory -> theory) ->
     string -> string * Attrib.src list -> element_i elem_expr list ->
     ((string * Attrib.src list) * (term * (term list * term list)) list) list ->
@@ -1087,7 +1089,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
         val asms' = Attrib.map_specs (Attrib.context_attribute_i ctxt) asms;
         val ts = List.concat (map (map #1 o #2) asms');
         val (ps, qs) = splitAt (length ts, axs);
-        val (ctxt', _) =
+        val (_, ctxt') =
           ctxt |> ProofContext.fix_frees ts
           |> ProofContext.assume_i (export_axioms ps) asms';
       in ((ctxt', Assumed qs), []) end
@@ -1096,7 +1098,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
   | activate_elem _ ((ctxt, Assumed axs), Defines defs) =
       let
         val defs' = Attrib.map_specs (Attrib.context_attribute_i ctxt) defs;
-        val (ctxt', _) =
+        val (_, ctxt') =
         ctxt |> ProofContext.assume_i ProofContext.export_def
           (defs' |> map (fn ((name, atts), (t, ps)) =>
             let val (c, t') = ProofContext.cert_def ctxt t
@@ -1107,7 +1109,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
   | activate_elem is_ext ((ctxt, mode), Notes facts) =
       let
         val facts' = Attrib.map_facts (Attrib.context_attribute_i ctxt) facts;
-        val (ctxt', res) = ctxt |> ProofContext.note_thmss_i facts';
+        val (res, ctxt') = ctxt |> ProofContext.note_thmss_i facts';
       in ((ctxt', mode), if is_ext then res else []) end;
 
 fun activate_elems (((name, ps), mode), elems) ctxt =
@@ -1196,7 +1198,7 @@ fun intern_expr thy (Locale xname) = Locale (intern thy xname)
 local
 
 fun prep_parms prep_vars ctxt parms =
-  let val vars = snd (foldl_map prep_vars (ctxt, map (fn (x, T) => ([x], T)) parms))
+  let val vars = fst (fold_map prep_vars (map (fn (x, T) => ([x], T)) parms) ctxt)
   in map (fn ([x'], T') => (x', T')) vars end;
 
 in
@@ -1732,7 +1734,7 @@ fun local_note_accesses_i prfx args ctxt =
   ctxt
   |> ProofContext.qualified_names
   |> ProofContext.custom_accesses (local_accesses prfx)
-  |> ProofContext.note_thmss_i args
+  |> ProofContext.note_thmss_i args |> swap
   |>> ProofContext.restore_naming ctxt;
 
 end;
@@ -2052,17 +2054,17 @@ local
 fun global_goal prep_att =
   Proof.global_goal ProofDisplay.present_results prep_att ProofContext.bind_propp_schematic_i;
 
-fun gen_theorem prep_att prep_elem prep_stmt kind after_qed a raw_elems concl thy =
+fun gen_theorem prep_att prep_elem prep_stmt kind before_qed after_qed a raw_elems concl thy =
   let
     val thy_ctxt = ProofContext.init thy;
     val elems = map (prep_elem thy) raw_elems;
     val (_, (_, view), _, ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
     val ctxt' = ctxt |> ProofContext.add_view thy_ctxt view;
     val stmt = map fst concl ~~ propp;
-  in global_goal prep_att kind after_qed (SOME "") a stmt ctxt' end;
+  in global_goal prep_att kind before_qed after_qed (SOME "") a stmt ctxt' end;
 
 fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
-    kind after_qed raw_locale (name, atts) raw_elems concl thy =
+    kind before_qed after_qed raw_locale (name, atts) raw_elems concl thy =
   let
     val locale = prep_locale thy raw_locale;
     val locale_atts = map (prep_src thy) atts;
@@ -2090,7 +2092,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
         #> #2
         #> after_qed ((goal_ctxt, locale_ctxt'), raw_results) results
       end;
-  in global_goal (K I) kind after_qed' target (name, []) stmt elems_ctxt'' end;
+  in global_goal (K I) kind before_qed after_qed' target (name, []) stmt elems_ctxt'' end;
 
 in
 
@@ -2103,11 +2105,11 @@ val theorem_in_locale_no_target =
   gen_theorem_in_locale (K I) (K I) (K I) cert_context_statement true;
 
 fun smart_theorem kind NONE a [] concl =
-      Proof.theorem kind (K (K I)) (SOME "") a concl o ProofContext.init
+      Proof.theorem kind NONE (K (K I)) (SOME "") a concl o ProofContext.init
   | smart_theorem kind NONE a elems concl =
-      theorem kind (K (K I)) a elems concl
+      theorem kind NONE (K (K I)) a elems concl
   | smart_theorem kind (SOME loc) a elems concl =
-      theorem_in_locale kind (K (K I)) loc a elems concl;
+      theorem_in_locale kind NONE (K (K I)) loc a elems concl;
 
 end;
 
@@ -2422,7 +2424,7 @@ fun interpretation (prfx, atts) expr insts thy =
     val kind = goal_name thy "interpretation" NONE propss;
     fun after_qed (goal_ctxt, raw_results) _ =
       activate (map (ProofContext.export_plain goal_ctxt thy_ctxt) raw_results);
-  in Proof.theorem_i kind after_qed NONE ("", []) (prep_propp propss) thy_ctxt end;
+  in Proof.theorem_i kind NONE after_qed NONE ("", []) (prep_propp propss) thy_ctxt end;
 
 fun interpretation_in_locale (raw_target, expr) thy =
   let
@@ -2431,7 +2433,7 @@ fun interpretation_in_locale (raw_target, expr) thy =
     val kind = goal_name thy "interpretation" (SOME target) propss;
     fun after_qed ((goal_ctxt, locale_ctxt), raw_results) _ =
       activate (map (ProofContext.export_plain goal_ctxt locale_ctxt) raw_results);
-  in theorem_in_locale_no_target kind after_qed target ("", []) [] (prep_propp propss) thy end;
+  in theorem_in_locale_no_target kind NONE after_qed target ("", []) [] (prep_propp propss) thy end;
 
 fun interpret (prfx, atts) expr insts int state =
   let
@@ -2444,7 +2446,7 @@ fun interpret (prfx, atts) expr insts int state =
       #> Seq.single;
   in
     Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      kind after_qed (prep_propp propss) state
+      kind NONE after_qed (prep_propp propss) state
   end;
 
 end;
