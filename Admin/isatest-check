@@ -46,9 +46,9 @@ function fail()
 
 ## main
 
-# check if tests are still running, wait for them to finish for max 5h
+# check if tests are still running, wait for them a couple of hours
 i=0
-while [ -n "$(ls $RUNNING)" -a $i -lt 5 ]; do 
+while [ -n "$(ls $RUNNING)" -a $i -lt 8 ]; do 
     sleep 3600
     let "i = i+1"
 done
