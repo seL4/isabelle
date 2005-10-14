@@ -433,6 +433,12 @@ val obtainP =
         --| P.$$$ "where") [] -- statement
       >> (Toplevel.print oo (Toplevel.proof' o (ProofHistory.apply oo uncurry Obtain.obtain))));
 
+val guessP =
+  OuterSyntax.command "guess" "wild guessing (unstructured)"
+    (K.tag_proof K.prf_asm_goal)
+    (P.and_list (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
+      >> (Toplevel.print oo (Toplevel.proof' o (ProofHistory.applys oo Obtain.guess))));
+
 val letP =
   OuterSyntax.command "let" "bind text variables"
     (K.tag_proof K.prf_decl)
@@ -848,8 +854,8 @@ val _ = OuterSyntax.add_parsers [
   print_ast_translationP, token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
-  assumeP, presumeP, defP, obtainP, letP, caseP, thenP, fromP, withP,
-  noteP, usingP, beginP, endP, nextP, qedP, terminal_proofP,
+  assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
+  withP, noteP, usingP, beginP, endP, nextP, qedP, terminal_proofP,
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
