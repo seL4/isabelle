@@ -16,6 +16,7 @@ sig
   val size_of_subgoals	: thm -> int
   val make_cnf		: thm list -> thm -> thm list
   val make_nnf		: thm -> thm
+  val make_nnf1		: thm -> thm
   val skolemize		: thm -> thm
   val make_clauses	: thm list -> thm list
   val make_horns	: thm list -> thm list

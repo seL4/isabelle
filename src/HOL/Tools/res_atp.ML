@@ -10,7 +10,7 @@ sig
   val prover: string ref
   val custom_spass: string list ref
   val destdir: string ref
-  val hook_count: int ref
+  val helper_path: string -> string -> string
   val problem_name: string ref
   val time_limit: int ref
 end;
