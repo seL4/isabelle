@@ -375,9 +375,10 @@ and locales
 
 \subsection{Generalized elimination}\label{sec:obtain}
 
-\indexisarcmd{obtain}
+\indexisarcmd{obtain}\indexisarcmd{guess}
 \begin{matharray}{rcl}
   \isarcmd{obtain} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{guess}^* & : & \isartrans{proof(state)}{proof(prove)} \\
 \end{matharray}
 
 Generalized elimination means that additional elements with certain properties
@@ -391,6 +392,8 @@ corresponding parameters do \emph{not} occur in the conclusion.
 
 \begin{rail}
   'obtain' (vars + 'and') 'where' (props + 'and')
+  ;
+  'guess' (vars + 'and')
   ;
 \end{rail}
 
@@ -415,15 +418,30 @@ canonical automated tools such as ``$\BY{simp}$'' or ``$\BY{blast}$''.
 Accordingly, the ``$that$'' reduction above is declared as simplification and
 introduction rule.
 
-\medskip
-
 In a sense, $\OBTAINNAME$ represents at the level of Isar proofs what would be
 meta-logical existential quantifiers and conjunctions.  This concept has a
 broad range of useful applications, ranging from plain elimination (or
-introduction) of object-level existentials and conjunctions, to elimination
+introduction) of object-level existential and conjunctions, to elimination
 over results of symbolic evaluation of recursive definitions, for example.
 Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
 where the result is treated as a genuine assumption.
+
+\medskip
+
+The improper variant $\isarkeyword{guess}$ is similar to $\OBTAINNAME$, but
+derives the obtained statement from the course of reasoning!  The proof starts
+with a fixed goal $thesis$.  The subsequent proof may refine this to anything
+of the form like $\All{\vec x} \vec\phi \Imp thesis$, but must not introduce
+new subgoals.  The final goal state is then used as reduction rule for the
+obtain scheme described above.  Obtained parameters $\vec x$ are marked as
+internal by default, which prevents the proof context from being polluted by
+ad-hoc variables.  The variable names and type constraints given as arguments
+for $\isarkeyword{guess}$ specify a prefix of obtained parameters explicitly
+in the text.
+
+It is important to note that the facts introduced by $\OBTAINNAME$ and
+$\isarkeyword{guess}$ may not be polymorphic: any type-variables occurring
+here are fixed in the present context!
 
 
 \subsection{Calculational reasoning}\label{sec:calculation}
