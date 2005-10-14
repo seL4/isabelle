@@ -10,7 +10,6 @@ theory Reconstruction
 imports Hilbert_Choice Map Infinite_Set Extraction
 uses "Tools/res_clause.ML"
 	 "Tools/res_axioms.ML"
-	 "Tools/res_types_sorts.ML"
 	 "Tools/ATP/recon_order_clauses.ML"
 	 "Tools/ATP/recon_translate_proof.ML"
 	 "Tools/ATP/recon_parse.ML"
