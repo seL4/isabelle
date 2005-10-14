@@ -32,7 +32,7 @@ fun pretty_constdefs thy decls =
   Pretty.big_list "constants" (map (pretty_const thy) decls);
 
 fun gen_constdef prep_typ prep_term prep_att
-    structs (thy, (decl, ((raw_name, raw_atts), raw_prop))) =
+    structs (decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
     fun err msg ts =
       error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
@@ -67,13 +67,12 @@ fun gen_constdef prep_typ prep_term prep_att
       thy
       |> Theory.add_consts_i [(c, T, mx)]
       |> PureThy.add_defs_i false [((name, def), atts)] |> #1;
-  in (thy', (c, T)) end;
+  in ((c, T), thy') end;
 
 fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy =
   let
-    val structs = #2 (foldl_map prep_vars (ProofContext.init thy, raw_structs));
-    val (thy', decls) = (thy, specs)
-      |> foldl_map (gen_constdef prep_typ prep_term prep_att structs);
+    val structs = #1 (fold_map prep_vars raw_structs (ProofContext.init thy));
+    val (decls, thy') = fold_map (gen_constdef prep_typ prep_term prep_att structs) specs thy
   in Pretty.writeln (pretty_constdefs thy' decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_liberal
