@@ -1251,7 +1251,7 @@ fun permute_prems j k rl =
 (*Calls error rather than raising an exception because it is intended
   for top-level use -- exception handling would not make sense here.
   The names in cs, if distinct, are used for the innermost parameters;
-   preceding parameters may be renamed to make all params distinct.*)
+  preceding parameters may be renamed to make all params distinct.*)
 fun rename_params_rule (cs, i) state =
   let
     val Thm {thy_ref, der, maxidx, shyps, hyps, ...} = state;
