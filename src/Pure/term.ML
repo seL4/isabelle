@@ -1220,7 +1220,7 @@ fun add_term_frees (t, frees: term list) = case t of
 fun term_frees t = add_term_frees(t,[]);
 
 (*Given an abstraction over P, replaces the bound variable by a Free variable
-  having a unique name*)
+  having a unique name -- SLOW!*)
 fun variant_abs (a,T,P) =
   let val b = variant (add_term_names(P,[])) a
   in  (b,  subst_bound (Free(b,T), P))  end;

@@ -588,8 +588,6 @@ fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
      Names may contain letters, digits or primes and must be
      separated by blanks ***)
 
-(*Calling this will generate the warning "Same as previous level" since
-  it affects nothing but the names of bound variables!*)
 fun rename_params_tac xs i =
   case Library.find_first (not o Syntax.is_identifier) xs of
       SOME x => error ("Not an identifier: " ^ x)
