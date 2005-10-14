@@ -11,8 +11,8 @@ New in this Isabelle release
 
 *** Document preparation ***
 
-* Added antiquotations @{ML_type text} and @{ML_struct} which check
-the given source text as ML type/structure, printing verbatim.
+* Added antiquotations @{ML_type text} and @{ML_struct text} which
+check the given source text as ML type/structure, printing verbatim.
 
 
 *** Pure ***
