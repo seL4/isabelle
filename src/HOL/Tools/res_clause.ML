@@ -18,16 +18,10 @@ signature RES_CLAUSE =
   exception CLAUSE of string * term
   type arityClause 
   type classrelClause
-  val classrelClauses_of : string * string list -> classrelClause list
   type clause
   val init : theory -> unit
-  val make_axiom_arity_clause :
-     string * (string * string list list) -> arityClause
-  val make_axiom_classrelClause :  string * string option -> classrelClause
   val make_axiom_clause : Term.term -> string * int -> clause
-  val make_conjecture_clause : Term.term -> clause
-  val make_conjecture_clause_thm : Thm.thm -> clause
-  val make_hypothesis_clause : Term.term -> clause
+  val make_conjecture_clauses : thm list -> clause list
   val get_axiomName : clause ->  string
   val isTaut : clause -> bool
   val num_of_clauses : clause -> int
@@ -36,6 +30,9 @@ signature RES_CLAUSE =
   val clauses2dfg : clause list -> string -> clause list -> clause list ->
 	   (string * int) list -> (string * int) list -> string
   val tfree_dfg_clause : string -> string
+
+  val arity_clause_thy: theory -> arityClause list 
+  val classrel_clauses_thy: theory -> classrelClause list 
 
   val tptp_arity_clause : arityClause -> string
   val tptp_classrelClause : classrelClause -> string
@@ -182,14 +179,6 @@ type indexname = Term.indexname;
 type tag = bool; 
 
 
-val id_ref = ref 0;
-
-fun generate_id () = 
-  let val id = !id_ref
-  in id_ref := id + 1; id end;
-
-
-
 (**** Isabelle FOL clauses ****)
 
 val tagged = ref false;
@@ -275,7 +264,7 @@ val curr_defs = ref Defs.empty;
 
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
-fun init thy = (id_ref := 0; curr_defs := Theory.defs_of thy);
+fun init thy = (curr_defs := Theory.defs_of thy);
 
 fun no_types_needed s = Defs.monomorphic (!curr_defs) s;
     
@@ -526,16 +515,21 @@ fun make_axiom_clause_thm thm (ax_name,cls_id) =
 
 
 
-fun make_conjecture_clause_thm thm =
+fun make_conjecture_clause n thm =
     let val (lits,types_sorts, preds, funcs) = literals_of_thm thm
-	val cls_id = generate_id()
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
         val tvars = get_tvar_strs types_sorts
     in
-	make_clause(cls_id,"",Conjecture,
+	make_clause(n,"conjecture",Conjecture,
 	            lits,types_sorts,tvar_lits,tfree_lits,
 	            tvars, preds, funcs)
     end;
+    
+fun make_conjecture_clauses_aux _ [] = []
+  | make_conjecture_clauses_aux n (th::ths) =
+      make_conjecture_clause n th :: make_conjecture_clauses_aux (n+1) ths
+
+val make_conjecture_clauses = make_conjecture_clauses_aux 0
 
 
 fun make_axiom_clause term (ax_name,cls_id) =
@@ -549,28 +543,6 @@ fun make_axiom_clause term (ax_name,cls_id) =
     end;
 
 
-fun make_hypothesis_clause term =
-    let val (lits,types_sorts, preds, funcs) = literals_of_term (term,([],[]),[],[])
-	val cls_id = generate_id()
-	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts  preds 
-        val tvars = get_tvar_strs types_sorts
-    in
-	make_clause(cls_id,"",Hypothesis,
-	            lits,types_sorts,tvar_lits,tfree_lits,
-	            tvars, preds, funcs)
-    end;
- 
-fun make_conjecture_clause term =
-    let val (lits,types_sorts, preds, funcs) = literals_of_term (term,([],[]),[],[])
-	val cls_id = generate_id()
-	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
-        val tvars = get_tvar_strs types_sorts	
-    in
-	make_clause(cls_id,"",Conjecture,
-	            lits,types_sorts,tvar_lits,tfree_lits,
-	            tvars, preds, funcs)
-    end;
- 
 
  
 (**** Isabelle arities ****)
@@ -586,6 +558,7 @@ datatype arLit = TConsLit of bool * (class * tcons * string list) | TVarLit of b
  
 datatype arityClause =  
 	 ArityClause of {clause_id: clause_id,
+	  	         axiom_name: axiom_name,
 			 kind: kind,
 			 conclLit: arLit,
 			 premLits: arLit list};
@@ -604,23 +577,18 @@ fun pack_sort(_,[])  = raise ARCLAUSE("Empty Sort Found")
 fun make_TVarLit (b,(cls,str)) = TVarLit(b,(cls,str));
 fun make_TConsLit (b,(cls,tcons,tvars)) = TConsLit(b,(make_type_class cls,make_fixed_type_const tcons,tvars));
 
-
-fun make_arity_clause (clause_id,kind,conclLit,premLits) =
-    ArityClause {clause_id = clause_id, kind = kind, conclLit = conclLit, premLits = premLits};
-
-
-fun make_axiom_arity_clause (tcons,(res,args)) =
-     let val cls_id = generate_id()
-	 val nargs = length args
-	 val tvars = get_TVars nargs
-	 val conclLit = make_TConsLit(true,(res,tcons,tvars))
-         val tvars_srts = ListPair.zip (tvars,args)
-	 val tvars_srts' = union_all(map pack_sort tvars_srts)
-         val false_tvars_srts' = map (pair false) tvars_srts'
-	 val premLits = map make_TVarLit false_tvars_srts'
-     in
-	 make_arity_clause (cls_id,Axiom,conclLit,premLits)
-     end;
+fun make_axiom_arity_clause (tcons,n,(res,args)) =
+   let val nargs = length args
+       val tvars = get_TVars nargs
+       val tvars_srts = ListPair.zip (tvars,args)
+       val tvars_srts' = union_all(map pack_sort tvars_srts)
+       val false_tvars_srts' = map (pair false) tvars_srts'
+   in
+      ArityClause {clause_id = n, kind = Axiom, 
+                   axiom_name = tcons,
+                   conclLit = make_TConsLit(true,(res,tcons,tvars)), 
+                   premLits = map make_TVarLit false_tvars_srts'}
+   end;
     
 (*The number of clauses generated from cls, including type clauses*)
 fun num_of_clauses (Clause cls) =
@@ -638,28 +606,47 @@ datatype classrelClause =
 			    subclass: class,
 			    superclass: class option};
 
-fun make_classrelClause (clause_id,subclass,superclass) =
-    ClassrelClause {clause_id = clause_id,subclass = subclass, superclass = superclass};
+
+fun make_axiom_classrelClause n subclass superclass =
+  ClassrelClause {clause_id = n,
+                  subclass = subclass, superclass = superclass};
 
 
-fun make_axiom_classrelClause (subclass,superclass) =
-    let val cls_id = generate_id()
-	val sub = make_type_class subclass
-	val sup = case superclass of NONE => NONE 
-				   | SOME s => SOME (make_type_class s)
-    in
-	make_classrelClause(cls_id,sub,sup)
-    end;
-
-
-
-fun classrelClauses_of_aux (sub,[]) = []
-  | classrelClauses_of_aux (sub,(sup::sups)) = make_axiom_classrelClause(sub,SOME sup) :: (classrelClauses_of_aux (sub,sups));
+fun classrelClauses_of_aux n sub [] = []
+  | classrelClauses_of_aux n sub (sup::sups) =
+      make_axiom_classrelClause n sub (SOME sup) :: classrelClauses_of_aux (n+1) sub sups;
 
 
 fun classrelClauses_of (sub,sups) = 
-    case sups of [] => [make_axiom_classrelClause (sub,NONE)]
-	       | _ => classrelClauses_of_aux (sub, sups);
+    case sups of [] => [make_axiom_classrelClause 0 sub NONE]
+	       | _ => classrelClauses_of_aux 0 sub sups;
+
+
+(***** Isabelle arities *****)
+
+
+fun arity_clause _ (tcons, []) = []
+  | arity_clause n (tcons, ar::ars) =
+      make_axiom_arity_clause (tcons,n,ar) :: 
+      arity_clause (n+1) (tcons,ars);
+
+fun multi_arity_clause [] = []
+  | multi_arity_clause (tcon_ar :: tcons_ars)  =
+      arity_clause 0 tcon_ar  @  multi_arity_clause tcons_ars 
+
+fun arity_clause_thy thy =
+  let val arities = #arities (Type.rep_tsig (Sign.tsig_of thy))
+  in multi_arity_clause (Symtab.dest arities) end;
+
+
+(* Isabelle classes *)
+
+type classrelClauses = classrelClause list Symtab.table;
+
+val classrel_of = #2 o #classes o Type.rep_tsig o Sign.tsig_of;
+fun classrel_clauses_classrel (C: Sorts.classes) = map classrelClauses_of (Graph.dest C);
+val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of;
+
 
 
 (****!!!! Changed for typed equality !!!!****)
@@ -925,8 +912,8 @@ fun clauses2dfg [] probname axioms conjectures funcs preds =
      end;
 
 
-fun string_of_arClauseID (ArityClause arcls) =
-    arclause_prefix ^ Int.toString(#clause_id arcls);
+fun string_of_arClauseID (ArityClause {clause_id,axiom_name,...}) =
+    arclause_prefix ^ ascii_of axiom_name ^ "_" ^ Int.toString clause_id;
 
 fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
 
@@ -1075,13 +1062,15 @@ fun tptp_classrelLits sub sup =
     end;
 
 
-fun tptp_classrelClause (ClassrelClause cls) =
-    let val relcls_id = clrelclause_prefix ^ Int.toString(#clause_id cls)
-	val sub = #subclass cls
-	val sup = #superclass cls
-	val lits = tptp_classrelLits sub sup
+fun tptp_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
+    let val relcls_id = clrelclause_prefix ^ ascii_of subclass ^ "_" ^ 
+                        Int.toString clause_id
+	val lits = tptp_classrelLits (make_type_class subclass) 
+	                (Option.map make_type_class superclass)
     in
 	"input_clause(" ^ relcls_id ^ ",axiom," ^ lits ^ ")."
     end; 
+
+
 
 end;

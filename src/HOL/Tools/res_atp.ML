@@ -67,7 +67,7 @@ fun writeln_strs _   []      = ()
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
   let
-    val clss = map (ResClause.make_conjecture_clause_thm) thms
+    val clss = ResClause.make_conjecture_clauses thms
     val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
     val tfree_clss = map ResClause.tfree_clause (foldl (op union_string) [] tfree_litss)
     val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
@@ -81,7 +81,7 @@ fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
 fun dfg_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) = 
-    let val clss = map (ResClause.make_conjecture_clause_thm) thms
+    let val clss = ResClause.make_conjecture_clauses thms
         (*FIXME: classrel_clauses and arity_clauses*)
         val probN = ResClause.clauses2dfg clss (!problem_name ^ "_" ^ Int.toString n)
                         axclauses [] [] []    
@@ -159,9 +159,9 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = debug ("claset and simprules total clauses = " ^ 
                      Int.toString (Array.length clause_arr))
       val thy = ProofContext.theory_of ctxt
-      val classrel_clauses = ResTypesSorts.classrel_clauses_thy thy
+      val classrel_clauses = ResClause.classrel_clauses_thy thy
       val _ = debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
-      val arity_clauses = ResTypesSorts.arity_clause_thy thy
+      val arity_clauses = ResClause.arity_clause_thy thy
       val _ = debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val write = if !prover = "spass" then dfg_inputs_tfrees else tptp_inputs_tfrees
       fun writenext n =
