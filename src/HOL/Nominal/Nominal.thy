@@ -101,7 +101,7 @@ constdefs
    supp :: "'a \<Rightarrow> ('x set)"  
    "supp x \<equiv> {a . (infinite {b . [(a,b)]\<bullet>x \<noteq> x})}"
 
-   fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" (" _ \<sharp> _" [80,80] 80)
+   fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp> _" [80,80] 80)
    "a \<sharp> x \<equiv> a \<notin> supp x"
 
    supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl 80)
