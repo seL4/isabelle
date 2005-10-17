@@ -1,5 +1,5 @@
 
-simpset_ref() := LCF_ss;
+(* $Id$ *)
 
 Addsimps [p_strict,p_s];
 
