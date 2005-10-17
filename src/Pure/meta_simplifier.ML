@@ -8,7 +8,7 @@ Meta-level Simplification.
 infix 4
   addsimps delsimps addeqcongs deleqcongs addcongs delcongs addsimprocs delsimprocs
   setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
-  setloop addloop delloop setSSolver addSSolver setSolver addSolver;
+  setloop' setloop addloop addloop' delloop setSSolver addSSolver setSolver addSolver;
 
 signature BASIC_META_SIMPLIFIER =
 sig
@@ -27,7 +27,8 @@ sig
   val rep_ss: simpset ->
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: int * ((string * typ) * string) list} *
+    bounds: int * ((string * typ) * string) list,
+    context: Context.proof option} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews:
@@ -37,7 +38,7 @@ sig
       mk_eq_True: thm -> thm option},
     termless: term * term -> bool,
     subgoal_tac: simpset -> int -> tactic,
-    loop_tacs: (string * (int -> tactic)) list,
+    loop_tacs: (string * (simpset -> int -> tactic)) list,
     solvers: solver list * solver list}
   val print_ss: simpset -> unit
   val empty_ss: simpset
@@ -61,7 +62,9 @@ sig
   val setmkeqTrue: simpset * (thm -> thm option) -> simpset
   val settermless: simpset * (term * term -> bool) -> simpset
   val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
+  val setloop': simpset * (simpset -> int -> tactic) -> simpset
   val setloop: simpset * (int -> tactic) -> simpset
+  val addloop': simpset * (string * (simpset -> int -> tactic)) -> simpset
   val addloop: simpset * (string * (int -> tactic)) -> simpset
   val delloop: simpset * string -> simpset
   val setSSolver: simpset * solver -> simpset
@@ -81,8 +84,10 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
+  val inherit_context: simpset -> simpset -> simpset
+  val the_context: simpset -> Context.proof
+  val set_context: Context.proof -> simpset -> simpset
   val debug_bounds: bool ref
-  val inherit_bounds: simpset -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
   val rewrite_aux: (simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
@@ -166,13 +171,14 @@ datatype simpset =
   Simpset of
    {rules: rrule Net.net,
     prems: thm list,
-    bounds: int * ((string * typ) * string) list} *
+    bounds: int * ((string * typ) * string) list,
+    context: Context.proof option} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews: mk_rews,
     termless: term * term -> bool,
     subgoal_tac: simpset -> int -> tactic,
-    loop_tacs: (string * (int -> tactic)) list,
+    loop_tacs: (string * (simpset -> int -> tactic)) list,
     solvers: solver list * solver list}
 and proc =
   Proc of
@@ -189,11 +195,11 @@ and solver =
 
 fun rep_ss (Simpset args) = args;
 
-fun make_ss1 (rules, prems, bounds) =
-  {rules = rules, prems = prems, bounds = bounds};
+fun make_ss1 (rules, prems, bounds, context) =
+  {rules = rules, prems = prems, bounds = bounds, context = context};
 
-fun map_ss1 f {rules, prems, bounds} =
-  make_ss1 (f (rules, prems, bounds));
+fun map_ss1 f {rules, prems, bounds, context} =
+  make_ss1 (f (rules, prems, bounds, context));
 
 fun make_ss2 (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =
   {congs = congs, procs = procs, mk_rews = mk_rews, termless = termless,
@@ -204,9 +210,9 @@ fun map_ss2 f {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers}
 
 fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 
-fun map_simpset f (Simpset ({rules, prems, bounds},
+fun map_simpset f (Simpset ({rules, prems, bounds, context},
     {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers})) =
-  make_simpset (f ((rules, prems, bounds),
+  make_simpset (f ((rules, prems, bounds, context),
     (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers)));
 
 fun map_simpset1 f (Simpset (r1, r2)) = Simpset (map_ss1 f r1, r2);
@@ -314,7 +320,7 @@ fun print_ss ss =
 local
 
 fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], (0, [])),
+  make_simpset ((Net.empty, [], (0, []), NONE),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
 
 val basic_mk_rews: mk_rews =
@@ -337,10 +343,10 @@ end;
 
 fun merge_ss (ss1, ss2) =
   let
-    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1},
+    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, context = _},
      {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
       loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
-    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2},
+    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, context = _},
      {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
       loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
 
@@ -354,7 +360,7 @@ fun merge_ss (ss1, ss2) =
     val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
     val solvers' = merge_solvers solvers1 solvers2;
   in
-    make_simpset ((rules', prems', bounds'), ((congs', weak'), procs',
+    make_simpset ((rules', prems', bounds', NONE), ((congs', weak'), procs',
       mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
   end;
 
@@ -378,18 +384,29 @@ fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
 
 (** simpset operations **)
 
-(* bounds and prems *)
+(* context *)
 
 fun eq_bound (x: string, (y, _)) = x = y;
 
-fun inherit_bounds (Simpset ({bounds, ...}, _)) =
-  map_simpset1 (fn (rules, prems, _) => (rules, prems, bounds));
+fun add_bound bound = map_simpset1 (fn (rules, prems, (count, bounds), context) =>
+  (rules, prems, (count + 1, bound :: bounds), context));
 
-fun add_bound bound = map_simpset1 (fn (rules, prems, (count, bounds)) =>
-  (rules, prems, (count + 1, bound :: bounds)));
+fun add_prems ths = map_simpset1 (fn (rules, prems, bounds, context) =>
+  (rules, ths @ prems, bounds, context));
 
-fun add_prems ths = map_simpset1 (fn (rules, prems, bounds) =>
-  (rules, ths @ prems, bounds));
+fun inherit_context (Simpset ({bounds, context, ...}, _)) =
+  map_simpset1 (fn (rules, prems, _, _) => (rules, prems, bounds, context));
+
+fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
+  | the_context _ = raise Fail "Simplifier: no proof context in simpset";
+
+fun set_context ctxt =
+  map_simpset1 (fn (rules, prems, bounds, _) => (rules, prems, bounds, SOME ctxt));
+
+fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
+  | fallback_context thy ss =
+     (warning "Simplifier: no proof context in simpset -- fallback to theory context!";
+      set_context (Context.init_proof thy) ss);
 
 
 (* addsimps *)
@@ -401,11 +418,11 @@ fun mk_rrule2 {thm, name, lhs, elhs, perm} =
 
 fun insert_rrule quiet (ss, rrule as {thm, name, lhs, elhs, perm}) =
  (trace_named_thm "Adding rewrite rule" ss (thm, name);
-  ss |> map_simpset1 (fn (rules, prems, bounds) =>
+  ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
       val rules' = Net.insert_term eq_rrule (term_of elhs, rrule2) rules;
-    in (rules', prems, bounds) end)
+    in (rules', prems, bounds, context) end)
   handle Net.INSERT =>
     (if quiet then () else warn_thm "Ignoring duplicate rewrite rule:" ss thm; ss));
 
@@ -532,8 +549,8 @@ fun ss addsimps thms =
 (* delsimps *)
 
 fun del_rrule (ss, rrule as {thm, elhs, ...}) =
-  ss |> map_simpset1 (fn (rules, prems, bounds) =>
-    (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds))
+  ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
+    (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds, context))
   handle Net.DELETE => (warn_thm "Rewrite rule not in simpset:" ss thm; ss);
 
 fun ss delsimps thms =
@@ -680,15 +697,19 @@ fun ss setsubgoaler subgoal_tac = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, _, loop_tacs, solvers) =>
    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
-fun ss setloop tac = ss |>
+fun ss setloop' tac = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, _, solvers) =>
    (congs, procs, mk_rews, termless, subgoal_tac, [("", tac)], solvers));
 
-fun ss addloop (name, tac) = ss |>
+fun ss setloop tac = ss setloop' (K tac);
+
+fun ss addloop' (name, tac) = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
       overwrite_warn (loop_tacs, (name, tac)) ("Overwriting looper " ^ quote name),
       solvers));
+
+fun ss addloop (name, tac) = ss addloop' (name, K tac);
 
 fun ss delloop name = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
@@ -1127,20 +1148,18 @@ fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
       (Thm.theory_of_cterm ct) (Thm.term_of ct)
   end);
 
-fun rewrite_cterm mode prover ss ct =
-  (inc simp_depth;
-   if !simp_depth mod 20 = 0
-   then warning ("Simplification depth " ^ string_of_int (!simp_depth))
-   else ();
-   trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ss ct;
-   check_bounds ss ct;
-   let val {thy, t, maxidx, ...} = Thm.rep_cterm ct
-       val res = bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ss ct
-         handle THM (s, _, thms) =>
-         error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
-           Pretty.string_of (Display.pretty_thms thms))
-   in dec simp_depth; res end
-  ) handle exn => (dec simp_depth; raise exn);
+fun rewrite_cterm mode prover raw_ss ct =
+  let
+    val {thy, t, maxidx, ...} = Thm.rep_cterm ct;
+    val ss = fallback_context thy raw_ss;
+    val _ = inc simp_depth;
+    val _ = conditional (!simp_depth mod 20 = 0) (fn () =>
+      warning ("Simplification depth " ^ string_of_int (! simp_depth)));
+    val _ = trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ss ct;
+    val _ = check_bounds ss ct;
+    val res = bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ss ct
+  in dec simp_depth; res end
+  handle exn => (dec simp_depth; raise exn);
 
 (*Rewrite a cterm*)
 fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
@@ -1189,7 +1208,7 @@ fun solve_all_tac solvers ss =
 fun generic_simp_tac safe mode ss =
   let
     val Simpset (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = ss;
-    val loop_tac = FIRST' (map #2 loop_tacs);
+    val loop_tac = FIRST' (map (fn (_, tac) => tac ss) loop_tacs);
     val solve_tac = FIRST' (map (solver ss) (if safe then solvers else unsafe_solvers));
 
     fun simp_loop_tac i =
