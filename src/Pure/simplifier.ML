@@ -9,21 +9,13 @@ meta_simplifier.ML for the actual meta-level rewriting engine).
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
-  type context_solver
-  val mk_context_solver: string -> (Proof.context -> thm list -> int -> tactic)
-    -> context_solver
-  type context_simproc
-  val mk_context_simproc: string -> cterm list ->
-    (Proof.context -> simpset -> term -> thm option) -> context_simproc
   val print_simpset: theory -> unit
-  val simpset_ref_of_sg: theory -> simpset ref    (*obsolete*)
-  val simpset_ref_of: theory -> simpset ref
-  val simpset_of_sg: theory -> simpset            (*obsolete*)
+  val change_simpset_of: theory -> (simpset -> simpset) -> unit
+  val change_simpset: (simpset -> simpset) -> unit
   val simpset_of: theory -> simpset
+  val simpset: unit -> simpset
   val SIMPSET: (simpset -> tactic) -> tactic
   val SIMPSET': (simpset -> 'a -> tactic) -> 'a -> tactic
-  val simpset: unit -> simpset
-  val simpset_ref: unit -> simpset ref
   val Addsimps: thm list -> unit
   val Delsimps: thm list -> unit
   val Addsimprocs: simproc list -> unit
@@ -54,29 +46,19 @@ sig
   include BASIC_SIMPLIFIER
   val clear_ss: simpset -> simpset
   val debug_bounds: bool ref
-  val inherit_bounds: simpset -> simpset -> simpset
+  val inherit_context: simpset -> simpset -> simpset
+  val the_context: simpset -> Context.proof
+  val set_context: Context.proof -> simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
-  val context_simproc_i: theory -> string -> term list
-    -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
-  val context_simproc: theory -> string -> string list
-    -> (Proof.context -> simpset -> term -> thm option) -> context_simproc
   val          rewrite: simpset -> cterm -> thm
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
   val   asm_lr_rewrite: simpset -> cterm -> thm
   val asm_full_rewrite: simpset -> cterm -> thm
-  val add_context_simprocs: context_simproc list -> theory -> theory
-  val del_context_simprocs: context_simproc list -> theory -> theory
-  val set_context_subgoaler: (Proof.context -> simpset -> int -> tactic) -> theory -> theory
-  val reset_context_subgoaler: theory -> theory
-  val add_context_looper: string * (Proof.context -> int -> Tactical.tactic) ->
-    theory -> theory
-  val del_context_looper: string -> theory -> theory
-  val add_context_unsafe_solver: context_solver -> theory -> theory
-  val add_context_safe_solver: context_solver -> theory -> theory
+  val get_simpset: theory -> simpset
   val print_local_simpset: Proof.context -> unit
   val get_local_simpset: Proof.context -> simpset
   val put_local_simpset: simpset -> Proof.context -> Proof.context
@@ -90,7 +72,6 @@ sig
   val cong_del_global: theory attribute
   val cong_add_local: Proof.context attribute
   val cong_del_local: Proof.context attribute
-  val change_simpset_of: (simpset * 'a -> simpset) -> 'a -> theory -> theory
   val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val method_setup: (Args.T list -> (Method.modifier * Args.T list)) list
     -> (theory -> theory) list
@@ -100,212 +81,66 @@ end;
 structure Simplifier: SIMPLIFIER =
 struct
 
-open MetaSimplifier;
+(** simpset data **)
 
-
-(** context dependent simpset components **)
-
-(* datatype context_solver *)
-
-datatype context_solver =
-  ContextSolver of (string * (Proof.context -> thm list -> int -> tactic)) * stamp;
-
-fun mk_context_solver name f = ContextSolver ((name, f), stamp ());
-fun eq_context_solver (ContextSolver (_, id1), ContextSolver (_, id2)) = (id1 = id2);
-val merge_context_solvers = gen_merge_lists eq_context_solver;
-
-
-(* datatype context_simproc *)
-
-datatype context_simproc = ContextSimproc of
-  (string * cterm list * (Proof.context -> simpset -> term -> thm option)) * stamp;
-
-fun mk_context_simproc name lhss f = ContextSimproc ((name, lhss, f), stamp ());
-fun eq_context_simproc (ContextSimproc (_, id1), ContextSimproc (_, id2)) = (id1 = id2);
-val merge_context_simprocs = gen_merge_lists eq_context_simproc;
-
-fun context_simproc_i thy name =
-  mk_context_simproc name o map (Thm.cterm_of thy o Logic.varify);
-
-fun context_simproc thy name =
-  context_simproc_i thy name o map (Sign.read_term thy);
-
-
-(* datatype context_ss *)
-
-datatype context_ss = ContextSS of
- {simprocs: context_simproc list,
-  subgoal_tac: (Proof.context -> simpset -> int -> tactic) option,
-  loop_tacs: (string * (Proof.context -> int -> tactic)) list,
-  unsafe_solvers: context_solver list,
-  solvers: context_solver list};
-
-fun context_ss ctxt ss ctxt_ss =
-  let
-    val ContextSS {simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers} = ctxt_ss;
-    fun prep_simproc (ContextSimproc ((name, lhss, f), _)) =
-      mk_simproc name lhss (K (f ctxt));
-    fun add_loop (name, f) simpset = simpset addloop (name, f ctxt);
-    fun add_solver add (ContextSolver ((name, f), _)) simpset =
-      add (simpset, mk_solver name (f ctxt));
-  in
-    ((case subgoal_tac of NONE => ss | SOME tac => ss setsubgoaler tac ctxt)
-      addsimprocs map prep_simproc simprocs)
-    |> fold_rev add_loop loop_tacs
-    |> fold_rev (add_solver (op addSolver)) unsafe_solvers
-    |> fold_rev (add_solver (op addSSolver)) solvers
-  end;
-
-fun make_context_ss (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =
-  ContextSS {simprocs = simprocs, subgoal_tac = subgoal_tac, loop_tacs = loop_tacs,
-    unsafe_solvers = unsafe_solvers, solvers = solvers};
-
-val empty_context_ss = make_context_ss ([], NONE, [], [], []);
-
-fun merge_context_ss (ctxt_ss1, ctxt_ss2) =
-  let
-    val ContextSS {simprocs = simprocs1, subgoal_tac = subgoal_tac1, loop_tacs = loop_tacs1,
-      unsafe_solvers = unsafe_solvers1, solvers = solvers1} = ctxt_ss1;
-    val ContextSS {simprocs = simprocs2, subgoal_tac = subgoal_tac2, loop_tacs = loop_tacs2,
-      unsafe_solvers = unsafe_solvers2, solvers = solvers2} = ctxt_ss2;
-
-    val simprocs' = merge_context_simprocs simprocs1 simprocs2;
-    val subgoal_tac' = (case subgoal_tac1 of NONE => subgoal_tac2 | some => some);
-    val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
-    val unsafe_solvers' = merge_context_solvers unsafe_solvers1 unsafe_solvers2;
-    val solvers' = merge_context_solvers solvers1 solvers2;
-  in make_context_ss (simprocs', subgoal_tac', loop_tacs', unsafe_solvers', solvers') end;
-
-
-
-(** global and local simpset data **)
-
-(* theory data kind 'Pure/simpset' *)
+(* global simpsets *)
 
 structure GlobalSimpset = TheoryDataFun
 (struct
   val name = "Pure/simpset";
-  type T = simpset ref * context_ss;
+  type T = simpset ref;
 
-  val empty = (ref empty_ss, empty_context_ss);
-  fun copy (ref ss, ctxt_ss) = (ref ss, ctxt_ss): T;            (*create new reference!*)
+  val empty = ref empty_ss;
+  fun copy (ref ss) = ref ss: T;            (*create new reference!*)
   val extend = copy;
-  fun merge _ ((ref ss1, ctxt_ss1), (ref ss2, ctxt_ss2)) =
-    (ref (merge_ss (ss1, ss2)), merge_context_ss (ctxt_ss1, ctxt_ss2));
-  fun print _ (ref ss, _) = print_ss ss;
+  fun merge _ (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
+  fun print _ (ref ss) = print_ss ss;
 end);
 
 val _ = Context.add_setup [GlobalSimpset.init];
 val print_simpset = GlobalSimpset.print;
+val get_simpset = ! o GlobalSimpset.get;
 
-val simpset_ref_of = #1 o GlobalSimpset.get;
-val simpset_ref_of_sg = simpset_ref_of;
-val get_context_ss = #2 o GlobalSimpset.get o ProofContext.theory_of;
+val change_simpset_of = change o GlobalSimpset.get;
+fun change_simpset f = change_simpset_of (Context.the_context ()) f;
 
-fun map_context_ss f = GlobalSimpset.map (apsnd
-  (fn ContextSS {simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers} =>
-    make_context_ss (f (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers))));
-
-
-(* access global simpset *)
-
-val simpset_of = ! o simpset_ref_of;
-val simpset_of_sg = simpset_of;
-
-fun SIMPSET tacf state = tacf (simpset_of (Thm.theory_of_thm state)) state;
-fun SIMPSET' tacf i state = tacf (simpset_of (Thm.theory_of_thm state)) i state;
-
+fun simpset_of thy = MetaSimplifier.set_context (Context.init_proof thy) (get_simpset thy);
 val simpset = simpset_of o Context.the_context;
-val simpset_ref = simpset_ref_of o Context.the_context;
 
 
-(* change global simpset *)
+fun SIMPSET tacf st = tacf (simpset_of (Thm.theory_of_thm st)) st;
+fun SIMPSET' tacf i st = tacf (simpset_of (Thm.theory_of_thm st)) i st;
 
-fun change_simpset_of f x thy =
-  let val r = simpset_ref_of thy
-  in r := f (! r, x); thy end;
-
-fun change_simpset f x = (change_simpset_of f x (Context.the_context ()); ());
-
-val Addsimps = change_simpset (op addsimps);
-val Delsimps = change_simpset (op delsimps);
-val Addsimprocs = change_simpset (op addsimprocs);
-val Delsimprocs = change_simpset (op delsimprocs);
-val Addcongs = change_simpset (op addcongs);
-val Delcongs = change_simpset (op delcongs);
+fun Addsimps args = change_simpset (fn ss => ss addsimps args);
+fun Delsimps args = change_simpset (fn ss => ss delsimps args);
+fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
+fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
+fun Addcongs args = change_simpset (fn ss => ss addcongs args);
+fun Delcongs args = change_simpset (fn ss => ss delcongs args);
 
 
-(* change context dependent components *)
-
-fun add_context_simprocs procs =
-  map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>
-    (merge_context_simprocs procs simprocs, subgoal_tac, loop_tacs,
-      unsafe_solvers, solvers));
-
-fun del_context_simprocs procs =
-  map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>
-    (gen_rems eq_context_simproc (simprocs, procs), subgoal_tac, loop_tacs,
-      unsafe_solvers, solvers));
-
-fun set_context_subgoaler tac =
-  map_context_ss (fn (simprocs, _, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, SOME tac, loop_tacs, unsafe_solvers, solvers));
-
-val reset_context_subgoaler =
-  map_context_ss (fn (simprocs, _, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, NONE, loop_tacs, unsafe_solvers, solvers));
-
-fun add_context_looper (name, tac) =
-  map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, subgoal_tac, merge_alists [(name, tac)] loop_tacs,
-      unsafe_solvers, solvers));
-
-fun del_context_looper name =
-  map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, subgoal_tac, filter_out (equal name o #1) loop_tacs,
-      unsafe_solvers, solvers));
-
-fun add_context_unsafe_solver solver =
-  map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, subgoal_tac, loop_tacs,
-      merge_context_solvers [solver] unsafe_solvers, solvers));
-
-fun add_context_safe_solver solver =
-  map_context_ss (fn (simprocs, subgoal_tac, loop_tacs, unsafe_solvers, solvers) =>
-    (simprocs, subgoal_tac, loop_tacs, unsafe_solvers,
-      merge_context_solvers [solver] solvers));
-
-
-(* proof data kind 'Pure/simpset' *)
+(* local simpsets *)
 
 structure LocalSimpset = ProofDataFun
 (struct
   val name = "Pure/simpset";
   type T = simpset;
-  val init = simpset_of;
-  fun print ctxt ss = print_ss (context_ss ctxt ss (get_context_ss ctxt));
+  val init = get_simpset;
+  fun print _ ss = print_ss ss;
 end);
 
 val _ = Context.add_setup [LocalSimpset.init];
 val print_local_simpset = LocalSimpset.print;
-
 val get_local_simpset = LocalSimpset.get;
 val put_local_simpset = LocalSimpset.put;
-fun map_local_simpset f ctxt = put_local_simpset (f (get_local_simpset ctxt)) ctxt;
 
-fun local_simpset_of ctxt =
-  context_ss ctxt (get_local_simpset ctxt) (get_context_ss ctxt);
+fun local_simpset_of ctxt = MetaSimplifier.set_context ctxt (get_local_simpset ctxt);
 
 
 (* attributes *)
 
-fun change_global_ss f (thy, th) =
-  let val r = simpset_ref_of thy
-  in r := f (! r, [th]); (thy, th) end;
-
-fun change_local_ss f (ctxt, th) =
-  let val ss = f (get_local_simpset ctxt, [th])
-  in (put_local_simpset ss ctxt, th) end;
+fun change_global_ss f (thy, th) = (change_simpset_of thy (fn ss => f (ss, [th])); (thy, th));
+fun change_local_ss f (ctxt, th) = (LocalSimpset.map (fn ss => f (ss, [th])) ctxt, th);
 
 val simp_add_global = change_global_ss (op addsimps);
 val simp_del_global = change_global_ss (op delsimps);
@@ -337,17 +172,17 @@ fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 (* conversions *)
 
-val          simplify = simp_thm (false, false, false);
-val      asm_simplify = simp_thm (false, true, false);
-val     full_simplify = simp_thm (true, false, false);
-val   asm_lr_simplify = simp_thm (true, true, false);
-val asm_full_simplify = simp_thm (true, true, true);
+val          simplify = MetaSimplifier.simp_thm (false, false, false);
+val      asm_simplify = MetaSimplifier.simp_thm (false, true, false);
+val     full_simplify = MetaSimplifier.simp_thm (true, false, false);
+val   asm_lr_simplify = MetaSimplifier.simp_thm (true, true, false);
+val asm_full_simplify = MetaSimplifier.simp_thm (true, true, true);
 
-val          rewrite = simp_cterm (false, false, false);
-val      asm_rewrite = simp_cterm (false, true, false);
-val     full_rewrite = simp_cterm (true, false, false);
-val   asm_lr_rewrite = simp_cterm (true, true, false);
-val asm_full_rewrite = simp_cterm (true, true, true);
+val          rewrite = MetaSimplifier.simp_cterm (false, false, false);
+val      asm_rewrite = MetaSimplifier.simp_cterm (false, true, false);
+val     full_rewrite = MetaSimplifier.simp_cterm (true, false, false);
+val   asm_lr_rewrite = MetaSimplifier.simp_cterm (true, true, false);
+val asm_full_rewrite = MetaSimplifier.simp_cterm (true, true, true);
 
 
 
@@ -386,7 +221,8 @@ fun conv_mode x =
 
 fun simplified_att get args =
   Attrib.syntax (conv_mode -- args >> (fn (f, ths) =>
-    Drule.rule_attribute (fn x => f ((if null ths then I else clear_ss) (get x) addsimps ths))));
+    Drule.rule_attribute (fn x =>
+      f ((if null ths then I else MetaSimplifier.clear_ss) (get x) addsimps ths))));
 
 in
 
@@ -424,7 +260,7 @@ fun simp_flags x = (Scan.repeat
   >> (curry (Library.foldl op o) I o rev)) x;
 
 val cong_modifiers =
- [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local):Method.modifier),
+ [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local): Method.modifier),
   Args.$$$ congN -- Args.add -- Args.colon >> K (I, cong_add_local),
   Args.$$$ congN -- Args.del -- Args.colon >> K (I, cong_del_local)];
 
@@ -432,13 +268,14 @@ val simp_modifiers =
  [Args.$$$ simpN -- Args.colon >> K (I, simp_add_local),
   Args.$$$ simpN -- Args.add -- Args.colon >> K (I, simp_add_local),
   Args.$$$ simpN -- Args.del -- Args.colon >> K (I, simp_del_local),
-  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
+  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon
+    >> K (LocalSimpset.map MetaSimplifier.clear_ss, simp_add_local)]
    @ cong_modifiers;
 
 val simp_modifiers' =
  [Args.add -- Args.colon >> K (I, simp_add_local),
   Args.del -- Args.colon >> K (I, simp_del_local),
-  Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
+  Args.$$$ onlyN -- Args.colon >> K (LocalSimpset.map MetaSimplifier.clear_ss, simp_add_local)]
    @ cong_modifiers;
 
 fun simp_args more_mods =
@@ -483,12 +320,15 @@ fun easy_setup reflect trivs =
     fun mksimps thm = mk_eq (Drule.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
 
     fun init_ss thy =
-      (simpset_ref_of thy :=
+      (GlobalSimpset.get thy :=
         empty_ss setsubgoaler asm_simp_tac
         setSSolver safe_solver
         setSolver unsafe_solver
         setmksimps mksimps; thy);
   in method_setup [] @ [init_ss] end;
+
+
+open MetaSimplifier;
 
 end;
 
