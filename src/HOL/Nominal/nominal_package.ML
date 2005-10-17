@@ -1717,7 +1717,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                   rep_inject_thms')) 1,
                 TRY (asm_full_simp_tac (HOL_basic_ss addsimps (fresh_def :: supp_def ::
                   alpha @ abs_perm @ abs_fresh @ rep_inject_thms @
-                  perm_rep_perm_thms)) 1)])
+                  perm_rep_perm_thms)) 1),
+                TRY (asm_full_simp_tac (HOL_basic_ss addsimps (perm_fun_def ::
+                  expand_fun_eq :: rep_inject_thms @ perm_rep_perm_thms)) 1)])
         end) (constrs ~~ constr_rep_thms)
       end) (List.take (descr, length new_type_names) ~~ new_type_names ~~ constr_rep_thmss);
 
@@ -1769,7 +1771,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (fn _ =>
               [simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
-                 refl :: symmetric empty_def :: Finites.emptyI :: simp_thms @
+                 symmetric empty_def :: Finites.emptyI :: simp_thms @
                  abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1])
         in
           (supp_thm,
