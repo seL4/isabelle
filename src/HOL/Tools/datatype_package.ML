@@ -352,7 +352,7 @@ fun distinct_proc sg ss (t as Const ("op =", _) $ t1 $ t2) =
                                     atac 2, resolve_tac thms 1, etac FalseE 1])))
                                | ManyConstrs (thm, simpset) => SOME (Tactic.prove sg [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
-                                    full_simp_tac (Simplifier.inherit_bounds ss simpset) 1,
+                                    full_simp_tac (Simplifier.inherit_context ss simpset) 1,
                                     REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                                     eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
                                     etac FalseE 1]))))
@@ -372,7 +372,7 @@ val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 
 val simproc_setup =
   [Theory.add_oracle (distinctN, fn (_, ConstrDistinct t) => t),
-   fn thy => (simpset_ref_of thy := simpset_of thy addsimprocs [distinct_simproc]; thy)];
+   fn thy => ((change_simpset_of thy) (fn ss => ss addsimprocs [distinct_simproc]); thy)];
 
 
 (**** translation rules for case ****)

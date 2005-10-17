@@ -64,7 +64,7 @@ val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
 (* rewriting *)
 
 fun simp_all_tac rules ss =
-  ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps rules));
+  ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps rules));
 
 val add_rules = [add_Suc, add_Suc_right, add_0, add_0_right];
 val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
@@ -394,7 +394,7 @@ val isolateSuc =
 val add_rules =
  [add_zero_left,add_zero_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
   One_nat_def,isolateSuc,
-  order_less_irrefl, zero_neq_one, zero_less_one, zero_le_one, 
+  order_less_irrefl, zero_neq_one, zero_less_one, zero_le_one,
   zero_neq_one RS not_sym, not_one_le_zero, not_one_less_zero];
 
 val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
@@ -431,7 +431,7 @@ val init_lin_arith_data =
     neqE = [linorder_neqE_nat,
       get_thm (theory "Ring_and_Field") (Name "linorder_neqE_ordered_idom")],
     simpset = HOL_basic_ss addsimps add_rules
-                   addsimprocs [ab_group_add_cancel.sum_conv, 
+                   addsimprocs [ab_group_add_cancel.sum_conv,
                                 ab_group_add_cancel.rel_conv]
                    (*abel_cancel helps it work in abstract algebraic domains*)
                    addsimprocs nat_cancel_sums_add}),
@@ -538,15 +538,14 @@ end;
 (* theory setup *)
 
 val arith_setup =
- [Simplifier.change_simpset_of (op addsimprocs) nat_cancel_sums] @
   init_lin_arith_data @
-  [Simplifier.change_simpset_of (op addSolver)
-   (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac),
-  Simplifier.change_simpset_of (op addsimprocs) [fast_nat_arith_simproc],
+  [fn thy => (Simplifier.change_simpset_of thy (fn ss => ss
+    addsimprocs (nat_cancel_sums @ [fast_nat_arith_simproc])
+    addSolver (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac)); thy),
   Method.add_methods
-      [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
-	"decide linear arithmethic")],
+    [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
+      "decide linear arithmethic")],
   Attrib.add_attributes [("arith_split",
-    (Attrib.no_args arith_split_add, 
+    (Attrib.no_args arith_split_add,
      Attrib.no_args Attrib.undef_local_attribute),
     "declaration of split rules for arithmetic procedure")]];

@@ -350,7 +350,7 @@ val HOL_basic_ss =
 
 fun unfold_tac ss ths =
   ALLGOALS (full_simp_tac
-    (Simplifier.inherit_bounds ss (Simplifier.clear_ss HOL_basic_ss) addsimps ths));
+    (Simplifier.inherit_context ss (Simplifier.clear_ss HOL_basic_ss) addsimps ths));
 
 (*In general it seems wrong to add distributive laws by default: they
   might cause exponential blow-up.  But imp_disjL has been in for a while
@@ -424,7 +424,7 @@ qed "restrict_to_left";
 
 (* default simpset *)
 val simpsetup =
-  [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; thy)];
+  [fn thy => (change_simpset_of thy (fn _ => HOL_ss addcongs [if_weak_cong]); thy)];
 
 
 (*** integration of simplifier with classical reasoner ***)

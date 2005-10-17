@@ -320,7 +320,7 @@ ML_setup {*
    if exists_paired_all (#prop (Thm.rep_thm th)) then full_simplify ss th else th;
   end;
 
-claset_ref() := claset() addSbefore ("split_all_tac", split_all_tac);
+change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
 *}
 
 lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
@@ -415,7 +415,7 @@ local
   |   split_pat tp i _ = NONE;
   fun metaeq thy ss lhs rhs = mk_meta_eq (Tactic.prove thy [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
-        (K (simp_tac (Simplifier.inherit_bounds ss HOL_basic_ss addsimps [cond_split_eta]) 1)));
+        (K (simp_tac (Simplifier.inherit_context ss HOL_basic_ss addsimps [cond_split_eta]) 1)));
 
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
   |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
@@ -529,7 +529,7 @@ val split_conv_tac = SUBGOAL (fn (t, i) =>
 end;
 (* This prevents applications of splitE for already splitted arguments leading
    to quite time-consuming computations (in particular for nested tuples) *)
-claset_ref() := claset() addSbefore ("split_conv_tac", split_conv_tac);
+change_claset (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac));
 *}
 
 lemma split_eta_SetCompr [simp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"

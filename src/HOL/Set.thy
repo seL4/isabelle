@@ -380,7 +380,7 @@ text {*
 *}
 
 ML_setup {*
-  claset_ref() := claset() addbefore ("bspec", datac (thm "bspec") 1);
+  change_claset (fn cs => cs addbefore ("bspec", datac (thm "bspec") 1));
 *}
 
 lemma bexI [intro]: "P x ==> x:A ==> EX x:A. P x"
@@ -431,7 +431,7 @@ ML_setup {*
 
     val simpset = Simplifier.clear_ss HOL_basic_ss;
     fun unfold_tac ss th =
-      ALLGOALS (full_simp_tac (Simplifier.inherit_bounds ss simpset addsimps [th]));
+      ALLGOALS (full_simp_tac (Simplifier.inherit_context ss simpset addsimps [th]));
 
     fun prove_bex_tac ss =
       unfold_tac ss Bex_def THEN Quantifier1.prove_one_point_ex_tac;
@@ -977,7 +977,7 @@ lemmas mem_simps =
 
 ML_setup {*
   val mksimps_pairs = [("Ball", [thm "bspec"])] @ mksimps_pairs;
-  simpset_ref() := simpset() setmksimps (mksimps mksimps_pairs);
+  change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
 *}
 
 declare subset_UNIV [simp] subset_refl [simp]

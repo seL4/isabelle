@@ -826,7 +826,7 @@ fun prove_split_simp sg ss T prop =
                  | NONE => extsplits)
   in
     quick_and_dirty_prove true sg [] prop
-      (fn _ => simp_tac (Simplifier.inherit_bounds ss simpset addsimps thms) 1)
+      (fn _ => simp_tac (Simplifier.inherit_context ss simpset addsimps thms) 1)
   end;
 
 
@@ -1069,7 +1069,7 @@ val record_ex_sel_eq_simproc =
        let
          fun prove prop =
            quick_and_dirty_prove true sg [] prop
-             (fn _ => simp_tac (Simplifier.inherit_bounds ss (get_simpset sg)
+             (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset sg)
                addsimps simp_thms addsimprocs [record_split_simproc (K ~1)]) 1);
 
          fun mkeq (lr,Teq,(sel,Tsel),x) i =
@@ -2106,8 +2106,8 @@ val setup =
  [RecordsData.init,
   Theory.add_trfuns ([], parse_translation, [], []),
   Theory.add_advanced_trfuns ([], adv_parse_translation, [], []),
-  Simplifier.change_simpset_of Simplifier.addsimprocs
-    [record_simproc, record_upd_simproc, record_eq_simproc]];
+  (fn thy => (Simplifier.change_simpset_of thy
+    (fn ss => ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]); thy))];
 
 (* outer syntax *)
 
