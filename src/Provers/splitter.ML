@@ -12,7 +12,6 @@ infix 4 addsplits delsplits;
 
 signature SPLITTER_DATA =
 sig
-  structure Simplifier: SIMPLIFIER
   val mk_eq         : thm -> thm
   val meta_eq_to_iff: thm (* "x == y ==> x = y"                    *)
   val iffD          : thm (* "[| P = Q; Q |] ==> P"                *)
@@ -26,7 +25,6 @@ end
 
 signature SPLITTER =
 sig
-  type simpset
   val split_tac       : thm list -> int -> tactic
   val split_inside_tac: thm list -> int -> tactic
   val split_asm_tac   : thm list -> int -> tactic
@@ -43,10 +41,7 @@ sig
 end;
 
 functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
-struct 
-
-structure Simplifier = Data.Simplifier;
-type simpset = Simplifier.simpset;
+struct
 
 val Const ("==>", _) $ (Const ("Trueprop", _) $
          (Const (const_not, _) $ _    )) $ _ = #prop (rep_thm(Data.notnotD));
@@ -86,9 +81,9 @@ val trlift = lift RS transitive_thm;
 val _ $ (P $ _) $ _ = concl_of trlift;
 
 
-(************************************************************************ 
+(************************************************************************
    Set up term for instantiation of P in the lift-theorem
-   
+
    Ts    : types of parameters (i.e. variables bound by meta-quantifiers)
    t     : lefthand side of meta-equality in subgoal
            the lift theorem is applied to (see select)
@@ -109,7 +104,7 @@ fun mk_cntxt Ts t pos T maxi =
   in Abs("", T, down (rev pos) t maxi) end;
 
 
-(************************************************************************ 
+(************************************************************************
    Set up term for instantiation of P in the split-theorem
    P(...) == rhs
 
@@ -151,7 +146,7 @@ fun type_test(T,lbnos,apsns) =
    n     : number of arguments expected by Const(key,...)
    ts    : list of arguments actually found
    apsns : list of tuples of the form (T,U,pos), one tuple for each
-           abstraction that is encountered on the way to the position where 
+           abstraction that is encountered on the way to the position where
            Const(key, ...) $ ...  occurs, where
            T   : type of the variable bound by the abstraction
            U   : type of the abstraction's body
@@ -166,7 +161,7 @@ fun type_test(T,lbnos,apsns) =
           comes first ! If the terms in ts don't contain variables bound
           by other than meta-quantifiers, apsns is empty, because no further
           lifting is required before applying the split-theorem.
-******************************************************************************) 
+******************************************************************************)
 
 fun mk_split_pack(thm, T, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
@@ -287,7 +282,7 @@ fun select cmap state i =
 fun inst_lift Ts t (T, U, pos) state i =
   let
     val cert = cterm_of (sign_of_thm state);
-    val cntxt = mk_cntxt Ts t pos (T --> U) (#maxidx(rep_thm trlift));    
+    val cntxt = mk_cntxt Ts t pos (T --> U) (#maxidx(rep_thm trlift));
   in cterm_instantiate [(cert P, cert cntxt)] trlift
   end;
 
@@ -306,7 +301,7 @@ fun inst_lift Ts t (T, U, pos) state i =
 **************************************************************)
 
 fun inst_split Ts t tt thm TB state i =
-  let 
+  let
     val thm' = Thm.lift_rule (state, i) thm;
     val (P, _) = strip_comb (fst (Logic.dest_equals
       (Logic.strip_assums_concl (#prop (rep_thm thm')))));
@@ -319,7 +314,7 @@ fun inst_split Ts t tt thm TB state i =
 
 (*****************************************************************************
    The split-tactic
-   
+
    splits : list of split-theorems to be tried
    i      : number of subgoal the tactic should be applied to
 *****************************************************************************)
@@ -350,7 +345,7 @@ fun split_tac [] i = no_tac
                                      rtac reflexive_thm (i+1),
                                      lift_split_tac] state)
             end
-  in COND (has_fewer_prems i) no_tac 
+  in COND (has_fewer_prems i) no_tac
           (rtac meta_iffD i THEN lift_split_tac)
   end;
 
@@ -364,37 +359,37 @@ val split_inside_tac = mk_case_split_tac (rev_order o int_ord);
 
 (*****************************************************************************
    The split-tactic for premises
-   
+
    splits : list of split-theorems to be tried
 ****************************************************************************)
 fun split_asm_tac []     = K no_tac
-  | split_asm_tac splits = 
+  | split_asm_tac splits =
 
   let val cname_list = map (fst o fst o split_thm_info) splits;
       fun is_case (a,_) = a mem cname_list;
-      fun tac (t,i) = 
-	  let val n = find_index (exists_Const is_case) 
-				 (Logic.strip_assums_hyp t);
-	      fun first_prem_is_disj (Const ("==>", _) $ (Const ("Trueprop", _)
-				 $ (Const (s, _) $ _ $ _ )) $ _ ) = (s=const_or)
-	      |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) = 
-					first_prem_is_disj t
-	      |   first_prem_is_disj _ = false;
+      fun tac (t,i) =
+          let val n = find_index (exists_Const is_case)
+                                 (Logic.strip_assums_hyp t);
+              fun first_prem_is_disj (Const ("==>", _) $ (Const ("Trueprop", _)
+                                 $ (Const (s, _) $ _ $ _ )) $ _ ) = (s=const_or)
+              |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) =
+                                        first_prem_is_disj t
+              |   first_prem_is_disj _ = false;
       (* does not work properly if the split variable is bound by a quantfier *)
-	      fun flat_prems_tac i = SUBGOAL (fn (t,i) => 
-			   (if first_prem_is_disj t
-			    then EVERY[etac Data.disjE i,rotate_tac ~1 i,
-				       rotate_tac ~1  (i+1),
-				       flat_prems_tac (i+1)]
-			    else all_tac) 
-			   THEN REPEAT (eresolve_tac [Data.conjE,Data.exE] i)
-			   THEN REPEAT (dresolve_tac [Data.notnotD]   i)) i;
-	  in if n<0 then no_tac else DETERM (EVERY'
-		[rotate_tac n, etac Data.contrapos2,
-		 split_tac splits, 
-		 rotate_tac ~1, etac Data.contrapos, rotate_tac ~1, 
-		 flat_prems_tac] i)
-	  end;
+              fun flat_prems_tac i = SUBGOAL (fn (t,i) =>
+                           (if first_prem_is_disj t
+                            then EVERY[etac Data.disjE i,rotate_tac ~1 i,
+                                       rotate_tac ~1  (i+1),
+                                       flat_prems_tac (i+1)]
+                            else all_tac)
+                           THEN REPEAT (eresolve_tac [Data.conjE,Data.exE] i)
+                           THEN REPEAT (dresolve_tac [Data.notnotD]   i)) i;
+          in if n<0 then no_tac else DETERM (EVERY'
+                [rotate_tac n, etac Data.contrapos2,
+                 split_tac splits,
+                 rotate_tac ~1, etac Data.contrapos, rotate_tac ~1,
+                 flat_prems_tac] i)
+          end;
   in SUBGOAL tac
   end;
 
@@ -413,14 +408,14 @@ fun string_of_typ (Type (s, Ts)) = (if null Ts then ""
       else enclose "(" ")" (commas (map string_of_typ Ts))) ^ s
   | string_of_typ _ = "_";
 
-fun split_name (name, T) asm = "split " ^ 
+fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
 fun ss addsplits splits =
   let fun addsplit (ss,split) =
         let val (name,asm) = split_thm_info split
         in Simplifier.addloop (ss, (split_name name asm,
-		       (if asm then split_asm_tac else split_tac) [split])) end
+                       (if asm then split_asm_tac else split_tac) [split])) end
   in Library.foldl addsplit (ss,splits) end;
 
 fun ss delsplits splits =
@@ -429,10 +424,8 @@ fun ss delsplits splits =
         in Simplifier.delloop (ss, split_name name asm)
   end in Library.foldl delsplit (ss,splits) end;
 
-fun Addsplits splits = (Simplifier.simpset_ref() := 
-			Simplifier.simpset() addsplits splits);
-fun Delsplits splits = (Simplifier.simpset_ref() := 
-			Simplifier.simpset() delsplits splits);
+fun Addsplits splits = (change_simpset (fn ss => ss addsplits splits));
+fun Delsplits splits = (change_simpset (fn ss => ss delsplits splits));
 
 
 (* attributes *)
