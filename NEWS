@@ -55,7 +55,7 @@ are no longer reserved, significant speedup.
 * Simplifier: the simpset of a running simplification process now
 contains a proof context (cf. Simplifier.the_context), which is the
 very context that the initial simpset has been retrieved from (by
-simpset_of/local_simpset_of).  Consequently, all plug-in components
+simpset_of/local_simpset_of).  Consequently, all plug-in complements
 (solver, looper etc.) may depend on arbitrary proof data.
 
 * Simplifier.inherit_context inherits the proof context (plus the
