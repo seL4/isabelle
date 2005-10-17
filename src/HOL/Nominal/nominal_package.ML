@@ -1721,11 +1721,73 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         end) (constrs ~~ constr_rep_thms)
       end) (List.take (descr, length new_type_names) ~~ new_type_names ~~ constr_rep_thmss);
 
+    (** equations for support and freshness **)
+
+    val Un_assoc = PureThy.get_thm thy8 (Name "Un_assoc");
+    val de_Morgan_conj = PureThy.get_thm thy8 (Name "de_Morgan_conj");
+    val Collect_disj_eq = PureThy.get_thm thy8 (Name "Collect_disj_eq");
+    val finite_Un = PureThy.get_thm thy8 (Name "finite_Un");
+
+    val (supp_thms, fresh_thms) = ListPair.unzip (map ListPair.unzip
+      (map (fn ((((i, (_, _, constrs)), tname), inject_thms'), perm_thms') =>
+      let val T = replace_types' (nth_dtyp i)
+      in List.concat (map (fn (cname, dts) => map (fn atom =>
+        let
+          val cname = Sign.intern_const thy8
+            (NameSpace.append tname (Sign.base_name cname));
+          val atomT = Type (atom, []);
+
+          fun process_constr (dt, (j, args1, args2)) =
+            let
+              val x' = mk_Free "x" (typ_of_dtyp' dt) j;
+              val (dts, dt') = strip_option dt;
+              val Ts_idx = map typ_of_dtyp' dts ~~ (j upto j + length dts - 1);
+              val xs = map (fn (T, i) => mk_Free "x" T i) Ts_idx;
+              val x = mk_Free "x" (typ_of_dtyp' dt') (j + length dts);
+              val (dts', dt'') = strip_dtyp dt';
+            in case dt'' of
+                DtRec k => if k < length new_type_names then
+                    (j + length dts + 1,
+                     xs @ (x :: args1), foldr mk_abs_fun x xs :: args2)
+                  else error "nested recursion not (yet) supported"
+              | _ => (j + 1, x' :: args1, x' :: args2)
+            end;
+
+          val (_, args1, args2) = foldr process_constr (1, [], []) dts;
+          val Ts = map fastype_of args1;
+          val c = list_comb (Const (cname, Ts ---> T), args1);
+          fun supp t =
+            Const ("nominal.supp", fastype_of t --> HOLogic.mk_setT atomT) $ t;
+          fun fresh t =
+            Const ("nominal.fresh", atomT --> fastype_of t --> HOLogic.boolT) $
+              Free ("a", atomT) $ t;
+          val supp_thm = prove_goalw_cterm [] (cterm_of thy8
+              (HOLogic.mk_Trueprop (HOLogic.mk_eq
+                (supp c,
+                 if null dts then Const ("{}", HOLogic.mk_setT atomT)
+                 else foldr1 (HOLogic.mk_binop "op Un") (map supp args2)))))
+            (fn _ =>
+              [simp_tac (HOL_basic_ss addsimps (supp_def ::
+                 Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
+                 abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1])
+        in
+          (supp_thm,
+           prove_goalw_cterm [] (cterm_of thy8 (HOLogic.mk_Trueprop (HOLogic.mk_eq
+              (fresh c,
+               if null dts then HOLogic.true_const
+               else foldr1 HOLogic.mk_conj (map fresh args2)))))
+             (fn _ =>
+               [simp_tac (simpset_of thy8 addsimps [fresh_def, supp_thm]) 1]))
+        end) atoms) constrs)
+      end) (List.take (descr, length new_type_names) ~~ new_type_names ~~ inject_thms ~~ perm_simps')));
+
     val (thy9, _) = thy8 |>
       DatatypeAux.store_thmss "distinct" new_type_names distinct_thms |>>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss |>>>
       DatatypeAux.store_thmss "perm" new_type_names perm_simps' |>>>
-      DatatypeAux.store_thmss "inject" new_type_names inject_thms;
+      DatatypeAux.store_thmss "inject" new_type_names inject_thms |>>>
+      DatatypeAux.store_thmss "supp" new_type_names supp_thms |>>>
+      DatatypeAux.store_thmss "fresh" new_type_names fresh_thms;
 
   in
     (thy9, perm_eq_thms)
