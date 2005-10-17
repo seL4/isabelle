@@ -31,7 +31,7 @@ sig
   val Typecheck_tac: tactic
   val Type_solver_tac: thm list -> int -> tactic
   val local_tcset_of: Proof.context -> tcset
-  val context_type_solver: context_solver
+  val type_solver: solver
 end;
 
 signature TYPE_CHECK =
@@ -174,8 +174,8 @@ val local_tcset_of = LocalTypecheckingData.get;
 
 (* solver *)
 
-val context_type_solver =
-  Simplifier.mk_context_solver "context types" (type_solver_tac o local_tcset_of);
+val type_solver = Simplifier.mk_solver' "ZF types" (fn ss =>
+  type_solver_tac (local_tcset_of (Simplifier.the_context ss)) (Simplifier.prems_of_ss ss));
 
 
 (* attributes *)
@@ -211,7 +211,7 @@ fun typecheck ctxt =
 
 val setup =
  [TypecheckingData.init, LocalTypecheckingData.init,
-  Simplifier.add_context_unsafe_solver context_type_solver,
+  fn thy => (change_simpset_of thy (fn ss => ss addSolver type_solver); thy),
   Attrib.add_attributes [("TC", TC_attr, "declaration of typecheck rule")],
   Method.add_methods [("typecheck", TC_args typecheck, "ZF typecheck")]];
 
