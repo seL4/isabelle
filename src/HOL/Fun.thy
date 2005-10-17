@@ -489,7 +489,7 @@ local
   val current_ss = simpset ()
   fun fun_upd_prover ss =
     rtac eq_reflection 1 THEN rtac ext 1 THEN
-    simp_tac (Simplifier.inherit_bounds ss current_ss) 1
+    simp_tac (Simplifier.inherit_context ss current_ss) 1
 in
   val fun_upd2_simproc =
     Simplifier.simproc (Theory.sign_of (the_context ()))

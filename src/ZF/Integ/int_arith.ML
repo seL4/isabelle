@@ -231,13 +231,13 @@ structure CancelNumeralsCommon =
   val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
                                     zadd_ac@zmult_ac@tc_rules@intifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss3))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss3))
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss ZF_ss addsimps
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss ZF_ss addsimps
       add_0s @ bin_simps @ tc_rules @ intifys))
-    THEN ALLGOALS (SIMPSET' (fn simpset => asm_simp_tac (Simplifier.inherit_bounds ss simpset)))
+    THEN ALLGOALS (SIMPSET' (fn simpset => asm_simp_tac (Simplifier.inherit_context ss simpset)))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
@@ -307,11 +307,11 @@ structure CombineNumeralsData =
   val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
                                     zadd_ac@zmult_ac@tc_rules@intifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss3))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss3))
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss ZF_ss addsimps
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss ZF_ss addsimps
       add_0s @ bin_simps @ tc_rules @ intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
   end;
@@ -344,10 +344,10 @@ structure CombineNumeralsProdData =
   val norm_tac_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym]@
                                     bin_simps@zmult_ac@tc_rules@intifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_bounds ss norm_tac_ss2))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss ZF_ss addsimps
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss ZF_ss addsimps
       bin_simps @ tc_rules @ intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s)
   end;

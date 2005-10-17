@@ -454,7 +454,7 @@ fun list_eq sg ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
         val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
         val thm = Tactic.prove sg [] [] eq
-          (K (simp_tac (Simplifier.inherit_bounds ss rearr_ss) 1));
+          (K (simp_tac (Simplifier.inherit_context ss rearr_ss) 1));
       in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
 
   in

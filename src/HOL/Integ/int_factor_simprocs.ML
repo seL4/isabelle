@@ -44,13 +44,13 @@ structure CancelNumeralFactorCommon =
   val dest_coeff        = dest_coeff 1
   val trans_tac         = fn _ => trans_tac
   fun norm_tac ss =
-    let val HOL_ss' = Simplifier.inherit_bounds ss HOL_ss in
+    let val HOL_ss' = Simplifier.inherit_context ss HOL_ss in
       ALLGOALS (simp_tac (HOL_ss' addsimps minus_from_mult_simps @ mult_1s))
       THEN ALLGOALS (simp_tac (HOL_ss' addsimps bin_simps@mult_minus_simps))
       THEN ALLGOALS (simp_tac (HOL_ss' addsimps mult_ac))
     end
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps rel_number_of @ bin_simps))
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps rel_number_of @ bin_simps))
   val simplify_meta_eq = 
 	Int_Numeral_Simprocs.simplify_meta_eq
 	     [add_0, add_0_right,
@@ -251,7 +251,7 @@ structure CancelFactorCommon =
   val find_first        = find_first []
   val trans_tac         = fn _ => trans_tac
   fun norm_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_bounds ss HOL_ss addsimps mult_1s @ mult_ac))
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps mult_1s @ mult_ac))
   end;
 
 (*mult_cancel_left requires an ordered comm_ring_1, such as int. The version in

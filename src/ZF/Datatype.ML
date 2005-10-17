@@ -88,7 +88,7 @@ struct
                else ();
        val goal = Logic.mk_equals (old, new)
        val thm = Tactic.prove sg [] [] goal (fn _ => rtac iff_reflection 1 THEN
-           simp_tac (Simplifier.inherit_bounds ss datatype_ss addsimps #free_iffs lcon_info) 1)
+           simp_tac (Simplifier.inherit_context ss datatype_ss addsimps #free_iffs lcon_info) 1)
          handle ERROR_MESSAGE msg =>
          (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal);
           raise Match)

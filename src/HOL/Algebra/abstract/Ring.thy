@@ -167,7 +167,7 @@ ML {*
       let val rew = Tactic.prove sg [] []
             (HOLogic.mk_Trueprop
               (HOLogic.mk_eq (t, Var (("x", Term.maxidx_of_term t + 1), fastype_of t))))
-                (fn _ => simp_tac (Simplifier.inherit_bounds ss ring_ss) 1)
+                (fn _ => simp_tac (Simplifier.inherit_context ss ring_ss) 1)
             |> mk_meta_eq;
           val (t', u) = Logic.dest_equals (Thm.prop_of rew);
       in if t' aconv u 

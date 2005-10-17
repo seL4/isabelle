@@ -56,7 +56,7 @@ struct
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
        val th = Tactic.prove thy [] [] (Logic.mk_equals (lhs, rhs))
                    (fn _ => rtac Data.eq_reflection 1 THEN
-                            simp_tac (Simplifier.inherit_bounds ss assoc_ss) 1)
+                            simp_tac (Simplifier.inherit_context ss assoc_ss) 1)
    in SOME th end
    handle Assoc_fail => NONE;
 

@@ -417,7 +417,7 @@ in
 fun mkthm (sg, ss) asms just =
   let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} =
           Data.get sg;
-      val simpset' = Simplifier.inherit_bounds ss simpset;
+      val simpset' = Simplifier.inherit_context ss simpset;
       val atoms = Library.foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], List.mapPartial (fn thm => if Thm.no_prems thm

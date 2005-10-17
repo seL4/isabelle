@@ -91,7 +91,7 @@ fun cancel sg t =
 fun sum_proc sg ss t =
    let val t' = cancel sg t
        val thm = Tactic.prove sg [] [] (Logic.mk_equals (t, t'))
-                   (fn _ => simp_tac (Simplifier.inherit_bounds ss cancel_ss) 1)
+                   (fn _ => simp_tac (Simplifier.inherit_context ss cancel_ss) 1)
    in SOME thm end
    handle Cancel => NONE;
 
@@ -113,7 +113,7 @@ fun sum_proc sg ss t =
        val thm = Tactic.prove sg [] [] (Logic.mk_equals (t, t'))
                    (fn _ => rtac eq_reflection 1 THEN
                             resolve_tac eqI_rules 1 THEN
-                            simp_tac (Simplifier.inherit_bounds ss cancel_ss) 1)
+                            simp_tac (Simplifier.inherit_context ss cancel_ss) 1)
    in SOME thm end
    handle Cancel => NONE;
 
