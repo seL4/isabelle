@@ -11,7 +11,6 @@ infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2 addsimps2 delsimps2
 
 signature CLASIMP_DATA =
 sig
-  structure Simplifier: SIMPLIFIER
   structure Splitter: SPLITTER
   structure Classical: CLASSICAL
   structure Blast: BLAST
@@ -26,8 +25,8 @@ signature CLASIMP =
 sig
   include CLASIMP_DATA
   type claset
-  type simpset
   type clasimpset
+  val change_clasimpset: (clasimpset -> clasimpset) -> unit
   val clasimpset: unit -> clasimpset
   val addSIs2: clasimpset * thm list -> clasimpset
   val addSEs2: clasimpset * thm list -> clasimpset
@@ -79,9 +78,15 @@ struct
 open Data;
 
 type claset = Classical.claset;
-type simpset = Simplifier.simpset;
 type clasimpset = claset * simpset;
 
+fun change_clasimpset_of thy f =
+  let val (cs', ss') = f (Classical.get_claset thy, Simplifier.get_simpset thy) in
+    Classical.change_claset_of thy (fn _ => cs');
+    Simplifier.change_simpset_of thy (fn _ => ss')
+  end;
+
+fun change_clasimpset f = change_clasimpset_of (Context.the_context ()) f;
 fun clasimpset () = (Classical.claset (), Simplifier.simpset ());
 
 
@@ -150,9 +155,6 @@ fun delIff delcs delss ((cs, ss), th) =
      delss (ss, [th]))
   end;
 
-fun store_clasimp (cs, ss) =
-  (Classical.claset_ref () := cs; Simplifier.simpset_ref () := ss);
-
 in
 
 val op addIffs =
@@ -162,8 +164,8 @@ val op addIffs =
               Simplifier.addsimps);
 val op delIffs = Library.foldl (delIff Classical.delrules Simplifier.delsimps);
 
-fun AddIffs thms = store_clasimp (clasimpset () addIffs thms);
-fun DelIffs thms = store_clasimp (clasimpset () delIffs thms);
+fun AddIffs thms = change_clasimpset (fn css => css addIffs thms);
+fun DelIffs thms = change_clasimpset (fn css => css delIffs thms);
 
 fun addIffs_global (thy, ths) =
   Library.foldl (addIff
@@ -264,11 +266,7 @@ val best_simp_tac = ADDSS Classical.best_tac;
 (* access clasimpset *)
 
 fun change_global_css f (thy, th) =
-  let
-    val cs_ref = Classical.claset_ref_of thy;
-    val ss_ref = Simplifier.simpset_ref_of thy;
-    val (cs', ss') = f ((! cs_ref, ! ss_ref), [th]);
-  in cs_ref := cs'; ss_ref := ss'; (thy, th) end;
+  (change_clasimpset_of thy (fn css => f (css, [th])); (thy, th));
 
 fun change_local_css f (ctxt, th) =
   let
