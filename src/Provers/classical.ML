@@ -72,14 +72,12 @@ sig
   val appSWrappers      : claset -> wrapper
   val appWrappers       : claset -> wrapper
 
-  val claset_ref_of: theory -> claset ref
-  val claset_ref_of_sg: theory -> claset ref    (*obsolete*)
+  val change_claset_of: theory -> (claset -> claset) -> unit
+  val change_claset: (claset -> claset) -> unit
   val claset_of: theory -> claset
-  val claset_of_sg: theory -> claset            (*obsolete*)
+  val claset: unit -> claset
   val CLASET: (claset -> tactic) -> tactic
   val CLASET': (claset -> 'a -> tactic) -> 'a -> tactic
-  val claset: unit -> claset
-  val claset_ref: unit -> claset ref
   val local_claset_of   : Proof.context -> claset
 
   val fast_tac          : claset -> int -> tactic
@@ -141,6 +139,7 @@ sig
   val del_context_safe_wrapper: string -> theory -> theory
   val add_context_unsafe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
   val del_context_unsafe_wrapper: string -> theory -> theory
+  val get_claset: theory -> claset
   val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
@@ -817,9 +816,9 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 
 
 
-(** claset theory data **)
+(** claset data **)
 
-(* theory data kind 'Provers/claset' *)
+(* global clasets *)
 
 structure GlobalClaset = TheoryDataFun
 (struct
@@ -835,37 +834,30 @@ structure GlobalClaset = TheoryDataFun
 end);
 
 val print_claset = GlobalClaset.print;
-val claset_ref_of = #1 o GlobalClaset.get;
-val claset_ref_of_sg = claset_ref_of;
-val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
+val get_claset = ! o #1 o GlobalClaset.get;
 
+val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
 fun map_context_cs f = GlobalClaset.map (apsnd
   (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
+val change_claset_of = change o #1 o GlobalClaset.get;
+fun change_claset f = change_claset_of (Context.the_context ()) f;
 
-(* access claset *)
-
-val claset_of = ! o claset_ref_of;
-val claset_of_sg = claset_of;
-
-fun CLASET tacf state = tacf (claset_of (Thm.theory_of_thm state)) state;
-fun CLASET' tacf i state = tacf (claset_of (Thm.theory_of_thm state)) i state;
-
+fun claset_of thy = 
+  let val (cs_ref, ctxt_cs) = GlobalClaset.get thy
+  in context_cs (Context.init_proof thy) (! cs_ref) (ctxt_cs) end;
 val claset = claset_of o Context.the_context;
-val claset_ref = claset_ref_of o Context.the_context;
 
+fun CLASET tacf st = tacf (claset_of (Thm.theory_of_thm st)) st;
+fun CLASET' tacf i st = tacf (claset_of (Thm.theory_of_thm st)) i st;
 
-(* change claset *)
-
-fun change_claset f x = claset_ref () := (f (claset (), x));
-
-val AddDs = change_claset (op addDs);
-val AddEs = change_claset (op addEs);
-val AddIs = change_claset (op addIs);
-val AddSDs = change_claset (op addSDs);
-val AddSEs = change_claset (op addSEs);
-val AddSIs = change_claset (op addSIs);
-val Delrules = change_claset (op delrules);
+fun AddDs args = change_claset (fn cs => cs addDs args);
+fun AddEs args = change_claset (fn cs => cs addEs args);
+fun AddIs args = change_claset (fn cs => cs addIs args);
+fun AddSDs args = change_claset (fn cs => cs addSDs args);
+fun AddSEs args = change_claset (fn cs => cs addSEs args);
+fun AddSIs args = change_claset (fn cs => cs addSIs args);
+fun Delrules args = change_claset (fn cs => cs delrules args);
 
 
 (* context dependent components *)
@@ -883,7 +875,7 @@ structure LocalClaset = ProofDataFun
 (struct
   val name = "Provers/claset";
   type T = claset;
-  val init = claset_of;
+  val init = get_claset;
   fun print ctxt cs = print_cs (context_cs ctxt cs (get_context_cs ctxt));
 end);
 
@@ -897,13 +889,8 @@ fun local_claset_of ctxt =
 
 (* attributes *)
 
-fun change_global_cs f (thy, th) =
-  let val r = claset_ref_of thy
-  in r := f (! r, [th]); (thy, th) end;
-
-fun change_local_cs f (ctxt, th) =
-  let val cs = f (get_local_claset ctxt, [th])
-  in (put_local_claset cs ctxt, th) end;
+fun change_global_cs f (thy, th) = (change_claset_of thy (fn cs => f (cs, [th])); (thy, th));
+fun change_local_cs f (ctxt, th) = (LocalClaset.map (fn cs => f (cs, [th])) ctxt, th);
 
 val safe_dest_global = change_global_cs (op addSDs);
 val safe_elim_global = change_global_cs (op addSEs);
