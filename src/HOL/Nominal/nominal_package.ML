@@ -1769,6 +1769,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (fn _ =>
               [simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
+                 refl :: symmetric empty_def :: Finites.emptyI :: simp_thms @
                  abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1])
         in
           (supp_thm,
