@@ -48,10 +48,10 @@ val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 val type_solver =
   mk_solver "types" (fn prems => TCSET' (fn tcset => type_solver_tac tcset prems));
 
-simpset_ref() :=
-  simpset() setmksimps (map mk_eq o ZF_atomize o gen_all)
+change_simpset (fn ss =>
+  ss setmksimps (map mk_eq o ZF_atomize o gen_all)
   addcongs [if_weak_cong]
-  setSolver type_solver;
+  setSolver type_solver);
 
 local
 

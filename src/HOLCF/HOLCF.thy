@@ -21,9 +21,9 @@ uses
 begin
 
 ML_setup {*
-  simpset_ref() := simpset() addSolver
+  change_simpset (fn simpset => simpset addSolver
     (mk_solver' "adm_tac" (fn ss =>
-      adm_tac (cut_facts_tac (Simplifier.prems_of_ss ss) THEN' cont_tacRs ss)));
+      adm_tac (cut_facts_tac (Simplifier.prems_of_ss ss) THEN' cont_tacRs ss))));
 *}
 
 end

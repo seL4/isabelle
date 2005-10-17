@@ -392,7 +392,7 @@ val Ord_atomize =
     atomize ([("OrdQuant.oall", [ospec]),("OrdQuant.rall", [rspec])]@
                  ZF_conn_pairs,
              ZF_mem_pairs);
-simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
+change_simpset (fn ss => ss setmksimps (map mk_eq o Ord_atomize o gen_all));
 *}
 
 text {* Setting up the one-point-rule simproc *}

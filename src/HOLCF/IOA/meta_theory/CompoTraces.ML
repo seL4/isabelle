@@ -3,7 +3,7 @@
     Author:     Olaf Müller
 *)
 
-simpset_ref () := simpset() setmksym (K NONE);
+change_simpset (fn ss => ss setmksym (K NONE));
 
 (* ---------------------------------------------------------------- *)
                    section "mksch rewrite rules";
@@ -1223,4 +1223,4 @@ by (asm_full_simp_tac (simpset() addsimps [compositionality_tr,externals_of_par]
 qed"compositionality_tr_modules";
 
 
-simpset_ref () := simpset() setmksym (SOME o symmetric_fun);
+change_simpset (fn ss => ss setmksym (SOME o symmetric_fun));

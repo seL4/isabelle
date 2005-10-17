@@ -70,4 +70,4 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI, the_equality] 
                      addSEs [exE] addEs [allE];
 
-val clasetup = [fn thy => (claset_ref_of thy := HOL_cs; thy)];
+val clasetup = [fn thy => (change_claset_of thy (fn _ => HOL_cs); thy)];

@@ -4,7 +4,7 @@
 *)
 
 (* repeated from Traces.ML *)
-claset_ref() := claset() delSWrapper "split_all_tac";
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 
 
 val hom_ioas = [thm "Spec.ioa_def", thm "Spec.trans_def",

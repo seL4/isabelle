@@ -36,7 +36,7 @@ val hypreal_arith_setup =
     neqE = neqE,
     simpset = simpset}),
   arith_inj_const ("StarDef.star_of", HOLogic.realT --> hyprealT),
-  Simplifier.change_simpset_of (op addsimprocs) [fast_hypreal_arith_simproc]];
+  fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_hypreal_arith_simproc]); thy)];
 
 end;
 

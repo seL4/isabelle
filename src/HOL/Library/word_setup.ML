@@ -38,7 +38,8 @@ local
   (*lcp**	    val simproc1 = Simplifier.simproc (sign_of thy) "nat_to_bv" ["Word.nat_to_bv (number_of ?w)"] f ***)
 	    val simproc2 = Simplifier.simproc (sign_of thy) "bv_to_nat" ["Word.bv_to_nat (?x # ?xs)"] g
 	in
-	    Simplifier.change_simpset_of (op addsimprocs) [(*lcp*simproc1,**)simproc2] thy
+	  Simplifier.change_simpset_of thy (fn ss => ss addsimprocs [(*lcp*simproc1,**)simproc2]);
+          thy
 	end
 in
 val setup_word = [add_word]

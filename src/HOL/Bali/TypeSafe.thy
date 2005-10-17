@@ -730,8 +730,8 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac";
-claset_ref () := claset () delSWrapper "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 lemma FVar_lemma: 
 "\<lbrakk>((v, f), Norm s2') = fvar statDeclC (static field) fn a (x2, s2); 
@@ -760,8 +760,8 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 ML_setup {*
-claset_ref()  := claset() addSbefore ("split_all_tac", split_all_tac);
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 
 
@@ -878,8 +878,8 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac";
-claset_ref () := claset () delSWrapper "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 lemma conforms_init_lvars: 
 "\<lbrakk>wf_mhead G (pid declC) sig (mhead (mthd dm)); wf_prog G;  
@@ -932,8 +932,8 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 ML_setup {*
-claset_ref()  := claset() addSbefore ("split_all_tac", split_all_tac);
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 
 

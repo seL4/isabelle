@@ -2178,8 +2178,8 @@ qed
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac";
-claset_ref () := claset () delSWrapper "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 lemma dynamic_mheadsD:   
 "\<lbrakk>emh \<in> mheads G S statT sig;    
@@ -2309,8 +2309,8 @@ proof -
 qed
 declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
-claset_ref()  := claset() addSbefore ("split_all_tac", split_all_tac);
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 
 (* Tactical version *)
@@ -2455,8 +2455,8 @@ qed
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac";
-claset_ref () := claset () delSWrapper "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 lemma wt_is_type: "E,dt\<Turnstile>v\<Colon>T \<Longrightarrow>  wf_prog (prg E) \<longrightarrow> 
   dt=empty_dt \<longrightarrow> (case T of 
@@ -2481,8 +2481,8 @@ apply  (auto dest: accmethd_rT_is_type
 done
 declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
-claset_ref()  := claset() addSbefore ("split_all_tac", split_all_tac);
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 
 lemma ty_expr_is_type: 

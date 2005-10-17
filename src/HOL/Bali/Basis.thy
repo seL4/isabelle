@@ -25,7 +25,7 @@ fun cond_simproc name pat pred thm = Simplifier.simproc (Thm.sign_of_thm thm) na
 
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
 ML {*
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 declare if_weak_cong [cong del] option.weak_case_cong [cong del]
 declare length_Suc_conv [iff];

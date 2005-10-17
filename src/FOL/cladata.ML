@@ -50,7 +50,7 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val FOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 
                      addSEs [exE,alt_ex1E] addEs [allE];
 
-val cla_setup = [fn thy => (claset_ref_of thy := FOL_cs; thy)];
+val cla_setup = [fn thy => (change_claset_of thy (fn _ => FOL_cs); thy)];
 
 val case_setup =
  [Method.add_methods

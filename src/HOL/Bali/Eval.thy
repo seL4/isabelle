@@ -831,7 +831,7 @@ done
 declare not_None_eq [simp del] (* IntDef.Zero_def [simp del] *)
 declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
 *}
 inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> vs'"
 
@@ -870,7 +870,7 @@ inductive_cases eval_elim_cases [cases set]:
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]

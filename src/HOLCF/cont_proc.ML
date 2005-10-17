@@ -110,6 +110,6 @@ in
 end;
 
 val setup =
-  [fn thy => Simplifier.change_simpset_of (op addsimprocs) [cont_proc thy] thy];
+  [fn thy => (Simplifier.change_simpset_of thy (fn ss => ss addsimprocs [cont_proc thy]); thy)];
 
 end;

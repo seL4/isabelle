@@ -49,6 +49,6 @@ val rat_arith_setup =
                       addsimprocs simprocs}),
   arith_inj_const("IntDef.of_nat", HOLogic.natT --> ratT),
   arith_inj_const("IntDef.of_int", HOLogic.intT --> ratT),
-  Simplifier.change_simpset_of (op addsimprocs) [fast_rat_arith_simproc]];
+  fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_rat_arith_simproc]); thy)];
 
 end;

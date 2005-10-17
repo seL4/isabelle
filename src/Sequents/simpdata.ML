@@ -223,8 +223,6 @@ by (Fast_tac 1);
 qed "if_not_P";
 
 
-open Simplifier;
-
 (*** Standard simpsets ***)
 
 val triv_rls = [FalseL, TrueR, basic, refl, iff_refl, reflexive_thm];
@@ -259,7 +257,7 @@ val LK_ss =
   addeqcongs [left_cong]
   addcongs [imp_cong];
 
-simpset_ref() := LK_ss;
+change_simpset (fn _ => LK_ss);
 
 
 (* To create substition rules *)

@@ -92,3 +92,5 @@ val LCF_ss = FOL_ss addsimps
          not_FF_eq_UU,not_FF_eq_TT,
          COND_UU,COND_TT,COND_FF,
          surj_pairing,FST,SND];
+
+change_simpset (fn _ => LCF_ss);

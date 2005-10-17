@@ -469,7 +469,7 @@ declare not_None_eq [simp del]
 declare split_if [split del] split_if_asm [split del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac")
 *}
 
 inductive_cases wt_elim_cases [cases set]:
@@ -507,7 +507,7 @@ declare not_None_eq [simp]
 declare split_if [split] split_if_asm [split]
 declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 
 lemma is_acc_class_is_accessible: 

@@ -483,8 +483,8 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac";
-claset_ref () := claset () delSWrapper "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 
 inductive "ax_derivs G" intros

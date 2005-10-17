@@ -363,9 +363,9 @@ structure Order_Tac = Order_Tac_Fun (
 
   end);  (* struct *)
 
-simpset_ref() := simpset ()
+change_simpset (fn ss => ss
     addSolver (mk_solver "Trans_linear" (fn _ => Order_Tac.linear_tac))
-    addSolver (mk_solver "Trans_partial" (fn _ => Order_Tac.partial_tac));
+    addSolver (mk_solver "Trans_partial" (fn _ => Order_Tac.partial_tac)));
   (* Adding the transitivity reasoners also as safe solvers showed a slight
      speed up, but the reasoning strength appears to be not higher (at least
      no breaking of additional proofs in the entire HOL distribution, as

@@ -227,7 +227,7 @@ declare split_if     [split del] split_if_asm     [split del]
         not_None_eq [simp del] 
         split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac"
+change_simpset (fn ss => ss delloop "split_all_tac");
 *}
 inductive_cases evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> vs'"
 
@@ -270,7 +270,7 @@ declare split_if     [split] split_if_asm     [split]
         not_None_eq [simp] 
         split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 lemma evaln_Inj_elim: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w,s') \<Longrightarrow> case t of In1 ec \<Rightarrow>  
   (case ec of Inl e \<Rightarrow> (\<exists>v. w = In1 v) | Inr c \<Rightarrow> w = \<diamondsuit>)  

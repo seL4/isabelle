@@ -9,7 +9,7 @@ Theorems about Executions and Traces of I/O automata in HOLCF.
 Delsimps (ex_simps @ all_simps);
 Delsimps [split_paired_Ex];
 Addsimps [Let_def];
-claset_ref() := claset() delSWrapper "split_all_tac";
+change_claset (fn cs => cs delSWrapper "split_all_tac");
 
 val exec_rws = [executions_def,is_exec_frag_def];
 

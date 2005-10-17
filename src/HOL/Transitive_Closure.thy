@@ -489,9 +489,9 @@ structure Trancl_Tac = Trancl_Tac_Fun (
   
   end); (* struct *)
 
-simpset_ref() := simpset ()
-    addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
-    addSolver (mk_solver "Rtrancl" (fn _ => Trancl_Tac.rtrancl_tac));
+change_simpset (fn ss => ss
+  addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
+  addSolver (mk_solver "Rtrancl" (fn _ => Trancl_Tac.rtrancl_tac)));
 
 *}
 
