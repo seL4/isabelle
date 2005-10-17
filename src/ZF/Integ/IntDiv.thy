@@ -438,7 +438,7 @@ apply (simp add: not_zle_iff_zless posDivAlg_termination)
 done
 
 
-lemma posDivAlg_induct:
+lemma posDivAlg_induct [consumes 2]:
   assumes u_int: "u \<in> int"
       and v_int: "v \<in> int"
       and ih: "!!a b. [| a \<in> int; b \<in> int;
@@ -598,7 +598,7 @@ apply auto
 apply (simp add: not_zle_iff_zless negDivAlg_termination)
 done
 
-lemma negDivAlg_induct:
+lemma negDivAlg_induct [consumes 2]:
   assumes u_int: "u \<in> int"
       and v_int: "v \<in> int"
       and ih: "!!a b. [| a \<in> int; b \<in> int;  
