@@ -72,11 +72,8 @@ lemma transrec3_Limit:
 by (rule transrec3_def [THEN def_transrec, THEN trans], force)
 
 
-subsection{* Remaining Declarations *}
-
-(* belongs to theory IntDiv *)
-lemmas posDivAlg_induct = posDivAlg_induct [consumes 2]
-  and negDivAlg_induct = negDivAlg_induct [consumes 2]
-
+ML_setup {*
+  change_simpset (fn ss => ss setmksimps (map mk_eq o Ord_atomize o gen_all));
+*}
 
 end
