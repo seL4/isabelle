@@ -55,14 +55,15 @@ are no longer reserved, significant speedup.
 * Simplifier: the simpset of a running simplification process now
 contains a proof context (cf. Simplifier.the_context), which is the
 very context that the initial simpset has been retrieved from (by
-simpset_of/local_simpset_of).  Consequently, all plug-in complements
+simpset_of/local_simpset_of).  Consequently, all plug-in components
 (solver, looper etc.) may depend on arbitrary proof data.
 
 * Simplifier.inherit_context inherits the proof context (plus the
 local bounds) of the current simplification process; any simproc
 etc. that calls the Simplifier recursively should do this!  Removed
 former Simplifier.inherit_bounds, which is already included here --
-INCOMPATIBILITY.
+INCOMPATIBILITY.  Tools based on low-level rewriting may even have to
+specify an explicit context using Simplifier.context/theory_context.
 
 * Simplifier/Classical Reasoner: more abstract interfaces
 change_simpset/claset for modifying the simpset/claset reference of a
