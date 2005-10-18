@@ -12,7 +12,7 @@ sig
     theory attribute
 end
 
-structure SpecificationPackage : SPECIFICATION_PACKAGE =
+structure SpecificationPackage: SPECIFICATION_PACKAGE =
 struct
 
 (* messages *)
@@ -20,18 +20,12 @@ struct
 val quiet_mode = ref false
 fun message s = if ! quiet_mode then () else writeln s
 
-local
-    val _ = Goal "[| Ex P ; c == Eps P |] ==> P c"
-    val _ = by (Asm_simp_tac 1)
-    val _ = by (rtac (thm "someI_ex") 1)
-    val _ = ba 1
-in
-val helper = Goals.result()
-end
 
 (* Actual code *)
 
 local
+    val exE_some = thm "exE_some";
+
     fun mk_definitional [] arg = arg
       | mk_definitional ((thname,cname,covld)::cos) (thy,thm) =
         case HOLogic.dest_Trueprop (concl_of thm) of
@@ -45,7 +39,7 @@ local
                 val def_eq = Logic.mk_equals (Const(cname_full,ctype),
                                               HOLogic.choice_const ctype $  P)
                 val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
-                val thm' = [thm,hd thms] MRS helper
+                val thm' = [thm,hd thms] MRS exE_some
             in
                 mk_definitional cos (thy',thm')
             end
@@ -125,13 +119,12 @@ fun process_spec axiomatic cos alt_props thy =
           | myfoldr f (x::xs) = f (x,myfoldr f xs)
           | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
 
-        val sg = sign_of thy
-        fun typ_equiv t u = Sign.typ_instance sg (t,u) andalso Sign.typ_instance sg (u,t);
+        fun typ_equiv t u = Sign.typ_instance thy (t,u) andalso Sign.typ_instance thy (u,t);
 
-        val cprops = map (Thm.read_cterm sg o rpair Term.propT o snd) alt_props
-        val ss = empty_ss setmksimps single addsimps [thm "HOL.atomize_imp",thm "HOL.atomize_all"]
-        val rew_imps = map (Simplifier.full_rewrite ss) cprops
-        val props' = map (HOLogic.dest_Trueprop o term_of o snd o dest_equals o cprop_of) rew_imps
+        val rew_imps = alt_props |>
+          map (ObjectLogic.atomize_cterm thy o Thm.read_cterm thy o rpair Term.propT o snd)
+        val props' = rew_imps |>
+          map (HOLogic.dest_Trueprop o term_of o snd o dest_equals o cprop_of)
 
         fun proc_single prop =
             let
@@ -147,13 +140,13 @@ fun process_spec axiomatic cos alt_props thy =
         val props'' = map proc_single props'
         val frees = map snd props''
         val prop  = myfoldr HOLogic.mk_conj (map fst props'')
-        val cprop = cterm_of sg (HOLogic.mk_Trueprop prop)
+        val cprop = cterm_of thy (HOLogic.mk_Trueprop prop)
 
         val (prop_thawed,vmap) = Type.varify (prop,[])
         val thawed_prop_consts = collect_consts (prop_thawed,[])
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
-        val consts = map (term_of o Thm.read_cterm sg o rpair TypeInfer.logicT) sconsts
+        val consts = map (term_of o Thm.read_cterm thy o rpair TypeInfer.logicT) sconsts
         val _ = assert (not (Library.exists (not o Term.is_Const) consts))
                        "Specification: Non-constant found as parameter"
 
@@ -165,9 +158,9 @@ fun process_spec axiomatic cos alt_props thy =
                 case List.filter (fn t => let val (name,typ) = dest_Const t
                                      in name = cname andalso typ_equiv typ ctyp
                                      end) thawed_prop_consts of
-                    [] => error ("Specification: No suitable instances of constant \"" ^ (Sign.string_of_term sg c) ^ "\" found")
+                    [] => error ("Specification: No suitable instances of constant \"" ^ (Sign.string_of_term thy c) ^ "\" found")
                   | [cf] => unvarify cf vmap
-                  | _ => error ("Specification: Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found (try applying explicit type constraints)")
+                  | _ => error ("Specification: Several variations of \"" ^ (Sign.string_of_term thy c) ^ "\" found (try applying explicit type constraints)")
             end
         val proc_consts = map proc_const consts
         fun mk_exist (c,prop) =
@@ -184,9 +177,9 @@ fun process_spec axiomatic cos alt_props thy =
         val cnames = map (fst o dest_Const) proc_consts
         fun post_process (arg as (thy,thm)) =
             let
-                fun inst_all sg (thm,v) =
+                fun inst_all thy (thm,v) =
                     let
-                        val cv = cterm_of sg v
+                        val cv = cterm_of thy v
                         val cT = ctyp_of_term cv
                         val spec' = instantiate' [SOME cT] [NONE,SOME cv] spec
                     in
