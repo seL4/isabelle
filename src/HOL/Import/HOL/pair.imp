@@ -21,7 +21,7 @@ const_maps
   "##" > "prod_fun"
 
 thm_maps
-  "pair_induction" > "Datatype.prod.induct_correctness"
+  "pair_induction" > "Datatype.prod.induct"
   "pair_case_thm" > "Product_Type.split"
   "pair_case_def" > "HOL4Compat.pair_case_def"
   "pair_case_cong" > "HOL4Base.pair.pair_case_cong"
