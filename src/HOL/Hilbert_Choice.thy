@@ -493,7 +493,6 @@ lemma meson_disj_assoc: "(P|Q)|R ==> P|(Q|R)"
 
 subsection{*Lemmas for Meson, the Model Elimination Procedure*}
 
-
 text{* Generation of contrapositives *}
 
 text{*Inserts negated disjunct after removing the negation; P is a literal.
@@ -620,8 +619,16 @@ val ex_forward = thm "ex_forward";
 *}
 
 
+subsection {* Meson method setup *}
+
 use "Tools/meson.ML"
 setup Meson.skolemize_setup
+
+
+subsection {* Specification package -- Hilbertized version *}
+
+lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
+  by (simp only: someI_ex)
 
 use "Tools/specification_package.ML"
 
