@@ -47,8 +47,9 @@ sig
   val clear_ss: simpset -> simpset
   val debug_bounds: bool ref
   val inherit_context: simpset -> simpset -> simpset
-  val the_context: simpset -> Context.proof
-  val set_context: Context.proof -> simpset -> simpset
+  val the_context: simpset -> Proof.context
+  val context: Proof.context -> simpset -> simpset
+  val theory_context: theory  -> simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
@@ -92,7 +93,7 @@ structure GlobalSimpset = TheoryDataFun
 
   val empty = ref empty_ss;
   fun copy (ref ss) = ref ss: T;            (*create new reference!*)
-  val extend = copy;
+  fun extend (ref ss) = ref (MetaSimplifier.inherit_context empty_ss ss);
   fun merge _ (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
   fun print _ (ref ss) = print_ss ss;
 end);
@@ -104,7 +105,7 @@ val get_simpset = ! o GlobalSimpset.get;
 val change_simpset_of = change o GlobalSimpset.get;
 fun change_simpset f = change_simpset_of (Context.the_context ()) f;
 
-fun simpset_of thy = MetaSimplifier.set_context (Context.init_proof thy) (get_simpset thy);
+fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_simpset thy);
 val simpset = simpset_of o Context.the_context;
 
 
@@ -134,7 +135,7 @@ val print_local_simpset = LocalSimpset.print;
 val get_local_simpset = LocalSimpset.get;
 val put_local_simpset = LocalSimpset.put;
 
-fun local_simpset_of ctxt = MetaSimplifier.set_context ctxt (get_local_simpset ctxt);
+fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_local_simpset ctxt);
 
 
 (* attributes *)
