@@ -17,8 +17,8 @@ sig
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
   val atomize_term: theory -> term -> term
+  val atomize_cterm: theory -> cterm -> thm
   val atomize_thm: thm -> thm
-  val atomize_rule: theory -> cterm -> thm
   val atomize_tac: int -> tactic
   val full_atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
@@ -140,11 +140,8 @@ fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
 
-fun atomize_rule thy = Tactic.rewrite true (get_atomize thy);
-
-(*convert a natural-deduction rule into an object-level formula*)
-fun atomize_thm th =
-  rewrite_rule (get_atomize (Thm.theory_of_thm th)) th;
+fun atomize_cterm thy = Tactic.rewrite true (get_atomize thy);
+fun atomize_thm th = rewrite_rule (get_atomize (Thm.theory_of_thm th)) th;
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (Thm.prop_of st) i then
