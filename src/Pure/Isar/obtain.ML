@@ -25,7 +25,7 @@ similar, but derives these elements from the course of reasoning!
   {
     fix thesis
     <chain_facts> have "PROP ?guess"
-      apply magic  -- {* turns goal into "thesis ==> thesis" (no goal marker!) *}
+      apply magic      -- {* turns goal into "thesis ==> thesis" (no goal marker!) *}
       <proof body>
       apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> thesis" into
         "GOAL ((!!x. P x ==> thesis) ==> thesis)" which is a finished goal state *}
@@ -158,22 +158,22 @@ fun match_params state vars rule =
   let
     val ctxt = Proof.context_of state;
     val thy = Proof.theory_of state;
+    val string_of_typ = ProofContext.string_of_typ ctxt;
     val string_of_term = setmp show_types true (ProofContext.string_of_term ctxt);
-    val string_of_thm = ProofContext.string_of_thm ctxt;
+
+    fun err msg th = raise Proof.STATE (msg ^ ":\n" ^ ProofContext.string_of_thm ctxt th, state);
 
     val params = RuleCases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
     val m = length vars;
     val n = length params;
-    val _ = conditional (m > n) (fn () =>
-      raise Proof.STATE ("More variables than parameters in obtained rule:\n" ^
-        string_of_thm rule, state));
+    val _ = conditional (m > n)
+      (fn () => err "More variables than parameters in obtained rule" rule);
 
     fun match ((x, SOME T), (y, U)) tyenv =
         ((x, T), Sign.typ_match thy (U, T) tyenv handle Type.TYPE_MATCH =>
-          raise Proof.STATE ("Failed to match variable " ^
+          err ("Failed to match variable " ^
             string_of_term (Free (x, T)) ^ " against parameter " ^
-            string_of_term (Syntax.mark_boundT (y, Envir.norm_type tyenv U)) ^ " in:\n" ^
-            string_of_thm rule, state))
+            string_of_term (Syntax.mark_boundT (y, Envir.norm_type tyenv U)) ^ " in") rule)
       | match ((x, NONE), (_, U)) tyenv = ((x, U), tyenv);
     val (xs, tyenv) = fold_map match (vars ~~ Library.take (m, params)) Vartab.empty;
     val ys = Library.drop (m, params);
@@ -187,6 +187,13 @@ fun match_params state vars rule =
       fold (Term.add_tvarsT o #2) params []
       |> map (TVar #> (fn T => (Thm.ctyp_of thy T, Thm.ctyp_of thy (norm_type T))));
     val rule' = rule |> Thm.instantiate (instT, []);
+
+    val tvars = Drule.tvars_of rule';
+    val vars = fold (remove op =) (Term.add_vars (Thm.concl_of rule') []) (Drule.vars_of rule');
+    val _ =
+      if null tvars andalso null vars then ()
+      else err ("Illegal schematic variable(s) " ^
+        commas (map (string_of_typ o TVar) tvars @ map (string_of_term o Var) vars) ^ " in") rule';
   in (xs' @ ys', rule') end;
 
 fun gen_guess prep_vars raw_vars int state =
@@ -206,6 +213,7 @@ fun gen_guess prep_vars raw_vars int state =
       | 0 => raise Proof.STATE ("Goal solved -- nothing guessed.", state)
       | _ => raise Proof.STATE ("Guess split into several cases:\n" ^
         ProofContext.string_of_thm ctxt rule, state));
+
     fun guess_context raw_rule =
       let
         val (parms, rule) = match_params state vars raw_rule;
@@ -221,10 +229,13 @@ fun gen_guess prep_vars raw_vars int state =
       end;
 
     val before_qed = SOME (Method.primitive_text (fn th =>
-      th COMP Drule.incr_indexes_wrt [] [] [] [th] Drule.triv_goal));
+      if Thm.concl_of th aconv thesis then
+        th COMP Drule.incr_indexes_wrt [] [] [] [th] Drule.triv_goal
+      else raise Proof.STATE ("Guessed a different clause:\n" ^
+          ProofContext.string_of_thm ctxt th, state)));
     fun after_qed _ _ =
       Proof.end_block
-      #> Seq.map (`(unary_rule o Proof.the_fact) #-> guess_context);
+      #> Seq.map (`(Proof.the_fact #> unary_rule) #-> guess_context);
   in
     state
     |> Proof.enter_forward
