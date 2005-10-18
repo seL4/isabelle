@@ -86,7 +86,8 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Context.proof
-  val set_context: Context.proof -> simpset -> simpset
+  val context: Context.proof -> simpset -> simpset
+  val theory_context: theory  -> simpset -> simpset
   val debug_bounds: bool ref
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
@@ -317,8 +318,6 @@ fun print_ss ss =
 
 (* empty simpsets *)
 
-local
-
 fun init_ss mk_rews termless subgoal_tac solvers =
   make_simpset ((Net.empty, [], (0, []), NONE),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
@@ -329,14 +328,7 @@ val basic_mk_rews: mk_rews =
   mk_sym = SOME o Drule.symmetric_fun,
   mk_eq_True = K NONE};
 
-in
-
 val empty_ss = init_ss basic_mk_rews Term.termless (K (K no_tac)) ([], []);
-
-fun clear_ss (Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
-  init_ss mk_rews termless subgoal_tac solvers;
-
-end;
 
 
 (* merge simpsets *)            (*NOTE: ignores some fields of 2nd simpset*)
@@ -400,13 +392,22 @@ fun inherit_context (Simpset ({bounds, context, ...}, _)) =
 fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
   | the_context _ = raise Fail "Simplifier: no proof context in simpset";
 
-fun set_context ctxt =
+fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, _) => (rules, prems, bounds, SOME ctxt));
+
+val theory_context = context o Context.init_proof;
 
 fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
   | fallback_context thy ss =
      (warning "Simplifier: no proof context in simpset -- fallback to theory context!";
-      set_context (Context.init_proof thy) ss);
+      theory_context thy ss);
+
+
+(* clear_ss *)
+
+fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
+  init_ss mk_rews termless subgoal_tac solvers
+  |> inherit_context ss;
 
 
 (* addsimps *)
@@ -1162,14 +1163,16 @@ fun rewrite_cterm mode prover raw_ss ct =
   handle exn => (dec simp_depth; raise exn);
 
 (*Rewrite a cterm*)
-fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
-  | rewrite_aux prover full thms =
-      rewrite_cterm (full, false, false) prover (empty_ss addsimps thms);
+fun rewrite_aux _ _ [] ct = Thm.reflexive ct
+  | rewrite_aux prover full thms ct =
+      rewrite_cterm (full, false, false) prover
+      (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
 (*Rewrite a theorem*)
-fun simplify_aux _ _ [] = (fn th => th)
-  | simplify_aux prover full thms =
-      Drule.fconv_rule (rewrite_cterm (full, false, false) prover (empty_ss addsimps thms));
+fun simplify_aux _ _ [] th = th
+  | simplify_aux prover full thms th =
+      Drule.fconv_rule (rewrite_cterm (full, false, false) prover
+        (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms)) th;
 
 (*simple term rewriting -- no proof*)
 fun rewrite_term thy rules procs =
@@ -1181,7 +1184,7 @@ fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss)
 fun rewrite_goals_rule_aux _ []   th = th
   | rewrite_goals_rule_aux prover thms th =
       Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, false) prover
-        (empty_ss addsimps thms))) th;
+        (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
