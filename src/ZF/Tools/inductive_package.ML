@@ -339,7 +339,7 @@ let
 
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
        If the premises get simplified, then the proofs could fail.*)
-     val min_ss = empty_ss
+     val min_ss = Simplifier.theory_context thy empty_ss
            setmksimps (map mk_eq o ZF_atomize o gen_all)
            setSolver (mk_solver "minimal"
                       (fn prems => resolve_tac (triv_rls@prems)

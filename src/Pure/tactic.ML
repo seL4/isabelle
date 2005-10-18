@@ -535,8 +535,10 @@ val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
 fun rewrite_goal_tac rews =
-  MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac)
-    (MetaSimplifier.empty_ss addsimps rews);
+  let val ss = MetaSimplifier.empty_ss addsimps rews in
+    fn i => fn st => MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac)
+      (MetaSimplifier.theory_context (Thm.theory_of_thm st) ss) i st
+  end;
 
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);

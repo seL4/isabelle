@@ -79,7 +79,7 @@ sig
   val trace           : bool ref
   val fast_arith_neq_limit: int ref
   val lin_arith_prover: theory -> simpset -> term -> thm option
-  val     lin_arith_tac:     bool -> int -> tactic
+  val     lin_arith_tac:    bool -> int -> tactic
   val cut_lin_arith_tac: simpset -> int -> tactic
 end;
 
@@ -665,7 +665,9 @@ fun simpset_lin_arith_tac ss ex i st = SUBGOAL (fn (A,_) =>
      | SOME js => (trace_msg "Refutation succeeded."; refute_tac ss (i,js))
   end) i st;
 
-val lin_arith_tac = simpset_lin_arith_tac Simplifier.empty_ss;
+fun lin_arith_tac ex i st =
+  simpset_lin_arith_tac (Simplifier.theory_context (Thm.theory_of_thm st) Simplifier.empty_ss)
+    ex i st;
 
 fun cut_lin_arith_tac ss i =
   cut_facts_tac (Simplifier.prems_of_ss ss) i THEN

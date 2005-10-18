@@ -664,7 +664,8 @@ fun restricted t = isSome (S.find_term
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  let val globals = func::G
-     val pbeta_reduce = simpl_conv empty_ss [split_conv RS eq_reflection];
+     val ss0 = Simplifier.theory_context (Thm.theory_of_thm th) empty_ss
+     val pbeta_reduce = simpl_conv ss0 [split_conv RS eq_reflection];
      val tc_list = ref[]: term list ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []
@@ -805,7 +806,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     val ctm = cprop_of th
     val names = add_term_names (term_of ctm, [])
     val th1 = MetaSimplifier.rewrite_cterm(false,true,false)
-      (prover names) (empty_ss addsimps [cut_lemma'] addeqcongs congs) ctm
+      (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = equal_elim th1 th
  in
  (th2, List.filter (not o restricted) (!tc_list))

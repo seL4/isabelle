@@ -235,7 +235,8 @@ fun   safe_solver prems = FIRST'[fn i => DETERM (match_tac (triv_rls@prems) i),
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
-  empty_ss setsubgoaler asm_simp_tac
+  Simplifier.theory_context (the_context ()) empty_ss
+    setsubgoaler asm_simp_tac
     setSSolver (mk_solver "safe" safe_solver)
     setSolver (mk_solver "unsafe" unsafe_solver)
     setmksimps (map mk_meta_eq o atomize o gen_all)

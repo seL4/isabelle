@@ -54,7 +54,10 @@ fun atomizeD thm = let
     | _                             => [thm]
 in map zero_var_indexes (at thm) end;
 
-val atomize_ss = empty_ss setmksimps (mksimps mksimps_pairs) addsimps [
+val atomize_ss =
+  Simplifier.theory_context (the_context ()) empty_ss
+  setmksimps (mksimps mksimps_pairs)
+  addsimps [
         all_conj_distrib, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)
         imp_conjL RS sym, (* "(D :- G1 :- G2) = (D :- G1 & G2)" *)
         imp_conjR,        (* "(D1 & D2 :- G) = ((D1 :- G) & (D2 :- G))" *)

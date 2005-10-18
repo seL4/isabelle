@@ -490,8 +490,9 @@ fun norm_term thy t =
 	val sg = sign_of thy
 
 	val norms = ShuffleData.get thy
-	val ss = empty_ss setmksimps single
-			  addsimps (map (Thm.transfer sg) norms)
+	val ss = Simplifier.theory_context thy empty_ss
+          setmksimps single
+	  addsimps (map (Thm.transfer sg) norms)
 	fun chain f th =
 	    let
                 val rhs = snd (dest_equals (cprop_of th))

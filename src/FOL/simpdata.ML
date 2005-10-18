@@ -330,7 +330,8 @@ fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
                                  eq_assume_tac, ematch_tac [FalseE]];
 
 (*No simprules, but basic infastructure for simplification*)
-val FOL_basic_ss = empty_ss
+val FOL_basic_ss =
+  Simplifier.theory_context (the_context ()) empty_ss
   setsubgoaler asm_simp_tac
   setSSolver (mk_solver "FOL safe" safe_solver)
   setSolver (mk_solver "FOL unsafe" unsafe_solver)

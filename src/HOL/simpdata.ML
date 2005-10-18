@@ -341,7 +341,8 @@ fun safe_solver_tac prems =
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
 val HOL_basic_ss =
-  empty_ss setsubgoaler asm_simp_tac
+  Simplifier.theory_context (the_context ()) empty_ss
+    setsubgoaler asm_simp_tac
     setSSolver safe_solver
     setSolver unsafe_solver
     setmksimps (mksimps mksimps_pairs)
@@ -460,14 +461,13 @@ val HOL_css = (HOL_cs, HOL_ss);
 *)
 
 local
-  val nnf_simps =
-        [imp_conv_disj,iff_conv_conj_imp,de_Morgan_disj,de_Morgan_conj,
-         not_all,not_ex,not_not];
   val nnf_simpset =
-        empty_ss setmkeqTrue mk_eq_True
-                 setmksimps (mksimps mksimps_pairs)
-                 addsimps nnf_simps;
-  val prem_nnf_tac = full_simp_tac nnf_simpset
+    empty_ss setmkeqTrue mk_eq_True
+    setmksimps (mksimps mksimps_pairs)
+    addsimps [imp_conv_disj,iff_conv_conj_imp,de_Morgan_disj,de_Morgan_conj,
+      not_all,not_ex,not_not];
+  fun prem_nnf_tac i st =
+    full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st;
 in
 fun refute_tac test prep_tac ref_tac =
   let val refute_prems_tac =

@@ -317,7 +317,7 @@ val get_sel_upd = #sel_upd o RecordsData.get;
 
 val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
-val get_simpset = #simpset o get_sel_upd;
+fun get_simpset thy = Simplifier.theory_context thy (#simpset (get_sel_upd thy));
 
 fun put_sel_upd names simps thy =
   let
@@ -1119,8 +1119,6 @@ in
 fun record_split_simp_tac thms P i st =
   let
     val sg = Thm.sign_of_thm st;
-    val {sel_upd={simpset,...},...}
-            = RecordsData.get sg;
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
@@ -1158,7 +1156,7 @@ fun record_split_simp_tac thms P i st =
     val simprocs = if has_rec goal then [record_split_simproc P] else [];
 
   in st |> ((EVERY split_frees_tacs)
-           THEN (Simplifier.full_simp_tac (simpset addsimps thms addsimprocs simprocs) i))
+           THEN (Simplifier.full_simp_tac (get_simpset sg addsimps thms addsimprocs simprocs) i))
   end handle Empty => Seq.empty;
 end;
 
