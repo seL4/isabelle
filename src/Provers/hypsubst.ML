@@ -33,7 +33,6 @@ by (blast_hyp_subst_tac (ref true) 1);
 
 signature HYPSUBST_DATA =
   sig
-  structure Simplifier : SIMPLIFIER
   val dest_Trueprop    : term -> term
   val dest_eq          : term -> term*term*typ
   val dest_imp         : term -> term*term
@@ -69,7 +68,7 @@ struct
 
 exception EQ_VAR;
 
-fun loose (i,t) = 0 mem_int add_loose_bnos(t,i,[]);
+fun loose (i,t) = member (op =) (add_loose_bnos (t, i, [])) 0;
 
 (*Simplifier turns Bound variables to special Free variables:
   change it back (any Bound variable will do)*)
@@ -132,18 +131,20 @@ fun mk_eqs bnd th =
       else symmetric(th RS Data.eq_reflection) (*reorient*) ]
     handle _ => [];  (*Exception comes from inspect_pair or dest_eq*)
 
-local open Simplifier
+local
 in
 
   (*Select a suitable equality assumption; substitute throughout the subgoal
     If bnd is true, then it replaces Bound variables only. *)
   fun gen_hyp_subst_tac bnd =
-    let val tac = SUBGOAL (fn (Bi, i) =>
-      let val (k, _) = eq_var bnd true Bi
-          val hyp_subst_ss = empty_ss setmksimps (mk_eqs bnd)
+    let fun tac i st = SUBGOAL (fn (Bi, _) =>
+      let
+        val (k, _) = eq_var bnd true Bi
+        val hyp_subst_ss = Simplifier.theory_context (Thm.theory_of_thm st) empty_ss
+          setmksimps (mk_eqs bnd)
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
         etac thin_rl i, rotate_tac (~k) i]
-      end handle THM _ => no_tac | EQ_VAR => no_tac)
+      end handle THM _ => no_tac | EQ_VAR => no_tac) i st
     in REPEAT_DETERM1 o tac end;
 
 end;
