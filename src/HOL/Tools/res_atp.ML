@@ -65,9 +65,9 @@ fun writeln_strs _   []      = ()
   | writeln_strs out (s::ss) = (TextIO.output (out, s); TextIO.output (out, "\n"); writeln_strs out ss);
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
-fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
+fun tptp_inputs_tfrees ths pf n (axclauses,classrel_clauses,arity_clauses) =
   let
-    val clss = ResClause.make_conjecture_clauses thms
+    val clss = ResClause.make_conjecture_clauses (map prop_of ths)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
     val tfree_clss = map ResClause.tfree_clause (foldl (op union_string) [] tfree_litss)
     val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
@@ -80,8 +80,8 @@ fun tptp_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
   end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
-fun dfg_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) = 
-    let val clss = ResClause.make_conjecture_clauses thms
+fun dfg_inputs_tfrees ths pf n (axclauses,classrel_clauses,arity_clauses) = 
+    let val clss = ResClause.make_conjecture_clauses (map prop_of ths)
         (*FIXME: classrel_clauses and arity_clauses*)
         val probN = ResClause.clauses2dfg clss (!problem_name ^ "_" ^ Int.toString n)
                         axclauses [] [] []    
@@ -91,10 +91,7 @@ fun dfg_inputs_tfrees thms pf n (axclauses,classrel_clauses,arity_clauses) =
     end;
 
 
-(*********************************************************************)
 (* call prover with settings and problem file for the current subgoal *)
-(*********************************************************************)
-(* now passing in list of skolemized thms and list of sgterms to go with them *)
 fun watcher_call_provers sign sg_terms (childin, childout, pid) =
   let
     fun make_atp_list [] n = []

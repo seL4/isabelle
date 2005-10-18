@@ -21,7 +21,7 @@ signature RES_CLAUSE =
   type clause
   val init : theory -> unit
   val make_axiom_clause : Term.term -> string * int -> clause
-  val make_conjecture_clauses : thm list -> clause list
+  val make_conjecture_clauses : term list -> clause list
   val get_axiomName : clause ->  string
   val isTaut : clause -> bool
   val num_of_clauses : clause -> int
@@ -401,7 +401,7 @@ fun pred_of (Const("op =", typ), args) =
 	  val (ts2,ffuncs) = ListPair.unzip ts_funcs
 	  val ts3 = union_all (ts1::ts2)
 	  val ffuncs' = union_all ffuncs
-	  val newfuncs = distinct (pfuncs@ffuncs')
+	  val newfuncs = pfuncs union ffuncs'
 	  val arity = 
 	    case pred of
 		Const (c,_) => 
@@ -423,25 +423,21 @@ fun predicate_of ((Const("Not",_) $ P), polarity, tag) =
   | predicate_of (term,polarity,tag) =
         (pred_of (strip_comb term), polarity, tag);
 
-fun literals_of_term ((Const("Trueprop",_) $ P),lits_ts, preds, funcs) =    
-      literals_of_term(P,lits_ts, preds, funcs)
-  | literals_of_term ((Const("op |",_) $ P $ Q),(lits,ts), preds,funcs) = 
-      let val (lits',ts', preds', funcs') = 
-            literals_of_term(P,(lits,ts), preds,funcs)
+fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
+  | literals_of_term1 (args as (lits, ts, preds, funcs)) (Const("op |",_) $ P $ Q) = 
+      let val (lits', ts', preds', funcs') = literals_of_term1 args P
       in
-	  literals_of_term(Q, (lits',ts'), distinct(preds'@preds), 
-	                   distinct(funcs'@funcs))
+	  literals_of_term1 (lits', ts', preds' union preds, funcs' union funcs) Q
       end
-  | literals_of_term (P,(lits,ts), preds, funcs) = 
-      let val ((pred,ts', preds', funcs'), pol, tag) = 
-              predicate_of (P,true,false)
+  | literals_of_term1 (lits, ts, preds, funcs) P =
+      let val ((pred, ts', preds', funcs'), pol, tag) = predicate_of (P,true,false)
 	  val lits' = Literal(pol,pred,tag) :: lits
       in
-	  (lits', ts union ts', distinct(preds'@preds), distinct(funcs'@funcs))
+	  (lits', ts union ts', preds' union preds, funcs' union funcs)
       end;
 
 
-fun literals_of_thm thm = literals_of_term (prop_of thm, ([],[]), [], []);
+val literals_of_term = literals_of_term1 ([],[],[],[]);
 
 
 (* FIX: not sure what to do with these funcs *)
@@ -495,16 +491,15 @@ fun add_typs (Clause cls) preds  = add_typs_aux (#types_sorts cls) preds
 fun get_tvar_strs [] = []
   | get_tvar_strs ((FOLTVar indx,s)::tss) = 
       let val vstr = make_schematic_type_var indx
-          val vstrs = get_tvar_strs tss
       in
-	  (distinct( vstr:: vstrs))
+	  vstr ins (get_tvar_strs tss)
       end
   | get_tvar_strs((FOLTFree x,s)::tss) = distinct (get_tvar_strs tss)
 
 (* FIX add preds and funcs to add typs aux here *)
 
 fun make_axiom_clause_thm thm (ax_name,cls_id) =
-    let val (lits,types_sorts, preds, funcs) = literals_of_thm thm
+    let val (lits,types_sorts, preds, funcs) = literals_of_term (prop_of thm)
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
         val tvars = get_tvar_strs types_sorts
     in 
@@ -515,8 +510,8 @@ fun make_axiom_clause_thm thm (ax_name,cls_id) =
 
 
 
-fun make_conjecture_clause n thm =
-    let val (lits,types_sorts, preds, funcs) = literals_of_thm thm
+fun make_conjecture_clause n t =
+    let val (lits,types_sorts, preds, funcs) = literals_of_term t
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
         val tvars = get_tvar_strs types_sorts
     in
@@ -526,14 +521,14 @@ fun make_conjecture_clause n thm =
     end;
     
 fun make_conjecture_clauses_aux _ [] = []
-  | make_conjecture_clauses_aux n (th::ths) =
-      make_conjecture_clause n th :: make_conjecture_clauses_aux (n+1) ths
+  | make_conjecture_clauses_aux n (t::ts) =
+      make_conjecture_clause n t :: make_conjecture_clauses_aux (n+1) ts
 
 val make_conjecture_clauses = make_conjecture_clauses_aux 0
 
 
 fun make_axiom_clause term (ax_name,cls_id) =
-    let val (lits,types_sorts, preds,funcs) = literals_of_term (term,([],[]), [],[])
+    let val (lits,types_sorts, preds,funcs) = literals_of_term term
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds
         val tvars = get_tvar_strs types_sorts	
     in 
@@ -900,8 +895,8 @@ fun clauses2dfg [] probname axioms conjectures funcs preds =
 	 val ax_name = get_axiomName cls
 	 val vars = dfg_vars cls
 	 val tvars = dfg_tvars cls
-	 val funcs' = distinct((funcs_of_cls cls)@funcs)
-	 val preds' = distinct((preds_of_cls cls)@preds)
+	 val funcs' = (funcs_of_cls cls) union funcs
+	 val preds' = (preds_of_cls cls) union preds
 	 val knd = string_of_kind cls
 	 val lits_str = concat_with ", " lits
 	 val axioms' = if knd = "axiom" then (cls::axioms) else axioms
