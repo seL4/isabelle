@@ -160,7 +160,10 @@ val undo_theory = Toplevel.history (fn hist =>
 
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
 val kill = Toplevel.kill o kill_proof;
-val back = Toplevel.proof ProofHistory.back;
+
+val back =
+  Toplevel.actual_proof ProofHistory.back o
+  Toplevel.skip_proof (History.apply I);
 
 
 (* use ML text *)
@@ -372,8 +375,7 @@ fun present_text proof present loc (s, pos) = Toplevel.keep' (fn int => fn state
   raise Toplevel.UNDEF));
 
 fun theory f (loc, txt) = enter_locale loc o present_text false f loc txt;
-fun proof f txt =
-  Toplevel.print o Toplevel.proof (ProofHistory.apply I) o present_text true f NONE txt;
+fun proof f txt = Toplevel.print o Toplevel.proof I o present_text true f NONE txt;
 
 in
 
