@@ -71,15 +71,17 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> theory * Proof.context) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
-  val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
-  val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
+  val proof: (Proof.state -> Proof.state) -> transition -> transition
+  val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
+  val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
+  val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val skip_proof: (int History.T -> int History.T) -> transition -> transition
-  val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
-  val proof_to_theory': (bool -> ProofHistory.T -> theory) -> transition -> transition
-  val proof_to_theory_context: (bool -> ProofHistory.T -> theory * Proof.context)
+  val proof_to_theory: (Proof.state -> theory) -> transition -> transition
+  val proof_to_theory': (bool -> Proof.state -> theory) -> transition -> transition
+  val proof_to_theory_context: (bool -> Proof.state -> theory * Proof.context)
     -> transition -> transition
-  val skip_proof_to_theory: (int History.T -> bool) -> transition -> transition
+  val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
@@ -446,11 +448,13 @@ fun theory_to_proof f = app_current (fn int =>
       end
     | _ => raise UNDEF));
 
-fun proof' f = map_current (fn int =>
-  (fn Proof prf => Proof (f int prf)
-    | SkipProof (h, thy) => SkipProof (History.apply I h, thy)   (*approximate f*)
+fun proofs' f = map_current (fn int =>
+  (fn Proof prf => Proof (ProofHistory.applys (f int) prf)
+    | SkipProof (h, thy) => SkipProof (History.apply I h, thy)
     | _ => raise UNDEF));
 
+fun proof' f = proofs' (Seq.single oo f);
+val proofs = proofs' o K;
 val proof = proof' o K;
 
 fun actual_proof f = map_current (fn _ =>
@@ -459,8 +463,8 @@ fun actual_proof f = map_current (fn _ =>
 fun skip_proof f = map_current (fn _ =>
   (fn SkipProof (h, thy) => SkipProof (f h, thy) | _ => raise UNDEF));
 
-fun end_proof f =
-  map_current (fn int => (fn Proof prf => Theory (f int prf)
+fun end_proof f = map_current (fn int =>
+  (fn Proof prf => Theory (f int (ProofHistory.current prf))
     | SkipProof (h, thy) => if History.current h = 0 then Theory (thy, NONE) else raise UNDEF
     | _ => raise UNDEF));
 
@@ -469,7 +473,10 @@ fun proof_to_theory f = proof_to_theory' (K f);
 fun proof_to_theory_context f = end_proof (apsnd SOME oo f);
 
 fun skip_proof_to_theory p = map_current (fn _ =>
-  (fn SkipProof (h, thy) => if p h then Theory (thy, NONE) else raise UNDEF | _ => raise UNDEF));
+  (fn SkipProof (h, thy) =>
+    if p (History.current h) then Theory (thy, NONE)
+    else raise UNDEF
+  | _ => raise UNDEF));
 
 val unknown_theory = imperative (fn () => warning "Unknown theory context");
 val unknown_proof = imperative (fn () => warning "Unknown proof context");
