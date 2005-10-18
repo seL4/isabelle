@@ -485,7 +485,7 @@ fun conclude_goal state props goal =
     conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
         cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
     conditional (exists (not o Pattern.matches thy) (props ~~ map Thm.prop_of ths)) (fn () =>
-      err ("Proved a different theorem: " ^ Pretty.string_of (ProofContext.pretty_thm ctxt th)));
+      err ("Proved a different theorem:\n" ^ ProofContext.string_of_thm ctxt th));
     ths
   end;
 
