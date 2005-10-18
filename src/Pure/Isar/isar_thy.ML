@@ -121,12 +121,12 @@ end;
 
 (* local endings *)
 
-fun local_qed m = Toplevel.proof (ProofHistory.applys (Proof.local_qed (m, true)));
-val local_terminal_proof = Toplevel.proof o ProofHistory.applys o Proof.local_terminal_proof;
-val local_default_proof = Toplevel.proof (ProofHistory.applys Proof.local_default_proof);
-val local_immediate_proof = Toplevel.proof (ProofHistory.applys Proof.local_immediate_proof);
-val local_done_proof = Toplevel.proof (ProofHistory.applys Proof.local_done_proof);
-val local_skip_proof = Toplevel.proof' (ProofHistory.applys o Proof.local_skip_proof);
+fun local_qed m = Toplevel.proofs (Proof.local_qed (m, true));
+val local_terminal_proof = Toplevel.proofs o Proof.local_terminal_proof;
+val local_default_proof = Toplevel.proofs Proof.local_default_proof;
+val local_immediate_proof = Toplevel.proofs Proof.local_immediate_proof;
+val local_done_proof = Toplevel.proofs Proof.local_done_proof;
+val local_skip_proof = Toplevel.proofs' Proof.local_skip_proof;
 
 val skip_local_qed =
   Toplevel.skip_proof (History.apply (fn i => if i > 1 then i - 1 else raise Toplevel.UNDEF));
@@ -134,11 +134,9 @@ val skip_local_qed =
 
 (* global endings *)
 
-fun global_ending ending = Toplevel.proof_to_theory_context (fn int => fn prf =>
-  let
-    val state = ProofHistory.current prf;
-    val _ = Proof.assert_bottom true state handle Proof.STATE _ => raise Toplevel.UNDEF;
-  in ending int state end);
+fun global_ending ending = Toplevel.proof_to_theory_context (fn int => fn state =>
+ (Proof.assert_bottom true state handle Proof.STATE _ => raise Toplevel.UNDEF;
+  ending int state));
 
 fun global_qed m = global_ending (K (Proof.global_qed (m, true)));
 val global_terminal_proof = global_ending o K o Proof.global_terminal_proof;
@@ -147,7 +145,7 @@ val global_immediate_proof = global_ending (K Proof.global_immediate_proof);
 val global_skip_proof = global_ending Proof.global_skip_proof;
 val global_done_proof = global_ending (K Proof.global_done_proof);
 
-val skip_global_qed = Toplevel.skip_proof_to_theory (equal 1 o History.current);
+val skip_global_qed = Toplevel.skip_proof_to_theory (equal 1);
 
 
 (* common endings *)
@@ -160,7 +158,7 @@ val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
 
 val forget_proof =
-  Toplevel.proof_to_theory (Proof.theory_of o ProofHistory.current) o
+  Toplevel.proof_to_theory Proof.theory_of o
   Toplevel.skip_proof_to_theory (K true);
 
 
