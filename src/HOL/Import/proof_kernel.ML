@@ -385,27 +385,27 @@ fun mk_defeq name rhs thy =
     let
 	val ty = type_of rhs
     in
-	Logic.mk_equals (Const(Sign.intern_const (sign_of thy) name,ty),rhs)
+	Logic.mk_equals (Const(Sign.intern_const thy name,ty),rhs)
     end
 
 fun mk_teq name rhs thy =
     let
 	val ty = type_of rhs
     in
-	HOLogic.mk_eq (Const(Sign.intern_const (sign_of thy) name,ty),rhs)
+	HOLogic.mk_eq (Const(Sign.intern_const thy name,ty),rhs)
     end
 
 fun intern_const_name thyname const thy =
     case get_hol4_const_mapping thyname const thy of
 	SOME (_,cname,_) => cname
       | NONE => (case get_hol4_const_renaming thyname const thy of
-		     SOME cname => Sign.intern_const (sign_of thy) (thyname ^ "." ^ cname)
-		   | NONE => Sign.intern_const (sign_of thy) (thyname ^ "." ^ const))
+		     SOME cname => Sign.intern_const thy (thyname ^ "." ^ cname)
+		   | NONE => Sign.intern_const thy (thyname ^ "." ^ const))
 
 fun intern_type_name thyname const thy =
     case get_hol4_type_mapping thyname const thy of
 	SOME (_,cname) => cname
-      | NONE => Sign.intern_const (sign_of thy) (thyname ^ "." ^ const)
+      | NONE => Sign.intern_const thy (thyname ^ "." ^ const)
 
 fun mk_vartype name = TFree(name,["HOL.type"])
 fun mk_thy_type thy Thy Tyop Args = Type(intern_type_name Thy Tyop thy,Args)
@@ -418,23 +418,19 @@ fun dom_rng (Type("fun",[dom,rng])) = (dom,rng)
 fun mk_thy_const thy Thy Nam Ty = Const(intern_const_name Thy Nam thy,Ty)
 
 local 
-    (* fun get_const sg thyname name = 
-       (case term_of (read_cterm sg (name, TypeInfer.logicT)) of
-          c as Const _ => c)
-       handle _ => raise ERR "get_type" (name ^ ": No such constant")*)
-      fun get_const sg thyname name = 
-       (case Sign.const_type sg name of
-          SOME ty => Const (name, ty)
-        | NONE => raise ERR "get_type" (name ^ ": No such constant"))
+  fun get_const sg thyname name = 
+    (case Sign.const_type sg name of
+      SOME ty => Const (name, ty)
+    | NONE => raise ERR "get_type" (name ^ ": No such constant"))
 in
 fun prim_mk_const thy Thy Nam =
     let
-	val name = intern_const_name Thy Nam thy
-	val cmaps = HOL4ConstMaps.get thy
+      val name = intern_const_name Thy Nam thy
+      val cmaps = HOL4ConstMaps.get thy
     in
-	case StringPair.lookup cmaps (Thy,Nam) of
-	    SOME(_,_,SOME ty) => Const(name,ty)
-	  | _ => get_const (sign_of thy) Thy name
+      case StringPair.lookup cmaps (Thy,Nam) of
+        SOME(_,_,SOME ty) => Const(name,ty)
+      | _ => get_const thy Thy name
     end
 end
 
@@ -985,8 +981,8 @@ val disj2_thm = thm "disjI2"
 
 local
     val th = thm "not_def"
-    val sg = sign_of_thm th
-    val pp = reflexive (cterm_of sg (Const("Trueprop",boolT-->propT)))
+    val thy = theory_of_thm th
+    val pp = reflexive (cterm_of thy (Const("Trueprop",boolT-->propT)))
 in
 val not_elim_thm = combination pp th
 end
@@ -1231,18 +1227,15 @@ fun split_name str =
 
 fun rewrite_hol4_term t thy =
     let
-	val sg = sign_of thy
-
-	val hol4rews1 = map (Thm.transfer sg) (HOL4Rewrites.get thy)
-	val hol4ss = empty_ss setmksimps single addsimps hol4rews1
+	val hol4rews1 = map (Thm.transfer thy) (HOL4Rewrites.get thy)
+	val hol4ss = Simplifier.theory_context thy empty_ss
+          setmksimps single addsimps hol4rews1
     in
-	Thm.transfer sg (Simplifier.full_rewrite hol4ss (cterm_of sg t))
+	Thm.transfer thy (Simplifier.full_rewrite hol4ss (cterm_of thy t))
     end
 
 fun get_isabelle_thm thyname thmname hol4conc thy =
     let
-	val sg = sign_of thy
-
 	val (info,hol4conc') = disamb_term hol4conc
 	val i2h_conc = symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
 	val isaconc =
@@ -1303,7 +1296,6 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
     val (a, b) = get_isabelle_thm thyname thmname hol4conc thy
     fun warn () =
         let
-            val sg = sign_of thy		     
 	    val (info,hol4conc') = disamb_term hol4conc
 	    val i2h_conc = symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
 	in
@@ -1352,8 +1344,7 @@ fun get_axiom thyname axname thy =
 
 fun intern_store_thm gen_output thyname thmname hth thy =
     let
-	val sg = sign_of thy
-	val (hth' as HOLThm (args as (_,th))) = norm_hthm sg hth
+	val (hth' as HOLThm (args as (_,th))) = norm_hthm thy hth
 	val rew = rewrite_hol4_term (concl_of th) thy
 	val th  = equal_elim rew th
 	val thy' = add_hol4_pending thyname thmname args thy
@@ -1380,8 +1371,7 @@ fun REFL tm thy =
     let
 	val _ = message "REFL:"
 	val (info,tm') = disamb_term tm
-	val sg = sign_of thy
-	val ctm = Thm.cterm_of sg tm'
+	val ctm = Thm.cterm_of thy tm'
 	val res = HOLThm(rens_of info,mk_REFL ctm)
 	val _ = if_debug pth res
     in
@@ -1392,8 +1382,7 @@ fun ASSUME tm thy =
     let
 	val _ = message "ASSUME:"
 	val (info,tm') = disamb_term tm
-	val sg = sign_of thy
-	val ctm = Thm.cterm_of sg (HOLogic.mk_Trueprop tm')
+	val ctm = Thm.cterm_of thy (HOLogic.mk_Trueprop tm')
 	val th = Thm.trivial ctm
 	val res = HOLThm(rens_of info,th)
 	val _ = if_debug pth res
@@ -1405,19 +1394,18 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
     let
 	val _ = message "INST_TYPE:"
 	val _ = if_debug pth hth
-	val sg = sign_of thy
 	val tys_before = add_term_tfrees (prop_of th,[])
 	val th1 = varifyT th
 	val tys_after = add_term_tvars (prop_of th1,[])
 	val tyinst = map (fn (bef, iS) =>
 			     (case try (Lib.assoc (TFree bef)) lambda of
-				  SOME ty => (ctyp_of sg (TVar iS), ctyp_of sg ty)
-				| NONE => (ctyp_of sg (TVar iS), ctyp_of sg (TFree bef))
+				  SOME ty => (ctyp_of thy (TVar iS), ctyp_of thy ty)
+				| NONE => (ctyp_of thy (TVar iS), ctyp_of thy (TFree bef))
 			     ))
 			 (zip tys_before tys_after)
 	val res = Drule.instantiate (tyinst,[]) th1
 	val hth = HOLThm([],res)
-	val res = norm_hthm sg hth
+	val res = norm_hthm thy hth
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
     in
@@ -1429,10 +1417,9 @@ fun INST sigma hth thy =
 	val _ = message "INST:"
 	val _ = if_debug (app (fn (x,y) => (prin x; prin y))) sigma
 	val _ = if_debug pth hth
-	val sg = sign_of thy
 	val (sdom,srng) = ListPair.unzip (rev sigma)
 	val th = hthm2thm hth
-	val th1 = mk_INST (map (cterm_of sg) sdom) (map (cterm_of sg) srng) th
+	val th1 = mk_INST (map (cterm_of thy) sdom) (map (cterm_of thy) srng) th
 	val res = HOLThm([],th1)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1466,7 +1453,7 @@ fun EQ_MP hth1 hth2 thy =
 	(thy,res)
     end
 
-fun mk_COMB th1 th2 sg =
+fun mk_COMB th1 th2 thy =
     let
 	val (f,g) = case concl_of th1 of
 			_ $ (Const("op =",_) $ f $ g) => (f,g)
@@ -1477,9 +1464,9 @@ fun mk_COMB th1 th2 sg =
 	val fty = type_of f
 	val (fd,fr) = dom_rng fty
 	val comb_thm' = Drule.instantiate'
-			    [SOME (ctyp_of sg fd),SOME (ctyp_of sg fr)]
-			    [SOME (cterm_of sg f),SOME (cterm_of sg g),
-			     SOME (cterm_of sg x),SOME (cterm_of sg y)] comb_thm
+			    [SOME (ctyp_of thy fd),SOME (ctyp_of thy fr)]
+			    [SOME (cterm_of thy f),SOME (cterm_of thy g),
+			     SOME (cterm_of thy x),SOME (cterm_of thy y)] comb_thm
     in
 	[th1,th2] MRS comb_thm'
     end
@@ -1494,10 +1481,9 @@ fun SUBST rews ctxt hth thy =
 	val (info1,ctxt') = disamb_term_from info ctxt
 	val (info2,rews') = disamb_thms_from info1 rews
 
-	val sg = sign_of thy
-	val cctxt = cterm_of sg ctxt'
+	val cctxt = cterm_of thy ctxt'
 	fun subst th [] = th
-	  | subst th (rew::rews) = subst (mk_COMB th rew sg) rews
+	  | subst th (rew::rews) = subst (mk_COMB th rew thy) rews
 	val res = HOLThm(rens_of info2,mk_EQ_MP (subst (mk_REFL cctxt) rews') th)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1512,14 +1498,13 @@ fun DISJ_CASES hth hth1 hth2 thy =
 	val (info,th) = disamb_thm hth
 	val (info1,th1) = disamb_thm_from info hth1
 	val (info2,th2) = disamb_thm_from info1 hth2
-	val sg = sign_of thy
 	val th1 = norm_hyps th1
 	val th2 = norm_hyps th2
 	val (l,r) = case concl_of th of
 			_ $ (Const("op |",_) $ l $ r) => (l,r)
 		      | _ => raise ERR "DISJ_CASES" "Conclusion not a disjunction"
-	val th1' = rearrange sg (HOLogic.mk_Trueprop l) th1
-	val th2' = rearrange sg (HOLogic.mk_Trueprop r) th2
+	val th1' = rearrange thy (HOLogic.mk_Trueprop l) th1
+	val th2' = rearrange thy (HOLogic.mk_Trueprop r) th2
 	val res1 = th RS disj_cases_thm
 	val res2 = uniq_compose ((nprems_of th1')-1) th1' ((nprems_of th)+1) res1
 	val res3 = uniq_compose ((nprems_of th2')-1) th2' (nprems_of res2) res2
@@ -1537,8 +1522,7 @@ fun DISJ1 hth tm thy =
 	val _ = if_debug prin tm
 	val (info,th) = disamb_thm hth
 	val (info',tm') = disamb_term_from info tm
-	val sg = sign_of thy
-	val ct = Thm.cterm_of sg tm'
+	val ct = Thm.cterm_of thy tm'
 	val disj1_thm' = Drule.instantiate' [] [NONE,SOME ct] disj1_thm
 	val res = HOLThm(rens_of info',th RS disj1_thm')
 	val _ = message "RESULT:"
@@ -1554,8 +1538,7 @@ fun DISJ2 tm hth thy =
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
 	val (info',tm') = disamb_term_from info tm
-	val sg = sign_of thy
-	val ct = Thm.cterm_of sg tm'
+	val ct = Thm.cterm_of thy tm'
 	val disj2_thm' = Drule.instantiate' [] [NONE,SOME ct] disj2_thm
 	val res = HOLThm(rens_of info',th RS disj2_thm')
 	val _ = message "RESULT:"
@@ -1648,13 +1631,12 @@ fun EXISTS ex wit hth thy =
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
 	val (info',[ex',wit']) = disamb_terms_from info [ex,wit]
-	val sg = sign_of thy
-	val cwit = cterm_of sg wit'
+	val cwit = cterm_of thy wit'
 	val cty = ctyp_of_term cwit
 	val a = case ex' of
 		    (Const("Ex",_) $ a) => a
 		  | _ => raise ERR "EXISTS" "Argument not existential"
-	val ca = cterm_of sg a
+	val ca = cterm_of thy a
 	val exists_thm' = beta_eta_thm (Drule.instantiate' [SOME cty] [SOME ca,SOME cwit] exists_thm)
 	val th1 = beta_eta_thm th
 	val th2 = implies_elim_all th1
@@ -1679,18 +1661,17 @@ fun CHOOSE v hth1 hth2 thy =
 	  | strip n (p::ps) th =
 	    strip (n-1) ps (implies_elim th (assume p))
 	  | strip _ _ _ = raise ERR "CHOOSE" "strip error"
-	val sg = sign_of thy
-	val cv = cterm_of sg v'
+	val cv = cterm_of thy v'
 	val th2 = norm_hyps th2
 	val cvty = ctyp_of_term cv
 	val c = HOLogic.dest_Trueprop (concl_of th2)
-	val cc = cterm_of sg c
+	val cc = cterm_of thy c
 	val a = case concl_of th1 of
 		    _ $ (Const("Ex",_) $ a) => a
 		  | _ => raise ERR "CHOOSE" "Conclusion not existential"
-	val ca = cterm_of (sign_of_thm th1) a
+	val ca = cterm_of (theory_of_thm th1) a
 	val choose_thm' = beta_eta_thm (Drule.instantiate' [SOME cvty] [SOME ca,SOME cc] choose_thm)
-	val th21 = rearrange sg (HOLogic.mk_Trueprop (a $ v')) th2
+	val th21 = rearrange thy (HOLogic.mk_Trueprop (a $ v')) th2
 	val th22 = strip ((nprems_of th21)-1) (cprems_of th21) th21
 	val th23 = beta_eta_thm (forall_intr cv th22)
 	val th11 = implies_elim_all (beta_eta_thm th1)
@@ -1710,7 +1691,7 @@ fun GEN v hth thy =
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
 	val (info',v') = disamb_term_from info v
-	val res = HOLThm(rens_of info',mk_GEN v' th (sign_of thy))
+	val res = HOLThm(rens_of info',mk_GEN v' th thy)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
     in
@@ -1724,8 +1705,7 @@ fun SPEC tm hth thy =
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
 	val (info',tm') = disamb_term_from info tm
-	val sg = sign_of thy
-	val ctm = Thm.cterm_of sg tm'
+	val ctm = Thm.cterm_of thy tm'
 	val cty = Thm.ctyp_of_term ctm
 	val spec' = Drule.instantiate' [SOME cty] [NONE,SOME ctm] spec_thm
 	val th = th RS spec'
@@ -1742,8 +1722,7 @@ fun COMB hth1 hth2 thy =
 	val _ = if_debug pth hth1
 	val _ = if_debug pth hth2
 	val (info,[th1,th2]) = disamb_thms [hth1,hth2]
-	val sg = sign_of thy
-	val res = HOLThm(rens_of info,mk_COMB th1 th2 sg)
+	val res = HOLThm(rens_of info,mk_COMB th1 th2 thy)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
     in
@@ -1773,9 +1752,8 @@ fun CCONTR tm hth thy =
 	val (info,th) = disamb_thm hth
 	val (info',tm') = disamb_term_from info tm
 	val th = norm_hyps th
-	val sg = sign_of thy
-	val ct = cterm_of sg tm'
-	val th1 = rearrange sg (HOLogic.mk_Trueprop (Const("Not",boolT-->boolT) $ tm')) th
+	val ct = cterm_of thy tm'
+	val th1 = rearrange thy (HOLogic.mk_Trueprop (Const("Not",boolT-->boolT) $ tm')) th
 	val ccontr_thm' = Drule.instantiate' [] [SOME ct] ccontr_thm
 	val res1 = uniq_compose ((nprems_of th1) - 1) th1 1 ccontr_thm'
 	val res = HOLThm(rens_of info',res1)
@@ -1785,15 +1763,15 @@ fun CCONTR tm hth thy =
 	(thy,res)
     end
 
-fun mk_ABS v th sg =
+fun mk_ABS v th thy =
     let
-	val cv = cterm_of sg v
+	val cv = cterm_of thy v
 	val th1 = implies_elim_all (beta_eta_thm th)
 	val (f,g) = case concl_of th1 of
 			_ $ (Const("op =",_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
 		      | _ => raise ERR "mk_ABS" "Bad conclusion"
 	val (fd,fr) = dom_rng (type_of f)
-	val abs_thm' = Drule.instantiate' [SOME (ctyp_of sg fd), SOME (ctyp_of sg fr)] [SOME (cterm_of sg f), SOME (cterm_of sg g)] abs_thm
+	val abs_thm' = Drule.instantiate' [SOME (ctyp_of thy fd), SOME (ctyp_of thy fr)] [SOME (cterm_of thy f), SOME (cterm_of thy g)] abs_thm
 	val th2 = forall_intr cv th1
 	val th3 = th2 COMP abs_thm'
 	val res = implies_intr_hyps th3
@@ -1808,8 +1786,7 @@ fun ABS v hth thy =
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
 	val (info',v') = disamb_term_from info v
-	val sg = sign_of thy
-	val res = HOLThm(rens_of info',mk_ABS v' th sg)
+	val res = HOLThm(rens_of info',mk_ABS v' th thy)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
     in
@@ -1826,7 +1803,6 @@ fun GEN_ABS copt vlist hth thy =
 	val _ = if_debug pth hth
 	val (info,th) = disamb_thm hth
 	val (info',vlist') = disamb_terms_from info vlist
-	val sg = sign_of thy
 	val th1 =
 	    case copt of
 		SOME (c as Const(cname,cty)) =>
@@ -1843,14 +1819,14 @@ fun GEN_ABS copt vlist hth thy =
 				  val cdom = fst (dom_rng (fst (dom_rng cty)))
 				  val vty  = type_of v
 				  val newcty = inst_type cdom vty cty
-				  val cc = cterm_of sg (Const(cname,newcty))
+				  val cc = cterm_of thy (Const(cname,newcty))
 			      in
-				  mk_COMB (mk_REFL cc) (mk_ABS v th sg) sg
+				  mk_COMB (mk_REFL cc) (mk_ABS v th thy) thy
 			      end) th vlist'
 		end
 	      | SOME _ => raise ERR "GEN_ABS" "Bad constant"
 	      | NONE => 
-		foldr (fn (v,th) => mk_ABS v th sg) th vlist'
+		foldr (fn (v,th) => mk_ABS v th thy) th vlist'
 	val res = HOLThm(rens_of info',th1)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1862,12 +1838,11 @@ fun NOT_INTRO (hth as HOLThm(rens,th)) thy =
     let
 	val _ = message "NOT_INTRO:"
 	val _ = if_debug pth hth
-	val sg = sign_of thy
 	val th1 = implies_elim_all (beta_eta_thm th)
 	val a = case concl_of th1 of
 		    _ $ (Const("op -->",_) $ a $ Const("False",_)) => a
 		  | _ => raise ERR "NOT_INTRO" "Conclusion of bad form"
-	val ca = cterm_of sg a
+	val ca = cterm_of thy a
 	val th2 = equal_elim (Drule.instantiate' [] [SOME ca] not_intro_thm) th1
 	val res = HOLThm(rens,implies_intr_hyps th2)
 	val _ = message "RESULT:"
@@ -1880,12 +1855,11 @@ fun NOT_ELIM (hth as HOLThm(rens,th)) thy =
     let
 	val _ = message "NOT_INTRO:"
 	val _ = if_debug pth hth
-	val sg = sign_of thy
 	val th1 = implies_elim_all (beta_eta_thm th)
 	val a = case concl_of th1 of
 		    _ $ (Const("Not",_) $ a) => a
 		  | _ => raise ERR "NOT_ELIM" "Conclusion of bad form"
-	val ca = cterm_of sg a
+	val ca = cterm_of thy a
 	val th2 = equal_elim (Drule.instantiate' [] [SOME ca] not_elim_thm) th1
 	val res = HOLThm(rens,implies_intr_hyps th2)
 	val _ = message "RESULT:"
@@ -1902,10 +1876,9 @@ fun DISCH tm hth thy =
 	val (info,th) = disamb_thm hth
 	val (info',tm') = disamb_term_from info tm
 	val prems = prems_of th
-	val sg = sign_of thy
 	val th1 = beta_eta_thm th
 	val th2 = implies_elim_all th1
-	val th3 = implies_intr (cterm_of sg (HOLogic.mk_Trueprop tm')) th2
+	val th3 = implies_intr (cterm_of thy (HOLogic.mk_Trueprop tm')) th2
 	val th4 = th3 COMP disch_thm
 	val res = HOLThm(rens_of info',implies_intr_hyps th4)
 	val _ = message "RESULT:"
@@ -1919,8 +1892,7 @@ val spaces = String.concat o separate " "
 fun new_definition thyname constname rhs thy =
     let
 	val constname = rename_const thyname thy constname
-        val sg = sign_of thy
-        val redeclared = isSome (Sign.const_type sg (Sign.intern_const sg constname));
+        val redeclared = isSome (Sign.const_type thy (Sign.intern_const thy constname));
 	val _ = warning ("Introducing constant " ^ constname)
 	val (thmname,thy) = get_defname thyname constname thy
 	val (info,rhs') = disamb_term rhs
@@ -1934,24 +1906,23 @@ fun new_definition thyname constname rhs thy =
 	val def_thm = hd thms
 	val thm' = def_thm RS meta_eq_to_obj_eq_thm
 	val (thy',th) = (thy2, thm')
-	val fullcname = Sign.intern_const (sign_of thy') constname
+	val fullcname = Sign.intern_const thy' constname
 	val thy'' = add_hol4_const_mapping thyname constname true fullcname thy'
 	val (linfo,tm24) = disamb_term (mk_teq constname rhs' thy'')
-	val sg = sign_of thy''
 	val rew = rewrite_hol4_term eq thy''
-	val crhs = cterm_of sg (#2 (Logic.dest_equals (prop_of rew)))
+	val crhs = cterm_of thy'' (#2 (Logic.dest_equals (prop_of rew)))
 	val thy22 = if (def_name constname) = thmname andalso not redeclared andalso csyn = NoSyn
 		    then
-			add_dump ("constdefs\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of sg ctype) ^ "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n  " ^ (smart_string_of_cterm crhs)) thy''
+			add_dump ("constdefs\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^ "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n  " ^ (smart_string_of_cterm crhs)) thy''
 		    else
-			add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of sg ctype) ^
+			add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^
 				  "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
 				 thy''
 
 	val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
 		     SOME (_,res) => HOLThm(rens_of linfo,res)
 		   | NONE => raise ERR "new_definition" "Bad conclusion"
-	val fullname = Sign.full_name sg thmname
+	val fullname = Sign.full_name thy22 thmname
 	val thy22' = case opt_get_output_thy thy22 of
 			 "" => add_hol4_mapping thyname thmname fullname thy22
 		       | output_thy =>
@@ -1982,7 +1953,7 @@ fun new_specification thyname thmname names hth thy =
 	    val _ = if_debug pth hth
 	    val names = map (rename_const thyname thy) names
 	    val _ = warning ("Introducing constants " ^ (commafy names))
-	    val (HOLThm(rens,th)) = norm_hthm (sign_of thy) hth
+	    val (HOLThm(rens,th)) = norm_hthm thy hth
 	    val thy1 = case HOL4DefThy.get thy of
 			   Replaying _ => thy
 			 | _ =>
@@ -2006,9 +1977,8 @@ fun new_specification thyname thmname names hth thy =
 							  in
 							      ((cname,cT,mk_syn thy cname)::cs,p)
 							  end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
-			       val sg = sign_of thy
 			       val str = Library.foldl (fn (acc,(c,T,csyn)) =>
-						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of sg T) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
+						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
 			       val thy' = add_dump str thy
 			   in
 			       Theory.add_consts_i consts thy'
@@ -2055,7 +2025,7 @@ fun new_axiom name tm thy = raise ERR "new_axiom" ("Oh, no you don't! (" ^ name 
 				      
 fun to_isa_thm (hth as HOLThm(_,th)) =
     let
-	val (HOLThm args) = norm_hthm (sign_of_thm th) hth
+	val (HOLThm args) = norm_hthm (theory_of_thm th) hth
     in
 	apsnd strip_shyps args
     end
@@ -2076,7 +2046,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val _ = message "TYPE_DEF:"
 	    val _ = if_debug pth hth
 	    val _ = warning ("Introducing type " ^ tycname)
-	    val (HOLThm(rens,td_th)) = norm_hthm (sign_of thy) hth
+	    val (HOLThm(rens,td_th)) = norm_hthm thy hth
 	    val th2 = beta_eta_thm (td_th RS ex_imp_nonempty)
 	    val c = case concl_of th2 of
 			_ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
@@ -2089,18 +2059,16 @@ fun new_type_definition thyname thmname tycname hth thy =
 				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
 
-	    val fulltyname = Sign.intern_type (sign_of thy') tycname
+	    val fulltyname = Sign.intern_type thy' tycname
 	    val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
 
-	    val sg = sign_of thy''
-	    val (hth' as HOLThm args) = norm_hthm sg (HOLThm(rens,th3))
+	    val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th3))
 	    val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
 		    else ()
 	    val thy4 = add_hol4_pending thyname thmname args thy''
 
-	    val sg = sign_of thy4
 	    val rew = rewrite_hol4_term (concl_of td_th) thy4
-	    val th  = equal_elim rew (Thm.transfer sg td_th)
+	    val th  = equal_elim rew (Thm.transfer thy4 td_th)
 	    val c   = case HOLogic.dest_Trueprop (prop_of th) of
 			  Const("Ex",exT) $ P =>
 			  let
@@ -2115,7 +2083,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
-	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of sg c)) ^ " " 
+	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " 
 				 ^ (Syntax.string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
 	    
 	    val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hol4 [OF type_definition_" ^ tycname ^ "]") thy5
@@ -2162,13 +2130,12 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val _ = message "TYPE_INTRO:"
 	    val _ = if_debug pth hth
 	    val _ = warning ("Introducing type " ^ tycname ^ " (with morphisms " ^ abs_name ^ " and " ^ rep_name ^ ")")
-	    val (HOLThm(rens,td_th)) = norm_hthm (sign_of thy) hth
-	    val sg = sign_of thy
+	    val (HOLThm(rens,td_th)) = norm_hthm thy hth
 	    val tT = type_of t
 	    val light_nonempty' =
-		Drule.instantiate' [SOME (ctyp_of sg tT)]
-				   [SOME (cterm_of sg P),
-				    SOME (cterm_of sg t)] light_nonempty
+		Drule.instantiate' [SOME (ctyp_of thy tT)]
+				   [SOME (cterm_of thy P),
+				    SOME (cterm_of thy t)] light_nonempty
 	    val th2 = beta_eta_thm (td_th RS (beta_eta_thm light_nonempty'))
 	    val c = case concl_of th2 of
 			_ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
@@ -2178,7 +2145,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
 	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false NONE typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
-	    val fulltyname = Sign.intern_type (sign_of thy') tycname
+	    val fulltyname = Sign.intern_type thy' tycname
 	    val aty = Type (fulltyname, map mk_vartype tnames)
 	    val abs_ty = tT --> aty
 	    val rep_ty = aty --> tT
@@ -2193,11 +2160,9 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
             val _ = message "step 4"
-	    val sg = sign_of thy''
-	    val (hth' as HOLThm args) = norm_hthm sg (HOLThm(rens,th4))
+	    val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th4))
 	    val thy4 = add_hol4_pending thyname thmname args thy''
 	   
-	    val sg = sign_of thy4
 	    val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4))) *)
 	    val c   =
 		let
@@ -2213,11 +2178,11 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
 	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ 
-              " = " ^ (proc_prop (cterm_of sg c)) ^ " " ^ 
+              " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " ^ 
 	      (Syntax.string_of_mixfix tsyn) ^ " morphisms "^
               (quote rep_name)^" "^(quote abs_name)^"\n"^ 
 	      ("  apply (rule light_ex_imp_nonempty[where t="^
-              (proc_prop (cterm_of sg t))^"])\n"^              
+              (proc_prop (cterm_of thy4 t))^"])\n"^              
 	      ("  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")"))) thy4
 	    val str_aty = string_of_ctyp (ctyp_of thy aty)
             val thy = add_dump_syntax thy rep_name 
