@@ -13,9 +13,6 @@ writeln banner;
 
 reset eta_contract;
 
-(*syntax for old-style theory sections*)
-use "thy_syntax";
-
 with_path "Integ" use_thy "Main_ZFC";
 
 Goal "True";  (*leave subgoal package empty*)

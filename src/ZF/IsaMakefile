@@ -45,8 +45,7 @@ $(OUT)/ZF$(ML_SUFFIX): $(OUT)/FOL$(ML_SUFFIX) AC.thy Arith.thy \
   Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
   Trancl.thy Univ.thy \
   WF.thy ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy	\
-  ind_syntax.ML pair.thy simpdata.ML		\
-  thy_syntax.ML upair.thy
+  ind_syntax.ML pair.thy simpdata.ML upair.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF
 
 
