@@ -48,6 +48,19 @@ signature RES_CLAUSE =
   val const_prefix : string
   val tconst_prefix : string 
   val class_prefix : string 
+
+  val union_all : ''a list list -> ''a list
+  val ascii_of : String.string -> String.string
+  val paren_pack : string list -> string
+  val bracket_pack : string list -> string
+  val make_schematic_var : String.string * int -> string
+  val make_fixed_var : String.string -> string
+  val make_schematic_type_var : string * int -> string
+  val make_fixed_type_var : string -> string
+  val make_fixed_const : String.string -> string		
+  val make_fixed_type_const : String.string -> string   
+  val make_type_class : String.string -> string
+
   end;
 
 structure ResClause: RES_CLAUSE =
