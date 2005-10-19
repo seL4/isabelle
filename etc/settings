@@ -87,11 +87,6 @@ ISABELLE_EPSTOPDF="epstopdf"
 # The place for user configuration, heap files, etc.
 ISABELLE_HOME_USER=~/isabelle
 
-
-# The places for external proversetc.
-VAMPIRE_HOME=~/Vampire
-E_HOME=~/E
-
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 
@@ -217,3 +212,7 @@ HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 # Second option: use the open source glpk solver
 #LP_SOLVER=GLPK
 #GLPK_PATH=glpsol
+
+# External provers
+#VAMPIRE_HOME=/usr/local/Vampire
+#E_HOME=/usr/local/E
