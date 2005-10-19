@@ -14,6 +14,8 @@ sig
   val get_thm: theory -> thmref -> thm
   val get_thms: theory -> thmref -> thm list
   val get_thmss: theory -> thmref list -> thm list
+  val thm: xstring -> thm
+  val thms: xstring -> thm list
   structure ProtoPure:
     sig
       val thy: theory
@@ -236,6 +238,9 @@ fun get_thms theory thmref =
 
 fun get_thmss thy thmrefs = List.concat (map (get_thms thy) thmrefs);
 fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
+
+fun thm name = get_thm (the_context ()) (Name name);
+fun thms name = get_thms (the_context ()) (Name name);
 
 
 (* thms_containing etc. *)
