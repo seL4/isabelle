@@ -6,6 +6,19 @@ New in this Isabelle release
 
 *** General ***
 
+* Theory syntax: the header format ``theory A = B + C:'' has been
+discontinued in favour of ``theory A imports B C begin''.  Use isatool
+fixheaders to convert existing theory files.  INCOMPATIBILITY.
+
+* Theory syntax: the old non-Isar theory file format has been
+discontinued altogether.  Note that ML proof scripts may still be used
+with Isar theories; migration is usually quite simple with the ML
+function use_legacy_bindings.  INCOMPATIBILITY.
+
+* Legacy goal package: removed former user-level functions top_sg,
+prin, printyp, pprint_term/typ, which tend to cause confusion about
+the actual goal (!) context being used here.
+
 * Command 'find_theorems': support "*" wildcard in "name:" criterion.
 
 
