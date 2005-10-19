@@ -22,7 +22,6 @@ sig
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
-  val old_symbol_source: string -> (unit -> Symbol.symbol list) -> unit
   val theory_output: string -> string -> unit
   val begin_theory: Path.T option -> string -> string list ->
     (Path.T * bool) list -> theory -> theory
@@ -430,10 +429,6 @@ fun init_theory name = with_session () (fn _ => init_theory_info name empty_theo
 
 fun verbatim_source name mk_text =
   with_session () (fn _ => add_html_source name (HTML.verbatim_source (mk_text ())));
-
-fun old_symbol_source name mk_text =
-  with_session () (fn _ => add_tex_source name
-    (Latex.symbol_source (K true, K true) name (mk_text ())));
 
 fun theory_output name s =
   with_session () (fn _ => add_tex_source name (Latex.isabelle_file name s));
