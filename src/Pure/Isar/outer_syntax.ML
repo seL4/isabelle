@@ -243,7 +243,7 @@ fun deps_thy name ml path =
   let
     val src = Source.of_string (File.read path);
     val pos = Path.position path;
-    val (name', parents, files) = ThyHeader.scan (src, pos);
+    val (name', parents, files) = ThyHeader.read (src, pos);
     val ml_path = ThyLoad.ml_path name;
     val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
   in
@@ -270,32 +270,20 @@ fun try_ml_file name time =
 
 fun run_thy name path =
   let
-    val pos = Path.position path;
-    val text = Library.untabify (explode (File.read path));
-    val text_src = Source.of_list text;
-    fun present_text () = Source.exhaust (Symbol.source false text_src);
+    val text = Source.of_list (Library.untabify (explode (File.read path)));
+    val _ = Present.init_theory name;
+    val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text));
+    val toks = text
+      |> Symbol.source false
+      |> T.source false (K (get_lexicons ())) (Path.position path)
+      |> Source.exhausted;
+    val trs = toks
+      |> toplevel_source false false false (K (get_parser ()))
+      |> Source.exhaust;
   in
-    Present.init_theory name;
-    Present.verbatim_source name present_text;
-    if ThyHeader.is_old (text_src, pos) then
-     (warning ("Non-Isar file format for theory " ^ quote name ^ " -- deprecated");
-      ThySyn.load_thy name text;
-      Present.old_symbol_source name present_text)   (*note: text presented twice*)
-    else
-      let
-        val tok_src = text_src
-          |> Symbol.source false
-          |> T.source false (K (get_lexicons ())) pos
-          |> Source.exhausted;
-        val trs =
-          tok_src
-          |> toplevel_source false false false (K (get_parser ()))
-          |> Source.exhaust;
-      in
-        IsarOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs tok_src
-        |> Buffer.content
-        |> Present.theory_output name
-      end
+    IsarOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
+    |> Buffer.content
+    |> Present.theory_output name
   end;
 
 in
