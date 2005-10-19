@@ -1566,6 +1566,15 @@ apply (induct j)
 apply (auto simp add: less_Suc_eq nth_append split: nat_diff_split)
 done
 
+
+lemma hd_upt[simp]: "i < j \<Longrightarrow> hd[i..<j] = i"
+by(simp add:upt_conv_Cons)
+
+lemma last_upt[simp]: "i < j \<Longrightarrow> last[i..<j] = j - 1"
+apply(cases j)
+ apply simp
+by(simp add:upt_Suc_append)
+
 lemma take_upt [simp]: "!!i. i+m <= n ==> take m [i..<n] = [i..<i+m]"
 apply (induct m, simp)
 apply (subst upt_rec)
@@ -1771,6 +1780,11 @@ apply(induct xs)
  apply simp
 apply fastsimp
 done
+
+
+lemma nth_eq_iff_index_eq:
+ "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
+by(auto simp: distinct_conv_nth)
 
 
 subsubsection {* @{text remove1} *}
