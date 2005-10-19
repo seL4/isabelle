@@ -107,10 +107,4 @@ val _ = OuterSyntax.add_parsers [constsP];
 
 end;
 
-
-(* old-style theory syntax *)
-
-val _ = ThySyn.add_syntax []
-  [ThyParse.section "consts" "|> ContConsts.add_consts" ThyParse.const_decls];
-
 end;
