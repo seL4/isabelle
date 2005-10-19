@@ -9,8 +9,6 @@ signature TYPEDEF_PACKAGE =
 sig
   val quiet_mode: bool ref
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
-  val add_typedef_x: string -> bstring * string list * mixfix ->
-    string -> string list -> thm list -> tactic option -> theory -> theory
   val add_typedef: bool -> string option -> bstring * string list * mixfix ->
     string -> (bstring * bstring) option -> tactic -> theory -> theory *
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
@@ -48,7 +46,30 @@ val Abs_induct = thm "type_definition.Abs_induct";
 
 
 
-(** theory data **)
+(** type declarations **)
+
+fun add_typedecls decls thy =
+  let
+    fun arity_of (raw_name, args, mx) =
+      (Sign.full_name thy (Syntax.type_name raw_name mx),
+        replicate (length args) HOLogic.typeS, HOLogic.typeS);
+  in
+    thy
+    |> Theory.add_typedecls decls
+    |> can (Theory.assert_super HOL.thy) ? Theory.add_arities_i (map arity_of decls)
+  end;
+
+
+
+(** type definitions **)
+
+(* messages *)
+
+val quiet_mode = ref false;
+fun message s = if ! quiet_mode then () else writeln s;
+
+
+(* theory data *)
 
 structure TypedefData = TheoryDataFun
 (struct
@@ -63,49 +84,6 @@ end);
 
 fun put_typedef newT oldT Abs_name Rep_name =
   TypedefData.map (Symtab.update_new (fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)));
-
-
-
-(** type declarations **)
-
-fun add_typedecls decls thy =
-  let
-    fun arity_of (raw_name, args, mx) =
-      (Sign.full_name thy (Syntax.type_name raw_name mx),
-        replicate (length args) HOLogic.typeS, HOLogic.typeS);
-  in
-    if can (Theory.assert_super HOL.thy) thy then
-      thy |> Theory.add_typedecls decls
-      |> Theory.add_arities_i (map arity_of decls)
-    else thy |> Theory.add_typedecls decls
-  end;
-
-
-
-(** type definitions **)
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-
-
-(* prove_nonempty -- tactical version *)        (*exception ERROR*)
-
-fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
-  let
-    val is_def = Logic.is_equals o #prop o Thm.rep_thm;
-    val thms = PureThy.get_thmss thy (map Name witn_names) @ witn_thms;
-    val tac =
-      witn1_tac THEN
-      TRY (rewrite_goals_tac (List.filter is_def thms)) THEN
-      TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
-      if_none witn2_tac (TRY (ALLGOALS (CLASET' blast_tac)));
-  in
-    message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    Tactic.prove thy [] [] goal (K tac)
-  end
-  handle ERROR => error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
 
 
 (* prepare_typedef *)
@@ -242,25 +220,21 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
 local
 
-fun gen_typedef prep_term def name typ set opt_morphs tac1 names thms tac2 thy =
+fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
   let
+    val name = the_default (#1 typ) opt_name;
     val (cset, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    val non_empty = prove_nonempty thy cset goal (tac1, names, thms, tac2);
+    val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
+    val non_empty = Tactic.prove thy [] [] goal (K tac) handle ERROR =>
+      error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
     val ((thy', _), result) = (thy, non_empty) |> typedef_result;
   in (thy', result) end;
 
-fun sane_typedef prep_term def opt_name typ set opt_morphs tac =
-  gen_typedef prep_term def
-    (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
-
 in
 
-fun add_typedef_x name typ set names thms tac =
-  #1 o gen_typedef read_term true name typ set NONE (Tactic.rtac exI 1) names thms tac;
-
-val add_typedef = sane_typedef read_term;
-val add_typedef_i = sane_typedef cert_term;
+val add_typedef = gen_typedef read_term;
+val add_typedef_i = gen_typedef cert_term;
 
 end;
 
