@@ -15,7 +15,6 @@ uses
   "domain/axioms.ML"
   "domain/theorems.ML"
   "domain/extender.ML"
-  "domain/interface.ML"
   "adm_tac.ML"
 
 begin
