@@ -226,9 +226,10 @@ fun smart_string_of_cterm ct =
  
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
-fun prth th = writeln ((Library.setmp print_mode [] string_of_thm) th)
-fun prc ct = writeln ((Library.setmp print_mode [] string_of_cterm) ct)
-val prin = Library.setmp print_mode [] prin
+fun prth th = writeln (Library.setmp print_mode [] string_of_thm th)
+fun prc ct = writeln (Library.setmp print_mode [] string_of_cterm ct)
+fun prin t = writeln
+  (Library.setmp print_mode [] (fn () => Sign.string_of_term (the_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =
     let
 	(*val _ = writeln "Renaming:"
@@ -1939,8 +1940,6 @@ fun new_definition thyname constname rhs thy =
     end
     handle e => (message "exception in new_definition"; print_exn e)
 
-val commafy = String.concat o separate ", "
-
 local
     val helper = thm "termspec_help"
 in
@@ -1952,7 +1951,7 @@ fun new_specification thyname thmname names hth thy =
 	    val _ = message "NEW_SPEC:"
 	    val _ = if_debug pth hth
 	    val names = map (rename_const thyname thy) names
-	    val _ = warning ("Introducing constants " ^ (commafy names))
+	    val _ = warning ("Introducing constants " ^ commas names)
 	    val (HOLThm(rens,th)) = norm_hthm thy hth
 	    val thy1 = case HOL4DefThy.get thy of
 			   Replaying _ => thy
@@ -2079,7 +2078,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 			| _ => error "Internal error in ProofKernel.new_typedefinition"
 	    val tnames_string = if null tnames
 				then ""
-				else "(" ^ (commafy tnames) ^ ") "
+				else "(" ^ commas tnames ^ ") "
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
@@ -2173,7 +2172,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    
 	    val tnames_string = if null tnames
 				then ""
-				else "(" ^ (commafy tnames) ^ ") "
+				else "(" ^ commas tnames ^ ") "
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
