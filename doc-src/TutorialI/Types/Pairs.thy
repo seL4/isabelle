@@ -1,4 +1,4 @@
-(*<*)theory Pairs = Main:(*>*)
+(*<*)theory Pairs imports Main begin(*>*)
 
 section{*Pairs and Tuples*}
 

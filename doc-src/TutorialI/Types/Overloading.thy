@@ -1,4 +1,4 @@
-(*<*)theory Overloading = Overloading1:(*>*)
+(*<*)theory Overloading imports Overloading1 begin(*>*)
 instance list :: (type)ordrel
 by intro_classes
 

@@ -1,4 +1,4 @@
-(*<*)theory Overloading0 = Main:(*>*)
+(*<*)theory Overloading0 imports Main begin(*>*)
 
 text{* We start with a concept that is required for type classes but already
 useful on its own: \emph{overloading}. Isabelle allows overloading: a

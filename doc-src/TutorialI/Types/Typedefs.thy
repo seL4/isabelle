@@ -1,4 +1,4 @@
-(*<*)theory Typedefs = Main:(*>*)
+(*<*)theory Typedefs imports Main begin(*>*)
 
 section{*Introducing New Types*}
 

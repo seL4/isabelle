@@ -1,4 +1,4 @@
-(*<*)theory WFrec = Main:(*>*)
+(*<*)theory WFrec imports Main begin(*>*)
 
 text{*\noindent
 So far, all recursive definitions were shown to terminate via measure

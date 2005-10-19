@@ -1,4 +1,4 @@
-(*<*)theory PDL = Base:(*>*)
+(*<*)theory PDL imports Base begin(*>*)
 
 subsection{*Propositional Dynamic Logic --- PDL*}
 

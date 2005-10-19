@@ -1,4 +1,4 @@
-(*<*)theory AB = Main:(*>*)
+(*<*)theory AB imports Main begin(*>*)
 
 section{*Case Study: A Context Free Grammar*}
 

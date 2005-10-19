@@ -1,4 +1,4 @@
-(*<*)theory Partial = While_Combinator:(*>*)
+(*<*)theory Partial imports While_Combinator begin(*>*)
 
 text{*\noindent Throughout this tutorial, we have emphasized
 that all functions in HOL are total.  We cannot hope to define

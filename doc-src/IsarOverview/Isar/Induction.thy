@@ -1,4 +1,4 @@
-(*<*)theory Induction = Main:(*>*)
+(*<*)theory Induction imports Main begin(*>*)
 
 section{*Case distinction and induction \label{sec:Induct}*}
 

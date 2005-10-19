@@ -1,4 +1,4 @@
-(*<*)theory Mutual = Main:(*>*)
+(*<*)theory Mutual imports Main begin(*>*)
 
 subsection{*Mutually Inductive Definitions*}
 

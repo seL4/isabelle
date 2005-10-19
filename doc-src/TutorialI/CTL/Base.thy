@@ -1,4 +1,4 @@
-(*<*)theory Base = Main:(*>*)
+(*<*)theory Base imports Main begin(*>*)
 
 section{*Case Study: Verified Model Checking*}
 

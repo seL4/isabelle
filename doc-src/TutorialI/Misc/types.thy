@@ -1,4 +1,4 @@
-(*<*)theory "types" = Main:(*>*)
+(*<*)theory "types" imports Main begin(*>*)
 types number       = nat
       gate         = "bool \<Rightarrow> bool \<Rightarrow> bool"
       ('a,'b)alist = "('a \<times> 'b)list"

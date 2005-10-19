@@ -1,4 +1,4 @@
-(*<*)theory Overloading1 = Main:(*>*)
+(*<*)theory Overloading1 imports Main begin(*>*)
 
 subsubsection{*Controlled Overloading with Type Classes*}
 

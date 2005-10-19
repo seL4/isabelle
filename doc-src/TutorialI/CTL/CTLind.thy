@@ -1,4 +1,4 @@
-(*<*)theory CTLind = CTL:(*>*)
+(*<*)theory CTLind imports CTL begin(*>*)
 
 subsection{*CTL Revisited*}
 

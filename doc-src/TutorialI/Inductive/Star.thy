@@ -1,4 +1,4 @@
-(*<*)theory Star = Main:(*>*)
+(*<*)theory Star imports Main begin(*>*)
 
 section{*The Reflexive Transitive Closure*}
 

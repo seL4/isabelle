@@ -1,4 +1,4 @@
-(*<*)theory CTL = Base:;(*>*)
+(*<*)theory CTL imports Base begin(*>*)
 
 subsection{*Computation Tree Logic --- CTL*};
 

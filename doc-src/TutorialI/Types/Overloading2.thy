@@ -1,4 +1,4 @@
-(*<*)theory Overloading2 = Overloading1:(*>*)
+(*<*)theory Overloading2 imports Overloading1 begin(*>*)
 
 text{*
 Of course this is not the only possible definition of the two relations.

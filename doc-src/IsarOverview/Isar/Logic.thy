@@ -1,4 +1,4 @@
-(*<*)theory Logic = Main:(*>*)
+(*<*)theory Logic imports Main begin(*>*)
 
 section{*Logic \label{sec:Logic}*}
 

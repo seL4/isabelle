@@ -1,4 +1,4 @@
-(*<*)theory Axioms = Overloading:(*>*)
+(*<*)theory Axioms imports Overloading begin(*>*)
 
 subsection{*Axioms*}
 
