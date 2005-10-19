@@ -61,11 +61,6 @@ use "Proof/proofchecker.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
 
-(*theory syntax -- old format*)
-use "Thy/thy_scan.ML";
-use "Thy/thy_parse.ML";
-use "Thy/thy_syn.ML";
-
 (*theory syntax -- new format*)
 use "Isar/outer_lex.ML";
 
