@@ -28,6 +28,7 @@ sig
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
+  val subgraph: key list -> 'a T -> 'a T
   val find_paths: 'a T -> key * key -> key list list
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
@@ -140,6 +141,15 @@ fun all_succs G = List.concat o snd o reachable (imm_succs G);
 fun strong_conn G = filter_out null (snd (reachable (imm_preds G)
   (List.concat (rev (snd (reachable (imm_succs G) (keys G)))))));
 
+(*subgraph induced by node subset*)
+fun subgraph keys (Graph tab) =
+  let
+    val select = member eq_key keys;
+    fun subg (k, (i, (preds, succs))) tab' =
+      if select k
+      then tab' |> Table.update (k, (i, (filter select preds, filter select succs)))
+      else tab'
+  in Table.empty |> Table.fold subg tab |> Graph end;
 
 (* paths *)
 
