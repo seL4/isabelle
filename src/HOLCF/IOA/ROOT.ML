@@ -10,4 +10,3 @@ goals_limit := 1;
 
 time_use_thy "meta_theory/Abstraction";
 time_use "meta_theory/ioa_package.ML";
-time_use "meta_theory/ioa_syn.ML";

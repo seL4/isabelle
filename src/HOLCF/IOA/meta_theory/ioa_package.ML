@@ -429,15 +429,9 @@ automaton_name ^ " == hide " ^ aut_source ^ " " ^ hid_set)]
 end)
 
 fun ren_act_type_of thy funct =
-let
-(* going into a pseudo-proof-state to enable the use of function read *)
-val _ = goal thy (funct ^ " = t");
-fun arg_typ_of (Type("fun",[a,b])) = a |
-arg_typ_of _ = raise malformed;
-in
-arg_typ_of(#T(rep_cterm(cterm_of (sign_of thy) (read(funct)))))
-handle malformed => error ("could not extract argument type of renaming function term")
-end;
+  (case Term.fastype_of (Sign.read_term thy funct) of
+    Type ("fun", [a, b]) => a
+  | _ => error "could not extract argument type of renaming function term");
  
 fun add_rename automaton_name aut_source fun_name thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
