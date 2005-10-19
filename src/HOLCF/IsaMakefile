@@ -27,19 +27,15 @@ HOLCF: HOL $(OUT)/HOLCF
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
-$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.ML Cfun.thy \
-  Cont.ML Cont.thy Cprod.ML Cprod.thy \
-  Discrete.thy Domain.thy Fix.ML Fix.thy Fixrec.thy \
-  Ffun.ML Ffun.thy HOLCF.ML HOLCF.thy Lift.ML \
-  Lift.thy One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy \
-  ROOT.ML Sprod.ML Sprod.thy \
-  Ssum.ML Ssum.thy \
-  Tr.ML Tr.thy Up.ML \
-  Pcpodef.thy pcpodef_package.ML \
-  Up.thy adm_tac.ML cont_consts.ML cont_proc.ML fixrec_package.ML \
-  domain/axioms.ML domain/extender.ML domain/interface.ML \
-  domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML \
-  ex/Stream.thy document/root.tex
+$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.ML Cfun.thy Cont.ML Cont.thy	\
+  Cprod.ML Cprod.thy Discrete.thy Domain.thy Fix.ML Fix.thy Fixrec.thy	\
+  Ffun.ML Ffun.thy HOLCF.ML HOLCF.thy Lift.ML Lift.thy One.ML One.thy	\
+  Pcpo.ML Pcpo.thy Porder.ML Porder.thy ROOT.ML Sprod.ML Sprod.thy	\
+  Ssum.ML Ssum.thy Tr.ML Tr.thy Up.ML Pcpodef.thy pcpodef_package.ML	\
+  Up.thy adm_tac.ML cont_consts.ML cont_proc.ML fixrec_package.ML	\
+  domain/axioms.ML domain/extender.ML domain/library.ML			\
+  domain/syntax.ML domain/theorems.ML holcf_logic.ML ex/Stream.thy	\
+  document/root.tex
 	@$(ISATOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 
 
@@ -99,7 +95,7 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
   IOA/meta_theory/Abstraction.ML \
   IOA/meta_theory/Simulations.thy IOA/meta_theory/Simulations.ML \
   IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/SimCorrectness.ML \
-  IOA/meta_theory/ioa_syn.ML IOA/meta_theory/ioa_package.ML 
+  IOA/meta_theory/ioa_package.ML 
 	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
 
 
