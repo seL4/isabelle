@@ -26,14 +26,11 @@ sig
   val elims : thm list
 end;
 
-(*Functor's result signature*)
 signature DATATYPE_PACKAGE =
 sig
   (*Insert definitions for the recursive sets, which
      must *already* be declared as constants in parent theory!*)
   val add_datatype_i: term * term list -> Ind_Syntax.constructor_spec list list ->
-    thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
-  val add_datatype_x: string * string list -> (string * string list * mixfix) list list ->
     thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
   val add_datatype: string * string list -> (string * string list * mixfix) list list ->
     (thmref * Attrib.src list) list * (thmref * Attrib.src list) list *
@@ -395,25 +392,20 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     mk_free = mk_free})
   end;
 
-
-fun add_datatype_x (sdom, srec_tms) scon_ty_lists (monos, type_intrs, type_elims) thy =
+fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
   let
-    val sign = sign_of thy;
-    val read_i = Sign.simple_read_term sign Ind_Syntax.iT;
+    val read_i = Sign.simple_read_term thy Ind_Syntax.iT;
     val rec_tms = map read_i srec_tms;
-    val con_ty_lists = Ind_Syntax.read_constructs sign scon_ty_lists
+    val con_ty_lists = Ind_Syntax.read_constructs thy scon_ty_lists;
     val dom_sum =
       if sdom = "" then Ind_Syntax.data_domain coind (rec_tms, con_ty_lists)
       else read_i sdom;
-  in add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy end;
 
-fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
-  let
     val (thy', ((monos, type_intrs), type_elims)) = thy
       |> IsarThy.apply_theorems raw_monos
       |>>> IsarThy.apply_theorems raw_type_intrs
       |>>> IsarThy.apply_theorems raw_type_elims;
-  in add_datatype_x (sdom, srec_tms) scon_ty_lists (monos, type_intrs, type_elims) thy' end;
+  in add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy' end;
 
 
 (* outer syntax *)
