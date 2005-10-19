@@ -1,5 +1,5 @@
 (*  ID:         $Id$
-    Author:     Jia Meng 
+    Author:     Jia Meng, NICTA
 
 Functions used for ATP Oracle.
 *)

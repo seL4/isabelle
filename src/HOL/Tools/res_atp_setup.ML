@@ -1,5 +1,5 @@
-(* Author: Jia Meng
-   Date: 12/09/2005
+(* ID: $Id$ 
+   Author: Jia Meng, NICTA
 
 *)
 structure ResAtpSetup =

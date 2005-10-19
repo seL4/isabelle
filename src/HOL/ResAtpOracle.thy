@@ -1,5 +1,5 @@
 (* ID: $Id$
-   Author: Jia Meng
+   Author: Jia Meng, NICTA
 
 setup vampire prover as an oracle
 setup E prover as an oracle

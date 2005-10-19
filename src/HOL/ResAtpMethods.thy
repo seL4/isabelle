@@ -1,5 +1,5 @@
 (* ID: $Id$
-   Author: Jia Meng
+   Author: Jia Meng, NICTA
  a method to setup "vampire" method 
  a method to setup "eprover" method
 *)
