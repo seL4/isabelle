@@ -249,8 +249,10 @@ fun term_of_thm t = (Thm.prop_of t);
 fun string_of_term t = Sign.string_of_term (the_context()) t;
 fun print_term t = writeln (string_of_term t);
 
-(* create a trivial HOL thm from anything... *)
-fun triv_thm_from_string s = Thm.trivial (cterm_of (the_context()) (read s));
+(* create a trivial thm from anything... *)
+fun triv_thm_from_string s =
+  let val thy = the_context()
+  in Thm.trivial (cterm_of thy (Sign.read_prop thy s)) end;
 
   (* Checks if vars could be the same - alpha convertable
   w.r.t. previous vars, a and b are assumed to be vars,
