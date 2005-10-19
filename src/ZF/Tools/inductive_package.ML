@@ -31,8 +31,6 @@ sig
   val add_inductive_i: bool -> term list * term ->
     ((bstring * term) * theory attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
-  val add_inductive_x: string list * string -> ((bstring * string) * theory attribute list) list
-    -> thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
     ((bstring * string) * Attrib.src list) list ->
     (thmref * Attrib.src list) list * (thmref * Attrib.src list) list *
@@ -563,35 +561,27 @@ let
        mutual_induct = mutual_induct})
   end;
 
-
-(*external version, accepting strings*)
-fun add_inductive_x (srec_tms, sdom_sum) sintrs (monos, con_defs, type_intrs, type_elims) thy =
-  let
-    val read = Sign.simple_read_term (Theory.sign_of thy);
-    val rec_tms = map (read Ind_Syntax.iT) srec_tms;
-    val dom_sum = read Ind_Syntax.iT sdom_sum;
-    val intr_tms = map (read propT o snd o fst) sintrs;
-    val intr_specs = (map (fst o fst) sintrs ~~ intr_tms) ~~ map snd sintrs;
-  in
-    add_inductive_i true (rec_tms, dom_sum) intr_specs
-      (monos, con_defs, type_intrs, type_elims) thy
-  end
-
-
 (*source version*)
 fun add_inductive (srec_tms, sdom_sum) intr_srcs
     (raw_monos, raw_con_defs, raw_type_intrs, raw_type_elims) thy =
   let
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intr_srcs;
+    val sintrs = map fst intr_srcs ~~ intr_atts;
+    val read = Sign.simple_read_term thy;
+    val rec_tms = map (read Ind_Syntax.iT) srec_tms;
+    val dom_sum = read Ind_Syntax.iT sdom_sum;
+    val intr_tms = map (read propT o snd o fst) sintrs;
+    val intr_specs = (map (fst o fst) sintrs ~~ intr_tms) ~~ map snd sintrs;
+
     val (thy', (((monos, con_defs), type_intrs), type_elims)) = thy
       |> IsarThy.apply_theorems raw_monos
       |>>> IsarThy.apply_theorems raw_con_defs
       |>>> IsarThy.apply_theorems raw_type_intrs
       |>>> IsarThy.apply_theorems raw_type_elims;
   in
-    add_inductive_x (srec_tms, sdom_sum) (map fst intr_srcs ~~ intr_atts)
+    add_inductive_i true (rec_tms, dom_sum) intr_specs
       (monos, con_defs, type_intrs, type_elims) thy'
-  end;
+  end
 
 
 (* outer syntax *)
