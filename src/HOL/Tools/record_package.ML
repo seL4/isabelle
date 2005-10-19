@@ -1479,8 +1479,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                             [(cterm_of sg v,cterm_of sg v'),
                              (cterm_of sg r,cterm_of sg ext)] udef;
           in  standard (Thm.transitive udef' bdyeq) end;
-      in map mkthm (rev upd_defs  ~~ (mixit dest_convs' refls))
-         handle e => print_exn e end;
+      in map mkthm (rev upd_defs  ~~ (mixit dest_convs' refls)) end;
 
     val upd_convs_prf = quick_and_dirty_prf upd_convs_prf_noopt upd_convs_prf_opt;
 
