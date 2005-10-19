@@ -114,7 +114,6 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
   antisym_setup.ML arith_data.ML blastdata.ML cladata.ML			\
   document/root.tex eqrule_HOL_data.ML hologic.ML simpdata.ML	\
-  thy_syntax.ML  \
   ResAtpOracle.thy                                                             \
   ResAtpMethods.thy \
   Tools/res_atp_setup.ML Tools/res_atp_provers.ML Tools/res_atp_methods.ML 	

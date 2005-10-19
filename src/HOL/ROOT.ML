@@ -9,9 +9,6 @@ Classical Higher-order Logic.
 val banner = "Higher-Order Logic";
 writeln banner;
 
-(*old-style theory syntax*)
-use "thy_syntax.ML";
-
 use "hologic.ML";
 
 use "~~/src/Provers/splitter.ML";
