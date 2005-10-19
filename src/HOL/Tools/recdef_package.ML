@@ -28,9 +28,6 @@ sig
       * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * theory attribute list) list ->
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val add_recdef_old: xstring -> string -> ((bstring * string) * Attrib.src list) list ->
-    simpset * thm list -> theory ->
-    theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (thmref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * theory attribute list) list
@@ -82,7 +79,6 @@ in
 
 fun add_cong raw_thm congs =
   let val (c, thm) = prep_cong raw_thm
-(*   in update_warn (op =) ("Overwriting recdef congruence rule for " ^ quote c) (c, thm) congs end;  *)
   in overwrite_warn (congs, (c, thm)) ("Overwriting recdef congruence rule for " ^ quote c) end;
 
 fun del_cong raw_thm congs =
@@ -99,7 +95,7 @@ end;
 
 (** global and local recdef data **)
 
-(* theory data kind 'HOL/recdef' *)
+(* theory data *)
 
 type recdef_info = {simps: thm list, rules: thm list list, induct: thm, tcs: term list};
 
@@ -140,7 +136,7 @@ val get_global_hints = #2 o GlobalRecdefData.get;
 val map_global_hints = GlobalRecdefData.map o apsnd;
 
 
-(* proof data kind 'HOL/recdef' *)
+(* proof data *)
 
 structure LocalRecdefData = ProofDataFun
 (struct
@@ -227,8 +223,7 @@ fun prepare_hints_i thy () =
 
 fun requires_recdef thy = Theory.requires thy "Recdef" "recursive functions";
 
-(*"strict" is true iff (permissive) has been omitted*)
-fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints thy =
+fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs hints thy =
   let
     val _ = requires_recdef thy;
 
@@ -244,7 +239,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
       is simplified. Many induction rules have nested implications that would
       give rise to looping conditional rewriting.*)
     val (thy, {rules = rules_idx, induct, tcs}) =
-        tfl_fn strict thy cs (ss delcongs [imp_cong])
+        tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
     val rules = map (map #1) (Library.partition_eq (Library.eq_snd (op =)) rules_idx);
     val simp_att = if null tcs then
@@ -264,15 +259,6 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
 
 val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints;
 fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y z w ();
-
-
-(* add_recdef_old -- legacy interface *)
-
-fun prepare_hints_old thy (ss, thms) =
-  let val {simps, congs, wfs} = get_global_hints thy
-  in (Classical.claset_of thy, ss addsimps simps, map #2 (add_congs congs thms), wfs) end;
-
-val add_recdef_old = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints_old false;
 
 
 
