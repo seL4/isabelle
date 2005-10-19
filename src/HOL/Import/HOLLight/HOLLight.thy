@@ -1,6 +1,6 @@
 (* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
 
-theory HOLLight = "../HOLLightCompat" + "../HOL4Syntax":
+theory HOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin
 
 ;setup_theory hollight
 

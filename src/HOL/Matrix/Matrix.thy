@@ -3,16 +3,15 @@
     Author:     Steven Obua
 *)
 
-theory Matrix=MatrixGeneral:
+theory Matrix
+imports MatrixGeneral
+begin
 
-instance matrix :: (minus) minus 
-by intro_classes
+instance matrix :: (minus) minus ..
 
-instance matrix :: (plus) plus
-by (intro_classes)
+instance matrix :: (plus) plus ..
 
-instance matrix :: ("{plus,times}") times
-by (intro_classes)
+instance matrix :: ("{plus,times}") times ..
 
 defs (overloaded)
   plus_matrix_def: "A + B == combine_matrix (op +) A B"
