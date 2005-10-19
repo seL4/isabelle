@@ -21,8 +21,10 @@ sig
   val map_entry: ('a * 'b -> bool) -> 'a -> ('c -> 'c)
     -> ('b * 'c) list -> ('b * 'c) list
   val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
+  val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b option) ->
+    ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list         (*exception DUP*)
   val merge: ('a * 'a -> bool) -> ('b * 'b -> bool)
-    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list (*exception DUP*)
+    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
   val find: ('a * 'b -> bool) -> ('c * 'b) list -> 'a -> 'c list
 end;
 
@@ -73,6 +75,17 @@ fun map_entry eq key f xs =
 
 exception DUP;
 
+fun join eq f (xs, ys) =
+  let
+    fun add (key, x) xs =
+      (case lookup eq xs key of
+        NONE => update eq (key, x) xs
+      | SOME y =>
+          (case f key (y, x) of
+            SOME z => update eq (key, z) xs
+          | NONE => raise DUP));
+  in fold_rev add xs ys end;
+
 fun merge eq_key eq_val (xs, ys) =
   let
     fun add (x as (key, value)) ys =
@@ -82,9 +95,7 @@ fun merge eq_key eq_val (xs, ys) =
             if eq_val (value, value')
             then ys
             else raise DUP;
-  in
-    fold_rev add xs ys
-  end;
+  in fold_rev add xs ys end;
 
 fun make keyfun =
   let fun keypair x = (x, keyfun x)
