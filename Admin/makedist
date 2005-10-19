@@ -158,6 +158,7 @@ cat > ../website/conf/distname.mak <<EOF
 
 DISTNAME=$DISTNAME
 DISTIDENT=$DISTIDENT
+DISTBASE=$DISTBASE
 EOF
 
 MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')

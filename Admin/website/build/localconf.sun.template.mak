@@ -6,10 +6,10 @@ OUTPUTROOT=$(HOME)/isabelle/website_test
 #~ OUTPUTROOT=/home/proj/isabelle/website
 
 # location of isabelle distribution packages
-ISABELLE_DIST=/home/proj/isabelle/dist/dist-Isabelle2005
+ISABELLE_DIST=$(DISTBASE)
 
 # location of doc content file
-ISABELLE_DOC_CONTENT_FILE=$(ISABELLE_DIST)/Isabelle2005/doc/Contents
+ISABELLE_DOC_CONTENT_FILE=$(DISTBASE)/$(DISTIDENT)/doc/Contents
 
 # dirs to copy to build target
 STATICDIRS=css img media misc
@@ -33,6 +33,9 @@ COPY=gcp
 
 # HTML tidy (needs not to be set if tidy usage is disabled, see below)
 TIDY=tidy
+
+# rsync (if not set, use dumb cp instead)
+RSYNC=rsync
 
 # set to a true value to use the "pypager iso-8859-1" hack
 # (may be neccessary for older versions of HTML tidy)

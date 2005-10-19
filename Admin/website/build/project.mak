@@ -8,9 +8,23 @@ cleanproject:
 	rm -rf $(OUTPUTROOT)/dist
 .PHONY: cleanproject
 
+ifeq ($(RSYNC),)
+
 $(OUTPUTROOT)/dist: $(ISABELLE_DIST)
+	mkdir -p $@
 	$(COPY) -vRud $< $@
 	chmod -R g-w $@
+
+else
+
+$(OUTPUTROOT)/dist: $(ISABELLE_DIST) SYNC_ALWAYS
+	mkdir -p $@
+	$(RSYNC) -v -a --delete --delete-after $</ $@
+	chmod -R g-w $@
+
+SYNC_ALWAYS:
+
+endif
 
 include/documentationdist.include.html: $(ISABELLE_DOC_CONTENT_FILE)
 	perl build/mkcontents.pl -p '//dist/Isabelle/doc/' $< $@
