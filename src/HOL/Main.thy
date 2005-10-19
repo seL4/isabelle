@@ -5,7 +5,7 @@
 header {* Main HOL *}
 
 theory Main
-imports SAT Reconstruction
+imports SAT Reconstruction ResAtpMethods
 begin
 
 text {*

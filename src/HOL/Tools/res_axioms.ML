@@ -23,6 +23,7 @@ signature RES_AXIOMS =
   val clausify_rules_pairs : (string*thm) list -> (ResClause.clause*thm) list list
   val clause_setup : (theory -> theory) list
   val meson_method_setup : (theory -> theory) list
+  val pairname : thm -> (string * thm)
   end;
 
 structure ResAxioms : RES_AXIOMS =
