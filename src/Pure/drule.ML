@@ -126,11 +126,10 @@ sig
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
-  val triv_goal: thm
-  val rev_triv_goal: thm
+  val goalI: thm
+  val goalD: thm
   val implies_intr_goals: cterm list -> thm -> thm
   val freeze_all: thm -> thm
-  val mk_triv_goal: cterm -> thm
   val tvars_of_terms: term list -> (indexname * sort) list
   val vars_of_terms: term list -> (indexname * typ) list
   val tvars_of: thm -> (indexname * sort) list
@@ -929,19 +928,18 @@ local
   val G = Logic.mk_goal A;
   val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
 in
-  val triv_goal = store_thm "triv_goal" (kind_rule internalK (standard
+  val goalI = store_thm "goalI" (kind_rule internalK (standard
       (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume (cert A)))));
-  val rev_triv_goal = store_thm "rev_triv_goal" (kind_rule internalK (standard
+  val goalD = store_thm "goalD" (kind_rule internalK (standard
       (Thm.equal_elim G_def (Thm.assume (cert G)))));
 end;
 
 val mk_cgoal = Thm.capply (Thm.cterm_of ProtoPure.thy Logic.goal_const);
-fun assume_goal ct = Thm.assume (mk_cgoal ct) RS rev_triv_goal;
+fun assume_goal ct = Thm.assume (mk_cgoal ct) RS goalD;
 
 fun implies_intr_goals cprops thm =
   implies_elim_list (implies_intr_list cprops thm) (map assume_goal cprops)
   |> implies_intr_list (map mk_cgoal cprops);
-
 
 
 (** variations on instantiate **)
@@ -1089,12 +1087,6 @@ fun freeze_all_Vars thm =
       in instantiate' [] (map (fn ((x, _), T) => SOME (cert (Free (x, T)))) vars) thm end);
 
 val freeze_all = freeze_all_Vars o freeze_all_TVars;
-
-
-(* mk_triv_goal *)
-
-(*make an initial proof state, "PROP A ==> (PROP A)" *)
-fun mk_triv_goal ct = instantiate' [] [SOME ct] triv_goal;
 
 
 
