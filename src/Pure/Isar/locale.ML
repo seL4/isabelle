@@ -1907,7 +1907,7 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val cert = Thm.cterm_of defs_thy;
 
-    val intro = Drule.standard (Tactic.prove defs_thy [] norm_ts statement (fn _ =>
+    val intro = Drule.standard (Goal.prove defs_thy [] norm_ts statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
       Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1));
@@ -1917,7 +1917,7 @@ fun def_pred bname parms defs ts norm_ts thy =
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
       |> Drule.conj_elim_precise (length ts);
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
-      Tactic.prove_plain defs_thy [] [] t (fn _ =>
+      Goal.prove_plain defs_thy [] [] t (fn _ =>
         Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
   in (defs_thy, (statement, intro, axioms)) end;
