@@ -15,16 +15,6 @@ fun writeln_strs _   []      = ()
   | writeln_strs out (s::ss) = (TextIO.output (out, s); TextIO.output (out, "\n"); writeln_strs out ss);
 
 
-fun no_rep_add x []     = [x]
-  | no_rep_add x (y::z) = if x=y then y::z else y::(no_rep_add x z);
-
-fun no_rep_app l1 []     = l1
-  | no_rep_app l1 (x::y) = no_rep_app (no_rep_add x l1) y;
-
-
-fun flat_noDup []     = []
-  | flat_noDup (x::y) = no_rep_app x (flat_noDup y);
-
 fun warning_thm thm nm = warning (nm ^ " " ^ (string_of_thm thm));
 
 fun warning_thms_n n thms nm =
@@ -114,7 +104,7 @@ fun get_local_simpR ctxt =
 fun tptp_form thms n tfrees =
     let val clss = ResClause.make_conjecture_clauses (map prop_of thms)
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
-	val tfree_clss = map ResClause.tfree_clause ((flat_noDup tfree_litss) \\ tfrees)
+	val tfree_clss = map ResClause.tfree_clause ((ResClause.union_all tfree_litss) \\ tfrees)
 	val probfile = File.platform_path prob_file ^ "_" ^ string_of_int n
 	val out = TextIO.openOut(probfile)		 	
     in
@@ -134,7 +124,7 @@ fun tptp_hyps [] = ([], [])
         val prems''' = ResAxioms.rm_Eps [] prems''
         val clss = ResClause.make_conjecture_clauses prems'''
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss) 
-	val tfree_lits = flat_noDup tfree_litss
+	val tfree_lits = ResClause.union_all tfree_litss
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
         val hypsfile = File.platform_path hyps_file
         val out = TextIO.openOut(hypsfile)
@@ -163,7 +153,7 @@ local
 fun write_rules [] file = [](* no rules, then no need to write anything, thus no clasimp file *)
   | write_rules rules file =
     let val out = TextIO.openOut(file)
-	val clss = flat_noDup(ResAxioms.clausify_rules_pairs rules)
+	val clss = ResClause.union_all(ResAxioms.clausify_rules_pairs rules)
 	val (clss',names) = ListPair.unzip clss
 	val (tptpclss,_) = ListPair.unzip(map ResClause.clause2tptp clss')
     in
@@ -202,12 +192,14 @@ fun find_relevant_ax ctxt = tptp_cnf_clasimp ctxt (true,true);
 (* setup ATPs as Isabelle methods                               *)
 (***************************************************************)
 fun atp_meth' tac prems ctxt = 
-    let val rules = if !filter_ax then (find_relevant_ax ctxt) else (tptp_cnf_clasimp ctxt (!include_claset, !include_simpset)) 
+    let val rules = if !filter_ax then find_relevant_ax ctxt 
+		    else tptp_cnf_clasimp ctxt (!include_claset, !include_simpset) 
 	val (hyps,tfrees) = tptp_hyps (ProofContext.prems_of ctxt)
 	val files = hyps @ rules
     in
 	Method.METHOD (fn facts =>
-			  if !debug then ((warning_thms_n (length facts) facts "facts");HEADGOAL (tac ctxt files tfrees)) else (HEADGOAL (tac ctxt files tfrees)))
+			  if !debug then (warning_thms_n (length facts) facts "facts";HEADGOAL (tac ctxt files tfrees)) 
+			  else HEADGOAL (tac ctxt files tfrees))
     end;
 
 
@@ -228,7 +220,9 @@ fun rm_tmp_files1 [] = ()
   | rm_tmp_files1 (f::fs) =
     (OS.FileSys.remove f; rm_tmp_files1 fs);
 
-fun cond_rm_tmp files = (if (!keep_atp_input) then (warning "ATP input kept...") else (warning "deleting ATP inputs..."; rm_tmp_files1 files));
+fun cond_rm_tmp files = 
+    if !keep_atp_input then warning "ATP input kept..." 
+    else (warning "deleting ATP inputs..."; rm_tmp_files1 files);
 
 
 end

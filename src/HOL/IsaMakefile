@@ -113,8 +113,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   Tools/typedef_package.ML Transitive_Closure.ML Transitive_Closure.thy		\
   Typedef.thy Wellfounded_Recursion.thy Wellfounded_Relations.thy		\
   antisym_setup.ML arith_data.ML blastdata.ML cladata.ML			\
-  document/root.tex eqrule_HOL_data.ML hologic.ML simpdata.ML	\
-  ResAtpOracle.thy                                                             \
+  document/root.tex eqrule_HOL_data.ML hologic.ML simpdata.ML			\
   ResAtpMethods.thy \
   Tools/res_atp_setup.ML Tools/res_atp_provers.ML Tools/res_atp_methods.ML 	
 	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL

@@ -5,12 +5,22 @@
 *)
 
 theory ResAtpMethods
-  imports Reconstruction ResAtpOracle
+  imports Reconstruction 
 
-  uses "Tools/res_atp_setup.ML"
-       "Tools/res_atp_methods.ML"
+uses ("Tools/res_atp_setup.ML")
+     ("Tools/res_atp_provers.ML")
+     ("Tools/res_atp_methods.ML")
 
 begin
-setup ResAtpMethods.ResAtps_setup
 
+ML{*use "Tools/res_atp_setup.ML"*}
+ML{*use "Tools/res_atp_provers.ML"*}
+
+oracle vampire_oracle ("string list * int") =  {*ResAtpProvers.vampire_o*}
+oracle eprover_oracle ("string list * int") =  {*ResAtpProvers.eprover_o*}
+
+
+ML{*use "Tools/res_atp_methods.ML"*}
+
+setup ResAtpMethods.ResAtps_setup
 end
