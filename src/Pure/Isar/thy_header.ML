@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theory headers.
+Theory headers -- processed separately with minimal outer syntax.
 *)
 
 signature THY_HEADER =
