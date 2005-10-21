@@ -48,7 +48,7 @@ fun rat_of_intinf i =
 fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
 
 fun norm (a, 0, q) =
-      Rat (true, 0, 1) (*is that intentional?*)
+      Rat (true, 0, 1)
   | norm (a, p, q) =
       let
         val absp = abs p
