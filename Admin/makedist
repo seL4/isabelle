@@ -153,8 +153,8 @@ cd "$DISTBASE/$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 
 cp -R Admin/website ..
 mkdir -p ../website/conf
-cat > ../website/conf/distname.mak <<EOF
-# this is a generated file - do not edit!
+cat > ../website/conf/distinfo.mak <<EOF
+# this is a generated file - do not edit unless you know what you are doing!
 
 DISTNAME=$DISTNAME
 DISTIDENT=$DISTIDENT

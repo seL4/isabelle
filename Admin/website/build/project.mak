@@ -1,7 +1,7 @@
 # isaweb makefile - project-specific dependencies
 # $Id$
 
-include conf/distname.mak
+include conf/distinfo.mak
 conf/distinfo.mak:
 	@echo 'There is no $@ file; it should have been allocated by makedist.'; \
 	@echo 'If you have no makedist at hand, check out default $@ from CVS'; \
