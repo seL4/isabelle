@@ -223,7 +223,7 @@ fun rew_th sg (xv as (x,xT)) (yv as (y,yT)) t =
 	val rew = Logic.mk_equals (lhs,rhs)
 	val init = trivial (cterm_of sg rew)
     in
-	(all_comm RS init handle e => (message "rew_th"; print_exn e))
+	(all_comm RS init handle e => (message "rew_th"; OldGoals.print_exn e))
     end
 
 fun quant_rewrite sg assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $ Abs(y,yT,body)))) =
@@ -343,7 +343,7 @@ fun eta_contract sg assumes origt =
 		       SOME res
 		  end
 	      else NONE)
-	     handle e => print_exn e)
+	     handle e => OldGoals.print_exn e)
 	  | _ => NONE
        end
 
@@ -411,7 +411,7 @@ fun eta_expand sg assumes origt =
 	    else NONE
 	  | _ => (error ("Bad eta_expand argument" ^ (string_of_cterm (cterm_of sg t))); NONE)
     end
-    handle e => (writeln "eta_expand internal error";print_exn e)
+    handle e => (writeln "eta_expand internal error"; OldGoals.print_exn e)
 
 fun mk_tfree s = TFree("'"^s,[])
 val xT = mk_tfree "a"
@@ -524,7 +524,7 @@ fun close_thm th =
     in
 	Drule.forall_intr_list (map (cterm_of sg) vars) th
     end
-    handle e => (writeln "close_thm internal error"; print_exn e)
+    handle e => (writeln "close_thm internal error"; OldGoals.print_exn e)
 
 (* Normalizes a theorem's conclusion using norm_term. *)
 
@@ -622,7 +622,7 @@ fun set_prop thy t =
 					else error "Internal error in set_prop"
 	     | NONE => NONE
     end
-    handle e => (writeln "set_prop internal error"; print_exn e)
+    handle e => (writeln "set_prop internal error"; OldGoals.print_exn e)
 
 fun find_potential thy t =
     let

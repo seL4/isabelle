@@ -107,7 +107,7 @@ fun add_fixdefs eqs thy =
     
     fun mk_cterm t = cterm_of thy' (infer thy' t);
     val ctuple_unfold_ct = mk_cterm (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
-    val ctuple_unfold_thm = prove_goalw_cterm [] ctuple_unfold_ct
+    val ctuple_unfold_thm = OldGoals.prove_goalw_cterm [] ctuple_unfold_ct
           (fn _ => [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
                     simp_tac (simpset_of thy') 1]);
     val ctuple_induct_thm =
@@ -218,7 +218,7 @@ fun make_simps thy (unfold_thm, eqns) =
   let
     fun tacsf prems =
       [rtac (unfold_thm RS ssubst_lhs) 1, simp_tac (simpset_of thy addsimps prems) 1];
-    fun prove_term t = prove_goalw_cterm [] (cterm_of thy t) tacsf;
+    fun prove_term t = OldGoals.prove_goalw_cterm [] (cterm_of thy t) tacsf;
     fun prove_eqn ((name, eqn_t), atts) = ((name, prove_term eqn_t), atts);
   in
     map prove_eqn eqns
@@ -275,7 +275,7 @@ fun fix_pat thy t =
     val cname = case chead_of t of Const(c,_) => c | _ =>
               fixrec_err "function is not declared as constant in theory";
     val unfold_thm = PureThy.get_thm thy (Name (cname^"_unfold"));
-    val simp = prove_goalw_cterm [] (cterm_of thy eq)
+    val simp = OldGoals.prove_goalw_cterm [] (cterm_of thy eq)
           (fn _ => [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
   in simp end;
 

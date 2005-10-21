@@ -24,7 +24,7 @@ fun inferT sg pre_tm =
 
 fun pg'' thy defs t = let val sg = sign_of thy;
                           val ct = Thm.cterm_of sg (inferT sg t);
-                      in prove_goalw_cterm defs ct end;
+                      in OldGoals.prove_goalw_cterm defs ct end;
 fun pg'  thy defs t tacsf=pg'' thy defs t (fn []   => tacsf 
                                 | prems=> (cut_facts_tac prems 1)::tacsf);
 

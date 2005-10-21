@@ -192,7 +192,7 @@ let
   val dummy = writeln "  Proving monotonicity...";
 
   val bnd_mono =
-      prove_goalw_cterm []
+      OldGoals.prove_goalw_cterm []
         (cterm_of sign1
                   (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs)))
         (fn _ =>
@@ -251,7 +251,7 @@ let
           and g rl = rl RS disjI2
       in  accesses_bal(f, g, asm_rl)  end;
 
-  fun prove_intr (ct, tacsf) = prove_goalw_cterm part_rec_defs ct tacsf;
+  fun prove_intr (ct, tacsf) = OldGoals.prove_goalw_cterm part_rec_defs ct tacsf;
 
   val intrs = ListPair.map prove_intr
                 (map (cterm_of sign1) intr_tms,
@@ -345,7 +345,7 @@ let
                                    ORELSE' etac FalseE));
 
      val quant_induct =
-         prove_goalw_cterm part_rec_defs
+         OldGoals.prove_goalw_cterm part_rec_defs
            (cterm_of sign1
             (Logic.list_implies
              (ind_prems,
@@ -431,7 +431,7 @@ let
      val lemma = (*makes the link between the two induction rules*)
        if need_mutual then
           (writeln "  Proving the mutual induction rule...";
-           prove_goalw_cterm part_rec_defs
+           OldGoals.prove_goalw_cterm part_rec_defs
                  (cterm_of sign1 (Logic.mk_implies (induct_concl,
                                                    mutual_induct_concl)))
                  (fn prems =>
@@ -493,7 +493,7 @@ let
 
      val mutual_induct_fsplit =
        if need_mutual then
-         prove_goalw_cterm []
+         OldGoals.prove_goalw_cterm []
                (cterm_of sign1
                 (Logic.list_implies
                    (map (induct_prem (rec_tms~~preds)) intr_tms,

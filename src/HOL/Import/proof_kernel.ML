@@ -172,7 +172,7 @@ fun ERR f mesg = PK (f,mesg)
 fun print_exn e = 
     case e of
 	PK (m,s) => (writeln ("PK (" ^ m ^ "): " ^ s); raise e)
-      | _ => Goals.print_exn e
+      | _ => OldGoals.print_exn e
 
 (* Compatibility. *)
 

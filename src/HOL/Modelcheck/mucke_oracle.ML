@@ -109,14 +109,14 @@ let
 val trm = hd(itrm)
 in
 (
-push_proof();
-goalw_cterm [] (cterm_of sign trm);
+OldGoals.push_proof();
+OldGoals.goalw_cterm [] (cterm_of sign trm);
 by (simp_tac (simpset()) 1);
         let
         val if_tmp_result = result()
         in
         (
-        pop_proof();
+        OldGoals.pop_proof();
         CHANGED(full_simp_tac (sset addsimps [if_tmp_result]) i) state)
         end
 )

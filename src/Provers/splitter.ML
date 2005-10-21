@@ -73,7 +73,7 @@ val lift =
   let val ct = read_cterm (#sign(rep_thm Data.iffD))
            ("[| !!x. (Q::('b::{})=>('c::{}))(x) == R(x) |] ==> \
             \P(%x. Q(x)) == P(%x. R(x))::'a::{}",propT)
-  in prove_goalw_cterm [] ct
+  in OldGoals.prove_goalw_cterm [] ct
      (fn [prem] => [rewtac prem, rtac reflexive_thm 1])
   end;
 

@@ -270,7 +270,7 @@ fun replay_proof int_thms thyname thmname prf thy =
 		  | _ => rp pc thy
 	    end
     in
-	rp' prf thy handle e => (writeln "Exception in replay_proof"; print_exn e)
+	rp' prf thy handle e => (writeln "Exception in replay_proof"; OldGoals.print_exn e)
     end
 
 fun setup_int_thms thyname thy =

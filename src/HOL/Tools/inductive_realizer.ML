@@ -360,7 +360,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           (Extraction.realizes_of thy (vs @ Ps) r (prop_of induct)));
         val rews = map mk_meta_eq
           (fst_conv :: snd_conv :: get #rec_thms dt_info);
-        val thm = simple_prove_goal_cterm (cterm_of (sign_of thy) rlz) (fn prems =>
+        val thm = OldGoals.simple_prove_goal_cterm (cterm_of (sign_of thy) rlz) (fn prems =>
           [if length rss = 1 then
              cut_facts_tac [hd prems] 1 THEN etac (#induct ind_info) 1
            else EVERY [rewrite_goals_tac (rews @ all_simps),
@@ -410,7 +410,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         val rlz = strip_all (Logic.unvarify
           (Extraction.realizes_of thy (vs @ Ps) r (prop_of elim)));
         val rews = map mk_meta_eq case_thms;
-        val thm = simple_prove_goal_cterm (cterm_of (sign_of thy) rlz) (fn prems =>
+        val thm = OldGoals.simple_prove_goal_cterm (cterm_of (sign_of thy) rlz) (fn prems =>
           [cut_facts_tac [hd prems] 1,
            etac elimR 1,
            ALLGOALS (EVERY' [etac Pair_inject, asm_simp_tac HOL_basic_ss]),

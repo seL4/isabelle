@@ -130,7 +130,7 @@ fun transform_elim th =
     let val tm = elimR2Fol th
 	val ctm = cterm_of (sign_of_thm th) tm	
     in
-	prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
+	OldGoals.prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
     end
  else th;
 
@@ -240,7 +240,7 @@ fun skolem_of_def def =
       val cex = Thm.cterm_of sign (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
       and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
-  in  prove_goalw_cterm [def] (Drule.mk_implies (ex_tm, conc))
+  in  OldGoals.prove_goalw_cterm [def] (Drule.mk_implies (ex_tm, conc))
 	    (fn [prem] => [ rtac (prem RS someI_ex) 1 ])
   end;	 
 

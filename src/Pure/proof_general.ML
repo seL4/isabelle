@@ -370,7 +370,7 @@ val welcome = priority o Session.welcome;
 val help = welcome;
 val show_context = Context.the_context;
 
-fun kill_goal () = (Goals.reset_goals (); tell_clear_goals ());
+fun kill_goal () = (OldGoals.reset_goals (); tell_clear_goals ());
 
 fun no_print_goals f = setmp Display.print_current_goals_fn (fn _ => fn _ => fn _ => ()) f;
 

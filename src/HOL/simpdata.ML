@@ -253,7 +253,7 @@ fun lift_meta_eq_to_obj_eq i st =
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)
-      in prove_goalw_cterm [simp_implies_def]
+      in OldGoals.prove_goalw_cterm [simp_implies_def]
         (cterm_of sign (Logic.mk_implies
           (mk_simp_implies (Logic.mk_equals (x, y)),
            mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))))

@@ -73,7 +73,7 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
         val induct' = refl RS ((List.nth
           (split_conj_thm (cterm_instantiate insts' induct), i)) RSN (2, rev_mp))
 
-      in prove_goalw_cterm [] (cert t) (fn prems =>
+      in OldGoals.prove_goalw_cterm [] (cert t) (fn prems =>
         [rtac induct' 1,
          REPEAT (rtac TrueI 1),
          REPEAT ((rtac impI 1) THEN (eresolve_tac prems 1)),
@@ -211,7 +211,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
               THEN rewtac (mk_meta_eq choice_eq), rec_intrs),
             descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 
-      in split_conj_thm (prove_goalw_cterm []
+      in split_conj_thm (OldGoals.prove_goalw_cterm []
         (cert (HOLogic.mk_Trueprop (mk_conj rec_unique_ts))) (K [tac]))
       end;
 
@@ -244,7 +244,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val _ = message "Proving characteristic theorems for primrec combinators ..."
 
-    val rec_thms = map (fn t => prove_goalw_cterm reccomb_defs
+    val rec_thms = map (fn t => OldGoals.prove_goalw_cterm reccomb_defs
       (cterm_of (Theory.sign_of thy2) t) (fn _ =>
         [rtac the1_equality 1,
          resolve_tac rec_unique_thms 1,
@@ -318,7 +318,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
         end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
           (Library.take (length newTs, reccomb_names)));
 
-    val case_thms = map (map (fn t => prove_goalw_cterm (case_defs @
+    val case_thms = map (map (fn t => OldGoals.prove_goalw_cterm (case_defs @
       (map mk_meta_eq primrec_thms)) (cterm_of (Theory.sign_of thy2) t)
         (fn _ => [rtac refl 1])))
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
@@ -352,8 +352,8 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
         val tacsf = K [rtac exhaustion' 1, ALLGOALS (asm_simp_tac
           (HOL_ss addsimps (dist_rewrites' @ inject @ case_thms')))]
       in
-        (prove_goalw_cterm [] (cert t1) tacsf,
-         prove_goalw_cterm [] (cert t2) tacsf)
+        (OldGoals.prove_goalw_cterm [] (cert t1) tacsf,
+         OldGoals.prove_goalw_cterm [] (cert t2) tacsf)
       end;
 
     val split_thm_pairs = map prove_split_thms
@@ -419,7 +419,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     val rewrites = size_def_thms @ map mk_meta_eq primrec_thms;
 
-    val size_thms = map (fn t => prove_goalw_cterm rewrites
+    val size_thms = map (fn t => OldGoals.prove_goalw_cterm rewrites
       (cterm_of (Theory.sign_of thy') t) (fn _ => [rtac refl 1]))
         (DatatypeProp.make_size descr sorts thy')
 
@@ -432,7 +432,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 fun prove_weak_case_congs new_type_names descr sorts thy =
   let
     fun prove_weak_case_cong t =
-       prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t)
+       OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t)
          (fn prems => [rtac ((hd prems) RS arg_cong) 1])
 
     val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
@@ -453,7 +453,7 @@ fun prove_nchotomys new_type_names descr sorts casedist_thms thy =
               hyp_subst_tac i, REPEAT (rtac exI i), rtac refl i]
           | tac i n = rtac disjI2 i THEN tac i (n - 1)
       in 
-        prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t) (fn _ =>
+        OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t) (fn _ =>
           [rtac allI 1,
            exh_tac (K exhaustion) 1,
            ALLGOALS (fn i => tac i (i-1))])
@@ -475,7 +475,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
         val nchotomy'' = cterm_instantiate
           [(cert (hd (add_term_vars (concl_of nchotomy', []))), cert Ma)] nchotomy'
       in
-        prove_goalw_cterm [] (cert t) (fn prems => 
+        OldGoals.prove_goalw_cterm [] (cert t) (fn prems => 
           let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites))
           in [simp_tac (HOL_ss addsimps [hd prems]) 1,
               cut_facts_tac [nchotomy''] 1,

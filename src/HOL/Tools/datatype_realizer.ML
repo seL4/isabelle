@@ -119,7 +119,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induction))) ~~ ps);
 
-    val thm = simple_prove_goal_cterm (cert (Logic.list_implies (prems, concl)))
+    val thm = OldGoals.simple_prove_goal_cterm (cert (Logic.list_implies (prems, concl)))
       (fn prems =>
          [rewrite_goals_tac (map mk_meta_eq [fst_conv, snd_conv]),
           rtac (cterm_instantiate inst induction) 1,
@@ -190,7 +190,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     val y = Var (("y", 0), Type.varifyT T);
     val y' = Free ("y", T);
 
-    val thm = prove_goalw_cterm [] (cert (Logic.list_implies (prems,
+    val thm = OldGoals.prove_goalw_cterm [] (cert (Logic.list_implies (prems,
       HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
         list_comb (r, rs @ [y'])))))
       (fn prems =>

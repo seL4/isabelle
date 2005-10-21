@@ -226,7 +226,7 @@ structured_tuple con_pre_varlist (element_type(#T(rep_cterm(cterm_of sign (Start
 structured_tuple con_post_varlist (element_type(#T(rep_cterm(cterm_of sign (StartC sign concl))))));
 in
 (
-push_proof();
+OldGoals.push_proof();
 Goal 
 ( "(Internal_of_A = (% a::(" ^ action_type_str ^ "). a:(" ^ ia_str^
   "))) --> (Internal_of_C = (% a::(" ^ action_type_str ^ "). a:(" ^ ic_str ^ 
@@ -271,7 +271,7 @@ by (call_mucke_tac 1);
 (* Bis hierher wird im Kapitel 5 erl"autert, ab hier wieder im Kapitel 4 *)
 by (atac 1);
 result();
-pop_proof();
+OldGoals.pop_proof();
 Logic.strip_imp_concl subgoal
 )
 end)

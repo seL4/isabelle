@@ -52,7 +52,7 @@ fun termination_goals rules =
 fun tgoalw thy defs rules =
   case termination_goals rules of
       [] => error "tgoalw: no termination conditions to prove"
-    | L  => goalw_cterm defs
+    | L  => OldGoals.goalw_cterm defs
               (Thm.cterm_of (Theory.sign_of thy)
                         (HOLogic.mk_Trueprop(USyntax.list_mk_conj L)));
 

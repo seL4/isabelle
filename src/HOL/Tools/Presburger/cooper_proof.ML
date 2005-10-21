@@ -197,7 +197,7 @@ fun simple_prove_goal_cterm2 G tacs =
     fun check NONE = error "prove_goal: tactic failed"
       | check (SOME (thm, _)) = (case nprems_of thm of
             0 => thm
-          | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
+          | i => !OldGoals.result_error_fn thm (string_of_int i ^ " unsolved goals!"))
   in check (Seq.pull (EVERY tacs (trivial G))) end;
 
 (*-------------------------------------------------------------*)

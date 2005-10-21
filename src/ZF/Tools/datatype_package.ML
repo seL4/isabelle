@@ -279,7 +279,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                           Su.case_inr RS trans] 1)];
 
   fun prove_case_eqn (arg,con_def) =
-      prove_goalw_cterm []
+      OldGoals.prove_goalw_cterm []
         (Ind_Syntax.traceIt "next case equation = "
            (cterm_of (sign_of thy1) (mk_case_eqn arg)))
         (case_tacsf con_def);
@@ -324,7 +324,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
            IF_UNSOLVED (simp_tac (rank_ss addsimps tl con_defs) 1)];
 
         fun prove_recursor_eqn arg =
-            prove_goalw_cterm []
+            OldGoals.prove_goalw_cterm []
               (Ind_Syntax.traceIt "next recursor equation = "
                 (cterm_of (sign_of thy1) (mk_recursor_eqn arg)))
               recursor_tacsf
@@ -342,7 +342,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Typical theorems have the form ~con1=con2, con1=con2==>False,
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
   fun mk_free s =
-      prove_goalw (theory_of_thm elim)   (*Don't use thy1: it will be stale*)
+      OldGoals.prove_goalw (theory_of_thm elim)   (*Don't use thy1: it will be stale*)
                   con_defs s
         (fn prems => [cut_facts_tac prems 1,
                       fast_tac (ZF_cs addSEs free_SEs @ Su.free_SEs) 1]);

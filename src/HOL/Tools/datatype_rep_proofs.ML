@@ -279,7 +279,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val Abs_name = Sign.intern_const sg ("Abs_" ^ s);
 
         val inj_Abs_thm = 
-	    prove_goalw_cterm [] 
+	    OldGoals.prove_goalw_cterm [] 
 	      (cterm_of sg
 	       (HOLogic.mk_Trueprop 
 		(Const ("Fun.inj_on", [AbsT, UnivT] ---> HOLogic.boolT) $
@@ -289,7 +289,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val setT = HOLogic.mk_setT T
 
         val inj_Rep_thm =
-	    prove_goalw_cterm []
+	    OldGoals.prove_goalw_cterm []
 	      (cterm_of sg
 	       (HOLogic.mk_Trueprop
 		(Const ("Fun.inj_on", [RepT, setT] ---> HOLogic.boolT) $
@@ -375,7 +375,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         (* prove characteristic equations *)
 
         val rewrites = def_thms @ (map mk_meta_eq rec_rewrites);
-        val char_thms' = map (fn eqn => prove_goalw_cterm rewrites
+        val char_thms' = map (fn eqn => OldGoals.prove_goalw_cterm rewrites
           (cterm_of (Theory.sign_of thy') eqn) (fn _ => [rtac refl 1])) eqns;
 
       in (thy', char_thms' @ char_thms) end;
@@ -397,7 +397,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             val Ts = map (TFree o rpair HOLogic.typeS)
               (variantlist (replicate i "'t", used));
             val f = Free ("f", Ts ---> U)
-          in prove_goalw_cterm [] (cterm_of sign (Logic.mk_implies
+          in OldGoals.prove_goalw_cterm [] (cterm_of sign (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.list_all
                (map (pair "x") Ts, HOLogic.mk_mem (app_bnds f i, S))),
              HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
@@ -431,7 +431,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val inj_thms' = map (fn r => r RS injD)
           (map snd newT_iso_inj_thms @ inj_thms);
 
-        val inj_thm = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5)
+        val inj_thm = OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5)
           (HOLogic.mk_Trueprop (mk_conj ind_concl1))) (fn _ =>
             [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
              REPEAT (EVERY
@@ -457,7 +457,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                              (split_conj_thm inj_thm);
 
         val elem_thm = 
-	    prove_goalw_cterm []
+	    OldGoals.prove_goalw_cterm []
 	      (cterm_of (Theory.sign_of thy5)
 	       (HOLogic.mk_Trueprop (mk_conj ind_concl2)))
 	      (fn _ =>
@@ -495,7 +495,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val iso_thms = if length descr = 1 then [] else
       Library.drop (length newTs, split_conj_thm
-        (prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) iso_t) (fn _ =>
+        (OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) iso_t) (fn _ =>
            [(indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq choice_eq ::
@@ -525,7 +525,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       let
         val inj_thms = map (fn (r, _) => r RS inj_onD) newT_iso_inj_thms;
         val rewrites = o_def :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
-      in prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) eqn) (fn _ =>
+      in OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) eqn) (fn _ =>
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,
          rtac refl 1,
@@ -547,7 +547,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun prove_distinct_thms (_, []) = []
       | prove_distinct_thms (dist_rewrites', t::_::ts) =
           let
-            val dist_thm = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) t) (fn _ =>
+            val dist_thm = OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) t) (fn _ =>
               [simp_tac (HOL_ss addsimps dist_rewrites') 1])
           in dist_thm::(standard (dist_thm RS not_sym))::
             (prove_distinct_thms (dist_rewrites', ts))
@@ -568,7 +568,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         ((map (fn r => r RS injD) iso_inj_thms) @
           [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject,
            Lim_inject, Suml_inject, Sumr_inject]))
-      in prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) t) (fn _ =>
+      in OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) t) (fn _ =>
         [rtac iffI 1,
          REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
          dresolve_tac rep_congs 1, dtac box_equals 1,
@@ -616,7 +616,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val cert = cterm_of (Theory.sign_of thy6);
 
-    val indrule_lemma = prove_goalw_cterm [] (cert
+    val indrule_lemma = OldGoals.prove_goalw_cterm [] (cert
       (Logic.mk_implies
         (HOLogic.mk_Trueprop (mk_conj indrule_lemma_prems),
          HOLogic.mk_Trueprop (mk_conj indrule_lemma_concls)))) (fn prems =>
@@ -630,7 +630,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
 
-    val dt_induct = prove_goalw_cterm [] (cert
+    val dt_induct = OldGoals.prove_goalw_cterm [] (cert
       (DatatypeProp.make_ind descr sorts)) (fn prems =>
         [rtac indrule_lemma' 1,
          (indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,

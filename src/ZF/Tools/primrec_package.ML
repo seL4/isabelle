@@ -182,7 +182,7 @@ fun add_primrec_i args thy =
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val eqn_thms =
       (message ("Proving equations for primrec function " ^ fname);
-      map (fn t => prove_goalw_cterm rewrites
+      map (fn t => OldGoals.prove_goalw_cterm rewrites
         (Ind_Syntax.traceIt "next primrec equation = " (cterm_of (sign_of thy1) t))
         (fn _ => [rtac refl 1])) eqn_terms);
 

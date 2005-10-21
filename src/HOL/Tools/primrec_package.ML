@@ -254,7 +254,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val rewrites = (map mk_meta_eq rec_rewrites) @ defs_thms';
     val _ = message ("Proving equations for primrec function(s) " ^
       commas_quote (map fst nameTs1) ^ " ...");
-    val simps = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
+    val simps = map (fn (_, t) => OldGoals.prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
     val (thy'', simps') = PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts) thy';
     val thy''' = thy''
