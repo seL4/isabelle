@@ -718,7 +718,7 @@ fun export is_goal inner outer =
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
-    Tactic.norm_hhf_rule
+    Goal.norm_hhf_rule
     #> Seq.EVERY (rev exp_asms)
     #> Seq.map (fn rule =>
       let
@@ -729,7 +729,7 @@ fun export is_goal inner outer =
       in
         rule
         |> Drule.forall_intr_list frees
-        |> Tactic.norm_hhf_rule
+        |> Goal.norm_hhf_rule
         |> (#1 o Drule.tvars_intr_list tfrees)
       end)
   end;
@@ -740,9 +740,9 @@ fun export' is_goal inner outer =
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
-    Tactic.norm_hhf_plain
+    Goal.norm_hhf_plain
     #> Seq.EVERY (rev exp_asms)
-    #> Seq.map Tactic.norm_hhf_plain
+    #> Seq.map Goal.norm_hhf_plain
   end;
 
 fun gen_export exp inner outer =
@@ -1078,7 +1078,7 @@ local
 fun add_assm ((name, attrs), props) ctxt =
   let
     val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
-    val asms = map (Tactic.norm_hhf_rule o Thm.assume) cprops;
+    val asms = map (Goal.norm_hhf_rule o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val ([(_, thms)], ctxt') =
