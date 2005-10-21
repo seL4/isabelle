@@ -15,9 +15,13 @@ discontinued altogether.  Note that ML proof scripts may still be used
 with Isar theories; migration is usually quite simple with the ML
 function use_legacy_bindings.  INCOMPATIBILITY.
 
-* Legacy goal package: removed former user-level functions top_sg,
-prin, printyp, pprint_term/typ, which tend to cause confusion about
-the actual goal (!) context being used here.
+* Legacy goal package: reduced interface to the bare minimum required
+to keep existing proof scripts running.  Most other user-level
+functions are now part of the OldGoals structure, which is *not* open
+by default (consider isatool expandshort before open OldGoals).
+Removed top_sg, prin, printyp, pprint_term/typ altogether, because
+these tend to cause confusion about the actual goal (!) context being
+used here, which is not necessarily the same as the_context().
 
 * Command 'find_theorems': support "*" wildcard in "name:" criterion.
 
@@ -64,6 +68,12 @@ are no longer reserved, significant speedup.
 
 
 *** ML ***
+
+* Internal goals: structure Goal provides simple interfaces for
+init/conclude/finish and tactical prove operations (replacing former
+Tactic.prove).  Note that OldGoals.prove_goalw_cterm has long been
+obsolete, it is ill-behaved in a local proof context (e.g. with local
+fixes/assumes or in a locale context).
 
 * Simplifier: the simpset of a running simplification process now
 contains a proof context (cf. Simplifier.the_context), which is the
