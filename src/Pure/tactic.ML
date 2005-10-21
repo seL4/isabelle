@@ -70,8 +70,6 @@ sig
   val net_biresolve_tac : (bool*thm) list -> int -> tactic
   val net_match_tac     : thm list -> int -> tactic
   val net_resolve_tac   : thm list -> int -> tactic
-  val norm_hhf_plain    : thm -> thm
-  val norm_hhf_rule     : thm -> thm
   val norm_hhf_tac      : int -> tactic
   val prune_params_tac  : tactic
   val rename_params_tac : string list -> int -> tactic
@@ -85,6 +83,7 @@ sig
   val rewrite_rule      : thm list -> thm -> thm
   val rewrite_goals_tac : thm list -> tactic
   val rewrite_tac       : thm list -> tactic
+  val asm_rewrite_goal_tac: bool * bool * bool -> (simpset -> tactic) -> simpset -> int -> tactic
   val rewtac            : thm -> tactic
   val rotate_tac        : int -> int -> tactic
   val rtac              : thm -> int -> tactic
@@ -112,12 +111,6 @@ sig
   val simplify: bool -> thm list -> thm -> thm
   val conjunction_tac: tactic
   val smart_conjunction_tac: int -> tactic
-  val prove_multi_plain: theory -> string list -> term list -> term list ->
-    (thm list -> tactic) -> thm list
-  val prove_multi: theory -> string list -> term list -> term list ->
-    (thm list -> tactic) -> thm list
-  val prove_plain: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
@@ -534,9 +527,14 @@ val simplify = MetaSimplifier.simplify_aux simple_prover;
 val rewrite_rule = simplify true;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
+(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
+fun asm_rewrite_goal_tac mode prover_tac ss =
+  SELECT_GOAL
+    (PRIMITIVE (MetaSimplifier.rewrite_goal_rule mode (SINGLE o prover_tac) ss 1));
+
 fun rewrite_goal_tac rews =
   let val ss = MetaSimplifier.empty_ss addsimps rews in
-    fn i => fn st => MetaSimplifier.asm_rewrite_goal_tac (true, false, false) (K no_tac)
+    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
       (MetaSimplifier.theory_context (Thm.theory_of_thm st) ss) i st
   end;
 
@@ -546,15 +544,6 @@ fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 (*Rewrite subgoals only, not main goal. *)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
-
-fun norm_hhf_plain th =
-  if Drule.is_norm_hhf (Thm.prop_of th) then th
-  else rewrite_rule [Drule.norm_hhf_eq] th;
-
-val norm_hhf_rule =
-  norm_hhf_plain
-  #> Thm.adjust_maxidx_thm
-  #> Drule.gen_all;
 
 val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
@@ -654,64 +643,6 @@ val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
 
 fun smart_conjunction_tac 0 = assume_tac 1
   | smart_conjunction_tac _ = TRY conjunction_tac;
-
-
-
-(** minimal goal interface for programmed proofs *)
-
-fun gen_prove_multi finish_thm thy xs asms props tac =
-  let
-    val prop = Logic.mk_conjunction_list props;
-    val statement = Logic.list_implies (asms, prop);
-    val frees = map Term.dest_Free (Term.term_frees statement);
-    val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
-    val fixed_tfrees = foldr Term.add_typ_tfrees [] (map #2 fixed_frees);
-    val params = List.mapPartial (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
-
-    fun err msg = raise ERROR_MESSAGE
-      (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
-        Sign.string_of_term thy (Term.list_all_free (params, statement)));
-
-    fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm t)
-      handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
-
-    val _ = cert_safe statement;
-    val _ = Term.no_dummy_patterns statement handle TERM (msg, _) => err msg;
-
-    val cparams = map (cert_safe o Free) params;
-    val casms = map cert_safe asms;
-    val prems = map (norm_hhf_rule o Thm.assume) casms;
-    val goal = Drule.mk_triv_goal (cert_safe prop);
-
-    val goal' =
-      (case Seq.pull (tac prems goal) of SOME (goal', _) => goal' | _ => err "Tactic failed.");
-    val ngoals = Thm.nprems_of goal';
-    val _ = conditional (ngoals <> 0) (fn () =>
-      err ("Proof failed.\n" ^
-        Pretty.string_of (Pretty.chunks (Display.pretty_goals ngoals goal')) ^
-        ("\n" ^ string_of_int ngoals ^ " unsolved goal(s)!")));
-
-    val raw_result = goal' RS Drule.rev_triv_goal;
-    val prop' = prop_of raw_result;
-    val _ = conditional (not (Pattern.matches thy (prop, prop'))) (fn () =>
-      err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
-  in
-    Drule.conj_elim_precise (length props) raw_result
-    |> map (fn res => res
-      |> Drule.implies_intr_list casms
-      |> Drule.forall_intr_list cparams
-      |> finish_thm fixed_tfrees)
-  end;
-
-fun prove_multi_plain thy xs asms prop tac =
-  gen_prove_multi (K norm_hhf_plain) thy xs asms prop tac;
-fun prove_multi thy xs asms prop tac =
-  gen_prove_multi (fn fixed_tfrees => Drule.zero_var_indexes o
-      (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf_rule)
-    thy xs asms prop tac;
-
-fun prove_plain thy xs asms prop tac = hd (prove_multi_plain thy xs asms [prop] tac);
-fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
 
 end;
 
