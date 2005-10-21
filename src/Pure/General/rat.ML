@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Tobias Nipkow, TU Muenchen
 
-Canonical implementation of exact rational numbers
+Canonical implementation of exact rational numbers.
 *)
 
 signature RAT =
@@ -25,6 +25,8 @@ sig
   val inv: rat -> rat
   val ge0: rat -> bool
   val gt0: rat -> bool
+  val roundup: rat -> rat
+  val rounddown: rat -> rat
 end;
 
 structure Rat: RAT =
@@ -46,7 +48,7 @@ fun rat_of_intinf i =
 fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
 
 fun norm (a, 0, q) =
-      Rat (true, 0, 1) (* is that intentional? *)
+      Rat (true, 0, 1) (*is that intentional?*)
   | norm (a, p, q) =
       let
         val absp = abs p
@@ -68,18 +70,27 @@ fun string_of_rat r =
   let val (p, q) = quotient_of_rat r
   in IntInf.toString p ^ "/" ^ IntInf.toString q end;
 
+fun eq (Rat (false, _, _), Rat (true, _, _)) = false
+  | eq (Rat (true, _, _), Rat (false, _, _)) = false
+  | eq (Rat (_, p1, q1), Rat (_, p2, q2)) = p1 = p2 andalso q1 = q2
+
+fun le (Rat (false, _, _), Rat (true, _, _)) = true
+  | le (Rat (true, _, _), Rat (false, _, _)) = false
+  | le (Rat (a, p1, q1), Rat (_, p2, q2)) =
+      let val (r1, r2, _) = common (p1, q1, p2, q2)
+      in if a then r1 <= r2 else r2 <= r1 end;
+
+fun lt (Rat (false, _, _), Rat (true, _, _)) = true
+  | lt (Rat (true, _, _), Rat (false, _, _)) = false
+  | lt (Rat (a, p1, q1), Rat (_, p2, q2)) =
+      let val (r1, r2, _) = common (p1, q1, p2, q2)
+      in if a then r1 <= r2 else r2 <= r1 end;
+
 fun ord (Rat (false, _, _), Rat (true, _, _)) = LESS
   | ord (Rat (true, _, _), Rat (false, _, _)) = GREATER
   | ord (Rat (a, p1, q1), Rat (_, p2, q2)) =
-      if p1 = p2 andalso q1 = q2 then EQUAL
-      else let val (r1, r2, _) = common (p1, q1, p2, q2)
+      let val (r1, r2, _) = common (p1, q1, p2, q2)
       in if a then IntInf.compare (r1, r2) else IntInf.compare (r2, r1) end;
-
-fun eq r = (ord r = EQUAL);
-
-fun le r = not (ord r = GREATER);
-
-fun lt r = (ord r = LESS);
 
 fun add (Rat (a1, p1, q1), Rat(a2, p2, q2)) =
   let
@@ -101,5 +112,20 @@ fun inv (Rat (a, 0, q)) =
 
 fun ge0 (Rat (a, _, _)) = a;
 fun gt0 (Rat (a, p, _)) = a andalso p > 0;
+
+fun roundup (r as Rat (_, _, 1)) = r
+  | roundup (Rat (a, p, q)) =
+      let
+        fun round true q = Rat (true, q+1, 1)
+          | round false 0 = Rat (true, 0 ,1)
+          | round false q = Rat (false, q, 1)
+      in round a (p div q) end;
+
+fun rounddown (r as Rat (_, _, 1)) = r
+  | rounddown (Rat (a, p, q)) =
+      let
+        fun round true q = Rat (true, q, 1)
+          | round false q = Rat (false, q+1, 1)
+      in round a (p div q) end;
 
 end;
