@@ -1,4 +1,4 @@
-# this is a generated file - do not edit!
+# this is a default file
 
 DISTNAME=Isabelle2005
 DISTIDENT=Isabelle2005

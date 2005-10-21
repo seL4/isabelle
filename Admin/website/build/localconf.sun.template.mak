@@ -9,7 +9,7 @@ OUTPUTROOT=$(HOME)/isabelle/website_test
 ISABELLE_DIST=$(DISTBASE)
 
 # location of doc content file
-ISABELLE_DOC_CONTENT_FILE=$(DISTBASE)/$(DISTIDENT)/doc/Contents
+ISABELLE_DOC_CONTENT_FILE=$(DISTBASE)/$(DISTNAME)/doc/Contents
 
 # dirs to copy to build target
 STATICDIRS=css img media misc

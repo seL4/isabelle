@@ -21,7 +21,9 @@ $(OUTPUTROOT)/dist: $(ISABELLE_DIST)
 	$(COPY) -vRud $</[^w]* $@
 	chgrp -R $(TARGET_GROUP) $@
 	chmod -R u-w,g-w,o-w $@
-	ln -s $(ISABELLE_DIST)/$(DISTIDENT) Isabelle
+	-[ ! -e Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) Isabelle
+	-chgrp -h $(TARGET_GROUP) Isabelle
+	-chmod -h u-w,g-w,o-w Isabelle
 
 else
 
@@ -30,7 +32,9 @@ $(OUTPUTROOT)/dist: $(ISABELLE_DIST) SYNC_ALWAYS
 	$(RSYNC) -v --exclude='/website/' -a --delete --delete-after $</ $@
 	chgrp -R $(TARGET_GROUP) $@
 	chmod -R u-w,g-w,o-w $@
-	ln -s $(ISABELLE_DIST)/$(DISTIDENT) Isabelle
+	-[ ! -e Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) Isabelle
+	-chgrp -h $(TARGET_GROUP) Isabelle
+	-chmod -h u-w,g-w,o-w Isabelle
 
 SYNC_ALWAYS:
 
