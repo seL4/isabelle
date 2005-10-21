@@ -19,6 +19,7 @@ sig
   val sign_of: state -> theory    (*obsolete*)
   val map_context: (context -> context) -> state -> state
   val warn_extra_tfrees: state -> state -> state
+  val add_binds_i: (indexname * term option) list -> state -> state
   val put_thms: string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
@@ -439,7 +440,7 @@ local
 fun refine_tac rule =
   Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
     if can Logic.dest_goal (Logic.strip_assums_concl goal) then
-      Tactic.etac Drule.triv_goal i
+      Tactic.etac Drule.goalI i
     else all_tac));
 
 fun refine_goal print_rule inner raw_rule state =
@@ -478,7 +479,7 @@ fun conclude_goal state props goal =
     val {hyps, thy, ...} = Thm.rep_thm goal;
     val bad_hyps = fold (remove (op aconv)) (ProofContext.assms_of ctxt) hyps;
 
-    val th = goal RS Drule.rev_triv_goal;
+    val th = Goal.conclude goal;
     val ths = Drule.conj_elim_precise (length props) th
       handle THM _ => err "Main goal structure corrupted";
   in
@@ -674,6 +675,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
     |> add_binds_i lets
     |> map_context (ProofContext.qualified_names #> ProofContext.no_base_names)
     |> assume_i assumptions
+    |> add_binds_i AutoBind.no_facts
     |> map_context (ProofContext.restore_naming (context_of state))
     |> `the_facts |-> simple_note_thms name
   end;
@@ -783,7 +785,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
 
     val props = List.concat propss;
-    val goal = Drule.mk_triv_goal (Thm.cterm_of thy (Logic.mk_conjunction_list props));
+    val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list props));
 
     val after_qed' = after_qed |>> (fn after_local => fn raw_results => fn results =>
       map_context after_ctxt
