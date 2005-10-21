@@ -42,6 +42,7 @@ use "isar_output.ML";
 (*theory syntax*)
 use "thy_header.ML";
 use "session.ML";
+use "../goals.ML";   (*obsolete*)
 use "outer_syntax.ML";
 
 (*theory and proof operations*)
