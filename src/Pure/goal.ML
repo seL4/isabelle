@@ -36,8 +36,8 @@ struct
 (* managing goal states *)
 
 (*
-  ----------------- (init)
-  Goal C ==> Goal C
+  ------------ (init)
+  C ==> Goal C
 *)
 fun init ct = Drule.instantiate' [] [SOME ct] Drule.goalI;
 
@@ -56,7 +56,7 @@ fun conclude th =
   Goal C
   ------ (finish)
     C
-*)  
+*)
 fun finish th =
   (case Thm.nprems_of th of
     0 => conclude th
@@ -67,7 +67,7 @@ fun finish th =
 
 (* prove_raw -- minimal checks, no normalization *)
 
-fun prove_raw thy goal tac =  
+fun prove_raw thy goal tac =
   (case SINGLE tac (init (Thm.cterm_of thy goal)) of
     SOME th => finish th
   | NONE => raise ERROR_MESSAGE "Tactic failed.");
@@ -156,7 +156,6 @@ fun SELECT_GOAL tac i st =
       if n = 1 then tac st else SELECT tac i st
     else Seq.empty
   end;
-
 
 end;
 
