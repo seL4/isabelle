@@ -104,7 +104,7 @@ fun extract_quant extract q =
   in exqu end;
 
 fun prove_conv tac thy tu =
-  Tactic.prove thy [] [] (Logic.mk_equals tu) (K (rtac iff_reflection 1 THEN tac));
+  Goal.prove thy [] [] (Logic.mk_equals tu) (K (rtac iff_reflection 1 THEN tac));
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
 

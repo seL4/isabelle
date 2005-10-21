@@ -497,7 +497,7 @@ in
       (fn sg => fn ss => fn t =>
         case find_double t of (T, NONE) => NONE
         | (T, SOME rhs) =>
-            SOME (Tactic.prove sg [] [] (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
+            SOME (Goal.prove sg [] [] (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
 end;
 Addsimprocs[fun_upd2_simproc];
 

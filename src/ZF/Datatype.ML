@@ -87,7 +87,7 @@ struct
                  writeln ("NEW = " ^ string_of_cterm (Thm.cterm_of sg new))
                else ();
        val goal = Logic.mk_equals (old, new)
-       val thm = Tactic.prove sg [] [] goal (fn _ => rtac iff_reflection 1 THEN
+       val thm = Goal.prove sg [] [] goal (fn _ => rtac iff_reflection 1 THEN
            simp_tac (Simplifier.inherit_context ss datatype_ss addsimps #free_iffs lcon_info) 1)
          handle ERROR_MESSAGE msg =>
          (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal);

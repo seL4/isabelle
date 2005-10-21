@@ -82,7 +82,7 @@ fun Mset thm = let val vars = get_vars(thm);
                            Free ("P",varsT --> boolT) $ Bound 0));
                    val impl = implies $ (Mset_incl big_Collect) $ 
                                           (Mset_incl small_Collect);
-   in Tactic.prove (Thm.sign_of_thm thm) ["Mset", "P"] [] impl (K (CLASET' blast_tac 1)) end;
+   in Goal.prove (Thm.sign_of_thm thm) ["Mset", "P"] [] impl (K (CLASET' blast_tac 1)) end;
 
 end;
 

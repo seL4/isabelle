@@ -164,7 +164,7 @@ ML {*
 	 "t * u::'a::ring",
 	 "- t::'a::ring"];
     fun proc sg ss t = 
-      let val rew = Tactic.prove sg [] []
+      let val rew = Goal.prove sg [] []
             (HOLogic.mk_Trueprop
               (HOLogic.mk_eq (t, Var (("x", Term.maxidx_of_term t + 1), fastype_of t))))
                 (fn _ => simp_tac (Simplifier.inherit_context ss ring_ss) 1)

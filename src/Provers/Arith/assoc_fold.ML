@@ -54,7 +54,7 @@ struct
                else ()
        val rhs = plus $ mk_sum plus lits $ mk_sum plus others
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
-       val th = Tactic.prove thy [] [] (Logic.mk_equals (lhs, rhs))
+       val th = Goal.prove thy [] [] (Logic.mk_equals (lhs, rhs))
                    (fn _ => rtac Data.eq_reflection 1 THEN
                             simp_tac (Simplifier.inherit_context ss assoc_ss) 1)
    in SOME th end

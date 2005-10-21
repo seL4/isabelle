@@ -35,7 +35,7 @@ fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
 
 fun prove thy xs asms prop tac =
-  Tactic.prove thy xs asms prop
+  Goal.prove thy xs asms prop
     (if ! quick_and_dirty then (K (cheat_tac thy)) else tac);
 
 end;

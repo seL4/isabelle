@@ -96,7 +96,7 @@ structure Bin_Simprocs =
     if t aconv u then NONE
     else
       let val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
-      in SOME (Tactic.prove sg xs [] eq (K (EVERY tacs))) end
+      in SOME (Goal.prove sg xs [] eq (K (EVERY tacs))) end
 
   fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
   fun prove_conv_nohyps_novars tacs sg = prove_conv tacs sg [] [];

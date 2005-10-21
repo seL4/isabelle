@@ -226,8 +226,8 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val (cset, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    val non_empty = Tactic.prove thy [] [] goal (K tac) handle ERROR =>
-      error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
+    val non_empty = Goal.prove thy [] [] goal (K tac) handle ERROR_MESSAGE msg =>
+      error (msg ^ "\nFailed to prove non-emptiness of " ^ quote (string_of_cterm cset));
     val ((thy', _), result) = (thy, non_empty) |> typedef_result;
   in (thy', result) end;
 

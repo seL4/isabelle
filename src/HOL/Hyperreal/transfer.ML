@@ -72,7 +72,7 @@ fun transfer_thm_of thy ths t =
       , REPEAT_ALL_NEW (resolve_tac intros) 1
       , match_tac [reflexive_thm] 1 ]
   in
-    prove_goalw_cterm (ths @ refolds @ unfolds) ct (fn _ => tacs)
+    OldGoals.prove_goalw_cterm (ths @ refolds @ unfolds) ct (fn _ => tacs)
   end
 
 fun transfer_tac ths =

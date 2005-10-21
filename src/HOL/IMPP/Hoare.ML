@@ -268,7 +268,7 @@ by (case_tac "mgt_call pn : G" 1);
 by  (resolve_tac (premises()(*hoare_derivs.asm*)) 1);
 by  (Fast_tac 1);
 by (resolve_tac (tl(premises())(*MGT_BodyN*)) 1);
-byev[dtac spec 1, etac impE 1, etac impE 2, dtac spec 3,etac mp 3];
+by (EVERY [dtac spec 1, etac impE 1, etac impE 2, dtac spec 3,etac mp 3]);
 by   (eresolve_tac (tl(tl(tl(premises())))) 3);
 by   (Fast_tac 1);
 by (dtac finite_subset 1);

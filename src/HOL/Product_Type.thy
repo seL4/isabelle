@@ -413,7 +413,7 @@ local
   fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then SOME (i,t) else NONE
   |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
   |   split_pat tp i _ = NONE;
-  fun metaeq thy ss lhs rhs = mk_meta_eq (Tactic.prove thy [] []
+  fun metaeq thy ss lhs rhs = mk_meta_eq (Goal.prove thy [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
         (K (simp_tac (Simplifier.inherit_context ss HOL_basic_ss addsimps [cond_split_eta]) 1)));
 
