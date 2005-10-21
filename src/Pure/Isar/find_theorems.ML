@@ -9,7 +9,6 @@ val thms_containing_limit = ref 40;
 
 signature FIND_THEOREMS =
 sig
-  val find_thms: Proof.context -> FactIndex.spec -> (thmref * thm) list
   datatype 'term criterion =
     Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term
   val print_theorems: Proof.context -> term option -> int option ->
@@ -18,16 +17,6 @@ end;
 
 structure FindTheorems: FIND_THEOREMS =
 struct
-
-
-(* find_thms *)
-
-fun find_thms ctxt spec =
-  (PureThy.thms_containing (ProofContext.theory_of ctxt) spec @
-    ProofContext.lthms_containing ctxt spec)
-  |> map PureThy.selections |> List.concat;
-
-
 
 (** search criteria **)
 
@@ -244,6 +233,11 @@ end;
 
 
 (* print_theorems *)
+
+fun find_thms ctxt spec =
+  (PureThy.thms_containing (ProofContext.theory_of ctxt) spec @
+    ProofContext.lthms_containing ctxt spec)
+  |> map PureThy.selections |> List.concat;
 
 fun print_theorems ctxt opt_goal opt_limit raw_criteria =
   let
