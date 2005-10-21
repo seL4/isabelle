@@ -690,7 +690,7 @@ by (res_inst_tac [("x","tr")] spec 1);
 by (thin_tac' 5 1);
 by (rtac nat_less_induct 1);
 by (REPEAT (rtac allI 1));
-ren "tr schB schA" 1;
+by (rename_tac "tr schB schA" 1);
 by (strip_tac 1);
 by (REPEAT (etac conjE 1));
 
@@ -930,7 +930,7 @@ by (res_inst_tac [("x","tr")] spec 1);
 by (thin_tac' 5 1);
 by (rtac nat_less_induct 1);
 by (REPEAT (rtac allI 1));
-ren "tr schB schA" 1;
+by (rename_tac "tr schB schA" 1);
 by (strip_tac 1);
 by (REPEAT (etac conjE 1));
 
@@ -1188,7 +1188,7 @@ by (assume_tac 1);
 by (dtac scheds_in_sig 1);
 by (assume_tac 1);
 
-ren "h1 h2 schA schB" 1;
+by (rename_tac "h1 h2 schA schB" 1);
 (* mksch is exactly the construction of trA||B out of schA, schB, and the oracle tr,
    we need here *)
 by (res_inst_tac [("x","mksch A B$tr$schA$schB")] bexI 1);

@@ -14,7 +14,7 @@ by (safe_tac set_cs);
 by (ftac inp_is_act 1);
 by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
-ren "s ex" 1;
+by (rename_tac "s ex" 1);
 by (subgoal_tac "Finite ex" 1);
 by (asm_full_simp_tac (simpset() addsimps [filter_act_def]) 2);
 by (rtac (Map2Finite RS iffD1) 2);

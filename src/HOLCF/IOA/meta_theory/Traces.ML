@@ -198,7 +198,7 @@ Goal
 
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
-ren "ss a t" 1;
+by (rename_tac "ss a t" 1);
 by (safe_tac set_cs);
 by (REPEAT (asm_full_simp_tac (simpset() addsimps [is_trans_of_def]) 1));
 qed"execfrag_in_sig";

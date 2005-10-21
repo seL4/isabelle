@@ -155,7 +155,7 @@ by (thin_tac' 1 1);
 by (res_inst_tac [("x","s")] spec 1);
 by (rtac nat_less_induct 1);
 by (strip_tac 1);
-ren "na n s" 1;
+by (rename_tac "na n s" 1);
 by (case_tac "Forall (%x. ~ P x) s" 1);
 by (rtac (take_lemma_less RS iffD2 RS spec) 1);
 by (asm_full_simp_tac (simpset() addsimps [Cut_UU]) 1);

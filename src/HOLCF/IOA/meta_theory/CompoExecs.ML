@@ -161,7 +161,7 @@ Goal "!s. is_exec_frag (A||B) (s,xs) \
 
 by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 (* main case *)
-ren "ss a t" 1;
+by (rename_tac "ss a t" 1);
 by (safe_tac set_cs);
 by (REPEAT (asm_full_simp_tac (simpset() addsimps trans_of_defs2) 1));
 qed"lemma_1_1a";

@@ -84,7 +84,7 @@ qed "stream_monoP2I";
 Goal "[| !i. ? l. !x y. \
 \Fin l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i;\
 \   down_cont F |] ==> adm (%x. x:gfp F)";
-byev[   etac (INTER_down_iterate_is_gfp RS ssubst) 1, (* cont *)
+by (EVERY [   etac (INTER_down_iterate_is_gfp RS ssubst) 1, (* cont *)
         Simp_tac 1,
         resolve_tac adm_lemmas 1,
         rtac flatstream_admI 1,
@@ -99,7 +99,7 @@ byev[   etac (INTER_down_iterate_is_gfp RS ssubst) 1, (* cont *)
          atac 1,
         dtac mp 1,
          etac is_ub_thelub 1,
-        Fast_tac 1];
+        Fast_tac 1]);
 qed "stream_monoP2_gfp_admI";
 
 bind_thm("fstream_gfp_admI",stream_monoP2I RS stream_monoP2_gfp_admI);

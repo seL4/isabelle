@@ -472,7 +472,7 @@ by (asm_full_simp_tac (simpset() addsimps [sch_actions_in_AorB]) 1);
 
 (* mkex is exactly the construction of exA||B out of exA, exB, and the oracle sch,
    we need here *)
-ren "exA exB" 1;
+by (rename_tac "exA exB" 1);
 by (res_inst_tac [("x","mkex A B sch exA exB")] bexI 1);
 (* mkex actions are just the oracle *)
 by (pair_tac "exA" 1);

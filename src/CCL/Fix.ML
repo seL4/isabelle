@@ -182,7 +182,7 @@ by (rewtac idgen_def);
 by (REPEAT_SOME (ares_tac [allI]));
 by (stac applyBbot 1);
 by (resolve_tac prems 1);
-br (applyB RS ssubst )1;
+by (rtac (applyB RS ssubst) 1);
 by (res_inst_tac [("t","xa")] term_case 1);
 by (ALLGOALS (simp_tac term_ss));
 by (ALLGOALS (fast_tac (term_cs addIs ([all_INCL,INCL_subst] @ prems))));

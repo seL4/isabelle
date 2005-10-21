@@ -160,7 +160,7 @@ Goal
 by (pair_induct_tac "ex" [is_exec_frag_def] 1);
 (* cons case *)
 by (safe_tac set_cs);
-ren "ex a t s s'" 1;
+by (rename_tac "ex a t s s'" 1);
 by (asm_full_simp_tac (simpset() addsimps [mk_traceConc]) 1);
 by (forward_tac [reachable.reachable_n] 1);
 by (assume_tac 1);
@@ -191,7 +191,7 @@ by (Asm_full_simp_tac 1);
 by (pair_induct_tac "ex" [is_exec_frag_def] 1);
 (* main case *)
 by (safe_tac set_cs);
-ren "ex a t s s'" 1;
+by (rename_tac "ex a t s s'" 1);
 by (res_inst_tac [("t",
                    "@t'. ? ex1. (t,t'):R & move A ex1 s' a t'")]
     lemma_2_1 1);
@@ -265,7 +265,7 @@ Goalw [traces_def]
 
   (* Traces coincide, Lemma 1 *)
   by (pair_tac "ex" 1);
-  ren "s ex" 1;
+  by (rename_tac "s ex" 1);
   by (simp_tac (simpset() addsimps [corresp_ex_sim_def]) 1);
   by (res_inst_tac [("s","s")] traces_coincide_sim 1);
   by (REPEAT (atac 1));
@@ -275,7 +275,7 @@ Goalw [traces_def]
   (* corresp_ex_sim is execution, Lemma 2 *)
   by (pair_tac "ex" 1);
   by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
-  ren "s ex" 1;
+  by (rename_tac "s ex" 1);
 
   (* start state *)
   by (rtac conjI 1);
