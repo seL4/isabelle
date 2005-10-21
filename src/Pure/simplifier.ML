@@ -23,6 +23,7 @@ sig
   val Addcongs: thm list -> unit
   val Delcongs: thm list -> unit
   val local_simpset_of: Proof.context -> simpset
+  val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
@@ -154,6 +155,45 @@ val cong_add_local = change_local_ss (op addcongs);
 val cong_del_local = change_local_ss (op delcongs);
 
 
+
+(** simplification tactics and rules **)
+
+fun solve_all_tac solvers ss =
+  let
+    val (_, {subgoal_tac, ...}) = MetaSimplifier.rep_ss ss;
+    val solve_tac = subgoal_tac (MetaSimplifier.set_solvers solvers ss) THEN_ALL_NEW (K no_tac);
+  in DEPTH_SOLVE (solve_tac 1) end;
+
+(*NOTE: may instantiate unknowns that appear also in other subgoals*)
+fun generic_simp_tac safe mode ss =
+  let
+    val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = MetaSimplifier.rep_ss ss;
+    val loop_tac = FIRST' (map (fn (_, tac) => tac ss) loop_tacs);
+    val solve_tac = FIRST' (map (MetaSimplifier.solver ss)
+      (if safe then solvers else unsafe_solvers));
+
+    fun simp_loop_tac i =
+      asm_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
+      (solve_tac i ORELSE TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i));
+  in simp_loop_tac end;
+
+local
+
+fun simp rew mode ss thm =
+  let
+    val (_, {solvers = (unsafe_solvers, _), ...}) = MetaSimplifier.rep_ss ss;
+    val tacf = solve_all_tac unsafe_solvers;
+    fun prover s th = Option.map #1 (Seq.pull (tacf s th));
+  in rew mode prover ss thm end;
+
+in
+
+val simp_thm = simp MetaSimplifier.rewrite_thm;
+val simp_cterm = simp MetaSimplifier.rewrite_cterm;
+
+end;
+
+
 (* tactics *)
 
 val simp_tac = generic_simp_tac false (false, false, false);
@@ -173,17 +213,17 @@ fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 (* conversions *)
 
-val          simplify = MetaSimplifier.simp_thm (false, false, false);
-val      asm_simplify = MetaSimplifier.simp_thm (false, true, false);
-val     full_simplify = MetaSimplifier.simp_thm (true, false, false);
-val   asm_lr_simplify = MetaSimplifier.simp_thm (true, true, false);
-val asm_full_simplify = MetaSimplifier.simp_thm (true, true, true);
+val          simplify = simp_thm (false, false, false);
+val      asm_simplify = simp_thm (false, true, false);
+val     full_simplify = simp_thm (true, false, false);
+val   asm_lr_simplify = simp_thm (true, true, false);
+val asm_full_simplify = simp_thm (true, true, true);
 
-val          rewrite = MetaSimplifier.simp_cterm (false, false, false);
-val      asm_rewrite = MetaSimplifier.simp_cterm (false, true, false);
-val     full_rewrite = MetaSimplifier.simp_cterm (true, false, false);
-val   asm_lr_rewrite = MetaSimplifier.simp_cterm (true, true, false);
-val asm_full_rewrite = MetaSimplifier.simp_cterm (true, true, true);
+val          rewrite = simp_cterm (false, false, false);
+val      asm_rewrite = simp_cterm (false, true, false);
+val     full_rewrite = simp_cterm (true, false, false);
+val   asm_lr_rewrite = simp_cterm (true, true, false);
+val asm_full_rewrite = simp_cterm (true, true, true);
 
 
 
