@@ -49,6 +49,7 @@ use "drule.ML";
 use "tctical.ML";
 use "search.ML";
 use "meta_simplifier.ML";
+use "goal.ML";
 use "tactic.ML";
 
 (*proof term operations*)
@@ -79,9 +80,6 @@ cd "Isar"; use "ROOT.ML"; cd "..";
 use "axclass.ML";
 use "codegen.ML";
 use "Proof/extraction.ML";
-
-(*old goal package -- obsolete*)
-use "goals.ML";
 
 (*the IsaPlanner subsystem*)
 cd "IsaPlanner"; use "ROOT.ML"; cd "..";
