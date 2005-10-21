@@ -4,7 +4,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Basic library: functions, options, pairs, booleans, lists, integers,
-rational numbers, strings, lists as sets, association lists, generic
+strings, lists as sets, association lists, generic
 tables, balanced trees, orders, current directory, misc.
 *)
 
@@ -144,23 +144,6 @@ sig
   val read_radixint: int * string list -> int * string list
   val read_int: string list -> int * string list
   val oct_char: string -> string
-
-  (*rational numbers*)
-  type rat
-  exception RAT of string
-  val rep_rat: rat -> IntInf.int * IntInf.int
-  val ratge0: rat -> bool
-  val ratgt0: rat -> bool
-  val ratle: rat * rat -> bool
-  val ratlt: rat * rat -> bool
-  val ratadd: rat * rat -> rat
-  val ratmul: rat * rat -> rat
-  val ratinv: rat -> rat
-  val int_ratdiv: IntInf.int * IntInf.int -> rat
-  val ratneg: rat -> rat
-  val rat_of_int: int -> rat
-  val rat_of_intinf: IntInf.int -> rat
-  val rat0: rat
 
   (*strings*)
   val nth_elem_string: int * string -> string
@@ -1174,61 +1157,6 @@ fun frequency xs =
 
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
-
-
-
-(** rational numbers **)
-(* Keep them normalized! *)
-
-datatype rat = Rat of bool * IntInf.int * IntInf.int
-
-exception RAT of string;
-
-fun rep_rat(Rat(a,p,q)) = (if a then p else ~p,q)
-
-fun ratnorm(a,p,q) = if p=0 then Rat(a,0,1) else
-  let val absp = abs p
-      val m = gcd(absp,q)
-  in Rat(a = (0 <= p), absp div m, q div m) end;
-
-fun ratcommon(p,q,r,s) =
-  let val den = lcm(q,s)
-  in (p*(den div q), r*(den div s), den) end
-
-fun ratge0(Rat(a,p,q)) = a;
-fun ratgt0(Rat(a,p,q)) = a andalso p > 0;
-
-fun ratle(Rat(a,p,q),Rat(b,r,s)) =
-  not a andalso b orelse
-  a = b andalso
-    let val (p,r,_) = ratcommon(p,q,r,s)
-    in if a then p <= r else r <= p end
-
-fun ratlt(Rat(a,p,q),Rat(b,r,s)) =
-  not a andalso b orelse
-  a = b andalso
-    let val (p,r,_) = ratcommon(p,q,r,s)
-    in if a then p < r else r < p end
-
-fun ratadd(Rat(a,p,q),Rat(b,r,s)) =
-  let val (p,r,den) = ratcommon(p,q,r,s)
-      val num = (if a then p else ~p) + (if b then r else ~r)
-  in ratnorm(true,num,den) end;
-
-fun ratmul(Rat(a,p,q),Rat(b,r,s)) = ratnorm(a=b,p*r,q*s)
-
-fun ratinv(Rat(a,p,q)) = if p=0 then raise RAT "ratinv" else Rat(a,q,p)
-
-fun int_ratdiv(p,q) =
-  if q=0 then raise RAT "int_ratdiv" else ratnorm(0<=q, p, abs q)
-
-fun ratneg(Rat(b,p,q)) = Rat(not b,p,q);
-
-fun rat_of_intinf i = if i < 0 then Rat(false,abs i,1) else Rat(true,i,1);
-
-fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
-
-val rat0 = rat_of_int 0;
 
 
 (** misc **)
