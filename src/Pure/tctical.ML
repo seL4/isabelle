@@ -52,7 +52,6 @@ sig
   val REPEAT_DETERM_FIRST: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val DETERM_UNTIL      : (thm -> bool) -> tactic -> tactic
-  val SELECT_GOAL       : tactic -> int -> tactic
   val SINGLE            : tactic -> thm -> thm option
   val SOMEGOAL          : (int -> tactic) -> tactic
   val strip_context     : term -> (string * typ) list * term list * term
@@ -367,30 +366,6 @@ fun (tac1 THEN_ALL_NEW tac2) i st =
 (*repeatedly dig into any emerging subgoals*)
 fun REPEAT_ALL_NEW tac =
   tac THEN_ALL_NEW (TRY o (fn i => REPEAT_ALL_NEW tac i));
-
-
-(*** SELECT_GOAL ***)
-
-(*Tactical for restricting the effect of a tactic to subgoal i.
-  Works by making a new state from subgoal i, applying tac to it, and
-  composing the resulting metathm with the original state.*)
-
-(*Does the work of SELECT_GOAL. *)
-fun select tac st i =
-  let
-    val thm = Drule.mk_triv_goal (adjust_maxidx (List.nth (cprems_of st, i-1)));
-    fun restore th = Seq.hd (bicompose false (false, th, nprems_of th) 1
-      (Thm.incr_indexes (#maxidx (rep_thm th) + 1) Drule.rev_triv_goal));
-    fun next st' = bicompose false (false, restore st', nprems_of st') i st;
-  in Seq.maps next (tac thm) end;
-
-fun SELECT_GOAL tac i st =
-  let val np = nprems_of st
-  in  if 1<=i andalso i<=np then
-          (*If only one subgoal, then just apply tactic*)
-          if np=1 then tac st else select tac st i
-      else Seq.empty
-  end;
 
 
 (*Strips assumptions in goal yielding  ( [x1,...,xm], [H1,...,Hn], B )
