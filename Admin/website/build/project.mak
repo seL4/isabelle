@@ -19,14 +19,18 @@ ifeq ($(RSYNC),)
 $(OUTPUTROOT)/dist: $(ISABELLE_DIST)
 	mkdir -p $@
 	$(COPY) -vRud $</[^w]* $@
-	chmod -R g-w $@
+	chgrp -R $(TARGET_GROUP) $@
+	chmod -R u-w,g-w,o-w $@
+	ln -s $(ISABELLE_DIST)/$(DISTIDENT) Isabelle
 
 else
 
 $(OUTPUTROOT)/dist: $(ISABELLE_DIST) SYNC_ALWAYS
 	mkdir -p $@
 	$(RSYNC) -v --exclude='/website/' -a --delete --delete-after $</ $@
-	chmod -R g-w $@
+	chgrp -R $(TARGET_GROUP) $@
+	chmod -R u-w,g-w,o-w $@
+	ln -s $(ISABELLE_DIST)/$(DISTIDENT) Isabelle
 
 SYNC_ALWAYS:
 

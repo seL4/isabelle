@@ -101,8 +101,9 @@ If nothing seems to be sensible any more, try
 (4) project-specific remarks
 ============================
 
-* the site is not monolithic
-* it must fit neatlessly into the Isabelle distribution and regression framework
+The whole thing should fit neatlessly into the Isabelle distribution and
+regression framework; this may explain some "features" which seem to be
+enigmatic.
 
 
 (5) the website build bed on sunbroy2

@@ -25,7 +25,7 @@ do
         echo '	-chgrp $(TARGET_GROUP) $(dir $@)' >> "$DEP_FILE"
         echo '	-[ -e $@ ] && rm $@' >> "$DEP_FILE"
         echo '	cp $< $@' >> "$DEP_FILE"
-        echo '	chmod $(TARGET_UMASK_DIR) $@' >> "$DEP_FILE"
+        echo '	chmod $(TARGET_UMASK_FILE) $@' >> "$DEP_FILE"
         echo '	chgrp $(TARGET_GROUP) $@' >> "$DEP_FILE"
         allstatic="$allstatic$outputfile "
         echo >> "$DEP_FILE"
@@ -46,7 +46,7 @@ do
     echo '	-[ -e $@ ] && rm $@' >> "$DEP_FILE"
     echo '	$(PYTHON) build/pypager.py --dtd="dtd/" $(FORCE_ENC_CMD) --srcroot="." --dstroot="$(OUTPUTROOT)" distname="$(DISTNAME)" $< $@' >> "$DEP_FILE"
     echo '	-$(TIDYCMD) $@' >> "$DEP_FILE"
-    echo '	chmod $(TARGET_UMASK_DIR) $@' >> "$DEP_FILE"
+    echo '	chmod $(TARGET_UMASK_FILE) $@' >> "$DEP_FILE"
     echo '	chgrp $(TARGET_GROUP) $@' >> "$DEP_FILE"
     allhtml="$allhtml$outputfile "; \
     echo >> "$DEP_FILE"
