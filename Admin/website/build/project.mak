@@ -29,7 +29,7 @@ else
 
 $(OUTPUTROOT)/dist: $(ISABELLE_DIST) SYNC_ALWAYS
 	mkdir -p $@
-	$(RSYNC) -v --exclude='/website/' -a --delete --delete-after $</ $@
+	$(RSYNC) -v --exclude='/website/' -rltgoD --delete --delete-after $</ $@
 	chgrp -hR $(TARGET_GROUP) $@
 	chmod -R u-w,g-w,o-w $@
 	-[ ! -e Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
