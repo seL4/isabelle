@@ -8,13 +8,6 @@ imports Product_Type
 uses ("Tools/record_package.ML")
 begin
 
-ML {*
-val [h1, h2] = Goal "PROP Goal (\<And>x. PROP P x) \<Longrightarrow> (PROP P x \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q";
-by (rtac h2 1);
-by (rtac (gen_all (h1 RS Drule.rev_triv_goal)) 1);
-qed "meta_allE";
-*}
-
 lemma prop_subst: "s = t \<Longrightarrow> PROP P t \<Longrightarrow> PROP P s"
   by simp
 
