@@ -26,7 +26,7 @@ by (asm_full_simp_tac (simpset() addsimps [sim_relation_def,starts_of_def,
 
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
-ren "k b used c k' b' a" 1;
+by (rename_tac "k b used c k' b' a" 1);
 by (induct_tac "a" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [sim_relation_def,
       thm"Impl.ioa_def",thm "Impl.trans_def",trans_of_def])));
