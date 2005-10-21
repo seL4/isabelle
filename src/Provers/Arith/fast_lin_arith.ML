@@ -53,7 +53,7 @@ mk_nat_thm(t) = "0 <= t"
 signature LIN_ARITH_DATA =
 sig
   val decomp:
-    theory -> term -> ((term*rat)list * rat * string * (term*rat)list * rat * bool)option
+    theory -> term -> ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool) option
   val number_of: IntInf.int * typ -> term
 end;
 (*
@@ -168,49 +168,43 @@ fun elim_eqns(ineqs,Lineq(i,Le,cs,_)) = (i,true,cs)::ineqs
   | elim_eqns(ineqs,Lineq(i,Lt,cs,_)) = (i,false,cs)::ineqs;
 
 (* PRE: ex[v] must be 0! *)
-fun eval (ex:rat list) v (a:IntInf.int,le,cs:IntInf.int list) =
-  let val rs = map rat_of_intinf cs
-      val rsum = Library.foldl ratadd (rat0,map ratmul (rs ~~ ex))
-  in (ratmul(ratadd(rat_of_intinf a,ratneg rsum), ratinv(el v rs)), le) end;
+fun eval (ex:Rat.rat list) v (a:IntInf.int,le,cs:IntInf.int list) =
+  let val rs = map Rat.rat_of_intinf cs
+      val rsum = Library.foldl Rat.add (Rat.zero, map Rat.mult (rs ~~ ex))
+  in (Rat.mult (Rat.add(Rat.rat_of_intinf a,Rat.neg rsum), Rat.inv(el v rs)), le) end;
 (* If el v rs < 0, le should be negated.
    Instead this swap is taken into account in ratrelmin2.
 *)
 
 fun ratrelmin2(x as (r,ler),y as (s,les)) =
-  if r=s then (r, (not ler) andalso (not les)) else if ratle(r,s) then x else y;
+  if r=s then (r, (not ler) andalso (not les)) else if Rat.le(r,s) then x else y;
 fun ratrelmax2(x as (r,ler),y as (s,les)) =
-  if r=s then (r,ler andalso les) else if ratle(r,s) then y else x;
+  if r=s then (r,ler andalso les) else if Rat.le(r,s) then y else x;
 
 val ratrelmin = foldr1 ratrelmin2;
 val ratrelmax = foldr1 ratrelmax2;
 
-fun ratroundup r = let val (p,q) = rep_rat r
-                   in if q=1 then r else rat_of_intinf((p div q) + 1) end
-
-fun ratrounddown r = let val (p,q) = rep_rat r
-                     in if q=1 then r else rat_of_intinf((p div q) - 1) end
-
 fun ratexact up (r,exact) =
   if exact then r else
-  let val (p,q) = rep_rat r
-      val nth = ratinv(rat_of_intinf q)
-  in ratadd(r,if up then nth else ratneg nth) end;
+  let val (p,q) = Rat.quotient_of_rat r
+      val nth = Rat.inv(Rat.rat_of_intinf q)
+  in Rat.add(r,if up then nth else Rat.neg nth) end;
 
-fun ratmiddle(r,s) = ratmul(ratadd(r,s),ratinv(rat_of_int 2));
+fun ratmiddle(r,s) = Rat.mult(Rat.add(r,s),Rat.inv(Rat.rat_of_int 2));
 
 fun choose2 d ((lb,exactl),(ub,exactu)) =
-  if ratle(lb,rat0) andalso (lb <> rat0 orelse exactl) andalso
-     ratle(rat0,ub) andalso (ub <> rat0 orelse exactu)
-  then rat0 else
+  if Rat.le(lb,Rat.zero) andalso (lb <> Rat.zero orelse exactl) andalso
+     Rat.le(Rat.zero,ub) andalso (ub <> Rat.zero orelse exactu)
+  then Rat.zero else
   if not d
-  then (if ratge0 lb
+  then (if Rat.ge0 lb
         then if exactl then lb else ratmiddle(lb,ub)
         else if exactu then ub else ratmiddle(lb,ub))
   else (* discrete domain, both bounds must be exact *)
-  if ratge0 lb then let val lb' = ratroundup lb
-                    in if ratle(lb',ub) then lb' else raise NoEx end
-               else let val ub' = ratrounddown ub
-                    in if ratle(lb,ub') then ub' else raise NoEx end;
+  if Rat.ge0 lb then let val lb' = Rat.roundup lb
+                    in if Rat.le(lb',ub) then lb' else raise NoEx end
+               else let val ub' = Rat.rounddown ub
+                    in if Rat.le(lb,ub') then ub' else raise NoEx end;
 
 fun findex1 discr (ex,(v,lineqs)) =
   let val nz = List.filter (fn (Lineq(_,_,cs,_)) => el v cs <> 0) lineqs;
@@ -223,28 +217,28 @@ fun findex1 discr (ex,(v,lineqs)) =
 fun findex discr = Library.foldl (findex1 discr);
 
 fun elim1 v x =
-  map (fn (a,le,bs) => (ratadd(a,ratneg(ratmul(el v bs,x))), le,
-                        nth_update rat0 (v,bs)));
+  map (fn (a,le,bs) => (Rat.add(a,Rat.neg(Rat.mult(el v bs,x))), le,
+                        nth_update Rat.zero (v,bs)));
 
-fun single_var v (_,_,cs) = (filter_out (equal rat0) cs = [el v cs]);
+fun single_var v (_,_,cs) = (filter_out (equal Rat.zero) cs = [el v cs]);
 
 (* The base case:
    all variables occur only with positive or only with negative coefficients *)
 fun pick_vars discr (ineqs,ex) =
-  let val nz = filter_out (fn (_,_,cs) => forall (equal rat0) cs) ineqs
+  let val nz = filter_out (fn (_,_,cs) => forall (equal Rat.zero) cs) ineqs
   in case nz of [] => ex
      | (_,_,cs) :: _ =>
-       let val v = find_index (not o equal rat0) cs
+       let val v = find_index (not o equal Rat.zero) cs
            val d = List.nth(discr,v)
-           val pos = ratge0(el v cs)
+           val pos = Rat.ge0(el v cs)
            val sv = List.filter (single_var v) nz
            val minmax =
-             if pos then if d then ratroundup o fst o ratrelmax
+             if pos then if d then Rat.roundup o fst o ratrelmax
                          else ratexact true o ratrelmax
-                    else if d then ratrounddown o fst o ratrelmin
+                    else if d then Rat.rounddown o fst o ratrelmin
                          else ratexact false o ratrelmin
-           val bnds = map (fn (a,le,bs) => (ratmul(a,ratinv(el v bs)),le)) sv
-           val x = minmax((rat0,if pos then true else false)::bnds)
+           val bnds = map (fn (a,le,bs) => (Rat.mult(a,Rat.inv(el v bs)),le)) sv
+           val x = minmax((Rat.zero,if pos then true else false)::bnds)
            val ineqs' = elim1 v x nz
            val ex' = nth_update x (v,ex)
        in pick_vars discr (ineqs',ex') end
@@ -252,9 +246,9 @@ fun pick_vars discr (ineqs,ex) =
 
 fun findex0 discr n lineqs =
   let val ineqs = Library.foldl elim_eqns ([],lineqs)
-      val rineqs = map (fn (a,le,cs) => (rat_of_intinf a, le, map rat_of_intinf cs))
+      val rineqs = map (fn (a,le,cs) => (Rat.rat_of_intinf a, le, map Rat.rat_of_intinf cs))
                        ineqs
-  in pick_vars discr (rineqs,replicate n rat0) end;
+  in pick_vars discr (rineqs,replicate n Rat.zero) end;
 
 (* ------------------------------------------------------------------------- *)
 (* End of counter example finder. The actual decision procedure starts here. *)
@@ -498,10 +492,10 @@ fun coeff poly atom : IntInf.int =
 fun lcms is = Library.foldl lcm (1, is);
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
-let val (rn,rd) = rep_rat r and (sn,sd) = rep_rat s
-    val m = lcms(map (abs o snd o rep_rat) (r :: s :: map snd rlhs @ map snd rrhs))
+let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
+    val m = lcms(map (abs o snd o Rat.quotient_of_rat) (r :: s :: map snd rlhs @ map snd rrhs))
     fun mult(t,r) = 
-        let val (i,j) =  (rep_rat r) 
+        let val (i,j) = Rat.quotient_of_rat r
         in (t,i * (m div j)) end
 in (m,(map mult rlhs, rn*(m div rd), rel, map mult rrhs, sn*(m div sd), d)) end
 
@@ -532,7 +526,7 @@ fun mklineq n atoms =
 (* ------------------------------------------------------------------------- *)
 
 fun print_atom((a,d),r) =
-  let val (p,q) = rep_rat r
+  let val (p,q) = Rat.quotient_of_rat r
       val s = if d then IntInf.toString p else
               if p = 0 then "0"
               else IntInf.toString p ^ "/" ^ IntInf.toString q
@@ -551,7 +545,7 @@ fun trace_ex(sg,params,atoms,discr,n,hist:history) =
            fun s_of_t t = Sign.string_of_term sg (subst_bounds(frees,t));
            val (v,lineqs) :: hist' = hist
            val start = if v = ~1 then (findex0 discr n lineqs,hist')
-                       else (replicate n rat0,hist)
+                       else (replicate n Rat.zero,hist)
        in warning "arith failed - see trace for a counter example";
           print_ex ((map s_of_t atoms)~~discr) (findex discr start)
           handle NoEx =>
