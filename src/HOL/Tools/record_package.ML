@@ -43,7 +43,7 @@ sig
 end;
 
 
-structure RecordPackage:RECORD_PACKAGE =
+structure RecordPackage: RECORD_PACKAGE =
 struct
 
 val rec_UNIV_I = thm "rec_UNIV_I";
@@ -51,8 +51,8 @@ val rec_True_simp = thm "rec_True_simp";
 val Pair_eq = thm "Product_Type.Pair_eq";
 val atomize_all = thm "HOL.atomize_all";
 val atomize_imp = thm "HOL.atomize_imp";
-val triv_goal   = thm "triv_goal";
-val prop_subst  = thm "prop_subst";
+val meta_allE = thm "Pure.meta_allE";
+val prop_subst = thm "prop_subst";
 val Pair_sel_convs = [fst_conv,snd_conv];
 
 
@@ -800,11 +800,11 @@ val record_quick_and_dirty_sensitive = ref false;
 
 fun quick_and_dirty_prove stndrd sg asms prop tac =
   if !record_quick_and_dirty_sensitive andalso !quick_and_dirty
-  then Tactic.prove sg [] [] (Logic.list_implies (map Logic.varify asms,Logic.varify prop))
+  then Goal.prove sg [] [] (Logic.list_implies (map Logic.varify asms,Logic.varify prop))
         (K (SkipProof.cheat_tac HOL.thy))
         (* standard can take quite a while for large records, thats why
          * we varify the proposition manually here.*)
-  else let val prf = Tactic.prove sg [] asms prop tac;
+  else let val prf = Goal.prove sg [] asms prop tac;
        in if stndrd then standard prf else prf end;
 
 fun quick_and_dirty_prf noopt opt () =
@@ -1494,11 +1494,10 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     fun split_meta_prf () =
         prove_standard [] split_meta_prop (fn prems =>
-         EVERY [rtac equal_intr_rule 1,
-                  rtac meta_allE 1, etac triv_goal 1, atac 1,
+         EVERY [rtac equal_intr_rule 1, norm_hhf_tac 1,
+                etac meta_allE 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
-                REPEAT (EVERY [rtac meta_allE 1, etac triv_goal 1, etac thin_rl 1]),
-                atac 1]);
+                REPEAT (etac meta_allE 1), atac 1]);
     val split_meta = timeit_msg "record extension split_meta proof:" split_meta_prf;
 
     val (thm_thy,([inject',induct',cases',surjective',split_meta'],
@@ -1901,11 +1900,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     fun split_meta_prf () =
         prove false [] split_meta_prop (fn prems =>
-         EVERY [rtac equal_intr_rule 1,
-                  rtac meta_allE 1, etac triv_goal 1, atac 1,
+         EVERY [rtac equal_intr_rule 1, norm_hhf_tac 1,
+                etac meta_allE 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
-                REPEAT (EVERY [rtac meta_allE 1, etac triv_goal 1, etac thin_rl 1]),
-                atac 1]);
+                REPEAT (etac meta_allE 1), atac 1]);
     val split_meta = timeit_msg "record split_meta proof:" split_meta_prf;
     val split_meta_standard = standard split_meta;
 
