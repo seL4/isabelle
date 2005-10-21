@@ -378,9 +378,9 @@ fun prepare_goal_export (vs, cterms) th =
           Library.split_list (map (allify_for_sg_term ctermify cfrees) sgs);
 
       val minimal_th = 
-          (Library.foldl (fn ( th', sgthm) => 
+          Goal.conclude (Library.foldl (fn ( th', sgthm) => 
                           Drule.compose_single (sgthm, 1, th'))
-                      (th, sgthms)) RS Drule.rev_triv_goal;
+                      (th, sgthms));
 
       val allified_th = 
           minimal_th 
