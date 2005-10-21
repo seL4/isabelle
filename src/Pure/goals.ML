@@ -11,79 +11,89 @@ may be a stack of pending proofs.
 
 signature GOALS =
 sig
-  type proof
-  val reset_goals       : unit -> unit
-  val Goal              : string -> thm list
-  val Goalw             : thm list -> string -> thm list
-  val ba                : int -> unit
-  val back              : unit -> unit
-  val bd                : thm -> int -> unit
-  val bds               : thm list -> int -> unit
-  val be                : thm -> int -> unit
-  val bes               : thm list -> int -> unit
-  val br                : thm -> int -> unit
-  val brs               : thm list -> int -> unit
-  val bw                : thm -> unit
-  val bws               : thm list -> unit
-  val by                : tactic -> unit
-  val byev              : tactic list -> unit
-  val chop              : unit -> unit
-  val choplev           : int -> unit
-  val fa                : unit -> unit
-  val fd                : thm -> unit
-  val fds               : thm list -> unit
-  val fe                : thm -> unit
-  val fes               : thm list -> unit
-  val filter_goal       : (term*term->bool) -> thm list -> int -> thm list
-  val fr                : thm -> unit
-  val frs               : thm list -> unit
-  val getgoal           : int -> term
-  val gethyps           : int -> thm list
-  val goal              : theory -> string -> thm list
-  val goalw             : theory -> thm list -> string -> thm list
-  val goalw_cterm       : thm list -> cterm -> thm list
-  val pop_proof         : unit -> thm list
-  val pr                : unit -> unit
-  val disable_pr        : unit -> unit
-  val enable_pr         : unit -> unit
-  val prlev             : int -> unit
-  val prlim             : int -> unit
-  val premises          : unit -> thm list
-  val print_exn         : exn -> 'a
-  val print_sign_exn    : theory -> exn -> 'a
-  val prove_goal        : theory -> string -> (thm list -> tactic list) -> thm
-  val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
-  val prove_goalw_cterm : thm list->cterm->(thm list->tactic list)->thm
-  val prove_goalw_cterm_nocheck : thm list->cterm->(thm list->tactic list)->thm
-  val quick_and_dirty_prove_goalw_cterm: theory -> thm list -> cterm
-    -> (thm list -> tactic list) -> thm
-  val simple_prove_goal_cterm : cterm->(thm list->tactic list)->thm
-  val push_proof        : unit -> unit
-  val ren               : string -> int -> unit
-  val restore_proof     : proof -> thm list
-  val result            : unit -> thm
-  val result_error_fn   : (thm -> string -> thm) ref
-  val rotate_proof      : unit -> thm list
-  val uresult           : unit -> thm
-  val save_proof        : unit -> proof
-  val topthm            : unit -> thm
-  val undo              : unit -> unit
-  val bind_thm          : string * thm -> unit
-  val bind_thms         : string * thm list -> unit
-  val qed               : string -> unit
-  val qed_goal          : string -> theory -> string -> (thm list -> tactic list) -> unit
-  val qed_goalw         : string -> theory -> thm list -> string
+  val premises: unit -> thm list
+  val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
+  val prove_goalw: theory -> thm list -> string -> (thm list -> tactic list) -> thm
+  val disable_pr: unit -> unit
+  val enable_pr: unit -> unit
+  val topthm: unit -> thm
+  val result: unit -> thm
+  val uresult: unit -> thm
+  val getgoal: int -> term
+  val gethyps: int -> thm list
+  val prlev: int -> unit
+  val pr: unit -> unit
+  val prlim: int -> unit
+  val goal: theory -> string -> thm list
+  val goalw: theory -> thm list -> string -> thm list
+  val Goal: string -> thm list
+  val Goalw: thm list -> string -> thm list
+  val by: tactic -> unit
+  val back: unit -> unit
+  val choplev: int -> unit
+  val chop: unit -> unit
+  val undo: unit -> unit
+  val bind_thm: string * thm -> unit
+  val bind_thms: string * thm list -> unit
+  val qed: string -> unit
+  val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
+  val qed_goalw: string -> theory -> thm list -> string
     -> (thm list -> tactic list) -> unit
-  val qed_spec_mp       : string -> unit
-  val qed_goal_spec_mp  : string -> theory -> string -> (thm list -> tactic list) -> unit
-  val qed_goalw_spec_mp : string -> theory -> thm list -> string
+  val qed_spec_mp: string -> unit
+  val qed_goal_spec_mp: string -> theory -> string -> (thm list -> tactic list) -> unit
+  val qed_goalw_spec_mp: string -> theory -> thm list -> string
     -> (thm list -> tactic list) -> unit
   val no_qed: unit -> unit
-  val thms_containing   : xstring list -> (string * thm) list
+  val thms_containing: xstring list -> (string * thm) list
 end;
 
-structure Goals: GOALS =
+signature OLD_GOALS =
+sig
+  include GOALS
+  val legacy: bool ref
+  type proof
+  val reset_goals: unit -> unit
+  val result_error_fn: (thm -> string -> thm) ref
+  val print_sign_exn: theory -> exn -> 'a
+  val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
+  val prove_goalw_cterm_nocheck: thm list->cterm->(thm list->tactic list)->thm
+  val quick_and_dirty_prove_goalw_cterm: theory -> thm list -> cterm
+    -> (thm list -> tactic list) -> thm
+  val print_exn: exn -> 'a
+  val filter_goal: (term*term->bool) -> thm list -> int -> thm list
+  val goalw_cterm: thm list -> cterm -> thm list
+  val simple_prove_goal_cterm: cterm->(thm list->tactic list)->thm
+  val byev: tactic list -> unit
+  val save_proof: unit -> proof
+  val restore_proof: proof -> thm list
+  val push_proof: unit -> unit
+  val pop_proof: unit -> thm list
+  val rotate_proof: unit -> thm list
+  val bws: thm list -> unit
+  val bw: thm -> unit
+  val brs: thm list -> int -> unit
+  val br: thm -> int -> unit
+  val bes: thm list -> int -> unit
+  val be: thm -> int -> unit
+  val bds: thm list -> int -> unit
+  val bd: thm -> int -> unit
+  val ba: int -> unit
+  val ren: string -> int -> unit
+  val frs: thm list -> unit
+  val fr: thm -> unit
+  val fes: thm list -> unit
+  val fe: thm -> unit
+  val fds: thm list -> unit
+  val fd: thm -> unit
+  val fa: unit -> unit
+end;
+
+structure OldGoals: OLD_GOALS =
 struct
+
+val legacy = ref false;
+fun warn_obsolete () = if ! legacy then () else warning "Obsolete goal command encountered";
+
 
 (*** Goal package ***)
 
@@ -146,7 +156,9 @@ val result_error_fn = ref result_error_default;
   "Goal::prop=>prop" to avoid assumptions being returned separately.
 *)
 fun prepare_proof atomic rths chorn =
-  let val {thy, t=horn,...} = rep_cterm chorn;
+  let
+      val _ = warn_obsolete ();
+      val {thy, t=horn,...} = rep_cterm chorn;
       val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
       val (As, B) = Logic.strip_horn horn;
       val atoms = atomic andalso
@@ -155,7 +167,7 @@ fun prepare_proof atomic rths chorn =
       val cAs = map (cterm_of thy) As;
       val prems = map (rewrite_rule rths o forall_elim_vars 0 o Thm.assume) cAs;
       val cB = cterm_of thy B;
-      val st0 = let val st = Drule.impose_hyps cAs (Drule.mk_triv_goal cB)
+      val st0 = let val st = Drule.impose_hyps cAs (Goal.init cB)
                 in  rewrite_goals_rule rths st end
       (*discharges assumptions from state in the order they appear in goal;
         checks (if requested) that resulting theorem is equivalent to goal. *)
@@ -164,7 +176,7 @@ fun prepare_proof atomic rths chorn =
                         handle THM _ => state   (*smash flexflex pairs*)
             val ngoals = nprems_of state
             val ath = implies_intr_list cAs state
-            val th = ath RS Drule.rev_triv_goal
+            val th = Goal.conclude ath
             val {hyps,prop,thy=thy',...} = rep_thm th
             val final_th = standard th
         in  if not check then final_th
@@ -366,9 +378,10 @@ val Goal = Goalw [];
 (*simple version with minimal amount of checking and postprocessing*)
 fun simple_prove_goal_cterm G f =
   let
+    val _ = warn_obsolete ();
     val As = Drule.strip_imp_prems G;
     val B = Drule.strip_imp_concl G;
-    val asms = map (norm_hhf_rule o assume) As;
+    val asms = map (Goal.norm_hhf_rule o assume) As;
     fun check NONE = error "prove_goal: tactic failed"
       | check (SOME (thm, _)) = (case nprems_of thm of
             0 => thm
@@ -525,4 +538,5 @@ fun thms_containing raw_consts =
 
 end;
 
+structure Goals: GOALS = OldGoals;
 open Goals;
