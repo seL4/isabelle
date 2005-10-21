@@ -71,13 +71,13 @@ sig
   val addSSolver: simpset * solver -> simpset
   val setSolver: simpset * solver -> simpset
   val addSolver: simpset * solver -> simpset
-  val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
 end;
 
 signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
+  val solver: simpset -> solver -> int -> tactic
   val clear_ss: simpset -> simpset
   exception SIMPROC_FAIL of string * exn
   val simproc_i: theory -> string -> term list
@@ -89,6 +89,7 @@ sig
   val context: Context.proof -> simpset -> simpset
   val theory_context: theory  -> simpset -> simpset
   val debug_bounds: bool ref
+  val set_solvers: solver list -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
   val rewrite_aux: (simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
@@ -99,10 +100,6 @@ sig
   val rewrite_goals_rule_aux: (simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_goal_rule: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
-  val asm_rewrite_goal_tac: bool * bool * bool ->
-    (simpset -> tactic) -> simpset -> int -> tactic
-  val simp_thm: bool * bool * bool -> simpset -> thm -> thm
-  val simp_cterm: bool * bool * bool -> simpset -> cterm -> thm
 end;
 
 structure MetaSimplifier: META_SIMPLIFIER =
@@ -228,7 +225,7 @@ fun mk_solver' name solver = Solver {name = name, solver = solver, id = stamp ()
 fun mk_solver name solver = mk_solver' name (solver o prems_of_ss);
 
 fun solver_name (Solver {name, ...}) = name;
-fun solver ths (Solver {solver = tacf, ...}) = tacf ths;
+fun solver ss (Solver {solver = tac, ...}) = tac ss;
 fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 val merge_solvers = gen_merge_lists eq_solver;
 
@@ -1191,43 +1188,6 @@ fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i  andalso  i <= nprems_of thm
   then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
   else raise THM("rewrite_goal_rule",i,[thm]);
-
-(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
-fun asm_rewrite_goal_tac mode prover_tac ss =
-  SELECT_GOAL
-    (PRIMITIVE (rewrite_goal_rule mode (SINGLE o prover_tac) ss 1));
-
-
-
-(** simplification tactics and rules **)
-
-fun solve_all_tac solvers ss =
-  let
-    val Simpset (_, {subgoal_tac, ...}) = ss;
-    val solve_tac = subgoal_tac (set_solvers solvers ss) THEN_ALL_NEW (K no_tac);
-  in DEPTH_SOLVE (solve_tac 1) end;
-
-(*NOTE: may instantiate unknowns that appear also in other subgoals*)
-fun generic_simp_tac safe mode ss =
-  let
-    val Simpset (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = ss;
-    val loop_tac = FIRST' (map (fn (_, tac) => tac ss) loop_tacs);
-    val solve_tac = FIRST' (map (solver ss) (if safe then solvers else unsafe_solvers));
-
-    fun simp_loop_tac i =
-      asm_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
-      (solve_tac i ORELSE TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i));
-  in simp_loop_tac end;
-
-fun simp rew mode ss thm =
-  let
-    val Simpset (_, {solvers = (unsafe_solvers, _), ...}) = ss;
-    val tacf = solve_all_tac unsafe_solvers;
-    fun prover s th = Option.map #1 (Seq.pull (tacf s th));
-  in rew mode prover ss thm end;
-
-val simp_thm = simp rewrite_thm;
-val simp_cterm = simp rewrite_cterm;
 
 end;
 
