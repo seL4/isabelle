@@ -25,10 +25,10 @@ similar, but derives these elements from the course of reasoning!
   {
     fix thesis
     <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turns goal into "thesis ==> thesis" (no goal marker!) *}
+      apply magic      -- {* turns goal into "thesis ==> Goal thesis" *}
       <proof body>
-      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> thesis" into
-        "GOAL ((!!x. P x ==> thesis) ==> thesis)" which is a finished goal state *}
+      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> Goal thesis" into
+        "Goal ((!!x. P x ==> thesis) ==> thesis)" which is a finished goal state *}
       <proof end>
   }
   fix x assm (obtained) "P x"
@@ -60,7 +60,7 @@ fun export_obtained state parms rule cprops thm =
       |> Drule.implies_intr_goals cprops
       |> Drule.forall_intr_list cparms
       |> Drule.forall_elim_vars (maxidx + 1);
-    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.triv_goal);
+    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.goalI);
 
     val concl = Logic.strip_assums_concl prop;
     val bads = parms inter (Term.term_frees concl);
@@ -204,15 +204,19 @@ fun gen_guess prep_vars raw_vars int state =
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = bind_judgment ctxt AutoBind.thesisN;
-    val thesis_goal = Drule.instantiate' [] [SOME (Thm.cterm_of thy thesis)] Drule.asm_rl;
     val varss = #1 (fold_map prep_vars raw_vars ctxt);
     val vars = List.concat (map (fn (xs, T) => map (rpair T) xs) varss);
 
-    fun unary_rule rule =
-      (case Thm.nprems_of rule of 1 => rule
-      | 0 => raise Proof.STATE ("Goal solved -- nothing guessed.", state)
+    fun check_result th =
+      (case Thm.prems_of th of
+        [prem] =>
+          if Thm.concl_of th aconv thesis andalso
+            Logic.strip_assums_concl prem aconv thesis then ()
+          else raise Proof.STATE ("Guessed a different clause:\n" ^
+            ProofContext.string_of_thm ctxt th, state)
+      | [] => raise Proof.STATE ("Goal solved -- nothing guessed.", state)
       | _ => raise Proof.STATE ("Guess split into several cases:\n" ^
-        ProofContext.string_of_thm ctxt rule, state));
+        ProofContext.string_of_thm ctxt th, state));
 
     fun guess_context raw_rule =
       let
@@ -222,20 +226,19 @@ fun gen_guess prep_vars raw_vars int state =
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
           |> map (fn asm => (Library.foldl Term.betapply (Term.list_abs (ps, asm), ts), ([], [])));
+        val _ = conditional (null asms) (fn () =>
+          raise Proof.STATE ("Trivial result -- nothing guessed", state));
       in
         Proof.fix_i (map (fn (x, T) => ([x], SOME T)) parms)
         #> Proof.assm_i (K (export_obtained state ts rule)) [(("", []), asms)]
-        #> Proof.map_context (ProofContext.add_binds_i AutoBind.no_facts)
+        #> Proof.add_binds_i AutoBind.no_facts
       end;
 
     val before_qed = SOME (Method.primitive_text (fn th =>
-      if Thm.concl_of th aconv thesis then
-        th COMP Drule.incr_indexes_wrt [] [] [] [th] Drule.triv_goal
-      else raise Proof.STATE ("Guessed a different clause:\n" ^
-          ProofContext.string_of_thm ctxt th, state)));
-    fun after_qed _ _ =
-      Proof.end_block
-      #> Seq.map (`(Proof.the_fact #> unary_rule) #-> guess_context);
+      let val th' = Goal.conclude th
+      in th' COMP Drule.incr_indexes_wrt [] [] [] [th'] Drule.goalI end));
+    fun after_qed _ [[res]] =
+      (check_result res; Proof.end_block #> Seq.map (`Proof.the_fact #-> guess_context));
   in
     state
     |> Proof.enter_forward
@@ -244,7 +247,7 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) (apsnd (rpair I))
       "guess" before_qed after_qed [(("", []), [Var (("guess", 0), propT)])]
-    |> Proof.refine (Method.primitive_text (K thesis_goal))
+    |> Proof.refine (Method.primitive_text (K (Goal.init (Thm.cterm_of thy thesis))))
   end;
 
 in
