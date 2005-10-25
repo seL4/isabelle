@@ -15,9 +15,10 @@ struct
 (*Print tracing messages during processing of "inductive" theory sections*)
 val trace = ref false;
 
-fun traceIt msg ct = 
-    if !trace then (writeln (msg ^ string_of_cterm ct); ct)
-    else ct;
+fun traceIt msg thy t = 
+  if !trace then (tracing (msg ^ Sign.string_of_term thy t); t)
+  else t;
+
 
 (** Abstract syntax definitions for ZF **)
 
