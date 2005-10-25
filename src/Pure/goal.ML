@@ -17,8 +17,8 @@ sig
   val init: cterm -> thm
   val conclude: thm -> thm
   val finish: thm -> thm
-  val prove_raw: theory -> term -> tactic -> thm
   val norm_hhf_rule: thm -> thm
+  val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_multi: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
@@ -65,15 +65,7 @@ fun finish th =
       ("\n" ^ string_of_int n ^ " unsolved goal(s)!"), 0, [th]));
 
 
-(* prove_raw -- minimal checks, no normalization *)
-
-fun prove_raw thy goal tac =
-  (case SINGLE tac (init (Thm.cterm_of thy goal)) of
-    SOME th => finish th
-  | NONE => raise ERROR_MESSAGE "Tactic failed.");
-
-
-(* tactical proving *)
+(* prove_raw -- minimal result checks, no normalization *)
 
 val norm_hhf_plain =  (* FIXME remove *)
   (not o Drule.is_norm_hhf o Thm.prop_of) ?
@@ -83,6 +75,14 @@ val norm_hhf_rule =
   norm_hhf_plain
   #> Thm.adjust_maxidx_thm
   #> Drule.gen_all;
+
+fun prove_raw casms cprop tac =
+  (case SINGLE (tac (map (norm_hhf_rule o Thm.assume) casms)) (init cprop) of
+    SOME th => Drule.implies_intr_list casms (finish th)
+  | NONE => raise ERROR_MESSAGE "Tactic failed.");
+
+
+(* tactical proving *)
 
 local
 
@@ -114,7 +114,7 @@ fun gen_prove finish_thm thy xs asms props tac =
     val raw_result = finish goal' handle THM (msg, _, _) => err msg;
 
     val prop' = Thm.prop_of raw_result;
-    val _ = conditional (not (Pattern.matches thy (prop, prop'))) (fn () =>
+    val _ = conditional (not (Pattern.matches thy (Envir.beta_norm prop, prop'))) (fn () =>
       err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
   in
     Drule.conj_elim_precise (length props) raw_result
