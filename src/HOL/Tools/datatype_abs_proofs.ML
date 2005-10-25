@@ -68,16 +68,18 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
         val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx+1), T), Bound 0) $
           Var (("P", 0), HOLogic.boolT))
         val insts = Library.take (i, dummyPs) @ (P::(Library.drop (i + 1, dummyPs)));
-        val cert = cterm_of (Theory.sign_of thy);
+        val cert = cterm_of thy;
         val insts' = (map cert induct_Ps) ~~ (map cert insts);
         val induct' = refl RS ((List.nth
           (split_conj_thm (cterm_instantiate insts' induct), i)) RSN (2, rev_mp))
 
-      in OldGoals.prove_goalw_cterm [] (cert t) (fn prems =>
-        [rtac induct' 1,
-         REPEAT (rtac TrueI 1),
-         REPEAT ((rtac impI 1) THEN (eresolve_tac prems 1)),
-         REPEAT (rtac TrueI 1)])
+      in
+        standard (Goal.prove thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+          (fn prems => EVERY
+            [rtac induct' 1,
+             REPEAT (rtac TrueI 1),
+             REPEAT ((rtac impI 1) THEN (eresolve_tac prems 1)),
+             REPEAT (rtac TrueI 1)]))
       end;
 
     val casedist_thms = map prove_casedist_thm ((0 upto (length newTs - 1)) ~~
@@ -201,7 +203,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
             absfree ("y", T2, HOLogic.mk_mem (HOLogic.mk_prod
               (mk_Free "x" T1 i, Free ("y", T2)), set_t)))
                 (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
-        val cert = cterm_of (Theory.sign_of thy1)
+        val cert = cterm_of thy1
         val insts = map (fn ((i, T), t) => absfree ("x" ^ (string_of_int i), T, t))
           ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
@@ -211,8 +213,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
               THEN rewtac (mk_meta_eq choice_eq), rec_intrs),
             descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 
-      in split_conj_thm (OldGoals.prove_goalw_cterm []
-        (cert (HOLogic.mk_Trueprop (mk_conj rec_unique_ts))) (K [tac]))
+      in split_conj_thm (standard (Goal.prove thy1 [] []
+        (HOLogic.mk_Trueprop (mk_conj rec_unique_ts)) (K tac)))
       end;
 
     val rec_total_thms = map (fn r => r RS theI') rec_unique_thms;
@@ -244,12 +246,13 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val _ = message "Proving characteristic theorems for primrec combinators ..."
 
-    val rec_thms = map (fn t => OldGoals.prove_goalw_cterm reccomb_defs
-      (cterm_of (Theory.sign_of thy2) t) (fn _ =>
-        [rtac the1_equality 1,
+    val rec_thms = map (fn t => standard (Goal.prove thy2 [] [] t
+      (fn _ => EVERY
+        [rewrite_goals_tac reccomb_defs,
+         rtac the1_equality 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
-         REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)]))
+         REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)])))
            (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
 
   in
@@ -318,9 +321,8 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
         end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
           (Library.take (length newTs, reccomb_names)));
 
-    val case_thms = map (map (fn t => OldGoals.prove_goalw_cterm (case_defs @
-      (map mk_meta_eq primrec_thms)) (cterm_of (Theory.sign_of thy2) t)
-        (fn _ => [rtac refl 1])))
+    val case_thms = map (map (fn t => standard (Goal.prove thy2 [] [] t
+      (fn _ => EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1]))))
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
 
   in
@@ -345,15 +347,15 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
     fun prove_split_thms ((((((t1, t2), inject), dist_rewrites'),
         exhaustion), case_thms'), T) =
       let
-        val cert = cterm_of (Theory.sign_of thy);
+        val cert = cterm_of thy;
         val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (prems_of exhaustion)));
         val exhaustion' = cterm_instantiate
           [(cert lhs, cert (Free ("x", T)))] exhaustion;
-        val tacsf = K [rtac exhaustion' 1, ALLGOALS (asm_simp_tac
-          (HOL_ss addsimps (dist_rewrites' @ inject @ case_thms')))]
+        val tacf = K (EVERY [rtac exhaustion' 1, ALLGOALS (asm_simp_tac
+          (HOL_ss addsimps (dist_rewrites' @ inject @ case_thms')))])
       in
-        (OldGoals.prove_goalw_cterm [] (cert t1) tacsf,
-         OldGoals.prove_goalw_cterm [] (cert t2) tacsf)
+        (standard (Goal.prove thy [] [] t1 tacf),
+         standard (Goal.prove thy [] [] t2 tacf))
       end;
 
     val split_thm_pairs = map prove_split_thms
@@ -419,8 +421,8 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     val rewrites = size_def_thms @ map mk_meta_eq primrec_thms;
 
-    val size_thms = map (fn t => OldGoals.prove_goalw_cterm rewrites
-      (cterm_of (Theory.sign_of thy') t) (fn _ => [rtac refl 1]))
+    val size_thms = map (fn t => standard (Goal.prove thy' [] [] t
+      (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])))
         (DatatypeProp.make_size descr sorts thy')
 
   in
@@ -432,8 +434,8 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 fun prove_weak_case_congs new_type_names descr sorts thy =
   let
     fun prove_weak_case_cong t =
-       OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t)
-         (fn prems => [rtac ((hd prems) RS arg_cong) 1])
+       standard (Goal.prove thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+         (fn prems => EVERY [rtac ((hd prems) RS arg_cong) 1]))
 
     val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
       new_type_names descr sorts thy)
@@ -453,10 +455,10 @@ fun prove_nchotomys new_type_names descr sorts casedist_thms thy =
               hyp_subst_tac i, REPEAT (rtac exI i), rtac refl i]
           | tac i n = rtac disjI2 i THEN tac i (n - 1)
       in 
-        OldGoals.prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t) (fn _ =>
-          [rtac allI 1,
+        standard (Goal.prove thy [] [] t (fn _ =>
+          EVERY [rtac allI 1,
            exh_tac (K exhaustion) 1,
-           ALLGOALS (fn i => tac i (i-1))])
+           ALLGOALS (fn i => tac i (i-1))]))
       end;
 
     val nchotomys =
@@ -475,13 +477,14 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
         val nchotomy'' = cterm_instantiate
           [(cert (hd (add_term_vars (concl_of nchotomy', []))), cert Ma)] nchotomy'
       in
-        OldGoals.prove_goalw_cterm [] (cert t) (fn prems => 
-          let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites))
-          in [simp_tac (HOL_ss addsimps [hd prems]) 1,
-              cut_facts_tac [nchotomy''] 1,
-              REPEAT (etac disjE 1 THEN REPEAT (etac exE 1) THEN simplify 1),
-              REPEAT (etac exE 1) THEN simplify 1 (* Get last disjunct *)]
-          end)
+        standard (Goal.prove thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+          (fn prems => 
+            let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites))
+            in EVERY [simp_tac (HOL_ss addsimps [hd prems]) 1,
+                cut_facts_tac [nchotomy''] 1,
+                REPEAT (etac disjE 1 THEN REPEAT (etac exE 1) THEN simplify 1),
+                REPEAT (etac exE 1) THEN simplify 1 (* Get last disjunct *)]
+            end))
       end;
 
     val case_congs = map prove_case_cong (DatatypeProp.make_case_congs

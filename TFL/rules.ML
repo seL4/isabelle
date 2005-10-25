@@ -814,13 +814,12 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
 
 fun prove strict (ptm, tac) =
-  let val result =
-    if strict then OldGoals.prove_goalw_cterm [] ptm (fn _ => [tac])
-    else
-      transform_error (fn () =>
-        OldGoals.prove_goalw_cterm [] ptm (fn _ => [tac])) ()
-      handle ERROR_MESSAGE msg => (warning msg; raise RULES_ERR "prove" msg);
-  in #1 (freeze_thaw result) end;
-
+  let
+    val {thy, t, ...} = Thm.rep_cterm ptm;
+    val result =
+      if strict then Goal.prove thy [] [] t (K tac)
+      else Goal.prove thy [] [] t (K tac)
+        handle ERROR_MESSAGE msg => (warning msg; raise RULES_ERR "prove" msg);
+  in #1 (freeze_thaw (standard result)) end;
 
 end;

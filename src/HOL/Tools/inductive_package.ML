@@ -248,7 +248,7 @@ fun ap_split p ps (Type ("*", [T1, T2])) T3 u =
   | ap_split _ _ _ _ u =  u;
 
 fun mk_tuple p ps (Type ("*", [T1, T2])) (tms as t::_) =
-      if p mem ps then HOLogic.mk_prod (mk_tuple (1::p) ps T1 tms, 
+      if p mem ps then HOLogic.mk_prod (mk_tuple (1::p) ps T1 tms,
         mk_tuple (2::p) ps T2 (Library.drop (length (prodT_factors (1::p) ps T1), tms)))
       else t
   | mk_tuple _ _ _ (t::_) = t;
@@ -286,7 +286,7 @@ fun err_in_prem thy name t p msg =
 
 val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 
-val all_not_allowed = 
+val all_not_allowed =
     "Introduction rule must not have a leading \"!!\" quantifier";
 
 fun atomize_term thy = MetaSimplifier.rewrite_term thy inductive_atomize [];
@@ -472,10 +472,11 @@ fun add_cases_induct no_elim no_induct names elims induct =
 
 fun prove_mono setT fp_fun monos thy =
  (message "  Proving monotonicity ...";
-  OldGoals.prove_goalw_cterm []      (*NO quick_and_dirty_prove_goalw_cterm here!*)
-    (Thm.cterm_of thy (HOLogic.mk_Trueprop
-      (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
-    (fn _ => [rtac monoI 1, REPEAT (ares_tac (List.concat (map mk_mono monos) @ get_monos thy) 1)]));
+  standard (Goal.prove thy [] []   (*NO quick_and_dirty here!*)
+    (HOLogic.mk_Trueprop
+      (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun))
+    (fn _ => EVERY [rtac monoI 1,
+      REPEAT (ares_tac (List.concat (map mk_mono monos) @ get_monos thy) 1)])));
 
 
 (* prove introduction rules *)
@@ -491,20 +492,18 @@ fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
       | select_disj _ 1 = [rtac disjI1]
       | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
 
-    val intrs = map (fn (i, intr) => OldGoals.quick_and_dirty_prove_goalw_cterm thy rec_sets_defs
-      (Thm.cterm_of thy intr) (fn prems =>
-       [(*insert prems and underlying sets*)
-       cut_facts_tac prems 1,
-       stac unfold 1,
-       REPEAT (resolve_tac [vimageI2, CollectI] 1),
-       (*Now 1-2 subgoals: the disjunction, perhaps equality.*)
-       EVERY1 (select_disj (length intr_ts) i),
-       (*Not ares_tac, since refl must be tried before any equality assumptions;
-         backtracking may occur if the premises have extra variables!*)
-       DEPTH_SOLVE_1 (resolve_tac [refl, exI, conjI] 1 APPEND assume_tac 1),
-       (*Now solve the equations like Inl 0 = Inl ?b2*)
-       REPEAT (rtac refl 1)])
-      |> rulify) (1 upto (length intr_ts) ~~ intr_ts)
+    val intrs = (1 upto (length intr_ts) ~~ intr_ts) |> map (fn (i, intr) =>
+      rulify (standard (SkipProof.prove thy [] [] intr (fn _ => EVERY
+       [rewrite_goals_tac rec_sets_defs,
+        stac unfold 1,
+        REPEAT (resolve_tac [vimageI2, CollectI] 1),
+        (*Now 1-2 subgoals: the disjunction, perhaps equality.*)
+        EVERY1 (select_disj (length intr_ts) i),
+        (*Not ares_tac, since refl must be tried before any equality assumptions;
+          backtracking may occur if the premises have extra variables!*)
+        DEPTH_SOLVE_1 (resolve_tac [refl, exI, conjI] 1 APPEND assume_tac 1),
+        (*Now solve the equations like Inl 0 = Inl ?b2*)
+        REPEAT (rtac refl 1)]))))
 
   in (intrs, unfold) end;
 
@@ -519,13 +518,16 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
     val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @ map make_elim [Inl_inject, Inr_inject];
   in
     mk_elims cs cTs params intr_ts intr_names |> map (fn (t, cases) =>
-      OldGoals.quick_and_dirty_prove_goalw_cterm thy rec_sets_defs
-        (Thm.cterm_of thy t) (fn prems =>
+      SkipProof.prove thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+        (fn prems => EVERY
           [cut_facts_tac [hd prems] 1,
+           rewrite_goals_tac rec_sets_defs,
            dtac (unfold RS subst) 1,
            REPEAT (FIRSTGOAL (eresolve_tac rules1)),
            REPEAT (FIRSTGOAL (eresolve_tac rules2)),
-           EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [prem, conjI] 1)) (tl prems))])
+           EVERY (map (fn prem =>
+             DEPTH_SOLVE_1 (ares_tac [rewrite_rule rec_sets_defs prem, conjI] 1)) (tl prems))])
+        |> standard
         |> rulify
         |> RuleCases.name cases)
   end;
@@ -624,9 +626,9 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
       mk_indrule cs cTs params intr_ts;
 
     val dummy = if !trace then
-		(writeln "ind_prems = ";
-		 List.app (writeln o Sign.string_of_term thy) ind_prems)
-	    else ();
+                (writeln "ind_prems = ";
+                 List.app (writeln o Sign.string_of_term thy) ind_prems)
+            else ();
 
     (* make predicate for instantiation of abstract induction rule *)
 
@@ -648,22 +650,24 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     (* simplification rules for vimage and Collect *)
 
     val vimage_simps = if length cs < 2 then [] else
-      map (fn c => OldGoals.quick_and_dirty_prove_goalw_cterm thy [] (Thm.cterm_of thy
+      map (fn c => standard (SkipProof.prove thy [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq
           (mk_vimage cs sumT (HOLogic.Collect_const sumT $ ind_pred) c,
            HOLogic.Collect_const (HOLogic.dest_setT (fastype_of c)) $
-             List.nth (preds, find_index_eq c cs)))))
-        (fn _ => [rtac vimage_Collect 1, rewrite_goals_tac sum_case_rewrites, rtac refl 1])) cs;
+             List.nth (preds, find_index_eq c cs))))
+        (fn _ => EVERY
+          [rtac vimage_Collect 1, rewrite_goals_tac sum_case_rewrites, rtac refl 1]))) cs;
 
     val raw_fp_induct = (mono RS (fp_def RS def_lfp_induct));
 
     val dummy = if !trace then
-		(writeln "raw_fp_induct = "; print_thm raw_fp_induct)
-	    else ();
+                (writeln "raw_fp_induct = "; print_thm raw_fp_induct)
+            else ();
 
-    val induct = OldGoals.quick_and_dirty_prove_goalw_cterm thy [inductive_conj_def] (Thm.cterm_of thy
-      (Logic.list_implies (ind_prems, ind_concl))) (fn prems =>
-        [rtac (impI RS allI) 1,
+    val induct = standard (SkipProof.prove thy [] ind_prems ind_concl
+      (fn prems => EVERY
+        [rewrite_goals_tac [inductive_conj_def],
+         rtac (impI RS allI) 1,
          DETERM (etac raw_fp_induct 1),
          rewrite_goals_tac (map mk_meta_eq (vimage_Int::Int_Collect::vimage_simps)),
          fold_goals_tac rec_sets_defs,
@@ -674,16 +678,16 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac)),
          ALLGOALS (simp_tac (HOL_basic_ss addsimps sum_case_rewrites)),
          EVERY (map (fn prem =>
-   	             DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
+           DEPTH_SOLVE_1 (ares_tac [rewrite_rule [inductive_conj_def] prem, conjI, refl] 1)) prems)]));
 
-    val lemma = OldGoals.quick_and_dirty_prove_goalw_cterm thy rec_sets_defs (Thm.cterm_of thy
-      (Logic.mk_implies (ind_concl, mutual_ind_concl))) (fn prems =>
-        [cut_facts_tac prems 1,
+    val lemma = standard (SkipProof.prove thy [] []
+      (Logic.mk_implies (ind_concl, mutual_ind_concl)) (fn _ => EVERY
+        [rewrite_goals_tac rec_sets_defs,
          REPEAT (EVERY
            [REPEAT (resolve_tac [conjI, impI] 1),
             TRY (dtac vimageD 1), etac allE 1, dtac mp 1, atac 1,
             rewrite_goals_tac sum_case_rewrites,
-            atac 1])])
+            atac 1])]))
 
   in standard (split_rule factors (induct RS lemma)) end;
 

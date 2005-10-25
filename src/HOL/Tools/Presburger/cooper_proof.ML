@@ -189,47 +189,21 @@ fun list_to_set T1 l = let val T = (HOLogic.mk_setT T1) in
 fun qe_get_terms th = let val (_$(Const("op =",Type ("fun",[Type ("bool", []),_])) $ A $ B )) = prop_of th in (A,B) end;
 
 (* ------------------------------------------------------------------------- *)
-(* Modified version of the simple version with minimal amount of checking and postprocessing*)
+(*This function proove elementar will be used to generate proofs at
+  runtime*) (*It is thought to prove properties such as a dvd b
+  (essentially) that are only to make at runtime.*)
 (* ------------------------------------------------------------------------- *)
-
-fun simple_prove_goal_cterm2 G tacs =
-  let
-    fun check NONE = error "prove_goal: tactic failed"
-      | check (SOME (thm, _)) = (case nprems_of thm of
-            0 => thm
-          | i => !OldGoals.result_error_fn thm (string_of_int i ^ " unsolved goals!"))
-  in check (Seq.pull (EVERY tacs (trivial G))) end;
-
-(*-------------------------------------------------------------*)
-(*-------------------------------------------------------------*)
-
-fun cert_Trueprop sg t = cterm_of sg (HOLogic.mk_Trueprop t);
-
-(* ------------------------------------------------------------------------- *)
-(*This function proove elementar will be used to generate proofs at runtime*)
-(*It is is based on the isabelle function proove_goalw_cterm and is thought to *)
-(*prove properties such as a dvd b (essentially) that are only to make at
-runtime.*)
-(* ------------------------------------------------------------------------- *)
-fun prove_elementar sg s fm2 = case s of 
+fun prove_elementar thy s fm2 =
+  Goal.prove thy [] [] (HOLogic.mk_Trueprop fm2) (fn _ => EVERY
+  (case s of
   (*"ss" like simplification with simpset*)
   "ss" =>
-    let
-      val ss = presburger_ss addsimps
-        [zdvd_iff_zmod_eq_0,unity_coeff_ex]
-      val ct =  cert_Trueprop sg fm2
-    in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)] 
-
-    end
+    let val ss = presburger_ss addsimps [zdvd_iff_zmod_eq_0,unity_coeff_ex]
+    in [simp_tac ss 1, TRY (simple_arith_tac 1)] end
 
   (*"bl" like blast tactic*)
   (* Is only used in the harrisons like proof procedure *)
-  | "bl" =>
-     let val ct = cert_Trueprop sg fm2
-     in
-       simple_prove_goal_cterm2 ct [blast_tac HOL_cs 1]
-     end
+  | "bl" => [blast_tac HOL_cs 1]
 
   (*"ed" like Existence disjunctions ...*)
   (* Is only used in the harrisons like proof procedure *)
@@ -244,51 +218,26 @@ fun prove_elementar sg s fm2 = case s of
           etac exE 1, REPEAT(EVERY[etac disjE 1, tac1]), tac1,
           REPEAT(EVERY[etac disjE 1, tac2]), tac2]
         end
+    in ex_disj_tacs end
 
-      val ct = cert_Trueprop sg fm2
-    in 
-      simple_prove_goal_cterm2 ct ex_disj_tacs
-    end
-
-  | "fa" =>
-    let val ct = cert_Trueprop sg fm2
-    in simple_prove_goal_cterm2 ct [simple_arith_tac 1]  
-
-    end
+  | "fa" => [simple_arith_tac 1]
 
   | "sa" =>
-    let
-      val ss = presburger_ss addsimps zadd_ac
-      val ct = cert_Trueprop sg fm2
-    in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]  
+    let val ss = presburger_ss addsimps zadd_ac
+    in [simp_tac ss 1, TRY (simple_arith_tac 1)] end
 
-    end
   (* like Existance Conjunction *)
   | "ec" =>
-    let
-      val ss = presburger_ss addsimps zadd_ac
-      val ct = cert_Trueprop sg fm2
-    in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (blast_tac HOL_cs 1)]
-    end
+    let val ss = presburger_ss addsimps zadd_ac
+    in [simp_tac ss 1, TRY (blast_tac HOL_cs 1)] end
 
   | "ac" =>
-    let
-      val ss = HOL_basic_ss addsimps zadd_ac
-      val ct = cert_Trueprop sg fm2
-    in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1]
-    end
+    let val ss = HOL_basic_ss addsimps zadd_ac
+    in [simp_tac ss 1] end
 
   | "lf" =>
-    let
-      val ss = presburger_ss addsimps zadd_ac
-      val ct = cert_Trueprop sg fm2
-    in 
-      simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]  
-
-    end;
+    let val ss = presburger_ss addsimps zadd_ac
+    in [simp_tac ss 1, TRY (simple_arith_tac 1)] end));
 
 (*=============================================================*)
 (*-------------------------------------------------------------*)

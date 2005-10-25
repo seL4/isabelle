@@ -105,11 +105,10 @@ fun add_fixdefs eqs thy =
       PureThy.add_defs_i false (map Thm.no_attributes fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => cpair_equalI OF [x,y]) fixdef_thms;
     
-    fun mk_cterm t = cterm_of thy' (infer thy' t);
-    val ctuple_unfold_ct = mk_cterm (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
-    val ctuple_unfold_thm = OldGoals.prove_goalw_cterm [] ctuple_unfold_ct
-          (fn _ => [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
-                    simp_tac (simpset_of thy') 1]);
+    val ctuple_unfold = infer thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
+    val ctuple_unfold_thm = standard (Goal.prove thy' [] [] ctuple_unfold
+          (fn _ => EVERY [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
+                    simp_tac (simpset_of thy') 1]));
     val ctuple_induct_thm =
           (space_implode "_" names ^ "_induct", ctuple_fixdef_thm RS def_fix_ind);
     
@@ -216,9 +215,8 @@ fun compile_pats eqs =
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps thy (unfold_thm, eqns) =
   let
-    fun tacsf prems =
-      [rtac (unfold_thm RS ssubst_lhs) 1, simp_tac (simpset_of thy addsimps prems) 1];
-    fun prove_term t = OldGoals.prove_goalw_cterm [] (cterm_of thy t) tacsf;
+    val tacs = [rtac (unfold_thm RS ssubst_lhs) 1, asm_simp_tac (simpset_of thy) 1];
+    fun prove_term t = standard (Goal.prove thy [] [] t (K (EVERY tacs)));
     fun prove_eqn ((name, eqn_t), atts) = ((name, prove_term eqn_t), atts);
   in
     map prove_eqn eqns
@@ -275,8 +273,8 @@ fun fix_pat thy t =
     val cname = case chead_of t of Const(c,_) => c | _ =>
               fixrec_err "function is not declared as constant in theory";
     val unfold_thm = PureThy.get_thm thy (Name (cname^"_unfold"));
-    val simp = OldGoals.prove_goalw_cterm [] (cterm_of thy eq)
-          (fn _ => [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
+    val simp = standard (Goal.prove thy [] [] eq
+          (fn _ => EVERY [stac unfold_thm 1, simp_tac (simpset_of thy) 1]));
   in simp end;
 
 fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =

@@ -22,9 +22,12 @@ infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 fun inferT sg pre_tm =
   #1 (Sign.infer_types (Sign.pp sg) sg (K NONE) (K NONE) [] true ([pre_tm],propT));
 
-fun pg'' thy defs t = let val sg = sign_of thy;
-                          val ct = Thm.cterm_of sg (inferT sg t);
-                      in OldGoals.prove_goalw_cterm defs ct end;
+fun pg'' thy defs t tacs =
+  let val t' = inferT thy t in
+    standard (Goal.prove thy [] (Logic.strip_imp_prems t') (Logic.strip_imp_concl t')
+      (fn prems => rewrite_goals_tac defs THEN EVERY (tacs (map (rewrite_rule defs) prems))))
+  end;
+
 fun pg'  thy defs t tacsf=pg'' thy defs t (fn []   => tacsf 
                                 | prems=> (cut_facts_tac prems 1)::tacsf);
 

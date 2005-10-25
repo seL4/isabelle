@@ -253,14 +253,15 @@ fun lift_meta_eq_to_obj_eq i st =
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)
-      in OldGoals.prove_goalw_cterm [simp_implies_def]
-        (cterm_of sign (Logic.mk_implies
-          (mk_simp_implies (Logic.mk_equals (x, y)),
-           mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))))
-        (fn hyps => [REPEAT (ares_tac (meta_eq_to_obj_eq :: hyps) 1)])
+      in standard (Goal.prove (Thm.theory_of_thm st) []
+        [mk_simp_implies (Logic.mk_equals (x, y))]
+        (mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))
+        (fn prems => EVERY
+         [rewrite_goals_tac [simp_implies_def],
+          REPEAT (ares_tac (meta_eq_to_obj_eq :: map (rewrite_rule [simp_implies_def]) prems) 1)]))
       end
   end;
-  
+
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl = zero_var_indexes
   (let val rl' = Seq.hd (TRYALL (fn i => fn st =>

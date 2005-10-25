@@ -49,13 +49,9 @@ fun dest_sum tm =
 
 (* prove conversions *)
 
-val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
-
-fun prove_conv expand_tac norm_tac sg ss tu =
-  mk_meta_eq (OldGoals.prove_goalw_cterm_nocheck [] (cterm_of sg (mk_eqv tu))
-    (K [expand_tac, norm_tac ss]))
-  handle ERROR => error ("The error(s) above occurred while trying to prove " ^
-    (string_of_cterm (cterm_of sg (mk_eqv tu))));
+fun prove_conv expand_tac norm_tac sg ss tu =  (* FIXME avoid standard *)
+  mk_meta_eq (standard (Goal.prove sg [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
+    (K [expand_tac, norm_tac ss])));
 
 val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
   (fn prems => [cut_facts_tac prems 1, SIMPSET' asm_simp_tac 1]);

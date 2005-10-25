@@ -192,12 +192,10 @@ let
   val dummy = writeln "  Proving monotonicity...";
 
   val bnd_mono =
-      OldGoals.prove_goalw_cterm []
-        (cterm_of sign1
-                  (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs)))
-        (fn _ =>
-         [rtac (Collect_subset RS bnd_monoI) 1,
-          REPEAT (ares_tac (basic_monos @ monos) 1)]);
+    standard (Goal.prove sign1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
+      (fn _ => EVERY
+        [rtac (Collect_subset RS bnd_monoI) 1,
+         REPEAT (ares_tac (basic_monos @ monos) 1)]));
 
   val dom_subset = standard (big_rec_def RS Fp.subs);
 
@@ -221,10 +219,8 @@ let
 
   (*Type-checking is hardest aspect of proof;
     disjIn selects the correct disjunct after unfolding*)
-  fun intro_tacsf disjIn prems =
-    [(*insert prems and underlying sets*)
-     cut_facts_tac prems 1,
-     DETERM (stac unfold 1),
+  fun intro_tacsf disjIn =
+    [DETERM (stac unfold 1),
      REPEAT (resolve_tac [Part_eqI,CollectI] 1),
      (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
      rtac disjIn 2,
@@ -251,12 +247,12 @@ let
           and g rl = rl RS disjI2
       in  accesses_bal(f, g, asm_rl)  end;
 
-  fun prove_intr (ct, tacsf) = OldGoals.prove_goalw_cterm part_rec_defs ct tacsf;
-
-  val intrs = ListPair.map prove_intr
-                (map (cterm_of sign1) intr_tms,
-                 map intro_tacsf (mk_disj_rls(length intr_tms)))
-               handle MetaSimplifier.SIMPLIFIER (msg,thm) => (print_thm thm; error msg);
+  val intrs =
+    (intr_tms, map intro_tacsf (mk_disj_rls (length intr_tms)))
+    |> ListPair.map (fn (t, tacs) =>
+      standard (Goal.prove sign1 [] [] t
+        (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs))))
+    handle MetaSimplifier.SIMPLIFIER (msg, thm) => (print_thm thm; error msg);
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
@@ -345,23 +341,21 @@ let
                                    ORELSE' etac FalseE));
 
      val quant_induct =
-         OldGoals.prove_goalw_cterm part_rec_defs
-           (cterm_of sign1
-            (Logic.list_implies
-             (ind_prems,
-              FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp(big_rec_tm,pred)))))
-           (fn prems =>
-            [rtac (impI RS allI) 1,
-             DETERM (etac raw_induct 1),
-             (*Push Part inside Collect*)
-             full_simp_tac (min_ss addsimps [Part_Collect]) 1,
-             (*This CollectE and disjE separates out the introduction rules*)
-             REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
-             (*Now break down the individual cases.  No disjE here in case
-               some premise involves disjunction.*)
-             REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE]
-	                        ORELSE' bound_hyp_subst_tac)),
-             ind_tac (rev prems) (length prems) ]);
+       standard (Goal.prove sign1 [] ind_prems
+         (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
+         (fn prems => EVERY
+           [rewrite_goals_tac part_rec_defs,
+            rtac (impI RS allI) 1,
+            DETERM (etac raw_induct 1),
+            (*Push Part inside Collect*)
+            full_simp_tac (min_ss addsimps [Part_Collect]) 1,
+            (*This CollectE and disjE separates out the introduction rules*)
+            REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
+            (*Now break down the individual cases.  No disjE here in case
+              some premise involves disjunction.*)
+            REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE]
+                               ORELSE' bound_hyp_subst_tac)),
+            ind_tac (rev (map (rewrite_rule part_rec_defs) prems)) (length prems)]));
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln "quant_induct = "; print_thm quant_induct)
@@ -431,15 +425,12 @@ let
      val lemma = (*makes the link between the two induction rules*)
        if need_mutual then
           (writeln "  Proving the mutual induction rule...";
-           OldGoals.prove_goalw_cterm part_rec_defs
-                 (cterm_of sign1 (Logic.mk_implies (induct_concl,
-                                                   mutual_induct_concl)))
-                 (fn prems =>
-                  [cut_facts_tac prems 1,
-                   REPEAT (rewrite_goals_tac [Pr.split_eq] THEN
-                           lemma_tac 1)]))
-       else (writeln "  [ No mutual induction rule needed ]";
-             TrueI);
+           standard (Goal.prove sign1 [] []
+             (Logic.mk_implies (induct_concl, mutual_induct_concl))
+             (fn _ => EVERY
+               [rewrite_goals_tac part_rec_defs,
+                REPEAT (rewrite_goals_tac [Pr.split_eq] THEN lemma_tac 1)])))
+       else (writeln "  [ No mutual induction rule needed ]"; TrueI);
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln "lemma = "; print_thm lemma)
@@ -493,14 +484,11 @@ let
 
      val mutual_induct_fsplit =
        if need_mutual then
-         OldGoals.prove_goalw_cterm []
-               (cterm_of sign1
-                (Logic.list_implies
-                   (map (induct_prem (rec_tms~~preds)) intr_tms,
-                    mutual_induct_concl)))
-               (fn prems =>
-                [rtac (quant_induct RS lemma) 1,
-                 mutual_ind_tac (rev prems) (length prems)])
+         standard (Goal.prove sign1 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
+           mutual_induct_concl
+           (fn prems => EVERY
+             [rtac (quant_induct RS lemma) 1,
+              mutual_ind_tac (rev prems) (length prems)]))
        else TrueI;
 
      (** Uncurrying the predicate in the ordinary induction rule **)

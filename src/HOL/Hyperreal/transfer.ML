@@ -64,16 +64,14 @@ fun transfer_thm_of thy ths t =
     val {intros,unfolds,refolds,consts} = TransferData.get thy
     val (_$_$t') = concl_of (Tactic.rewrite true unfolds (cterm_of thy t))
     val u = unstar_term consts t'
-    val ct = cterm_of thy (Logic.mk_equals (t,u))
     val tacs =
-      [ rewrite_goals_tac atomizers
+      [ rewrite_goals_tac (ths @ refolds @ unfolds)
+      , rewrite_goals_tac atomizers
       , match_tac [transitive_thm] 1
       , resolve_tac [transfer_start] 1
       , REPEAT_ALL_NEW (resolve_tac intros) 1
       , match_tac [reflexive_thm] 1 ]
-  in
-    OldGoals.prove_goalw_cterm (ths @ refolds @ unfolds) ct (fn _ => tacs)
-  end
+  in Goal.prove thy [] [] (Logic.mk_equals (t,u)) (fn _ => EVERY tacs) end
 
 fun transfer_tac ths =
     SUBGOAL (fn (t,i) =>
