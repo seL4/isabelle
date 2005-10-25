@@ -51,7 +51,7 @@ fun dest_sum tm =
 
 fun prove_conv expand_tac norm_tac sg ss tu =  (* FIXME avoid standard *)
   mk_meta_eq (standard (Goal.prove sg [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
-    (K [expand_tac, norm_tac ss])));
+    (K (EVERY [expand_tac, norm_tac ss]))));
 
 val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
   (fn prems => [cut_facts_tac prems 1, SIMPSET' asm_simp_tac 1]);
