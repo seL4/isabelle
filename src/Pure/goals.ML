@@ -91,7 +91,7 @@ end;
 structure OldGoals: OLD_GOALS =
 struct
 
-val legacy = ref true;
+val legacy = ref false;
 fun warn_obsolete () = if ! legacy then () else warning "Obsolete goal command encountered";
 
 
