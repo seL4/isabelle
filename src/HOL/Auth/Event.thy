@@ -90,12 +90,6 @@ apply (induct_tac evs)
 apply (auto split: event.split) 
 done
 
-lemma MPair_used [rule_format]:
-     "MPair X Y \<in> used evs --> X \<in> used evs & Y \<in> used evs"
-apply (induct_tac evs)
-apply (auto split: event.split) 
-done
-
 
 subsection{*Function @{term knows}*}
 
@@ -309,7 +303,6 @@ val used_Cons      = thm "used_Cons"
 
 val Notes_imp_used = thm "Notes_imp_used";
 val Says_imp_used = thm "Says_imp_used";
-val MPair_used = thm "MPair_used";
 val Says_imp_knows_Spy = thm "Says_imp_knows_Spy";
 val Notes_imp_knows_Spy = thm "Notes_imp_knows_Spy";
 val knows_Spy_partsEs = thms "knows_Spy_partsEs";

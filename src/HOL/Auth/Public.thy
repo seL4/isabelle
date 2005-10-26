@@ -224,6 +224,8 @@ done
 lemma MPair_used_D: "{|X,Y|} \<in> used H ==> X \<in> used H & Y \<in> used H"
 by (drule used_parts_subset_parts, simp, blast)
 
+text{*There was a similar theorem in Event.thy, so perhaps this one can
+  be moved up if proved directly by induction.*}
 lemma MPair_used [elim!]:
      "[| {|X,Y|} \<in> used H;
          [| X \<in> used H; Y \<in> used H |] ==> P |] 
