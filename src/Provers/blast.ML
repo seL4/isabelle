@@ -177,8 +177,8 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) 
 			   end
 		 | SOME v => v)
 
-(*Definitions of the theory in which blast is initialized.*)
-val curr_defs = ref Defs.empty;
+(*refer to the theory in which blast is initialized*)
+val monomorphic = ref (fn (_: string) => false);
 
 (*Convert a Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.
@@ -187,7 +187,7 @@ val curr_defs = ref Defs.empty;
   of type information is necessary to prevent PROOF FAILED elsewhere.*)
 fun fromConst alist (a,T) = 
   if not Data.is_hol orelse a mem_string ["All","Ex","all"] orelse
-    Defs.monomorphic (!curr_defs) a then Const a
+    ! monomorphic a then Const a
   else TConst(a, fromType alist T);
 
 
@@ -1242,7 +1242,7 @@ fun fromSubgoal t =
 
 fun initialize thy = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
-     nclosed := 0;  ntried := 1;  curr_defs := Theory.defs_of thy);
+     nclosed := 0;  ntried := 1;  monomorphic := Sign.monomorphic thy);
 
 
 (*Tactic using tableau engine and proof reconstruction.  

@@ -272,14 +272,13 @@ fun preds_of_cls (Clause cls) = #predicates cls;
 
 
 
-(*Definitions of the current theory--to allow suppressing types.*)
-val curr_defs = ref Defs.empty;
+(*Declarations of the current theory--to allow suppressing types.*)
+val monomorphic = ref (fn (_: string) => false);
+fun no_types_needed s = ! monomorphic s;
 
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
-fun init thy = (curr_defs := Theory.defs_of thy);
-
-fun no_types_needed s = Defs.monomorphic (!curr_defs) s;
+fun init thy = (monomorphic := Sign.monomorphic thy);
     
 
 (*Flatten a type to a string while accumulating sort constraints on the TFress and
