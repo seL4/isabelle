@@ -119,6 +119,22 @@ syntax (HOL)
   "EX "         :: "[idts, bool] => bool"                ("(3? _./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3?! _./ _)" [0, 10] 10)
 
+syntax
+  "_iff" :: "bool => bool => bool"                       (infixr "<->" 25)
+syntax (xsymbols)
+  "_iff" :: "bool => bool => bool"                       (infixr "\<longleftrightarrow>" 25)
+translations
+  "op <->" => "op = :: bool => bool => bool"
+
+typed_print_translation {*
+  let
+    fun iff_tr' _ (Type ("fun", (Type ("bool", _) :: _))) ts =
+          if Output.has_mode "iff" then Term.list_comb (Syntax.const "_iff", ts)
+          else raise Match
+      | iff_tr' _ _ _ = raise Match;
+  in [("op =", iff_tr')] end
+*}
+
 
 subsubsection {* Axioms and basic definitions *}
 
