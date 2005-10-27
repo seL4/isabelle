@@ -9,7 +9,6 @@ are only tracked for non-overloaded definitions!
 signature DEFS =
 sig
   type T
-  val monomorphic: T -> string -> bool
   val define: (string -> typ) -> string -> string * typ -> (string * typ) list -> T -> T
   val empty: T
   val merge: Pretty.pp -> T * T -> T
@@ -22,16 +21,10 @@ struct
 
 datatype T = Defs of
  {consts: typ Graph.T,                                 (*constant declarations and dependencies*)
-  specified: (string * typ) Inttab.table Symtab.table, (*specification name and const type*)
-  monomorphic: unit Symtab.table};                     (*constants having monomorphic specs*)
+  specified: (string * typ) Inttab.table Symtab.table}; (*specification name and const type*)
 
-fun rep_defs (Defs args) = args;
-
-fun make_defs (consts, specified, monomorphic) =
-  Defs {consts = consts, specified = specified, monomorphic = monomorphic};
-
-fun map_defs f (Defs {consts, specified, monomorphic}) =
-  make_defs (f (consts, specified, monomorphic));
+fun make_defs (consts, specified) = Defs {consts = consts, specified = specified};
+fun map_defs f (Defs {consts, specified}) = make_defs (f (consts, specified));
 
 
 (* specified consts *)
@@ -46,29 +39,13 @@ fun check_specified c (i, (a, T)) = Inttab.forall (fn (j, (b, U)) =>
       " for constant " ^ quote c));
 
 
-(* monomorphic constants *)
-
-val monomorphic = Symtab.defined o #monomorphic o rep_defs;
-
-fun update_monomorphic specified c =
-  let
-    val specs = the_default Inttab.empty (Symtab.lookup specified c);
-    fun is_monoT (Type (_, Ts)) = forall is_monoT Ts
-      | is_monoT _ = false;
-    val is_mono =
-      Inttab.is_empty specs orelse
-        Inttab.min_key specs = Inttab.max_key specs andalso
-        is_monoT (snd (the (Inttab.lookup specs (the (Inttab.min_key specs)))));
-  in if is_mono then Symtab.update (c, ()) else Symtab.remove (K true) (c, ()) end;
-
-
 (* define consts *)
 
 fun err_cyclic cycles =
   error ("Cyclic dependency of constants:\n" ^
     cat_lines (map (space_implode " -> " o map quote o rev) cycles));
 
-fun define const_type name lhs rhs = map_defs (fn (consts, specified, monomorphic) =>
+fun define const_type name lhs rhs = map_defs (fn (consts, specified) =>
   let
     fun declare (a, _) = Graph.default_node (a, const_type a);
     fun add_deps (a, bs) G = Graph.add_deps_acyclic (a, bs) G
@@ -85,25 +62,22 @@ fun define const_type name lhs rhs = map_defs (fn (consts, specified, monomorphi
       |> Symtab.default (c, Inttab.empty)
       |> Symtab.map_entry c (fn specs =>
         (check_specified c spec specs; Inttab.update spec specs));
-    val monomorphic' = monomorphic |> update_monomorphic specified' c;
-  in (consts', specified', monomorphic') end);
+  in (consts', specified') end);
 
 
 (* empty and merge *)
 
-val empty = make_defs (Graph.empty, Symtab.empty, Symtab.empty);
+val empty = make_defs (Graph.empty, Symtab.empty);
 
 fun merge pp
-   (Defs {consts = consts1, specified = specified1, monomorphic},
-    Defs {consts = consts2, specified = specified2, ...}) =
+   (Defs {consts = consts1, specified = specified1},
+    Defs {consts = consts2, specified = specified2}) =
   let
     val consts' = (consts1, consts2) |> Graph.merge_acyclic (K true)
       handle Graph.CYCLES cycles => err_cyclic cycles;
     val specified' = (specified1, specified2) |> Symtab.join (fn c => fn (orig_specs1, specs2) =>
       SOME (Inttab.fold (fn spec2 => fn specs1 =>
         (check_specified c spec2 orig_specs1; Inttab.update spec2 specs1)) specs2 orig_specs1));
-    val monomorphic' = monomorphic
-      |> Symtab.fold (update_monomorphic specified' o #1) specified';
-  in make_defs (consts', specified', monomorphic') end;
+  in make_defs (consts', specified') end;
 
 end;
