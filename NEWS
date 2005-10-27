@@ -69,6 +69,9 @@ are no longer reserved, significant speedup.
 
 *** ML ***
 
+* Library: new module Pure/General/rat.ML implementing rational numbers,
+replacing the former functions in the Isabelle library.
+
 * Internal goals: structure Goal provides simple interfaces for
 init/conclude/finish and tactical prove operations (replacing former
 Tactic.prove).  Note that OldGoals.prove_goalw_cterm has long been
