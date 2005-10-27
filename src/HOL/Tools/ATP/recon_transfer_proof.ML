@@ -157,8 +157,10 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums =
     end
 
 (* get names of clasimp axioms used*)
- fun get_axiom_names step_nums clause_arr =
-   map (ResClause.get_axiomName o #1) (get_clasimp_cls clause_arr step_nums);   
+fun get_axiom_names step_nums clause_arr =
+  distinct (sort_strings 
+            (map (ResClause.get_axiomName o #1) 
+	     (get_clasimp_cls clause_arr step_nums)));   
 
 fun get_axiom_names_spass proofstr clause_arr =
   let (* parse spass proof into datatype *)
