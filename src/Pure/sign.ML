@@ -86,7 +86,7 @@ sig
    {naming: NameSpace.naming,
     syn: Syntax.syntax,
     tsig: Type.tsig,
-    consts: (typ * stamp) NameSpace.table * typ Symtab.table}
+    consts: ((typ * bool) * serial) NameSpace.table * typ Symtab.table}
   val naming_of: theory -> NameSpace.naming
   val base_name: string -> bstring
   val full_name: theory -> bstring -> string
@@ -113,6 +113,7 @@ sig
   val the_const_type: theory -> string -> typ
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
+  val monomorphic: theory -> string -> bool
   val class_space: theory -> NameSpace.T
   val type_space: theory -> NameSpace.T
   val const_space: theory -> NameSpace.T
@@ -191,12 +192,12 @@ type sg = theory;
 (** datatype sign **)
 
 datatype sign = Sign of
- {naming: NameSpace.naming,                 (*common naming conventions*)
-  syn: Syntax.syntax,                       (*concrete syntax for terms, types, sorts*)
-  tsig: Type.tsig,                          (*order-sorted signature of types*)
+ {naming: NameSpace.naming,                   (*common naming conventions*)
+  syn: Syntax.syntax,                         (*concrete syntax for terms, types, sorts*)
+  tsig: Type.tsig,                            (*order-sorted signature of types*)
   consts:
-    (typ * stamp) NameSpace.table *         (*type schemes of declared term constants*)
-    typ Symtab.table};                      (*type constraints for constants*)
+    ((typ * bool) * serial) NameSpace.table * (*type schemes of declared term constants*)
+    typ Symtab.table};                        (*type constraints for constants*)
 
 
 fun make_sign (naming, syn, tsig, consts) =
@@ -286,7 +287,7 @@ fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
 fun const_constraint thy c =
   let val ((_, consts), constraints) = #consts (rep_sg thy) in
     (case Symtab.lookup constraints c of
-      NONE => Option.map #1 (Symtab.lookup consts c)
+      NONE => Option.map (#1 o #1) (Symtab.lookup consts c)
     | some => some)
   end;
 
@@ -294,7 +295,7 @@ fun the_const_constraint thy c =
   (case const_constraint thy c of SOME T => T
   | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
 
-val const_type = Option.map #1 oo (Symtab.lookup o #2 o #1 o #consts o rep_sg);
+val const_type = Option.map (#1 o #1) oo (Symtab.lookup o #2 o #1 o #consts o rep_sg);
 
 fun the_const_type thy c =
   (case const_type thy c of SOME T => T
@@ -302,6 +303,10 @@ fun the_const_type thy c =
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = is_some oo const_type;
+
+fun monomorphic thy =
+  let val mono = Symtab.lookup (#2 (#1 (#consts (rep_sg thy))))
+  in fn c => (case mono c of SOME ((_, m), _) => m | _ => false) end;
 
 
 
@@ -688,13 +693,20 @@ val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
 (* add constants *)
 
+local
+
+fun is_mono (Type (_, Ts)) = forall is_mono Ts
+  | is_mono _ = false;
+
 fun gen_add_consts prep_typ raw_args thy =
   let
     val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (c, T, mx) = ((c, prepT T, mx) handle TYPE (msg, _, _) => error msg)
       handle ERROR => error ("in declaration of constant " ^ quote (Syntax.const_name c mx));
     val args = map prep raw_args;
-    val decls = args |> map (fn (c, T, mx) => (Syntax.const_name c mx, (T, stamp ())));
+
+    val decls = args |> map (fn (c, T, mx) =>
+      (Syntax.const_name c mx, ((T, is_mono T), serial ())));
 
     fun extend_consts consts = NameSpace.extend_table (naming_of thy) (consts, decls)
       handle Symtab.DUPS cs => err_dup_consts cs;
@@ -704,8 +716,12 @@ fun gen_add_consts prep_typ raw_args thy =
     |> add_syntax_i args
   end;
 
+in
+
 val add_consts = gen_add_consts (read_typ o no_def_sort);
 val add_consts_i = gen_add_consts certify_typ;
+
+end;
 
 
 (* add constraints *)
