@@ -1814,7 +1814,7 @@ fun gen_note_thmss prep_locale prep_facts kind raw_loc args thy =
     val thy_ctxt = ProofContext.init thy;
     val loc = prep_locale thy raw_loc;
     val (_, (stmt, _), loc_ctxt, _, _) = cert_context_statement (SOME loc) [] [] thy_ctxt;
-    val export = ProofContext.export_standard_view stmt loc_ctxt thy_ctxt;
+    val export = ProofContext.export_view stmt loc_ctxt thy_ctxt;
 
     val (ctxt', (args', facts)) = activate_note prep_facts (loc_ctxt, args);
     val facts' =
@@ -2017,7 +2017,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
         |> snd;
     val (ctxt, (_, facts)) = activate_facts (K I)
       (pred_ctxt, axiomify predicate_axioms elemss');
-    val export = ProofContext.export_standard_view predicate_statement ctxt pred_ctxt;
+    val export = ProofContext.export_view predicate_statement ctxt pred_ctxt;
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))
   in
@@ -2084,7 +2084,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
 
     fun after_qed' (goal_ctxt, raw_results) results =
       let val res = results |> (map o map)
-          (ProofContext.export_standard elems_ctxt' locale_ctxt) in
+          (ProofContext.export elems_ctxt' locale_ctxt) in
         curry (add_thmss kind locale ((names ~~ locale_attss) ~~ res)) locale_ctxt
         #-> (fn res' =>
           if name = "" andalso null locale_atts then I
