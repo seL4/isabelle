@@ -57,10 +57,10 @@ fun export_obtained state parms rule cprops thm =
     val cparms = map (Thm.cterm_of thy) parms;
 
     val thm' = thm
-      |> Drule.implies_intr_goals cprops
+      |> Drule.implies_intr_protected cprops
       |> Drule.forall_intr_list cparms
       |> Drule.forall_elim_vars (maxidx + 1);
-    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.goalI);
+    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.protectI);
 
     val concl = Logic.strip_assums_concl prop;
     val bads = parms inter (Term.term_frees concl);
@@ -234,9 +234,7 @@ fun gen_guess prep_vars raw_vars int state =
         #> Proof.add_binds_i AutoBind.no_facts
       end;
 
-    val before_qed = SOME (Method.primitive_text (fn th =>
-      let val th' = Goal.conclude th
-      in th' COMP Drule.incr_indexes_wrt [] [] [] [th'] Drule.goalI end));
+    val before_qed = SOME (Method.primitive_text (Goal.conclude #> Goal.protect));
     fun after_qed _ [[res]] =
       (check_result res; Proof.end_block #> Seq.map (`Proof.the_fact #-> guess_context));
   in
