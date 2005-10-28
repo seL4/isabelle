@@ -1125,7 +1125,7 @@ fun record_split_simp_tac thms P i st =
           (s = "all" orelse s = "All" orelse s = "Ex") andalso is_recT T
         | _ => false);
 
-    val goal = List.nth (Thm.prems_of st, i - 1);
+    val goal = nth (Thm.prems_of st) (i - 1);
     val frees = List.filter (is_recT o type_of) (term_frees goal);
 
     fun mk_split_free_tac free induct_thm i =
@@ -1172,7 +1172,7 @@ fun record_split_tac i st =
           (s = "all" orelse s = "All") andalso is_recT T
         | _ => false);
 
-    val goal = List.nth (Thm.prems_of st, i - 1);
+    val goal = nth (Thm.prems_of st) (i - 1);
 
     fun is_all t =
       (case t of (Const (quantifier, _)$_) =>
@@ -1231,7 +1231,7 @@ fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps 
 fun try_param_tac s rule i st =
   let
     val cert = cterm_of (Thm.theory_of_thm st);
-    val g = List.nth (prems_of st, i - 1);
+    val g = nth (prems_of st) (i - 1);
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
     val rule' = Thm.lift_rule (st, i) rule;
@@ -1258,7 +1258,7 @@ fun try_param_tac s rule i st =
 fun ex_inst_tac i st =
   let
     val sg = sign_of_thm st;
-    val g = List.nth (prems_of st, i - 1);
+    val g = nth (prems_of st) (i - 1);
     val params = Logic.strip_params g;
     val exI' = Thm.lift_rule (st, i) exI;
     val (_$(_$x)) = Logic.strip_assums_concl (hd (prems_of exI'));
@@ -1391,7 +1391,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     (*updates*)
     fun mk_upd_prop (i,(c,T)) =
       let val x' = Free (variant variants (base c ^ "'"),T)
-          val args' = nth_update x' (i, vars_more)
+          val args' = nth_update (i, x') vars_more
       in mk_upd updN c x' ext === mk_ext args'  end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
 
@@ -1770,7 +1770,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     (*updates*)
     fun mk_upd_prop (i,(c,T)) =
       let val x' = Free (variant all_variants (base c ^ "'"),T)
-          val args' = nth_update x' (parent_fields_len + i, all_vars_more)
+          val args' = nth_update (parent_fields_len + i, x') all_vars_more
       in mk_upd updateN c x' r_rec0 === mk_rec args' 0  end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
 

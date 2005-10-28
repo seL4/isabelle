@@ -363,7 +363,7 @@ fun prep_subst_in_asm i gth j =
       val (fixedbody, fvs) = IsaND.fix_alls_term i tgt_term;
       val cfvs = rev (map ctermify fvs);
 
-      val asmt = Library.nth_elem(j - 1,(Logic.strip_imp_prems fixedbody));
+      val asmt = nth (Logic.strip_imp_prems fixedbody) (j - 1);
       val asm_nprems = length (Logic.strip_imp_prems asmt);
 
       val pth = trivify asmt;

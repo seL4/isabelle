@@ -96,7 +96,7 @@ fun make_rules next rules netpairs wrappers =
 fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
   let val w = (case opt_w of SOME w => w | NONE => Tactic.subgoals_of_brl (b, th)) in
     make_rules (next - 1) ((w, ((i, b), th)) :: rules)
-      (map_nth_elem i (curry insert_tagged_brl ((w, next), (b, th))) netpairs) wrappers
+      (nth_map i (curry insert_tagged_brl ((w, next), (b, th))) netpairs) wrappers
   end;
 
 fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
@@ -136,7 +136,7 @@ struct
           k1 = k2 andalso Drule.eq_thm_prop (th1, th2)) rules1 rules2;
       val next = ~ (length rules);
       val netpairs = Library.foldl (fn (nps, (n, (w, ((i, b), th)))) =>
-          map_nth_elem i (curry insert_tagged_brl ((w, n), (b, th))) nps)
+          nth_map i (curry insert_tagged_brl ((w, n), (b, th))) nps)
         (empty_netpairs, next upto ~1 ~~ rules);
     in make_rules (next - 1) rules netpairs wrappers end;
 

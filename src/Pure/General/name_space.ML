@@ -89,7 +89,7 @@ fun drop_base "" = ""
 fun map_base _ "" = ""
   | map_base f name =
       let val names = unpack name
-      in pack (map_nth_elem (length names - 1) f names) end;
+      in pack (nth_map (length names - 1) f names) end;
 
 fun suffixes_prefixes xs =
   let

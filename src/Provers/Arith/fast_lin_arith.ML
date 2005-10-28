@@ -212,13 +212,13 @@ fun findex1 discr (ex,(v,lineqs)) =
       val (ge,le) = List.partition (fn (_,_,cs) => el v cs > 0) ineqs
       val lb = ratrelmax(map (eval ex v) ge)
       val ub = ratrelmin(map (eval ex v) le)
-  in nth_update (choose2 (List.nth(discr,v)) (lb,ub)) (v,ex) end;
+  in nth_update (v, choose2 (nth discr v) (lb, ub)) ex end;
 
 fun findex discr = Library.foldl (findex1 discr);
 
 fun elim1 v x =
   map (fn (a,le,bs) => (Rat.add(a,Rat.neg(Rat.mult(el v bs,x))), le,
-                        nth_update Rat.zero (v,bs)));
+                        nth_update (v, Rat.zero) bs));
 
 fun single_var v (_,_,cs) = (filter_out (equal Rat.zero) cs = [el v cs]);
 
@@ -229,7 +229,7 @@ fun pick_vars discr (ineqs,ex) =
   in case nz of [] => ex
      | (_,_,cs) :: _ =>
        let val v = find_index (not o equal Rat.zero) cs
-           val d = List.nth(discr,v)
+           val d = nth discr v
            val pos = Rat.ge0(el v cs)
            val sv = List.filter (single_var v) nz
            val minmax =
@@ -240,7 +240,7 @@ fun pick_vars discr (ineqs,ex) =
            val bnds = map (fn (a,le,bs) => (Rat.mult(a,Rat.inv(el v bs)),le)) sv
            val x = minmax((Rat.zero,if pos then true else false)::bnds)
            val ineqs' = elim1 v x nz
-           val ex' = nth_update x (v,ex)
+           val ex' = nth_update (v, x) ex
        in pick_vars discr (ineqs',ex') end
   end;
 
@@ -460,8 +460,8 @@ fun mkthm (sg, ss) asms just =
         let val thm' = trace_thm "Simplified:" (full_simplify simpset' thm)
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk(Asm i) = trace_thm "Asm" (List.nth(asms,i))
-        | mk(Nat i) = (trace_msg "Nat"; LA_Logic.mk_nat_thm sg (List.nth(atoms,i)))
+      fun mk(Asm i) = trace_thm "Asm" (nth asms i)
+        | mk(Nat i) = (trace_msg "Nat"; LA_Logic.mk_nat_thm sg (nth atoms i))
         | mk(LessD(j)) = trace_thm "L" (hd([mk j] RL lessD))
         | mk(NotLeD(j)) = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
         | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))

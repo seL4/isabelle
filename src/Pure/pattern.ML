@@ -45,7 +45,7 @@ val trace_unify_fail = ref false;
 fun string_of_term thy env binders t = Sign.string_of_term thy
   (Envir.norm_term env (subst_bounds(map Free binders,t)));
 
-fun bname binders i = fst(List.nth(binders,i));
+fun bname binders i = fst (nth binders i);
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
 fun typ_clash thy (tye,T,U) =
@@ -110,10 +110,8 @@ fun mapbnd f =
 fun idx [] j     = raise Unif
   | idx(i::is) j = if (i:int) =j then length is else idx is j;
 
-fun at xs i = List.nth (xs,i);
-
 fun mkabs (binders,is,t)  =
-    let fun mk(i::is) = let val (x,T) = List.nth(binders,i)
+    let fun mk(i::is) = let val (x,T) = nth binders i
                         in Abs(x,T,mk is) end
           | mk []     = t
     in mk is end;
@@ -134,7 +132,7 @@ fun app (s,(i::is)) = app (s$Bound(i),is)
 
 fun red (Abs(_,_,s)) (i::is) js = red s is (i::js)
   | red t            []      [] = t
-  | red t            is      jn = app (mapbnd (at jn) t,is);
+  | red t            is      jn = app (mapbnd (nth jn) t,is);
 
 
 (* split_type ([T1,....,Tn]---> T,n,[]) = ([Tn,...,T1],T) *)
@@ -144,7 +142,7 @@ fun split_type (T,0,Ts)                    = (Ts,T)
 
 fun type_of_G (env as Envir.Envir {iTs, ...}) (T,n,is) =
   let val (Ts, U) = split_type (Envir.norm_type iTs T, n, [])
-  in map (at Ts) is ---> U end;
+  in map (nth Ts) is ---> U end;
 
 fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
 

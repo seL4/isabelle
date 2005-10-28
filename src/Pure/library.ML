@@ -103,9 +103,10 @@ sig
   val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
-  val map_nth_elem: int -> ('a -> 'a) -> 'a list -> 'a list
+  val nth: 'a list -> int -> 'a 
+  val nth_update: int * 'a -> 'a list -> 'a list
+  val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val split_last: 'a list -> 'a list * 'a
-  val nth_update: 'a -> int * 'a list -> 'a list
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
@@ -146,7 +147,7 @@ sig
   val oct_char: string -> string
 
   (*strings*)
-  val nth_elem_string: int * string -> string
+  val nth_string: string -> int -> string
   val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val exists_string: (string -> bool) -> string -> bool
   val forall_string: (string -> bool) -> string -> bool
@@ -263,7 +264,6 @@ sig
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
-  val nth_elem: int * 'a list -> 'a
   val last_elem: 'a list -> 'a
   val flat: 'a list list -> 'a list
   val seq: ('a -> unit) -> 'a list -> unit
@@ -539,11 +539,17 @@ fun dropwhile P [] = []
 
 (*return nth element of a list, where 0 designates the first element;
   raise EXCEPTION if list too short*)
-fun nth_elem (i,xs) = List.nth(xs,i);
+fun nth xs i = List.nth (xs, i);
 
-fun map_nth_elem 0 f (x :: xs) = f x :: xs
-  | map_nth_elem n f (x :: xs) = x :: map_nth_elem (n - 1) f xs
-  | map_nth_elem _ _ [] = raise Subscript;
+(*update nth element*)
+fun nth_update (n, x) xs =
+    (case splitAt (n, xs) of
+      (_, []) => raise Subscript
+    | (prfx, _ :: sffx') => prfx @ (x :: sffx'))
+
+fun nth_map 0 f (x :: xs) = f x :: xs
+  | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
+  | nth_map _ _ [] = raise Subscript;
 
 (*last element of a list*)
 val last_elem = List.last;
@@ -552,12 +558,6 @@ val last_elem = List.last;
 fun split_last [] = raise Empty
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
-
-(*update nth element*)
-fun nth_update x n_xs =
-    (case splitAt n_xs of
-      (_,[]) => raise Subscript
-    | (prfx, _ :: sffx') => prfx @ (x :: sffx'))
 
 (*find the position of an element in a list*)
 fun find_index pred =
@@ -762,7 +762,7 @@ fun oct_char s = chr (#1 (read_radixint (8, explode s)));
 
 (* functions tuned for strings, avoiding explode *)
 
-fun nth_elem_string (i, str) =
+fun nth_string str i =
   (case try String.substring (str, i, 1) of
     SOME s => s
   | NONE => raise Subscript);
@@ -1101,7 +1101,7 @@ fun sort ord =
       | qsort (xs as [_]) = xs
       | qsort (xs as [x, y]) = if ord (x, y) = GREATER then [y, x] else xs
       | qsort xs =
-          let val (lts, eqs, gts) = part (nth_elem (length xs div 2, xs)) xs
+          let val (lts, eqs, gts) = part (nth xs (length xs div 2)) xs
           in qsort lts @ eqs @ qsort gts end
     and part _ [] = ([], [], [])
       | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
@@ -1143,7 +1143,7 @@ fun random_range l h =
   if h < l orelse l < 0 then raise RANDOM
   else l + Real.floor (rmod (random ()) (real (h - l + 1)));
 
-fun one_of xs = nth_elem (random_range 0 (length xs - 1), xs);
+fun one_of xs = nth xs (random_range 0 (length xs - 1));
 
 fun frequency xs =
   let
