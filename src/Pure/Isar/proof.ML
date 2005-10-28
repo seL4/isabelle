@@ -248,7 +248,7 @@ fun export_facts inner outer =
     NONE => Seq.single (put_facts NONE outer)
   | SOME thms =>
       thms
-      |> Seq.map_list (ProofContext.export false (context_of inner) (context_of outer))
+      |> Seq.map_list (ProofContext.exports (context_of inner) (context_of outer))
       |> Seq.map (fn ths => put_facts (SOME ths) outer));
 
 
@@ -439,14 +439,14 @@ local
 
 fun refine_tac rule =
   Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
-    if can Logic.dest_goal (Logic.strip_assums_concl goal) then
-      Tactic.etac Drule.goalI i
+    if can Logic.unprotect (Logic.strip_assums_concl goal) then
+      Tactic.etac Drule.protectI i
     else all_tac));
 
 fun refine_goal print_rule inner raw_rule state =
   let val (outer, (_, {statement, using, goal, before_qed, after_qed})) = find_goal state in
     raw_rule
-    |> ProofContext.export true inner outer
+    |> ProofContext.goal_exports inner outer
     |> Seq.maps (fn rule =>
       (print_rule outer rule;
         goal
@@ -816,7 +816,7 @@ fun generic_qed state =
     val raw_results = conclude_goal state raw_props goal;
     val props = ProofContext.generalize goal_ctxt outer_ctxt raw_props;
     val results =
-      Seq.map_list (ProofContext.export false goal_ctxt outer_ctxt) raw_results
+      Seq.map_list (ProofContext.exports goal_ctxt outer_ctxt) raw_results
       |> Seq.map (Library.unflat stmt);
   in
     outer_state
@@ -870,7 +870,7 @@ fun global_goal print_results prep_att prepp
     fun after_qed' raw_results results =
       (case target of NONE => I
       | SOME prfx => store_results (NameSpace.base prfx)
-          (map (map (ProofContext.export_standard ctxt thy_ctxt
+          (map (map (ProofContext.export ctxt thy_ctxt
             #> Drule.strip_shyps_warning)) results))
       #> after_qed raw_results results;
   in
