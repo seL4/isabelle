@@ -1893,11 +1893,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]));
 
-    val case_names_induct = mk_case_names_induct descr;
+    val case_names_induct = mk_case_names_induct (List.concat descr');
 
     val (thy9, _) = thy8 |>
       Theory.add_path big_name |>
-      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] |>>
+      PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] |>>
       Theory.parent_path |>>>
       DatatypeAux.store_thmss "distinct" new_type_names distinct_thms |>>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss |>>>
