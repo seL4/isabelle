@@ -83,6 +83,7 @@ signature BASIC_THM =
   val prems_of: thm -> term list
   val nprems_of: thm -> int
   val cprop_of: thm -> cterm
+  val cgoal_of: thm -> int -> cterm
   val transfer: theory -> thm -> thm
   val weaken: cterm -> thm -> thm
   val extra_shyps: thm -> sort list
@@ -116,7 +117,7 @@ signature BASIC_THM =
   val varifyT': (string * sort) list -> thm -> thm * ((string * sort) * indexname) list
   val freezeT: thm -> thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
-  val lift_rule: (thm * int) -> thm -> thm
+  val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -449,6 +450,10 @@ fun major_prem_of th =
 (*the statement of any thm is a cterm*)
 fun cprop_of (Thm {thy_ref, maxidx, shyps, prop, ...}) =
   Cterm {thy_ref = thy_ref, maxidx = maxidx, T = propT, t = prop, sorts = shyps};
+
+fun cgoal_of (th as Thm {thy_ref, maxidx, shyps, prop, ...}) i =
+  Cterm {thy_ref = thy_ref, maxidx = maxidx, T = propT, sorts = shyps,
+    t = Logic.nth_prem (i, prop) handle TERM _ => raise THM ("cgoal_of", i, [th])};
 
 (*explicit transfer to a super theory*)
 fun transfer thy' thm =
@@ -1107,23 +1112,25 @@ fun dest_state (state as Thm{prop,tpairs,...}, i) =
   handle TERM _ => raise THM("dest_state", i, [state]);
 
 (*Increment variables and parameters of orule as required for
-  resolution with goal i of state. *)
-fun lift_rule (state, i) orule =
+  resolution with a goal.*)
+fun lift_rule goal orule =
   let
-    val Thm {shyps = sshyps, prop = sprop, maxidx = smax, ...} = state;
-    val (Bi :: _, _) = Logic.strip_prems (i, [], sprop)
-      handle TERM _ => raise THM ("lift_rule", i, [orule, state]);
-    val (lift_abs, lift_all) = Logic.lift_fns (Bi, smax + 1);
-    val (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) = orule;
+    val Cterm {t = gprop, T, maxidx = gmax, sorts, ...} = goal;
+    val inc = gmax + 1;
+    val lift_abs = Logic.lift_abs inc gprop;
+    val lift_all = Logic.lift_all inc gprop;
+    val Thm {der, maxidx, shyps, hyps, tpairs, prop, ...} = orule;
     val (As, B) = Logic.strip_horn prop;
   in
-    Thm {thy_ref = merge_thys2 state orule,
-      der = Pt.infer_derivs' (Pt.lift_proof Bi (smax + 1) prop) der,
-      maxidx = maxidx + smax + 1,
-      shyps = Sorts.union sshyps shyps,
-      hyps = hyps,
-      tpairs = map (pairself lift_abs) tpairs,
-      prop = Logic.list_implies (map lift_all As, lift_all B)}
+    if T <> propT then raise THM ("lift_rule: the term must have type prop", 0, [])
+    else
+      Thm {thy_ref = merge_thys1 goal orule,
+        der = Pt.infer_derivs' (Pt.lift_proof gprop inc prop) der,
+        maxidx = maxidx + inc,
+        shyps = Sorts.union shyps sorts,  (*sic!*)
+        hyps = hyps,
+        tpairs = map (pairself lift_abs) tpairs,
+        prop = Logic.list_implies (map lift_all As, lift_all B)}
   end;
 
 fun incr_indexes i (thm as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
@@ -1464,8 +1471,8 @@ fun could_bires (Hs, B, eres_flg, rule) =
 (*Bi-resolution of a state with a list of (flag,rule) pairs.
   Puts the rule above:  rule/state.  Renames vars in the rules. *)
 fun biresolution match brules i state =
-    let val lift = lift_rule(state, i);
-        val (stpairs, Bs, Bi, C) = dest_state(state,i)
+    let val (stpairs, Bs, Bi, C) = dest_state(state,i);
+        val lift = lift_rule (cgoal_of state i);
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
         val comp = bicompose_aux match (state, (stpairs, Bs, Bi, C), true);
