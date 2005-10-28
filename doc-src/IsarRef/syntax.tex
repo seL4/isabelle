@@ -69,7 +69,8 @@ of these coincide with the inner lexical syntax as presented in
 
 \indexoutertoken{ident}\indexoutertoken{longident}\indexoutertoken{symident}
 \indexoutertoken{nat}\indexoutertoken{var}\indexoutertoken{typefree}
-\indexoutertoken{typevar}\indexoutertoken{string}\indexoutertoken{verbatim}
+\indexoutertoken{typevar}\indexoutertoken{string}\indexoutertoken{altstring}
+\indexoutertoken{verbatim}
 \begin{matharray}{rcl}
   ident & = & letter\,quasiletter^* \\
   longident & = & ident (\verb,.,ident)^+ \\
@@ -79,6 +80,7 @@ of these coincide with the inner lexical syntax as presented in
   typefree & = & \verb,',ident \\
   typevar & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
   string & = & \verb,", ~\dots~ \verb,", \\
+  altstring & = & \backquote ~\dots~ \backquote \\
   verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\[1ex]
 
   letter & = & latin ~|~ \verb,\<,latin\verb,>, ~|~ \verb,\<,latin\,latin\verb,>, ~|~ greek ~|~ \\
@@ -102,10 +104,11 @@ greek & = & \verb,\<alpha>, ~|~ \verb,\<beta>, ~|~ \verb,\<gamma>, ~|~ \verb,\<d
 
 The syntax of $string$ admits any characters, including newlines; ``\verb|"|''
 (double-quote) and ``\verb|\|'' (backslash) need to be escaped by a backslash.
-The body of $verbatim$ may consist of any text not containing ``\verb|*}|'';
-this allows convenient inclusion of quotes without further escapes.  The greek
-letters do \emph{not} include \verb,\<lambda>,, which is already used
-differently in the meta-logic.
+Alternative strings according to $altstring$ are analogous, using single
+back-quotes instead.  The body of $verbatim$ may consist of any text not
+containing ``\verb|*}|''; this allows convenient inclusion of quotes without
+further escapes.  The greek letters do \emph{not} include \verb,\<lambda>,,
+which is already used differently in the meta-logic.
 
 Common mathematical symbols such as $\forall$ are represented in Isabelle as
 \verb,\<forall>,.  There are infinitely many legal symbols like this, although
@@ -338,10 +341,14 @@ Theorem specifications come in several flavors: \railnonterm{axmdecl} and
 \railnonterm{thmdecl} usually refer to axioms, assumptions or results of goal
 statements, while \railnonterm{thmdef} collects lists of existing theorems.
 Existing theorems are given by \railnonterm{thmref} and \railnonterm{thmrefs},
-the former requires an actual singleton result.  An optional index selection
-specifies the individual theorems to be picked out of a given fact list.  Any
-kind of theorem specification may include lists of attributes both on the left
-and right hand sides; attributes are applied to any immediately preceding
+the former requires an actual singleton result.  There are three forms of
+theorem references: (1) named facts $a$, (2) selections from named facts $a(i,
+j - k)$, or (3) literal fact propositions using $altstring$ syntax
+$\backquote\phi\backquote$, (see also method $fact$ in
+\S\ref{sec:pure-meth-att}).
+
+Any kind of theorem specification may include lists of attributes both on the
+left and right hand sides; attributes are applied to any immediately preceding
 fact.  If names are omitted, the theorems are not stored within the theorem
 database of the theory or proof context, but any given attributes are applied
 nonetheless.
@@ -356,7 +363,7 @@ nonetheless.
   ;
   thmdef: thmbind '='
   ;
-  thmref: nameref selection? attributes?
+  thmref: (nameref selection? | altstring) attributes?
   ;
   thmrefs: thmref +
   ;

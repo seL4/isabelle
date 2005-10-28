@@ -1026,13 +1026,14 @@ of Isar.  Further methods and attributes are provided by several generic and
 object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \ref{ch:logics}).
 
-\indexisarmeth{$-$}\indexisarmeth{assumption}
+\indexisarmeth{$-$}\indexisarmeth{fact}\indexisarmeth{assumption}
 \indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{iprover}
 \indexisarattof{Pure}{intro}\indexisarattof{Pure}{elim}
 \indexisarattof{Pure}{dest}\indexisarattof{Pure}{rule}
 \indexisaratt{OF}\indexisaratt{of}\indexisaratt{where}
 \begin{matharray}{rcl}
   - & : & \isarmeth \\
+  fact & : & \isarmeth \\
   assumption & : & \isarmeth \\
   this & : & \isarmeth \\
   rule & : & \isarmeth \\
@@ -1047,6 +1048,8 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \end{matharray}
 
 \begin{rail}
+  'fact' thmrefs?
+  ;
   'rule' thmrefs?
   ;
   'iprover' ('!' ?) (rulemod *)
@@ -1072,6 +1075,14 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   performs a single reduction step using the $rule$ method; thus a plain
   \emph{do-nothing} proof step would be ``$\PROOF{-}$'' rather than
   $\PROOFNAME$ alone.
+  
+\item [$fact~\vec a$] composes any previous fact from $\vec a$ (or implicitly
+  from the current proof context) modulo matching of schematic type and term
+  variables.  The rule structure is not taken into account, i.e.\ meta-level
+  implication is considered atomic.  This is the same principle underlying
+  literal facts (cf.\ \S\ref{sec:syn-att}): ``$\HAVE{}{\phi}~\BY{fact}$'' is
+  equivalent to ``$\NOTE{}{\backquote\phi\backquote}$'' provided that $\edrv
+  \phi$ is an instance of some known $\edrv \phi$ in the proof context.
   
 \item [$assumption$] solves some goal by a single assumption step.  All given
   facts are guaranteed to participate in the refinement; this means there may
