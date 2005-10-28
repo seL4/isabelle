@@ -13,6 +13,7 @@ sig
   val helper_path: string -> string -> string
   val problem_name: string ref
   val time_limit: int ref
+  val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
 end;
 
 structure ResAtp: RES_ATP =
