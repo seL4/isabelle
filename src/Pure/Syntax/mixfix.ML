@@ -251,7 +251,7 @@ val pure_syntax =
   ("_struct",     "index => logic",            Mixfix ("\\<struct>_", [1000], 1000))];
 
 val pure_syntax_output =
- [("Goal", "prop => prop", Mixfix ("_", [0], 0)),
+ [("prop", "prop => prop", Mixfix ("_", [0], 0)),
   ("_meta_conjunction", "prop => prop => prop", InfixrName ("&&", 2))];
 
 val pure_appl_syntax =

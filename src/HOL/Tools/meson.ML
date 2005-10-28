@@ -233,7 +233,7 @@ val has_bool_arg_const =
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
       
 val has_meta_conn = 
-    exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "Goal"]);
+    exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "prop"]);
   
 (*Raises an exception if any Vars in the theorem mention type bool; they
   could cause make_horn to loop! Also rejects functions whose arguments are 

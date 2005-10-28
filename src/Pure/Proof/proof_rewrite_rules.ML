@@ -32,8 +32,8 @@ fun rew b =
     val equal_elim_axm = ax equal_elim_axm [];
     val symmetric_axm = ax symmetric_axm [propT];
 
-    fun rew' _ (PThm (("ProtoPure.goalD", _), _, _, _) % _ %%
-        (PThm (("ProtoPure.goalI", _), _, _, _) % _ %% prf)) = SOME prf
+    fun rew' _ (PThm (("ProtoPure.protectD", _), _, _, _) % _ %%
+        (PThm (("ProtoPure.protectI", _), _, _, _) % _ %% prf)) = SOME prf
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % _ % _ %%
         (PAxm ("ProtoPure.equal_intr", _, _) % _ % _ %% prf %% _)) = SOME prf
       | rew' _ (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
@@ -41,16 +41,16 @@ fun rew b =
             SOME (equal_intr_axm % B % A %% prf2 %% prf1)
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
-        (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("Goal", _)) %
+        (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("prop", _)) %
           _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %%
-        ((tg as PThm (("ProtoPure.goalI", _), _, _, _)) % _ %% prf2)) =
+        ((tg as PThm (("ProtoPure.protectI", _), _, _, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %% prf1 %% prf2))
 
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
-          (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("Goal", _)) %
+          (PAxm ("ProtoPure.combination", _, _) % SOME (Const ("prop", _)) %
              _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1)) %%
-        ((tg as PThm (("ProtoPure.goalI", _), _, _, _)) % _ %% prf2)) =
+        ((tg as PThm (("ProtoPure.protectI", _), _, _, _)) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %%
           (symmetric_axm % ?? B % ?? A %% prf1) %% prf2))
 
