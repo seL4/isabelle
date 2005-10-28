@@ -41,6 +41,7 @@ sig
   val fold: thm list -> method
   val atomize: bool -> method
   val this: method
+  val fact: thm list -> ProofContext.context -> method
   val assumption: ProofContext.context -> method
   val close: bool -> ProofContext.context -> method
   val trace: ProofContext.context -> thm list -> unit
@@ -176,7 +177,7 @@ local
 fun cut_rule_tac raw_rule =
   let
     val rule = Drule.forall_intr_vars raw_rule;
-    val revcut_rl = Drule.incr_indexes_wrt [] [] [] [rule] Drule.revcut_rl;
+    val revcut_rl = Drule.incr_indexes rule Drule.revcut_rl;
   in Tactic.rtac (rule COMP revcut_rl) end;
 
 in
@@ -223,9 +224,18 @@ fun atomize false = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_
   | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o ObjectLogic.full_atomize_tac)));
 
 
-(* this -- apply facts directly *)
+(* this -- resolve facts directly *)
 
 val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
+
+
+(* fact -- composition by facts from context *)
+
+fun fact_tac [] ctxt [] = ProofContext.some_fact_tac ctxt
+  | fact_tac ths _ [] = ProofContext.fact_tac ths
+  | fact_tac _ _ facts = EVERY' (map (ProofContext.fact_tac o single) facts);
+
+fun fact rules ctxt = METHOD (fn facts => HEADGOAL (fact_tac rules ctxt facts));
 
 
 (* assumption *)
@@ -425,7 +435,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
         val rule = Drule.instantiate
               (map lifttvar envT', map liftpair cenv)
-              (lift_rule (st, i) thm)
+              (Thm.lift_rule (Thm.cgoal_of st i) thm)
       in
         if i > nprems_of st then no_tac st
         else st |>
@@ -753,6 +763,7 @@ val pure_methods =
   ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
   ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
   ("this", no_args this, "apply current facts as rules"),
+  ("fact", thms_ctxt_args fact, "composition by facts from context"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
   ("rule_tac", inst_args_var res_inst_meth, "apply rule (dynamic instantiation)"),
   ("erule_tac", inst_args_var eres_inst_meth, "apply rule in elimination manner (dynamic instantiation)"),
