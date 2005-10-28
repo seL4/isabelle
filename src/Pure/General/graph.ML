@@ -122,24 +122,23 @@ fun map_node_yield x f = map_entry_yield x (fn (i, ps) =>
 (*nodes reachable from xs -- topologically sorted for acyclic graphs*)
 fun reachable next xs =
   let
-    fun reach ((R, rs), x) =
-      if x mem_keys R then (R, rs)
-      else apsnd (cons x) (reachs ((x ins_keys R, rs), next x))
-    and reachs R_xs = Library.foldl reach R_xs;
-  in foldl_map (reach o apfst (rpair [])) (empty_keys, xs) end;
+    fun reach x (rs, R) =
+      if x mem_keys R then (rs, R)
+      else apfst (cons x) (fold reach (next x) (rs, x ins_keys R))
+  in fold_map (fn x => reach x o pair []) xs empty_keys end;
 
 (*immediate*)
 fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = List.concat o snd o reachable (imm_preds G);
-fun all_succs G = List.concat o snd o reachable (imm_succs G);
+fun all_preds G = List.concat o fst o reachable (imm_preds G);
+fun all_succs G = List.concat o fst o reachable (imm_succs G);
 
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
-fun strong_conn G = filter_out null (snd (reachable (imm_preds G)
-  (List.concat (rev (snd (reachable (imm_succs G) (keys G)))))));
+fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
+  (List.concat (rev (fst (reachable (imm_succs G) (keys G)))))));
 
 (*subgraph induced by node subset*)
 fun subgraph keys (Graph tab) =
@@ -155,7 +154,7 @@ fun subgraph keys (Graph tab) =
 
 fun find_paths G (x, y) =
   let
-    val (X, _) = reachable (imm_succs G) [x];
+    val (_, X) = reachable (imm_succs G) [x];
     fun paths ps p =
       if not (null ps) andalso eq_key (p, x) then [p :: ps]
       else if p mem_keys X andalso not (p mem_key ps)
