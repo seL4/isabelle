@@ -67,9 +67,10 @@ sig
   val warn_extra_tfrees: context -> context -> context
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
-  val export: bool -> context -> context -> thm -> thm Seq.seq
-  val export_standard: context -> context -> thm -> thm
-  val export_plain: context -> context -> thm -> thm
+  val export: context -> context -> thm -> thm
+  val exports: context -> context -> thm -> thm Seq.seq
+  val goal_exports: context -> context -> thm -> thm Seq.seq
+  val export_plain: context -> context -> thm -> thm  (* FIXME *)
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -93,6 +94,8 @@ sig
     -> context * (term list list * (context -> context))
   val bind_propp_schematic_i: context * (term * (term list * term list)) list list
     -> context * (term list list * (context -> context))
+  val fact_tac: thm list -> int -> tactic
+  val some_fact_tac: context -> int -> tactic
   val get_thm: context -> thmref -> thm
   val get_thm_closure: context -> thmref -> thm
   val get_thms: context -> thmref -> thm list
@@ -123,7 +126,7 @@ sig
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> context -> (bstring * thm list) list * context
   val add_view: context -> cterm list -> context -> context
-  val export_standard_view: cterm list -> context -> context -> thm -> thm
+  val export_view: cterm list -> context -> context -> thm -> thm
   val read_vars: (string list * string option) -> context -> (string list * typ option) * context
   val cert_vars: (string list * typ option) -> context -> (string list * typ option) * context
   val read_vars_liberal: (string list * string option) -> context ->
@@ -711,14 +714,14 @@ fun get_free x (t as Free (y, _)) NONE = if x = y then SOME t else NONE
 
 fun find_free t x = fold_aterms (get_free x) t NONE;
 
-fun export is_goal inner outer =
+fun common_exports is_goal inner outer =
   let
     val gen = generalize_tfrees inner outer;
     val fixes = fixed_names_of inner \\ fixed_names_of outer;
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
-    Goal.norm_hhf_rule
+    Goal.norm_hhf
     #> Seq.EVERY (rev exp_asms)
     #> Seq.map (fn rule =>
       let
@@ -729,12 +732,15 @@ fun export is_goal inner outer =
       in
         rule
         |> Drule.forall_intr_list frees
-        |> Goal.norm_hhf_rule
+        |> Goal.norm_hhf
         |> (#1 o Drule.tvars_intr_list tfrees)
       end)
   end;
 
-(*without varification*)
+val exports = common_exports false;
+val goal_exports = common_exports true;
+
+(*without varification*)  (* FIXME *)
 fun export' is_goal inner outer =
   let
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
@@ -753,8 +759,8 @@ fun gen_export exp inner outer =
       | NONE => sys_error "Failed to export theorem")
   end;
 
-val export_standard = gen_export export;
-val export_plain = gen_export export';
+val export = gen_export common_exports;
+val export_plain = gen_export export';   (* FIXME *)
 
 
 
@@ -919,25 +925,37 @@ end;
 
 (** theorems **)
 
+(* fact_tac *)
+
+fun fact_tac facts = Tactic.norm_hhf_tac THEN' Goal.compose_hhf_tac facts;
+
+fun some_fact_tac ctxt = Tactic.norm_hhf_tac THEN' SUBGOAL (fn (goal, i) =>
+  let
+    val (_, _, index) = thms_of ctxt;
+    val facts = FactIndex.could_unify index (Term.strip_all_body goal);
+  in fact_tac facts i end);
+
+
 (* get_thm(s) *)
 
-(*beware of proper order of evaluation!*)
-fun retrieve_thms from_thy pick ctxt =
-  let
-    val thy_ref = Theory.self_ref (theory_of ctxt);
-    val (_, (space, tab), _) = thms_of ctxt;
-  in
-    fn xthmref =>
+fun retrieve_thms _ pick ctxt (Fact s) =
       let
-        val thy = Theory.deref thy_ref;
+        val thy = theory_of ctxt;
+        val th = Goal.prove thy [] [] (read_prop ctxt s) (K (ALLGOALS (some_fact_tac ctxt)))
+          handle ERROR_MESSAGE msg =>
+            raise CONTEXT (msg ^ "\nFailed to retrieve literal fact.", ctxt);
+      in pick "" [th] end
+  | retrieve_thms from_thy pick ctxt xthmref =
+      let
+        val thy = theory_of ctxt;
+        val (_, (space, tab), _) = thms_of ctxt;
         val thmref = PureThy.map_name_of_thmref (NameSpace.intern space) xthmref;
         val name = PureThy.name_of_thmref thmref;
       in
         (case Symtab.lookup tab name of
           SOME ths => map (Thm.transfer thy) (PureThy.select_thm thmref ths)
         | NONE => from_thy thy xthmref) |> pick name
-      end
-  end;
+      end;
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
 val get_thm_closure = retrieve_thms PureThy.get_thms_closure PureThy.single_thm;
@@ -957,8 +975,8 @@ fun valid_thms ctxt (name, ths) =
 
 fun lthms_containing ctxt spec =
   FactIndex.find (fact_index_of ctxt) spec
-  |> List.filter (valid_thms ctxt)
-  |> gen_distinct (eq_fst (op =));
+  |> map (valid_thms ctxt ? apfst (fn name =>
+    NameSpace.hidden (if name = "" then "unnamed" else name)));
 
 
 (* name space operations *)
@@ -982,7 +1000,12 @@ fun hide_thms fully names = map_context
 
 (* put_thms *)
 
-fun put_thms ("", _) ctxt = ctxt
+fun put_thms ("", NONE) ctxt = ctxt
+  | put_thms ("", SOME ths) ctxt = ctxt |> map_context
+      (fn (syntax, asms, binds, (naming, facts, index), cases, defs) =>
+        let
+          val index' = FactIndex.add_local (is_known ctxt) ("", ths) index;
+        in (syntax, asms, binds, (naming, facts, index'), cases, defs) end)
   | put_thms (bname, NONE) ctxt = ctxt |> map_context
       (fn (syntax, asms, binds, (naming, (space, tab), index), cases, defs) =>
         let
@@ -995,7 +1018,7 @@ fun put_thms ("", _) ctxt = ctxt
           val name = NameSpace.full naming bname;
           val space' = NameSpace.declare naming name space;
           val tab' = Symtab.update (name, ths) tab;
-          val index' = FactIndex.add (is_known ctxt) (name, ths) index;
+          val index' = FactIndex.add_local (is_known ctxt) (name, ths) index;
         in (syntax, asms, binds, (naming, (space', tab'), index'), cases, defs) end);
 
 
@@ -1028,7 +1051,7 @@ end;
 
 (* basic exporters *)
 
-fun export_assume true = Seq.single oo Drule.implies_intr_goals
+fun export_assume true = Seq.single oo Drule.implies_intr_protected
   | export_assume false = Seq.single oo Drule.implies_intr_list;
 
 fun export_presume _ = export_assume false;
@@ -1078,7 +1101,7 @@ local
 fun add_assm ((name, attrs), props) ctxt =
   let
     val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
-    val asms = map (Goal.norm_hhf_rule o Thm.assume) cprops;
+    val asms = map (Goal.norm_hhf o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val ([(_, thms)], ctxt') =
@@ -1119,8 +1142,7 @@ fun add_view outer view =
       val asms' = asms1 @ [(view, export_assume)] @ asms2;
     in (syntax, ((asms', prems), fixes), binds, thms, cases, defs) end);
 
-fun export_standard_view view inner outer =
-  export_standard (add_view outer view inner) outer;
+fun export_view view inner outer = export (add_view outer view inner) outer;
 
 
 (* variables *)
