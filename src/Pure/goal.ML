@@ -2,8 +2,7 @@
     ID:         $Id$
     Author:     Makarius and Lawrence C Paulson
 
-Internal goals.  NB: by attaching the Goal constant the conclusion of
-a goal state is guaranteed to be atomic.
+Tactical goal state.
 *)
 
 signature BASIC_GOAL =
@@ -15,13 +14,16 @@ signature GOAL =
 sig
   include BASIC_GOAL
   val init: cterm -> thm
+  val protect: thm -> thm
   val conclude: thm -> thm
   val finish: thm -> thm
-  val norm_hhf_rule: thm -> thm
-  val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
+  val norm_hhf: thm -> thm
+  val comp_hhf: thm -> thm -> thm
+  val compose_hhf_tac: thm list -> int -> tactic
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_multi: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
+  val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
 
   (* FIXME remove *)
   val norm_hhf_plain: thm -> thm
@@ -33,29 +35,36 @@ end;
 structure Goal: GOAL =
 struct
 
-(* managing goal states *)
+(** goals **)
 
 (*
-  ------------ (init)
-  C ==> Goal C
+  -------- (init)
+  C ==> #C
 *)
-fun init ct = Drule.instantiate' [] [SOME ct] Drule.goalI;
+fun init ct = Drule.instantiate' [] [SOME ct] Drule.protectI;
 
 (*
-  A ==> ... ==> Goal C
-  -------------------- (conclude)
+    A ==> ... ==> C
+  ------------------ (protect)
+  #(A ==> ... ==> C)
+*)
+fun protect th = th COMP Drule.incr_indexes th Drule.protectI;
+
+(*
+  A ==> ... ==> #C
+  ---------------- (conclude)
   A ==> ... ==> C
 *)
 fun conclude th =
   (case SINGLE (Thm.bicompose false (false, th, Thm.nprems_of th) 1)
-      (Drule.incr_indexes_wrt [] [] [] [th] Drule.goalD) of
+      (Drule.incr_indexes th Drule.protectD) of
     SOME th' => th'
   | NONE => raise THM ("Failed to conclude goal", 0, [th]));
 
 (*
-  Goal C
-  ------ (finish)
-    C
+  #C
+  --- (finish)
+   C
 *)
 fun finish th =
   (case Thm.nprems_of th of
@@ -65,24 +74,39 @@ fun finish th =
       ("\n" ^ string_of_int n ^ " unsolved goal(s)!"), 0, [th]));
 
 
-(* prove_raw -- minimal result checks, no normalization *)
+
+(** results **)
+
+(* HHF normal form *)
 
 val norm_hhf_plain =  (* FIXME remove *)
   (not o Drule.is_norm_hhf o Thm.prop_of) ?
     MetaSimplifier.simplify_aux (K (K NONE)) true [Drule.norm_hhf_eq];
 
-val norm_hhf_rule =
+val norm_hhf =
   norm_hhf_plain
   #> Thm.adjust_maxidx_thm
   #> Drule.gen_all;
 
-fun prove_raw casms cprop tac =
-  (case SINGLE (tac (map (norm_hhf_rule o Thm.assume) casms)) (init cprop) of
-    SOME th => Drule.implies_intr_list casms (finish th)
-  | NONE => raise ERROR_MESSAGE "Tactic failed.");
+
+(* composition of normal results *)
+
+fun compose_hhf tha i thb =
+  Thm.bicompose false (false, Drule.lift_all (Thm.cgoal_of thb i) tha, 0) i thb;
+
+fun comp_hhf tha thb =
+  (case Seq.pull (compose_hhf tha 1 thb) of
+    SOME (th, _) => th
+  | NONE => raise THM ("comp_hhf", 1, [tha, thb]));
+
+fun compose_hhf_tac [] _ = no_tac
+  | compose_hhf_tac (th :: ths) i = PRIMSEQ (compose_hhf th i) APPEND compose_hhf_tac ths i;
 
 
-(* tactical proving *)
+
+(** tactical theorem proving **)
+
+(* prove *)
 
 local
 
@@ -107,7 +131,7 @@ fun gen_prove finish_thm thy xs asms props tac =
 
     val cparams = map (cert_safe o Free) params;
     val casms = map cert_safe asms;
-    val prems = map (norm_hhf_rule o Thm.assume) casms;
+    val prems = map (norm_hhf o Thm.assume) casms;
 
     val goal = init (cert_safe prop);
     val goal' = (case SINGLE (tac prems) goal of SOME goal' => goal' | _ => err "Tactic failed.");
@@ -128,7 +152,7 @@ in
 
 fun prove_multi thy xs asms prop tac =
   gen_prove (fn fixed_tfrees => Drule.zero_var_indexes o
-      (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf_rule)
+      (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf)
     thy xs asms prop tac;
 
 fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
@@ -137,6 +161,14 @@ fun prove_multi_plain thy xs asms prop tac = gen_prove (K norm_hhf_plain) thy xs
 fun prove_plain thy xs asms prop tac = hd (prove_multi_plain thy xs asms [prop] tac);
 
 end;
+
+
+(* prove_raw -- no checks, no normalization of result! *)
+
+fun prove_raw casms cprop tac =
+  (case SINGLE (tac (map (norm_hhf o Thm.assume) casms)) (init cprop) of
+    SOME th => Drule.implies_intr_list casms (finish th)
+  | NONE => raise ERROR_MESSAGE "Tactic failed.");
 
 
 (* SELECT_GOAL *)
