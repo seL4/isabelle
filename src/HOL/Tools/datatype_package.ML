@@ -18,7 +18,7 @@ sig
   include BASIC_DATATYPE_PACKAGE
   val quiet_mode : bool ref
   val add_datatype : bool -> string list -> (string list * bstring * mixfix *
-    (bstring * string list * mixfix) list) list -> theory -> theory *
+    (bstring * string list * mixfix) list) list -> theory ->
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -27,9 +27,9 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        size : thm list,
-       simps : thm list}
+       simps : thm list} * theory
   val add_datatype_i : bool -> bool -> string list -> (string list * bstring * mixfix *
-    (bstring * typ list * mixfix) list) list -> theory -> theory *
+    (bstring * typ list * mixfix) list) list -> theory ->
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -38,10 +38,10 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        size : thm list,
-       simps : thm list}
+       simps : thm list} * theory
   val rep_datatype_i : string list option -> (thm list * theory attribute list) list list ->
     (thm list * theory attribute list) list list -> (thm list * theory attribute list) ->
-    theory -> theory *
+    theory ->
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -50,9 +50,9 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        size : thm list,
-       simps : thm list}
+       simps : thm list} * theory
   val rep_datatype : string list option -> (thmref * Attrib.src list) list list ->
-    (thmref * Attrib.src list) list list -> thmref * Attrib.src list -> theory -> theory *
+    (thmref * Attrib.src list) list list -> thmref * Attrib.src list -> theory ->
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -61,7 +61,7 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        size : thm list,
-       simps : thm list}
+       simps : thm list} * theory
   val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
   val print_datatypes : theory -> unit
   val datatype_info : theory -> string -> DatatypeAux.datatype_info option
@@ -377,6 +377,8 @@ val simproc_setup =
 
 (**** translation rules for case ****)
 
+fun find_first f = Library.find_first f;
+
 fun case_tr sg [t, u] =
     let
       fun case_error s name ts = raise TERM ("Error in case expression" ^
@@ -687,8 +689,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
       DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
-    (thy12,
-     {distinct = distinct,
+    ({distinct = distinct,
       inject = inject,
       exhaustion = exhaustion,
       rec_thms = rec_thms,
@@ -696,7 +697,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       split_thms = split_thms,
       induction = induct,
       size = size_thms,
-      simps = simps})
+      simps = simps}, thy12)
   end;
 
 
@@ -745,8 +746,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
       DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
-    (thy12,
-     {distinct = distinct,
+    ({distinct = distinct,
       inject = inject,
       exhaustion = casedist_thms,
       rec_thms = rec_thms,
@@ -754,7 +754,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       split_thms = split_thms,
       induction = induct,
       size = size_thms,
-      simps = simps})
+      simps = simps}, thy12)
   end;
 
 
@@ -853,8 +853,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
       DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
-    (thy11,
-     {distinct = distinct,
+    ({distinct = distinct,
       inject = inject,
       exhaustion = casedist_thms,
       rec_thms = rec_thms,
@@ -862,7 +861,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       split_thms = split_thms,
       induction = induction',
       size = size_thms,
-      simps = simps})
+      simps = simps}, thy11)
   end;
 
 val rep_datatype = gen_rep_datatype IsarThy.apply_theorems;
@@ -968,7 +967,7 @@ fun mk_datatype args =
     val names = map (fn ((((NONE, _), t), _), _) => t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in #1 o add_datatype false names specs end;
+  in snd o add_datatype false names specs end;
 
 val datatypeP =
   OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
@@ -981,7 +980,7 @@ val rep_datatype_decl =
     Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 P.xthms1)) [[]] --
     (P.$$$ "induction" |-- P.!!! P.xthm);
 
-fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #1 o rep_datatype opt_ts dss iss ind;
+fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #2 o rep_datatype opt_ts dss iss ind;
 
 val rep_datatypeP =
   OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_decl

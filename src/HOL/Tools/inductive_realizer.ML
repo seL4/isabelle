@@ -195,6 +195,8 @@ fun fun_of_prem thy rsets vs params rule intr =
 
   in fun_of args' [] (rev args) used (Logic.strip_imp_prems rule') end;
 
+fun find_first f = Library.find_first f;
+
 fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs dummies =
   let
     val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct));
@@ -308,12 +310,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     (** datatype representing computational content of inductive set **)
 
-    val (thy2, (dummies, dt_info)) = thy1 |>
-      (if null dts then rpair ([], NONE) else
-        apsnd (apsnd SOME) o add_dummies (DatatypePackage.add_datatype_i false false
-          (map #2 dts)) (map (pair false) dts) []) |>>
-      Extraction.add_typeof_eqns_i ty_eqs |>>
-      Extraction.add_realizes_eqns_i rlz_eqs;
+    val (thy2, (dummies, dt_info)) =
+      thy1
+      |> (if null dts
+          then rpair ([], NONE)
+          else add_dummies (DatatypePackage.add_datatype_i false false
+            (map #2 dts)) (map (pair false) dts) [] #> (fn (v, (b, thy)) => (thy, (b, SOME v))))
+      |>> Extraction.add_typeof_eqns_i ty_eqs
+      |>> Extraction.add_realizes_eqns_i rlz_eqs;
     fun get f x = getOpt (Option.map f x, []);
     val rec_names = distinct (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) (get #rec_thms dt_info));
