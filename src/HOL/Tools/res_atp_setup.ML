@@ -251,10 +251,9 @@ fun atp_meth_g tptp_hyps tptp_cnf_clasimp tac prems ctxt =
 			  else HEADGOAL (tac ctxt files tfrees))
     end;
 
-val atp_meth_f = atp_meth_g tptp_hyps tptp_cnf_clasimp;
+fun atp_meth_f tac = atp_meth_g tptp_hyps tptp_cnf_clasimp tac;
 
-val atp_meth_h = atp_meth_g tptp_hypsH tptp_cnf_clasimpH;
-
+fun atp_meth_h tac = atp_meth_g tptp_hypsH tptp_cnf_clasimpH tac;
 
 fun atp_meth_G atp_meth tac prems ctxt =
     let val _ = ResClause.init (ProofContext.theory_of ctxt)
@@ -264,9 +263,9 @@ fun atp_meth_G atp_meth tac prems ctxt =
     end;
 	
 
-val atp_meth_H = atp_meth_G atp_meth_h;
+fun atp_meth_H tac = atp_meth_G atp_meth_h tac;
 
-val atp_meth_F = atp_meth_G atp_meth_f;
+fun atp_meth_F tac = atp_meth_G atp_meth_f tac;
 
 
 val atp_method_H = Method.bang_sectioned_args rules_modifiers o atp_meth_H;
