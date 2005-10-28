@@ -253,7 +253,7 @@ let val (Tinsts,insts) = read_insts_in_state (st, i, sinsts, rule)
     fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
     val lifttvar = pairself (ctyp_fun (Logic.incr_tvar inc))
 in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
-                     (lift_rule (st,i) rule)
+                     (Thm.lift_rule (Thm.cgoal_of st i) rule)
 end;
 
 fun lift_inst_rule (st, i, sinsts, rule) = lift_inst_rule'
@@ -285,7 +285,7 @@ let val {maxidx,thy,...} = rep_thm st
       (ctyp_of thy (TVar ((a, i + inc), S)),
        ctyp_of thy (Logic.incr_tvar inc T))
 in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
-                     (lift_rule (st,i) rule)
+                     (Thm.lift_rule (Thm.cgoal_of st i) rule)
 end;
 
 (*** Resolve after lifting and instantation; may refer to parameters of the
@@ -636,7 +636,7 @@ fun filter_prems_tac p =
 val conj_tac = SUBGOAL (fn (Const ("all", _) $ Abs (_, _, Const ("==>", _) $
       (Const ("==>", _) $ _ $ (Const ("==>", _) $ _ $ Bound 0)) $ Bound 0), i) =>
     (fn st =>
-      compose_tac (false, Drule.incr_indexes_wrt [] [] [] [st] Drule.conj_intr_thm, 2) i st)
+      compose_tac (false, Drule.incr_indexes st Drule.conj_intr_thm, 2) i st)
   | _ => no_tac);
 
 val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
