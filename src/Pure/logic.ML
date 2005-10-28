@@ -30,14 +30,15 @@ sig
   val dest_type         : term -> typ
   val mk_inclass        : typ * class -> term
   val dest_inclass      : term -> typ * class
-  val goal_const        : term
-  val mk_goal           : term -> term
-  val dest_goal         : term -> term
+  val protectC          : term
+  val protect           : term -> term
+  val unprotect         : term -> term
   val occs              : term * term -> bool
   val close_form        : term -> term
   val incr_indexes      : typ list * int -> term -> term
   val incr_tvar         : int -> typ -> typ
-  val lift_fns          : term * int -> (term -> term) * (term -> term)
+  val lift_abs          : int -> term -> term -> term
+  val lift_all          : int -> term -> term -> term
   val strip_assums_hyp  : term -> term list
   val strip_assums_concl: term -> term
   val strip_params      : term -> (string * typ) list
@@ -165,13 +166,14 @@ fun dest_inclass (t as Const (c_class, _) $ ty) =
   | dest_inclass t = raise TERM ("dest_inclass", [t]);
 
 
-(** atomic goals **)
 
-val goal_const = Const ("Goal", propT --> propT);
-fun mk_goal t = goal_const $ t;
+(** protected propositions **)
 
-fun dest_goal (Const ("Goal", _) $ t) = t
-  | dest_goal t = raise TERM ("dest_goal", [t]);
+val protectC = Const ("prop", propT --> propT);
+fun protect t = protectC $ t;
+
+fun unprotect (Const ("prop", _) $ t) = t
+  | unprotect t = raise TERM ("unprotect", [t]);
 
 
 (*** Low-level term operations ***)
@@ -203,13 +205,13 @@ fun incrT k =
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
 fun incr_indexes ([], 0) t = t
-  | incr_indexes (Us, k) t =
+  | incr_indexes (Ts, k) t =
   let
-    val n = length Us;
+    val n = length Ts;
     val incrT = if k = 0 then I else incrT k;
 
     fun incr lev (Var ((x, i), T)) =
-          Unify.combound (Var ((x, i + k), Us ---> (incrT T handle SAME => T)), lev, n)
+          Unify.combound (Var ((x, i + k), Ts ---> (incrT T handle SAME => T)), lev, n)
       | incr lev (Abs (x, T, body)) =
           (Abs (x, incrT T, incr (lev + 1) body handle SAME => body)
             handle SAME => Abs (x, T, incr (lev + 1) body))
@@ -228,19 +230,22 @@ end;
 
 
 (*Make lifting functions from subgoal and increment.
-    lift_abs operates on tpairs (unification constraints)
-    lift_all operates on propositions     *)
-fun lift_fns (B,inc) =
-  let fun lift_abs (Us, Const("==>", _) $ _ $ B) u = lift_abs (Us,B) u
-        | lift_abs (Us, Const("all",_)$Abs(a,T,t)) u =
-              Abs(a, T, lift_abs (T::Us, t) u)
-        | lift_abs (Us, _) u = incr_indexes(rev Us, inc) u
-      fun lift_all (Us, Const("==>", _) $ A $ B) u =
-              implies $ A $ lift_all (Us,B) u
-        | lift_all (Us, Const("all",_)$Abs(a,T,t)) u =
-              all T $ Abs(a, T, lift_all (T::Us,t) u)
-        | lift_all (Us, _) u = incr_indexes(rev Us, inc) u;
-  in  (lift_abs([],B), lift_all([],B))  end;
+    lift_abs operates on terms
+    lift_all operates on propositions *)
+
+fun lift_abs inc =
+  let
+    fun lift Ts (Const ("==>", _) $ _ $ B) t = lift Ts B t
+      | lift Ts (Const ("all", _) $ Abs (a, T, b)) t = Abs (a, T, lift (T :: Ts) b t)
+      | lift Ts _ t = incr_indexes (rev Ts, inc) t;
+  in lift [] end;
+
+fun lift_all inc =
+  let
+    fun lift Ts ((c as Const ("==>", _)) $ A $ B) t = c $ A $ lift Ts B t
+      | lift Ts ((c as Const ("all", _)) $ Abs (a, T, b)) t = c $ Abs (a, T, lift (T :: Ts) b t)
+      | lift Ts _ t = incr_indexes (rev Ts, inc) t;
+  in lift [] end;
 
 (*Strips assumptions in goal, yielding list of hypotheses.   *)
 fun strip_assums_hyp (Const("==>", _) $ H $ B) = H :: strip_assums_hyp B
