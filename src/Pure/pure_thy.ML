@@ -8,7 +8,10 @@ Theorem storage.  The ProtoPure theory.
 signature BASIC_PURE_THY =
 sig
   datatype interval = FromTo of int * int | From of int | Single of int
-  datatype thmref = Name of string | NameSelection of string * interval list
+  datatype thmref =
+    Name of string |
+    NameSelection of string * interval list |
+    Fact of string
   val print_theorems: theory -> unit
   val print_theory: theory -> unit
   val get_thm: theory -> thmref -> thm
@@ -19,7 +22,7 @@ sig
   structure ProtoPure:
     sig
       val thy: theory
-      val Goal_def: thm
+      val prop_def: thm
     end
 end;
 
@@ -168,22 +171,27 @@ fun string_of_interval (FromTo (i, j)) = string_of_int i ^ "-" ^ string_of_int j
 
 datatype thmref =
   Name of string |
-  NameSelection of string * interval list;
+  NameSelection of string * interval list |
+  Fact of string;
 
 fun name_of_thmref (Name name) = name
-  | name_of_thmref (NameSelection (name, _)) = name;
+  | name_of_thmref (NameSelection (name, _)) = name
+  | name_of_thmref (Fact _) = raise ERROR_MESSAGE "Illegal literal fact";
 
 fun map_name_of_thmref f (Name name) = Name (f name)
-  | map_name_of_thmref f (NameSelection (name, is)) = NameSelection (f name, is);
+  | map_name_of_thmref f (NameSelection (name, is)) = NameSelection (f name, is)
+  | map_name_of_thmref _ thmref = thmref;
 
 fun string_of_thmref (Name name) = name
   | string_of_thmref (NameSelection (name, is)) =
-      name ^ enclose "(" ")" (commas (map string_of_interval is));
+      name ^ enclose "(" ")" (commas (map string_of_interval is))
+  | string_of_thmref (Fact _) = raise ERROR_MESSAGE "Illegal literal fact";
 
 
 (* select_thm *)
 
 fun select_thm (Name _) thms = thms
+  | select_thm (Fact _) thms = thms
   | select_thm (NameSelection (name, is)) thms =
       let
         val n = length thms;
@@ -219,7 +227,7 @@ fun lookup_thms thy =
 fun get_thms_closure thy =
   let val closures = map lookup_thms (thy :: Theory.ancestors_of thy) in
     fn thmref =>
-      let val name = name_of_thmref thmref
+      let val name = name_of_thmref thmref;
       in select_thm thmref (the_thms name (get_first (fn f => f name) closures)) end
   end;
 
@@ -317,7 +325,7 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
         val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy';
         val space' = Sign.declare_name thy' name space;
         val theorems' = Symtab.update (name, thms') theorems;
-        val index' = FactIndex.add (K false) (name, thms') index;
+        val index' = FactIndex.add_global (name, thms') index;
       in
         (case Symtab.lookup theorems name of
           NONE => ()
@@ -507,7 +515,7 @@ val proto_pure =
    [("==", "'a => 'a => prop", InfixrName ("==", 2)),
     ("==>", "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
-    ("Goal", "prop => prop", NoSyn),
+    ("prop", "prop => prop", NoSyn),
     ("TYPE", "'a itself", NoSyn),
     (Term.dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_finals_i false
@@ -522,7 +530,7 @@ val proto_pure =
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
   |> (#1 oo (add_defs_i false o map Thm.no_attributes))
-   [("Goal_def", Logic.mk_equals (Logic.mk_goal A, A))]
+   [("prop_def", Logic.mk_equals (Logic.protect A, A))]
   |> (#1 o add_thmss [(("nothing", []), [])])
   |> Theory.add_axioms_i Proofterm.equality_axms
   |> Theory.end_theory;
@@ -530,7 +538,7 @@ val proto_pure =
 structure ProtoPure =
 struct
   val thy = proto_pure;
-  val Goal_def = get_axiom thy "Goal_def";
+  val prop_def = get_axiom thy "prop_def";
 end;
 
 end;
