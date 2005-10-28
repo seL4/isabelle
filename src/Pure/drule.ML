@@ -33,6 +33,7 @@ sig
   val forall_elim_var   : int -> thm -> thm
   val forall_elim_vars  : int -> thm -> thm
   val gen_all           : thm -> thm
+  val lift_all          : cterm -> thm -> thm
   val freeze_thaw       : thm -> thm * (thm -> thm)
   val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list : thm -> thm list -> thm
@@ -81,6 +82,7 @@ sig
   val equal_elim_rule1  : thm
   val inst              : string -> string -> thm -> thm
   val instantiate'      : ctyp option list -> cterm option list -> thm -> thm
+  val incr_indexes      : thm -> thm -> thm
   val incr_indexes_wrt  : int list -> ctyp list -> cterm list -> thm list -> thm -> thm
 end;
 
@@ -126,9 +128,10 @@ sig
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
-  val goalI: thm
-  val goalD: thm
-  val implies_intr_goals: cterm list -> thm -> thm
+  val protect: cterm -> cterm
+  val protectI: thm
+  val protectD: thm
+  val implies_intr_protected: cterm list -> thm -> thm
   val freeze_all: thm -> thm
   val tvars_of_terms: term list -> (indexname * sort) list
   val vars_of_terms: term list -> (indexname * typ) list
@@ -357,6 +360,12 @@ fun has_internal tags = exists (equal internalK o fst) tags;
 
 (** Standardization of rules **)
 
+(*vars in left-to-right order*)
+fun tvars_of_terms ts = rev (fold Term.add_tvars ts []);
+fun vars_of_terms ts = rev (fold Term.add_vars ts []);
+fun tvars_of thm = tvars_of_terms [Thm.full_prop_of thm];
+fun vars_of thm = vars_of_terms [Thm.full_prop_of thm];
+
 (*Strip extraneous shyps as far as possible*)
 fun strip_shyps_warning thm =
   let
@@ -386,12 +395,37 @@ fun forall_intr_frees th =
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
 
-fun gen_all thm =
+fun outer_params t =
   let
-    val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
-    fun elim (x, T) = Thm.forall_elim (Thm.cterm_of thy (Var ((x, maxidx + 1), T)));
-    val vs = Term.strip_all_vars prop;
-  in fold elim (Term.variantlist (map #1 vs, []) ~~ map #2 vs) thm end;
+    val vs = Term.strip_all_vars t;
+    val xs = Term.variantlist (map #1 vs, []);
+  in xs ~~ map #2 vs end;
+
+(*generalize outermost parameters*)
+fun gen_all th =
+  let
+    val {thy, prop, maxidx, ...} = Thm.rep_thm th;
+    val cert = Thm.cterm_of thy;
+    fun elim (x, T) = Thm.forall_elim (cert (Var ((x, maxidx + 1), T)));
+  in fold elim (outer_params prop) th end;
+
+(*lift vars wrt. outermost goal parameters
+  -- reverses the effect of gen_all modulo HO unification*)
+fun lift_all goal th =
+  let
+    val thy = Theory.merge (Thm.theory_of_cterm goal, Thm.theory_of_thm th);
+    val cert = Thm.cterm_of thy;
+    val {maxidx, ...} = Thm.rep_thm th;
+    val ps = outer_params (Thm.term_of goal)
+      |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
+    val Ts = map Term.fastype_of ps;
+    val inst = vars_of th |> map (fn (xi, T) =>
+      (cert (Var (xi, T)), cert (Term.list_comb (Var (xi, Ts ---> T), ps))));
+  in
+    th |> Thm.instantiate ([], inst)
+    |> fold_rev (Thm.forall_intr o cert) ps
+  end;
+
 
 (*specialization over a list of cterms*)
 val forall_elim_list = fold forall_elim;
@@ -920,41 +954,30 @@ fun equal_abs_elim ca eqth =
 fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 
 
-(*** Goal (PROP A) <==> PROP A ***)
+(** protected propositions **)
 
 local
   val cert = Thm.cterm_of ProtoPure.thy;
-  val A = Free ("A", propT);
-  val G = Logic.mk_goal A;
-  val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
+  val A = cert (Free ("A", propT));
+  val prop_def = #1 (freeze_thaw ProtoPure.prop_def);
 in
-  val goalI = store_thm "goalI" (kind_rule internalK (standard
-      (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume (cert A)))));
-  val goalD = store_thm "goalD" (kind_rule internalK (standard
-      (Thm.equal_elim G_def (Thm.assume (cert G)))));
+  val protect = Thm.capply (cert Logic.protectC);
+  val protectI = store_thm "protectI" (kind_rule internalK (standard
+      (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
+  val protectD = store_thm "protectD" (kind_rule internalK (standard
+      (Thm.equal_elim prop_def (Thm.assume (protect A)))));
 end;
 
-val mk_cgoal = Thm.capply (Thm.cterm_of ProtoPure.thy Logic.goal_const);
-fun assume_goal ct = Thm.assume (mk_cgoal ct) RS goalD;
-
-fun implies_intr_goals cprops thm =
-  implies_elim_list (implies_intr_list cprops thm) (map assume_goal cprops)
-  |> implies_intr_list (map mk_cgoal cprops);
+fun implies_intr_protected asms th =
+  implies_elim_list (implies_intr_list asms th)
+    (map (fn ct => Thm.assume (protect ct) RS protectD) asms)
+  |> implies_intr_list (map protect asms);
 
 
 (** variations on instantiate **)
 
 (*shorthand for instantiating just one variable in the current theory*)
 fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
-
-
-(* vars in left-to-right order *)
-
-fun tvars_of_terms ts = rev (fold Term.add_tvars ts []);
-fun vars_of_terms ts = rev (fold Term.add_vars ts []);
-
-fun tvars_of thm = tvars_of_terms [Thm.full_prop_of thm];
-fun vars_of thm = vars_of_terms [Thm.full_prop_of thm];
 
 
 (* instantiate by left-to-right occurrence of variables *)
@@ -1058,6 +1081,8 @@ fun tvars_intr_list tfrees thm =
 
 (* increment var indexes *)
 
+fun incr_indexes th = Thm.incr_indexes (#maxidx (Thm.rep_thm th) + 1);
+
 fun incr_indexes_wrt is cTs cts thms =
   let
     val maxidx =
@@ -1111,18 +1136,16 @@ local
       (Thm.forall_intr C (Thm.implies_intr ABC
         (implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B]))))
     |> forall_elim_vars 0;
-
-  val incr = incr_indexes_wrt [] [] [];
 in
 
-fun conj_intr tha thb = thb COMP (tha COMP incr [tha, thb] conj_intr_rule);
+fun conj_intr tha thb = thb COMP (tha COMP incr_indexes_wrt [] [] [] [tha, thb] conj_intr_rule);
 
 fun conj_intr_list [] = asm_rl
   | conj_intr_list ths = foldr1 (uncurry conj_intr) ths;
 
 fun conj_elim th =
   let val th' = forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th
-  in (incr [th'] proj1 COMP th', incr [th'] proj2 COMP th') end;
+  in (incr_indexes th' proj1 COMP th', incr_indexes th' proj2 COMP th') end;
 
 fun conj_elim_list th =
   let val (th1, th2) = conj_elim th
