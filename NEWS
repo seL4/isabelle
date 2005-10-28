@@ -43,6 +43,24 @@ the obtained context from the course of reasoning!  For example:
 This technique is potentially adventurous, depending on the facts and
 proof tools being involved here.
 
+* Isar: known facts from the proof context may be specified as literal
+propositions, using ASCII back-quote syntax.  This works wherever
+named facts used to be allowed so far, in proof commands, proof
+methods, attributes etc.  Literal facts are retrieved from the context
+according to unification of type and term parameters.  For example,
+provided that "A" and "A ==> B" and "!!x. P x ==> Q x" are known
+theorems in the current context, then these are valid literal facts:
+`A` and `A ==> B` and `!!x. P x ==> Q x" as well as `P a ==> Q a` etc.
+
+There is also a proof method "fact" which does the same composition
+for explicit goals states, e.g. the following proof texts coincide
+with certain special cases of literal facts:
+
+  have "A" by fact                 ==  note `A`
+  have "A ==> B" by fact           ==  note `A ==> B`
+  have "!!x. P x ==> Q x" by fact  ==  note `!!x. P x ==> Q x`
+  have "P a ==> Q a" by fact       ==  note `P a ==> Q a`
+
 * Input syntax now supports dummy variable binding "%_. b", where the
 body does not mention the bound variable.  Note that dummy patterns
 implicitly depend on their context of bounds, which makes "{_. _}"
@@ -75,6 +93,14 @@ are no longer reserved, significant speedup.
 
 * Library: new module Pure/General/rat.ML implementing rational numbers,
 replacing the former functions in the Isabelle library.
+
+* Pure: primitive rule lift_rule now takes goal cterm instead of an
+actual goal state (thm).  Use Thm.lift_rule (Thm.cgoal_of st i) to
+achieve the old behaviour.
+
+* Pure: the "Goal" constant is now called "prop", supporting a
+slightly more general idea of ``protecting'' meta-level rule
+statements.
 
 * Internal goals: structure Goal provides simple interfaces for
 init/conclude/finish and tactical prove operations (replacing former
