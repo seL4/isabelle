@@ -302,7 +302,7 @@ fun inst_lift Ts t (T, U, pos) state i =
 
 fun inst_split Ts t tt thm TB state i =
   let
-    val thm' = Thm.lift_rule (state, i) thm;
+    val thm' = Thm.lift_rule (Thm.cgoal_of state i) thm;
     val (P, _) = strip_comb (fst (Logic.dest_equals
       (Logic.strip_assums_concl (#prop (rep_thm thm')))));
     val cert = cterm_of (sign_of_thm state);

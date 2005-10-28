@@ -157,7 +157,7 @@ val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
 
-val localize = Goal.norm_hhf_rule o Tactic.simplify false Data.localize;
+val localize = Goal.norm_hhf o Tactic.simplify false Data.localize;
 
 
 (* imp_intr --- limited to atomic prems *)
@@ -168,8 +168,7 @@ fun imp_intr i raw_th =
     val cprems = Drule.cprems_of th;
     val As = Library.take (length cprems - 1, cprems);
     val C = Thm.cterm_of (Thm.sign_of_thm th) (Var (("C", #maxidx (Thm.rep_thm th) + 1), propT));
-    val dummy_st = Goal.init (Drule.list_implies (As, C));
-  in th COMP Thm.lift_rule (dummy_st, 1) Data.local_impI end;
+  in th COMP Thm.lift_rule (Drule.list_implies (As, C)) Data.local_impI end;
 
 
 (* join multi-rules *)

@@ -1234,7 +1234,7 @@ fun try_param_tac s rule i st =
     val g = nth (prems_of st) (i - 1);
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
-    val rule' = Thm.lift_rule (st, i) rule;
+    val rule' = Thm.lift_rule (Thm.cgoal_of st i) rule;
     val (P, ys) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_assums_concl (prop_of rule')));
     (* ca indicates if rule is a case analysis or induction rule *)
@@ -1260,7 +1260,7 @@ fun ex_inst_tac i st =
     val sg = sign_of_thm st;
     val g = nth (prems_of st) (i - 1);
     val params = Logic.strip_params g;
-    val exI' = Thm.lift_rule (st, i) exI;
+    val exI' = Thm.lift_rule (Thm.cgoal_of st i) exI;
     val (_$(_$x)) = Logic.strip_assums_concl (hd (prems_of exI'));
     val cx = cterm_of sg (fst (strip_comb x));
 
