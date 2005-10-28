@@ -53,8 +53,8 @@ theorems in the current context, then these are valid literal facts:
 `A` and `A ==> B` and `!!x. P x ==> Q x" as well as `P a ==> Q a` etc.
 
 There is also a proof method "fact" which does the same composition
-for explicit goals states, e.g. the following proof texts coincide
-with certain special cases of literal facts:
+for explicit goal states, e.g. the following proof texts coincide with
+certain special cases of literal facts:
 
   have "A" by fact                 ==  note `A`
   have "A ==> B" by fact           ==  note `A ==> B`
