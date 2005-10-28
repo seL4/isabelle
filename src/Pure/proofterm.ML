@@ -624,8 +624,6 @@ fun instantiate (instT, inst) prf =
 
 fun lift_proof Bi inc prop prf =
   let
-    val (_, lift_all) = Logic.lift_fns (Bi, inc);
-
     fun lift'' Us Ts t = strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
 
     fun lift' Us Ts (Abst (s, T, prf)) =
@@ -645,7 +643,7 @@ fun lift_proof Bi inc prop prf =
       | lift' _ _ _ = raise SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
 
-    val ps = map lift_all (Logic.strip_imp_prems prop);
+    val ps = map (Logic.lift_all inc Bi) (Logic.strip_imp_prems prop);
     val k = length ps;
 
     fun mk_app (b, (i, j, prf)) = 
