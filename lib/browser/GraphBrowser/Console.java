@@ -13,8 +13,6 @@ package GraphBrowser;
 
 import java.io.*;
 import java.util.*;
-import java.net.*;
-import awtUtilities.*;
 
 public class Console {
 	Graph g;

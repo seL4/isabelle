@@ -14,7 +14,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-import awtUtilities.*;
 
 public class GraphView extends Canvas implements MouseListener, MouseMotionListener {
 	Graph gra, gra2;

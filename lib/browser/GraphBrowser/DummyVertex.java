@@ -10,7 +10,6 @@
 
 package GraphBrowser;
 
-import java.util.*;
 import java.awt.*;
 
 class DummyVertex extends Vertex {
