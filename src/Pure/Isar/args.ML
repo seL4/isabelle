@@ -14,6 +14,7 @@ sig
   val string_of: T -> string
   val mk_ident: string * Position.T -> T
   val mk_string: string * Position.T -> T
+  val mk_alt_string: string * Position.T -> T
   val mk_keyword: string * Position.T -> T
   val mk_name: string -> T
   val mk_typ: typ -> T
@@ -46,6 +47,7 @@ sig
   val mode: string -> 'a * T list -> bool * ('a * T list)
   val maybe: (T list -> 'a * T list) -> T list -> 'a option * T list
   val name: T list -> string * T list
+  val alt_name: T list -> string * T list
   val symbol: T list -> string * T list
   val liberal_name: T list -> string * T list
   val nat: T list -> int * T list
@@ -102,7 +104,7 @@ struct
   designates an intermediate state of internalization -- it is NOT
   meant to persist.*)
 
-datatype kind = Ident | String | Keyword | EOF;
+datatype kind = Ident | String | AltString | Keyword | EOF;
 
 type symbol = kind * string * Position.T;
 
@@ -121,7 +123,8 @@ datatype slot =
 datatype T = Arg of symbol * slot;
 
 fun string_of (Arg ((Ident, x, _), _)) = x
-  | string_of (Arg ((String, x, _), _)) = Library.quote x
+  | string_of (Arg ((String, x, _), _)) = quote x
+  | string_of (Arg ((AltString, x, _), _)) = enclose "`" "`" x
   | string_of (Arg ((Keyword, x, _), _)) = x
   | string_of (Arg ((EOF, _, _), _)) = "";
 
@@ -136,6 +139,7 @@ fun mk_value k v = Arg ((Keyword, k, Position.none), Value (SOME v));
 
 val mk_ident = mk_symbol Ident;
 val mk_string = mk_symbol String;
+val mk_alt_string = mk_symbol AltString;
 val mk_keyword = mk_symbol Keyword;
 val mk_name = mk_value "<name>" o Name;
 val mk_typ = mk_value "<typ>" o Typ;
@@ -227,6 +231,9 @@ fun some_ident f =
 val named =
   touch (Scan.one (fn Arg ((k, _, _), _) => k = Ident orelse k = String));
 
+val alt_string =
+  touch (Scan.one (fn Arg ((k, _, _), _) => k = AltString));
+
 val symbolic =
   touch (Scan.one (fn Arg ((k, x, _), _) => k = Keyword andalso OuterLex.is_sid x));
 
@@ -251,6 +258,7 @@ fun mode s = Scan.lift (Scan.optional (parens ($$$ s) >> K true) false);
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val name = named >> sym_of;
+val alt_name = alt_string >> sym_of;
 val symbol = symbolic >> sym_of;
 val liberal_name = symbol || name;
 
@@ -289,7 +297,7 @@ val internal_attribute = value (fn Attribute att => att);
 fun named_name intern = internal_name || named >> evaluate Name intern;
 fun named_typ readT = internal_typ || named >> evaluate Typ readT;
 fun named_term read = internal_term || named >> evaluate Term read;
-fun named_fact get = internal_fact || named >> evaluate Fact get;
+fun named_fact get = internal_fact || (alt_string || named) >> evaluate Fact get;
 
 
 (* terms and types *)

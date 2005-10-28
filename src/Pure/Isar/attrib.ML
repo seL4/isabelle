@@ -169,11 +169,15 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 (* theorems *)
 
 fun gen_thm theory_of attrib get pick = Scan.depend (fn st =>
-  Scan.ahead Args.name -- Args.named_fact (fn name => get st (Name name)) --
-  Scan.option Args.thm_sel -- Args.opt_attribs (intern (theory_of st))
-  >> (fn (((name, fact), sel), srcs) =>
+ (Scan.ahead Args.alt_name -- Args.named_fact (get st o Fact)
+    >> (fn (s, fact) => ("", Fact s, fact)) ||
+  Scan.ahead Args.name -- Args.named_fact (get st o Name) -- Args.thm_sel
+    >> (fn ((name, fact), sel) => (name, NameSelection (name, sel), fact)) ||
+  Scan.ahead Args.name -- Args.named_fact (get st o Name)
+    >> (fn (name, fact) => (name, Name name, fact))) --
+  Args.opt_attribs (intern (theory_of st))
+  >> (fn ((name, thmref, fact), srcs) =>
     let
-      val thmref = (case sel of NONE => Name name | SOME is => NameSelection (name, is));
       val ths = PureThy.select_thm thmref fact;
       val atts = map (attrib (theory_of st)) srcs;
       val (st', ths') = Thm.applys_attributes ((st, ths), atts);

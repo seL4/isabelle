@@ -280,6 +280,7 @@ fun atom_arg is_symid blk =
         type_ident || type_var || number) >> Args.mk_ident ||
       position (keyword_symid is_symid) >> Args.mk_keyword ||
       position (string || verbatim) >> Args.mk_string ||
+      position alt_string >> Args.mk_alt_string ||
       position (if blk then $$$ "," else Scan.fail) >> Args.mk_keyword);
 
 fun paren_args l r scan = position ($$$ l) -- !!! (scan true -- position ($$$ r))
@@ -313,7 +314,8 @@ val thm_sel = $$$ "(" |-- list1
   nat --| minus >> PureThy.From ||
   nat >> PureThy.Single) --| $$$ ")";
 
-val xthm = (xname -- thm_sel >> NameSelection || xname >> Name) -- opt_attribs;
+val xthm = (alt_string >> Fact || xname -- thm_sel >> NameSelection || xname >> Name)
+  -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;
 
 val name_facts = and_list1 (opt_thm_name "=" -- xthms1);
