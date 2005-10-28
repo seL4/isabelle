@@ -1,0 +1,435 @@
+(* ID: $Id$ 
+   Author: Jia Meng, NICTA
+
+FOL clauses translated from HOL formulae.  Combinators are used to represent lambda terms.
+
+*)
+
+structure ResHolClause =
+
+struct
+
+
+
+
+(**********************************************************************)
+(* convert a Term.term with lambdas into a Term.term with combinators *) 
+(**********************************************************************)
+
+fun is_free (Bound(a)) n = (a = n)
+  | is_free (Abs(x,_,b)) n = (is_free b (n+1))
+  | is_free (P $ Q) n = ((is_free P n) orelse (is_free Q n))
+  | is_free _ _ = false;
+
+
+exception LAM2COMB of term;
+
+exception BND of term;
+
+fun decre_bndVar (Bound n) = Bound (n-1)
+  | decre_bndVar (P $ Q) = (decre_bndVar P) $ (decre_bndVar Q)
+  | decre_bndVar t =
+    case t of Const(_,_) => t
+	    | Free(_,_) => t
+	    | Var(_,_) => t
+	    | Abs(_,_,_) => raise BND(t); (*should not occur*)
+
+
+(*******************************************)
+fun lam2comb (Abs(x,tp,Bound 0)) _ = 
+    let val tpI = Type("fun",[tp,tp])
+    in 
+	Const("COMBI",tpI) 
+    end
+  | lam2comb (Abs(x,t1,Const(c,t2))) _ = 
+    let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+    in 
+	Const("COMBK",tK) $ Const(c,t2) 
+    end
+  | lam2comb (Abs(x,t1,Free(v,t2))) _ =
+    let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+    in
+	Const("COMBK",tK) $ Free(v,t2)
+    end
+  | lam2comb (Abs(x,t1,Var(ind,t2))) _=
+    let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+    in
+	Const("COMBK",tK) $ Var(ind,t2)
+    end
+  | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds =
+    let val nfreeP = not(is_free P 0)
+	val tr = Term.type_of1(t1::Bnds,P)
+    in
+	if nfreeP then (decre_bndVar P)
+	else (
+	      let val tI = Type("fun",[t1,t1])
+		  val P' = lam2comb (Abs(x,t1,P)) Bnds
+		  val tp' = Term.type_of1(Bnds,P')
+		  val tS = Type("fun",[tp',Type("fun",[tI,tr])])
+	      in
+		  Const("COMBS",tS) $ P' $ Const("COMBI",tI)
+	      end)
+    end
+	    
+  | lam2comb (t as (Abs(x,t1,P$Q))) Bnds =
+    let val (nfreeP,nfreeQ) = (not(is_free P 0),not(is_free Q 0))
+	val tpq = Term.type_of1(t1::Bnds, P$Q) 
+    in
+	if(nfreeP andalso nfreeQ) then (
+	    let val tK = Type("fun",[tpq,Type("fun",[t1,tpq])])
+		val PQ' = decre_bndVar(P $ Q)
+	    in 
+		Const("COMBK",tK) $ PQ'
+	    end)
+	else (
+	      if nfreeP then (
+			       let val Q' = lam2comb (Abs(x,t1,Q)) Bnds
+				   val P' = decre_bndVar P
+				   val tp = Term.type_of1(Bnds,P')
+				   val tq' = Term.type_of1(Bnds, Q')
+				   val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
+			       in
+				   Const("COMBB",tB) $ P' $ Q' 
+			       end)
+	      else (
+		    if nfreeQ then (
+				    let val P' = lam2comb (Abs(x,t1,P)) Bnds
+					val Q' = decre_bndVar Q
+					val tq = Term.type_of1(Bnds,Q')
+					val tp' = Term.type_of1(Bnds, P')
+					val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
+				    in
+					Const("COMBC",tC) $ P' $ Q'
+				    end)
+		    else(
+			 let val P' = lam2comb (Abs(x,t1,P)) Bnds
+			     val Q' = lam2comb (Abs(x,t1,Q)) Bnds
+			     val tp' = Term.type_of1(Bnds,P')
+			     val tq' = Term.type_of1(Bnds,Q')
+			     val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
+			 in
+			     Const("COMBS",tS) $ P' $ Q'
+			 end)))
+    end
+  | lam2comb (t as (Abs(x,t1,_))) _ = raise LAM2COMB (t);
+
+	     
+
+(*********************)
+
+fun to_comb (Abs(x,tp,b)) Bnds =
+    let val b' = to_comb b (tp::Bnds)
+    in lam2comb (Abs(x,tp,b')) Bnds end
+  | to_comb (P $ Q) Bnds = ((to_comb P Bnds) $ (to_comb Q Bnds))
+  | to_comb t _ = t;
+ 
+    
+fun comb_of t = to_comb t [];
+
+
+(* print a term containing combinators, used for debugging *)
+exception TERM_COMB of term;
+
+fun string_of_term (Const(c,t)) = c
+  | string_of_term (Free(v,t)) = v
+  | string_of_term (Var((x,n),t)) =
+    let val xn = x ^ "_" ^ (string_of_int n)
+    in xn end
+  | string_of_term (P $ Q) =
+    let val P' = string_of_term P
+	val Q' = string_of_term Q
+    in
+	"(" ^ P' ^ " " ^ Q' ^ ")" end
+  | string_of_term t =  raise TERM_COMB (t);
+
+
+
+(******************************************************)
+(* data types for typed combinator expressions        *)
+(******************************************************)
+
+type axiom_name = string;
+datatype kind = Axiom | Conjecture;
+fun name_of_kind Axiom = "axiom"
+  | name_of_kind Conjecture = "conjecture";
+
+type polarity = bool;
+type indexname = Term.indexname;
+type clause_id = int;
+type csort = Term.sort;
+type ctyp = string;
+
+type ctyp_var = ResClause.typ_var;
+
+type ctype_literal = ResClause.type_literal;
+
+
+datatype combterm = CombConst of string * ctyp
+		  | CombFree of string * ctyp
+		  | CombVar of string * ctyp
+		  | CombApp of combterm * combterm * ctyp
+		  | Bool of combterm
+		  | Equal of combterm * combterm;
+datatype literal = Literal of polarity * combterm;
+
+
+
+datatype clause = 
+	 Clause of {clause_id: clause_id,
+		    axiom_name: axiom_name,
+		    kind: kind,
+		    literals: literal list,
+		    ctypes_sorts: (ctyp_var * csort) list, 
+                    ctvar_type_literals: ctype_literal list, 
+                    ctfree_type_literals: ctype_literal list};
+
+
+
+fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
+fun get_axiomName (Clause cls) = #axiom_name cls;
+fun get_clause_id (Clause cls) = #clause_id cls;
+
+
+
+
+(*********************************************************************)
+(* convert a clause with type Term.term to a clause with type clause *)
+(*********************************************************************)
+
+
+fun isFalse (Literal(pol,Bool(CombConst(c,_)))) =
+    (pol andalso c = "c_False") orelse
+    (not pol andalso c = "c_True")
+  | isFalse _ = false;
+
+
+fun isTrue (Literal (pol,Bool(CombConst(c,_)))) =
+      (pol andalso c = "c_True") orelse
+      (not pol andalso c = "c_False")
+  | isTrue _ = false;
+  
+fun isTaut (Clause {literals,...}) = exists isTrue literals;  
+
+
+
+fun make_clause(clause_id,axiom_name,kind,literals,ctypes_sorts,ctvar_type_literals,ctfree_type_literals) =
+    if forall isFalse literals
+    then error "Problem too trivial for resolution (empty clause)"
+    else
+	Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind,
+		literals = literals, ctypes_sorts = ctypes_sorts, 
+		ctvar_type_literals = ctvar_type_literals,
+		ctfree_type_literals = ctfree_type_literals};
+
+
+(* convert a Term.type to a string; gather sort information of type variables; also check if the type is a bool type *)
+
+fun type_of (Type (a, [])) = ((ResClause.make_fixed_type_const a,[]),a ="bool")
+  | type_of (Type (a, Ts)) = 
+    let val typbs = map type_of Ts
+	val (types,_) = ListPair.unzip typbs
+	val (ctyps,tvarSorts) = ListPair.unzip types
+	val ts = ResClause.union_all tvarSorts
+	val t = ResClause.make_fixed_type_const a
+    in
+	(((t ^ ResClause.paren_pack ctyps),ts),false)
+    end
+  | type_of (tp as (TFree (a,s))) = ((ResClause.make_fixed_type_var a,[ResClause.mk_typ_var_sort tp]),false)
+  | type_of (tp as (TVar (v,s))) = ((ResClause.make_schematic_type_var v,[ResClause.mk_typ_var_sort tp]),false);
+
+
+(* same as above, but no gathering of sort information *)
+fun simp_type_of (Type (a, [])) = (ResClause.make_fixed_type_const a,a ="bool")
+  | simp_type_of (Type (a, Ts)) = 
+    let val typbs = map simp_type_of Ts
+	val (types,_) = ListPair.unzip typbs
+	val t = ResClause.make_fixed_type_const a
+    in
+	((t ^ ResClause.paren_pack types),false)
+    end
+  | simp_type_of (TFree (a,s)) = (ResClause.make_fixed_type_var a,false)
+  | simp_type_of (TVar (v,s)) = (ResClause.make_schematic_type_var v,false);
+
+
+
+
+(* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
+fun combterm_of (Const(c,t)) =
+    let val ((tp,ts),is_bool) = type_of t
+	val c' = CombConst(ResClause.make_fixed_const c,tp)
+	val c'' = if is_bool then Bool(c') else c'
+    in
+	(c'',ts)
+    end
+  | combterm_of (Free(v,t)) =
+    let val ((tp,ts),is_bool) = type_of t
+	val v' = if ResClause.isMeta v then CombVar(ResClause.make_schematic_var(v,0),tp)
+		 else CombFree(ResClause.make_fixed_var v,tp)
+	val v'' = if is_bool then Bool(v') else v'
+    in
+	(v'',ts)
+    end
+  | combterm_of (Var(v,t)) =
+    let val ((tp,ts),is_bool) = type_of t
+	val v' = CombVar(ResClause.make_schematic_var v,tp)
+	val v'' = if is_bool then Bool(v') else v'
+    in
+	(v'',ts)
+    end
+  | combterm_of (Const("op =",T) $ P $ Q) = (*FIXME: allow equal between bools?*)
+    let val (P',tsP) = combterm_of P        
+	val (Q',tsQ) = combterm_of Q
+    in
+	(Equal(P',Q'),tsP union tsQ)
+    end
+  | combterm_of (t as (P $ Q)) =
+    let val (P',tsP) = combterm_of P
+	val (Q',tsQ) = combterm_of Q
+	val tp = Term.type_of t
+	val (tp',is_bool) = simp_type_of tp
+	val t' = CombApp(P',Q',tp')
+	val t'' = if is_bool then Bool(t') else t'
+    in
+	(t'',tsP union tsQ)
+    end;
+
+fun predicate_of ((Const("Not",_) $ P), polarity) =
+    predicate_of (P, not polarity)
+  | predicate_of (term,polarity) = (combterm_of term,polarity);
+
+
+fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
+  | literals_of_term1 args (Const("op |",_) $ P $ Q) = 
+    let val args' = literals_of_term1 args P
+    in
+	literals_of_term1 args' Q
+    end
+  | literals_of_term1 (lits,ts) P =
+    let val ((pred,ts'),pol) = predicate_of (P,true)
+	val lits' = Literal(pol,pred)::lits
+    in
+	(lits',ts union ts')
+    end;
+
+
+fun literals_of_term P = literals_of_term1 ([],[]) P;
+
+
+(* making axiom and conjecture clauses *)
+fun make_axiom_clause term (ax_name,cls_id) =
+    let val term' = comb_of term
+	val (lits,ctypes_sorts) = literals_of_term term'
+	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux2 ctypes_sorts
+    in
+	make_clause(cls_id,ax_name,Axiom,
+		    lits,ctypes_sorts,ctvar_lits,ctfree_lits)
+    end;
+
+
+fun make_conjecture_clause n t =
+    let val t' = comb_of t
+	val (lits,ctypes_sorts) = literals_of_term t'
+	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux2 ctypes_sorts
+    in
+	make_clause(n,"conjecture",Conjecture,lits,ctypes_sorts,ctvar_lits,ctfree_lits)
+    end;
+
+
+
+fun make_conjecture_clauses_aux _ [] = []
+  | make_conjecture_clauses_aux n (t::ts) =
+    make_conjecture_clause n t :: make_conjecture_clauses_aux (n+1) ts;
+
+val make_conjecture_clauses = make_conjecture_clauses_aux 0;
+
+
+(**********************************************************************)
+(* convert clause into ATP specific formats:                          *)
+(* TPTP used by Vampire and E                                         *)
+(**********************************************************************)
+
+val keep_types = ref true;
+
+val type_wrapper = "typeinfo";
+
+fun put_type (c,t) = 
+    if !keep_types then type_wrapper ^ (ResClause.paren_pack [c,t])
+    else c;
+
+
+val bool_tp = ResClause.make_fixed_type_const "bool";
+
+val app_str = "hAPP";
+
+val bool_str = "hBOOL";
+
+
+(* convert literals of clauses into strings *)
+fun string_of_combterm (CombConst(c,tp)) = 
+    if tp = bool_tp then c else put_type(c,tp)
+  | string_of_combterm (CombFree(v,tp)) = 
+    if tp = bool_tp then v else put_type(v,tp)
+  | string_of_combterm (CombVar(v,tp)) = 
+    if tp = bool_tp then v else put_type(v,tp)
+  | string_of_combterm (CombApp(t1,t2,tp)) = 
+    let val s1 = string_of_combterm t1
+	val s2 = string_of_combterm t2
+	val app = app_str ^ (ResClause.paren_pack [s1,s2])
+    in
+	if tp = bool_tp then app else put_type(app,tp)
+    end
+  | string_of_combterm (Bool(t)) = 
+    let val t' = string_of_combterm t
+    in
+	bool_str ^ (ResClause.paren_pack [t'])
+    end
+  | string_of_combterm (Equal(t1,t2)) =
+    let val s1 = string_of_combterm t1
+	val s2 = string_of_combterm t2
+    in
+	"equal" ^ (ResClause.paren_pack [s1,s2]) 
+    end;
+
+fun string_of_clausename (cls_id,ax_name) = 
+    ResClause.clause_prefix ^ ResClause.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
+
+fun string_of_type_clsname (cls_id,ax_name,idx) = 
+    string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
+
+
+fun tptp_literal (Literal(pol,pred)) =
+    let val pred_string = string_of_combterm pred
+	val pol_str = if pol then "++" else "--"
+    in
+	pol_str ^ pred_string
+    end;
+
+ 
+fun tptp_type_lits (Clause cls) = 
+    let val lits = map tptp_literal (#literals cls)
+	val ctvar_lits_strs =
+	      if !keep_types 
+	      then (map ResClause.tptp_of_typeLit (#ctvar_type_literals cls)) 
+	      else []
+	val ctfree_lits = 
+	      if !keep_types
+	      then (map ResClause.tptp_of_typeLit (#ctfree_type_literals cls)) 
+	      else []
+    in
+	(ctvar_lits_strs @ lits, ctfree_lits)
+    end; 
+
+
+fun clause2tptp cls =
+    let val (lits,ctfree_lits) = tptp_type_lits cls
+	val cls_id = get_clause_id cls
+	val ax_name = get_axiomName cls
+	val knd = string_of_kind cls
+	val lits_str = ResClause.bracket_pack lits
+	val cls_str = ResClause.gen_tptp_cls(cls_id,ax_name,knd,lits_str)
+    in
+	(cls_str,ctfree_lits)
+    end;
+
+
+end
