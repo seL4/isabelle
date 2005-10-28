@@ -2288,6 +2288,7 @@ method_setup nominal_induct =
 (*******************************)
 (* permutation equality tactic *)
 use "nominal_permeq.ML";
+
 method_setup perm_simp =
   {* perm_eq_meth *}
   {* tactic for deciding equalities involving permutations *}
