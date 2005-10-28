@@ -136,9 +136,7 @@ fun transform_elim th =
   if is_elimR th then
     let val tm = elimR2Fol th
 	val ctm = cterm_of (sign_of_thm th) tm	
-    in
-	OldGoals.prove_goalw_cterm [] ctm (fn prems => [elimRule_tac th])
-    end
+    in Goal.prove_raw [] ctm (fn _ => elimRule_tac th) end
  else th;
 
 
