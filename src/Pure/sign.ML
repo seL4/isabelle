@@ -295,7 +295,8 @@ fun the_const_constraint thy c =
   (case const_constraint thy c of SOME T => T
   | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
 
-val const_type = Option.map (#1 o #1) oo (Symtab.lookup o #2 o #1 o #consts o rep_sg);
+val lookup_const = Symtab.lookup o #2 o #1 o #consts o rep_sg;
+val const_type = Option.map (#1 o #1) oo lookup_const;
 
 fun the_const_type thy c =
   (case const_type thy c of SOME T => T
@@ -452,10 +453,10 @@ fun certify_term pp thy tm =
     fun check_atoms (t $ u) = (check_atoms t; check_atoms u)
       | check_atoms (Abs (_, _, t)) = check_atoms t
       | check_atoms (Const (a, T)) =
-          (case const_type thy a of
+          (case lookup_const thy a of
             NONE => err ("Undeclared constant " ^ show_const a T)
-          | SOME U =>
-              if typ_instance thy (T, U) then ()
+          | SOME ((U, mono), _) =>
+              if mono andalso T = U orelse typ_instance thy (T, U) then ()
               else err ("Illegal type for constant " ^ show_const a T))
       | check_atoms (Var ((x, i), _)) =
           if i < 0 then err ("Malformed variable: " ^ quote x) else ()
