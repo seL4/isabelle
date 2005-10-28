@@ -787,18 +787,31 @@ consts_code
   "snd"     ("snd")
 
 ML {*
-local
+
+signature PRODUCT_TYPE_CODEGEN =
+sig
+  val strip_abs: int -> term -> term list * term;
+end;
+
+structure ProductTypeCodegen : PRODUCT_TYPE_CODEGEN =
+struct
 
 fun strip_abs 0 t = ([], t)
   | strip_abs i (Abs (s, T, t)) =
-    let
-      val s' = Codegen.new_name t s;
-      val v = Free (s', T)
-    in apfst (cons v) (strip_abs (i-1) (subst_bound (v, t))) end
+      let
+        val s' = Codegen.new_name t s;
+        val v = Free (s', T)
+      in apfst (cons v) (strip_abs (i-1) (subst_bound (v, t))) end
   | strip_abs i (u as Const ("split", _) $ t) = (case strip_abs (i+1) t of
         (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
       | _ => ([], u))
   | strip_abs i t = ([], t);
+
+end;
+
+local
+
+open ProductTypeCodegen;
 
 fun let_codegen thy defs gr dep thyname brack t = (case strip_comb t of
     (t1 as Const ("Let", _), t2 :: t3 :: ts) =>
