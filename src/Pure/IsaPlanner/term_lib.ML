@@ -51,7 +51,6 @@ sig
     val triv_thm_from_string : string -> thm
 
     (* some common term manipulations *)
-    val try_dest_Goal : term -> term
     val try_dest_Trueprop : term -> term
 
     val bot_left_leaf_of : term -> term
@@ -626,9 +625,7 @@ fun loose_bnds_to_frees vars t =
     loose_bnds_to_frees_aux (0,vars) t;
 
 
-  fun try_dest_Goal (Const("Goal", _) $ T) = T
-    | try_dest_Goal T = T;
-
+  (* FIXME ObjectLogic.drop_judgment *)
   fun try_dest_Trueprop (Const("Trueprop", _) $ T) = T
     | try_dest_Trueprop T = T;
 
@@ -644,7 +641,7 @@ fun cleaned_term_conc t =
     let
       val concl = Logic.strip_imp_concl (change_bounds_to_frees t)
     in
-      (try_dest_Trueprop (try_dest_Goal concl))
+      (try_dest_Trueprop (Logic.unprotect concl handle TERM _ => concl))
     end;
 
 (*   fun get_prems_of_sg_term t =
@@ -654,14 +651,14 @@ fun get_prems_of_sg_term t =
 		map try_dest_Trueprop (Logic.strip_assums_hyp t);
 
 
-(* drop premices, clean bound var stuff, and make a trueprop... *)
+(* drop premises, clean bound var stuff, and make a trueprop... *)
   fun cleaned_term_parts t =
       let
 				val t2 = (change_bounds_to_frees t)
         val concl = Logic.strip_imp_concl t2
 				val prems = map try_dest_Trueprop (Logic.strip_imp_prems t2)
       in
-				(prems, (try_dest_Trueprop (try_dest_Goal concl)))
+	(prems, (try_dest_Trueprop ((Logic.unprotect concl handle TERM _ => concl))))
       end;
 
   (* change free variables to vars and visa versa *)
