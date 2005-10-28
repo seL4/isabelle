@@ -60,7 +60,15 @@ signature RES_CLAUSE =
   val make_fixed_const : String.string -> string		
   val make_fixed_type_const : String.string -> string   
   val make_type_class : String.string -> string
-
+  val isMeta : String.string -> bool
+  
+  type typ_var
+  val mk_typ_var_sort : Term.typ -> typ_var * sort
+  type type_literal
+  val add_typs_aux2 : (typ_var * string list) list -> type_literal list * type_literal list
+  val gen_tptp_cls : int * string * string * string -> string
+  val gen_tptp_type_cls : int * string * string * string * int -> string
+  val tptp_of_typeLit : type_literal -> string
   end;
 
 structure ResClause: RES_CLAUSE =
@@ -211,6 +219,10 @@ datatype predicate = Predicate of pred_name * fol_type * folTerm list;
 datatype literal = Literal of polarity * predicate * tag;
 
 datatype typ_var = FOLTVar of indexname | FOLTFree of string;
+
+fun mk_typ_var_sort (TFree(a,s)) = (FOLTFree a,s)
+  | mk_typ_var_sort (TVar(v,s)) = (FOLTVar v,s);
+
 
 
 (* ML datatype used to repsent one single clause: disjunction of literals. *)
@@ -494,6 +506,21 @@ fun add_typs_aux [] preds  = ([],[], preds)
       in
 	  (vss, fs union fss, preds'')
       end;
+
+fun add_typs_aux2 [] = ([],[])
+  | add_typs_aux2 ((FOLTVar indx,s)::tss) =
+    let val vs = sorts_on_typs (FOLTVar indx,s)
+	val (vss,fss) = add_typs_aux2 tss
+    in
+	(vs union vss,fss)
+    end
+  | add_typs_aux2 ((FOLTFree x,s)::tss) =
+    let val fs = sorts_on_typs (FOLTFree x,s)
+	val (vss,fss) = add_typs_aux2 tss
+    in
+	(vss,fs union fss)
+    end;
+
 
 fun add_typs (Clause cls) preds  = add_typs_aux (#types_sorts cls) preds 
 
