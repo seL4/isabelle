@@ -11,10 +11,6 @@ val debug = ref true;
 val filter_ax = ref false;
 
 
-fun writeln_strs _   []      = ()
-  | writeln_strs out (s::ss) = (TextIO.output (out, s); TextIO.output (out, "\n"); writeln_strs out ss);
-
-
 fun warning_thm thm nm = warning (nm ^ " " ^ (string_of_thm thm));
 
 fun warning_thms_n n thms nm =
@@ -36,7 +32,7 @@ val simpset_file = File.tmp_path (Path.basic "simp");
 val prob_file = File.tmp_path (Path.basic "prob");
 val hyps_file = File.tmp_path (Path.basic "hyps");
 
-
+val types_sorts_file =  File.tmp_path (Path.basic "typsorts");
 
 (*******************************************************)
 (* operations on Isabelle theorems:                    *)
@@ -45,14 +41,8 @@ val hyps_file = File.tmp_path (Path.basic "hyps");
 (* CNF                                                 *)
 (*******************************************************)
 
-fun repeat_RS thm1 thm2 =
-    let val thm1' =  thm1 RS thm2 handle THM _ => thm1
-    in
-        if eq_thm(thm1,thm1') then thm1' else (repeat_RS thm1' thm2)
-    end;
-
 (* a special version of repeat_RS *)
-fun repeat_someI_ex thm = repeat_RS thm someI_ex;
+fun repeat_someI_ex thm = ResAxioms.repeat_RS thm someI_ex;
 
 val include_simpset = ref false;
 val include_claset = ref false; 
@@ -101,14 +91,22 @@ fun get_local_simpR ctxt =
 (***************** TPTP format *********************************)
 
 (* convert each (sub)goal clause (Thm.thm) into one or more TPTP clauses.  The additional TPTP clauses are tfree_lits.  Write the output TPTP clauses to a problem file *)
-fun tptp_form thms n tfrees =
-    let val clss = ResClause.make_conjecture_clauses (map prop_of thms)
-	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
+
+fun mk_conjectures is_fol terms =
+    if is_fol then
+	ListPair.unzip (map ResClause.clause2tptp (ResClause.make_conjecture_clauses terms))
+    else
+	ListPair.unzip (map ResHolClause.clause2tptp (ResHolClause.make_conjecture_clauses terms));
+
+
+fun tptp_form_g is_fol thms n tfrees =
+    let val terms = map prop_of thms
+	val (tptp_clss,tfree_litss) = mk_conjectures is_fol terms
 	val tfree_clss = map ResClause.tfree_clause ((ResClause.union_all tfree_litss) \\ tfrees)
 	val probfile = File.platform_path prob_file ^ "_" ^ string_of_int n
 	val out = TextIO.openOut(probfile)		 	
     in
-	writeln_strs out (tfree_clss @ tptp_clss);
+	ResAtp.writeln_strs out (tfree_clss @ tptp_clss);
 	TextIO.closeOut out;
 	warning probfile; (* show the location for debugging *)
 	probfile (* return the location *)
@@ -116,24 +114,30 @@ fun tptp_form thms n tfrees =
     end;
 
 
-fun tptp_hyps [] = ([], [])
-  | tptp_hyps thms =
-    let val prems = map (skolemize o make_nnf o ObjectLogic.atomize_thm) thms
+val tptp_form = tptp_form_g true;
+val tptp_formH = tptp_form_g false;
+
+fun tptp_hyps_g _ [] = ([], [])
+  | tptp_hyps_g is_fol thms =
+    let val mk_nnf = if is_fol then make_nnf else make_nnf1
+	val prems = map (skolemize o mk_nnf o ObjectLogic.atomize_thm) thms
         val prems' = map repeat_someI_ex prems
         val prems'' = make_clauses prems'
         val prems''' = ResAxioms.rm_Eps [] prems''
-        val clss = ResClause.make_conjecture_clauses prems'''
-	val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss) 
+	val (tptp_clss,tfree_litss) = mk_conjectures is_fol prems'''
 	val tfree_lits = ResClause.union_all tfree_litss
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
         val hypsfile = File.platform_path hyps_file
         val out = TextIO.openOut(hypsfile)
     in
-        writeln_strs out (tfree_clss @ tptp_clss);
+        ResAtp.writeln_strs out (tfree_clss @ tptp_clss);
         TextIO.closeOut out; warning hypsfile;
         ([hypsfile],tfree_lits)
     end;
  
+
+val tptp_hyps = tptp_hyps_g true;
+val tptp_hypsH = tptp_hyps_g false;
 
 fun subtract_simpset thy ctxt =
   let
@@ -148,33 +152,52 @@ fun subtract_claset thy ctxt =
     val subtract = map (#2 o #2) oo Net.subtract Tactic.eq_kbrl;
   in map ResAxioms.pairname (subtract netI1 netI2 @ subtract netE1 netE2) end;
 
+
+fun mk_axioms is_fol rules =
+    if is_fol then 
+	(let val  clss = ResClause.union_all(ResAxioms.clausify_rules_pairs rules)
+	     val (clss',names) = ListPair.unzip clss
+	     val (tptpclss,_) = ListPair.unzip(map ResClause.clause2tptp clss')
+	 in tptpclss end)
+    else
+	(let val  clss = ResClause.union_all(ResAxioms.clausify_rules_pairsH rules)
+	     val (clss',names) = ListPair.unzip clss
+	     val (tptpclss,_) = ListPair.unzip(map ResHolClause.clause2tptp clss')
+	 in tptpclss end)
+
+
 local
 
-fun write_rules [] file = [](* no rules, then no need to write anything, thus no clasimp file *)
-  | write_rules rules file =
+fun write_rules_g is_fol [] file = [](* no rules, then no need to write anything, thus no clasimp file *)
+  | write_rules_g is_fol rules file =
     let val out = TextIO.openOut(file)
-	val clss = ResClause.union_all(ResAxioms.clausify_rules_pairs rules)
-	val (clss',names) = ListPair.unzip clss
-	val (tptpclss,_) = ListPair.unzip(map ResClause.clause2tptp clss')
+	val tptpclss = mk_axioms is_fol rules
     in
-	writeln_strs out tptpclss;
+	ResAtp.writeln_strs out tptpclss;
 	TextIO.closeOut out; warning file;
 	[file]
     end;
 
+
+val write_rules = write_rules_g true;
+val write_rulesH = write_rules_g false;
+
 in
 
 (* TPTP Isabelle theorems *)
-fun tptp_cnf_rules (clasetR,simpsetR) =
+fun tptp_cnf_rules_g write_rules (clasetR,simpsetR) =
     let val simpfile = File.platform_path simpset_file
 	val clafile =  File.platform_path claset_file
     in
 	(write_rules clasetR clafile) @ (write_rules simpsetR simpfile)
     end;
 
+val tptp_cnf_rules = tptp_cnf_rules_g write_rules;
+val tptp_cnf_rulesH = tptp_cnf_rules_g write_rulesH;
+
 end
 
-fun tptp_cnf_clasimp ctxt (include_claset,include_simpset) =
+fun tptp_cnf_clasimp_g tptp_cnf_rules ctxt (include_claset,include_simpset) =
     let val local_claR = if include_claset then get_local_claR ctxt else (subtract_claset (ProofContext.theory_of ctxt) ctxt)
 	val local_simpR = if include_simpset then get_local_simpR ctxt else (subtract_simpset (ProofContext.theory_of ctxt) ctxt)
 
@@ -183,35 +206,72 @@ fun tptp_cnf_clasimp ctxt (include_claset,include_simpset) =
     end;
 
 
+val tptp_cnf_clasimp = tptp_cnf_clasimp_g tptp_cnf_rules;
+val tptp_cnf_clasimpH = tptp_cnf_clasimp_g tptp_cnf_rulesH;
+
+
+fun tptp_types_sorts thy = 
+    let val classrel_clauses = ResClause.classrel_clauses_thy thy
+	val arity_clauses = ResClause.arity_clause_thy thy
+	val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
+	val arity_cls = map ResClause.tptp_arity_clause arity_clauses
+	fun write_ts () =
+	    let val tsfile = File.platform_path types_sorts_file
+		val out = TextIO.openOut(tsfile)
+	    in
+		ResAtp.writeln_strs out (classrel_cls @ arity_cls);
+		TextIO.closeOut out;
+		[tsfile]
+	    end
+    in
+	if (List.null arity_cls andalso List.null classrel_cls) then []
+	else
+	    write_ts ()
+    end;
+
+
+
 (*FIXME: a function that does not perform any filtering now *)
 fun find_relevant_ax ctxt = tptp_cnf_clasimp ctxt (true,true);
-
 
 
 (***************************************************************)
 (* setup ATPs as Isabelle methods                               *)
 (***************************************************************)
-fun atp_meth' tac prems ctxt = 
+fun atp_meth_g tptp_hyps tptp_cnf_clasimp tac prems ctxt = 
     let val rules = if !filter_ax then find_relevant_ax ctxt 
 		    else tptp_cnf_clasimp ctxt (!include_claset, !include_simpset) 
 	val (hyps,tfrees) = tptp_hyps (ProofContext.prems_of ctxt)
-	val files = hyps @ rules
+	val thy = ProofContext.theory_of ctxt
+	val tsfile = tptp_types_sorts thy
+	val files = hyps @ rules @ tsfile
     in
 	Method.METHOD (fn facts =>
 			  if !debug then (warning_thms_n (length facts) facts "facts";HEADGOAL (tac ctxt files tfrees)) 
 			  else HEADGOAL (tac ctxt files tfrees))
     end;
 
+val atp_meth_f = atp_meth_g tptp_hyps tptp_cnf_clasimp;
 
-fun atp_meth tac prems ctxt =
+val atp_meth_h = atp_meth_g tptp_hypsH tptp_cnf_clasimpH;
+
+
+fun atp_meth_G atp_meth tac prems ctxt =
     let val _ = ResClause.init (ProofContext.theory_of ctxt)
     in    
-	if not(List.null prems) then (warning_thms_n (length prems) prems "prems!!!"; atp_meth' tac prems ctxt)
-	else (atp_meth' tac prems ctxt)
+	if not(List.null prems) then (warning_thms_n (length prems) prems "prems!!!"; atp_meth tac prems ctxt)
+	else (atp_meth tac prems ctxt)
     end;
 	
-val atp_method = Method.bang_sectioned_args rules_modifiers o atp_meth;
 
+val atp_meth_H = atp_meth_G atp_meth_h;
+
+val atp_meth_F = atp_meth_G atp_meth_f;
+
+
+val atp_method_H = Method.bang_sectioned_args rules_modifiers o atp_meth_H;
+
+val atp_method_F = Method.bang_sectioned_args rules_modifiers o atp_meth_F;
 
 
 
