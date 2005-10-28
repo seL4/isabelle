@@ -1041,6 +1041,7 @@ val setup_methods = Method.add_methods
   ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
   ("slow", cla_method' slow_tac, "classical prover (slow depth-first)"),
   ("best", cla_method' best_tac, "classical prover (best-first)"),
+  ("deepen", cla_method' (fn cs => deepen_tac cs 4), "classical prover (iterative deepening)"),
   ("safe", cla_method (CHANGED_PROP o safe_tac), "classical prover (apply safe rules)")];
 
 
