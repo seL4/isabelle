@@ -975,7 +975,7 @@ fun valid_thms ctxt (name, ths) =
 
 fun lthms_containing ctxt spec =
   FactIndex.find (fact_index_of ctxt) spec
-  |> map (valid_thms ctxt ? apfst (fn name =>
+  |> map ((not o valid_thms ctxt) ? apfst (fn name =>
     NameSpace.hidden (if name = "" then "unnamed" else name)));
 
 
