@@ -13,22 +13,29 @@ signature RES_AXIOMS =
   val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
   val clausify_axiom_pairs : (string*thm) -> (ResClause.clause*thm) list
+  val clausify_axiom_pairsH : (string*thm) -> (ResHolClause.clause*thm) list
   val cnf_axiom : (string * thm) -> thm list
+  val cnf_axiomH : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
+  val meta_cnf_axiomH : thm -> thm list
   val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val claset_rules_of_ctxt: Proof.context -> (string * thm) list
   val simpset_rules_of_ctxt : Proof.context -> (string * thm) list
   val clausify_rules_pairs : (string*thm) list -> (ResClause.clause*thm) list list
+  val clausify_rules_pairsH : (string*thm) list -> (ResHolClause.clause*thm) list list
   val clause_setup : (theory -> theory) list
   val meson_method_setup : (theory -> theory) list
   val pairname : thm -> (string * thm)
+  val repeat_RS : thm -> thm -> thm
+
   end;
 
 structure ResAxioms : RES_AXIOMS =
  
 struct
+
 
 val tagging_enabled = false (*compile_time option*)
 
@@ -147,13 +154,19 @@ fun repeat_RS thm1 thm2 =
 
 (*Convert a theorem into NNF and also skolemize it. Original version, using
   Hilbert's epsilon in the resulting clauses.*)
-fun skolem_axiom th = 
-  let val th' = (skolemize o make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
+fun skolem_axiom_g mk_nnf th = 
+  let val th' = (skolemize o mk_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
   in  repeat_RS th' someI_ex
   end;
 
 
+val skolem_axiom = skolem_axiom_g make_nnf;
+val skolem_axiomH = skolem_axiom_g make_nnf1;
+
+
 fun cnf_rule th = make_clauses [skolem_axiom (transform_elim th)];
+
+fun cnf_ruleH th = make_clauses [skolem_axiomH (transform_elim th)];
 
 (*Transfer a theorem into theory Reconstruction.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
@@ -175,9 +188,12 @@ fun is_taut th =
 val rm_redundant_cls = List.filter (not o is_taut);
 
 (* transform an Isabelle theorem into CNF *)
-fun cnf_axiom_aux th =
+fun cnf_axiom_aux_g cnf_rule th =
     map zero_var_indexes
         (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
+
+val cnf_axiom_aux = cnf_axiom_aux_g cnf_rule;
+val cnf_axiom_auxH = cnf_axiom_aux_g cnf_ruleH;
        
        
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
@@ -280,7 +296,7 @@ fun skolemlist [] thy = thy
 	| SOME _ => skolemlist nths thy) (*FIXME: check for duplicate names?*)
 
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
-fun cnf_axiom (name,th) =
+fun cnf_axiom_g cnf_axiom_aux (name,th) =
     case name of
 	  "" => cnf_axiom_aux th (*no name, so can't cache*)
 	| s  => case Symtab.lookup (!clause_cache) s of
@@ -293,11 +309,19 @@ fun cnf_axiom (name,th) =
 		      let val cls = cnf_axiom_aux th
 		      in change clause_cache (Symtab.update (s, (th, cls))); cls end;
 
+
+val cnf_axiom = cnf_axiom_g cnf_axiom_aux;
+val cnf_axiomH = cnf_axiom_g cnf_axiom_auxH;
+
+
 fun pairname th = (Thm.name_of_thm th, th);
 
 fun meta_cnf_axiom th = 
     map Meson.make_meta_clause (cnf_axiom (pairname th));
 
+
+fun meta_cnf_axiomH th = 
+    map Meson.make_meta_clause (cnf_axiomH (pairname th));
 
 (* changed: with one extra case added *)
 fun univ_vars_of_aux (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,body)) vars =    
@@ -405,16 +429,24 @@ fun simpset_rules_of_ctxt ctxt = rules_of_simpset (local_simpset_of ctxt);
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)
 
 (* classical rules *)
-fun cnf_rules [] err_list = ([],err_list)
-  | cnf_rules ((name,th) :: ths) err_list = 
-      let val (ts,es) = cnf_rules ths err_list
+fun cnf_rules_g cnf_axiom [] err_list = ([],err_list)
+  | cnf_rules_g cnf_axiom ((name,th) :: ths) err_list = 
+      let val (ts,es) = cnf_rules_g cnf_axiom ths err_list
       in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  
+
+
+val cnf_rules = cnf_rules_g cnf_axiom;
+val cnf_rulesH = cnf_rules_g cnf_axiomH;
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
 fun addclause (c,th) l =
   if ResClause.isTaut c then l else (c,th) :: l;
+
+fun addclauseH (c,th) l =
+    if ResHolClause.isTaut c then l else (c,th)::l;
+
 
 (* outputs a list of (clause,theorem) pairs *)
 fun clausify_axiom_pairs (thm_name,th) =
@@ -429,6 +461,21 @@ fun clausify_axiom_pairs (thm_name,th) =
 	make_axiom_clauses 0 isa_clauses' isa_clauses		
     end
 
+
+fun clausify_axiom_pairsH (thm_name,th) =
+    let val isa_clauses = cnf_axiomH (thm_name,th) 
+        val isa_clauses' = rm_Eps [] isa_clauses
+        val clauses_n = length isa_clauses
+	fun make_axiom_clauses _ [] []= []
+	  | make_axiom_clauses i (cls::clss) (cls'::clss') =
+	      addclauseH (ResHolClause.make_axiom_clause cls (thm_name,i), cls') 
+	                (make_axiom_clauses (i+1) clss clss')
+    in
+	make_axiom_clauses 0 isa_clauses' isa_clauses		
+    end
+
+
+
 fun clausify_rules_pairs_aux result [] = result
   | clausify_rules_pairs_aux result ((name,th)::ths) =
       clausify_rules_pairs_aux (clausify_axiom_pairs (name,th) :: result) ths
@@ -440,9 +487,22 @@ fun clausify_rules_pairs_aux result [] = result
 		      ": " ^ TermLib.string_of_term t); 
 	       clausify_rules_pairs_aux result ths)
 
-val clausify_rules_pairs = clausify_rules_pairs_aux []
+
+fun clausify_rules_pairs_auxH result [] = result
+  | clausify_rules_pairs_auxH result ((name,th)::ths) =
+      clausify_rules_pairs_auxH (clausify_axiom_pairsH (name,th) :: result) ths
+      handle THM (msg,_,_) =>  
+	      (debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
+	       clausify_rules_pairs_auxH result ths)
+	 |  ResHolClause.LAM2COMB (t) => 
+	      (debug ("Cannot clausify "  ^ TermLib.string_of_term t); 
+	       clausify_rules_pairs_auxH result ths)
 
 
+
+val clausify_rules_pairs = clausify_rules_pairs_aux [];
+
+val clausify_rules_pairsH = clausify_rules_pairs_auxH [];
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
   into the clause cache*)
 fun clause_cache_setup thy =
