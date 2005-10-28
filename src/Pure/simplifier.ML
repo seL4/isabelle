@@ -74,6 +74,8 @@ sig
   val cong_del_global: theory attribute
   val cong_add_local: Proof.context attribute
   val cong_del_local: Proof.context attribute
+  val cong_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
+  val simp_modifiers': (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val method_setup: (Args.T list -> (Method.modifier * Args.T list)) list
     -> (theory -> theory) list
