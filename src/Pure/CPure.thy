@@ -1,6 +1,5 @@
 (*  Title:      Pure/CPure.thy
     ID:         $Id$
-    Author:     Makarius
 
 The CPure theory -- Pure with alternative application syntax.
 *)

@@ -1,6 +1,5 @@
 (*  Title:      Pure/Pure.thy
     ID:         $Id$
-    Author:     Larry Paulson and Makarius
 
 The Pure theory.
 *)
@@ -12,18 +11,18 @@ begin
 setup "Context.setup ()"
 
 
-text{*These meta-level elimination rules facilitate the use of assumptions
-that contain !! and ==>, especially in linear scripts. *}
+text{* These meta-level elimination rules facilitate the use of assumptions
+  that contain !! and ==>, especially in linear scripts. *}
 
 lemma meta_mp:
-  assumes major: "PROP P ==> PROP Q" and minor: "PROP P"
+  assumes "PROP P ==> PROP Q" and "PROP P"
   shows "PROP Q"
-    by (rule major [OF minor])
+    by (rule `PROP P ==> PROP Q` [OF `PROP P`])
 
 lemma meta_spec:
-  assumes major: "!!x. PROP P(x)"
+  assumes "!!x. PROP P(x)"
   shows "PROP P(x)"
-    by (rule major)
+    by (rule `!!x. PROP P(x)`)
 
 lemmas meta_allE = meta_spec [elim_format]
 
