@@ -1039,7 +1039,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
     val full_new_type_names' = map (Sign.full_name (sign_of thy)) new_type_names';
 
-    val (thy1, {induction, ...}) =
+    val ({induction, ...},thy1) =
       DatatypePackage.add_datatype_i err flat_names new_type_names' dts'' thy;
 
     val SOME {descr, ...} = Symtab.lookup
@@ -1498,9 +1498,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun strip_suffix i s = implode (List.take (explode s, size s - i));
 
     (** strips the "_Rep" in type names *)
-    fun strip_nth_name i s =
-      let val xs = NameSpace.unpack s
-      in NameSpace.pack (map_nth_elem (length xs - i) (strip_suffix 4) xs) end;
+    fun strip_nth_name i s = 
+      let val xs = NameSpace.unpack s; 
+      in NameSpace.pack (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
 
     val descr'' = List.mapPartial
       (fn (i, ("nominal.nOption", _, _)) => NONE
@@ -1511,6 +1511,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 foldl (fn (dt, dts) =>
                   let val (dts', dt') = strip_option dt
                   in (dts @ dts' @ [reindex dt']) end) [] cargs)) constrs))) descr;
+
     val (descr1, descr2) = splitAt (length new_type_names, descr'');
     val descr' = [descr1, descr2];
 
