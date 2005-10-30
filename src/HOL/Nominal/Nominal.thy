@@ -2054,25 +2054,16 @@ lemma abs_fun_supp_approx:
   and   a :: "'x"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "((supp ([a].x))::'x set) \<subseteq> (supp x)\<union>{a}"
-proof -
-  have "((supp ([a].x))::'x set) \<subseteq> (supp (x,a))" 
-    proof 
-      fix c
-      assume "c\<in>((supp ([a].x))::'x set)"
-      hence "infinite {b. [(c,b)]\<bullet>([a].x) \<noteq> [a].x}" by (simp add: supp_def)
-      hence "infinite {b. [([(c,b)]\<bullet>a)].([(c,b)]\<bullet>x) \<noteq> [a].x}" by (simp add: abs_fun_pi[OF pt, OF at])
-      moreover
-      have "{b. [([(c,b)]\<bullet>a)].([(c,b)]\<bullet>x) \<noteq> [a].x} \<subseteq> {b. ([(c,b)]\<bullet>x,[(c,b)]\<bullet>a) \<noteq> (x, a)}"
-	apply(rule subsetI)
-	apply(simp only: mem_Collect_eq)
-	apply(auto)
-	done
-      (*by force*)
-      ultimately have "infinite {b. ([(c,b)]\<bullet>x,[(c,b)]\<bullet>a) \<noteq> (x, a)}" by (simp add: infinite_super)
-      thus "c\<in>(supp (x,a))" by (simp add: supp_def)
-    qed
-  thus ?thesis by (simp add: supp_prod at_supp[OF at])
+  shows "((supp ([a].x))::'x set) \<subseteq> (supp (x,a))"
+proof 
+  fix c
+  assume "c\<in>((supp ([a].x))::'x set)"
+  hence "infinite {b. [(c,b)]\<bullet>([a].x) \<noteq> [a].x}" by (simp add: supp_def)
+  hence "infinite {b. [([(c,b)]\<bullet>a)].([(c,b)]\<bullet>x) \<noteq> [a].x}" by (simp add: abs_fun_pi[OF pt, OF at])
+  moreover
+  have "{b. [([(c,b)]\<bullet>a)].([(c,b)]\<bullet>x) \<noteq> [a].x} \<subseteq> {b. ([(c,b)]\<bullet>x,[(c,b)]\<bullet>a) \<noteq> (x, a)}" by force
+  ultimately have "infinite {b. ([(c,b)]\<bullet>x,[(c,b)]\<bullet>a) \<noteq> (x, a)}" by (simp add: infinite_super)
+  thus "c\<in>(supp (x,a))" by (simp add: supp_def)
 qed
 
 lemma abs_fun_finite_supp:
@@ -2083,9 +2074,10 @@ lemma abs_fun_finite_supp:
   and     f:  "finite ((supp x)::'x set)"
   shows "finite ((supp ([a].x))::'x set)"
 proof -
-  from f have f1: "finite (((supp x)::'x set)\<union>{a})" by force
-  thus ?thesis using abs_fun_supp_approx[OF pt, OF at, of "a" "x"]
-   by (simp add: finite_subset)
+  from f have "finite ((supp (x,a))::'x set)" by (simp add: supp_prod at_supp[OF at])
+  moreover
+  have "((supp ([a].x))::'x set) \<subseteq> (supp (x,a))" by (rule abs_fun_supp_approx[OF pt, OF at])
+  ultimately show ?thesis by (simp add: finite_subset)
 qed
 
 lemma fresh_abs_funI1:
@@ -2192,8 +2184,7 @@ lemma abs_fun_supp:
   shows "supp ([a].x) = (supp x)-{a}"
  by (force simp add: supp_fresh_iff fresh_abs_fun_iff[OF pt, OF at, OF f])
 
-(* maybe needs to be stated by supp -supp *)
-
+(* maybe needs to be better stated as supp intersection supp *)
 lemma abs_fun_supp_ineq: 
   fixes a :: "'y"
   and   x :: "'a"
@@ -2221,8 +2212,8 @@ lemma fresh_abs_fun_iff_ineq:
   shows "b\<sharp>([a].x) = b\<sharp>x" 
   by (simp add: fresh_def abs_fun_supp_ineq[OF pta, OF ptb, OF at, OF cp, OF dj])
 
-section {* abstraction type for the datatype package (not really needed anymore) *}
-(*===============================================================================*)
+section {* abstraction type for the parsing in nominal datatype *}
+(*==============================================================*)
 consts
   "ABS_set" :: "('x\<Rightarrow>('a nOption)) set"
 inductive ABS_set
@@ -2238,7 +2229,7 @@ qed
 syntax ABS :: "type \<Rightarrow> type \<Rightarrow> type" ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000)
 
 
-section {* Lemmas for Deciding Permutation Equations *}
+section {* lemmas for deciding permutation equations *}
 (*===================================================*)
 
 lemma perm_eq_app:
