@@ -2049,43 +2049,30 @@ next
   qed
 qed
 
--- "two helpers for the abst_supp_approx-lemma"
-lemma finite_minus:   
-  assumes a: "finite {b. P b}"
-  shows "finite {b. b \<noteq> x \<and> P b}" 
-  using a by (force simp add: Collect_conj_eq)
-
-lemma infinite_minus: 
-  assumes a: "infinite {b. P b}" 
-  shows "infinite {b. b \<noteq> x \<and> P b}"
-proof -
-  have "{b. b \<noteq> x \<and> P b}={b. P b}-{x}" by force
-  with a show ?thesis by force
-qed
-
 lemma abs_fun_supp_approx:
   fixes x :: "'a"
   and   a :: "'x"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "((supp ([a].x))::'x set) \<subseteq> (supp x)\<union>{a}"
-proof (unfold supp_def, auto simp only: abs_fun_pi[OF pt, OF at] at_calc[OF at] if_False)
-  fix c
-  assume a: "c\<noteq>a"
-  assume "finite {b::'x. [(c, b)]\<bullet>x \<noteq> x}"
-  hence f: "finite {b::'x. b\<noteq>a \<and> [(c, b)]\<bullet>x \<noteq> x}" by (rule finite_minus)
-  assume "infinite {b::'x. [(if (b=a) then c else a)].([(c,b)]\<bullet>x) \<noteq> ([a].x)}"
-  hence "infinite {b::'x. b\<noteq>a \<and> [(if (b=a) then c else a)].([(c,b)]\<bullet>x) \<noteq> ([a].x)}" 
-    by (rule infinite_minus)
-  hence i: "infinite {b::'x. b\<noteq>a \<and> [a].([(c,b)]\<bullet>x) \<noteq> ([a].x)}"
-  proof (auto split add: split_if_asm)
-    assume c1: "infinite {b::'x. b\<noteq>a \<and> (b=a \<or> b\<noteq>a \<and> [a].([(c,b)]\<bullet>x) \<noteq> ([a].x))}"
-    assume c2: "finite {b::'x. b\<noteq>a \<and>  [a].([(c, b)]\<bullet>x) \<noteq> ([a].x)}"
-    have "{b::'x. b\<noteq>a \<and> (b=a \<or> b\<noteq>a \<and> [a].([(c,b)]\<bullet>x) \<noteq> ([a].x))} =
-          {b::'x. b\<noteq>a \<and> [a].([(c,b)]\<bullet>x) \<noteq> ([a].x)}" by force
-    with c1 c2 show False by simp
-  qed
-  from f i show False by (simp add: abs_fun_eq1) 
+proof -
+  have "((supp ([a].x))::'x set) \<subseteq> (supp (x,a))" 
+    proof 
+      fix c
+      assume "c\<in>((supp ([a].x))::'x set)"
+      hence "infinite {b. [(c,b)]\<bullet>([a].x) \<noteq> [a].x}" by (simp add: supp_def)
+      hence "infinite {b. [([(c,b)]\<bullet>a)].([(c,b)]\<bullet>x) \<noteq> [a].x}" by (simp add: abs_fun_pi[OF pt, OF at])
+      moreover
+      have "{b. [([(c,b)]\<bullet>a)].([(c,b)]\<bullet>x) \<noteq> [a].x} \<subseteq> {b. ([(c,b)]\<bullet>x,[(c,b)]\<bullet>a) \<noteq> (x, a)}"
+	apply(rule subsetI)
+	apply(simp only: mem_Collect_eq)
+	apply(auto)
+	done
+      (*by force*)
+      ultimately have "infinite {b. ([(c,b)]\<bullet>x,[(c,b)]\<bullet>a) \<noteq> (x, a)}" by (simp add: infinite_super)
+      thus "c\<in>(supp (x,a))" by (simp add: supp_def)
+    qed
+  thus ?thesis by (simp add: supp_prod at_supp[OF at])
 qed
 
 lemma abs_fun_finite_supp:
@@ -2271,15 +2258,14 @@ lemma perm_eq_lam:
   by (simp add: perm_fun_def)
 
 
-
 (***************************************)
 (* setup for the individial atom-kinds *)
-(* and datatype                        *)
+(* and nominal datatypes               *)
 use "nominal_package.ML"
 setup "NominalPackage.setup"
 
-(**********************************)
-(* setup for induction principles *)
+(*****************************************)
+(* setup for induction principles method *)
 use "nominal_induct.ML";
 method_setup nominal_induct =
   {* nominal_induct_method *}
@@ -2295,7 +2281,7 @@ method_setup perm_simp =
 
 method_setup perm_simp_debug =
   {* perm_eq_meth_debug *}
-  {* tactic for deciding equalities involving permutations including debuging facilities*}
+  {* tactic for deciding equalities involving permutations including debuging facilities *}
 
 method_setup supports_simp =
   {* supports_meth *}
@@ -2303,7 +2289,7 @@ method_setup supports_simp =
 
 method_setup supports_simp_debug =
   {* supports_meth_debug *}
-  {* tactic for deciding equalities involving permutations including debuging facilities*}
+  {* tactic for deciding equalities involving permutations including debuging facilities *}
 
 end
 
