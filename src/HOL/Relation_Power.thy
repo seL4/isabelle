@@ -38,6 +38,14 @@ constraints.*}
 lemma funpow_add: "f ^ (m+n) = f^m o f^n"
 by(induct m) simp_all
 
+lemma funpow_swap1: "f((f^n) x) = (f^n)(f x)"
+proof -
+  have "f((f^n) x) = (f^(n+1)) x" by simp
+  also have "\<dots>  = (f^n o f^1) x" by (simp only:funpow_add)
+  also have "\<dots> = (f^n)(f x)" by simp
+  finally show ?thesis .
+qed
+
 lemma rel_pow_1: "!!R:: ('a*'a)set. R^1 = R"
 by simp
 declare rel_pow_1 [simp]

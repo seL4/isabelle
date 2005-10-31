@@ -683,6 +683,34 @@ proof (induct xs)
   qed
 qed
 
+lemma in_set_conv_decomp_first:
+ "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
+proof (induct xs)
+  case Nil show ?case by simp
+next
+  case (Cons a xs)
+  show ?case
+  proof cases
+    assume "x = a" thus ?case using Cons by force
+  next
+    assume "x \<noteq> a"
+    show ?case
+    proof
+      assume "x \<in> set (a # xs)"
+      from prems show "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
+	by(fastsimp intro!: Cons_eq_appendI)
+    next
+      assume "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
+      then obtain ys zs where eq: "a # xs = ys @ x # zs" by blast
+      show "x \<in> set (a # xs)" by (cases ys, auto simp add: eq)
+    qed
+  qed
+qed
+
+lemmas split_list       = in_set_conv_decomp[THEN iffD1, standard]
+lemmas split_list_first = in_set_conv_decomp_first[THEN iffD1, standard]
+
+
 lemma finite_list: "finite A ==> EX l. set l = A"
 apply (erule finite_induct, auto)
 apply (rule_tac x="x#l" in exI, auto)
@@ -876,6 +904,16 @@ by (induct "xs") auto
 lemma nth_map [simp]: "!!n. n < length xs ==> (map f xs)!n = f(xs!n)"
 apply (induct xs, simp)
 apply (case_tac n, auto)
+done
+
+
+lemma list_eq_iff_nth_eq:
+ "!!ys. (xs = ys) = (length xs = length ys \<and> (ALL i<length xs. xs!i = ys!i))"
+apply(induct xs)
+ apply simp apply blast
+apply(case_tac ys)
+ apply simp
+apply(simp add:nth_Cons split:nat.split)apply blast
 done
 
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
@@ -1789,6 +1827,11 @@ by(auto simp: distinct_conv_nth)
 
 subsubsection {* @{text remove1} *}
 
+lemma remove1_append:
+  "remove1 x (xs @ ys) =
+  (if x \<in> set xs then remove1 x xs @ ys else xs @ remove1 x ys)"
+by (induct xs) auto
+
 lemma set_remove1_subset: "set(remove1 x xs) <= set xs"
 apply(induct xs)
  apply simp
@@ -1802,6 +1845,10 @@ apply(induct xs)
 apply simp
 apply blast
 done
+
+lemma remove1_filter_not[simp]:
+  "\<not> P x \<Longrightarrow> remove1 x (filter P xs) = filter P xs"
+by(induct xs) auto
 
 lemma notin_set_remove1[simp]: "x ~: set xs ==> x ~: set(remove1 y xs)"
 apply(insert set_remove1_subset)
@@ -1904,6 +1951,9 @@ by(simp add:rotate_def funpow_add)
 
 lemma rotate_rotate: "rotate m (rotate n xs) = rotate (m+n) xs"
 by(simp add:rotate_add)
+
+lemma rotate1_rotate_swap: "rotate1 (rotate n xs) = rotate n (rotate1 xs)"
+by(simp add:rotate_def funpow_swap1)
 
 lemma rotate1_length01[simp]: "length xs <= 1 \<Longrightarrow> rotate1 xs = xs"
 by(cases xs) simp_all
