@@ -142,7 +142,9 @@ fun simple is_open (thy, prop) = prep_case is_open thy (NONE, prop);
 
 (* params *)
 
-fun rename_params xss thm = foldln Thm.rename_params_rule xss thm
+fun rename_params xss thm =
+  thm
+  |> fold_index (fn (i, xs) => Thm.rename_params_rule (xs, i+1)) xss
   |> save thm;
 
 fun params xss = Drule.rule_attribute (K (rename_params xss));

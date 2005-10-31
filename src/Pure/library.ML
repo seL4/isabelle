@@ -99,7 +99,7 @@ sig
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
-  val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
+  val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
@@ -504,7 +504,11 @@ fun foldr1 f l =
         | itr (x::l) = f(x, itr l)
   in  itr l  end;
 
-fun foldln f xs e = fst (foldl (fn ((e,i), x) => (f (x,i) e, i+1)) ((e,1),xs));
+fun fold_index f =
+  let
+    fun fold_aux _  [] y = y
+      | fold_aux i (x :: xs) y = fold_aux (i+1) xs (f (i, x) y);
+  in fold_aux 0 end;
 
 fun foldl_map f =
   let

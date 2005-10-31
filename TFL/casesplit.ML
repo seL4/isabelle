@@ -336,31 +336,24 @@ prefer leaving more fine grain control to the user. *)
 
 (* derive eqs, assuming strict, ie the rules have no assumptions = all
    the well-foundness conditions have been solved. *)
-local
-  fun get_related_thms i =
-      List.mapPartial ((fn (r,x) => if x = i then SOME r else NONE));
-
-  fun solve_eq (th, [], i) =
-      raise ERROR_MESSAGE "derive_init_eqs: missing rules"
-    | solve_eq (th, [a], i) = (a, i)
-    | solve_eq (th, splitths as (_ :: _), i) = (splitto splitths th,i);
-in
 fun derive_init_eqs sgn rules eqs =
-    let
-      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o Data.mk_Trueprop)
-                      eqs
-    in
-      (rev o map solve_eq)
-        (Library.foldln
-           (fn (e,i) =>
-               (curry (op ::)) (e, (get_related_thms (i - 1) rules), i - 1))
-           eqths [])
-    end;
-end;
-(*
-    val (rs_hwfc, unhidefs) = Library.split_list (map hide_prems rules)
-    (map2 (op |>) (ths, expfs))
-*)
+  let
+    fun get_related_thms i =
+      List.mapPartial ((fn (r, x) => if x = i then SOME r else NONE));
+    fun add_eq (i, e) xs =
+      (e, (get_related_thms i rules), i) :: xs
+    fun solve_eq (th, [], i) =
+          raise ERROR_MESSAGE "derive_init_eqs: missing rules"
+      | solve_eq (th, [a], i) = (a, i)
+      | solve_eq (th, splitths as (_ :: _), i) = (splitto splitths th, i);
+    val eqths =
+      map (Thm.trivial o Thm.cterm_of sgn o Data.mk_Trueprop) eqs;
+  in
+    []
+    |> fold_index add_eq eqths 
+    |> map solve_eq
+    |> rev
+  end;
 
 end;
 

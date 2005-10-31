@@ -120,13 +120,15 @@ val split_rule_ss = HOL_basic_ss addsimps [split_conv, fst_conv, snd_conv];
 
 fun split_rule_goal xss rl =
   let
-    fun one_split i (th, s) = Tactic.rule_by_tactic (pair_tac s i) th;
-    fun one_goal (xs, i) th = Library.foldl (one_split i) (th, xs);
+    fun one_split i s = Tactic.rule_by_tactic (pair_tac s i);
+    fun one_goal (i, xs) = fold (one_split (i+1)) xs;
   in
-    Drule.standard (Simplifier.full_simplify split_rule_ss (Library.foldln one_goal xss rl))
+    rl
+    |> Library.fold_index one_goal xss
+    |> Simplifier.full_simplify split_rule_ss
+    |> Drule.standard 
     |> RuleCases.save rl
   end;
-
 
 (* attribute syntax *)
 
