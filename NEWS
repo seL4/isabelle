@@ -94,6 +94,18 @@ are no longer reserved, significant speedup.
 * Library: new module Pure/General/rat.ML implementing rational numbers,
 replacing the former functions in the Isabelle library.
 
+* Library: indexed lists - some functions in the Isabelle library
+treating lists over 'a as finite mappings from [0...n] to 'a
+have been given more convenient names and signatures reminiscent
+of similar functions for alists, tables, etc:
+
+  val nth: 'a list -> int -> 'a 
+  val nth_update: int * 'a -> 'a list -> 'a list
+  val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
+  val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
+
+Note that fold_index starts counting at index 0, not 1 like foldln used to.
+
 * Pure: primitive rule lift_rule now takes goal cterm instead of an
 actual goal state (thm).  Use Thm.lift_rule (Thm.cgoal_of st i) to
 achieve the old behaviour.
