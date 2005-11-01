@@ -9,21 +9,24 @@ local
 (*      tuple_lambda [a] t       produces %a . t                              *) 
 (*      tuple_lambda [a,b,c] t   produces %(a,b,c). t                         *)
 
-  fun tuple_lambda [] t  = Abs ("x", HOLogic.unitT, t)
-    | tuple_lambda [x] t = lambda x t
-    | tuple_lambda (x::xs) t =
-       let
-         val t' = tuple_lambda xs t;
-         val Type ("fun", [T,U]) = fastype_of t';
-       in
-         HOLogic.split_const (fastype_of x,T,U) $ lambda x t'
-       end; 
+fun tuple_lambda [] t  = Abs ("x", HOLogic.unitT, t)
+  | tuple_lambda [x] t = lambda x t
+  | tuple_lambda (x::xs) t =
+    let
+        val t' = tuple_lambda xs t;
+        val Type ("fun", [T,U]) = fastype_of t';
+    in
+        HOLogic.split_const (fastype_of x,T,U) $ lambda x t'
+    end; 
 
 fun find_var frees name =
   (case Library.find_first (equal name o fst o dest_Free) frees of
     NONE => error ("No such Variable in term: " ^ quote name)
   | SOME v => v);
 
+(* - names specifies the variables that are involved in the *)
+(*   induction                                              *)
+(* - rule is the induction rule to be applied               *)              
 fun nominal_induct_tac (names, rule) facts state =
   let
     val sg     = Thm.sign_of_thm state;
@@ -38,7 +41,7 @@ fun nominal_induct_tac (names, rule) facts state =
         val concl_vars = map Var (rev (Term.add_vars (Thm.concl_of rule) []));
         val (P :: ts, x) = split_last concl_vars
           handle Empty => error "Malformed conclusion of induction rule"
-            | Bind => error "Malformed conclusion of induction rule";
+               | Bind  => error "Malformed conclusion of induction rule";
       in
         cterm_instantiate
           ((cert P, cert (fold_rev lambda vars (tuple_lambda frees' (HOLogic.dest_Trueprop goal)))) ::

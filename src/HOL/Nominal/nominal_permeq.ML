@@ -103,11 +103,6 @@ fun supports_tac tactical ss i =
 
 in             
 
-(* FIXME simp_modifiers' 
-
-(Markus needs to commit this)
-*)
-
 
 fun simp_meth_setup tac =
   Method.only_sectioned_args (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
