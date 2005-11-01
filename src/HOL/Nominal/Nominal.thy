@@ -293,9 +293,9 @@ proof (induct pi1)
   case Nil show ?case by (simp add: at1[OF at])
 next
   case (Cons x xs)
-  assume i: "(xs @ pi2)\<bullet>c  =  xs\<bullet>(pi2\<bullet>c)"
-  have "(x#xs)@pi2 = x#(xs@pi2)" by simp
-  thus ?case using i by (cases "x", simp add:  at2[OF at])
+  have "(xs@pi2)\<bullet>c  =  xs\<bullet>(pi2\<bullet>c)" by fact
+  also have "(x#xs)@pi2 = x#(xs@pi2)" by simp
+  ultimately show ?case by (cases "x", simp add:  at2[OF at])
 qed
  
 lemma at_swap:
@@ -551,7 +551,7 @@ lemma at_pt_inst:
 apply(auto simp only: pt_def)
 apply(simp only: at1[OF at])
 apply(simp only: at_append[OF at]) 
-apply(simp add: prm_eq_def)
+apply(simp only: prm_eq_def)
 done
 
 section {* finite support properties *}
@@ -895,7 +895,7 @@ lemma pt_set_bij:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "((pi\<bullet>x)\<in>(pi\<bullet>X)) = (x\<in>X)"
-  by (simp add: perm_set_def pt_set_bij1[OF pt, OF at] pt_bij[OF pt, OF at])
+  by (simp add: perm_set_def pt_bij[OF pt, OF at])
 
 lemma pt_set_bij2:
   fixes pi :: "'x prm"
@@ -1266,7 +1266,7 @@ lemma supports_subset:
   and   S1 :: "'x set"
   and   S2 :: "'x set"
   assumes  a: "S1 supports x"
-  and      b: "S1\<subseteq>S2"
+  and      b: "S1 \<subseteq> S2"
   shows "S2 supports x"
   using a b
   by (force simp add: "op supports_def")
