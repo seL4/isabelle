@@ -37,7 +37,7 @@ consts
   constr_sconc' :: "nat => 'a stream => 'a stream => 'a stream"
 
 defs
-  i_rt_def: "i_rt == %i s. iterate i rt s"
+  i_rt_def: "i_rt == %i s. iterate i$rt$s"
   i_th_def: "i_th == %i s. ft$(i_rt i s)"
 
   sconc_def: "s1 ooo s2 == case #s1 of
@@ -136,8 +136,8 @@ by auto
 lemma surjectiv_scons: "(ft$s)&&(rt$s)=s"
 by (rule stream.casedist [of s], auto)
 
-lemma monofun_rt_mult: "x << s ==> iterate i rt x << iterate i rt s"
-by (insert monofun_iterate2 [of i "rt"], simp add: monofun_def, auto)
+lemma monofun_rt_mult: "x << s ==> iterate i$rt$x << iterate i$rt$s"
+by (rule monofun_cfun_arg)
 
 
 
@@ -152,7 +152,7 @@ section "stream_take"
 lemma stream_reach2: "(LUB i. stream_take i$s) = s"
 apply (insert stream.reach [of s], erule subst) back
 apply (simp add: fix_def2 stream.take_def)
-apply (insert contlub_cfun_fun [of "%i. iterate i stream_copy UU" s,THEN sym])
+apply (insert contlub_cfun_fun [of "%i. iterate i$stream_copy$UU" s,THEN sym])
 by (simp add: chain_iterate)
 
 lemma chain_stream_take: "chain (%i. stream_take i$s)"
@@ -470,10 +470,10 @@ apply (erule_tac x="s" in allE, simp)
 apply (drule slen_mono_lemma, auto)
 by (simp add: slen_def)
 
-lemma iterate_lemma: "F$(iterate n F x) = iterate n F (F$x)"
+lemma iterate_lemma: "F$(iterate n$F$x) = iterate n$F$(F$x)"
 by (insert iterate_Suc2 [of n F x], auto)
 
-lemma slen_rt_mult [rule_format]: "!x. Fin (i + j) <= #x --> Fin j <= #(iterate i rt x)"
+lemma slen_rt_mult [rule_format]: "!x. Fin (i + j) <= #x --> Fin j <= #(iterate i$rt$x)"
 apply (induct_tac i, auto)
 apply (case_tac "x=UU", auto)
 apply (simp add: inat_defs)
@@ -970,11 +970,8 @@ lemma contlub_sconc_lemma:
   "chain Y ==> (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
 apply (case_tac "#x=Infty")
  apply (simp add: sconc_def)
- prefer 2
- apply (drule finite_lub_sconc,auto simp add: slen_infinite)
-apply (simp add: slen_def)
-apply (insert lub_const [of x] unique_lub [of _ x _])
-by (auto simp add: lub)
+apply (drule finite_lub_sconc,auto simp add: slen_infinite)
+done
 
 lemma contlub_sconc: "contlub (%y. x ooo y)"
 by (rule contlubI, insert contlub_sconc_lemma [of _ x], simp)
