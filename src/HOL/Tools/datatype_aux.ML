@@ -238,7 +238,7 @@ fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
          NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
        | SOME vs => if map (try dest_TFree) Ts = map SOME vs then
              DtRec (find_index (curry op = tname o fst) new_dts)
-           else error ("Illegal occurence of recursive type " ^ tname));
+           else error ("Illegal occurrence of recursive type " ^ tname));
 
 fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) sorts) a)
   | typ_of_dtyp descr sorts (DtRec i) =
