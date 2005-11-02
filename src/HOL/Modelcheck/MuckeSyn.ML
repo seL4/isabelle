@@ -79,16 +79,13 @@ case redex of
             ((rtac inst_move_thm i) THEN (dtac eq_reflection i) 
 		THEN (move_mus i)) state
 	end
-end; (* outer let *)
-end; (* local *)
+end;
+end;
 
 
-(* Type of call_mucke_tac has changed: an argument t of type thy was inserted (TH); *)
-(* Normally t can be user-instantiated by the value thy of the Isabelle context     *)
 fun call_mucke_tac i state =
 let val thy = Thm.theory_of_thm state;
-    val (subgoal::_) = Library.drop(i-1,prems_of state);
-    val OraAss = mc_mucke_oracle thy subgoal;
+    val OraAss = mc_mucke_oracle thy (Logic.nth_prem (i, Thm.prop_of state))
 in 
 (cut_facts_tac [OraAss] i) state
 end;
