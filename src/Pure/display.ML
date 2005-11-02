@@ -195,14 +195,15 @@ fun pretty_full_theory thy =
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
     val {axioms, defs = _, oracles} = Theory.rep_theory thy;
-    val {naming, syn = _, tsig, consts = (consts, constraints)} = Sign.rep_sg thy;
+    val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
+    val {declarations, constraints} = Consts.dest consts;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
     val clsses = NameSpace.dest_table (apsnd (Symtab.make o Graph.dest) classes);
     val tdecls = NameSpace.dest_table types;
     val arties = NameSpace.dest_table (Sign.type_space thy, arities);
-    val cnsts = NameSpace.extern_table consts |> map (apsnd (fst o fst));
-    val cnsts' = NameSpace.extern_table (#1 consts, constraints);
+    val cnsts = NameSpace.extern_table declarations;
+    val cnsts' = NameSpace.extern_table constraints;
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
   in
