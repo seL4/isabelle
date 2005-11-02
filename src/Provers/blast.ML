@@ -178,17 +178,16 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) 
 		 | SOME v => v)
 
 (*refer to the theory in which blast is initialized*)
-val monomorphic = ref (fn (_: string) => false);
+val typargs = ref (fn (_: string) => fn (T: typ) => [T]);
 
 (*Convert a Term.Const to a Blast.Const or Blast.TConst,
-  converting its type to a Blast.term in the latter case.
-  For efficiency, Const is used for FOL and for the logical constants.
-  We can't use it for all non-overloaded operators because some preservation
-  of type information is necessary to prevent PROOF FAILED elsewhere.*)
-fun fromConst alist (a,T) = 
-  if not Data.is_hol orelse a mem_string ["All","Ex","all"] orelse
-    ! monomorphic a then Const a
-  else TConst(a, fromType alist T);
+  converting its type to a Blast.term in the latter case.*)
+fun fromConst alist (a as "all", _) = Const a
+  | fromConst alist (a, T) =
+      (case ! typargs a T of
+        [] => Const a
+      | [T] => TConst (a, fromType alist T)
+      | Ts => TConst (a, list_comb (Const "*typargs*", map (fromType alist) Ts)));
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)
@@ -1242,7 +1241,7 @@ fun fromSubgoal t =
 
 fun initialize thy = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
-     nclosed := 0;  ntried := 1;  monomorphic := Sign.monomorphic thy);
+     nclosed := 0;  ntried := 1;  typargs := Sign.const_typargs thy);
 
 
 (*Tactic using tableau engine and proof reconstruction.  
