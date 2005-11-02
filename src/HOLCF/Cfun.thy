@@ -204,7 +204,8 @@ by (rule monofun_Rep_CFun2 [THEN ch2ch_monofun])
 lemma ch2ch_Rep_CFunL: "chain F \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>x)"
 by (rule monofun_Rep_CFun1 [THEN ch2ch_monofun])
 
-lemma ch2ch_Rep_CFun: "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>(Y i))"
+lemma ch2ch_Rep_CFun [simp]:
+  "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>(Y i))"
 apply (rule chainI)
 apply (rule monofun_cfun)
 apply (erule chainE)
@@ -215,12 +216,7 @@ text {* contlub, cont properties of @{term Rep_CFun} in both arguments *}
 
 lemma contlub_cfun: 
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. F i\<cdot>(Y i))"
-apply (simp only: contlub_cfun_fun)
-apply (simp only: contlub_cfun_arg)
-apply (rule diag_lub)
-apply (erule monofun_Rep_CFun1 [THEN ch2ch_monofun])
-apply (erule monofun_Rep_CFun2 [THEN ch2ch_monofun])
-done
+by (simp add: contlub_cfun_fun contlub_cfun_arg diag_lub)
 
 lemma cont_cfun: 
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> range (\<lambda>i. F i\<cdot>(Y i)) <<| (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
@@ -250,7 +246,7 @@ text {* a lemma about the exchange of lubs for type @{typ "'a -> 'b"} *}
 
 lemma ex_lub_cfun:
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>j. \<Squnion>i. F j\<cdot>(Y i)) = (\<Squnion>i. \<Squnion>j. F j\<cdot>(Y i))"
-by (simp add: diag_lub ch2ch_Rep_CFunL ch2ch_Rep_CFunR)
+by (simp add: diag_lub)
 
 text {* the lub of a chain of cont. functions is continuous *}
 
@@ -417,7 +413,7 @@ consts
 
 syntax  "@oo" :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c" (infixr "oo" 100)
      
-translations  "f1 oo f2" == "cfcomp$f1$f2"
+translations  "f oo g" == "cfcomp\<cdot>f\<cdot>g"
 
 defs
   ID_def: "ID \<equiv> (\<Lambda> x. x)"
@@ -473,7 +469,7 @@ lemma contlub_strictify2: "contlub (\<lambda>x. if x = \<bottom> then \<bottom> 
 apply (rule contlubI)
 apply (case_tac "lub (range Y) = \<bottom>")
 apply (drule (1) chain_UU_I)
-apply (simp add: thelub_const)
+apply simp
 apply (simp del: if_image_distrib)
 apply (simp only: contlub_cfun_arg)
 apply (rule lub_equal2)
@@ -508,6 +504,6 @@ syntax
 
 translations
   "_CLet (_binds b bs) e" == "_CLet b (_CLet bs e)"
-  "Let x = a in e" == "CLet$a$(LAM x. e)"
+  "Let x = a in e" == "CLet\<cdot>a\<cdot>(\<Lambda> x. e)"
 
 end
