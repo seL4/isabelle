@@ -9,6 +9,8 @@ signature BASIC_OUTER_SYNTAX =
 sig
   structure Isar:
     sig
+      val state: unit -> Toplevel.state
+      val exn: unit -> (exn * string) option
       val main: unit -> unit
       val loop: unit -> unit
       val sync_main: unit -> unit
@@ -319,6 +321,8 @@ fun gen_main term no_pos =
 
 structure Isar =
 struct
+  val state = Toplevel.get_state;
+  val exn = Toplevel.exn;
   fun main () = gen_main false false;
   fun loop () = gen_loop false false;
   fun sync_main () = gen_main true true;
@@ -340,4 +344,3 @@ structure ThyLoad: THY_LOAD = ThyLoad;
 
 structure BasicOuterSyntax: BASIC_OUTER_SYNTAX = OuterSyntax;
 open BasicOuterSyntax;
-open Isar;
