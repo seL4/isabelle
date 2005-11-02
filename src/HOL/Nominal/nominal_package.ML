@@ -49,6 +49,9 @@ fun mk_Cons x xs =
   let val T = fastype_of x
   in Const ("List.list.Cons", T --> mk_listT T --> mk_listT T) $ x $ xs end;
 
+(* FIXME: should be a library function *)
+fun cprod ([], ys) = []
+  | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
 (* this function sets up all matters related to atom-  *)
 (* kinds; the user specifies a list of atom-kind names *)
@@ -771,9 +774,9 @@ fun create_nom_typedecls ak_names thy =
        val pt_perm_compose   = PureThy.get_thm thy32 (Name ("nominal.pt_perm_compose"));
        val perm_eq_app       = PureThy.get_thm thy32 (Name ("nominal.perm_eq_app"));
        val at_fresh          = PureThy.get_thm thy32 (Name ("nominal.at_fresh"));
-       (*val at_calc           = PureThy.get_thms thy32 (Name ("nominal.at_calc"));*)
+       val at_calc           = PureThy.get_thms thy32 (Name ("nominal.at_calc"));
        val at_supp           = PureThy.get_thm thy32 (Name ("nominal.at_supp"));
-       val dj_supp           = PureThy.get_thm thy32 (Name ("nominal.at_supp"));
+       val dj_supp           = PureThy.get_thm thy32 (Name ("nominal.dj_supp"));
 
        (* abs_perm collects all lemmas for simplifying a permutation *)
        (* in front of an abs_fun                                     *)
@@ -797,34 +800,51 @@ fun create_nom_typedecls ak_names thy =
            end;
 
        val (thy34,_) = 
-	   let 
-	       fun inst_pt_at thm ak_name =
-		 let	
-		   val at_inst = PureThy.get_thm thy33 (Name ("at_"^ak_name^"_inst"));
-		   val pt_inst = PureThy.get_thm thy33 (Name ("pt_"^ak_name^"_inst"));	      
-	         in
-                     [pt_inst, at_inst] MRS thm
-	         end	
-               fun inst_at thm ak_name =
-		 let	
-		   val at_inst = PureThy.get_thm thy33 (Name ("at_"^ak_name^"_inst"));
-                 in
-                     at_inst RS thm
-	         end
+	 let 
+             (* takes a theorem and a list of theorems        *)
+             (* produces a list of theorems of the form       *)
+             (* [t1 RS thm,..,tn RS thm] where t1..tn in thms *) 
+             fun instantiate thm thms = map (fn ti => ti RS thm) thms;
+               
+             (* takes two theorem lists (hopefully of the same length)           *)
+             (* produces a list of theorems of the form                          *)
+             (* [t1 RS m1,..,tn RS mn] where t1..tn in thms1 and m1..mn in thms2 *) 
+             fun instantiate_zip thms1 thms2 = 
+		 map (fn (t1,t2) => t1 RS t2) (thms1 ~~ thms2);
+
+             (* list of all at_inst-theorems *)
+             val ats = map (fn ak => PureThy.get_thm thy33 (Name ("at_"^ak^"_inst"))) ak_names
+             (* list of all pt_inst-theorems *)
+             val pts = map (fn ak => PureThy.get_thm thy33 (Name ("pt_"^ak^"_inst"))) ak_names
+             (* list of all cp_inst-theorems *)
+             val cps = 
+	       let fun cps_fun (ak1,ak2) = PureThy.get_thm thy33 (Name ("cp_"^ak1^"_"^ak2^"_inst"))
+	       in map cps_fun (cprod (ak_names,ak_names)) end;	
+             (* list of all dj_inst-theorems *)
+             val djs = 
+	       let fun djs_fun (ak1,ak2) = 
+		    if ak1=ak2 
+		    then NONE
+		    else SOME(PureThy.get_thm thy33 (Name ("dj_"^ak1^"_"^ak2)))
+	       in List.mapPartial I (map djs_fun (cprod (ak_names,ak_names))) end;	
+
+             fun inst_pt thms = Library.flat (map (fn ti => instantiate ti pts) thms); 
+             fun inst_at thms = Library.flat (map (fn ti => instantiate ti ats) thms);               
+	     fun inst_pt_at thms = instantiate_zip ats (inst_pt thms);			
+             fun inst_dj thms = Library.flat (map (fn ti => instantiate ti djs) thms);  
 
            in
             thy33 
-	    |> PureThy.add_thmss   [(("alpha", map (inst_pt_at abs_fun_eq) ak_names),[])]
-            |>>> PureThy.add_thmss [(("perm_swap", map (inst_pt_at pt_swap_bij) ak_names),[])]
-            |>>> PureThy.add_thmss [(("perm_fresh_fresh", map (inst_pt_at pt_fresh_fresh) ak_names),[])]
-            |>>> PureThy.add_thmss [(("perm_bij", map (inst_pt_at pt_bij) ak_names),[])]
-            |>>> PureThy.add_thmss [(("perm_compose", map (inst_pt_at pt_perm_compose) ak_names),[])]
-            |>>> PureThy.add_thmss [(("perm_app_eq", map (inst_pt_at perm_eq_app) ak_names),[])]
-            |>>> PureThy.add_thmss [(("supp_at", map (inst_at at_supp) ak_names),[])]
-            (*|>>> PureThy.add_thmss [(("fresh_at", map (inst_at at_fresh) ak_names),
-                                    [Simplifier.simp_add_global])]*)
-            (*|>>> PureThy.add_thmss [(("calc_at", map (inst_at at_calc) ak_names),
-                                    [Simplifier.simp_add_global])]*)
+	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
+            |>>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
+            |>>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
+            |>>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
+            |>>> PureThy.add_thmss [(("perm_compose", inst_pt_at [pt_perm_compose]),[])]
+            |>>> PureThy.add_thmss [(("perm_app_eq", inst_pt_at [perm_eq_app]),[])]
+            |>>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
+            |>>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
+            |>>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
+            
 	   end;
 
          (* perm_dj collects all lemmas that forget an permutation *)
@@ -1900,7 +1920,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val indnames = DatatypeProp.make_tnames recTs;
 
     val abs_supp = PureThy.get_thms thy8 (Name "abs_supp");
-    val supp_at = PureThy.get_thms thy8 (Name "supp_at");
+    val supp_atm = PureThy.get_thms thy8 (Name "supp_atm");
 
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
@@ -1912,7 +1932,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                (indnames ~~ recTs))))
            (fn _ => indtac dt_induct indnames 1 THEN
             ALLGOALS (asm_full_simp_tac (simpset_of thy8 addsimps
-              (abs_supp @ supp_at @
+              (abs_supp @ supp_atm @
                PureThy.get_thms thy8 (Name ("fs_" ^ Sign.base_name atom ^ "1")) @
                List.concat supp_thms))))),
          length new_type_names))
