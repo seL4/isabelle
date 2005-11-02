@@ -1,0 +1,929 @@
+(* $Id$ *)
+
+signature NOMINAL_ATOMS =
+sig
+  val create_nom_typedecls : string list -> theory -> theory
+  val atoms_of : theory -> string list
+  val mk_permT : typ -> typ
+  val setup : (theory -> theory) list
+end
+
+structure NominalAtoms : NOMINAL_ATOMS =
+struct
+
+(* data kind 'HOL/nominal' *)
+
+structure NominalArgs =
+struct
+  val name = "HOL/nominal";
+  type T = unit Symtab.table;
+
+  val empty = Symtab.empty;
+  val copy = I;
+  val extend = I;
+  fun merge _ x = Symtab.merge (K true) x;
+
+  fun print sg tab = ();
+end;
+
+structure NominalData = TheoryDataFun(NominalArgs);
+
+fun atoms_of thy = map fst (Symtab.dest (NominalData.get thy));
+
+(* FIXME: add to hologic.ML ? *)
+fun mk_listT T = Type ("List.list", [T]);
+fun mk_permT T = mk_listT (HOLogic.mk_prodT (T, T));
+
+fun mk_Cons x xs =
+  let val T = fastype_of x
+  in Const ("List.list.Cons", T --> mk_listT T --> mk_listT T) $ x $ xs end;
+
+(* FIXME: should be a library function *)
+fun cprod ([], ys) = []
+  | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
+
+(* this function sets up all matters related to atom-  *)
+(* kinds; the user specifies a list of atom-kind names *)
+(* atom_decl <ak1> ... <akn>                           *)
+fun create_nom_typedecls ak_names thy =
+  let
+    (* declares a type-decl for every atom-kind: *) 
+    (* that is typedecl <ak>                     *)
+    val thy1 = TypedefPackage.add_typedecls (map (fn x => (x,[],NoSyn)) ak_names) thy;
+    
+    (* produces a list consisting of pairs:         *)
+    (*  fst component is the atom-kind name         *)
+    (*  snd component is its type                   *)
+    val full_ak_names = map (Sign.intern_type (sign_of thy1)) ak_names;
+    val ak_names_types = ak_names ~~ map (Type o rpair []) full_ak_names;
+     
+    (* adds for every atom-kind an axiom             *)
+    (* <ak>_infinite: infinite (UNIV::<ak_type> set) *)
+    val (thy2,inf_axs) = PureThy.add_axioms_i (map (fn (ak_name, T) =>
+      let 
+	val name = ak_name ^ "_infinite"
+        val axiom = HOLogic.mk_Trueprop (HOLogic.mk_not
+                    (HOLogic.mk_mem (HOLogic.mk_UNIV T,
+                     Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT T)))))
+      in
+	((name, axiom), []) 
+      end) ak_names_types) thy1;
+    
+    (* declares a swapping function for every atom-kind, it is         *)
+    (* const swap_<ak> :: <akT> * <akT> => <akT> => <akT>              *)
+    (* swap_<ak> (a,b) c = (if a=c then b (else if b=c then a else c)) *)
+    (* overloades then the general swap-function                       *) 
+    val (thy3, swap_eqs) = foldl_map (fn (thy, (ak_name, T)) =>
+      let
+        val swapT = HOLogic.mk_prodT (T, T) --> T --> T;
+        val swap_name = Sign.full_name (sign_of thy) ("swap_" ^ ak_name);
+        val a = Free ("a", T);
+        val b = Free ("b", T);
+        val c = Free ("c", T);
+        val ab = Free ("ab", HOLogic.mk_prodT (T, T))
+        val cif = Const ("HOL.If", HOLogic.boolT --> T --> T --> T);
+        val cswap_akname = Const (swap_name, swapT);
+        val cswap = Const ("nominal.swap", swapT)
+
+        val name = "swap_"^ak_name^"_def";
+        val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq
+		   (cswap_akname $ HOLogic.mk_prod (a,b) $ c,
+                    cif $ HOLogic.mk_eq (a,c) $ b $ (cif $ HOLogic.mk_eq (b,c) $ a $ c)))
+        val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
+      in
+        thy |> Theory.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
+            |> (#1 o PureThy.add_defs_i true [((name, def2),[])])
+            |> PrimrecPackage.add_primrec_i "" [(("", def1),[])]            
+      end) (thy2, ak_names_types);
+    
+    (* declares a permutation function for every atom-kind acting  *)
+    (* on such atoms                                               *)
+    (* const <ak>_prm_<ak> :: (<akT> * <akT>)list => akT => akT    *)
+    (* <ak>_prm_<ak> []     a = a                                  *)
+    (* <ak>_prm_<ak> (x#xs) a = swap_<ak> x (perm xs a)            *)
+    val (thy4, prm_eqs) = foldl_map (fn (thy, (ak_name, T)) =>
+      let
+        val swapT = HOLogic.mk_prodT (T, T) --> T --> T;
+        val swap_name = Sign.full_name (sign_of thy) ("swap_" ^ ak_name)
+        val prmT = mk_permT T --> T --> T;
+        val prm_name = ak_name ^ "_prm_" ^ ak_name;
+        val qu_prm_name = Sign.full_name (sign_of thy) prm_name;
+        val x  = Free ("x", HOLogic.mk_prodT (T, T));
+        val xs = Free ("xs", mk_permT T);
+        val a  = Free ("a", T) ;
+
+        val cnil  = Const ("List.list.Nil", mk_permT T);
+        
+        val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (qu_prm_name, prmT) $ cnil $ a, a));
+
+        val def2 = HOLogic.mk_Trueprop (HOLogic.mk_eq
+                   (Const (qu_prm_name, prmT) $ mk_Cons x xs $ a,
+                    Const (swap_name, swapT) $ x $ (Const (qu_prm_name, prmT) $ xs $ a)));
+      in
+        thy |> Theory.add_consts_i [(prm_name, mk_permT T --> T --> T, NoSyn)] 
+            |> PrimrecPackage.add_primrec_i "" [(("", def1), []),(("", def2), [])]
+      end) (thy3, ak_names_types);
+    
+    (* defines permutation functions for all combinations of atom-kinds; *)
+    (* there are a trivial cases and non-trivial cases                   *)
+    (* non-trivial case:                                                 *)
+    (* <ak>_prm_<ak>_def:  perm pi a == <ak>_prm_<ak> pi a               *)
+    (* trivial case with <ak> != <ak'>                                   *)
+    (* <ak>_prm<ak'>_def[simp]:  perm pi a == a                          *)
+    (*                                                                   *)
+    (* the trivial cases are added to the simplifier, while the non-     *)
+    (* have their own rules proved below                                 *)  
+    val (thy5, perm_defs) = foldl_map (fn (thy, (ak_name, T)) =>
+      foldl_map (fn (thy', (ak_name', T')) =>
+        let
+          val perm_def_name = ak_name ^ "_prm_" ^ ak_name';
+          val pi = Free ("pi", mk_permT T);
+          val a  = Free ("a", T');
+          val cperm = Const ("nominal.perm", mk_permT T --> T' --> T');
+          val cperm_def = Const (Sign.full_name (sign_of thy') perm_def_name, mk_permT T --> T' --> T');
+
+          val name = ak_name ^ "_prm_" ^ ak_name' ^ "_def";
+          val def = Logic.mk_equals
+                    (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
+        in
+          thy' |> PureThy.add_defs_i true [((name, def),[])] 
+        end) (thy, ak_names_types)) (thy4, ak_names_types);
+    
+    (* proves that every atom-kind is an instance of at *)
+    (* lemma at_<ak>_inst:                              *)
+    (* at TYPE(<ak>)                                    *)
+    val (thy6, prm_cons_thms) = 
+      thy5 |> PureThy.add_thms (map (fn (ak_name, T) =>
+      let
+        val ak_name_qu = Sign.full_name (sign_of thy5) (ak_name);
+        val i_type = Type(ak_name_qu,[]);
+	val cat = Const ("nominal.at",(Term.itselfT i_type)  --> HOLogic.boolT);
+        val at_type = Logic.mk_type i_type;
+        val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy5
+                                  [Name "at_def",
+                                   Name (ak_name ^ "_prm_" ^ ak_name ^ "_def"),
+                                   Name (ak_name ^ "_prm_" ^ ak_name ^ ".simps"),
+                                   Name ("swap_" ^ ak_name ^ "_def"),
+                                   Name ("swap_" ^ ak_name ^ ".simps"),
+                                   Name (ak_name ^ "_infinite")]
+	    
+	val name = "at_"^ak_name^ "_inst";
+        val statement = HOLogic.mk_Trueprop (cat $ at_type);
+
+        val proof = fn _ => auto_tac (claset(),simp_s);
+
+      in 
+        ((name, standard (Goal.prove thy5 [] [] statement proof)), []) 
+      end) ak_names_types);
+
+    (* declares a perm-axclass for every atom-kind               *)
+    (* axclass pt_<ak>                                           *)
+    (* pt_<ak>1[simp]: perm [] x = x                             *)
+    (* pt_<ak>2:       perm (pi1@pi2) x = perm pi1 (perm pi2 x)  *)
+    (* pt_<ak>3:       pi1 ~ pi2 ==> perm pi1 x = perm pi2 x     *)
+     val (thy7, pt_ax_classes) =  foldl_map (fn (thy, (ak_name, T)) =>
+      let 
+	  val cl_name = "pt_"^ak_name;
+          val ty = TFree("'a",["HOL.type"]);
+          val x   = Free ("x", ty);
+          val pi1 = Free ("pi1", mk_permT T);
+          val pi2 = Free ("pi2", mk_permT T);
+          val cperm = Const ("nominal.perm", mk_permT T --> ty --> ty);
+          val cnil  = Const ("List.list.Nil", mk_permT T);
+          val cappend = Const ("List.op @",mk_permT T --> mk_permT T --> mk_permT T);
+          val cprm_eq = Const ("nominal.prm_eq",mk_permT T --> mk_permT T --> HOLogic.boolT);
+          (* nil axiom *)
+          val axiom1 = HOLogic.mk_Trueprop (HOLogic.mk_eq 
+                       (cperm $ cnil $ x, x));
+          (* append axiom *)
+          val axiom2 = HOLogic.mk_Trueprop (HOLogic.mk_eq
+                       (cperm $ (cappend $ pi1 $ pi2) $ x, cperm $ pi1 $ (cperm $ pi2 $ x)));
+          (* perm-eq axiom *)
+          val axiom3 = Logic.mk_implies
+                       (HOLogic.mk_Trueprop (cprm_eq $ pi1 $ pi2),
+                        HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
+      in
+        thy |> AxClass.add_axclass_i (cl_name, ["HOL.type"])
+                [((cl_name^"1", axiom1),[Simplifier.simp_add_global]), 
+                 ((cl_name^"2", axiom2),[]),                           
+                 ((cl_name^"3", axiom3),[])]                          
+      end) (thy6,ak_names_types);
+
+    (* proves that every pt_<ak>-type together with <ak>-type *)
+    (* instance of pt                                         *)
+    (* lemma pt_<ak>_inst:                                    *)
+    (* pt TYPE('x::pt_<ak>) TYPE(<ak>)                        *)
+    val (thy8, prm_inst_thms) = 
+      thy7 |> PureThy.add_thms (map (fn (ak_name, T) =>
+      let
+        val ak_name_qu = Sign.full_name (sign_of thy7) (ak_name);
+        val pt_name_qu = Sign.full_name (sign_of thy7) ("pt_"^ak_name);
+        val i_type1 = TFree("'x",[pt_name_qu]);
+        val i_type2 = Type(ak_name_qu,[]);
+	val cpt = Const ("nominal.pt",(Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
+        val pt_type = Logic.mk_type i_type1;
+        val at_type = Logic.mk_type i_type2;
+        val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy7
+                                  [Name "pt_def",
+                                   Name ("pt_" ^ ak_name ^ "1"),
+                                   Name ("pt_" ^ ak_name ^ "2"),
+                                   Name ("pt_" ^ ak_name ^ "3")];
+
+	val name = "pt_"^ak_name^ "_inst";
+        val statement = HOLogic.mk_Trueprop (cpt $ pt_type $ at_type);
+
+        val proof = fn _ => auto_tac (claset(),simp_s);
+      in 
+        ((name, standard (Goal.prove thy7 [] [] statement proof)), []) 
+      end) ak_names_types);
+
+     (* declares an fs-axclass for every atom-kind       *)
+     (* axclass fs_<ak>                                  *)
+     (* fs_<ak>1: finite ((supp x)::<ak> set)            *)
+     val (thy11, fs_ax_classes) =  foldl_map (fn (thy, (ak_name, T)) =>
+       let 
+	  val cl_name = "fs_"^ak_name;
+	  val pt_name = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val ty = TFree("'a",["HOL.type"]);
+          val x   = Free ("x", ty);
+          val csupp    = Const ("nominal.supp", ty --> HOLogic.mk_setT T);
+          val cfinites = Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT T))
+          
+          val axiom1   = HOLogic.mk_Trueprop (HOLogic.mk_mem (csupp $ x, cfinites));
+
+       in  
+        thy |> AxClass.add_axclass_i (cl_name, [pt_name]) [((cl_name^"1", axiom1),[])]            
+       end) (thy8,ak_names_types); 
+
+     (* proves that every fs_<ak>-type together with <ak>-type   *)
+     (* instance of fs-type                                      *)
+     (* lemma abst_<ak>_inst:                                    *)
+     (* fs TYPE('x::pt_<ak>) TYPE (<ak>)                         *)
+     val (thy12, fs_inst_thms) = 
+       thy11 |> PureThy.add_thms (map (fn (ak_name, T) =>
+       let
+         val ak_name_qu = Sign.full_name (sign_of thy11) (ak_name);
+         val fs_name_qu = Sign.full_name (sign_of thy11) ("fs_"^ak_name);
+         val i_type1 = TFree("'x",[fs_name_qu]);
+         val i_type2 = Type(ak_name_qu,[]);
+ 	 val cfs = Const ("nominal.fs", 
+                                 (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
+         val fs_type = Logic.mk_type i_type1;
+         val at_type = Logic.mk_type i_type2;
+	 val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy11
+                                   [Name "fs_def",
+                                    Name ("fs_" ^ ak_name ^ "1")];
+    
+	 val name = "fs_"^ak_name^ "_inst";
+         val statement = HOLogic.mk_Trueprop (cfs $ fs_type $ at_type);
+
+         val proof = fn _ => auto_tac (claset(),simp_s);
+       in 
+         ((name, standard (Goal.prove thy11 [] [] statement proof)), []) 
+       end) ak_names_types);
+
+       (* declares for every atom-kind combination an axclass            *)
+       (* cp_<ak1>_<ak2> giving a composition property                   *)
+       (* cp_<ak1>_<ak2>1: pi1 o pi2 o x = (pi1 o pi2) o (pi1 o x)       *)
+        val (thy12b,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+	     let
+	       val cl_name = "cp_"^ak_name^"_"^ak_name';
+	       val ty = TFree("'a",["HOL.type"]);
+               val x   = Free ("x", ty);
+               val pi1 = Free ("pi1", mk_permT T);
+	       val pi2 = Free ("pi2", mk_permT T');                  
+	       val cperm1 = Const ("nominal.perm", mk_permT T  --> ty --> ty);
+               val cperm2 = Const ("nominal.perm", mk_permT T' --> ty --> ty);
+               val cperm3 = Const ("nominal.perm", mk_permT T  --> mk_permT T' --> mk_permT T');
+
+               val ax1   = HOLogic.mk_Trueprop 
+			   (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
+                                           cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
+	       in  
+	       (fst (AxClass.add_axclass_i (cl_name, ["HOL.type"]) [((cl_name^"1", ax1),[])] thy'),())  
+	       end) 
+	   (thy, ak_names_types)) (thy12, ak_names_types)
+
+        (* proves for every <ak>-combination a cp_<ak1>_<ak2>_inst theorem;     *)
+        (* lemma cp_<ak1>_<ak2>_inst:                                           *)
+        (* cp TYPE('a::cp_<ak1>_<ak2>) TYPE(<ak1>) TYPE(<ak2>)                  *)
+        val (thy12c, cp_thms) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+           let
+             val ak_name_qu  = Sign.full_name (sign_of thy') (ak_name);
+	     val ak_name_qu' = Sign.full_name (sign_of thy') (ak_name');
+             val cp_name_qu  = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+             val i_type0 = TFree("'a",[cp_name_qu]);
+             val i_type1 = Type(ak_name_qu,[]);
+             val i_type2 = Type(ak_name_qu',[]);
+	     val ccp = Const ("nominal.cp",
+                             (Term.itselfT i_type0)-->(Term.itselfT i_type1)-->
+                                                      (Term.itselfT i_type2)-->HOLogic.boolT);
+             val at_type  = Logic.mk_type i_type1;
+             val at_type' = Logic.mk_type i_type2;
+	     val cp_type  = Logic.mk_type i_type0;
+             val simp_s   = HOL_basic_ss addsimps PureThy.get_thmss thy' [(Name "cp_def")];
+	     val cp1      = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"1"));
+
+	     val name = "cp_"^ak_name^ "_"^ak_name'^"_inst";
+             val statement = HOLogic.mk_Trueprop (ccp $ cp_type $ at_type $ at_type');
+
+             val proof = fn _ => EVERY [auto_tac (claset(),simp_s), rtac cp1 1];
+	   in
+	     thy' |> PureThy.add_thms 
+                    [((name, standard (Goal.prove thy' [] [] statement proof)), [])]
+	   end) 
+	   (thy, ak_names_types)) (thy12b, ak_names_types);
+       
+        (* proves for every non-trivial <ak>-combination a disjointness   *)
+        (* theorem; i.e. <ak1> != <ak2>                                   *)
+        (* lemma ds_<ak1>_<ak2>:                                          *)
+        (* dj TYPE(<ak1>) TYPE(<ak2>)                                     *)
+        val (thy12d, dj_thms) = foldl_map (fn (thy, (ak_name, T)) =>
+	  foldl_map (fn (thy', (ak_name', T')) =>
+          (if not (ak_name = ak_name') 
+           then 
+	       let
+		 val ak_name_qu  = Sign.full_name (sign_of thy') (ak_name);
+	         val ak_name_qu' = Sign.full_name (sign_of thy') (ak_name');
+                 val i_type1 = Type(ak_name_qu,[]);
+                 val i_type2 = Type(ak_name_qu',[]);
+	         val cdj = Const ("nominal.disjoint",
+                           (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
+                 val at_type  = Logic.mk_type i_type1;
+                 val at_type' = Logic.mk_type i_type2;
+                 val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy' 
+					   [Name "disjoint_def",
+                                            Name (ak_name^"_prm_"^ak_name'^"_def"),
+                                            Name (ak_name'^"_prm_"^ak_name^"_def")];
+
+	         val name = "dj_"^ak_name^"_"^ak_name';
+                 val statement = HOLogic.mk_Trueprop (cdj $ at_type $ at_type');
+
+                 val proof = fn _ => auto_tac (claset(),simp_s);
+	       in
+		   thy' |> PureThy.add_thms 
+                        [((name, standard (Goal.prove thy' [] [] statement proof)), []) ]
+	       end
+           else 
+            (thy',[])))  (* do nothing branch, if ak_name = ak_name' *) 
+	   (thy, ak_names_types)) (thy12c, ak_names_types);
+
+     (*<<<<<<<  pt_<ak> class instances  >>>>>>>*)
+     (*=========================================*)
+     
+     (* some frequently used theorems *)
+      val pt1 = PureThy.get_thm thy12c (Name "pt1");
+      val pt2 = PureThy.get_thm thy12c (Name "pt2");
+      val pt3 = PureThy.get_thm thy12c (Name "pt3");
+      val at_pt_inst    = PureThy.get_thm thy12c (Name "at_pt_inst");
+      val pt_bool_inst  = PureThy.get_thm thy12c (Name "pt_bool_inst");
+      val pt_set_inst   = PureThy.get_thm thy12c (Name "pt_set_inst"); 
+      val pt_unit_inst  = PureThy.get_thm thy12c (Name "pt_unit_inst");
+      val pt_prod_inst  = PureThy.get_thm thy12c (Name "pt_prod_inst"); 
+      val pt_list_inst  = PureThy.get_thm thy12c (Name "pt_list_inst");   
+      val pt_optn_inst  = PureThy.get_thm thy12c (Name "pt_option_inst");   
+      val pt_noptn_inst = PureThy.get_thm thy12c (Name "pt_noption_inst");   
+      val pt_fun_inst   = PureThy.get_thm thy12c (Name "pt_fun_inst");     
+
+     (* for all atom-kind combination shows that         *)
+     (* every <ak> is an instance of pt_<ai>             *)
+     val (thy13,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          (if ak_name = ak_name'
+	   then
+	     let
+	      val qu_name =  Sign.full_name (sign_of thy') ak_name;
+              val qu_class = Sign.full_name (sign_of thy') ("pt_"^ak_name);
+              val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name ^"_inst"));
+              val proof = EVERY [AxClass.intro_classes_tac [],
+                                 rtac ((at_inst RS at_pt_inst) RS pt1) 1,
+                                 rtac ((at_inst RS at_pt_inst) RS pt2) 1,
+                                 rtac ((at_inst RS at_pt_inst) RS pt3) 1,
+                                 atac 1];
+             in 
+	      (AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy',()) 
+             end
+           else 
+             let
+	      val qu_name' = Sign.full_name (sign_of thy') ak_name';
+              val qu_class = Sign.full_name (sign_of thy') ("pt_"^ak_name);
+              val simp_s = HOL_basic_ss addsimps 
+                           PureThy.get_thmss thy' [Name (ak_name^"_prm_"^ak_name'^"_def")];  
+              val proof = EVERY [AxClass.intro_classes_tac [], auto_tac (claset(),simp_s)];
+             in 
+	      (AxClass.add_inst_arity_i (qu_name',[],[qu_class]) proof thy',()) 
+             end)) 
+	     (thy, ak_names_types)) (thy12c, ak_names_types);
+
+     (* shows that bool is an instance of pt_<ak>     *)
+     (* uses the theorem pt_bool_inst                 *)
+     val (thy14,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac (pt_bool_inst RS pt1) 1,
+                             rtac (pt_bool_inst RS pt2) 1,
+                             rtac (pt_bool_inst RS pt3) 1,
+                             atac 1];
+       in 
+	 (AxClass.add_inst_arity_i ("bool",[],[qu_class]) proof thy,()) 
+       end) (thy13,ak_names_types); 
+
+     (* shows that set(pt_<ak>) is an instance of pt_<ak>          *)
+     (* unfolds the permutation definition and applies pt_<ak>i    *)
+     val (thy15,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));  
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((pt_inst RS pt_set_inst) RS pt1) 1,
+                             rtac ((pt_inst RS pt_set_inst) RS pt2) 1,
+                             rtac ((pt_inst RS pt_set_inst) RS pt3) 1,
+                             atac 1];
+       in 
+	 (AxClass.add_inst_arity_i ("set",[[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy14,ak_names_types); 
+
+     (* shows that unit is an instance of pt_<ak>          *)
+     val (thy16,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac (pt_unit_inst RS pt1) 1,
+                             rtac (pt_unit_inst RS pt2) 1,
+                             rtac (pt_unit_inst RS pt3) 1,
+                             atac 1];
+       in 
+	 (AxClass.add_inst_arity_i ("Product_Type.unit",[],[qu_class]) proof thy,()) 
+       end) (thy15,ak_names_types); 
+
+     (* shows that *(pt_<ak>,pt_<ak>) is an instance of pt_<ak> *)
+     (* uses the theorem pt_prod_inst and pt_<ak>_inst          *)
+     val (thy17,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));  
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((pt_inst RS (pt_inst RS pt_prod_inst)) RS pt1) 1,
+                             rtac ((pt_inst RS (pt_inst RS pt_prod_inst)) RS pt2) 1,
+                             rtac ((pt_inst RS (pt_inst RS pt_prod_inst)) RS pt3) 1,
+                             atac 1];
+       in 
+          (AxClass.add_inst_arity_i ("*",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy16,ak_names_types); 
+
+     (* shows that list(pt_<ak>) is an instance of pt_<ak>     *)
+     (* uses the theorem pt_list_inst and pt_<ak>_inst         *)
+     val (thy18,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((pt_inst RS pt_list_inst) RS pt1) 1,
+                             rtac ((pt_inst RS pt_list_inst) RS pt2) 1,
+                             rtac ((pt_inst RS pt_list_inst) RS pt3) 1,
+                             atac 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("List.list",[[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy17,ak_names_types); 
+
+     (* shows that option(pt_<ak>) is an instance of pt_<ak>   *)
+     (* uses the theorem pt_option_inst and pt_<ak>_inst       *)
+     val (thy18a,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((pt_inst RS pt_optn_inst) RS pt1) 1,
+                             rtac ((pt_inst RS pt_optn_inst) RS pt2) 1,
+                             rtac ((pt_inst RS pt_optn_inst) RS pt3) 1,
+                             atac 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("Datatype.option",[[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy18,ak_names_types); 
+
+     (* shows that nOption(pt_<ak>) is an instance of pt_<ak>   *)
+     (* uses the theorem pt_option_inst and pt_<ak>_inst       *)
+     val (thy18b,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((pt_inst RS pt_noptn_inst) RS pt1) 1,
+                             rtac ((pt_inst RS pt_noptn_inst) RS pt2) 1,
+                             rtac ((pt_inst RS pt_noptn_inst) RS pt3) 1,
+                             atac 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("nominal.nOption",[[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy18a,ak_names_types); 
+
+
+     (* shows that fun(pt_<ak>,pt_<ak>) is an instance of pt_<ak>     *)
+     (* uses the theorem pt_list_inst and pt_<ak>_inst                *)
+     val (thy19,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val at_thm   = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
+          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst))) RS pt1) 1,
+                             rtac ((at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst))) RS pt2) 1,
+                             rtac ((at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst))) RS pt3) 1,
+                             atac 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("fun",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy18b,ak_names_types);
+
+       (*<<<<<<<  fs_<ak> class instances  >>>>>>>*)
+       (*=========================================*)
+       val fs1          = PureThy.get_thm thy19 (Name "fs1");
+       val fs_at_inst   = PureThy.get_thm thy19 (Name "fs_at_inst");
+       val fs_unit_inst = PureThy.get_thm thy19 (Name "fs_unit_inst");
+       val fs_bool_inst = PureThy.get_thm thy19 (Name "fs_bool_inst");
+       val fs_prod_inst = PureThy.get_thm thy19 (Name "fs_prod_inst");
+       val fs_list_inst = PureThy.get_thm thy19 (Name "fs_list_inst");
+
+       (* shows that <ak> is an instance of fs_<ak>     *)
+       (* uses the theorem at_<ak>_inst                 *)
+       val (thy20,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_name =  Sign.full_name (sign_of thy) ak_name;
+          val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+          val at_thm   = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((at_thm RS fs_at_inst) RS fs1) 1];      
+       in 
+	 (AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy,()) 
+       end) (thy19,ak_names_types);  
+
+       (* shows that unit is an instance of fs_<ak>     *)
+       (* uses the theorem fs_unit_inst                 *)
+       val (thy21,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac (fs_unit_inst RS fs1) 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("Product_Type.unit",[],[qu_class]) proof thy,()) 
+       end) (thy20,ak_names_types);  
+
+       (* shows that bool is an instance of fs_<ak>     *)
+       (* uses the theorem fs_bool_inst                 *)
+       val (thy22,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac (fs_bool_inst RS fs1) 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("bool",[],[qu_class]) proof thy,()) 
+       end) (thy21,ak_names_types);  
+
+       (* shows that *(fs_<ak>,fs_<ak>) is an instance of fs_<ak>     *)
+       (* uses the theorem fs_prod_inst                               *)
+       val (thy23,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+          val fs_inst  = PureThy.get_thm thy (Name ("fs_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                             rtac ((fs_inst RS (fs_inst RS fs_prod_inst)) RS fs1) 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("*",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy22,ak_names_types);  
+
+       (* shows that list(fs_<ak>) is an instance of fs_<ak>     *)
+       (* uses the theorem fs_list_inst                          *)
+       val (thy24,_) = foldl_map (fn (thy, (ak_name, T)) =>
+       let
+          val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+          val fs_inst  = PureThy.get_thm thy (Name ("fs_"^ak_name^"_inst"));
+          val proof = EVERY [AxClass.intro_classes_tac [],
+                              rtac ((fs_inst RS fs_list_inst) RS fs1) 1];      
+       in 
+	 (AxClass.add_inst_arity_i ("List.list",[[qu_class]],[qu_class]) proof thy,()) 
+       end) (thy23,ak_names_types);  
+	   
+       (*<<<<<<<  cp_<ak>_<ai> class instances  >>>>>>>*)
+       (*==============================================*)
+       val cp1             = PureThy.get_thm thy24 (Name "cp1");
+       val cp_unit_inst    = PureThy.get_thm thy24 (Name "cp_unit_inst");
+       val cp_bool_inst    = PureThy.get_thm thy24 (Name "cp_bool_inst");
+       val cp_prod_inst    = PureThy.get_thm thy24 (Name "cp_prod_inst");
+       val cp_list_inst    = PureThy.get_thm thy24 (Name "cp_list_inst");
+       val cp_fun_inst     = PureThy.get_thm thy24 (Name "cp_fun_inst");
+       val cp_option_inst  = PureThy.get_thm thy24 (Name "cp_option_inst");
+       val cp_noption_inst = PureThy.get_thm thy24 (Name "cp_noption_inst");
+       val pt_perm_compose = PureThy.get_thm thy24 (Name "pt_perm_compose");
+       val dj_pp_forget    = PureThy.get_thm thy24 (Name "dj_perm_perm_forget");
+
+       (* shows that <aj> is an instance of cp_<ak>_<ai>  *)
+       (* that needs a three-nested loop *)
+       val (thy25,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          foldl_map (fn (thy'', (ak_name'', T'')) =>
+            let
+              val qu_name =  Sign.full_name (sign_of thy'') ak_name;
+              val qu_class = Sign.full_name (sign_of thy'') ("cp_"^ak_name'^"_"^ak_name'');
+              val proof =
+                (if (ak_name'=ak_name'') then 
+		  (let
+                    val pt_inst  = PureThy.get_thm thy'' (Name ("pt_"^ak_name''^"_inst"));
+		    val at_inst  = PureThy.get_thm thy'' (Name ("at_"^ak_name''^"_inst"));
+                  in 
+		   EVERY [AxClass.intro_classes_tac [], 
+                          rtac (at_inst RS (pt_inst RS pt_perm_compose)) 1]
+                  end)
+		else
+		  (let 
+                     val dj_inst  = PureThy.get_thm thy'' (Name ("dj_"^ak_name''^"_"^ak_name'));
+		     val simp_s = HOL_basic_ss addsimps 
+                                        ((dj_inst RS dj_pp_forget)::
+                                         (PureThy.get_thmss thy'' 
+					   [Name (ak_name' ^"_prm_"^ak_name^"_def"),
+                                            Name (ak_name''^"_prm_"^ak_name^"_def")]));  
+		  in 
+                    EVERY [AxClass.intro_classes_tac [], simp_tac simp_s 1]
+                  end))
+	      in
+                (AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy'',())
+	      end)
+	   (thy', ak_names_types)) (thy, ak_names_types)) (thy24, ak_names_types);
+      
+       (* shows that unit is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                         *)
+       val (thy26,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          let
+            val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+            val proof = EVERY [AxClass.intro_classes_tac [],rtac (cp_unit_inst RS cp1) 1];     
+	  in
+            (AxClass.add_inst_arity_i ("Product_Type.unit",[],[qu_class]) proof thy',())
+	  end) 
+	   (thy, ak_names_types)) (thy25, ak_names_types);
+       
+       (* shows that bool is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                         *)
+       val (thy27,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+           let
+	     val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+             val proof = EVERY [AxClass.intro_classes_tac [], rtac (cp_bool_inst RS cp1) 1];     
+	   in
+             (AxClass.add_inst_arity_i ("bool",[],[qu_class]) proof thy',())
+	   end) 
+	   (thy, ak_names_types)) (thy26, ak_names_types);
+
+       (* shows that prod is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                         *)
+       val (thy28,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          let
+	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+            val proof = EVERY [AxClass.intro_classes_tac [],
+                               rtac ((cp_inst RS (cp_inst RS cp_prod_inst)) RS cp1) 1];     
+	  in
+            (AxClass.add_inst_arity_i ("*",[[qu_class],[qu_class]],[qu_class]) proof thy',())
+	  end)  
+	  (thy, ak_names_types)) (thy27, ak_names_types);
+
+       (* shows that list is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                         *)
+       val (thy29,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+           let
+	     val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+             val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+             val proof = EVERY [AxClass.intro_classes_tac [],
+                                rtac ((cp_inst RS cp_list_inst) RS cp1) 1];     
+	   in
+            (AxClass.add_inst_arity_i ("List.list",[[qu_class]],[qu_class]) proof thy',())
+	   end) 
+	   (thy, ak_names_types)) (thy28, ak_names_types);
+
+       (* shows that function is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                             *)
+       val (thy30,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          let
+	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+            val pt_inst  = PureThy.get_thm thy' (Name ("pt_"^ak_name^"_inst"));
+            val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
+            val proof = EVERY [AxClass.intro_classes_tac [],
+                    rtac ((at_inst RS (pt_inst RS (cp_inst RS (cp_inst RS cp_fun_inst)))) RS cp1) 1];  
+	  in
+            (AxClass.add_inst_arity_i ("fun",[[qu_class],[qu_class]],[qu_class]) proof thy',())
+	  end) 
+	  (thy, ak_names_types)) (thy29, ak_names_types);
+
+       (* shows that option is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                           *)
+       val (thy31,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          let
+	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+            val proof = EVERY [AxClass.intro_classes_tac [],
+                               rtac ((cp_inst RS cp_option_inst) RS cp1) 1];     
+	  in
+            (AxClass.add_inst_arity_i ("Datatype.option",[[qu_class]],[qu_class]) proof thy',())
+	  end) 
+	  (thy, ak_names_types)) (thy30, ak_names_types);
+
+       (* shows that nOption is an instance of cp_<ak>_<ai>     *)
+       (* for every <ak>-combination                            *)
+       val (thy32,_) = foldl_map (fn (thy, (ak_name, T)) =>
+	 foldl_map (fn (thy', (ak_name', T')) =>
+          let
+	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+            val proof = EVERY [AxClass.intro_classes_tac [],
+                               rtac ((cp_inst RS cp_noption_inst) RS cp1) 1];     
+	  in
+           (AxClass.add_inst_arity_i ("nominal.nOption",[[qu_class]],[qu_class]) proof thy',())
+	  end) 
+	  (thy, ak_names_types)) (thy31, ak_names_types);
+
+       (* abbreviations for some collection of rules *)
+       (*============================================*)
+       val abs_fun_pi        = PureThy.get_thm thy32 (Name ("nominal.abs_fun_pi"));
+       val abs_fun_pi_ineq   = PureThy.get_thm thy32 (Name ("nominal.abs_fun_pi_ineq"));
+       val abs_fun_eq        = PureThy.get_thm thy32 (Name ("nominal.abs_fun_eq"));
+       val dj_perm_forget    = PureThy.get_thm thy32 (Name ("nominal.dj_perm_forget"));
+       val dj_pp_forget      = PureThy.get_thm thy32 (Name ("nominal.dj_perm_perm_forget"));
+       val fresh_iff         = PureThy.get_thm thy32 (Name ("nominal.fresh_abs_fun_iff"));
+       val fresh_iff_ineq    = PureThy.get_thm thy32 (Name ("nominal.fresh_abs_fun_iff_ineq"));
+       val abs_fun_supp      = PureThy.get_thm thy32 (Name ("nominal.abs_fun_supp"));
+       val abs_fun_supp_ineq = PureThy.get_thm thy32 (Name ("nominal.abs_fun_supp_ineq"));
+       val pt_swap_bij       = PureThy.get_thm thy32 (Name ("nominal.pt_swap_bij"));
+       val pt_fresh_fresh    = PureThy.get_thm thy32 (Name ("nominal.pt_fresh_fresh"));
+       val pt_bij            = PureThy.get_thm thy32 (Name ("nominal.pt_bij"));
+       val pt_perm_compose   = PureThy.get_thm thy32 (Name ("nominal.pt_perm_compose"));
+       val perm_eq_app       = PureThy.get_thm thy32 (Name ("nominal.perm_eq_app"));
+       val at_fresh          = PureThy.get_thm thy32 (Name ("nominal.at_fresh"));
+       val at_calc           = PureThy.get_thms thy32 (Name ("nominal.at_calc"));
+       val at_supp           = PureThy.get_thm thy32 (Name ("nominal.at_supp"));
+       val dj_supp           = PureThy.get_thm thy32 (Name ("nominal.dj_supp"));
+
+       (* abs_perm collects all lemmas for simplifying a permutation *)
+       (* in front of an abs_fun                                     *)
+       val (thy33,_) = 
+	   let 
+	     val name = "abs_perm"
+             val thm_list = Library.flat (map (fn (ak_name, T) =>
+	        let	
+		  val at_inst = PureThy.get_thm thy32 (Name ("at_"^ak_name^"_inst"));
+		  val pt_inst = PureThy.get_thm thy32 (Name ("pt_"^ak_name^"_inst"));	      
+	          val thm = [pt_inst, at_inst] MRS abs_fun_pi
+                  val thm_list = map (fn (ak_name', T') =>
+                     let
+                      val cp_inst = PureThy.get_thm thy32 (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+	             in
+                     [pt_inst, pt_inst, at_inst, cp_inst] MRS abs_fun_pi_ineq
+	             end) ak_names_types;
+                 in thm::thm_list end) (ak_names_types))
+           in
+             (PureThy.add_thmss [((name, thm_list),[])] thy32)
+           end;
+
+       val (thy34,_) = 
+	 let 
+             (* takes a theorem and a list of theorems        *)
+             (* produces a list of theorems of the form       *)
+             (* [t1 RS thm,..,tn RS thm] where t1..tn in thms *) 
+             fun instantiate thm thms = map (fn ti => ti RS thm) thms;
+               
+             (* takes two theorem lists (hopefully of the same length)           *)
+             (* produces a list of theorems of the form                          *)
+             (* [t1 RS m1,..,tn RS mn] where t1..tn in thms1 and m1..mn in thms2 *) 
+             fun instantiate_zip thms1 thms2 = 
+		 map (fn (t1,t2) => t1 RS t2) (thms1 ~~ thms2);
+
+             (* list of all at_inst-theorems *)
+             val ats = map (fn ak => PureThy.get_thm thy33 (Name ("at_"^ak^"_inst"))) ak_names
+             (* list of all pt_inst-theorems *)
+             val pts = map (fn ak => PureThy.get_thm thy33 (Name ("pt_"^ak^"_inst"))) ak_names
+             (* list of all cp_inst-theorems *)
+             val cps = 
+	       let fun cps_fun (ak1,ak2) = PureThy.get_thm thy33 (Name ("cp_"^ak1^"_"^ak2^"_inst"))
+	       in map cps_fun (cprod (ak_names,ak_names)) end;	
+             (* list of all dj_inst-theorems *)
+             val djs = 
+	       let fun djs_fun (ak1,ak2) = 
+		    if ak1=ak2 
+		    then NONE
+		    else SOME(PureThy.get_thm thy33 (Name ("dj_"^ak1^"_"^ak2)))
+	       in List.mapPartial I (map djs_fun (cprod (ak_names,ak_names))) end;	
+
+             fun inst_pt thms = Library.flat (map (fn ti => instantiate ti pts) thms); 
+             fun inst_at thms = Library.flat (map (fn ti => instantiate ti ats) thms);               
+	     fun inst_pt_at thms = instantiate_zip ats (inst_pt thms);			
+             fun inst_dj thms = Library.flat (map (fn ti => instantiate ti djs) thms);  
+
+           in
+            thy33 
+	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
+            |>>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
+            |>>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
+            |>>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
+            |>>> PureThy.add_thmss [(("perm_compose", inst_pt_at [pt_perm_compose]),[])]
+            |>>> PureThy.add_thmss [(("perm_app_eq", inst_pt_at [perm_eq_app]),[])]
+            |>>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
+            |>>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
+            |>>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
+            
+	   end;
+
+         (* perm_dj collects all lemmas that forget an permutation *)
+         (* when it acts on an atom of different type              *)
+         val (thy35,_) = 
+	   let 
+	     val name = "perm_dj"
+             val thm_list = Library.flat (map (fn (ak_name, T) =>
+	        Library.flat (map (fn (ak_name', T') => 
+                 if not (ak_name = ak_name') 
+                 then 
+		    let
+                      val dj_inst = PureThy.get_thm thy34 (Name ("dj_"^ak_name^"_"^ak_name'));
+                    in
+                      [dj_inst RS dj_perm_forget, dj_inst RS dj_pp_forget]
+                    end 
+                 else []) ak_names_types)) ak_names_types)
+           in
+             (PureThy.add_thmss [((name, thm_list),[])] thy34)
+           end;
+
+         (* abs_fresh collects all lemmas for simplifying a freshness *)
+         (* proposition involving an abs_fun                          *)
+
+         val (thy36,_) = 
+	   let 
+	     val name = "abs_fresh"
+             val thm_list = Library.flat (map (fn (ak_name, T) =>
+	        let	
+		  val at_inst = PureThy.get_thm thy35 (Name ("at_"^ak_name^"_inst"));
+		  val pt_inst = PureThy.get_thm thy35 (Name ("pt_"^ak_name^"_inst"));
+                  val fs_inst = PureThy.get_thm thy35 (Name ("fs_"^ak_name^"_inst"));	      
+	          val thm = [pt_inst, at_inst, (fs_inst RS fs1)] MRS fresh_iff
+                  val thm_list = Library.flat (map (fn (ak_name', T') =>
+                     (if (not (ak_name = ak_name')) 
+                     then
+                       let
+                        val cp_inst = PureThy.get_thm thy35 (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+	                val dj_inst = PureThy.get_thm thy35 (Name ("dj_"^ak_name'^"_"^ak_name));
+                       in
+                        [[pt_inst, pt_inst, at_inst, cp_inst, dj_inst] MRS fresh_iff_ineq]
+	               end
+                     else [])) ak_names_types);
+                 in thm::thm_list end) (ak_names_types))
+           in
+             (PureThy.add_thmss [((name, thm_list),[])] thy35)
+           end;
+
+         (* abs_supp collects all lemmas for simplifying  *)
+         (* support proposition involving an abs_fun      *)
+
+         val (thy37,_) = 
+	   let 
+	     val name = "abs_supp"
+             val thm_list = Library.flat (map (fn (ak_name, T) =>
+	        let	
+		  val at_inst = PureThy.get_thm thy36 (Name ("at_"^ak_name^"_inst"));
+		  val pt_inst = PureThy.get_thm thy36 (Name ("pt_"^ak_name^"_inst"));
+                  val fs_inst = PureThy.get_thm thy36 (Name ("fs_"^ak_name^"_inst"));	      
+	          val thm1 = [pt_inst, at_inst, (fs_inst RS fs1)] MRS abs_fun_supp
+                  val thm2 = [pt_inst, at_inst] MRS abs_fun_supp
+                  val thm_list = Library.flat (map (fn (ak_name', T') =>
+                     (if (not (ak_name = ak_name')) 
+                     then
+                       let
+                        val cp_inst = PureThy.get_thm thy36 (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
+	                val dj_inst = PureThy.get_thm thy36 (Name ("dj_"^ak_name'^"_"^ak_name));
+                       in
+                        [[pt_inst, pt_inst, at_inst, cp_inst, dj_inst] MRS abs_fun_supp_ineq]
+	               end
+                     else [])) ak_names_types);
+                 in thm1::thm2::thm_list end) (ak_names_types))
+           in
+             (PureThy.add_thmss [((name, thm_list),[])] thy36)
+           end;
+
+    in NominalData.put (fold Symtab.update (map (rpair ()) full_ak_names)
+      (NominalData.get thy11)) thy37
+    end;
+
+
+(* syntax und parsing *)
+structure P = OuterParse and K = OuterKeyword;
+
+val atom_declP =
+  OuterSyntax.command "atom_decl" "Declare new kinds of atoms" K.thy_decl
+    (Scan.repeat1 P.name >> (Toplevel.theory o create_nom_typedecls));
+
+val _ = OuterSyntax.add_parsers [atom_declP];
+
+val setup = [NominalData.init];
+
+end;

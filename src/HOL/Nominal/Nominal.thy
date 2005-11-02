@@ -2,7 +2,11 @@
 
 theory nominal 
 imports Main
-  uses ("nominal_package.ML") ("nominal_induct.ML") ("nominal_permeq.ML")
+uses
+  ("nominal_atoms.ML")
+  ("nominal_package.ML")
+  ("nominal_induct.ML")
+  ("nominal_permeq.ML")
 begin 
 
 ML {* reset NameSpace.unique_names; *}
@@ -2252,8 +2256,9 @@ lemma perm_eq_lam:
 (***************************************)
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
+use "nominal_atoms.ML"
 use "nominal_package.ML"
-setup "NominalPackage.setup"
+setup "NominalAtoms.setup"
 
 (*****************************************)
 (* setup for induction principles method *)
