@@ -1895,6 +1895,29 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val case_names_induct = mk_case_names_induct (List.concat descr');
 
+    (**** prove that new datatypes have finite support ****)
+
+    val indnames = DatatypeProp.make_tnames recTs;
+
+    val abs_supp = PureThy.get_thms thy8 (Name "abs_supp");
+    val supp_at = PureThy.get_thms thy8 (Name "supp_at");
+
+    val finite_supp_thms = map (fn atom =>
+      let val atomT = Type (atom, [])
+      in map standard (List.take
+        (split_conj_thm (Goal.prove thy8 [] [] (HOLogic.mk_Trueprop
+           (foldr1 HOLogic.mk_conj (map (fn (s, T) => HOLogic.mk_mem
+             (Const ("nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T),
+              Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT atomT))))
+               (indnames ~~ recTs))))
+           (fn _ => indtac dt_induct indnames 1 THEN
+            ALLGOALS (asm_full_simp_tac (simpset_of thy8 addsimps
+              (abs_supp @ supp_at @
+               PureThy.get_thms thy8 (Name ("fs_" ^ Sign.base_name atom ^ "1")) @
+               List.concat supp_thms))))),
+         length new_type_names))
+      end) atoms;
+
     val (thy9, _) = thy8 |>
       Theory.add_path big_name |>
       PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] |>>
@@ -1904,7 +1927,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       DatatypeAux.store_thmss "perm" new_type_names perm_simps' |>>>
       DatatypeAux.store_thmss "inject" new_type_names inject_thms |>>>
       DatatypeAux.store_thmss "supp" new_type_names supp_thms |>>>
-      DatatypeAux.store_thmss "fresh" new_type_names fresh_thms;
+      DatatypeAux.store_thmss "fresh" new_type_names fresh_thms |>>
+      fold (fn (atom, ths) => fn thy =>
+        let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
+        in fold (fn T => AxClass.add_inst_arity_i
+            (fst (dest_Type T),
+              replicate (length sorts) [class], [class])
+            (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
+        end) (atoms ~~ finite_supp_thms);
 
   in
     (thy9, perm_eq_thms)
