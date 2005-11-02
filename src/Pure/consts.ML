@@ -14,9 +14,6 @@ sig
   val constraint: T -> string -> typ    (*exception TYPE*)
   val monomorphic: T -> string -> bool
   val typargs: T -> string -> typ -> typ list
-  val modify_typargs: T -> string -> (typ list -> typ list) -> typ -> typ
-  val map_typargs: T -> string -> (typ -> typ) -> typ -> typ
-  val fold_typargs: T -> string -> (typ -> 'a -> 'a) -> typ -> 'a -> 'a
   val declare: NameSpace.naming -> bstring * typ -> T -> T
   val constrain: string * typ -> T -> T
   val hide: bool -> string -> T -> T
@@ -74,27 +71,6 @@ fun sub (Type (_, Ts)) (i :: is) = sub (nth Ts i) is
 fun typargs consts c =
   let val (_, args) = the_const consts c
   in fn T => map (sub T o #2) args end;
-
-fun modify_typargs consts c =
-  let val (declT, args) = the_const consts c in
-    fn f => fn T =>
-      let
-        val Us = f (map (sub T o #2) args);
-        val _ =
-          if length args = length Us then ()
-          else raise TYPE ("modify_typargs: bad number of args", [T], []);
-        val inst = ListPair.map (fn ((v, _), U) => (v, U)) (args, Us);
-      in declT |> Term.instantiateT inst end
-  end;
-
-fun map_typargs consts c =
-  let val (declT, args) = the_const consts c in
-    fn f => fn T => declT |> Term.instantiateT (args |> map (fn (v, pos) => (v, f (sub T pos))))
-  end;
-
-fun fold_typargs consts c =
-  let val (_, args) = the_const consts c
-  in fn f => fn T => fold (f o sub T o #2) args end;
 
 
 
