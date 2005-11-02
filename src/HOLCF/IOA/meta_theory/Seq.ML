@@ -363,7 +363,7 @@ Goal "sforall P (stakewhile$P$x)";
 by (simp_tac (simpset() addsimps [sforall_def]) 1);
 by (res_inst_tac[("x","x")] seq.ind 1);
 (* adm *)
-by (simp_tac (simpset() addsimps [adm_trick_1]) 1);
+by (simp_tac (simpset() (*addsimps [adm_trick_1]*)) 1);
 (* base cases *)
 by (Simp_tac 1);
 by (Simp_tac 1);
@@ -375,7 +375,7 @@ Goal "sforall P (sfilter$P$x)";
 by (simp_tac (simpset() addsimps [sforall_def]) 1);
 by (res_inst_tac[("x","x")] seq.ind 1);
 (* adm *)
-by (simp_tac (simpset() addsimps [adm_trick_1]) 1);
+by (simp_tac (simpset() (*addsimps [adm_trick_1]*)) 1);
 (* base cases *)
 by (Simp_tac 1);
 by (Simp_tac 1);

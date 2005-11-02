@@ -1,15 +1,12 @@
 
 (* legacy ML bindings *)
 
-val adm_nFF = thm "adm_nFF";
-val adm_nTT = thm "adm_nTT";
-val adm_trick_1 = thm "adm_trick_1";
-val adm_trick_2 = thm "adm_trick_2";
-val adm_tricks = thms "adm_tricks";
 val andalso_and = thm "andalso_and";
 val andalso_def = thm "andalso_def";
 val andalso_or = thm "andalso_or";
 val andalso_thms = thms "andalso_thms";
+val compact_FF = thm "compact_FF";
+val compact_TT = thm "compact_TT";
 val Def_bool1 = thm "Def_bool1";
 val Def_bool2 = thm "Def_bool2";
 val Def_bool3 = thm "Def_bool3";

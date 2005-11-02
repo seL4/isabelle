@@ -20,22 +20,24 @@ translations
   "tr" <= (type) "bool lift" 
 
 consts
-	TT              :: "tr"
-	FF              :: "tr"
-        Icifte          :: "tr -> 'c -> 'c -> 'c"
-        trand           :: "tr -> tr -> tr"
-        tror            :: "tr -> tr -> tr"
-        neg             :: "tr -> tr"
-        If2             :: "tr=>'c=>'c=>'c"
+  TT     :: "tr"
+  FF     :: "tr"
+  Icifte :: "tr \<rightarrow> 'c \<rightarrow> 'c \<rightarrow> 'c"
+  trand  :: "tr \<rightarrow> tr \<rightarrow> tr"
+  tror   :: "tr \<rightarrow> tr \<rightarrow> tr"
+  neg    :: "tr \<rightarrow> tr"
+  If2    :: "[tr, 'c, 'c] \<Rightarrow> 'c"
 
-syntax  "@cifte"        :: "tr=>'c=>'c=>'c" ("(3If _/ (then _/ else _) fi)" 60)
-        "@andalso"      :: "tr => tr => tr" ("_ andalso _" [36,35] 35)
-        "@orelse"       :: "tr => tr => tr" ("_ orelse _"  [31,30] 30)
+syntax
+  "@cifte"   :: "[tr, 'c, 'c] \<Rightarrow> 'c" ("(3If _/ (then _/ else _) fi)" 60)
+  "@andalso" :: "tr \<Rightarrow> tr \<Rightarrow> tr"     ("_ andalso _" [36,35] 35)
+  "@orelse"  :: "tr \<Rightarrow> tr \<Rightarrow> tr"     ("_ orelse _"  [31,30] 30)
  
-translations 
-	     "x andalso y" == "trand$x$y"
-             "x orelse y"  == "tror$x$y"
-             "If b then e1 else e2 fi" == "Icifte$b$e1$e2"
+translations
+  "x andalso y" == "trand\<cdot>x\<cdot>y"
+  "x orelse y"  == "tror\<cdot>x\<cdot>y"
+  "If b then e1 else e2 fi" == "Icifte\<cdot>b\<cdot>e1\<cdot>e2"
+
 defs
   TT_def:      "TT==Def True"
   FF_def:      "FF==Def False"
@@ -47,14 +49,14 @@ defs
 
 text {* Exhaustion and Elimination for type @{typ tr} *}
 
-lemma Exh_tr: "t=UU | t = TT | t = FF"
+lemma Exh_tr: "t = \<bottom> \<or> t = TT \<or> t = FF"
 apply (unfold FF_def TT_def)
 apply (induct_tac "t")
 apply fast
 apply fast
 done
 
-lemma trE: "[| p=UU ==> Q; p = TT ==>Q; p = FF ==>Q|] ==>Q"
+lemma trE: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = TT \<Longrightarrow> Q; p = FF \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 apply (rule Exh_tr [THEN disjE])
 apply fast
 apply (erule disjE)
@@ -76,16 +78,18 @@ fun prover t =  prove_goal thy t
 *)
 text {* distinctness for type @{typ tr} *}
 
-lemma dist_less_tr [simp]: "~TT << UU" "~FF << UU" "~TT << FF" "~FF << TT"
+lemma dist_less_tr [simp]:
+  "\<not> TT \<sqsubseteq> \<bottom>" "\<not> FF \<sqsubseteq> \<bottom>" "\<not> TT \<sqsubseteq> FF" "\<not> FF \<sqsubseteq> TT"
 by (simp_all add: tr_defs)
 
-lemma dist_eq_tr [simp]: "TT~=UU" "FF~=UU" "TT~=FF" "UU~=TT" "UU~=FF" "FF~=TT"
+lemma dist_eq_tr [simp]:
+  "TT \<noteq> \<bottom>" "FF \<noteq> \<bottom>" "TT \<noteq> FF" "\<bottom> \<noteq> TT" "\<bottom> \<noteq> FF" "FF \<noteq> TT"
 by (simp_all add: tr_defs)
 
 text {* lemmas about andalso, orelse, neg and if *}
 
 lemma ifte_thms [simp]:
-  "If UU then e1 else e2 fi = UU"
+  "If \<bottom> then e1 else e2 fi = \<bottom>"
   "If FF then e1 else e2 fi = e2"
   "If TT then e1 else e2 fi = e1"
 by (simp_all add: ifte_def TT_def FF_def)
@@ -93,7 +97,7 @@ by (simp_all add: ifte_def TT_def FF_def)
 lemma andalso_thms [simp]:
   "(TT andalso y) = y"
   "(FF andalso y) = FF"
-  "(UU andalso y) = UU"
+  "(\<bottom> andalso y) = \<bottom>"
   "(y andalso TT) = y"
   "(y andalso y) = y"
 apply (unfold andalso_def, simp_all)
@@ -104,7 +108,7 @@ done
 lemma orelse_thms [simp]:
   "(TT orelse y) = TT"
   "(FF orelse y) = y"
-  "(UU orelse y) = UU"
+  "(\<bottom> orelse y) = \<bottom>"
   "(y orelse FF) = y"
   "(y orelse y) = y"
 apply (unfold orelse_def, simp_all)
@@ -113,15 +117,15 @@ apply (rule_tac p=y in trE, simp_all)
 done
 
 lemma neg_thms [simp]:
-  "neg$TT = FF"
-  "neg$FF = TT"
-  "neg$UU = UU"
+  "neg\<cdot>TT = FF"
+  "neg\<cdot>FF = TT"
+  "neg\<cdot>\<bottom> = \<bottom>"
 by (simp_all add: neg_def TT_def FF_def)
 
 text {* split-tac for If via If2 because the constant has to be a constant *}
   
 lemma split_If2: 
-  "P (If2 Q x y ) = ((Q=UU --> P UU) & (Q=TT --> P x) & (Q=FF --> P y))"  
+  "P (If2 Q x y) = ((Q = \<bottom> \<longrightarrow> P \<bottom>) \<and> (Q = TT \<longrightarrow> P x) \<and> (Q = FF \<longrightarrow> P y))"
 apply (unfold If2_def)
 apply (rule_tac p = "Q" in trE)
 apply (simp_all)
@@ -136,58 +140,41 @@ val split_If_tac =
 subsection "Rewriting of HOLCF operations to HOL functions"
 
 lemma andalso_or: 
-"!!t.[|t~=UU|]==> ((t andalso s)=FF)=(t=FF | s=FF)"
+  "t \<noteq> \<bottom> \<Longrightarrow> ((t andalso s) = FF) = (t = FF \<or> s = FF)"
 apply (rule_tac p = "t" in trE)
 apply simp_all
 done
 
-lemma andalso_and: "[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)"
+lemma andalso_and:
+  "t \<noteq> \<bottom> \<Longrightarrow> ((t andalso s) \<noteq> FF) = (t \<noteq> FF \<and> s \<noteq> FF)"
 apply (rule_tac p = "t" in trE)
 apply simp_all
 done
 
-lemma Def_bool1 [simp]: "(Def x ~= FF) = x"
+lemma Def_bool1 [simp]: "(Def x \<noteq> FF) = x"
 by (simp add: FF_def)
 
-lemma Def_bool2 [simp]: "(Def x = FF) = (~x)"
+lemma Def_bool2 [simp]: "(Def x = FF) = (\<not> x)"
 by (simp add: FF_def)
 
 lemma Def_bool3 [simp]: "(Def x = TT) = x"
 by (simp add: TT_def)
 
-lemma Def_bool4 [simp]: "(Def x ~= TT) = (~x)"
+lemma Def_bool4 [simp]: "(Def x \<noteq> TT) = (\<not> x)"
 by (simp add: TT_def)
 
 lemma If_and_if: 
-  "(If Def P then A else B fi)= (if P then A else B)"
+  "(If Def P then A else B fi) = (if P then A else B)"
 apply (rule_tac p = "Def P" in trE)
 apply (auto simp add: TT_def[symmetric] FF_def[symmetric])
 done
 
-subsection "admissibility"
+subsection {* Compactness *}
 
-text {*
-   The following rewrite rules for admissibility should in the future be 
-   replaced by a more general admissibility test that also checks 
-   chain-finiteness, of which these lemmata are specific examples
-*}
+lemma compact_TT [simp]: "compact TT"
+by (rule compact_chfin)
 
-lemma adm_trick_1: "(x~=FF) = (x=TT|x=UU)"
-apply (rule_tac p = "x" in trE)
-apply (simp_all)
-done
-
-lemma adm_trick_2: "(x~=TT) = (x=FF|x=UU)"
-apply (rule_tac p = "x" in trE)
-apply (simp_all)
-done
-
-lemmas adm_tricks = adm_trick_1 adm_trick_2
-
-lemma adm_nTT [simp]: "cont(f) ==> adm (%x. (f x)~=TT)"
-by (simp add: adm_tricks)
-
-lemma adm_nFF [simp]: "cont(f) ==> adm (%x. (f x)~=FF)"
-by (simp add: adm_tricks)
+lemma compact_FF [simp]: "compact FF"
+by (rule compact_chfin)
 
 end
