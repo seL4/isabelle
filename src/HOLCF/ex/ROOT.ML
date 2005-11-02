@@ -11,5 +11,4 @@ time_use_thy "Focus_ex";
 time_use_thy "Fix2";
 time_use_thy "Hoare";
 time_use_thy "Loop";
-time_use "loeckx.ML";
 time_use_thy "Fixrec_ex";
