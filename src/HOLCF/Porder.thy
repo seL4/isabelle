@@ -51,41 +51,41 @@ by (rule trans_less)
 
 subsection {* Chains and least upper bounds *}
 
-consts  
-        "<|"    ::      "['a set,'a::po] \<Rightarrow> bool"       (infixl "<|" 55)
-        "<<|"   ::      "['a set,'a::po] \<Rightarrow> bool"       (infixl "<<|" 55)
-        lub     ::      "'a set \<Rightarrow> 'a::po"
-        tord ::      "'a::po set \<Rightarrow> bool"
-        chain ::     "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool"
-        max_in_chain :: "[nat,nat\<Rightarrow>'a::po]\<Rightarrow>bool"
-        finite_chain :: "(nat\<Rightarrow>'a::po)\<Rightarrow>bool"
+constdefs  
+
+  -- {* class definitions *}
+  is_ub :: "['a set, 'a::po] \<Rightarrow> bool"       (infixl "<|" 55)
+  "S <| x \<equiv> \<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x"
+
+  is_lub :: "['a set, 'a::po] \<Rightarrow> bool"       (infixl "<<|" 55)
+  "S <<| x \<equiv> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
+
+  -- {* Arbitrary chains are total orders *}
+  tord :: "'a::po set \<Rightarrow> bool"
+  "tord S \<equiv> \<forall>x y. x \<in> S \<and> y \<in> S \<longrightarrow> (x \<sqsubseteq> y \<or> y \<sqsubseteq> x)"
+
+  -- {* Here we use countable chains and I prefer to code them as functions! *}
+  chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool"
+  "chain F \<equiv> \<forall>i. F i \<sqsubseteq> F (Suc i)"
+
+  -- {* finite chains, needed for monotony of continuous functions *}
+  max_in_chain :: "[nat, nat \<Rightarrow> 'a::po] \<Rightarrow> bool"
+  "max_in_chain i C \<equiv> \<forall>j. i \<le> j \<longrightarrow> C i = C j" 
+
+  finite_chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool"
+  "finite_chain C \<equiv> chain(C) \<and> (\<exists>i. max_in_chain i C)"
+
+  lub :: "'a set \<Rightarrow> 'a::po"
+  "lub S \<equiv> THE x. S <<| x"
 
 syntax
   "@LUB"	:: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"	(binder "LUB " 10)
 
-translations
-  "LUB x. t"	== "lub(range(%x. t))"
-
 syntax (xsymbols)
-  "LUB "	:: "[idts, 'a] \<Rightarrow> 'a"		("(3\<Squnion>_./ _)"[0,10] 10)
+  "LUB "	:: "[idts, 'a] \<Rightarrow> 'a"		("(3\<Squnion>_./ _)" [0,10] 10)
 
-defs
-
--- {* class definitions *}
-is_ub_def:       "S <| x \<equiv> \<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x"
-is_lub_def:      "S <<| x \<equiv> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
-
--- {* Arbitrary chains are total orders *}
-tord_def:     "tord S \<equiv> \<forall>x y. x \<in> S \<and> y \<in> S \<longrightarrow> (x \<sqsubseteq> y \<or> y \<sqsubseteq> x)"
-
--- {* Here we use countable chains and I prefer to code them as functions! *}
-chain_def:        "chain F \<equiv> \<forall>i. F i \<sqsubseteq> F (Suc i)"
-
--- {* finite chains, needed for monotony of continuous functions *}
-max_in_chain_def: "max_in_chain i C \<equiv> \<forall>j. i \<le> j \<longrightarrow> C i = C j" 
-finite_chain_def: "finite_chain C \<equiv> chain(C) \<and> (\<exists>i. max_in_chain i C)"
-
-lub_def:          "lub S \<equiv> THE x. S <<| x"
+translations
+  "\<Squnion>n. t" == "lub(range(\<lambda>n. t))"
 
 text {* lubs are unique *}
 
@@ -229,12 +229,13 @@ by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
 
 text {* the lub of a constant chain is the constant *}
 
-lemma chain_const: "chain (\<lambda>i. c)"
+lemma chain_const [simp]: "chain (\<lambda>i. c)"
 by (simp add: chainI)
 
 lemma lub_const: "range (\<lambda>x. c) <<| c"
 by (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
 
-lemmas thelub_const = lub_const [THEN thelubI, standard]
+lemma thelub_const [simp]: "(\<Squnion>i. c) = c"
+by (rule lub_const [THEN thelubI])
 
-end 
+end
