@@ -101,7 +101,7 @@ val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
   (Context.set_context (try Toplevel.theory_of state);
-    writeln "Leaving the Isar loop.  Invoke 'loop();' to restart.";
+    writeln "Leaving the Isar loop.  Invoke 'Isar.loop();' to continue.";
     raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
