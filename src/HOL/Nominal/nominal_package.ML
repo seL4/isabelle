@@ -770,6 +770,10 @@ fun create_nom_typedecls ak_names thy =
        val pt_bij            = PureThy.get_thm thy32 (Name ("nominal.pt_bij"));
        val pt_perm_compose   = PureThy.get_thm thy32 (Name ("nominal.pt_perm_compose"));
        val perm_eq_app       = PureThy.get_thm thy32 (Name ("nominal.perm_eq_app"));
+       val at_fresh          = PureThy.get_thm thy32 (Name ("nominal.at_fresh"));
+       (*val at_calc           = PureThy.get_thms thy32 (Name ("nominal.at_calc"));*)
+       val at_supp           = PureThy.get_thm thy32 (Name ("nominal.at_supp"));
+       val dj_supp           = PureThy.get_thm thy32 (Name ("nominal.at_supp"));
 
        (* abs_perm collects all lemmas for simplifying a permutation *)
        (* in front of an abs_fun                                     *)
@@ -792,31 +796,21 @@ fun create_nom_typedecls ak_names thy =
              (PureThy.add_thmss [((name, thm_list),[])] thy32)
            end;
 
-        (* alpha collects all lemmas analysing an equation *)
-        (* between abs_funs                                *)
-        (*val (thy34,_) = 
+       val (thy34,_) = 
 	   let 
-	     val name = "alpha"
-             val thm_list = map (fn (ak_name, T) =>
-	        let	
-		  val at_inst = PureThy.get_thm thy33 (Name ("at_"^ak_name^"_inst"));
-		  val pt_inst = PureThy.get_thm thy33 (Name ("pt_"^ak_name^"_inst"));	      
-	        in
-                  [pt_inst, at_inst] MRS abs_fun_eq
-	        end) ak_names_types
-           in
-             (PureThy.add_thmss [((name, thm_list),[])] thy33)
-           end;*)
- 
-          val (thy34,_) = 
-	   let 
-	     fun inst_pt_at thm ak_name =
+	       fun inst_pt_at thm ak_name =
 		 let	
 		   val at_inst = PureThy.get_thm thy33 (Name ("at_"^ak_name^"_inst"));
 		   val pt_inst = PureThy.get_thm thy33 (Name ("pt_"^ak_name^"_inst"));	      
 	         in
                      [pt_inst, at_inst] MRS thm
-	         end	 
+	         end	
+               fun inst_at thm ak_name =
+		 let	
+		   val at_inst = PureThy.get_thm thy33 (Name ("at_"^ak_name^"_inst"));
+                 in
+                     at_inst RS thm
+	         end
 
            in
             thy33 
@@ -826,6 +820,11 @@ fun create_nom_typedecls ak_names thy =
             |>>> PureThy.add_thmss [(("perm_bij", map (inst_pt_at pt_bij) ak_names),[])]
             |>>> PureThy.add_thmss [(("perm_compose", map (inst_pt_at pt_perm_compose) ak_names),[])]
             |>>> PureThy.add_thmss [(("perm_app_eq", map (inst_pt_at perm_eq_app) ak_names),[])]
+            |>>> PureThy.add_thmss [(("supp_at", map (inst_at at_supp) ak_names),[])]
+            (*|>>> PureThy.add_thmss [(("fresh_at", map (inst_at at_fresh) ak_names),
+                                    [Simplifier.simp_add_global])]*)
+            (*|>>> PureThy.add_thmss [(("calc_at", map (inst_at at_calc) ak_names),
+                                    [Simplifier.simp_add_global])]*)
 	   end;
 
          (* perm_dj collects all lemmas that forget an permutation *)
