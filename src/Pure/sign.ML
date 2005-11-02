@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson and Markus Wenzel
 
 Logical signature content: naming conventions, concrete syntax, type
-signature, constant declarations.
+signature, polymorphic constants.
 *)
 
 signature SIGN_THEORY =
@@ -86,7 +86,7 @@ sig
    {naming: NameSpace.naming,
     syn: Syntax.syntax,
     tsig: Type.tsig,
-    consts: ((typ * bool) * serial) NameSpace.table * typ Symtab.table}
+    consts: Consts.T}
   val naming_of: theory -> NameSpace.naming
   val base_name: string -> bstring
   val full_name: theory -> bstring -> string
@@ -113,7 +113,8 @@ sig
   val the_const_type: theory -> string -> typ
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
-  val monomorphic: theory -> string -> bool
+  val const_monomorphic: theory -> string -> bool
+  val const_typargs: theory -> string -> typ -> typ list
   val class_space: theory -> NameSpace.T
   val type_space: theory -> NameSpace.T
   val const_space: theory -> NameSpace.T
@@ -192,22 +193,13 @@ type sg = theory;
 (** datatype sign **)
 
 datatype sign = Sign of
- {naming: NameSpace.naming,                   (*common naming conventions*)
-  syn: Syntax.syntax,                         (*concrete syntax for terms, types, sorts*)
-  tsig: Type.tsig,                            (*order-sorted signature of types*)
-  consts:
-    ((typ * bool) * serial) NameSpace.table * (*type schemes of declared term constants*)
-    typ Symtab.table};                        (*type constraints for constants*)
-
+ {naming: NameSpace.naming,     (*common naming conventions*)
+  syn: Syntax.syntax,           (*concrete syntax for terms, types, sorts*)
+  tsig: Type.tsig,              (*order-sorted signature of types*)
+  consts: Consts.T};            (*polymorphic constants*)
 
 fun make_sign (naming, syn, tsig, consts) =
   Sign {naming = naming, syn = syn, tsig = tsig, consts = consts};
-
-fun err_dup_consts cs =
-  error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
-
-fun err_inconsistent_constraints cs =
-  error ("Inconsistent type constraints for constant(s) " ^ commas_quote cs);
 
 structure SignData = TheoryDataFun
 (struct
@@ -217,22 +209,19 @@ structure SignData = TheoryDataFun
   fun extend (Sign {syn, tsig, consts, ...}) =
     make_sign (NameSpace.default_naming, syn, tsig, consts);
 
-  val empty = make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig,
-    (NameSpace.empty_table, Symtab.empty));
+  val empty =
+    make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let
-      val Sign {naming = _, syn = syn1, tsig = tsig1, consts = (consts1, constraints1)} = sign1;
-      val Sign {naming = _, syn = syn2, tsig = tsig2, consts = (consts2, constraints2)} = sign2;
+      val Sign {naming = _, syn = syn1, tsig = tsig1, consts = consts1} = sign1;
+      val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
       val naming = NameSpace.default_naming;
       val syn = Syntax.merge_syntaxes syn1 syn2;
       val tsig = Type.merge_tsigs pp (tsig1, tsig2);
-      val consts = NameSpace.merge_tables (eq_snd (op =)) (consts1, consts2)
-        handle Symtab.DUPS cs => err_dup_consts cs;
-      val constraints = Symtab.merge (op =) (constraints1, constraints2)
-        handle Symtab.DUPS cs => err_inconsistent_constraints cs;
-    in make_sign (naming, syn, tsig, (consts, constraints)) end;
+      val consts = Consts.merge (consts1, consts2);
+    in make_sign (naming, syn, tsig, consts) end;
 
   fun print _ _ = ();
 end);
@@ -282,32 +271,18 @@ val typ_unify = Type.unify o tsig_of;
 fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
 
 
-(* consts signature *)
+(* polymorphic constants *)
 
-fun const_constraint thy c =
-  let val ((_, consts), constraints) = #consts (rep_sg thy) in
-    (case Symtab.lookup constraints c of
-      NONE => Option.map (#1 o #1) (Symtab.lookup consts c)
-    | some => some)
-  end;
-
-fun the_const_constraint thy c =
-  (case const_constraint thy c of SOME T => T
-  | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
-
-val lookup_const = Symtab.lookup o #2 o #1 o #consts o rep_sg;
-val const_type = Option.map (#1 o #1) oo lookup_const;
-
-fun the_const_type thy c =
-  (case const_type thy c of SOME T => T
-  | NONE => raise TYPE ("Undeclared constant " ^ quote c, [], []));
+val consts_of = #consts o rep_sg;
+val the_const_constraint = Consts.constraint o consts_of;
+val const_constraint = try o the_const_constraint;
+val the_const_type = Consts.declaration o consts_of;
+val const_type = try o the_const_type;
+val const_monomorphic = Consts.monomorphic o consts_of;
+val const_typargs = Consts.typargs o consts_of;
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = is_some oo const_type;
-
-fun monomorphic thy =
-  let val mono = Symtab.lookup (#2 (#1 (#consts (rep_sg thy))))
-  in fn c => (case mono c of SOME ((_, m), _) => m | _ => false) end;
 
 
 
@@ -315,7 +290,7 @@ fun monomorphic thy =
 
 val class_space = #1 o #classes o Type.rep_tsig o tsig_of;
 val type_space = #1 o #types o Type.rep_tsig o tsig_of;
-val const_space = #1 o #1 o #consts o rep_sg
+val const_space = Consts.space o consts_of;
 
 val intern_class = NameSpace.intern o class_space;
 val extern_class = NameSpace.extern o class_space;
@@ -453,10 +428,10 @@ fun certify_term pp thy tm =
     fun check_atoms (t $ u) = (check_atoms t; check_atoms u)
       | check_atoms (Abs (_, _, t)) = check_atoms t
       | check_atoms (Const (a, T)) =
-          (case lookup_const thy a of
+          (case const_type thy a of
             NONE => err ("Undeclared constant " ^ show_const a T)
-          | SOME ((U, mono), _) =>
-              if mono andalso T = U orelse typ_instance thy (T, U) then ()
+          | SOME U =>
+              if typ_instance thy (T, U) then ()
               else err ("Illegal type for constant " ^ show_const a T))
       | check_atoms (Var ((x, i), _)) =
           if i < 0 then err ("Malformed variable: " ^ quote x) else ()
@@ -696,24 +671,16 @@ val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
 local
 
-fun is_mono (Type (_, Ts)) = forall is_mono Ts
-  | is_mono _ = false;
-
 fun gen_add_consts prep_typ raw_args thy =
   let
     val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (c, T, mx) = ((c, prepT T, mx) handle TYPE (msg, _, _) => error msg)
       handle ERROR => error ("in declaration of constant " ^ quote (Syntax.const_name c mx));
     val args = map prep raw_args;
-
-    val decls = args |> map (fn (c, T, mx) =>
-      (Syntax.const_name c mx, ((T, is_mono T), serial ())));
-
-    fun extend_consts consts = NameSpace.extend_table (naming_of thy) (consts, decls)
-      handle Symtab.DUPS cs => err_dup_consts cs;
+    val decls = args |> map (fn (c, T, mx) => (Syntax.const_name c mx, T));
   in
     thy
-    |> map_consts (apfst extend_consts)
+    |> map_consts (fold (Consts.declare (naming_of thy)) decls)
     |> add_syntax_i args
   end;
 
@@ -734,7 +701,7 @@ fun gen_add_constraint int_const prep_typ (raw_c, raw_T) thy =
       handle TYPE (msg, _, _) => error msg;
     val _ = cert_term thy (Const (c, T))
       handle TYPE (msg, _, _) => error msg;
-  in thy |> map_consts (apsnd (Symtab.update (c, T))) end;
+  in thy |> map_consts (Consts.constrain (c, T)) end;
 
 val add_const_constraint = gen_add_constraint intern_const (read_typ o no_def_sort);
 val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
@@ -872,9 +839,8 @@ fun hide_classes b xs thy = thy |> map_tsig (Type.hide_classes b (map (intern_cl
 val hide_classes_i = map_tsig oo Type.hide_classes;
 fun hide_types b xs thy = thy |> map_tsig (Type.hide_types b (map (intern_type thy) xs));
 val hide_types_i = map_tsig oo Type.hide_types;
-fun hide_consts b xs thy =
-  thy |> map_consts (apfst (apfst (fold (NameSpace.hide b o intern_const thy) xs)));
-val hide_consts_i = (map_consts o apfst o apfst) oo (fold o NameSpace.hide);
+fun hide_consts b xs thy = thy |> map_consts (fold (Consts.hide b o intern_const thy) xs);
+val hide_consts_i = map_consts oo (fold o Consts.hide);
 
 local
 
