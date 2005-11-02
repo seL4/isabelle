@@ -290,7 +290,7 @@ fun no_types_needed s = ! monomorphic s;
 
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
-fun init thy = (monomorphic := Sign.monomorphic thy);
+fun init thy = (monomorphic := Sign.const_monomorphic thy);
     
 
 (*Flatten a type to a string while accumulating sort constraints on the TFress and
