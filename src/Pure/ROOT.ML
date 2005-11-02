@@ -32,6 +32,7 @@ cd "Syntax"; use "ROOT.ML"; cd "..";
 
 (*core of tactical proof system*)
 use "type_infer.ML";
+use "consts.ML";
 use "sign.ML";
 use "envir.ML";
 use "pattern.ML";

@@ -60,8 +60,8 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML     \
   Syntax/type_ext.ML Thy/html.ML Thy/latex.ML Thy/present.ML            \
   Thy/thm_database.ML Thy/thm_deps.ML Thy/thy_info.ML Thy/thy_load.ML   \
   axclass.ML Tools/am_compiler.ML Tools/am_interpreter.ML               \
-  Tools/am_util.ML Tools/compute.ML Tools/ROOT.ML codegen.ML compress.ML\
-  context.ML display.ML drule.ML envir.ML fact_index.ML goal.ML         \
+  Tools/am_util.ML Tools/compute.ML Tools/ROOT.ML codegen.ML compress.ML \
+  context.ML consts.ML display.ML drule.ML envir.ML fact_index.ML goal.ML \
   goals.ML install_pp.ML library.ML logic.ML meta_simplifier.ML net.ML  \
   pattern.ML proof_general.ML proofterm.ML pure_thy.ML search.ML        \
   sign.ML simplifier.ML sorts.ML tactic.ML tctical.ML term.ML defs.ML   \
