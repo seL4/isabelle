@@ -202,20 +202,11 @@ syntax (xsymbols)
   "_ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1\<langle>_,/ _\<rangle>)")
 
 translations
-  "<x, y, z>" == "<x, <y, z>>"
-  "<x, y>"    == "cpair$x$y"
-
-text {* syntax for @{text "LAM <x,y,z>.e"} *}
-
-syntax
-  "_ctuple_pttrn" :: "[pttrn, patterns] => pttrn"  ("<_,/ _>")
-
-syntax (xsymbols)
-  "_ctuple_pttrn" :: "[pttrn, patterns] => pttrn"  ("\<langle>_,/ _\<rangle>")
+  "\<langle>x, y, z\<rangle>" == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
+  "\<langle>x, y\<rangle>"    == "cpair\<cdot>x\<cdot>y"
 
 translations
-  "LAM <x,y,zs>. t"       == "csplit$(LAM x <y,zs>. t)"
-  "LAM <x,y>. t"          == "csplit$(LAM x y. t)"
+  "\<Lambda>(cpair\<cdot>x\<cdot>y). t" == "csplit\<cdot>(\<Lambda> x y. t)"
 
 
 subsection {* Convert all lemmas to the continuous versions *}

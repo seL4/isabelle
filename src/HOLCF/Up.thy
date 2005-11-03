@@ -189,7 +189,7 @@ apply (frule up_chain_lemma, safe)
 apply (rule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
 apply (erule monofun_Ifup2 [THEN ch2ch_monofun])
 apply (simp add: cont_cfun_arg)
-apply (simp add: thelub_const lub_const)
+apply (simp add: lub_const)
 done
 
 subsection {* Continuous versions of constants *}
@@ -202,7 +202,8 @@ constdefs
   "fup \<equiv> \<Lambda> f p. Ifup f p"
 
 translations
-  "case l of up\<cdot>x \<Rightarrow> t" == "fup\<cdot>(LAM x. t)\<cdot>l"
+  "case l of up\<cdot>x \<Rightarrow> t" == "fup\<cdot>(\<Lambda> x. t)\<cdot>l"
+  "\<Lambda>(up\<cdot>x). t" == "fup\<cdot>(\<Lambda> x. t)"
 
 text {* continuous versions of lemmas for @{typ "('a)u"} *}
 
@@ -248,7 +249,7 @@ apply simp
 apply (erule (1) admD)
 apply (rule allI, drule_tac x="i + j" in spec)
 apply simp
-apply (simp add: thelub_const)
+apply simp
 done
 
 text {* properties of fup *}

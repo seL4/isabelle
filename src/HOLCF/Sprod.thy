@@ -44,11 +44,14 @@ defs
   ssplit_def: "ssplit \<equiv> \<Lambda> f. strictify\<cdot>(\<Lambda> p. f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p))"
 
 syntax  
-  "@stuple"	:: "['a, args] => 'a ** 'b"	("(1'(:_,/ _:'))")
+  "@stuple" :: "['a, args] => 'a ** 'b"  ("(1'(:_,/ _:'))")
 
 translations
-        "(:x, y, z:)"   == "(:x, (:y, z:):)"
-        "(:x, y:)"      == "spair$x$y"
+  "(:x, y, z:)" == "(:x, (:y, z:):)"
+  "(:x, y:)"    == "spair\<cdot>x\<cdot>y"
+
+translations
+  "\<Lambda>(spair\<cdot>x\<cdot>y). t" == "ssplit\<cdot>(\<Lambda> x y. t)"
 
 subsection {* Case analysis *}
 
@@ -91,7 +94,7 @@ by (erule contrapos_np, auto)
 
 lemma spair_defined [simp]: 
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<noteq> \<bottom>"
-by (simp add: spair_Abs_Sprod Abs_Sprod_defined cpair_defined_iff Sprod_def)
+by (simp add: spair_Abs_Sprod Abs_Sprod_defined Sprod_def)
 
 lemma spair_defined_rev: "(:x, y:) = \<bottom> \<Longrightarrow> x = \<bottom> \<or> y = \<bottom>"
 by (erule contrapos_pp, simp)
