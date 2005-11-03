@@ -326,8 +326,7 @@ val copy_apps = map (fn (con,args) => pg [ax_copy_def]
                         (map (case_UU_tac (abs_strict::when_strict::con_stricts)
                                  1 o vname)
                          (List.filter (fn a => not (is_rec a orelse is_lazy a)) args)
-                        @[asm_simp_tac (HOLCF_ss addsimps when_apps) 1,
-                          simp_tac (HOLCF_ss addsimps con_appls) 1]))cons;
+                        @[asm_simp_tac (HOLCF_ss addsimps when_apps) 1]))cons;
 val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                                         (con_app con args) ===UU))
      (let val rews = copy_strict::copy_apps@con_rews

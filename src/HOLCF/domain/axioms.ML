@@ -33,26 +33,29 @@ let
   val when_def = ("when_def",%%:(dname^"_when") == 
      foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
 				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
-
-  fun con_def outer recu m n (_,args) = let
-     fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else I)
-			(if recu andalso is_rec arg then (cproj (Bound z) eqs
-				  (rec_of arg))`Bound(z-x) else Bound(z-x));
-     fun parms vs = mk_stuple (mapn (idxs(length vs)) 1 vs);
-     fun inj y 1 _ = y
-     |   inj y _ 0 = %%:sinlN`y
-     |   inj y i j = %%:sinrN`(inj y (i-1) (j-1));
-  in foldr /\# (outer (inj (parms args) m n)) args end;
-
-  val copy_def = ("copy_def", %%:(dname^"_copy") == /\"f" (dc_abs oo 
-	list_ccomb (%%:(dname^"_when") , 
-	              mapn (con_def I true (length cons)) 0 cons)));
+  
+  val copy_def = let
+    fun idxs z x arg = if is_rec arg
+			 then (cproj (Bound z) eqs (rec_of arg))`Bound(z-x)
+			 else Bound(z-x);
+    fun one_con (con,args) =
+        foldr /\# (list_ccomb (%%:con, mapn (idxs (length args)) 1 args)) args;
+  in ("copy_def", %%:(dname^"_copy") ==
+       /\"f" (list_ccomb (%%:(dname^"_when"), map one_con cons))) end;
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
 
-  val con_defs = mapn (fn n => fn (con,args) => (extern_name con ^"_def",  
-  %%:con == con_def (fn t => dc_abs`t) false (length cons) n (con,args))) 0 cons;
-
+  fun con_def m n (_,args) = let
+    fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else I) (Bound(z-x));
+    fun parms vs = mk_stuple (mapn (idxs(length vs)) 1 vs);
+    fun inj y 1 _ = y
+    |   inj y _ 0 = %%:sinlN`y
+    |   inj y i j = %%:sinrN`(inj y (i-1) (j-1));
+  in foldr /\# (dc_abs`(inj (parms args) m n)) args end;
+  
+  val con_defs = mapn (fn n => fn (con,args) =>
+    (extern_name con ^"_def", %%:con == con_def (length cons) n (con,args))) 0 cons;
+  
   val dis_defs = let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
 		 list_ccomb(%%:(dname^"_when"),map 
