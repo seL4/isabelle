@@ -48,7 +48,7 @@ open Domain_Library;
     val test_dupl_sels = (case duplicates (List.mapPartial second
 			       (List.concat (map third (List.concat cons'')))) of
         [] => false | dups => error("Duplicate selectors: "^commas_quote dups));
-    val test_dupl_tvars = exists(fn s=>case duplicates(map(fst o rep_TFree)s)of
+    val test_dupl_tvars = exists(fn s=>case duplicates(map(fst o dest_TFree)s)of
 	[] => false | dups => error("Duplicate type arguments: " 
 		   ^commas_quote dups)) (map snd dtnvs);
     (* test for free type variables, illegal sort constraints on rhs,
@@ -56,7 +56,7 @@ open Domain_Library;
        replace sorts in type variables on rhs *)
     fun analyse_equation ((dname,typevars),cons') = 
       let
-	val tvars = map rep_TFree typevars;
+	val tvars = map dest_TFree typevars;
 	fun distinct_name s = "'"^Sign.base_name dname^"_"^s;
 	val distinct_typevars = map (fn (n,sort) => 
 				     TFree (distinct_name n,sort)) tvars;
@@ -73,7 +73,7 @@ open Domain_Library;
 				 else error ("Inconsistent sort constraint" ^
 				             " for type variable " ^ quote v))
         |   analyse indirect (t as Type(s,typl)) = (case AList.lookup (op =) dtnvs s of
-		NONE          => if exists (fn x => x = s) indirect_ok
+		NONE          => if s mem indirect_ok
 				 then Type(s,map (analyse false) typl)
 				 else Type(s,map (analyse true) typl)
 	      | SOME typevars => if indirect 
@@ -103,7 +103,7 @@ open Domain_Library;
                    o fst) eqs''';
     val cons''' = map snd eqs''';
     fun thy_type  (dname,tvars)  = (Sign.base_name dname, length tvars, NoSyn);
-    fun thy_arity (dname,tvars)  = (dname, map (snd o rep_TFree) tvars, pcpoS);
+    fun thy_arity (dname,tvars)  = (dname, map (snd o dest_TFree) tvars, pcpoS);
     val thy'' = thy''' |> Theory.add_types     (map thy_type  dtnvs)
 		       |> Theory.add_arities_i (map thy_arity dtnvs);
     val sg'' = sign_of thy'';

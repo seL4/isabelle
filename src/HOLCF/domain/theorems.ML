@@ -107,7 +107,7 @@ in
   fun appl_of_def def = let
         val (_ $ con $ lam) = concl_of def;
         val (vars, rhs) = arglist lam;
-        val lhs = mk_cRep_CFun (con, bound_vars (length vars));
+        val lhs = list_ccomb (con, bound_vars (length vars));
         val appl = bind_fun vars (lhs == rhs);
         val cs = ContProc.cont_thms lam;
         val betas = map (fn c => mk_meta_eq (c RS beta_cfun)) cs;
@@ -158,7 +158,7 @@ end;
 local 
   fun bind_fun t = Library.foldr mk_All (when_funs cons,t);
   fun bound_fun i _ = Bound (length cons - i);
-  val when_app  = Library.foldl (op `) (%%:(dname^"_when"), mapn bound_fun 1 cons);
+  val when_app  = list_ccomb (%%:(dname^"_when"), mapn bound_fun 1 cons);
 in
 val when_strict = pg [when_appl, mk_meta_eq rep_strict]
 			(bind_fun(mk_trp(strict when_app)))
@@ -166,7 +166,7 @@ val when_strict = pg [when_appl, mk_meta_eq rep_strict]
 val when_apps = let fun one_when n (con,args) = pg (when_appl :: con_appls)
                 (bind_fun (lift_defined %: (nonlazy args, 
                 mk_trp(when_app`(con_app con args) ===
-                       mk_cRep_CFun(bound_fun n 0,map %# args)))))[
+                       list_ccomb(bound_fun n 0,map %# args)))))[
                 asm_simp_tac (HOLCF_ss addsimps [ax_abs_iso]) 1];
         in mapn one_when 1 cons end;
 end;
@@ -224,7 +224,7 @@ val con_compacts =
   let
     val rules = [compact_sinl, compact_sinr, compact_spair, compact_up, compact_ONE];
     fun one_compact (con,args) = pg con_appls
-      (lift (fn x => %%:compactN $ %:(vname x)) (args, mk_trp(%%:compactN $ (con_app con args))))
+      (lift (fn x => %%:compactN $ %#x) (args, mk_trp(%%:compactN $ (con_app con args))))
       [rtac (iso_locale RS iso_compact_abs) 1, REPEAT (resolve_tac rules 1 ORELSE atac 1)];
   in map one_compact cons end;
 
@@ -391,11 +391,11 @@ val n_eqs = length eqs;
 local
   val iterate_Cprod_ss = simpset_of Fix.thy;
   val copy_con_rews  = copy_rews @ con_rews;
-  val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
+  val copy_take_defs = (if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val take_stricts=pg copy_take_defs(mk_trp(foldr1 mk_conj(map(fn((dn,args),_)=>
             strict(dc_take dn $ %:"n")) eqs))) ([
                         induct_tac "n" 1,
-                         simp_tac iterate_Cprod_ss 1,
+                        simp_tac iterate_Cprod_ss 1,
                         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews)1]);
   val take_stricts' = rewrite_rule copy_take_defs take_stricts;
   val take_0s = mapn(fn n=> fn dn => pg axs_take_def(mk_trp((dc_take dn $ %%:"0")

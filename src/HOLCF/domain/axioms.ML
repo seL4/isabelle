@@ -27,8 +27,8 @@ let
   val x_name = idx_name eqs x_name' (n+1);
   val dnam = Sign.base_name dname;
 
- val abs_iso_ax = ("abs_iso" ,mk_trp(dc_rep`(dc_abs`%x_name')=== %:x_name'));
- val rep_iso_ax = ("rep_iso" ,mk_trp(dc_abs`(dc_rep`%x_name')=== %:x_name'));
+  val abs_iso_ax = ("abs_iso", mk_trp(dc_rep`(dc_abs`%x_name') === %:x_name'));
+  val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
 
   val when_def = ("when_def",%%:(dname^"_when") == 
      foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
@@ -38,15 +38,14 @@ let
      fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else I)
 			(if recu andalso is_rec arg then (cproj (Bound z) eqs
 				  (rec_of arg))`Bound(z-x) else Bound(z-x));
-     fun parms [] = %%:ONE_N
-     |   parms vs = foldr1(fn(x,t)=> %%:spairN`x`t)(mapn (idxs(length vs))1 vs);
+     fun parms vs = mk_stuple (mapn (idxs(length vs)) 1 vs);
      fun inj y 1 _ = y
      |   inj y _ 0 = %%:sinlN`y
      |   inj y i j = %%:sinrN`(inj y (i-1) (j-1));
   in foldr /\# (outer (inj (parms args) m n)) args end;
 
   val copy_def = ("copy_def", %%:(dname^"_copy") == /\"f" (dc_abs oo 
-	Library.foldl (op `) (%%:(dname^"_when") , 
+	list_ccomb (%%:(dname^"_when") , 
 	              mapn (con_def I true (length cons)) 0 cons)));
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
@@ -56,14 +55,14 @@ let
 
   val dis_defs = let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
-		 mk_cRep_CFun(%%:(dname^"_when"),map 
+		 list_ccomb(%%:(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
 			   (if con'=con then %%:TT_N else %%:FF_N) args)) cons))
 	in map ddef cons end;
 
   val mat_defs = let
 	fun mdef (con,_) = (mat_name con ^"_def",%%:(mat_name con) == 
-		 mk_cRep_CFun(%%:(dname^"_when"),map 
+		 list_ccomb(%%:(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
 			   (if con'=con
                                then %%:returnN`(mk_ctuple (map (bound_arg args) args))
@@ -72,7 +71,7 @@ let
 
   val sel_defs = let
 	fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
-		 mk_cRep_CFun(%%:(dname^"_when"),map 
+		 list_ccomb(%%:(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then UU else
 			 foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
 	in List.mapPartial I (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
@@ -125,8 +124,8 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 	fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
 			   Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
 	val capps = foldr mk_conj (mk_conj(
-	   Bound(allargs_cnt+1)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns1),
-	   Bound(allargs_cnt+0)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns2)))
+	   Bound(allargs_cnt+1)===list_ccomb(%%:con,map (bound_arg allvns) vns1),
+	   Bound(allargs_cnt+0)===list_ccomb(%%:con,map (bound_arg allvns) vns2)))
            (mapn rel_app 1 rec_args);
         in foldr mk_ex (Library.foldr mk_conj 
 			      (map (defined o Bound) nonlazy_idxs,capps)) allvns end;

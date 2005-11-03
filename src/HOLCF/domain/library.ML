@@ -71,9 +71,6 @@ fun mk_var_names ids : string list = let
       | index_vnames([],occupied) = [];
 in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
-fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
-fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
-
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, pcpoS);
 fun string_of_typ sg = Sign.string_of_typ sg o Sign.certify_typ sg;
 fun str2typ sg = typ_of o read_ctyp sg;
@@ -180,8 +177,8 @@ infix 1 ~<<;    fun S ~<< T = HOLogic.mk_not (S << T);
 infix 9 `  ; fun f`  x = %%:Rep_CFunN $ f $ x;
 infix 9 `% ; fun f`% s = f` %: s;
 infix 9 `%%; fun f`%%s = f` %%:s;
-fun mk_cRep_CFun (F,As) = Library.foldl (op `) (F,As);
-fun con_app2 con f args = mk_cRep_CFun(%%:con,map f args);
+val list_ccomb = Library.foldl (op `); (* continuous version of list_comb *)
+fun con_app2 con f args = list_ccomb(%%:con,map f args);
 fun con_app con = con_app2 con %#;
 fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
 fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) I (%# arg);
@@ -207,13 +204,14 @@ infixr 9 oo; fun S oo T = %%:cfcompN`S`T;
 val UU = %%:UU_N;
 fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
-fun cpair (S,T) = %%:cpairN`S`T;
+fun cpair (t,u) = %%:cpairN`t`u;
+fun spair (t,u) = %%:spairN`t`u;
 fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
-|   mk_ctuple (t::[]) = t
-|   mk_ctuple (t::ts) = cpair (t, mk_ctuple ts);
+|   mk_ctuple ts = foldr1 cpair ts;
+fun mk_stuple [] = %%:ONE_N
+|   mk_stuple ts = foldr1 spair ts;
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
-|   mk_ctupleT (T::[]) = T
-|   mk_ctupleT (T::Ts) = HOLogic.mk_prodT(T, mk_ctupleT Ts);
+|   mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
@@ -238,7 +236,7 @@ fun when_body cons funarg = let
 		in cont_eta_contract (foldr'' 
 			(fn (a,t) => %%:ssplitN`(/\# (a,t)))
 			(args,
-			fn a=> /\#(a,(mk_cRep_CFun(funarg(l2,n),mapn idxs 1 args))))
+			fn a=> /\#(a,(list_ccomb(funarg(l2,n),mapn idxs 1 args))))
 			) end;
 in (if length cons = 1 andalso length(snd(hd cons)) <= 1
     then fn t => %%:strictifyN`t else I)
