@@ -22,7 +22,7 @@ translations
 consts
   TT     :: "tr"
   FF     :: "tr"
-  Icifte :: "tr \<rightarrow> 'c \<rightarrow> 'c \<rightarrow> 'c"
+  trifte :: "'c \<rightarrow> 'c \<rightarrow> tr \<rightarrow> 'c"
   trand  :: "tr \<rightarrow> tr \<rightarrow> tr"
   tror   :: "tr \<rightarrow> tr \<rightarrow> tr"
   neg    :: "tr \<rightarrow> tr"
@@ -36,16 +36,20 @@ syntax
 translations
   "x andalso y" == "trand\<cdot>x\<cdot>y"
   "x orelse y"  == "tror\<cdot>x\<cdot>y"
-  "If b then e1 else e2 fi" == "Icifte\<cdot>b\<cdot>e1\<cdot>e2"
+  "If b then e1 else e2 fi" == "trifte\<cdot>e1\<cdot>e2\<cdot>b"
+
+translations
+  "\<Lambda> TT. t" == "trifte\<cdot>t\<cdot>\<bottom>"
+  "\<Lambda> FF. t" == "trifte\<cdot>\<bottom>\<cdot>t"
 
 defs
-  TT_def:      "TT==Def True"
-  FF_def:      "FF==Def False"
-  neg_def:     "neg == flift2 Not"
-  ifte_def:    "Icifte == (LAM b t e. flift1(%b. if b then t else e)$b)"
-  andalso_def: "trand == (LAM x y. If x then y else FF fi)"
-  orelse_def:  "tror == (LAM x y. If x then TT else y fi)"
-  If2_def:     "If2 Q x y == If Q then x else y fi"
+  TT_def:      "TT \<equiv> Def True"
+  FF_def:      "FF \<equiv> Def False"
+  neg_def:     "neg \<equiv> flift2 Not"
+  ifte_def:    "trifte \<equiv> \<Lambda> t e. FLIFT b. if b then t else e"
+  andalso_def: "trand \<equiv> \<Lambda> x y. If x then y else FF fi"
+  orelse_def:  "tror \<equiv> \<Lambda> x y. If x then TT else y fi"
+  If2_def:     "If2 Q x y \<equiv> If Q then x else y fi"
 
 text {* Exhaustion and Elimination for type @{typ tr} *}
 
