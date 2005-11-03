@@ -136,14 +136,14 @@ lemma contlub_pair1: "contlub (\<lambda>x. (x, y))"
 apply (rule contlubI)
 apply (subst thelub_cprod)
 apply (erule monofun_pair1 [THEN ch2ch_monofun])
-apply (simp add: thelub_const)
+apply simp
 done
 
 lemma contlub_pair2: "contlub (\<lambda>y. (x, y))"
 apply (rule contlubI)
 apply (subst thelub_cprod)
 apply (erule monofun_pair2 [THEN ch2ch_monofun])
-apply (simp add: thelub_const)
+apply simp
 done
 
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
@@ -229,21 +229,21 @@ by (simp add: cpair_eq_pair)
 lemma cpair_eq [iff]: "(<a, b> = <a', b'>) = (a = a' \<and> b = b')"
 by (simp add: cpair_eq_pair)
 
-lemma cpair_less: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
+lemma cpair_less [iff]: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
 by (simp add: cpair_eq_pair less_cprod_def)
 
-lemma cpair_defined_iff: "(<x, y> = \<bottom>) = (x = \<bottom> \<and> y = \<bottom>)"
+lemma cpair_defined_iff [iff]: "(<x, y> = \<bottom>) = (x = \<bottom> \<and> y = \<bottom>)"
 by (simp add: inst_cprod_pcpo cpair_eq_pair)
 
 lemma cpair_strict: "<\<bottom>, \<bottom>> = \<bottom>"
-by (simp add: cpair_defined_iff)
+by simp
 
 lemma inst_cprod_pcpo2: "\<bottom> = <\<bottom>, \<bottom>>"
 by (rule cpair_strict [symmetric])
 
 lemma defined_cpair_rev: 
  "<a,b> = \<bottom> \<Longrightarrow> a = \<bottom> \<and> b = \<bottom>"
-by (simp add: inst_cprod_pcpo cpair_eq_pair)
+by simp
 
 lemma Exh_Cprod2: "\<exists>a b. z = <a, b>"
 by (simp add: cpair_eq_pair)
@@ -286,6 +286,9 @@ done
 lemma thelub_cprod2:
   "chain S \<Longrightarrow> lub (range S) = <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
 by (rule lub_cprod2 [THEN thelubI])
+
+lemma csplit1 [simp]: "csplit\<cdot>f\<cdot>\<bottom> = f\<cdot>\<bottom>\<cdot>\<bottom>"
+by (simp add: csplit_def)
 
 lemma csplit2 [simp]: "csplit\<cdot>f\<cdot><x,y> = f\<cdot>x\<cdot>y"
 by (simp add: csplit_def)
