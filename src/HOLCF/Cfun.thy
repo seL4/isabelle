@@ -86,6 +86,9 @@ print_ast_translation {*
   in [("_cabs", cabs_ast_tr')] end;
 *}
 
+translations
+  "\<Lambda> _. t" == "Abs_CFun (\<lambda> _. t)"
+
 subsection {* Continuous function space is pointed *}
 
 lemma UU_CFun: "\<bottom> \<in> CFun"
