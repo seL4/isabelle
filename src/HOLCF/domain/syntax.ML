@@ -12,7 +12,7 @@ local
 open Domain_Library;
 infixr 5 -->; infixr 6 ->>;
 fun calc_syntax dtypeprod ((dname, typevars), 
-	(cons': (string * mixfix * (bool*string option*typ) list) list)) =
+	(cons': (string * mixfix * (bool * string option * typ) list) list)) =
 let
 (* ----- constants concerning the isomorphism ------------------------------- *)
 
@@ -44,7 +44,7 @@ local
   fun con (name,s,args) = (name,foldr (op ->>) dtype (map third args),s);
   fun dis (con ,s,_   ) = (dis_name_ con, dtype->>trT,
 			   Mixfix(escape ("is_" ^ con), [], Syntax.max_pri));
-			(* stricly speaking, these constants have one argument,
+			(* strictly speaking, these constants have one argument,
 			   but the mixfix (without arguments) is introduced only
 			   to generate parse rules for non-alphanumeric names*)
   fun mat (con ,s,args) = (mat_name_ con, dtype->>mk_ssumT(oneT,mk_uT(mk_ctupleT(map third args))),
@@ -66,33 +66,33 @@ end;
 (* ----- case translation --------------------------------------------------- *)
 
 local open Syntax in
-  val case_trans = let 
-	fun c_ast con mx = Constant (const_name con mx);
-	fun expvar n     = Variable ("e"^(string_of_int n));
-	fun argvar n m _ = Variable ("a"^(string_of_int n)^"_"^
-					 (string_of_int m));
-	fun app s (l,r)   = mk_appl (Constant s) [l,r];
-	fun case1 n (con,mx,args) = mk_appl (Constant "_case1")
-		 [Library.foldl (app "Rep_CFun") (c_ast con mx, (mapn (argvar n) 1 args)),
-		  expvar n];
-	fun cabs (x,t) = mk_appl (Constant "_cabs") [x,t];
-	fun arg1 n (con,_,args) = foldr cabs (expvar n) (mapn (argvar n) 1 args);
+  local
+    fun c_ast con mx = Constant (const_name con mx);
+    fun expvar n     = Variable ("e"^(string_of_int n));
+    fun argvar n m _ = Variable ("a"^(string_of_int n)^"_"^
+				     (string_of_int m));
+    fun app s (l,r)   = mk_appl (Constant s) [l,r];
+    val cabs = app "_cabs";
+    val capp = app "Rep_CFun";
+    fun con1 n (con,mx,args) = Library.foldl capp (c_ast con mx, mapn (argvar n) 1 args);
+    fun case1 n (con,mx,args) = app "_case1" (con1 n (con,mx,args), expvar n);
+    fun arg1 n (con,_,args) = foldr cabs (expvar n) (mapn (argvar n) 1 args);
+    fun when1 n m = if n = m then arg1 n else K (Constant "UU");
   in
-    ParsePrintRule
-      (mk_appl (Constant "_case_syntax") [Variable "x", foldr1
-				(fn (c,cs) => mk_appl (Constant"_case2") [c,cs])
-				 (mapn case1 1 cons')],
-       mk_appl (Constant "Rep_CFun") [Library.foldl 
-				(fn (w,a ) => mk_appl (Constant"Rep_CFun" ) [w,a ])
-				 (Constant (dnam^"_when"),mapn arg1 1 cons'),
-				 Variable "x"])
+    val case_trans = ParsePrintRule
+        (app "_case_syntax" (Variable "x", foldr1 (app "_case2") (mapn case1 1 cons')),
+         capp (Library.foldl capp (Constant (dnam^"_when"), mapn arg1 1 cons'), Variable "x"));
+    
+    val abscon_trans = mapn (fn n => fn (con,mx,args) => ParsePrintRule
+        (cabs (con1 n (con,mx,args), expvar n),
+         Library.foldl capp (Constant (dnam^"_when"), mapn (when1 n) 1 cons'))) 1 cons';
   end;
 end;
 
 in ([const_rep, const_abs, const_when, const_copy] @ 
      consts_con @ consts_dis @ consts_mat @ consts_sel @
     [const_take, const_finite],
-    [case_trans])
+    (case_trans::abscon_trans))
 end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)
@@ -100,7 +100,7 @@ end; (* let *)
 in (* local *)
 
 fun add_syntax (comp_dnam,eqs': ((string * typ list) *
-	(string * mixfix * (bool*string option*typ) list) list) list) thy'' =
+	(string * mixfix * (bool * string option * typ) list) list) list) thy'' =
 let
   val dtypes  = map (Type o fst) eqs';
   val boolT   = HOLogic.boolT;
