@@ -10,24 +10,13 @@ val keep_atp_input = ref false;
 val debug = ref true;
 val filter_ax = ref false;
 
-
-fun warning_thm thm nm = warning (nm ^ " " ^ (string_of_thm thm));
-
-fun warning_thms_n n thms nm =
-    let val _ = warning ("total " ^ (string_of_int n) ^ " " ^ nm)
-	fun warning_thms_aux [] = warning ("no more " ^ nm)
-	  | warning_thms_aux (th::ths) = (warning_thm th nm; warning_thms_aux ths)
-    in
-	warning_thms_aux thms
-    end;
-
-
 (*******************************************************)
 (* set up the output paths                             *)
 (*******************************************************)
 
 val claset_file = File.tmp_path (Path.basic "claset");
 val simpset_file = File.tmp_path (Path.basic "simp");
+val local_lemma_file = File.tmp_path (Path.basic "locallemmas");
 
 val prob_file = File.tmp_path (Path.basic "prob");
 val hyps_file = File.tmp_path (Path.basic "hyps");
@@ -53,13 +42,6 @@ val add_clasimp = (fn () => include_simpset:=true;include_claset:=true);
 val rm_simpset = (fn () => include_simpset:=false);
 val rm_claset = (fn () => include_claset:=false);
 val rm_clasimp = (fn () => include_simpset:=false;include_claset:=false);
-
-
-
-val rules_modifiers =
-  Simplifier.simp_modifiers @ Splitter.split_modifiers @
-  Classical.cla_modifiers @ iff_modifiers;
-
 
 
 fun get_local_claR ctxt = 
@@ -139,20 +121,6 @@ fun tptp_hyps_g _ [] = ([], [])
 val tptp_hyps = tptp_hyps_g true;
 val tptp_hypsH = tptp_hyps_g false;
 
-fun subtract_simpset thy ctxt =
-  let
-    val rules1 = #rules (#1 (rep_ss (simpset_of thy)));
-    val rules2 = #rules (#1 (rep_ss (local_simpset_of ctxt)));
-  in map ResAxioms.pairname (map #thm (Net.subtract MetaSimplifier.eq_rrule rules1 rules2)) end;
-
-fun subtract_claset thy ctxt =
-  let
-    val (netI1, netE1) = #xtra_netpair (rep_cs (claset_of thy));
-    val (netI2, netE2) = #xtra_netpair (rep_cs (local_claset_of ctxt));
-    val subtract = map (#2 o #2) oo Net.subtract Tactic.eq_kbrl;
-  in map ResAxioms.pairname (subtract netI1 netI2 @ subtract netE1 netE2) end;
-
-
 fun mk_axioms is_fol rules =
     if is_fol then 
 	(let val  clss = ResClause.union_all(ResAxioms.clausify_rules_pairs rules)
@@ -166,7 +134,6 @@ fun mk_axioms is_fol rules =
 	 in tptpclss end)
 
 
-local
 
 fun write_rules_g is_fol [] file = [](* no rules, then no need to write anything, thus no clasimp file *)
   | write_rules_g is_fol rules file =
@@ -182,31 +149,31 @@ fun write_rules_g is_fol [] file = [](* no rules, then no need to write anything
 val write_rules = write_rules_g true;
 val write_rulesH = write_rules_g false;
 
-in
+
 
 (* TPTP Isabelle theorems *)
-fun tptp_cnf_rules_g write_rules (clasetR,simpsetR) =
+fun tptp_cnf_rules_g write_rules ths (clasetR,simpsetR) =
     let val simpfile = File.platform_path simpset_file
 	val clafile =  File.platform_path claset_file
+	val local_lemfile = File.platform_path local_lemma_file
     in
-	(write_rules clasetR clafile) @ (write_rules simpsetR simpfile)
+	(write_rules clasetR clafile) @ (write_rules simpsetR simpfile) @ (write_rules ths local_lemfile)
     end;
 
 val tptp_cnf_rules = tptp_cnf_rules_g write_rules;
 val tptp_cnf_rulesH = tptp_cnf_rules_g write_rulesH;
 
-end
 
-fun tptp_cnf_clasimp_g tptp_cnf_rules ctxt (include_claset,include_simpset) =
-    let val local_claR = if include_claset then get_local_claR ctxt else (subtract_claset (ProofContext.theory_of ctxt) ctxt)
-	val local_simpR = if include_simpset then get_local_simpR ctxt else (subtract_simpset (ProofContext.theory_of ctxt) ctxt)
-
+fun tptp_cnf_clasimp_g tptp_cnf_rules ths ctxt (include_claset,include_simpset) =
+    let val local_claR = if include_claset then get_local_claR ctxt else []
+	val local_simpR = if include_simpset then get_local_simpR ctxt else []
+	val ths_names = map ResAxioms.pairname ths
     in
-	tptp_cnf_rules (local_claR,local_simpR)
+	tptp_cnf_rules ths_names (local_claR,local_simpR)
     end;
 
 
-val tptp_cnf_clasimp = tptp_cnf_clasimp_g tptp_cnf_rules;
+val tptp_cnf_clasimp  = tptp_cnf_clasimp_g tptp_cnf_rules;
 val tptp_cnf_clasimpH = tptp_cnf_clasimp_g tptp_cnf_rulesH;
 
 
@@ -232,45 +199,38 @@ fun tptp_types_sorts thy =
 
 
 (*FIXME: a function that does not perform any filtering now *)
-fun find_relevant_ax ctxt = tptp_cnf_clasimp ctxt (true,true);
+fun find_relevant_ax tptp_cnf_clasimp ths ctxt = tptp_cnf_clasimp ths ctxt (true,true);
 
 
 (***************************************************************)
-(* setup ATPs as Isabelle methods                               *)
+(* setup ATPs as Isabelle methods                              *)
 (***************************************************************)
-fun atp_meth_g tptp_hyps tptp_cnf_clasimp tac prems ctxt = 
-    let val rules = if !filter_ax then find_relevant_ax ctxt 
-		    else tptp_cnf_clasimp ctxt (!include_claset, !include_simpset) 
+fun atp_meth_g tptp_hyps tptp_cnf_clasimp tac ths ctxt = 
+    let val rules = if !filter_ax then find_relevant_ax tptp_cnf_clasimp ths ctxt 
+		    else tptp_cnf_clasimp ths ctxt (!include_claset, !include_simpset) 
 	val (hyps,tfrees) = tptp_hyps (ProofContext.prems_of ctxt)
 	val thy = ProofContext.theory_of ctxt
 	val tsfile = tptp_types_sorts thy
 	val files = hyps @ rules @ tsfile
     in
-	Method.METHOD (fn facts =>
-			  if !debug then (warning_thms_n (length facts) facts "facts";HEADGOAL (tac ctxt files tfrees)) 
-			  else HEADGOAL (tac ctxt files tfrees))
+	Method.SIMPLE_METHOD' HEADGOAL
+	(tac ctxt files tfrees)
     end;
+fun atp_meth_f tac ths ctxt = atp_meth_g tptp_hyps tptp_cnf_clasimp tac ths ctxt;
+fun atp_meth_h tac ths ctxt = atp_meth_g tptp_hypsH tptp_cnf_clasimpH tac ths ctxt;
 
-fun atp_meth_f tac = atp_meth_g tptp_hyps tptp_cnf_clasimp tac;
 
-fun atp_meth_h tac = atp_meth_g tptp_hypsH tptp_cnf_clasimpH tac;
-
-fun atp_meth_G atp_meth tac prems ctxt =
-    let val _ = ResClause.init (ProofContext.theory_of ctxt)
-    in    
-	if not(List.null prems) then (warning_thms_n (length prems) prems "prems!!!"; atp_meth tac prems ctxt)
-	else (atp_meth tac prems ctxt)
+fun atp_meth_G atp_meth tac ths ctxt =
+    let val _  = ResClause.init (ProofContext.theory_of ctxt)
+    in
+	atp_meth tac ths ctxt
     end;
-	
-
-fun atp_meth_H tac = atp_meth_G atp_meth_h tac;
-
-fun atp_meth_F tac = atp_meth_G atp_meth_f tac;
+fun atp_meth_H tac ths ctxt = atp_meth_G atp_meth_h tac ths ctxt;
+fun atp_meth_F tac ths ctxt = atp_meth_G atp_meth_f tac ths ctxt;
 
 
-val atp_method_H = Method.bang_sectioned_args rules_modifiers o atp_meth_H;
-
-val atp_method_F = Method.bang_sectioned_args rules_modifiers o atp_meth_F;
+fun atp_method_H tac = Method.thms_ctxt_args (atp_meth_H tac);
+fun atp_method_F tac = Method.thms_ctxt_args (atp_meth_F tac);
 
 
 
