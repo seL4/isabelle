@@ -84,7 +84,7 @@ let
 
   val reach_ax = ("reach", mk_trp(cproj (%%:fixN`%%(comp_dname^"_copy")) eqs n
 					`%x_name === %:x_name));
-  val take_def = ("take_def",%%:(dname^"_take") == mk_lam("n",cproj' 
+  val take_def = ("take_def",%%:(dname^"_take") == mk_lam("n",cproj
 	     (%%:iterateN $ Bound 0 ` %%:(comp_dname^"_copy") ` UU) eqs n));
   val finite_def = ("finite_def",%%:(dname^"_finite") == mk_lam(x_name,
 	mk_ex("n",(%%:(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));

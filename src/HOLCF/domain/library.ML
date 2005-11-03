@@ -77,17 +77,17 @@ fun str2typ sg = typ_of o read_ctyp sg;
 
 (* ----- constructor list handling ----- *)
 
-type cons = (string *			(* operator name of constr *)
-	    ((bool*int)*		(*  (lazy,recursive element or ~1) *)
-	      string option*		(*   selector name    *)
-	      string)			(*   argument name    *)
-	    list);			(* argument list      *)
+type cons = (string *				(* operator name of constr *)
+	    ((bool*int*DatatypeAux.dtyp)*	(*  (lazy,recursive element or ~1) *)
+	      string option*			(*   selector name    *)
+	      string)				(*   argument name    *)
+	    list);				(* argument list      *)
 type eq = (string *		(* name      of abstracted type *)
 	   typ list) *		(* arguments of abstracted type *)
 	  cons list;		(* represented type, as a constructor list *)
 
-fun rec_of arg  = snd (first arg);
-fun is_lazy arg = fst (first arg);
+fun rec_of arg  = second (first arg);
+fun is_lazy arg = first (first arg);
 val sel_of    =       second;
 val     vname =       third;
 val upd_vname =   upd_third;
@@ -185,17 +185,8 @@ fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) I (%# arg);
 fun prj _  _  x (   _::[]) _ = x
 |   prj f1 _  x (_::y::ys) 0 = f1 x y
 |   prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
-fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
-						    avoid type varaibles *)
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
 fun cproj x      = prj (fn S => K(%%:cfstN`S)) (fn S => K(%%:csndN`S)) x;
-fun prj' _  _  x (   _::[]) _ = x
-|   prj' f1 _  x (_::   ys) 0 = f1 x (foldr1 HOLogic.mk_prodT ys)
-|   prj' f1 f2 x (y::   ys) j = prj' f1 f2 (f2 x y) ys (j-1);
-fun cproj' T eqs = prj'
-	(fn S => fn t => Const(cfstN, HOLogic.mk_prodT(dummyT,t)->>dummyT)`S)
-	(fn S => fn t => Const(csndN, HOLogic.mk_prodT(t,dummyT)->>dummyT)`S) 
-		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
 fun /\ v T = %%:Abs_CFunN $ mk_lam(v,T);
