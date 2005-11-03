@@ -48,4 +48,22 @@ done
 lemma compact_ONE [simp]: "compact ONE"
 by (rule compact_chfin)
 
+text {* Case analysis function for type @{typ one} *}
+
+constdefs
+  one_when :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a"
+  "one_when \<equiv> \<Lambda> a. strictify\<cdot>(\<Lambda> _. a)"
+
+translations
+  "\<Lambda> ONE. t" == "one_when\<cdot>t"
+
+lemma one_when1 [simp]: "(\<Lambda> ONE. t)\<cdot>\<bottom> = \<bottom>"
+by (simp add: one_when_def)
+
+lemma one_when2 [simp]: "(\<Lambda> ONE. t)\<cdot>ONE = t"
+by (simp add: one_when_def)
+
+lemma one_when3 [simp]: "(\<Lambda> ONE. ONE)\<cdot>x = x"
+by (rule_tac p=x in oneE, simp_all)
+
 end
