@@ -92,10 +92,8 @@ text {* left to right: @{prop "monofun f \<and> contlub f \<Longrightarrow> cont
 lemma monocontlub2cont: "\<lbrakk>monofun f; contlub f\<rbrakk> \<Longrightarrow> cont f"
 apply (rule contI)
 apply (rule thelubE)
-apply (erule ch2ch_monofun)
-apply assumption
-apply (erule contlubE [symmetric])
-apply assumption
+apply (erule (1) ch2ch_monofun)
+apply (erule (1) contlubE [symmetric])
 done
 
 text {* first a lemma about binary chains *}
@@ -115,7 +113,7 @@ text {* part1: @{prop "cont f \<Longrightarrow> monofun f"} *}
 
 lemma cont2mono: "cont f \<Longrightarrow> monofun f"
 apply (rule monofunI)
-apply (drule binchain_cont, assumption)
+apply (drule (1) binchain_cont)
 apply (drule_tac i=0 in is_ub_lub)
 apply simp
 done
@@ -128,8 +126,7 @@ text {* part2: @{prop "cont f \<Longrightarrow> contlub f"} *}
 lemma cont2contlub: "cont f \<Longrightarrow> contlub f"
 apply (rule contlubI)
 apply (rule thelubI [symmetric])
-apply (erule contE)
-apply assumption
+apply (erule (1) contE)
 done
 
 lemmas cont2contlubE = cont2contlub [THEN contlubE]
@@ -190,8 +187,7 @@ lemma cont_lub_fun:
 apply (rule monocontlub2cont)
 apply (erule monofun_lub_fun)
 apply (simp add: cont2mono)
-apply (erule contlub_lub_fun)
-apply assumption
+apply (erule (1) contlub_lub_fun)
 done
 
 lemma cont2cont_lub:
@@ -231,18 +227,16 @@ apply (simp add: mono2mono_MF1L_rev cont2mono)
 done
 
 lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. (\<lambda>y. f x y))"
-apply (rule cont2cont_CF1L_rev)
-apply simp
-done
+by (rule cont2cont_CF1L_rev, simp)
 
 text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
 
 lemma contlub_abstraction:
   "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
     (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
+apply (drule cont2cont_CF1L_rev)
 apply (rule thelub_fun [symmetric])
-apply (rule ch2ch_cont)
-apply (erule (1) cont2cont_CF1L_rev)
+apply (erule (1) ch2ch_cont)
 done
 
 lemma mono2mono_app:

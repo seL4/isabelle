@@ -38,10 +38,7 @@ lemma antisym_less_inverse: "(x::'a::po) = y \<Longrightarrow> x \<sqsubseteq> y
 by simp
 
 lemma box_less: "\<lbrakk>(a::'a::po) \<sqsubseteq> b; c \<sqsubseteq> a; b \<sqsubseteq> d\<rbrakk> \<Longrightarrow> c \<sqsubseteq> d"
-apply (erule trans_less)
-apply (erule trans_less)
-apply assumption
-done
+by (rule trans_less [OF trans_less])
 
 lemma po_eq_conv: "((x::'a::po) = y) = (x \<sqsubseteq> y \<and> y \<sqsubseteq> x)"
 by (fast elim!: antisym_less_inverse intro!: antisym_less)
@@ -128,11 +125,7 @@ apply (erule (1) unique_lub)
 done
 
 lemma thelubI: "M <<| l \<Longrightarrow> lub M = l"
-apply (rule unique_lub)
-apply (rule lubI)
-apply assumption
-apply assumption
-done
+by (rule unique_lub [OF lubI])
 
 lemma lub_singleton [simp]: "lub {x} = x"
 by (simp add: thelubI is_lub_def is_ub_def)
