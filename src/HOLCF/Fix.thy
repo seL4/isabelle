@@ -18,7 +18,6 @@ subsection {* Definitions *}
 consts
   iterate :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<rightarrow> 'a \<rightarrow> 'a"
   "fix"   :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
-  admw    :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
 
 primrec
   "iterate 0 = (\<Lambda> F x. x)"
@@ -26,9 +25,6 @@ primrec
 
 defs
   fix_def:       "fix \<equiv> \<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>"
-
-  admw_def:      "admw P \<equiv> \<forall>F. (\<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)) \<longrightarrow>
-                            P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)" 
 
 subsection {* Binder syntax for @{term fix} *}
 
@@ -69,7 +65,7 @@ by (rule chain_iterate2 [OF minimal])
 
 subsection {* Properties of @{term fix} *}
 
-text {* direct connection between @{term fix} and iteration without @{term Ifix} *}
+text {* direct connection between @{term fix} and iteration *}
 
 lemma fix_def2: "fix\<cdot>F = (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 apply (unfold fix_def)
@@ -154,7 +150,24 @@ by (simp add: fix_strict)
 lemma fix_const: "(\<mu> x. c) = c"
 by (subst fix_eq, simp)
 
-subsection {* Admissibility and fixed point induction *}
+subsection {* Fixed point induction *}
+
+lemma fix_ind: "\<lbrakk>adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
+apply (subst fix_def2)
+apply (erule admD [rule_format])
+apply (rule chain_iterate)
+apply (induct_tac "i", simp_all)
+done
+
+lemma def_fix_ind:
+  "\<lbrakk>f \<equiv> fix\<cdot>F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P f"
+by (simp add: fix_ind)
+
+subsection {* Weak admissibility *}
+
+constdefs
+  admw :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
+  "admw P \<equiv> \<forall>F. (\<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)) \<longrightarrow> P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 
 text {* an admissible formula is also weak admissible *}
 
@@ -164,38 +177,6 @@ apply (intro strip)
 apply (erule admD)
 apply (rule chain_iterate)
 apply assumption
-done
-
-text {* some lemmata for functions with flat/chfin domain/range types *}
-
-lemma adm_chfindom: "adm (\<lambda>(u::'a::cpo \<rightarrow> 'b::chfin). P(u\<cdot>s))"
-apply (unfold adm_def)
-apply (intro strip)
-apply (drule chfin_Rep_CFunR)
-apply (erule_tac x = "s" in allE)
-apply clarsimp
-done
-
-(* adm_flat not needed any more, since it is a special case of adm_chfindom *)
-
-text {* fixed point induction *}
-
-lemma fix_ind: "\<lbrakk>adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
-apply (subst fix_def2)
-apply (erule admD)
-apply (rule chain_iterate)
-apply (rule allI)
-apply (induct_tac "i")
-apply simp
-apply simp
-done
-
-lemma def_fix_ind:
-  "\<lbrakk>f \<equiv> fix\<cdot>F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P f"
-apply simp
-apply (erule fix_ind)
-apply assumption
-apply fast
 done
 
 text {* computational induction for weak admissible formulae *}
