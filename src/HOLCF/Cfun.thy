@@ -42,20 +42,27 @@ subsection {* Syntax for continuous lambda abstraction *}
 syntax "_cabs" :: "'a"
 
 parse_translation {*
-(* rewrites (_cabs x t) --> (Abs_CFun (%x. t)) *)
+(* rewrites (_cabs x t) => (Abs_CFun (%x. t)) *)
   [mk_binder_tr ("_cabs", "Abs_CFun")];
 *}
 
 text {* To avoid eta-contraction of body: *}
-print_translation {*
+typed_print_translation {*
   let
-    fun cabs_tr' [Abs abs] =
-      let val (x,t) = atomic_abs_tr' abs
-      in Syntax.const "_cabs" $ x $ t end
+    fun cabs_tr' _ _ [Abs abs] = let
+          val (x,t) = atomic_abs_tr' abs
+        in Syntax.const "_cabs" $ x $ t end
+
+      | cabs_tr' _ T [t] = let
+          val xT = domain_type (domain_type T);
+          val abs' = ("x",xT,(incr_boundvars 1 t)$Bound 0);
+          val (x,t') = atomic_abs_tr' abs';
+        in Syntax.const "_cabs" $ x $ t' end;
+
   in [("Abs_CFun", cabs_tr')] end;
 *}
 
-text {* syntax for nested abstractions *}
+text {* Syntax for nested abstractions *}
 
 syntax
   "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic"  ("(3LAM _./ _)" [1000, 10] 10)
@@ -64,7 +71,7 @@ syntax (xsymbols)
   "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic" ("(3\<Lambda>_./ _)" [1000, 10] 10)
 
 parse_ast_translation {*
-(* rewrites (LAM x y z. t) --> (_cabs x (_cabs y (_cabs z t))) *)
+(* rewrites (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
 (* cf. Syntax.lambda_ast_tr from Syntax/syn_trans.ML *)
   let
     fun Lambda_ast_tr [pats, body] =
@@ -74,7 +81,7 @@ parse_ast_translation {*
 *}
 
 print_ast_translation {*
-(* rewrites (_cabs x (_cabs y (_cabs z t))) --> (LAM x y z. t) *)
+(* rewrites (_cabs x (_cabs y (_cabs z t))) => (LAM x y z. t) *)
 (* cf. Syntax.abs_ast_tr' from Syntax/syn_trans.ML *)
   let
     fun cabs_ast_tr' asts =
@@ -86,8 +93,10 @@ print_ast_translation {*
   in [("_cabs", cabs_ast_tr')] end;
 *}
 
+text {* Dummy patterns for continuous abstraction *}
 translations
-  "\<Lambda> _. t" == "Abs_CFun (\<lambda> _. t)"
+  "\<Lambda> _. t" => "Abs_CFun (\<lambda> _. t)"
+
 
 subsection {* Continuous function space is pointed *}
 
