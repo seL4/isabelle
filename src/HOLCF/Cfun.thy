@@ -338,6 +338,9 @@ apply assumption
 apply (fast intro!: thelubI chfin lub_finch2 chfin2finch ch2ch_Rep_CFunL)
 done
 
+lemma adm_chfindom: "adm (\<lambda>(u::'a::cpo \<rightarrow> 'b::chfin). P(u\<cdot>s))"
+by (rule adm_subst, simp, rule adm_chfin)
+
 subsection {* Continuous injection-retraction pairs *}
 
 text {* Continuous retractions are strict. *}
