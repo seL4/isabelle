@@ -33,15 +33,10 @@ done
 
 subsection {* Monadic bind operator *}
 
-constdefs
-  bind :: "'a maybe \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> 'b maybe"
-  "bind \<equiv> \<Lambda> m f. sscase\<cdot>sinl\<cdot>(fup\<cdot>f)\<cdot>m"
-
-syntax
-  "_bind" :: "'a maybe \<Rightarrow> ('a \<rightarrow> 'b maybe) \<Rightarrow> 'b maybe"
-    ("(_ >>= _)" [50, 51] 50)
-
-translations "m >>= k" == "bind\<cdot>m\<cdot>k"
+consts
+  bind :: "'a maybe \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> 'b maybe" (infixl ">>=" 50)
+defs
+  bind_def: "bind \<equiv> \<Lambda> m f. sscase\<cdot>sinl\<cdot>(fup\<cdot>f)\<cdot>m"
 
 nonterminals
   maybebind maybebinds
@@ -95,12 +90,10 @@ by (simp add: run_def return_def)
 
 subsection {* Monad plus operator *}
 
-constdefs
-  mplus :: "'a maybe \<rightarrow> 'a maybe \<rightarrow> 'a maybe"
-  "mplus \<equiv> \<Lambda> m1 m2. sscase\<cdot>(\<Lambda> x. m2)\<cdot>(fup\<cdot>return)\<cdot>m1"
-
-syntax "+++" :: "'a maybe \<Rightarrow> 'a maybe \<Rightarrow> 'a maybe" (infixr 65)
-translations "x +++ y" == "mplus\<cdot>x\<cdot>y"
+consts
+  mplus :: "'a maybe \<rightarrow> 'a maybe \<rightarrow> 'a maybe" (infixr "+++" 65)
+defs
+  mplus_def: "mplus \<equiv> \<Lambda> m1 m2. sscase\<cdot>(\<Lambda> x. m2)\<cdot>(fup\<cdot>return)\<cdot>m1"
 
 text {* rewrite rules for mplus *}
 
