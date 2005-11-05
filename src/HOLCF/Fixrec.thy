@@ -143,13 +143,13 @@ constdefs
   "match_up \<equiv> fup\<cdot>return"
 
   match_ONE :: "one \<rightarrow> unit maybe"
-  "match_ONE \<equiv> flift1 (\<lambda>u. return\<cdot>())"
-
+  "match_ONE \<equiv> \<Lambda> ONE. return\<cdot>()"
+ 
   match_TT :: "tr \<rightarrow> unit maybe"
-  "match_TT \<equiv> flift1 (\<lambda>b. if b then return\<cdot>() else fail)"
-
+  "match_TT \<equiv> \<Lambda> b. If b then return\<cdot>() else fail fi"
+ 
   match_FF :: "tr \<rightarrow> unit maybe"
-  "match_FF \<equiv> flift1 (\<lambda>b. if b then fail else return\<cdot>())"
+  "match_FF \<equiv> \<Lambda> b. If b then fail else return\<cdot>() fi"
 
 lemma match_UU_simps [simp]:
   "match_UU\<cdot>x = fail"
@@ -184,19 +184,19 @@ by (simp_all add: match_up_def)
 lemma match_ONE_simps [simp]:
   "match_ONE\<cdot>ONE = return\<cdot>()"
   "match_ONE\<cdot>\<bottom> = \<bottom>"
-by (simp_all add: ONE_def match_ONE_def)
+by (simp_all add: match_ONE_def)
 
 lemma match_TT_simps [simp]:
   "match_TT\<cdot>TT = return\<cdot>()"
   "match_TT\<cdot>FF = fail"
   "match_TT\<cdot>\<bottom> = \<bottom>"
-by (simp_all add: TT_def FF_def match_TT_def)
+by (simp_all add: match_TT_def)
 
 lemma match_FF_simps [simp]:
   "match_FF\<cdot>FF = return\<cdot>()"
   "match_FF\<cdot>TT = fail"
   "match_FF\<cdot>\<bottom> = \<bottom>"
-by (simp_all add: TT_def FF_def match_FF_def)
+by (simp_all add: match_FF_def)
 
 subsection {* Mutual recursion *}
 
