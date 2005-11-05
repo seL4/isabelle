@@ -4,7 +4,7 @@
 val antisym_less_fun = thm "antisym_less_fun";
 val app_strict = thm "app_strict";
 val ch2ch_fun = thm "ch2ch_fun";
-val ch2ch_fun_rev = thm "ch2ch_fun_rev";
+val ch2ch_lambda = thm "ch2ch_lambda";
 val cpo_fun = thm "cpo_fun";
 val expand_fun_less = thm "expand_fun_less";
 val inst_fun_pcpo = thm "inst_fun_pcpo";

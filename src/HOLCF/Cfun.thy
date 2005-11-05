@@ -166,12 +166,11 @@ by simp
 subsection {* Continuity of application *}
 
 lemma cont_Rep_CFun1: "cont (\<lambda>f. f\<cdot>x)"
-by (rule cont_Rep_CFun [THEN cont2cont_CF1L])
+by (rule cont_Rep_CFun [THEN cont2cont_fun])
 
 lemma cont_Rep_CFun2: "cont (\<lambda>x. f\<cdot>x)"
-apply (rule_tac P = "cont" in CollectD)
-apply (fold CFun_def)
-apply (rule Rep_CFun)
+apply (cut_tac x=f in Rep_CFun)
+apply (simp add: CFun_def)
 done
 
 lemmas monofun_Rep_CFun = cont_Rep_CFun [THEN cont2mono]
@@ -226,6 +225,10 @@ apply (erule chainE)
 apply (erule chainE)
 done
 
+lemma ch2ch_LAM: "\<lbrakk>\<And>x. chain (\<lambda>i. S i x); \<And>i. cont (\<lambda>x. S i x)\<rbrakk>
+    \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
+by (simp add: chain_def expand_cfun_less)
+
 text {* contlub, cont properties of @{term Rep_CFun} in both arguments *}
 
 lemma contlub_cfun: 
@@ -237,6 +240,14 @@ lemma cont_cfun:
 apply (rule thelubE)
 apply (simp only: ch2ch_Rep_CFun)
 apply (simp only: contlub_cfun)
+done
+
+lemma contlub_LAM:
+  "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
+    \<Longrightarrow> (\<Lambda> x. \<Squnion>i. F i x) = (\<Squnion>i. \<Lambda> x. F i x)"
+apply (simp add: thelub_CFun ch2ch_LAM)
+apply (simp add: Abs_CFun_inverse2)
+apply (simp add: thelub_fun ch2ch_lambda)
 done
 
 text {* strictness *}

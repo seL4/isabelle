@@ -55,7 +55,7 @@ text {* chains of functions yield chains in the po range *}
 lemma ch2ch_fun: "chain S \<Longrightarrow> chain (\<lambda>i. S i x)"
 by (simp add: chain_def less_fun_def)
 
-lemma ch2ch_fun_rev: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
+lemma ch2ch_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
 by (simp add: chain_def less_fun_def)
 
 

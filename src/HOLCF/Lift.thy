@@ -103,10 +103,10 @@ text {*
 *}
 
 lemma cont_Rep_CFun_app: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s)"
-by (rule cont2cont_Rep_CFun [THEN cont2cont_CF1L])
+by (rule cont2cont_Rep_CFun [THEN cont2cont_fun])
 
 lemma cont_Rep_CFun_app_app: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s t)"
-by (rule cont_Rep_CFun_app [THEN cont2cont_CF1L])
+by (rule cont_Rep_CFun_app [THEN cont2cont_fun])
 
 subsection {* Further operations *}
 
@@ -128,7 +128,7 @@ lemma cont_lift_case1: "cont (\<lambda>f. lift_case a f x)"
 apply (induct x)
 apply simp
 apply simp
-apply (rule cont_id [THEN cont2cont_CF1L])
+apply (rule cont_id [THEN cont2cont_fun])
 done
 
 lemma cont_lift_case2: "cont (\<lambda>x. lift_case \<bottom> f x)"

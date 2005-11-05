@@ -71,7 +71,7 @@ lemma fix_def2: "fix\<cdot>F = (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 apply (unfold fix_def)
 apply (rule beta_cfun)
 apply (rule cont2cont_lub)
-apply (rule ch2ch_fun_rev)
+apply (rule ch2ch_lambda)
 apply (rule chain_iterate)
 apply simp
 done

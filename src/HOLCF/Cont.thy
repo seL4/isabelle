@@ -194,14 +194,14 @@ lemma cont2cont_lub:
   "\<lbrakk>chain F; \<And>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. \<Squnion>i. F i x)"
 by (simp add: thelub_fun [symmetric] cont_lub_fun)
 
-lemma mono2mono_MF1L: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
+lemma mono2mono_fun: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
 apply (rule monofunI)
 apply (erule (1) monofun_fun_arg [THEN monofun_fun_fun])
 done
 
-lemma cont2cont_CF1L: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
+lemma cont2cont_fun: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 apply (rule monocontlub2cont)
-apply (erule cont2mono [THEN mono2mono_MF1L])
+apply (erule cont2mono [THEN mono2mono_fun])
 apply (rule contlubI)
 apply (simp add: cont2contlubE)
 apply (simp add: thelub_fun ch2ch_cont)
@@ -209,13 +209,13 @@ done
 
 text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
 
-lemma mono2mono_MF1L_rev: "\<forall>y. monofun (\<lambda>x. f x y) \<Longrightarrow> monofun f"
+lemma mono2mono_lambda: "(\<And>y. monofun (\<lambda>x. f x y)) \<Longrightarrow> monofun f"
 apply (rule monofunI)
 apply (rule less_fun_ext)
 apply (blast dest: monofunE)
 done
 
-lemma cont2cont_CF1L_rev: "\<forall>y. cont (\<lambda>x. f x y) \<Longrightarrow> cont f"
+lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont f"
 apply (subgoal_tac "monofun f")
 apply (rule monocontlub2cont)
 apply assumption
@@ -223,20 +223,23 @@ apply (rule contlubI)
 apply (rule ext)
 apply (simp add: thelub_fun ch2ch_monofun)
 apply (blast dest: cont2contlubE)
-apply (simp add: mono2mono_MF1L_rev cont2mono)
+apply (simp add: mono2mono_lambda cont2mono)
 done
 
-lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. (\<lambda>y. f x y))"
-by (rule cont2cont_CF1L_rev, simp)
-
 text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
+
+lemma contlub_lambda:
+  "(\<And>x::'a::type. chain (\<lambda>i. S i x::'b::cpo))
+    \<Longrightarrow> (\<lambda>x. \<Squnion>i. S i x) = (\<Squnion>i. (\<lambda>x. S i x))"
+by (simp add: thelub_fun ch2ch_lambda)
 
 lemma contlub_abstraction:
   "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
     (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
-apply (drule cont2cont_CF1L_rev)
 apply (rule thelub_fun [symmetric])
-apply (erule (1) ch2ch_cont)
+apply (rule ch2ch_cont)
+apply (simp add: cont2cont_lambda)
+apply assumption
 done
 
 lemma mono2mono_app:
