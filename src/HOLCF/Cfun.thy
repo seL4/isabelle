@@ -29,13 +29,13 @@ syntax (xsymbols)
   "->"     :: "[type, type] => type"      ("(_ \<rightarrow>/ _)" [1,0]0)
 
 syntax
-  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("_$_" [999,1000] 999)
+  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_$/_)" [999,1000] 999)
 
 syntax (xsymbols)
-  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>_)" [999,1000] 999)
+  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>/_)" [999,1000] 999)
 
 syntax (HTML output)
-  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>_)" [999,1000] 999)
+  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>/_)" [999,1000] 999)
 
 subsection {* Syntax for continuous lambda abstraction *}
 
