@@ -108,9 +108,7 @@ by (rule fix_least_less, simp)
 
 lemma fix_eqI: "\<lbrakk>F\<cdot>x = x; \<forall>z. F\<cdot>z = z \<longrightarrow> x \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x = fix\<cdot>F"
 apply (rule antisym_less)
-apply (erule allE)
-apply (erule mp)
-apply (rule fix_eq [symmetric])
+apply (simp add: fix_eq [symmetric])
 apply (erule fix_least)
 done
 
@@ -189,6 +187,38 @@ translations
   "_Letrec (_recbinds b bs) e" == "_Letrec b (_Letrec bs e)"
   "Letrec xs = a in \<langle>e,es\<rangle>"    == "CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e,es\<rangle>)"
   "Letrec xs = a in e"         == "CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e\<rangle>)"
+
+text {*
+  Bekic's Theorem: Simultaneous fixed points over pairs
+  can be written in terms of separate fixed points.
+*}
+
+lemma fix_cprod:
+  "fix\<cdot>(F::'a \<times> 'b \<rightarrow> 'a \<times> 'b) =
+   \<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>),
+    \<mu> y. csnd\<cdot>(F\<cdot>\<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>), y\<rangle>)\<rangle>"
+  (is "fix\<cdot>F = \<langle>?x, ?y\<rangle>")
+proof (rule fix_eqI [rule_format, symmetric])
+  have 1: "cfst\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?x"
+    by (rule trans [symmetric, OF fix_eq], simp)
+  have 2: "csnd\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?y"
+    by (rule trans [symmetric, OF fix_eq], simp)
+  from 1 2 show "F\<cdot>\<langle>?x, ?y\<rangle> = \<langle>?x, ?y\<rangle>" by (simp add: eq_cprod)
+next
+  fix z assume F_z: "F\<cdot>z = z"
+  then obtain x y where z: "z = \<langle>x,y\<rangle>" by (rule_tac p=z in cprodE)
+  from F_z z have F_x: "cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>) = x" by simp
+  from F_z z have F_y: "csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>) = y" by simp
+  let ?y1 = "\<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)"
+  have "?y1 \<sqsubseteq> y" by (rule fix_least, simp add: F_y)
+  hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
+  hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> x" using F_x by simp
+  hence 1: "?x \<sqsubseteq> x" by (simp add: fix_least_less)
+  hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
+  hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> y" using F_y by simp
+  hence 2: "?y \<sqsubseteq> y" by (simp add: fix_least_less)
+  show "\<langle>?x, ?y\<rangle> \<sqsubseteq> z" using z 1 2 by simp
+qed
 
 subsection {* Weak admissibility *}
 
