@@ -13,33 +13,16 @@ begin
 
 defaultsort pcpo
 
-subsection {* Definitions *}
+subsection {* Iteration *}
 
 consts
-  iterate :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<rightarrow> 'a \<rightarrow> 'a"
-  "fix"   :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
+  iterate :: "nat \<Rightarrow> ('a::cpo \<rightarrow> 'a) \<rightarrow> ('a \<rightarrow> 'a)"
 
 primrec
   "iterate 0 = (\<Lambda> F x. x)"
   "iterate (Suc n) = (\<Lambda> F x. F\<cdot>(iterate n\<cdot>F\<cdot>x))"
 
-defs
-  fix_def:       "fix \<equiv> \<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>"
-
-subsection {* Binder syntax for @{term fix} *}
-
-syntax
-  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3FIX _./ _)" [1000, 10] 10)
-
-syntax (xsymbols)
-  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3\<mu>_./ _)" [1000, 10] 10)
-
-translations
-  "\<mu> x. t" == "fix\<cdot>(\<Lambda> x. t)"
-
-subsection {* Properties of @{term iterate} *}
-
-text {* derive inductive properties of iterate from primitive recursion *}
+text {* Derive inductive properties of iterate from primitive recursion *}
 
 lemma iterate_0 [simp]: "iterate 0\<cdot>F\<cdot>x = x"
 by simp
@@ -63,7 +46,25 @@ by (rule chainI, induct_tac i, auto elim: monofun_cfun_arg)
 lemma chain_iterate [simp]: "chain (\<lambda>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 by (rule chain_iterate2 [OF minimal])
 
-subsection {* Properties of @{term fix} *}
+
+subsection {* Least fixed point operator *}
+
+constdefs
+  "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
+  "fix \<equiv> \<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>"
+
+text {* Binder syntax for @{term fix} *}
+
+syntax
+  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3FIX _./ _)" [1000, 10] 10)
+
+syntax (xsymbols)
+  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3\<mu>_./ _)" [1000, 10] 10)
+
+translations
+  "\<mu> x. t" == "fix\<cdot>(\<Lambda> x. t)"
+
+text {* Properties of @{term fix} *}
 
 text {* direct connection between @{term fix} and iteration *}
 
@@ -162,6 +163,32 @@ done
 lemma def_fix_ind:
   "\<lbrakk>f \<equiv> fix\<cdot>F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P f"
 by (simp add: fix_ind)
+
+subsection {* Recursive let bindings *}
+
+constdefs
+  CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b"
+  "CLetrec \<equiv> \<Lambda> F. csnd\<cdot>(F\<cdot>(\<mu> x. cfst\<cdot>(F\<cdot>x)))"
+
+nonterminals
+  recbinds recbindt recbind
+
+syntax
+  "_recbind"  :: "['a, 'a] \<Rightarrow> recbind"               ("(2_ =/ _)" 10)
+  ""          :: "recbind \<Rightarrow> recbindt"               ("_")
+  "_recbindt" :: "[recbind, recbindt] \<Rightarrow> recbindt"   ("_,/ _")
+  ""          :: "recbindt \<Rightarrow> recbinds"              ("_")
+  "_recbinds" :: "[recbindt, recbinds] \<Rightarrow> recbinds"  ("_;/ _")
+  "_Letrec"   :: "[recbinds, 'a] \<Rightarrow> 'a"      ("(Letrec (_)/ in (_))" 10)
+
+translations
+  (recbindt) "x = a, \<langle>y,ys\<rangle> = \<langle>b,bs\<rangle>" == (recbindt) "\<langle>x,y,ys\<rangle> = \<langle>a,b,bs\<rangle>"
+  (recbindt) "x = a, y = b"           == (recbindt) "\<langle>x,y\<rangle> = \<langle>a,b\<rangle>"
+
+translations
+  "_Letrec (_recbinds b bs) e" == "_Letrec b (_Letrec bs e)"
+  "Letrec xs = a in \<langle>e,es\<rangle>"    == "CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e,es\<rangle>)"
+  "Letrec xs = a in e"         == "CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e\<rangle>)"
 
 subsection {* Weak admissibility *}
 
