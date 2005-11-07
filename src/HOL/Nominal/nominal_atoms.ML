@@ -38,9 +38,6 @@ fun mk_Cons x xs =
   let val T = fastype_of x
   in Const ("List.list.Cons", T --> mk_listT T --> mk_listT T) $ x $ xs end;
 
-(* FIXME: should be a library function *)
-fun cprod ([], ys) = []
-  | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
 (* this function sets up all matters related to atom-  *)
 (* kinds; the user specifies a list of atom-kind names *)
@@ -808,14 +805,14 @@ fun create_nom_typedecls ak_names thy =
              (* list of all cp_inst-theorems *)
              val cps = 
 	       let fun cps_fun (ak1,ak2) = PureThy.get_thm thy33 (Name ("cp_"^ak1^"_"^ak2^"_inst"))
-	       in map cps_fun (cprod (ak_names,ak_names)) end;	
+	       in map cps_fun (Library.product ak_names ak_names) end;	
              (* list of all dj_inst-theorems *)
              val djs = 
 	       let fun djs_fun (ak1,ak2) = 
 		    if ak1=ak2 
 		    then NONE
 		    else SOME(PureThy.get_thm thy33 (Name ("dj_"^ak1^"_"^ak2)))
-	       in List.mapPartial I (map djs_fun (cprod (ak_names,ak_names))) end;	
+	       in List.mapPartial I (map djs_fun (Library.product ak_names ak_names)) end;	
 
              fun inst_pt thms = Library.flat (map (fn ti => instantiate ti pts) thms); 
              fun inst_at thms = Library.flat (map (fn ti => instantiate ti ats) thms);               
