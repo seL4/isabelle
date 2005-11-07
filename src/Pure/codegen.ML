@@ -78,7 +78,9 @@ sig
   val eval_result: term ref
   val eval_term: theory -> term -> term
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
-  val fillin_mixfix': 'a mixfix list -> Pretty.T list -> string list * Pretty.T
+  val quotes_of: 'a mixfix list -> 'a list
+  val replace_quotes: 'b list -> 'a mixfix list -> 'b mixfix list
+  val fillin_mixfix: 'a mixfix list -> Pretty.T list -> Pretty.T list -> string list * Pretty.T
   val mk_deftab: theory -> deftab
 
   val get_node: codegr -> string -> node
@@ -635,24 +637,36 @@ fun pretty_mixfix _ _ [] [] _ = []
   | pretty_mixfix module module' (Quote _ :: ms) ps (q :: qs) =
       q :: pretty_mixfix module module' ms ps qs;
 
-fun fillin_mixfix' ms args =
+fun replace_quotes [] [] = []
+  | replace_quotes xs (Arg :: ms) =
+      Arg :: replace_quotes xs ms
+  | replace_quotes xs (Ignore :: ms) =
+      Ignore :: replace_quotes xs ms
+  | replace_quotes xs (Module :: ms) =
+      Module :: replace_quotes xs ms
+  | replace_quotes xs (Pretty p :: ms) =
+      Pretty p :: replace_quotes xs ms
+  | replace_quotes (x::xs) (Quote _ :: ms) =
+      Quote x :: replace_quotes xs ms;
+
+fun fillin_mixfix ms args qs =
   let
-    fun fillin [] [] vars = (vars, [])
-      | fillin (Arg :: ms) [] vars =
+    fun fillin [] [] [] vars = (vars, [])
+      | fillin (Arg :: ms) [] qs vars =
           let
             val v = "a_" ^ (string_of_int o length) vars;
-          in fillin ms args (v::vars) ||> (cons o Pretty.str) v end
-      | fillin (Arg :: ms) (a :: args) vars =
-          fillin ms args vars ||> cons a
-      | fillin (Ignore :: ms) args vars =
-          fillin ms args vars
-      | fillin (Module :: ms) args vars =
-          fillin ms args vars
-      | fillin (Pretty p :: ms) args vars =
-          fillin ms args vars ||> cons p
-      | fillin (Quote _ :: ms) args vars =
-          error ("no quotes currently supported in codegen patterns");
-  in fillin ms args [] ||> Pretty.block end;
+          in fillin ms args qs (v::vars) ||> (cons o Pretty.str) v end
+      | fillin (Arg :: ms) (a :: args) qs vars =
+          fillin ms args qs vars ||> cons a
+      | fillin (Ignore :: ms) args qs vars =
+          fillin ms args qs vars
+      | fillin (Module :: ms) args qs vars =
+          fillin ms args qs vars
+      | fillin (Pretty p :: ms) args qs vars =
+          fillin ms args qs vars ||> cons p
+      | fillin (Quote _ :: ms) args (q::qs) vars =
+          fillin ms args qs vars ||> cons q
+  in fillin ms args qs [] ||> Pretty.block end;
 
 
 (**** default code generators ****)
