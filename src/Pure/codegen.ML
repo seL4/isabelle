@@ -78,6 +78,7 @@ sig
   val eval_result: term ref
   val eval_term: theory -> term -> term
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
+  val fillin_mixfix': 'a mixfix list -> Pretty.T list -> string list * Pretty.T
   val mk_deftab: theory -> deftab
 
   val get_node: codegr -> string -> node
@@ -552,7 +553,7 @@ val rename_term = hd o rename_terms o single;
 fun is_instance thy T1 T2 =
   Sign.typ_instance thy (T1, Type.varifyT T2);
 
-fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
+fun get_assoc_code thy s T = Option.map snd (Library.find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
 fun get_aux_code xs = List.mapPartial (fn (m, code) =>
@@ -633,6 +634,25 @@ fun pretty_mixfix _ _ [] [] _ = []
       p :: pretty_mixfix module module' ms ps qs
   | pretty_mixfix module module' (Quote _ :: ms) ps (q :: qs) =
       q :: pretty_mixfix module module' ms ps qs;
+
+fun fillin_mixfix' ms args =
+  let
+    fun fillin [] [] vars = (vars, [])
+      | fillin (Arg :: ms) [] vars =
+          let
+            val v = "a_" ^ (string_of_int o length) vars;
+          in fillin ms args (v::vars) ||> (cons o Pretty.str) v end
+      | fillin (Arg :: ms) (a :: args) vars =
+          fillin ms args vars ||> cons a
+      | fillin (Ignore :: ms) args vars =
+          fillin ms args vars
+      | fillin (Module :: ms) args vars =
+          fillin ms args vars
+      | fillin (Pretty p :: ms) args vars =
+          fillin ms args vars ||> cons p
+      | fillin (Quote _ :: ms) args vars =
+          error ("no quotes currently supported in codegen patterns");
+  in fillin ms args [] ||> Pretty.block end;
 
 
 (**** default code generators ****)
@@ -811,7 +831,7 @@ fun output_code gr module xs =
     fun string_of_cycle (a :: b :: cs) =
           let val SOME (x, y) = get_first (fn (x, (_, a', _)) =>
             if a = a' then Option.map (pair x)
-              (find_first (equal b o #2 o Graph.get_node gr)
+              (Library.find_first (equal b o #2 o Graph.get_node gr)
                 (Graph.imm_succs gr x))
             else NONE) code
           in x ^ " called by " ^ y ^ "\n" ^ string_of_cycle (b :: cs) end
