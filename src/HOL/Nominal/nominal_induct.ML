@@ -21,7 +21,7 @@ fun tuple_lambda [] t  = Abs ("x", HOLogic.unitT, t)
 
 fun find_var frees name =
   (case Library.find_first (equal name o fst o dest_Free) frees of
-    NONE => error ("No such Variable in term: " ^ quote name)
+    NONE =>   error ("No such Variable in term: " ^ quote name) 
   | SOME v => v);
 
 (* - names specifies the variables that are involved in the *)
@@ -31,10 +31,16 @@ fun nominal_induct_tac (names, rule) facts state =
   let
     val sg     = Thm.sign_of_thm state;
     val cert   = Thm.cterm_of sg;
+
+    val facts1 = Library.take (1, facts);
+    val facts2 = Library.drop (1, facts);
+
     val goal :: _ = Thm.prems_of state;  (*exception Subscript*)
-    val frees  = Term.term_frees goal;
+    val frees  = foldl Term.add_term_frees [] (goal :: map concl_of facts1);
     val frees' = filter_out (fn Free (x, _) => exists (equal x) names) frees;
-    val vars = map (find_var frees) names;
+    val vars = map (find_var frees) names; 
+                 (* FIXME - check what one can do in case of *)
+                 (* rule inductions                          *)
 
     fun inst_rule rule =
       let
@@ -52,9 +58,6 @@ fun nominal_induct_tac (names, rule) facts state =
     val simplify_rule =
       Simplifier.full_simplify (HOL_basic_ss addsimps
         [split_conv, split_paired_All, split_paired_all]);
-
-    val facts1 = Library.take (1, facts);
-    val facts2 = Library.drop (1, facts);
 
   in
     rule
