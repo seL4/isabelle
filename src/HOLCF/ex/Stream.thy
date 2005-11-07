@@ -71,7 +71,7 @@ by auto
 lemma stream_exhaust_eq: "(x ~= UU) = (EX a y. a ~= UU &  x = a && y)"
 by (auto,insert stream.exhaust [of x],auto)
 
-lemma stream_neq_UU: "x~=UU ==> EX a as. x=a&&as & a~=UU"
+lemma stream_neq_UU: "x~=UU ==> EX a a_s. x=a&&a_s & a~=UU"
 by (simp add: stream_exhaust_eq,auto)
 
 lemma stream_inject_eq [simp]:
