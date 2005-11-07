@@ -55,15 +55,16 @@ constdefs
   "one_when \<equiv> \<Lambda> a. strictify\<cdot>(\<Lambda> _. a)"
 
 translations
+  "case x of ONE \<Rightarrow> t" == "one_when\<cdot>t\<cdot>x"
   "\<Lambda> ONE. t" == "one_when\<cdot>t"
 
-lemma one_when1 [simp]: "(\<Lambda> ONE. t)\<cdot>\<bottom> = \<bottom>"
+lemma one_when1 [simp]: "(case \<bottom> of ONE \<Rightarrow> t) = \<bottom>"
 by (simp add: one_when_def)
 
-lemma one_when2 [simp]: "(\<Lambda> ONE. t)\<cdot>ONE = t"
+lemma one_when2 [simp]: "(case ONE of ONE \<Rightarrow> t) = t"
 by (simp add: one_when_def)
 
-lemma one_when3 [simp]: "(\<Lambda> ONE. ONE)\<cdot>x = x"
+lemma one_when3 [simp]: "(case x of ONE \<Rightarrow> ONE) = x"
 by (rule_tac p=x in oneE, simp_all)
 
 end
