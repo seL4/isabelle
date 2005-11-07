@@ -136,8 +136,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val SOME {descr, ...} = Symtab.lookup
       (DatatypePackage.get_datatypes thy1) (hd full_new_type_names');
-    val typ_of_dtyp = typ_of_dtyp descr sorts';
-    fun nth_dtyp i = typ_of_dtyp (DtRec i);
+    fun nth_dtyp i = typ_of_dtyp descr sorts' (DtRec i);
+
+    val dt_atomTs = filter (fn Type (s, []) => s mem atoms | _ => false)
+      (get_nonrec_types descr sorts);
 
     (**** define permutation functions ****)
 
@@ -156,7 +158,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let val T = nth_dtyp i
       in map (fn (cname, dts) => 
         let
-          val Ts = map typ_of_dtyp dts;
+          val Ts = map (typ_of_dtyp descr sorts') dts;
           val names = DatatypeProp.make_tnames Ts;
           val args = map Free (names ~~ Ts);
           val c = Const (cname, Ts ---> T);
@@ -404,9 +406,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           let
             val (dts, dt') = strip_option dt;
             val (dts', dt'') = strip_dtyp dt';
-            val Ts = map typ_of_dtyp dts;
-            val Us = map typ_of_dtyp dts';
-            val T = typ_of_dtyp dt'';
+            val Ts = map (typ_of_dtyp descr sorts') dts;
+            val Us = map (typ_of_dtyp descr sorts') dts';
+            val T = typ_of_dtyp descr sorts' dt'';
             val free = mk_Free "x" (Us ---> T) j;
             val free' = app_bnds free (length Us);
             fun mk_abs_fun (T, (i, t)) =
@@ -594,20 +596,25 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let val xs = NameSpace.unpack s; 
       in NameSpace.pack (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
 
-    val descr'' = List.mapPartial
+    val (descr'', ndescr) = ListPair.unzip (List.mapPartial
       (fn (i, ("nominal.nOption", _, _)) => NONE
-        | (i, (s, dts, constrs)) => SOME (the (AList.lookup op = ty_idxs i),
-            (strip_nth_name 1 s,  map reindex dts,
-             map (fn (cname, cargs) =>
-               (strip_nth_name 2 cname,
-                foldl (fn (dt, dts) =>
-                  let val (dts', dt') = strip_option dt
-                  in (dts @ dts' @ [reindex dt']) end) [] cargs)) constrs))) descr;
+        | (i, (s, dts, constrs)) =>
+             let
+               val SOME index = AList.lookup op = ty_idxs i;
+               val (constrs1, constrs2) = ListPair.unzip
+                 (map (fn (cname, cargs) => apfst (pair (strip_nth_name 2 cname))
+                   (foldl_map (fn (dts, dt) =>
+                     let val (dts', dt') = strip_option dt
+                     in (dts @ dts' @ [reindex dt'], (length dts, length dts')) end)
+                       ([], cargs))) constrs)
+             in SOME ((index, (strip_nth_name 1 s,  map reindex dts, constrs1)),
+               (index, constrs2))
+             end) descr);
 
     val (descr1, descr2) = splitAt (length new_type_names, descr'');
     val descr' = [descr1, descr2];
 
-    val typ_of_dtyp' = replace_types' o typ_of_dtyp;
+    val typ_of_dtyp' = replace_types' o typ_of_dtyp descr sorts';
 
     val rep_names = map (fn s =>
       Sign.intern_const thy7 ("Rep_" ^ s)) new_type_names;
@@ -617,7 +624,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val recTs' = List.mapPartial
       (fn ((_, ("nominal.nOption", _, _)), T) => NONE
         | (_, T) => SOME T) (descr ~~ get_rec_types descr sorts');
-    val recTs = get_rec_types (List.concat descr') sorts';
+    val recTs = get_rec_types descr'' sorts';
     val newTs' = Library.take (length new_type_names, recTs');
     val newTs = Library.take (length new_type_names, recTs);
 
@@ -640,7 +647,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                    foldr mk_abs_fun
                      (list_abs (map (pair "z" o typ_of_dtyp') dts',
                        Const (List.nth (rep_names, k), typ_of_dtyp' dt'' -->
-                         typ_of_dtyp dt'') $ app_bnds x (length dts')))
+                         typ_of_dtyp descr sorts' dt'') $ app_bnds x (length dts')))
                      xs :: r_args)
                 else error "nested recursion not (yet) supported"
             | _ => (j + 1, x' :: l_args, x' :: r_args)
@@ -916,9 +923,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         end) atoms) constrs)
       end) (List.take (descr, length new_type_names) ~~ new_type_names ~~ inject_thms ~~ perm_simps')));
 
-    (**** Induction theorem ****)
+    (**** weak induction theorem ****)
 
-    val arities = get_arities (List.concat descr');
+    val arities = get_arities descr'';
 
     fun mk_funs_inv thm =
       let
@@ -955,7 +962,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end;
 
     val (indrule_lemma_prems, indrule_lemma_concls) =
-      Library.foldl mk_indrule_lemma (([], []), (List.concat descr' ~~ recTs ~~ recTs'));
+      Library.foldl mk_indrule_lemma (([], []), (descr'' ~~ recTs ~~ recTs'));
 
     val indrule_lemma = standard (Goal.prove thy8 [] []
       (Logic.mk_implies
@@ -986,7 +993,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]));
 
-    val case_names_induct = mk_case_names_induct (List.concat descr');
+    val case_names_induct = mk_case_names_induct descr'';
 
     (**** prove that new datatypes have finite support ****)
 
@@ -1011,6 +1018,56 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          length new_type_names))
       end) atoms;
 
+    (**** strong induction theorem ****)
+
+    val pnames = if length descr'' = 1 then ["P"]
+      else map (fn i => "P" ^ string_of_int i) (1 upto length descr'');
+    val ind_sort = map (fn T => Sign.intern_class thy8 ("fs_" ^
+      Sign.base_name (fst (dest_Type T)))) dt_atomTs;
+    val fsT = TFree ("'n", ind_sort);
+
+    fun make_pred i T =
+      Free (List.nth (pnames, i), T --> fsT --> HOLogic.boolT);
+
+    fun make_ind_prem k T ((cname, cargs), idxs) =
+      let
+        val recs = List.filter is_rec_type cargs;
+        val Ts = map (typ_of_dtyp descr'' sorts') cargs;
+        val recTs' = map (typ_of_dtyp descr'' sorts') recs;
+        val tnames = variantlist (DatatypeProp.make_tnames Ts, pnames);
+        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
+        val frees = tnames ~~ Ts;
+        val z = (variant tnames "z", fsT);
+
+        fun mk_prem ((dt, s), T) =
+          let
+            val (Us, U) = strip_type T;
+            val l = length Us
+          in list_all (z :: map (pair "x") Us, HOLogic.mk_Trueprop
+            (make_pred (body_index dt) U $ app_bnds (Free (s, T)) l $ Bound l))
+          end;
+
+        val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
+        val prems' = map (fn p as (_, T) => HOLogic.mk_Trueprop
+            (Const ("nominal.fresh", T --> fsT --> HOLogic.boolT) $
+              Free p $ Free z))
+          (map (curry List.nth frees) (List.concat (map (fn (m, n) =>
+             m upto m + n - 1) idxs)))
+
+      in list_all_free (z :: frees, Logic.list_implies (prems' @ prems,
+        HOLogic.mk_Trueprop (make_pred k T $ 
+          list_comb (Const (cname, Ts ---> T), map Free frees) $ Free z)))
+      end;
+
+    val ind_prems = List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
+      map (make_ind_prem i T) (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
+    val tnames = DatatypeProp.make_tnames recTs;
+    val z = (variant tnames "z", fsT);
+    val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+      (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T) $ Free z)
+        (descr'' ~~ recTs ~~ tnames)));
+    val induct = Logic.list_implies (ind_prems, ind_concl);
+
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add_global];
 
     val (thy9, _) = thy8 |>
@@ -1029,7 +1086,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (fst (dest_Type T),
               replicate (length sorts) [class], [class])
             (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
-        end) (atoms ~~ finite_supp_thms);
+        end) (atoms ~~ finite_supp_thms) |>>
+      Theory.add_path big_name |>>>
+      PureThy.add_axioms_i [(("induct_test", induct), [case_names_induct])] |>>
+      Theory.parent_path;
 
   in
     thy9
