@@ -320,13 +320,13 @@ bind_thm("reduceA_mksch",conjI RSN (6,conjI RSN (5,reduceA_mksch1)));
 Delsimps [FilterConc];
 
 
-Goal " [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
-\! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) as &\
-\    Filter (%a. a:ext A)$x = Filter (%a. a:act A)$(as @@ z) \
-\    --> (? x1 x2.  (mksch A B$(as @@ z)$x$y) = (x1 @@ (mksch A B$z$x2$y)) & \
+Goal " [| Finite a_s; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
+\! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) a_s &\
+\    Filter (%a. a:ext A)$x = Filter (%a. a:act A)$(a_s @@ z) \
+\    --> (? x1 x2.  (mksch A B$(a_s @@ z)$x$y) = (x1 @@ (mksch A B$z$x2$y)) & \
 \                   Forall (%x. x:act A & x~:act B) x1 & \
 \                   Finite x1 & x = (x1 @@ x2) & \
-\                   Filter (%a. a:ext A)$x1 = as)";
+\                   Filter (%a. a:ext A)$x1 = a_s)";
 by (forw_inst_tac [("A1","A")] (compat_commute RS iffD1) 1);
 by (etac Seq_Finite_ind  1);
 by (REPEAT (rtac allI 1));
