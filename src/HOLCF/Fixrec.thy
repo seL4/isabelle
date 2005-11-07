@@ -138,61 +138,6 @@ by (simp add: fatbar_def)
 
 lemmas fatbar_simps = fatbar1 fatbar2 fatbar3
 
-subsection {* Pattern combinators *}
-
-types ('a,'b,'c) pattern = "'b \<rightarrow> 'a \<rightarrow> 'c maybe"
-
-constdefs
-  wild_pat :: "('a, 'b, 'b) pattern"
-  "wild_pat \<equiv> \<Lambda> r a. return\<cdot>r"
-
-  var_pat :: "('a, 'a \<rightarrow> 'b, 'b) pattern"
-  "var_pat \<equiv> \<Lambda> r a. return\<cdot>(r\<cdot>a)"
-
-  as_pat :: "('a, 'b, 'c) pattern \<Rightarrow> ('a, 'a \<rightarrow> 'b, 'c) pattern"
-  "as_pat p \<equiv> \<Lambda> r a. p\<cdot>(r\<cdot>a)\<cdot>a"
-
-lemma wild_pat [simp]: "wild_pat\<cdot>r\<cdot>a = return\<cdot>r"
-by (simp add: wild_pat_def)
-
-lemma var_pat [simp]: "var_pat\<cdot>r\<cdot>a = return\<cdot>(r\<cdot>a)"
-by (simp add: var_pat_def)
-
-lemma as_pat [simp]: "as_pat p\<cdot>r\<cdot>a = p\<cdot>(r\<cdot>a)\<cdot>a"
-by (simp add: as_pat_def)
-
-subsection {* Case syntax *}
-
-nonterminals
-  Case_syn  Cases_syn
-
-syntax
-  "_Case_syntax":: "['a, Cases_syn] => 'b"               ("(Case _ of/ _)" 10)
-  "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ =>/ _)" 10)
-  ""            :: "Case_syn => Cases_syn"               ("_")
-  "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  ("_/ | _")
-  "_as_pattern" :: "[idt, 'a] \<Rightarrow> 'a"                     (* infixr "as" 10 *)
-
-syntax (xsymbols)
-  "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
-
-syntax
-  "_match"   :: "'a \<Rightarrow> Case_syn" (* or Cases_syn *)
-  "_as"      :: "[pttrn, Case_syn] \<Rightarrow> Case_syn"
-  "_matches" :: "['a, Case_syn, 'a list] \<Rightarrow> Case_syn"
-  "_cons"    :: "['a, 'a list] \<Rightarrow> 'a list"
-  "_nil"     :: "'a list"
-
-translations
-  "_Case_syntax x (_match m)"     == "run\<cdot>(m\<cdot>x)"
-  "_Case2 (_match c) (_match cs)" == "_match (c \<parallel> cs)"
-  "_Case1 dummy_pattern r"        == "_match (wild_pat\<cdot>r)"
-  "_as x (_match (p\<cdot>t))"          == "_match ((as_pat p)\<cdot>(\<Lambda> x. t))"
-  "_Case1 (_as_pattern x e) r"    == "_as x (_Case1 e r)"
-  "_Case1 x t"                    == "_match (var_pat\<cdot>(\<Lambda> x. t))"
-  "_Case1 (f\<cdot>e) r" == "_matches f (_Case1 e r) _nil"
-  "_matches (f\<cdot>e) (_match (p\<cdot>r)) ps" == "_matches f (_Case1 e r) (_cons p ps)"
-
 lemma run_fatbar1: "m\<cdot>x = \<bottom> \<Longrightarrow> run\<cdot>((m \<parallel> ms)\<cdot>x) = \<bottom>"
 by (simp add: fatbar_def)
 
@@ -204,53 +149,161 @@ by (simp add: fatbar_def)
 
 lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
 
+subsection {* Pattern combinators *}
+
+types ('a,'b,'c) pat = "'b \<rightarrow> 'a \<rightarrow> 'c maybe"
+
+constdefs
+  wild_pat :: "('a, 'b, 'b) pat"
+  "wild_pat \<equiv> \<Lambda> r a. return\<cdot>r"
+
+  var_pat :: "('a, 'a \<rightarrow> 'b, 'b) pat"
+  "var_pat \<equiv> \<Lambda> r a. return\<cdot>(r\<cdot>a)"
+
+lemma wild_pat [simp]: "wild_pat\<cdot>r\<cdot>a = return\<cdot>r"
+by (simp add: wild_pat_def)
+
+lemma var_pat [simp]: "var_pat\<cdot>r\<cdot>a = return\<cdot>(r\<cdot>a)"
+by (simp add: var_pat_def)
+
+subsection {* Case syntax *}
+
+nonterminals
+  Case_syn  Cases_syn
+
+syntax
+  "_Case_syntax":: "['a, Cases_syn] => 'b"               ("(Case _ of/ _)" 10)
+  "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ =>/ _)" 10)
+  ""            :: "Case_syn => Cases_syn"               ("_")
+  "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  ("_/ | _")
+
+syntax (xsymbols)
+  "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
+
+text {* Intermediate tags for parsing/printing *}
+syntax
+  "_pat" :: "'a"
+  "_var" :: "'a"
+  "_match" :: "'a"
+
+text {* Parsing Case expressions *}
+
+translations
+  "_Case_syntax x cs" => "run\<cdot>(cs\<cdot>x)"
+  "_Case2 c cs" => "fatbar\<cdot>c\<cdot>cs"
+  "_Case1 p r" => "_match (_var p) r"
+  "_var _" => "wild_pat"
+
+parse_translation {*
+  let
+    fun capp (t,u) = Syntax.const "Rep_CFun" $ t $ u;
+    fun cabs (x,t) = (snd (mk_binder_tr ("_cabs", "Abs_CFun"))) [x,t];
+
+    fun get_vars (Const ("_var",_) $ x) = [x]
+    |   get_vars (t $ u) = get_vars t @ get_vars u
+    |   get_vars t = [];
+
+    fun rem_vars (Const ("_var",_) $ x) = Syntax.const "var_pat"
+    |   rem_vars (t $ u) = rem_vars t $ rem_vars u
+    |   rem_vars t = t;
+
+    fun match_tr [pat, rhs] =
+          capp (rem_vars pat, foldr cabs rhs (get_vars pat))
+    |   match_tr ts = raise TERM ("match_tr", ts);
+
+  in [("_match", match_tr)] end;
+*}
+
+text {* Printing Case expressions *}
+
+translations
+  "_" <= "_pat wild_pat"
+  "x" <= "_pat (_var x)"
+
+print_translation {*
+  let
+    fun dest_cabs (Const ("Abs_CFun",_) $ t) =
+          let val abs = case t of Abs abs => abs
+                  | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
+          in atomic_abs_tr' abs end
+    |   dest_cabs _ = raise Match; (* too few vars: abort translation *)
+
+    fun put_vars (Const ("var_pat",_), rhs) =
+          let val (x, rhs') = dest_cabs rhs;
+          in (Syntax.const "_var" $ x, rhs') end
+    |   put_vars (t $ u, rhs) =
+          let
+            val (t', rhs') = put_vars (t,rhs);
+            val (u', rhs'') = put_vars (u,rhs');
+          in (t' $ u', rhs'') end
+    |   put_vars (t, rhs) = (t, rhs);
+
+    fun Case1_tr' (_ $ pat $ rhs) = let
+          val (pat', rhs') = put_vars (pat, rhs);
+        in Syntax.const "_Case1" $ (Syntax.const "_pat" $ pat') $ rhs' end;
+
+    fun Case2_tr' (_ $ (_ $ Const ("fatbar",_) $ m) $ ms) =
+          Syntax.const "_Case2" $ Case1_tr' m $ Case2_tr' ms
+    |   Case2_tr' t = Case1_tr' t;
+
+    fun Case_syntax_tr' [Const ("run",_), _ $ ms $ x] =
+          Syntax.const "_Case_syntax" $ x $ Case2_tr' ms;
+
+  in [("Rep_CFun", Case_syntax_tr')] end;
+*}
+
 subsection {* Pattern combinators for built-in types *}
 
 constdefs
-  cpair_pat :: "_"
+  cpair_pat :: "('a, _, _) pat \<Rightarrow> ('b, _, _) pat \<Rightarrow> ('a \<times> 'b, _, _) pat"
   "cpair_pat p1 p2 \<equiv> \<Lambda> r1 \<langle>x1,x2\<rangle>. bind\<cdot>(p1\<cdot>r1\<cdot>x1)\<cdot>(\<Lambda> r2. p2\<cdot>r2\<cdot>x2)"
 
-  spair_pat :: "_"
+  spair_pat :: "(_, _, _) pat \<Rightarrow> (_, _, _) pat \<Rightarrow> (_, _, _) pat"
   "spair_pat p1 p2 \<equiv> \<Lambda> r (:x,y:). cpair_pat p1 p2\<cdot>r\<cdot>\<langle>x,y\<rangle>"
 
-  sinl_pat :: "_"
+  sinl_pat :: "(_, _, _) pat \<Rightarrow> (_, _, _) pat"
   "sinl_pat p \<equiv> \<Lambda> r a. case a of sinl\<cdot>x \<Rightarrow> p\<cdot>r\<cdot>x | sinr\<cdot>y \<Rightarrow> fail"
 
-  sinr_pat :: "_"
+  sinr_pat :: "(_, _, _) pat \<Rightarrow> (_, _, _) pat"
   "sinr_pat p \<equiv> \<Lambda> r a. case a of sinl\<cdot>x \<Rightarrow> fail | sinr\<cdot>y \<Rightarrow> p\<cdot>r\<cdot>y"
 
-  up_pat :: "_"
+  up_pat :: "('a, _, _) pat \<Rightarrow> ('a u, _, _) pat"
   "up_pat p \<equiv> \<Lambda> r a. case a of up\<cdot>x \<Rightarrow> p\<cdot>r\<cdot>x"
 
-  Def_pat :: "'a::type \<Rightarrow> ('a lift, 'b, 'b) pattern"
+  Def_pat :: "'a::type \<Rightarrow> ('a lift, _, _) pat"
   "Def_pat x \<equiv> \<Lambda> r. FLIFT y. if x = y then return\<cdot>r else fail"
 
-  ONE_pat :: "_"
+  ONE_pat :: "(one, _, _) pat"
   "ONE_pat \<equiv> \<Lambda> r ONE. return\<cdot>r"
 
-  TT_pat :: "(tr, _, _) pattern"
+  TT_pat :: "(tr, _, _) pat"
   "TT_pat \<equiv> \<Lambda> r b. If b then return\<cdot>r else fail fi"
 
-  FF_pat :: "(tr, _, _) pattern"
+  FF_pat :: "(tr, _, _) pat"
   "FF_pat \<equiv> \<Lambda> r b. If b then fail else return\<cdot>r fi"
 
+text {* Parse translations *}
 translations
-  "_matches cpair (_match (p1\<cdot>r)) (_cons p2 _nil)"
-    == "_match ((cpair_pat p1 p2)\<cdot>r)"
+  "_var (cpair\<cdot>p1\<cdot>p2)" => "cpair_pat (_var p1) (_var p2)"
+  "_var (spair\<cdot>p1\<cdot>p2)" => "spair_pat (_var p1) (_var p2)"
+  "_var (sinl\<cdot>p1)"     => "sinl_pat (_var p1)"
+  "_var (sinr\<cdot>p1)"     => "sinr_pat (_var p1)"
+  "_var (up\<cdot>p1)"       => "up_pat (_var p1)"
+  "_var (Def x)"       => "Def_pat x"
+  "_var ONE"           => "ONE_pat"
+  "_var TT"            => "TT_pat"
+  "_var FF"            => "FF_pat"
 
-  "_matches spair (_match (p1\<cdot>r)) (_cons p2 _nil)"
-    == "_match ((spair_pat p1 p2)\<cdot>r)"
-
+text {* Print translations *}
 translations
-  "_matches sinl (_match (p1\<cdot>r)) _nil" == "_match ((sinl_pat p1)\<cdot>r)"
-  "_matches sinr (_match (p1\<cdot>r)) _nil" == "_match ((sinr_pat p1)\<cdot>r)"
-  "_matches up (_match (p1\<cdot>r)) _nil" == "_match ((up_pat p1)\<cdot>r)"
-
-translations
-  "_Case1 (Def x) r" == "_match (Def_pat x\<cdot>r)"
-  "_Case1 ONE r" == "_match (ONE_pat\<cdot>r)"
-  "_Case1 TT r" == "_match (TT_pat\<cdot>r)"
-  "_Case1 FF r" == "_match (FF_pat\<cdot>r)"
+  "cpair\<cdot>(_pat p1)\<cdot>(_pat p2)" <= "_pat (cpair_pat p1 p2)"
+  "spair\<cdot>(_pat p1)\<cdot>(_pat p2)" <= "_pat (spair_pat p1 p2)"
+  "sinl\<cdot>(_pat p1)"            <= "_pat (sinl_pat p1)"
+  "sinr\<cdot>(_pat p1)"            <= "_pat (sinr_pat p1)"
+  "up\<cdot>(_pat p1)"              <= "_pat (up_pat p1)"
+  "Def x"                     <= "_pat (Def_pat x)"
+  "TT"                        <= "_pat (TT_pat)"
+  "FF"                        <= "_pat (FF_pat)"
 
 lemma cpair_pat_simps [simp]:
   "p1\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> cpair_pat p1 p2\<cdot>r\<cdot><x,y> = \<bottom>"
@@ -302,6 +355,23 @@ lemma FF_pat_simps [simp]:
   "FF_pat\<cdot>r\<cdot>TT = fail"
   "FF_pat\<cdot>r\<cdot>FF = return\<cdot>r"
 by (simp_all add: FF_pat_def)
+
+subsection {* As-patterns *}
+
+syntax
+  "_as_pattern" :: "['a, 'a] \<Rightarrow> 'a" (* infixr "as" 10 *)
+  (* TODO: choose a non-ambiguous syntax for as-patterns *)
+
+constdefs
+  as_pat :: "('a,'b,'c) pat \<Rightarrow> ('a,'c,'d) pat \<Rightarrow> ('a,'b,'d) pat"
+  "as_pat p1 p2 \<equiv> \<Lambda> r a. cpair_pat p1 p2\<cdot>r\<cdot>\<langle>a, a\<rangle>"
+
+translations
+  "_var (_as_pattern p1 p2)" => "as_pat (_var p1) (_var p2)"
+  "_as_pattern (_pat p1) (_pat p2)" <= "_pat (as_pat p1 p2)"
+
+lemma as_pat [simp]: "as_pat p1 p2\<cdot>r\<cdot>a = cpair_pat p1 p2\<cdot>r\<cdot>\<langle>a, a\<rangle>"
+by (simp add: as_pat_def)
 
 subsection {* Match functions for built-in types *}
 
