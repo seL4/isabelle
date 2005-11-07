@@ -171,7 +171,7 @@ syntax
   "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ =>/ _)" 10)
   ""            :: "Case_syn => Cases_syn"               ("_")
   "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  ("_/ | _")
-  "_as_pattern" :: "[idt, 'a] \<Rightarrow> 'a"                     (infixr "as" 10)
+  "_as_pattern" :: "[idt, 'a] \<Rightarrow> 'a"                     (* infixr "as" 10 *)
 
 syntax (xsymbols)
   "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
