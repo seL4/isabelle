@@ -18,18 +18,13 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_hhf: thm -> thm
+  val compose_hhf: thm -> int -> thm -> thm Seq.seq
+  val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
-  val compose_hhf_tac: thm list -> int -> tactic
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_multi: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
-
-  (* FIXME remove *)
-  val norm_hhf_plain: thm -> thm
-  val prove_multi_plain: theory -> string list -> term list -> term list ->
-    (thm list -> tactic) -> thm list
-  val prove_plain: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
 end;
 
 structure Goal: GOAL =
@@ -44,9 +39,9 @@ struct
 fun init ct = Drule.instantiate' [] [SOME ct] Drule.protectI;
 
 (*
-    A ==> ... ==> C
-  ------------------ (protect)
-  #(A ==> ... ==> C)
+   C
+  --- (protect)
+  #C
 *)
 fun protect th = th COMP Drule.incr_indexes th Drule.protectI;
 
@@ -79,12 +74,9 @@ fun finish th =
 
 (* HHF normal form *)
 
-val norm_hhf_plain =  (* FIXME remove *)
-  (not o Drule.is_norm_hhf o Thm.prop_of) ?
-    MetaSimplifier.simplify_aux (K (K NONE)) true [Drule.norm_hhf_eq];
-
 val norm_hhf =
-  norm_hhf_plain
+  (not o Drule.is_norm_hhf o Thm.prop_of) ?
+    MetaSimplifier.simplify_aux (K (K NONE)) true [Drule.norm_hhf_eq]
   #> Thm.adjust_maxidx_thm
   #> Drule.gen_all;
 
@@ -94,23 +86,21 @@ val norm_hhf =
 fun compose_hhf tha i thb =
   Thm.bicompose false (false, Drule.lift_all (Thm.cgoal_of thb i) tha, 0) i thb;
 
-fun comp_hhf tha thb =
-  (case Seq.pull (compose_hhf tha 1 thb) of
-    SOME (th, _) => th
-  | NONE => raise THM ("comp_hhf", 1, [tha, thb]));
+fun compose_hhf_tac th i = PRIMSEQ (compose_hhf th i);
 
-fun compose_hhf_tac [] _ = no_tac
-  | compose_hhf_tac (th :: ths) i = PRIMSEQ (compose_hhf th i) APPEND compose_hhf_tac ths i;
+fun comp_hhf tha thb =
+  (case Seq.chop (2, compose_hhf tha 1 thb) of
+    ([th], _) => th
+  | ([], _) => raise THM ("comp_hhf: no unifiers", 1, [tha, thb])
+  | _  => raise THM ("comp_hhf: multiple unifiers", 1, [tha, thb]));
 
 
 
 (** tactical theorem proving **)
 
-(* prove *)
+(* prove_multi *)
 
-local
-
-fun gen_prove finish_thm thy xs asms props tac =
+fun prove_multi thy xs asms props tac =
   let
     val prop = Logic.mk_conjunction_list props;
     val statement = Logic.list_implies (asms, prop);
@@ -134,7 +124,7 @@ fun gen_prove finish_thm thy xs asms props tac =
     val prems = map (norm_hhf o Thm.assume) casms;
 
     val goal = init (cert_safe prop);
-    val goal' = (case SINGLE (tac prems) goal of SOME goal' => goal' | _ => err "Tactic failed.");
+    val goal' = case SINGLE (tac prems) goal of SOME goal' => goal' | _ => err "Tactic failed.";
     val raw_result = finish goal' handle THM (msg, _, _) => err msg;
 
     val prop' = Thm.prop_of raw_result;
@@ -145,22 +135,15 @@ fun gen_prove finish_thm thy xs asms props tac =
     |> map
       (Drule.implies_intr_list casms
         #> Drule.forall_intr_list cparams
-        #> finish_thm fixed_tfrees)
+        #> norm_hhf
+        #> (#1 o Thm.varifyT' fixed_tfrees)
+        #> Drule.zero_var_indexes)
   end;
 
-in
 
-fun prove_multi thy xs asms prop tac =
-  gen_prove (fn fixed_tfrees => Drule.zero_var_indexes o
-      (#1 o Thm.varifyT' fixed_tfrees) o norm_hhf)
-    thy xs asms prop tac;
+(* prove *)
 
 fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
-
-fun prove_multi_plain thy xs asms prop tac = gen_prove (K norm_hhf_plain) thy xs asms prop tac;
-fun prove_plain thy xs asms prop tac = hd (prove_multi_plain thy xs asms [prop] tac);
-
-end;
 
 
 (* prove_raw -- no checks, no normalization of result! *)
