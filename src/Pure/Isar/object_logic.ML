@@ -13,7 +13,7 @@ sig
   val is_judgment: theory -> term -> bool
   val drop_judgment: theory -> term -> term
   val fixed_judgment: theory -> string -> term
-  val assert_propT: theory -> term -> term
+  val ensure_propT: theory -> term -> term
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
   val atomize_term: theory -> term -> term
@@ -110,7 +110,7 @@ fun fixed_judgment thy x =
     val U = Term.domain_type T handle Match => aT;
   in Const (c, T) $ Free (x, U) end;
 
-fun assert_propT thy t =
+fun ensure_propT thy t =
   let val T = Term.fastype_of t
   in if T = propT then t else Const (judgment_name thy, T --> propT) $ t end;
 
