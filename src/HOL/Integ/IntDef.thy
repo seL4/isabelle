@@ -897,26 +897,19 @@ consts_code
   "neg"                         ("(_ < 0)")
 
 ML {*
-fun mk_int_to_nat bin =
-  Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT)
-  $ (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin);
-
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
       Type ("fun", [_, T as Type ("IntDef.int", [])])) $ bin) =
         (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
            Pretty.str (IntInf.toString (HOLogic.dest_binum bin))) handle TERM _ => NONE)
   | number_of_codegen thy defs gr s thyname b (Const ("Numeral.number_of",
       Type ("fun", [_, Type ("nat", [])])) $ bin) =
-        SOME (Codegen.invoke_codegen thy defs s thyname b
-          (gr, mk_int_to_nat bin))
+        SOME (Codegen.invoke_codegen thy defs s thyname b (gr,
+          Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
+            (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
   | number_of_codegen _ _ _ _ _ _ _ = NONE;
 *}
 
-setup {*[
-  Codegen.add_codegen "number_of_codegen" number_of_codegen,
-  CodegenPackage.add_codegen_expr
-    ("number", CodegenPackage.codegen_number_of HOLogic.dest_binum mk_int_to_nat)
-]*}
+setup {* [Codegen.add_codegen "number_of_codegen" number_of_codegen] *}
 
 quickcheck_params [default_type = int]
 
