@@ -27,10 +27,8 @@ struct
 
 (** datatype T **)
 
-type arg = (indexname * sort) * int list;  (*type variable with first occurrence*)
-
 datatype T = Consts of
- {declarations: ((typ * arg list) * serial) NameSpace.table,
+ {declarations: ((typ * int list list) * serial) NameSpace.table,
   constraints: typ Symtab.table};
 
 fun make_consts (declarations, constraints) =
@@ -68,9 +66,7 @@ fun sub (Type (_, Ts)) (i :: is) = sub (nth Ts i) is
   | sub T [] = T
   | sub T _ = raise Subscript;
 
-fun typargs consts c =
-  let val (_, args) = the_const consts c
-  in fn T => map (sub T o #2) args end;
+fun typargs consts c T = map (sub T) (#2 (the_const consts c));
 
 
 
@@ -92,7 +88,7 @@ fun args_of declT =
       | args (TFree _) _ = I
     and args_list (T :: Ts) i is = args T (i :: is) #> args_list Ts (i + 1) is
       | args_list [] _ _ = I;
-  in rev (args declT [] []) end;
+  in map #2 (rev (args declT [] [])) end;
 
 fun declare naming (c, T) = map_consts (apfst (fn declarations =>
   let
