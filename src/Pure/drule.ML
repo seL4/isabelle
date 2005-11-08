@@ -108,8 +108,6 @@ sig
   val internalK: string
   val kind_internal: 'a attribute
   val has_internal: tag list -> bool
-  val impose_hyps: cterm list -> thm -> thm
-  val satisfy_hyps: thm list -> thm -> thm
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
   val local_standard: thm -> thm
@@ -410,7 +408,7 @@ fun gen_all th =
   in fold elim (outer_params prop) th end;
 
 (*lift vars wrt. outermost goal parameters
-  -- reverses the effect of gen_all modulo HO unification*)
+  -- reverses the effect of gen_all modulo higher-order unification*)
 fun lift_all goal th =
   let
     val thy = Theory.merge (Thm.theory_of_cterm goal, Thm.theory_of_thm th);
@@ -435,13 +433,6 @@ val implies_intr_list = fold_rev implies_intr;
 
 (*maps [| A1;...;An |] ==> B and [A1,...,An]  to  B*)
 fun implies_elim_list impth ths = Library.foldl (uncurry implies_elim) (impth,ths);
-
-(*maps |- B to A1,...,An |- B*)
-val impose_hyps = fold Thm.weaken;
-
-(* maps A1,...,An and A1,...,An |- B to |- B *)
-fun satisfy_hyps ths th =
-  implies_elim_list (implies_intr_list (map (#prop o Thm.crep_thm) ths) th) ths;
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
@@ -969,9 +960,12 @@ in
 end;
 
 fun implies_intr_protected asms th =
-  implies_elim_list (implies_intr_list asms th)
-    (map (fn ct => Thm.assume (protect ct) RS protectD) asms)
-  |> implies_intr_list (map protect asms);
+  let val asms' = map protect asms in
+    implies_elim_list
+      (implies_intr_list asms th)
+      (map (fn asm' => Thm.assume asm' RS protectD) asms')
+    |> implies_intr_list asms'
+  end;
 
 
 (** variations on instantiate **)
