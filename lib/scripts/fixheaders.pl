@@ -24,9 +24,9 @@ sub fixheaders {
     close ISTREAM or die $!;
     my $content = join("", @content);
     $_ = $content;
-    if (m!^theory!cgoms) {
+    if (m!^(\s*theory)!cgoms) {
         my $prelude = $`;
-        my $thyheader = "theory";
+        my $thyheader = $1;
         $thyheader .= skip_wscomment();
         if (m!\G(\S+)!cgoms) {
             $thyheader .= $1;
