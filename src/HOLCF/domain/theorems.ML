@@ -74,6 +74,7 @@ val ax_when_def   = ga "when_def" dname;
 val axs_con_def   = map (fn (con,_) => ga (extern_name con^"_def") dname) cons;
 val axs_dis_def   = map (fn (con,_) => ga (   dis_name con^"_def") dname) cons;
 val axs_mat_def   = map (fn (con,_) => ga (   mat_name con^"_def") dname) cons;
+val axs_pat_def   = map (fn (con,_) => ga (   pat_name con^"_def") dname) cons;
 val axs_sel_def   = List.concat(map (fn (_,args) => List.mapPartial (fn arg =>
                  Option.map (fn sel => ga (sel^"_def") dname) (sel_of arg)) args)
 									  cons);
@@ -205,6 +206,22 @@ val mat_rews = let
                    [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
         in List.concat(map (fn (c,_) => map (one_mat c) cons) cons) end;
 in mat_stricts @ mat_apps end;
+
+val pat_rews = let
+  fun ps args = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
+  fun pat_lhs (con,args) = list_comb (%%:(pat_name con), ps args);
+  fun pat_rhs (con,[]) = %%:returnN ` (%:"rhs")
+  |   pat_rhs (con,args) = (foldr1 cpair_pat (ps args))`(%:"rhs")`(mk_ctuple (map %# args));
+  val pat_stricts = map (fn (con,args) => pg axs_pat_def (mk_trp(
+                             strict(pat_lhs (con,args)`(%:"rhs"))))
+                   [simp_tac (HOLCF_ss addsimps [when_strict]) 1]) cons;
+  val pat_apps = let fun one_pat c (con,args)= pg axs_pat_def
+                   (lift_defined %: (nonlazy args,
+                        (mk_trp((pat_lhs c)`(%:"rhs")`(con_app con args) ===
+                              (if con = fst c then pat_rhs c else %%:failN)))))
+                   [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
+        in List.concat(map (fn c => map (one_pat c) cons) cons) end;
+in pat_stricts @ pat_apps end;
 
 val con_stricts = List.concat(map (fn (con,args) => map (fn vn =>
                         pg con_appls
@@ -344,6 +361,7 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("con_rews", con_rews),
 		("sel_rews", sel_rews),
 		("dis_rews", dis_rews),
+		("pat_rews", pat_rews),
 		("dist_les", dist_les),
 		("dist_eqs", dist_eqs),
 		("inverts" , inverts ),

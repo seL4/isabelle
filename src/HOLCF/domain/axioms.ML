@@ -72,6 +72,21 @@ let
                                else %%:failN) args)) cons))
 	in map mdef cons end;
 
+  val pat_defs =
+    let
+      fun pdef (con,args) =
+        let
+          val ps = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
+          val xs = map (bound_arg args) args;
+          val r = Bound (length args);
+          val rhs = case args of [] => %%:returnN ` r
+                                | _ => foldr1 cpair_pat ps ` r ` mk_ctuple xs;
+          fun one_con (con',args') = foldr /\# (if con'=con then rhs else %%:failN) args';
+        in (pat_name con ^"_def", list_comb (%%:(pat_name con), ps) == 
+               /\ "r" (list_ccomb(%%:(dname^"_when"), map one_con cons)))
+        end
+    in map pdef cons end;
+  
   val sel_defs = let
 	fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
 		 list_ccomb(%%:(dname^"_when"),map 
@@ -92,7 +107,7 @@ let
 in (dnam,
     [abs_iso_ax, rep_iso_ax, reach_ax],
     [when_def, copy_def] @
-     con_defs @ dis_defs @ mat_defs @ sel_defs @
+     con_defs @ dis_defs @ mat_defs @ pat_defs @ sel_defs @
     [take_def, finite_def])
 end; (* let *)
 

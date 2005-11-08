@@ -51,10 +51,19 @@ local
 			   Mixfix(escape ("match_" ^ con), [], Syntax.max_pri));
   fun sel1 (_,sel,typ)  = Option.map (fn s => (s,dtype ->> typ,NoSyn)) sel;
   fun sel (_   ,_,args) = List.mapPartial sel1 args;
+  fun freetvar s n      = let val tvar = mk_TFree (s ^ string_of_int n) in
+			  if tvar mem typevars then freetvar ("t"^s) n else tvar end;
+  fun mk_patT (a,b,c)   = b ->> a ->> mk_ssumT(oneT, mk_uT c);
+  fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n, freetvar "t" (n+1));
+  fun pat (con ,s,args) = (pat_name_ con, (mapn pat_arg_typ 1 args) --->
+			   mk_patT (dtype, freetvar "t" 1, freetvar "t" (length args + 1)),
+			   Mixfix(escape (con ^ "_pat"), [], Syntax.max_pri));
+
 in
   val consts_con = map con cons';
   val consts_dis = map dis cons';
   val consts_mat = map mat cons';
+  val consts_pat = map pat cons';
   val consts_sel = List.concat(map sel cons');
 end;
 
@@ -78,6 +87,9 @@ local open Syntax in
     fun case1 n (con,mx,args) = app "_case1" (con1 n (con,mx,args), expvar n);
     fun arg1 n (con,_,args) = foldr cabs (expvar n) (mapn (argvar n) 1 args);
     fun when1 n m = if n = m then arg1 n else K (Constant "UU");
+
+    fun app_var x = mk_appl (Constant "_var") [x];
+    fun app_pat x = mk_appl (Constant "_pat") [x];
   in
     val case_trans = ParsePrintRule
         (app "_case_syntax" (Variable "x", foldr1 (app "_case2") (mapn case1 1 cons')),
@@ -86,13 +98,21 @@ local open Syntax in
     val abscon_trans = mapn (fn n => fn (con,mx,args) => ParsePrintRule
         (cabs (con1 n (con,mx,args), expvar n),
          Library.foldl capp (Constant (dnam^"_when"), mapn (when1 n) 1 cons'))) 1 cons';
+    
+    val pattern_trans = mapn (fn n => fn (con,mx,args) => ParseRule
+          (app_var (Library.foldl capp (c_ast con mx, mapn (argvar n) 1 args)),
+           mk_appl (Constant (pat_name_ con)) (map app_var (mapn (argvar n) 1 args)))) 1 cons';
+    
+    val pattern_trans' = mapn (fn n => fn (con,mx,args) => PrintRule
+          (Library.foldl capp (c_ast con mx, map app_pat (mapn (argvar n) 1 args)),
+           app_pat (mk_appl (Constant (pat_name_ con)) (mapn (argvar n) 1 args)))) 1 cons';
   end;
 end;
 
 in ([const_rep, const_abs, const_when, const_copy] @ 
-     consts_con @ consts_dis @ consts_mat @ consts_sel @
+     consts_con @ consts_dis @ consts_mat @ consts_pat @ consts_sel @
     [const_take, const_finite],
-    (case_trans::abscon_trans))
+    (case_trans::(abscon_trans @ pattern_trans @ pattern_trans')))
 end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)

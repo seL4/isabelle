@@ -55,6 +55,8 @@ fun dis_name  con = "is_"^ (extern_name con);
 fun dis_name_ con = "is_"^ (strip_esc   con);
 fun mat_name  con = "match_"^ (extern_name con);
 fun mat_name_ con = "match_"^ (strip_esc   con);
+fun pat_name  con = (extern_name con) ^ "_pat";
+fun pat_name_ con = (strip_esc   con) ^ "_pat";
 
 (* make distinct names out of the type list, 
    forbidding "o","n..","x..","f..","P.." as names *)
@@ -127,6 +129,7 @@ val iterateN   = "Fix.iterate";
 val fixN       = "Fix.fix";
 val returnN    = "Fixrec.return";
 val failN      = "Fixrec.fail";
+val cpair_patN = "Fixrec.cpair_pat";
 
 val pcpoN      = "Pcpo.pcpo"
 val pcpoS      = [pcpoN];
@@ -203,6 +206,7 @@ fun mk_stuple [] = %%:ONE_N
 |   mk_stuple ts = foldr1 spair ts;
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
 |   mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
+fun cpair_pat (p1,p2) = %%:cpair_patN $ p1 $ p2;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
