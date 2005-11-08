@@ -123,7 +123,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
       Logic.list_rename_params ([AutoBind.thesisN],
         Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
 
-    fun after_qed _ _ =
+    fun after_qed _ =
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
         Proof.fix_i vars
@@ -131,7 +131,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i NONE (K (K Seq.single)) [(("", []), [(obtain_prop, ([], []))])] int
+    |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, ([], []))])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [([thesisN], NONE)]
     |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
@@ -235,7 +235,7 @@ fun gen_guess prep_vars raw_vars int state =
       end;
 
     val before_qed = SOME (Method.primitive_text (Goal.conclude #> Goal.protect));
-    fun after_qed _ [[res]] =
+    fun after_qed [[res]] =
       (check_result res; Proof.end_block #> Seq.map (`Proof.the_fact #-> guess_context));
   in
     state

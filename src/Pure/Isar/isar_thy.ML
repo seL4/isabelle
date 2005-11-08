@@ -102,10 +102,10 @@ fun declare_theorems opt_loc args =
 local
 
 fun local_goal opt_chain goal stmt int =
-  opt_chain #> goal NONE (K (K Seq.single)) stmt int;
+  opt_chain #> goal NONE (K Seq.single) stmt int;
 
 fun global_goal goal kind a propp thy =
-  goal kind NONE (K (K I)) (SOME "") a [(("", []), [propp])] (ProofContext.init thy);
+  goal kind NONE (K I) (SOME "") a [(("", []), [propp])] (ProofContext.init thy);
 
 in
 
