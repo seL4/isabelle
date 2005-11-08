@@ -70,7 +70,6 @@ sig
   val export: context -> context -> thm -> thm
   val exports: context -> context -> thm -> thm Seq.seq
   val goal_exports: context -> context -> thm -> thm Seq.seq
-  val export_plain: context -> context -> thm -> thm  (* FIXME *)
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -737,30 +736,16 @@ fun common_exports is_goal inner outer =
       end)
   end;
 
-val exports = common_exports false;
-val goal_exports = common_exports true;
-
-(*without varification*)  (* FIXME *)
-fun export' is_goal inner outer =
-  let
-    val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
-    val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
-  in
-    Goal.norm_hhf_plain
-    #> Seq.EVERY (rev exp_asms)
-    #> Seq.map Goal.norm_hhf_plain
-  end;
-
-fun gen_export exp inner outer =
-  let val e = exp false inner outer in
+fun export inner outer =
+  let val exp = common_exports false inner outer in
     fn th =>
-      (case Seq.pull (e th) of
+      (case Seq.pull (exp th) of
         SOME (th', _) => th' |> Drule.local_standard
       | NONE => sys_error "Failed to export theorem")
   end;
 
-val export = gen_export common_exports;
-val export_plain = gen_export export';   (* FIXME *)
+val exports = common_exports false;
+val goal_exports = common_exports true;
 
 
 
@@ -927,9 +912,13 @@ end;
 
 (* fact_tac *)
 
-fun fact_tac facts = Tactic.norm_hhf_tac THEN' Goal.compose_hhf_tac facts;
+fun comp_incr_tac [] _ st = no_tac st
+  | comp_incr_tac (th :: ths) i st =
+      (Goal.compose_hhf_tac (Drule.incr_indexes st th) i APPEND comp_incr_tac ths i) st;
 
-fun some_fact_tac ctxt = Tactic.norm_hhf_tac THEN' SUBGOAL (fn (goal, i) =>
+fun fact_tac facts = Tactic.norm_hhf_tac THEN' comp_incr_tac facts;
+
+fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
   let
     val (_, _, index) = thms_of ctxt;
     val facts = FactIndex.could_unify index (Term.strip_all_body goal);
