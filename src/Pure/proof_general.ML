@@ -881,7 +881,7 @@ local
             (* see isar_syn.ML/gen_theorem *)
          val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
          val general_statement =
-            statement >> pair [] || Scan.repeat P.locale_elem_or_expr -- (P.$$$ "shows" |-- statement);
+            statement >> pair [] || Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement);
 
             val gen_theoremP =
                 P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
