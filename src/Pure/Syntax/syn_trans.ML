@@ -395,10 +395,10 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 fun antiquote_tr' name =
   let
     fun tr' i (t $ u) =
-      if u = Bound i then Lexicon.const name $ tr' i t
+      if u aconv Bound i then Lexicon.const name $ tr' i t
       else tr' i t $ tr' i u
       | tr' i (Abs (x, T, t)) = Abs (x, T, tr' (i + 1) t)
-      | tr' i a = if a = Bound i then raise Match else a;
+      | tr' i a = if a aconv Bound i then raise Match else a;
   in tr' 0 end;
 
 fun quote_tr' name (Abs (_, _, t)) = Term.incr_boundvars ~1 (antiquote_tr' name t)

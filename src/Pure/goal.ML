@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius and Lawrence C Paulson
 
-Tactical goal state.
+Goals in tactical theorem proving.
 *)
 
 signature BASIC_GOAL =
@@ -21,9 +21,9 @@ sig
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
-  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_multi: theory -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
+  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
 end;
 
@@ -104,9 +104,9 @@ fun prove_multi thy xs asms props tac =
   let
     val prop = Logic.mk_conjunction_list props;
     val statement = Logic.list_implies (asms, prop);
-    val frees = map Term.dest_Free (Term.term_frees statement);
+    val frees = Term.add_frees statement [];
     val fixed_frees = filter_out (member (op =) xs o #1) frees;
-    val fixed_tfrees = foldr Term.add_typ_tfrees [] (map #2 fixed_frees);
+    val fixed_tfrees = fold (Term.add_tfreesT o #2) fixed_frees [];
     val params = List.mapPartial (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
 
     fun err msg = raise ERROR_MESSAGE
@@ -136,8 +136,8 @@ fun prove_multi thy xs asms props tac =
       (Drule.implies_intr_list casms
         #> Drule.forall_intr_list cparams
         #> norm_hhf
-        #> (#1 o Thm.varifyT' fixed_tfrees)
-        #> Drule.zero_var_indexes)
+        #> Thm.varifyT' fixed_tfrees
+        #-> K Drule.zero_var_indexes)
   end;
 
 

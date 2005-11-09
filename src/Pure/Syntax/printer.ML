@@ -111,7 +111,7 @@ fun typ_to_ast thy trf T = ast_of_termT thy trf (TypeExt.term_of_typ (! show_sor
 (** term_to_ast **)
 
 fun mark_freevars ((t as Const (c, _)) $ u) =
-      if c mem_string SynExt.standard_token_markers then (t $ u)
+      if member (op =) SynExt.standard_token_markers c then (t $ u)
       else t $ mark_freevars u
   | mark_freevars (t $ u) = mark_freevars t $ mark_freevars u
   | mark_freevars (Abs (x, T, t)) = Abs (x, T, mark_freevars t)
@@ -126,11 +126,11 @@ fun ast_of_term thy trf show_all_types no_freeTs show_types show_sorts tm =
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if no_freeTs orelse t mem seen then (Lexicon.free x, seen)
+          else if no_freeTs orelse member (op aconv) seen t then (Lexicon.free x, seen)
           else (t, t :: seen)
       | prune_typs (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if no_freeTs orelse t mem seen then (Lexicon.var xi, seen)
+          else if no_freeTs orelse member (op aconv) seen t then (Lexicon.var xi, seen)
           else (t, t :: seen)
       | prune_typs (t_seen as (Bound _, _)) = t_seen
       | prune_typs (Abs (x, ty, t), seen) =

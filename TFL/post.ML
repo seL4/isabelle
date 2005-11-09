@@ -43,7 +43,7 @@ fun message s = if ! quiet_mode then () else writeln s;
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
-      (foldr (fn (th,A) => union_term (prems_of th, A)) [] rules);
+      (foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
 
 (*---------------------------------------------------------------------------
  * Finds the termination conditions in (highly massaged) definition and

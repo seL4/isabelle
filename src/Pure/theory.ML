@@ -273,8 +273,8 @@ fun dest_def pp tm =
     val show_tfrees = commas_quote o map fst;
 
     val lhs_nofrees = filter (not o can dest_free) args;
-    val lhs_dups = duplicates args;
-    val rhs_extras = term_frees rhs |> fold (remove op =) args;
+    val lhs_dups = gen_duplicates (op aconv) args;
+    val rhs_extras = term_frees rhs |> fold (remove op aconv) args;
     val rhs_extrasT = term_tfrees rhs |> fold (remove op =) (typ_tfrees T);
   in
     if not (null lhs_nofrees) then
