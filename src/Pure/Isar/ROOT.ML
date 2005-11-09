@@ -17,6 +17,7 @@ use "attrib.ML";
 use "skip_proof.ML";
 use "method.ML";
 use "proof.ML";
+use "element.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
 
