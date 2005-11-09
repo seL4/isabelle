@@ -114,7 +114,7 @@ signature BASIC_THM =
   val trivial: cterm -> thm
   val class_triv: theory -> class -> thm
   val varifyT: thm -> thm
-  val varifyT': (string * sort) list -> thm -> thm * ((string * sort) * indexname) list
+  val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -1074,16 +1074,16 @@ fun varifyT' fixed (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
     val (prop2, al) = Type.varify (prop1, tfrees);
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
-    (Thm {thy_ref = thy_ref,
+    (al, Thm {thy_ref = thy_ref,
       der = Pt.infer_derivs' (Pt.varify_proof prop tfrees) der,
       maxidx = Int.max (0, maxidx),
       shyps = shyps,
       hyps = hyps,
       tpairs = rev (map Logic.dest_equals ts),
-      prop = prop3}, al)
+      prop = prop3})
   end;
 
-val varifyT = #1 o varifyT' [];
+val varifyT = #2 o varifyT' [];
 
 (* Replace all TVars by new TFrees *)
 fun freezeT (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =

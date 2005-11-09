@@ -38,7 +38,7 @@ fun thm_of_proof thy prf =
     fun thm_of_atom thm Ts =
       let
         val tvars = term_tvars (Thm.full_prop_of thm);
-        val (thm', fmap) = Thm.varifyT' [] thm;
+        val (fmap, thm') = Thm.varifyT' [] thm;
         val ctye = map (pairself (Thm.ctyp_of sg))
           (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
       in

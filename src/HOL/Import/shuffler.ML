@@ -269,7 +269,7 @@ fun inst_tfrees sg [] thm = thm
     let
 	val cU = ctyp_of sg U
 	val tfrees = add_term_tfrees (prop_of thm,[])
-	val (thm',rens) = varifyT'
+	val (rens, thm') = varifyT'
     (gen_rem (op = o apfst fst) (tfrees, name)) thm
 	val mid = 
 	    case rens of

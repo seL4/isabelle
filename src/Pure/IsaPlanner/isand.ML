@@ -224,7 +224,7 @@ fun unfix_tfrees ns th =
     let 
       val varfiytfrees = (map (fn x => Term.dest_TFree (Thm.typ_of x)) ns)
       val skiptfrees = Term.add_term_tfrees (Thm.prop_of th,[]) \\ varfiytfrees;
-    in fst (Thm.varifyT' skiptfrees th) end;
+    in #2 (Thm.varifyT' skiptfrees th) end;
 
 (* change schematic/meta vars to fresh free vars *)
 fun fix_vars_to_frees_in_terms names ts = 

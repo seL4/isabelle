@@ -296,8 +296,8 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
         |> Drule.implies_intr_list cprems
         |> Drule.forall_intr_list frees_of_fixed_vars
         |> Drule.forall_elim_list vars
-        |> fst o Thm.varifyT' othertfrees
-        |> Drule.zero_var_indexes
+        |> Thm.varifyT' othertfrees
+        |-> K Drule.zero_var_indexes
     end;
 
 
