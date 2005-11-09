@@ -732,7 +732,7 @@ fun common_exports is_goal inner outer =
         rule
         |> Drule.forall_intr_list frees
         |> Goal.norm_hhf
-        |> (#1 o Drule.tvars_intr_list tfrees)
+        |> Drule.tvars_intr_list tfrees |> #2
       end)
   end;
 
