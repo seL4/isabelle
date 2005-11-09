@@ -18,7 +18,6 @@ signature RES_AXIOMS =
   val cnf_axiomH : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
   val meta_cnf_axiomH : thm -> thm list
-  val rm_Eps : (term * term) list -> thm list -> term list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val claset_rules_of_ctxt: Proof.context -> (string * thm) list
@@ -32,7 +31,7 @@ signature RES_AXIOMS =
 
   end;
 
-structure ResAxioms : RES_AXIOMS =
+structure ResAxioms (*: RES_AXIOMS*) =
  
 struct
 
@@ -81,18 +80,13 @@ fun strip_concl' prems bvs (Const ("==>",_) $ P $ Q) =
       end;
 
 
-fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body))  = strip_concl prems ((x,xtp)::bvs) concl body
+fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body)) = 
+      strip_concl prems ((x,xtp)::bvs) concl body
   | strip_concl prems bvs concl (Const ("==>",_) $ P $ Q) =
-    if (is_neg P concl) then (strip_concl' prems bvs Q)
-    else
-	(let val P' = HOLogic.dest_Trueprop P
-	     val prems' = P'::prems
-	 in
-	     strip_concl prems' bvs  concl Q
-	 end)
+      if (is_neg P concl) then (strip_concl' prems bvs Q)
+      else strip_concl (HOLogic.dest_Trueprop P::prems) bvs  concl Q
   | strip_concl prems bvs concl _ = add_EX (make_conjs prems) bvs;
  
-
 
 fun trans_elim (main,others,concl) =
     let val others' = map (strip_concl [] [] concl) others
@@ -151,20 +145,12 @@ fun repeat_RS thm1 thm2 =
 
 
 (*Convert a theorem into NNF and also skolemize it. Original version, using
-  Hilbert's epsilon in the resulting clauses.*)
+  Hilbert's epsilon in the resulting clauses.   FIXME DELETE*)
 fun skolem_axiom_g mk_nnf th = 
   let val th' = (skolemize o mk_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
   in  repeat_RS th' someI_ex
   end;
 
-
-val skolem_axiom = skolem_axiom_g make_nnf;
-val skolem_axiomH = skolem_axiom_g make_nnf1;
-
-
-fun cnf_rule th = make_clauses [skolem_axiom (transform_elim th)];
-
-fun cnf_ruleH th = make_clauses [skolem_axiomH (transform_elim th)];
 
 (*Transfer a theorem into theory Reconstruction.thy if it is not already
   inside that theory -- because it's needed for Skolemization *)
@@ -184,27 +170,20 @@ fun is_taut th =
 
 (* remove tautologous clauses *)
 val rm_redundant_cls = List.filter (not o is_taut);
-
-(* transform an Isabelle theorem into CNF *)
-fun cnf_axiom_aux_g cnf_rule th =
-    map zero_var_indexes
-        (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
-
-val cnf_axiom_aux = cnf_axiom_aux_g cnf_rule;
-val cnf_axiom_auxH = cnf_axiom_aux_g cnf_ruleH;
-       
+     
        
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
-(*Traverse a term, accumulating Skolem function definitions.*)
-fun declare_skofuns s t thy =
+(*Traverse a theorem, declaring Skolem function definitions. String s is the suggested
+  prefix for the Skolem constant. Result is a new theory*)
+fun declare_skofuns s th thy =
   let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (n, (thy, axs)) =
 	    (*Existential: declare a Skolem function, then insert into body and continue*)
 	    let val cname = s ^ "_" ^ Int.toString n
 		val args = term_frees xtp  (*get the formal parameter list*)
 		val Ts = map type_of args
 		val cT = Ts ---> T
-		val c = Const (Sign.full_name (Theory.sign_of thy) cname, cT)
+		val c = Const (Sign.full_name thy cname, cT)
 		val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
 		        (*Forms a lambda-abstraction over the formal parameters*)
 		val def = equals cT $ c $ rhs
@@ -219,19 +198,43 @@ fun declare_skofuns s t thy =
 	    (*Universal quant: insert a free variable into body and continue*)
 	    let val fname = variant (add_term_names (p,[])) a
 	    in dec_sko (subst_bound (Free(fname,T), p)) (n, thx) end
-	| dec_sko (Const ("op &", _) $ p $ q) nthy = 
-	    dec_sko q (dec_sko p nthy)
-	| dec_sko (Const ("op |", _) $ p $ q) nthy = 
-	    dec_sko q (dec_sko p nthy)
-	| dec_sko (Const ("HOL.tag", _) $ p) nthy = 
-	    dec_sko p nthy
-	| dec_sko (Const ("Trueprop", _) $ p) nthy = 
-	    dec_sko p nthy
+	| dec_sko (Const ("op &", _) $ p $ q) nthy = dec_sko q (dec_sko p nthy)
+	| dec_sko (Const ("op |", _) $ p $ q) nthy = dec_sko q (dec_sko p nthy)
+	| dec_sko (Const ("HOL.tag", _) $ p) nthy = dec_sko p nthy
+	| dec_sko (Const ("Trueprop", _) $ p) nthy = dec_sko p nthy
 	| dec_sko t nthx = nthx (*Do nothing otherwise*)
-  in  #2 (dec_sko t (1, (thy,[])))  end;
+  in  #2 (dec_sko (#prop (rep_thm th)) (1, (thy,[])))  end;
+
+(*Traverse a theorem, accumulating Skolem function definitions.*)
+fun assume_skofuns th =
+  let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
+	    (*Existential: declare a Skolem function, then insert into body and continue*)
+	    let val name = variant (add_term_names (p,[])) (gensym "sko_")
+                val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
+		val args = term_frees xtp \\ skos  (*the formal parameters*)
+		val Ts = map type_of args
+		val cT = Ts ---> T
+		val c = Free (name, cT)
+		val rhs = list_abs_free (map dest_Free args,        
+		                         HOLogic.choice_const T $ xtp)
+		      (*Forms a lambda-abstraction over the formal parameters*)
+		val def = equals cT $ c $ rhs
+	    in dec_sko (subst_bound (list_comb(c,args), p)) 
+	               (def :: defs)
+	    end
+	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) defs =
+	    (*Universal quant: insert a free variable into body and continue*)
+	    let val fname = variant (add_term_names (p,[])) a
+	    in dec_sko (subst_bound (Free(fname,T), p)) defs end
+	| dec_sko (Const ("op &", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
+	| dec_sko (Const ("op |", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
+	| dec_sko (Const ("HOL.tag", _) $ p) defs = dec_sko p defs
+	| dec_sko (Const ("Trueprop", _) $ p) defs = dec_sko p defs
+	| dec_sko t defs = defs (*Do nothing otherwise*)
+  in  dec_sko (#prop (rep_thm th)) []  end;
 
 (*cterms are used throughout for efficiency*)
-val cTrueprop = Thm.cterm_of (Theory.sign_of HOL.thy) HOLogic.Trueprop;
+val cTrueprop = Thm.cterm_of HOL.thy HOLogic.Trueprop;
 
 (*cterm version of mk_cTrueprop*)
 fun c_mkTrueprop A = Thm.capply cTrueprop A;
@@ -244,24 +247,29 @@ fun c_variant_abs_multi (ct0, vars) =
       handle CTERM _ => (ct0, rev vars);
 
 (*Given the definition of a Skolem function, return a theorem to replace 
-  an existential formula by a use of that function.*)
+  an existential formula by a use of that function. 
+   Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun skolem_of_def def =  
   let val (c,rhs) = Drule.dest_equals (cprop_of (Drule.freeze_all def))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
-      val (chil,cabs) = Thm.dest_comb ch
-      val {sign,t, ...} = rep_cterm chil
-      val (Const ("Hilbert_Choice.Eps", Type("fun",[_,T]))) = t
+      val (chilbert,cabs) = Thm.dest_comb ch
+      val {sign,t, ...} = rep_cterm chilbert
+      val T = case t of Const ("Hilbert_Choice.Eps", Type("fun",[_,T])) => T
+                      | _ => raise THM ("skolem_of_def: expected Eps", 0, [def])
       val cex = Thm.cterm_of sign (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
       and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
-  in  OldGoals.prove_goalw_cterm [def] (Drule.mk_implies (ex_tm, conc))
-	    (fn [prem] => [ rtac (prem RS someI_ex) 1 ])
-  end;	 
+      fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS someI_ex) 1
+  in  Goal.prove_raw [ex_tm] conc tacf 
+       |> forall_intr_list frees
+       |> forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
+       |> Thm.varifyT
+  end;
 
-
-(*Converts an Isabelle theorem (intro, elim or simp format) into nnf.*)
-fun to_nnf thy th = 
-    th |> Thm.transfer thy
+(*Converts an Isabelle theorem (intro, elim or simp format) into nnf.
+  FIXME: generalize so that it works for HOL too!!*)
+fun to_nnf th = 
+    th |> transfer_to_Reconstruction
        |> transform_elim |> Drule.freeze_all
        |> ObjectLogic.atomize_thm |> make_nnf;
 
@@ -269,118 +277,79 @@ fun to_nnf thy th =
   and also repeated declaration of Skolem functions*)  (* FIXME better use Termtab!? *)
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
+
+(*Generate Skolem functions for a theorem supplied in nnf*)
+fun skolem_of_nnf th =
+  map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns th);
+
+(*Skolemize a named theorem, returning a modified theory. NONE can occur if the
+  theorem is not first-order.*)
+fun skolem_thm th = 
+  Option.map (fn nnfth => Meson.make_cnf (skolem_of_nnf nnfth) nnfth)
+	 (SOME (to_nnf th)  handle THM _ => NONE);
+
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
 fun skolem thy (name,th) =
   let val cname = (case name of "" => gensym "sko" | s => Sign.base_name s)
-      val (thy',axs) = declare_skofuns cname (#prop (rep_thm th)) thy
-  in (map skolem_of_def axs, thy') end;
+  in Option.map 
+        (fn nnfth => 
+          let val (thy',defs) = declare_skofuns cname nnfth thy
+              val skoths = map skolem_of_def defs
+          in (thy', Meson.make_cnf skoths nnfth) end)
+      (SOME (to_nnf th)  handle THM _ => NONE)
+  end;
 
 (*Populate the clause cache using the supplied theorems*)
-fun skolemlist [] thy = thy
-  | skolemlist ((name,th)::nths) thy = 
+fun skolem_cache ((name,th), thy) =
       (case Symtab.lookup (!clause_cache) name of
 	  NONE => 
-	    let val (nnfth,ok) = (to_nnf thy th, true)  
-	                 handle THM _ => (asm_rl, false)
-            in
-                if ok then
-                    let val (skoths,thy') = skolem thy (name, nnfth)
-			val cls = Meson.make_cnf skoths nnfth
-		    in change clause_cache (Symtab.update (name, (th, cls)));
-			skolemlist nths thy'
-		    end
-		else skolemlist nths thy
-            end
-	| SOME _ => skolemlist nths thy) (*FIXME: check for duplicate names?*)
+	    (case skolem thy (name, Thm.transfer thy th) of
+	         NONE => thy
+	       | SOME (thy',cls) => 
+	           (change clause_cache (Symtab.update (name, (th, cls))); thy'))
+	| SOME _ => thy);
+
 
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
-fun cnf_axiom_g cnf_axiom_aux (name,th) =
+fun cnf_axiom_g cnf (name,th) =
     case name of
-	  "" => cnf_axiom_aux th (*no name, so can't cache*)
+	  "" => cnf th (*no name, so can't cache*)
 	| s  => case Symtab.lookup (!clause_cache) s of
 	  	  NONE => 
-		    let val cls = cnf_axiom_aux th
+		    let val cls = cnf th
 		    in change clause_cache (Symtab.update (s, (th, cls))); cls end
 	        | SOME(th',cls) =>
 		    if eq_thm(th,th') then cls
 		    else (*New theorem stored under the same name? Possible??*)
-		      let val cls = cnf_axiom_aux th
+		      let val cls = cnf th
 		      in change clause_cache (Symtab.update (s, (th, cls))); cls end;
 
+fun pairname th = (Thm.name_of_thm th, th);
+
+val skolem_axiomH = skolem_axiom_g make_nnf1;
+
+fun cnf_ruleH th = make_clauses [skolem_axiomH (transform_elim th)];
+
+(* transform an Isabelle theorem into CNF *)
+fun cnf_axiom_aux_g cnf_rule th =
+    map zero_var_indexes
+        (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
+
+val cnf_axiom_auxH = cnf_axiom_aux_g cnf_ruleH;
+
+(*NONE can occur if th fails the first-order check.*)
+fun cnf_axiom_aux th = Option.getOpt (skolem_thm th, []);
 
 val cnf_axiom = cnf_axiom_g cnf_axiom_aux;
+
 val cnf_axiomH = cnf_axiom_g cnf_axiom_auxH;
 
-
-fun pairname th = (Thm.name_of_thm th, th);
 
 fun meta_cnf_axiom th = 
     map Meson.make_meta_clause (cnf_axiom (pairname th));
 
-
 fun meta_cnf_axiomH th = 
     map Meson.make_meta_clause (cnf_axiomH (pairname th));
-
-(* changed: with one extra case added *)
-fun univ_vars_of_aux (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,body)) vars =    
-      univ_vars_of_aux body vars
-  | univ_vars_of_aux (Const ("Ex",_) $ Abs(_,_,body)) vars = 
-      univ_vars_of_aux body vars (* EX x. body *)
-  | univ_vars_of_aux (P $ Q) vars =
-      univ_vars_of_aux Q (univ_vars_of_aux P vars)
-  | univ_vars_of_aux (t as Var(_,_)) vars = 
-      if (t mem vars) then vars else (t::vars)
-  | univ_vars_of_aux _ vars = vars;
-  
-fun univ_vars_of t = univ_vars_of_aux t [];
-
-
-(**** Generating Skoklem Functions ****)
-
-val skolem_prefix = "sk_";
-val skolem_id = ref 0;
-
-fun gen_skolem_name () =
-  let val sk_fun = skolem_prefix ^ string_of_int (! skolem_id);
-  in inc skolem_id; sk_fun end;
-
-fun gen_skolem univ_vars tp =
-  let
-    val skolem_type = map Term.fastype_of univ_vars ---> tp
-    val skolem_term = Const (gen_skolem_name (), skolem_type)
-  in Term.list_comb (skolem_term, univ_vars) end;
-
-fun get_new_skolem epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,tp,_)))  = 
-    let val all_vars = univ_vars_of t
-	val sk_term = gen_skolem all_vars tp
-    in
-	(sk_term,(t,sk_term)::epss)
-    end;
-
-(*FIXME: use a-list lookup!!*)
-fun sk_lookup [] t = NONE
-  | sk_lookup ((tm,sk_tm)::tms) t = if (t = tm) then SOME (sk_tm) else (sk_lookup tms t);
-
-(* get the proper skolem term to replace epsilon term *)
-fun get_skolem epss t = 
-    case (sk_lookup epss t) of NONE => get_new_skolem epss t
-		             | SOME sk => (sk,epss);
-
-fun rm_Eps_cls_aux epss (t as (Const ("Hilbert_Choice.Eps",_) $ Abs(_,_,_))) = 
-       get_skolem epss t
-  | rm_Eps_cls_aux epss (P $ Q) =
-       let val (P',epss') = rm_Eps_cls_aux epss P
-	   val (Q',epss'') = rm_Eps_cls_aux epss' Q
-       in (P' $ Q',epss'') end
-  | rm_Eps_cls_aux epss t = (t,epss);
-
-fun rm_Eps_cls epss th = rm_Eps_cls_aux epss (prop_of th);
-
-(* replace the epsilon terms in a formula by skolem terms. *)
-fun rm_Eps _ [] = []
-  | rm_Eps epss (th::ths) = 
-      let val (th',epss') = rm_Eps_cls epss th
-      in th' :: (rm_Eps epss' ths) end;
 
 
 
@@ -439,39 +408,24 @@ val cnf_rulesH = cnf_rules_g cnf_axiomH;
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
 
-fun addclause (c,th) l =
-  if ResClause.isTaut c then l else (c,th) :: l;
-
-fun addclauseH (c,th) l =
-    if ResHolClause.isTaut c then l else (c,th)::l;
-
+fun make_axiom_clauses _ _ [] = []
+  | make_axiom_clauses name i (cls::clss) =
+      (ResClause.make_axiom_clause (prop_of cls) (name,i), cls) ::
+      (make_axiom_clauses name (i+1) clss)
 
 (* outputs a list of (clause,theorem) pairs *)
-fun clausify_axiom_pairs (thm_name,th) =
-    let val isa_clauses = cnf_axiom (thm_name,th) 
-        val isa_clauses' = rm_Eps [] isa_clauses
-        val clauses_n = length isa_clauses
-	fun make_axiom_clauses _ [] []= []
-	  | make_axiom_clauses i (cls::clss) (cls'::clss') =
-	      addclause (ResClause.make_axiom_clause cls (thm_name,i), cls') 
-	                (make_axiom_clauses (i+1) clss clss')
-    in
-	make_axiom_clauses 0 isa_clauses' isa_clauses		
-    end
+fun clausify_axiom_pairs (name,th) = 
+    filter (fn (c,th) => not (ResClause.isTaut c))
+           (make_axiom_clauses name 0 (cnf_axiom (name,th)));
 
+fun make_axiom_clausesH _ _ [] = []
+  | make_axiom_clausesH name i (cls::clss) =
+      (ResHolClause.make_axiom_clause (prop_of cls) (name,i), cls) ::
+      (make_axiom_clausesH name (i+1) clss)
 
-fun clausify_axiom_pairsH (thm_name,th) =
-    let val isa_clauses = cnf_axiomH (thm_name,th) 
-        val isa_clauses' = rm_Eps [] isa_clauses
-        val clauses_n = length isa_clauses
-	fun make_axiom_clauses _ [] []= []
-	  | make_axiom_clauses i (cls::clss) (cls'::clss') =
-	      addclauseH (ResHolClause.make_axiom_clause cls (thm_name,i), cls') 
-	                (make_axiom_clauses (i+1) clss clss')
-    in
-	make_axiom_clauses 0 isa_clauses' isa_clauses		
-    end
-
+fun clausify_axiom_pairsH (name,th) = 
+    filter (fn (c,th) => not (ResHolClause.isTaut c))
+           (make_axiom_clausesH name 0 (cnf_axiomH (name,th)));
 
 
 fun clausify_rules_pairs_aux result [] = result
@@ -501,12 +455,14 @@ fun clausify_rules_pairs_auxH result [] = result
 val clausify_rules_pairs = clausify_rules_pairs_aux [];
 
 val clausify_rules_pairsH = clausify_rules_pairs_auxH [];
+
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
   into the clause cache*)
 fun clause_cache_setup thy =
   let val simps = simpset_rules_of_thy thy
       and clas  = claset_rules_of_thy thy
-  in skolemlist clas (skolemlist simps thy) end;
+  in List.foldl skolem_cache (List.foldl skolem_cache thy clas) simps end;
+(*Could be duplicate theorem names, due to multiple attributes*)
   
 val clause_setup = [clause_cache_setup];  
 

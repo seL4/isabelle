@@ -66,9 +66,11 @@ val depth_limit = ref 2000;
 (**** Operators for forward proof ****)
 
 (*raises exception if no rules apply -- unlike RL*)
-fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
-  | tryres (th, []) = raise THM("tryres", 0, [th]);
-
+fun tryres (th, rls) = 
+  let fun tryall [] = raise THM("tryres", 0, th::rls)
+        | tryall (rl::rls) = (th RS rl handle THM _ => tryall rls)
+  in  tryall rls  end;
+  
 (*Permits forward proof from rules that discharge assumptions*)
 fun forward_res nf st =
   case Seq.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)
@@ -375,13 +377,19 @@ fun skolemize_prems_tac prems =
     cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
     REPEAT o (etac exE);
 
+(*Expand all definitions (presumably of Skolem functions) in a proof state.*)
+fun expand_defs_tac st =
+  let val defs = filter (can dest_equals) (#hyps (crep_thm st))
+  in  ProofContext.export_def false defs st  end;
+
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions*)
 fun MESON cltac i st = 
   SELECT_GOAL
-   (EVERY1 [rtac ccontr,
+    (EVERY [rtac ccontr 1,
 	    METAHYPS (fn negs =>
 		      EVERY1 [skolemize_prems_tac negs,
-			      METAHYPS (cltac o make_clauses)])]) i st
+			      METAHYPS (cltac o make_clauses)]) 1,
+            expand_defs_tac]) i st
   handle THM _ => no_tac st;	(*probably from check_is_fol*)		      
 
 (** Best-first search versions **)
