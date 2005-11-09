@@ -135,11 +135,14 @@ sig
   val vars_of_terms: term list -> (indexname * typ) list
   val tvars_of: thm -> (indexname * sort) list
   val vars_of: thm -> (indexname * typ) list
+  val tfrees_of: thm -> (string * sort) list
+  val frees_of: thm -> (string * typ) list
+  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
   val unvarifyT: thm -> thm
   val unvarify: thm -> thm
-  val tvars_intr_list: string list -> thm -> thm * (string * (indexname * sort)) list
+  val tvars_intr_list: string list -> thm -> (string * (indexname * sort)) list * thm
   val remdups_rl: thm
   val conj_intr: thm -> thm -> thm
   val conj_intr_list: thm list -> thm
@@ -363,6 +366,13 @@ fun tvars_of_terms ts = rev (fold Term.add_tvars ts []);
 fun vars_of_terms ts = rev (fold Term.add_vars ts []);
 fun tvars_of thm = tvars_of_terms [Thm.full_prop_of thm];
 fun vars_of thm = vars_of_terms [Thm.full_prop_of thm];
+
+fun fold_terms f th =
+  let val {hyps, tpairs, prop, ...} = Thm.rep_thm th
+  in f prop #> fold (fn (t, u) => f t #> f u) tpairs #> fold f hyps end;
+
+fun tfrees_of th = rev (fold_terms Term.add_tfrees th []);
+fun frees_of th = rev (fold_terms Term.add_frees th []);
 
 (*Strip extraneous shyps as far as possible*)
 fun strip_shyps_warning thm =
@@ -1064,12 +1074,8 @@ fun unvarify raw_thm =
 
 (* tvars_intr_list *)
 
-fun tfrees_of thm =
-  let val {hyps, prop, ...} = Thm.rep_thm thm
-  in foldr Term.add_term_tfrees [] (prop :: hyps) end;
-
 fun tvars_intr_list tfrees thm =
-  apsnd (map (fn ((s, S), ixn) => (s, (ixn, S)))) (Thm.varifyT'
+  apfst (map (fn ((s, S), ixn) => (s, (ixn, S)))) (Thm.varifyT'
     (gen_rems (op = o apfst fst) (tfrees_of thm, tfrees)) thm);
 
 
