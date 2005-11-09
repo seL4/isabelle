@@ -47,7 +47,7 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: bool * (Locale.expr * Locale.element list)
+  val print_locale: bool * (Locale.expr * Element.context list)
     -> Toplevel.transition -> Toplevel.transition
   val print_registrations: bool -> string -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
