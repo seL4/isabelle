@@ -101,11 +101,7 @@ sig
   val ins_ix: indexname * indexname list -> indexname list
   val mem_ix: indexname * indexname list -> bool
   val mem_term: term * term list -> bool
-  val subset_term: term list * term list -> bool
-  val eq_set_term: term list * term list -> bool
   val ins_term: term * term list -> term list
-  val union_term: term list * term list -> term list
-  val inter_term: term list * term list -> term list
   val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
   val xless: (string * int) * indexname -> bool
@@ -826,21 +822,7 @@ val var_ord = prod_ord indexname_ord typ_ord;
 fun mem_term (_, []) = false
   | mem_term (t, t'::ts) = t aconv t' orelse mem_term (t, ts);
 
-fun subset_term ([], ys) = true
-  | subset_term (x :: xs, ys) = mem_term (x, ys) andalso subset_term(xs, ys);
-
-fun eq_set_term (xs, ys) =
-    xs = ys orelse (subset_term (xs, ys) andalso subset_term (ys, xs));
-
 fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
-
-fun union_term (xs, []) = xs
-  | union_term ([], ys) = ys
-  | union_term ((x :: xs), ys) = union_term (xs, ins_term (x, ys));
-
-fun inter_term ([], ys) = []
-  | inter_term (x::xs, ys) =
-      if mem_term (x,ys) then x :: inter_term(xs,ys) else inter_term(xs,ys);
 
 
 (*A fast unification filter: true unless the two terms cannot be unified.
