@@ -79,8 +79,8 @@ sig
   val opt_locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
-  val locale_element: token list -> Locale.element * token list
-  val locale_elem_or_expr: token list -> Locale.element Locale.elem_expr * token list
+  val locale_element: token list -> Element.context Locale.element * token list
+  val context_element: token list -> Element.context * token list
   val method: token list -> Method.text * token list
 end;
 
@@ -321,7 +321,7 @@ val xthms1 = Scan.repeat1 xthm;
 val name_facts = and_list1 (opt_thm_name "=" -- xthms1);
 
 
-(* locale elements *)
+(* locale and context elements *)
 
 local
 
@@ -331,15 +331,15 @@ val loc_keyword = $$$ "fixes" || $$$ "constrains" || $$$ "assumes" ||
 
 val loc_element =
   $$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
-    >> triple1)) >> Locale.Fixes ||
+    >> triple1)) >> Element.Fixes ||
   $$$ "constrains" |-- !!! (and_list1 (name -- ($$$ "::" |-- typ)))
-    >> Locale.Constrains ||
+    >> Element.Constrains ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
-    >> Locale.Assumes ||
+    >> Element.Assumes ||
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
-    >> Locale.Defines ||
+    >> Element.Defines ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
-    >> Locale.Notes;
+    >> Element.Notes;
 
 fun plus1 scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
@@ -357,11 +357,10 @@ val opt_locale_target = Scan.option locale_target;
 val locale_expr = expr0;
 val locale_keyword = loc_keyword;
 
-val locale_element = group "locale element" loc_element;
+val locale_element = group "locale element"
+  (loc_element >> Locale.Elem || $$$ "includes" |-- !!! locale_expr >> Locale.Expr);
 
-val locale_elem_or_expr = group "locale element or includes"
-  (loc_element >> Locale.Elem ||
-  $$$ "includes" |-- !!! locale_expr >> Locale.Expr);
+val context_element = group "context element" loc_element;
 
 end;
 

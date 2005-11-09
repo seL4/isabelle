@@ -302,8 +302,8 @@ val oracleP =
 
 val locale_val =
   (P.locale_expr --
-    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.locale_element)) [] ||
-  Scan.repeat1 P.locale_element >> pair Locale.empty);
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.context_element)) [] ||
+  Scan.repeat1 P.context_element >> pair Locale.empty);
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
@@ -337,7 +337,7 @@ val interpretP =
 
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
 val general_statement =
-  statement >> pair [] || Scan.repeat P.locale_elem_or_expr -- (P.$$$ "shows" |-- statement);
+  statement >> pair [] || Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement);
 
 fun gen_theorem kind =
   OuterSyntax.command kind ("state " ^ kind) K.thy_goal
