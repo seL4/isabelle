@@ -37,7 +37,7 @@ sig
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUPS*)
-  val join: (key -> 'a * 'a -> 'a option) -> 'a T * 'a T -> 'a T     (*exception DUPS*)
+  val join: (key -> 'a * 'a -> 'a option) -> 'a T * 'a T -> 'a T      (*exception DUPS*)
   exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception CYCLES*)
   val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception CYCLES*)
@@ -114,9 +114,11 @@ fun fold_map_nodes f (Graph tab) s =
   |> apfst Graph;
 
 fun get_node G = #1 o get_entry G;
+
 fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
 fun map_node_yield x f = map_entry_yield x (fn (i, ps) =>
   let val (a, i') = f i in (a, (i', ps)) end);
+
 
 (* reachability *)
 
@@ -150,6 +152,7 @@ fun subgraph keys (Graph tab) =
       then tab' |> Table.update (k, (i, (filter select preds, filter select succs)))
       else tab'
   in Table.empty |> Table.fold subg tab |> Graph end;
+
 
 (* paths *)
 
@@ -204,24 +207,20 @@ fun edges G = diff_edges G empty;
 
 (* join and merge *)
 
-fun gen_join add f (Graph tab1, G2 as Graph tab2) =
+fun no_edges (i, _) = (i, ([], []));
+
+fun join f (Graph tab1, G2 as Graph tab2) =
   let
     fun join_node key ((i1, edges1), (i2, _)) =
       (Option.map (rpair edges1) o f key) (i1, i2);
-    fun no_edges (i, _) = (i, ([], []));
-  in fold add (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2))) end;
-
-(*   val join: (key -> 'a * 'a -> bool) -> 'a T * 'a T -> 'a T           (*exception DUPS*)  *)
-  
-fun join f GG = gen_join add_edge f GG;
+  in fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2))) end;
 
 fun gen_merge add eq (Graph tab1, G2 as Graph tab2) =
-  let
-    fun eq_node ((i1, _), (i2, _)) = eq (i1, i2);
-    fun no_edges (i, _) = (i, ([], []));
+  let fun eq_node ((i1, _), (i2, _)) = eq (i1, i2)
   in fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map no_edges tab2))) end;
 
 fun merge eq GG = gen_merge add_edge eq GG;
+
 
 (* maintain acyclic graphs *)
 
