@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Simple string buffers.
+Efficient string buffers.
 *)
 
 signature BUFFER =

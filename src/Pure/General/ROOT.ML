@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/ROOT.ML
     ID:         $Id$
 
-Library of general tools --- prefer this over the 'Standard ML Library'.
+Library of general tools.
 *)
 
 use "stack.ML";
