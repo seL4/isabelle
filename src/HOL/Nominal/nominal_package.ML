@@ -1088,7 +1088,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms) |>>
       Theory.add_path big_name |>>>
-      PureThy.add_axioms_i [(("induct_test", induct), [case_names_induct])] |>>
+      PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])] |>>
       Theory.parent_path;
 
   in
