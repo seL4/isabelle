@@ -15,9 +15,8 @@ sig
   val is_empty: T -> bool
   val merge: T * T -> T
   val insert: elem * T -> T
-  exception EMPTY
-  val min: T -> elem        (*exception EMPTY*)
-  val delete_min: T -> T    (*exception EMPTY*)
+  val min: T -> elem        (*exception Empty*)
+  val delete_min: T -> T    (*exception Empty*)
 end;
 
 functor HeapFun(type elem val ord: elem * elem -> order): HEAP =
@@ -65,12 +64,10 @@ end;
 
 (* minimum element *)
 
-exception EMPTY
-
-fun min Empty = raise EMPTY
+fun min Empty = raise List.Empty
   | min (Heap (_, x, _, _)) = x;
 
-fun delete_min Empty = raise EMPTY
+fun delete_min Empty = raise List.Empty
   | delete_min (Heap (_, _, a, b)) = merge (a, b);
 
 end;
