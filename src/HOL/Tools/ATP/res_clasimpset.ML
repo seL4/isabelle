@@ -141,22 +141,28 @@ fun clause_numbering ((clause, theorem), num_of_cls) =
 	multi (clause, theorem) num_of_cls []
     end;
     
+fun get_simpset_thms ctxt goal clas =
+  let val ctab = fold_rev Symtab.update clas Symtab.empty
+      fun unused (s,_) = not (Symtab.defined ctab s)
+  in  ResAxioms.clausify_rules_pairs 
+	(filter unused
+	  (map put_name_pair 
+	    (ReduceAxiomsN.relevant_filter (!relevant) goal
+	      (ResAxioms.simpset_rules_of_ctxt ctxt))))
+  end;
+		  
 
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
 fun get_clasimp_lemmas ctxt goal = 
-    let val claset_cls_thms =
-              ResAxioms.clausify_rules_pairs
-		(map put_name_pair
+    let val claset_thms =
+		map put_name_pair
 		  (ReduceAxiomsN.relevant_filter (!relevant) goal 
-		    (ResAxioms.claset_rules_of_ctxt ctxt)))
+		    (ResAxioms.claset_rules_of_ctxt ctxt))
+	val claset_cls_thms = ResAxioms.clausify_rules_pairs claset_thms
 	val simpset_cls_thms = 
-	      if !use_simpset then  
-		  ResAxioms.clausify_rules_pairs 
-		    (map put_name_pair 
-		      (ReduceAxiomsN.relevant_filter (!relevant) goal
-		        (ResAxioms.simpset_rules_of_ctxt ctxt))) 
+	      if !use_simpset then get_simpset_thms ctxt goal claset_thms
 	      else []
 	val cls_thms_list = List.concat (claset_cls_thms@simpset_cls_thms)
 	(* Identify the set of clauses to be written out *)

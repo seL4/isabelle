@@ -524,7 +524,7 @@ ML {*
 lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
 
-lemma subset_refl: "A \<subseteq> A"
+lemma subset_refl [simp,intro!]: "A \<subseteq> A"
   by fast
 
 lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
@@ -600,7 +600,7 @@ declare UNIV_I [intro]  -- {* unsafe makes it less likely to cause problems *}
 lemma UNIV_witness [intro?]: "EX x. x : UNIV"
   by simp
 
-lemma subset_UNIV: "A \<subseteq> UNIV"
+lemma subset_UNIV [simp]: "A \<subseteq> UNIV"
   by (rule subsetI) (rule UNIV_I)
 
 text {*
@@ -979,8 +979,6 @@ ML_setup {*
   val mksimps_pairs = [("Ball", [thm "bspec"])] @ mksimps_pairs;
   change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
 *}
-
-declare subset_UNIV [simp] subset_refl [simp]
 
 
 subsubsection {* The ``proper subset'' relation *}

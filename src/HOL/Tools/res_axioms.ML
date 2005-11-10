@@ -301,28 +301,34 @@ fun skolem thy (name,th) =
 
 (*Populate the clause cache using the supplied theorems*)
 fun skolem_cache ((name,th), thy) =
-      (case Symtab.lookup (!clause_cache) name of
-	  NONE => 
-	    (case skolem thy (name, Thm.transfer thy th) of
-	         NONE => thy
-	       | SOME (thy',cls) => 
-	           (change clause_cache (Symtab.update (name, (th, cls))); thy'))
-	| SOME _ => thy);
+  case Symtab.lookup (!clause_cache) name of
+      NONE => 
+	(case skolem thy (name, Thm.transfer thy th) of
+	     NONE => thy
+	   | SOME (thy',cls) => 
+	       (change clause_cache (Symtab.update (name, (th, cls))); thy'))
+    | SOME (th',cls) =>
+        if eq_thm(th,th') then thy
+	else (warning ("skolem_cache: Ignoring variant of theorem " ^ name); 
+	      warning (string_of_thm th);
+	      warning (string_of_thm th');
+	      thy);
 
 
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
 fun cnf_axiom_g cnf (name,th) =
-    case name of
-	  "" => cnf th (*no name, so can't cache*)
-	| s  => case Symtab.lookup (!clause_cache) s of
-	  	  NONE => 
-		    let val cls = cnf th
-		    in change clause_cache (Symtab.update (s, (th, cls))); cls end
-	        | SOME(th',cls) =>
-		    if eq_thm(th,th') then cls
-		    else (*New theorem stored under the same name? Possible??*)
-		      let val cls = cnf th
-		      in change clause_cache (Symtab.update (s, (th, cls))); cls end;
+  case name of
+	"" => cnf th (*no name, so can't cache*)
+      | s  => case Symtab.lookup (!clause_cache) s of
+		NONE => 
+		  let val cls = cnf th
+		  in change clause_cache (Symtab.update (s, (th, cls))); cls end
+	      | SOME(th',cls) =>
+		  if eq_thm(th,th') then cls
+		  else (warning ("cnf_axiom: duplicate or variant of theorem " ^ name); 
+		        warning (string_of_thm th);
+		        warning (string_of_thm th');
+		        cls);
 
 fun pairname th = (Thm.name_of_thm th, th);
 
