@@ -112,29 +112,32 @@ text {*
 *}
 
 lemma exec_append:
-  "ALL stack. exec (xs @ ys) stack env =
-    exec ys (exec xs stack env) env" (is "?P xs")
-proof (induct xs)
-  show "?P []" by simp
+  "exec (xs @ ys) stack env =
+    exec ys (exec xs stack env) env"
+proof (induct xs fixing: stack)
+  case Nil
+  show ?case by simp
 next
-  fix x xs assume hyp: "?P xs"
-  show "?P (x # xs)"
+  case (Cons x xs)
+  show ?case
   proof (induct x)
-    from hyp show "!!val. ?P (Const val # xs)" by simp
-    from hyp show "!!adr. ?P (Load adr # xs)" by simp
-    from hyp show "!!fun. ?P (Apply fun # xs)" by simp
+    case Const show ?case by simp
+  next
+    case Load show ?case by simp
+  next
+    case Apply show ?case by simp
   qed
 qed
 
 theorem correctness: "execute (compile e) env = eval e env"
 proof -
-  have "ALL stack. exec (compile e) stack env =
-    eval e env # stack" (is "?P e")
+  have "!!stack. exec (compile e) stack env = eval e env # stack"
   proof (induct e)
-    show "!!adr. ?P (Variable adr)" by simp
-    show "!!val. ?P (Constant val)" by simp
-    show "!!fun e1 e2. ?P e1 ==> ?P e2 ==> ?P (Binop fun e1 e2)"
-      by (simp add: exec_append)
+    case Variable show ?case by simp
+  next
+    case Constant show ?case by simp
+  next
+    case Binop then show ?case by (simp add: exec_append)
   qed
   thus ?thesis by (simp add: execute_def)
 qed
@@ -149,98 +152,75 @@ text {*
 *}
 
 lemma exec_append':
-  "ALL stack. exec (xs @ ys) stack env
-    = exec ys (exec xs stack env) env" (is "?P xs")
-proof (induct xs)
-  show "?P []" (is "ALL s. ?Q s")
-  proof
-    fix s have "exec ([] @ ys) s env = exec ys s env" by simp
-    also have "... = exec ys (exec [] s env) env" by simp
-    finally show "?Q s" .
-  qed
-  fix x xs assume hyp: "?P xs"
-  show "?P (x # xs)"
+  "exec (xs @ ys) stack env = exec ys (exec xs stack env) env"
+proof (induct xs fixing: stack)
+  case (Nil s)
+  have "exec ([] @ ys) s env = exec ys s env" by simp
+  also have "... = exec ys (exec [] s env) env" by simp
+  finally show ?case .
+next
+  case (Cons x xs s)
+  show ?case
   proof (induct x)
-    fix val
-    show "?P (Const val # xs)" (is "ALL s. ?Q s")
-    proof
-      fix s
-      have "exec ((Const val # xs) @ ys) s env =
-          exec (Const val # xs @ ys) s env"
-        by simp
-      also have "... = exec (xs @ ys) (val # s) env" by simp
-      also from hyp
-        have "... = exec ys (exec xs (val # s) env) env" ..
-      also have "... = exec ys (exec (Const val # xs) s env) env"
-        by simp
-      finally show "?Q s" .
-    qed
+    case (Const val)
+    have "exec ((Const val # xs) @ ys) s env = exec (Const val # xs @ ys) s env"
+      by simp
+    also have "... = exec (xs @ ys) (val # s) env" by simp
+    also from Cons have "... = exec ys (exec xs (val # s) env) env" .
+    also have "... = exec ys (exec (Const val # xs) s env) env" by simp
+    finally show ?case .
   next
-    fix adr from hyp show "?P (Load adr # xs)" by simp -- {* same as above *}
+    case (Load adr)
+    from Cons show ?case by simp -- {* same as above *}
   next
-    fix fun
-    show "?P (Apply fun # xs)" (is "ALL s. ?Q s")
-    proof
-      fix s
-      have "exec ((Apply fun # xs) @ ys) s env =
-          exec (Apply fun # xs @ ys) s env"
-        by simp
-      also have "... =
-          exec (xs @ ys) (fun (hd s) (hd (tl s)) # (tl (tl s))) env"
-        by simp
-      also from hyp have "... =
-        exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env"
-        ..
-      also have "... = exec ys (exec (Apply fun # xs) s env) env" by simp
-      finally show "?Q s" .
-    qed
+    case (Apply fun)
+    have "exec ((Apply fun # xs) @ ys) s env =
+        exec (Apply fun # xs @ ys) s env" by simp
+    also have "... =
+        exec (xs @ ys) (fun (hd s) (hd (tl s)) # (tl (tl s))) env" by simp
+    also from Cons have "... =
+        exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env" .
+    also have "... = exec ys (exec (Apply fun # xs) s env) env" by simp
+    finally show ?case .
   qed
 qed
 
 theorem correctness': "execute (compile e) env = eval e env"
 proof -
   have exec_compile:
-    "ALL stack. exec (compile e) stack env = eval e env # stack"
-    (is "?P e")
+    "!!stack. exec (compile e) stack env = eval e env # stack"
   proof (induct e)
-    fix adr show "?P (Variable adr)" (is "ALL s. ?Q s")
-    proof
-      fix s
-      have "exec (compile (Variable adr)) s env = exec [Load adr] s env"
-        by simp
-      also have "... = env adr # s" by simp
-      also have "env adr = eval (Variable adr) env" by simp
-      finally show "?Q s" .
-    qed
+    case (Variable adr s)
+    have "exec (compile (Variable adr)) s env = exec [Load adr] s env"
+      by simp
+    also have "... = env adr # s" by simp
+    also have "env adr = eval (Variable adr) env" by simp
+    finally show ?case .
   next
-    fix val show "?P (Constant val)" by simp -- {* same as above *}
+    case (Constant val s)
+    show ?case by simp -- {* same as above *}
   next
-    fix fun e1 e2 assume hyp1: "?P e1" and hyp2: "?P e2"
-    show "?P (Binop fun e1 e2)" (is "ALL s. ?Q s")
-    proof
-      fix s have "exec (compile (Binop fun e1 e2)) s env
-        = exec (compile e2 @ compile e1 @ [Apply fun]) s env" by simp
-      also have "... = exec [Apply fun]
-          (exec (compile e1) (exec (compile e2) s env) env) env"
-        by (simp only: exec_append)
-      also from hyp2
-        have "exec (compile e2) s env = eval e2 env # s" ..
-      also from hyp1
-        have "exec (compile e1) ... env = eval e1 env # ..." ..
-      also have "exec [Apply fun] ... env =
+    case (Binop fun e1 e2 s)
+    have "exec (compile (Binop fun e1 e2)) s env =
+        exec (compile e2 @ compile e1 @ [Apply fun]) s env" by simp
+    also have "... = exec [Apply fun]
+        (exec (compile e1) (exec (compile e2) s env) env) env"
+      by (simp only: exec_append)
+    also have "exec (compile e2) s env = eval e2 env # s" by fact
+    also have "exec (compile e1) ... env = eval e1 env # ..." by fact
+    also have "exec [Apply fun] ... env =
         fun (hd ...) (hd (tl ...)) # (tl (tl ...))" by simp
-      also have "... = fun (eval e1 env) (eval e2 env) # s" by simp
-      also have "fun (eval e1 env) (eval e2 env) =
-          eval (Binop fun e1 e2) env"
-        by simp
-      finally show "?Q s" .
-    qed
+    also have "... = fun (eval e1 env) (eval e2 env) # s" by simp
+    also have "fun (eval e1 env) (eval e2 env) =
+        eval (Binop fun e1 e2) env"
+      by simp
+    finally show ?case .
   qed
 
   have "execute (compile e) env = hd (exec (compile e) [] env)"
     by (simp add: execute_def)
   also from exec_compile
-    have "exec (compile e) [] env = [eval e env]" ..
+    have "exec (compile e) [] env = [eval e env]" .
   also have "hd ... = eval e env" by simp
   finally show ?thesis .
 qed

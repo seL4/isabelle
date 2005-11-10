@@ -101,87 +101,82 @@ text {*
 *}
 
 theorem lookup_append_none:
-  "!!env. lookup env xs = None ==> lookup env (xs @ ys) = None"
-  (is "PROP ?P xs")
-proof (induct xs)
-  fix env :: "('a, 'b, 'c) env"
-  {
-    assume "lookup env [] = None"
-    hence False by simp
-    thus "lookup env ([] @ ys) = None" ..
+  assumes "lookup env xs = None"
+  shows "lookup env (xs @ ys) = None"
+  using prems
+proof (induct xs fixing: env)
+  case Nil
+  then have False by simp
+  then show ?case ..
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases env)
+    case Val
+    then show ?thesis by simp
   next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume asm: "lookup env (x # xs) = None"
-    show "lookup env ((x # xs) @ ys) = None"
-    proof (cases env)
-      case Val
-      thus ?thesis by simp
+    case (Env b es)
+    show ?thesis
+    proof (cases "es x")
+      case None
+      with Env show ?thesis by simp
     next
-      fix b es assume env: "env = Env b es"
+      case (Some e)
+      note es = `es x = Some e`
       show ?thesis
-      proof (cases "es x")
-        assume "es x = None"
-        with env show ?thesis by simp
+      proof (cases "lookup e xs")
+        case None
+        then have "lookup e (xs @ ys) = None" by (rule Cons.hyps)
+        with Env Some show ?thesis by simp
       next
-        fix e assume es: "es x = Some e"
-        show ?thesis
-        proof (cases "lookup e xs")
-          case None
-          hence "lookup e (xs @ ys) = None" by (rule hyp)
-          with env es show ?thesis by simp
-        next
-          case Some
-          with asm env es have False by simp
-          thus ?thesis ..
-        qed
+        case Some
+        with Env es have False using Cons.prems by simp
+        then show ?thesis ..
       qed
     qed
-  }
+  qed
 qed
 
 theorem lookup_append_some:
-  "!!env e. lookup env xs = Some e ==> lookup env (xs @ ys) = lookup e ys"
-  (is "PROP ?P xs")
-proof (induct xs)
-  fix env e :: "('a, 'b, 'c) env"
-  {
-    assume "lookup env [] = Some e"
-    hence "env = e" by simp
-    thus "lookup env ([] @ ys) = lookup e ys" by simp
+  assumes "lookup env xs = Some e"
+  shows "lookup env (xs @ ys) = lookup e ys"
+  using prems
+proof (induct xs fixing: env e)
+  case Nil
+  then have "env = e" by simp
+  then show "lookup env ([] @ ys) = lookup e ys" by simp
+next
+  case (Cons x xs)
+  note asm = `lookup env (x # xs) = Some e`
+  show "lookup env ((x # xs) @ ys) = lookup e ys"
+  proof (cases env)
+    case (Val a)
+    with asm have False by simp
+    then show ?thesis ..
   next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume asm: "lookup env (x # xs) = Some e"
-    show "lookup env ((x # xs) @ ys) = lookup e ys"
-    proof (cases env)
-      fix a assume "env = Val a"
-      with asm have False by simp
-      thus ?thesis ..
+    case (Env b es)
+    show ?thesis
+    proof (cases "es x")
+      case None
+      with asm Env have False by simp
+      then show ?thesis ..
     next
-      fix b es assume env: "env = Env b es"
+      case (Some e')
+      note es = `es x = Some e'`
       show ?thesis
-      proof (cases "es x")
-        assume "es x = None"
-        with asm env have False by simp
-        thus ?thesis ..
+      proof (cases "lookup e' xs")
+        case None
+        with asm Env es have False by simp
+        then show ?thesis ..
       next
-        fix e' assume es: "es x = Some e'"
-        show ?thesis
-        proof (cases "lookup e' xs")
-          case None
-          with asm env es have False by simp
-          thus ?thesis ..
-        next
-          case Some
-          with asm env es have "lookup e' xs = Some e"
-            by simp
-          hence "lookup e' (xs @ ys) = lookup e ys" by (rule hyp)
-          with env es show ?thesis by simp
-        qed
+        case Some
+        with asm Env es have "lookup e' xs = Some e"
+          by simp
+        then have "lookup e' (xs @ ys) = lookup e ys" by (rule Cons.hyps)
+        with Env es show ?thesis by simp
       qed
     qed
-  }
+  qed
 qed
 
 text {*
@@ -192,13 +187,13 @@ text {*
 *}
 
 theorem lookup_some_append:
-  "lookup env (xs @ ys) = Some e ==> \<exists>e. lookup env xs = Some e"
+  assumes "lookup env (xs @ ys) = Some e"
+  shows "\<exists>e. lookup env xs = Some e"
 proof -
-  assume "lookup env (xs @ ys) = Some e"
-  hence "lookup env (xs @ ys) \<noteq> None" by simp
-  hence "lookup env xs \<noteq> None"
+  from prems have "lookup env (xs @ ys) \<noteq> None" by simp
+  then have "lookup env xs \<noteq> None"
     by (rule contrapos_nn) (simp only: lookup_append_none)
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 text {*
@@ -207,43 +202,40 @@ text {*
   at any upper position.
 *}
 
-theorem lookup_some_upper: "!!env e.
-  lookup env (xs @ y # ys) = Some e ==>
-    \<exists>b' es' env'.
-      lookup env xs = Some (Env b' es') \<and>
-      es' y = Some env' \<and>
-      lookup env' ys = Some e"
-  (is "PROP ?P xs" is "!!env e. ?A env e xs ==> ?C env e xs")
-proof (induct xs)
-  fix env e let ?A = "?A env e" and ?C = "?C env e"
-  {
-    assume "?A []"
-    hence "lookup env (y # ys) = Some e" by simp
-    then obtain b' es' env' where
-        env: "env = Env b' es'" and
-        es': "es' y = Some env'" and
-        look': "lookup env' ys = Some e"
-      by (auto simp add: lookup_eq split: option.splits env.splits)
-    from env have "lookup env [] = Some (Env b' es')" by simp
-    with es' look' show "?C []" by blast
-  next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume "?A (x # xs)"
-    then obtain b' es' env' where
-        env: "env = Env b' es'" and
-        es': "es' x = Some env'" and
-        look': "lookup env' (xs @ y # ys) = Some e"
-      by (auto simp add: lookup_eq split: option.splits env.splits)
-    from hyp [OF look'] obtain b'' es'' env'' where
-        upper': "lookup env' xs = Some (Env b'' es'')" and
-        es'': "es'' y = Some env''" and
-        look'': "lookup env'' ys = Some e"
-      by blast
-    from env es' upper' have "lookup env (x # xs) = Some (Env b'' es'')"
-      by simp
-    with es'' look'' show "?C (x # xs)" by blast
-  }
+theorem lookup_some_upper:
+  assumes "lookup env (xs @ y # ys) = Some e"
+  shows "\<exists>b' es' env'.
+    lookup env xs = Some (Env b' es') \<and>
+    es' y = Some env' \<and>
+    lookup env' ys = Some e"
+  using prems
+proof (induct xs fixing: env e)
+  case Nil
+  from Nil.prems have "lookup env (y # ys) = Some e"
+    by simp
+  then obtain b' es' env' where
+      env: "env = Env b' es'" and
+      es': "es' y = Some env'" and
+      look': "lookup env' ys = Some e"
+    by (auto simp add: lookup_eq split: option.splits env.splits)
+  from env have "lookup env [] = Some (Env b' es')" by simp
+  with es' look' show ?case by blast
+next
+  case (Cons x xs)
+  from Cons.prems
+  obtain b' es' env' where
+      env: "env = Env b' es'" and
+      es': "es' x = Some env'" and
+      look': "lookup env' (xs @ y # ys) = Some e"
+    by (auto simp add: lookup_eq split: option.splits env.splits)
+  from Cons.hyps [OF look'] obtain b'' es'' env'' where
+      upper': "lookup env' xs = Some (Env b'' es'')" and
+      es'': "es'' y = Some env''" and
+      look'': "lookup env'' ys = Some e"
+    by blast
+  from env es' upper' have "lookup env (x # xs) = Some (Env b'' es'')"
+    by simp
+  with es'' look'' show ?case by blast
 qed
 
 
@@ -334,47 +326,44 @@ text {*
 *}
 
 theorem lookup_update_some:
-  "!!env e. lookup env xs = Some e ==>
-    lookup (update xs (Some env') env) xs = Some env'"
-  (is "PROP ?P xs")
-proof (induct xs)
-  fix env e :: "('a, 'b, 'c) env"
-  {
-    assume "lookup env [] = Some e"
-    hence "env = e" by simp
-    thus "lookup (update [] (Some env') env) [] = Some env'"
-      by simp
+  assumes "lookup env xs = Some e"
+  shows "lookup (update xs (Some env') env) xs = Some env'"
+  using prems
+proof (induct xs fixing: env e)
+  case Nil
+  then have "env = e" by simp
+  then show ?case by simp
+next
+  case (Cons x xs)
+  note hyp = Cons.hyps
+    and asm = `lookup env (x # xs) = Some e`
+  show ?case
+  proof (cases env)
+    case (Val a)
+    with asm have False by simp
+    then show ?thesis ..
   next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume asm: "lookup env (x # xs) = Some e"
-    show "lookup (update (x # xs) (Some env') env) (x # xs) = Some env'"
-    proof (cases env)
-      fix a assume "env = Val a"
-      with asm have False by simp
-      thus ?thesis ..
+    case (Env b es)
+    show ?thesis
+    proof (cases "es x")
+      case None
+      with asm Env have False by simp
+      then show ?thesis ..
     next
-      fix b es assume env: "env = Env b es"
+      case (Some e')
+      note es = `es x = Some e'`
       show ?thesis
-      proof (cases "es x")
-        assume "es x = None"
-        with asm env have False by simp
-        thus ?thesis ..
+      proof (cases xs)
+        case Nil
+        with Env show ?thesis by simp
       next
-        fix e' assume es: "es x = Some e'"
-        show ?thesis
-        proof (cases xs)
-          assume "xs = []"
-          with env show ?thesis by simp
-        next
-          fix x' xs' assume xs: "xs = x' # xs'"
-          from asm env es have "lookup e' xs = Some e" by simp
-          hence "lookup (update xs (Some env') e') xs = Some env'" by (rule hyp)
-          with env es xs show ?thesis by simp
-        qed
+        case (Cons x' xs')
+        from asm Env es have "lookup e' xs = Some e" by simp
+        then have "lookup (update xs (Some env') e') xs = Some env'" by (rule hyp)
+        with Env es Cons show ?thesis by simp
       qed
     qed
-  }
+  qed
 qed
 
 text {*
@@ -386,93 +375,90 @@ text {*
 *}
 
 theorem update_append_none:
-  "!!env. lookup env xs = None ==> update (xs @ y # ys) opt env = env"
-  (is "PROP ?P xs")
-proof (induct xs)
-  fix env :: "('a, 'b, 'c) env"
-  {
-    assume "lookup env [] = None"
-    hence False by simp
-    thus "update ([] @ y # ys) opt env = env" ..
+  assumes "lookup env xs = None"
+  shows "update (xs @ y # ys) opt env = env"
+  using prems
+proof (induct xs fixing: env)
+  case Nil
+  then have False by simp
+  then show ?case ..
+next
+  case (Cons x xs)
+  note hyp = Cons.hyps
+    and asm = `lookup env (x # xs) = None`
+  show "update ((x # xs) @ y # ys) opt env = env"
+  proof (cases env)
+    case (Val a)
+    then show ?thesis by simp
   next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume asm: "lookup env (x # xs) = None"
-    show "update ((x # xs) @ y # ys) opt env = env"
-    proof (cases env)
-      fix a assume "env = Val a"
-      thus ?thesis by simp
-    next
-      fix b es assume env: "env = Env b es"
+    case (Env b es)
+    show ?thesis
+    proof (cases "es x")
+      case None
+      note es = `es x = None`
       show ?thesis
-      proof (cases "es x")
-        assume es: "es x = None"
-        show ?thesis
-          by (cases xs) (simp_all add: es env fun_upd_idem_iff)
+        by (cases xs) (simp_all add: es Env fun_upd_idem_iff)
+    next
+      case (Some e)
+      note es = `es x = Some e`
+      show ?thesis
+      proof (cases xs)
+        case Nil
+        with asm Env Some have False by simp
+        then show ?thesis ..
       next
-        fix e assume es: "es x = Some e"
-        show ?thesis
-        proof (cases xs)
-          assume "xs = []"
-          with asm env es have False by simp
-          thus ?thesis ..
-        next
-          fix x' xs' assume xs: "xs = x' # xs'"
-          from asm env es have "lookup e xs = None" by simp
-          hence "update (xs @ y # ys) opt e = e" by (rule hyp)
-          with env es xs show "update ((x # xs) @ y # ys) opt env = env"
-            by (simp add: fun_upd_idem_iff)
-        qed
+        case (Cons x' xs')
+        from asm Env es have "lookup e xs = None" by simp
+        then have "update (xs @ y # ys) opt e = e" by (rule hyp)
+        with Env es Cons show "update ((x # xs) @ y # ys) opt env = env"
+          by (simp add: fun_upd_idem_iff)
       qed
     qed
-  }
+  qed
 qed
 
 theorem update_append_some:
-  "!!env e. lookup env xs = Some e ==>
-    lookup (update (xs @ y # ys) opt env) xs = Some (update (y # ys) opt e)"
-  (is "PROP ?P xs")
-proof (induct xs)
-  fix env e :: "('a, 'b, 'c) env"
-  {
-    assume "lookup env [] = Some e"
-    hence "env = e" by simp
-    thus "lookup (update ([] @ y # ys) opt env) [] = Some (update (y # ys) opt e)"
-      by simp
+  assumes "lookup env xs = Some e"
+  shows "lookup (update (xs @ y # ys) opt env) xs = Some (update (y # ys) opt e)"
+  using prems
+proof (induct xs fixing: env e)
+  case Nil
+  then have "env = e" by simp
+  then show ?case by simp
+next
+  case (Cons x xs)
+  note hyp = Cons.hyps
+    and asm = `lookup env (x # xs) = Some e`
+  show "lookup (update ((x # xs) @ y # ys) opt env) (x # xs) =
+      Some (update (y # ys) opt e)"
+  proof (cases env)
+    case (Val a)
+    with asm have False by simp
+    then show ?thesis ..
   next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume asm: "lookup env (x # xs) = Some e"
-    show "lookup (update ((x # xs) @ y # ys) opt env) (x # xs)
-      = Some (update (y # ys) opt e)"
-    proof (cases env)
-      fix a assume "env = Val a"
-      with asm have False by simp
-      thus ?thesis ..
+    case (Env b es)
+    show ?thesis
+    proof (cases "es x")
+      case None
+      with asm Env have False by simp
+      then show ?thesis ..
     next
-      fix b es assume env: "env = Env b es"
+      case (Some e')
+      note es = `es x = Some e'`
       show ?thesis
-      proof (cases "es x")
-        assume "es x = None"
-        with asm env have False by simp
-        thus ?thesis ..
+      proof (cases xs)
+        case Nil
+        with asm Env es have "e = e'" by simp
+        with Env es Nil show ?thesis by simp
       next
-        fix e' assume es: "es x = Some e'"
-        show ?thesis
-        proof (cases xs)
-          assume xs: "xs = []"
-          from asm env es xs have "e = e'" by simp
-          with env es xs show ?thesis by simp
-        next
-          fix x' xs' assume xs: "xs = x' # xs'"
-          from asm env es have "lookup e' xs = Some e" by simp
-          hence "lookup (update (xs @ y # ys) opt e') xs =
-            Some (update (y # ys) opt e)" by (rule hyp)
-          with env es xs show ?thesis by simp
-        qed
+        case (Cons x' xs')
+        from asm Env es have "lookup e' xs = Some e" by simp
+        then have "lookup (update (xs @ y # ys) opt e') xs =
+          Some (update (y # ys) opt e)" by (rule hyp)
+        with Env es Cons show ?thesis by simp
       qed
     qed
-  }
+  qed
 qed
 
 text {*
@@ -483,63 +469,58 @@ text {*
 *}
 
 theorem lookup_update_other:
-  "!!env. y \<noteq> (z::'c) ==> lookup (update (xs @ z # zs) opt env) (xs @ y # ys) =
+  assumes neq: "y \<noteq> (z::'c)"
+  shows "lookup (update (xs @ z # zs) opt env) (xs @ y # ys) =
     lookup env (xs @ y # ys)"
-  (is "PROP ?P xs")
-proof (induct xs)
-  fix env :: "('a, 'b, 'c) env"
-  assume neq: "y \<noteq> z"
-  {
-    show "lookup (update ([] @ z # zs) opt env) ([] @ y # ys) =
-      lookup env ([] @ y # ys)"
-    proof (cases env)
-      case Val
-      thus ?thesis by simp
-    next
-      case Env
-      show ?thesis
-      proof (cases zs)
-        case Nil
-        with neq Env show ?thesis by simp
-      next
-        case Cons
-        with neq Env show ?thesis by simp
-      qed
-    qed
+proof (induct xs fixing: env)
+  case Nil
+  show ?case
+  proof (cases env)
+    case Val
+    then show ?thesis by simp
   next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    show "lookup (update ((x # xs) @ z # zs) opt env) ((x # xs) @ y # ys) =
-      lookup env ((x # xs) @ y # ys)"
-    proof (cases env)
-      case Val
-      thus ?thesis by simp
+    case Env
+    show ?thesis
+    proof (cases zs)
+      case Nil
+      with neq Env show ?thesis by simp
     next
-      fix y es assume env: "env = Env y es"
+      case Cons
+      with neq Env show ?thesis by simp
+    qed
+  qed
+next
+  case (Cons x xs)
+  note hyp = Cons.hyps
+  show ?case
+  proof (cases env)
+    case Val
+    then show ?thesis by simp
+  next
+    case (Env y es)
+    show ?thesis
+    proof (cases xs)
+      case Nil
       show ?thesis
-      proof (cases xs)
-        assume xs: "xs = []"
-        show ?thesis
-        proof (cases "es x")
-          case None
-          with env xs show ?thesis by simp
-        next
-          case Some
-          with hyp env xs and neq show ?thesis by simp
-        qed
+      proof (cases "es x")
+        case None
+        with Env Nil show ?thesis by simp
       next
-        fix x' xs' assume xs: "xs = x' # xs'"
-        show ?thesis
-        proof (cases "es x")
-          case None
-          with env xs show ?thesis by simp
-        next
-          case Some
-          with hyp env xs neq show ?thesis by simp
-        qed
+        case Some
+        with neq hyp and Env Nil show ?thesis by simp
+      qed
+    next
+      case (Cons x' xs')
+      show ?thesis
+      proof (cases "es x")
+        case None
+        with Env Cons show ?thesis by simp
+      next
+        case Some
+        with neq hyp and Env Cons show ?thesis by simp
       qed
     qed
-  }
+  qed
 qed
 
 end

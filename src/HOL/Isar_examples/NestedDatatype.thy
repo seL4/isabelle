@@ -1,4 +1,6 @@
 
+(* $Id$ *)
+
 header {* Nested datatypes *}
 
 theory NestedDatatype imports Main begin
@@ -56,34 +58,29 @@ qed
 subsection {* Alternative induction *}
 
 theorem term_induct' [case_names Var App]:
-  "(!!a. P (Var a)) ==>
-   (!!b ts. list_all P ts ==> P (App b ts)) ==> P t"
-proof -
-  assume var: "!!a. P (Var a)"
-  assume app: "!!b ts. list_all P ts ==> P (App b ts)"
-  show ?thesis
-  proof (induct t)
-    fix a show "P (Var a)" by (rule var)
-  next
-    fix b t ts assume "list_all P ts"
-    thus "P (App b ts)" by (rule app)
-  next
-    show "list_all P []" by simp
-  next
-    fix t ts assume "P t" "list_all P ts"
-    thus "list_all P (t # ts)" by simp
-  qed
+  assumes var: "!!a. P (Var a)"
+    and app: "!!b ts. list_all P ts ==> P (App b ts)"
+  shows "P t"
+proof (induct t)
+  fix a show "P (Var a)" by (rule var)
+next
+  fix b t ts assume "list_all P ts"
+  thus "P (App b ts)" by (rule app)
+next
+  show "list_all P []" by simp
+next
+  fix t ts assume "P t" "list_all P ts"
+  thus "list_all P (t # ts)" by simp
 qed
 
 lemma
   "subst_term (subst_term f1 o f2) t = subst_term f1 (subst_term f2 t)"
-  (is "?P t")
 proof (induct t rule: term_induct')
   case (Var a)
-  show "?P (Var a)" by (simp add: o_def)
+  show ?case by (simp add: o_def)
 next
   case (App b ts)
-  thus "?P (App b ts)" by (induct ts) simp_all
+  thus ?case by (induct ts) simp_all
 qed
 
 end

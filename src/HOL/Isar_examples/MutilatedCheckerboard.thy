@@ -29,16 +29,15 @@ inductive "tiling A"
 text "The union of two disjoint tilings is a tiling."
 
 lemma tiling_Un:
-  "t : tiling A ==> u : tiling A ==> t Int u = {}
-    ==> t Un u : tiling A"
+  assumes "t : tiling A" and "u : tiling A" and "t Int u = {}"
+  shows "t Un u : tiling A"
 proof -
   let ?T = "tiling A"
-  assume u: "u : ?T"
-  assume "t : ?T"
-  thus "t Int u = {} ==> t Un u : ?T" (is "PROP ?P t")
+  from `t : ?T` and `t Int u = {}`
+  show "t Un u : ?T"
   proof (induct t)
     case empty
-    with u show "{} Un u : ?T" by simp
+    with `u : ?T` show "{} Un u : ?T" by simp
   next
     case (Un a t)
     show "(a Un t) Un u : ?T"
@@ -46,11 +45,10 @@ proof -
       have "a Un (t Un u) : ?T"
       proof (rule tiling.Un)
         show "a : A" .
-	have atu: "(a Un t) Int u = {}" .
-	hence "t Int u = {}" by blast
-        thus "t Un u: ?T" by (rule Un)
-	have "a <= - t" .
-	with atu show "a <= - (t Un u)" by blast
+        from `(a Un t) Int u = {}` have "t Int u = {}" by blast
+        then show "t Un u: ?T" by (rule Un)
+        have "a <= - t" .
+        with `(a Un t) Int u = {}` show "a <= - (t Un u)" by blast
       qed
       also have "a Un (t Un u) = (a Un t) Un u"
         by (simp only: Un_assoc)
@@ -171,13 +169,13 @@ next
 qed
 
 lemma domino_singleton:
-  "d : domino ==> b < 2 ==> EX i j. evnodd d b = {(i, j)}"
+  assumes "d : domino" and "b < 2"
+  shows "EX i j. evnodd d b = {(i, j)}"
 proof -
-  assume b: "b < 2"
-  assume "d : domino"
-  thus ?thesis (is "?P d")
+  from `d : domino`
+  show ?thesis (is "?P d")
   proof induct
-    from b have b_cases: "b = 0 | b = 1" by arith
+    from `b < 2` have b_cases: "b = 0 | b = 1" by arith
     fix i j
     note [simp] = evnodd_empty evnodd_insert mod_Suc
     from b_cases show "?P {(i, j), (i, j + 1)}" by rule auto
@@ -185,10 +183,12 @@ proof -
   qed
 qed
 
-lemma domino_finite: "d: domino ==> finite d"
+lemma domino_finite:
+  assumes "d: domino"
+  shows "finite d"
 proof -
-  assume "d: domino"
-  thus ?thesis
+  from `d: domino`
+  show ?thesis
   proof induct
     fix i j :: nat
     show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
@@ -200,58 +200,53 @@ qed
 subsection {* Tilings of dominoes *}
 
 lemma tiling_domino_finite:
-  "t : tiling domino ==> finite t" (is "t : ?T ==> ?F t")
-proof -
-  assume "t : ?T"
-  thus "?F t"
-  proof induct
-    show "?F {}" by (rule Finites.emptyI)
-    fix a t assume "?F t"
-    assume "a : domino" hence "?F a" by (rule domino_finite)
-    thus "?F (a Un t)" by (rule finite_UnI)
-  qed
+  assumes "t : tiling domino"  (is "t : ?T")
+  shows "finite t"  (is "?F t")
+  using `t : ?T`
+proof induct
+  show "?F {}" by (rule Finites.emptyI)
+  fix a t assume "?F t"
+  assume "a : domino" then have "?F a" by (rule domino_finite)
+  then show "?F (a Un t)" by (rule finite_UnI)
 qed
 
 lemma tiling_domino_01:
-  "t : tiling domino ==> card (evnodd t 0) = card (evnodd t 1)"
-  (is "t : ?T ==> _")
-proof -
-  assume "t : ?T"
-  thus ?thesis
-  proof induct
-    case empty
-    show ?case by (simp add: evnodd_def)
-  next
-    case (Un a t)
-    let ?e = evnodd
-    have hyp: "card (?e t 0) = card (?e t 1)" .
-    have at: "a <= - t" .
-    have card_suc:
-      "!!b. b < 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
+  assumes "t : tiling domino"  (is "t : ?T")
+  shows "card (evnodd t 0) = card (evnodd t 1)"
+  using `t : ?T`
+proof induct
+  case empty
+  show ?case by (simp add: evnodd_def)
+next
+  case (Un a t)
+  let ?e = evnodd
+  note hyp = `card (?e t 0) = card (?e t 1)`
+    and at = `a <= - t`
+  have card_suc:
+    "!!b. b < 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
+  proof -
+    fix b :: nat assume "b < 2"
+    have "?e (a Un t) b = ?e a b Un ?e t b" by (rule evnodd_Un)
+    also obtain i j where e: "?e a b = {(i, j)}"
     proof -
-      fix b :: nat assume "b < 2"
-      have "?e (a Un t) b = ?e a b Un ?e t b" by (rule evnodd_Un)
-      also obtain i j where e: "?e a b = {(i, j)}"
-      proof -
-        have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
-        thus ?thesis by (blast intro: that)
-      qed
-      also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
-      also have "card ... = Suc (card (?e t b))"
-      proof (rule card_insert_disjoint)
-        show "finite (?e t b)"
-          by (rule evnodd_finite, rule tiling_domino_finite)
-        from e have "(i, j) : ?e a b" by simp
-        with at show "(i, j) ~: ?e t b" by (blast dest: evnoddD)
-      qed
-      finally show "?thesis b" .
+      have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
+      then show ?thesis by (blast intro: that)
     qed
-    hence "card (?e (a Un t) 0) = Suc (card (?e t 0))" by simp
-    also from hyp have "card (?e t 0) = card (?e t 1)" .
-    also from card_suc have "Suc ... = card (?e (a Un t) 1)"
-      by simp
-    finally show ?case .
+    also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
+    also have "card ... = Suc (card (?e t b))"
+    proof (rule card_insert_disjoint)
+      show "finite (?e t b)"
+        by (rule evnodd_finite, rule tiling_domino_finite)
+      from e have "(i, j) : ?e a b" by simp
+      with at show "(i, j) ~: ?e t b" by (blast dest: evnoddD)
+    qed
+    finally show "?thesis b" .
   qed
+  then have "card (?e (a Un t) 0) = Suc (card (?e t 0))" by simp
+  also from hyp have "card (?e t 0) = card (?e t 1)" .
+  also from card_suc have "Suc ... = card (?e (a Un t) 1)"
+    by simp
+  finally show ?case .
 qed
 
 
@@ -289,21 +284,21 @@ proof (unfold mutilated_board_def)
           by (rule finite_subset) auto
         show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0" by simp
       qed
-      thus ?thesis by simp
+      then show ?thesis by simp
     qed
     also have "... < card (?e ?t 0)"
     proof -
       have "(0, 0) : ?e ?t 0" by simp
       with fin have "card (?e ?t 0 - {(0, 0)}) < card (?e ?t 0)"
         by (rule card_Diff1_less)
-      thus ?thesis by simp
+      then show ?thesis by simp
     qed
     also from t have "... = card (?e ?t 1)"
       by (rule tiling_domino_01)
     also have "?e ?t 1 = ?e ?t'' 1" by simp
     also from t'' have "card ... = card (?e ?t'' 0)"
       by (rule tiling_domino_01 [symmetric])
-    finally have "... < ..." . thus False ..
+    finally have "... < ..." . then show False ..
   qed
 qed
 
