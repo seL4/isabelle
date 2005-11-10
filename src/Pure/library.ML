@@ -113,7 +113,7 @@ sig
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
-  val multiply: 'a list * 'a list list -> 'a list list
+  val multiply: 'a list -> 'a list list -> 'a list list
   val product: 'a list -> 'b list -> ('a * 'b) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
@@ -612,8 +612,8 @@ fun replicate n (x: 'a) : 'a list =
 fun translate_string f = String.translate (f o String.str);
 
 (*multiply [a, b, c, ...] * [xs, ys, zs, ...]*)
-fun multiply ([], _) = []
-  | multiply (x :: xs, yss) = map (cons x) yss @ multiply (xs, yss);
+fun multiply [] _ = []
+  | multiply (x :: xs) yss = map (cons x) yss @ multiply xs yss;
 
 (*direct product*)
 fun product _ [] = []
