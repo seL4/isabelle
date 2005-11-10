@@ -84,7 +84,7 @@ val norm_hhf =
 (* composition of normal results *)
 
 fun compose_hhf tha i thb =
-  Thm.bicompose false (false, Drule.lift_all (Thm.cgoal_of thb i) tha, 0) i thb;
+  Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of thb i) tha, 0) i thb;
 
 fun compose_hhf_tac th i = PRIMSEQ (compose_hhf th i);
 
@@ -161,7 +161,7 @@ fun prove_raw casms cprop tac =
   composing the resulting thm with the original state.*)
 
 fun SELECT tac i st =
-  init (Thm.adjust_maxidx (List.nth (Drule.cprems_of st, i - 1)))
+  init (Thm.adjust_maxidx (Thm.cprem_of st i))
   |> tac
   |> Seq.maps (fn st' => Thm.bicompose false (false, conclude st', Thm.nprems_of st') i st);
 

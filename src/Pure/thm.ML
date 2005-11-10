@@ -83,7 +83,7 @@ signature BASIC_THM =
   val prems_of: thm -> term list
   val nprems_of: thm -> int
   val cprop_of: thm -> cterm
-  val cgoal_of: thm -> int -> cterm
+  val cprem_of: thm -> int -> cterm
   val transfer: theory -> thm -> thm
   val weaken: cterm -> thm -> thm
   val extra_shyps: thm -> sort list
@@ -451,9 +451,9 @@ fun major_prem_of th =
 fun cprop_of (Thm {thy_ref, maxidx, shyps, prop, ...}) =
   Cterm {thy_ref = thy_ref, maxidx = maxidx, T = propT, t = prop, sorts = shyps};
 
-fun cgoal_of (th as Thm {thy_ref, maxidx, shyps, prop, ...}) i =
+fun cprem_of (th as Thm {thy_ref, maxidx, shyps, prop, ...}) i =
   Cterm {thy_ref = thy_ref, maxidx = maxidx, T = propT, sorts = shyps,
-    t = Logic.nth_prem (i, prop) handle TERM _ => raise THM ("cgoal_of", i, [th])};
+    t = Logic.nth_prem (i, prop) handle TERM _ => raise THM ("cprem_of", i, [th])};
 
 (*explicit transfer to a super theory*)
 fun transfer thy' thm =
@@ -1472,7 +1472,7 @@ fun could_bires (Hs, B, eres_flg, rule) =
   Puts the rule above:  rule/state.  Renames vars in the rules. *)
 fun biresolution match brules i state =
     let val (stpairs, Bs, Bi, C) = dest_state(state,i);
-        val lift = lift_rule (cgoal_of state i);
+        val lift = lift_rule (cprem_of state i);
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
         val comp = bicompose_aux match (state, (stpairs, Bs, Bi, C), true);

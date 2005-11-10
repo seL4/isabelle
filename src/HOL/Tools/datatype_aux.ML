@@ -115,7 +115,7 @@ fun cong_tac i st = (case Logic.strip_assums_concl
   (List.nth (prems_of st, i - 1)) of
     _ $ (_ $ (f $ x) $ (g $ y)) =>
       let
-        val cong' = Thm.lift_rule (Thm.cgoal_of st i) cong;
+        val cong' = Thm.lift_rule (Thm.cprem_of st i) cong;
         val _ $ (_ $ (f' $ x') $ (g' $ y')) =
           Logic.strip_assums_concl (prop_of cong');
         val insts = map (pairself (cterm_of (#sign (rep_thm st))) o
@@ -155,7 +155,7 @@ fun exh_tac exh_thm_of i state =
     val prem = List.nth (prems_of state, i - 1);
     val params = Logic.strip_params prem;
     val (_, Type (tname, _)) = hd (rev params);
-    val exhaustion = Thm.lift_rule (Thm.cgoal_of state i) (exh_thm_of tname);
+    val exhaustion = Thm.lift_rule (Thm.cprem_of state i) (exh_thm_of tname);
     val prem' = hd (prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' = cterm_instantiate [(cterm_of sg (head_of lhs),

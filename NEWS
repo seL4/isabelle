@@ -107,7 +107,7 @@ of similar functions for alists, tables, etc:
 Note that fold_index starts counting at index 0, not 1 like foldln used to.
 
 * Pure: primitive rule lift_rule now takes goal cterm instead of an
-actual goal state (thm).  Use Thm.lift_rule (Thm.cgoal_of st i) to
+actual goal state (thm).  Use Thm.lift_rule (Thm.cprem_of st i) to
 achieve the old behaviour.
 
 * Pure: the "Goal" constant is now called "prop", supporting a

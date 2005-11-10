@@ -435,7 +435,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
         val rule = Drule.instantiate
               (map lifttvar envT', map liftpair cenv)
-              (Thm.lift_rule (Thm.cgoal_of st i) thm)
+              (Thm.lift_rule (Thm.cprem_of st i) thm)
       in
         if i > nprems_of st then no_tac st
         else st |>
