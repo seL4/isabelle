@@ -436,7 +436,7 @@ val guessP =
   OuterSyntax.command "guess" "wild guessing (unstructured)"
     (K.tag_proof K.prf_asm_goal)
     (P.and_list (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-      >> (Toplevel.print oo (Toplevel.proofs' o Obtain.guess)));
+      >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
 
 val letP =
   OuterSyntax.command "let" "bind text variables"
