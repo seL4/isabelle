@@ -75,6 +75,7 @@ sig
   val add_term_names: term * string list -> string list
   val add_term_varnames: term -> indexname list -> indexname list
   val term_varnames: term -> indexname list
+  val find_free: term -> string -> term option
   val aconv: term * term -> bool
   val aconvs: term list * term list -> bool
   structure Vartab: TABLE
@@ -499,6 +500,14 @@ val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
 (*collect variable names*)
 val add_term_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
 fun term_varnames t = add_term_varnames t [];
+
+fun find_free t x =
+  let
+    exception Found of term;
+    fun find (t as Free (x', _)) = if x = x' then raise Found t else I
+      | find _ = I;
+  in (fold_aterms find t (); NONE) handle Found v => SOME v end;
+
 
 
 (** Comparing terms, types, sorts etc. **)
