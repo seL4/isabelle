@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
-Notions about functions.
 *)
+
+header {* Notions about functions *}
 
 theory Fun
 imports Typedef

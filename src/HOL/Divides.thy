@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
-
-The division operators div, mod and the divides relation "dvd"
 *)
+
+header {* The division operators div, mod and the divides relation "dvd" *}
 
 theory Divides
 imports Datatype
