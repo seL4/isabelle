@@ -66,7 +66,6 @@ sig
   val read_const: context -> string -> term
   val warn_extra_tfrees: context -> context -> context
   val generalize: context -> context -> term list -> term list
-  val find_free: term -> string -> term option
   val export: context -> context -> thm -> thm
   val exports: context -> context -> thm -> thm Seq.seq
   val goal_exports: context -> context -> thm -> thm Seq.seq
@@ -708,11 +707,6 @@ fun generalize inner outer ts =
 
 (** export theorems **)
 
-fun get_free x (t as Free (y, _)) NONE = if x = y then SOME t else NONE
-  | get_free _ _ opt = opt;
-
-fun find_free t x = fold_aterms (get_free x) t NONE;
-
 fun common_exports is_goal inner outer =
   let
     val gen = generalize_tfrees inner outer;
@@ -726,7 +720,7 @@ fun common_exports is_goal inner outer =
       let
         val thy = Thm.theory_of_thm rule;
         val prop = Thm.full_prop_of rule;
-        val frees = map (Thm.cterm_of thy) (List.mapPartial (find_free prop) fixes);
+        val frees = map (Thm.cterm_of thy) (List.mapPartial (Term.find_free prop) fixes);
         val tfrees = gen (Term.add_term_tfree_names (prop, []));
       in
         rule
