@@ -13,7 +13,7 @@ sig
   val declaration: T -> string -> typ  (*exception TYPE*)
   val constraint: T -> string -> typ    (*exception TYPE*)
   val monomorphic: T -> string -> bool
-  val typargs: T -> string -> typ -> typ list
+  val typargs: T -> string * typ -> typ list
   val declare: NameSpace.naming -> bstring * typ -> T -> T
   val constrain: string * typ -> T -> T
   val hide: bool -> string -> T -> T
@@ -66,7 +66,7 @@ fun sub (Type (_, Ts)) (i :: is) = sub (nth Ts i) is
   | sub T [] = T
   | sub T _ = raise Subscript;
 
-fun typargs consts c T = map (sub T) (#2 (the_const consts c));
+fun typargs consts (c, T) = map (sub T) (#2 (the_const consts c));
 
 
 

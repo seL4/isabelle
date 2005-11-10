@@ -114,7 +114,7 @@ sig
   val declared_tyname: theory -> string -> bool
   val declared_const: theory -> string -> bool
   val const_monomorphic: theory -> string -> bool
-  val const_typargs: theory -> string -> typ -> typ list
+  val const_typargs: theory -> string * typ -> typ list
   val class_space: theory -> NameSpace.T
   val type_space: theory -> NameSpace.T
   val const_space: theory -> NameSpace.T
@@ -525,7 +525,7 @@ fun read_const thy raw_c =
 
 fun infer_types_simult pp thy def_type def_sort used freeze args =
   let
-    val termss = foldr multiply [[]] (map fst args);
+    val termss = fold_rev (multiply o fst) args [[]];
     val typs =
       map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
 

@@ -178,13 +178,13 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) 
 		 | SOME v => v)
 
 (*refer to the theory in which blast is initialized*)
-val typargs = ref (fn (_: string) => fn (T: typ) => [T]);
+val typargs = ref (fn ((_, T): string * typ) => [T]);
 
 (*Convert a Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.*)
 fun fromConst alist (a as "all", _) = Const a
   | fromConst alist (a, T) =
-      (case ! typargs a T of
+      (case ! typargs (a, T) of
         [] => Const a
       | [T] => TConst (a, fromType alist T)
       | Ts => TConst (a, list_comb (Const "*typargs*", map (fromType alist) Ts)));
