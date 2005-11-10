@@ -42,8 +42,8 @@ sig
   val obtain_i: (string list * typ option) list ->
     ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
     -> bool -> Proof.state -> Proof.state
-  val guess: (string list * string option) list -> bool -> Proof.state -> Proof.state Seq.seq
-  val guess_i: (string list * typ option) list -> bool -> Proof.state -> Proof.state Seq.seq
+  val guess: (string list * string option) list -> bool -> Proof.state -> Proof.state
+  val guess_i: (string list * typ option) list -> bool -> Proof.state -> Proof.state
 end;
 
 structure Obtain: OBTAIN =
@@ -110,7 +110,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     val (thesis_var, thesis) = bind_judgment fix_ctxt thesisN;
 
     fun occs_var x = Library.get_first (fn t =>
-      ProofContext.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
+      Term.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
     val raw_parms = map occs_var xs;
     val parms = List.mapPartial I raw_parms;
     val parm_names =
@@ -245,7 +245,7 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) (apsnd (rpair I))
       "guess" before_qed after_qed [(("", []), [Var (("guess", 0), propT)])]
-    |> Proof.refine (Method.primitive_text (K (Goal.init (Thm.cterm_of thy thesis))))
+    |> Proof.refine (Method.primitive_text (K (Goal.init (Thm.cterm_of thy thesis)))) |> Seq.hd
   end;
 
 in
