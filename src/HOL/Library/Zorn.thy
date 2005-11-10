@@ -43,7 +43,7 @@ inductive "TFin S"
 subsection{*Mathematical Preamble*}
 
 lemma Union_lemma0:
-    "(\<forall>x \<in> C. x \<subseteq> A | B \<subseteq> x) ==> Union(C)<=A | B \<subseteq> Union(C)"
+    "(\<forall>x \<in> C. x \<subseteq> A | B \<subseteq> x) ==> Union(C) \<subseteq> A | B \<subseteq> Union(C)"
   by blast
 
 
@@ -129,8 +129,8 @@ text{*Property 3.3 of section 3.3*}
 lemma equal_succ_Union: "m \<in> TFin S ==> (m = succ S m) = (m = Union(TFin S))"
   apply (rule iffI)
    apply (rule Union_upper [THEN equalityI])
-    apply (rule_tac [2] eq_succ_upper [THEN Union_least])
-      apply (assumption+)
+    apply assumption
+   apply (rule eq_succ_upper [THEN Union_least], assumption+)
   apply (erule ssubst)
   apply (rule Abrial_axiom1 [THEN equalityI])
   apply (blast del: subsetI intro: subsetI TFin_UnionI TFin.succI)
@@ -153,14 +153,14 @@ lemma maxchain_subset_chain: "maxchain S \<subseteq> chain S"
 lemma mem_super_Ex: "c \<in> chain S - maxchain S ==> ? d. d \<in> super S c"
   by (unfold super_def maxchain_def) auto
 
-lemma select_super: "c \<in> chain S - maxchain S ==>
-                          (\<some>c'. c': super S c): super S c"
+lemma select_super:
+     "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c): super S c"
   apply (erule mem_super_Ex [THEN exE])
   apply (rule someI2, auto)
   done
 
-lemma select_not_equals: "c \<in> chain S - maxchain S ==>
-                          (\<some>c'. c': super S c) \<noteq> c"
+lemma select_not_equals:
+     "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c) \<noteq> c"
   apply (rule notI)
   apply (drule select_super)
   apply (simp add: super_def psubset_def)
@@ -186,7 +186,7 @@ lemma TFin_chain_lemma4: "c \<in> TFin S ==> (c :: 'a set set): chain S"
   done
 
 theorem Hausdorff: "\<exists>c. (c :: 'a set set): maxchain S"
-  apply (rule_tac x = "Union (TFin S) " in exI)
+  apply (rule_tac x = "Union (TFin S)" in exI)
   apply (rule classical)
   apply (subgoal_tac "succ S (Union (TFin S)) = Union (TFin S) ")
    prefer 2
@@ -201,7 +201,7 @@ subsection{*Zorn's Lemma: If All Chains Have Upper Bounds Then
 
 lemma chain_extend:
     "[| c \<in> chain S; z \<in> S;
-        \<forall>x \<in> c. x<=(z:: 'a set) |] ==> {z} Un c \<in> chain S"
+        \<forall>x \<in> c. x \<subseteq> (z:: 'a set) |] ==> {z} Un c \<in> chain S"
   by (unfold chain_def) blast
 
 lemma chain_Union_upper: "[| c \<in> chain S; x \<in> c |] ==> x \<subseteq> Union(c)"
@@ -215,7 +215,7 @@ lemma maxchain_Zorn:
   apply (rule ccontr)
   apply (simp add: maxchain_def)
   apply (erule conjE)
-  apply (subgoal_tac " ({u} Un c) \<in> super S c")
+  apply (subgoal_tac "({u} Un c) \<in> super S c")
    apply simp
   apply (unfold super_def psubset_def)
   apply (blast intro: chain_extend dest: chain_Union_upper)
@@ -227,7 +227,7 @@ theorem Zorn_Lemma:
   apply (erule exE)
   apply (drule subsetD, assumption)
   apply (drule bspec, assumption)
-  apply (rule_tac x = "Union (c) " in bexI)
+  apply (rule_tac x = "Union(c)" in bexI)
    apply (rule ballI, rule impI)
    apply (blast dest!: maxchain_Zorn, assumption)
   done
