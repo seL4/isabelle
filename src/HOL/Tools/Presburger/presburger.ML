@@ -295,11 +295,11 @@ assume (cterm_of sg
 fun presburger_args meth =
  let val parse_flag = 
          Args.$$$ "no_quantify" >> K (apfst (K false))
-      || Args.$$$ "abs" >> K (apsnd (K true));
+      || Args.$$$ "no_abs" >> K (apsnd (K false));
  in
    Method.simple_args 
   (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-    curry (Library.foldl op |>) (true, false))
+    curry (Library.foldl op |>) (true, true))
     (fn (q,a) => fn _ => meth q a 1)
   end;
 
@@ -312,8 +312,8 @@ val setup =
      "decision procedure for Presburger arithmetic"),
    ArithTheoryData.map (fn {splits, inj_consts, discrete, presburger} =>
      {splits = splits, inj_consts = inj_consts, discrete = discrete,
-      presburger = SOME (presburger_tac true false)})];
+      presburger = SOME (presburger_tac true true)})];
 
 end;
 
-val presburger_tac = Presburger.presburger_tac true false;
+val presburger_tac = Presburger.presburger_tac true true;
