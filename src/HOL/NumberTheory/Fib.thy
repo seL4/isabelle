@@ -72,7 +72,7 @@ lemma fib_Cassini_int:
    apply (simp add: fib.Suc_Suc mod_Suc)
   apply (simp add: fib.Suc_Suc add_mult_distrib add_mult_distrib2
                    mod_Suc zmult_int [symmetric])
-  apply presburger
+  apply (presburger (no_abs))
   done
 
 text{*We now obtain a version for the natural numbers via the coercion 
