@@ -56,14 +56,14 @@ fun nominal_induct_tac (names, rule) facts state =
       end;
 
     val simplify_rule =
-      Simplifier.full_simplify (HOL_basic_ss addsimps
+      Simplifier.full_simplify (HOL_ss addsimps
         [split_conv, split_paired_All, split_paired_all]);
 
   in
     rule
     |> inst_rule
     |> Method.multi_resolve facts1
-    |> Seq.map simplify_rule
+    |> Seq.map simplify_rule 
     |> Seq.map (RuleCases.save rule)
     |> Seq.map RuleCases.add
     |> Seq.map (fn (r, (cases, _)) =>
