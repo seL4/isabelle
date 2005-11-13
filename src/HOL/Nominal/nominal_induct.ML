@@ -56,8 +56,8 @@ fun nominal_induct_tac (names, rule) facts state =
       end;
 
     val simplify_rule =
-      Simplifier.full_simplify (HOL_ss addsimps
-        [split_conv, split_paired_All, split_paired_all]);
+      Simplifier.full_simplify (HOL_basic_ss addsimps
+        simp_thms @ [triv_forall_equality, split_conv, split_paired_All, split_paired_all]);
 
   in
     rule
