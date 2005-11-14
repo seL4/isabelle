@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Makarius
 
-Patch for PolyML 4.1.4 to make it work with Isabelle2005.  We commit
-this into ML_dbase!
-*)
+Turn the official PolyML 4.2.0 into the internal version 4.1.4, in
+order to make it work with Isabelle2005.  This is to be commited into
+ML_dbase! *)
 
 structure Posix =
 struct
