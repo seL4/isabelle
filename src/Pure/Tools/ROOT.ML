@@ -4,6 +4,17 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
+(*class package*)
+use "class_package.ML";
+
+(*code generator, 1st generation*)
+use "../codegen.ML";
+
+(*code generator, 2nd generation*)
+use "codegen_thingol.ML";
+use "codegen_serializer.ML";
+use "codegen_package.ML";
+
 (*Steven Obua's evaluator*)
 use "am_interpreter.ML";
 use "am_compiler.ML";
