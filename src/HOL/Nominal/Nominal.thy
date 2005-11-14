@@ -922,6 +922,27 @@ apply(case_tac "x\<in>X = True")
 apply(auto)
 done
 
+lemma pt_subseteq_eqvt:
+  fixes pi :: "'x prm"
+  and   Y  :: "'a set"
+  and   X  :: "'a set"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "((pi\<bullet>X)\<subseteq>(pi\<bullet>Y)) = (X\<subseteq>Y)"
+proof (auto)
+  fix x::"'a"
+  assume a: "(pi\<bullet>X)\<subseteq>(pi\<bullet>Y)"
+  and    "x\<in>X"
+  hence  "(pi\<bullet>x)\<in>(pi\<bullet>X)" by (simp add: pt_set_bij[OF pt, OF at])
+  with a have "(pi\<bullet>x)\<in>(pi\<bullet>Y)" by force
+  thus "x\<in>Y" by (simp add: pt_set_bij[OF pt, OF at])
+next
+  fix x::"'a"
+  assume a: "X\<subseteq>Y"
+  and    "x\<in>(pi\<bullet>X)"
+  thus "x\<in>(pi\<bullet>Y)" by (force simp add: pt_set_bij1a[OF pt, OF at])
+qed
+
 lemma pt_list_set_pi:
   fixes pi :: "'x prm"
   and   xs :: "'a list"
