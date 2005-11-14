@@ -8,6 +8,9 @@ Generic tableau prover with proof reconstruction
   SKOLEMIZES ReplaceI WRONGLY: allow new vars in prems, or forbid such rules??
   Needs explicit instantiation of assumptions?
 
+Given the typeargs system, constructor Const could be eliminated, with
+TConst replaced by a constructor that takes the typargs list as an argument.
+However, Const is heavily used for logical connectives.
 
 Blast_tac is often more powerful than fast_tac, but has some limitations.
 Blast_tac...
@@ -48,7 +51,6 @@ signature BLAST_DATA =
   sig
   type claset
   val notE		: thm		(* [| ~P;  P |] ==> R *)
-  val is_hol    : bool      (*Is this HOL or FOL/ZF?*)	
   val ccontr		: thm		
   val contr_tac 	: int -> tactic
   val dup_intr		: thm -> thm
@@ -156,7 +158,11 @@ fun mkGoal P = Const"*Goal*" $ P;
 fun isGoal (Const"*Goal*" $ _) = true
   | isGoal _                   = false;
 
-val boolT = if Data.is_hol then "bool" else "o";
+val boolT = 
+  case term_vars (hd (prems_of Data.notE)) of
+      [Term.Var(_, Type(s, []))] => s
+    | _ => error ("Theorem notE is ill-formed: " ^ string_of_thm Data.notE);
+
 val Trueprop = Term.Const("Trueprop", Type(boolT,[])-->propT);
 fun mk_tprop P = Term.$ (Trueprop, P);
 
