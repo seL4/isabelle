@@ -23,4 +23,4 @@ case ${HOST} in
     ;;
 esac
 
-exec $(dirname $0)/isasync -dw $DEST
+exec $(dirname $0)/isasync -w $DEST
