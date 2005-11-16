@@ -98,6 +98,7 @@ sig
   val subst_bounds: term list * term -> term
   val subst_bound: term * term -> term
   val betapply: term * term -> term
+  val betapplys: term * term list -> term
   val eq_ix: indexname * indexname -> bool
   val ins_ix: indexname * indexname list -> indexname list
   val mem_ix: indexname * indexname list -> bool
@@ -803,6 +804,8 @@ fun subst_bound (arg, t) : term =
 (*beta-reduce if possible, else form application*)
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
   | betapply (f,u) = f$u;
+
+val betapplys = Library.foldl betapply;
 
 
 (** Specialized equality, membership, insertion etc. **)
