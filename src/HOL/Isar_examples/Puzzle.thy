@@ -4,13 +4,15 @@ header {* An old chestnut *}
 theory Puzzle imports Main begin
 
 text_raw {*
- \footnote{A question from ``Bundeswettbewerb Mathematik''.  Original
- pen-and-paper proof due to Herbert Ehler; Isabelle tactic script by
- Tobias Nipkow.}
+  \footnote{A question from ``Bundeswettbewerb Mathematik''.  Original
+  pen-and-paper proof due to Herbert Ehler; Isabelle tactic script by
+  Tobias Nipkow.}
+*}
 
- \medskip \textbf{Problem.}  Given some function $f\colon \Nat \to
- \Nat$ such that $f \ap (f \ap n) < f \ap (\idt{Suc} \ap n)$ for all
- $n$.  Demonstrate that $f$ is the identity.
+text {*
+  \textbf{Problem.}  Given some function $f\colon \Nat \to \Nat$ such
+  that $f \ap (f \ap n) < f \ap (\idt{Suc} \ap n)$ for all $n$.
+  Demonstrate that $f$ is the identity.
 *}
 
 theorem

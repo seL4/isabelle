@@ -113,7 +113,8 @@ theorem sum_of_squares:
 proof (induct n)
   show "?P 0" by simp
 next
-  fix n have "?S (n + 1) = ?S n + 6 * (n + 1)^Suc (Suc 0)" by (simp add: distrib)
+  fix n have "?S (n + 1) = ?S n + 6 * (n + 1)^Suc (Suc 0)"
+    by (simp add: distrib)
   also assume "?S n = n * (n + 1) * (2 * n + 1)"
   also have "... + 6 * (n + 1)^Suc (Suc 0) =
     (n + 1) * (n + 2) * (2 * (n + 1) + 1)" by (simp add: distrib)

@@ -131,7 +131,7 @@ qed
 
 theorem correctness: "execute (compile e) env = eval e env"
 proof -
-  have "!!stack. exec (compile e) stack env = eval e env # stack"
+  have "\<And>stack. exec (compile e) stack env = eval e env # stack"
   proof (induct e)
     case Variable show ?case by simp
   next
@@ -187,8 +187,7 @@ qed
 
 theorem correctness': "execute (compile e) env = eval e env"
 proof -
-  have exec_compile:
-    "!!stack. exec (compile e) stack env = eval e env # stack"
+  have exec_compile: "\<And>stack. exec (compile e) stack env = eval e env # stack"
   proof (induct e)
     case (Variable adr s)
     have "exec (compile (Variable adr)) s env = exec [Load adr] s env"
