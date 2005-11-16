@@ -5,6 +5,8 @@
 Manage local contexts of rules.
 *)
 
+infix 1 THEN_ALL_NEW_CASES;
+
 signature RULE_CASES =
 sig
   val consumes: int -> 'a attribute
@@ -22,6 +24,7 @@ sig
   val params: string list list -> 'a attribute
   type tactic
   val NO_CASES: Tactical.tactic -> tactic
+  val THEN_ALL_NEW_CASES: (int -> tactic) * (int -> Tactical.tactic) -> int -> tactic
 end;
 
 structure RuleCases: RULE_CASES =
@@ -96,8 +99,7 @@ type T =
   assumes: (string * term list) list,
   binds: (indexname * term option) list};
 
-val strip_params =
-  Logic.strip_params #> map (fn (x, T) => (the_default x (try Syntax.dest_skolem x), T));
+val strip_params = map (apfst Syntax.deskolem) o Logic.strip_params;
 
 fun prep_case is_open thy (split, raw_prop) name =
   let
@@ -156,6 +158,12 @@ type tactic = thm -> (thm * (string * T option) list) Seq.seq;
 
 fun NO_CASES tac = Seq.map (rpair []) o tac;
 
+fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
+  st |> tac1 i |> Seq.maps (fn (st', cases) =>
+    Seq.map (rpair cases) (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'));
+
 end;
 
 val NO_CASES = RuleCases.NO_CASES;
+val op THEN_ALL_NEW_CASES = RuleCases.THEN_ALL_NEW_CASES;
+
