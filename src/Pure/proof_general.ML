@@ -1218,7 +1218,8 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "proverexit"     => isarcmd "quit"
      | "startquiet"     => isarcmd "disable_pr"
      | "stopquiet"      => isarcmd "enable_pr"
-     | "pgmlsymbolson"   => change print_mode (insert (op =) Symbol.xsymbolsN)
+     | "pgmlsymbolson"   => change print_mode (fn mode =>
+          remove (op =) Symbol.xsymbolsN mode @ [Symbol.xsymbolsN])
      | "pgmlsymbolsoff"  => change print_mode (remove (op =) Symbol.xsymbolsN)
      (* properproofcmd: proper commands which belong in script *)
      (* FIXME: next ten are by Eclipse interface, can be removed in favour of dostep *)
