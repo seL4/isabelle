@@ -44,7 +44,6 @@ type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 (*Assumptions about constants:
   --The negation symbol is "Not"
   --The equality symbol is "op ="
-  --The is-true judgement symbol is "Trueprop"
   --There are no constants named "*Goal* or "*False*"
 *)
 signature BLAST_DATA =
@@ -73,8 +72,7 @@ signature BLAST =
   type claset 
   exception TRANS of string    (*reports translation errors*)
   datatype term = 
-      Const of string
-    | TConst of string * term
+      Const of string * term list
     | Skolem of string * term option ref list
     | Free  of string
     | Var   of term option ref
@@ -116,8 +114,7 @@ val trace = ref false
 and stats = ref false;   (*for runtime and search statistics*)
 
 datatype term = 
-    Const  of string
-  | TConst of string * term    (*type of overloaded constant--as a term!*)
+    Const  of string * term list  (*typargs constant--as a terms!*)
   | Skolem of string * term option ref list
   | Free   of string
   | Var    of term option ref
@@ -151,30 +148,28 @@ fun head_of (f$t) = head_of f
 
 (** Particular constants **)
 
-fun negate P = Const"Not" $ P;
+fun negate P = Const ("Not", []) $ P;
 
-fun mkGoal P = Const"*Goal*" $ P;
+fun mkGoal P = Const ("*Goal*", []) $ P;
 
-fun isGoal (Const"*Goal*" $ _) = true
+fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _                   = false;
 
-val boolT = 
-  case term_vars (hd (prems_of Data.notE)) of
-      [Term.Var(_, Type(s, []))] => s
-    | _ => error ("Theorem notE is ill-formed: " ^ string_of_thm Data.notE);
+val TruepropC = ObjectLogic.judgment_name (the_context ());
+val TruepropT = Sign.the_const_type (the_context ()) TruepropC;
 
-val Trueprop = Term.Const("Trueprop", Type(boolT,[])-->propT);
-fun mk_tprop P = Term.$ (Trueprop, P);
+fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
 
-fun isTrueprop (Term.Const("Trueprop",_)) = true
-  | isTrueprop _                          = false;
+fun strip_Trueprop (tm as Const (c, _) $ t) = if c = TruepropC then t else tm
+  | strip_Trueprop tm = tm;
+
 
 
 (*** Dealing with overloaded constants ***)
 
 (*alist is a map from TVar names to Vars.  We need to unify the TVars
   faithfully in order to track overloading*)
-fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) Ts)
+fun fromType alist (Term.Type(a,Ts)) = list_comb (Const (a, []), map (fromType alist) Ts)
   | fromType alist (Term.TFree(a,_)) = Free a
   | fromType alist (Term.TVar (ixn,_)) =
 	      (case (AList.lookup (op =) (!alist) ixn) of
@@ -186,19 +181,12 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, map (fromType alist) 
 (*refer to the theory in which blast is initialized*)
 val typargs = ref (fn ((_, T): string * typ) => [T]);
 
-(*Convert a Term.Const to a Blast.Const or Blast.TConst,
-  converting its type to a Blast.term in the latter case.*)
-fun fromConst alist (a as "all", _) = Const a
-  | fromConst alist (a, T) =
-      (case ! typargs (a, T) of
-        [] => Const a
-      | [T] => TConst (a, fromType alist T)
-      | Ts => TConst (a, list_comb (Const "*typargs*", map (fromType alist) Ts)));
+fun fromConst alist (a, T) =
+  Const (a, map (fromType alist) (! typargs (a, T)));
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)
-fun (Const a)      aconv (Const b)      = a=b
-  | (TConst (a,ta)) aconv (TConst (b,tb)) = a=b andalso ta aconv tb
+fun (Const (a, ts)) aconv (Const (b, us)) = a=b andalso aconvs (ts, us)
   | (Skolem (a,_)) aconv (Skolem (b,_)) = a=b  (*arglists must then be equal*)
   | (Free a)       aconv (Free b)       = a=b
   | (Var(ref(SOME t))) aconv u          = t aconv u
@@ -207,7 +195,10 @@ fun (Const a)      aconv (Const b)      = a=b
   | (Bound i)      aconv (Bound j)      = i=j
   | (Abs(_,t))     aconv (Abs(_,u))     = t aconv u
   | (f$t)          aconv (g$u)          = (f aconv g) andalso (t aconv u)
-  | _ aconv _  =  false;
+  | _ aconv _  =  false
+and aconvs ([], []) = true
+  | aconvs (t :: ts, u :: us) = t aconv u andalso aconvs (ts, us)
+  | aconvs _ = false;
 
 
 fun mem_term (_, [])     = false
@@ -227,7 +218,7 @@ fun ins_var(v,vs) = if mem_var(v,vs) then vs else v :: vs;
 fun add_term_vars (Skolem(a,args),	vars) = add_vars_vars(args,vars)
   | add_term_vars (Var (v as ref NONE),	vars) = ins_var (v, vars)
   | add_term_vars (Var (ref (SOME u)), vars)  = add_term_vars(u,vars)
-  | add_term_vars (TConst (_,t),	vars) = add_term_vars(t,vars)
+  | add_term_vars (Const (_,ts),	vars) = add_terms_vars(ts,vars)
   | add_term_vars (Abs (_,body),	vars) = add_term_vars(body,vars)
   | add_term_vars (f$t,	vars) =  add_term_vars (f, add_term_vars(t, vars))
   | add_term_vars (_,	vars) = vars
@@ -284,7 +275,7 @@ fun subst_bound (arg, t) : term =
 (*Normalize...but not the bodies of ABSTRACTIONS*)
 fun norm t = case t of
     Skolem (a,args)      => Skolem(a, vars_in_vars args)
-  | TConst(a,aT)         => TConst(a, norm aT)
+  | Const(a,ts)          => Const(a, map norm ts)
   | (Var (ref NONE))     => t
   | (Var (ref (SOME u))) => norm u
   | (f $ u) => (case norm f of
@@ -311,7 +302,6 @@ fun wkNormAux t = case t of
   | _ => t
 and wkNorm t = case head_of t of
     Const _        => t
-  | TConst _       => t
   | Skolem(a,args) => t
   | Free _         => t
   | _              => wkNormAux t;
@@ -327,7 +317,7 @@ fun varOccur v =
               (case !w of NONE   => false
 	                | SOME u => occ lev u)
         | occ lev (Skolem(_,args)) = occL lev (map Var args)
-            (*ignore TConst, since term variables can't occur in types (?) *)
+            (*ignore Const, since term variables can't occur in types (?) *)
         | occ lev (Bound i)  = lev <= i
         | occ lev (Abs(_,u)) = occ (lev+1) u
         | occ lev (f$u)      = occ lev u  orelse  occ lev f
@@ -367,12 +357,15 @@ fun unify(vars,t,u) =
 	    case (wkNorm t,  wkNorm u) of
 		(nt as Var v,  nu) => update(nt,nu)
 	      | (nu,  nt as Var v) => update(nt,nu)
-	      | (TConst(a,at), TConst(b,bt)) => if a=b then unifyAux(at,bt)
+	      | (Const(a,ats), Const(b,bts)) => if a=b then unifysAux(ats,bts)
 		                                else raise UNIFY
 	      | (Abs(_,t'),  Abs(_,u')) => unifyAux(t',u')
 		    (*NB: can yield unifiers having dangling Bound vars!*)
 	      | (f$t',  g$u') => (unifyAux(f,g); unifyAux(t',u'))
 	      | (nt,  nu)    => if nt aconv nu then () else raise UNIFY
+        and unifysAux ([], []) = ()
+          | unifysAux (t :: ts, u :: us) = (unifyAux (t, u); unifysAux (ts, us))
+          | unifysAux _ = raise UNIFY;
     in  (unifyAux(t,u); true) handle UNIFY => (clearTo n; false)
     end;
 
@@ -405,7 +398,7 @@ fun fromTerm t =
 fun instVars t =
   let val name = ref "a"
       val updated = ref []
-      fun inst (TConst(a,t)) = inst t
+      fun inst (Const(a,ts)) = List.app inst ts
 	| inst (Var(v as ref NONE)) = (updated := v :: (!updated);
 				       v       := SOME (Free ("?" ^ !name)); 
 				       name    := Symbol.bump_string (!name))
@@ -417,15 +410,13 @@ fun instVars t =
 
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
-fun strip_imp_prems (Const"==>" $ (Const"Trueprop" $ A) $ B) = 
-           A :: strip_imp_prems B
-  | strip_imp_prems (Const"==>" $ A $ B) = A :: strip_imp_prems B
+fun strip_imp_prems (Const ("==>", _) $ A $ B) = strip_Trueprop A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
 (* A1==>...An==>B  goes to B, where B is not an implication *)
-fun strip_imp_concl (Const"==>" $ A $ B) = strip_imp_concl B
-  | strip_imp_concl (Const"Trueprop" $ A) = A
-  | strip_imp_concl A = A : term;
+fun strip_imp_concl (Const ("==>", _) $ A $ B) = strip_imp_concl B
+  | strip_imp_concl A = strip_Trueprop A;
+
 
 
 (*** Conversion of Elimination Rules to Tableau Operations ***)
@@ -436,13 +427,13 @@ exception ElimBadConcl and ElimBadPrem;
   If we don't find it then the premise is ill-formed and could cause 
   PROOF FAILED*)
 fun delete_concl [] = raise ElimBadPrem
-  | delete_concl (Const "*Goal*" $ (Var (ref (SOME (Const"*False*")))) :: Ps) =
+  | delete_concl (Const ("*Goal*", _) $ (Var (ref (SOME (Const ("*False*", _))))) :: Ps) =
 	Ps
-  | delete_concl (Const "Not" $ (Var (ref (SOME (Const"*False*")))) :: Ps) =
+  | delete_concl (Const ("Not", _) $ (Var (ref (SOME (Const ("*False*", _))))) :: Ps) =
 	Ps
   | delete_concl (P::Ps) = P :: delete_concl Ps;
 
-fun skoPrem vars (Const "all" $ Abs (_, P)) =
+fun skoPrem vars (Const ("all", _) $ Abs (_, P)) =
         skoPrem vars (subst_bound (Skolem (gensym "S_", vars), P))
   | skoPrem vars P = P;
 
@@ -453,7 +444,7 @@ fun convertPrem t =
 fun convertRule vars t =
   let val (P::Ps) = strip_imp_prems t
       val Var v   = strip_imp_concl t
-  in  v := SOME (Const"*False*");
+  in  v := SOME (Const ("*False*", []));
       (P, map (convertPrem o skoPrem vars) Ps) 
   end
   handle Bind => raise ElimBadConcl;
@@ -467,7 +458,7 @@ fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> assumption 2 |> Seq.hd;
 local
   (*Count new hyps so that they can be rotated*)
   fun nNewHyps []                         = 0
-    | nNewHyps (Const "*Goal*" $ _ :: Ps) = nNewHyps Ps
+    | nNewHyps (Const ("*Goal*", _) $ _ :: Ps) = nNewHyps Ps
     | nNewHyps (P::Ps)                    = 1 + nNewHyps Ps;
 
   fun rot_tac [] i st      = Seq.single st
@@ -535,8 +526,7 @@ val dummyVar = Term.Var (("etc",0), dummyT);
 (*Convert from prototerms to ordinary terms with dummy types
   Ignore abstractions; identify all Vars; STOP at given depth*)
 fun toTerm 0 _             = dummyVar
-  | toTerm d (Const a)     = Term.Const (a,dummyT)
-  | toTerm d (TConst(a,_)) = Term.Const (a,dummyT)  (*no need to convert type*)
+  | toTerm d (Const(a,_))  = Term.Const (a,dummyT)  (*no need to convert typargs*)
   | toTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | toTerm d (Free a)      = Term.Free  (a,dummyT)
   | toTerm d (Bound i)     = Term.Bound i
@@ -547,14 +537,14 @@ fun toTerm 0 _             = dummyVar
 
 fun netMkRules P vars (nps: netpair list) =
   case P of
-      (Const "*Goal*" $ G) =>
-	let val pG = mk_tprop (toTerm 2 G)
+      (Const ("*Goal*", _) $ G) =>
+	let val pG = mk_Trueprop (toTerm 2 G)
 	    val intrs = List.concat 
 		             (map (fn (inet,_) => Net.unify_term inet pG) 
 			      nps)
 	in  map (fromIntrRule vars o #2) (Tactic.orderlist intrs)  end
     | _ =>
-	let val pP = mk_tprop (toTerm 3 P)
+	let val pP = mk_Trueprop (toTerm 3 P)
 	    val elims = List.concat 
 		             (map (fn (_,enet) => Net.unify_term enet pP) 
 			      nps)
@@ -591,19 +581,18 @@ fun showType (Free a)  = Term.TFree (a,[])
   | showType (Var _)   = dummyTVar
   | showType t         =
       (case strip_comb t of
-	   (Const a, us) => Term.Type(a, map showType us)
+	   (Const (a, _), us) => Term.Type(a, map showType us)
 	 | _ => dummyT);
 
 (*Display top-level overloading if any*)
-fun topType (TConst(a,t)) = SOME (showType t)
-  | topType (Abs(a,t))    = topType t
-  | topType (f $ u)       = (case topType f of NONE => topType u | some => some)
-  | topType _             = NONE;
+fun topType thy (Const (c, ts)) = SOME (Sign.const_instance thy (c, map showType ts))
+  | topType thy (Abs(a,t)) = topType thy t
+  | topType thy (f $ u) = (case topType thy f of NONE => topType thy u | some => some)
+  | topType _ _ = NONE;
 
 
 (*Convert from prototerms to ordinary terms with dummy types for tracing*)
-fun showTerm d (Const a)     = Term.Const (a,dummyT)
-  | showTerm d (TConst(a,_)) = Term.Const (a,dummyT)
+fun showTerm d (Const (a,_)) = Term.Const (a,dummyT)
   | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Free a)      = Term.Free  (a,dummyT)
   | showTerm d (Bound i)     = Term.Bound i
@@ -620,7 +609,7 @@ fun traceTerm sign t =
   let val t' = norm t
       val stm = string_of sign 8 t'
   in  
-      case topType t' of
+      case topType sign t' of
 	  NONE   => stm   (*no type to attach*)
 	| SOME T => stm ^ "\t:: " ^ Sign.string_of_typ sign T
   end;
@@ -715,10 +704,8 @@ fun substOccur t =
 
 exception DEST_EQ;
 
-(*Take apart an equality (plain or overloaded).  NO constant Trueprop*)
-fun dest_eq (Const  "op ="     $ t $ u) = 
-		(eta_contract_atom t, eta_contract_atom u)
-  | dest_eq (TConst("op =",_)  $ t $ u) = 
+(*Take apart an equality.  NO constant Trueprop*)
+fun dest_eq (Const ("op =", _) $ t $ u) =
 		(eta_contract_atom t, eta_contract_atom u)
   | dest_eq _                           = raise DEST_EQ;
 
@@ -782,13 +769,13 @@ val eContr_tac  = TRACE Data.notE contr_tac;
 val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *) 
-fun tryClose (Const"*Goal*" $ G,  L) = 
+fun tryClose (Const ("*Goal*", _) $ G,  L) = 
 	if unify([],G,L) then SOME eAssume_tac else NONE
-  | tryClose (G,  Const"*Goal*" $ L) = 
+  | tryClose (G,  Const ("*Goal*", _) $ L) = 
 	if unify([],G,L) then SOME eAssume_tac else NONE
-  | tryClose (Const"Not" $ G,  L)    = 
+  | tryClose (Const ("Not", _) $ G,  L)    = 
 	if unify([],G,L) then SOME eContr_tac else NONE
-  | tryClose (G,  Const"Not" $ L)    = 
+  | tryClose (G,  Const ("Not", _) $ L)    = 
 	if unify([],G,L) then SOME eContr_tac else NONE
   | tryClose _                       = NONE;
 
@@ -806,8 +793,8 @@ fun joinMd md [] = []
 
 (*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
   Ex(P) is duplicated as the assumption ~Ex(P). *)
-fun negOfGoal (Const"*Goal*" $ G) = negate G
-  | negOfGoal G                   = G;
+fun negOfGoal (Const ("*Goal*", _) $ G) = negate G
+  | negOfGoal G = G;
 
 fun negOfGoal2 (G,md) = (negOfGoal G, md);
 
@@ -870,21 +857,21 @@ fun backtrack (choices as (ntrl, nbrs, exn)::_) =
   | backtrack _ = raise PROVE;
 
 (*Add the literal G, handling *Goal* and detecting duplicates.*)
-fun addLit (Const "*Goal*" $ G, lits) = 
+fun addLit (Const ("*Goal*", _) $ G, lits) = 
       (*New literal is a *Goal*, so change all other Goals to Nots*)
-      let fun bad (Const"*Goal*" $ _) = true
-	    | bad (Const"Not" $ G')   = G aconv G'
+      let fun bad (Const ("*Goal*", _) $ _) = true
+	    | bad (Const ("Not", _) $ G')   = G aconv G'
 	    | bad _                   = false;
 	  fun change [] = []
-	    | change (Const"*Goal*" $ G' :: lits) = 
+	    | change (Const ("*Goal*", _) $ G' :: lits) = 
 		  if G aconv G' then change lits
-		  else Const"Not" $ G' :: change lits
-	    | change (Const"Not" $ G' :: lits)    = 
+		  else Const ("Not", []) $ G' :: change lits
+	    | change (Const ("Not", _) $ G' :: lits)    = 
 		  if G aconv G' then change lits
-		  else Const"Not" $ G' :: change lits
+		  else Const ("Not", []) $ G' :: change lits
 	    | change (lit::lits) = lit :: change lits
       in
-	Const "*Goal*" $ G :: (if exists bad lits then change lits else lits)
+	Const ("*Goal*", []) $ G :: (if exists bad lits then change lits else lits)
       end
   | addLit (G,lits) = ins_term(G, lits)
 
@@ -897,15 +884,16 @@ fun log n = if n<4 then 0 else 1 + log(n div 4);
 (*match(t,u) says whether the term u might be an instance of the pattern t
   Used to detect "recursive" rules such as transitivity*)
 fun match (Var _) u   = true
-  | match (Const"*Goal*") (Const"Not")    = true
-  | match (Const"Not")    (Const"*Goal*") = true
-  | match (Const a)       (Const b)       = (a=b)
-  | match (TConst (a,ta)) (TConst (b,tb)) = a=b andalso match ta tb
+  | match (Const ("*Goal*", _)) (Const ("Not", _)) = true
+  | match (Const ("Not", _)) (Const ("*Goal*", _)) = true
+  | match (Const (a,tas)) (Const (b,tbs)) = a=b andalso matchs tas tbs
   | match (Free a)        (Free b)        = (a=b)
   | match (Bound i)       (Bound j)       = (i=j)
   | match (Abs(_,t))      (Abs(_,u))      = match t u
   | match (f$t)           (g$u)           = match f g andalso match t u
-  | match t               u   = false;
+  | match t               u   = false
+and matchs [] [] = true
+  | matchs (t :: ts) (u :: us) = match t u andalso matchs ts us;
 
 
 (*Branches closed: number of branches closed during the search
@@ -1188,7 +1176,6 @@ in
 fun discard_foralls (Const("all",_)$Abs(a,T,t)) = discard_foralls t
   | discard_foralls t = t;
 end;
-
 
 (*List of variables not appearing as arguments to the given parameter*)
 fun getVars []                  i = []
