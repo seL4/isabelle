@@ -206,7 +206,7 @@ struct
     in (case subs of
         [] => NONE
       | ((t', (attn, thms)) :: _) => let
-            val (tinst, inst) = Pattern.match sign (t', t);
+            val (tinst, inst) = Pattern.match sign (t', t) (Vartab.empty, Vartab.empty);
             (* thms contain Frees, not Vars *)
             val tinst' = tinst |> Vartab.dest
                  |> map (fn ((x, 0), (_, T)) => (x, Type.unvarifyT T))
@@ -524,11 +524,10 @@ fun unify_frozen ctxt maxidx Ts Us =
     val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
     val thy = ProofContext.theory_of ctxt;
 
-    fun unify (env, (SOME T, SOME U)) = (Sign.typ_unify thy (U, T) env
-          handle Type.TUNIFY =>
-            raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
-      | unify (env, _) = env;
-    val (unifier, _) = Library.foldl unify ((Vartab.empty, maxidx''), Ts' ~~ Us');
+    fun unify (SOME T, SOME U) env = (Sign.typ_unify thy (U, T) env
+          handle Type.TUNIFY => raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
+      | unify _ env = env;
+    val (unifier, _) = fold unify (Ts' ~~ Us') (Vartab.empty, maxidx'');
     val Vs = map (Option.map (Envir.norm_type unifier)) Us';
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (List.mapPartial I Vs));
   in map (Option.map (Envir.norm_type unifier')) Vs end;
@@ -1061,7 +1060,7 @@ fun abstract_term eq =    (*assumes well-formedness according to ProofContext.ce
 fun abstract_thm thy eq =
   Thm.assume (Thm.cterm_of thy eq) |> Drule.gen_all |> Drule.abs_def;
 
-fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
+fun bind_def ctxt (name, ps) eq (xs, env, ths) =
   let
     val ((y, T), b) = abstract_term eq;
     val b' = norm_term env b;
@@ -1079,9 +1078,10 @@ fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
 (* CB: for finish_elems (Int and Ext),
    extracts specification, only of assumed elements *)
 
-fun eval_text _ _ _ (text, Fixes _) = text
-  | eval_text _ _ _ (text, Constrains _) = text
-  | eval_text _ (_, Assumed _) is_ext ((((exts, exts'), (ints, ints')), (xs, env, defs)), Assumes asms) =
+fun eval_text _ _ _ (Fixes _) text = text
+  | eval_text _ _ _ (Constrains _) text = text
+  | eval_text _ (_, Assumed _) is_ext (Assumes asms)
+        (((exts, exts'), (ints, ints')), (xs, env, defs)) =
       let
         val ts = List.concat (map (map #1 o #2) asms);
         val ts' = map (norm_term env) ts;
@@ -1089,11 +1089,11 @@ fun eval_text _ _ _ (text, Fixes _) = text
           if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
           else ((exts, exts'), (ints @ ts, ints' @ ts'));
       in (spec', (fold Term.add_frees ts' xs, env, defs)) end
-  | eval_text _ (_, Derived _) _ (text, Assumes _) = text
-  | eval_text ctxt (id, Assumed _) _ ((spec, binds), Defines defs) =
-      (spec, Library.foldl (bind_def ctxt id) (binds, map (#1 o #2) defs))
-  | eval_text _ (_, Derived _) _ (text, Defines _) = text
-  | eval_text _ _ _ (text, Notes _) = text;
+  | eval_text _ (_, Derived _) _ (Assumes _) text = text
+  | eval_text ctxt (id, Assumed _) _ (Defines defs) (spec, binds) =
+      (spec, fold (bind_def ctxt id o #1 o #2) defs binds)
+  | eval_text _ (_, Derived _) _ (Defines _) text = text
+  | eval_text _ _ _ (Notes _) text = text;
 
 
 (* for finish_elems (Int),
@@ -1163,14 +1163,14 @@ fun finish_elems ctxt parms _ ((text, wits), ((id, Int e), _)) =
       let
         val [(id' as (_, mode), es)] = unify_elemss ctxt parms [(id, e)];
         val wits' = case mode of Assumed _ => wits | Derived ths => wits @ ths;
-        val text' = Library.foldl (eval_text ctxt id' false) (text, es);
+        val text' = fold (eval_text ctxt id' false) es text;
         val es' = List.mapPartial
               (finish_derived (ProofContext.theory_of ctxt) wits' mode) es;
       in ((text', wits'), (id', map Int es')) end
   | finish_elems ctxt parms do_close ((text, wits), ((id, Ext e), [propp])) =
       let
         val e' = finish_ext_elem parms (closeup ctxt do_close) (e, propp);
-        val text' = eval_text ctxt id true (text, e');
+        val text' = eval_text ctxt id true e' text;
       in ((text', wits), (id, [Ext e'])) end
 
 in
@@ -1466,7 +1466,7 @@ fun note_thmss_registrations kind target args thy =
 
     (* add args to thy for all registrations *)
 
-    fun activate (thy, (vts, ((prfx, atts2), _))) =
+    fun activate (vts, ((prfx, atts2), _)) thy =
       let
         val (insts, prems) = collect_global_witnesses thy parms ids vts;
         val inst_atts =
@@ -1478,7 +1478,7 @@ fun note_thmss_registrations kind target args thy =
              [(map (Drule.standard o satisfy_protected prems o
             Element.inst_thm thy insts) ths, [])]));
       in global_note_accesses_i (Drule.kind kind) prfx args' thy |> fst end;
-  in Library.foldl activate (thy, regs) end;
+  in fold activate regs thy end;
 
 
 fun smart_note_thmss kind NONE = PureThy.note_thmss_i (Drule.kind kind)
