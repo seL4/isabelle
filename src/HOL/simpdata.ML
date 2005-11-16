@@ -204,7 +204,7 @@ val let_simproc =
                   let
                     val rl = cterm_instantiate [(f_Let_unfold,cf)] Let_unfold;
                   in SOME (rl OF [fx_g]) end 
-               else if betapply (f,x) aconv g then NONE (* avoid identity conversion *)
+               else if Term.betapply (f,x) aconv g then NONE (*avoid identity conversion*)
                else let 
                      val abs_g'= Abs (n,xT,g');
                      val g'x = abs_g'$x;

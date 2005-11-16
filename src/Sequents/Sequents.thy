@@ -90,7 +90,7 @@ fun seqcont_tr' (Bound 0) =
       (Const("SeqO",dummyT) $ f) $
       (seqcont_tr' s) |
 (*    seqcont_tr' ((a as Abs(_,_,_)) $ s)=
-      seqcont_tr'(betapply(a,s)) | *)
+      seqcont_tr'(Term.betapply(a,s)) | *)
     seqcont_tr' (i $ s) =
       Const("SeqContApp",dummyT) $
       (Const("SeqId",dummyT) $ i) $
@@ -103,7 +103,7 @@ fun seq_tr' s =
               Const("SeqApp",dummyT) $
               (Const("SeqO",dummyT) $ f) $ (seqcont_tr' s) |
 (*            seq_itr' ((a as Abs(_,_,_)) $ s) =
-              seq_itr'(betapply(a,s)) |    *)
+              seq_itr'(Term.betapply(a,s)) |    *)
             seq_itr' (i $ s) =
               Const("SeqApp",dummyT) $
               (Const("SeqId",dummyT) $ i) $

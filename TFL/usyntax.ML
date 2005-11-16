@@ -228,7 +228,7 @@ fun dest_term(Var((s,i),ty)) = VAR{Name = s, Ty = ty}
   | dest_term(Const(s,ty))   = CONST{Name = s, Ty = ty}
   | dest_term(M$N)           = COMB{Rator=M,Rand=N}
   | dest_term(Abs(s,ty,M))   = let  val v = Free(s,ty)
-                               in LAMB{Bvar = v, Body = betapply (M,v)}
+                               in LAMB{Bvar = v, Body = Term.betapply (M,v)}
                                end
   | dest_term(Bound _)       = raise USYN_ERR "dest_term" "Bound";
 
@@ -242,7 +242,7 @@ fun dest_abs used (a as Abs(s, ty, M)) =
      let
        val s' = variant used s;
        val v = Free(s', ty);
-     in ({Bvar = v, Body = betapply (a,v)}, s'::used)
+     in ({Bvar = v, Body = Term.betapply (a,v)}, s'::used)
      end
   | dest_abs _ _ =  raise USYN_ERR "dest_abs" "not an abstraction";
 

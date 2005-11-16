@@ -624,7 +624,7 @@ fun alpha_ex_unroll (xlist, tm) =
                        "TFL fault [alpha_ex_unroll]: no correspondence"
       fun build ex      []   = []
         | build (_$rex) (v::rst) =
-           let val ex1 = betapply(rex, v)
+           let val ex1 = Term.betapply(rex, v)
            in  ex1 :: build ex1 rst
            end
      val (nex::exl) = rev (tm::build tm args)
@@ -856,7 +856,7 @@ let val tych = Thry.typecheck thy
     val Rassums_TCl' = map (build_ih fconst (P,SV)) pat_TCs_list
     val (Rassums,TCl') = ListPair.unzip Rassums_TCl'
     val Rinduct_assum = R.ASSUME (tych (S.list_mk_conj Rassums))
-    val cases = map (fn pat => betapply (Sinduct_assumf, pat)) pats
+    val cases = map (fn pat => Term.betapply (Sinduct_assumf, pat)) pats
     val tasks = U.zip3 cases TCl' (R.CONJUNCTS Rinduct_assum)
     val proved_cases = map (prove_case fconst thy) tasks
     val v = Free (variant (foldr add_term_names [] (map concl proved_cases))

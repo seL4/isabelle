@@ -30,7 +30,7 @@ val mem_const = Const("op :", [iT,iT]--->FOLogic.oT);
 fun mk_all_imp (A,P) = 
     FOLogic.all_const iT $ 
       Abs("v", iT, FOLogic.imp $ (mem_const $ Bound 0 $ A) $ 
-	           betapply(P, Bound 0));
+	           Term.betapply(P, Bound 0));
 
 val Part_const = Const("Part", [iT,iT-->iT]--->iT);
 
