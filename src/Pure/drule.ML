@@ -10,80 +10,80 @@ infix 0 RS RSN RL RLN MRS MRL OF COMP;
 
 signature BASIC_DRULE =
 sig
-  val mk_implies        : cterm * cterm -> cterm
-  val list_implies      : cterm list * cterm -> cterm
-  val dest_implies      : cterm -> cterm * cterm
-  val dest_equals       : cterm -> cterm * cterm
-  val strip_imp_prems   : cterm -> cterm list
-  val strip_imp_concl   : cterm -> cterm
-  val cprems_of         : thm -> cterm list
-  val cterm_fun         : (term -> term) -> (cterm -> cterm)
-  val ctyp_fun          : (typ -> typ) -> (ctyp -> ctyp)
-  val read_insts        :
+  val mk_implies: cterm * cterm -> cterm
+  val list_implies: cterm list * cterm -> cterm
+  val dest_implies: cterm -> cterm * cterm
+  val dest_equals: cterm -> cterm * cterm
+  val strip_imp_prems: cterm -> cterm list
+  val strip_imp_concl: cterm -> cterm
+  val cprems_of: thm -> cterm list
+  val cterm_fun: (term -> term) -> (cterm -> cterm)
+  val ctyp_fun: (typ -> typ) -> (ctyp -> ctyp)
+  val read_insts:
           theory -> (indexname -> typ option) * (indexname -> sort option)
                   -> (indexname -> typ option) * (indexname -> sort option)
                   -> string list -> (indexname * string) list
                   -> (ctyp * ctyp) list * (cterm * cterm) list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
-  val strip_shyps_warning : thm -> thm
-  val forall_intr_list  : cterm list -> thm -> thm
-  val forall_intr_frees : thm -> thm
-  val forall_intr_vars  : thm -> thm
-  val forall_elim_list  : cterm list -> thm -> thm
-  val forall_elim_var   : int -> thm -> thm
-  val forall_elim_vars  : int -> thm -> thm
-  val gen_all           : thm -> thm
-  val lift_all          : cterm -> thm -> thm
-  val freeze_thaw       : thm -> thm * (thm -> thm)
+  val strip_shyps_warning: thm -> thm
+  val forall_intr_list: cterm list -> thm -> thm
+  val forall_intr_frees: thm -> thm
+  val forall_intr_vars: thm -> thm
+  val forall_elim_list: cterm list -> thm -> thm
+  val forall_elim_var: int -> thm -> thm
+  val forall_elim_vars: int -> thm -> thm
+  val gen_all: thm -> thm
+  val lift_all: cterm -> thm -> thm
+  val freeze_thaw: thm -> thm * (thm -> thm)
   val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
-  val implies_elim_list : thm -> thm list -> thm
-  val implies_intr_list : cterm list -> thm -> thm
-  val instantiate       :
+  val implies_elim_list: thm -> thm list -> thm
+  val implies_intr_list: cterm list -> thm -> thm
+  val instantiate:
     (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
-  val zero_var_indexes  : thm -> thm
-  val implies_intr_hyps : thm -> thm
-  val standard          : thm -> thm
-  val standard'         : thm -> thm
-  val rotate_prems      : int -> thm -> thm
-  val rearrange_prems   : int list -> thm -> thm
-  val assume_ax         : theory -> string -> thm
-  val RSN               : thm * (int * thm) -> thm
-  val RS                : thm * thm -> thm
-  val RLN               : thm list * (int * thm list) -> thm list
-  val RL                : thm list * thm list -> thm list
-  val MRS               : thm list * thm -> thm
-  val MRL               : thm list list * thm list -> thm list
-  val OF                : thm * thm list -> thm
-  val compose           : thm * int * thm -> thm list
-  val COMP              : thm * thm -> thm
+  val zero_var_indexes: thm -> thm
+  val implies_intr_hyps: thm -> thm
+  val standard: thm -> thm
+  val standard': thm -> thm
+  val rotate_prems: int -> thm -> thm
+  val rearrange_prems: int list -> thm -> thm
+  val assume_ax: theory -> string -> thm
+  val RSN: thm * (int * thm) -> thm
+  val RS: thm * thm -> thm
+  val RLN: thm list * (int * thm list) -> thm list
+  val RL: thm list * thm list -> thm list
+  val MRS: thm list * thm -> thm
+  val MRL: thm list list * thm list -> thm list
+  val OF: thm * thm list -> thm
+  val compose: thm * int * thm -> thm list
+  val COMP: thm * thm -> thm
   val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
-  val read_instantiate  : (string*string)list -> thm -> thm
-  val cterm_instantiate : (cterm*cterm)list -> thm -> thm
-  val eq_thm_thy        : thm * thm -> bool
-  val eq_thm_prop	: thm * thm -> bool
-  val weak_eq_thm       : thm * thm -> bool
-  val size_of_thm       : thm -> int
-  val reflexive_thm     : thm
-  val symmetric_thm     : thm
-  val transitive_thm    : thm
-  val symmetric_fun     : thm -> thm
-  val extensional       : thm -> thm
-  val imp_cong          : thm
-  val swap_prems_eq     : thm
-  val equal_abs_elim    : cterm  -> thm -> thm
+  val read_instantiate: (string*string)list -> thm -> thm
+  val cterm_instantiate: (cterm*cterm)list -> thm -> thm
+  val eq_thm_thy: thm * thm -> bool
+  val eq_thm_prop: thm * thm -> bool
+  val weak_eq_thm: thm * thm -> bool
+  val size_of_thm: thm -> int
+  val reflexive_thm: thm
+  val symmetric_thm: thm
+  val transitive_thm: thm
+  val symmetric_fun: thm -> thm
+  val extensional: thm -> thm
+  val imp_cong: thm
+  val swap_prems_eq: thm
+  val equal_abs_elim: cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
-  val asm_rl            : thm
-  val cut_rl            : thm
-  val revcut_rl         : thm
-  val thin_rl           : thm
+  val asm_rl: thm
+  val cut_rl: thm
+  val revcut_rl: thm
+  val thin_rl: thm
   val triv_forall_equality: thm
-  val swap_prems_rl     : thm
-  val equal_intr_rule   : thm
-  val equal_elim_rule1  : thm
-  val inst              : string -> string -> thm -> thm
-  val instantiate'      : ctyp option list -> cterm option list -> thm -> thm
-  val incr_indexes      : thm -> thm -> thm
-  val incr_indexes_wrt  : int list -> ctyp list -> cterm list -> thm list -> thm -> thm
+  val swap_prems_rl: thm
+  val equal_intr_rule: thm
+  val equal_elim_rule1: thm
+  val inst: string -> string -> thm -> thm
+  val instantiate': ctyp option list -> cterm option list -> thm -> thm
+  val incr_indexes: thm -> thm -> thm
+  val incr_indexes_wrt: int list -> ctyp list -> cterm list -> thm list -> thm -> thm
 end;
 
 signature DRULE =
@@ -117,18 +117,19 @@ sig
   val add_rules: thm list -> thm list -> thm list
   val del_rules: thm list -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
-  val imp_cong'         : thm -> thm -> thm
+  val imp_cong': thm -> thm -> thm
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
-  val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
-  val forall_conv       : (cterm -> thm) -> cterm -> thm
-  val fconv_rule        : (cterm -> thm) -> thm -> thm
+  val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
+  val forall_conv: (cterm -> thm) -> cterm -> thm
+  val fconv_rule: (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
   val protect: cterm -> cterm
   val protectI: thm
   val protectD: thm
+  val protect_cong: thm
   val implies_intr_protected: cterm list -> thm -> thm
   val freeze_all: thm -> thm
   val tvars_of_terms: term list -> (indexname * sort) list
@@ -150,6 +151,7 @@ sig
   val conj_elim_list: thm -> thm list
   val conj_elim_precise: int -> thm -> thm list
   val conj_intr_thm: thm
+  val conj_mono_thm: thm
   val abs_def: thm -> thm
   val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
   val read_instantiate': (indexname * string) list -> thm -> thm
@@ -215,7 +217,7 @@ fun list_comb (f, []) = f
   | list_comb (f, t::ts) = list_comb (Thm.capply f t, ts);
 
 (*cterm version of strip_comb: maps  f(t1,...,tn)  to  (f, [t1,...,tn]) *)
-fun strip_comb ct = 
+fun strip_comb ct =
   let
     fun stripc (p as (ct, cts)) =
       let val (ct1, ct2) = Thm.dest_comb ct
@@ -233,7 +235,7 @@ fun strip_type cT = (case Thm.typ_of cT of
 
 (*Beta-conversion for cterms, where x is an abstraction. Simply returns the rhs
   of the meta-equality returned by the beta_conversion rule.*)
-fun beta_conv x y = 
+fun beta_conv x y =
     #2 (Thm.dest_comb (cprop_of (Thm.beta_conversion false (Thm.capply x y))));
 
 fun plain_prop_of raw_thm =
@@ -300,7 +302,7 @@ end;
 fun types_sorts thm =
     let val {prop, hyps, tpairs, ...} = Thm.rep_thm thm;
         (* bogus term! *)
-        val big = Term.list_comb 
+        val big = Term.list_comb
                     (Term.list_comb (prop, hyps), Thm.terms_of_tpairs tpairs);
         val vars = map dest_Var (term_vars big);
         val frees = map dest_Free (term_frees big);
@@ -406,7 +408,7 @@ val forall_elim_vars = PureThy.forall_elim_vars;
 fun outer_params t =
   let
     val vs = Term.strip_all_vars t;
-    val xs = Term.variantlist (map #1 vs, []);
+    val xs = Term.variantlist (map (Syntax.deskolem o #1) vs, []);
   in xs ~~ map #2 vs end;
 
 (*generalize outermost parameters*)
@@ -878,6 +880,8 @@ val norm_hhf_eq =
     |> store_standard_thm_open "norm_hhf_eq"
   end;
 
+val norm_hhf_prop = Logic.dest_equals (Thm.prop_of norm_hhf_eq);
+
 fun is_norm_hhf tm =
   let
     fun is_norm (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
@@ -888,7 +892,8 @@ fun is_norm_hhf tm =
 
 fun norm_hhf thy t =
   if is_norm_hhf t then t
-  else Pattern.rewrite_term thy [Logic.dest_equals (prop_of norm_hhf_eq)] [] t;
+  else Pattern.rewrite_term thy [norm_hhf_prop] [] t;
+
 
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)
@@ -926,7 +931,7 @@ local
 in
 fun cterm_instantiate ctpairs0 th =
   let val (thy,tye,_) = foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
-      fun instT(ct,cu) = 
+      fun instT(ct,cu) =
         let val inst = cterm_of thy o Envir.subst_TVars tye o term_of
         in (inst ct, inst cu) end
       fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)
@@ -967,6 +972,7 @@ in
       (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
   val protectD = store_thm "protectD" (kind_rule internalK (standard
       (Thm.equal_elim prop_def (Thm.assume (protect A)))));
+  val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
 end;
 
 fun implies_intr_protected asms th =
@@ -1121,7 +1127,11 @@ local
   val A = read_prop "PROP A";
   val B = read_prop "PROP B";
   val C = read_prop "PROP C";
+  val D = read_prop "PROP D";
+  val AC = read_prop "PROP A ==> PROP C";
+  val BD = read_prop "PROP B ==> PROP D";
   val ABC = read_prop "PROP A ==> PROP B ==> PROP C";
+  val A_B = read_prop "!!X. (PROP A ==> PROP B ==> PROP X) ==> PROP X";
 
   val proj1 =
     forall_intr_list [A, B] (implies_intr_list [A, B] (Thm.assume A))
@@ -1159,6 +1169,13 @@ fun conj_elim_precise 0 _ = []
 
 val conj_intr_thm = store_standard_thm_open "conjunctionI"
   (implies_intr_list [A, B] (conj_intr (Thm.assume A) (Thm.assume B)));
+
+val conj_mono_thm = store_standard_thm_open "conjunction_mono"
+  (Thm.assume A_B |> conj_elim |> (fn (a, b) =>
+    conj_intr
+      (Thm.implies_elim (Thm.assume AC) a)
+      (Thm.implies_elim (Thm.assume BD) b))
+  |> implies_intr_list [AC, BD, A_B]);
 
 end;
 
