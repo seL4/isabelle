@@ -83,7 +83,8 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
       Pattern.matches thy (if po then (pat, obj) else (obj, pat));
 
     fun substsize pat =
-      let val (_, subst) = Pattern.match thy (if po then (pat, obj) else (obj, pat))
+      let val (_, subst) =
+        Pattern.match thy (if po then (pat, obj) else (obj, pat)) (Vartab.empty, Vartab.empty)
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
     fun bestmatch [] = NONE

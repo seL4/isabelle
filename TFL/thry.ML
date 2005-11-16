@@ -34,7 +34,7 @@ in
 
 fun match_term thry pat ob =
   let
-    val (ty_theta, tm_theta) = Pattern.match thry (pat,ob)
+    val (ty_theta, tm_theta) = Pattern.match thry (pat,ob) (Vartab.empty, Vartab.empty);
     fun tmbind (ixn, (T, t)) = (Var (ixn, Envir.typ_subst_TVars ty_theta T), t)
   in (map tmbind (Vartab.dest tm_theta), map tybind (Vartab.dest ty_theta))
   end;

@@ -8,56 +8,56 @@ Emulation of HOL inference rules for TFL
 
 signature RULES =
 sig
-  val dest_thm : thm -> term list * term
+  val dest_thm: thm -> term list * term
 
   (* Inference rules *)
-  val REFL      :cterm -> thm
-  val ASSUME    :cterm -> thm
-  val MP        :thm -> thm -> thm
-  val MATCH_MP  :thm -> thm -> thm
-  val CONJUNCT1 :thm -> thm
-  val CONJUNCT2 :thm -> thm
-  val CONJUNCTS :thm -> thm list
-  val DISCH     :cterm -> thm -> thm
-  val UNDISCH   :thm  -> thm
-  val SPEC      :cterm -> thm -> thm
-  val ISPEC     :cterm -> thm -> thm
-  val ISPECL    :cterm list -> thm -> thm
-  val GEN       :cterm -> thm -> thm
-  val GENL      :cterm list -> thm -> thm
-  val LIST_CONJ :thm list -> thm
+  val REFL: cterm -> thm
+  val ASSUME: cterm -> thm
+  val MP: thm -> thm -> thm
+  val MATCH_MP: thm -> thm -> thm
+  val CONJUNCT1: thm -> thm
+  val CONJUNCT2: thm -> thm
+  val CONJUNCTS: thm -> thm list
+  val DISCH: cterm -> thm -> thm
+  val UNDISCH: thm  -> thm
+  val SPEC: cterm -> thm -> thm
+  val ISPEC: cterm -> thm -> thm
+  val ISPECL: cterm list -> thm -> thm
+  val GEN: cterm -> thm -> thm
+  val GENL: cterm list -> thm -> thm
+  val LIST_CONJ: thm list -> thm
 
-  val SYM : thm -> thm
-  val DISCH_ALL : thm -> thm
-  val FILTER_DISCH_ALL : (term -> bool) -> thm -> thm
-  val SPEC_ALL  : thm -> thm
-  val GEN_ALL   : thm -> thm
-  val IMP_TRANS : thm -> thm -> thm
-  val PROVE_HYP : thm -> thm -> thm
+  val SYM: thm -> thm
+  val DISCH_ALL: thm -> thm
+  val FILTER_DISCH_ALL: (term -> bool) -> thm -> thm
+  val SPEC_ALL: thm -> thm
+  val GEN_ALL: thm -> thm
+  val IMP_TRANS: thm -> thm -> thm
+  val PROVE_HYP: thm -> thm -> thm
 
-  val CHOOSE : cterm * thm -> thm -> thm
-  val EXISTS : cterm * cterm -> thm -> thm
-  val EXISTL : cterm list -> thm -> thm
-  val IT_EXISTS : (cterm*cterm) list -> thm -> thm
+  val CHOOSE: cterm * thm -> thm -> thm
+  val EXISTS: cterm * cterm -> thm -> thm
+  val EXISTL: cterm list -> thm -> thm
+  val IT_EXISTS: (cterm*cterm) list -> thm -> thm
 
-  val EVEN_ORS : thm list -> thm list
-  val DISJ_CASESL : thm -> thm list -> thm
+  val EVEN_ORS: thm list -> thm list
+  val DISJ_CASESL: thm -> thm list -> thm
 
-  val list_beta_conv : cterm -> cterm list -> thm
-  val SUBS : thm list -> thm -> thm
-  val simpl_conv : simpset -> thm list -> cterm -> thm
+  val list_beta_conv: cterm -> cterm list -> thm
+  val SUBS: thm list -> thm -> thm
+  val simpl_conv: simpset -> thm list -> cterm -> thm
 
-  val rbeta : thm -> thm
+  val rbeta: thm -> thm
 (* For debugging my isabelle solver in the conditional rewriter *)
-  val term_ref : term list ref
-  val thm_ref : thm list ref
-  val ss_ref : simpset list ref
-  val tracing : bool ref
-  val CONTEXT_REWRITE_RULE : term * term list * thm * thm list
+  val term_ref: term list ref
+  val thm_ref: thm list ref
+  val ss_ref: simpset list ref
+  val tracing: bool ref
+  val CONTEXT_REWRITE_RULE: term * term list * thm * thm list
                              -> thm -> thm * term list
-  val RIGHT_ASSOC : thm -> thm
+  val RIGHT_ASSOC: thm -> thm
 
-  val prove : bool -> cterm * tactic -> thm
+  val prove: bool -> cterm * tactic -> thm
 end;
 
 structure Rules: RULES =
@@ -308,7 +308,7 @@ fun GEN v th =
    let val gth = forall_intr v th
        val {prop=Const("all",_)$Abs(x,ty,rst),sign,...} = rep_thm gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
-       val theta = Pattern.match sign (P,P')
+       val theta = Pattern.match sign (P,P') (Vartab.empty, Vartab.empty);
        val allI2 = instantiate (certify sign theta) allI
        val thm = Thm.implies_elim allI2 gth
        val {prop = tp $ (A $ Abs(_,_,M)),sign,...} = rep_thm thm
@@ -353,7 +353,7 @@ fun CHOOSE (fvar, exth) fact =
     val lam = #2 (D.dest_comb (D.drop_prop (cconcl exth)))
     val redex = D.capply lam fvar
     val {sign, t = t$u,...} = Thm.rep_cterm redex
-    val residue = Thm.cterm_of sign (betapply (t, u))
+    val residue = Thm.cterm_of sign (Term.betapply (t, u))
   in
     GEN fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg

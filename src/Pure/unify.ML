@@ -588,8 +588,8 @@ fun hounifiers (thy,env, tus : (term*term)list)
      val dps = map (fn(t,u)=> ([],t,u)) tus
   in add_unify 1 ((env, dps), Seq.empty) end;
 
-fun unifiers params =
-  Seq.cons ((Pattern.unify params, []), Seq.empty)
+fun unifiers (params as (thy, env, tus)) =
+  Seq.cons ((fold (Pattern.unify thy) tus env, []), Seq.empty)
     handle Pattern.Unif => Seq.empty
          | Pattern.Pattern => hounifiers params;
 

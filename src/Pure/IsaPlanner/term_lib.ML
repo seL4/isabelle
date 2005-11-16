@@ -141,7 +141,7 @@ fun ho_term_height  (a $ b) =
 (* Higher order matching with exception handled *)
 (* returns optional instantiation *)
 fun clean_match thy (a as (pat, t)) =
-  let val (tyenv, tenv) = Pattern.match thy a
+  let val (tyenv, tenv) = Pattern.match thy a (Vartab.empty, Vartab.empty)
   in SOME (Vartab.dest tyenv, Vartab.dest tenv)
   end handle Pattern.MATCH => NONE;
 (* Higher order unification with exception handled, return the instantiations *)

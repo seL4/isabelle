@@ -292,7 +292,7 @@ fun gen_cterm_match match
      ct2 as Cterm {t = t2, maxidx = maxidx2, sorts = sorts2, ...}) =
   let
     val thy_ref = merge_thys0 ct1 ct2;
-    val (Tinsts, tinsts) = match (Theory.deref thy_ref) (t1, t2);
+    val (Tinsts, tinsts) = match (Theory.deref thy_ref) (t1, t2) (Vartab.empty, Vartab.empty);
     val maxidx = Int.max (maxidx1, maxidx2);
     val sorts = Sorts.union sorts1 sorts2;
     fun mk_cTinst (ixn, (S, T)) =

@@ -103,14 +103,13 @@ fun condrew thy rules procs =
         let
           fun ren t = getOpt (Term.rename_abs tm1 tm t, t);
           val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
-          val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm);
+          val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm) (Vartab.empty, Vartab.empty);
           val prems' = map (pairself (Envir.subst_vars env o inc o ren)) prems;
           val env' = Envir.Envir
             {maxidx = Library.foldl Int.max
               (~1, map (Int.max o pairself maxidx_of_term) prems'),
              iTs = Tenv, asol = tenv};
-          val env'' = Library.foldl (fn (env, p) =>
-            Pattern.unify (thy, env, [pairself (lookup rew) p])) (env', prems')
+          val env'' = fold (Pattern.unify thy o pairself (lookup rew)) prems' env';
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)
           (sort (int_ord o pairself fst)
