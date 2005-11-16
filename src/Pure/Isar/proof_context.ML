@@ -43,6 +43,7 @@ sig
   val cert_typ_syntax: context -> typ -> typ
   val cert_typ_abbrev: context -> typ -> typ
   val get_skolem: context -> string -> string
+  val revert_skolem: context -> string -> string option
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
@@ -115,14 +116,16 @@ sig
       context -> (bstring * thm list) list * context
   val export_assume: exporter
   val export_presume: exporter
-  val cert_def: context -> term -> string * term
-  val export_def: exporter
   val assume: exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> context -> (bstring * thm list) list * context
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> context -> (bstring * thm list) list * context
+  val mk_def: context -> string * term -> term
+  val cert_def: context -> term -> string * term
+  val export_def: exporter
+  val add_def: string * term -> context -> ((string * typ) * thm) * context
   val add_view: context -> cterm list -> context -> context
   val export_view: cterm list -> context -> context -> thm -> thm
   val read_vars: (string list * string option) -> context -> (string list * typ option) * context
@@ -409,7 +412,7 @@ end;
 (* internalize Skolem constants *)
 
 val lookup_skolem = AList.lookup (op =) o fixes_of;
-fun get_skolem ctxt x = if_none (lookup_skolem ctxt x) x;
+fun get_skolem ctxt x = the_default x (lookup_skolem ctxt x);
 
 fun no_skolem internal ctxt x =
   if can Syntax.dest_skolem x then
@@ -432,20 +435,24 @@ fun intern_skolem ctxt internal =
   in intern end;
 
 
-(* externalize Skolem constants -- for printing purposes only *)
+(* externalize Skolem constants -- approximation only! *)
+
+fun revert_skolem ctxt =
+  let val rev_fixes = map Library.swap (fixes_of ctxt)
+  in AList.lookup (op =) rev_fixes end;
 
 fun extern_skolem ctxt =
   let
-    val rev_fixes = map Library.swap (fixes_of ctxt);
-
+    val revert = revert_skolem ctxt;
     fun extern (t as Free (x, T)) =
-          (case AList.lookup (op =) rev_fixes x of
-            SOME x' => Free (if lookup_skolem ctxt x' = SOME x then x' else NameSpace.hidden x', T)
-          | NONE => t)
+        (case revert x of
+          SOME x' => Free (if lookup_skolem ctxt x' = SOME x then x' else NameSpace.hidden x', T)
+        | NONE => t)
       | extern (t $ u) = extern t $ extern u
       | extern (Abs (x, T, t)) = Abs (x, T, extern t)
       | extern a = a;
   in extern end
+
 
 
 (** prepare terms and propositions **)
@@ -644,7 +651,7 @@ end;
 
 fun read_tyname ctxt c =
   if c mem_string used_types ctxt then
-    TFree (c, if_none (def_sort ctxt (c, ~1)) (Sign.defaultS (theory_of ctxt)))
+    TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (def_sort ctxt (c, ~1)))
   else Sign.read_tyname (theory_of ctxt) c;
 
 fun read_const ctxt c =
@@ -699,7 +706,7 @@ fun generalize_tfrees inner outer =
 
 fun generalize inner outer ts =
   let
-    val tfrees = generalize_tfrees inner outer (foldr Term.add_term_tfree_names [] ts);
+    val tfrees = generalize_tfrees inner outer (map #1 (fold Term.add_tfrees ts []));
     fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
   in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
 
@@ -714,7 +721,7 @@ fun common_exports is_goal inner outer =
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
-    Goal.norm_hhf
+    Goal.norm_hhf'
     #> Seq.EVERY (rev exp_asms)
     #> Seq.map (fn rule =>
       let
@@ -725,7 +732,7 @@ fun common_exports is_goal inner outer =
       in
         rule
         |> Drule.forall_intr_list frees
-        |> Goal.norm_hhf
+        |> Goal.norm_hhf'
         |> Drule.tvars_intr_list tfrees |> #2
       end)
   end;
@@ -1032,101 +1039,6 @@ end;
 
 (** assumptions **)
 
-(* basic exporters *)
-
-fun export_assume true = Seq.single oo Drule.implies_intr_protected
-  | export_assume false = Seq.single oo Drule.implies_intr_list;
-
-fun export_presume _ = export_assume false;
-
-
-(* defs *)
-
-fun cert_def ctxt eq =
-  let
-    fun err msg = raise CONTEXT (msg ^
-      "\nThe error(s) above occurred in local definition: " ^ string_of_term ctxt eq, ctxt);
-    val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
-      handle TERM _ => err "Not a meta-equality (==)";
-    val (f, xs) = Term.strip_comb lhs;
-    val (c, _) = Term.dest_Free f handle TERM _ =>
-      err "Head of lhs must be a free/fixed variable";
-
-    fun is_free (Free (x, _)) = not (is_fixed ctxt x)
-      | is_free _ = false;
-    val extra_frees = List.filter is_free (term_frees rhs) \\ xs;
-  in
-    conditional (not (forall (is_Bound orf is_free) xs andalso null (duplicates xs))) (fn () =>
-      err "Arguments of lhs must be distinct free/bound variables");
-    conditional (f mem Term.term_frees rhs) (fn () =>
-      err "Element to be defined occurs on rhs");
-    conditional (not (null extra_frees)) (fn () =>
-      err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
-    (c, Term.list_all_free (List.mapPartial (try Term.dest_Free) xs, eq))
-  end;
-
-fun head_of_def cprop =
-  #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
-  |> Thm.cterm_of (Thm.theory_of_cterm cprop);
-
-fun export_def _ cprops thm =
-  thm
-  |> Drule.implies_intr_list cprops
-  |> Drule.forall_intr_list (map head_of_def cprops)
-  |> Drule.forall_elim_vars 0
-  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
-
-
-(* assume *)
-
-local
-
-fun add_assm ((name, attrs), props) ctxt =
-  let
-    val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
-    val asms = map (Goal.norm_hhf o Thm.assume) cprops;
-
-    val ths = map (fn th => ([th], [])) asms;
-    val ([(_, thms)], ctxt') =
-      ctxt
-      |> auto_bind_facts props
-      |> note_thmss_i [((name, attrs), ths)];
-  in ((cprops, (name, asms), (name, thms)), ctxt') end;
-
-fun gen_assms prepp exp args ctxt =
-  let
-    val (ctxt1, propss) = prepp (ctxt, map snd args);
-    val (results, ctxt2) = fold_map add_assm (map fst args ~~ propss) ctxt1;
-
-    val cprops = List.concat (map #1 results);
-    val asmss = map #2 results;
-    val thmss = map #3 results;
-    val ctxt3 = ctxt2 |> map_context
-      (fn (syntax, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
-        (syntax, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
-          cases, defs));
-    val ctxt4 = ctxt3 |> put_thms ("prems", SOME (prems_of ctxt3));
-  in (thmss, warn_extra_tfrees ctxt ctxt4) end;
-
-in
-
-val assume = gen_assms (apsnd #1 o bind_propp);
-val assume_i = gen_assms (apsnd #1 o bind_propp_i);
-
-end;
-
-
-(* views *)
-
-fun add_view outer view =
-  map_context (fn (syntax, ((asms, prems), fixes), binds, thms, cases, defs) =>
-    let
-      val (asms1, asms2) = splitAt (length (assumptions_of outer), asms);
-      val asms' = asms1 @ [(view, export_assume)] @ asms2;
-    in (syntax, ((asms', prems), fixes), binds, thms, cases, defs) end);
-
-fun export_view view inner outer = export (add_view outer view inner) outer;
-
 
 (* variables *)
 
@@ -1143,7 +1055,7 @@ fun prep_vars prep_typ internal liberal (xs, raw_T) ctxt =
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
-    val T = if_none opt_T TypeInfer.logicT;
+    val T = the_default TypeInfer.logicT opt_T;
     val ctxt' = ctxt |> fold declare_term_syntax (map (fn x => Free (x, T)) xs);
   in ((xs, opt_T), ctxt') end;
 
@@ -1237,6 +1149,117 @@ fun bind_skolem ctxt xs =
   in bind end;
 
 
+(* basic exporters *)
+
+fun export_assume true = Seq.single oo Drule.implies_intr_protected
+  | export_assume false = Seq.single oo Drule.implies_intr_list;
+
+fun export_presume _ = export_assume false;
+
+
+(* assume *)
+
+local
+
+fun add_assm ((name, attrs), props) ctxt =
+  let
+    val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
+    val asms = map (Goal.norm_hhf o Thm.assume) cprops;
+
+    val ths = map (fn th => ([th], [])) asms;
+    val ([(_, thms)], ctxt') =
+      ctxt
+      |> auto_bind_facts props
+      |> note_thmss_i [((name, attrs), ths)];
+  in ((cprops, (name, asms), (name, thms)), ctxt') end;
+
+fun gen_assms prepp exp args ctxt =
+  let
+    val (ctxt1, propss) = prepp (ctxt, map snd args);
+    val (results, ctxt2) = fold_map add_assm (map fst args ~~ propss) ctxt1;
+
+    val cprops = List.concat (map #1 results);
+    val asmss = map #2 results;
+    val thmss = map #3 results;
+    val ctxt3 = ctxt2 |> map_context
+      (fn (syntax, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
+        (syntax, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
+          cases, defs));
+    val ctxt4 = ctxt3 |> put_thms ("prems", SOME (prems_of ctxt3));
+  in (thmss, warn_extra_tfrees ctxt ctxt4) end;
+
+in
+
+val assume = gen_assms (apsnd #1 o bind_propp);
+val assume_i = gen_assms (apsnd #1 o bind_propp_i);
+
+end;
+
+
+(* defs *)
+
+fun mk_def ctxt (x, rhs) =
+  let val lhs = bind_skolem ctxt [x] (Free (x, Term.fastype_of rhs));
+  in Logic.mk_equals (lhs, rhs) end;
+
+fun cert_def ctxt eq =
+  let
+    fun err msg = raise CONTEXT (msg ^
+      "\nThe error(s) above occurred in local definition: " ^ string_of_term ctxt eq, ctxt);
+    val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
+      handle TERM _ => err "Not a meta-equality (==)";
+    val (f, xs) = Term.strip_comb lhs;
+    val (c, _) = Term.dest_Free f handle TERM _ =>
+      err "Head of lhs must be a free/fixed variable";
+
+    fun is_free (Free (x, _)) = not (is_fixed ctxt x)
+      | is_free _ = false;
+    val extra_frees = List.filter is_free (term_frees rhs) \\ xs;
+  in
+    conditional (not (forall (is_Bound orf is_free) xs andalso null (duplicates xs))) (fn () =>
+      err "Arguments of lhs must be distinct free/bound variables");
+    conditional (f mem Term.term_frees rhs) (fn () =>
+      err "Element to be defined occurs on rhs");
+    conditional (not (null extra_frees)) (fn () =>
+      err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
+    (c, Term.list_all_free (List.mapPartial (try Term.dest_Free) xs, eq))
+  end;
+
+fun head_of_def cprop =
+  #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
+  |> Thm.cterm_of (Thm.theory_of_cterm cprop);
+
+fun export_def _ cprops thm =
+  thm
+  |> Drule.implies_intr_list cprops
+  |> Drule.forall_intr_list (map head_of_def cprops)
+  |> Drule.forall_elim_vars 0
+  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
+
+fun add_def (x, t) ctxt =
+  let
+    val eq = mk_def ctxt (x, t);
+    val x' = Term.dest_Free (fst (Logic.dest_equals eq));
+  in
+    ctxt
+    |> fix_i [([x], NONE)]
+    |> assume_i export_def [(("", []), [(eq, ([], []))])]
+    |>> (fn [(_, [th])] => (x', th))
+  end;
+
+
+(* views *)
+
+fun add_view outer view =
+  map_context (fn (syntax, ((asms, prems), fixes), binds, thms, cases, defs) =>
+    let
+      val (asms1, asms2) = splitAt (length (assumptions_of outer), asms);
+      val asms' = asms1 @ [(view, export_assume)] @ asms2;
+    in (syntax, ((asms', prems), fixes), binds, thms, cases, defs) end);
+
+fun export_view view inner outer = export (add_view outer view inner) outer;
+
+
 
 (** cases **)
 
@@ -1244,19 +1267,19 @@ fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
   let
     fun bind (x, T) c = (bind_skolem c [x] (Free (x, T)), c |> fix_i [([x], SOME T)]);
     val (xs, ctxt') = fold_map bind fixes ctxt;
-    fun app t = Library.foldl Term.betapply (t, xs);
+    fun app t = Term.betapplys (t, xs);
   in ((map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes), ctxt') end;
 
 local
 
 fun prep_case ctxt name xs {fixes, assumes, binds} =
   let
-    fun replace (opt_x :: xs) ((y, T) :: ys) = (if_none opt_x y, T) :: replace xs ys
+    fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
       | replace [] ys = ys
       | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
   in
-    if null (foldr Term.add_typ_tvars [] (map snd fixes)) andalso
-      null (foldr Term.add_term_vars [] (List.concat (map snd assumes))) then
+    if null (fold (Term.add_tvarsT o snd) fixes []) andalso
+      null (fold (fold Term.add_vars o snd) assumes []) then
         {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;
