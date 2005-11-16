@@ -18,6 +18,7 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_hhf: thm -> thm
+  val norm_hhf': thm -> thm
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
@@ -74,11 +75,21 @@ fun finish th =
 
 (* HHF normal form *)
 
-val norm_hhf =
+val norm_hhf_ss =
+  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
+    addsimps [Drule.norm_hhf_eq];
+
+val norm_hhf_ss' = norm_hhf_ss addeqcongs [Drule.protect_cong];
+
+fun gen_norm_hhf protected =
   (not o Drule.is_norm_hhf o Thm.prop_of) ?
-    MetaSimplifier.simplify_aux (K (K NONE)) true [Drule.norm_hhf_eq]
+    Drule.fconv_rule (MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE))
+      (if protected then norm_hhf_ss else norm_hhf_ss'))
   #> Thm.adjust_maxidx_thm
   #> Drule.gen_all;
+
+val norm_hhf = gen_norm_hhf true;
+val norm_hhf' = gen_norm_hhf false;
 
 
 (* composition of normal results *)
