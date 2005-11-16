@@ -65,10 +65,13 @@ val depth_limit = ref 2000;
 
 (**** Operators for forward proof ****)
 
+(*Like RS, but raises Option if there are no unifiers and allows multiple unifiers.*)
+fun resolve1 (tha,thb) = Seq.hd (biresolution false [(false,tha)] 1 thb);
+
 (*raises exception if no rules apply -- unlike RL*)
 fun tryres (th, rls) = 
   let fun tryall [] = raise THM("tryres", 0, th::rls)
-        | tryall (rl::rls) = (th RS rl handle THM _ => tryall rls)
+        | tryall (rl::rls) = (resolve1(th,rl) handle Option => tryall rls)
   in  tryall rls  end;
   
 (*Permits forward proof from rules that discharge assumptions*)
