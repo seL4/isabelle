@@ -13,76 +13,70 @@ text_raw {*
  $n$.  Demonstrate that $f$ is the identity.
 *}
 
-theorem "(!!n::nat. f (f n) < f (Suc n)) ==> f n = n"
+theorem
+  fixes n :: nat
+  assumes f_ax: "\<And>n. f (f n) < f (Suc n)"
+  shows "f n = n"
 proof (rule order_antisym)
-  assume f_ax: "!!n. f (f n) < f (Suc n)"
-
-  txt {*
-    Note that the generalized form of $n \le f \ap n$ is required
-    later for monotonicity as well.
-  *}
-  show ge: "!!n. n <= f n"
-  proof -
-    fix k show "!!n. k == f n ==> n <= k" (is "PROP ?P k")
-    proof (induct k rule: less_induct)
-      fix k assume hyp: "!!m. m < k ==> PROP ?P m"
-      fix n assume k_def: "k == f n"
-      show "n <= k"
+  {
+    fix n show "n \<le> f n"
+    proof (induct k \<equiv> "f n" rule: less_induct fixing: n)
+      case (less k n)
+      then have hyp: "\<And>m. f m < f n \<Longrightarrow> m \<le> f m" by (simp only:)
+      show "n \<le> f n"
       proof (cases n)
-        assume "n = 0" thus ?thesis by simp
+	case (Suc m)
+	from f_ax have "f (f m) < f n" by (simp only: Suc)
+	with hyp have "f m \<le> f (f m)" .
+	also from f_ax have "\<dots> < f n" by (simp only: Suc)
+	finally have "f m < f n" .
+	with hyp have "m \<le> f m" .
+	also note `\<dots> < f n`
+	finally have "m < f n" .
+	then have "n \<le> f n" by (simp only: Suc)
+	then show ?thesis .
       next
-        fix m assume Suc: "n = Suc m"
-        from f_ax have "f (f m) < f (Suc m)" .
-        with hyp k_def Suc have "f m <= f (f m)" by simp
-        also from f_ax have "... < f (Suc m)" .
-        finally have less: "f m < f (Suc m)" .
-        with hyp k_def Suc have "m <= f m" by simp
-        also note less
-        finally have "m < f (Suc m)" .
-        hence "n <= f n" by (simp only: Suc)
-        thus ?thesis by (simp only: k_def)
+	case 0
+	then show ?thesis by simp
       qed
     qed
-  qed
+  } note ge = this
 
-  txt {*
-    In order to show the other direction, we first establish
-    monotonicity of $f$.
-  *}
   {
-    fix m n
-    have "m <= n \<Longrightarrow> f m <= f n" (is "PROP ?P n")
+    fix m n :: nat
+    assume "m \<le> n"
+    then have "f m \<le> f n"
     proof (induct n)
-      assume "m <= 0" hence "m = 0" by simp
-      thus "f m <= f 0" by simp
+      case 0
+      then have "m = 0" by simp
+      then show ?case by simp
     next
-      fix n assume hyp: "PROP ?P n"
-      assume "m <= Suc n"
-      thus "f m <= f (Suc n)"
+      case (Suc n)
+      from Suc.prems show "f m \<le> f (Suc n)"
       proof (rule le_SucE)
-        assume "m <= n"
-        with hyp have "f m <= f n" .
-        also from ge f_ax have "... < f (Suc n)"
+        assume "m \<le> n"
+        with Suc.hyps have "f m \<le> f n" .
+        also from ge f_ax have "\<dots> < f (Suc n)"
           by (rule le_less_trans)
         finally show ?thesis by simp
       next
         assume "m = Suc n"
-        thus ?thesis by simp
+        then show ?thesis by simp
       qed
     qed
   } note mono = this
 
-  show "f n <= n"
+  show "f n \<le> n"
   proof -
-    have "~ n < f n"
+    have "\<not> n < f n"
     proof
       assume "n < f n"
-      hence "Suc n <= f n" by simp
-      hence "f (Suc n) <= f (f n)" by (rule mono)
-      also have "... < f (Suc n)" by (rule f_ax)
-      finally have "... < ..." . thus False ..
+      then have "Suc n \<le> f n" by simp
+      then have "f (Suc n) \<le> f (f n)" by (rule mono)
+      also have "\<dots> < f (Suc n)" by (rule f_ax)
+      finally have "\<dots> < \<dots>" . then show False ..
     qed
-    thus ?thesis by simp
+    then show ?thesis by simp
   qed
 qed
 
