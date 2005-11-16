@@ -21,11 +21,13 @@ sig
   val eta_long: typ list -> term -> term
   val beta_eta_contract: term -> term
   val eta_contract_atom: term -> term
-  val match: theory -> term * term -> Type.tyenv * Envir.tenv
-  val first_order_match: theory -> term * term -> Type.tyenv * Envir.tenv
+  val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
+  val first_order_match: theory -> term * term
+    -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val matches: theory -> term * term -> bool
+  val matches_list: theory -> (term * term) list -> bool
   val matches_subterm: theory -> term * term -> bool
-  val unify: theory * Envir.env * (term * term)list -> Envir.env
+  val unify: theory -> term * term -> Envir.env -> Envir.env
   val first_order: term -> bool
   val pattern: term -> bool
   val rewrite_term: theory -> (term * term) list -> (term -> term option) list -> term -> term
@@ -220,18 +222,18 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
                  end;
   in if xless(G,F) then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
-fun unify_types thy (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
+fun unify_types thy (T,U) (env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
   else let val (iTs',maxidx') = Sign.typ_unify thy (U, T) (iTs, maxidx)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => (typ_clash thy (iTs,T,U); raise Unif);
 
-fun unif thy binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
+fun unif thy binders (s,t) env = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
          let val name = if ns = "" then nt else ns
-         in unif thy ((name,Ts)::binders) (env,(ts,tt)) end
-    | (Abs(ns,Ts,ts),t) => unif thy ((ns,Ts)::binders) (env,(ts,(incr t)$Bound(0)))
-    | (t,Abs(nt,Tt,tt)) => unif thy ((nt,Tt)::binders) (env,((incr t)$Bound(0),tt))
+         in unif thy ((name,Ts)::binders) (ts,tt) env end
+    | (Abs(ns,Ts,ts),t) => unif thy ((ns,Ts)::binders) (ts,(incr t)$Bound(0)) env
+    | (t,Abs(nt,Tt,tt)) => unif thy ((nt,Tt)::binders) ((incr t)$Bound(0),tt) env
     | p => cases thy (binders,env,p)
 
 and cases thy (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
@@ -255,11 +257,11 @@ and cases thy (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
 
 and rigidrigid thy (env,binders,(a,Ta),(b,Tb),ss,ts) =
       if a<>b then (clash a b; raise Unif)
-      else Library.foldl (unif thy binders) (unify_types thy (Ta,Tb,env), ss~~ts)
+      else env |> unify_types thy (Ta,Tb) |> fold (unif thy binders) (ss~~ts)
 
 and rigidrigidB thy (env,binders,i,j,ss,ts) =
      if i <> j then (clashBB binders i j; raise Unif)
-     else Library.foldl (unif thy binders) (env ,ss~~ts)
+     else fold (unif thy binders) (ss~~ts) env
 
 and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
       if occurs(F,t,env) then (ocheck_fail thy (F,t,binders,env); raise Unif)
@@ -267,7 +269,7 @@ and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
             in Envir.update (((F, Fty), mkabs (binders, is, u)), env') end
             handle Unif => (proj_fail thy params; raise Unif));
 
-fun unify(thy,env,tus) = Library.foldl (unif thy []) (env,tus);
+fun unify thy = unif thy [];
 
 
 (*Eta-contract a term (fully)*)
@@ -338,38 +340,36 @@ and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
 
 exception MATCH;
 
-fun typ_match thy (tyenv, TU) = Sign.typ_match thy TU tyenv
+fun typ_match thy TU tyenv = Sign.typ_match thy TU tyenv
   handle Type.TYPE_MATCH => raise MATCH;
 
 (*First-order matching;
-  fomatch thy (pattern, object) returns a (tyvar,typ)list and (var,term)list.
   The pattern and object may have variables in common.
   Instantiation does not affect the object, so matching ?a with ?a+1 works.
   Object is eta-contracted on the fly (by eta-expanding the pattern).
   Precondition: the pattern is already eta-contracted!
-  Note: types are matched on the fly *)
-fun fomatch thy =
+  Types are matched on the fly*)
+fun first_order_match thy =
   let
     fun mtch (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
           if loose_bvar(t,0) then raise MATCH
           else (case Envir.lookup' (insts, (ixn, T)) of
-                  NONE => (typ_match thy (tyinsts, (T, fastype_of t)),
+                  NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
                 | SOME u => if t aeconv u then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
-          if a=b then (typ_match thy (tyinsts,(T,U)), insts) else raise MATCH
+          if a=b then (typ_match thy (T,U) tyinsts, insts) else raise MATCH
       | (Const (a,T), Const (b,U))  =>
-          if a=b then (typ_match thy (tyinsts,(T,U)), insts) else raise MATCH
+          if a=b then (typ_match thy (T,U) tyinsts, insts) else raise MATCH
       | (Bound i, Bound j)  =>  if  i=j  then  instsp  else raise MATCH
       | (Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (typ_match thy (tyinsts,(T,U)),insts) (t,u)
+          mtch (typ_match thy (T,U) tyinsts, insts) (t,u)
       | (f$t, g$u) => mtch (mtch instsp (f,g)) (t, u)
       | (t, Abs(_,U,u))  =>  mtch instsp ((incr t)$(Bound 0), u)
       | _ => raise MATCH
-  in mtch end;
+  in fn tu => fn env => mtch env tu end;
 
-fun first_order_match thy = fomatch thy (Vartab.empty, Vartab.empty);
 
 (* Matching of higher-order patterns *)
 
@@ -384,28 +384,27 @@ fun match_bind(itms,binders,ixn,T,is,t) =
           else raise MATCH
   end;
 
-fun match thy (po as (pat,obj)) =
+fun match thy (po as (pat,obj)) envir =
 let
   (* Pre: pat and obj have same type *)
-  fun mtch binders (env as (iTs,itms),(pat,obj)) =
+  fun mtch binders (pat,obj) (env as (iTs,itms)) =
     case pat of
       Abs(ns,Ts,ts) =>
         (case obj of
-           Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (env,(ts,tt))
+           Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (ts,tt) env
          | _ => let val Tt = Envir.typ_subst_TVars iTs Ts
-                in mtch((ns,Tt)::binders)(env,(ts,(incr obj)$Bound(0))) end)
+                in mtch((ns,Tt)::binders) (ts,(incr obj)$Bound(0)) env end)
     | _ => (case obj of
               Abs(nt,Tt,tt) =>
-                mtch((nt,Tt)::binders)(env,((incr pat)$Bound(0),tt))
+                mtch((nt,Tt)::binders) ((incr pat)$Bound(0),tt) env
             | _ => cases(binders,env,pat,obj))
 
   and cases(binders,env as (iTs,itms),pat,obj) =
     let val (ph,pargs) = strip_comb pat
-        fun rigrig1(iTs,oargs) =
-              Library.foldl (mtch binders) ((iTs,itms), pargs~~oargs)
+        fun rigrig1(iTs,oargs) = fold (mtch binders) (pargs~~oargs) (iTs,itms)
         fun rigrig2((a:string,Ta),(b,Tb),oargs) =
               if a <> b then raise MATCH
-              else rigrig1(typ_match thy (iTs,(Ta,Tb)), oargs)
+              else rigrig1(typ_match thy (Ta,Tb) iTs, oargs)
     in case ph of
          Var(ixn,T) =>
            let val is = ints_of pargs
@@ -429,15 +428,15 @@ let
 
   val pT = fastype_of pat
   and oT = fastype_of obj
-  val iTs = typ_match thy (Vartab.empty, (pT,oT))
-  val insts2 = (iTs, Vartab.empty)
-
-in mtch [] (insts2, po)
-   handle Pattern => fomatch thy insts2 po
-end;
+  val envir' = apfst (typ_match thy (pT, oT)) envir;
+in mtch [] po envir' handle Pattern => first_order_match thy po envir' end;
 
 (*Predicate: does the pattern match the object?*)
-fun matches thy po = (match thy po; true) handle MATCH => false;
+fun matches thy po = (match thy po (Vartab.empty, Vartab.empty); true) handle MATCH => false;
+
+fun matches_list thy pos =
+  (fold (match thy) pos (Vartab.empty, Vartab.empty); true) handle MATCH => false;
+
 
 (* Does pat match a subterm of obj? *)
 fun matches_subterm thy (pat,obj) =
@@ -478,7 +477,7 @@ fun rewrite_term thy rules procs tm =
 
     fun match_rew tm (tm1, tm2) =
       let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2 in
-        SOME (Envir.subst_vars (match thy (tm1, tm)) rtm, rtm)
+        SOME (Envir.subst_vars (match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
           handle MATCH => NONE
       end;
 
