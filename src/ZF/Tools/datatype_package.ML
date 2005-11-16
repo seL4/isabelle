@@ -308,7 +308,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
             (recursor_tm $
              (list_comb (Const (Sign.intern_const (sign_of thy1) name,T),
                          args)),
-             subst_rec (Library.foldl betapply (recursor_case, args))));
+             subst_rec (Term.betapplys (recursor_case, args))));
 
         val recursor_trans = recursor_def RS def_Vrecursor RS trans;
 

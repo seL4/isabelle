@@ -225,7 +225,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
               val vs = vars_of prop;
               val tvars = term_tvars prop;
               val (_, rhs) = Logic.dest_equals prop;
-              val rhs' = Library.foldl betapply (subst_TVars (map fst tvars ~~ Ts)
+              val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (foldr (fn p => Abs ("", dummyT, abstract_over p)) rhs vs),
                 map valOf ts);
             in
