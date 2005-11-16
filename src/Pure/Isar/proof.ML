@@ -430,10 +430,11 @@ end;
 local
 
 fun refine_tac rule =
-  Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
-    if can Logic.unprotect (Logic.strip_assums_concl goal) then
-      Tactic.etac Drule.protectI i
-    else all_tac));
+  Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW
+    (Tactic.norm_hhf_tac THEN' (SUBGOAL (fn (goal, i) =>
+      if can Logic.unprotect (Logic.strip_assums_concl goal) then
+        Tactic.etac Drule.protectI i
+      else all_tac)));
 
 fun refine_goal print_rule inner raw_rule state =
   let val (outer, (_, {statement, using, goal, before_qed, after_qed})) = find_goal state in
@@ -559,17 +560,15 @@ fun gen_def fix prep_att prep_term prep_pats
     val ctxt = context_of state;
 
     val rhs = prep_term ctxt raw_rhs;
-    val T = Term.fastype_of rhs;
-    val pats = prep_pats T (ProofContext.declare_term rhs ctxt) raw_pats;
-    val lhs = ProofContext.bind_skolem ctxt [x] (Free (x, T));
-
+    val pats = prep_pats (Term.fastype_of rhs) (ProofContext.declare_term rhs ctxt) raw_pats;
+    val eq = ProofContext.mk_def ctxt (x, rhs);
     val name = if raw_name = "" then Thm.def_name x else raw_name;
     val atts = map (prep_att thy) raw_atts;
   in
     state
     |> fix [([x], NONE)]
     |> match_bind_i [(pats, rhs)]
-    |> assm_i ProofContext.export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
+    |> assm_i ProofContext.export_def [((name, atts), [(eq, ([], []))])]
   end;
 
 in
