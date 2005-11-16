@@ -8,52 +8,52 @@ Abstract syntax operations of the Pure meta-logic.
 
 signature LOGIC =
 sig
-  val is_all            : term -> bool
-  val mk_equals         : term * term -> term
-  val dest_equals       : term -> term * term
-  val is_equals         : term -> bool
-  val mk_implies        : term * term -> term
-  val dest_implies      : term -> term * term
-  val is_implies        : term -> bool
-  val list_implies      : term list * term -> term
-  val strip_imp_prems   : term -> term list
-  val strip_imp_concl   : term -> term
-  val strip_prems       : int * term list * term -> term list * term
-  val count_prems       : term * int -> int
-  val nth_prem          : int * term -> term
-  val mk_conjunction    : term * term -> term
+  val is_all: term -> bool
+  val mk_equals: term * term -> term
+  val dest_equals: term -> term * term
+  val is_equals: term -> bool
+  val mk_implies: term * term -> term
+  val dest_implies: term -> term * term
+  val is_implies: term -> bool
+  val list_implies: term list * term -> term
+  val strip_imp_prems: term -> term list
+  val strip_imp_concl: term -> term
+  val strip_prems: int * term list * term -> term list * term
+  val count_prems: term * int -> int
+  val nth_prem: int * term -> term
+  val mk_conjunction: term * term -> term
   val mk_conjunction_list: term list -> term
-  val strip_horn        : term -> term list * term
-  val mk_cond_defpair   : term list -> term * term -> string * term
-  val mk_defpair        : term * term -> string * term
-  val mk_type           : typ -> term
-  val dest_type         : term -> typ
-  val mk_inclass        : typ * class -> term
-  val dest_inclass      : term -> typ * class
-  val protectC          : term
-  val protect           : term -> term
-  val unprotect         : term -> term
-  val occs              : term * term -> bool
-  val close_form        : term -> term
-  val incr_indexes      : typ list * int -> term -> term
-  val incr_tvar         : int -> typ -> typ
-  val lift_abs          : int -> term -> term -> term
-  val lift_all          : int -> term -> term -> term
-  val strip_assums_hyp  : term -> term list
+  val strip_horn: term -> term list * term
+  val mk_cond_defpair: term list -> term * term -> string * term
+  val mk_defpair: term * term -> string * term
+  val mk_type: typ -> term
+  val dest_type: term -> typ
+  val mk_inclass: typ * class -> term
+  val dest_inclass: term -> typ * class
+  val protectC: term
+  val protect: term -> term
+  val unprotect: term -> term
+  val occs: term * term -> bool
+  val close_form: term -> term
+  val incr_indexes: typ list * int -> term -> term
+  val incr_tvar: int -> typ -> typ
+  val lift_abs: int -> term -> term -> term
+  val lift_all: int -> term -> term -> term
+  val strip_assums_hyp: term -> term list
   val strip_assums_concl: term -> term
-  val strip_params      : term -> (string * typ) list
-  val has_meta_prems    : term -> int -> bool
-  val flatten_params    : int -> term -> term
-  val auto_rename       : bool ref
-  val set_rename_prefix : string -> unit
+  val strip_params: term -> (string * typ) list
+  val has_meta_prems: term -> int -> bool
+  val flatten_params: int -> term -> term
+  val auto_rename: bool ref
+  val set_rename_prefix: string -> unit
   val list_rename_params: string list * term -> term
-  val assum_pairs       : int * term -> (term*term)list
-  val varify            : term -> term
-  val unvarify          : term -> term
-  val get_goal          : term -> int -> term
-  val goal_params       : term -> int -> term * term list
-  val prems_of_goal     : term -> int -> term list
-  val concl_of_goal     : term -> int -> term
+  val assum_pairs: int * term -> (term*term)list
+  val varify: term -> term
+  val unvarify: term -> term
+  val get_goal: term -> int -> term
+  val goal_params: term -> int -> term * term list
+  val prems_of_goal: term -> int -> term list
+  val concl_of_goal: term -> int -> term
 end;
 
 structure Logic : LOGIC =
@@ -94,8 +94,8 @@ fun is_implies (Const ("==>", _) $ _ $ _) = true
 (** nested implications **)
 
 (* [A1,...,An], B  goes to  A1==>...An==>B  *)
-fun list_implies ([], B) = B : term
-  | list_implies (A::AS, B) = implies $ A $ list_implies(AS,B);
+fun list_implies ([], B) = B
+  | list_implies (A::As, B) = implies $ A $ list_implies(As,B);
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems (Const("==>", _) $ A $ B) = A :: strip_imp_prems B
@@ -130,7 +130,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 (** conjunction **)
 
 fun mk_conjunction (t, u) =
-  Term.list_all ([("C", propT)], mk_implies (list_implies ([t, u], Bound 0), Bound 0));
+  Term.list_all ([("X", propT)], mk_implies (list_implies ([t, u], Bound 0), Bound 0));
 
 fun mk_conjunction_list [] = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0))
   | mk_conjunction_list ts = foldr1 mk_conjunction ts;
@@ -166,7 +166,6 @@ fun dest_inclass (t as Const (c_class, _) $ ty) =
   | dest_inclass t = raise TERM ("dest_inclass", [t]);
 
 
-
 (** protected propositions **)
 
 val protectC = Const ("prop", propT --> propT);
@@ -174,6 +173,7 @@ fun protect t = protectC $ t;
 
 fun unprotect (Const ("prop", _) $ t) = t
   | unprotect t = raise TERM ("unprotect", [t]);
+
 
 
 (*** Low-level term operations ***)
