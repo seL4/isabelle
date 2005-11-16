@@ -186,14 +186,11 @@ qed
 lemma domino_finite:
   assumes "d: domino"
   shows "finite d"
-proof -
-  from `d: domino`
-  show ?thesis
-  proof induct
-    fix i j :: nat
-    show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
-    show "finite {(i, j), (i + 1, j)}" by (intro Finites.intros)
-  qed
+  using prems
+proof induct
+  fix i j :: nat
+  show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
+  show "finite {(i, j), (i + 1, j)}" by (intro Finites.intros)
 qed
 
 
