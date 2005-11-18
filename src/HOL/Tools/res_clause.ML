@@ -548,9 +548,11 @@ fun make_axiom_clause_thm thm (ax_name,cls_id) =
     end;
 
 
-
+(* check if a clause is FOL first*)
 fun make_conjecture_clause n t =
-    let val (lits,types_sorts, preds, funcs) = literals_of_term t
+    let val _ = check_is_fol_term t
+	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
+	val (lits,types_sorts, preds, funcs) = literals_of_term t
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
         val tvars = get_tvar_strs types_sorts
     in
@@ -566,8 +568,11 @@ fun make_conjecture_clauses_aux _ [] = []
 val make_conjecture_clauses = make_conjecture_clauses_aux 0
 
 
+(*before converting an axiom clause to "clause" format, check if it is FOL*)
 fun make_axiom_clause term (ax_name,cls_id) =
-    let val (lits,types_sorts, preds,funcs) = literals_of_term term
+    let val _ = check_is_fol_term term 
+	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Axiom is not FOL", term) 
+	val (lits,types_sorts, preds,funcs) = literals_of_term term
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds
         val tvars = get_tvar_strs types_sorts	
     in 
