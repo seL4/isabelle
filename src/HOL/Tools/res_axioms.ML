@@ -15,9 +15,7 @@ signature RES_AXIOMS =
   val clausify_axiom_pairs : (string*thm) -> (ResClause.clause*thm) list
   val clausify_axiom_pairsH : (string*thm) -> (ResHolClause.clause*thm) list
   val cnf_axiom : (string * thm) -> thm list
-  val cnf_axiomH : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
-  val meta_cnf_axiomH : thm -> thm list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val claset_rules_of_ctxt: Proof.context -> (string * thm) list
@@ -28,10 +26,11 @@ signature RES_AXIOMS =
   val meson_method_setup : (theory -> theory) list
   val pairname : thm -> (string * thm)
   val repeat_RS : thm -> thm -> thm
+  val cnf_axiom_aux : thm -> thm list
 
   end;
 
-structure ResAxioms (*: RES_AXIOMS*) =
+structure ResAxioms : RES_AXIOMS =
  
 struct
 
@@ -142,14 +141,6 @@ fun repeat_RS thm1 thm2 =
     in
 	if eq_thm(thm1,thm1') then thm1' else (repeat_RS thm1' thm2)
     end;
-
-
-(*Convert a theorem into NNF and also skolemize it. Original version, using
-  Hilbert's epsilon in the resulting clauses.   FIXME DELETE*)
-fun skolem_axiom_g mk_nnf th = 
-  let val th' = (skolemize o mk_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) th
-  in  repeat_RS th' someI_ex
-  end;
 
 
 (*Transfer a theorem into theory Reconstruction.thy if it is not already
@@ -266,12 +257,15 @@ fun skolem_of_def def =
        |> Thm.varifyT
   end;
 
-(*Converts an Isabelle theorem (intro, elim or simp format) into nnf.
-  FIXME: generalize so that it works for HOL too!!*)
+(*Converts an Isabelle theorem (intro, elim or simp format) into nnf.*)
+(*It now works for HOL too. *)
 fun to_nnf th = 
     th |> transfer_to_Reconstruction
        |> transform_elim |> Drule.freeze_all
        |> ObjectLogic.atomize_thm |> make_nnf;
+
+
+
 
 (*The cache prevents repeated clausification of a theorem, 
   and also repeated declaration of Skolem functions*)  (* FIXME better use Termtab!? *)
@@ -282,13 +276,15 @@ val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 fun skolem_of_nnf th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns th);
 
-(*Skolemize a named theorem, returning a modified theory. NONE can occur if the
-  theorem is not first-order.*)
+(*Skolemize a named theorem, returning a modified theory.*)
+(*also works for HOL*) 
 fun skolem_thm th = 
   Option.map (fn nnfth => Meson.make_cnf (skolem_of_nnf nnfth) nnfth)
 	 (SOME (to_nnf th)  handle THM _ => NONE);
 
+
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
+(*in case skolemization fails, the input theory is not changed*)
 fun skolem thy (name,th) =
   let val cname = (case name of "" => gensym "sko" | s => Sign.base_name s)
   in Option.map 
@@ -296,7 +292,7 @@ fun skolem thy (name,th) =
           let val (thy',defs) = declare_skofuns cname nnfth thy
               val skoths = map skolem_of_def defs
           in (thy', Meson.make_cnf skoths nnfth) end)
-      (SOME (to_nnf th)  handle THM _ => NONE)
+      (SOME (to_nnf th)  handle THM _ => NONE) 
   end;
 
 (*Populate the clause cache using the supplied theorems*)
@@ -332,30 +328,17 @@ fun cnf_axiom_g cnf (name,th) =
 
 fun pairname th = (Thm.name_of_thm th, th);
 
-val skolem_axiomH = skolem_axiom_g make_nnf1;
 
-fun cnf_ruleH th = make_clauses [skolem_axiomH (transform_elim th)];
-
-(* transform an Isabelle theorem into CNF *)
-fun cnf_axiom_aux_g cnf_rule th =
-    map zero_var_indexes
-        (rm_redundant_cls (cnf_rule (transfer_to_Reconstruction th)));
-
-val cnf_axiom_auxH = cnf_axiom_aux_g cnf_ruleH;
-
-(*NONE can occur if th fails the first-order check.*)
+(*no first-order check, so works for HOL too.*)
 fun cnf_axiom_aux th = Option.getOpt (skolem_thm th, []);
 
-val cnf_axiom = cnf_axiom_g cnf_axiom_aux;
 
-val cnf_axiomH = cnf_axiom_g cnf_axiom_auxH;
+
+val cnf_axiom = cnf_axiom_g cnf_axiom_aux;
 
 
 fun meta_cnf_axiom th = 
     map Meson.make_meta_clause (cnf_axiom (pairname th));
-
-fun meta_cnf_axiomH th = 
-    map Meson.make_meta_clause (cnf_axiomH (pairname th));
 
 
 
@@ -408,11 +391,11 @@ fun cnf_rules_g cnf_axiom [] err_list = ([],err_list)
       in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  
 
 
+(*works for both FOL and HOL*)
 val cnf_rules = cnf_rules_g cnf_axiom;
-val cnf_rulesH = cnf_rules_g cnf_axiomH;
 
 
-(**** Convert all theorems of a claset/simpset into clauses (ResClause.clause) ****)
+(**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
 fun make_axiom_clauses _ _ [] = []
   | make_axiom_clauses name i (cls::clss) =
@@ -431,7 +414,7 @@ fun make_axiom_clausesH _ _ [] = []
 
 fun clausify_axiom_pairsH (name,th) = 
     filter (fn (c,th) => not (ResHolClause.isTaut c))
-           (make_axiom_clausesH name 0 (cnf_axiomH (name,th)));
+           (make_axiom_clausesH name 0 (cnf_axiom (name,th)));
 
 
 fun clausify_rules_pairs_aux result [] = result
