@@ -36,6 +36,8 @@ sig
   val select_literal	: int -> thm -> thm
   val skolemize_tac	: int -> tactic
   val make_clauses_tac	: int -> tactic
+  val check_is_fol : thm -> thm
+  val check_is_fol_term : term -> term
 end
 
 
@@ -252,6 +254,14 @@ fun check_is_fol th =
   then raise THM ("check_is_fol", 0, [th]) else th
   end;
 
+fun check_is_fol_term term =
+    if exists (has_bool o fastype_of) (term_vars term)  orelse
+        not (Term.is_first_order ["all","All","Ex"] term) orelse
+        has_bool_arg_const term  orelse  
+        has_meta_conn term
+    then raise TERM("check_is_fol_term",[term]) else term;
+
+
 (*Create a meta-level Horn clause*)
 fun make_horn crules th = make_horn crules (tryres(th,crules))
 			  handle THM _ => th;
@@ -339,7 +349,7 @@ val nnf_simps = [Ex1_def,Ball_def,Bex_def,tag_True,tag_False]
 val nnf_ss = HOL_basic_ss addsimps nnf_simps@simp_thms;
 
 fun make_nnf th = th |> simplify nnf_ss
-                     |> check_is_fol |> make_nnf1
+                     |> make_nnf1
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
   clauses that arise from a subgoal.*)
@@ -490,6 +500,9 @@ fun select_literal i cl = negate_head (make_last i cl);
   to the front. Finally, all existential quantifiers are eliminated, 
   leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
   might generate many subgoals.*)
+
+
+
 val skolemize_tac = 
   SUBGOAL
     (fn (prop,_) =>
@@ -500,6 +513,8 @@ val skolemize_tac =
                          THEN REPEAT (etac exE 1))),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
+
+
 
 (*Top-level conversion to meta-level clauses. Each clause has  
   leading !!-bound universal variables, to express generality. To get 
