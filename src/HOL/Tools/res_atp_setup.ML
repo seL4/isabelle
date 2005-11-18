@@ -14,6 +14,22 @@ val filter_ax = ref false;
 (* set up the output paths                             *)
 (*******************************************************)
 
+fun typed_comb () = 
+    if !ResHolClause.include_combS then 
+	(ResAtp.helper_path "E_HOME" "additionals/comb_inclS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/comb_inclS")
+    else 
+	(ResAtp.helper_path "E_HOME" "additionals/comb_noS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/comb_noS");
+
+fun untyped_comb () = 
+    if !ResHolClause.include_combS then 
+	(ResAtp.helper_path "E_HOME" "additionals/u_comb_inclS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/u_comb_inclS")
+    else
+	(ResAtp.helper_path "E_HOME" "additionals/u_comb_noS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/u_comb_noS");
+
 val claset_file = File.tmp_path (Path.basic "claset");
 val simpset_file = File.tmp_path (Path.basic "simp");
 val local_lemma_file = File.tmp_path (Path.basic "locallemmas");
@@ -101,12 +117,9 @@ val tptp_formH = tptp_form_g false;
 
 fun tptp_hyps_g _ [] = ([], [])
   | tptp_hyps_g is_fol thms =
-    let val mk_nnf = if is_fol then make_nnf else make_nnf1
-	val prems = map (skolemize o mk_nnf o ObjectLogic.atomize_thm) thms
-        val prems' = map repeat_someI_ex prems
-        val prems'' = make_clauses prems'
-        val prems''' = map prop_of prems''  (*FIXME: was rm_Eps*)
-	val (tptp_clss,tfree_litss) = mk_conjectures is_fol prems'''
+    let val prems = ResClause.union_all (map ResAxioms.cnf_axiom_aux thms)
+	val prems' = map prop_of prems
+	val (tptp_clss,tfree_litss) = mk_conjectures is_fol prems'
 	val tfree_lits = ResClause.union_all tfree_litss
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
         val hypsfile = File.platform_path hyps_file
@@ -205,19 +218,23 @@ fun find_relevant_ax tptp_cnf_clasimp ths ctxt = tptp_cnf_clasimp ths ctxt (true
 (***************************************************************)
 (* setup ATPs as Isabelle methods                              *)
 (***************************************************************)
-fun atp_meth_g tptp_hyps tptp_cnf_clasimp tac ths ctxt = 
+fun atp_meth_g helper_file tptp_hyps tptp_cnf_clasimp tac ths ctxt = 
     let val rules = if !filter_ax then find_relevant_ax tptp_cnf_clasimp ths ctxt 
 		    else tptp_cnf_clasimp ths ctxt (!include_claset, !include_simpset) 
 	val (hyps,tfrees) = tptp_hyps (ProofContext.prems_of ctxt)
 	val thy = ProofContext.theory_of ctxt
 	val tsfile = tptp_types_sorts thy
-	val files = hyps @ rules @ tsfile
+	val files = (helper_file,hyps @ rules @ tsfile)
     in
 	Method.SIMPLE_METHOD' HEADGOAL
 	(tac ctxt files tfrees)
     end;
-fun atp_meth_f tac ths ctxt = atp_meth_g tptp_hyps tptp_cnf_clasimp tac ths ctxt;
-fun atp_meth_h tac ths ctxt = atp_meth_g tptp_hypsH tptp_cnf_clasimpH tac ths ctxt;
+fun atp_meth_f tac ths ctxt = atp_meth_g [] tptp_hyps tptp_cnf_clasimp tac ths ctxt;
+fun atp_meth_h tac ths ctxt = 
+    let val helper = if !ResHolClause.keep_types then [typed_comb ()] else [untyped_comb ()]
+    in
+	atp_meth_g helper tptp_hypsH tptp_cnf_clasimpH tac ths ctxt
+    end;
 
 
 fun atp_meth_G atp_meth tac ths ctxt =
