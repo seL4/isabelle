@@ -39,11 +39,11 @@ fun call_eprover (files:string list, time:int) =
 
 
 
-fun vampire_o thy (files,time) = (if (call_vampire (files,time)) then (ResAtpSetup.cond_rm_tmp files;HOLogic.mk_Trueprop HOLogic.false_const)  
+fun vampire_o thy ((helper,files),time) = (if (call_vampire (helper @ files,time)) then (warning (hd helper); ResAtpSetup.cond_rm_tmp files;HOLogic.mk_Trueprop HOLogic.false_const)  
   else (ResAtpSetup.cond_rm_tmp files;raise Fail ("vampire oracle failed")));
 
 
-fun eprover_o thy (files,time) = (if (call_eprover (files,time)) then (ResAtpSetup.cond_rm_tmp files;HOLogic.mk_Trueprop HOLogic.false_const)
+fun eprover_o thy ((helper,files),time) = (if (call_eprover (helper @ files,time)) then (warning (hd helper); ResAtpSetup.cond_rm_tmp files;HOLogic.mk_Trueprop HOLogic.false_const)
   else (raise Fail ("eprover oracle failed")));
 
 end;
