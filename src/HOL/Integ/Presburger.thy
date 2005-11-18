@@ -982,6 +982,99 @@ theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= 
 theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<and> P) = (0 <= x \<and> P')"
   by (simp cong: conj_cong)
 
+    (* Theorems used in presburger.ML for the computation simpset*)
+    (* FIXME: They are present in Float.thy, so may be Float.thy should be lightened.*)
+
+lemma lift_bool: "x \<Longrightarrow> x=True"
+  by simp
+
+lemma nlift_bool: "~x \<Longrightarrow> x=False"
+  by simp
+
+lemma not_false_eq_true: "(~ False) = True" by simp
+
+lemma not_true_eq_false: "(~ True) = False" by simp
+
+
+lemma int_eq_number_of_eq: "(((number_of v)::int)=(number_of w)) = iszero ((number_of (bin_add v (bin_minus w)))::int)"
+  by simp
+lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)" 
+  by (simp only: iszero_number_of_Pls)
+
+lemma int_nonzero_number_of_Min: "~(iszero ((-1)::int))"
+  by simp
+
+lemma int_iszero_number_of_0: "iszero ((number_of (w BIT bit.B0))::int) = iszero ((number_of w)::int)"
+  by simp
+
+lemma int_iszero_number_of_1: "\<not> iszero ((number_of (w BIT bit.B1))::int)" 
+  by simp
+
+lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (bin_add x (bin_minus y)))::int)"
+  by simp
+
+lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))" 
+  by simp
+
+lemma int_neg_number_of_Min: "neg (-1::int)"
+  by simp
+
+lemma int_neg_number_of_BIT: "neg ((number_of (w BIT x))::int) = neg ((number_of w)::int)"
+  by simp
+
+lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (bin_add y (bin_minus x)))::int))"
+  by simp
+lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (bin_add v w)"
+  by simp
+
+lemma int_number_of_diff_sym: "((number_of v)::int) - number_of w = number_of (bin_add v (bin_minus w))"
+  by simp
+
+lemma int_number_of_mult_sym: "((number_of v)::int) * number_of w = number_of (bin_mult v w)"
+  by simp
+
+lemma int_number_of_minus_sym: "- ((number_of v)::int) = number_of (bin_minus v)"
+  by simp
+lemma add_left_zero: "0 + a = (a::'a::comm_monoid_add)"
+  by simp
+
+lemma add_right_zero: "a + 0 = (a::'a::comm_monoid_add)"
+  by simp
+
+lemma mult_left_one: "1 * a = (a::'a::semiring_1)"
+  by simp
+
+lemma mult_right_one: "a * 1 = (a::'a::semiring_1)"
+  by simp
+
+lemma int_pow_0: "(a::int)^(Numeral0) = 1"
+  by simp
+
+lemma int_pow_1: "(a::int)^(Numeral1) = a"
+  by simp
+
+lemma zero_eq_Numeral0_nring: "(0::'a::number_ring) = Numeral0"
+  by simp
+
+lemma one_eq_Numeral1_nring: "(1::'a::number_ring) = Numeral1"
+  by simp
+
+lemma zero_eq_Numeral0_nat: "(0::nat) = Numeral0"
+  by simp
+
+lemma one_eq_Numeral1_nat: "(1::nat) = Numeral1"
+  by simp
+
+lemma zpower_Pls: "(z::int)^Numeral0 = Numeral1"
+  by simp
+
+lemma zpower_Min: "(z::int)^((-1)::nat) = Numeral1"
+proof -
+  have 1:"((-1)::nat) = 0"
+    by simp
+  show ?thesis by (simp add: 1)
+qed
+
 use "cooper_dec.ML"
 use "reflected_presburger.ML" 
 use "reflected_cooper.ML"

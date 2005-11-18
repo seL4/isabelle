@@ -31,6 +31,38 @@ fun trace_msg s = if !trace then tracing s else ();
 
 
 val presburger_ss = simpset_of (theory "Presburger");
+val binarith = map thm
+  ["Pls_0_eq", "Min_1_eq",
+ "bin_pred_Pls","bin_pred_Min","bin_pred_1","bin_pred_0",
+  "bin_succ_Pls", "bin_succ_Min", "bin_succ_1", "bin_succ_0",
+  "bin_add_Pls", "bin_add_Min", "bin_add_BIT_0", "bin_add_BIT_10",
+  "bin_add_BIT_11", "bin_minus_Pls", "bin_minus_Min", "bin_minus_1", 
+  "bin_minus_0", "bin_mult_Pls", "bin_mult_Min", "bin_mult_1", "bin_mult_0", 
+  "bin_add_Pls_right", "bin_add_Min_right"];
+ val intarithrel = 
+     (map thm ["int_eq_number_of_eq","int_neg_number_of_BIT", 
+		"int_le_number_of_eq","int_iszero_number_of_0",
+		"int_less_number_of_eq_neg"]) @
+     (map (fn s => thm s RS thm "lift_bool") 
+	  ["int_iszero_number_of_Pls","int_iszero_number_of_1",
+	   "int_neg_number_of_Min"])@
+     (map (fn s => thm s RS thm "nlift_bool") 
+	  ["int_nonzero_number_of_Min","int_not_neg_number_of_Pls"]);
+     
+val intarith = map thm ["int_number_of_add_sym", "int_number_of_minus_sym",
+			"int_number_of_diff_sym", "int_number_of_mult_sym"];
+val natarith = map thm ["add_nat_number_of", "diff_nat_number_of",
+			"mult_nat_number_of", "eq_nat_number_of",
+			"less_nat_number_of"]
+val powerarith = 
+    (map thm ["nat_number_of", "zpower_number_of_even", 
+	      "zpower_Pls", "zpower_Min"]) @ 
+    [(Tactic.simplify true [thm "zero_eq_Numeral0_nring", 
+			   thm "one_eq_Numeral1_nring"] 
+  (thm "zpower_number_of_odd"))]
+
+val arith = binarith @ intarith @ intarithrel @ natarith 
+	    @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
 
 fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
   let val (xn1,p1) = variant_abs (xn,xT,p)
@@ -59,6 +91,17 @@ val split_div' = thm "split_div'";
 val Suc_plus1 = thm "Suc_plus1";
 val imp_le_cong = thm "imp_le_cong";
 val conj_le_cong = thm "conj_le_cong";
+val nat_mod_add_eq = mod_add1_eq RS sym;
+val nat_mod_add_left_eq = mod_add_left_eq RS sym;
+val nat_mod_add_right_eq = mod_add_right_eq RS sym;
+val int_mod_add_eq = zmod_zadd1_eq RS sym;
+val int_mod_add_left_eq = zmod_zadd_left_eq RS sym;
+val int_mod_add_right_eq = zmod_zadd_right_eq RS sym;
+val nat_div_add_eq = div_add1_eq RS sym;
+val int_div_add_eq = zdiv_zadd1_eq RS sym;
+val ZDIVISION_BY_ZERO_MOD = DIVISION_BY_ZERO RS conjunct2;
+val ZDIVISION_BY_ZERO_DIV = DIVISION_BY_ZERO RS conjunct1;
+
 
 (* extract all the constants in a term*)
 fun add_term_typed_consts (Const (c, T), cs) = (c,T) ins cs
@@ -246,8 +289,21 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     (* Transform the term*)
     val (t,np,nh) = prepare_for_presburger sg q g'
     (* Some simpsets for dealing with mod div abs and nat*)
+    val mod_div_simpset = HOL_basic_ss 
+			addsimps [refl,nat_mod_add_eq, nat_mod_add_left_eq, 
+				  nat_mod_add_right_eq, int_mod_add_eq, 
+				  int_mod_add_right_eq, int_mod_add_left_eq,
+				  nat_div_add_eq, int_div_add_eq,
+				  mod_self, zmod_self,
+				  DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
+				  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
+				  zdiv_zero,zmod_zero,div_0,mod_0,
+				  zdiv_1,zmod_1,div_1,mod_1]
+			addsimps add_ac
+			addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
+      addsimps arith
       addsplits [split_zdiv, split_zmod, split_div', split_min, split_max]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
@@ -264,7 +320,7 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     val ct = cterm_of sg (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
-      [simp_tac simpset0 1,
+      [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
        TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
        TRY (simp_tac simpset3 1), TRY (simp_tac presburger_ss 1)]
       (trivial ct))

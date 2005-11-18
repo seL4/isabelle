@@ -858,6 +858,18 @@ proof -
 qed
 
 
+lemma mod_add_left_eq: "((a::nat) + b) mod c = (a mod c + b) mod c"
+  apply (rule trans [symmetric])
+  apply (rule mod_add1_eq, simp)
+  apply (rule mod_add1_eq [symmetric])
+  done
+
+lemma mod_add_right_eq: "(a+b) mod (c::nat) = (a + (b mod c)) mod c"
+apply (rule trans [symmetric])
+apply (rule mod_add1_eq, simp)
+apply (rule mod_add1_eq [symmetric])
+done
+
 ML
 {*
 val div_def = thm "div_def"
@@ -907,6 +919,8 @@ val mod_mult1_eq' = thm "mod_mult1_eq'";
 val mod_mult_distrib_mod = thm "mod_mult_distrib_mod";
 val div_add1_eq = thm "div_add1_eq";
 val mod_add1_eq = thm "mod_add1_eq";
+val mod_add_left_eq = thm "mod_add_left_eq";
+ val mod_add_right_eq = thm "mod_add_right_eq";
 val mod_lemma = thm "mod_lemma";
 val div_mult2_eq = thm "div_mult2_eq";
 val mod_mult2_eq = thm "mod_mult2_eq";
