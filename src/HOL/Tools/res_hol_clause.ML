@@ -349,6 +349,8 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 (**********************************************************************)
 
 val keep_types = ref true;
+val include_combS = ref false;
+
 
 val type_wrapper = "typeinfo";
 
@@ -365,27 +367,25 @@ val bool_str = "hBOOL";
 
 
 (* convert literals of clauses into strings *)
-fun string_of_combterm (CombConst(c,tp)) = 
-    if tp = bool_tp then c else put_type(c,tp)
-  | string_of_combterm (CombFree(v,tp)) = 
-    if tp = bool_tp then v else put_type(v,tp)
-  | string_of_combterm (CombVar(v,tp)) = 
-    if tp = bool_tp then v else put_type(v,tp)
-  | string_of_combterm (CombApp(t1,t2,tp)) = 
-    let val s1 = string_of_combterm t1
-	val s2 = string_of_combterm t2
+fun string_of_combterm _ (CombConst(c,tp)) = put_type(c,tp)
+  | string_of_combterm _ (CombFree(v,tp)) = put_type(v,tp)
+  | string_of_combterm _ (CombVar(v,tp)) = put_type(v,tp)
+  | string_of_combterm is_pred (CombApp(t1,t2,tp)) = 
+    let val s1 = string_of_combterm is_pred t1
+	val s2 = string_of_combterm is_pred t2
 	val app = app_str ^ (ResClause.paren_pack [s1,s2])
     in
-	if tp = bool_tp then app else put_type(app,tp)
+	put_type(app,tp)
     end
-  | string_of_combterm (Bool(t)) = 
-    let val t' = string_of_combterm t
+  | string_of_combterm is_pred (Bool(t)) = 
+    let val t' = string_of_combterm false t
     in
-	bool_str ^ (ResClause.paren_pack [t'])
+	if is_pred then bool_str ^ (ResClause.paren_pack [t'])
+	else t'
     end
-  | string_of_combterm (Equal(t1,t2)) =
-    let val s1 = string_of_combterm t1
-	val s2 = string_of_combterm t2
+  | string_of_combterm _ (Equal(t1,t2)) =
+    let val s1 = string_of_combterm false t1
+	val s2 = string_of_combterm false t2
     in
 	"equal" ^ (ResClause.paren_pack [s1,s2]) 
     end;
@@ -398,7 +398,7 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 
 
 fun tptp_literal (Literal(pol,pred)) =
-    let val pred_string = string_of_combterm pred
+    let val pred_string = string_of_combterm true pred
 	val pol_str = if pol then "++" else "--"
     in
 	pol_str ^ pred_string
