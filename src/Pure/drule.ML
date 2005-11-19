@@ -19,11 +19,9 @@ sig
   val cprems_of: thm -> cterm list
   val cterm_fun: (term -> term) -> (cterm -> cterm)
   val ctyp_fun: (typ -> typ) -> (ctyp -> ctyp)
-  val read_insts:
-          theory -> (indexname -> typ option) * (indexname -> sort option)
-                  -> (indexname -> typ option) * (indexname -> sort option)
-                  -> string list -> (indexname * string) list
-                  -> (ctyp * ctyp) list * (cterm * cterm) list
+  val read_insts: theory -> (indexname -> typ option) * (indexname -> sort option) ->
+    (indexname -> typ option) * (indexname -> sort option) -> string list ->
+    (indexname * string) list -> (ctyp * ctyp) list * (cterm * cterm) list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val strip_shyps_warning: thm -> thm
   val forall_intr_list: cterm list -> thm -> thm
@@ -38,8 +36,7 @@ sig
   val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
-  val instantiate:
-    (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
   val standard: thm -> thm
@@ -151,7 +148,7 @@ sig
   val conj_elim_list: thm -> thm list
   val conj_elim_precise: int -> thm -> thm list
   val conj_intr_thm: thm
-  val conj_mono_thm: thm
+  val conj_curry: thm -> thm
   val abs_def: thm -> thm
   val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
   val read_instantiate': (indexname * string) list -> thm -> thm
@@ -162,8 +159,6 @@ struct
 
 
 (** some cterm->cterm operations: faster than calling cterm_of! **)
-
-(* FIXME exception CTERM (!?) *)
 
 fun dest_implies ct =
   (case Thm.term_of ct of
@@ -1127,11 +1122,7 @@ local
   val A = read_prop "PROP A";
   val B = read_prop "PROP B";
   val C = read_prop "PROP C";
-  val D = read_prop "PROP D";
-  val AC = read_prop "PROP A ==> PROP C";
-  val BD = read_prop "PROP B ==> PROP D";
   val ABC = read_prop "PROP A ==> PROP B ==> PROP C";
-  val A_B = read_prop "!!X. (PROP A ==> PROP B ==> PROP X) ==> PROP X";
 
   val proj1 =
     forall_intr_list [A, B] (implies_intr_list [A, B] (Thm.assume A))
@@ -1170,14 +1161,28 @@ fun conj_elim_precise 0 _ = []
 val conj_intr_thm = store_standard_thm_open "conjunctionI"
   (implies_intr_list [A, B] (conj_intr (Thm.assume A) (Thm.assume B)));
 
-val conj_mono_thm = store_standard_thm_open "conjunction_mono"
-  (Thm.assume A_B |> conj_elim |> (fn (a, b) =>
-    conj_intr
-      (Thm.implies_elim (Thm.assume AC) a)
-      (Thm.implies_elim (Thm.assume BD) b))
-  |> implies_intr_list [AC, BD, A_B]);
-
 end;
+
+fun conj_curry th =
+  let
+    val {thy, maxidx, ...} = Thm.rep_thm th;
+    val n = Thm.nprems_of th;
+  in
+    if n < 2 then th
+    else
+      let
+        val cert = Thm.cterm_of thy;
+        val As = map (fn i => Free ("A" ^ string_of_int i, propT)) (1 upto n);
+        val B = Free ("B", propT);
+        val C = cert (Logic.mk_conjunction_list As);
+        val D = cert (Logic.list_implies (As, B));
+        val rule =
+          implies_elim_list (Thm.assume D) (conj_elim_list (Thm.assume C))
+          |> implies_intr_list [D, C]
+          |> forall_intr_frees
+          |> forall_elim_vars (maxidx + 1)
+      in Thm.adjust_maxidx_thm (th COMP rule) end
+  end;
 
 end;
 
