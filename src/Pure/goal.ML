@@ -18,7 +18,7 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_hhf: thm -> thm
-  val norm_hhf': thm -> thm
+  val norm_hhf_protected: thm -> thm
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
@@ -73,23 +73,26 @@ fun finish th =
 
 (** results **)
 
-(* HHF normal form *)
+(* HHF normal form: !! before ==>, outermost !! generalized *)
 
-val norm_hhf_ss =
-  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
-    addsimps [Drule.norm_hhf_eq];
+local
 
-val norm_hhf_ss' = norm_hhf_ss addeqcongs [Drule.protect_cong];
-
-fun gen_norm_hhf protected =
+fun gen_norm_hhf ss =
   (not o Drule.is_norm_hhf o Thm.prop_of) ?
-    Drule.fconv_rule (MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE))
-      (if protected then norm_hhf_ss else norm_hhf_ss'))
+    Drule.fconv_rule (MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE)) ss)
   #> Thm.adjust_maxidx_thm
   #> Drule.gen_all;
 
-val norm_hhf = gen_norm_hhf true;
-val norm_hhf' = gen_norm_hhf false;
+val ss =
+  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
+    addsimps [Drule.norm_hhf_eq];
+
+in
+
+val norm_hhf = gen_norm_hhf ss;
+val norm_hhf_protected = gen_norm_hhf (ss addeqcongs [Drule.protect_cong]);
+
+end;
 
 
 (* composition of normal results *)
@@ -171,10 +174,14 @@ fun prove_raw casms cprop tac =
   by making a new state from subgoal i, applying tac to it, and
   composing the resulting thm with the original state.*)
 
+local
+
 fun SELECT tac i st =
   init (Thm.adjust_maxidx (Thm.cprem_of st i))
   |> tac
   |> Seq.maps (fn st' => Thm.bicompose false (false, conclude st', Thm.nprems_of st') i st);
+
+in
 
 fun SELECT_GOAL tac i st =
   let val n = Thm.nprems_of st in
@@ -182,6 +189,8 @@ fun SELECT_GOAL tac i st =
       if n = 1 then tac st else SELECT tac i st
     else Seq.empty
   end;
+
+end;
 
 end;
 
