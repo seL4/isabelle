@@ -37,7 +37,7 @@ $(OUT)/FOL$(ML_SUFFIX): $(OUT)/Pure$(ML_SUFFIX) $(SRC)/Provers/blast.ML				\
   IFOL.thy IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML		\
   document/root.tex eqrule_FOL_data.ML fologic.ML hypsubstdata.ML	\
   intprover.ML simpdata.ML
-	@$(ISATOOL) usedir -b $(OUT)/Pure FOL
+	@$(ISATOOL) usedir -p 2 -b $(OUT)/Pure FOL
 
 
 ## FOL-ex
