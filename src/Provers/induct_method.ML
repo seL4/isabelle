@@ -21,9 +21,11 @@ signature INDUCT_METHOD =
 sig
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> RuleCases.tactic
-  val fix_tac: Proof.context -> (string * typ) list -> int -> tactic
+  val fix_tac: (string * typ) list -> int -> tactic
   val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
-    thm option -> (string * typ) list -> thm list -> int -> RuleCases.tactic
+    (string * typ) list list -> thm option -> thm list -> int -> RuleCases.tactic
+  val coinduct_tac: Proof.context -> bool -> term option list -> thm option ->
+    thm list -> int -> RuleCases.tactic
   val setup: (theory -> theory) list
 end;
 
@@ -33,7 +35,9 @@ struct
 
 (** misc utils **)
 
-(* align lists *)
+(* lists *)
+
+fun nth_list xss i = nth xss i handle Subscript => [];
 
 fun align_left msg xs ys =
   let val m = length xs and n = length ys
@@ -46,8 +50,9 @@ fun align_right msg xs ys =
 
 (* prep_inst *)
 
-fun prep_inst align cert tune (tm, ts) =
+fun prep_inst thy align tune (tm, ts) =
   let
+    val cert = Thm.cterm_of thy;
     fun prep_var (x, SOME t) =
           let
             val cx = cert x;
@@ -68,10 +73,20 @@ fun prep_inst align cert tune (tm, ts) =
   end;
 
 
-(* warn_open *)
+(* trace_rules *)
+
+fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
+  | trace_rules ctxt _ rules = Method.trace ctxt rules;
+
+
+(* make_cases *)
 
 fun warn_open true = warning "Encountered open rule cases -- deprecated"
   | warn_open false = ();
+
+fun make_cases is_open rule =
+  RuleCases.make (tap warn_open is_open) NONE (Thm.theory_of_thm rule, Thm.prop_of rule);
+
 
 
 
@@ -103,27 +118,24 @@ fun cases_tac ctxt is_open insts opt_rule facts =
     fun inst_rule r =
       if null insts then RuleCases.add r
       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
-        |> (List.concat o map (prep_inst align_left cert I))
+        |> (List.concat o map (prep_inst thy align_left I))
         |> Drule.cterm_instantiate) r |> rpair (RuleCases.get r);
 
     val ruleq =
       (case opt_rule of
-        NONE =>
-          let val rules = find_casesS ctxt facts @ find_casesT ctxt insts @ [Data.cases_default] in
-            Method.trace ctxt rules;
-            Seq.maps (Seq.try inst_rule) (Seq.of_list rules)
-          end
-      | SOME r => Seq.single (inst_rule r));
-    val ruleq_cases = ruleq |> Seq.maps (fn (th, (cases, n)) =>
-      Method.multi_resolves (Library.take (n, facts)) [th]
-      |> Seq.map (apsnd (rpair (Library.drop (n, facts))) o rpair cases));
-
-    fun make_cases rule = RuleCases.make (tap warn_open is_open) NONE (thy, Thm.prop_of rule);
+        SOME r => Seq.single (inst_rule r)
+      | NONE =>
+          (find_casesS ctxt facts @ find_casesT ctxt insts @ [Data.cases_default])
+          |> tap (trace_rules ctxt InductAttrib.casesN)
+          |> Seq.of_list |> Seq.maps (Seq.try inst_rule))
+      |> Seq.maps (fn (th, (cases, n)) =>
+        Method.multi_resolves (Library.take (n, facts)) [th]
+        |> Seq.map (apsnd (rpair (Library.drop (n, facts))) o rpair cases));
   in
     fn i => fn st =>
-      ruleq_cases |> Seq.maps (fn (rule, (cases, facts)) =>
-        (Method.insert_tac facts THEN' Tactic.rtac rule) i st
-        |> Seq.map (rpair (make_cases rule cases)))
+      ruleq |> Seq.maps (fn (rule, (cases, more_facts)) =>
+        (Method.insert_tac more_facts THEN' Tactic.rtac rule) i st
+        |> Seq.map (rpair (make_cases is_open rule cases)))
   end;
 
 val cases_meth = Method.METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
@@ -141,28 +153,28 @@ local
 
 val meta_spec = PureThy.get_thm Pure.thy (Name "meta_spec");
 
-fun meta_spec_tac ctxt (x, T) i st = SUBGOAL (fn (goal, _) =>
+fun meta_spec_tac (x, T) i st = SUBGOAL (fn (goal, _) =>
   let
     val thy = Thm.theory_of_thm st;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
 
     val v = Free (x, T);
-    val _ = Term.exists_subterm (fn t => t aconv v) goal orelse
-      error ("No variable " ^ ProofContext.string_of_term ctxt v ^ " in subgoal");
-    val P = Term.absfree (x, T, goal);
-    val rule = meta_spec
-      |> Drule.instantiate' [SOME (certT T)] [SOME (cert P), SOME (cert v)]
-      |> Thm.rename_params_rule ([x], 1);
-  in compose_tac (false, rule, 1) end i) i st;
+  in
+    if Term.exists_subterm (fn t => t aconv v) goal then
+      let
+        val P = Term.absfree (x, T, goal);
+        val rule = meta_spec
+          |> Drule.instantiate' [SOME (certT T)] [SOME (cert P), SOME (cert v)]
+          |> Thm.rename_params_rule ([x], 1);
+      in compose_tac (false, rule, 1) i end
+    else all_tac
+  end) i st;
 
 in
 
-fun fix_tac ctxt fixes =
-  (case gen_duplicates (op =) fixes of
-    [] => EVERY' (map (meta_spec_tac ctxt) (rev fixes))
-  | dups => error ("Duplicate specification of variable(s): " ^
-      commas (map (ProofContext.string_of_term ctxt o Free) dups)));
+fun fix_tac fixes =
+  EVERY' (map meta_spec_tac (rev (gen_distinct (op =) fixes)));
 
 end;
 
@@ -246,6 +258,8 @@ fun join_rules [] = []
 
 (* divinate rule instantiation -- cannot handle pending goal parameters *)
 
+local
+
 fun dest_env thy (env as Envir.Envir {iTs, ...}) =
   let
     val cert = Thm.cterm_of thy;
@@ -254,6 +268,8 @@ fun dest_env thy (env as Envir.Envir {iTs, ...}) =
     val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
     val xs = map2 (cert o Var) (map #1 pairs, map (#T o Thm.rep_cterm) ts);
   in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) (Vartab.dest iTs), xs ~~ ts) end;
+
+in
 
 fun divinate_inst rule i st =
   let
@@ -275,6 +291,8 @@ fun divinate_inst rule i st =
         |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
       end
   end handle Subscript => Seq.empty;
+
+end;
 
 
 (* special renaming of rule parameters *)
@@ -306,6 +324,14 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] thm =
   | special_rename_params _ _ thm = thm;
 
 
+(* rule_versions *)
+
+fun rule_versions rule = Seq.cons (rule,
+    (Seq.make (fn () => SOME (localize rule, Seq.empty)))
+    |> Seq.filter (not o curry Thm.eq_thm rule))
+  |> Seq.map (rpair (RuleCases.get rule));
+
+
 (* induct_tac *)
 
 (*
@@ -319,7 +345,7 @@ local
 
 fun find_inductT ctxt insts =
   fold_rev multiply (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
-    |> map (InductAttrib.find_inductT ctxt o fastype_of)) [[]]
+    |> map (InductAttrib.find_inductT ctxt o Term.fastype_of)) [[]]
   |> map join_rules |> List.concat;
 
 fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
@@ -327,56 +353,106 @@ fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
 
 in
 
-fun induct_tac ctxt is_open def_insts opt_rule fixes facts =
+fun induct_tac ctxt is_open def_insts fixes opt_rule facts =
   let
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
 
-    fun rule_versions r = Seq.cons (r, Seq.filter (not o curry Thm.eq_thm r)
-        (Seq.make (fn () => SOME (localize r, Seq.empty))))
-      |> Seq.map (rpair (RuleCases.get r));
-
     val inst_rule = apfst (fn r =>
       if null insts then r
       else (align_right "Rule has fewer conclusions than arguments given"
           (Data.dest_concls (Thm.concl_of r)) insts
-        |> (List.concat o map (prep_inst align_right cert (atomize_term thy)))
+        |> (List.concat o map (prep_inst thy align_right (atomize_term thy)))
         |> Drule.cterm_instantiate) r);
 
     val ruleq =
       (case opt_rule of
-        NONE =>
-          let val rules = find_inductS ctxt facts @
-            map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts)
-          in
-            conditional (null rules) (fn () => error "Unable to figure out induct rule");
-            Method.trace ctxt rules;
-            rules |> Seq.of_list |> Seq.maps rule_versions |> Seq.maps (Seq.try inst_rule)
-          end
-      | SOME r => r |> rule_versions |> Seq.map inst_rule);
-    val ruleq_cases = ruleq |> Seq.maps (fn (th, (cases, n)) =>
-      Method.multi_resolves (Library.take (n, facts)) [th]
-      |> Seq.map (rpair (cases, n - length facts, Library.drop (n, facts))));
+        SOME r => r |> rule_versions |> Seq.map inst_rule
+      | NONE =>
+          (find_inductS ctxt facts @
+            map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts))
+          |> tap (trace_rules ctxt InductAttrib.inductN)
+          |> Seq.of_list |> Seq.maps rule_versions |> Seq.maps (Seq.try inst_rule))
+      |> Seq.maps (fn (th, (cases, n)) =>
+        Method.multi_resolves (Library.take (n, facts)) [th]
+        |> Seq.map (rpair (cases, n - length facts, Library.drop (n, facts))));
 
-    fun make_cases rule =
+    fun rule_cases rule =
       RuleCases.make (tap warn_open is_open) (SOME (Thm.prop_of rule)) (rulified_term rule);
   in
-    (fn i => fn st => ruleq_cases |> Seq.maps (fn (rule, (cases, k, more_facts)) =>
-      (Method.insert_tac (List.concat defs @ more_facts)  (* FIXME CONJUNCTS *)
-        THEN' fix_tac defs_ctxt fixes
-        THEN' atomize_tac) i st |> Seq.maps (fn st' =>
-        divinate_inst (internalize k rule) i st' |> Seq.maps (fn rule' =>
-          Tactic.rtac rule' i st'
-          |> Seq.maps (ProofContext.exports defs_ctxt ctxt)
-          |> Seq.map (rpair (make_cases rule' cases))))))
+    (fn i => fn st =>
+      ruleq |> Seq.maps (fn (rule, (cases, k, more_facts)) =>
+        (CONJUNCTS (ALLGOALS (fn j =>
+            Method.insert_tac (more_facts @ nth_list defs (j - 1)) j
+            THEN fix_tac (nth_list fixes (j - 1)) j))
+          THEN' atomize_tac) i st |> Seq.maps (fn st' =>
+            divinate_inst (internalize k rule) i st' |> Seq.maps (fn rule' =>
+              Tactic.rtac rule' i st'
+              |> Seq.maps (ProofContext.exports defs_ctxt ctxt)
+              |> Seq.map (rpair (rule_cases rule' cases))))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
 
 val induct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
-  (fn (ctxt, (is_open, (insts, (opt_rule, fixes)))) =>
-    induct_tac ctxt is_open insts opt_rule fixes));
+  (fn (ctxt, (is_open, (insts, (fixes, opt_rule)))) =>
+    induct_tac ctxt is_open insts fixes opt_rule));
+
+end;
+
+
+
+(** coinduct method **)
+
+(*
+  rule selection scheme:
+    `x:A` coinduct ...   - set coinduction
+          coinduct x     - type coinduction
+    ...   coinduct ... r - explicit rule
+*)
+
+local
+
+fun find_coinductT ctxt (SOME t :: _) = InductAttrib.find_coinductT ctxt (Term.fastype_of t)
+  | find_coinductT _ _ = [];
+
+fun find_coinductS ctxt (fact :: _) = InductAttrib.find_coinductS ctxt fact
+  | find_coinductS _ _ = [];
+
+in
+
+fun coinduct_tac ctxt is_open inst opt_rule facts =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val cert = Thm.cterm_of thy;
+
+    val inst_rule = apfst (fn r =>
+      if null inst then r
+      else Drule.cterm_instantiate (prep_inst thy align_left I (Thm.concl_of r, inst)) r);
+
+    val ruleq =
+      (case opt_rule of
+        SOME r => r |> rule_versions |> Seq.map inst_rule
+      | NONE =>
+          (find_coinductS ctxt facts @ find_coinductT ctxt inst)
+          |> tap (trace_rules ctxt InductAttrib.coinductN)
+          |> Seq.of_list |> Seq.maps rule_versions |> Seq.maps (Seq.try inst_rule))
+      |> Seq.maps (fn (th, (cases, n)) =>
+        Method.multi_resolves (Library.take (n, facts)) [th]
+        |> Seq.map (apsnd (rpair (Library.drop (n, facts))) o rpair cases));
+  in
+    fn i => fn st =>
+      ruleq |> Seq.maps (fn (rule, (cases, more_facts)) =>
+        (Method.insert_tac more_facts THEN' Tactic.rtac rule) i st |> Seq.maps (fn st' =>
+        divinate_inst rule i st' |> Seq.maps (fn rule' =>
+          Tactic.rtac rule' i st'
+          |> Seq.map (rpair (make_cases is_open rule' cases)))))
+  end;
+
+val coinduct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
+  (fn (ctxt, (is_open, (insts, opt_rule))) =>
+    coinduct_tac ctxt is_open insts opt_rule));
 
 end;
 
@@ -385,9 +461,8 @@ end;
 (** concrete syntax **)
 
 val openN = "open";
-val ruleN = "rule";
-val ofN = "of";
 val fixingN = "fixing";
+val ruleN = "rule";
 
 local
 
@@ -403,6 +478,7 @@ fun rule get_type get_set =
 
 val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS;
 val induct_rule = rule InductAttrib.lookup_inductT InductAttrib.lookup_inductS;
+val coinduct_rule = rule InductAttrib.lookup_coinductT InductAttrib.lookup_coinductS;
 
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.local_term >> SOME;
 
@@ -413,11 +489,13 @@ val def_inst =
 
 val free = Scan.state -- Args.local_term >> (fn (_, Free v) => v | (ctxt, t) =>
   error ("Bad free variable: " ^ ProofContext.string_of_term ctxt t));
-val fixing = Scan.optional (Scan.lift (Args.$$$ fixingN -- Args.colon) |-- Scan.repeat1 free) [];
 
 fun unless_more_args scan = Scan.unless (Scan.lift
-  ((Args.$$$ InductAttrib.typeN || Args.$$$ InductAttrib.setN || Args.$$$ ruleN ||
-    Args.$$$ ofN || Args.$$$ fixingN) -- Args.colon)) scan;
+  ((Args.$$$ fixingN || Args.$$$ InductAttrib.typeN || Args.$$$ InductAttrib.setN ||
+    Args.$$$ ruleN) -- Args.colon)) scan;
+
+val fixing = Scan.optional (Scan.lift (Args.$$$ fixingN -- Args.colon) |--
+  Args.and_list1 (Scan.repeat (unless_more_args free))) [];
 
 in
 
@@ -426,7 +504,10 @@ val cases_args = Method.syntax (Args.mode openN --
 
 val induct_args = Method.syntax (Args.mode openN --
   (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
-  (Scan.option induct_rule -- fixing)));
+  (fixing -- Scan.option induct_rule)));
+
+val coinduct_args = Method.syntax (Args.mode openN --
+  (Scan.repeat (unless_more_args inst) -- Scan.option coinduct_rule));
 
 end;
 
@@ -437,6 +518,7 @@ end;
 val setup =
   [Method.add_methods
     [(InductAttrib.casesN, cases_meth oo cases_args, "case analysis on types or sets"),
-     (InductAttrib.inductN, induct_meth oo induct_args, "induction on types or sets")]];
+     (InductAttrib.inductN, induct_meth oo induct_args, "induction on types or sets"),
+     (InductAttrib.coinductN, coinduct_meth oo coinduct_args, "coinduction on types or sets")]];
 
 end;
