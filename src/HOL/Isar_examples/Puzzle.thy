@@ -16,13 +16,12 @@ text {*
 *}
 
 theorem
-  fixes n :: nat
   assumes f_ax: "\<And>n. f (f n) < f (Suc n)"
   shows "f n = n"
 proof (rule order_antisym)
   {
     fix n show "n \<le> f n"
-    proof (induct k \<equiv> "f n" rule: less_induct fixing: n)
+    proof (induct k \<equiv> "f n" fixing: n rule: less_induct)
       case (less k n)
       then have hyp: "\<And>m. f m < f n \<Longrightarrow> m \<le> f m" by (simp only:)
       show "n \<le> f n"
