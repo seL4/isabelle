@@ -2113,8 +2113,8 @@ fun prep_result propps thmss =
   ListPair.map (fn ((_, props), thms) => (props ~~ thms)) (propps, thmss);
 
 val refine_protected =
-  Proof.refine (Method.Basic (K (Method.METHOD   (* FIXME avoid conjunction_tac (!?) *)
-    (K (ALLGOALS (Tactic.rtac Drule.protectI))))))
+  Proof.refine (Method.Basic (K (Method.RAW_METHOD
+    (K (ALLGOALS (CONJUNCTS (ALLGOALS (Tactic.rtac Drule.protectI))))))))
   #> Seq.hd;
 
 fun goal_name thy kind target propss =
