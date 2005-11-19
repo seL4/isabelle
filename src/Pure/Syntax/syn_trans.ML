@@ -363,7 +363,7 @@ fun meta_conjunction_tr' (*"all"*)
       [Abs (_, _, Const ("==>", _) $
         (Const ("==>", _) $ A $ (Const ("==>", _) $ B $ (Const ("_aprop", _) $ Bound 0))) $
         (Const ("_aprop", _) $ Bound 0))] =
-      if 0 mem_int Term.loose_bnos A orelse 0 mem_int Term.loose_bnos B then raise Match
+      if Term.loose_bvar1 (A, 0) orelse Term.loose_bvar1 (B, 0) then raise Match
       else Lexicon.const "_meta_conjunction" $ A $ B
   | meta_conjunction_tr' (*"all"*) ts = raise Match;
 
