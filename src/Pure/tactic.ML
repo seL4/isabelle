@@ -98,6 +98,7 @@ sig
   val instantiate_tac   : (string * string) list -> tactic
   val thin_tac          : string -> int -> tactic
   val trace_goalno_tac  : (int -> tactic) -> int -> tactic
+  val CONJUNCTS: tactic -> int -> tactic
 end;
 
 signature TACTIC =
@@ -643,6 +644,12 @@ val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
 
 fun smart_conjunction_tac 0 = assume_tac 1
   | smart_conjunction_tac _ = TRY conjunction_tac;
+
+(*treat conjunction as separate sub-goals*)
+fun CONJUNCTS tac =
+  SELECT_GOAL (TRY conjunction_tac
+    THEN tac
+    THEN PRIMITIVE Drule.conj_curry);
 
 end;
 
