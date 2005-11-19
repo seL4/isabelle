@@ -721,7 +721,7 @@ fun common_exports is_goal inner outer =
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
-    Goal.norm_hhf'
+    Goal.norm_hhf_protected
     #> Seq.EVERY (rev exp_asms)
     #> Seq.map (fn rule =>
       let
@@ -732,7 +732,7 @@ fun common_exports is_goal inner outer =
       in
         rule
         |> Drule.forall_intr_list frees
-        |> Goal.norm_hhf'
+        |> Goal.norm_hhf_protected
         |> Drule.tvars_intr_list tfrees |> #2
       end)
   end;
