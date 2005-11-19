@@ -35,7 +35,8 @@ sig
      {mk: thm -> thm list,
       mk_cong: thm -> thm,
       mk_sym: thm -> thm option,
-      mk_eq_True: thm -> thm option},
+      mk_eq_True: thm -> thm option,
+      reorient: theory -> term list -> term -> term -> bool},
     termless: term * term -> bool,
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (simpset -> int -> tactic)) list,
@@ -89,6 +90,7 @@ sig
   val context: Context.proof -> simpset -> simpset
   val theory_context: theory  -> simpset -> simpset
   val debug_bounds: bool ref
+  val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> cterm -> thm
@@ -163,7 +165,8 @@ type mk_rews =
  {mk: thm -> thm list,
   mk_cong: thm -> thm,
   mk_sym: thm -> thm option,
-  mk_eq_True: thm -> thm option};
+  mk_eq_True: thm -> thm option,
+  reorient: theory -> term list -> term -> term -> bool};
 
 datatype simpset =
   Simpset of
@@ -313,47 +316,6 @@ fun print_ss ss =
   end;
 
 
-(* empty simpsets *)
-
-fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], (0, []), NONE),
-    (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
-
-val basic_mk_rews: mk_rews =
- {mk = fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
-  mk_cong = I,
-  mk_sym = SOME o Drule.symmetric_fun,
-  mk_eq_True = K NONE};
-
-val empty_ss = init_ss basic_mk_rews Term.termless (K (K no_tac)) ([], []);
-
-
-(* merge simpsets *)            (*NOTE: ignores some fields of 2nd simpset*)
-
-fun merge_ss (ss1, ss2) =
-  let
-    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, context = _},
-     {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
-      loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
-    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, context = _},
-     {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
-      loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
-
-    val rules' = Net.merge eq_rrule (rules1, rules2);
-    val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
-    val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
-    val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
-    val weak' = merge_lists weak1 weak2;
-    val procs' = Net.merge eq_proc (procs1, procs2);
-    val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
-    val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
-    val solvers' = merge_solvers solvers1 solvers2;
-  in
-    make_simpset ((rules', prems', bounds', NONE), ((congs', weak'), procs',
-      mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
-  end;
-
-
 (* simprocs *)
 
 exception SIMPROC_FAIL of string * exn;
@@ -400,13 +362,6 @@ fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
       theory_context thy ss);
 
 
-(* clear_ss *)
-
-fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
-  init_ss mk_rews termless subgoal_tac solvers
-  |> inherit_context ss;
-
-
 (* addsimps *)
 
 fun mk_rrule2 {thm, name, lhs, elhs, perm} =
@@ -442,7 +397,7 @@ fun rewrite_rule_extra_vars prems elhs erhs =
   not (term_tvars erhs subset (term_tvars elhs union List.concat (map term_tvars prems)));
 
 (*simple test for looping rewrite rules and stupid orientations*)
-fun reorient thy prems lhs rhs =
+fun default_reorient thy prems lhs rhs =
   rewrite_rule_extra_vars prems lhs rhs
     orelse
   is_Var (head_of lhs)
@@ -511,19 +466,20 @@ fun mk_rrule ss (thm, name) =
   end;
 
 fun orient_rrule ss (thm, name) =
-  let val (thy, prems, lhs, elhs, rhs, perm) = decomp_simp thm in
+  let
+    val (thy, prems, lhs, elhs, rhs, perm) = decomp_simp thm;
+    val Simpset (_, {mk_rews = {reorient, mk_sym, ...}, ...}) = ss;
+  in
     if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
     else if reorient thy prems lhs rhs then
       if reorient thy prems rhs lhs
       then mk_eq_True ss (thm, name)
       else
-        let val Simpset (_, {mk_rews = {mk_sym, ...}, ...}) = ss in
-          (case mk_sym thm of
-            NONE => []
-          | SOME thm' =>
-              let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
-              in rrule_eq_True (thm', name, lhs', elhs', rhs', ss, thm) end)
-        end
+        (case mk_sym thm of
+          NONE => []
+        | SOME thm' =>
+            let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
+            in rrule_eq_True (thm', name, lhs', elhs', rhs', ss, thm) end)
     else rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm)
   end;
 
@@ -658,26 +614,31 @@ end;
 
 local
 
-fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_True},
+fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_True, reorient},
       termless, subgoal_tac, loop_tacs, solvers) =>
-  let val (mk', mk_cong', mk_sym', mk_eq_True') = f (mk, mk_cong, mk_sym, mk_eq_True) in
-    (congs, procs, {mk = mk', mk_cong = mk_cong', mk_sym = mk_sym', mk_eq_True = mk_eq_True'},
-      termless, subgoal_tac, loop_tacs, solvers)
-  end);
+  let
+    val (mk', mk_cong', mk_sym', mk_eq_True', reorient') =
+      f (mk, mk_cong, mk_sym, mk_eq_True, reorient);
+    val mk_rews' = {mk = mk', mk_cong = mk_cong', mk_sym = mk_sym', mk_eq_True = mk_eq_True',
+      reorient = reorient'};
+  in (congs, procs, mk_rews', termless, subgoal_tac, loop_tacs, solvers) end);
 
 in
 
-fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True) =>
-  (mk, mk_cong, mk_sym, mk_eq_True));
+fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
+  (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
-fun ss setmkcong mk_cong = ss |> map_mk_rews (fn (mk, _, mk_sym, mk_eq_True) =>
-  (mk, mk_cong, mk_sym, mk_eq_True));
+fun ss setmkcong mk_cong = ss |> map_mk_rews (fn (mk, _, mk_sym, mk_eq_True, reorient) =>
+  (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
-fun ss setmksym mk_sym = ss |> map_mk_rews (fn (mk, mk_cong, _, mk_eq_True) =>
-  (mk, mk_cong, mk_sym, mk_eq_True));
+fun ss setmksym mk_sym = ss |> map_mk_rews (fn (mk, mk_cong, _, mk_eq_True, reorient) =>
+  (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
-fun ss setmkeqTrue mk_eq_True = ss |> map_mk_rews (fn (mk, mk_cong, mk_sym, _) =>
-  (mk, mk_cong, mk_sym, mk_eq_True));
+fun ss setmkeqTrue mk_eq_True = ss |> map_mk_rews (fn (mk, mk_cong, mk_sym, _, reorient) =>
+  (mk, mk_cong, mk_sym, mk_eq_True, reorient));
+
+fun set_reorient reorient = map_mk_rews (fn (mk, mk_cong, mk_sym, mk_eq_True, _) =>
+  (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
 end;
 
@@ -736,6 +697,52 @@ fun ss addSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termles
 fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, (solvers, solvers)));
+
+
+(* empty *)
+
+fun init_ss mk_rews termless subgoal_tac solvers =
+  make_simpset ((Net.empty, [], (0, []), NONE),
+    (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
+
+fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
+  init_ss mk_rews termless subgoal_tac solvers
+  |> inherit_context ss;
+
+val basic_mk_rews: mk_rews =
+ {mk = fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
+  mk_cong = I,
+  mk_sym = SOME o Drule.symmetric_fun,
+  mk_eq_True = K NONE,
+  reorient = default_reorient};
+
+val empty_ss = init_ss basic_mk_rews Term.termless (K (K no_tac)) ([], []);
+
+
+(* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
+
+fun merge_ss (ss1, ss2) =
+  let
+    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, context = _},
+     {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
+      loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
+    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, context = _},
+     {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
+      loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
+
+    val rules' = Net.merge eq_rrule (rules1, rules2);
+    val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
+    val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
+    val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
+    val weak' = merge_lists weak1 weak2;
+    val procs' = Net.merge eq_proc (procs1, procs2);
+    val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
+    val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
+    val solvers' = merge_solvers solvers1 solvers2;
+  in
+    make_simpset ((rules', prems', bounds', NONE), ((congs', weak'), procs',
+      mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
+  end;
 
 
 
