@@ -33,14 +33,13 @@ sig
   val pretty_itype: itype -> Pretty.T;
   val pretty_ipat: ipat -> Pretty.T;
   val pretty_iexpr: iexpr -> Pretty.T;
+  val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list;
+  val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
   val unfold_fun: itype -> itype list * itype;
   val unfold_app: iexpr -> iexpr * iexpr list;
   val unfold_let: iexpr -> (ipat * iexpr) list * iexpr;
   val itype_of_iexpr: iexpr -> itype;
-  val itype_of_ipat: ipat -> itype;
   val ipat_of_iexpr: iexpr -> ipat;
-  val vars_of_ipats: ipat list -> vname list;
-  val instant_itype: vname * itype -> itype -> itype;
   val invent_var_t_names: itype list -> int -> vname list -> vname -> vname list;
   val invent_var_e_names: iexpr list -> int -> vname list -> vname -> vname list;
 
@@ -71,17 +70,54 @@ sig
     -> 'src -> transact -> 'dst * transact;
   val gen_ensure_def: (string * gen_defgen) list -> string
     -> string -> transact -> transact;
+  val start_transact: (transact -> 'a * transact) -> module -> 'a * module;
+
+  val class_eq: string;
+  val type_bool: string;
+  val type_pair: string;
+  val type_list: string;
+  val type_integer: string;
+  val cons_pair: string;
+  val fun_fst: string;
+  val fun_snd: string;
+  val Type_integer: itype;
+  val Cons_true: iexpr;
+  val Cons_false: iexpr;
+  val Cons_pair: iexpr;
+  val Cons_nil: iexpr;
+  val Cons_cons: iexpr;
+  val Fun_eq: iexpr;
+  val Fun_not: iexpr;
+  val Fun_and: iexpr;
+  val Fun_or: iexpr;
+  val Fun_if: iexpr;
+  val Fun_fst: iexpr;
+  val Fun_snd: iexpr;
+  val Fun_0: iexpr;
+  val Fun_1: iexpr;
+  val Fun_add: iexpr;
+  val Fun_mult: iexpr;
+  val Fun_minus: iexpr;
+  val Fun_lt: iexpr;
+  val Fun_le: iexpr;
+  val Fun_wfrec: iexpr;
 
   val prims: string list;
   val extract_defs: iexpr -> string list;
   val eta_expand: (string -> int) -> module -> module;
+  val eta_expand_poly: module -> module;
   val connect_datatypes_clsdecls: module -> module;
   val tupelize_cons: module -> module;
-  val eliminate_dtconstr: module -> module;
   val eliminate_classes: module -> module;
 
   val debug_level : int ref;
   val debug : int -> ('a -> string) -> 'a -> 'a;
+
+  val serialize:
+    ((string -> string) -> (string * def) list -> Pretty.T)
+    -> (string * Pretty.T list -> Pretty.T)
+    -> (string -> string option)
+    -> string list list -> string -> module -> Pretty.T
 end;
 
 signature CODEGEN_THINGOL_OP =
@@ -317,6 +353,13 @@ fun ipat_of_iexpr (IConst (f, ty)) = ICons ((f, []), ty)
   | ipat_of_iexpr (e as IApp _) =
       case unfold_app e of (IConst (f, ty), es) =>
         ICons ((f, map ipat_of_iexpr es), (snd o unfold_fun) ty);
+
+fun vars_of_itype ty =
+  let
+    fun vars (IType (_, tys)) = fold vars tys
+      | vars (IFun (ty1, ty2)) = vars ty1 #> vars ty2
+      | vars (IVarT (v, _)) = cons v
+  in vars ty [] end;
 
 fun vars_of_ipats ps =
   let
@@ -701,6 +744,10 @@ fun gen_ensure_def defgens msg name (deps, modl) =
     |-> (fn names => pair (names@deps))
   end;
 
+fun start_transact f module =
+  ([], module)
+  |> f
+  |-> (fn x => fn (_, module) => (x, module));
 
 
 (** primitive language constructs **)
@@ -830,6 +877,19 @@ fun eta_expand query =
       | eta_iexpr e = eta_iexpr' e;
   in map_defs (map_def_fun I eta_iexpr) end;
 
+val eta_expand_poly =
+  let
+    fun map_def_fun (def as Fun ([([], e)], cty as (sortctxt, (ty as IFun (ty1, ty2))))) =
+          if (not o null) sortctxt
+            orelse (null o vars_of_itype) ty
+          then def
+          else
+            let
+              val add_var = (hd (invent_var_e_names [e] 1 [] "x"), ty1)
+            in (Fun ([([IVarP add_var], IAbs (add_var, e))], cty)) end
+      | map_def_fun def = def;
+  in map_defs map_def_fun end;
+
 fun connect_datatypes_clsdecls module =
   let
     fun extract_dep (name, Datatypecons (dtname, _)) = 
@@ -870,28 +930,6 @@ fun tupelize_cons module =
       | replace_ipat cs p = map_ipat I (replace_ipat cs) p;
   in
     transform_defs replace_def replace_ipat replace_iexpr [cons_cons] module
-  end;
-
-fun eliminate_dtconstr module =
-  let
-    fun replace_def (name, (Datatype (vs, cs, is))) acc =
-          (Datatype (map (fn (v, _) => (v, [])) vs, cs, is), (name, vs)::acc)
-      | replace_def (_, def) acc = (def, acc);
-    fun constrain (ty as IType _, _) =
-          ty
-      | constrain (IVarT (v, sort1), (_, sort2)) =
-          IVarT (v, gen_union (op =) (sort1, sort2));
-    fun replace_ty tycos (ty as (IType (tyco, tys))) =
-          (case AList.lookup (op =) tycos tyco
-           of NONE => ty
-            | SOME vs => IType (tyco, map2 constrain (tys, vs)))
-      | replace_ty tycos ty =
-          map_itype (replace_ty tycos) ty;
-  in
-    transform_defs replace_def
-      (*! HIER FEHLT NOCH: ÄNDERN VON TYP UND SORTCTXT BEI FUNS !*)
-      (fn tycos => map_ipat (replace_ty tycos) I)
-      (fn tycos => map_iexpr (replace_ty tycos) (map_ipat (replace_ty tycos) I) I) [] module
   end;
 
 fun eliminate_classes module =
@@ -970,6 +1008,104 @@ fun eliminate_classes module =
     module
     |> map_defs transform_dicts
     |> map_defs transform_defs
+  end;
+
+
+(** generic serialization **)
+
+(* resolving *)
+
+fun mk_resolvtab nspgrp validate module =
+  let
+    fun ensure_unique prfix prfix' name name' (locals, tab) =
+      let
+        fun uniquify name n =
+          let
+            val name' = if n = 0 then name else name ^ "_" ^ string_of_int n
+          in
+            if member (op =) locals name'
+            then uniquify name (n+1)
+            else case validate name
+              of NONE => name'
+               | SOME name' => uniquify name' n
+          end;
+        val name'' = uniquify name' 0;
+      in
+        (locals, tab)
+        |> apsnd (Symtab.update_new
+             (NameSpace.pack (prfix @ [name]), NameSpace.pack (prfix' @ [name''])))
+        |> apfst (cons name'')
+        |> pair name''
+      end;
+    fun fill_in prfix prfix' node tab =
+      let
+        val keys = Graph.keys node;
+        val nodes = AList.make (Graph.get_node node) keys;
+        val (mods, defs) =
+          nodes
+          |> List.partition (fn (_, Module _) => true | _ => false)
+          |> apfst (map (fn (name, Module m) => (name, m)))
+          |> apsnd (map fst)
+        fun modl_validate (name, modl) (locals, tab) =
+          (locals, tab)
+          |> ensure_unique prfix prfix' name name
+          |-> (fn name' => apsnd (fill_in (prfix @ [name]) (prfix @ [name']) modl))
+        fun ensure_unique_sidf sidf =
+          let
+            val [shallow, name] = NameSpace.unpack sidf;
+          in
+            nspgrp
+            |> get_first
+                (fn grp => if member (op =) grp shallow
+                  then grp |> remove (op =) shallow |> SOME else NONE)
+            |> these
+            |> map (fn s => NameSpace.pack [s, name])
+            |> exists (member (op =) defs)
+            |> (fn b => if b then sidf else name)
+          end;
+        fun def_validate sidf (locals, tab) =
+          (locals, tab)
+          |> ensure_unique prfix prfix' sidf (ensure_unique_sidf sidf)
+          |> snd
+      in
+        ([], tab)
+        |> fold modl_validate mods
+        |> fold def_validate defs
+        |> snd
+      end;
+  in
+    Symtab.empty
+    |> fill_in [] [] module
+  end;
+
+fun mk_resolv tab = 
+  let
+    fun resolver modl name =
+      if NameSpace.is_qualified name then
+        let
+          val modl' = if null modl then [] else (NameSpace.unpack o the o Symtab.lookup tab o NameSpace.pack) modl;
+          val name' = (NameSpace.unpack o the o Symtab.lookup tab) name
+        in
+          (NameSpace.pack o #3 o get_prefix (op =)) (modl', name')
+        end
+      else name
+  in resolver end;
+
+
+(* serialization *)
+
+fun serialize s_def s_module validate nspgrp name_root module =
+  let
+    val resolvtab = mk_resolvtab nspgrp validate module;
+    val resolver = mk_resolv resolvtab;
+    fun seri prfx ([(name, Module module)]) =
+          s_module (name,
+            (map (seri (prfx @ [name]))
+               ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))
+      | seri prfx ds =
+          s_def (resolver prfx) (map (fn (name, Def def) => (name, def)) ds)
+  in
+    seri [] [(name_root, Module module)]
   end;
 
 end; (* struct *)
