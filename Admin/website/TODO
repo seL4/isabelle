@@ -1,9 +1,3 @@
-For the release:
-- announce build bed
-- abandon old scripts: mirror-*, rsyncisabelle
-- abandon old cache
-- cleanup website mess
-
 In the mid-time:
 - a gentle intro enumeration on Home - "Why Isabelle?"
     * stably running, mature system

@@ -128,4 +128,4 @@ DEST="$1"; shift;
 
 ## main
 
-exec rsync -va $ARGS "rsync://isabelle.in.tum.de/$SRC/." "$DEST/."
+exec rsync -va $ARGS "rsync://isabelle.in.tum.de/$SRC" "$DEST/"
