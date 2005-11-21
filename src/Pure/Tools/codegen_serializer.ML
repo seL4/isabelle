@@ -18,7 +18,7 @@ sig
   type 'a pretty_syntax = string -> Pretty.T list -> ('a -> Pretty.T)
     -> (string list * Pretty.T) option;
   type serializer = CodegenThingol.itype pretty_syntax -> CodegenThingol.iexpr pretty_syntax
-    -> primitives -> CodegenThingol.module -> Pretty.T;
+    -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
 
   val ml_from_thingol: string list list -> string -> serializer;
 end;
@@ -66,7 +66,7 @@ fun mk_prims prims = get_prims prims (Graph.keys prims) |> snd;
 type 'a pretty_syntax = string -> Pretty.T list -> ('a -> Pretty.T)
   -> (string list * Pretty.T) option;
 type serializer = CodegenThingol.itype pretty_syntax -> CodegenThingol.iexpr pretty_syntax
-  -> primitives -> CodegenThingol.module -> Pretty.T;
+  -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
 
 datatype lrx = L | R | X;
 
@@ -514,7 +514,7 @@ fun ml_from_defs styco sconst resolv ds =
 
 in
 
-fun ml_from_thingol nspgrp name_root styco sconst prims module =
+fun ml_from_thingol nspgrp name_root styco sconst prims select module =
   let
     fun ml_from_module (name, ps) =
       Pretty.chunks ([
@@ -551,7 +551,7 @@ fun ml_from_thingol nspgrp name_root styco sconst prims module =
     |> debug 3 (fn _ => "connecting datatypes and classdecls...")
     |> connect_datatypes_clsdecls
     |> debug 3 (fn _ => "selecting submodule...")
-    |> I (*! HIER SOLLTE DAS TATSÄCHLICH STATTFINDEN !*)
+    |> (if is_some select then (partof o the) select else I)
     |> debug 3 (fn _ => "eta-expanding...")
     |> eta_expand eta_expander
     |> debug 5 (Pretty.output o pretty_module)
