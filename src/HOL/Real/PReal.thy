@@ -24,7 +24,7 @@ by (insert add_strict_mono [of 0 a b c], simp)
 
 lemma interval_empty_iff:
      "({y::'a::ordered_field. x < y & y < z} = {}) = (~(x < z))"
-by (blast dest: dense intro: order_less_trans)
+by (auto dest: dense)
 
 
 constdefs
