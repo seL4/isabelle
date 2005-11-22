@@ -25,11 +25,11 @@ sig
   val lookup_coinductT : Proof.context -> string -> thm option
   val lookup_coinductS : Proof.context -> string -> thm option
   val find_casesT: Proof.context -> typ -> thm list
-  val find_casesS: Proof.context -> thm -> thm list
+  val find_casesS: Proof.context -> term -> thm list
   val find_inductT: Proof.context -> typ -> thm list
-  val find_inductS: Proof.context -> thm -> thm list
+  val find_inductS: Proof.context -> term -> thm list
   val find_coinductT: Proof.context -> typ -> thm list
-  val find_coinductS: Proof.context -> thm -> thm list
+  val find_coinductS: Proof.context -> term -> thm list
   val cases_type_global: string -> theory attribute
   val cases_set_global: string -> theory attribute
   val cases_type_local: string -> Proof.context attribute
@@ -180,11 +180,11 @@ fun find_rules which how ctxt x =
   map snd (NetRules.retrieve (which (LocalInduct.get ctxt)) (how x));
 
 val find_casesT = find_rules (#1 o #1) encode_type;
-val find_casesS = find_rules (#2 o #1) Thm.concl_of;
+val find_casesS = find_rules (#2 o #1) I;
 val find_inductT = find_rules (#1 o #2) encode_type;
-val find_inductS = find_rules (#2 o #2) Thm.concl_of;
+val find_inductS = find_rules (#2 o #2) I;
 val find_coinductT = find_rules (#1 o #3) encode_type;
-val find_coinductS = find_rules (#2 o #3) Thm.concl_of;
+val find_coinductS = find_rules (#2 o #3) I;
 
 
 
