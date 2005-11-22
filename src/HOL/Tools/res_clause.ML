@@ -143,7 +143,8 @@ val ascii_of = String.translate ascii_of_c;
 end;
 
 (* convert a list of strings into one single string; surrounded by brackets *)
-fun paren_pack strings = "(" ^ commas strings ^ ")";
+fun paren_pack [] = ""   (*empty argument list*)
+  | paren_pack strings = "(" ^ commas strings ^ ")";
 
 fun bracket_pack strings = "[" ^ commas strings ^ "]";
 
@@ -159,7 +160,6 @@ fun ascii_of_indexname (v,0) = ascii_of v
 fun make_schematic_var v = schematic_var_prefix ^ (ascii_of_indexname v);
 fun make_fixed_var x = fixed_var_prefix ^ (ascii_of x);
 
-(*Type variables contain _H because the character ' translates to that.*)
 fun make_schematic_type_var (x,i) = 
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
@@ -208,13 +208,11 @@ type pred_name = string;
 type sort = Term.sort;
 type fol_type = string;
 
-
 datatype type_literal = LTVar of string | LTFree of string;
 
-
 datatype folTerm = UVar of string * fol_type
-                 | Fun of string * fol_type * folTerm list;
-datatype predicate = Predicate of pred_name * fol_type * folTerm list;
+                 | Fun of string * fol_type list * folTerm list;
+datatype predicate = Predicate of pred_name * fol_type list * folTerm list;
 
 datatype literal = Literal of polarity * predicate * tag;
 
@@ -283,75 +281,73 @@ fun funcs_of_cls (Clause cls) = #functions cls;
 fun preds_of_cls (Clause cls) = #predicates cls;
 
 
-
 (*Declarations of the current theory--to allow suppressing types.*)
-val monomorphic = ref (fn (_: string) => false);
-fun no_types_needed s = ! monomorphic s;
+val const_typargs = ref (Library.K [] : (string*typ -> typ list));
+
+fun num_typargs(s,T) = if !keep_types then length (!const_typargs (s,T)) else 0;
 
 (*Initialize the type suppression mechanism with the current theory before
     producing any clauses!*)
-fun init thy = (monomorphic := Sign.const_monomorphic thy);
+fun init thy = (const_typargs := Sign.const_typargs thy);
     
 
-(*Flatten a type to a string while accumulating sort constraints on the TFress and
+(*Flatten a type to a string while accumulating sort constraints on the TFrees and
   TVars it contains.*)    
-fun type_of (Type (a, [])) = 
-      let val t = make_fixed_type_const a
-      in (t,([],[(t,0)]))  end
-  | type_of (Type (a, Ts)) = 
+fun type_of (Type (a, Ts)) = 
+      let val (folTyps, (ts, funcs)) = types_of Ts 
+	  val t = make_fixed_type_const a
+      in    
+	  ((t ^ paren_pack folTyps), (ts, (t, length Ts)::funcs))
+      end
+  | type_of (TFree (a,s)) = 
+      let val t = make_fixed_type_var a
+      in (t, ([((FOLTFree a),s)], [(t,0)])) end
+  | type_of (TVar (v, s)) = (make_schematic_type_var v, ([((FOLTVar v),s)], []))
+and types_of Ts =
       let val foltyps_ts = map type_of Ts 
 	  val (folTyps,ts_funcs) = ListPair.unzip foltyps_ts
 	  val (ts, funcslist) = ListPair.unzip ts_funcs
-	  val ts' = union_all ts
-	  val funcs' = union_all funcslist
-	  val t = make_fixed_type_const a
       in    
-	  ((t ^ paren_pack folTyps), (ts', (t, length Ts)::funcs'))
-      end
-  | type_of (TFree (a, s)) = 
-      let val t = make_fixed_type_var a
-      in (t, ([((FOLTFree a),s)],[(t,0)])) end
-  | type_of (TVar (v, s)) = (make_schematic_type_var v, ([((FOLTVar v),s)], []))
+	  (folTyps, (union_all ts, union_all funcslist))
+      end;
 
 
-fun maybe_type_of c T =
- if no_types_needed c then ("",([],[])) else type_of T;
+fun const_types_of (c,T) = types_of (!const_typargs (c,T));
 
 (* Any variables created via the METAHYPS tactical should be treated as
    universal vars, although it is represented as "Free(...)" by Isabelle *)
 val isMeta = String.isPrefix "METAHYP1_"
 
 fun pred_name_type (Const(c,T)) = 
-      let val (typof,(folTyps,funcs)) = maybe_type_of c T
-      in (make_fixed_const c, (typof,folTyps), funcs) end
+      let val (contys,(folTyps,funcs)) = const_types_of (c,T)
+      in (make_fixed_const c, (contys,folTyps), funcs) end
   | pred_name_type (Free(x,T))  = 
       if isMeta x then raise CLAUSE("Predicate Not First Order 1", Free(x,T)) 
-      else (make_fixed_var x, ("",[]), [])
+      else (make_fixed_var x, ([],[]), [])
   | pred_name_type (v as Var _) = raise CLAUSE("Predicate Not First Order 2", v)
   | pred_name_type t        = raise CLAUSE("Predicate input unexpected", t);
 
 
-(* For type equality *)
+(* For typed equality *)
 (* here "arg_typ" is the type of "="'s argument's type, not the type of the equality *)
 (* Find type of equality arg *)
 fun eq_arg_type (Type("fun",[T,_])) = 
     let val (folT,_) = type_of T;
     in  folT  end;
 
-fun fun_name_type (Const(c,T)) args = 
+fun fun_name_type (Const("op =",T)) args =   (*FIXME: Is this special treatment of = needed??*)
+      let val t = make_fixed_const "op ="
+      in (t, ([eq_arg_type T], []), [(t,2)]) end
+  | fun_name_type (Const(c,T)) args = 
       let val t = make_fixed_const c
-	val (typof, (folTyps,funcs)) = maybe_type_of c T
-	val arity = if !keep_types andalso not (no_types_needed c)
-	            then 1 + length args
-	            else length args
+	  val (contys, (folTyps,funcs)) = const_types_of (c,T)
+	  val arity = num_typargs(c,T) + length args
       in
-	  (t, (typof,folTyps), ((t,arity)::funcs))
+	  (t, (contys,folTyps), ((t,arity)::funcs))
       end
  | fun_name_type (Free(x,T)) args  = 
       let val t = make_fixed_var x
-      in
-	    (t, ("",[]), [(t, length args)])
-      end
+      in  (t, ([],[]), [(t, length args)]) end
   | fun_name_type f args = raise CLAUSE("Function Not First Order 1", f);
 
 
@@ -366,72 +362,57 @@ fun term_of (Var(ind_nm,T)) =
 	  if isMeta x then (UVar(make_schematic_var(x,0),folType),
 			    (ts, ((make_schematic_var(x,0)),0)::funcs))
 	  else
-	      (Fun(make_fixed_var x, folType, []), 
+	      (Fun(make_fixed_var x, [folType], []), 
 	       (ts, ((make_fixed_var x),0)::funcs))
       end
   | term_of (Const(c,T)) =  (* impossible to be equality *)
-      let val (folType,(ts,funcs)) = type_of T
+      let val (contys, (folTyps,funcs)) = const_types_of (c,T)
       in
-	  (Fun(make_fixed_const c, folType, []),
-	   (ts, ((make_fixed_const c),0)::funcs))
+	  (Fun(make_fixed_const c, contys, []),
+	   (folTyps, ((make_fixed_const c),0)::funcs))
       end    
-  | term_of (app as (t $ a)) = 
+  | term_of app = 
       let val (f,args) = strip_comb app
-	  fun term_of_aux () = 
-	      let val (funName,(funType,ts1),funcs) = fun_name_type f args
-		  val (args',ts_funcs) = ListPair.unzip (map term_of args)
-		  val (ts2,funcs') = ListPair.unzip ts_funcs
-		  val ts3 = union_all (ts1::ts2)
-		  val funcs'' = union_all(funcs::funcs')
-	      in
-		  (Fun(funName,funType,args'), (ts3,funcs''))
-	      end
-	  fun term_of_eq ((Const ("op =", typ)),args) =
-	      let val arg_typ = eq_arg_type typ
-		  val (args',ts_funcs) = ListPair.unzip (map term_of args)
-		  val (ts,funcs) = ListPair.unzip ts_funcs
-		  val equal_name = make_fixed_const ("op =")
-	      in
-		  (Fun(equal_name,arg_typ,args'),
-		   (union_all ts, 
-		    (make_fixed_var equal_name, 2):: union_all funcs))
-	      end
+          val _ = case f of Const(_,_) => ()
+			  | Free(s,_)  => 
+			      if isMeta s 
+			      then raise CLAUSE("Function Not First Order 2", f)
+			      else ()
+			  | _ => raise CLAUSE("Function Not First Order 3", f);
+	  val (funName,(contys,ts1),funcs) = fun_name_type f args
+	  val (args',(ts2,funcs')) = terms_of args
       in
-	 case f of Const ("op =", typ) => term_of_eq (f,args)
-		 | Const(_,_) => term_of_aux ()
-		 | Free(s,_)  => 
-		     if isMeta s 
-		     then raise CLAUSE("Function Not First Order 2", f)
-		     else term_of_aux()
-		 | _ => raise CLAUSE("Function Not First Order 3", f)
+	  (Fun(funName,contys,args'), 
+	   (union_all (ts1::ts2), 
+	    union_all(funcs::funcs')))
       end
-  | term_of t = raise CLAUSE("Function Not First Order 4", t); 
+  | term_of t = raise CLAUSE("Function Not First Order 4", t)
+and terms_of ts =  
+      let val (args, ts_funcs) = ListPair.unzip (map term_of ts)
+      in
+	  (args, ListPair.unzip ts_funcs)
+      end
 
 
 fun pred_of (Const("op =", typ), args) =
       let val arg_typ = eq_arg_type typ 
-	  val (args',ts_funcs) = ListPair.unzip (map term_of args)
-	  val (ts,funcs) = ListPair.unzip ts_funcs
+	  val (args',(ts,funcs)) = terms_of args
 	  val equal_name = make_fixed_const "op ="
       in
-	  (Predicate(equal_name,arg_typ,args'),
+	  (Predicate(equal_name,[arg_typ],args'),
 	   union_all ts, 
 	   [((make_fixed_var equal_name), 2)], 
 	   union_all funcs)
       end
   | pred_of (pred,args) = 
       let val (predName,(predType,ts1), pfuncs) = pred_name_type pred
-	  val (args',ts_funcs) = ListPair.unzip (map term_of args)
-	  val (ts2,ffuncs) = ListPair.unzip ts_funcs
+	  val (args',(ts2,ffuncs)) = terms_of args
 	  val ts3 = union_all (ts1::ts2)
 	  val ffuncs' = union_all ffuncs
 	  val newfuncs = pfuncs union ffuncs'
 	  val arity = 
 	    case pred of
-		Const (c,_) => 
-		      if !keep_types andalso not (no_types_needed c)
-		      then 1 + length args
-		      else length args
+		Const (c,T) => num_typargs(c,T) + length args
 	      | _ => length args
       in
 	  (Predicate(predName,predType,args'), ts3, 
@@ -692,7 +673,8 @@ val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of
 
 fun wrap_eq_type typ t = eq_typ_wrapper ^"(" ^ t ^ "," ^ typ ^ ")";
 
-(* Only need to wrap equality's arguments with "typeinfo" if the output clauses are typed && if we specifically ask for types to be included.   *)
+(*Only need to wrap equality's arguments with "typeinfo" if the output clauses are typed 
+ and if we specifically ask for types to be included.   *)
 fun string_of_equality (typ,terms) =
       let val [tstr1,tstr2] = map string_of_term terms
       in
@@ -702,27 +684,19 @@ fun string_of_equality (typ,terms) =
 	  else "equal(" ^ tstr1 ^ "," ^ tstr2 ^ ")"
       end
 and string_of_term (UVar(x,_)) = x
-  | string_of_term (Fun("equal",typ,terms)) = string_of_equality(typ,terms)
-  | string_of_term (Fun (name,typ,[])) = name
-  | string_of_term (Fun (name,typ,terms)) = 
-      let val terms' = map string_of_term terms
-      in
-	  if !keep_types andalso typ<>"" 
-	  then name ^ (paren_pack (terms' @ [typ]))
-	  else name ^ (paren_pack terms')
-      end;
+  | string_of_term (Fun("equal",[typ],terms)) = string_of_equality(typ,terms)
+  | string_of_term (Fun (name,typs,[])) = name (*Overloaded consts like 0 don't get types!*)
+  | string_of_term (Fun (name,typs,terms)) = 
+      let val terms_as_strings = map string_of_term terms
+      in  name ^ (paren_pack (terms_as_strings @ typs))  end
+  | string_of_term _ = error "string_of_term";      
 
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
-fun string_of_predicate (Predicate("equal",typ,terms)) = 
-      string_of_equality(typ,terms)
-  | string_of_predicate (Predicate(name,_,[])) = name 
-  | string_of_predicate (Predicate(name,typ,terms)) = 
+fun string_of_predicate (Predicate("equal",[typ],terms)) = string_of_equality(typ,terms)
+  | string_of_predicate (Predicate(name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
-      in
-	  if !keep_types andalso typ<>""
-	  then name ^ (paren_pack (terms_as_strings @ [typ]))
-	  else name ^ (paren_pack terms_as_strings) 
-      end;
+      in  name ^ (paren_pack (terms_as_strings @ typs))  end
+  | string_of_predicate _ = error "string_of_predicate";      
 
 
 fun string_of_clausename (cls_id,ax_name) = 
@@ -781,10 +755,8 @@ fun dfg_clause_aux (Clause cls) =
 
 
 fun dfg_folterms (Literal(pol,pred,tag)) = 
-  let val Predicate (predname, foltype, folterms) = pred
-  in
-      folterms
-  end
+  let val Predicate (predname, _, folterms) = pred
+  in  folterms  end
 
  
 fun get_uvars (UVar(a,typ)) = [a] 
@@ -797,12 +769,9 @@ fun is_uvar (UVar _) = true
 fun uvar_name (UVar(a,_)) = a
 |   uvar_name (Fun (a,_,_)) = raise CLAUSE("Not a variable", Const(a,dummyT));
 
-fun mergelist [] = []
-|   mergelist (x::xs) = x @ mergelist xs
-
 fun dfg_vars (Clause cls) =
     let val lits = #literals cls
-        val folterms = mergelist(map dfg_folterms lits)
+        val folterms = List.concat (map dfg_folterms lits)
     in 
         union_all(map get_uvars folterms)
     end
@@ -813,24 +782,10 @@ fun dfg_tvars (Clause cls) =(#tvars cls)
 
 	
 (* make this return funcs and preds too? *)
-fun string_of_predname (Predicate("equal",typ,terms)) = "EQUALITY"
-  | string_of_predname (Predicate(name,_,[])) = name 
-  | string_of_predname (Predicate(name,typ,terms)) = name
+fun string_of_predname (Predicate("equal",_,terms)) = "EQUALITY"
+  | string_of_predname (Predicate(name,_,terms)) = name
     
 	
-(* make this return funcs and preds too? *)
-
-fun string_of_predicate (Predicate("equal",typ,terms)) =  
-      string_of_equality(typ,terms)
-  | string_of_predicate (Predicate(name,_,[])) = name 
-  | string_of_predicate (Predicate(name,typ,terms)) = 
-      let val terms_as_strings = map string_of_term terms
-      in
-	  if !keep_types andalso typ<>""
-	  then name ^ (paren_pack  (terms_as_strings @ [typ]))
-	  else name ^ (paren_pack terms_as_strings) 
-      end;
-
 
 fun concat_with sep []  = ""
   | concat_with sep [x] = "(" ^ x ^ ")"
@@ -959,7 +914,7 @@ fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
 (*FIXME!!! currently is TPTP format!*)
 fun dfg_of_arLit (TConsLit(b,(c,t,args))) =
       let val pol = if b then "++" else "--"
-	  val arg_strs = (case args of [] => "" | _ => paren_pack args)
+	  val arg_strs = paren_pack args
       in 
 	  pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
       end
@@ -1003,8 +958,6 @@ fun tptp_literal (Literal(pol,pred,tag)) =
      in
 	tagged_pol ^ pred_string
     end;
-
-
 
 fun tptp_of_typeLit (LTVar x) = "--" ^ x
   | tptp_of_typeLit (LTFree x) = "++" ^ x;
@@ -1067,7 +1020,7 @@ fun tfree_clause tfree_lit =
 
 fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
       let val pol = if b then "++" else "--"
-	  val  arg_strs = (case args of [] => "" | _ => paren_pack args)
+	  val  arg_strs = paren_pack args
       in 
 	  pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
       end
@@ -1109,7 +1062,5 @@ fun tptp_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
     in
 	"input_clause(" ^ relcls_id ^ ",axiom," ^ lits ^ ")."
     end; 
-
-
 
 end;
