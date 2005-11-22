@@ -18,12 +18,10 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
-  val multi_resolve: thm list -> thm -> thm Seq.seq
-  val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val apply: method -> thm list -> RuleCases.tactic;
-  val RAW_METHOD_CASES: (thm list -> RuleCases.tactic) -> method
+  val apply: method -> thm list -> cases_tactic
+  val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
   val RAW_METHOD: (thm list -> tactic) -> method
-  val METHOD_CASES: (thm list -> RuleCases.tactic) -> method
+  val METHOD_CASES: (thm list -> cases_tactic) -> method
   val METHOD: (thm list -> tactic) -> method
   val fail: method
   val succeed: method
@@ -129,30 +127,12 @@ fun FINDGOAL tac st =
 fun HEADGOAL tac = tac 1;
 
 
-(* multi_resolve *)
-
-local
-
-fun res th i rule =
-  Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
-
-fun multi_res _ [] rule = Seq.single rule
-  | multi_res i (th :: ths) rule = Seq.maps (res th i) (multi_res (i + 1) ths rule);
-
-in
-
-val multi_resolve = multi_res 1;
-fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
-
-end;
-
-
 
 (** proof methods **)
 
 (* datatype method *)
 
-datatype method = Meth of thm list -> RuleCases.tactic;
+datatype method = Meth of thm list -> cases_tactic;
 
 fun apply (Meth m) = m;
 
@@ -280,7 +260,7 @@ local
 
 fun gen_rule_tac tac rules [] i st = tac rules i st
   | gen_rule_tac tac rules facts i st =
-      Seq.maps (fn rule => (tac o single) rule i st) (multi_resolves facts rules);
+      Seq.maps (fn rule => (tac o single) rule i st) (Drule.multi_resolves facts rules);
 
 fun gen_arule_tac tac j rules facts =
   EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);
