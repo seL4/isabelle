@@ -93,6 +93,7 @@ sig
   val plain_prop_of: thm -> term
   val add_used: thm -> string list -> string list
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
+  val map_tags: (tag list -> tag list) -> thm -> thm
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
   val tag: tag -> 'a attribute
@@ -142,6 +143,8 @@ sig
   val unvarify: thm -> thm
   val tvars_intr_list: string list -> thm -> (string * (indexname * sort)) list * thm
   val remdups_rl: thm
+  val multi_resolve: thm list -> thm -> thm Seq.seq
+  val multi_resolves: thm list -> thm list -> thm Seq.seq
   val conj_intr: thm -> thm -> thm
   val conj_intr_list: thm list -> thm
   val conj_elim: thm -> thm * thm
@@ -1113,6 +1116,25 @@ fun freeze_all_Vars thm =
       in instantiate' [] (map (fn ((x, _), T) => SOME (cert (Free (x, T)))) vars) thm end);
 
 val freeze_all = freeze_all_Vars o freeze_all_TVars;
+
+
+
+(** multi_resolve **)
+
+local
+
+fun res th i rule =
+  Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
+
+fun multi_res _ [] rule = Seq.single rule
+  | multi_res i (th :: ths) rule = Seq.maps (res th i) (multi_res (i + 1) ths rule);
+
+in
+
+val multi_resolve = multi_res 1;
+fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
+
+end;
 
 
 
