@@ -386,7 +386,7 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
 fun goal_cases st =
-  RuleCases.make true NONE (Thm.theory_of_thm st, Thm.prop_of st) (goals st);
+  RuleCases.make true NONE (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
 fun check_theory thy state =
   if subthy (thy, theory_of state) then state
@@ -397,7 +397,7 @@ fun apply_method current_context meth_fun state =
     val (goal_ctxt, (_, {statement, using, goal, before_qed, after_qed})) = find_goal state;
     val meth = meth_fun (if current_context then context_of state else goal_ctxt);
   in
-    Method.apply meth using goal |> Seq.map (fn (goal', meth_cases) =>
+    Method.apply meth using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> check_theory (Thm.theory_of_thm goal')
       |> map_goal
