@@ -865,9 +865,14 @@ fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
 
 in
 
-val prod_codegen_setup =
-  [Codegen.add_codegen "let_codegen" let_codegen,
-   Codegen.add_codegen "split_codegen" split_codegen];
+val prod_codegen_setup = [
+  Codegen.add_codegen "let_codegen" let_codegen,
+  Codegen.add_codegen "split_codegen" split_codegen,
+  CodegenPackage.add_codegen_expr
+    ("let", CodegenPackage.codegen_let strip_abs),
+  CodegenPackage.add_codegen_expr
+    ("split", CodegenPackage.codegen_split strip_abs)
+];
 
 end;
 *}

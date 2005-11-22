@@ -9,6 +9,7 @@ signature RECFUN_CODEGEN =
 sig
   val add: string option -> theory attribute
   val del: theory attribute
+  val get_rec_equations: theory -> string * typ -> (term list * term) list * typ
   val setup: (theory -> theory) list
 end;
 
@@ -78,6 +79,19 @@ fun get_equations thy defs (s, T) =
                  | SOME ((_, (thyname, _)), _) => thyname)
              | SOME thyname => thyname)
        end);
+
+fun get_rec_equations thy (s, T) =
+  Symtab.lookup (CodegenData.get thy) s
+  |> Option.map (fn thms => 
+       List.filter (fn (thm, _) => is_instance thy T ((snd o const_of o prop_of) thm)) thms
+       |> del_redundant thy [])
+  |> Option.mapPartial (fn thms => if null thms then NONE else SOME thms)
+  |> Option.map (fn thms =>
+       (preprocess thy (map fst thms),
+          (snd o const_of o prop_of o fst o hd) thms))
+  |> the_default ([], dummyT)
+  |> apfst (map prop_of)
+  |> apfst (map (Codegen.rename_term #> HOLogic.dest_Trueprop #> HOLogic.dest_eq #> apfst (strip_comb #> snd)))
 
 fun mk_suffix thy defs (s, T) = (case get_defn thy defs s T of
   SOME (_, SOME i) => " def" ^ string_of_int i | _ => "");
@@ -165,11 +179,14 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
   | _ => NONE);
 
 
-val setup =
-  [CodegenData.init,
-   add_codegen "recfun" recfun_codegen,
-   add_attribute ""
-     (   Args.del |-- Scan.succeed del
-      || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add)];
+val setup = [
+  CodegenData.init,
+  add_codegen "recfun" recfun_codegen,
+  add_attribute ""
+    (   Args.del |-- Scan.succeed del
+     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add),
+  CodegenPackage.add_defgen
+    ("rec", CodegenPackage.defgen_recfun get_rec_equations)
+];
 
 end;
