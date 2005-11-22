@@ -985,7 +985,7 @@ fun some_rule_tac ctxt (CS {xtra_netpair, ...}) facts = SUBGOAL (fn (goal, i) =>
     val [rules1, rules2, rules4] = ContextRules.find_rules false facts goal ctxt;
     val rules3 = ContextRules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
-    val ruleq = Method.multi_resolves facts rules;
+    val ruleq = Drule.multi_resolves facts rules;
   in
     Method.trace ctxt rules;
     fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq)

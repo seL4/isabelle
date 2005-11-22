@@ -110,7 +110,7 @@ val sym_del_local = local_att (apsnd o Drule.del_rule) o ContextRules.rule_del_l
 (* symmetry *)
 
 fun gen_symmetric get_sym = Drule.rule_attribute (fn x => fn th =>
-  (case Seq.chop (2, Method.multi_resolves [th] (get_sym x)) of
+  (case Seq.chop (2, Drule.multi_resolves [th] (get_sym x)) of
     ([th'], _) => th'
   | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
   | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
@@ -170,7 +170,7 @@ fun calculate prep_rules final raw_rules int state =
       | NONE =>
           (case ths of [] => NetRules.rules (#1 (get_local_rules state))
           | th :: _ => NetRules.retrieve (#1 (get_local_rules state)) (strip_assums_concl th)))
-      |> Seq.of_list |> Seq.maps (Method.multi_resolve ths)
+      |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
       |> Seq.filter (not o projection ths);
 
     val facts = Proof.the_facts (assert_sane final state);
