@@ -83,8 +83,6 @@ val inductive_rulify2 = thms "induct_rulify2";
 
 (** theory data **)
 
-(* data kind 'HOL/inductive' *)
-
 type inductive_info =
   {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
     induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm};
@@ -121,12 +119,9 @@ fun the_inductive thy name =
 
 val the_mk_cases = (#mk_cases o #2) oo the_inductive;
 
-fun put_inductives names info thy =
-  let
-    fun upd ((tab, monos), name) = (Symtab.update_new (name, info) tab, monos);
-    val tab_monos = Library.foldl upd (InductiveData.get thy, names)
-      handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
-  in InductiveData.put tab_monos thy end;
+fun put_inductives names info = InductiveData.map (apfst (fn tab =>
+  fold (fn name => Symtab.update_new (name, info)) names tab
+    handle Symtab.DUP dup => error ("Duplicate definition of (co)inductive set " ^ quote dup)));
 
 
 
@@ -316,10 +311,11 @@ fun check_rule thy cs ((name, rule), att) =
     ((name, arule), att)
   end;
 
-val rulify =
-  standard o
-  hol_simplify inductive_rulify2 o hol_simplify inductive_rulify1 o
-  hol_simplify inductive_conj;
+val rulify =  (* FIXME norm_hhf *)
+  hol_simplify inductive_conj
+  #> hol_simplify inductive_rulify1
+  #> hol_simplify inductive_rulify2
+  #> standard;
 
 end;
 
@@ -450,7 +446,7 @@ fun project_rules [name] rule = [(name, rule)]
             RS mp |> Thm.permute_prems 0 ~1 |> Drule.standard;
       in names ~~ map proj (1 upto n) end;
 
-fun add_cases_induct no_elim no_induct names elims induct =
+fun add_cases_induct no_elim no_induct coind names elims induct =
   let
     fun cases_spec (name, elim) thy =
       thy
@@ -459,9 +455,12 @@ fun add_cases_induct no_elim no_induct names elims induct =
       |> Theory.parent_path;
     val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
 
+    val induct_att =
+      if coind then InductAttrib.coinduct_set_global else InductAttrib.induct_set_global;
     fun induct_spec (name, th) = #1 o PureThy.add_thms
-      [(("", RuleCases.save induct th), [InductAttrib.induct_set_global name])];
-    val induct_specs = if no_induct then [] else map induct_spec (project_rules names induct);
+      [(("", RuleCases.save induct th), [induct_att name])];
+    val induct_specs =
+      if no_induct then [] else map induct_spec (project_rules names induct);
   in Library.apply (cases_specs @ induct_specs) end;
 
 
@@ -493,7 +492,7 @@ fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
       | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
 
     val intrs = (1 upto (length intr_ts) ~~ intr_ts) |> map (fn (i, intr) =>
-      rulify (standard (SkipProof.prove thy [] [] intr (fn _ => EVERY
+      rulify (SkipProof.prove thy [] [] intr (fn _ => EVERY
        [rewrite_goals_tac rec_sets_defs,
         stac unfold 1,
         REPEAT (resolve_tac [vimageI2, CollectI] 1),
@@ -503,7 +502,7 @@ fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
           backtracking may occur if the premises have extra variables!*)
         DEPTH_SOLVE_1 (resolve_tac [refl, exI, conjI] 1 APPEND assume_tac 1),
         (*Now solve the equations like Inl 0 = Inl ?b2*)
-        REPEAT (rtac refl 1)]))))
+        REPEAT (rtac refl 1)])))
 
   in (intrs, unfold) end;
 
@@ -527,7 +526,6 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
            REPEAT (FIRSTGOAL (eresolve_tac rules2)),
            EVERY (map (fn prem =>
              DEPTH_SOLVE_1 (ares_tac [rewrite_rule rec_sets_defs prem, conjI] 1)) (tl prems))])
-        |> standard
         |> rulify
         |> RuleCases.name cases)
   end;
@@ -762,7 +760,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
 
     val mono = prove_mono setT fp_fun monos thy'
 
-  in (thy', mono, fp_def, rec_sets_defs, rec_const, sumT) end;
+  in (thy', rec_name, mono, fp_def, rec_sets_defs, rec_const, sumT) end;
 
 fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     intros monos thy params paramTs cTs cnames induct_cases =
@@ -773,7 +771,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
 
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
 
-    val (thy1, mono, fp_def, rec_sets_defs, rec_const, sumT) =
+    val (thy1, rec_name, mono, fp_def, rec_sets_defs, rec_const, sumT) =
       mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
         params paramTs cTs cnames;
 
@@ -788,19 +786,23 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
         prove_indrule cs cTs sumT rec_const params intr_ts mono fp_def
           rec_sets_defs thy1;
     val induct =
-      if coind orelse no_ind orelse length cs > 1 then (raw_induct, [RuleCases.consumes 0])
-      else (raw_induct RSN (2, rev_mp), [RuleCases.consumes 1]);
+      if coind then
+        (raw_induct, [RuleCases.case_names [rec_name],
+          RuleCases.case_conclusion_binops rec_name induct_cases,
+          RuleCases.consumes 1])
+      else if no_ind orelse length cs > 1 then
+        (raw_induct, [RuleCases.case_names induct_cases, RuleCases.consumes 0])
+      else (raw_induct RSN (2, rev_mp), [RuleCases.case_names induct_cases, RuleCases.consumes 1]);
 
     val (thy2, intrs') =
       thy1 |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts);
-    val (thy3, ([intrs'', elims'], [induct'])) =
+    val (thy3, ([_, elims'], [induct'])) =
       thy2
       |> PureThy.add_thmss
         [(("intros", intrs'), []),
           (("elims", elims), [RuleCases.consumes 1])]
       |>>> PureThy.add_thms
-        [((coind_prefix coind ^ "induct", rulify (#1 induct)),
-         (RuleCases.case_names induct_cases :: #2 induct))]
+        [((coind_prefix coind ^ "induct", rulify (#1 induct)), #2 induct)]
       |>> Theory.parent_path;
   in (thy3,
     {defs = fp_def :: rec_sets_defs,
@@ -846,7 +848,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_
         thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives cnames ({names = cnames, coind = coind}, result)
-      |> add_cases_induct no_elim (no_ind orelse coind orelse length cs > 1)
+      |> add_cases_induct no_elim (no_ind orelse length cs > 1) coind
           cnames elims induct;
   in (thy2, result) end;
 
