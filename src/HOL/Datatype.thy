@@ -79,8 +79,8 @@ lemma Sumr_inject: "Sumr f = Sumr g ==> f = g"
 subsection {* Finishing the datatype package setup *}
 
 text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
-hide const Push Node Atom Leaf Numb Lim Split Case Suml Sumr
-hide type node item
+hide (open) const Push Node Atom Leaf Numb Lim Split Case Suml Sumr
+hide (open) type node item
 
 
 subsection {* Further cases/induct rules for tuples *}
