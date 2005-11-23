@@ -439,6 +439,8 @@ val folded_local = syntax (local_thmss >> gen_rewrite Tactic.fold_rule);
 
 fun consumes x = syntax (Scan.lift (Scan.optional Args.nat 1) >> RuleCases.consumes) x;
 fun case_names x = syntax (Scan.lift (Scan.repeat1 Args.name) >> RuleCases.case_names) x;
+fun case_conclusion x =
+  syntax (Scan.lift (Args.name -- Scan.repeat Args.name) >> RuleCases.case_conclusion) x;
 fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> RuleCases.params) x;
 
 
@@ -519,6 +521,7 @@ val pure_attributes =
   ("eta_long", (eta_long, eta_long), "put theorem into eta long beta normal form"),
   ("consumes", (consumes, consumes), "number of consumed facts"),
   ("case_names", (case_names, case_names), "named rule cases"),
+  ("case_clusion", (case_conclusion, case_conclusion), "named conclusion of rule cases"),
   ("params", (params, params), "named rule parameters"),
   ("atomize", (no_args ObjectLogic.declare_atomize, no_args undef_local_attribute),
     "declaration of atomize rule"),
