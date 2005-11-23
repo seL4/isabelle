@@ -46,7 +46,7 @@ primrec
   "add i (Lim f) = Lim (%n. add i (f n))"
 
 lemma add_assoc: "add (add i j) k = add i (add j k)"
-by (induct k, auto)
+  by (induct k) auto
 
 text{*Multiplication of ordinals*}
 consts
@@ -57,14 +57,10 @@ primrec
   "mult i (Lim f) = Lim (%n. mult i (f n))"
 
 lemma add_mult_distrib: "mult i (add j k) = add (mult i j) (mult i k)"
-apply (induct k) 
-apply (auto simp add: add_assoc) 
-done
+  by (induct k) (auto simp add: add_assoc)
 
 lemma mult_assoc: "mult (mult i j) k = mult i (mult j k)"
-apply (induct k) 
-apply (auto simp add: add_mult_distrib) 
-done
+  by (induct k) (auto simp add: add_mult_distrib)
 
 text{*We could probably instantiate some axiomatic type classes and use
 the standard infix operators.*}
@@ -104,7 +100,6 @@ recdef add2 "inv_image brouwer_order (\<lambda> (x,y). y)"
   (hints recdef_wf: wf_brouwer_order)
 
 lemma add2_assoc: "add2 (add2 (i, j), k) = add2 (i, add2 (j, k))"
-by (induct k, auto)
-
+  by (induct k) auto
 
 end

@@ -72,7 +72,7 @@ lemma dominoes_tile_row [intro!]: "{i} \<times> lessThan (2 * n) \<in> tiling do
   done
 
 lemma dominoes_tile_matrix: "(lessThan m) \<times> lessThan (2 * n) \<in> tiling domino"
-  by (induct m, auto)
+  by (induct m) auto
 
 
 text {* \medskip @{term coloured} and Dominoes *}
@@ -98,7 +98,7 @@ lemma domino_finite [simp]: "d \<in> domino ==> finite d"
 text {* \medskip Tilings of dominoes *}
 
 lemma tiling_domino_finite [simp]: "t \<in> tiling domino ==> finite t"
-  by (induct set: tiling, auto)
+  by (induct set: tiling) auto
 
 declare
   Int_Un_distrib [simp]

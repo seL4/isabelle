@@ -265,7 +265,7 @@ qed
 
 lemma listset_Rep_Exp_Abs_Exp:
      "listset (map Rep_Exp (Abs_ExpList Us)) = listrel exprel `` {Us}";
-by (induct_tac Us, simp_all add: listrel_Cons Abs_ExpList_def)
+by (induct Us, simp_all add: listrel_Cons Abs_ExpList_def)
 
 lemma FnCall:
      "FnCall F (Abs_ExpList Us) = Abs_Exp (exprel``{FNCALL F Us})"
@@ -459,4 +459,3 @@ proof (cases exp, rule eq_Abs_ExpList [of list], clarify)
 qed
 
 end
-
