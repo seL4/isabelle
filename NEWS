@@ -70,8 +70,7 @@ techniques of natural induction; general datatypes and inductive sets
 work analogously.
 
 This is how to ``strengthen'' an inductive goal wrt. certain
-parameters (the scope of the internal generalization is both the goal
-and any additional facts being inserted before induction):
+parameters:
 
   lemma
     fixes n :: nat and x :: 'a
@@ -83,14 +82,14 @@ and any additional facts being inserted before induction):
     show ?case sorry
   next
     case (Suc n x)
-    note `!!x. A n x ==> P n x` -- {* induction hypotheses, according to induction rule *}
-    note `A (Suc n) x`          -- {* induction premises, stemming from fact a *}
+    note `!!x. A n x ==> P n x` -- {* induction hypothesis, according to induction rule *}
+    note `A (Suc n) x`          -- {* induction premise, stemming from fact a *}
     show ?case sorry
   qed
 
 This is how to perform induction over ``expressions of a certain
 form'', using a locally defined inductive parameter n == "a x"
-together with strengthening (the latter is usually required to
+together with strengthening (the latter is usually required to get
 sufficiently flexible induction hypotheses).
 
   lemma
