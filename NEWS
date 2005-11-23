@@ -70,7 +70,8 @@ techniques of natural induction; general datatypes and inductive sets
 work analogously.
 
 This is how to ``strengthen'' an inductive goal wrt. certain
-parameters:
+parameters (the scope of the internal generalization is both the goal
+and any additional facts being inserted before induction):
 
   lemma
     fixes n :: nat and x :: 'a
