@@ -21,7 +21,7 @@ signature INDUCT_METHOD =
 sig
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
-  val fix_tac: (string * typ) list -> int -> tactic
+  val fix_tac: Proof.context -> (string * typ) list -> int -> tactic
   val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
     (string * typ) list list -> term option list -> thm option -> thm list -> int -> cases_tactic
   val coinduct_tac: Proof.context -> bool -> term option list -> term option list ->
@@ -145,11 +145,16 @@ end;
 
 (* fix_tac *)
 
+fun revert_skolem ctxt x =
+  (case ProofContext.revert_skolem ctxt x of
+    SOME x' => x'
+  | NONE => Syntax.deskolem x);
+
 local
 
 val meta_spec = PureThy.get_thm Pure.thy (Name "meta_spec");
 
-fun meta_spec_tac (x, T) = SUBGOAL (fn (goal, i) => fn st =>
+fun meta_spec_tac ctxt (x, T) = SUBGOAL (fn (goal, i) => fn st =>
   let
     val thy = Thm.theory_of_thm st;
     val cert = Thm.cterm_of thy;
@@ -162,14 +167,14 @@ fun meta_spec_tac (x, T) = SUBGOAL (fn (goal, i) => fn st =>
         val P = Term.absfree (x, T, goal);
         val rule = meta_spec
           |> Drule.instantiate' [SOME (certT T)] [SOME (cert P), SOME (cert v)]
-          |> Thm.rename_params_rule ([x], 1);
+          |> Thm.rename_params_rule ([revert_skolem ctxt x], 1);
       in compose_tac (false, rule, 1) i end
     else all_tac
   end st);
 
 in
 
-fun fix_tac xs = EVERY' (map meta_spec_tac (rev (gen_distinct (op =) xs)));
+fun fix_tac ctxt xs = EVERY' (map (meta_spec_tac ctxt) (rev (gen_distinct (op =) xs)));
 
 end;
 
@@ -207,7 +212,7 @@ val rulify_tac =
   Tactic.norm_hhf_tac;
 
 
-(* internalize implications -- limited to atomic prems *)
+(* internalize/localize rules -- pseudo-elimination *)
 
 local
 
@@ -223,6 +228,8 @@ fun imp_intr i raw_th =
 in
 
 fun internalize k th = if k > 0 then internalize (k - 1) (imp_intr k th) else th;
+
+val localize = Goal.norm_hhf o Tactic.simplify false Data.localize;
 
 end;
 
@@ -292,7 +299,7 @@ end;
 
 fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] thm =
       let
-        val x = the_default z (ProofContext.revert_skolem ctxt z);
+        val x = revert_skolem ctxt z;
         fun index i [] = []
           | index i (y :: ys) =
               if x = y then x ^ string_of_int i :: index (i + 1) ys
@@ -321,7 +328,7 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] thm =
 
 fun rule_versions rule = Seq.cons (rule,
     (Seq.make (fn () =>
-      SOME (rule |> Tactic.simplify false Data.localize |> Goal.norm_hhf, Seq.empty)))
+      SOME (localize rule, Seq.empty)))
     |> Seq.filter (not o curry Thm.eq_thm rule))
   |> Seq.map (pair (RuleCases.get rule));
 
@@ -382,7 +389,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
       |> Seq.maps (fn ((cases, (k, more_facts)), rule) =>
         (CONJUNCTS (ALLGOALS (fn j =>
             Method.insert_tac (more_facts @ nth_list defs (j - 1)) j
-            THEN fix_tac (nth_list fixing (j - 1)) j))
+            THEN fix_tac defs_ctxt (nth_list fixing (j - 1)) j))
           THEN' atomize_tac) i st |> Seq.maps (fn st' =>
             divinate_inst (internalize k rule) i st'
             |> Seq.map (rule_instance thy taking)
