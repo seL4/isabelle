@@ -21,18 +21,17 @@ signature RULE_CASES =
 sig
   include BASIC_RULE_CASES
   type T
-  val consume: thm list -> ('a * int) * thm -> (('a * (int * thm list)) * thm) Seq.seq
+  val consume: thm list -> thm list -> ('a * int) * thm ->
+    (('a * (int * thm list)) * thm) Seq.seq
   val consumes: int -> 'a attribute
   val consumes_default: int -> 'a attribute
   val name: string list -> thm -> thm
   val case_names: string list -> 'a attribute
-  val case_conclusion: string -> (string * string) list -> 'a attribute
-  val case_conclusion_binops: string -> string list -> 'a attribute
+  val case_conclusion: string * string list -> 'a attribute
   val save: thm -> thm -> thm
-  val get: thm -> (string * (string * string) list) list * int
+  val get: thm -> (string * string list) list * int
   val strip_params: term -> (string * typ) list
-  val make: bool -> term option -> theory * term ->
-    (string * (string * string) list) list -> cases
+  val make: bool -> term option -> theory * term -> (string * string list) list -> cases
   val simple: bool -> theory * term -> string -> string * T option
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
@@ -61,15 +60,19 @@ fun SUBGOAL_CASES tac i st =
 
 fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
   st |> tac1 i |> Seq.maps (fn (cases, st') =>
-    Seq.map (pair cases) (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'));
+    CASES cases (Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st)) st');
 
 
 
 (** consume facts **)
 
-fun consume facts ((x, n), th) =
-  Drule.multi_resolves (Library.take (n, facts)) [th]
-  |> Seq.map (pair (x, (n - length facts, Library.drop (n, facts))));
+fun consume defs facts ((x, n), th) =
+  let val m = Int.min (length facts, n) in
+    th |> K (not (null defs)) ?
+      Drule.fconv_rule (Drule.goals_conv (fn i => i <= m) (Tactic.rewrite true defs))
+    |> Drule.multi_resolve (Library.take (m, facts))
+    |> Seq.map (pair (x, (n - m, Library.drop (m, facts))))
+  end;
 
 val consumes_tagN = "consumes";
 
@@ -96,14 +99,14 @@ fun consumes_default n x =
 
 (** case names **)
 
-val cases_tagN = "cases";
+val case_names_tagN = "case_names";
 
 fun add_case_names NONE = I
   | add_case_names (SOME names) =
-      Drule.untag_rule cases_tagN
-      #> Drule.tag_rule (cases_tagN, names);
+      Drule.untag_rule case_names_tagN
+      #> Drule.tag_rule (case_names_tagN, names);
 
-fun lookup_case_names th = AList.lookup (op =) (Thm.tags_of_thm th) cases_tagN;
+fun lookup_case_names th = AList.lookup (op =) (Thm.tags_of_thm th) case_names_tagN;
 
 val save_case_names = add_case_names o lookup_case_names;
 val name = add_case_names o SOME;
@@ -113,27 +116,6 @@ fun case_names ss = Drule.rule_attribute (K (name ss));
 
 (** case conclusions **)
 
-(* term positions *)
-
-fun term_at pos tm =
-  let
-    fun at [] t = t
-      | at ("0" :: ps) (t $ _) = at ps t
-      | at ("1" :: ps) (_ $ u) = at ps u
-      | at _ _ = raise TERM ("Bad term position: " ^ pos, [tm]);
-  in at (explode pos) tm end;
-
-fun binop_positions [] = []
-  | binop_positions [x] = [(x, "")]
-  | binop_positions xs =
-      let
-        fun pos i = replicate_string i "1";
-        val k = length xs - 1;
-      in xs ~~ (map (suffix "01" o pos) (0 upto k - 1) @ [pos k]) end;
-
-
-(* conclusion tags *)
-
 val case_concl_tagN = "case_conclusion";
 
 fun is_case_concl name ((a, b :: _): tag) = (a = case_concl_tagN andalso b = name)
@@ -142,27 +124,19 @@ fun is_case_concl name ((a, b :: _): tag) = (a = case_concl_tagN andalso b = nam
 fun add_case_concl (name, cs) = Drule.map_tags (fn tags =>
   filter_out (is_case_concl name) tags @ [(case_concl_tagN, name :: cs)]);
 
-fun lookup_case_concl th name =
-  find_first (is_case_concl name) (Thm.tags_of_thm th) |> Option.map (tl o snd);
-
 fun get_case_concls th name =
-  let
-    fun concls (x :: pos :: cs) = (x, pos) :: concls cs
-      | concls [] = []
-      | concls [x] = error ("No position for conclusion " ^ quote x ^ " of case " ^ quote name);
-  in concls (these (lookup_case_concl th name)) end;
+  (case find_first (is_case_concl name) (Thm.tags_of_thm th) of
+    SOME (_, _ :: cs) => cs
+  | _ => []);
 
 fun save_case_concls th =
   let val concls = Thm.tags_of_thm th |> List.mapPartial
-    (fn (a, b :: bs) =>
-      if a = case_concl_tagN then SOME (b, bs) else NONE
+    (fn (a, b :: cs) =>
+      if a = case_concl_tagN then SOME (b, cs) else NONE
     | _ => NONE)
   in fold add_case_concl concls end;
 
-fun case_conclusion name concls = Drule.rule_attribute (fn _ =>
-  add_case_concl (name, List.concat (map (fn (a, b) => [a, b]) concls)));
-
-fun case_conclusion_binops name xs = case_conclusion name (binop_positions xs);
+fun case_conclusion concl = Drule.rule_attribute (fn _ => add_case_concl concl);
 
 
 
@@ -190,6 +164,15 @@ val case_premsN = "prems";
 
 val strip_params = map (apfst Syntax.deskolem) o Logic.strip_params;
 
+fun dest_binops cs tm =
+  let
+    val n = length cs;
+    fun dest 0 _ = []
+      | dest 1 t = [t]
+      | dest k (_ $ t $ u) = t :: dest (k - 1) u
+      | dest _ _ = raise TERM ("Expected " ^ string_of_int n ^ " binop arguments", [tm]);
+  in cs ~~ dest n tm end;
+
 fun extract_case is_open thy (split, raw_prop) name concls =
   let
     val prop = Drule.norm_hhf thy raw_prop;
@@ -213,8 +196,8 @@ fun extract_case is_open thy (split, raw_prop) name concls =
           in [(case_hypsN, hyps), (case_premsN, prems)] end);
 
     val concl = ObjectLogic.drop_judgment thy (Logic.strip_assums_concl prop);
-    fun bind (x, pos) = ((x, 0), SOME (abs_fixes (term_at pos concl)));
-    val binds = bind (case_conclN, "") :: map bind concls;
+    val binds = (case_conclN, concl) :: dest_binops concls concl
+      |> map (fn (x, t) => ((x, 0), SOME (abs_fixes t)));
   in {fixes = fixes, assumes = assumes, binds = binds} end;
 
 fun make is_open split (thy, prop) cases =
