@@ -23,9 +23,9 @@ sig
     thm list -> int -> cases_tactic
   val fix_tac: (string * typ) list -> int -> tactic
   val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
-    (string * typ) list list -> thm option -> thm list -> int -> cases_tactic
-  val coinduct_tac: Proof.context -> bool -> term option list -> thm option ->
-    thm list -> int -> cases_tactic
+    (string * typ) list list -> term option list -> thm option -> thm list -> int -> cases_tactic
+  val coinduct_tac: Proof.context -> bool -> term option list -> term option list ->
+    thm option -> thm list -> int -> cases_tactic
   val setup: (theory -> theory) list
 end;
 
@@ -131,14 +131,11 @@ fun cases_tac ctxt is_open insts opt_rule facts =
   in
     fn i => fn st =>
       ruleq
-      |> Seq.maps (RuleCases.consume facts)
+      |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
         CASES (make_cases is_open rule cases)
           (Method.insert_tac more_facts i THEN Tactic.rtac rule i) st)
   end;
-
-val cases_meth = Method.METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
-  (fn (ctxt, (is_open, (insts, opt_rule))) => cases_tac ctxt is_open insts opt_rule));
 
 end;
 
@@ -146,7 +143,7 @@ end;
 
 (** induct method **)
 
-(* fixes *)
+(* fix_tac *)
 
 local
 
@@ -172,13 +169,12 @@ fun meta_spec_tac (x, T) = SUBGOAL (fn (goal, i) => fn st =>
 
 in
 
-fun fix_tac fixes =
-  EVERY' (map meta_spec_tac (rev (gen_distinct (op =) fixes)));
+fun fix_tac xs = EVERY' (map meta_spec_tac (rev (gen_distinct (op =) xs)));
 
 end;
 
 
-(* defs *)
+(* add_defs *)
 
 fun add_defs def_insts =
   let
@@ -209,8 +205,6 @@ val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify1 THEN'
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
-
-val localize = Goal.norm_hhf o Tactic.simplify false Data.localize;
 
 
 (* internalize implications -- limited to atomic prems *)
@@ -326,9 +320,13 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] thm =
 (* rule_versions *)
 
 fun rule_versions rule = Seq.cons (rule,
-    (Seq.make (fn () => SOME (localize rule, Seq.empty)))
+    (Seq.make (fn () =>
+      SOME (rule |> Tactic.simplify false Data.localize |> Goal.norm_hhf, Seq.empty)))
     |> Seq.filter (not o curry Thm.eq_thm rule))
   |> Seq.map (pair (RuleCases.get rule));
+
+fun rule_instance thy inst rule =
+  Drule.cterm_instantiate (prep_inst thy align_left I (Thm.prop_of rule, inst)) rule;
 
 
 (* induct_tac *)
@@ -352,7 +350,7 @@ fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt (Thm.concl_of
 
 in
 
-fun induct_tac ctxt is_open def_insts fixes opt_rule facts =
+fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
   let
     val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
@@ -380,22 +378,20 @@ fun induct_tac ctxt is_open def_insts fixes opt_rule facts =
   in
     (fn i => fn st =>
       ruleq
-      |> Seq.maps (RuleCases.consume facts)
+      |> Seq.maps (RuleCases.consume (List.concat defs) facts)
       |> Seq.maps (fn ((cases, (k, more_facts)), rule) =>
         (CONJUNCTS (ALLGOALS (fn j =>
             Method.insert_tac (more_facts @ nth_list defs (j - 1)) j
-            THEN fix_tac (nth_list fixes (j - 1)) j))
+            THEN fix_tac (nth_list fixing (j - 1)) j))
           THEN' atomize_tac) i st |> Seq.maps (fn st' =>
-            divinate_inst (internalize k rule) i st' |> Seq.maps (fn rule' =>
+            divinate_inst (internalize k rule) i st'
+            |> Seq.map (rule_instance thy taking)
+            |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac rule' i THEN
                   PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
-
-val induct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
-  (fn (ctxt, (is_open, (insts, (fixes, opt_rule)))) =>
-    induct_tac ctxt is_open insts fixes opt_rule));
 
 end;
 
@@ -419,7 +415,7 @@ fun find_coinductS ctxt goal = InductAttrib.find_coinductS ctxt (Logic.strip_ass
 
 in
 
-fun coinduct_tac ctxt is_open inst opt_rule facts =
+fun coinduct_tac ctxt is_open inst taking opt_rule facts =
   let
     val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
@@ -439,16 +435,14 @@ fun coinduct_tac ctxt is_open inst opt_rule facts =
   in
     SUBGOAL_CASES (fn (goal, i) => fn st =>
       ruleq goal
-      |> Seq.maps (RuleCases.consume facts)
+      |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        divinate_inst rule i st |> Seq.maps (fn rule' =>
+        divinate_inst rule i st
+        |> Seq.map (rule_instance thy taking)
+        |> Seq.maps (fn rule' =>
           CASES (make_cases is_open rule' cases)
             (Method.insert_tac more_facts i THEN Tactic.rtac rule' i) st)))
   end;
-
-val coinduct_meth = Method.RAW_METHOD_CASES o ((Seq.DETERM o HEADGOAL) oo
-  (fn (ctxt, (is_open, (insts, opt_rule))) =>
-    coinduct_tac ctxt is_open insts opt_rule));
 
 end;
 
@@ -458,6 +452,7 @@ end;
 
 val openN = "open";
 val fixingN = "fixing";
+val takingN = "taking";
 val ruleN = "rule";
 
 local
@@ -487,23 +482,38 @@ val free = Scan.state -- Args.local_term >> (fn (_, Free v) => v | (ctxt, t) =>
   error ("Bad free variable: " ^ ProofContext.string_of_term ctxt t));
 
 fun unless_more_args scan = Scan.unless (Scan.lift
-  ((Args.$$$ fixingN || Args.$$$ InductAttrib.typeN || Args.$$$ InductAttrib.setN ||
-    Args.$$$ ruleN) -- Args.colon)) scan;
+  ((Args.$$$ fixingN || Args.$$$ takingN || Args.$$$ InductAttrib.typeN ||
+    Args.$$$ InductAttrib.setN || Args.$$$ ruleN) -- Args.colon)) scan;
 
 val fixing = Scan.optional (Scan.lift (Args.$$$ fixingN -- Args.colon) |--
   Args.and_list1 (Scan.repeat (unless_more_args free))) [];
 
+val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
+  Scan.repeat1 (unless_more_args inst)) [];
+
 in
 
-val cases_args = Method.syntax (Args.mode openN --
-  (Args.and_list (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule));
+fun cases_meth src =
+  Method.syntax (Args.mode openN --
+    (Args.and_list (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule)) src
+  #> (fn (ctxt, (is_open, (insts, opt_rule))) =>
+    Method.METHOD_CASES (fn facts =>
+      Seq.DETERM (HEADGOAL (cases_tac ctxt is_open insts opt_rule facts))));
 
-val induct_args = Method.syntax (Args.mode openN --
-  (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
-  (fixing -- Scan.option induct_rule)));
+fun induct_meth src =
+  Method.syntax (Args.mode openN --
+    (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
+    (fixing -- taking -- Scan.option induct_rule))) src
+  #> (fn (ctxt, (is_open, (insts, ((fixing, taking), opt_rule)))) =>
+    Method.RAW_METHOD_CASES (fn facts =>
+      Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts fixing taking opt_rule facts))));
 
-val coinduct_args = Method.syntax (Args.mode openN --
-  (Scan.repeat (unless_more_args inst) -- Scan.option coinduct_rule));
+fun coinduct_meth src =
+  Method.syntax (Args.mode openN --
+    (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule)) src
+  #> (fn (ctxt, (is_open, ((insts, taking), opt_rule))) =>
+    Method.RAW_METHOD_CASES (fn facts =>
+      Seq.DETERM (HEADGOAL (coinduct_tac ctxt is_open insts taking opt_rule facts))));
 
 end;
 
@@ -513,8 +523,8 @@ end;
 
 val setup =
   [Method.add_methods
-    [(InductAttrib.casesN, cases_meth oo cases_args, "case analysis on types or sets"),
-     (InductAttrib.inductN, induct_meth oo induct_args, "induction on types or sets"),
-     (InductAttrib.coinductN, coinduct_meth oo coinduct_args, "coinduction on types or sets")]];
+    [(InductAttrib.casesN, cases_meth, "case analysis on types or sets"),
+     (InductAttrib.inductN, induct_meth, "induction on types or sets"),
+     (InductAttrib.coinductN, coinduct_meth, "coinduction on types or sets")]];
 
 end;
