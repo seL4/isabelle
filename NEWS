@@ -61,6 +61,48 @@ certain special cases of literal facts:
   have "!!x. P x ==> Q x" by fact  ==  note `!!x. P x ==> Q x`
   have "P a ==> Q a" by fact       ==  note `P a ==> Q a`
 
+* Provers/induct: improved internal context management to support
+local fixes and defines on-the-fly.  Thus explicit meta-level
+connectives !! and ==> are rarely required anymore in inductive goals
+(using object-logic connectives for this purpose has been long
+obsolete anyway).  The subsequent proof patterns illustrate advanced
+techniques of natural induction; general datatypes and inductive sets
+work analogously.
+
+This is how to ``strengthen'' an inductive goal wrt. certain
+parameters:
+
+  lemma
+    fixes n :: nat and x :: 'a
+    assumes a: "A n x"
+    shows "P n x"
+    using a                     -- {* make induct insert fact a *}
+  proof (induct n fixing: x)    -- {* generalize goal to "!!x. A n x ==> P n x" *}
+    case (0 x)
+    show ?case sorry
+  next
+    case (Suc n x)
+    note `!!x. A n x ==> P n x` -- {* induction hypotheses, according to induction rule *}
+    note `A (Suc n) x`          -- {* induction premises, stemming from fact a *}
+    show ?case sorry
+  qed
+
+This is how to perform induction over ``expressions of a certain
+form'', using a locally defined inductive parameter n == "a x"
+together with strengthening (the latter is usually required to
+sufficiently flexible induction hypotheses).
+
+  lemma
+    fixes a :: "'a => nat"
+    assumes a: "A (a x)"
+    shows "P (a x)"
+    using a
+  proof (induct n == "a x" fixing: x)
+    ...
+
+See also HOL/Isar_examples/Puzzle.thy for an application of the latter
+technique.
+
 * Input syntax now supports dummy variable binding "%_. b", where the
 body does not mention the bound variable.  Note that dummy patterns
 implicitly depend on their context of bounds, which makes "{_. _}"
