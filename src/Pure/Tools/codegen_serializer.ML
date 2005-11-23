@@ -19,6 +19,7 @@ sig
     -> (string list * Pretty.T) option;
   type serializer = CodegenThingol.itype pretty_syntax -> CodegenThingol.iexpr pretty_syntax
     -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
+  type parm_serializer = OuterParse.token list -> serializer * OuterParse.token list;
 
   val ml_from_thingol: string list list -> string -> serializer;
 end;
@@ -67,6 +68,7 @@ type 'a pretty_syntax = string -> Pretty.T list -> ('a -> Pretty.T)
   -> (string list * Pretty.T) option;
 type serializer = CodegenThingol.itype pretty_syntax -> CodegenThingol.iexpr pretty_syntax
   -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
+type parm_serializer = OuterParse.token list -> serializer * OuterParse.token list;
 
 datatype lrx = L | R | X;
 
@@ -373,18 +375,12 @@ fun ml_from_defs styco sconst resolv ds =
           let
             val args = map (ml_from_iexpr BR) es
             val brackify' = K (eval_br br BR) ? (single #> Pretty.enclose "(" ")")
-            fun prepend_abs v body =
-              Pretty.block [Pretty.str ("fn " ^ v ^ " =>"), Pretty.brk 1, body]
           in
             case sconst f args (ml_from_iexpr BR)
              of NONE =>
                   brackify (eval_br br BR) (Pretty.str (resolv f) :: args)
-              | SOME ([], p) =>
+              | SOME (_, p) =>
                   brackify' p
-              | SOME (vars, p) =>
-                  p 
-                  |> fold_rev prepend_abs vars
-                  |> brackify'
           end;
     fun ml_from_funs (ds as d::ds_tl) =
       let
@@ -432,7 +428,6 @@ fun ml_from_defs styco sconst resolv ds =
       end;
     fun ml_from_datatypes ds =
       let
-        val _ = debug 9 (fn _ => map (pretty_def o snd) ds |> Pretty.chunks |> Pretty.output) ();
         fun check_typ_dup ty xs =
           if AList.defined (op =) xs ty
           then error ("double datatype definition: " ^ quote ty)
@@ -554,6 +549,8 @@ fun ml_from_thingol nspgrp name_root styco sconst prims select module =
     |> (if is_some select then (partof o the) select else I)
     |> debug 3 (fn _ => "eta-expanding...")
     |> eta_expand eta_expander
+    |> debug 3 (fn _ => "eta-expanding polydefs...")
+    |> eta_expand_poly
     |> debug 5 (Pretty.output o pretty_module)
     |> debug 3 (fn _ => "tupelizing datatypes...")
     |> tupelize_cons
@@ -562,6 +559,12 @@ fun ml_from_thingol nspgrp name_root styco sconst prims select module =
     |> debug 3 (fn _ => "generating...")
     |> serialize (ml_from_defs styco sconst) ml_from_module (ml_validator prims) nspgrp name_root
   end;
+
+fun ml_from_thingol' nspgrp name_root =
+  Scan.optional (
+    OuterParse.$$$ "(" |-- OuterParse.list1 OuterParse.text --| OuterParse.$$$ ")"
+  ) []
+    >> (fn _ => ml_from_thingol nspgrp name_root);
 
 (* ML infix precedence
    7 / * div mod

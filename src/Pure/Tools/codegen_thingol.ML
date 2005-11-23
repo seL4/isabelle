@@ -112,6 +112,7 @@ sig
 
   val debug_level : int ref;
   val debug : int -> ('a -> string) -> 'a -> 'a;
+  val soft_exc: bool ref;
 
   val serialize:
     ((string -> string) -> (string * def) list -> Pretty.T)
@@ -138,6 +139,7 @@ struct
 
 val debug_level = ref 0;
 fun debug d f x = (if d <= !debug_level then Output.debug (f x) else (); x);
+val soft_exc = ref true;
 
 fun foldl' f (l, []) = the l
   | foldl' f (_, (r::rs)) =
@@ -423,11 +425,11 @@ datatype def =
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
 type transact = Graph.key list * module;
-datatype 'dst transact_res = Succeed of 'dst | Fail of string;
+datatype 'dst transact_res = Succeed of 'dst | Fail of string list * exn option;
 type 'dst transact_fin = 'dst transact_res * transact;
 type ('src, 'dst) gen_codegen = 'src -> transact -> 'dst transact_fin;
 type gen_defgen = string -> transact -> (def * string list) transact_fin;
-exception FAIL of string;
+exception FAIL of string list * exn option;
 
 val eq_def = (op =);
 
@@ -467,11 +469,29 @@ fun pretty_def Nop =
         Pretty.gen_list " ->" "" "" (map pretty_itype tys @ [Pretty.str dtname])
       ]
   | pretty_def (Class (supcls, mems, insts)) =
-      Pretty.str "Class ..."
+      Pretty.block [
+        Pretty.str "class extending",
+        Pretty.gen_list "," "[" "]" (map Pretty.str supcls),
+        Pretty.str "with ",
+        Pretty.gen_list "," "[" "]" (map Pretty.str mems),
+        Pretty.str "instances ",
+        Pretty.gen_list "," "[" "]" (map Pretty.str insts)
+      ]
   | pretty_def (Classmember (cls, v, ty)) =
-      Pretty.str "Classmember ..."
-  | pretty_def (Classinst (cls, insts, mems)) =
-      Pretty.str "Classinst ..."
+      Pretty.block [
+        Pretty.str "class member belonging to ",
+        Pretty.str cls
+      ]
+  | pretty_def (Classinst (cls, (tyco, arity), mems)) =
+      Pretty.block [
+        Pretty.str "class instance (",
+        Pretty.str cls,
+        Pretty.str ", (",
+        Pretty.str tyco,
+        Pretty.str ", ",
+        Pretty.gen_list "," "[" "]" (map (Pretty.gen_list "," "{" "}" o map Pretty.str) arity),
+        Pretty.str "))"
+      ];
 
 fun pretty_module modl =
   let
@@ -627,14 +647,19 @@ fun partof names modl =
       end;
 
 fun add_check_transform (name, (Datatypecons (dtname, _))) =
+      (debug 7 (fn _ => "transformation for datatype constructor " ^ quote name
+        ^ " of datatype " ^ quote dtname) ();
       ([([dtname],
           fn [Datatype (_, _, [])] => NONE | _ => "attempted to add constructor to already instantiating datatype" |> SOME)],
        [(dtname,
           fn Datatype (vs, cs, clss) => Datatype (vs, name::cs, clss)
            | def => "attempted to add datatype constructor to non-datatype: "
               ^ (Pretty.output o pretty_def) def |> error)])
+      )
   | add_check_transform (name, Classmember (clsname, v, ty)) =
       let
+        val _ = debug 7 (fn _ => "transformation for class member " ^ quote name
+        ^ " of class " ^ quote clsname) ();
         fun check_var (IType (tyco, tys)) s =
               fold check_var tys s
           | check_var (IFun (ty1, ty2)) s =
@@ -658,17 +683,26 @@ fun add_check_transform (name, (Datatypecons (dtname, _))) =
       end
   | add_check_transform (name, Classinst (clsname, (tyco, arity), memdefs)) =
       let
+        val _ = debug 7 (fn _ => "transformation for class instance " ^ quote tyco
+        ^ " of class " ^ quote clsname) ();
         fun check [Classmember (_, v, mtyp_c), Fun (_, (_, mtyp_i))] =
-          let
-            val mtyp_i' = instant_itype (v, tyco `%%
-              map2 IVarT ((invent_var_t_names [mtyp_c] (length arity) [] "a"), arity)) mtyp_c;
-          in if eq_itype (mtyp_i', mtyp_i) (*! PERHAPS TOO STRICT !*)
-          then NONE
-          else "wrong type signature for class member: "
-            ^ (Pretty.output o pretty_itype) mtyp_i' ^ " expected,"
-            ^ (Pretty.output o pretty_itype) mtyp_i ^ " given" |> SOME end
+              let
+                val _ = writeln "CHECK RUNNING (1)";
+                val mtyp_i' = instant_itype (v, tyco `%%
+                  map2 IVarT ((invent_var_t_names [mtyp_c] (length arity) [] "a"), arity)) mtyp_c;
+                val _ = writeln "CHECK RUNNING (2)";
+              in let val XXX = (
+                 if eq_itype (mtyp_i', mtyp_i) (*! PERHAPS TOO STRICT !*)
+              then NONE
+              else "wrong type signature for class member: "
+                ^ (Pretty.output o pretty_itype) mtyp_i' ^ " expected,"
+                ^ (Pretty.output o pretty_itype) mtyp_i ^ " given" |> SOME
+              ) in (writeln "CHECK RUNNING (3)"; XXX) end end
+          | check defs =
+              "non-well-formed definitions encountered for classmembers: "
+              ^ (commas o map (quote o Pretty.output o pretty_def)) defs |> SOME
       in
-        (map (fn (memname, memprim) => ((writeln memname; writeln memprim; [memname, memprim]), check)) memdefs,
+        (map (fn (memname, memprim) => ([memname, memprim], check)) memdefs,
           [(clsname,
               fn Class (supcs, mems, insts) => Class (supcs, mems, name::insts)
                | def => "attempted to add class instance to non-class"
@@ -681,28 +715,45 @@ fun add_check_transform (name, (Datatypecons (dtname, _))) =
       end
   | add_check_transform _ = ([], []);
 
-fun succeed some = (pair o Succeed) some;
-fun fail msg = (pair o Fail) msg;
+fun succeed some = pair (Succeed some);
+fun fail msg = pair (Fail ([msg], NONE));
 
-fun check_fail msg' (Succeed dst, trns) = (dst, trns)
-  | check_fail msg' (Fail errmsg, _) = (tracing ("ROLLBACK CHECK: " ^ errmsg ^ "\n" ^ msg'); raise FAIL errmsg);
+fun check_fail _ (Succeed dst, trns) = (dst, trns)
+  | check_fail msg (Fail (msgs, e), _) = raise FAIL (msg::msgs, e);
 
-fun handle_fail msg f modl =
-  f modl handle FAIL msg' => ([], modl) |> fail (msg ^ "\n" ^ msg');
-
-fun select_generator print_msg src [] trns =
-      fail ("no code generator available") trns
-  | select_generator print_msg src [(gname, cgen)] trns =
-      (print_msg gname; cgen src trns)
-  | select_generator print_msg src ((gname, cgen)::cgens) trns =
-      case cgen src trns
-       of result as (Succeed _, _) =>
-            (print_msg gname; result)
-        | _ => select_generator print_msg src cgens trns
+fun select_generator _ _ [] modl =
+      ([], modl) |> fail ("no code generator available")
+  | select_generator mk_msg src gens modl =
+      let
+        fun handle_fail msgs f =
+          let
+            fun handl trns =
+              trns |> f
+              handle FAIL exc => (Fail exc, ([], modl))
+            in
+              if ! soft_exc
+              then
+                ([], modl) |> handl
+                handle e => (Fail (msgs, SOME e), ([], modl))
+              else
+                ([], modl) |> handl
+            end;
+        fun select msgs [(gname, gen)] =
+          handle_fail (msgs @ [mk_msg gname]) (gen src)
+        fun select msgs ((gname, gen)::gens) =
+          let
+            val msgs' = msgs @ [mk_msg gname]
+          in case handle_fail msgs' (gen src)
+          of (Fail (_, NONE), _) =>
+               select msgs' gens
+           | result =>
+               result
+          end;
+      in select [] gens end;
 
 fun gen_invoke codegens msg src (deps, modl) =
-  ([], modl)
-  |> select_generator (fn gname => "choosing code generator " ^ gname ^ " for source " ^ quote msg)
+  modl
+  |> select_generator (fn gname => "trying code generator " ^ gname ^ " for source " ^ quote msg)
        src codegens
   |> check_fail msg
   ||> (fn (deps', modl') => (append deps' deps, modl'));
@@ -713,41 +764,78 @@ fun gen_ensure_def defgens msg name (deps, modl) =
       let
         val (checks, trans) = add_check_transform (name, def);
         fun check (check_defs, checker) modl =
-          case checker (check_defs |> filter NameSpace.is_qualified |> map (get_def modl))
-           of NONE => modl
-            | SOME e => raise FAIL e;
+          let
+            val _ = writeln ("CHECK (1): " ^ commas check_defs)
+            fun get_def' s =
+              if NameSpace.is_qualified s
+              then get_def modl s
+              else Nop
+            val defs =
+              check_defs
+              |> map get_def';
+            val _ = writeln ("CHECK (2): " ^ commas check_defs)
+          in
+            let val XXX = case checker defs
+             of NONE => modl
+              | SOME e => raise FAIL ([e], NONE)
+            in (writeln "CHECK (3)"; XXX) end
+          end;
         fun transform (name, f) modl =
           modl
-          |> K (NameSpace.is_qualified name) ? map_def name f;
+          |> debug 9 (fn _ => "transforming node " ^ name)
+          |> (if NameSpace.is_qualified name then map_def name f else I);
       in
         modl
+        |> debug 10 (fn _ => "considering addition of " ^ name
+             ^ " := " ^ (Pretty.output o pretty_def) def)
+        |> debug 10 (fn _ => "consistency checks")
         |> fold check checks
+        |> debug 10 (fn _ => "dependencies")
         |> fold (curry add_dep name) deps
+        |> debug 10 (fn _ => "adding")
         |> map_def name (fn _ => def)
+        |> debug 10 (fn _ => "transforming")
         |> fold transform trans
+        |> debug 10 (fn _ => "adding done")
       end;
     fun ensure_node name modl =
+      (debug 9 (fn _ => "testing node " ^ quote name) ();
       if can (get_def modl) name
-      then ([name], modl)
+      then
+        modl
+        |> debug 9 (fn _ => "asserting node " ^ quote name)
+        |> pair [name]
       else
-        ([], modl |> add_def (name, Nop))
-        |> select_generator (fn gname => "choosing code generator " ^ gname ^ " for definition of " ^ quote name)
+        modl
+        |> debug 9 (fn _ => "creating node " ^ quote name)
+        |> add_def (name, Nop)
+        |> select_generator (fn gname => "trying code generator " ^ gname ^ " for definition of " ^ quote name)
              name defgens
         |> check_fail msg
         |-> (fn (def, names') =>
            add (name, def)
            #> fold_map ensure_node names')
         |-> (fn names' => pair (name :: Library.flat names'))
+      )
   in
     modl
     |> ensure_node name
     |-> (fn names => pair (names@deps))
   end;
 
-fun start_transact f module =
-  ([], module)
-  |> f
-  |-> (fn x => fn (_, module) => (x, module));
+fun start_transact f modl =
+  let
+    fun handle_fail f modl =
+      ((([], modl) |> f)
+      handle FAIL (msgs, NONE) =>
+        (error o cat_lines) ("code generation failed, while:" :: msgs))
+      handle FAIL (msgs, SOME e) =>
+        ((writeln o cat_lines) ("code generation failed, while:" :: msgs); raise e);
+  in
+    modl
+    |> handle_fail f
+    |-> (fn x => fn (_, module) => (x, module))
+  end;
 
 
 (** primitive language constructs **)
