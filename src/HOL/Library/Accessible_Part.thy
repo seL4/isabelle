@@ -32,19 +32,15 @@ translations
 subsection {* Induction rules *}
 
 theorem acc_induct:
-  "a \<in> acc r ==>
-    (!!x. x \<in> acc r ==> \<forall>y. (y, x) \<in> r --> P y ==> P x) ==> P a"
-proof -
-  assume major: "a \<in> acc r"
-  assume hyp: "!!x. x \<in> acc r ==> \<forall>y. (y, x) \<in> r --> P y ==> P x"
-  show ?thesis
-    apply (rule major [THEN acc.induct])
-    apply (rule hyp)
-     apply (rule accI)
-     apply fast
-    apply fast
-    done
-qed
+  assumes major: "a \<in> acc r"
+  assumes hyp: "!!x. x \<in> acc r ==> \<forall>y. (y, x) \<in> r --> P y ==> P x"
+  shows "P a"
+  apply (rule major [THEN acc.induct])
+  apply (rule hyp)
+   apply (rule accI)
+   apply fast
+  apply fast
+  done
 
 theorems acc_induct_rule = acc_induct [rule_format, induct set: acc]
 

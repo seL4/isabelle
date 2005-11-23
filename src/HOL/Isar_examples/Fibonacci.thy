@@ -124,7 +124,7 @@ proof -
 qed
 
 lemma gcd_fib_mod:
-  assumes m: "0 < m"
+  assumes "0 < m"
   shows "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
 proof (induct n rule: nat_less_induct)
   case (1 n) note hyp = this
@@ -137,7 +137,7 @@ proof (induct n rule: nat_less_induct)
       case True then show ?thesis by simp
     next
       case False then have "m <= n" by simp
-      from m and False have "n - m < n" by simp
+      from `0 < m` and False have "n - m < n" by simp
       with hyp have "gcd (fib m, fib ((n - m) mod m))
         = gcd (fib m, fib (n - m))" by simp
       also have "... = gcd (fib m, fib n)"

@@ -43,13 +43,10 @@ text {* @{text "beta \<subseteq> par_beta \<subseteq> beta^*"} \medskip *}
 
 lemma par_beta_varL [simp]:
     "(Var n => t) = (t = Var n)"
-  apply blast
-  done
+  by blast
 
 lemma par_beta_refl [simp]: "t => t"  (* par_beta_refl [intro!] causes search to blow up *)
-  apply (induct_tac t)
-    apply simp_all
-  done
+  by (induct t) simp_all
 
 lemma beta_subset_par_beta: "beta <= par_beta"
   apply (rule subsetI)
@@ -70,17 +67,14 @@ lemma par_beta_subset_beta: "par_beta <= beta^*"
 
 subsection {* Misc properties of par-beta *}
 
-lemma par_beta_lift [rule_format, simp]:
-    "\<forall>t' n. t => t' --> lift t n => lift t' n"
-  apply (induct_tac t)
-    apply fastsimp+
-  done
+lemma par_beta_lift [simp]:
+    "t => t' \<Longrightarrow> lift t n => lift t' n"
+  by (induct t fixing: t' n) fastsimp+
 
-lemma par_beta_subst [rule_format]:
-    "\<forall>s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]"
-  apply (induct_tac t)
+lemma par_beta_subst:
+    "s => s' \<Longrightarrow> t => t' \<Longrightarrow> t[s/n] => t'[s'/n]"
+  apply (induct t fixing: s s' t' n)
     apply (simp add: subst_Var)
-   apply (intro strip)
    apply (erule par_beta_cases)
     apply simp
    apply (simp add: subst_subst [symmetric])
@@ -110,9 +104,8 @@ recdef "cd" "measure size"
   "cd (Abs u \<degree> t) = (cd u)[cd t/0]"
   "cd (Abs s) = Abs (cd s)"
 
-lemma par_beta_cd [rule_format]:
-    "\<forall>t. s => t --> t => cd s"
-  apply (induct_tac s rule: cd.induct)
+lemma par_beta_cd: "s => t \<Longrightarrow> t => cd s"
+  apply (induct s fixing: t rule: cd.induct)
       apply auto
   apply (fast intro!: par_beta_subst)
   done

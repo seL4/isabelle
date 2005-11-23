@@ -52,14 +52,14 @@ theorem listall_cons_eq [simp]: "listall P (x # xs) = (P x \<and> listall P xs)"
   done
 
 lemma listall_conj1: "listall (\<lambda>x. P x \<and> Q x) xs \<Longrightarrow> listall P xs"
-  by (induct xs) simp+
+  by (induct xs) simp_all
 
 lemma listall_conj2: "listall (\<lambda>x. P x \<and> Q x) xs \<Longrightarrow> listall Q xs"
-  by (induct xs) simp+
+  by (induct xs) simp_all
 
 lemma listall_app: "listall P (xs @ ys) = (listall P xs \<and> listall P ys)"
   apply (induct xs)
-  apply (rule iffI, simp, simp)
+   apply (rule iffI, simp, simp)
   apply (rule iffI, simp, simp)
   done
 

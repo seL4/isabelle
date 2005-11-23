@@ -87,18 +87,17 @@ lemma Snoc_step1_SnocD:
   apply blast
   done
 
-lemma Cons_acc_step1I [rule_format, intro!]:
-    "x \<in> acc r ==> \<forall>xs. xs \<in> acc (step1 r) --> x # xs \<in> acc (step1 r)"
-  apply (erule acc_induct)
+lemma Cons_acc_step1I [intro!]:
+    "x \<in> acc r ==> (!!xs. xs \<in> acc (step1 r) \<Longrightarrow> x # xs \<in> acc (step1 r))"
+  apply (induct set: acc)
   apply (erule thin_rl)
-  apply clarify
   apply (erule acc_induct)
   apply (rule accI)
   apply blast
   done
 
 lemma lists_accD: "xs \<in> lists (acc r) ==> xs \<in> acc (step1 r)"
-  apply (erule lists.induct)
+  apply (induct set: lists)
    apply (rule accI)
    apply simp
   apply (rule accI)
@@ -114,7 +113,7 @@ lemma ex_step1I:
   done
 
 lemma lists_accI: "xs \<in> acc (step1 r) ==> xs \<in> lists (acc r)"
-  apply (erule acc_induct)
+  apply (induct set: acc)
   apply clarify
   apply (rule accI)
   apply (drule ex_step1I, assumption)

@@ -169,24 +169,21 @@ next
 qed
 
 lemma domino_singleton:
-  assumes "d : domino" and "b < 2"
-  shows "EX i j. evnodd d b = {(i, j)}"
-proof -
-  from `d : domino`
-  show ?thesis (is "?P d")
-  proof induct
-    from `b < 2` have b_cases: "b = 0 | b = 1" by arith
-    fix i j
-    note [simp] = evnodd_empty evnodd_insert mod_Suc
-    from b_cases show "?P {(i, j), (i, j + 1)}" by rule auto
-    from b_cases show "?P {(i, j), (i + 1, j)}" by rule auto
-  qed
+  assumes d: "d : domino" and "b < 2"
+  shows "EX i j. evnodd d b = {(i, j)}"  (is "?P d")
+  using d
+proof induct
+  from `b < 2` have b_cases: "b = 0 | b = 1" by arith
+  fix i j
+  note [simp] = evnodd_empty evnodd_insert mod_Suc
+  from b_cases show "?P {(i, j), (i, j + 1)}" by rule auto
+  from b_cases show "?P {(i, j), (i + 1, j)}" by rule auto
 qed
 
 lemma domino_finite:
-  assumes "d: domino"
+  assumes d: "d: domino"
   shows "finite d"
-  using prems
+  using d
 proof induct
   fix i j :: nat
   show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
@@ -197,9 +194,9 @@ qed
 subsection {* Tilings of dominoes *}
 
 lemma tiling_domino_finite:
-  assumes "t : tiling domino"  (is "t : ?T")
+  assumes t: "t : tiling domino"  (is "t : ?T")
   shows "finite t"  (is "?F t")
-  using `t : ?T`
+  using t
 proof induct
   show "?F {}" by (rule Finites.emptyI)
   fix a t assume "?F t"
@@ -208,9 +205,9 @@ proof induct
 qed
 
 lemma tiling_domino_01:
-  assumes "t : tiling domino"  (is "t : ?T")
+  assumes t: "t : tiling domino"  (is "t : ?T")
   shows "card (evnodd t 0) = card (evnodd t 1)"
-  using `t : ?T`
+  using t
 proof induct
   case empty
   show ?case by (simp add: evnodd_def)

@@ -94,8 +94,8 @@ lemma "e \<turnstile> Abs (Abs (Abs (Var 2 \<degree> Var 0 \<degree> (Var 1 \<de
 subsection {* Lists of types *}
 
 lemma lists_typings:
-    "\<And>Ts. e \<tturnstile> ts : Ts \<Longrightarrow> ts \<in> lists {t. \<exists>T. e \<turnstile> t : T}"
-  apply (induct ts)
+    "e \<tturnstile> ts : Ts \<Longrightarrow> ts \<in> lists {t. \<exists>T. e \<turnstile> t : T}"
+  apply (induct ts fixing: Ts)
    apply (case_tac Ts)
      apply simp
      apply (rule lists.Nil)
@@ -108,16 +108,16 @@ lemma lists_typings:
   apply blast
   done
 
-lemma types_snoc: "\<And>Ts. e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<tturnstile> ts @ [t] : Ts @ [T]"
-  apply (induct ts)
+lemma types_snoc: "e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<tturnstile> ts @ [t] : Ts @ [T]"
+  apply (induct ts fixing: Ts)
   apply simp
   apply (case_tac Ts)
   apply simp+
   done
 
-lemma types_snoc_eq: "\<And>Ts. e \<tturnstile> ts @ [t] : Ts @ [T] =
+lemma types_snoc_eq: "e \<tturnstile> ts @ [t] : Ts @ [T] =
   (e \<tturnstile> ts : Ts \<and> e \<turnstile> t : T)"
-  apply (induct ts)
+  apply (induct ts fixing: Ts)
   apply (case_tac Ts)
   apply simp+
   apply (case_tac Ts)
@@ -156,8 +156,8 @@ lemma types_snocE: "e \<tturnstile> ts @ [t] : Ts \<Longrightarrow>
 subsection {* n-ary function types *}
 
 lemma list_app_typeD:
-    "\<And>t T. e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
-  apply (induct ts)
+    "e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
+  apply (induct ts fixing: t T)
    apply simp
   apply atomize
   apply simp
@@ -176,8 +176,8 @@ lemma list_app_typeE:
   by (insert list_app_typeD) fast
 
 lemma list_app_typeI:
-    "\<And>t T Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t \<degree>\<degree> ts : T"
-  apply (induct ts)
+    "e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t \<degree>\<degree> ts : T"
+  apply (induct ts fixing: t T Ts)
    apply simp
   apply atomize
   apply (case_tac Ts)
@@ -201,8 +201,8 @@ for program extraction.
 *}
 
 theorem var_app_type_eq:
-  "\<And>T U. e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow> e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> T = U"
-  apply (induct ts rule: rev_induct)
+  "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow> e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> T = U"
+  apply (induct ts fixing: T U rule: rev_induct)
   apply simp
   apply (ind_cases "e \<turnstile> Var i : T")
   apply (ind_cases "e \<turnstile> Var i : T")
@@ -220,9 +220,9 @@ theorem var_app_type_eq:
   apply simp
   done
 
-lemma var_app_types: "\<And>ts Ts U. e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degree> us : T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow>
+lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degree> us : T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow>
   e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> \<exists>Us. U = Us \<Rrightarrow> T \<and> e \<tturnstile> us : Us"
-  apply (induct us)
+  apply (induct us fixing: ts Ts U)
   apply simp
   apply (erule var_app_type_eq)
   apply assumption
@@ -292,8 +292,8 @@ lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> (\<And>i U. e\
   by (induct set: typing) auto
 
 lemma lift_types:
-  "\<And>Ts. e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
-  apply (induct ts)
+  "e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
+  apply (induct ts fixing: Ts)
    apply simp
   apply (case_tac Ts)
    apply auto
@@ -311,9 +311,9 @@ lemma subst_lemma:
   done
 
 lemma substs_lemma:
-  "\<And>Ts. e \<turnstile> u : T \<Longrightarrow> e\<langle>i:T\<rangle> \<tturnstile> ts : Ts \<Longrightarrow>
+  "e \<turnstile> u : T \<Longrightarrow> e\<langle>i:T\<rangle> \<tturnstile> ts : Ts \<Longrightarrow>
      e \<tturnstile> (map (\<lambda>t. t[u/i]) ts) : Ts"
-  apply (induct ts)
+  apply (induct ts fixing: Ts)
    apply (case_tac Ts)
     apply simp
    apply simp
@@ -352,18 +352,16 @@ theorem subject_reduction': "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrigh
 subsection {* Alternative induction rule for types *}
 
 lemma type_induct [induct type]:
+  assumes
   "(\<And>T. (\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> P T1) \<Longrightarrow>
-   (\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> P T2) \<Longrightarrow> P T) \<Longrightarrow> P T"
-proof -
-  case rule_context
-  show ?thesis
-  proof (induct T)
-    case Atom
-    show ?case by (rule rule_context) simp_all
-  next
-    case Fun
-    show ?case  by (rule rule_context) (insert Fun, simp_all)
-  qed
+    (\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> P T2) \<Longrightarrow> P T)"
+  shows "P T"
+proof (induct T)
+  case Atom
+  show ?case by (rule prems) simp_all
+next
+  case Fun
+  show ?case  by (rule prems) (insert Fun, simp_all)
 qed
 
 end

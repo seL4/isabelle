@@ -160,14 +160,15 @@ text {*
  semantics of \texttt{WHILE}.
 *}
 
-theorem while: "|- (P Int b) c P ==> |- P (While b X c) (P Int -b)"
+theorem while:
+  assumes body: "|- (P Int b) c P"
+  shows "|- P (While b X c) (P Int -b)"
 proof
-  assume body: "|- (P Int b) c P"
   fix s s' assume s: "s : P"
   assume "Sem (While b X c) s s'"
-  then obtain n where iter: "iter n b (Sem c) s s'" by auto
-  have "!!s. iter n b (Sem c) s s' ==> s : P ==> s' : P Int -b"
-  proof (induct n)
+  then obtain n where "iter n b (Sem c) s s'" by auto
+  from this and s show "s' : P Int -b"
+  proof (induct n fixing: s)
     case (0 s)
     thus ?case by auto
   next
@@ -179,7 +180,6 @@ proof
     with body sem have "s'' : P" ..
     with iter show ?case by (rule Suc)
   qed
-  from this iter s show "s' : P Int -b" .
 qed
 
 
@@ -424,8 +424,8 @@ lemma CondRule:
     \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
   by (auto simp: Valid_def)
 
-lemma iter_aux: "
-  \<forall>s s'. Sem c s s' --> s : I & s : b --> s' : I ==>
+lemma iter_aux:
+  "\<forall>s s'. Sem c s s' --> s : I & s : b --> s' : I ==>
        (\<And>s s'. s : I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' : I & s' ~: b)"
   apply(induct n)
    apply clarsimp

@@ -45,7 +45,7 @@ lemma double_induction_lemma [rule_format]:
   done
 
 lemma IT_implies_termi: "t : IT ==> t : termi beta"
-  apply (erule IT.induct)
+  apply (induct set: IT)
     apply (drule rev_subsetD)
      apply (rule lists_mono)
      apply (rule Int_lower2)
@@ -63,16 +63,14 @@ lemma IT_implies_termi: "t : IT ==> t : termi beta"
 
 subsection {* Every terminating term is in IT *}
 
-declare Var_apps_neq_Abs_apps [THEN not_sym, simp]
+declare Var_apps_neq_Abs_apps [symmetric, simp]
 
 lemma [simp, THEN not_sym, simp]: "Var n \<degree>\<degree> ss \<noteq> Abs r \<degree> s \<degree>\<degree> ts"
-  apply (simp add: foldl_Cons [symmetric] del: foldl_Cons)
-  done
+  by (simp add: foldl_Cons [symmetric] del: foldl_Cons)
 
 lemma [simp]:
   "(Abs r \<degree> s \<degree>\<degree> ss = Abs r' \<degree> s' \<degree>\<degree> ss') = (r = r' \<and> s = s' \<and> ss = ss')"
-  apply (simp add: foldl_Cons [symmetric] del: foldl_Cons)
-  done
+  by (simp add: foldl_Cons [symmetric] del: foldl_Cons)
 
 inductive_cases [elim!]:
   "Var n \<degree>\<degree> ss : IT"
