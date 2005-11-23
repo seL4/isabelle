@@ -788,7 +788,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     val induct =
       if coind then
         (raw_induct, [RuleCases.case_names [rec_name],
-          RuleCases.case_conclusion_binops rec_name induct_cases,
+          RuleCases.case_conclusion (rec_name, induct_cases),
           RuleCases.consumes 1])
       else if no_ind orelse length cs > 1 then
         (raw_induct, [RuleCases.case_names induct_cases, RuleCases.consumes 0])
