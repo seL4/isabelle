@@ -521,7 +521,7 @@ val pure_attributes =
   ("eta_long", (eta_long, eta_long), "put theorem into eta long beta normal form"),
   ("consumes", (consumes, consumes), "number of consumed facts"),
   ("case_names", (case_names, case_names), "named rule cases"),
-  ("case_clusion", (case_conclusion, case_conclusion), "named conclusion of rule cases"),
+  ("case_conclusion", (case_conclusion, case_conclusion), "named conclusion of rule cases"),
   ("params", (params, params), "named rule parameters"),
   ("atomize", (no_args ObjectLogic.declare_atomize, no_args undef_local_attribute),
     "declaration of atomize rule"),
