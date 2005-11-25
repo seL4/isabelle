@@ -119,7 +119,7 @@ sig
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
   val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
-  val forall_conv: (cterm -> thm) -> cterm -> thm
+  val forall_conv: int -> (cterm -> thm) -> cterm -> thm
   val fconv_rule: (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
@@ -743,7 +743,7 @@ end;
 fun eta_long_conversion ct = transitive (beta_eta_conversion ct)
   (symmetric (beta_eta_conversion (cterm_fun (Pattern.eta_long []) ct)));
 
-(*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
+(*In [A1,...,An]==>B, rewrite the selected A's only*)
 fun goals_conv pred cv =
   let fun gconv i ct =
         let val (A,B) = dest_implies ct
@@ -752,16 +752,17 @@ fun goals_conv pred cv =
   in gconv 1 end
 
 (* Rewrite A in !!x1,...,xn. A *)
-fun forall_conv cv ct =
-  let val p as (ct1, ct2) = Thm.dest_comb ct
-  in (case pairself term_of p of
-      (Const ("all", _), Abs (s, _, _)) =>
-         let val (v, ct') = Thm.dest_abs (SOME (gensym "all_")) ct2;
-         in Thm.combination (Thm.reflexive ct1)
-           (Thm.abstract_rule s v (forall_conv cv ct'))
-         end
-    | _ => cv ct)
-  end handle TERM _ => cv ct;
+fun forall_conv 0 cv ct = cv ct
+  | forall_conv n cv ct =
+      let val p as (ct1, ct2) = Thm.dest_comb ct in
+        (case pairself term_of p of
+          (Const ("all", _), Abs (s, _, _)) =>
+            let val (v, ct') = Thm.dest_abs (SOME (gensym "all_")) ct2 in
+              Thm.combination (Thm.reflexive ct1)
+                (Thm.abstract_rule s v (forall_conv (n - 1) cv ct'))
+            end
+        | _ => cv ct)
+      end handle TERM _ => cv ct;
 
 (*Use a conversion to transform a theorem*)
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
