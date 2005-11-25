@@ -19,9 +19,13 @@ end;
 
 signature INDUCT_METHOD =
 sig
+  val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
+  val atomize_term: theory -> term -> term
+  val atomize_tac: int -> tactic
+  val rulified_term: thm -> theory * term
+  val rulify_tac: int -> tactic
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
-  val fix_tac: Proof.context -> (string * typ) list -> int -> tactic
   val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
     (string * typ) list list -> term option list -> thm option -> thm list -> int -> cases_tactic
   val coinduct_tac: Proof.context -> bool -> term option list -> term option list ->
@@ -145,36 +149,61 @@ end;
 
 (* fix_tac *)
 
-fun revert_skolem ctxt x =
-  (case ProofContext.revert_skolem ctxt x of
-    SOME x' => x'
-  | NONE => Syntax.deskolem x);
-
 local
+
+fun goal_prefix k ((c as Const ("all", _)) $ Abs (a, T, B)) = c $ Abs (a, T, goal_prefix k B)
+  | goal_prefix 0 _ = Term.dummy_pattern propT
+  | goal_prefix k ((c as Const ("==>", _)) $ A $ B) = c $ A $ goal_prefix (k - 1) B
+  | goal_prefix _ _ = Term.dummy_pattern propT;
+
+fun goal_params k (Const ("all", _) $ Abs (_, _, B)) = goal_params k B + 1
+  | goal_params 0 _ = 0
+  | goal_params k (Const ("==>", _) $ _ $ B) = goal_params (k - 1) B
+  | goal_params _ _ = 0;
 
 val meta_spec = PureThy.get_thm Pure.thy (Name "meta_spec");
 
-fun meta_spec_tac ctxt (x, T) = SUBGOAL (fn (goal, i) => fn st =>
+fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   let
-    val thy = Thm.theory_of_thm st;
+    val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
 
     val v = Free (x, T);
+    fun spec_rule prfx (xs, body) =
+      meta_spec
+      |> Thm.rename_params_rule ([ProofContext.revert_skolem ctxt x], 1)
+      |> Thm.lift_rule (cert prfx)
+      |> `(Thm.prop_of #> Logic.strip_assums_concl)
+      |-> (fn pred $ arg =>
+        Drule.cterm_instantiate
+          [(cert (Term.head_of pred), cert (Unify.rlist_abs (xs, body))),
+           (cert (Term.head_of arg), cert (Unify.rlist_abs (xs, v)))]);
+
+    fun goal_concl k xs (Const ("all", _) $ Abs (a, T, B)) = goal_concl k ((a, T) :: xs) B
+      | goal_concl 0 xs B =
+          if not (Term.exists_subterm (fn t => t aconv v) B) then NONE
+          else SOME (xs, Term.absfree (x, T, Term.incr_boundvars 1 B))
+      | goal_concl k xs (Const ("==>", _) $ _ $ B) = goal_concl (k - 1) xs B
+      | goal_concl _ _ _ = NONE;
   in
-    if Term.exists_subterm (fn t => t aconv v) goal then
-      let
-        val P = Term.absfree (x, T, goal);
-        val rule = meta_spec
-          |> Drule.instantiate' [SOME (certT T)] [SOME (cert P), SOME (cert v)]
-          |> Thm.rename_params_rule ([revert_skolem ctxt x], 1);
-      in compose_tac (false, rule, 1) i end
-    else all_tac
-  end st);
+    (case goal_concl n [] goal of
+      SOME concl =>
+        (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN' rtac asm_rl) i
+    | NONE => (warning ("induct: no variable " ^ ProofContext.string_of_term ctxt v ^
+        " to be fixed -- ignored"); all_tac))
+  end);
+
+fun miniscope_tac n i = PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (Library.equal i)
+    (Drule.forall_conv n (Tactic.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
 
 in
 
-fun fix_tac ctxt xs = EVERY' (map (meta_spec_tac ctxt) (rev (gen_distinct (op =) xs)));
+fun fix_tac _ _ [] = K all_tac
+  | fix_tac ctxt n xs = SUBGOAL (fn (goal, i) =>
+     (EVERY' (map (meta_spec_tac ctxt n) xs) THEN'
+      (miniscope_tac (goal_params n goal))) i);
 
 end;
 
@@ -194,7 +223,11 @@ fun add_defs def_insts =
 (* atomize and rulify *)
 
 fun atomize_term thy =
-  ObjectLogic.drop_judgment thy o MetaSimplifier.rewrite_term thy Data.atomize [];
+  MetaSimplifier.rewrite_term thy Data.atomize []
+  #> ObjectLogic.drop_judgment thy;
+
+val atomize_tac =
+  Tactic.rewrite_goal_tac Data.atomize;
 
 fun rulified_term thm =
   let val thy = Thm.theory_of_thm thm in
@@ -203,8 +236,6 @@ fun rulified_term thm =
     |> MetaSimplifier.rewrite_term thy Data.rulify2 []
     |> pair thy
   end;
-
-val atomize_tac = Tactic.rewrite_goal_tac Data.atomize;
 
 val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify1 THEN'
@@ -218,12 +249,12 @@ local
 
 fun imp_intr i raw_th =
   let
+    val cert = Thm.cterm_of (Thm.theory_of_thm raw_th);
     val th = Thm.permute_prems (i - 1) 1 raw_th;
-    val {thy, maxidx, ...} = Thm.rep_thm th;
-    val cprems = Drule.cprems_of th;
-    val As = Library.take (length cprems - 1, cprems);
-    val C = Thm.cterm_of thy (Var (("C", maxidx + 1), propT));
-  in th COMP Thm.lift_rule (Drule.list_implies (As, C)) Data.local_impI end;
+    val prems = Thm.prems_of th;
+    val As = Library.take (length prems - 1, prems);
+    val C = Term.dummy_pattern propT;
+  in th COMP Thm.lift_rule (cert (Logic.list_implies (As, C))) Data.local_impI end;
 
 in
 
@@ -299,7 +330,7 @@ end;
 
 fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] thm =
       let
-        val x = revert_skolem ctxt z;
+        val x = ProofContext.revert_skolem ctxt z;
         fun index i [] = []
           | index i (y :: ys) =
               if x = y then x ^ string_of_int i :: index (i + 1) ys
@@ -389,7 +420,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
       |> Seq.maps (fn ((cases, (k, more_facts)), rule) =>
         (CONJUNCTS (ALLGOALS (fn j =>
             Method.insert_tac (more_facts @ nth_list defs (j - 1)) j
-            THEN fix_tac defs_ctxt (nth_list fixing (j - 1)) j))
+            THEN fix_tac defs_ctxt k (nth_list fixing (j - 1)) j))
           THEN' atomize_tac) i st |> Seq.maps (fn st' =>
             divinate_inst (internalize k rule) i st'
             |> Seq.map (rule_instance thy taking)
