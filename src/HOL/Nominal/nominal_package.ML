@@ -997,11 +997,15 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (**** prove that new datatypes have finite support ****)
 
+    val _ = warning "proving finite support for the new datatype";
+
     val indnames = DatatypeProp.make_tnames recTs;
 
     val abs_supp = PureThy.get_thms thy8 (Name "abs_supp");
     val supp_atm = PureThy.get_thms thy8 (Name "supp_atm");
 
+
+(*
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
       in map standard (List.take
@@ -1017,6 +1021,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                List.concat supp_thms))))),
          length new_type_names))
       end) atoms;
+*)
 
     (**** strong induction theorem ****)
 
@@ -1081,13 +1086,13 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       DatatypeAux.store_thmss "inject" new_type_names inject_thms |>>>
       DatatypeAux.store_thmss "supp" new_type_names supp_thms |>>>
       DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms |>>
-      fold (fn (atom, ths) => fn thy =>
+  (*    fold (fn (atom, ths) => fn thy =>
         let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
         in fold (fn T => AxClass.add_inst_arity_i
             (fst (dest_Type T),
               replicate (length sorts) [class], [class])
             (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
-        end) (atoms ~~ finite_supp_thms) |>>
+        end) (atoms ~~ finite_supp_thms) |>> *)
       Theory.add_path big_name |>>>
       PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])] |>>
       Theory.parent_path;

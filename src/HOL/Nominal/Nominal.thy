@@ -5,7 +5,7 @@ imports Main
 uses
   ("nominal_atoms.ML")
   ("nominal_package.ML")
-  ("nominal_induct.ML")
+(*  ("nominal_induct.ML") *)
   ("nominal_permeq.ML")
 begin 
 
@@ -2283,10 +2283,12 @@ setup "NominalAtoms.setup"
 
 (*****************************************)
 (* setup for induction principles method *)
+(*
 use "nominal_induct.ML";
 method_setup nominal_induct =
   {* nominal_induct_method *}
   {* nominal induction *}
+*)
 
 (*******************************)
 (* permutation equality tactic *)
