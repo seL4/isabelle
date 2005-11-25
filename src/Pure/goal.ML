@@ -18,7 +18,7 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_hhf: thm -> thm
-  val norm_hhf_protected: thm -> thm
+  val norm_hhf_protect: thm -> thm
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
@@ -90,7 +90,7 @@ val ss =
 in
 
 val norm_hhf = gen_norm_hhf ss;
-val norm_hhf_protected = gen_norm_hhf (ss addeqcongs [Drule.protect_cong]);
+val norm_hhf_protect = gen_norm_hhf (ss addeqcongs [Drule.protect_cong]);
 
 end;
 
