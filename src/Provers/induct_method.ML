@@ -24,6 +24,7 @@ sig
   val atomize_tac: int -> tactic
   val rulified_term: thm -> theory * term
   val rulify_tac: int -> tactic
+  val guess_instance: thm -> int -> thm -> thm Seq.seq
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
@@ -190,7 +191,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     (case goal_concl n [] goal of
       SOME concl =>
         (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN' rtac asm_rl) i
-    | NONE => (warning ("induct: no variable " ^ ProofContext.string_of_term ctxt v ^
+    | NONE => (warning ("Induction: no variable " ^ ProofContext.string_of_term ctxt v ^
         " to be fixed -- ignored"); all_tac))
   end);
 
@@ -287,7 +288,7 @@ fun join_rules [] = []
         end;
 
 
-(* divinate rule instantiation -- cannot handle pending goal parameters *)
+(* guess rule instantiation -- cannot handle pending goal parameters *)
 
 local
 
@@ -302,7 +303,7 @@ fun dest_env thy (env as Envir.Envir {iTs, ...}) =
 
 in
 
-fun divinate_inst rule i st =
+fun guess_instance rule i st =
   let
     val {thy, maxidx, ...} = Thm.rep_thm st;
     val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
@@ -395,6 +396,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
+    val atomized_defs = map (map ObjectLogic.atomize_thm) defs;
 
     val inst_rule = apsnd (fn r =>
       if null insts then r
@@ -419,10 +421,10 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
       |> Seq.maps (RuleCases.consume (List.concat defs) facts)
       |> Seq.maps (fn ((cases, (k, more_facts)), rule) =>
         (CONJUNCTS (ALLGOALS (fn j =>
-            Method.insert_tac (more_facts @ nth_list defs (j - 1)) j
+            Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1)) j
             THEN fix_tac defs_ctxt k (nth_list fixing (j - 1)) j))
           THEN' atomize_tac) i st |> Seq.maps (fn st' =>
-            divinate_inst (internalize k rule) i st'
+            guess_instance (internalize k rule) i st'
             |> Seq.map (rule_instance thy taking)
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
@@ -475,7 +477,7 @@ fun coinduct_tac ctxt is_open inst taking opt_rule facts =
       ruleq goal
       |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        divinate_inst rule i st
+        guess_instance rule i st
         |> Seq.map (rule_instance thy taking)
         |> Seq.maps (fn rule' =>
           CASES (make_cases is_open rule' cases)
