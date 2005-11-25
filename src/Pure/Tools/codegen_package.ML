@@ -59,6 +59,8 @@ sig
     -> codegen_expr;
   val codegen_number_of: (term -> IntInf.int) -> (term -> term)
     -> codegen_expr;
+  val codegen_case: (theory -> string -> (string * int) list option)
+    -> codegen_expr;
   val defgen_datatype: (theory -> string -> (string list * string list) option)
     -> defgen;
   val defgen_datacons: (theory -> string * string -> typ list option)
@@ -66,7 +68,7 @@ sig
   val defgen_recfun: (theory -> string * typ -> (term list * term) list * typ)
     -> defgen;
 
-  val print_codegen_modl: theory -> unit;
+  val print_codegen_generated: theory -> unit;
   val mk_deftab: theory -> deftab;
   structure CodegenData: THEORY_DATA;
   structure Insttab: TABLE;
@@ -117,7 +119,7 @@ val nsp_eq = "eq";
 
 val serializer_ml =
   let
-    val name_root = "module";
+    val name_root = "Generated";
     val nsp_conn_ml = [
       [nsp_class, nsp_type, nsp_eq_class], [nsp_const, nsp_inst, nsp_mem, nsp_eq]
     ];
@@ -283,7 +285,7 @@ fun map_codegen_data f thy =
       in CodegenData.put { modl = modl, gens = gens, lookups = lookups,
            serialize_data = serialize_data, logic_data = logic_data } thy end;
 
-val print_codegen_modl = writeln o Pretty.output o pretty_module o #modl o CodegenData.get;
+val print_codegen_generated = writeln o Pretty.output o pretty_module o #modl o CodegenData.get;
 
 fun add_codegen_sort (name, cg) =
   map_codegen_data
@@ -527,39 +529,18 @@ fun mk_fun thy defs eqs ty trns =
     |-> (fn ((eqs, ty), sortctxt) => pair (Fun (eqs, (sortctxt, ty))))
   end;
 
-fun mk_app thy defs f ty_use args trns =
-  let
-    val _ = debug 5 (fn _ => "making application of " ^ quote f) ();
-    val ty_def = Sign.the_const_constraint thy f;
-    val _ = debug 10 (fn _ => "making application (2)") ();
-    fun mk_lookup (ClassPackage.Instance (i, ls)) trns =
-          trns
-          |> ensure_def_class thy defs ((idf_of_name thy nsp_class o fst) i)
-          ||>> ensure_def_class thy defs (idf_of_inst thy defs i)
-          ||>> (fold_map o fold_map) mk_lookup ls
-          |-> (fn ((cls, i), ls) => pair (ClassPackage.Instance ((cls, i), ls)))
-      | mk_lookup (ClassPackage.Lookup (clss, (v, i))) trns =
-          trns
-          |> fold_map (ensure_def_class thy defs) (map (idf_of_name thy nsp_class) clss)
-          |-> (fn clss => pair (ClassPackage.Lookup (clss, (name_of_tvar (TFree (v, [])), i))));
-    val _ = debug 10 (fn _ => "making application (3)") ();
-    fun mk_itapp e [] = e
-      | mk_itapp e lookup = IInst (e, lookup);
-  in 
+fun fix_nargs thy defs gen i (t, ts) trns =
+  if length ts < i
+  then
     trns
-    |> debug 10 (fn _ => "making application (4): " ^ f ^ "::" ^ Sign.string_of_typ thy ty_use)
-    |> ensure_def_const thy defs (idf_of_cname thy defs (f, ty_use))
-    |> debug 10 (fn _ => "making application (5)")
-    ||>> fold_map (invoke_cg_expr thy defs) args
-    |> debug 10 (fn _ => "making application (6)")
-    ||>> (fold_map o fold_map) mk_lookup (ClassPackage.extract_sortlookup thy (ty_def, ty_use))
-    |> debug 10 (fn _ => "making application (7)")
-    ||>> invoke_cg_type thy defs ty_use
-    |> debug 10 (fn _ => "making application (8)")
-    |-> (fn (((f, args), lookup), ty_use) =>
-           pair (mk_apps (mk_itapp (IConst (f, ty_use)) lookup, args)))
-  end;
-
+    |> debug 10 (fn _ => "eta-expanding")
+    |> gen (strip_comb (Codegen.eta_expand t ts i))
+  else
+    trns
+    |> debug 10 (fn _ => "splitting arguments (" ^ string_of_int i ^ ", " ^ string_of_int (length ts) ^ ")")
+    |> gen (t, Library.take (i, ts))
+    ||>> fold_map (invoke_cg_expr thy defs) (Library.drop (i, ts))
+    |-> pair o mk_apps;
 
 local
   open CodegenThingolOp;
@@ -568,6 +549,8 @@ local
   infixr 6 `-->;
   infix 4 `$;
   infix 4 `$$;
+  infixr 5 `|->;
+  infixr 5 `|-->;
 in
 
 (* code generators *)
@@ -597,38 +580,54 @@ fun codegen_type_default thy defs (v as TVar (_, sort)) trns =
       ||>> fold_map (invoke_cg_type thy defs) tys
       |-> (fn (tyco, tys) => succeed (tyco `%% tys))
 
-fun codegen_expr_default thy defs t trns =
-  let
-    val (u, ts) = strip_comb t;
-    fun name_of_var (Free (v, _)) = v
-      | name_of_var (Var ((v, i), _)) = if i=0 then v else v ^ string_of_int i
-    fun cg_default (Var (_, ty)) =
-          trns
-          |> fold_map (invoke_cg_expr thy defs) ts
-          ||>> invoke_cg_type thy defs ty
-          |-> (fn (args, ty) => succeed (IVarE (name_of_var u, ty) `$$ args))
-      | cg_default (Free (_, ty)) =
-          trns
-          |> fold_map (invoke_cg_expr thy defs) ts
-          ||>> invoke_cg_type thy defs ty
-          |-> (fn (args, ty) => succeed (IVarE (name_of_var u, ty) `$$ args))
-      | cg_default (Const (f, ty)) =
-          trns
-          |> mk_app thy defs f ty ts
-          |-> (fn e => succeed e)
-      | cg_default (Abs _) =
-          let
-            val (bs, tys) = ListPair.unzip (strip_abs_vars u);
-            val t = strip_abs_body u;
-            val bs' = Codegen.new_names t bs;
-            val t' = subst_bounds (map Free (rev (bs' ~~ tys)), t)
-          in
-            trns
-            |> fold_map (invoke_cg_expr thy defs) ts
-            ||>> invoke_cg_expr thy defs t'
-            |-> (fn (es, e) => succeed (e `$$ es))
-          end;
-  in cg_default u end;
+fun codegen_expr_default thy defs (Const (f, ty)) trns =
+      let
+        val _ = debug 5 (fn _ => "making application of " ^ quote f) ();
+        val ty_def = Sign.the_const_constraint thy f;
+        val _ = debug 10 (fn _ => "making application (2)") ();
+        fun mk_lookup (ClassPackage.Instance (i, ls)) trns =
+              trns
+              |> ensure_def_class thy defs ((idf_of_name thy nsp_class o fst) i)
+              ||>> ensure_def_class thy defs (idf_of_inst thy defs i)
+              ||>> (fold_map o fold_map) mk_lookup ls
+              |-> (fn ((cls, i), ls) => pair (ClassPackage.Instance ((cls, i), ls)))
+          | mk_lookup (ClassPackage.Lookup (clss, (v, i))) trns =
+              trns
+              |> fold_map (ensure_def_class thy defs) (map (idf_of_name thy nsp_class) clss)
+              |-> (fn clss => pair (ClassPackage.Lookup (clss, (name_of_tvar (TFree (v, [])), i))));
+        val _ = debug 10 (fn _ => "making application (3)") ();
+        fun mk_itapp e [] = e
+          | mk_itapp e lookup = IInst (e, lookup);
+      in 
+        trns
+        |> debug 10 (fn _ => "making application (4): " ^ f ^ "::" ^ Sign.string_of_typ thy ty ^ " <~> " ^ Sign.string_of_typ thy ty_def)
+        |> ensure_def_const thy defs (idf_of_cname thy defs (f, ty))
+        |> debug 10 (fn _ => "making application (5)")
+        ||>> (fold_map o fold_map) mk_lookup (ClassPackage.extract_sortlookup thy (ty_def, ty))
+        |> debug 10 (fn _ => "making application (6)")
+        ||>> invoke_cg_type thy defs ty
+        |> debug 10 (fn _ => "making application (7)")
+        |-> (fn ((f, lookup), ty) =>
+               succeed (mk_itapp (IConst (f, ty)) lookup))
+      end
+  | codegen_expr_default thy defs (Free (v, ty)) trns =
+      trns
+      |> invoke_cg_type thy defs ty
+      |-> (fn ty => succeed (IVarE (v, ty)))
+  | codegen_expr_default thy defs (Var ((v, i), ty)) trns =
+      trns
+      |> invoke_cg_type thy defs ty
+      |-> (fn ty => succeed (IVarE (if i=0 then v else v ^ string_of_int i, ty)))
+  | codegen_expr_default thy defs (Abs (v, ty, t)) trns =
+      trns
+      |> invoke_cg_type thy defs ty
+      ||>> invoke_cg_expr thy defs (subst_bound (Free (v, ty), t))
+      |-> (fn (ty, e) => succeed ((v, ty) `|-> e))
+  | codegen_expr_default thy defs (t1 $ t2) trns =
+      trns
+      |> invoke_cg_expr thy defs t1
+      ||>> invoke_cg_expr thy defs t2
+      |-> (fn (e1, e2) => succeed (e1 `$ e2));
 
 (*fun codegen_eq thy defs t trns =
  let
@@ -810,6 +809,59 @@ fun codegen_number_of dest_binum mk_int_to_nat thy defs (Const ("Numeral.number_
       trns
       |> fail ("not a number: " ^ Sign.string_of_term thy t);
 
+fun codegen_case get_case_const_data thy defs t trns =
+  let
+    fun cg_case_d gen_names dty (((cname, i), ty), t) trns =
+      let
+        val vs = gen_names i;
+        val tys = Library.take (i, (fst o strip_type) ty);
+        val frees = map2 Free (vs, tys);
+        val t' = Envir.beta_norm (list_comb (t, frees));
+      in
+        trns
+        |> invoke_cg_expr thy defs (list_comb (Const (cname, tys ---> dty), frees))
+        ||>> invoke_cg_expr thy defs t'
+        |-> (fn (ep, e) => pair (ipat_of_iexpr ep, e))
+      end;
+    fun cg_case dty cs (_, ts) trns =
+      let
+        val (ts', t) = split_last ts
+        val _ = debug 10 (fn _ => "  in " ^ Sign.string_of_typ thy dty ^ ", pairing "
+          ^ (commas o map (fst o fst)) cs ^ " with " ^ (commas o map (Sign.string_of_term thy)) ts') ();
+        fun gen_names i =
+          variantlist (replicate i "x", foldr add_term_names
+           (map (fst o fst o dest_Var) (foldr add_term_vars [] ts)) ts)
+      in
+        trns
+        |> invoke_cg_expr thy defs t
+        ||>> fold_map (cg_case_d gen_names dty) (cs ~~ ts')
+        |-> (fn (t, ds) => pair (ICase (t, ds)))
+      end;
+  in case strip_comb t
+   of (t as Const (f, ty), ts) =>
+        (case get_case_const_data thy f
+         of NONE =>
+              trns
+              |> fail ("not a case constant: " ^ quote f)
+          | SOME cs =>
+              let
+                val (tys, dty) = (split_last o fst o strip_type) ty;
+              in
+                trns
+                |> debug 9 (fn _ => "for case const " ^ f ^ "::"
+                     ^ Sign.string_of_typ thy ty ^ ",\n  with " ^ AList.string_of_alist I string_of_int cs
+                     ^ ",\n  given as args " ^ (commas o map (Sign.string_of_term thy)) ts
+                     ^ ",\n  with significant length " ^ string_of_int (length cs + 1))
+                |> fix_nargs thy defs (cg_case dty (cs ~~ tys))
+                     (length cs + 1) (t, ts)
+                |-> succeed
+              end
+        )
+    | _ =>
+        trns
+        |> fail ("not a case constant expression: " ^ Sign.string_of_term thy t)
+  end;
+
 fun defgen_datatype get_datatype thy defs tyco trns =
   case tname_of_idf thy tyco
    of SOME dtname =>
@@ -912,9 +964,8 @@ fun mk_deftab thy =
               | mk_idf (nm, ty) =
                   if is_number nm
                   then nm
-                  else idf_of_name thy nsp_const
-                    (((perhaps o Symtab.lookup) ((fst o #alias o #logic_data o CodegenData.get) thy) nm)
-                     ^ "_" ^ mangle_tyname (ty_decl, ty))
+                  else idf_of_name thy nsp_const nm
+                     ^ "_" ^ mangle_tyname (ty_decl, ty)
             val overl_lookups = map
               (fn (ty, (_, (args, rhs))) => (ty, mk_idf (name, ty), args, rhs)) ds;
           in
@@ -964,8 +1015,8 @@ fun mk_deftab thy =
              classtab))
   in 
     ((Symtab.empty, Symtab.empty), Symtab.empty, (Insttab.empty, Symtab.empty, Symtab.empty))
-    |> fold add_def (Codegen.mk_deftab thy |> Symtab.dest)
     |> add_clsmems (ClassPackage.get_classtab thy)
+    |> fold add_def (Codegen.mk_deftab thy |> Symtab.dest)
   end;
 
 fun expand_module defs gen thy =
@@ -1102,24 +1153,24 @@ fun get_serializer thy serial_name =
   (#serializer o (fn data => (the oo Symtab.lookup) data serial_name)
     o #serialize_data o CodegenData.get) thy;
 
-fun mk_const thy f =
+fun mk_const thy (f, s_ty) =
   let
     val f' = Sign.intern_const thy f;
-  in (f', Sign.the_const_constraint thy f') end;
+    val ty = case s_ty
+     of NONE => Sign.the_const_constraint thy f'
+      | SOME s => Sign.read_typ (thy, K NONE) s;
+  in (f', ty) end;
 
-fun gen_generate_code consts thy =
+fun generate_code consts thy =
   let
     val defs = mk_deftab thy;
-    val consts' = map (idf_of_cname thy defs) consts;
+    val consts' = map (idf_of_cname thy defs o mk_const thy) consts;
     fun generate thy defs = fold_map (ensure_def_const thy defs) consts'
   in
     thy
     |> expand_module defs generate
     |-> (fn _ => pair consts')
   end;
-
-fun generate_code consts thy =
-  gen_generate_code (map (mk_const thy) consts) thy;
 
 fun serialize_code serial_name filename consts thy =
   let
@@ -1141,10 +1192,9 @@ fun serialize_code serial_name filename consts thy =
       if compile_it
       then use_text Context.ml_output false code
       else File.write (Path.unpack filename) (code ^ "\n");
-    val consts' = Option.map (map (mk_const thy)) consts;
   in
     thy
-    |> (if is_some consts then gen_generate_code (the consts') else pair [])
+    |> (if is_some consts then generate_code (the consts) else pair [])
     |-> (fn [] => `(serializer' NONE o #modl o CodegenData.get)
           | consts => `(serializer' (SOME consts) o #modl o CodegenData.get))
     |-> (fn code => ((use_code o Pretty.output) code; I))
@@ -1165,7 +1215,7 @@ val (generateK, serializeK, extractingK, aliasK, definedK, dependingK, syntax_ty
 
 val generateP =
   OuterSyntax.command generateK "generate executable code for constants" K.thy_decl ( 
-    Scan.repeat1 P.name
+    Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
     >> (fn consts =>
           Toplevel.theory (generate_code consts #> snd))
   );
@@ -1176,7 +1226,7 @@ val serializeP =
     -- P.name
     -- Scan.option (
          P.$$$ extractingK
-         |-- Scan.repeat1 P.name
+         |-- Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
        )
     >> (fn ((serial_name, filename), consts) =>
           Toplevel.theory (serialize_code serial_name filename consts))
@@ -1253,7 +1303,11 @@ val _ =
     add_alias ("op <>", "neq"),
     add_alias ("op >=", "ge"),
     add_alias ("op >", "gt"),
+    add_alias ("op <=", "le"),
+    add_alias ("op <", "lt"),
+    add_alias ("op +", "add"),
     add_alias ("op -", "minus"),
+    add_alias ("op *", "times"),
     add_alias ("op @", "append"),
     add_lookup_tyco ("bool", type_bool),
     add_lookup_tyco ("IntDef.int", type_integer),

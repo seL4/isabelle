@@ -10,6 +10,7 @@ sig
   val is_datatype: theory -> string -> bool
   val get_datatype: theory -> string -> (string list * string list) option
   val get_datacons: theory -> string * string -> typ list option
+  val get_case_const_data: theory -> string -> (string * int) list option;
   val setup: (theory -> theory) list
 end;
 
@@ -264,17 +265,17 @@ fun pretty_constr thy defs gr dep module brack args (c as Const (s, T)) ts =
 
 fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
    (c as Const (s, T), ts) =>
-       (case find_first (fn (_, {index, descr, case_name, ...}) =>
+       (case Library.find_first (fn (_, {index, descr, case_name, ...}) =>
          s = case_name orelse
            AList.defined (op =) ((#3 o the o AList.lookup (op =) descr) index) s)
              (Symtab.dest (DatatypePackage.get_datatypes thy)) of
           NONE => NONE
         | SOME (tname, {index, descr, ...}) =>
-           if isSome (get_assoc_code thy s T) then NONE else
+           if is_some (get_assoc_code thy s T) then NONE else
            let val SOME (_, _, constrs) = AList.lookup (op =) descr index
            in (case (AList.lookup (op =) constrs s, strip_type T) of
                (NONE, _) => SOME (pretty_case thy defs gr dep module brack
-                 (#3 (valOf (AList.lookup (op =) descr index))) c ts)
+                 ((#3 o the o AList.lookup (op =) descr) index) c ts)
              | (SOME args, (_, Type _)) => SOME (pretty_constr thy defs
                  (fst (invoke_tycodegen thy defs dep module false
                     (gr, snd (strip_type T))))
@@ -342,15 +343,26 @@ fun get_datacons thy (c, dtname) =
     else NONE
   end;
 
+fun get_case_const_data thy f =
+  case Library.find_first (fn (_, {index, descr, case_name, ...}) =>
+      case_name = f
+    ) ((Symtab.dest o DatatypePackage.get_datatypes) thy)
+   of NONE => NONE
+    | SOME (_, {index, descr, ...}) =>
+        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
+
+
 val setup = [
   add_codegen "datatype" datatype_codegen,
   add_tycodegen "datatype" datatype_tycodegen,
   CodegenPackage.set_is_datatype
     is_datatype,
-  CodegenPackage.add_defgen 
+  CodegenPackage.add_defgen
     ("datatype", CodegenPackage.defgen_datatype get_datatype),
   CodegenPackage.add_defgen
-    ("datacons", CodegenPackage.defgen_datacons get_datacons)
+    ("datacons", CodegenPackage.defgen_datacons get_datacons),
+  CodegenPackage.add_codegen_expr
+    ("case", CodegenPackage.codegen_case get_case_const_data)
 ];
 
 end;

@@ -30,6 +30,7 @@ sig
   val eq_iexpr: iexpr * iexpr -> bool
   val mk_funs: itype list * itype -> itype;
   val mk_apps: iexpr * iexpr list -> iexpr;
+  val mk_abss: (vname * itype) list * iexpr -> iexpr;
   val pretty_itype: itype -> Pretty.T;
   val pretty_ipat: ipat -> Pretty.T;
   val pretty_iexpr: iexpr -> Pretty.T;
@@ -129,6 +130,8 @@ sig
   val `--> : itype list * itype -> itype;
   val `$ : iexpr * iexpr -> iexpr;
   val `$$ : iexpr * iexpr list -> iexpr;
+  val `|-> : (vname * itype) * iexpr -> iexpr;
+  val `|--> : (vname * itype) list * iexpr -> iexpr;
 end;
 
 
@@ -192,6 +195,8 @@ infixr 6 `->;
 infixr 6 `-->;
 infix 4 `$;
 infix 4 `$$;
+infixr 5 `|->;
+infixr 5 `|-->;
 
 type vname = string;
 
@@ -223,12 +228,15 @@ val eq_iexpr = (op =);
 
 val mk_funs = Library.foldr IFun;
 val mk_apps = Library.foldl IApp;
+val mk_abss = Library.foldr IAbs;
 
-fun tyco `%% tys = IType (tyco, tys);
+val op `%% = IType;
 val op `-> = IFun;
-fun f `$ x = IApp (f, x);
+val op `$ = IApp;
+val op `|-> = IAbs;
 val op `--> = mk_funs;
 val op `$$ = mk_apps;
+val op `|--> = mk_abss;
 
 val unfold_fun = unfoldr
   (fn IFun t => SOME t
@@ -1171,10 +1179,12 @@ fun mk_resolv tab =
     fun resolver modl name =
       if NameSpace.is_qualified name then
         let
+          val _ = debug 12 (fn name' => "resolving " ^ quote name ^ " in " ^ (quote o NameSpace.pack) modl) ();
           val modl' = if null modl then [] else (NameSpace.unpack o the o Symtab.lookup tab o NameSpace.pack) modl;
           val name' = (NameSpace.unpack o the o Symtab.lookup tab) name
         in
           (NameSpace.pack o #3 o get_prefix (op =)) (modl', name')
+          |> debug 12 (fn name' => "resolving " ^ quote name ^ " to " ^ quote name' ^ " in " ^ (quote o NameSpace.pack) modl)
         end
       else name
   in resolver end;
@@ -1187,13 +1197,14 @@ fun serialize s_def s_module validate nspgrp name_root module =
     val resolvtab = mk_resolvtab nspgrp validate module;
     val resolver = mk_resolv resolvtab;
     fun seri prfx ([(name, Module module)]) =
-          s_module (name,
+          s_module (resolver prfx (prfx @ [name] |> NameSpace.pack),
             (map (seri (prfx @ [name]))
                ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))
       | seri prfx ds =
-          s_def (resolver prfx) (map (fn (name, Def def) => (name, def)) ds)
+          s_def (resolver prfx) (map (fn (name, Def def) => (resolver prfx (prfx @ [name] |> NameSpace.pack), def)) ds)
   in
-    seri [] [(name_root, Module module)]
+    s_module (name_root, (map (seri [])
+      ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))
   end;
 
 end; (* struct *)

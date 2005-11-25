@@ -282,10 +282,10 @@ fun ml_from_defs styco sconst resolv ds =
                 ml_from_iexpr NOBR e
               ]
           in brackify (eval_br br BR) (
-            Pretty.str "case "
+            Pretty.str "case"
             :: ml_from_iexpr NOBR e
             :: mk_clause "of " c
-            :: map (mk_clause "|") cs
+            :: map (mk_clause "| ") cs
           ) end
       | ml_from_iexpr br (IInst _) =
           error "cannot serialize poly instant to ML"
@@ -391,13 +391,13 @@ fun ml_from_defs styco sconst resolv ds =
           | check_args (_, Fun ((pats, _)::_, _)) (SOME definer) =
               if mk_definer pats = definer
               then SOME definer
-              else error ("Mixing simultaneous vals and funs not implemented")
+              else error ("mixing simultaneous vals and funs not implemented")
           | check_args _ _ =
-              error ("Function definition block containing other definitions than functions")
+              error ("function definition block containing other definitions than functions")
         val definer = the (fold check_args ds NONE);
-        fun mk_eq definer f' ty (pats, expr) =
+        fun mk_eq definer f ty (pats, expr) =
           let
-            val lhs = [Pretty.str (definer ^ " " ^ f')]
+            val lhs = [Pretty.str (definer ^ " " ^ f)]
                        @ (if null pats
                           then [Pretty.str ":", ml_from_typ NOBR ty]
                           else map (ml_from_pat BR) pats)
@@ -407,15 +407,11 @@ fun ml_from_defs styco sconst resolv ds =
           end
         fun mk_fun definer (f, Fun (eqs as eq::eq_tl, (_, ty))) =
           let
-            val (pats_hd::pats_tl) = (fst o split_list) eqs
-            val _ = fold (fn x => fn y => (x ~~ y; y)) pats_tl pats_hd
+            val (pats_hd::pats_tl) = (fst o split_list) eqs;
+            val _ = fold (fn x => fn y => (x ~~ y; y)) pats_tl pats_hd;
               (*check for equal length of argument lists*)
-          in (Pretty.block o Pretty.fbreaks) (
-               (*Pretty.block [
-                 Pretty.brk 1,
-                 Pretty.str ": ",
-                 ml_from_typ NOBR ty
-               ]*)
+            val shift = if null eq_tl then I else map (Pretty.block o single);
+          in (Pretty.block o Pretty.fbreaks o shift) (
                mk_eq definer f ty eq
                :: map (mk_eq "|" f ty) eq_tl
              )
@@ -516,7 +512,7 @@ fun ml_from_thingol nspgrp name_root styco sconst prims select module =
         Pretty.str ("structure " ^ name ^ " = "),
         Pretty.str "struct",
         Pretty.str ""
-      ] @ ps @ [
+      ] @ separate (Pretty.str "") ps @ [
         Pretty.str "",
         Pretty.str ("end; (* struct " ^ name ^ " *)")
       ]);
@@ -542,7 +538,7 @@ fun ml_from_thingol nspgrp name_root styco sconst prims select module =
           else 0
   in 
     module
-    |> debug 5 (Pretty.output o pretty_module)
+    |> debug 12 (Pretty.output o pretty_module)
     |> debug 3 (fn _ => "connecting datatypes and classdecls...")
     |> connect_datatypes_clsdecls
     |> debug 3 (fn _ => "selecting submodule...")
@@ -551,7 +547,7 @@ fun ml_from_thingol nspgrp name_root styco sconst prims select module =
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "eta-expanding polydefs...")
     |> eta_expand_poly
-    |> debug 5 (Pretty.output o pretty_module)
+    |> debug 12 (Pretty.output o pretty_module)
     |> debug 3 (fn _ => "tupelizing datatypes...")
     |> tupelize_cons
     |> debug 3 (fn _ => "eliminating classes...")
