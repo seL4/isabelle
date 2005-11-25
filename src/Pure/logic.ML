@@ -229,21 +229,21 @@ fun incr_tvar 0 T = T
 end;
 
 
-(*Make lifting functions from subgoal and increment.
+(* Lifting functions from subgoal and increment:
     lift_abs operates on terms
     lift_all operates on propositions *)
 
 fun lift_abs inc =
   let
     fun lift Ts (Const ("==>", _) $ _ $ B) t = lift Ts B t
-      | lift Ts (Const ("all", _) $ Abs (a, T, b)) t = Abs (a, T, lift (T :: Ts) b t)
+      | lift Ts (Const ("all", _) $ Abs (a, T, B)) t = Abs (a, T, lift (T :: Ts) B t)
       | lift Ts _ t = incr_indexes (rev Ts, inc) t;
   in lift [] end;
 
 fun lift_all inc =
   let
     fun lift Ts ((c as Const ("==>", _)) $ A $ B) t = c $ A $ lift Ts B t
-      | lift Ts ((c as Const ("all", _)) $ Abs (a, T, b)) t = c $ Abs (a, T, lift (T :: Ts) b t)
+      | lift Ts ((c as Const ("all", _)) $ Abs (a, T, B)) t = c $ Abs (a, T, lift (T :: Ts) B t)
       | lift Ts _ t = incr_indexes (rev Ts, inc) t;
   in lift [] end;
 
