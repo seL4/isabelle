@@ -43,7 +43,7 @@ sig
   val cert_typ_syntax: context -> typ -> typ
   val cert_typ_abbrev: context -> typ -> typ
   val get_skolem: context -> string -> string
-  val revert_skolem: context -> string -> string option
+  val revert_skolem: context -> string -> string
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
@@ -437,13 +437,18 @@ fun intern_skolem ctxt internal =
 
 (* externalize Skolem constants -- approximation only! *)
 
-fun revert_skolem ctxt =
+fun rev_skolem ctxt =
   let val rev_fixes = map Library.swap (fixes_of ctxt)
   in AList.lookup (op =) rev_fixes end;
 
+fun revert_skolem ctxt x =
+  (case rev_skolem ctxt x of
+    SOME x' => x'
+  | NONE => Syntax.deskolem x);
+
 fun extern_skolem ctxt =
   let
-    val revert = revert_skolem ctxt;
+    val revert = rev_skolem ctxt;
     fun extern (t as Free (x, T)) =
         (case revert x of
           SOME x' => Free (if lookup_skolem ctxt x' = SOME x then x' else NameSpace.hidden x', T)
@@ -721,7 +726,7 @@ fun common_exports is_goal inner outer =
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
-    Goal.norm_hhf_protected
+    Goal.norm_hhf_protect
     #> Seq.EVERY (rev exp_asms)
     #> Seq.map (fn rule =>
       let
@@ -732,7 +737,7 @@ fun common_exports is_goal inner outer =
       in
         rule
         |> Drule.forall_intr_list frees
-        |> Goal.norm_hhf_protected
+        |> Goal.norm_hhf_protect
         |> Drule.tvars_intr_list tfrees |> #2
       end)
   end;
