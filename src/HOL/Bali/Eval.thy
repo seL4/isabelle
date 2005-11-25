@@ -545,12 +545,6 @@ inductive "sxalloc G" intros --{* allocating exception objects for
 	  G\<turnstile>(Some (Xcpt (Std xn)),s0) \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s1)"
 
 
-text {* 
-\par
-*} (* dummy text command to break paragraph for latex;
-              large paragraphs exhaust memory of debian pdflatex *)
-
-
 inductive "eval G" intros
 
 --{* propagation of abrupt completion *}
@@ -792,11 +786,6 @@ bind_thm ("eval_induct_", rearrange_prems
  29,24] (thm "eval.induct"))
 *}
 
-
-text {* 
-\par
-*} (* dummy text command to break paragraph for latex;
-              large paragraphs exhaust memory of debian pdflatex *)
 
 lemmas eval_induct = eval_induct_ [split_format and and and and and and and and
    and and and and and and s1 (* Acc *) and and s2 (* Comp *) and and and and 

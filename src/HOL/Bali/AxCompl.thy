@@ -1233,10 +1233,6 @@ proof (induct rule: full_nat_induct)
       show "G,A\<turnstile>{=:n} \<langle>Methd D mn\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
 	by simp
     next
--- {* 
-\par
-*} (* dummy text command to break paragraph for latex;
-              large paragraphs exhaust memory of debian pdflatex *)
       case (Body D c)
       have mgf_c: "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}" .
       from wf MGFn_Init [OF hyp] mgf_c
