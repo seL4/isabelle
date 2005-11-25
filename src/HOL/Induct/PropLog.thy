@@ -49,7 +49,7 @@ consts
   eval  :: "['a set, 'a pl] => bool"      ("_[[_]]" [100,0] 100)
 
 primrec     "tt[[false]] = False"
-	    "tt[[#v]]    = (v \<in> tt)"
+            "tt[[#v]]    = (v \<in> tt)"
   eval_imp: "tt[[p->q]]  = (tt[[p]] --> tt[[q]])"
 
 text {*
@@ -108,8 +108,8 @@ by (fast intro: thms.K thms.MP)
 subsubsection {* The deduction theorem *}
 
 theorem deduction: "insert p H |- q  ==>  H |- p->q"
-apply (erule thms.induct)
-apply (fast intro: thms_I thms.H thms.K thms.S thms.DN 
+apply (induct set: thms)
+apply (fast intro: thms_I thms.H thms.K thms.S thms.DN
                    thms.S [THEN thms.MP, THEN thms.MP] weaken_right)+
 done
 
@@ -127,7 +127,8 @@ subsubsection {* Soundness of the rules wrt truth-table semantics *}
 
 theorem soundness: "H |- p ==> H |= p"
 apply (unfold sat_def)
-apply (erule thms.induct, auto) 
+apply (induct set: thms)
+apply auto
 done
 
 subsection {* Completeness *}
@@ -143,23 +144,23 @@ done
 lemma imp_false:
     "[| H |- p;  H |- q->false |] ==> H |- (p->q)->false"
 apply (rule deduction)
-apply (blast intro: weaken_left_insert thms.MP thms.H) 
+apply (blast intro: weaken_left_insert thms.MP thms.H)
 done
 
 lemma hyps_thms_if: "hyps p tt |- (if tt[[p]] then p else p->false)"
   -- {* Typical example of strengthening the induction statement. *}
-apply simp 
-apply (induct_tac "p")
+apply simp
+apply (induct p)
 apply (simp_all add: thms_I thms.H)
 apply (blast intro: weaken_left_Un1 weaken_left_Un2 weaken_right
                     imp_false false_imp)
 done
 
 lemma sat_thms_p: "{} |= p ==> hyps p tt |- p"
-  -- {* Key lemma for completeness; yields a set of assumptions 
+  -- {* Key lemma for completeness; yields a set of assumptions
         satisfying @{text p} *}
-apply (unfold sat_def) 
-apply (drule spec, erule mp [THEN if_P, THEN subst], 
+apply (unfold sat_def)
+apply (drule spec, erule mp [THEN if_P, THEN subst],
        rule_tac [2] hyps_thms_if, simp)
 done
 
@@ -176,13 +177,13 @@ text {*
 
 lemma thms_excluded_middle: "H |- (p->q) -> ((p->false)->q) -> q"
 apply (rule deduction [THEN deduction])
-apply (rule thms.DN [THEN thms.MP], best) 
+apply (rule thms.DN [THEN thms.MP], best)
 done
 
 lemma thms_excluded_middle_rule:
     "[| insert p H |- q;  insert (p->false) H |- q |] ==> H |- q"
   -- {* Hard to prove directly because it requires cuts *}
-by (rule thms_excluded_middle [THEN thms.MP, THEN thms.MP], auto) 
+by (rule thms_excluded_middle [THEN thms.MP, THEN thms.MP], auto)
 
 
 subsection{* Completeness -- lemmas for reducing the set of assumptions*}
@@ -193,7 +194,7 @@ text {*
 *}
 
 lemma hyps_Diff: "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})"
-by (induct_tac "p", auto) 
+by (induct p) auto
 
 text {*
   For the case @{prop "hyps p t - insert (#v -> Fls) Y |- p"} we also have
@@ -201,7 +202,7 @@ text {*
 *}
 
 lemma hyps_insert: "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})"
-by (induct_tac "p", auto)
+by (induct p) auto
 
 text {* Two lemmas for use with @{text weaken_left} *}
 
@@ -217,10 +218,10 @@ text {*
 *}
 
 lemma hyps_finite: "finite(hyps p t)"
-by (induct_tac "p", auto)
+by (induct p) auto
 
 lemma hyps_subset: "hyps p t <= (UN v. {#v, #v->false})"
-by (induct_tac "p", auto)
+by (induct p) auto
 
 lemmas Diff_weaken_left = Diff_mono [OF _ subset_refl, THEN weaken_left]
 
@@ -232,18 +233,18 @@ text {*
 *}
 
 lemma completeness_0_lemma:
-    "{} |= p ==> \<forall>t. hyps p t - hyps p t0 |- p" 
+    "{} |= p ==> \<forall>t. hyps p t - hyps p t0 |- p"
 apply (rule hyps_subset [THEN hyps_finite [THEN finite_subset_induct]])
  apply (simp add: sat_thms_p, safe)
  txt{*Case @{text"hyps p t-insert(#v,Y) |- p"} *}
- apply (iprover intro: thms_excluded_middle_rule 
-		     insert_Diff_same [THEN weaken_left]
-                     insert_Diff_subset2 [THEN weaken_left] 
+ apply (iprover intro: thms_excluded_middle_rule
+                     insert_Diff_same [THEN weaken_left]
+                     insert_Diff_subset2 [THEN weaken_left]
                      hyps_Diff [THEN Diff_weaken_left])
 txt{*Case @{text"hyps p t-insert(#v -> false,Y) |- p"} *}
- apply (iprover intro: thms_excluded_middle_rule 
-		     insert_Diff_same [THEN weaken_left]
-                     insert_Diff_subset2 [THEN weaken_left] 
+ apply (iprover intro: thms_excluded_middle_rule
+                     insert_Diff_same [THEN weaken_left]
+                     insert_Diff_subset2 [THEN weaken_left]
                      hyps_insert [THEN Diff_weaken_left])
 done
 
@@ -257,8 +258,8 @@ text{*A semantic analogue of the Deduction Theorem*}
 lemma sat_imp: "insert p H |= q ==> H |= p->q"
 by (unfold sat_def, auto)
 
-theorem completeness [rule_format]: "finite H ==> \<forall>p. H |= p --> H |- p"
-apply (erule finite_induct)
+theorem completeness: "finite H ==> H |= p ==> H |- p"
+apply (induct fixing: p rule: finite_induct)
  apply (blast intro: completeness_0)
 apply (iprover intro: sat_imp thms.H insertI1 weaken_left_insert [THEN thms.MP])
 done
@@ -267,4 +268,3 @@ theorem syntax_iff_semantics: "finite H ==> (H |- p) = (H |= p)"
 by (blast intro: soundness completeness)
 
 end
-
