@@ -242,12 +242,12 @@ lemma postfix_appendD: "xs >>= zs @ ys \<Longrightarrow> xs >>= ys"
   by(auto simp add: postfix_def)
 
 lemma postfix_is_subset_lemma: "xs = zs @ ys \<Longrightarrow> set ys \<subseteq> set xs"
-  by (induct zs, auto)
+  by (induct zs) auto
 lemma postfix_is_subset: "xs >>= ys \<Longrightarrow> set ys \<subseteq> set xs"
   by (unfold postfix_def, erule exE, erule postfix_is_subset_lemma)
 
-lemma postfix_ConsD2_lemma [rule_format]: "x#xs = zs @ y#ys \<longrightarrow> xs >>= ys"
-  by (induct zs, auto intro!: postfix_appendI postfix_ConsI)
+lemma postfix_ConsD2_lemma: "x#xs = zs @ y#ys \<Longrightarrow> xs >>= ys"
+  by (induct zs) (auto intro!: postfix_appendI postfix_ConsI)
 lemma postfix_ConsD2: "x#xs >>= y#ys \<Longrightarrow> xs >>= ys"
   by (auto simp add: postfix_def dest!: postfix_ConsD2_lemma)
 

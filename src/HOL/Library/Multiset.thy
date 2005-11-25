@@ -173,7 +173,7 @@ lemma finite_set_of [iff]: "finite (set_of M)"
 
 lemma setsum_count_Int:
     "finite A ==> setsum (count N) (A \<inter> set_of N) = setsum (count N) A"
-  apply (erule finite_induct)
+  apply (induct rule: finite_induct)
    apply simp
   apply (simp add: Int_insert_left set_of_def)
   done
@@ -285,7 +285,8 @@ subsection {* Induction over multisets *}
 lemma setsum_decr:
   "finite F ==> (0::nat) < f a ==>
     setsum (f (a := f a - 1)) F = (if a\<in>F then setsum f F - 1 else setsum f F)"
-  apply (erule finite_induct, auto)
+  apply (induct rule: finite_induct)
+   apply auto
   apply (drule_tac a = a in mk_disjoint_insert, auto)
   done
 
@@ -333,22 +334,22 @@ theorem rep_multiset_induct:
     (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))) ==> P f"
   using rep_multiset_induct_aux by blast
 
-theorem multiset_induct [induct type: multiset]:
-  assumes prem1: "P {#}"
-    and prem2: "!!M x. P M ==> P (M + {#x#})"
+theorem multiset_induct [case_names empty add, induct type: multiset]:
+  assumes empty: "P {#}"
+    and add: "!!M x. P M ==> P (M + {#x#})"
   shows "P M"
 proof -
   note defns = union_def single_def Mempty_def
   show ?thesis
     apply (rule Rep_multiset_inverse [THEN subst])
     apply (rule Rep_multiset [THEN rep_multiset_induct])
-     apply (rule prem1 [unfolded defns])
+     apply (rule empty [unfolded defns])
     apply (subgoal_tac "f(b := f b + 1) = (\<lambda>a. f a + (if a=b then 1 else 0))")
      prefer 2
      apply (simp add: expand_fun_eq)
     apply (erule ssubst)
     apply (erule Abs_multiset_inverse [THEN subst])
-    apply (erule prem2 [unfolded defns, simplified])
+    apply (erule add [unfolded defns, simplified])
     done
 qed
 
@@ -402,21 +403,21 @@ proof (unfold mult1_def)
   let ?case1 = "?case1 {(N, M). ?R N M}"
 
   assume "(N, M0 + {#a#}) \<in> {(N, M). ?R N M}"
-  hence "\<exists>a' M0' K.
+  then have "\<exists>a' M0' K.
       M0 + {#a#} = M0' + {#a'#} \<and> N = M0' + K \<and> ?r K a'" by simp
-  thus "?case1 \<or> ?case2"
+  then show "?case1 \<or> ?case2"
   proof (elim exE conjE)
     fix a' M0' K
     assume N: "N = M0' + K" and r: "?r K a'"
     assume "M0 + {#a#} = M0' + {#a'#}"
-    hence "M0 = M0' \<and> a = a' \<or>
+    then have "M0 = M0' \<and> a = a' \<or>
         (\<exists>K'. M0 = K' + {#a'#} \<and> M0' = K' + {#a#})"
       by (simp only: add_eq_conv_ex)
-    thus ?thesis
+    then show ?thesis
     proof (elim disjE conjE exE)
       assume "M0 = M0'" "a = a'"
       with N r have "?r K a \<and> N = M0 + K" by simp
-      hence ?case2 .. thus ?thesis ..
+      then have ?case2 .. then show ?thesis ..
     next
       fix K'
       assume "M0' = K' + {#a#}"
@@ -424,7 +425,7 @@ proof (unfold mult1_def)
 
       assume "M0 = K' + {#a'#}"
       with r have "?R (K' + K) M0" by blast
-      with n have ?case1 by simp thus ?thesis ..
+      with n have ?case1 by simp then show ?thesis ..
     qed
   qed
 qed
@@ -442,38 +443,32 @@ proof
     proof (rule accI [of "M0 + {#a#}"])
       fix N
       assume "(N, M0 + {#a#}) \<in> ?R"
-      hence "((\<exists>M. (M, M0) \<in> ?R \<and> N = M + {#a#}) \<or>
+      then have "((\<exists>M. (M, M0) \<in> ?R \<and> N = M + {#a#}) \<or>
           (\<exists>K. (\<forall>b. b :# K --> (b, a) \<in> r) \<and> N = M0 + K))"
         by (rule less_add)
-      thus "N \<in> ?W"
+      then show "N \<in> ?W"
       proof (elim exE disjE conjE)
         fix M assume "(M, M0) \<in> ?R" and N: "N = M + {#a#}"
         from acc_hyp have "(M, M0) \<in> ?R --> M + {#a#} \<in> ?W" ..
-        hence "M + {#a#} \<in> ?W" ..
-        thus "N \<in> ?W" by (simp only: N)
+        then have "M + {#a#} \<in> ?W" ..
+        then show "N \<in> ?W" by (simp only: N)
       next
         fix K
         assume N: "N = M0 + K"
         assume "\<forall>b. b :# K --> (b, a) \<in> r"
-        have "?this --> M0 + K \<in> ?W" (is "?P K")
+	then have "M0 + K \<in> ?W"
         proof (induct K)
-          from M0 have "M0 + {#} \<in> ?W" by simp
-          thus "?P {#}" ..
-
-          fix K x assume hyp: "?P K"
-          show "?P (K + {#x#})"
-          proof
-            assume a: "\<forall>b. b :# (K + {#x#}) --> (b, a) \<in> r"
-            hence "(x, a) \<in> r" by simp
-            with wf_hyp have b: "\<forall>M \<in> ?W. M + {#x#} \<in> ?W" by blast
-
-            from a hyp have "M0 + K \<in> ?W" by simp
-            with b have "(M0 + K) + {#x#} \<in> ?W" ..
-            thus "M0 + (K + {#x#}) \<in> ?W" by (simp only: union_assoc)
-          qed
+	  case empty
+          from M0 show "M0 + {#} \<in> ?W" by simp
+	next
+	  case (add K x)
+	  from add.prems have "(x, a) \<in> r" by simp
+          with wf_hyp have "\<forall>M \<in> ?W. M + {#x#} \<in> ?W" by blast
+	  moreover from add have "M0 + K \<in> ?W" by simp
+          ultimately have "(M0 + K) + {#x#} \<in> ?W" ..
+          then show "M0 + (K + {#x#}) \<in> ?W" by (simp only: union_assoc)
         qed
-        hence "M0 + K \<in> ?W" ..
-        thus "N \<in> ?W" by (simp only: N)
+	then show "N \<in> ?W" by (simp only: N)
       qed
     qed
   } note tedious_reasoning = this
@@ -496,11 +491,11 @@ proof
       show "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
       proof
         fix M assume "M \<in> ?W"
-        thus "M + {#a#} \<in> ?W"
+        then show "M + {#a#} \<in> ?W"
           by (rule acc_induct) (rule tedious_reasoning)
       qed
     qed
-    thus "M + {#a#} \<in> ?W" ..
+    then show "M + {#a#} \<in> ?W" ..
   qed
 qed
 
@@ -616,8 +611,8 @@ text {*
 *}
 
 lemma mult_irrefl_aux:
-    "finite A ==> (\<forall>x \<in> A. \<exists>y \<in> A. x < (y::'a::order)) --> A = {}"
-  apply (erule finite_induct)
+    "finite A ==> (\<forall>x \<in> A. \<exists>y \<in> A. x < (y::'a::order)) \<Longrightarrow> A = {}"
+  apply (induct rule: finite_induct)
    apply (auto intro: order_less_trans)
   done
 
@@ -731,11 +726,11 @@ lemma empty_leI [iff]: "{#} <= (M::'a::order multiset)"
 lemma union_upper1: "A <= A + (B::'a::order multiset)"
 proof -
   have "A + {#} <= A + B" by (blast intro: union_le_mono)
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma union_upper2: "B <= A + (B::'a::order multiset)"
-by (subst union_commute, rule union_upper1)
+  by (subst union_commute) (rule union_upper1)
 
 
 subsection {* Link with lists *}
@@ -747,21 +742,21 @@ primrec
   "multiset_of (a # x) = multiset_of x + {# a #}"
 
 lemma multiset_of_zero_iff[simp]: "(multiset_of x = {#}) = (x = [])"
-  by (induct_tac x, auto)
+  by (induct x) auto
 
 lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
-  by (induct_tac x, auto)
+  by (induct x) auto
 
 lemma set_of_multiset_of[simp]: "set_of(multiset_of x) = set x"
-  by (induct_tac x, auto)
+  by (induct x) auto
 
 lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
   by (induct xs) auto
 
-lemma multiset_of_append[simp]:
-  "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
-  by (rule_tac x=ys in spec, induct_tac xs, auto simp: union_ac)
-
+lemma multiset_of_append [simp]:
+    "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
+  by (induct xs fixing: ys) (auto simp: union_ac)
+  
 lemma surj_multiset_of: "surj multiset_of"
   apply (unfold surj_def, rule allI)
   apply (rule_tac M=y in multiset_induct, auto)
@@ -769,11 +764,11 @@ lemma surj_multiset_of: "surj multiset_of"
   done
 
 lemma set_count_greater_0: "set x = {a. 0 < count (multiset_of x) a}"
-  by (induct_tac x, auto)
+  by (induct x) auto
 
 lemma distinct_count_atmost_1:
    "distinct x = (! a. count (multiset_of x) a = (if a \<in> set x then 1 else 0))"
-   apply ( induct_tac x, simp, rule iffI, simp_all)
+   apply (induct x, simp, rule iffI, simp_all)
    apply (rule conjI)
    apply (simp_all add: set_of_multiset_of [THEN sym] del: set_of_multiset_of)
    apply (erule_tac x=a in allE, simp, clarify)
@@ -798,13 +793,13 @@ lemma set_eq_iff_multiset_of_remdups_eq:
   apply simp
   done
 
-lemma multiset_of_compl_union[simp]:
- "multiset_of [x\<in>xs. P x] + multiset_of [x\<in>xs. \<not>P x] = multiset_of xs"
+lemma multiset_of_compl_union [simp]:
+    "multiset_of [x\<in>xs. P x] + multiset_of [x\<in>xs. \<not>P x] = multiset_of xs"
   by (induct xs) (auto simp: union_ac)
 
 lemma count_filter:
-  "count (multiset_of xs) x = length [y \<in> xs. y = x]"
-  by (induct xs, auto)
+    "count (multiset_of xs) x = length [y \<in> xs. y = x]"
+  by (induct xs) auto
 
 
 subsection {* Pointwise ordering induced by count *}
