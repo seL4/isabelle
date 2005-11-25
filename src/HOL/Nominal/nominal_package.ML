@@ -1022,8 +1022,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val pnames = if length descr'' = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr'');
-    val ind_sort = map (fn T => Sign.intern_class thy8 ("fs_" ^
-      Sign.base_name (fst (dest_Type T)))) dt_atomTs;
+    val ind_sort = if null dt_atomTs then HOLogic.typeS
+      else map (fn T => Sign.intern_class thy8 ("fs_" ^
+        Sign.base_name (fst (dest_Type T)))) dt_atomTs;
     val fsT = TFree ("'n", ind_sort);
 
     fun make_pred i T =
