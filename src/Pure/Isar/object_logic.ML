@@ -134,7 +134,7 @@ fun declare_rulify (thy, th) = (add_rulify th thy, th);
 
 fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (Library.equal i)
-    (Drule.forall_conv
+    (Drule.forall_conv ~1
       (Drule.goals_conv (K true) (Tactic.rewrite true rews)))));
 
 fun atomize_term thy =
