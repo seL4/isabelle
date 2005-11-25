@@ -113,8 +113,8 @@ lemma subst_terms_NF: "listall (\<lambda>t. t \<in> NF) ts \<Longrightarrow>
   listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. t[Var i/j]) ts)"
   by (induct ts) simp+
 
-lemma subst_Var_NF: "t \<in> NF \<Longrightarrow> (\<And>i j. t[Var i/j] \<in> NF)"
-  apply (induct set: NF)
+lemma subst_Var_NF: "t \<in> NF \<Longrightarrow> t[Var i/j] \<in> NF"
+  apply (induct fixing: i j set: NF)
   apply simp
   apply (frule listall_conj1)
   apply (drule listall_conj2)
@@ -153,10 +153,10 @@ lemma app_Var_NF: "t \<in> NF \<Longrightarrow> \<exists>t'. t \<degree> Var i \
 lemma lift_terms_NF: "listall (\<lambda>t. t \<in> NF) ts \<Longrightarrow>
   listall (\<lambda>t. \<forall>i. lift t i \<in> NF) ts \<Longrightarrow>
   listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. lift t i) ts)"
-  by (induct ts) simp+
+  by (induct ts) simp_all
 
-lemma lift_NF: "t \<in> NF \<Longrightarrow> (\<And>i. lift t i \<in> NF)"
-  apply (induct set: NF)
+lemma lift_NF: "t \<in> NF \<Longrightarrow> lift t i \<in> NF"
+  apply (induct fixing: i set: NF)
   apply (frule listall_conj1)
   apply (drule listall_conj2)
   apply (drule_tac i=i in lift_terms_NF)

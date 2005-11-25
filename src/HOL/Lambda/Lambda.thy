@@ -159,8 +159,8 @@ text {* Not used in Church-Rosser proof, but in Strong
   Normalization. \medskip *}
 
 theorem subst_preserves_beta [simp]:
-    "r \<rightarrow>\<^sub>\<beta> s ==> (\<And>t i. r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i])"
-  by (induct set: beta) (simp_all add: subst_subst [symmetric])
+    "r \<rightarrow>\<^sub>\<beta> s ==> r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i]"
+  by (induct fixing: t i set: beta) (simp_all add: subst_subst [symmetric])
 
 theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/i] \<rightarrow>\<^sub>\<beta>\<^sup>* s[t/i]"
   apply (induct set: rtrancl)
@@ -170,8 +170,8 @@ theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/
   done
 
 theorem lift_preserves_beta [simp]:
-    "r \<rightarrow>\<^sub>\<beta> s ==> (\<And>i. lift r i \<rightarrow>\<^sub>\<beta> lift s i)"
-  by (induct set: beta) auto
+    "r \<rightarrow>\<^sub>\<beta> s ==> lift r i \<rightarrow>\<^sub>\<beta> lift s i"
+  by (induct fixing: i set: beta) auto
 
 theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> lift r i \<rightarrow>\<^sub>\<beta>\<^sup>* lift s i"
   apply (induct set: rtrancl)

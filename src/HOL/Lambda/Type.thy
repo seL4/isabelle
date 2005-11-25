@@ -288,8 +288,8 @@ lemma abs_typeE: "e \<turnstile> Abs t : T \<Longrightarrow> (\<And>U V. e\<lang
 
 subsection {* Lifting preserves well-typedness *}
 
-lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> (\<And>i U. e\<langle>i:U\<rangle> \<turnstile> lift t i : T)"
-  by (induct set: typing) auto
+lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
+  by (induct fixing: i U set: typing) auto
 
 lemma lift_types:
   "e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
@@ -303,8 +303,8 @@ lemma lift_types:
 subsection {* Substitution lemmas *}
 
 lemma subst_lemma:
-    "e \<turnstile> t : T \<Longrightarrow> (\<And>e' i U u. e' \<turnstile> u : U \<Longrightarrow> e = e'\<langle>i:U\<rangle> \<Longrightarrow> e' \<turnstile> t[u/i] : T)"
-  apply (induct set: typing)
+    "e \<turnstile> t : T \<Longrightarrow> e' \<turnstile> u : U \<Longrightarrow> e = e'\<langle>i:U\<rangle> \<Longrightarrow> e' \<turnstile> t[u/i] : T"
+  apply (induct fixing: e' i U u set: typing)
     apply (rule_tac x = x and y = i in linorder_cases)
       apply auto
   apply blast
@@ -329,8 +329,8 @@ lemma substs_lemma:
 
 subsection {* Subject reduction *}
 
-lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> (\<And>t'. t -> t' \<Longrightarrow> e \<turnstile> t' : T)"
-  apply (induct set: typing)
+lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> t -> t' \<Longrightarrow> e \<turnstile> t' : T"
+  apply (induct fixing: t' set: typing)
     apply blast
    apply blast
   apply atomize

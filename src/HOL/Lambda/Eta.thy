@@ -67,16 +67,16 @@ lemma free_subst [simp]:
   apply (simp add: diff_Suc subst_Var split: nat.split)
   done
 
-lemma free_eta: "s -e> t ==> (!!i. free t i = free s i)"
-  by (induct set: eta) (simp_all cong: conj_cong)
+lemma free_eta: "s -e> t ==> free t i = free s i"
+  by (induct fixing: i set: eta) (simp_all cong: conj_cong)
 
 lemma not_free_eta:
     "[| s -e> t; \<not> free s i |] ==> \<not> free t i"
   by (simp add: free_eta)
 
 lemma eta_subst [simp]:
-    "s -e> t ==> (!!u i. s[u/i] -e> t[u/i])"
-  by (induct set: eta) (simp_all add: subst_subst [symmetric])
+    "s -e> t ==> s[u/i] -e> t[u/i]"
+  by (induct fixing: u i set: eta) (simp_all add: subst_subst [symmetric])
 
 theorem lift_subst_dummy: "\<not> free s i \<Longrightarrow> lift (s[dummy/i]) i = s"
   by (induct s fixing: i dummy) simp_all
@@ -122,17 +122,17 @@ lemma rtrancl_eta_App:
 subsection "Commutation of beta and eta"
 
 lemma free_beta:
-    "s -> t ==> (!!i. free t i \<Longrightarrow> free s i)"
-  by (induct set: beta) auto
+    "s -> t ==> free t i \<Longrightarrow> free s i"
+  by (induct fixing: i set: beta) auto
 
-lemma beta_subst [intro]: "s -> t ==> (!!u i. s[u/i] -> t[u/i])"
-  by (induct set: beta) (simp_all add: subst_subst [symmetric])
+lemma beta_subst [intro]: "s -> t ==> s[u/i] -> t[u/i]"
+  by (induct fixing: u i set: beta) (simp_all add: subst_subst [symmetric])
 
 lemma subst_Var_Suc [simp]: "t[Var i/i] = t[Var(i)/i + 1]"
   by (induct t fixing: i) (auto elim!: linorder_neqE simp: subst_Var)
 
-lemma eta_lift [simp]: "s -e> t ==> (!!i. lift s i -e> lift t i)"
-  by (induct set: eta) simp_all
+lemma eta_lift [simp]: "s -e> t ==> lift s i -e> lift t i"
+  by (induct fixing: i set: eta) simp_all
 
 lemma rtrancl_eta_subst: "s -e> t \<Longrightarrow> u[s/i] -e>> u[t/i]"
   apply (induct u fixing: s t i)

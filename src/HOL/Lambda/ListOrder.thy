@@ -64,12 +64,13 @@ lemma append_step1I:
   apply (blast intro: append_eq_appendI)
   done
 
-lemma Cons_step1E [rule_format, elim!]:
-  "[| (ys, x # xs) \<in> step1 r;
-    \<forall>y. ys = y # xs --> (y, x) \<in> r --> R;
-    \<forall>zs. ys = x # zs --> (zs, xs) \<in> step1 r --> R
-   |] ==> R"
-  apply (case_tac ys)
+lemma Cons_step1E [elim!]:
+  assumes "(ys, x # xs) \<in> step1 r"
+    and "!!y. ys = y # xs \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> R"
+    and "!!zs. ys = x # zs \<Longrightarrow> (zs, xs) \<in> step1 r \<Longrightarrow> R"
+  shows R
+  using prems
+  apply (cases ys)
    apply (simp add: step1_def)
   apply blast
   done
@@ -88,8 +89,8 @@ lemma Snoc_step1_SnocD:
   done
 
 lemma Cons_acc_step1I [intro!]:
-    "x \<in> acc r ==> (!!xs. xs \<in> acc (step1 r) \<Longrightarrow> x # xs \<in> acc (step1 r))"
-  apply (induct set: acc)
+    "x \<in> acc r ==> xs \<in> acc (step1 r) \<Longrightarrow> x # xs \<in> acc (step1 r)"
+  apply (induct fixing: xs set: acc)
   apply (erule thin_rl)
   apply (erule acc_induct)
   apply (rule accI)

@@ -16,8 +16,8 @@ Felix Joachimski and Ralph Matthes \cite{Matthes-Joachimski-AML}.
 
 subsection {* Properties of @{text IT} *}
 
-lemma lift_IT [intro!]: "t \<in> IT \<Longrightarrow> (\<And>i. lift t i \<in> IT)"
-  apply (induct set: IT)
+lemma lift_IT [intro!]: "t \<in> IT \<Longrightarrow> lift t i \<in> IT"
+  apply (induct fixing: i set: IT)
     apply (simp (no_asm))
     apply (rule conjI)
      apply
@@ -37,8 +37,8 @@ lemma lift_IT [intro!]: "t \<in> IT \<Longrightarrow> (\<And>i. lift t i \<in> I
 lemma lifts_IT: "ts \<in> lists IT \<Longrightarrow> map (\<lambda>t. lift t 0) ts \<in> lists IT"
   by (induct ts) auto
 
-lemma subst_Var_IT: "r \<in> IT \<Longrightarrow> (\<And>i j. r[Var i/j] \<in> IT)"
-  apply (induct set: IT)
+lemma subst_Var_IT: "r \<in> IT \<Longrightarrow> r[Var i/j] \<in> IT"
+  apply (induct fixing: i j set: IT)
     txt {* Case @{term Var}: *}
     apply (simp (no_asm) add: subst_Var)
     apply
@@ -249,34 +249,33 @@ qed
 
 subsection {* Well-typed terms are strongly normalizing *}
 
-lemma type_implies_IT: "e \<turnstile> t : T \<Longrightarrow> t \<in> IT"
-proof -
-  assume "e \<turnstile> t : T"
-  thus ?thesis
-  proof induct
-    case Var
-    show ?case by (rule Var_IT)
-  next
-    case Abs
-    show ?case by (rule IT.Lambda)
-  next
-    case (App T U e s t)
-    have "(Var 0 \<degree> lift t 0)[s/0] \<in> IT"
-    proof (rule subst_type_IT)
-      have "lift t 0 \<in> IT" by (rule lift_IT)
-      hence "[lift t 0] \<in> lists IT" by (rule lists.Cons) (rule lists.Nil)
-      hence "Var 0 \<degree>\<degree> [lift t 0] \<in> IT" by (rule IT.Var)
-      also have "Var 0 \<degree>\<degree> [lift t 0] = Var 0 \<degree> lift t 0" by simp
-      finally show "\<dots> \<in> IT" .
-      have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
-        by (rule typing.Var) simp
-      moreover have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t 0 : T"
-        by (rule lift_type)
-      ultimately show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 \<degree> lift t 0 : U"
-        by (rule typing.App)
-    qed
-    thus ?case by simp
+lemma type_implies_IT:
+  assumes "e \<turnstile> t : T"
+  shows "t \<in> IT"
+  using prems
+proof induct
+  case Var
+  show ?case by (rule Var_IT)
+next
+  case Abs
+  show ?case by (rule IT.Lambda)
+next
+  case (App T U e s t)
+  have "(Var 0 \<degree> lift t 0)[s/0] \<in> IT"
+  proof (rule subst_type_IT)
+    have "lift t 0 \<in> IT" by (rule lift_IT)
+    hence "[lift t 0] \<in> lists IT" by (rule lists.Cons) (rule lists.Nil)
+    hence "Var 0 \<degree>\<degree> [lift t 0] \<in> IT" by (rule IT.Var)
+    also have "Var 0 \<degree>\<degree> [lift t 0] = Var 0 \<degree> lift t 0" by simp
+    finally show "\<dots> \<in> IT" .
+    have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
+      by (rule typing.Var) simp
+    moreover have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t 0 : T"
+      by (rule lift_type)
+    ultimately show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 \<degree> lift t 0 : U"
+      by (rule typing.App)
   qed
+  thus ?case by simp
 qed
 
 theorem type_implies_termi: "e \<turnstile> t : T \<Longrightarrow> t \<in> termi beta"

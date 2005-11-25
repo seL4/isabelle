@@ -53,11 +53,11 @@ lemma Abs_apps_eq_Abs_apps_conv [iff]:
   done
 
 lemma Abs_App_neq_Var_apps [iff]:
-    "Abs s \<degree> t ~= Var n \<degree>\<degree> ss"
+    "Abs s \<degree> t \<noteq> Var n \<degree>\<degree> ss"
   by (induct ss fixing: s t rule: rev_induct) auto
 
 lemma Var_apps_neq_Abs_apps [iff]:
-    "Var n \<degree>\<degree> ts ~= Abs r \<degree>\<degree> ss"
+    "Var n \<degree>\<degree> ts \<noteq> Abs r \<degree>\<degree> ss"
   apply (induct ss fixing: ts rule: rev_induct)
    apply simp
   apply (induct_tac ts rule: rev_induct)
