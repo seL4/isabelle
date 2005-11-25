@@ -202,6 +202,7 @@ sig
   val zero_var_indexes_inst: term ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
   val dummy_patternN: string
+  val dummy_pattern: typ -> term
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
@@ -1281,6 +1282,8 @@ fun zero_var_indexes tm = instantiate (zero_var_indexes_inst tm) tm;
 (* dummy patterns *)
 
 val dummy_patternN = "dummy_pattern";
+
+fun dummy_pattern T = Const (dummy_patternN, T);
 
 fun is_dummy_pattern (Const ("dummy_pattern", _)) = true
   | is_dummy_pattern _ = false;
