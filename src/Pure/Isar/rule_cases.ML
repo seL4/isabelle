@@ -66,12 +66,12 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 
 (** consume facts **)
 
-fun consume defs facts ((x, n), th) =
+fun consume defs facts ((cases, n), th) =
   let val m = Int.min (length facts, n) in
     th |> K (not (null defs)) ?
-      Drule.fconv_rule (Drule.goals_conv (fn i => i <= m) (Tactic.rewrite true defs))
+      Drule.fconv_rule (Drule.goals_conv (fn i => i <= n) (Tactic.rewrite true defs))
     |> Drule.multi_resolve (Library.take (m, facts))
-    |> Seq.map (pair (x, (n - m, Library.drop (m, facts))))
+    |> Seq.map (pair (cases, (n - m, Library.drop (m, facts))))
   end;
 
 val consumes_tagN = "consumes";
