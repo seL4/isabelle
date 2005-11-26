@@ -398,6 +398,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
              SOME ("nominal.nOption", _, [(_, [dt']), _]) =>
                apfst (cons dt) (strip_option dt')
            | _ => ([], dtf))
+      | strip_option (DtType ("fun", [dt, DtType ("nominal.nOption", [dt'])])) =
+          apfst (cons dt) (strip_option dt')
       | strip_option dt = ([], dt);
 
     fun make_intr s T (cname, cargs) =
@@ -640,17 +642,17 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               (dts ~~ (j upto j + length dts - 1))
             val x = mk_Free "x" (typ_of_dtyp' dt') (j + length dts)
             val (dts', dt'') = strip_dtyp dt'
-          in case dt'' of
-              DtRec k => if k < length new_type_names then
-                  (j + length dts + 1,
-                   xs @ x :: l_args,
-                   foldr mk_abs_fun
-                     (list_abs (map (pair "z" o typ_of_dtyp') dts',
-                       Const (List.nth (rep_names, k), typ_of_dtyp' dt'' -->
-                         typ_of_dtyp descr sorts' dt'') $ app_bnds x (length dts')))
-                     xs :: r_args)
-                else error "nested recursion not (yet) supported"
-            | _ => (j + 1, x' :: l_args, x' :: r_args)
+          in
+            (j + length dts + 1,
+             xs @ x :: l_args,
+             foldr mk_abs_fun
+               (case dt'' of
+                  DtRec k => if k < length new_type_names then
+                      list_abs (map (pair "z" o typ_of_dtyp') dts',
+                        Const (List.nth (rep_names, k), typ_of_dtyp' dt'' -->
+                          typ_of_dtyp descr sorts' dt'') $ app_bnds x (length dts'))
+                    else error "nested recursion not (yet) supported"
+                | _ => x) xs :: r_args)
           end
 
         val (_, l_args, r_args) = foldr constr_arg (1, [], []) cargs;
@@ -780,13 +782,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 (Ts ~~ (j upto j + length dts - 1))
               val x = mk_Free "x" (typ_of_dtyp' dt') (j + length dts);
               val (dts', dt'') = strip_dtyp dt';
-            in case dt'' of
-                DtRec k => if k < length new_type_names then
-                    (j + length dts + 1,
-                     xs @ x :: l_args,
-                     map perm (xs @ [x]) @ r_args)
-                  else error "nested recursion not (yet) supported"
-              | _ => (j + 1, x' :: l_args, perm x' :: r_args)
+            in
+              (j + length dts + 1,
+               xs @ x :: l_args,
+               map perm (xs @ [x]) @ r_args)
             end
 
           val (_, l_args, r_args) = foldr constr_arg (1, [], []) dts;
@@ -834,14 +833,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               val x = mk_Free "x" (typ_of_dtyp' dt') (j + length dts);
               val y = mk_Free "y" (typ_of_dtyp' dt') (j + length dts);
               val (dts', dt'') = strip_dtyp dt';
-            in case dt'' of
-                DtRec k => if k < length new_type_names then
-                    (j + length dts + 1,
-                     xs @ (x :: args1), ys @ (y :: args2),
-                     HOLogic.mk_eq
-                       (foldr mk_abs_fun x xs, foldr mk_abs_fun y ys) :: eqs)
-                  else error "nested recursion not (yet) supported"
-              | _ => (j + 1, x' :: args1, y' :: args2, HOLogic.mk_eq (x', y') :: eqs)
+            in
+              (j + length dts + 1,
+               xs @ (x :: args1), ys @ (y :: args2),
+               HOLogic.mk_eq
+                 (foldr mk_abs_fun x xs, foldr mk_abs_fun y ys) :: eqs)
             end;
 
           val (_, args1, args2, eqs) = foldr make_inj (1, [], [], []) dts;
@@ -886,12 +882,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               val xs = map (fn (T, i) => mk_Free "x" T i) Ts_idx;
               val x = mk_Free "x" (typ_of_dtyp' dt') (j + length dts);
               val (dts', dt'') = strip_dtyp dt';
-            in case dt'' of
-                DtRec k => if k < length new_type_names then
-                    (j + length dts + 1,
-                     xs @ (x :: args1), foldr mk_abs_fun x xs :: args2)
-                  else error "nested recursion not (yet) supported"
-              | _ => (j + 1, x' :: args1, x' :: args2)
+            in
+              (j + length dts + 1,
+               xs @ (x :: args1), foldr mk_abs_fun x xs :: args2)
             end;
 
           val (_, args1, args2) = foldr process_constr (1, [], []) dts;
@@ -1004,8 +997,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val abs_supp = PureThy.get_thms thy8 (Name "abs_supp");
     val supp_atm = PureThy.get_thms thy8 (Name "supp_atm");
 
-
-(*
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
       in map standard (List.take
@@ -1021,7 +1012,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                List.concat supp_thms))))),
          length new_type_names))
       end) atoms;
-*)
 
     (**** strong induction theorem ****)
 
@@ -1086,13 +1076,13 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       DatatypeAux.store_thmss "inject" new_type_names inject_thms |>>>
       DatatypeAux.store_thmss "supp" new_type_names supp_thms |>>>
       DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms |>>
-  (*    fold (fn (atom, ths) => fn thy =>
+      fold (fn (atom, ths) => fn thy =>
         let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
         in fold (fn T => AxClass.add_inst_arity_i
             (fst (dest_Type T),
               replicate (length sorts) [class], [class])
             (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
-        end) (atoms ~~ finite_supp_thms) |>> *)
+        end) (atoms ~~ finite_supp_thms) |>>
       Theory.add_path big_name |>>>
       PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])] |>>
       Theory.parent_path;
@@ -1128,3 +1118,4 @@ val _ = OuterSyntax.add_parsers [nominal_datatypeP];
 end;
 
 end
+
