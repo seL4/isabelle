@@ -5,7 +5,7 @@ imports Main
 uses
   ("nominal_atoms.ML")
   ("nominal_package.ML")
-(*  ("nominal_induct.ML") *)
+  ("nominal_induct.ML") 
   ("nominal_permeq.ML")
 begin 
 
@@ -25,6 +25,10 @@ consts
 (* permutation on sets *)
 defs (overloaded)
   perm_set_def:  "pi\<bullet>(X::'a set) \<equiv> {pi\<bullet>a | a. a\<in>X}"
+
+lemma perm_union:
+  shows "pi \<bullet> (X \<union> Y) = (pi \<bullet> X) \<union> (pi \<bullet> Y)"
+  by (auto simp add: perm_set_def)
 
 (* permutation on units and products *)
 primrec (perm_unit)
@@ -67,6 +71,10 @@ defs (overloaded)
 primrec (perm_bool)
   perm_true_def:  "pi\<bullet>True  = True"
   perm_false_def: "pi\<bullet>False = False"
+
+lemma perm_bool:
+  shows "pi\<bullet>(b::bool) = b"
+  by (cases "b", auto)
 
 (* permutation on options *)
 primrec (perm_option)
@@ -120,6 +128,14 @@ done
 lemma supp_unit:
   shows "supp () = {}"
   by (simp add: supp_def)
+
+lemma supp_set_empty:
+  shows "supp {} = {}"
+  by (force simp add: supp_def perm_set_def)
+
+lemma supp_singleton:
+  shows "supp {x} = supp x"
+  by (force simp add: supp_def perm_set_def)
 
 lemma supp_prod: 
   fixes x :: "'a"
@@ -175,6 +191,10 @@ lemma supp_int:
   apply(simp add: supp_def perm_int_def)
   done
 
+lemma fresh_set_empty:
+  shows "a\<sharp>{}"
+  by (simp add: fresh_def supp_set_empty)
+
 lemma fresh_prod:
   fixes a :: "'x"
   and   x :: "'a"
@@ -184,7 +204,7 @@ lemma fresh_prod:
 
 lemma fresh_list_nil:
   fixes a :: "'x"
-  shows "a\<sharp>([]::'a list)"
+  shows "a\<sharp>[]"
   by (simp add: fresh_def supp_list_nil) 
 
 lemma fresh_list_cons:
@@ -219,6 +239,7 @@ lemma fresh_some:
   shows "a\<sharp>(Some x) = a\<sharp>x"
   apply(simp add: fresh_def supp_some)
   done
+
 
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
@@ -911,6 +932,16 @@ lemma pt_set_bij2:
   shows "(pi\<bullet>x)\<in>(pi\<bullet>X)"
   using a by (simp add: pt_set_bij[OF pt, OF at])
 
+lemma pt_set_bij2a:
+  fixes pi :: "'x prm"
+  and   x  :: "'a"
+  and   X  :: "'a set"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     a:  "x\<in>((rev pi)\<bullet>X)"
+  shows "(pi\<bullet>x)\<in>X"
+  using a by (simp add: pt_set_bij1[OF pt, OF at])
+
 lemma pt_set_bij3:
   fixes pi :: "'x prm"
   and   x  :: "'a"
@@ -942,13 +973,6 @@ next
   and    "x\<in>(pi\<bullet>X)"
   thus "x\<in>(pi\<bullet>Y)" by (force simp add: pt_set_bij1a[OF pt, OF at])
 qed
-
-lemma pt_list_set_pi:
-  fixes pi :: "'x prm"
-  and   xs :: "'a list"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
-by (induct xs, auto simp add: perm_set_def pt1[OF pt])
 
 -- "some helper lemmas for the pt_perm_supp_ineq lemma"
 lemma Collect_permI: 
@@ -1296,18 +1320,6 @@ lemma supports_subset:
   using a b
   by (force simp add: "op supports_def")
 
-lemma supp_supports:
-  fixes x :: "'a"
-  assumes  pt: "pt TYPE('a) TYPE('x)"
-  and      at: "at TYPE ('x)"
-  shows "((supp x)::'x set) supports x"
-proof (unfold "op supports_def", intro strip)
-  fix a b
-  assume "(a::'x)\<notin>(supp x) \<and> (b::'x)\<notin>(supp x)"
-  hence "a\<sharp>x" and "b\<sharp>x" by (auto simp add: fresh_def)
-  thus "[(a,b)]\<bullet>x = x" by (rule pt_fresh_fresh[OF pt, OF at])
-qed
-
 lemma supp_is_subset:
   fixes S :: "'x set"
   and   x :: "'a"
@@ -1323,6 +1335,18 @@ proof (rule ccontr)
   with a2 have "finite {b. [(a,b)]\<bullet>x \<noteq> x}" by (simp add: finite_subset)
   hence "a\<notin>(supp x)" by (unfold supp_def, auto)
   with b1 show False by simp
+qed
+
+lemma supp_supports:
+  fixes x :: "'a"
+  assumes  pt: "pt TYPE('a) TYPE('x)"
+  and      at: "at TYPE ('x)"
+  shows "((supp x)::'x set) supports x"
+proof (unfold "op supports_def", intro strip)
+  fix a b
+  assume "(a::'x)\<notin>(supp x) \<and> (b::'x)\<notin>(supp x)"
+  hence "a\<sharp>x" and "b\<sharp>x" by (auto simp add: fresh_def)
+  thus "[(a,b)]\<bullet>x = x" by (rule pt_fresh_fresh[OF pt, OF at])
 qed
 
 lemma supports_finite:
@@ -1516,7 +1540,7 @@ proof(induct pi)
     have "x#xs = [x]@xs" by simp
     hence "(x#xs)\<bullet>y = ([x]@xs)\<bullet>y" by simp
     hence "(x#xs)\<bullet>y = [x]\<bullet>(xs\<bullet>y)" by (simp only: pt2[OF pt])
-    thus ?case using a i p by (force)
+    thus ?case using a i p by force
   qed
 
 lemma pt_swap_eq:
@@ -1633,6 +1657,231 @@ proof (unfold supp_def, auto)
   from a1 a2 a3 show False by (force dest: finite_subset)
 qed
 
+section {* Facts about the support of finite sets of finitely supported things *}
+(*=============================================================================*)
+
+constdefs
+  X_to_Un_supp :: "('a set) \<Rightarrow> 'x set"
+  "X_to_Un_supp X \<equiv> \<Union>x\<in>X. ((supp x)::'x set)"
+
+lemma UNION_f_eqvt:
+  fixes X::"('a set)"
+  and   f::"'a \<Rightarrow> 'x set"
+  and   pi::"'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(\<Union>x\<in>X. f x) = (\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x)"
+proof -
+  have pt_x: "pt TYPE('x) TYPE('x)" by (force intro: at_pt_inst at)
+  show ?thesis
+    apply(auto simp add: perm_set_def)
+    apply(rule_tac x="pi\<bullet>xa" in exI)
+    apply(rule conjI)
+    apply(rule_tac x="xa" in exI)
+    apply(simp)
+    apply(subgoal_tac "(pi\<bullet>f) (pi\<bullet>xa) = pi\<bullet>(f xa)")(*A*)
+    apply(simp)
+    apply(rule pt_set_bij2[OF pt_x, OF at])
+    apply(assumption)
+    apply(rule sym)
+    apply(rule pt_fun_app_eq[OF pt, OF at])
+    apply(rule_tac x="(rev pi)\<bullet>x" in exI)
+    apply(rule conjI)
+    apply(rule sym)
+    apply(rule pt_pi_rev[OF pt_x, OF at])
+    apply(rule_tac x="a" in bexI)
+    apply(simp add: pt_set_bij1[OF pt_x, OF at])
+    apply(simp add: pt_fun_app_eq[OF pt, OF at])
+    apply(assumption)
+    done
+qed
+
+lemma X_to_Un_supp_eqvt:
+  fixes X::"('a set)"
+  and   pi::"'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(X_to_Un_supp X) = ((X_to_Un_supp (pi\<bullet>X))::'x set)"
+  apply(simp add: X_to_Un_supp_def)
+  apply(simp add: UNION_f_eqvt[OF pt, OF at] perm_fun_def)
+  apply(simp add: pt_perm_supp[OF pt, OF at])
+  apply(simp add: pt_pi_rev[OF pt, OF at])
+  done
+
+lemma Union_supports_set:
+  fixes X::"('a set)"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "(\<Union>x\<in>X. ((supp x)::'x set)) supports X"
+  apply(simp add: "op supports_def" fresh_def[symmetric])
+  apply(rule allI)+
+  apply(rule impI)
+  apply(erule conjE)
+  apply(simp add: perm_set_def)
+  apply(auto)
+  apply(subgoal_tac "[(a,b)]\<bullet>aa = aa")(*A*)
+  apply(simp)
+  apply(rule pt_fresh_fresh[OF pt, OF at])
+  apply(force)
+  apply(force)
+  apply(rule_tac x="x" in exI)
+  apply(simp)
+  apply(rule sym)
+  apply(rule pt_fresh_fresh[OF pt, OF at])
+  apply(force)+
+  done
+
+lemma Union_of_fin_supp_sets:
+  fixes X::"('a set)"
+  assumes fs: "fs TYPE('a) TYPE('x)" 
+  and     fi: "finite X"   
+  shows "finite (\<Union>x\<in>X. ((supp x)::'x set))"
+using fi by (induct, auto simp add: fs1[OF fs])
+
+lemma Union_included_in_supp:
+  fixes X::"('a set)"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     fi: "finite X"
+  shows "(\<Union>x\<in>X. ((supp x)::'x set)) \<subseteq> supp X"
+proof -
+  have "supp ((X_to_Un_supp X)::'x set) \<subseteq> ((supp X)::'x set)"  
+    apply(rule pt_empty_supp_fun_subset)
+    apply(force intro: pt_set_inst at_pt_inst pt at)+
+    apply(rule pt_eqvt_fun2b)
+    apply(force intro: pt_set_inst at_pt_inst pt at)+
+    apply(rule allI)
+    apply(rule allI)
+    apply(rule X_to_Un_supp_eqvt[OF pt, OF at])
+    done
+  hence "supp (\<Union>x\<in>X. ((supp x)::'x set)) \<subseteq> ((supp X)::'x set)" by (simp add: X_to_Un_supp_def)
+  moreover
+  have "supp (\<Union>x\<in>X. ((supp x)::'x set)) = (\<Union>x\<in>X. ((supp x)::'x set))"
+    apply(rule at_fin_set_supp[OF at])
+    apply(rule Union_of_fin_supp_sets[OF fs, OF fi])
+    done
+  ultimately show ?thesis by force
+qed
+
+lemma supp_of_fin_sets:
+  fixes X::"('a set)"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     fi: "finite X"
+  shows "(supp X) = (\<Union>x\<in>X. ((supp x)::'x set))"
+apply(rule subset_antisym)
+apply(rule supp_is_subset)
+apply(rule Union_supports_set[OF pt, OF at])
+apply(rule Union_of_fin_supp_sets[OF fs, OF fi])
+apply(rule Union_included_in_supp[OF pt, OF at, OF fs, OF fi])
+done
+
+lemma supp_fin_union:
+  fixes X::"('a set)"
+  and   Y::"('a set)"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     f1: "finite X"
+  and     f2: "finite Y"
+  shows "(supp (X\<union>Y)) = (supp X)\<union>((supp Y)::'x set)"
+using f1 f2 by (force simp add: supp_of_fin_sets[OF pt, OF at, OF fs])
+
+lemma supp_fin_insert:
+  fixes X::"('a set)"
+  and   x::"'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     f:  "finite X"
+  shows "(supp (insert x X)) = (supp x)\<union>((supp X)::'x set)"
+proof -
+  have "(supp (insert x X)) = ((supp ({x}\<union>(X::'a set)))::'x set)" by simp
+  also have "\<dots> = (supp {x})\<union>(supp X)"
+    by (rule supp_fin_union[OF pt, OF at, OF fs], simp_all add: f)
+  finally show "(supp (insert x X)) = (supp x)\<union>((supp X)::'x set)" 
+    by (simp add: supp_singleton)
+qed
+
+lemma fresh_fin_union:
+  fixes X::"('a set)"
+  and   Y::"('a set)"
+  and   a::"'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     f1: "finite X"
+  and     f2: "finite Y"
+  shows "a\<sharp>(X\<union>Y) = (a\<sharp>X \<and> a\<sharp>Y)"
+apply(simp add: fresh_def)
+apply(simp add: supp_fin_union[OF pt, OF at, OF fs, OF f1, OF f2])
+done
+
+lemma fresh_fin_insert:
+  fixes X::"('a set)"
+  and   x::"'a"
+  and   a::"'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     f:  "finite X"
+  shows "a\<sharp>(insert x X) = (a\<sharp>x \<and> a\<sharp>X)"
+apply(simp add: fresh_def)
+apply(simp add: supp_fin_insert[OF pt, OF at, OF fs, OF f])
+done
+
+lemma fresh_fin_insert1:
+  fixes X::"('a set)"
+  and   x::"'a"
+  and   a::"'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)" 
+  and     f:  "finite X"
+  and     a1:  "a\<sharp>x"
+  and     a2:  "a\<sharp>X"
+  shows "a\<sharp>(insert x X)"
+using a1 a2
+apply(simp add: fresh_fin_insert[OF pt, OF at, OF fs, OF f])
+done
+
+lemma pt_list_set_pi:
+  fixes pi :: "'x prm"
+  and   xs :: "'a list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
+by (induct xs, auto simp add: perm_set_def pt1[OF pt])
+
+lemma pt_list_set_supp:
+  fixes xs :: "'a list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)"
+  shows "supp (set xs) = ((supp xs)::'x set)"
+proof -
+  have "supp (set xs) = (\<Union>x\<in>(set xs). ((supp x)::'x set))"
+    by (rule supp_of_fin_sets[OF pt, OF at, OF fs], rule finite_set)
+  also have "(\<Union>x\<in>(set xs). ((supp x)::'x set)) = (supp xs)"
+  proof(induct xs)
+    case Nil show ?case by (simp add: supp_list_nil)
+  next
+    case (Cons h t) thus ?case by (simp add: supp_list_cons)
+  qed
+  finally show ?thesis by simp
+qed
+    
+lemma pt_list_set_fresh:
+  fixes a :: "'x"
+  and   xs :: "'a list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     fs: "fs TYPE('a) TYPE('x)"
+  and     a: "a\<sharp>xs"
+  shows "a\<sharp>(set xs) = a\<sharp>xs"
+by (simp add: fresh_def pt_list_set_supp[OF pt, OF at, OF fs])
+ 
 section {* Andy's freshness lemma *}
 (*================================*)
 
@@ -2283,12 +2532,10 @@ setup "NominalAtoms.setup"
 
 (*****************************************)
 (* setup for induction principles method *)
-(*
 use "nominal_induct.ML";
 method_setup nominal_induct =
   {* nominal_induct_method *}
   {* nominal induction *}
-*)
 
 (*******************************)
 (* permutation equality tactic *)
