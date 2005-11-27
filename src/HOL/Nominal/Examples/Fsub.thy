@@ -1,3 +1,14 @@
+(* $Id$ *)
+
+text {* Authors: Christian Urban
+                 Benjamin Pierce
+                 Steve Zdancewic
+                 Stephanie Weihrich
+                 Dimitrios Vytiniotis
+
+                 with help from Stefan Berghofer
+      *}
+
 theory fsub
 imports "../nominal" 
 begin
