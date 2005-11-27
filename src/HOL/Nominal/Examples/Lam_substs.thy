@@ -1433,10 +1433,10 @@ done
 
 
 consts
-  "dom_sss" :: "(name\<times>lam) list \<Rightarrow> (name list)"
+  "domain" :: "(name\<times>lam) list \<Rightarrow> (name list)"
 primrec
-  "dom_sss []    = []"
-  "dom_sss (x#\<theta>) = (fst x)#(dom_sss \<theta>)" 
+  "domain []    = []"
+  "domain (x#\<theta>) = (fst x)#(domain \<theta>)" 
 
 consts
   "apply_sss"  :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam" (" _ < _ >" [80,80] 80)
@@ -1446,15 +1446,15 @@ primrec
 
 lemma apply_sss_eqvt[rule_format]:
   fixes pi::"name prm"
-  shows "a\<in>set (dom_sss \<theta>) \<longrightarrow> pi\<bullet>(\<theta><a>) = (pi\<bullet>\<theta>)<pi\<bullet>a>"
+  shows "a\<in>set (domain \<theta>) \<longrightarrow> pi\<bullet>(\<theta><a>) = (pi\<bullet>\<theta>)<pi\<bullet>a>"
 apply(induct_tac \<theta>)
 apply(auto)
 apply(simp add: pt_bij[OF pt_name_inst, OF at_name_inst])
 done
 
-lemma dom_sss_eqvt[rule_format]:
+lemma domain_eqvt[rule_format]:
   fixes pi::"name prm"
-  shows "((pi\<bullet>a)\<in>set (dom_sss \<theta>)) =  (a\<in>set (dom_sss ((rev pi)\<bullet>\<theta>)))"
+  shows "((pi\<bullet>a)\<in>set (domain \<theta>)) =  (a\<in>set (domain ((rev pi)\<bullet>\<theta>)))"
 apply(induct_tac \<theta>)
 apply(auto)
 apply(simp_all add: pt_rev_pi[OF pt_name_inst, OF at_name_inst])
@@ -1463,7 +1463,7 @@ done
 
 constdefs 
   psubst_Var :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam"
-  "psubst_Var \<theta> \<equiv> \<lambda>a. (if a\<in>set (dom_sss \<theta>) then \<theta><a> else (Var a))"
+  "psubst_Var \<theta> \<equiv> \<lambda>a. (if a\<in>set (domain \<theta>) then \<theta><a> else (Var a))"
   
   psubst_App :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> lam"
   "psubst_App \<theta> \<equiv> \<lambda>r1 r2. App r1 r2"
@@ -1476,7 +1476,7 @@ constdefs
 
 lemma supports_psubst_Var:
   shows "((supp \<theta>)::name set) supports (psubst_Var \<theta>)"
-  by (supports_simp add: psubst_Var_def apply_sss_eqvt dom_sss_eqvt)
+  by (supports_simp add: psubst_Var_def apply_sss_eqvt domain_eqvt)
 
 lemma supports_psubst_App:
   shows "((supp \<theta>)::name set) supports psubst_App \<theta>"
@@ -1516,7 +1516,7 @@ apply(simp add: fs_name1)
 done
 
 lemma psubst_Var:
-  shows "psubst_lam \<theta> (Var a) = (if a\<in>set (dom_sss \<theta>) then \<theta><a> else (Var a))"
+  shows "psubst_lam \<theta> (Var a) = (if a\<in>set (domain \<theta>) then \<theta><a> else (Var a))"
 apply(simp add: psubst_lam_def)
 apply(auto simp add: rfun_Var[OF fin_supp_psubst, OF fresh_psubst_Lam])
 apply(auto simp add: psubst_Var_def)

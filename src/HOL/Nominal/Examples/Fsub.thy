@@ -1,5 +1,5 @@
 theory fsub
-imports nominal 
+imports "../nominal" 
 begin
 
 atom_decl tyvrs vrs
