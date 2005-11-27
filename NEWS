@@ -67,9 +67,9 @@ connectives !! and ==> are rarely required anymore in inductive goals
 (using object-logic connectives for this purpose has been long
 obsolete anyway).  The subsequent proof patterns illustrate advanced
 techniques of natural induction; general datatypes and inductive sets
-work analogously.
+work analogously (see also src/HOL/Lambda for realistic examples).
 
-This is how to ``strengthen'' an inductive goal wrt. certain
+(1) This is how to ``strengthen'' an inductive goal wrt. certain
 parameters:
 
   lemma
@@ -87,10 +87,10 @@ parameters:
     show ?case sorry
   qed
 
-This is how to perform induction over ``expressions of a certain
+(2) This is how to perform induction over ``expressions of a certain
 form'', using a locally defined inductive parameter n == "a x"
 together with strengthening (the latter is usually required to get
-sufficiently flexible induction hypotheses).
+sufficiently flexible induction hypotheses):
 
   lemma
     fixes a :: "'a => nat"
@@ -100,8 +100,28 @@ sufficiently flexible induction hypotheses).
   proof (induct n == "a x" fixing: x)
     ...
 
-See also HOL/Isar_examples/Puzzle.thy for an application of the latter
-technique.
+See also HOL/Isar_examples/Puzzle.thy for an application of the this
+particular technique.
+
+(3) This is how to perform existential reasoning ('obtain') by
+induction, while avoiding explicit object-logic encodings:
+
+  fix n :: nat
+  obtain x :: 'a where "P n x" and "Q n x"
+  proof (induct n fixing: thesis)
+    case 0
+    obtain x where "P 0 x" and "Q 0 x" sorry
+    then show thesis by (rule "0.prems")
+  next
+    case (Suc n)
+    obtain x where "P n x" and "Q n x" by (rule Suc.hyps)
+    obtain x where "P (Suc n) x" and "Q (Suc n) x" sorry
+    then show thesis by (rule Suc.prems)
+  qed
+
+Here the 'fixing: thesis' specification essentially modifies the scope
+of the formal thesis parameter, in order to the get the whole
+existence statement through the induction as expected.
 
 * Input syntax now supports dummy variable binding "%_. b", where the
 body does not mention the bound variable.  Note that dummy patterns
