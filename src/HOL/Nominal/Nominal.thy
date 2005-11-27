@@ -2242,9 +2242,7 @@ proof -
     by (force simp add: abs_fun_def expand_fun_eq)
   from a3 have "?P a = ?Q a" by (blast)
   hence a4: "nSome(x) = ?Q a" by simp
-  from a3 have "?P b = ?Q b" by (blast)
-  hence a5: "nSome(y) = ?P b" by simp
-  show ?thesis using a4 a5
+  show ?thesis using a4 (*a5*)
   proof (cases "a\<sharp>y")
     assume a6: "a\<sharp>y"
     hence a7: "x = [(b,a)]\<bullet>y" using a4 a1 by simp
@@ -2255,6 +2253,35 @@ proof -
     hence "nSome(x) = nNone" using a1 a4 by simp
     hence False by force
     thus ?thesis by force
+  qed
+qed
+
+lemma abs_fun_eq2:
+  fixes x  :: "'a"
+  and   y  :: "'a"
+  and   a  :: "'x"
+  and   b  :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+      and at: "at TYPE('x)"
+      and a1: "a\<noteq>b" 
+      and a2: "[a].x = [b].y" 
+  shows "x=[(a,b)]\<bullet>y \<and> a\<sharp>y"
+proof -
+  from a2 have "\<forall>c::'x. ([a].x) c = ([b].y) c" by (force simp add: expand_fun_eq)
+  hence "([a].x) a = ([b].y) a" by simp
+  hence a3: "nSome(x) = ([b].y) a" by (simp add: abs_fun_def)
+  show "x=[(a,b)]\<bullet>y \<and> a\<sharp>y"
+  proof (cases "a\<sharp>y")
+    assume a4: "a\<sharp>y"
+    hence "x=[(b,a)]\<bullet>y" using a3 a1 by (simp add: abs_fun_def)
+    moreover
+    have "[(a,b)]\<bullet>y = [(b,a)]\<bullet>y" by (rule pt3[OF pt], rule at_ds5[OF at])
+    ultimately show ?thesis using a4 by simp
+  next
+    assume "\<not>a\<sharp>y"
+    hence "nSome(x) = nNone" using a1 a3 by (simp add: abs_fun_def)
+    hence False by simp
+    thus ?thesis by simp
   qed
 qed
 
@@ -2270,32 +2297,54 @@ lemma abs_fun_eq3:
       and a3: "a\<sharp>y" 
   shows "[a].x =[b].y"
 proof -
-  show ?thesis using a1 a2 a3
-    apply(auto simp add: abs_fun_def)
-    apply(simp only: expand_fun_eq)
-    apply(rule allI)
-    apply(case_tac "x=a")
-    apply(simp)
-    apply(rule pt3[OF pt], rule at_ds5[OF at])
-    apply(case_tac "x=b")
-    apply(simp add: pt_swap_bij[OF pt, OF at])
-    apply(simp add: at_calc[OF at] at_bij[OF at] pt_fresh_left[OF pt, OF at])
-    apply(simp only: if_False)
-    apply(simp add: at_calc[OF at] at_bij[OF at] pt_fresh_left[OF pt, OF at])
-    apply(rule impI)
-    apply(subgoal_tac "[(a,x)]\<bullet>([(a,b)]\<bullet>y) = [(b,x)]\<bullet>([(a,x)]\<bullet>y)")(*A*)
-    apply(simp)
-    apply(simp only:  pt_bij[OF pt, OF at])
-    apply(rule pt_fresh_fresh[OF pt, OF at])
-    apply(assumption)+
-    (*A*)
-    apply(simp only: pt2[OF pt, symmetric])
-    apply(rule pt3[OF pt])
-    apply(simp, rule at_ds6[OF at])
-    apply(force)
-    done
+  show ?thesis 
+  proof (simp only: abs_fun_def expand_fun_eq, intro strip)
+    fix c::"'x"
+    let ?LHS = "if c=a then nSome(x) else if c\<sharp>x then nSome([(a,c)]\<bullet>x) else nNone"
+    and ?RHS = "if c=b then nSome(y) else if c\<sharp>y then nSome([(b,c)]\<bullet>y) else nNone"
+    show "?LHS=?RHS"
+    proof -
+      have "(c=a) \<or> (c=b) \<or> (c\<noteq>a \<and> c\<noteq>b)" by blast
+      moreover  --"case c=a"
+      { have "nSome(x) = nSome([(a,b)]\<bullet>y)" using a2 by simp
+	also have "\<dots> = nSome([(b,a)]\<bullet>y)" by (simp, rule pt3[OF pt], rule at_ds5[OF at])
+	finally have "nSome(x) = nSome([(b,a)]\<bullet>y)" by simp
+	moreover
+	assume "c=a"
+	ultimately have "?LHS=?RHS" using a1 a3 by simp
+      }
+      moreover  -- "case c=b"
+      { have a4: "y=[(a,b)]\<bullet>x" using a2 by (simp only: pt_swap_bij[OF pt, OF at])
+	hence "a\<sharp>([(a,b)]\<bullet>x)" using a3 by simp
+	hence "b\<sharp>x" by (simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
+	moreover
+	assume "c=b"
+	ultimately have "?LHS=?RHS" using a1 a4 by simp
+      }
+      moreover  -- "case c\<noteq>a \<and> c\<noteq>b"
+      { assume a5: "c\<noteq>a \<and> c\<noteq>b"
+	moreover 
+	have "c\<sharp>x = c\<sharp>y" using a2 a5 by (force simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
+	moreover 
+	have "c\<sharp>y \<longrightarrow> [(a,c)]\<bullet>x = [(b,c)]\<bullet>y" 
+	proof (intro strip)
+	  assume a6: "c\<sharp>y"
+	  have "[(a,c),(b,c),(a,c)] \<sim> [(a,b)]" using a1 a5 by (force intro: at_ds3[OF at])
+	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>([(a,c)]\<bullet>y)) = [(a,b)]\<bullet>y" 
+	    by (simp add: pt2[OF pt, symmetric] pt3[OF pt])
+ 	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = [(a,b)]\<bullet>y" using a3 a6 
+	    by (simp add: pt_fresh_fresh[OF pt, OF at])
+	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = x" using a2 by simp
+	  hence "[(b,c)]\<bullet>y = [(a,c)]\<bullet>x" by (drule_tac pt_bij1[OF pt, OF at], simp)
+	  thus "[(a,c)]\<bullet>x = [(b,c)]\<bullet>y" by simp
+	qed
+	ultimately have "?LHS=?RHS" by simp
+      }
+      ultimately show "?LHS = ?RHS" by blast
+    qed
   qed
-
+qed
+	
 lemma abs_fun_eq: 
   fixes x  :: "'a"
   and   y  :: "'a"
