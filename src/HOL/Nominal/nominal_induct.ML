@@ -83,12 +83,5 @@ in
 val nominal_induct_method =
   Method.RAW_METHOD_CASES o nominal_induct_tac oo (#2 oo Method.syntax nominal_induct_args);
 
-(* nominal_induc_method needs to have the type
-
-   Args.src -> Proof.context -> Proof.method
-
-   CHECK THAT
-
-*)
 
 end;
