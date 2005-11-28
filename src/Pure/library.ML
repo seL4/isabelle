@@ -97,13 +97,14 @@ sig
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
-  val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
-  val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
+  val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
+  val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
+  val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
-  val nth: 'a list -> int -> 'a 
+  val nth: 'a list -> int -> 'a
   val nth_update: int * 'a -> 'a list -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val split_last: 'a list -> 'a list * 'a
@@ -463,6 +464,13 @@ fun fold f =
   let
     fun fold_aux [] y = y
       | fold_aux (x :: xs) y = fold_aux xs (f x y);
+  in fold_aux end;
+
+fun fold2 f =
+  let
+    fun fold_aux [] [] z = z
+      | fold_aux (x :: xs) (y :: ys) z = fold_aux xs ys (f x y z)
+      | fold_aux _ _ _ = raise UnequalLengths;
   in fold_aux end;
 
 fun fold_rev f =
