@@ -69,6 +69,7 @@ signature RES_CLAUSE =
   val gen_tptp_cls : int * string * string * string -> string
   val gen_tptp_type_cls : int * string * string * string * int -> string
   val tptp_of_typeLit : type_literal -> string
+
   end;
 
 structure ResClause: RES_CLAUSE =
@@ -688,14 +689,16 @@ and string_of_term (UVar(x,_)) = x
   | string_of_term (Fun (name,typs,[])) = name (*Overloaded consts like 0 don't get types!*)
   | string_of_term (Fun (name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
-      in  name ^ (paren_pack (terms_as_strings @ typs))  end
+	  val typs' = if !keep_types then typs else []
+      in  name ^ (paren_pack (terms_as_strings @ typs'))  end
   | string_of_term _ = error "string_of_term";      
 
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
 fun string_of_predicate (Predicate("equal",[typ],terms)) = string_of_equality(typ,terms)
   | string_of_predicate (Predicate(name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
-      in  name ^ (paren_pack (terms_as_strings @ typs))  end
+	  val typs' = if !keep_types then typs else []
+      in  name ^ (paren_pack (terms_as_strings @ typs'))  end
   | string_of_predicate _ = error "string_of_predicate";      
 
 
