@@ -27,7 +27,8 @@ signature RES_AXIOMS =
   val pairname : thm -> (string * thm)
   val repeat_RS : thm -> thm -> thm
   val cnf_axiom_aux : thm -> thm list
-
+  val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
+  val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -394,6 +395,17 @@ fun cnf_rules_g cnf_axiom [] err_list = ([],err_list)
 (*works for both FOL and HOL*)
 val cnf_rules = cnf_rules_g cnf_axiom;
 
+fun cnf_rules1 [] err_list = ([],err_list)
+  | cnf_rules1 ((name,th) :: ths) err_list =
+    let val (ts,es) = cnf_rules1 ths err_list
+    in
+	((name,cnf_axiom (name,th)) :: ts,es) handle _ => (ts,(name::es)) end;
+
+fun cnf_rules2 [] err_list = ([],err_list)
+  | cnf_rules2 ((name,th) :: ths) err_list =
+    let val (ts,es) = cnf_rules2 ths err_list
+    in
+	((name,map prop_of (cnf_axiom (name,th))) :: ts,es) handle _ => (ts,(name::es)) end;
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
