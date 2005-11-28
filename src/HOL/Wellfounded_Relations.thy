@@ -78,9 +78,30 @@ apply (unfold measure_def)
 apply (rule wf_less_than [THEN wf_inv_image])
 done
 
-lemmas measure_induct =
-    wf_measure [THEN wf_induct, unfolded measure_def inv_image_def, 
-                simplified, standard]
+lemma measure_induct_rule [case_names less]:
+  fixes f :: "'a \<Rightarrow> nat"
+  assumes step: "\<And>x. (\<And>y. f y < f x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  shows "P a"
+proof -
+  have "wf (measure f)" ..
+  then show ?thesis
+  proof induct
+    case (less x)
+    show ?case
+    proof (rule step)
+      fix y
+      assume "f y < f x"
+      then have "(y, x) \<in> measure f"
+        by (simp add: measure_def inv_image_def)
+      then show "P y" by (rule less)
+    qed
+  qed
+qed
+
+lemma measure_induct:
+  fixes f :: "'a \<Rightarrow> nat"
+  shows "(\<And>x. \<forall>y. f y < f x \<longrightarrow> P y \<Longrightarrow> P x) \<Longrightarrow> P a"
+  by (rule measure_induct_rule [of f P a]) iprover
 
 
 subsection{*Other Ways of Constructing Wellfounded Relations*}
