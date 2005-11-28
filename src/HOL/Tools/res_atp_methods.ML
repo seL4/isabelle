@@ -25,28 +25,35 @@ fun eproverLimit () = !eprover_time;
 
 
 (* convert the negated 1st subgoal into CNF, write to files and call an ATP oracle *)
-fun res_atp_tac res_atp_oracle tptp_form timeLimit ctxt (helper,files) tfrees n thm =
+fun res_atp_tac res_atp_oracle mode timeLimit ctxt user_thms n thm =
     SELECT_GOAL
 	((EVERY1 [rtac ccontr,ObjectLogic.atomize_tac, skolemize_tac, 
 		  METAHYPS(fn negs =>
 			      HEADGOAL(Tactic.rtac 
 					   (res_atp_oracle (ProofContext.theory_of ctxt) 
-							   ((helper,(tptp_form (make_clauses negs) n tfrees)::files), timeLimit))))]) handle Fail _ => no_tac) n thm;
+							   (ResAtpSetup.prep_atp_input mode ctxt negs user_thms n, timeLimit))))]) handle Fail _ => no_tac) n thm;
 
 (* vampire and eprover tactics *)
-val vampireF_tac = res_atp_tac vampire_oracle ResAtpSetup.tptp_form (!vampire_time);
 
-val vampireH_tac = res_atp_tac vampire_oracle ResAtpSetup.tptp_formH (!vampire_time);
+val vampire_tac = res_atp_tac vampire_oracle ResAtpSetup.Auto (!vampire_time);
+val eprover_tac = res_atp_tac eprover_oracle ResAtpSetup.Auto(!eprover_time);
 
-val eproverF_tac = res_atp_tac eprover_oracle ResAtpSetup.tptp_form (!eprover_time);
+val vampireF_tac = res_atp_tac vampire_oracle ResAtpSetup.Fol(!vampire_time);
 
-val eproverH_tac = res_atp_tac eprover_oracle ResAtpSetup.tptp_formH (!eprover_time);
+val vampireH_tac = res_atp_tac vampire_oracle ResAtpSetup.Hol (!vampire_time);
+
+val eproverF_tac = res_atp_tac eprover_oracle ResAtpSetup.Fol (!eprover_time);
+
+val eproverH_tac = res_atp_tac eprover_oracle ResAtpSetup.Hol (!eprover_time);
 
 val ResAtps_setup = [Method.add_methods 
-		 [("vampireF", ResAtpSetup.atp_method_F vampireF_tac, "A Vampire method for FOL problems"),
-		   ("eproverF", ResAtpSetup.atp_method_F eproverF_tac, "A E prover method for FOL problems"),
-			("vampireH",ResAtpSetup.atp_method_H vampireH_tac, "A Vampire method for HOL problems"),
-				("eproverH",ResAtpSetup.atp_method_H eproverH_tac,"A E prover method for HOL problems")]];
+		 [("vampireF", ResAtpSetup.atp_method vampireF_tac, "A Vampire method for FOL problems"),
+		   ("eproverF", ResAtpSetup.atp_method eproverF_tac, "A E prover method for FOL problems"),
+			("vampireH",ResAtpSetup.atp_method vampireH_tac, "A Vampire method for HOL problems"),
+				("eproverH",ResAtpSetup.atp_method eproverH_tac,"A E prover method for HOL problems"),
+				("eprover",ResAtpSetup.atp_method eprover_tac,"A E prover method for FOL and HOL problems"),
+				("vampire",ResAtpSetup.atp_method vampire_tac,"A Vampire method for FOL and HOL problems")
+]];
 
 
 
