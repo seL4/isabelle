@@ -10,6 +10,8 @@ structure ResHolClause =
 struct
 
 
+val include_combS = ref false;
+val include_min_comb = ref false;
 
 
 (**********************************************************************)
@@ -39,21 +41,25 @@ fun decre_bndVar (Bound n) = Bound (n-1)
 fun lam2comb (Abs(x,tp,Bound 0)) _ = 
     let val tpI = Type("fun",[tp,tp])
     in 
+	include_min_comb:=true;
 	Const("COMBI",tpI) 
     end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ = 
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
     in 
+	include_min_comb:=true;
 	Const("COMBK",tK) $ Const(c,t2) 
     end
   | lam2comb (Abs(x,t1,Free(v,t2))) _ =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
     in
+	include_min_comb:=true;
 	Const("COMBK",tK) $ Free(v,t2)
     end
   | lam2comb (Abs(x,t1,Var(ind,t2))) _=
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
     in
+	include_min_comb:=true;
 	Const("COMBK",tK) $ Var(ind,t2)
     end
   | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds =
@@ -67,6 +73,8 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ =
 		  val tp' = Term.type_of1(Bnds,P')
 		  val tS = Type("fun",[tp',Type("fun",[tI,tr])])
 	      in
+		  include_min_comb:=true;
+		  include_combS:=true;
 		  Const("COMBS",tS) $ P' $ Const("COMBI",tI)
 	      end)
     end
@@ -79,6 +87,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ =
 	    let val tK = Type("fun",[tpq,Type("fun",[t1,tpq])])
 		val PQ' = decre_bndVar(P $ Q)
 	    in 
+		include_min_comb:=true;
 		Const("COMBK",tK) $ PQ'
 	    end)
 	else (
@@ -89,6 +98,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ =
 				   val tq' = Term.type_of1(Bnds, Q')
 				   val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
 			       in
+				   include_min_comb:=true;
 				   Const("COMBB",tB) $ P' $ Q' 
 			       end)
 	      else (
@@ -99,6 +109,7 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ =
 					val tp' = Term.type_of1(Bnds, P')
 					val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
 				    in
+					include_min_comb:=true;
 					Const("COMBC",tC) $ P' $ Q'
 				    end)
 		    else(
@@ -108,6 +119,8 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ =
 			     val tq' = Term.type_of1(Bnds,Q')
 			     val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
 			 in
+			     include_min_comb:=true;
+			     include_combS:=true;
 			     Const("COMBS",tS) $ P' $ Q'
 			 end)))
     end
@@ -195,7 +208,6 @@ fun get_clause_id (Clause cls) = #clause_id cls;
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)
 (*********************************************************************)
-
 
 fun isFalse (Literal(pol,Bool(CombConst(c,_)))) =
     (pol andalso c = "c_False") orelse
@@ -349,8 +361,6 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 (**********************************************************************)
 
 val keep_types = ref true;
-val include_combS = ref false;
-
 
 val type_wrapper = "typeinfo";
 
