@@ -1,10 +1,12 @@
 (* $Id$ *)
 
+
+
 theory sn
 imports lam_substs  Accessible_Part
 begin
 
-(* Strong normalisation according to the P&T book by Girard et al *)
+text {* Strong Normalisation proof from the Proofs and Types book *}
 
 section {* Beta Reduction *}
 

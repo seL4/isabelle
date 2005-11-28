@@ -1,5 +1,6 @@
+(* $Id$ *)
 
-theory lam_public 
+theory weakening 
 imports "../nominal" 
 begin
 

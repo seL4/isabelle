@@ -1,7 +1,12 @@
+(* $Id$ *)
 
 theory lam_substs
 imports "../nominal" 
 begin
+
+text {* Contains all the reasoning infrastructure for the
+        lambda-calculus that the nominal datatype package
+        does not yet provide. *}
 
 atom_decl name 
 
@@ -9,35 +14,35 @@ nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-section {* strong induction principles for lam *}
+section {* Strong induction principles for lam *}
 
 lemma lam_induct_aux:
   fixes P :: "lam \<Rightarrow> 'a \<Rightarrow> bool"
-  and   f :: "'a \<Rightarrow> name set"
-  assumes fs: "\<And>x. finite (f x)"
+  and   f :: "'a \<Rightarrow> 'a"
+  assumes fs: "\<And>x. finite ((supp (f x))::name set)"
       and h1: "\<And>x a. P (Var  a) x"  
       and h2: "\<And>x t1 t2. (\<forall>z. P t1 z) \<Longrightarrow> (\<forall>z. P t2 z) \<Longrightarrow> P (App t1 t2) x" 
-      and h3: "\<And>x a t. a\<notin>f x \<Longrightarrow> (\<forall>z. P t z) \<Longrightarrow> P (Lam [a].t) x"
+      and h3: "\<And>x a t. a\<sharp>f x \<Longrightarrow> (\<forall>z. P t z) \<Longrightarrow> P (Lam [a].t) x"
   shows "\<forall>(pi::name prm) x. P (pi\<bullet>t) x"
 proof (induct rule: lam.induct_weak)
   case (Lam a t)
-  assume i1: "\<forall>(pi::name prm) x. P (pi\<bullet>t) x" 
-  show ?case
+  have ih: "\<forall>(pi::name prm) x. P (pi\<bullet>t) x" by fact
+  show "\<forall>(pi::name prm) x. P (pi\<bullet>(Lam [a].t)) x"
   proof (intro strip, simp add: abs_perm)
     fix x::"'a" and pi::"name prm"
-    have f: "\<exists>c::name. c\<sharp>(f x,pi\<bullet>a,pi\<bullet>t)"
-      by (rule at_exists_fresh[OF at_name_inst], simp add: supp_prod fs_name1 
-          at_fin_set_supp[OF at_name_inst, OF fs] fs)
+    have "\<exists>c::name. c\<sharp>(f x,pi\<bullet>a,pi\<bullet>t)"
+      by (rule at_exists_fresh[OF at_name_inst], simp add: supp_prod fs_name1 fs)
     then obtain c::"name" 
       where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>(f x)" and f3: "c\<sharp>(pi\<bullet>t)" 
-      by (force simp add: fresh_prod at_fresh[OF at_name_inst])
-    have g: "Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)) = Lam [(pi\<bullet>a)].(pi\<bullet>t)" using f1 f3
+      by (force simp add: fresh_prod fresh_atm)
+    have "Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)) = Lam [(pi\<bullet>a)].(pi\<bullet>t)" using f1 f3
       by (simp add: lam.inject alpha)
-    from i1 have "\<forall>x. P (([(c,pi\<bullet>a)]@pi)\<bullet>t) x" by force
-    hence i1b: "\<forall>x. P ([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)) x" by (simp add: pt_name2[symmetric])
-    with h3 f2 have "P (Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t))) x" 
+    moreover
+    from ih have "\<forall>x. P (([(c,pi\<bullet>a)]@pi)\<bullet>t) x" by force
+    hence "\<forall>x. P ([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)) x" by (simp add: pt_name2[symmetric])
+    hence "P (Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t))) x" using h3 f2
       by (auto simp add: fresh_def at_fin_set_supp[OF at_name_inst, OF fs])
-    with g show "P (Lam [(pi\<bullet>a)].(pi\<bullet>t)) x" by simp
+    ultimately show "P (Lam [(pi\<bullet>a)].(pi\<bullet>t)) x" by simp
   qed
 qed (auto intro: h1 h2)
 
@@ -45,11 +50,11 @@ lemma lam_induct'[case_names Fin Var App Lam]:
   fixes P :: "lam \<Rightarrow> 'a \<Rightarrow> bool"
   and   x :: "'a"
   and   t :: "lam"
-  and   f :: "'a \<Rightarrow> name set"
-  assumes fs: "\<And>x. finite (f x)"
+  and   f :: "'a \<Rightarrow> 'a"
+  assumes fs: "\<And>x. finite ((supp (f x))::name set)"
   and     h1: "\<And>x a. P (Var  a) x" 
   and     h2: "\<And>x t1 t2. (\<forall>z. P t1 z)\<Longrightarrow>(\<forall>z. P t2 z)\<Longrightarrow>P (App t1 t2) x" 
-  and     h3: "\<And>x a t. a\<notin>f x \<Longrightarrow> (\<forall>z. P t z)\<Longrightarrow> P (Lam [a].t) x"
+  and     h3: "\<And>x a t. a\<sharp>f x \<Longrightarrow> (\<forall>z. P t z)\<Longrightarrow> P (Lam [a].t) x"
   shows  "P t x"
 proof - 
   from fs h1 h2 h3 have "\<forall>(pi::name prm) x. P (pi\<bullet>t) x" by (rule lam_induct_aux, auto)
@@ -65,7 +70,7 @@ lemma lam_induct[case_names Var App Lam]:
   and     h2: "\<And>x t1 t2. (\<forall>z. P t1 z)\<Longrightarrow>(\<forall>z. P t2 z)\<Longrightarrow>P (App t1 t2) x" 
   and     h3: "\<And>x a t. a\<sharp>x \<Longrightarrow> (\<forall>z. P t z)\<Longrightarrow> P (Lam [a].t) x"
   shows  "P t x"
-by (rule lam_induct'[of "\<lambda>x. ((supp x)::name set)" "P"], 
+by (rule lam_induct'[of "\<lambda>x. x" "P"], 
     simp_all add: fs_name1 fresh_def[symmetric], auto intro: h1 h2 h3)
 
 types 'a f1_ty  = "name\<Rightarrow>('a::pt_name)"
@@ -197,56 +202,7 @@ proof -
   ultimately show ?thesis by (rule supports_finite)
 qed
 
-(*
-types 'a recT  = "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> ((lam\<times>name prm\<times>('a::pt_name)) set)"
-
-consts
-  rec :: "('a::pt_name) recT"
-
-inductive "rec f1 f2 f3"
-intros
-r1: "(Var a,pi,f1 (pi\<bullet>a))\<in>rec f1 f2 f3" 
-r2: "\<lbrakk>finite ((supp y1)::name set);(t1,pi,y1)\<in>rec f1 f2 f3; 
-      finite ((supp y2)::name set);(t2,pi,y2)\<in>rec f1 f2 f3\<rbrakk> 
-      \<Longrightarrow> (App t1 t2,pi,f2 y1 y2)\<in>rec f1 f2 f3"
-r3: "\<lbrakk>finite ((supp y)::name set);\<forall>a'. ((t,pi@[(a,a')],y)\<in>rec f1 f2 f3)\<rbrakk> 
-      \<Longrightarrow> (Lam [a].t,pi,fresh_fun (\<lambda>a'. f3 a' y))\<in>rec f1 f2 f3"
-
-*)
-
-(*
 types 'a recT  = "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> (lam\<times>(name prm \<Rightarrow> ('a::pt_name))) set"
-
-consts
-  rec :: "('a::pt_name) recT"
-
-inductive "rec f1 f2 f3"
-intros
-r1: "(Var a,\<lambda>pi. f1 (pi\<bullet>a))\<in>rec f1 f2 f3" 
-r2: "\<lbrakk>finite ((supp y1)::name set);(t1,y1)\<in>rec f1 f2 f3; 
-      finite ((supp y2)::name set);(t2,y2)\<in>rec f1 f2 f3\<rbrakk> 
-      \<Longrightarrow> (App t1 t2,\<lambda>pi. f2 (y1 pi) (y2 pi))\<in>rec f1 f2 f3"
-r3: "\<lbrakk>finite ((supp y)::name set);(t,y)\<in>rec f1 f2 f3\<rbrakk> 
-      \<Longrightarrow> (Lam [a].t,fresh_fun (\<lambda>a' pi. f3 a' (y (pi@[(a,a')]))))\<in>rec f1 f2 f3"
-*)
-
-term lam_Rep.Var
-term lam_Rep.Lam
-
-consts nthe :: "'a nOption \<Rightarrow> 'a"
-primrec
- "nthe (nSome x) = x"
-
-types 'a recT  = "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> (lam\<times>(name prm \<Rightarrow> ('a::pt_name))) set"
-
-(*
-consts fn :: "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> lam_Rep \<Rightarrow> ('a::pt_name)"
-
-primrec
-"fn f1 f2 f3 (lam_Rep.Var a)     = f1 a"
-"fn f1 f2 f3 (lam_Rep.App t1 t2) = f2 (fn f1 f2 f3 t1) (fn f1 f2 f3 t2)"
-"fn f1 f2 f3 (lam_Rep.Lam f)     = fresh_fun (\<lambda>a'. f3 a' (fn f1 f2 f3 (fn' (f a'))))"
-*)
 
 consts
   rec :: "('a::pt_name) recT"
@@ -969,7 +925,7 @@ lemma rec_unique:
   and     a3: "\<forall>a t. a\<sharp>(f1,f2,f3) \<longrightarrow> fun (Lam [a].t) = f3 a (fun t)"
   shows "fun t = rfun f1 f2 f3 t"
 (*apply(nominal_induct t rule: lam_induct')*)
-apply (rule lam_induct'[of "\<lambda>_. ((supp (f1,f2,f3))::name set)" "\<lambda>t _. fun t = rfun f1 f2 f3 t"])
+apply (rule lam_induct'[of "\<lambda>_. (f1,f2,f3)" "\<lambda>t _. fun t = rfun f1 f2 f3 t"])
 (* finite support *)
 apply(rule f)
 (* VAR *)
@@ -977,7 +933,6 @@ apply(simp add: a1 rfun_Var[OF f, OF c, symmetric])
 (* APP *)
 apply(simp add: a2 rfun_App[OF f, OF c, symmetric])
 (* LAM *)
-apply(fold fresh_def)
 apply(simp add: a3 rfun_Lam[OF f, OF c, symmetric])
 done
 
@@ -1084,14 +1039,13 @@ lemma rfun_gen'_fst:
   assumes f: "finite ((supp (f1,f2,f3))::name set)" 
   and     c: "(\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name) t. a\<sharp>f3 t a y))"
   shows "fst (rfun_gen' f1 f2 f3 t) = t"
-apply (rule lam_induct'[of "\<lambda>_. ((supp (f1,f2,f3))::name set)" "\<lambda>t _. fst (rfun_gen' f1 f2 f3 t) = t"])
+apply(rule lam_induct'[of "\<lambda>_. (f1,f2,f3)" "\<lambda>t _. fst (rfun_gen' f1 f2 f3 t) = t"])
 apply(simp add: f)
 apply(unfold rfun_gen'_def)
 apply(simp only: rfun_Var[OF fsupp'[OF f],OF fcb'[OF f, OF c]])
 apply(simp)
 apply(simp only: rfun_App[OF fsupp'[OF f],OF fcb'[OF f, OF c]])
 apply(simp)
-apply(fold fresh_def)
 apply(auto)
 apply(rule trans)
 apply(rule_tac f="fst" in arg_cong)
@@ -1210,6 +1164,8 @@ apply(unfold rfun_gen_def)
 apply(simp add: rfun_gen'_Lam[OF f, OF c])
 apply(simp add: rfun_gen_def)
 done
+
+(* FIXME: this should be automatically proved in nominal_atoms *)
 
 instance nat :: pt_name
 apply(intro_classes)
@@ -1430,7 +1386,6 @@ apply(blast)
 done
 
 (* parallel substitution *)
-
 
 consts
   "domain" :: "(name\<times>lam) list \<Rightarrow> (name list)"

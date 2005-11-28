@@ -1,7 +1,10 @@
+(* $Id$ *)
 
 theory cr
 imports lam_substs
 begin
+
+text {* The Church-Rosser proof from Barendregt's book *}
 
 lemma forget[rule_format]: 
   shows "a\<sharp>t1 \<longrightarrow> t1[a::=t2] = t1"

@@ -1,5 +1,9 @@
 (* $Id$ *)
 
+theory fsub
+imports "../nominal" 
+begin
+
 text {* Authors: Christian Urban
                  Benjamin Pierce
                  Steve Zdancewic
@@ -9,9 +13,6 @@ text {* Authors: Christian Urban
                  with help from Stefan Berghofer
       *}
 
-theory fsub
-imports "../nominal" 
-begin
 
 atom_decl tyvrs vrs
 

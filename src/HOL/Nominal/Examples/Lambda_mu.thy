@@ -1,9 +1,10 @@
+(* $Id$ *)
 
 theory lambda_mu 
 imports "../nominal" 
 begin
 
-section {* Mu-Calculus from Gavin's cilmu-Paper*}
+section {* Lambda-Mu according to a paper by Gavin Bierman *}
 
 atom_decl var mvar
 
@@ -14,6 +15,9 @@ nominal_datatype trm = Var   "var"
                      | Act  "\<guillemotleft>mvar\<guillemotright>trm"  ("Act [_]._" [100,100] 100)
 
 section {* strong induction principle *}
+
+(* FIXME: this induction rule needs some slight change to conform *)
+(* with the convention from lam_substs                            *)
 
 lemma trm_induct_aux:
   fixes P :: "trm \<Rightarrow> 'a \<Rightarrow> bool"
