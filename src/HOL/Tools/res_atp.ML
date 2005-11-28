@@ -157,9 +157,9 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = debug ("claset and simprules total clauses = " ^ 
                      Int.toString (Array.length clause_arr))
       val thy = ProofContext.theory_of ctxt
-      val classrel_clauses = ResClause.classrel_clauses_thy thy
+      val classrel_clauses = if !ResClause.keep_types then ResClause.classrel_clauses_thy thy else []
       val _ = debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
-      val arity_clauses = ResClause.arity_clause_thy thy
+      val arity_clauses = if !ResClause.keep_types then ResClause.arity_clause_thy thy else []
       val _ = debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val write = if !prover = "spass" then dfg_inputs_tfrees else tptp_inputs_tfrees
       fun writenext n =
