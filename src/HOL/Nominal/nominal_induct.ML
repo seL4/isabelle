@@ -1,7 +1,7 @@
 (*  ID:         $Id$
-    Author:     Christian Urban
+    Author:     Christian Urban and Makarius
 
-The nominal induct proof method (cf. ~~/src/Provers/induct_method.ML).
+The nominal induct proof method.
 *)
 
 structure NominalInduct:
@@ -13,82 +13,64 @@ end =
 struct
 
 
-(** misc tools **)
+(* proper tuples -- nested left *)
 
-fun nth_list xss i = nth xss i handle Subscript => [];
+fun tupleT Ts = HOLogic.unitT |> fold (fn T => fn U => HOLogic.mk_prodT (U, T)) Ts;
+fun tuple ts = HOLogic.unit |> fold (fn t => fn u => HOLogic.mk_prod (u, t)) ts;
 
-fun align_right msg xs ys =
-  let val m = length xs and n = length ys
-  in if m < n then raise ERROR_MESSAGE msg else (Library.drop (m - n, xs) ~~ ys) end;
+fun tuple_fun Ts (xi, T) =
+  Library.funpow (length Ts) HOLogic.mk_split
+    (Var (xi, (HOLogic.unitT :: Ts) ---> Term.range_type T));
 
-fun prep_inst thy tune (tm, ts) =
+val split_all_tuples =
+  Simplifier.full_simplify (HOL_basic_ss addsimps
+    [split_conv, split_paired_all, unit_all_eq1, thm "fresh_unit_elim", thm "fresh_prod_elim"]);
+
+
+(* inst_rule conclusion: ?P fresh_struct ... insts *)
+
+fun inst_rule thy insts fresh rule =
   let
-    val cert = Thm.cterm_of thy;
-    fun prep_var (x, SOME t) =
-          let
-            val cx = cert x;
-            val {T = xT, thy, ...} = Thm.rep_cterm cx;
-            val ct = cert (tune t);
-          in
-            if Sign.typ_instance thy (#T (Thm.rep_cterm ct), xT) then SOME (cx, ct)
-            else raise ERROR_MESSAGE (Pretty.string_of (Pretty.block
-             [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
-              Display.pretty_cterm ct, Pretty.str " ::", Pretty.brk 1,
-              Display.pretty_ctyp (#T (Thm.crep_cterm ct))]))
-          end
-      | prep_var (_, NONE) = NONE;
-    val xs = InductAttrib.vars_of tm;
+    val vars = InductAttrib.vars_of (Thm.concl_of rule);
+    val m = length vars and n = length insts;
+    val _ = if m >= n + 2 then () else error "Too few variables in conclusion of rule";
+    val P :: x :: ys = vars;
+    val zs = Library.drop (m - n - 2, ys);
+
+    val subst =
+      (P, tuple_fun (map Term.fastype_of fresh) (Term.dest_Var P)) ::
+      (x, tuple fresh) ::
+      List.mapPartial (fn (z, SOME t) => SOME (z, t) | _ => NONE) (zs ~~ insts);
   in
-    align_right "Rule has fewer variables than instantiations given" xs ts
-    |> List.mapPartial prep_var
+    rule
+    |> Drule.cterm_instantiate (PolyML.print (map (pairself (Thm.cterm_of thy)) subst))
+    |> PolyML.print
   end;
 
-fun add_defs def_insts =
-  let
-    fun add (SOME (SOME x, t)) ctxt =
-          let val ((lhs, def), ctxt') = ProofContext.add_def (x, t) ctxt
-          in ((SOME (Free lhs), [def]), ctxt') end
-      | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
-      | add NONE ctxt = ((NONE, []), ctxt);
-  in fold_map add def_insts #> apfst (split_list #> apsnd List.concat) end;
 
-
-
-(** nominal_induct_tac **)
-
-fun make_fresh [] = HOLogic.unit
-  | make_fresh [t] = t
-  | make_fresh ts = foldr1 HOLogic.mk_prod ts;
-
-val split_fresh =
-  Simplifier.full_simplify (HOL_basic_ss addsimps [split_paired_all, unit_all_eq1]);
+(* nominal_induct_tac *)
 
 fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
   let
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val ((insts, defs), defs_ctxt) = add_defs def_insts ctxt;
+    val ((insts, defs), defs_ctxt) = InductMethod.add_defs def_insts ctxt;
     val atomized_defs = map ObjectLogic.atomize_thm defs;
-
-    fun inst_rule r =
-      Drule.cterm_instantiate
-        (prep_inst thy (InductMethod.atomize_term thy)
-          (Thm.concl_of r, insts @ [SOME (make_fresh fresh)])) r;
 
     fun rule_cases r = RuleCases.make false (SOME (Thm.prop_of r)) (InductMethod.rulified_term r);
   in
     SUBGOAL_CASES (fn (goal, i) => fn st =>
       rule
-      |> inst_rule
       |> `RuleCases.get
+      ||> inst_rule thy insts fresh
       |> RuleCases.consume defs facts
       |> Seq.maps (fn ((cases, (k, more_facts)), r) =>
         (CONJUNCTS (ALLGOALS (fn j =>
             Method.insert_tac (more_facts @ atomized_defs) j
-            THEN InductMethod.fix_tac defs_ctxt k (nth_list fixing (j - 1)) j))
+            THEN InductMethod.fix_tac defs_ctxt k (Library.nth_list fixing (j - 1)) j))
           THEN' InductMethod.atomize_tac) i st |> Seq.maps (fn st' =>
-            InductMethod.guess_instance (split_fresh r) i st'
+            InductMethod.guess_instance (split_all_tuples r) i st'
             |> Seq.maps (fn r' =>
               CASES (rule_cases r' cases)
                 (Tactic.rtac r' i THEN
@@ -97,8 +79,7 @@ fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
   end;
 
 
-
-(** concrete syntax **)
+(* concrete syntax *)
 
 local
 
