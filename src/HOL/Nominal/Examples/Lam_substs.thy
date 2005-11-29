@@ -17,18 +17,18 @@ nominal_datatype lam = Var "name"
 section {* Strong induction principles for lam *}
 
 lemma lam_induct_aux:
-  fixes P :: "lam \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes P :: "'a \<Rightarrow> lam \<Rightarrow> bool"
   and   f :: "'a \<Rightarrow> 'a"
   assumes fs: "\<And>x. finite ((supp (f x))::name set)"
-      and h1: "\<And>x a. P (Var  a) x"  
-      and h2: "\<And>x t1 t2. (\<forall>z. P t1 z) \<Longrightarrow> (\<forall>z. P t2 z) \<Longrightarrow> P (App t1 t2) x" 
-      and h3: "\<And>x a t. a\<sharp>f x \<Longrightarrow> (\<forall>z. P t z) \<Longrightarrow> P (Lam [a].t) x"
-  shows "\<forall>(pi::name prm) x. P (pi\<bullet>t) x"
+      and h1: "\<And>x a. P x (Var  a)"  
+      and h2: "\<And>x t1 t2. (\<And>z. P z t1) \<Longrightarrow> (\<And>z. P z t2) \<Longrightarrow> P x (App t1 t2)" 
+      and h3: "\<And>x a t. a\<sharp>f x \<Longrightarrow> (\<And>z. P z t) \<Longrightarrow> P x (Lam [a].t)"
+  shows "\<And>(pi::name prm) x. P x (pi\<bullet>t)"
 proof (induct rule: lam.induct_weak)
   case (Lam a t)
-  have ih: "\<forall>(pi::name prm) x. P (pi\<bullet>t) x" by fact
-  show "\<forall>(pi::name prm) x. P (pi\<bullet>(Lam [a].t)) x"
-  proof (intro strip, simp add: abs_perm)
+  have ih: "\<And>(pi::name prm) x. P x (pi\<bullet>t)" by fact
+  show "\<And>(pi::name prm) x. P x (pi\<bullet>(Lam [a].t))"
+  proof (simp add: abs_perm)
     fix x::"'a" and pi::"name prm"
     have "\<exists>c::name. c\<sharp>(f x,pi\<bullet>a,pi\<bullet>t)"
       by (rule at_exists_fresh[OF at_name_inst], simp add: supp_prod fs_name1 fs)
@@ -38,40 +38,42 @@ proof (induct rule: lam.induct_weak)
     have "Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)) = Lam [(pi\<bullet>a)].(pi\<bullet>t)" using f1 f3
       by (simp add: lam.inject alpha)
     moreover
-    from ih have "\<forall>x. P (([(c,pi\<bullet>a)]@pi)\<bullet>t) x" by force
-    hence "\<forall>x. P ([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)) x" by (simp add: pt_name2[symmetric])
-    hence "P (Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t))) x" using h3 f2
+    from ih have "\<And>x. P x (([(c,pi\<bullet>a)]@pi)\<bullet>t)" by force
+    hence "\<And>x. P x ([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t))" by (simp add: pt_name2[symmetric])
+    hence "P x (Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t)))" using h3 f2
       by (auto simp add: fresh_def at_fin_set_supp[OF at_name_inst, OF fs])
-    ultimately show "P (Lam [(pi\<bullet>a)].(pi\<bullet>t)) x" by simp
+    ultimately show "P x (Lam [(pi\<bullet>a)].(pi\<bullet>t))" by simp
   qed
 qed (auto intro: h1 h2)
 
 lemma lam_induct'[case_names Fin Var App Lam]: 
-  fixes P :: "lam \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes P :: "'a \<Rightarrow> lam \<Rightarrow> bool"
   and   x :: "'a"
   and   t :: "lam"
   and   f :: "'a \<Rightarrow> 'a"
   assumes fs: "\<And>x. finite ((supp (f x))::name set)"
-  and     h1: "\<And>x a. P (Var  a) x" 
-  and     h2: "\<And>x t1 t2. (\<forall>z. P t1 z)\<Longrightarrow>(\<forall>z. P t2 z)\<Longrightarrow>P (App t1 t2) x" 
-  and     h3: "\<And>x a t. a\<sharp>f x \<Longrightarrow> (\<forall>z. P t z)\<Longrightarrow> P (Lam [a].t) x"
-  shows  "P t x"
+  and     h1: "\<And>x a. P x (Var  a)" 
+  and     h2: "\<And>x t1 t2. (\<And>z. P z t1)\<Longrightarrow>(\<And>z. P z t2)\<Longrightarrow>P x (App t1 t2)" 
+  and     h3: "\<And>x a t. a\<sharp>f x \<Longrightarrow> (\<And>z. P z t)\<Longrightarrow> P x (Lam [a].t)"
+  shows  "P x t"
 proof - 
-  from fs h1 h2 h3 have "\<forall>(pi::name prm) x. P (pi\<bullet>t) x" by (rule lam_induct_aux, auto)
-  hence "P (([]::name prm)\<bullet>t) x" by blast
-  thus "P t x" by simp
+  from fs h1 h2 h3 have "\<And>(pi::name prm) x. P x (pi\<bullet>t)" by (rule lam_induct_aux, auto)
+  hence "P x (([]::name prm)\<bullet>t)" by blast
+  thus "P x t" by simp
 qed
 
 lemma lam_induct[case_names Var App Lam]: 
-  fixes P :: "lam \<Rightarrow> ('a::fs_name) \<Rightarrow> bool"
+  fixes P :: "('a::fs_name) \<Rightarrow> lam \<Rightarrow> bool"
   and   x :: "'a::fs_name"
   and   t :: "lam"
-  assumes h1: "\<And>x a. P (Var  a) x" 
-  and     h2: "\<And>x t1 t2. (\<forall>z. P t1 z)\<Longrightarrow>(\<forall>z. P t2 z)\<Longrightarrow>P (App t1 t2) x" 
-  and     h3: "\<And>x a t. a\<sharp>x \<Longrightarrow> (\<forall>z. P t z)\<Longrightarrow> P (Lam [a].t) x"
-  shows  "P t x"
-by (rule lam_induct'[of "\<lambda>x. x" "P"], 
-    simp_all add: fs_name1 fresh_def[symmetric], auto intro: h1 h2 h3)
+  assumes h1: "\<And>x a. P x (Var  a)" 
+  and     h2: "\<And>x t1 t2. (\<And>z. P z t1)\<Longrightarrow>(\<And>z. P z t2)\<Longrightarrow>P x (App t1 t2)" 
+  and     h3: "\<And>x a t. a\<sharp>x \<Longrightarrow> (\<And>z. P z t)\<Longrightarrow> P x (Lam [a].t)"
+  shows  "P x t"
+apply(rule lam_induct'[of "\<lambda>x. x" "P"])
+apply(simp add: fs_name1)
+apply(auto intro: h1 h2 h3)
+done
 
 types 'a f1_ty  = "name\<Rightarrow>('a::pt_name)"
       'a f2_ty  = "'a\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
@@ -925,7 +927,7 @@ lemma rec_unique:
   and     a3: "\<forall>a t. a\<sharp>(f1,f2,f3) \<longrightarrow> fun (Lam [a].t) = f3 a (fun t)"
   shows "fun t = rfun f1 f2 f3 t"
 (*apply(nominal_induct t rule: lam_induct')*)
-apply (rule lam_induct'[of "\<lambda>_. (f1,f2,f3)" "\<lambda>t _. fun t = rfun f1 f2 f3 t"])
+apply (rule lam_induct'[of "\<lambda>_. (f1,f2,f3)" "\<lambda>_ t. fun t = rfun f1 f2 f3 t"])
 (* finite support *)
 apply(rule f)
 (* VAR *)
@@ -1039,7 +1041,7 @@ lemma rfun_gen'_fst:
   assumes f: "finite ((supp (f1,f2,f3))::name set)" 
   and     c: "(\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name) t. a\<sharp>f3 t a y))"
   shows "fst (rfun_gen' f1 f2 f3 t) = t"
-apply(rule lam_induct'[of "\<lambda>_. (f1,f2,f3)" "\<lambda>t _. fst (rfun_gen' f1 f2 f3 t) = t"])
+apply(rule lam_induct'[of "\<lambda>_. (f1,f2,f3)" "\<lambda>_ t. fst (rfun_gen' f1 f2 f3 t) = t"])
 apply(simp add: f)
 apply(unfold rfun_gen'_def)
 apply(simp only: rfun_Var[OF fsupp'[OF f],OF fcb'[OF f, OF c]])
@@ -1370,6 +1372,7 @@ lemma subst_eqvt[simp]:
   and   t2:: "lam"
   and   a :: "name"
   shows "pi\<bullet>(t1[a::=t2]) = (pi\<bullet>t1)[(pi\<bullet>a)::=(pi\<bullet>t2)]"
+thm lam_induct
 apply(nominal_induct t1 rule: lam_induct)
 apply(auto)
 apply(auto simp add: perm_bij fresh_prod fresh_atm)
