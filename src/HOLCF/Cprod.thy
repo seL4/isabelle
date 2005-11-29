@@ -29,8 +29,18 @@ by intro_classes (simp add: is_lub_def is_ub_def)
 instance unit :: pcpo
 by intro_classes simp
 
+constdefs
+  unit_when :: "'a \<rightarrow> unit \<rightarrow> 'a"
+  "unit_when \<equiv> \<Lambda> a _. a"
 
-subsection {* Type @{typ "'a * 'b"} is a partial order *}
+translations
+  "\<Lambda>(). t" == "unit_when\<cdot>t"
+
+lemma unit_when [simp]: "unit_when\<cdot>a\<cdot>u = a"
+by (simp add: unit_when_def)
+
+
+subsection {* Product type is a partial order *}
 
 instance "*" :: (sq_ord, sq_ord) sq_ord ..
 
@@ -79,7 +89,7 @@ by (simp add: monofun_def less_cprod_def)
 lemma monofun_snd: "monofun snd"
 by (simp add: monofun_def less_cprod_def)
 
-subsection {* Type @{typ "'a * 'b"} is a cpo *}
+subsection {* Product type is a cpo *}
 
 lemma lub_cprod: 
   "chain S \<Longrightarrow> range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
@@ -112,7 +122,7 @@ by (rule exI, erule lub_cprod)
 instance "*" :: (cpo, cpo) cpo
 by intro_classes (rule cpo_cprod)
 
-subsection {* Type @{typ "'a * 'b"} is pointed *}
+subsection {* Product type is pointed *}
 
 lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
 by (simp add: less_cprod_def)
