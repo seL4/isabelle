@@ -107,6 +107,7 @@ sig
   val nth: 'a list -> int -> 'a
   val nth_update: int * 'a -> 'a list -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
+  val nth_list: 'a list list -> int -> 'a list
   val split_last: 'a list -> 'a list * 'a
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
@@ -563,7 +564,8 @@ fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
   | nth_map _ _ [] = raise Subscript;
 
-(*last element of a list*)
+fun nth_list xss i = nth xss i handle Subscript => [];
+
 val last_elem = List.last;
 
 (*rear decomposition*)
