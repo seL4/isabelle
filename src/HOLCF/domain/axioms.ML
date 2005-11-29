@@ -114,6 +114,9 @@ end; (* let *)
 fun add_axioms_i x = #1 o PureThy.add_axioms_i (map Thm.no_attributes x);
 fun add_axioms_infer axms thy = add_axioms_i (infer_types thy axms) thy;
 
+fun add_defs_i x = #1 o (PureThy.add_defs_i false) (map Thm.no_attributes x);
+fun add_defs_infer defs thy = add_defs_i (infer_types thy defs) thy;
+
 in (* local *)
 
 fun add_axioms (comp_dnam, eqs : eq list) thy' = let
@@ -154,12 +157,12 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
     in foldr1 mk_conj (mapn one_comp 0 eqs)end ));
   fun add_one (thy,(dnam,axs,dfs)) = thy
 	|> Theory.add_path dnam
-	|> add_axioms_infer dfs(*add_defs_i*)
+	|> add_defs_infer dfs
 	|> add_axioms_infer axs
 	|> Theory.parent_path;
   val thy = Library.foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
 in thy |> Theory.add_path comp_dnam  
-       |> add_axioms_infer (bisim_def::(if length eqs>1 then [copy_def] else []))
+       |> add_defs_infer (bisim_def::(if length eqs>1 then [copy_def] else []))
        |> Theory.parent_path
 end;
 
