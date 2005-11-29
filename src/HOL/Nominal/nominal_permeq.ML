@@ -22,6 +22,7 @@ fun dynamic_thm ss name =
 (* initial simplification step in the tactic *)
 fun initial_simp_tac ss i =
     let
+        (* these lemmas are created dynamically according to the atom types *) 
 	val perm_swap  = dynamic_thm ss "perm_swap";
         val perm_fresh = dynamic_thm ss "perm_fresh_fresh";
         val perm_bij   = dynamic_thm ss "perm_bij";
@@ -43,7 +44,7 @@ fun apply_perm_compose_tac ss i =
 fun apply_app_lam_simp_tac ss i =
     let 
 	val perm_app_eq  = dynamic_thm ss "perm_app_eq";
-        val perm_lam_eq  = dynamic_thm ss "perm_eq_lam"
+        val perm_lam_eq  = thm "nominal.perm_eq_lam"
     in
      ("simplification of permutations on applications and lambdas", 
       asm_full_simp_tac (HOL_basic_ss addsimps [perm_app_eq,perm_lam_eq]) i)

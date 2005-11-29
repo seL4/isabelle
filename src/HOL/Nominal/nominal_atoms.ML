@@ -369,20 +369,19 @@ fun create_nom_typedecls ak_names thy =
 
      (*<<<<<<<  pt_<ak> class instances  >>>>>>>*)
      (*=========================================*)
-     
-     (* some frequently used theorems *)
-      val pt1 = PureThy.get_thm thy12c (Name "pt1");
-      val pt2 = PureThy.get_thm thy12c (Name "pt2");
-      val pt3 = PureThy.get_thm thy12c (Name "pt3");
-      val at_pt_inst    = PureThy.get_thm thy12c (Name "at_pt_inst");
-      val pt_bool_inst  = PureThy.get_thm thy12c (Name "pt_bool_inst");
-      val pt_set_inst   = PureThy.get_thm thy12c (Name "pt_set_inst"); 
-      val pt_unit_inst  = PureThy.get_thm thy12c (Name "pt_unit_inst");
-      val pt_prod_inst  = PureThy.get_thm thy12c (Name "pt_prod_inst"); 
-      val pt_list_inst  = PureThy.get_thm thy12c (Name "pt_list_inst");   
-      val pt_optn_inst  = PureThy.get_thm thy12c (Name "pt_option_inst");   
-      val pt_noptn_inst = PureThy.get_thm thy12c (Name "pt_noption_inst");   
-      val pt_fun_inst   = PureThy.get_thm thy12c (Name "pt_fun_inst");     
+     (* some abbreviations for theorems *)
+      val pt1           = thm "pt1";
+      val pt2           = thm "pt2";
+      val pt3           = thm "pt3";
+      val at_pt_inst    = thm "at_pt_inst";
+      val pt_bool_inst  = thm "pt_bool_inst";
+      val pt_set_inst   = thm "pt_set_inst"; 
+      val pt_unit_inst  = thm "pt_unit_inst";
+      val pt_prod_inst  = thm "pt_prod_inst"; 
+      val pt_list_inst  = thm "pt_list_inst";   
+      val pt_optn_inst  = thm "pt_option_inst";   
+      val pt_noptn_inst = thm "pt_noption_inst";   
+      val pt_fun_inst   = thm "pt_fun_inst";     
 
      (* for all atom-kind combination shows that         *)
      (* every <ak> is an instance of pt_<ai>             *)
@@ -519,7 +518,7 @@ fun create_nom_typedecls ak_names thy =
 
      (* shows that fun(pt_<ak>,pt_<ak>) is an instance of pt_<ak>     *)
      (* uses the theorem pt_list_inst and pt_<ak>_inst                *)
-     val (thy19,_) = foldl_map (fn (thy, (ak_name, T)) =>
+     val (thy19a,_) = foldl_map (fn (thy, (ak_name, T)) =>
        let
           val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
           val at_thm   = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
@@ -533,14 +532,35 @@ fun create_nom_typedecls ak_names thy =
 	 (AxClass.add_inst_arity_i ("fun",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
        end) (thy18b,ak_names_types);
 
+      (* descrete types *)
+      (*
+      val (thy19,_) =
+        let 
+	  fun discrete_pt_inst ty simp_thms = 
+	     foldl_map (fn (thy, (ak_name, T)) =>
+	      let
+	       val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+	       val simp_s   = HOL_basic_ss addsimps simp_thms;
+               val proof = EVERY [AxClass.intro_classes_tac [], auto_tac (claset(),simp_s)];      
+             in  
+	     (AxClass.add_inst_arity_i (ty,[],[qu_class]) proof thy,()) 
+             end) (thy19a,ak_names_types); 
+        in
+         thy19a 
+	 |> discrete_pt_inst "nat" [PureThy.get_thm thy19a (Name "perm_nat_def")]
+        end;
+       *)
+       val thy19 = thy19a;
+
        (*<<<<<<<  fs_<ak> class instances  >>>>>>>*)
        (*=========================================*)
-       val fs1          = PureThy.get_thm thy19 (Name "fs1");
-       val fs_at_inst   = PureThy.get_thm thy19 (Name "fs_at_inst");
-       val fs_unit_inst = PureThy.get_thm thy19 (Name "fs_unit_inst");
-       val fs_bool_inst = PureThy.get_thm thy19 (Name "fs_bool_inst");
-       val fs_prod_inst = PureThy.get_thm thy19 (Name "fs_prod_inst");
-       val fs_list_inst = PureThy.get_thm thy19 (Name "fs_list_inst");
+       (* abbreviations for some lemmas *)
+       val fs1          = thm "fs1";
+       val fs_at_inst   = thm "fs_at_inst";
+       val fs_unit_inst = thm "fs_unit_inst";
+       val fs_bool_inst = thm "fs_bool_inst";
+       val fs_prod_inst = thm "fs_prod_inst";
+       val fs_list_inst = thm "fs_list_inst";
 
        (* shows that <ak> is an instance of fs_<ak>     *)
        (* uses the theorem at_<ak>_inst                 *)
@@ -603,16 +623,17 @@ fun create_nom_typedecls ak_names thy =
 	   
        (*<<<<<<<  cp_<ak>_<ai> class instances  >>>>>>>*)
        (*==============================================*)
-       val cp1             = PureThy.get_thm thy24 (Name "cp1");
-       val cp_unit_inst    = PureThy.get_thm thy24 (Name "cp_unit_inst");
-       val cp_bool_inst    = PureThy.get_thm thy24 (Name "cp_bool_inst");
-       val cp_prod_inst    = PureThy.get_thm thy24 (Name "cp_prod_inst");
-       val cp_list_inst    = PureThy.get_thm thy24 (Name "cp_list_inst");
-       val cp_fun_inst     = PureThy.get_thm thy24 (Name "cp_fun_inst");
-       val cp_option_inst  = PureThy.get_thm thy24 (Name "cp_option_inst");
-       val cp_noption_inst = PureThy.get_thm thy24 (Name "cp_noption_inst");
-       val pt_perm_compose = PureThy.get_thm thy24 (Name "pt_perm_compose");
-       val dj_pp_forget    = PureThy.get_thm thy24 (Name "dj_perm_perm_forget");
+       (* abbreviations for some lemmas *)
+       val cp1             = thm "cp1";
+       val cp_unit_inst    = thm "cp_unit_inst";
+       val cp_bool_inst    = thm "cp_bool_inst";
+       val cp_prod_inst    = thm "cp_prod_inst";
+       val cp_list_inst    = thm "cp_list_inst";
+       val cp_fun_inst     = thm "cp_fun_inst";
+       val cp_option_inst  = thm "cp_option_inst";
+       val cp_noption_inst = thm "cp_noption_inst";
+       val pt_perm_compose = thm "pt_perm_compose";
+       val dj_pp_forget    = thm "dj_perm_perm_forget";
 
        (* shows that <aj> is an instance of cp_<ak>_<ai>  *)
        (* that needs a three-nested loop *)
@@ -745,24 +766,24 @@ fun create_nom_typedecls ak_names thy =
 
        (* abbreviations for some lemmas *)
        (*===============================*)
-       val abs_fun_pi        = PureThy.get_thm thy32 (Name ("nominal.abs_fun_pi"));
-       val abs_fun_pi_ineq   = PureThy.get_thm thy32 (Name ("nominal.abs_fun_pi_ineq"));
-       val abs_fun_eq        = PureThy.get_thm thy32 (Name ("nominal.abs_fun_eq"));
-       val dj_perm_forget    = PureThy.get_thm thy32 (Name ("nominal.dj_perm_forget"));
-       val dj_pp_forget      = PureThy.get_thm thy32 (Name ("nominal.dj_perm_perm_forget"));
-       val fresh_iff         = PureThy.get_thm thy32 (Name ("nominal.fresh_abs_fun_iff"));
-       val fresh_iff_ineq    = PureThy.get_thm thy32 (Name ("nominal.fresh_abs_fun_iff_ineq"));
-       val abs_fun_supp      = PureThy.get_thm thy32 (Name ("nominal.abs_fun_supp"));
-       val abs_fun_supp_ineq = PureThy.get_thm thy32 (Name ("nominal.abs_fun_supp_ineq"));
-       val pt_swap_bij       = PureThy.get_thm thy32 (Name ("nominal.pt_swap_bij"));
-       val pt_fresh_fresh    = PureThy.get_thm thy32 (Name ("nominal.pt_fresh_fresh"));
-       val pt_bij            = PureThy.get_thm thy32 (Name ("nominal.pt_bij"));
-       val pt_perm_compose   = PureThy.get_thm thy32 (Name ("nominal.pt_perm_compose"));
-       val perm_eq_app       = PureThy.get_thm thy32 (Name ("nominal.perm_eq_app"));
-       val at_fresh          = PureThy.get_thm thy32 (Name ("nominal.at_fresh"));
-       val at_calc           = PureThy.get_thms thy32 (Name ("nominal.at_calc"));
-       val at_supp           = PureThy.get_thm thy32 (Name ("nominal.at_supp"));
-       val dj_supp           = PureThy.get_thm thy32 (Name ("nominal.dj_supp"));
+       val abs_fun_pi        = thm "nominal.abs_fun_pi";
+       val abs_fun_pi_ineq   = thm "nominal.abs_fun_pi_ineq";
+       val abs_fun_eq        = thm "nominal.abs_fun_eq";
+       val dj_perm_forget    = thm "nominal.dj_perm_forget";
+       val dj_pp_forget      = thm "nominal.dj_perm_perm_forget";
+       val fresh_iff         = thm "nominal.fresh_abs_fun_iff";
+       val fresh_iff_ineq    = thm "nominal.fresh_abs_fun_iff_ineq";
+       val abs_fun_supp      = thm "nominal.abs_fun_supp";
+       val abs_fun_supp_ineq = thm "nominal.abs_fun_supp_ineq";
+       val pt_swap_bij       = thm "nominal.pt_swap_bij";
+       val pt_fresh_fresh    = thm "nominal.pt_fresh_fresh";
+       val pt_bij            = thm "nominal.pt_bij";
+       val pt_perm_compose   = thm "nominal.pt_perm_compose";
+       val perm_eq_app       = thm "nominal.perm_eq_app";
+       val at_fresh          = thm "nominal.at_fresh";
+       val at_calc           = thms "nominal.at_calc";
+       val at_supp           = thm "nominal.at_supp";
+       val dj_supp           = thm "nominal.dj_supp";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -770,24 +791,23 @@ fun create_nom_typedecls ak_names thy =
        (* instantiations.                                                 *)
        val (thy33,_) = 
 	 let 
-             (* takes a theorem and a list of theorems         *)
-             (* produces a list of theorems of the form        *)
-             (* [t1 RS thm,..,tn RS thm] where t1..tn in thms, *) 
+             (* takes a theorem thm and a list of theorems [t1,..,tn]            *)
+             (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
              fun instR thm thms = map (fn ti => ti RS thm) thms;
 
              (* takes two theorem lists (hopefully of the same length ;o)                *)
              (* produces a list of theorems of the form                                  *)
              (* [t1 RS m1,..,tn RS mn] where [t1,..,tn] is thms1 and [m1,..,mn] is thms2 *) 
-             fun inst_zip thms1 thms2 = 
-		 map (fn (t1,t2) => t1 RS t2) (thms1 ~~ thms2);
+             fun inst_zip thms1 thms2 = map (fn (t1,t2) => t1 RS t2) (thms1 ~~ thms2);
 
              (* takes a theorem list of the form [l1,...,ln]              *)
              (* and a list of theorem lists of the form                   *)
              (* [[h11,...,h1m],....,[hk1,....,hkm]                        *)
              (* produces the list of theorem lists                        *)
              (* [[l1 RS h11,...,l1 RS h1m],...,[ln RS hk1,...,ln RS hkm]] *)
-             fun inst_mult thms thmss =
-		 map (fn (t,ts) => instR t ts) (thms ~~ thmss);
+             fun inst_mult thms thmss = map (fn (t,ts) => instR t ts) (thms ~~ thmss);
+
+             (* FIXME: these lists do not need to be created dynamically again *)
 
              (* list of all at_inst-theorems *)
              val ats = map (fn ak => PureThy.get_thm thy32 (Name ("at_"^ak^"_inst"))) ak_names
@@ -818,8 +838,11 @@ fun create_nom_typedecls ak_names thy =
 	     fun inst_pt_pt_at_cp thms = 
 		 Library.flat (inst_mult (inst_zip ats (inst_zip pts (inst_pt thms))) cps);
              fun inst_pt_at_fs thms = inst_zip (inst_fs [fs1]) (inst_zip ats (inst_pt thms));
-	     fun inst_pt_at_cp_dj thms = 
-	      inst_zip djs (Library.flat (inst_mult (inst_zip ats (inst_zip pts (inst_pt thms))) cps'));
+	     fun inst_pt_pt_at_cp_dj thms = 
+		 let val i_pt_pt_at = inst_zip ats (inst_zip pts (inst_pt thms));
+                     val i_pt_pt_at_cp = Library.flat (inst_mult i_pt_pt_at cps');
+                     val i_pt_pt_at_cp_dj = inst_zip djs i_pt_pt_at_cp;
+		 in i_pt_pt_at_cp_dj end;
            in
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
@@ -832,22 +855,22 @@ fun create_nom_typedecls ak_names thy =
             |>>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
             |>>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
             |>>> PureThy.add_thmss
-	    let val thms1 = inst_pt_at [abs_fun_pi]
-		and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
-	    in [(("abs_perm", thms1 @ thms2),[])] end
+	      let val thms1 = inst_pt_at [abs_fun_pi]
+		  and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
+	      in [(("abs_perm", thms1 @ thms2),[])] end
             |>>> PureThy.add_thmss
-	    let val thms1 = inst_dj [dj_perm_forget]
-		and thms2 = inst_dj [dj_pp_forget]
-            in [(("perm_dj", thms1 @ thms2),[])] end
+	      let val thms1 = inst_dj [dj_perm_forget]
+		  and thms2 = inst_dj [dj_pp_forget]
+              in [(("perm_dj", thms1 @ thms2),[])] end
             |>>> PureThy.add_thmss
-	    let val thms1 = inst_pt_at_fs [fresh_iff]
-		and thms2 = inst_pt_at_cp_dj [fresh_iff_ineq]
+	      let val thms1 = inst_pt_at_fs [fresh_iff]
+		  and thms2 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
 	    in [(("abs_fresh", thms1 @ thms2),[])] end
 	    |>>> PureThy.add_thmss
-	    let val thms1 = inst_pt_at [abs_fun_supp]
-		and thms2 = inst_pt_at_fs [abs_fun_supp]
-		and thms3 = inst_pt_at_cp_dj [abs_fun_supp_ineq]
-	    in [(("abs_supp", thms1 @ thms2 @ thms3),[])] end
+	      let val thms1 = inst_pt_at [abs_fun_supp]
+		  and thms2 = inst_pt_at_fs [abs_fun_supp]
+		  and thms3 = inst_pt_pt_at_cp_dj [abs_fun_supp_ineq]
+	      in [(("abs_supp", thms1 @ thms2 @ thms3),[])] end
 	   end;
 
     in NominalData.put (fold Symtab.update (map (rpair ()) full_ak_names)
