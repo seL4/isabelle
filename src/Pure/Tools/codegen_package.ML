@@ -6,7 +6,7 @@ Code generator from Isabelle theories to
 intermediate language ("Thin-gol").
 *)
 
-(*NOTE: for simplifying development, this package contains
+(*NOTE: for simplifying developement, this package contains
 some stuff which will finally be moved upwards to HOL*)
 
 signature CODEGEN_PACKAGE =
@@ -120,13 +120,18 @@ val nsp_eq = "eq";
 val serializer_ml =
   let
     val name_root = "Generated";
-    val nsp_conn_ml = [
+    val nsp_conn = [
       [nsp_class, nsp_type, nsp_eq_class], [nsp_const, nsp_inst, nsp_mem, nsp_eq]
     ];
-  in CodegenSerializer.ml_from_thingol nsp_conn_ml name_root end;
+  in CodegenSerializer.ml_from_thingol nsp_conn name_root end;
 
-fun serializer_hs _ _ _ _ =
-  error ("haskell serialization not implemented yet");
+val serializer_hs =
+  let
+    val name_root = "Generated";
+    val nsp_conn = [
+      [nsp_class, nsp_eq_class], [nsp_type], [nsp_const], [nsp_inst], [nsp_mem], [nsp_eq]
+    ];
+  in CodegenSerializer.haskell_from_thingol nsp_conn name_root end;
 
 
 (* theory data for codegen *)
@@ -223,7 +228,7 @@ fun map_serialize_data f { serializer, primitives, syntax_tyco, syntax_const } =
 fun merge_serialize_data
   ({ serializer = serializer, primitives = primitives1,
      syntax_tyco = syntax_tyco1, syntax_const = syntax_const1 },
-   { serializer = _, primitives = primitives2,
+   {serializer = _, primitives = primitives2,
      syntax_tyco = syntax_tyco2, syntax_const = syntax_const2 }) =
   { serializer = serializer,
     primitives = CodegenSerializer.merge_prims (primitives1, primitives2) : CodegenSerializer.primitives,
@@ -315,7 +320,7 @@ fun add_codegen_expr (name, cg) =
         gens |> map_gens
           (fn (codegens_sort, codegens_type, codegens_expr, defgens) =>
             (codegens_sort, codegens_type,
-             codegens_expr
+        codegens_expr
              |> Output.update_warn (op =) ("overwriting existing expression code generator " ^ name) (name, (cg, stamp ())),
              defgens)),
              lookups, serialize_data, logic_data));
@@ -340,7 +345,7 @@ fun add_lookup_tyco (src, dst) =
         lookups |> map_lookups
           (fn (lookups_tyco, lookups_const) =>
             (lookups_tyco |> Symtab.update_new (src, dst),
-             lookups_const)), 
+             lookups_const)),
         serialize_data, logic_data));
 
 fun add_lookup_const ((src, ty), dst) =
@@ -350,7 +355,7 @@ fun add_lookup_const ((src, ty), dst) =
         lookups |> map_lookups
           (fn (lookups_tyco, lookups_const) =>
             (lookups_tyco,
-             lookups_const |> Symtab.update_multi (src, (ty, dst)))), 
+             lookups_const |> Symtab.update_multi (src, (ty, dst)))),
         serialize_data, logic_data));
 
 fun set_is_datatype f =
@@ -436,9 +441,9 @@ fun idf_of_cname thy ((overl, _), _, _) (name, ty) =
 
 fun cname_of_idf thy ((_, overl_rev), _, _) idf =
   case Symtab.lookup overl_rev idf
-   of NONE => 
+   of NONE =>
         (case name_of_idf thy nsp_const idf
-         of NONE => (case name_of_idf thy nsp_mem idf
+    of NONE => (case name_of_idf thy nsp_mem idf
          of NONE => NONE
           | SOME n => SOME (n, Sign.the_const_constraint thy n))
           | SOME n => SOME (n, Sign.the_const_constraint thy n))
@@ -509,7 +514,7 @@ fun ensure_def_const thy defs f trns =
         |> pair f
   else (f, trns);
 
-fun mk_fun thy defs eqs ty trns = 
+fun mk_fun thy defs eqs ty trns =
   let
     val sortctxt = ClassPackage.extract_sortctxt thy ty;
     fun mk_sortvar (v, sort) trns =
@@ -561,7 +566,7 @@ fun codegen_sort_default thy defs sort trns =
        (sort |> filter (ClassPackage.is_class thy) |> map (idf_of_name thy nsp_class))
   |-> (fn sort => succeed sort)
 
-fun codegen_type_default thy defs (v as TVar (_, sort)) trns =
+fun codegen_type_default thy defs(v as TVar (_, sort)) trns =
       trns
       |> invoke_cg_sort thy defs sort
       |-> (fn sort => succeed (IVarT (name_of_tvar v, sort)))
@@ -598,7 +603,7 @@ fun codegen_expr_default thy defs (Const (f, ty)) trns =
         val _ = debug 10 (fn _ => "making application (3)") ();
         fun mk_itapp e [] = e
           | mk_itapp e lookup = IInst (e, lookup);
-      in 
+      in
         trns
         |> debug 10 (fn _ => "making application (4): " ^ f ^ "::" ^ Sign.string_of_typ thy ty ^ " <~> " ^ Sign.string_of_typ thy ty_def)
         |> ensure_def_const thy defs (idf_of_cname thy defs (f, ty))
@@ -662,7 +667,7 @@ fun codegen_neg thy defs t trns =
 
 fun defgen_tyco_fallback thy defs tyco trns =
   if Symtab.fold (fn (_, { syntax_tyco, ... }) => fn b => b orelse Symtab.defined syntax_tyco tyco)
-    ((#serialize_data o CodegenData.get) thy) false 
+    ((#serialize_data o CodegenData.get) thy) false
   then
     trns
     |> debug 5 (fn _ => "trying defgen tyco fallback for " ^ quote tyco)
@@ -673,7 +678,7 @@ fun defgen_tyco_fallback thy defs tyco trns =
 
 fun defgen_const_fallback thy defs f trns =
   if Symtab.fold (fn (_, { syntax_const, ... }) => fn b => b orelse Symtab.defined syntax_const f)
-    ((#serialize_data o CodegenData.get) thy) false 
+    ((#serialize_data o CodegenData.get) thy) false
   then
     trns
     |> debug 5 (fn _ => "trying defgen const fallback for " ^ quote f)
@@ -709,6 +714,8 @@ fun defgen_clsmem thy (defs as (_, _, _)) f trns =
   case name_of_idf thy nsp_mem f
    of SOME clsmem =>
         let
+          val _ = debug 10 (fn _ => "CLSMEM " ^ quote clsmem) ();
+          val _ = debug 10 (fn _ => (the o ClassPackage.lookup_const_class thy) clsmem) ();
           val cls = idf_of_name thy nsp_class ((the o ClassPackage.lookup_const_class thy) clsmem);
           val (tvar, ty) = ClassPackage.get_const_sign thy clsmem;
         in
@@ -725,20 +732,25 @@ fun defgen_clsinst thy defs clsinst trns =
    of SOME (cls, tyco) =>
         let
           val arity = (map o map) (idf_of_name thy nsp_class)
-            (ClassPackage.get_arities thy [cls] tyco)
+            (ClassPackage.get_arities thy [cls] tyco);
           val clsmems = map (idf_of_name thy nsp_mem)
             (ClassPackage.the_consts thy cls);
           val instmem_idfs = map (idf_of_cname thy defs)
             (ClassPackage.get_inst_consts_sign thy (tyco, cls));
+          fun add_vars arity clsmems (trns as (_, univ)) =
+            ((invent_var_t_names
+              (map ((fn Classmember (_, _, ty) => ty) o get_def univ)
+              clsmems) (length arity) [] "a" ~~ arity, clsmems), trns)
         in
           trns
           |> debug 5 (fn _ => "trying defgen class instance for (" ^ quote cls ^ ", " ^ quote tyco ^ ")")
-          |> ensure_def_class thy defs (idf_of_name thy nsp_class cls)
-          ||>> ensure_def_tyco thy defs (idf_of_tname thy tyco)
-          ||>> (fold_map o fold_map) (ensure_def_class thy defs) arity
+          |> (fold_map o fold_map) (ensure_def_class thy defs) arity
           ||>> fold_map (ensure_def_const thy defs) clsmems
+          |-> (fn (arity, clsmems) => add_vars arity clsmems)
+          ||>> ensure_def_class thy defs (idf_of_name thy nsp_class cls)
+          ||>> ensure_def_tyco thy defs (idf_of_tname thy tyco)
           ||>> fold_map (ensure_def_const thy defs) instmem_idfs
-          |-> (fn ((((cls, tyco), arity), clsmems), instmem_idfs) =>
+          |-> (fn ((((arity, clsmems), cls), tyco), instmem_idfs) =>
                  succeed (Classinst (cls, (tyco, arity), clsmems ~~ instmem_idfs), []))
         end
     | _ =>
@@ -859,7 +871,7 @@ fun codegen_case get_case_const_data thy defs t trns =
         )
     | _ =>
         trns
-        |> fail ("not a case constant expression: " ^ Sign.string_of_term thy t)
+        |> fail ("not a caseconstant expression: " ^ Sign.string_of_term thy t)
   end;
 
 fun defgen_datatype get_datatype thy defs tyco trns =
@@ -952,29 +964,7 @@ fun mk_deftab thy =
         |> null ? K ["x"]
         |> space_implode "_"
       end;
-    fun add_def (name, [(ty, (_, (args, rhs)))]) (overl, defs, clstab) =
-          (overl,
-           defs |> Symtab.update_new (idf_of_name thy nsp_const name, (args, rhs, ty)),
-           clstab)
-      | add_def (name, ds) ((overl, overl_rev), defs, clstab) =
-          let
-            val ty_decl = Sign.the_const_constraint thy name;
-            fun mk_idf ("0", Type ("nat", [])) = "const.Zero"
-              | mk_idf ("1", Type ("nat", [])) = "."
-              | mk_idf (nm, ty) =
-                  if is_number nm
-                  then nm
-                  else idf_of_name thy nsp_const nm
-                     ^ "_" ^ mangle_tyname (ty_decl, ty)
-            val overl_lookups = map
-              (fn (ty, (_, (args, rhs))) => (ty, mk_idf (name, ty), args, rhs)) ds;
-          in
-            ((overl |> Symtab.update_new (name, map (fn (ty, idf, _, _) => (ty, idf)) overl_lookups),
-              overl_rev |> fold Symtab.update_new (map (fn (ty, idf, _, _) => (idf, (name, ty))) overl_lookups)),
-             defs |> fold Symtab.update_new (map (fn (ty, idf, args, rhs) => (idf, (args, rhs, ty))) overl_lookups),
-             clstab)
-          end;
-    fun mk_instname thyname (cls, tyco) =
+    fun mangle_instname thyname (cls, tyco) =
       idf_of_name thy nsp_inst
         (NameSpace.append thyname (NameSpace.base cls ^ "_" ^ NameSpace.base tyco))
     fun add_clsmems classtab ((overl, overl_rev), defs, (clstab, clstab_rev, clsmems)) =
@@ -1001,19 +991,43 @@ fun mk_deftab thy =
        (clstab
         |> Symtab.fold
              (fn (cls, (_, clsinsts)) => fold
-                (fn (tyco, thyname) => Insttab.update ((cls, tyco), mk_instname thyname (cls, tyco))) clsinsts)
+                (fn (tyco, thyname) => Insttab.update ((cls, tyco), mangle_instname thyname (cls, tyco))) clsinsts)
              classtab,
         clstab_rev
         |> Symtab.fold
              (fn (cls, (_, clsinsts)) => fold
-                (fn (tyco, thyname) => Symtab.update (mk_instname thyname (cls, tyco), (cls, tyco))) clsinsts)
+                (fn (tyco, thyname) => Symtab.update (mangle_instname thyname (cls, tyco), (cls, tyco))) clsinsts)
              classtab,
         clsmems
         |> Symtab.fold
              (fn (class, (clsmems, _)) => fold
                 (fn clsmem => Symtab.update (clsmem, class)) clsmems)
              classtab))
-  in 
+    fun add_def (name, [(ty, (_, (args, rhs)))]) (overl, defs, clstab) =
+          (overl,
+           defs |> Symtab.update_new (idf_of_name thy nsp_const name, (args, rhs, ty)),
+           clstab)
+      | add_def (name, ds) ((overl, overl_rev), defs, clstab) =
+          let
+            val ty_decl = Sign.the_const_constraint thy name;
+            fun mk_idf ("0", Type ("nat", [])) = "const.Zero"
+              | mk_idf ("1", Type ("nat", [])) = "."
+              | mk_idf (nm, ty) =
+                  if is_number nm
+                  then nm
+                  else idf_of_name thy nsp_const nm
+                     ^ "_" ^ mangle_tyname (ty_decl, ty)
+            val overl_lookups = map
+              (fn (ty, (_, (args, rhs))) => (ty, mk_idf (name, ty), args, rhs)) ds;
+          in
+            ((overl
+              |> Symtab.default (name, [])
+              |> Symtab.map_entry name (append (map (fn (ty, idf, _, _) => (ty, idf)) overl_lookups)),
+              overl_rev
+              |> fold Symtab.update_new (map (fn (ty, idf, _, _) => (idf, (name, ty))) overl_lookups)),
+             defs
+             |> fold Symtab.update_new (map (fn (ty, idf, args, rhs) => (idf, (args, rhs, ty))) overl_lookups), clstab)
+          end;  in
     ((Symtab.empty, Symtab.empty), Symtab.empty, (Insttab.empty, Symtab.empty, Symtab.empty))
     |> add_clsmems (ClassPackage.get_classtab thy)
     |> fold add_def (Codegen.mk_deftab thy |> Symtab.dest)
@@ -1174,9 +1188,13 @@ fun generate_code consts thy =
 
 fun serialize_code serial_name filename consts thy =
   let
-    fun mk_sfun tab name args f =
-      Symtab.lookup tab name
-      |> Option.map (fn ms => Codegen.fillin_mixfix ms args (f : 'a -> Pretty.T))
+    fun mk_sfun tab =
+      let
+        fun na name =
+          Option.map Codegen.num_args_of (Symtab.lookup tab name)
+        fun stx name =
+          Codegen.fillin_mixfix ((the o Symtab.lookup tab) name)
+      in (na, stx) end;
     val serialize_data =
       thy
       |> CodegenData.get
@@ -1188,7 +1206,7 @@ fun serialize_code serial_name filename consts thy =
       (#primitives serialize_data);
     val _ = serializer' : string list option -> module -> Pretty.T;
     val compile_it = serial_name = "ml" andalso filename = "-";
-    fun use_code code = 
+    fun use_code code =
       if compile_it
       then use_text Context.ml_output false code
       else File.write (Path.unpack filename) (code ^ "\n");
@@ -1197,7 +1215,7 @@ fun serialize_code serial_name filename consts thy =
     |> (if is_some consts then generate_code (the consts) else pair [])
     |-> (fn [] => `(serializer' NONE o #modl o CodegenData.get)
           | consts => `(serializer' (SOME consts) o #modl o CodegenData.get))
-    |-> (fn code => ((use_code o Pretty.output) code; I))
+    |-> (fn code => (setmp print_mode [] (use_code o Pretty.output) code; I))
   end;
 
 
@@ -1214,14 +1232,14 @@ val (generateK, serializeK, extractingK, aliasK, definedK, dependingK, syntax_ty
   ("code_generate", "code_serialize", "extracting", "defined_by", "depending_on", "code_alias", "code_syntax_tyco", "code_syntax_const");
 
 val generateP =
-  OuterSyntax.command generateK "generate executable code for constants" K.thy_decl ( 
+  OuterSyntax.command generateK "generate executable code for constants" K.thy_decl (
     Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
     >> (fn consts =>
           Toplevel.theory (generate_code consts #> snd))
   );
 
 val serializeP =
-  OuterSyntax.command serializeK "serialize executable code for constants" K.thy_decl ( 
+  OuterSyntax.command serializeK "serialize executable code for constants" K.thy_decl (
     P.name
     -- P.name
     -- Scan.option (
@@ -1233,7 +1251,7 @@ val serializeP =
   );
 
 val aliasP =
-  OuterSyntax.command aliasK "declare an alias for a theory identifier" K.thy_decl ( 
+  OuterSyntax.command aliasK "declare an alias for a theory identifier" K.thy_decl (
     P.name
     -- P.name
       >> (fn (src, dst) => Toplevel.theory (add_alias (src, dst)))
@@ -1300,15 +1318,15 @@ val _ =
     add_defgen ("defs", defgen_defs),
     add_defgen ("clsmem", defgen_clsmem),
     add_defgen ("clsinst", defgen_clsinst),
-    add_alias ("op <>", "neq"),
-    add_alias ("op >=", "ge"),
-    add_alias ("op >", "gt"),
-    add_alias ("op <=", "le"),
-    add_alias ("op <", "lt"),
-    add_alias ("op +", "add"),
-    add_alias ("op -", "minus"),
-    add_alias ("op *", "times"),
-    add_alias ("op @", "append"),
+    add_alias ("op <>", "op_neq"),
+    add_alias ("op >=", "op_ge"),
+    add_alias ("op >", "op_gt"),
+    add_alias ("op <=", "op_le"),
+    add_alias ("op <", "op_lt"),
+    add_alias ("op +", "op_add"),
+    add_alias ("op -", "op_minus"),
+    add_alias ("op *", "op_times"),
+    add_alias ("op @", "op_append"),
     add_lookup_tyco ("bool", type_bool),
     add_lookup_tyco ("IntDef.int", type_integer),
     add_lookup_tyco ("List.list", type_list),
