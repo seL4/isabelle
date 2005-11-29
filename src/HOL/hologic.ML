@@ -59,6 +59,7 @@ sig
   val dest_prod: term -> term * term
   val mk_fst: term -> term
   val mk_snd: term -> term
+  val mk_split: term -> term
   val prodT_factors: typ -> typ list
   val split_const: typ * typ * typ -> term
   val mk_tuple: typ -> term list -> term
@@ -237,12 +238,18 @@ fun mk_snd p =
     Const ("snd", pT --> snd (dest_prodT pT)) $ p
   end;
 
+fun split_const (A, B, C) =
+  Const ("split", (A --> B --> C) --> mk_prodT (A, B) --> C);
+
+fun mk_split t =
+  (case Term.fastype_of t of
+    T as (Type ("fun", [A, Type ("fun", [B, C])])) =>
+      Const ("split", T --> mk_prodT (A, B) --> C) $ t
+  | _ => raise TERM ("mk_split: bad body type", [t]));
+
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
 fun prodT_factors (Type ("*", [T1, T2])) = prodT_factors T1 @ prodT_factors T2
   | prodT_factors T = [T];
-
-fun split_const (Ta, Tb, Tc) =
-    Const ("split", [[Ta, Tb] ---> Tc, mk_prodT (Ta, Tb)] ---> Tc);
 
 (*Makes a nested tuple from a list, following the product type structure*)
 fun mk_tuple (Type ("*", [T1, T2])) tms =
