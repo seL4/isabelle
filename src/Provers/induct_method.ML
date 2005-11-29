@@ -20,6 +20,8 @@ end;
 signature INDUCT_METHOD =
 sig
   val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
+  val add_defs: (string option * term) option list -> Proof.context ->
+    (term option list * thm list) * Proof.context
   val atomize_term: theory -> term -> term
   val atomize_tac: int -> tactic
   val rulified_term: thm -> theory * term
@@ -40,9 +42,7 @@ struct
 
 (** misc utils **)
 
-(* lists *)
-
-fun nth_list xss i = nth xss i handle Subscript => [];
+(* alignment *)
 
 fun align_left msg xs ys =
   let val m = length xs and n = length ys
