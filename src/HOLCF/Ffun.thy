@@ -13,7 +13,7 @@ theory Ffun
 imports Pcpo
 begin
 
-subsection {* Type @{typ "'a => 'b"} is a partial order *}
+subsection {* Full function space is a partial order *}
 
 instance fun  :: (type, sq_ord) sq_ord ..
 
@@ -48,7 +48,7 @@ by (simp add: less_fun_def)
 lemma less_fun_ext: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
 by (simp add: less_fun_def)
 
-subsection {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
+subsection {* Full function space is chain complete *}
 
 text {* chains of functions yield chains in the po range *}
 
@@ -93,7 +93,7 @@ by (rule exI, erule lub_fun)
 instance fun  :: (type, cpo) cpo
 by intro_classes (rule cpo_fun)
 
-subsection {* Type @{typ "'a::type => 'b::pcpo"} is pointed *}
+subsection {* Full function space is pointed *}
 
 lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
 by (simp add: less_fun_def)
