@@ -138,9 +138,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (DatatypePackage.get_datatypes thy1) (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts' (DtRec i);
 
-    val dt_atomTs = filter (fn Type (s, []) => s mem atoms | _ => false)
-      (get_nonrec_types descr sorts);
-
     (**** define permutation functions ****)
 
     val permT = mk_permT (TFree ("'x", HOLogic.typeS));
@@ -401,6 +398,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       | strip_option (DtType ("fun", [dt, DtType ("nominal.nOption", [dt'])])) =
           apfst (cons dt) (strip_option dt')
       | strip_option dt = ([], dt);
+
+    val dt_atomTs = distinct (map (typ_of_dtyp descr sorts')
+      (List.concat (map (fn (_, (_, _, cs)) => List.concat
+        (map (List.concat o map (fst o strip_option) o snd) cs)) descr)));
 
     fun make_intr s T (cname, cargs) =
       let
