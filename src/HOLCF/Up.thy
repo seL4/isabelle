@@ -17,6 +17,9 @@ subsection {* Definition of new type for lifting *}
 
 datatype 'a u = Ibottom | Iup 'a
 
+syntax (xsymbols)
+  "u" :: "type \<Rightarrow> type" ("(_\<^sub>\<bottom>)" [1000] 999)
+
 consts
   Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b"
 
@@ -24,7 +27,7 @@ primrec
   "Ifup f Ibottom = \<bottom>"
   "Ifup f (Iup x) = f\<cdot>x"
 
-subsection {* Ordering on type @{typ "'a u"} *}
+subsection {* Ordering on lifted cpo *}
 
 instance u :: (sq_ord) sq_ord ..
 
@@ -42,7 +45,7 @@ by (simp add: less_up_def)
 lemma Iup_less [iff]: "(Iup x \<sqsubseteq> Iup y) = (x \<sqsubseteq> y)"
 by (simp add: less_up_def)
 
-subsection {* Type @{typ "'a u"} is a partial order *}
+subsection {* Lifted cpo is a partial order *}
 
 lemma refl_less_up: "(x::'a u) \<sqsubseteq> x"
 by (simp add: less_up_def split: u.split)
@@ -61,7 +64,7 @@ instance u :: (cpo) po
 by intro_classes
   (assumption | rule refl_less_up antisym_less_up trans_less_up)+
 
-subsection {* Type @{typ "'a u"} is a cpo *}
+subsection {* Lifted cpo is a cpo *}
 
 lemma is_lub_Iup:
   "range S <<| x \<Longrightarrow> range (\<lambda>i. Iup (S i)) <<| Iup x"
@@ -147,7 +150,7 @@ done
 instance u :: (cpo) cpo
 by intro_classes (rule cpo_up)
 
-subsection {* Type @{typ "'a u"} is pointed *}
+subsection {* Lifted cpo is pointed *}
 
 lemma least_up: "\<exists>x::'a u. \<forall>y. x \<sqsubseteq> y"
 apply (rule_tac x = "Ibottom" in exI)
