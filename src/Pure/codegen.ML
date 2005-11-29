@@ -79,8 +79,9 @@ sig
   val eval_term: theory -> term -> term
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
   val quotes_of: 'a mixfix list -> 'a list
+  val num_args_of: 'a mixfix list -> int
   val replace_quotes: 'b list -> 'a mixfix list -> 'b mixfix list
-  val fillin_mixfix: 'a mixfix list -> Pretty.T list -> ('a -> Pretty.T) -> string list * Pretty.T
+  val fillin_mixfix: 'a mixfix list -> Pretty.T list -> ('a -> Pretty.T) -> Pretty.T
   val mk_deftab: theory -> deftab
 
   val get_node: codegr -> string -> node
@@ -123,7 +124,7 @@ fun args_of [] xs = ([], xs)
   | args_of (Ignore :: ms) (_ :: xs) = args_of ms xs
   | args_of (_ :: ms) xs = args_of ms xs;
 
-fun num_args x = length (List.filter is_arg x);
+fun num_args_of x = length (List.filter is_arg x);
 
 
 (**** theory data ****)
@@ -346,7 +347,7 @@ fun preprocess_term thy t =
       [Const ("==", _) $ x' $ t'] => if x = x' then t' else err ()
     | _ => err ()
   end;
-    
+
 fun unfold_attr (thy, eqn) =
   let
     val names = term_consts
@@ -508,12 +509,12 @@ fun del_nodes ks (gr, x) = (Graph.del_nodes ks gr, x);
 fun map_node k f (gr, x) = (Graph.map_node k f gr, x);
 fun new_node p (gr, x) = (Graph.new_node p gr, x);
 
-fun theory_of_type s thy = 
+fun theory_of_type s thy =
   if Sign.declared_tyname thy s
   then SOME (if_none (get_first (theory_of_type s) (Theory.parents_of thy)) thy)
   else NONE;
 
-fun theory_of_const s thy = 
+fun theory_of_const s thy =
   if Sign.declared_const thy s
   then SOME (if_none (get_first (theory_of_const s) (Theory.parents_of thy)) thy)
   else NONE;
@@ -651,22 +652,19 @@ fun replace_quotes [] [] = []
 
 fun fillin_mixfix ms args f =
   let
-    fun fillin [] [] vars = (vars, [])
-      | fillin (Arg :: ms) [] vars =
-          let
-            val v = "a_" ^ (string_of_int o length) vars;
-          in fillin ms args (v::vars) ||> (cons o Pretty.str) v end
-      | fillin (Arg :: ms) (a :: args) vars =
-          fillin ms args vars ||> cons a
-      | fillin (Ignore :: ms) args vars =
-          fillin ms args vars
-      | fillin (Module :: ms) args vars =
-          fillin ms args vars
-      | fillin (Pretty p :: ms) args vars =
-          fillin ms args vars ||> cons p
-      | fillin (Quote q :: ms) args vars =
-          fillin ms args vars ||> cons (f q)
-  in fillin ms args [] ||> Pretty.block end;
+    fun fillin [] [] =
+         []
+      | fillin (Arg :: ms) (a :: args) =
+          a :: fillin ms args
+      | fillin (Ignore :: ms) args =
+          fillin ms args
+      | fillin (Module :: ms) args =
+          fillin ms args
+      | fillin (Pretty p :: ms) args =
+          p :: fillin ms args
+      | fillin (Quote q :: ms) args =
+          (f q) :: fillin ms args
+  in Pretty.block (fillin ms args) end;
 
 
 (**** default code generators ****)
@@ -716,7 +714,7 @@ fun default_codegen thy defs gr dep module brack t =
     | Const (s, T) =>
       (case get_assoc_code thy s T of
          SOME (ms, aux) =>
-           let val i = num_args ms
+           let val i = num_args_of ms
            in if length ts < i then
                default_codegen thy defs gr dep module brack (eta_expand u ts i)
              else
