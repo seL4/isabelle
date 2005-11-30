@@ -17,7 +17,7 @@ sig
   val is_class: theory -> class -> bool
   val get_arities: theory -> sort -> string -> sort list
   val get_superclasses: theory -> class -> class list
-  val get_const_sign: theory -> string -> string * typ
+  val get_const_sign: theory -> string -> string -> typ
   val get_inst_consts_sign: theory -> string * class -> (string * typ) list
   val lookup_const_class: theory -> string -> class option
   val get_classtab: theory -> (string list * (string * string) list) Symtab.table
@@ -162,32 +162,33 @@ fun get_superclasses thy class =
 
 (* instance queries *)
 
-fun get_const_sign thy const =
+fun get_const_sign thy tvar const =
   let
     val class = (the o lookup_const_class thy) const;
     val ty = (Type.unvarifyT o Sign.the_const_constraint thy) const;
-    val tvar = fold_atyps
-      (fn TFree (tvar, sort) =>
-        if Sorts.sort_eq (Sign.classes_of thy) ([class], sort) then K (SOME tvar) else I | _ => I) ty NONE
-      |> the;
-    val ty' = map_type_tfree (fn (tvar', sort) =>
-        if tvar' = tvar
-        then TFree (tvar, [])
-        else TFree (tvar', sort)
-      ) ty;
-  in (tvar, ty') end;
+    val tvars_used = Term.add_tfreesT ty [];
+    val tvar_rename = hd (Term.invent_names (map fst tvars_used) tvar 1);
+  in
+    ty
+    |> map_type_tfree (fn (tvar', sort) =>
+          if Sorts.sort_eq (Sign.classes_of thy) ([class], sort)
+          then TFree (tvar, [])
+          else if tvar' = tvar
+          then TFree (tvar_rename, sort)
+          else TFree (tvar', sort))
+  end;
 
 fun get_inst_consts_sign thy (tyco, class) =
   let
     val consts = the_consts thy class;
     val arities = get_arities thy [class] tyco;
-    val const_signs = map (get_const_sign thy) consts;
-    val vars_used = fold (fn (tvar, ty) => curry (gen_union (op =))
-      (map fst (typ_tfrees ty) |> remove (op =) tvar)) const_signs [];
+    val const_signs = map (get_const_sign thy "'a") consts;
+    val vars_used = fold (fn ty => curry (gen_union (op =))
+      (map fst (typ_tfrees ty) |> remove (op =) "'a")) const_signs [];
     val vars_new = Term.invent_names vars_used "'a" (length arities);
     val typ_arity = Type (tyco, map2 TFree (vars_new, arities));
     val instmem_signs =
-      map (fn (tvar, ty) => typ_subst_atomic [(TFree (tvar, []), typ_arity)] ty) const_signs;
+      map (typ_subst_atomic [(TFree ("'a", []), typ_arity)]) const_signs;
   in consts ~~ instmem_signs end;
 
 fun get_classtab thy =

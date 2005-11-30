@@ -40,22 +40,23 @@ sig
   val itype_of_iexpr: iexpr -> itype;
   val ipat_of_iexpr: iexpr -> ipat;
   val eq_itype: itype * itype -> bool;
-  val invent_var_t_names: itype list -> int -> vname list -> vname -> vname list;
-  val invent_var_e_names: iexpr list -> int -> vname list -> vname -> vname list;
+  val tvars_of_itypes: itype list -> string list;
+  val vars_of_ipats: ipat list -> string list;
+  val vars_of_iexprs: iexpr list -> string list;
 
   datatype def =
       Nop
     | Fun of (ipat list * iexpr) list * (ClassPackage.sortcontext * itype)
     | Typesyn of (vname * string list) list * itype
-    | Datatype of (vname * string list) list * string list * string list
+    | Datatype of (vname * string list) list * string list * class list
     | Datatypecons of string * itype list
-    | Class of string list * string list * string list
-    | Classmember of string * vname * itype
-    | Classinst of string * (string * (vname * string list) list) * (string * string) list;
+    | Class of class list * vname * string list * string list
+    | Classmember of class * vname * itype
+    | Classinst of class * (string * (vname * string list) list) * (string * string) list;
   type module;
   type transact;
   type 'dst transact_fin;
-  type ('src, 'dst) gen_codegen = 'src -> transact -> 'dst transact_fin;
+  type ('src, 'dst) gen_exprgen = 'src -> transact -> 'dst transact_fin;
   type gen_defgen = string -> transact -> (def * string list) transact_fin;
   val pretty_def: def -> Pretty.T;
   val pretty_module: module -> Pretty.T; 
@@ -65,7 +66,7 @@ sig
   val partof: string list -> module -> module;
   val succeed: 'a -> transact -> 'a transact_fin;
   val fail: string -> transact -> 'a transact_fin;
-  val gen_invoke: (string * ('src, 'dst) gen_codegen) list -> string
+  val gen_invoke: (string * ('src, 'dst) gen_exprgen) list -> string
     -> 'src -> transact -> 'dst * transact;
   val gen_ensure_def: (string * gen_defgen) list -> string
     -> string -> transact -> transact;
@@ -102,6 +103,7 @@ sig
   val Fun_wfrec: iexpr;
 
   val prims: string list;
+  val is_eqtype: module -> itype -> bool;
   val extract_defs: iexpr -> string list;
   val eta_expand: (string -> int) -> module -> module;
   val eta_expand_poly: module -> module;
@@ -141,20 +143,6 @@ struct
 val debug_level = ref 0;
 fun debug d f x = (if d <= !debug_level then Output.debug (f x) else (); x);
 val soft_exc = ref true;
-
-fun foldl' f (l, []) = the l
-  | foldl' f (_, (r::rs)) =
-      let
-        fun itl (l, [])  = l
-          | itl (l, r::rs) = itl (f (l, r), rs)
-      in itl (r, rs) end;
-
-fun foldr' f ([], r) = the r
-  | foldr' f (ls, _) =
-      let
-        fun itr [l] = l
-          | itr (l::ls) = f (l, itr ls)
-      in itr ls end;
 
 fun unfoldl dest x =
   case dest x
@@ -399,18 +387,43 @@ fun ipat_of_iexpr (IConst (f, ty)) = ICons ((f, []), ty)
       case unfold_app e of (IConst (f, ty), es) =>
         ICons ((f, map ipat_of_iexpr es), (snd o unfold_fun) ty);
 
-fun vars_of_itype ty =
+fun tvars_of_itypes tys =
   let
-    fun vars (IType (_, tys)) = fold vars tys
-      | vars (IFun (ty1, ty2)) = vars ty1 #> vars ty2
-      | vars (IVarT (v, _)) = cons v
-  in vars ty [] end;
+    fun vars (IType (_, tys)) =
+          fold vars tys
+      | vars (IFun (ty1, ty2)) =
+          vars ty1 #> vars ty2
+      | vars (IVarT (v, _)) =
+          insert (op =) v
+  in fold vars tys [] end;
 
 fun vars_of_ipats ps =
   let
-    fun vars (ICons ((_, ps), _)) = fold vars ps
-      | vars (IVarP (v, _)) = cons v
+    fun vars (ICons ((_, ps), _)) =
+          fold vars ps
+      | vars (IVarP (v, _)) =
+          insert (op =) v
   in fold vars ps [] end;
+
+fun vars_of_iexprs es =
+  let
+    fun vars (IConst (f, _)) =
+          I
+      | vars (IVarE (v, _)) =
+          insert (op =) v
+      | vars (IApp (e1, e2)) =
+          vars e1 #> vars e2
+      | vars (IAbs ((v, _), e)) =
+          insert (op =) v
+          #> vars e
+      | vars (ICase (e, cs)) =
+          vars e
+          #> fold (fn (p, e) => fold (insert (op =)) (vars_of_ipats [p]) #> vars e) cs
+      | vars (IInst (e, lookup)) =
+          vars e
+      | vars (IDictE ms) =
+          fold (vars o snd) ms
+  in fold vars es [] end;
 
 fun instant_itype (v, sty) ty =
   let
@@ -421,36 +434,6 @@ fun instant_itype (v, sty) ty =
       | instant (w as (IVarT (u, _))) =
           if v = u then sty else w
   in instant ty end;
-
-fun invent_var_t_names tys n used a =
-  let
-    fun invent (IType (_, tys)) =
-          fold invent tys
-      | invent (IFun (ty1, ty2)) =
-          invent ty1 #> invent ty2
-      | invent (IVarT (v, _)) =
-          cons v
-in Term.invent_names (fold invent tys used) a n end;
-
-fun invent_var_e_names es n used a =
-  let
-    fun invent (IConst (f, _)) =
-          I
-      | invent (IVarE (v, _)) =
-          insert (op =) v
-      | invent (IApp (e1, e2)) =
-          invent e1 #> invent e2
-      | invent (IAbs ((v, _), e)) =
-          insert (op =) v #> invent e
-      | invent (ICase (e, cs)) =
-          invent e
-          #> fold (fn (p, e) => fold (insert (op =)) (vars_of_ipats [p]) #> invent e) cs
-      | invent (IInst (e, lookup)) =
-          invent e
-      | invent (IDictE ms) =
-          fold (invent o snd) ms
-      | invent (ILookup (ls, v)) = error "ILOOKUP"
-  in Term.invent_names (fold invent es used) a n end;
 
 
 
@@ -464,16 +447,16 @@ datatype def =
   | Typesyn of (vname * string list) list * itype
   | Datatype of (vname * string list) list * string list * string list
   | Datatypecons of string * itype list
-  | Class of string list * string list * string list
-  | Classmember of string * string * itype
-  | Classinst of string * (string * (vname * string list) list) * (string * string) list;
+  | Class of class list * vname * string list * string list
+  | Classmember of class * vname * itype
+  | Classinst of class * (string * (vname * string list) list) * (string * string) list;
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
 type transact = Graph.key list * module;
 datatype 'dst transact_res = Succeed of 'dst | Fail of string list * exn option;
 type 'dst transact_fin = 'dst transact_res * transact;
-type ('src, 'dst) gen_codegen = 'src -> transact -> 'dst transact_fin;
+type ('src, 'dst) gen_exprgen = 'src -> transact -> 'dst transact_fin;
 type gen_defgen = string -> transact -> (def * string list) transact_fin;
 exception FAIL of string list * exn option;
 
@@ -514,7 +497,7 @@ fun pretty_def Nop =
         Pretty.str "cons ",
         Pretty.gen_list " ->" "" "" (map pretty_itype tys @ [Pretty.str dtname])
       ]
-  | pretty_def (Class (supcls, mems, insts)) =
+  | pretty_def (Class (supcls, _, mems, insts)) =
       Pretty.block [
         Pretty.str "class extending ",
         Pretty.gen_list "," "[" "]" (map Pretty.str supcls),
@@ -721,10 +704,10 @@ fun add_check_transform (name, (Datatypecons (dtname, _))) =
       in
         ([([], fn [] => check_var ty NONE),
           ([clsname],
-             fn [Class (_, _, [])] => NONE
+             fn [Class (_, _, _, [])] => NONE
               | _ => "attempted to add class member to witnessed class" |> SOME)],
          [(clsname,
-             fn Class (supcs, mems, insts) => Class (supcs, name::mems, insts)
+             fn Class (supcs, v, mems, insts) => Class (supcs, v, name::mems, insts)
               | def => "attempted to add class member to non-class"
                  ^ (Pretty.output o pretty_def) def |> error)])
       end
@@ -747,7 +730,7 @@ fun add_check_transform (name, (Datatypecons (dtname, _))) =
       in
         (map (fn (memname, memprim) => ([memname, memprim], check)) memdefs,
           [(clsname,
-              fn Class (supcs, mems, insts) => Class (supcs, mems, name::insts)
+              fn Class (supcs, v, mems, insts) => Class (supcs, v, mems, name::insts)
                | def => "attempted to add class instance to non-class"
                   ^ (Pretty.output o pretty_def) def |> error),
            (tyco,
@@ -879,7 +862,7 @@ fun start_transact f modl =
 
 (** primitive language constructs **)
 
-val class_eq = "Eqtype"; (*defined for all primitve types and extensionally for all datatypes*)
+val class_eq = "Eq"; (*defined for all primitve types and extensionally for all datatypes*)
 val type_bool = "Bool";
 val type_integer = "Integer"; (*infinite!*)
 val type_float = "Float";
@@ -962,6 +945,33 @@ val prims = [class_eq, type_bool, type_integer, type_float, type_pair, type_list
   cons_true, cons_false, cons_pair, cons_nil, cons_cons, fun_primeq, fun_eq, fun_not, fun_and,
   fun_or, fun_if, fun_fst, fun_snd, fun_add, fun_mult, fun_minus, fun_lt, fun_le, fun_wfrec];
 
+fun is_superclass_of modl class_sub class_sup =
+  if class_sub = class_sup
+  then true
+  else
+    if NameSpace.is_qualified class_sub
+    then
+      case get_def modl class_sub
+       of Class (supclsnames, _, _, _)
+            => exists (fn class => is_superclass_of modl class class_sup) supclsnames
+    else
+      false;
+
+fun is_eqtype modl (IType (tyco, tys)) =
+      forall (is_eqtype modl) tys
+      andalso
+        if NameSpace.is_qualified tyco
+        then
+          case get_def modl tyco
+           of Typesyn (vs, ty) => is_eqtype modl ty
+            | Datatype (_, _, classes) => exists (is_superclass_of modl class_eq) classes
+        else
+          true
+  | is_eqtype modl (IFun _) =
+      false
+  | is_eqtype modl (IVarT (_, sort)) =
+      exists (is_superclass_of modl class_eq) sort
+
 fun extract_defs e =
   let
     fun extr_itype (ty as IType (tyco, _)) =
@@ -993,7 +1003,7 @@ fun eta_expand query =
           |> curry Library.drop (length es)
           |> curry Library.take add_n
         val add_vars =
-          invent_var_e_names es add_n [] "x" ~~ tys;
+          Term.invent_names (vars_of_iexprs es) "x" add_n ~~ tys;
       in
         Library.foldr IAbs (add_vars, IConst (f, ty) `$$ es `$$ (map IVarE add_vars))
       end;
@@ -1012,11 +1022,11 @@ val eta_expand_poly =
   let
     fun map_def_fun (def as Fun ([([], e)], cty as (sortctxt, (ty as IFun (ty1, ty2))))) =
           if (not o null) sortctxt
-            orelse (null o vars_of_itype) ty
+            orelse (null o tvars_of_itypes) [ty]
           then def
           else
             let
-              val add_var = (hd (invent_var_e_names [e] 1 [] "x"), ty1)
+              val add_var = (hd (Term.invent_names (vars_of_iexprs [e]) "x" 1), ty1)
             in (Fun ([([IVarP add_var], IAbs (add_var, e))], cty)) end
       | map_def_fun def = def;
   in map_defs map_def_fun end;
@@ -1038,14 +1048,14 @@ fun tupelize_cons module =
           (def, acc)
       | replace_def (name, (Datatypecons (tyco, tys))) acc =
           (Datatypecons (tyco,
-            [foldl' (op xx) (NONE, tys)]), name::acc)
+            [foldr1 (op xx) tys]), name::acc)
       | replace_def (_, def) acc = (def, acc);
     fun replace_app cs ((f, ty), es) =
       if member (op =) cs f
       then
         let
           val (tys, ty') = unfold_fun ty
-        in IConst (f, foldr' (op xx) (tys, NONE) `-> ty') `$ foldl' (op **) (NONE, es) end
+        in IConst (f, foldr1 (op xx) tys `-> ty') `$ foldr1 (op **) es end
       else IConst (f, ty) `$$ es;
     fun replace_iexpr cs (IConst (f, ty)) =
           replace_app cs ((f, ty), [])
@@ -1056,7 +1066,7 @@ fun tupelize_cons module =
       | replace_iexpr cs e = map_iexpr I I (replace_iexpr cs) e;
     fun replace_ipat cs (p as ICons ((c, ps), ty)) =
           if member (op =) cs c then
-            ICons ((c, [(foldl' (op &&) (NONE, map (replace_ipat cs) ps))]), ty)
+            ICons ((c, [(foldr1 (op &&) (map (replace_ipat cs) ps))]), ty)
           else map_ipat I (replace_ipat cs) p
       | replace_ipat cs p = map_ipat I (replace_ipat cs) p;
   in
@@ -1068,17 +1078,17 @@ fun eliminate_classes module =
     fun mk_cls_typ_map memberdecls ty_inst =
       map (fn (memname, (v, ty)) =>
         (memname, ty |> instant_itype (v, ty_inst))) memberdecls;
-    fun transform_dicts (Class (supcls, members, _)) =
+    fun transform_dicts (Class (supcls, v, members, _)) =
           let
             val memberdecls = AList.make
               ((fn Classmember (_, v, ty) => (v, ty)) o get_def module) members;
-            val varname_cls = invent_var_t_names (map (snd o snd) memberdecls) 1 [] "a" |> hd;
+            val varname_cls = Term.invent_names (tvars_of_itypes (map (snd o snd) memberdecls)) "a" 1 |> hd
           in
             Typesyn ([(varname_cls, [])], IDictT (mk_cls_typ_map memberdecls (IVarT (varname_cls, []))))
           end
       | transform_dicts (Classinst (clsname, (tyco, arity), memdefs)) =
           let
-            val Class (_, members, _) = get_def module clsname;
+            val Class (_, _, members, _) = get_def module clsname;
             val memberdecls = AList.make
               ((fn Classmember (_, v, ty) => (v, ty)) o get_def module) members;
             val ty_arity = tyco `%% map IVarT arity;
@@ -1092,22 +1102,21 @@ fun eliminate_classes module =
       | transform_dicts d = d
     fun transform_defs (Fun (ds, (sortctxt, ty))) =
           let
-            fun reduce f xs = foldl' f (NONE, xs);
             val _ = writeln ("class 1");
             val varnames_ctxt =
               sortctxt
               |> length o Library.flat o map snd
-              |> (fn used => invent_var_e_names (map snd ds) used ((vars_of_ipats o fst o hd) ds) "d")
+              |> Term.invent_names ((vars_of_iexprs o map snd) ds @ (vars_of_ipats o Library.flat o map fst) ds) "d"
               |> unflat (map snd sortctxt);
             val _ = writeln ("class 2");
             val vname_alist = map2 (fn ((vt, sort), vs) => (vt, vs ~~ sort)) (sortctxt, varnames_ctxt);
             val _ = writeln ("class 3");
             fun add_typarms ty =
-              map (reduce (op xx) o (fn (vt, vss) => map (fn (_, cls) => cls `%% [IVarT (vt, [])]) vss)) vname_alist
+              map (foldr1 (op xx) o (fn (vt, vss) => map (fn (_, cls) => cls `%% [IVarT (vt, [])]) vss)) vname_alist
                 `--> ty;
             val _ = writeln ("class 4");
             fun add_parms ps =
-              map (reduce (op &&) o (fn (vt, vss) => map (fn (v, cls) => IVarP (v, cls `%% [IVarT (vt, [])])) vss)) vname_alist
+              map (foldr1 (op &&) o (fn (vt, vss) => map (fn (v, cls) => IVarP (v, cls `%% [IVarT (vt, [])])) vss)) vname_alist
                 @ ps;
             val _ = writeln ("class 5");
             fun transform_itype (IVarT (v, s)) =
@@ -1132,8 +1141,8 @@ fun eliminate_classes module =
                   in (mk_parm cls, ILookup (rev deriv, v')) end
             and transform_lookups lss =
                   map_yield (map_yield transform_lookup
-                       #> apfst (reduce (op xx))
-                       #> apsnd (reduce (op **))) lss;
+                       #> apfst (foldr1 (op xx))
+                       #> apsnd (foldr1 (op **))) lss;
             val _ = writeln ("class 8");
             fun transform_iexpr (IInst (e, ls)) =
                   (writeln "A"; transform_iexpr e `$$ (snd o transform_lookups) ls)
