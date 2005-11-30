@@ -7,7 +7,8 @@ The nominal induct proof method.
 structure NominalInduct:
 sig
   val nominal_induct_tac: Proof.context -> (string option * term) option list ->
-    term list -> (string * typ) list list -> thm -> thm list -> int -> RuleCases.cases_tactic
+    (string * typ) list -> (string * typ) list list -> thm ->
+    thm list -> int -> RuleCases.cases_tactic
   val nominal_induct_method: Method.src -> Proof.context -> Method.method
 end =
 struct
@@ -27,8 +28,9 @@ val split_all_tuples =
     [split_conv, split_paired_all, unit_all_eq1, thm "fresh_unit_elim", thm "fresh_prod_elim"]);
 
 
-(* inst_rule conclusion: ?P fresh_struct ... insts *)
+(* prepare rule *)
 
+(*conclusion: ?P fresh_struct ... insts*)
 fun inst_rule thy insts fresh rule =
   let
     val vars = InductAttrib.vars_of (Thm.concl_of rule);
@@ -38,14 +40,20 @@ fun inst_rule thy insts fresh rule =
     val zs = Library.drop (m - n - 2, ys);
 
     val subst =
-      (P, tuple_fun (map Term.fastype_of fresh) (Term.dest_Var P)) ::
-      (x, tuple fresh) ::
+      (P, tuple_fun (map #2 fresh) (Term.dest_Var P)) ::
+      (x, tuple (map Free fresh)) ::
       List.mapPartial (fn (z, SOME t) => SOME (z, t) | _ => NONE) (zs ~~ insts);
   in
     rule
-    |> Drule.cterm_instantiate (PolyML.print (map (pairself (Thm.cterm_of thy)) subst))
-    |> PolyML.print
+    |> Drule.cterm_instantiate (map (pairself (Thm.cterm_of thy)) subst)
   end;
+
+fun rename_params_prems xs rule =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_thm rule);
+    val (As, C) = Logic.strip_horn (Thm.prop_of rule);
+    val prop = Logic.list_implies (map (curry Logic.list_rename_params xs) As, C);
+  in Thm.equal_elim (Thm.reflexive (cert prop)) rule end;
 
 
 (* nominal_induct_tac *)
@@ -58,9 +66,12 @@ fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
     val ((insts, defs), defs_ctxt) = InductMethod.add_defs def_insts ctxt;
     val atomized_defs = map ObjectLogic.atomize_thm defs;
 
+    val finish_rule =
+      split_all_tuples
+      #> rename_params_prems (map (ProofContext.revert_skolem defs_ctxt o #1) fresh);
     fun rule_cases r = RuleCases.make false (SOME (Thm.prop_of r)) (InductMethod.rulified_term r);
   in
-    SUBGOAL_CASES (fn (goal, i) => fn st =>
+    (fn i => fn st =>
       rule
       |> `RuleCases.get
       ||> inst_rule thy insts fresh
@@ -70,7 +81,7 @@ fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
             Method.insert_tac (more_facts @ atomized_defs) j
             THEN InductMethod.fix_tac defs_ctxt k (Library.nth_list fixing (j - 1)) j))
           THEN' InductMethod.atomize_tac) i st |> Seq.maps (fn st' =>
-            InductMethod.guess_instance (split_all_tuples r) i st'
+            InductMethod.guess_instance (finish_rule r) i st'
             |> Seq.maps (fn r' =>
               CASES (rule_cases r' cases)
                 (Tactic.rtac r' i THEN
@@ -104,7 +115,7 @@ fun unless_more_args scan = Scan.unless (Scan.lift
 val def_insts = Scan.repeat (unless_more_args def_inst);
 
 val fresh = Scan.optional (Scan.lift (Args.$$$ freshN -- Args.colon) |--
-  Scan.repeat (unless_more_args Args.local_term)) [];
+  Scan.repeat (unless_more_args free)) [];
 
 val fixing = Scan.optional (Scan.lift (Args.$$$ fixingN -- Args.colon) |--
   Args.and_list1 (Scan.repeat (unless_more_args free))) [];
