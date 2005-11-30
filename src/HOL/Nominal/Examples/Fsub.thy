@@ -90,7 +90,6 @@ primrec
 "subst_ctxt [] Y T = []"
 "subst_ctxt (XT#Xs) Y T = (fst XT, subst_ty (snd XT) Y T)#(subst_ctxt Xs Y T)"
 
-
 text {* valid contexts *}
 
 constdefs
@@ -200,7 +199,6 @@ apply(simp add: closed_in_def2)
 apply(simp add: domain_append)
 done
 
-
 lemma fresh_implies_not_member[rule_format]:
   fixes \<Gamma>::"ty_context"
   shows "X\<sharp>\<Gamma> \<longrightarrow> \<not>(\<exists>T.(X,T)\<in>(set \<Gamma>))"
@@ -214,7 +212,6 @@ lemma uniqueness_of_ctxt:
   apply (induct \<Gamma>)
   apply (auto dest!: validE fresh_implies_not_member)
   done
-
  
 section {* Subtyping *}
 
@@ -312,55 +309,41 @@ lemma subtype_eqvt:
   shows "\<Gamma> \<turnstile> S <: T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>S) <: (pi\<bullet>T)"
 apply(erule subtype_of_rel.induct)
 apply(force intro: valid_eqvt closed_in_eqvt)
-(*
-apply(simp)
-apply(rule S_Var)
-apply(rule valid_eqvt)
-apply(assumption)
-*)
-(* FIXME: here *)
-(* apply(auto intro: closed_in_eqvt valid_eqvt dest: pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst]) *)
 apply(force intro: closed_in_eqvt valid_eqvt silly_eqvt1)
 apply(force intro: valid_eqvt silly_eqvt2)
 apply(force)
 apply(force intro!: S_All simp add: fresh_prod pt_fresh_bij1[OF pt_tyvrs_inst, OF at_tyvrs_inst])
 done
 
-lemma subtype_of_rel_induct_aux[rule_format]:
-  fixes  P :: "ty_context \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow>'a::fs_tyvrs\<Rightarrow>bool"
+lemma subtype_of_rel_induct[consumes 1, case_names S_Top S_Var S_Refl S_Arrow S_All]:
+  fixes  P :: "'a::fs_tyvrs\<Rightarrow>ty_context \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow>bool"
   assumes a: "\<Gamma> \<turnstile> S <: T"
-  and a1:    "\<And>x \<Gamma> S. (\<turnstile> \<Gamma> ok) \<Longrightarrow> (S closed_in \<Gamma>) \<Longrightarrow> P \<Gamma> S Top x"
-  and a2:    "\<And>x \<Gamma> X S T. (\<turnstile> \<Gamma> ok) \<Longrightarrow> ((X,S)\<in>set \<Gamma>) \<Longrightarrow> (\<Gamma> \<turnstile> S <: T) \<Longrightarrow> (\<forall>z. P \<Gamma> S T z)
-              \<Longrightarrow> P \<Gamma> (TyVar X) T x"
-  and a3:    "\<And>x \<Gamma> X. (\<turnstile> \<Gamma> ok) \<Longrightarrow> X\<in>(domain \<Gamma>) \<Longrightarrow> P \<Gamma> (TyVar X) (TyVar X) x"
-  and a4:    "\<And>x \<Gamma> S1 S2 T1 T2. \<Gamma> \<turnstile> T1 <: S1 \<Longrightarrow> (\<forall>z. P \<Gamma> T1 S1 z) \<Longrightarrow> \<Gamma> \<turnstile> S2 <: T2 \<Longrightarrow> 
-              (\<forall>z. P \<Gamma> S2 T2 z) \<Longrightarrow> P \<Gamma> (S1 \<rightarrow> S2) (T1 \<rightarrow> T2) x"
-  and a5:    "\<And>x \<Gamma> X S1 S2 T1 T2. 
-              X\<sharp>x \<Longrightarrow> X\<sharp>(\<Gamma>,S1,T1) \<Longrightarrow> \<Gamma> \<turnstile> T1 <: S1 \<Longrightarrow> (\<forall>z. P \<Gamma> T1 S1 z) \<Longrightarrow> ((X,T1)#\<Gamma>) \<turnstile> S2 <: T2 
-              \<Longrightarrow> (\<forall>z. P ((X,T1)#\<Gamma>) S2 T2 z) \<Longrightarrow> P \<Gamma> (\<forall> [X<:S1].S2) (\<forall> [X<:T1].T2) x"
-  shows "\<forall>(pi::tyvrs prm) (x::'a::fs_tyvrs). P (pi\<bullet>\<Gamma>) (pi\<bullet>S) (pi\<bullet>T) x"
-using a
-proof (induct)
-  case (S_Top S \<Gamma>)
-  have b1: "\<turnstile> \<Gamma> ok" by fact 
-  have b2: "S closed_in \<Gamma>" by fact
-  show ?case
-  proof (intro strip, simp)
-    fix pi::"tyvrs prm" and x::"'a::fs_tyvrs"
+  and a1:    "\<And>\<Gamma> S x. (\<turnstile> \<Gamma> ok) \<Longrightarrow> (S closed_in \<Gamma>) \<Longrightarrow> P x \<Gamma> S Top"
+  and a2:    "\<And>\<Gamma> X S T x. (\<turnstile> \<Gamma> ok) \<Longrightarrow> ((X,S)\<in>set \<Gamma>) \<Longrightarrow> (\<Gamma> \<turnstile> S <: T) \<Longrightarrow> (\<And>z. P z \<Gamma> S T)
+              \<Longrightarrow> P x \<Gamma> (TyVar X) T"
+  and a3:    "\<And>\<Gamma> X x. (\<turnstile> \<Gamma> ok) \<Longrightarrow> X\<in>domain \<Gamma> \<Longrightarrow> P x \<Gamma> (TyVar X) (TyVar X)"  
+  and a4:    "\<And>\<Gamma> S1 S2 T1 T2 x. \<Gamma> \<turnstile> T1 <: S1 \<Longrightarrow> (\<And>z. P z \<Gamma> T1 S1) \<Longrightarrow> \<Gamma> \<turnstile> S2 <: T2 \<Longrightarrow> 
+              (\<And>z. P z \<Gamma> S2 T2) \<Longrightarrow> P x \<Gamma> (S1 \<rightarrow> S2) (T1 \<rightarrow> T2)"
+  and a5:    "\<And>\<Gamma> X S1 S2 T1 T2 x. 
+              X\<sharp>x \<Longrightarrow> X\<sharp>(\<Gamma>,S1,T1) \<Longrightarrow> \<Gamma> \<turnstile> T1 <: S1 \<Longrightarrow> (\<And>z. P z \<Gamma> T1 S1) \<Longrightarrow> ((X,T1)#\<Gamma>) \<turnstile> S2 <: T2 
+              \<Longrightarrow> (\<And>z. P z ((X,T1)#\<Gamma>) S2 T2) \<Longrightarrow> P x \<Gamma> (\<forall> [X<:S1].S2) (\<forall> [X<:T1].T2)"
+  shows "P x \<Gamma> S T"
+proof -
+  from a have "\<And>(pi::tyvrs prm) (x::'a::fs_tyvrs). P x (pi\<bullet>\<Gamma>) (pi\<bullet>S) (pi\<bullet>T)"
+  proof (induct)
+    case (S_Top S \<Gamma>)
+    have b1: "\<turnstile> \<Gamma> ok" by fact 
+    have b2: "S closed_in \<Gamma>" by fact
     from b1 have "\<turnstile> (pi\<bullet>\<Gamma>) ok" by (rule valid_eqvt)
     moreover
     from b2 have "(pi\<bullet>S) closed_in (pi\<bullet>\<Gamma>)" by (rule closed_in_eqvt)
-    ultimately show "P (pi \<bullet> \<Gamma>) (pi \<bullet> S) Top x" by (rule a1)
-  qed
-next
-  case (S_Var S T X \<Gamma>)
-  have b1: "\<turnstile> \<Gamma> ok" by fact 
-  have b2: "(X,S) \<in> set \<Gamma>" by fact
-  have b3: "\<Gamma> \<turnstile> S <: T" by fact
-  have b4: "\<forall>(pi::tyvrs prm) x. P (pi\<bullet>\<Gamma>) (pi\<bullet>S) (pi\<bullet>T) x" by fact
-  show ?case
-  proof (intro strip, simp)
-    fix pi::"tyvrs prm" and x::"'a::fs_tyvrs"
+    ultimately show "P x (pi \<bullet> \<Gamma>) (pi \<bullet> S) (pi\<bullet>Top)" by (simp add: a1)
+  next
+    case (S_Var S T X \<Gamma>)
+    have b1: "\<turnstile> \<Gamma> ok" by fact 
+    have b2: "(X,S) \<in> set \<Gamma>" by fact
+    have b3: "\<Gamma> \<turnstile> S <: T" by fact
+    have b4: "\<And>(pi::tyvrs prm) x. P x (pi\<bullet>\<Gamma>) (pi\<bullet>S) (pi\<bullet>T)" by fact
     from b1 have "\<turnstile> (pi\<bullet>\<Gamma>) ok" by (rule valid_eqvt)
     moreover
     from b2 have "pi\<bullet>(X,S)\<in>pi\<bullet>(set \<Gamma>)" by (rule pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst])
@@ -368,47 +351,39 @@ next
     moreover 
     from b3 have "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>S) <: (pi\<bullet>T)" by (rule subtype_eqvt)
     moreover 
-    from b4 have "\<forall>x. P (pi\<bullet>\<Gamma>) (pi\<bullet>S) (pi\<bullet>T) x" by simp
+    from b4 have "\<And>x. P x (pi\<bullet>\<Gamma>) (pi\<bullet>S) (pi\<bullet>T)" by simp
     ultimately 
-    show "P (pi\<bullet>\<Gamma>) (TyVar (pi\<bullet>X)) (pi\<bullet>T) x" by (rule a2)
-  qed
-next
-  case (S_Refl X \<Gamma>)
-  have b1: "\<turnstile> \<Gamma> ok" by fact
-  have b2: "X \<in> domain \<Gamma>" by fact
-  show ?case
-  proof (intro strip, simp)
-    fix pi::"tyvrs prm" and x::"'a::fs_tyvrs"
+    show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(TyVar X)) (pi\<bullet>T)" by (simp add: a2)
+  next
+    case (S_Refl X \<Gamma>)
+    have b1: "\<turnstile> \<Gamma> ok" by fact
+    have b2: "X \<in> domain \<Gamma>" by fact
     from b1 have "\<turnstile> (pi\<bullet>\<Gamma>) ok" by (rule valid_eqvt)
     moreover
     from b2 have "(pi\<bullet>X)\<in>pi\<bullet>domain \<Gamma>" by (rule pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst])
     hence "(pi\<bullet>X)\<in>domain (pi\<bullet>\<Gamma>)" by (simp add: domain_eqvt pt_list_set_pi[OF pt_tyvrs_inst])
-    ultimately show "P (pi\<bullet>\<Gamma>) (TyVar (pi\<bullet>X)) (TyVar (pi\<bullet>X)) x" by (rule a3)
-  qed
-next
-  case S_Arrow thus ?case by (simp, auto intro!: a4 subtype_eqvt)
-next
-  case (S_All S1 S2 T1 T2 X \<Gamma>)
-  have b1: "\<Gamma> \<turnstile> T1 <: S1" by fact 
-  have b2: "\<forall>(pi::tyvrs prm) x. P (pi\<bullet>\<Gamma>) (pi\<bullet>T1) (pi\<bullet>S1) x" by fact
-  have b4: "((X,T1)#\<Gamma>) \<turnstile> S2 <: T2" by fact
-  have b5: "\<forall>(pi::tyvrs prm) x. P (pi\<bullet>((X,T1)#\<Gamma>)) (pi\<bullet>S2) (pi\<bullet>T2) x" by fact
-  have b3': "X\<sharp>\<Gamma>" by fact
-  have b3'': "X\<sharp>(T1,S1)" using b1 b3' by (rule subtype_implies_fresh)
-  have b3: "X\<sharp>(\<Gamma>,S1,T1)" using b3' b3'' by (simp add: fresh_prod)
-  show ?case
-  proof (intro strip)
-    fix pi::"tyvrs prm" and x::"'a::fs_tyvrs"
+    ultimately show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(TyVar X)) (pi\<bullet>(TyVar X))" by (simp add: a3)
+  next
+    case S_Arrow thus ?case by (simp, auto intro!: a4 subtype_eqvt)
+  next
+    case (S_All S1 S2 T1 T2 X \<Gamma>)
+    have b1: "\<Gamma> \<turnstile> T1 <: S1" by fact 
+    have b2: "\<And>(pi::tyvrs prm) x. P x (pi\<bullet>\<Gamma>) (pi\<bullet>T1) (pi\<bullet>S1)" by fact
+    have b4: "((X,T1)#\<Gamma>) \<turnstile> S2 <: T2" by fact
+    have b5: "\<And>(pi::tyvrs prm) x. P x (pi\<bullet>((X,T1)#\<Gamma>)) (pi\<bullet>S2) (pi\<bullet>T2)" by fact
+    have b3': "X\<sharp>\<Gamma>" by fact
+    have b3'': "X\<sharp>(T1,S1)" using b1 b3' by (rule subtype_implies_fresh)
+    have b3: "X\<sharp>(\<Gamma>,S1,T1)" using b3' b3'' by (simp add: fresh_prod)
     have "\<exists>C::tyvrs. C\<sharp>(pi\<bullet>X,pi\<bullet>S2,pi\<bullet>T2,pi\<bullet>S1,pi\<bullet>T1,pi\<bullet>\<Gamma>,x)"
       by (rule at_exists_fresh[OF at_tyvrs_inst], simp add: fs_tyvrs1)
     then obtain C::"tyvrs" where  f1: "C\<noteq>(pi\<bullet>X)" and f2: "C\<sharp>(pi\<bullet>S1)" and f3: "C\<sharp>(pi\<bullet>T1)"
       and f4: "C\<sharp>(pi\<bullet>S2)" and f5: "C\<sharp>(pi\<bullet>T2)" and f6: "C\<sharp>(pi\<bullet>\<Gamma>)" and f7: "C\<sharp>x"
       by (auto simp add: fresh_prod fresh_atm)
     let ?pi' = "[(C,pi\<bullet>X)]@pi"
-    from b2 have c1: "\<forall>x. P (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>T1) (?pi'\<bullet>S1) x" by simp
-    from b5 have "\<forall>x. P (?pi'\<bullet>((X,T1)#\<Gamma>)) (?pi'\<bullet>S2) (?pi'\<bullet>T2) x" by simp
-    hence "\<forall>x. P ((?pi'\<bullet>X,?pi'\<bullet>T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>S2) (?pi'\<bullet>T2) x" by simp
-    hence c2: "\<forall>x. P ((C,?pi'\<bullet>T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>S2) (?pi'\<bullet>T2) x" using f1
+    from b2 have c1: "\<And>x. P x (?pi'\<bullet>\<Gamma>) (?pi'\<bullet>T1) (?pi'\<bullet>S1)" by simp
+    from b5 have "\<And>x. P x (?pi'\<bullet>((X,T1)#\<Gamma>)) (?pi'\<bullet>S2) (?pi'\<bullet>T2)" by simp
+    hence "\<And>x. P x ((?pi'\<bullet>X,?pi'\<bullet>T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>S2) (?pi'\<bullet>T2)" by simp
+    hence c2: "\<And>x. P x ((C,?pi'\<bullet>T1)#(?pi'\<bullet>\<Gamma>)) (?pi'\<bullet>S2) (?pi'\<bullet>T2)" using f1
       by (simp only: pt_tyvrs2 calc_atm, simp)
     from b3 have "(pi\<bullet>X)\<sharp>(pi\<bullet>\<Gamma>)" 
       by (simp add: fresh_prod pt_fresh_bij[OF pt_tyvrs_inst, OF at_tyvrs_inst])
@@ -431,39 +406,25 @@ next
     hence e2: "((C,?pi'\<bullet>T1)#(?pi'\<bullet>\<Gamma>)) \<turnstile> (?pi'\<bullet>S2) <: (?pi'\<bullet>T2)" using f1
       by (simp only: pt_tyvrs2 calc_atm, simp)
     have fnew: "C\<sharp>(?pi'\<bullet>\<Gamma>,?pi'\<bullet>S1,?pi'\<bullet>T1)" using f6' f2' f3' by (simp add: fresh_prod)
-    have main: "P (?pi'\<bullet>\<Gamma>) (\<forall> [C<:(?pi'\<bullet>S1)].(?pi'\<bullet>S2)) (\<forall> [C<:(?pi'\<bullet>T1)].(?pi'\<bullet>T2)) x"
+    have main: "P x (?pi'\<bullet>\<Gamma>) (\<forall> [C<:(?pi'\<bullet>S1)].(?pi'\<bullet>S2)) (\<forall> [C<:(?pi'\<bullet>T1)].(?pi'\<bullet>T2))"
       using f7 fnew e1 c1 e2 c2 by (rule a5)
     have alpha1: "(\<forall> [C<:(?pi'\<bullet>S1)].(?pi'\<bullet>S2)) = (pi\<bullet>(\<forall> [X<:S1].S2))"
       using f1 f4 f2a[symmetric] by (simp add: ty.inject alpha pt_tyvrs2[symmetric])
     have alpha2: "(\<forall> [C<:(?pi'\<bullet>T1)].(?pi'\<bullet>T2)) = (pi\<bullet>(\<forall> [X<:T1].T2))"
       using f1 f5 f3a[symmetric] by (simp add: ty.inject alpha pt_tyvrs2[symmetric])
-    show "P (pi\<bullet>\<Gamma>) (pi\<bullet>(\<forall> [X<:S1].S2)) (pi\<bullet>(\<forall> [X<:T1].T2)) x"
+    show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(\<forall> [X<:S1].S2)) (pi\<bullet>(\<forall> [X<:T1].T2))"
       using alpha1 alpha2 f6a main by simp  
   qed
+  hence "P x (([]::tyvrs prm)\<bullet>\<Gamma>) (([]::tyvrs prm)\<bullet>S) (([]::tyvrs prm)\<bullet>T)" by blast
+  thus ?thesis by simp
 qed
-
-lemma subtype_of_rel_induct[case_names S_Top S_Var S_Refl S_Arrow S_All]:
-  fixes  P :: "ty_context \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow>'a::fs_tyvrs\<Rightarrow>bool"
-  assumes a: "\<Gamma> \<turnstile> S <: T"
-  and a1:    "\<And>x \<Gamma> S. (\<turnstile> \<Gamma> ok) \<Longrightarrow> (S closed_in \<Gamma>) \<Longrightarrow> P \<Gamma> S Top x"
-  and a2:    "\<And>x \<Gamma> X S T. (\<turnstile> \<Gamma> ok) \<Longrightarrow> ((X,S)\<in>set \<Gamma>) \<Longrightarrow> (\<Gamma> \<turnstile> S <: T) \<Longrightarrow> (\<forall>z. P \<Gamma> S T z)
-              \<Longrightarrow> P \<Gamma> (TyVar X) T x"
-  and a3:    "\<And>x \<Gamma> X. (\<turnstile> \<Gamma> ok) \<Longrightarrow> X\<in>domain \<Gamma> \<Longrightarrow> P \<Gamma> (TyVar X) (TyVar X) x"  
-  and a4:    "\<And>x \<Gamma> S1 S2 T1 T2. \<Gamma> \<turnstile> T1 <: S1 \<Longrightarrow> (\<forall>z. P \<Gamma> T1 S1 z) \<Longrightarrow> \<Gamma> \<turnstile> S2 <: T2 \<Longrightarrow> 
-              (\<forall>z. P \<Gamma> S2 T2 z) \<Longrightarrow> P \<Gamma> (S1 \<rightarrow> S2) (T1 \<rightarrow> T2) x"
-  and a5:    "\<And>x \<Gamma> X S1 S2 T1 T2. 
-              X\<sharp>x \<Longrightarrow> X\<sharp>(\<Gamma>,S1,T1) \<Longrightarrow> \<Gamma> \<turnstile> T1 <: S1 \<Longrightarrow> (\<forall>z. P \<Gamma> T1 S1 z) \<Longrightarrow> ((X,T1)#\<Gamma>) \<turnstile> S2 <: T2 
-              \<Longrightarrow> (\<forall>z. P ((X,T1)#\<Gamma>) S2 T2 z) \<Longrightarrow> P \<Gamma> (\<forall> [X<:S1].S2) (\<forall> [X<:T1].T2) x"
-  shows "P \<Gamma> S T x"
-using a a1 a2 a3 a4 a5 subtype_of_rel_induct_aux[of  "\<Gamma>" "S" "T" "P" "[]" "x", simplified] by force
-
 
 section {* Two proofs for reflexivity of subtyping *}
 
 lemma subtype_reflexivity:
   shows "\<turnstile> \<Gamma> ok \<longrightarrow> T closed_in \<Gamma> \<longrightarrow> \<Gamma> \<turnstile> T <: T"
-proof(nominal_induct T rule: ty.induct_unsafe)
-  case (TAll \<Gamma> X T1 T2)
+proof(nominal_induct T fresh: \<Gamma> rule: ty.induct_unsafe)
+  case (TAll X T1 T2)
   have i1: "\<And>\<Gamma>. \<turnstile> \<Gamma> ok \<longrightarrow> T1 closed_in \<Gamma> \<longrightarrow> \<Gamma> \<turnstile> T1 <: T1" by fact 
   have i2: "\<And>\<Gamma>. \<turnstile> \<Gamma> ok \<longrightarrow> T2 closed_in \<Gamma> \<longrightarrow> \<Gamma> \<turnstile> T2 <: T2" by fact
   have f: "X\<sharp>\<Gamma>" by fact
@@ -481,13 +442,15 @@ proof(nominal_induct T rule: ty.induct_unsafe)
   qed
 qed (auto simp add: closed_in_def ty.supp supp_atm)
 
-lemma subtype_refl:
-  shows "\<turnstile> \<Gamma> ok \<longrightarrow> T closed_in \<Gamma> \<longrightarrow>  \<Gamma> \<turnstile> T <: T"
-apply(nominal_induct T rule: ty.induct_unsafe)
+lemma subtype_reflexivity:
+  assumes a: "\<turnstile> \<Gamma> ok"
+  and     b: "T closed_in \<Gamma>"
+  shows "\<Gamma> \<turnstile> T <: T"
+using a b
+apply(nominal_induct T fresh: \<Gamma> rule: ty.induct_unsafe)
 apply(auto simp add: ty.supp abs_supp closed_in_def supp_atm)
-(* FIXME: the new induction method from Markus will fix this uglyness *)
-apply(atomize)
-apply(drule_tac x="(tyvrs, ty2)#z" in spec)
+(* too bad that this cannot be found automatically *)
+apply(drule_tac x="(tyvrs, ty2)#\<Gamma>" in meta_spec)
 apply(force simp add: closed_in_def)
 done
 
@@ -545,7 +508,7 @@ lemma subst_ty_fresh[rule_format]:
   fixes P :: "ty"
   and   X :: "tyvrs"
   shows "X\<sharp>(T,P) \<longrightarrow> X\<sharp>(subst_ty T Y P)"
-  apply (nominal_induct T rule: ty.induct_unsafe)
+  apply (nominal_induct T fresh: T Y P rule: ty.induct_unsafe)
   apply (auto simp add: fresh_prod abs_fresh)
   done
 
@@ -633,8 +596,8 @@ lemma weakening:
   assumes a1: "\<Gamma> \<turnstile> S <: T"
   shows "\<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> S <: T"
   using a1 
-proof (nominal_induct \<Gamma> S T rule: subtype_of_rel_induct)
-  case (S_Top \<Delta> \<Gamma> S) 
+proof (nominal_induct \<Gamma> S T fresh: \<Delta> rule: subtype_of_rel_induct)
+  case (S_Top \<Gamma> S) 
   have lh_drv_prem: "S closed_in \<Gamma>" by fact
   show "\<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> S <: Top"
   proof (intro strip)
@@ -645,9 +608,9 @@ proof (nominal_induct \<Gamma> S T rule: subtype_of_rel_induct)
     ultimately show "\<Delta> \<turnstile> S <: Top" by force
   qed
 next 
-  case (S_Var \<Delta> \<Gamma> X S T)
+  case (S_Var \<Gamma> X S T)
   have lh_drv_prem: "(X,S) \<in> set \<Gamma>" by fact
-  have ih: "\<forall>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> S <: T" by fact
+  have ih: "\<And>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> S <: T" by fact
   show "\<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> TyVar X <: T"
   proof (intro strip)
     assume ok: "\<turnstile> \<Delta> ok"
@@ -658,7 +621,7 @@ next
     ultimately show "\<Delta> \<turnstile> TyVar X <: T" using ok by force
   qed
 next
-  case (S_Refl \<Delta> \<Gamma> X)
+  case (S_Refl \<Gamma> X)
   have lh_drv_prem: "X \<in> domain \<Gamma>" by fact
   show ?case
   proof (intro strip)
@@ -671,10 +634,10 @@ next
 next 
   case S_Arrow thus ?case by force
 next
-  case (S_All \<Delta> \<Gamma> X S1 S2 T1 T2)
+  case (S_All \<Gamma> X S1 S2 T1 T2)
   have fresh: "X\<sharp>\<Delta>" by fact
-  have ih1: "\<forall>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> T1 <: S1" by fact
-  have ih2: "\<forall>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends ((X,T1)#\<Gamma>) \<longrightarrow> \<Delta> \<turnstile> S2 <: T2" by fact
+  have ih1: "\<And>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> T1 <: S1" by fact
+  have ih2: "\<And>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends ((X,T1)#\<Gamma>) \<longrightarrow> \<Delta> \<turnstile> S2 <: T2" by fact
   have lh_drv_prem: "\<Gamma> \<turnstile> T1 <: S1" by fact
   hence b5: "T1 closed_in \<Gamma>" by (simp add: subtype_implies_closed) 
   show "\<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> \<forall> [X<:S1].S2 <: \<forall> [X<:T1].T2"
@@ -698,19 +661,19 @@ lemma weakening:
   assumes a1: "\<Gamma> \<turnstile> S <: T"
   shows "\<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> S <: T"
   using a1 
-proof (nominal_induct \<Gamma> S T rule: subtype_of_rel_induct)
-  case (S_Top \<Delta> \<Gamma> S) thus ?case by (force intro: extends_closed)
+proof (nominal_induct \<Gamma> S T fresh: \<Delta> rule: subtype_of_rel_induct)
+  case (S_Top \<Gamma> S) thus ?case by (force intro: extends_closed)
 next 
-  case (S_Var \<Delta> \<Gamma> X S T) thus ?case by (force simp add: extends_def)
+  case (S_Var \<Gamma> X S T) thus ?case by (force simp add: extends_def)
 next
-  case (S_Refl \<Delta> \<Gamma> X) thus ?case by (force dest: extends_domain)
+  case (S_Refl \<Gamma> X) thus ?case by (force dest: extends_domain)
 next 
   case S_Arrow thus ?case by force
 next
-  case (S_All \<Delta> \<Gamma> X S1 S2 T1 T2)
+  case (S_All \<Gamma> X S1 S2 T1 T2)
   have fresh: "X\<sharp>\<Delta>" by fact
-  have ih1: "\<forall>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> T1 <: S1" by fact
-  have ih2: "\<forall>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends ((X,T1)#\<Gamma>) \<longrightarrow> \<Delta> \<turnstile> S2 <: T2" by fact
+  have ih1: "\<And>\<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> T1 <: S1" by fact
+  have ih2: "\<And> \<Delta>. \<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends ((X,T1)#\<Gamma>) \<longrightarrow> \<Delta> \<turnstile> S2 <: T2" by fact
   have lh_drv_prem: "\<Gamma> \<turnstile> T1 <: S1" by fact
   hence b5: "T1 closed_in \<Gamma>" by (simp add: subtype_implies_closed) 
   show "\<turnstile> \<Delta> ok \<longrightarrow> \<Delta> extends \<Gamma> \<longrightarrow> \<Delta> \<turnstile> \<forall> [X<:S1].S2 <: \<forall> [X<:T1].T2"
