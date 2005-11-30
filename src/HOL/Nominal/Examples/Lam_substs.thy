@@ -1372,10 +1372,10 @@ lemma subst_eqvt[simp]:
   and   t1:: "lam"
   and   t2:: "lam"
   and   a :: "name"
-  shows "pi\<bullet>(t1[a::=t2]) = (pi\<bullet>t1)[(pi\<bullet>a)::=(pi\<bullet>t2)]"
-apply(nominal_induct t1 fresh: a t2 rule: lam_induct)
+  shows "pi\<bullet>(t1[b::=t2]) = (pi\<bullet>t1)[(pi\<bullet>b)::=(pi\<bullet>t2)]"
+apply(nominal_induct t1 fresh: b t2 rule: lam_induct)
 apply(auto simp add: perm_bij fresh_prod fresh_atm)
-apply(subgoal_tac "(pi\<bullet>a)\<sharp>(pi\<bullet>b,pi\<bullet>ba)")(*A*)
+apply(subgoal_tac "(pi\<bullet>a)\<sharp>(pi\<bullet>b,pi\<bullet>t2)")(*A*)
 apply(simp) 
 apply(simp add: perm_bij fresh_prod fresh_atm pt_fresh_bij[OF pt_name_inst, OF at_name_inst]) 
 done
