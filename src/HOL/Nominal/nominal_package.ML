@@ -1024,7 +1024,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val fsT = TFree ("'n", ind_sort);
 
     fun make_pred i T =
-      Free (List.nth (pnames, i), T --> fsT --> HOLogic.boolT);
+      Free (List.nth (pnames, i), fsT --> T --> HOLogic.boolT);
 
     fun make_ind_prem k T ((cname, cargs), idxs) =
       let
@@ -1041,7 +1041,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             val (Us, U) = strip_type T;
             val l = length Us
           in list_all (z :: map (pair "x") Us, HOLogic.mk_Trueprop
-            (make_pred (body_index dt) U $ app_bnds (Free (s, T)) l $ Bound l))
+            (make_pred (body_index dt) U $ Bound l $ app_bnds (Free (s, T)) l))
           end;
 
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
@@ -1051,9 +1051,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (map (curry List.nth frees) (List.concat (map (fn (m, n) =>
              m upto m + n - 1) idxs)))
 
-      in list_all_free (z :: frees, Logic.list_implies (prems' @ prems,
-        HOLogic.mk_Trueprop (make_pred k T $ 
-          list_comb (Const (cname, Ts ---> T), map Free frees) $ Free z)))
+      in list_all_free (frees @ [z], Logic.list_implies (prems' @ prems,
+        HOLogic.mk_Trueprop (make_pred k T $ Free z $
+          list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
 
     val ind_prems = List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
@@ -1061,7 +1061,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val tnames = DatatypeProp.make_tnames recTs;
     val z = (variant tnames "z", fsT);
     val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
-      (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T) $ Free z)
+      (map (fn (((i, _), T), tname) => make_pred i T $ Free z $ Free (tname, T))
         (descr'' ~~ recTs ~~ tnames)));
     val induct = Logic.list_implies (ind_prems, ind_concl);
 
