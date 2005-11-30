@@ -695,8 +695,6 @@ qed
 lemma measure_eq [simp]: "(x, y) \<in> measure f = (f x < f y)"
   by (simp add: measure_def inv_image_def)
 
-(* HERE *)
-
 
 lemma transitivity_and_narrowing:
   "(\<forall>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<longrightarrow> \<Gamma> \<turnstile> Q <: T \<longrightarrow> \<Gamma> \<turnstile> S <: T) \<and>
@@ -710,7 +708,7 @@ next
   (* CHECK: Not clear whether the condition size_ty Q = size_ty Q' is needed, or whether
      just doing it for Q'=Q is enough *)
   have transitivity: 
-    "\<And>\<Gamma> S Q' T. \<Gamma> \<turnstile> S <: Q' \<Longrightarrow> size_ty Q = size_ty Q' \<longrightarrow>  \<Gamma> \<turnstile> Q' <: T \<longrightarrow> \<Gamma> \<turnstile> S <: T"
+    "\<And>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<Longrightarrow> \<Gamma> \<turnstile> Q <: T \<longrightarrow> \<Gamma> \<turnstile> S <: T"
   proof - 
 
     (* We first handle the case where T = Top once and for all; this saves some 
@@ -736,47 +734,49 @@ next
     qed
 
     (* Now proceed by induction on the left-hand derivation *)
-    fix \<Gamma> S Q' T
-    assume a: "\<Gamma> \<turnstile> S <: Q'"
-    from a show "size_ty Q = size_ty Q' \<longrightarrow>  \<Gamma> \<turnstile> Q' <: T \<longrightarrow> \<Gamma> \<turnstile> S <: T"
+    fix \<Gamma> S T
+    assume a: "\<Gamma> \<turnstile> S <: Q"
+    from a show "\<Gamma> \<turnstile> Q <: T \<longrightarrow> \<Gamma> \<turnstile> S <: T"
      (* FIXME : nominal induct does not work here because Gamma S and Q are fixed variables *)
      (* FIX: It would be better to use S',\<Gamma>',etc., instead of S1,\<Gamma>1, for consistency, in the cases
         where these do not refer to sub-phrases of S, etc. *)
-    proof(rule subtype_of_rel_induct[of "\<Gamma>" "S" "Q'" _ "T"])
-      case (goal1 T' \<Gamma>1 S1)    --"lh drv.: \<Gamma> \<turnstile> S <: Q' \<equiv> \<Gamma>1 \<turnstile> S1 <: Top"
+    proof(nominal_induct \<Gamma> S Q\<equiv>Q fresh: \<Gamma> S T rule: subtype_of_rel_induct)
+    (* interesting case *)
+
+      case (goal1 \<Gamma>1 S1)    --"lh drv.: \<Gamma> \<turnstile> S <: Q' \<equiv> \<Gamma>1 \<turnstile> S1 <: Top"
 	--"automatic proof: thus ?case proof (auto intro!: S_Top dest: S_TopE)"
       assume lh_drv_prem1: "\<turnstile> \<Gamma>1 ok"
       and    lh_drv_prem2: "S1 closed_in \<Gamma>1"
-      show "size_ty Q = size_ty Top \<longrightarrow> \<Gamma>1 \<turnstile> Top <: T' \<longrightarrow> \<Gamma>1 \<turnstile> S1 <: T'"
+      and    Q_eq: "Top=Q" 
+      show "\<Gamma>1 \<turnstile> Q <: T \<longrightarrow> \<Gamma>1 \<turnstile> S1 <: T" (* FIXME: why Ta? *)
       proof (intro strip)
-        assume "\<Gamma>1 \<turnstile> Top <: T'" --"rh drv." 
-        hence "T' = Top" by (rule S_TopE)
-        thus "\<Gamma>1 \<turnstile> S1 <: T'" using top_case[of "\<Gamma>1" "S1" "False" "T'"] lh_drv_prem1 lh_drv_prem2
+        assume "\<Gamma>1 \<turnstile> Q <: T" --"rh drv." 
+        hence "T = Top" using Q_eq by (simp add: S_TopE)
+        thus "\<Gamma>1 \<turnstile> S1 <: T" using top_case[of "\<Gamma>1" "S1" "False" "T"] lh_drv_prem1 lh_drv_prem2
           by simp
       qed
     next
-      case (goal2 T' \<Gamma>1 X1 S1 T1)     --"lh drv.: \<Gamma> \<turnstile> S <: Q' \<equiv> \<Gamma>1 \<turnstile> TVar(X1) <: S1"
+      case (goal2 \<Gamma>1 X1 S1 T1)     --"lh drv.: \<Gamma> \<turnstile> S <: Q' \<equiv> \<Gamma>1 \<turnstile> TVar(X1) <: S1"
         --"automatic proof: thus ?case proof (auto intro!: S_Var)"
       have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
       have lh_drv_prem2: "(X1,S1)\<in>set \<Gamma>1" by fact
-      have IH_inner:    "\<forall>T. size_ty Q = size_ty T1 \<longrightarrow> \<Gamma>1 \<turnstile> T1 <: T \<longrightarrow> \<Gamma>1 \<turnstile> S1 <: T" by fact
-      show "size_ty Q = size_ty T1 \<longrightarrow> \<Gamma>1 \<turnstile> T1 <: T' \<longrightarrow> \<Gamma>1 \<turnstile> TyVar X1 <: T'"
+      have IH_inner:    "\<And>T. \<Gamma>1 \<turnstile> T1 <: T \<longrightarrow> \<Gamma>1 \<turnstile> S1 <: T" by fact
+      show "\<Gamma>1 \<turnstile> T1 <: Ta \<longrightarrow> \<Gamma>1 \<turnstile> TyVar X1 <: Ta"
       proof (intro strip)
-        assume "\<Gamma>1 \<turnstile> T1 <: T'" --"right-hand drv."
-        and    "size_ty Q = size_ty T1"
-        with IH_inner have "\<Gamma>1 \<turnstile> S1 <: T'" by simp
-        thus "\<Gamma>1 \<turnstile> TyVar X1 <: T'" using lh_drv_prem1 lh_drv_prem2 by (simp add: S_Var)
+        assume "\<Gamma>1 \<turnstile> T1 <: Ta" --"right-hand drv."
+        with IH_inner have "\<Gamma>1 \<turnstile> S1 <: Ta" by simp
+        thus "\<Gamma>1 \<turnstile> TyVar X1 <: Ta" using lh_drv_prem1 lh_drv_prem2 by (simp add: S_Var)
       qed
     next
       case goal3 --"S_Refl case" show ?case by simp
     next
-      case (goal4 T' \<Gamma>1 S1 S2 T1 T2) --"lh drv.: \<Gamma> \<turnstile> S <: Q' == \<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T1 \<rightarrow> T2"
+      case (goal4 \<Gamma>1 S1 S2 T1 T2) --"lh drv.: \<Gamma> \<turnstile> S <: Q' == \<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T1 \<rightarrow> T2"
       have lh_drv_prem1: "\<Gamma>1 \<turnstile> T1 <: S1" by fact
       have lh_drv_prem2: "\<Gamma>1 \<turnstile> S2 <: T2" by fact
-      show "size_ty Q = size_ty (T1 \<rightarrow> T2) \<longrightarrow> \<Gamma>1 \<turnstile> T1 \<rightarrow> T2 <: T' \<longrightarrow> \<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T'"
+      show "\<Gamma>1 \<turnstile> T1 \<rightarrow> T2 <: T \<longrightarrow> \<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T"
       proof (intro strip)
-        assume measure:  "size_ty Q = size_ty (T1 \<rightarrow> T2)"
-        and    rh_deriv: "\<Gamma>1 \<turnstile> T1 \<rightarrow> T2 <: T'"
+        (*assume measure:  "size_ty Q = size_ty (T1 \<rightarrow> T2)" *)
+        assume  rh_deriv: "\<Gamma>1 \<turnstile> T1 \<rightarrow> T2 <: T'"
 	have "S1 closed_in \<Gamma>1" and "S2 closed_in \<Gamma>1" 
 	  using lh_drv_prem1 lh_drv_prem2 by (simp_all add: subtype_implies_closed)
         hence "(S1 \<rightarrow> S2) closed_in \<Gamma>1" by (simp add: closed_in_def ty.supp)
