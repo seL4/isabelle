@@ -211,11 +211,8 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 
 (* fact -- composition by facts from context *)
 
-fun fact_tac [] ctxt [] = ProofContext.some_fact_tac ctxt
-  | fact_tac ths _ [] = ProofContext.fact_tac ths
-  | fact_tac _ _ facts = EVERY' (map (ProofContext.fact_tac o single) facts);
-
-fun fact rules ctxt = METHOD (fn facts => HEADGOAL (fact_tac rules ctxt facts));
+fun fact [] ctxt = SIMPLE_METHOD' HEADGOAL (ProofContext.some_fact_tac ctxt)
+  | fact rules _ = SIMPLE_METHOD' HEADGOAL (ProofContext.fact_tac rules);
 
 
 (* assumption *)
