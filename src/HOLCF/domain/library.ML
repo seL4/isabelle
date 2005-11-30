@@ -130,6 +130,7 @@ val fixN       = "Fix.fix";
 val returnN    = "Fixrec.return";
 val failN      = "Fixrec.fail";
 val cpair_patN = "Fixrec.cpair_pat";
+val branchN    = "Fixrec.branch";
 
 val pcpoN      = "Pcpo.pcpo"
 val pcpoS      = [pcpoN];

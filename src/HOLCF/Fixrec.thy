@@ -31,6 +31,20 @@ apply (rule_tac p=x in oneE, simp, simp)
 apply (rule_tac p=y in upE, simp, simp)
 done
 
+lemma return_defined [simp]: "return\<cdot>x \<noteq> \<bottom>"
+by (simp add: return_def)
+
+lemma fail_defined [simp]: "fail \<noteq> \<bottom>"
+by (simp add: fail_def)
+
+lemma return_eq [simp]: "(return\<cdot>x = return\<cdot>y) = (x = y)"
+by (simp add: return_def)
+
+lemma return_neq_fail [simp]:
+  "return\<cdot>x \<noteq> fail" "fail \<noteq> return\<cdot>x"
+by (simp_all add: return_def fail_def)
+
+
 subsubsection {* Monadic bind operator *}
 
 constdefs
@@ -149,22 +163,21 @@ by (simp add: fatbar_def)
 
 lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
 
-subsection {* Pattern combinators *}
-
-types ('a,'b,'c) pat = "'b \<rightarrow> 'a \<rightarrow> 'c maybe"
+subsection {* Case branch combinator *}
 
 constdefs
-  wild_pat :: "('a, 'b, 'b) pat"
-  "wild_pat \<equiv> \<Lambda> r a. return\<cdot>r"
+  branch :: "('a \<rightarrow> 'b maybe) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c maybe)"
+  "branch p \<equiv> \<Lambda> r x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> y. return\<cdot>(r\<cdot>y))"
 
-  var_pat :: "('a, 'a \<rightarrow> 'b, 'b) pat"
-  "var_pat \<equiv> \<Lambda> r a. return\<cdot>(r\<cdot>a)"
+lemma branch_rews:
+  "p\<cdot>x = \<bottom> \<Longrightarrow> branch p\<cdot>r\<cdot>x = \<bottom>"
+  "p\<cdot>x = fail \<Longrightarrow> branch p\<cdot>r\<cdot>x = fail"
+  "p\<cdot>x = return\<cdot>y \<Longrightarrow> branch p\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>y)"
+by (simp_all add: branch_def)
 
-lemma wild_pat [simp]: "wild_pat\<cdot>r\<cdot>a = return\<cdot>r"
-by (simp add: wild_pat_def)
+lemma branch_return [simp]: "branch return\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>x)"
+by (simp add: branch_def)
 
-lemma var_pat [simp]: "var_pat\<cdot>r\<cdot>a = return\<cdot>(r\<cdot>a)"
-by (simp add: var_pat_def)
 
 subsection {* Case syntax *}
 
@@ -180,198 +193,242 @@ syntax
 syntax (xsymbols)
   "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 
-text {* Intermediate tags for parsing/printing *}
-syntax
-  "_pat" :: "'a"
-  "_var" :: "'a"
-  "_match" :: "'a"
+translations
+  "_Case_syntax x ms" == "run\<cdot>(ms\<cdot>x)"
+  "_Case2 m ms" == "m \<parallel> ms"
 
 text {* Parsing Case expressions *}
 
+syntax
+  "_pat" :: "'a"
+  "_var" :: "'a"
+
 translations
-  "_Case_syntax x cs" => "run\<cdot>(cs\<cdot>x)"
-  "_Case2 c cs" => "fatbar\<cdot>c\<cdot>cs"
-  "_Case1 p r" => "_match (_var p) r"
-  "_var _" => "wild_pat"
+  "_Case1 p r" => "branch (_pat p)\<cdot>(_var p r)"
+  "_var (_args x y) r" => "csplit\<cdot>(_var x (_var y r))"
+  "_var () r" => "unit_when\<cdot>r"
 
 parse_translation {*
-  let
-    fun capp (t,u) = Syntax.const "Rep_CFun" $ t $ u;
-    fun cabs (x,t) = (snd (mk_binder_tr ("_cabs", "Abs_CFun"))) [x,t];
-
-    fun get_vars (Const ("_var",_) $ x) = [x]
-    |   get_vars (t $ u) = get_vars t @ get_vars u
-    |   get_vars t = [];
-
-    fun rem_vars (Const ("_var",_) $ x) = Syntax.const "var_pat"
-    |   rem_vars (t $ u) = rem_vars t $ rem_vars u
-    |   rem_vars t = t;
-
-    fun match_tr [pat, rhs] =
-          capp (rem_vars pat, foldr cabs rhs (get_vars pat))
-    |   match_tr ts = raise TERM ("match_tr", ts);
-
-  in [("_match", match_tr)] end;
+(* rewrites (_pat x) => (return) *)
+(* rewrites (_var x t) => (Abs_CFun (%x. t)) *)
+  [("_pat", K (Syntax.const "return")),
+   mk_binder_tr ("_var", "Abs_CFun")];
 *}
 
 text {* Printing Case expressions *}
 
-translations
-  "_" <= "_pat wild_pat"
-  "x" <= "_pat (_var x)"
+syntax
+  "_match" :: "'a"
 
 print_translation {*
   let
-    fun dest_cabs (Const ("Abs_CFun",_) $ t) =
-          let val abs = case t of Abs abs => abs
-                  | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
-          in atomic_abs_tr' abs end
-    |   dest_cabs _ = raise Match; (* too few vars: abort translation *)
-
-    fun put_vars (Const ("var_pat",_), rhs) =
-          let val (x, rhs') = dest_cabs rhs;
-          in (Syntax.const "_var" $ x, rhs') end
-    |   put_vars (t $ u, rhs) =
+    fun dest_LAM (Const ("Rep_CFun",_) $ Const ("unit_when",_) $ t) =
+          (Syntax.const "Unity", t)
+    |   dest_LAM (Const ("Rep_CFun",_) $ Const ("csplit",_) $ t) =
           let
-            val (t', rhs') = put_vars (t,rhs);
-            val (u', rhs'') = put_vars (u,rhs');
-          in (t' $ u', rhs'') end
-    |   put_vars (t, rhs) = (t, rhs);
+            val (v1, t1) = dest_LAM t;
+            val (v2, t2) = dest_LAM t1;
+          in (Syntax.const "_args" $ v1 $ v2, t2) end 
+    |   dest_LAM (Const ("Abs_CFun",_) $ t) =
+          let
+            val abs = case t of Abs abs => abs
+                | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
+            val (x, t') = atomic_abs_tr' abs;
+          in (Syntax.const "_var" $ x, t') end
+    |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 
-    fun Case1_tr' (_ $ pat $ rhs) = let
-          val (pat', rhs') = put_vars (pat, rhs);
-        in Syntax.const "_Case1" $ (Syntax.const "_pat" $ pat') $ rhs' end;
+    fun Case1_tr' [Const("branch",_) $ p, r] =
+          let val (v, t) = dest_LAM r;
+          in Syntax.const "_Case1" $ (Syntax.const "_match" $ p $ v) $ t end;
 
-    fun Case2_tr' (_ $ (_ $ Const ("fatbar",_) $ m) $ ms) =
-          Syntax.const "_Case2" $ Case1_tr' m $ Case2_tr' ms
-    |   Case2_tr' t = Case1_tr' t;
-
-    fun Case_syntax_tr' [Const ("run",_), _ $ ms $ x] =
-          Syntax.const "_Case_syntax" $ x $ Case2_tr' ms;
-
-  in [("Rep_CFun", Case_syntax_tr')] end;
+  in [("Rep_CFun", Case1_tr')] end;
 *}
 
-subsection {* Pattern combinators for built-in types *}
+translations
+  "x" <= "_match return (_var x)"
+
+
+subsection {* Pattern combinators for data constructors *}
+
+types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
 
 constdefs
-  cpair_pat :: "('a, _, _) pat \<Rightarrow> ('b, _, _) pat \<Rightarrow> ('a \<times> 'b, _, _) pat"
-  "cpair_pat p1 p2 \<equiv> \<Lambda> r1 \<langle>x1,x2\<rangle>. bind\<cdot>(p1\<cdot>r1\<cdot>x1)\<cdot>(\<Lambda> r2. p2\<cdot>r2\<cdot>x2)"
+  cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat"
+  "cpair_pat p1 p2 \<equiv> \<Lambda>\<langle>x, y\<rangle>. do a <- p1\<cdot>x; b <- p2\<cdot>y; return\<cdot>\<langle>a, b\<rangle>"
 
-  spair_pat :: "(_, _, _) pat \<Rightarrow> (_, _, _) pat \<Rightarrow> (_, _, _) pat"
-  "spair_pat p1 p2 \<equiv> \<Lambda> r (:x,y:). cpair_pat p1 p2\<cdot>r\<cdot>\<langle>x,y\<rangle>"
+  spair_pat ::
+  "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a::pcpo \<otimes> 'b::pcpo, 'c \<times> 'd) pat"
+  "spair_pat p1 p2 \<equiv> \<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>\<langle>x, y\<rangle>"
 
-  sinl_pat :: "(_, _, _) pat \<Rightarrow> (_, _, _) pat"
-  "sinl_pat p \<equiv> \<Lambda> r a. case a of sinl\<cdot>x \<Rightarrow> p\<cdot>r\<cdot>x | sinr\<cdot>y \<Rightarrow> fail"
+  sinl_pat :: "('a, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat"
+  "sinl_pat p \<equiv> sscase\<cdot>p\<cdot>(\<Lambda> x. fail)"
 
-  sinr_pat :: "(_, _, _) pat \<Rightarrow> (_, _, _) pat"
-  "sinr_pat p \<equiv> \<Lambda> r a. case a of sinl\<cdot>x \<Rightarrow> fail | sinr\<cdot>y \<Rightarrow> p\<cdot>r\<cdot>y"
+  sinr_pat :: "('b, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat"
+  "sinr_pat p \<equiv> sscase\<cdot>(\<Lambda> x. fail)\<cdot>p"
 
-  up_pat :: "('a, _, _) pat \<Rightarrow> ('a u, _, _) pat"
-  "up_pat p \<equiv> \<Lambda> r a. case a of up\<cdot>x \<Rightarrow> p\<cdot>r\<cdot>x"
+  up_pat :: "('a, 'b) pat \<Rightarrow> ('a u, 'b) pat"
+  "up_pat p \<equiv> fup\<cdot>p"
 
-  Def_pat :: "'a::type \<Rightarrow> ('a lift, _, _) pat"
-  "Def_pat x \<equiv> \<Lambda> r. FLIFT y. if x = y then return\<cdot>r else fail"
+  TT_pat :: "(tr, unit) pat"
+  "TT_pat \<equiv> \<Lambda> b. If b then return\<cdot>() else fail fi"
 
-  ONE_pat :: "(one, _, _) pat"
-  "ONE_pat \<equiv> \<Lambda> r ONE. return\<cdot>r"
+  FF_pat :: "(tr, unit) pat"
+  "FF_pat \<equiv> \<Lambda> b. If b then fail else return\<cdot>() fi"
 
-  TT_pat :: "(tr, _, _) pat"
-  "TT_pat \<equiv> \<Lambda> r b. If b then return\<cdot>r else fail fi"
+  ONE_pat :: "(one, unit) pat"
+  "ONE_pat \<equiv> \<Lambda> ONE. return\<cdot>()"
 
-  FF_pat :: "(tr, _, _) pat"
-  "FF_pat \<equiv> \<Lambda> r b. If b then fail else return\<cdot>r fi"
-
-text {* Parse translations *}
+text {* Parse translations (patterns) *}
 translations
-  "_var (cpair\<cdot>p1\<cdot>p2)" => "cpair_pat (_var p1) (_var p2)"
-  "_var (spair\<cdot>p1\<cdot>p2)" => "spair_pat (_var p1) (_var p2)"
-  "_var (sinl\<cdot>p1)"     => "sinl_pat (_var p1)"
-  "_var (sinr\<cdot>p1)"     => "sinr_pat (_var p1)"
-  "_var (up\<cdot>p1)"       => "up_pat (_var p1)"
-  "_var (Def x)"       => "Def_pat x"
-  "_var ONE"           => "ONE_pat"
-  "_var TT"            => "TT_pat"
-  "_var FF"            => "FF_pat"
+  "_pat (cpair\<cdot>x\<cdot>y)" => "cpair_pat (_pat x) (_pat y)"
+  "_pat (spair\<cdot>x\<cdot>y)" => "spair_pat (_pat x) (_pat y)"
+  "_pat (sinl\<cdot>x)" => "sinl_pat (_pat x)"
+  "_pat (sinr\<cdot>x)" => "sinr_pat (_pat x)"
+  "_pat (up\<cdot>x)" => "up_pat (_pat x)"
+  "_pat TT" => "TT_pat"
+  "_pat FF" => "FF_pat"
+  "_pat ONE" => "ONE_pat"
+
+text {* Parse translations (variables) *}
+translations
+  "_var (cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (sinl\<cdot>x) r" => "_var x r"
+  "_var (sinr\<cdot>x) r" => "_var x r"
+  "_var (up\<cdot>x) r" => "_var x r"
+  "_var TT r" => "_var () r"
+  "_var FF r" => "_var () r"
+  "_var ONE r" => "_var () r"
 
 text {* Print translations *}
 translations
-  "cpair\<cdot>(_pat p1)\<cdot>(_pat p2)" <= "_pat (cpair_pat p1 p2)"
-  "spair\<cdot>(_pat p1)\<cdot>(_pat p2)" <= "_pat (spair_pat p1 p2)"
-  "sinl\<cdot>(_pat p1)"            <= "_pat (sinl_pat p1)"
-  "sinr\<cdot>(_pat p1)"            <= "_pat (sinr_pat p1)"
-  "up\<cdot>(_pat p1)"              <= "_pat (up_pat p1)"
-  "Def x"                     <= "_pat (Def_pat x)"
-  "TT"                        <= "_pat (TT_pat)"
-  "FF"                        <= "_pat (FF_pat)"
+  "cpair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
+      <= "_match (cpair_pat p1 p2) (_args v1 v2)"
+  "spair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
+      <= "_match (spair_pat p1 p2) (_args v1 v2)"
+  "sinl\<cdot>(_match p1 v1)" <= "_match (sinl_pat p1) v1"
+  "sinr\<cdot>(_match p1 v1)" <= "_match (sinr_pat p1) v1"
+  "up\<cdot>(_match p1 v1)" <= "_match (up_pat p1) v1"
+  "TT" <= "_match TT_pat ()"
+  "FF" <= "_match FF_pat ()"
+  "ONE" <= "_match ONE_pat ()"
 
-lemma cpair_pat_simps [simp]:
-  "p1\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> cpair_pat p1 p2\<cdot>r\<cdot><x,y> = \<bottom>"
-  "p1\<cdot>r\<cdot>x = fail \<Longrightarrow> cpair_pat p1 p2\<cdot>r\<cdot><x,y> = fail"
-  "p1\<cdot>r\<cdot>x = return\<cdot>r' \<Longrightarrow> cpair_pat p1 p2\<cdot>r\<cdot><x,y> = p2\<cdot>r'\<cdot>y"
-by (simp_all add: cpair_pat_def)
+lemma cpair_pat1:
+  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = \<bottom>"
+apply (simp add: branch_def cpair_pat_def)
+apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+done
 
-lemma spair_pat_simps [simp]:
-  "spair_pat p1 p2\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> spair_pat p1 p2\<cdot>r\<cdot>(:x, y:) = cpair_pat p1 p2\<cdot>r\<cdot>\<langle>x, y\<rangle>"
-by (simp_all add: spair_pat_def)
+lemma cpair_pat2:
+  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = fail"
+apply (simp add: branch_def cpair_pat_def)
+apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+done
 
-lemma sinl_pat_simps [simp]:
-  "sinl_pat p\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "x \<noteq> \<bottom> \<Longrightarrow> sinl_pat p\<cdot>r\<cdot>(sinl\<cdot>x) = p\<cdot>r\<cdot>x"
-  "x \<noteq> \<bottom> \<Longrightarrow> sinl_pat p\<cdot>r\<cdot>(sinr\<cdot>x) = fail"
-by (simp_all add: sinl_pat_def)
+lemma cpair_pat3:
+  "branch p\<cdot>r\<cdot>x = return\<cdot>s \<Longrightarrow>
+   branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = branch q\<cdot>s\<cdot>y"
+apply (simp add: branch_def cpair_pat_def)
+apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+apply (rule_tac p="q\<cdot>y" in maybeE, simp_all)
+done
 
-lemma sinr_pat_simps [simp]:
-  "sinr_pat p\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "x \<noteq> \<bottom> \<Longrightarrow> sinr_pat p\<cdot>r\<cdot>(sinl\<cdot>x) = fail"
-  "x \<noteq> \<bottom> \<Longrightarrow> sinr_pat p\<cdot>r\<cdot>(sinr\<cdot>x) = p\<cdot>r\<cdot>x"
-by (simp_all add: sinr_pat_def)
+lemmas cpair_pat [simp] =
+  cpair_pat1 cpair_pat2 cpair_pat3
 
-lemma up_pat_simps [simp]:
-  "up_pat p\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "up_pat p\<cdot>r\<cdot>(up\<cdot>x) = p\<cdot>r\<cdot>x"
-by (simp_all add: up_pat_def)
+lemma spair_pat [simp]:
+  "branch (spair_pat p1 p2)\<cdot>r\<cdot>\<bottom> = \<bottom>"
+  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk>
+     \<Longrightarrow> branch (spair_pat p1 p2)\<cdot>r\<cdot>(:x, y:) =
+         branch (cpair_pat p1 p2)\<cdot>r\<cdot>\<langle>x, y\<rangle>"
+by (simp_all add: branch_def spair_pat_def)
 
-lemma Def_pat_simps [simp]:
-  "Def_pat x\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "Def_pat x\<cdot>r\<cdot>(Def x) = return\<cdot>r"
-  "x \<noteq> y \<Longrightarrow> Def_pat x\<cdot>r\<cdot>(Def y) = fail"
-by (simp_all add: Def_pat_def)
+lemma sinl_pat [simp]:
+  "branch (sinl_pat p)\<cdot>r\<cdot>\<bottom> = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> branch (sinl_pat p)\<cdot>r\<cdot>(sinl\<cdot>x) = branch p\<cdot>r\<cdot>x"
+  "y \<noteq> \<bottom> \<Longrightarrow> branch (sinl_pat p)\<cdot>r\<cdot>(sinr\<cdot>y) = fail"
+by (simp_all add: branch_def sinl_pat_def)
 
-lemma ONE_pat_simps [simp]:
-  "ONE_pat\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "ONE_pat\<cdot>r\<cdot>ONE = return\<cdot>r"
-by (simp_all add: ONE_pat_def)
+lemma sinr_pat [simp]:
+  "branch (sinr_pat p)\<cdot>r\<cdot>\<bottom> = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> branch (sinr_pat p)\<cdot>r\<cdot>(sinl\<cdot>x) = fail"
+  "y \<noteq> \<bottom> \<Longrightarrow> branch (sinr_pat p)\<cdot>r\<cdot>(sinr\<cdot>y) = branch p\<cdot>r\<cdot>y"
+by (simp_all add: branch_def sinr_pat_def)
 
-lemma TT_pat_simps [simp]:
-  "TT_pat\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "TT_pat\<cdot>r\<cdot>TT = return\<cdot>r"
-  "TT_pat\<cdot>r\<cdot>FF = fail"
-by (simp_all add: TT_pat_def)
+lemma up_pat [simp]:
+  "branch (up_pat p)\<cdot>r\<cdot>\<bottom> = \<bottom>"
+  "branch (up_pat p)\<cdot>r\<cdot>(up\<cdot>x) = branch p\<cdot>r\<cdot>x"
+by (simp_all add: branch_def up_pat_def)
 
-lemma FF_pat_simps [simp]:
-  "FF_pat\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "FF_pat\<cdot>r\<cdot>TT = fail"
-  "FF_pat\<cdot>r\<cdot>FF = return\<cdot>r"
-by (simp_all add: FF_pat_def)
+lemma TT_pat [simp]:
+  "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>\<bottom> = \<bottom>"
+  "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>TT = return\<cdot>r"
+  "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>FF = fail"
+by (simp_all add: branch_def TT_pat_def)
 
-subsection {* As-patterns *}
+lemma FF_pat [simp]:
+  "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>\<bottom> = \<bottom>"
+  "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>TT = fail"
+  "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>FF = return\<cdot>r"
+by (simp_all add: branch_def FF_pat_def)
+
+lemma ONE_pat [simp]:
+  "branch ONE_pat\<cdot>(unit_when\<cdot>r)\<cdot>\<bottom> = \<bottom>"
+  "branch ONE_pat\<cdot>(unit_when\<cdot>r)\<cdot>ONE = return\<cdot>r"
+by (simp_all add: branch_def ONE_pat_def)
+
+
+subsection {* Wildcards, as-patterns, and lazy patterns *}
 
 syntax
-  "_as_pattern" :: "['a, 'a] \<Rightarrow> 'a" (* infixr "as" 10 *)
-  (* TODO: choose a non-ambiguous syntax for as-patterns *)
+  "_as_pat" :: "[idt, 'a] \<Rightarrow> 'a" (infixr "\<as>" 10)
+  "_lazy_pat" :: "'a \<Rightarrow> 'a" ("\<lazy> _" [1000] 1000)
 
 constdefs
-  as_pat :: "('a,'b,'c) pat \<Rightarrow> ('a,'c,'d) pat \<Rightarrow> ('a,'b,'d) pat"
-  "as_pat p1 p2 \<equiv> \<Lambda> r a. cpair_pat p1 p2\<cdot>r\<cdot>\<langle>a, a\<rangle>"
+  wild_pat :: "'a \<rightarrow> unit maybe"
+  "wild_pat \<equiv> \<Lambda> x. return\<cdot>()"
 
+  as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe"
+  "as_pat p \<equiv> \<Lambda> x. do a <- p\<cdot>x; return\<cdot>\<langle>x, a\<rangle>"
+
+  lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)"
+  "lazy_pat p \<equiv> \<Lambda> x. return\<cdot>(run\<cdot>(p\<cdot>x))"
+
+text {* Parse translations (patterns) *}
 translations
-  "_var (_as_pattern p1 p2)" => "as_pat (_var p1) (_var p2)"
-  "_as_pattern (_pat p1) (_pat p2)" <= "_pat (as_pat p1 p2)"
+  "_pat _" => "wild_pat"
+  "_pat (_as_pat x y)" => "as_pat (_pat y)"
+  "_pat (_lazy_pat x)" => "lazy_pat (_pat x)"
 
-lemma as_pat [simp]: "as_pat p1 p2\<cdot>r\<cdot>a = cpair_pat p1 p2\<cdot>r\<cdot>\<langle>a, a\<rangle>"
-by (simp add: as_pat_def)
+text {* Parse translations (variables) *}
+translations
+  "_var _ r" => "_var () r"
+  "_var (_as_pat x y) r" => "_var (_args x y) r"
+  "_var (_lazy_pat x) r" => "_var x r"
+
+text {* Print translations *}
+translations
+  "_" <= "_match wild_pat ()"
+  "_as_pat x (_match p v)" <= "_match (as_pat p) (_args (_var x) v)"
+  "_lazy_pat (_match p v)" <= "_match (lazy_pat p) v"
+
+lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
+by (simp add: branch_def wild_pat_def)
+
+lemma as_pat [simp]:
+  "branch (as_pat p)\<cdot>(csplit\<cdot>r)\<cdot>x = branch p\<cdot>(r\<cdot>x)\<cdot>x"
+apply (simp add: branch_def as_pat_def)
+apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+done
+
+lemma lazy_pat [simp]:
+  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>\<bottom>)"
+  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>\<bottom>)"
+  "branch p\<cdot>r\<cdot>x = return\<cdot>s \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = return\<cdot>s"
+apply (simp_all add: branch_def lazy_pat_def)
+apply (rule_tac [!] p="p\<cdot>x" in maybeE, simp_all)
+done
+
 
 subsection {* Match functions for built-in types *}
 
@@ -478,6 +535,7 @@ val cpair_equalI = thm "cpair_equalI";
 val cpair_eqD1 = thm "cpair_eqD1";
 val cpair_eqD2 = thm "cpair_eqD2";
 val ssubst_lhs = thm "ssubst_lhs";
+val branch_def = thm "branch_def";
 *}
 
 subsection {* Initializing the fixrec package *}

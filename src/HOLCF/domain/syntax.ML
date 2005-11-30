@@ -53,10 +53,10 @@ local
   fun sel (_   ,_,args) = List.mapPartial sel1 args;
   fun freetvar s n      = let val tvar = mk_TFree (s ^ string_of_int n) in
 			  if tvar mem typevars then freetvar ("t"^s) n else tvar end;
-  fun mk_patT (a,b,c)   = b ->> a ->> mk_ssumT(oneT, mk_uT c);
-  fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n, freetvar "t" (n+1));
+  fun mk_patT (a,b)     = a ->> mk_ssumT (oneT, mk_uT b);
+  fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n);
   fun pat (con ,s,args) = (pat_name_ con, (mapn pat_arg_typ 1 args) --->
-			   mk_patT (dtype, freetvar "t" 1, freetvar "t" (length args + 1)),
+			   mk_patT (dtype, mk_ctupleT (map (freetvar "t") (1 upto length args))),
 			   Mixfix(escape (con ^ "_pat"), [], Syntax.max_pri));
 
 in
@@ -80,16 +80,19 @@ local open Syntax in
     fun expvar n     = Variable ("e"^(string_of_int n));
     fun argvar n m _ = Variable ("a"^(string_of_int n)^"_"^
 				     (string_of_int m));
-    fun app s (l,r)   = mk_appl (Constant s) [l,r];
+    fun argvars n args = mapn (argvar n) 1 args;
+    fun app s (l,r)  = mk_appl (Constant s) [l,r];
     val cabs = app "_cabs";
     val capp = app "Rep_CFun";
-    fun con1 n (con,mx,args) = Library.foldl capp (c_ast con mx, mapn (argvar n) 1 args);
+    fun con1 n (con,mx,args) = Library.foldl capp (c_ast con mx, argvars n args);
     fun case1 n (con,mx,args) = app "_case1" (con1 n (con,mx,args), expvar n);
-    fun arg1 n (con,_,args) = foldr cabs (expvar n) (mapn (argvar n) 1 args);
+    fun arg1 n (con,_,args) = foldr cabs (expvar n) (argvars n args);
     fun when1 n m = if n = m then arg1 n else K (Constant "UU");
 
-    fun app_var x = mk_appl (Constant "_var") [x];
+    fun app_var x = mk_appl (Constant "_var") [x, Variable "rhs"];
     fun app_pat x = mk_appl (Constant "_pat") [x];
+    fun args_list [] = Constant "Unity"
+    |   args_list xs = foldr1 (app "_args") xs;
   in
     val case_trans = ParsePrintRule
         (app "_case_syntax" (Variable "x", foldr1 (app "_case2") (mapn case1 1 cons')),
@@ -99,20 +102,29 @@ local open Syntax in
         (cabs (con1 n (con,mx,args), expvar n),
          Library.foldl capp (Constant (dnam^"_when"), mapn (when1 n) 1 cons'))) 1 cons';
     
-    val pattern_trans = mapn (fn n => fn (con,mx,args) => ParseRule
-          (app_var (Library.foldl capp (c_ast con mx, mapn (argvar n) 1 args)),
-           mk_appl (Constant (pat_name_ con)) (map app_var (mapn (argvar n) 1 args)))) 1 cons';
-    
-    val pattern_trans' = mapn (fn n => fn (con,mx,args) => PrintRule
-          (Library.foldl capp (c_ast con mx, map app_pat (mapn (argvar n) 1 args)),
-           app_pat (mk_appl (Constant (pat_name_ con)) (mapn (argvar n) 1 args)))) 1 cons';
+    val Case_trans = List.concat (map (fn (con,mx,args) =>
+      let
+        val cname = c_ast con mx;
+        val pname = Constant (pat_name_ con);
+        val ns = 1 upto length args;
+        val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
+        val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
+        val vs = map (fn n => Variable ("v"^(string_of_int n))) ns;
+      in
+        [ParseRule (app_pat (Library.foldl capp (cname, xs)),
+                    mk_appl pname (map app_pat xs)),
+         ParseRule (app_var (Library.foldl capp (cname, xs)),
+                    app_var (args_list xs)),
+         PrintRule (Library.foldl capp (cname, ListPair.map (app "_match") (ps,vs)),
+                    app "_match" (mk_appl pname ps, args_list vs))]
+      end) cons');
   end;
 end;
 
 in ([const_rep, const_abs, const_when, const_copy] @ 
      consts_con @ consts_dis @ consts_mat @ consts_pat @ consts_sel @
     [const_take, const_finite],
-    (case_trans::(abscon_trans @ pattern_trans @ pattern_trans')))
+    (case_trans::(abscon_trans @ Case_trans)))
 end; (* let *)
 
 (* ----- putting all the syntax stuff together ------------------------------ *)

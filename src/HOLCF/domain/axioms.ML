@@ -79,14 +79,14 @@ let
           val ps = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
           val xs = map (bound_arg args) args;
           val r = Bound (length args);
-          val rhs = case args of [] => %%:returnN ` r
-                                | _ => foldr1 cpair_pat ps ` r ` mk_ctuple xs;
+          val rhs = case args of [] => %%:returnN ` HOLogic.unit
+                                | _ => foldr1 cpair_pat ps ` mk_ctuple xs;
           fun one_con (con',args') = foldr /\# (if con'=con then rhs else %%:failN) args';
         in (pat_name con ^"_def", list_comb (%%:(pat_name con), ps) == 
-               /\ "r" (list_ccomb(%%:(dname^"_when"), map one_con cons)))
+               list_ccomb(%%:(dname^"_when"), map one_con cons))
         end
     in map pdef cons end;
-  
+
   val sel_defs = let
 	fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
 		 list_ccomb(%%:(dname^"_when"),map 
