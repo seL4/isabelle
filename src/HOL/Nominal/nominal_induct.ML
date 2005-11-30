@@ -48,12 +48,24 @@ fun inst_rule thy insts fresh rule =
     |> Drule.cterm_instantiate (map (pairself (Thm.cterm_of thy)) subst)
   end;
 
-fun rename_params_prems xs rule =
+fun rename_params_rule internal xs rule =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_thm rule);
-    val (As, C) = Logic.strip_horn (Thm.prop_of rule);
-    val prop = Logic.list_implies (map (curry Logic.list_rename_params xs) As, C);
-  in Thm.equal_elim (Thm.reflexive (cert prop)) rule end;
+    val tune =
+      if internal then Syntax.internal
+      else fn x => the_default x (try Syntax.dest_internal x);
+    val n = length xs;
+    fun rename prem =
+      let
+        val ps = Logic.strip_params prem;
+        val p = length ps;
+        val ys =
+          if p < n then []
+          else map (tune o #1) (Library.take (p - n, ps)) @ xs;
+      in Logic.list_rename_params (ys, prem) end;
+    fun rename_prems prop =
+      let val (As, C) = Logic.strip_horn (Thm.prop_of rule)
+      in Logic.list_implies (map rename As, C) end;
+  in Thm.equal_elim (Thm.reflexive (Drule.cterm_fun rename_prems (Thm.cprop_of rule))) rule end;
 
 
 (* nominal_induct_tac *)
@@ -68,8 +80,8 @@ fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
 
     val finish_rule =
       split_all_tuples
-      #> rename_params_prems (map (ProofContext.revert_skolem defs_ctxt o #1) fresh);
-    fun rule_cases r = RuleCases.make false (SOME (Thm.prop_of r)) (InductMethod.rulified_term r);
+      #> rename_params_rule true (map (ProofContext.revert_skolem defs_ctxt o #1) fresh);
+    fun rule_cases r = RuleCases.make true (SOME (Thm.prop_of r)) (InductMethod.rulified_term r);
   in
     (fn i => fn st =>
       rule
@@ -84,7 +96,7 @@ fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
             InductMethod.guess_instance (finish_rule r) i st'
             |> Seq.maps (fn r' =>
               CASES (rule_cases r' cases)
-                (Tactic.rtac r' i THEN
+                (Tactic.rtac (rename_params_rule false [] r') i THEN
                   PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
     THEN_ALL_NEW_CASES InductMethod.rulify_tac
   end;
