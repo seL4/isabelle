@@ -532,25 +532,43 @@ fun create_nom_typedecls ak_names thy =
 	 (AxClass.add_inst_arity_i ("fun",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
        end) (thy18b,ak_names_types);
 
-      (* descrete types *)
-      (*
-      val (thy19,_) =
+      (* discrete types are permutation types and finitely supported        *)
+      (* discrete tpes have the permutation operation defined as pi o x = x *)
+      val thy19 =
         let 
-	  fun discrete_pt_inst ty simp_thms = 
-	     foldl_map (fn (thy, (ak_name, T)) =>
-	      let
+	  fun discrete_pt_inst discrete_ty defn = 
+	     fold (fn ak_name => fn thy =>
+	     let
 	       val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-	       val simp_s   = HOL_basic_ss addsimps simp_thms;
-               val proof = EVERY [AxClass.intro_classes_tac [], auto_tac (claset(),simp_s)];      
+	       val simp_s = HOL_basic_ss addsimps [defn];
+               val proof = EVERY [AxClass.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];      
              in  
-	     (AxClass.add_inst_arity_i (ty,[],[qu_class]) proof thy,()) 
-             end) (thy19a,ak_names_types); 
+	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+             end) ak_names;
+
+          fun discrete_fs_inst discrete_ty defn = 
+	     fold (fn ak_name => fn thy =>
+	     let
+	       val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+	       val supp_def = thm "nominal.supp_def";
+               val simp_s = HOL_ss addsimps [supp_def,if_False,Collect_const,Finites.emptyI,defn];
+               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
+             in  
+	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+             end) ak_names;  
+          
         in
-         thy19a 
-	 |> discrete_pt_inst "nat" [PureThy.get_thm thy19a (Name "perm_nat_def")]
+         thy19a
+         |> discrete_pt_inst "nat"  (thm "perm_nat_def")
+         |> discrete_fs_inst "nat"  (thm "perm_nat_def")
+         |> discrete_pt_inst "bool" (thm "perm_bool")
+         |> discrete_fs_inst "bool" (thm "perm_bool")
+         |> discrete_pt_inst "IntDef.int" (thm "perm_int_def")
+         |> discrete_fs_inst "IntDef.int" (thm "perm_int_def")
+         |> discrete_pt_inst "List.char" (thm "perm_char_def")
+         |> discrete_fs_inst "List.char" (thm "perm_char_def")
         end;
-       *)
-       val thy19 = thy19a;
+
 
        (*<<<<<<<  fs_<ak> class instances  >>>>>>>*)
        (*=========================================*)
@@ -568,7 +586,7 @@ fun create_nom_typedecls ak_names thy =
        let
           val qu_name =  Sign.full_name (sign_of thy) ak_name;
           val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
-          val at_thm   = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
+          val at_thm = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
           val proof = EVERY [AxClass.intro_classes_tac [],
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1];      
        in 
