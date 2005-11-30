@@ -75,8 +75,8 @@ sig
   val add_binds_i: (indexname * term option) list -> context -> context
   val auto_bind_goal: term list -> context -> context
   val auto_bind_facts: term list -> context -> context
-  val match_bind: bool -> (string list * string) list -> context -> context
-  val match_bind_i: bool -> (term list * term) list -> context -> context
+  val match_bind: bool -> (string list * string) list -> context -> term list * context
+  val match_bind_i: bool -> (term list * term) list -> context -> term list * context
   val read_propp: context * (string * (string list * string list)) list list
     -> context * (term * (term list * term list)) list list
   val cert_propp: context * (term * (term list * term list)) list list
@@ -122,7 +122,7 @@ sig
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> context -> (bstring * thm list) list * context
-  val mk_def: context -> string * term -> term
+  val mk_def: context -> (string * term) list -> term list
   val cert_def: context -> term -> string * term
   val export_def: exporter
   val add_def: string * term -> context -> ((string * typ) * thm) * context
@@ -529,7 +529,12 @@ fun norm_term ctxt schematic =
 
 (* dummy patterns *)
 
-fun prepare_dummies t = #2 (Term.replace_dummy_patterns (1, t));
+val prepare_dummies =
+  let val next = ref 1 in
+    fn t =>
+      let val (i, u) = Term.replace_dummy_patterns (! next, t)
+      in next := i; u end
+  end;
 
 fun reject_dummies ctxt t = Term.no_dummy_patterns t
   handle TERM _ => raise CONTEXT ("Illegal dummy pattern(s) in term", ctxt);
@@ -807,7 +812,7 @@ fun simult_matches ctxt [] = []
           if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
           then () else fail ();
         fun norm_bind (xi, (_, t)) =
-          if mem_ix (xi, domain) then SOME (xi, Envir.norm_term env t) else NONE;
+          if member (op =) domain xi then SOME (xi, Envir.norm_term env t) else NONE;
       in List.mapPartial norm_bind (Envir.alist_of env) end;
 
 
@@ -853,12 +858,12 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
       if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
       else binds;
     val binds'' = map (apsnd SOME) binds';
-  in
-    warn_extra_tfrees ctxt
-     (if gen then
-        ctxt (*sic!*) |> fold declare_term (map #2 binds') |> add_binds_i binds''
-      else ctxt' |> add_binds_i binds'')
-  end;
+    val ctxt'' =
+      warn_extra_tfrees ctxt
+       (if gen then
+          ctxt (*sic!*) |> fold declare_term (map #2 binds') |> add_binds_i binds''
+        else ctxt' |> add_binds_i binds'');
+  in (ts, ctxt'') end;
 
 in
 
@@ -1203,9 +1208,12 @@ end;
 
 (* defs *)
 
-fun mk_def ctxt (x, rhs) =
-  let val lhs = bind_skolem ctxt [x] (Free (x, Term.fastype_of rhs));
-  in Logic.mk_equals (lhs, rhs) end;
+fun mk_def ctxt args =
+  let
+    val (xs, rhss) = split_list args;
+    val bind = bind_skolem ctxt xs;
+    val lhss = map (fn (x, rhs) => bind (Free (x, Term.fastype_of rhs))) args;
+  in map Logic.mk_equals (lhss ~~ rhss) end;
 
 fun cert_def ctxt eq =
   let
@@ -1243,7 +1251,7 @@ fun export_def _ cprops thm =
 
 fun add_def (x, t) ctxt =
   let
-    val eq = mk_def ctxt (x, t);
+    val [eq] = mk_def ctxt [(x, t)];
     val x' = Term.dest_Free (fst (Logic.dest_equals eq));
   in
     ctxt
