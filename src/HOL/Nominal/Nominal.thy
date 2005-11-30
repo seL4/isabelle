@@ -241,6 +241,15 @@ lemma fresh_some:
   done
 
 
+text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
+
+lemma fresh_unit_elim: "(a\<sharp>() \<Longrightarrow> PROP C) == PROP C"
+  by (simp add: fresh_def supp_unit)
+
+lemma fresh_prod_elim: "(a\<sharp>(x,y) \<Longrightarrow> PROP C) == (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
+  by rule (simp_all add: fresh_prod)
+
+
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
 
@@ -2581,9 +2590,10 @@ setup "NominalAtoms.setup"
 
 (*****************************************)
 (* setup for induction principles method *)
+
 use "nominal_induct.ML";
 method_setup nominal_induct =
-  {* nominal_induct_method *}
+  {* NominalInduct.nominal_induct_method *}
   {* nominal induction *}
 
 (*******************************)
@@ -2607,5 +2617,3 @@ method_setup supports_simp_debug =
   {* tactic for deciding equalities involving permutations including debuging facilities *}
 
 end
-
-
