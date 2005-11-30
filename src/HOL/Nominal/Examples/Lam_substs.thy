@@ -1348,6 +1348,14 @@ apply(rule subst_Lam)
 apply(simp add: fresh_prod a b fresh_atm)
 done
 
+lemma subst_Lam'':
+  assumes a: "a\<sharp>b"
+  and     b: "a\<sharp>t"
+  shows "subst_lam b t (Lam [a].t1) = Lam [a].(subst_lam b t t1)"
+apply(rule subst_Lam)
+apply(simp add: fresh_prod a b)
+done
+
 consts
   subst_syn  :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 900)
 translations 
@@ -1357,6 +1365,7 @@ declare subst_Var[simp]
 declare subst_App[simp]
 declare subst_Lam[simp]
 declare subst_Lam'[simp]
+declare subst_Lam''[simp]
 
 lemma subst_eqvt[simp]:
   fixes pi:: "name prm"
