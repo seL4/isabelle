@@ -58,8 +58,10 @@ sig
     -> state -> state
   val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
-  val def: string * Attrib.src list -> string *  (string * string list) -> state -> state
-  val def_i: string * context attribute list -> string * (term * term list) -> state -> state
+  val def: ((string * Attrib.src list) * (string * (string * string list))) list ->
+    state -> state
+  val def_i: ((string * context attribute list) * (string * (term * term list))) list ->
+    state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val get_thmss: state -> (thmref * Attrib.src list) list -> thm list
@@ -496,7 +498,7 @@ local
 fun gen_bind bind args state =
   state
   |> assert_forward
-  |> map_context (bind args)
+  |> map_context (bind args #> snd)
   |> put_facts NONE;
 
 in
@@ -552,29 +554,26 @@ end;
 
 local
 
-fun gen_def fix prep_att prep_term prep_pats
-    (raw_name, raw_atts) (x, (raw_rhs, raw_pats)) state =
+fun gen_def fix prep_att prep_binds args state =
   let
     val _ = assert_forward state;
     val thy = theory_of state;
-    val ctxt = context_of state;
 
-    val rhs = prep_term ctxt raw_rhs;
-    val pats = prep_pats (Term.fastype_of rhs) (ProofContext.declare_term rhs ctxt) raw_pats;
-    val eq = ProofContext.mk_def ctxt (x, rhs);
-    val name = if raw_name = "" then Thm.def_name x else raw_name;
-    val atts = map (prep_att thy) raw_atts;
+    val ((raw_names, raw_atts), (xs, raw_rhss)) = args |> split_list |>> split_list ||> split_list;
+    val names = map (fn ("", x) => Thm.def_name x | (name, _) => name) (raw_names ~~ xs);
+    val atts = map (map (prep_att thy)) raw_atts;
+    val (rhss, state') = state |> map_context_result (prep_binds false (map swap raw_rhss));
+    val eqs = ProofContext.mk_def (context_of state') (xs ~~ rhss);
   in
-    state
-    |> fix [([x], NONE)]
-    |> match_bind_i [(pats, rhs)]
-    |> assm_i ProofContext.export_def [((name, atts), [(eq, ([], []))])]
+    state'
+    |> fix [(xs, NONE)]
+    |> assm_i ProofContext.export_def ((names ~~ atts) ~~ map (fn eq => [(eq, ([], []))]) eqs)
   end;
 
 in
 
-val def = gen_def fix Attrib.local_attribute ProofContext.read_term ProofContext.read_term_pats;
-val def_i = gen_def fix_i (K I) ProofContext.cert_term ProofContext.cert_term_pats;
+val def = gen_def fix Attrib.local_attribute ProofContext.match_bind;
+val def_i = gen_def fix_i (K I) ProofContext.match_bind_i;
 
 end;
 

@@ -421,8 +421,9 @@ val presumeP =
 val defP =
   OuterSyntax.command "def" "local definition"
     (K.tag_proof K.prf_asm)
-    (P.opt_thm_name ":" -- (P.name -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp))
-      >> (Toplevel.print oo (Toplevel.proof o uncurry Proof.def)));
+    (P.and_list1
+      (P.opt_thm_name ":" -- (P.name -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
+    >> (Toplevel.print oo (Toplevel.proof o Proof.def)));
 
 val obtainP =
   OuterSyntax.command "obtain" "generalized existence"

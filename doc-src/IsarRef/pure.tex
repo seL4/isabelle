@@ -709,7 +709,9 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
   ;
   ('assume' | 'presume') (props + 'and')
   ;
-  'def' thmdecl? \\ name ('==' | equiv) term termpat?
+  'def' (def + 'and')
+  ;
+  def: thmdecl? \\ name ('==' | equiv) term termpat?
   ;
 \end{rail}
 
@@ -733,7 +735,8 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
   ``$\DEF{}{x \equiv t}$'' abbreviates ``$\FIX{x}~\ASSUME{}{x \equiv t}$'',
   with the resulting hypothetical equation solved by reflexivity.
   
-  The default name for the definitional equation is $x_def$.
+  The default name for the definitional equation is $x_def$.  Several
+  simultaneous definitions may be given at the same time.
 
 \end{descr}
 

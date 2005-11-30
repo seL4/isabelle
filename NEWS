@@ -61,6 +61,10 @@ certain special cases of literal facts:
   have "!!x. P x ==> Q x" by fact  ==  note `!!x. P x ==> Q x`
   have "P a ==> Q a" by fact       ==  note `P a ==> Q a`
 
+* Isar: 'def' now admits simultaneous definitions, e.g.:
+
+  def x == "t" and y == "u"
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals
