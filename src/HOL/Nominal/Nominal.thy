@@ -104,8 +104,8 @@ section {* permutation equality *}
 (*==============================*)
 
 constdefs
-  prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool"  (" _ \<sim> _ " [80,80] 80)
-  "pi1 \<sim> pi2 \<equiv> \<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a"
+  prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool"  (" _ \<triangleq> _ " [80,80] 80)
+  "pi1 \<triangleq> pi2 \<equiv> \<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a"
 
 section {* Support, Freshness and Supports*}
 (*========================================*)
@@ -258,7 +258,7 @@ constdefs
   "pt TYPE('a) TYPE('x) \<equiv> 
      (\<forall>(x::'a). ([]::'x prm)\<bullet>x = x) \<and> 
      (\<forall>(pi1::'x prm) (pi2::'x prm) (x::'a). (pi1@pi2)\<bullet>x = pi1\<bullet>(pi2\<bullet>x)) \<and> 
-     (\<forall>(pi1::'x prm) (pi2::'x prm) (x::'a). pi1 \<sim> pi2 \<longrightarrow> pi1\<bullet>x = pi2\<bullet>x)"
+     (\<forall>(pi1::'x prm) (pi2::'x prm) (x::'a). pi1 \<triangleq> pi2 \<longrightarrow> pi1\<bullet>x = pi2\<bullet>x)"
 
 (* properties for being an atom type *)
 constdefs 
@@ -430,14 +430,14 @@ lemma at_prm_rev_eq:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
   assumes at: "at TYPE('x)"
-  shows a: "((rev pi1) \<sim> (rev pi2)) = (pi1 \<sim> pi2)"
+  shows a: "((rev pi1) \<triangleq> (rev pi2)) = (pi1 \<triangleq> pi2)"
 proof (simp add: prm_eq_def, auto)
   fix x
   assume "\<forall>x::'x. (rev pi1)\<bullet>x = (rev pi2)\<bullet>x"
   hence "(rev (pi1::'x prm))\<bullet>(pi2\<bullet>(x::'x)) = (rev (pi2::'x prm))\<bullet>(pi2\<bullet>x)" by simp
   hence "(rev (pi1::'x prm))\<bullet>((pi2::'x prm)\<bullet>x) = (x::'x)" by (simp add: at_rev_pi[OF at])
   hence "(pi2::'x prm)\<bullet>x = (pi1::'x prm)\<bullet>x" by (simp add: at_bij2[OF at])
-  thus "pi1 \<bullet> x  =  pi2 \<bullet> x" by simp
+  thus "pi1\<bullet>x  =  pi2\<bullet>x" by simp
 next
   fix x
   assume "\<forall>x::'x. pi1\<bullet>x = pi2\<bullet>x"
@@ -451,13 +451,13 @@ lemma at_prm_rev_eq1:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
   assumes at: "at TYPE('x)"
-  shows "pi1 \<sim> pi2 \<Longrightarrow> (rev pi1) \<sim> (rev pi2)"
+  shows "pi1 \<triangleq> pi2 \<Longrightarrow> (rev pi1) \<triangleq> (rev pi2)"
   by (simp add: at_prm_rev_eq[OF at])
 
 lemma at_ds1:
   fixes a  :: "'x"
   assumes at: "at TYPE('x)"
-  shows "[(a,a)] \<sim> []"
+  shows "[(a,a)] \<triangleq> []"
   by (force simp add: prm_eq_def at_calc[OF at])
 
 lemma at_ds2: 
@@ -465,7 +465,7 @@ lemma at_ds2:
   and   a  :: "'x"
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
-  shows "(pi@[((rev pi)\<bullet>a,(rev pi)\<bullet>b)]) \<sim> ([(a,b)]@pi)"
+  shows "(pi@[((rev pi)\<bullet>a,(rev pi)\<bullet>b)]) \<triangleq> ([(a,b)]@pi)"
   by (force simp add: prm_eq_def at_append[OF at] at_bij[OF at] at_pi_rev[OF at] 
       at_rev_pi[OF at] at_calc[OF at])
 
@@ -475,7 +475,7 @@ lemma at_ds3:
   and   c  :: "'x"
   assumes at: "at TYPE('x)"
   and     a:  "distinct [a,b,c]"
-  shows "[(a,c),(b,c),(a,c)] \<sim> [(a,b)]"
+  shows "[(a,c),(b,c),(a,c)] \<triangleq> [(a,b)]"
   using a by (force simp add: prm_eq_def at_calc[OF at])
 
 lemma at_ds4: 
@@ -483,7 +483,7 @@ lemma at_ds4:
   and   b  :: "'x"
   and   pi  :: "'x prm"
   assumes at: "at TYPE('x)"
-  shows "(pi@[(a,(rev pi)\<bullet>b)]) \<sim> ([(pi\<bullet>a,b)]@pi)"
+  shows "(pi@[(a,(rev pi)\<bullet>b)]) \<triangleq> ([(pi\<bullet>a,b)]@pi)"
   by (force simp add: prm_eq_def at_append[OF at] at_calc[OF at] at_bij[OF at] 
       at_pi_rev[OF at] at_rev_pi[OF at])
 
@@ -491,7 +491,7 @@ lemma at_ds5:
   fixes a  :: "'x"
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
-  shows "[(a,b)] \<sim> [(b,a)]"
+  shows "[(a,b)] \<triangleq> [(b,a)]"
   by (force simp add: prm_eq_def at_calc[OF at])
 
 lemma at_ds6: 
@@ -500,13 +500,13 @@ lemma at_ds6:
   and   c  :: "'x"
   assumes at: "at TYPE('x)"
   and     a: "distinct [a,b,c]"
-  shows "[(a,c),(a,b)] \<sim> [(b,c),(a,c)]"
+  shows "[(a,c),(a,b)] \<triangleq> [(b,c),(a,c)]"
   using a by (force simp add: prm_eq_def at_calc[OF at])
 
 lemma at_ds7:
   fixes pi :: "'x prm"
   assumes at: "at TYPE('x)"
-  shows "((rev pi)@pi) \<sim> []"
+  shows "((rev pi)@pi) \<triangleq> []"
   by (simp add: prm_eq_def at1[OF at] at_append[OF at] at_rev_pi[OF at])
 
 lemma at_ds8_aux:
@@ -524,7 +524,7 @@ lemma at_ds8:
   and   a  :: "'x"
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
-  shows "(pi1@pi2) \<sim> ((pi1\<bullet>pi2)@pi1)"
+  shows "(pi1@pi2) \<triangleq> ((pi1\<bullet>pi2)@pi1)"
 apply(induct_tac pi2)
 apply(simp add: prm_eq_def)
 apply(auto simp add: prm_eq_def)
@@ -543,7 +543,7 @@ lemma at_ds9:
   and   a  :: "'x"
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
-  shows " ((rev pi2)@(rev pi1)) \<sim> ((rev pi1)@(rev (pi1\<bullet>pi2)))"
+  shows " ((rev pi2)@(rev pi1)) \<triangleq> ((rev pi1)@(rev (pi1\<bullet>pi2)))"
 apply(induct_tac pi2)
 apply(simp add: prm_eq_def)
 apply(auto simp add: prm_eq_def)
@@ -665,7 +665,7 @@ lemma pt3:
   and   pi2::"'x prm"
   and   x  ::"'a"
   assumes a: "pt TYPE('a) TYPE('x)"
-  shows "pi1 \<sim> pi2 \<Longrightarrow> pi1\<bullet>x = pi2\<bullet>x"
+  shows "pi1 \<triangleq> pi2 \<Longrightarrow> pi1\<bullet>x = pi2\<bullet>x"
   using a by (simp add: pt_def)
 
 lemma pt3_rev:
@@ -674,7 +674,7 @@ lemma pt3_rev:
   and   x  ::"'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pi1 \<sim> pi2 \<Longrightarrow> (rev pi1)\<bullet>x = (rev pi2)\<bullet>x"
+  shows "pi1 \<triangleq> pi2 \<Longrightarrow> (rev pi1)\<bullet>x = (rev pi2)\<bullet>x"
   by (rule pt3[OF pt], simp add: at_prm_rev_eq[OF at])
 
 section {* composition properties *}
@@ -731,7 +731,7 @@ lemma pt_list_prm_eq:
   and   pi2 :: "'x prm"
   and   xs  :: "'a list"
   assumes pt: "pt TYPE('a) TYPE ('x)"
-  shows "pi1 \<sim> pi2  \<Longrightarrow> pi1\<bullet>xs = pi2\<bullet>xs"
+  shows "pi1 \<triangleq> pi2  \<Longrightarrow> pi1\<bullet>xs = pi2\<bullet>xs"
 apply(induct_tac xs)
 apply(simp_all add: prm_eq_def pt3[OF pt])
 done
@@ -771,7 +771,7 @@ apply(auto simp only: pt_def)
 apply(simp_all add: perm_fun_def)
 apply(simp add: pt1[OF pta] pt1[OF ptb])
 apply(simp add: pt2[OF pta] pt2[OF ptb])
-apply(subgoal_tac "(rev pi1) \<sim> (rev pi2)")(*A*)
+apply(subgoal_tac "(rev pi1) \<triangleq> (rev pi2)")(*A*)
 apply(simp add: pt3[OF pta] pt3[OF ptb])
 (*A*)
 apply(simp add: at_prm_rev_eq[OF at])
@@ -825,7 +825,7 @@ lemma pt_rev_pi:
   and     at: "at TYPE('x)"
   shows "(rev pi)\<bullet>(pi\<bullet>x) = x"
 proof -
-  have "((rev pi)@pi) \<sim> ([]::'x prm)" by (simp add: at_ds7[OF at])
+  have "((rev pi)@pi) \<triangleq> ([]::'x prm)" by (simp add: at_ds7[OF at])
   hence "((rev pi)@pi)\<bullet>(x::'a) = ([]::'x prm)\<bullet>x" by (simp add: pt3[OF pt]) 
   thus ?thesis by (simp add: pt1[OF pt] pt2[OF pt])
 qed
@@ -1261,8 +1261,8 @@ lemma pt_fresh_fresh:
   shows "[(a,b)]\<bullet>x=x"
 proof (cases "a=b")
   assume c1: "a=b"
-  have "[(a,a)] \<sim> []" by (rule at_ds1[OF at])
-  hence "[(a,b)] \<sim> []" using c1 by simp
+  have "[(a,a)] \<triangleq> []" by (rule at_ds1[OF at])
+  hence "[(a,b)] \<triangleq> []" using c1 by simp
   hence "[(a,b)]\<bullet>x=([]::'x prm)\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp only: pt1[OF pt])
 next
@@ -1285,7 +1285,7 @@ next
     by (force)
   hence "[(a,c)]\<bullet>([(b,c)]\<bullet>([(a,c)]\<bullet>x)) = x" by simp 
   hence eq3: "[(a,c),(b,c),(a,c)]\<bullet>x = x" by (simp add: pt2[OF pt,symmetric])
-  from c2 ineq have "[(a,c),(b,c),(a,c)] \<sim> [(a,b)]" by (simp add: at_ds3[OF at])
+  from c2 ineq have "[(a,c),(b,c),(a,c)] \<triangleq> [(a,b)]" by (simp add: at_ds3[OF at])
   hence "[(a,c),(b,c),(a,c)]\<bullet>x = [(a,b)]\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis using eq3 by simp
 qed
@@ -1298,7 +1298,7 @@ lemma pt_perm_compose:
   and     at: "at TYPE('x)"
   shows "pi2\<bullet>(pi1\<bullet>x) = (pi2\<bullet>pi1)\<bullet>(pi2\<bullet>x)" 
 proof -
-  have "(pi2@pi1) \<sim> ((pi2\<bullet>pi1)@pi2)" by (rule at_ds8)
+  have "(pi2@pi1) \<triangleq> ((pi2\<bullet>pi1)@pi2)" by (rule at_ds8)
   hence "(pi2@pi1)\<bullet>x = ((pi2\<bullet>pi1)@pi2)\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp add: pt2[OF pt])
 qed
@@ -1311,7 +1311,7 @@ lemma pt_perm_compose_rev:
   and     at: "at TYPE('x)"
   shows "(rev pi2)\<bullet>((rev pi1)\<bullet>x) = (rev pi1)\<bullet>(rev (pi1\<bullet>pi2)\<bullet>x)" 
 proof -
-  have "((rev pi2)@(rev pi1)) \<sim> ((rev pi1)@(rev (pi1\<bullet>pi2)))" by (rule at_ds9[OF at])
+  have "((rev pi2)@(rev pi1)) \<triangleq> ((rev pi1)@(rev (pi1\<bullet>pi2)))" by (rule at_ds9[OF at])
   hence "((rev pi2)@(rev pi1))\<bullet>x = ((rev pi1)@(rev (pi1\<bullet>pi2)))\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp add: pt2[OF pt])
 qed
@@ -2338,7 +2338,7 @@ proof -
 	have "c\<sharp>y \<longrightarrow> [(a,c)]\<bullet>x = [(b,c)]\<bullet>y" 
 	proof (intro strip)
 	  assume a6: "c\<sharp>y"
-	  have "[(a,c),(b,c),(a,c)] \<sim> [(a,b)]" using a1 a5 by (force intro: at_ds3[OF at])
+	  have "[(a,c),(b,c),(a,c)] \<triangleq> [(a,b)]" using a1 a5 by (force intro: at_ds3[OF at])
 	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>([(a,c)]\<bullet>y)) = [(a,b)]\<bullet>y" 
 	    by (simp add: pt2[OF pt, symmetric] pt3[OF pt])
  	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = [(a,b)]\<bullet>y" using a3 a6 
