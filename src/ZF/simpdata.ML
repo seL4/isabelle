@@ -55,10 +55,12 @@ change_simpset (fn ss =>
 
 local
 
-fun prove_bex_tac ss = unfold_tac ss [Bex_def] THEN Quantifier1.prove_one_point_ex_tac;
+val unfold_bex_tac = unfold_tac [Bex_def];
+fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 
-fun prove_ball_tac ss = unfold_tac ss [Ball_def] THEN Quantifier1.prove_one_point_all_tac;
+val unfold_ball_tac = unfold_tac [Ball_def];
+fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
 
 in

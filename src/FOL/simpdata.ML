@@ -338,9 +338,9 @@ val FOL_basic_ss =
   setmksimps (mksimps mksimps_pairs)
   setmkcong mk_meta_cong;
 
-fun unfold_tac ss ths =
-  ALLGOALS (full_simp_tac
-    (Simplifier.inherit_context ss (Simplifier.clear_ss FOL_basic_ss) addsimps ths));
+fun unfold_tac ths =
+  let val ss0 = Simplifier.clear_ss FOL_basic_ss addsimps ths
+  in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 
 (*intuitionistic simprules only*)

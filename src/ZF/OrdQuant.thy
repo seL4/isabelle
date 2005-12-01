@@ -400,10 +400,12 @@ text {* Setting up the one-point-rule simproc *}
 ML_setup {*
 local
 
-fun prove_rex_tac ss = unfold_tac ss [rex_def] THEN Quantifier1.prove_one_point_ex_tac;
+val unfold_rex_tac = unfold_tac [rex_def];
+fun prove_rex_tac ss = unfold_rex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_rex_tac;
 
-fun prove_rall_tac ss = unfold_tac ss [rall_def] THEN Quantifier1.prove_one_point_all_tac;
+val unfold_rall_tac = unfold_tac [rall_def];
+fun prove_rall_tac ss = unfold_rall_tac ss THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
 
 in

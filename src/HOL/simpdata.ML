@@ -350,9 +350,9 @@ val HOL_basic_ss =
     setmkeqTrue mk_eq_True
     setmkcong mk_meta_cong;
 
-fun unfold_tac ss ths =
-  ALLGOALS (full_simp_tac
-    (Simplifier.inherit_context ss (Simplifier.clear_ss HOL_basic_ss) addsimps ths));
+fun unfold_tac ths =
+  let val ss0 = Simplifier.clear_ss HOL_basic_ss addsimps ths
+  in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 (*In general it seems wrong to add distributive laws by default: they
   might cause exponential blow-up.  But imp_disjL has been in for a while
