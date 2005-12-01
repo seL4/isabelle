@@ -13,7 +13,7 @@ function show_times ()
   get_times
   local TIMES_STOP="$TIMES_RESULT"
   local KIND
-  for KIND in 1 2 3
+  for KIND in 1 2
   do
     local START=$(echo "$TIMES_START" | cut -d " " -f $KIND)
     local STOP=$(echo "$TIMES_STOP" | cut -d " " -f $KIND)
@@ -27,8 +27,7 @@ function show_times ()
 
     local KIND_NAME
     [ "$KIND" = 1 ] && KIND_NAME="elapsed time"
-    [ "$KIND" = 2 ] && KIND_NAME="user"
-    [ "$KIND" = 3 ] && KIND_NAME="system"
+    [ "$KIND" = 2 ] && KIND_NAME="cpu time"
     local RESULT="${HOURS}:${MINUTES}:${SECS} ${KIND_NAME}"
 
     if [ -z "$TIMES_REPORT" ]; then
