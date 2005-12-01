@@ -381,7 +381,10 @@ fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn))
                   in if Sign.typ_instance thy (U, T) then U
                     else error ("Illegal type constraint for constant " ^ cname)
                   end)
-         in (case AList.lookup (op =) consts (cname, T') of
+         in
+           if num_args_of (fst syn) > length (binder_types T') then
+             error ("More arguments than in corresponding type of " ^ s)
+           else (case AList.lookup (op =) consts (cname, T') of
              NONE => CodegenData.put {codegens = codegens,
                tycodegens = tycodegens,
                consts = ((cname, T'), syn) :: consts,
@@ -404,12 +407,17 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
       CodegenData.get thy;
     val tc = Sign.intern_type thy s
   in
-    (case AList.lookup (op =) types tc of
-       NONE => CodegenData.put {codegens = codegens,
-         tycodegens = tycodegens, consts = consts,
-         types = (tc, syn) :: types, attrs = attrs,
-         preprocs = preprocs, modules = modules, test_params = test_params} thy
-     | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
+    case Symtab.lookup (snd (#types (Type.rep_tsig (Sign.tsig_of thy)))) tc of
+      SOME (Type.LogicalType i, _) =>
+        if num_args_of (fst syn) > i then
+          error ("More arguments than corresponding type constructor " ^ s)
+        else (case AList.lookup (op =) types tc of
+          NONE => CodegenData.put {codegens = codegens,
+            tycodegens = tycodegens, consts = consts,
+            types = (tc, syn) :: types, attrs = attrs,
+            preprocs = preprocs, modules = modules, test_params = test_params} thy
+        | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
+    | _ => error ("Not a type constructor: " ^ s)
   end) (thy, xs);
 
 fun get_assoc_type thy s = AList.lookup (op =) ((#types o CodegenData.get) thy) s;
