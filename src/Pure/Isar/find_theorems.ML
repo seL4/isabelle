@@ -236,9 +236,14 @@ end;
 (* print_theorems *)
 
 fun find_thms ctxt spec =
-  (PureThy.thms_containing (ProofContext.theory_of ctxt) spec @
-    ProofContext.lthms_containing ctxt spec)
-  |> map PureThy.selections |> List.concat;
+  (PureThy.thms_containing (ProofContext.theory_of ctxt) spec
+    |> map PureThy.selections
+    |> List.concat) @
+  (ProofContext.lthms_containing ctxt spec
+    |> map PureThy.selections
+    |> List.concat
+    |> gen_distinct (fn ((r1, th1), (r2, th2)) =>
+        r1 = r2 andalso Drule.eq_thm_prop (th1, th2)));
 
 fun print_theorems ctxt opt_goal opt_limit raw_criteria =
   let
