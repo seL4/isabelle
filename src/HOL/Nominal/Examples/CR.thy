@@ -6,69 +6,73 @@ begin
 
 text {* The Church-Rosser proof from Barendregt's book *}
 
-lemma forget[rule_format]: 
-  shows "a\<sharp>t1 \<longrightarrow> t1[a::=t2] = t1"
-proof (nominal_induct t1 fresh: a t2 rule: lam_induct)
-  case (Var a t2 b) 
-  show ?case by (simp, simp add: fresh_atm)
+lemma forget: 
+  assumes a: "a\<sharp>t1"
+  shows "t1[a::=t2] = t1"
+using a
+proof (nominal_induct t1 avoiding: a t2 rule: lam_induct)
+  case (Var b) 
+  thus ?case by (simp add: fresh_atm)
 next 
   case App
-  thus ?case by (simp add: fresh_prod)
+  thus ?case by simp
 next
-  case (Lam c t a t2)
-  have i: "\<And>c t2. c\<sharp>t \<longrightarrow>  t[c::=t2] = t" by fact
+  case (Lam c t)
+  have ih: "\<And>c t2. c\<sharp>t \<Longrightarrow>  t[c::=t2] = t" by fact
   have a: "c\<sharp>t2" by fact
   have "c\<sharp>a" by fact
   hence b: "a\<noteq>c" by (simp add: fresh_atm)
-  show ?case
-  proof 
-    assume "a\<sharp>Lam [c].t" 
-    hence "a\<sharp>t" using b by (simp add: abs_fresh)
-    hence "t[a::=t2] = t" using i by simp
-    thus "(Lam [c].t)[a::=t2] = Lam [c].t" using a b by (simp add: alpha)
-  qed
+  have "a\<sharp>Lam [c].t" by fact 
+  hence "a\<sharp>t" using b by (simp add: abs_fresh)
+  hence "t[a::=t2] = t" using ih by simp
+  thus "(Lam [c].t)[a::=t2] = Lam [c].t" using a b by simp
 qed
 
-lemma forget[rule_format]: 
-  shows "a\<sharp>t1 \<longrightarrow> t1[a::=t2] = t1"
-apply (nominal_induct t1 fresh: a t2 rule: lam_induct)
+lemma forget: 
+  assumes a: "a\<sharp>t1"
+  shows "t1[a::=t2] = t1"
+  using a
+apply (nominal_induct t1 avoiding: a t2 rule: lam_induct)
 apply(auto simp add: abs_fresh fresh_atm)
 done
 
-lemma fresh_fact[rule_format]: 
+lemma fresh_fact: 
   fixes   b :: "name"
   and    a  :: "name"
   and    t1 :: "lam"
-  and    t2 :: "lam" 
-  shows "a\<sharp>t1\<longrightarrow>a\<sharp>t2\<longrightarrow>a\<sharp>(t1[b::=t2])"
-proof (nominal_induct t1 fresh: a b t2 rule: lam_induct)
-  case (Var c a b t2) 
-  show ?case by simp
+  and    t2 :: "lam"
+  assumes a: "a\<sharp>t1"
+  and     b: "a\<sharp>t2"
+  shows "a\<sharp>(t1[b::=t2])"
+using a b
+proof (nominal_induct t1 avoiding: a b t2 rule: lam_induct)
+  case (Var c) 
+  thus ?case by simp
 next
   case App thus ?case by simp 
 next
-  case (Lam c t a b t2)
-  have  i: "\<And>(a::name) b t2. a\<sharp>t\<longrightarrow>a\<sharp>t2\<longrightarrow>a\<sharp>(t[b::=t2])" by fact
+  case (Lam c t)
+  have ih: "\<And>(a::name) b t2. a\<sharp>t \<Longrightarrow> a\<sharp>t2 \<Longrightarrow> a\<sharp>(t[b::=t2])" by fact
   have fr: "c\<sharp>a" "c\<sharp>b" "c\<sharp>t2" by fact+
   hence fr': "c\<noteq>a" by (simp add: fresh_atm) 
-  show ?case 
-  proof (intro strip)
-    assume a1: "a\<sharp>t2"
-    assume a2: "a\<sharp>Lam [c].t"
-    hence "a\<sharp>t" using fr' by (simp add: abs_fresh)
-    hence "a\<sharp>t[b::=t2]" using a1 i by simp
-    thus "a\<sharp>(Lam [c].t)[b::=t2]" using fr  by (simp add: abs_fresh)
-  qed
+  have a1: "a\<sharp>t2" by fact
+  have a2: "a\<sharp>Lam [c].t" by fact
+  hence "a\<sharp>t" using fr' by (simp add: abs_fresh)
+  hence "a\<sharp>t[b::=t2]" using a1 ih by simp
+  thus "a\<sharp>(Lam [c].t)[b::=t2]" using fr  by (simp add: abs_fresh)
 qed
 
-lemma fresh_fact[rule_format]: 
+lemma fresh_fact: 
   fixes   b :: "name"
   and    a  :: "name"
   and    t1 :: "lam"
   and    t2 :: "lam" 
-  shows "a\<sharp>t1\<longrightarrow>a\<sharp>t2\<longrightarrow>a\<sharp>(t1[b::=t2])"
-apply(nominal_induct t1 fresh: a b t2 rule: lam_induct)
-apply(auto simp add: abs_fresh fresh_prod fresh_atm)
+  assumes a: "a\<sharp>t1"
+  and     b: "a\<sharp>t2"
+  shows "a\<sharp>(t1[b::=t2])"
+using a b
+apply(nominal_induct t1 avoiding: a b t2 rule: lam_induct)
+apply(auto simp add: abs_fresh fresh_atm)
 done
 
 lemma subs_lemma:  
@@ -81,7 +85,7 @@ lemma subs_lemma:
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using a b
-proof (nominal_induct M fresh: x y N L rule: lam_induct)
+proof (nominal_induct M avoiding: x y N L rule: lam_induct)
   case (Var z) (* case 1: Variables*)
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
@@ -136,11 +140,11 @@ lemma subs_lemma:
   and   L::"lam"
   and   M::"lam"
   and   N::"lam"
-  assumes "x\<noteq>y"
-  and     "x\<sharp>L"
+  assumes a: "x\<noteq>y"
+  and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
-using prems
-by (nominal_induct M fresh: x y N L rule: lam_induct)
+using a b
+by (nominal_induct M avoiding: x y N L rule: lam_induct)
    (auto simp add: fresh_fact forget)
 
 lemma subst_rename[rule_format]: 
@@ -149,7 +153,7 @@ lemma subst_rename[rule_format]:
   and    t1 :: "lam"
   and    t2 :: "lam"
   shows "c\<sharp>t1 \<longrightarrow> (t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2])"
-proof (nominal_induct t1 fresh: a c t2 rule: lam_induct)
+proof (nominal_induct t1 avoiding: a c t2 rule: lam_induct)
   case (Var b)
   show "c\<sharp>(Var b) \<longrightarrow> (Var b)[a::=t2] = ([(c,a)]\<bullet>(Var b))[c::=t2]" by (simp add: calc_atm fresh_atm)
 next
@@ -178,7 +182,7 @@ lemma subst_rename[rule_format]:
   and    t1 :: "lam"
   and    t2 :: "lam"
   shows "c\<sharp>t1 \<longrightarrow> (t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2])"
-apply(nominal_induct t1 fresh: a c t2 rule: lam_induct)
+apply(nominal_induct t1 avoiding: a c t2 rule: lam_induct)
 apply(auto simp add: calc_atm fresh_atm abs_fresh)
 done
 
@@ -364,7 +368,7 @@ lemma fresh_fact':
   assumes a: "a\<sharp>t2" 
   shows "a\<sharp>(t1[a::=t2])"
 using a 
-proof (nominal_induct t1 fresh: a t2 rule: lam_induct)
+proof (nominal_induct t1 avoiding: a t2 rule: lam_induct)
   case (Var b) 
   thus ?case by (simp add: fresh_atm)
 next
@@ -377,49 +381,47 @@ next
   ultimately show ?case by (simp add: abs_fresh)
 qed
 
-lemma one_fresh_preserv[rule_format]:
+lemma one_fresh_preserv:
   fixes    t :: "lam"
   and      s :: "lam"
   and      a :: "name"
   assumes a: "t\<longrightarrow>\<^isub>1s"
-  shows "a\<sharp>t \<longrightarrow> a\<sharp>s"
-using a
+  and     b: "a\<sharp>t"
+  shows "a\<sharp>s"
+using a b
 proof (induct)
-  case o1 show ?case by simp
+  case o1 thus ?case by simp
 next
-  case o2 thus ?case by (simp add: fresh_prod)
+  case o2 thus ?case by simp
 next
   case (o3 c s1 s2)
-  assume i: "a\<sharp>s1 \<longrightarrow>  a\<sharp>s2"
+  have ih: "a\<sharp>s1 \<Longrightarrow>  a\<sharp>s2" by fact
+  have c: "a\<sharp>Lam [c].s1" by fact
   show ?case
-  proof (intro strip, cases "a=c")
-    assume "a=c" 
-    thus "a\<sharp>Lam [c].s2" by (simp add: abs_fresh)
+  proof (cases "a=c")
+    assume "a=c" thus "a\<sharp>Lam [c].s2" by (simp add: abs_fresh)
   next
-    assume b: "a\<noteq>c" and "a\<sharp>Lam [c].s1"
-    hence "a\<sharp>s1" by (simp add: abs_fresh)
-    hence "a\<sharp>s2" using i by simp
-    thus "a\<sharp>Lam [c].s2" using b by (simp add: abs_fresh) 
+    assume d: "a\<noteq>c" 
+    with c have "a\<sharp>s1" by (simp add: abs_fresh)
+    hence "a\<sharp>s2" using ih by simp
+    thus "a\<sharp>Lam [c].s2" using d by (simp add: abs_fresh) 
   qed
 next 
   case (o4 c t1 t2 s1 s2)
-  assume i1: "a\<sharp>t1 \<longrightarrow> a\<sharp>t2"
-     and i2: "a\<sharp>s1 \<longrightarrow> a\<sharp>s2"
-  show "a\<sharp>App (Lam [c].s1) t1 \<longrightarrow> a\<sharp>s2[c::=t2]"
-  proof
-    assume "a\<sharp>App (Lam [c].s1) t1"
-    hence c1: "a\<sharp>Lam [c].s1" and c2: "a\<sharp>t1" by (simp add: fresh_prod)+
-    from c2 i1 have c3: "a\<sharp>t2" by simp
-    show "a\<sharp>s2[c::=t2]"
-    proof (cases "a=c")
-      assume "a=c"
-      thus "a\<sharp>s2[c::=t2]" using c3 by (simp add: fresh_fact')
-    next
-      assume d1: "a\<noteq>c"
-      from c1 d1 have "a\<sharp>s1" by (simp add: abs_fresh)
-      hence "a\<sharp>s2" using i2 by simp
-      thus "a\<sharp>s2[c::=t2]" using c3 by (simp add: fresh_fact)
-    qed
+  have i1: "a\<sharp>t1 \<Longrightarrow> a\<sharp>t2" by fact
+  have i2: "a\<sharp>s1 \<Longrightarrow> a\<sharp>s2" by fact
+  have as: "a\<sharp>App (Lam [c].s1) t1" by fact
+  hence c1: "a\<sharp>Lam [c].s1" and c2: "a\<sharp>t1" by (simp add: fresh_prod)+
+  from c2 i1 have c3: "a\<sharp>t2" by simp
+  show "a\<sharp>s2[c::=t2]"
+  proof (cases "a=c")
+    assume "a=c"
+    thus "a\<sharp>s2[c::=t2]" using c3 by (simp add: fresh_fact')
+  next
+    assume d1: "a\<noteq>c"
+    from c1 d1 have "a\<sharp>s1" by (simp add: abs_fresh)
+    hence "a\<sharp>s2" using i2 by simp
+    thus "a\<sharp>s2[c::=t2]" using c3 by (simp add: fresh_fact)
   qed
 qed
 
@@ -493,7 +495,7 @@ lemma one_subst_aux:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
-proof (nominal_induct M fresh: x N N' rule: lam_induct)
+proof (nominal_induct M avoiding: x N N' rule: lam_induct)
   case (Var y) 
   show "Var y[x::=N] \<longrightarrow>\<^isub>1 Var y[x::=N']" by (cases "x=y", auto)
 next
@@ -512,11 +514,11 @@ lemma one_subst_aux:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
-apply(nominal_induct M fresh: x N N' rule: lam_induct)
+apply(nominal_induct M avoiding: x N N' rule: lam_induct)
 apply(auto simp add: fresh_prod fresh_atm)
 done
 
-lemma one_subst[rule_format]: 
+lemma one_subst: 
   fixes    M :: "lam"
   and      M':: "lam"
   and      N :: "lam"
@@ -526,7 +528,7 @@ lemma one_subst[rule_format]:
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
 using prems
-proof (nominal_induct M M' fresh: N N' x rule: one_induct)
+proof (nominal_induct M M' avoiding: N N' x rule: one_induct)
   case (o1 M)
   thus ?case by (simp add: one_subst_aux)
 next
@@ -554,10 +556,11 @@ lemma one_subst[rule_format]:
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
 using a b
-apply(nominal_induct M M' fresh: N N' x rule: one_induct)
+apply(nominal_induct M M' avoiding: N N' x rule: one_induct)
 apply(auto simp add: one_subst_aux subs_lemma fresh_atm)
 done
 
+(* FIXME: change to make use of the new induction facilities *)
 lemma diamond[rule_format]:
   fixes    M :: "lam"
   and      M1:: "lam"
