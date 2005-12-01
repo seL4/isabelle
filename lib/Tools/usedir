@@ -198,7 +198,7 @@ else
 fi
 
 
-SECONDS=0
+. "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
 if [ -n "$BUILD" ]; then
   ITEM="$SESSION"
@@ -224,13 +224,13 @@ else
   cd ..
 fi
 
-ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
+. "$ISABELLE_HOME/lib/scripts/timestop.bash"
 
 
 # exit status
 
 if [ "$RC" -eq 0 ]; then
-  echo "Finished $ITEM ($ELAPSED elapsed time)" >&2
+  echo "Finished $ITEM ($TIMES_REPORT)" >&2
   gzip --force "$LOG"
 else
   { echo "$ITEM FAILED";

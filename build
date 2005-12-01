@@ -169,8 +169,8 @@ fi
 
 # build it
 
-SECONDS=0
 echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
+. "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
 for L in $MAKE_LOGICS
 do
@@ -179,5 +179,5 @@ done
 
 echo -n "Finished at "; date
 
-ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
-echo "$ELAPSED total elapsed time"
+. "$ISABELLE_HOME/lib/scripts/timestop.bash"
+echo "$TIMES_REPORT"

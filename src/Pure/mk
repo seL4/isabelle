@@ -81,7 +81,7 @@ mkdir -p "$LOGDIR"
 
 # run isabelle
 
-SECONDS=0
+. "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
 if [ -z "$RAW" ]; then
   ITEM="Pure"
@@ -107,13 +107,13 @@ else
   RC="$?"
 fi
 
-ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
+. "$ISABELLE_HOME/lib/scripts/timestop.bash"
 
 
 # exit status
 
 if [ "$RC" -eq 0 ]; then
-  echo "Finished $ITEM ($ELAPSED elapsed time)"
+  echo "Finished $ITEM ($TIMES_REPORT)"
   gzip --force "$LOG"
 else
   echo "$ITEM FAILED"
