@@ -169,14 +169,16 @@ structure CancelNumeralsCommon =
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
   val trans_tac         = fn _ => trans_tac
-  fun norm_tac ss =
-    let val num_ss' = Simplifier.inherit_context ss num_ss in
-      ALLGOALS (simp_tac (num_ss' addsimps numeral_syms @ add_0s @ mult_1s @
-                                [Suc_eq_add_numeral_1_left] @ add_ac))
-      THEN ALLGOALS (simp_tac (num_ss' addsimps bin_simps @ add_ac @ mult_ac))
-    end
-  fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps add_0s @ bin_simps))
+
+  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
+    [Suc_eq_add_numeral_1_left] @ add_ac
+  val norm_ss2 = num_ss addsimps bin_simps @ add_ac @ mult_ac
+  fun norm_tac ss = 
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+
+  val numeral_simp_ss = HOL_ss addsimps add_0s @ bin_simps;
+  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss));
   val simplify_meta_eq  = simplify_meta_eq
   end;
 
@@ -254,14 +256,15 @@ structure CombineNumeralsData =
   val left_distrib      = left_add_mult_distrib RS trans
   val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac         = fn _ => trans_tac
+
+  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [Suc_eq_add_numeral_1] @ add_ac
+  val norm_ss2 = num_ss addsimps bin_simps @ add_ac @ mult_ac
   fun norm_tac ss =
-    let val num_ss' = Simplifier.inherit_context ss num_ss in
-      ALLGOALS (simp_tac (num_ss' addsimps numeral_syms @ add_0s @ mult_1s @
-                              [Suc_eq_add_numeral_1] @ add_ac))
-      THEN ALLGOALS (simp_tac (num_ss' addsimps bin_simps @ add_ac @ mult_ac))
-    end
-  fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps add_0s @ bin_simps))
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+
+  val numeral_simp_ss = HOL_ss addsimps add_0s @ bin_simps;
+  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq  = simplify_meta_eq
   end;
 
@@ -278,14 +281,16 @@ structure CancelNumeralFactorCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val trans_tac         = fn _ => trans_tac
+
+  val norm_ss1 = num_ss addsimps
+    numeral_syms @ add_0s @ mult_1s @ [Suc_eq_add_numeral_1_left] @ add_ac
+  val norm_ss2 = num_ss addsimps bin_simps @ add_ac @ mult_ac
   fun norm_tac ss =
-    let val num_ss' = Simplifier.inherit_context ss num_ss in
-      ALLGOALS (simp_tac (num_ss' addsimps numeral_syms @ add_0s @ mult_1s @
-                                [Suc_eq_add_numeral_1_left] @ add_ac))
-      THEN ALLGOALS (simp_tac (num_ss' addsimps bin_simps @ add_ac @ mult_ac))
-    end
-  fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps bin_simps))
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+
+  val numeral_simp_ss = HOL_ss addsimps bin_simps
+  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq  = simplify_meta_eq
   end
 
@@ -371,8 +376,8 @@ structure CancelFactorCommon =
   val dest_coeff        = dest_coeff
   val find_first        = find_first []
   val trans_tac         = fn _ => trans_tac
-  fun norm_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps mult_1s @ mult_ac))
+  val norm_ss = HOL_ss addsimps mult_1s @ mult_ac
+  fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   end;
 
 structure EqCancelFactor = ExtractCommonTermFun

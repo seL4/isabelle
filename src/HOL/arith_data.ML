@@ -59,8 +59,9 @@ val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
 
 (* rewriting *)
 
-fun simp_all_tac rules ss =
-  ALLGOALS (simp_tac (Simplifier.inherit_context ss HOL_ss addsimps rules));
+fun simp_all_tac rules =
+  let val ss0 = HOL_ss addsimps rules
+  in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 val add_rules = [add_Suc, add_Suc_right, add_0, add_0_right];
 val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
@@ -89,7 +90,9 @@ struct
   val mk_sum = mk_norm_sum;
   val dest_sum = dest_sum;
   val prove_conv = prove_conv;
-  fun norm_tac ss = simp_all_tac add_rules ss THEN simp_all_tac add_ac ss;
+  val norm_tac1 = simp_all_tac add_rules;
+  val norm_tac2 = simp_all_tac add_ac;
+  fun norm_tac ss = norm_tac1 ss THEN norm_tac2 ss;
 end;
 
 fun gen_uncancel_tac rule ct =

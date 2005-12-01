@@ -401,7 +401,7 @@ text {*
 ML_setup {*
 
 local
-  val cond_split_eta = thm "cond_split_eta";
+  val cond_split_eta_ss = HOL_basic_ss addsimps [thm "cond_split_eta"]
   fun  Pair_pat k 0 (Bound m) = (m = k)
   |    Pair_pat k i (Const ("Pair",  _) $ Bound m $ t) = i > 0 andalso
                         m = k+i andalso Pair_pat k (i-1) t
@@ -415,7 +415,7 @@ local
   |   split_pat tp i _ = NONE;
   fun metaeq thy ss lhs rhs = mk_meta_eq (Goal.prove thy [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
-        (K (simp_tac (Simplifier.inherit_context ss HOL_basic_ss addsimps [cond_split_eta]) 1)));
+        (K (simp_tac (Simplifier.inherit_context ss cond_split_eta_ss) 1)));
 
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
   |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse

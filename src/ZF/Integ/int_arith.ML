@@ -225,18 +225,18 @@ structure CancelNumeralsCommon =
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
   fun trans_tac _       = ArithData.gen_trans_tac iff_trans
-  val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
-                                    zminus_simps@zadd_ac
-  val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
-  val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
-                                    zadd_ac@zmult_ac@tc_rules@intifys
+
+  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ zadd_ac
+  val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
+  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ zadd_ac @ zmult_ac @ tc_rules @ intifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss3))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss3))
+
+  val numeral_simp_ss = ZF_ss addsimps add_0s @ bin_simps @ tc_rules @ intifys
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss ZF_ss addsimps
-      add_0s @ bin_simps @ tc_rules @ intifys))
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
     THEN ALLGOALS (SIMPSET' (fn simpset => asm_simp_tac (Simplifier.inherit_context ss simpset)))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
@@ -301,19 +301,19 @@ structure CombineNumeralsData =
   val left_distrib      = left_zadd_zmult_distrib RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
   fun trans_tac _       = ArithData.gen_trans_tac trans
-  val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
-                                    zminus_simps@zadd_ac@intifys
-  val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
-  val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
-                                    zadd_ac@zmult_ac@tc_rules@intifys
+
+  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ zadd_ac @ intifys
+  val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
+  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ zadd_ac @ zmult_ac @ tc_rules @ intifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss3))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss3))
+
+  val numeral_simp_ss = ZF_ss addsimps add_0s @ bin_simps @ tc_rules @ intifys
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss ZF_ss addsimps
-      add_0s @ bin_simps @ tc_rules @ intifys))
-  val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
@@ -340,16 +340,18 @@ structure CombineNumeralsProdData =
   val left_distrib      = zmult_assoc RS sym RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
   fun trans_tac _       = ArithData.gen_trans_tac trans
-  val norm_tac_ss1 = ZF_ss addsimps mult_1s@diff_simps@zminus_simps
-  val norm_tac_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym]@
-                                    bin_simps@zmult_ac@tc_rules@intifys
+
+  val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
+  val norm_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym] @
+    bin_simps @ zmult_ac @ tc_rules @ intifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
+
+  val numeral_simp_ss = ZF_ss addsimps bin_simps @ tc_rules @ intifys
   fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss ZF_ss addsimps
-      bin_simps @ tc_rules @ intifys))
-  val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s)
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s);
   end;
 
 

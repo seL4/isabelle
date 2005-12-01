@@ -128,11 +128,12 @@ val natifys = [natify_0, natify_ident, add_natify1, add_natify2,
                diff_natify1, diff_natify2];
 
 (*Final simplification: cancel + and **)
-fun simplify_meta_eq rules ss =
-    mk_meta_eq o
-    simplify (Simplifier.inherit_context ss FOL_ss addeqcongs[eq_cong2,iff_cong2]
-                     delsimps iff_simps (*these could erase the whole rule!*)
-                     addsimps rules);
+fun simplify_meta_eq rules =
+  let val ss0 =
+    FOL_ss addeqcongs [eq_cong2, iff_cong2]
+      delsimps iff_simps (*these could erase the whole rule!*)
+      addsimps rules
+  in fn ss => mk_meta_eq o simplify (Simplifier.inherit_context ss ss0) end;
 
 val final_rules = add_0s @ mult_1s @ [mult_0, mult_0_right];
 
@@ -143,14 +144,15 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
-  val norm_tac_ss1      = ZF_ss addsimps add_0s @ add_succs @ mult_1s @ add_ac
-  val norm_tac_ss2      = ZF_ss addsimps add_0s @ mult_1s @ add_ac @ mult_ac @ tc_rules @ natifys
+
+  val norm_ss1 = ZF_ss addsimps add_0s @ add_succs @ mult_1s @ add_ac
+  val norm_ss2 = ZF_ss addsimps add_0s @ mult_1s @ add_ac @ mult_ac @ tc_rules @ natifys
   fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_tac_ss2))
-  val numeral_simp_tac_ss = ZF_ss addsimps add_0s @ tc_rules @ natifys
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
+  val numeral_simp_ss = ZF_ss addsimps add_0s @ tc_rules @ natifys
   fun numeral_simp_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss numeral_simp_tac_ss))
+    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq  = simplify_meta_eq final_rules
   end;
 
