@@ -19,28 +19,28 @@ signature DATATYPE_ABS_PROOFS =
 sig
   val prove_casedist_thms : string list ->
     DatatypeAux.descr list -> (string * sort) list -> thm ->
-    theory attribute list -> theory -> theory * thm list
+    theory attribute list -> theory -> thm list * theory
   val prove_primrec_thms : bool -> string list ->
     DatatypeAux.descr list -> (string * sort) list ->
       DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->
-        simpset -> thm -> theory -> theory * (string list * thm list)
+        simpset -> thm -> theory -> (string list * thm list) * theory
   val prove_case_thms : bool -> string list ->
     DatatypeAux.descr list -> (string * sort) list ->
-      string list -> thm list -> theory -> theory * (thm list list * string list)
+      string list -> thm list -> theory -> (thm list list * string list) * theory
   val prove_split_thms : string list ->
     DatatypeAux.descr list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
-        theory * (thm * thm) list
+        (thm * thm) list * theory
   val prove_size_thms : bool -> string list ->
     DatatypeAux.descr list -> (string * sort) list ->
-      string list -> thm list -> theory -> theory * thm list
+      string list -> thm list -> theory -> thm list * theory
   val prove_nchotomys : string list -> DatatypeAux.descr list ->
-    (string * sort) list -> thm list -> theory -> theory * thm list
+    (string * sort) list -> thm list -> theory -> thm list * theory
   val prove_weak_case_congs : string list -> DatatypeAux.descr list ->
-    (string * sort) list -> theory -> theory * thm list
+    (string * sort) list -> theory -> thm list * theory
   val prove_case_congs : string list ->
     DatatypeAux.descr list -> (string * sort) list ->
-      thm list -> thm list list -> theory -> theory * thm list
+      thm list -> thm list list -> theory -> thm list * theory
 end;
 
 structure DatatypeAbsProofs: DATATYPE_ABS_PROOFS =
@@ -84,7 +84,10 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
 
     val casedist_thms = map prove_casedist_thm ((0 upto (length newTs - 1)) ~~
       (DatatypeProp.make_casedists descr sorts) ~~ newTs)
-  in thy |> store_thms_atts "exhaust" new_type_names (map single case_names_exhausts) casedist_thms end;
+  in
+    thy
+    |> store_thms_atts "exhaust" new_type_names (map single case_names_exhausts) casedist_thms
+  end;
 
 
 (*************************** primrec combinators ******************************)
@@ -256,9 +259,11 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
            (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
 
   in
-    thy2 |> Theory.add_path (space_implode "_" new_type_names) |>
-    PureThy.add_thmss [(("recs", rec_thms), [])] |>>
-    Theory.parent_path |> apsnd (pair reccomb_names o List.concat)
+    thy2
+    |> Theory.add_path (space_implode "_" new_type_names)
+    |> PureThy.add_thmss [(("recs", rec_thms), [])] |> Library.swap
+    ||> Theory.parent_path
+    |-> (fn thms => pair (reccomb_names, Library.flat thms))
   end;
 
 
@@ -326,10 +331,10 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
 
   in
-    thy2 |>
-    parent_path flat_names |>
-    store_thmss "cases" new_type_names case_thms |>
-    apsnd (rpair case_names)
+    thy2
+    |> parent_path flat_names
+    |> store_thmss "cases" new_type_names case_thms
+    |-> (fn thmss => pair (thmss, case_names))
   end;
 
 
@@ -365,8 +370,10 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
     val (split_thms, split_asm_thms) = ListPair.unzip split_thm_pairs
 
   in
-    thy |> store_thms "split" new_type_names split_thms |>>>
-      store_thms "split_asm" new_type_names split_asm_thms |> apsnd ListPair.zip
+    thy
+    |> store_thms "split" new_type_names split_thms
+    ||>> store_thms "split_asm" new_type_names split_asm_thms
+    |-> (fn (thms1, thms2) => pair (thms1 ~~ thms2))
   end;
 
 (******************************* size functions *******************************)
@@ -376,7 +383,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs)
       (List.concat descr)
   then
-    (thy, [])
+    ([], thy)
   else
   let
     val _ = message "Proving equations for size function ...";
@@ -426,9 +433,11 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
         (DatatypeProp.make_size descr sorts thy')
 
   in
-    thy' |> Theory.add_path big_name |>
-    PureThy.add_thmss [(("size", size_thms), [])] |>>
-    Theory.parent_path |> apsnd List.concat
+    thy'
+    |> Theory.add_path big_name
+    |> PureThy.add_thmss [(("size", size_thms), [])] |> Library.swap
+    ||> Theory.parent_path
+    |-> (fn thmss => pair (Library.flat thmss))
   end;
 
 fun prove_weak_case_congs new_type_names descr sorts thy =

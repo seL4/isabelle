@@ -16,8 +16,8 @@ sig
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
     string list -> DatatypeAux.descr list -> (string * sort) list ->
       (string * mixfix) list -> (string * mixfix) list list -> theory attribute
-        -> theory -> theory * thm list list * thm list list * thm list list *
-          DatatypeAux.simproc_dist list * thm
+        -> theory -> (thm list list * thm list list * thm list list *
+          DatatypeAux.simproc_dist list * thm) * theory
 end;
 
 structure DatatypeRepProofs : DATATYPE_REP_PROOFS =
@@ -577,9 +577,11 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val constr_inject = map (fn (ts, thms) => map (prove_constr_inj_thm thms) ts)
       ((DatatypeProp.make_injs descr sorts) ~~ constr_rep_thms);
 
-    val (thy6, (constr_inject', distinct_thms'))= thy5 |> parent_path flat_names |>
-      store_thmss "inject" new_type_names constr_inject |>>>
-      store_thmss "distinct" new_type_names distinct_thms;
+    val ((constr_inject', distinct_thms'), thy6) =
+      thy5
+      |> parent_path flat_names
+      |> store_thmss "inject" new_type_names constr_inject
+      ||>> store_thmss "distinct" new_type_names distinct_thms;
 
     (*************************** induction theorem ****************************)
 
@@ -642,7 +644,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] |>>
       Theory.parent_path;
 
-  in (thy7, constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct')
+  in
+    ((constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct'), thy7)
   end;
 
 end;

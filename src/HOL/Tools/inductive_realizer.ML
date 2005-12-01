@@ -239,13 +239,19 @@ fun add_dummy name dname (x as (_, (vs, s, mfx, cs))) =
   if name = s then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
   else x;
 
-fun add_dummies f dts used thy =
-  apsnd (pair (map fst dts)) (f (map snd dts) thy)
-  handle DatatypeAux.Datatype_Empty name' =>
+fun add_dummies f [] _ thy =
+      (([], NONE), thy)
+  | add_dummies f dts used thy =
+      thy
+      |> f (map snd dts)
+      |-> (fn dtinfo => pair ((map fst dts), SOME dtinfo))
+    handle DatatypeAux.Datatype_Empty name' =>
       let
         val name = Sign.base_name name';
         val dname = variant used "Dummy"
-      in add_dummies f (map (add_dummy name dname) dts) (dname :: used) thy
+      in
+        thy
+        |> add_dummies f (map (add_dummy name dname) dts) (dname :: used)
       end;
 
 fun mk_realizer thy vs params ((rule, rrule), rt) =
@@ -310,15 +316,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     (** datatype representing computational content of inductive set **)
 
-    val (thy2, (dummies, dt_info)) =
+    val ((dummies, dt_info), thy2) =
       thy1
-      |> (if null dts
-          then rpair ([], NONE)
-          else add_dummies (DatatypePackage.add_datatype_i false false
-            (map #2 dts)) (map (pair false) dts) [] #> (fn (v, (b, thy)) => (thy, (b, SOME v))))
-      |>> Extraction.add_typeof_eqns_i ty_eqs
-      |>> Extraction.add_realizes_eqns_i rlz_eqs;
-    fun get f x = getOpt (Option.map f x, []);
+      |> add_dummies
+           (DatatypePackage.add_datatype_i false false (map #2 dts))
+           (map (pair false) dts) []
+      ||> Extraction.add_typeof_eqns_i ty_eqs
+      ||> Extraction.add_realizes_eqns_i rlz_eqs;
+    fun get f = (these oo Option.map) f;
     val rec_names = distinct (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) (get #rec_thms dt_info));
     val (_, constrss) = foldl_map (fn ((recs, dummies), (s, rs)) =>

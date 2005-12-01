@@ -686,7 +686,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       put_datatypes (fold Symtab.update dt_infos dt_info) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
-      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
+      store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd |>
       DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
     ({distinct = distinct,
@@ -708,25 +708,25 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
   let
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
-    val (thy2, inject, distinct, dist_rewrites, simproc_dists, induct) = thy |>
+    val ((inject, distinct, dist_rewrites, simproc_dists, induct), thy2) = thy |>
       DatatypeRepProofs.representation_proofs flat_names dt_info new_type_names descr sorts
         types_syntax constr_syntax case_names_induct;
 
-    val (thy3, casedist_thms) = DatatypeAbsProofs.prove_casedist_thms new_type_names descr
+    val (casedist_thms, thy3) = DatatypeAbsProofs.prove_casedist_thms new_type_names descr
       sorts induct case_names_exhausts thy2;
-    val (thy4, (reccomb_names, rec_thms)) = DatatypeAbsProofs.prove_primrec_thms
+    val ((reccomb_names, rec_thms), thy4) = DatatypeAbsProofs.prove_primrec_thms
       flat_names new_type_names descr sorts dt_info inject dist_rewrites dist_ss induct thy3;
-    val (thy6, (case_thms, case_names)) = DatatypeAbsProofs.prove_case_thms
+    val ((case_thms, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
       flat_names new_type_names descr sorts reccomb_names rec_thms thy4;
-    val (thy7, split_thms) = DatatypeAbsProofs.prove_split_thms new_type_names
+    val (split_thms, thy7) = DatatypeAbsProofs.prove_split_thms new_type_names
       descr sorts inject dist_rewrites casedist_thms case_thms thy6;
-    val (thy8, nchotomys) = DatatypeAbsProofs.prove_nchotomys new_type_names
+    val (nchotomys, thy8) = DatatypeAbsProofs.prove_nchotomys new_type_names
       descr sorts casedist_thms thy7;
-    val (thy9, case_congs) = DatatypeAbsProofs.prove_case_congs new_type_names
+    val (case_congs, thy9) = DatatypeAbsProofs.prove_case_congs new_type_names
       descr sorts nchotomys case_thms thy8;
-    val (thy10, weak_case_congs) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
+    val (weak_case_congs, thy10) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       descr sorts thy9;
-    val (thy11, size_thms) = DatatypeAbsProofs.prove_size_thms flat_names new_type_names
+    val (size_thms, thy11) = DatatypeAbsProofs.prove_size_thms flat_names new_type_names
       descr sorts reccomb_names rec_thms thy10;
 
     val dt_infos = map (make_dt_info (List.concat descr) induct reccomb_names rec_thms)
@@ -743,7 +743,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       put_datatypes (fold Symtab.update dt_infos dt_info) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
-      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
+      store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd |>
       DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
     ({distinct = distinct,
@@ -810,32 +810,32 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
 
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
-    val (thy2, casedist_thms) = thy1 |>
+    val (casedist_thms, thy2) = thy1 |>
       DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction
         case_names_exhausts;
-    val (thy3, (reccomb_names, rec_thms)) = DatatypeAbsProofs.prove_primrec_thms
+    val ((reccomb_names, rec_thms), thy3) = DatatypeAbsProofs.prove_primrec_thms
       false new_type_names [descr] sorts dt_info inject distinct dist_ss induction thy2;
-    val (thy4, (case_thms, case_names)) = DatatypeAbsProofs.prove_case_thms false
+    val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms false
       new_type_names [descr] sorts reccomb_names rec_thms thy3;
-    val (thy5, split_thms) = DatatypeAbsProofs.prove_split_thms
+    val (split_thms, thy5) = DatatypeAbsProofs.prove_split_thms
       new_type_names [descr] sorts inject distinct casedist_thms case_thms thy4;
-    val (thy6, nchotomys) = DatatypeAbsProofs.prove_nchotomys new_type_names
+    val (nchotomys, thy6) = DatatypeAbsProofs.prove_nchotomys new_type_names
       [descr] sorts casedist_thms thy5;
-    val (thy7, case_congs) = DatatypeAbsProofs.prove_case_congs new_type_names
+    val (case_congs, thy7) = DatatypeAbsProofs.prove_case_congs new_type_names
       [descr] sorts nchotomys case_thms thy6;
-    val (thy8, weak_case_congs) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
+    val (weak_case_congs, thy8) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       [descr] sorts thy7;
-    val (thy9, size_thms) =
+    val (size_thms, thy9) =
       if Context.exists_name "NatArith" thy8 then
         DatatypeAbsProofs.prove_size_thms false new_type_names
           [descr] sorts reccomb_names rec_thms thy8
-      else (thy8, []);
+      else ([], thy8);
 
-    val (thy10, [induction']) = thy9 |>
-      (#1 o store_thmss "inject" new_type_names inject) |>
-      (#1 o store_thmss "distinct" new_type_names distinct) |>
+    val ([induction'], thy10) = thy9 |>
+      store_thmss "inject" new_type_names inject |> snd |>
+      store_thmss "distinct" new_type_names distinct |> snd |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_thms [(("induct", induction), [case_names_induct])];
+      PureThy.add_thms [(("induct", induction), [case_names_induct])] |> Library.swap;
 
     val dt_infos = map (make_dt_info descr induction' reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
@@ -850,7 +850,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       put_datatypes (fold Symtab.update dt_infos dt_info) |>
       add_cases_induct dt_infos induction' |>
       Theory.parent_path |>
-      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
+      (snd o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
       DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
     ({distinct = distinct,

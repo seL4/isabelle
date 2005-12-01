@@ -15,12 +15,10 @@ sig
   val add_path : bool -> string -> theory -> theory
   val parent_path : bool -> theory -> theory
 
-  val store_thmss_atts : string -> string list -> theory attribute list list -> thm list list
-    -> theory -> theory * thm list list
-  val store_thmss : string -> string list -> thm list list -> theory -> theory * thm list list
+  val store_thmss : string -> string list -> thm list list -> theory -> thm list list * theory
   val store_thms_atts : string -> string list -> theory attribute list list -> thm list
-    -> theory -> theory * thm list
-  val store_thms : string -> string list -> thm list -> theory -> theory * thm list
+    -> theory -> thm list * theory
+  val store_thms : string -> string list -> thm list -> theory -> thm list * theory
 
   val split_conj_thm : thm -> thm list
   val mk_conj : term list -> term
@@ -86,7 +84,7 @@ fun store_thmss_atts label tnames attss thmss thy =
   foldl_map (fn (thy', ((tname, atts), thms)) => thy' |>
     Theory.add_path tname |>
     (apsnd hd o PureThy.add_thmss [((label, thms), atts)]) |>>
-    Theory.parent_path);
+    Theory.parent_path) |> Library.swap;
 
 fun store_thmss label tnames = store_thmss_atts label tnames (replicate (length tnames) []);
 
@@ -95,7 +93,7 @@ fun store_thms_atts label tnames attss thms thy =
   foldl_map (fn (thy', ((tname, atts), thm)) => thy' |>
     Theory.add_path tname |>
     (apsnd hd o PureThy.add_thms [((label, thm), atts)]) |>>
-    Theory.parent_path);
+    Theory.parent_path) |> Library.swap;
 
 fun store_thms label tnames = store_thms_atts label tnames (replicate (length tnames) []);
 
