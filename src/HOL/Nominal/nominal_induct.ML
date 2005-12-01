@@ -106,7 +106,7 @@ fun nominal_induct_tac ctxt def_insts fresh fixing rule facts =
 
 local
 
-val freshN = "fresh";
+val freshN = "avoiding";
 val fixingN = "fixing";
 val ruleN = "rule";
 

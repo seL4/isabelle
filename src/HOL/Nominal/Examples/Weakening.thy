@@ -94,85 +94,6 @@ next
   ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Lam [a].t) :\<tau>\<rightarrow>\<sigma>" by force 
 qed (auto)
 
-
-lemma typing_induct_weak[THEN spec, case_names t1 t2 t3]:
-  fixes  P :: "'a\<Rightarrow>(name\<times>ty) list \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow>bool"
-  and    \<Gamma> :: "(name\<times>ty) list"
-  and    t :: "lam"
-  and    \<tau> :: "ty"
-  assumes a: "\<Gamma> \<turnstile> t : \<tau>"
-  and a1:    "\<And>\<Gamma> (a::name) \<tau> x. valid \<Gamma> \<Longrightarrow> (a,\<tau>) \<in> set \<Gamma> \<Longrightarrow> P x \<Gamma> (Var a) \<tau>"
-  and a2:    "\<And>\<Gamma> \<tau> \<sigma> t1 t2 x. 
-              \<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma> \<Longrightarrow> (\<And>z. P z \<Gamma> t1 (\<tau>\<rightarrow>\<sigma>)) \<Longrightarrow> \<Gamma> \<turnstile> t2 : \<tau> \<Longrightarrow> (\<And>z. P z \<Gamma> t2 \<tau>)
-              \<Longrightarrow> P x \<Gamma> (App t1 t2) \<sigma>"
-  and a3:    "\<And>(a::name) \<Gamma> \<tau> \<sigma> t x. 
-              a\<sharp>\<Gamma> \<Longrightarrow> ((a,\<tau>) # \<Gamma>) \<turnstile> t : \<sigma> \<Longrightarrow> (\<And>z. P z ((a,\<tau>)#\<Gamma>) t \<sigma>)
-              \<Longrightarrow> P x \<Gamma> (Lam [a].t) (\<tau>\<rightarrow>\<sigma>)"
-  shows "\<forall>x. P x \<Gamma> t \<tau>"
-using a by (induct, simp_all add: a1 a2 a3)
-
-lemma typing_induct_aux[rule_format]:
-  fixes  P :: "'a::fs_name \<Rightarrow> (name\<times>ty) list \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow>bool"
-  and    \<Gamma> :: "(name\<times>ty) list"
-  and    t :: "lam"
-  and    \<tau> :: "ty"
-  assumes a: "\<Gamma> \<turnstile> t : \<tau>"
-  and a1:    "\<And>\<Gamma> (a::name) \<tau> x. valid \<Gamma> \<Longrightarrow> (a,\<tau>) \<in> set \<Gamma> \<Longrightarrow> P x \<Gamma> (Var a) \<tau>"
-  and a2:    "\<And>\<Gamma> \<tau> \<sigma> t1 t2 x. 
-              \<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma> \<Longrightarrow> (\<And>z. P z \<Gamma> t1 (\<tau>\<rightarrow>\<sigma>)) \<Longrightarrow> \<Gamma> \<turnstile> t2 : \<tau> \<Longrightarrow> (\<And>z. P z \<Gamma> t2 \<tau>)
-              \<Longrightarrow> P x \<Gamma> (App t1 t2) \<sigma>"
-  and a3:    "\<And>(a::name) \<Gamma> \<tau> \<sigma> t x. 
-              a\<sharp>x \<Longrightarrow> a\<sharp>\<Gamma> \<Longrightarrow> ((a,\<tau>) # \<Gamma>) \<turnstile> t : \<sigma> \<Longrightarrow> (\<And>z. P z ((a,\<tau>)#\<Gamma>) t \<sigma>)
-              \<Longrightarrow> P x \<Gamma> (Lam [a].t) (\<tau>\<rightarrow>\<sigma>)"
-  shows "\<forall>(pi::name prm) (x::'a::fs_name). P x (pi\<bullet>\<Gamma>) (pi\<bullet>t) \<tau>"
-using a
-proof (induct)
-  case (t1 \<Gamma> \<tau> a)
-  have j1: "valid \<Gamma>" by fact
-  have j2: "(a,\<tau>)\<in>set \<Gamma>" by fact
-  show ?case
-  proof (intro strip, simp)
-    fix pi::"name prm" and x::"'a::fs_name"
-    from j1 have j3: "valid (pi\<bullet>\<Gamma>)" by (rule eqvt_valid)
-    from j2 have "pi\<bullet>(a,\<tau>)\<in>pi\<bullet>(set \<Gamma>)" by (simp only: pt_set_bij[OF pt_name_inst, OF at_name_inst])  
-    hence j4: "(pi\<bullet>a,\<tau>)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: pt_list_set_pi[OF pt_name_inst])
-    show "P x (pi\<bullet>\<Gamma>) (Var (pi\<bullet>a)) \<tau>" using a1 j3 j4 by force
-  qed
-next
-  case (t2 \<Gamma> \<sigma> \<tau> t1 t2)
-  thus ?case using a2 by (simp, blast intro: eqvt_typing)
-next
-  case (t3 \<Gamma> \<sigma> \<tau> a t)
-  have k1: "a\<sharp>\<Gamma>" by fact
-  have k2: "((a,\<tau>)#\<Gamma>)\<turnstile>t:\<sigma>" by fact
-  have k3: "\<forall>(pi::name prm) (x::'a::fs_name). P x (pi \<bullet>((a,\<tau>)#\<Gamma>)) (pi\<bullet>t) \<sigma>" by fact
-  show ?case
-  proof (intro strip, simp)
-    fix pi::"name prm" and x::"'a::fs_name"
-    have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)"
-      by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
-    then obtain c::"name" 
-      where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t)" and f4: "c\<sharp>(pi\<bullet>\<Gamma>)"
-      by (force simp add: fresh_prod at_fresh[OF at_name_inst])
-    from k1 have k1a: "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" 
-      by (simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst] 
-                    pt_rev_pi[OF pt_name_inst, OF at_name_inst])
-    have l1: "(([(c,pi\<bullet>a)]@pi)\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)" using f4 k1a 
-      by (simp only: pt2[OF pt_name_inst], rule pt_fresh_fresh[OF pt_name_inst, OF at_name_inst])
-    have "\<forall>x. P x (([(c,pi\<bullet>a)]@pi)\<bullet>((a,\<tau>)#\<Gamma>)) (([(c,pi\<bullet>a)]@pi)\<bullet>t) \<sigma>" using k3 by force
-    hence l2: "\<forall>x. P x ((c, \<tau>)#(pi\<bullet>\<Gamma>)) (([(c,pi\<bullet>a)]@pi)\<bullet>t) \<sigma>" using f1 l1
-      by (force simp add: pt2[OF pt_name_inst]  at_calc[OF at_name_inst] split: if_splits)
-    have "(([(c,pi\<bullet>a)]@pi)\<bullet>((a,\<tau>)#\<Gamma>)) \<turnstile> (([(c,pi\<bullet>a)]@pi)\<bullet>t) : \<sigma>" using k2 by (rule eqvt_typing)
-    hence l3: "((c, \<tau>)#(pi\<bullet>\<Gamma>)) \<turnstile> (([(c,pi\<bullet>a)]@pi)\<bullet>t) : \<sigma>" using l1 f1 
-      by (force simp add: pt2[OF pt_name_inst]  at_calc[OF at_name_inst] split: if_splits)
-    have l4: "P x (pi\<bullet>\<Gamma>) (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>t)) (\<tau> \<rightarrow> \<sigma>)" using f2 f4 l2 l3 a3 by auto
-    have alpha: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t))) = (Lam [(pi\<bullet>a)].(pi\<bullet>t))" using f1 f3
-      by (simp add: lam.inject alpha)
-    show "P x (pi\<bullet>\<Gamma>) (Lam [(pi\<bullet>a)].(pi\<bullet>t)) (\<tau> \<rightarrow> \<sigma>)" using l4 alpha 
-      by (simp only: pt2[OF pt_name_inst])
-  qed
-qed
-
 lemma typing_induct[consumes 1, case_names t1 t2 t3]:
   fixes  P :: "'a::fs_name\<Rightarrow>(name\<times>ty) list \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow>bool"
   and    \<Gamma> :: "(name\<times>ty) list"
@@ -184,12 +105,52 @@ lemma typing_induct[consumes 1, case_names t1 t2 t3]:
   and a2:    "\<And>\<Gamma> \<tau> \<sigma> t1 t2 x. 
               \<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma> \<Longrightarrow> (\<And>z. P z \<Gamma> t1 (\<tau>\<rightarrow>\<sigma>)) \<Longrightarrow> \<Gamma> \<turnstile> t2 : \<tau> \<Longrightarrow> (\<And>z. P z \<Gamma> t2 \<tau>)
               \<Longrightarrow> P x \<Gamma> (App t1 t2) \<sigma>"
-  and a3:    "\<And>(a::name) \<Gamma> \<tau> \<sigma> t x. 
-              a\<sharp>x \<Longrightarrow> a\<sharp>\<Gamma> \<Longrightarrow> ((a,\<tau>) # \<Gamma>) \<turnstile> t : \<sigma> \<Longrightarrow> (\<And>z. P z ((a,\<tau>)#\<Gamma>) t \<sigma>)
+  and a3:    "\<And>a \<Gamma> \<tau> \<sigma> t x. a\<sharp>x \<Longrightarrow> a\<sharp>\<Gamma> \<Longrightarrow> ((a,\<tau>) # \<Gamma>) \<turnstile> t : \<sigma> \<Longrightarrow> (\<And>z. P z ((a,\<tau>)#\<Gamma>) t \<sigma>)
               \<Longrightarrow> P x \<Gamma> (Lam [a].t) (\<tau>\<rightarrow>\<sigma>)"
   shows "P x \<Gamma> t \<tau>"
-using a a1 a2 a3 typing_induct_aux[of "\<Gamma>" "t" "\<tau>" "P" "x" "[]", simplified] by force
-
+proof -
+  from a have "\<And>(pi::name prm) x. P x (pi\<bullet>\<Gamma>) (pi\<bullet>t) \<tau>"
+  proof (induct)
+    case (t1 \<Gamma> \<tau> a)
+    have j1: "valid \<Gamma>" by fact
+    have j2: "(a,\<tau>)\<in>set \<Gamma>" by fact
+    from j1 have j3: "valid (pi\<bullet>\<Gamma>)" by (rule eqvt_valid)
+    from j2 have "pi\<bullet>(a,\<tau>)\<in>pi\<bullet>(set \<Gamma>)" by (simp only: pt_set_bij[OF pt_name_inst, OF at_name_inst])  
+    hence j4: "(pi\<bullet>a,\<tau>)\<in>set (pi\<bullet>\<Gamma>)" by (simp add: pt_list_set_pi[OF pt_name_inst])
+    show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Var a)) \<tau>" using a1 j3 j4 by simp
+  next
+    case (t2 \<Gamma> \<sigma> \<tau> t1 t2)
+    thus ?case using a2 by (simp, blast intro: eqvt_typing)
+  next
+    case (t3 \<Gamma> \<sigma> \<tau> a t)
+    have k1: "a\<sharp>\<Gamma>" by fact
+    have k2: "((a,\<tau>)#\<Gamma>)\<turnstile>t:\<sigma>" by fact
+    have k3: "\<And>(pi::name prm) (x::'a::fs_name). P x (pi \<bullet>((a,\<tau>)#\<Gamma>)) (pi\<bullet>t) \<sigma>" by fact
+    have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t,pi\<bullet>\<Gamma>,x)"
+      by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+    then obtain c::"name" 
+      where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t)" and f4: "c\<sharp>(pi\<bullet>\<Gamma>)"
+      by (force simp add: fresh_prod at_fresh[OF at_name_inst])
+    from k1 have k1a: "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" 
+      by (simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst] 
+                    pt_rev_pi[OF pt_name_inst, OF at_name_inst])
+    have l1: "(([(c,pi\<bullet>a)]@pi)\<bullet>\<Gamma>) = (pi\<bullet>\<Gamma>)" using f4 k1a 
+      by (simp only: pt2[OF pt_name_inst], rule pt_fresh_fresh[OF pt_name_inst, OF at_name_inst])
+    have "\<And>x. P x (([(c,pi\<bullet>a)]@pi)\<bullet>((a,\<tau>)#\<Gamma>)) (([(c,pi\<bullet>a)]@pi)\<bullet>t) \<sigma>" using k3 by force
+    hence l2: "\<And>x. P x ((c, \<tau>)#(pi\<bullet>\<Gamma>)) (([(c,pi\<bullet>a)]@pi)\<bullet>t) \<sigma>" using f1 l1
+      by (force simp add: pt2[OF pt_name_inst]  at_calc[OF at_name_inst])
+    have "(([(c,pi\<bullet>a)]@pi)\<bullet>((a,\<tau>)#\<Gamma>)) \<turnstile> (([(c,pi\<bullet>a)]@pi)\<bullet>t) : \<sigma>" using k2 by (rule eqvt_typing)
+    hence l3: "((c, \<tau>)#(pi\<bullet>\<Gamma>)) \<turnstile> (([(c,pi\<bullet>a)]@pi)\<bullet>t) : \<sigma>" using l1 f1 
+      by (force simp add: pt2[OF pt_name_inst]  at_calc[OF at_name_inst])
+    have l4: "P x (pi\<bullet>\<Gamma>) (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>t)) (\<tau> \<rightarrow> \<sigma>)" using f2 f4 l2 l3 a3 by auto
+    have alpha: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>t))) = (Lam [(pi\<bullet>a)].(pi\<bullet>t))" using f1 f3
+      by (simp add: lam.inject alpha)
+    show "P x (pi\<bullet>\<Gamma>) (pi\<bullet>(Lam [a].t)) (\<tau> \<rightarrow> \<sigma>)" using l4 alpha 
+      by (simp only: pt2[OF pt_name_inst], simp)
+  qed
+  hence "P x (([]::name prm)\<bullet>\<Gamma>) (([]::name prm)\<bullet>t) \<tau>" by blast
+  thus "P x \<Gamma> t \<tau>" by simp
+qed
 
 (* Now it comes: The Weakening Lemma *)
 
@@ -197,114 +158,92 @@ constdefs
   "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (" _ \<lless> _ " [80,80] 80)
   "\<Gamma>1 \<lless> \<Gamma>2 \<equiv> \<forall>a \<sigma>. (a,\<sigma>)\<in>set \<Gamma>1 \<longrightarrow>  (a,\<sigma>)\<in>set \<Gamma>2"
 
-lemma weakening_version1[rule_format]: 
-  assumes "\<Gamma>1 \<turnstile> t : \<sigma>" 
-  and     "valid \<Gamma>2" 
-  and     "\<Gamma>1 \<lless> \<Gamma>2"
+lemma weakening_version1: 
+  assumes a: "\<Gamma>1 \<turnstile> t : \<sigma>" 
+  and     b: "valid \<Gamma>2" 
+  and     c: "\<Gamma>1 \<lless> \<Gamma>2"
   shows "\<Gamma>2 \<turnstile> t:\<sigma>"
-using prems
-apply(nominal_induct \<Gamma>1 t \<sigma> fresh: \<Gamma>2 rule: typing_induct)
+using a b c
+apply(nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_induct)
 apply(auto simp add: sub_def)
-apply(atomize) (* FIXME: earlier this was completely automatic :o(  *)
+(* FIXME: before using meta-connectives and the new induction *)
+(* method, this was completely automatic *)
+apply(atomize)
 apply(auto)
 done
 
-lemma weakening_version2[rule_format]: 
+lemma weakening_version2: 
   fixes \<Gamma>1::"(name\<times>ty) list"
   and   t ::"lam"
   and   \<tau> ::"ty"
   assumes a: "\<Gamma>1 \<turnstile> t:\<sigma>"
-  shows "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> t:\<sigma>"
-using prems
-proof (nominal_induct \<Gamma>1 t \<sigma> fresh: \<Gamma>2 rule: typing_induct, auto)
-  case (t1 \<Gamma>1 a \<tau> \<Gamma>2)  (* variable case *)
-  assume "\<Gamma>1 \<lless> \<Gamma>2" 
-  and    "valid \<Gamma>2" 
-  and    "(a,\<tau>)\<in> set \<Gamma>1" 
-  thus  "\<Gamma>2 \<turnstile> Var a : \<tau>" by (force simp add: sub_def)
+  and     b: "valid \<Gamma>2" 
+  and     c: "\<Gamma>1 \<lless> \<Gamma>2"
+  shows "\<Gamma>2 \<turnstile> t:\<sigma>"
+using a b c
+proof (nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_induct, auto)
+  case (t1 \<Gamma>1 a \<tau>)  (* variable case *)
+  have "\<Gamma>1 \<lless> \<Gamma>2" 
+  and  "valid \<Gamma>2" 
+  and  "(a,\<tau>)\<in> set \<Gamma>1" by fact+
+  thus "\<Gamma>2 \<turnstile> Var a : \<tau>" by (force simp add: sub_def)
 next
-  case (t3 a \<Gamma>1 \<tau> \<sigma> t \<Gamma>2) (* lambda case *)
-  assume a1: "\<Gamma>1 \<lless> \<Gamma>2"
-  and    a2: "valid \<Gamma>2"
-  and    a3: "a\<sharp>\<Gamma>2"
-  have i: "\<And>\<Gamma>3. valid \<Gamma>3 \<longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3 \<longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" by fact
+  case (t3 a \<Gamma>1 \<tau> \<sigma> t) (* lambda case *)
+  have a1: "\<Gamma>1 \<lless> \<Gamma>2" by fact
+  have a2: "valid \<Gamma>2" by fact
+  have a3: "a\<sharp>\<Gamma>2" by fact
+  have ih: "\<And>\<Gamma>3. valid \<Gamma>3 \<Longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3 \<Longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" by fact
   have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a1 by (simp add: sub_def)
   moreover
   have "valid ((a,\<tau>)#\<Gamma>2)" using a2 a3 v2 by force
-  ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using i by force
+  ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by force
   with a3 show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by force
 qed
 
-lemma weakening_version3[rule_format]: 
-  fixes \<Gamma>1::"(name\<times>ty) list"
-  and   t ::"lam"
-  and   \<tau> ::"ty"
-  assumes "\<Gamma>1 \<turnstile> t:\<sigma>"
-  shows "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> t:\<sigma>"
-using prems
-proof (nominal_induct \<Gamma>1 t \<sigma> fresh: \<Gamma>2 rule: typing_induct)
-  case (t1 \<Gamma>1 a \<tau> \<Gamma>2)  (* variable case *)
-  thus "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> Var a : \<tau>" by (force simp add: sub_def)
-next 
-  case (t2 \<Gamma>1 \<tau> \<sigma> t1 t2 \<Gamma>2)  (* variable case *)
-  thus "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> App t1 t2 : \<sigma>" by force
-next
-  case (t3 a \<Gamma>1 \<tau> \<sigma> t \<Gamma>2) (* lambda case *)
-  have a3: "a\<sharp>\<Gamma>2" by fact
-  have ih: "\<And>\<Gamma>3. valid \<Gamma>3 \<longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3 \<longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" by fact
-  show "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>"
-    proof (intro strip)
-      assume a1: "\<Gamma>1 \<lless> \<Gamma>2"
-      and    a2: "valid \<Gamma>2"
-      have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a1 by (simp add: sub_def)
-      moreover
-      have "valid ((a,\<tau>)#\<Gamma>2)" using a2 a3 v2 by force
-      ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by force
-      with a3 show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by force
-    qed
-qed
-
-lemma weakening_version4[rule_format]: 
-  assumes "\<Gamma>1 \<turnstile> t:\<sigma>"
-  shows "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> t:\<sigma>"
-using prems
-proof (nominal_induct \<Gamma>1 t \<sigma> fresh: \<Gamma>2 rule: typing_induct)
-  case (t3 a \<Gamma>1 \<tau> \<sigma> t \<Gamma>2) (* lambda case *)
+lemma weakening_version3: 
+  assumes a: "\<Gamma>1 \<turnstile> t:\<sigma>"
+  and     b: "valid \<Gamma>2" 
+  and     c: "\<Gamma>1 \<lless> \<Gamma>2"
+  shows "\<Gamma>2 \<turnstile> t:\<sigma>"
+using a b c
+proof (nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_induct)
+  case (t3 a \<Gamma>1 \<tau> \<sigma> t) (* lambda case *)
   have fc: "a\<sharp>\<Gamma>2" by fact
-  have ih: "\<And>\<Gamma>3. valid \<Gamma>3 \<longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3  \<longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" by fact 
-  show "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>"
-  proof (intro strip)
-    assume a1: "\<Gamma>1 \<lless> \<Gamma>2"
-    and    a2: "valid \<Gamma>2"
-    have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a1 sub_def by simp 
-    moreover
-    have "valid ((a,\<tau>)#\<Gamma>2)" using a2 fc by force
-    ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by force
-    with fc show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by force
-  qed
-qed (auto simp add: sub_def) (* lam and var case *)
+  have ih: "\<And>\<Gamma>3. valid \<Gamma>3 \<Longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3  \<Longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" by fact 
+  have a1: "\<Gamma>1 \<lless> \<Gamma>2" by fact
+  have a2: "valid \<Gamma>2" by fact
+  have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a1 sub_def by simp 
+  moreover
+  have "valid ((a,\<tau>)#\<Gamma>2)" using a2 fc by force
+  ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by force
+  with fc show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by force
+qed (auto simp add: sub_def) (* app and var case *)
 
-
-(* original induction principle is not strong *)
-(* enough - so the simple proof fails         *)
-lemma weakening_too_weak[rule_format]: 
-  assumes "\<Gamma>1 \<turnstile> t:\<sigma>"
-  shows "valid \<Gamma>2 \<longrightarrow> \<Gamma>1 \<lless> \<Gamma>2 \<longrightarrow> \<Gamma>2 \<turnstile> t:\<sigma>"
-using prems
-proof (induct, auto)
+text{* The original induction principle for typing 
+       is not strong enough - so the simple proof fails *}
+lemma weakening_too_weak: 
+  assumes a: "\<Gamma>1 \<turnstile> t:\<sigma>"
+  and     b: "valid \<Gamma>2" 
+  and     c: "\<Gamma>1 \<lless> \<Gamma>2"
+  shows "\<Gamma>2 \<turnstile> t:\<sigma>"
+using a b c
+proof (induct fixing: \<Gamma>2)
   case (t1 \<Gamma>1 \<tau> a) (* variable case *)
-  assume "\<Gamma>1 \<lless> \<Gamma>2"
-  and    "valid \<Gamma>2"
-  and    "(a,\<tau>) \<in> (set \<Gamma>1)" 
+  have "\<Gamma>1 \<lless> \<Gamma>2" 
+  and  "valid \<Gamma>2"
+  and  "(a,\<tau>) \<in> (set \<Gamma>1)" by fact+ 
   thus "\<Gamma>2 \<turnstile> Var a : \<tau>" by (force simp add: sub_def)
 next
-  case (t3 \<Gamma>1 \<tau> \<sigma> a t) (* lambda case *)
-  assume a1: "\<Gamma>1 \<lless> \<Gamma>2"
-  and    a2: "valid \<Gamma>2"
-  and    i: "\<forall>\<Gamma>3. valid \<Gamma>3 \<longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3  \<longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" 
-  have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a1 by (simp add: sub_def)
+  case (t3 \<Gamma>1 \<sigma> \<tau> a t) (* lambda case *)
+  (* all assumption in this case*)
+  have a0: "a\<sharp>\<Gamma>1" by fact
+  have a1: "((a,\<tau>)#\<Gamma>1) \<turnstile> t : \<sigma>" by fact
+  have a2: "\<Gamma>1 \<lless> \<Gamma>2" by fact
+  have a3: "valid \<Gamma>2" by fact
+  have ih: "\<And>\<Gamma>3. valid \<Gamma>3 \<Longrightarrow> ((a,\<tau>)#\<Gamma>1) \<lless> \<Gamma>3  \<Longrightarrow>  \<Gamma>3 \<turnstile> t:\<sigma>" by fact
+  have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a2 by (simp add: sub_def)
   moreover
-  have "valid ((a,\<tau>)#\<Gamma>2)" using v2 (* fails *)
+  have "valid ((a,\<tau>)#\<Gamma>2)" using v2 (* fails *) 
 
 
 
