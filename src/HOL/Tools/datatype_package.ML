@@ -404,12 +404,11 @@ fun case_tr sg [t, u] =
     in case find_first (fn (_, {descr, index, ...}) =>
       exists (equal cname o fst) (#3 (snd (List.nth (descr, index))))) tab of
         NONE => case_error ("Not a datatype constructor: " ^ cname) NONE [u]
-      | SOME (tname, {descr, case_name, index, ...}) =>
+      | SOME (tname, {descr, sorts, case_name, index, ...}) =>
         let
           val _ = if exists (equal "dummy_pattern" o fst o fst) cases' then
             case_error "Illegal occurrence of '_' dummy pattern" (SOME tname) [u] else ();
           val (_, (_, dts, constrs)) = List.nth (descr, index);
-          val sorts = map (rpair [] o dest_DtTFree) dts;
           fun find_case (cases, (s, dt)) =
             (case find_first (equal s o fst o fst) cases' of
                NONE => (case default of
@@ -509,12 +508,13 @@ fun cert_typ sign ((Ts, sorts), raw_T) =
 
 (**** make datatype info ****)
 
-fun make_dt_info descr induct reccomb_names rec_thms
+fun make_dt_info descr sorts induct reccomb_names rec_thms
     (((((((((i, (_, (tname, _, _))), case_name), case_thms),
       exhaustion_thm), distinct_thm), inject), nchotomy), case_cong), weak_case_cong) =
   (tname,
    {index = i,
     descr = descr,
+    sorts = sorts,
     rec_names = reccomb_names,
     rec_rewrites = rec_thms,
     case_name = case_name,
@@ -670,7 +670,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val (thy11, weak_case_congs) = add_and_get_axioms "weak_case_cong" new_type_names
       (DatatypeProp.make_weak_case_congs new_type_names descr sorts thy10) thy10;
 
-    val dt_infos = map (make_dt_info descr' induct reccomb_names' rec_thms)
+    val dt_infos = map (make_dt_info descr' sorts induct reccomb_names' rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names' ~~ case_thms ~~
         exhaustion ~~ replicate (length (hd descr)) QuickAndDirty ~~ inject ~~
           nchotomys ~~ case_congs ~~ weak_case_congs);
@@ -729,7 +729,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
     val (size_thms, thy11) = DatatypeAbsProofs.prove_size_thms flat_names new_type_names
       descr sorts reccomb_names rec_thms thy10;
 
-    val dt_infos = map (make_dt_info (List.concat descr) induct reccomb_names rec_thms)
+    val dt_infos = map (make_dt_info (List.concat descr) sorts induct reccomb_names rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
         casedist_thms ~~ simproc_dists ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
@@ -837,7 +837,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_thms [(("induct", induction), [case_names_induct])] |> Library.swap;
 
-    val dt_infos = map (make_dt_info descr induction' reccomb_names rec_thms)
+    val dt_infos = map (make_dt_info descr sorts induction' reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
         map FewConstrs distinct ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 

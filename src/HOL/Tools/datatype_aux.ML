@@ -183,6 +183,7 @@ type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 type datatype_info =
   {index : int,
    descr : descr,
+   sorts : (string * sort) list,
    rec_names : string list,
    rec_rewrites : thm list,
    case_name : string,
