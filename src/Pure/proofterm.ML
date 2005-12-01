@@ -394,19 +394,39 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 
 (**** substitutions ****)
 
+fun del_conflicting_tvars envT T = Term.instantiateT
+  (List.mapPartial (fn ixnS as (_, S) =>
+     (Type.lookup (envT, ixnS); NONE) handle TYPE _ =>
+        SOME (ixnS, TFree ("'dummy", S))) (typ_tvars T)) T;
+
+fun del_conflicting_vars env t = Term.instantiate
+  (List.mapPartial (fn ixnS as (_, S) =>
+     (Type.lookup (type_env env, ixnS); NONE) handle TYPE _ =>
+        SOME (ixnS, TFree ("'dummy", S))) (term_tvars t),
+   List.mapPartial (fn Var (ixnT as (_, T)) =>
+     (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
+        SOME (ixnT, Free ("dummy", T))) (term_vars t)) t;
+
 fun norm_proof env =
   let
     val envT = type_env env;
-    fun norm (Abst (s, T, prf)) = (Abst (s, apsome' (norm_type_same envT) T, normh prf)
+    fun msg s = warning ("type conflict in norm_proof:\n" ^ s);
+    fun htype f t = f env t handle TYPE (s, _, _) =>
+      (msg s; f env (del_conflicting_vars env t));
+    fun htypeT f T = f envT T handle TYPE (s, _, _) =>
+      (msg s; f envT (del_conflicting_tvars envT T));
+    fun htypeTs f Ts = f envT Ts handle TYPE (s, _, _) =>
+      (msg s; f envT (map (del_conflicting_tvars envT) Ts));
+    fun norm (Abst (s, T, prf)) = (Abst (s, apsome' (htypeT norm_type_same) T, normh prf)
           handle SAME => Abst (s, T, norm prf))
-      | norm (AbsP (s, t, prf)) = (AbsP (s, apsome' (norm_term_same env) t, normh prf)
+      | norm (AbsP (s, t, prf)) = (AbsP (s, apsome' (htype norm_term_same) t, normh prf)
           handle SAME => AbsP (s, t, norm prf))
-      | norm (prf % t) = (norm prf % Option.map (norm_term env) t
-          handle SAME => prf % apsome' (norm_term_same env) t)
+      | norm (prf % t) = (norm prf % Option.map (htype norm_term) t
+          handle SAME => prf % apsome' (htype norm_term_same) t)
       | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
           handle SAME => prf1 %% norm prf2)
-      | norm (PThm (s, prf, t, Ts)) = PThm (s, prf, t, apsome' (norm_types_same envT) Ts)
-      | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (norm_types_same envT) Ts)
+      | norm (PThm (s, prf, t, Ts)) = PThm (s, prf, t, apsome' (htypeTs norm_types_same) Ts)
+      | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (htypeTs norm_types_same) Ts)
       | norm _ = raise SAME
     and normh prf = (norm prf handle SAME => prf);
   in normh end;
