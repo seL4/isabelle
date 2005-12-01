@@ -172,8 +172,8 @@ fun print_outer_syntax () =
     val (int_cmds, cmds) = List.partition #4 (dest_parsers ());
   in
     [Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())),
-      Pretty.big_list "proper commands:" (map pretty_cmd cmds),
-      Pretty.big_list "improper commands (interactive-only):" (map pretty_cmd int_cmds)]
+      Pretty.big_list "commands:" (map pretty_cmd cmds),
+      Pretty.big_list "interactive-only commands:" (map pretty_cmd int_cmds)]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
