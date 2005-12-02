@@ -176,6 +176,51 @@ lemma lift_NF: "t \<in> NF \<Longrightarrow> lift t i \<in> NF"
 
 subsection {* Main theorems *}
 
+lemma norm_list:
+  assumes f_compat: "\<And>t t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> f t \<rightarrow>\<^sub>\<beta>\<^sup>* f t'"
+  and f_NF: "\<And>t. t \<in> NF \<Longrightarrow> f t \<in> NF"
+  and uNF: "u \<in> NF" and uT: "e \<turnstile> u : T"
+  shows "\<And>Us. e\<langle>i:T\<rangle> \<tturnstile> as : Us \<Longrightarrow>
+    listall (\<lambda>t. \<forall>e T' u i. e\<langle>i:T\<rangle> \<turnstile> t : T' \<longrightarrow>
+      u \<in> NF \<longrightarrow> e \<turnstile> u : T \<longrightarrow> (\<exists>t'. t[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF)) as \<Longrightarrow>
+    \<exists>as'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. f (t[u/i])) as \<rightarrow>\<^sub>\<beta>\<^sup>*
+      Var j \<degree>\<degree> map f as' \<and> Var j \<degree>\<degree> map f as' \<in> NF"
+  (is "\<And>Us. _ \<Longrightarrow> listall ?R as \<Longrightarrow> \<exists>as'. ?ex Us as as'")
+proof (induct as rule: rev_induct)
+  case (Nil Us)
+  with Var_NF have "?ex Us [] []" by simp
+  thus ?case ..
+next
+  case (snoc b bs Us)
+  have "e\<langle>i:T\<rangle> \<tturnstile> bs  @ [b] : Us" .
+  then obtain Vs W where Us: "Us = Vs @ [W]"
+    and bs: "e\<langle>i:T\<rangle> \<tturnstile> bs : Vs" and bT: "e\<langle>i:T\<rangle> \<turnstile> b : W"
+    by (rule types_snocE)
+  from snoc have "listall ?R bs" by simp
+  with bs have "\<exists>bs'. ?ex Vs bs bs'" by (rule snoc)
+  then obtain bs' where
+    bsred: "\<And>j. Var j \<degree>\<degree> map (\<lambda>t. f (t[u/i])) bs \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> map f bs'"
+    and bsNF: "\<And>j. Var j \<degree>\<degree> map f bs' \<in> NF" by iprover
+  from snoc have "?R b" by simp
+  with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF"
+    by iprover
+  then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF"
+    by iprover
+  from bsNF [of 0] have "listall (\<lambda>t. t \<in> NF) (map f bs')"
+    by (rule App_NF_D)
+  moreover have "f b' \<in> NF" by (rule f_NF)
+  ultimately have "listall (\<lambda>t. t \<in> NF) (map f (bs' @ [b']))"
+    by simp
+  hence "\<And>j. Var j \<degree>\<degree> map f (bs' @ [b']) \<in> NF" by (rule NF.App)
+  moreover from bred have "f (b[u/i]) \<rightarrow>\<^sub>\<beta>\<^sup>* f b'"
+    by (rule f_compat)
+  with bsred have
+    "\<And>j. (Var j \<degree>\<degree> map (\<lambda>t. f (t[u/i])) bs) \<degree> f (b[u/i]) \<rightarrow>\<^sub>\<beta>\<^sup>*
+     (Var j \<degree>\<degree> map f bs') \<degree> f b'" by (rule rtrancl_beta_App)
+  ultimately have "?ex Us (bs @ [b]) (bs' @ [b'])" by simp
+  thus ?case ..
+qed
+
 lemma subst_type_NF:
   "\<And>t e T u i. t \<in> NF \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> t : T \<Longrightarrow> u \<in> NF \<Longrightarrow> e \<turnstile> u : U \<Longrightarrow> \<exists>t'. t[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF"
   (is "PROP ?P U" is "\<And>t e T u i. _ \<Longrightarrow> PROP ?Q t e T u i U")
@@ -191,7 +236,11 @@ proof (induct U)
     fix e T' u i assume uNF: "u \<in> NF" and uT: "e \<turnstile> u : T"
     {
       case (App ts x e_ T'_ u_ i_)
-      assume appT: "e\<langle>i:T\<rangle> \<turnstile> Var x \<degree>\<degree> ts : T'"
+      assume "e\<langle>i:T\<rangle> \<turnstile> Var x \<degree>\<degree> ts : T'"
+      then obtain Us
+	where varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : Us \<Rrightarrow> T'"
+	and argsT: "e\<langle>i:T\<rangle> \<tturnstile> ts : Us"
+	by (rule var_app_typesE)
       from nat_eq_dec show "\<exists>t'. (Var x \<degree>\<degree> ts)[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF"
       proof
 	assume eq: "x = i"
@@ -202,59 +251,20 @@ proof (induct U)
 	  with Nil and uNF show ?thesis by simp iprover
 	next
 	  case (Cons a as)
-          with appT have "e\<langle>i:T\<rangle> \<turnstile> Var x \<degree>\<degree> (a # as) : T'" by simp
-	  then obtain Us
-	    where varT': "e\<langle>i:T\<rangle> \<turnstile> Var x : Us \<Rrightarrow> T'"
-	    and argsT': "e\<langle>i:T\<rangle> \<tturnstile> a # as : Us"
-	    by (rule var_app_typesE)
-	  from argsT' obtain T'' Ts where Us: "Us = T'' # Ts"
+          with argsT obtain T'' Ts where Us: "Us = T'' # Ts"
 	    by (cases Us) (rule FalseE, simp+)
-	  from varT' and Us have varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
+	  from varT and Us have varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
 	    by simp
           from varT eq have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'" by cases auto
           with uT have uT': "e \<turnstile> u : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by simp
-	  from argsT' and Us have argsT: "e\<langle>i:T\<rangle> \<tturnstile> as : Ts" by simp
-	  from argsT' and Us have argT: "e\<langle>i:T\<rangle> \<turnstile> a : T''" by simp
+	  from argsT Us Cons have argsT': "e\<langle>i:T\<rangle> \<tturnstile> as : Ts" by simp
+	  from argsT Us Cons have argT: "e\<langle>i:T\<rangle> \<turnstile> a : T''" by simp
 	  from argT uT refl have aT: "e \<turnstile> a[u/i] : T''" by (rule subst_lemma)
-	  have as: "\<And>Us. e\<langle>i:T\<rangle> \<tturnstile> as : Us \<Longrightarrow> listall ?R as \<Longrightarrow>
-	    \<exists>as'. Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
-	        Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<and>
-	      Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<in> NF"
-	    (is "\<And>Us. _ \<Longrightarrow> _ \<Longrightarrow> \<exists>as'. ?ex Us as as'")
-	  proof (induct as rule: rev_induct)
-	    case (Nil Us)
-	    with Var_NF have "?ex Us [] []" by simp
-	    thus ?case ..
-	  next
-	    case (snoc b bs Us)
-	    have "e\<langle>i:T\<rangle> \<tturnstile> bs  @ [b] : Us" .
-	    then obtain Vs W where Us: "Us = Vs @ [W]"
-	      and bs: "e\<langle>i:T\<rangle> \<tturnstile> bs : Vs" and bT: "e\<langle>i:T\<rangle> \<turnstile> b : W" by (rule types_snocE)
-	    from snoc have "listall ?R bs" by simp
-	    with bs have "\<exists>bs'. ?ex Vs bs bs'" by (rule snoc)
-	    then obtain bs' where
-	      bsred: "Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) bs \<rightarrow>\<^sub>\<beta>\<^sup>*
-	        Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) bs'"
-	      and bsNF: "Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) bs' \<in> NF" by iprover
-	    from snoc have "?R b" by simp
-	    with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF" by iprover
-	    then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF" by iprover
-	    from bsNF have "listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. lift t 0) bs')"
-	      by (rule App_NF_D)
-	    moreover have "lift b' 0 \<in> NF" by (rule lift_NF)
-	    ultimately have "listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. lift t 0) (bs' @ [b']))"
-	      by simp
-	    hence "Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) (bs' @ [b']) \<in> NF" by (rule NF.App)
-	    moreover from bred have "lift (b[u/i]) 0 \<rightarrow>\<^sub>\<beta>\<^sup>* lift b' 0"
-	      by (rule lift_preserves_beta')
-	    with bsred have
-	      "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) bs) \<degree> lift (b[u/i]) 0 \<rightarrow>\<^sub>\<beta>\<^sup>*
-              (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) bs') \<degree> lift b' 0" by (rule rtrancl_beta_App)
-	    ultimately have "?ex Us (bs @ [b]) (bs' @ [b'])" by simp
-	    thus ?case ..
-	  qed
 	  from App and Cons have "listall ?R as" by simp (iprover dest: listall_conj2)
-	  with argsT have "\<exists>as'. ?ex Ts as as'" by (rule as)
+	  with lift_preserves_beta' lift_NF uNF uT argsT'
+	  have "\<exists>as'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
+            Var j \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<and>
+	    Var j \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<in> NF" by (rule norm_list)
 	  then obtain as' where
 	    asred: "Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
 	      Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as'"
@@ -291,7 +301,7 @@ proof (induct U)
 	    have "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as : T'"
 	    proof (rule list_app_typeI)
 	      show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 : Ts \<Rrightarrow> T'" by (rule typing.Var) simp
-	      from uT argsT have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
+	      from uT argsT' have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
 		by (rule substs_lemma)
 	      hence "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift t 0) (map (\<lambda>t. t[u/i]) as) : Ts"
 		by (rule lift_types)
@@ -319,53 +329,19 @@ proof (induct U)
 	qed
       next
 	assume neq: "x \<noteq> i"
-	show ?thesis
-	proof -
-	  from appT obtain Us
-	      where varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : Us \<Rrightarrow> T'"
-	      and argsT: "e\<langle>i:T\<rangle> \<tturnstile> ts : Us"
-	    by (rule var_app_typesE)
-	  have ts: "\<And>Us. e\<langle>i:T\<rangle> \<tturnstile> ts : Us \<Longrightarrow> listall ?R ts \<Longrightarrow>
-	    \<exists>ts'. \<forall>x'. Var x' \<degree>\<degree> map (\<lambda>t. t[u/i]) ts \<rightarrow>\<^sub>\<beta>\<^sup>* Var x' \<degree>\<degree> ts' \<and>
-	      Var x' \<degree>\<degree> ts' \<in> NF"
-	    (is "\<And>Us. _ \<Longrightarrow> _ \<Longrightarrow> \<exists>ts'. ?ex Us ts ts'")
-	  proof (induct ts rule: rev_induct)
-	    case (Nil Us)
-	    with Var_NF have "?ex Us [] []" by simp
-	    thus ?case ..
-	  next
-	    case (snoc b bs Us)
-	    have "e\<langle>i:T\<rangle> \<tturnstile> bs  @ [b] : Us" .
-	    then obtain Vs W where Us: "Us = Vs @ [W]"
-	      and bs: "e\<langle>i:T\<rangle> \<tturnstile> bs : Vs" and bT: "e\<langle>i:T\<rangle> \<turnstile> b : W" by (rule types_snocE)
-	    from snoc have "listall ?R bs" by simp
-	    with bs have "\<exists>bs'. ?ex Vs bs bs'" by (rule snoc)
-	    then obtain bs' where
-	      bsred: "\<And>x'. Var x' \<degree>\<degree> map (\<lambda>t. t[u/i]) bs \<rightarrow>\<^sub>\<beta>\<^sup>* Var x' \<degree>\<degree> bs'"
-	      and bsNF: "\<And>x'. Var x' \<degree>\<degree> bs' \<in> NF" by iprover
-	    from snoc have "?R b" by simp
-	    with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> b' \<in> NF" by iprover
-	    then obtain b' where bred: "b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b'" and bNF: "b' \<in> NF" by iprover
-	    from bsred bred have "\<And>x'. (Var x' \<degree>\<degree> map (\<lambda>t. t[u/i]) bs) \<degree> b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>*
-              (Var x' \<degree>\<degree> bs') \<degree> b'" by (rule rtrancl_beta_App)
-	    moreover from bsNF [of 0] have "listall (\<lambda>t. t \<in> NF) bs'"
-	      by (rule App_NF_D)
-	    with bNF have "listall (\<lambda>t. t \<in> NF) (bs' @ [b'])" by simp
-	    hence "\<And>x'. Var x' \<degree>\<degree> (bs' @ [b']) \<in> NF" by (rule NF.App)
-	    ultimately have "?ex Us (bs @ [b]) (bs' @ [b'])" by simp
-	    thus ?case ..
-	  qed
-	  from App have "listall ?R ts" by (iprover dest: listall_conj2)
-	  with argsT have "\<exists>ts'. ?ex Ts ts ts'" by (rule ts)
-	  then obtain ts' where NF: "?ex Ts ts ts'" ..
-	  from nat_le_dec show ?thesis
-	  proof
-	    assume "i < x"
-	    with NF show ?thesis by simp iprover
-	  next
-	    assume "\<not> (i < x)"
-	    with NF neq show ?thesis by (simp add: subst_Var) iprover
-	  qed
+	from App have "listall ?R ts" by (iprover dest: listall_conj2)
+	with TrueI TrueI uNF uT argsT
+	have "\<exists>ts'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. t[u/i]) ts \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> ts' \<and>
+	  Var j \<degree>\<degree> ts' \<in> NF" (is "\<exists>ts'. ?ex ts'")
+	  by (rule norm_list [of "\<lambda>t. t", simplified])
+	then obtain ts' where NF: "?ex ts'" ..
+	from nat_le_dec show ?thesis
+	proof
+	  assume "i < x"
+	  with NF show ?thesis by simp iprover
+	next
+	  assume "\<not> (i < x)"
+	  with NF neq show ?thesis by (simp add: subst_Var) iprover
 	qed
       qed
     next
