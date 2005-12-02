@@ -239,13 +239,7 @@ fun is_known ctxt x = Vartab.defined (#1 (defaults_of ctxt)) (x, ~1) orelse is_f
 
 (** local syntax **)
 
-val fixedN = "\\<^fixed>";
-val structN = "\\<^struct>";
-
-
 (* translation functions *)
-
-fun fixed_tr x = (fixedN ^ x, curry Term.list_comb (Syntax.free x));
 
 fun context_tr' ctxt =
   let
@@ -255,7 +249,7 @@ fun context_tr' ctxt =
       | tr' (Abs (x, T, t)) = Abs (x, T, tr' t)
       | tr' (t as Free (x, T)) =
           let val i = Library.find_index_eq x structs + 1 in
-            if i = 0 andalso x mem_string mixfixed then Const (fixedN ^ x, T)
+            if i = 0 andalso member (op =) mixfixed x then Const (Syntax.fixedN ^ x, T)
             else if i = 1 andalso not (! show_structs) then
               Syntax.const "_struct" $ Syntax.const "_indexdefault"
             else t
@@ -266,12 +260,10 @@ fun context_tr' ctxt =
 
 (* add syntax *)
 
-fun mixfix_type mx = replicate (Syntax.mixfix_args mx) TypeInfer.logicT ---> TypeInfer.logicT;
-
 local
 
-fun mixfix x NONE mx = (fixedN ^ x, mixfix_type mx, Syntax.fix_mixfix x mx)
-  | mixfix x (SOME T) mx = (fixedN ^ x, T, Syntax.fix_mixfix x mx);
+fun mixfix x NONE mx = (Syntax.fixedN ^ x, TypeInfer.mixfixT mx, Syntax.fix_mixfix x mx)
+  | mixfix x (SOME T) mx = (Syntax.fixedN ^ x, T, Syntax.fix_mixfix x mx);
 
 fun prep_mixfix (_, _, NONE) = NONE
   | prep_mixfix (x, opt_T, SOME mx) = SOME (mixfix x opt_T mx);
@@ -306,12 +298,10 @@ fun add_syntax decls ctxt = ctxt |> map_context (fn (syntax, asms, binds, thms, 
     val structs' = structs @ List.mapPartial prep_struct decls;
     val mxs = List.mapPartial prep_mixfix decls;
     val (fixed, mxs_output) = Library.split_list (List.mapPartial prep_mixfix' decls);
-    val trs = map fixed_tr fixed;
 
     val extend =
       Syntax.extend_const_gram is_logtype ("", false) mxs_output
-      #> Syntax.extend_const_gram is_logtype ("", true) mxs
-      #> Syntax.extend_trfuns ([], mk trs, [], []);
+      #> Syntax.extend_const_gram is_logtype ("", true) mxs;
     val syns' = extend_syntax thy extend syns;
   in ((syns', structs', fixed @ mixfixed), asms, binds, thms, cases, defs) end);
 
@@ -640,11 +630,10 @@ fun map_defaults f = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
 
 in
 
-fun declare_term_syntax t ctxt =
-  ctxt
-  |> map_defaults (fn (types, sorts, used, occ) => (ins_types t types, sorts, used, occ))
-  |> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts t sorts, used, occ))
-  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used t used, occ));
+fun declare_term_syntax t =
+  map_defaults (fn (types, sorts, used, occ) => (ins_types t types, sorts, used, occ))
+  #> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts t sorts, used, occ))
+  #> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used t used, occ));
 
 fun declare_term t ctxt =
   ctxt
@@ -660,7 +649,7 @@ end;
 (* type and constant names *)
 
 fun read_tyname ctxt c =
-  if c mem_string used_types ctxt then
+  if member (op =) (used_types ctxt) c then
     TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (def_sort ctxt (c, ~1)))
   else Sign.read_tyname (theory_of ctxt) c;
 
@@ -704,7 +693,7 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
 fun generalize_tfrees inner outer =
   let
     val extra_fixes = fixed_names_of inner \\ fixed_names_of outer;
-    fun still_fixed (Free (x, _)) = not (x mem_string extra_fixes)
+    fun still_fixed (Free (x, _)) = not (member (op =) extra_fixes x)
       | still_fixed _ = false;
     val occs_inner = type_occs_of inner;
     val occs_outer = type_occs_of outer;
@@ -717,7 +706,7 @@ fun generalize_tfrees inner outer =
 fun generalize inner outer ts =
   let
     val tfrees = generalize_tfrees inner outer (map #1 (fold Term.add_tfrees ts []));
-    fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
+    fun gen (x, S) = if member (op =) tfrees x then TVar ((x, 0), S) else TFree (x, S);
   in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
 
 
@@ -1090,8 +1079,8 @@ fun map_fixes f =
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
 val declare =
-  fold declare_term_syntax o
-  List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)));
+  List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)))
+  #> fold declare_term_syntax;
 
 fun add_vars xs Ts ctxt =
   let val xs' = Term.variantlist (map Syntax.skolem xs, map #2 (fixes_of ctxt)) in
@@ -1120,7 +1109,7 @@ fun gen_fix prep add raw_vars ctxt =
     ctxt' |> add xs Ts
   end;
 
-fun prep_type (x, NONE, SOME mx) = ([x], SOME (mixfix_type mx))
+fun prep_type (x, NONE, SOME mx) = ([x], SOME (TypeInfer.mixfixT mx))
   | prep_type (x, opt_T, _) = ([x], opt_T);
 
 in
@@ -1150,7 +1139,7 @@ fun bind_skolem ctxt xs =
   let
     val ctxt' = ctxt |> fix_i [(xs, NONE)];
     fun bind (t as Free (x, T)) =
-          if x mem_string xs then
+          if member (op =) xs x then
             (case lookup_skolem ctxt' x of SOME x' => Free (x', T) | NONE => t)
           else t
       | bind (t $ u) = bind t $ bind u
@@ -1221,7 +1210,7 @@ fun cert_def ctxt eq =
       "\nThe error(s) above occurred in local definition: " ^ string_of_term ctxt eq, ctxt);
     val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
       handle TERM _ => err "Not a meta-equality (==)";
-    val (f, xs) = Term.strip_comb lhs;
+    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
     val (c, _) = Term.dest_Free f handle TERM _ =>
       err "Head of lhs must be a free/fixed variable";
 
@@ -1415,8 +1404,8 @@ fun pretty_asms ctxt =
     fun prt_fix (x, x') =
       if x = x' then Pretty.str x
       else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
-    val fixes = rev (filter_out
-      ((can Syntax.dest_internal o #1) orf (fn (_, x') => x' mem_string structs)) (fixes_of ctxt));
+    val fixes =
+      rev (filter_out ((can Syntax.dest_internal orf member (op =) structs) o #1) (fixes_of ctxt));
     val prt_fixes = if null fixes then []
       else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
         Pretty.commas (map prt_fix fixes))];
