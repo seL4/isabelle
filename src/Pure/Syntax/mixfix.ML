@@ -85,7 +85,7 @@ fun string_of_mixfix NoSyn = ""
   | string_of_mixfix (Infixl p) = parens (spaces ["infixl", string_of_int p])
   | string_of_mixfix (Infixr p) = parens (spaces ["infixr", string_of_int p])
   | string_of_mixfix (Binder (sy, p1, p2)) =
-      parens (spaces ["binder", brackets (string_of_int p1), string_of_int p2]);
+      parens (spaces ["binder", quote sy, brackets (string_of_int p1), string_of_int p2]);
 
 
 (* syntax specifications *)
@@ -126,7 +126,10 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (InfixName (sy, _)) = 2 + SynExt.mfix_args sy
   | mixfix_args (InfixlName (sy, _)) = 2 + SynExt.mfix_args sy
   | mixfix_args (InfixrName (sy, _)) = 2 + SynExt.mfix_args sy
-  | mixfix_args (*old infix or binder*) _ = 2;
+  | mixfix_args (Infix _) = 2
+  | mixfix_args (Infixl _) = 2
+  | mixfix_args (Infixr _) = 2
+  | mixfix_args (Binder _) = 1;
 
 
 (* syn_ext_types *)
