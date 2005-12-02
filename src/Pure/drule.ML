@@ -720,17 +720,6 @@ val swap_prems_eq =
 
 val imp_cong' = combination o combination (reflexive implies)
 
-fun abs_def thm =
-  let
-    val (_, cvs) = strip_comb (fst (dest_equals (cprop_of thm)));
-    val thm' = foldr (fn (ct, thm) => Thm.abstract_rule
-      (case term_of ct of Var ((a, _), _) => a | Free (a, _) => a | _ => "x")
-        ct thm) thm cvs
-  in transitive
-    (symmetric (eta_conversion (fst (dest_equals (cprop_of thm'))))) thm'
-  end;
-
-
 local
   val dest_eq = dest_equals o cprop_of
   val rhs_of = snd o dest_eq
@@ -742,6 +731,19 @@ end;
 
 fun eta_long_conversion ct = transitive (beta_eta_conversion ct)
   (symmetric (beta_eta_conversion (cterm_fun (Pattern.eta_long []) ct)));
+
+val abs_def =
+  let
+    fun contract_lhs th =
+      Thm.transitive (Thm.symmetric (beta_eta_conversion (fst (dest_equals (cprop_of th))))) th;
+    fun abstract cx = Thm.abstract_rule
+      (case Thm.term_of cx of Var ((x, _), _) => x | Free (x, _) => x | _ => "x") cx;
+  in
+    contract_lhs
+    #> `(snd o strip_comb o fst o dest_equals o cprop_of)
+    #-> fold_rev abstract
+    #> contract_lhs
+  end;
 
 (*In [A1,...,An]==>B, rewrite the selected A's only*)
 fun goals_conv pred cv =
