@@ -9,11 +9,12 @@ signature TYPE_INFER =
 sig
   val anyT: sort -> typ
   val logicT: typ
+  val mixfixT: Syntax.mixfix -> typ
   val polymorphicT: typ -> typ
   val appl_error: Pretty.pp -> string -> term -> typ -> term -> typ -> string list
   val constrain: term -> typ -> term
   val param: int -> string * sort -> typ
-  val paramify_dummies: int * typ -> int * typ
+  val paramify_dummies: typ -> int -> typ * int
   val get_sort: Type.tsig -> (indexname -> sort option) -> (sort -> sort)
     -> (indexname * sort) list -> indexname -> sort
   val infer_types: Pretty.pp
@@ -104,6 +105,10 @@ fun fold_pretyps f (PConst (_, T)) x = f T x
 
 fun anyT S = TFree ("'_dummy_", S);
 val logicT = anyT [];
+
+fun mixfixT (Binder _) = (logicT --> logicT) --> logicT
+  | mixfixT mx = replicate (Syntax.mixfix_args mx) logicT ---> logicT;
+
 
 (*indicate polymorphic Vars*)
 fun polymorphicT T = Type ("_polymorphic_", [T]);
@@ -436,12 +441,17 @@ fun constrain t T =
 fun is_param (x, _) = size x > 0 andalso ord x = ord "?";
 fun param i (x, S) = TVar (("?" ^ x, i), S);
 
-fun paramify_dummies (maxidx, TFree ("'_dummy_", S)) =
-      (maxidx + 1, param (maxidx + 1) ("'dummy", S))
-  | paramify_dummies (maxidx, Type (a, Ts)) =
-      let val (maxidx', Ts') = foldl_map paramify_dummies (maxidx, Ts)
-      in (maxidx', Type (a, Ts')) end
-  | paramify_dummies arg = arg;
+val paramify_dummies =
+  let
+    fun dummy S maxidx = (param (maxidx + 1) ("'dummy", S), maxidx + 1);
+
+    fun paramify (TFree ("'_dummy_", S)) maxidx = dummy S maxidx
+      | paramify (Type ("dummy", _)) maxidx = dummy [] maxidx
+      | paramify (Type (a, Ts)) maxidx =
+          let val (Ts', maxidx') = fold_map paramify Ts maxidx
+          in (Type (a, Ts'), maxidx') end
+      | paramify T maxidx = (T, maxidx);
+  in paramify end;
 
 
 (* decode sort constraints *)
