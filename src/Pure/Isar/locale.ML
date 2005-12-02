@@ -182,7 +182,7 @@ struct
 
   (* term list represented as single term, for simultaneous matching *)
   fun termify ts =
-    Library.foldl (op $) (Const ("", map fastype_of ts ---> propT), ts);
+    Term.list_comb (Const ("", map fastype_of ts ---> propT), ts);
   fun untermify t =
     let fun ut (Const _) ts = ts
           | ut (s $ t) ts = ut s (t::ts)
@@ -241,7 +241,7 @@ struct
   fun add_witness ts thm regs =
     let
       val t = termify ts;
-      val (x, thms) = valOf (Termtab.lookup regs t);
+      val (x, thms) = the (Termtab.lookup regs t);
     in
       Termtab.update (t, (x, thm::thms)) regs
     end;
@@ -346,8 +346,8 @@ val get_global_registration =
 val get_local_registration =
      gen_get_registration LocalLocalesData.get ProofContext.theory_of;
 
-val test_global_registration = isSome oo get_global_registration;
-val test_local_registration = isSome oo get_local_registration;
+val test_global_registration = is_some oo get_global_registration;
+val test_local_registration = is_some oo get_local_registration;
 fun smart_test_registration ctxt id =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -362,7 +362,7 @@ fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
   map_data (fn regs =>
     let
       val thy = thy_of thy_ctxt;
-      val reg = getOpt (Symtab.lookup regs name, Registrations.empty);
+      val reg = the_default Registrations.empty (Symtab.lookup regs name);
       val (reg', sups) = Registrations.insert thy (ps, attn) reg;
       val _ = if not (null sups) then warning
                 ("Subsumed interpretation(s) of locale " ^
@@ -505,23 +505,20 @@ fun satisfy_protected pths thm =
 
 (* parameter types *)
 
-(* CB: frozen_tvars has the following type:
-  ProofContext.context -> typ list -> (indexname * (sort * typ)) list *)
-
 fun frozen_tvars ctxt Ts =
   let
     val tvars = rev (fold Term.add_tvarsT Ts []);
     val tfrees = map TFree
       (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
-  in map (fn ((x, S), y) => (x, (S, y))) (tvars ~~ tfrees) end;
+  in map (fn ((xi, S), T) => (xi, (S, T))) (tvars ~~ tfrees) end;
 
 fun unify_frozen ctxt maxidx Ts Us =
   let
-    fun paramify (i, NONE) = (i, NONE)
-      | paramify (i, SOME T) = apsnd SOME (TypeInfer.paramify_dummies (i, T));
+    fun paramify NONE i = (NONE, i)
+      | paramify (SOME T) i = apfst SOME (TypeInfer.paramify_dummies T i);
 
-    val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
-    val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
+    val (Ts', maxidx') = fold_map paramify Ts maxidx;
+    val (Us', maxidx'') = fold_map paramify Us maxidx';
     val thy = ProofContext.theory_of ctxt;
 
     fun unify (SOME T, SOME U) env = (Sign.typ_unify thy (U, T) env
@@ -536,7 +533,7 @@ fun params_of elemss = gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst
 fun params_of' elemss = gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst o fst) elemss));
 fun params_syn_of syn elemss =
   gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss)) |>
-    map (apfst (fn x => (x, valOf (Symtab.lookup syn x))));
+    map (apfst (fn x => (x, the (Symtab.lookup syn x))));
 
 
 (* CB: param_types has the following type:
@@ -627,6 +624,7 @@ fun unify_elemss _ _ [] = []
 
 (* like unify_elemss, but does not touch mode, additional
    parameter c_parms for enforcing further constraints (eg. syntax) *)
+(* FIXME avoid code duplication *)
 
 fun unify_elemss' _ _ [] [] = []
   | unify_elemss' _ [] [elems] [] = [elems]
@@ -638,7 +636,7 @@ fun unify_elemss' _ _ [] [] = []
         fun inst ((((name, ps), (ps', mode)), elems), env) =
           (((name, map (apsnd (Option.map (Element.instT_type env))) ps), (ps', mode)),
            map (Element.instT_ctxt thy env) elems);
-      in map inst (elemss ~~ (Library.take (length elemss, envs))) end;
+      in map inst (elemss ~~ Library.take (length elemss, envs)) end;
 
 
 (* flatten_expr:
@@ -778,7 +776,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val {params = (ps, qs), elems, ...} = the_locale thy name;
         val ps' = map (apsnd SOME o #1) ps;
         val ren = map #1 ps' ~~
-              map (fn x => (x, valOf (Symtab.lookup syn x))) xs;
+              map (fn x => (x, the (Symtab.lookup syn x))) xs;
         val (params', elems') =
           if null ren then ((ps', qs), map #1 elems)
           else ((map (apfst (Element.rename ren)) ps', map (Element.rename ren) qs),
@@ -789,11 +787,8 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
       in (((name, params'), axs), elems'') end;
 
     (* type constraint for renamed parameter with syntax *)
-    fun type_syntax NONE = NONE
-      | type_syntax (SOME mx) = let
-            val Ts = map (fn x => TFree (x, [])) (Term.invent_names [] "'mxa"
-              (Syntax.mixfix_args mx + 1))
-          in Ts |> Library.split_last |> op ---> |> SOME end;
+    fun mixfix_type mx =
+      Type.freeze_type (#1 (TypeInfer.paramify_dummies (TypeInfer.mixfixT mx) 0));
 
     (* compute identifiers and syntax, merge with previous ones *)
     val (ids, _, syn) = identify true expr;
@@ -802,7 +797,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     (* add types to params, check for unique params and unify them *)
     val raw_elemss = unique_parms ctxt (map (eval syntax) idents);
     val elemss = unify_elemss' ctxt [] raw_elemss
-         (map (apsnd type_syntax) (Symtab.dest syntax));
+         (map (apsnd (Option.map mixfix_type)) (Symtab.dest syntax));
     (* replace params in ids by params from axioms,
        adjust types in mode *)
     val all_params' = params_of' elemss;
@@ -1009,7 +1004,7 @@ fun declare_ext_elem prep_parms (ctxt, Fixes fixes) =
         val parms = map (fn (x, T) => (x, SOME T)) csts;
         val parms' = prep_parms ctxt parms;
         val ts = map (fn (x, SOME T) => Free (x, T)) parms';
-      in (Library.fold ProofContext.declare_term ts ctxt, []) end
+      in (fold ProofContext.declare_term ts ctxt, []) end
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
   | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
@@ -1053,7 +1048,7 @@ fun abstract_term eq =    (*assumes well-formedness according to ProofContext.ce
     val body = Term.strip_all_body eq;
     val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
     val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (vars, body));
-    val (f, xs) = Term.strip_comb lhs;
+    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
     val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
   in (Term.dest_Free f, eq') end;
 
@@ -1448,7 +1443,7 @@ fun collect_global_witnesses thy parms ids vts = let
     fun vinst_names ps = map (the o Symtab.lookup vinst) ps;
     val inst = Symtab.make (parms ~~ ts);
     val ids' = map (apsnd vinst_names) ids;
-    val wits = List.concat (map (snd o valOf o get_global_registration thy) ids');
+    val wits = List.concat (map (snd o the o get_global_registration thy) ids');
   in ((tinst, inst), wits) end;
 
 
@@ -1674,12 +1669,11 @@ end;
 
 local
 
-fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
-  (* CB: do_pred controls generation of predicates.
-         true -> with, false -> without predicates. *)
+fun gen_add_locale prep_ctxt prep_expr
+    do_predicate bname raw_import raw_body thy =
   let
     val name = Sign.full_name thy bname;
-    val _ = conditional (isSome (get_locale thy name)) (fn () =>
+    val _ = conditional (is_some (get_locale thy name)) (fn () =>
       error ("Duplicate definition of locale " ^ quote name));
 
     val thy_ctxt = ProofContext.init thy;
@@ -1695,7 +1689,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
     val (pred_thy, (elemss', predicate as (predicate_statement, predicate_axioms))) =
-      if do_pred then thy |> define_preds bname text elemss
+      if do_predicate then thy |> define_preds bname text elemss
       else (thy, (elemss, ([], [])));
     val pred_ctxt = ProofContext.init pred_thy;
 
@@ -1855,7 +1849,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
 
       fun activate_elems disch ((id, _), elems) thy_ctxt =
           let
-            val ((prfx, atts2), _) = valOf (get_reg thy_ctxt id)
+            val ((prfx, atts2), _) = the (get_reg thy_ctxt id)
                 handle Option => sys_error ("Unknown registration of " ^
                   quote (fst id) ^ " while activating facts.");
           in
