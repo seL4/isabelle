@@ -13,7 +13,6 @@ sig
   val add_prim: string * (string * string list) -> primitives -> primitives;
   val merge_prims: primitives * primitives -> primitives;
   val has_prim: primitives -> string -> bool;
-  val mk_prims: primitives -> string;
 
   type 'a pretty_syntax = string
     -> (int * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T)) option;
@@ -127,12 +126,16 @@ fun postify [] f = [f]
   | postify (ps as _::_) f = [Pretty.list "(" ")" ps, Pretty.brk 1, f];
 
 fun upper_first s =
-  let val (c :: cs) = String.explode s
-  in String.implode (Char.toUpper c :: cs) end;
+  let
+    val (pr, b) = split_last (NameSpace.unpack s);
+    val (c::cs) = String.explode b;
+  in NameSpace.pack (pr @ [String.implode (Char.toUpper c :: cs)]) end;
 
 fun lower_first s =
-  let val (c :: cs) = String.explode s
-  in String.implode (Char.toLower c :: cs) end;
+  let
+    val (pr, b) = split_last (NameSpace.unpack s);
+    val (c::cs) = String.explode b;
+  in NameSpace.pack (pr @ [String.implode (Char.toLower c :: cs)]) end;
 
 
 (** grouping functions **)
@@ -289,10 +292,18 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
                   |> brackify (eval_br br (INFX (5, R)))
           end
       | ml_from_pat br (ICons ((f, ps), ty)) =
-          ps
-          |> map (ml_from_pat BR)
-          |> cons ((Pretty.str o resolv) f)
-          |> brackify (eval_br br BR)
+          (case const_syntax f
+           of NONE =>
+              ps
+              |> map (ml_from_pat BR)
+              |> cons ((Pretty.str o resolv) f)
+              |> brackify (eval_br br BR)
+            | SOME (i, pr) =>
+              if i = length ps
+              then
+                pr (map (ml_from_pat BR) ps) (ml_from_expr BR)
+              else
+                error "number of argument mismatch in customary serialization")
       | ml_from_pat br (IVarP (v, IType ("Integer", []))) =
           brackify (eval_br br BR) [
             Pretty.str v,
@@ -300,8 +311,8 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
             Pretty.str "IntInf.int"
           ]
       | ml_from_pat br (IVarP (v, _)) =
-          Pretty.str v;
-    fun ml_from_expr br (e as (IApp (IConst ("Cons", _), _))) =
+          Pretty.str v
+    and ml_from_expr br (e as (IApp (IConst ("Cons", _), _))) =
           let
             fun dest_cons (IApp (IConst ("Cons", _),
                   IApp (IApp (IConst ("Pair", _), e1), e2))) = SOME (e1, e2)
@@ -396,7 +407,9 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
           brackify (eval_br br (INFX (4, L))) [
             ml_from_expr (INFX (4, L)) e1,
             Pretty.str "=",
-            ml_from_expr (INFX (4, X)) e2
+            ml_from_expr (INFX (4, X)) e2,
+            Pretty.str ":",
+            ml_from_type NOBR (itype_of_iexpr e2)
           ]
       | ml_from_app br ("Pair", [e1, e2]) =
           Pretty.list "(" ")" [
@@ -452,14 +465,15 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
           mk_app_p br (Pretty.str "~") es
       | ml_from_app br ("wfrec", es) =
           mk_app_p br (Pretty.str "wfrec") es
-      | ml_from_app br (f, []) =
-          Pretty.str (resolv f)
       | ml_from_app br (f, es) =
           case const_syntax f
            of NONE =>
-                let
-                  val (es', e) = split_last es;
-                in mk_app_p br (ml_from_app NOBR (f, es')) [e] end
+                (case es
+                 of [] => Pretty.str (resolv f)
+                  | es =>
+                      let
+                        val (es', e) = split_last es;
+                      in mk_app_p br (ml_from_app NOBR (f, es')) [e] end)
             | SOME (i, pr) =>
                 let
                   val (es1, es2) = splitAt (i, es);
@@ -552,7 +566,7 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
           error ("can't serialize class declaration " ^ quote name ^ " to ML")
       | ml_from_def (name, Classinst _) =
           error ("can't serialize instance declaration " ^ quote name ^ " to ML")
-  in (writeln "******************"; (*map (writeln o Pretty.o)*)
+  in (debug 10 (fn _ => "******************") (); (*map (writeln o Pretty.o)*)
   case (snd o hd) ds
    of Fun _ => ml_from_funs ds
     | Datatypecons _ => ml_from_datatypes ds
@@ -630,6 +644,7 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
     |> eliminate_classes
     |> debug 3 (fn _ => "generating...")
     |> serialize (ml_from_defs tyco_syntax const_syntax) ml_from_module ml_validator nspgrp name_root
+    |> (fn p => Pretty.chunks [(Pretty.str o mk_prims) prims, p])
   end;
 
 fun ml_from_thingol' nspgrp name_root =
@@ -660,9 +675,13 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
         NameSpace.pack (map upper_first prfix @ [base])
       end;
     fun resolv_const f =
-      if is_cons f
-      then (upper_first o resolv) f
-      else (lower_first o resolv) f
+      if NameSpace.is_qualified f
+      then
+        if is_cons f
+        then (upper_first o resolv) f
+        else (lower_first o resolv) f
+      else
+        f;
     fun haskell_from_sctxt vs =
       let
         fun from_sctxt [] = Pretty.str ""
@@ -755,13 +774,21 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
                   |> brackify (eval_br br (INFX (5, R)))
           end
       | haskell_from_pat br (ICons ((f, ps), _)) =
-          ps
-          |> map (haskell_from_pat BR)
-          |> cons ((Pretty.str o upper_first o resolv) f)
-          |> brackify (eval_br br BR)
+          (case const_syntax f
+           of NONE =>
+              ps
+              |> map (haskell_from_pat BR)
+              |> cons ((Pretty.str o resolv_const) f)
+              |> brackify (eval_br br BR)
+            | SOME (i, pr) =>
+              if i = length ps
+              then
+                pr (map (haskell_from_pat BR) ps) (haskell_from_expr BR)
+              else
+                error "number of argument mismatch in customary serialization")
       | haskell_from_pat br (IVarP (v, _)) =
-          (Pretty.str o lower_first) v;
-    fun haskell_from_expr br (e as (IApp (IApp (IConst ("Cons", _), _), _))) =
+          (Pretty.str o lower_first) v
+    and haskell_from_expr br (e as (IApp (IApp (IConst ("Cons", _), _), _))) =
           let
             fun dest_cons (IApp (IApp (IConst ("Cons", _), e1), e2)) = SOME (e1, e2)
               | dest_cons p = NONE
@@ -846,22 +873,16 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             Pretty.str "==",
             haskell_from_expr (INFX (4, X)) e2
           ]
+      | haskell_from_app br ("eq", [e1, e2]) =
+          brackify (eval_br br (INFX (4, L))) [
+            haskell_from_expr (INFX (4, L)) e1,
+            Pretty.str "==",
+            haskell_from_expr (INFX (4, X)) e2
+          ]
       | haskell_from_app br ("Pair", [e1, e2]) =
           Pretty.list "(" ")" [
             haskell_from_expr NOBR e1,
             haskell_from_expr NOBR e2
-          ]
-      | haskell_from_app br ("and", [e1, e2]) =
-          brackify (eval_br br (INFX (3, R))) [
-            haskell_from_expr (INFX (3, X)) e1,
-            Pretty.str "&&",
-            haskell_from_expr (INFX (3, R)) e2
-          ]
-      | haskell_from_app br ("or", [e1, e2]) =
-          brackify (eval_br br (INFX (2, L))) [
-            haskell_from_expr (INFX (2, L)) e1,
-            Pretty.str "||",
-            haskell_from_expr (INFX (2, X)) e2
           ]
       | haskell_from_app br ("if", [b, e1, e2]) =
           brackify (eval_br br BR) [
@@ -872,46 +893,49 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             Pretty.str "else",
             haskell_from_expr NOBR e2
           ]
-      | haskell_from_app br ("add", [e1, e2]) =
-          brackify (eval_br br (INFX (6, L))) [
-            haskell_from_expr (INFX (6, L)) e1,
-            Pretty.str "+",
-            haskell_from_expr (INFX (6, X)) e2
-          ]
-      | haskell_from_app br ("mult", [e1, e2]) =
-          brackify (eval_br br (INFX (7, L))) [
-            haskell_from_expr (INFX (7, L)) e1,
-            Pretty.str "*",
-            haskell_from_expr (INFX (7, X)) e2
-          ]
-      | haskell_from_app br ("lt", [e1, e2]) =
-          brackify (eval_br br (INFX (4, L))) [
-            haskell_from_expr (INFX (4, L)) e1,
-            Pretty.str "<",
-            haskell_from_expr (INFX (4, X)) e2
-          ]
-      | haskell_from_app br ("le", [e1, e2]) =
-          brackify (eval_br br (INFX (7, L))) [
-            haskell_from_expr (INFX (4, L)) e1,
-            Pretty.str "<=",
-            haskell_from_expr (INFX (4, X)) e2
-          ]
+      | haskell_from_app br ("and", es) =
+          haskell_from_binop br 3 R "&&" es
+      | haskell_from_app br ("or", es) =
+          haskell_from_binop br 2 R "||" es
+      | haskell_from_app br ("add", es) =
+          haskell_from_binop br 6 L "+" es
+      | haskell_from_app br ("mult", es) =
+          haskell_from_binop br 7 L "*" es
+      | haskell_from_app br ("lt", es) =
+          haskell_from_binop br 4 L "<" es
+      | haskell_from_app br ("le", es) =
+          haskell_from_binop br 4 L "<=" es
       | haskell_from_app br ("minus", es) =
           mk_app_p br (Pretty.str "negate") es
       | haskell_from_app br ("wfrec", es) =
           mk_app_p br (Pretty.str "wfrec") es
-      | haskell_from_app br (f, []) =
-          Pretty.str (resolv_const f)
       | haskell_from_app br (f, es) =
           case const_syntax f
            of NONE =>
-                let
-                  val (es', e) = split_last es;
-                in mk_app_p br (haskell_from_app NOBR (f, es')) [e] end
+                (case es
+                 of [] => Pretty.str (resolv_const f)
+                  | es =>
+                      let
+                        val (es', e) = split_last es;
+                      in mk_app_p br (haskell_from_app NOBR (f, es')) [e] end)
             | SOME (i, pr) =>
                 let
                   val (es1, es2) = splitAt (i, es);
-                in mk_app_p br (pr (map (haskell_from_expr BR) es1) (haskell_from_expr BR)) es2 end;
+                in mk_app_p br (pr (map (haskell_from_expr BR) es1) (haskell_from_expr BR)) es2 end
+    and haskell_from_binop br pr L f [e1, e2] =
+          brackify (eval_br br (INFX (pr, L))) [
+            haskell_from_expr (INFX (pr, L)) e1,
+            Pretty.str f,
+            haskell_from_expr (INFX (pr, X)) e2
+          ]
+      | haskell_from_binop br pr R f [e1, e2] =
+          brackify (eval_br br (INFX (pr, R))) [
+            haskell_from_expr (INFX (pr, X)) e1,
+            Pretty.str f,
+            haskell_from_expr (INFX (pr, R)) e2
+          ]
+      | haskell_from_binop br pr ass f args =
+          mk_app_p br (Pretty.str ("(" ^ f ^ ")")) args
     fun haskell_from_datatypes defs =
       let
         fun mk_cons (co, typs) =
@@ -1050,6 +1074,7 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "generating...")
     |> serialize (haskell_from_defs tyco_syntax const_syntax is_cons) haskell_from_module haskell_validator nspgrp name_root
+    |> (fn p => Pretty.chunks [(Pretty.str o mk_prims) prims, p])
   end;
 
 end; (* local *)

@@ -7,10 +7,7 @@ Haskell98-like operational view on type classes.
 
 signature CLASS_PACKAGE =
 sig
-  val add_consts: class * xstring list -> theory -> theory
-  val add_consts_i: class * string list -> theory -> theory
-  val add_tycos: class * xstring list -> theory -> theory
-  val add_tycos_i: class * (string * string) list -> theory -> theory
+  val add_classentry: class -> string list -> string list -> theory -> theory
   val the_consts: theory -> class -> string list
   val the_tycos: theory -> class -> (string * string) list
 
@@ -165,7 +162,7 @@ fun get_superclasses thy class =
 fun get_const_sign thy tvar const =
   let
     val class = (the o lookup_const_class thy) const;
-    val ty = (Type.unvarifyT o Sign.the_const_constraint thy) const;
+    val (ty, thaw) = (Type.freeze_thaw_type o Sign.the_const_constraint thy) const;
     val tvars_used = Term.add_tfreesT ty [];
     val tvar_rename = hd (Term.invent_names (map fst tvars_used) tvar 1);
   in
@@ -174,8 +171,9 @@ fun get_const_sign thy tvar const =
           if Sorts.sort_eq (Sign.classes_of thy) ([class], sort)
           then TFree (tvar, [])
           else if tvar' = tvar
-          then TFree (tvar_rename, sort)
+          then TVar ((tvar_rename, 0), sort)
           else TFree (tvar', sort))
+    |> thaw
   end;
 
 fun get_inst_consts_sign thy (tyco, class) =
@@ -188,7 +186,7 @@ fun get_inst_consts_sign thy (tyco, class) =
     val vars_new = Term.invent_names vars_used "'a" (length arities);
     val typ_arity = Type (tyco, map2 (curry TFree) vars_new arities);
     val instmem_signs =
-      map (typ_subst_atomic [(TFree ("'a", []), typ_arity)]) const_signs;
+      map (typ_subst_TVars [(("'a", 0), typ_arity)]) const_signs;
   in consts ~~ instmem_signs end;
 
 fun get_classtab thy =
@@ -202,8 +200,8 @@ fun get_classtab thy =
 
 type sortcontext = (string * sort) list;
 
-fun extract_sortctxt thy typ =
-  (typ_tfrees o Type.unvarifyT) typ
+fun extract_sortctxt thy ty =
+  (typ_tfrees o Type.no_tvars) ty
   |> map (apsnd (filter_class thy))
   |> filter (not o null o snd);
 
@@ -235,7 +233,7 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
               in Lookup (deriv, (vname, classindex)) end;
           in map mk_look sort_def end;
   in
-    extract_sortctxt thy raw_typ_def
+    extract_sortctxt thy ((fst o Type.freeze_thaw_type) raw_typ_def)
     |> map (tab_lookup o fst)
     |> map (apfst (filter_class thy))
     |> filter (not o null o fst)
@@ -243,18 +241,9 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
   end;
 
 
-(* outer syntax *)
+(* intermediate auxiliary *)
 
-local
-
-structure P = OuterParse
-and K = OuterKeyword;
-
-in
-
-val classcgK = "codegen_class";
-
-fun classcg raw_class raw_consts raw_tycos thy =
+fun add_classentry raw_class raw_consts raw_tycos thy =
   let
     val class = Sign.intern_class thy raw_class;
   in
@@ -267,22 +256,8 @@ fun classcg raw_class raw_consts raw_tycos thy =
        }
     |> add_consts (class, raw_consts)
     |> add_tycos (class, raw_tycos)
-  end
-
-val classcgP =
-  OuterSyntax.command classcgK "codegen data for classes" K.thy_decl (
-    P.xname
-    -- ((P.$$$ "\\<Rightarrow>" || P.$$$ "=>") |-- (P.list1 P.name))
-    -- (Scan.optional ((P.$$$ "\\<Rightarrow>" || P.$$$ "=>") |-- (P.list1 P.name)) [])
-    >> (fn ((name, tycos), consts) => (Toplevel.theory (classcg name consts tycos)))
-  )
-
-val _ = OuterSyntax.add_parsers [classcgP];
-
-val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>"];
-
-end; (* local *)
-
+  end;
+  
 
 (* setup *)
 

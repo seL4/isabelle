@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/codegen_thingol.ML
+ (*  Title:      Pure/Tools/codegen_thingol.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
@@ -48,7 +48,7 @@ sig
       Nop
     | Fun of (ipat list * iexpr) list * (ClassPackage.sortcontext * itype)
     | Typesyn of (vname * string list) list * itype
-    | Datatype of (vname * string list) list * string list * class list
+    | Datatype of (vname * string list) list * string list * string list
     | Datatypecons of string * itype list
     | Class of class list * vname * string list * string list
     | Classmember of class * vname * itype
@@ -78,6 +78,7 @@ sig
   val type_list: string;
   val type_integer: string;
   val cons_pair: string;
+  val fun_eq: string;
   val fun_fst: string;
   val fun_snd: string;
   val Type_integer: itype;
@@ -103,7 +104,9 @@ sig
   val Fun_wfrec: iexpr;
 
   val prims: string list;
+  val get_eqpred: module -> string -> string option;
   val is_eqtype: module -> itype -> bool;
+  val build_eqpred: module -> string -> def;
   val extract_defs: iexpr -> string list;
   val eta_expand: (string -> int) -> module -> module;
   val eta_expand_poly: module -> module;
@@ -484,13 +487,13 @@ fun pretty_def Nop =
         Pretty.str " |=> ",
         pretty_itype ty
       ]
-  | pretty_def (Datatype (vs, cs, clss)) =
+  | pretty_def (Datatype (vs, cs, insts)) =
       Pretty.block [
         Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
         Pretty.str " |=> ",
         Pretty.gen_list " |" "" "" (map Pretty.str cs),
-        Pretty.str ", instance of ",
-        Pretty.gen_list "," "[" "]" (map Pretty.str clss)
+        Pretty.str ", instances ",
+        Pretty.gen_list "," "[" "]" (map Pretty.str insts)
       ]
   | pretty_def (Datatypecons (dtname, tys)) =
       Pretty.block [
@@ -655,25 +658,25 @@ fun merge_module modl12 =
   in Graph.join (K join_module) modl12 end;
 
 fun partof names modl =
-      let
-        datatype pathnode = PN of (string list * (string * pathnode) list);
-        fun mk_ipath ([], base) (PN (defs, modls)) =
-              PN (base :: defs, modls)
-          | mk_ipath (n::ns, base) (PN (defs, modls)) =
-              modls
-              |> AList.default (op =) (n, PN ([], []))
-              |> AList.map_entry (op =) n (mk_ipath (ns, base))
-              |> (pair defs #> PN);
-        fun select (PN (defs, modls)) (Module module) =
-          module
-          |> Graph.subgraph (Graph.all_succs module (defs @ map fst modls))
-          |> fold (fn (name, modls) => Graph.map_node name (select modls)) modls
-          |> Module;
-      in
-        Module modl
-        |> select (fold (mk_ipath o dest_name) (filter NameSpace.is_qualified names) (PN ([], [])))
-        |> dest_modl
-      end;
+  let
+    datatype pathnode = PN of (string list * (string * pathnode) list);
+    fun mk_ipath ([], base) (PN (defs, modls)) =
+          PN (base :: defs, modls)
+      | mk_ipath (n::ns, base) (PN (defs, modls)) =
+          modls
+          |> AList.default (op =) (n, PN ([], []))
+          |> AList.map_entry (op =) n (mk_ipath (ns, base))
+          |> (pair defs #> PN);
+    fun select (PN (defs, modls)) (Module module) =
+      module
+      |> Graph.subgraph (Graph.all_succs module (defs @ map fst modls))
+      |> fold (fn (name, modls) => Graph.map_node name (select modls)) modls
+      |> Module;
+  in
+    Module modl
+    |> select (fold (mk_ipath o dest_name) (filter NameSpace.is_qualified names) (PN ([], [])))
+    |> dest_modl
+  end;
 
 fun add_check_transform (name, (Datatypecons (dtname, _))) =
       (debug 7 (fn _ => "transformation for datatype constructor " ^ quote name
@@ -682,7 +685,7 @@ fun add_check_transform (name, (Datatypecons (dtname, _))) =
           fn [Datatype (_, _, [])] => NONE
             | _ => "attempted to add constructor to already instantiating datatype" |> SOME)],
        [(dtname,
-          fn Datatype (vs, cs, clss) => Datatype (vs, name::cs, clss)
+          fn Datatype (vs, cs, insts) => Datatype (vs, name::cs, insts)
            | def => "attempted to add datatype constructor to non-datatype: "
               ^ (Pretty.output o pretty_def) def |> error)])
       )
@@ -734,7 +737,7 @@ fun add_check_transform (name, (Datatypecons (dtname, _))) =
                | def => "attempted to add class instance to non-class"
                   ^ (Pretty.output o pretty_def) def |> error),
            (tyco,
-              fn Datatype (vs, cs, clss) => Datatype (vs, cs, clsname::clss)
+              fn Datatype (vs, cs, insts) => Datatype (vs, cs, name::insts)
                | Nop => Nop
                | def => "attempted to instantiate non-type to class instance"
                   ^ (Pretty.output o pretty_def) def |> error)])
@@ -945,32 +948,68 @@ val prims = [class_eq, type_bool, type_integer, type_float, type_pair, type_list
   cons_true, cons_false, cons_pair, cons_nil, cons_cons, fun_primeq, fun_eq, fun_not, fun_and,
   fun_or, fun_if, fun_fst, fun_snd, fun_add, fun_mult, fun_minus, fun_lt, fun_le, fun_wfrec];
 
-fun is_superclass_of modl class_sub class_sup =
-  if class_sub = class_sup
-  then true
-  else
-    if NameSpace.is_qualified class_sub
-    then
-      case get_def modl class_sub
-       of Class (supclsnames, _, _, _)
-            => exists (fn class => is_superclass_of modl class class_sup) supclsnames
-    else
-      false;
+
+(** equality handling **)
+
+fun get_eqpred modl tyco =
+  if NameSpace.is_qualified tyco
+  then
+    case get_def modl tyco
+     of Datatype (_, _, insts) =>
+          get_first (fn inst =>
+            case get_def modl inst
+             of Classinst (cls, _, memdefs) =>
+                if cls = class_eq
+                then (SOME o snd o hd) memdefs
+                else NONE) insts
+  else SOME fun_primeq;
 
 fun is_eqtype modl (IType (tyco, tys)) =
       forall (is_eqtype modl) tys
-      andalso
-        if NameSpace.is_qualified tyco
-        then
+      andalso (
+        NameSpace.is_qualified tyco
+        orelse
           case get_def modl tyco
            of Typesyn (vs, ty) => is_eqtype modl ty
-            | Datatype (_, _, classes) => exists (is_superclass_of modl class_eq) classes
-        else
-          true
+            | Datatype (_, _, insts) =>
+                exists (fn inst => case get_def modl inst of Classinst (cls, _, _) => cls = class_eq) insts
+      )
   | is_eqtype modl (IFun _) =
       false
   | is_eqtype modl (IVarT (_, sort)) =
-      exists (is_superclass_of modl class_eq) sort
+      member (op =) sort class_eq;
+
+fun build_eqpred modl dtname =
+  let
+    val cons =
+      map ((fn Datatypecons c => c) o get_def modl)
+        (case get_def modl dtname of Datatype (_, cs, _) => cs);
+    val sortctxt =
+      map (rpair [class_eq])
+        (case get_def modl dtname of Datatype (_, vs, _) => vs);
+    val ty = IType (dtname, map IVarT sortctxt);
+    fun mk_eq (c, []) =
+          ([ICons ((c, []), ty), ICons ((c, []), ty)], Cons_true)
+      | mk_eq (c, tys) =
+          let
+            val vars1 = Term.invent_names [] "a" (length tys);
+            val vars2 = Term.invent_names vars1 "b" (length tys);
+            fun mk_eq_cons ty' (v1, v2) =
+              IConst (fun_eq, ty' `-> ty' `-> Type_bool) `$ IVarE (v1, ty) `$ IVarE (v2, ty)
+            fun mk_conj (e1, e2) =
+              Fun_and `$ e1 `$ e2;
+          in
+            ([ICons ((c, map2 (curry IVarP) vars1 tys), ty),
+              ICons ((c, map2 (curry IVarP) vars2 tys), ty)],
+              foldr1 mk_conj (map2 mk_eq_cons tys (vars1 ~~ vars2)))
+          end;
+    val eqs = map mk_eq cons @ [([IVarP ("_", ty), IVarP ("_", ty)], Cons_false)];
+  in
+    Fun (eqs, (sortctxt, ty `-> ty `-> Type_bool))
+  end;
+
+
+(** generic transformation **)
 
 fun extract_defs e =
   let
@@ -987,10 +1026,6 @@ fun extract_defs e =
       | extr_iexpr e =
           fold_iexpr extr_itype extr_ipat extr_iexpr e
   in extr_iexpr e [] end;
-
-
-
-(** generic transformation **)
 
 fun eta_expand query =
   let
