@@ -505,8 +505,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val Abs_inverse_thms' =
       map #1 newT_iso_axms @
-      map2 (fn (r_inj, r) => f_myinv_f OF [r_inj, r RS mp])
-        (iso_inj_thms_unfolded, iso_thms);
+      map2 (fn r_inj => fn r => f_myinv_f OF [r_inj, r RS mp])
+        iso_inj_thms_unfolded iso_thms;
 
     val Abs_inverse_thms = List.concat (map mk_funs_inv Abs_inverse_thms');
 

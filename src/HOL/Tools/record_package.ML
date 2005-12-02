@@ -1745,7 +1745,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         |> Theory.add_tyabbrs_i recordT_specs
         |> Theory.add_path bname
         |> Theory.add_consts_i
-            (map2 (fn ((x, T), mx) => (x, T, mx)) (sel_decls, field_syntax @ [Syntax.NoSyn]))
+            (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
         |> (Theory.add_consts_i o map Syntax.no_syn)
             (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
         |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs

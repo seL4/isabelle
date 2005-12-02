@@ -448,12 +448,12 @@ fun project_rules [name] rule = [(name, rule)]
 
 fun add_cases_induct no_elim no_induct coind names elims induct =
   let
-    fun cases_spec (name, elim) thy =
+    fun cases_spec name elim thy =
       thy
       |> Theory.add_path (Sign.base_name name)
       |> (#1 o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
       |> Theory.parent_path;
-    val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
+    val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
     val induct_att =
       if coind then InductAttrib.coinduct_set_global else InductAttrib.induct_set_global;

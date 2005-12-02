@@ -97,7 +97,6 @@ sig
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
-  val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
@@ -113,18 +112,16 @@ sig
   val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
+  val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+  val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+  val ~~ : 'a list * 'b list -> ('a * 'b) list
+  val split_list: ('a * 'b) list -> 'a list * 'b list
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list -> 'a list list -> 'a list list
   val product: 'a list -> 'b list -> ('a * 'b) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
-  val map2: ('a * 'b -> 'c) -> 'a list * 'b list -> 'c list
-  val exists2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val forall2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val seq2: ('a * 'b -> unit) -> 'a list * 'b list -> unit
-  val ~~ : 'a list * 'b list -> ('a * 'b) list
-  val split_list: ('a * 'b) list -> 'a list * 'b list
   val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val prefix: ''a list * ''a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -467,13 +464,6 @@ fun fold f =
       | fold_aux (x :: xs) y = fold_aux xs (f x y);
   in fold_aux end;
 
-fun fold2 f =
-  let
-    fun fold_aux [] [] z = z
-      | fold_aux (x :: xs) (y :: ys) z = fold_aux xs ys (f x y z)
-      | fold_aux _ _ _ = raise UnequalLengths;
-  in fold_aux end;
-
 fun fold_rev f =
   let
     fun fold_aux [] y = y
@@ -643,21 +633,17 @@ val mapfilter = List.mapPartial;
 
 exception UnequalLengths;
 
-fun map2 _ ([], []) = []
-  | map2 f (x :: xs, y :: ys) = f (x, y) :: map2 f (xs, ys)
-  | map2 _ _ = raise UnequalLengths;
+fun map2 _ [] [] = []
+  | map2 f (x :: xs) (y :: ys) = f x y :: map2 f xs ys
+  | map2 _ _ _ = raise UnequalLengths;
 
-fun exists2 _ ([], []) = false
-  | exists2 pred (x :: xs, y :: ys) = pred (x, y) orelse exists2 pred (xs, ys)
-  | exists2 _ _ = raise UnequalLengths;
+fun fold2 f =
+  let
+    fun fold_aux [] [] z = z
+      | fold_aux (x :: xs) (y :: ys) z = fold_aux xs ys (f x y z)
+      | fold_aux _ _ _ = raise UnequalLengths;
+  in fold_aux end;
 
-fun forall2 _ ([], []) = true
-  | forall2 pred (x :: xs, y :: ys) = pred (x, y) andalso forall2 pred (xs, ys)
-  | forall2 _ _ = raise UnequalLengths;
-
-fun seq2 _ ([], []) = ()
-  | seq2 f (x :: xs, y :: ys) = (f (x, y); seq2 f (xs, ys))
-  | seq2 _ _ = raise UnequalLengths;
 
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
@@ -669,7 +655,11 @@ fun [] ~~ [] = []
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
 val split_list = ListPair.unzip;
 
-fun equal_lists eq (xs, ys) = length xs = length ys andalso forall2 eq (xs, ys);
+fun equal_lists eq (xs, ys) =
+  let
+    fun eq' [] [] = true
+      | eq' (x :: xs) (y :: ys) = eq (x, y) andalso eq' xs ys
+  in length xs = length ys andalso eq' xs ys end;
 
 
 (* prefixes, suffixes *)

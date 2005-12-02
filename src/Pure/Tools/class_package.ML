@@ -186,7 +186,7 @@ fun get_inst_consts_sign thy (tyco, class) =
     val vars_used = fold (fn ty => curry (gen_union (op =))
       (map fst (typ_tfrees ty) |> remove (op =) "'a")) const_signs [];
     val vars_new = Term.invent_names vars_used "'a" (length arities);
-    val typ_arity = Type (tyco, map2 TFree (vars_new, arities));
+    val typ_arity = Type (tyco, map2 (curry TFree) vars_new arities);
     val instmem_signs =
       map (typ_subst_atomic [(TFree ("'a", []), typ_arity)]) const_signs;
   in consts ~~ instmem_signs end;
@@ -225,8 +225,8 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
       of (subclass::deriv) => (rev deriv, find_index_eq subclass subclasses);
     fun mk_lookup (sort_def, (Type (tycon, tys))) =
           let
-            val arity_lookup = map2 mk_lookup
-              (map (filter_class thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def), tys)
+            val arity_lookup = map2 (curry mk_lookup)
+              (map (filter_class thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def)) tys
           in map (fn class => Instance ((class, tycon), arity_lookup)) sort_def end
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
           let

@@ -1219,8 +1219,8 @@ fun prep_elemss prep_parms prepp do_close context fixed_params raw_elemss raw_co
 
     (* CB: resolve schematic variables (patterns) in conclusion and external
        elements. *)
-    val all_propp' = map2 (op ~~)
-      (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp))), map (map snd) all_propp);
+    val all_propp' = map2 (curry (op ~~))
+      (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
     val (concl, propp) = splitAt(length raw_concl, all_propp');
     val propps = unflat raw_propps propp;
     val proppss = map (uncurry unflat) (raw_proppss ~~ propps);

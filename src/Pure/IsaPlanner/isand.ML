@@ -635,7 +635,7 @@ fun fixed_subgoal_thms th =
       val (subgoals, expf) = subgoal_thms th;
 (*       fun export_sg (th, exp) = exp th; *)
       fun export_sgs expfs solthms = 
-          expf (map2 (op |>) (solthms, expfs));
+          expf (map2 (curry (op |>)) solthms expfs);
 (*           expf (map export_sg (ths ~~ expfs)); *)
     in 
       apsnd export_sgs (Library.split_list (map (apsnd export_solution o 

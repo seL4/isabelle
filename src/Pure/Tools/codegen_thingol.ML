@@ -1109,7 +1109,7 @@ fun eliminate_classes module =
               |> Term.invent_names ((vars_of_iexprs o map snd) ds @ (vars_of_ipats o Library.flat o map fst) ds) "d"
               |> unflat (map snd sortctxt);
             val _ = writeln ("class 2");
-            val vname_alist = map2 (fn ((vt, sort), vs) => (vt, vs ~~ sort)) (sortctxt, varnames_ctxt);
+            val vname_alist = map2 (fn (vt, sort) => fn vs => (vt, vs ~~ sort)) sortctxt varnames_ctxt;
             val _ = writeln ("class 3");
             fun add_typarms ty =
               map (foldr1 (op xx) o (fn (vt, vss) => map (fn (_, cls) => cls `%% [IVarT (vt, [])]) vss)) vname_alist

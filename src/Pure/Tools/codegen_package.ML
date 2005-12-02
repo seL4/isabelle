@@ -827,7 +827,7 @@ fun codegen_case get_case_const_data thy defs t trns =
       let
         val vs = gen_names i;
         val tys = Library.take (i, (fst o strip_type) ty);
-        val frees = map2 Free (vs, tys);
+        val frees = map2 (curry Free) vs tys;
         val t' = Envir.beta_norm (list_comb (t, frees));
       in
         trns

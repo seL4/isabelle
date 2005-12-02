@@ -279,7 +279,7 @@ fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
 (* ------------------------------------------------------------------------- *)
 
 fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
-  let val l = map2 (op +) (l1,l2)
+  let val l = map2 (curry (op +)) l1 l2
   in Lineq(k1+k2,find_add_type(ty1,ty2),l,Added(just1,just2)) end;
 
 (* ------------------------------------------------------------------------- *)
@@ -504,7 +504,7 @@ fun mklineq n atoms =
   let val (m,(lhs,i,rel,rhs,j,discrete)) = integ item
       val lhsa = map (coeff lhs) atoms
       and rhsa = map (coeff rhs) atoms
-      val diff = map2 (op -) (rhsa,lhsa)
+      val diff = map2 (curry (op -)) rhsa lhsa
       val c = i-j
       val just = Asm k
       fun lineq(c,le,cs,j) = Lineq(c,le,cs, if m=1 then j else Multiplied2(m,j))

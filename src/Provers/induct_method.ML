@@ -298,7 +298,7 @@ fun dest_env thy (env as Envir.Envir {iTs, ...}) =
     val certT = Thm.ctyp_of thy;
     val pairs = Envir.alist_of env;
     val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
-    val xs = map2 (cert o Var) (map #1 pairs, map (#T o Thm.rep_cterm) ts);
+    val xs = map2 (curry (cert o Var)) (map #1 pairs) (map (#T o Thm.rep_cterm) ts);
   in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) (Vartab.dest iTs), xs ~~ ts) end;
 
 in
