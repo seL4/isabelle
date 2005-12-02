@@ -260,7 +260,7 @@ fun dest_def pp tm =
 
     val (lhs, rhs) = Logic.dest_equals (Logic.strip_imp_concl tm)
       handle TERM _ => err "Not a meta-equality (==)";
-    val (head, args) = Term.strip_comb lhs;
+    val (head, args) = Term.strip_comb (Pattern.beta_eta_contract lhs);
     val (c, T) = Term.dest_Const head
       handle TERM _ => err "Head of lhs not a constant";
 
