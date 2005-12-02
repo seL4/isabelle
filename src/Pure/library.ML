@@ -51,6 +51,7 @@ sig
   val if_none: 'a option -> 'a -> 'a
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
+  val perhaps: ('a -> 'a option) -> 'a -> 'a
 
   exception EXCEPTION of exn * string
   exception ERROR
@@ -339,6 +340,10 @@ fun is_some (SOME _) = true
 fun is_none (SOME _) = false
   | is_none NONE = true;
 
+fun perhaps f x =
+  case f x
+   of NONE => x
+    | SOME x' => x';
 
 (* exceptions *)
 
