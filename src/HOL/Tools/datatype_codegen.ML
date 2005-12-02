@@ -305,19 +305,16 @@ fun is_datatype thy dtyco =
   |> is_some;
 
 fun get_datatype thy dtname =
-  case CodegenPackage.tname_of_idf thy dtname
-   of SOME dtname =>
-        dtname
-        |> Symtab.lookup (DatatypePackage.get_datatypes thy)
-        |> Option.map #descr
-        |> these
-        |> get_first (fn (_, (dtname', vs, cs)) =>
-             if dtname = dtname'
-             then SOME (vs, map fst cs)
-             else NONE)
-        |> Option.mapPartial (try (apfst (map DatatypeAux.dest_DtTFree)))
-    | _ => NONE;
-
+  dtname
+  |> Symtab.lookup (DatatypePackage.get_datatypes thy)
+  |> Option.map #descr
+  |> these
+  |> get_first (fn (_, (dtname', vs, cs)) =>
+       if dtname = dtname'
+       then SOME (vs, map fst cs)
+       else NONE)
+  |> Option.mapPartial (try (apfst (map DatatypeAux.dest_DtTFree)));
+  
 fun get_datacons thy (c, dtname) =
   let
     val descr =
@@ -358,11 +355,13 @@ val setup = [
   CodegenPackage.set_is_datatype
     is_datatype,
   CodegenPackage.add_defgen
-    ("datatype", CodegenPackage.defgen_datatype get_datatype),
+    ("datatype", CodegenPackage.defgen_datatype get_datatype get_datacons),
   CodegenPackage.add_defgen
     ("datacons", CodegenPackage.defgen_datacons get_datacons),
-  CodegenPackage.add_codegen_expr
-    ("case", CodegenPackage.codegen_case get_case_const_data)
+  CodegenPackage.add_defgen
+    ("dataeq", CodegenPackage.defgen_datatype_eqinst get_datatype),
+  CodegenPackage.add_appgen
+    ("case", CodegenPackage.appgen_case get_case_const_data)
 ];
 
 end;

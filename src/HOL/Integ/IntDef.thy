@@ -915,8 +915,8 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
 
 setup {*[
   Codegen.add_codegen "number_of_codegen" number_of_codegen,
-  CodegenPackage.add_codegen_expr
-    ("number", CodegenPackage.codegen_number_of HOLogic.dest_binum mk_int_to_nat)
+  CodegenPackage.add_appgen
+    ("number", CodegenPackage.appgen_number_of HOLogic.dest_binum mk_int_to_nat)
 ]*}
 
 quickcheck_params [default_type = int]
