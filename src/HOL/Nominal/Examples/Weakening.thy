@@ -215,7 +215,7 @@ proof (nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_indu
   have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a1 sub_def by simp 
   moreover
   have "valid ((a,\<tau>)#\<Gamma>2)" using a2 fc by force
-  ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by force
+  ultimately have "((a,\<tau>)#\<Gamma>2) \<turnstile> t:\<sigma>" using ih by simp 
   with fc show "\<Gamma>2 \<turnstile> (Lam [a].t) : \<tau> \<rightarrow> \<sigma>" by force
 qed (auto simp add: sub_def) (* app and var case *)
 
