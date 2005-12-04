@@ -32,9 +32,8 @@ lemma forget:
   assumes a: "a\<sharp>t1"
   shows "t1[a::=t2] = t1"
   using a
-apply (nominal_induct t1 avoiding: a t2 rule: lam_induct)
-apply(auto simp add: abs_fresh fresh_atm)
-done
+  by (nominal_induct t1 avoiding: a t2 rule: lam_induct)
+     (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
   fixes   b :: "name"
@@ -63,17 +62,14 @@ next
 qed
 
 lemma fresh_fact: 
-  fixes   b :: "name"
-  and    a  :: "name"
-  and    t1 :: "lam"
-  and    t2 :: "lam" 
+  fixes a::"name"
   assumes a: "a\<sharp>t1"
   and     b: "a\<sharp>t2"
   shows "a\<sharp>(t1[b::=t2])"
 using a b
-apply(nominal_induct t1 avoiding: a b t2 rule: lam_induct)
-apply(auto simp add: abs_fresh fresh_atm)
-done
+by (nominal_induct t1 avoiding: a b t2 rule: lam_induct)
+   (auto simp add: abs_fresh fresh_atm)
+
 
 lemma subs_lemma:  
   fixes x::"name"
@@ -147,27 +143,29 @@ using a b
 by (nominal_induct M avoiding: x y N L rule: lam_induct)
    (auto simp add: fresh_fact forget)
 
-lemma subst_rename[rule_format]: 
+lemma subst_rename: 
   fixes  c  :: "name"
   and    a  :: "name"
   and    t1 :: "lam"
   and    t2 :: "lam"
-  shows "c\<sharp>t1 \<longrightarrow> (t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2])"
+  assumes a: "c\<sharp>t1"
+  shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
+using a
 proof (nominal_induct t1 avoiding: a c t2 rule: lam_induct)
   case (Var b)
-  show "c\<sharp>(Var b) \<longrightarrow> (Var b)[a::=t2] = ([(c,a)]\<bullet>(Var b))[c::=t2]" by (simp add: calc_atm fresh_atm)
+  thus "(Var b)[a::=t2] = ([(c,a)]\<bullet>(Var b))[c::=t2]" by (simp add: calc_atm fresh_atm)
 next
   case App thus ?case by force
 next
   case (Lam b s)
-  have i: "\<And>a c t2. c\<sharp>s \<longrightarrow> (s[a::=t2] = ([(c,a)]\<bullet>s)[c::=t2])" by fact
+  have i: "\<And>a c t2. c\<sharp>s \<Longrightarrow> (s[a::=t2] = ([(c,a)]\<bullet>s)[c::=t2])" by fact
   have f: "b\<sharp>a" "b\<sharp>c" "b\<sharp>t2" by fact
   from f have a:"b\<noteq>c" and b: "b\<noteq>a" and c: "b\<sharp>t2" by (simp add: fresh_atm)+
-  show "c\<sharp>Lam [b].s \<longrightarrow> (Lam [b].s)[a::=t2] = ([(c,a)]\<bullet>(Lam [b].s))[c::=t2]" (is "_ \<longrightarrow> ?LHS = ?RHS")
-  proof
-    assume "c\<sharp>Lam [b].s"
-    hence "c\<sharp>s" using a by (simp add: abs_fresh)
-    hence d: "s[a::=t2] = ([(c,a)]\<bullet>s)[c::=t2]" using i by simp
+  have "c\<sharp>Lam [b].s" by fact
+  hence "c\<sharp>s" using a by (simp add: abs_fresh)
+  hence d: "s[a::=t2] = ([(c,a)]\<bullet>s)[c::=t2]" using i by simp
+  show "(Lam [b].s)[a::=t2] = ([(c,a)]\<bullet>(Lam [b].s))[c::=t2]" (is "?LHS = ?RHS")
+  proof -
     have    "?LHS = Lam [b].(s[a::=t2])" using b c by simp
     also have "\<dots> = Lam [b].(([(c,a)]\<bullet>s)[c::=t2])" using d by simp
     also have "\<dots> = (Lam [b].([(c,a)]\<bullet>s))[c::=t2]" using a c by simp
@@ -176,12 +174,14 @@ next
   qed
 qed
 
-lemma subst_rename[rule_format]: 
+lemma subst_rename: 
   fixes  c  :: "name"
   and    a  :: "name"
   and    t1 :: "lam"
   and    t2 :: "lam"
-  shows "c\<sharp>t1 \<longrightarrow> (t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2])"
+  assumes a: "c\<sharp>t1"
+  shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
+using a
 apply(nominal_induct t1 avoiding: a c t2 rule: lam_induct)
 apply(auto simp add: calc_atm fresh_atm abs_fresh)
 done
@@ -551,7 +551,7 @@ next
   qed
 qed
 
-lemma one_subst[rule_format]: 
+lemma one_subst: 
   assumes a: "M\<longrightarrow>\<^isub>1M'" 
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
@@ -560,131 +560,117 @@ apply(nominal_induct M M' avoiding: N N' x rule: one_induct)
 apply(auto simp add: one_subst_aux subs_lemma fresh_atm)
 done
 
-(* FIXME: change to make use of the new induction facilities *)
 lemma diamond[rule_format]:
   fixes    M :: "lam"
   and      M1:: "lam"
   assumes a: "M\<longrightarrow>\<^isub>1M1" 
-  shows "\<forall>M2. (M\<longrightarrow>\<^isub>1M2) \<longrightarrow> (\<exists>M3. M1\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  using a
-proof (induct)
+  and     b: "M\<longrightarrow>\<^isub>1M2"
+  shows "\<exists>M3. M1\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3"
+  using a b
+proof (induct fixing: M2)
   case (o1 M) (* case 1 --- M1 = M *)
-  show "\<forall>M2. M\<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. M\<longrightarrow>\<^isub>1M3 \<and>  M2\<longrightarrow>\<^isub>1M3)" by force
+  thus "\<exists>M3. M\<longrightarrow>\<^isub>1M3 \<and>  M2\<longrightarrow>\<^isub>1M3" by blast
 next
   case (o4 x Q Q' P P') (* case 2 --- a beta-reduction occurs*)
-  assume i1: "\<forall>M2. Q \<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  assume i2: "\<forall>M2. P \<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  show "\<forall>M2. App (Lam [x].P) Q\<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  proof (intro strip)
-    fix M2
-    assume "App (Lam [x].P) Q \<longrightarrow>\<^isub>1 M2"
-    hence "(\<exists>P' Q'. M2 = App (Lam [x].P') Q' \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q') \<or> 
-           (\<exists>P' Q'. M2 = P'[x::=Q'] \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q')" by (simp add: one_red)
-    moreover (* subcase 2.1 *)
-    { assume "\<exists>P' Q'. M2 = App (Lam [x].P') Q' \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q'"
-      then obtain P'' and Q'' where 
-	b1: "M2=App (Lam [x].P'') Q''" and b2: "P\<longrightarrow>\<^isub>1P''" and b3: "Q\<longrightarrow>\<^isub>1Q''" by force
-      from b2 i2 have "(\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> P''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain P''' where
-	c1: "P'\<longrightarrow>\<^isub>1P'''" and c2: "P''\<longrightarrow>\<^isub>1P'''" by force
-      from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain Q''' where
-	d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by force
-      from c1 c2 d1 d2 
-      have "P'[x::=Q']\<longrightarrow>\<^isub>1P'''[x::=Q'''] \<and> App (Lam [x].P'') Q'' \<longrightarrow>\<^isub>1 P'''[x::=Q''']" 
-	by (force simp add: one_subst)
-      hence "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by force
-    }
-    moreover (* subcase 2.2 *)
-    { assume "\<exists>P' Q'. M2 = P'[x::=Q'] \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q'"
-      then obtain P'' Q'' where
-	b1: "M2=P''[x::=Q'']" and b2: "P\<longrightarrow>\<^isub>1P''" and  b3: "Q\<longrightarrow>\<^isub>1Q''" by force
-      from b2 i2 have "(\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> P''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain P''' where
-	c1: "P'\<longrightarrow>\<^isub>1P'''" and c2: "P''\<longrightarrow>\<^isub>1P'''" by force
-      from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain Q''' where
-	d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by force
-      from c1 c2 d1 d2 
-      have "P'[x::=Q']\<longrightarrow>\<^isub>1P'''[x::=Q'''] \<and> P''[x::=Q'']\<longrightarrow>\<^isub>1P'''[x::=Q''']" 
-	by (force simp add: one_subst)
-      hence "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by force
-    }
-    ultimately show "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" by blast
-  qed
+  have i1: "\<And>M2. Q \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
+  have i2: "\<And>M2. P \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
+  have "App (Lam [x].P) Q \<longrightarrow>\<^isub>1 M2" by fact
+  hence "(\<exists>P' Q'. M2 = App (Lam [x].P') Q' \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q') \<or> 
+         (\<exists>P' Q'. M2 = P'[x::=Q'] \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q')" by (simp add: one_red)
+  moreover (* subcase 2.1 *)
+  { assume "\<exists>P' Q'. M2 = App (Lam [x].P') Q' \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q'"
+    then obtain P'' and Q'' where 
+      b1: "M2=App (Lam [x].P'') Q''" and b2: "P\<longrightarrow>\<^isub>1P''" and b3: "Q\<longrightarrow>\<^isub>1Q''" by blast
+    from b2 i2 have "(\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> P''\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain P''' where
+      c1: "P'\<longrightarrow>\<^isub>1P'''" and c2: "P''\<longrightarrow>\<^isub>1P'''" by force
+    from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain Q''' where
+      d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by force
+    from c1 c2 d1 d2 
+    have "P'[x::=Q']\<longrightarrow>\<^isub>1P'''[x::=Q'''] \<and> App (Lam [x].P'') Q'' \<longrightarrow>\<^isub>1 P'''[x::=Q''']" 
+      by (force simp add: one_subst)
+    hence "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
+  }
+  moreover (* subcase 2.2 *)
+  { assume "\<exists>P' Q'. M2 = P'[x::=Q'] \<and> P\<longrightarrow>\<^isub>1P' \<and> Q\<longrightarrow>\<^isub>1Q'"
+    then obtain P'' Q'' where
+      b1: "M2=P''[x::=Q'']" and b2: "P\<longrightarrow>\<^isub>1P''" and  b3: "Q\<longrightarrow>\<^isub>1Q''" by blast
+    from b2 i2 have "(\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> P''\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain P''' where
+      c1: "P'\<longrightarrow>\<^isub>1P'''" and c2: "P''\<longrightarrow>\<^isub>1P'''" by blast
+    from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain Q''' where
+      d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by blast
+    from c1 c2 d1 d2 
+    have "P'[x::=Q']\<longrightarrow>\<^isub>1P'''[x::=Q'''] \<and> P''[x::=Q'']\<longrightarrow>\<^isub>1P'''[x::=Q''']" 
+      by (force simp add: one_subst)
+    hence "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
+  }
+  ultimately show "\<exists>M3. P'[x::=Q']\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" by blast
 next
   case (o2 Q Q' P P') (* case 3 *)
-  assume i0: "P\<longrightarrow>\<^isub>1P'"
-  assume i1: "\<forall>M2. Q \<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  assume i2: "\<forall>M2. P \<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  show "\<forall>M2. App P Q\<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  proof (intro strip)
-    fix M2
-    assume "App P Q \<longrightarrow>\<^isub>1 M2"
-    hence "(\<exists>P'' Q''. M2 = App P'' Q'' \<and> P\<longrightarrow>\<^isub>1P'' \<and> Q\<longrightarrow>\<^isub>1Q'') \<or> 
-           (\<exists>x P' P'' Q'. P = Lam [x].P' \<and> M2 = P''[x::=Q'] \<and> P'\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q')" 
-      by (simp add: one_app[simplified])
-    moreover (* subcase 3.1 *)
-    { assume "\<exists>P'' Q''. M2 = App P'' Q'' \<and> P\<longrightarrow>\<^isub>1P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
-      then obtain P'' and Q'' where 
-	b1: "M2=App P'' Q''" and b2: "P\<longrightarrow>\<^isub>1P''" and b3: "Q\<longrightarrow>\<^isub>1Q''" by force
-      from b2 i2 have "(\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> P''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain P''' where
-	c1: "P'\<longrightarrow>\<^isub>1P'''" and c2: "P''\<longrightarrow>\<^isub>1P'''" by force
-      from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain Q''' where
-	d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by force
-      from c1 c2 d1 d2 
-      have "App P' Q'\<longrightarrow>\<^isub>1App P''' Q''' \<and> App P'' Q'' \<longrightarrow>\<^isub>1 App P''' Q'''" by force
-      hence "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by force
-    }
-    moreover (* subcase 3.2 *)
-    { assume "\<exists>x P1 P'' Q''. P = Lam [x].P1 \<and> M2 = P''[x::=Q''] \<and> P1\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
-      then obtain x P1 P1'' Q'' where
-	b0: "P=Lam [x].P1" and b1: "M2=P1''[x::=Q'']" and 
-        b2: "P1\<longrightarrow>\<^isub>1P1''" and  b3: "Q\<longrightarrow>\<^isub>1Q''" by force
-      from b0 i0 have "\<exists>P1'. P'=Lam [x].P1' \<and> P1\<longrightarrow>\<^isub>1P1'" by (simp add: one_abs)
-      then obtain P1' where g1: "P'=Lam [x].P1'" and g2: "P1\<longrightarrow>\<^isub>1P1'" by force 
-      from g1 b0 b2 i2 have "(\<exists>M3. (Lam [x].P1')\<longrightarrow>\<^isub>1M3 \<and> (Lam [x].P1'')\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain P1''' where
-	c1: "(Lam [x].P1')\<longrightarrow>\<^isub>1P1'''" and c2: "(Lam [x].P1'')\<longrightarrow>\<^isub>1P1'''" by force
-      from c1 have "\<exists>R1. P1'''=Lam [x].R1 \<and> P1'\<longrightarrow>\<^isub>1R1" by (simp add: one_abs)
-      then obtain R1 where r1: "P1'''=Lam [x].R1" and r2: "P1'\<longrightarrow>\<^isub>1R1" by force
-      from c2 have "\<exists>R2. P1'''=Lam [x].R2 \<and> P1''\<longrightarrow>\<^isub>1R2" by (simp add: one_abs)
-      then obtain R2 where r3: "P1'''=Lam [x].R2" and r4: "P1''\<longrightarrow>\<^isub>1R2" by force
-      from r1 r3 have r5: "R1=R2" 
-	by (simp add: lam.inject alpha)
-      from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
-      then obtain Q''' where
-	d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by force
-      from g1 r2 d1 r4 r5 d2 
-      have "App P' Q'\<longrightarrow>\<^isub>1R1[x::=Q'''] \<and> P1''[x::=Q'']\<longrightarrow>\<^isub>1R1[x::=Q''']" by (simp add: one_subst)
-      hence "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by force
-    }
-    ultimately show "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" by blast
-  qed
+  have i0: "P\<longrightarrow>\<^isub>1P'" by fact
+  have i1: "\<And>M2. Q \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
+  have i2: "\<And>M2. P \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
+  assume "App P Q \<longrightarrow>\<^isub>1 M2"
+  hence "(\<exists>P'' Q''. M2 = App P'' Q'' \<and> P\<longrightarrow>\<^isub>1P'' \<and> Q\<longrightarrow>\<^isub>1Q'') \<or> 
+         (\<exists>x P' P'' Q'. P = Lam [x].P' \<and> M2 = P''[x::=Q'] \<and> P'\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q')" 
+    by (simp add: one_app[simplified])
+  moreover (* subcase 3.1 *)
+  { assume "\<exists>P'' Q''. M2 = App P'' Q'' \<and> P\<longrightarrow>\<^isub>1P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
+    then obtain P'' and Q'' where 
+      b1: "M2=App P'' Q''" and b2: "P\<longrightarrow>\<^isub>1P''" and b3: "Q\<longrightarrow>\<^isub>1Q''" by blast
+    from b2 i2 have "(\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> P''\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain P''' where
+      c1: "P'\<longrightarrow>\<^isub>1P'''" and c2: "P''\<longrightarrow>\<^isub>1P'''" by blast
+    from b3 i1 have "\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3" by simp
+    then obtain Q''' where
+      d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by blast
+    from c1 c2 d1 d2 
+    have "App P' Q'\<longrightarrow>\<^isub>1App P''' Q''' \<and> App P'' Q'' \<longrightarrow>\<^isub>1 App P''' Q'''" by blast
+    hence "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
+  }
+  moreover (* subcase 3.2 *)
+  { assume "\<exists>x P1 P'' Q''. P = Lam [x].P1 \<and> M2 = P''[x::=Q''] \<and> P1\<longrightarrow>\<^isub>1 P'' \<and> Q\<longrightarrow>\<^isub>1Q''"
+    then obtain x P1 P1'' Q'' where
+      b0: "P=Lam [x].P1" and b1: "M2=P1''[x::=Q'']" and 
+      b2: "P1\<longrightarrow>\<^isub>1P1''" and  b3: "Q\<longrightarrow>\<^isub>1Q''" by blast
+    from b0 i0 have "\<exists>P1'. P'=Lam [x].P1' \<and> P1\<longrightarrow>\<^isub>1P1'" by (simp add: one_abs)
+    then obtain P1' where g1: "P'=Lam [x].P1'" and g2: "P1\<longrightarrow>\<^isub>1P1'" by blast 
+    from g1 b0 b2 i2 have "(\<exists>M3. (Lam [x].P1')\<longrightarrow>\<^isub>1M3 \<and> (Lam [x].P1'')\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain P1''' where
+      c1: "(Lam [x].P1')\<longrightarrow>\<^isub>1P1'''" and c2: "(Lam [x].P1'')\<longrightarrow>\<^isub>1P1'''" by blast
+    from c1 have "\<exists>R1. P1'''=Lam [x].R1 \<and> P1'\<longrightarrow>\<^isub>1R1" by (simp add: one_abs)
+    then obtain R1 where r1: "P1'''=Lam [x].R1" and r2: "P1'\<longrightarrow>\<^isub>1R1" by blast
+    from c2 have "\<exists>R2. P1'''=Lam [x].R2 \<and> P1''\<longrightarrow>\<^isub>1R2" by (simp add: one_abs)
+    then obtain R2 where r3: "P1'''=Lam [x].R2" and r4: "P1''\<longrightarrow>\<^isub>1R2" by blast
+    from r1 r3 have r5: "R1=R2" by (simp add: lam.inject alpha)
+    from b3 i1 have "(\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> Q''\<longrightarrow>\<^isub>1M3)" by simp
+    then obtain Q''' where
+      d1: "Q'\<longrightarrow>\<^isub>1Q'''" and d2: "Q''\<longrightarrow>\<^isub>1Q'''" by blast
+    from g1 r2 d1 r4 r5 d2 
+    have "App P' Q'\<longrightarrow>\<^isub>1R1[x::=Q'''] \<and> P1''[x::=Q'']\<longrightarrow>\<^isub>1R1[x::=Q''']" by (simp add: one_subst)
+    hence "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 by blast
+  }
+  ultimately show "\<exists>M3. App P' Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" by blast
 next
   case (o3 x P P') (* case 4 *)
-  assume i1: "P\<longrightarrow>\<^isub>1P'"
-  assume i2: "\<forall>M2. P \<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  show "\<forall>M2. (Lam [x].P)\<longrightarrow>\<^isub>1M2 \<longrightarrow> (\<exists>M3. (Lam [x].P')\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)"
-  proof (intro strip)
-    fix M2
-    assume "(Lam [x].P)\<longrightarrow>\<^isub>1 M2"
-    hence "\<exists>P''. M2=Lam [x].P'' \<and> P\<longrightarrow>\<^isub>1P''" by (simp add: one_abs)
-    then obtain P'' where b1: "M2=Lam [x].P''" and b2: "P\<longrightarrow>\<^isub>1P''" by force
-    from i2 b1 b2 have "\<exists>M3. (Lam [x].P')\<longrightarrow>\<^isub>1M3 \<and> (Lam [x].P'')\<longrightarrow>\<^isub>1M3" by force
-    then obtain M3 where c1: "(Lam [x].P')\<longrightarrow>\<^isub>1M3" and c2: "(Lam [x].P'')\<longrightarrow>\<^isub>1M3" by force
-    from c1 have "\<exists>R1. M3=Lam [x].R1 \<and> P'\<longrightarrow>\<^isub>1R1" by (simp add: one_abs)
-    then obtain R1 where r1: "M3=Lam [x].R1" and r2: "P'\<longrightarrow>\<^isub>1R1" by force
-    from c2 have "\<exists>R2. M3=Lam [x].R2 \<and> P''\<longrightarrow>\<^isub>1R2" by (simp add: one_abs)
-    then obtain R2 where r3: "M3=Lam [x].R2" and r4: "P''\<longrightarrow>\<^isub>1R2" by force
-    from r1 r3 have r5: "R1=R2" 
-      by (simp add: lam.inject alpha)
-    from r2 r4 have "(Lam [x].P')\<longrightarrow>\<^isub>1(Lam [x].R1) \<and> (Lam [x].P'')\<longrightarrow>\<^isub>1(Lam [x].R2)" 
-      by (simp add: one_subst)
-    thus "\<exists>M3. (Lam [x].P')\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 r5 by force
-  qed
+  have i1: "P\<longrightarrow>\<^isub>1P'" by fact
+  have i2: "\<And>M2. P \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
+  have "(Lam [x].P)\<longrightarrow>\<^isub>1 M2" by fact
+  hence "\<exists>P''. M2=Lam [x].P'' \<and> P\<longrightarrow>\<^isub>1P''" by (simp add: one_abs)
+  then obtain P'' where b1: "M2=Lam [x].P''" and b2: "P\<longrightarrow>\<^isub>1P''" by blast
+  from i2 b1 b2 have "\<exists>M3. (Lam [x].P')\<longrightarrow>\<^isub>1M3 \<and> (Lam [x].P'')\<longrightarrow>\<^isub>1M3" by blast
+  then obtain M3 where c1: "(Lam [x].P')\<longrightarrow>\<^isub>1M3" and c2: "(Lam [x].P'')\<longrightarrow>\<^isub>1M3" by blast
+  from c1 have "\<exists>R1. M3=Lam [x].R1 \<and> P'\<longrightarrow>\<^isub>1R1" by (simp add: one_abs)
+  then obtain R1 where r1: "M3=Lam [x].R1" and r2: "P'\<longrightarrow>\<^isub>1R1" by blast
+  from c2 have "\<exists>R2. M3=Lam [x].R2 \<and> P''\<longrightarrow>\<^isub>1R2" by (simp add: one_abs)
+  then obtain R2 where r3: "M3=Lam [x].R2" and r4: "P''\<longrightarrow>\<^isub>1R2" by blast
+  from r1 r3 have r5: "R1=R2" by (simp add: lam.inject alpha)
+  from r2 r4 have "(Lam [x].P')\<longrightarrow>\<^isub>1(Lam [x].R1) \<and> (Lam [x].P'')\<longrightarrow>\<^isub>1(Lam [x].R2)" 
+    by (simp add: one_subst)
+  thus "\<exists>M3. (Lam [x].P')\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3" using b1 r5 by blast
 qed
 
 lemma one_abs_cong: 
@@ -726,7 +712,7 @@ lemma one_pr_cong:
 proof -
   have b1: "App t1 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s1" using a1 by (rule one_pr_congL)
   have b2: "App t2 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" using a2 by (rule one_pr_congR)
-  show ?thesis using b1 and b2 by (force intro: rtrancl_trans)
+  show ?thesis using b1 b2 by (force intro: rtrancl_trans)
 qed
 
 lemma one_beta_star: 
@@ -815,34 +801,24 @@ qed
 
 lemma cr_one:
   assumes a: "t\<longrightarrow>\<^isub>1\<^sup>*t1" 
-  and b: "t\<longrightarrow>\<^isub>1t2"
+  and     b: "t\<longrightarrow>\<^isub>1t2"
   shows "\<exists>t3. t1\<longrightarrow>\<^isub>1t3 \<and> t2\<longrightarrow>\<^isub>1\<^sup>*t3"
-proof -
-  have stronger: "\<forall>t2. t\<longrightarrow>\<^isub>1t2\<longrightarrow>(\<exists>t3. t1\<longrightarrow>\<^isub>1t3\<and>t2\<longrightarrow>\<^isub>1\<^sup>*t3)"
-    using a 
-  proof induct
-    case 1 show ?case by (force)
-  next
-    case (2 s1 s2)
-    assume b: "s1 \<longrightarrow>\<^isub>1 s2"
-    assume h: "\<forall>t2. t \<longrightarrow>\<^isub>1 t2 \<longrightarrow> (\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)"
-    show ?case
-    proof (rule allI, rule impI)
-      fix t2
-      assume  c: "t \<longrightarrow>\<^isub>1 t2"
-      show "(\<exists>t3.  s2 \<longrightarrow>\<^isub>1 t3 \<and>  t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" 
-      proof -
-	from c h have "(\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" by force
-	then obtain t3 where c1: "s1 \<longrightarrow>\<^isub>1 t3"
-                         and c2: "t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by (force)
-	have "(\<exists>t4. s2 \<longrightarrow>\<^isub>1 t4 \<and> t3 \<longrightarrow>\<^isub>1 t4)" using b c1 by (force intro: diamond)
-	thus ?thesis using c2 by (force intro: rtrancl_trans)
-      qed
-    qed
+  using a b
+proof (induct fixing: t2)
+  case 1 thus ?case by force
+next
+  case (2 s1 s2)
+  have b: "s1 \<longrightarrow>\<^isub>1 s2" by fact
+  have h: "\<And>t2. t \<longrightarrow>\<^isub>1 t2 \<Longrightarrow> (\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" by fact
+  have c: "t \<longrightarrow>\<^isub>1 t2" by fact
+  show "(\<exists>t3.  s2 \<longrightarrow>\<^isub>1 t3 \<and>  t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" 
+  proof -
+    from c h have "(\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" by force
+    then obtain t3 where c1: "s1 \<longrightarrow>\<^isub>1 t3" and c2: "t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by (force)
+    have "(\<exists>t4. s2 \<longrightarrow>\<^isub>1 t4 \<and> t3 \<longrightarrow>\<^isub>1 t4)" using b c1 by (force intro: diamond)
+    thus ?thesis using c2 by (force intro: rtrancl_trans)
   qed
-  from a b stronger show ?thesis by force
 qed
-
 
 lemma cr_one_star: 
   assumes a: "t\<longrightarrow>\<^isub>1\<^sup>*t2"
