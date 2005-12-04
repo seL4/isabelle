@@ -886,5 +886,5 @@ apply(force dest!: t2_elim)
 (* Abstractions  *)
 apply(auto dest!: t3_elim simp only: psubst_Lam)
 apply(rule abs_RED[THEN mp])
-apply(force dest: fresh_context simp add: psubs_subs)
+apply(force dest: fresh_context simp add: psubst_subst)
 done
