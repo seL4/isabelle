@@ -836,7 +836,7 @@ apply(induct_tac \<theta>)
 apply(auto simp add: fresh_prod fresh_list_cons)
 done
 
-lemma psubs_subs[rule_format]: "c\<sharp>\<theta>\<longrightarrow> (t[<\<theta>>])[c::=s] = t[<((c,s)#\<theta>)>]"
+lemma psubst_subst[rule_format]: "c\<sharp>\<theta>\<longrightarrow> (t[<\<theta>>])[c::=s] = t[<((c,s)#\<theta>)>]"
 apply(nominal_induct t avoiding: \<theta> c s rule: lam_induct)
 apply(auto dest: fresh_domain)
 apply(drule fresh_at)
@@ -849,148 +849,42 @@ apply(simp)
 apply(simp add: fresh_list_cons fresh_prod)
 done
 
+thm fresh_context
+
 lemma all_RED: 
- "\<Gamma>\<turnstile>t:\<tau> \<longrightarrow> (\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>)\<longrightarrow>(a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)) \<longrightarrow>  (t[<\<theta>>]\<in>RED \<tau>)"
+  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
+  and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
+  shows "t[<\<theta>>]\<in>RED \<tau>"
+using a b
+proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam_induct)
+  case (Lam a t) --"lambda case"
+  have ih: "\<And>\<Gamma> \<tau> \<theta>. \<Gamma> \<turnstile> t:\<tau> \<Longrightarrow> 
+                    (\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>) 
+                    \<Longrightarrow> t[<\<theta>>]\<in>RED \<tau>" 
+  and  \<theta>_cond: "\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>" 
+  and fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" 
+  and "\<Gamma> \<turnstile> Lam [a].t:\<tau>" by fact
+  hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" using t3_elim fresh by simp
+  then obtain \<tau>1 \<tau>2 where \<tau>_inst: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and typing: "((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" by blast
+  from ih have "\<forall>s\<in>RED \<tau>1. t[<\<theta>>][a::=s] \<in> RED \<tau>2" using fresh typing \<theta>_cond
+    by (force dest: fresh_context simp add: psubst_subst)
+  hence "(Lam [a].(t[<\<theta>>])) \<in> RED (\<tau>1 \<rightarrow> \<tau>2)" by (simp only: abs_RED)
+  thus "(Lam [a].t)[<\<theta>>] \<in> RED \<tau>" using fresh \<tau>_inst by simp
+qed (force dest!: t1_elim t2_elim)+
+
+lemma all_RED:
+  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
+  and     b: "\<And>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<Longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
+  shows "t[<\<theta>>]\<in>RED \<tau>"
+using a b
 apply(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam_induct)
 (* Variables *)
 apply(force dest: t1_elim)
 (* Applications *)
 apply(atomize)
 apply(force dest!: t2_elim)
-(* Abstractions *)
-apply(auto dest!: t3_elim simp only:)
-apply(simp only: fresh_prod psubst_Lam)
+(* Abstractions  *)
+apply(auto dest!: t3_elim simp only: psubst_Lam)
 apply(rule abs_RED[THEN mp])
 apply(force dest: fresh_context simp add: psubs_subs)
 done
-
-lemma all_RED: 
-  "\<Gamma>\<turnstile>t:\<tau> \<longrightarrow> (\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>)\<longrightarrow>(a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)) \<longrightarrow>  (t[<\<theta>>]\<in>RED \<tau>)"
-apply(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam_induct)
-(* Variables *)
-apply(force dest: t1_elim)
-(* Applications *)
-apply(atomize)
-apply(clarify)
-apply(drule t2_elim)
-apply(erule exE, erule conjE)
-apply(drule_tac x="\<Gamma>" in spec)
-apply(drule_tac x="\<Gamma>" in spec)
-apply(drule_tac x="\<tau>'\<rightarrow>\<tau>" in spec)
-apply(drule_tac x="\<tau>'" in spec)
-apply(drule_tac x="\<theta>" in spec)
-apply(drule_tac x="\<theta>" in spec)
-apply(force)
-(* Abstractions *)
-apply(clarify)
-apply(drule t3_elim)
-apply(simp add: fresh_prod)
-apply(erule exE)+
-apply(erule conjE)
-apply(simp only: fresh_prod psubst_Lam)
-apply(rule abs_RED[THEN mp])
-apply(clarify)
-apply(atomize)
-apply(force dest: fresh_context simp add: psubs_subs)
-done
-
-
-lemma all_RED: 
- "\<Gamma>\<turnstile>t:\<tau> \<longrightarrow> (\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>)\<longrightarrow>(a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)) \<longrightarrow>  (t[<\<theta>>]\<in>RED \<tau>)"
-proof(nominal_induct t rule: lam_induct)
-  case Var 
-  show ?case by (force dest: t1_elim)
-next
-  case App
-  thus ?case by (force dest!: t2_elim)
-(* HERE *)
-next
-  case (Lam \<Gamma> \<tau> \<theta> a t)
-  have ih: 
-    "\<forall>\<Gamma> \<tau> \<theta>. (\<forall>\<sigma> c. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>) \<and> \<Gamma> \<turnstile> t : \<tau> \<longrightarrow> t[<\<theta>>]\<in>RED \<tau>"
-    by fact
-  have "a\<sharp>(\<Gamma>,\<tau>,\<theta>)" by fact
-  hence b1: "a\<sharp>\<Gamma>" and b2: "a\<sharp>\<tau>" and b3: "a\<sharp>\<theta>" by (simp_all add: fresh_prod)
-  from b1 have c1: "\<not>(\<exists>\<tau>. (a,\<tau>)\<in>set \<Gamma>)" by (rule fresh_context) 
-  show ?case using b1 
-  proof (auto dest!: t3_elim simp only: psubst_Lam)
-    fix \<sigma>1::"ty" and \<sigma>2::"ty"
-    assume a1: "((a,\<sigma>1)#\<Gamma>) \<turnstile> t : \<sigma>2"
-    and    a3: "\<forall>(\<sigma>\<Colon>ty) (c\<Colon>name). (c,\<sigma>) \<in> set \<Gamma> \<longrightarrow> c \<in> set (domain \<theta>) \<and>  \<theta> <c> \<in> RED \<sigma>"
-    have "\<forall>s\<in>RED \<sigma>1. (t[<\<theta>>])[a::=s]\<in>RED \<sigma>2" 
-    proof
-(* HERE *)
-
-      fix s::"lam"
-      assume a4: "s \<in> RED \<sigma>1"
-      from ih have "\<forall>\<sigma> c. (c,\<sigma>)\<in>set ((a,\<sigma>1)#\<Gamma>) \<longrightarrow> c\<in>set (domain ((c,s)#\<theta>)) \<and> (((c,s)#\<theta>)<c>)\<in>RED \<sigma>"
-	using c1 a4 proof (auto)
-apply(simp)
-	apply(rule allI)+
-	apply(rule conjI)
-
-      proof (auto) *)
-      have "(((a,\<sigma>1)#\<Gamma>) \<turnstile> t : \<sigma>2) \<longrightarrow> t[<((a,s)#\<theta>)>] \<in> RED \<sigma>2" using Lam a3 b3 
-	proof(blast dest: fresh_context)
-
-      show "(t[<\<theta>>])[a::=s] \<in> RED \<sigma>2"
-	
-    qed
-    thus "Lam [a].(t[<\<theta>>]) \<in> RED (\<sigma>1\<rightarrow>\<sigma>2)" by (simp only: abs_RED)
-  qed
-qed
-
-
-
-
-
-    have "(((a,\<sigma>1)#\<Gamma>) \<turnstile> t : \<sigma>2) \<longrightarrow> t[<((a,u)#\<theta>)>] \<in> RED \<sigma>2" using Lam a3 sorry
-    hence "t[<((a,u)#\<theta>)>] \<in> RED \<sigma>2" using a1 by simp
-    hence "t[<\<theta>>][a::=u] \<in> RED \<sigma>2" using b3 by (simp add: psubs_subs)
-    show "Lam [a].(t[<\<theta>>]) \<in> RED (\<sigma>1\<rightarrow>\<sigma>2)" 
-    hence "Lam [a].(t[<\<theta>>]) \<in> RED (\<tau>\<rightarrow>\<sigma>)" using a2 abs_RED by force
-    show "App (Lam [a].(t[<\<theta>>])) u \<in> RED \<sigma>2"
-
-    
-
-  thus ?case using t2_elim 
-    proof(auto, blast)
-
-qed
-
-(* Variables *)
-apply(force dest: t1_elim)
-(* Applications *)
-apply(clarify)
-apply(drule t2_elim)
-apply(erule exE, erule conjE)
-apply(drule_tac x="a" in spec)
-apply(drule_tac x="a" in spec)
-apply(drule_tac x="\<tau>\<rightarrow>aa" in spec)
-apply(drule_tac x="\<tau>" in spec)
-apply(drule_tac x="b" in spec)
-apply(drule_tac x="b" in spec)
-apply(force)
-(* Abstractions *)
-apply(clarify)
-apply(drule t3_elim)
-apply(simp add: fresh_prod)
-apply(erule exE)+
-apply(erule conjE)
-apply(simp only: fresh_prod psubst_Lam)
-apply(rule abs_RED)
-apply(auto)
-apply(drule_tac x="(ab,\<tau>)#a" in spec)
-apply(drule_tac x="\<tau>'" in spec)
-apply(drule_tac x="(ab,s)#b" in spec)
-apply(simp)
-apply(auto)
-apply(drule fresh_context)
-apply(simp)
-apply(simp add: psubs_subs)
-done
-
-
-
-done
-
