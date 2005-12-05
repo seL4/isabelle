@@ -556,17 +556,32 @@ fun create_nom_typedecls ak_names thy =
              in  
 	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;  
+
+          fun discrete_cp_inst discrete_ty defn = 
+	     fold (fn ak_name' => (fold (fn ak_name => fn thy =>
+	     let
+	       val qu_class = Sign.full_name (sign_of thy) ("cp_"^ak_name^"_"^ak_name');
+	       val supp_def = thm "nominal.supp_def";
+               val simp_s = HOL_ss addsimps [defn];
+               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
+             in  
+	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+             end) ak_names)) ak_names;  
           
         in
          thy19a
          |> discrete_pt_inst "nat"  (thm "perm_nat_def")
-         |> discrete_fs_inst "nat"  (thm "perm_nat_def")
+         |> discrete_fs_inst "nat"  (thm "perm_nat_def") 
+         |> discrete_cp_inst "nat"  (thm "perm_nat_def") 
          |> discrete_pt_inst "bool" (thm "perm_bool")
          |> discrete_fs_inst "bool" (thm "perm_bool")
+         |> discrete_cp_inst "bool" (thm "perm_bool")
          |> discrete_pt_inst "IntDef.int" (thm "perm_int_def")
-         |> discrete_fs_inst "IntDef.int" (thm "perm_int_def")
+         |> discrete_fs_inst "IntDef.int" (thm "perm_int_def") 
+         |> discrete_cp_inst "IntDef.int" (thm "perm_int_def") 
          |> discrete_pt_inst "List.char" (thm "perm_char_def")
          |> discrete_fs_inst "List.char" (thm "perm_char_def")
+         |> discrete_cp_inst "List.char" (thm "perm_char_def")
         end;
 
 
