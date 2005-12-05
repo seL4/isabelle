@@ -152,8 +152,8 @@ lemma weakening_version1:
 using a b c
 apply(nominal_induct \<Gamma>1 t \<sigma> avoiding: \<Gamma>2 rule: typing_induct)
 apply(auto simp add: sub_def)
-(* FIXME: before using meta-connectives and the new induction *)
-(* method, this was completely automatic *)
+(* FIXME: this was completely automatic before the *)
+(* change to meta-connectives :o(                  *)
 apply(atomize)
 apply(auto)
 done
