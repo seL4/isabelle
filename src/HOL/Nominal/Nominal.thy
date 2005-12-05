@@ -1683,26 +1683,35 @@ lemma UNION_f_eqvt:
 proof -
   have pt_x: "pt TYPE('x) TYPE('x)" by (force intro: at_pt_inst at)
   show ?thesis
-    apply(auto simp add: perm_set_def)
-    apply(rule_tac x="pi\<bullet>xa" in exI)
-    apply(rule conjI)
-    apply(rule_tac x="xa" in exI)
-    apply(simp)
-    apply(subgoal_tac "(pi\<bullet>f) (pi\<bullet>xa) = pi\<bullet>(f xa)")(*A*)
-    apply(simp)
-    apply(rule pt_set_bij2[OF pt_x, OF at])
-    apply(assumption)
-    apply(rule sym)
-    apply(rule pt_fun_app_eq[OF pt, OF at])
-    apply(rule_tac x="(rev pi)\<bullet>x" in exI)
-    apply(rule conjI)
-    apply(rule sym)
-    apply(rule pt_pi_rev[OF pt_x, OF at])
-    apply(rule_tac x="a" in bexI)
-    apply(simp add: pt_set_bij1[OF pt_x, OF at])
-    apply(simp add: pt_fun_app_eq[OF pt, OF at])
-    apply(assumption)
-    done
+  proof (rule equalityI)
+    case goal1
+    show "pi\<bullet>(\<Union>x\<in>X. f x) \<subseteq> (\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x)"
+      apply(auto simp add: perm_set_def)
+      apply(rule_tac x="pi\<bullet>xa" in exI)
+      apply(rule conjI)
+      apply(rule_tac x="xa" in exI)
+      apply(simp)
+      apply(subgoal_tac "(pi\<bullet>f) (pi\<bullet>xa) = pi\<bullet>(f xa)")(*A*)
+      apply(simp)
+      apply(rule pt_set_bij2[OF pt_x, OF at])
+      apply(assumption)
+      (*A*)
+      apply(rule sym)
+      apply(rule pt_fun_app_eq[OF pt, OF at])
+      done
+  next
+    case goal2
+    show "(\<Union>x\<in>(pi\<bullet>X). (pi\<bullet>f) x) \<subseteq> pi\<bullet>(\<Union>x\<in>X. f x)"
+      apply(auto simp add: perm_set_def)
+      apply(rule_tac x="(rev pi)\<bullet>x" in exI)
+      apply(rule conjI)
+      apply(simp add: pt_pi_rev[OF pt_x, OF at])
+      apply(rule_tac x="a" in bexI)
+      apply(simp add: pt_set_bij1[OF pt_x, OF at])
+      apply(simp add: pt_fun_app_eq[OF pt, OF at])
+      apply(assumption)
+      done
+  qed
 qed
 
 lemma X_to_Un_supp_eqvt:
@@ -1760,8 +1769,7 @@ proof -
     apply(force intro: pt_set_inst at_pt_inst pt at)+
     apply(rule pt_eqvt_fun2b)
     apply(force intro: pt_set_inst at_pt_inst pt at)+
-    apply(rule allI)
-    apply(rule allI)
+    apply(rule allI)+
     apply(rule X_to_Un_supp_eqvt[OF pt, OF at])
     done
   hence "supp (\<Union>x\<in>X. ((supp x)::'x set)) \<subseteq> ((supp X)::'x set)" by (simp add: X_to_Un_supp_def)
@@ -1780,7 +1788,7 @@ lemma supp_of_fin_sets:
   and     fs: "fs TYPE('a) TYPE('x)" 
   and     fi: "finite X"
   shows "(supp X) = (\<Union>x\<in>X. ((supp x)::'x set))"
-apply(rule subset_antisym)
+apply(rule equalityI)
 apply(rule supp_is_subset)
 apply(rule Union_supports_set[OF pt, OF at])
 apply(rule Union_of_fin_supp_sets[OF fs, OF fi])
@@ -2232,38 +2240,6 @@ apply(auto simp add: expand_fun_eq)
 apply(drule_tac x="a" in spec)
 apply(simp)
 done
-
-lemma abs_fun_eq2:
-  fixes x  :: "'a"
-  and   y  :: "'a"
-  and   a  :: "'x"
-  and   b  :: "'x"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-      and at: "at TYPE('x)"
-      and a1: "a\<noteq>b" 
-      and a2: "[a].x = [b].y" 
-  shows "x=[(a,b)]\<bullet>y\<and>a\<sharp>y"
-proof -
-  from a2 have a3: 
-         "\<forall>c::'x. (if c=a then nSome(x) else (if c\<sharp>x then nSome([(a,c)]\<bullet>x) else nNone))
-                = (if c=b then nSome(y) else (if c\<sharp>y then nSome([(b,c)]\<bullet>y) else nNone))"
-         (is "\<forall>c::'x. ?P c = ?Q c")
-    by (force simp add: abs_fun_def expand_fun_eq)
-  from a3 have "?P a = ?Q a" by (blast)
-  hence a4: "nSome(x) = ?Q a" by simp
-  show ?thesis using a4 (*a5*)
-  proof (cases "a\<sharp>y")
-    assume a6: "a\<sharp>y"
-    hence a7: "x = [(b,a)]\<bullet>y" using a4 a1 by simp
-    have "[(a,b)]\<bullet>y = [(b,a)]\<bullet>y" by (rule pt3[OF pt], rule at_ds5[OF at])
-    thus ?thesis using a6 a7 by simp
-  next
-    assume "\<not>a\<sharp>y"
-    hence "nSome(x) = nNone" using a1 a4 by simp
-    hence False by force
-    thus ?thesis by force
-  qed
-qed
 
 lemma abs_fun_eq2:
   fixes x  :: "'a"
