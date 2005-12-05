@@ -15,29 +15,15 @@ nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-datatype ty =
-    TVar "string"
+nominal_datatype ty =
+    TVar "nat"
   | TArr "ty" "ty" (infix "\<rightarrow>" 200)
-
-primrec
- "pi\<bullet>(TVar s) = TVar s"
- "pi\<bullet>(\<tau> \<rightarrow> \<sigma>) = (\<tau> \<rightarrow> \<sigma>)"
 
 lemma perm_ty[simp]:
   fixes pi ::"name prm"
   and   \<tau>  ::"ty"
   shows "pi\<bullet>\<tau> = \<tau>"
-  by (cases \<tau>, simp_all)
-
-instance ty :: pt_name
-apply(intro_classes)   
-apply(simp_all)
-done
-
-instance ty :: fs_name
-apply(intro_classes)
-apply(simp add: supp_def)
-done
+by (induct \<tau> rule: ty.induct_weak, simp_all add: perm_nat_def)  
 
 (* valid contexts *)
 consts
