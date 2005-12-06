@@ -88,6 +88,13 @@ open CodegenThingol;
 fun devarify_term t = (fst o Type.freeze_thaw) t;
 fun devarify_type ty = (fst o Type.freeze_thaw_type) ty;
 
+fun newline_correct s =
+  s
+  |> space_explode "\n"
+  |> map (implode o (fn [] => []
+                      | (" "::xs) => xs
+                      | xs => xs) o explode)
+  |> space_implode "\n";
 
 (* code generator instantiation, part 1 *)
 
@@ -1159,7 +1166,7 @@ fun expand_module defs gen thy =
 
 (* syntax *)
 
-fun gen_add_syntax_tyco prep_tyco prep_mfx prep_primname serial_name ((raw_tyco, raw_mfx), primdef) thy =
+fun gen_add_syntax_tyco prep_tyco prep_mfx prep_primname prep_primdef serial_name ((raw_tyco, raw_mfx), primdef) thy =
   let
     val tyco = prep_tyco thy raw_tyco;
     val _ = if member (op =) prims tyco
@@ -1167,7 +1174,7 @@ fun gen_add_syntax_tyco prep_tyco prep_mfx prep_primname serial_name ((raw_tyco,
       else ()
     fun add_primdef NONE = I
       | add_primdef (SOME (name, (def, deps))) =
-          CodegenSerializer.add_prim (prep_primname thy tyco name, (def, deps))
+          CodegenSerializer.add_prim (prep_primname thy tyco name, (prep_primdef def, deps))
   in
     thy
     |> prep_mfx raw_mfx
@@ -1183,7 +1190,7 @@ fun gen_add_syntax_tyco prep_tyco prep_mfx prep_primname serial_name ((raw_tyco,
           logic_data)))
   end;
 
-val add_syntax_tyco_i = gen_add_syntax_tyco (K I) pair ((K o K) I);
+val add_syntax_tyco_i = gen_add_syntax_tyco (K I) pair ((K o K) I) I;
 val add_syntax_tyco =
   let
     fun mk_name _ _ (SOME name) = name
@@ -1208,10 +1215,10 @@ val add_syntax_tyco =
       end;
   in
     gen_add_syntax_tyco (fn thy => idf_of_tname thy o Sign.intern_type thy)
-      prep_mfx mk_name
+      prep_mfx mk_name (newline_correct o Symbol.strip_blanks)
   end;
 
-fun gen_add_syntax_const prep_const prep_mfx prep_primname serial_name ((raw_f, raw_mfx), primdef) thy =
+fun gen_add_syntax_const prep_const prep_mfx prep_primname prep_primdef serial_name ((raw_f, raw_mfx), primdef) thy =
   let
     val f = prep_const thy raw_f;
     val _ = if member (op =) prims f
@@ -1219,7 +1226,7 @@ fun gen_add_syntax_const prep_const prep_mfx prep_primname serial_name ((raw_f, 
       else ()
     fun add_primdef NONE = I
       | add_primdef (SOME (name, (def, deps))) =
-          CodegenSerializer.add_prim (prep_primname thy f name, (def, deps))
+          CodegenSerializer.add_prim (prep_primname thy f name, (prep_primdef def, deps))
   in
     thy
     |> prep_mfx raw_mfx
@@ -1235,7 +1242,7 @@ fun gen_add_syntax_const prep_const prep_mfx prep_primname serial_name ((raw_f, 
           logic_data)))
   end;
 
-val add_syntax_const_i = gen_add_syntax_const (K I) pair ((K o K) I);
+val add_syntax_const_i = gen_add_syntax_const (K I) pair ((K o K) I) I;
 val add_syntax_const =
   let
     fun prep_const thy (raw_f, raw_ty) =
@@ -1268,7 +1275,7 @@ val add_syntax_const =
         |-> (fn es => pair (Codegen.replace_quotes es proto_mfx))
       end;
   in
-    gen_add_syntax_const prep_const prep_mfx mk_name
+    gen_add_syntax_const prep_const prep_mfx mk_name (newline_correct o Symbol.strip_blanks)
   end;
 
 

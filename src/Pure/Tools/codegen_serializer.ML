@@ -644,7 +644,7 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
     |> eliminate_classes
     |> debug 3 (fn _ => "generating...")
     |> serialize (ml_from_defs tyco_syntax const_syntax) ml_from_module ml_validator nspgrp name_root
-    |> (fn p => Pretty.chunks [(Pretty.str o mk_prims) prims, p])
+    |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
 fun ml_from_thingol' nspgrp name_root =
@@ -663,8 +663,6 @@ fun ml_from_thingol' nspgrp name_root =
 end; (* local *)
 
 local
-
-val bslash = "\\";
 
 fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
   let
@@ -822,7 +820,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             val (vs, body) = unfold_abs e
           in
             brackify (eval_br br BR) (
-              Pretty.str bslash
+              Pretty.str "\\"
               :: map (Pretty.str o lower_first o fst) vs @ [
               Pretty.str "->",
               haskell_from_expr NOBR body
@@ -958,7 +956,6 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
       end;
     fun haskell_from_classes defs =
       let
-        val _ = writeln ("IDS: " ^ (commas o map fst) defs)
         fun mk_member (f, ty) =
           Pretty.block [
             Pretty.str (f ^ " ::"),
@@ -1092,7 +1089,7 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "generating...")
     |> serialize (haskell_from_defs tyco_syntax const_syntax is_cons) haskell_from_module haskell_validator nspgrp name_root
-    |> (fn p => Pretty.chunks [(Pretty.str o mk_prims) prims, p])
+    |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
 end; (* local *)

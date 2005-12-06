@@ -1311,8 +1311,8 @@ fun serialize s_def s_module validate nspgrp name_root module =
       | seri prfx ds =
           s_def (resolver prfx) (map (fn (name, Def def) => (resolver prfx (prfx @ [name] |> NameSpace.pack), def)) ds)
   in
-    setmp print_mode [] s_module (name_root, (map (seri [])
-      ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))
+    setmp print_mode [] (fn _ => s_module (name_root, (map (seri [])
+      ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))) ()
   end;
 
 end; (* struct *)
