@@ -10,7 +10,19 @@ val keep_atp_input = ref false;
 val debug = ref true;
 
 val fol_keep_types = ResClause.keep_types;
-val hol_keep_types = ResHolClause.keep_types;
+
+(* use them to set and find type levels of HOL clauses *)
+val hol_full_types = ResHolClause.full_types;
+val hol_partial_types = ResHolClause.partial_types;
+val hol_const_types_only = ResHolClause.const_types_only;
+val hol_no_types = ResHolClause.no_types;
+val hol_typ_level = ResHolClause.find_typ_level;
+
+fun is_typed_hol () = 
+    let val tp_level = hol_typ_level()
+    in
+	not (tp_level = ResHolClause.T_NONE)
+    end;
 
 val include_combS = ResHolClause.include_combS;
 val include_min_comb = ResHolClause.include_min_comb;
@@ -20,15 +32,30 @@ val include_min_comb = ResHolClause.include_min_comb;
 (*******************************************************)
 (* set up the output paths                             *)
 (*******************************************************)
-
-fun typed_comb () = 
+fun full_typed_comb () =
     if !ResHolClause.include_combS then 
-	(ResAtp.helper_path "E_HOME" "additionals/comb_inclS"
-	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/comb_inclS")
+	(ResAtp.helper_path "E_HOME" "additionals/full_comb_inclS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/full_comb_inclS")
     else 
-	(ResAtp.helper_path "E_HOME" "additionals/comb_noS"
-	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/comb_noS");
+	(ResAtp.helper_path "E_HOME" "additionals/full_comb_noS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/full_comb_noS");
 
+fun partial_typed_comb () = 
+    if !ResHolClause.include_combS then 
+	(ResAtp.helper_path "E_HOME" "additionals/par_comb_inclS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/par_comb_inclS")
+    else 
+	(ResAtp.helper_path "E_HOME" "additionals/par_comb_noS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/par_comb_noS");
+
+fun const_typed_comb () =
+    if !ResHolClause.include_combS then 
+	(ResAtp.helper_path "E_HOME" "additionals/const_comb_inclS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/const_comb_inclS")
+    else 
+	(ResAtp.helper_path "E_HOME" "additionals/const_comb_noS"
+	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/const_comb_noS");
+	
 fun untyped_comb () = 
     if !ResHolClause.include_combS then 
 	(ResAtp.helper_path "E_HOME" "additionals/u_comb_inclS"
@@ -38,9 +65,17 @@ fun untyped_comb () =
 	 handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/u_comb_noS");
 
 
-fun typed_HOL_helper1 () = 
-    ResAtp.helper_path "E_HOME" "additionals/helper1"
-    handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/helper1";
+fun full_typed_HOL_helper1 () =
+    ResAtp.helper_path "E_HOME" "additionals/full_helper1"
+    handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/full_helper1";
+
+fun partial_typed_HOL_helper1 () = 
+    ResAtp.helper_path "E_HOME" "additionals/par_helper1"
+    handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/par_helper1";
+
+fun const_typed_HOL_helper1 () = 
+    ResAtp.helper_path "E_HOME" "additionals/const_helper1"
+    handle _ => ResAtp.helper_path "VAMPIRE_HOME" "additionals/const_helper1";
 
 
 fun untyped_HOL_helper1 () = 
@@ -49,11 +84,23 @@ fun untyped_HOL_helper1 () =
 
 
 fun HOL_helper1 () =
-    if !hol_keep_types then typed_HOL_helper1 () else untyped_HOL_helper1 ();
+    let val tp_level = hol_typ_level ()
+    in
+	case tp_level of T_FULL => full_typed_HOL_helper1 ()
+		       | T_PARTIAL => partial_typed_HOL_helper1 ()
+		       | T_CONST => const_typed_HOL_helper1 ()
+		       | T_NONE => untyped_HOL_helper1 ()
+    end;
 
 
 fun HOL_comb () =
-    if !hol_keep_types then typed_comb() else untyped_comb();
+    let val tp_level = hol_typ_level ()
+    in
+	case tp_level of T_FULL => full_typed_comb ()
+		       | T_PARTIAL => partial_typed_comb ()
+		       | T_CONST => const_typed_comb ()
+		       | T_NONE => untyped_comb ()
+    end;
 
 
 val claset_file = File.tmp_path (Path.basic "claset");
@@ -71,9 +118,6 @@ val types_sorts_file =  File.tmp_path (Path.basic "typsorts");
 (* modifying local theorems,                           *)
 (* CNF                                                 *)
 (*******************************************************)
-
-(* a special version of repeat_RS *)
-fun repeat_someI_ex thm = ResAxioms.repeat_RS thm someI_ex;
 
 val include_simpset = ref false;
 val include_claset = ref false; 
@@ -387,8 +431,6 @@ fun write_out_g logic atp_ax_fn atp_conj_fn (claR,simpR,userR,hyp_cls,conj_cls,n
 				   | HOL => [HOL_helper1 ()]
 				   | _ => [HOL_helper1(),HOL_comb()] (*HOLC or HOLCS*)
     in
-	include_min_comb:=false; (*reset to false*)
-	include_combS:=false; (*reset to false*)
 	(helpers,files4 @ files1 @ files2 @ files3)
     end;
 
@@ -404,7 +446,7 @@ fun write_out_fol_ts ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
     end;
 
 fun write_out_hol_ts ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =  
-    let val ts_file = if (!hol_keep_types) then tptp_types_sorts (ProofContext.theory_of ctxt) else []
+    let val ts_file = if (is_typed_hol()) then tptp_types_sorts (ProofContext.theory_of ctxt) else []
 	val (helpers,files) = write_out_hol (claR,simpR,userR,hyp_cls,conj_cls,n,err)
     in
 	(helpers,files@ts_file)
@@ -435,7 +477,9 @@ fun atp_meth' tac ths ctxt =
     (tac ctxt ths);
 
 fun atp_meth tac ths ctxt = 
-    let val _ = ResClause.init (ProofContext.theory_of ctxt)
+    let val thy = ProofContext.theory_of ctxt
+	val _ = ResClause.init thy
+	val _ = ResHolClause.init thy
     in
 	atp_meth' tac ths ctxt
     end;
