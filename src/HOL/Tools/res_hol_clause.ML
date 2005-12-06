@@ -13,6 +13,9 @@ struct
 val include_combS = ref false;
 val include_min_comb = ref false;
 
+val const_typargs = ref (Library.K [] : (string*typ -> typ list));
+
+fun init thy = (include_combS:=false;include_min_comb:=false;const_typargs := Sign.const_typargs thy);
 
 (**********************************************************************)
 (* convert a Term.term with lambdas into a Term.term with combinators *) 
@@ -43,6 +46,14 @@ fun lam2comb (Abs(x,tp,Bound 0)) _ =
     in 
 	include_min_comb:=true;
 	Const("COMBI",tpI) 
+    end
+  | lam2comb (Abs(x,tp,Bound n)) Bnds = 
+    let val (Bound n') = decre_bndVar (Bound n)
+	val tb = List.nth(Bnds,n')
+	val tK = Type("fun",[tb,Type("fun",[tp,tb])])
+    in
+	include_min_comb:=true;
+	Const("COMBK",tK) $ (Bound n')
     end
   | lam2comb (Abs(x,t1,Const(c,t2))) _ = 
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
@@ -177,7 +188,7 @@ type ctyp_var = ResClause.typ_var;
 type ctype_literal = ResClause.type_literal;
 
 
-datatype combterm = CombConst of string * ctyp
+datatype combterm = CombConst of string * ctyp * ctyp list
 		  | CombFree of string * ctyp
 		  | CombVar of string * ctyp
 		  | CombApp of combterm * combterm * ctyp
@@ -209,13 +220,13 @@ fun get_clause_id (Clause cls) = #clause_id cls;
 (* convert a clause with type Term.term to a clause with type clause *)
 (*********************************************************************)
 
-fun isFalse (Literal(pol,Bool(CombConst(c,_)))) =
+fun isFalse (Literal(pol,Bool(CombConst(c,_,_)))) =
     (pol andalso c = "c_False") orelse
     (not pol andalso c = "c_True")
   | isFalse _ = false;
 
 
-fun isTrue (Literal (pol,Bool(CombConst(c,_)))) =
+fun isTrue (Literal (pol,Bool(CombConst(c,_,_)))) =
       (pol andalso c = "c_True") orelse
       (not pol andalso c = "c_False")
   | isTrue _ = false;
@@ -233,48 +244,116 @@ fun make_clause(clause_id,axiom_name,kind,literals,ctypes_sorts,ctvar_type_liter
 		ctvar_type_literals = ctvar_type_literals,
 		ctfree_type_literals = ctfree_type_literals};
 
-
-(* convert a Term.type to a string; gather sort information of type variables; also check if the type is a bool type *)
-
-fun type_of (Type (a, [])) = ((ResClause.make_fixed_type_const a,[]),a ="bool")
+(* convert a Term.type to a string; gather sort information of type variables *)
+fun type_of (Type (a, [])) = (ResClause.make_fixed_type_const a,[])
   | type_of (Type (a, Ts)) = 
-    let val typbs = map type_of Ts
-	val (types,_) = ListPair.unzip typbs
-	val (ctyps,tvarSorts) = ListPair.unzip types
-	val ts = ResClause.union_all tvarSorts
+    let val typ_ts = map type_of Ts
+	val (typs,tsorts) = ListPair.unzip typ_ts
+	val ts = ResClause.union_all tsorts
 	val t = ResClause.make_fixed_type_const a
     in
-	(((t ^ ResClause.paren_pack ctyps),ts),false)
+	(t ^ (ResClause.paren_pack typs),ts)
     end
-  | type_of (tp as (TFree (a,s))) = ((ResClause.make_fixed_type_var a,[ResClause.mk_typ_var_sort tp]),false)
-  | type_of (tp as (TVar (v,s))) = ((ResClause.make_schematic_type_var v,[ResClause.mk_typ_var_sort tp]),false);
+  | type_of (tp as (TFree (a,s))) = (ResClause.make_fixed_type_var a,[ResClause.mk_typ_var_sort tp])
+  | type_of (tp as (TVar (v,s))) = (ResClause.make_schematic_type_var v,[ResClause.mk_typ_var_sort tp]);
+
 
 
 (* same as above, but no gathering of sort information *)
-fun simp_type_of (Type (a, [])) = (ResClause.make_fixed_type_const a,a ="bool")
+fun simp_type_of (Type (a, [])) = ResClause.make_fixed_type_const a
   | simp_type_of (Type (a, Ts)) = 
-    let val typbs = map simp_type_of Ts
-	val (types,_) = ListPair.unzip typbs
+    let val typs = map simp_type_of Ts
 	val t = ResClause.make_fixed_type_const a
     in
-	((t ^ ResClause.paren_pack types),false)
+	t ^ ResClause.paren_pack typs
     end
-  | simp_type_of (TFree (a,s)) = (ResClause.make_fixed_type_var a,false)
-  | simp_type_of (TVar (v,s)) = (ResClause.make_schematic_type_var v,false);
+  | simp_type_of (TFree (a,s)) = ResClause.make_fixed_type_var a
+  | simp_type_of (TVar (v,s)) = ResClause.make_schematic_type_var v;
 
 
+fun comb_typ ("COMBI",t) = 
+    let val t' = domain_type t
+    in
+	[simp_type_of t']
+    end
+  | comb_typ ("COMBK",t) = 
+    let val (ab,_) = strip_type t
+    in
+	map simp_type_of ab
+    end
+  | comb_typ ("COMBS",t) = 
+    let val t' = domain_type t
+	val ([a,b],c) = strip_type t' 
+    in 
+	map simp_type_of [a,b,c]
+    end
+  | comb_typ ("COMBB",t) = 
+    let val ([ab,ca,c],b) = strip_type t
+	val a = domain_type ab
+    in
+	map simp_type_of [a,b,c]
+    end
+  | comb_typ ("COMBC",t) =
+    let val t1 = domain_type t
+	val ([a,b],c) = strip_type t1
+    in
+	map simp_type_of [a,b,c]
+    end;
+
+fun const_type_of ("COMBI",t) = 
+    let val (tp,ts) = type_of t
+	val I_var = comb_typ ("COMBI",t)
+    in
+	(tp,ts,I_var)
+    end
+  | const_type_of ("COMBK",t) =
+    let val (tp,ts) = type_of t
+	val K_var = comb_typ ("COMBK",t)
+    in
+	(tp,ts,K_var)
+    end
+  | const_type_of ("COMBS",t) =
+    let val (tp,ts) = type_of t
+	val S_var = comb_typ ("COMBS",t)
+    in
+	(tp,ts,S_var)
+    end
+  | const_type_of ("COMBB",t) =
+    let val (tp,ts) = type_of t
+	val B_var = comb_typ ("COMBB",t)
+    in
+	(tp,ts,B_var)
+    end
+  | const_type_of ("COMBC",t) =
+    let val (tp,ts) = type_of t
+	val C_var = comb_typ ("COMBC",t)
+    in
+	(tp,ts,C_var)
+    end
+  | const_type_of (c,t) =
+    let val (tp,ts) = type_of t
+	val tvars = !const_typargs(c,t)
+	val tvars' = map simp_type_of tvars
+    in
+	(tp,ts,tvars')
+    end;
+
+fun is_bool_type (Type("bool",[])) = true
+  | is_bool_type _ = false;
 
 
 (* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
 fun combterm_of (Const(c,t)) =
-    let val ((tp,ts),is_bool) = type_of t
-	val c' = CombConst(ResClause.make_fixed_const c,tp)
+    let val (tp,ts,tvar_list) = const_type_of (c,t)
+	val is_bool = is_bool_type t
+	val c' = CombConst(ResClause.make_fixed_const c,tp,tvar_list)
 	val c'' = if is_bool then Bool(c') else c'
     in
 	(c'',ts)
     end
   | combterm_of (Free(v,t)) =
-    let val ((tp,ts),is_bool) = type_of t
+    let val (tp,ts) = type_of t
+	val is_bool = is_bool_type t
 	val v' = if ResClause.isMeta v then CombVar(ResClause.make_schematic_var(v,0),tp)
 		 else CombFree(ResClause.make_fixed_var v,tp)
 	val v'' = if is_bool then Bool(v') else v'
@@ -282,7 +361,8 @@ fun combterm_of (Const(c,t)) =
 	(v'',ts)
     end
   | combterm_of (Var(v,t)) =
-    let val ((tp,ts),is_bool) = type_of t
+    let val (tp,ts) = type_of t
+	val is_bool = is_bool_type t
 	val v' = CombVar(ResClause.make_schematic_var v,tp)
 	val v'' = if is_bool then Bool(v') else v'
     in
@@ -298,7 +378,8 @@ fun combterm_of (Const(c,t)) =
     let val (P',tsP) = combterm_of P
 	val (Q',tsQ) = combterm_of Q
 	val tp = Term.type_of t
-	val (tp',is_bool) = simp_type_of tp
+	val tp' = simp_type_of tp
+	val is_bool = is_bool_type tp
 	val t' = CombApp(P',Q',tp')
 	val t'' = if is_bool then Bool(t') else t'
     in
@@ -360,14 +441,24 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 (* TPTP used by Vampire and E                                         *)
 (**********************************************************************)
 
-val keep_types = ref true;
-
 val type_wrapper = "typeinfo";
 
-fun put_type (c,t) = 
-    if !keep_types then type_wrapper ^ (ResClause.paren_pack [c,t])
-    else c;
+datatype type_level = T_FULL | T_PARTIAL | T_CONST | T_NONE;
 
+val typ_level = ref T_PARTIAL;
+
+fun full_types () = (typ_level:=T_FULL);
+fun partial_types () = (typ_level:=T_PARTIAL);
+fun const_types_only () = (typ_level:=T_CONST);
+fun no_types () = (typ_level:=T_NONE);
+
+
+fun find_typ_level () = !typ_level;
+
+fun wrap_type (c,t) = 
+    case !typ_level of T_FULL => type_wrapper ^ (ResClause.paren_pack [c,t])
+		     | _ => c;
+    
 
 val bool_tp = ResClause.make_fixed_type_const "bool";
 
@@ -375,30 +466,67 @@ val app_str = "hAPP";
 
 val bool_str = "hBOOL";
 
+exception STRING_OF_COMBTERM of int;
 
 (* convert literals of clauses into strings *)
-fun string_of_combterm _ (CombConst(c,tp)) = put_type(c,tp)
-  | string_of_combterm _ (CombFree(v,tp)) = put_type(v,tp)
-  | string_of_combterm _ (CombVar(v,tp)) = put_type(v,tp)
-  | string_of_combterm is_pred (CombApp(t1,t2,tp)) = 
-    let val s1 = string_of_combterm is_pred t1
-	val s2 = string_of_combterm is_pred t2
-	val app = app_str ^ (ResClause.paren_pack [s1,s2])
+fun string_of_combterm1_aux _ (CombConst(c,tp,_)) = (wrap_type (c,tp),tp)
+  | string_of_combterm1_aux _ (CombFree(v,tp)) = (wrap_type (v,tp),tp)
+  | string_of_combterm1_aux _ (CombVar(v,tp)) = (wrap_type (v,tp),tp)
+  | string_of_combterm1_aux is_pred (CombApp(t1,t2,tp)) =
+    let val (s1,tp1) = string_of_combterm1_aux is_pred t1
+	val (s2,tp2) = string_of_combterm1_aux is_pred t2
+	val r =	case !typ_level of T_FULL => type_wrapper ^  (ResClause.paren_pack [(app_str ^ (ResClause.paren_pack [s1,s2])),tp])
+				 | T_PARTIAL => app_str ^ (ResClause.paren_pack [s1,s2,tp1])
+				 | T_NONE => app_str ^ (ResClause.paren_pack [s1,s2])
+				 | T_CONST => raise STRING_OF_COMBTERM (1) (*should not happen, if happened may be a bug*)
     in
-	put_type(app,tp)
+	(r,tp)
+
     end
-  | string_of_combterm is_pred (Bool(t)) = 
-    let val t' = string_of_combterm false t
+  | string_of_combterm1_aux is_pred (Bool(t)) = 
+    let val (t',_) = string_of_combterm1_aux false t
+	val r = if is_pred then bool_str ^ (ResClause.paren_pack [t'])
+		else t'
+    in
+	(r,bool_tp)
+    end
+  | string_of_combterm1_aux _ (Equal(t1,t2)) =
+    let val (s1,_) = string_of_combterm1_aux false t1
+	val (s2,_) = string_of_combterm1_aux false t2
+    in
+	("equal" ^ (ResClause.paren_pack [s1,s2]),bool_tp) 
+    end;
+
+fun string_of_combterm1 is_pred term = fst (string_of_combterm1_aux is_pred term);
+
+fun string_of_combterm2 _ (CombConst(c,tp,tvars)) = c ^ (ResClause.paren_pack tvars)
+  | string_of_combterm2 _ (CombFree(v,tp)) = v
+  | string_of_combterm2 _ (CombVar(v,tp)) = v
+  | string_of_combterm2 is_pred (CombApp(t1,t2,tp)) =
+    let val s1 = string_of_combterm2 is_pred t1
+	val s2 = string_of_combterm2 is_pred t2
+    in
+	app_str ^ (ResClause.paren_pack [s1,s2])
+    end
+  | string_of_combterm2 is_pred (Bool(t)) = 
+    let val t' = string_of_combterm2 false t
     in
 	if is_pred then bool_str ^ (ResClause.paren_pack [t'])
 	else t'
     end
-  | string_of_combterm _ (Equal(t1,t2)) =
-    let val s1 = string_of_combterm false t1
-	val s2 = string_of_combterm false t2
+  | string_of_combterm2 _ (Equal(t1,t2)) =
+    let val s1 = string_of_combterm2 false t1
+	val s2 = string_of_combterm2 false t2
     in
-	"equal" ^ (ResClause.paren_pack [s1,s2]) 
+	("equal" ^ (ResClause.paren_pack [s1,s2])) 
     end;
+
+
+
+fun string_of_combterm is_pred term = 
+    case !typ_level of T_CONST => string_of_combterm2 is_pred term
+		     | _ => string_of_combterm1 is_pred term;
+
 
 fun string_of_clausename (cls_id,ax_name) = 
     ResClause.clause_prefix ^ ResClause.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -418,18 +546,16 @@ fun tptp_literal (Literal(pol,pred)) =
 fun tptp_type_lits (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
 	val ctvar_lits_strs =
-	      if !keep_types 
-	      then (map ResClause.tptp_of_typeLit (#ctvar_type_literals cls)) 
-	      else []
+	    case !typ_level of T_NONE => []
+			     | _ => (map ResClause.tptp_of_typeLit (#ctvar_type_literals cls)) 
 	val ctfree_lits = 
-	      if !keep_types
-	      then (map ResClause.tptp_of_typeLit (#ctfree_type_literals cls)) 
-	      else []
+	    case !typ_level of T_NONE => []
+			     | _ => (map ResClause.tptp_of_typeLit (#ctfree_type_literals cls)) 
     in
 	(ctvar_lits_strs @ lits, ctfree_lits)
     end; 
-
-
+    
+    
 fun clause2tptp cls =
     let val (lits,ctfree_lits) = tptp_type_lits cls
 	val cls_id = get_clause_id cls
