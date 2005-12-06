@@ -596,7 +596,7 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
         |> translate_string replace_invalid
         |> suffix_it
         |> (fn name' => if name = name' then NONE else SOME name')
-    end;
+      end;
     fun ml_from_module (name, ps) =
       Pretty.chunks ([
         Pretty.str ("structure " ^ name ^ " = "),
@@ -958,6 +958,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
       end;
     fun haskell_from_classes defs =
       let
+        val _ = writeln ("IDS: " ^ (commas o map fst) defs)
         fun mk_member (f, ty) =
           Pretty.block [
             Pretty.str (f ^ " ::"),
@@ -1019,7 +1020,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             haskell_from_sctxt arity,
             Pretty.str ((upper_first o resolv) clsname),
             Pretty.str " ",
-            Pretty.str ((upper_first o resolv) tyco),
+            haskell_from_type NOBR (IType (tyco, (map (IVarT o rpair [] o fst)) arity)),
             Pretty.str " where",
             Pretty.fbrk,
             Pretty.chunks (map (fn (member, const) =>
@@ -1045,7 +1046,24 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
           Pretty.fbrk,
           Pretty.chunks (separate (Pretty.str "") ps)
         ];
-    fun haskell_validator s = NONE;
+    fun haskell_validator name =
+      let
+        fun replace_invalid c =
+          if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
+          andalso not (NameSpace.separator = c)
+          then c
+          else "_"
+        fun suffix_it name =
+          name
+          |> member (op =) CodegenThingol.prims ? suffix "'"
+          |> has_prim prims ? suffix "'"
+          |> (fn name' => if name = name' then name else suffix_it name')
+      in
+        name
+        |> translate_string replace_invalid
+        |> suffix_it
+        |> (fn name' => if name = name' then NONE else SOME name')
+      end;
     fun eta_expander "Pair" = 2
       | eta_expander "if" = 3
       | eta_expander s =

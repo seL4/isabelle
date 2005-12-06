@@ -60,6 +60,7 @@ sig
   type gen_defgen = string -> transact -> (def * string list) transact_fin;
   val pretty_def: def -> Pretty.T;
   val pretty_module: module -> Pretty.T; 
+  val pretty_deps: module -> Pretty.T;
   val empty_module: module;
   val get_def: module -> string -> def;
   val merge_module: module * module -> module;
@@ -538,6 +539,24 @@ fun pretty_module modl =
       | pretty (name, Def def) =
           Pretty.block [Pretty.str name, Pretty.str " :=", Pretty.brk 1, pretty_def def]
   in pretty ("//", Module modl) end;
+
+fun pretty_deps modl =
+  let
+    fun one_node key =
+      (Pretty.block o Pretty.fbreaks) (
+        Pretty.str key
+        :: (map (fn s => Pretty.str ("<- " ^ s)) o Graph.imm_preds modl) key
+        @ (map (fn s => Pretty.str ("-> " ^ s)) o Graph.imm_succs modl) key
+        @ (the_list oo Option.mapPartial) ((fn Module modl' => SOME (pretty_deps modl') | _ => NONE) o Graph.get_node modl) (SOME key)
+      );
+  in
+    modl
+    |> Graph.strong_conn
+    |> List.concat
+    |> rev
+    |> map one_node
+    |> Pretty.chunks
+  end;
 
 
 (* name handling *)
@@ -1139,10 +1158,9 @@ fun eliminate_classes module =
           let
             val _ = writeln ("class 1");
             val varnames_ctxt =
-              sortctxt
-              |> length o Library.flat o map snd
-              |> Term.invent_names ((vars_of_iexprs o map snd) ds @ (vars_of_ipats o Library.flat o map fst) ds) "d"
-              |> unflat (map snd sortctxt);
+              dig
+                (Term.invent_names ((vars_of_iexprs o map snd) ds @ (vars_of_ipats o Library.flat o map fst) ds) "d" o length)
+                (map snd sortctxt);
             val _ = writeln ("class 2");
             val vname_alist = map2 (fn (vt, sort) => fn vs => (vt, vs ~~ sort)) sortctxt varnames_ctxt;
             val _ = writeln ("class 3");
@@ -1293,7 +1311,7 @@ fun serialize s_def s_module validate nspgrp name_root module =
       | seri prfx ds =
           s_def (resolver prfx) (map (fn (name, Def def) => (resolver prfx (prfx @ [name] |> NameSpace.pack), def)) ds)
   in
-    s_module (name_root, (map (seri [])
+    setmp print_mode [] s_module (name_root, (map (seri [])
       ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))
   end;
 

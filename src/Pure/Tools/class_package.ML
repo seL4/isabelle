@@ -11,7 +11,7 @@ sig
   val the_consts: theory -> class -> string list
   val the_tycos: theory -> class -> (string * string) list
 
-  val is_class: theory -> class -> bool
+  val syntactic_sort_of: theory -> sort -> sort
   val get_arities: theory -> sort -> string -> sort list
   val get_superclasses: theory -> class -> class list
   val get_const_sign: theory -> string -> string -> typ
@@ -140,21 +140,28 @@ val the_tycos = #tycos oo get_class_data;
 
 (* class queries *)
 
-fun is_class thy = is_some o lookup_class_data thy;
+fun is_class thy cls = lookup_class_data thy cls |> Option.map (not o null o #consts) |> the_default false;
 
-fun filter_class thy = filter (is_class thy);
-
-fun assert_class thy class =
-  if is_class thy class then class
-  else error ("not a class: " ^ quote class);
+fun syntactic_sort_of thy sort =
+  let
+    val classes = Sign.classes_of thy;
+    fun get_sort cls =
+      if is_class thy cls
+      then [cls]
+      else syntactic_sort_of thy (Sorts.superclasses classes cls);
+  in
+    map get_sort sort
+    |> Library.flat
+    |> Sorts.norm_sort classes
+  end;
 
 fun get_arities thy sort tycon =
   Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort
-  |> (map o map) (assert_class thy);
+  |> map (syntactic_sort_of thy);
 
 fun get_superclasses thy class =
   Sorts.superclasses (Sign.classes_of thy) class
-  |> filter_class thy;
+  |> syntactic_sort_of thy;
 
 
 (* instance queries *)
@@ -202,7 +209,7 @@ type sortcontext = (string * sort) list;
 
 fun extract_sortctxt thy ty =
   (typ_tfrees o Type.no_tvars) ty
-  |> map (apsnd (filter_class thy))
+  |> map (apsnd (syntactic_sort_of thy))
   |> filter (not o null o snd);
 
 datatype sortlookup = Instance of (class * string) * sortlookup list list
@@ -224,7 +231,7 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
     fun mk_lookup (sort_def, (Type (tycon, tys))) =
           let
             val arity_lookup = map2 (curry mk_lookup)
-              (map (filter_class thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def)) tys
+              (map (syntactic_sort_of thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def)) tys
           in map (fn class => Instance ((class, tycon), arity_lookup)) sort_def end
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
           let
@@ -235,7 +242,7 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
   in
     extract_sortctxt thy ((fst o Type.freeze_thaw_type) raw_typ_def)
     |> map (tab_lookup o fst)
-    |> map (apfst (filter_class thy))
+    |> map (apfst (syntactic_sort_of thy))
     |> filter (not o null o fst)
     |> map mk_lookup
   end;

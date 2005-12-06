@@ -595,7 +595,7 @@ in
 fun exprgen_sort_default thy defs sort trns =
   trns
   |> fold_map (ensure_def_class thy defs)
-       (sort |> filter (ClassPackage.is_class thy) |> map (idf_of_name thy nsp_class))
+       (sort |> ClassPackage.syntactic_sort_of thy |> map (idf_of_name thy nsp_class))
   |-> (fn sort => succeed sort)
 
 fun exprgen_type_default thy defs (TVar _) trns =
@@ -763,17 +763,11 @@ fun defgen_clsdecl thy defs cls trns =
 fun defgen_clsmem thy (defs as (_, _, _)) f trns =
   case name_of_idf thy nsp_mem f
    of SOME clsmem =>
-        let
-          val _ = debug 10 (fn _ => "CLSMEM " ^ quote clsmem) ();
-          val _ = debug 10 (fn _ => (the o ClassPackage.lookup_const_class thy) clsmem) ();
-          val cls = idf_of_name thy nsp_class ((the o ClassPackage.lookup_const_class thy) clsmem);
-          val ty = ClassPackage.get_const_sign thy "'a" clsmem;
-        in
-          trns
-          |> debug 5 (fn _ => "trying defgen class member for " ^ quote f)
-          |> (invoke_cg_type thy defs o devarify_type) ty
-          |-> (fn ty => succeed (Classmember (cls, "a", ty), []))
-        end
+        trns
+        |> debug 5 (fn _ => "trying defgen class member for " ^ quote f)
+        |> ensure_def_class thy defs (idf_of_name thy nsp_class ((the o ClassPackage.lookup_const_class thy) clsmem))
+        ||>> (invoke_cg_type thy defs o devarify_type) (ClassPackage.get_const_sign thy "'a" clsmem)
+        |-> (fn (cls, ty) => succeed (Classmember (cls, "a", ty), []))
     | _ =>
         trns |> fail ("no class member found for " ^ quote f)
 
@@ -1332,7 +1326,7 @@ fun serialize_code serial_name filename consts thy =
     |> (if is_some consts then generate_code (the consts) else pair [])
     |-> (fn [] => `(serializer' NONE o #modl o CodegenData.get)
           | consts => `(serializer' (SOME consts) o #modl o CodegenData.get))
-    |-> (fn code => (setmp print_mode [] (use_code o Pretty.output) code; I))
+    |-> (fn code => ((use_code o Pretty.output) code; I))
   end;
 
 
