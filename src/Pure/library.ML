@@ -101,6 +101,7 @@ sig
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
+  val dig: ('a list -> 'a list) -> 'a list list -> 'a list list
   val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
@@ -596,6 +597,10 @@ fun unflat (xs :: xss) ys =
       in ps :: unflat xss qs end
   | unflat [] [] = []
   | unflat _ _ = raise UnequalLengths;
+
+fun dig f xss =
+  unflat xss ((f o flat) xss);
+
 
 (*like Lisp's MAPC -- seq proc [x1, ..., xn] evaluates
   (proc x1; ...; proc xn) for side effects*)
