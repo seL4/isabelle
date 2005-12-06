@@ -66,7 +66,7 @@ qed_goal "fstream_prefix'" (the_context ())
         "x << a~> z = (x = <> |  (? y. x = a~> y &  y << z))" (fn _ => [
         simp_tac(HOL_ss addsimps [fscons_def2, Def_not_UU RS thm "stream_prefix'"])1,
         Step_tac 1,
-         ALLGOALS(etac swap),
+         ALLGOALS(etac BasicClassical.swap),
          fast_tac (HOL_cs addIs [refl_less] addEs [DefE]) 2,
         rtac Lift_cases 1,
          contr_tac 1,
@@ -139,7 +139,7 @@ qed_goal "slen_fscons_eq_rev" (the_context ())
         step_tac (HOL_cs addSEs [DefE]) 1,
         step_tac (HOL_cs addSEs [DefE]) 1,
         step_tac (HOL_cs addSEs [DefE]) 1,
-        etac swap 1,
+        etac BasicClassical.swap 1,
         fast_tac (HOL_cs addDs [not_Undef_is_Def RS iffD1] addEs [DefE]) 1]);
 
 qed_goal "slen_fscons_less_eq" (the_context ())

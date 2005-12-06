@@ -139,7 +139,6 @@ val nth_equalityI = thm "nth_equalityI";
 val nth_list_update = thm "nth_list_update";
 val nth_list_update_eq = thm "nth_list_update_eq";
 val nth_list_update_neq = thm "nth_list_update_neq";
-val nth_map = thm "nth_map";
 val nth_map_upt = thm "nth_map_upt";
 val nth_mem = thm "nth_mem";
 val nth_replicate = thm "nth_replicate";

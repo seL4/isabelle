@@ -230,15 +230,14 @@ fun add_primrec_i alt_name eqns_atts thy =
     val tnames = distinct (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
     val main_fns = 
-	map (fn (tname, {index, ...}) =>
-	     (index, 
-	      fst (valOf (find_first (fn f => #1 (snd f) = tname) rec_eqns))))
-	dts;
+      map (fn (tname, {index, ...}) =>
+        (index, 
+          (fst o the o find_first (fn f => (#1 o snd) f = tname)) rec_eqns))
+      dts;
     val {descr, rec_names, rec_rewrites, ...} = 
-	if null dts then
-	    primrec_err ("datatypes " ^ commas_quote tnames ^ 
-			 "\nare not mutually recursive")
-	else snd (hd dts);
+      if null dts then
+        primrec_err ("datatypes " ^ commas_quote tnames ^ "\nare not mutually recursive")
+      else snd (hd dts);
     val (fnameTs, fnss) = foldr (process_fun sg descr rec_eqns)
 	                       ([], []) main_fns;
     val (fs, defs) = foldr (get_fns fnss) ([], []) (descr ~~ rec_names);

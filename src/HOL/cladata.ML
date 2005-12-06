@@ -58,9 +58,11 @@ structure Classical_Data =
 structure Classical = ClassicalFun(Classical_Data);
 
 structure BasicClassical: BASIC_CLASSICAL = Classical; 
-open BasicClassical;
 
-bind_thm ("contrapos_np", inst "Pa" "?Q" swap);
+open BasicClassical;
+val swap = Library.swap; (*unshadow basic library*)
+
+val _ = bind_thm ("contrapos_np", inst "Pa" "?Q" BasicClassical.swap);
 
 (*Propositional rules*)
 val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
