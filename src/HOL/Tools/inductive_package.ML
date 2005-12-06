@@ -451,7 +451,7 @@ fun add_cases_induct no_elim no_induct coind names elims induct =
     fun cases_spec name elim thy =
       thy
       |> Theory.add_path (Sign.base_name name)
-      |> (#1 o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
+      |> (fst o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
       |> Theory.parent_path;
     val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
@@ -750,7 +750,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
     val def_terms = fp_def_term :: (if length cs < 2 then [] else
       map (fn c => Logic.mk_equals (c, mk_vimage cs sumT rec_const c)) cs);
 
-    val (thy', [fp_def :: rec_sets_defs]) =
+    val ([fp_def :: rec_sets_defs], thy') =
       thy
       |> cond_declare_consts declare_consts cs paramTs cnames
       |> (if length cs < 2 then I

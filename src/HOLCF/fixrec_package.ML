@@ -101,7 +101,7 @@ fun add_fixdefs eqs thy =
     val (names, pre_fixdefs) = ListPair.unzip (defs lhss fixpoint);
     
     val fixdefs = map (inferT_axm thy) pre_fixdefs;
-    val (thy', fixdef_thms) =
+    val (fixdef_thms, thy') =
       PureThy.add_defs_i false (map Thm.no_attributes fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => cpair_equalI OF [x,y]) fixdef_thms;
     

@@ -736,10 +736,10 @@ fun extract thms thy =
              val fu = Type.freeze u;
              val thy' = if t = nullt then thy else thy |>
                Theory.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)] |>
-               fst o PureThy.add_defs_i false [((extr_name s vs ^ "_def",
+               snd o PureThy.add_defs_i false [((extr_name s vs ^ "_def",
                  Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])];
            in
-             fst (PureThy.store_thm ((corr_name s vs,
+             snd (PureThy.store_thm ((corr_name s vs,
                Thm.varifyT (funpow (length (term_vars corr_prop))
                  (forall_elim_var 0) (forall_intr_frees
                    (ProofChecker.thm_of_proof thy'

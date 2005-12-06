@@ -95,17 +95,17 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
     fun option_fold_rule NONE = I
       | option_fold_rule (SOME def) = fold_rule [def];
     
-    fun make_po tac theory =
-      theory
+    fun make_po tac thy =
+      thy
       |> TypedefPackage.add_typedef_i def (SOME name) (t, vs, mx) set opt_morphs tac
       |>> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Porder.sq_ord"])
-          (AxClass.intro_classes_tac [])
-      |>>> PureThy.add_defs_i true [Thm.no_attributes less_def]
-      |> (fn (theory', ({type_definition, set_def, ...}, [less_definition])) =>
-        theory'
-        |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Porder.po"])
-            (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
-        |> rpair (type_definition, less_definition, set_def));
+           (AxClass.intro_classes_tac [])
+      |>>> (PureThy.add_defs_i true [Thm.no_attributes less_def] #> Library.swap)
+      |> (fn (thy', ({type_definition, set_def, ...}, [less_definition])) =>
+           thy'
+           |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Porder.po"])
+             (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
+           |> rpair (type_definition, less_definition, set_def));
     
     fun make_cpo admissible (theory, defs as (type_def, less_def, set_def)) =
       let
@@ -178,11 +178,11 @@ fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
       gen_prepare_pcpodef prep_term pcpo def name typ set opt_morphs thy;
   in IsarThy.theorem_i Drule.internalK ("", [att]) (goal, ([], [])) thy end;
 
-val pcpodef_proof = gen_pcpodef_proof read_term true;
-val pcpodef_proof_i = gen_pcpodef_proof cert_term true;
+fun pcpodef_proof x = gen_pcpodef_proof read_term true x;
+fun pcpodef_proof_i x = gen_pcpodef_proof cert_term true x;
 
-val cpodef_proof = gen_pcpodef_proof read_term false;
-val cpodef_proof_i = gen_pcpodef_proof cert_term false;
+fun cpodef_proof x = gen_pcpodef_proof read_term false x;
+fun cpodef_proof_i x = gen_pcpodef_proof cert_term false x;
 
 
 (** outer syntax **)

@@ -378,7 +378,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
            REPEAT ((resolve_tac prems THEN_ALL_NEW EVERY'
              [K (rewrite_goals_tac rews), ObjectLogic.atomize_tac,
               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE]]) 1)]);
-        val (thy', thm') = PureThy.store_thm ((space_implode "_"
+        val (thm', thy') = PureThy.store_thm ((space_implode "_"
           (Thm.name_of_thm induct :: vs @ Ps @ ["correctness"]), thm), []) thy
       in
         Extraction.add_realizers_i
@@ -426,7 +426,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
            rewrite_goals_tac rews,
            REPEAT ((resolve_tac prems THEN_ALL_NEW (ObjectLogic.atomize_tac THEN'
              DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
-        val (thy', thm') = PureThy.store_thm ((space_implode "_"
+        val (thm', thy') = PureThy.store_thm ((space_implode "_"
           (Thm.name_of_thm elim :: vs @ Ps @ ["correctness"]), thm), []) thy
       in
         Extraction.add_realizers_i

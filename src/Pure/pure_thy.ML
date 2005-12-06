@@ -47,7 +47,7 @@ sig
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
-  val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
+  val store_thm: (bstring * thm) * theory attribute list -> theory -> thm * theory
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
@@ -70,13 +70,13 @@ sig
   val add_axiomss_i: ((bstring * term list) * theory attribute list) list ->
     theory -> theory * thm list list
   val add_defs: bool -> ((bstring * string) * theory attribute list) list ->
-    theory -> theory * thm list
+    theory -> thm list * theory
   val add_defs_i: bool -> ((bstring * term) * theory attribute list) list ->
-    theory -> theory * thm list
+    theory -> thm list * theory
   val add_defss: bool -> ((bstring * string list) * theory attribute list) list ->
-    theory -> theory * thm list list
+    theory -> thm list list * theory
   val add_defss_i: bool -> ((bstring * term list) * theory attribute list) list ->
-    theory -> theory * thm list list
+    theory -> thm list list * theory
   val generic_setup: string -> theory -> theory
   val add_oracle: bstring * string * string -> theory -> theory
 end;
@@ -380,7 +380,7 @@ end;
 
 fun store_thm ((bname, thm), atts) thy =
   let val (thy', [th']) = add_thms_atts (name_thms true) ((bname, [thm]), atts) thy
-  in (thy', th') end;
+  in (th', thy') end;
 
 
 (* smart_store_thms(_open) *)
@@ -452,10 +452,10 @@ in
   val add_axioms_i  = add_singles Theory.add_axioms_i;
   val add_axiomss   = add_multis Theory.add_axioms;
   val add_axiomss_i = add_multis Theory.add_axioms_i;
-  val add_defs      = add_singles o Theory.add_defs;
-  val add_defs_i    = add_singles o Theory.add_defs_i;
-  val add_defss     = add_multis o Theory.add_defs;
-  val add_defss_i   = add_multis o Theory.add_defs_i;
+  val add_defs      = swap ooo add_singles o Theory.add_defs;
+  val add_defs_i    = swap ooo add_singles o Theory.add_defs_i;
+  val add_defss     = swap ooo add_multis o Theory.add_defs;
+  val add_defss_i   = swap ooo add_multis o Theory.add_defs_i;
 end;
 
 
@@ -529,7 +529,7 @@ val proto_pure =
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
-  |> (#1 oo (add_defs_i false o map Thm.no_attributes))
+  |> (snd oo (add_defs_i false o map Thm.no_attributes))
    [("prop_def", Logic.mk_equals (Logic.protect A, A))]
   |> (#1 o add_thmss [(("nothing", []), [])])
   |> Theory.add_axioms_i Proofterm.equality_axms

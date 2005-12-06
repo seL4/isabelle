@@ -473,7 +473,7 @@ fun export_hol4_pending thy =
 		val sg      = sign_of thy
 		val thm1 = rewrite_rule (map (Thm.transfer sg) rews) (Thm.transfer sg thm)
 		val thm2 = standard thm1
-		val (thy2,_) = PureThy.store_thm((bthm,thm2),[]) thy
+		val thy2 = PureThy.store_thm ((bthm, thm2), []) thy |> snd
 		val thy5 = add_hol4_theorem bthy bthm hth thy2
 	    in
 		thy5

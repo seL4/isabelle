@@ -141,6 +141,15 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val typedef_prop =
       Logic.mk_implies (goal, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ set'));
 
+    fun add_def def def' thy =
+      if def
+      then
+        thy
+        |> PureThy.add_defs_i false [Thm.no_attributes def']
+        |-> (fn [def'] => pair (SOME def'))
+      else
+        (NONE, thy);
+
     fun typedef_result (theory, nonempty) =
       theory
       |> put_typedef newT oldT (full Abs_name) (full Rep_name)
@@ -149,13 +158,11 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
        ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
-      |> (if def then (apsnd (SOME o hd) oo (PureThy.add_defs_i false o map Thm.no_attributes))
-           [Logic.mk_defpair (setC, set)]
-          else rpair NONE)
-      |>>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
-          [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])]
-      |>> Theory.add_finals_i false [RepC, AbsC]
-      |> (fn (theory', (set_def, [type_definition])) =>
+      |> add_def def (Logic.mk_defpair (setC, set))
+      ||>> (PureThy.add_axioms_i [((typedef_name, typedef_prop),
+          [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])] #> Library.swap)
+      ||> Theory.add_finals_i false [RepC, AbsC]
+      |-> (fn (set_def, [type_definition]) => fn theory' =>
         let
           fun make th = Drule.standard (th OF [type_definition]);
           val (theory'', [Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,

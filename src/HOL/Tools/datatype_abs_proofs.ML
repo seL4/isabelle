@@ -233,16 +233,17 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);
 
-    val (thy2, reccomb_defs) = thy1 |>
-      Theory.add_consts_i (map (fn ((name, T), T') =>
-        (Sign.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
-          (reccomb_names ~~ recTs ~~ rec_result_Ts)) |>
-      (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-        ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
+    val (reccomb_defs, thy2) =
+      thy1
+      |> Theory.add_consts_i (map (fn ((name, T), T') =>
+          (Sign.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
+          (reccomb_names ~~ recTs ~~ rec_result_Ts))
+      |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
+          ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set))))))
-               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts)) |>>
-      parent_path flat_names;
+               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
+      ||> parent_path flat_names;
 
 
     (* prove characteristic equations for primrec combinators *)
@@ -319,8 +320,10 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
               list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @
                 fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns))) )));
-          val (thy', [def_thm]) = thy |>
-            Theory.add_consts_i [decl] |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
+          val ([def_thm], thy') =
+            thy
+            |> Theory.add_consts_i [decl]
+            |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')
         end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
@@ -416,15 +419,16 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val fs = List.concat (map (fn (_, (_, _, constrs)) => map make_sizefun constrs) descr');
     val fTs = map fastype_of fs;
 
-    val (thy', size_def_thms) = thy1 |>
-      Theory.add_consts_i (map (fn (s, T) =>
-        (Sign.base_name s, T --> HOLogic.natT, NoSyn))
-          (Library.drop (length (hd descr), size_names ~~ recTs))) |>
-      (PureThy.add_defs_i true o map Thm.no_attributes) (map (fn (((s, T), def_name), rec_name) =>
-        (def_name, Logic.mk_equals (Const (s, T --> HOLogic.natT),
-          list_comb (Const (rec_name, fTs @ [T] ---> HOLogic.natT), fs))))
-            (size_names ~~ recTs ~~ def_names ~~ reccomb_names)) |>>
-      parent_path flat_names;
+    val (size_def_thms, thy') =
+      thy1
+      |> Theory.add_consts_i (map (fn (s, T) =>
+           (Sign.base_name s, T --> HOLogic.natT, NoSyn))
+           (Library.drop (length (hd descr), size_names ~~ recTs)))
+      |> (PureThy.add_defs_i true o map Thm.no_attributes) (map (fn (((s, T), def_name), rec_name) =>
+           (def_name, Logic.mk_equals (Const (s, T --> HOLogic.natT),
+            list_comb (Const (rec_name, fTs @ [T] ---> HOLogic.natT), fs))))
+            (size_names ~~ recTs ~~ def_names ~~ reccomb_names))
+      ||> parent_path flat_names;
 
     val rewrites = size_def_thms @ map mk_meta_eq primrec_thms;
 

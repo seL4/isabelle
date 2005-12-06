@@ -226,7 +226,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val def_name = (Sign.base_name cname) ^ "_def";
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
-        val (thy', [def_thm]) = thy |>
+        val ([def_thm], thy') = thy |>
           Theory.add_consts_i [(cname', constrT, mx)] |>
           (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)];
 
@@ -368,7 +368,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
           equals (T --> Univ_elT) $ Const (iso_name, T --> Univ_elT) $
             list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs))) (rec_names ~~ isos);
-        val (thy', def_thms) = (PureThy.add_defs_i false o map Thm.no_attributes) defs thy;
+        val (def_thms, thy') = (PureThy.add_defs_i false o map Thm.no_attributes) defs thy;
 
         (* prove characteristic equations *)
 

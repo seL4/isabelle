@@ -1589,7 +1589,7 @@ fun def_pred bname parms defs ts norm_ts thy =
     val head = Term.list_comb (Const (name, predT), args);
     val statement = ObjectLogic.ensure_propT thy head;
 
-    val (defs_thy, [pred_def]) =
+    val ([pred_def], defs_thy) =
       thy
       |> (if bodyT <> propT then I else
         Theory.add_trfuns ([], [], map (aprop_tr' (length args)) (NameSpace.accesses' name), []))

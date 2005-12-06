@@ -394,7 +394,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
                           (wfrec $ map_term_types poly_tvars R)
                       $ functional
      val def_term = mk_const_def (Theory.sign_of thy) (x, Ty, wfrec_R_M)
-     val (thy', [def]) = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy
+     val ([def], thy') = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy
  in (thy', def) end;
 end;
 
@@ -551,7 +551,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val (name,Ty) = dest_atom c
      val defn = mk_const_def (Theory.sign_of thy)
                  (name, Ty, S.list_mk_abs (args,rhs))
-     val (theory, [def0]) =
+     val ([def0], theory) =
        thy
        |> PureThy.add_defs_i false
             [Thm.no_attributes (fid ^ "_def", defn)]

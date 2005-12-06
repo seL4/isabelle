@@ -231,10 +231,10 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       if need_recursor then
            thy |> Theory.add_consts_i
                     [(recursor_base_name, recursor_typ, NoSyn)]
-               |> (#1 o PureThy.add_defs_i false [Thm.no_attributes recursor_def])
+               |> (snd o PureThy.add_defs_i false [Thm.no_attributes recursor_def])
       else thy;
 
-  val (thy0, con_defs) = thy_path
+  val (con_defs, thy0) = thy_path
              |> Theory.add_consts_i
                  ((case_base_name, case_typ, NoSyn) ::
                   map #1 (List.concat con_ty_lists))
@@ -243,8 +243,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                   (case_def ::
                    List.concat (ListPair.map mk_con_defs
                          (1 upto npart, con_ty_lists))))
-             |>> add_recursor
-             |>> Theory.parent_path
+             ||> add_recursor
+             ||> Theory.parent_path
 
   val intr_names = map #2 (List.concat con_ty_lists);
   val (thy1, ind_result) =

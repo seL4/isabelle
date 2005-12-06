@@ -247,7 +247,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val nameTs2 = map fst rec_eqns;
     val primrec_name =
       if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
-    val (thy', defs_thms') = thy |> Theory.add_path primrec_name |>
+    val (defs_thms', thy') = thy |> Theory.add_path primrec_name |>
       (if eq_set (nameTs1, nameTs2) then (PureThy.add_defs_i false o map Thm.no_attributes) defs'
        else primrec_err ("functions " ^ commas_quote (map fst nameTs2) ^
          "\nare not mutually recursive"));

@@ -66,7 +66,8 @@ fun gen_constdef prep_typ prep_term prep_att
     val thy' =
       thy
       |> Theory.add_consts_i [(c, T, mx)]
-      |> PureThy.add_defs_i false [((name, def), atts)] |> #1;
+      |> PureThy.add_defs_i false [((name, def), atts)]
+      |> snd;
   in ((c, T), thy') end;
 
 fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy =

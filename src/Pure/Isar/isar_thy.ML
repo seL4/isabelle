@@ -63,8 +63,8 @@ fun add_axms f args thy =
 
 val add_axioms = add_axms (#1 oo PureThy.add_axioms);
 val add_axioms_i = #1 oo PureThy.add_axioms_i;
-fun add_defs (x, args) = add_axms (#1 oo PureThy.add_defs x) args;
-fun add_defs_i (x, args) = (#1 oo PureThy.add_defs_i x) args;
+fun add_defs (x, args) = add_axms (snd oo PureThy.add_defs x) args;
+fun add_defs_i (x, args) = (snd oo PureThy.add_defs_i x) args;
 
 
 (* theorems *)

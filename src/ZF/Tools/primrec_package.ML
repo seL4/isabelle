@@ -175,7 +175,7 @@ fun add_primrec_i args thy =
       foldr (process_eqn thy) NONE eqn_terms;
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns);
 
-    val (thy1, [def_thm]) = thy
+    val ([def_thm], thy1) = thy
       |> Theory.add_path (Sign.base_name fname)
       |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
 
