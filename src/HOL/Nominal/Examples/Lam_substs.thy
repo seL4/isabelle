@@ -30,7 +30,7 @@ proof -
     case (Lam a t)
     have ih: "\<And>(pi::name prm) x. P x (pi\<bullet>t)" by fact
     show "\<And>(pi::name prm) x. P x (pi\<bullet>(Lam [a].t))"
-    proof (simp add: abs_perm)
+    proof (simp)
       fix x::"'a" and pi::"name prm"
       have "\<exists>c::name. c\<sharp>(f x,pi\<bullet>a,pi\<bullet>t)"
 	by (rule at_exists_fresh[OF at_name_inst], simp add: supp_prod fs_name1 fs)
