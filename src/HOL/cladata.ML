@@ -60,7 +60,6 @@ structure Classical = ClassicalFun(Classical_Data);
 structure BasicClassical: BASIC_CLASSICAL = Classical; 
 
 open BasicClassical;
-val swap = Library.swap;
 
 val _ = bind_thm ("contrapos_np", inst "Pa" "?Q" Classical.swap);
 

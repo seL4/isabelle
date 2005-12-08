@@ -106,7 +106,6 @@ sig
   val clarify_step_tac  : claset -> int -> tactic
   val step_tac          : claset -> int -> tactic
   val slow_step_tac     : claset -> int -> tactic
-  val swap              : thm                 (* ~P ==> (~Q ==> P) ==> Q *)
   val swapify           : thm list -> thm list
   val swap_res_tac      : thm list -> int -> tactic
   val inst_step_tac     : claset -> int -> tactic
@@ -135,6 +134,7 @@ end;
 signature CLASSICAL =
 sig
   include BASIC_CLASSICAL
+  val swap: thm  (* ~P ==> (~Q ==> P) ==> Q *)
   val add_context_safe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
   val del_context_safe_wrapper: string -> theory -> theory
   val add_context_unsafe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
