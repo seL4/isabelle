@@ -341,10 +341,8 @@ fun is_some (SOME _) = true
 fun is_none (SOME _) = false
   | is_none NONE = true;
 
-fun perhaps f x =
-  case f x
-   of NONE => x
-    | SOME x' => x';
+fun perhaps f x = the_default x (f x);
+
 
 (* exceptions *)
 
