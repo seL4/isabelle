@@ -22,24 +22,20 @@ lemma brouwer_unfold: "brouwer = {0} + brouwer + (nat -> brouwer)"
   by (fast intro!: brouwer.intros [unfolded brouwer.con_defs]
     elim: brouwer.cases [unfolded brouwer.con_defs])
 
-lemma brouwer_induct2:
-  "[| b \<in> brouwer;
-      P(Zero);
-      !!b. [| b \<in> brouwer;  P(b) |] ==> P(Suc(b));
-      !!h. [| h \<in> nat -> brouwer;  \<forall>i \<in> nat. P(h`i)
-           |] ==> P(Lim(h))
-   |] ==> P(b)"
+lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
+  assumes b: "b \<in> brouwer"
+    and cases:
+      "P(Zero)"
+      "!!b. [| b \<in> brouwer;  P(b) |] ==> P(Suc(b))"
+      "!!h. [| h \<in> nat -> brouwer;  \<forall>i \<in> nat. P(h`i) |] ==> P(Lim(h))"
+  shows "P(b)"
   -- {* A nicer induction rule than the standard one. *}
-proof -
-  case rule_context
-  assume "b \<in> brouwer"
-  thus ?thesis
-    apply induct
-    apply (assumption | rule rule_context)+
+  using b
+  apply induct
+    apply (assumption | rule cases)+
      apply (fast elim: fun_weaken_type)
     apply (fast dest: apply_type)
     done
-qed
 
 
 subsection {* The Martin-Löf wellordering type *}
@@ -58,22 +54,17 @@ lemma Well_unfold: "Well(A, B) = (\<Sigma> x \<in> A. B(x) -> Well(A, B))"
     elim: Well.cases [unfolded Well.con_defs])
 
 
-lemma Well_induct2:
-  "[| w \<in> Well(A, B);
-      !!a f. [| a \<in> A;  f \<in> B(a) -> Well(A,B);  \<forall>y \<in> B(a). P(f`y)
-           |] ==> P(Sup(a,f))
-   |] ==> P(w)"
+lemma Well_induct2 [consumes 1, case_names step]:
+  assumes w: "w \<in> Well(A, B)"
+    and step: "!!a f. [| a \<in> A;  f \<in> B(a) -> Well(A,B);  \<forall>y \<in> B(a). P(f`y) |] ==> P(Sup(a,f))"
+  shows "P(w)"
   -- {* A nicer induction rule than the standard one. *}
-proof -
-  case rule_context
-  assume "w \<in> Well(A, B)"
-  thus ?thesis
-    apply induct
-    apply (assumption | rule rule_context)+
-     apply (fast elim: fun_weaken_type)
-    apply (fast dest: apply_type)
-    done
-qed
+  using w
+  apply induct
+  apply (assumption | rule step)+
+   apply (fast elim: fun_weaken_type)
+  apply (fast dest: apply_type)
+  done
 
 lemma Well_bool_unfold: "Well(bool, \<lambda>x. x) = 1 + (1 -> Well(bool, \<lambda>x. x))"
   -- {* In fact it's isomorphic to @{text nat}, but we need a recursion operator *}

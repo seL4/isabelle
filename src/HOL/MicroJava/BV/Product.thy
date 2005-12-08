@@ -72,15 +72,15 @@ lemma unfold_plussub_lift2:
 
 
 lemma plus_eq_Err_conv [simp]:
-  "\<lbrakk> x:A; y:A; semilat(err A, Err.le r, lift2 f) \<rbrakk> 
-  \<Longrightarrow> (x +_f y = Err) = (~(? z:A. x <=_r z & y <=_r z))"
+  assumes "x:A" and "y:A"
+    and "semilat(err A, Err.le r, lift2 f)"
+  shows "(x +_f y = Err) = (~(? z:A. x <=_r z & y <=_r z))"
 proof -
   have plus_le_conv2:
     "\<And>r f z. \<lbrakk> z : err A; semilat (err A, r, f); OK x : err A; OK y : err A;
                  OK x +_f OK y <=_r z\<rbrakk> \<Longrightarrow> OK x <=_r z \<and> OK y <=_r z"
     by (rule semilat.plus_le_conv [THEN iffD1])
-  case rule_context
-  thus ?thesis
+  from prems show ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])

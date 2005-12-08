@@ -49,42 +49,36 @@ lemma ntree_unfold: "ntree(A) = A \<times> (\<Union>n \<in> nat. n -> ntree(A))"
   by (blast intro: ntree.intros [unfolded ntree.con_defs]
     elim: ntree.cases [unfolded ntree.con_defs])
 
-lemma ntree_induct [induct set: ntree]:
-  "[| t \<in> ntree(A);
-      !!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  \<forall>i \<in> n. P(h`i)
-               |] ==> P(Branch(x,h))
-   |] ==> P(t)"
+lemma ntree_induct [consumes 1, case_names Branch, induct set: ntree]:
+  assumes t: "t \<in> ntree(A)"
+    and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  \<forall>i \<in> n. P(h`i)
+      |] ==> P(Branch(x,h))"
+  shows "P(t)"
   -- {* A nicer induction rule than the standard one. *}
-proof -
-  case rule_context
-  assume "t \<in> ntree(A)"
-  thus ?thesis
-    apply induct
-    apply (erule UN_E)
-    apply (assumption | rule rule_context)+
-     apply (fast elim: fun_weaken_type)
-    apply (fast dest: apply_type)
-    done
-qed
-
-lemma ntree_induct_eqn:
-  "[| t \<in> ntree(A);  f \<in> ntree(A)->B;  g \<in> ntree(A)->B;
-      !!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h |] ==>
-               f ` Branch(x,h) = g ` Branch(x,h)
-   |] ==> f`t=g`t"
-  -- {* Induction on @{term "ntree(A)"} to prove an equation *}
-proof -
-  case rule_context
-  assume "t \<in> ntree(A)"
-  thus ?thesis
-    apply induct
-    apply (assumption | rule rule_context)+
-    apply (insert rule_context)
-    apply (rule fun_extension)
-      apply (assumption | rule comp_fun)+
-    apply (simp add: comp_fun_apply)
+  using t
+  apply induct
+  apply (erule UN_E)
+  apply (assumption | rule step)+
+   apply (fast elim: fun_weaken_type)
+  apply (fast dest: apply_type)
   done
-qed
+
+lemma ntree_induct_eqn [consumes 1]:
+  assumes t: "t \<in> ntree(A)"
+    and f: "f \<in> ntree(A)->B"
+    and g: "g \<in> ntree(A)->B"
+    and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h |] ==>
+      f ` Branch(x,h) = g ` Branch(x,h)"
+  shows "f`t=g`t"
+  -- {* Induction on @{term "ntree(A)"} to prove an equation *}
+  using t
+  apply induct
+  apply (assumption | rule step)+
+  apply (insert f g)
+  apply (rule fun_extension)
+  apply (assumption | rule comp_fun)+
+  apply (simp add: comp_fun_apply)
+  done
 
 text {*
   \medskip Lemmas to justify using @{text Ntree} in other recursive
@@ -127,9 +121,8 @@ lemma ntree_copy_Branch [simp]:
   by (simp add: ntree_copy_def ntree_rec_Branch)
 
 lemma ntree_copy_is_ident: "z \<in> ntree(A) ==> ntree_copy(z) = z"
-  apply (induct_tac z)
-  apply (auto simp add: domain_of_fun Pi_Collect_iff fun_is_function)
-  done
+  by (induct z set: ntree)
+    (auto simp add: domain_of_fun Pi_Collect_iff fun_is_function)
 
 
 text {*
@@ -140,25 +133,21 @@ lemma maptree_unfold: "maptree(A) = A \<times> (maptree(A) -||> maptree(A))"
   by (fast intro!: maptree.intros [unfolded maptree.con_defs]
     elim: maptree.cases [unfolded maptree.con_defs])
 
-lemma maptree_induct [induct set: maptree]:
-  "[| t \<in> maptree(A);
-      !!x n h. [| x \<in> A;  h \<in> maptree(A) -||> maptree(A);
+lemma maptree_induct [consumes 1, induct set: maptree]:
+  assumes t: "t \<in> maptree(A)"
+    and step: "!!x n h. [| x \<in> A;  h \<in> maptree(A) -||> maptree(A);
                   \<forall>y \<in> field(h). P(y)
-               |] ==> P(Sons(x,h))
-   |] ==> P(t)"
+               |] ==> P(Sons(x,h))"
+  shows "P(t)"
   -- {* A nicer induction rule than the standard one. *}
-proof -
-  case rule_context
-  assume "t \<in> maptree(A)"
-  thus ?thesis
-    apply induct
-    apply (assumption | rule rule_context)+
-     apply (erule Collect_subset [THEN FiniteFun_mono1, THEN subsetD])
-    apply (drule FiniteFun.dom_subset [THEN subsetD])
-    apply (drule Fin.dom_subset [THEN subsetD])
-    apply fast
-    done
-qed
+  using t
+  apply induct
+  apply (assumption | rule step)+
+  apply (erule Collect_subset [THEN FiniteFun_mono1, THEN subsetD])
+  apply (drule FiniteFun.dom_subset [THEN subsetD])
+  apply (drule Fin.dom_subset [THEN subsetD])
+  apply fast
+  done
 
 
 text {*
@@ -169,22 +158,18 @@ lemma maptree2_unfold: "maptree2(A, B) = A \<times> (B -||> maptree2(A, B))"
   by (fast intro!: maptree2.intros [unfolded maptree2.con_defs]
     elim: maptree2.cases [unfolded maptree2.con_defs])
 
-lemma maptree2_induct [induct set: maptree2]:
-  "[| t \<in> maptree2(A, B);
-      !!x n h. [| x \<in> A;  h \<in> B -||> maptree2(A,B);  \<forall>y \<in> range(h). P(y)
-               |] ==> P(Sons2(x,h))
-   |] ==> P(t)"
-proof -
-  case rule_context
-  assume "t \<in> maptree2(A, B)"
-  thus ?thesis
-    apply induct
-    apply (assumption | rule rule_context)+
-     apply (erule FiniteFun_mono [OF subset_refl Collect_subset, THEN subsetD])
-    apply (drule FiniteFun.dom_subset [THEN subsetD])
-    apply (drule Fin.dom_subset [THEN subsetD])
-    apply fast
-    done
-qed
+lemma maptree2_induct [consumes 1, induct set: maptree2]:
+  assumes t: "t \<in> maptree2(A, B)"
+    and step: "!!x n h. [| x \<in> A;  h \<in> B -||> maptree2(A,B);  \<forall>y \<in> range(h). P(y)
+               |] ==> P(Sons2(x,h))"
+  shows "P(t)"
+  using t
+  apply induct
+  apply (assumption | rule step)+
+   apply (erule FiniteFun_mono [OF subset_refl Collect_subset, THEN subsetD])
+   apply (drule FiniteFun.dom_subset [THEN subsetD])
+   apply (drule Fin.dom_subset [THEN subsetD])
+   apply fast
+   done
 
 end

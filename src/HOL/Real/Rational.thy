@@ -332,16 +332,13 @@ proof -
 qed
 
 theorem rat_function:
-  "(!!q r. f q r == g (fraction_of q) (fraction_of r)) ==>
-    (!!a b a' b' c d c' d'.
+  assumes "!!q r. f q r == g (fraction_of q) (fraction_of r)"
+    and "!!a b a' b' c d c' d'.
       \<lfloor>fract a b\<rfloor> = \<lfloor>fract a' b'\<rfloor> ==> \<lfloor>fract c d\<rfloor> = \<lfloor>fract c' d'\<rfloor> ==>
       b \<noteq> 0 ==> b' \<noteq> 0 ==> d \<noteq> 0 ==> d' \<noteq> 0 ==>
-      g (fract a b) (fract c d) = g (fract a' b') (fract c' d')) ==>
-    f (Fract a b) (Fract c d) = g (fract a b) (fract c d)"
-proof -
-  case rule_context from this TrueI
-  show ?thesis by (rule rat_cond_function)
-qed
+      g (fract a b) (fract c d) = g (fract a' b') (fract c' d')"
+  shows "f (Fract a b) (Fract c d) = g (fract a b) (fract c d)"
+  using prems and TrueI by (rule rat_cond_function)
 
 
 subsubsection {* Standard operations on rational numbers *}

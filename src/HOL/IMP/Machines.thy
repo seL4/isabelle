@@ -1,28 +1,31 @@
+
+(* $Id$ *)
+
 theory Machines imports Natural begin
 
 lemma rtrancl_eq: "R^* = Id \<union> (R O R^*)"
-by(fast intro:rtrancl.intros elim:rtranclE)
+  by (fast intro: rtrancl.intros elim: rtranclE)
 
 lemma converse_rtrancl_eq: "R^* = Id \<union> (R^* O R)"
-by(subst r_comp_rtrancl_eq[symmetric], rule rtrancl_eq)
+  by (subst r_comp_rtrancl_eq[symmetric], rule rtrancl_eq)
 
 lemmas converse_rel_powE = rel_pow_E2
 
 lemma R_O_Rn_commute: "R O R^n = R^n O R"
-by(induct_tac n, simp, simp add: O_assoc[symmetric])
+  by (induct n) (simp, simp add: O_assoc [symmetric])
 
 lemma converse_in_rel_pow_eq:
-"((x,z) \<in> R^n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R^m))"
+  "((x,z) \<in> R^n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R^m))"
 apply(rule iffI)
  apply(blast elim:converse_rel_powE)
 apply (fastsimp simp add:gr0_conv_Suc R_O_Rn_commute)
 done
 
 lemma rel_pow_plus: "R^(m+n) = R^n O R^m"
-by(induct n, simp, simp add:O_assoc)
+  by (induct n) (simp, simp add: O_assoc)
 
 lemma rel_pow_plusI: "\<lbrakk> (x,y) \<in> R^m; (y,z) \<in> R^n \<rbrakk> \<Longrightarrow> (x,z) \<in> R^(m+n)"
-by(simp add:rel_pow_plus rel_compI)
+  by (simp add: rel_pow_plus rel_compI)
 
 subsection "Instructions"
 
@@ -33,7 +36,7 @@ types instrs = "instr list"
 
 subsection "M0 with PC"
 
-consts  exec01 :: "instr list \<Rightarrow> ((nat\<times>state) \<times> (nat\<times>state))set" 
+consts  exec01 :: "instr list \<Rightarrow> ((nat\<times>state) \<times> (nat\<times>state))set"
 syntax
   "_exec01" :: "[instrs, nat,state, nat,state] \<Rightarrow> bool"
                ("(_/ |- (1<_,/_>)/ -1-> (1<_,/_>))" [50,0,0,0,0] 50)
@@ -58,7 +61,7 @@ syntax (HTML output)
   "_exec0n" :: "[instrs, nat,state, nat, nat,state] \<Rightarrow> bool"
                ("(_/ |- (1\<langle>_,/_\<rangle>)/ -_\<rightarrow> (1\<langle>_,/_\<rangle>))" [50,0,0,0,0] 50)
 
-translations  
+translations
   "p \<turnstile> \<langle>i,s\<rangle> -1\<rightarrow> \<langle>j,t\<rangle>" == "((i,s),j,t) : (exec01 p)"
   "p \<turnstile> \<langle>i,s\<rangle> -*\<rightarrow> \<langle>j,t\<rangle>" == "((i,s),j,t) : (exec01 p)^*"
   "p \<turnstile> \<langle>i,s\<rangle> -n\<rightarrow> \<langle>j,t\<rangle>" == "((i,s),j,t) : (exec01 p)^n"
@@ -97,7 +100,7 @@ syntax (xsymbols)
   "_stepan" :: "[instrs,instrs,state, nat, instrs,instrs,state] \<Rightarrow> bool"
                ("((1\<langle>_,/_,/_\<rangle>)/ -_\<rightarrow> (1\<langle>_,/_,/_\<rangle>))" 50)
 
-translations  
+translations
   "\<langle>p,q,s\<rangle> -1\<rightarrow> \<langle>p',q',t\<rangle>" == "((p,q,s),p',q',t) : stepa1"
   "\<langle>p,q,s\<rangle> -*\<rightarrow> \<langle>p',q',t\<rangle>" == "((p,q,s),p',q',t) : (stepa1^*)"
   "\<langle>p,q,s\<rangle> -i\<rightarrow> \<langle>p',q',t\<rangle>" == "((p,q,s),p',q',t) : (stepa1^i)"
@@ -156,7 +159,7 @@ done
 lemma direction1:
  "\<langle>q,p,s\<rangle> -1\<rightarrow> \<langle>q',p',t\<rangle> \<Longrightarrow>
   rev p' @ q' = rev p @ q \<and> rev p @ q \<turnstile> \<langle>size p,s\<rangle> -1\<rightarrow> \<langle>size p',t\<rangle>"
-apply(erule stepa1.induct)
+apply(induct set: stepa1)
    apply(simp add:exec01.SET)
   apply(fastsimp intro:exec01.JMPFT)
  apply simp
@@ -187,9 +190,9 @@ done
 *)
 lemma direction2:
  "rpq \<turnstile> \<langle>sp,s\<rangle> -1\<rightarrow> \<langle>sp',t\<rangle> \<Longrightarrow>
- \<forall>p q p' q'. rpq = rev p @ q & sp = size p & sp' = size p' \<longrightarrow>
+  rpq = rev p @ q & sp = size p & sp' = size p' \<longrightarrow>
           rev p' @ q' = rev p @ q \<longrightarrow> \<langle>q,p,s\<rangle> -1\<rightarrow> \<langle>q',p',t\<rangle>"
-apply(erule exec01.induct)
+apply(induct fixing: p q p' q' set: exec01)
    apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
    apply(drule sym)
    apply simp
@@ -216,6 +219,6 @@ done
 theorem M_eqiv:
 "(\<langle>q,p,s\<rangle> -1\<rightarrow> \<langle>q',p',t\<rangle>) =
  (rev p' @ q' = rev p @ q \<and> rev p @ q \<turnstile> \<langle>size p,s\<rangle> -1\<rightarrow> \<langle>size p',t\<rangle>)"
-by(fast dest:direction1 direction2)
+  by (blast dest: direction1 direction2)
 
 end

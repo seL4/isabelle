@@ -32,7 +32,7 @@ intros
 constdefs wp :: "com => assn => assn"
           "wp c Q == (%s. !t. (s,t) : C(c) --> Q t)"
 
-(*  
+(*
 Soundness (and part of) relative completeness of Hoare rules
 wrt denotational semantics
 *)
@@ -52,7 +52,7 @@ done
 
 lemma hoare_sound: "|- {P}c{Q} ==> |= {P}c{Q}"
 apply (unfold hoare_valid_def)
-apply (erule hoare.induct)
+apply (induct set: hoare)
      apply (simp_all (no_asm_simp))
   apply fast
  apply fast
@@ -80,7 +80,7 @@ apply (rule ext)
 apply fast
 done
 
-lemma wp_If: 
+lemma wp_If:
  "wp (\<IF> b \<THEN> c \<ELSE> d) Q = (%s. (b s --> wp c Q s) &  (~b s --> wp d Q s))"
 apply (unfold wp_def)
 apply (simp (no_asm))
@@ -88,7 +88,7 @@ apply (rule ext)
 apply fast
 done
 
-lemma wp_While_True: 
+lemma wp_While_True:
   "b s ==> wp (\<WHILE> b \<DO> c) Q s = wp (c;\<WHILE> b \<DO> c) Q s"
 apply (unfold wp_def)
 apply (subst C_While_If)
@@ -104,12 +104,11 @@ done
 lemmas [simp] = wp_SKIP wp_Ass wp_Semi wp_If wp_While_True wp_While_False
 
 (*Not suitable for rewriting: LOOPS!*)
-lemma wp_While_if: 
+lemma wp_While_if:
   "wp (\<WHILE> b \<DO> c) Q s = (if b s then wp (c;\<WHILE> b \<DO> c) Q s else Q s)"
-apply (simp (no_asm))
-done
+  by simp
 
-lemma wp_While: "wp (\<WHILE> b \<DO> c) Q s =  
+lemma wp_While: "wp (\<WHILE> b \<DO> c) Q s =
    (s : gfp(%S.{s. if b s then wp c (%s. s:S) s else Q s}))"
 apply (simp (no_asm))
 apply (rule iffI)
@@ -131,18 +130,17 @@ done
 
 declare C_while [simp del]
 
-lemmas [intro!] = hoare.skip hoare.ass hoare.semi hoare.If 
+lemmas [intro!] = hoare.skip hoare.ass hoare.semi hoare.If
 
-lemma wp_is_pre [rule_format (no_asm)]: "!Q. |- {wp c Q} c {Q}"
-apply (induct_tac "c")
+lemma wp_is_pre: "|- {wp c Q} c {Q}"
+apply (induct c fixing: Q)
     apply (simp_all (no_asm))
     apply fast+
  apply (blast intro: hoare_conseq1)
-apply safe
 apply (rule hoare_conseq2)
  apply (rule hoare.While)
  apply (rule hoare_conseq1)
-  prefer 2 apply (fast)
+  prefer 2 apply fast
   apply safe
  apply simp
 apply simp

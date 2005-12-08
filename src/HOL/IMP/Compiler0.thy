@@ -47,7 +47,7 @@ syntax (HTML output)
   "_stepan" :: "[instr list,state,nat,nat,state,nat] \<Rightarrow> bool"
                ("_ |-/ (3\<langle>_,_\<rangle>/ -(_)\<rightarrow> \<langle>_,_\<rangle>)" [50,0,0,0,0,0] 50)
 
-translations  
+translations
   "P \<turnstile> \<langle>s,m\<rangle> -1\<rightarrow> \<langle>t,n\<rangle>" == "((s,m),t,n) : stepa1 P"
   "P \<turnstile> \<langle>s,m\<rangle> -*\<rightarrow> \<langle>t,n\<rangle>" == "((s,m),t,n) : ((stepa1 P)^*)"
   "P \<turnstile> \<langle>s,m\<rangle> -(i)\<rightarrow> \<langle>t,n\<rangle>" == "((s,m),t,n) : ((stepa1 P)^i)"
@@ -80,69 +80,64 @@ declare nth_append[simp]
 
 subsection "Context lifting lemmas"
 
-text {* 
+text {*
   Some lemmas for lifting an execution into a prefix and suffix
   of instructions; only needed for the first proof.
 *}
 lemma app_right_1:
-  assumes A: "is1 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
+  assumes "is1 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
-proof -
- from A show ?thesis
- by induct force+
-qed
+  using prems
+  by induct auto
 
 lemma app_left_1:
-  assumes A: "is2 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
+  assumes "is2 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "is1 @ is2 \<turnstile> \<langle>s1,size is1+i1\<rangle> -1\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
-proof -
- from A show ?thesis
- by induct force+
-qed
+  using prems
+  by induct auto
 
 declare rtrancl_induct2 [induct set: rtrancl]
 
 lemma app_right:
-assumes A: "is1 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
-shows "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
-proof -
- from A show ?thesis
- proof induct
-   show "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s1,i1\<rangle>" by simp
- next
-   fix s1' i1' s2 i2
-   assume "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s1',i1'\<rangle>"
-          "is1 \<turnstile> \<langle>s1',i1'\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
-   thus "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
-     by(blast intro:app_right_1 rtrancl_trans)
- qed
+  assumes "is1 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
+  shows "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
+  using prems
+proof induct
+  show "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s1,i1\<rangle>" by simp
+next
+  fix s1' i1' s2 i2
+  assume "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s1',i1'\<rangle>"
+    and "is1 \<turnstile> \<langle>s1',i1'\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
+  thus "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
+    by (blast intro: app_right_1 rtrancl_trans)
 qed
 
 lemma app_left:
-assumes A: "is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
-shows "is1 @ is2 \<turnstile> \<langle>s1,size is1+i1\<rangle> -*\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
-proof -
-  from A show ?thesis
-  proof induct
-    show "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s1,length is1 + i1\<rangle>" by simp
-  next
-    fix s1' i1' s2 i2
-    assume "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s1',length is1 + i1'\<rangle>"
-           "is2 \<turnstile> \<langle>s1',i1'\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
-    thus "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s2,length is1 + i2\<rangle>"
-      by(blast intro:app_left_1 rtrancl_trans)
- qed
+  assumes "is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
+  shows "is1 @ is2 \<turnstile> \<langle>s1,size is1+i1\<rangle> -*\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
+using prems
+proof induct
+  show "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s1,length is1 + i1\<rangle>" by simp
+next
+  fix s1' i1' s2 i2
+  assume "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s1',length is1 + i1'\<rangle>"
+    and "is2 \<turnstile> \<langle>s1',i1'\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
+  thus "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s2,length is1 + i2\<rangle>"
+    by (blast intro: app_left_1 rtrancl_trans)
 qed
 
 lemma app_left2:
   "\<lbrakk> is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>; j1 = size is1+i1; j2 = size is1+i2 \<rbrakk> \<Longrightarrow>
-   is1 @ is2 \<turnstile> \<langle>s1,j1\<rangle> -*\<rightarrow> \<langle>s2,j2\<rangle>"
-  by (simp add:app_left)
+    is1 @ is2 \<turnstile> \<langle>s1,j1\<rangle> -*\<rightarrow> \<langle>s2,j2\<rangle>"
+  by (simp add: app_left)
 
 lemma app1_left:
-  "is \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle> \<Longrightarrow>
-   instr # is \<turnstile> \<langle>s1,Suc i1\<rangle> -*\<rightarrow> \<langle>s2,Suc i2\<rangle>"
-  by(erule app_left[of _ _ _ _ _ "[instr]",simplified])
+  assumes "is \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
+  shows "instr # is \<turnstile> \<langle>s1,Suc i1\<rangle> -*\<rightarrow> \<langle>s2,Suc i2\<rangle>"
+proof -
+  from app_left [OF prems, of "[instr]"]
+  show ?thesis by simp
+qed
 
 subsection "Compiler correctness"
 
@@ -154,69 +149,68 @@ text {*
   The first proof; The statement is very intuitive,
   but application of induction hypothesis requires the above lifting lemmas
 *}
-theorem assumes A: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-shows "compile c \<turnstile> \<langle>s,0\<rangle> -*\<rightarrow> \<langle>t,length(compile c)\<rangle>" (is "?P c s t")
-proof -
-  from A show ?thesis
-  proof induct
-    show "\<And>s. ?P \<SKIP> s s" by simp
-  next
-    show "\<And>a s x. ?P (x :== a) s (s[x\<mapsto> a s])" by force
-  next
-    fix c0 c1 s0 s1 s2
-    assume "?P c0 s0 s1"
-    hence "compile c0 @ compile c1 \<turnstile> \<langle>s0,0\<rangle> -*\<rightarrow> \<langle>s1,length(compile c0)\<rangle>"
-      by(rule app_right)
-    moreover assume "?P c1 s1 s2"
-    hence "compile c0 @ compile c1 \<turnstile> \<langle>s1,length(compile c0)\<rangle> -*\<rightarrow>
-           \<langle>s2,length(compile c0)+length(compile c1)\<rangle>"
-    proof -
-      show "\<And>is1 is2 s1 s2 i2.
-	      is2 \<turnstile> \<langle>s1,0\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle> \<Longrightarrow>
-	      is1 @ is2 \<turnstile> \<langle>s1,size is1\<rangle> -*\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
-	using app_left[of _ 0] by simp
-    qed
-    ultimately have "compile c0 @ compile c1 \<turnstile> \<langle>s0,0\<rangle> -*\<rightarrow>
-                       \<langle>s2,length(compile c0)+length(compile c1)\<rangle>"
-      by (rule rtrancl_trans)
-    thus "?P (c0; c1) s0 s2" by simp
-  next
-    fix b c0 c1 s0 s1
-    let ?comp = "compile(\<IF> b \<THEN> c0 \<ELSE> c1)"
-    assume "b s0" and IH: "?P c0 s0 s1"
-    hence "?comp \<turnstile> \<langle>s0,0\<rangle> -1\<rightarrow> \<langle>s0,1\<rangle>" by auto
-    also from IH
-    have "?comp \<turnstile> \<langle>s0,1\<rangle> -*\<rightarrow> \<langle>s1,length(compile c0)+1\<rangle>"
-      by(auto intro:app1_left app_right)
-    also have "?comp \<turnstile> \<langle>s1,length(compile c0)+1\<rangle> -1\<rightarrow> \<langle>s1,length ?comp\<rangle>"
-      by(auto)
-    finally show "?P (\<IF> b \<THEN> c0 \<ELSE> c1) s0 s1" .
-  next
-    fix b c0 c1 s0 s1
-    let ?comp = "compile(\<IF> b \<THEN> c0 \<ELSE> c1)"
-    assume "\<not>b s0" and IH: "?P c1 s0 s1"
-    hence "?comp \<turnstile> \<langle>s0,0\<rangle> -1\<rightarrow> \<langle>s0,length(compile c0) + 2\<rangle>" by auto
-    also from IH
-    have "?comp \<turnstile> \<langle>s0,length(compile c0)+2\<rangle> -*\<rightarrow> \<langle>s1,length ?comp\<rangle>"
-      by(force intro!:app_left2 app1_left)
-    finally show "?P (\<IF> b \<THEN> c0 \<ELSE> c1) s0 s1" .
-  next
-    fix b c and s::state
-    assume "\<not>b s"
-    thus "?P (\<WHILE> b \<DO> c) s s" by force
-  next
-    fix b c and s0::state and s1 s2
-    let ?comp = "compile(\<WHILE> b \<DO> c)"
-    assume "b s0" and
-      IHc: "?P c s0 s1" and IHw: "?P (\<WHILE> b \<DO> c) s1 s2"
-    hence "?comp \<turnstile> \<langle>s0,0\<rangle> -1\<rightarrow> \<langle>s0,1\<rangle>" by auto
-    also from IHc
-    have "?comp \<turnstile> \<langle>s0,1\<rangle> -*\<rightarrow> \<langle>s1,length(compile c)+1\<rangle>"
-      by(auto intro:app1_left app_right)
-    also have "?comp \<turnstile> \<langle>s1,length(compile c)+1\<rangle> -1\<rightarrow> \<langle>s1,0\<rangle>" by simp
-    also note IHw
-    finally show "?P (\<WHILE> b \<DO> c) s0 s2".
+theorem
+  assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
+  shows "compile c \<turnstile> \<langle>s,0\<rangle> -*\<rightarrow> \<langle>t,length(compile c)\<rangle>" (is "?P c s t")
+  using prems
+proof induct
+  show "\<And>s. ?P \<SKIP> s s" by simp
+next
+  show "\<And>a s x. ?P (x :== a) s (s[x\<mapsto> a s])" by force
+next
+  fix c0 c1 s0 s1 s2
+  assume "?P c0 s0 s1"
+  hence "compile c0 @ compile c1 \<turnstile> \<langle>s0,0\<rangle> -*\<rightarrow> \<langle>s1,length(compile c0)\<rangle>"
+    by (rule app_right)
+  moreover assume "?P c1 s1 s2"
+  hence "compile c0 @ compile c1 \<turnstile> \<langle>s1,length(compile c0)\<rangle> -*\<rightarrow>
+    \<langle>s2,length(compile c0)+length(compile c1)\<rangle>"
+  proof -
+    show "\<And>is1 is2 s1 s2 i2.
+      is2 \<turnstile> \<langle>s1,0\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle> \<Longrightarrow>
+      is1 @ is2 \<turnstile> \<langle>s1,size is1\<rangle> -*\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
+      using app_left[of _ 0] by simp
   qed
+  ultimately have "compile c0 @ compile c1 \<turnstile> \<langle>s0,0\<rangle> -*\<rightarrow>
+      \<langle>s2,length(compile c0)+length(compile c1)\<rangle>"
+    by (rule rtrancl_trans)
+  thus "?P (c0; c1) s0 s2" by simp
+next
+  fix b c0 c1 s0 s1
+  let ?comp = "compile(\<IF> b \<THEN> c0 \<ELSE> c1)"
+  assume "b s0" and IH: "?P c0 s0 s1"
+  hence "?comp \<turnstile> \<langle>s0,0\<rangle> -1\<rightarrow> \<langle>s0,1\<rangle>" by auto
+  also from IH
+  have "?comp \<turnstile> \<langle>s0,1\<rangle> -*\<rightarrow> \<langle>s1,length(compile c0)+1\<rangle>"
+    by(auto intro:app1_left app_right)
+  also have "?comp \<turnstile> \<langle>s1,length(compile c0)+1\<rangle> -1\<rightarrow> \<langle>s1,length ?comp\<rangle>"
+    by(auto)
+  finally show "?P (\<IF> b \<THEN> c0 \<ELSE> c1) s0 s1" .
+next
+  fix b c0 c1 s0 s1
+  let ?comp = "compile(\<IF> b \<THEN> c0 \<ELSE> c1)"
+  assume "\<not>b s0" and IH: "?P c1 s0 s1"
+  hence "?comp \<turnstile> \<langle>s0,0\<rangle> -1\<rightarrow> \<langle>s0,length(compile c0) + 2\<rangle>" by auto
+  also from IH
+  have "?comp \<turnstile> \<langle>s0,length(compile c0)+2\<rangle> -*\<rightarrow> \<langle>s1,length ?comp\<rangle>"
+    by (force intro!: app_left2 app1_left)
+  finally show "?P (\<IF> b \<THEN> c0 \<ELSE> c1) s0 s1" .
+next
+  fix b c and s::state
+  assume "\<not>b s"
+  thus "?P (\<WHILE> b \<DO> c) s s" by force
+next
+  fix b c and s0::state and s1 s2
+  let ?comp = "compile(\<WHILE> b \<DO> c)"
+  assume "b s0" and
+    IHc: "?P c s0 s1" and IHw: "?P (\<WHILE> b \<DO> c) s1 s2"
+  hence "?comp \<turnstile> \<langle>s0,0\<rangle> -1\<rightarrow> \<langle>s0,1\<rangle>" by auto
+  also from IHc
+  have "?comp \<turnstile> \<langle>s0,1\<rangle> -*\<rightarrow> \<langle>s1,length(compile c)+1\<rangle>"
+    by (auto intro: app1_left app_right)
+  also have "?comp \<turnstile> \<langle>s1,length(compile c)+1\<rangle> -1\<rightarrow> \<langle>s1,0\<rangle>" by simp
+  also note IHw
+  finally show "?P (\<WHILE> b \<DO> c) s0 s2".
 qed
 
 text {*

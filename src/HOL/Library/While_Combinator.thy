@@ -67,8 +67,9 @@ theorem while_unfold [code]:
 
 hide const while_aux
 
-lemma def_while_unfold: assumes fdef: "f == while test do"
-      shows "f x = (if test x then f(do x) else x)"
+lemma def_while_unfold:
+  assumes fdef: "f == while test do"
+  shows "f x = (if test x then f(do x) else x)"
 proof -
   have "f x = while test do x" using fdef by simp
   also have "\<dots> = (if test x then while test do (do x) else x)"
@@ -82,22 +83,16 @@ text {*
  The proof rule for @{term while}, where @{term P} is the invariant.
 *}
 
-theorem while_rule_lemma[rule_format]:
-  "[| !!s. P s ==> b s ==> P (c s);
-      !!s. P s ==> \<not> b s ==> Q s;
-      wf {(t, s). P s \<and> b s \<and> t = c s} |] ==>
-    P s --> Q (while b c s)"
-proof -
-  case rule_context
-  assume wf: "wf {(t, s). P s \<and> b s \<and> t = c s}"
-  show ?thesis
-    apply (induct s rule: wf [THEN wf_induct])
-    apply simp
-    apply clarify
-    apply (subst while_unfold)
-    apply (simp add: rule_context)
-    done
-qed
+theorem while_rule_lemma:
+  assumes invariant: "!!s. P s ==> b s ==> P (c s)"
+    and terminate: "!!s. P s ==> \<not> b s ==> Q s"
+    and wf: "wf {(t, s). P s \<and> b s \<and> t = c s}"
+  shows "P s \<Longrightarrow> Q (while b c s)"
+  apply (induct s rule: wf [THEN wf_induct])
+  apply simp
+  apply (subst while_unfold)
+  apply (simp add: invariant terminate)
+  done
 
 theorem while_rule:
   "[| P s;
@@ -148,7 +143,7 @@ looping because the antisymmetry simproc turns the subset relationship
 back into equality. *}
 
 lemma seteq: "(A = B) = ((!a : A. a:B) & (!b:B. b:A))"
-by blast
+  by blast
 
 theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) =
   P {0, 4, 2}"

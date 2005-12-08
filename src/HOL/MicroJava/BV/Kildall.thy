@@ -159,9 +159,9 @@ lemma (in semilat) list_update_le_listI [rule_format]:
   done
 
 lemma (in semilat) merges_pres_le_ub:
-shows "\<lbrakk> set ts <= A; set ss <= A;
-         \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts; ss <=[r] ts \<rbrakk>
-  \<Longrightarrow> merges f ps ss <=[r] ts"
+  assumes "set ts <= A" and "set ss <= A"
+    and "\<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts" and "ss <=[r] ts"
+  shows "merges f ps ss <=[r] ts"
 proof -
   { fix t ts ps
     have
@@ -182,8 +182,7 @@ proof -
     done 
   } note this [dest]
   
-  case rule_context
-  thus ?thesis by blast
+  from prems show ?thesis by blast
 qed
 
 

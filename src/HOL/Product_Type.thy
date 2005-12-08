@@ -223,14 +223,13 @@ lemma inj_on_Abs_Prod: "inj_on Abs_Prod Prod"
   done
 
 lemma Pair_inject:
-  "(a, b) = (a', b') ==> (a = a' ==> b = b' ==> R) ==> R"
-proof -
-  case rule_context [unfolded Pair_def]
-  show ?thesis
-    apply (rule inj_on_Abs_Prod [THEN inj_onD, THEN Pair_Rep_inject, THEN conjE])
-    apply (rule rule_context ProdI)+
-    .
-qed
+  assumes "(a, b) = (a', b')"
+    and "a = a' ==> b = b' ==> R"
+  shows R
+  apply (insert prems [unfolded Pair_def])
+  apply (rule inj_on_Abs_Prod [THEN inj_onD, THEN Pair_Rep_inject, THEN conjE])
+  apply (assumption | rule ProdI)+
+  done
 
 lemma Pair_eq [iff]: "((a, b) = (a', b')) = (a = a' & b = b')"
   by (blast elim!: Pair_inject)
@@ -507,11 +506,11 @@ lemma mem_splitI: "z: c a b ==> z: split c (a, b)"
 lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: split c p"
 by (simp only: split_tupled_all, simp)
 
-lemma mem_splitE: "[| z: split c p; !!x y. [| p = (x,y); z: c x y |] ==> Q |] ==> Q"
-proof -
-  case rule_context [unfolded split_def]
-  show ?thesis by (rule rule_context surjective_pairing)+
-qed
+lemma mem_splitE:
+  assumes major: "z: split c p"
+    and cases: "!!x y. [| p = (x,y); z: c x y |] ==> Q"
+  shows Q
+  by (rule major [unfolded split_def] cases surjective_pairing)+
 
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
@@ -533,15 +532,14 @@ change_claset (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac));
 *}
 
 lemma split_eta_SetCompr [simp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
-by (rule ext, fast)
+  by (rule ext) fast
 
 lemma split_eta_SetCompr2 [simp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
-by (rule ext, fast)
+  by (rule ext) fast
 
 lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
   -- {* Allows simplifications of nested splits in case of independent predicates. *}
-  apply (rule ext, blast)
-  done
+  by (rule ext) blast
 
 (* Do NOT make this a simp rule as it
    a) only helps in special situations
@@ -549,7 +547,7 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
 *)
 lemma split_comp_eq: 
 "(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
-by (rule ext, auto)
+  by (rule ext) auto
 
 lemma The_split_eq [simp]: "(THE (x',y'). x = x' & y = y') = (x, y)"
   by blast
@@ -595,20 +593,15 @@ lemma prod_fun_imageI [intro]: "(a, b) : r ==> (f a, g b) : prod_fun f g ` r"
   done
 
 lemma prod_fun_imageE [elim!]:
-  "[| c: (prod_fun f g)`r;  !!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P
-    |] ==> P"
-proof -
-  case rule_context
-  assume major: "c: (prod_fun f g)`r"
-  show ?thesis
-    apply (rule major [THEN imageE])
-    apply (rule_tac p = x in PairE)
-    apply (rule rule_context)
-     prefer 2
-     apply blast
-    apply (blast intro: prod_fun)
-    done
-qed
+  assumes major: "c: (prod_fun f g)`r"
+    and cases: "!!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P"
+  shows P
+  apply (rule major [THEN imageE])
+  apply (rule_tac p = x in PairE)
+  apply (rule cases)
+   apply (blast intro: prod_fun)
+  apply blast
+  done
 
 
 constdefs
@@ -619,10 +612,10 @@ constdefs
  "upd_snd f == prod_fun id f"
 
 lemma upd_fst_conv [simp]: "upd_fst f (x,y) = (f x,y)" 
-by (simp add: upd_fst_def)
+  by (simp add: upd_fst_def)
 
 lemma upd_snd_conv [simp]: "upd_snd f (x,y) = (x,f y)" 
-by (simp add: upd_snd_def)
+  by (simp add: upd_snd_def)
 
 text {*
   \bigskip Disjoint union of a family of sets -- Sigma.
@@ -644,10 +637,10 @@ text {*
 *}
 
 lemma SigmaD1: "(a, b) : Sigma A B ==> a : A"
-by blast
+  by blast
 
 lemma SigmaD2: "(a, b) : Sigma A B ==> b : B a"
-by blast
+  by blast
 
 lemma SigmaE2:
     "[| (a, b) : Sigma A B;
@@ -658,7 +651,7 @@ lemma SigmaE2:
 lemma Sigma_cong:
      "\<lbrakk>A = B; !!x. x \<in> B \<Longrightarrow> C x = D x\<rbrakk>
       \<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
-by auto
+  by auto
 
 lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D"
   by blast

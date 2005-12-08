@@ -257,15 +257,14 @@ apply blast
 done
 
 lemma OK_plus_OK_eq_Err_conv [simp]:
-  "\<lbrakk> x:A; y:A; semilat(err A, le r, fe) \<rbrakk> \<Longrightarrow> 
-  ((OK x) +_fe (OK y) = Err) = (~(? z:A. x <=_r z & y <=_r z))"
+  assumes "x:A" and "y:A" and "semilat(err A, le r, fe)"
+  shows "((OK x) +_fe (OK y) = Err) = (~(? z:A. x <=_r z & y <=_r z))"
 proof -
   have plus_le_conv3: "\<And>A x y z f r. 
     \<lbrakk> semilat (A,r,f); x +_f y <=_r z; x:A; y:A; z:A \<rbrakk> 
     \<Longrightarrow> x <=_r z \<and> y <=_r z"
     by (rule semilat.plus_le_conv [THEN iffD1])
-  case rule_context
-  thus ?thesis
+  from prems show ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])

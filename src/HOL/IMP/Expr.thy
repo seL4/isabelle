@@ -134,12 +134,11 @@ lemma [simp]:
   by (rule,cases set: evalb) auto
 
 
-lemma aexp_iff:
-  "!!n. ((a,s) -a-> n) = (A a s = n)"
-  by (induct a) auto
+lemma aexp_iff: "((a,s) -a-> n) = (A a s = n)"
+  by (induct a fixing: n) auto
 
 lemma bexp_iff:
-  "!!w. ((b,s) -b-> w) = (B b s = w)"
-  by (induct b) (auto simp add: aexp_iff)
+  "((b,s) -b-> w) = (B b s = w)"
+  by (induct b fixing: w) (auto simp add: aexp_iff)
 
 end

@@ -28,14 +28,14 @@ primrec
   "awp Askip Q = Q"
   "awp (Aass x a) Q = (\<lambda>s. Q(s[x\<mapsto>a s]))"
   "awp (Asemi c d) Q = awp c (awp d Q)"
-  "awp (Aif b c d) Q = (\<lambda>s. (b s-->awp c Q s) & (~b s-->awp d Q s))" 
+  "awp (Aif b c d) Q = (\<lambda>s. (b s-->awp c Q s) & (~b s-->awp d Q s))"
   "awp (Awhile b I c) Q = I"
 
 primrec
   "vc Askip Q = (\<lambda>s. True)"
   "vc (Aass x a) Q = (\<lambda>s. True)"
   "vc (Asemi c d) Q = (\<lambda>s. vc c (awp d Q) s & vc d Q s)"
-  "vc (Aif b c d) Q = (\<lambda>s. vc c Q s & vc d Q s)" 
+  "vc (Aif b c d) Q = (\<lambda>s. vc c Q s & vc d Q s)"
   "vc (Awhile b I c) Q = (\<lambda>s. (I s & ~b s --> Q s) &
                               (I s & b s --> awp c I s) & vc c I s)"
 
@@ -69,49 +69,50 @@ declare hoare.intros [intro]
 
 lemma l: "!s. P s --> P s" by fast
 
-lemma vc_sound: "!Q. (!s. vc c Q s) --> |- {awp c Q} astrip c {Q}"
-apply (induct_tac "c")
+lemma vc_sound: "(!s. vc c Q s) --> |- {awp c Q} astrip c {Q}"
+apply (induct c fixing: Q)
     apply (simp_all (no_asm))
     apply fast
    apply fast
   apply fast
  (* if *)
+ apply atomize
  apply (tactic "Deepen_tac 4 1")
 (* while *)
-apply (intro allI impI) 
+apply atomize
+apply (intro allI impI)
 apply (rule conseq)
   apply (rule l)
  apply (rule While)
  defer
  apply fast
-apply (rule_tac P="awp acom fun2" in conseq)
+apply (rule_tac P="awp c fun2" in conseq)
   apply fast
  apply fast
 apply fast
 done
 
-lemma awp_mono [rule_format (no_asm)]: 
+lemma awp_mono [rule_format (no_asm)]:
   "!P Q. (!s. P s --> Q s) --> (!s. awp c P s --> awp c Q s)"
-apply (induct_tac "c")
+apply (induct c)
     apply (simp_all (no_asm_simp))
 apply (rule allI, rule allI, rule impI)
 apply (erule allE, erule allE, erule mp)
 apply (erule allE, erule allE, erule mp, assumption)
 done
 
-
-lemma vc_mono [rule_format (no_asm)]: 
+lemma vc_mono [rule_format (no_asm)]:
   "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)"
-apply (induct_tac "c")
+apply (induct c)
     apply (simp_all (no_asm_simp))
 apply safe
-apply (erule allE,erule allE,erule impE,erule_tac [2] allE,erule_tac [2] mp) 
+apply (erule allE,erule allE,erule impE,erule_tac [2] allE,erule_tac [2] mp)
 prefer 2 apply assumption
 apply (fast elim: awp_mono)
 done
 
 lemma vc_complete: assumes der: "|- {P}c{Q}"
-  shows "(? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> awp ac Q s))"
+  shows "(\<exists>ac. astrip ac = c & (\<forall>s. vc ac Q s) & (\<forall>s. P s --> awp ac Q s))"
   (is "? ac. ?Eq P c Q ac")
 using der
 proof induct
@@ -149,9 +150,7 @@ next
   case conseq thus ?case by(fast elim!: awp_mono vc_mono)
 qed
 
-lemma vcawp_vc_awp: "!Q. vcawp c Q = (vc c Q, awp c Q)"
-apply (induct_tac "c")
-apply (simp_all (no_asm_simp) add: Let_def)
-done
+lemma vcawp_vc_awp: "vcawp c Q = (vc c Q, awp c Q)"
+  by (induct c fixing: Q) (simp_all add: Let_def)
 
 end

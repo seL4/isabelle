@@ -255,16 +255,16 @@ lemma access_some_lookup:
     lookup root path = Some file"
   by (simp add: access_def split: option.splits if_splits)
 
-lemma access_update_other: "path' \<parallel> path \<Longrightarrow>
-  access (update path' opt root) path uid perms = access root path uid perms"
+lemma access_update_other:
+  assumes parallel: "path' \<parallel> path"
+  shows "access (update path' opt root) path uid perms = access root path uid perms"
 proof -
-  assume "path' \<parallel> path"
-  then obtain y z xs ys zs where
+  from parallel obtain y z xs ys zs where
       "y \<noteq> z" and "path' = xs @ y # ys" and "path = xs @ z # zs"
     by (blast dest: parallel_decomp)
-  hence "lookup (update path' opt root) path = lookup root path"
+  then have "lookup (update path' opt root) path = lookup root path"
     by (blast intro: lookup_update_other)
-  thus ?thesis by (simp only: access_def)
+  then show ?thesis by (simp only: access_def)
 qed
 
 
@@ -437,36 +437,35 @@ text {*
   relation.
 *}
 
-theorem transition_uniq: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root \<midarrow>x\<rightarrow> root'' \<Longrightarrow> root' = root''"
-proof -
-  assume root: "root \<midarrow>x\<rightarrow> root'"
-  assume "root \<midarrow>x\<rightarrow> root''"
-  thus "root' = root''"
-  proof cases
-    case read
-    with root show ?thesis by cases auto
-  next
-    case write
-    with root show ?thesis by cases auto
-  next
-    case chmod
-    with root show ?thesis by cases auto
-  next
-    case creat
-    with root show ?thesis by cases auto
-  next
-    case unlink
-    with root show ?thesis by cases auto
-  next
-    case mkdir
-    with root show ?thesis by cases auto
-  next
-    case rmdir
-    with root show ?thesis by cases auto
-  next
-    case readdir
-    with root show ?thesis by cases fastsimp+
-  qed
+theorem transition_uniq:
+  assumes root': "root \<midarrow>x\<rightarrow> root'"
+    and root'': "root \<midarrow>x\<rightarrow> root''"
+  shows "root' = root''"
+  using root''
+proof cases
+  case read
+  with root' show ?thesis by cases auto
+next
+  case write
+  with root' show ?thesis by cases auto
+next
+  case chmod
+  with root' show ?thesis by cases auto
+next
+  case creat
+  with root' show ?thesis by cases auto
+next
+  case unlink
+  with root' show ?thesis by cases auto
+next
+  case mkdir
+  with root' show ?thesis by cases auto
+next
+  case rmdir
+  with root' show ?thesis by cases auto
+next
+  case readdir
+  with root' show ?thesis by cases fastsimp+
 qed
 
 text {*
@@ -476,24 +475,20 @@ text {*
 *}
 
 theorem transition_type_safe:
-  "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> \<exists>att dir. root = Env att dir
-    \<Longrightarrow> \<exists>att dir. root' = Env att dir"
-proof -
-  assume tr: "root \<midarrow>x\<rightarrow> root'"
-  assume inv: "\<exists>att dir. root = Env att dir"
-  show ?thesis
-  proof (cases "path_of x")
-    case Nil
-    with tr inv show ?thesis
-      by cases (auto simp add: access_def split: if_splits)
-  next
-    case Cons
-    from tr obtain opt where
-        "root' = root \<or> root' = update (path_of x) opt root"
-      by cases auto
-    with inv Cons show ?thesis
-      by (auto simp add: update_eq split: list.splits)
-  qed
+  assumes tr: "root \<midarrow>x\<rightarrow> root'"
+    and inv: "\<exists>att dir. root = Env att dir"
+  shows "\<exists>att dir. root' = Env att dir"
+proof (cases "path_of x")
+  case Nil
+  with tr inv show ?thesis
+    by cases (auto simp add: access_def split: if_splits)
+next
+  case Cons
+  from tr obtain opt where
+      "root' = root \<or> root' = update (path_of x) opt root"
+    by cases auto
+  with inv Cons show ?thesis
+    by (auto simp add: update_eq split: list.splits)
 qed
 
 text {*
@@ -539,21 +534,21 @@ text {*
 lemma transitions_nil_eq: "root =[]\<Rightarrow> root' = (root = root')"
 proof
   assume "root =[]\<Rightarrow> root'"
-  thus "root = root'" by cases simp_all
+  then show "root = root'" by cases simp_all
 next
   assume "root = root'"
-  thus "root =[]\<Rightarrow> root'" by (simp only: transitions.nil)
+  then show "root =[]\<Rightarrow> root'" by (simp only: transitions.nil)
 qed
 
 lemma transitions_cons_eq:
   "root =(x # xs)\<Rightarrow> root'' = (\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root'')"
 proof
   assume "root =(x # xs)\<Rightarrow> root''"
-  thus "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root''"
+  then show "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root''"
     by cases auto
 next
   assume "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root''"
-  thus "root =(x # xs)\<Rightarrow> root''"
+  then show "root =(x # xs)\<Rightarrow> root''"
     by (blast intro: transitions.cons)
 qed
 
@@ -568,13 +563,13 @@ lemma transitions_nilD: "root =[]\<Rightarrow> root' \<Longrightarrow> root' = r
   by (simp add: transitions_nil_eq)
 
 lemma transitions_consD:
-  "root =(x # xs)\<Rightarrow> root'' \<Longrightarrow> root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root''"
+  assumes list: "root =(x # xs)\<Rightarrow> root''"
+    and hd: "root \<midarrow>x\<rightarrow> root'"
+  shows "root' =xs\<Rightarrow> root''"
 proof -
-  assume "root =(x # xs)\<Rightarrow> root''"
-  then obtain r' where r': "root \<midarrow>x\<rightarrow> r'" and root'': "r' =xs\<Rightarrow> root''"
+  from list obtain r' where r': "root \<midarrow>x\<rightarrow> r'" and root'': "r' =xs\<Rightarrow> root''"
     by cases simp_all
-  assume "root \<midarrow>x\<rightarrow> root'"
-  with r' have "r' = root'" by (rule transition_uniq)
+  from r' hd have "r' = root'" by (rule transition_uniq)
   with root'' show "root' =xs\<Rightarrow> root''" by simp
 qed
 
@@ -586,26 +581,20 @@ text {*
 *}
 
 lemma transitions_invariant:
-  "(\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow>  P x \<Longrightarrow> Q r') \<Longrightarrow>
-    root =xs\<Rightarrow> root' \<Longrightarrow> Q root \<Longrightarrow> \<forall>x \<in> set xs. P x \<Longrightarrow> Q root'"
-proof -
-  assume r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow>  P x \<Longrightarrow> Q r'"
-  assume "root =xs\<Rightarrow> root'"
-  thus "Q root \<Longrightarrow> (\<forall>x \<in> set xs. P x) \<Longrightarrow> Q root'" (is "PROP ?P root xs root'")
-  proof (induct root xs root')
-    fix root assume "Q root"
-    thus "Q root" .
-  next
-    fix root root' root'' and x xs
-    assume root': "root \<midarrow>x\<rightarrow> root'"
-    assume hyp: "PROP ?P root' xs root''"
-    assume Q: "Q root"
-    assume P: "\<forall>x \<in> set (x # xs). P x"
-    hence "P x" by simp
-    with root' Q have Q': "Q root'" by (rule r)
-    from P have "\<forall>x \<in> set xs. P x" by simp
-    with Q' show "Q root''" by (rule hyp)
-  qed
+  assumes r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow>  P x \<Longrightarrow> Q r'"
+    and trans: "root =xs\<Rightarrow> root'"
+  shows "Q root \<Longrightarrow> \<forall>x \<in> set xs. P x \<Longrightarrow> Q root'"
+  using trans
+proof induct
+  case nil
+  show ?case by assumption
+next
+  case (cons root root' root'' x xs)
+  note P = `\<forall>x \<in> set (x # xs). P x`
+  then have "P x" by simp
+  with `root \<midarrow>x\<rightarrow> root'` and `Q root` have Q': "Q root'" by (rule r)
+  from P have "\<forall>x \<in> set xs. P x" by simp
+  with Q' show "Q root''" by (rule cons.hyps)
 qed
 
 text {*
@@ -675,31 +664,23 @@ text {*
   executed we may destruct it backwardly into individual transitions.
 *}
 
-lemma can_exec_snocD: "\<And>root. can_exec root (xs @ [y])
+lemma can_exec_snocD: "can_exec root (xs @ [y])
     \<Longrightarrow> \<exists>root' root''. root =xs\<Rightarrow> root' \<and> root' \<midarrow>y\<rightarrow> root''"
-  (is "PROP ?P xs" is "\<And>root. ?A root xs \<Longrightarrow> ?C root xs")
-proof (induct xs)
-  fix root
-  {
-    assume "?A root []"
-    thus "?C root []"
-      by (simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
-  next
-    fix x xs
-    assume hyp: "PROP ?P xs"
-    assume asm: "?A root (x # xs)"
-    show "?C root (x # xs)"
-    proof -
-      from asm obtain r root'' where x: "root \<midarrow>x\<rightarrow> r" and
-          xs_y: "r =(xs @ [y])\<Rightarrow> root''"
-        by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
-      from xs_y hyp obtain root' r' where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
-        by (unfold can_exec_def) blast
-      from x xs have "root =(x # xs)\<Rightarrow> root'"
-        by (rule transitions.cons)
-      with y show ?thesis by blast
-    qed
-  }
+proof (induct xs fixing: root)
+  case Nil
+  then show ?case
+    by (simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
+next
+  case (Cons x xs)
+  from `can_exec root ((x # xs) @ [y])` obtain r root'' where
+      x: "root \<midarrow>x\<rightarrow> r" and
+      xs_y: "r =(xs @ [y])\<Rightarrow> root''"
+    by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
+  from xs_y Cons.hyps obtain root' r' where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
+    by (unfold can_exec_def) blast
+  from x xs have "root =(x # xs)\<Rightarrow> root'"
+    by (rule transitions.cons)
+  with y show ?case by blast
 qed
 
 
@@ -803,16 +784,12 @@ text {*
 *}
 
 theorem general_procedure:
-  "(\<And>r r'. Q r \<Longrightarrow> r \<midarrow>y\<rightarrow> r' \<Longrightarrow> False) \<Longrightarrow>
-    (\<And>root. init users =bs\<Rightarrow> root \<Longrightarrow> Q root) \<Longrightarrow>
-    (\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow>  P x \<Longrightarrow> Q r') \<Longrightarrow>
-    init users =bs\<Rightarrow> root \<Longrightarrow>
-      \<not> (\<exists>xs. (\<forall>x \<in> set xs. P x) \<and> can_exec root (xs @ [y]))"
+  assumes cannot_y: "\<And>r r'. Q r \<Longrightarrow> r \<midarrow>y\<rightarrow> r' \<Longrightarrow> False"
+    and init_inv: "\<And>root. init users =bs\<Rightarrow> root \<Longrightarrow> Q root"
+    and preserve_inv: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow> P x \<Longrightarrow> Q r'"
+    and init_result: "init users =bs\<Rightarrow> root"
+  shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. P x) \<and> can_exec root (xs @ [y]))"
 proof -
-  assume cannot_y: "\<And>r r'. Q r \<Longrightarrow> r \<midarrow>y\<rightarrow> r' \<Longrightarrow> False"
-  assume init_inv: "\<And>root. init users =bs\<Rightarrow> root \<Longrightarrow> Q root"
-  assume preserve_inv: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow> P x \<Longrightarrow> Q r'"
-  assume init_result: "init users =bs\<Rightarrow> root"
   {
     fix xs
     assume Ps: "\<forall>x \<in> set xs. P x"
@@ -825,7 +802,7 @@ proof -
       by (rule transitions_invariant)
     from this y have False by (rule cannot_y)
   }
-  thus ?thesis by blast
+  then show ?thesis by blast
 qed
 
 text {*
@@ -930,38 +907,36 @@ text {*
   we just have to inspect rather special cases.
 *}
 
-lemma (in invariant)
-  cannot_rmdir: "invariant root bogus_path \<Longrightarrow>
-    root \<midarrow>(Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1])\<rightarrow> root' \<Longrightarrow> False"
+lemma (in invariant) cannot_rmdir:
+  assumes inv: "invariant root bogus_path"
+    and rmdir: "root \<midarrow>(Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1])\<rightarrow> root'"
+  shows False
 proof -
-  assume "invariant root bogus_path"
-  then obtain "file" where "access root bogus_path user\<^isub>1 {} = Some file"
+  from inv obtain "file" where "access root bogus_path user\<^isub>1 {} = Some file"
     by (unfold invariant_def) blast
   moreover
-  assume "root \<midarrow>(Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1])\<rightarrow> root'"
-  then obtain att where
+  from rmdir obtain att where
       "access root [user\<^isub>1, name\<^isub>1] user\<^isub>1 {} = Some (Env att empty)"
     by cases auto
-  hence "access root ([user\<^isub>1, name\<^isub>1] @ [name\<^isub>2]) user\<^isub>1 {} = empty name\<^isub>2"
+  then have "access root ([user\<^isub>1, name\<^isub>1] @ [name\<^isub>2]) user\<^isub>1 {} = empty name\<^isub>2"
     by (simp only: access_empty_lookup lookup_append_some) simp
   ultimately show False by (simp add: bogus_path_def)
 qed
 
 lemma (in invariant)
-  init_invariant: "init users =bogus\<Rightarrow> root \<Longrightarrow> invariant root bogus_path"
-proof -
-  note eval = facts access_def init_def
-  case rule_context thus ?thesis
-    apply (unfold bogus_def bogus_path_def)
-    apply (drule transitions_consD, rule transition.intros,
+  assumes init: "init users =bogus\<Rightarrow> root"
+  notes eval = facts access_def init_def
+  shows init_invariant: "invariant root bogus_path"
+  using init
+  apply (unfold bogus_def bogus_path_def)
+  apply (drule transitions_consD, rule transition.intros,
       (force simp add: eval)+, (simp add: eval)?)+
-      -- "evaluate all operations"
-    apply (drule transitions_nilD)
-      -- "reach final result"
-    apply (simp add: invariant_def eval)
-      -- "check the invariant"
-    done
-qed
+    -- "evaluate all operations"
+  apply (drule transitions_nilD)
+    -- "reach final result"
+  apply (simp add: invariant_def eval)
+    -- "check the invariant"
+  done
 
 text {*
   \medskip At last we are left with the main effort to show that the
@@ -971,14 +946,12 @@ text {*
   required here.
 *}
 
-lemma (in invariant)
-  preserve_invariant: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow>
-    invariant root path \<Longrightarrow> uid_of x = user\<^isub>1 \<Longrightarrow> invariant root' path"
+lemma (in invariant) preserve_invariant:
+  assumes tr: "root \<midarrow>x\<rightarrow> root'"
+    and inv: "invariant root path"
+    and uid: "uid_of x = user\<^isub>1"
+  shows "invariant root' path"
 proof -
-  assume tr: "root \<midarrow>x\<rightarrow> root'"
-  assume inv: "invariant root path"
-  assume uid: "uid_of x = user\<^isub>1"
-
   from inv obtain att dir where
       inv1: "access root path user\<^isub>1 {} = Some (Env att dir)" and
       inv2: "dir \<noteq> empty" and
@@ -1019,7 +992,7 @@ proof -
         with tr uid inv2 inv3 lookup changed path and user\<^isub>1_not_root
         have False
           by cases (auto simp add: access_empty_lookup dest: access_some_lookup)
-        thus ?thesis ..
+        then show ?thesis ..
       next
         fix z zs assume ys: "ys = z # zs"
         have "lookup root' path = lookup root path"
@@ -1085,7 +1058,7 @@ proof -
               have "lookup root ((path @ [y]) @ (us @ [u])) \<noteq> None \<or>
                   lookup root ((path @ [y]) @ us) \<noteq> None"
                 by cases (auto dest: access_some_lookup)
-              thus ?thesis by (blast dest!: lookup_some_append)
+              then show ?thesis by (blast dest!: lookup_some_append)
             qed
             finally show ?thesis .
           qed

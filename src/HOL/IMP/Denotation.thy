@@ -12,9 +12,9 @@ types com_den = "(state\<times>state)set"
 
 constdefs
   Gamma :: "[bexp,com_den] => (com_den => com_den)"
-  "Gamma b cd == (\<lambda>phi. {(s,t). (s,t) \<in> (phi O cd) \<and> b s} \<union> 
+  "Gamma b cd == (\<lambda>phi. {(s,t). (s,t) \<in> (phi O cd) \<and> b s} \<union>
                        {(s,t). s=t \<and> \<not>b s})"
-    
+
 consts
   C :: "com => com_den"
 
@@ -33,7 +33,7 @@ lemma Gamma_mono: "mono (Gamma b c)"
   by (unfold Gamma_def mono_def) fast
 
 lemma C_While_If: "C(\<WHILE> b \<DO> c) = C(\<IF> b \<THEN> c;\<WHILE> b \<DO> c \<ELSE> \<SKIP>)"
-apply (simp (no_asm)) 
+apply simp
 apply (subst lfp_unfold [OF Gamma_mono])  --{*lhs only*}
 apply (simp add: Gamma_def)
 done
@@ -42,7 +42,7 @@ done
 
 lemma com1: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t \<Longrightarrow> (s,t) \<in> C(c)"
 (* start with rule induction *)
-apply (erule evalc.induct)
+apply (induct set: evalc)
 apply auto
 (* while *)
 apply (unfold Gamma_def)
@@ -54,15 +54,14 @@ done
 
 (* Denotational Semantics implies Operational Semantics *)
 
-lemma com2 [rule_format]: "\<forall>s t. (s,t)\<in>C(c) \<longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-apply (induct_tac "c")
+lemma com2: "(s,t) \<in> C(c) \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
+apply (induct c fixing: s t)
 
-apply (simp_all (no_asm_use))
+apply simp_all
 apply fast
 apply fast
 
 (* while *)
-apply (intro strip)
 apply (erule lfp_induct [OF _ Gamma_mono])
 apply (unfold Gamma_def)
 apply fast
@@ -72,7 +71,6 @@ done
 (**** Proof of Equivalence ****)
 
 lemma denotational_is_natural: "(s,t) \<in> C(c)  =  (\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t)"
-apply (fast elim: com2 dest: com1)
-done
+  by (fast elim: com2 dest: com1)
 
 end

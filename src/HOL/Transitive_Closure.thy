@@ -81,7 +81,7 @@ qed
 lemmas rtrancl_induct2 =
   rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
- 
+
 lemma trans_rtrancl: "trans(r^*)"
   -- {* transitivity of transitive closure!! -- by induction *}
 proof (rule transI)
@@ -94,21 +94,17 @@ qed
 lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
 
 lemma rtranclE:
-  "[| (a::'a,b) : r^*;  (a = b) ==> P;
-      !!y.[| (a,y) : r^*; (y,b) : r |] ==> P
-   |] ==> P"
+  assumes major: "(a::'a,b) : r^*"
+    and cases: "(a = b) ==> P"
+      "!!y. [| (a,y) : r^*; (y,b) : r |] ==> P"
+  shows P
   -- {* elimination of @{text rtrancl} -- by induction on a special formula *}
-proof -
-  assume major: "(a::'a,b) : r^*"
-  case rule_context
-  show ?thesis
-    apply (subgoal_tac "(a::'a) = b | (EX y. (a,y) : r^* & (y,b) : r)")
-     apply (rule_tac [2] major [THEN rtrancl_induct])
-      prefer 2 apply (blast!)
-      prefer 2 apply (blast!)
-    apply (erule asm_rl exE disjE conjE prems)+
-    done
-qed
+  apply (subgoal_tac "(a::'a) = b | (EX y. (a,y) : r^* & (y,b) : r)")
+   apply (rule_tac [2] major [THEN rtrancl_induct])
+    prefer 2 apply blast
+   prefer 2 apply blast
+  apply (erule asm_rl exE disjE conjE cases)+
+  done
 
 lemma converse_rtrancl_into_rtrancl:
   "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> r\<^sup>* \<Longrightarrow> (a, c) \<in> r\<^sup>*"
@@ -187,21 +183,16 @@ lemmas converse_rtrancl_induct2 =
                  consumes 1, case_names refl step]
 
 lemma converse_rtranclE:
-  "[| (x,z):r^*;
-      x=z ==> P;
-      !!y. [| (x,y):r; (y,z):r^* |] ==> P
-   |] ==> P"
-proof -
-  assume major: "(x,z):r^*"
-  case rule_context
-  show ?thesis
-    apply (subgoal_tac "x = z | (EX y. (x,y) : r & (y,z) : r^*)")
-     apply (rule_tac [2] major [THEN converse_rtrancl_induct])
-      prefer 2 apply iprover
-     prefer 2 apply iprover
-    apply (erule asm_rl exE disjE conjE prems)+
-    done
-qed
+  assumes major: "(x,z):r^*"
+    and cases: "x=z ==> P"
+      "!!y. [| (x,y):r; (y,z):r^* |] ==> P"
+  shows P
+  apply (subgoal_tac "x = z | (EX y. (x,y) : r & (y,z) : r^*)")
+   apply (rule_tac [2] major [THEN converse_rtrancl_induct])
+    prefer 2 apply iprover
+   prefer 2 apply iprover
+  apply (erule asm_rl exE disjE conjE cases)+
+  done
 
 ML_setup {*
   bind_thm ("converse_rtranclE2", split_rule
@@ -258,17 +249,12 @@ proof -
 qed
 
 lemma trancl_trans_induct:
-  "[| (x,y) : r^+;
-      !!x y. (x,y) : r ==> P x y;
-      !!x y z. [| (x,y) : r^+; P x y; (y,z) : r^+; P y z |] ==> P x z
-   |] ==> P x y"
+  assumes major: "(x,y) : r^+"
+    and cases: "!!x y. (x,y) : r ==> P x y"
+      "!!x y z. [| (x,y) : r^+; P x y; (y,z) : r^+; P y z |] ==> P x z"
+  shows "P x y"
   -- {* Another induction rule for trancl, incorporating transitivity *}
-proof -
-  assume major: "(x,y) : r^+"
-  case rule_context
-  show ?thesis
-    by (iprover intro: r_into_trancl major [THEN trancl_induct] prems)
-qed
+  by (iprover intro: r_into_trancl major [THEN trancl_induct] cases)
 
 inductive_cases tranclE: "(a, b) : r^+"
 
@@ -279,9 +265,9 @@ lemma trans_trancl: "trans(r^+)"
   -- {* Transitivity of @{term "r^+"} *}
 proof (rule transI)
   fix x y z
-  assume "(x, y) \<in> r^+"
+  assume xy: "(x, y) \<in> r^+"
   assume "(y, z) \<in> r^+"
-  thus "(x, z) \<in> r^+" by induct (iprover!)+
+  thus "(x, z) \<in> r^+" by induct (insert xy, iprover)+
 qed
 
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
@@ -323,19 +309,15 @@ lemma trancl_converse: "(r^-1)^+ = (r^+)^-1"
     intro!: trancl_converseI trancl_converseD)
 
 lemma converse_trancl_induct:
-  "[| (a,b) : r^+; !!y. (y,b) : r ==> P(y);
-      !!y z.[| (y,z) : r;  (z,b) : r^+;  P(z) |] ==> P(y) |]
-    ==> P(a)"
-proof -
-  assume major: "(a,b) : r^+"
-  case rule_context
-  show ?thesis
-    apply (rule major [THEN converseI, THEN trancl_converseI [THEN trancl_induct]])
-     apply (rule prems)
-     apply (erule converseD)
-    apply (blast intro: prems dest!: trancl_converseD)
-    done
-qed
+  assumes major: "(a,b) : r^+"
+    and cases: "!!y. (y,b) : r ==> P(y)"
+      "!!y z.[| (y,z) : r;  (z,b) : r^+;  P(z) |] ==> P(y)"
+  shows "P a"
+  apply (rule major [THEN converseI, THEN trancl_converseI [THEN trancl_induct]])
+   apply (rule cases)
+   apply (erule converseD)
+  apply (blast intro: prems dest!: trancl_converseD)
+  done
 
 lemma tranclD: "(x, y) \<in> R^+ ==> EX z. (x, z) \<in> R \<and> (z, y) \<in> R^*"
   apply (erule converse_trancl_induct, auto)
@@ -343,15 +325,14 @@ lemma tranclD: "(x, y) \<in> R^+ ==> EX z. (x, z) \<in> R \<and> (z, y) \<in> R^
   done
 
 lemma irrefl_tranclI: "r^-1 \<inter> r^* = {} ==> (x, x) \<notin> r^+"
-by(blast elim: tranclE dest: trancl_into_rtrancl)
+  by (blast elim: tranclE dest: trancl_into_rtrancl)
 
 lemma irrefl_trancl_rD: "!!X. ALL x. (x, x) \<notin> r^+ ==> (x, y) \<in> r ==> x \<noteq> y"
   by (blast dest: r_into_trancl)
 
 lemma trancl_subset_Sigma_aux:
     "(a, b) \<in> r^* ==> r \<subseteq> A \<times> A ==> a = b \<or> a \<in> A"
-  apply (erule rtrancl_induct, auto)
-  done
+  by (induct rule: rtrancl_induct) auto
 
 lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A ==> r^+ \<subseteq> A \<times> A"
   apply (rule subsetI)
@@ -477,16 +458,16 @@ structure Trancl_Tac = Trancl_Tac_Fun (
     val trancl_rtrancl_trancl = thm "trancl_rtrancl_trancl";
     val rtrancl_trans = thm "rtrancl_trans";
 
-  fun decomp (Trueprop $ t) = 
-    let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) = 
-	let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
-	      | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
-	      | decr r = (r,"r");
-	    val (rel,r) = decr rel;
-	in SOME (a,b,rel,r) end
-      | dec _ =  NONE 
+  fun decomp (Trueprop $ t) =
+    let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) =
+        let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
+              | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
+              | decr r = (r,"r");
+            val (rel,r) = decr rel;
+        in SOME (a,b,rel,r) end
+      | dec _ =  NONE
     in dec t end;
-  
+
   end); (* struct *)
 
 change_simpset (fn ss => ss
@@ -499,7 +480,7 @@ change_simpset (fn ss => ss
 
 method_setup trancl =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trancl_tac)) *}
-  {* simple transitivity reasoner *}	    
+  {* simple transitivity reasoner *}
 method_setup rtrancl =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (rtrancl_tac)) *}
   {* simple transitivity reasoner *}

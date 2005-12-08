@@ -163,15 +163,13 @@ text {*
 *}
 
 theorem quot_cond_function:
-  "(!!X Y. P X Y ==> f X Y == g (pick X) (pick Y)) ==>
-    (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor>
-      ==> P \<lfloor>x\<rfloor> \<lfloor>y\<rfloor> ==> P \<lfloor>x'\<rfloor> \<lfloor>y'\<rfloor> ==> g x y = g x' y') ==>
-    P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
-  (is "PROP ?eq ==> PROP ?cong ==> _ ==> _")
+  assumes eq: "!!X Y. P X Y ==> f X Y == g (pick X) (pick Y)"
+    and cong: "!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor>
+      ==> P \<lfloor>x\<rfloor> \<lfloor>y\<rfloor> ==> P \<lfloor>x'\<rfloor> \<lfloor>y'\<rfloor> ==> g x y = g x' y'"
+    and P: "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>"
+  shows "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
 proof -
-  assume cong: "PROP ?cong"
-  assume "PROP ?eq" and "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>"
-  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" by (simp only:)
+  from eq and P have "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" by (simp only:)
   also have "... = g a b"
   proof (rule cong)
     show "\<lfloor>pick \<lfloor>a\<rfloor>\<rfloor> = \<lfloor>a\<rfloor>" ..
@@ -185,18 +183,16 @@ proof -
 qed
 
 theorem quot_function:
-  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
-    (!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> g x y = g x' y') ==>
-    f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
-proof -
-  case rule_context from this TrueI
-  show ?thesis by (rule quot_cond_function)
-qed
+  assumes "!!X Y. f X Y == g (pick X) (pick Y)"
+    and "!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> g x y = g x' y'"
+  shows "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
+  using prems and TrueI
+  by (rule quot_cond_function)
 
 theorem quot_function':
   "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
     (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y = g x' y') ==>
     f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
-  by  (rule quot_function) (simp only: quot_equality)+
+  by (rule quot_function) (simp_all only: quot_equality)
 
 end
