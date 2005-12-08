@@ -2,9 +2,6 @@
     ID:         $Id$
     Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
-
-Changes by Jeremy Avigad, 2003/02/21:
-    repaired proof of prime_g_5
 *)
 
 header {* Wilson's Theorem according to Russinoff *}
@@ -165,19 +162,16 @@ text {* \medskip @{term wset} *}
 declare wset.simps [simp del]
 
 lemma wset_induct:
-  "(!!a p. P {} a p) \<Longrightarrow>
-    (!!a p. 1 < (a::int) \<Longrightarrow> P (wset (a - 1, p)) (a - 1) p
-      ==> P (wset (a, p)) a p)
-    ==> P (wset (u, v)) u v"
-proof -
-  case rule_context
-  show ?thesis
-    apply (rule wset.induct, safe)
-     apply (case_tac [2] "1 < a")
-      apply (rule_tac [2] rule_context, simp_all)
-      apply (simp_all add: wset.simps rule_context)
-    done
-qed
+  assumes "!!a p. P {} a p"
+    and "!!a p. 1 < (a::int) \<Longrightarrow> P (wset (a - 1, p)) (a - 1) p ==> P (wset (a, p)) a p"
+  shows "P (wset (u, v)) u v"
+  apply (rule wset.induct, safe)
+   prefer 2
+   apply (case_tac "1 < a")
+    apply (rule prems)
+     apply simp_all
+   apply (simp_all add: wset.simps prems)
+  done
 
 lemma wset_mem_imp_or [rule_format]:
   "1 < a \<Longrightarrow> b \<notin> wset (a - 1, p)

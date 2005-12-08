@@ -16,12 +16,12 @@ begin
 (*                                                             *)
 (***************************************************************)
 
-lemma (in GAUSS) QRLemma1: "a * setsum id A = 
+lemma (in GAUSS) QRLemma1: "a * setsum id A =
   p * setsum (%x. ((x * a) div p)) A + setsum id D + setsum id E"
 proof -
-  from finite_A have "a * setsum id A = setsum (%x. a * x) A" 
+  from finite_A have "a * setsum id A = setsum (%x. a * x) A"
     by (auto simp add: setsum_const_mult id_def)
-  also have "setsum (%x. a * x) = setsum (%x. x * a)" 
+  also have "setsum (%x. a * x) = setsum (%x. x * a)"
     by (auto simp add: zmult_commute)
   also have "setsum (%x. x * a) A = setsum id B"
     by (simp add: B_def setsum_reindex_id[OF inj_on_xa_A])
@@ -34,28 +34,26 @@ proof -
   also from C_eq have "... = setsum id (D \<union> E)"
     by auto
   also from finite_D finite_E have "... = setsum id D + setsum id E"
-    apply (rule setsum_Un_disjoint)
-    by (auto simp add: D_def E_def)
-  also have "setsum (%x. p * (x div p)) B = 
+    by (rule setsum_Un_disjoint) (auto simp add: D_def E_def)
+  also have "setsum (%x. p * (x div p)) B =
       setsum ((%x. p * (x div p)) o (%x. (x * a))) A"
     by (auto simp add: B_def setsum_reindex inj_on_xa_A)
   also have "... = setsum (%x. p * ((x * a) div p)) A"
     by (auto simp add: o_def)
-  also from finite_A have "setsum (%x. p * ((x * a) div p)) A = 
+  also from finite_A have "setsum (%x. p * ((x * a) div p)) A =
     p * setsum (%x. ((x * a) div p)) A"
     by (auto simp add: setsum_const_mult)
   finally show ?thesis by arith
 qed
 
-lemma (in GAUSS) QRLemma2: "setsum id A = p * int (card E) - setsum id E + 
-  setsum id D" 
+lemma (in GAUSS) QRLemma2: "setsum id A = p * int (card E) - setsum id E +
+  setsum id D"
 proof -
   from F_Un_D_eq_A have "setsum id A = setsum id (D \<union> F)"
     by (simp add: Un_commute)
-  also from F_D_disj finite_D finite_F have 
-      "... = setsum id D + setsum id F"
-    apply (simp add: Int_commute)
-    by (intro setsum_Un_disjoint) 
+  also from F_D_disj finite_D finite_F
+  have "... = setsum id D + setsum id F"
+    by (auto simp add: Int_commute intro: setsum_Un_disjoint)
   also from F_def have "F = (%x. (p - x)) ` E"
     by auto
   also from finite_E inj_on_pminusx_E have "setsum id ((%x. (p - x)) ` E) =
@@ -69,30 +67,30 @@ proof -
     by arith
 qed
 
-lemma (in GAUSS) QRLemma3: "(a - 1) * setsum id A = 
+lemma (in GAUSS) QRLemma3: "(a - 1) * setsum id A =
     p * (setsum (%x. ((x * a) div p)) A - int(card E)) + 2 * setsum id E"
 proof -
   have "(a - 1) * setsum id A = a * setsum id A - setsum id A"
-    by (auto simp add: zdiff_zmult_distrib)  
+    by (auto simp add: zdiff_zmult_distrib)
   also note QRLemma1
-  also from QRLemma2 have "p * (\<Sum>x \<in> A. x * a div p) + setsum id D + 
-     setsum id E - setsum id A = 
-      p * (\<Sum>x \<in> A. x * a div p) + setsum id D + 
+  also from QRLemma2 have "p * (\<Sum>x \<in> A. x * a div p) + setsum id D +
+     setsum id E - setsum id A =
+      p * (\<Sum>x \<in> A. x * a div p) + setsum id D +
       setsum id E - (p * int (card E) - setsum id E + setsum id D)"
     by auto
-  also have "... = p * (\<Sum>x \<in> A. x * a div p) - 
-      p * int (card E) + 2 * setsum id E" 
+  also have "... = p * (\<Sum>x \<in> A. x * a div p) -
+      p * int (card E) + 2 * setsum id E"
     by arith
   finally show ?thesis
     by (auto simp only: zdiff_zmult_distrib2)
 qed
 
-lemma (in GAUSS) QRLemma4: "a \<in> zOdd ==> 
+lemma (in GAUSS) QRLemma4: "a \<in> zOdd ==>
     (setsum (%x. ((x * a) div p)) A \<in> zEven) = (int(card E): zEven)"
 proof -
   assume a_odd: "a \<in> zOdd"
   from QRLemma3 have a: "p * (setsum (%x. ((x * a) div p)) A - int(card E)) =
-      (a - 1) * setsum id A - 2 * setsum id E" 
+      (a - 1) * setsum id A - 2 * setsum id E"
     by arith
   from a_odd have "a - 1 \<in> zEven"
     by (rule odd_minus_one_even)
@@ -109,10 +107,10 @@ proof -
   with p_odd have "(setsum (%x. ((x * a) div p)) A - int(card E)): zEven"
     by (auto simp add: odd_iff_not_even)
   thus ?thesis
-    by (auto simp only: even_diff [THEN sym])
+    by (auto simp only: even_diff [symmetric])
 qed
 
-lemma (in GAUSS) QRLemma5: "a \<in> zOdd ==> 
+lemma (in GAUSS) QRLemma5: "a \<in> zOdd ==>
    (-1::int)^(card E) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
 proof -
   assume "a \<in> zOdd"
@@ -130,7 +128,7 @@ proof -
           by (auto simp add: A_def)
         with a_nonzero have "0 \<le> x * a"
           by (auto simp add: zero_le_mult_iff)
-        with p_g_2 show "0 \<le> x * a div p" 
+        with p_g_2 show "0 \<le> x * a div p"
           by (auto simp add: pos_imp_zdiv_nonneg_iff)
       qed
     qed
@@ -143,12 +141,13 @@ proof -
 qed
 
 lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
-  A = {x. 0 < x & x \<le> (p - 1) div 2} |] ==> 
+  A = {x. 0 < x & x \<le> (p - 1) div 2} |] ==>
   (Legendre a p) = (-1::int)^(nat(setsum (%x. ((x * a) div p)) A))"
   apply (subst GAUSS.gauss_lemma)
   apply (auto simp add: GAUSS_def)
   apply (subst GAUSS.QRLemma5)
-by (auto simp add: GAUSS_def)
+  apply (auto simp add: GAUSS_def)
+  done
 
 (******************************************************************)
 (*                                                                *)
@@ -178,9 +177,9 @@ locale QRTEMP =
   defines S_def:     "S     == P_set <*> Q_set"
   defines S1_def:    "S1    == { (x, y). (x, y):S & ((p * y) < (q * x)) }"
   defines S2_def:    "S2    == { (x, y). (x, y):S & ((q * x) < (p * y)) }"
-  defines f1_def:    "f1 j  == { (j1, y). (j1, y):S & j1 = j & 
+  defines f1_def:    "f1 j  == { (j1, y). (j1, y):S & j1 = j &
                                  (y \<le> (q * j) div p) }"
-  defines f2_def:    "f2 j  == { (x, j1). (x, j1):S & j1 = j & 
+  defines f2_def:    "f2 j  == { (x, j1). (x, j1):S & j1 = j &
                                  (x \<le> (p * j) div q) }"
 
 lemma (in QRTEMP) p_fact: "0 < (p - 1) div 2"
@@ -199,7 +198,7 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma (in QRTEMP) pb_neq_qa: "[|1 \<le> b; b \<le> (q - 1) div 2 |] ==> 
+lemma (in QRTEMP) pb_neq_qa: "[|1 \<le> b; b \<le> (q - 1) div 2 |] ==>
     (p * b \<noteq> q * a)"
 proof
   assume "p * b = q * a" and "1 \<le> b" and "b \<le> (q - 1) div 2"
@@ -212,10 +211,11 @@ proof
     with p_prime have "q = 1 | q = p"
       apply (auto simp add: zprime_def QRTEMP_def)
       apply (drule_tac x = q and R = False in allE)
-      apply (simp add: QRTEMP_def)    
+      apply (simp add: QRTEMP_def)
       apply (subgoal_tac "0 \<le> q", simp add: QRTEMP_def)
       apply (insert prems)
-    by (auto simp add: QRTEMP_def)
+      apply (auto simp add: QRTEMP_def)
+      done
     with q_g_2 p_neq_q show False by auto
   qed
   ultimately have "q dvd b" by auto
@@ -223,7 +223,7 @@ proof
   proof -
     assume "q dvd b"
     moreover from prems have "0 < b" by auto
-    ultimately show ?thesis by (insert zdvd_bounds [of q b], auto)
+    ultimately show ?thesis using zdvd_bounds [of q b] by auto
   qed
   with prems have "q \<le> (q - 1) div 2" by auto
   then have "2 * q \<le> 2 * ((q - 1) div 2)" by arith
@@ -240,10 +240,10 @@ proof
 qed
 
 lemma (in QRTEMP) P_set_finite: "finite (P_set)"
-  by (insert p_fact, auto simp add: P_set_def bdd_int_set_l_le_finite)
+  using p_fact by (auto simp add: P_set_def bdd_int_set_l_le_finite)
 
 lemma (in QRTEMP) Q_set_finite: "finite (Q_set)"
-  by (insert q_fact, auto simp add: Q_set_def bdd_int_set_l_le_finite)
+  using q_fact by (auto simp add: Q_set_def bdd_int_set_l_le_finite)
 
 lemma (in QRTEMP) S_finite: "finite S"
   by (auto simp add: S_def  P_set_finite Q_set_finite finite_cartesian_product)
@@ -263,43 +263,42 @@ proof -
 qed
 
 lemma (in QRTEMP) P_set_card: "(p - 1) div 2 = int (card (P_set))"
-  by (insert p_fact, auto simp add: P_set_def card_bdd_int_set_l_le)
+  using p_fact by (auto simp add: P_set_def card_bdd_int_set_l_le)
 
 lemma (in QRTEMP) Q_set_card: "(q - 1) div 2 = int (card (Q_set))"
-  by (insert q_fact, auto simp add: Q_set_def card_bdd_int_set_l_le)
+  using q_fact by (auto simp add: Q_set_def card_bdd_int_set_l_le)
 
 lemma (in QRTEMP) S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
-  apply (insert P_set_card Q_set_card P_set_finite Q_set_finite)
-  apply (auto simp add: S_def zmult_int setsum_constant)
-done
+  using P_set_card Q_set_card P_set_finite Q_set_finite
+  by (auto simp add: S_def zmult_int setsum_constant)
 
 lemma (in QRTEMP) S1_Int_S2_prop: "S1 \<inter> S2 = {}"
   by (auto simp add: S1_def S2_def)
 
 lemma (in QRTEMP) S1_Union_S2_prop: "S = S1 \<union> S2"
   apply (auto simp add: S_def P_set_def Q_set_def S1_def S2_def)
-  proof -
-    fix a and b
-    assume "~ q * a < p * b" and b1: "0 < b" and b2: "b \<le> (q - 1) div 2"
-    with zless_linear have "(p * b < q * a) | (p * b = q * a)" by auto
-    moreover from pb_neq_qa b1 b2 have "(p * b \<noteq> q * a)" by auto
-    ultimately show "p * b < q * a" by auto
-  qed
+proof -
+  fix a and b
+  assume "~ q * a < p * b" and b1: "0 < b" and b2: "b \<le> (q - 1) div 2"
+  with zless_linear have "(p * b < q * a) | (p * b = q * a)" by auto
+  moreover from pb_neq_qa b1 b2 have "(p * b \<noteq> q * a)" by auto
+  ultimately show "p * b < q * a" by auto
+qed
 
-lemma (in QRTEMP) card_sum_S1_S2: "((p - 1) div 2) * ((q - 1) div 2) = 
+lemma (in QRTEMP) card_sum_S1_S2: "((p - 1) div 2) * ((q - 1) div 2) =
     int(card(S1)) + int(card(S2))"
-proof-
+proof -
   have "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
     by (auto simp add: S_card)
   also have "... = int( card(S1) + card(S2))"
     apply (insert S1_finite S2_finite S1_Int_S2_prop S1_Union_S2_prop)
     apply (drule card_Un_disjoint, auto)
-  done
+    done
   also have "... = int(card(S1)) + int(card(S2))" by auto
   finally show ?thesis .
 qed
 
-lemma (in QRTEMP) aux1a: "[| 0 < a; a \<le> (p - 1) div 2; 
+lemma (in QRTEMP) aux1a: "[| 0 < a; a \<le> (p - 1) div 2;
                              0 < b; b \<le> (q - 1) div 2 |] ==>
                           (p * b < q * a) = (b \<le> q * a div p)"
 proof -
@@ -309,30 +308,31 @@ proof -
     assume "p * b < q * a"
     then have "p * b \<le> q * a" by auto
     then have "(p * b) div p \<le> (q * a) div p"
-      by (rule zdiv_mono1, insert p_g_2, auto)
+      by (rule zdiv_mono1) (insert p_g_2, auto)
     then show "b \<le> (q * a) div p"
       apply (subgoal_tac "p \<noteq> 0")
       apply (frule zdiv_zmult_self2, force)
-      by (insert p_g_2, auto)
+      apply (insert p_g_2, auto)
+      done
   qed
   moreover have "b \<le> q * a div p ==> p * b < q * a"
   proof -
     assume "b \<le> q * a div p"
     then have "p * b \<le> p * ((q * a) div p)"
-      by (insert p_g_2, auto simp add: mult_le_cancel_left)
+      using p_g_2 by (auto simp add: mult_le_cancel_left)
     also have "... \<le> q * a"
-      by (rule zdiv_leq_prop, insert p_g_2, auto)
+      by (rule zdiv_leq_prop) (insert p_g_2, auto)
     finally have "p * b \<le> q * a" .
     then have "p * b < q * a | p * b = q * a"
       by (simp only: order_le_imp_less_or_eq)
     moreover have "p * b \<noteq> q * a"
-      by (rule  pb_neq_qa, insert prems, auto)
+      by (rule  pb_neq_qa) (insert prems, auto)
     ultimately show ?thesis by auto
   qed
   ultimately show ?thesis ..
 qed
 
-lemma (in QRTEMP) aux1b: "[| 0 < a; a \<le> (p - 1) div 2; 
+lemma (in QRTEMP) aux1b: "[| 0 < a; a \<le> (p - 1) div 2;
                              0 < b; b \<le> (q - 1) div 2 |] ==>
                           (q * a < p * b) = (a \<le> p * b div q)"
 proof -
@@ -342,30 +342,31 @@ proof -
     assume "q * a < p * b"
     then have "q * a \<le> p * b" by auto
     then have "(q * a) div q \<le> (p * b) div q"
-      by (rule zdiv_mono1, insert q_g_2, auto)
+      by (rule zdiv_mono1) (insert q_g_2, auto)
     then show "a \<le> (p * b) div q"
       apply (subgoal_tac "q \<noteq> 0")
       apply (frule zdiv_zmult_self2, force)
-      by (insert q_g_2, auto)
+      apply (insert q_g_2, auto)
+      done
   qed
   moreover have "a \<le> p * b div q ==> q * a < p * b"
   proof -
     assume "a \<le> p * b div q"
     then have "q * a \<le> q * ((p * b) div q)"
-      by (insert q_g_2, auto simp add: mult_le_cancel_left)
+      using q_g_2 by (auto simp add: mult_le_cancel_left)
     also have "... \<le> p * b"
-      by (rule zdiv_leq_prop, insert q_g_2, auto)
+      by (rule zdiv_leq_prop) (insert q_g_2, auto)
     finally have "q * a \<le> p * b" .
     then have "q * a < p * b | q * a = p * b"
       by (simp only: order_le_imp_less_or_eq)
     moreover have "p * b \<noteq> q * a"
-      by (rule  pb_neq_qa, insert prems, auto)
+      by (rule  pb_neq_qa) (insert prems, auto)
     ultimately show ?thesis by auto
   qed
   ultimately show ?thesis ..
 qed
 
-lemma aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==> 
+lemma aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==>
              (q * ((p - 1) div 2)) div p \<le> (q - 1) div 2"
 proof-
   assume "zprime p" and "zprime q" and "2 < p" and "2 < q"
@@ -388,10 +389,10 @@ proof-
     by (auto simp add: even1 even_prod_div_2)
   also have "(((q - 1) * p) + (2 * p)) div 2 = (((q - 1) div 2) * p) + p"
     by (auto simp add: even1 even2 even_prod_div_2 even_sum_div_2)
-  finally show ?thesis 
-    apply (rule_tac x = " q * ((p - 1) div 2)" and 
+  finally show ?thesis
+    apply (rule_tac x = " q * ((p - 1) div 2)" and
                     y = "(q - 1) div 2" in div_prop2)
-    by (insert prems, auto)
+    using prems by auto
 qed
 
 lemma (in QRTEMP) aux3a: "\<forall>j \<in> P_set. int (card (f1 j)) = (q * j) div p"
@@ -410,27 +411,29 @@ proof
     ultimately have "card ((%(x,y). y) ` (f1 j)) = card  (f1 j)"
       by (auto simp add: f1_def card_image)
     moreover have "((%(x,y). y) ` (f1 j)) = {y. y \<in> Q_set & y \<le> (q * j) div p}"
-      by (insert prems, auto simp add: f1_def S_def Q_set_def P_set_def 
-        image_def)
+      using prems by (auto simp add: f1_def S_def Q_set_def P_set_def image_def)
     ultimately show ?thesis by (auto simp add: f1_def)
   qed
   also have "... = int (card {y. 0 < y & y \<le> (q * j) div p})"
   proof -
-    have "{y. y \<in> Q_set & y \<le> (q * j) div p} = 
+    have "{y. y \<in> Q_set & y \<le> (q * j) div p} =
         {y. 0 < y & y \<le> (q * j) div p}"
       apply (auto simp add: Q_set_def)
-      proof -
-        fix x
-        assume "0 < x" and "x \<le> q * j div p"
-        with j_fact P_set_def  have "j \<le> (p - 1) div 2" by auto
-        with q_g_2 have "q * j \<le> q * ((p - 1) div 2)"
-          by (auto simp add: mult_le_cancel_left)
-        with p_g_2 have "q * j div p \<le> q * ((p - 1) div 2) div p"
-          by (auto simp add: zdiv_mono1)
-        also from prems have "... \<le> (q - 1) div 2"
-          apply simp apply (insert aux2) by (simp add: QRTEMP_def)
-        finally show "x \<le> (q - 1) div 2" by (insert prems, auto)
-      qed
+    proof -
+      fix x
+      assume "0 < x" and "x \<le> q * j div p"
+      with j_fact P_set_def  have "j \<le> (p - 1) div 2" by auto
+      with q_g_2 have "q * j \<le> q * ((p - 1) div 2)"
+        by (auto simp add: mult_le_cancel_left)
+      with p_g_2 have "q * j div p \<le> q * ((p - 1) div 2) div p"
+        by (auto simp add: zdiv_mono1)
+      also from prems have "... \<le> (q - 1) div 2"
+        apply simp
+        apply (insert aux2)
+        apply (simp add: QRTEMP_def)
+        done
+      finally show "x \<le> (q - 1) div 2" using prems by auto
+    qed
     then show ?thesis by auto
   qed
   also have "... = (q * j) div p"
@@ -440,7 +443,8 @@ proof
     then have "0 \<le> q * j" by auto
     then have "0 div p \<le> (q * j) div p"
       apply (rule_tac a = 0 in zdiv_mono1)
-      by (insert p_g_2, auto)
+      apply (insert p_g_2, auto)
+      done
     also have "0 div p = 0" by auto
     finally show ?thesis by (auto simp add: card_bdd_int_set_l_le)
   qed
@@ -463,26 +467,25 @@ proof
     ultimately have "card ((%(x,y). x) ` (f2 j)) = card  (f2 j)"
       by (auto simp add: f2_def card_image)
     moreover have "((%(x,y). x) ` (f2 j)) = {y. y \<in> P_set & y \<le> (p * j) div q}"
-      by (insert prems, auto simp add: f2_def S_def Q_set_def 
-        P_set_def image_def)
+      using prems by (auto simp add: f2_def S_def Q_set_def P_set_def image_def)
     ultimately show ?thesis by (auto simp add: f2_def)
   qed
   also have "... = int (card {y. 0 < y & y \<le> (p * j) div q})"
   proof -
-    have "{y. y \<in> P_set & y \<le> (p * j) div q} = 
+    have "{y. y \<in> P_set & y \<le> (p * j) div q} =
         {y. 0 < y & y \<le> (p * j) div q}"
       apply (auto simp add: P_set_def)
-      proof -
-        fix x
-        assume "0 < x" and "x \<le> p * j div q"
-        with j_fact Q_set_def  have "j \<le> (q - 1) div 2" by auto
-        with p_g_2 have "p * j \<le> p * ((q - 1) div 2)"
-          by (auto simp add: mult_le_cancel_left)
-        with q_g_2 have "p * j div q \<le> p * ((q - 1) div 2) div q"
-          by (auto simp add: zdiv_mono1)
-        also from prems have "... \<le> (p - 1) div 2"
-          by (auto simp add: aux2 QRTEMP_def)
-        finally show "x \<le> (p - 1) div 2" by (insert prems, auto)
+    proof -
+      fix x
+      assume "0 < x" and "x \<le> p * j div q"
+      with j_fact Q_set_def  have "j \<le> (q - 1) div 2" by auto
+      with p_g_2 have "p * j \<le> p * ((q - 1) div 2)"
+        by (auto simp add: mult_le_cancel_left)
+      with q_g_2 have "p * j div q \<le> p * ((q - 1) div 2) div q"
+        by (auto simp add: zdiv_mono1)
+      also from prems have "... \<le> (p - 1) div 2"
+        by (auto simp add: aux2 QRTEMP_def)
+      finally show "x \<le> (p - 1) div 2" using prems by auto
       qed
     then show ?thesis by auto
   qed
@@ -493,7 +496,8 @@ proof
     then have "0 \<le> p * j" by auto
     then have "0 div q \<le> (p * j) div q"
       apply (rule_tac a = 0 in zdiv_mono1)
-      by (insert q_g_2, auto)
+      apply (insert q_g_2, auto)
+      done
     also have "0 div q = 0" by auto
     finally show ?thesis by (auto simp add: card_bdd_int_set_l_le)
   qed
@@ -511,12 +515,12 @@ proof -
   moreover have "(\<forall>x \<in> P_set. \<forall>y \<in> P_set. x \<noteq> y --> (f1 x) \<inter> (f1 y) = {})"
     by (auto simp add: f1_def)
   moreover note P_set_finite
-  ultimately have "int(card (UNION P_set f1)) = 
+  ultimately have "int(card (UNION P_set f1)) =
       setsum (%x. int(card (f1 x))) P_set"
     by(simp add:card_UN_disjoint int_setsum o_def)
   moreover have "S1 = UNION P_set f1"
     by (auto simp add: f1_def S_def S1_def S2_def P_set_def Q_set_def aux1a)
-  ultimately have "int(card (S1)) = setsum (%j. int(card (f1 j))) P_set" 
+  ultimately have "int(card (S1)) = setsum (%j. int(card (f1 j))) P_set"
     by auto
   also have "... = setsum (%j. q * j div p) P_set"
     using aux3a by(fastsimp intro: setsum_cong)
@@ -531,34 +535,34 @@ proof -
     have "f2 x \<subseteq> S" by (auto simp add: f2_def)
     with S_finite show "finite (f2 x)" by (auto simp add: finite_subset)
   qed
-  moreover have "(\<forall>x \<in> Q_set. \<forall>y \<in> Q_set. x \<noteq> y --> 
+  moreover have "(\<forall>x \<in> Q_set. \<forall>y \<in> Q_set. x \<noteq> y -->
       (f2 x) \<inter> (f2 y) = {})"
     by (auto simp add: f2_def)
   moreover note Q_set_finite
-  ultimately have "int(card (UNION Q_set f2)) = 
+  ultimately have "int(card (UNION Q_set f2)) =
       setsum (%x. int(card (f2 x))) Q_set"
     by(simp add:card_UN_disjoint int_setsum o_def)
   moreover have "S2 = UNION Q_set f2"
     by (auto simp add: f2_def S_def S1_def S2_def P_set_def Q_set_def aux1b)
-  ultimately have "int(card (S2)) = setsum (%j. int(card (f2 j))) Q_set" 
+  ultimately have "int(card (S2)) = setsum (%j. int(card (f2 j))) Q_set"
     by auto
   also have "... = setsum (%j. p * j div q) Q_set"
     using aux3b by(fastsimp intro: setsum_cong)
   finally show ?thesis .
 qed
 
-lemma (in QRTEMP) S1_carda: "int (card(S1)) = 
+lemma (in QRTEMP) S1_carda: "int (card(S1)) =
     setsum (%j. (j * q) div p) P_set"
   by (auto simp add: S1_card zmult_ac)
 
-lemma (in QRTEMP) S2_carda: "int (card(S2)) = 
+lemma (in QRTEMP) S2_carda: "int (card(S2)) =
     setsum (%j. (j * p) div q) Q_set"
   by (auto simp add: S2_card zmult_ac)
 
-lemma (in QRTEMP) pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) + 
+lemma (in QRTEMP) pq_sum_prop: "(setsum (%j. (j * p) div q) Q_set) +
     (setsum (%j. (j * q) div p) P_set) = ((p - 1) div 2) * ((q - 1) div 2)"
 proof -
-  have "(setsum (%j. (j * p) div q) Q_set) + 
+  have "(setsum (%j. (j * p) div q) Q_set) +
       (setsum (%j. (j * q) div p) P_set) = int (card S2) + int (card S1)"
     by (auto simp add: S1_carda S2_carda)
   also have "... = int (card S1) + int (card S2)"
@@ -572,50 +576,54 @@ lemma pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0] (mod q
   apply (auto simp add: zcong_eq_zdvd_prop zprime_def)
   apply (drule_tac x = q in allE)
   apply (drule_tac x = p in allE)
-by auto
+  apply auto
+  done
 
-lemma (in QRTEMP) QR_short: "(Legendre p q) * (Legendre q p) = 
+lemma (in QRTEMP) QR_short: "(Legendre p q) * (Legendre q p) =
     (-1::int)^nat(((p - 1) div 2)*((q - 1) div 2))"
 proof -
   from prems have "~([p = 0] (mod q))"
     by (auto simp add: pq_prime_neq QRTEMP_def)
-  with prems have a1: "(Legendre p q) = (-1::int) ^ 
+  with prems have a1: "(Legendre p q) = (-1::int) ^
       nat(setsum (%x. ((x * p) div q)) Q_set)"
     apply (rule_tac p = q in  MainQRLemma)
-    by (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
+    apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
+    done
   from prems have "~([q = 0] (mod p))"
     apply (rule_tac p = q and q = p in pq_prime_neq)
     apply (simp add: QRTEMP_def)+
     done
-  with prems have a2: "(Legendre q p) = 
+  with prems have a2: "(Legendre q p) =
       (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
     apply (rule_tac p = p in  MainQRLemma)
-    by (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
-  from a1 a2 have "(Legendre p q) * (Legendre q p) = 
+    apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
+    done
+  from a1 a2 have "(Legendre p q) * (Legendre q p) =
       (-1::int) ^ nat(setsum (%x. ((x * p) div q)) Q_set) *
         (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
     by auto
-  also have "... = (-1::int) ^ (nat(setsum (%x. ((x * p) div q)) Q_set) + 
+  also have "... = (-1::int) ^ (nat(setsum (%x. ((x * p) div q)) Q_set) +
                    nat(setsum (%x. ((x * q) div p)) P_set))"
     by (auto simp add: zpower_zadd_distrib)
-  also have "nat(setsum (%x. ((x * p) div q)) Q_set) + 
+  also have "nat(setsum (%x. ((x * p) div q)) Q_set) +
       nat(setsum (%x. ((x * q) div p)) P_set) =
-        nat((setsum (%x. ((x * p) div q)) Q_set) + 
+        nat((setsum (%x. ((x * p) div q)) Q_set) +
           (setsum (%x. ((x * q) div p)) P_set))"
-    apply (rule_tac z1 = "setsum (%x. ((x * p) div q)) Q_set" in 
-      nat_add_distrib [THEN sym])
-    by (auto simp add: S1_carda [THEN sym] S2_carda [THEN sym])
+    apply (rule_tac z1 = "setsum (%x. ((x * p) div q)) Q_set" in
+      nat_add_distrib [symmetric])
+    apply (auto simp add: S1_carda [symmetric] S2_carda [symmetric])
+    done
   also have "... = nat(((p - 1) div 2) * ((q - 1) div 2))"
     by (auto simp add: pq_sum_prop)
   finally show ?thesis .
 qed
 
 theorem Quadratic_Reciprocity:
-     "[| p \<in> zOdd; zprime p; q \<in> zOdd; zprime q; 
-         p \<noteq> q |] 
-      ==> (Legendre p q) * (Legendre q p) = 
+     "[| p \<in> zOdd; zprime p; q \<in> zOdd; zprime q;
+         p \<noteq> q |]
+      ==> (Legendre p q) * (Legendre q p) =
           (-1::int)^nat(((p - 1) div 2)*((q - 1) div 2))"
-  by (auto simp add: QRTEMP.QR_short zprime_zOdd_eq_grt_2 [THEN sym] 
+  by (auto simp add: QRTEMP.QR_short zprime_zOdd_eq_grt_2 [symmetric]
                      QRTEMP_def)
 
 end

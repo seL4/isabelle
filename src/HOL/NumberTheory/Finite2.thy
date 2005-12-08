@@ -23,7 +23,7 @@ text{*Note.  This theory is being revised.  See the web page
 
 subsection {* Useful properties of sums and products *}
 
-lemma setsum_same_function_zcong: 
+lemma setsum_same_function_zcong:
 assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
 shows "[setsum f S = setsum g S] (mod m)"
 proof cases
@@ -48,16 +48,16 @@ lemma setsum_const: "finite X ==> setsum (%x. (c :: int)) X = c * int(card X)"
   apply (auto simp add: left_distrib right_distrib int_eq_of_nat)
   done
 
-lemma setsum_const2: "finite X ==> int (setsum (%x. (c :: nat)) X) = 
+lemma setsum_const2: "finite X ==> int (setsum (%x. (c :: nat)) X) =
     int(c) * int(card X)"
   apply (induct set: Finites)
   apply (auto simp add: zadd_zmult_distrib2)
-done
+  done
 
-lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A = 
+lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
     c * setsum f A"
-  apply (induct set: Finites, auto)
-  by (auto simp only: zadd_zmult_distrib2)
+  by (induct set: Finites) (auto simp add: zadd_zmult_distrib2)
+
 
 (******************************************************************)
 (*                                                                *)
@@ -68,61 +68,71 @@ lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
 subsection {* Cardinality of explicit finite sets *}
 
 lemma finite_surjI: "[| B \<subseteq> f ` A; finite A |] ==> finite B"
-by (simp add: finite_subset finite_imageI)
+  by (simp add: finite_subset finite_imageI)
 
-lemma bdd_nat_set_l_finite: "finite { y::nat . y < x}"
-apply (rule_tac N = "{y. y < x}" and n = x in bounded_nat_set_is_finite)
-by auto
+lemma bdd_nat_set_l_finite: "finite {y::nat . y < x}"
+  by (rule bounded_nat_set_is_finite) blast
 
-lemma bdd_nat_set_le_finite: "finite { y::nat . y \<le> x  }"
-apply (subgoal_tac "{ y::nat . y \<le> x  } = { y::nat . y < Suc x}")
-by (auto simp add: bdd_nat_set_l_finite)
+lemma bdd_nat_set_le_finite: "finite {y::nat . y \<le> x}"
+proof -
+  have "{y::nat . y \<le> x} = {y::nat . y < Suc x}" by auto
+  then show ?thesis by (auto simp add: bdd_nat_set_l_finite)
+qed
 
-lemma  bdd_int_set_l_finite: "finite { x::int . 0 \<le> x & x < n}"
-apply (subgoal_tac " {(x :: int). 0 \<le> x & x < n} \<subseteq> 
+lemma  bdd_int_set_l_finite: "finite {x::int. 0 \<le> x & x < n}"
+apply (subgoal_tac " {(x :: int). 0 \<le> x & x < n} \<subseteq>
     int ` {(x :: nat). x < nat n}")
 apply (erule finite_surjI)
 apply (auto simp add: bdd_nat_set_l_finite image_def)
-apply (rule_tac x = "nat x" in exI, simp) 
+apply (rule_tac x = "nat x" in exI, simp)
 done
 
 lemma bdd_int_set_le_finite: "finite {x::int. 0 \<le> x & x \<le> n}"
 apply (subgoal_tac "{x. 0 \<le> x & x \<le> n} = {x. 0 \<le> x & x < n + 1}")
 apply (erule ssubst)
 apply (rule bdd_int_set_l_finite)
-by auto
+apply auto
+done
 
 lemma bdd_int_set_l_l_finite: "finite {x::int. 0 < x & x < n}"
-apply (subgoal_tac "{x::int. 0 < x & x < n} \<subseteq> {x::int. 0 \<le> x & x < n}")
-by (auto simp add: bdd_int_set_l_finite finite_subset)
+proof -
+  have "{x::int. 0 < x & x < n} \<subseteq> {x::int. 0 \<le> x & x < n}"
+    by auto
+  then show ?thesis by (auto simp add: bdd_int_set_l_finite finite_subset)
+qed
 
 lemma bdd_int_set_l_le_finite: "finite {x::int. 0 < x & x \<le> n}"
-apply (subgoal_tac "{x::int. 0 < x & x \<le> n} \<subseteq> {x::int. 0 \<le> x & x \<le> n}")
-by (auto simp add: bdd_int_set_le_finite finite_subset)
+proof -
+  have "{x::int. 0 < x & x \<le> n} \<subseteq> {x::int. 0 \<le> x & x \<le> n}"
+    by auto
+  then show ?thesis by (auto simp add: bdd_int_set_le_finite finite_subset)
+qed
 
 lemma card_bdd_nat_set_l: "card {y::nat . y < x} = x"
-apply (induct_tac x, force)
-proof -
+proof (induct x)
+  show "card {y::nat . y < 0} = 0" by simp
+next
   fix n::nat
-  assume "card {y. y < n} = n" 
+  assume "card {y. y < n} = n"
   have "{y. y < Suc n} = insert n {y. y < n}"
     by auto
   then have "card {y. y < Suc n} = card (insert n {y. y < n})"
     by auto
   also have "... = Suc (card {y. y < n})"
-    apply (rule card_insert_disjoint)
-    by (auto simp add: bdd_nat_set_l_finite)
-  finally show "card {y. y < Suc n} = Suc n" 
+    by (rule card_insert_disjoint) (auto simp add: bdd_nat_set_l_finite)
+  finally show "card {y. y < Suc n} = Suc n"
     by (simp add: prems)
 qed
 
 lemma card_bdd_nat_set_le: "card { y::nat. y \<le> x} = Suc x"
-apply (subgoal_tac "{ y::nat. y \<le> x} = { y::nat. y < Suc x}")
-by (auto simp add: card_bdd_nat_set_l)
+proof -
+  have "{y::nat. y \<le> x} = { y::nat. y < Suc x}"
+    by auto
+  then show ?thesis by (auto simp add: card_bdd_nat_set_l)
+qed
 
 lemma card_bdd_int_set_l: "0 \<le> (n::int) ==> card {y. 0 \<le> y & y < n} = nat n"
 proof -
-  fix n::int
   assume "0 \<le> n"
   have "inj_on (%y. int y) {y. y < nat n}"
     by (auto simp add: inj_on_def)
@@ -131,52 +141,63 @@ proof -
   also from prems have "int ` {y. y < nat n} = {y. 0 \<le> y & y < n}"
     apply (auto simp add: zless_nat_eq_int_zless image_def)
     apply (rule_tac x = "nat x" in exI)
-    by (auto simp add: nat_0_le)
-  also have "card {y. y < nat n} = nat n" 
+    apply (auto simp add: nat_0_le)
+    done
+  also have "card {y. y < nat n} = nat n"
     by (rule card_bdd_nat_set_l)
   finally show "card {y. 0 \<le> y & y < n} = nat n" .
 qed
 
-lemma card_bdd_int_set_le: "0 \<le> (n::int) ==> card {y. 0 \<le> y & y \<le> n} = 
+lemma card_bdd_int_set_le: "0 \<le> (n::int) ==> card {y. 0 \<le> y & y \<le> n} =
   nat n + 1"
-apply (subgoal_tac "{y. 0 \<le> y & y \<le> n} = {y. 0 \<le> y & y < n+1}")
-apply (insert card_bdd_int_set_l [of "n+1"])
-by (auto simp add: nat_add_distrib)
+proof -
+  assume "0 \<le> n"
+  moreover have "{y. 0 \<le> y & y \<le> n} = {y. 0 \<le> y & y < n+1}" by auto
+  ultimately show ?thesis
+    using card_bdd_int_set_l [of "n + 1"]
+    by (auto simp add: nat_add_distrib)
+qed
 
-lemma card_bdd_int_set_l_le: "0 \<le> (n::int) ==> 
+lemma card_bdd_int_set_l_le: "0 \<le> (n::int) ==>
     card {x. 0 < x & x \<le> n} = nat n"
 proof -
-  fix n::int
   assume "0 \<le> n"
   have "inj_on (%x. x+1) {x. 0 \<le> x & x < n}"
     by (auto simp add: inj_on_def)
-  hence "card ((%x. x+1) ` {x. 0 \<le> x & x < n}) = 
+  hence "card ((%x. x+1) ` {x. 0 \<le> x & x < n}) =
      card {x. 0 \<le> x & x < n}"
     by (rule card_image)
-  also from prems have "... = nat n"
+  also from `0 \<le> n` have "... = nat n"
     by (rule card_bdd_int_set_l)
   also have "(%x. x + 1) ` {x. 0 \<le> x & x < n} = {x. 0 < x & x<= n}"
     apply (auto simp add: image_def)
     apply (rule_tac x = "x - 1" in exI)
-    by arith
-  finally show "card {x. 0 < x & x \<le> n} = nat n".
+    apply arith
+    done
+  finally show "card {x. 0 < x & x \<le> n} = nat n" .
 qed
 
-lemma card_bdd_int_set_l_l: "0 < (n::int) ==> 
-    card {x. 0 < x & x < n} = nat n - 1"
-  apply (subgoal_tac "{x. 0 < x & x < n} = {x. 0 < x & x \<le> n - 1}")
-  apply (insert card_bdd_int_set_l_le [of "n - 1"])
-  by (auto simp add: nat_diff_distrib)
+lemma card_bdd_int_set_l_l: "0 < (n::int) ==>
+  card {x. 0 < x & x < n} = nat n - 1"
+proof -
+  assume "0 < n"
+  moreover have "{x. 0 < x & x < n} = {x. 0 < x & x \<le> n - 1}"
+    by simp
+  ultimately show ?thesis
+    using insert card_bdd_int_set_l_le [of "n - 1"]
+    by (auto simp add: nat_diff_distrib)
+qed
 
-lemma int_card_bdd_int_set_l_l: "0 < n ==> 
+lemma int_card_bdd_int_set_l_l: "0 < n ==>
     int(card {x. 0 < x & x < n}) = n - 1"
   apply (auto simp add: card_bdd_int_set_l_l)
   apply (subgoal_tac "Suc 0 \<le> nat n")
-  apply (auto simp add: zdiff_int [THEN sym])
+  apply (auto simp add: zdiff_int [symmetric])
   apply (subgoal_tac "0 < nat n", arith)
-  by (simp add: zero_less_nat_eq)
+  apply (simp add: zero_less_nat_eq)
+  done
 
-lemma int_card_bdd_int_set_l_le: "0 \<le> n ==> 
+lemma int_card_bdd_int_set_l_le: "0 \<le> n ==>
     int(card {x. 0 < x & x \<le> n}) = n"
   by (auto simp add: card_bdd_int_set_l_le)
 
@@ -201,7 +222,7 @@ lemma insert_Sigma [simp]: "(insert x A) <*> B = ({ x } <*> B) \<union> (A <*> B
 
 subsection {* Lemmas for counting arguments *}
 
-lemma setsum_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A; 
+lemma setsum_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A;
     g ` B \<subseteq> A; inj_on g B |] ==> setsum g B = setsum (g \<circ> f) A"
 apply (frule_tac h = g and f = f in setsum_reindex)
 apply (subgoal_tac "setsum g B = setsum g (f ` A)")
@@ -211,17 +232,19 @@ apply (drule_tac A = "f ` A" and B = B in card_seteq)
 apply (auto simp add: card_image)
 apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
 apply (frule_tac A = B and B = A and f = g in card_inj_on_le)
-by auto
+apply auto
+done
 
-lemma setprod_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A; 
+lemma setprod_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A;
     g ` B \<subseteq> A; inj_on g B |] ==> setprod g B = setprod (g \<circ> f) A"
   apply (frule_tac h = g and f = f in setprod_reindex)
-  apply (subgoal_tac "setprod g B = setprod g (f ` A)") 
+  apply (subgoal_tac "setprod g B = setprod g (f ` A)")
   apply (simp add: inj_on_def)
   apply (subgoal_tac "card A = card B")
   apply (drule_tac A = "f ` A" and B = B in card_seteq)
   apply (auto simp add: card_image)
   apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
-by (frule_tac A = B and B = A and f = g in card_inj_on_le, auto)
+  apply (frule_tac A = B and B = A and f = g in card_inj_on_le, auto)
+  done
 
 end

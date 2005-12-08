@@ -5,14 +5,14 @@
 
 header {*Parity: Even and Odd Integers*}
 
-theory EvenOdd imports Int2 begin;
+theory EvenOdd imports Int2 begin
 
 text{*Note.  This theory is being revised.  See the web page
 \url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}
 
 constdefs
   zOdd    :: "int set"
-  "zOdd == {x. \<exists>k. x = 2*k + 1}"
+  "zOdd == {x. \<exists>k. x = 2 * k + 1}"
   zEven   :: "int set"
   "zEven == {x. \<exists>k. x = 2 * k}"
 
@@ -22,223 +22,239 @@ constdefs
 (*                                                         *)
 (***********************************************************)
 
-lemma one_not_even: "~(1 \<in> zEven)";
-  apply (simp add: zEven_def)
-  apply (rule allI, case_tac "k \<le> 0", auto)
-done
+lemma zOddI [intro?]: "x = 2 * k + 1 \<Longrightarrow> x \<in> zOdd"
+  and zOddE [elim?]: "x \<in> zOdd \<Longrightarrow> (!!k. x = 2 * k + 1 \<Longrightarrow> C) \<Longrightarrow> C"
+  by (auto simp add: zOdd_def)
 
-lemma even_odd_conj: "~(x \<in> zOdd & x \<in> zEven)";
-  apply (auto simp add: zOdd_def zEven_def)
-  proof -;
-    fix a b;
-    assume "2 * (a::int) = 2 * (b::int) + 1"; 
-    then have "2 * (a::int) - 2 * (b :: int) = 1";
-       by arith
-    then have "2 * (a - b) = 1";
-       by (auto simp add: zdiff_zmult_distrib)
-    moreover have "(2 * (a - b)):zEven";
-       by (auto simp only: zEven_def)
-    ultimately show "False";
-       by (auto simp add: one_not_even)
-  qed;
+lemma zEvenI [intro?]: "x = 2 * k \<Longrightarrow> x \<in> zEven"
+  and zEvenE [elim?]: "x \<in> zEven \<Longrightarrow> (!!k. x = 2 * k \<Longrightarrow> C) \<Longrightarrow> C"
+  by (auto simp add: zEven_def)
 
-lemma even_odd_disj: "(x \<in> zOdd | x \<in> zEven)";
-  by (simp add: zOdd_def zEven_def, presburger)
+lemma one_not_even: "~(1 \<in> zEven)"
+proof
+  assume "1 \<in> zEven"
+  then obtain k :: int where "1 = 2 * k" ..
+  then show False by arith
+qed
 
-lemma not_odd_impl_even: "~(x \<in> zOdd) ==> x \<in> zEven";
-  by (insert even_odd_disj, auto)
-
-lemma odd_mult_odd_prop: "(x*y):zOdd ==> x \<in> zOdd";
-  apply (case_tac "x \<in> zOdd", auto)
-  apply (drule not_odd_impl_even)
-  apply (auto simp add: zEven_def zOdd_def)
-  proof -;
-    fix a b; 
-    assume "2 * a * y = 2 * b + 1";
-    then have "2 * a * y - 2 * b = 1";
+lemma even_odd_conj: "~(x \<in> zOdd & x \<in> zEven)"
+proof -
+  {
+    fix a b
+    assume "2 * (a::int) = 2 * (b::int) + 1"
+    then have "2 * (a::int) - 2 * (b :: int) = 1"
       by arith
-    then have "2 * (a * y - b) = 1";
+    then have "2 * (a - b) = 1"
       by (auto simp add: zdiff_zmult_distrib)
-    moreover have "(2 * (a * y - b)):zEven";
-       by (auto simp only: zEven_def)
-    ultimately show "False";
-       by (auto simp add: one_not_even)
-  qed;
+    moreover have "(2 * (a - b)):zEven"
+      by (auto simp only: zEven_def)
+    ultimately have False
+      by (auto simp add: one_not_even)
+  }
+  then show ?thesis
+    by (auto simp add: zOdd_def zEven_def)
+qed
 
-lemma odd_minus_one_even: "x \<in> zOdd ==> (x - 1):zEven";
+lemma even_odd_disj: "(x \<in> zOdd | x \<in> zEven)"
+  by (simp add: zOdd_def zEven_def) arith
+
+lemma not_odd_impl_even: "~(x \<in> zOdd) ==> x \<in> zEven"
+  using even_odd_disj by auto
+
+lemma odd_mult_odd_prop: "(x*y):zOdd ==> x \<in> zOdd"
+proof (rule classical)
+  assume "\<not> ?thesis"
+  then have "x \<in> zEven" by (rule not_odd_impl_even)
+  then obtain a where a: "x = 2 * a" ..
+  assume "x * y : zOdd"
+  then obtain b where "x * y = 2 * b + 1" ..
+  with a have "2 * a * y = 2 * b + 1" by simp
+  then have "2 * a * y - 2 * b = 1"
+    by arith
+  then have "2 * (a * y - b) = 1"
+    by (auto simp add: zdiff_zmult_distrib)
+  moreover have "(2 * (a * y - b)):zEven"
+    by (auto simp only: zEven_def)
+  ultimately have False
+    by (auto simp add: one_not_even)
+  then show ?thesis ..
+qed
+
+lemma odd_minus_one_even: "x \<in> zOdd ==> (x - 1):zEven"
   by (auto simp add: zOdd_def zEven_def)
 
-lemma even_div_2_prop1: "x \<in> zEven ==> (x mod 2) = 0";
+lemma even_div_2_prop1: "x \<in> zEven ==> (x mod 2) = 0"
   by (auto simp add: zEven_def)
 
-lemma even_div_2_prop2: "x \<in> zEven ==> (2 * (x div 2)) = x";
+lemma even_div_2_prop2: "x \<in> zEven ==> (2 * (x div 2)) = x"
   by (auto simp add: zEven_def)
 
-lemma even_plus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x + y \<in> zEven";
+lemma even_plus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x + y \<in> zEven"
   apply (auto simp add: zEven_def)
-  by (auto simp only: zadd_zmult_distrib2 [THEN sym])
+  apply (auto simp only: zadd_zmult_distrib2 [symmetric])
+  done
 
-lemma even_times_either: "x \<in> zEven ==> x * y \<in> zEven";
+lemma even_times_either: "x \<in> zEven ==> x * y \<in> zEven"
   by (auto simp add: zEven_def)
 
-lemma even_minus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x - y \<in> zEven";
+lemma even_minus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x - y \<in> zEven"
   apply (auto simp add: zEven_def)
-  by (auto simp only: zdiff_zmult_distrib2 [THEN sym])
+  apply (auto simp only: zdiff_zmult_distrib2 [symmetric])
+  done
 
-lemma odd_minus_odd: "[| x \<in> zOdd; y \<in> zOdd |] ==> x - y \<in> zEven";
+lemma odd_minus_odd: "[| x \<in> zOdd; y \<in> zOdd |] ==> x - y \<in> zEven"
   apply (auto simp add: zOdd_def zEven_def)
-  by (auto simp only: zdiff_zmult_distrib2 [THEN sym])
+  apply (auto simp only: zdiff_zmult_distrib2 [symmetric])
+  done
 
-lemma even_minus_odd: "[| x \<in> zEven; y \<in> zOdd |] ==> x - y \<in> zOdd";
+lemma even_minus_odd: "[| x \<in> zEven; y \<in> zOdd |] ==> x - y \<in> zOdd"
   apply (auto simp add: zOdd_def zEven_def)
   apply (rule_tac x = "k - ka - 1" in exI)
-  by auto
+  apply auto
+  done
 
-lemma odd_minus_even: "[| x \<in> zOdd; y \<in> zEven |] ==> x - y \<in> zOdd";
+lemma odd_minus_even: "[| x \<in> zOdd; y \<in> zEven |] ==> x - y \<in> zOdd"
   apply (auto simp add: zOdd_def zEven_def)
-  by (auto simp only: zdiff_zmult_distrib2 [THEN sym])
+  apply (auto simp only: zdiff_zmult_distrib2 [symmetric])
+  done
 
-lemma odd_times_odd: "[| x \<in> zOdd;  y \<in> zOdd |] ==> x * y \<in> zOdd";
+lemma odd_times_odd: "[| x \<in> zOdd;  y \<in> zOdd |] ==> x * y \<in> zOdd"
   apply (auto simp add: zOdd_def zadd_zmult_distrib zadd_zmult_distrib2)
   apply (rule_tac x = "2 * ka * k + ka + k" in exI)
-  by (auto simp add: zadd_zmult_distrib)
+  apply (auto simp add: zadd_zmult_distrib)
+  done
 
-lemma odd_iff_not_even: "(x \<in> zOdd) = (~ (x \<in> zEven))";
-  by (insert even_odd_conj even_odd_disj, auto)
+lemma odd_iff_not_even: "(x \<in> zOdd) = (~ (x \<in> zEven))"
+  using even_odd_conj even_odd_disj by auto
 
-lemma even_product: "x * y \<in> zEven ==> x \<in> zEven | y \<in> zEven"; 
-  by (insert odd_iff_not_even odd_times_odd, auto)
+lemma even_product: "x * y \<in> zEven ==> x \<in> zEven | y \<in> zEven"
+  using odd_iff_not_even odd_times_odd by auto
 
-lemma even_diff: "x - y \<in> zEven = ((x \<in> zEven) = (y \<in> zEven))";
-  apply (auto simp add: odd_iff_not_even even_minus_even odd_minus_odd
-     even_minus_odd odd_minus_even)
-  proof -;
-    assume "x - y \<in> zEven" and "x \<in> zEven";
-    show "y \<in> zEven";
-    proof (rule classical);
-      assume "~(y \<in> zEven)"; 
-      then have "y \<in> zOdd" 
-        by (auto simp add: odd_iff_not_even)
-      with prems have "x - y \<in> zOdd";
+lemma even_diff: "x - y \<in> zEven = ((x \<in> zEven) = (y \<in> zEven))"
+proof
+  assume xy: "x - y \<in> zEven"
+  {
+    assume x: "x \<in> zEven"
+    have "y \<in> zEven"
+    proof (rule classical)
+      assume "\<not> ?thesis"
+      then have "y \<in> zOdd"
+        by (simp add: odd_iff_not_even)
+      with x have "x - y \<in> zOdd"
         by (simp add: even_minus_odd)
-      with prems have "False"; 
+      with xy have False
         by (auto simp add: odd_iff_not_even)
-      thus ?thesis;
-        by auto
-    qed;
-    next assume "x - y \<in> zEven" and "y \<in> zEven"; 
-    show "x \<in> zEven";
-    proof (rule classical);
-      assume "~(x \<in> zEven)"; 
-      then have "x \<in> zOdd" 
+      then show ?thesis ..
+    qed
+  } moreover {
+    assume y: "y \<in> zEven"
+    have "x \<in> zEven"
+    proof (rule classical)
+      assume "\<not> ?thesis"
+      then have "x \<in> zOdd"
         by (auto simp add: odd_iff_not_even)
-      with prems have "x - y \<in> zOdd";
+      with y have "x - y \<in> zOdd"
         by (simp add: odd_minus_even)
-      with prems have "False"; 
+      with xy have False
         by (auto simp add: odd_iff_not_even)
-      thus ?thesis;
-        by auto
-    qed;
-  qed;
+      then show ?thesis ..
+    qed
+  }
+  ultimately show "(x \<in> zEven) = (y \<in> zEven)"
+    by (auto simp add: odd_iff_not_even even_minus_even odd_minus_odd
+      even_minus_odd odd_minus_even)
+next
+  assume "(x \<in> zEven) = (y \<in> zEven)"
+  then show "x - y \<in> zEven"
+    by (auto simp add: odd_iff_not_even even_minus_even odd_minus_odd
+      even_minus_odd odd_minus_even)
+qed
 
-lemma neg_one_even_power: "[| x \<in> zEven; 0 \<le> x |] ==> (-1::int)^(nat x) = 1";
-proof -;
-  assume "x \<in> zEven" and "0 \<le> x";
-  then have "\<exists>k. x = 2 * k";
-    by (auto simp only: zEven_def)
-  then show ?thesis;
-    proof;
-      fix a;
-      assume "x = 2 * a";
-      from prems have a: "0 \<le> a";
-        by arith
-      from prems have "nat x = nat(2 * a)";
-        by auto
-      also from a have "nat (2 * a) = 2 * nat a";
-        by (auto simp add: nat_mult_distrib)
-      finally have "(-1::int)^nat x = (-1)^(2 * nat a)";
-        by auto
-      also have "... = ((-1::int)^2)^ (nat a)";
-        by (auto simp add: zpower_zpower [THEN sym])
-      also have "(-1::int)^2 = 1";
-        by auto
-      finally; show ?thesis;
-        by auto
-    qed;
-qed;
+lemma neg_one_even_power: "[| x \<in> zEven; 0 \<le> x |] ==> (-1::int)^(nat x) = 1"
+proof -
+  assume 1: "x \<in> zEven" and 2: "0 \<le> x"
+  from 1 obtain a where 3: "x = 2 * a" ..
+  with 2 have "0 \<le> a" by simp
+  from 2 3 have "nat x = nat (2 * a)"
+    by simp
+  also from 3 have "nat (2 * a) = 2 * nat a"
+    by (simp add: nat_mult_distrib)
+  finally have "(-1::int)^nat x = (-1)^(2 * nat a)"
+    by simp
+  also have "... = ((-1::int)^2)^ (nat a)"
+    by (simp add: zpower_zpower [symmetric])
+  also have "(-1::int)^2 = 1"
+    by simp
+  finally show ?thesis
+    by simp
+qed
 
-lemma neg_one_odd_power: "[| x \<in> zOdd; 0 \<le> x |] ==> (-1::int)^(nat x) = -1";
-proof -;
-  assume "x \<in> zOdd" and "0 \<le> x";
-  then have "\<exists>k. x = 2 * k + 1";
-    by (auto simp only: zOdd_def)
-  then show ?thesis;
-    proof;
-      fix a;
-      assume "x = 2 * a + 1";
-      from prems have a: "0 \<le> a";
-        by arith
-      from prems have "nat x = nat(2 * a + 1)";
-        by auto
-      also from a have "nat (2 * a + 1) = 2 * nat a + 1";
-        by (auto simp add: nat_mult_distrib nat_add_distrib)
-      finally have "(-1::int)^nat x = (-1)^(2 * nat a + 1)";
-        by auto
-      also have "... = ((-1::int)^2)^ (nat a) * (-1)^1";
-        by (auto simp add: zpower_zpower [THEN sym] zpower_zadd_distrib)
-      also have "(-1::int)^2 = 1";
-        by auto
-      finally; show ?thesis;
-        by auto
-    qed;
-qed;
+lemma neg_one_odd_power: "[| x \<in> zOdd; 0 \<le> x |] ==> (-1::int)^(nat x) = -1"
+proof -
+  assume 1: "x \<in> zOdd" and 2: "0 \<le> x"
+  from 1 obtain a where 3: "x = 2 * a + 1" ..
+  with 2 have a: "0 \<le> a" by simp
+  with 2 3 have "nat x = nat (2 * a + 1)"
+    by simp
+  also from a have "nat (2 * a + 1) = 2 * nat a + 1"
+    by (auto simp add: nat_mult_distrib nat_add_distrib)
+  finally have "(-1::int)^nat x = (-1)^(2 * nat a + 1)"
+    by simp
+  also have "... = ((-1::int)^2)^ (nat a) * (-1)^1"
+    by (auto simp add: zpower_zpower [symmetric] zpower_zadd_distrib)
+  also have "(-1::int)^2 = 1"
+    by simp
+  finally show ?thesis
+    by simp
+qed
 
-lemma neg_one_power_parity: "[| 0 \<le> x; 0 \<le> y; (x \<in> zEven) = (y \<in> zEven) |] ==> 
-  (-1::int)^(nat x) = (-1::int)^(nat y)";
-  apply (insert even_odd_disj [of x])
-  apply (insert even_odd_disj [of y])
+lemma neg_one_power_parity: "[| 0 \<le> x; 0 \<le> y; (x \<in> zEven) = (y \<in> zEven) |] ==>
+  (-1::int)^(nat x) = (-1::int)^(nat y)"
+  using even_odd_disj [of x] even_odd_disj [of y]
   by (auto simp add: neg_one_even_power neg_one_odd_power)
 
-lemma one_not_neg_one_mod_m: "2 < m ==> ~([1 = -1] (mod m))";
+
+lemma one_not_neg_one_mod_m: "2 < m ==> ~([1 = -1] (mod m))"
   by (auto simp add: zcong_def zdvd_not_zless)
 
-lemma even_div_2_l: "[| y \<in> zEven; x < y |] ==> x div 2 < y div 2";
-  apply (auto simp only: zEven_def)
-  proof -;
-    fix k assume "x < 2 * k";
-    then have "x div 2 < k" by (auto simp add: div_prop1)
-    also have "k = (2 * k) div 2"; by auto
-    finally show "x div 2 < 2 * k div 2" by auto
-  qed;
+lemma even_div_2_l: "[| y \<in> zEven; x < y |] ==> x div 2 < y div 2"
+proof -
+  assume 1: "y \<in> zEven" and 2: "x < y"
+  from 1 obtain k where k: "y = 2 * k" ..
+  with 2 have "x < 2 * k" by simp
+  then have "x div 2 < k" by (auto simp add: div_prop1)
+  also have "k = (2 * k) div 2" by simp
+  finally have "x div 2 < 2 * k div 2" by simp
+  with k show ?thesis by simp
+qed
 
-lemma even_sum_div_2: "[| x \<in> zEven; y \<in> zEven |] ==> (x + y) div 2 = x div 2 + y div 2";
+lemma even_sum_div_2: "[| x \<in> zEven; y \<in> zEven |] ==> (x + y) div 2 = x div 2 + y div 2"
   by (auto simp add: zEven_def, auto simp add: zdiv_zadd1_eq)
 
-lemma even_prod_div_2: "[| x \<in> zEven |] ==> (x * y) div 2 = (x div 2) * y";
+lemma even_prod_div_2: "[| x \<in> zEven |] ==> (x * y) div 2 = (x div 2) * y"
   by (auto simp add: zEven_def)
 
 (* An odd prime is greater than 2 *)
 
-lemma zprime_zOdd_eq_grt_2: "zprime p ==> (p \<in> zOdd) = (2 < p)";
+lemma zprime_zOdd_eq_grt_2: "zprime p ==> (p \<in> zOdd) = (2 < p)"
   apply (auto simp add: zOdd_def zprime_def)
   apply (drule_tac x = 2 in allE)
-  apply (insert odd_iff_not_even [of p])  
-by (auto simp add: zOdd_def zEven_def)
+  using odd_iff_not_even [of p]
+  apply (auto simp add: zOdd_def zEven_def)
+  done
 
 (* Powers of -1 and parity *)
 
-lemma neg_one_special: "finite A ==> 
-    ((-1 :: int) ^ card A) * (-1 ^ card A) = 1";
-  by (induct set: Finites, auto)
+lemma neg_one_special: "finite A ==>
+    ((-1 :: int) ^ card A) * (-1 ^ card A) = 1"
+  by (induct set: Finites) auto
 
-lemma neg_one_power: "(-1::int)^n = 1 | (-1::int)^n = -1";
-  apply (induct_tac n)
-  by auto
+lemma neg_one_power: "(-1::int)^n = 1 | (-1::int)^n = -1"
+  by (induct n) auto
 
 lemma neg_one_power_eq_mod_m: "[| 2 < m; [(-1::int)^j = (-1::int)^k] (mod m) |]
-  ==> ((-1::int)^j = (-1::int)^k)";
-  apply (insert neg_one_power [of j])
-  apply (insert neg_one_power [of k])
+    ==> ((-1::int)^j = (-1::int)^k)"
+  using neg_one_power [of j] and insert neg_one_power [of k]
   by (auto simp add: one_not_neg_one_mod_m zcong_sym)
 
-end;
+end

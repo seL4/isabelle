@@ -2,11 +2,6 @@
     ID:         $Id$
     Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
-
-Changes by Jeremy Avigad, 2003/02/21:
-   Repaired definition of zprime_def, added "0 <= m &"
-   Added lemma zgcd_geq_zero
-   Repaired proof of zprime_imp_zrelprime
 *)
 
 header {* Divisibility and prime numbers (on integers) *}

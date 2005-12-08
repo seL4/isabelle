@@ -63,19 +63,16 @@ lemma fin_bijRr: "(A, B) \<in> bijR P ==> finite B"
   done
 
 lemma aux_induct:
-  "finite F ==> F \<subseteq> A ==> P {} ==>
-    (!!F a. F \<subseteq> A ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F))
-  ==> P F"
-proof -
-  case rule_context
-  assume major: "finite F"
+  assumes major: "finite F"
     and subs: "F \<subseteq> A"
-  show ?thesis
-    apply (rule subs [THEN rev_mp])
-    apply (rule major [THEN finite_induct])
-     apply (blast intro: rule_context)+
-    done
-qed
+    and cases: "P {}"
+      "!!F a. F \<subseteq> A ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
+  shows "P F"
+  using major subs
+  apply (induct set: Finites)
+   apply (blast intro: cases)+
+  done
+
 
 lemma inj_func_bijR_aux1:
     "A \<subseteq> B ==> a \<notin> A ==> a \<in> B ==> inj_on f B ==> f a \<notin> f ` A"

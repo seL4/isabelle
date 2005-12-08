@@ -36,41 +36,36 @@ declare d22set.simps [simp del]
 
 
 lemma d22set_induct:
-  "(!!a. P {} a) ==>
-    (!!a. 1 < (a::int) ==> P (d22set (a - 1)) (a - 1)
-      ==> P (d22set a) a)
-    ==> P (d22set u) u"
-proof -
-  case rule_context
-  show ?thesis
-    apply (rule d22set.induct)
-    apply safe
-     apply (case_tac [2] "1 < a")
-      apply (rule_tac [2] rule_context)
-       apply (simp_all (no_asm_simp))
-     apply (simp_all (no_asm_simp) add: d22set.simps rule_context)
-    done
-qed
+  assumes "!!a. P {} a"
+    and "!!a. 1 < (a::int) ==> P (d22set (a - 1)) (a - 1) ==> P (d22set a) a"
+  shows "P (d22set u) u"
+  apply (rule d22set.induct)
+  apply safe
+   prefer 2
+   apply (case_tac "1 < a")
+    apply (rule_tac prems)
+     apply (simp_all (no_asm_simp))
+   apply (simp_all (no_asm_simp) add: d22set.simps prems)
+  done
 
 lemma d22set_g_1 [rule_format]: "b \<in> d22set a --> 1 < b"
   apply (induct a rule: d22set_induct)
-   prefer 2
-   apply (subst d22set.simps)
-   apply auto
+   apply simp
+  apply (subst d22set.simps)
+  apply auto
   done
 
 lemma d22set_le [rule_format]: "b \<in> d22set a --> b \<le> a"
   apply (induct a rule: d22set_induct)
-   prefer 2
+  apply simp
    apply (subst d22set.simps)
    apply auto
   done
 
 lemma d22set_le_swap: "a < b ==> b \<notin> d22set a"
-  apply (auto dest: d22set_le)
-  done
+  by (auto dest: d22set_le)
 
-lemma d22set_mem [rule_format]: "1 < b --> b \<le> a --> b \<in> d22set a"
+lemma d22set_mem: "1 < b \<Longrightarrow> b \<le> a \<Longrightarrow> b \<in> d22set a"
   apply (induct a rule: d22set.induct)
   apply auto
    apply (simp_all add: d22set.simps)

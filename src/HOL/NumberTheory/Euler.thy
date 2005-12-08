@@ -122,7 +122,7 @@ lemma Union_SetS_finite: "2 < p ==> finite (Union (SetS a p))"
 
 lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
     \<forall>X \<in> S. card X = n |] ==> setsum card S = setsum (%x. n) S"
-by (induct set: Finites, auto)
+  by (induct set: Finites) auto
 
 lemma SetS_card: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==> 
                   int(card(SetS a p)) = (p - 1) div 2"
@@ -172,9 +172,9 @@ lemma aux1: "[| 0 < x; (x::int) < a; x \<noteq> (a - 1) |] ==> x < a - 1"
 lemma aux2: "[| (a::int) < c; b < c |] ==> (a \<le> b | b \<le> a)"
   by auto
 
-lemma SRStar_d22set_prop [rule_format]: "2 < p --> (SRStar p) = {1} \<union> 
-    (d22set (p - 1))"
-  apply (induct p rule: d22set.induct, auto)
+lemma SRStar_d22set_prop: "2 < p \<Longrightarrow> (SRStar p) = {1} \<union> (d22set (p - 1))"
+  apply (induct p rule: d22set.induct)
+  apply auto
   apply (simp add: SRStar_def d22set.simps)
   apply (simp add: SRStar_def d22set.simps, clarify)
   apply (frule aux1)
@@ -183,7 +183,7 @@ lemma SRStar_d22set_prop [rule_format]: "2 < p --> (SRStar p) = {1} \<union>
   apply (simp add: d22set.simps)
   apply (frule d22set_le)
   apply (frule d22set_g_1, auto)
-done
+  done
 
 lemma Union_SetS_setprod_prop1: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
                                  [\<Prod>(Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
@@ -195,8 +195,8 @@ proof -
                        MultInvPair_prop1c setprod_Union_disjoint)
   also have "[setprod (setprod (%x. x)) (SetS a p) = 
       setprod (%x. a) (SetS a p)] (mod p)"
-    apply (rule setprod_same_function_zcong)
-    by (auto simp add: prems SetS_setprod_prop SetS_finite)
+    by (rule setprod_same_function_zcong)
+      (auto simp add: prems SetS_setprod_prop SetS_finite)
   also (zcong_trans) have "[setprod (%x. a) (SetS a p) = 
       a^(card (SetS a p))] (mod p)"
     by (auto simp add: prems SetS_finite setprod_constant)
@@ -205,7 +205,7 @@ proof -
     apply (subgoal_tac "card(SetS a p) = nat((p - 1) div 2)", auto)
     apply (subgoal_tac "nat(int(card(SetS a p))) = nat((p - 1) div 2)", force)
     apply (auto simp add: prems SetS_card)
-  done
+    done
 qed
 
 lemma Union_SetS_setprod_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==> 
@@ -218,15 +218,15 @@ proof -
     by (auto simp add: prems SRStar_d22set_prop)
   also have "... = zfact(p - 1)"
   proof -
-     have "~(1 \<in> d22set (p - 1)) & finite( d22set (p - 1))"
+    have "~(1 \<in> d22set (p - 1)) & finite( d22set (p - 1))"
       apply (insert prems, auto)
       apply (drule d22set_g_1)
       apply (auto simp add: d22set_fin)
-     done
-     then have "\<Prod>({1} \<union> (d22set (p - 1))) = \<Prod>(d22set (p - 1))"
-       by auto
-     then show ?thesis
-       by (auto simp add: d22set_prod_zfact)
+      done
+    then have "\<Prod>({1} \<union> (d22set (p - 1))) = \<Prod>(d22set (p - 1))"
+      by auto
+    then show ?thesis
+      by (auto simp add: d22set_prod_zfact)
   qed
   finally show ?thesis .
 qed
@@ -235,7 +235,7 @@ lemma zfact_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
                    [zfact (p - 1) = a ^ nat ((p - 1) div 2)] (mod p)"
   apply (frule Union_SetS_setprod_prop1) 
   apply (auto simp add: Union_SetS_setprod_prop2)
-done
+  done
 
 (****************************************************************)
 (*                                                              *)
@@ -252,7 +252,7 @@ lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p));
   apply (frule Wilson_Russ)
   apply (auto simp add: zcong_sym)
   apply (rule zcong_trans, auto)
-done
+  done
 
 (********************************************************************)
 (*                                                                  *)
@@ -294,7 +294,7 @@ lemma Euler_part2: "[| 2 < p; zprime p; [a = 0] (mod p) |] ==> [0 = a ^ nat ((p 
   apply (frule aux_2, auto)
   apply (frule_tac a = a in aux_1, auto)
   apply (frule zcong_zmult_prop1, auto)
-done
+  done
 
 (****************************************************************)
 (*                                                              *)
@@ -309,7 +309,7 @@ lemma aux__1: "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> ~(p dvd y)"
     ~([y ^ 2 = 0] (mod p))")
   apply (auto simp add: zcong_sym [of "y^2" x p] intro: zcong_trans)
   apply (auto simp add: zcong_eq_zdvd_prop intro: zpower_zdvd_prop1)
-done
+  done
 
 lemma aux__2: "2 * nat((p - 1) div 2) =  nat (2 * ((p - 1) div 2))"
   by (auto simp add: nat_mult_distrib)
@@ -327,7 +327,7 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
   apply (frule odd_minus_one_even)
   apply (frule even_div_2_prop2)
   apply (auto intro: Little_Fermat simp add: zprime_zOdd_eq_grt_2)
-done
+  done
 
 (********************************************************************)
 (*                                                                  *)
@@ -340,6 +340,6 @@ theorem Euler_Criterion: "[| 2 < p; zprime p |] ==> [(Legendre a p) =
   apply (auto simp add: Legendre_def Euler_part2)
   apply (frule Euler_part3, auto simp add: zcong_sym)
   apply (frule Euler_part1, auto simp add: zcong_sym)
-done
+  done
 
 end

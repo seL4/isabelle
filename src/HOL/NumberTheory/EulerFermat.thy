@@ -2,9 +2,6 @@
     ID:         $Id$
     Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
-
-Changes by Jeremy Avigad, 2003/02/21:
-   repaired proof of Bnor_prime (removed use of zprime_def)
 *)
 
 header {* Fermat's Little Theorem extended to Euler's Totient function *}
@@ -60,7 +57,7 @@ constdefs
 
 lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"
   -- {* LCP: not sure why this lemma is needed now *}
-by (auto simp add: abs_if)
+  by (auto simp add: abs_if)
 
 
 text {* \medskip @{text norRRset} *}
@@ -68,29 +65,27 @@ text {* \medskip @{text norRRset} *}
 declare BnorRset.simps [simp del]
 
 lemma BnorRset_induct:
-  "(!!a m. P {} a m) ==>
-    (!!a m. 0 < (a::int) ==> P (BnorRset (a - 1, m::int)) (a - 1) m
-      ==> P (BnorRset(a,m)) a m)
-    ==> P (BnorRset(u,v)) u v"
-proof -
-  case rule_context
-  show ?thesis
-    apply (rule BnorRset.induct, safe)
-     apply (case_tac [2] "0 < a")
-      apply (rule_tac [2] rule_context, simp_all)
-     apply (simp_all add: BnorRset.simps rule_context)
+  assumes "!!a m. P {} a m"
+    and "!!a m. 0 < (a::int) ==> P (BnorRset (a - 1, m::int)) (a - 1) m
+      ==> P (BnorRset(a,m)) a m"
+  shows "P (BnorRset(u,v)) u v"
+  apply (rule BnorRset.induct)
+  apply safe
+   apply (case_tac [2] "0 < a")
+    apply (rule_tac [2] prems)
+     apply simp_all
+   apply (simp_all add: BnorRset.simps prems)
   done
-qed
 
-lemma Bnor_mem_zle [rule_format]: "b \<in> BnorRset (a, m) --> b \<le> a"
+lemma Bnor_mem_zle [rule_format]: "b \<in> BnorRset (a, m) \<longrightarrow> b \<le> a"
   apply (induct a m rule: BnorRset_induct)
-   prefer 2
-   apply (subst BnorRset.simps)
+   apply simp
+  apply (subst BnorRset.simps)
    apply (unfold Let_def, auto)
   done
 
 lemma Bnor_mem_zle_swap: "a < b ==> b \<notin> BnorRset (a, m)"
-by (auto dest: Bnor_mem_zle)
+  by (auto dest: Bnor_mem_zle)
 
 lemma Bnor_mem_zg [rule_format]: "b \<in> BnorRset (a, m) --> 0 < b"
   apply (induct a m rule: BnorRset_induct)
@@ -210,7 +205,7 @@ lemmas RRset2norRR_correct2 =
   RRset2norRR_correct [THEN conjunct2, standard]
 
 lemma RsetR_fin: "A \<in> RsetR m ==> finite A"
-by (erule RsetR.induct, auto)
+  by (induct set: RsetR) auto
 
 lemma RRset_zcong_eq [rule_format]:
   "1 < m ==>
