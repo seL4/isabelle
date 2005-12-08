@@ -141,6 +141,9 @@ example "A -> B" => "Pi A (%_. B)".
 
 *** HOL ***
 
+* Theorem 'swap' is no longer bound at the ML top-level.  INCOMPATIBILITY, use
+Classical.swap instead.
+
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
