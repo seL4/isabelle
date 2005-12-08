@@ -234,7 +234,7 @@ qed "emptyD";
 val emptyE = make_elim emptyD;
 
 val [prem] = goal (the_context ()) "~ A={} ==> (EX x. x:A)";
-by (rtac (prem RS swap) 1);
+by (rtac (prem RS Cla.swap) 1);
 by (rtac equalityI 1);
 by (ALLGOALS (fast_tac (FOL_cs addSIs [subsetI] addSEs [emptyD])));
 qed "not_emptyD";
