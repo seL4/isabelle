@@ -406,7 +406,7 @@ val forall_elim_vars = PureThy.forall_elim_vars;
 fun outer_params t =
   let
     val vs = Term.strip_all_vars t;
-    val xs = Term.variantlist (map (Syntax.deskolem o #1) vs, []);
+    val xs = Term.variantlist (map (perhaps (try Syntax.dest_skolem) o #1) vs, []);
   in xs ~~ map #2 vs end;
 
 (*generalize outermost parameters*)

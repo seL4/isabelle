@@ -434,7 +434,7 @@ fun rev_skolem ctxt =
 fun revert_skolem ctxt x =
   (case rev_skolem ctxt x of
     SOME x' => x'
-  | NONE => Syntax.deskolem x);
+  | NONE => perhaps (try Syntax.dest_skolem) x);
 
 fun extern_skolem ctxt =
   let

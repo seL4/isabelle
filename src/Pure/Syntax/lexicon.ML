@@ -30,7 +30,6 @@ sig
   val dest_internal: string -> string
   val skolem: string -> string
   val dest_skolem: string -> string
-  val deskolem: string -> string
   val read_nat: string -> int option
   val read_xnum: string -> IntInf.int
   val read_idents: string -> string list
@@ -356,7 +355,6 @@ val dest_internal = unsuffix "_";
 
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
-fun deskolem x = the_default x (try dest_skolem x);
 
 
 (* read_nat *)

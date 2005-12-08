@@ -162,7 +162,7 @@ val case_conclN = "case";
 val case_hypsN = "hyps";
 val case_premsN = "prems";
 
-val strip_params = map (apfst Syntax.deskolem) o Logic.strip_params;
+val strip_params = map (apfst (perhaps (try Syntax.dest_skolem))) o Logic.strip_params;
 
 fun dest_binops cs tm =
   let
