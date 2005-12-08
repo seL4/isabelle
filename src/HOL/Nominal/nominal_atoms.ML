@@ -89,7 +89,7 @@ fun create_nom_typedecls ak_names thy =
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
         thy |> Theory.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
-            |> (#1 o PureThy.add_defs_i true [((name, def2),[])])
+            |> (#2 o PureThy.add_defs_i true [((name, def2),[])])
             |> PrimrecPackage.add_primrec_i "" [(("", def1),[])]            
       end) (thy2, ak_names_types);
     
@@ -130,8 +130,8 @@ fun create_nom_typedecls ak_names thy =
     (*                                                                   *)
     (* the trivial cases are added to the simplifier, while the non-     *)
     (* have their own rules proved below                                 *)  
-    val (thy5, perm_defs) = foldl_map (fn (thy, (ak_name, T)) =>
-      foldl_map (fn (thy', (ak_name', T')) =>
+    val (perm_defs, thy5) = fold_map (fn (ak_name, T) => fn thy =>
+      fold_map (fn (ak_name', T') => fn thy' =>
         let
           val perm_def_name = ak_name ^ "_prm_" ^ ak_name';
           val pi = Free ("pi", mk_permT T);
@@ -143,8 +143,8 @@ fun create_nom_typedecls ak_names thy =
           val def = Logic.mk_equals
                     (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
         in
-          thy' |> PureThy.add_defs_i true [((name, def),[])] 
-        end) (thy, ak_names_types)) (thy4, ak_names_types);
+          PureThy.add_defs_i true [((name, def),[])] thy'
+        end) ak_names_types thy) ak_names_types thy4;
     
     (* proves that every atom-kind is an instance of at *)
     (* lemma at_<ak>_inst:                              *)

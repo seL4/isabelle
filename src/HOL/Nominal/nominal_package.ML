@@ -489,8 +489,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "defining type...";
 
-    val (thy6, typedefs) =
-      foldl_map (fn (thy, ((((name, mx), tvs), c), name')) =>
+    val (typedefs, thy6) =
+      fold_map (fn ((((name, mx), tvs), c), name') => fn thy =>
         setmp TypedefPackage.quiet_mode true
           (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
             (rtac exI 1 THEN
@@ -502,7 +502,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val tvs' = map (fn s => TFree (s, the (AList.lookup op = sorts' s))) tvs;
           val T = Type (Sign.intern_type thy name, tvs');
           val Const (_, Type (_, [U])) = c
-        in apsnd (pair r o hd)
+        in apfst (pair r o hd)
           (PureThy.add_defs_i true [(("prm_" ^ name ^ "_def", Logic.mk_equals
             (Const ("nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
              Const (Sign.intern_const thy ("Abs_" ^ name), U --> T) $
@@ -510,8 +510,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                  (Const (Sign.intern_const thy ("Rep_" ^ name), T --> U) $
                    Free ("x", T))))), [])] thy)
         end))
-          (thy5, types_syntax ~~ tyvars ~~
-            (List.take (ind_consts, length new_type_names)) ~~ new_type_names);
+          (types_syntax ~~ tyvars ~~
+            (List.take (ind_consts, length new_type_names)) ~~ new_type_names) thy5;
 
     val perm_defs = map snd typedefs;
     val Abs_inverse_thms = map (#Abs_inverse o fst) typedefs;
@@ -667,7 +667,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (rep_name, T --> T') $ lhs, rhs));
         val def_name = (Sign.base_name cname) ^ "_def";
-        val (thy', [def_thm]) = thy |>
+        val ([def_thm], thy') = thy |>
           Theory.add_consts_i [(cname', constrT, mx)] |>
           (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
