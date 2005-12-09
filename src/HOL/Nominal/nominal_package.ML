@@ -359,7 +359,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           thy (full_new_type_names' ~~ tyvars)
       end;
 
-    val (thy3, perm_thmss) = thy2 |>
+    val (perm_thmss,thy3) = thy2 |>
       fold (fn name1 => fold (composition_instance name1) atoms) atoms |>
       curry (Library.foldr (fn ((i, (tyname, args, _)), thy) =>
         AxClass.add_inst_arity_i (tyname, replicate (length args) classes, classes)
@@ -482,8 +482,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (* FIXME: theorems are stored in database for testing only *)
     val perm_closed_thmss = map mk_perm_closed atoms;
-    val (thy5, _) = PureThy.add_thmss [(("perm_closed",
-      List.concat perm_closed_thmss), [])] thy4;
+    val (_,thy5) = PureThy.add_thmss [(("perm_closed", List.concat perm_closed_thmss), [])] thy4;
 
     (**** typedef ****)
 
@@ -1067,9 +1066,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add_global];
 
-    val (_, thy9) = thy8 |>
+    val (_, thy9) = (thy8:Context.theory) |>
       Theory.add_path big_name |>
-      (PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] #> Library.swap) ||>
+      PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] ||>
       Theory.parent_path ||>>
       DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
@@ -1085,7 +1084,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms) ||>
       Theory.add_path big_name ||>>
-      (PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])] #> Library.swap) ||>
+      PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])] ||>
       Theory.parent_path;
 
   in

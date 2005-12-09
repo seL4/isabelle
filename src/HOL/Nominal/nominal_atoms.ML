@@ -56,7 +56,7 @@ fun create_nom_typedecls ak_names thy =
      
     (* adds for every atom-kind an axiom             *)
     (* <ak>_infinite: infinite (UNIV::<ak_type> set) *)
-    val (thy2,inf_axs) = PureThy.add_axioms_i (map (fn (ak_name, T) =>
+    val (inf_axs,thy2) = PureThy.add_axioms_i (map (fn (ak_name, T) =>
       let 
 	val name = ak_name ^ "_infinite"
         val axiom = HOLogic.mk_Trueprop (HOLogic.mk_not
@@ -149,7 +149,7 @@ fun create_nom_typedecls ak_names thy =
     (* proves that every atom-kind is an instance of at *)
     (* lemma at_<ak>_inst:                              *)
     (* at TYPE(<ak>)                                    *)
-    val (thy6, prm_cons_thms) = 
+    val (prm_cons_thms,thy6) = 
       thy5 |> PureThy.add_thms (map (fn (ak_name, T) =>
       let
         val ak_name_qu = Sign.full_name (sign_of thy5) (ak_name);
@@ -210,7 +210,7 @@ fun create_nom_typedecls ak_names thy =
     (* instance of pt                                         *)
     (* lemma pt_<ak>_inst:                                    *)
     (* pt TYPE('x::pt_<ak>) TYPE(<ak>)                        *)
-    val (thy8, prm_inst_thms) = 
+    val (prm_inst_thms,thy8) = 
       thy7 |> PureThy.add_thms (map (fn (ak_name, T) =>
       let
         val ak_name_qu = Sign.full_name (sign_of thy7) (ak_name);
@@ -256,7 +256,7 @@ fun create_nom_typedecls ak_names thy =
      (* instance of fs-type                                      *)
      (* lemma abst_<ak>_inst:                                    *)
      (* fs TYPE('x::pt_<ak>) TYPE (<ak>)                         *)
-     val (thy12, fs_inst_thms) = 
+     val (fs_inst_thms,thy12) = 
        thy11 |> PureThy.add_thms (map (fn (ak_name, T) =>
        let
          val ak_name_qu = Sign.full_name (sign_of thy11) (ak_name);
@@ -305,8 +305,8 @@ fun create_nom_typedecls ak_names thy =
         (* proves for every <ak>-combination a cp_<ak1>_<ak2>_inst theorem;     *)
         (* lemma cp_<ak1>_<ak2>_inst:                                           *)
         (* cp TYPE('a::cp_<ak1>_<ak2>) TYPE(<ak1>) TYPE(<ak2>)                  *)
-        val (thy12c, cp_thms) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
+        val (cp_thms,thy12c) = fold_map (fn (ak_name, T) => fn thy =>
+	 fold_map (fn (ak_name', T') => fn thy' =>
            let
              val ak_name_qu  = Sign.full_name (sign_of thy') (ak_name);
 	     val ak_name_qu' = Sign.full_name (sign_of thy') (ak_name');
@@ -328,17 +328,16 @@ fun create_nom_typedecls ak_names thy =
 
              val proof = fn _ => EVERY [auto_tac (claset(),simp_s), rtac cp1 1];
 	   in
-	     thy' |> PureThy.add_thms 
-                    [((name, standard (Goal.prove thy' [] [] statement proof)), [])]
+	     PureThy.add_thms [((name, standard (Goal.prove thy' [] [] statement proof)), [])] thy'
 	   end) 
-	   (thy, ak_names_types)) (thy12b, ak_names_types);
+           ak_names_types thy) ak_names_types thy12b;
        
         (* proves for every non-trivial <ak>-combination a disjointness   *)
         (* theorem; i.e. <ak1> != <ak2>                                   *)
         (* lemma ds_<ak1>_<ak2>:                                          *)
         (* dj TYPE(<ak1>) TYPE(<ak2>)                                     *)
-        val (thy12d, dj_thms) = foldl_map (fn (thy, (ak_name, T)) =>
-	  foldl_map (fn (thy', (ak_name', T')) =>
+        val (dj_thms, thy12d) = fold_map (fn (ak_name,T) => fn thy =>
+	  fold_map (fn (ak_name',T') => fn thy' =>
           (if not (ak_name = ak_name') 
            then 
 	       let
@@ -360,12 +359,11 @@ fun create_nom_typedecls ak_names thy =
 
                  val proof = fn _ => auto_tac (claset(),simp_s);
 	       in
-		   thy' |> PureThy.add_thms 
-                        [((name, standard (Goal.prove thy' [] [] statement proof)), []) ]
+		PureThy.add_thms [((name, standard (Goal.prove thy' [] [] statement proof)), [])] thy'
 	       end
            else 
-            (thy',[])))  (* do nothing branch, if ak_name = ak_name' *) 
-	   (thy, ak_names_types)) (thy12c, ak_names_types);
+            ([],thy')))  (* do nothing branch, if ak_name = ak_name' *) 
+	    ak_names_types thy) ak_names_types thy12c;
 
      (*<<<<<<<  pt_<ak> class instances  >>>>>>>*)
      (*=========================================*)
@@ -822,7 +820,7 @@ fun create_nom_typedecls ak_names thy =
        (* types; this allows for example to use abs_perm (which is a      *)
        (* collection of theorems) instead of thm abs_fun_pi with explicit *)
        (* instantiations.                                                 *)
-       val (thy33,_) = 
+       val (_,thy33) = 
 	 let 
              (* takes a theorem thm and a list of theorems [t1,..,tn]            *)
              (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
@@ -879,27 +877,27 @@ fun create_nom_typedecls ak_names thy =
            in
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
-            |>>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
-            |>>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
-            |>>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
-            |>>> PureThy.add_thmss [(("perm_compose", inst_pt_at [pt_perm_compose]),[])]
-            |>>> PureThy.add_thmss [(("perm_app_eq", inst_pt_at [perm_eq_app]),[])]
-            |>>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
-            |>>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
-            |>>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
-            |>>> PureThy.add_thmss
+            ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
+            ||>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
+            ||>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
+            ||>> PureThy.add_thmss [(("perm_compose", inst_pt_at [pt_perm_compose]),[])]
+            ||>> PureThy.add_thmss [(("perm_app_eq", inst_pt_at [perm_eq_app]),[])]
+            ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
+            ||>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
+            ||>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
+            ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_pi]
 		  and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
 	      in [(("abs_perm", thms1 @ thms2),[])] end
-            |>>> PureThy.add_thmss
+            ||>> PureThy.add_thmss
 	      let val thms1 = inst_dj [dj_perm_forget]
 		  and thms2 = inst_dj [dj_pp_forget]
               in [(("perm_dj", thms1 @ thms2),[])] end
-            |>>> PureThy.add_thmss
+            ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at_fs [fresh_iff]
 		  and thms2 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
 	    in [(("abs_fresh", thms1 @ thms2),[])] end
-	    |>>> PureThy.add_thmss
+	    ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_supp]
 		  and thms2 = inst_pt_at_fs [abs_fun_supp]
 		  and thms3 = inst_pt_pt_at_cp_dj [abs_fun_supp_ineq]
