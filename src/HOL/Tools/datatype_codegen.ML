@@ -8,7 +8,7 @@ Code generator for inductive datatypes.
 signature DATATYPE_CODEGEN =
 sig
   val is_datatype: theory -> string -> bool
-  val get_datatype: theory -> string -> (string list * string list) option
+  val get_datatype: theory -> string -> ((string * sort) list * string list) option
   val get_datacons: theory -> string * string -> typ list option
   val get_case_const_data: theory -> string -> (string * int) list option;
   val setup: (theory -> theory) list
@@ -307,13 +307,11 @@ fun is_datatype thy dtyco =
 fun get_datatype thy dtname =
   dtname
   |> Symtab.lookup (DatatypePackage.get_datatypes thy)
-  |> Option.map #descr
-  |> these
-  |> get_first (fn (_, (dtname', vs, cs)) =>
-       if dtname = dtname'
-       then SOME (vs, map fst cs)
-       else NONE)
-  |> Option.mapPartial (try (apfst (map DatatypeAux.dest_DtTFree)));
+  |> Option.map (fn info => (#sorts info,
+      (get_first (fn (_, (dtname', _, cs)) =>
+        if dtname = dtname'
+        then SOME (map fst cs)
+        else NONE) (#descr info) |> the)));
   
 fun get_datacons thy (c, dtname) =
   let
