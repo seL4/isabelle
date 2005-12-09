@@ -138,77 +138,6 @@ fun lower_first s =
   in NameSpace.pack (pr @ [String.implode (Char.toLower c :: cs)]) end;
 
 
-(** grouping functions **)
-
-fun group_datatypes one_arg defs =
-  let
-    fun check_typ_dup dtname ts =
-      if AList.defined (op =) ts dtname
-      then error ("double datatype definition: " ^ quote dtname)
-      else ts
-    fun check_typ_miss dtname ts =
-      if AList.defined (op =) ts dtname
-      then ts
-      else error ("missing datatype definition: " ^ quote dtname)
-    fun group (name, Datatype (vs, _, _)) ts =
-          (if one_arg
-           then map (fn (_, []) => () | _ => error "can't serialize sort constrained datatype declaration to ML") vs
-           else [];
-          ts
-          |> apsnd (check_typ_dup name)
-          |> apsnd (AList.update (op =) (name, (vs, []))))
-      | group (name, Datatypecons (dtname, tys as _::_::_)) ts =
-          if one_arg
-          then error ("datatype constructor containing more than one parameter")
-          else
-            ts
-            |> apfst (AList.default (op =) (NameSpace.base dtname, []))
-            |> apfst (AList.map_entry (op =) (NameSpace.base dtname) (cons (name, tys)))
-      | group (name, Datatypecons (dtname, tys)) ts =
-          ts
-          |> apfst (AList.default (op =) (NameSpace.base dtname, []))
-          |> apfst (AList.map_entry (op =) (NameSpace.base dtname) (cons (name, tys)))
-      | group _ _ =
-          error ("Datatype block containing other statements than datatype or constructor definitions")
-    fun group_cons (dtname, co) ts =
-      ts
-      |> check_typ_miss dtname
-      |> AList.map_entry (op =) dtname (rpair co o fst)
-  in
-    ([], [])
-    |> fold group defs
-    |-> (fn cons => fold group_cons cons)
-  end;
-
-fun group_classes defs =
-  let
-    fun check_class_dup clsname ts =
-      if AList.defined (op =) ts clsname
-      then error ("double class definition: " ^ quote clsname)
-      else ts
-    fun check_clsname_miss clsname ts =
-      if AList.defined (op =) ts clsname
-      then ts
-      else error ("missing class definition: " ^ quote clsname)
-    fun group (name, Class (supercls, v, _, _)) ts =
-          ts
-          |> apsnd (check_class_dup name)
-          |> apsnd (AList.update (op =) (name, ((supercls, v), [])))
-      | group (name, Classmember (clsname, _, ty)) ts =
-          ts
-          |> apfst (AList.default (op =) (NameSpace.base clsname, []))
-          |> apfst (AList.map_entry (op =) (NameSpace.base clsname) (cons (name, ty)))
-      | group _ _ =
-          error ("Datatype block containing other statements than datatype or constructor definitions")
-    fun group_members (clsname, member) ts =
-      ts
-      |> check_clsname_miss clsname
-      |> AList.map_entry (op =) clsname (rpair member o fst)
-  in
-    ([], [])
-    |> fold group defs
-    |-> (fn members => fold group_members members)
-  end;
 
 (** ML serializer **)
 
@@ -222,7 +151,7 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
       in
         Pretty.chunks (p_init @ [Pretty.block ([p_last, Pretty.str ";"])])
     end;
-    val ml_label_uniq = translate_string (fn "'" => "''" | "." => "'" | c => c);
+    val ml_label_uniq = translate_string (fn "_" => "__" | "." => "_" | c => c);
     fun ml_from_type br (IType ("Pair", [t1, t2])) =
           brackify (eval_br_postfix br (INFX (2, L))) [
             ml_from_type (INFX (2, X)) t1,
@@ -260,7 +189,7 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
       | ml_from_type _ (IVarT (_, sort)) =
           "cannot serialize sort constrained type variable to ML: " ^ commas sort |> error
       | ml_from_type _ (IDictT fs) =
-          (Pretty.enclose "{" "}" o Pretty.breaks) (
+          Pretty.gen_list "," "{" "}" (
             map (fn (f, ty) =>
               Pretty.block [Pretty.str (ml_label_uniq f ^ ": "), ml_from_type NOBR ty]) fs
           );
@@ -382,18 +311,26 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
       | ml_from_expr br (IInst _) =
           error "cannot serialize poly instant to ML"
       | ml_from_expr br (IDictE fs) =
-          (Pretty.enclose "{" "}" o Pretty.breaks) (
+          Pretty.gen_list "," "{" "}" (
             map (fn (f, e) =>
               Pretty.block [Pretty.str (ml_label_uniq f ^ " = "), ml_from_expr NOBR e]) fs
           )
-      | ml_from_expr br (ILookup (ls, v)) =
+      | ml_from_expr br (ILookup ([], v)) =
+          Pretty.str v
+      | ml_from_expr br (ILookup ([l], v)) =
           brackify (eval_br br BR) [
-            Pretty.str "(",
-            ls |> map ((fn s => "#" ^ s) o ml_label_uniq) |> foldr1 (fn (l, e) => l ^ " o " ^ e) |> Pretty.str,
-            Pretty.str ")",
-            Pretty.str " ",
+            Pretty.str ("#" ^ (ml_label_uniq l)),
             Pretty.str v
           ]
+      | ml_from_expr br (ILookup (ls, v)) =
+          brackify (eval_br br BR) [
+            Pretty.str ("("
+              ^ (ls |> map ((fn s => "#" ^ s) o ml_label_uniq) |> foldr1 (fn (l, e) => l ^ " o " ^ e))
+              ^ ")"),
+            Pretty.str v
+          ]
+      | ml_from_expr _ e =
+          error ("dubious expression: " ^ (Pretty.output o pretty_iexpr) e)
     and mk_app_p br p args =
       brackify (eval_br br BR)
         (p :: map (ml_from_expr BR) args)
@@ -504,74 +441,78 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
         fun mk_fun definer (f, Fun (eqs as eq::eq_tl, (_, ty))) =
           let
             val (pats_hd::pats_tl) = (fst o split_list) eqs;
-            val _ = fold (fn x => fn y => (x ~~ y; y)) pats_tl pats_hd;
-              (*check for equal length of argument lists*)
             val shift = if null eq_tl then I else map (Pretty.block o single);
           in (Pretty.block o Pretty.fbreaks o shift) (
                mk_eq definer f ty eq
                :: map (mk_eq "|" f ty) eq_tl
              )
-          end
+          end;
       in
         chunk_defs (
           mk_fun definer d
           :: map (mk_fun "and") ds_tl
-        )
+        ) |> SOME
       end;
     fun ml_from_datatypes defs =
       let
-        fun mk_datatypes (ds as d::ds_tl) =
-          let
-            fun praetify [] f = [f]
-              | praetify [p] f = [f, Pretty.str " of ", p]
-            fun mk_cons (co, typs) =
-              (Pretty.block oo praetify)
-                (map (ml_from_type NOBR) typs)
-                (Pretty.str (resolv co))
-            fun mk_datatype definer (t, (vs, cs)) =
-              Pretty.block (
-                [Pretty.str definer]
-                @ postify (map (ml_from_type BR o IVarT) vs)
-                    (Pretty.str (resolv t))
-                @ [Pretty.str " =",
-                  Pretty.brk 1]
-                @ separate (Pretty.block [Pretty.brk 1, Pretty.str "| "]) (map mk_cons cs)
-              )
-          in
+        val defs' = List.mapPartial
+          (fn (name, Datatype info) => SOME (name, info)
+            | (name, Datatypecons _) => NONE
+            | (name, def) => error ("datatype block containing illegal def: " ^ (Pretty.output o pretty_def) def)
+          ) ds
+        fun praetify [] f = [f]
+          | praetify [p] f = [f, Pretty.str " of ", p]
+        fun mk_cons (co, typs) =
+          (Pretty.block oo praetify)
+            (map (ml_from_type NOBR) typs)
+            (Pretty.str (resolv co))
+        fun mk_datatype definer (t, (vs, cs, _)) =
+          Pretty.block (
+            [Pretty.str definer]
+            @ postify (map (ml_from_type BR o IVarT) vs)
+                (Pretty.str (resolv t))
+            @ [Pretty.str " =",
+              Pretty.brk 1]
+            @ separate (Pretty.block [Pretty.brk 1, Pretty.str "| "]) (map mk_cons cs)
+          )
+      in
+        case defs'
+         of d::ds_tl =>
             chunk_defs (
               mk_datatype "datatype " d
               :: map (mk_datatype "and ") ds_tl
-            )
-          end;
-      in
-        (mk_datatypes o group_datatypes true) defs
+            ) |> SOME
+          | _ => NONE
       end;
-    fun ml_from_def (name, Typesyn (vs, ty)) =
-        (map (fn (vname, []) => () | _ => error "can't serialize sort constrained type declaration to ML") vs;
-         Pretty.block (
-          Pretty.str "type "
-          :: postify (map (Pretty.str o fst) vs) (Pretty.str name)
-          @ [Pretty.str " =",
-          Pretty.brk 1,
-          ml_from_type NOBR ty,
-          Pretty.str ";"
-        ]))
-      | ml_from_def (name, Nop) =
+    fun ml_from_def (name, Nop) =
           if exists (fn query => query name)
             [(fn name => (is_some o tyco_syntax) name),
              (fn name => (is_some o const_syntax) name)]
-          then Pretty.str ""
+          then NONE
           else error ("empty statement during serialization: " ^ quote name)
+      | ml_from_def (name, Typesyn (vs, ty)) =
+        (map (fn (vname, []) => () | _ => error "can't serialize sort constrained type declaration to ML") vs;
+          Pretty.block (
+            Pretty.str "type "
+            :: postify (map (ml_from_type BR o IVarT) vs) (Pretty.str name)
+            @ [Pretty.str " =",
+            Pretty.brk 1,
+            ml_from_type NOBR ty,
+            Pretty.str ";"
+            ]
+          )) |> SOME
       | ml_from_def (name, Class _) =
           error ("can't serialize class declaration " ^ quote name ^ " to ML")
+      | ml_from_def (_, Classmember _) =
+          NONE
       | ml_from_def (name, Classinst _) =
           error ("can't serialize instance declaration " ^ quote name ^ " to ML")
-  in (debug 10 (fn _ => "******************") (); (*map (writeln o Pretty.o)*)
-  case (snd o hd) ds
-   of Fun _ => ml_from_funs ds
-    | Datatypecons _ => ml_from_datatypes ds
-    | Datatype _ => ml_from_datatypes ds
-    | _ => (case ds of [d] => ml_from_def d))
+  in (debug 10 (fn _ => "*** defs " ^ commas (map fst ds)) ();
+  case ds
+   of (_, Fun _)::_ => ml_from_funs ds
+    | (_, Datatypecons _)::_ => ml_from_datatypes ds
+    | (_, Datatype _)::_ => ml_from_datatypes ds
+    | [d] => ml_from_def d)
   end;
 
 in
@@ -619,8 +560,11 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
       | eta_expander s =
           if NameSpace.is_qualified s
           then case get_def module s
-            of Datatypecons (_ , tys) =>
-                if length tys >= 2 then length tys else 0
+            of Datatypecons dtname =>
+                (case get_def module dtname
+                  of Datatype (_, cs, _) =>
+                    let val l = AList.lookup (op =) cs s |> the |> length
+                    in if l >= 2 then l else 0 end)
              | _ =>
                 const_syntax s
                 |> Option.map fst
@@ -629,19 +573,17 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
   in
     module
     |> debug 12 (Pretty.output o pretty_module)
-    |> debug 3 (fn _ => "connecting datatypes and classdecls...")
-    |> connect_datatypes_clsdecls
     |> debug 3 (fn _ => "selecting submodule...")
     |> (if is_some select then (partof o the) select else I)
     |> debug 3 (fn _ => "eta-expanding...")
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "eta-expanding polydefs...")
     |> eta_expand_poly
-    |> debug 12 (Pretty.output o pretty_module)
     |> debug 3 (fn _ => "tupelizing datatypes...")
     |> tupelize_cons
     |> debug 3 (fn _ => "eliminating classes...")
     |> eliminate_classes
+    |> debug 12 (Pretty.output o pretty_module)
     |> debug 3 (fn _ => "generating...")
     |> serialize (ml_from_defs tyco_syntax const_syntax) ml_from_module ml_validator nspgrp name_root
     |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
@@ -934,51 +876,11 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
           ]
       | haskell_from_binop br pr ass f args =
           mk_app_p br (Pretty.str ("(" ^ f ^ ")")) args
-    fun haskell_from_datatypes defs =
-      let
-        fun mk_cons (co, typs) =
-            (Pretty.block o Pretty.breaks) (
-              Pretty.str ((upper_first o resolv) co)
-              :: map (haskell_from_type NOBR) typs
-            )
-        fun mk_datatype (t, (vs, cs)) =
-          Pretty.block (
-            Pretty.str "data "
-            :: haskell_from_sctxt vs
-            :: Pretty.str (upper_first t)
-            :: Pretty.block (map (fn (v, _) => Pretty.str (" " ^ (lower_first) v)) vs)
-            :: Pretty.str " ="
-            :: Pretty.brk 1
-            :: separate (Pretty.block [Pretty.brk 1, Pretty.str "| "]) (map mk_cons cs)
-          )
-      in
-        Pretty.chunks ((separate (Pretty.str "") o map mk_datatype o group_datatypes false) defs)
-      end;
-    fun haskell_from_classes defs =
-      let
-        fun mk_member (f, ty) =
-          Pretty.block [
-            Pretty.str (f ^ " ::"),
-            Pretty.brk 1,
-            haskell_from_type NOBR ty
-          ];
-        fun mk_class (clsname, ((supclsnames, v), members)) =
-          Pretty.block [
-            Pretty.str "class ",
-            haskell_from_sctxt (map (fn class => (v, [class])) supclsnames),
-            Pretty.str ((upper_first clsname) ^ " " ^ v),
-            Pretty.str " where",
-            Pretty.fbrk,
-            Pretty.chunks (map mk_member members)
-          ];
-      in
-        Pretty.chunks ((separate (Pretty.str "") o map mk_class o group_classes) defs)
-      end;
     fun haskell_from_def (name, Nop) =
           if exists (fn query => query name)
             [(fn name => (is_some o tyco_syntax) name),
              (fn name => (is_some o const_syntax) name)]
-          then Pretty.str ""
+          then NONE
           else error ("empty statement during serialization: " ^ quote name)
       | haskell_from_def (name, Fun (eqs, (_, ty))) =
           let
@@ -999,7 +901,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
                 haskell_from_type NOBR ty
               ],
               Pretty.chunks (map (from_eq name) eqs)
-            ]
+            ] |> SOME
           end
       | haskell_from_def (name, Typesyn (vs, ty)) =
           Pretty.block [
@@ -1010,7 +912,47 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             Pretty.str " =",
             Pretty.brk 1,
             haskell_from_type NOBR ty
-          ]
+          ] |> SOME
+      | haskell_from_def (name, Datatype (vars, constrs, _)) =
+          let
+            fun mk_cons (co, tys) =
+              (Pretty.block o Pretty.breaks) (
+                Pretty.str ((upper_first o resolv) co)
+                :: map (haskell_from_type NOBR) tys
+              )
+          in
+            Pretty.block (
+              Pretty.str "data "
+              :: haskell_from_sctxt vars
+              :: Pretty.str (upper_first name)
+              :: Pretty.block (map (fn (v, _) => Pretty.str (" " ^ (lower_first) v)) vars)
+              :: Pretty.str " ="
+              :: Pretty.brk 1
+              :: separate (Pretty.block [Pretty.brk 1, Pretty.str "| "]) (map mk_cons constrs)
+            )
+          end |> SOME
+      | haskell_from_def (_, Datatypecons _) =
+          NONE
+      | haskell_from_def (name, Class (supclasss, v, membrs, _)) =
+          let
+            fun mk_member (m, (_, ty)) =
+              Pretty.block [
+                Pretty.str (resolv m ^ " ::"),
+                Pretty.brk 1,
+                haskell_from_type NOBR ty
+              ]
+          in
+            Pretty.block [
+              Pretty.str "class ",
+              haskell_from_sctxt (map (fn class => (v, [class])) supclasss),
+              Pretty.str ((upper_first name) ^ " " ^ v),
+              Pretty.str " where",
+              Pretty.fbrk,
+              Pretty.chunks (map mk_member membrs)
+            ] |> SOME
+          end
+      | haskell_from_def (name, Classmember _) =
+          NONE
       | haskell_from_def (_, Classinst (clsname, (tyco, arity), instmems)) = 
           Pretty.block [
             Pretty.str "instance ",
@@ -1023,13 +965,11 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             Pretty.chunks (map (fn (member, const) =>
               Pretty.str ((lower_first o resolv) member ^ " = " ^ (lower_first o resolv) const)
             ) instmems)
-          ];
-  in case (snd o hd) defs
-   of Datatypecons _ => haskell_from_datatypes defs
-    | Datatype _ => haskell_from_datatypes defs
-    | Class _ => haskell_from_classes defs
-    | Classmember _ => haskell_from_classes defs
-    | _ => Pretty.block (map haskell_from_def defs |> separate (Pretty.str ""))
+          ] |> SOME
+  in
+    case List.mapPartial (fn (name, def) => haskell_from_def (name, def)) defs
+     of [] => NONE
+      | l => (SOME o Pretty.block) l
   end;
 
 in
@@ -1066,8 +1006,11 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
       | eta_expander s =
           if NameSpace.is_qualified s
           then case get_def module s
-            of Datatypecons (_ , tys) =>
-                if length tys >= 2 then length tys else 0
+            of Datatypecons dtname =>
+                (case get_def module dtname
+                  of Datatype (_, cs, _) =>
+                    let val l = AList.lookup (op =) cs s |> the |> length
+                    in if l >= 2 then l else 0 end)
              | _ =>
                 const_syntax s
                 |> Option.map fst
@@ -1081,8 +1024,6 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
   in
     module
     |> debug 12 (Pretty.output o pretty_module)
-    |> debug 3 (fn _ => "connecting datatypes and classdecls...")
-    |> connect_datatypes_clsdecls
     |> debug 3 (fn _ => "selecting submodule...")
     |> (if is_some select then (partof o the) select else I)
     |> debug 3 (fn _ => "eta-expanding...")

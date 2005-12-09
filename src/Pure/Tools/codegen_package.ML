@@ -60,14 +60,14 @@ sig
     -> appgen;
   val appgen_case: (theory -> string -> (string * int) list option)
     -> appgen;
-  val defgen_datatype: (theory -> string -> (string list * string list) option)
+  val defgen_datatype: (theory -> string -> ((string * sort) list * string list) option)
     -> (theory -> string * string -> typ list option)
     -> defgen;
   val defgen_datacons: (theory -> string * string -> typ list option)
     -> defgen;
-  val defgen_datatype_eq: (theory -> string -> (string list * string list) option)
+  val defgen_datatype_eq: (theory -> string -> ((string * sort) list * string list) option)
     -> defgen;
-  val defgen_datatype_eqinst: (theory -> string -> (string list * string list) option)
+  val defgen_datatype_eqinst: (theory -> string -> ((string * sort) list * string list) option)
     -> defgen;
   val defgen_recfun: (theory -> string * typ -> (term list * term) list * typ)
     -> defgen;
@@ -122,6 +122,7 @@ type defgen = theory -> deftab -> gen_defgen;
 val nsp_class = "class";
 val nsp_type = "type";
 val nsp_const = "const";
+val nsp_dtcon = "dtcon"; (*NOT OPERATIONAL YET*)
 val nsp_mem = "mem";
 val nsp_inst = "inst";
 val nsp_eq_class = "eq_class";
@@ -134,7 +135,7 @@ val serializer_ml =
   let
     val name_root = "Generated";
     val nsp_conn = [
-      [nsp_class, nsp_type, nsp_eq_class], [nsp_const, nsp_inst, nsp_mem, nsp_eq]
+      [nsp_class, nsp_type, nsp_eq_class], [nsp_const, nsp_dtcon, nsp_inst, nsp_mem, nsp_eq]
     ];
   in CodegenSerializer.ml_from_thingol nsp_conn name_root end;
 
@@ -142,7 +143,7 @@ val serializer_hs =
   let
     val name_root = "Generated";
     val nsp_conn = [
-      [nsp_class, nsp_eq_class], [nsp_type], [nsp_const, nsp_eq], [nsp_inst], [nsp_mem]
+      [nsp_class, nsp_eq_class], [nsp_type], [nsp_const, nsp_mem, nsp_eq], [nsp_dtcon], [nsp_inst]
     ];
   in CodegenSerializer.haskell_from_thingol nsp_conn name_root end;
 
@@ -756,13 +757,21 @@ fun defgen_defs thy (defs as (_, defs', _)) f trns =
 fun defgen_clsdecl thy defs cls trns =
   case name_of_idf thy nsp_class cls
    of SOME cls =>
-        trns
-        |> debug 5 (fn _ => "trying defgen class declaration for " ^ quote cls)
-        |> fold_map (ensure_def_class thy defs)
-             (map (idf_of_name thy nsp_class) (ClassPackage.get_superclasses thy cls))
-        |-> (fn supcls => succeed (Class (supcls, "a", [], []),
-             map (idf_of_name thy nsp_mem) (ClassPackage.the_consts thy cls)
-             @ map (curry (idf_of_inst thy defs) cls) ((map fst o ClassPackage.the_tycos thy) cls)))
+        let
+          val memnames = ClassPackage.the_consts thy cls;
+          val memtypes = map (devarify_type o ClassPackage.get_const_sign thy "'a") memnames;
+          val memctxt = map (ClassPackage.extract_sortctxt thy) memtypes;
+          val memidfs = map (idf_of_name thy nsp_mem) memnames;
+          val instnames = map (curry (idf_of_inst thy defs) cls) ((map fst o ClassPackage.the_tycos thy) cls);
+        in
+          trns
+          |> debug 5 (fn _ => "trying defgen class declaration for " ^ quote cls)
+          |> fold_map (ensure_def_class thy defs)
+               (map (idf_of_name thy nsp_class) (ClassPackage.get_superclasses thy cls))
+          ||>> fold_map (invoke_cg_type thy defs) memtypes
+          |-> (fn (supcls, memtypes) => succeed (Class (supcls, "a", memidfs ~~ (memctxt ~~ memtypes), []),
+                 memidfs @ instnames))
+        end
     | _ =>
         trns
         |> fail ("no class definition found for " ^ quote cls);
@@ -773,8 +782,7 @@ fun defgen_clsmem thy (defs as (_, _, _)) f trns =
         trns
         |> debug 5 (fn _ => "trying defgen class member for " ^ quote f)
         |> ensure_def_class thy defs (idf_of_name thy nsp_class ((the o ClassPackage.lookup_const_class thy) clsmem))
-        ||>> (invoke_cg_type thy defs o devarify_type) (ClassPackage.get_const_sign thy "'a" clsmem)
-        |-> (fn (cls, ty) => succeed (Classmember (cls, "a", ty), []))
+        |-> (fn cls => succeed (Classmember cls, []))
     | _ =>
         trns |> fail ("no class member found for " ^ quote f)
 
@@ -794,9 +802,9 @@ fun defgen_clsinst thy defs clsinst trns =
             (ClassPackage.get_inst_consts_sign thy (tyco, cls));
           val _ = debug 10 (fn _ => "(4) CLSINST " ^ cls ^ " - " ^ tyco) ()
           fun add_vars arity clsmems (trns as (_, modl)) =
-            ((Term.invent_names
-              (map ((fn Classmember (_, _, ty) => ty) o get_def modl)
-              clsmems |> tvars_of_itypes) "a" (length arity) ~~ arity, clsmems), trns)
+            case get_def modl (idf_of_name thy nsp_class cls)
+             of Class (_, _, members, _) => ((Term.invent_names
+              (tvars_of_itypes ((map (snd o snd)) members)) "a" (length arity) ~~ arity, clsmems), trns)
           val _ = debug 10 (fn _ => "(5) CLSINST " ^ cls ^ " - " ^ tyco) ()
         in
           trns
@@ -948,25 +956,33 @@ fun add_eqinst get_datacons thy modl dtname cnames =
 
 in
 
-fun defgen_datatype get_datatype get_datacons thy defs tyco trns =
-  case tname_of_idf thy tyco
-   of SOME dtname =>
-        (case get_datatype thy dtname
-         of SOME (vs, cnames) =>
-              trns
-              |> debug 5 (fn _ => "trying defgen datatype for " ^ quote dtname)
-              |> succeed (Datatype (map (rpair [] o unprefix "'") vs, [], []),
-                   cnames
-                   |> map (idf_of_name thy nsp_const)
-                   |> map (fn "0" => "const.Zero" | c => c)
-                   (* |> add_eqinst get_datacons thy (snd trns) dtname cnames *))
-              (*! VARIABLEN, EQTYPE !*)
+fun defgen_datatype get_datatype get_datacons thy defs idf trns =
+  case tname_of_idf thy idf
+   of SOME dtco =>
+        (case get_datatype thy dtco
+         of SOME (vars, cos) =>
+              let
+                val cotys = map (the o get_datacons thy o rpair dtco) cos;
+                val coidfs = cos
+                  |> map (idf_of_name thy nsp_const)
+                  |> map (fn "0" => "const.Zero" | c => c);
+              in
+                trns
+                |> debug 5 (fn _ => "trying defgen datatype for " ^ quote dtco)
+                |> fold_map (invoke_cg_sort thy defs) (map snd vars)
+                ||>> (fold_map o fold_map) (invoke_cg_type thy defs o devarify_type) cotys
+                |-> (fn (sorts, tys) => succeed (Datatype
+                     (map2 (fn (v, _) => fn sort => (unprefix "'" v, sort)) vars sorts, coidfs ~~ tys, []),
+                     coidfs
+                     (* |> add_eqinst get_datacons thy (snd trns) dtname cnames *)))
+                (*! VARIABLEN, EQTYPE !*)
+              end
           | NONE =>
               trns
-              |> fail ("no datatype found for " ^ quote tyco))
+              |> fail ("no datatype found for " ^ quote dtco))
     | NONE =>
         trns
-        |> fail ("not a type constructor: " ^ quote tyco)
+        |> fail ("not a type constructor: " ^ quote idf)
   end;
 
 end; (* local *)
@@ -984,12 +1000,11 @@ fun defgen_datacons get_datacons thy defs f trns =
           (case the_type c
             of SOME dtname =>
                  (case get_datacons thy (c, dtname)
-                   of SOME tyargs =>
+                   of SOME _ =>
                        trns
                        |> debug 5 (fn _ => "trying defgen datatype constructor for " ^ quote c)
                        |> ensure_def_tyco thy defs (idf_of_tname thy dtname)
-                       ||>> fold_map (invoke_cg_type thy defs o devarify_type) tyargs
-                       |-> (fn (dtname, tys) => succeed (Datatypecons (dtname, tys), []))
+                       |-> (fn dtname => succeed (Datatypecons dtname, []))
                     | NONE =>
                        trns
                        |> fail ("no datatype constructor found for " ^ quote f))
@@ -1025,11 +1040,12 @@ fun defgen_datatype_eqinst get_datatype thy defs f trns =
   case name_of_idf thy nsp_eq_class f
    of SOME dtname =>
         (case get_datatype thy dtname
-         of SOME (vs, _) =>
+         of SOME (vars, _) =>
               trns
               |> debug 5 (fn _ => "trying defgen datatype_eqinst for " ^ quote dtname)
               |> ensure_def_const thy defs (idf_of_name thy nsp_eq dtname)
-              |-> (fn pred_eq => succeed (Classinst (class_eq, (dtname, vs ~~ replicate (length vs) [class_eq]), [(fun_eq, pred_eq)]), []))
+              |-> (fn pred_eq => succeed (Classinst (class_eq, (dtname,
+                    map (fn (v, _) => (v, [class_eq])) vars), [(fun_eq, pred_eq)]), []))
           | NONE =>
               trns
               |> fail ("no datatype found for " ^ quote dtname))
@@ -1348,8 +1364,8 @@ in
 
 val (classK, generateK, serializeK, syntax_tycoK, syntax_constK, aliasK) =
   ("code_class", "code_generate", "code_serialize", "code_syntax_tyco", "code_syntax_const", "code_alias");
-val (extractingK, definedK, dependingK) =
-  ("extracting", "defined_by", "depending_on");
+val (constantsK, definedK, dependingK) =
+  ("constants", "defined_by", "depending_on");
 
 val classP =
   OuterSyntax.command classK "codegen data for classes" K.thy_decl (
@@ -1371,7 +1387,7 @@ val serializeP =
     P.name
     -- P.name
     -- Scan.option (
-         P.$$$ extractingK
+         P.$$$ constantsK
          |-- Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
        )
     >> (fn ((serial_name, filename), consts) =>
@@ -1420,7 +1436,7 @@ val syntax_constP =
   );
 
 val _ = OuterSyntax.add_parsers [classP, generateP, serializeP, aliasP, syntax_tycoP, syntax_constP];
-val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>", extractingK, definedK, dependingK];
+val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>", constantsK, definedK, dependingK];
 
 
 (* setup *)

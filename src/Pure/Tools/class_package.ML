@@ -227,7 +227,7 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
       ) subclasses;
     fun mk_class_deriv thy subclasses superclass =
       case get_superclass_derivation (subclasses, superclass)
-      of (subclass::deriv) => (rev deriv, find_index_eq subclass subclasses);
+      of (subclass::deriv) => ((rev o filter (is_class thy)) deriv, find_index_eq subclass subclasses);
     fun mk_lookup (sort_def, (Type (tycon, tys))) =
           let
             val arity_lookup = map2 (curry mk_lookup)
