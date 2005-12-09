@@ -49,7 +49,7 @@ local
         let
             fun process [] (thy,tm) =
                 let
-                    val (thy',thms) = PureThy.add_axioms_i [((axname,HOLogic.mk_Trueprop tm),[])] thy
+                    val (thms, thy') = PureThy.add_axioms_i [((axname,HOLogic.mk_Trueprop tm),[])] thy
                 in
                     (thy',hd thms)
                 end

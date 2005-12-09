@@ -120,7 +120,7 @@ fun add_fixdefs eqs thy =
         in (n^"_unfold", thmL) :: unfolds ns thmR end;
     val unfold_thms = unfolds names ctuple_unfold_thm;
     val thms = ctuple_induct_thm :: unfold_thms;
-    val (thy'', _) = PureThy.add_thms (map Thm.no_attributes thms) thy';
+    val (_, thy'') = PureThy.add_thms (map Thm.no_attributes thms) thy';
   in
     (thy'', names, fixdef_thms, map snd unfold_thms)
   end;
@@ -247,13 +247,13 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     if strict then let (* only prove simp rules if strict = true *)
       val eqn_blocks = unconcat lengths ((names ~~ eqn_ts') ~~ atts);
       val simps = List.concat (map (make_simps thy') (unfold_thms ~~ eqn_blocks));
-      val (thy'', simp_thms) = PureThy.add_thms simps thy';
+      val (simp_thms, thy'') = PureThy.add_thms simps thy';
       
       val simp_names = map (fn name => name^"_simps") cnames;
       val simp_attribute = rpair [Simplifier.simp_add_global];
       val simps' = map simp_attribute (simp_names ~~ unconcat lengths simp_thms);
     in
-      (#1 o PureThy.add_thmss simps') thy''
+      (snd o PureThy.add_thmss simps') thy''
     end
     else thy'
   end;
@@ -283,7 +283,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     val ts = map (prep_term thy) strings;
     val simps = map (fix_pat thy) ts;
   in
-    (#1 o PureThy.add_thmss [((name, simps), atts)]) thy
+    (snd o PureThy.add_thmss [((name, simps), atts)]) thy
   end;
 
 val add_fixpat = gen_add_fixpat Sign.read_term Attrib.global_attribute;

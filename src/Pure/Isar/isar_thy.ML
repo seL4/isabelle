@@ -61,36 +61,38 @@ struct
 fun add_axms f args thy =
   f (map (fn (x, srcs) => (x, map (Attrib.global_attribute thy) srcs)) args) thy;
 
-val add_axioms = add_axms (#1 oo PureThy.add_axioms);
-val add_axioms_i = #1 oo PureThy.add_axioms_i;
+val add_axioms = add_axms (snd oo PureThy.add_axioms);
+val add_axioms_i = snd oo PureThy.add_axioms_i;
 fun add_defs (x, args) = add_axms (snd oo PureThy.add_defs x) args;
 fun add_defs_i (x, args) = (snd oo PureThy.add_defs_i x) args;
 
 
 (* theorems *)
 
-fun present_theorems kind (thy, named_thmss) =
+fun present_theorems kind (named_thmss, thy) =
   conditional (kind <> "" andalso kind <> Drule.internalK) (fn () =>
     Context.setmp (SOME thy) (Present.results (kind ^ "s")) named_thmss);
 
 fun theorems kind args thy = thy
   |> PureThy.note_thmss (Drule.kind kind) (Attrib.map_facts (Attrib.global_attribute thy) args)
-  |> tap (present_theorems kind);
+  |> tap (present_theorems kind)
+  |> swap;
 
 fun theorems_i kind args =
   PureThy.note_thmss_i (Drule.kind kind) args
-  #> tap (present_theorems kind);
+  #> tap (present_theorems kind)
+  #> swap;
 
 fun apply_theorems args = apsnd (List.concat o map snd) o theorems "" [(("", []), args)];
 fun apply_theorems_i args = apsnd (List.concat o map snd) o theorems_i "" [(("", []), args)];
 
 fun smart_theorems kind NONE args thy = thy
       |> theorems kind args
-      |> tap (present_theorems kind)
+      |> tap (present_theorems kind o swap)
       |> (fn (thy, _) => (thy, ProofContext.init thy))
   | smart_theorems kind (SOME loc) args thy = thy
       |> Locale.note_thmss kind loc args
-      |> tap (present_theorems kind o apfst #1)
+      |> tap (present_theorems kind o swap o apfst #1)
       |> #1;
 
 fun declare_theorems opt_loc args =

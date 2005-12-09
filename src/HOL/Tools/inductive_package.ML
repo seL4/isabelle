@@ -451,13 +451,13 @@ fun add_cases_induct no_elim no_induct coind names elims induct =
     fun cases_spec name elim thy =
       thy
       |> Theory.add_path (Sign.base_name name)
-      |> (fst o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
+      |> (snd o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
       |> Theory.parent_path;
     val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
     val induct_att =
       if coind then InductAttrib.coinduct_set_global else InductAttrib.induct_set_global;
-    fun induct_spec (name, th) = #1 o PureThy.add_thms
+    fun induct_spec (name, th) = snd o PureThy.add_thms
       [(("", RuleCases.save induct th), [induct_att name])];
     val induct_specs =
       if no_induct then [] else map induct_spec (project_rules names induct);
@@ -794,16 +794,17 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
         (raw_induct, [RuleCases.case_names induct_cases, RuleCases.consumes 0])
       else (raw_induct RSN (2, rev_mp), [RuleCases.case_names induct_cases, RuleCases.consumes 1]);
 
-    val (thy2, intrs') =
-      thy1 |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts);
-    val (thy3, ([_, elims'], [induct'])) =
+    val (intrs', thy2) =
+      thy1
+      |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts);
+    val (([_, elims'], [induct']), thy3) =
       thy2
       |> PureThy.add_thmss
         [(("intros", intrs'), []),
           (("elims", elims), [RuleCases.consumes 1])]
-      |>>> PureThy.add_thms
+      ||>> PureThy.add_thms
         [((coind_prefix coind ^ "induct", rulify (#1 induct)), #2 induct)]
-      |>> Theory.parent_path;
+      ||> Theory.parent_path;
   in (thy3,
     {defs = fp_def :: rec_sets_defs,
      mono = mono,

@@ -252,7 +252,7 @@ val rule_del_local     = del LocalRules.map;
 end;
 
 val _ = Context.add_setup
-  [#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query_global NONE])]];
+  [snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query_global NONE])]];
 
 
 (* low-level modifiers *)

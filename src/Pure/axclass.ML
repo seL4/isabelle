@@ -196,20 +196,20 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
       (map inclass super_classes @ map (int_axm o #2) axms, inclass class);
 
     (*declare axioms and rule*)
-    val (axms_thy, ([intro], [axioms])) =
+    val (([intro], [axioms]), axms_thy) =
       class_thy
       |> Theory.add_path (Sign.const_of_class bclass)
       |> PureThy.add_axioms_i [Thm.no_attributes (introN, intro_axm)]
-      |>>> PureThy.add_axiomss_i [Thm.no_attributes (axiomsN, abs_axms)];
+      ||>> PureThy.add_axiomss_i [Thm.no_attributes (axiomsN, abs_axms)];
     val info = {super_classes = super_classes, intro = intro, axioms = axioms};
 
     (*store info*)
-    val final_thy =
+    val (_, final_thy) =
       axms_thy
       |> Theory.add_finals_i false [Const (Sign.const_of_class class, a_itselfT --> propT)]
-      |> (#1 o PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts))
-      |> Theory.restore_naming class_thy
-      |> AxclassesData.map (Symtab.update (class, info));
+      |> PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts)
+      ||> Theory.restore_naming class_thy
+      ||> AxclassesData.map (Symtab.update (class, info));
   in (final_thy, {intro = intro, axioms = axioms}) end;
 
 in

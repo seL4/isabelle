@@ -111,7 +111,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       let
         val admissible' = option_fold_rule set_def admissible;
         val cpo_thms = [type_def, less_def, admissible'];
-        val (theory', _) =
+        val (_, theory') =
           theory
           |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.cpo"])
             (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
@@ -123,14 +123,14 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
               (("lub_"     ^ name, typedef_lub     OF cpo_thms), []),
               (("thelub_"  ^ name, typedef_thelub  OF cpo_thms), []),
               (("compact_" ^ name, typedef_compact OF cpo_thms), [])])
-          |>> Theory.parent_path;
+          ||> Theory.parent_path;
       in (theory', defs) end;
 
     fun make_pcpo UUmem (theory, defs as (type_def, less_def, set_def)) =
       let
         val UUmem' = option_fold_rule set_def UUmem;
         val pcpo_thms = [type_def, less_def, UUmem'];
-        val (theory', _) =
+        val (_, theory') =
           theory
           |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.pcpo"])
             (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
@@ -141,7 +141,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
               ((Rep_name ^ "_defined", Rep_defined OF pcpo_thms), []),
               ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms), [])
               ])
-          |>> Theory.parent_path;
+          ||> Theory.parent_path;
       in (theory', defs) end;
     
     fun pcpodef_result (theory, UUmem_admissible) =

@@ -52,23 +52,23 @@ sig
   val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
-  val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory * thm list
+  val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory
-    -> theory * thm list list
+    -> thm list list * theory 
   val note_thmss: theory attribute -> ((bstring * theory attribute list) *
     (thmref * theory attribute list) list) list ->
-    theory -> theory * (bstring * thm list) list
+    theory -> (bstring * thm list) list * theory
   val note_thmss_i: theory attribute -> ((bstring * theory attribute list) *
     (thm list * theory attribute list) list) list ->
-    theory -> theory * (bstring * thm list) list
+    theory -> (bstring * thm list) list * theory
   val add_axioms: ((bstring * string) * theory attribute list) list ->
-    theory -> theory * thm list
+    theory -> thm list * theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list ->
-    theory -> theory * thm list
+    theory -> thm list * theory
   val add_axiomss: ((bstring * string list) * theory attribute list) list ->
-    theory -> theory * thm list list
+    theory -> thm list list * theory
   val add_axiomss_i: ((bstring * term list) * theory attribute list) list ->
-    theory -> theory * thm list list
+    theory -> thm list list * theory
   val add_defs: bool -> ((bstring * string) * theory attribute list) list ->
     theory -> thm list * theory
   val add_defs_i: bool -> ((bstring * term) * theory attribute list) list ->
@@ -340,14 +340,14 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((bname, thms), atts) =
-  enter_thms pre_name (name_thms false)
+  swap o enter_thms pre_name (name_thms false)
     (Thm.applys_attributes o rpair atts) (bname, thms);
 
-fun gen_add_thmss pre_name args theory =
-  foldl_map (fn (thy, arg) => add_thms_atts pre_name arg thy) (theory, args);
+fun gen_add_thmss pre_name =
+  fold_map (add_thms_atts pre_name);
 
 fun gen_add_thms pre_name args =
-  apsnd (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
+  apfst (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
 
 val add_thmss = gen_add_thmss (name_thms true);
 val add_thms = gen_add_thms (name_thms true);
@@ -370,8 +370,8 @@ fun gen_note_thmss get kind_att args thy =
 
 in
 
-val note_thmss = gen_note_thmss get_thms;
-val note_thmss_i = gen_note_thmss (K I);
+val note_thmss = swap ooo gen_note_thmss get_thms;
+val note_thmss_i = swap ooo gen_note_thmss (K I);
 
 end;
 
@@ -379,7 +379,7 @@ end;
 (* store_thm *)
 
 fun store_thm ((bname, thm), atts) thy =
-  let val (thy', [th']) = add_thms_atts (name_thms true) ((bname, [thm]), atts) thy
+  let val ([th'], thy') = add_thms_atts (name_thms true) ((bname, [thm]), atts) thy
   in (th', thy') end;
 
 
@@ -430,32 +430,29 @@ fun forall_elim_var i th = forall_elim_vars_aux
 local
   fun get_ax thy (name, _) = Thm.get_axiom_i thy (Sign.full_name thy name);
   fun get_axs thy named_axs = map (forall_elim_vars 0 o get_ax thy) named_axs;
-
-  fun add_single add (thy, ((name, ax), atts)) =
+  fun add_single add ((name, ax), atts) thy =
     let
       val named_ax = [(name, ax)];
       val thy' = add named_ax thy;
       val thm = hd (get_axs thy' named_ax);
-    in apsnd hd (gen_add_thms (K I) [((name, thm), atts)] thy') end;
-
-  fun add_multi add (thy, ((name, axs), atts)) =
+    in apfst hd (gen_add_thms (K I) [((name, thm), atts)] thy') end;
+  fun add_multi add ((name, axs), atts) thy =
     let
       val named_axs = name_multi name axs;
       val thy' = add named_axs thy;
       val thms = get_axs thy' named_axs;
-    in apsnd hd (gen_add_thmss (K I) [((name, thms), atts)] thy') end;
-
-  fun add_singles add args thy = foldl_map (add_single add) (thy, args);
-  fun add_multis add args thy = foldl_map (add_multi add) (thy, args);
+    in apfst hd (gen_add_thmss (K I) [((name, thms), atts)] thy') end;
+  fun add_singles add = fold_map (add_single add);
+  fun add_multis add = fold_map (add_multi add);
 in
   val add_axioms    = add_singles Theory.add_axioms;
   val add_axioms_i  = add_singles Theory.add_axioms_i;
   val add_axiomss   = add_multis Theory.add_axioms;
   val add_axiomss_i = add_multis Theory.add_axioms_i;
-  val add_defs      = swap ooo add_singles o Theory.add_defs;
-  val add_defs_i    = swap ooo add_singles o Theory.add_defs_i;
-  val add_defss     = swap ooo add_multis o Theory.add_defs;
-  val add_defss_i   = swap ooo add_multis o Theory.add_defs_i;
+  val add_defs      = add_singles o Theory.add_defs;
+  val add_defs_i    = add_singles o Theory.add_defs_i;
+  val add_defss     = add_multis o Theory.add_defs;
+  val add_defss_i   = add_multis o Theory.add_defs_i;
 end;
 
 
@@ -525,13 +522,13 @@ val proto_pure =
      Const ("TYPE", a_itselfT),
      Const (Term.dummy_patternN, aT)]
   |> Theory.add_modesyntax ("", false)
-    (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
+       (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
-  |> (snd oo (add_defs_i false o map Thm.no_attributes))
-   [("prop_def", Logic.mk_equals (Logic.protect A, A))]
-  |> (#1 o add_thmss [(("nothing", []), [])])
+  |> (add_defs_i false o map Thm.no_attributes)
+       [("prop_def", Logic.mk_equals (Logic.protect A, A))] |> snd
+  |> add_thmss [(("nothing", []), [])] |> snd
   |> Theory.add_axioms_i Proofterm.equality_axms
   |> Theory.end_theory;
 

@@ -245,11 +245,11 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val simp_att = if null tcs then
       [Simplifier.simp_add_global, RecfunCodegen.add NONE] else [];
 
-    val (thy, (simps' :: rules', [induct'])) =
+    val ((simps' :: rules', [induct']), thy) =
       thy
       |> Theory.add_path bname
       |> PureThy.add_thmss ((("simps", List.concat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
-      |>>> PureThy.add_thms [(("induct", induct), [])];
+      ||>> PureThy.add_thms [(("induct", induct), [])];
     val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
       thy
@@ -274,11 +274,11 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
 
     val (thy1, congs) = thy |> app_thms raw_congs;
     val (thy2, induct_rules) = tfl_fn thy1 congs name eqs;
-    val (thy3, [induct_rules']) =
+    val ([induct_rules'], thy3) =
       thy2
       |> Theory.add_path bname
       |> PureThy.add_thms [(("induct_rules", induct_rules), [])]
-      |>> Theory.parent_path;
+      ||> Theory.parent_path;
   in (thy3, {induct_rules = induct_rules'}) end;
 
 val defer_recdef = gen_defer_recdef Tfl.defer IsarThy.apply_theorems;

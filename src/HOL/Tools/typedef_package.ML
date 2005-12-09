@@ -159,14 +159,14 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
       |> add_def def (Logic.mk_defpair (setC, set))
-      ||>> (PureThy.add_axioms_i [((typedef_name, typedef_prop),
-          [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])] #> Library.swap)
+      ||>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
+          [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])]
       ||> Theory.add_finals_i false [RepC, AbsC]
       |-> (fn (set_def, [type_definition]) => fn theory' =>
         let
           fun make th = Drule.standard (th OF [type_definition]);
-          val (theory'', [Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
-              Rep_cases, Abs_cases, Rep_induct, Abs_induct]) =
+          val ([Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
+              Rep_cases, Abs_cases, Rep_induct, Abs_induct], theory'') =
             theory'
             |> Theory.add_path name
             |> PureThy.add_thms
@@ -183,7 +183,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                   [RuleCases.case_names [Rep_name], InductAttrib.induct_set_global full_name]),
                 ((Abs_name ^ "_induct", make Abs_induct),
                   [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])])
-            |>> Theory.parent_path;
+            ||> Theory.parent_path;
           val result = {type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,

@@ -135,7 +135,7 @@ val _ = Context.add_setup
     ("sym", sym_attr, "declaration of symmetry rule"),
     ("symmetric", (Attrib.no_args symmetric_global, Attrib.no_args symmetric_local),
       "resolution with symmetry rule")],
-  #1 o PureThy.add_thms
+  snd o PureThy.add_thms
    [(("", transitive_thm), [trans_add_global]),
     (("", symmetric_thm), [sym_add_global])]];
 

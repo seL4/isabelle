@@ -111,7 +111,7 @@ in (dnam,
     [take_def, finite_def])
 end; (* let *)
 
-fun add_axioms_i x = #1 o PureThy.add_axioms_i (map Thm.no_attributes x);
+fun add_axioms_i x = snd o PureThy.add_axioms_i (map Thm.no_attributes x);
 fun add_axioms_infer axms thy = add_axioms_i (infer_types thy axms) thy;
 
 fun add_defs_i x = snd o (PureThy.add_defs_i false) (map Thm.no_attributes x);

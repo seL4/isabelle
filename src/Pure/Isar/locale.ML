@@ -1383,7 +1383,7 @@ fun note_thmss_qualified kind name args thy =
   |> Theory.add_path (Sign.base_name name)
   |> Theory.no_base_names
   |> PureThy.note_thmss_i (Drule.kind kind) args
-  |>> Theory.restore_naming thy;
+  ||> Theory.restore_naming thy;
 
 
 (* accesses of interpreted theorems *)
@@ -1415,7 +1415,7 @@ fun global_note_accesses_i kind prfx args thy =
   |> Theory.qualified_names
   |> Theory.custom_accesses (global_accesses prfx)
   |> PureThy.note_thmss_i kind args
-  |>> Theory.restore_naming thy;
+  ||> Theory.restore_naming thy;
 
 fun local_note_accesses_i prfx args ctxt =
   ctxt
@@ -1472,12 +1472,12 @@ fun note_thmss_registrations kind target args thy =
               map (Attrib.global_attribute_i thy) (map inst_atts atts @ atts2)),
              [(map (Drule.standard o satisfy_protected prems o
             Element.inst_thm thy insts) ths, [])]));
-      in global_note_accesses_i (Drule.kind kind) prfx args' thy |> fst end;
+      in global_note_accesses_i (Drule.kind kind) prfx args' thy |> snd end;
   in fold activate regs thy end;
 
 
-fun smart_note_thmss kind NONE = PureThy.note_thmss_i (Drule.kind kind)
-  | smart_note_thmss kind (SOME loc) = note_thmss_qualified kind loc;
+fun smart_note_thmss kind NONE = swap oo PureThy.note_thmss_i (Drule.kind kind)
+  | smart_note_thmss kind (SOME loc) = swap oo note_thmss_qualified kind loc;
 
 
 local
@@ -1509,7 +1509,7 @@ fun gen_note_thmss prep_locale prep_facts kind raw_loc args thy =
       map (rpair [] o #1 o #1) args' ~~
       map (single o Thm.no_attributes o map export o #2) facts;
 
-    val (thy', result) =
+    val (result, thy') =
       thy
       |> put_facts loc args'
       |> note_thmss_registrations kind loc args'
@@ -1643,9 +1643,10 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val elemss' = change_elemss axioms elemss @
             [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, ([], []))])]])];
         in
-          def_thy |> note_thmss_qualified "" aname
-            [((introN, []), [([intro], [])])]
-          |> #1 |> rpair (elemss', [statement])
+          def_thy
+          |> note_thmss_qualified "" aname [((introN, []), [([intro], [])])]
+          |> snd
+          |> rpair (elemss', [statement])
         end;
     val (thy'', predicate) =
       if null ints then (thy', ([], []))
@@ -1655,10 +1656,12 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             thy' |> def_pred bname parms defs (ints @ more_ts) (ints' @ more_ts);
           val cstatement = Thm.cterm_of def_thy statement;
         in
-          def_thy |> note_thmss_qualified "" bname
-            [((introN, []), [([intro], [])]),
-             ((axiomsN, []), [(map (Drule.standard o conclude_protected o #2) axioms, [])])]
-          |> #1 |> rpair ([cstatement], axioms)
+          def_thy
+          |> note_thmss_qualified "" bname
+               [((introN, []), [([intro], [])]),
+                ((axiomsN, []), [(map (Drule.standard o conclude_protected o #2) axioms, [])])]
+          |> snd
+          |> rpair ([cstatement], axioms)
         end;
   in (thy'', (elemss', predicate)) end;
 
@@ -1707,7 +1710,7 @@ fun gen_add_locale prep_ctxt prep_expr
     val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))
   in
     pred_thy
-    |> note_thmss_qualified "" name facts' |> #1
+    |> note_thmss_qualified "" name facts' |> snd
     |> declare_locale name
     |> put_locale name {predicate = predicate, import = import,
         elems = map (fn e => (e, stamp ())) elems',
@@ -1883,7 +1886,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
-      (global_note_accesses_i (Drule.kind ""))
+      (swap ooo global_note_accesses_i (Drule.kind ""))
       Attrib.global_attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => fn (t, th) =>
@@ -2084,7 +2087,9 @@ fun prep_registration_in_locale target expr thy =
                       |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
                       |> map (apfst (apfst (NameSpace.qualified prfx)))
                 in
-                  fst (global_note_accesses_i (Drule.kind "") prfx facts' thy)
+                  thy
+                  |> global_note_accesses_i (Drule.kind "") prfx facts'
+                  |> snd
                 end
               | activate_elem _ thy = thy;
 

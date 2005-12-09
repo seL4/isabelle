@@ -81,21 +81,21 @@ fun parent_path flat_names = if flat_names then I else Theory.parent_path;
 
 (* store theorems in theory *)
 
-fun store_thmss_atts label tnames attss thmss thy =
-  (thy, tnames ~~ attss ~~ thmss) |>
-  foldl_map (fn (thy', ((tname, atts), thms)) => thy' |>
-    Theory.add_path tname |>
-    (apsnd hd o PureThy.add_thmss [((label, thms), atts)]) |>>
-    Theory.parent_path) |> Library.swap;
+fun store_thmss_atts label tnames attss thmss =
+  fold_map (fn ((tname, atts), thms) =>
+    Theory.add_path tname
+    #> PureThy.add_thmss [((label, thms), atts)]
+    #-> (fn thm::_ => Theory.parent_path #> pair thm)
+  ) (tnames ~~ attss ~~ thmss);
 
 fun store_thmss label tnames = store_thmss_atts label tnames (replicate (length tnames) []);
 
-fun store_thms_atts label tnames attss thms thy =
-  (thy, tnames ~~ attss ~~ thms) |>
-  foldl_map (fn (thy', ((tname, atts), thm)) => thy' |>
-    Theory.add_path tname |>
-    (apsnd hd o PureThy.add_thms [((label, thm), atts)]) |>>
-    Theory.parent_path) |> Library.swap;
+fun store_thms_atts label tnames attss thmss =
+  fold_map (fn ((tname, atts), thms) =>
+    Theory.add_path tname
+    #> PureThy.add_thms [((label, thms), atts)]
+    #-> (fn thm::_ => Theory.parent_path #> pair thm)
+  ) (tnames ~~ attss ~~ thmss);
 
 fun store_thms label tnames = store_thms_atts label tnames (replicate (length tnames) []);
 

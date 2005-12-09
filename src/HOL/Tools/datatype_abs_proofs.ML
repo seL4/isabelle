@@ -262,7 +262,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
   in
     thy2
     |> Theory.add_path (space_implode "_" new_type_names)
-    |> PureThy.add_thmss [(("recs", rec_thms), [])] |> Library.swap
+    |> PureThy.add_thmss [(("recs", rec_thms), [])]
     ||> Theory.parent_path
     |-> (fn thms => pair (reccomb_names, Library.flat thms))
   end;
@@ -439,7 +439,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
   in
     thy'
     |> Theory.add_path big_name
-    |> PureThy.add_thmss [(("size", size_thms), [])] |> Library.swap
+    |> PureThy.add_thmss [(("size", size_thms), [])]
     ||> Theory.parent_path
     |-> (fn thmss => pair (Library.flat thmss))
   end;

@@ -226,9 +226,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val def_name = (Sign.base_name cname) ^ "_def";
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
-        val ([def_thm], thy') = thy |>
-          Theory.add_consts_i [(cname', constrT, mx)] |>
-          (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)];
+        val ([def_thm], thy') =
+          thy
+          |> Theory.add_consts_i [(cname', constrT, mx)]
+          |> (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)];
 
       in (thy', defs @ [def_thm], eqns @ [eqn], i + 1) end;
 
@@ -639,10 +640,11 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]));
 
-    val (thy7, [dt_induct']) = thy6 |>
-      Theory.add_path big_name |>
-      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] |>>
-      Theory.parent_path;
+    val ([dt_induct'], thy7) =
+      thy6
+      |> Theory.add_path big_name
+      |> PureThy.add_thms [(("induct", dt_induct), [case_names_induct])]
+      ||> Theory.parent_path;
 
   in
     ((constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct'), thy7)

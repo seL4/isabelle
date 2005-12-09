@@ -186,10 +186,13 @@ fun add_primrec_i args thy =
         standard (Goal.prove thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)
           (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1]))));
 
-    val (thy2, eqn_thms') = thy1 |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
-    val thy3 = thy2
-      |> (#1 o PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add_global])])
-      |> Theory.parent_path;
+    val (eqn_thms', thy2) =
+      thy1
+      |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
+    val (_, thy3) =
+      thy2
+      |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add_global])]
+      ||> Theory.parent_path;
   in (thy3, eqn_thms') end;
 
 fun add_primrec args thy =

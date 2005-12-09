@@ -353,7 +353,7 @@ val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                         (List.filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
 val copy_rews = copy_strict::copy_apps @ copy_stricts;
 in thy |> Theory.add_path (Sign.base_name dname)
-       |> (#1 o (PureThy.add_thmss (map Thm.no_attributes [
+       |> (snd o (PureThy.add_thmss (map Thm.no_attributes [
 		("iso_rews" , iso_rews  ),
 		("exhaust"  , [exhaust] ),
 		("casedist" , [casedist]),
@@ -368,7 +368,7 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("inverts" , inverts ),
 		("injects" , injects ),
 		("copy_rews", copy_rews)])))
-       |> (#1 o PureThy.add_thmss [(("match_rews", mat_rews), [Simplifier.simp_add_global])])
+       |> (snd o PureThy.add_thmss [(("match_rews", mat_rews), [Simplifier.simp_add_global])])
        |> Theory.parent_path |> rpair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
                  pat_rews @ dist_les @ dist_eqs @ copy_rews)
 end; (* let *)
@@ -630,7 +630,7 @@ val coind = pg [] (mk_trp(%%:(comp_dname^"_bisim") $ %:"R") ===>
 end; (* local *)
 
 in thy |> Theory.add_path comp_dnam
-       |> (#1 o (PureThy.add_thmss (map Thm.no_attributes [
+       |> (snd o (PureThy.add_thmss (map Thm.no_attributes [
 		("take_rews"  , take_rews  ),
 		("take_lemmas", take_lemmas),
 		("finites"    , finites    ),

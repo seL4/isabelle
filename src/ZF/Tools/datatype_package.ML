@@ -366,14 +366,14 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
  in
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Theory.add_path big_rec_base_name
-        |> (#1 o PureThy.add_thmss
+        |> PureThy.add_thmss
          [(("simps", simps), [Simplifier.simp_add_global]),
           (("", intrs), [Classical.safe_intro_global]),
           (("con_defs", con_defs), []),
           (("case_eqns", case_eqns), []),
           (("recursor_eqns", recursor_eqns), []),
           (("free_iffs", free_iffs), []),
-          (("free_elims", free_SEs), [])])
+          (("free_elims", free_SEs), [])] |> snd
         |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
         |> ConstructorsData.map (fold Symtab.update con_pairs)
         |> Theory.parent_path,

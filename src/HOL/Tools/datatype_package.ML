@@ -286,7 +286,7 @@ fun name_notE th =
       
 fun add_rules simps case_thms size_thms rec_thms inject distinct
                   weak_case_congs cong_att =
-  (#1 o PureThy.add_thmss [(("simps", simps), []),
+  (snd o PureThy.add_thmss [(("simps", simps), []),
     (("", List.concat case_thms @ size_thms @ 
           List.concat distinct  @ rec_thms), [Simplifier.simp_add_global]),
     (("", size_thms @ rec_thms),             [RecfunCodegen.add NONE]),
@@ -313,7 +313,7 @@ fun add_cases_induct infos induction =
     fun unnamed_rule i =
       (("", proj i induction), [InductAttrib.induct_type_global ""]);
     val rules = List.concat (map named_rules infos) @ map unnamed_rule (length infos upto n - 1);
-  in #1 o PureThy.add_thms rules end;
+  in snd o PureThy.add_thms rules end;
 
 
 
@@ -533,11 +533,12 @@ fun make_dt_info descr sorts induct reccomb_names rec_thms
 fun add_and_get_axioms_atts label tnames attss ts thy =
   foldr (fn (((tname, atts), t), (thy', axs)) =>
     let
-      val (thy'', [ax]) = thy' |>
-        Theory.add_path tname |>
-        PureThy.add_axioms_i [((label, t), atts)];
+      val ([ax], thy'') =
+        thy'
+        |> Theory.add_path tname
+        |> PureThy.add_axioms_i [((label, t), atts)];
     in (Theory.parent_path thy'', ax::axs)
-    end) (thy, []) (tnames ~~ attss ~~ ts);
+    end) (thy, []) (tnames ~~ attss ~~ ts) |> swap;
 
 fun add_and_get_axioms label tnames =
   add_and_get_axioms_atts label tnames (replicate (length tnames) []);
@@ -545,11 +546,12 @@ fun add_and_get_axioms label tnames =
 fun add_and_get_axiomss label tnames tss thy =
   foldr (fn ((tname, ts), (thy', axss)) =>
     let
-      val (thy'', [axs]) = thy' |>
-        Theory.add_path tname |>
-        PureThy.add_axiomss_i [((label, ts), [])];
+      val ([axs], thy'') =
+        thy'
+        |> Theory.add_path tname
+        |> PureThy.add_axiomss_i [((label, ts), [])];
     in (Theory.parent_path thy'', axs::axss)
-    end) (thy, []) (tnames ~~ tss);
+    end) (thy, []) (tnames ~~ tss) |> swap;
 
 fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
@@ -639,35 +641,35 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val rec_axs = DatatypeProp.make_primrecs new_type_names descr sorts thy2;
     val size_axs = if no_size then [] else DatatypeProp.make_size descr sorts thy2;
 
-    val (thy3, (([induct], [rec_thms]), inject)) =
-      thy2 |>
-      Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts),
-        [case_names_induct])] |>>>
-      PureThy.add_axiomss_i [(("recs", rec_axs), [])] |>>
-      (if no_size then I else #1 o PureThy.add_axiomss_i [(("size", size_axs), [])]) |>>
-      Theory.parent_path |>>>
-      add_and_get_axiomss "inject" new_type_names
-        (DatatypeProp.make_injs descr sorts);
+    val ((([induct], [rec_thms]), inject), thy3) =
+      thy2
+      |> Theory.add_path (space_implode "_" new_type_names)
+      |> PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts),
+          [case_names_induct])]
+      ||>> PureThy.add_axiomss_i [(("recs", rec_axs), [])]
+      ||> (if no_size then I else snd o PureThy.add_axiomss_i [(("size", size_axs), [])])
+      ||> Theory.parent_path
+      ||>> add_and_get_axiomss "inject" new_type_names
+            (DatatypeProp.make_injs descr sorts);
     val size_thms = if no_size then [] else get_thms thy3 (Name "size");
-    val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names
+    val (distinct, thy4) = add_and_get_axiomss "distinct" new_type_names
       (DatatypeProp.make_distincts new_type_names descr sorts thy3) thy3;
 
     val exhaust_ts = DatatypeProp.make_casedists descr sorts;
-    val (thy5, exhaustion) = add_and_get_axioms_atts "exhaust" new_type_names
+    val (exhaustion, thy5) = add_and_get_axioms_atts "exhaust" new_type_names
       (map Library.single case_names_exhausts) exhaust_ts thy4;
-    val (thy6, case_thms) = add_and_get_axiomss "cases" new_type_names
+    val (case_thms, thy6) = add_and_get_axiomss "cases" new_type_names
       (DatatypeProp.make_cases new_type_names descr sorts thy5) thy5;
     val (split_ts, split_asm_ts) = ListPair.unzip
       (DatatypeProp.make_splits new_type_names descr sorts thy6);
-    val (thy7, split) = add_and_get_axioms "split" new_type_names split_ts thy6;
-    val (thy8, split_asm) = add_and_get_axioms "split_asm" new_type_names
+    val (split, thy7) = add_and_get_axioms "split" new_type_names split_ts thy6;
+    val (split_asm, thy8) = add_and_get_axioms "split_asm" new_type_names
       split_asm_ts thy7;
-    val (thy9, nchotomys) = add_and_get_axioms "nchotomy" new_type_names
+    val (nchotomys, thy9) = add_and_get_axioms "nchotomy" new_type_names
       (DatatypeProp.make_nchotomys descr sorts) thy8;
-    val (thy10, case_congs) = add_and_get_axioms "case_cong" new_type_names
+    val (case_congs, thy10) = add_and_get_axioms "case_cong" new_type_names
       (DatatypeProp.make_case_congs new_type_names descr sorts thy9) thy9;
-    val (thy11, weak_case_congs) = add_and_get_axioms "weak_case_cong" new_type_names
+    val (weak_case_congs, thy11) = add_and_get_axioms "weak_case_cong" new_type_names
       (DatatypeProp.make_weak_case_congs new_type_names descr sorts thy10) thy10;
 
     val dt_infos = map (make_dt_info descr' sorts induct reccomb_names' rec_thms)
@@ -831,11 +833,12 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
           [descr] sorts reccomb_names rec_thms thy8
       else ([], thy8);
 
-    val ([induction'], thy10) = thy9 |>
-      store_thmss "inject" new_type_names inject |> snd |>
-      store_thmss "distinct" new_type_names distinct |> snd |>
-      Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_thms [(("induct", induction), [case_names_induct])] |> Library.swap;
+    val ((_, [induction']), thy10) =
+      thy9
+      |> store_thmss "inject" new_type_names inject
+      ||>> store_thmss "distinct" new_type_names distinct
+      ||> Theory.add_path (space_implode "_" new_type_names)
+      ||>> PureThy.add_thms [(("induct", induction), [case_names_induct])];
 
     val dt_infos = map (make_dt_info descr sorts induction' reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~

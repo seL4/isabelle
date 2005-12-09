@@ -1282,7 +1282,7 @@ fun extension_typedef name repT alphas thy =
              (suffix ext_typeN (Sign.base_name name), alphas, Syntax.NoSyn) UNIV NONE
              (Tactic.rtac UNIV_witness 1))
     val rewrite_rule = Tactic.rewrite_rule [def, rec_UNIV_I, rec_True_simp];
-  in (thy',map rewrite_rule [abs_inject, abs_inverse, abs_induct])
+  in (map rewrite_rule [abs_inject, abs_inverse, abs_induct], thy')
   end;
 
 fun mixit convs refls =
@@ -1348,10 +1348,11 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     fun mk_defs () =
       thy
         |> extension_typedef name repT (alphas@[zeta])
-        |>> Theory.add_consts_i
+        ||> Theory.add_consts_i
               (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
-        |>>> (PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs)) #> Library.swap)
-        |>>> (PureThy.add_defs_i false (map Thm.no_attributes upd_specs) #> Library.swap)
+        ||>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
+        ||>> PureThy.add_defs_i false (map Thm.no_attributes upd_specs)
+        |> swap
     val (defs_thy, (([abs_inject, abs_inverse, abs_induct],ext_def::dest_defs),upd_defs)) =
         timeit_msg "record extension type/selector/update defs:" mk_defs;
 
@@ -1500,8 +1501,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                 REPEAT (etac meta_allE 1), atac 1]);
     val split_meta = timeit_msg "record extension split_meta proof:" split_meta_prf;
 
-    val (thm_thy,([inject',induct',cases',surjective',split_meta'],
-                  [dest_convs',upd_convs'])) =
+    val (([inject',induct',cases',surjective',split_meta'], [dest_convs',upd_convs']),
+      thm_thy) =
       defs_thy
       |> (PureThy.add_thms o map Thm.no_attributes)
            [("ext_inject", inject),
@@ -1509,7 +1510,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
             ("ext_cases", cases),
             ("ext_surjective", surjective),
             ("ext_split", split_meta)]
-      |>>> (PureThy.add_thmss o map Thm.no_attributes)
+      ||>> (PureThy.add_thmss o map Thm.no_attributes)
               [("dest_convs",dest_convs_standard),("upd_convs",upd_convs)]
 
   in (thm_thy,extT,induct',inject',dest_convs',split_meta',upd_convs')
@@ -1740,7 +1741,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             ([],[],field_tr's, [])
         |> Theory.add_advanced_trfuns
             ([],[],adv_ext_tr's @ adv_record_type_tr's @ adv_record_type_abbr_tr's,[])
-
         |> Theory.parent_path
         |> Theory.add_tyabbrs_i recordT_specs
         |> Theory.add_path bname
@@ -1748,10 +1748,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
         |> (Theory.add_consts_i o map Syntax.no_syn)
             (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-        |> ((PureThy.add_defs_i false o map Thm.no_attributes) sel_specs #> Library.swap)
-        |>>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs #> Library.swap)
-        |>>> ((PureThy.add_defs_i false o map Thm.no_attributes)
-               [make_spec, fields_spec, extend_spec, truncate_spec] #> Library.swap)
+        |> ((PureThy.add_defs_i false o map Thm.no_attributes) sel_specs)
+        ||>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs)
+        ||>> ((PureThy.add_defs_i false o map Thm.no_attributes)
+               [make_spec, fields_spec, extend_spec, truncate_spec])
+        |> swap
     val (defs_thy,((sel_defs,upd_defs),derived_defs)) =
         timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
          mk_defs;
@@ -1967,9 +1968,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       end);
      val equality = timeit_msg "record equality proof:" equality_prf;
 
-    val (thms_thy,(([sel_convs',upd_convs',sel_defs',upd_defs',[split_meta',split_object',split_ex'],
-                    derived_defs'],
-                   [surjective',equality']),[induct_scheme',induct',cases_scheme',cases'])) =
+    val ((([sel_convs',upd_convs',sel_defs',upd_defs',[split_meta',split_object',split_ex'],derived_defs'],
+            [surjective',equality']),[induct_scheme',induct',cases_scheme',cases']), thms_thy) =
       defs_thy
       |> (PureThy.add_thmss o map Thm.no_attributes)
          [("select_convs", sel_convs_standard),
@@ -1978,10 +1978,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           ("update_defs", upd_defs),
           ("splits", [split_meta_standard,split_object,split_ex]),
           ("defs", derived_defs)]
-      |>>> (PureThy.add_thms o map Thm.no_attributes)
+      ||>> (PureThy.add_thms o map Thm.no_attributes)
           [("surjective", surjective),
            ("equality", equality)]
-      |>>> PureThy.add_thms
+      ||>> PureThy.add_thms
         [(("induct_scheme", induct_scheme), induct_type_global (suffix schemeN name)),
          (("induct", induct), induct_type_global name),
          (("cases_scheme", cases_scheme), cases_type_global (suffix schemeN name)),
@@ -1992,7 +1992,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val iffs = [ext_inject]
     val final_thy =
       thms_thy
-      |> (#1 oo PureThy.add_thmss)
+      |> (snd oo PureThy.add_thmss)
           [(("simps", sel_upd_simps), [Simplifier.simp_add_global]),
            (("iffs",iffs), [iff_add_global])]
       |> put_record name (make_record_info args parent fields extension induct_scheme')

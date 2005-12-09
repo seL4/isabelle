@@ -622,7 +622,7 @@ val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain #2 (K I) 
 
 val local_results = gen_thmss ProofContext.note_thmss_i (K []) I I (K I);
 fun global_results kind =
-  swap oo (PureThy.note_thmss_i (Drule.kind kind) o map (apsnd Thm.simple_fact));
+  PureThy.note_thmss_i (Drule.kind kind) o map (apsnd Thm.simple_fact);
 
 fun get_thmss state srcs = the_facts (note_thmss [(("", []), srcs)] state);
 fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];

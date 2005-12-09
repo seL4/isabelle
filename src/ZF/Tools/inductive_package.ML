@@ -175,8 +175,10 @@ let
           else ()
 
   (*add definitions of the inductive sets*)
-  val thy1 = thy |> Theory.add_path big_rec_base_name
-                 |> (snd o PureThy.add_defs_i false (map Thm.no_attributes axpairs))
+  val (_, thy1) =
+    thy
+    |> Theory.add_path big_rec_base_name
+    |> PureThy.add_defs_i false (map Thm.no_attributes axpairs)
 
 
   (*fetch fp definitions from the theory*)
@@ -510,9 +512,10 @@ let
                   |> standard
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
-     val (thy', [induct', mutual_induct']) = thy |> PureThy.add_thms
-      [((co_prefix ^ "induct", induct), [case_names, InductAttrib.induct_set_global big_rec_name]),
-       (("mutual_induct", mutual_induct), [case_names])];
+     val ([induct', mutual_induct'], thy') =
+       thy
+       |> PureThy.add_thms [((co_prefix ^ "induct", induct), [case_names, InductAttrib.induct_set_global big_rec_name]),
+            (("mutual_induct", mutual_induct), [case_names])];
     in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
 
@@ -520,23 +523,27 @@ let
 
   val ((thy2, induct), mutual_induct) =
     if not coind then induction_rules raw_induct thy1
-    else (thy1 |> PureThy.add_thms [((co_prefix ^ "induct", raw_induct), [])] |> apsnd hd, TrueI)
+    else
+      (thy1
+      |> PureThy.add_thms [((co_prefix ^ "induct", raw_induct), [])]
+      |> apfst hd |> Library.swap, TrueI)
   and defs = big_rec_def :: part_rec_defs
 
 
-  val (thy3, ([bnd_mono', dom_subset', elim'], [defs', intrs'])) =
+  val (([bnd_mono', dom_subset', elim'], [defs', intrs']), thy3) =
     thy2
     |> IndCases.declare big_rec_name make_cases
     |> PureThy.add_thms
       [(("bnd_mono", bnd_mono), []),
        (("dom_subset", dom_subset), []),
        (("cases", elim), [case_names, InductAttrib.cases_set_global big_rec_name])]
-    |>>> (PureThy.add_thmss o map Thm.no_attributes)
+    ||>> (PureThy.add_thmss o map Thm.no_attributes)
         [("defs", defs),
          ("intros", intrs)];
-  val (thy4, intrs'') =
-    thy3 |> PureThy.add_thms ((intr_names ~~ intrs') ~~ map #2 intr_specs)
-    |>> Theory.parent_path;
+  val (intrs'', thy4) =
+    thy3
+    |> PureThy.add_thms ((intr_names ~~ intrs') ~~ map #2 intr_specs)
+    ||> Theory.parent_path;
   in
     (thy4,
       {defs = defs',
