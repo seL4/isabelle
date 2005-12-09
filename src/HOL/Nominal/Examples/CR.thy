@@ -28,7 +28,7 @@ next
   thus "(Lam [c].t)[a::=t2] = Lam [c].t" using a b by simp
 qed
 
-lemma forget: 
+lemma forget_automatic: 
   assumes a: "a\<sharp>t1"
   shows "t1[a::=t2] = t1"
   using a
@@ -36,10 +36,7 @@ lemma forget:
      (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
-  fixes   b :: "name"
-  and    a  :: "name"
-  and    t1 :: "lam"
-  and    t2 :: "lam"
+  fixes a :: "name"
   assumes a: "a\<sharp>t1"
   and     b: "a\<sharp>t2"
   shows "a\<sharp>(t1[b::=t2])"
@@ -61,7 +58,7 @@ next
   thus "a\<sharp>(Lam [c].t)[b::=t2]" using fr  by (simp add: abs_fresh)
 qed
 
-lemma fresh_fact: 
+lemma fresh_fact_automatic: 
   fixes a::"name"
   assumes a: "a\<sharp>t1"
   and     b: "a\<sharp>t2"
@@ -130,12 +127,7 @@ next
   thus ?case by simp
 qed
 
-lemma subs_lemma:  
-  fixes x::"name"
-  and   y::"name"
-  and   L::"lam"
-  and   M::"lam"
-  and   N::"lam"
+lemma subs_lemma_automatic:  
   assumes a: "x\<noteq>y"
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
@@ -144,10 +136,6 @@ by (nominal_induct M avoiding: x y N L rule: lam_induct)
    (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
-  fixes  c  :: "name"
-  and    a  :: "name"
-  and    t1 :: "lam"
-  and    t2 :: "lam"
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
 using a
@@ -174,11 +162,7 @@ next
   qed
 qed
 
-lemma subst_rename: 
-  fixes  c  :: "name"
-  and    a  :: "name"
-  and    t1 :: "lam"
-  and    t2 :: "lam"
+lemma subst_rename_automatic: 
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
 using a
@@ -382,9 +366,7 @@ next
 qed
 
 lemma one_fresh_preserv:
-  fixes    t :: "lam"
-  and      s :: "lam"
-  and      a :: "name"
+  fixes a :: "name"
   assumes a: "t\<longrightarrow>\<^isub>1s"
   and     b: "a\<sharp>t"
   shows "a\<sharp>s"
@@ -488,10 +470,6 @@ lemma one_red:
 text {* first case in Lemma 3.2.4*}
 
 lemma one_subst_aux:
-  fixes    M :: "lam"
-  and      N :: "lam"
-  and      N':: "lam"
-  and      x :: "name"
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
@@ -506,11 +484,7 @@ next
   thus "(Lam [y].P)[x::=N] \<longrightarrow>\<^isub>1 (Lam [y].P)[x::=N']" using o3 by simp
 qed
 
-lemma one_subst_aux:
-  fixes    M :: "lam"
-  and      N :: "lam"
-  and      N':: "lam"
-  and      x :: "name"
+lemma one_subst_aux_automatic:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
@@ -519,11 +493,6 @@ apply(auto simp add: fresh_prod fresh_atm)
 done
 
 lemma one_subst: 
-  fixes    M :: "lam"
-  and      M':: "lam"
-  and      N :: "lam"
-  and      N':: "lam"
-  and      x :: "name"
   assumes a: "M\<longrightarrow>\<^isub>1M'"
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
@@ -551,7 +520,7 @@ next
   qed
 qed
 
-lemma one_subst: 
+lemma one_subst_automatic: 
   assumes a: "M\<longrightarrow>\<^isub>1M'" 
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
@@ -674,45 +643,45 @@ next
 qed
 
 lemma one_abs_cong: 
-  fixes a :: "name"
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   shows "(Lam [a].t1)\<longrightarrow>\<^isub>\<beta>\<^sup>*(Lam [a].t2)"
   using a
 proof induct
-  case 1 thus ?case by force
+  case 1 thus ?case by simp
 next
   case (2 y z) 
-  thus ?case by (force dest: b3 intro: rtrancl_trans)
+  thus ?case by (blast dest: b3 intro: rtrancl_trans)
 qed
 
-lemma one_pr_congL: 
+lemma one_app_congL: 
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   shows "App t1 s\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s"
   using a
 proof induct
-  case 1 thus ?case by (force)
+  case 1 thus ?case by simp
 next
-  case 2 thus ?case by (force dest: b1 intro: rtrancl_trans)
+  case 2 thus ?case by (blast dest: b1 intro: rtrancl_trans)
 qed
   
-lemma one_pr_congR: 
+lemma one_app_congR: 
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   shows "App s t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App s t2"
 using a
 proof induct
-  case 1 thus ?case by (force)
+  case 1 thus ?case by simp
 next 
-  case 2 thus ?case by (force dest: b2 intro: rtrancl_trans)
+  case 2 thus ?case by (blast dest: b2 intro: rtrancl_trans)
 qed
 
-lemma one_pr_cong: 
+lemma one_app_cong: 
   assumes a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
   and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" 
   shows "App t1 s1\<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2"
 proof -
-  have b1: "App t1 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s1" using a1 by (rule one_pr_congL)
-  have b2: "App t2 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" using a2 by (rule one_pr_congR)
-  show ?thesis using b1 b2 by (force intro: rtrancl_trans)
+  have "App t1 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s1" using a1 by (rule one_app_congL)
+  moreover
+  have "App t2 s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App t2 s2" using a2 by (rule one_app_congR)
+  ultimately show ?thesis by (blast intro: rtrancl_trans)
 qed
 
 lemma one_beta_star: 
@@ -720,29 +689,28 @@ lemma one_beta_star:
   shows "(t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2)"
   using a
 proof induct
-  case o1 thus ?case by (force)
+  case o1 thus ?case by simp
 next
-  case o2 thus ?case by (force intro!: one_pr_cong)
+  case o2 thus ?case by (blast intro!: one_app_cong)
 next
-  case o3 thus ?case by (force intro!: one_abs_cong)
+  case o3 thus ?case by (blast intro!: one_abs_cong)
 next 
   case (o4 a s1 s2 t1 t2)
-  have a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" .
+  have a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" by fact
   have c1: "(App (Lam [a].t2) s2) \<longrightarrow>\<^isub>\<beta> (t2 [a::= s2])" by (rule b4)
   from a1 a2 have c2: "App (Lam [a].t1 ) s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App (Lam [a].t2 ) s2" 
-    by (force intro!: one_pr_cong one_abs_cong)
-  show ?case using c1 c2 by (force intro: rtrancl_trans)
+    by (blast intro!: one_app_cong one_abs_cong)
+  show ?case using c1 c2 by (blast intro: rtrancl_trans)
 qed
  
 lemma one_star_abs_cong: 
-  fixes a :: "name"
   assumes a: "t1\<longrightarrow>\<^isub>1\<^sup>*t2" 
   shows "(Lam  [a].t1)\<longrightarrow>\<^isub>1\<^sup>* (Lam [a].t2)"
   using a
 proof induct
-  case 1 thus ?case by (force)
+  case 1 thus ?case by simp
 next
-  case 2 thus ?case by (force intro: rtrancl_trans)
+  case 2 thus ?case by (blast intro: rtrancl_trans)
 qed
 
 lemma one_star_pr_congL: 
@@ -750,9 +718,9 @@ lemma one_star_pr_congL:
   shows "App t1 s\<longrightarrow>\<^isub>1\<^sup>* App t2 s"
   using a
 proof induct
-  case 1 thus ?case by (force)
+  case 1 thus ?case by simp
 next
-  case 2 thus ?case by (force intro: rtrancl_trans)
+  case 2 thus ?case by (blast intro: rtrancl_trans)
 qed
 
 lemma one_star_pr_congR: 
@@ -760,9 +728,9 @@ lemma one_star_pr_congR:
   shows "App s t1 \<longrightarrow>\<^isub>1\<^sup>* App s t2"
   using a
 proof induct
-  case 1 thus ?case by (force)
+  case 1 thus ?case by simp
 next
-  case 2 thus ?case by (force intro: rtrancl_trans)
+  case 2 thus ?case by (blast intro: rtrancl_trans)
 qed
 
 lemma beta_one_star: 
@@ -770,13 +738,13 @@ lemma beta_one_star:
   shows "t1\<longrightarrow>\<^isub>1\<^sup>*t2"
   using a
 proof induct
-  case b1 thus ?case by (force intro!: one_star_pr_congL)
+  case b1 thus ?case by (blast intro!: one_star_pr_congL)
 next
-  case b2 thus ?case by (force intro!: one_star_pr_congR)
+  case b2 thus ?case by (blast intro!: one_star_pr_congR)
 next
-  case b3 thus ?case by (force intro!: one_star_abs_cong)
+  case b3 thus ?case by (blast intro!: one_star_abs_cong)
 next
-  case b4 thus ?case by (force)
+  case b4 thus ?case by blast
 qed
 
 lemma trans_closure: 
@@ -785,7 +753,7 @@ proof
   assume "t1 \<longrightarrow>\<^isub>1\<^sup>* t2"
   thus "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2"
   proof induct
-    case 1 thus ?case by (force)
+    case 1 thus ?case by simp
   next
     case 2 thus ?case by (force intro: rtrancl_trans simp add: one_beta_star)
   qed
@@ -793,7 +761,7 @@ next
   assume "t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* t2" 
   thus "t1\<longrightarrow>\<^isub>1\<^sup>*t2"
   proof induct
-    case 1 thus ?case by (force)
+    case 1 thus ?case by simp
   next
     case 2 thus ?case by (force intro: rtrancl_trans simp add: beta_one_star)
   qed
@@ -811,19 +779,19 @@ next
   have b: "s1 \<longrightarrow>\<^isub>1 s2" by fact
   have h: "\<And>t2. t \<longrightarrow>\<^isub>1 t2 \<Longrightarrow> (\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" by fact
   have c: "t \<longrightarrow>\<^isub>1 t2" by fact
-  show "(\<exists>t3.  s2 \<longrightarrow>\<^isub>1 t3 \<and>  t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" 
+  show "\<exists>t3. s2 \<longrightarrow>\<^isub>1 t3 \<and>  t2 \<longrightarrow>\<^isub>1\<^sup>* t3" 
   proof -
-    from c h have "(\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3)" by force
-    then obtain t3 where c1: "s1 \<longrightarrow>\<^isub>1 t3" and c2: "t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by (force)
-    have "(\<exists>t4. s2 \<longrightarrow>\<^isub>1 t4 \<and> t3 \<longrightarrow>\<^isub>1 t4)" using b c1 by (force intro: diamond)
-    thus ?thesis using c2 by (force intro: rtrancl_trans)
+    from c h have "\<exists>t3. s1 \<longrightarrow>\<^isub>1 t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by blast
+    then obtain t3 where c1: "s1 \<longrightarrow>\<^isub>1 t3" and c2: "t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by blast
+    have "\<exists>t4. s2 \<longrightarrow>\<^isub>1 t4 \<and> t3 \<longrightarrow>\<^isub>1 t4" using b c1 by (blast intro: diamond)
+    thus ?thesis using c2 by (blast intro: rtrancl_trans)
   qed
 qed
 
 lemma cr_one_star: 
   assumes a: "t\<longrightarrow>\<^isub>1\<^sup>*t2"
       and b: "t\<longrightarrow>\<^isub>1\<^sup>*t1"
-    shows "(\<exists>t3. t1\<longrightarrow>\<^isub>1\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>1\<^sup>*t3)"
+    shows "\<exists>t3. t1\<longrightarrow>\<^isub>1\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>1\<^sup>*t3"
 using a
 proof induct
   case 1
@@ -833,26 +801,27 @@ next
   assume d: "s1 \<longrightarrow>\<^isub>1 s2"
   assume "\<exists>t3.  t1 \<longrightarrow>\<^isub>1\<^sup>* t3 \<and>  s1 \<longrightarrow>\<^isub>1\<^sup>* t3"
   then obtain t3 where f1: "t1 \<longrightarrow>\<^isub>1\<^sup>* t3"
-                   and f2: "s1 \<longrightarrow>\<^isub>1\<^sup>* t3" by force
-  from cr_one d f2 have "\<exists>t4. t3\<longrightarrow>\<^isub>1t4 \<and> s2\<longrightarrow>\<^isub>1\<^sup>*t4" by force
+                   and f2: "s1 \<longrightarrow>\<^isub>1\<^sup>* t3" by blast
+  from cr_one d f2 have "\<exists>t4. t3\<longrightarrow>\<^isub>1t4 \<and> s2\<longrightarrow>\<^isub>1\<^sup>*t4" by blast
   then obtain t4 where g1: "t3\<longrightarrow>\<^isub>1t4"
-                   and g2: "s2\<longrightarrow>\<^isub>1\<^sup>*t4" by force
-  have "t1\<longrightarrow>\<^isub>1\<^sup>*t4" using f1 g1 by (force intro: rtrancl_trans)
-  thus ?case using g2 by (force)
+                   and g2: "s2\<longrightarrow>\<^isub>1\<^sup>*t4" by blast
+  have "t1\<longrightarrow>\<^isub>1\<^sup>*t4" using f1 g1 by (blast intro: rtrancl_trans)
+  thus ?case using g2 by blast
 qed
   
 lemma cr_beta_star: 
   assumes a1: "t\<longrightarrow>\<^isub>\<beta>\<^sup>*t1" 
   and a2: "t\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" 
-  shows "(\<exists>t3. t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3)"
+  shows "\<exists>t3. t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3\<and>t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3"
 proof -
   from a1 have b1: "t\<longrightarrow>\<^isub>1\<^sup>*t1" by (simp add: trans_closure[symmetric])
   from a2 have b2: "t\<longrightarrow>\<^isub>1\<^sup>*t2" by (simp add: trans_closure[symmetric])
-  from b1 and b2 have c: "\<exists>t3. (t1\<longrightarrow>\<^isub>1\<^sup>*t3 \<and> t2\<longrightarrow>\<^isub>1\<^sup>*t3)" by (force intro!: cr_one_star) 
-  from c obtain t3 where d1: "t1\<longrightarrow>\<^isub>1\<^sup>*t3" and d2: "t2\<longrightarrow>\<^isub>1\<^sup>*t3" by force
-  from d1 have e1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" by (simp add: trans_closure)
-  from d2 have e2: "t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" by (simp add: trans_closure)
-  show ?thesis using e1 and e2 by (force)
+  from b1 and b2 have c: "\<exists>t3. t1\<longrightarrow>\<^isub>1\<^sup>*t3 \<and> t2\<longrightarrow>\<^isub>1\<^sup>*t3" by (blast intro!: cr_one_star) 
+  from c obtain t3 where d1: "t1\<longrightarrow>\<^isub>1\<^sup>*t3" and d2: "t2\<longrightarrow>\<^isub>1\<^sup>*t3" by blast
+  have "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" using d1 by (simp add: trans_closure)
+  moreover
+  have "t2\<longrightarrow>\<^isub>\<beta>\<^sup>*t3" using d2 by (simp add: trans_closure)
+  ultimately show ?thesis by blast
 qed
 
 end

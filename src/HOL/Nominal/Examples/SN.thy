@@ -8,7 +8,6 @@ text {* Strong Normalisation proof from the Proofs and Types book *}
 
 section {* Beta Reduction *}
 
-
 lemma subst_rename[rule_format]: 
   shows "c\<sharp>t1 \<longrightarrow> (t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2])"
 apply(nominal_induct t1 avoiding: a c t2 rule: lam_induct)
@@ -129,10 +128,13 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma supp_beta: "t\<longrightarrow>\<^isub>\<beta> s\<Longrightarrow>(supp s)\<subseteq>((supp t)::name set)"
-apply(erule Beta.induct)
-apply(auto intro!: simp add: abs_supp lam.supp subst_supp)
-done
+lemma supp_beta: 
+  assumes a: "t\<longrightarrow>\<^isub>\<beta> s"
+  shows "(supp s)\<subseteq>((supp t)::name set)"
+using a
+by (induct)
+   (auto intro!: simp add: abs_supp lam.supp subst_supp)
+
 
 lemma beta_abs: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'\<Longrightarrow>\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>\<beta> t''"
 apply(ind_cases "Lam [a].t  \<longrightarrow>\<^isub>\<beta> t'")
@@ -221,8 +223,10 @@ done
 lemma fresh_context[rule_format]: 
   fixes  \<Gamma> :: "(name\<times>ty)list"
   and    a :: "name"
-  shows "a\<sharp>\<Gamma>\<longrightarrow>\<not>(\<exists>\<tau>::ty. (a,\<tau>)\<in>set \<Gamma>)"
-apply(induct_tac \<Gamma>)
+  assumes a: "a\<sharp>\<Gamma>"
+  shows "\<not>(\<exists>\<tau>::ty. (a,\<tau>)\<in>set \<Gamma>)"
+using a
+apply(induct \<Gamma>)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
@@ -236,8 +240,12 @@ apply(ind_cases "valid ((a,\<tau>)#\<Gamma>)", simp)
 done
 
 lemma valid_unicity[rule_format]: 
-  shows "valid \<Gamma>\<longrightarrow>(c,\<sigma>)\<in>set \<Gamma>\<longrightarrow>(c,\<tau>)\<in>set \<Gamma>\<longrightarrow>\<sigma>=\<tau>" 
-apply(induct_tac \<Gamma>)
+  assumes a: "valid \<Gamma>"
+  and     b: "(c,\<sigma>)\<in>set \<Gamma>"
+  and     c: "(c,\<tau>)\<in>set \<Gamma>"
+  shows "\<sigma>=\<tau>" 
+using a b c
+apply(induct \<Gamma>)
 apply(auto dest!: valid_elim fresh_context)
 done
 
@@ -351,8 +359,11 @@ apply(atomize)
 apply(auto)
 done
 
-lemma in_ctxt[rule_format]: "(a,\<tau>)\<in>set \<Gamma> \<longrightarrow> (a\<in>set(dom_ty \<Gamma>))"
-apply(induct_tac \<Gamma>)
+lemma in_ctxt: 
+  assumes a: "(a,\<tau>)\<in>set \<Gamma>"
+  shows "a\<in>set(dom_ty \<Gamma>)"
+using a
+apply(induct \<Gamma>)
 apply(auto)
 done
 
@@ -390,134 +401,124 @@ lemma typing_valid:
   shows "valid \<Gamma>"
 using a by (induct, auto dest!: valid_elim)
 
-lemma ty_subs[rule_format]:
-  fixes \<Gamma> ::"(name\<times>ty) list"
-  and   t1 ::"lam"
-  and   t2 ::"lam"
-  and   \<tau>  ::"ty"
-  and   \<sigma>  ::"ty" 
-  and   c  ::"name"
-  shows  "((c,\<sigma>)#\<Gamma>) \<turnstile> t1:\<tau>\<longrightarrow> \<Gamma>\<turnstile> t2:\<sigma>\<longrightarrow> \<Gamma> \<turnstile> t1[c::=t2]:\<tau>"
+lemma ty_subs:
+  assumes a: "((c,\<sigma>)#\<Gamma>) \<turnstile> t1:\<tau>"
+  and     b: "\<Gamma>\<turnstile> t2:\<sigma>"
+  shows  "\<Gamma> \<turnstile> t1[c::=t2]:\<tau>"
+using a b
 proof(nominal_induct t1 avoiding: \<Gamma> \<sigma> \<tau> c t2 rule: lam_induct)
   case (Var a) 
-  show ?case
-  proof(intro strip)
-    assume a1: "\<Gamma> \<turnstile>t2:\<sigma>"
-    assume a2: "((c,\<sigma>)#\<Gamma>) \<turnstile> Var a:\<tau>"
-    hence a21: "(a,\<tau>)\<in>set((c,\<sigma>)#\<Gamma>)" and a22: "valid((c,\<sigma>)#\<Gamma>)" by (auto dest: t1_elim)
-    from a22 have a23: "valid \<Gamma>" and a24: "c\<sharp>\<Gamma>" by (auto dest: valid_elim) 
-    from a24 have a25: "\<not>(\<exists>\<tau>. (c,\<tau>)\<in>set \<Gamma>)" by (rule fresh_context)
-    show "\<Gamma>\<turnstile>(Var a)[c::=t2] : \<tau>"
-    proof (cases "a=c", simp_all)
-      assume case1: "a=c"
-      show "\<Gamma> \<turnstile> t2:\<tau>" using a1
-      proof (cases "\<sigma>=\<tau>")
-	assume "\<sigma>=\<tau>" thus ?thesis using a1 by simp 
-      next
-	assume a3: "\<sigma>\<noteq>\<tau>"
-	show ?thesis
-	proof (rule ccontr)
-	  from a3 a21 have "(a,\<tau>)\<in>set \<Gamma>" by force
-	  with case1 a25 show False by force 
-	qed
-      qed
+  have a1: "\<Gamma> \<turnstile>t2:\<sigma>" by fact
+  have a2: "((c,\<sigma>)#\<Gamma>) \<turnstile> Var a:\<tau>" by fact
+  hence a21: "(a,\<tau>)\<in>set((c,\<sigma>)#\<Gamma>)" and a22: "valid((c,\<sigma>)#\<Gamma>)" by (auto dest: t1_elim)
+  from a22 have a23: "valid \<Gamma>" and a24: "c\<sharp>\<Gamma>" by (auto dest: valid_elim) 
+  from a24 have a25: "\<not>(\<exists>\<tau>. (c,\<tau>)\<in>set \<Gamma>)" by (rule fresh_context)
+  show "\<Gamma>\<turnstile>(Var a)[c::=t2] : \<tau>"
+  proof (cases "a=c", simp_all)
+    assume case1: "a=c"
+    show "\<Gamma> \<turnstile> t2:\<tau>" using a1
+    proof (cases "\<sigma>=\<tau>")
+      assume "\<sigma>=\<tau>" thus ?thesis using a1 by simp 
     next
-      assume case2: "a\<noteq>c"
-      with a21 have a26: "(a,\<tau>)\<in>set \<Gamma>" by force 
-      from a23 a26 show "\<Gamma> \<turnstile> Var a:\<tau>" by force
+      assume a3: "\<sigma>\<noteq>\<tau>"
+      show ?thesis
+      proof (rule ccontr)
+	from a3 a21 have "(a,\<tau>)\<in>set \<Gamma>" by force
+	with case1 a25 show False by force 
+      qed
     qed
+  next
+    assume case2: "a\<noteq>c"
+    with a21 have a26: "(a,\<tau>)\<in>set \<Gamma>" by force 
+    from a23 a26 show "\<Gamma> \<turnstile> Var a:\<tau>" by force
   qed
 next
   case (App s1 s2)
-  show ?case
-  proof (intro strip, simp)
-    assume b1: "\<Gamma> \<turnstile>t2:\<sigma>" 
-    assume b2: " ((c,\<sigma>)#\<Gamma>)\<turnstile>App s1 s2 : \<tau>"
-    hence "\<exists>\<tau>'. (((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau> \<and> ((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>')" by (rule t2_elim) 
-    then obtain \<tau>' where b3a: "((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau>" and b3b: "((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by force
-    show "\<Gamma> \<turnstile>  App (s1[c::=t2]) (s2[c::=t2]) : \<tau>" 
-      using b1 b3a b3b App by (rule_tac \<tau>="\<tau>'" in t2, auto)
-  qed
+  have b1: "\<Gamma> \<turnstile>t2:\<sigma>" by fact
+  have b2: "((c,\<sigma>)#\<Gamma>)\<turnstile>App s1 s2 : \<tau>" by fact
+  hence "\<exists>\<tau>'. (((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau> \<and> ((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>')" by (rule t2_elim) 
+  then obtain \<tau>' where b3a: "((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau>" and b3b: "((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by force
+  show "\<Gamma> \<turnstile>  (App s1 s2)[c::=t2] : \<tau>" 
+    using b1 b3a b3b prems by (simp, rule_tac \<tau>="\<tau>'" in t2, auto)
 next
   case (Lam a s)
   have "a\<sharp>\<Gamma>" "a\<sharp>\<sigma>" "a\<sharp>\<tau>" "a\<sharp>c" "a\<sharp>t2" by fact 
   hence f1: "a\<sharp>\<Gamma>" and f2: "a\<noteq>c" and f2': "c\<sharp>a" and f3: "a\<sharp>t2" and f4: "a\<sharp>((c,\<sigma>)#\<Gamma>)"
     by (auto simp add: fresh_atm fresh_prod fresh_list_cons)
-  show ?case using f2 f3
-  proof(intro strip, simp)
-    assume c1: "((c,\<sigma>)#\<Gamma>)\<turnstile>Lam [a].s : \<tau>"
-    hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<turnstile> s : \<tau>2" using f4 by (auto dest: t3_elim) 
-    then obtain \<tau>1 \<tau>2 where c11: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and c12: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<turnstile> s : \<tau>2" by force
-    from c12 have "valid ((a,\<tau>1)#(c,\<sigma>)#\<Gamma>)" by (rule typing_valid)
-    hence ca: "valid \<Gamma>" and cb: "a\<sharp>\<Gamma>" and cc: "c\<sharp>\<Gamma>" 
-      by (auto dest: valid_elim simp add: fresh_list_cons) 
-    from c12 have c14: "((c,\<sigma>)#(a,\<tau>1)#\<Gamma>) \<turnstile> s : \<tau>2"
-    proof -
-      have c2: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<lless> ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)" by (force simp add: sub_def)
-      have c3: "valid ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)"
-	by (rule v2, rule v2, auto simp add: fresh_list_cons fresh_prod ca cb cc f2' fresh_ty)
-      from c12 c2 c3 show ?thesis by (force intro: weakening)
-    qed
-    assume c8: "\<Gamma> \<turnstile> t2 : \<sigma>"
-    have c81: "((a,\<tau>1)#\<Gamma>)\<turnstile>t2 :\<sigma>"
-    proof -
-      have c82: "\<Gamma> \<lless> ((a,\<tau>1)#\<Gamma>)" by (force simp add: sub_def)
-      have c83: "valid ((a,\<tau>1)#\<Gamma>)" using f1 ca by force
-      with c8 c82 c83 show ?thesis by (force intro: weakening)
-    qed
-    show "\<Gamma> \<turnstile> Lam [a].(s[c::=t2]) : \<tau>"
-      using c11 Lam c14 c81 f1 by force
+  have c1: "((c,\<sigma>)#\<Gamma>)\<turnstile>Lam [a].s : \<tau>" by fact
+  hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<turnstile> s : \<tau>2" using f4 by (auto dest: t3_elim) 
+  then obtain \<tau>1 \<tau>2 where c11: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and c12: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<turnstile> s : \<tau>2" by force
+  from c12 have "valid ((a,\<tau>1)#(c,\<sigma>)#\<Gamma>)" by (rule typing_valid)
+  hence ca: "valid \<Gamma>" and cb: "a\<sharp>\<Gamma>" and cc: "c\<sharp>\<Gamma>" 
+    by (auto dest: valid_elim simp add: fresh_list_cons) 
+  from c12 have c14: "((c,\<sigma>)#(a,\<tau>1)#\<Gamma>) \<turnstile> s : \<tau>2"
+  proof -
+    have c2: "((a,\<tau>1)#(c,\<sigma>)#\<Gamma>) \<lless> ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)" by (force simp add: sub_def)
+    have c3: "valid ((c,\<sigma>)#(a,\<tau>1)#\<Gamma>)"
+      by (rule v2, rule v2, auto simp add: fresh_list_cons fresh_prod ca cb cc f2' fresh_ty)
+    from c12 c2 c3 show ?thesis by (force intro: weakening)
   qed
+  assume c8: "\<Gamma> \<turnstile> t2 : \<sigma>"
+  have c81: "((a,\<tau>1)#\<Gamma>)\<turnstile>t2 :\<sigma>"
+  proof -
+    have c82: "\<Gamma> \<lless> ((a,\<tau>1)#\<Gamma>)" by (force simp add: sub_def)
+    have c83: "valid ((a,\<tau>1)#\<Gamma>)" using f1 ca by force
+    with c8 c82 c83 show ?thesis by (force intro: weakening)
+  qed
+  show "\<Gamma> \<turnstile> (Lam [a].s)[c::=t2] : \<tau>"
+    using c11 prems c14 c81 f1 by force
 qed
 
-lemma subject[rule_format]: 
+lemma subject: 
   fixes \<Gamma>  ::"(name\<times>ty) list"
   and   t1 ::"lam"
   and   t2 ::"lam"
   and   \<tau>  ::"ty"
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2"
-  shows "(\<Gamma> \<turnstile> t1:\<tau>) \<longrightarrow> (\<Gamma> \<turnstile> t2:\<tau>)"
-using a
-proof (nominal_induct t1 t2 avoiding: \<Gamma> \<tau> rule: beta_induct, auto)
+  and     b: "\<Gamma> \<turnstile> t1:\<tau>"
+  shows "\<Gamma> \<turnstile> t2:\<tau>"
+using a b
+proof (nominal_induct t1 t2 avoiding: \<Gamma> \<tau> rule: beta_induct)
   case (b1 t s1 s2)
-  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1:\<tau> \<longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
-  assume "\<Gamma> \<turnstile> App s1 t : \<tau>" 
-  hence "\<exists>\<sigma>. (\<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> t : \<sigma>)" by (rule t2_elim)
-  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> t : \<sigma>" by force
-  thus "\<Gamma> \<turnstile> App s2 t : \<tau>" using i by force
+  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1:\<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
+  have "\<Gamma> \<turnstile> App s1 t : \<tau>" by fact 
+  hence "\<exists>\<sigma>. \<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> t : \<sigma>" by (rule t2_elim)
+  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> t : \<sigma>" by blast
+  thus "\<Gamma> \<turnstile> App s2 t : \<tau>" using i by blast
 next
   case (b2 t s1 s2)
-  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact 
-  assume "\<Gamma> \<turnstile> App t s1 : \<tau>" 
-  hence "\<exists>\<sigma>. (\<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s1 : \<sigma>)" by (rule t2_elim)
-  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s1 : \<sigma>" by force
-  thus "\<Gamma> \<turnstile> App t s2 : \<tau>" using i by force
+  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact 
+  have "\<Gamma> \<turnstile> App t s1 : \<tau>" by fact
+  hence "\<exists>\<sigma>. \<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s1 : \<sigma>" by (rule t2_elim)
+  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s1 : \<sigma>" by blast
+  thus "\<Gamma> \<turnstile> App t s2 : \<tau>" using i by blast
 next
   case (b3 a s1 s2)
-  have f: "a\<sharp>\<Gamma>" and "a\<sharp>\<tau>" by fact+
-  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
-  assume "\<Gamma> \<turnstile> Lam [a].s1 : \<tau>"
-  with f have "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by (force dest: t3_elim)
-  then obtain \<tau>1 \<tau>2 where a1: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and a2: "((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by force
-  thus "\<Gamma> \<turnstile> Lam [a].s2 : \<tau>" using f i by force 
+  have f: "a\<sharp>\<Gamma>" and "a\<sharp>\<tau>" by fact
+  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
+  have "\<Gamma> \<turnstile> Lam [a].s1 : \<tau>" by fact
+  with f have "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by (blast dest: t3_elim)
+  then obtain \<tau>1 \<tau>2 where a1: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and a2: "((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by blast
+  thus "\<Gamma> \<turnstile> Lam [a].s2 : \<tau>" using f i by blast
 next
   case (b4 a s1 s2)
   have f: "a\<sharp>\<Gamma>" by fact
-  assume "\<Gamma> \<turnstile> App (Lam [a].s1) s2 : \<tau>"
+  have "\<Gamma> \<turnstile> App (Lam [a].s1) s2 : \<tau>" by fact
   hence "\<exists>\<sigma>. (\<Gamma> \<turnstile> (Lam [a].s1) : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s2 : \<sigma>)" by (rule t2_elim)
-  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> (Lam [(a::name)].s1) : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s2 : \<sigma>" by force
-  have  "((a,\<sigma>)#\<Gamma>) \<turnstile> s1 : \<tau>" using a1 f by (auto dest!: t3_elim)
-  with a2 show "\<Gamma> \<turnstile>  s1[a::=s2] : \<tau>" by (force intro: ty_subs)
+  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> (Lam [(a::name)].s1) : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s2 : \<sigma>" by blast
+  have  "((a,\<sigma>)#\<Gamma>) \<turnstile> s1 : \<tau>" using a1 f by (blast dest!: t3_elim)
+  with a2 show "\<Gamma> \<turnstile>  s1[a::=s2] : \<tau>" by (blast intro: ty_subs)
 qed
 
-lemma subject[rule_format]: 
+lemma subject_automatic: 
   fixes \<Gamma>  ::"(name\<times>ty) list"
   and   t1 ::"lam"
   and   t2 ::"lam"
   and   \<tau>  ::"ty"
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2"
-  shows "\<Gamma> \<turnstile> t1:\<tau> \<longrightarrow> \<Gamma> \<turnstile> t2:\<tau>"
-using a
+  and     b: "\<Gamma> \<turnstile> t1:\<tau>"
+  shows "\<Gamma> \<turnstile> t2:\<tau>"
+using a b
 apply(nominal_induct t1 t2 avoiding: \<Gamma> \<tau> rule: beta_induct)
 apply(auto dest!: t2_elim t3_elim intro: ty_subs)
 done
@@ -544,7 +545,6 @@ apply(rule accI)
 apply(auto)
 done
 
-
 section {* Candidates *}
 
 consts
@@ -565,10 +565,11 @@ syntax
 translations 
   "t1 \<guillemotright> t2" \<rightleftharpoons> "(t1,t2) \<in> FST"
 inductive FST
-intros
+  intros
 fst[intro!]:  "(App t s) \<guillemotright> t"
 
-lemma fst_elim[elim!]: "(App t s) \<guillemotright> t' \<Longrightarrow> t=t'"
+lemma fst_elim[elim!]: 
+  shows "(App t s) \<guillemotright> t' \<Longrightarrow> t=t'"
 apply(ind_cases "App t s \<guillemotright> t'")
 apply(simp add: lam.inject)
 done
@@ -826,8 +827,11 @@ apply(simp add: CR1_def SN_def)
 apply(force simp add: RED_props)
 done
 
-lemma fresh_domain[rule_format]: "a\<sharp>\<theta>\<longrightarrow>a\<notin>set(domain \<theta>)"
-apply(induct_tac \<theta>)
+lemma fresh_domain: 
+  assumes a: "a\<sharp>\<theta>"
+  shows "a\<notin>set(domain \<theta>)"
+using a
+apply(induct \<theta>)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
