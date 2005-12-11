@@ -32,7 +32,7 @@ apply(nominal_induct t1 avoiding: a b t2 rule: lam_induct)
 apply(auto simp add: abs_fresh fresh_atm)
 done
 
-lemma subs_lemma:  
+lemma subst_lemma:  
   assumes a: "x\<noteq>y"
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
@@ -158,8 +158,10 @@ lemma beta_subst:
   shows "M[x::=N]\<longrightarrow>\<^isub>\<beta> M'[x::=N]" 
 using a
 apply(nominal_induct M M' avoiding: x N rule: beta_induct)
-apply(auto simp add: fresh_atm subs_lemma)
+apply(auto simp add: fresh_atm subst_lemma)
 done
+
+section {* types *}
 
 datatype ty =
     TVar "string"
@@ -363,8 +365,7 @@ lemma in_ctxt:
   assumes a: "(a,\<tau>)\<in>set \<Gamma>"
   shows "a\<in>set(dom_ty \<Gamma>)"
 using a
-apply(induct \<Gamma>)
-apply(auto)
+apply(induct \<Gamma>, auto)
 done
 
 lemma free_vars: 
@@ -434,12 +435,14 @@ proof(nominal_induct t1 avoiding: \<Gamma> \<sigma> \<tau> c t2 rule: lam_induct
   qed
 next
   case (App s1 s2)
-  have b1: "\<Gamma> \<turnstile>t2:\<sigma>" by fact
-  have b2: "((c,\<sigma>)#\<Gamma>)\<turnstile>App s1 s2 : \<tau>" by fact
-  hence "\<exists>\<tau>'. (((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau> \<and> ((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>')" by (rule t2_elim) 
-  then obtain \<tau>' where b3a: "((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau>" and b3b: "((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by force
-  show "\<Gamma> \<turnstile>  (App s1 s2)[c::=t2] : \<tau>" 
-    using b1 b3a b3b prems by (simp, rule_tac \<tau>="\<tau>'" in t2, auto)
+  have ih_s1: "\<And>c \<sigma> \<tau> t2 \<Gamma>. ((c,\<sigma>)#\<Gamma>) \<turnstile> s1:\<tau> \<Longrightarrow> \<Gamma>\<turnstile> t2: \<sigma> \<Longrightarrow> \<Gamma> \<turnstile> s1[c::=t2]:\<tau>" by fact
+  have ih_s2: "\<And>c \<sigma> \<tau> t2 \<Gamma>. ((c,\<sigma>)#\<Gamma>) \<turnstile> s2:\<tau> \<Longrightarrow> \<Gamma>\<turnstile> t2: \<sigma> \<Longrightarrow> \<Gamma> \<turnstile> s2[c::=t2]:\<tau>" by fact
+  have "((c,\<sigma>)#\<Gamma>)\<turnstile>App s1 s2 : \<tau>" by fact
+  hence "\<exists>\<tau>'. ((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau> \<and> ((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by (rule t2_elim) 
+  then obtain \<tau>' where "((c,\<sigma>)#\<Gamma>)\<turnstile>s1:\<tau>'\<rightarrow>\<tau>" and "((c,\<sigma>)#\<Gamma>)\<turnstile>s2:\<tau>'" by blast
+  moreover
+  have "\<Gamma> \<turnstile>t2:\<sigma>" by fact
+  ultimately show "\<Gamma> \<turnstile>  (App s1 s2)[c::=t2] : \<tau>" using ih_s1 ih_s2 by (simp, blast)
 next
   case (Lam a s)
   have "a\<sharp>\<Gamma>" "a\<sharp>\<sigma>" "a\<sharp>\<tau>" "a\<sharp>c" "a\<sharp>t2" by fact 
@@ -470,51 +473,43 @@ next
 qed
 
 lemma subject: 
-  fixes \<Gamma>  ::"(name\<times>ty) list"
-  and   t1 ::"lam"
-  and   t2 ::"lam"
-  and   \<tau>  ::"ty"
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2"
   and     b: "\<Gamma> \<turnstile> t1:\<tau>"
   shows "\<Gamma> \<turnstile> t2:\<tau>"
 using a b
 proof (nominal_induct t1 t2 avoiding: \<Gamma> \<tau> rule: beta_induct)
-  case (b1 t s1 s2)
-  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1:\<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
+  case (b1 t s1 s2) --"App-case left"
+  have ih: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1:\<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
   have "\<Gamma> \<turnstile> App s1 t : \<tau>" by fact 
   hence "\<exists>\<sigma>. \<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> t : \<sigma>" by (rule t2_elim)
-  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> t : \<sigma>" by blast
-  thus "\<Gamma> \<turnstile> App s2 t : \<tau>" using i by blast
+  then obtain \<sigma> where "\<Gamma> \<turnstile> s1 : \<sigma>\<rightarrow>\<tau>" and "\<Gamma> \<turnstile> t : \<sigma>" by blast
+  with ih show "\<Gamma> \<turnstile> App s2 t : \<tau>" by blast
 next
-  case (b2 t s1 s2)
-  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact 
+  case (b2 t s1 s2) --"App-case right"
+  have ih: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact 
   have "\<Gamma> \<turnstile> App t s1 : \<tau>" by fact
   hence "\<exists>\<sigma>. \<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s1 : \<sigma>" by (rule t2_elim)
-  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s1 : \<sigma>" by blast
-  thus "\<Gamma> \<turnstile> App t s2 : \<tau>" using i by blast
+  then obtain \<sigma> where "\<Gamma> \<turnstile> t : \<sigma>\<rightarrow>\<tau>" and "\<Gamma> \<turnstile> s1 : \<sigma>" by blast
+  with ih show "\<Gamma> \<turnstile> App t s2 : \<tau>" by blast
 next
-  case (b3 a s1 s2)
-  have f: "a\<sharp>\<Gamma>" and "a\<sharp>\<tau>" by fact
-  have i: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
+  case (b3 a s1 s2) --"Lam-case"
+  have fr: "a\<sharp>\<Gamma>" "a\<sharp>\<tau>" by fact
+  have ih: "\<And>\<Gamma> \<tau>. \<Gamma> \<turnstile> s1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile> s2 : \<tau>" by fact
   have "\<Gamma> \<turnstile> Lam [a].s1 : \<tau>" by fact
-  with f have "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by (blast dest: t3_elim)
-  then obtain \<tau>1 \<tau>2 where a1: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and a2: "((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by blast
-  thus "\<Gamma> \<turnstile> Lam [a].s2 : \<tau>" using f i by blast
+  with fr have "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by (simp add: t3_elim)
+  then obtain \<tau>1 \<tau>2 where "\<tau>=\<tau>1\<rightarrow>\<tau>2" and "((a,\<tau>1)#\<Gamma>) \<turnstile> s1 : \<tau>2" by blast
+  with ih show "\<Gamma> \<turnstile> Lam [a].s2 : \<tau>" using fr by blast
 next
-  case (b4 a s1 s2)
-  have f: "a\<sharp>\<Gamma>" by fact
+  case (b4 a s1 s2) --"Beta-redex"
+  have fr: "a\<sharp>\<Gamma>" by fact
   have "\<Gamma> \<turnstile> App (Lam [a].s1) s2 : \<tau>" by fact
-  hence "\<exists>\<sigma>. (\<Gamma> \<turnstile> (Lam [a].s1) : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s2 : \<sigma>)" by (rule t2_elim)
-  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> (Lam [(a::name)].s1) : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s2 : \<sigma>" by blast
-  have  "((a,\<sigma>)#\<Gamma>) \<turnstile> s1 : \<tau>" using a1 f by (blast dest!: t3_elim)
-  with a2 show "\<Gamma> \<turnstile>  s1[a::=s2] : \<tau>" by (blast intro: ty_subs)
+  hence "\<exists>\<sigma>. (\<Gamma> \<turnstile> (Lam [a].s1) : \<sigma>\<rightarrow>\<tau> \<and> \<Gamma> \<turnstile> s2 : \<sigma>)" by (simp add: t2_elim)
+  then obtain \<sigma> where a1: "\<Gamma> \<turnstile> (Lam [a].s1) : \<sigma>\<rightarrow>\<tau>" and a2: "\<Gamma> \<turnstile> s2 : \<sigma>" by blast
+  from a1 have "((a,\<sigma>)#\<Gamma>) \<turnstile> s1 : \<tau>" using fr by (blast dest!: t3_elim)
+  with a2 show "\<Gamma> \<turnstile> s1[a::=s2] : \<tau>" by (simp add: ty_subs)
 qed
 
 lemma subject_automatic: 
-  fixes \<Gamma>  ::"(name\<times>ty) list"
-  and   t1 ::"lam"
-  and   t2 ::"lam"
-  and   \<tau>  ::"ty"
   assumes a: "t1\<longrightarrow>\<^isub>\<beta>t2"
   and     b: "\<Gamma> \<turnstile> t1:\<tau>"
   shows "\<Gamma> \<turnstile> t2:\<tau>"
@@ -529,17 +524,27 @@ constdefs
   "NORMAL" :: "lam \<Rightarrow> bool"
   "NORMAL t \<equiv> \<not>(\<exists>t'. t\<longrightarrow>\<^isub>\<beta> t')"
 
+lemma NORMAL_Var:
+  shows "NORMAL (Var a)"
+proof -
+  { assume "\<exists>t'. (Var a) \<longrightarrow>\<^isub>\<beta> t'"
+    then obtain t' where "(Var a) \<longrightarrow>\<^isub>\<beta> t'" by blast
+    hence False by (cases, auto) 
+  }
+  thus "NORMAL (Var a)" by (force simp add: NORMAL_def)
+qed
+
 constdefs
   "SN" :: "lam \<Rightarrow> bool"
   "SN t \<equiv> t\<in>termi Beta"
 
-lemma qq1: "\<lbrakk>SN(t1);t1\<longrightarrow>\<^isub>\<beta> t2\<rbrakk>\<Longrightarrow>SN(t2)"
+lemma SN_preserved: "\<lbrakk>SN(t1);t1\<longrightarrow>\<^isub>\<beta> t2\<rbrakk>\<Longrightarrow>SN(t2)"
 apply(simp add: SN_def)
 apply(drule_tac a="t2" in acc_downward)
 apply(auto)
 done
 
-lemma qq2: "(\<forall>t2. t1\<longrightarrow>\<^isub>\<beta>t2 \<longrightarrow> SN(t2))\<Longrightarrow>SN(t1)"
+lemma SN_intro: "(\<forall>t2. t1\<longrightarrow>\<^isub>\<beta>t2 \<longrightarrow> SN(t2))\<Longrightarrow>SN(t1)"
 apply(simp add: SN_def)
 apply(rule accI)
 apply(auto)
@@ -587,21 +592,23 @@ apply(rule accI)
 apply(auto intro: b1)
 done
 
+section {* Candidates *}
+
 constdefs
-   "CR1" :: "ty \<Rightarrow> bool"
-   "CR1 \<tau> \<equiv> \<forall> t. (t\<in>RED \<tau> \<longrightarrow> SN(t))"
+  "CR1" :: "ty \<Rightarrow> bool"
+  "CR1 \<tau> \<equiv> \<forall> t. (t\<in>RED \<tau> \<longrightarrow> SN(t))"
 
-   "CR2" :: "ty \<Rightarrow> bool"
-   "CR2 \<tau> \<equiv> \<forall>t t'. ((t\<in>RED \<tau> \<and> t \<longrightarrow>\<^isub>\<beta> t') \<longrightarrow> t'\<in>RED \<tau>)"
+  "CR2" :: "ty \<Rightarrow> bool"
+  "CR2 \<tau> \<equiv> \<forall>t t'. (t\<in>RED \<tau> \<and> t \<longrightarrow>\<^isub>\<beta> t') \<longrightarrow> t'\<in>RED \<tau>"
 
-   "CR3_RED" :: "lam \<Rightarrow> ty \<Rightarrow> bool"
-   "CR3_RED t \<tau> \<equiv> \<forall>t'. (t\<longrightarrow>\<^isub>\<beta> t' \<longrightarrow>  t'\<in>RED \<tau>)" 
+  "CR3_RED" :: "lam \<Rightarrow> ty \<Rightarrow> bool"
+  "CR3_RED t \<tau> \<equiv> \<forall>t'. t\<longrightarrow>\<^isub>\<beta> t' \<longrightarrow>  t'\<in>RED \<tau>" 
 
-   "CR3" :: "ty \<Rightarrow> bool"
-   "CR3 \<tau> \<equiv> \<forall>t. (NEUT t \<and> CR3_RED t \<tau>) \<longrightarrow> t\<in>RED \<tau>"
+  "CR3" :: "ty \<Rightarrow> bool"
+  "CR3 \<tau> \<equiv> \<forall>t. (NEUT t \<and> CR3_RED t \<tau>) \<longrightarrow> t\<in>RED \<tau>"
    
-   "CR4" :: "ty \<Rightarrow> bool"
-   "CR4 \<tau> \<equiv> \<forall>t. (NEUT t \<and> NORMAL t) \<longrightarrow>t\<in>RED \<tau>"
+  "CR4" :: "ty \<Rightarrow> bool"
+  "CR4 \<tau> \<equiv> \<forall>t. (NEUT t \<and> NORMAL t) \<longrightarrow>t\<in>RED \<tau>"
 
 lemma CR3_CR4: "CR3 \<tau> \<Longrightarrow> CR4 \<tau>"
 apply(simp (no_asm_use) add: CR3_def CR3_RED_def CR4_def NORMAL_def)
@@ -636,74 +643,61 @@ apply(force)
 apply(auto simp only: NEUT_def lam.inject lam.distinct)
 done
 
-lemma RED_props: "CR1 \<tau> \<and> CR2 \<tau> \<and> CR3 \<tau>"
-apply(induct_tac \<tau>)
-apply(auto)
-(* atom types *)
-(* C1 *)
-apply(simp add: CR1_def)
-(* C2 *)
-apply(simp add: CR2_def)
-apply(clarify)
-apply(drule_tac ?t2.0="t'" in  qq1)
-apply(assumption)+
-(* C3 *)
-apply(simp add: CR3_def CR3_RED_def)
-apply(clarify)
-apply(rule qq2)
-apply(assumption)
-(* arrow types *)
-(* C1 *)
-apply(simp (no_asm) add: CR1_def)
-apply(clarify)
-apply(subgoal_tac "NEUT (Var a)")(*A*)
-apply(subgoal_tac "(Var a)\<in>RED ty1")(*C*)
-apply(drule_tac x="Var a" in spec)
-apply(simp)
-apply(simp add: CR1_def)
-apply(rotate_tac 1)
-apply(drule_tac x="App t (Var a)" in spec)
-apply(simp)
-apply(drule qq3) 
-apply(assumption)
-(*C*)
-apply(simp (no_asm_use) add: CR3_def CR3_RED_def)
-apply(drule_tac x="Var a" in spec)
-apply(drule mp)
-apply(clarify)
-apply(ind_cases " Var a \<longrightarrow>\<^isub>\<beta> t'")
-apply(simp (no_asm_use) add: lam.distinct)+ 
-(*A*)
-apply(simp (no_asm) only: NEUT_def)
-apply(rule disjCI)
-apply(rule_tac x="a" in exI)
-apply(simp (no_asm))
-(* C2 *)
-apply(simp (no_asm) add: CR2_def)
-apply(clarify)
-apply(drule_tac x="u" in spec)
-apply(simp)
-apply(subgoal_tac "App t u \<longrightarrow>\<^isub>\<beta> App t' u")(*X*)
-apply(simp (no_asm_use) only: CR2_def)
-apply(blast)
-(*X*)
-apply(force intro!: b1)
-(* C3 *)
-apply(unfold CR3_def)
-apply(rule allI)
-apply(rule impI)
-apply(erule conjE)
-apply(simp (no_asm))
-apply(rule allI)
-apply(rule impI)
-apply(subgoal_tac "SN(u)")(*Z*)
-apply(fold CR3_def)
-apply(drule_tac \<tau>="ty1" and \<sigma>="ty2" in sub_ind)
-apply(simp)
-(*Z*)
-apply(simp add: CR1_def)
-done
-
+lemma RED_props: 
+  shows "CR1 \<tau>" and "CR2 \<tau>" and "CR3 \<tau>"
+proof (induct \<tau>)
+  case (TVar a)
+  have "CR1 (TVar a)" by (simp add: CR1_def)
+  moreover
+  have "CR2 (TVar a)" by (force intro: SN_preserved simp add: CR2_def)
+  moreover
+  have "CR3 (TVar a)" by (force intro: SN_intro simp add: CR3_def CR3_RED_def)
+  ultimately show "CR1 (TVar a) \<and> CR2 (TVar a) \<and> CR3 (TVar a)" by simp
+next
+  case (TArr \<tau>1 \<tau>2)
+  have ih_\<tau>1: "CR1 \<tau>1 \<and> CR2 \<tau>1 \<and> CR3 \<tau>1" by fact
+  have ih_\<tau>2: "CR1 \<tau>2 \<and> CR2 \<tau>2 \<and> CR3 \<tau>2" by fact
+  have "CR1 (\<tau>1 \<rightarrow> \<tau>2)"
+  proof (simp add: CR1_def, intro strip)
+    fix t
+    assume a: "\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t u \<in> RED \<tau>2"
+    from ih_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_CR4) 
+    moreover
+    have "NEUT (Var a)" by (force simp add: NEUT_def)
+    moreover
+    have "NORMAL (Var a)" by (rule NORMAL_Var)
+    ultimately have "(Var a)\<in> RED \<tau>1" by (simp add: CR4_def)
+    with a have "App t (Var a) \<in> RED \<tau>2" by simp
+    moreover 
+    from ih_\<tau>2 have "CR1 \<tau>2" by simp
+    ultimately have "SN (App t (Var a))" by (simp add: CR1_def)
+    thus "SN(t)" by (rule qq3)
+  qed
+  moreover
+  have "CR2 (\<tau>1 \<rightarrow> \<tau>2)"
+  proof (simp add: CR2_def, intro strip)
+    fix t1 t2 u
+    assume "(\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t1 u \<in> RED \<tau>2) \<and>  t1 \<longrightarrow>\<^isub>\<beta> t2" 
+    and    "u \<in> RED \<tau>1"
+    hence "t1 \<longrightarrow>\<^isub>\<beta> t2" and "App t1 u \<in> RED \<tau>2" by simp_all
+    moreover
+    from ih_\<tau>2 have "CR2 \<tau>2" by simp
+    ultimately show "App t2 u \<in> RED \<tau>2" by (force simp add: CR2_def)
+  qed
+  moreover
+  have "CR3 (\<tau>1 \<rightarrow> \<tau>2)"
+  proof (simp add: CR3_def, intro strip)
+    fix t u
+    assume a1: "u \<in> RED \<tau>1"
+    assume a2: "NEUT t \<and> CR3_RED t (\<tau>1 \<rightarrow> \<tau>2)"
+    from a1 have "SN(u)" using ih_\<tau>1 by (simp add: CR1_def)
+    hence "u\<in>RED \<tau>1\<longrightarrow>(\<forall>t. (NEUT t\<and>CR2 \<tau>1\<and>CR3 \<tau>2\<and>CR3_RED t (\<tau>1\<rightarrow>\<tau>2))\<longrightarrow>(App t u)\<in>RED \<tau>2)" 
+      by (rule sub_ind)
+    with a1 a2 show "(App t u)\<in>RED \<tau>2" using ih_\<tau>1 ih_\<tau>2 by simp
+  qed
+  ultimately show "CR1 (\<tau>1 \<rightarrow> \<tau>2) \<and> CR2 (\<tau>1 \<rightarrow> \<tau>2) \<and> CR3 (\<tau>1 \<rightarrow> \<tau>2)" by blast
+qed
+    
 lemma double_acc_aux:
   assumes a_acc: "a \<in> acc r"
   and b_acc: "b \<in> acc r"
@@ -835,12 +829,19 @@ apply(induct \<theta>)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
-lemma fresh_at[rule_format]: "a\<in>set(domain \<theta>) \<longrightarrow> c\<sharp>\<theta>\<longrightarrow>c\<sharp>(\<theta><a>)"
-apply(induct_tac \<theta>)   
+lemma fresh_at: 
+  assumes a: "a\<in>set(domain \<theta>)" 
+  and     b: "c\<sharp>\<theta>" 
+  shows "c\<sharp>(\<theta><a>)"
+using a b
+apply(induct \<theta>)   
 apply(auto simp add: fresh_prod fresh_list_cons)
 done
 
-lemma psubst_subst[rule_format]: "c\<sharp>\<theta>\<longrightarrow> (t[<\<theta>>])[c::=s] = t[<((c,s)#\<theta>)>]"
+lemma psubst_subst: 
+  assumes a: "c\<sharp>\<theta>"
+  shows "(t[<\<theta>>])[c::=s] = t[<((c,s)#\<theta>)>]"
+using a
 apply(nominal_induct t avoiding: \<theta> c s rule: lam_induct)
 apply(auto dest: fresh_domain)
 apply(drule fresh_at)
@@ -874,24 +875,7 @@ proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam_induct)
   thus "(Lam [a].t)[<\<theta>>] \<in> RED \<tau>" using fresh \<tau>_inst by simp
 qed (force dest!: t1_elim t2_elim)+
 
-lemma all_RED:
-  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
-  and     b: "\<And>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<Longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
-  shows "t[<\<theta>>]\<in>RED \<tau>"
-using a b
-apply(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam_induct)
-(* Variables *)
-apply(force dest: t1_elim)
-(* Applications *)
-apply(atomize)
-apply(force dest!: t2_elim)
-(* Abstractions  *)
-apply(auto dest!: t3_elim simp only: psubst_Lam)
-apply(rule abs_RED[THEN mp])
-apply(force dest: fresh_context simp add: psubst_subst)
-done
-
-(* identity substitution generated from a \<Gamma> *)
+(* identity substitution generated from a context \<Gamma> *)
 consts
   "id" :: "(name\<times>ty) list \<Rightarrow> (name\<times>lam) list"
 primrec
@@ -915,9 +899,7 @@ apply(auto simp add: fresh_list_nil fresh_list_cons fresh_prod)
 done
 
 lemma id_apply:  
-  assumes a: "valid \<Gamma>"
   shows "t[<(id \<Gamma>)>] = t"
-using a
 apply(nominal_induct t avoiding: \<Gamma> rule: lam_induct)
 apply(auto)
 apply(simp add: id_var)
@@ -932,30 +914,41 @@ using a
 apply(induct \<Gamma>, auto)
 done
 
-lemma ty_in_RED:  
-  shows "\<Gamma>\<turnstile>t:\<tau>\<Longrightarrow>t\<in>RED \<tau>"
-apply(frule typing_valid)
-apply(drule_tac \<theta>="id \<Gamma>" in all_RED)
+lemma id_prop:
+  shows "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain (id \<Gamma>))\<and>(id \<Gamma>)<a>\<in>RED \<sigma>)"
+apply(auto)
 apply(simp add: id_mem)
 apply(frule id_mem)
 apply(simp add: id_var)
-apply(subgoal_tac "CR3 \<sigma>")
+apply(subgoal_tac "CR3 \<sigma>")(*A*)
 apply(drule CR3_CR4)
 apply(simp add: CR4_def)
 apply(drule_tac x="Var a" in spec)
-apply(drule mp)
-apply(auto simp add: NEUT_def NORMAL_def)
-apply(ind_cases "(Var a) \<longrightarrow>\<^isub>\<beta> t'")
-apply(rule RED_props[THEN conjunct2, THEN conjunct2])
-apply(simp add: id_apply)
+apply(force simp add: NEUT_def NORMAL_Var)
+(*A*)
+apply(rule RED_props)
 done
 
-lemma ty_SN: "\<Gamma>\<turnstile>t:\<tau>\<Longrightarrow>SN(t)"
-apply(drule ty_in_RED)
-apply(subgoal_tac "CR1 \<tau>")(*A*)
-apply(simp add: CR1_def)
-(*A*)
-apply(rule RED_props[THEN conjunct1])
-done
+lemma typing_implies_RED:  
+  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
+  shows "t \<in> RED \<tau>"
+proof -
+  have "t[<id \<Gamma>>]\<in>RED \<tau>" 
+  proof -
+    have "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain (id \<Gamma>))\<and>(id \<Gamma>)<a>\<in>RED \<sigma>)" by (rule id_prop)
+    with a show ?thesis by (rule all_RED)
+  qed
+  thus"t \<in> RED \<tau>" by (simp add: id_apply)
+qed
+
+lemma typing_implies_SN: 
+  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
+  shows "SN(t)"
+proof -
+  from a have "t \<in> RED \<tau>" by (rule typing_implies_RED)
+  moreover
+  have "CR1 \<tau>" by (rule RED_props)
+  ultimately show "SN(t)" by (simp add: CR1_def)
+qed
 
 end
