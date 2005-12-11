@@ -853,8 +853,6 @@ apply(simp)
 apply(simp add: fresh_list_cons fresh_prod)
 done
 
-thm fresh_context
-
 lemma all_RED: 
   assumes a: "\<Gamma>\<turnstile>t:\<tau>"
   and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
@@ -892,3 +890,72 @@ apply(auto dest!: t3_elim simp only: psubst_Lam)
 apply(rule abs_RED[THEN mp])
 apply(force dest: fresh_context simp add: psubst_subst)
 done
+
+(* identity substitution generated from a \<Gamma> *)
+consts
+  "id" :: "(name\<times>ty) list \<Rightarrow> (name\<times>lam) list"
+primrec
+  "id []    = []"
+  "id (x#\<Gamma>) = ((fst x),Var (fst x))#(id \<Gamma>)"
+
+lemma id_var:
+  assumes a: "a \<in> set (domain (id \<Gamma>))"
+  shows "(id \<Gamma>)<a> = Var a"
+using a
+apply(induct \<Gamma>, auto)
+done
+
+lemma id_fresh:
+  fixes a::"name"
+  assumes a: "a\<sharp>\<Gamma>"
+  shows "a\<sharp>(id \<Gamma>)"
+using a
+apply(induct \<Gamma>)
+apply(auto simp add: fresh_list_nil fresh_list_cons fresh_prod)
+done
+
+lemma id_apply:  
+  assumes a: "valid \<Gamma>"
+  shows "t[<(id \<Gamma>)>] = t"
+using a
+apply(nominal_induct t avoiding: \<Gamma> rule: lam_induct)
+apply(auto)
+apply(simp add: id_var)
+apply(drule id_fresh)+
+apply(simp)
+done
+
+lemma id_mem:
+  assumes a: "(a,\<tau>)\<in>set \<Gamma>"
+  shows "a \<in> set (domain (id \<Gamma>))"
+using a
+apply(induct \<Gamma>, auto)
+done
+
+lemma ty_in_RED:  
+  shows "\<Gamma>\<turnstile>t:\<tau>\<Longrightarrow>t\<in>RED \<tau>"
+apply(frule typing_valid)
+apply(drule_tac \<theta>="id \<Gamma>" in all_RED)
+apply(simp add: id_mem)
+apply(frule id_mem)
+apply(simp add: id_var)
+apply(subgoal_tac "CR3 \<sigma>")
+apply(drule CR3_CR4)
+apply(simp add: CR4_def)
+apply(drule_tac x="Var a" in spec)
+apply(drule mp)
+apply(auto simp add: NEUT_def NORMAL_def)
+apply(ind_cases "(Var a) \<longrightarrow>\<^isub>\<beta> t'")
+apply(rule RED_props[THEN conjunct2, THEN conjunct2])
+apply(simp add: id_apply)
+done
+
+lemma ty_SN: "\<Gamma>\<turnstile>t:\<tau>\<Longrightarrow>SN(t)"
+apply(drule ty_in_RED)
+apply(subgoal_tac "CR1 \<tau>")(*A*)
+apply(simp add: CR1_def)
+(*A*)
+apply(rule RED_props[THEN conjunct1])
+done
+
+end
