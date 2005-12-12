@@ -65,10 +65,6 @@ sig
     -> defgen;
   val defgen_datacons: (theory -> string * string -> typ list option)
     -> defgen;
-  val defgen_datatype_eq: (theory -> string -> ((string * sort) list * string list) option)
-    -> defgen;
-  val defgen_datatype_eqinst: (theory -> string -> ((string * sort) list * string list) option)
-    -> defgen;
   val defgen_recfun: (theory -> string * typ -> (term list * term) list * typ)
     -> defgen;
 
@@ -81,7 +77,14 @@ end;
 structure CodegenPackage : CODEGEN_PACKAGE =
 struct
 
-open CodegenThingol;
+open CodegenThingolOp;
+infix 8 `%%;
+infixr 6 `->;
+infixr 6 `-->;
+infix 4 `$;
+infix 4 `$$;
+infixr 5 `|->;
+infixr 5 `|-->;
 
 (* auxiliary *)
 
@@ -125,8 +128,8 @@ val nsp_const = "const";
 val nsp_dtcon = "dtcon"; (*NOT OPERATIONAL YET*)
 val nsp_mem = "mem";
 val nsp_inst = "inst";
-val nsp_eq_class = "eq_class";
-val nsp_eq = "eq";
+val nsp_eq_inst = "eq_inst";
+val nsp_eq_pred = "eq";
 
 
 (* serializer *)
@@ -135,7 +138,7 @@ val serializer_ml =
   let
     val name_root = "Generated";
     val nsp_conn = [
-      [nsp_class, nsp_type, nsp_eq_class], [nsp_const, nsp_dtcon, nsp_inst, nsp_mem, nsp_eq]
+      [nsp_class, nsp_type], [nsp_const, nsp_dtcon, nsp_inst, nsp_mem, nsp_eq_inst, nsp_eq_pred]
     ];
   in CodegenSerializer.ml_from_thingol nsp_conn name_root end;
 
@@ -143,7 +146,7 @@ val serializer_hs =
   let
     val name_root = "Generated";
     val nsp_conn = [
-      [nsp_class, nsp_eq_class], [nsp_type], [nsp_const, nsp_mem, nsp_eq], [nsp_dtcon], [nsp_inst]
+      [nsp_class], [nsp_type], [nsp_const, nsp_mem, nsp_eq_pred], [nsp_dtcon], [nsp_inst, nsp_eq_inst]
     ];
   in CodegenSerializer.haskell_from_thingol nsp_conn name_root end;
 
@@ -272,6 +275,7 @@ structure CodegenData = TheoryDataFun
           { serializer = serializer_ml : CodegenSerializer.serializer,
             primitives =
               CodegenSerializer.empty_prims
+              |> CodegenSerializer.add_prim ("Eq", ("type 'a Eq = {eq: 'a -> 'a -> bool};", []))
               |> CodegenSerializer.add_prim ("fst", ("fun fst (x, _) = x;", []))
               |> CodegenSerializer.add_prim ("snd", ("fun snd (_, y) = y;", []))
               |> CodegenSerializer.add_prim ("wfrec", ("fun wfrec f x = f (wfrec f) x;", [])),
@@ -571,10 +575,17 @@ fun mk_fun thy defs eqs ty trns =
 
 fun fix_nargs thy defs gen (imin, imax) (t, ts) trns =
   if length ts < imin then
-    trns
-    |> debug 10 (fn _ => "eta-expanding")
-    |> gen (strip_comb (Codegen.eta_expand t ts imin))
-    |-> succeed
+    let
+      val d = imin - length ts;
+      val vs = Term.invent_names (add_term_names (t, [])) "x" d;
+      val tys = Library.take (d, ((fst o strip_type o fastype_of) t));
+    in
+      trns
+      |> debug 10 (fn _ => "eta-expanding")
+      |> fold_map (invoke_cg_type thy defs) tys
+      ||>> gen (t, ts @ map2 (curry Free) vs tys)
+      |-> (fn (tys, e) => succeed ((vs ~~ tys) `|--> e))
+    end
   else if length ts > imax then
     trns
     |> debug 10 (fn _ => "splitting arguments (" ^ string_of_int imax ^ ", " ^ string_of_int (length ts) ^ ")")
@@ -587,16 +598,6 @@ fun fix_nargs thy defs gen (imin, imax) (t, ts) trns =
     |> gen (t, ts)
     |-> succeed;
 
-local
-  open CodegenThingolOp;
-  infix 8 `%%;
-  infixr 6 `->;
-  infixr 6 `-->;
-  infix 4 `$;
-  infix 4 `$$;
-  infixr 5 `|->;
-  infixr 5 `|-->;
-in
 
 (* code generators *)
 
@@ -701,25 +702,42 @@ fun appgen_neg thy defs (f as ("neg", Type ("fun", [ty, _])), ts) trns =
       trns
       |> fail ("not a negation: " ^ quote f);
 
-fun exprgen_term_eq thy defs (Const ("op =", Type ("fun", [ty, _]))) trns =
-  trns
+fun appgen_eq thy defs (f as ("op =", Type ("fun", [ty, _])), ts) trns =
+      let
+        fun mk_eq_pred_inst (dtco, (eqpred, arity)) trns =
+          let
+            val name_dtco = (the oo tname_of_idf) thy dtco;
+            val idf_eqinst = idf_of_name thy nsp_eq_inst name_dtco;
+            val idf_eqpred = idf_of_name thy nsp_eq_pred name_dtco;
+            fun mk_eq_pred _ trns =
+              trns
+              |> succeed (eqpred, [])
+            fun mk_eq_inst _ trns =
+              trns
+              |> gen_ensure_def [("eqpred", mk_eq_pred)] ("generating equality predicate for " ^ quote dtco) idf_eqpred
+              |> succeed (Classinst (class_eq, (dtco, arity), [(fun_eq, idf_eqpred)]), [])
+          in
+            trns
+            |> gen_ensure_def [("eqinst", mk_eq_inst)] ("generating equality instance for " ^ quote dtco) idf_eqinst
+          end;
+        fun mk_eq_expr (_, [t1, t2]) trns =
+          trns
+          |> invoke_eq (invoke_cg_type thy defs) mk_eq_pred_inst ty
+          |-> (fn false => error ("could not derive equality for " ^ Sign.string_of_typ thy ty)
+                | true => fn trns => trns
+          |> invoke_cg_expr thy defs t1
+          ||>> invoke_cg_expr thy defs t2
+          |-> (fn (e1, e2) => pair (Fun_eq `$ e1 `$ e2)))
+      in
+        trns
+        |> fix_nargs thy defs mk_eq_expr (2, 2) (Const f, ts)
+      end
+  | appgen_eq thy defs ((f, _), _) trns =
+      trns
+      |> fail ("not an equality: " ^ quote f);
 
-(*fun codegen_eq thy defs t trns =
- let
-   fun cg_eq (Const ("op =", _), [t, u]) =
-         trns
-         |> invoke_cg_type thy defs (type_of t)
-         |-> (fn ty => invoke_ensure_eqinst nsp_eq_class nsp_eq ty #> pair ty)
-         ||>> invoke_cg_expr thy defs t
-         ||>> invoke_cg_expr thy defs u
-         |-> (fn ((ty, t'), u') => succeed (
-               IConst (fun_eq, ty `-> ty `-> Type_bool)
-                 `$ t' `$ u'))
-     | cg_eq _ =
-         trns
-         |> fail ("no equality: " ^ Sign.string_of_term thy t)
-  in cg_eq (strip_comb t) end;*)
 
+(* invoke_eq: ((string * def) -> transact -> transact) -> itype -> transact -> bool * transact;  *)
 
 (* definition generators *)
 
@@ -946,16 +964,6 @@ fun appgen_case get_case_const_data thy defs ((f, ty), ts) trns =
           end
   end;
 
-local
-
-fun add_eqinst get_datacons thy modl dtname cnames =
-  if forall (is_eqtype modl)
-    (Library.flat (map (fn cname => get_datacons thy (cname, dtname)) cnames))
-  then append [idf_of_name thy nsp_eq_class dtname]
-  else I
-
-in
-
 fun defgen_datatype get_datatype get_datacons thy defs idf trns =
   case tname_of_idf thy idf
    of SOME dtco =>
@@ -983,9 +991,6 @@ fun defgen_datatype get_datatype get_datacons thy defs idf trns =
     | NONE =>
         trns
         |> fail ("not a type constructor: " ^ quote idf)
-  end;
-
-end; (* local *)
 
 fun defgen_datacons get_datacons thy defs f trns =
   let
@@ -1015,43 +1020,6 @@ fun defgen_datacons get_datacons thy defs f trns =
           trns
           |> fail ("not a constant: " ^ quote f)
   end;
-
-fun defgen_datatype_eq get_datatype thy defs f trns =
-  case name_of_idf thy nsp_eq f
-   of SOME dtname =>
-        (case get_datatype thy dtname
-         of SOME (_, cnames) =>
-              trns
-              |> debug 5 (fn _ => "trying defgen datatype_eq for " ^ quote dtname)
-              |> ensure_def_tyco thy defs (idf_of_tname thy dtname)
-              ||>> fold_map (ensure_def_const thy defs) (cnames
-                   |> map (idf_of_name thy nsp_const)
-                   |> map (fn "0" => "const.Zero" | c => c))
-              ||>> `(fn (_, modl) => build_eqpred modl dtname)
-              |-> (fn (_, eqpred) => succeed (eqpred, []))
-          | NONE =>
-              trns
-              |> fail ("no datatype found for " ^ quote dtname))
-    | NONE =>
-        trns
-        |> fail ("not an equality predicate: " ^ quote f)
-
-fun defgen_datatype_eqinst get_datatype thy defs f trns =
-  case name_of_idf thy nsp_eq_class f
-   of SOME dtname =>
-        (case get_datatype thy dtname
-         of SOME (vars, _) =>
-              trns
-              |> debug 5 (fn _ => "trying defgen datatype_eqinst for " ^ quote dtname)
-              |> ensure_def_const thy defs (idf_of_name thy nsp_eq dtname)
-              |-> (fn pred_eq => succeed (Classinst (class_eq, (dtname,
-                    map (fn (v, _) => (v, [class_eq])) vars), [(fun_eq, pred_eq)]), []))
-          | NONE =>
-              trns
-              |> fail ("no datatype found for " ^ quote dtname))
-    | NONE =>
-        trns
-        |> fail ("not an equality instance: " ^ quote f)
 
 fun defgen_recfun get_equations thy defs f trns =
   case cname_of_idf thy defs f
@@ -1455,7 +1423,7 @@ val _ =
     add_codegen_type ("default", exprgen_type_default),
     add_codegen_expr ("default", exprgen_term_default),
     add_appgen ("default", appgen_default),
-(*     add_codegen_expr ("eq", codegen_eq),  *)
+    add_appgen ("eq", appgen_eq),
     add_appgen ("neg", appgen_neg),
     add_defgen ("clsdecl", defgen_clsdecl),
     add_defgen ("tyco_fallback", defgen_tyco_fallback),

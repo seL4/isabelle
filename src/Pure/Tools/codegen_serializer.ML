@@ -143,7 +143,7 @@ fun lower_first s =
 
 local
 
-fun ml_from_defs tyco_syntax const_syntax resolv ds =
+fun ml_from_defs tyco_syntax const_syntax is_dicttype resolv ds =
   let
     fun chunk_defs ps =
       let
@@ -340,14 +340,6 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
           Pretty.str "true"
       | ml_from_app br ("False", []) =
           Pretty.str "false"
-      | ml_from_app br ("primeq", [e1, e2]) =
-          brackify (eval_br br (INFX (4, L))) [
-            ml_from_expr (INFX (4, L)) e1,
-            Pretty.str "=",
-            ml_from_expr (INFX (4, X)) e2,
-            Pretty.str ":",
-            ml_from_type NOBR (itype_of_iexpr e2)
-          ]
       | ml_from_app br ("Pair", [e1, e2]) =
           Pretty.list "(" ")" [
             ml_from_expr NOBR e1,
@@ -417,6 +409,7 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
                 in mk_app_p br (pr (map (ml_from_expr BR) es1) (ml_from_expr BR)) es2 end;
     fun ml_from_funs (ds as d::ds_tl) =
       let
+        val _ = debug 15 (fn _ => "(1) FUN") ();
         fun mk_definer [] = "val"
           | mk_definer _ = "fun"
         fun check_args (_, Fun ((pats, _)::_, _)) NONE =
@@ -427,19 +420,39 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
               else error ("mixing simultaneous vals and funs not implemented")
           | check_args _ _ =
               error ("function definition block containing other definitions than functions")
+        val _ = debug 15 (fn _ => "(2) FUN") ();
         val definer = the (fold check_args ds NONE);
+        val _ = debug 15 (fn _ => "(3) FUN") ();
         fun mk_eq definer f ty (pats, expr) =
           let
+            val _ = debug 15 (fn _ => "(5) FUN") ();
+            fun mk_pat_arg p =
+              case itype_of_ipat p
+               of ty as IType (tyco, _) =>
+                    if is_dicttype tyco
+                    then Pretty.block [
+                        Pretty.str "(",
+                        ml_from_pat NOBR p,
+                        Pretty.str ":",
+                        ml_from_type NOBR ty,
+                        Pretty.str ")"
+                      ]
+                    else ml_from_pat BR p
+                | _ => ml_from_pat BR p;
+            val _ = debug 15 (fn _ => "(6) FUN") ();
             val lhs = [Pretty.str (definer ^ " " ^ f)]
                        @ (if null pats
                           then [Pretty.str ":", ml_from_type NOBR ty]
-                          else map (ml_from_pat BR) pats)
+                          else map mk_pat_arg pats)
+            val _ = debug 15 (fn _ => "(7) FUN") ();
             val rhs = [Pretty.str "=", ml_from_expr NOBR expr]
+            val _ = debug 15 (fn _ => "(8) FUN") ();
           in
             Pretty.block (separate (Pretty.brk 1) (lhs @ rhs))
           end
         fun mk_fun definer (f, Fun (eqs as eq::eq_tl, (_, ty))) =
           let
+            val _ = debug 15 (fn _ => "(4) FUN") ();
             val (pats_hd::pats_tl) = (fst o split_list) eqs;
             val shift = if null eq_tl then I else map (Pretty.block o single);
           in (Pretty.block o Pretty.fbreaks o shift) (
@@ -507,7 +520,7 @@ fun ml_from_defs tyco_syntax const_syntax resolv ds =
           NONE
       | ml_from_def (name, Classinst _) =
           error ("can't serialize instance declaration " ^ quote name ^ " to ML")
-  in (debug 10 (fn _ => "*** defs " ^ commas (map fst ds)) ();
+  in (debug 10 (fn _ => "*** defs " ^ commas (map (fn (n, d) => n ^ " = " ^ (Pretty.output o pretty_def) d) ds)) ();
   case ds
    of (_, Fun _)::_ => ml_from_funs ds
     | (_, Datatypecons _)::_ => ml_from_datatypes ds
@@ -547,9 +560,12 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
         Pretty.str "",
         Pretty.str ("end; (* struct " ^ name ^ " *)")
       ]);
+    fun is_dicttype tyco =
+      case get_def module tyco
+       of Typesyn (_, IDictT _) => true
+        | _ => false;
     fun eta_expander "Pair" = 2
       | eta_expander "Cons" = 2
-      | eta_expander "primeq" = 2
       | eta_expander "and" = 2
       | eta_expander "or" = 2
       | eta_expander "if" = 3
@@ -569,7 +585,7 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
                 const_syntax s
                 |> Option.map fst
                 |> the_default 0
-          else 0
+          else 0;
   in
     module
     |> debug 12 (Pretty.output o pretty_module)
@@ -584,8 +600,8 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
     |> debug 3 (fn _ => "eliminating classes...")
     |> eliminate_classes
     |> debug 12 (Pretty.output o pretty_module)
-    |> debug 3 (fn _ => "generating...")
-    |> serialize (ml_from_defs tyco_syntax const_syntax) ml_from_module ml_validator nspgrp name_root
+    |> debug 3 (fn _ => "serializing...")
+    |> serialize (ml_from_defs tyco_syntax const_syntax is_dicttype) ml_from_module ml_validator nspgrp name_root
     |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
@@ -807,12 +823,6 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
           Pretty.str "[]"
       | haskell_from_app br ("Cons", es) =
           mk_app_p br (Pretty.str "(:)") es
-      | haskell_from_app br ("primeq", [e1, e2]) =
-          brackify (eval_br br (INFX (4, L))) [
-            haskell_from_expr (INFX (4, L)) e1,
-            Pretty.str "==",
-            haskell_from_expr (INFX (4, X)) e2
-          ]
       | haskell_from_app br ("eq", [e1, e2]) =
           brackify (eval_br br (INFX (4, L))) [
             haskell_from_expr (INFX (4, L)) e1,
@@ -884,7 +894,9 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
           else error ("empty statement during serialization: " ^ quote name)
       | haskell_from_def (name, Fun (eqs, (_, ty))) =
           let
+            val _ = print "(1) FUN";
             fun from_eq name (args, rhs) =
+              (print args; print rhs;
               Pretty.block [
                 Pretty.str (lower_first name),
                 Pretty.block (map (fn p => Pretty.block [Pretty.brk 1, haskell_from_pat BR p]) args),
@@ -892,7 +904,8 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
                 Pretty.str ("="),
                 Pretty.brk 1,
                 haskell_from_expr NOBR rhs
-              ]
+              ])
+            val _ = print "(2) FUN";
           in
             Pretty.chunks [
               Pretty.block [
@@ -953,6 +966,17 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
           end
       | haskell_from_def (name, Classmember _) =
           NONE
+      | haskell_from_def (_, Classinst ("Eq", (tyco, arity), [(_, eqpred)])) = 
+          Pretty.block [
+            Pretty.str "instance ",
+            haskell_from_sctxt arity,
+            Pretty.str "Eq",
+            Pretty.str " ",
+            haskell_from_type NOBR (IType (tyco, (map (IVarT o rpair [] o fst)) arity)),
+            Pretty.str " where",
+            Pretty.fbrk,
+            Pretty.str ("(==) = " ^ (lower_first o resolv) eqpred)
+          ] |> SOME
       | haskell_from_def (_, Classinst (clsname, (tyco, arity), instmems)) = 
           Pretty.block [
             Pretty.str "instance ",
@@ -967,7 +991,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             ) instmems)
           ] |> SOME
   in
-    case List.mapPartial (fn (name, def) => haskell_from_def (name, def)) defs
+    case List.mapPartial (fn (name, def) => (print ("serializing " ^ name); haskell_from_def (name, def))) defs
      of [] => NONE
       | l => (SOME o Pretty.block) l
   end;
@@ -1028,7 +1052,7 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
     |> (if is_some select then (partof o the) select else I)
     |> debug 3 (fn _ => "eta-expanding...")
     |> eta_expand eta_expander
-    |> debug 3 (fn _ => "generating...")
+    |> debug 3 (fn _ => "serializing...")
     |> serialize (haskell_from_defs tyco_syntax const_syntax is_cons) haskell_from_module haskell_validator nspgrp name_root
     |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
