@@ -82,8 +82,11 @@ fun ml_prompts p1 p2 = ();
 (*dummy implementation*)
 fun profile (n: int) f x = f x;
 
-(*dummy impelemtation*)
+(*dummy implementation*)
 fun exception_trace f = f ();
+
+(*dummy implementation*)
+fun print x = x;
 
 
 (** Compiler-independent timing functions **)

@@ -69,6 +69,8 @@ fun profile (n: int) f x = f x;
 (*dummy implementation*)
 fun exception_trace f = f ();
 
+(*dummy implementation*)
+fun print x = x;
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
