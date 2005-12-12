@@ -25,7 +25,8 @@ Pure: $(OUT)/Pure$(ML_SUFFIX)
 
 $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML             \
   General/buffer.ML General/file.ML General/graph.ML General/heap.ML            \
-  General/history.ML General/name_space.ML General/ord_list.ML                  \
+  General/history.ML General/name_mangler.ML General/name_space.ML              \
+  General/ord_list.ML                                                           \
   General/output.ML General/path.ML General/position.ML                         \
   General/pretty.ML General/rat.ML General/scan.ML General/seq.ML               \
   General/source.ML General/stack.ML General/symbol.ML General/table.ML         \

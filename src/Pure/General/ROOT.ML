@@ -15,6 +15,7 @@ use "scan.ML";
 use "source.ML";
 use "symbol.ML";
 use "name_space.ML";
+use "name_mangler.ML";
 use "seq.ML";
 use "rat.ML";
 use "position.ML";
