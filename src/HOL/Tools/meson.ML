@@ -104,19 +104,68 @@ fun literals (Const("Trueprop",_) $ P) = literals P
 (*number of literals in a term*)
 val nliterals = length o literals;
 
-(*to detect, and remove, tautologous clauses*)
-fun taut_lits [] = false
-  | taut_lits ((flg,t)::ts) = (not flg,t) mem ts orelse taut_lits ts;
-
-(*Include False as a literal: an occurrence of ~False is a tautology*)
-fun is_taut th = taut_lits ((true, HOLogic.false_const) ::
-			    literals (prop_of th));
-
 (*Generation of unique names -- maxidx cannot be relied upon to increase!
   Cannot rely on "variant", since variables might coincide when literals
   are joined to make a clause...
   19 chooses "U" as the first variable name*)
 val name_ref = ref 19;
+
+
+(*** Tautology Checking ***)
+
+fun signed_lits_aux (Const ("op |", _) $ P $ Q) (poslits, neglits) = 
+      signed_lits_aux Q (signed_lits_aux P (poslits, neglits))
+  | signed_lits_aux (Const("Not",_) $ P) (poslits, neglits) = (poslits, P::neglits)
+  | signed_lits_aux P (poslits, neglits) = (P::poslits, neglits);
+  
+fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (concl_of th)) ([],[]);
+
+(*Literals like X=X are tautologous*)
+fun taut_poslit (Const("op =",_) $ t $ u) = t aconv u
+  | taut_poslit (Const("True",_)) = true
+  | taut_poslit _ = false;
+
+fun is_taut th =
+  let val (poslits,neglits) = signed_lits th
+  in  exists taut_poslit poslits
+      orelse
+      exists (fn t => mem_term (t, neglits)) (HOLogic.false_const :: poslits)
+  end;
+
+
+(*** To remove trivial negated equality literals from clauses ***)
+
+(*They are typically functional reflexivity axioms and are the converses of
+  injectivity equivalences*)
+  
+val not_refl_disj_D = thm"meson_not_refl_disj_D";
+
+fun refl_clause_aux 0 th = th
+  | refl_clause_aux n th =
+(debug ("refl_clause_aux " ^ Int.toString n ^ " " ^ string_of_thm th);
+       case HOLogic.dest_Trueprop (concl_of th) of
+	  (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) => 
+            refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
+	| (Const ("op |", _) $ (Const("Not",_) $ (Const("op =",_) $ t $ u)) $ _) => 
+	    if is_Var t orelse is_Var u then (*Var inequation: delete or ignore*)
+		(refl_clause_aux (n-1) (th RS not_refl_disj_D)    (*delete*)
+		 handle THM _ => refl_clause_aux (n-1) (th RS disj_comm))  (*ignore*)
+	    else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
+	| (Const ("op |", _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
+	| _ => (*not a disjunction*) th);
+
+fun notequal_lits_count (Const ("op |", _) $ P $ Q) = 
+      notequal_lits_count P + notequal_lits_count Q
+  | notequal_lits_count (Const("Not",_) $ (Const("op =",_) $ _ $ _)) = 1
+  | notequal_lits_count _ = 0;
+
+(*Simplify a clause by applying reflexivity to its negated equality literals*)
+fun refl_clause th = 
+  let val neqs = notequal_lits_count (HOLogic.dest_Trueprop (concl_of th))
+  in  zero_var_indexes (refl_clause_aux neqs th)  end;
+
+
+(*** The basic CNF transformation ***)
 
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, call "generalize". *)
@@ -131,45 +180,48 @@ fun freeze_spec th =
   presumably to instantiate a Boolean variable.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
+val has_meta_conn = 
+    exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "prop"]);
+  
 (*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
-  Detects tautologies early, with "seen" holding the other literals of a clause.
   Strips universal quantifiers and breaks up conjunctions.
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
 fun cnf skoths (th,ths) =
-  let fun cnf_aux seen (th,ths) =
-        if taut_lits (literals(prop_of th) @ seen)  
-	then ths     (*tautology ignored*)
-	else if not (has_consts ["All","Ex","op &"] (prop_of th))  
+  let fun cnf_aux (th,ths) =
+        if has_meta_conn (prop_of th) then ths (*meta-level: ignore*)
+        else if not (has_consts ["All","Ex","op &"] (prop_of th))  
 	then th::ths (*no work to do, terminate*)
 	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
 	    Const ("op &", _) => (*conjunction*)
-		cnf_aux seen (th RS conjunct1,
-			      cnf_aux seen (th RS conjunct2, ths))
+		cnf_aux (th RS conjunct1,
+			      cnf_aux (th RS conjunct2, ths))
 	  | Const ("All", _) => (*universal quantifier*)
-	        cnf_aux seen (freeze_spec th,  ths)
+	        cnf_aux (freeze_spec th,  ths)
 	  | Const ("Ex", _) => 
 	      (*existential quantifier: Insert Skolem functions*)
-	      cnf_aux seen (tryres (th,skoths), ths)
+	      cnf_aux (tryres (th,skoths), ths)
 	  | Const ("op |", _) => (*disjunction*)
 	      let val tac =
-		  (METAHYPS (resop (cnf_nil seen)) 1) THEN
+		  (METAHYPS (resop cnf_nil) 1) THEN
 		   (fn st' => st' |>  
 		      METAHYPS 
-		        (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
+		        (resop cnf_nil) 1)
 	      in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
 	  | _ => (*no work to do*) th::ths 
-      and cnf_nil seen th = (cnf_aux seen (th,[]))
+      and cnf_nil th = (cnf_aux (th,[]))
   in 
     name_ref := 19;  (*It's safe to reset this in a top-level call to cnf*)
     (cnf skoths (th RS conjunct1, cnf skoths (th RS conjunct2, ths))
-     handle THM _ => (*not a conjunction*) cnf_aux [] (th, ths))
+     handle THM _ => (*not a conjunction*) cnf_aux (th, ths))
   end;
 
 (*Convert all suitable free variables to schematic variables, 
   but don't discharge assumptions.*)
 fun generalize th = Thm.varifyT (forall_elim_vars 0 (forall_intr_frees th));
 
-fun make_cnf skoths th = map generalize (cnf skoths (th, []));
+fun make_cnf skoths th = 
+  filter (not o is_taut) 
+    (map (refl_clause o generalize) (cnf skoths (th, [])));
 
 
 (**** Removal of duplicate literals ****)
@@ -217,9 +269,7 @@ fun make_goal th =   (*Must check for negative literal first!*)
 (*Sort clauses by number of literals*)
 fun fewerlits(th1,th2) = nliterals(prop_of th1) < nliterals(prop_of th2);
 
-(*TAUTOLOGY CHECK SHOULD NOT BE NECESSARY!*)
-fun sort_clauses ths =
-    sort (make_ord fewerlits) (List.filter (not o is_taut) ths);
+fun sort_clauses ths = sort (make_ord fewerlits) ths;
 
 (*True if the given type contains bool anywhere*)
 fun has_bool (Type("bool",_)) = true
@@ -239,9 +289,6 @@ val has_bool_arg_const =
     exists_Const
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
       
-val has_meta_conn = 
-    exists_Const (fn (c,_) => c mem_string ["==", "==>", "all", "prop"]);
-  
 (*Raises an exception if any Vars in the theorem mention type bool; they
   could cause make_horn to loop! Also rejects functions whose arguments are 
   Booleans or other functions.*)

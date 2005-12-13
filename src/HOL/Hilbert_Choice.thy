@@ -458,6 +458,7 @@ lemma meson_imp_to_disjD: "P-->Q ==> ~P | Q"
   and meson_iff_to_disjD: "P=Q ==> (~P | Q) & (~Q | P)"
   and meson_not_iffD: "~(P=Q) ==> (P | Q) & (~P | ~Q)"
     -- {* Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF *}
+  and meson_not_refl_disj_D: "x ~= x | P ==> P"
   by fast+
 
 
