@@ -115,7 +115,7 @@ induction, while avoiding explicit object-logic encodings:
   proof (induct n fixing: thesis)
     case 0
     obtain x where "P 0 x" and "Q 0 x" sorry
-    then show thesis by (rule "0.prems")
+    then show thesis by (rule 0)
   next
     case (Suc n)
     obtain x where "P n x" and "Q n x" by (rule Suc.hyps)
@@ -126,6 +126,9 @@ induction, while avoiding explicit object-logic encodings:
 Here the 'fixing: thesis' specification essentially modifies the scope
 of the formal thesis parameter, in order to the get the whole
 existence statement through the induction as expected.
+
+* Provers/induct: support coinduction as well.  See
+src/HOL/Library/Coinductive_List.thy for various examples.
 
 * Input syntax now supports dummy variable binding "%_. b", where the
 body does not mention the bound variable.  Note that dummy patterns
@@ -153,6 +156,9 @@ compatibility this can be disabled by ML "reset use_neq_simproc".
 no longer need to be stated as "<prems> ==> False", equivalences (i.e.
 "=" on type bool) are handled, variable names of the form "lit_<n>"
 are no longer reserved, significant speedup.
+
+* Library: added theory Coinductive_List of potentially infinite lists as
+greatest fixed-point.
 
 
 *** ML ***
