@@ -654,9 +654,11 @@ fun list_of_indset thy defs gr dep module brack u = (case head_of u of
            val (modes, factors) = lookup_modes gr1 dep;
            val mode = find_mode gr1 dep s u modes [];
            val (gr2, ps) =
-             compile_expr thy defs dep module false (gr1, (mode, u))
+             compile_expr thy defs dep module false (gr1, (mode, u));
+           val (gr3, _) =
+             invoke_tycodegen thy defs dep module false (gr2, body_type T)
          in
-           SOME (gr2, (if brack then parens else I)
+           SOME (gr3, (if brack then parens else I)
              (Pretty.block ([Pretty.str "Seq.list_of", Pretty.brk 1,
                Pretty.str "("] @
                 conv_ntuple' (snd (valOf (AList.lookup (op =) factors s)))
