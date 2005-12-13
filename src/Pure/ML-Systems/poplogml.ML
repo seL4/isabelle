@@ -24,7 +24,6 @@ fun install_pp _ = ();
 fun print_depth _ = ();
 
 fun exception_trace f = f ();
-fun print x = x;
 fun profile (n: int) f x = f x;
 
 
