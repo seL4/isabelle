@@ -20,6 +20,7 @@ imports
   Zorn
   Char_ord
   Commutative_Ring
+  Coinductive_List
 begin
 end
 (*>*)
