@@ -459,10 +459,49 @@ solver all the time rather than add the additional check. *)
    (l <= min m n + k) = (l <= m+k & l <= n+k)
 *)
 local
+(* a simpset for computations subject to optimazation !!! *)
+(*
+val binarith = map thm
+  ["Pls_0_eq", "Min_1_eq",
+ "bin_pred_Pls","bin_pred_Min","bin_pred_1","bin_pred_0",
+  "bin_succ_Pls", "bin_succ_Min", "bin_succ_1", "bin_succ_0",
+  "bin_add_Pls", "bin_add_Min", "bin_add_BIT_0", "bin_add_BIT_10",
+  "bin_add_BIT_11", "bin_minus_Pls", "bin_minus_Min", "bin_minus_1", 
+  "bin_minus_0", "bin_mult_Pls", "bin_mult_Min", "bin_mult_1", "bin_mult_0", 
+  "bin_add_Pls_right", "bin_add_Min_right"];
+ val intarithrel = 
+     (map thm ["int_eq_number_of_eq","int_neg_number_of_BIT", 
+		"int_le_number_of_eq","int_iszero_number_of_0",
+		"int_less_number_of_eq_neg"]) @
+     (map (fn s => thm s RS thm "lift_bool") 
+	  ["int_iszero_number_of_Pls","int_iszero_number_of_1",
+	   "int_neg_number_of_Min"])@
+     (map (fn s => thm s RS thm "nlift_bool") 
+	  ["int_nonzero_number_of_Min","int_not_neg_number_of_Pls"]);
+     
+val intarith = map thm ["int_number_of_add_sym", "int_number_of_minus_sym",
+			"int_number_of_diff_sym", "int_number_of_mult_sym"];
+val natarith = map thm ["add_nat_number_of", "diff_nat_number_of",
+			"mult_nat_number_of", "eq_nat_number_of",
+			"less_nat_number_of"]
+val powerarith = 
+    (map thm ["nat_number_of", "zpower_number_of_even", 
+	      "zpower_Pls", "zpower_Min"]) @ 
+    [(Tactic.simplify true [thm "zero_eq_Numeral0_nring", 
+			   thm "one_eq_Numeral1_nring"] 
+  (thm "zpower_number_of_odd"))]
 
+val comp_arith = binarith @ intarith @ intarithrel @ natarith 
+	    @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
+
+val comp_ss = HOL_basic_ss addsimps comp_arith addsimps simp_thms;
+*)
 fun raw_arith_tac ex i st =
   refute_tac (K true)
    (REPEAT o split_tac (#splits (ArithTheoryData.get (Thm.theory_of_thm st))))
+(*   (REPEAT o 
+    (fn i =>(split_tac (#splits (ArithTheoryData.get(Thm.theory_of_thm st))) i)
+		THEN (simp_tac comp_ss i))) *)
    ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
    i st;
 
