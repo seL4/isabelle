@@ -815,6 +815,8 @@ fun create_nom_typedecls ak_names thy =
        val at_calc           = thms "nominal.at_calc";
        val at_supp           = thm "nominal.at_supp";
        val dj_supp           = thm "nominal.dj_supp";
+       val fresh_left_ineq   = thm "nominal.pt_fresh_left_ineq";
+       val fresh_left        = thm "nominal.pt_fresh_left";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -869,11 +871,11 @@ fun create_nom_typedecls ak_names thy =
 	     fun inst_pt_pt_at_cp thms = 
 		 Library.flat (inst_mult (inst_zip ats (inst_zip pts (inst_pt thms))) cps);
              fun inst_pt_at_fs thms = inst_zip (inst_fs [fs1]) (inst_zip ats (inst_pt thms));
-	     fun inst_pt_pt_at_cp_dj thms = 
+	     fun inst_pt_pt_at_cp thms = 
 		 let val i_pt_pt_at = inst_zip ats (inst_zip pts (inst_pt thms));
                      val i_pt_pt_at_cp = Library.flat (inst_mult i_pt_pt_at cps');
-                     val i_pt_pt_at_cp_dj = inst_zip djs i_pt_pt_at_cp;
-		 in i_pt_pt_at_cp_dj end;
+		 in i_pt_pt_at_cp end;
+             fun inst_pt_pt_at_cp_dj thms = inst_zip djs (inst_pt_pt_at_cp thms);
            in
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
@@ -902,6 +904,10 @@ fun create_nom_typedecls ak_names thy =
 		  and thms2 = inst_pt_at_fs [abs_fun_supp]
 		  and thms3 = inst_pt_pt_at_cp_dj [abs_fun_supp_ineq]
 	      in [(("abs_supp", thms1 @ thms2 @ thms3),[])] end
+            ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [fresh_left]
+		  and thms2 = inst_pt_pt_at_cp [fresh_left_ineq]
+	      in [(("fresh_left", thms1 @ thms2),[])] end
 	   end;
 
     in NominalData.put (fold Symtab.update (map (rpair ()) full_ak_names)
