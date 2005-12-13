@@ -61,7 +61,7 @@ val powerarith =
 			   thm "one_eq_Numeral1_nring"] 
   (thm "zpower_number_of_odd"))]
 
-val arith = binarith @ intarith @ intarithrel @ natarith 
+val comp_arith = binarith @ intarith @ intarithrel @ natarith 
 	    @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
 
 fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
@@ -298,12 +298,13 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
 				  DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
 				  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
 				  zdiv_zero,zmod_zero,div_0,mod_0,
-				  zdiv_1,zmod_1,div_1,mod_1]
+				  zdiv_1,zmod_1,div_1,mod_1,
+				  Suc_plus1]
 			addsimps add_ac
 			addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
-      addsimps arith
+      addsimps comp_arith
       addsplits [split_zdiv, split_zmod, split_div', split_min, split_max]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
