@@ -40,18 +40,20 @@ lemma "(\<Inter>x \<in> C. f x \<inter> g x) = \<Inter>(f ` C) \<inter> \<Inter>
   -- {* Inter-image, called @{text Int_Inter_image} in Main HOL *}
   by blast
 
-text{*Both of the singleton examples can be proved very quickly by @{text
-"blast del: UNIV_I"} but not by @{text blast} alone.  For some reason, @{text
-UNIV_I} greatly increases the search space.*}
-
 lemma singleton_example_1:
      "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
+  by blast
+(*With removal of negated equality literals, this no longer works:
   by (meson subsetI subset_antisym insertCI)
+*)
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
   -- {*Variant of the problem above. *}
+  by blast
+(*With removal of negated equality literals, this no longer works:
 by (meson subsetI subset_antisym insertCI UnionI) 
+*)
 
 
 lemma "\<exists>!x. f (g x) = x \<Longrightarrow> \<exists>!y. g (f y) = y"
