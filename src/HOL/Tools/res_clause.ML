@@ -113,7 +113,8 @@ val const_trans_table =
 		   ("{}", "emptyset"),
 		   ("op :", "in"),
 		   ("op Un", "union"),
-		   ("op Int", "inter")];
+		   ("op Int", "inter"),
+		   ("List.op @", "append")];
 
 val type_const_trans_table =
       Symtab.make [("*", "t_prod"),
