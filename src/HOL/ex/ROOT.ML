@@ -47,6 +47,12 @@ if_svc_enabled time_use_thy "svc_test";
 (* requires zChaff with proof generation to be installed: *)
 time_use_thy "SAT_Examples" handle ERROR => ();
 
+(* requires zChaff (or some other reasonably fast SAT solver) to be installed: *)
+if getenv "ZCHAFF_HOME" <> "" then
+  time_use_thy "Sudoku"
+else
+  ();
+
 time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
 
