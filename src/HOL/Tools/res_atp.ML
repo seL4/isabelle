@@ -52,16 +52,6 @@ fun prob_pathname n = probfile_nosuffix n ^ "_" ^ Int.toString n;
 
 (**** For running in Isar ****)
 
-(* same function as that in res_axioms.ML *)
-fun repeat_RS thm1 thm2 =
-    let val thm1' =  thm1 RS thm2 handle THM _ => thm1
-    in
-        if eq_thm(thm1,thm1') then thm1' else (repeat_RS thm1' thm2)
-    end;
-
-(* a special version of repeat_RS *)
-fun repeat_someI_ex th = repeat_RS th someI_ex;
-
 fun writeln_strs _   []      = ()
   | writeln_strs out (s::ss) = (TextIO.output (out, s); TextIO.output (out, "\n"); writeln_strs out ss);
 

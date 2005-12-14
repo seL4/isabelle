@@ -25,7 +25,6 @@ signature RES_AXIOMS =
   val clause_setup : (theory -> theory) list
   val meson_method_setup : (theory -> theory) list
   val pairname : thm -> (string * thm)
-  val repeat_RS : thm -> thm -> thm
   val cnf_axiom_aux : thm -> thm list
   val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
   val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
@@ -57,8 +56,6 @@ fun make_conjs [x] = x
 
 fun add_EX tm [] = tm
   | add_EX tm ((x,xtp)::xs) = add_EX (HOLogic.exists_const xtp $ Abs(x,xtp,tm)) xs;
-
-
 
 fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_))) (Const("Trueprop",_) $ Free(q,_)) = (p = q)
   | is_neg _ _ = false;
@@ -135,13 +132,6 @@ fun transform_elim th =
 
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
-
-(* repeated resolution *)
-fun repeat_RS thm1 thm2 =
-    let val thm1' =  thm1 RS thm2 handle THM _ => thm1
-    in
-	if eq_thm(thm1,thm1') then thm1' else (repeat_RS thm1' thm2)
-    end;
 
 
 (*Transfer a theorem into theory Reconstruction.thy if it is not already
@@ -265,9 +255,6 @@ fun to_nnf th =
        |> transform_elim |> Drule.freeze_all
        |> ObjectLogic.atomize_thm |> make_nnf;
 
-
-
-
 (*The cache prevents repeated clausification of a theorem, 
   and also repeated declaration of Skolem functions*)  (* FIXME better use Termtab!? *)
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
@@ -297,7 +284,7 @@ fun skolem thy (name,th) =
   end;
 
 (*Populate the clause cache using the supplied theorems*)
-fun skolem_cache ((name,th), thy) =
+fun skolem_cache ((name,th), thy) = 
   case Symtab.lookup (!clause_cache) name of
       NONE => 
 	(case skolem thy (name, Thm.transfer thy th) of
