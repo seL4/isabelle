@@ -364,7 +364,6 @@ val HOL_ss =
     HOL_basic_ss addsimps
      ([triv_forall_equality, (* prunes params *)
        True_implies_equals, (* prune asms `True' *)
-       eta_contract_eq, (* prunes eta-expansions *)
        if_True, if_False, if_cancel, if_eq_cancel,
        imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
