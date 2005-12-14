@@ -389,11 +389,19 @@ fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM _ => th;
 
-(*The simplification removes defined quantifiers and occurrences of True and False, as well as tags applied to True and False.*)
+(*The simplification removes defined quantifiers and occurrences of True and False, 
+  as well as tags applied to True and False. nnf_ss also includes the one-point simprocs,
+  which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val tag_True = thm "tag_True";
 val tag_False = thm "tag_False";
 val nnf_simps = [Ex1_def,Ball_def,Bex_def,tag_True,tag_False]
-val nnf_ss = HOL_basic_ss addsimps nnf_simps@simp_thms;
+
+val nnf_ss =
+    HOL_basic_ss addsimps
+     (nnf_simps @ [if_True, if_False, if_cancel, if_eq_cancel, cases_simp]
+     @ ex_simps @ all_simps @ simp_thms)
+     addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc]
+     addsplits [split_if];
 
 fun make_nnf th = th |> simplify nnf_ss
                      |> make_nnf1
