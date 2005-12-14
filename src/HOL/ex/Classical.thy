@@ -823,11 +823,11 @@ by blast
 text{*A manual resolution proof of problem 19.*}
 lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
 proof (rule ccontr, skolemize, make_clauses)
-  fix f g
+  fix x
   assume P: "\<And>U. \<not> P U \<Longrightarrow> False" 
      and Q: "\<And>U. Q U \<Longrightarrow> False"
-     and PQ: "\<And>U.  \<lbrakk>P (f U); \<not> Q (g U)\<rbrakk> \<Longrightarrow> False"
-  have cl4: "\<And>U. \<not> Q (g U) \<Longrightarrow> False"
+     and PQ: "\<lbrakk>P x; \<not> Q x\<rbrakk> \<Longrightarrow> False"
+  have cl4: "\<And>U. \<not> Q x \<Longrightarrow> False"
     by (rule P [binary 0 PQ 0])
   show "False"
     by (rule Q [binary 0 cl4 0])
