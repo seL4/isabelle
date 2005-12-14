@@ -467,8 +467,69 @@ fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
 val literals_of_term = literals_of_term1 ([],[],[],[]);
 
 
-fun predicate_ord (Predicate(predname1,_,_),Predicate(predname2,_,_)) = string_ord (predname1,predname2);
 
+fun list_ord _ ([],[]) = EQUAL
+  | list_ord _ ([],_) = LESS
+  | list_ord _ (_,[]) = GREATER
+  | list_ord ord (x::xs, y::ys) =
+    let val xy_ord = ord(x,y)
+    in
+	case xy_ord of EQUAL => list_ord ord (xs,ys)
+		     | _ => xy_ord
+    end;
+
+fun type_ord (AtomV(_),AtomV(_)) = EQUAL
+  | type_ord (AtomV(_),_) = LESS
+  | type_ord (AtomF(_),AtomV(_)) = GREATER
+  | type_ord (AtomF(f1),AtomF(f2)) = string_ord (f1,f2)
+  | type_ord (AtomF(_),_) = LESS
+  | type_ord (Comp(_,_),AtomV(_)) = GREATER
+  | type_ord (Comp(_,_),AtomF(_)) = GREATER
+  | type_ord (Comp(con1,args1),Comp(con2,args2)) = 
+    let val con_ord = string_ord(con1,con2)
+    in
+	case con_ord of EQUAL => types_ord (args1,args2)
+		      | _ => con_ord
+    end
+and
+
+types_ord ([],[]) = EQUAL
+  | types_ord (tps1,tps2) = list_ord type_ord (tps1,tps2);
+
+
+fun term_ord (UVar(_,_),UVar(_,_)) = EQUAL
+  | term_ord (UVar(_,_),_) = LESS
+  | term_ord (Fun(_,_,_),UVar(_)) = GREATER
+  | term_ord (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) = 
+    let val fn_ord = string_ord (f1,f2)
+    in
+	case fn_ord of EQUAL => 
+		       let val tms_ord = terms_ord (tms1,tms2)
+		       in
+			   case tms_ord of EQUAL => types_ord (tps1,tps2)
+					 | _ => tms_ord
+		       end
+		     | _ => fn_ord
+    end
+
+and
+
+terms_ord ([],[]) = EQUAL
+  | terms_ord (tms1,tms2) = list_ord term_ord (tms1,tms2);
+
+
+
+fun predicate_ord (Predicate(predname1,ftyps1,ftms1),Predicate(predname2,ftyps2,ftms2)) = 
+    let val predname_ord = string_ord (predname1,predname2)
+    in
+	case predname_ord of EQUAL => 
+			     let val ftms_ord = terms_ord(ftms1,ftms2)
+			     in
+				 case ftms_ord of EQUAL => types_ord(ftyps1,ftyps2)
+						| _ => ftms_ord
+			     end
+			   | _ => predname_ord
+    end;
 
 fun literal_ord (Literal(false,_,_),Literal(true,_,_)) = LESS
   | literal_ord (Literal(true,_,_),Literal(false,_,_)) = GREATER
