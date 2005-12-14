@@ -208,7 +208,23 @@ val tagged = ref false;
 
 type pred_name = string;
 type sort = Term.sort;
-type fol_type = string;
+
+
+
+datatype typ_var = FOLTVar of indexname | FOLTFree of string;
+
+datatype fol_type = AtomV of string
+		  | AtomF of string
+		  | Comp of string * fol_type list;
+
+fun string_of_fol_type (AtomV x) = x
+  | string_of_fol_type (AtomF x) = x
+  | string_of_fol_type (Comp(tcon,tps)) = 
+    let val tstrs = map string_of_fol_type tps
+    in
+	tcon ^ (paren_pack tstrs)
+    end;
+
 
 datatype type_literal = LTVar of string | LTFree of string;
 
@@ -217,8 +233,6 @@ datatype folTerm = UVar of string * fol_type
 datatype predicate = Predicate of pred_name * fol_type list * folTerm list;
 
 datatype literal = Literal of polarity * predicate * tag;
-
-datatype typ_var = FOLTVar of indexname | FOLTFree of string;
 
 fun mk_typ_var_sort (TFree(a,s)) = (FOLTFree a,s)
   | mk_typ_var_sort (TVar(v,s)) = (FOLTVar v,s);
@@ -240,6 +254,12 @@ datatype clause =
 
 
 exception CLAUSE of string * term;
+
+fun get_literals (c as Clause(cls)) = #literals cls;
+
+fun components_of_literal (Literal (pol,pred,tag)) = ((pol,pred),tag);
+
+fun predicate_name (Predicate(predname,_,_)) = predname;
 
 
 (*** make clauses ***)
@@ -293,18 +313,18 @@ fun num_typargs(s,T) = if !keep_types then length (!const_typargs (s,T)) else 0;
 fun init thy = (const_typargs := Sign.const_typargs thy);
     
 
-(*Flatten a type to a string while accumulating sort constraints on the TFrees and
+(*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
   TVars it contains.*)    
 fun type_of (Type (a, Ts)) = 
       let val (folTyps, (ts, funcs)) = types_of Ts 
 	  val t = make_fixed_type_const a
       in    
-	  ((t ^ paren_pack folTyps), (ts, (t, length Ts)::funcs))
+	  (Comp(t,folTyps), (ts, (t, length Ts)::funcs))
       end
   | type_of (TFree (a,s)) = 
       let val t = make_fixed_type_var a
-      in (t, ([((FOLTFree a),s)], [(t,0)])) end
-  | type_of (TVar (v, s)) = (make_schematic_type_var v, ([((FOLTVar v),s)], []))
+      in (AtomF(t), ([((FOLTFree a),s)], [(t,0)])) end
+  | type_of (TVar (v, s)) = (AtomV(make_schematic_type_var v), ([((FOLTVar v),s)], []))
 and types_of Ts =
       let val foltyps_ts = map type_of Ts 
 	  val (folTyps,ts_funcs) = ListPair.unzip foltyps_ts
@@ -447,6 +467,17 @@ fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
 val literals_of_term = literals_of_term1 ([],[],[],[]);
 
 
+fun predicate_ord (Predicate(predname1,_,_),Predicate(predname2,_,_)) = string_ord (predname1,predname2);
+
+
+fun literal_ord (Literal(false,_,_),Literal(true,_,_)) = LESS
+  | literal_ord (Literal(true,_,_),Literal(false,_,_)) = GREATER
+  | literal_ord (Literal(_,pred1,_),Literal(_,pred2,_)) = predicate_ord(pred1,pred2);
+
+fun sort_lits lits = sort literal_ord lits;
+
+
+
 (* FIX: not sure what to do with these funcs *)
 
 (*Make literals for sorted type variables*) 
@@ -522,11 +553,12 @@ fun get_tvar_strs [] = []
 
 fun make_axiom_clause_thm thm (ax_name,cls_id) =
     let val (lits,types_sorts, preds, funcs) = literals_of_term (prop_of thm)
+	val lits' = sort_lits lits
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
         val tvars = get_tvar_strs types_sorts
     in 
 	make_clause(cls_id,ax_name,Axiom,
-	            lits,types_sorts,tvar_lits,tfree_lits,
+	            lits',types_sorts,tvar_lits,tfree_lits,
 	            tvars, preds, funcs)
     end;
 
@@ -556,11 +588,12 @@ fun make_axiom_clause term (ax_name,cls_id) =
     let val _ = check_is_fol_term term 
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Axiom is not FOL", term) 
 	val (lits,types_sorts, preds,funcs) = literals_of_term term
+	val lits' = sort_lits lits
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds
         val tvars = get_tvar_strs types_sorts	
     in 
 	make_clause(cls_id,ax_name,Axiom,
-	            lits,types_sorts,tvar_lits,tfree_lits,
+	            lits',types_sorts,tvar_lits,tfree_lits,
 	            tvars, preds,funcs)
     end;
 
@@ -679,10 +712,11 @@ fun wrap_eq_type typ t = eq_typ_wrapper ^"(" ^ t ^ "," ^ typ ^ ")";
  and if we specifically ask for types to be included.   *)
 fun string_of_equality (typ,terms) =
       let val [tstr1,tstr2] = map string_of_term terms
+	  val typ' = string_of_fol_type typ
       in
 	  if !keep_types andalso !special_equal 
-	  then "equal(" ^ (wrap_eq_type typ tstr1) ^ "," ^ 
-		 	  (wrap_eq_type typ tstr2) ^ ")"
+	  then "equal(" ^ (wrap_eq_type typ' tstr1) ^ "," ^ 
+		 	  (wrap_eq_type typ' tstr2) ^ ")"
 	  else "equal(" ^ tstr1 ^ "," ^ tstr2 ^ ")"
       end
 and string_of_term (UVar(x,_)) = x
@@ -690,7 +724,7 @@ and string_of_term (UVar(x,_)) = x
   | string_of_term (Fun (name,typs,[])) = name (*Overloaded consts like 0 don't get types!*)
   | string_of_term (Fun (name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
-	  val typs' = if !keep_types then typs else []
+	  val typs' = if !keep_types then map string_of_fol_type typs else []
       in  name ^ (paren_pack (terms_as_strings @ typs'))  end
   | string_of_term _ = error "string_of_term";      
 
@@ -698,7 +732,7 @@ and string_of_term (UVar(x,_)) = x
 fun string_of_predicate (Predicate("equal",[typ],terms)) = string_of_equality(typ,terms)
   | string_of_predicate (Predicate(name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
-	  val typs' = if !keep_types then typs else []
+	  val typs' = if !keep_types then map string_of_fol_type typs else []
       in  name ^ (paren_pack (terms_as_strings @ typs'))  end
   | string_of_predicate _ = error "string_of_predicate";      
 
