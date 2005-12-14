@@ -103,14 +103,24 @@ fun HOL_comb () =
     end;
 
 
-val claset_file = File.tmp_path (Path.basic "claset");
-val simpset_file = File.tmp_path (Path.basic "simp");
-val local_lemma_file = File.tmp_path (Path.basic "locallemmas");
+fun atp_input_file file =
+    let val file' = !ResAtp.problem_name ^ "_" ^ file
+    in
+	if !ResAtp.destdir = "" then File.platform_path (File.tmp_path (Path.basic file'))
+	else if File.exists (File.unpack_platform_path (!ResAtp.destdir))
+	then !ResAtp.destdir ^ "/" ^ file'
+	else error ("No such directory: " ^ !ResAtp.destdir)
+    end;
 
-val prob_file = File.tmp_path (Path.basic "prob");
-val hyps_file = File.tmp_path (Path.basic "hyps");
+fun claset_file () = atp_input_file "claset";
+fun simpset_file () = atp_input_file "simp";
+fun local_lemma_file () = atp_input_file "locallemmas";
+fun hyps_file () = atp_input_file "hyps";
+fun prob_file _ = atp_input_file "";
 
-val types_sorts_file =  File.tmp_path (Path.basic "typsorts");
+fun types_sorts_file () = atp_input_file "typesorts";
+
+
 
 (*******************************************************)
 (* operations on Isabelle theorems:                    *)
@@ -345,7 +355,7 @@ fun atp_conjectures_h_g filt_conj_fn hyp_cls =
     let val (tptp_h_clss,tfree_litss) = filt_conj_fn hyp_cls
 	val tfree_lits = ResClause.union_all tfree_litss
 	val tfree_clss = map ResClause.tfree_clause tfree_lits 
-	val hypsfile = File.platform_path hyps_file
+	val hypsfile = hyps_file ()
         val out = TextIO.openOut(hypsfile)
     in
         ResAtp.writeln_strs out (tfree_clss @ tptp_h_clss);
@@ -360,7 +370,7 @@ fun atp_conjectures_h_hol hyp_cls = atp_conjectures_h_g filtered_tptp_conjecture
 fun atp_conjectures_c_g filt_conj_fn conj_cls n tfrees =
     let val (tptp_c_clss,tfree_litss) = filt_conj_fn conj_cls
 	val tfree_clss = map ResClause.tfree_clause ((ResClause.union_all tfree_litss) \\ tfrees)
-	val probfile = File.platform_path prob_file ^ "_" ^ string_of_int n
+	val probfile = prob_file n
 	val out = TextIO.openOut(probfile)		 	
     in
 	ResAtp.writeln_strs out (tfree_clss @ tptp_c_clss);
@@ -398,7 +408,7 @@ fun tptp_types_sorts thy =
 	val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
 	val arity_cls = map ResClause.tptp_arity_clause arity_clauses
 	fun write_ts () =
-	    let val tsfile = File.platform_path types_sorts_file
+	    let val tsfile = types_sorts_file ()
 		val out = TextIO.openOut(tsfile)
 	    in
 		ResAtp.writeln_strs out (classrel_cls @ arity_cls);
@@ -417,9 +427,9 @@ fun tptp_types_sorts thy =
 datatype mode = Auto | Fol | Hol;
 
 fun write_out_g logic atp_ax_fn atp_conj_fn (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
-    let val (files1,err1) = if (null claR) then ([],[]) else (atp_ax_fn claR (File.platform_path claset_file))
-	val (files2,err2) = if (null simpR) then ([],[]) else (atp_ax_fn simpR (File.platform_path simpset_file))
-	val (files3,err3) = if (null userR) then ([],[]) else (atp_ax_fn userR (File.platform_path local_lemma_file))
+    let val (files1,err1) = if (null claR) then ([],[]) else (atp_ax_fn claR (claset_file()))
+	val (files2,err2) = if (null simpR) then ([],[]) else (atp_ax_fn simpR (simpset_file ()))
+	val (files3,err3) = if (null userR) then ([],[]) else (atp_ax_fn userR (local_lemma_file ()))
 	val files4 = atp_conj_fn hyp_cls conj_cls n
 	val errs = err1 @ err2 @ err3 @ err
 	val logic' = if !include_combS then HOLCS 
@@ -495,7 +505,7 @@ fun rm_tmp_files1 [] = ()
 
 fun cond_rm_tmp files = 
     if !keep_atp_input then warning "ATP input kept..." 
+    else if !ResAtp.destdir <> "" then warning ("ATP input kept in directory " ^ (!ResAtp.destdir))
     else (warning "deleting ATP inputs..."; rm_tmp_files1 files);
-
 
 end
