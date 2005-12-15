@@ -1,5 +1,4 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory
-
     ID: $Id$
     Copyright 2004 University of Cambridge
 
@@ -117,9 +116,9 @@ val const_trans_table =
 		   ("List.op @", "append")];
 
 val type_const_trans_table =
-      Symtab.make [("*", "t_prod"),
-	  	   ("+", "t_sum"),
-		   ("~=>", "t_map")];
+      Symtab.make [("*", "prod"),
+	  	   ("+", "sum"),
+		   ("~=>", "map")];
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -166,15 +165,20 @@ fun make_schematic_type_var (x,i) =
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
-fun make_fixed_const c =
+fun lookup_const c =
     case Symtab.lookup const_trans_table c of
         SOME c' => c'
-      | NONE =>  const_prefix ^ ascii_of c;
+      | NONE => ascii_of c;
 
-fun make_fixed_type_const c = 
+fun lookup_type_const c = 
     case Symtab.lookup type_const_trans_table c of
         SOME c' => c'
-      | NONE =>  tconst_prefix ^ ascii_of c;
+      | NONE => ascii_of c;
+
+fun make_fixed_const "op =" = "equal"   (*MUST BE "equal" because it's built-in to ATPs*)
+  | make_fixed_const c      = const_prefix ^ lookup_const c;
+
+fun make_fixed_type_const c = tconst_prefix ^ lookup_type_const c;
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
@@ -645,7 +649,7 @@ fun cls_eq (cls1,cls2) =
 (*Make literals for sorted type variables*) 
 fun sorts_on_typs (_, [])   = ([]) 
   | sorts_on_typs (v, "HOL.type" :: s) =
-      sorts_on_typs (v,s)   (*Ignore sort "type"*)
+      sorts_on_typs (v,s)                (*IGNORE sort "type"*)
   | sorts_on_typs ((FOLTVar indx), (s::ss)) =
       LTVar((make_type_class s) ^ 
         "(" ^ (make_schematic_type_var indx) ^ ")") :: 
@@ -661,7 +665,6 @@ fun remove_type str = hd (String.fields (fn c => c = #"(") str);
 
 fun pred_of_sort (LTVar x) = ((remove_type x),1)
 |   pred_of_sort (LTFree x) = ((remove_type x),1)
-
 
 
 
@@ -784,17 +787,15 @@ datatype arityClause =
 fun get_TVars 0 = []
   | get_TVars n = ("T_" ^ (Int.toString n)) :: get_TVars (n-1);
 
-
-
-fun pack_sort(_,[])  = raise ARCLAUSE("Empty Sort Found") 
-  | pack_sort(tvar, [cls]) = [(make_type_class cls, tvar)] 
-  | pack_sort(tvar, cls::srt) =  (make_type_class cls,tvar) :: (pack_sort(tvar, srt));
-    
+fun pack_sort(_,[])  = []
+  | pack_sort(tvar, "HOL.type"::srt) = pack_sort(tvar, srt)   (*IGNORE sort "type"*)
+  | pack_sort(tvar, cls::srt) =  (make_type_class cls, tvar) :: pack_sort(tvar, srt);
     
 fun make_TVarLit (b,(cls,str)) = TVarLit(b,(cls,str));
 fun make_TConsLit (b,(cls,tcons,tvars)) = TConsLit(b,(make_type_class cls,make_fixed_type_const tcons,tvars));
 
-fun make_axiom_arity_clause (tcons,n,(res,args)) =
+(*Arity of type constructor tcon :: (arg1,...,argN)res*)
+fun make_axiom_arity_clause (tcons, n, (res,args)) =
    let val nargs = length args
        val tvars = get_TVars nargs
        val tvars_srts = ListPair.zip (tvars,args)
@@ -802,8 +803,8 @@ fun make_axiom_arity_clause (tcons,n,(res,args)) =
        val false_tvars_srts' = map (pair false) tvars_srts'
    in
       ArityClause {clause_id = n, kind = Axiom, 
-                   axiom_name = tcons,
-                   conclLit = make_TConsLit(true,(res,tcons,tvars)), 
+                   axiom_name = lookup_type_const tcons,
+                   conclLit = make_TConsLit(true, (res,tcons,tvars)), 
                    premLits = map make_TVarLit false_tvars_srts'}
    end;
     
@@ -817,32 +818,30 @@ fun num_of_clauses (Clause cls) =
 
 (**** Isabelle class relations ****)
 
-
 datatype classrelClause = 
 	 ClassrelClause of {clause_id: clause_id,
 			    subclass: class,
-			    superclass: class option};
-
+			    superclass: class};
 
 fun make_axiom_classrelClause n subclass superclass =
   ClassrelClause {clause_id = n,
                   subclass = subclass, superclass = superclass};
 
-
 fun classrelClauses_of_aux n sub [] = []
+  | classrelClauses_of_aux n sub ("HOL.type"::sups) = (*Should be ignored*)
+      classrelClauses_of_aux n sub sups
   | classrelClauses_of_aux n sub (sup::sups) =
-      make_axiom_classrelClause n sub (SOME sup) :: classrelClauses_of_aux (n+1) sub sups;
+      ClassrelClause {clause_id = n, subclass = sub, superclass = sup} 
+      :: classrelClauses_of_aux (n+1) sub sups;
 
-
-fun classrelClauses_of (sub,sups) = 
-    case sups of [] => [make_axiom_classrelClause 0 sub NONE]
-	       | _ => classrelClauses_of_aux 0 sub sups;
+fun classrelClauses_of (sub,sups) = classrelClauses_of_aux 0 sub sups;
 
 
 (***** Isabelle arities *****)
 
-
 fun arity_clause _ (tcons, []) = []
+  | arity_clause n (tcons, ("HOL.type",_)::ars) =  (*Should be ignored*)
+      arity_clause n (tcons,ars)
   | arity_clause n (tcons, ar::ars) =
       make_axiom_arity_clause (tcons,n,ar) :: 
       arity_clause (n+1) (tcons,ars);
@@ -1249,16 +1248,13 @@ fun tptp_arity_clause arcls =
 fun tptp_classrelLits sub sup = 
     let val tvar = "(T)"
     in 
-	case sup of NONE => "[++" ^ sub ^ tvar ^ "]"
-		  | (SOME supcls) =>  "[--" ^ sub ^ tvar ^ ",++" ^ supcls ^ tvar ^ "]"
+	"[--" ^ sub ^ tvar ^ ",++" ^ sup ^ tvar ^ "]"
     end;
-
 
 fun tptp_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
     let val relcls_id = clrelclause_prefix ^ ascii_of subclass ^ "_" ^ 
                         Int.toString clause_id
-	val lits = tptp_classrelLits (make_type_class subclass) 
-	                (Option.map make_type_class superclass)
+	val lits = tptp_classrelLits (make_type_class subclass) (make_type_class superclass)
     in
 	"input_clause(" ^ relcls_id ^ ",axiom," ^ lits ^ ")."
     end; 
