@@ -35,7 +35,7 @@ lemma accI: "[| !!b. <b,a>:r ==> b \<in> acc(r);  a \<in> field(r) |] ==> a \<in
 lemma acc_downward: "[| b \<in> acc(r);  <a,b>: r |] ==> a \<in> acc(r)"
   by (erule acc.cases) blast
 
-lemma acc_induct [induct set: acc]:
+lemma acc_induct [consumes 1, case_names vimage, induct set: acc]:
     "[| a \<in> acc(r);
         !!x. [| x \<in> acc(r);  \<forall>y. <y,x>:r --> P(y) |] ==> P(x)
      |] ==> P(a)"
