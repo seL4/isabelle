@@ -58,7 +58,7 @@ lemma term_induct2:
    apply (auto dest: list_CollectD)
   done
 
-lemma term_induct_eqn:
+lemma term_induct_eqn [consumes 1, case_names Apply]:
   "[| t \<in> term(A);
       !!x zs. [| x \<in> A;  zs: list(term(A));  map(f,zs) = map(g,zs) |] ==>
               f(Apply(x,zs)) = g(Apply(x,zs))
@@ -122,27 +122,21 @@ lemma term_rec [simp]: "ts \<in> list(A) ==>
   done
 
 lemma term_rec_type:
-  "[| t \<in> term(A);
-      !!x zs r. [| x \<in> A;  zs: list(term(A));
-                   r \<in> list(\<Union>t \<in> term(A). C(t)) |]
-                ==> d(x, zs, r): C(Apply(x,zs))
-   |] ==> term_rec(t,d) \<in> C(t)"
-  -- {* Slightly odd typing condition on @{text r} in the second premise! *}
-proof -
-  assume a: "!!x zs r. [| x \<in> A;  zs: list(term(A));
+  assumes t: "t \<in> term(A)"
+    and a: "!!x zs r. [| x \<in> A;  zs: list(term(A));
                    r \<in> list(\<Union>t \<in> term(A). C(t)) |]
                 ==> d(x, zs, r): C(Apply(x,zs))"
-  assume "t \<in> term(A)"
-  thus ?thesis
-    apply induct
-    apply (frule list_CollectD)
-    apply (subst term_rec)
-     apply (assumption | rule a)+
-    apply (erule list.induct)
-     apply (simp add: term_rec)
-   apply (auto simp add: term_rec)
-   done
-qed
+  shows "term_rec(t,d) \<in> C(t)"
+  -- {* Slightly odd typing condition on @{text r} in the second premise! *}
+  using t
+  apply induct
+  apply (frule list_CollectD)
+  apply (subst term_rec)
+   apply (assumption | rule a)+
+  apply (erule list.induct)
+   apply (simp add: term_rec)
+  apply (auto simp add: term_rec)
+  done
 
 lemma def_term_rec:
   "[| !!t. j(t)==term_rec(t,d);  ts: list(A) |] ==>
@@ -239,21 +233,15 @@ text {*
 declare List.map_compose [simp]
 
 lemma term_map_ident: "t \<in> term(A) ==> term_map(\<lambda>u. u, t) = t"
-  apply (erule term_induct_eqn)
-  apply simp
-  done
+  by (induct rule: term_induct_eqn) simp
 
 lemma term_map_compose:
     "t \<in> term(A) ==> term_map(f, term_map(g,t)) = term_map(\<lambda>u. f(g(u)), t)"
-  apply (erule term_induct_eqn)
-  apply simp
-  done
+  by (induct rule: term_induct_eqn) simp
 
 lemma term_map_reflect:
     "t \<in> term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))"
-  apply (erule term_induct_eqn)
-  apply (simp add: rev_map_distrib [symmetric])
-  done
+  by (induct rule: term_induct_eqn) (simp add: rev_map_distrib [symmetric])
 
 
 text {*
@@ -261,19 +249,13 @@ text {*
 *}
 
 lemma term_size_term_map: "t \<in> term(A) ==> term_size(term_map(f,t)) = term_size(t)"
-  apply (erule term_induct_eqn)
-  apply simp
-  done
+  by (induct rule: term_induct_eqn) simp
 
 lemma term_size_reflect: "t \<in> term(A) ==> term_size(reflect(t)) = term_size(t)"
-  apply (erule term_induct_eqn)
-  apply (simp add: rev_map_distrib [symmetric] list_add_rev)
-  done
+  by (induct rule: term_induct_eqn) (simp add: rev_map_distrib [symmetric] list_add_rev)
 
 lemma term_size_length: "t \<in> term(A) ==> term_size(t) = length(preorder(t))"
-  apply (erule term_induct_eqn)
-  apply (simp add: length_flat)
-  done
+  by (induct rule: term_induct_eqn) (simp add: length_flat)
 
 
 text {*
@@ -281,9 +263,7 @@ text {*
 *}
 
 lemma reflect_reflect_ident: "t \<in> term(A) ==> reflect(reflect(t)) = t"
-  apply (erule term_induct_eqn)
-  apply (simp add: rev_map_distrib)
-  done
+  by (induct rule: term_induct_eqn) (simp add: rev_map_distrib)
 
 
 text {*
@@ -292,14 +272,11 @@ text {*
 
 lemma preorder_term_map:
     "t \<in> term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))"
-  apply (erule term_induct_eqn)
-  apply (simp add: map_flat)
-  done
+  by (induct rule: term_induct_eqn) (simp add: map_flat)
 
 lemma preorder_reflect_eq_rev_postorder:
     "t \<in> term(A) ==> preorder(reflect(t)) = rev(postorder(t))"
-  apply (erule term_induct_eqn)
-  apply (simp add: rev_app_distrib rev_flat rev_map_distrib [symmetric])
-  done
+  by (induct rule: term_induct_eqn)
+    (simp add: rev_app_distrib rev_flat rev_map_distrib [symmetric])
 
 end

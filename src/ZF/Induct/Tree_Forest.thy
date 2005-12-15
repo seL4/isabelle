@@ -204,7 +204,7 @@ text {*
   \medskip Theorems about @{text list_of_TF} and @{text of_list}.
 *}
 
-lemma forest_induct:
+lemma forest_induct [consumes 1, case_names Fnil Fcons]:
   "[| f \<in> forest(A);
       R(Fnil);
       !!t f. [| t \<in> tree(A);  f \<in> forest(A);  R(f) |] ==> R(Fcons(t,f))
@@ -218,14 +218,10 @@ lemma forest_induct:
   done
 
 lemma forest_iso: "f \<in> forest(A) ==> of_list(list_of_TF(f)) = f"
-  apply (erule forest_induct)
-   apply simp_all
-  done
+  by (induct rule: forest_induct) simp_all
 
 lemma tree_list_iso: "ts: list(tree(A)) ==> list_of_TF(of_list(ts)) = ts"
-  apply (erule list.induct)
-   apply simp_all
-  done
+  by (induct set: list) simp_all
 
 
 text {*

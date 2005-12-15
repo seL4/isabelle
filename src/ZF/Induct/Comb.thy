@@ -247,7 +247,7 @@ text {*
 *}
 
 lemma contract_imp_parcontract: "p-1->q ==> p=1=>q"
-  by (erule contract.induct) auto
+  by (induct set: contract) auto
 
 lemma reduce_imp_parreduce: "p--->q ==> p===>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
@@ -259,7 +259,7 @@ lemma reduce_imp_parreduce: "p--->q ==> p===>q"
   done
 
 lemma parcontract_imp_reduce: "p=1=>q ==> p--->q"
-  apply (erule parcontract.induct)
+  apply (induct set: parcontract)
      apply (blast intro: reduction_rls)
     apply (blast intro: reduction_rls)
    apply (blast intro: reduction_rls)

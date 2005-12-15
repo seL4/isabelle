@@ -23,7 +23,7 @@ inductive
 
 
 lemma list_into_listn: "l \<in> list(A) ==> <length(l),l> \<in> listn(A)"
-  by (erule list.induct) (simp_all add: listn.intros)
+  by (induct set: list) (simp_all add: listn.intros)
 
 lemma listn_iff: "<n,l> \<in> listn(A) <-> l \<in> list(A) & length(l)=n"
   apply (rule iffI)

@@ -92,13 +92,13 @@ lemma tiling_UnI:
   done
 
 lemma tiling_domino_Finite: "t \<in> tiling(domino) ==> Finite(t)"
-  apply (induct rule: tiling.induct)
+  apply (induct set: tiling)
    apply (rule Finite_0)
   apply (blast intro!: Finite_Un intro: domino_Finite)
   done
 
 lemma tiling_domino_0_1: "t \<in> tiling(domino) ==> |evnodd(t,0)| = |evnodd(t,1)|"
-  apply (induct rule: tiling.induct)
+  apply (induct set: tiling)
    apply (simp add: evnodd_def)
   apply (rule_tac b1 = 0 in domino_singleton [THEN exE])
     prefer 2

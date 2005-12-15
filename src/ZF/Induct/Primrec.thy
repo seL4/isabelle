@@ -104,7 +104,7 @@ declare nat_into_Ord [TC]
 declare rec_type [TC]
 
 lemma ACK_in_prim_rec [TC]: "i \<in> nat ==> ACK(i) \<in> prim_rec"
-  by (induct_tac i) simp_all
+  by (induct set: nat) simp_all
 
 lemma ack_type [TC]: "[| i \<in> nat;  j \<in> nat |] ==>  ack(i,j) \<in> nat"
   by auto
@@ -129,11 +129,10 @@ lemmas [simp] = ack_0 ack_succ_0 ack_succ_succ ack_type
   and [simp del] = ACK.simps
 
 
-lemma lt_ack2 [rule_format]: "i \<in> nat ==> \<forall>j \<in> nat. j < ack(i,j)"
+lemma lt_ack2: "i \<in> nat ==> j \<in> nat ==> j < ack(i,j)"
   -- {* PROPERTY A 4 *}
-  apply (induct_tac i)
+  apply (induct i fixing: j set: nat)
    apply simp
-  apply (rule ballI)
   apply (induct_tac j)
    apply (erule_tac [2] succ_leI [THEN lt_trans1])
    apply (rule nat_0I [THEN nat_0_le, THEN lt_trans])
@@ -142,7 +141,7 @@ lemma lt_ack2 [rule_format]: "i \<in> nat ==> \<forall>j \<in> nat. j < ack(i,j)
 
 lemma ack_lt_ack_succ2: "[|i\<in>nat; j\<in>nat|] ==> ack(i,j) < ack(i, succ(j))"
   -- {* PROPERTY A 5-, the single-step lemma *}
-  by (induct_tac i) (simp_all add: lt_ack2)
+  by (induct set: nat) (simp_all add: lt_ack2)
 
 lemma ack_lt_mono2: "[| j<k; i \<in> nat; k \<in> nat |] ==> ack(i,j) < ack(i,k)"
   -- {* PROPERTY A 5, monotonicity for @{text "<"} *}
@@ -193,11 +192,11 @@ lemma ack_le_mono1: "[| i\<le>j; j \<in> nat; k \<in> nat |] ==> ack(i,k) \<le> 
 
 lemma ack_1: "j \<in> nat ==> ack(1,j) = succ(succ(j))"
   -- {* PROPERTY A 8 *}
-  by (induct_tac j) simp_all
+  by (induct set: nat) simp_all
 
 lemma ack_2: "j \<in> nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))"
   -- {* PROPERTY A 9 *}
-  by (induct_tac j) (simp_all add: ack_1)
+  by (induct set: nat) (simp_all add: ack_1)
 
 lemma ack_nest_bound:
   "[| i1 \<in> nat; i2 \<in> nat; j \<in> nat |]
@@ -281,7 +280,7 @@ lemma COMP_map_lemma:
   "fs \<in> list({f \<in> prim_rec. \<exists>kf \<in> nat. \<forall>l \<in> list(nat). f`l < ack(kf, list_add(l))})
     ==> \<exists>k \<in> nat. \<forall>l \<in> list(nat).
       list_add(map(\<lambda>f. f ` l, fs)) < ack(k, list_add(l))"
-  apply (erule list.induct)
+  apply (induct set: list)
    apply (rule_tac x = 0 in bexI)
     apply (simp_all add: lt_ack1 nat_0_le)
   apply clarify
@@ -359,7 +358,7 @@ lemma PREC_case:
 
 lemma ack_bounds_prim_rec:
     "f \<in> prim_rec ==> \<exists>k \<in> nat. \<forall>l \<in> list(nat). f`l < ack(k, list_add(l))"
-  apply (erule prim_rec.induct)
+  apply (induct set: prim_rec)
   apply (auto intro: SC_case CONST_case PROJ_case COMP_case PREC_case)
   done
 

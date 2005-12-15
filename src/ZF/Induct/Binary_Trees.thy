@@ -18,8 +18,8 @@ datatype "bt(A)" =
 
 declare bt.intros [simp]
 
-lemma Br_neq_left: "l \<in> bt(A) ==> (!!x r. Br(x, l, r) \<noteq> l)"
-  by (induct set: bt) auto
+lemma Br_neq_left: "l \<in> bt(A) ==> Br(x, l, r) \<noteq> l"
+  by (induct fixing: x r set: bt) auto
 
 lemma Br_iff: "Br(a, l, r) = Br(a', l', r') <-> a = a' & l = l' & r = r'"
   -- "Proving a freeness theorem."
@@ -73,24 +73,27 @@ primrec
   "n_nodes(Br(a, l, r)) = succ(n_nodes(l) #+ n_nodes(r))"
 
 lemma n_nodes_type [simp]: "t \<in> bt(A) ==> n_nodes(t) \<in> nat"
-  by (induct_tac t) auto
+  by (induct set: bt) auto
 
 consts  n_nodes_aux :: "i => i"
 primrec
   "n_nodes_aux(Lf) = (\<lambda>k \<in> nat. k)"
-  "n_nodes_aux(Br(a, l, r)) = 
+  "n_nodes_aux(Br(a, l, r)) =
       (\<lambda>k \<in> nat. n_nodes_aux(r) `  (n_nodes_aux(l) ` succ(k)))"
 
-lemma n_nodes_aux_eq [rule_format]:
-     "t \<in> bt(A) ==> \<forall>k \<in> nat. n_nodes_aux(t)`k = n_nodes(t) #+ k"
-  by (induct_tac t, simp_all) 
+lemma n_nodes_aux_eq:
+    "t \<in> bt(A) ==> k \<in> nat ==> n_nodes_aux(t)`k = n_nodes(t) #+ k"
+  apply (induct fixing: k set: bt)
+   apply simp
+  apply (atomize, simp)
+  done
 
 constdefs
   n_nodes_tail :: "i => i"
-   "n_nodes_tail(t) == n_nodes_aux(t) ` 0"
+  "n_nodes_tail(t) == n_nodes_aux(t) ` 0"
 
 lemma "t \<in> bt(A) ==> n_nodes_tail(t) = n_nodes(t)"
- by (simp add: n_nodes_tail_def n_nodes_aux_eq) 
+  by (simp add: n_nodes_tail_def n_nodes_aux_eq)
 
 
 subsection {* Number of leaves *}
@@ -102,7 +105,7 @@ primrec
   "n_leaves(Br(a, l, r)) = n_leaves(l) #+ n_leaves(r)"
 
 lemma n_leaves_type [simp]: "t \<in> bt(A) ==> n_leaves(t) \<in> nat"
-  by (induct_tac t) auto
+  by (induct set: bt) auto
 
 
 subsection {* Reflecting trees *}
@@ -114,23 +117,23 @@ primrec
   "bt_reflect(Br(a, l, r)) = Br(a, bt_reflect(r), bt_reflect(l))"
 
 lemma bt_reflect_type [simp]: "t \<in> bt(A) ==> bt_reflect(t) \<in> bt(A)"
-  by (induct_tac t) auto
+  by (induct set: bt) auto
 
 text {*
   \medskip Theorems about @{term n_leaves}.
 *}
 
 lemma n_leaves_reflect: "t \<in> bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)"
-  by (induct_tac t) (simp_all add: add_commute n_leaves_type)
+  by (induct set: bt) (simp_all add: add_commute n_leaves_type)
 
 lemma n_leaves_nodes: "t \<in> bt(A) ==> n_leaves(t) = succ(n_nodes(t))"
-  by (induct_tac t) (simp_all add: add_succ_right)
+  by (induct set: bt) (simp_all add: add_succ_right)
 
 text {*
   Theorems about @{term bt_reflect}.
 *}
 
 lemma bt_reflect_bt_reflect_ident: "t \<in> bt(A) ==> bt_reflect(bt_reflect(t)) = t"
-  by (induct_tac t) simp_all
+  by (induct set: bt) simp_all
 
 end

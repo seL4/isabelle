@@ -372,7 +372,8 @@ done
 lemma setsum_mcount_Int:
      "Finite(A) ==> setsum(%a. $# mcount(N, a), A Int mset_of(N))
 		  = setsum(%a. $# mcount(N, a), A)"
-apply (erule Finite_induct, auto)
+apply (induct rule: Finite_induct)
+ apply auto
 apply (subgoal_tac "Finite (B Int mset_of (N))")
 prefer 2 apply (blast intro: subset_Finite)
 apply (auto simp add: mcount_def Int_cons_left)
@@ -434,7 +435,7 @@ lemma munion_left_cancel [simp]:
 by (auto simp add: multiset_equality)
 
 lemma nat_add_eq_1_cases: "[| m \<in> nat; n \<in> nat |] ==> (m #+ n = 1) <-> (m=1 & n=0) | (m=0 & n=1)"
-by (induct_tac "n", auto)
+by (induct_tac n) auto
 
 lemma munion_is_single:
      "[|multiset(M); multiset(N)|] 

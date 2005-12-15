@@ -180,7 +180,7 @@ subsubsection {* Soundness of the rules wrt truth-table semantics *}
 
 theorem soundness: "H |- p ==> H |= p"
   apply (unfold logcon_def)
-  apply (erule thms.induct)
+  apply (induct set: thms)
       apply auto
   done
 
@@ -256,7 +256,7 @@ text {*
 
 lemma hyps_Diff:
     "p \<in> propn ==> hyps(p, t-{v}) \<subseteq> cons(#v=>Fls, hyps(p,t)-{#v})"
-  by (induct_tac p) auto
+  by (induct set: propn) auto
 
 text {*
   For the case @{prop "hyps(p,t)-cons(#v => Fls,Y) |- p"} we also have
@@ -265,7 +265,7 @@ text {*
 
 lemma hyps_cons:
     "p \<in> propn ==> hyps(p, cons(v,t)) \<subseteq> cons(#v, hyps(p,t)-{#v=>Fls})"
-  by (induct_tac p) auto
+  by (induct set: propn) auto
 
 text {* Two lemmas for use with @{text weaken_left} *}
 
@@ -282,7 +282,7 @@ text {*
 *}
 
 lemma hyps_finite: "p \<in> propn ==> hyps(p,t) \<in> Fin(\<Union>v \<in> nat. {#v, #v=>Fls})"
-  by (induct_tac p) auto
+  by (induct set: propn) auto
 
 lemmas Diff_weaken_left = Diff_mono [OF _ subset_refl, THEN weaken_left]
 
@@ -325,9 +325,9 @@ lemma logcon_Imp: "[| cons(p,H) |= q |] ==> H |= p=>q"
   -- {* A semantic analogue of the Deduction Theorem *}
   by (simp add: logcon_def)
 
-lemma completeness [rule_format]:
-     "H \<in> Fin(propn) ==> \<forall>p \<in> propn. H |= p --> H |- p"
-  apply (erule Fin_induct)
+lemma completeness:
+     "H \<in> Fin(propn) ==> p \<in> propn \<Longrightarrow> H |= p \<Longrightarrow> H |- p"
+  apply (induct fixing: p set: Fin)
    apply (safe intro!: completeness_0)
   apply (rule weaken_left_cons [THEN thms_MP])
    apply (blast intro!: logcon_Imp propn.intros)
