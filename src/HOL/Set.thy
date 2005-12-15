@@ -566,16 +566,6 @@ lemma equalityCE [elim]:
     "A = B ==> (c \<in> A ==> c \<in> B ==> P) ==> (c \<notin> A ==> c \<notin> B ==> P) ==> P"
   by blast
 
-text {*
-  \medskip Lemma for creating induction formulae -- for "pattern
-  matching" on @{text p}.  To make the induction hypotheses usable,
-  apply @{text spec} or @{text bspec} to put universal quantifiers over the free
-  variables in @{text p}.
-*}
-
-lemma setup_induction: "p:A ==> (!!z. z:A ==> p = z --> R) ==> R"
-  by simp
-
 lemma eqset_imp_iff: "A = B ==> (x : A) = (x : B)"
   by simp
 

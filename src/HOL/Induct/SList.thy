@@ -295,9 +295,7 @@ done
 lemmas Cons_inject2 = Cons_Cons_eq [THEN iffD1, THEN conjE, standard]
 
 lemma CONS_D: "CONS M N: list(A) ==> M: A & N: list(A)"
-apply (erule setup_induction)
-apply (erule list.induct, blast+)
-done
+  by (induct L == "CONS M N" set: list) auto
 
 lemma sexp_CONS_D: "CONS M N: sexp ==> M: sexp & N: sexp"
 apply (simp add: CONS_def In1_def)

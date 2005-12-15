@@ -143,15 +143,6 @@ by (rtac (major RS equalityE) 1);
 by (REPEAT (contr_tac 1 ORELSE eresolve_tac ([asm_rl,subsetCE]@prems) 1));
 qed "equalityCE";
 
-(*Lemma for creating induction formulae -- for "pattern matching" on p
-  To make the induction hypotheses usable, apply "spec" or "bspec" to
-  put universal quantifiers over the free variables in p. *)
-val prems = goal (the_context ())
-    "[| p:A;  !!z. z:A ==> p=z --> R |] ==> R";
-by (rtac mp 1);
-by (REPEAT (resolve_tac (refl::prems) 1));
-qed "setup_induction";
-
 Goal "{x. x:A} = A";
 by (REPEAT (ares_tac [equalityI,subsetI,CollectI] 1  ORELSE etac CollectD 1));
 qed "trivial_set";

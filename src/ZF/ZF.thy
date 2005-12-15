@@ -425,14 +425,6 @@ lemma equalityCE:
     "[| A = B;  [| c\<in>A; c\<in>B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P"
 by (erule equalityE, blast) 
 
-(*Lemma for creating induction formulae -- for "pattern matching" on p
-  To make the induction hypotheses usable, apply "spec" or "bspec" to
-  put universal quantifiers over the free variables in p. 
-  Would it be better to do subgoal_tac "\<forall>z. p = f(z) --> R(z)" ??*)
-lemma setup_induction: "[| p: A;  !!z. z: A ==> p=z --> R |] ==> R"
-by auto 
-
-
 
 subsection{*Rules for Replace -- the derived form of replacement*}
 
@@ -696,7 +688,6 @@ val equalityD1 = thm "equalityD1";
 val equalityD2 = thm "equalityD2";
 val equalityE = thm "equalityE";
 val equalityCE = thm "equalityCE";
-val setup_induction = thm "setup_induction";
 val Replace_iff = thm "Replace_iff";
 val ReplaceI = thm "ReplaceI";
 val ReplaceE = thm "ReplaceE";

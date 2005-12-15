@@ -351,7 +351,6 @@ val rev_subsetD = thm "rev_subsetD";
 val set_diff_def = thm "set_diff_def";
 val set_eq_subset = thm "set_eq_subset";
 val set_ext = thm "set_ext";
-val setup_induction = thm "setup_induction";
 val singletonD = thm "singletonD";
 val singletonE = thm "singletonE";
 val singletonI = thm "singletonI";

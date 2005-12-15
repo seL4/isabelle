@@ -65,9 +65,7 @@ lemma range_Leaf_subset_sexp: "range(Leaf) <= sexp"
 by blast
 
 lemma Scons_D: "Scons M N \<in> sexp ==> M \<in> sexp & N \<in> sexp"
-apply (erule setup_induction)
-apply (erule sexp.induct, blast+)
-done
+  by (induct S == "Scons M N" set: sexp) auto
 
 (** Introduction rules for 'pred_sexp' **)
 
