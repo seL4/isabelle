@@ -731,7 +731,7 @@ proof (induct Q fixing: \<Gamma> S T and \<Delta> \<Gamma> X P M N taking: "size
       have Q_inst: "Top=Q" by fact
       have rh_drv: "\<Gamma>1 \<turnstile> Q <: T" --"rh drv." by fact
       hence "T = Top" using Q_inst by (simp add: S_TopE)
-      thus "\<Gamma>1 \<turnstile> S1 <: T" using top_case[of "\<Gamma>1" "S1" "False" "T"] lh_drv_prem1 lh_drv_prem2 by simp
+      thus "\<Gamma>1 \<turnstile> S1 <: T" using top_case[of "\<Gamma>1" "S1" "False" "T"] lh_drv_prem1 lh_drv_prem2 by blast
     next
       case (S_Var \<Gamma>1 X1 S1 T1) --{* lh drv.: @{term "\<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> TVar(X1) <: S1"} *}
       have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
