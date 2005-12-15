@@ -537,6 +537,107 @@ fun literal_ord (Literal(false,_,_),Literal(true,_,_)) = LESS
 
 fun sort_lits lits = sort literal_ord lits;
 
+(********** clause equivalence ******************)
+
+fun check_var_pairs (x,y) [] = 0 
+  | check_var_pairs (x,y) ((u,v)::w) =
+    if (x,y) = (u,v) then 1 
+    else
+	if (x = u) orelse (y = v) then 2 (*conflict*)
+	else check_var_pairs (x,y) w;
+
+
+fun type_eq (AtomV(v1),AtomV(v2)) (vars,tvars) =
+    (case check_var_pairs (v1,v2) tvars of 0 => (true,(vars,(v1,v2)::tvars))
+					 | 1 => (true,(vars,tvars))
+					 | 2 => (false,(vars,tvars)))
+  | type_eq (AtomV(_),_) vtvars = (false,vtvars)
+  | type_eq (AtomF(f1),AtomF(f2)) vtvars = (f1=f2,vtvars)
+  | type_eq (AtomF(_),_) vtvars = (false,vtvars)
+  | type_eq (Comp(con1,args1),Comp(con2,args2)) vtvars =
+    let val (eq1,vtvars1) = 
+	    if (con1 = con2) then types_eq (args1,args2) vtvars
+	    else (false,vtvars)
+    in
+	(eq1,vtvars1)
+    end
+  | type_eq (Comp(_,_),_) vtvars = (false,vtvars)
+
+and
+
+types_eq ([],[]) vtvars = (true,vtvars)
+| types_eq (tp1::tps1,tp2::tps2) vtvars =
+  let val (eq1,vtvars1) = type_eq (tp1,tp2) vtvars
+      val (eq2,vtvars2) = if eq1 then types_eq (tps1,tps2) vtvars1
+			  else (eq1,vtvars1)
+  in
+      (eq2,vtvars2)
+  end;
+
+
+fun term_eq (UVar(v1,tp1),UVar(v2,tp2)) (vars,tvars) =
+    (case check_var_pairs (v1,v2) vars of 0 => type_eq (tp1,tp2) (((v1,v2)::vars),tvars)
+					| 1 => type_eq (tp1,tp2) (vars,tvars)
+					| 2 => (false,(vars,tvars)))
+  | term_eq (UVar(_,_),_) vtvars = (false,vtvars)
+  | term_eq (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) vtvars =
+    let val (eq1,vtvars1) = 
+	    if (f1 = f2) then terms_eq (tms1,tms2) vtvars
+	    else (false,vtvars)
+	val (eq2,vtvars2) =
+	    if eq1 then types_eq (tps1,tps2) vtvars1
+	    else (eq1,vtvars1)
+    in
+	(eq2,vtvars2)
+    end
+  | term_eq (Fun(_,_,_),_) vtvars = (false,vtvars)
+
+and
+
+terms_eq ([],[]) vtvars = (true,vtvars)
+| terms_eq (tm1::tms1,tm2::tms2) vtvars =
+  let val (eq1,vtvars1) = term_eq (tm1,tm2) vtvars
+      val (eq2,vtvars2) = if eq1 then terms_eq (tms1,tms2) vtvars1
+				 else (eq1,vtvars1)
+  in
+      (eq2,vtvars2)
+  end;
+					     
+
+fun pred_eq (Predicate(predname1,tps1,tms1),Predicate(predname2,tps2,tms2)) vtvars =
+    let val (eq1,vtvars1) = 
+	    if (predname1 = predname2) then terms_eq (tms1,tms2) vtvars
+	    else (false,vtvars)
+	val (eq2,vtvars2) = 
+	    if eq1 then types_eq (tps1,tps2) vtvars1
+	    else (eq1,vtvars1)
+    in
+	(eq2,vtvars2)
+    end;
+					      
+
+fun lit_eq (Literal(pol1,pred1,_),Literal(pol2,pred2,_)) vtvars =
+    if (pol1 = pol2) then pred_eq (pred1,pred2) vtvars
+    else (false,vtvars);
+
+(*must have the same number of literals*)
+fun lits_eq ([],[]) vtvars = (true,vtvars)
+  | lits_eq (l1::ls1,l2::ls2) vtvars = 
+    let val (eq1,vtvars1) = lit_eq (l1,l2) vtvars
+    in
+	if eq1 then lits_eq (ls1,ls2) vtvars1
+	else (false,vtvars1)
+    end;
+
+
+fun cls_eq (cls1,cls2) =
+    let val lits1 = get_literals cls1
+	val lits2 = get_literals cls2
+    in
+	(length lits1 = length lits2) andalso (fst (lits_eq (lits1,lits2) ([],[])))
+    end;
+
+
 
 
 (* FIX: not sure what to do with these funcs *)
