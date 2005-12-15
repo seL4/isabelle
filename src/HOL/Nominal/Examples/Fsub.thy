@@ -10,7 +10,7 @@ text {* Authors: Christian Urban
                  Stephanie Weihrich
                  Dimitrios Vytiniotis
 
-                 with help from Stefan Berghofer
+                 with help from Stefan Berghofer, Markus Wenzel
       *}
 
 
@@ -208,10 +208,14 @@ lemma fresh_implies_not_member[rule_format]:
  
 lemma uniqueness_of_ctxt:
   fixes \<Gamma>::"ty_context"
-  shows "\<turnstile> \<Gamma> ok \<longrightarrow> (X,T)\<in>(set \<Gamma>) \<longrightarrow> (X,S)\<in>(set \<Gamma>) \<longrightarrow> (T = S)"
-  apply (induct \<Gamma>)
-  apply (auto dest!: validE fresh_implies_not_member)
-  done
+  assumes a: "\<turnstile> \<Gamma> ok"
+  and     b: "(X,T)\<in>set \<Gamma>"
+  and     c: "(X,S)\<in>set \<Gamma>"
+  shows "T=S"
+using a b c
+apply (induct \<Gamma>)
+apply (auto dest!: validE fresh_implies_not_member)
+done
  
 section {* Subtyping *}
 
@@ -693,18 +697,17 @@ proof (induct n rule: less_induct)
   show ?case sorry
 qed
 
-text {* I want to do an induction over the size(!) of Q 
-        therefore the example above does not help *}
+text {* FIXME: I want to do an induction over the size(!) of Q 
+        something strange is goind on *}
 
 lemma transitivity_and_narrowing:
-  shows "(\<forall>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<longrightarrow> \<Gamma> \<turnstile> Q <: T \<longrightarrow> \<Gamma> \<turnstile> S <: T) \<and>
-         (\<forall>\<Delta> \<Gamma> X P M N. (\<Delta>@(X,Q)#\<Gamma>) \<turnstile> M <: N \<longrightarrow> \<Gamma> \<turnstile> P <: Q \<longrightarrow> (\<Delta>@(X,P)#\<Gamma>) \<turnstile> M <: N)"
-proof (rule wf_induct [of "measure size_ty" _ Q, rule_format])
-  show "wf (measure size_ty)" by simp
-next
-  case (goal2 Q)
-  note  IH1_outer = goal2[THEN conjunct1]
-    and IH2_outer = goal2[THEN conjunct2, THEN spec, of _ "[]", simplified]
+  shows "\<And>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<Longrightarrow> \<Gamma> \<turnstile> Q <: T \<Longrightarrow> \<Gamma> \<turnstile> S <: T"
+  and   "\<And>\<Delta> \<Gamma> X P M N. (\<Delta>@(X,Q)#\<Gamma>) \<turnstile> M <: N \<Longrightarrow> \<Gamma> \<turnstile> P <: Q \<Longrightarrow> (\<Delta>@(X,P)#\<Gamma>) \<turnstile> M <: N"
+thm measure_induct_rule
+proof (induct Q taking: "size_ty" rule: measure_induct_rule)
+  case (less Q)
+  note  IH1_outer = less[THEN conjunct1, rule_format]
+    and IH2_outer = less[THEN conjunct2, THEN spec, of _ "[]", simplified, rule_format]
 
   thm IH1_outer
   thm IH2_outer
@@ -712,7 +715,7 @@ next
   have transitivity: 
     "\<And>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<Longrightarrow> \<Gamma> \<turnstile> Q <: T \<Longrightarrow> \<Gamma> \<turnstile> S <: T"
   proof - 
-
+    
     (* We first handle the case where T = Top once and for all; this saves some 
        repeated argument below (just like on paper :-).  We establish a little lemma
        that is invoked where needed in each case of the induction. *) 
@@ -748,8 +751,7 @@ next
       have Q_inst: "Top=Q" by fact
       have rh_drv: "\<Gamma>1 \<turnstile> Q <: T" --"rh drv." by fact
       hence "T = Top" using Q_inst by (simp add: S_TopE)
-      thus "\<Gamma>1 \<turnstile> S1 <: T" using top_case[of "\<Gamma>1" "S1" "False" "T"] lh_drv_prem1 lh_drv_prem2
-        by simp
+      thus "\<Gamma>1 \<turnstile> S1 <: T" using top_case[of "\<Gamma>1" "S1" "False" "T"] lh_drv_prem1 lh_drv_prem2 by simp
     next
       case (S_Var \<Gamma>1 X1 S1 T1) --"lh drv.: \<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> TVar(X1) <: S1"
       have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
@@ -767,7 +769,7 @@ next
       have lh_drv_prem2: "\<Gamma>1 \<turnstile> S2 <: T2" by fact
       have rh_deriv: "\<Gamma>1 \<turnstile> Q <: T" by fact
       have Q_inst: "T1 \<rightarrow> T2 = Q" by fact
-      have measure:  "size_ty Q = size_ty (T1 \<rightarrow> T2)" using Q_inst by simp
+      have measure: "size_ty T1 < size_ty Q" "size_ty T2 < size_ty Q " using Q_inst by force+
       have "S1 closed_in \<Gamma>1" and "S2 closed_in \<Gamma>1" 
 	using lh_drv_prem1 lh_drv_prem2 by (simp_all add: subtype_implies_closed)
       hence "(S1 \<rightarrow> S2) closed_in \<Gamma>1" by (simp add: closed_in_def ty.supp)
@@ -782,11 +784,9 @@ next
 	  where T_inst: "T= T3 \<rightarrow> T4" 
 	  and   rh_drv_prem1: "\<Gamma>1 \<turnstile> T3 <: T1"
 	  and   rh_drv_prem2: "\<Gamma>1 \<turnstile> T2 <: T4" by force
-        from IH1_outer[of "T1"] have "\<Gamma>1 \<turnstile> T3 <: S1" 
-	  using measure rh_drv_prem1 lh_drv_prem1 by (force simp add: ty.inject)
+        from IH1_outer[of "T1"] have "\<Gamma>1 \<turnstile> T3 <: S1" using measure rh_drv_prem1 lh_drv_prem1 by blast
 	moreover
-	from IH1_outer[of "T2"] have "\<Gamma>1 \<turnstile> S2 <: T4" 
-	  using measure rh_drv_prem2 lh_drv_prem2 by (force simp add: ty.inject)
+	from IH1_outer[of "T2"] have "\<Gamma>1 \<turnstile> S2 <: T4" using measure rh_drv_prem2 lh_drv_prem2 by blast
 	ultimately have "\<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T" using T_inst by force
       }
       ultimately show "\<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T" using top_case[of "\<Gamma>1" "S1\<rightarrow>S2" _ "T'"] by blast
@@ -797,7 +797,7 @@ next
       have rh_deriv: "\<Gamma>1 \<turnstile> Q <: T" by fact
       have fresh_cond: "X\<sharp>\<Gamma>1" "X\<sharp>S1" "X\<sharp>T1" by fact
       have Q_inst: "\<forall>[X<:T1].T2 = Q" by fact
-      have measure: "size_ty Q = size_ty (\<forall>[X<:T1].T2)" using Q_inst by simp
+      have measure: "size_ty T1 < size_ty Q" "size_ty T2 < size_ty Q " using Q_inst by force+
       have "S1 closed_in \<Gamma>1" and "S2 closed_in ((X,T1)#\<Gamma>1)" 
 	using lh_drv_prem1 lh_drv_prem2 by (simp_all add: subtype_implies_closed)
       hence "(\<forall>[X<:S1].S2) closed_in \<Gamma>1" by (force simp add: closed_in_def ty.supp abs_supp)
@@ -814,7 +814,7 @@ next
 	  and   rh_drv_prem1: "\<Gamma>1 \<turnstile> T3 <: T1" 
 	  and   rh_drv_prem2:"((X,T3)#\<Gamma>1) \<turnstile> T2 <: T4" by force
         from IH1_outer[of "T1"] have "\<Gamma>1 \<turnstile> T3 <: S1" 
-	  using lh_drv_prem1 rh_drv_prem1 measure by (force simp add: ty.inject)
+	  using lh_drv_prem1 rh_drv_prem1 measure by blast
         moreover
 	from IH2_outer[of "T1"] have "((X,T3)#\<Gamma>1) \<turnstile> S2 <: T2" 
 	  using measure lh_drv_prem2 rh_drv_prem1 by force
@@ -829,7 +829,6 @@ next
     qed
   qed
 
-  (* HERE how should I state this lemma with the context? I want to quantify over all \<Delta>*)
   have narrowing:
     "\<And>\<Delta> \<Gamma> X M N P. (\<Delta>@(X,Q)#\<Gamma>) \<turnstile> M <: N \<Longrightarrow> \<Gamma> \<turnstile> P<:Q \<Longrightarrow> (\<Delta>@(X,P)#\<Gamma>) \<turnstile> M <: N"
   proof -
@@ -840,43 +839,42 @@ next
       using a b 
     proof (nominal_induct \<Gamma>\<equiv>"\<Delta>@(X,Q)#\<Gamma>" M N avoiding: \<Delta> \<Gamma> X rule: subtype_of_rel_induct) 
       case (S_Top \<Gamma>1 S1 \<Delta> \<Gamma>2 X)
-      have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
-      have lh_drv_prem2: "S1 closed_in \<Gamma>1" by fact
-      have \<Gamma>1_inst: "\<Gamma>1=\<Delta>@(X,Q)#\<Gamma>2" by fact
-      have rh_drv: "\<Gamma>2 \<turnstile> P <: Q" by fact
-      hence a1: "P closed_in \<Gamma>2" by (simp add: subtype_implies_closed)
-      hence a2: "\<turnstile> (\<Delta>@(X,P)#\<Gamma>2) ok" using lh_drv_prem1 a1 \<Gamma>1_inst by (simp add: replace_type)
-      show "(\<Delta>@(X,P)#\<Gamma>2) \<turnstile> S1 <: Top"
-	  using a1 a2 \<Gamma>1_inst lh_drv_prem2 by (force simp add: closed_in_def domain_append)
-    next
-      case (S_Var \<Gamma>1 X1 S1 T1 \<Delta> \<Gamma>2 X)
-      have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
-      have lh_drv_prem2: "(X1,S1)\<in>set \<Gamma>1" by fact
-      have lh_drv_prem3: "\<Gamma>1 \<turnstile> S1 <: T1" by fact
-      have IH_inner: "\<And>\<Gamma>. \<Gamma> \<turnstile> P <: Q \<Longrightarrow> \<Gamma>1=\<Delta>@(X,Q)#\<Gamma> \<Longrightarrow> (\<Delta>@(X,P)#\<Gamma>) \<turnstile> S1 <: T1" by fact
-      have \<Gamma>1_inst: "\<Gamma>1=\<Delta>@(X,Q)#\<Gamma>2" by fact
+      then have lh_drv_prem1: "\<turnstile> (\<Delta>@(X,Q)#\<Gamma>2) ok" 
+           and  lh_drv_prem2: "S1 closed_in (\<Delta>@(X,Q)#\<Gamma>2)" by (simp_all only:)
       have rh_drv: "\<Gamma>2 \<turnstile> P <: Q" by fact
       hence "P closed_in \<Gamma>2" by (simp add: subtype_implies_closed)
-      hence a3: "\<turnstile> (\<Delta>@(X,P)#\<Gamma>2) ok" using lh_drv_prem1 \<Gamma>1_inst by (simp add: replace_type)
+      with lh_drv_prem1 have "\<turnstile> (\<Delta>@(X,P)#\<Gamma>2) ok" by (simp only: replace_type)
+      moreover
+      from lh_drv_prem2 have "S1 closed_in (\<Delta>@(X,P)#\<Gamma>2)" by (simp add: closed_in_def domain_append)
+      ultimately show "(\<Delta>@(X,P)#\<Gamma>2) \<turnstile> S1 <: Top" by (rule subtype_of_rel.S_Top)
+    next
+      case (S_Var \<Gamma>1 X1 S1 T1 \<Delta> \<Gamma>2 X)
+      then have lh_drv_prem1: "\<turnstile> (\<Delta>@(X,Q)#\<Gamma>2) ok" 
+           and  lh_drv_prem2: "(X1,S1)\<in>set (\<Delta>@(X,Q)#\<Gamma>2)" 
+           and  lh_drv_prem3: "(\<Delta>@(X,Q)#\<Gamma>2) \<turnstile> S1 <: T1" 
+           and  IH_inner: "\<Gamma>2 \<turnstile> P <: Q \<Longrightarrow> (\<Delta>@(X,P)#\<Gamma>2) \<turnstile> S1 <: T1" by (simp_all only:)
+      have rh_drv: "\<Gamma>2 \<turnstile> P <: Q" by fact
+      hence "P closed_in \<Gamma>2" by (simp add: subtype_implies_closed)
+      hence a3: "\<turnstile> (\<Delta>@(X,P)#\<Gamma>2) ok" using lh_drv_prem1 by (simp only: replace_type)
       show "(\<Delta>@(X,P)#\<Gamma>2) \<turnstile> TyVar X1 <: T1"
       proof (cases "X=X1")
 	case False
 	have b0: "X\<noteq>X1" by fact
-	from lh_drv_prem3 \<Gamma>1_inst rh_drv IH_inner 
+	from lh_drv_prem3 rh_drv IH_inner 
 	have b1: "(\<Delta>@(X,P)#\<Gamma>2) \<turnstile> S1 <: T1" by simp
-	from lh_drv_prem2 \<Gamma>1_inst b0 have b2: "(X1,S1)\<in>set (\<Delta>@(X,P)#\<Gamma>2)" by simp
+	from lh_drv_prem2 b0 have b2: "(X1,S1)\<in>set (\<Delta>@(X,P)#\<Gamma>2)" by simp
 	show "(\<Delta>@(X,P)#\<Gamma>2) \<turnstile> TyVar X1 <: T1" using a3 b2 b1 by (rule subtype_of_rel.S_Var)
       next 
 	case True
 	have b0: "X=X1" by fact
 	have a4: "S1=Q"
 	proof -
-	  have "(X1,Q)\<in>set \<Gamma>1" using b0 \<Gamma>1_inst by simp
-	  with lh_drv_prem1 lh_drv_prem2 show "S1=Q" by (simp add: uniqueness_of_ctxt)
+	  have "(X1,Q)\<in>set (\<Delta>@(X,Q)#\<Gamma>2)" using b0 by simp
+	  with lh_drv_prem1 lh_drv_prem2 show "S1=Q" by (blast intro: uniqueness_of_ctxt)
 	qed
 	have a5: "(\<Delta>@(X,P)#\<Gamma>2) extends \<Gamma>2" by (force simp add: extends_def)
 	have a6: "(\<Delta>@(X1,P)#\<Gamma>2) \<turnstile> P <: Q" using b0 a5 rh_drv a3 by (simp add: weakening)	
-	have a7: "(\<Delta>@(X1,P)#\<Gamma>2) \<turnstile> Q <: T1" using b0 IH_inner \<Gamma>1_inst lh_drv_prem3 rh_drv a4 by simp
+	have a7: "(\<Delta>@(X1,P)#\<Gamma>2) \<turnstile> Q <: T1" using b0 IH_inner lh_drv_prem3 rh_drv a4 by simp
 	have a8: "(\<Delta>@(X1,P)#\<Gamma>2) \<turnstile> P <: T1" using a6 a7 transitivity by blast
 	have a9: "(X1,P)\<in>set (\<Delta>@(X,P)#\<Gamma>2)" using b0 by simp
 	show "(\<Delta>@(X,P)#\<Gamma>2) \<turnstile> TyVar X1 <: T1" using a3 b0 a8 a9 by force
