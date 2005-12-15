@@ -458,7 +458,7 @@ apply(drule_tac x="(tyvrs, ty2)#\<Gamma>" in meta_spec)
 apply(force simp add: closed_in_def)
 done
 
-text {* Inversion lemmas\<dots> *}
+text {* Inversion lemmas. . .  *}
 lemma S_TopE:
  shows "\<Gamma> \<turnstile> Top <: T \<Longrightarrow> T = Top" 
 apply(ind_cases "\<Gamma> \<turnstile> Top <: T", auto)
@@ -684,49 +684,30 @@ next
   ultimately show "\<Delta> \<turnstile> \<forall> [X<:S1].S2 <: \<forall> [X<:T1].T2" using ok by (force intro: S_All) 
 qed
 
-(* helper lemma to calculate the measure of the induction *)
-lemma measure_eq [simp]: "(x, y) \<in> measure f = (f x < f y)"
-  by (simp add: measure_def inv_image_def)
-
-lemma
-  fixes n :: nat
-  shows "!!x::'a. A n x ==> P n x"
-  and "!!y::'b. B n y ==> Q n y"
-proof (induct n rule: less_induct)
-  case (less n)
-  show ?case sorry
-qed
-
-text {* FIXME: I want to do an induction over the size(!) of Q 
-        something strange is goind on *}
 
 lemma transitivity_and_narrowing:
-  shows "\<And>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<Longrightarrow> \<Gamma> \<turnstile> Q <: T \<Longrightarrow> \<Gamma> \<turnstile> S <: T"
-  and   "\<And>\<Delta> \<Gamma> X P M N. (\<Delta>@(X,Q)#\<Gamma>) \<turnstile> M <: N \<Longrightarrow> \<Gamma> \<turnstile> P <: Q \<Longrightarrow> (\<Delta>@(X,P)#\<Gamma>) \<turnstile> M <: N"
-thm measure_induct_rule
-proof (induct Q taking: "size_ty" rule: measure_induct_rule)
+  shows "\<Gamma> \<turnstile> S <: Q \<Longrightarrow> \<Gamma> \<turnstile> Q <: T \<Longrightarrow> \<Gamma> \<turnstile> S <: T"
+  and   "(\<Delta>@(X,Q)#\<Gamma>) \<turnstile> M <: N \<Longrightarrow> \<Gamma> \<turnstile> P <: Q \<Longrightarrow> (\<Delta>@(X,P)#\<Gamma>) \<turnstile> M <: N"
+proof (induct Q fixing: \<Gamma> S T and \<Delta> \<Gamma> X P M N taking: "size_ty" rule: measure_induct_rule)
   case (less Q)
   note  IH1_outer = less[THEN conjunct1, rule_format]
     and IH2_outer = less[THEN conjunct2, THEN spec, of _ "[]", simplified, rule_format]
-
-  thm IH1_outer
-  thm IH2_outer
 
   have transitivity: 
     "\<And>\<Gamma> S T. \<Gamma> \<turnstile> S <: Q \<Longrightarrow> \<Gamma> \<turnstile> Q <: T \<Longrightarrow> \<Gamma> \<turnstile> S <: T"
   proof - 
     
-    (* We first handle the case where T = Top once and for all; this saves some 
-       repeated argument below (just like on paper :-).  We establish a little lemma
-       that is invoked where needed in each case of the induction. *) 
+  -- {* We first handle the case where T = Top once and for all; this saves some 
+        repeated argument below (just like on paper :-).  We establish a little lemma
+        that is invoked where needed in each case of the induction. *} 
     have top_case: 
-      "\<And>\<Gamma> S T' P. \<lbrakk>\<turnstile> \<Gamma> ok; S closed_in \<Gamma>; P \<longrightarrow> \<Gamma> \<turnstile> S <: T'; T'=Top \<or> P\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> S <: T'"
+      "\<And>\<Gamma> S T' P. \<lbrakk>\<turnstile> \<Gamma> ok; S closed_in \<Gamma>; P \<Longrightarrow> \<Gamma> \<turnstile> S <: T'; T'=Top \<or> P\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> S <: T'"
     proof - 
       fix \<Gamma> S T' P
       assume S_Top_prem1: "S closed_in \<Gamma>"
-      and    S_Top_prem2: "\<turnstile> \<Gamma> ok"
-      and    alternative: "P \<longrightarrow> \<Gamma> \<turnstile> S <: T'" 
-      and    "T'=Top \<or> P" 
+	and  S_Top_prem2: "\<turnstile> \<Gamma> ok"
+	and  alternative: "P \<Longrightarrow> \<Gamma> \<turnstile> S <: T'" 
+	and  "T'=Top \<or> P" 
       moreover
       { assume "T'=Top"
 	hence "\<Gamma> \<turnstile> S <: T'" using S_Top_prem1 S_Top_prem2 by (simp add: S_Top)
@@ -744,8 +725,7 @@ proof (induct Q taking: "size_ty" rule: measure_induct_rule)
     assume b: "\<Gamma> \<turnstile> Q <: T"
     from a b show "\<Gamma> \<turnstile> S <: T"
     proof(nominal_induct \<Gamma> S Q\<equiv>Q avoiding: \<Gamma> S T rule: subtype_of_rel_induct)
-    (* Q is immediately instanciated - no way to delay that? *) 
-      case (S_Top \<Gamma>1 S1) --"lh drv.: \<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> S1 <: Top"
+      case (S_Top \<Gamma>1 S1) --{* lh drv.: @{term "\<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> S1 <: Top"} *}
       have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
       have lh_drv_prem2: "S1 closed_in \<Gamma>1" by fact
       have Q_inst: "Top=Q" by fact
@@ -753,7 +733,7 @@ proof (induct Q taking: "size_ty" rule: measure_induct_rule)
       hence "T = Top" using Q_inst by (simp add: S_TopE)
       thus "\<Gamma>1 \<turnstile> S1 <: T" using top_case[of "\<Gamma>1" "S1" "False" "T"] lh_drv_prem1 lh_drv_prem2 by simp
     next
-      case (S_Var \<Gamma>1 X1 S1 T1) --"lh drv.: \<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> TVar(X1) <: S1"
+      case (S_Var \<Gamma>1 X1 S1 T1) --{* lh drv.: @{term "\<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> TVar(X1) <: S1"} *}
       have lh_drv_prem1: "\<turnstile> \<Gamma>1 ok" by fact
       have lh_drv_prem2: "(X1,S1)\<in>set \<Gamma>1" by fact
       have IH_inner: "\<And>T. \<Gamma>1 \<turnstile> Q <: T \<Longrightarrow> T1=Q \<Longrightarrow> \<Gamma>1 \<turnstile> S1 <: T" by fact
@@ -762,9 +742,10 @@ proof (induct Q taking: "size_ty" rule: measure_induct_rule)
       with IH_inner have "\<Gamma>1 \<turnstile> S1 <: T" using Q_inst by simp
       thus "\<Gamma>1 \<turnstile> TyVar X1 <: T" using lh_drv_prem1 lh_drv_prem2 by (simp add: subtype_of_rel.S_Var)
     next
-      case S_Refl --"S_Refl case" thus ?case by simp
+      case S_Refl --{* @{text S_Refl} case *} 
+	thus ?case by simp
     next
-      case (S_Arrow \<Gamma>1 S1 S2 T1 T2) --"lh drv.: \<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T1 \<rightarrow> T2"
+      case (S_Arrow \<Gamma>1 S1 S2 T1 T2) --{* lh drv.: @{term "\<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T1 \<rightarrow> T2"} *}
       have lh_drv_prem1: "\<Gamma>1 \<turnstile> T1 <: S1" by fact
       have lh_drv_prem2: "\<Gamma>1 \<turnstile> S2 <: T2" by fact
       have rh_deriv: "\<Gamma>1 \<turnstile> Q <: T" by fact
@@ -791,7 +772,7 @@ proof (induct Q taking: "size_ty" rule: measure_induct_rule)
       }
       ultimately show "\<Gamma>1 \<turnstile> S1 \<rightarrow> S2 <: T" using top_case[of "\<Gamma>1" "S1\<rightarrow>S2" _ "T'"] by blast
     next
-      case (S_All \<Gamma>1 X S1 S2 T1 T2) --"lh drv.: \<Gamma> \<turnstile> S <: Q \<equiv> \<Gamma>1 \<turnstile> \<forall>[X:S1].S2 <: \<forall>[X:T1].T2" 
+      case (S_All \<Gamma>1 X S1 S2 T1 T2) --{* lh drv.: @{term "\<Gamma>\<turnstile>S<:Q \<equiv> \<Gamma>1\<turnstile>\<forall>[X<:S1].S2 <: \<forall>[X<:T1].T2"} *} 
       have lh_drv_prem1: "\<Gamma>1 \<turnstile> T1 <: S1" by fact
       have lh_drv_prem2: "((X,T1)#\<Gamma>1) \<turnstile> S2 <: T2" by fact
       have rh_deriv: "\<Gamma>1 \<turnstile> Q <: T" by fact
@@ -933,3 +914,4 @@ translations
   "Lam  [a:tys].t" \<rightleftharpoons> "trm.Lam a t tys"
   "TAbs [a<:tys].t" \<rightleftharpoons> "trm.TAbs a t tys"
 
+end
