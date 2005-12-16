@@ -1120,7 +1120,10 @@ lemma not_psubset_empty [iff]: "\<not> (A < {})"
   by (unfold psubset_def) blast
 
 lemma Collect_empty_eq [simp]: "(Collect P = {}) = (\<forall>x. \<not> P x)"
-  by auto
+by blast
+
+lemma empty_Collect_eq [simp]: "({} = Collect P) = (\<forall>x. \<not> P x)"
+by blast
 
 lemma Collect_neg_eq: "{x. \<not> P x} = - {x. P x}"
   by blast

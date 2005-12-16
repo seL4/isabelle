@@ -177,7 +177,7 @@ proof -
   qed
 qed
 
-lemma finite_Collect_subset: "finite A \<Longrightarrow> finite{x \<in> A. P x}"
+lemma finite_Collect_subset[simp]: "finite A \<Longrightarrow> finite{x \<in> A. P x}"
 using finite_subset[of "{x \<in> A. P x}" "A"] by blast
 
 lemma finite_Un [iff]: "finite (F Un G) = (finite F & finite G)"
@@ -2108,6 +2108,28 @@ using A
 by(induct rule:finite_ne_induct)(simp_all add:above_f_conv)
 
 
+lemma (in ACIfSLlin) fold1_antimono:
+assumes "A \<noteq> {}" and "A \<subseteq> B" and "finite B"
+shows "fold1 f B \<sqsubseteq> fold1 f A"
+proof(cases)
+  assume "A = B" thus ?thesis by simp
+next
+  assume "A \<noteq> B"
+  have B: "B = A \<union> (B-A)" using `A \<subseteq> B` by blast
+  have "fold1 f B = fold1 f (A \<union> (B-A))" by(subst B)(rule refl)
+  also have "\<dots> = f (fold1 f A) (fold1 f (B-A))"
+  proof -
+    have "finite A" by(rule finite_subset[OF `A \<subseteq> B` `finite B`])
+    moreover have "finite(B-A)" by(blast intro:finite_Diff prems)
+    moreover have "(B-A) \<noteq> {}" using prems by blast
+    moreover have "A Int (B-A) = {}" using prems by blast
+    ultimately show ?thesis using `A \<noteq> {}` by(rule_tac fold1_Un)
+  qed
+  also have "\<dots> \<sqsubseteq> fold1 f A" by(simp add: above_f_conv)
+  finally show ?thesis .
+qed
+
+
 subsubsection{* Lattices *}
 
 locale Lattice = lattice +
@@ -2185,26 +2207,29 @@ lemma (in Lattice) inf_Sup_absorb[simp]:
 by(simp add:Sup_def inf_absorb ACIfSL.fold1_belowI[OF ACIfSL_sup])
 
 
-lemma (in Distrib_Lattice) sup_Inf1_distrib:
-assumes A: "finite A" "A \<noteq> {}"
-shows "(x \<squnion> \<Sqinter>A) = \<Sqinter>{x \<squnion> a|a. a \<in> A}"
-using A
-proof (induct rule: finite_ne_induct)
-  case singleton thus ?case by(simp add:Inf_def)
+lemma (in ACIf) hom_fold1_commute:
+assumes hom: "!!x y. h(f x y) = f (h x) (h y)"
+and N: "finite N" "N \<noteq> {}" shows "h(fold1 f N) = fold1 f (h ` N)"
+using N proof (induct rule: finite_ne_induct)
+  case singleton thus ?case by simp
 next
-  case (insert y A)
-  have fin: "finite {x \<squnion> a |a. a \<in> A}"
-    by(fast intro: finite_surj[where f = "%a. x \<squnion> a", OF insert(1)])
-  have "x \<squnion> \<Sqinter> (insert y A) = x \<squnion> (y \<sqinter> \<Sqinter> A)"
-    using insert by(simp add:ACf.fold1_insert_def[OF ACf_inf Inf_def])
-  also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> \<Sqinter> A)" by(rule sup_inf_distrib1)
-  also have "x \<squnion> \<Sqinter> A = \<Sqinter>{x \<squnion> a|a. a \<in> A}" using insert by simp
-  also have "(x \<squnion> y) \<sqinter> \<dots> = \<Sqinter> (insert (x \<squnion> y) {x \<squnion> a |a. a \<in> A})"
-    using insert by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_def fin])
-  also have "insert (x\<squnion>y) {x\<squnion>a |a. a \<in> A} = {x\<squnion>a |a. a \<in> insert y A}"
-    by blast
+  case (insert n N)
+  have "h(fold1 f (insert n N)) = h(f n (fold1 f N))" using insert by(simp)
+  also have "\<dots> = f (h n) (h(fold1 f N))" by(rule hom)
+  also have "h(fold1 f N) = fold1 f (h ` N)" by(rule insert)
+  also have "f (h n) \<dots> = fold1 f (insert (h n) (h ` N))"
+    using insert by(simp)
+  also have "insert (h n) (h ` N) = h ` insert n N" by simp
   finally show ?case .
 qed
+
+lemma (in Distrib_Lattice) sup_Inf1_distrib:
+ "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<squnion> \<Sqinter>A) = \<Sqinter>{x \<squnion> a|a. a \<in> A}"
+apply(simp add:Inf_def image_def
+  ACIf.hom_fold1_commute[OF ACIf_inf, where h="sup x", OF sup_inf_distrib1])
+apply(rule arg_cong, blast)
+done
+
 
 lemma (in Distrib_Lattice) sup_Inf2_distrib:
 assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
@@ -2234,6 +2259,47 @@ next
     using B insert
     by(simp add:Inf_def ACIf.fold1_Un2[OF ACIf_inf finB _ finAB ne])
   also have "?M = {a \<squnion> b |a b. a \<in> insert x A \<and> b \<in> B}"
+    by blast
+  finally show ?case .
+qed
+
+
+lemma (in Distrib_Lattice) inf_Sup1_distrib:
+ "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<sqinter> \<Squnion>A) = \<Squnion>{x \<sqinter> a|a. a \<in> A}"
+apply(simp add:Sup_def image_def
+  ACIf.hom_fold1_commute[OF ACIf_sup, where h="inf x", OF inf_sup_distrib1])
+apply(rule arg_cong, blast)
+done
+
+
+lemma (in Distrib_Lattice) inf_Sup2_distrib:
+assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
+shows "(\<Squnion>A \<sqinter> \<Squnion>B) = \<Squnion>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
+using A
+proof (induct rule: finite_ne_induct)
+  case singleton thus ?case
+    by(simp add: inf_Sup1_distrib[OF B] fold1_singleton_def[OF Sup_def])
+next
+  case (insert x A)
+  have finB: "finite {x \<sqinter> b |b. b \<in> B}"
+    by(fast intro: finite_surj[where f = "%b. x \<sqinter> b", OF B(1)])
+  have finAB: "finite {a \<sqinter> b |a b. a \<in> A \<and> b \<in> B}"
+  proof -
+    have "{a \<sqinter> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<sqinter> b})"
+      by blast
+    thus ?thesis by(simp add: insert(1) B(1))
+  qed
+  have ne: "{a \<sqinter> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
+  have "\<Squnion>(insert x A) \<sqinter> \<Squnion>B = (x \<squnion> \<Squnion>A) \<sqinter> \<Squnion>B"
+    using insert by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_sup Sup_def])
+  also have "\<dots> = (x \<sqinter> \<Squnion>B) \<squnion> (\<Squnion>A \<sqinter> \<Squnion>B)" by(rule inf_sup_distrib2)
+  also have "\<dots> = \<Squnion>{x \<sqinter> b|b. b \<in> B} \<squnion> \<Squnion>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
+    using insert by(simp add:inf_Sup1_distrib[OF B])
+  also have "\<dots> = \<Squnion>({x\<sqinter>b |b. b \<in> B} \<union> {a\<sqinter>b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Squnion>?M")
+    using B insert
+    by(simp add:Sup_def ACIf.fold1_Un2[OF ACIf_sup finB _ finAB ne])
+  also have "?M = {a \<sqinter> b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
 qed
@@ -2338,6 +2404,12 @@ lemma Max_in [simp]:
 using max.fold1_in
 by(fastsimp simp: Max_def max_def)
 
+lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<le> Min M"
+by(simp add:Finite_Set.Min_def min.fold1_antimono)
+
+lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<le> Max N"
+by(simp add:Max_def max.fold1_antimono)
+
 lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
 by(simp add: Min_def min.fold1_belowI)
 
@@ -2359,6 +2431,46 @@ by(simp add: Min_def min.fold1_below_iff)
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
 by(simp add: Max_def max.fold1_below_iff)
+
+lemma Min_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
+  \<Longrightarrow> Min (A \<union> B) = min (Min A) (Min B)"
+by(simp add:Min_def min.f.fold1_Un2)
+
+lemma Max_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
+  \<Longrightarrow> Max (A \<union> B) = max (Max A) (Max B)"
+by(simp add:Max_def max.f.fold1_Un2)
+
+
+lemma hom_Min_commute:
+ "(!!x y::'a::linorder. h(min x y) = min (h x) (h y::'a))
+  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h(Min N) = Min(h ` N)"
+by(simp add:Finite_Set.Min_def min.hom_fold1_commute)
+
+lemma hom_Max_commute:
+ "(!!x y::'a::linorder. h(max x y) = max (h x) (h y::'a))
+  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h(Max N) = Max(h ` N)"
+by(simp add:Max_def max.hom_fold1_commute)
+
+
+lemma add_Min_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
+ shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k + Min N = Min {k+m|m. m \<in> N}"
+apply(subgoal_tac "!!x y. k + min x y = min (k + x) (k + y)")
+using hom_Min_commute[of "op + k" N]
+apply simp apply(rule arg_cong[where f = Min]) apply blast
+apply(simp add:min_def linorder_not_le)
+apply(blast intro:order.antisym order_less_imp_le add_left_mono)
+done
+
+lemma add_Max_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
+ shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k + Max N = Max {k+m|m. m \<in> N}"
+apply(subgoal_tac "!!x y. k + max x y = max (k + x) (k + y)")
+using hom_Max_commute[of "op + k" N]
+apply simp apply(rule arg_cong[where f = Max]) apply blast
+apply(simp add:max_def linorder_not_le)
+apply(blast intro:order.antisym order_less_imp_le add_left_mono)
+done
+
+
 
 subsection {* Properties of axclass @{text finite} *}
 

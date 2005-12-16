@@ -628,6 +628,9 @@ by (induct xs rule: rev_induct) auto
 
 lemmas rev_cases = rev_exhaust
 
+lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
+by(rule rev_cases[of xs]) auto
+
 
 subsubsection {* @{text set} *}
 
@@ -733,6 +736,10 @@ by (induct xs) auto
 
 lemma length_filter_le [simp]: "length (filter P xs) \<le> length xs"
 by (induct xs) (auto simp add: le_SucI)
+
+lemma sum_length_filter_compl:
+  "length(filter P xs) + length(filter (%x. ~P x) xs) = length xs"
+by(induct xs) simp_all
 
 lemma filter_True [simp]: "\<forall>x \<in> set xs. P x ==> filter P xs = xs"
 by (induct xs) auto
@@ -905,6 +912,9 @@ lemma nth_map [simp]: "!!n. n < length xs ==> (map f xs)!n = f(xs!n)"
 apply (induct xs, simp)
 apply (case_tac n, auto)
 done
+
+lemma hd_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd xs = xs!0"
+by(cases xs) simp_all
 
 
 lemma list_eq_iff_nth_eq:
@@ -1202,6 +1212,9 @@ apply (induct n, auto)
 apply (case_tac xs, auto)
 done
 
+lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
+by(simp add: hd_conv_nth)
+
 lemma set_take_subset: "\<And>n. set(take n xs) \<subseteq> set xs"
 by(induct xs)(auto simp:take_Cons split:nat.split)
 
@@ -1320,6 +1333,14 @@ apply(induct xs)
 apply auto
 apply(subst dropWhile_append2)
 apply auto
+done
+
+lemma takeWhile_not_last:
+ "\<lbrakk> xs \<noteq> []; distinct xs\<rbrakk> \<Longrightarrow> takeWhile (\<lambda>y. y \<noteq> last xs) xs = butlast xs"
+apply(induct xs)
+ apply simp
+apply(case_tac xs)
+apply(auto)
 done
 
 lemma takeWhile_cong [recdef_cong]:
@@ -2044,6 +2065,12 @@ apply(cases "n mod length xs = 0")
 apply(simp add:rotate_drop_take rev_drop rev_take)
 done
 
+lemma hd_rotate_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd(rotate n xs) = xs!(n mod length xs)"
+apply(simp add:rotate_drop_take hd_append hd_drop_conv_nth hd_conv_nth)
+apply(subgoal_tac "length xs \<noteq> 0")
+ prefer 2 apply simp
+using mod_less_divisor[of "length xs" n] by arith
+
 
 subsubsection {* @{text sublist} --- a generalization of @{text nth} to sets *}
 
@@ -2335,7 +2362,7 @@ lemma lexn_conv:
   "lexn r n =
     {(xs,ys). length xs = n \<and> length ys = n \<and>
     (\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
-apply (induct n, simp, blast)
+apply (induct n, simp)
 apply (simp add: image_Collect lex_prod_def, safe, blast)
  apply (rule_tac x = "ab # xys" in exI, simp)
 apply (case_tac xys, simp_all, blast)
