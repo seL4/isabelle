@@ -72,13 +72,13 @@ sig
   (* Storing results *)
   val smart_note_thmss: string -> string option ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
-    theory -> theory * (bstring * thm list) list
+    theory -> (bstring * thm list) list * theory
   val note_thmss: string -> xstring ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> (theory * ProofContext.context) * (bstring * thm list) list
+    theory -> (bstring * thm list) list * (theory * ProofContext.context)
   val note_thmss_i: string -> string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    theory -> (theory * ProofContext.context) * (bstring * thm list) list
+    theory -> (bstring * thm list) list * (theory * ProofContext.context)
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string * Attrib.src list -> Element.context element list ->
@@ -1476,8 +1476,8 @@ fun note_thmss_registrations kind target args thy =
   in fold activate regs thy end;
 
 
-fun smart_note_thmss kind NONE = swap oo PureThy.note_thmss_i (Drule.kind kind)
-  | smart_note_thmss kind (SOME loc) = swap oo note_thmss_qualified kind loc;
+fun smart_note_thmss kind NONE = PureThy.note_thmss_i (Drule.kind kind)
+  | smart_note_thmss kind (SOME loc) = note_thmss_qualified kind loc;
 
 
 local
@@ -1514,7 +1514,7 @@ fun gen_note_thmss prep_locale prep_facts kind raw_loc args thy =
       |> put_facts loc args'
       |> note_thmss_registrations kind loc args'
       |> note_thmss_qualified kind loc facts';
-  in ((thy', ctxt'), result) end;
+  in (result, (thy', ctxt')) end;
 
 in
 

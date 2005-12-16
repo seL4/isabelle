@@ -90,8 +90,8 @@ fun smart_theorems kind NONE args thy = thy
       |> (fn (_, thy) => (thy, ProofContext.init thy))
   | smart_theorems kind (SOME loc) args thy = thy
       |> Locale.note_thmss kind loc args
-      |> tap (present_theorems kind o swap o apfst #1)
-      |> #1;
+      |> tap (present_theorems kind o apsnd fst)
+      |> #2;
 
 fun declare_theorems opt_loc args =
   smart_theorems "" opt_loc [(("", []), args)];
