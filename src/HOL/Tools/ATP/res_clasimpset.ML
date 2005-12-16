@@ -141,36 +141,56 @@ fun clause_numbering ((clause, theorem), num_of_cls) =
 	multi (clause, theorem) num_of_cls []
     end;
     
-fun get_simpset_thms ctxt goal clas =
-  let val ctab = fold_rev Symtab.update clas Symtab.empty
-      fun unused (s,_) = not (Symtab.defined ctab s)
-  in  ResAxioms.clausify_rules_pairs 
-	(filter unused
-	  (map put_name_pair 
-	    (ReduceAxiomsN.relevant_filter (!relevant) goal
-	      (ResAxioms.simpset_rules_of_ctxt ctxt))))
-  end;
-		  
+(*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute
+Some primes from http://primes.utm.edu/:
+   1823   1831   1847   1861   1867   1871   1873   1877   1879   1889 
+   1901   1907   1913   1931   1933   1949   1951   1973   1979   1987 
+   1993   1997   1999   2003   2011   2017   2027   2029   2039   2053 
+   2063   2069   2081   2083   2087   2089   2099   2111   2113   2129 
+*)
+
+exception HASH_CLAUSE;
+
+(*Create a hash table for clauses, of the given size*)
+fun mk_clause_table size =
+      Hashtable.create{hash = ResClause.hash1_clause, 
+		       exn = HASH_CLAUSE,
+		       == = ResClause.clause_eq, 
+		       size = size};
+
+(*Insert x only if fresh*)
+fun insert_new ht (x,y) = ignore (Hashtable.lookup ht x)
+            handle HASH_CLAUSE => Hashtable.insert ht (x,y); 
+
+(*Use a hash table to eliminate duplicates from xs*)
+fun make_unique ht xs = (app (insert_new ht) xs;  Hashtable.map Library.I ht);
 
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
 fun get_clasimp_lemmas ctxt goal = 
-    let val claset_thms =
-		map put_name_pair
-		  (ReduceAxiomsN.relevant_filter (!relevant) goal 
-		    (ResAxioms.claset_rules_of_ctxt ctxt))
-	val claset_cls_thms = ResAxioms.clausify_rules_pairs claset_thms
-	val simpset_cls_thms = 
-	      if !use_simpset then get_simpset_thms ctxt goal claset_thms
-	      else []
-	val cls_thms_list = List.concat (claset_cls_thms@simpset_cls_thms)
-	(* Identify the set of clauses to be written out *)
-	val clauses = map #1(cls_thms_list);
-	val cls_nums = map ResClause.num_of_clauses clauses;
-        val whole_list = List.concat 
-              (map clause_numbering (ListPair.zip (cls_thms_list, cls_nums)));
- 	
+  let val claset_thms =
+	    map put_name_pair
+	      (ReduceAxiomsN.relevant_filter (!relevant) goal 
+		(ResAxioms.claset_rules_of_ctxt ctxt))
+      val claset_cls_thms = ResAxioms.clausify_rules_pairs claset_thms
+      val simpset_cls_thms = 
+	    if !use_simpset then 
+	       ResAxioms.clausify_rules_pairs 
+		  (map put_name_pair 
+		    (ReduceAxiomsN.relevant_filter (!relevant) goal
+		      (ResAxioms.simpset_rules_of_ctxt ctxt)))
+	    else []
+      val cls_thms_list = make_unique (mk_clause_table 2129) 
+                                      (List.concat (simpset_cls_thms@claset_cls_thms))
+      (* Identify the set of clauses to be written out *)
+      val clauses = map #1(cls_thms_list);
+      val cls_nums = map ResClause.num_of_clauses clauses;
+      (*Note: in every case, cls_num = 1.  I think that only conjecture clauses
+	can have any other value.*)
+      val whole_list = List.concat 
+	    (map clause_numbering (ListPair.zip (cls_thms_list, cls_nums)));
+      
   in  (* create array of put clausename, number pairs into it *)
       (Array.fromList whole_list, clauses)
   end;

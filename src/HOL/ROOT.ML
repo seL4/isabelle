@@ -11,6 +11,7 @@ writeln banner;
 
 use "hologic.ML";
 
+use "~~/src/Pure/General/hashtable.ML";
 use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/hypsubst.ML";
 use "~~/src/Provers/induct_method.ML";

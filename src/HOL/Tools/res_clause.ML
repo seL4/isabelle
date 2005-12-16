@@ -69,9 +69,13 @@ signature RES_CLAUSE =
   val gen_tptp_type_cls : int * string * string * string * int -> string
   val tptp_of_typeLit : type_literal -> string
 
+  (*for hashing*)
+  val clause_eq : clause * clause -> bool
+  val hash1_clause : clause -> word
+
   end;
 
-structure ResClause: RES_CLAUSE =
+structure ResClause : RES_CLAUSE =
 struct
 
 (* Added for typed equality *)
@@ -412,7 +416,6 @@ fun term_of (Var(ind_nm,T)) =
 	   (union_all (ts1::ts2), 
 	    union_all(funcs::funcs')))
       end
-  | term_of t = raise CLAUSE("Function Not First Order 4", t)
 and terms_of ts =  
       let val (args, ts_funcs) = ListPair.unzip (map term_of ts)
       in
@@ -505,21 +508,16 @@ fun term_ord (UVar(_,_),UVar(_,_)) = EQUAL
   | term_ord (UVar(_,_),_) = LESS
   | term_ord (Fun(_,_,_),UVar(_)) = GREATER
   | term_ord (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) = 
-    let val fn_ord = string_ord (f1,f2)
-    in
-	case fn_ord of EQUAL => 
-		       let val tms_ord = terms_ord (tms1,tms2)
-		       in
-			   case tms_ord of EQUAL => types_ord (tps1,tps2)
-					 | _ => tms_ord
-		       end
-		     | _ => fn_ord
-    end
+     (case string_ord (f1,f2) of
+         EQUAL => 
+	   (case terms_ord (tms1,tms2) of EQUAL => types_ord (tps1,tps2)
+	      | tms_ord => tms_ord)
+       | fn_ord => fn_ord)
 
 and
 
-terms_ord ([],[]) = EQUAL
-  | terms_ord (tms1,tms2) = list_ord term_ord (tms1,tms2);
+  terms_ord ([],[]) = EQUAL
+    | terms_ord (tms1,tms2) = list_ord term_ord (tms1,tms2);
 
 
 
@@ -541,6 +539,7 @@ fun literal_ord (Literal(false,_,_),Literal(true,_,_)) = LESS
 
 fun sort_lits lits = sort literal_ord lits;
 
+
 (********** clause equivalence ******************)
 
 fun check_var_pairs (x,y) [] = 0 
@@ -550,7 +549,6 @@ fun check_var_pairs (x,y) [] = 0
 	if (x = u) orelse (y = v) then 2 (*conflict*)
 	else check_var_pairs (x,y) w;
 
-
 fun type_eq (AtomV(v1),AtomV(v2)) (vars,tvars) =
     (case check_var_pairs (v1,v2) tvars of 0 => (true,(vars,(v1,v2)::tvars))
 					 | 1 => (true,(vars,tvars))
@@ -559,24 +557,24 @@ fun type_eq (AtomV(v1),AtomV(v2)) (vars,tvars) =
   | type_eq (AtomF(f1),AtomF(f2)) vtvars = (f1=f2,vtvars)
   | type_eq (AtomF(_),_) vtvars = (false,vtvars)
   | type_eq (Comp(con1,args1),Comp(con2,args2)) vtvars =
-    let val (eq1,vtvars1) = 
-	    if (con1 = con2) then types_eq (args1,args2) vtvars
-	    else (false,vtvars)
-    in
-	(eq1,vtvars1)
-    end
+      let val (eq1,vtvars1) = 
+	      if con1 = con2 then types_eq (args1,args2) vtvars
+	      else (false,vtvars)
+      in
+	  (eq1,vtvars1)
+      end
   | type_eq (Comp(_,_),_) vtvars = (false,vtvars)
 
 and
 
-types_eq ([],[]) vtvars = (true,vtvars)
-| types_eq (tp1::tps1,tp2::tps2) vtvars =
-  let val (eq1,vtvars1) = type_eq (tp1,tp2) vtvars
-      val (eq2,vtvars2) = if eq1 then types_eq (tps1,tps2) vtvars1
-			  else (eq1,vtvars1)
-  in
-      (eq2,vtvars2)
-  end;
+    types_eq ([],[]) vtvars = (true,vtvars)
+  | types_eq (tp1::tps1,tp2::tps2) vtvars =
+      let val (eq1,vtvars1) = type_eq (tp1,tp2) vtvars
+	  val (eq2,vtvars2) = if eq1 then types_eq (tps1,tps2) vtvars1
+			      else (eq1,vtvars1)
+      in
+	  (eq2,vtvars2)
+      end;
 
 
 fun term_eq (UVar(v1,tp1),UVar(v2,tp2)) (vars,tvars) =
@@ -585,27 +583,27 @@ fun term_eq (UVar(v1,tp1),UVar(v2,tp2)) (vars,tvars) =
 					| 2 => (false,(vars,tvars)))
   | term_eq (UVar(_,_),_) vtvars = (false,vtvars)
   | term_eq (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) vtvars =
-    let val (eq1,vtvars1) = 
-	    if (f1 = f2) then terms_eq (tms1,tms2) vtvars
-	    else (false,vtvars)
-	val (eq2,vtvars2) =
-	    if eq1 then types_eq (tps1,tps2) vtvars1
-	    else (eq1,vtvars1)
-    in
-	(eq2,vtvars2)
-    end
+      let val (eq1,vtvars1) = 
+	      if f1 = f2 then terms_eq (tms1,tms2) vtvars
+	      else (false,vtvars)
+	  val (eq2,vtvars2) =
+	      if eq1 then types_eq (tps1,tps2) vtvars1
+	      else (eq1,vtvars1)
+      in
+	  (eq2,vtvars2)
+      end
   | term_eq (Fun(_,_,_),_) vtvars = (false,vtvars)
 
 and
 
-terms_eq ([],[]) vtvars = (true,vtvars)
-| terms_eq (tm1::tms1,tm2::tms2) vtvars =
-  let val (eq1,vtvars1) = term_eq (tm1,tm2) vtvars
-      val (eq2,vtvars2) = if eq1 then terms_eq (tms1,tms2) vtvars1
-				 else (eq1,vtvars1)
-  in
-      (eq2,vtvars2)
-  end;
+    terms_eq ([],[]) vtvars = (true,vtvars)
+  | terms_eq (tm1::tms1,tm2::tms2) vtvars =
+      let val (eq1,vtvars1) = term_eq (tm1,tm2) vtvars
+	  val (eq2,vtvars2) = if eq1 then terms_eq (tms1,tms2) vtvars1
+				     else (eq1,vtvars1)
+      in
+	  (eq2,vtvars2)
+      end;
 					     
 
 fun pred_eq (Predicate(predname1,tps1,tms1),Predicate(predname2,tps2,tms2)) vtvars =
@@ -634,14 +632,30 @@ fun lits_eq ([],[]) vtvars = (true,vtvars)
     end;
 
 
-fun cls_eq (cls1,cls2) =
+(*Equality of two clauses up to variable renaming*)
+fun clause_eq (cls1,cls2) =
     let val lits1 = get_literals cls1
 	val lits2 = get_literals cls2
     in
-	(length lits1 = length lits2) andalso (fst (lits_eq (lits1,lits2) ([],[])))
+	length lits1 = length lits2 andalso #1 (lits_eq (lits1,lits2) ([],[]))
     end;
 
 
+(*** Hash function for clauses ***)
+
+val xor_words = List.foldl Word.xorb 0w0;
+
+fun hash_term (UVar(_,_), w) = w
+  | hash_term (Fun(f,tps,args), w) = 
+      List.foldl hash_term (Hashtable.hash_string (f,w)) args;
+  
+fun hash_pred (Predicate(pn,_,args), w) = 
+    List.foldl hash_term (Hashtable.hash_string (pn,w)) args;
+    
+fun hash1_literal (Literal(true,pred,_)) = hash_pred (pred, 0w0)
+  | hash1_literal (Literal(false,pred,_)) = Word.notb (hash_pred (pred, 0w0));
+  
+fun hash1_clause clause = xor_words (map hash1_literal (get_literals clause));
 
 
 (* FIX: not sure what to do with these funcs *)
@@ -808,7 +822,8 @@ fun make_axiom_arity_clause (tcons, n, (res,args)) =
                    premLits = map make_TVarLit false_tvars_srts'}
    end;
     
-(*The number of clauses generated from cls, including type clauses*)
+(*The number of clauses generated from cls, including type clauses. It's always 1
+  except for conjecture clauses.*)
 fun num_of_clauses (Clause cls) =
     let val num_tfree_lits = 
 	      if !keep_types then length (#tfree_type_literals cls)
@@ -886,17 +901,14 @@ and string_of_term (UVar(x,_)) = x
   | string_of_term (Fun (name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
 	  val typs' = if !keep_types then map string_of_fol_type typs else []
-      in  name ^ (paren_pack (terms_as_strings @ typs'))  end
-  | string_of_term _ = error "string_of_term";      
+      in  name ^ (paren_pack (terms_as_strings @ typs'))  end;
 
 (* before output the string of the predicate, check if the predicate corresponds to an equality or not. *)
 fun string_of_predicate (Predicate("equal",[typ],terms)) = string_of_equality(typ,terms)
   | string_of_predicate (Predicate(name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
 	  val typs' = if !keep_types then map string_of_fol_type typs else []
-      in  name ^ (paren_pack (terms_as_strings @ typs'))  end
-  | string_of_predicate _ = error "string_of_predicate";      
-
+      in  name ^ (paren_pack (terms_as_strings @ typs'))  end;
 
 fun string_of_clausename (cls_id,ax_name) = 
     clause_prefix ^ ascii_of ax_name ^ "_" ^ Int.toString cls_id;
