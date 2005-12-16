@@ -163,6 +163,24 @@ greatest fixed-point.
 
 *** ML ***
 
+* Pure: functions of signature "... -> theory -> theory * ..." have been reoriented
+  to "... -> theory -> ... * theory" in order to allow natural usage in combination
+  with the ||>, ||>>, |-> and fold_map combinators.
+
+* Library: new module Pure/General/name_mangler providing a functor for generic
+    name mangling (bijective mapping from any expression values to strings).
+
+* SML systems: added
+    print: 'a -> 'a
+  to smlnj. PolyML provides such a function which as a side effect prints out
+  a string representation of its argument. By adding print to smlnj, it is possible
+  to use "print" for debugging purpose without breaking smlnj compatibility.
+
+* Library: functions map2 and fold2 with curried syntax for simultanous
+    mapping and folding:
+    val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+    val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+
 * Library: new module Pure/General/rat.ML implementing rational numbers,
 replacing the former functions in the Isabelle library.
 
