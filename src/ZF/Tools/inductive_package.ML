@@ -567,16 +567,16 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
     val dom_sum = read Ind_Syntax.iT sdom_sum;
     val intr_tms = map (read propT o snd o fst) sintrs;
     val intr_specs = (map (fst o fst) sintrs ~~ intr_tms) ~~ map snd sintrs;
-
-    val (thy', (((monos, con_defs), type_intrs), type_elims)) = thy
-      |> IsarThy.apply_theorems raw_monos
-      |>>> IsarThy.apply_theorems raw_con_defs
-      |>>> IsarThy.apply_theorems raw_type_intrs
-      |>>> IsarThy.apply_theorems raw_type_elims;
   in
-    add_inductive_i true (rec_tms, dom_sum) intr_specs
-      (monos, con_defs, type_intrs, type_elims) thy'
-  end
+    thy
+    |> IsarThy.apply_theorems raw_monos
+    ||>> IsarThy.apply_theorems raw_con_defs
+    ||>> IsarThy.apply_theorems raw_type_intrs
+    ||>> IsarThy.apply_theorems raw_type_elims
+    |-> (fn (((monos, con_defs), type_intrs), type_elims) =>
+          add_inductive_i true (rec_tms, dom_sum) intr_specs
+            (monos, con_defs, type_intrs, type_elims))
+  end;
 
 
 (* outer syntax *)

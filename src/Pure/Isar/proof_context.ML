@@ -1018,7 +1018,7 @@ local
 fun gen_note_thmss get = fold_map (fn ((name, more_attrs), ths_attrs) => fn ctxt =>
   let
     fun app (th, attrs) (ct, ths) =
-      let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
+      let val (ct', th') = Thm.applys_attributes (attrs @ more_attrs) (ct, get ctxt th)
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
     val thms = List.concat (rev rev_thms);

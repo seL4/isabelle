@@ -583,7 +583,7 @@ fun gen_inductive_cases prep_att prep_prop args thy =
 
     val facts = args |> map (fn ((a, atts), props) =>
      ((a, map (prep_att thy) atts), map (Thm.no_attributes o single o mk_cases) props));
-  in thy |> IsarThy.theorems_i Drule.lemmaK facts |> #1 end;
+  in thy |> IsarThy.theorems_i Drule.lemmaK facts |> snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.global_attribute ProofContext.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
@@ -864,7 +864,7 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts thy cs intr_ts;
 
-    val (thy', monos) = thy |> IsarThy.apply_theorems raw_monos;
+    val (monos, thy') = thy |> IsarThy.apply_theorems raw_monos;
   in
     add_inductive_i verbose false "" coind false false cs'
       ((intr_names ~~ intr_ts') ~~ intr_atts) monos thy'

@@ -142,8 +142,8 @@ sig
   val no_prems: thm -> bool
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
-  val apply_attributes: ('a * thm) * 'a attribute list -> 'a * thm
-  val applys_attributes: ('a * thm list) * 'a attribute list -> 'a * thm list
+  val apply_attributes: 'a attribute list -> 'a * thm -> 'a * thm
+  val applys_attributes: 'a attribute list -> 'a * thm list -> 'a * thm list
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val get_name_tags: thm -> string * tag list
@@ -400,8 +400,8 @@ type 'a attribute = 'a * thm -> 'a * thm;
 
 fun no_attributes x = (x, []);
 fun simple_fact x = [(x, [])];
-fun apply_attributes (x_th, atts) = Library.apply atts x_th;
-fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
+val apply_attributes = Library.apply;
+fun applys_attributes atts = foldl_map (Library.apply atts);
 
 
 (* hyps *)

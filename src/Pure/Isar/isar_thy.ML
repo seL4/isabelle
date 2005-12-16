@@ -11,14 +11,14 @@ sig
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_defs: bool * ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_defs_i: bool * ((bstring * term) * theory attribute list) list -> theory -> theory
-  val apply_theorems: (thmref * Attrib.src list) list -> theory -> theory * thm list
-  val apply_theorems_i: (thm list * theory attribute list) list -> theory -> theory * thm list
+  val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
+  val apply_theorems_i: (thm list * theory attribute list) list -> theory -> thm list * theory
   val theorems: string ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
-    -> theory -> theory * (string * thm list) list
+    -> theory -> (string * thm list) list * theory 
   val theorems_i: string ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list
-    -> theory -> theory * (string * thm list) list
+    -> theory -> (string * thm list) list * theory
   val smart_theorems: string -> xstring option ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
     theory -> theory * Proof.context
@@ -75,21 +75,19 @@ fun present_theorems kind (named_thmss, thy) =
 
 fun theorems kind args thy = thy
   |> PureThy.note_thmss (Drule.kind kind) (Attrib.map_facts (Attrib.global_attribute thy) args)
-  |> tap (present_theorems kind)
-  |> swap;
+  |> tap (present_theorems kind);
 
 fun theorems_i kind args =
   PureThy.note_thmss_i (Drule.kind kind) args
-  #> tap (present_theorems kind)
-  #> swap;
+  #> tap (present_theorems kind);
 
-fun apply_theorems args = apsnd (List.concat o map snd) o theorems "" [(("", []), args)];
-fun apply_theorems_i args = apsnd (List.concat o map snd) o theorems_i "" [(("", []), args)];
+fun apply_theorems args = apfst (List.concat o map snd) o theorems "" [(("", []), args)];
+fun apply_theorems_i args = apfst (List.concat o map snd) o theorems_i "" [(("", []), args)];
 
 fun smart_theorems kind NONE args thy = thy
       |> theorems kind args
-      |> tap (present_theorems kind o swap)
-      |> (fn (thy, _) => (thy, ProofContext.init thy))
+      |> tap (present_theorems kind)
+      |> (fn (_, thy) => (thy, ProofContext.init thy))
   | smart_theorems kind (SOME loc) args thy = thy
       |> Locale.note_thmss kind loc args
       |> tap (present_theorems kind o swap o apfst #1)

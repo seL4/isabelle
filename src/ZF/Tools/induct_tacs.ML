@@ -172,16 +172,14 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
   end;
 
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
-  let
-    val (thy', (((elims, inducts), case_eqns), recursor_eqns)) = thy
-      |> IsarThy.apply_theorems [raw_elim]
-      |>>> IsarThy.apply_theorems [raw_induct]
-      |>>> IsarThy.apply_theorems raw_case_eqns
-      |>>> IsarThy.apply_theorems raw_recursor_eqns;
-  in
-    thy' |> rep_datatype_i (PureThy.single_thm "elimination" elims)
-      (PureThy.single_thm "induction" inducts) case_eqns recursor_eqns
-  end;
+  thy
+  |> IsarThy.apply_theorems [raw_elim]
+  ||>> IsarThy.apply_theorems [raw_induct]
+  ||>> IsarThy.apply_theorems raw_case_eqns
+  ||>> IsarThy.apply_theorems raw_recursor_eqns
+  |-> (fn (((elims, inducts), case_eqns), recursor_eqns) =>
+          rep_datatype_i (PureThy.single_thm "elimination" elims)
+            (PureThy.single_thm "induction" inducts) case_eqns recursor_eqns);
 
 
 (* theory setup *)

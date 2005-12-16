@@ -258,7 +258,7 @@ val _ = Context.add_setup
 (* low-level modifiers *)
 
 fun modifier att (x, ths) =
-  #1 (Thm.applys_attributes ((x, rev ths), [att]));
+  fst (Thm.applys_attributes [att] (x, rev ths));
 
 val addXIs_global = modifier (intro_query_global NONE);
 val addXEs_global = modifier (elim_query_global NONE);

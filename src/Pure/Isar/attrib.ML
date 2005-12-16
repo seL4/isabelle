@@ -180,7 +180,7 @@ fun gen_thm theory_of attrib get pick = Scan.depend (fn st =>
     let
       val ths = PureThy.select_thm thmref fact;
       val atts = map (attrib (theory_of st)) srcs;
-      val (st', ths') = Thm.applys_attributes ((st, ths), atts);
+      val (st', ths') = Thm.applys_attributes atts (st, ths);
     in (st', pick name ths') end));
 
 val global_thm = gen_thm I global_attribute_i PureThy.get_thms PureThy.single_thm;

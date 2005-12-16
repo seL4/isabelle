@@ -308,8 +308,8 @@ fun name_thms pre name [x] = [name_thm pre (name, x)]
 fun name_thmss name xs =
   (case filter_out (null o fst) xs of
     [([x], z)] => [([name_thm true (name, x)], z)]
-  | _ => snd (foldl_map (fn (i, (ys, z)) =>
-    (i + length ys, (map (name_thm true) (gen_names i (length ys) name ~~ ys), z))) (0, xs)));
+  | _ => fst (fold_map (fn (ys, z) => fn i =>
+    ((map (name_thm true) (gen_names i (length ys) name ~~ ys), z), i + length ys)) xs 0));
 
 
 (* enter_thms *)
@@ -317,7 +317,7 @@ fun name_thmss name xs =
 fun warn_overwrite name = warning ("Replaced old copy of theorems " ^ quote name);
 fun warn_same name = warning ("Theorem database already contains a copy of " ^ quote name);
 
-fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
+fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
   | enter_thms pre_name post_name app_att (bname, thms) thy =
       let
         val name = Sign.full_name thy bname;
@@ -333,15 +333,15 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms)
             if Thm.eq_thms (thms', thms'') then warn_same name
             else warn_overwrite name);
         r := {theorems = (space', theorems'), index = index'};
-        (thy', thms')
+        (thms', thy')
       end;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((bname, thms), atts) =
-  swap o enter_thms pre_name (name_thms false)
-    (Thm.applys_attributes o rpair atts) (bname, thms);
+  enter_thms pre_name (name_thms false)
+    (Thm.applys_attributes atts) (bname, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -357,21 +357,21 @@ val add_thms = gen_add_thms (name_thms true);
 
 local
 
-fun gen_note_thss get kind_att (thy, ((bname, more_atts), ths_atts)) =
+fun gen_note_thss get kind_att ((bname, more_atts), ths_atts) thy =
   let
-    fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
-    val (thy', thms) = thy |> enter_thms
+    fun app (x, (ths, atts)) = Thm.applys_attributes atts (x, ths);
+    val (thms, thy') = thy |> enter_thms
       name_thmss (name_thms false) (apsnd List.concat o foldl_map app)
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);
-  in (thy', (bname, thms)) end;
+  in ((bname, thms), thy') end;
 
-fun gen_note_thmss get kind_att args thy =
-  foldl_map (gen_note_thss get kind_att) (thy, args);
+fun gen_note_thmss get kind_att =
+  fold_map (gen_note_thss get kind_att);
 
 in
 
-val note_thmss = swap ooo gen_note_thmss get_thms;
-val note_thmss_i = swap ooo gen_note_thmss (K I);
+val note_thmss = gen_note_thmss get_thms;
+val note_thmss_i = gen_note_thmss (K I);
 
 end;
 
@@ -390,12 +390,12 @@ local
 fun smart_store _ (name, []) =
       error ("Cannot store empty list of theorems: " ^ quote name)
   | smart_store name_thm (name, [thm]) =
-      #2 (enter_thms (name_thm true) (name_thm false) I (name, [thm]) (Thm.theory_of_thm thm))
+      fst (enter_thms (name_thm true) (name_thm false) I (name, [thm]) (Thm.theory_of_thm thm))
   | smart_store name_thm (name, thms) =
       let
         fun merge (thy, th) = Theory.merge (thy, Thm.theory_of_thm th);
         val thy = Library.foldl merge (Thm.theory_of_thm (hd thms), tl thms);
-      in #2 (enter_thms (name_thm true) (name_thm false) I (name, thms) thy) end;
+      in fst (enter_thms (name_thm true) (name_thm false) I (name, thms) thy) end;
 
 in
 

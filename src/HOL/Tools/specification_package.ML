@@ -191,7 +191,6 @@ fun process_spec axiomatic cos alt_props thy =
                         fun undo_imps thm =
                             equal_elim (symmetric rew_imp) thm
 
-                        fun apply_atts arg = Thm.apply_attributes (arg, map (Attrib.global_attribute thy) atts)
                         fun add_final (arg as (thy, thm)) =
                             if name = ""
                             then arg |> Library.swap
@@ -201,7 +200,7 @@ fun process_spec axiomatic cos alt_props thy =
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps
                              |> apsnd standard
-                             |> apply_atts
+                             |> Thm.apply_attributes (map (Attrib.global_attribute thy) atts)
                              |> add_final
                              |> Library.swap
                     end

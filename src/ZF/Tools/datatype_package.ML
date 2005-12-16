@@ -394,13 +394,14 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
     val dom_sum =
       if sdom = "" then Ind_Syntax.data_domain coind (rec_tms, con_ty_lists)
       else read_i sdom;
-
-    val (thy', ((monos, type_intrs), type_elims)) = thy
-      |> IsarThy.apply_theorems raw_monos
-      |>>> IsarThy.apply_theorems raw_type_intrs
-      |>>> IsarThy.apply_theorems raw_type_elims;
-  in add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy' end;
-
+  in
+    thy
+    |> IsarThy.apply_theorems raw_monos
+    ||>> IsarThy.apply_theorems raw_type_intrs
+    ||>> IsarThy.apply_theorems raw_type_elims
+    |-> (fn ((monos, type_intrs), type_elims) =>
+          add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims))
+  end;
 
 (* outer syntax *)
 

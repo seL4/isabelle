@@ -11,9 +11,9 @@ sig
   val print_axclasses: theory -> unit
   val get_info: theory -> string -> {super_classes: class list, intro: thm, axioms: thm list}
   val add_axclass: bstring * xstring list -> ((bstring * string) * Attrib.src list) list ->
-    theory -> theory * {intro: thm, axioms: thm list}
+    theory -> {intro: thm, axioms: thm list} * theory
   val add_axclass_i: bstring * class list -> ((bstring * term) * theory attribute list) list ->
-    theory -> theory * {intro: thm, axioms: thm list}
+    theory -> {intro: thm, axioms: thm list} * theory
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
   val add_inst_subclass: xstring * xstring -> tactic -> theory -> theory
@@ -210,7 +210,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
       |> PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts)
       ||> Theory.restore_naming class_thy
       ||> AxclassesData.map (Symtab.update (class, info));
-  in (final_thy, {intro = intro, axioms = axioms}) end;
+  in ({intro = intro, axioms = axioms}, final_thy) end;
 
 in
 
@@ -347,7 +347,7 @@ val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
     ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []) -- Scan.repeat P.spec_name
-      >> (Toplevel.theory o (#1 oo uncurry add_axclass)));
+      >> (Toplevel.theory o (snd oo uncurry add_axclass)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal

@@ -624,7 +624,7 @@ fun sect ss = Scan.first (map Scan.lift ss);
 fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
 fun thmss ss = Scan.repeat (thms ss) >> List.concat;
 
-fun apply (f, att) (ctxt, ths) = Thm.applys_attributes ((f ctxt, ths), [att]);
+fun apply (f, att) (ctxt, ths) = Thm.applys_attributes [att] (f ctxt, ths);
 
 fun section ss = (sect ss -- thmss ss) :-- (fn (m, ths) => Scan.depend (fn ctxt =>
   Scan.succeed (apply m (ctxt, ths)))) >> #2;

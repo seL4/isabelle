@@ -766,13 +766,11 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
   let
     val _ = Theory.requires thy0 "Inductive" "datatype representations";
 
-    fun app_thmss srcs thy = foldl_map (fn (thy, x) => apply_theorems x thy) (thy, srcs);
-    fun app_thm src thy = apsnd hd (apply_theorems [src] thy);
-
-    val (((thy1, induction), inject), distinct) = thy0
-      |> app_thmss raw_distinct
-      |> apfst (app_thmss raw_inject)
-      |> apfst (apfst (app_thm raw_induction));
+    val (((distinct, inject), [induction]), thy1) =
+      thy0
+      |> fold_map apply_theorems raw_distinct
+      ||>> fold_map apply_theorems raw_inject
+      ||>> apply_theorems [raw_induction];
     val sign = Theory.sign_of thy1;
 
     val induction' = freezeT induction;

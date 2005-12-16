@@ -55,7 +55,7 @@ fun inductive_cases args thy =
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.global_attribute thy) srcs),
         map (Thm.no_attributes o single o mk_cases) props));
-  in thy |> IsarThy.theorems_i Drule.lemmaK facts |> #1 end;
+  in thy |> IsarThy.theorems_i Drule.lemmaK facts |> snd end;
 
 
 (* ind_cases method *)

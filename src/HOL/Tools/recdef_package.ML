@@ -272,7 +272,7 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
     val _ = requires_recdef thy;
     val _ = message ("Deferred recursive function " ^ quote name ^ " ...");
 
-    val (thy1, congs) = thy |> app_thms raw_congs;
+    val (congs, thy1) = thy |> app_thms raw_congs;
     val (thy2, induct_rules) = tfl_fn thy1 congs name eqs;
     val ([induct_rules'], thy3) =
       thy2
