@@ -139,7 +139,7 @@ done
 subsection{*@{term preal_of_prat}: the Injection from prat to preal*}
 
 lemma rat_less_set_mem_preal: "0 < y ==> {u::rat. 0 < u & u < y} \<in> preal"
-apply (auto simp add: preal_def cut_def intro: order_less_trans)
+apply (auto simp del: empty_Collect_eq simp add: preal_def cut_def intro: order_less_trans)
 apply (force simp only: eq_commute [of "{}"] interval_empty_iff)
 apply (blast dest: dense intro: order_less_trans)
 done
