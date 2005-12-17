@@ -231,9 +231,9 @@ sig
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val sort: ('a * 'a -> order) -> 'a list -> 'a list
+  val sort_distinct: ('a * 'a -> order) -> 'a list -> 'a list
   val sort_strings: string list -> string list
   val sort_wrt: ('a -> string) -> 'a list -> 'a list
-  val unique_strings: string list -> string list
 
   (*random numbers*)
   exception RANDOM
@@ -1106,31 +1106,33 @@ fun list_ord elem_ord (xs, ys) =
 
 (* sorting *)
 
-(*quicksort (stable, i.e. does not reorder equal elements)*)
-fun sort ord =
+(*quicksort -- stable, i.e. does not reorder equal elements*)
+fun quicksort unique ord =
   let
     fun qsort [] = []
       | qsort (xs as [_]) = xs
-      | qsort (xs as [x, y]) = if ord (x, y) = GREATER then [y, x] else xs
+      | qsort (xs as [x, y]) =
+          (case ord (x, y) of
+            LESS => xs
+          | EQUAL => if unique then [x] else xs
+          | GREATER => [y, x])
       | qsort xs =
           let val (lts, eqs, gts) = part (nth xs (length xs div 2)) xs
           in qsort lts @ eqs @ qsort gts end
     and part _ [] = ([], [], [])
       | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
     and add LESS x (lts, eqs, gts) = (x :: lts, eqs, gts)
-      | add EQUAL x (lts, eqs, gts) = (lts, x :: eqs, gts)
+      | add EQUAL x (lts, [], gts) = (lts, [x], gts)
+      | add EQUAL x (res as (lts, eqs, gts)) = if unique then res else (lts, x :: eqs, gts)
       | add GREATER x (lts, eqs, gts) = (lts, eqs, x :: gts);
   in qsort end;
 
-(*sort strings*)
+fun sort ord = quicksort false ord;
+fun sort_distinct ord = quicksort true ord;
+
 val sort_strings = sort string_ord;
 fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
 
-fun unique_strings ([]: string list) = []
-  | unique_strings [x] = [x]
-  | unique_strings (x :: y :: ys) =
-      if x = y then unique_strings (y :: ys)
-      else x :: unique_strings (y :: ys);
 
 
 (** random numbers **)
