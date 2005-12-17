@@ -278,7 +278,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
     ({input = merge_lists' input1 input2,
       lexicon = Scan.merge_lexicons lexicon1 lexicon2,
       gram = Parser.merge_grams gram1 gram2,
-      consts = unique_strings (sort_strings (consts1 @ consts2)),
+      consts = sort_distinct string_ord (consts1 @ consts2),
       prmodes = merge_lists prmodes1 prmodes2,
       parse_ast_trtab =
         merge_trtabs "parse ast translation" parse_ast_trtab1 parse_ast_trtab2,

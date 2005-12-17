@@ -140,7 +140,7 @@ fun minimal_class classes S c =
 
 fun norm_sort _ [] = []
   | norm_sort _ (S as [_]) = S
-  | norm_sort classes S = unique_strings (sort_strings (filter (minimal_class classes S) S));
+  | norm_sort classes S = sort_distinct string_ord (filter (minimal_class classes S) S);
 
 
 (* certify *)

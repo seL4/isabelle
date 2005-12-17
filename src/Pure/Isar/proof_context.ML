@@ -678,8 +678,8 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
     val occs1 = type_occs_of ctxt1 and occs2 = type_occs_of ctxt2;
     val extras = Symtab.fold (fn (a, ts) =>
       if Symtab.defined occs1 a then I else fold (occs_free a) ts) occs2 [];
-    val tfrees = map #1 extras |> Library.sort_strings |> Library.unique_strings;
-    val frees = map #2 extras |> Library.sort_strings |> Library.unique_strings;
+    val tfrees = map #1 extras |> sort_distinct string_ord;
+    val frees = map #2 extras |> sort_distinct string_ord;
   in
     if null extras then ()
     else warning ("Introduced fixed type variable(s): " ^ commas tfrees ^ " in " ^
