@@ -411,128 +411,47 @@ fun create_nom_typedecls ak_names thy =
              end)) 
 	     (thy, ak_names_types)) (thy12c, ak_names_types);
 
-     (* shows that bool is an instance of pt_<ak>     *)
-     (* uses the theorem pt_bool_inst                 *)
-     val (thy14,_) = foldl_map (fn (thy, (ak_name, T)) =>
+     (* show that                       *)
+     (*      fun(pt_<ak>,pt_<ak>)       *)
+     (*      nOption(pt_<ak>)           *)
+     (*      option(pt_<ak>)            *)
+     (*      list(pt_<ak>)              *)
+     (*      *(pt_<ak>,pt_<ak>)         *)
+     (*      unit                       *)
+     (*      set(pt_<ak>)               *)
+     (* are instances of pt_<ak>        *)
+     val thy19 = fold (fn ak_name => fn thy =>
        let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac (pt_bool_inst RS pt1) 1,
-                             rtac (pt_bool_inst RS pt2) 1,
-                             rtac (pt_bool_inst RS pt3) 1,
-                             atac 1];
-       in 
-	 (AxClass.add_inst_arity_i ("bool",[],[qu_class]) proof thy,()) 
-       end) (thy13,ak_names_types); 
-
-     (* shows that set(pt_<ak>) is an instance of pt_<ak>          *)
-     (* unfolds the permutation definition and applies pt_<ak>i    *)
-     val (thy15,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));  
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((pt_inst RS pt_set_inst) RS pt1) 1,
-                             rtac ((pt_inst RS pt_set_inst) RS pt2) 1,
-                             rtac ((pt_inst RS pt_set_inst) RS pt3) 1,
-                             atac 1];
-       in 
-	 (AxClass.add_inst_arity_i ("set",[[qu_class]],[qu_class]) proof thy,()) 
-       end) (thy14,ak_names_types); 
-
-     (* shows that unit is an instance of pt_<ak>          *)
-     val (thy16,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac (pt_unit_inst RS pt1) 1,
-                             rtac (pt_unit_inst RS pt2) 1,
-                             rtac (pt_unit_inst RS pt3) 1,
-                             atac 1];
-       in 
-	 (AxClass.add_inst_arity_i ("Product_Type.unit",[],[qu_class]) proof thy,()) 
-       end) (thy15,ak_names_types); 
-
-     (* shows that *(pt_<ak>,pt_<ak>) is an instance of pt_<ak> *)
-     (* uses the theorem pt_prod_inst and pt_<ak>_inst          *)
-     val (thy17,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));  
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((pt_inst RS (pt_inst RS pt_prod_inst)) RS pt1) 1,
-                             rtac ((pt_inst RS (pt_inst RS pt_prod_inst)) RS pt2) 1,
-                             rtac ((pt_inst RS (pt_inst RS pt_prod_inst)) RS pt3) 1,
-                             atac 1];
-       in 
-          (AxClass.add_inst_arity_i ("*",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
-       end) (thy16,ak_names_types); 
-
-     (* shows that list(pt_<ak>) is an instance of pt_<ak>     *)
-     (* uses the theorem pt_list_inst and pt_<ak>_inst         *)
-     val (thy18,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((pt_inst RS pt_list_inst) RS pt1) 1,
-                             rtac ((pt_inst RS pt_list_inst) RS pt2) 1,
-                             rtac ((pt_inst RS pt_list_inst) RS pt3) 1,
-                             atac 1];      
-       in 
-	 (AxClass.add_inst_arity_i ("List.list",[[qu_class]],[qu_class]) proof thy,()) 
-       end) (thy17,ak_names_types); 
-
-     (* shows that option(pt_<ak>) is an instance of pt_<ak>   *)
-     (* uses the theorem pt_option_inst and pt_<ak>_inst       *)
-     val (thy18a,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((pt_inst RS pt_optn_inst) RS pt1) 1,
-                             rtac ((pt_inst RS pt_optn_inst) RS pt2) 1,
-                             rtac ((pt_inst RS pt_optn_inst) RS pt3) 1,
-                             atac 1];      
-       in 
-	 (AxClass.add_inst_arity_i ("Datatype.option",[[qu_class]],[qu_class]) proof thy,()) 
-       end) (thy18,ak_names_types); 
-
-     (* shows that nOption(pt_<ak>) is an instance of pt_<ak>   *)
-     (* uses the theorem pt_option_inst and pt_<ak>_inst       *)
-     val (thy18b,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((pt_inst RS pt_noptn_inst) RS pt1) 1,
-                             rtac ((pt_inst RS pt_noptn_inst) RS pt2) 1,
-                             rtac ((pt_inst RS pt_noptn_inst) RS pt3) 1,
-                             atac 1];      
-       in 
-	 (AxClass.add_inst_arity_i ("nominal.nOption",[[qu_class]],[qu_class]) proof thy,()) 
-       end) (thy18a,ak_names_types); 
-
-
-     (* shows that fun(pt_<ak>,pt_<ak>) is an instance of pt_<ak>     *)
-     (* uses the theorem pt_list_inst and pt_<ak>_inst                *)
-     val (thy19a,_) = foldl_map (fn (thy, (ak_name, T)) =>
-       let
-          val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+          val cls_name = Sign.full_name (sign_of thy) ("pt_"^ak_name);
           val at_thm   = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
           val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst))) RS pt1) 1,
-                             rtac ((at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst))) RS pt2) 1,
-                             rtac ((at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst))) RS pt3) 1,
-                             atac 1];      
-       in 
-	 (AxClass.add_inst_arity_i ("fun",[[qu_class],[qu_class]],[qu_class]) proof thy,()) 
-       end) (thy18b,ak_names_types);
+          
+          fun pt_proof thm = 
+	      EVERY [AxClass.intro_classes_tac [],
+                     rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
 
-      (* discrete types are permutation types and finitely supported        *)
-      (* discrete tpes have the permutation operation defined as pi o x = x *)
-      val thy19 =
+          val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
+          val pt_thm_noptn = pt_inst RS pt_noptn_inst; 
+          val pt_thm_optn  = pt_inst RS pt_optn_inst; 
+          val pt_thm_list  = pt_inst RS pt_list_inst;
+          val pt_thm_prod  = pt_inst RS (pt_inst RS pt_prod_inst);
+          val pt_thm_unit  = pt_unit_inst;
+          val pt_thm_set   = pt_inst RS pt_set_inst
+       in 
+	thy
+	|> AxClass.add_inst_arity_i ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
+        |> AxClass.add_inst_arity_i ("nominal.nOption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
+        |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
+        |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
+        |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
+        |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
+        |> AxClass.add_inst_arity_i ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
+     end) ak_names thy13; 
+
+     (* show that discrete types are permutation types and finitely supported *)
+     (* discrete types have a permutation operation defined as pi o x = x;    *)
+     (* which renders the proofs to be simple "simp_all"-proofs.              *)            
+     val thy19 =
         let 
 	  fun discrete_pt_inst discrete_ty defn = 
 	     fold (fn ak_name => fn thy =>
@@ -567,7 +486,7 @@ fun create_nom_typedecls ak_names thy =
              end) ak_names)) ak_names;  
           
         in
-         thy19a
+         thy19
          |> discrete_pt_inst "nat"  (thm "perm_nat_def")
          |> discrete_fs_inst "nat"  (thm "perm_nat_def") 
          |> discrete_cp_inst "nat"  (thm "perm_nat_def") 
