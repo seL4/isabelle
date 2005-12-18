@@ -380,8 +380,8 @@ fun create_nom_typedecls ak_names thy =
       val pt_noptn_inst = thm "pt_noption_inst";   
       val pt_fun_inst   = thm "pt_fun_inst";     
 
-     (* for all atom-kind combination show that         *)
-     (* every <ak> is an instance of pt_<ai>            *)
+     (* for all atom-kind combinations <ak>/<ak'> show that  *)
+     (* every <ak> is an instance of pt_<ak'>                *)
      val thy13 = fold (fn ak_name => fn thy =>
 	fold (fn ak_name' => fn thy' =>
          let
@@ -441,61 +441,6 @@ fun create_nom_typedecls ak_names thy =
         |> AxClass.add_inst_arity_i ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
      end) ak_names thy13; 
 
-     (* show that discrete types are permutation types, finitely supported and *)
-     (* have the commutation property                                          *)
-     (* discrete types have a permutation operation defined as pi o x = x;     *)
-     (* which renders the proofs to be simple "simp_all"-proofs.               *)            
-     val thy19 =
-        let 
-	  fun discrete_pt_inst discrete_ty defn = 
-	     fold (fn ak_name => fn thy =>
-	     let
-	       val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
-	       val simp_s = HOL_basic_ss addsimps [defn];
-               val proof = EVERY [AxClass.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];      
-             in  
-	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
-             end) ak_names;
-
-          fun discrete_fs_inst discrete_ty defn = 
-	     fold (fn ak_name => fn thy =>
-	     let
-	       val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
-	       val supp_def = thm "nominal.supp_def";
-               val simp_s = HOL_ss addsimps [supp_def,if_False,Collect_const,Finites.emptyI,defn];
-               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
-             in  
-	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
-             end) ak_names;  
-
-          fun discrete_cp_inst discrete_ty defn = 
-	     fold (fn ak_name' => (fold (fn ak_name => fn thy =>
-	     let
-	       val qu_class = Sign.full_name (sign_of thy) ("cp_"^ak_name^"_"^ak_name');
-	       val supp_def = thm "nominal.supp_def";
-               val simp_s = HOL_ss addsimps [defn];
-               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
-             in  
-	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
-             end) ak_names)) ak_names;  
-          
-        in
-         thy18
-         |> discrete_pt_inst "nat"  (thm "perm_nat_def")
-         |> discrete_fs_inst "nat"  (thm "perm_nat_def") 
-         |> discrete_cp_inst "nat"  (thm "perm_nat_def") 
-         |> discrete_pt_inst "bool" (thm "perm_bool")
-         |> discrete_fs_inst "bool" (thm "perm_bool")
-         |> discrete_cp_inst "bool" (thm "perm_bool")
-         |> discrete_pt_inst "IntDef.int" (thm "perm_int_def")
-         |> discrete_fs_inst "IntDef.int" (thm "perm_int_def") 
-         |> discrete_cp_inst "IntDef.int" (thm "perm_int_def") 
-         |> discrete_pt_inst "List.char" (thm "perm_char_def")
-         |> discrete_fs_inst "List.char" (thm "perm_char_def")
-         |> discrete_cp_inst "List.char" (thm "perm_char_def")
-        end;
-
-
        (*<<<<<<<  fs_<ak> class instances  >>>>>>>*)
        (*=========================================*)
        (* abbreviations for some lemmas *)
@@ -508,7 +453,7 @@ fun create_nom_typedecls ak_names thy =
 
        (* shows that <ak> is an instance of fs_<ak>     *)
        (* uses the theorem at_<ak>_inst                 *)
-       (* FIXME -- needs to be done for all ak-combinations *) 
+       (* FIXME -- needs to be done for all ak-combinations, or not? *) 
        val thy20 = fold (fn ak_name => fn thy =>
        let
           val qu_name =  Sign.full_name (sign_of thy) ak_name;
@@ -518,7 +463,7 @@ fun create_nom_typedecls ak_names thy =
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1];      
        in 
 	 AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy 
-       end) ak_names thy19;
+       end) ak_names thy18;
 
        (* shows that                  *)
        (*    unit                     *)
@@ -560,13 +505,13 @@ fun create_nom_typedecls ak_names thy =
        val dj_pp_forget    = thm "dj_perm_perm_forget";
 
        (* shows that <aj> is an instance of cp_<ak>_<ai>  *)
-       (* that needs a three-nested loop *)
-       val (thy25,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-          foldl_map (fn (thy'', (ak_name'', T'')) =>
+       (* for every  <ak>/<ai>-combination                *)
+       val thy25 = fold (fn ak_name => fn thy => 
+	 fold (fn ak_name' => fn thy' => 
+          fold (fn ak_name'' => fn thy'' => 
             let
-              val qu_name =  Sign.full_name (sign_of thy'') ak_name;
-              val qu_class = Sign.full_name (sign_of thy'') ("cp_"^ak_name'^"_"^ak_name'');
+              val name =  Sign.full_name (sign_of thy'') ak_name;
+              val cls_name = Sign.full_name (sign_of thy'') ("cp_"^ak_name'^"_"^ak_name'');
               val proof =
                 (if (ak_name'=ak_name'') then 
 		  (let
@@ -588,105 +533,97 @@ fun create_nom_typedecls ak_names thy =
                     EVERY [AxClass.intro_classes_tac [], simp_tac simp_s 1]
                   end))
 	      in
-                (AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy'',())
-	      end)
-	   (thy', ak_names_types)) (thy, ak_names_types)) (thy24, ak_names_types);
+                AxClass.add_inst_arity_i (name,[],[cls_name]) proof thy''
+	      end) ak_names thy') ak_names thy) ak_names thy24;
       
-       (* shows that unit is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                         *)
-       val (thy26,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-          let
-            val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
-            val proof = EVERY [AxClass.intro_classes_tac [],rtac (cp_unit_inst RS cp1) 1];     
-	  in
-            (AxClass.add_inst_arity_i ("Product_Type.unit",[],[qu_class]) proof thy',())
-	  end) 
-	   (thy, ak_names_types)) (thy25, ak_names_types);
-       
-       (* shows that bool is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                         *)
-       val (thy27,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-           let
-	     val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
-             val proof = EVERY [AxClass.intro_classes_tac [], rtac (cp_bool_inst RS cp1) 1];     
-	   in
-             (AxClass.add_inst_arity_i ("bool",[],[qu_class]) proof thy',())
-	   end) 
-	   (thy, ak_names_types)) (thy26, ak_names_types);
-
-       (* shows that prod is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                         *)
-       val (thy28,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-          let
-	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
-            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
-            val proof = EVERY [AxClass.intro_classes_tac [],
-                               rtac ((cp_inst RS (cp_inst RS cp_prod_inst)) RS cp1) 1];     
-	  in
-            (AxClass.add_inst_arity_i ("*",[[qu_class],[qu_class]],[qu_class]) proof thy',())
-	  end)  
-	  (thy, ak_names_types)) (thy27, ak_names_types);
-
-       (* shows that list is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                         *)
-       val (thy29,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-           let
-	     val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
-             val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
-             val proof = EVERY [AxClass.intro_classes_tac [],
-                                rtac ((cp_inst RS cp_list_inst) RS cp1) 1];     
-	   in
-            (AxClass.add_inst_arity_i ("List.list",[[qu_class]],[qu_class]) proof thy',())
-	   end) 
-	   (thy, ak_names_types)) (thy28, ak_names_types);
-
-       (* shows that function is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                             *)
-       val (thy30,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-          let
-	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
+       (* shows that                                                    *) 
+       (*      units                                                    *) 
+       (*      products                                                 *)
+       (*      lists                                                    *)
+       (*      functions                                                *)
+       (*      options                                                  *)
+       (*      noptions                                                 *)
+       (* are instances of cp_<ak>_<ai> for every <ak>/<ai>-combination *)
+       val thy26 = fold (fn ak_name => fn thy =>
+	fold (fn ak_name' => fn thy' =>
+        let
+            val cls_name = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
             val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
             val pt_inst  = PureThy.get_thm thy' (Name ("pt_"^ak_name^"_inst"));
             val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
-            val proof = EVERY [AxClass.intro_classes_tac [],
-                    rtac ((at_inst RS (pt_inst RS (cp_inst RS (cp_inst RS cp_fun_inst)))) RS cp1) 1];  
-	  in
-            (AxClass.add_inst_arity_i ("fun",[[qu_class],[qu_class]],[qu_class]) proof thy',())
-	  end) 
-	  (thy, ak_names_types)) (thy29, ak_names_types);
 
-       (* shows that option is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                           *)
-       val (thy31,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-          let
-	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
-            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
-            val proof = EVERY [AxClass.intro_classes_tac [],
-                               rtac ((cp_inst RS cp_option_inst) RS cp1) 1];     
-	  in
-            (AxClass.add_inst_arity_i ("Datatype.option",[[qu_class]],[qu_class]) proof thy',())
-	  end) 
-	  (thy, ak_names_types)) (thy30, ak_names_types);
+            fun cp_proof thm  = EVERY [AxClass.intro_classes_tac [],rtac (thm RS cp1) 1];     
+	  
+            val cp_thm_unit = cp_unit_inst;
+            val cp_thm_prod = cp_inst RS (cp_inst RS cp_prod_inst);
+            val cp_thm_list = cp_inst RS cp_list_inst;
+            val cp_thm_fun  = at_inst RS (pt_inst RS (cp_inst RS (cp_inst RS cp_fun_inst)));
+            val cp_thm_optn = cp_inst RS cp_option_inst;
+            val cp_thm_noptn = cp_inst RS cp_noption_inst;
+        in
+         thy'
+         |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
+	 |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
+         |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
+         |> AxClass.add_inst_arity_i ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
+         |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
+         |> AxClass.add_inst_arity_i ("nominal.nOption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+        end) ak_names thy) ak_names thy25;
+       
+     (* show that discrete nominal types are permutation types, finitely     *) 
+     (* supported and have the commutation property                          *)
+     (* discrete types have a permutation operation defined as pi o x = x;   *)
+     (* which renders the proofs to be simple "simp_all"-proofs.             *)            
+     val thy32 =
+        let 
+	  fun discrete_pt_inst discrete_ty defn = 
+	     fold (fn ak_name => fn thy =>
+	     let
+	       val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
+	       val simp_s = HOL_basic_ss addsimps [defn];
+               val proof = EVERY [AxClass.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];      
+             in  
+	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+             end) ak_names;
 
-       (* shows that nOption is an instance of cp_<ak>_<ai>     *)
-       (* for every <ak>-combination                            *)
-       val (thy32,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
-          let
-	    val qu_class = Sign.full_name (sign_of thy') ("cp_"^ak_name^"_"^ak_name');
-            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
-            val proof = EVERY [AxClass.intro_classes_tac [],
-                               rtac ((cp_inst RS cp_noption_inst) RS cp1) 1];     
-	  in
-           (AxClass.add_inst_arity_i ("nominal.nOption",[[qu_class]],[qu_class]) proof thy',())
-	  end) 
-	  (thy, ak_names_types)) (thy31, ak_names_types);
+          fun discrete_fs_inst discrete_ty defn = 
+	     fold (fn ak_name => fn thy =>
+	     let
+	       val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
+	       val supp_def = thm "nominal.supp_def";
+               val simp_s = HOL_ss addsimps [supp_def,Collect_const,Finites.emptyI,defn];
+               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
+             in  
+	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+             end) ak_names;  
+
+          fun discrete_cp_inst discrete_ty defn = 
+	     fold (fn ak_name' => (fold (fn ak_name => fn thy =>
+	     let
+	       val qu_class = Sign.full_name (sign_of thy) ("cp_"^ak_name^"_"^ak_name');
+	       val supp_def = thm "nominal.supp_def";
+               val simp_s = HOL_ss addsimps [defn];
+               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
+             in  
+	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+             end) ak_names)) ak_names;  
+          
+        in
+         thy26
+         |> discrete_pt_inst "nat"  (thm "perm_nat_def")
+         |> discrete_fs_inst "nat"  (thm "perm_nat_def") 
+         |> discrete_cp_inst "nat"  (thm "perm_nat_def") 
+         |> discrete_pt_inst "bool" (thm "perm_bool")
+         |> discrete_fs_inst "bool" (thm "perm_bool")
+         |> discrete_cp_inst "bool" (thm "perm_bool")
+         |> discrete_pt_inst "IntDef.int" (thm "perm_int_def")
+         |> discrete_fs_inst "IntDef.int" (thm "perm_int_def") 
+         |> discrete_cp_inst "IntDef.int" (thm "perm_int_def") 
+         |> discrete_pt_inst "List.char" (thm "perm_char_def")
+         |> discrete_fs_inst "List.char" (thm "perm_char_def")
+         |> discrete_cp_inst "List.char" (thm "perm_char_def")
+        end;
+
 
        (* abbreviations for some lemmas *)
        (*===============================*)
