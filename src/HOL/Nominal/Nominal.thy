@@ -631,16 +631,14 @@ apply(simp add: supp_list_cons)
 apply(rule fs1[OF fs])
 done
 
-lemma fs_bool_inst:
-  shows "fs TYPE(bool) TYPE('x)"
+lemma fs_option_inst:
+  assumes fs: "fs TYPE('a) TYPE('x)"
+  shows "fs TYPE('a option) TYPE('x)"
 apply(simp add: fs_def, rule allI)
-apply(simp add: supp_bool)
-done
-
-lemma fs_int_inst:
-  shows "fs TYPE(int) TYPE('x)"
-apply(simp add: fs_def, rule allI)
-apply(simp add: supp_int)
+apply(case_tac x)
+apply(simp add: supp_none)
+apply(simp add: supp_some)
+apply(rule fs1[OF fs])
 done
 
 section {* Lemmas about the permutation properties *}
@@ -799,20 +797,6 @@ apply(case_tac "x")
 apply(simp_all add: pt2[OF pta])
 apply(case_tac "x")
 apply(simp_all add: pt3[OF pta])
-done
-
-lemma pt_bool_inst:
-  shows  "pt TYPE(bool) TYPE('x)"
-  apply(auto simp add: pt_def)
-  apply(case_tac "x=True", simp add: perm_bool_def, simp add: perm_bool_def)+
-  done
-
-lemma pt_prm_inst:
-  assumes at: "at TYPE('x)"
-  shows  "pt TYPE('x prm) TYPE('x)"
-apply(rule pt_list_inst)
-apply(rule pt_prod_inst)
-apply(rule at_pt_inst[OF at])+
 done
 
 section {* further lemmas for permutation types *}
