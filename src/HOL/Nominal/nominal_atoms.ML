@@ -451,20 +451,28 @@ fun create_nom_typedecls ak_names thy =
        val fs_prod_inst   = thm "fs_prod_inst";
        val fs_list_inst   = thm "fs_list_inst";
        val fs_option_inst = thm "fs_option_inst";
+       val dj_supp        = thm "dj_supp"
 
        (* shows that <ak> is an instance of fs_<ak>     *)
        (* uses the theorem at_<ak>_inst                 *)
-       (* FIXME -- needs to be done for all ak-combinations, or not? *) 
        val thy20 = fold (fn ak_name => fn thy =>
-       let
-          val qu_name =  Sign.full_name (sign_of thy) ak_name;
-          val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
-          val at_thm = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
-          val proof = EVERY [AxClass.intro_classes_tac [],
-                             rtac ((at_thm RS fs_at_inst) RS fs1) 1];      
-       in 
-	 AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy 
-       end) ak_names thy18;
+	fold (fn ak_name' => fn thy' => 
+        let
+           val qu_name =  Sign.full_name (sign_of thy') ak_name';
+           val qu_class = Sign.full_name (sign_of thy') ("fs_"^ak_name);
+           val proof = 
+	       (if ak_name = ak_name'
+	        then
+	          let val at_thm = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
+                  in  EVERY [AxClass.intro_classes_tac [],
+                             rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
+                else
+		  let val dj_inst = PureThy.get_thm thy' (Name ("dj_"^ak_name'^"_"^ak_name));
+                      val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, Finites.emptyI]; 
+                  in EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1] end)      
+        in 
+	 AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy' 
+        end) ak_names thy) ak_names thy18;
 
        (* shows that                  *)
        (*    unit                     *)
