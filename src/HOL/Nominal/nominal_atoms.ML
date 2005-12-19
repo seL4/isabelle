@@ -380,8 +380,9 @@ fun create_nom_typedecls ak_names thy =
       val pt_noptn_inst = thm "pt_noption_inst";   
       val pt_fun_inst   = thm "pt_fun_inst";     
 
-     (* for all atom-kind combinations <ak>/<ak'> show that  *)
-     (* every <ak> is an instance of pt_<ak'>                *)
+     (* for all atom-kind combinations <ak>/<ak'> show that        *)
+     (* every <ak> is an instance of pt_<ak'>; the proof for       *)
+     (* ak!=ak' is by definition; the case ak=ak' uses at_pt_inst. *)
      val thy13 = fold (fn ak_name => fn thy =>
 	fold (fn ak_name' => fn thy' =>
          let
