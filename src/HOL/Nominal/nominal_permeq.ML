@@ -16,38 +16,42 @@
 local
 
 (* pulls out dynamically a thm via the simpset *)
-fun dynamic_thm ss name = 
-    ProofContext.get_thm (Simplifier.the_context ss) (Name name);
+fun dynamic_thms ss name = 
+    ProofContext.get_thms (Simplifier.the_context ss) (Name name);
 
 (* initial simplification step in the tactic *)
 fun initial_simp_tac ss i =
     let
         (* these lemmas are created dynamically according to the atom types *) 
-	val perm_swap  = dynamic_thm ss "perm_swap";
-        val perm_fresh = dynamic_thm ss "perm_fresh_fresh";
-        val perm_bij   = dynamic_thm ss "perm_bij";
-        val ss' = ss addsimps [perm_swap,perm_fresh,perm_bij]
+	val perm_swap  = dynamic_thms ss "perm_swap";
+        val perm_fresh = dynamic_thms ss "perm_fresh_fresh";
+        val perm_bij   = dynamic_thms ss "perm_bij";
+        val ss' = ss addsimps (perm_swap@perm_fresh@perm_bij)
     in
       ("general simplification step", FIRST [rtac conjI i, asm_full_simp_tac ss' i])
     end;
 
-(* applies the perm_compose rule - this rule would loop in the simplifier *)
+(* applies the perm_compose rule - this rule would loop in the simplifier     *)
+(* in case there are more atom-types we have to check every possible instance *)
+(* of perm_compose *)
 fun apply_perm_compose_tac ss i = 
     let
-	val perm_compose = dynamic_thm ss "perm_compose"; 
+	val perm_compose = dynamic_thms ss "perm_compose"; 
+        val tacs = map (fn thm => (rtac (thm RS trans) i)) perm_compose
     in
-	("analysing permutation compositions on the lhs",rtac (perm_compose RS trans)  i)
+	("analysing permutation compositions on the lhs",FIRST (tacs))
     end
 
-
-(* applies the perm_eq_lam and perm_eq_app simplifications *)
+(* applies the perm_eq_lam and perm_eq_app simplifications     *)
+(* FIXME: it seems the order of perm_app_eq and perm_lam_eq is *)
+(* significant                                                 *)   
 fun apply_app_lam_simp_tac ss i =
     let 
-	val perm_app_eq  = dynamic_thm ss "perm_app_eq";
+	val perm_app_eq  = dynamic_thms ss "perm_app_eq";
         val perm_lam_eq  = thm "nominal.perm_eq_lam"
     in
      ("simplification of permutations on applications and lambdas", 
-      asm_full_simp_tac (HOL_basic_ss addsimps [perm_app_eq,perm_lam_eq]) i)
+      asm_full_simp_tac (HOL_basic_ss addsimps (perm_app_eq@[perm_lam_eq])) i)
     end
 
 (* applying Stefan's smart congruence tac *)
