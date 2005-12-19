@@ -699,14 +699,14 @@ fun create_nom_typedecls ak_names thy =
              fun inst_pt thms = Library.flat (map (fn ti => instR ti pts) thms); 
              fun inst_at thms = Library.flat (map (fn ti => instR ti ats) thms);               
              fun inst_fs thms = Library.flat (map (fn ti => instR ti fss) thms);
+             fun inst_cp thms cps = Library.flat (inst_mult thms cps); 
 	     fun inst_pt_at thms = inst_zip ats (inst_pt thms);			
              fun inst_dj thms = Library.flat (map (fn ti => instR ti djs) thms);  
-	     fun inst_pt_pt_at_cp thms = 
-		 Library.flat (inst_mult (inst_zip ats (inst_zip pts (inst_pt thms))) cps);
+	     fun inst_pt_pt_at_cp thms = inst_cp (inst_zip ats (inst_zip pts (inst_pt thms))) cps;
              fun inst_pt_at_fs thms = inst_zip (inst_fs [fs1]) (inst_zip ats (inst_pt thms));
 	     fun inst_pt_pt_at_cp thms = 
 		 let val i_pt_pt_at = inst_zip ats (inst_zip pts (inst_pt thms));
-                     val i_pt_pt_at_cp = Library.flat (inst_mult i_pt_pt_at cps');
+                     val i_pt_pt_at_cp = inst_cp i_pt_pt_at cps';
 		 in i_pt_pt_at_cp end;
              fun inst_pt_pt_at_cp_dj thms = inst_zip djs (inst_pt_pt_at_cp thms);
            in
@@ -715,7 +715,10 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
             ||>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
             ||>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
-            ||>> PureThy.add_thmss [(("perm_compose", inst_pt_at [pt_perm_compose]),[])]
+            ||>> PureThy.add_thmss 
+	      let val thms1 = inst_pt_at [pt_perm_compose];
+		  val thms2 = instR cp1 (Library.flat cps');
+              in [(("perm_compose",thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss [(("perm_app_eq", inst_pt_at [perm_eq_app]),[])]
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
             ||>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
