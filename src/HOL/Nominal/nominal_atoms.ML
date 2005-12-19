@@ -178,7 +178,7 @@ fun create_nom_typedecls ak_names thy =
     (* pt_<ak>1[simp]: perm [] x = x                             *)
     (* pt_<ak>2:       perm (pi1@pi2) x = perm pi1 (perm pi2 x)  *)
     (* pt_<ak>3:       pi1 ~ pi2 ==> perm pi1 x = perm pi2 x     *)
-     val (thy7, pt_ax_classes) =  foldl_map (fn (thy, (ak_name, T)) =>
+     val (pt_ax_classes,thy7) =  fold_map (fn (ak_name, T) => fn thy =>
       let 
 	  val cl_name = "pt_"^ak_name;
           val ty = TFree("'a",["HOL.type"]);
@@ -200,11 +200,11 @@ fun create_nom_typedecls ak_names thy =
                        (HOLogic.mk_Trueprop (cprm_eq $ pi1 $ pi2),
                         HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
       in
-        thy |> AxClass.add_axclass_i (cl_name, ["HOL.type"])
+          AxClass.add_axclass_i (cl_name, ["HOL.type"])
                 [((cl_name^"1", axiom1),[Simplifier.simp_add_global]), 
                  ((cl_name^"2", axiom2),[]),                           
-                 ((cl_name^"3", axiom3),[])]                          
-      end) (thy6,ak_names_types);
+                 ((cl_name^"3", axiom3),[])] thy                          
+      end) ak_names_types thy6;
 
     (* proves that every pt_<ak>-type together with <ak>-type *)
     (* instance of pt                                         *)
@@ -237,7 +237,7 @@ fun create_nom_typedecls ak_names thy =
      (* declares an fs-axclass for every atom-kind       *)
      (* axclass fs_<ak>                                  *)
      (* fs_<ak>1: finite ((supp x)::<ak> set)            *)
-     val (thy11, fs_ax_classes) =  foldl_map (fn (thy, (ak_name, T)) =>
+     val (fs_ax_classes,thy11) =  fold_map (fn (ak_name, T) => fn thy =>
        let 
 	  val cl_name = "fs_"^ak_name;
 	  val pt_name = Sign.full_name (sign_of thy) ("pt_"^ak_name);
@@ -249,8 +249,8 @@ fun create_nom_typedecls ak_names thy =
           val axiom1   = HOLogic.mk_Trueprop (HOLogic.mk_mem (csupp $ x, cfinites));
 
        in  
-        thy |> AxClass.add_axclass_i (cl_name, [pt_name]) [((cl_name^"1", axiom1),[])]            
-       end) (thy8,ak_names_types); 
+        AxClass.add_axclass_i (cl_name, [pt_name]) [((cl_name^"1", axiom1),[])] thy            
+       end) ak_names_types thy8; 
 
      (* proves that every fs_<ak>-type together with <ak>-type   *)
      (* instance of fs-type                                      *)
@@ -282,8 +282,8 @@ fun create_nom_typedecls ak_names thy =
        (* declares for every atom-kind combination an axclass            *)
        (* cp_<ak1>_<ak2> giving a composition property                   *)
        (* cp_<ak1>_<ak2>1: pi1 o pi2 o x = (pi1 o pi2) o (pi1 o x)       *)
-        val (thy12b,_) = foldl_map (fn (thy, (ak_name, T)) =>
-	 foldl_map (fn (thy', (ak_name', T')) =>
+        val (_,thy12b) = fold_map (fn (ak_name, T) => fn thy =>
+	 fold_map (fn (ak_name', T') => fn thy' =>
 	     let
 	       val cl_name = "cp_"^ak_name^"_"^ak_name';
 	       val ty = TFree("'a",["HOL.type"]);
@@ -298,9 +298,8 @@ fun create_nom_typedecls ak_names thy =
 			   (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
                                            cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
 	       in  
-	       (fst (AxClass.add_axclass_i (cl_name, ["HOL.type"]) [((cl_name^"1", ax1),[])] thy'),())  
-	       end) 
-	   (thy, ak_names_types)) (thy12, ak_names_types)
+		 AxClass.add_axclass_i (cl_name, ["HOL.type"]) [((cl_name^"1", ax1),[])] thy'  
+	       end) ak_names_types thy) ak_names_types thy12;
 
         (* proves for every <ak>-combination a cp_<ak1>_<ak2>_inst theorem;     *)
         (* lemma cp_<ak1>_<ak2>_inst:                                           *)
