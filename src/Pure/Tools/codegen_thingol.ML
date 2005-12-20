@@ -1239,7 +1239,7 @@ fun eliminate_classes module =
           let
             val _ = writeln "TRANSFORMING FUN (1)";
             val varnames_ctxt =
-              dig
+              burrow
                 (Term.invent_names ((vars_of_iexprs o map snd) eqs @
                   (vars_of_ipats o Library.flat o map fst) eqs) "d" o length)
                 (map snd sortctxt);

@@ -13,7 +13,7 @@ infix 2 ?;
 infix 3 o oo ooo oooo;
 
 infix 4 ~~ upto downto;
-infix orf andf prefix \ \\ ins ins_string ins_int mem mem_int mem_string union union_int
+infix orf andf \ \\ ins ins_string ins_int mem mem_int mem_string union union_int
   union_string inter inter_int inter_string subset subset_int subset_string;
 
 signature BASIC_LIBRARY =
@@ -101,7 +101,7 @@ sig
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
-  val dig: ('a list -> 'a list) -> 'a list list -> 'a list list
+  val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
@@ -125,7 +125,7 @@ sig
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val prefix: ''a list * ''a list -> bool
+  val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val prefixes1: 'a list -> 'a list list
@@ -596,7 +596,7 @@ fun unflat (xs :: xss) ys =
   | unflat [] [] = []
   | unflat _ _ = raise UnequalLengths;
 
-fun dig f xss =
+fun burrow f xss =
   unflat xss ((f o flat) xss);
 
 
@@ -672,9 +672,9 @@ fun equal_lists eq (xs, ys) =
 
 (* prefixes, suffixes *)
 
-fun [] prefix _ = true
-  | (x :: xs) prefix (y :: ys) = x = y andalso (xs prefix ys)
-  | _ prefix _ = false;
+fun is_prefix _ [] _ = true
+  | is_prefix eq (x :: xs) (y :: ys) = eq (x, y) andalso is_prefix eq xs ys
+  | is_prefix eq _ _ = false;
 
 (* [x1, ..., xi, ..., xn]  --->  ([x1, ..., x(i-1)], [xi, ..., xn])
    where xi is the first element that does not satisfy the predicate*)
