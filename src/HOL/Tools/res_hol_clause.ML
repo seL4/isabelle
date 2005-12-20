@@ -181,7 +181,9 @@ type polarity = bool;
 type indexname = Term.indexname;
 type clause_id = int;
 type csort = Term.sort;
-type ctyp = string;
+type ctyp = ResClause.fol_type;
+
+val string_of_ctyp = ResClause.string_of_fol_type;
 
 type ctyp_var = ResClause.typ_var;
 
@@ -213,8 +215,58 @@ fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
 fun get_axiomName (Clause cls) = #axiom_name cls;
 fun get_clause_id (Clause cls) = #clause_id cls;
 
+fun get_literals (c as Clause(cls)) = #literals cls;
 
 
+
+exception TERM_ORD of string
+
+fun term_ord (CombVar(_,_),CombVar(_,_)) = EQUAL
+  | term_ord (CombVar(_,_),_) = LESS
+  | term_ord (CombFree(_,_),CombVar(_,_)) = GREATER
+  | term_ord (CombFree(f1,tp1),CombFree(f2,tp2)) = 
+    let val ord1 = string_ord(f1,f2)
+    in
+	case ord1 of EQUAL => ResClause.types_ord ([tp1],[tp2])
+		   | _ => ord1
+    end
+  | term_ord (CombFree(_,_),_) = LESS
+  | term_ord (CombConst(_,_,_),CombVar(_,_)) = GREATER
+  | term_ord (CombConst(_,_,_),CombFree(_,_)) = GREATER
+  | term_ord (CombConst(c1,tp1,_),CombConst(c2,tp2,_)) = 
+    let val ord1 = string_ord (c1,c2)
+    in
+	case ord1 of EQUAL => ResClause.types_ord ([tp1],[tp2])
+		   | _ => ord1
+    end
+  | term_ord (CombConst(_,_,_),_) = LESS
+  | term_ord (CombApp(_,_,_),Bool(_)) = raise TERM_ORD("bool")
+  | term_ord (CombApp(_,_,_),Equal(_,_)) = LESS
+  | term_ord (CombApp(f1,arg1,tp1),CombApp(f2,arg2,tp2)) =
+    let val ord1 = term_ord (f1,f2)
+	val ord2 = case ord1 of EQUAL => term_ord (arg1,arg2)
+			      | _ => ord1
+    in
+	case ord2 of EQUAL => ResClause.types_ord ([tp1],[tp2])
+		   | _ => ord2
+    end
+  | term_ord (CombApp(_,_,_),_) = GREATER
+  | term_ord (Bool(_),_) = raise TERM_ORD("bool")
+  | term_ord (Equal(t1,t2),Equal(t3,t4)) = ResClause.list_ord term_ord ([t1,t2],[t3,t4])
+  | term_ord (Equal(_,_),_) = GREATER;
+
+fun predicate_ord (Equal(_,_),Bool(_)) = LESS
+  | predicate_ord (Equal(t1,t2),Equal(t3,t4)) = 
+    ResClause.list_ord term_ord ([t1,t2],[t3,t4])
+  | predicate_ord (Bool(_),Equal(_,_)) = GREATER
+  | predicate_ord (Bool(t1),Bool(t2)) = term_ord (t1,t2)
+
+
+fun literal_ord (Literal(false,_),Literal(true,_)) = LESS
+  | literal_ord (Literal(true,_),Literal(false,_)) = GREATER
+  | literal_ord (Literal(_,pred1),Literal(_,pred2)) = predicate_ord(pred1,pred2);
+
+fun sort_lits lits = sort literal_ord lits;
 
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)
@@ -244,31 +296,40 @@ fun make_clause(clause_id,axiom_name,kind,literals,ctypes_sorts,ctvar_type_liter
 		ctvar_type_literals = ctvar_type_literals,
 		ctfree_type_literals = ctfree_type_literals};
 
-(* convert a Term.type to a string; gather sort information of type variables *)
-fun type_of (Type (a, [])) = (ResClause.make_fixed_type_const a,[])
-  | type_of (Type (a, Ts)) = 
-    let val typ_ts = map type_of Ts
-	val (typs,tsorts) = ListPair.unzip typ_ts
-	val ts = ResClause.union_all tsorts
+fun type_of (Type (a, Ts)) =
+    let val (folTypes,ts) = types_of Ts
 	val t = ResClause.make_fixed_type_const a
     in
-	(t ^ (ResClause.paren_pack typs),ts)
+	(ResClause.mk_fol_type("Comp",t,folTypes),ts)
     end
-  | type_of (tp as (TFree (a,s))) = (ResClause.make_fixed_type_var a,[ResClause.mk_typ_var_sort tp])
-  | type_of (tp as (TVar (v,s))) = (ResClause.make_schematic_type_var v,[ResClause.mk_typ_var_sort tp]);
+  | type_of (tp as (TFree(a,s))) =
+    let val t = ResClause.make_fixed_type_var a
+    in
+	(ResClause.mk_fol_type("Fixed",t,[]),[ResClause.mk_typ_var_sort tp])
+    end
+  | type_of (tp as (TVar(v,s))) =
+    let val t = ResClause.make_schematic_type_var v
+    in
+	(ResClause.mk_fol_type("Var",t,[]),[ResClause.mk_typ_var_sort tp])
+    end
 
-
+and types_of Ts =
+    let val foltyps_ts = map type_of Ts
+	val (folTyps,ts) = ListPair.unzip foltyps_ts
+    in
+	(folTyps,ResClause.union_all ts)
+    end;
 
 (* same as above, but no gathering of sort information *)
-fun simp_type_of (Type (a, [])) = ResClause.make_fixed_type_const a
-  | simp_type_of (Type (a, Ts)) = 
+fun simp_type_of (Type (a, Ts)) = 
     let val typs = map simp_type_of Ts
 	val t = ResClause.make_fixed_type_const a
     in
-	t ^ ResClause.paren_pack typs
+	ResClause.mk_fol_type("Comp",t,typs)
     end
-  | simp_type_of (TFree (a,s)) = ResClause.make_fixed_type_var a
-  | simp_type_of (TVar (v,s)) = ResClause.make_schematic_type_var v;
+  | simp_type_of (TFree (a,s)) = ResClause.mk_fol_type("Fixed",ResClause.make_fixed_type_var a,[])
+  | simp_type_of (TVar (v,s)) = ResClause.mk_fol_type("Var",ResClause.make_schematic_type_var v,[]);
+
 
 
 fun comb_typ ("COMBI",t) = 
@@ -412,10 +473,11 @@ fun literals_of_term P = literals_of_term1 ([],[]) P;
 fun make_axiom_clause term (ax_name,cls_id) =
     let val term' = comb_of term
 	val (lits,ctypes_sorts) = literals_of_term term'
+	val lits' = sort_lits lits
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux2 ctypes_sorts
     in
 	make_clause(cls_id,ax_name,Axiom,
-		    lits,ctypes_sorts,ctvar_lits,ctfree_lits)
+		    lits',ctypes_sorts,ctvar_lits,ctfree_lits)
     end;
 
 
@@ -469,18 +531,30 @@ val bool_str = "hBOOL";
 exception STRING_OF_COMBTERM of int;
 
 (* convert literals of clauses into strings *)
-fun string_of_combterm1_aux _ (CombConst(c,tp,_)) = (wrap_type (c,tp),tp)
-  | string_of_combterm1_aux _ (CombFree(v,tp)) = (wrap_type (v,tp),tp)
-  | string_of_combterm1_aux _ (CombVar(v,tp)) = (wrap_type (v,tp),tp)
+fun string_of_combterm1_aux _ (CombConst(c,tp,_)) = 
+    let val tp' = string_of_ctyp tp
+    in
+	(wrap_type (c,tp'),tp')
+    end
+  | string_of_combterm1_aux _ (CombFree(v,tp)) = 
+    let val tp' = string_of_ctyp tp
+    in
+	(wrap_type (v,tp'),tp')
+    end
+  | string_of_combterm1_aux _ (CombVar(v,tp)) = 
+    let val tp' = string_of_ctyp tp
+    in
+	(wrap_type (v,tp'),tp')
+    end
   | string_of_combterm1_aux is_pred (CombApp(t1,t2,tp)) =
     let val (s1,tp1) = string_of_combterm1_aux is_pred t1
 	val (s2,tp2) = string_of_combterm1_aux is_pred t2
-	val r =	case !typ_level of T_FULL => type_wrapper ^  (ResClause.paren_pack [(app_str ^ (ResClause.paren_pack [s1,s2])),tp])
+	val tp' = ResClause.string_of_fol_type tp
+	val r =	case !typ_level of T_FULL => type_wrapper ^  (ResClause.paren_pack [(app_str ^ (ResClause.paren_pack [s1,s2])),tp'])
 				 | T_PARTIAL => app_str ^ (ResClause.paren_pack [s1,s2,tp1])
 				 | T_NONE => app_str ^ (ResClause.paren_pack [s1,s2])
 				 | T_CONST => raise STRING_OF_COMBTERM (1) (*should not happen, if happened may be a bug*)
-    in
-	(r,tp)
+    in	(r,tp')
 
     end
   | string_of_combterm1_aux is_pred (Bool(t)) = 
@@ -499,7 +573,11 @@ fun string_of_combterm1_aux _ (CombConst(c,tp,_)) = (wrap_type (c,tp),tp)
 
 fun string_of_combterm1 is_pred term = fst (string_of_combterm1_aux is_pred term);
 
-fun string_of_combterm2 _ (CombConst(c,tp,tvars)) = c ^ (ResClause.paren_pack tvars)
+fun string_of_combterm2 _ (CombConst(c,tp,tvars)) = 
+    let val tvars' = map string_of_ctyp tvars
+    in
+	c ^ (ResClause.paren_pack tvars')
+    end
   | string_of_combterm2 _ (CombFree(v,tp)) = v
   | string_of_combterm2 _ (CombVar(v,tp)) = v
   | string_of_combterm2 is_pred (CombApp(t1,t2,tp)) =
@@ -567,5 +645,81 @@ fun clause2tptp cls =
 	(cls_str,ctfree_lits)
     end;
 
+
+
+(**********************************************************************)
+(* clause equalities and hashing functions                            *)
+(**********************************************************************)
+
+
+fun combterm_eq (CombConst(c1,tp1,tps1),CombConst(c2,tp2,tps2)) vtvars =
+    let val (eq1,vtvars1) = if c1 = c2 then ResClause.types_eq (tps1,tps2) vtvars
+			    else (false,vtvars)
+    in
+	(eq1,vtvars1)
+    end
+  | combterm_eq (CombConst(_,_,_),_) vtvars = (false,vtvars)
+  | combterm_eq (CombFree(a1,tp1),CombFree(a2,tp2)) vtvars = 
+    if a1 = a2 then ResClause.types_eq ([tp1],[tp2]) vtvars
+    else (false,vtvars)
+  | combterm_eq (CombFree(_,_),_) vtvars = (false,vtvars)
+  | combterm_eq (CombVar(v1,tp1),CombVar(v2,tp2)) (vars,tvars) = 
+    (case ResClause.check_var_pairs(v1,v2) vars of 0 => ResClause.types_eq ([tp1],[tp2]) ((v1,v2)::vars,tvars)
+						 | 1 => ResClause.types_eq ([tp1],[tp2]) (vars,tvars)
+						 | 2 => (false,(vars,tvars)))
+  | combterm_eq (CombVar(_,_),_) vtvars = (false,vtvars)
+  | combterm_eq (CombApp(f1,arg1,tp1),CombApp(f2,arg2,tp2)) vtvars =
+    let val (eq1,vtvars1) = combterm_eq (f1,f2) vtvars
+	val (eq2,vtvars2) = if eq1 then combterm_eq (arg1,arg2) vtvars1
+			    else (eq1,vtvars1)
+    in
+	if eq2 then ResClause.types_eq ([tp1],[tp2]) vtvars2
+	else (eq2,vtvars2)
+    end
+  | combterm_eq (CombApp(_,_,_),_) vtvars = (false,vtvars)
+  | combterm_eq (Bool(t1),Bool(t2)) vtvars = combterm_eq (t1,t2) vtvars
+  | combterm_eq (Bool(_),_) vtvars = (false,vtvars)
+  | combterm_eq (Equal(t1,t2),Equal(t3,t4)) vtvars =
+    let val (eq1,vtvars1) = combterm_eq (t1,t3) vtvars
+    in
+	if eq1 then combterm_eq (t2,t4) vtvars1
+	else (eq1,vtvars1)
+    end
+  | combterm_eq (Equal(t1,t2),_) vtvars = (false,vtvars);
+
+fun lit_eq (Literal(pol1,pred1),Literal(pol2,pred2)) vtvars =
+    if (pol1 = pol2) then combterm_eq (pred1,pred2) vtvars
+    else (false,vtvars);
+
+fun lits_eq ([],[]) vtvars = (true,vtvars)
+  | lits_eq (l1::ls1,l2::ls2) vtvars = 
+    let val (eq1,vtvars1) = lit_eq (l1,l2) vtvars
+    in
+	if eq1 then lits_eq (ls1,ls2) vtvars1
+	else (false,vtvars1)
+    end;
+
+fun clause_eq (cls1,cls2) =
+    let val lits1 = get_literals cls1
+	val lits2 = get_literals cls2
+    in
+	length lits1 = length lits2 andalso #1 (lits_eq (lits1,lits2) ([],[]))
+    end;
+
+val xor_words = List.foldl Word.xorb 0w0;
+
+fun hash_combterm (CombVar(_,_),w) = w
+  | hash_combterm (CombFree(f,_),w) = Hashtable.hash_string(f,w)
+  | hash_combterm (CombConst(c,tp,tps),w) = Hashtable.hash_string(c,w)
+  | hash_combterm (CombApp(f,arg,tp),w) = 
+    hash_combterm (arg, (hash_combterm (f,w)))
+  | hash_combterm (Bool(t),w) = hash_combterm (t,w)
+  | hash_combterm (Equal(t1,t2),w) = 
+    List.foldl hash_combterm (Hashtable.hash_string ("equal",w)) [t1,t2]
+
+fun hash_literal (Literal(true,pred)) = hash_combterm(pred,0w0)
+  | hash_literal (Literal(false,pred)) = Word.notb(hash_combterm(pred,0w0));
+
+fun hash_clause clause = xor_words (map hash_literal (get_literals clause));
 
 end
