@@ -73,6 +73,14 @@ signature RES_CLAUSE =
   val clause_eq : clause * clause -> bool
   val hash1_clause : clause -> word
 
+  val list_ord : ('a * 'b -> order) -> 'a list * 'b list -> order
+  type fol_type
+  val types_ord : fol_type list * fol_type list -> order
+  val string_of_fol_type : fol_type -> string
+  val mk_fol_type: string * string * fol_type list -> fol_type
+  val types_eq :fol_type list * fol_type list ->
+   (string * string) list * (string * string) list -> bool * ((string * string) list * (string * string) list)
+  val check_var_pairs: ''a * ''b -> (''a * ''b) list -> int
   end;
 
 structure ResClause : RES_CLAUSE =
@@ -233,6 +241,11 @@ fun string_of_fol_type (AtomV x) = x
 	tcon ^ (paren_pack tstrs)
     end;
 
+fun mk_fol_type ("Var",x,_) = AtomV(x)
+  | mk_fol_type ("Fixed",x,_) = AtomF(x)
+  | mk_fol_type ("Comp",con,args) = Comp(con,args)
+
+
 
 datatype type_literal = LTVar of string | LTFree of string;
 
@@ -340,6 +353,7 @@ and types_of Ts =
       in    
 	  (folTyps, (union_all ts, union_all funcslist))
       end;
+
 
 
 fun const_types_of (c,T) = types_of (!const_typargs (c,T));
