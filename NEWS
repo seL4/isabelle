@@ -157,44 +157,40 @@ no longer need to be stated as "<prems> ==> False", equivalences (i.e.
 "=" on type bool) are handled, variable names of the form "lit_<n>"
 are no longer reserved, significant speedup.
 
-* Library: added theory Coinductive_List of potentially infinite lists as
-greatest fixed-point.
+* Library: added theory Coinductive_List of potentially infinite lists
+as greatest fixed-point.
 
 
 *** ML ***
 
-* Pure: functions of signature "... -> theory -> theory * ..." have been reoriented
-  to "... -> theory -> ... * theory" in order to allow natural usage in combination
-  with the ||>, ||>>, |-> and fold_map combinators.
+* Pure/library: functions map2 and fold2 with curried syntax for
+simultanous mapping and folding:
 
-* Library: new module Pure/General/name_mangler providing a functor for generic
-    name mangling (bijective mapping from any expression values to strings).
-
-* SML systems: added
-    print: 'a -> 'a
-  to smlnj. PolyML provides such a function which as a side effect prints out
-  a string representation of its argument. By adding print to smlnj, it is possible
-  to use "print" for debugging purpose without breaking smlnj compatibility.
-
-* Library: functions map2 and fold2 with curried syntax for simultanous
-    mapping and folding:
     val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
     val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
 
-* Library: new module Pure/General/rat.ML implementing rational numbers,
-replacing the former functions in the Isabelle library.
-
-* Library: indexed lists - some functions in the Isabelle library
-treating lists over 'a as finite mappings from [0...n] to 'a
-have been given more convenient names and signatures reminiscent
-of similar functions for alists, tables, etc:
+* Pure/library: indexed lists - some functions in the Isabelle library
+treating lists over 'a as finite mappings from [0...n] to 'a have been
+given more convenient names and signatures reminiscent of similar
+functions for alists, tables, etc:
 
   val nth: 'a list -> int -> 'a 
   val nth_update: int * 'a -> 'a list -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
 
-Note that fold_index starts counting at index 0, not 1 like foldln used to.
+Note that fold_index starts counting at index 0, not 1 like foldln
+used to.
+
+* Pure/General: name_mangler.ML provides a functor for generic name
+mangling (bijective mapping from any expression values to strings).
+
+* Pure/General: rat.ML implements rational numbers.
+
+* Pure: several functions of signature "... -> theory -> theory * ..."
+have been reoriented to "... -> theory -> ... * theory" in order to
+allow natural usage in combination with the ||>, ||>>, |-> and
+fold_map combinators.
 
 * Pure: primitive rule lift_rule now takes goal cterm instead of an
 actual goal state (thm).  Use Thm.lift_rule (Thm.cprem_of st i) to
