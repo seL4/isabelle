@@ -94,14 +94,10 @@ end
 TransA sg t =
 error("malformed automaton def for TransA:\n" ^ (Sign.string_of_term sg t));
 
-fun is_prefix [] s = true
-| is_prefix (p::ps) [] = false
-| is_prefix (p::ps) (x::xs) = (p=x) andalso (is_prefix ps xs);
-
 fun delete_ul [] = []
-| delete_ul (x::xs) = if (is_prefix ("\^["::"["::"4"::"m"::[]) (x::xs))
+| delete_ul (x::xs) = if (is_prefix (op =) ("\^["::"["::"4"::"m"::[]) (x::xs))
         then (let val (_::_::_::s) = xs in delete_ul s end)
-        else (if (is_prefix ("\^["::"["::"0"::"m"::[]) (x::xs))
+        else (if (is_prefix (op =) ("\^["::"["::"0"::"m"::[]) (x::xs))
                 then  (let val (_::_::_::s) = xs in delete_ul s end)
                 else (x::delete_ul xs));
 

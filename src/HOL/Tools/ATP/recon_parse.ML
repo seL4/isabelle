@@ -73,15 +73,12 @@ datatype token = Word of string
 
 
       exception NOCUT
-      fun is_prefix [] l = true
-        | is_prefix (h::t) [] = false
-        | is_prefix (h::t) (h'::t') = (h = h') andalso is_prefix t t'
       fun remove_prefix [] l = l
         | remove_prefix (h::t) [] = error "can't remove prefix"
         | remove_prefix (h::t) (h'::t') = remove_prefix t t'
       fun ccut t [] = raise NOCUT
         | ccut t s =
-            if is_prefix t s then ([], remove_prefix t s) else
+            if is_prefix (op =) t s then ([], remove_prefix t s) else
               let val (a, b) = ccut t (tl s) in ((hd s)::a, b) end
       fun cut t s =
         let

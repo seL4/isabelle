@@ -523,7 +523,7 @@ fun callmc s =
 (* "true" stand at the end of the output.     *)
 local
 
-infix is_prefix_of contains at_post string_contains string_at_post;
+infix contains at_post string_contains string_at_post;
 
   val is_blank : string -> bool =
       fn " " => true | "\t" => true | "\n" => true | "\^L" => true 
@@ -537,13 +537,9 @@ infix is_prefix_of contains at_post string_contains string_at_post;
   
   fun delete_blanks_string s = implode(delete_blanks (explode s));
 
-  fun [] is_prefix_of s = true
-    | (p::ps) is_prefix_of  [] = false
-    | (p::ps) is_prefix_of (x::xs) = (p = x) andalso (ps is_prefix_of xs);
-
   fun [] contains [] = true
     | [] contains s = false
-    | (x::xs) contains s = (s is_prefix_of (x::xs)) orelse (xs contains s);
+    | (x::xs) contains s = (is_prefix (op =) s (x::xs)) orelse (xs contains s);
 
   fun [] at_post [] = true
     | [] at_post s = false

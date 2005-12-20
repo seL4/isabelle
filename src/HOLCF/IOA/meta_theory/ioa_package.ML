@@ -62,13 +62,10 @@ error ("one component of a statetype is a TVar: " ^ (string_of_typ (sign_of thy)
 fun extract_constrs thy [] = [] |
 extract_constrs thy (a::r) =
 let
-fun is_prefix [] s = true
-| is_prefix (p::ps) [] = false
-| is_prefix (p::ps) (x::xs) = (p=x) andalso (is_prefix ps xs);
 fun delete_bold [] = []
-| delete_bold (x::xs) = if (is_prefix ("\^["::"["::"1"::"m"::[]) (x::xs))
+| delete_bold (x::xs) = if (is_prefix (op =) ("\^["::"["::"1"::"m"::[]) (x::xs))
         then (let val (_::_::_::s) = xs in delete_bold s end)
-        else (if (is_prefix ("\^["::"["::"0"::"m"::[]) (x::xs))
+        else (if (is_prefix (op =) ("\^["::"["::"0"::"m"::[]) (x::xs))
                 then  (let val (_::_::_::s) = xs in delete_bold s end)
                 else (x::delete_bold xs));
 fun delete_bold_string s = implode(delete_bold(explode s));
