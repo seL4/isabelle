@@ -229,11 +229,11 @@ local
 in
 
 (*Find first term that matches u*)
-fun find_first past u []         = raise TERM("find_first", [])
-  | find_first past u (t::terms) =
+fun find_first_t past u []         = raise TERM ("find_first_t", [])
+  | find_first_t past u (t::terms) =
         if u aconv t then (rev past @ terms)
-        else find_first (t::past) u terms
-        handle TERM _ => find_first (t::past) u terms;
+        else find_first_t (t::past) u terms
+        handle TERM _ => find_first_t (t::past) u terms;
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = 
@@ -251,7 +251,7 @@ structure CancelFactorCommon =
   val dest_sum          = dest_prod
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
-  val find_first        = find_first []
+  val find_first        = find_first_t []
   val trans_tac         = fn _ => trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ mult_ac
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
