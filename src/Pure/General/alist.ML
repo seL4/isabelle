@@ -26,7 +26,6 @@ sig
   val merge: ('a * 'a -> bool) -> ('b * 'b -> bool)
     -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
   val find: ('a * 'b -> bool) -> ('c * 'b) list -> 'a -> 'c list
-  val string_of_alist: ('a -> string) -> ('b -> string) -> ('a * 'b) list -> string
 end;
 
 structure AList: ALIST =
@@ -107,10 +106,5 @@ fun find eq [] _ = []
       let
         val values = find eq xs value';
       in if eq (value', value) then key :: values else values end;
-
-fun string_of_alist string_of_key string_of_value =
-  map (fn (key, value) => string_of_key key ^ " -> " ^ string_of_value value)
-  #> commas
-  #> enclose "[" "]"
 
 end;
