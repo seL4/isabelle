@@ -127,6 +127,44 @@ Here the 'fixing: thesis' specification essentially modifies the scope
 of the formal thesis parameter, in order to the get the whole
 existence statement through the induction as expected.
 
+* Provers/induct: mutual goals no longer result in object-level
+conjunction, but in properly split meta-level statements,
+INCOMPATIBILITY.  The corresponding cases are duplicated accordingly,
+with the case names being indexed according to the number of
+conjuncts.  For example:
+
+  lemma
+    fixes n :: nat
+    shows "P n" and "Q n"
+  proof (induct n)
+    case 01
+    show "P 0" sorry
+  next
+    case 02
+    show "Q 0" sorry
+  next
+    case (Suc1 n)
+    note `P n` and `Q n`
+    show "P (Suc n)" sorry
+  next
+    case (Suc2 n)
+    note `P n` and `Q n`
+    show "Q (Suc n)" sorry
+  qed
+
+* Provers/induct: mutual induction rules are now specified as a list
+of rule sharing the same induction cases.  HOL packages usually
+provide foo_bar.inducts for mutually defined items foo and bar
+(e.g. inductive sets or datatypes).  INCOMPATIBILITY, users need to
+specify mutual induction rules differently, e.g. like this:
+
+  (induct rule: foo_bar.inducts)
+  (induct set: foo bar)
+  (induct type: foo bar)
+
+Moreover, the ML function ProjectRule.projections turns old-style
+rules into the new format.
+
 * Provers/induct: support coinduction as well.  See
 src/HOL/Library/Coinductive_List.thy for various examples.
 
@@ -156,6 +194,9 @@ compatibility this can be disabled by ML "reset use_neq_simproc".
 no longer need to be stated as "<prems> ==> False", equivalences (i.e.
 "=" on type bool) are handled, variable names of the form "lit_<n>"
 are no longer reserved, significant speedup.
+
+* inductive and datatype: provide projections of mutual rules, bundled
+as foo_bar.inducts;
 
 * Library: added theory Coinductive_List of potentially infinite lists
 as greatest fixed-point.
