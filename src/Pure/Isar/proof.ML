@@ -403,7 +403,8 @@ fun apply_method current_context meth_fun state =
       state
       |> check_theory (Thm.theory_of_thm goal')
       |> map_goal
-          (ProofContext.add_cases (no_goal_cases goal @ goal_cases goal' @ meth_cases))
+          (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
+           ProofContext.add_cases true meth_cases)
           (K (statement, using, goal', before_qed, after_qed)))
   end;
 
@@ -460,7 +461,7 @@ end;
 
 (* conclude_goal *)
 
-fun conclude_goal state props goal =
+fun conclude_goal state goal props =
   let
     val ctxt = context_of state;
     fun err msg = raise STATE (msg, state);
@@ -784,7 +785,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     |> tap (check_tvars props)
     |> tap (check_vars props)
     |> put_goal (SOME (make_goal ((kind, propss), [], goal, before_qed, after_qed')))
-    |> map_context (ProofContext.add_cases (AutoBind.cases thy props))
+    |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
     |> K chaining ? (`the_facts #-> using_facts)
     |> put_facts NONE
@@ -805,7 +806,7 @@ fun generic_qed state =
     val props = ProofContext.generalize goal_ctxt outer_ctxt raw_props;
     val results =
       stmt
-      |> burrow (fn raw_props => conclude_goal state raw_props goal)
+      |> burrow (conclude_goal state goal)
       |> (Seq.map_list o Seq.map_list) (ProofContext.exports goal_ctxt outer_ctxt);
   in
     outer_state
