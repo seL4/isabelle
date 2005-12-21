@@ -237,22 +237,18 @@ syntax (HTML output)
 
 subsection {*Equality*}
 
-lemma sym: "s=t ==> t=s"
-apply (erule subst)
-apply (rule refl)
-done
+lemma sym: "s = t ==> t = s"
+  by (erule subst) (rule refl)
 
-(*calling "standard" reduces maxidx to 0*)
-lemmas ssubst = sym [THEN subst, standard]
+lemma ssubst: "t = s ==> P s ==> P t"
+  by (drule sym) (erule subst)
 
 lemma trans: "[| r=s; s=t |] ==> r=t"
-apply (erule subst , assumption)
-done
+  by (erule subst)
 
-lemma def_imp_eq:  assumes meq: "A == B" shows "A = B"
-apply (unfold meq)
-apply (rule refl)
-done
+lemma def_imp_eq: assumes meq: "A == B" shows "A = B"
+  by (unfold meq) (rule refl)
+
 
 (*Useful with eresolve_tac for proving equalties from known equalities.
         a = b
@@ -303,18 +299,13 @@ done
 subsection {*Equality of booleans -- iff*}
 
 lemma iffI: assumes prems: "P ==> Q" "Q ==> P" shows "P=Q"
-apply (iprover intro: iff [THEN mp, THEN mp] impI prems)
-done
+  by (iprover intro: iff [THEN mp, THEN mp] impI prems)
 
 lemma iffD2: "[| P=Q; Q |] ==> P"
-apply (erule ssubst)
-apply assumption
-done
+  by (erule ssubst)
 
 lemma rev_iffD2: "[| Q; P=Q |] ==> P"
-apply (erule iffD2)
-apply assumption
-done
+  by (erule iffD2)
 
 lemmas iffD1 = sym [THEN iffD2, standard]
 lemmas rev_iffD1 = sym [THEN [2] rev_iffD2, standard]
@@ -322,19 +313,17 @@ lemmas rev_iffD1 = sym [THEN [2] rev_iffD2, standard]
 lemma iffE:
   assumes major: "P=Q"
       and minor: "[| P --> Q; Q --> P |] ==> R"
-  shows "R"
-by (iprover intro: minor impI major [THEN iffD2] major [THEN iffD1])
+  shows R
+  by (iprover intro: minor impI major [THEN iffD2] major [THEN iffD1])
 
 
 subsection {*True*}
 
 lemma TrueI: "True"
-apply (unfold True_def)
-apply (rule refl)
-done
+  by (unfold True_def) (rule refl)
 
 lemma eqTrueI: "P ==> P=True"
-by (iprover intro: iffI TrueI)
+  by (iprover intro: iffI TrueI)
 
 lemma eqTrueE: "P=True ==> P"
 apply (erule iffD2)
@@ -810,6 +799,15 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm
 
 theorems case_split = case_split_thm [case_names True False]
 
+ML {*
+structure ProjectRule = ProjectRuleFun
+(struct
+  val conjunct1 = thm "conjunct1";
+  val conjunct2 = thm "conjunct2";
+  val mp = thm "mp";
+end)
+*}
+
 
 subsubsection {* Intuitionistic Reasoning *}
 
@@ -1146,7 +1144,7 @@ constdefs
   simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1)
   "simp_implies \<equiv> op ==>"
 
-lemma simp_impliesI: 
+lemma simp_impliesI:
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"
   shows "PROP P =simp=> PROP Q"
   apply (unfold simp_implies_def)
@@ -1282,23 +1280,31 @@ by(rule trans[OF trans[OF c a] arg_cong[OF c, of "f y"]])
 subsection {* Generic cases and induction *}
 
 constdefs
-  induct_forall :: "('a => bool) => bool"
-  "induct_forall P == \<forall>x. P x"
-  induct_implies :: "bool => bool => bool"
-  "induct_implies A B == A --> B"
-  induct_equal :: "'a => 'a => bool"
-  "induct_equal x y == x = y"
-  induct_conj :: "bool => bool => bool"
-  "induct_conj A B == A & B"
+  induct_forall where "induct_forall P == \<forall>x. P x"
+  induct_implies where "induct_implies A B == A \<longrightarrow> B"
+  induct_equal where "induct_equal x y == x = y"
+  induct_conj where "induct_conj A B == A \<and> B"
 
 lemma induct_forall_eq: "(!!x. P x) == Trueprop (induct_forall (\<lambda>x. P x))"
-  by (simp only: atomize_all induct_forall_def)
+  by (unfold atomize_all induct_forall_def)
 
 lemma induct_implies_eq: "(A ==> B) == Trueprop (induct_implies A B)"
-  by (simp only: atomize_imp induct_implies_def)
+  by (unfold atomize_imp induct_implies_def)
 
 lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
-  by (simp only: atomize_eq induct_equal_def)
+  by (unfold atomize_eq induct_equal_def)
+
+lemma induct_conj_eq:
+  includes meta_conjunction_syntax
+  shows "(A && B) == Trueprop (induct_conj A B)"
+  by (unfold atomize_conj induct_conj_def)
+
+lemmas induct_atomize_old = induct_forall_eq induct_implies_eq induct_equal_eq atomize_conj
+lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
+lemmas induct_rulify [symmetric, standard] = induct_atomize
+lemmas induct_rulify_fallback =
+  induct_forall_def induct_implies_def induct_equal_def induct_conj_def
+
 
 lemma induct_forall_conj: "induct_forall (\<lambda>x. induct_conj (A x) (B x)) =
     induct_conj (induct_forall A) (induct_forall B)"
@@ -1311,18 +1317,12 @@ lemma induct_implies_conj: "induct_implies C (induct_conj A B) =
 lemma induct_conj_curry: "(induct_conj A B ==> PROP C) == (A ==> B ==> PROP C)"
 proof
   assume r: "induct_conj A B ==> PROP C" and A B
-  show "PROP C" by (rule r) (simp! add: induct_conj_def)
+  show "PROP C" by (rule r) (simp add: induct_conj_def `A` `B`)
 next
   assume r: "A ==> B ==> PROP C" and "induct_conj A B"
-  show "PROP C" by (rule r) (simp! add: induct_conj_def)+
+  show "PROP C" by (rule r) (simp_all add: `induct_conj A B` [unfolded induct_conj_def])
 qed
 
-lemma induct_impliesI: "(A ==> B) ==> induct_implies A B"
-  by (simp add: induct_implies_def)
-
-lemmas induct_atomize = atomize_conj induct_forall_eq induct_implies_eq induct_equal_eq
-lemmas induct_rulify1 [symmetric, standard] = induct_forall_eq induct_implies_eq induct_equal_eq
-lemmas induct_rulify2 = induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 lemmas induct_conj = induct_forall_conj induct_implies_conj induct_conj_curry
 
 hide const induct_forall induct_implies induct_equal induct_conj
@@ -1333,24 +1333,22 @@ text {* Method setup. *}
 ML {*
   structure InductMethod = InductMethodFun
   (struct
-    val dest_concls = HOLogic.dest_concls
     val cases_default = thm "case_split"
-    val local_impI = thm "induct_impliesI"
-    val conjI = thm "conjI"
+    val atomize_old = thms "induct_atomize_old"
     val atomize = thms "induct_atomize"
-    val rulify1 = thms "induct_rulify1"
-    val rulify2 = thms "induct_rulify2"
-    val localize = [Thm.symmetric (thm "induct_implies_def")]
+    val rulify = thms "induct_rulify"
+    val rulify_fallback = thms "induct_rulify_fallback"
   end);
 *}
 
 setup InductMethod.setup
 
-subsubsection{*Tags, for the ATP Linkup*}
+
+subsubsection {*Tags, for the ATP Linkup *}
 
 constdefs
   tag :: "bool => bool"
-   "tag P == P"
+  "tag P == P"
 
 text{*These label the distinguished literals of introduction and elimination
 rules.*}
@@ -1370,4 +1368,3 @@ lemma tag_False: "tag False = False"
 by (simp add: tag_def)
 
 end
-
