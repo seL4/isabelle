@@ -156,14 +156,14 @@ conjuncts.  For example:
 of rule sharing the same induction cases.  HOL packages usually
 provide foo_bar.inducts for mutually defined items foo and bar
 (e.g. inductive sets or datatypes).  INCOMPATIBILITY, users need to
-specify mutual induction rules differently, e.g. like this:
+specify mutual induction rules differently, i.e. like this:
 
   (induct rule: foo_bar.inducts)
   (induct set: foo bar)
   (induct type: foo bar)
 
-Moreover, the ML function ProjectRule.projections turns old-style
-rules into the new format.
+The ML function ProjectRule.projections turns old-style rules into the
+new format.
 
 * Provers/induct: support coinduction as well.  See
 src/HOL/Library/Coinductive_List.thy for various examples.
