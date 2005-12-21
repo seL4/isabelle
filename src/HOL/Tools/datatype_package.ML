@@ -305,20 +305,20 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
 fun add_cases_induct infos induction =
   let
     val n = length (HOLogic.dest_concls (Thm.concl_of induction));
-    fun proj i thm =
-      if n = 1 then thm
-      else (if i + 1 < n then (fn th => th RS conjunct1) else I)
-        (Library.funpow i (fn th => th RS conjunct2) thm)
-        |> Drule.zero_var_indexes
-        |> RuleCases.save thm;
+    fun proj i = ProjectRule.project induction (i + 1);
 
     fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
-      [(("", proj index induction), [InductAttrib.induct_type_global name]),
+      [(("", proj index), [InductAttrib.induct_type_global name]),
        (("", exhaustion), [InductAttrib.cases_type_global name])];
     fun unnamed_rule i =
-      (("", proj i induction), [InductAttrib.induct_type_global ""]);
-    val rules = List.concat (map named_rules infos) @ map unnamed_rule (length infos upto n - 1);
-  in snd o PureThy.add_thms rules end;
+      (("", proj i), [Drule.kind_internal, InductAttrib.induct_type_global ""]);
+  in
+    PureThy.add_thms
+      (List.concat (map named_rules infos) @
+        map unnamed_rule (length infos upto n - 1)) #> snd #>
+    PureThy.add_thmss [(("inducts",
+      map (proj #> standard #> RuleCases.save induction) (0 upto n - 1)), [])] #> snd
+  end;
 
 
 
