@@ -66,6 +66,11 @@ sig
   val print_datatypes : theory -> unit
   val datatype_info : theory -> string -> DatatypeAux.datatype_info option
   val datatype_info_err : theory -> string -> DatatypeAux.datatype_info
+  val is_datatype : theory -> string -> bool
+  val get_datatype : theory -> string -> ((string * sort) list * string list) option
+  val get_datatype_cons : theory -> string * string -> typ list option
+  val get_case_const_data : theory -> string -> (string * int) list option
+  val get_all_datatype_cons : theory -> (string * string list) list
   val constrs_of : theory -> string -> term list option
   val case_const_of : theory -> string -> term option
   val weak_case_congs_of : theory -> thm list
@@ -946,6 +951,61 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
 
 val add_datatype_i = gen_add_datatype cert_typ;
 val add_datatype = gen_add_datatype read_typ true;
+
+
+(** queries **)
+
+fun is_datatype thy dtco =
+  Symtab.lookup (get_datatypes thy) dtco
+  |> is_some;
+
+fun get_datatype thy dtco =
+  dtco
+  |> Symtab.lookup (get_datatypes thy)
+  |> Option.map (fn info => (#sorts info,
+      (get_first (fn (_, (dtco', _, cs)) =>
+        if dtco = dtco'
+        then SOME (map fst cs)
+        else NONE) (#descr info) |> the)));
+  
+fun get_datatype_cons thy (co, dtco) =
+  let
+    val descr =
+      dtco
+      |> Symtab.lookup (get_datatypes thy)
+      |> Option.map #descr
+      |> these
+    val one_descr =
+      descr
+      |> get_first (fn (_, (dtco', vs, cs)) =>
+          if dtco = dtco'
+          then SOME (vs, cs)
+          else NONE);
+  in
+    if is_some one_descr
+    then
+      the one_descr
+      |> (fn (vs, cs) =>
+          co
+          |> AList.lookup (op =) cs
+          |> Option.map (map (DatatypeAux.typ_of_dtyp descr (map (rpair [])
+               (map DatatypeAux.dest_DtTFree vs)))))
+    else NONE
+  end;
+
+fun get_case_const_data thy c =
+  case Library.find_first (fn (_, {index, descr, case_name, ...}) =>
+      case_name = c
+    ) ((Symtab.dest o get_datatypes) thy)
+   of NONE => NONE
+    | SOME (_, {index, descr, ...}) =>
+        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
+
+fun get_all_datatype_cons thy =
+  Symtab.fold (fn (dtco, _) => fold
+    (fn co =>
+      AList.default (op =) (co, []) #> AList.map_entry (op =) co (cons dtco))
+    ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
 
 
 (** package setup **)

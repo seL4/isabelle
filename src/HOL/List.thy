@@ -2692,4 +2692,6 @@ consts_code "Cons" ("(_ ::/ _)")
 
 setup list_codegen_setup
 
+setup "[CodegenPackage.rename_inconsistent]"
+
 end

@@ -7,10 +7,6 @@ Code generator for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
-  val is_datatype: theory -> string -> bool
-  val get_datatype: theory -> string -> ((string * sort) list * string list) option
-  val get_datacons: theory -> string * string -> typ list option
-  val get_case_const_data: theory -> string -> (string * int) list option;
   val setup: (theory -> theory) list
 end;
 
@@ -300,64 +296,20 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
            end)
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
-fun is_datatype thy dtyco =
-  Symtab.lookup (DatatypePackage.get_datatypes thy) dtyco
-  |> is_some;
-
-fun get_datatype thy dtname =
-  dtname
-  |> Symtab.lookup (DatatypePackage.get_datatypes thy)
-  |> Option.map (fn info => (#sorts info,
-      (get_first (fn (_, (dtname', _, cs)) =>
-        if dtname = dtname'
-        then SOME (map fst cs)
-        else NONE) (#descr info) |> the)));
-  
-fun get_datacons thy (c, dtname) =
-  let
-    val descr =
-      dtname
-      |> Symtab.lookup (DatatypePackage.get_datatypes thy)
-      |> Option.map #descr
-      |> these
-    val one_descr =
-      descr
-      |> get_first (fn (_, (dtname', vs, cs)) =>
-          if dtname = dtname'
-          then SOME (vs, cs)
-          else NONE);
-  in
-    if is_some one_descr
-    then
-      the one_descr
-      |> (fn (vs, cs) =>
-          c
-          |> AList.lookup (op =) cs
-          |> Option.map (map (DatatypeAux.typ_of_dtyp descr (map (rpair [])
-               (map DatatypeAux.dest_DtTFree vs)))))
-    else NONE
-  end;
-
-fun get_case_const_data thy f =
-  case Library.find_first (fn (_, {index, descr, case_name, ...}) =>
-      case_name = f
-    ) ((Symtab.dest o DatatypePackage.get_datatypes) thy)
-   of NONE => NONE
-    | SOME (_, {index, descr, ...}) =>
-        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
-
 
 val setup = [
   add_codegen "datatype" datatype_codegen,
   add_tycodegen "datatype" datatype_tycodegen,
   CodegenPackage.set_is_datatype
-    is_datatype,
+    DatatypePackage.is_datatype,
+  CodegenPackage.set_get_all_datatype_cons
+    DatatypePackage.get_all_datatype_cons,
   CodegenPackage.add_defgen
-    ("datatype", CodegenPackage.defgen_datatype get_datatype get_datacons),
+    ("datatype", CodegenPackage.defgen_datatype DatatypePackage.get_datatype DatatypePackage.get_datatype_cons),
   CodegenPackage.add_defgen
-    ("datacons", CodegenPackage.defgen_datacons get_datacons),
+    ("datacons", CodegenPackage.defgen_datacons DatatypePackage.get_datatype_cons),
   CodegenPackage.add_appgen
-    ("case", CodegenPackage.appgen_case get_case_const_data)
+    ("case", CodegenPackage.appgen_case DatatypePackage.get_case_const_data)
 ];
 
 end;
