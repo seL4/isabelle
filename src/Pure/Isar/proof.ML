@@ -801,12 +801,12 @@ fun generic_qed state =
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
-    val raw_props = List.concat stmt;
+    val raw_props = Library.flat stmt;
     val props = ProofContext.generalize goal_ctxt outer_ctxt raw_props;
     val results =
-      conclude_goal state raw_props goal
-      |> Seq.map_list (ProofContext.exports goal_ctxt outer_ctxt)
-      |> Seq.map (Library.unflat stmt);
+      stmt
+      |> burrow (fn raw_props => conclude_goal state raw_props goal)
+      |> (Seq.map_list o Seq.map_list) (ProofContext.exports goal_ctxt outer_ctxt);
   in
     outer_state
     |> map_context (ProofContext.auto_bind_facts props)

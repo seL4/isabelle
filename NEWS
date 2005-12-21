@@ -163,6 +163,20 @@ as greatest fixed-point.
 
 *** ML ***
 
+* Pure/library:
+
+  val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
+  val burrow_split: ('a list -> 'c * 'b list) -> 'a list list -> 'c * 'b list list
+
+The semantics of "burrow" is: "take a function with *simulatanously* transforms
+a list of value, and apply it *simulatanously* to a list of list of values of the
+appropriate type". Confer this with "map" which would *not* apply its argument
+function simulatanously but in sequence. "burrow_split" allows the transformator
+function to yield an additional side result.
+
+Both actually avoid the usage of "unflat" since they hide away "unflat"
+from the user.
+
 * Pure/library: functions map2 and fold2 with curried syntax for
 simultanous mapping and folding:
 

@@ -1201,24 +1201,21 @@ fun prep_elemss prep_parms prepp do_close context fixed_params raw_elemss raw_co
        the fixes elements in raw_elemss,
        raw_proppss contains assumptions and definitions from the
        external elements in raw_elemss. *)
-    val raw_propps = map List.concat raw_proppss;
-    val raw_propp = List.concat raw_propps;
+    fun prep_prop raw_ctxt raw_concl raw_propp =
+      let
+        (* CB: add type information from fixed_params to context (declare_term) *)
+        (* CB: process patterns (conclusion and external elements only) *)
+        val (ctxt, all_propp) =
+          prepp (fold ProofContext.declare_term (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
+        (* CB: add type information from conclusion and external elements to context *)
+        val ctxt = fold ProofContext.declare_term (List.concat (map (map fst) all_propp)) ctxt;
+        (* CB: resolve schematic variables (patterns) in conclusion and external elements. *)
+        val all_propp' = map2 (curry (op ~~))
+          (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
+        val (concl, propp) = splitAt (length raw_concl, all_propp')
+      in ((ctxt, concl), propp) end
 
-    (* CB: add type information from fixed_params to context (declare_term) *)
-    (* CB: process patterns (conclusion and external elements only) *)
-    val (ctxt, all_propp) =
-      prepp (fold ProofContext.declare_term (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
-    (* CB: add type information from conclusion and external elements
-       to context *)
-    val ctxt = fold ProofContext.declare_term (List.concat (map (map fst) all_propp)) ctxt;
-
-    (* CB: resolve schematic variables (patterns) in conclusion and external
-       elements. *)
-    val all_propp' = map2 (curry (op ~~))
-      (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
-    val (concl, propp) = splitAt(length raw_concl, all_propp');
-    val propps = unflat raw_propps propp;
-    val proppss = map (uncurry unflat) (raw_proppss ~~ propps);
+    val ((ctxt, concl), proppss) = (burrow_split o burrow_split) (prep_prop raw_ctxt raw_concl) raw_proppss;
 
     (* CB: obtain all parameters from identifier part of raw_elemss *)
     val xs = map #1 (params_of' raw_elemss);
