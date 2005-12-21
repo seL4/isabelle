@@ -143,6 +143,15 @@ subsection {* Lemmas and proof tools *}
 
 use "IFOL_lemmas.ML"
 
+ML {*
+structure ProjectRule = ProjectRuleFun
+(struct
+  val conjunct1 = thm "conjunct1";
+  val conjunct2 = thm "conjunct2";
+  val mp = thm "mp";
+end)
+*}
+
 use "fologic.ML"
 use "hypsubstdata.ML"
 setup hypsubst_setup
