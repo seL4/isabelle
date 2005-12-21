@@ -45,23 +45,20 @@ inductive "exprel"
 
 text{*Proving that it is an equivalence relation*}
 
-lemma exprel_refl_conj: "X \<sim> X & (Xs,Xs) \<in> listrel(exprel)"
-apply (induct X and Xs)
-apply (blast intro: exprel.intros listrel.intros)+
-done
-
-lemmas exprel_refl = exprel_refl_conj [THEN conjunct1]
-lemmas list_exprel_refl = exprel_refl_conj [THEN conjunct2]
+lemma exprel_refl: "X \<sim> X"
+  and list_exprel_refl: "(Xs,Xs) \<in> listrel(exprel)"
+  by (induct X and Xs) (blast intro: exprel.intros listrel.intros)+
 
 theorem equiv_exprel: "equiv UNIV exprel"
-proof (simp add: equiv_def, intro conjI)
-  show "reflexive exprel" by (simp add: refl_def exprel_refl)
-  show "sym exprel" by (simp add: sym_def, blast intro: exprel.SYM)
-  show "trans exprel" by (simp add: trans_def, blast intro: exprel.TRANS)
+proof -
+  have "reflexive exprel" by (simp add: refl_def exprel_refl)
+  moreover have "sym exprel" by (simp add: sym_def, blast intro: exprel.SYM)
+  moreover have "trans exprel" by (simp add: trans_def, blast intro: exprel.TRANS)
+  ultimately show ?thesis by (simp add: equiv_def)
 qed
 
 theorem equiv_list_exprel: "equiv UNIV (listrel exprel)"
-by (insert equiv_listrel [OF equiv_exprel], simp)
+  using equiv_listrel [OF equiv_exprel] by simp
 
 
 lemma FNCALL_Nil: "FNCALL F [] \<sim> FNCALL F []"
@@ -100,7 +97,7 @@ text{*This theorem lets us prove that the vars function respects the
 equivalence relation.  It also helps us prove that Variable
   (the abstract constructor) is injective*}
 theorem exprel_imp_eq_freevars: "U \<sim> V \<Longrightarrow> freevars U = freevars V"
-apply (erule exprel.induct) 
+apply (induct set: exprel) 
 apply (erule_tac [4] listrel.induct) 
 apply (simp_all add: Un_assoc)
 done
@@ -118,7 +115,7 @@ primrec
 
 theorem exprel_imp_eq_freediscrim:
      "U \<sim> V \<Longrightarrow> freediscrim U = freediscrim V"
-by (erule exprel.induct, auto)
+  by (induct set: exprel) auto
 
 
 text{*This function, which returns the function name, is used to
@@ -132,7 +129,7 @@ primrec
 
 theorem exprel_imp_eq_freefun:
      "U \<sim> V \<Longrightarrow> freefun U = freefun V"
-by (erule exprel.induct, simp_all add: listrel.intros)
+  by (induct set: exprel) (simp_all add: listrel.intros)
 
 
 text{*This function, which returns the list of function arguments, is used to
@@ -145,7 +142,7 @@ primrec
 
 theorem exprel_imp_eqv_freeargs:
      "U \<sim> V \<Longrightarrow> (freeargs U, freeargs V) \<in> listrel exprel"
-apply (erule exprel.induct)  
+apply (induct set: exprel)
 apply (erule_tac [4] listrel.induct) 
 apply (simp_all add: listrel.intros)
 apply (blast intro: symD [OF equiv.sym [OF equiv_list_exprel]])
@@ -265,7 +262,7 @@ qed
 
 lemma listset_Rep_Exp_Abs_Exp:
      "listset (map Rep_Exp (Abs_ExpList Us)) = listrel exprel `` {Us}";
-by (induct Us, simp_all add: listrel_Cons Abs_ExpList_def)
+  by (induct Us) (simp_all add: listrel_Cons Abs_ExpList_def)
 
 lemma FnCall:
      "FnCall F (Abs_ExpList Us) = Abs_Exp (exprel``{FNCALL F Us})"
@@ -372,7 +369,7 @@ text{*This result can probably be generalized to arbitrary equivalence
 relations, but with little benefit here.*}
 lemma Abs_ExpList_eq:
      "(y, z) \<in> listrel exprel \<Longrightarrow> Abs_ExpList (y) = Abs_ExpList (z)"
-by (erule listrel.induct, simp_all)
+  by (induct set: listrel) simp_all
 
 lemma args_respects: "(%U. {Abs_ExpList (freeargs U)}) respects exprel"
 by (simp add: congruent_def Abs_ExpList_eq exprel_imp_eqv_freeargs) 
@@ -426,19 +423,19 @@ done
 
 
 text{*The structural induction rule for the abstract type*}
-theorem exp_induct:
+theorem exp_inducts:
   assumes V:    "\<And>nat. P1 (Var nat)"
       and P:    "\<And>exp1 exp2. \<lbrakk>P1 exp1; P1 exp2\<rbrakk> \<Longrightarrow> P1 (Plus exp1 exp2)"
       and F:    "\<And>nat list. P2 list \<Longrightarrow> P1 (FnCall nat list)"
       and Nil:  "P2 []"
       and Cons: "\<And>exp list. \<lbrakk>P1 exp; P2 list\<rbrakk> \<Longrightarrow> P2 (exp # list)"
-  shows "P1 exp & P2 list"
-proof (cases exp, rule eq_Abs_ExpList [of list], clarify)  
-  fix U Us
-  show "P1 (Abs_Exp (exprel `` {U})) \<and>
-        P2 (Abs_ExpList Us)"
+  shows "P1 exp" and "P2 list"
+proof -
+  obtain U where exp: "exp = (Abs_Exp (exprel `` {U}))" by (cases exp)
+  obtain Us where list: "list = Abs_ExpList Us" by (rule eq_Abs_ExpList)
+  have "P1 (Abs_Exp (exprel `` {U}))" and "P2 (Abs_ExpList Us)"
   proof (induct U and Us)
-    case (VAR nat) 
+    case (VAR nat)
     with V show ?case by (simp add: Var_def) 
   next
     case (PLUS X Y)
@@ -453,9 +450,9 @@ proof (cases exp, rule eq_Abs_ExpList [of list], clarify)
     with Nil show ?case by simp
   next
     case Cons_freeExp
-     with Cons
-    show ?case by simp
+    with Cons show ?case by simp
   qed
+  with exp and list show "P1 exp" and "P2 list" by (simp_all only:)
 qed
 
 end

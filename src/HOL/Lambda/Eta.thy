@@ -392,47 +392,46 @@ Based on a proof by Masako Takahashi \cite{Takahashi-IandC}.
 *}
 
 theorem par_eta_beta: "s \<Rightarrow>\<^sub>\<eta> t \<Longrightarrow> t => u \<Longrightarrow> \<exists>t'. s => t' \<and> t' \<Rightarrow>\<^sub>\<eta> u"
-proof (induct t fixing: s u
-    rule: measure_induct [of size, rule_format])
-  case (1 t)
-  from 1(3)
+proof (induct t fixing: s u taking: "size :: dB \<Rightarrow> nat" rule: measure_induct_rule)
+  case (less t)
+  from `t => u`
   show ?case
   proof cases
     case (var n)
-    with 1 show ?thesis
+    with less show ?thesis
       by (auto intro: par_beta_refl)
   next
     case (abs r' r'')
-    with 1 have "s \<Rightarrow>\<^sub>\<eta> Abs r'" by simp
+    with less have "s \<Rightarrow>\<^sub>\<eta> Abs r'" by simp
     then obtain r k where s: "s = eta_expand k (Abs r)" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
       by (blast dest: par_eta_elim_abs)
     from abs have "size r' < size t" by simp
     with abs(2) rr obtain t' where rt: "r => t'" and t': "t' \<Rightarrow>\<^sub>\<eta> r''"
-      by (blast dest: 1)
+      by (blast dest: less)
     with s abs show ?thesis
       by (auto intro: eta_expand_red eta_expand_eta)
   next
     case (app q' q'' r' r'')
-    with 1 have "s \<Rightarrow>\<^sub>\<eta> q' \<degree> r'" by simp
+    with less have "s \<Rightarrow>\<^sub>\<eta> q' \<degree> r'" by simp
     then obtain q r k where s: "s = eta_expand k (q \<degree> r)"
       and qq: "q \<Rightarrow>\<^sub>\<eta> q'" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
       by (blast dest: par_eta_elim_app [OF _ refl])
     from app have "size q' < size t" and "size r' < size t" by simp_all
     with app(2,3) qq rr obtain t' t'' where "q => t'" and
       "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
-      by (blast dest: 1)
+      by (blast dest: less)
     with s app show ?thesis
       by (fastsimp intro: eta_expand_red eta_expand_eta)
   next
     case (beta q' q'' r' r'')
-    with 1 have "s \<Rightarrow>\<^sub>\<eta> Abs q' \<degree> r'" by simp
+    with less have "s \<Rightarrow>\<^sub>\<eta> Abs q' \<degree> r'" by simp
     then obtain q r k k' where s: "s = eta_expand k (eta_expand k' (Abs q) \<degree> r)"
       and qq: "q \<Rightarrow>\<^sub>\<eta> q'" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
       by (blast dest: par_eta_elim_app par_eta_elim_abs)
     from beta have "size q' < size t" and "size r' < size t" by simp_all
     with beta(2,3) qq rr obtain t' t'' where "q => t'" and
       "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
-      by (blast dest: 1)
+      by (blast dest: less)
     with s beta show ?thesis
       by (auto intro: eta_expand_red eta_expand_beta eta_expand_eta par_eta_subst)
   qed

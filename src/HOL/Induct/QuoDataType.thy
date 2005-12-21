@@ -49,13 +49,14 @@ inductive "msgrel"
 text{*Proving that it is an equivalence relation*}
 
 lemma msgrel_refl: "X \<sim> X"
-by (induct X, (blast intro: msgrel.intros)+)
+  by (induct X) (blast intro: msgrel.intros)+
 
 theorem equiv_msgrel: "equiv UNIV msgrel"
-proof (simp add: equiv_def, intro conjI)
-  show "reflexive msgrel" by (simp add: refl_def msgrel_refl)
-  show "sym msgrel" by (simp add: sym_def, blast intro: msgrel.SYM)
-  show "trans msgrel" by (simp add: trans_def, blast intro: msgrel.TRANS)
+proof -
+  have "reflexive msgrel" by (simp add: refl_def msgrel_refl)
+  moreover have "sym msgrel" by (simp add: sym_def, blast intro: msgrel.SYM)
+  moreover have "trans msgrel" by (simp add: trans_def, blast intro: msgrel.TRANS)
+  ultimately show ?thesis by (simp add: equiv_def)
 qed
 
 
@@ -78,7 +79,7 @@ text{*This theorem lets us prove that the nonces function respects the
 equivalence relation.  It also helps us prove that Nonce
   (the abstract constructor) is injective*}
 theorem msgrel_imp_eq_freenonces: "U \<sim> V \<Longrightarrow> freenonces U = freenonces V"
-by (erule msgrel.induct, auto) 
+  by (induct set: msgrel) auto
 
 
 subsubsection{*The Left Projection*}
@@ -97,7 +98,7 @@ equivalence relation.  It also helps us prove that MPair
   (the abstract constructor) is injective*}
 theorem msgrel_imp_eqv_freeleft:
      "U \<sim> V \<Longrightarrow> freeleft U \<sim> freeleft V"
-by (erule msgrel.induct, auto intro: msgrel.intros)
+  by (induct set: msgrel) (auto intro: msgrel.intros)
 
 
 subsubsection{*The Right Projection*}
@@ -115,7 +116,7 @@ equivalence relation.  It also helps us prove that MPair
   (the abstract constructor) is injective*}
 theorem msgrel_imp_eqv_freeright:
      "U \<sim> V \<Longrightarrow> freeright U \<sim> freeright V"
-by (erule msgrel.induct, auto intro: msgrel.intros)
+  by (induct set: msgrel) (auto intro: msgrel.intros)
 
 
 subsubsection{*The Discriminator for Constructors*}
@@ -131,13 +132,13 @@ primrec
 text{*This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}*}
 theorem msgrel_imp_eq_freediscrim:
      "U \<sim> V \<Longrightarrow> freediscrim U = freediscrim V"
-by (erule msgrel.induct, auto)
+  by (induct set: msgrel) auto
 
 
 subsection{*The Initial Algebra: A Quotiented Message Type*}
 
 typedef (Msg)  msg = "UNIV//msgrel"
-    by (auto simp add: quotient_def)
+  by (auto simp add: quotient_def)
 
 
 text{*The abstract message constructors*}
@@ -402,9 +403,9 @@ lemma msg_induct [case_names Nonce MPair Crypt Decrypt, cases type: msg]:
       and C: "\<And>K X. P X \<Longrightarrow> P (Crypt K X)"
       and D: "\<And>K X. P X \<Longrightarrow> P (Decrypt K X)"
   shows "P msg"
-proof (cases msg, erule ssubst)  
-  fix U::freemsg
-  show "P (Abs_Msg (msgrel `` {U}))"
+proof (cases msg)
+  case (Abs_Msg U)
+  have "P (Abs_Msg (msgrel `` {U}))"
   proof (induct U)
     case (NONCE N) 
     with N show ?case by (simp add: Nonce_def) 
@@ -421,6 +422,7 @@ proof (cases msg, erule ssubst)
     with D [of "Abs_Msg (msgrel `` {X})"]
     show ?case by (simp add: Decrypt)
   qed
+  with Abs_Msg show ?thesis by (simp only:)
 qed
 
 

@@ -18,6 +18,12 @@ consts
 datatype "tree(A)" = Tcons ("a \<in> A", "f \<in> forest(A)")
   and "forest(A)" = Fnil | Fcons ("t \<in> tree(A)", "f \<in> forest(A)")
 
+(* FIXME *)
+lemmas tree'induct =
+    tree_forest.mutual_induct [THEN conjunct1, THEN spec, THEN [2] rev_mp, of concl: _ t, standard, consumes 1]
+  and forest'induct =
+    tree_forest.mutual_induct [THEN conjunct2, THEN spec, THEN [2] rev_mp, of concl: _ f, standard, consumes 1]
+
 declare tree_forest.intros [simp, TC]
 
 lemma tree_def: "tree(A) == Part(tree_forest(A), Inl)"
@@ -158,36 +164,28 @@ text {*
 
 lemma list_of_TF_type [TC]:
     "z \<in> tree_forest(A) ==> list_of_TF(z) \<in> list(tree(A))"
-  apply (erule tree_forest.induct)
-  apply simp_all
-  done
+  by (induct set: tree_forest) simp_all
 
 lemma of_list_type [TC]: "l \<in> list(tree(A)) ==> of_list(l) \<in> forest(A)"
-  apply (erule list.induct)
-  apply simp_all
-  done
+  by (induct set: list) simp_all
 
 text {*
   \medskip @{text map}.
 *}
 
 lemma
-  assumes h_type: "!!x. x \<in> A ==> h(x): B"
+  assumes "!!x. x \<in> A ==> h(x): B"
   shows map_tree_type: "t \<in> tree(A) ==> map(h,t) \<in> tree(B)"
     and map_forest_type: "f \<in> forest(A) ==> map(h,f) \<in> forest(B)"
-  apply (induct rule: tree_forest.mutual_induct)
-    apply (insert h_type)
-    apply simp_all
-  done
+  using prems
+  by (induct rule: tree'induct forest'induct) simp_all
 
 text {*
   \medskip @{text size}.
 *}
 
 lemma size_type [TC]: "z \<in> tree_forest(A) ==> size(z) \<in> nat"
-  apply (erule tree_forest.induct)
-  apply simp_all
-  done
+  by (induct set: tree_forest) simp_all
 
 
 text {*
@@ -195,9 +193,7 @@ text {*
 *}
 
 lemma preorder_type [TC]: "z \<in> tree_forest(A) ==> preorder(z) \<in> list(A)"
-  apply (erule tree_forest.induct)
-  apply simp_all
-  done
+  by (induct set: tree_forest) simp_all
 
 
 text {*
@@ -229,15 +225,11 @@ text {*
 *}
 
 lemma map_ident: "z \<in> tree_forest(A) ==> map(\<lambda>u. u, z) = z"
-  apply (erule tree_forest.induct)
-    apply simp_all
-  done
+  by (induct set: tree_forest) simp_all
 
 lemma map_compose:
     "z \<in> tree_forest(A) ==> map(h, map(j,z)) = map(\<lambda>u. h(j(u)), z)"
-  apply (erule tree_forest.induct)
-    apply simp_all
-  done
+  by (induct set: tree_forest) simp_all
 
 
 text {*
@@ -245,14 +237,10 @@ text {*
 *}
 
 lemma size_map: "z \<in> tree_forest(A) ==> size(map(h,z)) = size(z)"
-  apply (erule tree_forest.induct)
-    apply simp_all
-  done
+  by (induct set: tree_forest) simp_all
 
 lemma size_length: "z \<in> tree_forest(A) ==> size(z) = length(preorder(z))"
-  apply (erule tree_forest.induct)
-    apply (simp_all add: length_app)
-  done
+  by (induct set: tree_forest) (simp_all add: length_app)
 
 text {*
   \medskip Theorems about @{text preorder}.
@@ -260,8 +248,6 @@ text {*
 
 lemma preorder_map:
     "z \<in> tree_forest(A) ==> preorder(map(h,z)) = List.map(h, preorder(z))"
-  apply (erule tree_forest.induct)
-    apply (simp_all add: map_app_distrib)
-  done
+  by (induct set: tree_forest) (simp_all add: map_app_distrib)
 
 end

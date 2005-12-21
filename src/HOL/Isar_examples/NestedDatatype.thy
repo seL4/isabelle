@@ -27,10 +27,9 @@ text {*
  \medskip A simple lemma about composition of substitutions.
 *}
 
-lemma
-   "subst_term (subst_term f1 o f2) t =
-      subst_term f1 (subst_term f2 t) &
-    subst_term_list (subst_term f1 o f2) ts =
+lemma "subst_term (subst_term f1 o f2) t =
+      subst_term f1 (subst_term f2 t)"
+  and "subst_term_list (subst_term f1 o f2) ts =
       subst_term_list f1 (subst_term_list f2 ts)"
   by (induct t and ts) simp_all
 
