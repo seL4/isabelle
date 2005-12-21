@@ -141,10 +141,9 @@ val RAW_METHOD_CASES = Meth;
 fun RAW_METHOD tac = RAW_METHOD_CASES (NO_CASES o tac);
 
 fun METHOD_CASES tac = RAW_METHOD_CASES (fn facts =>
-  Seq.THEN (TRY Tactic.conjunction_tac, tac facts));
+  Seq.THEN (ALLGOALS Tactic.conjunction_tac, tac facts));
 
-fun METHOD tac = RAW_METHOD (fn facts =>
-  TRY Tactic.conjunction_tac THEN tac facts);
+fun METHOD tac = RAW_METHOD (fn facts => ALLGOALS Tactic.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
