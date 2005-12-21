@@ -337,7 +337,7 @@ lemma assigns_if_const_b_simp:
   shows   "assigns_if b e = {}" (is "?Ass b e")
 proof -
   have "True" and "\<And> b. ?Const b e \<Longrightarrow> ?Ass b e" and "True" and "True"
-  proof (induct _ and e and _ and _ rule: var_expr_stmt.induct) 
+  proof (induct _ and e and _ and _ rule: var_expr_stmt.inducts)
     case Lit
     thus ?case by simp
   next
@@ -382,10 +382,10 @@ qed
 
 lemma assigns_if_const_not_b_simp:
   assumes boolConst: "constVal e = Some (Bool b)"        (is "?Const b e")  
-    shows "assigns_if (\<not>b) e = UNIV"                    (is "?Ass b e")
+  shows "assigns_if (\<not>b) e = UNIV"                  (is "?Ass b e")
 proof -
   have True and "\<And> b. ?Const b e \<Longrightarrow> ?Ass b e" and True and True
-  proof (induct _ and e and _ and _ rule: var_expr_stmt.induct) 
+  proof (induct _ and e and _ and _ rule: var_expr_stmt.inducts) 
     case Lit
     thus ?case by simp
   next
@@ -963,7 +963,7 @@ lemma assignsE_subseteq_assigns_ifs:
    shows "assignsE e \<subseteq> assigns_if True e \<inter> assigns_if False e" (is "?Incl e")
 proof -
   have True and "?Boolean e \<Longrightarrow> ?Incl e" and True and True
-  proof (induct _ and e and _ and _ rule: var_expr_stmt.induct)
+  proof (induct _ and e and _ and _ rule: var_expr_stmt.inducts)
     case (Cast T e)
     have "E\<turnstile>e\<Colon>- (PrimT Boolean)"
     proof -

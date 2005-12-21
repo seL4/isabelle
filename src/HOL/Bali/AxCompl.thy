@@ -1062,7 +1062,7 @@ proof (induct rule: full_nat_induct)
       "G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}" and
       "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}" and  
       "G,A\<turnstile>{=:n} \<langle>es\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
-    proof (induct rule: var_expr_stmt.induct)
+    proof (induct rule: var_expr_stmt.inducts)
       case (LVar v)
       show "G,A\<turnstile>{=:n} \<langle>LVar v\<rangle>\<^sub>v\<succ> {G\<rightarrow>}"
 	apply (rule MGFn_NormalI)

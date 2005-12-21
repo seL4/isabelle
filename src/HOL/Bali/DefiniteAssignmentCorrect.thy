@@ -105,7 +105,7 @@ proof -
     have True and True and 
        "\<And> jmps' jmps. \<lbrakk>jumpNestingOkS jmps' c; jmps' \<subseteq> jmps\<rbrakk> \<Longrightarrow> jumpNestingOkS jmps c" 
        and True
-  proof (induct rule: var_expr_stmt.induct)
+  proof (induct rule: var_expr_stmt.inducts)
     case (Lab j c jmps' jmps)
     have jmpOk: "jumpNestingOkS jmps' (j\<bullet> c)" .
     have jmps: "jmps' \<subseteq> jmps" .
@@ -2017,7 +2017,7 @@ proof -
         "\<And> c v s0 s. \<lbrakk> constVal e = Some c; G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s\<rbrakk> 
                       \<Longrightarrow> v = c \<and> normal s"
         and True and True
-  proof (induct  rule: var_expr_stmt.induct)
+  proof (induct  rule: var_expr_stmt.inducts)
     case NewC hence False by simp thus ?case ..
   next
     case NewA hence False by simp thus ?case ..
@@ -2165,7 +2165,7 @@ proof -
        "\<And> c. \<lbrakk>constVal e = Some c;Env\<turnstile>e\<Colon>-PrimT Boolean\<rbrakk> 
                 \<Longrightarrow> typeof empty_dt c = Some (PrimT Boolean)"
        and True and True 
-  proof (induct rule: var_expr_stmt.induct)
+  proof (induct rule: var_expr_stmt.inducts)
     case NewC hence False by simp thus ?case ..
   next
     case NewA hence False by simp thus ?case ..
