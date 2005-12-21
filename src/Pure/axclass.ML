@@ -283,8 +283,9 @@ fun ext_inst_arity prep_arity raw_arity tac thy =
     val _ = message ("Proving type arity " ^ txt ^ " ...");
     val props = (mk_arities arity);
     val ths = Goal.prove_multi thy [] [] props
-      (fn _ => Tactic.smart_conjunction_tac (length props) THEN tac) handle ERROR_MESSAGE msg =>
-        error (msg ^ "\nThe error(s) above occurred while trying to prove " ^ txt);
+      (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac)
+        handle ERROR_MESSAGE msg =>
+          error (msg ^ "\nThe error(s) above occurred while trying to prove " ^ txt);
   in add_arity_thms ths thy end;
 
 in
