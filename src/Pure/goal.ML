@@ -52,7 +52,7 @@ fun protect th = th COMP Drule.incr_indexes th Drule.protectI;
   A ==> ... ==> C
 *)
 fun conclude th =
-  (case SINGLE (Thm.bicompose false (false, th, Thm.nprems_of th) 1)
+  (case SINGLE (Thm.bicompose_no_flatten false (false, th, Thm.nprems_of th) 1)
       (Drule.incr_indexes th Drule.protectD) of
     SOME th' => th'
   | NONE => raise THM ("Failed to conclude goal", 0, [th]));
@@ -179,7 +179,8 @@ local
 fun SELECT tac i st =
   init (Thm.adjust_maxidx (Thm.cprem_of st i))
   |> tac
-  |> Seq.maps (fn st' => Thm.bicompose false (false, conclude st', Thm.nprems_of st') i st);
+  |> Seq.maps (fn st' =>
+    Thm.bicompose_no_flatten false (false, conclude st', Thm.nprems_of st') i st);
 
 in
 
