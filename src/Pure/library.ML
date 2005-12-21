@@ -223,6 +223,7 @@ sig
   (*orders*)
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
+  val eq_ord: ('a -> order) -> 'a -> bool
   val int_ord: int * int -> order
   val string_ord: string * string -> order
   val fast_string_ord: string * string -> order
@@ -1078,6 +1079,11 @@ fun make_ord rel (x, y) =
   if rel (x, y) then LESS
   else if rel (y, x) then GREATER
   else EQUAL;
+
+fun eq_ord ord xy =
+  case ord xy
+   of EQUAL => true
+    | _ => false;
 
 val int_ord = Int.compare;
 val string_ord = String.compare;
