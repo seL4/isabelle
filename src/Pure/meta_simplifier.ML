@@ -1100,7 +1100,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (SOME (foldr (disch true)
-                (Drule.imp_cong' eqn (reflexive (Drule.list_implies
+                (Drule.imp_cong_rule eqn (reflexive (Drule.list_implies
                   (Library.drop (i, prems), concl)))) (Library.take (i, prems))) :: eqns) ss (length prems') ~1
             end
 
@@ -1114,13 +1114,13 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
        in (case botc skel0 ss1 conc of
            NONE => (case thm1 of
                NONE => NONE
-             | SOME thm1' => SOME (Drule.imp_cong' thm1' (reflexive conc)))
+             | SOME thm1' => SOME (Drule.imp_cong_rule thm1' (reflexive conc)))
          | SOME thm2 =>
            let val thm2' = disch false (prem1, thm2)
            in (case thm1 of
                NONE => SOME thm2'
              | SOME thm1' =>
-                 SOME (transitive (Drule.imp_cong' thm1' (reflexive conc)) thm2'))
+                 SOME (transitive (Drule.imp_cong_rule thm1' (reflexive conc)) thm2'))
            end)
        end
 
