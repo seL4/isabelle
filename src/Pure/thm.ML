@@ -124,6 +124,7 @@ signature BASIC_THM =
   val rotate_rule: int -> int -> thm -> thm
   val permute_prems: int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
+  val bicompose_no_flatten: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val invoke_oracle: theory -> xstring -> theory * Object.T -> thm
@@ -1376,7 +1377,7 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
 *)
 local exception COMPOSE
 in
-fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
+fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
  let val Thm{der=sder, maxidx=smax, shyps=sshyps, hyps=shyps, ...} = state
      and Thm{der=rder, maxidx=rmax, shyps=rshyps, hyps=rhyps,
@@ -1411,7 +1412,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                        (fn f => fn der => f (Pt.norm_proof' env der))
                      else
                        curry op oo (Pt.norm_proof' env))
-                    (Pt.bicompose_proof Bs oldAs As A n)) rder' sder,
+                    (Pt.bicompose_proof flatten Bs oldAs As A n)) rder' sder,
                  maxidx = maxidx,
                  shyps = may_insert_env_sorts thy env (Sorts.union rshyps sshyps),
                  hyps = union_hyps rhyps shyps,
@@ -1427,7 +1428,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
          else (map (rename_bvars(dpairs,tpairs,B)) As0,
            Pt.infer_derivs' (Pt.map_proof_terms
              (rename_bvars (dpairs, tpairs, Bound 0)) I) rder);
-       in (map (Logic.flatten_params n) As1, As1, rder', n)
+       in (map (if flatten then (Logic.flatten_params n) else I) As1, As1, rder', n)
           handle TERM _ =>
           raise THM("bicompose: 1st premise", 0, [orule])
        end;
@@ -1455,9 +1456,11 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
  end;
 end;
 
+fun bicompose0 flatten match arg i state =
+    bicompose_aux flatten match (state, dest_state(state,i), false) arg;
 
-fun bicompose match arg i state =
-    bicompose_aux match (state, dest_state(state,i), false) arg;
+val bicompose_no_flatten = bicompose0 false;
+val bicompose = bicompose0 true;
 
 (*Quick test whether rule is resolvable with the subgoal with hyps Hs
   and conclusion B.  If eres_flg then checks 1st premise of rule also*)
@@ -1475,7 +1478,7 @@ fun biresolution match brules i state =
         val lift = lift_rule (cprem_of state i);
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
-        val comp = bicompose_aux match (state, (stpairs, Bs, Bi, C), true);
+        val comp = bicompose_aux true match (state, (stpairs, Bs, Bi, C), true);
         fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
               if !Pattern.trace_unify_fail orelse
