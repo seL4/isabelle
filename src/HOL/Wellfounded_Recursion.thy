@@ -56,7 +56,7 @@ lemma wf_induct:
      |]  ==>  P(a)"
 by (unfold wf_def, blast)
 
-lemmas wf_induct_rule = wf_induct [rule_format, case_names less, induct set: wf]
+lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
 
 lemma wf_not_sym [rule_format]: "wf(r) ==> ALL x. (a,x):r --> (x,a)~:r"
 by (erule_tac a=a in wf_induct, blast)
