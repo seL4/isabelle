@@ -546,8 +546,10 @@ fun dropwhile P [] = []
   | dropwhile P (ys as x::xs) = if P x then dropwhile P xs else ys;
 
 (*return nth element of a list, where 0 designates the first element;
-  raise EXCEPTION if list too short*)
+  raise Subscript if list too short*)
 fun nth xs i = List.nth (xs, i);
+
+fun nth_list xss i = nth xss i handle Subscript => [];
 
 (*update nth element*)
 fun nth_update (n, x) xs =
@@ -558,8 +560,6 @@ fun nth_update (n, x) xs =
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
   | nth_map _ _ [] = raise Subscript;
-
-fun nth_list xss i = nth xss i handle Subscript => [];
 
 val last_elem = List.last;
 

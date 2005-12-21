@@ -44,7 +44,7 @@ lemma
   assumes var: "!!v. P (Var v)"
     and app: "!!f ts. list_all P ts ==> P (App f ts)"
   shows term_induct2: "P t"
-and "list_all P ts"
+    and "list_all P ts"
   apply (induct t and ts)
      apply (rule var)
     apply (rule app)
