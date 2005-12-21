@@ -76,8 +76,8 @@ val inductive_conj_name = "HOL.induct_conj";
 val inductive_conj_def = thm "induct_conj_def";
 val inductive_conj = thms "induct_conj";
 val inductive_atomize = thms "induct_atomize";
-val inductive_rulify1 = thms "induct_rulify1";
-val inductive_rulify2 = thms "induct_rulify2";
+val inductive_rulify = thms "induct_rulify";
+val inductive_rulify_fallback = thms "induct_rulify_fallback";
 
 
 
@@ -313,8 +313,8 @@ fun check_rule thy cs ((name, rule), att) =
 
 val rulify =  (* FIXME norm_hhf *)
   hol_simplify inductive_conj
-  #> hol_simplify inductive_rulify1
-  #> hol_simplify inductive_rulify2
+  #> hol_simplify inductive_rulify
+  #> hol_simplify inductive_rulify_fallback
   #> standard;
 
 end;
@@ -429,39 +429,31 @@ fun mk_indrule cs cTs params intr_ts =
 
 (* prepare cases and induct rules *)
 
-(*
-  transform mutual rule:
-    HH ==> (x1:A1 --> P1 x1) & ... & (xn:An --> Pn xn)
-  into i-th projection:
-    xi:Ai ==> HH ==> Pi xi
-*)
-
-fun project_rules [name] rule = [(name, rule)]
-  | project_rules names mutual_rule =
-      let
-        val n = length names;
-        fun proj i =
-          (if i < n then (fn th => th RS conjunct1) else I)
-            (Library.funpow (i - 1) (fn th => th RS conjunct2) mutual_rule)
-            RS mp |> Thm.permute_prems 0 ~1 |> Drule.standard;
-      in names ~~ map proj (1 upto n) end;
-
 fun add_cases_induct no_elim no_induct coind names elims induct =
   let
     fun cases_spec name elim thy =
       thy
+      |> Theory.parent_path
       |> Theory.add_path (Sign.base_name name)
-      |> (snd o PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])])
-      |> Theory.parent_path;
+      |> PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])] |> snd
+      |> Theory.restore_naming thy;
     val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
     val induct_att =
       if coind then InductAttrib.coinduct_set_global else InductAttrib.induct_set_global;
-    fun induct_spec (name, th) = snd o PureThy.add_thms
-      [(("", RuleCases.save induct th), [induct_att name])];
     val induct_specs =
-      if no_induct then [] else map induct_spec (project_rules names induct);
-  in Library.apply (cases_specs @ induct_specs) end;
+      if no_induct then I
+      else
+        let
+          val rules = names ~~ map (ProjectRule.project induct) (1 upto length names);
+          val inducts = map (RuleCases.save induct o standard o #2) rules;
+        in
+          PureThy.add_thms (rules |> map (fn (name, th) =>
+            (("", th), [RuleCases.consumes 1, induct_att name]))) #> snd #>
+          PureThy.add_thmss
+            [((coind_prefix coind ^ "inducts", inducts), [RuleCases.consumes 1])] #> snd
+        end;
+  in Library.apply cases_specs #> induct_specs end;
 
 
 
@@ -803,8 +795,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
         [(("intros", intrs'), []),
           (("elims", elims), [RuleCases.consumes 1])]
       ||>> PureThy.add_thms
-        [((coind_prefix coind ^ "induct", rulify (#1 induct)), #2 induct)]
-      ||> Theory.parent_path;
+        [((coind_prefix coind ^ "induct", rulify (#1 induct)), #2 induct)];
   in (thy3,
     {defs = fp_def :: rec_sets_defs,
      mono = mono,
@@ -849,8 +840,8 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_
         thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives cnames ({names = cnames, coind = coind}, result)
-      |> add_cases_induct no_elim (no_ind orelse length cs > 1) coind
-          cnames elims induct;
+      |> add_cases_induct no_elim no_ind coind cnames elims induct
+      |> Theory.parent_path;
   in (thy2, result) end;
 
 fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
