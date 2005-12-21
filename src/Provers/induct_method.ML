@@ -7,14 +7,11 @@ Proof by cases and induction on sets and types.
 
 signature INDUCT_METHOD_DATA =
 sig
-  val dest_concls: term -> term list
   val cases_default: thm
-  val local_impI: thm
-  val conjI: thm
+  val atomize_old: thm list
   val atomize: thm list
-  val rulify1: thm list
-  val rulify2: thm list
-  val localize: thm list
+  val rulify: thm list
+  val rulify_fallback: thm list
 end;
 
 signature INDUCT_METHOD =
@@ -30,7 +27,8 @@ sig
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
-    (string * typ) list list -> term option list -> thm option -> thm list -> int -> cases_tactic
+    (string * typ) list list -> term option list -> thm list option -> thm list -> int ->
+    cases_tactic
   val coinduct_tac: Proof.context -> bool -> term option list -> term option list ->
     thm option -> thm list -> int -> cases_tactic
   val setup: (theory -> theory) list
@@ -38,6 +36,14 @@ end;
 
 functor InductMethodFun(Data: INDUCT_METHOD_DATA): INDUCT_METHOD =
 struct
+
+val meta_spec = thm "Pure.meta_spec";
+val all_conjunction = thm "Pure.all_conjunction";
+val imp_conjunction = thm "Pure.imp_conjunction";
+val conjunction_imp = thm "Pure.conjunction_imp";
+val conjunction_assoc = thm "Pure.conjunction_assoc";
+val conjunction_congs = [all_conjunction, imp_conjunction];
+
 
 
 (** misc utils **)
@@ -148,6 +154,144 @@ end;
 
 (** induct method **)
 
+(* atomize *)
+
+fun common_atomize_term is_old thy =
+  MetaSimplifier.rewrite_term thy (if is_old then Data.atomize_old else Data.atomize) []
+  #> ObjectLogic.drop_judgment thy;
+
+val atomize_term = common_atomize_term false;
+
+fun common_atomize_cterm is_old =
+  Tactic.rewrite true (if is_old then Data.atomize_old else Data.atomize);
+
+fun common_atomize_tac is_old inner =
+  if is_old then
+    Tactic.rewrite_goal_tac [conjunction_assoc]
+    THEN' Tactic.rewrite_goal_tac Data.atomize_old
+  else
+    (if inner then Tactic.rewrite_goal_tac (map Thm.symmetric conjunction_congs) else K all_tac)
+    THEN' Tactic.rewrite_goal_tac Data.atomize;
+
+val atomize_tac = common_atomize_tac false false;
+val inner_atomize_tac = common_atomize_tac false true;
+
+
+(* rulify *)
+
+fun rulify_term thy =
+  MetaSimplifier.rewrite_term thy (Data.rulify @ conjunction_congs) [] #>
+  MetaSimplifier.rewrite_term thy Data.rulify_fallback [];
+
+fun rulified_term thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val rulify = rulify_term thy;
+    val (As, B) = Logic.strip_horn (Thm.prop_of thm);
+  in (thy, Logic.list_implies (map rulify As, rulify B)) end;
+
+val curry_prems_tac =
+  let
+    val rule = conjunction_imp;
+    val thy = Thm.theory_of_thm rule;
+    val proc = Simplifier.simproc_i thy "curry_prems"
+      [#1 (Logic.dest_equals (Thm.prop_of rule))]
+      (fn _ => fn ss => fn _ =>  (*WORKAROUND: prevent descending into meta conjunctions*)
+        if exists (equal propT o #2 o #1) (#2 (#bounds (#1 (Simplifier.rep_ss ss))))
+        then NONE else SOME rule);
+    val ss = MetaSimplifier.theory_context thy Simplifier.empty_ss addsimprocs [proc];
+  in Simplifier.full_simp_tac ss end;
+
+val rulify_tac =
+  Tactic.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
+  Tactic.rewrite_goal_tac Data.rulify_fallback THEN'
+  Tactic.conjunction_tac THEN_ALL_NEW
+  (curry_prems_tac THEN' Tactic.norm_hhf_tac);
+
+
+(* prepare rule *)
+
+fun rule_instance thy inst rule =
+  Drule.cterm_instantiate (prep_inst thy align_left I (Thm.prop_of rule, inst)) rule;
+
+fun mutual_rule ths =
+  (case RuleCases.mutual_rule ths of
+    NONE => error "Failed to join given rules into one mutual rule"
+  | SOME res => res);
+
+fun internalize is_old k th =
+  th |> Thm.permute_prems 0 k
+  |> Drule.fconv_rule (Drule.concl_conv (Thm.nprems_of th - k) (common_atomize_cterm is_old));
+
+
+(* guess rule instantiation -- cannot handle pending goal parameters *)
+
+local
+
+fun dest_env thy (env as Envir.Envir {iTs, ...}) =
+  let
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+    val pairs = Envir.alist_of env;
+    val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
+    val xs = map2 (curry (cert o Var)) (map #1 pairs) (map (#T o Thm.rep_cterm) ts);
+  in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) (Vartab.dest iTs), xs ~~ ts) end;
+
+in
+
+fun guess_instance rule i st =
+  let
+    val {thy, maxidx, ...} = Thm.rep_thm st;
+    val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
+    val params = rev (rename_wrt_term goal (Logic.strip_params goal));
+  in
+    if not (null params) then
+      (warning ("Cannot determine rule instantiation due to pending parameter(s): " ^
+        commas_quote (map (Sign.string_of_term thy o Syntax.mark_boundT) params));
+      Seq.single rule)
+    else
+      let
+        val rule' = Thm.incr_indexes (maxidx + 1) rule;
+        val concl = Logic.strip_assums_concl goal;
+      in
+        Unify.smash_unifiers (thy, Envir.empty (#maxidx (Thm.rep_thm rule')),
+          [(Thm.concl_of rule', concl)])
+        |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
+      end
+  end handle Subscript => Seq.empty;
+
+end;
+
+
+(* special renaming of rule parameters *)
+
+fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
+      let
+        val x = ProofContext.revert_skolem ctxt z;
+        fun index i [] = []
+          | index i (y :: ys) =
+              if x = y then x ^ string_of_int i :: index (i + 1) ys
+              else y :: index i ys;
+        fun rename_params [] = []
+          | rename_params ((y, Type (U, _)) :: ys) =
+              (if U = T then x else y) :: rename_params ys
+          | rename_params ((y, _) :: ys) = y :: rename_params ys;
+        fun rename_asm A =
+          let
+            val xs = rename_params (Logic.strip_params A);
+            val xs' =
+              (case List.filter (equal x) xs of
+                [] => xs | [_] => xs | _ => index 1 xs);
+          in Logic.list_rename_params (xs', A) end;
+        fun rename_prop p =
+          let val (As, C) = Logic.strip_horn p
+          in Logic.list_implies (map rename_asm As, C) end;
+        val cp' = cterm_fun rename_prop (Thm.cprop_of thm);
+        val thm' = Thm.equal_elim (Thm.reflexive cp') thm;
+      in [RuleCases.save thm thm'] end
+  | special_rename_params _ _ ths = ths;
+
+
 (* fix_tac *)
 
 local
@@ -161,8 +305,6 @@ fun goal_params k (Const ("all", _) $ Abs (_, _, B)) = goal_params k B + 1
   | goal_params 0 _ = 0
   | goal_params k (Const ("==>", _) $ _ $ B) = goal_params (k - 1) B
   | goal_params _ _ = 0;
-
-val meta_spec = PureThy.get_thm Pure.thy (Name "meta_spec");
 
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   let
@@ -191,13 +333,13 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     (case goal_concl n [] goal of
       SOME concl =>
         (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN' rtac asm_rl) i
-    | NONE => (warning ("Induction: no variable " ^ ProofContext.string_of_term ctxt v ^
+    | NONE => (warning ("Induction: no variable " ^ quote (ProofContext.string_of_term ctxt v) ^
         " to be fixed -- ignored"); all_tac))
   end);
 
-fun miniscope_tac n i = PRIMITIVE (Drule.fconv_rule
+fun miniscope_tac p i = PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (Library.equal i)
-    (Drule.forall_conv n (Tactic.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
+    (Drule.forall_conv p (Tactic.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
 
 in
 
@@ -221,153 +363,6 @@ fun add_defs def_insts =
   in fold_map add def_insts #> apfst (split_list #> apsnd List.concat) end;
 
 
-(* atomize and rulify *)
-
-fun atomize_term thy =
-  MetaSimplifier.rewrite_term thy Data.atomize []
-  #> ObjectLogic.drop_judgment thy;
-
-val atomize_tac =
-  Tactic.rewrite_goal_tac Data.atomize;
-
-fun rulified_term thm =
-  let val thy = Thm.theory_of_thm thm in
-    Thm.prop_of thm
-    |> MetaSimplifier.rewrite_term thy Data.rulify1 []
-    |> MetaSimplifier.rewrite_term thy Data.rulify2 []
-    |> pair thy
-  end;
-
-val rulify_tac =
-  Tactic.rewrite_goal_tac Data.rulify1 THEN'
-  Tactic.rewrite_goal_tac Data.rulify2 THEN'
-  Tactic.norm_hhf_tac;
-
-
-(* internalize/localize rules -- pseudo-elimination *)
-
-local
-
-fun imp_intr i raw_th =
-  let
-    val cert = Thm.cterm_of (Thm.theory_of_thm raw_th);
-    val th = Thm.permute_prems (i - 1) 1 raw_th;
-    val prems = Thm.prems_of th;
-    val As = Library.take (length prems - 1, prems);
-    val C = Term.dummy_pattern propT;
-  in th COMP Thm.lift_rule (cert (Logic.list_implies (As, C))) Data.local_impI end;
-
-in
-
-fun internalize k th = if k > 0 then internalize (k - 1) (imp_intr k th) else th;
-
-val localize = Goal.norm_hhf o Tactic.simplify false Data.localize;
-
-end;
-
-
-(* join multi-rules *)
-
-val eq_prems = curry (Term.aconvs o pairself Thm.prems_of);
-
-fun join_rules [] = []
-  | join_rules [th] = [th]
-  | join_rules (rules as r :: rs) =
-      if not (forall (eq_prems r) rs) then []
-      else
-        let
-          val th :: ths = map Drule.freeze_all rules;
-          val cprems = Drule.cprems_of th;
-          val asms = map Thm.assume cprems;
-        in
-          [foldr1 (fn (x, x') => [x, x'] MRS Data.conjI)
-            (map (fn x => Drule.implies_elim_list x asms) (th :: ths))
-          |> Drule.implies_intr_list cprems
-          |> Drule.standard'
-          |> RuleCases.save r]
-        end;
-
-
-(* guess rule instantiation -- cannot handle pending goal parameters *)
-
-local
-
-fun dest_env thy (env as Envir.Envir {iTs, ...}) =
-  let
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-    val pairs = Envir.alist_of env;
-    val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
-    val xs = map2 (curry (cert o Var)) (map #1 pairs) (map (#T o Thm.rep_cterm) ts);
-  in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) (Vartab.dest iTs), xs ~~ ts) end;
-
-in
-
-fun guess_instance rule i st =
-  let
-    val {thy, maxidx, ...} = Thm.rep_thm st;
-    val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
-    val params = rev (rename_wrt_term goal (Logic.strip_params goal));  (*as they are printed :-*)
-  in
-    if not (null params) then
-      (warning ("Cannot determine rule instantiation due to pending parameter(s): " ^
-        commas (map (Sign.string_of_term thy o Syntax.mark_boundT) params));
-      Seq.single rule)
-    else
-      let
-        val rule' = Thm.incr_indexes (maxidx + 1) rule;
-        val concl = Logic.strip_assums_concl goal;
-      in
-        Unify.smash_unifiers (thy, Envir.empty (#maxidx (Thm.rep_thm rule')),
-          [(Thm.concl_of rule', concl)])
-        |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
-      end
-  end handle Subscript => Seq.empty;
-
-end;
-
-
-(* special renaming of rule parameters *)
-
-fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] thm =
-      let
-        val x = ProofContext.revert_skolem ctxt z;
-        fun index i [] = []
-          | index i (y :: ys) =
-              if x = y then x ^ string_of_int i :: index (i + 1) ys
-              else y :: index i ys;
-        fun rename_params [] = []
-          | rename_params ((y, Type (U, _)) :: ys) =
-              (if U = T then x else y) :: rename_params ys
-          | rename_params ((y, _) :: ys) = y :: rename_params ys;
-        fun rename_asm A =
-          let
-            val xs = rename_params (Logic.strip_params A);
-            val xs' =
-              (case List.filter (equal x) xs of
-                [] => xs | [_] => xs | _ => index 1 xs);
-          in Logic.list_rename_params (xs', A) end;
-        fun rename_prop p =
-          let val (As, C) = Logic.strip_horn p
-          in Logic.list_implies (map rename_asm As, C) end;
-        val cp' = cterm_fun rename_prop (Thm.cprop_of thm);
-        val thm' = Thm.equal_elim (Thm.reflexive cp') thm;
-      in RuleCases.save thm thm' end
-  | special_rename_params _ _ thm = thm;
-
-
-(* rule_versions *)
-
-fun rule_versions rule = Seq.cons (rule,
-    (Seq.make (fn () =>
-      SOME (localize rule, Seq.empty)))
-    |> Seq.filter (not o curry Thm.eq_thm rule))
-  |> Seq.map (pair (RuleCases.get rule));
-
-fun rule_instance thy inst rule =
-  Drule.cterm_instantiate (prep_inst thy align_left I (Thm.prop_of rule, inst)) rule;
-
-
 (* induct_tac *)
 
 (*
@@ -382,14 +377,14 @@ local
 fun find_inductT ctxt insts =
   fold_rev multiply (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
     |> map (InductAttrib.find_inductT ctxt o Term.fastype_of)) [[]]
-  |> map join_rules |> List.concat;
+  |> filter_out (forall Drule.is_internal);
 
-fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt (Thm.concl_of fact)
+fun find_inductS ctxt (fact :: _) = map single (InductAttrib.find_inductS ctxt (Thm.concl_of fact))
   | find_inductS _ _ = [];
 
 in
 
-fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
+fun common_induct_tac is_old ctxt is_open def_insts fixing taking opt_rule facts =
   let
     val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
@@ -398,33 +393,39 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
     val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map ObjectLogic.atomize_thm) defs;
 
-    val inst_rule = apsnd (fn r =>
-      if null insts then r
-      else (align_right "Rule has fewer conclusions than arguments given"
-          (Data.dest_concls (Thm.concl_of r)) insts
-        |> (List.concat o map (prep_inst thy align_right (atomize_term thy)))
-        |> Drule.cterm_instantiate) r);
+    fun inst_rule (concls, r) =
+      (if null insts then `RuleCases.get r
+       else (align_right "Rule has fewer conclusions than arguments given"
+          (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
+        |> (List.concat o map (prep_inst thy align_right (common_atomize_term is_old thy)))
+        |> Drule.cterm_instantiate) r |> pair (RuleCases.get r))
+      |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
     val ruleq =
       (case opt_rule of
-        SOME r => r |> rule_versions |> Seq.map inst_rule
+        SOME rs => Seq.single (inst_rule (mutual_rule rs))
       | NONE =>
           (find_inductS ctxt facts @
             map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts))
-          |> tap (trace_rules ctxt InductAttrib.inductN)
-          |> Seq.of_list |> Seq.maps rule_versions |> Seq.maps (Seq.try inst_rule));
+          |> List.mapPartial RuleCases.mutual_rule
+          |> tap (trace_rules ctxt InductAttrib.inductN o map #2)
+          |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
     fun rule_cases rule = RuleCases.make is_open (SOME (Thm.prop_of rule)) (rulified_term rule);
   in
     (fn i => fn st =>
       ruleq
       |> Seq.maps (RuleCases.consume (List.concat defs) facts)
-      |> Seq.maps (fn ((cases, (k, more_facts)), rule) =>
-        (CONJUNCTS (ALLGOALS (fn j =>
-            Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1)) j
-            THEN fix_tac defs_ctxt k (nth_list fixing (j - 1)) j))
-          THEN' atomize_tac) i st |> Seq.maps (fn st' =>
-            guess_instance (internalize k rule) i st'
+      |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
+        (CONJUNCTS (length concls) (ALLGOALS (fn j =>
+          (CONJUNCTS ~1 (ALLGOALS
+            (Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1))
+              THEN' fix_tac defs_ctxt
+                (nth concls (j - 1) + more_consumes)
+                (nth_list fixing (j - 1))))
+          THEN' common_atomize_tac is_old true) j))
+        THEN' common_atomize_tac is_old false) i st |> Seq.maps (fn st' =>
+            guess_instance (internalize is_old more_consumes rule) i st'
             |> Seq.map (rule_instance thy taking)
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
@@ -432,6 +433,8 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
                   PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
+
+val induct_tac = common_induct_tac false;
 
 end;
 
@@ -461,17 +464,18 @@ fun coinduct_tac ctxt is_open inst taking opt_rule facts =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val inst_rule = apsnd (fn r =>
-      if null inst then r
-      else Drule.cterm_instantiate (prep_inst thy align_left I (Thm.concl_of r, inst)) r);
+    fun inst_rule r =
+      if null inst then `RuleCases.get r
+      else Drule.cterm_instantiate (prep_inst thy align_left I (Thm.concl_of r, inst)) r
+        |> pair (RuleCases.get r);
 
     fun ruleq goal =
       (case opt_rule of
-        SOME r => r |> rule_versions |> Seq.map inst_rule
+        SOME r => Seq.single (inst_rule r)
       | NONE =>
           (find_coinductS ctxt goal @ find_coinductT ctxt inst)
           |> tap (trace_rules ctxt InductAttrib.coinductN)
-          |> Seq.of_list |> Seq.maps rule_versions |> Seq.maps (Seq.try inst_rule));
+          |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
   in
     SUBGOAL_CASES (fn (goal, i) => fn st =>
       ruleq goal
@@ -497,19 +501,24 @@ val ruleN = "rule";
 
 local
 
+fun single_rule [rule] = rule
+  | single_rule _ = error "Single rule expected";
+
 fun named_rule k arg get =
-  Scan.lift (Args.$$$ k -- Args.colon) |-- arg :-- (fn name => Scan.peek (fn ctxt =>
-    (case get ctxt name of SOME x => Scan.succeed x
-    | NONE => error ("No rule for " ^ k ^ " " ^ quote name)))) >> #2;
+  Scan.lift (Args.$$$ k -- Args.colon) |-- Scan.repeat arg :--
+    (fn names => Scan.peek (fn ctxt => Scan.succeed (names |> map (fn name =>
+      (case get ctxt name of SOME x => x
+      | NONE => error ("No rule for " ^ k ^ " " ^ quote name)))))) >> #2;
 
 fun rule get_type get_set =
   named_rule InductAttrib.typeN Args.local_tyname get_type ||
   named_rule InductAttrib.setN Args.local_const get_set ||
-  Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.local_thm;
+  Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.local_thmss;
 
-val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS;
+val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS >> single_rule;
 val induct_rule = rule InductAttrib.lookup_inductT InductAttrib.lookup_inductS;
-val coinduct_rule = rule InductAttrib.lookup_coinductT InductAttrib.lookup_coinductS;
+val coinduct_rule =
+  rule InductAttrib.lookup_coinductT InductAttrib.lookup_coinductS >> single_rule;
 
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.local_term >> SOME;
 
@@ -540,13 +549,14 @@ fun cases_meth src =
     Method.METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (cases_tac ctxt is_open insts opt_rule facts))));
 
-fun induct_meth src =
+fun induct_meth is_old src =
   Method.syntax (Args.mode openN --
     (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
     (fixing -- taking -- Scan.option induct_rule))) src
   #> (fn (ctxt, (is_open, (insts, ((fixing, taking), opt_rule)))) =>
     Method.RAW_METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts fixing taking opt_rule facts))));
+      Seq.DETERM (HEADGOAL
+        (common_induct_tac is_old ctxt is_open insts fixing taking opt_rule facts))));
 
 fun coinduct_meth src =
   Method.syntax (Args.mode openN --
@@ -564,7 +574,8 @@ end;
 val setup =
   [Method.add_methods
     [(InductAttrib.casesN, cases_meth, "case analysis on types or sets"),
-     (InductAttrib.inductN, induct_meth, "induction on types or sets"),
+     (InductAttrib.inductN, induct_meth false, "induction on types or sets"),
+     ("old_" ^ InductAttrib.inductN, induct_meth true, "induction on types or sets (legacy)"),
      (InductAttrib.coinductN, coinduct_meth, "coinduction on types or sets")]];
 
 end;
