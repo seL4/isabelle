@@ -124,6 +124,8 @@ sig
     -> (string * Pretty.T list -> Pretty.T)
     -> (string -> string option)
     -> string list list -> string -> module -> Pretty.T
+
+  val get_prefix: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list * ('a list * 'a list)
 end;
 
 signature CODEGEN_THINGOL_OP =
@@ -167,13 +169,13 @@ fun map_yield f [] = ([], [])
         val (ys, xs') = map_yield f xs
       in (y::ys, x'::xs') end;
 
-fun get_prefix eq ([], ys) = ([], [], ys)
-  | get_prefix eq (xs, []) = ([], xs, [])
+fun get_prefix eq ([], ys) = ([], ([], ys))
+  | get_prefix eq (xs, []) = ([], (xs, []))
   | get_prefix eq (xs as x::xs', ys as y::ys') =
       if eq (x, y) then
-        let val (ps', xs'', ys'') = get_prefix eq (xs', ys')
-        in (x::ps', xs'', ys'') end
-      else ([], xs, ys);
+        let val (ps', xys'') = get_prefix eq (xs', ys')
+        in (x::ps', xys'') end
+      else ([], (xs, ys));
 
 
 (** language core - types, pattern, expressions **)
@@ -555,7 +557,8 @@ fun pretty_def Nop =
         Pretty.str tyco,
         Pretty.str ", ",
         Pretty.gen_list "," "[" "]" (map (Pretty.gen_list "," "{" "}" o map Pretty.str o snd) arity),
-        Pretty.str "))"
+        Pretty.str ")) with ",
+        Pretty.gen_list "," "[" "]" (map (fn (m1, m2) => Pretty.str (m1 ^ " => " ^ m2)) mems)
       ];
 
 fun pretty_module modl =
@@ -653,8 +656,8 @@ fun add_dep (name1, name2) modl =
     let
       val m1 = dest_name name1 |> apsnd single |> (op @);
       val m2 = dest_name name2 |> apsnd single |> (op @);
-      val (ms, r1, r2) = get_prefix (op =) (m1, m2);
-      val (ms, s1::r1, s2::r2) = get_prefix (op =) (m1, m2);
+      val (ms, (r1, r2)) = get_prefix (op =) (m1, m2);
+      val (ms, (s1::r1, s2::r2)) = get_prefix (op =) (m1, m2);
       val add_edge =
         if null r1 andalso null r2
         then Graph.add_edge
@@ -777,7 +780,7 @@ fun (*add_check_transform (name, (Datatypecons dtname)) =
   | *) add_check_transform (name, Classinst (clsname, (tyco, arity), memdefs)) =
       let
         val _ = debug 7 (fn _ => "transformation for class instance " ^ quote tyco
-          ^ " of class " ^ quote clsname) ();
+          ^ " of class " ^ quote clsname ^ " with " ^ (commas o map (fn (m1, m2) => m1 ^ " => " ^ m2)) memdefs) ();
         (* fun check [Classmember (_, v, mtyp_c), Fun (_, (_, mtyp_i))] =
               let
                 val mtyp_i' = instant_itype (v, tyco `%% map IVarT arity) mtyp_c;
@@ -901,8 +904,10 @@ fun gen_ensure_def defgens msg name (deps, modl) =
         modl
         |> debug 9 (fn _ => "creating node " ^ quote name)
         |> add_def (name, Nop)
+        |> debug 9 (fn _ => "checking creation of node " ^ quote name)
         |> select_generator (fn gname => "trying code generator " ^ gname ^ " for definition of " ^ quote name)
              name defgens
+        |> debug 9 (fn _ => "checking creation of node " ^ quote name)
         |> check_fail msg
         |-> (fn (def, names') =>
            add (name, def)
@@ -1206,16 +1211,12 @@ fun eliminate_classes module =
       | extract_members _ = I;
     fun introduce_dicts (Class (supcls, v, membrs, insts)) =
           let
-            val _ = writeln "TRANSFORMING CLASS";
-            val _ = print (Class (supcls, v, membrs, insts));
             val varname_cls = Term.invent_names (tvars_of_itypes (map (snd o snd) membrs)) "a" 1 |> hd
           in
             Typesyn ([(varname_cls, supcls)], IDictT (mk_cls_typ_map v membrs (IVarT (varname_cls, []))))
           end
       | introduce_dicts (Classinst (clsname, (tyco, arity), memdefs)) =
           let
-            val _ = writeln "TRANSFORMING CLASSINST";
-            val _ = print (Classinst (clsname, (tyco, arity), memdefs));
             val Class (_, v, members, _) =
               if clsname = class_eq
               then
@@ -1232,37 +1233,27 @@ fun eliminate_classes module =
           end
       | introduce_dicts d = d;
     fun elim_sorts (Fun (eqs, ([], ty))) =
-          (writeln "TRANSFORMING FUN ()";
           Fun (map (fn (ps, rhs) => (map transform_ipat ps, transform_iexpr [] rhs)) eqs,
-            ([], transform_itype ty)))
+            ([], transform_itype ty))
       | elim_sorts (Fun (eqs, (sortctxt, ty))) =
           let
-            val _ = writeln "TRANSFORMING FUN (1)";
             val varnames_ctxt =
               burrow
                 (Term.invent_names ((vars_of_iexprs o map snd) eqs @
                   (vars_of_ipats o Library.flat o map fst) eqs) "d" o length)
                 (map snd sortctxt);
-            val _ = writeln "TRANSFORMING FUN (2)";
             val vname_alist = map2 (fn (vt, sort) => fn vs => (vt, vs ~~ sort))
-              sortctxt varnames_ctxt |> print;
-            val _ = writeln "TRANSFORMING FUN (3)";
+              sortctxt varnames_ctxt;
             val ty' = map (op ** o (fn (vt, vss) => map (fn (_, cls) =>
               cls `%% [IVarT (vt, [])]) vss)) vname_alist
               `--> transform_itype ty;
-            val _ = writeln "TRANSFORMING FUN (4)";
             val ps_add = map (XXp o (fn (vt, vss) => map (fn (v, cls) =>
               IVarP (v, cls `%% [IVarT (vt, [])])) vss)) vname_alist;
-            val _ = writeln "TRANSFORMING FUN (5)";
-          in Fun (map (fn (ps, rhs) => (ps_add @ map transform_ipat ps, transform_iexpr vname_alist rhs)) eqs, ([], ty')) before writeln "TRANSFORMING FUN (6)" end
+          in Fun (map (fn (ps, rhs) => (ps_add @ map transform_ipat ps, transform_iexpr vname_alist rhs)) eqs, ([], ty')) end
       | elim_sorts (Datatype (vars, constrs, insts)) =
-          (writeln "TRANSFORMING DATATYPE (1)";
           Datatype (map (fn (v, _) => (v, [])) vars, map (apsnd (map transform_itype)) constrs, insts)
-          before writeln "TRANSFORMING DATATYPE (2)")
       | elim_sorts (Typesyn (vars, ty)) =
-          (writeln "TRANSFORMING TYPESYN (1)";
           Typesyn (map (fn (v, _) => (v, [])) vars, transform_itype ty)
-          before writeln "TRANSFORMING TYPESYN (2)")
       | elim_sorts d = d;
   in
     module
@@ -1349,7 +1340,7 @@ fun mk_resolv tab =
           val modl' = if null modl then [] else (NameSpace.unpack o the o Symtab.lookup tab o NameSpace.pack) modl;
           val name' = (NameSpace.unpack o the o Symtab.lookup tab) name
         in
-          (NameSpace.pack o #3 o get_prefix (op =)) (modl', name')
+          (NameSpace.pack o snd o snd o get_prefix (op =)) (modl', name')
           |> debug 12 (fn name' => "resolving " ^ quote name ^ " to " ^ quote name' ^ " in " ^ (quote o NameSpace.pack) modl)
         end
       else name
@@ -1360,21 +1351,16 @@ fun mk_resolv tab =
 
 fun serialize s_def s_module validate nspgrp name_root module =
   let
-    val _ = debug 15 (fn _ => "serialize 1") ();
     val resolvtab = mk_resolvtab nspgrp validate module;
-    val _ = debug 15 (fn _ => "serialize 2") ();
     val resolver = mk_resolv resolvtab;
-    val _ = debug 15 (fn _ => "serialize 3") ();
     fun seri prfx ([(name, Module module)]) =
-          (debug 15 (fn _ => "serializing module " ^ quote name) ();
           s_module (resolver prfx (prfx @ [name] |> NameSpace.pack),
             List.mapPartial (seri (prfx @ [name]))
               ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module))
-          |> SOME)
+          |> SOME
       | seri prfx ds =
-          (debug 15 (fn _ => "serializing definitions " ^ (commas o map fst) ds) ();
           s_def (resolver prfx) (map
-            (fn (name, Def def) => (resolver prfx (prfx @ [name] |> NameSpace.pack), def)) ds))
+            (fn (name, Def def) => (resolver prfx (prfx @ [name] |> NameSpace.pack), def)) ds)
   in
     setmp print_mode [] (fn _ => s_module (name_root, (List.mapPartial (seri [])
       ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))) ()
