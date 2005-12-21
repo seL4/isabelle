@@ -106,6 +106,7 @@ sig
   val internalK: string
   val kind_internal: 'a attribute
   val has_internal: tag list -> bool
+  val is_internal: thm -> bool
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
   val local_standard: thm -> thm
@@ -115,11 +116,14 @@ sig
   val add_rules: thm list -> thm list -> thm list
   val del_rules: thm list -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
-  val imp_cong': thm -> thm -> thm
+  val imp_cong_rule: thm -> thm -> thm
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
-  val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
   val forall_conv: int -> (cterm -> thm) -> cterm -> thm
+  val concl_conv: int -> (cterm -> thm) -> cterm -> thm
+  val prems_conv: int -> (int -> cterm -> thm) -> cterm -> thm
+  val conjunction_conv: int -> (int -> cterm -> thm) -> cterm -> thm
+  val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
   val fconv_rule: (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
@@ -355,7 +359,8 @@ fun get_kind thm =
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
 fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
 fun kind_internal x = kind internalK x;
-fun has_internal tags = exists (equal internalK o fst) tags;
+fun has_internal tags = exists (fn ("kind", [k]) => k = internalK | _ => false) tags;
+val is_internal = has_internal o Thm.tags_of_thm;
 
 
 
@@ -718,7 +723,7 @@ val swap_prems_eq =
         (implies_elim (implies_elim (assume BAC) (assume B)) (assume A))))))
   end;
 
-val imp_cong' = combination o combination (reflexive implies)
+val imp_cong_rule = combination o combination (reflexive implies);
 
 local
   val dest_eq = dest_equals o cprop_of
@@ -745,29 +750,54 @@ val abs_def =
     #> contract_lhs
   end;
 
-(*In [A1,...,An]==>B, rewrite the selected A's only*)
-fun goals_conv pred cv =
-  let fun gconv i ct =
-        let val (A,B) = dest_implies ct
-        in imp_cong' (if pred i then cv A else reflexive A) (gconv (i+1) B) end
-        handle TERM _ => reflexive ct
-  in gconv 1 end
-
-(* Rewrite A in !!x1,...,xn. A *)
+(*rewrite B in !!x1 ... xn. B*)
 fun forall_conv 0 cv ct = cv ct
   | forall_conv n cv ct =
-      let val p as (ct1, ct2) = Thm.dest_comb ct in
-        (case pairself term_of p of
-          (Const ("all", _), Abs (s, _, _)) =>
-            let val (v, ct') = Thm.dest_abs (SOME (gensym "all_")) ct2 in
-              Thm.combination (Thm.reflexive ct1)
-                (Thm.abstract_rule s v (forall_conv (n - 1) cv ct'))
-            end
-        | _ => cv ct)
-      end handle TERM _ => cv ct;
+      (case try Thm.dest_comb ct of
+        NONE => cv ct
+      | SOME (A, B) =>
+          (case (term_of A, term_of B) of
+            (Const ("all", _), Abs (x, _, _)) =>
+              let val (v, B') = Thm.dest_abs (SOME (gensym "all_")) B in
+                Thm.combination (Thm.reflexive A)
+                  (Thm.abstract_rule x v (forall_conv (n - 1) cv B'))
+              end
+          | _ => cv ct));
 
-(*Use a conversion to transform a theorem*)
+(*rewrite B in A1 ==> ... ==> An ==> B*)
+fun concl_conv 0 cv ct = cv ct
+  | concl_conv n cv ct =
+      (case try dest_implies ct of
+        NONE => cv ct
+      | SOME (A, B) => imp_cong_rule (reflexive A) (concl_conv (n - 1) cv B));
+
+(*rewrite the A's in A1 ==> ... ==> An ==> B*)
+fun prems_conv 0 _ = reflexive
+  | prems_conv n cv =
+      let
+        fun conv i ct =
+          if i = n + 1 then reflexive ct
+          else
+            (case try dest_implies ct of
+              NONE => reflexive ct
+            | SOME (A, B) => imp_cong_rule (cv i A) (conv (i + 1) B));
+  in conv 1 end;
+
+(*rewrite the A's in A1 && ... && An*)
+fun conjunction_conv 0 _ = reflexive
+  | conjunction_conv n cv =
+      let
+        fun conv i ct =
+          if i <> n andalso can Logic.dest_conjunction (term_of ct) then
+            forall_conv 1
+              (prems_conv 1 (K (prems_conv 2 (fn 1 => cv i | 2 => conv (i + 1))))) ct
+          else cv i ct;
+      in conv 1 end;
+
+
+fun goals_conv pred cv = prems_conv ~1 (fn i => if pred i then cv else reflexive);
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
+
 
 (*** Some useful meta-theorems ***)
 
