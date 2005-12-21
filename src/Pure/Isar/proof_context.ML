@@ -144,7 +144,7 @@ sig
   val apply_case: RuleCases.T -> context
     -> ((indexname * term option) list * (string * term list) list) * context
   val get_case: context -> string -> string option list -> RuleCases.T
-  val add_cases: (string * RuleCases.T option) list -> context -> context
+  val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -178,20 +178,20 @@ type exporter = bool -> cterm list -> thm -> thm Seq.seq;
 datatype ctxt =
   Ctxt of
    {syntax: (Syntax.syntax * Syntax.syntax * (Syntax.syntax -> Syntax.syntax)) *
-      string list * string list,                (*global/local syntax with structs and mixfixed*)
+      string list * string list,                 (*global/local syntax with structs and mixfixed*)
     asms:
-      ((cterm list * exporter) list *           (*assumes and views: A ==> _*)
-        (string * thm list) list) *             (*prems: A |- A *)
-      (string * string) list,                   (*fixes: !!x. _*)
-    binds: (term * typ) Vartab.table,           (*term bindings*)
-    thms: NameSpace.naming *                    (*local thms*)
+      ((cterm list * exporter) list *            (*assumes and views: A ==> _*)
+        (string * thm list) list) *              (*prems: A |- A *)
+      (string * string) list,                    (*fixes: !!x. _*)
+    binds: (term * typ) Vartab.table,            (*term bindings*)
+    thms: NameSpace.naming *                     (*local thms*)
       thm list NameSpace.table * FactIndex.T,
-    cases: (string * RuleCases.T) list,         (*local contexts*)
+    cases: (string * (RuleCases.T * bool)) list, (*local contexts*)
     defs:
-      typ Vartab.table *                        (*type constraints*)
-      sort Vartab.table *                       (*default sorts*)
-      string list *                             (*used type variables*)
-      term list Symtab.table};                  (*type variable occurrences*)
+      typ Vartab.table *                         (*type constraints*)
+      sort Vartab.table *                        (*default sorts*)
+      string list *                              (*used type variables*)
+      term list Symtab.table};                   (*type variable occurrences*)
 
 fun make_ctxt (syntax, asms, binds, thms, cases, defs) =
   Ctxt {syntax = syntax, asms = asms, binds = binds, thms = thms, cases = cases, defs = defs};
@@ -1288,19 +1288,19 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
 
 fun rem_case name = remove (fn (x: string, (y, _)) => x = y) name;
 
-fun add_case ("", _) cases = cases
-  | add_case (name, NONE) cases = rem_case name cases
-  | add_case (name, SOME c) cases = (name, c) :: rem_case name cases;
+fun add_case _ ("", _) cases = cases
+  | add_case _ (name, NONE) cases = rem_case name cases
+  | add_case is_proper (name, SOME c) cases = (name, (c, is_proper)) :: rem_case name cases;
 
 in
 
 fun get_case ctxt name xs =
   (case AList.lookup (op =) (cases_of ctxt) name of
     NONE => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
-  | SOME c => prep_case ctxt name xs c);
+  | SOME (c, _) => prep_case ctxt name xs c);
 
-fun add_cases xs = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
-  (syntax, asms, binds, thms, fold add_case xs cases, defs));
+fun add_cases is_proper xs = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
+  (syntax, asms, binds, thms, fold (add_case is_proper) xs cases, defs));
 
 end;
 
@@ -1376,11 +1376,12 @@ fun pretty_cases ctxt =
         (if forall (null o #2) asms then []
           else prt_sect "assume" [Pretty.str "and"] prt_asm asms)));
 
-    val cases = cases_of ctxt;
+    fun add_case (_, (_, false)) = I
+      | add_case (name, (c, true)) = cons (name, (#fixes c, #1 (apply_case c ctxt)));
+    val cases = fold add_case (cases_of ctxt) [];
   in
     if null cases andalso not (! verbose) then []
-    else [Pretty.big_list "cases:"
-      (map (prt_case o apsnd (fn c => (#fixes c, #1 (apply_case c ctxt)))) (rev cases))]
+    else [Pretty.big_list "cases:" (map prt_case cases)]
   end;
 
 val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
