@@ -17,5 +17,6 @@ use "~~/src/Provers/classical.ML";
 use "~~/src/Provers/blast.ML";
 use "~~/src/Provers/clasimp.ML";
 use "~~/src/Provers/quantifier1.ML";
+use "~~/src/Provers/project_rule.ML";
 
 use_thy "FOL";
