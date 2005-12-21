@@ -79,7 +79,7 @@ sig
     -> proof -> proof
   val lift_proof : term -> int -> term -> proof -> proof
   val assumption_proof : term list -> term -> int -> proof -> proof
-  val bicompose_proof : term list -> term list -> term list -> term option ->
+  val bicompose_proof : bool -> term list -> term list -> term list -> term option ->
     int -> proof -> proof -> proof
   val equality_axms : (string * term) list
   val reflexive_axm : proof
@@ -701,15 +701,16 @@ fun flatten_params_proof i j n (Const ("==>", _) $ A $ B, k) =
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
       map Bound (j-1 downto 0)), map PBound (i-1 downto 0 \ i-n));
 
-fun bicompose_proof Bs oldAs newAs A n rprf sprf =
+fun bicompose_proof flatten Bs oldAs newAs A n rprf sprf =
   let
     val la = length newAs;
     val lb = length Bs;
   in
     mk_AbsP (lb+la, proof_combP (sprf,
       map PBound (lb + la - 1 downto la)) %%
-        proof_combP (rprf, (if n>0 then [mk_asm_prf (valOf A) (~n)] else []) @
-          map (flatten_params_proof 0 0 n) (oldAs ~~ (la - 1 downto 0))))
+        proof_combP (rprf, (if n>0 then [mk_asm_prf (the A) (~n)] else []) @
+          map (if flatten then flatten_params_proof 0 0 n else PBound o snd)
+            (oldAs ~~ (la - 1 downto 0))))
   end;
 
 
@@ -981,10 +982,10 @@ fun match_proof Ts tymatch =
       | mtch Ts i j inst (prf1 %% prf2, prf1' %% prf2') =
           mtch Ts i j (mtch Ts i j inst (prf1, prf1')) (prf2, prf2')
       | mtch Ts i j inst (Abst (_, opT, prf1), Abst (_, opU, prf2)) =
-          mtch (getOpt (opU,dummyT) :: Ts) i (j+1)
+          mtch (the_default dummyT opU :: Ts) i (j+1)
             (optmatch matchT inst (opT, opU)) (prf1, prf2)
       | mtch Ts i j inst (prf1, Abst (_, opU, prf2)) =
-          mtch (getOpt (opU,dummyT) :: Ts) i (j+1) inst
+          mtch (the_default dummyT opU :: Ts) i (j+1) inst
             (incr_pboundvars 0 1 prf1 %> Bound 0, prf2)
       | mtch Ts i j inst (AbsP (_, opt, prf1), AbsP (_, opu, prf2)) =
           mtch Ts (i+1) j (optmatch (matcht Ts j) inst (opt, opu)) (prf1, prf2)
