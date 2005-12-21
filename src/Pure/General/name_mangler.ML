@@ -89,8 +89,12 @@ fun declare ctxt x (tabs as (tab_f, tab_r)) =
           fun mk_it (seed, i) =
             let
               val name = mk ctxt (seed, i)
-            in if is_valid ctxt name then name
-            else mk_it (seed, i+1) end;
+            in
+              if is_valid ctxt name
+                andalso (not oo Symtab.defined) tab_r name
+              then name 
+              else mk_it (seed, i+1)
+            end;
           val name = (fst oooo mk_unique) (op =) mk_it x [];
         in
           (name,
@@ -110,8 +114,12 @@ fun declare_multi ctxt xs (tabs as (tab_f, tab_r)) =
         fun mk_it (seed, i) =
           let
             val name = mk ctxt (seed, i)
-          in if is_valid ctxt name then name
-          else mk_it (seed, i+1) end;
+          in
+            if is_valid ctxt name
+              andalso (not oo Symtab.defined) tab_r name
+            then name
+            else mk_it (seed, i+1)
+          end;
         val names = (fst oooo mk_unique_multi) (op =) mk_it xs [];
       in
         (names,

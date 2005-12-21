@@ -33,7 +33,7 @@ sig
     -> theory -> theory;
   val add_alias: string * string -> theory -> theory;
   val set_is_datatype: (theory -> string -> bool) -> theory -> theory;
-  val set_get_all_datatype_cons : (theory -> (string * string list) list)
+  val set_get_all_datatype_cons : (theory -> (string * string) list)
     -> theory -> theory;
 
   val invoke_cg_type: theory -> auxtab
@@ -161,6 +161,7 @@ structure DatatypeconsNameMangler = NameManglerFun (
     | mk thy ((co, dtco), i) =
         let
           fun basename 0 = NameSpace.base co
+            | basename 1 = NameSpace.base dtco ^ "_" ^ NameSpace.base co
             | basename i = NameSpace.base dtco ^ "_" ^ NameSpace.base co ^ "_" ^ (implode oo replicate) (i-1) "'";
           fun strip_dtco name =
             case (rev o NameSpace.unpack) name
@@ -254,7 +255,7 @@ fun merge_lookups
 
 type logic_data = {
   is_datatype: ((theory -> string -> bool) * stamp) option,
-  get_all_datatype_cons: ((theory -> (string * string list) list) * stamp) option,
+  get_all_datatype_cons: ((theory -> (string * string) list) * stamp) option,
   alias: string Symtab.table * string Symtab.table
 };
 
@@ -594,7 +595,7 @@ fun idf_of_const thy (tabs as ((_, clsmemtab), (_, (overltab1, overltab2), dtcon
         | _ => "";
     val c' = case Symtab.lookup overltab1 c
        of SOME (ty_decl, tys) => ConstNameMangler.get thy overltab2
-         (idf_of_name thy nsp_overl c, (ty_decl, (the oo find_first) (fn ty => Sign.typ_instance thy (ty, ty_decl)) tys))
+         (idf_of_name thy nsp_overl c, (ty_decl, (the oo find_first) (fn ty' => Sign.typ_instance thy (ty', ty)) tys))
         | NONE => case try (DatatypeconsNameMangler.get thy dtcontab) (c, coty)
        of SOME c' => idf_of_name thy nsp_dtcon c'
         | NONE => case Symtab.lookup clsmemtab c
@@ -1130,9 +1131,12 @@ fun mk_tabs thy =
     fun mk_dtcontab thy =
       DatatypeconsNameMangler.empty
       |> fold_map
-          (fn (co, dtcos) => DatatypeconsNameMangler.declare_multi thy
-              (map (pair co) dtcos))
-            (get_all_datatype_cons thy)
+          (fn (_, co_dtco) => DatatypeconsNameMangler.declare_multi thy co_dtco)
+            (fold (fn (co, dtco) =>
+              let
+                val key = ((NameSpace.drop_base o NameSpace.drop_base) co, NameSpace.base co)
+              in AList.default (op =) (key, []) #> AList.map_entry (op =) key (cons (co, dtco)) end
+            ) (get_all_datatype_cons thy) [])
       |-> (fn _ => I);
     fun mk_deftab thy defs overltab =
       Symtab.empty
@@ -1491,12 +1495,8 @@ val _ =
     add_alias ("op +", "HOL.op_add"),
     add_alias ("op -", "HOL.op_minus"),
     add_alias ("op *", "HOL.op_times"),
-(*     add_alias ("0", "Nat.Zero"),  *)
-    add_alias ("op <>", "HOL.op_neq"),
-    add_alias ("op >=", "op_ge"),
-    add_alias ("op >", "op_gt"),
-    add_alias ("op <=", "op_le"),
-    add_alias ("op <", "op_lt"),
+    add_alias ("op <=", "Orderings.op_le"),
+    add_alias ("op <", "Orderings.op_lt"),
     add_alias ("List.op @", "List.append"),
     add_alias ("List.op mem", "List.member"),
     add_alias ("Divides.op div", "Divides.div"),

@@ -70,7 +70,7 @@ sig
   val get_datatype : theory -> string -> ((string * sort) list * string list) option
   val get_datatype_cons : theory -> string * string -> typ list option
   val get_case_const_data : theory -> string -> (string * int) list option
-  val get_all_datatype_cons : theory -> (string * string list) list
+  val get_all_datatype_cons : theory -> (string * string) list
   val constrs_of : theory -> string -> term list option
   val case_const_of : theory -> string -> term option
   val weak_case_congs_of : theory -> thm list
@@ -1003,9 +1003,9 @@ fun get_case_const_data thy c =
 
 fun get_all_datatype_cons thy =
   Symtab.fold (fn (dtco, _) => fold
-    (fn co =>
-      AList.default (op =) (co, []) #> AList.map_entry (op =) co (cons dtco))
-    ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
+    (fn co => cons (co, dtco))
+      ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
+
 
 
 (** package setup **)
