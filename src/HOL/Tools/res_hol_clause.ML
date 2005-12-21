@@ -709,13 +709,12 @@ fun clause_eq (cls1,cls2) =
 val xor_words = List.foldl Word.xorb 0w0;
 
 fun hash_combterm (CombVar(_,_),w) = w
-  | hash_combterm (CombFree(f,_),w) = Hashtable.hash_string(f,w)
-  | hash_combterm (CombConst(c,tp,tps),w) = Hashtable.hash_string(c,w)
-  | hash_combterm (CombApp(f,arg,tp),w) = 
-    hash_combterm (arg, (hash_combterm (f,w)))
+  | hash_combterm (CombFree(f,_),w) = Polyhash.hashw_string(f,w)
+  | hash_combterm (CombConst(c,tp,tps),w) = Polyhash.hashw_string(c,w)
+  | hash_combterm (CombApp(f,arg,tp),w) = hash_combterm (arg, hash_combterm (f,w))
   | hash_combterm (Bool(t),w) = hash_combterm (t,w)
   | hash_combterm (Equal(t1,t2),w) = 
-    List.foldl hash_combterm (Hashtable.hash_string ("equal",w)) [t1,t2]
+    List.foldl hash_combterm (Polyhash.hashw_string ("equal",w)) [t1,t2]
 
 fun hash_literal (Literal(true,pred)) = hash_combterm(pred,0w0)
   | hash_literal (Literal(false,pred)) = Word.notb(hash_combterm(pred,0w0));

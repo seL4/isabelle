@@ -71,7 +71,7 @@ signature RES_CLAUSE =
 
   (*for hashing*)
   val clause_eq : clause * clause -> bool
-  val hash1_clause : clause -> word
+  val hash_clause : clause -> int
 
   val list_ord : ('a * 'b -> order) -> 'a list * 'b list -> order
   type fol_type
@@ -659,17 +659,17 @@ fun clause_eq (cls1,cls2) =
 
 val xor_words = List.foldl Word.xorb 0w0;
 
-fun hash_term (UVar(_,_), w) = w
-  | hash_term (Fun(f,tps,args), w) = 
-      List.foldl hash_term (Hashtable.hash_string (f,w)) args;
+fun hashw_term (UVar(_,_), w) = w
+  | hashw_term (Fun(f,tps,args), w) = 
+      List.foldl hashw_term (Polyhash.hashw_string (f,w)) args;
   
-fun hash_pred (Predicate(pn,_,args), w) = 
-    List.foldl hash_term (Hashtable.hash_string (pn,w)) args;
+fun hashw_pred (Predicate(pn,_,args), w) = 
+    List.foldl hashw_term (Polyhash.hashw_string (pn,w)) args;
     
-fun hash1_literal (Literal(true,pred,_)) = hash_pred (pred, 0w0)
-  | hash1_literal (Literal(false,pred,_)) = Word.notb (hash_pred (pred, 0w0));
+fun hash1_literal (Literal(true,pred,_)) = hashw_pred (pred, 0w0)
+  | hash1_literal (Literal(false,pred,_)) = Word.notb (hashw_pred (pred, 0w0));
   
-fun hash1_clause clause = xor_words (map hash1_literal (get_literals clause));
+fun hash_clause clause = Word.toIntX (xor_words (map hash1_literal (get_literals clause)));
 
 
 (* FIX: not sure what to do with these funcs *)

@@ -143,27 +143,30 @@ fun clause_numbering ((clause, theorem), num_of_cls) =
     
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute
 Some primes from http://primes.utm.edu/:
-   1823   1831   1847   1861   1867   1871   1873   1877   1879   1889 
-   1901   1907   1913   1931   1933   1949   1951   1973   1979   1987 
-   1993   1997   1999   2003   2011   2017   2027   2029   2039   2053 
-   2063   2069   2081   2083   2087   2089   2099   2111   2113   2129 
 *)
 
-exception HASH_CLAUSE;
+exception HASH_CLAUSE and HASH_STRING;
+
+(*Catches (for deletion) theorems automatically generated from other theorems*)
+fun insert_suffixed_names ht x = 
+     (Polyhash.insert ht (x^"_iff1", ()); 
+      Polyhash.insert ht (x^"_iff2", ()); 
+      Polyhash.insert ht (x^"_dest", ())); 
+
+fun make_suffix_test xs = 
+  let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
+                                (6000, HASH_STRING)
+      fun suffixed s = isSome (Polyhash.peek ht s)
+  in  app (insert_suffixed_names ht) xs; suffixed  end;
 
 (*Create a hash table for clauses, of the given size*)
-fun mk_clause_table size =
-      Hashtable.create{hash = ResClause.hash1_clause, 
-		       exn = HASH_CLAUSE,
-		       == = ResClause.clause_eq, 
-		       size = size};
-
-(*Insert x only if fresh*)
-fun insert_new ht (x,y) = ignore (Hashtable.lookup ht x)
-            handle HASH_CLAUSE => Hashtable.insert ht (x,y); 
+fun mk_clause_table n =
+      Polyhash.mkTable (ResClause.hash_clause, ResClause.clause_eq)
+                       (n, HASH_CLAUSE);
 
 (*Use a hash table to eliminate duplicates from xs*)
-fun make_unique ht xs = (app (insert_new ht) xs;  Hashtable.map Library.I ht);
+fun make_unique ht xs = 
+      (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
 
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
@@ -173,15 +176,17 @@ fun get_clasimp_lemmas ctxt goal =
 	    map put_name_pair
 	      (ReduceAxiomsN.relevant_filter (!relevant) goal 
 		(ResAxioms.claset_rules_of_ctxt ctxt))
-      val claset_cls_thms = ResAxioms.clausify_rules_pairs claset_thms
-      val simpset_cls_thms = 
+      val simpset_thms = 
 	    if !use_simpset then 
-	       ResAxioms.clausify_rules_pairs 
-		  (map put_name_pair 
+		  map put_name_pair 
 		    (ReduceAxiomsN.relevant_filter (!relevant) goal
-		      (ResAxioms.simpset_rules_of_ctxt ctxt)))
+		      (ResAxioms.simpset_rules_of_ctxt ctxt))
 	    else []
-      val cls_thms_list = make_unique (mk_clause_table 2129) 
+      val suffixed = make_suffix_test (map #1 (claset_thms@simpset_thms))
+      fun ok (a,_) = not (suffixed a)
+      val claset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok claset_thms)
+      val simpset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok simpset_thms)
+      val cls_thms_list = make_unique (mk_clause_table 2200) 
                                       (List.concat (simpset_cls_thms@claset_cls_thms))
       (* Identify the set of clauses to be written out *)
       val clauses = map #1(cls_thms_list);
