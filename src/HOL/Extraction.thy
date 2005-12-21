@@ -49,12 +49,12 @@ end
 *}
 
 lemmas [extraction_expand] =
-  atomize_eq atomize_all atomize_imp
+  atomize_eq atomize_all atomize_imp atomize_conj
   allE rev_mp conjE Eq_TrueI Eq_FalseI eqTrueI eqTrueE eq_cong2
   notE' impE' impE iffE imp_cong simp_thms
-  induct_forall_eq induct_implies_eq induct_equal_eq
-  induct_forall_def induct_implies_def induct_impliesI
-  induct_atomize induct_rulify1 induct_rulify2
+  induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
+  induct_forall_def induct_implies_def induct_equal_def induct_conj_def
+  induct_atomize induct_atomize_old induct_rulify induct_rulify_fallback
 
 datatype sumbool = Left | Right
 

@@ -5,12 +5,12 @@
 
 header {* Classical first-order logic *}
 
-theory FOL 
+theory FOL
 imports IFOL
 uses ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
       ("eqrule_FOL_data.ML")
       ("~~/src/Provers/eqsubst.ML")
-begin  
+begin
 
 
 subsection {* The classical axiom *}
@@ -93,33 +93,32 @@ subsection {* Proof by cases and induction *}
 text {* Proper handling of non-atomic rule statements. *}
 
 constdefs
-  induct_forall :: "('a => o) => o"
-  "induct_forall(P) == \<forall>x. P(x)"
-  induct_implies :: "o => o => o"
-  "induct_implies(A, B) == A --> B"
-  induct_equal :: "'a => 'a => o"
-  "induct_equal(x, y) == x = y"
+  induct_forall where "induct_forall(P) == \<forall>x. P(x)"
+  induct_implies where "induct_implies(A, B) == A \<longrightarrow> B"
+  induct_equal where "induct_equal(x, y) == x = y"
+  induct_conj where "induct_conj(A, B) == A \<and> B"
 
 lemma induct_forall_eq: "(!!x. P(x)) == Trueprop(induct_forall(\<lambda>x. P(x)))"
-  by (simp only: atomize_all induct_forall_def)
+  by (unfold atomize_all induct_forall_def)
 
 lemma induct_implies_eq: "(A ==> B) == Trueprop(induct_implies(A, B))"
-  by (simp only: atomize_imp induct_implies_def)
+  by (unfold atomize_imp induct_implies_def)
 
 lemma induct_equal_eq: "(x == y) == Trueprop(induct_equal(x, y))"
-  by (simp only: atomize_eq induct_equal_def)
+  by (unfold atomize_eq induct_equal_def)
 
-lemma induct_impliesI: "(A ==> B) ==> induct_implies(A, B)"
-  by (simp add: induct_implies_def)
+lemma induct_conj_eq:
+  includes meta_conjunction_syntax
+  shows "(A && B) == Trueprop(induct_conj(A, B))"
+  by (unfold atomize_conj induct_conj_def)
 
-lemmas induct_atomize = atomize_conj induct_forall_eq induct_implies_eq induct_equal_eq
-lemmas induct_rulify1 [symmetric, standard] = induct_forall_eq induct_implies_eq induct_equal_eq
-lemmas induct_rulify2 = induct_forall_def induct_implies_def induct_equal_def
+lemmas induct_atomize_old = induct_forall_eq induct_implies_eq induct_equal_eq atomize_conj
+lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
+lemmas induct_rulify [symmetric, standard] = induct_atomize
+lemmas induct_rulify_fallback =
+  induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 
-lemma all_conj_eq: "(ALL x. P(x)) & (ALL y. Q(y)) == (ALL x y. P(x) & Q(y))"
-  by simp
-
-hide const induct_forall induct_implies induct_equal
+hide const induct_forall induct_implies induct_equal induct_conj
 
 
 text {* Method setup. *}
@@ -127,15 +126,11 @@ text {* Method setup. *}
 ML {*
   structure InductMethod = InductMethodFun
   (struct
-    val dest_concls = FOLogic.dest_concls;
     val cases_default = thm "case_split";
-    val local_impI = thm "induct_impliesI";
-    val conjI = thm "conjI";
+    val atomize_old = thms "induct_atomize_old";
     val atomize = thms "induct_atomize";
-    val rulify1 = thms "induct_rulify1";
-    val rulify2 = thms "induct_rulify2";
-    val localize = [Thm.symmetric (thm "induct_implies_def"),
-      Thm.symmetric (thm "atomize_all"), thm "all_conj_eq"];
+    val rulify = thms "induct_rulify";
+    val rulify_fallback = thms "induct_rulify_fallback";
   end);
 *}
 
