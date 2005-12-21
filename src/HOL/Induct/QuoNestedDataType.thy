@@ -222,7 +222,7 @@ by (simp add: Abs_ExpList_def)
 lemma ExpList_rep: "\<exists>Us. z = Abs_ExpList Us"
 apply (induct z)
 apply (rule_tac [2] z=a in eq_Abs_Exp)
-apply (auto simp add: Abs_ExpList_def intro: exprel_refl)
+apply (auto simp add: Abs_ExpList_def Cons_eq_map_conv intro: exprel_refl)
 done
 
 lemma eq_Abs_ExpList [case_names Abs_ExpList]:

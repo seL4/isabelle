@@ -28,7 +28,9 @@ ML {*
 change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
 *}
 declare if_weak_cong [cong del] option.weak_case_cong [cong del]
-declare length_Suc_conv [iff];
+declare length_Suc_conv [iff]
+
+declare not_None_eq [iff]
 
 (*###to be phased out *)
 ML {*

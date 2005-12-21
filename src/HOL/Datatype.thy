@@ -140,11 +140,19 @@ subsection {* The option type *}
 
 datatype 'a option = None | Some 'a
 
-lemma not_None_eq [iff]: "(x ~= None) = (EX y. x = Some y)"
+lemma not_None_eq: "(x ~= None) = (EX y. x = Some y)"
   by (induct x) auto
 
-lemma not_Some_eq [iff]: "(ALL y. x ~= Some y) = (x = None)"
+lemma not_Some_eq: "(ALL y. x ~= Some y) = (x = None)"
   by (induct x) auto
+
+text{*Both of these equalities are helpful only when applied to assumptions.*}
+
+lemmas not_None_eq_D = not_None_eq [THEN iffD1]
+declare not_None_eq_D [dest!]
+
+lemmas not_Some_eq_D = not_Some_eq [THEN iffD1]
+declare not_Some_eq_D [dest!]
 
 lemma option_caseE:
   "(case x of None => P | Some y => Q y) ==>

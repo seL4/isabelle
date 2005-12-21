@@ -636,8 +636,9 @@ lemma ws_subint1_induct:
 apply (erule make_imp)
 apply (rule subint1_induct)
 apply  assumption
+apply (simp (no_asm)) 
 apply safe
-apply (fast dest: subint1I ws_prog_ideclD)
+apply (blast dest: subint1I ws_prog_ideclD)
 done
 
 
@@ -649,6 +650,7 @@ lemma ws_subcls1_induct: "\<lbrakk>is_class G C; ws_prog G;
 apply (erule make_imp)
 apply (rule subcls1_induct)
 apply  assumption
+apply (simp (no_asm)) 
 apply safe
 apply (fast dest: subcls1I ws_prog_cdeclD)
 done
@@ -673,7 +675,7 @@ proof -
       case True with iscls init show "P C" by auto
     next
       case False with ws step hyp iscls 
-      show "P C" by (auto dest: subcls1I ws_prog_cdeclD)
+      show "P C" by (auto iff: not_None_eq dest: subcls1I ws_prog_cdeclD)
     qed
   qed
   with clsC show ?thesis by simp
@@ -684,7 +686,7 @@ lemma ws_class_induct' [consumes 2, case_names Object Subcls]:
   \<And> co. class G Object = Some co \<Longrightarrow> P Object; 
   \<And> C c. \<lbrakk>class G C = Some c; C \<noteq> Object; P (super c)\<rbrakk> \<Longrightarrow> P C
  \<rbrakk> \<Longrightarrow> P C"
-by (blast intro: ws_class_induct)
+by (auto intro: ws_class_induct)
 
 lemma ws_class_induct'' [consumes 2, case_names Object Subcls]:
 "\<lbrakk>class G C = Some c; ws_prog G; 
@@ -710,7 +712,7 @@ proof -
       case False
       with ws iscls obtain sc where
 	sc: "class G (super c) = Some sc"
-	by (auto dest: ws_prog_cdeclD)
+	by (auto iff: not_None_eq dest: ws_prog_cdeclD)
       from iscls False have "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 (super c)" by (rule subcls1I)
       with False ws step hyp iscls sc
       show "P C c" 

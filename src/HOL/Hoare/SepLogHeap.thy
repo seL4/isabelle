@@ -9,6 +9,8 @@ for Separation Logic.
 
 theory SepLogHeap imports Main begin
 
+declare not_None_eq [iff]
+
 types heap = "(nat \<Rightarrow> nat option)"
 
 text{* @{text "Some"} means allocated, @{text "None"} means
@@ -85,6 +87,7 @@ by (induct ps) auto
 lemma list_ortho_sum1[simp]:
  "\<And>p. \<lbrakk> List h1 p ps; dom h1 \<inter> dom h2 = {}\<rbrakk> \<Longrightarrow> List (h1++h2) p ps"
 by (induct ps) (auto simp add:map_add_def split:option.split)
+
 
 lemma list_ortho_sum2[simp]:
  "\<And>p. \<lbrakk> List h2 p ps; dom h1 \<inter> dom h2 = {}\<rbrakk> \<Longrightarrow> List (h1++h2) p ps"

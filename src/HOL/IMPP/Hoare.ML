@@ -220,6 +220,7 @@ by (clarsimp_tac (claset(), simpset() addsimps
 qed "MGF_complete";
 
 AddSEs WTs_elim_cases;
+AddIffs [not_None_eq];
 (* requires com_det, escape (i.e. hoare_derivs.conseq) *)
 Goal "state_not_singleton ==> \
 \ !pn:dom body. G|-{=}.BODY pn.{->} ==> WT c --> G|-{=}.c.{->}";

@@ -393,7 +393,7 @@ done
 
 lemma implmt_is_class: "G\<turnstile>C\<leadsto>I \<Longrightarrow> is_class G C"
 apply (erule implmt.induct)
-apply (blast dest: implmt1D subcls1D)+
+apply (auto dest: implmt1D subcls1D)
 done
 
 

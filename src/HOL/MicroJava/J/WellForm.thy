@@ -123,9 +123,7 @@ apply (auto simp: map_of_SomeI)
 done
 
 lemma is_class_Object [simp]: "ws_prog G ==> is_class G Object"
-apply (unfold is_class_def)
-apply (simp (no_asm_simp))
-done
+  by (simp add: is_class_def not_None_eq)
 
 lemma is_class_xcpt [simp]: "ws_prog G \<Longrightarrow> is_class G (Xcpt x)"
   apply (simp add: ws_prog_def wf_syscls_def)
@@ -213,7 +211,7 @@ apply(  assumption)
 apply( rule impI)
 apply( case_tac "C = Object")
 apply(  fast)
-apply safe
+apply auto
 apply( frule (1) class_wf) apply (erule conjE)+
 apply (frule wf_cdecl_ws_cdecl)
 apply( frule (1) wf_cdecl_supD)
@@ -263,7 +261,7 @@ apply(  assumption)
 apply( rule impI)
 apply( case_tac "C = Object")
 apply(  fast)
-apply safe
+apply auto
 apply( frule (1) class_wf_struct)
 apply( frule (1) wf_cdecl_supD)
 

@@ -478,7 +478,9 @@ by (unfold dom_def, auto)
 (* declare domI [intro]? *)
 
 lemma domD: "a : dom m ==> \<exists>b. m a = Some b"
-by (unfold dom_def, auto)
+apply (case_tac "m a") 
+apply (auto simp add: dom_def) 
+done
 
 lemma domIff[iff]: "(a : dom m) = (m a ~= None)"
 by (unfold dom_def, auto)
@@ -528,7 +530,7 @@ by(auto simp add: dom_def override_on_def)
 
 lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
 apply(rule ext)
-apply(fastsimp simp:map_add_def split:option.split)
+apply(force simp: map_add_def dom_def not_None_eq  split:option.split) 
 done
 
 subsection {* @{term [source] ran} *}
@@ -575,7 +577,7 @@ lemma map_le_refl [simp]: "f \<subseteq>\<^sub>m f"
   by (simp add: map_le_def)
 
 lemma map_le_trans[trans]: "\<lbrakk> m1 \<subseteq>\<^sub>m m2; m2 \<subseteq>\<^sub>m m3\<rbrakk> \<Longrightarrow> m1 \<subseteq>\<^sub>m m3"
-by(force simp add:map_le_def)
+  by (auto simp add: map_le_def dom_def)
 
 lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m f \<rbrakk> \<Longrightarrow> f = g"
   apply (unfold map_le_def)
@@ -585,13 +587,13 @@ lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m 
 done
 
 lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
-  by (fastsimp simp add: map_le_def)
+  by (fastsimp simp add: map_le_def not_None_eq)
 
 lemma map_le_iff_map_add_commute: "(f \<subseteq>\<^sub>m f ++ g) = (f++g = g++f)"
 by(fastsimp simp add:map_add_def map_le_def expand_fun_eq split:option.splits)
 
 lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
-by (fastsimp simp add: map_le_def map_add_def dom_def)
+by (fastsimp simp add: map_le_def map_add_def dom_def not_None_eq)
 
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
 by (clarsimp simp add: map_le_def map_add_def dom_def split:option.splits)

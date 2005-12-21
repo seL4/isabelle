@@ -268,11 +268,8 @@ constdefs
  "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (SOME a. h a = None)"
 
 lemma new_AddrD: "new_Addr h = Some a \<Longrightarrow> h a = None"
-apply (unfold new_Addr_def)
-apply auto
-apply (case_tac "h (SOME a\<Colon>loc. h a = None)")
-apply simp
-apply (fast intro: someI2)
+apply (auto simp add: not_Some_eq new_Addr_def)
+apply (erule someI) 
 done
 
 lemma new_AddrD2: "new_Addr h = Some a \<Longrightarrow> \<forall>b. h b \<noteq> None \<longrightarrow> b \<noteq> a"
@@ -281,12 +278,8 @@ apply auto
 done
 
 lemma new_Addr_SomeI: "h a = None \<Longrightarrow> \<exists>b. new_Addr h = Some b \<and> h b = None"
-apply (unfold new_Addr_def)
-apply (frule not_Some_eq [THEN iffD2])
-apply auto
-apply  (drule not_Some_eq [THEN iffD2])
-apply  auto
-apply (fast intro!: someI2)
+apply (simp add: new_Addr_def not_Some_eq)
+apply (fast intro: someI2)
 done
 
 

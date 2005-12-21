@@ -672,9 +672,7 @@ lemma FB_lemma3:
 lemma FB_lemma2:
   "(c,s) \<longrightarrow>\<^sub>1\<^sup>* (c',s') \<Longrightarrow> c \<noteq> None \<Longrightarrow>
    \<langle>if c' = None then \<SKIP> else the c',s'\<rangle> \<longrightarrow>\<^sub>c t \<Longrightarrow> \<langle>the c,s\<rangle> \<longrightarrow>\<^sub>c t"
-  apply (induct rule: converse_rtrancl_induct2)
-   apply simp
-  apply clarsimp
+  apply (induct rule: converse_rtrancl_induct2, force)
   apply (fastsimp elim!: evalc1_term_cases intro: FB_lemma3)
   done
 

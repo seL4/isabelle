@@ -193,7 +193,7 @@ proof -
   from prems have "lookup env (xs @ ys) \<noteq> None" by simp
   then have "lookup env xs \<noteq> None"
     by (rule contrapos_nn) (simp only: lookup_append_none)
-  then show ?thesis by simp
+  then show ?thesis by (simp add: not_None_eq)
 qed
 
 text {*

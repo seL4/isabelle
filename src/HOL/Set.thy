@@ -1452,10 +1452,10 @@ lemma Union_Un_distrib [simp]: "\<Union>(A Un B) = \<Union>A \<union> \<Union>B"
 lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \<Union>B"
   by blast
 
-lemma Union_empty_conv [iff]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
+lemma Union_empty_conv [simp]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
   by blast
 
-lemma empty_Union_conv [iff]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
+lemma empty_Union_conv [simp]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
   by blast
 
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) = (\<forall>B\<in>C. B \<inter> A = {})"
@@ -1479,7 +1479,7 @@ lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<in
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by blast
 
-lemma Inter_UNIV_conv [iff]:
+lemma Inter_UNIV_conv [simp]:
   "(\<Inter>A = UNIV) = (\<forall>x\<in>A. x = UNIV)"
   "(UNIV = \<Inter>A) = (\<forall>x\<in>A. x = UNIV)"
   by blast+
@@ -1555,12 +1555,12 @@ lemma INT_eq: "(\<Inter>x\<in>A. B x) = \<Inter>({Y. \<exists>x\<in>A. Y = B x})
   -- {* Look: it has an \emph{existential} quantifier *}
   by blast
 
-lemma UNION_empty_conv[iff]:
+lemma UNION_empty_conv[simp]:
   "({} = (UN x:A. B x)) = (\<forall>x\<in>A. B x = {})"
   "((UN x:A. B x) = {}) = (\<forall>x\<in>A. B x = {})"
 by blast+
 
-lemma INTER_UNIV_conv[iff]:
+lemma INTER_UNIV_conv[simp]:
  "(UNIV = (INT x:A. B x)) = (\<forall>x\<in>A. B x = UNIV)"
  "((INT x:A. B x) = UNIV) = (\<forall>x\<in>A. B x = UNIV)"
 by blast+
@@ -1790,7 +1790,7 @@ lemma subset_iff: "(A \<subseteq> B) = (\<forall>t. t \<in> A --> t \<in> B)"
 lemma subset_iff_psubset_eq: "(A \<subseteq> B) = ((A \<subset> B) | (A = B))"
   by (unfold psubset_def) blast
 
-lemma all_not_in_conv [iff]: "(\<forall>x. x \<notin> A) = (A = {})"
+lemma all_not_in_conv [simp]: "(\<forall>x. x \<notin> A) = (A = {})"
   by blast
 
 lemma ex_in_conv: "(\<exists>x. x \<in> A) = (A \<noteq> {})"

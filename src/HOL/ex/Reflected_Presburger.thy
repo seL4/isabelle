@@ -12,6 +12,8 @@ theory Reflected_Presburger
 imports Main
 begin
 
+declare not_Some_eq [iff]
+
 (* Shadow syntax for integer terms *)
 datatype intterm =
     Cst int
@@ -968,7 +970,7 @@ proof (induct t rule: linearize.induct)
     moreover 
     {
       assume lini: "\<exists>li. linearize i = Some li"
-      from lini have lini2: "linearize i \<noteq> None" by simp
+      from lini have lini2: "linearize i \<noteq> None" by auto
       from lini obtain "li" where  "linearize i = Some li" by blast
       from lini2 lini have "islinintterm (the (linearize i))"
 	by (simp add: linearize_linear1[OF lini2])
@@ -1001,8 +1003,8 @@ next
     {
       assume lini: "\<exists>li. linearize i = Some li"
 	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini have lini2: "linearize i \<noteq> None" by simp
-      from linj have linj2: "linearize j \<noteq> None" by simp
+      from lini have lini2: "linearize i \<noteq> None" by auto
+      from linj have linj2: "linearize j \<noteq> None" by auto
       from lini obtain "li" where  "linearize i = Some li" by blast
       from lini2 have "islinintterm (the (linearize i))" by (simp add: linearize_linear1)
       then have linli: "islinintterm li" using prems by simp
@@ -1036,8 +1038,8 @@ next
     {
       assume lini: "\<exists>li. linearize i = Some li"
 	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini have lini2: "linearize i \<noteq> None" by simp
-      from linj have linj2: "linearize j \<noteq> None" by simp
+      from lini have lini2: "linearize i \<noteq> None" by auto
+      from linj have linj2: "linearize j \<noteq> None" by auto
       from lini obtain "li" where  "linearize i = Some li" by blast
       from lini2 have "islinintterm (the (linearize i))" by (simp add: linearize_linear1)
       with prems have linli: "islinintterm li" by simp
@@ -1081,7 +1083,7 @@ next
     {
       assume lini: "\<exists>li. linearize i = Some li"
 	and linj: "\<exists>bj. linearize j = Some (Cst bj)"
-      from lini have lini2: "linearize i \<noteq> None" by simp
+      from lini have lini2: "linearize i \<noteq> None" by auto
       from linj have linj2: "linearize j \<noteq> None" by auto
       from lini obtain "li" where  "linearize i = Some li" by blast
       from lini2 have "islinintterm (the (linearize i))" by (simp add: linearize_linear1)
@@ -1143,7 +1145,7 @@ next
 qed  simp_all
 
 
-(* linearize, when successfull, preserves semantics *)
+(* linearize, when successful, preserves semantics *)
 lemma linearize_corr: "\<And> t'. linearize t = Some t' \<Longrightarrow> I_intterm ats t = I_intterm ats t' "
 proof-
   fix t'
@@ -1612,7 +1614,7 @@ next
 qed (simp_all)
 
 
-(* linform, if successfull, preserves quantifier freeness *)
+(* linform, if successful, preserves quantifier freeness *)
 lemma linform_isnnf: "islinform p \<Longrightarrow> isnnf p"
 by (induct p rule: islinform.induct) auto
 

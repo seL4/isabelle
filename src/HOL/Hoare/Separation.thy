@@ -159,9 +159,7 @@ of separation logic instead. *}
 
 (* a law of separation logic *)
 lemma star_comm: "P ** Q = Q ** P"
-apply(simp add:star_def ortho_def)
-apply(blast intro:map_add_comm)
-done
+  by(auto simp add:star_def ortho_def dest: map_add_comm)
 
 lemma "VARS H x y z w
  {P ** Q}

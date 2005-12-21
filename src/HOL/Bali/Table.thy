@@ -206,10 +206,7 @@ by auto
 
 lemma set_get_eq: 
   "unique l \<Longrightarrow> (k, the (table_of l k)) \<in> set l = (table_of l k \<noteq> None)"
-apply safe
-apply (fast dest!: weak_map_of_SomeI)
-apply auto
-done
+by (auto dest!: weak_map_of_SomeI)
 
 lemma inj_Pair_const2: "inj (\<lambda>k. (k, C))"
 apply (rule inj_onI)

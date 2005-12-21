@@ -505,17 +505,21 @@ by (cases xs) auto
 lemma Nil_is_map_conv [iff]: "([] = map f xs) = (xs = [])"
 by (cases xs) auto
 
-lemma map_eq_Cons_conv[iff]:
+lemma map_eq_Cons_conv:
  "(map f xs = y#ys) = (\<exists>z zs. xs = z#zs \<and> f z = y \<and> map f zs = ys)"
 by (cases xs) auto
 
-lemma Cons_eq_map_conv[iff]:
+lemma Cons_eq_map_conv:
  "(x#xs = map f ys) = (\<exists>z zs. ys = z#zs \<and> x = f z \<and> xs = map f zs)"
 by (cases ys) auto
 
+lemmas map_eq_Cons_D = map_eq_Cons_conv [THEN iffD1]
+lemmas Cons_eq_map_D = Cons_eq_map_conv [THEN iffD1]
+declare map_eq_Cons_D [dest!]  Cons_eq_map_D [dest!]
+
 lemma ex_map_conv:
   "(EX xs. ys = map f xs) = (ALL y : set ys. EX x. y = f x)"
-by(induct ys, auto)
+by(induct ys, auto simp add: Cons_eq_map_conv)
 
 lemma map_eq_imp_length_eq:
   "!!xs. map f xs = map f ys ==> length xs = length ys"
@@ -867,10 +871,10 @@ subsubsection {* @{text concat} *}
 lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
 by (induct xs) auto
 
-lemma concat_eq_Nil_conv [iff]: "(concat xss = []) = (\<forall>xs \<in> set xss. xs = [])"
+lemma concat_eq_Nil_conv [simp]: "(concat xss = []) = (\<forall>xs \<in> set xss. xs = [])"
 by (induct xss) auto
 
-lemma Nil_eq_concat_conv [iff]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
+lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
 by (induct xss) auto
 
 lemma set_concat [simp]: "set (concat xs) = \<Union>(set ` set xs)"
@@ -2238,8 +2242,8 @@ lemma itrev[simp]: "ALL ys. itrev xs ys = rev xs @ ys"
 by (induct xs) simp_all
 
 lemma filtermap_conv:
- "filtermap f xs = map (%x. the(f x)) (filter (%x. f x \<noteq> None) xs)"
-by (induct xs) auto
+     "filtermap f xs = map (%x. the(f x)) (filter (%x. f x \<noteq> None) xs)"
+  by (induct xs) (simp_all split: option.split) 
 
 lemma map_filter_conv[simp]: "map_filter f P xs = map f (filter P xs)"
 by (induct xs) auto
@@ -2388,7 +2392,7 @@ by (simp add: lex_conv)
 lemma Nil2_notin_lex [iff]: "(xs, []) \<notin> lex r"
 by (simp add:lex_conv)
 
-lemma Cons_in_lex [iff]:
+lemma Cons_in_lex [simp]:
     "((x # xs, y # ys) : lex r) =
       ((x, y) : r \<and> length xs = length ys | x = y \<and> (xs, ys) : lex r)"
 apply (simp add: lex_conv)

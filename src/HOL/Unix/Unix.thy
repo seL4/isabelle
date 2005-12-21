@@ -1058,7 +1058,8 @@ proof -
               have "lookup root ((path @ [y]) @ (us @ [u])) \<noteq> None \<or>
                   lookup root ((path @ [y]) @ us) \<noteq> None"
                 by cases (auto dest: access_some_lookup)
-              then show ?thesis by (blast dest!: lookup_some_append)
+              then show ?thesis 
+                by (simp add: not_None_eq, blast dest!: lookup_some_append)
             qed
             finally show ?thesis .
           qed

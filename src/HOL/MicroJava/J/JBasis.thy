@@ -12,6 +12,7 @@ header {*
 theory JBasis imports Main begin 
 
 lemmas [simp] = Let_def
+declare not_None_eq [iff]
 
 section "unique"
  
