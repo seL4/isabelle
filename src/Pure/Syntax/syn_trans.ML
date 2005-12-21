@@ -324,6 +324,8 @@ fun prop_tr' tm =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
     fun tr' _ (t as Const _) = t
+      | tr' Ts (t as Const ("_bound", _) $ u) =
+          if is_prop Ts u then aprop t else t
       | tr' _ (t as Free (x, T)) =
           if T = propT then aprop (Lexicon.free x) else t
       | tr' _ (t as Var (xi, T)) =
