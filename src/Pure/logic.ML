@@ -23,6 +23,8 @@ sig
   val nth_prem: int * term -> term
   val mk_conjunction: term * term -> term
   val mk_conjunction_list: term list -> term
+  val dest_conjunction: term -> term * term
+  val dest_conjunctions: term -> term list
   val strip_horn: term -> term list * term
   val mk_cond_defpair: term list -> term * term -> string * term
   val mk_defpair: term * term -> string * term
@@ -130,10 +132,25 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 (** conjunction **)
 
 fun mk_conjunction (t, u) =
-  Term.list_all ([("X", propT)], mk_implies (list_implies ([t, u], Bound 0), Bound 0));
+  Term.list_all ([("X", propT)],
+    mk_implies (list_implies (map (Term.incr_boundvars 1) [t, u], Bound 0), Bound 0));
 
 fun mk_conjunction_list [] = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0))
   | mk_conjunction_list ts = foldr1 mk_conjunction ts;
+
+fun dest_conjunction
+      (t as Const ("all", _) $ Abs (_, _,
+        Const ("==>", _) $ (Const ("==>", _) $ A $ (Const ("==>", _) $ B $ Bound 0)) $ Bound 0)) =
+      if Term.loose_bvar1 (A, 0) orelse Term.loose_bvar1 (B, 0)
+      then raise TERM ("dest_conjunction", [t])
+      else (Term.incr_boundvars ~1 A, Term.incr_boundvars ~1 B)
+  | dest_conjunction t = raise TERM ("dest_conjunction", [t]);
+
+fun dest_conjunctions t =
+  (case try dest_conjunction t of
+    NONE => [t]
+  | SOME (A, B) => dest_conjunctions A @ dest_conjunctions B);
+
 
 
 (** definitions **)
