@@ -98,7 +98,8 @@ sig
   val instantiate_tac   : (string * string) list -> tactic
   val thin_tac          : string -> int -> tactic
   val trace_goalno_tac  : (int -> tactic) -> int -> tactic
-  val CONJUNCTS: tactic -> int -> tactic
+  val CONJUNCTS: int -> tactic -> int -> tactic
+  val CONJUNCTS2: int -> tactic -> int -> tactic
 end;
 
 signature TACTIC =
@@ -110,8 +111,8 @@ sig
   val orderlist: (int * 'a) list -> 'a list
   val rewrite: bool -> thm list -> cterm -> thm
   val simplify: bool -> thm list -> thm -> thm
-  val conjunction_tac: tactic
-  val smart_conjunction_tac: int -> tactic
+  val conjunction_tac: int -> tactic
+  val precise_conjunction_tac: int -> int -> tactic
   val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
                           int -> tactic
   val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
@@ -633,23 +634,30 @@ fun filter_prems_tac p =
   end;
 
 
-(*meta-level conjunction*)
-val conj_tac = SUBGOAL (fn (Const ("all", _) $ Abs (_, _, Const ("==>", _) $
-      (Const ("==>", _) $ _ $ (Const ("==>", _) $ _ $ Bound 0)) $ Bound 0), i) =>
-    (fn st =>
-      compose_tac (false, Drule.incr_indexes st Drule.conj_intr_thm, 2) i st)
-  | _ => no_tac);
+(* meta-level conjunction *)
 
-val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
+val conj_tac = SUBGOAL (fn (goal, i) =>
+  if can Logic.dest_conjunction goal then
+    (fn st => compose_tac (false, Drule.incr_indexes st Drule.conj_intr_thm, 2) i st)
+  else no_tac);
 
-fun smart_conjunction_tac 0 = assume_tac 1
-  | smart_conjunction_tac _ = TRY conjunction_tac;
+val conjunction_tac = TRY o REPEAT_ALL_NEW conj_tac;
 
-(*treat conjunction as separate sub-goals*)
-fun CONJUNCTS tac =
-  SELECT_GOAL (TRY conjunction_tac
+val precise_conjunction_tac =
+  let
+    fun tac 0 i = eq_assume_tac i
+      | tac 1 i = SUBGOAL (K all_tac) i
+      | tac n i = conj_tac i THEN TRY (fn st => tac (n - 1) (i + 1) st);
+  in TRY oo tac end;
+
+(*treat conjuncts as separate sub-goals*)
+fun CONJUNCTS n tac =
+  SELECT_GOAL (precise_conjunction_tac n 1
     THEN tac
     THEN PRIMITIVE Drule.conj_curry);
+
+(*treat two levels of conjunctions*)
+fun CONJUNCTS2 n tac = CONJUNCTS n (ALLGOALS (CONJUNCTS ~1 tac));
 
 end;
 
