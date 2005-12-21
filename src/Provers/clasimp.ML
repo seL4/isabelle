@@ -141,7 +141,7 @@ fun addIff decls1 decls2 simp ((cs, ss), th) =
   in
     (elim (intro (cs, [suffix_thm name "_iff2" (zero_rotate (th RS Data.iffD2))]),
            [suffix_thm name "_iff1" (Data.cla_make_elim (zero_rotate (th RS Data.iffD1)))])
-      handle THM _ => (elim (cs, [suffix_thm name "_iff" (zero_rotate (th RS Data.notE))])
+      handle THM _ => (elim (cs, [suffix_thm name "_iff1" (zero_rotate (th RS Data.notE))])
         handle THM _ => intro (cs, [th])),
      simp (ss, [th]))
   end;
