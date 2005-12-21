@@ -30,26 +30,18 @@ signature CASE_SPLIT_DATA =
 sig
   val dest_Trueprop : term -> term
   val mk_Trueprop : term -> term
-
-  val localize : thm list
-  val local_impI : thm
   val atomize : thm list
-  val rulify1 : thm list
-  val rulify2 : thm list
-
+  val rulify : thm list
 end;
 
-(* for HOL *)
 structure CaseSplitData_HOL : CASE_SPLIT_DATA =
 struct
 val dest_Trueprop = HOLogic.dest_Trueprop;
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
-val localize = [Thm.symmetric (thm "induct_implies_def")];
-val local_impI = thm "induct_impliesI";
 val atomize = thms "induct_atomize";
-val rulify1 = thms "induct_rulify1";
-val rulify2 = thms "induct_rulify2";
+val rulify = thms "induct_rulify";
+val rulify_fallback = thms "induct_rulify_fallback";
 
 end;
 
@@ -88,22 +80,8 @@ end;
 functor CaseSplitFUN(Data : CASE_SPLIT_DATA) =
 struct
 
-val rulify_goals = Tactic.rewrite_goals_rule Data.rulify1;
+val rulify_goals = Tactic.rewrite_goals_rule Data.rulify;
 val atomize_goals = Tactic.rewrite_goals_rule Data.atomize;
-
-(*
-val localize = Tactic.norm_hhf_rule o Tactic.simplify false Data.localize;
-fun atomize_term sg =
-  ObjectLogic.drop_judgment sg o MetaSimplifier.rewrite_term sg Data.atomize [];
-val rulify_tac =  Tactic.rewrite_goal_tac Data.rulify1;
-val atomize_tac =  Tactic.rewrite_goal_tac Data.atomize;
-Tactic.simplify_goal
-val rulify_tac =
-  Tactic.rewrite_goal_tac Data.rulify1 THEN'
-  Tactic.rewrite_goal_tac Data.rulify2 THEN'
-  Tactic.norm_hhf_tac;
-val atomize = Tactic.norm_hhf_rule o Tactic.simplify true Data.atomize;
-*)
 
 (* beta-eta contract the theorem *)
 fun beta_eta_contract thm =
