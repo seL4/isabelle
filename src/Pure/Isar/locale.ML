@@ -2110,7 +2110,7 @@ fun prep_result propps thmss =
 
 val refine_protected =
   Proof.refine (Method.Basic (K (Method.RAW_METHOD
-    (K (ALLGOALS (CONJUNCTS (ALLGOALS (Tactic.rtac Drule.protectI))))))))
+    (K (ALLGOALS (CONJUNCTS2 ~1 (ALLGOALS (Tactic.rtac Drule.protectI))))))))
   #> Seq.hd;
 
 fun goal_name thy kind target propss =
