@@ -1105,7 +1105,7 @@ val record_ex_sel_eq_simproc =
 
 local
 val inductive_atomize = thms "induct_atomize";
-val inductive_rulify1 = thms "induct_rulify1";
+val inductive_rulify = thms "induct_rulify";
 in
 (* record_split_simp_tac *)
 (* splits (and simplifies) all records in the goal for which P holds.
@@ -1135,7 +1135,7 @@ fun record_split_simp_tac thms P i st =
             val thm  = cterm_instantiate [(crec,cfree)] induct_thm;
         in EVERY [simp_tac (HOL_basic_ss addsimps inductive_atomize) i,
                   rtac thm i,
-                  simp_tac (HOL_basic_ss addsimps inductive_rulify1) i]
+                  simp_tac (HOL_basic_ss addsimps inductive_rulify) i]
         end;
 
     fun split_free_tac P i (free as Free (n,T)) =
