@@ -1216,7 +1216,7 @@ fun match_consts t (* th *) =
 
 fun split_name str =
     let
-	val sub = Substring.all str
+	val sub = Substring.full str
 	val (f,idx) = apsnd Substring.string (Substring.splitr Char.isDigit sub)
 	val (newstr,u) = apboth Substring.string (Substring.splitr (fn c => c = #"_") f)
     in
