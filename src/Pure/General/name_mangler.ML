@@ -60,14 +60,20 @@ fun mk_unique eq mk seed used =
 fun mk_unique_multi eq mk seeds used =
   let
     fun mk_names i =
-      let
-        val names = map (fn seed => mk (seed, i)) seeds
-      in
-        if null (gen_inter eq (used, names))
-        then names
-        else mk_names (i+1)
-      end;
-    val names = mk_names 0;
+      if i < 2 then
+        let
+          val names = map (fn seed => mk (seed, i)) seeds
+        in
+          if null (gen_inter eq (used, names))
+            andalso (not oo has_duplicates) eq names
+          then names
+          else mk_names (i+1)
+        end
+      else
+        used
+        |> fold_map (mk_unique eq mk) seeds
+        |> fst;
+      val names = mk_names 0;
   in (names, fold cons names used) end;
 
 val empty = (Srctab.empty, Symtab.empty);
