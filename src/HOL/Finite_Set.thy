@@ -1972,7 +1972,9 @@ subsubsection{* Semi-Lattices *}
 
 locale ACIfSL = ACIf +
   fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
+  and strict_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
   assumes below_def: "(x \<sqsubseteq> y) = (x\<cdot>y = x)"
+  defines strict_below_def:  "(x \<sqsubset> y) \<equiv> (x \<sqsubseteq> y \<and> x \<noteq> y)"
 
 locale ACIfSLlin = ACIfSL +
   assumes lin: "x\<cdot>y \<in> {x,y}"
@@ -2036,6 +2038,17 @@ next
 qed
 
 
+lemma (in ACIfSLlin) strict_below_f_conv[simp]: "x \<sqsubset> y \<cdot> z = (x \<sqsubset> y \<and> x \<sqsubset> z)"
+apply(simp add: strict_below_def)
+using lin[of y z] by (auto simp:below_def ACI)
+
+
+lemma (in ACIfSLlin) strict_above_f_conv:
+ "x \<cdot> y \<sqsubset> z = (x \<sqsubset> z \<or> y \<sqsubset> z)"
+apply(simp add: strict_below_def above_f_conv)
+using lin[of y z] lin[of x z] by (auto simp:below_def ACI)
+
+
 subsubsection{* Lemmas about @{text fold1} *}
 
 lemma (in ACf) fold1_Un:
@@ -2076,6 +2089,11 @@ shows "x \<sqsubseteq> fold1 f A = (\<forall>a\<in>A. x \<sqsubseteq> a)"
 using A
 by(induct rule:finite_ne_induct) simp_all
 
+lemma (in ACIfSLlin) strict_below_fold1_iff:
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> x \<sqsubset> fold1 f A = (\<forall>a\<in>A. x \<sqsubset> a)"
+by(induct rule:finite_ne_induct) simp_all
+
+
 lemma (in ACIfSL) fold1_belowI:
 assumes A: "finite A" "A \<noteq> {}"
 shows "a \<in> A \<Longrightarrow> fold1 f A \<sqsubseteq> a"
@@ -2101,11 +2119,18 @@ next
   qed
 qed
 
+
 lemma (in ACIfSLlin) fold1_below_iff:
 assumes A: "finite A" "A \<noteq> {}"
 shows "fold1 f A \<sqsubseteq> x = (\<exists>a\<in>A. a \<sqsubseteq> x)"
 using A
 by(induct rule:finite_ne_induct)(simp_all add:above_f_conv)
+
+lemma (in ACIfSLlin) fold1_strict_below_iff:
+assumes A: "finite A" "A \<noteq> {}"
+shows "fold1 f A \<sqsubset> x = (\<exists>a\<in>A. a \<sqsubset> x)"
+using A
+by(induct rule:finite_ne_induct)(simp_all add:strict_above_f_conv)
 
 
 lemma (in ACIfSLlin) fold1_antimono:
@@ -2120,7 +2145,7 @@ next
   also have "\<dots> = f (fold1 f A) (fold1 f (B-A))"
   proof -
     have "finite A" by(rule finite_subset[OF `A \<subseteq> B` `finite B`])
-    moreover have "finite(B-A)" by(blast intro:finite_Diff prems)
+    moreover have "finite(B-A)" by(rule finite_Diff[OF `finite B`]) (* by(blast intro:finite_Diff prems) fails *)
     moreover have "(B-A) \<noteq> {}" using prems by blast
     moreover have "A Int (B-A) = {}" using prems by blast
     ultimately show ?thesis using `A \<noteq> {}` by(rule_tac fold1_Un)
@@ -2128,6 +2153,7 @@ next
   also have "\<dots> \<sqsubseteq> fold1 f A" by(simp add: above_f_conv)
   finally show ?thesis .
 qed
+
 
 
 subsubsection{* Lattices *}
@@ -2342,25 +2368,27 @@ apply(auto simp:max_def)
 done
 
 interpretation min:
-  ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
+  ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
+apply(simp add:order_less_le)
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:min_def)
 done
 
 interpretation min:
-  ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>"]
+  ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:min_def)
 done
 
 interpretation max:
-  ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
+  ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
+apply(simp add:order_less_le eq_sym_conv)
 apply(rule ACIfSL_axioms.intro)
 apply(auto simp:max_def)
 done
 
 interpretation max:
-  ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x"]
+  ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
 apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
@@ -2424,6 +2452,14 @@ lemma Max_le_iff[simp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Max A \<le> x) = (\<forall>a\<in>A. a \<le> x)"
 by(simp add: Max_def max.below_fold1_iff)
 
+lemma Min_gr_iff[simp]:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x < Min A) = (\<forall>a\<in>A. x < a)"
+by(simp add: Min_def min.strict_below_fold1_iff)
+
+lemma Max_less_iff[simp]:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Max A < x) = (\<forall>a\<in>A. a < x)"
+by(simp add: Max_def max.strict_below_fold1_iff)
+
 lemma Min_le_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Min A \<le> x) = (\<exists>a\<in>A. a \<le> x)"
 by(simp add: Min_def min.fold1_below_iff)
@@ -2431,6 +2467,14 @@ by(simp add: Min_def min.fold1_below_iff)
 lemma Max_ge_iff:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
 by(simp add: Max_def max.fold1_below_iff)
+
+lemma Min_le_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Min A < x) = (\<exists>a\<in>A. a < x)"
+by(simp add: Min_def min.fold1_strict_below_iff)
+
+lemma Max_ge_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x < Max A) = (\<exists>a\<in>A. x < a)"
+by(simp add: Max_def max.fold1_strict_below_iff)
 
 lemma Min_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
   \<Longrightarrow> Min (A \<union> B) = min (Min A) (Min B)"

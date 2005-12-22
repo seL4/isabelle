@@ -90,10 +90,6 @@ theorem eq_equiv_class_iff:
   "equiv A r ==> x \<in> A ==> y \<in> A ==> (r``{x} = r``{y}) = ((x, y) \<in> r)"
   by (blast intro!: equiv_class_eq dest: eq_equiv_class equiv_type)
 
-lemma eq_equiv_class_iff2:
-  "\<lbrakk> equiv A r; x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> ({x}//r = {y}//r) = ((x,y) : r)"
-by(simp add:quotient_def eq_equiv_class_iff)
-
 
 subsection {* Quotients *}
 
@@ -135,6 +131,10 @@ lemma quotient_eq_iff:
   apply (clarify elim!: quotientE)
   apply (unfold equiv_def sym_def trans_def, blast)
   done
+
+lemma eq_equiv_class_iff2:
+  "\<lbrakk> equiv A r; x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> ({x}//r = {y}//r) = ((x,y) : r)"
+by(simp add:quotient_def eq_equiv_class_iff)
 
 
 lemma quotient_empty [simp]: "{}//r = {}"
