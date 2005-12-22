@@ -19,7 +19,7 @@ types
 
 (* polymorphic operations for permutation and swapping*)
 consts 
-  perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     ("_ \<bullet> _" [80,80] 80)
+  perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     (infixr "\<bullet>" 80)
   swap :: "('x \<times> 'x) \<Rightarrow> 'x \<Rightarrow> 'x"
 
 (* permutation on sets *)
