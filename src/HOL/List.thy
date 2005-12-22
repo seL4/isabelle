@@ -1766,15 +1766,14 @@ apply(subgoal_tac "length (remdups xs) <= length xs")
 apply(rule length_remdups_leq)
 done
 
-lemma distinct_filter [simp]: "distinct xs ==> distinct (filter P xs)"
+
+lemma distinct_map:
+  "distinct(map f xs) = (distinct xs & inj_on f (set xs))"
 by (induct xs) auto
 
-lemma distinct_map_filterI:
- "distinct(map f xs) \<Longrightarrow> distinct(map f (filter P xs))"
-apply(induct xs)
- apply simp
-apply force
-done
+
+lemma distinct_filter [simp]: "distinct xs ==> distinct (filter P xs)"
+by (induct xs) auto
 
 lemma distinct_upt[simp]: "distinct[i..<j]"
 by (induct j) auto
@@ -1830,6 +1829,10 @@ apply (erule_tac x = "Suc i" in allE, simp)
 apply (erule_tac x = "Suc j" in allE, simp)
 done
 
+lemma nth_eq_iff_index_eq:
+ "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
+by(auto simp: distinct_conv_nth)
+
 lemma distinct_card: "distinct xs ==> card (set xs) = size xs"
   by (induct xs) auto
 
@@ -1851,23 +1854,10 @@ next
   qed
 qed
 
-lemma inj_on_setI: "distinct(map f xs) ==> inj_on f (set xs)"
-apply(induct xs)
- apply simp
-apply fastsimp
-done
 
-lemma inj_on_set_conv:
- "distinct xs \<Longrightarrow> inj_on f (set xs) = distinct(map f xs)"
-apply(induct xs)
- apply simp
-apply fastsimp
-done
-
-
-lemma nth_eq_iff_index_eq:
- "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
-by(auto simp: distinct_conv_nth)
+lemma length_remdups_concat:
+ "length(remdups(concat xss)) = card(\<Union>xs \<in> set xss. set xs)"
+by(simp add: distinct_card[symmetric])
 
 
 subsubsection {* @{text remove1} *}
