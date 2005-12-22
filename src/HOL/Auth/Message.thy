@@ -252,8 +252,9 @@ by (drule parts_mono, blast)
 
 text{*Cut*}
 lemma parts_cut:
-     "[| Y\<in> parts (insert X G);  X\<in> parts H |] ==> Y\<in> parts (G \<union> H)"
-by (erule parts_trans, auto)
+     "[| Y\<in> parts (insert X G);  X\<in> parts H |] ==> Y\<in> parts (G \<union> H)" 
+by (blast intro: parts_trans) 
+
 
 lemma parts_cut_eq [simp]: "X\<in> parts H ==> parts (insert X H) = parts H"
 by (force dest!: parts_cut intro: parts_insertI)
