@@ -18,6 +18,12 @@ struct
   open String;
 end;
 
+structure Substring =
+struct
+  open Substring;
+  val full = all;
+end;
+
 
 (* cygwin *)
 
