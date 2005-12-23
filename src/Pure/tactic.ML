@@ -98,8 +98,8 @@ sig
   val instantiate_tac   : (string * string) list -> tactic
   val thin_tac          : string -> int -> tactic
   val trace_goalno_tac  : (int -> tactic) -> int -> tactic
-  val CONJUNCTS: int -> tactic -> int -> tactic
-  val CONJUNCTS2: int -> tactic -> int -> tactic
+  val CONJUNCTS: tactic -> int -> tactic
+  val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
 end;
 
 signature TACTIC =
@@ -650,14 +650,15 @@ val precise_conjunction_tac =
       | tac n i = conj_tac i THEN TRY (fn st => tac (n - 1) (i + 1) st);
   in TRY oo tac end;
 
-(*treat conjuncts as separate sub-goals*)
-fun CONJUNCTS n tac =
-  SELECT_GOAL (precise_conjunction_tac n 1
+fun CONJUNCTS tac =
+  SELECT_GOAL (conjunction_tac 1
     THEN tac
     THEN PRIMITIVE Drule.conj_curry);
 
-(*treat two levels of conjunctions*)
-fun CONJUNCTS2 n tac = CONJUNCTS n (ALLGOALS (CONJUNCTS ~1 tac));
+fun PRECISE_CONJUNCTS n tac =
+  SELECT_GOAL (precise_conjunction_tac n 1
+    THEN tac
+    THEN PRIMITIVE Drule.conj_curry);
 
 end;
 
