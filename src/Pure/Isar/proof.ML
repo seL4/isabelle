@@ -461,7 +461,7 @@ end;
 
 (* conclude_goal *)
 
-fun conclude_goal state goal props =
+fun conclude_goal state goal propss =
   let
     val ctxt = context_of state;
     fun err msg = raise STATE (msg, state);
@@ -474,17 +474,14 @@ fun conclude_goal state goal props =
 
     val {hyps, thy, ...} = Thm.rep_thm goal;
     val bad_hyps = fold (remove (op aconv)) (ProofContext.assms_of ctxt) hyps;
+    val _ = conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
+        cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
 
     val th = Goal.conclude goal;
-    val ths = Drule.conj_elim_precise (length props) th
-      handle THM _ => err "Main goal structure corrupted";
-  in
-    conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
-        cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
-    conditional (exists (not o Pattern.matches thy) (props ~~ map Thm.prop_of ths)) (fn () =>
+    val _ = conditional (not (Pattern.matches thy
+        (Logic.mk_conjunction_list2 propss, Thm.prop_of th))) (fn () =>
       err ("Proved a different theorem:\n" ^ ProofContext.string_of_thm ctxt th));
-    ths
-  end;
+  in Drule.conj_elim_precise (map length propss) th end;
 
 
 
@@ -774,10 +771,9 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> enter_forward
       |> open_block
       |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
-
     val props = List.concat propss;
-    val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list props));
 
+    val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list2 propss));
     val after_qed' = after_qed |>> (fn after_local =>
       fn results => map_context after_ctxt #> after_local results);
   in
@@ -802,11 +798,12 @@ fun generic_qed state =
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
-    val raw_props = Library.flat stmt;
-    val props = ProofContext.generalize goal_ctxt outer_ctxt raw_props;
+    val props =
+      List.concat stmt
+      |> ProofContext.generalize goal_ctxt outer_ctxt;
     val results =
       stmt
-      |> burrow (conclude_goal state goal)
+      |> conclude_goal state goal
       |> (Seq.map_list o Seq.map_list) (ProofContext.exports goal_ctxt outer_ctxt);
   in
     outer_state
