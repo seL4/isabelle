@@ -240,6 +240,13 @@ used to.
 * Pure/General: name_mangler.ML provides a functor for generic name
 mangling (bijective mapping from any expression values to strings).
 
+* Pure/library:
+
+  val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
+
+  replacing infix "prefix" and various individual isomorphic functions scattered
+  among an amount of ML modules.
+
 * Pure/General: rat.ML implements rational numbers.
 
 * Pure: several functions of signature "... -> theory -> theory * ..."
