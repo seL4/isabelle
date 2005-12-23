@@ -1353,7 +1353,7 @@ object-logic.
 
   open: '(' 'open' ')'
   ;
-  rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
+  rule: ('type' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
   ;
   definst: name ('==' | equiv) term | inst
   ;
@@ -1402,13 +1402,13 @@ object-logic.
     \edrv x \in A   & induct & \dots         & \Text{set induction (of $A$)} \\
     \dots           & induct & \dots ~ R     & \Text{explicit rule $R$} \\
   \end{matharray}
-
-  Several instantiations may be given, each referring to some part of a mutual
-  inductive definition or datatype --- only related partial induction rules
-  may be used together, though.  Any of the lists of terms $P, x, \dots$
-  refers to the \emph{suffix} of variables present in the induction rule.
-  This enables the writer to specify only induction variables, or both
-  predicates and variables, for example.
+  
+  Several instantiations may be given, each referring to some part of
+  a mutual inductive definition or datatype --- only related partial
+  induction rules may be used together, though.  Any of the lists of
+  terms $P, x, \dots$ refers to the \emph{suffix} of variables present
+  in the induction rule.  This enables the writer to specify only
+  induction variables, or both predicates and variables, for example.
   
   Instantiations may be definitional: equations $x \equiv t$ introduce local
   definitions, which are inserted into the claim and discharged after applying
