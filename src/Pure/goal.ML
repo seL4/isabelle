@@ -52,7 +52,7 @@ fun protect th = th COMP Drule.incr_indexes th Drule.protectI;
   A ==> ... ==> C
 *)
 fun conclude th =
-  (case SINGLE (Thm.bicompose_no_flatten false (false, th, Thm.nprems_of th) 1)
+  (case SINGLE (Thm.compose_no_flatten false (th, Thm.nprems_of th) 1)
       (Drule.incr_indexes th Drule.protectD) of
     SOME th' => th'
   | NONE => raise THM ("Failed to conclude goal", 0, [th]));
@@ -145,7 +145,7 @@ fun prove_multi thy xs asms props tac =
     val _ = conditional (not (Pattern.matches thy (Envir.beta_norm prop, prop'))) (fn () =>
       err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
   in
-    Drule.conj_elim_precise (length props) raw_result
+    hd (Drule.conj_elim_precise [length props] raw_result)
     |> map
       (Drule.implies_intr_list casms
         #> Drule.forall_intr_list cparams
@@ -180,7 +180,7 @@ fun SELECT tac i st =
   init (Thm.adjust_maxidx (Thm.cprem_of st i))
   |> tac
   |> Seq.maps (fn st' =>
-    Thm.bicompose_no_flatten false (false, conclude st', Thm.nprems_of st') i st);
+    Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i st);
 
 in
 
