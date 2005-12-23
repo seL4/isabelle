@@ -124,7 +124,7 @@ signature BASIC_THM =
   val rotate_rule: int -> int -> thm -> thm
   val permute_prems: int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
-  val bicompose_no_flatten: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
+  val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val invoke_oracle: theory -> xstring -> theory * Object.T -> thm
@@ -1456,11 +1456,11 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
  end;
 end;
 
-fun bicompose0 flatten match arg i state =
-    bicompose_aux flatten match (state, dest_state(state,i), false) arg;
+fun compose_no_flatten match (orule, nsubgoal) i state =
+  bicompose_aux false match (state, dest_state (state, i), false) (false, orule, nsubgoal);
 
-val bicompose_no_flatten = bicompose0 false;
-val bicompose = bicompose0 true;
+fun bicompose match arg i state =
+  bicompose_aux true match (state, dest_state (state,i), false) arg;
 
 (*Quick test whether rule is resolvable with the subgoal with hyps Hs
   and conclusion B.  If eres_flg then checks 1st premise of rule also*)
