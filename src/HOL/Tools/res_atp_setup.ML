@@ -284,9 +284,8 @@ fun cnf_rules_tms ctxt ths (include_claset,include_simpset) =
 
 fun cnf_hyps_thms ctxt = 
     let val ths = ProofContext.prems_of ctxt
-	val prems = ResClause.union_all (map ResAxioms.cnf_axiom_aux ths)
     in
-	prems
+	ResClause.union_all (map ResAxioms.skolem_thm ths)
     end;
 
 (**** clausification ****)

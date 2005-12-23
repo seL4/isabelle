@@ -4,7 +4,7 @@
  * See file mosml/copyrght/copyrght.att for details.
  *
  * Original author: John Reppy, AT&T Bell Laboratories, Murray Hill, NJ 07974
- * Current version largely by Joseph Hurd
+ * Current version from the Moscow ML distribution, copied by permission.
  *)
 
 (* Polyhash -- polymorphic hashtables as in the SML/NJ Library *)
@@ -382,26 +382,13 @@ end;
 	  end
 
    (*Added by lcp.
-      This is essentially the hashpjw function described in Compilers:
+      This is essentially the  described in Compilers:
       Principles, Techniques, and Tools, by Aho, Sethi and Ullman.*)
- (*  local infix << >>
-	 val left = Word.fromInt (Word.wordSize - 4)
-	 val right = Word.fromInt (Word.wordSize - 8)
-	 open Word
-   in  
-   val mask = 0wxf << left
-   fun hashw (u,w) =
-     let val w' = (w << 0w4) + u
-	 val g = Word.andb(w', mask)  
-     in  
-	 if g <> 0w0 then Word.xorb(g, Word.xorb(w', g >> right))
-	 else w'
-     end;
-   end;*)
 
-   (*This version is also recommended by Aho et al. and does not trigger the Poly/ML bug*)
-   val hmulti = Word.fromInt 65599;
-   fun hashw (u,w) = Word.+ (u, Word.*(hmulti,w))
+   (*This hash function is recommended in Compilers: Principles, Techniques, and
+     Tools, by Aho, Sethi and Ullman. The hashpjw function, which they particularly
+     recommend, triggers a bug in versions of Poly/ML up to 4.2.0.*)
+   fun hashw (u,w) = Word.+ (u, Word.*(0w65599,w))
 
    fun hashw_char (c,w) = hashw (Word.fromInt (Char.ord c), w);
    

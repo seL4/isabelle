@@ -292,21 +292,14 @@ val has_bool_arg_const =
 (*Raises an exception if any Vars in the theorem mention type bool; they
   could cause make_horn to loop! Also rejects functions whose arguments are 
   Booleans or other functions.*)
-fun check_is_fol th = 
-  let val {prop,...} = rep_thm th
-  in if exists (has_bool o fastype_of) (term_vars prop)  orelse
-        not (Term.is_first_order ["all","All","Ex"] prop) orelse
-        has_bool_arg_const prop  orelse  
-        has_meta_conn prop
-  then raise THM ("check_is_fol", 0, [th]) else th
-  end;
-
 fun check_is_fol_term term =
     if exists (has_bool o fastype_of) (term_vars term)  orelse
         not (Term.is_first_order ["all","All","Ex"] term) orelse
         has_bool_arg_const term  orelse  
         has_meta_conn term
     then raise TERM("check_is_fol_term",[term]) else term;
+
+fun check_is_fol th = (check_is_fol_term (prop_of th); th);
 
 
 (*Create a meta-level Horn clause*)
@@ -356,10 +349,12 @@ fun has_reps [] = false
 		  handle INSERT => true;
 
 (*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
-fun TRYALL_eq_assume_tac 0 st = Seq.single st
-  | TRYALL_eq_assume_tac i st =
-       TRYALL_eq_assume_tac (i-1) (eq_assumption i st)
-       handle THM _ => TRYALL_eq_assume_tac (i-1) st;
+fun TRYING_eq_assume_tac 0 st = Seq.single st
+  | TRYING_eq_assume_tac i st =
+       TRYING_eq_assume_tac (i-1) (eq_assumption i st)
+       handle THM _ => TRYING_eq_assume_tac (i-1) st;
+
+fun TRYALL_eq_assume_tac st = TRYING_eq_assume_tac (nprems_of st) st;
 
 (*Loop checking: FAIL if trying to prove the same thing twice
   -- if *ANY* subgoal has repeated literals*)
@@ -371,7 +366,7 @@ fun check_tac st =
 (* net_resolve_tac actually made it slower... *)
 fun prolog_step_tac horns i =
     (assume_tac i APPEND resolve_tac horns i) THEN check_tac THEN
-    TRYALL eq_assume_tac;
+    TRYALL_eq_assume_tac;
 
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
 fun addconcl(prem,sz) = size_of_term(Logic.strip_assums_concl prem) + sz
@@ -458,7 +453,7 @@ fun MESON cltac i st =
 		      EVERY1 [skolemize_prems_tac negs,
 			      METAHYPS (cltac o make_clauses)]) 1,
             expand_defs_tac]) i st
-  handle THM _ => no_tac st;	(*probably from check_is_fol*)		      
+  handle TERM _ => no_tac st;	(*probably from check_is_fol*)		      
 
 (** Best-first search versions **)
 
@@ -549,14 +544,13 @@ val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
 (*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
 fun select_literal i cl = negate_head (make_last i cl);
 
+
 (*Top-level Skolemization. Allows part of the conversion to clauses to be
   expressed as a tactic (or Isar method).  Each assumption of the selected 
   goal is converted to NNF and then its existential quantifiers are pulled
   to the front. Finally, all existential quantifiers are eliminated, 
   leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
   might generate many subgoals.*)
-
-
 
 val skolemize_tac = 
   SUBGOAL
@@ -568,7 +562,6 @@ val skolemize_tac =
                          THEN REPEAT (etac exE 1))),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
-
 
 
 (*Top-level conversion to meta-level clauses. Each clause has  
