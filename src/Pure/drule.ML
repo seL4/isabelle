@@ -153,7 +153,7 @@ sig
   val conj_intr_list: thm list -> thm
   val conj_elim: thm -> thm * thm
   val conj_elim_list: thm -> thm list
-  val conj_elim_precise: int -> thm -> thm list
+  val conj_elim_precise: int list -> thm -> thm list list
   val conj_intr_thm: thm
   val conj_curry: thm -> thm
   val abs_def: thm -> thm
@@ -1203,15 +1203,23 @@ fun conj_elim th =
   let val th' = forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th
   in (incr_indexes th' proj1 COMP th', incr_indexes th' proj2 COMP th') end;
 
+(*((A && B) && C) && D && E -- flat*)
 fun conj_elim_list th =
   let val (th1, th2) = conj_elim th
   in conj_elim_list th1 @ conj_elim_list th2 end handle THM _ => [th];
 
-fun conj_elim_precise 0 _ = []
-  | conj_elim_precise 1 th = [th]
-  | conj_elim_precise n th =
-      let val (th1, th2) = conj_elim th
-      in th1 :: conj_elim_precise (n - 1) th2 end;
+(*(A1 && B1 && C1) && (A2 && B2 && C2 && D2) && A3 && B3 -- improper*)
+fun conj_elim_precise spans =
+  let
+    fun elim 0 _ = []
+      | elim 1 th = [th]
+      | elim n th =
+          let val (th1, th2) = conj_elim th
+          in th1 :: elim (n - 1) th2 end;
+    fun elims (0 :: ns) ths = [] :: elims ns ths
+      | elims (n :: ns) (th :: ths) = elim n th :: elims ns ths
+      | elims _ _ = [];
+  in elims spans o elim (length (filter_out (equal 0) spans)) end;
 
 val conj_intr_thm = store_standard_thm_open "conjunctionI"
   (implies_intr_list [A, B] (conj_intr (Thm.assume A) (Thm.assume B)));
