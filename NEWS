@@ -169,13 +169,13 @@ If simultaneous goals are to be used with mutual rules, the statement
 needs to be structured carefully as a two-level conjunction, using
 lists of propositions separated by 'and':
 
-lemma
-  shows "a : A ==> P1 a"
-        "a : A ==> P2 a"
-    and "b : B ==> Q1 b"
-        "b : B ==> Q2 b"
-        "b : B ==> Q3 b"
-proof (induct set: A B)
+  lemma
+    shows "a : A ==> P1 a"
+          "a : A ==> P2 a"
+      and "b : B ==> Q1 b"
+          "b : B ==> Q2 b"
+          "b : B ==> Q3 b"
+  proof (induct set: A B)
 
 * Provers/induct: support coinduction as well.  See
 src/HOL/Library/Coinductive_List.thy for various examples.
