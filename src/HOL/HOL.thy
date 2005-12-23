@@ -1299,7 +1299,6 @@ lemma induct_conj_eq:
   shows "(A && B) == Trueprop (induct_conj A B)"
   by (unfold atomize_conj induct_conj_def)
 
-lemmas induct_atomize_old = induct_forall_eq induct_implies_eq induct_equal_eq atomize_conj
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
 lemmas induct_rulify [symmetric, standard] = induct_atomize
 lemmas induct_rulify_fallback =
@@ -1334,7 +1333,6 @@ ML {*
   structure InductMethod = InductMethodFun
   (struct
     val cases_default = thm "case_split"
-    val atomize_old = thms "induct_atomize_old"
     val atomize = thms "induct_atomize"
     val rulify = thms "induct_rulify"
     val rulify_fallback = thms "induct_rulify_fallback"
