@@ -1549,7 +1549,7 @@ val axiomsN = "axioms";
 
 fun atomize_spec thy ts =
   let
-    val t = foldr1 Logic.mk_conjunction ts;
+    val t = Logic.mk_conjunction_list ts;
     val body = ObjectLogic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
@@ -1603,7 +1603,7 @@ fun def_pred bname parms defs ts norm_ts thy =
     val conjuncts =
       (Drule.equal_elim_rule1 OF [Thm.symmetric body_eq,
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
-      |> Drule.conj_elim_precise (length ts);
+      |> Drule.conj_elim_precise [length ts] |> hd;
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       prove_protected defs_thy t
        (Tactic.rewrite_goals_tac defs THEN
@@ -2110,7 +2110,9 @@ fun prep_result propps thmss =
 
 val refine_protected =
   Proof.refine (Method.Basic (K (Method.RAW_METHOD
-    (K (ALLGOALS (CONJUNCTS2 ~1 (ALLGOALS (Tactic.rtac Drule.protectI))))))))
+    (K (ALLGOALS
+      (PRECISE_CONJUNCTS ~1 (ALLGOALS
+        (PRECISE_CONJUNCTS ~1 (ALLGOALS (Tactic.rtac Drule.protectI))))))))))
   #> Seq.hd;
 
 fun goal_name thy kind target propss =
@@ -2123,7 +2125,7 @@ fun interpretation (prfx, atts) expr insts thy =
   let
     val (propss, activate) = prep_global_registration (prfx, atts) expr insts thy;
     val kind = goal_name thy "interpretation" NONE propss;
-    val after_qed = activate o (prep_result propss);
+    val after_qed = activate o prep_result propss;
   in
     ProofContext.init thy
     |> Proof.theorem_i kind NONE after_qed NONE ("", []) (prep_propp propss)
