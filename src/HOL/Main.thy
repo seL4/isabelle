@@ -18,11 +18,6 @@ text {* \medskip Late clause setup: installs \emph{all} simprules and
   claset rules into the clause cache; cf.\ theory @{text
   Reconstruction}. *}
 
-declare subset_refl [intro] 
-  text {*Ensures that this important theorem is not superseded by the
-         simplifier's "== True" version.*}
-setup ResAxioms.clause_setup
-declare subset_refl [rule del]
-  text {*Removed again because it harms blast's performance.*}
+setup ResAxioms.setup
 
 end

@@ -22,12 +22,13 @@ signature RES_AXIOMS =
   val simpset_rules_of_ctxt : Proof.context -> (string * thm) list
   val clausify_rules_pairs : (string*thm) list -> (ResClause.clause*thm) list list
   val clausify_rules_pairsH : (string*thm) list -> (ResHolClause.clause*thm) list list
-  val clause_setup : (theory -> theory) list
-  val meson_method_setup : (theory -> theory) list
   val pairname : thm -> (string * thm)
-  val cnf_axiom_aux : thm -> thm list
+  val skolem_thm : thm -> thm list
   val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
   val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
+
+  val meson_method_setup : (theory -> theory) list  (*Reconstruction.thy*)
+  val setup : (theory -> theory) list               (*Main.thy*)
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -256,7 +257,8 @@ fun to_nnf th =
        |> ObjectLogic.atomize_thm |> make_nnf;
 
 (*The cache prevents repeated clausification of a theorem, 
-  and also repeated declaration of Skolem functions*)  (* FIXME better use Termtab!? *)
+  and also repeated declaration of Skolem functions*)  
+  (* FIXME better use Termtab!? No, we MUST use theory data!!*)
 val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 
 
@@ -264,15 +266,16 @@ val clause_cache = ref (Symtab.empty : (thm * thm list) Symtab.table)
 fun skolem_of_nnf th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns th);
 
-(*Skolemize a named theorem, returning a modified theory.*)
+(*Skolemize a named theorem, with Skolem functions as additional premises.*)
 (*also works for HOL*) 
 fun skolem_thm th = 
-  Option.map (fn nnfth => Meson.make_cnf (skolem_of_nnf nnfth) nnfth)
-	 (SOME (to_nnf th)  handle THM _ => NONE);
+  let val nnfth = to_nnf th
+  in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth
+  end
+  handle THM _ => [];
 
-
-(*Declare Skolem functions for a theorem, supplied in nnf and with its name*)
-(*in case skolemization fails, the input theory is not changed*)
+(*Declare Skolem functions for a theorem, supplied in nnf and with its name.
+  It returns a modified theory, unless skolemization fails.*)
 fun skolem thy (name,th) =
   let val cname = (case name of "" => gensym "sko" | s => Sign.base_name s)
   in Option.map 
@@ -283,20 +286,23 @@ fun skolem thy (name,th) =
       (SOME (to_nnf th)  handle THM _ => NONE) 
   end;
 
-(*Populate the clause cache using the supplied theorems*)
-fun skolem_cache ((name,th), thy) = 
+(*Populate the clause cache using the supplied theorem. Return the clausal form
+  and modified theory.*)
+fun skolem_cache_thm ((name,th), thy) = 
   case Symtab.lookup (!clause_cache) name of
       NONE => 
 	(case skolem thy (name, Thm.transfer thy th) of
-	     NONE => thy
+	     NONE => ([th],thy)
 	   | SOME (thy',cls) => 
-	       (change clause_cache (Symtab.update (name, (th, cls))); thy'))
+	       (change clause_cache (Symtab.update (name, (th, cls))); (cls,thy')))
     | SOME (th',cls) =>
-        if eq_thm(th,th') then thy
+        if eq_thm(th,th') then (cls,thy)
 	else (warning ("skolem_cache: Ignoring variant of theorem " ^ name); 
 	      warning (string_of_thm th);
 	      warning (string_of_thm th');
-	      thy);
+	      ([th],thy));
+	      
+fun skolem_cache ((name,th), thy) = #2 (skolem_cache_thm ((name,th), thy));
 
 
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
@@ -317,12 +323,7 @@ fun cnf_axiom_g cnf (name,th) =
 fun pairname th = (Thm.name_of_thm th, th);
 
 
-(*no first-order check, so works for HOL too.*)
-fun cnf_axiom_aux th = Option.getOpt (skolem_thm th, []);
-
-
-
-val cnf_axiom = cnf_axiom_g cnf_axiom_aux;
+val cnf_axiom = cnf_axiom_g skolem_thm;
 
 
 fun meta_cnf_axiom th = 
@@ -444,16 +445,22 @@ val clausify_rules_pairs = clausify_rules_pairs_aux [];
 
 val clausify_rules_pairsH = clausify_rules_pairs_auxH [];
 
+(*These should include any plausibly-useful theorems, especially if they need
+  Skolem functions. FIXME: this list is VERY INCOMPLETE*)
+val default_initial_thms = map pairname
+  [refl_def, antisym_def, sym_def, trans_def, single_valued_def,
+   subset_refl, Union_least, Inter_greatest];
+
 (*Setup function: takes a theory and installs ALL simprules and claset rules 
   into the clause cache*)
 fun clause_cache_setup thy =
   let val simps = simpset_rules_of_thy thy
       and clas  = claset_rules_of_thy thy
-  in List.foldl skolem_cache (List.foldl skolem_cache thy clas) simps end;
+      and thy0  = List.foldl skolem_cache thy default_initial_thms
+      val thy1  = List.foldl skolem_cache thy0 clas
+  in List.foldl skolem_cache thy1 simps end;
 (*Could be duplicate theorem names, due to multiple attributes*)
   
-val clause_setup = [clause_cache_setup];  
-
 
 (*** meson proof methods ***)
 
@@ -467,5 +474,29 @@ val meson_method_setup =
  [Method.add_methods
   [("meson", Method.thms_ctxt_args meson_meth, 
     "The MESON resolution proof procedure")]];
+
+
+
+(*** The Skolemization attribute ***)
+
+fun conj2_rule (th1,th2) = conjI OF [th1,th2];
+
+(*Conjoin a list of clauses to recreate a single theorem*)
+val conj_rule = foldr1 conj2_rule;
+
+fun skolem_global_fun (thy, th) = 
+  let val name = Thm.name_of_thm th
+      val (cls,thy') = skolem_cache_thm ((name,th), thy)
+  in  (thy', conj_rule cls)  end;
+
+val skolem_global = Attrib.no_args skolem_global_fun;
+
+fun skolem_local x = Attrib.no_args (Drule.rule_attribute (K (conj_rule o skolem_thm))) x;
+
+val setup_attrs = Attrib.add_attributes
+ [("skolem", (skolem_global, skolem_local),
+    "skolemization of a theorem")];
+
+val setup = [clause_cache_setup, setup_attrs];
 
 end; 
