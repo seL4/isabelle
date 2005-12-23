@@ -417,8 +417,8 @@ fun common_induct_tac is_old ctxt is_open def_insts fixing taking opt_rule facts
       ruleq
       |> Seq.maps (RuleCases.consume (List.concat defs) facts)
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
-        (CONJUNCTS (length concls) (ALLGOALS (fn j =>
-          (CONJUNCTS ~1 (ALLGOALS
+        (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
+          (CONJUNCTS (ALLGOALS
             (Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1))
               THEN' fix_tac defs_ctxt
                 (nth concls (j - 1) + more_consumes)
