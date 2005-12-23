@@ -8,7 +8,6 @@ Proof by cases and induction on sets and types.
 signature INDUCT_METHOD_DATA =
 sig
   val cases_default: thm
-  val atomize_old: thm list
   val atomize: thm list
   val rulify: thm list
   val rulify_fallback: thm list
@@ -21,6 +20,7 @@ sig
     (term option list * thm list) * Proof.context
   val atomize_term: theory -> term -> term
   val atomize_tac: int -> tactic
+  val inner_atomize_tac: int -> tactic
   val rulified_term: thm -> theory * term
   val rulify_tac: int -> tactic
   val guess_instance: thm -> int -> thm -> thm Seq.seq
@@ -156,25 +156,16 @@ end;
 
 (* atomize *)
 
-fun common_atomize_term is_old thy =
-  MetaSimplifier.rewrite_term thy (if is_old then Data.atomize_old else Data.atomize) []
+fun atomize_term thy =
+  MetaSimplifier.rewrite_term thy Data.atomize []
   #> ObjectLogic.drop_judgment thy;
 
-val atomize_term = common_atomize_term false;
+val atomize_cterm = Tactic.rewrite true Data.atomize;
 
-fun common_atomize_cterm is_old =
-  Tactic.rewrite true (if is_old then Data.atomize_old else Data.atomize);
+val atomize_tac = Tactic.rewrite_goal_tac Data.atomize;
 
-fun common_atomize_tac is_old inner =
-  if is_old then
-    Tactic.rewrite_goal_tac [conjunction_assoc]
-    THEN' Tactic.rewrite_goal_tac Data.atomize_old
-  else
-    (if inner then Tactic.rewrite_goal_tac (map Thm.symmetric conjunction_congs) else K all_tac)
-    THEN' Tactic.rewrite_goal_tac Data.atomize;
-
-val atomize_tac = common_atomize_tac false false;
-val inner_atomize_tac = common_atomize_tac false true;
+val inner_atomize_tac =
+  Tactic.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
 
 
 (* rulify *)
@@ -219,9 +210,9 @@ fun mutual_rule ths =
     NONE => error "Failed to join given rules into one mutual rule"
   | SOME res => res);
 
-fun internalize is_old k th =
+fun internalize k th =
   th |> Thm.permute_prems 0 k
-  |> Drule.fconv_rule (Drule.concl_conv (Thm.nprems_of th - k) (common_atomize_cterm is_old));
+  |> Drule.fconv_rule (Drule.concl_conv (Thm.nprems_of th - k) atomize_cterm);
 
 
 (* guess rule instantiation -- cannot handle pending goal parameters *)
@@ -384,7 +375,7 @@ fun find_inductS ctxt (fact :: _) = map single (InductAttrib.find_inductS ctxt (
 
 in
 
-fun common_induct_tac is_old ctxt is_open def_insts fixing taking opt_rule facts =
+fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
   let
     val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
@@ -395,9 +386,9 @@ fun common_induct_tac is_old ctxt is_open def_insts fixing taking opt_rule facts
 
     fun inst_rule (concls, r) =
       (if null insts then `RuleCases.get r
-       else (align_right "Rule has fewer conclusions than arguments given"
+       else (align_left "Rule has fewer conclusions than arguments given"
           (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
-        |> (List.concat o map (prep_inst thy align_right (common_atomize_term is_old thy)))
+        |> (List.concat o map (prep_inst thy align_right (atomize_term thy)))
         |> Drule.cterm_instantiate) r |> pair (RuleCases.get r))
       |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
@@ -423,9 +414,9 @@ fun common_induct_tac is_old ctxt is_open def_insts fixing taking opt_rule facts
               THEN' fix_tac defs_ctxt
                 (nth concls (j - 1) + more_consumes)
                 (nth_list fixing (j - 1))))
-          THEN' common_atomize_tac is_old true) j))
-        THEN' common_atomize_tac is_old false) i st |> Seq.maps (fn st' =>
-            guess_instance (internalize is_old more_consumes rule) i st'
+          THEN' inner_atomize_tac) j))
+        THEN' atomize_tac) i st |> Seq.maps (fn st' =>
+            guess_instance (internalize more_consumes rule) i st'
             |> Seq.map (rule_instance thy taking)
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
@@ -433,8 +424,6 @@ fun common_induct_tac is_old ctxt is_open def_insts fixing taking opt_rule facts
                   PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
-
-val induct_tac = common_induct_tac false;
 
 end;
 
@@ -549,14 +538,13 @@ fun cases_meth src =
     Method.METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (cases_tac ctxt is_open insts opt_rule facts))));
 
-fun induct_meth is_old src =
+fun induct_meth src =
   Method.syntax (Args.mode openN --
     (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
     (fixing -- taking -- Scan.option induct_rule))) src
   #> (fn (ctxt, (is_open, (insts, ((fixing, taking), opt_rule)))) =>
     Method.RAW_METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL
-        (common_induct_tac is_old ctxt is_open insts fixing taking opt_rule facts))));
+      Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts fixing taking opt_rule facts))));
 
 fun coinduct_meth src =
   Method.syntax (Args.mode openN --
@@ -574,8 +562,7 @@ end;
 val setup =
   [Method.add_methods
     [(InductAttrib.casesN, cases_meth, "case analysis on types or sets"),
-     (InductAttrib.inductN, induct_meth false, "induction on types or sets"),
-     ("old_" ^ InductAttrib.inductN, induct_meth true, "induction on types or sets (legacy)"),
+     (InductAttrib.inductN, induct_meth, "induction on types or sets"),
      (InductAttrib.coinductN, coinduct_meth, "coinduction on types or sets")]];
 
 end;
