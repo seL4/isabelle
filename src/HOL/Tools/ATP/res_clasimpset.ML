@@ -3,29 +3,22 @@
     Copyright   2004  University of Cambridge
 *)
 
-
 structure ReduceAxiomsN =
 (* Author: Jia Meng, Cambridge University Computer Laboratory
    Remove irrelevant axioms used for a proof of a goal, with with iteration control
-   
    Initial version. Needs elaboration. *)
 
 struct
 
-fun add_term_consts_rm ncs (Const(c, _)) cs = 
-    if (c mem ncs) then cs else (c ins_string cs)
+fun add_term_consts_rm ncs (Const(c, _)) cs = if (c mem ncs) then cs else (c ins_string cs)
   | add_term_consts_rm ncs (t $ u) cs =
       add_term_consts_rm ncs t (add_term_consts_rm ncs u cs)
   | add_term_consts_rm ncs (Abs(_,_,t)) cs = add_term_consts_rm ncs t cs
   | add_term_consts_rm ncs _ cs = cs;
 
-
 fun term_consts_rm ncs t = add_term_consts_rm ncs t [];
-
 fun thm_consts_rm ncs thm = term_consts_rm ncs (prop_of thm);
-
 fun consts_of_thm (n,thm) = thm_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] thm;
-
 fun consts_of_term term = term_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] term;
 
 fun make_pairs [] _ = []
@@ -35,46 +28,30 @@ fun const_thm_list_aux [] cthms = cthms
   | const_thm_list_aux (thm::thms) cthms =
     let val consts = consts_of_thm thm
 	val cthms' = make_pairs consts thm 
-    in
-	const_thm_list_aux thms (cthms' @ cthms)
-    end;
-
+    in const_thm_list_aux thms (cthms' @ cthms) end;
 
 fun const_thm_list thms = const_thm_list_aux thms [];
 
-fun make_thm_table thms  = 
-    let val consts_thms = const_thm_list thms
-    in
-	Symtab.make_multi consts_thms
-    end;
-
+fun make_thm_table thms = Symtab.make_multi (const_thm_list thms);
 
 fun consts_in_goal goal = consts_of_term goal;
 
 fun axioms_having_consts_aux [] tab thms = thms
   | axioms_having_consts_aux (c::cs) tab thms =
-    let val thms1 = Symtab.lookup tab c
-      val thms2 = 
-          case thms1 of (SOME x) => x
-                      | NONE => []
-    in
-      axioms_having_consts_aux cs tab (thms2 union thms)
-    end;
+    let val thms2 = Option.getOpt (Symtab.lookup tab c, [])
+    in axioms_having_consts_aux cs tab (thms2 union thms) end;
 
 fun axioms_having_consts cs tab = axioms_having_consts_aux cs tab [];
 
-
 fun relevant_axioms goal thmTab n =  
-    let val consts = consts_in_goal goal
-	fun relevant_axioms_aux1 cs k =
+    let fun relevant_axioms_aux1 cs k =
 	    let val thms1 = axioms_having_consts cs thmTab
 		val cs1 = foldl (op union_string) [] (map consts_of_thm thms1)
 	    in
-		if ((cs1 subset cs) orelse n <= k) then (k,thms1) 
-		else (relevant_axioms_aux1 (cs1 union cs) (k+1))
+		if (cs1 subset cs) orelse n <= k then (k,thms1) 
+		else relevant_axioms_aux1 (cs1 union cs) (k+1)
 	    end
-
-    in  relevant_axioms_aux1 consts 1  end;
+    in  relevant_axioms_aux1 (consts_in_goal goal) 1  end;
 
 fun relevant_filter n goal thms = 
     if n<=0 then thms 
@@ -85,22 +62,19 @@ fun find_axioms_n thy goal n =
     let val clasetR = ResAxioms.claset_rules_of_thy thy
 	val simpsetR = ResAxioms.simpset_rules_of_thy thy	  
 	val table = make_thm_table (clasetR @ simpsetR)	
-    in
-	relevant_axioms goal table n
-    end;
+    in relevant_axioms goal table n end;
 
 fun find_axioms_n_c thy goal n =
     let val current_thms = PureThy.thms_of thy
 	val table = make_thm_table current_thms
-    in
-	relevant_axioms goal table n
-    end;
+    in relevant_axioms goal table n end;
 
 end;
 
 
 signature RES_CLASIMP = 
   sig
+  val blacklist : string list ref (*Theorems forbidden in the output*)
   val relevant : int ref
   val use_simpset: bool ref
   val get_clasimp_lemmas : 
@@ -111,6 +85,56 @@ signature RES_CLASIMP =
 structure ResClasimp : RES_CLASIMP =
 struct
 val use_simpset = ref false;   (*Performance is much better without simprules*)
+
+(*In general, these produce clauses that are prolific (match too many equality or
+  membership literals) and relate to seldom-used facts. Some duplicate other rules.*)
+val blacklist = ref
+  ["Finite_Set.Max_ge",
+   "Finite_Set.Max_le_iff",
+   "Finite_Set.Max_less_iff",
+   "Finite_Set.Min_le",
+   "Finite_Set.Min_ge_iff",
+   "Finite_Set.Min_gr_iff",
+   "Finite_Set.min_max.below_inf_sup_Inf_Sup.inf_Sup_absorb",
+   "Finite_Set.min_max.below_inf_sup_Inf_Sup.sup_Inf_absorb",
+   (*The next four are duplicates of the properties of min and max, from Orderings.*)
+   "Finite_Set.max.f_below_strict_below.below_f_conv",
+   "Finite_Set.max.f_below_strict_below.strict_below_f_conv",
+   "Finite_Set.min.f_below_strict_below.strict_below_f_conv",
+   "Finite_Set.min.f_below_strict_below.below_f_conv",
+   "Infinite_Set.atmost_one_unique",
+   "List.in_listsD",
+   "List.in_listsI",
+   "List.listsE",
+   "List.lists.Cons",
+   "Relation.ImageI",
+   "Relation.diagI",
+   "Set.Diff_insert0",
+   "Set.Inter_UNIV_conv_1",
+   "Set.Inter_UNIV_conv_2",
+   "Set.Inter_iff",              (*We already have InterI, InterE*)
+   "Set.Union_iff",              (*We already have UnionI, UnionE*)
+   "Datatype.not_None_eq_iff2",
+   "Datatype.not_Some_eq",
+   "Datatype.not_Some_eq_D",
+   "Set.disjoint_insert_1",
+   "Set.disjoint_insert_2",
+   "Set.insert_disjoint_1",
+   "Set.insert_disjoint_2",
+   "Set.singletonD",
+   "Set.singletonI",
+   "Sum_Type.InlI",
+   "Sum_Type.InrI",
+   "Set.singleton_insert_inj_eq",
+   "Set.singleton_insert_inj_eq'"];
+
+(*These are the defining properties of min and max, but as they are prolific they
+  could be included above.
+   "Orderings.max_less_iff_conj",
+   "Orderings.min_less_iff_conj",
+   "Orderings.min_max.below_inf.below_inf_conv",
+   "Orderings.min_max.below_sup.above_sup_conv",
+*)
 
 val relevant = ref 0;  (*Relevance filtering is off by default*)
 
@@ -153,11 +177,14 @@ fun insert_suffixed_names ht x =
       Polyhash.insert ht (x^"_iff2", ()); 
       Polyhash.insert ht (x^"_dest", ())); 
 
-fun make_suffix_test xs = 
+fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun suffixed s = isSome (Polyhash.peek ht s)
-  in  app (insert_suffixed_names ht) xs; suffixed  end;
+      fun banned s = isSome (Polyhash.peek ht s)
+  in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
+      app (insert_suffixed_names ht) (!blacklist @ xs); 
+      banned
+  end;
 
 (*Create a hash table for clauses, of the given size*)
 fun mk_clause_table n =
@@ -182,8 +209,8 @@ fun get_clasimp_lemmas ctxt goal =
 		    (ReduceAxiomsN.relevant_filter (!relevant) goal
 		      (ResAxioms.simpset_rules_of_ctxt ctxt))
 	    else []
-      val suffixed = make_suffix_test (map #1 (claset_thms@simpset_thms))
-      fun ok (a,_) = not (suffixed a)
+      val banned = make_banned_test (map #1 (claset_thms@simpset_thms))
+      fun ok (a,_) = not (banned a)
       val claset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok claset_thms)
       val simpset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok simpset_thms)
       val cls_thms_list = make_unique (mk_clause_table 2200) 
