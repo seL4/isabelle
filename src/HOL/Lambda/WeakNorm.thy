@@ -109,9 +109,9 @@ lemma Var_NF: "Var n \<in> NF"
   done
 
 lemma subst_terms_NF: "listall (\<lambda>t. t \<in> NF) ts \<Longrightarrow>
-  listall (\<lambda>t. \<forall>i j. t[Var i/j] \<in> NF) ts \<Longrightarrow>
-  listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. t[Var i/j]) ts)"
-  by (induct ts) simp+
+    listall (\<lambda>t. \<forall>i j. t[Var i/j] \<in> NF) ts \<Longrightarrow>
+    listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. t[Var i/j]) ts)"
+  by (induct ts) simp_all
 
 lemma subst_Var_NF: "t \<in> NF \<Longrightarrow> t[Var i/j] \<in> NF"
   apply (induct fixing: i j set: NF)
@@ -151,8 +151,8 @@ lemma app_Var_NF: "t \<in> NF \<Longrightarrow> \<exists>t'. t \<degree> Var i \
   done
 
 lemma lift_terms_NF: "listall (\<lambda>t. t \<in> NF) ts \<Longrightarrow>
-  listall (\<lambda>t. \<forall>i. lift t i \<in> NF) ts \<Longrightarrow>
-  listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. lift t i) ts)"
+    listall (\<lambda>t. \<forall>i. lift t i \<in> NF) ts \<Longrightarrow>
+    listall (\<lambda>t. t \<in> NF) (map (\<lambda>t. lift t i) ts)"
   by (induct ts) simp_all
 
 lemma lift_NF: "t \<in> NF \<Longrightarrow> lift t i \<in> NF"
@@ -383,8 +383,9 @@ lemma rtyping_imp_typing: "e \<turnstile>\<^sub>R t : T \<Longrightarrow> e \<tu
   done
 
 
-theorem type_NF: assumes T: "e \<turnstile>\<^sub>R t : T"
-  shows "\<exists>t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF" using T
+theorem type_NF:
+  assumes "e \<turnstile>\<^sub>R t : T"
+  shows "\<exists>t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF" using prems
 proof induct
   case Var
   show ?case by (iprover intro: Var_NF)

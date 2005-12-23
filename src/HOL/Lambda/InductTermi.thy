@@ -30,9 +30,9 @@ lemma double_induction_lemma [rule_format]:
   "s : termi beta ==> \<forall>t. t : termi beta -->
     (\<forall>r ss. t = r[s/0] \<degree>\<degree> ss --> Abs r \<degree> s \<degree>\<degree> ss : termi beta)"
   apply (erule acc_induct)
-  apply (erule thin_rl)
   apply (rule allI)
   apply (rule impI)
+  apply (erule thin_rl)
   apply (erule acc_induct)
   apply clarify
   apply (rule accI)

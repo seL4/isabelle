@@ -196,7 +196,7 @@ theorem newman':
   and lc: "\<And>a b c. (a, b) \<in> R \<Longrightarrow> (a, c) \<in> R \<Longrightarrow>
     \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
   shows "\<And>b c. (a, b) \<in> R\<^sup>* \<Longrightarrow> (a, c) \<in> R\<^sup>* \<Longrightarrow>
-               \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
+    \<exists>d. (b, d) \<in> R\<^sup>* \<and> (c, d) \<in> R\<^sup>*"
   using wf
 proof induct
   case (less x b c)
