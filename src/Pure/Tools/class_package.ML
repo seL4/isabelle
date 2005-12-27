@@ -7,7 +7,11 @@ Haskell98-like operational view on type classes.
 
 signature CLASS_PACKAGE =
 sig
-  val add_classentry: class -> string list -> string list -> theory -> theory
+  val add_class: bstring -> Locale.expr -> Element.context list -> theory
+    -> ProofContext.context * theory
+  val add_class_i: bstring -> Locale.expr -> Element.context_i list -> theory
+    -> ProofContext.context * theory
+  val add_classentry: class -> xstring list -> xstring list -> theory -> theory
   val the_consts: theory -> class -> string list
   val the_tycos: theory -> class -> (string * string) list
 
@@ -65,6 +69,8 @@ fun put_class_data class data =
   ClassesData.map (apfst (Symtab.update (class, data)));
 fun add_const class const =
   ClassesData.map (apsnd (Symtab.update (const, class)));
+val the_consts = #consts oo get_class_data;
+val the_tycos = #tycos oo get_class_data;
 
 
 (* name mangling *)
@@ -76,66 +82,90 @@ fun get_axclass_for_class thy class =
   #axclass_name (get_class_data thy class);
 
 
-(* assign consts to type classes *)
+(* classes *)
 
 local
 
-fun gen_add_consts prep_class prep_const (raw_class, raw_consts_new) thy =
+open Element
+
+fun gen_add_class add_locale bname raw_import raw_body thy =
   let
-    val class = prep_class thy raw_class;
-    val consts_new = map (prep_const thy) raw_consts_new;
-    val {locale_name, axclass_name, consts, tycos} =
-      get_class_data thy class;
+    fun extract_notes_consts thy elems =
+      elems
+      |> List.mapPartial
+           (fn (Notes notes) => SOME notes
+             | _ => NONE)
+      |> Library.flat
+      |> map (fn (_, facts) => map fst facts)
+      |> Library.flat o Library.flat
+      |> map prop_of
+      |> (fn ts => fold (curry add_term_consts) ts [])
+      |> tap (writeln o commas);
+    fun extract_tyvar_name thy tys =
+      fold (curry add_typ_tfrees) tys []
+      |> (fn [(v, [])] => v
+           | [(v, sort)] =>
+                if Sorts.sort_eq (Sign.classes_of thy) (Sign.defaultS thy, sort)
+                then v 
+                else error ("sort constraint on class type variable: " ^ Sign.string_of_sort thy sort)
+           | [] => error ("no class type variable")
+           | vs => error ("more than one type variable: " ^ (commas o map (Sign.string_of_typ thy o TFree)) vs))
+    fun extract_tyvar_consts thy elems =
+      elems
+      |> List.mapPartial
+           (fn (Fixes consts) => SOME consts
+             | _ => NONE)
+      |> Library.flat
+      |> map (fn (c, ty, syn) => ((c, the ty), the syn))
+      |> `(fn consts => extract_tyvar_name thy (map (snd o fst) consts));
+    (* fun remove_local_syntax ((c, ty), _) thy =
+      thy
+      |> Sign.add_syntax_i [(c, ty, Syntax.NoSyn)]; *)
+    fun add_global_const ((c, ty), syn) thy =
+      thy
+      |> Sign.add_consts_i [(c, ty, syn)]
+      |> `(fn thy => Sign.intern_const thy c)
+    fun add_axclass bname_axiom locale_pred cs thy =
+      thy
+      |> AxClass.add_axclass_i (bname, Sign.defaultS thy)
+           [Thm.no_attributes (bname_axiom,
+              Const (ObjectLogic.judgment_name thy, dummyT) $
+                list_comb (Const (locale_pred, dummyT), map (fn c => Const (c, dummyT)) cs)
+              |> curry (inferT_axm thy) "locale_pred" |> snd)]
+      |-> (fn _ => `(fn thy => Sign.intern_class thy bname))
+    fun print_ctxt ctxt elem = 
+      map Pretty.writeln (Element.pretty_ctxt ctxt elem)
   in
     thy
-    |> put_class_data class {
-         locale_name = locale_name,
-         axclass_name = axclass_name,
-         consts = consts @ consts_new,
-         tycos = tycos
-       }
-    |> fold (add_const class) consts_new
+    |> add_locale bname raw_import raw_body
+    |-> (fn (elems : context_i list, ctxt) =>
+       tap (fn _ => map (print_ctxt ctxt) elems)
+    #> tap (fn thy => extract_notes_consts thy elems)
+    #> `(fn thy => Locale.intern thy bname)
+    #-> (fn name_locale =>
+       `(fn thy => extract_tyvar_consts thy elems)
+    #-> (fn (v, consts) =>
+       fold_map add_global_const consts
+    #-> (fn cs =>
+       add_axclass (bname ^ "_intro") name_locale cs
+    #-> (fn name_axclass =>
+       put_class_data name_locale {
+          locale_name = name_locale,
+          axclass_name = name_axclass,
+          consts = cs,
+          tycos = []
+        })
+    #> fold (add_const name_locale) cs
+    #> pair ctxt
+    ))))
   end;
 
 in
 
-val add_consts = gen_add_consts Sign.intern_class Sign.intern_const;
-val add_consts_i = gen_add_consts (K I) (K I);
+val add_class = gen_add_class (Locale.add_locale_context true);
+val add_class_i = gen_add_class (Locale.add_locale_context_i true);
 
 end; (* local *)
-
-val the_consts = #consts oo get_class_data;
-
-
-(* assign type constructors to type classes *)
-
-local
-
-fun gen_add_tycos prep_class prep_type (raw_class, raw_tycos_new) thy =
-  let
-    val class = prep_class thy raw_class
-    val tycos_new = map (prep_type thy) raw_tycos_new
-    val {locale_name, axclass_name, consts, tycos} =
-      get_class_data thy class
-  in
-    thy
-    |> put_class_data class {
-         locale_name = locale_name,
-         axclass_name = axclass_name,
-         consts = consts,
-         tycos = tycos @ tycos_new
-       }
-  end;
-
-in
-
-fun add_tycos xs thy =
-  gen_add_tycos Sign.intern_class (rpair (Context.theory_name thy) oo Sign.intern_type) xs thy;
-val add_tycos_i = gen_add_tycos (K I) (K I);
-
-end; (* local *)
-
-val the_tycos = #tycos oo get_class_data;
 
 
 (* class queries *)
@@ -156,12 +186,16 @@ fun syntactic_sort_of thy sort =
   end;
 
 fun get_arities thy sort tycon =
-  Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort
+  Sorts.mg_domain (Sign.classes_arities_of thy) tycon (syntactic_sort_of thy sort)
   |> map (syntactic_sort_of thy);
 
 fun get_superclasses thy class =
-  Sorts.superclasses (Sign.classes_of thy) class
-  |> syntactic_sort_of thy;
+  if is_class thy class
+  then
+    Sorts.superclasses (Sign.classes_of thy) class
+    |> syntactic_sort_of thy
+  else
+    error ("no syntactic class: " ^ class);
 
 
 (* instance queries *)
@@ -227,7 +261,8 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
       ) subclasses;
     fun mk_class_deriv thy subclasses superclass =
       case get_superclass_derivation (subclasses, superclass)
-      of (subclass::deriv) => ((rev o filter (is_class thy)) deriv, find_index_eq subclass subclasses);
+      of (subclass::deriv) =>
+        ((rev o filter (is_class thy)) deriv, find_index_eq subclass subclasses);
     fun mk_lookup (sort_def, (Type (tycon, tys))) =
           let
             val arity_lookup = map2 (curry mk_lookup)
@@ -236,7 +271,7 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
           let
             fun mk_look class =
-              let val (deriv, classindex) = mk_class_deriv thy sort_use class
+              let val (deriv, classindex) = mk_class_deriv thy (syntactic_sort_of thy sort_use) class
               in Lookup (deriv, (vname, classindex)) end;
           in map mk_look sort_def end;
   in
@@ -250,21 +285,49 @@ fun extract_sortlookup thy (raw_typ_def, raw_typ_use) =
 
 (* intermediate auxiliary *)
 
-fun add_classentry raw_class raw_consts raw_tycos thy =
+fun add_classentry raw_class raw_cs raw_tycos thy =
   let
     val class = Sign.intern_class thy raw_class;
+    val cs = map (Sign.intern_const thy) raw_cs;
+    val tycos = map (rpair (Context.theory_name thy) o Sign.intern_type thy) raw_tycos;
   in
     thy
     |> put_class_data class {
          locale_name = "",
          axclass_name = class,
-         consts = [],
-         tycos = []
+         consts = cs,
+         tycos = tycos
        }
-    |> add_consts (class, raw_consts)
-    |> add_tycos (class, raw_tycos)
+    |> fold (add_const class) cs
   end;
-  
+
+
+(* toplevel interface *)
+
+local
+
+structure P = OuterParse
+and K = OuterKeyword
+
+in
+
+val classK = "class_class"
+
+val locale_val =
+  (P.locale_expr --
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.context_element)) [] ||
+  Scan.repeat1 P.context_element >> pair Locale.empty);
+
+val classP =
+  OuterSyntax.command classK "operational type classes" K.thy_decl
+    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
+      >> (Toplevel.theory_context
+          o (fn f => swap o f) o (fn (name, (expr, elems)) => add_class name expr elems)));
+
+val _ = OuterSyntax.add_parsers [classP];
+
+end; (* local *)
+
 
 (* setup *)
 

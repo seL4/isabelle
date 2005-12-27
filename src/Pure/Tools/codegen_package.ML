@@ -63,12 +63,16 @@ sig
 
   val print_codegen_generated: theory -> unit;
   val rename_inconsistent: theory -> theory;
+
+  (*debugging purpose only*)
   structure InstNameMangler: NAME_MANGLER;
   structure ConstNameMangler: NAME_MANGLER;
   structure DatatypeconsNameMangler: NAME_MANGLER;
   structure CodegenData: THEORY_DATA;
   val mk_tabs: theory -> auxtab;
   val alias_get: theory -> string -> string;
+  val idf_of_name: theory -> string -> string -> string;
+  val idf_of_const: theory -> auxtab -> string * typ -> string;
 end;
 
 structure CodegenPackage : CODEGEN_PACKAGE =
@@ -590,18 +594,27 @@ fun ensure_def_tyco thy tabs tyco trns =
 
 fun idf_of_const thy (tabs as ((_, clsmemtab), (_, (overltab1, overltab2), dtcontab))) (c, ty) =
   let
-    val coty = case (snd o strip_type) ty
-       of Type (tyco, _) => tyco
-        | _ => "";
-    val c' = case Symtab.lookup overltab1 c
-       of SOME (ty_decl, tys) => ConstNameMangler.get thy overltab2
-         (idf_of_name thy nsp_overl c, (ty_decl, (the oo find_first) (fn ty' => Sign.typ_instance thy (ty', ty)) tys))
-        | NONE => case try (DatatypeconsNameMangler.get thy dtcontab) (c, coty)
-       of SOME c' => idf_of_name thy nsp_dtcon c'
-        | NONE => case Symtab.lookup clsmemtab c
-       of SOME _ => idf_of_name thy nsp_mem c
-        | NONE => idf_of_name thy nsp_const c;
-  in c' end;
+    fun get_overloaded (c, ty) =
+      case Symtab.lookup overltab1 c
+       of SOME (ty_decl, tys) =>
+            (case find_first (curry (Sign.typ_instance thy) ty) tys
+             of SOME ty' => ConstNameMangler.get thy overltab2
+                  (idf_of_name thy nsp_overl c, (ty_decl, ty')) |> SOME
+              | _ => NONE)
+        | _ => NONE
+    fun get_datatypecons (c, ty) =
+      case (snd o strip_type) ty
+       of Type (tyco, _) =>
+            try (DatatypeconsNameMangler.get thy dtcontab) (c, tyco)
+        | _ => NONE;
+  in case get_overloaded (c, ty)
+   of SOME idf => idf
+    | NONE => case get_datatypecons (c, ty)
+   of SOME c' => idf_of_name thy nsp_dtcon c'
+    | NONE => case Symtab.lookup clsmemtab c
+   of SOME _ => idf_of_name thy nsp_mem c
+    | NONE => idf_of_name thy nsp_const c
+  end;
 
 fun recconst_of_idf thy (_, (_, (_, overltab2), _)) idf =
   case name_of_idf thy nsp_const idf
@@ -637,13 +650,14 @@ fun ensure_def_eq thy tabs (dtco, (eqpred, arity)) trns =
     val name_dtco = (the ooo name_of_idf) thy nsp_tyco dtco;
     val idf_eqinst = idf_of_name thy nsp_eq_inst name_dtco;
     val idf_eqpred = idf_of_name thy nsp_eq_pred name_dtco;
+    val inst_sortlookup = map (fn (v, _) => [ClassPackage.Lookup ([], (v, 0))]) arity;
     fun mk_eq_pred _ trns =
       trns
       |> succeed (eqpred, [])
     fun mk_eq_inst _ trns =
       trns
       |> gen_ensure_def [("eqpred", mk_eq_pred)] ("generating equality predicate for " ^ quote dtco) idf_eqpred
-      |> succeed (Classinst (class_eq, (dtco, arity), [(fun_eq, idf_eqpred)]), []);
+      |> succeed (Classinst ((class_eq, (dtco, arity)), ([], [(fun_eq, (idf_eqpred, inst_sortlookup))])), []);
   in
     trns
     |> gen_ensure_def [("eqinst", mk_eq_inst)] ("generating equality instance for " ^ quote dtco) idf_eqinst
@@ -757,31 +771,33 @@ fun exprgen_term_default thy tabs (Const (f, ty)) trns =
 
 (* application generators *)
 
+fun mk_lookup thy tabs (ClassPackage.Instance (inst as (cls, tyco), ls)) trns =
+      trns
+      |> ensure_def_class thy tabs cls
+      ||>> ensure_def_inst thy tabs inst
+      ||>> (fold_map o fold_map) (mk_lookup thy tabs) ls
+      |-> (fn ((cls, i), ls) => pair (ClassPackage.Instance ((cls, i), ls)))
+  | mk_lookup thy tabs (ClassPackage.Lookup (clss, (v, i))) trns =
+      trns
+      |> fold_map (ensure_def_class thy tabs) clss
+      |-> (fn clss => pair (ClassPackage.Lookup (clss, (v |> unprefix "'", i))));
+
+fun mk_itapp e [] = e
+  | mk_itapp e lookup = IInst (e, lookup);
+
 fun appgen_default thy tabs ((f, ty), ts) trns =
   let
     val _ = debug 5 (fn _ => "making application of " ^ quote f) ();
     val ty_def = Sign.the_const_constraint thy f;
-    fun mk_lookup (ClassPackage.Instance (inst as (cls, tyco), ls)) trns =
-          trns
-          |> ensure_def_class thy tabs cls
-          ||>> ensure_def_inst thy tabs inst
-          ||>> (fold_map o fold_map) mk_lookup ls
-          |-> (fn ((cls, i), ls) => pair (ClassPackage.Instance ((cls, i), ls)))
-      | mk_lookup (ClassPackage.Lookup (clss, (v, i))) trns =
-          trns
-          |> fold_map (ensure_def_class thy tabs) clss
-          |-> (fn clss => pair (ClassPackage.Lookup (clss, (v |> unprefix "'", i))));
-    fun mk_itapp e [] = e
-      | mk_itapp e lookup = IInst (e, lookup);
   in
     trns
     |> ensure_def_const thy tabs (f, ty)
-    ||>> (fold_map o fold_map) mk_lookup (ClassPackage.extract_sortlookup thy (ty_def, ty))
+    ||>> (fold_map o fold_map) (mk_lookup thy tabs) (ClassPackage.extract_sortlookup thy (ty_def, ty))
     ||>> invoke_cg_type thy tabs ty
     ||>> fold_map (invoke_cg_expr thy tabs) ts
     |-> (fn (((f, lookup), ty), es) =>
            succeed (mk_itapp (IConst (f, ty)) lookup `$$ es))
-  end
+  end;
 
 fun appgen_neg thy tabs (f as ("neg", Type ("fun", [ty, _])), ts) trns =
       let
@@ -887,24 +903,44 @@ fun defgen_clsinst thy (tabs as (_, (insttab, _, _))) inst trns =
           val arity = ClassPackage.get_arities thy [cls] tyco;
           val ms = map (fn m => (m, Sign.the_const_constraint thy m)) (ClassPackage.the_consts thy cls);
           val instmem_idfs = ClassPackage.get_inst_consts_sign thy (tyco, cls);
+          val supclss = ClassPackage.get_superclasses thy cls;
           fun add_vars arity clsmems (trns as (_, modl)) =
             case get_def modl (idf_of_name thy nsp_class cls)
              of Class (_, _, members, _) => ((Term.invent_names
               (tvars_of_itypes ((map (snd o snd)) members)) "a" (length arity) ~~ arity, clsmems), trns)
+          val ad_hoc_arity = map (fn (v, sort) => map_index (fn (i, _) => (ClassPackage.Lookup ([], (v, i)))) sort);
+          (*! THIS IS ACTUALLY VERY AD-HOC... !*)
         in
-          trns
+          (trns
           |> debug 5 (fn _ => "trying defgen class instance for (" ^ quote cls ^ ", " ^ quote tyco ^ ")")
           |> (fold_map o fold_map) (ensure_def_class thy tabs) arity
           ||>> fold_map (ensure_def_const thy tabs) ms
           |-> (fn (arity, ms) => add_vars arity ms)
           ||>> ensure_def_class thy tabs cls
           ||>> ensure_def_tyco thy tabs tyco
-          ||>> fold_map (ensure_def_const thy tabs) instmem_idfs
-          |-> (fn ((((arity, ms), cls), tyco), instmem_idfs) =>
-                 succeed (Classinst (cls, (tyco, arity), ms ~~ instmem_idfs), []))
+          ||>> fold_map (fn supcls => ensure_def_inst thy tabs (supcls, tyco)) supclss
+          ||>> fold_map (fn supcls => (fold_map o fold_map) (mk_lookup thy tabs)
+                 (ClassPackage.extract_sortlookup thy
+                   (Type (tyco, map_index (fn (i, _) => TVar (("'a", i), [])) (ClassPackage.get_arities thy [supcls] tyco)),
+                    Type (tyco, map_index (fn (i, sort) => TFree (string_of_int i, sort)) arity)))) supclss
+          ||>> fold_map (ensure_def_const thy tabs) instmem_idfs)
+          |-> (fn ((((((arity, ms), cls), tyco), supinsts), supinstlookup), instmem_idfs) 
+                : ((((((string * string list) list * string list) * string) * string)
+                * string list) * ClassPackage.sortlookup list list list) * string list
+                =>
+                 succeed (Classinst ((cls, (tyco, arity)), (supclss ~~ (supinsts ~~ supinstlookup), ms ~~ map (rpair (ad_hoc_arity arity)) instmem_idfs)), [])) 
         end
     | _ =>
         trns |> fail ("no class instance found for " ^ quote inst);
+
+
+(*    trns
+    |> ensure_def_const thy tabs (f, ty)
+
+    ||>> invoke_cg_type thy tabs ty
+    ||>> fold_map (invoke_cg_expr thy tabs) ts
+    |-> (fn (((f, lookup), ty), es) =>
+           succeed (mk_itapp (IConst (f, ty)) lookup `$$ es))*)
 
 
 (* parametrized generators, for instantiation in HOL *)

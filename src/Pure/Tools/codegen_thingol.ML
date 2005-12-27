@@ -53,7 +53,9 @@ sig
     | Datatypecons of string
     | Class of class list * vname * (string * (ClassPackage.sortcontext * itype)) list * string list
     | Classmember of class
-    | Classinst of class * (string * (vname * string list) list) * (string * string) list;
+    | Classinst of (class * (string * (vname * sort) list))
+        * ((string * (string * ClassPackage.sortlookup list list)) list
+          * (string * (string * ClassPackage.sortlookup list list)) list);
   type module;
   type transact;
   type 'dst transact_fin;
@@ -488,7 +490,9 @@ datatype def =
   | Datatypecons of string
   | Class of class list * vname * (string * (ClassPackage.sortcontext * itype)) list * string list
   | Classmember of class
-  | Classinst of class * (string * (vname * string list) list) * (string * string) list;
+  | Classinst of (class * (string * (vname * sort) list))
+      * ((string * (string * ClassPackage.sortlookup list list)) list
+        * (string * (string * ClassPackage.sortlookup list list)) list);
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
@@ -549,7 +553,7 @@ fun pretty_def Nop =
         Pretty.str "class member belonging to ",
         Pretty.str clsname
       ]
-  | pretty_def (Classinst (clsname, (tyco, arity), mems)) =
+  | pretty_def (Classinst ((clsname, (tyco, arity)), _)) =
       Pretty.block [
         Pretty.str "class instance (",
         Pretty.str clsname,
@@ -557,8 +561,7 @@ fun pretty_def Nop =
         Pretty.str tyco,
         Pretty.str ", ",
         Pretty.gen_list "," "[" "]" (map (Pretty.gen_list "," "{" "}" o map Pretty.str o snd) arity),
-        Pretty.str ")) with ",
-        Pretty.gen_list "," "[" "]" (map (fn (m1, m2) => Pretty.str (m1 ^ " => " ^ m2)) mems)
+        Pretty.str "))"
       ];
 
 fun pretty_module modl =
@@ -777,10 +780,10 @@ fun (*add_check_transform (name, (Datatypecons dtname)) =
               | def => "attempted to add class member to non-class"
                  ^ (Pretty.output o pretty_def) def |> error)])
       end
-  | *) add_check_transform (name, Classinst (clsname, (tyco, arity), memdefs)) =
+  | *) add_check_transform (name, Classinst ((clsname, (tyco, arity)), (_, memdefs))) =
       let
         val _ = debug 7 (fn _ => "transformation for class instance " ^ quote tyco
-          ^ " of class " ^ quote clsname ^ " with " ^ (commas o map (fn (m1, m2) => m1 ^ " => " ^ m2)) memdefs) ();
+          ^ " of class " ^ quote clsname) ();
         (* fun check [Classmember (_, v, mtyp_c), Fun (_, (_, mtyp_i))] =
               let
                 val mtyp_i' = instant_itype (v, tyco `%% map IVarT arity) mtyp_c;
@@ -1197,41 +1200,6 @@ fun eliminate_classes module =
           in transform_iexpr vname_alist e `$$ (snd o transform_lookups) ls end
       | transform_iexpr vname_alist e =
           map_iexpr transform_itype transform_ipat (transform_iexpr vname_alist) e;
-    fun mk_cls_typ_map v membrs ty_inst =
-      map (fn (m, (mctxt, ty)) =>
-        (m, ty |> instant_itype (v, ty_inst))) membrs;
-    fun extract_members (cls, Class (supclss, v, membrs, _)) =
-          let
-            val ty_cls = cls `%% [IVarT (v, [])];
-            val w = "d";
-            val add_supclss = if null supclss then I else cons (v, supclss);
-            fun mk_fun (m, (mctxt, ty)) = (m, Fun ([([IVarP (w, ty_cls)], ILookup ([m], w))],
-              (add_supclss mctxt, ty `-> ty_cls)));
-          in fold (cons o mk_fun) membrs end
-      | extract_members _ = I;
-    fun introduce_dicts (Class (supcls, v, membrs, insts)) =
-          let
-            val varname_cls = Term.invent_names (tvars_of_itypes (map (snd o snd) membrs)) "a" 1 |> hd
-          in
-            Typesyn ([(varname_cls, supcls)], IDictT (mk_cls_typ_map v membrs (IVarT (varname_cls, []))))
-          end
-      | introduce_dicts (Classinst (clsname, (tyco, arity), memdefs)) =
-          let
-            val Class (_, v, members, _) =
-              if clsname = class_eq
-              then
-                Class ([], "a", [(fun_eq, ([], IVarT ("a", []) `-> IVarT ("a", []) `-> Type_bool))], [])
-              else
-                get_def module clsname;
-            val ty = tyco `%% map IVarT arity;
-            val inst_typ_map = mk_cls_typ_map v members ty;
-            val memdefs_ty = map (fn (memname, memprim) =>
-              (memname, (memprim, (the o AList.lookup (op =) inst_typ_map) memname))) memdefs;
-          in
-            Fun ([([], IDictE (map (apsnd IConst) memdefs_ty))],
-              ([], IType (clsname, [ty])))
-          end
-      | introduce_dicts d = d;
     fun elim_sorts (Fun (eqs, ([], ty))) =
           Fun (map (fn (ps, rhs) => (map transform_ipat ps, transform_iexpr [] rhs)) eqs,
             ([], transform_itype ty))
@@ -1255,6 +1223,56 @@ fun eliminate_classes module =
       | elim_sorts (Typesyn (vars, ty)) =
           Typesyn (map (fn (v, _) => (v, [])) vars, transform_itype ty)
       | elim_sorts d = d;
+    fun mk_cls_typ_map v (supclss, membrs) ty_inst =
+      (map (fn class => (class, IType (class, [ty_inst]))) supclss,
+        map (fn (m, (mctxt, ty)) =>
+        (m, ty |> instant_itype (v, ty_inst))) membrs);
+    fun extract_members (cls, Class (supclss, v, membrs, _)) =
+          let
+            val ty_cls = cls `%% [IVarT (v, [])];
+            val w = "d";
+            val add_supclss = if null supclss then I else cons (v, supclss);
+            fun mk_fun (m, (mctxt, ty)) = (m, Fun ([([IVarP (w, ty_cls)], ILookup ([m], w))],
+              (add_supclss mctxt, ty `-> ty_cls)));
+          in fold (cons o mk_fun) membrs end
+      | extract_members _ = I;
+    fun introduce_dicts (Class (supclss, v, membrs, insts)) =
+          let
+            val varname_cls = Term.invent_names (tvars_of_itypes (map (snd o snd) membrs)) "a" 1 |> hd
+          in
+            Typesyn ([(varname_cls, supclss)], IDictT ((op @) (mk_cls_typ_map v (supclss, membrs) (IVarT (varname_cls, [])))))
+          end
+      | introduce_dicts (Classinst ((clsname, (tyco, arity)), (supinsts, memdefs))) =
+          let
+            val Class (supclss, v, members, _) =
+              if clsname = class_eq
+              then
+                Class ([], "a", [(fun_eq, ([], IVarT ("a", []) `-> IVarT ("a", []) `-> Type_bool))], [])
+              else
+                get_def module clsname;
+            val ty = tyco `%% map IVarT arity;
+            val (supinst_typ_map, mem_typ_map) = mk_cls_typ_map v (supclss, members) ty;
+            fun mk_meminst (m, ty) =
+              let
+                val (instname, instlookup) = (the o AList.lookup (op =) memdefs) m;
+              in
+                IInst (IConst (instname, ty), instlookup)
+                |> pair m
+              end;
+            val memdefs_ty = map mk_meminst mem_typ_map;
+            fun mk_supinst (supcls, dictty) =
+              let
+                val (instname, instlookup) = (the o AList.lookup (op =) supinsts) supcls;
+              in
+                IInst (IConst (instname, dictty), instlookup)
+                |> pair supcls
+              end;
+            val instdefs_ty = map mk_supinst supinst_typ_map;
+          in
+            Fun ([([], IDictE (instdefs_ty @ memdefs_ty))],
+              (arity, IType (clsname, [ty])))
+          end
+      | introduce_dicts d = d;
   in
     module
     |> `(fn module => fold_defs extract_members module [])

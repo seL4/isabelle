@@ -143,15 +143,27 @@ fun lower_first s =
 
 local
 
-fun ml_from_defs tyco_syntax const_syntax is_dicttype resolv ds =
+fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
   let
+    fun is_dicttype (IType (tyco, _)) =
+          is_dicttyco tyco
+      | is_dicttype (IDictT _)  =
+          true
+      | is_dicttype _ =
+          false;
     fun chunk_defs ps =
       let
         val (p_init, p_last) = split_last ps
       in
         Pretty.chunks (p_init @ [Pretty.block ([p_last, Pretty.str ";"])])
     end;
-    val ml_label_uniq = translate_string (fn "_" => "__" | "." => "_" | c => c);
+    fun ml_from_label s =
+      let
+        val s' = NameSpace.unpack s;
+      in
+        NameSpace.pack (Library.drop (length s' - 2, s'))
+        |> translate_string (fn "_" => "__" | "." => "_" | c => c)
+      end;
     fun ml_from_type br (IType ("Pair", [t1, t2])) =
           brackify (eval_br_postfix br (INFX (2, L))) [
             ml_from_type (INFX (2, X)) t1,
@@ -191,7 +203,7 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttype resolv ds =
       | ml_from_type _ (IDictT fs) =
           Pretty.gen_list "," "{" "}" (
             map (fn (f, ty) =>
-              Pretty.block [Pretty.str (ml_label_uniq f ^ ": "), ml_from_type NOBR ty]) fs
+              Pretty.block [Pretty.str (ml_from_label f ^ ": "), ml_from_type NOBR ty]) fs
           );
     fun ml_from_pat br (ICons (("True", []), _)) =
           Pretty.str "true"
@@ -239,8 +251,16 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttype resolv ds =
             Pretty.str ":",
             Pretty.str "IntInf.int"
           ]
-      | ml_from_pat br (IVarP (v, _)) =
-          Pretty.str v
+      | ml_from_pat br (IVarP (v, ty)) =
+          if is_dicttype ty
+          then
+            brackify (eval_br br BR) [
+              Pretty.str v,
+              Pretty.str ":",
+              ml_from_type NOBR ty
+            ]
+          else
+            Pretty.str v
     and ml_from_expr br (e as (IApp (IConst ("Cons", _), _))) =
           let
             fun dest_cons (IApp (IConst ("Cons", _),
@@ -313,19 +333,19 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttype resolv ds =
       | ml_from_expr br (IDictE fs) =
           Pretty.gen_list "," "{" "}" (
             map (fn (f, e) =>
-              Pretty.block [Pretty.str (ml_label_uniq f ^ " = "), ml_from_expr NOBR e]) fs
+              Pretty.block [Pretty.str (ml_from_label f ^ " = "), ml_from_expr NOBR e]) fs
           )
       | ml_from_expr br (ILookup ([], v)) =
           Pretty.str v
       | ml_from_expr br (ILookup ([l], v)) =
           brackify (eval_br br BR) [
-            Pretty.str ("#" ^ (ml_label_uniq l)),
+            Pretty.str ("#" ^ (ml_from_label l)),
             Pretty.str v
           ]
       | ml_from_expr br (ILookup (ls, v)) =
           brackify (eval_br br BR) [
             Pretty.str ("("
-              ^ (ls |> map ((fn s => "#" ^ s) o ml_label_uniq) |> foldr1 (fn (l, e) => l ^ " o " ^ e))
+              ^ (ls |> map ((fn s => "#" ^ s) o ml_from_label) |> foldr1 (fn (l, e) => l ^ " o " ^ e))
               ^ ")"),
             Pretty.str v
           ]
@@ -422,23 +442,10 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttype resolv ds =
         val definer = the (fold check_args ds NONE);
         fun mk_eq definer f ty (pats, expr) =
           let
-            fun mk_pat_arg p =
-              case itype_of_ipat p
-               of ty as IType (tyco, _) =>
-                    if is_dicttype tyco
-                    then Pretty.block [
-                        Pretty.str "(",
-                        ml_from_pat NOBR p,
-                        Pretty.str ":",
-                        ml_from_type NOBR ty,
-                        Pretty.str ")"
-                      ]
-                    else ml_from_pat BR p
-                | _ => ml_from_pat BR p;
             val lhs = [Pretty.str (definer ^ " " ^ f)]
                        @ (if null pats
                           then [Pretty.str ":", ml_from_type NOBR ty]
-                          else map mk_pat_arg pats)
+                          else map (ml_from_pat BR) pats)
             val rhs = [Pretty.str "=", ml_from_expr NOBR expr]
           in
             Pretty.block (separate (Pretty.brk 1) (lhs @ rhs))
@@ -551,9 +558,10 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
         Pretty.str "",
         Pretty.str ("end; (* struct " ^ name ^ " *)")
       ]);
-    fun is_dicttype tyco =
+    fun is_dicttyco module tyco =
       NameSpace.is_qualified tyco andalso case get_def module tyco
        of Typesyn (_, IDictT _) => true
+        | Typesyn _ => false
         | _ => false;
     fun eta_expander "Pair" = 2
       | eta_expander "Cons" = 2
@@ -590,7 +598,8 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
     |> debug 3 (fn _ => "eliminating classes...")
     |> eliminate_classes
     |> debug 3 (fn _ => "serializing...")
-    |> serialize (ml_from_defs tyco_syntax const_syntax is_dicttype) ml_from_module ml_validator nspgrp name_root
+    |> `(is_dicttyco)
+    |-> (fn is_dicttyco => serialize (ml_from_defs tyco_syntax const_syntax is_dicttyco) ml_from_module ml_validator nspgrp name_root)
     |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
@@ -952,7 +961,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
           end
       | haskell_from_def (name, Classmember _) =
           NONE
-      | haskell_from_def (_, Classinst ("Eq", (tyco, arity), [(_, eqpred)])) = 
+      | haskell_from_def (_, Classinst (("Eq", (tyco, arity)), (_, [(_, (eqpred, _))]))) = 
           Pretty.block [
             Pretty.str "instance ",
             haskell_from_sctxt arity,
@@ -963,7 +972,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             Pretty.fbrk,
             Pretty.str ("(==) = " ^ (lower_first o resolv) eqpred)
           ] |> SOME
-      | haskell_from_def (_, Classinst (clsname, (tyco, arity), instmems)) = 
+      | haskell_from_def (_, Classinst ((clsname, (tyco, arity)), (_, instmems))) = 
           Pretty.block [
             Pretty.str "instance ",
             haskell_from_sctxt arity,
@@ -972,14 +981,14 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
             haskell_from_type NOBR (IType (tyco, (map (IVarT o rpair [] o fst)) arity)),
             Pretty.str " where",
             Pretty.fbrk,
-            Pretty.chunks (map (fn (member, const) =>
+            Pretty.chunks (map (fn (member, (const, _)) =>
               Pretty.str ((lower_first o resolv) member ^ " = " ^ (lower_first o resolv) const)
             ) instmems)
           ] |> SOME
   in
     case List.mapPartial (fn (name, def) => haskell_from_def (name, def)) defs
      of [] => NONE
-      | l => (SOME o Pretty.block) l
+      | l => (SOME o Pretty.chunks o separate (Pretty.str "")) l
   end;
 
 in
