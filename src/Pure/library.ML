@@ -98,7 +98,6 @@ sig
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
-  val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
@@ -109,6 +108,8 @@ sig
   val nth_update: int * 'a -> 'a list -> 'a list
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val nth_list: 'a list list -> int -> 'a list
+  val map_index: (int * 'a -> 'b) -> 'a list -> 'b list
+  val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val split_last: 'a list -> 'a list * 'a
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
@@ -510,7 +511,7 @@ fun foldr1 f l =
 
 fun fold_index f =
   let
-    fun fold_aux _  [] y = y
+    fun fold_aux _ [] y = y
       | fold_aux i (x :: xs) y = fold_aux (i+1) xs (f (i, x) y);
   in fold_aux 0 end;
 
@@ -560,6 +561,12 @@ fun nth_update (n, x) xs =
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
   | nth_map _ _ [] = raise Subscript;
+
+fun map_index f =
+  let
+    fun mapp _ [] = []
+      | mapp i (x :: xs) = f (i, x) :: mapp (i+1) xs
+  in mapp 0 end;
 
 val last_elem = List.last;
 
