@@ -47,6 +47,7 @@ sig
 
   datatype def =
       Nop
+    | Prim of (string * Pretty.T) list
     | Fun of (ipat list * iexpr) list * (ClassPackage.sortcontext * itype)
     | Typesyn of (vname * string list) list * itype
     | Datatype of (vname * string list) list * (string * itype list) list * string list
@@ -65,9 +66,12 @@ sig
   val pretty_module: module -> Pretty.T; 
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
+  val add_prim: string -> (string * Pretty.T) -> string list -> module -> module;
+  val ensure_prim: string -> module -> module;
   val get_def: module -> string -> def;
   val merge_module: module * module -> module;
   val partof: string list -> module -> module;
+  val has_nsp: string -> string -> bool;
   val succeed: 'a -> transact -> 'a transact_fin;
   val fail: string -> transact -> 'a transact_fin;
   val gen_invoke: (string * ('src, 'dst) gen_exprgen) list -> string
@@ -484,6 +488,7 @@ fun instant_itype (v, sty) ty =
 
 datatype def =
     Nop
+  | Prim of (string * Pretty.T) list
   | Fun of (ipat list * iexpr) list * (ClassPackage.sortcontext * itype)
   | Typesyn of (vname * string list) list * itype
   | Datatype of (vname * string list) list * (string * itype list) list * string list
@@ -509,6 +514,8 @@ val eq_def = (op =);
 
 fun pretty_def Nop =
       Pretty.str "<NOP>"
+  | pretty_def (Prim _) =
+      Pretty.str "<PRIM>"
   | pretty_def (Fun (eqs, (_, ty))) =
       Pretty.gen_list " |" "" "" (
         map (fn (ps, body) =>
@@ -616,6 +623,14 @@ fun dest_name name =
   in (modl, NameSpace.pack [shallow, name_base]) end
   handle Empty => error ("not a qualified name: " ^ quote name);
 
+fun has_nsp name shallow =
+  NameSpace.is_qualified name
+  andalso let
+    val name' = NameSpace.unpack name
+    val (name'', _) = split_last name'
+    val (_, shallow') = split_last name''
+  in shallow' = shallow end;
+
 fun dest_modl (Module m) = m;
 fun dest_def (Def d) = d;
 
@@ -672,6 +687,47 @@ fun add_dep (name1, name2) modl =
             node
             |> Graph.map_node m (Module o add ms o dest_modl);
     in add ms modl end;
+
+fun add_prim name (target, primdef) deps =
+  let
+    val (modl, base) = dest_name name;
+    fun add [] module =
+          (case try (Graph.get_node module) base
+           of NONE =>
+                module
+                |> Graph.new_node (base, (Def o Prim) [(target, primdef)])
+            | SOME (Def (Prim prim)) =>
+                if AList.defined (op =) prim base
+                then error ("already primitive definition (" ^ target ^ ") present for " ^ name)
+                else
+                  module
+                  |> Graph.map_node base ((K o Def o Prim) (AList.update (op =) (target, primdef) prim))
+            | _ => error ("already non-primitive definition present for " ^ name))
+      | add (m::ms) module =
+          module
+          |> Graph.default_node (m, Module empty_module)
+          |> Graph.map_node m (Module o add ms o dest_modl)
+  in
+    add modl
+    #> fold (curry add_dep name) deps
+  end;
+
+fun ensure_prim name =
+  let
+    val (modl, base) = dest_name name;
+    fun ensure [] module =
+          (case try (Graph.get_node module) base
+           of NONE =>
+                module
+                |> Graph.new_node (base, (Def o Prim) [])
+            | SOME (Def (Prim _)) =>
+                module
+            | _ => error ("already non-primitive definition present for " ^ name))
+      | ensure (m::ms) module =
+          module
+          |> Graph.default_node (m, Module empty_module)
+          |> Graph.map_node m (Module o ensure ms o dest_modl)
+  in ensure modl end;
 
 fun map_defs f =
   let
@@ -1286,8 +1342,38 @@ fun eliminate_classes module =
 
 (* resolving *)
 
-fun mk_resolvtab nspgrp validate module =
+structure ModlNameMangler = NameManglerFun (
+  type ctxt = string -> string option;
+  type src = string;
+  val ord = string_ord;
+  fun mk _ _ = "";
+  fun is_valid _ _ = true;
+  fun maybe_unique validate name = (SOME oo perhaps) validate name;
+  fun re_mangle _ dst = error ("no such module name: " ^ quote dst);
+);
+
+structure DefNameMangler = NameManglerFun (
+  type ctxt = string -> string option;
+  type src = string * string;
+  val ord = prod_ord string_ord string_ord;
+  fun mk validate ((shallow, name), 0) =
+        (case validate name
+         of NONE => name
+          | _ => mk validate ((shallow, name), 1))
+    | mk validate ((shallow, name), i) =
+        shallow ^ "_" ^ name ^ "_" ^ string_of_int (i+1)
+        |> perhaps validate;
+  fun is_valid _ _ = true;
+  fun maybe_unique _ _ = NONE;
+  fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
+);
+
+fun mk_resolvtab nsp_conn validate module =
   let
+    fun validate' n =
+      let
+        val n' = perhaps validate n
+      in if member (op =) prims n' then n' ^ "'" else n' end;
     fun ensure_unique prfix prfix' name name' (locals, tab) =
       let
         fun uniquify name n =
@@ -1325,7 +1411,7 @@ fun mk_resolvtab nspgrp validate module =
           let
             val [shallow, name] = NameSpace.unpack sidf;
           in
-            nspgrp
+            nsp_conn
             |> get_first
                 (fn grp => if member (op =) grp shallow
                   then grp |> remove (op =) shallow |> SOME else NONE)
@@ -1367,9 +1453,9 @@ fun mk_resolv tab =
 
 (* serialization *)
 
-fun serialize s_def s_module validate nspgrp name_root module =
+fun serialize s_def s_module validate nsp_conn name_root module =
   let
-    val resolvtab = mk_resolvtab nspgrp validate module;
+    val resolvtab = mk_resolvtab nsp_conn validate module;
     val resolver = mk_resolv resolvtab;
     fun seri prfx ([(name, Module module)]) =
           s_module (resolver prfx (prfx @ [name] |> NameSpace.pack),

@@ -14,13 +14,15 @@ sig
   val merge_prims: primitives * primitives -> primitives;
   val has_prim: primitives -> string -> bool;
 
-  type 'a pretty_syntax = string
-    -> (int * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T)) option;
-  type serializer = CodegenThingol.itype pretty_syntax -> CodegenThingol.iexpr pretty_syntax
+  type fixity;
+  type 'a pretty_syntax = (int * fixity) * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T);
+  type serializer = string -> (string -> CodegenThingol.itype pretty_syntax option)
+    -> (string -> CodegenThingol.iexpr pretty_syntax option)
     -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
+  val parse_fixity: OuterParse.token list -> fixity * OuterParse.token list;
 
-  val ml_from_thingol: string list list -> string -> serializer;
-  val haskell_from_thingol: string list list -> string -> serializer;
+  val ml_from_thingol: string list list -> string -> string -> serializer;
+  val haskell_from_thingol: string list list -> string -> string -> serializer;
 end;
 
 structure CodegenSerializer: CODEGEN_SERIALIZER =
@@ -85,17 +87,36 @@ fun kw_done x [] = x
 
 (** generic serialization **)
 
-type 'a pretty_syntax = string
-  -> (int * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T)) option;
-type serializer = CodegenThingol.itype pretty_syntax -> CodegenThingol.iexpr pretty_syntax
-  -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
-
 datatype lrx = L | R | X;
 
-datatype brack =
+datatype fixity =
     BR
   | NOBR
   | INFX of (int * lrx);
+
+type 'a pretty_syntax = (int * fixity)
+  * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T);
+type serializer = string -> (string -> CodegenThingol.itype pretty_syntax option)
+  -> (string -> CodegenThingol.iexpr pretty_syntax option)
+  -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
+
+local
+
+open Scan;
+open OuterParse;
+
+in
+
+val parse_fixity = optional (
+    $$$ "(" |-- (
+         $$$ "atom" |-- pair NOBR
+      || $$$ "infix" |-- nat >> (fn pr => INFX (pr, X))
+      || $$$ "infixl" |-- nat >> (fn pr => INFX (pr, L))
+      || $$$ "infixr" |-- nat >> (fn pr => INFX (pr, R))
+    ) --| $$$ ")"
+  ) BR;
+
+end; (* local *)
 
 fun eval_lrx L L = false
   | eval_lrx R R = false
@@ -106,7 +127,7 @@ fun eval_br BR _ = true
   | eval_br (INFX (pr1, lr1)) (INFX (pr2, lr2)) =
       pr1 > pr2
       orelse pr1 = pr2
-      andalso eval_lrx lr1 lr2
+        andalso eval_lrx lr1 lr2
   | eval_br (INFX _) _ = false;
 
 fun eval_br_postfix BR _ = false
@@ -114,7 +135,7 @@ fun eval_br_postfix BR _ = false
   | eval_br_postfix (INFX (pr1, lr1)) (INFX (pr2, lr2)) =
       pr1 > pr2
       orelse pr1 = pr2
-      andalso eval_lrx lr1 lr2
+        andalso eval_lrx lr1 lr2
   | eval_br_postfix (INFX _) _ = false;
 
 fun brackify _ [p] = p
@@ -137,20 +158,18 @@ fun lower_first s =
     val (c::cs) = String.explode b;
   in NameSpace.pack (pr @ [String.implode (Char.toLower c :: cs)]) end;
 
+fun code_from_primitive serializer_name (name, prim) =
+  case AList.lookup (op =) prim serializer_name
+   of NONE => error ("no primitive definition for " ^ quote name)
+    | p => p;
 
 
 (** ML serializer **)
 
 local
 
-fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
+fun ml_from_defs serializer_name tyco_syntax const_syntax is_dicttype resolv ds =
   let
-    fun is_dicttype (IType (tyco, _)) =
-          is_dicttyco tyco
-      | is_dicttype (IDictT _)  =
-          true
-      | is_dicttype _ =
-          false;
     fun chunk_defs ps =
       let
         val (p_init, p_last) = split_last ps
@@ -185,10 +204,12 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
              of NONE =>
                   postify tyargs ((Pretty.str o resolv) tyco)
                   |> Pretty.block
-              | SOME (i, pr) =>
+              | SOME ((i, fix), pr) =>
                   if i <> length (typs)
                   then error "can only serialize strictly complete type applications to ML"
-                  else pr tyargs (ml_from_type BR)
+                  else
+                    pr tyargs (ml_from_type fix)
+                    |> (if eval_br br fix then Pretty.enclose "(" ")" o single else I)
           end
       | ml_from_type br (IFun (t1, t2)) =
           brackify (eval_br_postfix br (INFX (1, R))) [
@@ -235,16 +256,17 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
       | ml_from_pat br (ICons ((f, ps), ty)) =
           (case const_syntax f
            of NONE =>
-              ps
-              |> map (ml_from_pat BR)
-              |> cons ((Pretty.str o resolv) f)
-              |> brackify (eval_br br BR)
-            | SOME (i, pr) =>
-              if i = length ps
-              then
-                pr (map (ml_from_pat BR) ps) (ml_from_expr BR)
-              else
-                error "number of argument mismatch in customary serialization")
+                ps
+                |> map (ml_from_pat BR)
+                |> cons ((Pretty.str o resolv) f)
+                |> brackify (eval_br br BR)
+            | SOME ((i, fix), pr) =>
+                if i = length ps
+                then
+                  pr (map (ml_from_pat fix) ps) (ml_from_expr fix)
+                  |> (if eval_br br fix then Pretty.enclose "(" ")" o single else I)
+                else
+                  error "number of argument mismatch in customary serialization")
       | ml_from_pat br (IVarP (v, IType ("Integer", []))) =
           brackify (eval_br br BR) [
             Pretty.str v,
@@ -423,10 +445,15 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
                       let
                         val (es', e) = split_last es;
                       in mk_app_p br (ml_from_app NOBR (f, es')) [e] end)
-            | SOME (i, pr) =>
+            | SOME ((i, fix), pr) =>
                 let
                   val (es1, es2) = splitAt (i, es);
-                in mk_app_p br (pr (map (ml_from_expr BR) es1) (ml_from_expr BR)) es2 end;
+                in
+                  mk_app_p br (
+                    pr (map (ml_from_expr fix) es1) (ml_from_expr fix)
+                    |> (if eval_br br fix then Pretty.enclose "(" ")" o single else I)
+                  ) es2
+                end;
     fun ml_from_funs (ds as d::ds_tl) =
       let
         fun mk_definer [] = "val"
@@ -501,7 +528,9 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
             [(fn name => (is_some o tyco_syntax) name),
              (fn name => (is_some o const_syntax) name)]
           then NONE
-          else error ("empty statement during serialization: " ^ quote name)
+          else error ("empty definition during serialization: " ^ quote name)
+      | ml_from_def (name, Prim prim) =
+          code_from_primitive serializer_name (name, prim)
       | ml_from_def (name, Typesyn (vs, ty)) =
         (map (fn (vname, []) => () | _ => error "can't serialize sort constrained type declaration to ML") vs;
           Pretty.block (
@@ -528,7 +557,7 @@ fun ml_from_defs tyco_syntax const_syntax is_dicttyco resolv ds =
 
 in
 
-fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select module =
+fun ml_from_thingol nspgrp nsp_class name_root serializer_name tyco_syntax const_syntax prims select module =
   let
     fun ml_validator name =
       let
@@ -558,11 +587,12 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
         Pretty.str "",
         Pretty.str ("end; (* struct " ^ name ^ " *)")
       ]);
-    fun is_dicttyco module tyco =
-      NameSpace.is_qualified tyco andalso case get_def module tyco
-       of Typesyn (_, IDictT _) => true
-        | Typesyn _ => false
-        | _ => false;
+    fun is_dicttype (IType (tyco, _)) =
+          has_nsp tyco nsp_class
+      | is_dicttype (IDictT _)  =
+          true
+      | is_dicttype _ =
+          false;
     fun eta_expander "Pair" = 2
       | eta_expander "Cons" = 2
       | eta_expander "and" = 2
@@ -582,7 +612,7 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
                     in if l >= 2 then l else 0 end)
              | _ =>
                 const_syntax s
-                |> Option.map fst
+                |> Option.map (fst o fst)
                 |> the_default 0
           else 0;
   in
@@ -598,8 +628,7 @@ fun ml_from_thingol nspgrp name_root tyco_syntax const_syntax prims select modul
     |> debug 3 (fn _ => "eliminating classes...")
     |> eliminate_classes
     |> debug 3 (fn _ => "serializing...")
-    |> `(is_dicttyco)
-    |-> (fn is_dicttyco => serialize (ml_from_defs tyco_syntax const_syntax is_dicttyco) ml_from_module ml_validator nspgrp name_root)
+    |> serialize (ml_from_defs serializer_name tyco_syntax const_syntax is_dicttype) ml_from_module ml_validator nspgrp name_root
     |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
@@ -620,7 +649,7 @@ end; (* local *)
 
 local
 
-fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
+fun haskell_from_defs serializer_name tyco_syntax const_syntax is_cons resolv defs =
   let
     val resolv = fn s =>
       let
@@ -666,12 +695,14 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
                 fun mk_itype NONE tyargs sctxt =
                       sctxt
                       |> pair (brackify (eval_br br BR) ((Pretty.str o upper_first o resolv) tyco :: tyargs))
-                  | mk_itype (SOME (i, pr)) tyargs sctxt =
+                  | mk_itype (SOME ((i, fix), pr)) tyargs sctxt =
                       if i <> length (tys)
                       then error "can only serialize strictly complete type applications to haskell"
                       else
                         sctxt
-                        |> pair (pr tyargs (haskell_from_type BR))
+                        |> pair (pr tyargs (haskell_from_type fix)
+                           |> (if eval_br br fix then Pretty.enclose "(" ")" o single else I)
+                           )
               in
                 sctxt
                 |> fold_map (from_itype BR) tys
@@ -734,10 +765,11 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
               |> map (haskell_from_pat BR)
               |> cons ((Pretty.str o resolv_const) f)
               |> brackify (eval_br br BR)
-            | SOME (i, pr) =>
+            | SOME ((i, fix), pr) =>
               if i = length ps
               then
-                pr (map (haskell_from_pat BR) ps) (haskell_from_expr BR)
+                pr (map (haskell_from_pat fix) ps) (haskell_from_expr fix)
+                |> (if eval_br br fix then Pretty.enclose "(" ")" o single else I)
               else
                 error "number of argument mismatch in customary serialization")
       | haskell_from_pat br (IVarP (v, _)) =
@@ -866,10 +898,15 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
                       let
                         val (es', e) = split_last es;
                       in mk_app_p br (haskell_from_app NOBR (f, es')) [e] end)
-            | SOME (i, pr) =>
+            | SOME ((i, fix), pr) =>
                 let
                   val (es1, es2) = splitAt (i, es);
-                in mk_app_p br (pr (map (haskell_from_expr BR) es1) (haskell_from_expr BR)) es2 end
+                in
+                  mk_app_p br (
+                    pr (map (haskell_from_expr fix) es1) (haskell_from_expr fix)
+                    |> (if eval_br br fix then Pretty.enclose "(" ")" o single else I)
+                  ) es2
+                end
     and haskell_from_binop br pr L f [e1, e2] =
           brackify (eval_br br (INFX (pr, L))) [
             haskell_from_expr (INFX (pr, L)) e1,
@@ -890,6 +927,8 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
              (fn name => (is_some o const_syntax) name)]
           then NONE
           else error ("empty statement during serialization: " ^ quote name)
+      | haskell_from_def (name, Prim prim) =
+          code_from_primitive serializer_name (name, prim)
       | haskell_from_def (name, Fun (eqs, (_, ty))) =
           let
             fun from_eq name (args, rhs) =
@@ -993,7 +1032,7 @@ fun haskell_from_defs tyco_syntax const_syntax is_cons resolv defs =
 
 in
 
-fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select module =
+fun haskell_from_thingol nspgrp nsp_cons name_root serializer_name tyco_syntax const_syntax prims select module =
   let
     fun haskell_from_module (name, ps) =
       Pretty.block [
@@ -1032,14 +1071,9 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
                     in if l >= 2 then l else 0 end)
              | _ =>
                 const_syntax s
-                |> Option.map fst
+                |> Option.map (fst o fst)
                 |> the_default 0
           else 0;
-    fun is_cons f =
-      NameSpace.is_qualified f
-      andalso case get_def module f
-       of Datatypecons _ => true
-        | _ => false;
   in
     module
     |> debug 3 (fn _ => "selecting submodule...")
@@ -1047,7 +1081,7 @@ fun haskell_from_thingol nspgrp name_root tyco_syntax const_syntax prims select 
     |> debug 3 (fn _ => "eta-expanding...")
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "serializing...")
-    |> serialize (haskell_from_defs tyco_syntax const_syntax is_cons) haskell_from_module haskell_validator nspgrp name_root
+    |> serialize (haskell_from_defs serializer_name tyco_syntax const_syntax (fn c => has_nsp c nsp_cons)) haskell_from_module haskell_validator nspgrp name_root
     |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
