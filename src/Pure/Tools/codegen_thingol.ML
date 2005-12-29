@@ -66,7 +66,7 @@ sig
   val pretty_module: module -> Pretty.T; 
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
-  val add_prim: string -> (string * Pretty.T) -> string list -> module -> module;
+  val add_prim: string -> string list -> (string * Pretty.T) -> module -> module;
   val ensure_prim: string -> module -> module;
   val get_def: module -> string -> def;
   val merge_module: module * module -> module;
@@ -688,7 +688,7 @@ fun add_dep (name1, name2) modl =
             |> Graph.map_node m (Module o add ms o dest_modl);
     in add ms modl end;
 
-fun add_prim name (target, primdef) deps =
+fun add_prim name deps (target, primdef) =
   let
     val (modl, base) = dest_name name;
     fun add [] module =
@@ -961,9 +961,9 @@ fun gen_ensure_def defgens msg name (deps, modl) =
         |> pair [name]
       else
         modl
-        |> debug 9 (fn _ => "creating node " ^ quote name)
+        |> debug 9 (fn _ => "allocating node " ^ quote name)
         |> add_def (name, Nop)
-        |> debug 9 (fn _ => "checking creation of node " ^ quote name)
+        |> debug 9 (fn _ => "creating node " ^ quote name)
         |> select_generator (fn gname => "trying code generator " ^ gname ^ " for definition of " ^ quote name)
              name defgens
         |> debug 9 (fn _ => "checking creation of node " ^ quote name)

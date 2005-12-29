@@ -8,17 +8,11 @@ target languages (like ML or Haskell).
 
 signature CODEGEN_SERIALIZER =
 sig
-  type primitives;
-  val empty_prims: primitives;
-  val add_prim: string * (string * string list) -> primitives -> primitives;
-  val merge_prims: primitives * primitives -> primitives;
-  val has_prim: primitives -> string -> bool;
-
   type fixity;
   type 'a pretty_syntax = (int * fixity) * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T);
   type serializer = string -> (string -> CodegenThingol.itype pretty_syntax option)
     -> (string -> CodegenThingol.iexpr pretty_syntax option)
-    -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
+    -> string list option -> CodegenThingol.module -> Pretty.T;
   val parse_fixity: OuterParse.token list -> fixity * OuterParse.token list;
 
   val ml_from_thingol: string list list -> string -> string -> serializer;
@@ -29,61 +23,6 @@ structure CodegenSerializer: CODEGEN_SERIALIZER =
 struct
 
 open CodegenThingol;
-
-
-(** target language primitives **)
-
-type primitives = string Graph.T;
-
-val empty_prims = Graph.empty;
-
-fun add_prim (f, (def, deps)) prims =
-  prims
-  |> Graph.new_node (f, def)
-  |> fold (fn dep => Graph.add_edge (f, dep)) deps;
-
-val merge_prims = Graph.merge (op =) : primitives * primitives -> primitives;
-
-val has_prim : primitives -> string -> bool = can o Graph.get_node;
-
-fun get_prims prims defs =
-  defs
-  |> filter (can (Graph.get_node prims))
-  |> `I
-  ||> Graph.all_succs prims
-  ||> (fn gr => Graph.subgraph gr prims)
-  ||> Graph.strong_conn
-  ||> rev
-  ||> Library.flat
-  ||> map (Graph.get_node prims)
-  ||> separate ""
-  ||> cat_lines
-  ||> suffix "\n";
-
-fun mk_prims prims = get_prims prims (Graph.keys prims) |> snd;
-
-
-(** keyword arguments **)
-
-type kw = (string * string option) list;
-fun kw_make args =
-  let
-    val parse_keyval = ();
-  in
-    Args.!!! (Scan.repeat (
-      Args.name
-      -- Scan.option (Args.$$$ "=" |-- Args.name)
-    ) #> fst) args
-  end;
-fun kw_get k kw =
-  ((the o AList.lookup (op =) kw) k, AList.delete (op =) k kw);
-fun kw_has kw k =
-  AList.defined (op =) kw k;
-fun kw_done x [] = x
-  | kw_done x kw =
-      error ("uninterpreted keyword arguments: " ^ (commas o map (quote o fst)) kw);
-
-
 
 (** generic serialization **)
 
@@ -98,7 +37,7 @@ type 'a pretty_syntax = (int * fixity)
   * (Pretty.T list -> ('a -> Pretty.T) -> Pretty.T);
 type serializer = string -> (string -> CodegenThingol.itype pretty_syntax option)
   -> (string -> CodegenThingol.iexpr pretty_syntax option)
-  -> primitives -> string list option -> CodegenThingol.module -> Pretty.T;
+  -> string list option -> CodegenThingol.module -> Pretty.T;
 
 local
 
@@ -557,7 +496,7 @@ fun ml_from_defs serializer_name tyco_syntax const_syntax is_dicttype resolv ds 
 
 in
 
-fun ml_from_thingol nspgrp nsp_class name_root serializer_name tyco_syntax const_syntax prims select module =
+fun ml_from_thingol nspgrp nsp_class name_root serializer_name tyco_syntax const_syntax select module =
   let
     fun ml_validator name =
       let
@@ -570,7 +509,6 @@ fun ml_from_thingol nspgrp nsp_class name_root serializer_name tyco_syntax const
           name
           |> member (op =) ThmDatabase.ml_reserved ? suffix "'"
           |> member (op =) CodegenThingol.prims ? suffix "'"
-          |> has_prim prims ? suffix "'"
           |> (fn name' => if name = name' then name else suffix_it name')
       in
         name
@@ -619,6 +557,7 @@ fun ml_from_thingol nspgrp nsp_class name_root serializer_name tyco_syntax const
     module
     |> debug 3 (fn _ => "selecting submodule...")
     |> (if is_some select then (partof o the) select else I)
+    |> tap (Pretty.writeln o pretty_deps)
     |> debug 3 (fn _ => "eta-expanding...")
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "eta-expanding polydefs...")
@@ -629,7 +568,6 @@ fun ml_from_thingol nspgrp nsp_class name_root serializer_name tyco_syntax const
     |> eliminate_classes
     |> debug 3 (fn _ => "serializing...")
     |> serialize (ml_from_defs serializer_name tyco_syntax const_syntax is_dicttype) ml_from_module ml_validator nspgrp name_root
-    |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
 fun ml_from_thingol' nspgrp name_root =
@@ -1032,7 +970,7 @@ fun haskell_from_defs serializer_name tyco_syntax const_syntax is_cons resolv de
 
 in
 
-fun haskell_from_thingol nspgrp nsp_cons name_root serializer_name tyco_syntax const_syntax prims select module =
+fun haskell_from_thingol nspgrp nsp_cons name_root serializer_name tyco_syntax const_syntax select module =
   let
     fun haskell_from_module (name, ps) =
       Pretty.block [
@@ -1051,7 +989,6 @@ fun haskell_from_thingol nspgrp nsp_cons name_root serializer_name tyco_syntax c
         fun suffix_it name =
           name
           |> member (op =) CodegenThingol.prims ? suffix "'"
-          |> has_prim prims ? suffix "'"
           |> (fn name' => if name = name' then name else suffix_it name')
       in
         name
@@ -1082,7 +1019,6 @@ fun haskell_from_thingol nspgrp nsp_cons name_root serializer_name tyco_syntax c
     |> eta_expand eta_expander
     |> debug 3 (fn _ => "serializing...")
     |> serialize (haskell_from_defs serializer_name tyco_syntax const_syntax (fn c => has_nsp c nsp_cons)) haskell_from_module haskell_validator nspgrp name_root
-    |> (fn p => Pretty.chunks [setmp print_mode [] (Pretty.str o mk_prims) prims, p])
   end;
 
 end; (* local *)
