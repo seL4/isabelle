@@ -308,8 +308,9 @@ val setup = [
     ("datatype", CodegenPackage.defgen_datatype DatatypePackage.get_datatype DatatypePackage.get_datatype_cons),
   CodegenPackage.add_defgen
     ("datacons", CodegenPackage.defgen_datacons DatatypePackage.get_datatype_cons),
-  CodegenPackage.add_appgen
-    ("case", CodegenPackage.appgen_case DatatypePackage.get_case_const_data)
+  CodegenPackage.ensure_datatype_case_consts
+    DatatypePackage.get_datatype_case_consts
+    DatatypePackage.get_case_const_data
 ];
 
 end;

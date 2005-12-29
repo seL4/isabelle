@@ -69,6 +69,7 @@ sig
   val is_datatype : theory -> string -> bool
   val get_datatype : theory -> string -> ((string * sort) list * string list) option
   val get_datatype_cons : theory -> string * string -> typ list option
+  val get_datatype_case_consts : theory -> string list
   val get_case_const_data : theory -> string -> (string * int) list option
   val get_all_datatype_cons : theory -> (string * string) list
   val constrs_of : theory -> string -> term list option
@@ -127,6 +128,60 @@ fun case_const_of thy tname = (case datatype_info thy tname of
  | _ => NONE);
 
 val weak_case_congs_of = map (#weak_case_cong o #2) o Symtab.dest o get_datatypes;
+
+fun is_datatype thy dtco =
+  Symtab.lookup (get_datatypes thy) dtco
+  |> is_some;
+
+fun get_datatype thy dtco =
+  dtco
+  |> Symtab.lookup (get_datatypes thy)
+  |> Option.map (fn info => (#sorts info,
+      (get_first (fn (_, (dtco', _, cs)) =>
+        if dtco = dtco'
+        then SOME (map fst cs)
+        else NONE) (#descr info) |> the)));
+  
+fun get_datatype_cons thy (co, dtco) =
+  let
+    val descr =
+      dtco
+      |> Symtab.lookup (get_datatypes thy)
+      |> Option.map #descr
+      |> these
+    val one_descr =
+      descr
+      |> get_first (fn (_, (dtco', vs, cs)) =>
+          if dtco = dtco'
+          then SOME (vs, cs)
+          else NONE);
+  in
+    if is_some one_descr
+    then
+      the one_descr
+      |> (fn (vs, cs) =>
+          co
+          |> AList.lookup (op =) cs
+          |> Option.map (map (DatatypeAux.typ_of_dtyp descr (map (rpair [])
+               (map DatatypeAux.dest_DtTFree vs)))))
+    else NONE
+  end;
+
+fun get_datatype_case_consts thy =
+  Symtab.fold (fn (_, {case_name, ...}) => cons case_name) (get_datatypes thy) [];
+
+fun get_case_const_data thy c =
+  case find_first (fn (_, {index, descr, case_name, ...}) =>
+      case_name = c
+    ) ((Symtab.dest o get_datatypes) thy)
+   of NONE => NONE
+    | SOME (_, {index, descr, ...}) =>
+        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
+
+fun get_all_datatype_cons thy =
+  Symtab.fold (fn (dtco, _) => fold
+    (fn co => cons (co, dtco))
+      ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
 
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
@@ -685,16 +740,18 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val simps = List.concat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
     val split_thms = split ~~ split_asm;
 
-    val thy12 = thy11 |>
-      Theory.add_advanced_trfuns ([], [], make_case_tr' case_names' (hd descr), []) |>
-      Theory.add_path (space_implode "_" new_type_names) |>
-      add_rules simps case_thms size_thms rec_thms inject distinct
-                weak_case_congs Simplifier.cong_add_global |> 
-      put_datatypes (fold Symtab.update dt_infos dt_info) |>
-      add_cases_induct dt_infos induct |>
-      Theory.parent_path |>
-      store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd |>
-      DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
+    val thy12 =
+      thy11
+      |> Theory.add_advanced_trfuns ([], [], make_case_tr' case_names' (hd descr), [])
+      |> Theory.add_path (space_implode "_" new_type_names)
+      |> add_rules simps case_thms size_thms rec_thms inject distinct
+           weak_case_congs Simplifier.cong_add_global
+      |> put_datatypes (fold Symtab.update dt_infos dt_info)
+      |> add_cases_induct dt_infos induct
+      |> Theory.parent_path
+      |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
+      |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
+      |> fold (CodegenPackage.add_cg_case_const_i get_case_const_data) case_names';
   in
     ({distinct = distinct,
       inject = inject,
@@ -742,16 +799,18 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val simps = List.concat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
-    val thy12 = thy11 |>
-      Theory.add_advanced_trfuns ([], [], make_case_tr' case_names (hd descr), []) |>
-      Theory.add_path (space_implode "_" new_type_names) |>
-      add_rules simps case_thms size_thms rec_thms inject distinct
-                weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (fold Symtab.update dt_infos dt_info) |>
-      add_cases_induct dt_infos induct |>
-      Theory.parent_path |>
-      store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd |>
-      DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
+    val thy12 =
+      thy11
+      |> Theory.add_advanced_trfuns ([], [], make_case_tr' case_names (hd descr), [])
+      |> Theory.add_path (space_implode "_" new_type_names)
+      |> add_rules simps case_thms size_thms rec_thms inject distinct
+            weak_case_congs (Simplifier.change_global_ss (op addcongs))
+      |> put_datatypes (fold Symtab.update dt_infos dt_info)
+      |> add_cases_induct dt_infos induct
+      |> Theory.parent_path
+      |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
+      |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
+      |> fold (CodegenPackage.add_cg_case_const_i get_case_const_data) case_names;
   in
     ({distinct = distinct,
       inject = inject,
@@ -951,60 +1010,6 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
 
 val add_datatype_i = gen_add_datatype cert_typ;
 val add_datatype = gen_add_datatype read_typ true;
-
-
-(** queries **)
-
-fun is_datatype thy dtco =
-  Symtab.lookup (get_datatypes thy) dtco
-  |> is_some;
-
-fun get_datatype thy dtco =
-  dtco
-  |> Symtab.lookup (get_datatypes thy)
-  |> Option.map (fn info => (#sorts info,
-      (get_first (fn (_, (dtco', _, cs)) =>
-        if dtco = dtco'
-        then SOME (map fst cs)
-        else NONE) (#descr info) |> the)));
-  
-fun get_datatype_cons thy (co, dtco) =
-  let
-    val descr =
-      dtco
-      |> Symtab.lookup (get_datatypes thy)
-      |> Option.map #descr
-      |> these
-    val one_descr =
-      descr
-      |> get_first (fn (_, (dtco', vs, cs)) =>
-          if dtco = dtco'
-          then SOME (vs, cs)
-          else NONE);
-  in
-    if is_some one_descr
-    then
-      the one_descr
-      |> (fn (vs, cs) =>
-          co
-          |> AList.lookup (op =) cs
-          |> Option.map (map (DatatypeAux.typ_of_dtyp descr (map (rpair [])
-               (map DatatypeAux.dest_DtTFree vs)))))
-    else NONE
-  end;
-
-fun get_case_const_data thy c =
-  case Library.find_first (fn (_, {index, descr, case_name, ...}) =>
-      case_name = c
-    ) ((Symtab.dest o get_datatypes) thy)
-   of NONE => NONE
-    | SOME (_, {index, descr, ...}) =>
-        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
-
-fun get_all_datatype_cons thy =
-  Symtab.fold (fn (dtco, _) => fold
-    (fn co => cons (co, dtco))
-      ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
 
 
 
