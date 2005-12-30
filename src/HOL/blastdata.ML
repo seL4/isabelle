@@ -16,6 +16,8 @@ AddSEs [alt_ex1E];
 structure Blast_Data = 
   struct
   type claset	= Classical.claset
+  val equality_name = "op ="
+  val not_name = "Not"
   val notE	= notE
   val ccontr	= ccontr
   val contr_tac = Classical.contr_tac
