@@ -25,6 +25,7 @@
   \gdef\bold#1{\textbf{\hyperpage{#1}}}
 \else
   \message{No PDF output}
+  \def\phantomsection\relax
   \usepackage{../url}
   \newcommand{\hfootref}[2]{#2\footnote{\url{#1}}}
 \fi
