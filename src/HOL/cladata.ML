@@ -38,7 +38,7 @@ fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
 
 
 (*** Applying Make_Elim_Fun to create a classical "make_elim" rule ***)
-structure Make_Elim = Make_Elim_Fun (val classical = classical);
+structure Make_Elim = Make_Elim_Fun (val cla_dist_concl = thm "cla_dist_concl");
 
 (*we don't redeclare the original make_elim (Tactic.make_elim) for 
   compatibliity with strange things done in many existing proofs *)
