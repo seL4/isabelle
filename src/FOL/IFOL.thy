@@ -16,7 +16,7 @@ subsection {* Syntax and axiomatic basis *}
 global
 
 classes "term"
-final_consts term_class
+finalconsts term_class
 defaultsort "term"
 
 typedecl o
