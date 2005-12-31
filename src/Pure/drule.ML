@@ -405,6 +405,11 @@ fun forall_intr_frees th =
          th
     end;
 
+(*Generalization over Vars -- canonical order*)
+fun forall_intr_vars th =
+  let val cert = Thm.cterm_of (Thm.theory_of_thm th)
+  in forall_intr_list (map (cert o Var) (vars_of th)) th end;
+
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
 
@@ -644,22 +649,7 @@ val del_rule = del_rules o single;
 val add_rule = add_rules o single;
 fun merge_rules (rules1, rules2) = gen_merge_lists' eq_thm_prop rules1 rules2;
 
-(** Mark Staples's weaker version of eq_thm: ignores variable renaming and
-    (some) type variable renaming **)
-
- (* Can't use term_vars, because it sorts the resulting list of variable names.
-    We instead need the unique list noramlised by the order of appearance
-    in the term. *)
-fun term_vars' (t as Var(v,T)) = [t]
-  | term_vars' (Abs(_,_,b)) = term_vars' b
-  | term_vars' (f$a) = (term_vars' f) @ (term_vars' a)
-  | term_vars' _ = [];
-
-fun forall_intr_vars th =
-  let val {prop,thy,...} = rep_thm th;
-      val vars = distinct (term_vars' prop);
-  in forall_intr_list (map (cterm_of thy) vars) th end;
-
+(*weak_eq_thm: ignores variable renaming and (some) type variable renaming*)
 val weak_eq_thm = Thm.eq_thm o pairself (forall_intr_vars o freezeT);
 
 
