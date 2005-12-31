@@ -180,16 +180,20 @@ lists of propositions separated by 'and':
 * Provers/induct: support coinduction as well.  See
 src/HOL/Library/Coinductive_List.thy for various examples.
 
-* Input syntax now supports dummy variable binding "%_. b", where the
-body does not mention the bound variable.  Note that dummy patterns
-implicitly depend on their context of bounds, which makes "{_. _}"
-match any set comprehension as expected.  Potential INCOMPATIBILITY --
-parse translations need to cope with syntactic constant "_idtdummy" in
-the binding position.
+* Provers/classical: removed obsolete classical version of elim_format
+attribute; classical elim/dest rules are now treated uniformly when
+manipulating the claset.
 
-* Removed obsolete syntactic constant "_K" and its associated parse
-translation.  INCOMPATIBILITY -- use dummy abstraction instead, for
-example "A -> B" => "Pi A (%_. B)".
+* Syntax: input syntax now supports dummy variable binding "%_. b",
+where the body does not mention the bound variable.  Note that dummy
+patterns implicitly depend on their context of bounds, which makes
+"{_. _}" match any set comprehension as expected.  Potential
+INCOMPATIBILITY -- parse translations need to cope with syntactic
+constant "_idtdummy" in the binding position.
+
+* Syntax: removed obsolete syntactic constant "_K" and its associated
+parse translation.  INCOMPATIBILITY -- use dummy abstraction instead,
+for example "A -> B" => "Pi A (%_. B)".
 
 
 *** HOL ***
