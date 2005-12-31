@@ -24,15 +24,6 @@ subsection {* Lemmas and proof tools *}
 use "FOL_lemmas1.ML"
 theorems case_split = case_split_thm [case_names True False, cases type: o]
 
-lemma cla_dist_concl:
-  assumes x: "~Z_Z ==> PROP X_X"
-    and z: "PROP Y_Y ==> Z_Z"
-    and y: "PROP X_X ==> PROP Y_Y"
-  shows Z_Z
-  apply (rule classical)
-  apply (erule x [THEN y, THEN z])
-  done
-
 use "cladata.ML"
 setup Cla.setup
 setup cla_setup

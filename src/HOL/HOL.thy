@@ -909,15 +909,6 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
 
 subsubsection {* Classical Reasoner setup *}
 
-lemma cla_dist_concl:
-  assumes x: "~Z_Z ==> PROP X_X"
-    and z: "PROP Y_Y ==> Z_Z"
-    and y: "PROP X_X ==> PROP Y_Y"
-  shows Z_Z
-  apply (rule classical)
-  apply (erule x [THEN y, THEN z])
-  done
-
 use "cladata.ML"
 setup hypsubst_setup
 
