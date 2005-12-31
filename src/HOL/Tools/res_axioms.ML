@@ -347,7 +347,7 @@ val tag_elim  = preserve_name (fn th => tagD RS th);
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
       val intros = safeIs @ hazIs
-      val elims  = safeEs @ hazEs
+      val elims  = map Classical.classical_rule (safeEs @ hazEs)
   in
      debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 
             " elims: " ^ Int.toString(length elims));
