@@ -1235,9 +1235,15 @@ fun fromSubgoal t =
   in  skoSubgoal 0 (from 0 (discard_foralls t))  end;
 
 
+fun reject_const thy c =
+  if is_some (Sign.const_type thy c) then
+    error ("Blast: theory contains illegal constant " ^ quote c)
+  else ();
+
 fun initialize thy =
-    (fullTrace:=[];  trail := [];  ntrail := 0;
-     nclosed := 0;  ntried := 1;  typargs := Sign.const_typargs thy);
+ (fullTrace:=[];  trail := [];  ntrail := 0;
+  nclosed := 0;  ntried := 1;  typargs := Sign.const_typargs thy;
+  reject_const thy "*Goal*"; reject_const thy "*False*");
 
 
 (*Tactic using tableau engine and proof reconstruction.
@@ -1323,11 +1329,7 @@ fun blast_meth NONE = Data.cla_meth' blast_tac
   | blast_meth (SOME lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
 
 val setup =
- [fn thy => thy
-    |> Sign.root_path
-    |> Theory.add_consts_i [("*Goal*", propT, NoSyn), ("*False*", propT, NoSyn)]
-    |> Sign.restore_naming thy,
-  Method.add_methods [("blast", blast_args blast_meth, "tableau prover")]];
+ [Method.add_methods [("blast", blast_args blast_meth, "tableau prover")]];
 
 
 end;
