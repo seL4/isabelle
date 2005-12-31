@@ -36,18 +36,9 @@ fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
     (List.nth (Thm.prems_of thm, i - 1)) then hyp_subst_tac i thm else no_tac thm;
 
 
-
-(*** Applying Make_Elim_Fun to create a classical "make_elim" rule ***)
-structure Make_Elim = Make_Elim_Fun (val cla_dist_concl = thm "cla_dist_concl");
-
-(*we don't redeclare the original make_elim (Tactic.make_elim) for 
-  compatibliity with strange things done in many existing proofs *)
-val cla_make_elim = Make_Elim.make_elim;
-
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
-  val make_elim = cla_make_elim
   val mp        = mp
   val not_elim  = notE
   val classical = classical

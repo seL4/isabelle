@@ -14,7 +14,6 @@ use "hologic.ML";
 use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/hypsubst.ML";
 use "~~/src/Provers/induct_method.ML";
-use "~~/src/Provers/make_elim.ML";
 use "~~/src/Provers/classical.ML";
 use "~~/src/Provers/blast.ML";
 use "~~/src/Provers/clasimp.ML";

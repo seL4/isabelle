@@ -433,8 +433,7 @@ val simpsetup =
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Classical and Blast = Blast
-  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE
-  val cla_make_elim = cla_make_elim);
+  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE);
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);

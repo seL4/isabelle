@@ -369,8 +369,7 @@ val simpsetup = [fn thy => (change_simpset_of thy (fn _ => FOL_ss); thy)];
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
   and Classical  = Cla and Blast = Blast
-  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE
-  val cla_make_elim = cla_make_elim);
+  val iffD1 = iffD1 val iffD2 = iffD2 val notE = notE);
 open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);

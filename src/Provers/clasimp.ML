@@ -18,7 +18,6 @@ sig
   val notE: thm
   val iffD1: thm
   val iffD2: thm
-  val cla_make_elim: thm -> thm
 end
 
 signature CLASIMP =
@@ -140,7 +139,7 @@ fun addIff decls1 decls2 simp ((cs, ss), th) =
     val zero_rotate = zero_var_indexes o rotate_prems n;
   in
     (elim (intro (cs, [suffix_thm name "_iff2" (zero_rotate (th RS Data.iffD2))]),
-           [suffix_thm name "_iff1" (Data.cla_make_elim (zero_rotate (th RS Data.iffD1)))])
+           [suffix_thm name "_iff1" (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))])
       handle THM _ => (elim (cs, [suffix_thm name "_iff1" (zero_rotate (th RS Data.notE))])
         handle THM _ => intro (cs, [th])),
      simp (ss, [th]))
@@ -149,7 +148,7 @@ fun addIff decls1 decls2 simp ((cs, ss), th) =
 fun delIff delcs delss ((cs, ss), th) =
   let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
     (delcs (cs, [zero_rotate (th RS Data.iffD2),
-        Data.cla_make_elim (zero_rotate (th RS Data.iffD1))])
+        Tactic.make_elim (zero_rotate (th RS Data.iffD1))])
       handle THM _ => (delcs (cs, [zero_rotate (th RS Data.notE)])
         handle THM _ => delcs (cs, [th])),
      delss (ss, [th]))
