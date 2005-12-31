@@ -1183,20 +1183,13 @@ assumptions to be included as well.
 
 \subsubsection{Classical operations}
 
-\indexisaratt{elim-format}\indexisaratt{swapped}
+\indexisaratt{swapped}
 
 \begin{matharray}{rcl}
-  elim_format & : & \isaratt \\
   swapped & : & \isaratt \\
 \end{matharray}
 
 \begin{descr}
-
-\item [$elim_format$] turns a destruction rule into elimination rule format;
-  this operation is similar to the the intuitionistic version
-  (\S\ref{sec:misc-meth-att}), but each premise of the resulting rule acquires
-  an additional local fact of the negated main thesis; according to the
-  classical principle $(\neg A \Imp A) \Imp A$.
 
 \item [$swapped$] turns an introduction rule into an elimination, by resolving
   with the classical swap principle $(\neg B \Imp A) \Imp (\neg A \Imp B)$.
