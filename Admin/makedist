@@ -11,7 +11,7 @@ DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL ZF"
 
 export CVSROOT=/usr/proj/isabelle-repository/archive
-[ ! -d "$CVSROOT" ] && CVSROOT="sunbroy2.informatik.tu-muenchen.de:$CVSROOT"
+[ ! -d "$CVSROOT" ] && CVSROOT="${ISABELLE_USER:-$USER}@sunbroy2.informatik.tu-muenchen.de:$CVSROOT"
 
 umask 022
 
