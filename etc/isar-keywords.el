@@ -197,6 +197,7 @@
     "ultimately"
     "undo"
     "undos_proof"
+    "unfolding"
     "update_thy"
     "update_thy_only"
     "use"
@@ -214,7 +215,6 @@
     "advanced"
     "and"
     "assumes"
-    "atom"
     "attach"
     "begin"
     "binder"
@@ -494,6 +494,7 @@
     "note"
     "txt"
     "txt_raw"
+    "unfolding"
     "using"))
 
 (defconst isar-keywords-proof-asm
