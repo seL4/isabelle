@@ -43,11 +43,16 @@ end;
 functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
 struct
 
-val Const ("==>", _) $ (Const ("Trueprop", _) $
-         (Const (const_not, _) $ _    )) $ _ = #prop (rep_thm(Data.notnotD));
+val Const (const_not, _) $ _ =
+  ObjectLogic.drop_judgment (the_context ())
+    (#1 (Logic.dest_implies (Thm.prop_of Data.notnotD)));
 
-val Const ("==>", _) $ (Const ("Trueprop", _) $
-         (Const (const_or , _) $ _ $ _)) $ _ = #prop (rep_thm(Data.disjE));
+val Const (const_or , _) $ _ $ _ =
+  ObjectLogic.drop_judgment (the_context ())
+    (#1 (Logic.dest_implies (Thm.prop_of Data.disjE)));
+
+val const_Trueprop = ObjectLogic.judgment_name (the_context ());
+
 
 fun split_format_err() = error("Wrong format for split rule");
 
@@ -70,8 +75,8 @@ let
 
 val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;
 val lift =
-  let val ct = read_cterm (#sign(rep_thm Data.iffD))
-           ("[| !!x. (Q::('b::{})=>('c::{}))(x) == R(x) |] ==> \
+  let val ct = read_cterm Pure.thy
+           ("(!!x. (Q::('b::{})=>('c::{}))(x) == R(x)) ==> \
             \P(%x. Q(x)) == P(%x. R(x))::'a::{}",propT)
   in OldGoals.prove_goalw_cterm [] ct
      (fn [prem] => [rewtac prem, rtac reflexive_thm 1])
@@ -370,8 +375,8 @@ fun split_asm_tac []     = K no_tac
       fun tac (t,i) =
           let val n = find_index (exists_Const is_case)
                                  (Logic.strip_assums_hyp t);
-              fun first_prem_is_disj (Const ("==>", _) $ (Const ("Trueprop", _)
-                                 $ (Const (s, _) $ _ $ _ )) $ _ ) = (s=const_or)
+              fun first_prem_is_disj (Const ("==>", _) $ (Const (c, _)
+                    $ (Const (s, _) $ _ $ _ )) $ _ ) = c = const_Trueprop andalso s = const_or
               |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) =
                                         first_prem_is_disj t
               |   first_prem_is_disj _ = false;
