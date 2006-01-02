@@ -1691,7 +1691,6 @@ fun gen_add_locale prep_ctxt prep_expr
     val (pred_thy, (elemss', predicate as (predicate_statement, predicate_axioms))) =
       if do_predicate then thy |> define_preds bname text elemss
       else (thy, (elemss, ([], [])));
-    val pred_ctxt = ProofContext.init pred_thy;
 
     fun axiomify axioms elemss =
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
@@ -1701,8 +1700,8 @@ fun gen_add_locale prep_ctxt prep_expr
                  in (axs2, ((id, Assumed axs1), elems)) end)
         |> snd;
     val (ctxt, (_, facts)) = activate_facts (K I)
-      (pred_ctxt, axiomify predicate_axioms elemss');
-    val export = ProofContext.export_view predicate_statement ctxt pred_ctxt;
+      (thy_ctxt, axiomify predicate_axioms elemss');
+    val export = ProofContext.export_view predicate_statement ctxt thy_ctxt;
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))
   in
