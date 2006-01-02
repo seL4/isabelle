@@ -65,6 +65,11 @@ certain special cases of literal facts:
 
   def x == "t" and y == "u"
 
+* Isar: added command 'unfolding', which is structurally similar to
+'using', but affects both the goal state and facts by unfolding given
+meta-level equations.  Thus many occurrences of the 'unfold' method or
+'unfolded' attribute may be replaced by first-class proof text.
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals
@@ -225,14 +230,15 @@ as greatest fixed-point.
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val burrow_split: ('a list -> 'c * 'b list) -> 'a list list -> 'c * 'b list list
 
-The semantics of "burrow" is: "take a function with *simulatanously* transforms
-a list of value, and apply it *simulatanously* to a list of list of values of the
-appropriate type". Confer this with "map" which would *not* apply its argument
-function simulatanously but in sequence. "burrow_split" allows the transformator
-function to yield an additional side result.
+The semantics of "burrow" is: "take a function with *simulatanously*
+transforms a list of value, and apply it *simulatanously* to a list of
+list of values of the appropriate type". Confer this with "map" which
+would *not* apply its argument function simulatanously but in
+sequence. "burrow_split" allows the transformator function to yield an
+additional side result.
 
-Both actually avoid the usage of "unflat" since they hide away "unflat"
-from the user.
+Both actually avoid the usage of "unflat" since they hide away
+"unflat" from the user.
 
 * Pure/library: functions map2 and fold2 with curried syntax for
 simultanous mapping and folding:
@@ -256,13 +262,6 @@ used to.
 * Pure/General: name_mangler.ML provides a functor for generic name
 mangling (bijective mapping from any expression values to strings).
 
-* Pure/library:
-
-  val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
-
-  replacing infix "prefix" and various individual isomorphic functions scattered
-  among an amount of ML modules.
-
 * Pure/General: rat.ML implements rational numbers.
 
 * Pure: several functions of signature "... -> theory -> theory * ..."
@@ -278,7 +277,7 @@ achieve the old behaviour.
 slightly more general idea of ``protecting'' meta-level rule
 statements.
 
-* Internal goals: structure Goal provides simple interfaces for
+* Pure/goals: structure Goal provides simple interfaces for
 init/conclude/finish and tactical prove operations (replacing former
 Tactic.prove).  Note that OldGoals.prove_goalw_cterm has long been
 obsolete, it is ill-behaved in a local proof context (e.g. with local
@@ -301,6 +300,9 @@ specify an explicit context using Simplifier.context/theory_context.
 change_simpset/claset for modifying the simpset/claset reference of a
 theory; raw versions simpset/claset_ref etc. have been discontinued --
 INCOMPATIBILITY.
+
+* Provers: more generic wrt. syntax of object-logics, avoid hardwired
+"Trueprop" etc.
 
 
 
