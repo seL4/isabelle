@@ -74,8 +74,10 @@ sig
   val from_thmss_i: ((thm list * context attribute list) list) list -> state -> state
   val with_thmss: ((thmref * Attrib.src list) list) list -> state -> state
   val with_thmss_i: ((thm list * context attribute list) list) list -> state -> state
-  val using_thmss: ((thmref * Attrib.src list) list) list -> state -> state
-  val using_thmss_i: ((thm list * context attribute list) list) list -> state -> state
+  val using: ((thmref * Attrib.src list) list) list -> state -> state
+  val using_i: ((thm list * context attribute list) list) list -> state -> state
+  val unfolding: ((thmref * Attrib.src list) list) list -> state -> state
+  val unfolding_i: ((thm list * context attribute list) list) list -> state -> state
   val invoke_case: string * string option list * Attrib.src list -> state -> state
   val invoke_case_i: string * string option list * context attribute list -> state -> state
   val begin_block: state -> state
@@ -628,21 +630,28 @@ fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
 end;
 
 
-(* using *)
+(* using/unfolding *)
 
 local
 
-fun gen_using_thmss note prep_atts args state =
+fun gen_using f g note prep_atts args state =
   state
   |> assert_backward
   |> map_context_result (note (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
   |-> (fn named_facts => map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
-    (statement, using @ List.concat (map snd named_facts), goal, before_qed, after_qed)));
+    let val ths = List.concat (map snd named_facts)
+    in (statement, f ths using, g ths goal, before_qed, after_qed) end));
+
+fun append_using ths using = using @ ths;
+fun unfold_using ths = map (Tactic.rewrite_rule ths);
+val unfold_goal = Tactic.rewrite_goals_rule;
 
 in
 
-val using_thmss = gen_using_thmss ProofContext.note_thmss Attrib.local_attribute;
-val using_thmss_i = gen_using_thmss ProofContext.note_thmss_i (K I);
+val using = gen_using append_using (K I) ProofContext.note_thmss Attrib.local_attribute;
+val using_i = gen_using append_using (K I) ProofContext.note_thmss_i (K I);
+val unfolding = gen_using unfold_using unfold_goal ProofContext.note_thmss Attrib.local_attribute;
+val unfolding_i = gen_using unfold_using unfold_goal ProofContext.note_thmss_i (K I);
 
 end;
 
@@ -793,7 +802,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
 fun generic_qed state =
   let
-    val (goal_ctxt, {statement = (_, stmt), using, goal, before_qed = _, after_qed}) =
+    val (goal_ctxt, {statement = (_, stmt), using = _, goal, before_qed = _, after_qed}) =
       current_goal state;
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
