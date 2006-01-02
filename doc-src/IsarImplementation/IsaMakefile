@@ -1,0 +1,33 @@
+
+## targets
+
+default: Thy
+images: 
+test: Thy
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
+
+
+## Thy
+
+Thy: $(LOG)/Pure-Thy.gz
+
+$(LOG)/Pure-Thy.gz: Thy/ROOT.ML Thy/base.thy Thy/integration.thy \
+  Thy/locale.thy Thy/logic.thy Thy/prelim.thy Thy/proof.thy Thy/tactic.thy \
+  Thy/ML.thy Thy/setup.ML
+	@$(USEDIR) Pure Thy
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/Pure-Thy.gz

@@ -1,0 +1,192 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{logic}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ logic\ \isakeyword{imports}\ base\ \isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Pure logic%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Syntax%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Simply-typed lambda calculus%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Type}{FIXME}
+\glossary{Term}{FIXME}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{The order-sorted algebra of types%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Type constructor}{FIXME}
+
+\glossary{Type class}{FIXME}
+
+\glossary{Type arity}{FIXME}
+
+\glossary{Sort}{FIXME}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Type-inference and schematic polymorphism%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Schematic polymorphism}{FIXME}
+
+\glossary{Type variable}{FIXME}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Theory%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Constant}{Essentially a \seeglossary{fixed variable} of the
+theory context, but slightly more flexible since it may be used at
+different type-instances, due to \seeglossary{schematic
+polymorphism.}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Deduction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Proposition}{A \seeglossary{term} of \seeglossary{type}
+\isa{prop}.  Internally, there is nothing special about
+propositions apart from their type, but the concrete syntax enforces a
+clear distinction.  Propositions are structured via implication \isa{A\ {\isasymLongrightarrow}\ B} or universal quantification \isa{{\isasymAnd}x{\isachardot}\ B\ x} --- anything
+else is considered atomic.  The canonical form for propositions is
+that of a \seeglossary{Hereditary Harrop Formula}.}
+
+\glossary{Theorem}{A proven proposition within a certain theory and
+proof context, formally \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}; both contexts are
+rarely spelled out explicitly.  Theorems are usually normalized
+according to the \seeglossary{HHF} format.}
+
+\glossary{Fact}{Sometimes used interchangably for
+\seeglossary{theorem}.  Strictly speaking, a list of theorems,
+essentially an extra-logical conjunction.  Facts emerge either as
+local assumptions, or as results of local goal statements --- both may
+be simultaneous, hence the list representation.}
+
+\glossary{Schematic variable}{FIXME}
+
+\glossary{Fixed variable}{A variable that is bound within a certain
+proof context; an arbitrary-but-fixed entity within a portion of proof
+text.}
+
+\glossary{Free variable}{Synonymous for \seeglossary{fixed variable}.}
+
+\glossary{Bound variable}{FIXME}
+
+\glossary{Variable}{See \seeglossary{schematic variable},
+\seeglossary{fixed variable}, \seeglossary{bound variable}, or
+\seeglossary{type variable}.  The distinguishing feature of different
+variables is their binding scope.}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Primitive inferences%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Higher-order resolution%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Hereditary Harrop Formula}{The set of propositions in HHF
+format is defined inductively as \isa{H\ {\isacharequal}\ {\isacharparenleft}{\isasymAnd}x\isactrlsup {\isacharasterisk}{\isachardot}\ H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ A{\isacharparenright}}, for variables \isa{x} and atomic propositions \isa{A}.
+Any proposition may be put into HHF form by normalizing with the rule
+\isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}}.  In Isabelle, the outermost
+quantifier prefix is represented via \seeglossary{schematic
+variables}, such that the top-level structure is merely that of a
+\seeglossary{Horn Clause}}.
+
+\glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Equational reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Proof terms%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

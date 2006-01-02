@@ -1,0 +1,252 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{tactic}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ tactic\ \isakeyword{imports}\ base\ \isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Tactical theorem proving%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The basic idea of tactical theorem proving is to refine the
+initial claim in a backwards fashion, until a solved form is reached.
+An intermediate goal consists of several subgoals that need to be
+solved in order to achieve the main statement; zero subgoals means
+that the proof may be finished.  Goal refinement operations are called
+tactics; combinators for composing tactics are called tacticals.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Goals \label{sec:tactical-goals}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/Pure represents a goal\glossary{Tactical goal}{A
+theorem of \seeglossary{Horn Clause} form stating that a number of
+subgoals imply the main conclusion, which is marked as a protected
+proposition.} as a theorem stating that the subgoals imply the main
+goal: \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.  The outermost goal
+structure is that of a Horn Clause\glossary{Horn Clause}{An iterated
+implication \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}, without any
+outermost quantifiers.  Strictly speaking, propositions \isa{A\isactrlsub i} need to be atomic in Horn Clauses, but Isabelle admits
+arbitrary substructure here (nested \isa{{\isasymLongrightarrow}} and \isa{{\isasymAnd}}
+connectives).}: an iterated implication without any
+quantifiers\footnote{Recall that outermost \isa{{\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} is
+always represented via schematic variables in the body: \isa{{\isasymphi}{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}.  These may get instantiated during the course of
+reasoning.}.  For \isa{n\ {\isacharequal}\ {\isadigit{0}}} a goal is solved.
+
+The structure of each subgoal \isa{A\isactrlsub i} is that of a general
+Heriditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B} according to the normal form where any local
+\isa{{\isasymAnd}} is pulled before \isa{{\isasymLongrightarrow}}.  Here \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\ arbitrary-but-fixed entities of
+certain types, and \isa{H\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlsub m} are goal
+hypotheses, i.e.\ facts that may be assumed locally.  Together, this
+forms the goal context of the conclusion \isa{B} to be established.
+The goal hypotheses may be again arbitrary Harrop Formulas, although
+the level of nesting rarely exceeds 1--2 in practice.
+
+The main conclusion \isa{C} is internally marked as a protected
+proposition\glossary{Protected proposition}{An arbitrarily structured
+proposition \isa{C} which is forced to appear as atomic by
+wrapping it into a propositional identity operator; notation \isa{{\isacharhash}C}.  Protecting a proposition prevents basic inferences from
+entering into that structure for the time being.}, which is
+occasionally represented explicitly by the notation \isa{{\isacharhash}C}.
+This ensures that the decomposition into subgoals and main conclusion
+is well-defined for arbitrarily structured claims.
+
+\medskip Basic goal management is performed via the following
+Isabelle/Pure rules:
+
+  \[
+  \infer[\isa{{\isacharparenleft}init{\isacharparenright}}]{\isa{C\ {\isasymLongrightarrow}\ {\isacharhash}C}}{} \qquad
+  \infer[\isa{{\isacharparenleft}finish{\isacharparenright}}]{\isa{{\isacharhash}C}}{\isa{C}}
+  \]
+
+  \medskip The following low-level variants admit general reasoning
+  with protected propositions:
+
+  \[
+  \infer[\isa{{\isacharparenleft}protect{\isacharparenright}}]{\isa{{\isacharhash}C}}{\isa{C}} \qquad
+  \infer[\isa{{\isacharparenleft}conclude{\isacharparenright}}]{\isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}}{\isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ {\isacharhash}C}}
+  \]%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{Goal.init}\verb|Goal.init: cterm -> thm| \\
+  \indexml{Goal.finish}\verb|Goal.finish: thm -> thm| \\
+  \indexml{Goal.protect}\verb|Goal.protect: thm -> thm| \\
+  \indexml{Goal.conclude}\verb|Goal.conclude: thm -> thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Goal.init|~\isa{{\isasymphi}} initializes a tactical goal with
+  the type-checked proposition \isa{{\isasymphi}}.
+
+  \item \verb|Goal.finish|~\isa{th} checks whether theorem \isa{th} is a solved goal configuration (zero subgoals), and concludes
+  the result by removing the goal protection.
+
+  \item \verb|Goal.protect|~\isa{th} protects the whole statement
+  of theorem \isa{th}.
+
+  \item \verb|Goal.conclude|~\isa{th} removes the goal protection
+  for any number of pending subgoals.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Tactic}{Any function that maps a \seeglossary{tactical goal}
+to a lazy sequence of possible sucessors.  This scheme subsumes
+failure (empty result sequence), as well as lazy enumeration of proof
+search results.  Error conditions are usually mapped to an empty
+result, which gives further tactics a chance to try in turn.
+Commonly, tactics either take an argument to address a particular
+subgoal, or operate on a certain range of subgoals in a uniform
+fashion.  In any case, the main conclusion is normally left untouched,
+apart from instantiating \seeglossary{schematic variables}.}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Tacticals%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME
+
+\glossary{Tactical}{A functional combinator for building up complex
+tactics from simpler ones.  Typical tactical perform sequential
+composition, disjunction (choice), iteration, or goal addressing.
+Various search strategies may be expressed via tacticals.}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Programmed proofs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In order to perform a complete tactical proof under program control,
+  one needs to set up an initial goal configuration, apply a tactic,
+  and finish the result, cf.\ the rules given in
+  \secref{sec:tactical-goals}.  Further checks are required to ensure
+  that the result is actually an instance of the original claim --
+  ill-behaved tactics could have destroyed that information.
+
+  Several simultaneous claims may be handled within a single goal
+  statement by using meta-level conjunction internally.\footnote{This
+  is merely syntax for certain derived statements within
+  Isabelle/Pure, there is no need to introduce a separate conjunction
+  operator.}  The whole configuration may be considered within a
+  context of arbitrary-but-fixed parameters and hypotheses, which will
+  be available as local facts during the proof and discharged into
+  implications in the result.
+
+  All of these administrative tasks are packaged into a separate
+  operation, such that the user merely needs to provide the statement
+  and tactic to be applied.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{Goal.prove}\verb|Goal.prove: theory -> string list -> term list -> term ->|\isasep\isanewline%
+\verb|  (thm list -> tactic) -> thm| \\
+  \indexml{Goal.prove-multi}\verb|Goal.prove_multi: theory -> string list -> term list -> term list ->|\isasep\isanewline%
+\verb|  (thm list -> tactic) -> thm list| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Goal.prove|~\isa{thy\ xs\ As\ C\ tac} states goal \isa{C} in the context of arbitrary-but-fixed parameters \isa{xs}
+  and hypotheses \isa{As} and applies tactic \isa{tac} to
+  solve it.  The latter may depend on the local assumptions being
+  presented as facts.  The result is essentially \isa{{\isasymAnd}xs{\isachardot}\ As\ {\isasymLongrightarrow}\ C}, but is normalized by pulling \isa{{\isasymAnd}} before \isa{{\isasymLongrightarrow}}
+  (the conclusion \isa{C} itself may be a rule statement), turning
+  the quantifier prefix into schematic variables, and generalizing
+  implicit type-variables.
+
+  Any additional fixed variables or hypotheses not being mentioned in
+  the initial statement are left unchanged --- programmed proofs may
+  well occur in a larger context.
+
+  \item \verb|Goal.prove_multi| is simular to \verb|Goal.prove|, but
+  states several conclusions simultaneously.  \verb|Tactic.conjunction_tac| may be used to split these into individual
+  subgoals before commencing the actual proof.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

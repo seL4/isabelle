@@ -1,0 +1,59 @@
+
+%% $Id$
+
+%% toc
+\newcommand{\tocentry}[1]{\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{#1}}
+
+%% references
+\newcommand{\secref}[1]{\S\ref{#1}}
+\newcommand{\figref}[1]{figure~\ref{#1}}
+
+%% glossary
+\renewcommand{\glossary}[2]{\nomenclature{\bf #1}{#2}}
+\newcommand{\seeglossary}[1]{\emph{#1}}
+\def\glossaryname{Glossary}
+\renewcommand{\nomname}{\glossaryname}
+\renewcommand{\pagedeclaration}[1]{\nobreak\quad\dotfill~page~\bold{#1}}
+
+\newcommand{\drv}{\mathrel{\vdash}}
+\newcommand{\edrv}{\mathop{\drv}\nolimits}
+\newcommand{\Drv}[1]{\mathrel{\vdash_{#1}}}
+\newcommand{\Or}{\mathrel{\;|\;}}
+
+\renewcommand{\vec}[1]{\overline{#1}}
+\renewcommand{\phi}{\varphi}
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
+
+\pagestyle{headings}
+\sloppy
+\binperiod
+\underscoreon
+
+\newenvironment{mldecls}{\par\noindent\begingroup\def\isanewline{\\}\begin{tabular}{l}}{\end{tabular}\medskip\endgroup}
+
+\isafoldtag{FIXME}
+\isakeeptag{mlref}
+\renewcommand{\isatagmlref}{\subsection*{\makebox[0pt][r]{\fbox{\ML}~~}Reference}\begingroup\def\isastyletext{\rm}\small}
+\renewcommand{\endisatagmlref}{\endgroup}
+
+\newcommand{\indexml}[1]{\index{\emph{#1} ({\ML})|bold}}
+\newcommand{\indexmltype}[1]{\index{\emph{#1} ({\ML} type)|bold}}
+\newcommand{\indexmlstructure}[1]{\index{\emph{#1} ({\ML} structure)|bold}}
+\newcommand{\indexmlfunctor}[1]{\index{\emph{#1} ({\ML} functor)|bold}}
+
+\newcommand{\isasymTHEORY}{\isakeyword{theory}}
+\newcommand{\isasymIMPORTS}{\isakeyword{imports}}
+\newcommand{\isasymUSES}{\isakeyword{uses}}
+\newcommand{\isasymBEGIN}{\isakeyword{begin}}
+\newcommand{\isasymEND}{\isakeyword{end}}
+\newcommand{\isasymCONSTS}{\isakeyword{consts}}
+\newcommand{\isasymDEFS}{\isakeyword{defs}}
+\newcommand{\isasymTHEOREM}{\isakeyword{theorem}}
+
+\isabellestyle{it}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "implementation"
+%%% End: 
