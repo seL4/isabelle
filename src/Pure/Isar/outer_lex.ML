@@ -150,10 +150,13 @@ fun name_of (tok as Token (_, (k, x))) =
   else if x = "" then str_of_kind k
   else str_of_kind k ^ " " ^ quote x;
 
+fun escape q =
+  implode o map (fn s => if s = q orelse s = "\\" then "\\" ^ s else s) o Symbol.explode;
+
 fun unparse (Token (_, (kind, x))) =
   (case kind of
-    String => x |> quote
-  | AltString => x |> enclose "`" "`"
+    String => x |> quote o escape "\""
+  | AltString => x |> enclose "`" "`" o escape "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
   | _ => x);
