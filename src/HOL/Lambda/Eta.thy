@@ -407,7 +407,7 @@ proof (induct t fixing: s u taking: "size :: dB \<Rightarrow> nat" rule: measure
       by (blast dest: par_eta_elim_abs)
     from abs have "size r' < size t" by simp
     with abs(2) rr obtain t' where rt: "r => t'" and t': "t' \<Rightarrow>\<^sub>\<eta> r''"
-      by (blast dest: less)
+      by (blast dest: less(1))
     with s abs show ?thesis
       by (auto intro: eta_expand_red eta_expand_eta)
   next
@@ -419,7 +419,7 @@ proof (induct t fixing: s u taking: "size :: dB \<Rightarrow> nat" rule: measure
     from app have "size q' < size t" and "size r' < size t" by simp_all
     with app(2,3) qq rr obtain t' t'' where "q => t'" and
       "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
-      by (blast dest: less)
+      by (blast dest: less(1))
     with s app show ?thesis
       by (fastsimp intro: eta_expand_red eta_expand_eta)
   next
@@ -431,7 +431,7 @@ proof (induct t fixing: s u taking: "size :: dB \<Rightarrow> nat" rule: measure
     from beta have "size q' < size t" and "size r' < size t" by simp_all
     with beta(2,3) qq rr obtain t' t'' where "q => t'" and
       "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
-      by (blast dest: less)
+      by (blast dest: less(1))
     with s beta show ?thesis
       by (auto intro: eta_expand_red eta_expand_beta eta_expand_eta par_eta_subst)
   qed
@@ -448,8 +448,8 @@ next
   case (2 s' s'' s''')
   from 2 obtain t' where s': "s' => t'" and t': "t' \<Rightarrow>\<^sub>\<eta> s'''"
     by (auto dest: par_eta_beta)
-  from s' obtain t'' where s: "s => t''" and t'': "t'' -e>> t'"
-    by (blast dest: 2)
+  from s' obtain t'' where s: "s => t''" and t'': "t'' -e>> t'" using 2
+    by blast
   from par_eta_subset_eta t' have "t' -e>> s'''" ..
   with t'' have "t'' -e>> s'''" by (rule rtrancl_trans)
   with s show ?case by iprover

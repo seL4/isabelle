@@ -189,6 +189,9 @@ src/HOL/Library/Coinductive_List.thy for various examples.
 attribute; classical elim/dest rules are now treated uniformly when
 manipulating the claset.
 
+* Provers/classical: stricter checks to ensure that supplied intro, dest and 
+elim rules are well-formed; dest and elim rules must have at least one premise.
+
 * Syntax: input syntax now supports dummy variable binding "%_. b",
 where the body does not mention the bound variable.  Note that dummy
 patterns implicitly depend on their context of bounds, which makes

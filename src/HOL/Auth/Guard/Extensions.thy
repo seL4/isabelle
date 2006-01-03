@@ -11,7 +11,7 @@ Cambridge CB3 0FD, United Kingdom
 
 header {*Extensions to Standard Theories*}
 
-theory Extensions imports Event begin
+theory Extensions imports "../Event" begin
 
 subsection{*Extensions to Theory @{text Set}*}
 
@@ -279,8 +279,8 @@ lemma analz_keyset: "keyset H ==>
 analz (G Un H) = H - keysfor G Un (analz (G Un (H Int keysfor G)))"
 apply (rule eq)
 apply (erule analz.induct, blast)
-apply (simp, blast dest: Un_upper1)
-apply (simp, blast dest: Un_upper2)
+apply (simp, blast)
+apply (simp, blast)
 apply (case_tac "Key (invKey K):H - keysfor G", clarsimp)
 apply (drule_tac X=X in no_key_no_Crypt)
 by (auto intro: analz_sub)
@@ -587,7 +587,7 @@ by (auto dest: parts_parts)
 
 lemma known_used [rule_format]: "[| evs:p; Gets_correct p; one_step p |]
 ==> X:parts (knows A evs) --> X:used evs"
-apply (case_tac "A=Spy", blast dest: parts_knows_Spy_subset_used)
+apply (case_tac "A=Spy", blast)
 apply (induct evs)
 apply (simp add: used.simps, blast)
 apply (frule_tac ev=a and evs=evs in one_step_Cons, simp, clarify)
@@ -600,7 +600,7 @@ by (auto dest: Says_imp_used intro: used_ConsI)
 lemma known_max_used [rule_format]: "[| evs:p; Gets_correct p; one_step p |]
 ==> X:parts (knows_max A evs) --> X:used evs"
 apply (case_tac "A=Spy")
-apply (simp, blast dest: parts_knows_Spy_subset_used)
+apply force
 apply (induct evs)
 apply (simp add: knows_max_def used.simps, blast)
 apply (frule_tac ev=a and evs=evs in one_step_Cons, simp, clarify)

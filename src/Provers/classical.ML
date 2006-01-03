@@ -262,12 +262,8 @@ fun swap_res_tac rls =
 fun dup_intr th = zero_var_indexes (th RS classical);
 
 fun dup_elim th =
-  (case try (fn () =>
     rule_by_tactic (TRYALL (etac revcut_rl))
-      ((th RSN (2, revcut_rl)) |> assumption 2 |> Seq.hd)) () of
-    SOME th' => th'
-  | _ => error ("Bad format for elimination rule\n" ^ string_of_thm th));
-
+      ((th RSN (2, revcut_rl)) |> assumption 2 |> Seq.hd);
 
 (**** Classical rule sets ****)
 
@@ -342,10 +338,10 @@ end;
 (*For use with biresolve_tac.  Combines intro rules with swap to handle negated
   assumptions.  Pairs elim rules with true. *)
 fun joinrules (intrs, elims) =
-  (map (pair true) (elims @ swapify intrs) @ map (pair false) intrs);
+  (map (pair true) (elims @ swapify intrs)) @ map (pair false) intrs;
 
 fun joinrules' (intrs, elims) =
-  (map (pair true) elims @ map (pair false) intrs);
+  map (pair true) elims @ map (pair false) intrs;
 
 (*Priority: prefer rules with fewest subgoals,
   then rules added most recently (preferring the head of the list).*)
@@ -419,6 +415,8 @@ fun addSE th
   if mem_thm (th, safeEs) then
          (warning ("Ignoring duplicate safe elimination (elim!)\n" ^ string_of_thm th);
           cs)
+  else if has_fewer_prems 1 th then
+    	error("Ill-formed elimination rule\n" ^ string_of_thm th)
   else
   let
       val th' = classical_rule th
@@ -445,6 +443,9 @@ fun cs addSEs ths = fold_rev addSE ths cs;
 
 (*Give new theorem a name, if it has one already.*)
 fun name_make_elim th =
+    if has_fewer_prems 1 th then
+    	error("Ill-formed destruction rule\n" ^ string_of_thm th)
+    else
     case Thm.name_of_thm th of
         "" => Tactic.make_elim th
       | a  => Thm.name_thm (a ^ "_dest", Tactic.make_elim th);
@@ -475,7 +476,9 @@ fun addI th
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
         xtra_netpair = insert' 1 (nI,nE) ([th], []) xtra_netpair}
-  end;
+  end
+  handle THM("RSN: no unifiers",_,_) => (*from dup_intr*)
+         error ("Ill-formed introduction rule\n" ^ string_of_thm th);
 
 fun addE th
   (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
@@ -483,6 +486,8 @@ fun addE th
   if mem_thm (th, hazEs) then
          (warning ("Ignoring duplicate elimination (elim)\n" ^ string_of_thm th);
           cs)
+  else if has_fewer_prems 1 th then
+    	error("Ill-formed elimination rule\n" ^ string_of_thm th)
   else
   let
       val th' = classical_rule th
@@ -571,7 +576,10 @@ fun delI th
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
         xtra_netpair = delete' ([th], []) xtra_netpair}
- else cs;
+ else cs
+ handle THM("RSN: no unifiers",_,_) => (*from dup_intr*)
+        error ("Ill-formed introduction rule\n" ^ string_of_thm th);
+
 
 fun delE th
          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,

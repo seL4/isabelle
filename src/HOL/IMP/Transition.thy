@@ -208,7 +208,7 @@ lemma rel_pow_0 [simp]: "!!R::('a*'a) set. R^0 = Id" by simp
 lemma rel_pow_Suc_0 [simp]: "!!R::('a*'a) set. R^(Suc 0) = R" by simp
 lemmas [simp del] = relpow.simps
 (*>*)
-lemma evalc1_None_0 [simp, dest!]: "\<langle>s\<rangle> -n\<rightarrow>\<^sub>1 y = (n = 0 \<and> y = \<langle>s\<rangle>)"
+lemma evalc1_None_0 [simp]: "\<langle>s\<rangle> -n\<rightarrow>\<^sub>1 y = (n = 0 \<and> y = \<langle>s\<rangle>)"
   by (cases n) auto
 
 lemma SKIP_n: "\<langle>\<SKIP>, s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s'\<rangle> \<Longrightarrow> s' = s \<and> n=1"
