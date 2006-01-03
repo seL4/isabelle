@@ -1197,7 +1197,7 @@ local
   end
 
   val topnode = Toplevel.node_of o Toplevel.get_state
-  fun topproofpos () = (case topnode() of Toplevel.Proof ph => SOME(ProofHistory.position ph)
+  fun topproofpos () = (case topnode() of Toplevel.Proof (h, _) => SOME(ProofHistory.position h)
                                         | _ => NONE) handle Toplevel.UNDEF => NONE
 in
 
