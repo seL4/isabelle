@@ -101,7 +101,7 @@ sig
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
-  val burrow_split: ('a list -> 'c * 'b list) -> 'a list list -> 'c * 'b list list
+  val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
@@ -607,8 +607,8 @@ fun unflat (xs :: xss) ys =
 fun burrow f xss =
   unflat xss ((f o flat) xss);
 
-fun burrow_split f xss =
-  apsnd (unflat xss) ((f o flat) xss);
+fun fold_burrow f xss s =
+  apfst (unflat xss) (f (flat xss) s);
 
 (*like Lisp's MAPC -- seq proc [x1, ..., xn] evaluates
   (proc x1; ...; proc xn) for side effects*)
