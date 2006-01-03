@@ -6,7 +6,7 @@
 A trivial example of reasoning about an array of processes
 *)
 
-theory TimerArray imports UNITY_Main begin
+theory TimerArray imports "../UNITY_Main" begin
 
 types 'a state = "nat * 'a"   (*second component allows new variables*)
 

@@ -8,7 +8,7 @@ Handshake Protocol
 From Misra, "Asynchronous Compositions of Programs", Section 5.3.2
 *)
 
-theory Handshake imports UNITY_Main begin
+theory Handshake imports "../UNITY_Main" begin
 
 record state =
   BB :: bool

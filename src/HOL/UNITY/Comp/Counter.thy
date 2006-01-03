@@ -11,7 +11,7 @@ Examples of Program Composition Illustrating the Use of Universal Properties
 
 header{*A Family of Similar Counters: Original Version*}
 
-theory Counter imports UNITY_Main begin
+theory Counter imports "../UNITY_Main" begin
 
 (* Variables are names *)
 datatype name = C | c nat

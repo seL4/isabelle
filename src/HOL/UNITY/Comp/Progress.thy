@@ -8,7 +8,7 @@ David Meier's thesis
 
 header{*Progress Set Examples*}
 
-theory Progress imports UNITY_Main begin
+theory Progress imports "../UNITY_Main" begin
 
 subsection {*The Composition of Two Single-Assignment Programs*}
 text{*Thesis Section 4.4.2*}
