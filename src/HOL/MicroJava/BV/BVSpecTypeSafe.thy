@@ -325,7 +325,7 @@ proof -
     obtain ST LT where
       hp_ok:  "G \<turnstile>h hp \<surd>" and
       prehp:  "preallocated hp" and
-      class:  "is_class G C" and
+      "class":  "is_class G C" and
       phi_pc: "phi C sig ! pc = Some (ST, LT)" and
       frame:  "correct_frame G hp (ST, LT) maxl ins (stk, loc, C, sig, pc)" and
       frames: "correct_frames G hp phi rT sig frs"
@@ -572,7 +572,7 @@ proof -
       show ?thesis by (rule that)
     qed (insert xp', auto) -- "the other instructions don't generate exceptions"
 
-    from state' meth hp_ok class frames phi_pc' frame' 
+    from state' meth hp_ok "class" frames phi_pc' frame' 
     have ?thesis by (unfold correct_state_def) simp
   }
   ultimately

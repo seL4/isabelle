@@ -15,7 +15,7 @@ types
 
   'c mdecl = "sig \<times> ty \<times> 'c"     -- "method declaration in a class"
 
-  'c class = "cname \<times> fdecl list \<times> 'c mdecl list" 
+  'c "class" = "cname \<times> fdecl list \<times> 'c mdecl list" 
   -- "class = superclass, fields, methods"
 
   'c cdecl = "cname \<times> 'c class"  -- "class declaration, cf. 8.1"
@@ -33,7 +33,7 @@ translations
 
 
 constdefs
-  class :: "'c prog => (cname \<rightharpoonup> 'c class)"
+  "class" :: "'c prog => (cname \<rightharpoonup> 'c class)"
   "class \<equiv> map_of"
 
   is_class :: "'c prog => cname => bool"

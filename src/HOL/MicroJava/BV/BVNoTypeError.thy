@@ -239,7 +239,7 @@ proof -
 
     from conforms obtain  ST LT rT maxs maxl ins et where
       hconf:  "G \<turnstile>h hp \<surd>" and
-      class:  "is_class G C" and
+      "class":  "is_class G C" and
       meth:   "method (G, C) sig = Some (C, rT, maxs, maxl, ins, et)" and
       phi:    "Phi C sig ! pc = Some (ST,LT)" and
       frame:  "correct_frame G hp (ST,LT) maxl ins (stk,loc,C,sig,pc)" and
@@ -277,7 +277,7 @@ proof -
     proof (cases "ins!pc")
       case (Getfield F C) 
       with app stk loc phi obtain v vT stk' where
-        class: "is_class G C" and
+        "class": "is_class G C" and
         field: "field (G, C) F = Some (C, vT)" and
         stk:   "stk = v # stk'" and
         conf:  "G,hp \<turnstile> v ::\<preceq> Class C"
@@ -291,7 +291,7 @@ proof -
         have "\<exists>D vs. hp (the_Addr v) = Some (D,vs) \<and> G \<turnstile> D \<preceq>C C" 
           by (auto dest!: non_np_objD)
       }
-      ultimately show ?thesis using Getfield field class stk hconf wf
+      ultimately show ?thesis using Getfield field "class" stk hconf wf
         apply clarsimp
         apply (fastsimp intro: wf_prog_ws_prog
 	  dest!: hconfD widen_cfs_fields oconf_objD)
@@ -299,7 +299,7 @@ proof -
     next
       case (Putfield F C)
       with app stk loc phi obtain v ref vT stk' where
-        class: "is_class G C" and
+        "class": "is_class G C" and
         field: "field (G, C) F = Some (C, vT)" and
         stk:   "stk = v # ref # stk'" and
         confv: "G,hp \<turnstile> v ::\<preceq> vT" and
@@ -314,7 +314,7 @@ proof -
         have "\<exists>D vs. hp (the_Addr ref) = Some (D,vs) \<and> G \<turnstile> D \<preceq>C C"
           by (auto dest: non_np_objD)
       }
-      ultimately show ?thesis using Putfield field class stk confv
+      ultimately show ?thesis using Putfield field "class" stk confv
         by clarsimp
     next      
       case (Invoke C mn ps)

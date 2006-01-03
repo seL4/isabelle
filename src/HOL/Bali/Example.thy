@@ -168,7 +168,7 @@ constdefs
 arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var"
 "arr_viewed_from accC C \<equiv> {accC,Base,True}StatRef (ClassT C)..arr"
 
-BaseCl :: class
+BaseCl :: "class"
 "BaseCl \<equiv> \<lparr>access=Public,
            cfields=[(arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>),
 	            (vee, \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)],
@@ -178,7 +178,7 @@ BaseCl :: class
            super=Object,
            superIfs=[HasFoo]\<rparr>"
   
-ExtCl  :: class
+ExtCl  :: "class"
 "ExtCl  \<equiv> \<lparr>access=Public,
            cfields=[(vee, \<lparr>access=Public,static=False,type= PrimT Integer\<rparr>)], 
            methods=[Ext_foo],
@@ -186,7 +186,7 @@ ExtCl  :: class
            super=Base,
            superIfs=[]\<rparr>"
 
-MainCl :: class
+MainCl :: "class"
 "MainCl \<equiv> \<lparr>access=Public,
            cfields=[], 
            methods=[], 

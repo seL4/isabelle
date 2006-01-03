@@ -75,7 +75,7 @@ text {*
 *}
 
 constdefs
-  class :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
+  "class" :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
   "\<lfloor>a\<rfloor> == Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"

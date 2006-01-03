@@ -26,7 +26,7 @@ text{* Method declaration *}
 types	mdecl
         = "mname \<times> methd"
 
-record	class
+record	"class"
 	= super   :: cname
           flds    ::"fdecl list"
           methods ::"mdecl list"
@@ -52,7 +52,7 @@ consts
 
 
 constdefs
-  class	     :: "cname \<rightharpoonup> class"
+  "class"	     :: "cname \<rightharpoonup> class"
  "class      \<equiv> map_of Prog"
 
   is_class   :: "cname => bool"

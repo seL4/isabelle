@@ -324,7 +324,7 @@ record cbody = decl +          --{* class body *}
          methods:: "mdecl list"
          init   :: "stmt"       --{* initializer *}
 
-record class = cbody +           --{* class *}
+record "class" = cbody +           --{* class *}
         super   :: "qtname"      --{* superclass *}
         superIfs:: "qtname list" --{* implemented interfaces *}
 types	
@@ -405,7 +405,7 @@ translations
 
 syntax
   iface     :: "prog  \<Rightarrow> (qtname, iface) table"
-  class     :: "prog  \<Rightarrow> (qtname, class) table"
+  "class"     :: "prog  \<Rightarrow> (qtname, class) table"
   is_iface  :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
   is_class  :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
 
