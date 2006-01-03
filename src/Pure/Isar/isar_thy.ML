@@ -43,7 +43,6 @@ sig
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
-  val forget_proof: Toplevel.transition -> Toplevel.transition
   val begin_theory: string -> string list -> (string * bool) list -> bool -> theory
   val end_theory: theory -> theory
   val kill_theory: string -> unit
@@ -156,10 +155,6 @@ val default_proof = local_default_proof o global_default_proof;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
-
-val forget_proof =
-  Toplevel.proof_to_theory Proof.theory_of o
-  Toplevel.skip_proof_to_theory (K true);
 
 
 (* theory init and exit *)
