@@ -92,6 +92,7 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
   let
     fun extract_notes_consts thy elems =
       elems
+      |> Library.flat
       |> List.mapPartial
            (fn (Notes notes) => SOME notes
              | _ => NONE)
@@ -112,6 +113,7 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
            | vs => error ("more than one type variable: " ^ (commas o map (Sign.string_of_typ thy o TFree)) vs))
     fun extract_tyvar_consts thy elems =
       elems
+      |> Library.flat
       |> List.mapPartial
            (fn (Fixes consts) => SOME consts
              | _ => NONE)
@@ -138,8 +140,8 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
   in
     thy
     |> add_locale bname raw_import raw_body
-    |-> (fn (elems : context_i list, ctxt) =>
-       tap (fn _ => map (print_ctxt ctxt) elems)
+    |-> (fn ((_, elems : context_i list list), ctxt) =>
+       tap (fn _ => (map o map) (print_ctxt ctxt) elems)
     #> tap (fn thy => extract_notes_consts thy elems)
     #> `(fn thy => Locale.intern thy bname)
     #-> (fn name_locale =>
@@ -311,7 +313,7 @@ and K = OuterKeyword
 
 in
 
-val classK = "class_class"
+val classK = "class"
 
 val locale_val =
   (P.locale_expr --
