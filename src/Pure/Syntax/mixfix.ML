@@ -14,9 +14,9 @@ sig
     InfixName of string * int |
     InfixlName of string * int |
     InfixrName of string * int |
-    Infix of int |
-    Infixl of int |
-    Infixr of int |
+    Infix of int |    (*obsolete*)
+    Infixl of int |   (*obsolete*)
+    Infixr of int |   (*obsolete*)
     Binder of string * int * int
 end;
 
@@ -29,6 +29,7 @@ sig
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
   val fix_mixfix: string -> mixfix -> mixfix
+  val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
   val pure_nonterms: string list
   val pure_syntax: (string * string * mixfix) list
@@ -58,9 +59,9 @@ datatype mixfix =
   InfixName of string * int |
   InfixlName of string * int |
   InfixrName of string * int |
-  Infix of int |
-  Infixl of int |
-  Infixr of int |
+  Infix of int |      (*obsolete*)
+  Infixl of int |     (*obsolete*)
+  Infixr of int |     (*obsolete*)
   Binder of string * int * int;
 
 val literal = Delimfix o SynExt.escape_mfix;
@@ -119,6 +120,17 @@ fun fix_mixfix c (Infix p) = (deprecated (strip_esc c); InfixName (c, p))
   | fix_mixfix c (Infixl p) = (deprecated (strip_esc c); InfixlName (c, p))
   | fix_mixfix c (Infixr p) = (deprecated (strip_esc c); InfixrName (c, p))
   | fix_mixfix _ mx = mx;
+
+fun map_mixfix _ NoSyn = NoSyn
+  | map_mixfix f (Mixfix (sy, ps, p)) = Mixfix (f sy, ps, p)
+  | map_mixfix f (Delimfix sy) = Delimfix (f sy)
+  | map_mixfix f (InfixName (sy, p)) = InfixName (f sy, p)
+  | map_mixfix f (InfixlName (sy, p)) = InfixlName (f sy, p)
+  | map_mixfix f (InfixrName (sy, p)) = InfixrName (f sy, p)
+  | map_mixfix f (Binder (sy, p, q)) = Binder (f sy, p, q)
+  | map_mixfix _ _ = raise Fail ("map_mixfix: illegal occurrence of unnamed infix");
+
+val unlocalize_mixfix = map_mixfix SynExt.unlocalize_mfix;
 
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = SynExt.mfix_args sy
