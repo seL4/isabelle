@@ -71,7 +71,7 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> theory * Proof.context) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
-  val theory_theory_to_proof: (theory -> Proof.state) -> transition -> transition
+  val theory_to_theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
@@ -295,9 +295,9 @@ end;
 (* primitive transitions *)
 
 (*Note: Recovery from stale theories is provided only for theory-level
-  operations via Transaction.  Other node or state operations should
-  not touch theories at all.  Interrupts are enabled only for Keep and
-  Transaction.*)
+  operations via Transaction below.  Other node or state operations
+  should not touch theories at all.  Interrupts are enabled only for
+  Keep, and Transaction.*)
 
 datatype trans =
   Reset |                                               (*empty toplevel*)
@@ -452,7 +452,7 @@ fun to_proof save f = app_current save (fn int =>
     | _ => raise UNDEF));
 
 val theory_to_proof = to_proof false;
-val theory_theory_to_proof = to_proof true;
+val theory_to_theory_to_proof = to_proof true;
 
 fun proofs' f = map_current (fn int =>
   (fn Proof (prf, orig_thy) => Proof (ProofHistory.applys (f int) prf, orig_thy)
