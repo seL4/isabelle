@@ -181,7 +181,7 @@ An Isar toplevel transition consists of a partial
 \verb|  Toplevel.transition -> Toplevel.transition| \\
   \indexml{Toplevel.theory-to-proof}\verb|Toplevel.theory_to_proof: (theory -> Proof.state) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.theory-to-theory-to-proof}\verb|Toplevel.theory_to_theory_to_proof: (theory -> Proof.state) ->|\isasep\isanewline%
+  \indexml{Toplevel.theory-theory-to-proof}\verb|Toplevel.theory_theory_to_proof: (theory -> Proof.state) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
   \indexml{Toplevel.proof}\verb|Toplevel.proof: (Proof.state -> Proof.state) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
@@ -210,7 +210,7 @@ An Isar toplevel transition consists of a partial
   specifies how to apply the proven result to the theory, when the
   proof is finished.
 
-  \item \verb|Toplevel.theory_to_theory_to_proof| is like \verb|Toplevel.theory_to_proof|, but allows the initial theory to be
+  \item \verb|Toplevel.theory_theory_to_proof| is like \verb|Toplevel.theory_to_proof|, but allows the initial theory to be
   changed before entering proof state.
 
   \item \verb|Toplevel.proof| adjoins a deterministic proof command,

@@ -9,8 +9,8 @@ signature TOPLEVEL =
 sig
   datatype node =
     Theory of theory * Proof.context option |
-    Proof of ProofHistory.T |
-    SkipProof of int History.T * theory
+    Proof of ProofHistory.T * theory |
+    SkipProof of (int History.T * theory) * theory
   type state
   val toplevel: state
   val is_toplevel: state -> bool
@@ -71,6 +71,7 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> theory * Proof.context) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
+  val theory_theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
@@ -82,6 +83,7 @@ sig
   val proof_to_theory_context: (bool -> Proof.state -> theory * Proof.context)
     -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
+  val forget_proof: transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
@@ -108,9 +110,10 @@ struct
 (* datatype state *)
 
 datatype node =
-  Theory of theory * Proof.context option |  (*theory with optional body context*)
-  Proof of ProofHistory.T |                  (*history of proof states*)
-  SkipProof of int History.T * theory;       (*history of proof depths*)
+  Theory of theory * Proof.context option |        (*theory with optional body context*)
+  Proof of ProofHistory.T * theory |               (*history of proof states, original theory*)
+  SkipProof of (int History.T * theory) * theory;
+    (*history of proof depths, resulting theory, original theory*)
 
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
@@ -123,8 +126,8 @@ fun level (State NONE) = 0
   | level (State (SOME (node, _))) =
       (case History.current node of
         Theory _ => 0
-      | Proof prf => Proof.level (ProofHistory.current prf)
-      | SkipProof (h, _) => History.current h + 1);    (*different notion of proof depth!*)
+      | Proof (prf, _) => Proof.level (ProofHistory.current prf)
+      | SkipProof ((h, _), _) => History.current h + 1);    (*different notion of proof depth!*)
 
 fun str_of_state (State NONE) = "at top level"
   | str_of_state (State (SOME (node, _))) =
@@ -149,8 +152,8 @@ val node_of = History.current o node_history_of;
 fun node_case f g state =
   (case node_of state of
     Theory (thy, _) => f thy
-  | Proof prf => g (ProofHistory.current prf)
-  | SkipProof (_, thy) => f thy);
+  | Proof (prf, _) => g (ProofHistory.current prf)
+  | SkipProof ((_, thy), _) => f thy);
 
 val theory_of = node_case I Proof.theory_of;
 val sign_of = theory_of;
@@ -189,9 +192,9 @@ fun pretty_state_context state =
   | SOME thy => pretty_context thy);
 
 fun pretty_node prf_only (Theory (thy, _)) = if prf_only then [] else pretty_context thy
-  | pretty_node _ (Proof prf) =
+  | pretty_node _ (Proof (prf, _)) =
       Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf)
-  | pretty_node _ (SkipProof (h, _)) =
+  | pretty_node _ (SkipProof ((h, _), _)) =
       [Pretty.str ("skipped proof: depth " ^ string_of_int (History.current h))];
 
 fun pretty_state prf_only state =
@@ -263,18 +266,18 @@ fun interruptible f x =
 in
 
 fun transaction _ _ _ (State NONE) = raise UNDEF
-  | transaction int hist f (State (SOME (node, term))) =
+  | transaction save hist f (State (SOME (node, term))) =
       let
-        val cont_node = History.map (checkpoint_node int) node;
-        val back_node = History.map (copy_node int) cont_node;
+        val cont_node = History.map (checkpoint_node save) node;
+        val back_node = History.map (copy_node save) cont_node;
         fun state nd = State (SOME (nd, term));
         fun normal_state nd = (state nd, NONE);
         fun error_state nd exn = (state nd, SOME exn);
 
         val (result, err) =
           cont_node
-          |> ((fn nd => f int nd)
-              |> (if hist then History.apply_copy (copy_node int) else History.map)
+          |> (f
+              |> (if hist then History.apply_copy (copy_node save) else History.map)
               |> debug_trans
               |> interruptible
               |> transform_error)
@@ -291,22 +294,20 @@ end;
 
 (* primitive transitions *)
 
-(*NB: recovery from stale theories is provided only for theory-level
-  operations via MapCurrent and AppCurrent.  Other node or state
-  operations should not touch theories at all.
-
-  Interrupts are enabled only for Keep, MapCurrent, and AppCurrent.*)
+(*Note: Recovery from stale theories is provided only for theory-level
+  operations via Transaction.  Other node or state operations should
+  not touch theories at all.  Interrupts are enabled only for Keep and
+  Transaction.*)
 
 datatype trans =
-  Reset |                                       (*empty toplevel*)
+  Reset |                                               (*empty toplevel*)
   Init of (bool -> node) * ((node -> unit) * (node -> unit)) |
-    (*init node; provide exit/kill operation*)
-  Exit |                                        (*conclude node*)
-  Kill |                                        (*abort node*)
-  Keep of bool -> state -> unit |               (*peek at state*)
-  History of node History.T -> node History.T | (*history operation (undo etc.)*)
-  MapCurrent of bool -> node -> node |          (*change node, bypassing history*)
-  AppCurrent of bool -> node -> node;           (*change node, recording history*)
+                                                        (*init node; with exit/kill operation*)
+  Exit |                                                (*conclude node*)
+  Kill |                                                (*abort node*)
+  Keep of bool -> state -> unit |                       (*peek at state*)
+  History of node History.T -> node History.T |         (*history operation (undo etc.)*)
+  Transaction of bool * bool * (bool -> node -> node);  (*node transaction*)
 
 fun undo_limit int = if int then NONE else SOME 0;
 
@@ -325,8 +326,8 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr int (Keep f) state = (raise_interrupt (f int) state; state)
   | apply_tr _ (History _) (State NONE) = raise UNDEF
   | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
-  | apply_tr int (MapCurrent f) state = transaction int false f state
-  | apply_tr int (AppCurrent f) state = transaction int true f state;
+  | apply_tr int (Transaction (save, hist, f)) state =
+      transaction (int orelse save) hist (fn x => f int x) state;
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
@@ -416,8 +417,8 @@ val exit = add_trans Exit;
 val kill = add_trans Kill;
 val keep' = add_trans o Keep;
 val history = add_trans o History;
-val map_current = add_trans o MapCurrent;
-val app_current = add_trans o AppCurrent;
+fun map_current f = add_trans (Transaction (false, false, f));
+fun app_current save f = add_trans (Transaction (save, true, f));
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
@@ -430,27 +431,32 @@ fun init_theory f exit kill =
 
 (* typed transitions *)
 
-fun theory f = app_current (K (fn Theory (thy, _) => Theory (f thy, NONE) | _ => raise UNDEF));
-fun theory' f = app_current (fn int =>
+fun theory f = app_current false
+  (K (fn Theory (thy, _) => Theory (f thy, NONE) | _ => raise UNDEF));
+
+fun theory' f = app_current false (fn int =>
   (fn Theory (thy, _) => Theory (f int thy, NONE) | _ => raise UNDEF));
 
-fun theory_context f =
-  app_current (K (fn Theory (thy, _) => Theory (apsnd SOME (f thy)) | _ => raise UNDEF));
+fun theory_context f = app_current false
+  (K (fn Theory (thy, _) => Theory (apsnd SOME (f thy)) | _ => raise UNDEF));
 
-fun theory_to_proof f = app_current (fn int =>
+fun to_proof save f = app_current save (fn int =>
   (fn Theory (thy, _) =>
       let val st = f thy in
-        if Theory.eq_thy (thy, Proof.theory_of st) then ()
+        if save orelse Theory.eq_thy (thy, Proof.theory_of st) then ()
         else error "Theory changed at start of proof";
         if ! skip_proofs then
-          SkipProof (History.init (undo_limit int) 0, #1 (Proof.global_skip_proof int st))
-        else Proof (ProofHistory.init (undo_limit int) st)
+          SkipProof ((History.init (undo_limit int) 0, #1 (Proof.global_skip_proof int st)), thy)
+        else Proof (ProofHistory.init (undo_limit int) st, thy)
       end
     | _ => raise UNDEF));
 
+val theory_to_proof = to_proof false;
+val theory_theory_to_proof = to_proof true;
+
 fun proofs' f = map_current (fn int =>
-  (fn Proof prf => Proof (ProofHistory.applys (f int) prf)
-    | SkipProof (h, thy) => SkipProof (History.apply I h, thy)
+  (fn Proof (prf, orig_thy) => Proof (ProofHistory.applys (f int) prf, orig_thy)
+    | SkipProof ((h, thy), orig_thy) => SkipProof ((History.apply I h, thy), orig_thy)
     | _ => raise UNDEF));
 
 fun proof' f = proofs' (Seq.single oo f);
@@ -458,14 +464,19 @@ val proofs = proofs' o K;
 val proof = proof' o K;
 
 fun actual_proof f = map_current (fn _ =>
-  (fn Proof prf => Proof (f prf) | _ => raise UNDEF));
+  (fn Proof (prf, orig_thy) => Proof (f prf, orig_thy) | _ => raise UNDEF));
 
 fun skip_proof f = map_current (fn _ =>
-  (fn SkipProof (h, thy) => SkipProof (f h, thy) | _ => raise UNDEF));
+  (fn SkipProof ((h, thy), orig_thy) => SkipProof ((f h, thy), orig_thy) | _ => raise UNDEF));
 
 fun end_proof f = map_current (fn int =>
-  (fn Proof prf => Theory (f int (ProofHistory.current prf))
-    | SkipProof (h, thy) => if History.current h = 0 then Theory (thy, NONE) else raise UNDEF
+  (fn Proof (prf, _) => Theory (f int (ProofHistory.current prf))
+    | SkipProof ((h, thy), _) => if History.current h = 0 then Theory (thy, NONE) else raise UNDEF
+    | _ => raise UNDEF));
+
+val forget_proof = map_current (fn _ =>
+  (fn Proof (_, orig_thy) => Theory (orig_thy, NONE)
+    | SkipProof (_, orig_thy) => Theory (orig_thy, NONE)
     | _ => raise UNDEF));
 
 fun proof_to_theory' f = end_proof (rpair NONE oo f);
@@ -473,7 +484,7 @@ fun proof_to_theory f = proof_to_theory' (K f);
 fun proof_to_theory_context f = end_proof (apsnd SOME oo f);
 
 fun skip_proof_to_theory p = map_current (fn _ =>
-  (fn SkipProof (h, thy) =>
+  (fn SkipProof ((h, thy), _) =>
     if p (History.current h) then Theory (thy, NONE)
     else raise UNDEF
   | _ => raise UNDEF));

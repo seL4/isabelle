@@ -136,7 +136,7 @@ text %mlref {*
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.theory_to_proof: "(theory -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.theory_to_theory_to_proof: "(theory -> Proof.state) ->
+  @{index_ML Toplevel.theory_theory_to_proof: "(theory -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.proof: "(Proof.state -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
@@ -165,7 +165,7 @@ text %mlref {*
   specifies how to apply the proven result to the theory, when the
   proof is finished.
 
-  \item @{ML Toplevel.theory_to_theory_to_proof} is like @{ML
+  \item @{ML Toplevel.theory_theory_to_proof} is like @{ML
   Toplevel.theory_to_proof}, but allows the initial theory to be
   changed before entering proof state.
 

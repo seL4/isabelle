@@ -38,7 +38,7 @@ struct
 
 structure ObjectLogicData = TheoryDataFun
 (struct
-  val name = "Pure/object-logic";
+  val name = "Pure/object_logic";
   type T = string option * (thm list * thm list);
 
   val empty = (NONE, ([], [Drule.norm_hhf_eq]));
