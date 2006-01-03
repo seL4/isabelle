@@ -513,7 +513,7 @@ val skip_proofP =
 val forget_proofP =
   OuterSyntax.command "oops" "forget proof"
     (K.tag_proof K.qed_global)
-    (Scan.succeed IsarThy.forget_proof);
+    (Scan.succeed Toplevel.forget_proof);
 
 
 (* proof steps *)
