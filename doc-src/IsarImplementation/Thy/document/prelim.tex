@@ -261,23 +261,20 @@ For example, carved inscriptions are better done on solid material
 like wood or stone.
 
 Isabelle/Isar distinguishes two key notions of context: \emph{theory
-  context}\indexbold{theory context} and \emph{proof context}.\indexbold{proof
-  context} To motivate this fundamental division consider the very idea of
-logical reasoning which is about judgments $\Gamma \Drv{\Theta} \phi$, where
-$\Theta$ is the background theory with declarations of operators and axioms
-stating their properties, and $\Gamma$ a collection of hypotheses emerging
-temporarily during proof.  For example, the rule of implication-introduction
-\[
-\infer{\Gamma \Drv{\Theta} A \Imp B}{\Gamma, A \Drv{\Theta} B}
-\]
-can be read as ``to show $A \Imp B$ we may assume $A$ as hypothesis and need
-to show $B$''.  It is characteristic that $\Theta$ is unchanged and $\Gamma$
-is only modified according to some general patterns of ``assuming'' and
-``discharging'' hypotheses.  This admits the following abbreviated notation,
-where the fixed $\Theta$ and locally changed $\Gamma$ are left implicit:
-\[
-\infer{A \Imp B}{\infer*{B}{[A]}}
-\]
+context} and \emph{proof context}.  To motivate this fundamental
+division consider the very idea of logical reasoning which is about
+judgments $\Gamma \Drv{\Theta} \phi$, where $\Theta$ is the background
+theory with declarations of operators and axioms stating their
+properties, and $\Gamma$ a collection of hypotheses emerging
+temporarily during proof.  For example, the rule of
+implication-introduction \[ \infer{\Gamma \Drv{\Theta} A \Imp
+B}{\Gamma, A \Drv{\Theta} B} \] can be read as ``to show $A \Imp B$ we
+may assume $A$ as hypothesis and need to show $B$''.  It is
+characteristic that $\Theta$ is unchanged and $\Gamma$ is only
+modified according to some general patterns of ``assuming'' and
+``discharging'' hypotheses.  This admits the following abbreviated
+notation, where the fixed $\Theta$ and locally changed $\Gamma$ are
+left implicit: \[ \infer{A \Imp B}{\infer*{B}{[A]}} \]
 
 In some logical traditions (e.g.\ Type Theory) there is a tendency to
 unify all kinds of declarations within a single notion of context.

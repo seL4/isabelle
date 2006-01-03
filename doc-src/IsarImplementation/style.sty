@@ -2,7 +2,8 @@
 %% $Id$
 
 %% toc
-\newcommand{\tocentry}[1]{\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{#1}}
+\newcommand{\tocentry}[1]{\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{#1}
+\@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
 
 %% references
 \newcommand{\secref}[1]{\S\ref{#1}}
@@ -11,9 +12,16 @@
 %% glossary
 \renewcommand{\glossary}[2]{\nomenclature{\bf #1}{#2}}
 \newcommand{\seeglossary}[1]{\emph{#1}}
-\def\glossaryname{Glossary}
+\newcommand{\glossaryname}{Glossary}
 \renewcommand{\nomname}{\glossaryname}
 \renewcommand{\pagedeclaration}[1]{\nobreak\quad\dotfill~page~\bold{#1}}
+
+%% index
+\newcommand{\indexml}[1]{\index{\emph{#1}|bold}}
+\newcommand{\indexmltype}[1]{\index{\emph{#1} (type)|bold}}
+\newcommand{\indexmlstructure}[1]{\index{\emph{#1} (structure)|bold}}
+\newcommand{\indexmlfunctor}[1]{\index{\emph{#1} (functor)|bold}}
+
 
 \newcommand{\drv}{\mathrel{\vdash}}
 \newcommand{\edrv}{\mathop{\drv}\nolimits}
@@ -36,11 +44,6 @@
 \isakeeptag{mlref}
 \renewcommand{\isatagmlref}{\subsection*{\makebox[0pt][r]{\fbox{\ML}~~}Reference}\begingroup\def\isastyletext{\rm}\small}
 \renewcommand{\endisatagmlref}{\endgroup}
-
-\newcommand{\indexml}[1]{\index{\emph{#1} ({\ML})|bold}}
-\newcommand{\indexmltype}[1]{\index{\emph{#1} ({\ML} type)|bold}}
-\newcommand{\indexmlstructure}[1]{\index{\emph{#1} ({\ML} structure)|bold}}
-\newcommand{\indexmlfunctor}[1]{\index{\emph{#1} ({\ML} functor)|bold}}
 
 \newcommand{\isasymTHEORY}{\isakeyword{theory}}
 \newcommand{\isasymIMPORTS}{\isakeyword{imports}}

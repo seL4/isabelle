@@ -321,9 +321,7 @@ text {* The theory database maintains a collection of theories,
   scripts.
 
   The basic internal actions of the theory database are @{text
-  "update"}\indexbold{@{text "update"} theory}, @{text
-  "outdate"}\indexbold{@{text "outdate"} theory}, and @{text
-  "remove"}\indexbold{@{text "remove"} theory}:
+  "update"}, @{text "outdate"}, and @{text "remove"}:
 
   \begin{itemize}
 
