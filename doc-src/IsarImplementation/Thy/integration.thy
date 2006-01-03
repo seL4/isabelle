@@ -136,6 +136,8 @@ text %mlref {*
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.theory_to_proof: "(theory -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
+  @{index_ML Toplevel.theory_to_theory_to_proof: "(theory -> Proof.state) ->
+  Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.proof: "(Proof.state -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.seq) ->
@@ -162,6 +164,10 @@ text %mlref {*
   changed here!  The generic Isar goal setup includes an argument that
   specifies how to apply the proven result to the theory, when the
   proof is finished.
+
+  \item @{ML Toplevel.theory_to_theory_to_proof} is like @{ML
+  Toplevel.theory_to_proof}, but allows the initial theory to be
+  changed before entering proof state.
 
   \item @{ML Toplevel.proof} adjoins a deterministic proof command,
   with a singleton result state.
