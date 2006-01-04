@@ -241,13 +241,17 @@ val debug_simp = ref false;
 val trace_simp = ref false;
 val simp_depth = ref 0;
 val simp_depth_limit = ref 100;
-val trace_simp_depth_limit = ref 100;
-
+val trace_simp_depth_limit = ref 1;
+val trace_simp_depth_limit_exceeded = ref false;
 local
 
 fun println a =
-  if ! simp_depth > ! trace_simp_depth_limit then ()
-  else tracing (enclose "[" "]" (string_of_int (! simp_depth)) ^ a);
+  if ! simp_depth > ! trace_simp_depth_limit
+  then if !trace_simp_depth_limit_exceeded then ()
+       else (tracing "trace_simp_depth_limit exceeded!";
+             trace_simp_depth_limit_exceeded := true)
+  else (tracing (enclose "[" "]" (string_of_int (! simp_depth)) ^ a);
+        trace_simp_depth_limit_exceeded := false);
 
 fun prnt warn a = if warn then warning a else println a;
 
