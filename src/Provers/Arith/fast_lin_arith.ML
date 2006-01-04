@@ -548,11 +548,7 @@ fun trace_ex(sg,params,atoms,discr,n,hist:history) =
                        else (replicate n Rat.zero,hist)
        in warning "arith failed - see trace for a counter example";
           print_ex ((map s_of_t atoms)~~discr) (findex discr start)
-          handle NoEx =>
-  (tracing "The decision procedure failed to prove your proposition\n\
-           \but could not construct a counter example either.\n\
-           \Probably the proposition is true but cannot be proved\n\
-           \by the incomplete decision procedure.")
+          handle NoEx => (tracing "Sorry, no counter example.")
        end;
 
 fun mknat pTs ixs (atom,i) =
