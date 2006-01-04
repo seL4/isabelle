@@ -12,8 +12,6 @@ theory Reflected_Presburger
 imports Main
 begin
 
-declare not_Some_eq [iff]
-
 (* Shadow syntax for integer terms *)
 datatype intterm =
     Cst int

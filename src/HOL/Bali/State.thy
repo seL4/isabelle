@@ -268,7 +268,7 @@ constdefs
  "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (SOME a. h a = None)"
 
 lemma new_AddrD: "new_Addr h = Some a \<Longrightarrow> h a = None"
-apply (auto simp add: not_Some_eq new_Addr_def)
+apply (auto simp add: new_Addr_def)
 apply (erule someI) 
 done
 
@@ -278,7 +278,7 @@ apply auto
 done
 
 lemma new_Addr_SomeI: "h a = None \<Longrightarrow> \<exists>b. new_Addr h = Some b \<and> h b = None"
-apply (simp add: new_Addr_def not_Some_eq)
+apply (simp add: new_Addr_def)
 apply (fast intro: someI2)
 done
 

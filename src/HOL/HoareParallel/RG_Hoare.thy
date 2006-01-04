@@ -5,7 +5,6 @@ theory RG_Hoare imports RG_Tran begin
 subsection {* Proof System for Component Programs *}
 
 declare Un_subset_iff [iff del]
-declare not_None_eq [iff]
 declare Cons_eq_map_conv[iff]
 
 constdefs

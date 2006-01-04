@@ -208,8 +208,7 @@ lemma xcpt_names_in_et:
   "C \<in> set (xcpt_names (i,G,pc,et)) \<Longrightarrow> 
   \<exists>e \<in> set et. the (match_exception_table G C pc et) = fst (snd (snd e))"
   apply (cases i)
-  apply (auto iff: not_None_eq
-	      dest!: match_any_match_table match_X_match_table 
+  apply (auto dest!: match_any_match_table match_X_match_table 
               dest: match_exception_table_in_et)
   done
 

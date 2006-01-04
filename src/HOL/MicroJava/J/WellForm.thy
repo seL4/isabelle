@@ -123,7 +123,7 @@ apply (auto simp: map_of_SomeI)
 done
 
 lemma is_class_Object [simp]: "ws_prog G ==> is_class G Object"
-  by (simp add: is_class_def not_None_eq)
+  by (simp add: is_class_def)
 
 lemma is_class_xcpt [simp]: "ws_prog G \<Longrightarrow> is_class G (Xcpt x)"
   apply (simp add: ws_prog_def wf_syscls_def)

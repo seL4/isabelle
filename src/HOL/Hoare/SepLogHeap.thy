@@ -7,9 +7,9 @@ Heap abstractions (at the moment only Path and List)
 for Separation Logic.
 *)
 
-theory SepLogHeap imports Main begin
-
-declare not_None_eq [iff]
+theory SepLogHeap
+imports Main
+begin
 
 types heap = "(nat \<Rightarrow> nat option)"
 

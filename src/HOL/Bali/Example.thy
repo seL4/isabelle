@@ -1018,7 +1018,7 @@ lemma wf_cdecl_all_standard_classes:
   "Ball (set standard_classes) (wf_cdecl tprg)"
 apply (unfold standard_classes_def Let_def 
        ObjectC_def SXcptC_def Object_mdecls_def SXcpt_mdecls_def)
-apply (simp (no_asm) add: wf_cdecl_def ws_cdecls not_Some_eq)
+apply (simp (no_asm) add: wf_cdecl_def ws_cdecls)
 apply (auto simp add:is_acc_class_def accessible_in_RefT_simp SXcpt_def 
             intro: da.Skip)
 apply (auto simp add: Object_def Classes_def standard_classes_def 

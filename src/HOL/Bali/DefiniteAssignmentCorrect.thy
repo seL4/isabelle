@@ -3381,7 +3381,7 @@ proof -
         proof -
           from normal_s3 s3
           have "normal (x1,s1)"
-            by (cases s2) (simp add: abrupt_if_def not_Some_eq)
+            by (cases s2) (simp add: abrupt_if_def)
           with normal_s3 nrmAss_C1 s3 s1_s2
           show ?thesis
             by fastsimp

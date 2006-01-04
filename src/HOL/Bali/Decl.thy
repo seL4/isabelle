@@ -675,7 +675,7 @@ proof -
       case True with iscls init show "P C" by auto
     next
       case False with ws step hyp iscls 
-      show "P C" by (auto iff: not_None_eq dest: subcls1I ws_prog_cdeclD)
+      show "P C" by (auto dest: subcls1I ws_prog_cdeclD)
     qed
   qed
   with clsC show ?thesis by simp
@@ -712,7 +712,7 @@ proof -
       case False
       with ws iscls obtain sc where
 	sc: "class G (super c) = Some sc"
-	by (auto iff: not_None_eq dest: ws_prog_cdeclD)
+	by (auto dest: ws_prog_cdeclD)
       from iscls False have "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 (super c)" by (rule subcls1I)
       with False ws step hyp iscls sc
       show "P C c" 

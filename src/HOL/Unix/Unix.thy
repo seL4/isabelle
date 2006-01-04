@@ -1059,7 +1059,7 @@ proof -
                   lookup root ((path @ [y]) @ us) \<noteq> None"
                 by cases (auto dest: access_some_lookup)
               then show ?thesis 
-                by (simp add: not_None_eq, blast dest!: lookup_some_append)
+                by (simp, blast dest!: lookup_some_append)
             qed
             finally show ?thesis .
           qed

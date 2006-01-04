@@ -1466,7 +1466,7 @@ proof
       next
 	case (VNam vn)
 	with EName el_in_list show ?thesis 
-	  by (auto simp add: not_Some_eq dom_def dest: map_upds_cut_irrelevant)
+	  by (auto simp add: dom_def dest: map_upds_cut_irrelevant)
       qed
     qed
   qed
