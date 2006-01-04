@@ -24,6 +24,8 @@ sig
   val instance_subclass_i: class * class -> theory -> Proof.state
   val instance_arity: xstring * string list * string -> theory -> Proof.state
   val instance_arity_i: string * sort list * sort -> theory -> Proof.state
+  val read_arity: theory -> xstring * string list * string -> arity
+  val cert_arity: theory -> string * sort list * sort -> arity
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
 end;
