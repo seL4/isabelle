@@ -1718,8 +1718,9 @@ fun gen_add_locale prep_ctxt prep_expr
                    val (axs1, axs2) = splitAt (length ts, axs);
                  in (axs2, ((id, Assumed axs1), elems)) end)
         |> snd;
+    val pred_ctxt = ProofContext.init pred_thy;
     val (ctxt, (_, facts)) = activate_facts (K I)
-      (thy_ctxt, axiomify predicate_axioms ((op @) elemss'));
+      (pred_ctxt, axiomify predicate_axioms ((op @) elemss'));
     val export = ProofContext.export_view predicate_statement ctxt thy_ctxt;
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) ((op @) elemss')))
