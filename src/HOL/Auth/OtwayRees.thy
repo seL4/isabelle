@@ -81,7 +81,7 @@ inductive "otway"
           ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"
 
 
-declare Says_imp_knows_Spy [THEN analz.Inj, dest]
+declare Says_imp_analz_Spy [dest]
 declare parts.Body  [dest]
 declare analz_into_parts [dest]
 declare Fake_parts_insert_in_Un  [dest]

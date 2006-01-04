@@ -144,6 +144,8 @@ lemmas knows_Spy_partsEs =
      Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl, standard] 
      parts.Body [THEN revcut_rl, standard]
 
+lemmas Says_imp_analz_Spy = Says_imp_knows_Spy [THEN analz.Inj]
+
 text{*Compatibility for the old "spies" function*}
 lemmas spies_partsEs = knows_Spy_partsEs
 lemmas Says_imp_spies = Says_imp_knows_Spy

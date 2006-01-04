@@ -68,7 +68,7 @@ declare privateKey_neq_publicKey [THEN not_sym, iff]
 
 subsection{*Basic properties of @{term pubK} and @{term priK}*}
 
-lemma [iff]: "(publicKey b A = publicKey c A') = (b=c & A=A')"
+lemma publicKey_inject [iff]: "(publicKey b A = publicKey c A') = (b=c & A=A')"
 by (blast dest!: injective_publicKey) 
 
 lemma not_symKeys_pubK [iff]: "publicKey b A \<notin> symKeys"
@@ -133,8 +133,9 @@ specification (shrK)
 axioms
   sym_shrK [iff]: "shrK X \<in> symKeys" --{*All shared keys are symmetric*}
 
-(*Injectiveness: Agents' long-term keys are distinct.*)
-declare inj_shrK [THEN inj_eq, iff]
+text{*Injectiveness: Agents' long-term keys are distinct.*}
+lemmas shrK_injective = inj_shrK [THEN inj_eq]
+declare shrK_injective [iff]
 
 lemma invKey_shrK [simp]: "invKey (shrK A) = shrK A"
 by (simp add: invKey_K) 

@@ -83,7 +83,7 @@ constdefs
          \<in> set evs"
 
 
-declare Says_imp_knows_Spy [THEN analz.Inj, dest]
+declare Says_imp_analz_Spy [dest]
 declare parts.Body  [dest]
 declare Fake_parts_insert_in_Un  [dest]
 declare analz_into_parts [dest]
@@ -113,7 +113,8 @@ lemma Gets_imp_knows_Spy:
      "[| Gets B X \<in> set evs; evs \<in> yahalom |]  ==> X \<in> knows Spy evs"
 by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 
-declare Gets_imp_knows_Spy [THEN analz.Inj, dest]
+lemmas Gets_imp_analz_Spy = Gets_imp_knows_Spy [THEN analz.Inj]
+declare Gets_imp_analz_Spy [dest]
 
 
 text{*Lets us treat YM4 using a similar argument as for the Fake case.*}
