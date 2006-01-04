@@ -286,8 +286,8 @@ obsolete, it is ill-behaved in a local proof context (e.g. with local
 fixes/assumes or in a locale context).
 
 * Pure/Isar: Toplevel.theory_theory_to_proof admits transactions that
-modify the theory before entering a proof state, i.e. the composition
-of Toplevel.theory and Toplevel.theory_to_proof.
+modify the theory before entering a proof state (essentially an atomic
+composition of Toplevel.theory and Toplevel.theory_to_proof).
 
 * Simplifier: the simpset of a running simplification process now
 contains a proof context (cf. Simplifier.the_context), which is the
