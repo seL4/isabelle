@@ -204,6 +204,7 @@ in
 fun classical_rule rule =
   if is_elim rule then
     let
+      val ntags = Thm.get_name_tags rule;
       val rule' = rule RS classical;
       val concl' = Thm.concl_of rule';
       fun redundant_hyp goal =
@@ -217,7 +218,8 @@ fun classical_rule rule =
           then Tactic.etac thin_rl i
           else all_tac))
         |> Seq.hd
-        |> Drule.zero_var_indexes;
+        |> Drule.zero_var_indexes
+        |> Thm.put_name_tags ntags;
     in if Drule.weak_eq_thm (rule, rule'') then rule else rule'' end
   else rule;
 
