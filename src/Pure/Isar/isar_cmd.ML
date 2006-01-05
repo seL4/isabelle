@@ -149,9 +149,8 @@ fun undos_proof n =
     if History.is_initial h then raise Toplevel.UNDEF else funpow n History.undo h);
 
 fun kill_proof_notify (f: unit -> unit) = Toplevel.history (fn hist =>
-  (case History.current hist of
-    Toplevel.Theory _ => raise Toplevel.UNDEF
-  | _ => (f (); History.undo hist)));
+  if is_some (Toplevel.theory_node (History.current hist)) then raise Toplevel.UNDEF
+  else (f (); History.undo hist));
 
 val kill_proof = kill_proof_notify (K ());
 
@@ -228,10 +227,13 @@ val print_theorems_proof = Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
     ProofContext.print_lthms (Proof.context_of (Toplevel.proof_of state)));
 
-val print_theorems = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  (case History.previous (Toplevel.node_history_of state) of
-    SOME (Toplevel.Theory (prev_thy, _)) => PureThy.print_theorems_diff prev_thy
-  | _ => PureThy.print_theorems) (Toplevel.theory_of state)) o print_theorems_proof;
+val print_theorems_theory = Toplevel.keep (fn state =>
+  Toplevel.theory_of state |>
+  (case Option.map Toplevel.theory_node (History.previous (Toplevel.node_history_of state)) of
+    SOME (SOME prev_thy) => PureThy.print_theorems_diff prev_thy
+  | _ => PureThy.print_theorems));
+
+val print_theorems = Toplevel.unknown_theory o print_theorems_theory o print_theorems_proof;
 
 val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
@@ -367,6 +369,7 @@ fun present_text proof present loc (s, pos) = Toplevel.keep' (fn int => fn state
  (Toplevel.assert (can Toplevel.proof_of state = proof);
   if int then
     state
+    |> Toplevel.copy
     |> Toplevel.no_body_context
     |> Toplevel.command
       (Toplevel.empty |> Toplevel.position pos |> enter_locale loc |> Toplevel.keep (K ()))
