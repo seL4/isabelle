@@ -53,7 +53,7 @@ lemma Abrial_axiom1: "x \<subseteq> succ S x"
   apply (unfold succ_def)
   apply (rule split_if [THEN iffD2])
   apply (auto simp add: super_def maxchain_def psubset_def)
-  apply (rule swap, assumption)
+  apply (rule contrapos_np, assumption)
   apply (rule someI2, blast+)
   done
 

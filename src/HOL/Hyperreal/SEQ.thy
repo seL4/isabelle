@@ -436,7 +436,7 @@ apply (auto dest!: le_imp_less_or_eq)
 apply (auto intro!: lessI [THEN less_imp_le] dest!: less_imp_Suc_add)
 apply (induct_tac "ka")
 apply (auto intro: order_trans)
-apply (erule swap) 
+apply (erule contrapos_np)
 apply (induct_tac "k")
 apply (auto intro: order_trans)
 done

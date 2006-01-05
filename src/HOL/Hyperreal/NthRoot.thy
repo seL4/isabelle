@@ -107,7 +107,7 @@ done
 
 lemma not_isUb_less_ex:
      "~ isUb (UNIV::real set) S u ==> \<exists>x \<in> S. u < x"
-apply (rule ccontr, erule swap)
+apply (rule ccontr, erule contrapos_np)
 apply (rule setleI [THEN isUbI])
 apply (auto simp add: linorder_not_less [symmetric])
 done

@@ -497,7 +497,7 @@ done
 lemma poly_roots_finite: "(poly p \<noteq> poly []) =
       (\<exists>N j. \<forall>x. poly p x = 0 --> (\<exists>n. (n::nat) < N & x = j n))"
 apply safe
-apply (erule swap, rule ext)
+apply (erule contrapos_np, rule ext)
 apply (rule ccontr)
 apply (clarify dest!: poly_roots_finite_lemma)
 apply (clarify dest!: real_finite_lemma)
@@ -717,7 +717,7 @@ apply (subgoal_tac "poly (mulexp n [- a, 1] q) \<noteq> poly ([- a, 1] %^ Suc n 
 apply simp 
 apply (induct_tac "n")
 apply (simp del: pmult_Cons pexp_Suc)
-apply (erule_tac Pa = "poly q a = 0" in swap)
+apply (erule_tac Q = "poly q a = 0" in contrapos_np)
 apply (simp add: poly_add poly_cmult)
 apply (rule pexp_Suc [THEN ssubst])
 apply (rule ccontr)
@@ -857,8 +857,8 @@ apply (simp add: poly_mult right_distrib left_distrib mult_ac del: pmult_Cons)
 apply (erule_tac V = "\<forall>r. r divides pderiv p = r divides pderiv ([- a, 1] %^ Suc n *** q)" in thin_rl)
 apply (unfold divides_def)
 apply (simp (no_asm) add: poly_pderiv_mult poly_pderiv_exp_prime fun_eq poly_add poly_mult del: pmult_Cons pexp_Suc)
-apply (rule swap, assumption)
-apply (rotate_tac 3, erule swap)
+apply (rule contrapos_np, assumption)
+apply (rotate_tac 3, erule contrapos_np)
 apply (simp del: pmult_Cons pexp_Suc, safe)
 apply (rule_tac x = "inverse (real (Suc n)) %* (qa +++ -- (pderiv q))" in exI)
 apply (subgoal_tac "poly ([-a, 1] %^ n *** q) = poly ([-a, 1] %^ n *** ([-a, 1] *** (inverse (real (Suc n)) %* (qa +++ -- (pderiv q))))) ")

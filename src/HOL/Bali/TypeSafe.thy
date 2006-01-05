@@ -169,7 +169,7 @@ section "fits and conf"
 lemma conf_fits: "G,s\<turnstile>v\<Colon>\<preceq>T \<Longrightarrow> G,s\<turnstile>v fits T"
 apply (unfold fits_def)
 apply clarify
-apply (erule swap, simp (no_asm_use))
+apply (erule contrapos_np, simp (no_asm_use))
 apply (drule conf_RefTD)
 apply auto
 done

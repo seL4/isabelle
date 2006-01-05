@@ -1624,7 +1624,7 @@ lemma sin_total:
      "[| -1 \<le> y; y \<le> 1 |] ==> EX! x. -(pi/2) \<le> x & x \<le> pi/2 & (sin x = y)"
 apply (rule ccontr)
 apply (subgoal_tac "\<forall>x. (- (pi/2) \<le> x & x \<le> pi/2 & (sin x = y)) = (0 \<le> (x + pi/2) & (x + pi/2) \<le> pi & (cos (x + pi/2) = -y))")
-apply (erule swap)
+apply (erule contrapos_np)
 apply (simp del: minus_sin_cos_eq [symmetric])
 apply (cut_tac y="-y" in cos_total, simp) apply simp 
 apply (erule ex1E)
