@@ -1196,9 +1196,7 @@ local
            current_working_dir := SOME dir)
   end
 
-  val topnode = Toplevel.node_of o Toplevel.get_state
-  fun topproofpos () = (case topnode() of Toplevel.Proof (h, _) => SOME(ProofHistory.position h)
-                                        | _ => NONE) handle Toplevel.UNDEF => NONE
+  fun topproofpos () = try Toplevel.proof_position_of (Isar.state ());
 in
 
 fun process_pgip_element pgipxml = (case pgipxml of
