@@ -7,13 +7,14 @@ The Isabelle/Isar toplevel.
 
 signature TOPLEVEL =
 sig
-  datatype node =
-    Theory of theory * Proof.context option |
-    Proof of ProofHistory.T * theory |
-    SkipProof of (int History.T * theory) * theory
+  type node
+  val theory_node: node -> theory option
+  val proof_node: node -> ProofHistory.T option
   type state
   val toplevel: state
   val is_toplevel: state -> bool
+  val is_theory: state -> bool
+  val is_proof: state -> bool
   val level: state -> int
   exception UNDEF
   val assert: bool -> unit
@@ -23,9 +24,8 @@ sig
   val theory_of: state -> theory
   val sign_of: state -> theory    (*obsolete*)
   val body_context_of: state -> Proof.context
-  val no_body_context: state -> state
   val proof_of: state -> Proof.state
-  val is_proof: state -> bool
+  val proof_position_of: state -> int
   val enter_forward_proof: state -> Proof.state
   val prompt_state_default: state -> string
   val prompt_state_fn: (state -> string) ref
@@ -43,6 +43,9 @@ sig
   val skip_proofs: bool ref
   exception TERMINATE
   exception RESTART
+  val no_body_context: state -> state
+  val checkpoint: state -> state
+  val copy: state -> state
   type transition
   val undo_limit: bool -> int option
   val empty: transition
@@ -71,7 +74,7 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> theory * Proof.context) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
-  val theory_to_theory_to_proof: (theory -> Proof.state) -> transition -> transition
+  val theory_theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
@@ -115,6 +118,9 @@ datatype node =
   SkipProof of (int History.T * theory) * theory;
     (*history of proof depths, resulting theory, original theory*)
 
+val theory_node = fn Theory (thy, _) => SOME thy | _ => NONE;
+val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
+
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
 val toplevel = State NONE;
@@ -149,6 +155,9 @@ fun node_history_of (State NONE) = raise UNDEF
 
 val node_of = History.current o node_history_of;
 
+fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node_of state));
+fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
+
 fun node_case f g state =
   (case node_of state of
     Theory (thy, _) => f thy
@@ -163,12 +172,12 @@ fun body_context_of state =
     Theory (_, SOME ctxt) => ctxt
   | _ => node_case ProofContext.init Proof.context_of state);
 
-fun no_body_context (State NONE) = State NONE
-  | no_body_context (State (SOME (node, x))) =
-      State (SOME (History.apply (fn Theory (thy, _) => Theory (thy, NONE) | nd => nd) node, x));
-
 val proof_of = node_case (fn _ => raise UNDEF) I;
-val is_proof = can proof_of;
+
+fun proof_position_of state =
+  (case node_of state of
+    Proof (prf, _) => ProofHistory.position prf
+  | _ => raise UNDEF);
 
 val enter_forward_proof = node_case (Proof.init o ProofContext.init) Proof.enter_forward;
 
@@ -268,6 +277,7 @@ in
 fun transaction _ _ _ (State NONE) = raise UNDEF
   | transaction save hist f (State (SOME (node, term))) =
       let
+        val save = true;  (* FIXME *)
         val cont_node = History.map (checkpoint_node save) node;
         val back_node = History.map (copy_node save) cont_node;
         fun state nd = State (SOME (nd, term));
@@ -289,15 +299,22 @@ fun transaction _ _ _ (State NONE) = raise UNDEF
         else return (result, err)
       end;
 
+fun mapping f (State (SOME (node, term))) = State (SOME (History.map f node, term))
+  | mapping _ state = state;
+
+val no_body_context = mapping (fn Theory (thy, _) => Theory (thy, NONE) | node => node);
+val checkpoint = mapping (checkpoint_node true);
+val copy = mapping (copy_node true);
+
 end;
 
 
 (* primitive transitions *)
 
 (*Note: Recovery from stale theories is provided only for theory-level
-  operations via Transaction below.  Other node or state operations
-  should not touch theories at all.  Interrupts are enabled only for
-  Keep, and Transaction.*)
+  operations via Transaction.  Other node or state operations should
+  not touch theories at all.  Interrupts are enabled only for Keep and
+  Transaction.*)
 
 datatype trans =
   Reset |                                               (*empty toplevel*)
@@ -452,7 +469,7 @@ fun to_proof save f = app_current save (fn int =>
     | _ => raise UNDEF));
 
 val theory_to_proof = to_proof false;
-val theory_to_theory_to_proof = to_proof true;
+val theory_theory_to_proof = to_proof true;
 
 fun proofs' f = map_current (fn int =>
   (fn Proof (prf, orig_thy) => Proof (ProofHistory.applys (f int) prf, orig_thy)
