@@ -37,6 +37,7 @@ sig
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
   val mutual_rule: thm list -> (int list * thm) option
+  val strict_mutual_rule: thm list -> int list * thm
 end;
 
 structure RuleCases: RULE_CASES =
@@ -300,6 +301,11 @@ fun mutual_rule [] = NONE
       end;
 
 end;
+
+fun strict_mutual_rule ths =
+  (case mutual_rule ths of
+    NONE => error "Failed to join given rules into one mutual rule"
+  | SOME res => res);
 
 end;
 
