@@ -75,6 +75,10 @@ fun indtac indrule indnames i st =
     rtac indrule' i st
   end;
 
+fun projections rule =
+  ProjectRule.projections rule
+  |> map (standard #> RuleCases.save rule);
+
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
     (* this theory is used just for parsing *)
@@ -1066,10 +1070,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add_global];
 
-    val (_, thy9) = (thy8:Context.theory) |>
+    val ((_, [induct_rule]), thy9) = thy8 |>
       Theory.add_path big_name |>
       PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] ||>
-      Theory.parent_path ||>>
+      (PureThy.add_thmss [(("inducts_weak", projections dt_induct), [case_names_induct])] #> snd)
+      ||> Theory.parent_path ||>>
       DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
       DatatypeAux.store_thmss_atts "perm" new_type_names simp_atts perm_simps' ||>>
@@ -1084,11 +1089,13 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms) ||>
       Theory.add_path big_name ||>>
-      PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])] ||>
-      Theory.parent_path;
-
+      PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])]
+    val thy10 = thy9
+      |> PureThy.add_thmss [(("inducts_unsafe", projections induct_rule), [case_names_induct])]
+      |> snd
+      |> Theory.parent_path;
   in
-    thy9
+    thy10
   end;
 
 val add_nominal_datatype = gen_add_nominal_datatype read_typ true;
