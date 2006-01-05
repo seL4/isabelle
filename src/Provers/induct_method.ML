@@ -23,6 +23,7 @@ sig
   val inner_atomize_tac: int -> tactic
   val rulified_term: thm -> theory * term
   val rulify_tac: int -> tactic
+  val internalize: int -> thm -> thm
   val guess_instance: thm -> int -> thm -> thm Seq.seq
   val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
@@ -204,11 +205,6 @@ val rulify_tac =
 
 fun rule_instance thy inst rule =
   Drule.cterm_instantiate (prep_inst thy align_left I (Thm.prop_of rule, inst)) rule;
-
-fun mutual_rule ths =
-  (case RuleCases.mutual_rule ths of
-    NONE => error "Failed to join given rules into one mutual rule"
-  | SOME res => res);
 
 fun internalize k th =
   th |> Thm.permute_prems 0 k
@@ -394,7 +390,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
 
     val ruleq =
       (case opt_rule of
-        SOME rs => Seq.single (inst_rule (mutual_rule rs))
+        SOME rs => Seq.single (inst_rule (RuleCases.strict_mutual_rule rs))
       | NONE =>
           (find_inductS ctxt facts @
             map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts))
