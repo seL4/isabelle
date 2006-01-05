@@ -229,7 +229,7 @@ end;
 (*** Useful tactics for classical reasoning ***)
 
 val imp_elim = (*cannot use bind_thm within a structure!*)
-  store_thm ("imp_elim", classical_rule (Tactic.make_elim mp));
+  store_thm ("imp_elim", Thm.transfer (the_context ()) (classical_rule (Tactic.make_elim mp)));
 
 (*Prove goal that assumes both P and ~P.
   No backtracking if it finds an equal assumption.  Perhaps should call
@@ -245,7 +245,8 @@ fun mp_tac i = eresolve_tac [not_elim, imp_elim] i  THEN  assume_tac i;
 fun eq_mp_tac i = ematch_tac [not_elim, imp_elim] i  THEN  eq_assume_tac i;
 
 val swap =
-  store_thm ("swap", rule_by_tactic (etac thin_rl 1) (not_elim RS classical));
+  store_thm ("swap", Thm.transfer (the_context ())
+    (rule_by_tactic (etac thin_rl 1) (not_elim RS classical)));
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [swap]);
