@@ -115,7 +115,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rps = map Library.swap ps;
 
     fun replace_types (Type ("nominal.ABS", [T, U])) = 
-          Type ("fun", [T, Type ("nominal.nOption", [replace_types U])])
+          Type ("fun", [T, Type ("nominal.noption", [replace_types U])])
       | replace_types (Type (s, Ts)) =
           Type (getOpt (AList.lookup op = ps s, s), map replace_types Ts)
       | replace_types T = T;
@@ -386,16 +386,16 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (map (fn (i, _) => name_of_typ (nth_dtyp i) ^ "_set") descr));
     val big_rep_name =
       space_implode "_" (DatatypeProp.indexify_names (List.mapPartial
-        (fn (i, ("nominal.nOption", _, _)) => NONE
+        (fn (i, ("nominal.noption", _, _)) => NONE
           | (i, _) => SOME (name_of_typ (nth_dtyp i))) descr)) ^ "_set";
     val _ = warning ("big_rep_name: " ^ big_rep_name);
 
     fun strip_option (dtf as DtType ("fun", [dt, DtRec i])) =
           (case AList.lookup op = descr i of
-             SOME ("nominal.nOption", _, [(_, [dt']), _]) =>
+             SOME ("nominal.noption", _, [(_, [dt']), _]) =>
                apfst (cons dt) (strip_option dt')
            | _ => ([], dtf))
-      | strip_option (DtType ("fun", [dt, DtType ("nominal.nOption", [dt'])])) =
+      | strip_option (DtType ("fun", [dt, DtType ("nominal.noption", [dt'])])) =
           apfst (cons dt) (strip_option dt')
       | strip_option dt = ([], dt);
 
@@ -417,7 +417,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             fun mk_abs_fun (T, (i, t)) =
               let val U = fastype_of t
               in (i + 1, Const ("nominal.abs_fun", [T, U, T] --->
-                Type ("nominal.nOption", [U])) $ mk_Free "y" T i $ t)
+                Type ("nominal.noption", [U])) $ mk_Free "y" T i $ t)
               end
           in (j + 1, j' + length Ts,
             case dt'' of
@@ -438,7 +438,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (intr_ts, ind_consts) =
       apfst List.concat (ListPair.unzip (List.mapPartial
-        (fn ((_, ("nominal.nOption", _, _)), _) => NONE
+        (fn ((_, ("nominal.noption", _, _)), _) => NONE
           | ((i, (_, _, constrs)), rep_set_name) =>
               let val T = nth_dtyp i
               in SOME (map (make_intr rep_set_name T) constrs,
@@ -456,7 +456,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val _ = warning "proving closure under permutation...";
 
     val perm_indnames' = List.mapPartial
-      (fn (x, (_, ("nominal.nOption", _, _))) => NONE | (x, _) => SOME x)
+      (fn (x, (_, ("nominal.noption", _, _))) => NONE | (x, _) => SOME x)
       (perm_indnames ~~ descr);
 
     fun mk_perm_closed name = map (fn th => standard (th RS mp))
@@ -580,11 +580,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val U = fastype_of t
       in
         Const ("nominal.abs_fun", T --> U --> T -->
-          Type ("nominal.nOption", [U])) $ x $ t
+          Type ("nominal.noption", [U])) $ x $ t
       end;
 
     val (ty_idxs, _) = foldl
-      (fn ((i, ("nominal.nOption", _, _)), p) => p
+      (fn ((i, ("nominal.noption", _, _)), p) => p
         | ((i, _), (ty_idxs, j)) => (ty_idxs @ [(i, j)], j + 1)) ([], 0) descr;
 
     fun reindex (DtType (s, dts)) = DtType (s, map reindex dts)
@@ -599,7 +599,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in NameSpace.pack (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
 
     val (descr'', ndescr) = ListPair.unzip (List.mapPartial
-      (fn (i, ("nominal.nOption", _, _)) => NONE
+      (fn (i, ("nominal.noption", _, _)) => NONE
         | (i, (s, dts, constrs)) =>
              let
                val SOME index = AList.lookup op = ty_idxs i;
@@ -624,7 +624,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       Sign.intern_const thy7 ("Abs_" ^ s)) new_type_names;
 
     val recTs' = List.mapPartial
-      (fn ((_, ("nominal.nOption", _, _)), T) => NONE
+      (fn ((_, ("nominal.noption", _, _)), T) => NONE
         | (_, T) => SOME T) (descr ~~ get_rec_types descr sorts');
     val recTs = get_rec_types descr'' sorts';
     val newTs' = Library.take (length new_type_names, recTs');

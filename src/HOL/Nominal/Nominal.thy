@@ -82,7 +82,7 @@ primrec (perm_option)
   perm_none_def:  "pi\<bullet>None    = None"
 
 (* a "private" copy of the option type used in the abstraction function *)
-datatype 'a nOption = nSome 'a | nNone
+datatype 'a noption = nSome 'a | nNone
 
 primrec (perm_noption)
   perm_Nsome_def:  "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
@@ -793,7 +793,7 @@ done
 
 lemma pt_noption_inst:
   assumes pta: "pt TYPE('a) TYPE('x)"
-  shows  "pt TYPE('a nOption) TYPE('x)"
+  shows  "pt TYPE('a noption) TYPE('x)"
 apply(auto simp only: pt_def)
 apply(case_tac "x")
 apply(simp_all add: pt1[OF pta])
@@ -2110,7 +2110,7 @@ done
 
 lemma cp_noption_inst:
   assumes c1: "cp TYPE ('a) TYPE('x) TYPE('y)"
-  shows "cp TYPE ('a nOption) TYPE('x) TYPE('y)"
+  shows "cp TYPE ('a noption) TYPE('x) TYPE('y)"
 using c1
 apply(simp add: cp_def)
 apply(auto)
@@ -2158,11 +2158,11 @@ section {* Abstraction function *}
 lemma pt_abs_fun_inst:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "pt TYPE('x\<Rightarrow>('a nOption)) TYPE('x)"
+  shows "pt TYPE('x\<Rightarrow>('a noption)) TYPE('x)"
   by (rule pt_fun_inst[OF at_pt_inst[OF at],OF pt_noption_inst[OF pt],OF at])
 
 constdefs
-  abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a nOption))" ("[_]._" [100,100] 100)
+  abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a noption))" ("[_]._" [100,100] 100)
   "[a].x \<equiv> (\<lambda>b. (if b=a then nSome(x) else (if b\<sharp>x then nSome([(a,b)]\<bullet>x) else nNone)))"
 
 lemma abs_fun_if: 
@@ -2511,12 +2511,12 @@ lemma fresh_abs_fun_iff_ineq:
 section {* abstraction type for the parsing in nominal datatype *}
 (*==============================================================*)
 consts
-  "ABS_set" :: "('x\<Rightarrow>('a nOption)) set"
+  "ABS_set" :: "('x\<Rightarrow>('a noption)) set"
 inductive ABS_set
   intros
   ABS_in: "(abs_fun a x)\<in>ABS_set"
 
-typedef (ABS) ('x,'a) ABS = "ABS_set::('x\<Rightarrow>('a nOption)) set"
+typedef (ABS) ('x,'a) ABS = "ABS_set::('x\<Rightarrow>('a noption)) set"
 proof 
   fix x::"'a" and a::"'x"
   show "(abs_fun a x)\<in> ABS_set" by (rule ABS_in)

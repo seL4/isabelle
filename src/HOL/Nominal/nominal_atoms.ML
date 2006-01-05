@@ -406,7 +406,7 @@ fun create_nom_typedecls ak_names thy =
 
      (* show that                       *)
      (*      fun(pt_<ak>,pt_<ak>)       *)
-     (*      nOption(pt_<ak>)           *)
+     (*      noption(pt_<ak>)           *)
      (*      option(pt_<ak>)            *)
      (*      list(pt_<ak>)              *)
      (*      *(pt_<ak>,pt_<ak>)         *)
@@ -433,7 +433,7 @@ fun create_nom_typedecls ak_names thy =
        in 
 	thy
 	|> AxClass.add_inst_arity_i ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
-        |> AxClass.add_inst_arity_i ("nominal.nOption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
+        |> AxClass.add_inst_arity_i ("nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
         |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
         |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
         |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
@@ -575,7 +575,7 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
          |> AxClass.add_inst_arity_i ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
-         |> AxClass.add_inst_arity_i ("nominal.nOption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> AxClass.add_inst_arity_i ("nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
         end) ak_names thy) ak_names thy25;
        
      (* show that discrete nominal types are permutation types, finitely     *) 
