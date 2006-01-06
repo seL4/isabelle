@@ -423,7 +423,7 @@ val instanceP =
   OuterSyntax.command instanceK "" K.thy_goal
     (P.xname -- (P.$$$ "::" |-- P.!!! P.arity)
       -- Scan.repeat1 P.spec_name
-      >> (Toplevel.theory_theory_to_proof
+      >> (Toplevel.theory_to_proof
           o (fn ((tyco, (asorts, sort)), defs) => add_instance_arity ((tyco, asorts), sort) defs)));
 
 val _ = OuterSyntax.add_parsers [classP, instanceP];
