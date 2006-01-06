@@ -7,8 +7,7 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports CPure
-uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML") ("eqrule_HOL_data.ML")
-      ("~~/src/Provers/eqsubst.ML")
+uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
 
 begin
 
@@ -1188,12 +1187,6 @@ text {* \medskip Actual Installation of the Simplifier. *}
 use "simpdata.ML"
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
-
-
-text {* \medskip Lucas Dixon's eqstep tactic. *}
-
-use "~~/src/Provers/eqsubst.ML";
-use "eqrule_HOL_data.ML";
 setup EqSubst.setup
 
 
