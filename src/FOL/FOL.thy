@@ -52,7 +52,7 @@ subsection {* Lucas Dixon's eqstep tactic *}
 use "~~/src/Provers/eqsubst.ML";
 use "eqrule_FOL_data.ML";
 
-setup EQSubstTac.setup
+setup EqSubst.setup
 
 
 subsection {* Other simple lemmas *}

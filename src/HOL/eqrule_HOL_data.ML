@@ -1,6 +1,5 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      HOL/eqrule_HOL_data.ML
-    Id:		$Id$
+(*  ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Modified:   22 July 2004
@@ -61,9 +60,4 @@ val prep_meta_eq =
 
 end;
 
-structure EqRuleData = HOL_EqRuleData;
-
-structure EQSubstTac = 
-  EQSubstTacFUN(structure EqRuleData = EqRuleData);
-
-
+structure EqSubst = EqSubstFun(HOL_EqRuleData);

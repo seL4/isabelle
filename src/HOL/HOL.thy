@@ -1194,7 +1194,7 @@ text {* \medskip Lucas Dixon's eqstep tactic. *}
 
 use "~~/src/Provers/eqsubst.ML";
 use "eqrule_HOL_data.ML";
-setup EQSubstTac.setup
+setup EqSubst.setup
 
 
 subsubsection {* Code generator setup *}

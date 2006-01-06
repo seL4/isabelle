@@ -1,5 +1,5 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      sys/eqrule_FOL_data.ML
+(*  ID:         $Id$
     Author:     Lucas Dixon, University of Edinburgh
                 lucas.dixon@ed.ac.uk
     Created:    18 Feb 2004
@@ -51,7 +51,5 @@ val prep_meta_eq =
        o zero_var_indexes)
 
 end;
-structure EqRuleData = ZF_EqRuleData;
 
-structure EQSubstTac = 
-  EQSubstTacFUN(structure EqRuleData = EqRuleData);
+structure EqSubst = EqSubstFun(ZF_EqRuleData);

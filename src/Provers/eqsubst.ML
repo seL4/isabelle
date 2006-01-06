@@ -27,7 +27,7 @@ end;
 
 
 (* the signature of an instance of the SQSUBST tactic *)
-signature EQSUBST_TAC =
+signature EQSUBST =
 sig
 
   exception eqsubst_occL_exp of
@@ -124,9 +124,8 @@ sig
 end;
 
 
-functor EQSubstTacFUN (structure EqRuleData : EQRULE_DATA)
-  : EQSUBST_TAC
-= struct
+functor EqSubstFun (EqRuleData : EQRULE_DATA): EQSUBST =
+struct
 
   (* a type abriviation for match information *)
   type match =
