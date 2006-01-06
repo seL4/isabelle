@@ -35,8 +35,7 @@ $(OUT)/FOL$(ML_SUFFIX): $(OUT)/Pure$(ML_SUFFIX) $(SRC)/Provers/blast.ML	\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/splitter.ML FOL.ML FOL.thy FOL_lemmas1.ML IFOL.ML	\
   IFOL.thy IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML 		\
-  document/root.tex eqrule_FOL_data.ML fologic.ML hypsubstdata.ML	\
-  intprover.ML simpdata.ML
+  document/root.tex fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
 	@$(ISATOOL) usedir -p 2 -b $(OUT)/Pure FOL
 
 
