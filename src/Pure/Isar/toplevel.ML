@@ -74,7 +74,6 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> theory * Proof.context) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
-  val theory_theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
@@ -253,11 +252,11 @@ fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
 val stale_theory = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
 
-fun checkpoint_node true (Theory (thy, ctxt)) = Theory (Theory.checkpoint thy, ctxt)
-  | checkpoint_node _ node = node;
+fun checkpoint_node (Theory (thy, ctxt)) = Theory (Theory.checkpoint thy, ctxt)
+  | checkpoint_node node = node;
 
-fun copy_node true (Theory (thy, ctxt)) = Theory (Theory.copy thy, ctxt)
-  | copy_node _ node = node;
+fun copy_node (Theory (thy, ctxt)) = Theory (Theory.copy thy, ctxt)
+  | copy_node node = node;
 
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
@@ -274,12 +273,11 @@ fun interruptible f x =
 
 in
 
-fun transaction _ _ _ (State NONE) = raise UNDEF
-  | transaction save hist f (State (SOME (node, term))) =
+fun transaction _ _ (State NONE) = raise UNDEF
+  | transaction hist f (State (SOME (node, term))) =
       let
-        val save = true;  (* FIXME *)
-        val cont_node = History.map (checkpoint_node save) node;
-        val back_node = History.map (copy_node save) cont_node;
+        val cont_node = History.map checkpoint_node node;
+        val back_node = History.map copy_node cont_node;
         fun state nd = State (SOME (nd, term));
         fun normal_state nd = (state nd, NONE);
         fun error_state nd exn = (state nd, SOME exn);
@@ -287,7 +285,7 @@ fun transaction _ _ _ (State NONE) = raise UNDEF
         val (result, err) =
           cont_node
           |> (f
-              |> (if hist then History.apply_copy (copy_node save) else History.map)
+              |> (if hist then History.apply_copy copy_node else History.map)
               |> debug_trans
               |> interruptible
               |> transform_error)
@@ -303,8 +301,8 @@ fun mapping f (State (SOME (node, term))) = State (SOME (History.map f node, ter
   | mapping _ state = state;
 
 val no_body_context = mapping (fn Theory (thy, _) => Theory (thy, NONE) | node => node);
-val checkpoint = mapping (checkpoint_node true);
-val copy = mapping (copy_node true);
+val checkpoint = mapping checkpoint_node;
+val copy = mapping copy_node;
 
 end;
 
@@ -324,7 +322,7 @@ datatype trans =
   Kill |                                                (*abort node*)
   Keep of bool -> state -> unit |                       (*peek at state*)
   History of node History.T -> node History.T |         (*history operation (undo etc.)*)
-  Transaction of bool * bool * (bool -> node -> node);  (*node transaction*)
+  Transaction of bool * (bool -> node -> node);         (*node transaction*)
 
 fun undo_limit int = if int then NONE else SOME 0;
 
@@ -343,8 +341,7 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr int (Keep f) state = (raise_interrupt (f int) state; state)
   | apply_tr _ (History _) (State NONE) = raise UNDEF
   | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
-  | apply_tr int (Transaction (save, hist, f)) state =
-      transaction (int orelse save) hist (fn x => f int x) state;
+  | apply_tr int (Transaction (hist, f)) state = transaction hist (fn x => f int x) state;
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
@@ -434,8 +431,8 @@ val exit = add_trans Exit;
 val kill = add_trans Kill;
 val keep' = add_trans o Keep;
 val history = add_trans o History;
-fun map_current f = add_trans (Transaction (false, false, f));
-fun app_current save f = add_trans (Transaction (save, true, f));
+fun map_current f = add_trans (Transaction (false, f));
+fun app_current f = add_trans (Transaction (true, f));
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
@@ -448,28 +445,21 @@ fun init_theory f exit kill =
 
 (* typed transitions *)
 
-fun theory f = app_current false
+fun theory f = app_current
   (K (fn Theory (thy, _) => Theory (f thy, NONE) | _ => raise UNDEF));
 
-fun theory' f = app_current false (fn int =>
+fun theory' f = app_current (fn int =>
   (fn Theory (thy, _) => Theory (f int thy, NONE) | _ => raise UNDEF));
 
-fun theory_context f = app_current false
+fun theory_context f = app_current
   (K (fn Theory (thy, _) => Theory (apsnd SOME (f thy)) | _ => raise UNDEF));
 
-fun to_proof save f = app_current save (fn int =>
+fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
-      let val st = f thy in
-        if save orelse Theory.eq_thy (thy, Proof.theory_of st) then ()
-        else error "Theory changed at start of proof";
-        if ! skip_proofs then
-          SkipProof ((History.init (undo_limit int) 0, #1 (Proof.global_skip_proof int st)), thy)
-        else Proof (ProofHistory.init (undo_limit int) st, thy)
-      end
-    | _ => raise UNDEF));
-
-val theory_to_proof = to_proof false;
-val theory_theory_to_proof = to_proof true;
+    if ! skip_proofs then
+      SkipProof ((History.init (undo_limit int) 0, #1 (Proof.global_skip_proof int (f thy))), thy)
+    else Proof (ProofHistory.init (undo_limit int) (f thy), thy)
+  | _ => raise UNDEF));
 
 fun proofs' f = map_current (fn int =>
   (fn Proof (prf, orig_thy) => Proof (ProofHistory.applys (f int) prf, orig_thy)
