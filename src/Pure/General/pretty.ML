@@ -33,6 +33,7 @@ sig
   val blk: int * T list -> T
   val unbreakable: T -> T
   val quote: T -> T
+  val backquote: T -> T
   val commas: T list -> T list
   val breaks: T list -> T list
   val fbreaks: T list -> T list
@@ -204,8 +205,8 @@ fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
 
 (* utils *)
 
-fun quote prt =
-  blk (1, [str "\"", prt, str "\""]);
+fun quote prt = blk (1, [str "\"", prt, str "\""]);
+fun backquote prt = blk (1, [str "`", prt, str "`"]);
 
 fun separate_pretty sep prts =
   prts
