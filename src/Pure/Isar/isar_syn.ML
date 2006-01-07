@@ -186,12 +186,19 @@ val constdecl =
   (P.name --| P.$$$ "where") >> (fn x => (x, NONE, Syntax.NoSyn)) ||
     P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix' >> P.triple1 ||
     P.name -- (P.mixfix' >> pair NONE) >> P.triple2;
-
 val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
 val constdefsP =
   OuterSyntax.command "constdefs" "standard constant definitions" K.thy_decl
     (structs -- Scan.repeat1 constdef >> (Toplevel.theory o Constdefs.add_constdefs));
+
+
+(* constant specifications *)
+
+val axiomatizationP =
+  OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
+    (P.and_list1 P.param -- Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.named_spec)) []
+    >> (Toplevel.theory o (#2 oo Specification.axiomatize)));
 
 
 (* theorems *)
@@ -851,11 +858,12 @@ val _ = OuterSyntax.add_parsers [
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, judgmentP, constsP, finalconstsP, syntaxP, no_syntaxP,
-  translationsP, axiomsP, defsP, constdefsP, theoremsP, lemmasP,
-  declareP, globalP, localP, hideP, useP, mlP, ml_commandP, ml_setupP,
-  setupP, method_setupP, parse_ast_translationP, parse_translationP,
-  print_translationP, typed_print_translationP,
-  print_ast_translationP, token_translationP, oracleP, localeP,
+  translationsP, axiomsP, defsP, constdefsP, axiomatizationP,
+  theoremsP, lemmasP, declareP, globalP, localP, hideP, useP, mlP,
+  ml_commandP, ml_setupP, setupP, method_setupP,
+  parse_ast_translationP, parse_translationP, print_translationP,
+  typed_print_translationP, print_ast_translationP,
+  token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
