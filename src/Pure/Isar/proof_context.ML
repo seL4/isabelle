@@ -141,10 +141,9 @@ sig
   val fix_frees: term list -> context -> context
   val auto_fix: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_skolem: context -> string list -> term -> term
-  val apply_case: RuleCases.T -> context
-    -> ((indexname * term option) list * (string * term list) list) * context
-  val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
+  val apply_case: RuleCases.T -> context -> (string * term list) list * context
+  val get_case: context -> string -> string option list -> RuleCases.T
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -1265,26 +1264,7 @@ fun export_view view inner outer = export (add_view outer view inner) outer;
 
 (** cases **)
 
-fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
-  let
-    fun bind (x, T) c = (bind_skolem c [x] (Free (x, T)), c |> fix_i [([x], SOME T)]);
-    val (xs, ctxt') = fold_map bind fixes ctxt;
-    fun app t = Term.betapplys (t, xs);
-  in ((map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes), ctxt') end;
-
 local
-
-fun prep_case ctxt name xs {fixes, assumes, binds} =
-  let
-    fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
-      | replace [] ys = ys
-      | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
-  in
-    if null (fold (Term.add_tvarsT o snd) fixes []) andalso
-      null (fold (fold Term.add_vars o snd) assumes []) then
-        {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
-    else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
-  end;
 
 fun rem_case name = remove (fn (x: string, (y, _)) => x = y) name;
 
@@ -1292,15 +1272,47 @@ fun add_case _ ("", _) cases = cases
   | add_case _ (name, NONE) cases = rem_case name cases
   | add_case is_proper (name, SOME c) cases = (name, (c, is_proper)) :: rem_case name cases;
 
+val bind_fixes = fold_map (fn (x, T) => fn ctxt =>
+    (bind_skolem ctxt [x] (Free (x, T)), ctxt |> fix_i [([x], SOME T)]));
+
+fun prep_case ctxt name fxs c =
+  let
+    fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
+      | replace [] ys = ys
+      | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
+    val RuleCases.Case {fixes, assumes, binds, cases} = c;
+    val fixes' = replace fxs fixes;
+    val binds' = map drop_schematic binds;
+  in
+    if null (fold (Term.add_tvarsT o snd) fixes []) andalso
+      null (fold (fold Term.add_vars o snd) assumes []) then
+        RuleCases.Case {fixes = fixes', assumes = assumes, binds = binds', cases = cases}
+    else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
+  end;
+
 in
+
+fun add_cases is_proper xs = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
+  (syntax, asms, binds, thms, fold (add_case is_proper) xs cases, defs));
+
+fun case_result c ctxt =
+  let
+    val RuleCases.Case {fixes, ...} = c;
+    val (xs, ctxt') = bind_fixes fixes ctxt;
+    val RuleCases.Case {assumes, binds, cases, ...} = RuleCases.apply xs c;
+  in
+    ctxt'
+    |> add_binds_i binds
+    |> add_cases true (map (apsnd SOME) cases)
+    |> pair (assumes, (binds, cases))
+  end;
+
+val apply_case = apfst fst oo case_result;
 
 fun get_case ctxt name xs =
   (case AList.lookup (op =) (cases_of ctxt) name of
     NONE => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
   | SOME (c, _) => prep_case ctxt name xs c);
-
-fun add_cases is_proper xs = map_context (fn (syntax, asms, binds, thms, cases, defs) =>
-  (syntax, asms, binds, thms, fold (add_case is_proper) xs cases, defs));
 
 end;
 
@@ -1310,7 +1322,6 @@ end;
 
 val verbose = ref false;
 fun verb f x = if ! verbose then f (x ()) else [];
-fun verb_single x = verb Library.single x;
 
 fun setmp_verbose f x = Library.setmp verbose true f x;
 
@@ -1368,16 +1379,18 @@ fun pretty_cases ctxt =
       | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
             List.concat (Library.separate sep (map (Library.single o prt) xs))))];
 
-    fun prt_case (name, (fixes, (lets, asms))) = Pretty.block (Pretty.fbreaks
+    fun prt_case (name, (fixes, (asms, (lets, cs)))) = Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
         prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (List.mapPartial (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
-          else prt_sect "assume" [Pretty.str "and"] prt_asm asms)));
+          else prt_sect "assume" [Pretty.str "and"] prt_asm asms) @
+        prt_sect "subcases:" [] (Pretty.str o fst) cs));
 
     fun add_case (_, (_, false)) = I
-      | add_case (name, (c, true)) = cons (name, (#fixes c, #1 (apply_case c ctxt)));
+      | add_case (name, (c as RuleCases.Case {fixes, ...}, true)) =
+          cons (name, (fixes, #1 (case_result c ctxt)));
     val cases = fold add_case (cases_of ctxt) [];
   in
     if null cases andalso not (! verbose) then []
@@ -1449,14 +1462,14 @@ fun pretty_context ctxt =
 
     val (types, sorts, used, _) = defaults_of ctxt;
   in
-    verb_single (K pretty_thy) @
+    verb single (K pretty_thy) @
     pretty_asms ctxt @
     verb pretty_binds (K ctxt) @
     verb pretty_lthms (K ctxt) @
     verb pretty_cases (K ctxt) @
-    verb_single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
-    verb_single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb_single (fn () => Pretty.strs ("used type variable names:" :: used))
+    verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
+    verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
+    verb single (fn () => Pretty.strs ("used type variable names:" :: used))
   end;
 
 end;
