@@ -24,13 +24,6 @@ struct
 
 (** add_constdefs(_i) **)
 
-fun pretty_const thy (c, T) =
-  Pretty.block [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
-    Pretty.quote (Sign.pretty_typ thy T)];
-
-fun pretty_constdefs thy decls =
-  Pretty.big_list "constants" (map (pretty_const thy) decls);
-
 fun gen_constdef prep_typ prep_term prep_att
     structs (decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
@@ -74,7 +67,7 @@ fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy
   let
     val structs = #1 (fold_map prep_vars raw_structs (ProofContext.init thy));
     val (decls, thy') = fold_map (gen_constdef prep_typ prep_term prep_att structs) specs thy
-  in Pretty.writeln (pretty_constdefs thy' decls); thy' end;
+  in Pretty.writeln (Specification.pretty_consts thy' decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_liberal
   ProofContext.read_typ ProofContext.read_term_liberal Attrib.global_attribute;
