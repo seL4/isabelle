@@ -42,7 +42,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML             
   Isar/outer_keyword.ML Isar/outer_lex.ML Isar/outer_parse.ML                   \
   Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML                      \
   Isar/proof_display.ML Isar/proof_history.ML Isar/rule_cases.ML                \
-  Isar/session.ML Isar/skip_proof.ML Isar/term_style.ML                         \
+  Isar/session.ML Isar/skip_proof.ML Isar/specification.ML Isar/term_style.ML	\
   Isar/thy_header.ML Isar/toplevel.ML ML-Systems/cpu-timer-basis.ML             \
   ML-Systems/cpu-timer-gc.ML ML-Systems/polyml-posix.ML                         \
   ML-Systems/polyml-time-limit.ML ML-Systems/polyml.ML                          \
