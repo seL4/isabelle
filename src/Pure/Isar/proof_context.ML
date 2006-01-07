@@ -35,6 +35,7 @@ sig
   val string_of_term: context -> term -> string
   val string_of_thm: context -> thm -> string
   val default_type: context -> string -> typ option
+  val infer_type: context -> string -> typ
   val used_types: context -> string list
   val read_typ: context -> string -> typ
   val read_typ_syntax: context -> string -> typ
@@ -63,6 +64,7 @@ sig
   val cert_term_pats: typ -> context -> term list -> term list
   val cert_prop_pats: context -> term list -> term list
   val declare_term: term -> context -> context
+  val declared_type: string -> context -> (string * typ) * context
   val read_tyname: context -> string -> typ
   val read_const: context -> string -> term
   val warn_extra_tfrees: context -> context -> context
@@ -372,6 +374,13 @@ fun def_type ctxt pattern xi =
 fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
 val used_types = #3 o defaults_of;
 
+fun infer_type ctxt x =
+  (case try (transform_error (fn () =>
+      Sign.infer_types (pp ctxt) (theory_of ctxt) (def_type ctxt false) (def_sort ctxt)
+        (used_types ctxt) true ([Free (x, dummyT)], TypeInfer.logicT))) () of
+    SOME (Free (_, T), _) => T
+  | _ => raise CONTEXT ("Failed to infer type of fixed variable " ^ quote x, ctxt));
+
 
 
 (** prepare types **)
@@ -641,6 +650,10 @@ fun declare_term t ctxt =
   |> map_defaults (fn (types, sorts, used, occ) =>
       (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types,
         sorts, used, occ));
+
+fun declared_type x ctxt =
+  let val T = infer_type ctxt x
+  in ((x, T), ctxt |> declare_term (Free (x, T))) end;
 
 end;
 
@@ -1048,9 +1061,12 @@ fun prep_vars prep_typ internal liberal (xs, raw_T) ctxt =
       if internal then T
       else Type.no_tvars T handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
 
-    val _ = if liberal then () else
+    val _ =
       (case List.filter (not o Syntax.is_identifier) (map (no_skolem internal ctxt) xs) of
-      [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
+      [] => () | bads =>
+        if liberal then
+          warning ("Using internal variable name(s): " ^ commas_quote bads ^ " -- deprecated")
+        else raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
     val T = the_default TypeInfer.logicT opt_T;
