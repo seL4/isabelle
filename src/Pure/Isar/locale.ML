@@ -44,30 +44,31 @@ sig
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
   val the_locale: theory -> string -> locale
+  val init: string -> theory -> Proof.context
 
-  (* Processing of locale statements *)
+  (* Processing of locale statements *)  (* FIXME export more abstract version *)
   val read_context_statement: xstring option -> Element.context element list ->
-    (string * (string list * string list)) list list -> ProofContext.context ->
-    string option * (cterm list * cterm list) * ProofContext.context * ProofContext.context *
+    (string * (string list * string list)) list list -> Proof.context ->
+    string option * (cterm list * cterm list) * Proof.context * Proof.context *
       (term * (term list * term list)) list list
   val cert_context_statement: string option -> Element.context_i element list ->
-    (term * (term list * term list)) list list -> ProofContext.context ->
-    string option * (cterm list * cterm list) * ProofContext.context * ProofContext.context *
+    (term * (term list * term list)) list list -> Proof.context ->
+    string option * (cterm list * cterm list) * Proof.context * Proof.context *
       (term * (term list * term list)) list list
 
   (* Diagnostic functions *)
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> expr -> Element.context list -> unit
   val print_global_registrations: bool -> string -> theory -> unit
-  val print_local_registrations': bool -> string -> ProofContext.context -> unit
-  val print_local_registrations: bool -> string -> ProofContext.context -> unit
+  val print_local_registrations': bool -> string -> Proof.context -> unit
+  val print_local_registrations: bool -> string -> Proof.context -> unit
 
   val add_locale_context: bool -> bstring -> expr -> Element.context list -> theory
     -> ((Element.context_i list list * Element.context_i list list)
-         * ProofContext.context) * theory
+         * Proof.context) * theory
   val add_locale_context_i: bool -> bstring -> expr -> Element.context_i list -> theory
     -> ((Element.context_i list list * Element.context_i list list)
-         * ProofContext.context) * theory
+         * Proof.context) * theory
   val add_locale: bool -> bstring -> expr -> Element.context list -> theory -> theory
   val add_locale_i: bool -> bstring -> expr -> Element.context_i list -> theory -> theory
 
@@ -77,10 +78,10 @@ sig
     theory -> (bstring * thm list) list * theory
   val note_thmss: string -> xstring ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> (bstring * thm list) list * (theory * ProofContext.context)
+    theory -> (bstring * thm list) list * (theory * Proof.context)
   val note_thmss_i: string -> string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    theory -> (bstring * thm list) list * (theory * ProofContext.context)
+    theory -> (bstring * thm list) list * (theory * Proof.context)
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string * Attrib.src list -> Element.context element list ->
@@ -1353,6 +1354,8 @@ fun cert_context import body ctxt = #1 (gen_context_i true [] import (map Elem b
 
 val read_context_statement = gen_statement intern gen_context;
 val cert_context_statement = gen_statement (K I) gen_context_i;
+
+fun init loc thy = #3 (cert_context_statement (SOME loc) [] [] (ProofContext.init thy));
 
 end;
 
