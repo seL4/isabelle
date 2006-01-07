@@ -94,7 +94,7 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
 (* make_cases *)
 
 fun make_cases is_open rule =
-  RuleCases.make is_open NONE (Thm.theory_of_thm rule, Thm.prop_of rule);
+  RuleCases.make_common is_open (Thm.theory_of_thm rule, Thm.prop_of rule);
 
 fun warn_open true = warning "Encountered open rule cases -- deprecated"
   | warn_open false = ();
@@ -398,7 +398,8 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
           |> tap (trace_rules ctxt InductAttrib.inductN o map #2)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
-    fun rule_cases rule = RuleCases.make is_open (SOME (Thm.prop_of rule)) (rulified_term rule);
+    fun rule_cases rule =
+      RuleCases.make_nested is_open (Thm.prop_of rule) (rulified_term rule);
   in
     (fn i => fn st =>
       ruleq
