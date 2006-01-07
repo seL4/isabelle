@@ -1,0 +1,90 @@
+(*  Title:      Pure/Isar/specification.ML
+    ID:         $Id$
+    Author:     Makarius
+
+Theory specifications --- with type-inference, but no internal
+polymorphism.
+*)
+
+signature SPECIFICATION =
+sig
+  val pretty_consts: theory -> (string * typ) list -> Pretty.T
+  val read_specification:
+    (string * string option * mixfix) list * ((string * Attrib.src list) * string list) list ->
+    Proof.context ->
+    ((string * typ * mixfix) list * ((string * theory attribute list) * term list) list) *
+    Proof.context
+  val cert_specification:
+    (string * typ option * mixfix) list * ((string * theory attribute list) * term list) list ->
+    Proof.context ->
+    ((string * typ * mixfix) list * ((string * theory attribute list) * term list) list) *
+    Proof.context
+  val axiomatize:
+    (string * string option * mixfix) list * ((bstring * Attrib.src list) * string list) list ->
+    theory -> thm list list * theory
+  val axiomatize_i:
+    (string * typ option * mixfix) list * ((bstring * theory attribute list) * term list) list ->
+    theory -> thm list list * theory
+end;
+
+structure Specification: SPECIFICATION =
+struct
+
+(* pretty_consts *)
+
+fun pretty_const thy (c, T) =
+  Pretty.block [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
+    Pretty.quote (Sign.pretty_typ thy T)];
+
+fun pretty_consts thy decls =
+  Pretty.big_list "constants" (map (pretty_const thy) decls);
+
+
+(* prepare specification *)
+
+fun prep_specification prep_typ prep_propp prep_att
+    (raw_params, raw_specs) context =
+  let
+    fun prep_param (x, raw_T, mx) ctxt =
+      let
+        val x' = Syntax.const_name x mx and mx' = Syntax.fix_mixfix x mx;
+        val T = Option.map (prep_typ ctxt) raw_T;
+      in ((x', mx'), ProofContext.add_fixes [(x', T, SOME mx')] ctxt) end;
+
+    val ((xs, mxs), params_ctxt) =
+      context |> fold_map prep_param raw_params |>> split_list;
+    val ((specs, vars), specs_ctxt) =
+      prep_propp (params_ctxt, map (map (rpair ([], [])) o snd) raw_specs)
+      |> swap |>> map (map fst)
+      ||>> fold_map ProofContext.declared_type xs;
+
+    val params = map2 (fn (x, T) => fn mx => (x, T, mx)) vars mxs;
+    val names = map (fst o fst) raw_specs;
+    val atts = map (map (prep_att (ProofContext.theory_of context)) o snd o fst) raw_specs;
+  in ((params, (names ~~ atts) ~~ specs), specs_ctxt) end;
+
+fun read_specification x =
+  prep_specification ProofContext.read_typ ProofContext.read_propp Attrib.global_attribute x;
+fun cert_specification x =
+  prep_specification ProofContext.cert_typ ProofContext.cert_propp (K I) x;
+
+
+(* axiomatize *)
+
+fun gen_axiomatize prep args thy =
+  let
+    val ((consts, specs), ctxt) = prep args (ProofContext.init thy);
+    val subst = map (fn (x, T, _) => (Free (x, T), Const (Sign.full_name thy x, T))) consts;
+    val axioms =
+      map (fn ((name, att), ts) => ((name, map (Term.subst_atomic subst) ts), att)) specs;
+    val (thms, thy') =
+      thy
+      |> Theory.add_consts_i consts
+      |> PureThy.add_axiomss_i axioms
+      ||> Theory.add_finals_i false (map snd subst);
+  in Pretty.writeln (pretty_consts thy' (map (dest_Free o fst) subst)); (thms, thy') end;
+
+val axiomatize = gen_axiomatize read_specification;
+val axiomatize_i = gen_axiomatize cert_specification;
+
+end;
