@@ -23,8 +23,8 @@ use "induct_attrib.ML";
 
 (*derived theory and proof elements*)
 use "constdefs.ML";
-use "locale.ML";
 use "obtain.ML";
+use "locale.ML";
 use "calculation.ML";
 
 (*outer syntax*)
