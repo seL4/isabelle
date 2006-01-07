@@ -60,6 +60,7 @@ sig
   val opt_mixfix': token list -> Syntax.mixfix * token list
   val mixfix': token list -> Syntax.mixfix * token list
   val const: token list -> (bstring * string * Syntax.mixfix) * token list
+  val param: token list -> (bstring * string option * Syntax.mixfix) * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
   val propp: token list -> (string * (string list * string list)) * token list
@@ -69,6 +70,8 @@ sig
   val opt_attribs: token list -> Attrib.src list * token list
   val thm_name: string -> token list -> (bstring * Attrib.src list) * token list
   val opt_thm_name: string -> token list -> (bstring * Attrib.src list) * token list
+  val spec: token list -> ((bstring * Attrib.src list) * string list) * token list
+  val named_spec: token list -> ((bstring * Attrib.src list) * string list) * token list
   val spec_name: token list -> ((bstring * string) * Attrib.src list) * token list
   val spec_opt_name: token list -> ((bstring * string) * Attrib.src list) * token list
   val xthm: token list -> (thmref * Attrib.src list) * token list
@@ -245,8 +248,8 @@ val mixfix' = fix_decl !!! (mixfix || binder || infxl || infxr || infx);
 
 (* consts *)
 
-val const =
-  name -- ($$$ "::" |-- !!! (typ -- opt_mixfix)) >> triple2;
+val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
+val param = name -- Scan.option ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
 
 (* terms *)
@@ -305,6 +308,9 @@ val opt_attribs = Scan.optional attribs [];
 fun thm_name s = name -- opt_attribs --| $$$ s;
 fun opt_thm_name s =
   Scan.optional ((name -- opt_attribs || (attribs >> pair "")) --| $$$ s) ("", []);
+
+val spec = opt_thm_name ":" -- Scan.repeat1 prop;
+val named_spec = thm_name ":" -- Scan.repeat1 prop;
 
 val spec_name = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
