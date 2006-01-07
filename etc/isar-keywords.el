@@ -29,6 +29,7 @@
     "automaton"
     "ax_specification"
     "axclass"
+    "axiomatization"
     "axioms"
     "back"
     "by"
@@ -37,6 +38,7 @@
     "cd"
     "chapter"
     "class"
+    "class_instance"
     "classes"
     "classrel"
     "clear_undos"
@@ -364,6 +366,7 @@
     "arities"
     "automaton"
     "axclass"
+    "axiomatization"
     "axioms"
     "class"
     "classes"
@@ -434,6 +437,7 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
+    "class_instance"
     "corollary"
     "cpodef"
     "instance"

@@ -34,6 +34,7 @@
     "cd"
     "chapter"
     "class"
+    "class_instance"
     "classes"
     "classrel"
     "clear_undos"
@@ -395,7 +396,8 @@
     "inductive_cases"))
 
 (defconst isar-keywords-theory-goal
-  '("corollary"
+  '("class_instance"
+    "corollary"
     "instance"
     "interpretation"
     "lemma"
