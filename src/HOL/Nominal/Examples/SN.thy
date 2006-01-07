@@ -646,56 +646,56 @@ done
 lemma RED_props: 
   shows "CR1 \<tau>" and "CR2 \<tau>" and "CR3 \<tau>"
 proof (induct \<tau>)
-  case (TVar a)
-  have "CR1 (TVar a)" by (simp add: CR1_def)
-  moreover
-  have "CR2 (TVar a)" by (force intro: SN_preserved simp add: CR2_def)
-  moreover
-  have "CR3 (TVar a)" by (force intro: SN_intro simp add: CR3_def CR3_RED_def)
-  ultimately show "CR1 (TVar a) \<and> CR2 (TVar a) \<and> CR3 (TVar a)" by simp
+  case (TVar1 a) show "CR1 (TVar a)" by (simp add: CR1_def)
 next
-  case (TArr \<tau>1 \<tau>2)
-  have ih_\<tau>1: "CR1 \<tau>1 \<and> CR2 \<tau>1 \<and> CR3 \<tau>1" by fact
-  have ih_\<tau>2: "CR1 \<tau>2 \<and> CR2 \<tau>2 \<and> CR3 \<tau>2" by fact
-  have "CR1 (\<tau>1 \<rightarrow> \<tau>2)"
+  case (TVar2 a) show "CR2 (TVar a)" by (force intro: SN_preserved simp add: CR2_def)
+next
+  case (TVar3 a) show "CR3 (TVar a)" by (force intro: SN_intro simp add: CR3_def CR3_RED_def)
+next
+  case (TArr1 \<tau>1 \<tau>2)
+  have ih_CR3_\<tau>1: "CR3 \<tau>1" by fact
+  have ih_CR1_\<tau>2: "CR1 \<tau>2" by fact
+  show "CR1 (\<tau>1 \<rightarrow> \<tau>2)"
   proof (simp add: CR1_def, intro strip)
     fix t
     assume a: "\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t u \<in> RED \<tau>2"
-    from ih_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_CR4) 
+    from ih_CR3_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_CR4) 
     moreover
     have "NEUT (Var a)" by (force simp add: NEUT_def)
     moreover
     have "NORMAL (Var a)" by (rule NORMAL_Var)
     ultimately have "(Var a)\<in> RED \<tau>1" by (simp add: CR4_def)
     with a have "App t (Var a) \<in> RED \<tau>2" by simp
-    moreover 
-    from ih_\<tau>2 have "CR1 \<tau>2" by simp
-    ultimately have "SN (App t (Var a))" by (simp add: CR1_def)
+    hence "SN (App t (Var a))" using ih_CR1_\<tau>2 by (simp add: CR1_def)
     thus "SN(t)" by (rule qq3)
   qed
-  moreover
-  have "CR2 (\<tau>1 \<rightarrow> \<tau>2)"
+next
+  case (TArr2 \<tau>1 \<tau>2)
+  have ih_CR1_\<tau>1: "CR1 \<tau>1" by fact
+  have ih_CR2_\<tau>2: "CR2 \<tau>2" by fact
+  show "CR2 (\<tau>1 \<rightarrow> \<tau>2)"
   proof (simp add: CR2_def, intro strip)
     fix t1 t2 u
     assume "(\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t1 u \<in> RED \<tau>2) \<and>  t1 \<longrightarrow>\<^isub>\<beta> t2" 
-    and    "u \<in> RED \<tau>1"
+      and  "u \<in> RED \<tau>1"
     hence "t1 \<longrightarrow>\<^isub>\<beta> t2" and "App t1 u \<in> RED \<tau>2" by simp_all
-    moreover
-    from ih_\<tau>2 have "CR2 \<tau>2" by simp
-    ultimately show "App t2 u \<in> RED \<tau>2" by (force simp add: CR2_def)
+    thus "App t2 u \<in> RED \<tau>2" using ih_CR2_\<tau>2 by (force simp add: CR2_def)
   qed
-  moreover
-  have "CR3 (\<tau>1 \<rightarrow> \<tau>2)"
+next
+  case (TArr3 \<tau>1 \<tau>2)
+  have ih_CR1_\<tau>1: "CR1 \<tau>1" by fact
+  have ih_CR2_\<tau>1: "CR2 \<tau>1" by fact
+  have ih_CR3_\<tau>2: "CR3 \<tau>2" by fact
+  show "CR3 (\<tau>1 \<rightarrow> \<tau>2)"
   proof (simp add: CR3_def, intro strip)
     fix t u
     assume a1: "u \<in> RED \<tau>1"
     assume a2: "NEUT t \<and> CR3_RED t (\<tau>1 \<rightarrow> \<tau>2)"
-    from a1 have "SN(u)" using ih_\<tau>1 by (simp add: CR1_def)
+    from a1 have "SN(u)" using ih_CR1_\<tau>1 by (simp add: CR1_def)
     hence "u\<in>RED \<tau>1\<longrightarrow>(\<forall>t. (NEUT t\<and>CR2 \<tau>1\<and>CR3 \<tau>2\<and>CR3_RED t (\<tau>1\<rightarrow>\<tau>2))\<longrightarrow>(App t u)\<in>RED \<tau>2)" 
       by (rule sub_ind)
-    with a1 a2 show "(App t u)\<in>RED \<tau>2" using ih_\<tau>1 ih_\<tau>2 by simp
+    with a1 a2 show "(App t u)\<in>RED \<tau>2" using ih_CR2_\<tau>1 ih_CR3_\<tau>2 by simp
   qed
-  ultimately show "CR1 (\<tau>1 \<rightarrow> \<tau>2) \<and> CR2 (\<tau>1 \<rightarrow> \<tau>2) \<and> CR3 (\<tau>1 \<rightarrow> \<tau>2)" by blast
 qed
     
 lemma double_acc_aux:
