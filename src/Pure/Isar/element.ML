@@ -77,7 +77,7 @@ fun pretty_ctxt ctxt =
   let
     val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
-    val prt_thm = Pretty.quote o ProofContext.pretty_thm ctxt;
+    val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
     val prt_atts = Args.pretty_attribs ctxt;
 
     fun prt_syn syn =
@@ -89,20 +89,20 @@ fun pretty_ctxt ctxt =
     fun prt_constrain (x, T) = prt_fix (x, SOME T, SOME (Syntax.NoSyn));
 
     fun prt_name name = Pretty.str (ProofContext.extern_thm ctxt name);
-    fun prt_name_atts (name, atts) =
+    fun prt_name_atts (name, atts) sep =
       if name = "" andalso null atts then []
-      else [Pretty.block (Pretty.breaks (prt_name name :: prt_atts atts @ [Pretty.str ":"]))];
+      else [Pretty.block (Pretty.breaks (prt_name name :: prt_atts atts @ [Pretty.str sep]))];
 
     fun prt_asm (a, ts) =
-      Pretty.block (Pretty.breaks (prt_name_atts a @ map (prt_term o fst) ts));
+      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
     fun prt_def (a, (t, _)) =
-      Pretty.block (Pretty.breaks (prt_name_atts a @ [prt_term t]));
+      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ [prt_term t]));
 
     fun prt_fact (ths, []) = map prt_thm ths
       | prt_fact (ths, atts) =
           Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths)) :: prt_atts atts;
     fun prt_note (a, ths) =
-      Pretty.block (Pretty.breaks (List.concat (prt_name_atts a :: map prt_fact ths)));
+      Pretty.block (Pretty.breaks (List.concat (prt_name_atts a "=" :: map prt_fact ths)));
 
     fun items _ [] = []
       | items prfx (x :: xs) =
