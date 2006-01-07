@@ -294,8 +294,8 @@ fun hide_thms fully names thy =
 
 (* naming *)
 
-fun gen_names j len name =
-  map (fn i => name ^ "_" ^ string_of_int i) (j + 1 upto j + len);
+fun gen_names _ len "" = replicate len ""
+  | gen_names j len name = map (fn i => name ^ "_" ^ string_of_int i) (j + 1 upto j + len);
 
 fun name_multi name xs = gen_names 0 (length xs) name ~~ xs;
 
