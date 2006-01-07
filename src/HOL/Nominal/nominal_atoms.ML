@@ -374,6 +374,7 @@ fun create_nom_typedecls ak_names thy =
       val pt_set_inst   = thm "pt_set_inst"; 
       val pt_unit_inst  = thm "pt_unit_inst";
       val pt_prod_inst  = thm "pt_prod_inst"; 
+      val pt_nprod_inst = thm "pt_nprod_inst"; 
       val pt_list_inst  = thm "pt_list_inst";   
       val pt_optn_inst  = thm "pt_option_inst";   
       val pt_noptn_inst = thm "pt_noption_inst";   
@@ -410,6 +411,7 @@ fun create_nom_typedecls ak_names thy =
      (*      option(pt_<ak>)            *)
      (*      list(pt_<ak>)              *)
      (*      *(pt_<ak>,pt_<ak>)         *)
+     (*      nprod(pt_<ak>,pt_<ak>)     *)
      (*      unit                       *)
      (*      set(pt_<ak>)               *)
      (* are instances of pt_<ak>        *)
@@ -428,6 +430,7 @@ fun create_nom_typedecls ak_names thy =
           val pt_thm_optn  = pt_inst RS pt_optn_inst; 
           val pt_thm_list  = pt_inst RS pt_list_inst;
           val pt_thm_prod  = pt_inst RS (pt_inst RS pt_prod_inst);
+          val pt_thm_nprod = pt_inst RS (pt_inst RS pt_nprod_inst);
           val pt_thm_unit  = pt_unit_inst;
           val pt_thm_set   = pt_inst RS pt_set_inst
        in 
@@ -437,6 +440,8 @@ fun create_nom_typedecls ak_names thy =
         |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
         |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
         |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
+        |> AxClass.add_inst_arity_i ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+                                    (pt_proof pt_thm_nprod)
         |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
         |> AxClass.add_inst_arity_i ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
      end) ak_names thy13; 
@@ -448,6 +453,7 @@ fun create_nom_typedecls ak_names thy =
        val fs_at_inst     = thm "fs_at_inst";
        val fs_unit_inst   = thm "fs_unit_inst";
        val fs_prod_inst   = thm "fs_prod_inst";
+       val fs_nprod_inst  = thm "fs_nprod_inst";
        val fs_list_inst   = thm "fs_list_inst";
        val fs_option_inst = thm "fs_option_inst";
        val dj_supp        = thm "dj_supp"
@@ -476,6 +482,7 @@ fun create_nom_typedecls ak_names thy =
        (* shows that                  *)
        (*    unit                     *)
        (*    *(fs_<ak>,fs_<ak>)       *)
+       (*    nprod(fs_<ak>,fs_<ak>)   *)
        (*    list(fs_<ak>)            *)
        (*    option(fs_<ak>)          *) 
        (* are instances of fs_<ak>    *)
@@ -486,14 +493,17 @@ fun create_nom_typedecls ak_names thy =
           val fs_inst  = PureThy.get_thm thy (Name ("fs_"^ak_name^"_inst"));
           fun fs_proof thm = EVERY [AxClass.intro_classes_tac [], rtac (thm RS fs1) 1];      
 
-          val fs_thm_unit = fs_unit_inst;
-          val fs_thm_prod = fs_inst RS (fs_inst RS fs_prod_inst);
-          val fs_thm_list = fs_inst RS fs_list_inst;
-          val fs_thm_optn = fs_inst RS fs_option_inst;
+          val fs_thm_unit  = fs_unit_inst;
+          val fs_thm_prod  = fs_inst RS (fs_inst RS fs_prod_inst);
+          val fs_thm_nprod = fs_inst RS (fs_inst RS fs_nprod_inst);
+          val fs_thm_list  = fs_inst RS fs_list_inst;
+          val fs_thm_optn  = fs_inst RS fs_option_inst;
         in 
          thy 
          |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
-         |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod)    
+         |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
+         |> AxClass.add_inst_arity_i ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+                                     (fs_proof fs_thm_nprod) 
          |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
          |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
         end) ak_names thy20; 

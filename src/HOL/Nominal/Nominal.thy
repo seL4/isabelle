@@ -85,8 +85,14 @@ primrec (perm_option)
 datatype 'a noption = nSome 'a | nNone
 
 primrec (perm_noption)
-  perm_Nsome_def:  "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
-  perm_Nnone_def:  "pi\<bullet>nNone    = nNone"
+  perm_nSome_def: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
+  perm_nNone_def: "pi\<bullet>nNone    = nNone"
+
+(* a "private" copy of the product type used in the nominal induct method *)
+datatype ('a,'b) nprod = nPair 'a 'b
+
+primrec (perm_nprod)
+  perm_nProd_def: "pi\<bullet>(nPair x1 x2)  = nPair (pi\<bullet>x1) (pi\<bullet>x2)"
 
 (* permutation on characters (used in strings) *)
 defs (overloaded)
@@ -141,6 +147,12 @@ lemma supp_prod:
   fixes x :: "'a"
   and   y :: "'b"
   shows "(supp (x,y)) = (supp x)\<union>(supp y)"
+  by  (force simp add: supp_def Collect_imp_eq Collect_neg_eq)
+
+lemma supp_nprod: 
+  fixes x :: "'a"
+  and   y :: "'b"
+  shows "(supp (nPair x y)) = (supp x)\<union>(supp y)"
   by  (force simp add: supp_def Collect_imp_eq Collect_neg_eq)
 
 lemma supp_list_nil:
@@ -243,7 +255,6 @@ lemma fresh_some:
   shows "a\<sharp>(Some x) = a\<sharp>x"
   apply(simp add: fresh_def supp_some)
   done
-
 
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
 
@@ -625,6 +636,17 @@ apply(rule fs1[OF fsa])
 apply(rule fs1[OF fsb])
 done
 
+lemma fs_nprod_inst:
+  assumes fsa: "fs TYPE('a) TYPE('x)"
+  and     fsb: "fs TYPE('b) TYPE('x)"
+  shows "fs TYPE(('a,'b) nprod) TYPE('x)"
+apply(unfold fs_def, rule allI)
+apply(case_tac x)
+apply(auto simp add: supp_nprod)
+apply(rule fs1[OF fsa])
+apply(rule fs1[OF fsb])
+done
+
 lemma fs_list_inst:
   assumes fs: "fs TYPE('a) TYPE('x)"
   shows "fs TYPE('a list) TYPE('x)"
@@ -762,6 +784,19 @@ lemma pt_prod_inst:
   apply(rule pt2[OF ptb])
   apply(rule pt3[OF pta],assumption)
   apply(rule pt3[OF ptb],assumption)
+  done
+
+lemma pt_nprod_inst:
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('b) TYPE('x)"
+  shows  "pt TYPE(('a,'b) nprod) TYPE('x)"
+  apply(auto simp add: pt_def)
+  apply(case_tac x)
+  apply(simp add: pt1[OF pta] pt1[OF ptb])
+  apply(case_tac x)
+  apply(simp add: pt2[OF pta] pt2[OF ptb])
+  apply(case_tac x)
+  apply(simp add: pt3[OF pta] pt3[OF ptb])
   done
 
 lemma pt_fun_inst:
