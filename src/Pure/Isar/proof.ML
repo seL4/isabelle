@@ -390,7 +390,7 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
 fun goal_cases st =
-  RuleCases.make true NONE (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
+  RuleCases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
 fun check_theory thy state =
   if subthy (thy, theory_of state) then state
@@ -663,13 +663,11 @@ local
 fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   let
     val atts = map (prep_att (theory_of state)) raw_atts;
-    val ((lets, asms), state') =
+    val (asms, state') =
       map_context_result (ProofContext.apply_case (get_case state name xs)) state;
-    val assumptions = asms |> map (fn (a, ts) =>
-      ((NameSpace.qualified name a, atts), map (rpair ([], [])) ts));
+    val assumptions = asms |> map (fn (a, ts) => ((a, atts), map (rpair ([], [])) ts));
   in
     state'
-    |> add_binds_i lets
     |> map_context (ProofContext.qualified_names #> ProofContext.no_base_names)
     |> assume_i assumptions
     |> add_binds_i AutoBind.no_facts
