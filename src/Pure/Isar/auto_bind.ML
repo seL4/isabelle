@@ -36,8 +36,8 @@ fun statement_binds thy name prop =
 fun goal thy [prop] = statement_binds thy thesisN prop
   | goal _ _ = [((thesisN, 0), NONE)];
 
-fun cases _ [] = [(rule_contextN, NONE)]
-  | cases thy props = RuleCases.simple (thy, Logic.mk_conjunction_list props) rule_contextN;
+fun cases thy [prop] = RuleCases.make_simple true (thy, prop) rule_contextN
+  | cases _ _ = [(rule_contextN, NONE)];
 
 
 (* facts *)
