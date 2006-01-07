@@ -148,26 +148,57 @@ new format.
 * Provers/induct: improved handling of simultaneous goals.  Instead of
 introducing object-level conjunction, the statement is now split into
 several conclusions, while the corresponding symbolic cases are
-duplicated accordingly.  INCOMPATIBILITY, proofs need to be structured
-explicitly, e.g. like this:
+nested accordingly.  INCOMPATIBILITY, proofs need to be structured
+explicitly.  For example:
 
   lemma
     fixes n :: nat
     shows "P n" and "Q n"
   proof (induct n)
-    case 01
+    case 0 case 1
     show "P 0" sorry
   next
-    case 02
+    case 0 case 2
     show "Q 0" sorry
   next
-    case (Suc1 n)
+    case (Suc n) case 1
     note `P n` and `Q n`
     show "P (Suc n)" sorry
   next
-    case (Suc2 n)
+    case (Suc n) case 2
     note `P n` and `Q n`
     show "Q (Suc n)" sorry
+  qed
+
+The split into subcases may be deferred as follows -- this is
+particularly relevant for goal statements with local premises.
+
+  lemma
+    fixes n :: nat
+    shows "A n ==> P n" and "B n ==> Q n"
+  proof (induct n)
+    case 0
+    {
+      case 1
+      note `A 0`
+      show "P 0" sorry
+    next
+      case 2
+      note `B 0`
+      show "Q 0" sorry
+    }
+  next
+    case (Suc n)
+    note `A n ==> P n` and `B n ==> Q n`
+    {
+      case 1
+      note `A (Suc n)`
+      show "P (Suc n)" sorry
+    next
+      case 2
+      note `B (Suc n)`
+      show "Q (Suc n)" sorry
+    }
   qed
 
 If simultaneous goals are to be used with mutual rules, the statement
