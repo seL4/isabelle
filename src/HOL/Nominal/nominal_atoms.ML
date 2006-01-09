@@ -750,8 +750,9 @@ fun create_nom_typedecls ak_names thy =
               in [(("perm_dj", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at_fs [fresh_iff]
-		  and thms2 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
-	    in [(("abs_fresh", thms1 @ thms2),[])] end
+                  and thms2 = inst_pt_at [fresh_iff]
+		  and thms3 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
+	    in [(("abs_fresh", thms1 @ thms2 @ thms3),[])] end
 	    ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_supp]
 		  and thms2 = inst_pt_at_fs [abs_fun_supp]
