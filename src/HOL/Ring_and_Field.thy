@@ -1556,10 +1556,10 @@ apply (auto simp add: nonzero_divide_eq_eq)
 done
 
 text{*Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}*}
-lemmas zero_less_divide_1_iff = zero_less_divide_iff [of "1"]
-lemmas divide_less_0_1_iff = divide_less_0_iff [of "1"]
-lemmas zero_le_divide_1_iff = zero_le_divide_iff [of "1"]
-lemmas divide_le_0_1_iff = divide_le_0_iff [of "1"]
+lemmas zero_less_divide_1_iff = zero_less_divide_iff [of 1, simplified]
+lemmas divide_less_0_1_iff = divide_less_0_iff [of 1, simplified]
+lemmas zero_le_divide_1_iff = zero_le_divide_iff [of 1, simplified]
+lemmas divide_le_0_1_iff = divide_le_0_iff [of 1, simplified]
 
 declare zero_less_divide_1_iff [simp]
 declare divide_less_0_1_iff [simp]
