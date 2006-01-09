@@ -1728,9 +1728,13 @@ by (cases n) simp_all
 lemma nth_Cons': "(x # xs)!n = (if n = 0 then x else xs!(n - 1))"
 by (cases n) simp_all
 
-lemmas [simp] = take_Cons'[of "number_of v",standard]
-                drop_Cons'[of "number_of v",standard]
-                nth_Cons'[of _ _ "number_of v",standard]
+lemmas take_Cons_number_of = take_Cons'[of "number_of v",standard]
+lemmas drop_Cons_number_of = drop_Cons'[of "number_of v",standard]
+lemmas nth_Cons_number_of = nth_Cons'[of _ _ "number_of v",standard]
+
+declare take_Cons_number_of [simp] 
+        drop_Cons_number_of [simp] 
+        nth_Cons_number_of [simp] 
 
 
 subsubsection {* @{text "distinct"} and @{text remdups} *}
