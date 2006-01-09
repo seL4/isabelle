@@ -35,8 +35,8 @@ lemma Suc_diff_number_of:
      "neg (number_of (bin_minus v)::int) ==>  
       Suc m - (number_of v) = m - (number_of (bin_pred v))"
 apply (subst Suc_diff_eq_diff_pred)
-apply (simp add: ); 
-apply (simp del: nat_numeral_1_eq_1); 
+apply simp
+apply (simp del: nat_numeral_1_eq_1)
 apply (auto simp only: diff_nat_number_of less_0_number_of [symmetric] 
                         neg_number_of_bin_pred_iff_0)
 done
@@ -360,7 +360,8 @@ lemma half_gt_zero_iff:
      "(0 < r/2) = (0 < (r::'a::{ordered_field,division_by_zero,number_ring}))"
 by auto
 
-lemmas half_gt_zero = half_gt_zero_iff [THEN iffD2, simp]
+lemmas half_gt_zero = half_gt_zero_iff [THEN iffD2]
+declare half_gt_zero [simp]
 
 (* The following lemma should appear in Divides.thy, but there the proof
    doesn't work. *)
