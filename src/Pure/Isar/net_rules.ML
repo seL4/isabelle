@@ -54,8 +54,8 @@ fun merge (Rules {eq, index, rules = rules1, ...}, Rules {rules = rules2, ...}) 
   in fold_rev add rules (init eq index) end;
 
 fun delete rule (rs as Rules {eq, index, rules, next, net}) =
-  if not (Library.gen_mem eq (rule, rules)) then rs
-  else mk_rules eq index (Library.gen_rem eq (rules, rule)) next
+  if not (member eq rules rule) then rs
+  else mk_rules eq index (remove eq rule rules) next
     (Net.delete_term (eq o pairself #2) (index rule, (0, rule)) net);
 
 fun insert rule rs = add rule (delete rule rs);    (*ensure that new rule gets precedence*)
