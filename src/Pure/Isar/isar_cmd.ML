@@ -253,16 +253,13 @@ val print_simpset = Toplevel.unknown_context o
     (Simplifier.print_local_simpset o Proof.context_of));
 
 val print_rules = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case ContextRules.print_global_rules
-    (ContextRules.print_local_rules o Proof.context_of));
+  Toplevel.keep (ContextRules.print_rules o Toplevel.context_of);
 
 val print_induct_rules = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case InductAttrib.print_global_rules
-    (InductAttrib.print_local_rules o Proof.context_of));
+  Toplevel.keep (InductAttrib.print_rules o Toplevel.context_of);
 
 val print_trans_rules = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case Calculation.print_global_rules
-    (Calculation.print_local_rules o Proof.context_of));
+  Toplevel.keep (Calculation.print_rules o Toplevel.context_of);
 
 val print_methods = Toplevel.unknown_theory o
   Toplevel.keep (Method.print_methods o Toplevel.theory_of);
