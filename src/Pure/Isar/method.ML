@@ -662,20 +662,21 @@ fun modifier name kind kind' att =
     >> (pair (I: ProofContext.context -> ProofContext.context) o att);
 
 val iprover_modifiers =
- [modifier destN Args.bang_colon Args.bang ContextRules.dest_bang_local,
-  modifier destN Args.colon (Scan.succeed ()) ContextRules.dest_local,
-  modifier elimN Args.bang_colon Args.bang ContextRules.elim_bang_local,
-  modifier elimN Args.colon (Scan.succeed ()) ContextRules.elim_local,
-  modifier introN Args.bang_colon Args.bang ContextRules.intro_bang_local,
-  modifier introN Args.colon (Scan.succeed ()) ContextRules.intro_local,
-  Args.del -- Args.colon >> K (I, ContextRules.rule_del_local)];
+ [modifier destN Args.bang_colon Args.bang (Attrib.context o ContextRules.dest_bang),
+  modifier destN Args.colon (Scan.succeed ()) (Attrib.context o ContextRules.dest),
+  modifier elimN Args.bang_colon Args.bang (Attrib.context o ContextRules.elim_bang),
+  modifier elimN Args.colon (Scan.succeed ()) (Attrib.context o ContextRules.elim),
+  modifier introN Args.bang_colon Args.bang (Attrib.context o ContextRules.intro_bang),
+  modifier introN Args.colon (Scan.succeed ()) (Attrib.context o ContextRules.intro),
+  Args.del -- Args.colon >> K (I, Attrib.context ContextRules.rule_del)];
 
 in
 
-fun iprover_args m = bang_sectioned_args' iprover_modifiers (Scan.lift (Scan.option Args.nat)) m;
-
-fun iprover_meth n prems ctxt = METHOD (fn facts =>
-  HEADGOAL (insert_tac (prems @ facts) THEN' ObjectLogic.atomize_tac THEN' iprover_tac ctxt n));
+val iprover_meth =
+  bang_sectioned_args' iprover_modifiers (Scan.lift (Scan.option Args.nat))
+    (fn n => fn prems => fn ctxt => METHOD (fn facts =>
+      HEADGOAL (insert_tac (prems @ facts) THEN'
+      ObjectLogic.atomize_tac THEN' iprover_tac ctxt n)));
 
 end;
 
@@ -733,7 +734,7 @@ val pure_methods =
   ("fold", thms_args fold_meth, "fold definitions"),
   ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
-  ("iprover", iprover_args iprover_meth, "intuitionistic proof search"),
+  ("iprover", iprover_meth, "intuitionistic proof search"),
   ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
   ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
   ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
