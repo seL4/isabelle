@@ -435,12 +435,12 @@ fun add_cases_induct no_elim no_induct coind names elims induct =
       thy
       |> Theory.parent_path
       |> Theory.add_path (Sign.base_name name)
-      |> PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set_global name])] |> snd
+      |> PureThy.add_thms [(("cases", elim), [Attrib.theory (InductAttrib.cases_set name)])] |> snd
       |> Theory.restore_naming thy;
     val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
     val induct_att =
-      if coind then InductAttrib.coinduct_set_global else InductAttrib.induct_set_global;
+      Attrib.theory o (if coind then InductAttrib.coinduct_set else InductAttrib.induct_set);
     val induct_specs =
       if no_induct then I
       else

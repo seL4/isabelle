@@ -176,13 +176,17 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                 ((Rep_name ^ "_inject", make Rep_inject), []),
                 ((Abs_name ^ "_inject", make Abs_inject), []),
                 ((Rep_name ^ "_cases", make Rep_cases),
-                  [RuleCases.case_names [Rep_name], InductAttrib.cases_set_global full_name]),
+                  [RuleCases.case_names [Rep_name],
+                    Attrib.theory (InductAttrib.cases_set full_name)]),
                 ((Abs_name ^ "_cases", make Abs_cases),
-                  [RuleCases.case_names [Abs_name], InductAttrib.cases_type_global full_tname]),
+                  [RuleCases.case_names [Abs_name],
+                    Attrib.theory (InductAttrib.cases_type full_tname)]),
                 ((Rep_name ^ "_induct", make Rep_induct),
-                  [RuleCases.case_names [Rep_name], InductAttrib.induct_set_global full_name]),
+                  [RuleCases.case_names [Rep_name],
+                    Attrib.theory (InductAttrib.induct_set full_name)]),
                 ((Abs_name ^ "_induct", make Abs_induct),
-                  [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])])
+                  [RuleCases.case_names [Abs_name],
+                    Attrib.theory (InductAttrib.induct_type full_tname)])])
             ||> Theory.parent_path;
           val result = {type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,

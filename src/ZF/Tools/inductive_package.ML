@@ -514,8 +514,9 @@ let
 
      val ([induct', mutual_induct'], thy') =
        thy
-       |> PureThy.add_thms [((co_prefix ^ "induct", induct), [case_names, InductAttrib.induct_set_global big_rec_name]),
-            (("mutual_induct", mutual_induct), [case_names])];
+       |> PureThy.add_thms [((co_prefix ^ "induct", induct),
+             [case_names, Attrib.theory (InductAttrib.induct_set big_rec_name)]),
+           (("mutual_induct", mutual_induct), [case_names])];
     in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
 
@@ -536,7 +537,7 @@ let
     |> PureThy.add_thms
       [(("bnd_mono", bnd_mono), []),
        (("dom_subset", dom_subset), []),
-       (("cases", elim), [case_names, InductAttrib.cases_set_global big_rec_name])]
+       (("cases", elim), [case_names, Attrib.theory (InductAttrib.cases_set big_rec_name)])]
     ||>> (PureThy.add_thmss o map Thm.no_attributes)
         [("defs", defs),
          ("intros", intrs)];

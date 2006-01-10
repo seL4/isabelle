@@ -968,7 +968,7 @@ val safe_intro_global = change_global_cs (op addSIs);
 val haz_dest_global = change_global_cs (op addDs);
 val haz_elim_global = change_global_cs (op addEs);
 val haz_intro_global = change_global_cs (op addIs);
-val rule_del_global = change_global_cs (op delrules) o ContextRules.rule_del_global;
+val rule_del_global = change_global_cs (op delrules) o Attrib.theory ContextRules.rule_del;
 
 val safe_dest_local = change_local_cs (op addSDs);
 val safe_elim_local = change_local_cs (op addSEs);
@@ -976,7 +976,7 @@ val safe_intro_local = change_local_cs (op addSIs);
 val haz_dest_local = change_local_cs (op addDs);
 val haz_elim_local = change_local_cs (op addEs);
 val haz_intro_local = change_local_cs (op addIs);
-val rule_del_local = change_local_cs (op delrules) o ContextRules.rule_del_local;
+val rule_del_local = change_local_cs (op delrules) o Attrib.context ContextRules.rule_del;
 
 
 (* tactics referring to the implicit claset *)
@@ -1019,16 +1019,16 @@ fun del_rule att = Attrib.syntax (Scan.lift Args.del >> K att);
 val setup_attrs = Attrib.add_attributes
  [("swapped", (swapped, swapped), "classical swap of introduction rule"),
   (destN,
-   (add_rule ContextRules.dest_query_global haz_dest_global safe_dest_global,
-    add_rule ContextRules.dest_query_local haz_dest_local safe_dest_local),
+   (add_rule (Attrib.theory o ContextRules.dest_query) haz_dest_global safe_dest_global,
+    add_rule (Attrib.context o ContextRules.dest_query) haz_dest_local safe_dest_local),
     "declaration of destruction rule"),
   (elimN,
-   (add_rule ContextRules.elim_query_global haz_elim_global safe_elim_global,
-    add_rule ContextRules.elim_query_local haz_elim_local safe_elim_local),
+   (add_rule (Attrib.theory o ContextRules.elim_query) haz_elim_global safe_elim_global,
+    add_rule (Attrib.context o ContextRules.elim_query) haz_elim_local safe_elim_local),
     "declaration of elimination rule"),
   (introN,
-   (add_rule ContextRules.intro_query_global haz_intro_global safe_intro_global,
-    add_rule ContextRules.intro_query_local haz_intro_local safe_intro_local),
+   (add_rule (Attrib.theory o ContextRules.intro_query) haz_intro_global safe_intro_global,
+    add_rule (Attrib.context o ContextRules.intro_query) haz_intro_local safe_intro_local),
     "declaration of introduction rule"),
   (ruleN, (del_rule rule_del_global, del_rule rule_del_local),
     "remove declaration of intro/elim/dest rule")];

@@ -134,7 +134,8 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, ([], []))])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [([thesisN], NONE)]
-    |> Proof.assume_i [((thatN, [ContextRules.intro_query_local NONE]), [(that_prop, ([], []))])]
+    |> Proof.assume_i
+      [((thatN, [Attrib.context (ContextRules.intro_query NONE)]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(("", []), [(thesis, ([], []))])] false

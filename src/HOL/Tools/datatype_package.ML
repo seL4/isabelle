@@ -365,10 +365,10 @@ fun add_cases_induct infos induction =
     fun proj i = ProjectRule.project induction (i + 1);
 
     fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
-      [(("", proj index), [InductAttrib.induct_type_global name]),
-       (("", exhaustion), [InductAttrib.cases_type_global name])];
+      [(("", proj index), [Attrib.theory (InductAttrib.induct_type name)]),
+       (("", exhaustion), [Attrib.theory (InductAttrib.cases_type name)])];
     fun unnamed_rule i =
-      (("", proj i), [Drule.kind_internal, InductAttrib.induct_type_global ""]);
+      (("", proj i), [Drule.kind_internal, Attrib.theory (InductAttrib.induct_type "")]);
   in
     PureThy.add_thms
       (List.concat (map named_rules infos) @
