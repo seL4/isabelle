@@ -298,7 +298,7 @@ mangling (bijective mapping from any expression values to strings).
 * Pure/General: rat.ML implements rational numbers.
 
 * Pure: datatype Context.generic joins theory/Proof.context and
-provides some facilities for generic code that works in either kind of
+provides some facilities for code that works in either kind of
 context, notably GenericDataFun for uniform theory and proof data.
 
 * Pure: type Context.generic attribute is now the preferred
