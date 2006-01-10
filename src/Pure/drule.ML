@@ -93,6 +93,7 @@ sig
   val plain_prop_of: thm -> term
   val add_used: thm -> string list -> string list
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
+  val declaration_attribute: (thm -> 'a -> 'a) -> 'a attribute
   val map_tags: (tag list -> tag list) -> thm -> thm
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
@@ -325,9 +326,8 @@ fun add_used thm used =
 
 (** basic attributes **)
 
-(* dependent rules *)
-
-fun rule_attribute f (x, thm) = (x, (f x thm));
+fun rule_attribute f (x, th) = (x, f x th);
+fun declaration_attribute f (x, th) = (f th x, th);
 
 
 (* add / delete tags *)
