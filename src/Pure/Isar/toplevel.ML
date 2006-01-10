@@ -21,6 +21,7 @@ sig
   val node_history_of: state -> node History.T
   val node_of: state -> node
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
+  val context_of: state -> Context.generic
   val theory_of: state -> theory
   val sign_of: state -> theory    (*obsolete*)
   val body_context_of: state -> Proof.context
@@ -163,6 +164,7 @@ fun node_case f g state =
   | Proof (prf, _) => g (ProofHistory.current prf)
   | SkipProof ((_, thy), _) => f thy);
 
+val context_of = node_case Context.Theory (Context.Proof o Proof.context_of);
 val theory_of = node_case I Proof.theory_of;
 val sign_of = theory_of;
 
