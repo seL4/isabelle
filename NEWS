@@ -297,6 +297,16 @@ mangling (bijective mapping from any expression values to strings).
 
 * Pure/General: rat.ML implements rational numbers.
 
+* Pure: datatype Context.generic joins theory/Proof.context and
+provides some facilities for generic code that works in either kind of
+context, notably GenericDataFun for uniform theory and proof data.
+
+* Pure: type Context.generic attribute is now the preferred
+representation for global vs. local attributes while avoiding code
+duplication; Attrib.theory/context/generic converts between different
+types of attributes.  Various Pure/HOL/ZF packages work with generic
+attributes now, INCOMPATIBILITY.
+
 * Pure: several functions of signature "... -> theory -> theory * ..."
 have been reoriented to "... -> theory -> ... * theory" in order to
 allow natural usage in combination with the ||>, ||>>, |-> and
