@@ -76,9 +76,9 @@ types ty_context = "(tyvrs\<times>ty) list"
 
 text {* Typing contexts are represented as lists "growing" on the left; we
   thereby deviating from the convention in the POPLmark-paper. The lists contain
-  pairs of type-variables and types. *}
+  pairs of type-variables and types (this is sufficient for the Part 1A). *}
 
-text {* In order to state valitity-conditions for typing-contexts, the notion of
+text {* In order to state validity-conditions for typing-contexts, the notion of
   a @{text "domain"} of a typing-context is handy. *}
 
 consts
@@ -195,14 +195,6 @@ lemma validE_append:
   shows "\<turnstile> \<Gamma> ok"
   using a by (induct \<Delta>, auto dest: validE)
 
-lemma closed_in_fresh:
-  fixes X::"tyvrs"
-  assumes a: "S closed_in \<Gamma>"
-  and     b: "X\<sharp>(domain \<Gamma>)" 
-  and     c: "\<turnstile> \<Gamma> ok"
-  shows "X\<sharp>S"
-using a b c by (force simp add: fresh_def domain_supp closed_in_def)
-
 lemma replace_type:
   assumes a: "\<turnstile> (\<Delta>@(X,T)#\<Gamma>) ok"
   and     b: "S closed_in \<Gamma>"
@@ -236,11 +228,11 @@ next
   ultimately show "T=S" by auto
 qed 
 
-section {* Size and Capture-Avoiding Substitutiuon for Types *}
+section {* Size and Capture-Avoiding Substitution for Types *}
 
 text {* In the current version of the nominal datatype-package even simple 
   functions (such as size of types and capture-avoiding substitution) can 
-  only be defined manually via some labourious proof constructions. Therefore 
+  only be defined manually via some laborious proof constructions. Therefore 
   we sill just assume them here. *}
 
 consts size_ty :: "ty \<Rightarrow> nat"
@@ -268,6 +260,10 @@ primrec
 "(XT#\<Gamma>)[Y:=T]\<^isub>t\<^isub>y\<^isub>c = (fst XT,(snd XT)[Y:=T]\<^isub>t\<^isub>y)#(\<Gamma>[Y:=T]\<^isub>t\<^isub>y\<^isub>c)"
  
 section {* Subtyping-Relation *}
+
+text {* The subtype relation follows what is written in the POPLmark-paper, except 
+  for the premises dealing with well-formed contexts and the freshness constraint
+  @{term "X\<sharp>\<Gamma>"} in the rule @{text "S_Forall"}. *}
 
 consts
   subtype_of :: "(ty_context \<times> ty \<times> ty) set"   
@@ -327,6 +323,10 @@ proof -
   ultimately show "X\<sharp>S \<and> X\<sharp>T" by (force simp add: supp_prod fresh_def)
 qed
 
+text {* Two silly lemmas that are necessary to show that @{text "subtype_of"} is
+  equivariant. They are necessary at the moment until we have a tactic that shows
+  equivariance automatically. *}
+
 lemma silly_eqvt1:
   fixes X::"'a::pt_tyvrs"
   and   S::"'b::pt_tyvrs"
@@ -355,16 +355,27 @@ apply(force)
 apply(force intro!: S_Forall simp add: fresh_prod fresh_eqvt)
 done
 
+text {* The most painful part of the subtyping definition is the strengthening of the
+  induction principle. The induction principle that comes for free with the definition of 
+  @{term "subtype_of"} requires to prove the @{text "S_Forall"}-case for all binders
+  @{text "X"}. This will require some renaming-manoeuvres in the reasoning. To avoid this,
+  we strengthening the induction-principle so that we only have to establish
+  the @{text "S_Forall"}-case for fresh binders @{text "X"}. The property that allows
+  us to strengthen the induction-principle is that the relation @{text "subtype_of"} is
+  equivariant. *}
+
 lemma subtype_of_induct[consumes 1, case_names S_Top S_Var S_Refl S_Arrow S_Forall]:
   fixes  P :: "'a::fs_tyvrs\<Rightarrow>ty_context \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow>bool"
   assumes a: "\<Gamma> \<turnstile> S <: T"
   and a1: "\<And>\<Gamma> S x. \<lbrakk>\<turnstile> \<Gamma> ok; S closed_in \<Gamma>\<rbrakk> \<Longrightarrow> P x \<Gamma> S Top"
   and a2: "\<And>\<Gamma> X S T x. \<lbrakk>(X,S)\<in>set \<Gamma>; \<Gamma> \<turnstile> S <: T; \<And>z. P z \<Gamma> S T\<rbrakk> \<Longrightarrow> P x \<Gamma> (Tvar X) T"
   and a3: "\<And>\<Gamma> X x. \<lbrakk>\<turnstile> \<Gamma> ok; X\<in>domain \<Gamma>\<rbrakk> \<Longrightarrow> P x \<Gamma> (Tvar X) (Tvar X)"  
-  and a4: "\<And>\<Gamma> S\<^isub>1 S\<^isub>2 T\<^isub>1 T\<^isub>2 x. \<lbrakk>\<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1; \<And>z. P z \<Gamma> T\<^isub>1 S\<^isub>1; \<Gamma> \<turnstile> S\<^isub>2 <: T\<^isub>2; \<And>z. P z \<Gamma> S\<^isub>2 T\<^isub>2\<rbrakk> 
+  and a4: "\<And>\<Gamma> S\<^isub>1 S\<^isub>2 T\<^isub>1 T\<^isub>2 x. 
+  \<lbrakk>\<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1; \<And>z. P z \<Gamma> T\<^isub>1 S\<^isub>1; \<Gamma> \<turnstile> S\<^isub>2 <: T\<^isub>2; \<And>z. P z \<Gamma> S\<^isub>2 T\<^isub>2\<rbrakk> 
   \<Longrightarrow> P x \<Gamma> (S\<^isub>1 \<rightarrow> S\<^isub>2) (T\<^isub>1 \<rightarrow> T\<^isub>2)"
   and a5: "\<And>\<Gamma> X S\<^isub>1 S\<^isub>2 T\<^isub>1 T\<^isub>2 x. 
-  \<lbrakk>X\<sharp>x; X\<sharp>(\<Gamma>,S\<^isub>1,T\<^isub>1); \<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1; \<And>z. P z \<Gamma> T\<^isub>1 S\<^isub>1; ((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2; \<And>z. P z ((X,T\<^isub>1)#\<Gamma>) S\<^isub>2 T\<^isub>2\<rbrakk>
+  \<lbrakk>X\<sharp>x; X\<sharp>(\<Gamma>,S\<^isub>1,T\<^isub>1); \<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1; \<And>z. P z \<Gamma> T\<^isub>1 S\<^isub>1; 
+  ((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2; \<And>z. P z ((X,T\<^isub>1)#\<Gamma>) S\<^isub>2 T\<^isub>2\<rbrakk>
   \<Longrightarrow> P x \<Gamma> (\<forall>[X<:S\<^isub>1].S\<^isub>2) (\<forall>[X<:T\<^isub>1].T\<^isub>2)"
   shows "P x \<Gamma> S T"
 proof -
@@ -483,27 +494,28 @@ apply(nominal_induct T avoiding: \<Gamma> rule: ty.induct_unsafe)
 apply(auto simp add: ty.supp abs_supp closed_in_def supp_atm)
   --{* Too bad that this instantiation cannot be found automatically by
   \isakeyword{auto}; \isakeyword{blast} would find it if we had not used 
-  the definition @{text "closed_in_def"}. *}
+  an explicit definition for @{text "closed_in_def"}. *}
 apply(drule_tac x="(tyvrs, ty2)#\<Gamma>" in meta_spec)
 apply(force simp add: closed_in_def fresh_domain)
 done
 
-text {* Inversion lemmas *}
+text {* Some inversion lemmas: *}
+
 lemma S_TopE:
   assumes a: "\<Gamma> \<turnstile> Top <: T"
   shows "T = Top"
 using a by (cases, auto) 
 
 lemma S_ArrowE_left:
-  assumes a: "\<Gamma> \<turnstile> S1 \<rightarrow> S2 <: T" 
-  shows "T = Top \<or> (\<exists>T1 T2. T = T1 \<rightarrow> T2 \<and> \<Gamma> \<turnstile> T1 <: S1 \<and> \<Gamma> \<turnstile> S2 <: T2)"
+  assumes a: "\<Gamma> \<turnstile> S\<^isub>1 \<rightarrow> S\<^isub>2 <: T" 
+  shows "T = Top \<or> (\<exists>T\<^isub>1 T\<^isub>2. T = T\<^isub>1 \<rightarrow> T\<^isub>2 \<and> \<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1 \<and> \<Gamma> \<turnstile> S\<^isub>2 <: T\<^isub>2)"
 using a by (cases, auto simp add: ty.inject)
 
 lemma S_ForallE_left:
-  shows "\<lbrakk>\<Gamma> \<turnstile> \<forall>[X<:S1].S2 <: T; X\<sharp>\<Gamma>; X\<sharp>S1\<rbrakk>
-         \<Longrightarrow> T = Top \<or> (\<exists>T1 T2. T = \<forall>[X<:T1].T2 \<and> \<Gamma> \<turnstile> T1 <: S1 \<and> ((X,T1)#\<Gamma>) \<turnstile> S2 <: T2)"
+  shows "\<lbrakk>\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T; X\<sharp>\<Gamma>; X\<sharp>S\<^isub>1\<rbrakk>
+         \<Longrightarrow> T = Top \<or> (\<exists>T\<^isub>1 T\<^isub>2. T = \<forall>[X<:T\<^isub>1].T\<^isub>2 \<and> \<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1 \<and> ((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2)"
   apply(frule subtype_implies_ok)
-  apply(ind_cases "\<Gamma> \<turnstile> \<forall>[X<:S1].S2 <: T")
+  apply(ind_cases "\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T")
   apply(auto simp add: ty.inject alpha)
   apply(rule_tac x="[(X,Xa)]\<bullet>T\<^isub>2" in exI)
   (* term *)
@@ -535,78 +547,11 @@ lemma S_ForallE_left:
   apply(simp add: pt_fresh_fresh[OF pt_tyvrs_inst, OF at_tyvrs_inst])
   done
 
-section {* Type Substitution *}
-
-lemma subst_ty_fresh:
-  fixes X :: "tyvrs"
-  assumes a: "X\<sharp>(T,P)"
-  shows "X\<sharp>T[Y:=P]\<^isub>t\<^isub>y"
-  using a
-  apply (nominal_induct T avoiding : T Y P rule: ty.induct_unsafe)
-  apply (auto simp add: fresh_prod abs_fresh)
-  done
-
-lemma subst_ctxt_fresh:
-  fixes X::"tyvrs"
-  assumes a: "X\<sharp>(\<Gamma>,P)"
-  shows "X\<sharp>\<Gamma>[Y:=P]\<^isub>t\<^isub>y\<^isub>c"
-  using a
-  apply (induct \<Gamma>)
-  apply (auto intro: subst_ty_fresh simp add: fresh_prod fresh_list_cons)
-  done
-
-(*
-lemma subst_ctxt_closed:
-  shows  "subst_ty b X P closed_in (subst_ctxt \<Delta> X P @ \<Gamma>)"
-
-
-lemma substitution_ok:
-  shows "\<turnstile> (\<Delta>@(X,Q)#\<Gamma>) ok \<longrightarrow> \<Gamma> \<turnstile> P <: Q \<longrightarrow> \<turnstile> ((subst_ctxt \<Delta> X P)@\<Gamma>)  ok"
-  apply (induct \<Delta>)
-  apply (auto dest: validE)
-  apply (rule v2)
-  apply assumption
-  apply (drule validE)
-  apply (auto simp add: fresh_list_append)
-  apply (rule subst_ctxt_fresh)
-  apply (simp add: fresh_prod)
-  apply (drule_tac X = "a" in subtype_implies_fresh)
-  apply (simp add: fresh_list_cons)
-  apply (simp add: fresh_prod)
-  apply (simp add: fresh_list_cons)
-  apply (drule validE)
-
-done
-*)
-
-(* note: What should nominal induct do if the context is compound? *)
-(*
-lemma type_substitution:
-  assumes a0: "(\<Delta>@(X,Q)#\<Gamma>) \<turnstile> S <: T"
-  shows "\<turnstile> (\<Delta>@(X,Q)#\<Gamma>) ok \<longrightarrow> \<Gamma> \<turnstile> P <: Q 
-         \<longrightarrow> ((subst_ctxt \<Delta> X P)@\<Gamma>) \<turnstile> (subst_ty S X P) <: (subst_ty T X P)"
-  using a0 
-  thm subtype_of_induct
-  apply(rule subtype_of_induct[of "\<Delta>@(X,Q)#\<Gamma>" "S" "T" _ "P"])
-  apply(auto)
-  apply(rule S_Top)
-  defer
-  defer
-  defer
-  apply(rule S_Var)
-  defer
-  defer
-  defer
-  defer
-  apply(rule S_Refl)
-  defer
-  defer
-
-
-apply (nominal_induct \<Delta> X Q \<Gamma> S T rule: subtype_of_induct)
-*)
-
 section {* Weakening *}
+
+text {* In order to prove weakening we introduce the notion of a type-context extending 
+  another. This generalization seems to make the proof for weakening to be
+  smoother than if we had strictly adhered to the version in the POPLmark-paper. *}
 
 constdefs 
   extends :: "ty_context \<Rightarrow> ty_context \<Rightarrow> bool" ("_ extends _" [100,100] 100)
@@ -690,7 +635,7 @@ qed
 
 text {* In fact all "non-binding" cases can be solved automatically: *}
 
-lemma weakening_semiautomated:
+lemma weakening_more_automated:
   assumes a: "\<Gamma> \<turnstile> S <: T"
   and b: "\<turnstile> \<Delta> ok"
   and c: "\<Delta> extends \<Gamma>"
@@ -708,13 +653,16 @@ proof (nominal_induct \<Gamma> S T avoiding: \<Delta> rule: subtype_of_induct)
   have ext: "\<Delta> extends \<Gamma>" by fact
   have "T\<^isub>1 closed_in \<Delta>" using ext closed\<^isub>T\<^isub>1 by (simp only: extends_closed)
   hence "\<turnstile> ((X,T\<^isub>1)#\<Delta>) ok" using fresh_domain ok by force   
-  moreover 
+  moreover
   have "((X,T\<^isub>1)#\<Delta>) extends ((X,T\<^isub>1)#\<Gamma>)" using ext by (force simp add: extends_def)
   ultimately have "((X,T\<^isub>1)#\<Delta>) \<turnstile> S\<^isub>2 <: T\<^isub>2" using ih\<^isub>2 by simp
   moreover
   have "\<Delta> \<turnstile> T\<^isub>1 <: S\<^isub>1" using ok ext ih\<^isub>1 by simp 
   ultimately show "\<Delta> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: \<forall>[X<:T\<^isub>1].T\<^isub>2" using ok by (force intro: S_Forall)
 qed (blast intro: extends_closed extends_memb dest: extends_domain)+
+
+
+section {* Transitivity and Narrowing *}
 
 text {* Next we prove the transitivity and narrowing for the subtyping relation. 
 The POPLmark-paper says the following:
@@ -738,7 +686,7 @@ For the induction on the size of @{term "Q"}, we use the induction-rule
 @{thm measure_induct_rule[of "size_ty",no_vars]}
 \end{center}
 
-It says in English: in order to show a property @{term "P a"} for all @{term "a"}, 
+That means in order to show a property @{term "P a"} for all @{term "a"}, 
 it requires to prove that for all @{term x} @{term "P x"} holds using the 
 assumption that for all @{term y} whose size is strictly smaller than 
 that of @{term x} the property @{term "P y"} holds. *}
@@ -804,7 +752,7 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
 	@{term Q\<^isub>1} and @{term Q\<^isub>2} is smaller than that of @{term Q};
 	so we can apply the outer induction hypotheses for @{term Q\<^isub>1} and @{term Q\<^isub>2}. 
 	We also have the sub-derivations  @{term "\<Gamma>\<turnstile>Q\<^isub>1<:S\<^isub>1"} and @{term "\<Gamma>\<turnstile>S\<^isub>2<:Q\<^isub>2"}.
-	The right-hand derivation is @{term "\<Gamma> \<turnstile> Q\<^isub>1 \<rightarrow> Q\<^isub>2 <: T"}. There exists types 
+	The right-hand derivation is @{term "\<Gamma> \<turnstile> Q\<^isub>1 \<rightarrow> Q\<^isub>2 <: T"}. There exist types 
 	@{text "T\<^isub>1,T\<^isub>2"} such that @{term "T=Top \<or> T=T\<^isub>1\<rightarrow>T\<^isub>2"}. The @{term "Top"}-case is 
 	straightforward once we know @{term "(S\<^isub>1 \<rightarrow> S\<^isub>2) closed_in \<Gamma>"} and @{term "\<turnstile> \<Gamma> ok"}. 
 	In the other case we have the sub-derivations @{term "\<Gamma>\<turnstile>T\<^isub>1<:Q\<^isub>1"} and @{term "\<Gamma>\<turnstile>Q\<^isub>2<:T\<^isub>2"}. 
@@ -854,12 +802,13 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
 	and @{term "X\<sharp>Q\<^isub>1"} there exists types @{text "T\<^isub>1,T\<^isub>2"} such that 
 	@{text "T=Top \<or> T=\<forall>[X<:T\<^isub>1].T\<^isub>2"}. The @{term "Top"}-case is straightforward once we know 
 	@{text "(\<forall>[X<:S\<^isub>1].S\<^isub>2) closed_in \<Gamma>"} and @{term "\<turnstile> \<Gamma> ok"}. In the other case we have 
-	the sub-derivations @{term "\<Gamma>\<turnstile>T\<^isub>1<:Q\<^isub>1"}. @{term "((X,T\<^isub>1)#\<Gamma>)\<turnstile>Q\<^isub>2<:T\<^isub>2"}. Using the outer 
+	the sub-derivations @{term "\<Gamma>\<turnstile>T\<^isub>1<:Q\<^isub>1"} and @{term "((X,T\<^isub>1)#\<Gamma>)\<turnstile>Q\<^isub>2<:T\<^isub>2"}. Using the outer 
 	induction hypothesis for transitivity we can derive @{term "\<Gamma>\<turnstile>T\<^isub>1<:S\<^isub>1"}. From the outer 
-	induction for narrowing we get @{term "((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: Q\<^isub>2"} and then using induction 
-	again @{term "((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2"}. By rule @{text "S_Forall"} and the freshness 
-	condition @{term "X\<sharp>\<Gamma>"} follows @{text "\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: \<forall>[X<:T\<^isub>1].T\<^isub>2"}.which is 
-	@{text "\<Gamma> \<turnstile>  \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T\<^isub>"}.\end{minipage}*}
+	induction for narrowing we get @{term "((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: Q\<^isub>2"} and then using again 
+	induction for transitivity we obtain @{term "((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2"}. By rule 
+	@{text "S_Forall"} and the freshness condition @{term "X\<sharp>\<Gamma>"} follows 
+	@{text "\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: \<forall>[X<:T\<^isub>1].T\<^isub>2"}.which is @{text "\<Gamma> \<turnstile>  \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T\<^isub>"}.
+	\end{minipage}*}
       hence rh_drv: "\<Gamma> \<turnstile> \<forall>[X<:Q\<^isub>1].Q\<^isub>2 <: T" by simp
       have lh_drv_prm\<^isub>1: "\<Gamma> \<turnstile> Q\<^isub>1 <: S\<^isub>1" by fact
       have lh_drv_prm\<^isub>2: "((X,Q\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: Q\<^isub>2" by fact
@@ -925,17 +874,17 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
     next
       case (S_Var _ Y S N \<Delta> \<Gamma> X) 
 	--{* \begin{minipage}[t]{0.9\textwidth}
-	In this case the left-hand derivation is @{term "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> Tvar Y <: N"}. We therefore 
+	In this case the left-hand derivation is @{term "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> Tvar Y <: N"} and
+	by inner induction hypothesis we have @{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> S <: N"}. We therefore 
 	know that the contexts @{term "\<Delta>@[(X,Q)]@\<Gamma>"} and @{term "\<Delta>@[(X,P)]@\<Gamma>"} are ok, and that 
-	@{term "(Y,S)"} is in @{term "\<Delta>@[(X,Q)]@\<Gamma>"}. By inner induction hypothesis we have 
-	@{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> S <: N"}. We need to show that @{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> Tvar Y <: N"} 
-	holds. In case @{term "X\<noteq>Y"} we know that @{term "(Y,S)"} is in @{term "\<Delta>@[(X,P)]@\<Gamma>"} and 
-	can use the inner induction hypothesis and rule @{text "S_Var"} to conclude. In case 
-	@{term "X=Y"} we can infer that @{term "S=Q"}; moreover we have that 
-	@{term "(\<Delta>@[(X,P)]@\<Gamma>) extends \<Gamma>"} and therefore by @{text "weakening"} that 
-	@{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> P <: Q"} holds. By transitivity we obtain then 
-	@{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> P <: N"} and can conclude by applying rule @{text "S_Var"}.
-	\end{minipage}*}
+	@{term "(Y,S)"} is in @{term "\<Delta>@[(X,Q)]@\<Gamma>"}. We need to show that 
+	@{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> Tvar Y <: N"}  holds. In case @{term "X\<noteq>Y"} we know that 
+	@{term "(Y,S)"} is in @{term "\<Delta>@[(X,P)]@\<Gamma>"} and can use the inner induction hypothesis 
+	and rule @{text "S_Var"} to conclude. In case @{term "X=Y"} we can infer that 
+	@{term "S=Q"}; moreover we have that  @{term "(\<Delta>@[(X,P)]@\<Gamma>) extends \<Gamma>"} and therefore 
+	by @{text "weakening"} that @{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> P <: Q"} holds. By transitivity we 
+	obtain then @{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> P <: N"} and can conclude by applying rule 
+	@{text "S_Var"}.\end{minipage}*}
       hence IH_inner: "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> S <: N"
 	and lh_drv_prm: "(Y,S) \<in> set (\<Delta>@[(X,Q)]@\<Gamma>)"
 	and rh_drv: "\<Gamma> \<turnstile> P<:Q"
@@ -964,7 +913,7 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
       case (S_Refl _ Y \<Delta> \<Gamma> X)
 	--{* \begin{minipage}[t]{0.9\textwidth}
 	In this case the left-hand derivation is @{term "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> Tvar Y <: Tvar Y"} and we
-	therefore know that @{term "\<Delta>@[(X,Q)]@\<Gamma>"} is ok and thad @{term "Y"} is in 
+	therefore know that @{term "\<Delta>@[(X,Q)]@\<Gamma>"} is ok and that @{term "Y"} is in 
 	the domain of @{term "\<Delta>@[(X,Q)]@\<Gamma>"}. We therefore know that @{term "\<Delta>@[(X,P)]@\<Gamma>"} is ok
 	and that @{term Y} is in the domain of @{term "\<Delta>@[(X,P)]@\<Gamma>"}. We can conclude by applying 
 	rule @{text "S_Refl"}.\end{minipage}*}
@@ -985,7 +934,7 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
     next
       case (S_Forall _ Y S\<^isub>1 S\<^isub>2 T\<^isub>1 T\<^isub>2 \<Delta> \<Gamma> X)
 	--{* \begin{minipage}[t]{0.9\textwidth}
-	In this case teh left-hand derivation is @{text "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> \<forall>[Y<:S\<^isub>1].S\<^isub>2 <: \<forall>[Y<:T\<^isub>1].T\<^isub>2"}
+	In this case the left-hand derivation is @{text "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> \<forall>[Y<:S\<^isub>1].S\<^isub>2 <: \<forall>[Y<:T\<^isub>1].T\<^isub>2"}
 	and therfore we know that the binder @{term Y} is fresh for @{term "\<Delta>@[(X,Q)]@\<Gamma>"}. By
 	the inner induction hypothesis we have that @{term "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> T\<^isub>1 <: S\<^isub>1"} and 
 	@{term "((Y,T\<^isub>1)#\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2"}. Since @{term P} is a subtype of @{term Q}
@@ -1004,6 +953,5 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
     qed
   } 
 qed
-
 
 end
