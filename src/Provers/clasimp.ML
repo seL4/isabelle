@@ -154,6 +154,14 @@ fun delIff delcs delss ((cs, ss), th) =
      delss (ss, [th]))
   end;
 
+fun modifier att (x, ths) =
+  fst (Thm.applys_attributes [att] (x, rev ths));
+
+fun addXIs which = modifier (which (ContextRules.intro_query NONE));
+fun addXEs which = modifier (which (ContextRules.elim_query NONE));
+fun addXDs which = modifier (which (ContextRules.dest_query NONE));
+fun delXs which = modifier (which ContextRules.rule_del);
+
 in
 
 val op addIffs =
@@ -168,21 +176,21 @@ fun DelIffs thms = change_clasimpset (fn css => css delIffs thms);
 
 fun addIffs_global (thy, ths) =
   Library.foldl (addIff
-    (ContextRules.addXEs_global, ContextRules.addXIs_global)
-    (ContextRules.addXEs_global, ContextRules.addXIs_global) #1)
+    (addXEs Attrib.theory, addXIs Attrib.theory)
+    (addXEs Attrib.theory, addXIs Attrib.theory) #1)
   ((thy, ()), ths) |> #1;
 
 fun addIffs_local (ctxt, ths) =
   Library.foldl (addIff
-    (ContextRules.addXEs_local, ContextRules.addXIs_local)
-    (ContextRules.addXEs_local, ContextRules.addXIs_local) #1)
+    (addXEs Attrib.context, addXIs Attrib.context)
+    (addXEs Attrib.context, addXIs Attrib.context) #1)
   ((ctxt, ()), ths) |> #1;
 
 fun delIffs_global (thy, ths) =
-  Library.foldl (delIff ContextRules.delrules_global #1) ((thy, ()), ths) |> #1;
+  Library.foldl (delIff (delXs Attrib.theory) #1) ((thy, ()), ths) |> #1;
 
 fun delIffs_local (ctxt, ths) =
-  Library.foldl (delIff ContextRules.delrules_local #1) ((ctxt, ()), ths) |> #1;
+  Library.foldl (delIff (delXs Attrib.context) #1) ((ctxt, ()), ths) |> #1;
 
 end;
 
