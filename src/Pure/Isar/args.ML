@@ -9,7 +9,7 @@ support for embedded values and static binding.
 signature ARGS =
 sig
   datatype value = Name of string | Typ of typ | Term of term | Fact of thm list |
-    Attribute of theory attribute * ProofContext.context attribute
+    Attribute of Context.generic attribute
   type T
   val string_of: T -> string
   val mk_ident: string * Position.T -> T
@@ -20,7 +20,7 @@ sig
   val mk_typ: typ -> T
   val mk_term: term -> T
   val mk_fact: thm list -> T
-  val mk_attribute: theory attribute * ProofContext.context attribute -> T
+  val mk_attribute: Context.generic attribute -> T
   val stopper: T * (T -> bool)
   val not_eof: T -> bool
   type src
@@ -64,8 +64,7 @@ sig
   val internal_typ: T list -> typ * T list
   val internal_term: T list -> term * T list
   val internal_fact: T list -> thm list * T list
-  val internal_attribute: T list ->
-    (theory attribute * ProofContext.context attribute) * T list
+  val internal_attribute: T list -> Context.generic attribute * T list
   val named_name: (string -> string) -> T list -> string * T list
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
@@ -78,10 +77,16 @@ sig
   val local_typ: ProofContext.context * T list -> typ * (ProofContext.context * T list)
   val local_term: ProofContext.context * T list -> term * (ProofContext.context * T list)
   val local_prop: ProofContext.context * T list -> term * (ProofContext.context * T list)
+  val typ_abbrev: Context.generic * T list -> typ * (Context.generic * T list)
+  val typ: Context.generic * T list -> typ * (Context.generic * T list)
+  val term: Context.generic * T list -> term * (Context.generic * T list)
+  val prop: Context.generic * T list -> term * (Context.generic * T list)
   val global_tyname: theory * T list -> string * (theory * T list)
   val global_const: theory * T list -> string * (theory * T list)
   val local_tyname: ProofContext.context * T list -> string * (ProofContext.context * T list)
   val local_const: ProofContext.context * T list -> string * (ProofContext.context * T list)
+  val tyname: Context.generic * T list -> string * (Context.generic * T list)
+  val const: Context.generic * T list -> string * (Context.generic * T list)
   val thm_sel: T list -> PureThy.interval list * T list
   val bang_facts: ProofContext.context * T list -> thm list * (ProofContext.context * T list)
   val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
@@ -113,7 +118,7 @@ datatype value =
   Typ of typ |
   Term of term |
   Fact of thm list |
-  Attribute of theory attribute * ProofContext.context attribute;
+  Attribute of Context.generic attribute;
 
 datatype slot =
   Empty |
@@ -312,6 +317,11 @@ val local_typ = Scan.peek (named_typ o ProofContext.read_typ);
 val local_term = Scan.peek (named_term o ProofContext.read_term);
 val local_prop = Scan.peek (named_term o ProofContext.read_prop);
 
+val typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o Context.proof_of);
+val typ = Scan.peek (named_typ o ProofContext.read_typ o Context.proof_of);
+val term = Scan.peek (named_term o ProofContext.read_term o Context.proof_of);
+val prop = Scan.peek (named_term o ProofContext.read_prop o Context.proof_of);
+
 
 (* type and constant names *)
 
@@ -322,6 +332,10 @@ val global_tyname = Scan.peek (named_typ o Sign.read_tyname) >> dest_tyname;
 val global_const = Scan.peek (named_term o Sign.read_const) >> dest_const;
 val local_tyname = Scan.peek (named_typ o ProofContext.read_tyname) >> dest_tyname;
 val local_const = Scan.peek (named_term o ProofContext.read_const) >> dest_const;
+val tyname =
+  Scan.peek (named_typ o Context.cases Sign.read_tyname ProofContext.read_tyname) >> dest_tyname;
+val const =
+  Scan.peek (named_term o Context.cases Sign.read_const ProofContext.read_const) >> dest_const;
 
 
 (* misc *)
