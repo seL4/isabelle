@@ -181,12 +181,13 @@
 \newcommand{\isasymleftharpoonup}{\isamath{\leftharpoonup}}
 \newcommand{\isasymrightharpoonup}{\isamath{\rightharpoonup}}
 \newcommand{\isasymrightleftharpoons}{\isamath{\rightleftharpoons}}
+\newcommand{\isasymleadsto}{\isamath{\leadsto}}  %requires amssymb
 \newcommand{\isasymdownharpoonleft}{\isamath{\downharpoonleft}}  %requires amssymb
 \newcommand{\isasymdownharpoonright}{\isamath{\downharpoonright}}  %requires amssymb
 \newcommand{\isasymupharpoonleft}{\isamath{\upharpoonleft}}  %requires amssymb
 \newcommand{\isasymupharpoonright}{\isamath{\upharpoonright}}  %requires amssymb
 \newcommand{\isasymrestriction}{\isamath{\restriction}}  %requires amssymb
-\newcommand{\isasymleadsto}{\isamath{\leadsto}}  %requires amssymb
+\newcommand{\isasymColon}{\isamath{\mathrel{::}}}
 \newcommand{\isasymup}{\isamath{\uparrow}}
 \newcommand{\isasymUp}{\isamath{\Uparrow}}
 \newcommand{\isasymdown}{\isamath{\downarrow}}
@@ -207,8 +208,6 @@
 \newcommand{\isasymrbrace}{\isamath{\mathclose{\mid\mkern-4.5mu\rbrace}}}
 \newcommand{\isasymguillemotleft}{\isatext{\flqq}}  %requires babel
 \newcommand{\isasymguillemotright}{\isatext{\frqq}}  %requires babel
-\newcommand{\isasymColon}{\isamath{\mathrel{::}}}
-\newcommand{\isasymnot}{\isamath{\neg}}
 \newcommand{\isasymbottom}{\isamath{\bot}}
 \newcommand{\isasymtop}{\isamath{\top}}
 \newcommand{\isasymand}{\isamath{\wedge}}
@@ -218,6 +217,7 @@
 \newcommand{\isasymforall}{\isamath{\forall\,}}
 \newcommand{\isasymexists}{\isamath{\exists\,}}
 \newcommand{\isasymnexists}{\isamath{\nexists\,}}  %requires amssymb
+\newcommand{\isasymnot}{\isamath{\neg}}
 \newcommand{\isasymbox}{\isamath{\Box}}  %requires amssymb
 \newcommand{\isasymdiamond}{\isamath{\Diamond}}  %requires amssymb
 \newcommand{\isasymturnstile}{\isamath{\vdash}}
@@ -252,6 +252,8 @@
 \newcommand{\isasymSqunion}{\isamath{\bigsqcup\,}}
 \newcommand{\isasymsqinter}{\isamath{\sqcap}}
 \newcommand{\isasymSqinter}{\isamath{\bigsqcap\,}}  %requires amsmath
+\newcommand{\isasymsetminus}{\isamath{\setminus}}
+\newcommand{\isasympropto}{\isamath{\propto}}
 \newcommand{\isasymuplus}{\isamath{\uplus}}
 \newcommand{\isasymUplus}{\isamath{\biguplus\,}}
 \newcommand{\isasymnoteq}{\isamath{\not=}}
@@ -264,8 +266,6 @@
 \newcommand{\isasymsmile}{\isamath{\smile}}
 \newcommand{\isasymequiv}{\isamath{\equiv}}
 \newcommand{\isasymfrown}{\isamath{\frown}}
-\newcommand{\isasympropto}{\isamath{\propto}}
-\newcommand{\isasymsome}{\isamath{\epsilon\,}}
 \newcommand{\isasymJoin}{\isamath{\Join}}  %requires amssymb
 \newcommand{\isasymbowtie}{\isamath{\bowtie}}
 \newcommand{\isasymprec}{\isamath{\prec}}
@@ -357,3 +357,4 @@
 \newcommand{\isasymhungarumlaut}{\isatext{\H\relax}}
 \newcommand{\isasymspacespace}{\isamath{~~}}
 \newcommand{\isasymmodule}{\isamath{\langle}\isakeyword{module}\isamath{\rangle}}
+\newcommand{\isasymsome}{\isamath{\epsilon\,}}
