@@ -65,9 +65,10 @@ fun gen_constdef prep_typ prep_term prep_att
 
 fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy =
   let
-    val structs = #1 (fold_map prep_vars raw_structs (ProofContext.init thy));
+    val ctxt = ProofContext.init thy;
+    val structs = #1 (fold_map prep_vars raw_structs ctxt);
     val (decls, thy') = fold_map (gen_constdef prep_typ prep_term prep_att structs) specs thy
-  in Pretty.writeln (Specification.pretty_consts thy' decls); thy' end;
+  in Pretty.writeln (Specification.pretty_consts ctxt decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_liberal
   ProofContext.read_typ ProofContext.read_term_liberal Attrib.global_attribute;
