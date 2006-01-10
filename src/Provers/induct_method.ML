@@ -320,8 +320,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     (case goal_concl n [] goal of
       SOME concl =>
         (compose_tac (false, spec_rule (goal_prefix n goal) concl, 1) THEN' rtac asm_rl) i
-    | NONE => (warning ("Induction: no variable " ^ quote (ProofContext.string_of_term ctxt v) ^
-        " to be fixed -- ignored"); all_tac))
+    | NONE => all_tac)
   end);
 
 fun miniscope_tac p i = PRIMITIVE (Drule.fconv_rule
