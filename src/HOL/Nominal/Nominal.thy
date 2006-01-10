@@ -203,6 +203,19 @@ lemma supp_int:
   apply(simp add: supp_def perm_int_def)
   done
 
+lemma supp_char:
+  fixes c::"char"
+  shows "supp (c) = {}"
+  apply(simp add: supp_def perm_char_def)
+  done
+  
+lemma supp_string:
+  fixes s::"string"
+  shows "supp (s) = {}"
+apply(induct s)
+apply(auto simp add: supp_char supp_list_nil supp_list_cons)
+done
+
 lemma fresh_set_empty:
   shows "a\<sharp>{}"
   by (simp add: fresh_def supp_set_empty)
