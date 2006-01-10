@@ -491,7 +491,7 @@ fun skolem_global_fun (thy, th) =
 
 val skolem_global = Attrib.no_args skolem_global_fun;
 
-fun skolem_local x = Attrib.no_args (Drule.rule_attribute (K (conj_rule o skolem_thm))) x;
+fun skolem_local x = Attrib.no_args (Attrib.rule (K (conj_rule o skolem_thm))) x;
 
 val setup_attrs = Attrib.add_attributes
  [("skolem", (skolem_global, skolem_local),

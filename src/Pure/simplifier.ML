@@ -263,9 +263,8 @@ fun conv_mode x =
     Scan.succeed asm_full_simplify) |> Scan.lift) x;
 
 fun simplified_att get args =
-  Attrib.syntax (conv_mode -- args >> (fn (f, ths) =>
-    Drule.rule_attribute (fn x =>
-      f ((if null ths then I else MetaSimplifier.clear_ss) (get x) addsimps ths))));
+  Attrib.syntax (conv_mode -- args >> (fn (f, ths) => Attrib.rule (fn x =>
+    f ((if null ths then I else MetaSimplifier.clear_ss) (get x) addsimps ths))));
 
 in
 
