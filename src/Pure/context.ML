@@ -72,9 +72,12 @@ sig
   val init_proof: theory -> proof
   val proof_data_of: theory -> string list
   (*generic context*)
-  datatype context = Theory of theory | Proof of proof
-  val theory_of: context -> theory
-  val proof_of: context -> proof
+  datatype generic = Theory of theory | Proof of proof
+  val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
+  val the_theory: generic -> theory
+  val the_proof: generic -> proof
+  val theory_of: generic -> theory
+  val proof_of: generic -> proof
 end;
 
 signature PRIVATE_CONTEXT =
@@ -565,15 +568,19 @@ end;
 end;
 
 
+
 (*** generic context ***)
 
-datatype context = Theory of theory | Proof of proof;
+datatype generic = Theory of theory | Proof of proof;
 
-fun theory_of (Theory thy) = thy
-  | theory_of (Proof prf) = theory_of_proof prf;
+fun cases f _ (Theory thy) = f thy
+  | cases _ g (Proof prf) = g prf;
 
-fun proof_of (Theory thy) = init_proof thy
-  | proof_of (Proof prf) = prf;
+val the_theory = cases I (fn _ => raise Fail "Bad generic context: theory expected");
+val the_proof = cases (fn _ => raise Fail "Bad generic context: proof context expected") I;
+
+val theory_of = cases I theory_of_proof;
+val proof_of = cases init_proof I;
 
 end;
 
@@ -670,6 +677,53 @@ val put = ProofData.put kind Data;
 fun map f prf = put (f (get prf)) prf;
 
 end;
+
+
+
+(** generic data **)
+
+signature GENERIC_DATA_ARGS =
+sig
+  val name: string
+  type T
+  val empty: T
+  val extend: T -> T
+  val merge: Pretty.pp -> T * T -> T
+  val print: Context.generic -> T -> unit
+end;
+
+signature GENERIC_DATA =
+sig
+  type T
+  val init: theory -> theory
+  val get: Context.generic -> T
+  val put: T -> Context.generic -> Context.generic
+  val map: (T -> T) -> Context.generic -> Context.generic
+  val print: Context.generic -> unit
+end;
+
+functor GenericDataFun(Data: GENERIC_DATA_ARGS): GENERIC_DATA =
+struct
+
+structure ThyData = TheoryDataFun(open Data val copy = I fun print _ _ = ());
+structure PrfData =
+  ProofDataFun(val name = Data.name type T = Data.T val init = ThyData.get fun print _ _ = ());
+
+type T = Data.T;
+val init = ThyData.init #> PrfData.init;
+
+fun get (Context.Theory thy) = ThyData.get thy
+  | get (Context.Proof prf) = PrfData.get prf;
+
+fun put x (Context.Theory thy) = Context.Theory (ThyData.put x thy)
+  | put x (Context.Proof prf) = Context.Proof (PrfData.put x prf);
+
+fun map f ctxt = put (f (get ctxt)) ctxt;
+
+fun print ctxt = Data.print ctxt (get ctxt);
+
+end;
+
 
 (*hide private interface*)
 structure Context: CONTEXT = Context;
