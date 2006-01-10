@@ -15,40 +15,21 @@ sig
   val orderlist: ((int * int) * 'a) list -> 'a list
   val find_rules_netpair: bool -> thm list -> term -> netpair -> thm list
   val find_rules: bool -> thm list -> term -> ProofContext.context -> thm list list
-  val print_global_rules: theory -> unit
-  val print_local_rules: ProofContext.context -> unit
+  val print_rules: Context.generic -> unit
   val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val addWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val Swrap: ProofContext.context -> (int -> tactic) -> int -> tactic
   val wrap: ProofContext.context -> (int -> tactic) -> int -> tactic
-  val intro_bang_global: int option -> theory attribute
-  val elim_bang_global: int option -> theory attribute
-  val dest_bang_global: int option -> theory attribute
-  val intro_global: int option -> theory attribute
-  val elim_global: int option -> theory attribute
-  val dest_global: int option -> theory attribute
-  val intro_query_global: int option -> theory attribute
-  val elim_query_global: int option -> theory attribute
-  val dest_query_global: int option -> theory attribute
-  val rule_del_global: theory attribute
-  val intro_bang_local: int option -> ProofContext.context attribute
-  val elim_bang_local: int option -> ProofContext.context attribute
-  val dest_bang_local: int option -> ProofContext.context attribute
-  val intro_local: int option -> ProofContext.context attribute
-  val elim_local: int option -> ProofContext.context attribute
-  val dest_local: int option -> ProofContext.context attribute
-  val intro_query_local: int option -> ProofContext.context attribute
-  val elim_query_local: int option -> ProofContext.context attribute
-  val dest_query_local: int option -> ProofContext.context attribute
-  val rule_del_local: ProofContext.context attribute
-  val addXIs_global: theory * thm list -> theory
-  val addXEs_global: theory * thm list -> theory
-  val addXDs_global: theory * thm list -> theory
-  val delrules_global: theory * thm list -> theory
-  val addXIs_local: ProofContext.context * thm list -> ProofContext.context
-  val addXEs_local: ProofContext.context * thm list -> ProofContext.context
-  val addXDs_local: ProofContext.context * thm list -> ProofContext.context
-  val delrules_local: ProofContext.context * thm list -> ProofContext.context
+  val intro_bang: int option -> Context.generic attribute
+  val elim_bang: int option -> Context.generic attribute
+  val dest_bang: int option -> Context.generic attribute
+  val intro: int option -> Context.generic attribute
+  val elim: int option -> Context.generic attribute
+  val dest: int option -> Context.generic attribute
+  val intro_query: int option -> Context.generic attribute
+  val elim_query: int option -> Context.generic attribute
+  val dest_query: int option -> Context.generic attribute
+  val rule_del: Context.generic attribute
 end;
 
 structure ContextRules: CONTEXT_RULES =
@@ -78,7 +59,7 @@ val rule_kinds = map #1 kind_names;
 val rule_indexes = distinct (map #1 rule_kinds);
 
 
-(* raw data *)
+(* context data *)
 
 type netpair = ((int * int) * (bool * thm)) Net.net * ((int * int) * (bool * thm)) Net.net;
 val empty_netpairs: netpair list = replicate (length rule_indexes) (Net.empty, Net.empty);
@@ -108,60 +89,45 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
     else make_rules next (filter_out eq_th rules) (map (del false o del true) netpairs) wrappers
   end;
 
-fun print_rules prt x (Rules {rules, ...}) =
-  let
-    fun prt_kind (i, b) =
-      Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
-        (List.mapPartial (fn (_, (k, th)) => if k = (i, b) then SOME (prt x th) else NONE)
-          (sort (int_ord o pairself fst) rules));
-  in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
-
-
-(* theory and proof data *)
-
-structure GlobalRulesArgs =
-struct
+structure Rules = GenericDataFun
+(
   val name = "Isar/rules";
   type T = T;
 
   val empty = make_rules ~1 [] empty_netpairs ([], []);
-  val copy = I;
   val extend = I;
 
   fun merge _ (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
       Rules {rules = rules2, wrappers = (ws2, ws2'), ...}) =
     let
-      val wrappers = (gen_merge_lists' (eq_snd (op =)) ws1 ws2, gen_merge_lists' (eq_snd (op =)) ws1' ws2');
+      val wrappers =
+        (gen_merge_lists' (eq_snd (op =)) ws1 ws2, gen_merge_lists' (eq_snd (op =)) ws1' ws2');
       val rules = gen_merge_lists' (fn ((_, (k1, th1)), (_, (k2, th2))) =>
           k1 = k2 andalso Drule.eq_thm_prop (th1, th2)) rules1 rules2;
       val next = ~ (length rules);
       val netpairs = Library.foldl (fn (nps, (n, (w, ((i, b), th)))) =>
           nth_map i (curry insert_tagged_brl ((w, n), (b, th))) nps)
         (empty_netpairs, next upto ~1 ~~ rules);
-    in make_rules (next - 1) rules netpairs wrappers end;
+    in make_rules (next - 1) rules netpairs wrappers end
 
-  val print = print_rules Display.pretty_thm_sg;
-end;
+  fun print generic (Rules {rules, ...}) =
+    let
+      val ctxt = Context.proof_of generic;
+      fun prt_kind (i, b) =
+        Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
+          (List.mapPartial (fn (_, (k, th)) =>
+              if k = (i, b) then SOME (ProofContext.pretty_thm ctxt th) else NONE)
+            (sort (int_ord o pairself fst) rules));
+    in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
+);
 
-structure GlobalRules = TheoryDataFun(GlobalRulesArgs);
-val _ = Context.add_setup [GlobalRules.init];
-val print_global_rules = GlobalRules.print;
-
-structure LocalRules = ProofDataFun
-(struct
-  val name = GlobalRulesArgs.name;
-  type T = GlobalRulesArgs.T;
-  val init = GlobalRules.get;
-  val print = print_rules ProofContext.pretty_thm;
-end);
-
-val _ = Context.add_setup [LocalRules.init];
-val print_local_rules = LocalRules.print;
+val _ = Context.add_setup [Rules.init];
+val print_rules = Rules.print;
 
 
 (* access data *)
 
-fun netpairs ctxt = let val Rules {netpairs, ...} = LocalRules.get ctxt in netpairs end;
+fun netpairs ctxt = let val Rules {netpairs, ...} = Rules.get (Context.Proof ctxt) in netpairs end;
 val netpair_bang = hd o netpairs;
 val netpair = hd o tl o netpairs;
 
@@ -197,15 +163,16 @@ fun find_rules weighted facts goals =
 
 (* wrappers *)
 
-fun gen_add_wrapper upd w = GlobalRules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
-  make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers));
+fun gen_add_wrapper upd w = Context.the_theory o
+  Rules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
+    make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers)) o Context.Theory;
 
 val addSWrapper = gen_add_wrapper Library.apfst;
 val addWrapper = gen_add_wrapper Library.apsnd;
 
 
 fun gen_wrap which ctxt =
-  let val Rules {wrappers, ...} = LocalRules.get ctxt
+  let val Rules {wrappers, ...} = Rules.get (Context.Proof ctxt)
   in fold_rev fst (which wrappers) end;
 
 val Swrap = gen_wrap #1;
@@ -217,57 +184,44 @@ val wrap = gen_wrap #2;
 
 (* add and del rules *)
 
-local
+fun rule_del (x, th) =
+  (Rules.map (del_rule th o del_rule (Tactic.make_elim th)) x, th);
 
-fun del map_data (x, th) =
-  (map_data (del_rule th o del_rule (Tactic.make_elim th)) x, th);
+fun rule_add k view opt_w =
+  (fn (x, th) => (Rules.map (add_rule k opt_w (view th)) x, th)) o rule_del;
 
-fun add k view map_data opt_w =
-  (fn (x, th) => (map_data (add_rule k opt_w (view th)) x, th)) o del map_data;
-
-in
-
-val intro_bang_global  = add intro_bangK I GlobalRules.map;
-val elim_bang_global   = add elim_bangK I GlobalRules.map;
-val dest_bang_global   = add elim_bangK Tactic.make_elim GlobalRules.map;
-val intro_global       = add introK I GlobalRules.map;
-val elim_global        = add elimK I GlobalRules.map;
-val dest_global        = add elimK Tactic.make_elim GlobalRules.map;
-val intro_query_global = add intro_queryK I GlobalRules.map;
-val elim_query_global  = add elim_queryK I GlobalRules.map;
-val dest_query_global  = add elim_queryK Tactic.make_elim GlobalRules.map;
-val rule_del_global    = del GlobalRules.map;
-
-val intro_bang_local   = add intro_bangK I LocalRules.map;
-val elim_bang_local    = add elim_bangK I LocalRules.map;
-val dest_bang_local    = add elim_bangK Tactic.make_elim LocalRules.map;
-val intro_local        = add introK I LocalRules.map;
-val elim_local         = add elimK I LocalRules.map;
-val dest_local         = add elimK Tactic.make_elim LocalRules.map;
-val intro_query_local  = add intro_queryK I LocalRules.map;
-val elim_query_local   = add elim_queryK I LocalRules.map;
-val dest_query_local   = add elim_queryK Tactic.make_elim LocalRules.map;
-val rule_del_local     = del LocalRules.map;
-
-end;
+val intro_bang  = rule_add intro_bangK I;
+val elim_bang   = rule_add elim_bangK I;
+val dest_bang   = rule_add elim_bangK Tactic.make_elim;
+val intro       = rule_add introK I;
+val elim        = rule_add elimK I;
+val dest        = rule_add elimK Tactic.make_elim;
+val intro_query = rule_add intro_queryK I;
+val elim_query  = rule_add elim_queryK I;
+val dest_query  = rule_add elim_queryK Tactic.make_elim;
 
 val _ = Context.add_setup
-  [snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query_global NONE])]];
+  [snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [Attrib.theory (intro_query NONE)])]];
 
 
-(* low-level modifiers *)
+(* concrete syntax *)
 
-fun modifier att (x, ths) =
-  fst (Thm.applys_attributes [att] (x, rev ths));
+fun add_args a b c x = Attrib.syntax
+  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- (Scan.option Args.nat))
+    >> (fn (f, n) => f n)) x;
 
-val addXIs_global = modifier (intro_query_global NONE);
-val addXEs_global = modifier (elim_query_global NONE);
-val addXDs_global = modifier (dest_query_global NONE);
-val delrules_global = modifier rule_del_global;
+fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
 
-val addXIs_local = modifier (intro_query_local NONE);
-val addXEs_local = modifier (elim_query_local NONE);
-val addXDs_local = modifier (dest_query_local NONE);
-val delrules_local = modifier rule_del_local;
+val rule_atts =
+ [("intro", Attrib.common (add_args intro_bang intro intro_query),
+    "declaration of introduction rule"),
+  ("elim", Attrib.common (add_args elim_bang elim elim_query),
+    "declaration of elimination rule"),
+  ("dest", Attrib.common (add_args dest_bang dest dest_query),
+    "declaration of destruction rule"),
+  ("rule", Attrib.common (del_args rule_del),
+    "remove declaration of intro/elim/dest rule")];
+
+val _ = Context.add_setup [Attrib.add_attributes rule_atts];
 
 end;

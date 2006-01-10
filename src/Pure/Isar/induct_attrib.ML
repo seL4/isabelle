@@ -8,16 +8,11 @@ Declaration of rules for cases and induction.
 signature INDUCT_ATTRIB =
 sig
   val vars_of: term -> term list
-  val dest_global_rules: theory ->
+  val dest_rules: Context.generic ->
     {type_cases: (string * thm) list, set_cases: (string * thm) list,
       type_induct: (string * thm) list, set_induct: (string * thm) list,
       type_coinduct: (string * thm) list, set_coinduct: (string * thm) list}
-  val print_global_rules: theory -> unit
-  val dest_local_rules: Proof.context ->
-    {type_cases: (string * thm) list, set_cases: (string * thm) list,
-      type_induct: (string * thm) list, set_induct: (string * thm) list,
-      type_coinduct: (string * thm) list, set_coinduct: (string * thm) list}
-  val print_local_rules: Proof.context -> unit
+  val print_rules: Context.generic -> unit
   val lookup_casesT : Proof.context -> string -> thm option
   val lookup_casesS : Proof.context -> string -> thm option
   val lookup_inductT : Proof.context -> string -> thm option
@@ -30,18 +25,12 @@ sig
   val find_inductS: Proof.context -> term -> thm list
   val find_coinductT: Proof.context -> typ -> thm list
   val find_coinductS: Proof.context -> term -> thm list
-  val cases_type_global: string -> theory attribute
-  val cases_set_global: string -> theory attribute
-  val cases_type_local: string -> Proof.context attribute
-  val cases_set_local: string -> Proof.context attribute
-  val induct_type_global: string -> theory attribute
-  val induct_set_global: string -> theory attribute
-  val induct_type_local: string -> Proof.context attribute
-  val induct_set_local: string -> Proof.context attribute
-  val coinduct_type_global: string -> theory attribute
-  val coinduct_set_global: string -> theory attribute
-  val coinduct_type_local: string -> Proof.context attribute
-  val coinduct_set_local: string -> Proof.context attribute
+  val cases_type: string -> Context.generic attribute
+  val cases_set: string -> Context.generic attribute
+  val induct_type: string -> Context.generic attribute
+  val induct_set: string -> Context.generic attribute
+  val coinduct_type: string -> Context.generic attribute
+  val coinduct_set: string -> Context.generic attribute
   val casesN: string
   val inductN: string
   val coinductN: string
@@ -88,7 +77,7 @@ end;
 
 
 
-(** global and local induct data **)
+(** induct data **)
 
 (* rules *)
 
@@ -100,24 +89,23 @@ val init_rules =
 
 fun lookup_rule (rs: rules) = AList.lookup (op =) (NetRules.rules rs);
 
-fun pretty_rules prt kind x rs =
+fun pretty_rules ctxt kind rs =
   let val thms = map snd (NetRules.rules rs)
-  in Pretty.big_list kind (map (prt x) thms) end;
-
-fun print_all_rules prt x ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) =
- [pretty_rules prt "coinduct type:" x coinductT,
-  pretty_rules prt "coinduct set:" x coinductS,
-  pretty_rules prt "induct type:" x inductT,
-  pretty_rules prt "induct set:" x inductS,
-  pretty_rules prt "cases type:" x casesT,
-  pretty_rules prt "cases set:" x casesS]
- |> Pretty.chunks |> Pretty.writeln;
+  in Pretty.big_list kind (map (ProofContext.pretty_thm ctxt) thms) end;
 
 
-(* theory data *)
+(* context data *)
 
-structure GlobalInductArgs =
-struct
+fun dest ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) =
+  {type_cases = NetRules.rules casesT,
+   set_cases = NetRules.rules casesS,
+   type_induct = NetRules.rules inductT,
+   set_induct = NetRules.rules inductS,
+   type_coinduct = NetRules.rules coinductT,
+   set_coinduct = NetRules.rules coinductS};
+
+structure Induct = GenericDataFun
+(
   val name = "Isar/induct";
   type T = (rules * rules) * (rules * rules) * (rules * rules);
 
@@ -125,59 +113,46 @@ struct
     ((init_rules (left_var_prem o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)));
-  val copy = I;
+
   val extend = I;
+
   fun merge _ (((casesT1, casesS1), (inductT1, inductS1), (coinductT1, coinductS1)),
       ((casesT2, casesS2), (inductT2, inductS2), (coinductT2, coinductS2))) =
     ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)),
       (NetRules.merge (coinductT1, coinductT2), NetRules.merge (coinductS1, coinductS2)));
 
-  fun print x = print_all_rules Display.pretty_thm_sg x;
+  fun print generic ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) =
+    let val ctxt = Context.proof_of generic in
+     [pretty_rules ctxt "coinduct type:" coinductT,
+      pretty_rules ctxt "coinduct set:" coinductS,
+      pretty_rules ctxt "induct type:" inductT,
+      pretty_rules ctxt "induct set:" inductS,
+      pretty_rules ctxt "cases type:" casesT,
+      pretty_rules ctxt "cases set:" casesS]
+     |> Pretty.chunks |> Pretty.writeln
+    end
+);
 
-  fun dest ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) =
-    {type_cases = NetRules.rules casesT,
-     set_cases = NetRules.rules casesS,
-     type_induct = NetRules.rules inductT,
-     set_induct = NetRules.rules inductS,
-     type_coinduct = NetRules.rules coinductT,
-     set_coinduct = NetRules.rules coinductS};
-end;
+val _ = Context.add_setup [Induct.init];
+val print_rules = Induct.print;
+val dest_rules = dest o Induct.get;
 
-structure GlobalInduct = TheoryDataFun(GlobalInductArgs);
-val _ = Context.add_setup [GlobalInduct.init];
-val print_global_rules = GlobalInduct.print;
-val dest_global_rules = GlobalInductArgs.dest o GlobalInduct.get;
-
-
-(* proof data *)
-
-structure LocalInduct = ProofDataFun
-(struct
-  val name = "Isar/induct";
-  type T = GlobalInductArgs.T;
-
-  fun init thy = GlobalInduct.get thy;
-  fun print x = print_all_rules ProofContext.pretty_thm x;
-end);
-
-val _ = Context.add_setup [LocalInduct.init];
-val print_local_rules = LocalInduct.print;
-val dest_local_rules = GlobalInductArgs.dest o LocalInduct.get;
+val get_local = Induct.get o Context.Proof;
 
 
 (* access rules *)
 
-val lookup_casesT = lookup_rule o #1 o #1 o LocalInduct.get;
-val lookup_casesS = lookup_rule o #2 o #1 o LocalInduct.get;
-val lookup_inductT = lookup_rule o #1 o #2 o LocalInduct.get;
-val lookup_inductS = lookup_rule o #2 o #2 o LocalInduct.get;
-val lookup_coinductT = lookup_rule o #1 o #3 o LocalInduct.get;
-val lookup_coinductS = lookup_rule o #2 o #3 o LocalInduct.get;
+val lookup_casesT = lookup_rule o #1 o #1 o get_local;
+val lookup_casesS = lookup_rule o #2 o #1 o get_local;
+val lookup_inductT = lookup_rule o #1 o #2 o get_local;
+val lookup_inductS = lookup_rule o #2 o #2 o get_local;
+val lookup_coinductT = lookup_rule o #1 o #3 o get_local;
+val lookup_coinductS = lookup_rule o #2 o #3 o get_local;
 
 
 fun find_rules which how ctxt x =
-  map snd (NetRules.retrieve (which (LocalInduct.get ctxt)) (how x));
+  map snd (NetRules.retrieve (which (get_local ctxt)) (how x));
 
 val find_casesT = find_rules (#1 o #1) encode_type;
 val find_casesS = find_rules (#2 o #1) I;
@@ -192,8 +167,8 @@ val find_coinductS = find_rules (#2 o #3) I;
 
 local
 
-fun mk_att f g h name arg =
-  let val (x, thm) = h arg in (f (g (name, thm)) x, thm) end;
+fun mk_att f g name arg =
+  let val (x, thm) = g arg in (Induct.map (f (name, thm)) x, thm) end;
 
 fun map1 f (x, y, z) = (f x, y, z);
 fun map2 f (x, y, z) = (x, f y, z);
@@ -211,21 +186,15 @@ fun consumes1 x = RuleCases.consumes_default 1 x;
 
 in
 
-val cases_type_global = mk_att GlobalInduct.map add_casesT consumes0;
-val cases_set_global = mk_att GlobalInduct.map add_casesS consumes1;
-val induct_type_global = mk_att GlobalInduct.map add_inductT consumes0;
-val induct_set_global = mk_att GlobalInduct.map add_inductS consumes1;
-val coinduct_type_global = mk_att GlobalInduct.map add_coinductT consumes0;
-val coinduct_set_global = mk_att GlobalInduct.map add_coinductS consumes1;
-
-val cases_type_local = mk_att LocalInduct.map add_casesT consumes0;
-val cases_set_local = mk_att LocalInduct.map add_casesS consumes1;
-val induct_type_local = mk_att LocalInduct.map add_inductT consumes0;
-val induct_set_local = mk_att LocalInduct.map add_inductS consumes1;
-val coinduct_type_local = mk_att LocalInduct.map add_coinductT consumes0;
-val coinduct_set_local = mk_att LocalInduct.map add_coinductS consumes1;
+val cases_type = mk_att add_casesT consumes0;
+val cases_set = mk_att add_casesS consumes1;
+val induct_type = mk_att add_inductT consumes0;
+val induct_set = mk_att add_inductS consumes1;
+val coinduct_type = mk_att add_coinductT consumes0;
+val coinduct_set = mk_att add_coinductS consumes1;
 
 end;
+
 
 
 (** concrete syntax **)
@@ -243,29 +212,21 @@ fun spec k arg =
   Scan.lift (Args.$$$ k -- Args.colon) |-- arg ||
   Scan.lift (Args.$$$ k) >> K "";
 
-fun attrib tyname const add_type add_set =
-  Attrib.syntax (spec typeN tyname >> add_type || spec setN const >> add_set);
+fun attrib add_type add_set =
+  Attrib.syntax (spec typeN Args.tyname >> add_type || spec setN Args.const >> add_set);
 
 in
 
-val cases_attr =
- (attrib Args.global_tyname Args.global_const cases_type_global cases_set_global,
-  attrib Args.local_tyname Args.local_const cases_type_local cases_set_local);
-
-val induct_attr =
- (attrib Args.global_tyname Args.global_const induct_type_global induct_set_global,
-  attrib Args.local_tyname Args.local_const induct_type_local induct_set_local);
-
-val coinduct_attr =
- (attrib Args.global_tyname Args.global_const coinduct_type_global coinduct_set_global,
-  attrib Args.local_tyname Args.local_const coinduct_type_local coinduct_set_local);
+val cases_att = attrib cases_type cases_set;
+val induct_att = attrib induct_type induct_set;
+val coinduct_att = attrib coinduct_type coinduct_set;
 
 end;
 
 val _ = Context.add_setup
  [Attrib.add_attributes
-  [(casesN, cases_attr, "declaration of cases rule for type or set"),
-   (inductN, induct_attr, "declaration of induction rule for type or set"),
-   (coinductN, coinduct_attr, "declaration of coinduction rule for type or set")]];
+  [(casesN, Attrib.common cases_att, "declaration of cases rule for type or set"),
+   (inductN, Attrib.common induct_att, "declaration of induction rule for type or set"),
+   (coinductN, Attrib.common coinduct_att, "declaration of coinduction rule for type or set")]];
 
 end;

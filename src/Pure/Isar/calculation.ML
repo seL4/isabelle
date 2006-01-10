@@ -7,23 +7,16 @@ Generic calculational proofs.
 
 signature CALCULATION =
 sig
+  val print_rules: Context.generic -> unit
   val get_calculation: Proof.state -> thm list option
-  val print_global_rules: theory -> unit
-  val print_local_rules: Proof.context -> unit
-  val trans_add_global: theory attribute
-  val trans_del_global: theory attribute
-  val trans_add_local: Proof.context attribute
-  val trans_del_local: Proof.context attribute
-  val sym_add_global: theory attribute
-  val sym_del_global: theory attribute
-  val sym_add_local: Proof.context attribute
-  val sym_del_local: Proof.context attribute
-  val symmetric_global: theory attribute
-  val symmetric_local: Proof.context attribute
+  val trans_add: Context.generic attribute
+  val trans_del: Context.generic attribute
+  val sym_add: Context.generic attribute
+  val sym_del: Context.generic attribute
+  val symmetric: Context.generic attribute
   val also: (thmref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
   val also_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
-  val finally: (thmref * Attrib.src list) list option -> bool ->
-    Proof.state -> Proof.state Seq.seq
+  val finally: (thmref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
   val finally_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
   val moreover: bool -> Proof.state -> Proof.state
   val ultimately: bool -> Proof.state -> Proof.state
@@ -32,112 +25,85 @@ end;
 structure Calculation: CALCULATION =
 struct
 
-(** global and local calculation data **)
+(** calculation data **)
 
-(* global calculation *)
-
-fun print_rules prt x (trans, sym) =
-  [Pretty.big_list "transitivity rules:" (map (prt x) (NetRules.rules trans)),
-    Pretty.big_list "symmetry rules:" (map (prt x) sym)]
-  |> Pretty.chunks |> Pretty.writeln;
-
-structure GlobalCalculation = TheoryDataFun
-(struct
-  val name = "Isar/calculation";
-  type T = thm NetRules.T * thm list
-
-  val empty = (NetRules.elim, []);
-  val copy = I;
-  val extend = I;
-  fun merge _ ((trans1, sym1), (trans2, sym2)) =
-    (NetRules.merge (trans1, trans2), Drule.merge_rules (sym1, sym2));
-  val print = print_rules Display.pretty_thm_sg;
-end);
-
-val _ = Context.add_setup [GlobalCalculation.init];
-val print_global_rules = GlobalCalculation.print;
-
-
-(* local calculation *)
-
-structure LocalCalculation = ProofDataFun
-(struct
+structure CalculationData = GenericDataFun
+(
   val name = "Isar/calculation";
   type T = (thm NetRules.T * thm list) * (thm list * int) option;
+  val empty = ((NetRules.elim, []), NONE);
+  val extend = I;
 
-  fun init thy = (GlobalCalculation.get thy, NONE);
-  fun print ctxt (rs, _) = print_rules ProofContext.pretty_thm ctxt rs;
-end);
+  fun merge _ (((trans1, sym1), _), ((trans2, sym2), _)) =
+    ((NetRules.merge (trans1, trans2), Drule.merge_rules (sym1, sym2)), NONE);
 
-val _ = Context.add_setup [LocalCalculation.init];
-val get_local_rules = #1 o LocalCalculation.get o Proof.context_of;
-val print_local_rules = LocalCalculation.print;
+  fun print generic ((trans, sym), _) =
+    let val ctxt = Context.proof_of generic in
+      [Pretty.big_list "transitivity rules:"
+          (map (ProofContext.pretty_thm ctxt) (NetRules.rules trans)),
+        Pretty.big_list "symmetry rules:" (map (ProofContext.pretty_thm ctxt) sym)]
+      |> Pretty.chunks |> Pretty.writeln
+    end;
+);
+
+val _ = Context.add_setup [CalculationData.init];
+val print_rules = CalculationData.print;
 
 
 (* access calculation *)
 
 fun get_calculation state =
-  (case #2 (LocalCalculation.get (Proof.context_of state)) of
+  (case #2 (CalculationData.get (Context.Proof (Proof.context_of state))) of
     NONE => NONE
   | SOME (thms, lev) => if lev = Proof.level state then SOME thms else NONE);
 
 val calculationN = "calculation";
 
 fun put_calculation calc =
-  `Proof.level #-> (fn lev => Proof.map_context
-    (LocalCalculation.map (apsnd (K (Option.map (rpair lev) calc)))))
+  `Proof.level #-> (fn lev =>
+    Proof.map_context (Context.the_proof o
+        CalculationData.map (apsnd (K (Option.map (rpair lev) calc))) o Context.Proof))
   #> Proof.put_thms (calculationN, calc);
+
 
 
 (** attributes **)
 
 (* add/del rules *)
 
-fun global_att f (x, thm) = (GlobalCalculation.map (f thm) x, thm);
-fun local_att f (x, thm) = (LocalCalculation.map (apfst (f thm)) x, thm);
+val trans_add = Attrib.declaration (CalculationData.map o apfst o apfst o NetRules.insert);
+val trans_del = Attrib.declaration (CalculationData.map o apfst o apfst o NetRules.delete);
 
-val trans_add_global = global_att (apfst o NetRules.insert);
-val trans_del_global = global_att (apfst o NetRules.delete);
-val trans_add_local = local_att (apfst o NetRules.insert);
-val trans_del_local = local_att (apfst o NetRules.delete);
-
-val sym_add_global = global_att (apsnd o Drule.add_rule) o ContextRules.elim_query_global NONE;
-val sym_del_global = global_att (apsnd o Drule.del_rule) o ContextRules.rule_del_global;
-val sym_add_local = local_att (apsnd o Drule.add_rule) o ContextRules.elim_query_local NONE;
-val sym_del_local = local_att (apsnd o Drule.del_rule) o ContextRules.rule_del_local;
+val sym_add =
+  Attrib.declaration (CalculationData.map o apfst o apsnd o Drule.add_rule)
+  #> ContextRules.elim_query NONE;
+val sym_del =
+  Attrib.declaration (CalculationData.map o apfst o apsnd o Drule.del_rule)
+  #> ContextRules.rule_del;
 
 
-(* symmetry *)
+(* symmetric *)
 
-fun gen_symmetric get_sym = Drule.rule_attribute (fn x => fn th =>
-  (case Seq.chop (2, Drule.multi_resolves [th] (get_sym x)) of
+val symmetric = Attrib.rule (fn x => fn th =>
+  (case Seq.chop (2, Drule.multi_resolves [th] (#2 (#1 (CalculationData.get x)))) of
     ([th'], _) => th'
   | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
   | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
 
-val symmetric_global = gen_symmetric (#2 o GlobalCalculation.get);
-val symmetric_local = gen_symmetric (#2 o #1 o LocalCalculation.get);
-
 
 (* concrete syntax *)
 
-val trans_attr =
- (Attrib.add_del_args trans_add_global trans_del_global,
-  Attrib.add_del_args trans_add_local trans_del_local);
-
-val sym_attr =
- (Attrib.add_del_args sym_add_global sym_del_global,
-  Attrib.add_del_args sym_add_local sym_del_local);
+val trans_att = Attrib.add_del_args trans_add trans_del;
+val sym_att = Attrib.add_del_args sym_add sym_del;
 
 val _ = Context.add_setup
  [Attrib.add_attributes
-   [("trans", trans_attr, "declaration of transitivity rule"),
-    ("sym", sym_attr, "declaration of symmetry rule"),
-    ("symmetric", (Attrib.no_args symmetric_global, Attrib.no_args symmetric_local),
-      "resolution with symmetry rule")],
+   [("trans", Attrib.common trans_att, "declaration of transitivity rule"),
+    ("sym", Attrib.common sym_att, "declaration of symmetry rule"),
+    ("symmetric", Attrib.common (Attrib.no_args symmetric), "resolution with symmetry rule")],
   snd o PureThy.add_thms
-   [(("", transitive_thm), [trans_add_global]),
-    (("", symmetric_thm), [sym_add_global])]];
+   [(("", transitive_thm), [Attrib.theory trans_add]),
+    (("", symmetric_thm), [Attrib.theory sym_add])]];
 
 
 
@@ -158,6 +124,8 @@ fun print_calculation false _ _ = ()
 
 (* also and finally *)
 
+val get_rules = #1 o CalculationData.get o Context.Proof o Proof.context_of;
+
 fun calculate prep_rules final raw_rules int state =
   let
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
@@ -168,8 +136,8 @@ fun calculate prep_rules final raw_rules int state =
     fun combine ths =
       (case opt_rules of SOME rules => rules
       | NONE =>
-          (case ths of [] => NetRules.rules (#1 (get_local_rules state))
-          | th :: _ => NetRules.retrieve (#1 (get_local_rules state)) (strip_assums_concl th)))
+          (case ths of [] => NetRules.rules (#1 (get_rules state))
+          | th :: _ => NetRules.retrieve (#1 (get_rules state)) (strip_assums_concl th)))
       |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
       |> Seq.filter (not o projection ths);
 
