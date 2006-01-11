@@ -75,9 +75,63 @@ fun indtac indrule indnames i st =
     rtac indrule' i st
   end;
 
+fun mk_subgoal i f st =
+  let
+    val cg = List.nth (cprems_of st, i - 1);
+    val g = term_of cg;
+    val revcut_rl' = Thm.lift_rule cg revcut_rl;
+    val v = head_of (Logic.strip_assums_concl (hd (prems_of revcut_rl')));
+    val ps = Logic.strip_params g;
+    val cert = cterm_of (sign_of_thm st);
+  in
+    compose_tac (false,
+      Thm.instantiate ([], [(cert v, cert (list_abs (ps,
+        f (rev ps) (Logic.strip_assums_hyp g) (Logic.strip_assums_concl g))))])
+      revcut_rl', 2) i st
+  end;
+
+(** simplification procedure for sorting permutations **)
+
+val dj_cp = thm "dj_cp";
+
+fun dest_permT (Type ("fun", [Type ("List.list", [Type ("*", [T, _])]),
+      Type ("fun", [_, U])])) = (T, U);
+
+fun permTs_of (Const ("nominal.perm", T) $ t $ u) = fst (dest_permT T) :: permTs_of u
+  | permTs_of _ = [];
+
+fun perm_simproc' thy ss (Const ("nominal.perm", T) $ t $ (u as Const ("nominal.perm", U) $ r $ s)) =
+      let
+        val (aT as Type (a, []), S) = dest_permT T;
+        val (bT as Type (b, []), _) = dest_permT U
+      in if aT mem permTs_of u andalso aT <> bT then
+          let
+            val a' = Sign.base_name a;
+            val b' = Sign.base_name b;
+            val cp = PureThy.get_thm thy (Name ("cp_" ^ a' ^ "_" ^ b' ^ "_inst"));
+            val dj = PureThy.get_thm thy (Name ("dj_" ^ b' ^ "_" ^ a'));
+            val dj_cp' = [cp, dj] MRS dj_cp;
+            val cert = SOME o cterm_of thy
+          in
+            SOME (mk_meta_eq (Drule.instantiate' [SOME (ctyp_of thy S)]
+              [cert t, cert r, cert s] dj_cp'))
+          end
+        else NONE
+      end
+  | perm_simproc' thy ss _ = NONE;
+
+val perm_simproc =
+  Simplifier.simproc (the_context ()) "perm_simp" ["pi1 \\<bullet> (pi2 \\<bullet> x)"] perm_simproc';
+
+val allE_Nil = read_instantiate_sg (the_context()) [("x", "[]")] allE;
+
+val meta_spec = thm "meta_spec";
+
 fun projections rule =
   ProjectRule.projections rule
   |> map (standard #> RuleCases.save rule);
+
+fun norm_sort thy = Sorts.norm_sort (snd (#classes (Type.rep_tsig (Sign.tsig_of thy))));
 
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
@@ -1017,19 +1071,44 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          length new_type_names))
       end) atoms;
 
+    val simp_atts = replicate (length new_type_names) [Simplifier.simp_add_global];
+
+    val (_, thy9) = thy8 |>
+      Theory.add_path big_name |>
+      PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] ||>>
+      PureThy.add_thmss [(("inducts_weak", projections dt_induct), [case_names_induct])] ||>
+      Theory.parent_path ||>>
+      DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
+      DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
+      DatatypeAux.store_thmss_atts "perm" new_type_names simp_atts perm_simps' ||>>
+      DatatypeAux.store_thmss "inject" new_type_names inject_thms ||>>
+      DatatypeAux.store_thmss "supp" new_type_names supp_thms ||>>
+      DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms ||>
+      fold (fn (atom, ths) => fn thy =>
+        let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
+        in fold (fn T => AxClass.add_inst_arity_i
+            (fst (dest_Type T),
+              replicate (length sorts) [class], [class])
+            (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
+        end) (atoms ~~ finite_supp_thms);
+
     (**** strong induction theorem ****)
 
     val pnames = if length descr'' = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr'');
     val ind_sort = if null dt_atomTs then HOLogic.typeS
-      else map (fn T => Sign.intern_class thy8 ("fs_" ^
-        Sign.base_name (fst (dest_Type T)))) dt_atomTs;
+      else norm_sort thy9 (map (fn T => Sign.intern_class thy9 ("fs_" ^
+        Sign.base_name (fst (dest_Type T)))) dt_atomTs);
     val fsT = TFree ("'n", ind_sort);
+    val fsT' = TFree ("'n", HOLogic.typeS);
 
-    fun make_pred i T =
+    val fresh_fs = map (fn (s, T) => (T, Free (s, fsT' --> HOLogic.mk_setT T)))
+      (DatatypeProp.indexify_names (replicate (length dt_atomTs) "f") ~~ dt_atomTs);
+
+    fun make_pred fsT i T =
       Free (List.nth (pnames, i), fsT --> T --> HOLogic.boolT);
 
-    fun make_ind_prem k T ((cname, cargs), idxs) =
+    fun make_ind_prem fsT f k T ((cname, cargs), idxs) =
       let
         val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr'' sorts') cargs;
@@ -1044,56 +1123,204 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             val (Us, U) = strip_type T;
             val l = length Us
           in list_all (z :: map (pair "x") Us, HOLogic.mk_Trueprop
-            (make_pred (body_index dt) U $ Bound l $ app_bnds (Free (s, T)) l))
+            (make_pred fsT (body_index dt) U $ Bound l $ app_bnds (Free (s, T)) l))
           end;
 
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
         val prems' = map (fn p as (_, T) => HOLogic.mk_Trueprop
-            (Const ("nominal.fresh", T --> fsT --> HOLogic.boolT) $
-              Free p $ Free z))
+            (f T (Free p) (Free z)))
           (map (curry List.nth frees) (List.concat (map (fn (m, n) =>
              m upto m + n - 1) idxs)))
 
       in list_all_free (frees @ [z], Logic.list_implies (prems' @ prems,
-        HOLogic.mk_Trueprop (make_pred k T $ Free z $
+        HOLogic.mk_Trueprop (make_pred fsT k T $ Free z $
           list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
 
     val ind_prems = List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
-      map (make_ind_prem i T) (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
+      map (make_ind_prem fsT (fn T => fn t => fn u =>
+        Const ("nominal.fresh", T --> fsT --> HOLogic.boolT) $ t $ u) i T)
+          (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
     val tnames = DatatypeProp.make_tnames recTs;
-    val z = (variant tnames "z", fsT);
+    val zs = variantlist (replicate (length descr'') "z", tnames);
     val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
-      (map (fn (((i, _), T), tname) => make_pred i T $ Free z $ Free (tname, T))
-        (descr'' ~~ recTs ~~ tnames)));
+      (map (fn ((((i, _), T), tname), z) =>
+        make_pred fsT i T $ Free (z, fsT) $ Free (tname, T))
+        (descr'' ~~ recTs ~~ tnames ~~ zs)));
     val induct = Logic.list_implies (ind_prems, ind_concl);
 
-    val simp_atts = replicate (length new_type_names) [Simplifier.simp_add_global];
+    val ind_prems' =
+      map (fn (_, f as Free (_, T)) => list_all_free ([("x", fsT')],
+        HOLogic.mk_Trueprop (HOLogic.mk_mem (f $ Free ("x", fsT'),
+          Const ("Finite_Set.Finites", HOLogic.mk_setT (body_type T)))))) fresh_fs @
+      List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
+        map (make_ind_prem fsT' (fn T => fn t => fn u => HOLogic.Not $
+          HOLogic.mk_mem (t, the (AList.lookup op = fresh_fs T) $ u)) i T)
+            (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
+    val ind_concl' = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+      (map (fn ((((i, _), T), tname), z) =>
+        make_pred fsT' i T $ Free (z, fsT') $ Free (tname, T))
+        (descr'' ~~ recTs ~~ tnames ~~ zs)));
+    val induct' = Logic.list_implies (ind_prems', ind_concl');
 
-    val ((_, [induct_rule]), thy9) = thy8 |>
+    fun mk_perm Ts (t, u) =
+      let
+        val T = fastype_of1 (Ts, t);
+        val U = fastype_of1 (Ts, u)
+      in Const ("nominal.perm", T --> U --> U) $ t $ u end;
+
+    val aux_ind_vars =
+      (DatatypeProp.indexify_names (replicate (length dt_atomTs) "pi") ~~
+       map mk_permT dt_atomTs) @ [("z", fsT')];
+    val aux_ind_Ts = rev (map snd aux_ind_vars);
+    val aux_ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+      (map (fn (((i, _), T), tname) =>
+        HOLogic.list_all (aux_ind_vars, make_pred fsT' i T $ Bound 0 $
+          foldr (mk_perm aux_ind_Ts) (Free (tname, T))
+            (map Bound (length dt_atomTs downto 1))))
+        (descr'' ~~ recTs ~~ tnames)));
+
+    fun mk_ind_perm i k p l vs j =
+      let
+        val n = length vs;
+        val Ts = map snd vs;
+        val T = List.nth (Ts, i - j);
+        val pT = NominalAtoms.mk_permT T
+      in
+        Const ("List.list.Cons", HOLogic.mk_prodT (T, T) --> pT --> pT) $
+          (HOLogic.pair_const T T $ Bound (l - j) $ foldr (mk_perm Ts)
+            (Bound (i - j))
+            (map (mk_ind_perm i k p l vs) (j - 1 downto 0) @
+             map Bound (n - k - 1 downto n - k - p))) $
+          Const ("List.list.Nil", pT)
+      end;
+
+    fun mk_fresh i i' j k p l vs _ _ =
+      let
+        val n = length vs;
+        val Ts = map snd vs;
+        val T = List.nth (Ts, n - i - 1 - j);
+        val f = the (AList.lookup op = fresh_fs T);
+        val U = List.nth (Ts, n - i' - 1);
+        val S = HOLogic.mk_setT T;
+        val prms = map (mk_ind_perm (n - i) k p (n - l) (("a", T) :: vs))
+            (j - 1 downto 0) @
+          map Bound (n - k downto n - k - p + 1)
+      in
+        HOLogic.mk_Trueprop (Const ("Ex", (T --> HOLogic.boolT) --> HOLogic.boolT) $
+          Abs ("a", T, HOLogic.Not $
+            (Const ("op :", T --> S --> HOLogic.boolT) $ Bound 0 $
+              (Const ("insert", T --> S --> S) $
+                (foldr (mk_perm (T :: Ts)) (Bound (n - i - j)) prms) $
+                (Const ("op Un", S --> S --> S) $ (f $ Bound (n - k - p)) $
+                   (Const ("nominal.supp", U --> S) $
+                     foldr (mk_perm (T :: Ts)) (Bound (n - i')) prms))))))
+      end;
+
+    fun mk_fresh_constr is p vs _ concl =
+      let
+        val n = length vs;
+        val Ts = map snd vs;
+        val _ $ (_ $ _ $ t) = concl;
+        val c = head_of t;
+        val T = body_type (fastype_of c);
+        val k = foldr op + 0 (map (fn (_, i) => i + 1) is);
+        val ps = map Bound (n - k - 1 downto n - k - p);
+        val (_, _, ts, us) = foldl (fn ((_, i), (m, n, ts, us)) =>
+          (m - i - 1, n - i,
+           ts @ map Bound (n downto n - i + 1) @
+             [foldr (mk_perm Ts) (Bound (m - i))
+                (map (mk_ind_perm m k p n vs) (i - 1 downto 0) @ ps)],
+           us @ map (fn j => foldr (mk_perm Ts) (Bound j) ps) (m downto m - i)))
+          (n - 1, n - k - p - 2, [], []) is
+      in
+        HOLogic.mk_Trueprop (HOLogic.eq_const T $ list_comb (c, ts) $ list_comb (c, us))
+      end;
+
+    val abs_fun_finite_supp = PureThy.get_thm thy9 (Name "abs_fun_finite_supp");
+
+    val at_finite_select = PureThy.get_thm thy9 (Name "at_finite_select");
+
+    val induct_aux_lemmas = List.concat (map (fn Type (s, _) =>
+      [PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "_inst")),
+       PureThy.get_thm thy9 (Name ("fs_" ^ Sign.base_name s ^ "1")),
+       PureThy.get_thm thy9 (Name ("at_" ^ Sign.base_name s ^ "_inst"))]) dt_atomTs);
+
+    val induct_aux_lemmas' = map (fn Type (s, _) =>
+      PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "2")) RS sym) dt_atomTs;
+
+    val induct_aux = standard (Goal.prove thy9 [] ind_prems' ind_concl'
+      (fn prems => EVERY
+        ([mk_subgoal 1 (K (K (K aux_ind_concl))),
+          indtac dt_induct tnames 1] @
+         List.concat (map (fn ((_, (_, _, constrs)), (_, constrs')) =>
+           List.concat (map (fn ((cname, cargs), is) =>
+             [simp_tac (HOL_basic_ss addsimps List.concat perm_simps') 1,
+              REPEAT (rtac allI 1)] @
+             List.concat (map
+               (fn ((_, 0), _) => []
+                 | ((i, j), k) => List.concat (map (fn j' =>
+                     let
+                       val DtType (tname, _) = List.nth (cargs, i + j');
+                       val atom = Sign.base_name tname
+                     in
+                       [mk_subgoal 1 (mk_fresh i (i + j) j'
+                          (length cargs) (length dt_atomTs)
+                          (length cargs + length dt_atomTs + 1 + i - k)),
+                        rtac at_finite_select 1,
+                        rtac (PureThy.get_thm thy9 (Name ("at_" ^ atom ^ "_inst"))) 1,
+                        asm_full_simp_tac (simpset_of thy9 addsimps
+                          [PureThy.get_thm thy9 (Name ("fs_" ^ atom ^ "1"))]) 1,
+                        resolve_tac prems 1,
+                        etac exE 1,
+                        asm_full_simp_tac (simpset_of thy9 addsimps
+                          [symmetric fresh_def]) 1]
+                     end) (0 upto j - 1))) (is ~~ (0 upto length is - 1))) @
+             (if exists (not o equal 0 o snd) is then
+                [mk_subgoal 1 (mk_fresh_constr is (length dt_atomTs)),
+                 asm_full_simp_tac (simpset_of thy9 addsimps
+                   (List.concat inject_thms @
+                    alpha @ abs_perm @ abs_fresh @ [abs_fun_finite_supp] @
+                    induct_aux_lemmas)) 1,
+                 dtac sym 1,
+                 asm_full_simp_tac (simpset_of thy9
+                   addsimps induct_aux_lemmas'
+                   addsimprocs [perm_simproc]) 1,
+                 REPEAT (etac conjE 1)]
+              else
+                []) @
+             [(resolve_tac prems THEN_ALL_NEW
+                (atac ORELSE' ((REPEAT o etac allE) THEN' atac))) 1])
+               (constrs ~~ constrs'))) (descr'' ~~ ndescr)) @
+         [REPEAT (eresolve_tac [conjE, allE_Nil] 1),
+          REPEAT (etac allE 1),
+          REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac (simpset_of thy9) 1)])));
+
+    val induct_aux' = Thm.instantiate ([],
+      map (fn (s, T) =>
+        let val pT = TVar (("'n", 0), HOLogic.typeS) --> T --> HOLogic.boolT
+        in (cterm_of thy9 (Var ((s, 0), pT)), cterm_of thy9 (Free (s, pT))) end)
+          (pnames ~~ recTs) @
+      map (fn (_, f) =>
+        let val f' = Logic.varify f
+        in (cterm_of thy9 f',
+          cterm_of thy9 (Const ("nominal.supp", fastype_of f')))
+        end) fresh_fs) induct_aux;
+
+    val induct = standard (Goal.prove thy9 [] ind_prems ind_concl
+      (fn prems => EVERY
+         [rtac induct_aux' 1,
+          REPEAT (resolve_tac induct_aux_lemmas 1),
+          REPEAT ((resolve_tac prems THEN_ALL_NEW
+            (etac meta_spec ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)]))
+
+    val (_, thy10) = thy9 |>
       Theory.add_path big_name |>
-      PureThy.add_thms [(("induct_weak", dt_induct), [case_names_induct])] ||>
-      (PureThy.add_thmss [(("inducts_weak", projections dt_induct), [case_names_induct])] #> snd)
-      ||> Theory.parent_path ||>>
-      DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
-      DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
-      DatatypeAux.store_thmss_atts "perm" new_type_names simp_atts perm_simps' ||>>
-      DatatypeAux.store_thmss "inject" new_type_names inject_thms ||>>
-      DatatypeAux.store_thmss "supp" new_type_names supp_thms ||>>
-      DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms ||>
-      fold (fn (atom, ths) => fn thy =>
-        let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
-        in fold (fn T => AxClass.add_inst_arity_i
-            (fst (dest_Type T),
-              replicate (length sorts) [class], [class])
-            (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
-        end) (atoms ~~ finite_supp_thms) ||>
-      Theory.add_path big_name ||>>
-      PureThy.add_axioms_i [(("induct_unsafe", induct), [case_names_induct])]
-    val thy10 = thy9
-      |> PureThy.add_thmss [(("inducts_unsafe", projections induct_rule), [case_names_induct])]
-      |> snd
-      |> Theory.parent_path;
+      PureThy.add_thms [(("induct'", induct_aux), [])] ||>>
+      PureThy.add_thms [(("induct", induct), [case_names_induct])] ||>>
+      PureThy.add_thmss [(("inducts", projections induct), [case_names_induct])] ||>
+      Theory.parent_path;
+
   in
     thy10
   end;
