@@ -90,7 +90,7 @@ primrec
 lemma domain_eqvt:
   fixes pi::"tyvrs prm"
   shows "pi\<bullet>(domain \<Gamma>) = domain (pi\<bullet>\<Gamma>)" 
-  by (induct \<Gamma>, auto simp add: perm_set_def)
+  by (induct \<Gamma>, simp_all add: perm_empty perm_insert perm_fst)
 
 lemma finite_domain:
   shows "finite (domain \<Gamma>)"
@@ -328,34 +328,18 @@ proof -
   ultimately show "X\<sharp>S \<and> X\<sharp>T" by (force simp add: supp_prod fresh_def)
 qed
 
-text {* Two silly lemmas that are helpful for showing that @{text "subtype_of"} is
-  equivariant. They are needed until we have a tactic that shows the property
-  of equivariance automatically. *}
-
-lemma silly_eqvt1:
-  fixes X::"'a::pt_tyvrs"
-  and   S::"'b::pt_tyvrs"
-  and   pi::"tyvrs prm"
- shows "(X,S) \<in> set \<Gamma> \<Longrightarrow> (pi\<bullet>X,pi\<bullet>S) \<in> set (pi\<bullet>\<Gamma>)"
-apply(drule_tac pi="pi" in pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst])
-apply(simp add: pt_list_set_pi[OF pt_tyvrs_inst])
-done
-
-lemma silly_eqvt2:
-  fixes X::"tyvrs"
-  and   pi::"tyvrs prm"
- shows "X \<in> (domain \<Gamma>) \<Longrightarrow> (pi\<bullet>X) \<in> (domain (pi\<bullet>\<Gamma>))"
-apply(drule_tac pi="pi" in pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst])
-apply(simp add: domain_eqvt pt_list_set_pi[OF pt_tyvrs_inst] )
-done
-
 lemma subtype_eqvt:
   fixes pi::"tyvrs prm"
   shows "\<Gamma> \<turnstile> S <: T \<Longrightarrow> (pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>S) <: (pi\<bullet>T)"
 apply(erule subtype_of.induct)
 apply(force intro: valid_eqvt closed_in_eqvt)
-apply(force intro: closed_in_eqvt valid_eqvt silly_eqvt1)
-apply(force intro: valid_eqvt silly_eqvt2)
+apply(force intro!: S_Var
+            intro: closed_in_eqvt valid_eqvt 
+            dest: pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst]
+            simp add: pt_list_set_pi[OF pt_tyvrs_inst, symmetric])
+apply(force intro: valid_eqvt
+            dest: pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst]
+            simp add: domain_eqvt)
 apply(force)
 apply(force intro!: S_Forall simp add: fresh_prod fresh_eqvt)
 done
