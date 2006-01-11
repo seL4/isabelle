@@ -360,7 +360,7 @@ lemma half_gt_zero_iff:
      "(0 < r/2) = (0 < (r::'a::{ordered_field,division_by_zero,number_ring}))"
 by auto
 
-lemmas half_gt_zero = half_gt_zero_iff [THEN iffD2]
+lemmas half_gt_zero = half_gt_zero_iff [THEN iffD2, standard]
 declare half_gt_zero [simp]
 
 (* The following lemma should appear in Divides.thy, but there the proof

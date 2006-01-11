@@ -348,10 +348,7 @@ lemma power_even_abs: "even n ==>
 done
 
 lemma zero_less_power_nat_eq: "(0 < (x::nat) ^ n) = (n = 0 | 0 < x)"
-  apply (induct n)
-  apply simp
-  apply auto
-done
+  by (induct n, auto)
 
 lemma power_minus_even [simp]: "even n ==> 
     (- x)^n = (x^n::'a::{recpower,comm_ring_1})"

@@ -250,16 +250,19 @@ apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def mod_def)
 done
 
-lemmas pos_mod_sign[simp]  = pos_mod_conj [THEN conjunct1, standard]
-   and pos_mod_bound[simp] = pos_mod_conj [THEN conjunct2, standard]
+lemmas pos_mod_sign  = pos_mod_conj [THEN conjunct1, standard]
+   and pos_mod_bound = pos_mod_conj [THEN conjunct2, standard]
+
+declare pos_mod_sign[simp] pos_mod_bound[simp]
 
 lemma neg_mod_conj : "b < (0::int) ==> a mod b \<le> 0 & b < a mod b"
 apply (cut_tac a = a and b = b in divAlg_correct)
 apply (auto simp add: quorem_def div_def mod_def)
 done
 
-lemmas neg_mod_sign[simp]  = neg_mod_conj [THEN conjunct1, standard]
-   and neg_mod_bound[simp] = neg_mod_conj [THEN conjunct2, standard]
+lemmas neg_mod_sign  = neg_mod_conj [THEN conjunct1, standard]
+   and neg_mod_bound = neg_mod_conj [THEN conjunct2, standard]
+declare neg_mod_sign[simp] neg_mod_bound[simp]
 
 
 

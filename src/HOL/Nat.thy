@@ -58,8 +58,8 @@ local
 
 defs
   Zero_nat_def: "0 == Abs_Nat Zero_Rep"
-  Suc_def: "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
-  One_nat_def [simp]: "1 == Suc 0"
+  Suc_def:      "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
+  One_nat_def:  "1 == Suc 0"
 
   -- {* nat operations *}
   pred_nat_def: "pred_nat == {(m, n). n = Suc m}"
@@ -67,6 +67,8 @@ defs
   less_def: "m < n == (m, n) : trancl pred_nat"
 
   le_def: "m \<le> (n::nat) == ~ (n < m)"
+
+declare One_nat_def [simp]
 
 
 text {* Induction *}
