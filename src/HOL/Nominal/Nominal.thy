@@ -26,8 +26,16 @@ consts
 defs (overloaded)
   perm_set_def:  "pi\<bullet>(X::'a set) \<equiv> {pi\<bullet>a | a. a\<in>X}"
 
+lemma perm_empty:
+  shows "pi\<bullet>{} = {}"
+  by (simp add: perm_set_def)
+
 lemma perm_union:
   shows "pi \<bullet> (X \<union> Y) = (pi \<bullet> X) \<union> (pi \<bullet> Y)"
+  by (auto simp add: perm_set_def)
+
+lemma perm_insert:
+  shows "pi\<bullet>(insert x X) = insert (pi\<bullet>x) (pi\<bullet>X)"
   by (auto simp add: perm_set_def)
 
 (* permutation on units and products *)
@@ -77,6 +85,7 @@ lemma perm_bool:
   by (cases "b", auto)
 
 (* permutation on options *)
+
 primrec (perm_option)
   perm_some_def:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
   perm_none_def:  "pi\<bullet>None    = None"
@@ -271,10 +280,10 @@ lemma fresh_some:
 
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
 
-lemma fresh_unit_elim: "(a\<sharp>() \<Longrightarrow> PROP C) == PROP C"
+lemma fresh_unit_elim: "(a\<sharp>() \<Longrightarrow> PROP C) \<equiv> PROP C"
   by (simp add: fresh_def supp_unit)
 
-lemma fresh_prod_elim: "(a\<sharp>(x,y) \<Longrightarrow> PROP C) == (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
+lemma fresh_prod_elim: "(a\<sharp>(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>x \<Longrightarrow> a\<sharp>y \<Longrightarrow> PROP C)"
   by rule (simp_all add: fresh_prod)
 
 
@@ -991,8 +1000,6 @@ lemma pt_set_bij3:
   fixes pi :: "'x prm"
   and   x  :: "'a"
   and   X  :: "'a set"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and     at: "at TYPE('x)"
   shows "pi\<bullet>(x\<in>X) = (x\<in>X)"
 apply(case_tac "x\<in>X = True")
 apply(auto)
