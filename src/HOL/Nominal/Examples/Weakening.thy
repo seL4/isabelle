@@ -42,7 +42,7 @@ lemma eqvt_valid:
   shows   "valid (pi\<bullet>\<Gamma>)"
 using a
 apply(induct)
-apply(auto simp add: pt_fresh_bij[OF pt_name_inst, OF at_name_inst])
+apply(auto simp add: fresh_eqvt)
 done
 
 (* typing judgements *)
