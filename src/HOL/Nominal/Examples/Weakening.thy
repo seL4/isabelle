@@ -76,7 +76,7 @@ proof (induct)
     using typing.intros by (force simp add: pt_list_set_pi[OF pt_name_inst, symmetric])
 next 
   case (t3 \<Gamma> \<sigma> \<tau> a t)
-  moreover have "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" by (rule pt_fresh_bij1[OF pt_name_inst, OF at_name_inst])
+  moreover have "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" by (simp add: fresh_eqvt)
   ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Lam [a].t) :\<tau>\<rightarrow>\<sigma>" by force 
 qed (auto)
 
