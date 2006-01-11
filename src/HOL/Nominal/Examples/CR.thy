@@ -10,7 +10,7 @@ lemma forget:
   assumes a: "a\<sharp>t1"
   shows "t1[a::=t2] = t1"
 using a
-proof (nominal_induct t1 avoiding: a t2 rule: lam_induct)
+proof (nominal_induct t1 avoiding: a t2 rule: lam.induct)
   case (Var b) 
   thus ?case by (simp add: fresh_atm)
 next 
@@ -32,7 +32,7 @@ lemma forget_automatic:
   assumes a: "a\<sharp>t1"
   shows "t1[a::=t2] = t1"
   using a
-  by (nominal_induct t1 avoiding: a t2 rule: lam_induct)
+  by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
      (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
@@ -41,7 +41,7 @@ lemma fresh_fact:
   and     b: "a\<sharp>t2"
   shows "a\<sharp>(t1[b::=t2])"
 using a b
-proof (nominal_induct t1 avoiding: a b t2 rule: lam_induct)
+proof (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
   case (Var c) 
   thus ?case by simp
 next
@@ -64,7 +64,7 @@ lemma fresh_fact_automatic:
   and     b: "a\<sharp>t2"
   shows "a\<sharp>(t1[b::=t2])"
 using a b
-by (nominal_induct t1 avoiding: a b t2 rule: lam_induct)
+by (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
    (auto simp add: abs_fresh fresh_atm)
 
 
@@ -78,7 +78,7 @@ lemma subs_lemma:
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using a b
-proof (nominal_induct M avoiding: x y N L rule: lam_induct)
+proof (nominal_induct M avoiding: x y N L rule: lam.induct)
   case (Var z) (* case 1: Variables*)
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
@@ -132,14 +132,14 @@ lemma subs_lemma_automatic:
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using a b
-by (nominal_induct M avoiding: x y N L rule: lam_induct)
+by (nominal_induct M avoiding: x y N L rule: lam.induct)
    (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
 using a
-proof (nominal_induct t1 avoiding: a c t2 rule: lam_induct)
+proof (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
   case (Var b)
   thus "(Var b)[a::=t2] = ([(c,a)]\<bullet>(Var b))[c::=t2]" by (simp add: calc_atm fresh_atm)
 next
@@ -166,7 +166,7 @@ lemma subst_rename_automatic:
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
 using a
-apply(nominal_induct t1 avoiding: a c t2 rule: lam_induct)
+apply(nominal_induct t1 avoiding: a c t2 rule: lam.induct)
 apply(auto simp add: calc_atm fresh_atm abs_fresh)
 done
 
@@ -352,7 +352,7 @@ lemma fresh_fact':
   assumes a: "a\<sharp>t2" 
   shows "a\<sharp>(t1[a::=t2])"
 using a 
-proof (nominal_induct t1 avoiding: a t2 rule: lam_induct)
+proof (nominal_induct t1 avoiding: a t2 rule: lam.induct)
   case (Var b) 
   thus ?case by (simp add: fresh_atm)
 next
@@ -473,7 +473,7 @@ lemma one_subst_aux:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
-proof (nominal_induct M avoiding: x N N' rule: lam_induct)
+proof (nominal_induct M avoiding: x N N' rule: lam.induct)
   case (Var y) 
   show "Var y[x::=N] \<longrightarrow>\<^isub>1 Var y[x::=N']" by (cases "x=y", auto)
 next
@@ -488,7 +488,7 @@ lemma one_subst_aux_automatic:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
-apply(nominal_induct M avoiding: x N N' rule: lam_induct)
+apply(nominal_induct M avoiding: x N N' rule: lam.induct)
 apply(auto simp add: fresh_prod fresh_atm)
 done
 

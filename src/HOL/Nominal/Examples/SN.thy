@@ -10,7 +10,7 @@ section {* Beta Reduction *}
 
 lemma subst_rename[rule_format]: 
   shows "c\<sharp>t1 \<longrightarrow> (t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2])"
-apply(nominal_induct t1 avoiding: a c t2 rule: lam_induct)
+apply(nominal_induct t1 avoiding: a c t2 rule: lam.induct)
 apply(auto simp add: calc_atm fresh_atm abs_fresh)
 done
 
@@ -18,7 +18,7 @@ lemma forget:
   assumes a: "a\<sharp>t1"
   shows "t1[a::=t2] = t1"
   using a
-apply (nominal_induct t1 avoiding: a t2 rule: lam_induct)
+apply (nominal_induct t1 avoiding: a t2 rule: lam.induct)
 apply(auto simp add: abs_fresh fresh_atm)
 done
 
@@ -28,7 +28,7 @@ lemma fresh_fact:
   and     b: "a\<sharp>t2"
   shows "a\<sharp>(t1[b::=t2])"
 using a b
-apply(nominal_induct t1 avoiding: a b t2 rule: lam_induct)
+apply(nominal_induct t1 avoiding: a b t2 rule: lam.induct)
 apply(auto simp add: abs_fresh fresh_atm)
 done
 
@@ -37,11 +37,11 @@ lemma subst_lemma:
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using a b
-by (nominal_induct M avoiding: x y N L rule: lam_induct)
+by (nominal_induct M avoiding: x y N L rule: lam.induct)
    (auto simp add: fresh_fact forget)
 
 lemma id_subs: "t[x::=Var x] = t"
-apply(nominal_induct t avoiding: x rule: lam_induct)
+apply(nominal_induct t avoiding: x rule: lam.induct)
 apply(simp_all add: fresh_atm)
 done
 
@@ -407,7 +407,7 @@ lemma ty_subs:
   and     b: "\<Gamma>\<turnstile> t2:\<sigma>"
   shows  "\<Gamma> \<turnstile> t1[c::=t2]:\<tau>"
 using a b
-proof(nominal_induct t1 avoiding: \<Gamma> \<sigma> \<tau> c t2 rule: lam_induct)
+proof(nominal_induct t1 avoiding: \<Gamma> \<sigma> \<tau> c t2 rule: lam.induct)
   case (Var a) 
   have a1: "\<Gamma> \<turnstile>t2:\<sigma>" by fact
   have a2: "((c,\<sigma>)#\<Gamma>) \<turnstile> Var a:\<tau>" by fact
@@ -846,13 +846,13 @@ lemma psubst_subst:
   assumes a: "c\<sharp>\<theta>"
   shows "(t[<\<theta>>])[c::=s] = t[<((c,s)#\<theta>)>]"
 using a
-apply(nominal_induct t avoiding: \<theta> c s rule: lam_induct)
+apply(nominal_induct t avoiding: \<theta> c s rule: lam.induct)
 apply(auto dest: fresh_domain)
 apply(drule fresh_at)
 apply(assumption)
 apply(rule forget)
 apply(assumption)
-apply(subgoal_tac "a\<sharp>((c,s)#\<theta>)")(*A*)
+apply(subgoal_tac "name\<sharp>((c,s)#\<theta>)")(*A*)
 apply(simp)
 (*A*)
 apply(simp add: fresh_list_cons fresh_prod)
@@ -863,7 +863,7 @@ lemma all_RED:
   and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
   shows "t[<\<theta>>]\<in>RED \<tau>"
 using a b
-proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam_induct)
+proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam.induct)
   case (Lam a t) --"lambda case"
   have ih: "\<And>\<Gamma> \<tau> \<theta>. \<Gamma> \<turnstile> t:\<tau> \<Longrightarrow> 
                     (\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>) 
@@ -904,7 +904,7 @@ done
 
 lemma id_apply:  
   shows "t[<(id \<Gamma>)>] = t"
-apply(nominal_induct t avoiding: \<Gamma> rule: lam_induct)
+apply(nominal_induct t avoiding: \<Gamma> rule: lam.induct)
 apply(auto)
 apply(simp add: id_var)
 apply(drule id_fresh)+
