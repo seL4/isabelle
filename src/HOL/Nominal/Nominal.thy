@@ -615,6 +615,17 @@ lemma at_exists_fresh:
   shows "\<exists>c::'x. c\<sharp>x"
   by (simp add: fresh_def, rule ex_in_inf[OF at, OF fs])
 
+lemma at_finite_select: "at (TYPE('a)) \<Longrightarrow> finite (S::'a set) \<Longrightarrow> \<exists>x. x \<notin> S"
+  apply (drule Diff_infinite_finite)
+  apply (simp add: at_def)
+  apply blast
+  apply (subgoal_tac "UNIV - S \<noteq> {}")
+  apply (simp only: ex_in_conv [symmetric])
+  apply blast
+  apply (rule notI)
+  apply simp
+  done
+
 --"the at-props imply the pt-props"
 lemma at_pt_inst:
   assumes at: "at TYPE('x)"
