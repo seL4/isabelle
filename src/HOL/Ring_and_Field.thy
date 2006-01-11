@@ -1647,47 +1647,52 @@ subsection{*Conditional Simplification Rules: No Case Splits*}
 
 lemma le_divide_eq_1_pos [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "0 < a \<Longrightarrow> (1 \<le> b / a) = (a \<le> b)"
+  shows "0 < a \<Longrightarrow> (1 \<le> b/a) = (a \<le> b)"
 by (auto simp add: le_divide_eq)
 
 lemma le_divide_eq_1_neg [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "a < 0 \<Longrightarrow> (1 \<le> b / a) = (b \<le> a)"
+  shows "a < 0 \<Longrightarrow> (1 \<le> b/a) = (b \<le> a)"
 by (auto simp add: le_divide_eq)
 
 lemma divide_le_eq_1_pos [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "0 < a \<Longrightarrow> (b / a \<le> 1) = (b \<le> a)"
+  shows "0 < a \<Longrightarrow> (b/a \<le> 1) = (b \<le> a)"
 by (auto simp add: divide_le_eq)
 
 lemma divide_le_eq_1_neg [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "a < 0 \<Longrightarrow> (b / a \<le> 1) = (a \<le> b)"
+  shows "a < 0 \<Longrightarrow> (b/a \<le> 1) = (a \<le> b)"
 by (auto simp add: divide_le_eq)
 
 lemma less_divide_eq_1_pos [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "0 < a \<Longrightarrow> (1 < b / a) = (a < b)"
+  shows "0 < a \<Longrightarrow> (1 < b/a) = (a < b)"
 by (auto simp add: less_divide_eq)
 
 lemma less_divide_eq_1_neg [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "a < 0 \<Longrightarrow> (1 < b / a) = (b < a)"
+  shows "a < 0 \<Longrightarrow> (1 < b/a) = (b < a)"
 by (auto simp add: less_divide_eq)
 
 lemma divide_less_eq_1_pos [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "0 < a \<Longrightarrow> (b / a < 1) = (b < a)"
+  shows "0 < a \<Longrightarrow> (b/a < 1) = (b < a)"
+by (auto simp add: divide_less_eq)
+
+lemma divide_less_eq_1_neg [simp]:
+  fixes a :: "'a :: {ordered_field,division_by_zero}"
+  shows "a < 0 \<Longrightarrow> b/a < 1 <-> a < b"
 by (auto simp add: divide_less_eq)
 
 lemma eq_divide_eq_1 [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "(1 = b / a) = ((a \<noteq> 0 & a = b))"
+  shows "(1 = b/a) = ((a \<noteq> 0 & a = b))"
 by (auto simp add: eq_divide_eq)
 
 lemma divide_eq_eq_1 [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
-  shows "(b / a = 1) = ((a \<noteq> 0 & a = b))"
+  shows "(b/a = 1) = ((a \<noteq> 0 & a = b))"
 by (auto simp add: divide_eq_eq)
 
 subsection {* Reasoning about inequalities with division *}
