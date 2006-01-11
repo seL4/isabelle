@@ -46,6 +46,18 @@ by (fast elim!: antisym_less_inverse intro!: antisym_less)
 lemma rev_trans_less: "\<lbrakk>(y::'a::po) \<sqsubseteq> z; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 by (rule trans_less)
 
+lemma sq_ord_less_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
+by (rule subst)
+
+lemma sq_ord_eq_less_trans: "\<lbrakk>a = b; b \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
+by (rule ssubst)
+
+lemmas HOLCF_trans_rules [trans] =
+  trans_less
+  antisym_less
+  sq_ord_less_eq_trans
+  sq_ord_eq_less_trans
+
 subsection {* Chains and least upper bounds *}
 
 constdefs  
