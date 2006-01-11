@@ -455,7 +455,7 @@ lemma subtype_reflexivity:
   and b: "T closed_in \<Gamma>"
   shows "\<Gamma> \<turnstile> T <: T"
 using a b
-proof(nominal_induct T avoiding: \<Gamma> rule: ty.induct_unsafe)
+proof(nominal_induct T avoiding: \<Gamma> rule: ty.induct)
   case (Forall X T\<^isub>1 T\<^isub>2)
   have ih_T\<^isub>1: "\<And>\<Gamma>. \<turnstile> \<Gamma> ok \<Longrightarrow> T\<^isub>1 closed_in \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>1 <: T\<^isub>1" by fact 
   have ih_T\<^isub>2: "\<And>\<Gamma>. \<turnstile> \<Gamma> ok \<Longrightarrow> T\<^isub>2 closed_in \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>2 <: T\<^isub>2" by fact
@@ -478,7 +478,7 @@ lemma subtype_reflexivity_semiautomated:
   and     b: "T closed_in \<Gamma>"
   shows "\<Gamma> \<turnstile> T <: T"
 using a b
-apply(nominal_induct T avoiding: \<Gamma> rule: ty.induct_unsafe)
+apply(nominal_induct T avoiding: \<Gamma> rule: ty.induct)
 apply(auto simp add: ty.supp abs_supp closed_in_def supp_atm)
   --{* Too bad that this instantiation cannot be found automatically by
   \isakeyword{auto}; \isakeyword{blast} would find it if we had not used 
