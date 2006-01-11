@@ -674,6 +674,8 @@ fun create_nom_typedecls ak_names thy =
        (* instantiations.                                                 *)
        val (_,thy33) = 
 	 let 
+             
+
              (* takes a theorem thm and a list of theorems [t1,..,tn]            *)
              (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
              fun instR thm thms = map (fn ti => ti RS thm) thms;
@@ -712,7 +714,8 @@ fun create_nom_typedecls ak_names thy =
 	       in List.mapPartial I (map djs_fun (Library.product ak_names ak_names)) end;
              (* list of all fs_inst-theorems *)
              val fss = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"_inst"))) ak_names
-
+             val pt_id = map (fn ak => PureThy.get_thm thy32 (Name ("pt_"^ak^"1"))) ak_names
+              
              fun inst_pt thms = Library.flat (map (fn ti => instR ti pts) thms); 
              fun inst_at thms = Library.flat (map (fn ti => instR ti ats) thms);               
              fun inst_fs thms = Library.flat (map (fn ti => instR ti fss) thms);
@@ -728,7 +731,8 @@ fun create_nom_typedecls ak_names thy =
              fun inst_pt_pt_at_cp_dj thms = inst_zip djs (inst_pt_pt_at_cp thms);
            in
             thy32 
-	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
+	    |>   PureThy.add_thmss [(("pt_id", pt_id),[])]
+            ||>> PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
             ||>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
             ||>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
