@@ -76,8 +76,10 @@ sig
   val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
   val the_theory: generic -> theory
   val the_proof: generic -> proof
-  val theory_of: generic -> theory
-  val proof_of: generic -> proof
+  val map_theory: (generic -> generic) -> theory -> theory
+  val map_proof: (generic -> generic) -> proof -> proof
+  val theory_of: generic -> theory   (*total*)
+  val proof_of: generic -> proof     (*total*)
 end;
 
 signature PRIVATE_CONTEXT =
@@ -578,6 +580,9 @@ fun cases f _ (Theory thy) = f thy
 
 val the_theory = cases I (fn _ => raise Fail "Bad generic context: theory expected");
 val the_proof = cases (fn _ => raise Fail "Bad generic context: proof context expected") I;
+
+fun map_theory f = the_theory o f o Theory;
+fun map_proof f = the_proof o f o Proof;
 
 val theory_of = cases I theory_of_proof;
 val proof_of = cases init_proof I;
