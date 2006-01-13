@@ -23,7 +23,6 @@ sig
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val context_of: state -> Context.generic
   val theory_of: state -> theory
-  val sign_of: state -> theory    (*obsolete*)
   val body_context_of: state -> Proof.context
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
@@ -166,7 +165,6 @@ fun node_case f g state =
 
 val context_of = node_case Context.Theory (Context.Proof o Proof.context_of);
 val theory_of = node_case I Proof.theory_of;
-val sign_of = theory_of;
 
 fun body_context_of state =
   (case node_of state of

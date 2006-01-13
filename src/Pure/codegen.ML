@@ -1195,7 +1195,7 @@ val testP =
      || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
     (fn (ps, g) => Toplevel.keep (fn st =>
       test_goal (app (getOpt (Option.map
-          (map (fn f => f (Toplevel.sign_of st))) ps, []))
+          (map (fn f => f (Toplevel.theory_of st))) ps, []))
         (get_test_params (Toplevel.theory_of st), [])) g st)));
 
 val valueP =
