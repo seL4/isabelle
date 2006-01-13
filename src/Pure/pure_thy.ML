@@ -77,7 +77,7 @@ sig
     theory -> thm list list * theory
   val add_defss_i: bool -> ((bstring * term list) * theory attribute list) list ->
     theory -> thm list list * theory
-  val generic_setup: string -> theory -> theory
+  val generic_setup: string option -> theory -> theory
   val add_oracle: bstring * string * string -> theory -> theory
 end;
 
@@ -461,8 +461,9 @@ end;
 
 (* generic_setup *)
 
-val generic_setup =
-  Context.use_let "val setup: (theory -> theory) list" "Library.apply setup";
+fun generic_setup NONE = (fn thy => thy |> Library.apply (Context.setup ()))
+  | generic_setup (SOME txt) =
+      Context.use_let "val setup: (theory -> theory) list" "Library.apply setup" txt;
 
 
 (* add_oracle *)
