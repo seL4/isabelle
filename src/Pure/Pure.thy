@@ -8,8 +8,7 @@ theory Pure
 imports ProtoPure
 begin
 
-setup "Context.setup ()"
-
+setup
 
 subsection {* Meta-level connectives in assumptions *}
 
