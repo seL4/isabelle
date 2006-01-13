@@ -9,14 +9,12 @@ dependencies; no support for overloading.
 
 signature CONSTDEFS =
 sig
-  val add_constdefs: (string list * string option) list *
-    ((bstring * string option * Syntax.mixfix) option *
-      ((bstring * Attrib.src list) * string)) list
-    -> theory -> theory
-  val add_constdefs_i: (string list * typ option) list *
-    ((bstring * typ option * Syntax.mixfix) option *
-      ((bstring * theory attribute list) * term)) list
-    -> theory -> theory
+  val add_constdefs: (string * string option) list *
+    ((bstring * string option * mixfix) option * ((bstring * Attrib.src list) * string)) list ->
+    theory -> theory
+  val add_constdefs_i: (string * typ option) list *
+    ((bstring * typ option * mixfix) option * ((bstring * theory attribute list) * term)) list ->
+    theory -> theory
 end;
 
 structure Constdefs: CONSTDEFS =
@@ -24,21 +22,19 @@ struct
 
 (** add_constdefs(_i) **)
 
-fun gen_constdef prep_typ prep_term prep_att
-    structs (decl, ((raw_name, raw_atts), raw_prop)) thy =
+fun gen_constdef prep_vars prep_term prep_att
+    structs (raw_decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
     fun err msg ts =
       error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
 
-    val ctxt =
-      ProofContext.init thy |> ProofContext.add_fixes
-        (List.concat (map (fn (As, T) => map (fn A => (A, T, NONE)) As) structs));
-    val (ctxt', d, mx) =
-      (case decl of NONE => (ctxt, NONE, Syntax.NoSyn) | SOME (x, raw_T, mx) =>
-        let
-          val x' = Syntax.const_name x mx and mx' = Syntax.fix_mixfix x mx;
-          val T = Option.map (prep_typ ctxt) raw_T;
-        in (ProofContext.add_fixes_liberal [(x', T, SOME mx')] ctxt, SOME x', mx') end);
+    val (_, ctxt) = thy |> ProofContext.init |> ProofContext.add_fixes_i structs;
+    val ((d, mx), ctxt') =
+      (case raw_decl of
+        NONE => ((NONE, NoSyn), ctxt)
+      | SOME raw_var =>
+          ctxt |> prep_vars [raw_var] |-> (fn [(x, T, mx)] =>
+            ProofContext.add_fixes_legacy [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
     val prop = prep_term ctxt' raw_prop;
     val concl = Logic.strip_imp_concl prop;
@@ -59,20 +55,18 @@ fun gen_constdef prep_typ prep_term prep_att
     val thy' =
       thy
       |> Theory.add_consts_i [(c, T, mx)]
-      |> PureThy.add_defs_i false [((name, def), atts)]
-      |> snd;
+      |> PureThy.add_defs_i false [((name, def), atts)] |> snd;
   in ((c, T), thy') end;
 
-fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy =
+fun gen_constdefs prep_vars prep_term prep_att (raw_structs, specs) thy =
   let
     val ctxt = ProofContext.init thy;
-    val structs = #1 (fold_map prep_vars raw_structs ctxt);
-    val (decls, thy') = fold_map (gen_constdef prep_typ prep_term prep_att structs) specs thy
+    val (structs, _) = prep_vars (map (fn (x, T) => (x, T, Structure)) raw_structs) ctxt;
+    val (decls, thy') = fold_map (gen_constdef prep_vars prep_term prep_att structs) specs thy;
   in Pretty.writeln (Specification.pretty_consts ctxt decls); thy' end;
 
-val add_constdefs = gen_constdefs ProofContext.read_vars_liberal
-  ProofContext.read_typ ProofContext.read_term_liberal Attrib.global_attribute;
-val add_constdefs_i = gen_constdefs ProofContext.cert_vars_liberal
-  ProofContext.cert_typ ProofContext.cert_term (K I);
+val add_constdefs = gen_constdefs ProofContext.read_vars_legacy
+  ProofContext.read_term_legacy Attrib.global_attribute;
+val add_constdefs_i = gen_constdefs ProofContext.cert_vars_legacy ProofContext.cert_term (K I);
 
 end;
