@@ -21,7 +21,7 @@ struct
 
 val call_atp = ref false;
 val hook_count = ref 0;
-val time_limit = ref 60;
+val time_limit = ref 30;
 
 val prover = ref "E";   (* use E as the default prover *)
 val custom_spass =   (*specialized options for SPASS*)
