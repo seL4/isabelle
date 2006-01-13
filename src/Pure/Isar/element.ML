@@ -8,7 +8,7 @@ Explicit data structures for some Isar language elements.
 signature ELEMENT =
 sig
   datatype ('typ, 'term, 'fact) ctxt =
-    Fixes of (string * 'typ option * mixfix option) list |
+    Fixes of (string * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
     Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
     Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
@@ -16,14 +16,13 @@ sig
   type context (*= (string, string, thmref) ctxt*)
   type context_i (*= (typ, term, thm list) ctxt*)
   val map_ctxt: {name: string -> string,
-    var: string * mixfix option -> string * mixfix option,
+    var: string * mixfix -> string * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_values: (typ -> typ) -> (term -> term) -> (thm -> thm) -> context_i -> context_i
   val pretty_ctxt: ProofContext.context -> context_i -> Pretty.T list
   val rename: (string * (string * mixfix option)) list -> string -> string
-  val rename_var: (string * (string * mixfix option)) list ->
-   string * mixfix option -> string * mixfix option
+  val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
   val rename_thm: (string * (string * mixfix option)) list -> thm -> thm
   val rename_ctxt: (string * (string * mixfix option)) list -> context_i -> context_i
@@ -44,7 +43,7 @@ struct
 (* datatype ctxt *)
 
 datatype ('typ, 'term, 'fact) ctxt =
-  Fixes of (string * 'typ option * mixfix option) list |
+  Fixes of (string * 'typ option * mixfix) list |
   Constrains of (string * 'typ) list |
   Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
   Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
@@ -56,8 +55,7 @@ type context_i = (typ, term, thm list) ctxt;
 fun map_ctxt {name, var, typ, term, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
-   | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-       (#1 (var (x, SOME Syntax.NoSyn)), typ T)))
+   | Constrains xs => Constrains (xs |> map (fn (x, T) => (#1 (var (x, NoSyn)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((name a, map attrib atts), propps |> map (fn (t, (ps, qs)) =>
         (term t, (map term ps, map term qs))))))
@@ -80,13 +78,13 @@ fun pretty_ctxt ctxt =
     val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
     val prt_atts = Args.pretty_attribs ctxt;
 
-    fun prt_syn syn =
-      let val s = (case syn of NONE => "(structure)" | SOME mx => Syntax.string_of_mixfix mx)
+    fun prt_mixfix mx =
+      let val s = Syntax.string_of_mixfix mx
       in if s = "" then [] else [Pretty.brk 2, Pretty.str s] end;
-    fun prt_fix (x, SOME T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
-          prt_typ T :: Pretty.brk 1 :: prt_syn syn)
-      | prt_fix (x, NONE, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
-    fun prt_constrain (x, T) = prt_fix (x, SOME T, SOME (Syntax.NoSyn));
+    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
+          prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
+      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_mixfix mx);
+    fun prt_constrain (x, T) = prt_fix (x, SOME T, NoSyn);
 
     fun prt_name name = Pretty.str (ProofContext.extern_thm ctxt name);
     fun prt_name_atts (name, atts) sep =
@@ -156,13 +154,13 @@ fun rename ren x =
   | SOME (x', _) => x');
 
 fun rename_var ren (x, mx) =
-  (case (AList.lookup (op =) ren (x: string), is_some mx) of
+  (case (AList.lookup (op =) ren (x: string), mx) of
     (NONE, _) => (x, mx)
-  | (SOME (x', NONE), true) => (x', SOME Syntax.NoSyn)
-  | (SOME (x', NONE), false) => (x', mx)
-  | (SOME (x', SOME mx'), true) => (x', SOME mx')
-  | (SOME (x', SOME _), false) =>
-      error ("Attempt to change syntax of structure parameter " ^ quote x));
+  | (SOME (x', NONE), Structure) => (x', mx)
+  | (SOME (x', SOME _), Structure) =>
+      error ("Attempt to change syntax of structure parameter " ^ quote x)
+  | (SOME (x', NONE), _) => (x', NoSyn)
+  | (SOME (x', SOME mx'), _) => (x', mx'));
 
 fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
   | rename_term ren (t $ u) = rename_term ren t $ rename_term ren u

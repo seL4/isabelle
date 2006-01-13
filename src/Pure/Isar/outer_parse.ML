@@ -54,13 +54,14 @@ sig
   val arity: token list -> (string list * string) * token list
   val type_args: token list -> string list * token list
   val typ: token list -> string * token list
-  val opt_infix: token list -> Syntax.mixfix * token list
-  val opt_mixfix: token list -> Syntax.mixfix * token list
-  val opt_infix': token list -> Syntax.mixfix * token list
-  val opt_mixfix': token list -> Syntax.mixfix * token list
-  val mixfix': token list -> Syntax.mixfix * token list
-  val const: token list -> (bstring * string * Syntax.mixfix) * token list
-  val param: token list -> (bstring * string option * Syntax.mixfix) * token list
+  val mixfix: token list -> mixfix * token list
+  val opt_infix: token list -> mixfix * token list
+  val opt_mixfix: token list -> mixfix * token list
+  val opt_infix': token list -> mixfix * token list
+  val opt_mixfix': token list -> mixfix * token list
+  val const: token list -> (string * string * mixfix) * token list
+  val fixes: token list -> (string * string option * mixfix) list * token list
+  val simple_fixes: token list -> (string * string option) list * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
   val propp: token list -> (string * (string list * string list)) * token list
@@ -78,6 +79,8 @@ sig
   val xthms1: token list -> (thmref * Attrib.src list) list * token list
   val name_facts: token list ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
+  val locale_mixfix: token list -> mixfix * token list
+  val locale_fixes: token list -> (string * string option * mixfix) list * token list
   val locale_target: token list -> xstring * token list
   val opt_locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
@@ -220,36 +223,40 @@ val type_args =
 
 (* mixfix annotations *)
 
-val infx = $$$ "infix" |-- !!! (nat >> Syntax.Infix || string -- nat >> Syntax.InfixName);
-val infxl = $$$ "infixl" |-- !!! (nat >> Syntax.Infixl || string -- nat >> Syntax.InfixlName);
-val infxr = $$$ "infixr" |-- !!! (nat >> Syntax.Infixr || string -- nat >> Syntax.InfixrName);
+val mfix = string --
+  !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
+    Scan.optional nat Syntax.max_pri) >> (Mixfix o triple2);
 
-val binder =
-  $$$ "binder" |--
-    !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
-  >> (Syntax.Binder o triple2);
+val infx = $$$ "infix" |-- !!! (nat >> Infix || string -- nat >> InfixName);
+val infxl = $$$ "infixl" |-- !!! (nat >> Infixl || string -- nat >> InfixlName);
+val infxr = $$$ "infixr" |-- !!! (nat >> Infixr || string -- nat >> InfixrName);
 
+val binder = $$$ "binder" |--
+  !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
+  >> (Binder o triple2);
 
-val opt_pris = Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [];
+fun annotation guard fix = $$$ "(" |-- guard (fix --| $$$ ")");
+fun opt_annotation guard fix = Scan.optional (annotation guard fix) NoSyn;
 
-val mixfix =
-  (string -- !!! (opt_pris -- Scan.optional nat Syntax.max_pri))
-  >> (Syntax.Mixfix o triple2);
-
-fun fix_decl guard fix = $$$ "(" |-- guard (fix --| $$$ ")");
-fun opt_fix guard fix = Scan.optional (fix_decl guard fix) Syntax.NoSyn;
-
-val opt_infix = opt_fix !!! (infxl || infxr || infx);
-val opt_mixfix = opt_fix !!! (mixfix || binder || infxl || infxr || infx);
-val opt_infix' = opt_fix I (infxl || infxr || infx);
-val opt_mixfix' = opt_fix I (mixfix || binder || infxl || infxr || infx);
-val mixfix' = fix_decl !!! (mixfix || binder || infxl || infxr || infx);
+val mixfix = annotation !!! (mfix || binder || infxl || infxr || infx);
+val opt_infix = opt_annotation !!! (infxl || infxr || infx);
+val opt_mixfix = opt_annotation !!! (mfix || binder || infxl || infxr || infx);
+val opt_infix' = opt_annotation I (infxl || infxr || infx);
+val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 
 
-(* consts *)
+(* fixes *)
 
 val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
-val param = name -- Scan.option ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
+
+val params = Scan.repeat1 name -- Scan.option ($$$ "::" |-- !!! typ)
+  >> (fn (xs, T) => map (rpair T) xs);
+
+val simple_fixes = and_list1 params >> List.concat;
+
+val fixes =
+  and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- mixfix >> (single o triple1) ||
+    params >> map Syntax.no_syn) >> List.concat;
 
 
 (* terms *)
@@ -329,15 +336,19 @@ val name_facts = and_list1 (opt_thm_name "=" -- xthms1);
 
 (* locale and context elements *)
 
+val locale_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K Structure || mixfix;
+
+val locale_fixes =
+  and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- locale_mixfix >> (single o triple1) ||
+    params >> map Syntax.no_syn) >> List.concat;
+
 local
 
-val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K NONE || opt_mixfix >> SOME;
 val loc_keyword = $$$ "fixes" || $$$ "constrains" || $$$ "assumes" ||
    $$$ "defines" || $$$ "notes" || $$$ "includes";
 
 val loc_element =
-  $$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
-    >> triple1)) >> Element.Fixes ||
+  $$$ "fixes" |-- !!! locale_fixes >> Element.Fixes ||
   $$$ "constrains" |-- !!! (and_list1 (name -- ($$$ "::" |-- typ)))
     >> Element.Constrains ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
@@ -350,7 +361,7 @@ val loc_element =
 fun plus1 scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
 
-val rename = name -- Scan.option mixfix';
+val rename = name -- Scan.option mixfix;
 
 fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
 and expr1 x = (expr2 -- Scan.repeat1 (maybe rename) >> Locale.Rename || expr2) x
