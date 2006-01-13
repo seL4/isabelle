@@ -120,6 +120,8 @@ val const_trans_table =
 		   ("op +", "plus"),
 		   ("op -", "minus"),
 		   ("op *", "times"),
+		   ("Divides.op div", "div"),
+		   ("HOL.divide", "divide"),
 		   ("op -->", "implies"),
 		   ("{}", "emptyset"),
 		   ("op :", "in"),
