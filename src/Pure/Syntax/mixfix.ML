@@ -17,7 +17,8 @@ sig
     Infix of int |    (*obsolete*)
     Infixl of int |   (*obsolete*)
     Infixr of int |   (*obsolete*)
-    Binder of string * int * int
+    Binder of string * int * int |
+    Structure
 end;
 
 signature MIXFIX1 =
@@ -62,7 +63,8 @@ datatype mixfix =
   Infix of int |      (*obsolete*)
   Infixl of int |     (*obsolete*)
   Infixr of int |     (*obsolete*)
-  Binder of string * int * int;
+  Binder of string * int * int |
+  Structure;
 
 val literal = Delimfix o SynExt.escape_mfix;
 
@@ -86,7 +88,8 @@ fun string_of_mixfix NoSyn = ""
   | string_of_mixfix (Infixl p) = parens (spaces ["infixl", string_of_int p])
   | string_of_mixfix (Infixr p) = parens (spaces ["infixr", string_of_int p])
   | string_of_mixfix (Binder (sy, p1, p2)) =
-      parens (spaces ["binder", quote sy, brackets (string_of_int p1), string_of_int p2]);
+      parens (spaces ["binder", quote sy, brackets (string_of_int p1), string_of_int p2])
+  | string_of_mixfix Structure = "(structure)";
 
 
 (* syntax specifications *)
@@ -128,6 +131,7 @@ fun map_mixfix _ NoSyn = NoSyn
   | map_mixfix f (InfixlName (sy, p)) = InfixlName (f sy, p)
   | map_mixfix f (InfixrName (sy, p)) = InfixrName (f sy, p)
   | map_mixfix f (Binder (sy, p, q)) = Binder (f sy, p, q)
+  | map_mixfix _ Structure = Structure
   | map_mixfix _ _ = raise Fail ("map_mixfix: illegal occurrence of unnamed infix");
 
 val unlocalize_mixfix = map_mixfix SynExt.unlocalize_mfix;
@@ -141,7 +145,8 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Infix _) = 2
   | mixfix_args (Infixl _) = 2
   | mixfix_args (Infixr _) = 2
-  | mixfix_args (Binder _) = 1;
+  | mixfix_args (Binder _) = 1
+  | mixfix_args Structure = 0;
 
 
 (* syn_ext_types *)
@@ -201,7 +206,8 @@ fun syn_ext_consts is_logtype const_decls =
         | (sy, ty, Infixl p) => mk_infix sy ty c p (p + 1) p
         | (sy, ty, Infixr p) => mk_infix sy ty c (p + 1) p p
         | (_, ty, Binder (sy, p, q)) =>
-            [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)])
+            [SynExt.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)]
+        | _ => error ("Bad mixfix declaration for const: " ^ quote c))
     end;
 
     fun binder (c, _, Binder (sy, _, _)) = SOME (sy, c)
