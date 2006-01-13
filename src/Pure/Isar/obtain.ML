@@ -36,22 +36,23 @@ similar, but derives these elements from the course of reasoning!
 
 signature OBTAIN =
 sig
-  val obtain: (string list * string option) list ->
+  val obtain: (string * string option) list ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list
     -> bool -> Proof.state -> Proof.state
-  val obtain_i: (string list * typ option) list ->
+  val obtain_i: (string * typ option) list ->
     ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
     -> bool -> Proof.state -> Proof.state
-  val guess: (string list * string option) list -> bool -> Proof.state -> Proof.state
-  val guess_i: (string list * typ option) list -> bool -> Proof.state -> Proof.state
+  val guess: (string * string option) list -> bool -> Proof.state -> Proof.state
+  val guess_i: (string * typ option) list -> bool -> Proof.state -> Proof.state
 end;
 
 structure Obtain: OBTAIN =
 struct
 
-(** export_obtained **)
 
-fun export_obtained state parms rule cprops thm =
+(** obtain_export **)
+
+fun obtain_export state parms rule cprops thm =
   let
     val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
     val cparms = map (Thm.cterm_of thy) parms;
@@ -78,9 +79,9 @@ fun export_obtained state parms rule cprops thm =
 (** obtain **)
 
 fun bind_judgment ctxt name =
-  let val (t as _ $ Free v) =
-    ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) name
-    |> ProofContext.bind_skolem ctxt [name]
+  let
+    val (bind, _) = ProofContext.bind_fixes [name] ctxt;
+    val (t as _ $ Free v) = bind (ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) name);
   in (v, t) end;
 
 local
@@ -94,9 +95,10 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*obtain vars*)
-    val (vars, vars_ctxt) = fold_map prep_vars raw_vars ctxt;
-    val fix_ctxt = vars_ctxt |> ProofContext.fix_i vars;
-    val xs = List.concat (map fst vars);
+    val (vars, vars_ctxt) = prep_vars (map Syntax.no_syn raw_vars) ctxt;
+    val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
+    val xs = map #1 vars;
+    val Ts = map #2 vars;
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
@@ -126,14 +128,14 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     fun after_qed _ =
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
-        Proof.fix_i vars
-        #> Proof.assm_i (K (export_obtained state parms rule)) asms));
+        Proof.fix_i (xs ~~ Ts)
+        #> Proof.assm_i (K (obtain_export state parms rule)) asms));
   in
     state
     |> Proof.enter_forward
     |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, ([], []))])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix_i [([thesisN], NONE)]
+    |> Proof.fix_i [(thesisN, NONE)]
     |> Proof.assume_i
       [((thatN, [Attrib.context (ContextRules.intro_query NONE)]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
@@ -205,8 +207,7 @@ fun gen_guess prep_vars raw_vars int state =
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = bind_judgment ctxt AutoBind.thesisN;
-    val varss = #1 (fold_map prep_vars raw_vars ctxt);
-    val vars = List.concat (map (fn (xs, T) => map (rpair T) xs) varss);
+    val (vars, _) = prep_vars (map Syntax.no_syn raw_vars) ctxt;
 
     fun check_result th =
       (case Thm.prems_of th of
@@ -221,8 +222,9 @@ fun gen_guess prep_vars raw_vars int state =
 
     fun guess_context raw_rule =
       let
-        val (parms, rule) = match_params state vars raw_rule;
-        val ts = map (ProofContext.bind_skolem ctxt (map #1 parms) o Free) parms;
+        val (parms, rule) = match_params state (map (fn (x, T, _) => (x, T)) vars) raw_rule;
+        val (bind, _) = ProofContext.bind_fixes (map #1 parms) ctxt;
+        val ts = map (bind o Free) parms;
         val ps = map dest_Free ts;
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
@@ -230,8 +232,8 @@ fun gen_guess prep_vars raw_vars int state =
         val _ = conditional (null asms) (fn () =>
           raise Proof.STATE ("Trivial result -- nothing guessed", state));
       in
-        Proof.fix_i (map (fn (x, T) => ([x], SOME T)) parms)
-        #> Proof.assm_i (K (export_obtained state ts rule)) [(("", []), asms)]
+        Proof.fix_i (map (apsnd SOME) parms)
+        #> Proof.assm_i (K (obtain_export state ts rule)) [(("", []), asms)]
         #> Proof.add_binds_i AutoBind.no_facts
       end;
 
@@ -242,7 +244,7 @@ fun gen_guess prep_vars raw_vars int state =
     state
     |> Proof.enter_forward
     |> Proof.begin_block
-    |> Proof.fix_i [([AutoBind.thesisN], NONE)]
+    |> Proof.fix_i [(AutoBind.thesisN, NONE)]
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) (apsnd (rpair I))
       "guess" before_qed after_qed [(("", []), [Var (("guess", 0), propT)])]

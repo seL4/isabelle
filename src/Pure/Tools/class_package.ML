@@ -173,7 +173,7 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
              | _ => NONE)
       |> Library.flat
       |> map (fn (c, ty, syn) =>
-           ((c, the ty), (Syntax.unlocalize_mixfix o Syntax.fix_mixfix c o the) syn))
+           ((c, the ty), (Syntax.unlocalize_mixfix o Syntax.fix_mixfix c) syn))
       |> `(fn consts => extract_tyvar_name thy (map (snd o fst) consts))
       |-> (fn v => map ((apfst o apsnd) (subst_clsvar v (TFree (v, []))))
          #> pair v);

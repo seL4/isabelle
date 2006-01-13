@@ -43,31 +43,27 @@ fun pretty_consts ctxt decls =
 
 (* prepare specification *)
 
-fun prep_specification prep_typ prep_propp prep_att
-    (raw_params, raw_specs) context =
+fun prep_specification prep_vars prep_propp prep_att
+    (raw_vars, raw_specs) ctxt =
   let
-    fun prep_param (x, raw_T, mx) ctxt =
-      let
-        val x' = Syntax.const_name x mx and mx' = Syntax.fix_mixfix x mx;
-        val T = Option.map (prep_typ ctxt) raw_T;
-      in ((x', mx'), ProofContext.add_fixes [(x', T, SOME mx')] ctxt) end;
+    val thy = ProofContext.theory_of ctxt;
 
-    val ((xs, mxs), params_ctxt) =
-      context |> fold_map prep_param raw_params |>> split_list;
-    val ((specs, vars), specs_ctxt) =
+    val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
+    val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
+    val ((specs, vs), specs_ctxt) =
       prep_propp (params_ctxt, map (map (rpair ([], [])) o snd) raw_specs)
       |> swap |>> map (map fst)
-      ||>> fold_map ProofContext.declared_type xs;
+      ||>> fold_map ProofContext.inferred_type xs;
 
-    val params = map2 (fn (x, T) => fn mx => (x, T, mx)) vars mxs;
+    val params = map2 (fn (x, T) => fn (_, _, mx) => (x, T, mx)) vs vars;
     val names = map (fst o fst) raw_specs;
-    val atts = map (map (prep_att (ProofContext.theory_of context)) o snd o fst) raw_specs;
+    val atts = map (map (prep_att thy) o snd o fst) raw_specs;
   in ((params, (names ~~ atts) ~~ specs), specs_ctxt) end;
 
 fun read_specification x =
-  prep_specification ProofContext.read_typ ProofContext.read_propp Attrib.generic_attribute x;
+  prep_specification ProofContext.read_vars ProofContext.read_propp Attrib.generic_attribute x;
 fun cert_specification x =
-  prep_specification ProofContext.cert_typ ProofContext.cert_propp (K I) x;
+  prep_specification ProofContext.cert_vars ProofContext.cert_propp (K I) x;
 
 
 (* axiomatize *)

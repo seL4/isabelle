@@ -177,15 +177,13 @@ val defsP =
 
 (* constant definitions *)
 
-val vars = P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ));
-
 val structs =
-  Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (vars --| P.$$$ ")")) [];
+  Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (P.simple_fixes --| P.$$$ ")")) [];
 
 val constdecl =
-  (P.name --| P.$$$ "where") >> (fn x => (x, NONE, Syntax.NoSyn)) ||
+  (P.name --| P.$$$ "where") >> (fn x => (x, NONE, NoSyn)) ||
     P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix' >> P.triple1 ||
-    P.name -- (P.mixfix' >> pair NONE) >> P.triple2;
+    P.name -- (P.mixfix >> pair NONE) >> P.triple2;
 val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
 val constdefsP =
@@ -197,7 +195,7 @@ val constdefsP =
 
 val axiomatizationP =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
-    (P.and_list1 P.param -- Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.named_spec)) []
+    (P.fixes -- Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.named_spec)) []
     >> (Toplevel.theory o (#2 oo Specification.axiomatize)));
 
 
@@ -254,7 +252,7 @@ val ml_setupP =
 
 val setupP =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (P.text >> (Toplevel.theory o PureThy.generic_setup));
+    (Scan.option P.text >> (Toplevel.theory o PureThy.generic_setup));
 
 val method_setupP =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
@@ -316,7 +314,8 @@ val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
     ((P.opt_keyword "open" >> not) -- P.name
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
-      >> (Toplevel.theory_context o (fn ((x, y), (z, w)) => Locale.add_locale_context x y z w #> (fn ((_, ctxt), thy) => (thy, ctxt)))));
+      >> (Toplevel.theory_context o (fn ((x, y), (z, w)) =>
+          Locale.add_locale_context x y z w #> (fn ((_, ctxt), thy) => (thy, ctxt)))));
 
 val opt_inst =
   Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) [];
@@ -418,7 +417,7 @@ val unfoldingP =
 val fixP =
   OuterSyntax.command "fix" "fix local variables (Skolem constants)"
     (K.tag_proof K.prf_asm)
-    (vars >> (Toplevel.print oo (Toplevel.proof o Proof.fix)));
+    (P.simple_fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix)));
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions"
@@ -440,16 +439,13 @@ val defP =
 val obtainP =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
-    (Scan.optional
-      (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-        --| P.$$$ "where") [] -- statement
+    (Scan.optional (P.simple_fixes --| P.$$$ "where") [] -- statement
       >> (Toplevel.print oo (Toplevel.proof' o uncurry Obtain.obtain)));
 
 val guessP =
   OuterSyntax.command "guess" "wild guessing (unstructured)"
     (K.tag_proof K.prf_asm_goal)
-    (P.and_list (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-      >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
+    (Scan.optional P.simple_fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
 
 val letP =
   OuterSyntax.command "let" "bind text variables"
@@ -651,13 +647,14 @@ val print_localesP =
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
-    (Scan.optional (P.$$$ "!" >> K true) false -- locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (Scan.optional (P.$$$ "!" >> K true) false -- locale_val
+      >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val print_registrationsP =
   OuterSyntax.improper_command "print_interps"
     "print interpretations of named locale" K.diag
-    (Scan.optional (P.$$$ "!" >> K true) false -- P.xname >>
-      (Toplevel.no_timing oo uncurry IsarCmd.print_registrations));
+    (Scan.optional (P.$$$ "!" >> K true) false -- P.xname
+      >> (Toplevel.no_timing oo uncurry IsarCmd.print_registrations));
 
 val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag

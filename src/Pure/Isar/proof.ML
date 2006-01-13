@@ -42,12 +42,12 @@ sig
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
-  val fix: (string list * string option) list -> state -> state
-  val fix_i: (string list * typ option) list -> state -> state
-  val assm: ProofContext.exporter ->
+  val fix: (string * string option) list -> state -> state
+  val fix_i: (string * typ option) list -> state -> state
+  val assm: ProofContext.export ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     state -> state
-  val assm_i: ProofContext.exporter ->
+  val assm_i: ProofContext.export ->
     ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val assume: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
@@ -359,7 +359,7 @@ fun pretty_state nr state =
 
     val prt_ctxt =
       if ! verbose orelse mode = Forward then ProofContext.pretty_context context
-      else if mode = Backward then ProofContext.pretty_asms context
+      else if mode = Backward then ProofContext.pretty_ctxt context
       else [];
   in
     [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
@@ -515,15 +515,15 @@ end;
 
 local
 
-fun gen_fix fix_ctxt args =
+fun gen_fix add_fixes args =
   assert_forward
-  #> map_context (fix_ctxt args)
+  #> map_context (snd o add_fixes (map Syntax.no_syn args))
   #> put_facts NONE;
 
 in
 
-val fix = gen_fix ProofContext.fix;
-val fix_i = gen_fix ProofContext.fix_i;
+val fix = gen_fix ProofContext.add_fixes;
+val fix_i = gen_fix ProofContext.add_fixes_i;
 
 end;
 
@@ -540,12 +540,12 @@ fun gen_assume asm prep_att exp args state =
 
 in
 
-val assm      = gen_assume ProofContext.assume Attrib.local_attribute;
-val assm_i    = gen_assume ProofContext.assume_i (K I);
-val assume    = assm ProofContext.export_assume;
-val assume_i  = assm_i ProofContext.export_assume;
-val presume   = assm ProofContext.export_presume;
-val presume_i = assm_i ProofContext.export_presume;
+val assm      = gen_assume ProofContext.add_assms Attrib.local_attribute;
+val assm_i    = gen_assume ProofContext.add_assms_i (K I);
+val assume    = assm ProofContext.assume_export;
+val assume_i  = assm_i ProofContext.assume_export;
+val presume   = assm ProofContext.presume_export;
+val presume_i = assm_i ProofContext.presume_export;
 
 end;
 
@@ -566,8 +566,8 @@ fun gen_def fix prep_att prep_binds args state =
     val eqs = ProofContext.mk_def (context_of state') (xs ~~ rhss);
   in
     state'
-    |> fix [(xs, NONE)]
-    |> assm_i ProofContext.export_def ((names ~~ atts) ~~ map (fn eq => [(eq, ([], []))]) eqs)
+    |> fix (map (rpair NONE) xs)
+    |> assm_i ProofContext.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, ([], []))]) eqs)
   end;
 
 in
@@ -787,6 +787,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     goal_state
     |> tap (check_tvars props)
     |> tap (check_vars props)
+    |> map_context (ProofContext.set_body true)
     |> put_goal (SOME (make_goal ((kind, propss), [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
@@ -868,7 +869,7 @@ fun global_goal print_results prep_att prepp
       #> after_qed results;
   in
     init ctxt
-    |> generic_goal (prepp #> ProofContext.auto_fix) (kind ^ goal_names target name names)
+    |> generic_goal (prepp #> ProofContext.auto_fixes) (kind ^ goal_names target name names)
       before_qed (K Seq.single, after_qed') propp
   end;
 
