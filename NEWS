@@ -216,6 +216,11 @@ lists of propositions separated by 'and':
 * Provers/induct: support coinduction as well.  See
 src/HOL/Library/Coinductive_List.thy for various examples.
 
+* Simplifier: by default the simplifier trace only shows top level rewrites
+now. That is, trace_simp_depth_limit is set to 1 by default. Thus there is
+less danger of being flooded by the trace. The trace indicates where parts
+have been suppressed.
+  
 * Provers/classical: removed obsolete classical version of elim_format
 attribute; classical elim/dest rules are now treated uniformly when
 manipulating the claset.
@@ -240,6 +245,8 @@ for example "A -> B" => "Pi A (%_. B)".
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
+
+* "LEAST x:A. P" expands to "LEAST x. x:A & P" (input only).
 
 * In the context of the assumption "~(s = t)" the Simplifier rewrites
 "t = s" to False (by simproc "neq_simproc").  For backward

@@ -64,6 +64,8 @@ syntax
 
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3EX _:_./ _)" [0, 0, 10] 10)
+  "_Bleast"       :: "id => 'a set => bool => 'a"      ("(3LEAST _:_./ _)" [0, 0, 10] 10)
+
 
 syntax (HOL)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3! _:_./ _)" [0, 0, 10] 10)
@@ -86,6 +88,8 @@ translations
   "INT x:A. B"  == "INTER A (%x. B)"
   "ALL x:A. P"  == "Ball A (%x. P)"
   "EX x:A. P"   == "Bex A (%x. P)"
+  "LEAST x:A. P" => "LEAST x. x:A & P"
+
 
 syntax (output)
   "_setle"      :: "'a set => 'a set => bool"             ("op <=")
@@ -108,6 +112,7 @@ syntax (xsymbols)
   Inter         :: "'a set set => 'a set"                 ("\<Inter>_" [90] 90)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST_\<in>_./ _)" [0, 0, 10] 10)
 
 syntax (HTML output)
   "_setle"      :: "'a set => 'a set => bool"             ("op \<subseteq>")
