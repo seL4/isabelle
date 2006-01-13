@@ -724,7 +724,7 @@ fun gen_add_class int_class (bclass, raw_classes) thy =
       val syn' = Syntax.extend_consts [bclass] syn;
       val tsig' = Type.add_classes (pp thy) naming [(bclass, classes)] tsig;
     in (naming, syn', tsig', consts) end)
-  |> add_consts_i [(const_of_class bclass, a_itselfT --> propT, Syntax.NoSyn)];
+  |> add_consts_i [(const_of_class bclass, a_itselfT --> propT, NoSyn)];
 
 val add_classes = fold (gen_add_class intern_class);
 val add_classes_i = fold (gen_add_class (K I));

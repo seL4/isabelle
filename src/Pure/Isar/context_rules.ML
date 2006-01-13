@@ -163,9 +163,9 @@ fun find_rules weighted facts goals =
 
 (* wrappers *)
 
-fun gen_add_wrapper upd w = Context.the_theory o
-  Rules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
-    make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers)) o Context.Theory;
+fun gen_add_wrapper upd w =
+  Context.map_theory (Rules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
+    make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers)));
 
 val addSWrapper = gen_add_wrapper Library.apfst;
 val addWrapper = gen_add_wrapper Library.apsnd;
