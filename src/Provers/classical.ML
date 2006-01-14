@@ -143,20 +143,13 @@ sig
   val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
-  val safe_dest_global: theory attribute
-  val safe_elim_global: theory attribute
-  val safe_intro_global: theory attribute
-  val haz_dest_global: theory attribute
-  val haz_elim_global: theory attribute
-  val haz_intro_global: theory attribute
-  val rule_del_global: theory attribute
-  val safe_dest_local: Proof.context attribute
-  val safe_elim_local: Proof.context attribute
-  val safe_intro_local: Proof.context attribute
-  val haz_dest_local: Proof.context attribute
-  val haz_elim_local: Proof.context attribute
-  val haz_intro_local: Proof.context attribute
-  val rule_del_local: Proof.context attribute
+  val safe_dest: Context.generic attribute
+  val safe_elim: Context.generic attribute
+  val safe_intro: Context.generic attribute
+  val haz_dest: Context.generic attribute
+  val haz_elim: Context.generic attribute
+  val haz_intro: Context.generic attribute
+  val rule_del: Context.generic attribute
   val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
@@ -959,24 +952,17 @@ fun local_claset_of ctxt =
 
 (* attributes *)
 
-fun change_global_cs f (thy, th) = (change_claset_of thy (fn cs => f (cs, [th])); (thy, th));
-fun change_local_cs f (ctxt, th) = (LocalClaset.map (fn cs => f (cs, [th])) ctxt, th);
+fun attrib f = Attrib.declaration (fn th =>
+   fn Context.Theory thy => (change_claset_of thy (fn cs => f (cs, [th])); Context.Theory thy)
+    | Context.Proof ctxt => Context.Proof (LocalClaset.map (fn cs => f (cs, [th])) ctxt));
 
-val safe_dest_global = change_global_cs (op addSDs);
-val safe_elim_global = change_global_cs (op addSEs);
-val safe_intro_global = change_global_cs (op addSIs);
-val haz_dest_global = change_global_cs (op addDs);
-val haz_elim_global = change_global_cs (op addEs);
-val haz_intro_global = change_global_cs (op addIs);
-val rule_del_global = change_global_cs (op delrules) o Attrib.theory ContextRules.rule_del;
-
-val safe_dest_local = change_local_cs (op addSDs);
-val safe_elim_local = change_local_cs (op addSEs);
-val safe_intro_local = change_local_cs (op addSIs);
-val haz_dest_local = change_local_cs (op addDs);
-val haz_elim_local = change_local_cs (op addEs);
-val haz_intro_local = change_local_cs (op addIs);
-val rule_del_local = change_local_cs (op delrules) o Attrib.context ContextRules.rule_del;
+val safe_dest = attrib (op addSDs);
+val safe_elim = attrib (op addSEs);
+val safe_intro = attrib (op addSIs);
+val haz_dest = attrib (op addDs);
+val haz_elim = attrib (op addEs);
+val haz_intro = attrib (op addIs);
+val rule_del = attrib (op delrules) o ContextRules.rule_del;
 
 
 (* tactics referring to the implicit claset *)
@@ -1018,19 +1004,13 @@ fun del_rule att = Attrib.syntax (Scan.lift Args.del >> K att);
 
 val setup_attrs = Attrib.add_attributes
  [("swapped", (swapped, swapped), "classical swap of introduction rule"),
-  (destN,
-   (add_rule (Attrib.theory o ContextRules.dest_query) haz_dest_global safe_dest_global,
-    add_rule (Attrib.context o ContextRules.dest_query) haz_dest_local safe_dest_local),
-    "declaration of destruction rule"),
-  (elimN,
-   (add_rule (Attrib.theory o ContextRules.elim_query) haz_elim_global safe_elim_global,
-    add_rule (Attrib.context o ContextRules.elim_query) haz_elim_local safe_elim_local),
-    "declaration of elimination rule"),
-  (introN,
-   (add_rule (Attrib.theory o ContextRules.intro_query) haz_intro_global safe_intro_global,
-    add_rule (Attrib.context o ContextRules.intro_query) haz_intro_local safe_intro_local),
-    "declaration of introduction rule"),
-  (ruleN, (del_rule rule_del_global, del_rule rule_del_local),
+  (destN, Attrib.common (add_rule ContextRules.dest_query haz_dest safe_dest),
+    "declaration of Classical destruction rule"),
+  (elimN, Attrib.common (add_rule ContextRules.elim_query haz_elim safe_elim),
+    "declaration of Classical elimination rule"),
+  (introN, Attrib.common (add_rule ContextRules.intro_query haz_intro safe_intro),
+    "declaration of Classical introduction rule"),
+  (ruleN, Attrib.common (del_rule rule_del),
     "remove declaration of intro/elim/dest rule")];
 
 
@@ -1078,13 +1058,13 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- Args.bang_colon >> K ((I, safe_dest_local): Method.modifier),
-  Args.$$$ destN -- Args.colon >> K (I, haz_dest_local),
-  Args.$$$ elimN -- Args.bang_colon >> K (I, safe_elim_local),
-  Args.$$$ elimN -- Args.colon >> K (I, haz_elim_local),
-  Args.$$$ introN -- Args.bang_colon >> K (I, safe_intro_local),
-  Args.$$$ introN -- Args.colon >> K (I, haz_intro_local),
-  Args.del -- Args.colon >> K (I, rule_del_local)];
+ [Args.$$$ destN -- Args.bang_colon >> K ((I, Attrib.context safe_dest): Method.modifier),
+  Args.$$$ destN -- Args.colon >> K (I, Attrib.context haz_dest),
+  Args.$$$ elimN -- Args.bang_colon >> K (I, Attrib.context safe_elim),
+  Args.$$$ elimN -- Args.colon >> K (I, Attrib.context haz_elim),
+  Args.$$$ introN -- Args.bang_colon >> K (I, Attrib.context safe_intro),
+  Args.$$$ introN -- Args.colon >> K (I, Attrib.context haz_intro),
+  Args.del -- Args.colon >> K (I, Attrib.context rule_del)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (local_claset_of ctxt));

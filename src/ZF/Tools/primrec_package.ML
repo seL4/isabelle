@@ -191,7 +191,7 @@ fun add_primrec_i args thy =
       |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
     val (_, thy3) =
       thy2
-      |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add_global])]
+      |> PureThy.add_thmss [(("simps", eqn_thms'), [Attrib.theory Simplifier.simp_add])]
       ||> Theory.parent_path;
   in (thy3, eqn_thms') end;
 

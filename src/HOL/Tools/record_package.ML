@@ -1993,8 +1993,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val final_thy =
       thms_thy
       |> (snd oo PureThy.add_thmss)
-          [(("simps", sel_upd_simps), [Simplifier.simp_add_global]),
-           (("iffs",iffs), [iff_add_global])]
+          [(("simps", sel_upd_simps), [Attrib.theory Simplifier.simp_add]),
+           (("iffs",iffs), [Attrib.theory iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme')
       |> put_sel_upd (names @ [full_moreN]) sel_upd_simps
       |> add_record_equalities extension_id equality'

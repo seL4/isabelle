@@ -250,7 +250,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
       val (simp_thms, thy'') = PureThy.add_thms simps thy';
       
       val simp_names = map (fn name => name^"_simps") cnames;
-      val simp_attribute = rpair [Simplifier.simp_add_global];
+      val simp_attribute = rpair [Attrib.theory Simplifier.simp_add];
       val simps' = map simp_attribute (simp_names ~~ unconcat lengths simp_thms);
     in
       (snd o PureThy.add_thmss simps') thy''

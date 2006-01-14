@@ -32,10 +32,8 @@ sig
   val delsplits       : simpset * thm list -> simpset
   val Addsplits       : thm list -> unit
   val Delsplits       : thm list -> unit
-  val split_add_global: theory attribute
-  val split_del_global: theory attribute
-  val split_add_local: Proof.context attribute
-  val split_del_local: Proof.context attribute
+  val split_add: Context.generic attribute
+  val split_del: Context.generic attribute
   val split_modifiers : (Args.T list -> (Method.modifier * Args.T list)) list
   val setup: (theory -> theory) list
 end;
@@ -405,6 +403,7 @@ fun gen_split_tac [] = K no_tac
          gen_split_tac splits
       end;
 
+
 (** declare split rules **)
 
 (* addsplits / delsplits *)
@@ -437,33 +436,28 @@ fun Delsplits splits = (change_simpset (fn ss => ss delsplits splits));
 
 val splitN = "split";
 
-val split_add_global = Simplifier.change_global_ss (op addsplits);
-val split_del_global = Simplifier.change_global_ss (op delsplits);
-val split_add_local = Simplifier.change_local_ss (op addsplits);
-val split_del_local = Simplifier.change_local_ss (op delsplits);
-
-val split_attr =
- (Attrib.add_del_args split_add_global split_del_global,
-  Attrib.add_del_args split_add_local split_del_local);
+val split_add = Simplifier.attrib (op addsplits);
+val split_del = Simplifier.attrib (op delsplits);
 
 
 (* methods *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.colon >> K ((I, split_add_local): Method.modifier),
-  Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add_local),
-  Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del_local)];
+ [Args.$$$ splitN -- Args.colon >> K ((I, Attrib.context split_add): Method.modifier),
+  Args.$$$ splitN -- Args.add -- Args.colon >> K (I, Attrib.context split_add),
+  Args.$$$ splitN -- Args.del -- Args.colon >> K (I, Attrib.context split_del)];
 
-val split_args = #2 oo Method.syntax Attrib.local_thms;
+fun split_meth src =
+  Method.syntax Attrib.local_thms src
+  #> (fn (_, ths) => Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o gen_split_tac ths));
 
-fun split_meth ths = Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o gen_split_tac ths);
 
-
-
-(** theory setup **)
+(* theory setup *)
 
 val setup =
- [Attrib.add_attributes [(splitN, split_attr, "declaration of case split rule")],
-  Method.add_methods [(splitN, split_meth oo split_args, "apply case split rule")]];
+ [Attrib.add_attributes
+  [(splitN, Attrib.common (Attrib.add_del_args split_add split_del),
+    "declaration of case split rule")],
+  Method.add_methods [(splitN, split_meth, "apply case split rule")]];
 
 end;

@@ -367,8 +367,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Theory.add_path big_rec_base_name
         |> PureThy.add_thmss
-         [(("simps", simps), [Simplifier.simp_add_global]),
-          (("", intrs), [Classical.safe_intro_global]),
+         [(("simps", simps), [Attrib.theory Simplifier.simp_add]),
+          (("", intrs), [Attrib.theory Classical.safe_intro]),
           (("con_defs", con_defs), []),
           (("case_eqns", case_eqns), []),
           (("recursor_eqns", recursor_eqns), []),

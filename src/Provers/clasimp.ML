@@ -56,16 +56,12 @@ sig
   val fast_simp_tac: clasimpset -> int -> tactic
   val slow_simp_tac: clasimpset -> int -> tactic
   val best_simp_tac: clasimpset -> int -> tactic
-  val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
-  val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
+  val attrib: (clasimpset * thm list -> clasimpset) -> Context.generic attribute
   val get_local_clasimpset: Proof.context -> clasimpset
   val local_clasimpset_of: Proof.context -> clasimpset
-  val iff_add_global: theory attribute
-  val iff_add_global': theory attribute
-  val iff_del_global: theory attribute
-  val iff_add_local: Proof.context attribute
-  val iff_add_local': Proof.context attribute
-  val iff_del_local: Proof.context attribute
+  val iff_add: Context.generic attribute
+  val iff_add': Context.generic attribute
+  val iff_del: Context.generic attribute
   val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val setup: (theory -> theory) list
@@ -138,18 +134,18 @@ fun addIff decls1 decls2 simp ((cs, ss), th) =
     val (elim, intro) = if n = 0 then decls1 else decls2;
     val zero_rotate = zero_var_indexes o rotate_prems n;
   in
-    (elim (intro (cs, [suffix_thm name "_iff2" (zero_rotate (th RS Data.iffD2))]),
-           [suffix_thm name "_iff1" (Tactic.make_elim (zero_rotate (th RS Data.iffD1)))])
-      handle THM _ => (elim (cs, [suffix_thm name "_iff1" (zero_rotate (th RS Data.notE))])
+    (elim (intro (cs, [suffix_thm name "_iff2" (zero_rotate (th RS iffD2))]),
+           [suffix_thm name "_iff1" (Tactic.make_elim (zero_rotate (th RS iffD1)))])
+      handle THM _ => (elim (cs, [suffix_thm name "_iff1" (zero_rotate (th RS notE))])
         handle THM _ => intro (cs, [th])),
      simp (ss, [th]))
   end;
 
 fun delIff delcs delss ((cs, ss), th) =
   let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
-    (delcs (cs, [zero_rotate (th RS Data.iffD2),
-        Tactic.make_elim (zero_rotate (th RS Data.iffD1))])
-      handle THM _ => (delcs (cs, [zero_rotate (th RS Data.notE)])
+    (delcs (cs, [zero_rotate (th RS iffD2),
+        Tactic.make_elim (zero_rotate (th RS iffD1))])
+      handle THM _ => (delcs (cs, [zero_rotate (th RS notE)])
         handle THM _ => delcs (cs, [th])),
      delss (ss, [th]))
   end;
@@ -157,10 +153,10 @@ fun delIff delcs delss ((cs, ss), th) =
 fun modifier att (x, ths) =
   fst (Thm.applys_attributes [att] (x, rev ths));
 
-fun addXIs which = modifier (which (ContextRules.intro_query NONE));
-fun addXEs which = modifier (which (ContextRules.elim_query NONE));
-fun addXDs which = modifier (which (ContextRules.dest_query NONE));
-fun delXs which = modifier (which ContextRules.rule_del);
+val addXIs = modifier (ContextRules.intro_query NONE);
+val addXEs = modifier (ContextRules.elim_query NONE);
+val addXDs = modifier (ContextRules.dest_query NONE);
+val delXs = modifier ContextRules.rule_del;
 
 in
 
@@ -174,23 +170,11 @@ val op delIffs = Library.foldl (delIff Classical.delrules Simplifier.delsimps);
 fun AddIffs thms = change_clasimpset (fn css => css addIffs thms);
 fun DelIffs thms = change_clasimpset (fn css => css delIffs thms);
 
-fun addIffs_global (thy, ths) =
-  Library.foldl (addIff
-    (addXEs Attrib.theory, addXIs Attrib.theory)
-    (addXEs Attrib.theory, addXIs Attrib.theory) #1)
-  ((thy, ()), ths) |> #1;
+fun addIffs_generic (x, ths) =
+  Library.foldl (addIff (addXEs, addXIs) (addXEs, addXIs) #1) ((x, ()), ths) |> #1;
 
-fun addIffs_local (ctxt, ths) =
-  Library.foldl (addIff
-    (addXEs Attrib.context, addXIs Attrib.context)
-    (addXEs Attrib.context, addXIs Attrib.context) #1)
-  ((ctxt, ()), ths) |> #1;
-
-fun delIffs_global (thy, ths) =
-  Library.foldl (delIff (delXs Attrib.theory) #1) ((thy, ()), ths) |> #1;
-
-fun delIffs_local (ctxt, ths) =
-  Library.foldl (delIff (delXs Attrib.context) #1) ((ctxt, ()), ths) |> #1;
+fun delIffs_generic (x, ths) =
+  Library.foldl (delIff delXs #1) ((x, ()), ths) |> #1;
 
 end;
 
@@ -272,20 +256,6 @@ val best_simp_tac = ADDSS Classical.best_tac;
 
 (* access clasimpset *)
 
-fun change_global_css f (thy, th) =
-  (change_clasimpset_of thy (fn css => f (css, [th])); (thy, th));
-
-fun change_local_css f (ctxt, th) =
-  let
-    val cs = Classical.get_local_claset ctxt;
-    val ss = Simplifier.get_local_simpset ctxt;
-    val (cs', ss') = f ((cs, ss), [th]);
-    val ctxt' =
-      ctxt
-      |> Classical.put_local_claset cs'
-      |> Simplifier.put_local_simpset ss';
-  in (ctxt', th) end;
-
 fun get_local_clasimpset ctxt =
   (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
 
@@ -295,23 +265,29 @@ fun local_clasimpset_of ctxt =
 
 (* attributes *)
 
-fun change_rules f (x, th) = (f (x, [th]), th);
+fun attrib f = Attrib.declaration (fn th =>
+ fn Context.Theory thy => (change_clasimpset_of thy (fn css => f (css, [th])); Context.Theory thy)
+  | Context.Proof ctxt =>
+      let
+        val cs = Classical.get_local_claset ctxt;
+        val ss = Simplifier.get_local_simpset ctxt;
+        val (cs', ss') = f ((cs, ss), [th]);
+        val ctxt' =
+          ctxt
+          |> Classical.put_local_claset cs'
+          |> Simplifier.put_local_simpset ss';
+      in Context.Proof ctxt' end);
 
-val iff_add_global = change_global_css (op addIffs);
-val iff_add_global' = change_rules addIffs_global;
-val iff_del_global = change_global_css (op delIffs) o change_rules delIffs_global;
-val iff_add_local = change_local_css (op addIffs);
-val iff_add_local' = change_rules addIffs_local;
-val iff_del_local = change_local_css (op delIffs) o change_rules delIffs_local;
+fun attrib' f (x, th) = (f (x, [th]), th);
 
-fun iff_att add add' del = Attrib.syntax (Scan.lift
- (Args.del >> K del ||
-  Scan.option Args.add -- Args.query >> K add' ||
-  Scan.option Args.add >> K add));
+val iff_add = attrib (op addIffs);
+val iff_add' = attrib' addIffs_generic;
+val iff_del = attrib (op delIffs) o attrib' delIffs_generic;
 
-val iff_attr =
- (iff_att iff_add_global iff_add_global' iff_del_global,
-  iff_att iff_add_local iff_add_local' iff_del_local);
+val iff_att = Attrib.syntax (Scan.lift
+ (Args.del >> K iff_del ||
+  Scan.option Args.add -- Args.query >> K iff_add' ||
+  Scan.option Args.add >> K iff_add));
 
 
 (* method modifiers *)
@@ -319,9 +295,10 @@ val iff_attr =
 val iffN = "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K ((I, iff_add_local): Method.modifier),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (I, iff_add_local'),
-  Args.$$$ iffN -- Args.del -- Args.colon >> K (I, iff_del_local)];
+ [Args.$$$ iffN -- Scan.option Args.add -- Args.colon
+    >> K ((I, Attrib.context iff_add): Method.modifier),
+  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (I, Attrib.context iff_add'),
+  Args.$$$ iffN -- Args.del -- Args.colon >> K (I, Attrib.context iff_del)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @
@@ -351,7 +328,7 @@ fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
 
 val setup =
  [Attrib.add_attributes
-  [("iff", iff_attr, "declaration of Simplifier / Classical rules")],
+  [("iff", Attrib.common iff_att, "declaration of Simplifier / Classical rules")],
   Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
     ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),

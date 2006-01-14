@@ -258,7 +258,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val (simps', thy'') = PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts) thy';
     val thy''' = thy''
       |> (snd o PureThy.add_thmss [(("simps", simps'),
-           [Simplifier.simp_add_global, RecfunCodegen.add NONE])])
+           [Attrib.theory Simplifier.simp_add, RecfunCodegen.add NONE])])
       |> (snd o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
       |> Theory.parent_path
   in

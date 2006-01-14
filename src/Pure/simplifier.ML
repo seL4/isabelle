@@ -64,16 +64,11 @@ sig
   val print_local_simpset: Proof.context -> unit
   val get_local_simpset: Proof.context -> simpset
   val put_local_simpset: simpset -> Proof.context -> Proof.context
-  val change_global_ss: (simpset * thm list -> simpset) -> theory attribute
-  val change_local_ss: (simpset * thm list -> simpset) -> Proof.context attribute
-  val simp_add_global: theory attribute
-  val simp_del_global: theory attribute
-  val simp_add_local: Proof.context attribute
-  val simp_del_local: Proof.context attribute
-  val cong_add_global: theory attribute
-  val cong_del_global: theory attribute
-  val cong_add_local: Proof.context attribute
-  val cong_del_local: Proof.context attribute
+  val attrib: (simpset * thm list -> simpset) -> Context.generic attribute
+  val simp_add: Context.generic attribute
+  val simp_del: Context.generic attribute
+  val cong_add: Context.generic attribute
+  val cong_del: Context.generic attribute
   val cong_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers': (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
@@ -143,18 +138,14 @@ fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_local_simpset ctxt)
 
 (* attributes *)
 
-fun change_global_ss f (thy, th) = (change_simpset_of thy (fn ss => f (ss, [th])); (thy, th));
-fun change_local_ss f (ctxt, th) = (LocalSimpset.map (fn ss => f (ss, [th])) ctxt, th);
+fun attrib f = Attrib.declaration (fn th =>
+   fn Context.Theory thy => (change_simpset_of thy (fn ss => f (ss, [th])); Context.Theory thy)
+    | Context.Proof ctxt => Context.Proof (LocalSimpset.map (fn ss => f (ss, [th])) ctxt));
 
-val simp_add_global = change_global_ss (op addsimps);
-val simp_del_global = change_global_ss (op delsimps);
-val simp_add_local = change_local_ss (op addsimps);
-val simp_del_local = change_local_ss (op delsimps);
-
-val cong_add_global = change_global_ss (op addcongs);
-val cong_del_global = change_global_ss (op delcongs);
-val cong_add_local = change_local_ss (op addcongs);
-val cong_del_local = change_local_ss (op delcongs);
+val simp_add = attrib (op addsimps);
+val simp_del = attrib (op delsimps);
+val cong_add = attrib (op addcongs);
+val cong_del = attrib (op delcongs);
 
 
 
@@ -243,14 +234,6 @@ val no_asm_useN = "no_asm_use";
 val no_asm_simpN = "no_asm_simp";
 val asm_lrN = "asm_lr";
 
-val simp_attr =
- (Attrib.add_del_args simp_add_global simp_del_global,
-  Attrib.add_del_args simp_add_local simp_del_local);
-
-val cong_attr =
- (Attrib.add_del_args cong_add_global cong_del_global,
-  Attrib.add_del_args cong_add_local cong_del_local);
-
 
 (* conversions *)
 
@@ -262,15 +245,14 @@ fun conv_mode x =
     Args.parens (Args.$$$ no_asm_useN) >> K full_simplify ||
     Scan.succeed asm_full_simplify) |> Scan.lift) x;
 
-fun simplified_att get args =
-  Attrib.syntax (conv_mode -- args >> (fn (f, ths) => Attrib.rule (fn x =>
-    f ((if null ths then I else MetaSimplifier.clear_ss) (get x) addsimps ths))));
+fun get_ss (Context.Theory thy) = simpset_of thy
+  | get_ss (Context.Proof ctxt) = local_simpset_of ctxt;
 
 in
 
-val simplified_attr =
- (simplified_att simpset_of Attrib.global_thmss,
-  simplified_att local_simpset_of Attrib.local_thmss);
+val simplified =
+  Attrib.syntax (conv_mode -- Attrib.thmss >> (fn (f, ths) => Attrib.rule (fn x =>
+    f ((if null ths then I else MetaSimplifier.clear_ss) (get_ss x) addsimps ths))));
 
 end;
 
@@ -279,9 +261,11 @@ end;
 
 val _ = Context.add_setup
  [Attrib.add_attributes
-   [(simpN, simp_attr, "declaration of simplification rule"),
-    (congN, cong_attr, "declaration of Simplifier congruence rule"),
-    ("simplified", simplified_attr, "simplified rule")]];
+   [(simpN, Attrib.common (Attrib.add_del_args simp_add simp_del),
+      "declaration of Simplifier rule"),
+    (congN, Attrib.common (Attrib.add_del_args cong_add cong_del),
+      "declaration of Simplifier congruence rule"),
+    ("simplified", Attrib.common simplified, "simplified rule")]];
 
 
 
@@ -302,22 +286,23 @@ fun simp_flags x = (Scan.repeat
   >> (curry (Library.foldl op o) I o rev)) x;
 
 val cong_modifiers =
- [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local): Method.modifier),
-  Args.$$$ congN -- Args.add -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ congN -- Args.del -- Args.colon >> K (I, cong_del_local)];
+ [Args.$$$ congN -- Args.colon >> K ((I, Attrib.context cong_add): Method.modifier),
+  Args.$$$ congN -- Args.add -- Args.colon >> K (I, Attrib.context cong_add),
+  Args.$$$ congN -- Args.del -- Args.colon >> K (I, Attrib.context cong_del)];
 
 val simp_modifiers =
- [Args.$$$ simpN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.add -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.del -- Args.colon >> K (I, simp_del_local),
+ [Args.$$$ simpN -- Args.colon >> K (I, Attrib.context simp_add),
+  Args.$$$ simpN -- Args.add -- Args.colon >> K (I, Attrib.context simp_add),
+  Args.$$$ simpN -- Args.del -- Args.colon >> K (I, Attrib.context simp_del),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon
-    >> K (LocalSimpset.map MetaSimplifier.clear_ss, simp_add_local)]
+    >> K (LocalSimpset.map MetaSimplifier.clear_ss, Attrib.context simp_add)]
    @ cong_modifiers;
 
 val simp_modifiers' =
- [Args.add -- Args.colon >> K (I, simp_add_local),
-  Args.del -- Args.colon >> K (I, simp_del_local),
-  Args.$$$ onlyN -- Args.colon >> K (LocalSimpset.map MetaSimplifier.clear_ss, simp_add_local)]
+ [Args.add -- Args.colon >> K (I, Attrib.context simp_add),
+  Args.del -- Args.colon >> K (I, Attrib.context simp_del),
+  Args.$$$ onlyN -- Args.colon
+    >> K (LocalSimpset.map MetaSimplifier.clear_ss, Attrib.context simp_add)]
    @ cong_modifiers;
 
 fun simp_args more_mods =
