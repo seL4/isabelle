@@ -94,6 +94,7 @@ sig
   val command: transition -> state -> state
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
+  val program: (unit -> 'a) -> 'a
   val set_state: state -> unit
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
@@ -241,6 +242,12 @@ exception RESTART;
 exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
 
+fun debugging f x =
+  if ! debug then
+    setmp Library.do_transform_failure false
+      exception_trace (fn () => f x)
+  else f x;
+
 
 (* node transactions and recovery from stale theories *)
 
@@ -250,7 +257,7 @@ local
 
 fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
-val stale_theory = ERROR_MESSAGE "Stale theory encountered after succesful execution!";
+val stale_theory = ERROR "Stale theory encountered after succesful execution!";
 
 fun checkpoint_node (Theory (thy, ctxt)) = Theory (Theory.checkpoint thy, ctxt)
   | checkpoint_node node = node;
@@ -260,12 +267,6 @@ fun copy_node (Theory (thy, ctxt)) = Theory (Theory.copy thy, ctxt)
 
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
-
-fun debug_trans f x =
-  if ! debug then
-    setmp Output.transform_exceptions false
-      exception_trace (fn () => f x)
-  else f x;
 
 fun interruptible f x =
   let val y = ref x
@@ -286,9 +287,9 @@ fun transaction _ _ (State NONE) = raise UNDEF
           cont_node
           |> (f
               |> (if hist then History.apply_copy copy_node else History.map)
-              |> debug_trans
+              |> debugging
               |> interruptible
-              |> transform_error)
+              |> setmp Output.do_toplevel_errors false)
           |> normal_state
           handle exn => error_state cont_node exn;
       in
@@ -345,7 +346,7 @@ fun apply_tr _ Reset _ = toplevel
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
-      transform_error (apply_tr int tr) state
+      apply_tr int tr state
         handle UNDEF => apply_union int trs state
           | FAILURE (alt_state, UNDEF) => apply_union int trs alt_state
           | exn as FAILURE _ => raise exn
@@ -391,7 +392,7 @@ fun command_msg msg tr = msg ^ "command " ^ str_of_transition tr;
 fun at_command tr = command_msg "At " tr ^ ".";
 
 fun type_error tr state =
-  ERROR_MESSAGE (command_msg "Illegal application of " tr ^ " " ^ str_of_state state);
+  ERROR (command_msg "Illegal application of " tr ^ " " ^ str_of_state state);
 
 
 (* modify transitions *)
@@ -519,15 +520,12 @@ fun raised name [] = "exception " ^ name ^ " raised"
 fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ RESTART = "Restart."
   | exn_msg _ Interrupt = "Interrupt."
-  | exn_msg _ ERROR = "ERROR."
-  | exn_msg _ (ERROR_MESSAGE msg) = msg
+  | exn_msg _ Output.TOPLEVEL_ERROR = "Error."
+  | exn_msg _ (ERROR msg) = msg
   | exn_msg detailed (EXCEPTION (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg false (THEORY (msg, _)) = msg
   | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
-  | exn_msg _ (ProofContext.CONTEXT (msg, _)) = msg
-  | exn_msg _ (Proof.STATE (msg, _)) = msg
-  | exn_msg _ (ProofHistory.FAIL msg) = msg
   | exn_msg detailed (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
       fail_msg detailed "simproc" ((name, Position.none), exn)
   | exn_msg detailed (Attrib.ATTRIB_FAIL info) = fail_msg detailed "attribute" info
@@ -558,7 +556,7 @@ in
 fun exn_message exn = exn_msg (! debug) exn;
 
 fun print_exn NONE = ()
-  | print_exn (SOME (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
+  | print_exn (SOME (exn, s)) = Output.error_msg (cat_lines [exn_message exn, s]);
 
 end;
 
@@ -572,7 +570,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
     val _ = conditional (not int andalso int_only) (fn () =>
       warning (command_msg "Interactive-only " tr));
 
-    fun do_timing f x = (info (command_msg "" tr); timeap f x);
+    fun do_timing f x = (Output.info (command_msg "" tr); timeap f x);
     fun do_profiling f x = profile (! profiling) f x;
 
     val (result, opt_exn) =
@@ -611,7 +609,7 @@ fun excur [] x = x
   | excur ((tr, pr) :: trs) (st, res) =
       (case apply (! interact) tr st of
         SOME (st', NONE) =>
-          excur trs (st', transform_error (fn () => pr st st' res) () handle exn =>
+          excur trs (st', pr st st' res handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
       | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
       | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
@@ -623,12 +621,20 @@ in
 fun present_excursion trs res =
   (case excur trs (State NONE, res) of
     (State NONE, res') => res'
-  | _ => raise ERROR_MESSAGE "Unfinished development at end of input")
+  | _ => error "Unfinished development at end of input")
   handle exn => error (exn_message exn);
 
 fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
 
 end;
+
+
+(* program: independent of state *)
+
+fun program f =
+  ((fn () => debugging f () handle exn => error (exn_message exn))
+    |> setmp Output.do_toplevel_errors true
+    |> Output.toplevel_errors) ();
 
 
 
