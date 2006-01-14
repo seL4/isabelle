@@ -850,7 +850,7 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
 
     val intr_names = map (fst o fst) intro_srcs;
     fun read_rule s = Thm.read_cterm thy (s, propT)
-      handle ERROR => error ("The error(s) above occurred for " ^ s);
+      handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s);
     val intr_ts = map (Thm.term_of o read_rule o snd o fst) intro_srcs;
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts thy cs intr_ts;

@@ -35,10 +35,10 @@ fun declare name f = IndCasesData.map (Symtab.update (name, f));
 
 fun smart_cases thy ss read_prop s =
   let
-    fun err () = error ("Malformed set membership statement: " ^ s);
-    val A = read_prop s handle ERROR => err ();
+    fun err msg = cat_error msg ("Malformed set membership statement: " ^ s);
+    val A = read_prop s handle ERROR msg => err msg;
     val c = #1 (Term.dest_Const (Term.head_of (#2 (Ind_Syntax.dest_mem (FOLogic.dest_Trueprop
-      (Logic.strip_imp_concl A)))))) handle TERM _ => err ();
+      (Logic.strip_imp_concl A)))))) handle TERM _ => err "";
   in
     (case Symtab.lookup (IndCasesData.get thy) c of
       NONE => error ("Unknown inductive cases rule for set " ^ quote c)

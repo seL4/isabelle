@@ -8,7 +8,6 @@ Histories of proof states, with undo / redo and backtracking.
 signature PROOF_HISTORY =
 sig
   type T
-  exception FAIL of string
   val position: T -> int
   val init: int option -> Proof.state -> T
   val is_initial: T -> bool
@@ -36,8 +35,6 @@ type proof = node * node list;
 
 datatype T = ProofHistory of proof History.T;
 
-exception FAIL of string;
-
 fun app f (ProofHistory x) = ProofHistory (f x);
 fun hist_app f = app (History.apply f);
 
@@ -59,7 +56,7 @@ val redo = app History.redo;
 
 val back = hist_app (fn ((_, stq), nodes) =>
   (case Seq.pull stq of
-    NONE => raise FAIL "back: no alternatives"
+    NONE => error "back: no alternatives"
   | SOME result => (result, nodes)));
 
 
@@ -67,7 +64,7 @@ val back = hist_app (fn ((_, stq), nodes) =>
 
 fun applys f = hist_app (fn (node as (st, _), nodes) =>
   (case Seq.pull (f st) of
-    NONE => raise FAIL "empty result sequence -- proof command failed"
+    NONE => error "empty result sequence -- proof command failed"
   | SOME results => (results, node :: nodes)));
 
 fun apply f = applys (Seq.single o f);

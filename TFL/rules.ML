@@ -819,7 +819,7 @@ fun prove strict (ptm, tac) =
     val result =
       if strict then Goal.prove thy [] [] t (K tac)
       else Goal.prove thy [] [] t (K tac)
-        handle ERROR_MESSAGE msg => (warning msg; raise RULES_ERR "prove" msg);
+        handle ERROR msg => (warning msg; raise RULES_ERR "prove" msg);
   in #1 (freeze_thaw (standard result)) end;
 
 end;

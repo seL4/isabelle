@@ -976,8 +976,8 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
                 Sign.full_name_path sign tname) (Syntax.const_name cname mx'),
                    map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
-          end handle ERROR =>
-            error ("The error above occured in constructor " ^ cname ^
+          end handle ERROR msg =>
+            cat_error msg ("The error above occured in constructor " ^ cname ^
               " of datatype " ^ tname);
 
         val (constrs', constr_syntax', sorts') =

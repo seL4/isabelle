@@ -75,7 +75,7 @@ fun prove_conv name tacs sg hyps xs (t,u) =
       val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
   in SOME (hyps' MRS Goal.prove sg xs [] goal (K (EVERY tacs)))
-      handle ERROR_MESSAGE msg =>
+      handle ERROR msg =>
         (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); NONE)
   end;
 

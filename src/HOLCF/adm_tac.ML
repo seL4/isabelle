@@ -104,7 +104,7 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
        val t' = mk_all params (Logic.list_implies (prems, t));
        val thm = Goal.prove sign [] [] t' (K (tac 1));
   in (ts, thm)::l end
-  handle ERROR_MESSAGE _ => l;
+  handle ERROR _ => l;
 
 
 (*** instantiation of adm_subst theorem (a bit tricky) ***)

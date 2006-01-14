@@ -144,8 +144,10 @@ fun antiq_args_aux keyword_lexicon (str, pos) =
 in
 
 fun antiq_args lex (s, pos) =
-  (case antiq_args_aux lex (s, pos) of [x] => x | _ => raise ERROR) handle ERROR =>
-    error ("Malformed antiquotation: " ^ quote ("@{" ^ s ^ "}") ^ Position.str_of pos);
+  let
+    fun err msg = cat_error msg
+      ("Malformed antiquotation: " ^ quote ("@{" ^ s ^ "}") ^ Position.str_of pos);
+  in (case antiq_args_aux lex (s, pos) of [x] => x | _ => err "") handle ERROR msg => err msg end;
 
 end;
 

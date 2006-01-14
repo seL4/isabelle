@@ -207,7 +207,7 @@ local
       List.mapPartial ((fn (r,x) => if x = i then SOME r else NONE));
 
   fun solve_eq (th, [], i) = 
-      raise ERROR_MESSAGE "derive_init_eqs: missing rules"
+        error "derive_init_eqs: missing rules"
     | solve_eq (th, [a], i) = [(a, i)]
     | solve_eq (th, splitths as (_ :: _), i) = 
       (writeln "Proving unsplit equation...";
@@ -215,7 +215,7 @@ local
           (CaseSplit.splitto splitths th), i)])
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)
-      handle ERROR_MESSAGE s => 
+      handle ERROR s => 
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);
 in
 fun derive_init_eqs sgn rules eqs = 

@@ -45,7 +45,7 @@ time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
 
 (* requires zChaff with proof generation to be installed: *)
-time_use_thy "SAT_Examples" handle ERROR => ();
+try time_use_thy "SAT_Examples";
 
 (* requires zChaff (or some other reasonably fast SAT solver) to be installed: *)
 if getenv "ZCHAFF_HOME" <> "" then

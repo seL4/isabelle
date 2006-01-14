@@ -2024,7 +2024,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     fun prep_inst T = snd (cert_typ sign ([], T));
 
     val parent = Option.map (apfst (map prep_inst) o prep_raw_parent sign) raw_parent
-      handle ERROR => error ("The error(s) above in parent record specification");
+      handle ERROR msg => cat_error msg ("The error(s) above in parent record specification");
     val parents = add_parents thy parent [];
 
     val init_env =
@@ -2036,8 +2036,8 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     (* fields *)
 
     fun prep_field (env, (c, raw_T, mx)) =
-      let val (env', T) = prep_typ sign (env, raw_T) handle ERROR =>
-        error ("The error(s) above occured in field " ^ quote c)
+      let val (env', T) = prep_typ sign (env, raw_T) handle ERROR msg =>
+        cat_error msg ("The error(s) above occured in field " ^ quote c)
       in (env', (c, T, mx)) end;
 
     val (envir, bfields) = foldl_map prep_field (init_env, raw_fields);
@@ -2090,7 +2090,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     if null errs then () else error (cat_lines errs)  ;
     thy |> record_definition (args, bname) parent parents bfields
   end
-  handle ERROR => error ("Failed to define record " ^ quote bname);
+  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote bname);
 
 val add_record = gen_add_record read_typ read_raw_parent;
 val add_record_i = gen_add_record cert_typ (K I);

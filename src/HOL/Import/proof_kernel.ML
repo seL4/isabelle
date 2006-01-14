@@ -212,17 +212,17 @@ fun smart_string_of_cterm ct =
 	fun F n =
 	    let
 		val str = Library.setmp show_brackets false (G n string_of_cterm) ct
-		val cu  = transform_error (read_cterm sign) (str,T)
+		val cu  = read_cterm sign (str,T)
 	    in
 		if match cu
 		then quote str
 		else F (n+1)
 	    end
-	    handle ERROR_MESSAGE mesg => F (n+1)
+	    handle ERROR mesg => F (n+1)
     in
-	transform_error (Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true F)) 0
+      Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end
-    handle ERROR_MESSAGE mesg => simple_smart_string_of_cterm ct
+    handle ERROR mesg => simple_smart_string_of_cterm ct
  
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
@@ -457,11 +457,13 @@ val invented_isavar = ref (IntInf.fromInt 0)
 
 fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
 
-fun handle_error f d = transform_error f () handle ERROR_MESSAGE _ => d
-
 val check_name_thy = theory "Main"
-fun valid_boundvarname s = handle_error (fn () => (read_cterm check_name_thy ("SOME "^s^". True", TypeInfer.logicT); true)) false 
-fun valid_varname s = handle_error (fn () => (read_cterm check_name_thy (s, TypeInfer.logicT); true)) false 
+
+fun valid_boundvarname s =
+  can (fn () => read_cterm check_name_thy ("SOME "^s^". True", TypeInfer.logicT)) ();
+
+fun valid_varname s =
+  can (fn () => read_cterm check_name_thy (s, TypeInfer.logicT)) ();
 
 fun protect_varname s =
     if innocent_varname s andalso valid_varname s then s else
@@ -1253,8 +1255,8 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	case get_hol4_mapping thyname thmname thy of
 	    SOME (SOME thmname) =>
 	    let
-		val th1 = (SOME (transform_error (PureThy.get_thm thy) (Name thmname))
-			   handle ERROR_MESSAGE _ =>
+		val th1 = (SOME (PureThy.get_thm thy (Name thmname))
+			   handle ERROR _ =>
 				  (case split_name thmname of
 				       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy (Name listname),idx-1))
 							       handle _ => NONE)
@@ -2123,7 +2125,8 @@ fun choose_upon_replay_history thy s dth =
 
 fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
     case HOL4DefThy.get thy of
-	Replaying _ => (thy, handle_error (fn () => HOLThm([], PureThy.get_thm thy (PureThy.Name (thmname^"_@intern")))) hth)
+	Replaying _ => (thy,
+          HOLThm([], PureThy.get_thm thy (PureThy.Name (thmname^"_@intern"))) handle ERROR _ => hth)
       | _ => 
 	let
             val _ = message "TYPE_INTRO:"

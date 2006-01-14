@@ -466,7 +466,7 @@ struct
 					case Type.lookup (typeSubs, v) of
 					  NONE =>
 						(* schematic type variable not instantiated *)
-						raise ERROR
+						error ""
 					| SOME typ =>
 						typ)) t
 		(* Term.term list * Term.typ -> Term.term list *)
@@ -550,7 +550,7 @@ struct
 							| NONE =>
 								get_typedefn axms
 						end
-						handle ERROR           => get_typedefn axms
+						handle ERROR _         => get_typedefn axms
 						     | MATCH           => get_typedefn axms
 						     | Type.TYPE_MATCH => get_typedefn axms)
 				in
@@ -650,7 +650,7 @@ struct
 							else
 								get_defn axms
 						end
-						handle ERROR           => get_defn axms
+						handle ERROR _         => get_defn axms
 						     | TERM _          => get_defn axms
 						     | Type.TYPE_MATCH => get_defn axms)
 					(* axiomatic type classes *)

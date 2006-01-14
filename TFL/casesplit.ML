@@ -100,13 +100,11 @@ fun case_thm_of_ty sgn ty  =
       val dtypestab = DatatypePackage.get_datatypes sgn;
       val ty_str = case ty of
                      Type(ty_str, _) => ty_str
-                   | TFree(s,_)  => raise ERROR_MESSAGE
-                                            ("Free type: " ^ s)
-                   | TVar((s,i),_) => raise ERROR_MESSAGE
-                                            ("Free variable: " ^ s)
+                   | TFree(s,_)  => error ("Free type: " ^ s)
+                   | TVar((s,i),_) => error ("Free variable: " ^ s)
       val dt = case Symtab.lookup dtypestab ty_str
                 of SOME dt => dt
-                 | NONE => raise ERROR_MESSAGE ("Not a Datatype: " ^ ty_str)
+                 | NONE => error ("Not a Datatype: " ^ ty_str)
     in
       cases_thm_of_induct_thm (#induction dt)
     end;
@@ -138,7 +136,7 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
             (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) =>
             (Pv, Dv,
              Sign.typ_match sgn (Dty, ty) Vartab.empty)
-          | _ => raise ERROR_MESSAGE ("not a valid case thm");
+          | _ => error "not a valid case thm";
       val type_cinsts = map (fn (ixn, (S, T)) => (ctypify (TVar (ixn, S)), ctypify T))
         (Vartab.dest type_insts);
       val cPv = ctermify (Envir.subst_TVars type_insts Pv);
@@ -187,7 +185,7 @@ fun casesplit_name vstr i th =
           end;
       val (n,ty) = case Library.get_first getter freets
                 of SOME (n, ty) => (n, ty)
-                 | _ => raise ERROR_MESSAGE ("no such variable " ^ vstr);
+                 | _ => error ("no such variable " ^ vstr);
       val sgn = Thm.sign_of_thm th;
 
       val splitter_thm = mk_casesplit_goal_thm sgn (n,ty) gt;
@@ -284,7 +282,7 @@ fun splitto splitths genth =
              (writeln "th:";
               Display.print_thm th; writeln "split ths:";
               Display.print_thms splitths; writeln "\n--";
-              raise ERROR_MESSAGE "splitto: cannot find variable to split on")
+              error "splitto: cannot find variable to split on")
             | SOME v =>
              let
                val gt = Data.dest_Trueprop (List.nth(Thm.prems_of th, 0));
@@ -321,7 +319,7 @@ fun derive_init_eqs sgn rules eqs =
     fun add_eq (i, e) xs =
       (e, (get_related_thms i rules), i) :: xs
     fun solve_eq (th, [], i) =
-          raise ERROR_MESSAGE "derive_init_eqs: missing rules"
+          error "derive_init_eqs: missing rules"
       | solve_eq (th, [a], i) = (a, i)
       | solve_eq (th, splitths as (_ :: _), i) = (splitto splitths th, i);
     val eqths =

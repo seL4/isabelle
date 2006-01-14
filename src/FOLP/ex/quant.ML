@@ -60,22 +60,22 @@ result();
 writeln"The following should fail, as they are false!";
 
 Goal "?p : (ALL x. EX y. Q(x,y))  -->  (EX y. ALL x. Q(x,y))";
-by tac handle ERROR => writeln"Failed, as expected";
+by tac handle ERROR _ => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;
 
 Goal "?p : (EX x. Q(x))  -->  (ALL x. Q(x))";
-by tac handle ERROR => writeln"Failed, as expected";
+by tac handle ERROR _ => writeln"Failed, as expected";
 getgoal 1;
 
 Goal "?p : P(?a) --> (ALL x. P(x))";
-by tac handle ERROR => writeln"Failed, as expected";
+by tac handle ERROR _ => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;
 
 Goal
     "?p : (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))";
-by tac handle ERROR => writeln"Failed, as expected";
+by tac handle ERROR _ => writeln"Failed, as expected";
 getgoal 1;
 
 

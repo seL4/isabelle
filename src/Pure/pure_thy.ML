@@ -176,7 +176,7 @@ datatype thmref =
 
 fun name_of_thmref (Name name) = name
   | name_of_thmref (NameSelection (name, _)) = name
-  | name_of_thmref (Fact _) = raise ERROR_MESSAGE "Illegal literal fact";
+  | name_of_thmref (Fact _) = error "Illegal literal fact";
 
 fun map_name_of_thmref f (Name name) = Name (f name)
   | map_name_of_thmref f (NameSelection (name, is)) = NameSelection (f name, is)
@@ -185,7 +185,7 @@ fun map_name_of_thmref f (Name name) = Name (f name)
 fun string_of_thmref (Name name) = name
   | string_of_thmref (NameSelection (name, is)) =
       name ^ enclose "(" ")" (commas (map string_of_interval is))
-  | string_of_thmref (Fact _) = raise ERROR_MESSAGE "Illegal literal fact";
+  | string_of_thmref (Fact _) = error "Illegal literal fact";
 
 
 (* select_thm *)
@@ -254,7 +254,7 @@ fun thms name = get_thms (the_context ()) (Name name);
 (* thms_containing etc. *)
 
 fun valid_thms thy (thmref, ths) =
-  (case try (transform_error (get_thms thy)) thmref of
+  (case try (get_thms thy) thmref of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 

@@ -203,7 +203,7 @@ fun index_tr (*"_index"*) [t] = t
 
 fun the_struct structs i =
   if 1 <= i andalso i <= length structs then List.nth (structs, i - 1)
-  else raise ERROR_MESSAGE ("Illegal reference to implicit structure #" ^ string_of_int i);
+  else raise error ("Illegal reference to implicit structure #" ^ string_of_int i);
 
 fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
       Lexicon.free (the_struct structs 1)
@@ -424,7 +424,7 @@ fun index_ast_tr' (*"_index"*) [Ast.Appl [Ast.Constant "_struct", ast]] = ast
 
 fun the_struct' structs s =
   [(case Lexicon.read_nat s of
-    SOME i => Ast.Variable (the_struct structs i handle ERROR_MESSAGE _ => raise Match)
+    SOME i => Ast.Variable (the_struct structs i handle ERROR _ => raise Match)
   | NONE => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
 
 fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =

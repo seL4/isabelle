@@ -66,7 +66,6 @@ sig
   val setup: unit -> (theory -> theory) list
   (*proof context*)
   type proof
-  exception PROOF of string * proof
   val theory_of_proof: proof -> theory
   val transfer_proof: theory -> proof -> proof
   val init_proof: theory -> proof
@@ -475,7 +474,7 @@ fun >> f = set_context (SOME (f (the_context ())));
 
 (* use ML text *)
 
-val ml_output = (writeln, error_msg);
+val ml_output = (writeln, Output.error_msg);
 
 fun use_output verbose txt = use_text ml_output verbose (Symbol.escape txt);
 
@@ -505,15 +504,13 @@ end;
 
 datatype proof = Proof of theory_ref * Object.T Inttab.table;
 
-exception PROOF of string * proof;
-
 fun theory_of_proof (Proof (thy_ref, _)) = deref thy_ref;
 fun data_of_proof (Proof (_, data)) = data;
 fun map_prf f (Proof (thy_ref, data)) = Proof (thy_ref, f data);
 
 fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
   if not (subthy (deref thy_ref, thy')) then
-    raise PROOF ("transfer proof context: no a super theory", prf)
+    error "transfer proof context: no a super theory"
   else Proof (self_ref thy', data);
 
 

@@ -97,22 +97,22 @@ writeln"The following are invalid!";
 
 (*INVALID*)
 goal (theory "LK") "|- (ALL x. EX y. Q(x,y))  -->  (EX y. ALL x. Q(x,y))";
-by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
+by (fast_tac LK_pack 1) handle ERROR _ => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;
 
 (*INVALID*)
 goal (theory "LK") "|- (EX x. Q(x))  -->  (ALL x. Q(x))";
-by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
+by (fast_tac LK_pack 1) handle ERROR _ => writeln"Failed, as expected";
 getgoal 1;
 
 goal (theory "LK") "|- P(?a) --> (ALL x. P(x))";
-by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
+by (fast_tac LK_pack 1) handle ERROR _ => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;
 
 goal (theory "LK") "|- (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))";
-by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
+by (fast_tac LK_pack 1) handle ERROR _ => writeln"Failed, as expected";
 getgoal 1;
 
 

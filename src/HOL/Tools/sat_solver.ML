@@ -307,7 +307,7 @@ struct
 				  []      => [xs1]
 				| (0::[]) => [xs1]
 				| (0::tl) => xs1 :: clauses tl
-				| _       => raise ERROR  (* this cannot happen *)
+				| _       => sys_error "this cannot happen"
 			end
 		(* int -> PropLogic.prop_formula *)
 		fun literal_from_int i =
@@ -457,7 +457,7 @@ let
 			  | forced_vars (And (fm1, fm2))  = (forced_vars fm1) union_int (forced_vars fm2)
 			  (* Above, i *and* ~i may be forced.  In this case the first occurrence takes   *)
 			  (* precedence, and the next partial evaluation of the formula returns 'False'. *)
-			  | forced_vars _                 = raise ERROR  (* formula is not in negation normal form *)
+			  | forced_vars _                 = error "formula is not in negation normal form"
 			(* int list -> prop_formula -> (int list * prop_formula) *)
 			fun eval_and_force xs fm =
 			let
@@ -528,7 +528,7 @@ let
 				(if name="dpll" orelse name="enumerate" then
 					warning ("Using SAT solver " ^ quote name ^ "; for better performance, consider using an external solver.")
 				else
-					debug ("Using SAT solver " ^ quote name ^ "."));
+					Output.debug ("Using SAT solver " ^ quote name ^ "."));
 				(* apply 'solver' to 'fm' *)
 				solver fm
 					handle SatSolver.NOT_CONFIGURED => loop solvers

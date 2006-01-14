@@ -84,12 +84,12 @@ writeln"The following are classically but not constructively valid.";
 
 (*The attempt to prove them terminates quickly!*)
 Goal "((P-->Q) --> P)  -->  P";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;  
 
 Goal "(P&Q-->R)  -->  (P-->R) | (Q-->R)";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1;  
 
 
@@ -272,24 +272,24 @@ writeln"The following are not constructively valid!";
 (*The attempt to prove them terminates quickly!*)
 
 Goal "((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1; 
 
 Goal "(P --> (EX x. Q(x))) --> (EX x. P-->Q(x))";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1; 
 
 Goal "(ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1; 
 
 Goal "(ALL x. ~~P(x)) --> ~~(ALL x. P(x))";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1; 
 
 (*Classically but not intuitionistically valid.  Proved by a bug in 1986!*)
 Goal "EX x. Q(x) --> (ALL x. Q(x))";
-by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
+by (IntPr.fast_tac 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1; 
 
 

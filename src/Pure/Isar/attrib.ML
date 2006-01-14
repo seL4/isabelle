@@ -171,7 +171,7 @@ fun map_facts f = map (apfst (apsnd (map f)) o apsnd (map (apsnd (map f))));
   at the thm structure.*)
 
 fun crude_closure ctxt src =
- (try (transform_error (fn () => context_attribute_i ctxt src (ctxt, Drule.asm_rl))) ();
+ (try (fn () => context_attribute_i ctxt src (ctxt, Drule.asm_rl)) ();
   Args.closure src);
 
 

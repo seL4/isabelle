@@ -134,8 +134,8 @@ val skip_local_qed =
 (* global endings *)
 
 fun global_ending ending = Toplevel.proof_to_theory_context (fn int => fn state =>
- (Proof.assert_bottom true state handle Proof.STATE _ => raise Toplevel.UNDEF;
-  ending int state));
+  if can (Proof.assert_bottom true) state then ending int state
+  else raise Toplevel.UNDEF);
 
 fun global_qed m = global_ending (K (Proof.global_qed (m, true)));
 val global_terminal_proof = global_ending o K o Proof.global_terminal_proof;

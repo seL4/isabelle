@@ -274,8 +274,8 @@ fun ext_inst_subclass prep_classrel raw_cc tac thy =
     val (c1, c2) = prep_classrel thy raw_cc;
     val txt = quote (Sign.string_of_classrel thy [c1, c2]);
     val _ = message ("Proving class inclusion " ^ txt ^ " ...");
-    val th = Goal.prove thy [] [] (mk_classrel (c1, c2)) (K tac) handle ERROR_MESSAGE msg =>
-      error (msg ^ "\nThe error(s) above occurred while trying to prove " ^ txt);
+    val th = Goal.prove thy [] [] (mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
+      cat_error msg ("The error(s) above occurred while trying to prove " ^ txt);
   in add_classrel_thms [th] thy end;
 
 fun ext_inst_arity prep_arity raw_arity tac thy =
@@ -285,9 +285,8 @@ fun ext_inst_arity prep_arity raw_arity tac thy =
     val _ = message ("Proving type arity " ^ txt ^ " ...");
     val props = (mk_arities arity);
     val ths = Goal.prove_multi thy [] [] props
-      (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac)
-        handle ERROR_MESSAGE msg =>
-          error (msg ^ "\nThe error(s) above occurred while trying to prove " ^ txt);
+      (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
+        cat_error msg ("\nThe error(s) above occurred while trying to prove " ^ txt);
   in add_arity_thms ths thy end;
 
 in

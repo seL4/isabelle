@@ -431,7 +431,7 @@ fun proper_inform_file_processed file state =
   let val name = thy_name file in
     if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
      (ThyInfo.touch_child_thys name;
-      transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
+      ThyInfo.pretend_use_thy_only name handle ERROR msg =>
        (warning msg; warning ("Failed to register theory: " ^ quote name);
         tell_file_retracted (Path.base (Path.unpack file))))
     else raise Toplevel.UNDEF
@@ -639,7 +639,7 @@ fun send_pgip_config () =
     in
         if exists then
             (issue_pgips [proverinfo]; issue_pgips [File.read path])
-        else panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
+        else Output.panic ("PGIP configuration file \"" ^ config_file() ^ "\" not found")
     end;
 end
 
@@ -1302,9 +1302,9 @@ fun process_pgip_tree xml =
                               else false
            end)
         | _ => raise PGIP "Invalid PGIP packet received")
-     handle (PGIP msg) =>
-            (error (msg ^ "\nPGIP error occured in XML text below:\n" ^
-                    (XML.string_of_tree xml))))
+     handle PGIP msg =>
+            error (msg ^ "\nPGIP error occured in XML text below:\n" ^
+                    (XML.string_of_tree xml)))
 
 val process_pgip = K () o process_pgip_tree o XML.tree_of_string
 
@@ -1336,9 +1336,8 @@ fun loop ready src =
 and handler (e,srco) =
     case (e,srco) of
         (XML_PARSE,SOME src) =>
-        panic "Invalid XML input, aborting" (* NB: loop OK for tty, but want exit on EOF *)
+        Output.panic "Invalid XML input, aborting" (* NB: loop OK for tty, but want exit on EOF *)
       | (PGIP_QUIT,_) => ()
-      | (ERROR,SOME src) => loop true src (* message already given *)
       | (Interrupt,SOME src) => (!error_fn "Interrupt during PGIP processing"; loop true src)
       | (Toplevel.UNDEF,SOME src) => (error "No working context defined"; loop true src) (* usually *)
       | (e,SOME src) => (error (Toplevel.exn_message e); loop true src)
@@ -1441,7 +1440,7 @@ fun init isar =
  (init_setup isar false;
   if isar then Isar.sync_main () else isa_restart ());
 
-fun init_pgip false = panic "PGIP not supported for Isabelle/classic mode."
+fun init_pgip false = Output.panic "PGIP not supported for Isabelle/classic mode."
   | init_pgip true = (init_setup true true; pgip_toplevel tty_src);
 
 

@@ -109,7 +109,7 @@ val _ = Context.add_setup
 
 (** proof commands **)
 
-fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
+fun err_if b msg = if b then error msg else ();
 
 fun assert_sane final =
   if final then Proof.assert_forward else Proof.assert_forward_or_chain;
@@ -147,8 +147,8 @@ fun calculate prep_rules final raw_rules int state =
         NONE => (true, Seq.single facts)
       | SOME calc => (false, Seq.map single (combine (calc @ facts))));
   in
-    err_if state (initial andalso final) "No calculation yet";
-    err_if state (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
+    err_if (initial andalso final) "No calculation yet";
+    err_if (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
     calculations |> Seq.map (fn calc => (print_calculation int (Proof.context_of state) calc;
         state |> maintain_calculation final calc))
   end;
@@ -170,7 +170,7 @@ fun collect final int state =
       | SOME thms => (false, thms));
     val calc = thms @ facts;
   in
-    err_if state (initial andalso final) "No calculation yet";
+    err_if (initial andalso final) "No calculation yet";
     print_calculation int (Proof.context_of state) calc;
     state |> maintain_calculation final calc
   end;

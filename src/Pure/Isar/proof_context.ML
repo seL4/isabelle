@@ -11,7 +11,6 @@ signature PROOF_CONTEXT =
 sig
   type context (*= Context.proof*)
   type export
-  exception CONTEXT of string * context
   val theory_of: context -> theory
   val init: theory -> context
   val set_body: bool -> context -> context
@@ -161,7 +160,6 @@ structure ProofContext: PROOF_CONTEXT =
 struct
 
 type context = Context.proof;
-exception CONTEXT = Context.PROOF;
 
 val theory_of = Context.theory_of_proof;
 val init = Context.init_proof;
@@ -289,10 +287,10 @@ fun context_tr' ctxt =
 
 local
 
-fun check_mixfix ctxt (x, _, mx) =
+fun check_mixfix (x, _, mx) =
   if mx <> NoSyn andalso mx <> Structure andalso
       (can Syntax.dest_internal x orelse can Syntax.dest_skolem x) then
-    raise CONTEXT ("Illegal mixfix syntax for internal/skolem constant " ^ quote x, ctxt)
+    error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
   else ();
 
 fun mixfix x NONE mx = (Syntax.fixedN ^ x, TypeInfer.mixfixT mx, Syntax.fix_mixfix x mx)
@@ -329,7 +327,7 @@ fun add_syntax decls ctxt = ctxt |> map_syntax (fn syntax =>
 
     val is_logtype = Sign.is_logtype thy;
     val structs' = structs @ List.mapPartial prep_struct decls;
-    val mxs = List.mapPartial (tap (check_mixfix ctxt) #> prep_mixfix) decls;
+    val mxs = List.mapPartial (tap check_mixfix #> prep_mixfix) decls;
     val (fixed, mxs_output) = Library.split_list (List.mapPartial prep_mixfix' decls);
 
     val extend =
@@ -408,11 +406,11 @@ val used_types = #3 o defaults_of;
 fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
 
 fun infer_type ctxt x =
-  (case try (transform_error (fn () =>
+  (case try (fn () =>
       Sign.infer_types (pp ctxt) (theory_of ctxt) (def_type ctxt false) (def_sort ctxt)
-        (used_types ctxt) true ([Free (x, dummyT)], TypeInfer.logicT))) () of
+        (used_types ctxt) true ([Free (x, dummyT)], TypeInfer.logicT)) () of
     SOME (Free (_, T), _) => T
-  | _ => raise CONTEXT ("Failed to infer type of fixed variable " ^ quote x, ctxt));
+  | _ => error ("Failed to infer type of fixed variable " ^ quote x));
 
 
 
@@ -421,12 +419,10 @@ fun infer_type ctxt x =
 local
 
 fun read_typ_aux read ctxt s =
-  transform_error (read (syn_of ctxt) (theory_of ctxt, def_sort ctxt)) s
-    handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
+  read (syn_of ctxt) (theory_of ctxt, def_sort ctxt) s;
 
 fun cert_typ_aux cert ctxt raw_T =
-  cert (theory_of ctxt) raw_T
-    handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
+  cert (theory_of ctxt) raw_T handle TYPE (msg, _, _) => error msg;
 
 in
 
@@ -445,11 +441,11 @@ end;
 val lookup_skolem = AList.lookup (op =) o fixes_of;
 fun get_skolem ctxt x = the_default x (lookup_skolem ctxt x);
 
-fun no_skolem internal ctxt x =
+fun no_skolem internal x =
   if can Syntax.dest_skolem x then
-    raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
+    error ("Illegal reference to internal Skolem constant: " ^ quote x)
   else if not internal andalso can Syntax.dest_internal x then
-    raise CONTEXT ("Illegal reference to internal variable: " ^ quote x, ctxt)
+    error ("Illegal reference to internal variable: " ^ quote x)
   else x;
 
 fun intern_skolem ctxt internal =
@@ -457,7 +453,7 @@ fun intern_skolem ctxt internal =
     fun intern (t as Free (x, T)) =
           if internal x then t
           else
-            (case lookup_skolem ctxt (no_skolem false ctxt x) of
+            (case lookup_skolem ctxt (no_skolem false x) of
               SOME x' => Free (x', T)
             | NONE => t)
       | intern (t $ u) = intern t $ intern u
@@ -546,7 +542,7 @@ fun norm_term ctxt schematic =
               in norm u' handle SAME => u' end
           | NONE =>
             if schematic then raise SAME
-            else raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
+            else error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
       | norm (f $ t) =
@@ -567,8 +563,8 @@ val prepare_dummies =
       in next := i; u end
   end;
 
-fun reject_dummies ctxt t = Term.no_dummy_patterns t
-  handle TERM _ => raise CONTEXT ("Illegal dummy pattern(s) in term", ctxt);
+fun reject_dummies t = Term.no_dummy_patterns t
+  handle TERM _ => error "Illegal dummy pattern(s) in term";
 
 
 (* read terms *)
@@ -584,12 +580,11 @@ fun gen_read' read app pattern schematic
     val sorts = append_env (def_sort ctxt) more_sorts;
     val used = used_types ctxt @ more_used;
   in
-    (transform_error (read (pp ctxt) (syn_of ctxt) (theory_of ctxt) (types, sorts, used)) s
-      handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
-        | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
+    (read (pp ctxt) (syn_of ctxt) (theory_of ctxt) (types, sorts, used) s
+      handle TERM (msg, _) => error msg)
     |> app (intern_skolem ctxt internal)
     |> app (if pattern then I else norm_term ctxt schematic)
-    |> app (if pattern then prepare_dummies else reject_dummies ctxt)
+    |> app (if pattern then prepare_dummies else reject_dummies)
   end;
 
 fun gen_read read app pattern schematic ctxt =
@@ -623,8 +618,8 @@ local
 fun gen_cert cert pattern schematic ctxt t = t
   |> (if pattern then I else norm_term ctxt schematic)
   |> (fn t' => cert (pp ctxt) (theory_of ctxt) t'
-    handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt)
-      | TERM (msg, _) => raise CONTEXT (msg, ctxt));
+    handle TYPE (msg, _, _) => error msg
+      | TERM (msg, _) => error msg);
 
 val certify_term = #1 ooo Sign.certify_term;
 val certify_prop = #1 ooo Sign.certify_prop;
@@ -824,7 +819,7 @@ end;
 fun simult_matches ctxt [] = []
   | simult_matches ctxt pairs =
       let
-        fun fail () = raise CONTEXT ("Pattern match failed!", ctxt);
+        fun fail () = error "Pattern match failed!";
 
         val maxidx = fold (fn (t1, t2) => fn i =>
           Int.max (Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2), i)) pairs ~1;
@@ -970,8 +965,7 @@ fun retrieve_thms _ pick ctxt (Fact s) =
       let
         val thy = theory_of ctxt;
         val th = Goal.prove thy [] [] (read_prop ctxt s) (K (ALLGOALS (some_fact_tac ctxt)))
-          handle ERROR_MESSAGE msg =>
-            raise CONTEXT (msg ^ "\nFailed to retrieve literal fact.", ctxt);
+          handle ERROR msg => cat_error msg "Failed to retrieve literal fact.";
       in pick "" [th] end
   | retrieve_thms from_thy pick ctxt xthmref =
       let
@@ -994,7 +988,7 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 (* valid_thms *)
 
 fun valid_thms ctxt (name, ths) =
-  (case try (transform_error (fn () => get_thms ctxt (Name name))) () of
+  (case try (fn () => get_thms ctxt (Name name)) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 
@@ -1078,13 +1072,13 @@ fun prep_vars prep_typ internal legacy =
       val x = Syntax.const_name raw_x raw_mx;
       val mx = Syntax.fix_mixfix raw_x raw_mx;
       val _ =
-        if not legacy andalso not (Syntax.is_identifier (no_skolem internal ctxt x)) then
-          raise CONTEXT ("Illegal variable name: " ^ quote x, ctxt)
+        if not legacy andalso not (Syntax.is_identifier (no_skolem internal x)) then
+          error ("Illegal variable name: " ^ quote x)
         else ();
 
       fun cond_tvars T =
         if internal then T
-        else Type.no_tvars T handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
+        else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
       val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
       val var = (x, opt_T, mx);
     in (var, ctxt |> declare_var var) end);
@@ -1104,7 +1098,7 @@ end;
 local
 
 fun no_dups _ [] = ()
-  | no_dups ctxt dups = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote dups, ctxt);
+  | no_dups ctxt dups = error ("Duplicate variable(s): " ^ commas_quote dups);
 
 fun gen_fixes prep raw_vars ctxt =
   let
@@ -1227,8 +1221,8 @@ fun mk_def ctxt args =
 
 fun cert_def ctxt eq =
   let
-    fun err msg = raise CONTEXT (msg ^
-      "\nThe error(s) above occurred in local definition: " ^ string_of_term ctxt eq, ctxt);
+    fun err msg = cat_error msg
+      ("The error(s) above occurred in local definition: " ^ string_of_term ctxt eq);
     val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
       handle TERM _ => err "Not a meta-equality (==)";
     val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
@@ -1282,11 +1276,11 @@ fun add_case _ ("", _) cases = cases
   | add_case _ (name, NONE) cases = rem_case name cases
   | add_case is_proper (name, SOME c) cases = (name, (c, is_proper)) :: rem_case name cases;
 
-fun prep_case ctxt name fxs c =
+fun prep_case name fxs c =
   let
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
       | replace [] ys = ys
-      | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
+      | replace (_ :: _) [] = error ("Too many parameters for case " ^ quote name);
     val RuleCases.Case {fixes, assumes, binds, cases} = c;
     val fixes' = replace fxs fixes;
     val binds' = map drop_schematic binds;
@@ -1294,7 +1288,7 @@ fun prep_case ctxt name fxs c =
     if null (fold (Term.add_tvarsT o snd) fixes []) andalso
       null (fold (fold Term.add_vars o snd) assumes []) then
         RuleCases.Case {fixes = fixes', assumes = assumes, binds = binds', cases = cases}
-    else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
+    else error ("Illegal schematic variable(s) in case " ^ quote name)
   end;
 
 fun fix (x, T) ctxt =
@@ -1323,8 +1317,8 @@ val apply_case = apfst fst oo case_result;
 
 fun get_case ctxt name xs =
   (case AList.lookup (op =) (cases_of ctxt) name of
-    NONE => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
-  | SOME (c, _) => prep_case ctxt name xs c);
+    NONE => error ("Unknown case: " ^ quote name)
+  | SOME (c, _) => prep_case name xs c);
 
 end;
 

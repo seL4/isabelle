@@ -324,8 +324,7 @@ fun allify_for_sg_term ctermify vs t =
 (* lookup type of a free var name from a list *)
 fun lookupfree vs vn  = 
     case Library.find_first (fn (n,ty) => n = vn) vs of 
-      NONE => raise ERROR_MESSAGE ("prepare_goal_export:lookupfree: " 
-                    ^ vn ^ " does not occur in the term")
+      NONE => error ("prepare_goal_export:lookupfree: " ^ vn ^ " does not occur in the term")
     | SOME x => x;
 in
 fun export_back (export {fixes = vs, assumes = hprems, 
@@ -523,7 +522,7 @@ fun assume_prems i th =
       val t = (prop_of th); 
       val gt = Logic.get_goal t i;
       val _ = case Term.strip_all_vars gt of [] => () 
-              | _ => raise ERROR_MESSAGE "assume_prems: goal has params"
+              | _ => error "assume_prems: goal has params"
       val body = gt;
       val prems = Logic.strip_imp_prems body;
       val concl = Logic.strip_imp_concl body;

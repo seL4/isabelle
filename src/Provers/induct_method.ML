@@ -53,11 +53,11 @@ val conjunction_congs = [all_conjunction, imp_conjunction];
 
 fun align_left msg xs ys =
   let val m = length xs and n = length ys
-  in if m < n then raise ERROR_MESSAGE msg else (Library.take (n, xs) ~~ ys) end;
+  in if m < n then error msg else (Library.take (n, xs) ~~ ys) end;
 
 fun align_right msg xs ys =
   let val m = length xs and n = length ys
-  in if m < n then raise ERROR_MESSAGE msg else (Library.drop (m - n, xs) ~~ ys) end;
+  in if m < n then error msg else (Library.drop (m - n, xs) ~~ ys) end;
 
 
 (* prep_inst *)
@@ -72,7 +72,7 @@ fun prep_inst thy align tune (tm, ts) =
             val ct = cert (tune t);
           in
             if Sign.typ_instance thy (#T (Thm.rep_cterm ct), xT) then SOME (cx, ct)
-            else raise ERROR_MESSAGE (Pretty.string_of (Pretty.block
+            else error (Pretty.string_of (Pretty.block
              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
               Display.pretty_cterm ct, Pretty.str " ::", Pretty.brk 1,
               Display.pretty_ctyp (#T (Thm.crep_cterm ct))]))

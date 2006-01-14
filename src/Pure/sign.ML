@@ -477,7 +477,7 @@ fun gen_read_typ' cert syn (thy, def_sort) str =
     val get_sort = TypeInfer.get_sort (tsig_of thy) def_sort (intern_sort thy);
     val T = intern_tycons thy (Syntax.read_typ thy syn get_sort (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
-  handle ERROR => error ("The error(s) above occurred in type " ^ quote str);
+  handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
 
 fun gen_read_typ cert (thy, def_sort) str =
   gen_read_typ' cert (syn_of thy) (thy, def_sort) str;
@@ -531,31 +531,29 @@ fun infer_types_simult pp thy def_type def_sort used freeze args =
     val typs =
       map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
 
-    fun infer ts = OK (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
+    fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
         (const_constraint thy) def_type def_sort (intern_const thy) (intern_tycons thy)
         (intern_sort thy) used freeze typs ts)
-      handle TYPE (msg, _, _) => Error msg;
+      handle TYPE (msg, _, _) => Exn (ERROR msg);
 
     val err_results = map infer termss;
-    val errs = List.mapPartial get_error err_results;
-    val results = List.mapPartial get_ok err_results;
+    val errs = List.mapPartial (fn Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
+    val results = List.mapPartial get_result err_results;
 
     val ambiguity = length termss;
-
     fun ambig_msg () =
-      if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level
-      then
-        error_msg "Got more than one parse tree.\n\
-          \Retry with smaller Syntax.ambiguity_level for more information."
-      else ();
+      if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level then
+        "Got more than one parse tree.\n\
+        \Retry with smaller Syntax.ambiguity_level for more information."
+      else "";
   in
-    if null results then (ambig_msg (); error (cat_lines errs))
+    if null results then (cat_error (ambig_msg ()) (cat_lines errs))
     else if length results = 1 then
       (if ambiguity > ! Syntax.ambiguity_level then
         warning "Fortunately, only one parse tree is type correct.\n\
           \You may still want to disambiguate your grammar or your input."
       else (); hd results)
-    else (ambig_msg (); error ("More than one term is type correct:\n" ^
+    else (cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
       cat_lines (map (Pretty.string_of_term pp) (List.concat (map fst results)))))
   end;
 
@@ -578,7 +576,7 @@ fun read_def_terms (thy, types, sorts) =
 fun simple_read_term thy T s =
   let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]
   in t end
-  handle ERROR => error ("The error(s) above occurred for term " ^ s);
+  handle ERROR msg => cat_error msg ("The error(s) above occurred for term " ^ s);
 
 fun read_term thy = simple_read_term thy TypeInfer.logicT;
 fun read_prop thy = simple_read_term thy propT;
@@ -630,7 +628,7 @@ fun gen_add_tyabbr prep_typ (a, vs, rhs, mx) thy =
       val syn' = Syntax.extend_type_gram [(a, length vs, mx)] syn;
       val a' = Syntax.type_name a mx;
       val abbr = (a', vs, prep_typ thy rhs)
-        handle ERROR => error ("in type abbreviation " ^ quote a');
+        handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
       val tsig' = Type.add_abbrevs naming [abbr] tsig;
     in (naming, syn', tsig', consts) end);
 
@@ -643,7 +641,7 @@ val add_tyabbrs_i = fold (gen_add_tyabbr certify_typ_syntax);
 fun gen_add_arities int_type prep_sort arities thy = thy |> map_tsig (fn tsig =>
   let
     fun prep_arity (a, Ss, S) = (int_type thy a, map (prep_sort thy) Ss, prep_sort thy S)
-      handle ERROR => error ("in arity for type " ^ quote a);
+      handle ERROR msg => cat_error msg ("in arity for type " ^ quote a);
     val tsig' = Type.add_arities (pp thy) (map prep_arity arities) tsig;
   in tsig' end);
 
@@ -655,8 +653,8 @@ val add_arities_i = gen_add_arities (K I) certify_sort;
 
 fun gen_syntax change_gram prep_typ prmode args thy =
   let
-    fun prep (c, T, mx) = (c, prep_typ thy T, mx)
-      handle ERROR => error ("in syntax declaration " ^ quote (Syntax.const_name c mx));
+    fun prep (c, T, mx) = (c, prep_typ thy T, mx) handle ERROR msg =>
+      cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
   in thy |> map_syn (change_gram (is_logtype thy) prmode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
@@ -677,7 +675,8 @@ fun gen_add_consts prep_typ raw_args thy =
   let
     val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (c, T, mx) = ((c, prepT T, mx) handle TYPE (msg, _, _) => error msg)
-      handle ERROR => error ("in declaration of constant " ^ quote (Syntax.const_name c mx));
+      handle ERROR msg =>
+        cat_error msg ("in declaration of constant " ^ quote (Syntax.const_name c mx));
     val args = map prep raw_args;
     val decls = args |> map (fn (c, T, mx) => (Syntax.const_name c mx, T));
   in

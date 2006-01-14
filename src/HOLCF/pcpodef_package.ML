@@ -53,8 +53,8 @@ fun read_term thy used s =
 
 fun cert_term thy _ t = Thm.cterm_of thy t handle TERM (msg, _) => error msg;
 
-fun err_in_cpodef name =
-  error ("The error(s) above occurred in cpodef " ^ quote name);
+fun err_in_cpodef msg name =
+  cat_error msg ("The error(s) above occurred in cpodef " ^ quote name);
 
 fun adm_const T = Const ("Adm.adm", (T --> HOLogic.boolT) --> HOLogic.boolT);
 fun mk_adm (x, T, P) = adm_const T $ absfree (x, T, P);
@@ -168,7 +168,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
       end;
   
   in (goal, if pcpo then pcpodef_result else cpodef_result) end
-  handle ERROR => err_in_cpodef name;
+  handle ERROR msg => err_in_cpodef msg name;
 
 (* cpodef_proof interface *)
 

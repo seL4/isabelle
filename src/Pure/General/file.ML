@@ -147,6 +147,6 @@ fun copy_dir from to = conditional (not (eq (from, to))) (fn () =>
 
 (* use ML files *)
 
-val use = use o platform_path;
+val use = Output.toplevel_errors (use o platform_path);
 
 end;

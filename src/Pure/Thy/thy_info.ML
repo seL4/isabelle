@@ -356,9 +356,10 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
         val req_parent = require_thy true true time (strict andalso keep_strict) keep_strict
           (name :: initiators);
 
-        val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
-          error (loader_msg "the error(s) above occurred while examining theory" [name] ^
-            (if null initiators then "" else required_by "\n" initiators));
+        val (current, (new_deps, parents)) = current_deps ml strict dir name
+          handle ERROR msg => cat_error msg
+            (loader_msg "the error(s) above occurred while examining theory" [name] ^
+              (if null initiators then "" else required_by "\n" initiators));
         val dir' = if_none (opt_path'' new_deps) dir;
         val (visited', parent_results) = foldl_map (req_parent dir') (name :: visited, parents);
 

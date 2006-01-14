@@ -587,7 +587,7 @@ val (finites,ind) = if is_finite then
                                 strip_tac 1,
                                 rtac (rewrite_rule axs_take_def finite_ind) 1,
                                 ind_prems_tac prems])
-  handle ERROR => (warning "Cannot prove infinite induction rule"; refl))
+  handle ERROR _ => (warning "Cannot prove infinite induction rule"; refl))
 end; (* local *)
 
 (* ----- theorem concerning coinduction ------------------------------------- *)

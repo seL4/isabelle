@@ -475,7 +475,7 @@ fun err_in_locale ctxt msg ids =
       if forall (equal "" o #1) ids then msg
       else msg ^ "\n" ^ Pretty.string_of (Pretty.block
         (Pretty.str "The error(s) above occurred in locale:" :: Pretty.brk 1 :: prt_ids));
-  in raise ProofContext.CONTEXT (err_msg, ctxt) end;
+  in error err_msg end;
 
 fun err_in_locale' ctxt msg ids' = err_in_locale ctxt msg (map fst ids');
 
@@ -668,7 +668,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     fun renaming (SOME x :: xs) (y :: ys) = (y, x) :: renaming xs ys
       | renaming (NONE :: xs) (y :: ys) = renaming xs ys
       | renaming [] _ = []
-      | renaming xs [] = raise ERROR_MESSAGE ("Too many arguments in renaming: " ^
+      | renaming xs [] = error ("Too many arguments in renaming: " ^
           commas (map (fn NONE => "_" | SOME x => quote (fst x)) xs));
 
     fun rename_parms top ren ((name, ps), (parms, mode)) =
@@ -749,7 +749,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
           let
             val (ids', parms', syn') = identify top e;
             val ren = renaming xs parms'
-              handle ERROR_MESSAGE msg => err_in_locale' ctxt msg ids';
+              handle ERROR msg => err_in_locale' ctxt msg ids';
 
             val ids'' = gen_distinct (eq_fst (op =)) (map (rename_parms top ren) ids');
             val parms'' = distinct (List.concat (map (#2 o #1) ids''));
@@ -869,7 +869,7 @@ fun activate_elems (((name, ps), mode), elems) ctxt =
     val thy = ProofContext.theory_of ctxt;
     val ((ctxt', _), res) =
         foldl_map (activate_elem (name = "")) ((ProofContext.qualified_names ctxt, mode), elems)
-      handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg [(name, map fst ps)]
+      handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)]
     val ctxt'' = if name = "" then ctxt'
           else let
               val ps' = map (fn (n, SOME T) => Free (n, T)) ps;
@@ -992,8 +992,7 @@ fun declare_elems prep_vars (ctxt, (((name, ps), Assumed _), elems)) =
       (case elems of
         Int es => foldl_map declare_int_elem (ctxt, es)
       | Ext e => foldl_map (declare_ext_elem prep_vars) (ctxt, [e]))
-      handle ProofContext.CONTEXT (msg, ctxt) =>
-        err_in_locale ctxt msg [(name, map fst ps)]
+      handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)]
     in (ctxt', propps) end
   | declare_elems _ (ctxt, ((_, Derived _), elems)) = (ctxt, []);
 
@@ -1102,8 +1101,7 @@ fun closeup _ false elem = elem
           in Term.list_all_free (frees, t) end;
 
         fun no_binds [] = []
-          | no_binds _ =
-              raise ProofContext.CONTEXT ("Illegal term bindings in locale element", ctxt);
+          | no_binds _ = error "Illegal term bindings in locale element";
       in
         (case elem of
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
@@ -1244,16 +1242,15 @@ end;
 
 local
 
-fun prep_name ctxt name =
-  if NameSpace.is_qualified name then
-    raise ProofContext.CONTEXT ("Illegal qualified name: " ^ quote name, ctxt)
+fun prep_name name =
+  if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
   else name;
 
 fun prep_facts _ _ ctxt (Int elem) =
       Element.map_ctxt_values I I (Thm.transfer (ProofContext.theory_of ctxt)) elem
   | prep_facts get intern ctxt (Ext elem) = elem |> Element.map_ctxt
      {var = I, typ = I, term = I,
-      name = prep_name ctxt,
+      name = prep_name,
       fact = get ctxt,
       attrib = Args.assignable o intern (ProofContext.theory_of ctxt)};
 

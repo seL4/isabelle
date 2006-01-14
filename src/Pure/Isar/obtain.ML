@@ -52,7 +52,7 @@ struct
 
 (** obtain_export **)
 
-fun obtain_export state parms rule cprops thm =
+fun obtain_export ctxt parms rule cprops thm =
   let
     val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
     val cparms = map (Thm.cterm_of thy) parms;
@@ -67,10 +67,10 @@ fun obtain_export state parms rule cprops thm =
     val bads = parms inter (Term.term_frees concl);
   in
     if not (null bads) then
-      raise Proof.STATE ("Conclusion contains obtained parameters: " ^
-        space_implode " " (map (ProofContext.string_of_term (Proof.context_of state)) bads), state)
+      error ("Conclusion contains obtained parameters: " ^
+        space_implode " " (map (ProofContext.string_of_term ctxt) bads))
     else if not (ObjectLogic.is_judgment thy concl) then
-      raise Proof.STATE ("Conclusion in obtained context must be object-logic judgments", state)
+      error "Conclusion in obtained context must be object-logic judgments"
     else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
   end;
 
@@ -92,6 +92,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
+    val thy = Proof.theory_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*obtain vars*)
@@ -103,7 +104,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
     val asm_props = List.concat (map (map fst) proppss);
-    val asms = map fst (Attrib.map_specs (prep_att (Proof.theory_of state)) raw_asms) ~~ proppss;
+    val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
@@ -129,7 +130,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
         Proof.fix_i (xs ~~ Ts)
-        #> Proof.assm_i (K (obtain_export state parms rule)) asms));
+        #> Proof.assm_i (K (obtain_export ctxt parms rule)) asms));
   in
     state
     |> Proof.enter_forward
@@ -157,14 +158,13 @@ end;
 
 local
 
-fun match_params state vars rule =
+fun match_params ctxt vars rule =
   let
-    val ctxt = Proof.context_of state;
-    val thy = Proof.theory_of state;
+    val thy = ProofContext.theory_of ctxt;
     val string_of_typ = ProofContext.string_of_typ ctxt;
     val string_of_term = setmp show_types true (ProofContext.string_of_term ctxt);
 
-    fun err msg th = raise Proof.STATE (msg ^ ":\n" ^ ProofContext.string_of_thm ctxt th, state);
+    fun err msg th = error (msg ^ ":\n" ^ ProofContext.string_of_thm ctxt th);
 
     val params = RuleCases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
     val m = length vars;
@@ -214,26 +214,23 @@ fun gen_guess prep_vars raw_vars int state =
         [prem] =>
           if Thm.concl_of th aconv thesis andalso
             Logic.strip_assums_concl prem aconv thesis then ()
-          else raise Proof.STATE ("Guessed a different clause:\n" ^
-            ProofContext.string_of_thm ctxt th, state)
-      | [] => raise Proof.STATE ("Goal solved -- nothing guessed.", state)
-      | _ => raise Proof.STATE ("Guess split into several cases:\n" ^
-        ProofContext.string_of_thm ctxt th, state));
+          else error ("Guessed a different clause:\n" ^ ProofContext.string_of_thm ctxt th)
+      | [] => error "Goal solved -- nothing guessed."
+      | _ => error ("Guess split into several cases:\n" ^ ProofContext.string_of_thm ctxt th));
 
     fun guess_context raw_rule =
       let
-        val (parms, rule) = match_params state (map (fn (x, T, _) => (x, T)) vars) raw_rule;
+        val (parms, rule) = match_params ctxt (map (fn (x, T, _) => (x, T)) vars) raw_rule;
         val (bind, _) = ProofContext.bind_fixes (map #1 parms) ctxt;
         val ts = map (bind o Free) parms;
         val ps = map dest_Free ts;
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
           |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), ([], [])));
-        val _ = conditional (null asms) (fn () =>
-          raise Proof.STATE ("Trivial result -- nothing guessed", state));
+        val _ = conditional (null asms) (fn () => error "Trivial result -- nothing guessed");
       in
         Proof.fix_i (map (apsnd SOME) parms)
-        #> Proof.assm_i (K (obtain_export state ts rule)) [(("", []), asms)]
+        #> Proof.assm_i (K (obtain_export ctxt ts rule)) [(("", []), asms)]
         #> Proof.add_binds_i AutoBind.no_facts
       end;
 

@@ -179,8 +179,7 @@ fun delims_of xprods =
 datatype mfix = Mfix of string * typ * string * int list * int;
 
 fun err_in_mfix msg (Mfix (sy, _, const, _, _)) =
-  error ((if msg = "" then "" else msg ^ "\n") ^
-    "in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
+  cat_error msg ("in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
 
 
 (* typ_to_nonterm *)
@@ -284,7 +283,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
       | logify_types _ a = a;
 
 
-    val raw_symbs = read_mixfix sy handle ERROR => err_in_mfix "" mfix;
+    val raw_symbs = read_mixfix sy handle ERROR msg => err_in_mfix msg mfix;
     val args = List.filter (fn Argument _ => true | _ => false) raw_symbs;
     val (const', typ', parse_rules) =
       if not (exists is_index args) then (const, typ, [])

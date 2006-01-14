@@ -20,7 +20,7 @@ by (pc_tac [] 1  THEN  fold_tac basic_defs);   (*puts in fst and snd*)
 result();
 writeln"first solution is fst;  backtracking gives snd";
 back(); 
-back() handle ERROR => writeln"And there are indeed no others";  
+back() handle ERROR _ => writeln"And there are indeed no others";  
 
 
 writeln"Double negation of the Excluded Middle";

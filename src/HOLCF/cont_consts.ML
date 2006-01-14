@@ -72,7 +72,7 @@ fun cfun_arity (Type(n,[_,T])) = if n = cfun_arrow then 1+cfun_arity T else 0
 fun is_contconst (_,_,NoSyn   ) = false
 |   is_contconst (_,_,Binder _) = false
 |   is_contconst (c,T,mx      ) = cfun_arity T >= Syntax.mixfix_args mx
-                         handle ERROR => error ("in mixfix annotation for " ^
+                         handle ERROR msg => cat_error msg ("in mixfix annotation for " ^
                                                quote (Syntax.const_name c mx));
 
 

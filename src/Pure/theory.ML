@@ -163,8 +163,8 @@ fun assert_super thy1 thy2 =
 
 (* prepare axioms *)
 
-fun err_in_axm name =
-  error ("The error(s) above occurred in axiom " ^ quote name);
+fun err_in_axm msg name =
+  cat_error msg ("The error(s) above occurred in axiom " ^ quote name);
 
 fun no_vars pp tm =
   (case (Term.term_vars tm, Term.term_tvars tm) of
@@ -190,7 +190,7 @@ fun read_def_axm (thy, types, sorts) used (name, str) =
     val ts = Syntax.read thy (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
     val (t, _) = Sign.infer_types (Sign.pp thy) thy types sorts used true (ts, propT);
   in cert_axm thy (name, t) end
-  handle ERROR => err_in_axm name;
+  handle ERROR msg => err_in_axm msg name;
 
 fun read_axm thy name_str = read_def_axm (thy, K NONE, K NONE) [] name_str;
 
@@ -199,7 +199,7 @@ fun inferT_axm thy (name, pre_tm) =
     val pp = Sign.pp thy;
     val (t, _) = Sign.infer_types pp thy (K NONE) (K NONE) [] true ([pre_tm], propT);
   in (name, no_vars pp t) end
-  handle ERROR => err_in_axm name;
+  handle ERROR msg => err_in_axm msg name;
 
 
 (* add_axioms(_i) *)
@@ -309,7 +309,7 @@ fun check_def thy overloaded (bname, tm) defs =
     defs |> Defs.define (Sign.the_const_type thy)
       name (prep_const thy const) (map (prep_const thy) rhs_consts)
   end
-  handle ERROR => error (Pretty.string_of (Pretty.block
+  handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
     Pretty.fbrk, Pretty.quote (Pretty.term (Sign.pp thy) tm)]));
 

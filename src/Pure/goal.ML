@@ -123,8 +123,8 @@ fun prove_multi thy xs asms props tac =
     val fixed_tfrees = fold (Term.add_tfreesT o #2) fixed_frees [];
     val params = List.mapPartial (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
 
-    fun err msg = raise ERROR_MESSAGE
-      (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
+    fun err msg = cat_error msg
+      ("The error(s) above occurred for the goal statement:\n" ^
         Sign.string_of_term thy (Term.list_all_free (params, statement)));
 
     fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm t)
@@ -165,7 +165,7 @@ fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
 fun prove_raw casms cprop tac =
   (case SINGLE (tac (map (norm_hhf o Thm.assume) casms)) (init cprop) of
     SOME th => Drule.implies_intr_list casms (finish th)
-  | NONE => raise ERROR_MESSAGE "Tactic failed.");
+  | NONE => error "Tactic failed.");
 
 
 (* SELECT_GOAL *)

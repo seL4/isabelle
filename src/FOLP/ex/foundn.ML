@@ -92,7 +92,7 @@ result();
 goal (theory "IFOLP") "?p : EX y. ALL x. x=y";
 by (rtac exI 1);
 by (rtac allI 1);
-by (rtac refl 1) handle ERROR => writeln"Failed, as expected";  
+by (rtac refl 1) handle ERROR _ => writeln"Failed, as expected";  
 getgoal 1; 
 
 

@@ -10,7 +10,6 @@ sig
   type context (*= Context.proof*)
   type method (*= Method.method*)
   type state
-  exception STATE of string * state
   val init: context -> state
   val level: state -> int
   val assert_bottom: bool -> state -> state
@@ -164,8 +163,6 @@ and goal =
       (thm list list -> state -> state Seq.seq) *
       (thm list list -> theory -> theory)};
 
-exception STATE of string * state;
-
 fun make_goal (statement, using, goal, before_qed, after_qed) =
   Goal {statement = statement, using = using, goal = goal,
     before_qed = before_qed, after_qed = after_qed};
@@ -189,15 +186,15 @@ fun map_current f (State st) = State (Stack.map (map_node f) st);
 
 fun open_block (State st) = State (Stack.push st);
 
-fun close_block (state as State st) = State (Stack.pop st)
-  handle Empty => raise STATE ("Unbalanced block parentheses", state);
+fun close_block (State st) = State (Stack.pop st)
+  handle Empty => error "Unbalanced block parentheses";
 
 fun level (State st) = Stack.level st;
 
 fun assert_bottom b state =
   let val b' = (level state <= 2) in
-    if b andalso not b' then raise STATE ("Not at bottom of proof!", state)
-    else if not b andalso b' then raise STATE ("Already at bottom of proof!", state)
+    if b andalso not b' then error "Not at bottom of proof!"
+    else if not b andalso b' then error "Already at bottom of proof!"
     else state
   end;
 
@@ -226,11 +223,11 @@ val get_facts = #facts o current;
 
 fun the_facts state =
   (case get_facts state of SOME facts => facts
-  | NONE => raise STATE ("No current facts available", state));
+  | NONE => error "No current facts available");
 
 fun the_fact state =
   (case the_facts state of [thm] => thm
-  | _ => raise STATE ("Single theorem expected", state));
+  | _ => error "Single theorem expected");
 
 fun put_facts facts =
   map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
@@ -258,8 +255,7 @@ val mode_name = (fn Forward => "state" | Chain => "chain" | Backward => "prove")
 fun assert_mode pred state =
   let val mode = get_mode state in
     if pred mode then state
-    else raise STATE ("Illegal application of proof command in "
-      ^ quote (mode_name mode) ^ " mode", state)
+    else error ("Illegal application of proof command in " ^ quote (mode_name mode) ^ " mode")
   end;
 
 val assert_forward = assert_mode (equal Forward);
@@ -278,12 +274,12 @@ val enter_backward = put_mode Backward;
 fun current_goal state =
   (case current state of
     {context, goal = SOME (Goal goal), ...} => (context, goal)
-  | _ => raise STATE ("No current goal!", state));
+  | _ => error "No current goal!");
 
 fun assert_current_goal g state =
   let val g' = can current_goal state in
-    if g andalso not g' then raise STATE ("No goal in this block!", state)
-    else if not g andalso g' then raise STATE ("Goal present in this block!", state)
+    if g andalso not g' then error "No goal in this block!"
+    else if not g andalso g' then error "Goal present in this block!"
     else state
   end;
 
@@ -311,8 +307,7 @@ local
   fun find i state =
     (case try current_goal state of
       SOME (ctxt, goal) => (ctxt, (i, goal))
-    | NONE => find (i + 1) (close_block state
-        handle STATE _ => raise STATE ("No goal present", state)));
+    | NONE => find (i + 1) (close_block state handle ERROR _ => error "No goal present"));
 in val find_goal = find 0 end;
 
 fun get_goal state =
@@ -394,7 +389,7 @@ fun goal_cases st =
 
 fun check_theory thy state =
   if subthy (thy, theory_of state) then state
-  else raise STATE ("Bad theory of method result: " ^ Context.str_of_thy thy, state);
+  else error ("Bad theory of method result: " ^ Context.str_of_thy thy);
 
 fun apply_method current_context meth_fun state =
   let
@@ -466,23 +461,22 @@ end;
 fun conclude_goal state goal propss =
   let
     val ctxt = context_of state;
-    fun err msg = raise STATE (msg, state);
 
     val ngoals = Thm.nprems_of goal;
     val _ = conditional (ngoals > 0) (fn () =>
-      err (Pretty.string_of (Pretty.chunks
+      error (Pretty.string_of (Pretty.chunks
         (pretty_goals_local ctxt "" (true, ! show_main_goal) (! Display.goals_limit) goal @
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
     val {hyps, thy, ...} = Thm.rep_thm goal;
     val bad_hyps = fold (remove (op aconv)) (ProofContext.assms_of ctxt) hyps;
-    val _ = conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
+    val _ = conditional (not (null bad_hyps)) (fn () => error ("Additional hypotheses:\n" ^
         cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
 
     val th = Goal.conclude goal;
     val _ = conditional (not (Pattern.matches thy
         (Logic.mk_conjunction_list2 propss, Thm.prop_of th))) (fn () =>
-      err ("Proved a different theorem:\n" ^ ProofContext.string_of_thm ctxt th));
+      error ("Proved a different theorem:\n" ^ ProofContext.string_of_thm ctxt th));
   in Drule.conj_elim_precise (map length propss) th end;
 
 
@@ -759,8 +753,8 @@ fun goal_names target name names =
 
 fun check_tvars props state =
   (case fold Term.add_tvars props [] of [] => ()
-  | tvars => raise STATE ("Goal statement contains illegal schematic type variable(s): " ^
-      commas (map (ProofContext.string_of_typ (context_of state) o TVar) tvars), state));
+  | tvars => error ("Goal statement contains illegal schematic type variable(s): " ^
+      commas (map (ProofContext.string_of_typ (context_of state) o TVar) tvars)));
 
 fun check_vars props state =
   (case fold Term.add_vars props [] of [] => ()
@@ -873,9 +867,9 @@ fun global_goal print_results prep_att prepp
       before_qed (K Seq.single, after_qed') propp
   end;
 
-fun check_result msg state sq =
+fun check_result msg sq =
   (case Seq.pull sq of
-    NONE => raise STATE (msg, state)
+    NONE => error msg
   | SOME res => Seq.cons res);
 
 fun global_qeds txt =
@@ -886,11 +880,10 @@ fun global_qeds txt =
     |> Seq.map (rpair (context_of state)))
   |> Seq.DETERM;   (*backtracking may destroy theory!*)
 
-fun global_qed txt state =
-  state
-  |> global_qeds txt
-  |> check_result "Failed to finish proof" state
-  |> Seq.hd;
+fun global_qed txt =
+  global_qeds txt
+  #> check_result "Failed to finish proof"
+  #> Seq.hd;
 
 
 (* concluding steps *)
@@ -903,13 +896,12 @@ val local_immediate_proof = local_terminal_proof (Method.this_text, NONE);
 val local_done_proof = proof (SOME Method.done_text) #> Seq.maps (local_qed (NONE, false));
 fun local_skip_proof int = local_terminal_proof (Method.sorry_text int, NONE);
 
-fun global_term_proof immed (text, opt_text) state =
-  state
-  |> proof (SOME text)
-  |> check_result "Terminal proof method failed" state
-  |> Seq.maps (global_qeds (opt_text, immed))
-  |> check_result "Failed to finish proof (after successful terminal method)" state
-  |> Seq.hd;
+fun global_term_proof immed (text, opt_text) =
+  proof (SOME text)
+  #> check_result "Terminal proof method failed"
+  #> Seq.maps (global_qeds (opt_text, immed))
+  #> check_result "Failed to finish proof (after successful terminal method)"
+  #> Seq.hd;
 
 val global_terminal_proof = global_term_proof true;
 val global_default_proof = global_terminal_proof (Method.default_text, NONE);
@@ -944,7 +936,6 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       (Seq.pull oo local_skip_proof) true
       |> setmp testing true
       |> setmp proofs 0
-      |> transform_error
       |> capture;
 
     fun after_qed' results =
@@ -956,7 +947,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     |> K int ? (fn goal_state =>
       (case test_proof goal_state of
         Result (SOME _) => goal_state
-      | Result NONE => raise STATE (fail_msg (context_of goal_state), goal_state)
+      | Result NONE => error (fail_msg (context_of goal_state))
       | Exn Interrupt => raise Interrupt
       | Exn exn => raise EXCEPTION (exn, fail_msg (context_of goal_state))))
   end;

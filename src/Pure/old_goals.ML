@@ -220,7 +220,7 @@ fun print_sign_exn_unit thy e =
    | e => raise e;
 
 (*Prints an exception, then fails*)
-fun print_sign_exn thy e = (print_sign_exn_unit thy e; raise ERROR);
+fun print_sign_exn thy e = (print_sign_exn_unit thy e; raise ERROR "");
 
 (** the prove_goal.... commands
     Prove theorem using the listed tactics; check it has the specified form.
@@ -252,7 +252,7 @@ and prove_goalw_cterm_nocheck rths chorn =
 fun prove_goalw thy rths agoal tacsf =
   let val chorn = read_cterm thy (agoal, propT)
   in prove_goalw_cterm_general true rths chorn tacsf end
-  handle ERROR => error (*from read_cterm?*)
+  handle ERROR msg => cat_error msg (*from read_cterm?*)
                 ("The error(s) above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
@@ -365,7 +365,7 @@ val goalw_cterm = agoalw_cterm false;
 (*Version taking the goal as a string*)
 fun agoalw atomic thy rths agoal =
     agoalw_cterm atomic rths (read_cterm thy (agoal, propT))
-    handle ERROR => error (*from type_assign, etc via prepare_proof*)
+    handle ERROR msg => cat_error msg (*from type_assign, etc via prepare_proof*)
         ("The error(s) above occurred for " ^ quote agoal);
 
 val goalw = agoalw false;

@@ -93,8 +93,8 @@ fun read_term thy used s =
 
 fun cert_term thy _ t = Thm.cterm_of thy t handle TERM (msg, _) => error msg;
 
-fun err_in_typedef name =
-  error ("The error(s) above occurred in typedef " ^ quote name);
+fun err_in_typedef msg name =
+  cat_error msg ("The error(s) above occurred in typedef " ^ quote name);
 
 fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
@@ -224,7 +224,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal) |> typedef_result;
 
   in (cset, goal, goal_pat, typedef_result) end
-  handle ERROR => err_in_typedef name;
+  handle ERROR msg => err_in_typedef msg name;
 
 
 (* add_typedef interfaces *)
@@ -237,8 +237,8 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val (cset, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    val non_empty = Goal.prove thy [] [] goal (K tac) handle ERROR_MESSAGE msg =>
-      error (msg ^ "\nFailed to prove non-emptiness of " ^ quote (string_of_cterm cset));
+    val non_empty = Goal.prove thy [] [] goal (K tac) handle ERROR msg =>
+      cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
     val ((thy', _), result) = (thy, non_empty) |> typedef_result;
   in (thy', result) end;
 

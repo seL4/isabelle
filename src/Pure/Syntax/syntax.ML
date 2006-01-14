@@ -447,8 +447,8 @@ fun read_pattern thy is_logtype syn (root, str) =
     (case read_asts thy is_logtype syn true root str of
       [ast] => constify ast
     | _ => error ("Syntactically ambiguous input: " ^ quote str))
-  end handle ERROR =>
-    error ("The error(s) above occurred in translation pattern " ^
+  end handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in translation pattern " ^
       quote str);
 
 
