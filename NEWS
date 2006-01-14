@@ -333,6 +333,24 @@ Tactic.prove).  Note that OldGoals.prove_goalw_cterm has long been
 obsolete, it is ill-behaved in a local proof context (e.g. with local
 fixes/assumes or in a locale context).
 
+* ML/Isar: simplified treatment of user-level errors, using exception
+ERROR of string uniformly.  Function now error merely raises ERROR,
+without any side effect on output channels.  The Isar toplevel takes
+care of proper display of ERROR exceptions.  ML code may use plain
+handle/can/try; cat_error may be used to concatenate errors like this:
+
+  ... handle ERROR msg => cat_error msg "..."
+
+Toplevel ML code (run directly or through the Isar toplevel) may be
+embedded into the Isar exception display/debug facilities as follows:
+
+  Isar.toplevel (fn () => ...)
+
+INCOMPATIBILITY, removed special transform_error facilities, removed
+obsolete variants of user-level exceptions (ERROR_MESSAGE,
+Context.PROOF, ProofContext.CONTEXT, Proof.STATE, ProofHistory.FAIL)
+-- use plain ERROR instead.
+
 * Pure/Isar: Toplevel.theory_to_proof admits transactions that modify
 the theory before entering a proof state.  Transactions now always see
 a quasi-functional intermediate checkpoint, both in interactive and
