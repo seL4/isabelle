@@ -86,7 +86,7 @@ fun use_dir root build modes reset info doc doc_graph doc_versions
          (dumping dump) (get_rpath rpath) verbose;
        ThyInfo.time_use root;
        finish ()))) ()
-  handle exn => (writeln (Toplevel.exn_message exn); exit 1);
+  handle exn => (Output.error_msg (Toplevel.exn_message exn); exit 1);
 
 
 end;

@@ -243,7 +243,7 @@ fun try scan xs = scan xs handle MORE _ => raise FAIL NONE | ABORT _ => raise FA
 fun force scan xs = scan xs handle MORE _ => raise FAIL NONE;
 fun prompt str scan xs = scan xs handle MORE NONE => raise MORE (SOME str);
 fun catch scan xs = scan xs handle ABORT msg => raise FAIL (SOME msg);
-fun error scan xs = scan xs handle ABORT msg => Output.error msg;
+fun error scan xs = scan xs handle ABORT msg => Library.error msg;
 
 
 (* finite scans *)
@@ -284,7 +284,7 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (error_msg (if_none msg "Syntax error."); drain_with recover inp);
+        (Output.error_msg (if_none msg "Syntax error."); drain_with recover inp);
 
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
