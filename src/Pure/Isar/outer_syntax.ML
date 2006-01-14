@@ -15,6 +15,7 @@ sig
       val loop: unit -> unit
       val sync_main: unit -> unit
       val sync_loop: unit -> unit
+      val toplevel: (unit -> 'a) -> 'a
     end;
 end;
 
@@ -271,7 +272,7 @@ fun try_ml_file name time =
     else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
-fun run_thy name path =
+fun run_thy name path = Output.toplevel_errors (fn () =>
   let
     val text = Source.of_list (Library.untabify (explode (File.read path)));
     val _ = Present.init_theory name;
@@ -287,7 +288,7 @@ fun run_thy name path =
     IsarOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
     |> Buffer.content
     |> Present.theory_output name
-  end;
+  end) ();
 
 in
 
@@ -327,6 +328,7 @@ struct
   fun loop () = gen_loop false false;
   fun sync_main () = gen_main true true;
   fun sync_loop () = gen_loop true true;
+  val toplevel = Toplevel.program;
 end;
 
 
