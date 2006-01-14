@@ -142,7 +142,7 @@ val not_refl_disj_D = thm"meson_not_refl_disj_D";
 
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
-(debug ("refl_clause_aux " ^ Int.toString n ^ " " ^ string_of_thm th);
+(Output.debug ("refl_clause_aux " ^ Int.toString n ^ " " ^ string_of_thm th);
        case HOLogic.dest_Trueprop (concl_of th) of
 	  (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) => 
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)

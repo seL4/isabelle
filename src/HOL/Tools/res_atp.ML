@@ -91,7 +91,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
             val probfile = prob_pathname n
             val time = Int.toString (!time_limit)
           in
-            debug ("problem file in watcher_call_provers is " ^ probfile);
+            Output.debug ("problem file in watcher_call_provers is " ^ probfile);
             (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
               versions of Unix.execute treat them differently!*)
             (*options are separated by Watcher.setting_sep, currently #"%"*)
@@ -104,7 +104,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
                       then space_implode "%" (!custom_spass) ^
                            "%-DocProof%-TimeLimit=" ^ time
                       else "-DocProof%-SOS%-FullRed=0%-TimeLimit=" ^ time (*Auto mode*)
-                  val _ = debug ("SPASS option string is " ^ optionline)
+                  val _ = Output.debug ("SPASS option string is " ^ optionline)
                   val _ = helper_path "SPASS_HOME" "SPASS"
                     (*We've checked that SPASS is there for ATP/spassshell to run.*)
               in 
@@ -135,7 +135,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     val atp_list = make_atp_list sg_terms 1
   in
     Watcher.callResProvers(childout,atp_list);
-    debug "Sent commands to watcher!"
+    Output.debug "Sent commands to watcher!"
   end
 
 (*We write out problem files for each subgoal. Argument pf generates filenames,
@@ -144,13 +144,13 @@ fun write_problem_files pf (ctxt,th)  =
   let val prems = Thm.prems_of th
       val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
               (*FIXME: hack!! need to consider relevance for all prems*)
-      val _ = debug ("claset and simprules total clauses = " ^ 
+      val _ = Output.debug ("claset and simprules total clauses = " ^ 
                      Int.toString (Array.length clause_arr))
       val thy = ProofContext.theory_of ctxt
       val classrel_clauses = if !ResClause.keep_types then ResClause.classrel_clauses_thy thy else []
-      val _ = debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
+      val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
       val arity_clauses = if !ResClause.keep_types then ResClause.arity_clause_thy thy else []
-      val _ = debug ("arity clauses = " ^ Int.toString (length arity_clauses))
+      val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val write = if !prover = "spass" then dfg_inputs_tfrees else tptp_inputs_tfrees
       fun writenext n =
 	if n=0 then []
@@ -171,10 +171,10 @@ fun kill_last_watcher () =
     (case !last_watcher_pid of 
          NONE => ()
        | SOME (_, childout, pid, files) => 
-	  (debug ("Killing old watcher, pid = " ^ string_of_pid pid);
+	  (Output.debug ("Killing old watcher, pid = " ^ string_of_pid pid);
 	   Watcher.killWatcher pid;  
 	   ignore (map (try OS.FileSys.remove) files)))
-     handle OS.SysErr _ => debug "Attempt to kill watcher failed";
+     handle OS.SysErr _ => Output.debug "Attempt to kill watcher failed";
 
 (*writes out the current clasimpset to a tptp file;
   turns off xsymbol at start of function, restoring it at end    *)
@@ -188,8 +188,8 @@ val isar_atp = setmp print_mode []
       val (childin, childout, pid) = Watcher.createWatcher (th, clause_arr)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
-      debug ("problem files: " ^ space_implode ", " files); 
-      debug ("pid: " ^ string_of_pid pid);
+      Output.debug ("problem files: " ^ space_implode ", " files); 
+      Output.debug ("pid: " ^ string_of_pid pid);
       watcher_call_provers (sign_of_thm th) (Thm.prems_of th) (childin, childout, pid)
     end);
 
@@ -207,17 +207,16 @@ val isar_atp_writeonly = setmp print_mode []
 val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
   let
     val proof = Toplevel.proof_of state
-    val (ctxt, (_, goal)) = Proof.get_goal proof
-        handle Proof.STATE _ => error "No goal present";
+    val (ctxt, (_, goal)) = Proof.get_goal proof;
     val thy = ProofContext.theory_of ctxt;
   in
-    debug ("subgoals in isar_atp:\n" ^ 
+    Output.debug ("subgoals in isar_atp:\n" ^ 
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));
-    debug ("number of subgoals in isar_atp: " ^ Int.toString (Thm.nprems_of goal));
-    debug ("current theory: " ^ Context.theory_name thy);
+    Output.debug ("number of subgoals in isar_atp: " ^ Int.toString (Thm.nprems_of goal));
+    Output.debug ("current theory: " ^ Context.theory_name thy);
     hook_count := !hook_count +1;
-    debug ("in hook for time: " ^ Int.toString (!hook_count));
+    Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
     ResClause.init thy;
     if !destdir = "" andalso !time_limit > 0 then isar_atp (ctxt, goal)
     else isar_atp_writeonly (ctxt, goal)

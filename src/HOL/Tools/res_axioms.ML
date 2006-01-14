@@ -349,7 +349,7 @@ fun rules_of_claset cs =
       val intros = safeIs @ hazIs
       val elims  = map Classical.classical_rule (safeEs @ hazEs)
   in
-     debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 
+     Output.debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 
             " elims: " ^ Int.toString(length elims));
      if tagging_enabled 
      then map pairname (map tag_intro intros @ map tag_elim elims)
@@ -360,7 +360,7 @@ fun rules_of_simpset ss =
   let val ({rules,...}, _) = rep_ss ss
       val simps = Net.entries rules
   in 
-      debug ("rules_of_simpset: " ^ Int.toString(length simps));
+      Output.debug ("rules_of_simpset: " ^ Int.toString(length simps));
       map (fn r => (#name r, #thm r)) simps
   end;
 
@@ -421,10 +421,10 @@ fun clausify_rules_pairs_aux result [] = result
   | clausify_rules_pairs_aux result ((name,th)::ths) =
       clausify_rules_pairs_aux (clausify_axiom_pairs (name,th) :: result) ths
       handle THM (msg,_,_) =>  
-	      (debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
+	      (Output.debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
 	       clausify_rules_pairs_aux result ths)
 	 |  ResClause.CLAUSE (msg,t) => 
-	      (debug ("Cannot clausify " ^ name ^ ": " ^ msg ^
+	      (Output.debug ("Cannot clausify " ^ name ^ ": " ^ msg ^
 		      ": " ^ TermLib.string_of_term t); 
 	       clausify_rules_pairs_aux result ths)
 
@@ -433,10 +433,10 @@ fun clausify_rules_pairs_auxH result [] = result
   | clausify_rules_pairs_auxH result ((name,th)::ths) =
       clausify_rules_pairs_auxH (clausify_axiom_pairsH (name,th) :: result) ths
       handle THM (msg,_,_) =>  
-	      (debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
+	      (Output.debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
 	       clausify_rules_pairs_auxH result ths)
 	 |  ResHolClause.LAM2COMB (t) => 
-	      (debug ("Cannot clausify "  ^ TermLib.string_of_term t); 
+	      (Output.debug ("Cannot clausify "  ^ TermLib.string_of_term t); 
 	       clausify_rules_pairs_auxH result ths)
 
 

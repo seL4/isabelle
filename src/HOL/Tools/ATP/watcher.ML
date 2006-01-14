@@ -190,7 +190,7 @@ fun pollParentInput (fromParentIOD, fromParentStr, toParentStr) =
 fun number_from_filename s =
   case String.tokens (not o Char.isDigit) s of
       [] => (trace ("\nWatcher could not read subgoal nunber! " ^ s); 
-             raise ERROR)
+             error "")
     | numbers => valOf (Int.fromString (List.last numbers));
 
 (* call ATP.  Settings should be a list of strings  ["-t300", "-m100000"]*)
@@ -350,16 +350,16 @@ fun createWatcher (th, clause_arr) =
 	  (goals_being_watched := !goals_being_watched - 1;
 	   if !goals_being_watched = 0
 	   then 
-	     (debug ("\nReaping a watcher, childpid = " ^ string_of_pid childpid);
+	     (Output.debug ("\nReaping a watcher, childpid = " ^ string_of_pid childpid);
 	      killWatcher childpid (*???; reapWatcher (childpid, childin, childout)*) )
 	    else ())
-     val _ = debug ("subgoals forked to createWatcher: "^ prems_string_of th);
+     val _ = Output.debug ("subgoals forked to createWatcher: "^ prems_string_of th);
      fun proofHandler n = 
        let val outcome = TextIO.inputLine childin
 	   val probfile = TextIO.inputLine childin
 	   val sgno = number_from_filename probfile
 	   val text = string_of_subgoal th sgno
-	   val _ = debug ("In signal handler. outcome = \"" ^ outcome ^ 
+	   val _ = Output.debug ("In signal handler. outcome = \"" ^ outcome ^ 
 		        "\"\nprobfile = " ^ probfile ^
 		        "\nGoals being watched: "^  Int.toString (!goals_being_watched))
        in 
