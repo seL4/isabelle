@@ -1092,7 +1092,7 @@ val _ = Context.add_setup
       ("test",
        "fun gen_fun_type _ G i =\n\
        \  let\n\
-       \    val f = ref (fn x => raise ERROR);\n\
+       \    val f = ref (fn x => raise Match);\n\
        \    val _ = (f := (fn x =>\n\
        \      let\n\
        \        val y = G i;\n\

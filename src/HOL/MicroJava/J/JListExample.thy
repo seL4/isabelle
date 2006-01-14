@@ -72,7 +72,7 @@ fun new_addr p none loc hp =
   in nr 0 end;
 *}
 
-  "arbitrary" ("(raise ERROR)")
+  "arbitrary" ("(raise Match)")
   "arbitrary" :: "val" ("{* Unit *}")
   "arbitrary" :: "cname" ("\"\"")
 
