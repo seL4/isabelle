@@ -53,15 +53,26 @@ sig
   val is_none: 'a option -> bool
   val perhaps: ('a -> 'a option) -> 'a -> 'a
 
-  exception EXCEPTION of exn * string
-  exception ERROR
+  (*exceptions*)
   val try: ('a -> 'b) -> 'a -> 'b option
   val can: ('a -> 'b) -> 'a -> bool
+  exception EXCEPTION of exn * string
+  val do_transform_failure: bool ref
+  val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
   datatype 'a result = Result of 'a | Exn of exn
   val capture: ('a -> 'b) -> 'a -> 'b result
   val release: 'a result -> 'a
   val get_result: 'a result -> 'a option
   val get_exn: 'a result -> exn option
+
+  (*errors*)
+  exception ERROR of string
+  val error: string -> 'a
+  val cat_error: string -> string -> 'a
+  val sys_error: string -> 'a
+  val assert: bool -> string -> unit
+  val deny: bool -> string -> unit
+  val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
 
   (*pairs*)
   val pair: 'a -> 'b -> 'a * 'b
@@ -164,9 +175,10 @@ sig
   val split_lines: string -> string list
   val prefix_lines: string -> string -> string
   val untabify: string list -> string list
+  val prefix: string -> string -> string
   val suffix: string -> string -> string
-  val unsuffix: string -> string -> string
   val unprefix: string -> string -> string
+  val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
 
@@ -348,12 +360,18 @@ fun perhaps f x = the_default x (f x);
 
 (* exceptions *)
 
+val do_transform_failure = ref true;
+
+fun transform_failure exn f x =
+  if ! do_transform_failure then
+    f x handle Interrupt => raise Interrupt | e => raise exn e
+  else f x;
+
 exception EXCEPTION of exn * string;
 
-exception ERROR;
 
 fun try f x = SOME (f x)
-  handle Interrupt => raise Interrupt | ERROR => raise ERROR | _ => NONE;
+  handle Interrupt => raise Interrupt | _ => NONE;
 
 fun can f x = is_some (try f x);
 
@@ -372,6 +390,27 @@ fun get_result (Result x) = SOME x
 
 fun get_exn (Exn exn) = SOME exn
   | get_exn _ = NONE;
+
+
+(* errors *)
+
+exception ERROR of string;
+
+fun error msg = raise ERROR msg;
+
+fun cat_error "" msg = error msg
+  | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
+
+fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
+
+fun assert p msg = if p then () else error msg;
+fun deny p msg = if p then error msg else ();
+
+fun assert_all pred list msg =
+  let
+    fun ass [] = ()
+      | ass (x :: xs) = if pred x then ass xs else error (msg x);
+  in ass list end;
 
 
 
@@ -848,15 +887,16 @@ fun untabify chs =
     else flat (#2 (foldl_map untab (0, chs)))
   end;
 
+fun prefix prfx s = prfx ^ s;
 fun suffix sffx s = s ^ sffx;
-
-fun unsuffix sffx s =
-  if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
-  else raise Fail "unsuffix";
 
 fun unprefix prfx s =
   if String.isPrefix prfx s then String.substring (s, size prfx, size s - size prfx)
   else raise Fail "unprefix";
+
+fun unsuffix sffx s =
+  if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
+  else raise Fail "unsuffix";
 
 fun replicate_string 0 _ = ""
   | replicate_string 1 a = a
