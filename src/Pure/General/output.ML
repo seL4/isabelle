@@ -12,39 +12,22 @@ sig
   val std_error: string -> unit
   val immediate_output: string -> unit
   val writeln_default: string -> unit
-  val writeln_fn: (string -> unit) ref
-  val priority_fn: (string -> unit) ref
-  val tracing_fn: (string -> unit) ref
-  val warning_fn: (string -> unit) ref
-  val error_fn: (string -> unit) ref
-  val panic_fn: (string -> unit) ref
-  val info_fn: (string -> unit) ref
-  val debug_fn: (string -> unit) ref
-  val writeln: string -> unit           (*default output (in messages window)*)
-  val priority: string -> unit          (*high-priority (maybe modal/pop-up; must be displayed)*)
-  val tracing: string -> unit           (*tracing message (possibly in tracing window)*)
-  val warning: string -> unit           (*display warning of non-fatal situation*)
-  val error_msg: string -> unit         (*display fatal error (possibly modal msg)*)
-  val error: string -> 'a               (*display message as above, raise exn*)
-  val sys_error: string -> 'a           (*internal fatal error condition; raise exn*)
-  val panic: string -> unit             (*unrecoverable fatal error; exits system!*)
-  val info: string -> unit              (*incidental information message (e.g. timing)*)
-  val debug: string -> unit             (*internal debug messages*)
+  val writeln_fn: (string -> unit) ref    (*default output (in messages window)*)
+  val priority_fn: (string -> unit) ref   (*high-priority (maybe modal/pop-up; must be displayed)*)
+  val tracing_fn: (string -> unit) ref    (*tracing message (possibly in tracing window)*)
+  val warning_fn: (string -> unit) ref    (*display warning of non-fatal situation*)
+  val error_fn: (string -> unit) ref      (*display fatal error (possibly modal msg)*)
+  val panic_fn: (string -> unit) ref      (*unrecoverable fatal error; exits system!*)
+  val info_fn: (string -> unit) ref       (*incidental information message (e.g. timing)*)
+  val debug_fn: (string -> unit) ref      (*internal debug messages*)
+  val writeln: string -> unit
+  val priority: string -> unit
+  val tracing: string -> unit
+  val warning: string -> unit
+  val update_warn: ('a * 'a -> bool) -> string -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list
+  val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val show_debug_msgs: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
-  val assert: bool -> string -> unit
-  val deny: bool -> string -> unit
-  val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
-  val update_warn: ('a * 'a -> bool) -> string -> ('a * 'b)
-    -> ('a * 'b) list -> ('a * 'b) list
-  val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
-  datatype 'a error = Error of string | OK of 'a
-  val get_error: 'a error -> string option
-  val get_ok: 'a error -> 'a option
-  val handle_error: ('a -> 'b) -> 'a -> 'b error
-  exception ERROR_MESSAGE of string
-  val transform_error: ('a -> 'b) -> 'a -> 'b
-  val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
   val timing: bool ref
   val cond_timeit: bool -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
@@ -57,14 +40,19 @@ signature OUTPUT =
 sig
   include BASIC_OUTPUT
   val has_mode: string -> bool
-  exception MISSING_DEFAULT_OUTPUT
   val output_width: string -> string * real
   val output: string -> string
   val indent: string * int -> string
   val raw: string -> string
+  exception TOPLEVEL_ERROR
+  val do_toplevel_errors: bool ref
+  val toplevel_errors: ('a -> 'b) -> 'a -> 'b
+  val panic: string -> unit
+  val info: string -> unit
+  val debug: string -> unit
+  val error_msg: string -> unit
   val add_mode: string ->
     (string -> string * real) * (string * int -> string) * (string -> string) -> unit
-  val transform_exceptions: bool ref
   val accumulated_time: unit -> unit
 end;
 
@@ -84,9 +72,9 @@ type mode_fns =
 
 val modes = ref (Symtab.empty: mode_fns Symtab.table);
 
-exception MISSING_DEFAULT_OUTPUT;
-
 fun lookup_mode name = Symtab.lookup (! modes) name;
+
+exception MISSING_DEFAULT_OUTPUT;
 
 fun get_mode () =
   (case Library.get_first lookup_mode (! print_mode) of SOME p => p
@@ -135,31 +123,24 @@ val show_debug_msgs = ref false;
 fun debug s = if ! show_debug_msgs then ! debug_fn (output s) else ()
 
 fun error_msg s = ! error_fn (output s);
+
 fun panic_msg s = ! panic_fn (output s);
-
-
-(* add_mode *)
-
-fun add_mode name (f, g, h) =
- (if is_none (lookup_mode name) then ()
-  else warning ("Redeclaration of symbol print mode: " ^ quote name);
-  modes := Symtab.update (name, {output_width = f, indent = g, raw = h}) (! modes));
-
-
-(* produce errors *)
-
-fun error s = (error_msg s; raise ERROR);
-fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
 fun panic s = (panic_msg ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
-fun assert p msg = if p then () else error msg;
-fun deny p msg = if p then error msg else ();
 
-(*Assert pred for every member of l, generating a message if pred fails*)
-fun assert_all pred l msg_fn =
-  let fun asl [] = ()
-        | asl (x::xs) = if pred x then asl xs else error (msg_fn x)
-  in asl l end;
+(* toplevel errors *)
+
+exception TOPLEVEL_ERROR;
+
+val do_toplevel_errors = ref true;
+
+fun toplevel_errors f x =
+  if ! do_toplevel_errors then
+    f x handle ERROR msg => (error_msg msg; raise TOPLEVEL_ERROR)
+  else f x;
+
+
+(* AList operations *)
 
 fun overwrite (al, p as (key, _)) =
   let fun over ((q as (keyi, _)) :: pairs) =
@@ -171,56 +152,17 @@ fun overwrite_warn (args as (alist, (a, _))) msg =
  (if is_none (AList.lookup (op =) alist a) then () else warning msg;
   overwrite args);
 
-fun update_warn eq msg (kv as (key, value)) xs = (
-  if (not o AList.defined eq xs) key then () else warning msg;
-  AList.update eq kv xs
-)
-
-(** handle errors  **)
-
-datatype 'a error =
-  Error of string |
-  OK of 'a;
-
-fun get_error (Error msg) = SOME msg
-  | get_error _ = NONE;
-
-fun get_ok (OK x) = SOME x
-  | get_ok _ = NONE;
-
-fun handle_error f x =
-  let
-    val buffer = ref ([]: string list);
-    fun store_msg s = buffer := ! buffer @ [raw s];
-    fun err_msg () = if not (null (! buffer)) then error_msg (cat_lines (! buffer)) else ();
-  in
-    (case Result (setmp error_fn store_msg f x) handle exn => Exn exn of
-      Result y => (err_msg (); OK y)
-    | Exn ERROR => Error (cat_lines (! buffer))
-    | Exn exn => (err_msg (); raise exn))
-  end;
+fun update_warn eq msg (kv as (key, value)) xs =
+ (if (not o AList.defined eq xs) key then () else warning msg;
+  AList.update eq kv xs);
 
 
-(* transform ERROR into ERROR_MESSAGE *)
+(* add_mode *)
 
-val transform_exceptions = ref true;
-
-exception ERROR_MESSAGE of string;
-
-fun transform_error f x =
-  if ! transform_exceptions then
-    (case handle_error f x of
-      OK y => y
-    | Error msg => raise ERROR_MESSAGE msg)
-  else f x;
-
-
-(* transform any exception, including ERROR *)
-
-fun transform_failure exn f x =
-  if ! transform_exceptions then
-    transform_error f x handle Interrupt => raise Interrupt | e => raise exn e
-  else f x;
+fun add_mode name (f, g, h) =
+ (if is_none (lookup_mode name) then ()
+  else warning ("Redeclaration of symbol print mode: " ^ quote name);
+  modes := Symtab.update (name, {output_width = f, indent = g, raw = h}) (! modes));
 
 
 
