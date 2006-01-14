@@ -334,7 +334,7 @@ obsolete, it is ill-behaved in a local proof context (e.g. with local
 fixes/assumes or in a locale context).
 
 * ML/Isar: simplified treatment of user-level errors, using exception
-ERROR of string uniformly.  Function now error merely raises ERROR,
+ERROR of string uniformly.  Function error now merely raises ERROR,
 without any side effect on output channels.  The Isar toplevel takes
 care of proper display of ERROR exceptions.  ML code may use plain
 handle/can/try; cat_error may be used to concatenate errors like this:
@@ -342,7 +342,8 @@ handle/can/try; cat_error may be used to concatenate errors like this:
   ... handle ERROR msg => cat_error msg "..."
 
 Toplevel ML code (run directly or through the Isar toplevel) may be
-embedded into the Isar exception display/debug facilities as follows:
+embedded into the Isar toplevel with exception display/debug like
+this:
 
   Isar.toplevel (fn () => ...)
 
