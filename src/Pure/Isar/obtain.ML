@@ -99,7 +99,6 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     val (vars, vars_ctxt) = prep_vars (map Syntax.no_syn raw_vars) ctxt;
     val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
     val xs = map #1 vars;
-    val Ts = map #2 vars;
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
@@ -129,7 +128,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     fun after_qed _ =
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
-        Proof.fix_i (xs ~~ Ts)
+        Proof.fix_i (xs ~~ map #2 vars)
         #> Proof.assm_i (K (obtain_export ctxt parms rule)) asms));
   in
     state
@@ -199,6 +198,10 @@ fun match_params ctxt vars rule =
         commas (map (string_of_typ o TVar) tvars @ map (string_of_term o Var) vars) ^ " in") rule';
   in (xs' @ ys', rule') end;
 
+fun inferred_type (x, _, mx) ctxt =
+  let val ((_, T), ctxt') = ProofContext.inferred_type x ctxt
+  in ((x, SOME T, mx), ctxt') end;
+
 fun gen_guess prep_vars raw_vars int state =
   let
     val _ = Proof.assert_forward_or_chain state;
@@ -207,7 +210,7 @@ fun gen_guess prep_vars raw_vars int state =
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = bind_judgment ctxt AutoBind.thesisN;
-    val (vars, _) = prep_vars (map Syntax.no_syn raw_vars) ctxt;
+    val (vars, _) = ctxt |> prep_vars (map Syntax.no_syn raw_vars) |-> fold_map inferred_type;
 
     fun check_result th =
       (case Thm.prems_of th of
