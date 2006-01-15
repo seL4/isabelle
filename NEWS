@@ -230,8 +230,8 @@ dest and elim rules are well-formed; dest and elim rules must have at
 least one premise.
 
 * Provers/classical: attributes dest/elim/intro take an optional
-weight argument for the rule (just as the Pure versions); weights are
-ignored by automated rules, but determines the search order of single
+weight argument for the rule (just as the Pure versions).  Weights are
+ignored by automated rules, but determine the search order of single
 rule steps.
 
 * Syntax: input syntax now supports dummy variable binding "%_. b",
