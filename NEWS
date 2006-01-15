@@ -225,8 +225,14 @@ have been suppressed.
 attribute; classical elim/dest rules are now treated uniformly when
 manipulating the claset.
 
-* Provers/classical: stricter checks to ensure that supplied intro, dest and 
-elim rules are well-formed; dest and elim rules must have at least one premise.
+* Provers/classical: stricter checks to ensure that supplied intro,
+dest and elim rules are well-formed; dest and elim rules must have at
+least one premise.
+
+* Provers/classical: attributes dest/elim/intro take an optional
+weight argument for the rule (just as the Pure versions); weights are
+ignored by automated rules, but determines the search order of single
+rule steps.
 
 * Syntax: input syntax now supports dummy variable binding "%_. b",
 where the body does not mention the bound variable.  Note that dummy
@@ -241,6 +247,9 @@ for example "A -> B" => "Pi A (%_. B)".
 
 
 *** HOL ***
+
+* Prefer ex1I over ex_ex1I in single-step reasoning, e.g. by the
+'rule' method.
 
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
