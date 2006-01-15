@@ -143,12 +143,12 @@ sig
   val print_local_claset: Proof.context -> unit
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
-  val safe_dest: Context.generic attribute
-  val safe_elim: Context.generic attribute
-  val safe_intro: Context.generic attribute
-  val haz_dest: Context.generic attribute
-  val haz_elim: Context.generic attribute
-  val haz_intro: Context.generic attribute
+  val safe_dest: int option -> Context.generic attribute
+  val safe_elim: int option -> Context.generic attribute
+  val safe_intro: int option -> Context.generic attribute
+  val haz_dest: int option -> Context.generic attribute
+  val haz_elim: int option -> Context.generic attribute
+  val haz_intro: int option -> Context.generic attribute
   val rule_del: Context.generic attribute
   val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
@@ -197,7 +197,6 @@ in
 fun classical_rule rule =
   if is_elim rule then
     let
-      val ntags = Thm.get_name_tags rule;
       val rule' = rule RS classical;
       val concl' = Thm.concl_of rule';
       fun redundant_hyp goal =
@@ -212,7 +211,7 @@ fun classical_rule rule =
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes
-        |> Thm.put_name_tags ntags;
+        |> Thm.put_name_tags (Thm.get_name_tags rule);
     in if Drule.weak_eq_thm (rule, rule'') then rule else rule'' end
   else rule;
 
@@ -361,29 +360,29 @@ fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl netpr brls;
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
-val mem_thm = gen_mem Drule.eq_thm_prop
-and rem_thm = gen_rem Drule.eq_thm_prop;
+val mem_thm = member Drule.eq_thm_prop
+and rem_thm = remove Drule.eq_thm_prop;
 
 (*Warn if the rule is already present ELSEWHERE in the claset.  The addition
   is still allowed.*)
 fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
-       if mem_thm (th, safeIs) then
+       if mem_thm safeIs th then
          warning ("Rule already declared as safe introduction (intro!)\n" ^ string_of_thm th)
-  else if mem_thm (th, safeEs) then
+  else if mem_thm safeEs th then
          warning ("Rule already declared as safe elimination (elim!)\n" ^ string_of_thm th)
-  else if mem_thm (th, hazIs) then
+  else if mem_thm hazIs th then
          warning ("Rule already declared as introduction (intro)\n" ^ string_of_thm th)
-  else if mem_thm (th, hazEs) then
+  else if mem_thm hazEs th then
          warning ("Rule already declared as elimination (elim)\n" ^ string_of_thm th)
   else ();
 
 
 (*** Safe rules ***)
 
-fun addSI th
+fun addSI w th
   (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
              safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm (th, safeIs) then
+  if mem_thm safeIs th then
          (warning ("Ignoring duplicate safe introduction (intro!)\n" ^ string_of_thm th);
           cs)
   else
@@ -402,13 +401,13 @@ fun addSI th
         uwrappers    = uwrappers,
         haz_netpair  = haz_netpair,
         dup_netpair  = dup_netpair,
-        xtra_netpair = insert' 0 (nI,nE) ([th], []) xtra_netpair}
+        xtra_netpair = insert' (the_default 0 w) (nI,nE) ([th], []) xtra_netpair}
   end;
 
-fun addSE th
+fun addSE w th
   (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
              safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm (th, safeEs) then
+  if mem_thm safeEs th then
          (warning ("Ignoring duplicate safe elimination (elim!)\n" ^ string_of_thm th);
           cs)
   else if has_fewer_prems 1 th then
@@ -431,11 +430,11 @@ fun addSE th
         uwrappers    = uwrappers,
         haz_netpair  = haz_netpair,
         dup_netpair  = dup_netpair,
-        xtra_netpair = insert' 0 (nI,nE) ([], [th]) xtra_netpair}
+        xtra_netpair = insert' (the_default 0 w) (nI,nE) ([], [th]) xtra_netpair}
   end;
 
-fun cs addSIs ths = fold_rev addSI ths cs;
-fun cs addSEs ths = fold_rev addSE ths cs;
+fun cs addSIs ths = fold_rev (addSI NONE) ths cs;
+fun cs addSEs ths = fold_rev (addSE NONE) ths cs;
 
 (*Give new theorem a name, if it has one already.*)
 fun name_make_elim th =
@@ -451,10 +450,10 @@ fun cs addSDs ths = cs addSEs (map name_make_elim ths);
 
 (*** Hazardous (unsafe) rules ***)
 
-fun addI th
+fun addI w th
   (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
              safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm (th, hazIs) then
+  if mem_thm hazIs th then
          (warning ("Ignoring duplicate introduction (intro)\n" ^ string_of_thm th);
           cs)
   else
@@ -471,15 +470,15 @@ fun addI th
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = insert' 1 (nI,nE) ([th], []) xtra_netpair}
+        xtra_netpair = insert' (the_default 1 w) (nI,nE) ([th], []) xtra_netpair}
   end
   handle THM("RSN: no unifiers",_,_) => (*from dup_intr*)
          error ("Ill-formed introduction rule\n" ^ string_of_thm th);
 
-fun addE th
+fun addE w th
   (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
             safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm (th, hazEs) then
+  if mem_thm hazEs th then
          (warning ("Ignoring duplicate elimination (elim)\n" ^ string_of_thm th);
           cs)
   else if has_fewer_prems 1 th then
@@ -500,11 +499,11 @@ fun addE th
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = insert' 1 (nI,nE) ([], [th]) xtra_netpair}
+        xtra_netpair = insert' (the_default 1 w) (nI,nE) ([], [th]) xtra_netpair}
   end;
 
-fun cs addIs ths = fold_rev addI ths cs;
-fun cs addEs ths = fold_rev addE ths cs;
+fun cs addIs ths = fold_rev (addI NONE) ths cs;
+fun cs addEs ths = fold_rev (addE NONE) ths cs;
 
 fun cs addDs ths = cs addEs (map name_make_elim ths);
 
@@ -512,18 +511,16 @@ fun cs addDs ths = cs addEs (map name_make_elim ths);
 (*** Deletion of rules
      Working out what to delete, requires repeating much of the code used
         to insert.
-     Separate functions delSI, etc., are not exported; instead delrules
-        searches in all the lists and chooses the relevant delXX functions.
 ***)
 
 fun delSI th
           (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                     safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
- if mem_thm (th, safeIs) then
+ if mem_thm safeIs th then
    let val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th]
    in CS{safe0_netpair = delete (safe0_rls, []) safe0_netpair,
          safep_netpair = delete (safep_rls, []) safep_netpair,
-         safeIs = rem_thm (safeIs,th),
+         safeIs = rem_thm th safeIs,
          safeEs = safeEs,
          hazIs  = hazIs,
          hazEs  = hazEs,
@@ -538,14 +535,14 @@ fun delSI th
 fun delSE th
           (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                     safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm (th, safeEs) then
+  if mem_thm safeEs th then
     let
       val th' = classical_rule th
       val (safe0_rls, safep_rls) = List.partition (fn rl => nprems_of rl=1) [th']
     in CS{safe0_netpair = delete ([], safe0_rls) safe0_netpair,
          safep_netpair = delete ([], safep_rls) safep_netpair,
          safeIs = safeIs,
-         safeEs = rem_thm (safeEs,th),
+         safeEs = rem_thm th safeEs,
          hazIs  = hazIs,
          hazEs  = hazEs,
          swrappers    = swrappers,
@@ -560,12 +557,12 @@ fun delSE th
 fun delI th
          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
- if mem_thm (th, hazIs) then
+ if mem_thm hazIs th then
      CS{haz_netpair = delete ([th], []) haz_netpair,
         dup_netpair = delete ([dup_intr th], []) dup_netpair,
         safeIs  = safeIs,
         safeEs  = safeEs,
-        hazIs   = rem_thm (hazIs,th),
+        hazIs   = rem_thm th hazIs,
         hazEs   = hazEs,
         swrappers     = swrappers,
         uwrappers     = uwrappers,
@@ -581,13 +578,13 @@ fun delE th
          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   let val th' = classical_rule th in
-    if mem_thm (th, hazEs) then
+    if mem_thm hazEs th then
      CS{haz_netpair = delete ([], [th']) haz_netpair,
         dup_netpair = delete ([], [dup_elim th']) dup_netpair,
         safeIs  = safeIs,
         safeEs  = safeEs,
         hazIs   = hazIs,
-        hazEs   = rem_thm (hazEs,th),
+        hazEs   = rem_thm th hazEs,
         swrappers     = swrappers,
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
@@ -600,9 +597,9 @@ fun delE th
 (*Delete ALL occurrences of "th" in the claset (perhaps from several lists)*)
 fun delrule th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
   let val th' = Tactic.make_elim th in
-    if mem_thm (th, safeIs) orelse mem_thm (th, safeEs) orelse
-      mem_thm (th, hazIs)  orelse mem_thm (th, hazEs) orelse
-      mem_thm (th', safeEs) orelse mem_thm (th', hazEs)
+    if mem_thm safeIs th orelse mem_thm safeEs th orelse
+      mem_thm hazIs th orelse mem_thm hazEs th orelse
+      mem_thm safeEs th' orelse mem_thm hazEs th'
     then delSI th (delSE th (delI th (delE th (delSE th' (delE th' cs)))))
     else (warning ("Undeclared classical rule\n" ^ string_of_thm th); cs)
   end;
@@ -881,7 +878,7 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 
 (** claset data **)
 
-(* global clasets *)
+(* global claset *)
 
 structure GlobalClaset = TheoryDataFun
 (struct
@@ -932,7 +929,7 @@ fun add_context_unsafe_wrapper wrapper = map_context_cs (apsnd (merge_alists [wr
 fun del_context_unsafe_wrapper name = map_context_cs (apsnd (filter_out (equal name o #1)));
 
 
-(* proof data kind 'Provers/claset' *)
+(* local claset *)
 
 structure LocalClaset = ProofDataFun
 (struct
@@ -953,16 +950,16 @@ fun local_claset_of ctxt =
 (* attributes *)
 
 fun attrib f = Attrib.declaration (fn th =>
-   fn Context.Theory thy => (change_claset_of thy (fn cs => f (cs, [th])); Context.Theory thy)
-    | Context.Proof ctxt => Context.Proof (LocalClaset.map (fn cs => f (cs, [th])) ctxt));
+   fn Context.Theory thy => (change_claset_of thy (f th); Context.Theory thy)
+    | Context.Proof ctxt => Context.Proof (LocalClaset.map (f th) ctxt));
 
-val safe_dest = attrib (op addSDs);
-val safe_elim = attrib (op addSEs);
-val safe_intro = attrib (op addSIs);
-val haz_dest = attrib (op addDs);
-val haz_elim = attrib (op addEs);
-val haz_intro = attrib (op addIs);
-val rule_del = attrib (op delrules) o ContextRules.rule_del;
+fun safe_dest w = attrib (addSE w o name_make_elim);
+val safe_elim = attrib o addSE;
+val safe_intro = attrib o addSI;
+fun haz_dest w = attrib (addE w o name_make_elim);
+val haz_elim = attrib o addE;
+val haz_intro = attrib o addI;
+val rule_del = attrib delrule o ContextRules.rule_del;
 
 
 (* tactics referring to the implicit claset *)
@@ -986,31 +983,20 @@ end;
 
 (** concrete syntax of attributes **)
 
-(* add / del rules *)
-
 val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
 val ruleN = "rule";
 
-fun add_rule xtra haz safe = Attrib.syntax
- (Scan.lift (Args.query |-- Scan.option Args.nat >> xtra || Args.bang >> K safe ||
-  Scan.succeed haz));
-
-fun del_rule att = Attrib.syntax (Scan.lift Args.del >> K att);
-
-
-(* setup_attrs *)
-
 val setup_attrs = Attrib.add_attributes
- [("swapped", (swapped, swapped), "classical swap of introduction rule"),
-  (destN, Attrib.common (add_rule ContextRules.dest_query haz_dest safe_dest),
+ [("swapped", Attrib.common swapped, "classical swap of introduction rule"),
+  (destN, Attrib.common (ContextRules.add_args safe_dest haz_dest ContextRules.dest_query),
     "declaration of Classical destruction rule"),
-  (elimN, Attrib.common (add_rule ContextRules.elim_query haz_elim safe_elim),
+  (elimN, Attrib.common (ContextRules.add_args safe_elim haz_elim ContextRules.elim_query),
     "declaration of Classical elimination rule"),
-  (introN, Attrib.common (add_rule ContextRules.intro_query haz_intro safe_intro),
+  (introN, Attrib.common (ContextRules.add_args safe_intro haz_intro ContextRules.intro_query),
     "declaration of Classical introduction rule"),
-  (ruleN, Attrib.common (del_rule rule_del),
+  (ruleN, Attrib.common (Attrib.syntax (Scan.lift Args.del >> K rule_del)),
     "remove declaration of intro/elim/dest rule")];
 
 
@@ -1058,12 +1044,12 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- Args.bang_colon >> K ((I, Attrib.context safe_dest): Method.modifier),
-  Args.$$$ destN -- Args.colon >> K (I, Attrib.context haz_dest),
-  Args.$$$ elimN -- Args.bang_colon >> K (I, Attrib.context safe_elim),
-  Args.$$$ elimN -- Args.colon >> K (I, Attrib.context haz_elim),
-  Args.$$$ introN -- Args.bang_colon >> K (I, Attrib.context safe_intro),
-  Args.$$$ introN -- Args.colon >> K (I, Attrib.context haz_intro),
+ [Args.$$$ destN -- Args.bang_colon >> K ((I, Attrib.context (safe_dest NONE)): Method.modifier),
+  Args.$$$ destN -- Args.colon >> K (I, Attrib.context (haz_dest NONE)),
+  Args.$$$ elimN -- Args.bang_colon >> K (I, Attrib.context (safe_elim NONE)),
+  Args.$$$ elimN -- Args.colon >> K (I, Attrib.context (haz_elim NONE)),
+  Args.$$$ introN -- Args.bang_colon >> K (I, Attrib.context (safe_intro NONE)),
+  Args.$$$ introN -- Args.colon >> K (I, Attrib.context (haz_intro NONE)),
   Args.del -- Args.colon >> K (I, Attrib.context rule_del)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
