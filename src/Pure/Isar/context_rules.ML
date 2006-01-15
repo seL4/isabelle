@@ -30,6 +30,8 @@ sig
   val elim_query: int option -> Context.generic attribute
   val dest_query: int option -> Context.generic attribute
   val rule_del: Context.generic attribute
+  val add_args: (int option -> 'a attribute) -> (int option -> 'a attribute) ->
+    (int option -> 'a attribute) -> Attrib.src -> 'a attribute
 end;
 
 structure ContextRules: CONTEXT_RULES =
@@ -207,10 +209,8 @@ val _ = Context.add_setup
 (* concrete syntax *)
 
 fun add_args a b c x = Attrib.syntax
-  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- (Scan.option Args.nat))
+  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- Scan.option Args.nat)
     >> (fn (f, n) => f n)) x;
-
-fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
 
 val rule_atts =
  [("intro", Attrib.common (add_args intro_bang intro intro_query),
@@ -219,7 +219,7 @@ val rule_atts =
     "declaration of elimination rule"),
   ("dest", Attrib.common (add_args dest_bang dest dest_query),
     "declaration of destruction rule"),
-  ("rule", Attrib.common (del_args rule_del),
+  ("rule", Attrib.common (Attrib.syntax (Scan.lift Args.del >> K rule_del)),
     "remove declaration of intro/elim/dest rule")];
 
 val _ = Context.add_setup [Attrib.add_attributes rule_atts];
