@@ -353,7 +353,7 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
           List.concat distinct  @ rec_thms), [Attrib.theory Simplifier.simp_add]),
     (("", size_thms @ rec_thms),             [RecfunCodegen.add NONE]),
     (("", List.concat inject),               [Attrib.theory iff_add]),
-    (("", map name_notE (List.concat distinct)),  [Attrib.theory Classical.safe_elim]),
+    (("", map name_notE (List.concat distinct)),  [Attrib.theory (Classical.safe_elim NONE)]),
     (("", weak_case_congs),                  [cong_att])]);
 
 
