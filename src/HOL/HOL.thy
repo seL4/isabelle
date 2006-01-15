@@ -918,6 +918,9 @@ setup {*
 setup Classical.setup
 setup clasetup
 
+declare ex_ex1I [rule del, intro! 2]
+  and ex1I [intro]
+
 lemmas [intro?] = ext
   and [elim?] = ex1_implies_ex
 
