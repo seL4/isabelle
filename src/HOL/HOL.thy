@@ -606,7 +606,7 @@ lemma theI2:
   shows "Q (THE x. P x)"
 by (iprover intro: prems theI)
 
-lemma the1_equality: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
+lemma the1_equality [elim?]: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
 apply (rule the_equality)
 apply  assumption
 apply (erule ex1E)
