@@ -1461,13 +1461,10 @@ local
 (* add facts to locale in theory *)
 
 fun put_facts loc args thy =
-  let
-    val {predicate, import, elems, params, regs} = the_locale thy loc;
-    val note = Notes (map (fn ((a, atts), bs) =>
-      ((a, atts), map (apfst (map (curry Thm.name_thm a))) bs)) args);
+  let val {predicate, import, elems, params, regs} = the_locale thy loc
   in
     thy |> put_locale loc {predicate = predicate, import = import,
-      elems = elems @ [(note, stamp ())], params = params, regs = regs}
+      elems = elems @ [(Notes args, stamp ())], params = params, regs = regs}
   end;
 
 (* add theorem to locale and theory,
