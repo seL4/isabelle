@@ -1308,7 +1308,7 @@ fun case_result c ctxt =
     val RuleCases.Case {assumes, binds, cases, ...} = RuleCases.apply ts c;
   in
     ctxt'
-    |> add_binds_i binds
+    |> add_binds_i (map drop_schematic binds)
     |> add_cases true (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;
