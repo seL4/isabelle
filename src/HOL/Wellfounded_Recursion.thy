@@ -288,6 +288,18 @@ attach {*
 fun wfrec f x = f (wfrec f) x;
 *}
 
+code_primconst wfrec
+ml {*
+fun wfrec f x = f (wfrec f) x;
+*}
+haskell {*
+wfrec f x = f (wfrec f) x
+*}
+
+(* code_syntax_const
+  wfrec
+    ml ("{*wfrec*}?")
+    haskell ("{*wfrec*}?") *)
 
 subsection{*Variants for TFL: the Recdef Package*}
 

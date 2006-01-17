@@ -896,10 +896,46 @@ consts_code
   "op <=" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                         ("(_ < 0)")
 
+code_syntax_tyco int
+  ml (atom "IntInf.int")
+  haskell (atom "Integer")
+
+code_syntax_const
+  0 :: "int"
+    ml ("0 : IntInf.int")
+    haskell (atom "0")
+  1 :: "int"
+    ml ("1 : IntInf.int")
+    haskell (atom "1")
+
+code_syntax_const
+  "op +" :: "int \<Rightarrow> int \<Rightarrow> int"
+    ml (infixl 8 "+")
+    haskell (infixl 6 "+")
+  "op *" :: "int \<Rightarrow> int \<Rightarrow> int"
+    ml (infixl 9 "*")
+    haskell (infixl 7 "*")
+  uminus :: "int \<Rightarrow> int"
+    ml (atom "~")
+    haskell (atom "negate")
+  "op <" :: "int \<Rightarrow> int \<Rightarrow> bool"
+    ml (infix 6 "<")
+    haskell (infix 4 "<")
+  "op <=" :: "int \<Rightarrow> int \<Rightarrow> bool"
+    ml (infix 6 "<=")
+    haskell (infix 4 "<=")
+  "neg" :: "int \<Rightarrow> bool"
+    ml ("_ < 0")
+    haskell ("_ < 0")
+
 ML {*
 fun mk_int_to_nat bin =
   Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT)
   $ (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin);
+
+fun bin_to_int bin = HOLogic.dest_binum bin
+  handle TERM _
+    => error ("not a number: " ^ Sign.string_of_term thy bin);
 
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
       Type ("fun", [_, T as Type ("IntDef.int", [])])) $ bin) =
@@ -911,12 +947,14 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
           Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
             (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
   | number_of_codegen _ _ _ _ _ _ _ = NONE;
+
 *}
 
 setup {*[
   Codegen.add_codegen "number_of_codegen" number_of_codegen,
   CodegenPackage.add_appconst
-    ("Numeral.number_of", ((1, 1), CodegenPackage.appgen_number_of HOLogic.dest_binum mk_int_to_nat))
+    ("Numeral.number_of", ((1, 1), CodegenPackage.appgen_number_of mk_int_to_nat bin_to_int "IntDef.int" "nat")),
+  CodegenPackage.set_int_tyco "IntDef.int"
 ]*}
 
 quickcheck_params [default_type = int]

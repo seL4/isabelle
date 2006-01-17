@@ -1023,5 +1023,12 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (fastsimp dest: mult_less_mono2)
   done
 
+subsection {* Code generator setup *}
+
+code_alias
+  "nat" "Nat.nat"
+  "0" "Nat.Zero"
+  "1" "Nat.One"
+  "Suc" "Nat.Suc"
 
 end

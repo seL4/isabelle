@@ -20,7 +20,7 @@ sig
       IConst of string * itype
     | IVarE of vname * itype
     | IApp of iexpr * iexpr
-    | IInst of iexpr * ClassPackage.sortlookup list list
+    | IInst of iexpr * ClassPackage.sortlookup list
     | IAbs of (vname * itype) * iexpr
     | ICase of iexpr * (ipat * iexpr) list
     | IDictE of (string * iexpr) list
@@ -40,98 +40,57 @@ sig
   val itype_of_iexpr: iexpr -> itype;
   val itype_of_ipat: ipat -> itype;
   val ipat_of_iexpr: iexpr -> ipat;
+  val iexpr_of_ipat: ipat -> iexpr;
   val eq_itype: itype * itype -> bool;
   val tvars_of_itypes: itype list -> string list;
   val vars_of_ipats: ipat list -> string list;
   val vars_of_iexprs: iexpr list -> string list;
 
+  type funn = (ipat list * iexpr) list * (ClassPackage.sortcontext * itype);
   datatype def =
-      Nop
-    | Prim of (string * Pretty.T) list
-    | Fun of (ipat list * iexpr) list * (ClassPackage.sortcontext * itype)
+      Undef
+    | Prim of (string * Pretty.T option) list
+    | Fun of funn
     | Typesyn of (vname * string list) list * itype
-    | Datatype of (vname * string list) list * (string * itype list) list * string list
+    | Datatype of ((vname * string list) list * (string * itype list) list) * string list
     | Datatypecons of string
-    | Class of class list * vname * (string * (ClassPackage.sortcontext * itype)) list * string list
+    | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)) * string list
     | Classmember of class
-    | Classinst of (class * (string * (vname * sort) list))
-        * ((string * (string * ClassPackage.sortlookup list list)) list
-          * (string * (string * ClassPackage.sortlookup list list)) list);
+    | Classinst of (class * (string * (vname * sort) list)) * (string * funn) list;
   type module;
   type transact;
   type 'dst transact_fin;
-  type ('src, 'dst) gen_exprgen = 'src -> transact -> 'dst transact_fin;
-  type gen_defgen = string -> transact -> (def * string list) transact_fin;
+  type gen_defgen = string -> transact -> def transact_fin;
   val pretty_def: def -> Pretty.T;
   val pretty_module: module -> Pretty.T; 
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
   val add_prim: string -> string list -> (string * Pretty.T) -> module -> module;
-  val ensure_prim: string -> module -> module;
+  val ensure_prim: string -> string -> module -> module;
   val get_def: module -> string -> def;
   val merge_module: module * module -> module;
   val partof: string list -> module -> module;
   val has_nsp: string -> string -> bool;
   val succeed: 'a -> transact -> 'a transact_fin;
   val fail: string -> transact -> 'a transact_fin;
-  val gen_invoke: (string * ('src, 'dst) gen_exprgen) list -> string
-    -> 'src -> transact -> 'dst * transact;
   val gen_ensure_def: (string * gen_defgen) list -> string
     -> string -> transact -> transact;
   val start_transact: (transact -> 'a * transact) -> module -> 'a * module;
 
-  val class_eq: string;
-  val type_bool: string;
-  val type_pair: string;
-  val type_list: string;
-  val type_integer: string;
-  val cons_pair: string;
-  val fun_eq: string;
-  val fun_fst: string;
-  val fun_snd: string;
-  val Type_integer: itype;
-  val Cons_true: iexpr;
-  val Cons_false: iexpr;
-  val Cons_pair: iexpr;
-  val Cons_nil: iexpr;
-  val Cons_cons: iexpr;
-  val Fun_eq: iexpr;
-  val Fun_not: iexpr;
-  val Fun_and: iexpr;
-  val Fun_or: iexpr;
-  val Fun_if: iexpr;
-  val Fun_fst: iexpr;
-  val Fun_snd: iexpr;
-  val Fun_0: iexpr;
-  val Fun_1: iexpr;
-  val Fun_add: iexpr;
-  val Fun_mult: iexpr;
-  val Fun_minus: iexpr;
-  val Fun_lt: iexpr;
-  val Fun_le: iexpr;
-  val Fun_wfrec: iexpr;
-
-  val prims: string list;
-  val invoke_eq: ('a -> transact -> itype * transact)
-    -> (string * (def * (string * sort) list) -> transact -> transact)
-    -> 'a -> transact -> bool * transact;
   val extract_defs: iexpr -> string list;
   val eta_expand: (string -> int) -> module -> module;
   val eta_expand_poly: module -> module;
-  val tupelize_cons: module -> module;
   val eliminate_classes: module -> module;
 
-  val debug_level : int ref;
-  val debug : int -> ('a -> string) -> 'a -> 'a;
+  val debug_level: int ref;
+  val debug: int -> ('a -> string) -> 'a -> 'a;
   val soft_exc: bool ref;
 
   val serialize:
-    ((string -> string) -> (string * def) list -> Pretty.T option)
-    -> (string * Pretty.T list -> Pretty.T)
+    ((string -> string) -> (string * def) list -> 'a option)
+    -> (string list -> string * 'a list -> 'b -> 'a * 'b)
     -> (string -> string option)
-    -> string list list -> string -> module -> Pretty.T
-
-  val get_prefix: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list * ('a list * 'a list)
+    -> string list list -> string -> module -> 'b -> 'a * 'b;
 end;
 
 signature CODEGEN_THINGOL_OP =
@@ -213,7 +172,7 @@ datatype iexpr =
     IConst of string * itype
   | IVarE of vname * itype
   | IApp of iexpr * iexpr
-  | IInst of iexpr * ClassPackage.sortlookup list list
+  | IInst of iexpr * ClassPackage.sortlookup list
   | IAbs of (vname * itype) * iexpr
   | ICase of iexpr * (ipat * iexpr) list
     (*ML auxiliary*)
@@ -237,7 +196,7 @@ datatype iexpr =
     sort                    sort
     type                    ty
     expression              e
-    pattern                 p
+    pattern                 p, pat
     instance (cls, tyco)    inst
     variable (v, ty)        var
     class member (m, ty)    membr
@@ -430,6 +389,10 @@ fun ipat_of_iexpr (IConst (f, ty)) = ICons ((f, []), ty)
   | ipat_of_iexpr e =
       error ("illegal expression for pattern: " ^ (Pretty.output o pretty_iexpr) e);
 
+fun iexpr_of_ipat (ICons ((co, ps), ty)) =
+      IConst (co, map itype_of_ipat ps `--> ty) `$$ map iexpr_of_ipat ps
+  | iexpr_of_ipat (IVarP v) = IVarE v;
+
 fun tvars_of_itypes tys =
   let
     fun vars (IType (_, tys)) =
@@ -486,36 +449,35 @@ fun instant_itype (v, sty) ty =
 
 (* type definitions *)
 
+type funn = (ipat list * iexpr) list * (ClassPackage.sortcontext * itype);
+
 datatype def =
-    Nop
-  | Prim of (string * Pretty.T) list
-  | Fun of (ipat list * iexpr) list * (ClassPackage.sortcontext * itype)
+    Undef
+  | Prim of (string * Pretty.T option) list
+  | Fun of funn
   | Typesyn of (vname * string list) list * itype
-  | Datatype of (vname * string list) list * (string * itype list) list * string list
+  | Datatype of ((vname * string list) list * (string * itype list) list) * string list
   | Datatypecons of string
-  | Class of class list * vname * (string * (ClassPackage.sortcontext * itype)) list * string list
+  | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)) * string list
   | Classmember of class
-  | Classinst of (class * (string * (vname * sort) list))
-      * ((string * (string * ClassPackage.sortlookup list list)) list
-        * (string * (string * ClassPackage.sortlookup list list)) list);
+  | Classinst of (class * (string * (vname * sort) list)) * (string * funn) list;
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
-type transact = Graph.key list * module;
+type transact = Graph.key option * module;
 datatype 'dst transact_res = Succeed of 'dst | Fail of string list * exn option;
-type 'dst transact_fin = 'dst transact_res * transact;
-type ('src, 'dst) gen_exprgen = 'src -> transact -> 'dst transact_fin;
-type gen_defgen = string -> transact -> (def * string list) transact_fin;
+type 'dst transact_fin = 'dst transact_res * module;
+type gen_defgen = string -> transact -> def transact_fin;
 exception FAIL of string list * exn option;
 
 val eq_def = (op =);
 
 (* simple diagnosis *)
 
-fun pretty_def Nop =
-      Pretty.str "<NOP>"
-  | pretty_def (Prim _) =
-      Pretty.str "<PRIM>"
+fun pretty_def Undef =
+      Pretty.str "<UNDEF>"
+  | pretty_def (Prim prims) =
+      Pretty.str ("<PRIM " ^ (commas o map fst) prims ^ ">")
   | pretty_def (Fun (eqs, (_, ty))) =
       Pretty.gen_list " |" "" "" (
         map (fn (ps, body) =>
@@ -534,7 +496,7 @@ fun pretty_def Nop =
         Pretty.str " |=> ",
         pretty_itype ty
       ]
-  | pretty_def (Datatype (vs, cs, insts)) =
+  | pretty_def (Datatype ((vs, cs), insts)) =
       Pretty.block [
         Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
         Pretty.str " |=> ",
@@ -545,7 +507,7 @@ fun pretty_def Nop =
       ]
   | pretty_def (Datatypecons dtname) =
       Pretty.str ("cons " ^ dtname)
-  | pretty_def (Class (supcls, v, mems, insts)) =
+  | pretty_def (Class ((supcls, (v, mems)), insts)) =
       Pretty.block [
         Pretty.str ("class var " ^ v ^ "extending "),
         Pretty.gen_list "," "[" "]" (map Pretty.str supcls),
@@ -668,6 +630,19 @@ fun map_def name f =
           Graph.map_node m (Module o mapp ms o dest_modl)
   in mapp modl end;
 
+fun ensure_def (name, Undef) module =
+      (case try (get_def module) name
+       of NONE => (error "attempted to add Undef to module")
+        | SOME Undef => (error "attempted to add Undef to module")
+        | SOME def' => map_def name (K def') module)
+  | ensure_def (name, def) module =
+      (case try (get_def module) name
+       of NONE => add_def (name, def) module
+        | SOME Undef => map_def name (K def) module
+        | SOME def' => if eq_def (def, def')
+            then module
+            else error ("tried to overwrite definition " ^ name));
+
 fun add_dep (name1, name2) modl =
   if name1 = name2 then modl
   else
@@ -695,13 +670,13 @@ fun add_prim name deps (target, primdef) =
           (case try (Graph.get_node module) base
            of NONE =>
                 module
-                |> Graph.new_node (base, (Def o Prim) [(target, primdef)])
+                |> Graph.new_node (base, (Def o Prim) [(target, SOME primdef)])
             | SOME (Def (Prim prim)) =>
-                if AList.defined (op =) prim base
+                if AList.defined (op =) prim target
                 then error ("already primitive definition (" ^ target ^ ") present for " ^ name)
                 else
                   module
-                  |> Graph.map_node base ((K o Def o Prim) (AList.update (op =) (target, primdef) prim))
+                  |> Graph.map_node base ((K o Def o Prim) (AList.update (op =) (target, SOME primdef) prim))
             | _ => error ("already non-primitive definition present for " ^ name))
       | add (m::ms) module =
           module
@@ -712,16 +687,17 @@ fun add_prim name deps (target, primdef) =
     #> fold (curry add_dep name) deps
   end;
 
-fun ensure_prim name =
+fun ensure_prim name target =
   let
     val (modl, base) = dest_name name;
     fun ensure [] module =
           (case try (Graph.get_node module) base
            of NONE =>
                 module
-                |> Graph.new_node (base, (Def o Prim) [])
-            | SOME (Def (Prim _)) =>
+                |> Graph.new_node (base, (Def o Prim) [(target, NONE)])
+            | SOME (Def (Prim prim)) =>
                 module
+                |> Graph.map_node base ((K o Def o Prim) (AList.default (op =) (target, NONE) prim))
             | _ => error ("already non-primitive definition present for " ^ name))
       | ensure (m::ms) module =
           module
@@ -800,87 +776,107 @@ fun partof names modl =
     |> dest_modl
   end;
 
-fun (*add_check_transform (name, (Datatypecons dtname)) =
-      (debug 7 (fn _ => "transformation for datatype constructor " ^ quote name
-        ^ " of datatype " ^ quote dtname) ();
-      ([([dtname],
-          fn [Datatype (_, _, [])] => NONE
-            | _ => "attempted to add constructor to already instantiating datatype" |> SOME)],
-       [(dtname,
-          fn Datatype (vs, cs, insts) => Datatype (vs, name::cs, insts)
-           | def => "attempted to add datatype constructor to non-datatype: "
-              ^ (Pretty.output o pretty_def) def |> error)])
+fun imports_of modl name_root name =
+  let
+    fun imports prfx [] modl =
+          []
+      | imports prfx (m::ms) modl =
+          map (cons m) (imports (prfx @ [m]) ms ((dest_modl oo Graph.get_node) modl m))
+          @ map single (Graph.imm_preds modl m);
+  in
+    map (cons name_root) (imports [] name modl)
+    |> map NameSpace.pack
+  end;
+
+fun check_samemodule names =
+  fold (fn name =>
+    let
+      val modn = (fst o dest_name) name
+    in
+     fn NONE => SOME modn
+      | SOME mod' => if modn = mod' then SOME modn else error "inconsistent name prefix for simultanous names"
+    end
+  ) names NONE;
+
+fun check_funeqs eqs =
+  (fold (fn (pats, _) =>
+    let
+      val l = length pats
+    in
+     fn NONE => SOME l
+      | SOME l' => if l = l' then SOME l else error "function definition with different number of arguments"
+    end
+  ) eqs NONE; eqs);
+
+fun check_prep_def modl Undef =
+      Undef
+  | check_prep_def modl (d as Prim _) =
+      d
+  | check_prep_def modl (Fun (eqs, d)) =
+      Fun (check_funeqs eqs, d)
+  | check_prep_def modl (d as Typesyn _) =
+      d
+  | check_prep_def modl (d as Datatype (_, insts)) =
+      if null insts
+      then d
+      else error "attempted to add datatype with bare instances"
+  | check_prep_def modl (Datatypecons dtco) =
+      error "attempted to add bare datatype constructor"
+  | check_prep_def modl (d as Class ((_, (v, membrs)), insts)) =
+      if null insts
+      then
+        if member (op =) (map fst (Library.flat (map (fst o snd) membrs))) v
+        then error "incorrectly abstracted class type variable"
+        else d
+      else error "attempted to add class with bare instances"
+  | check_prep_def modl (Classmember _) =
+      error "attempted to add bare class member"
+  | check_prep_def modl (Classinst ((d as (class, (tyco, arity)), memdefs))) =
+      let
+        val Class ((_, (v, membrs)), _) = get_def modl class;
+        val _ = if length memdefs > length memdefs
+          then error "too many member definitions given"
+          else ();
+        fun mk_memdef (m, (ctxt, ty)) =
+          case AList.lookup (op =) memdefs m
+           of NONE => error ("missing definition for member " ^ quote m)
+            | SOME (eqs, (ctxt', ty')) =>
+                if eq_itype (ty |> instant_itype (v, tyco `%% map IVarT arity), ty')
+                then (m, (check_funeqs eqs, (ctxt', ty')))
+                else error ("inconsistent type for member definition " ^ quote m)
+      in Classinst (d, map mk_memdef membrs) end;
+
+fun postprocess_def (name, Datatype ((_, constrs), _)) =
+      (check_samemodule (name :: map fst constrs);
+      fold (fn (co, _) =>
+        ensure_def (co, Datatypecons name)
+        #> add_dep (co, name)
+        #> add_dep (name, co)
+      ) constrs
       )
-  | add_check_transform (name, Classmember (clsname, v, ty)) =
-      let
-        val _ = debug 7 (fn _ => "transformation for class member " ^ quote name
-        ^ " of class " ^ quote clsname) ();
-        fun check_var (IType (tyco, tys)) s =
-              fold check_var tys s
-          | check_var (IFun (ty1, ty2)) s =
-              s
-              |> check_var ty1
-              |> check_var ty2
-          | check_var (IVarT (w, sort)) s =
-              if v = w
-              andalso member (op =) sort clsname
-              then "additional class appears at type variable" |> SOME
-              else NONE
-      in
-        ([([], fn [] => check_var ty NONE),
-          ([clsname],
-             fn [Class (_, _, _, [])] => NONE
-              | _ => "attempted to add class member to witnessed class" |> SOME)],
-         [(clsname,
-             fn Class (supcs, v, mems, insts) => Class (supcs, v, name::mems, insts)
-              | def => "attempted to add class member to non-class"
-                 ^ (Pretty.output o pretty_def) def |> error)])
-      end
-  | *) add_check_transform (name, Classinst ((clsname, (tyco, arity)), (_, memdefs))) =
-      let
-        val _ = debug 7 (fn _ => "transformation for class instance " ^ quote tyco
-          ^ " of class " ^ quote clsname) ();
-        (* fun check [Classmember (_, v, mtyp_c), Fun (_, (_, mtyp_i))] =
-              let
-                val mtyp_i' = instant_itype (v, tyco `%% map IVarT arity) mtyp_c;
-              in if eq_itype (mtyp_i', mtyp_i)
-                then NONE
-                else "wrong type signature for class member: "
-                  ^ (Pretty.output o pretty_itype) mtyp_i' ^ " expected, "
-                  ^ (Pretty.output o pretty_itype) mtyp_i ^ " given" |> SOME
-              end
-          | check defs =
-              "non-well-formed definitions encountered for classmembers: "
-              ^ (commas o map (quote o Pretty.output o pretty_def)) defs |> SOME *)
-      in
-        ((* map (fn (memname, memprim) => ([memname, memprim], check)) memdefs*) [],
-          [(clsname,
-              fn Class (supcs, v, mems, insts) => Class (supcs, v, mems, name::insts)
-               | def => "attempted to add class instance to non-class"
-                  ^ (Pretty.output o pretty_def) def |> error),
-           (tyco,
-              fn Datatype (vs, cs, insts) => Datatype (vs, cs, name::insts)
-               | Nop => Nop
-               | def => "attempted to instantiate non-type to class instance"
-                  ^ (Pretty.output o pretty_def) def |> error)])
-      end
-  | add_check_transform _ = ([], []);
+  | postprocess_def (name, Class ((_, (_, membrs)), _)) =
+      (check_samemodule (name :: map fst membrs);
+      fold (fn (m, _) =>
+        ensure_def (m, Classmember name)
+        #> add_dep (m, name)
+        #> add_dep (name, m)
+      ) membrs
+      )
+  | postprocess_def (name, Classinst ((class, (tyco, _)), _)) =
+      map_def class (fn Datatype (d, insts) => Datatype (d, name::insts)
+                      | d => d)
+      #> map_def class (fn Class (d, insts) => Class (d, name::insts))
+  | postprocess_def _ =
+      I;
 
-(* checks to be implemented here lateron:
-    - well-formedness of function equations
-    - only possible to add defined constructors and class members
-    - right type abstraction with class members
-    - correct typing of instance definitions
-*)
-
-fun succeed some = pair (Succeed some);
-fun fail msg = pair (Fail ([msg], NONE));
+fun succeed some (_, modl) = (Succeed some, modl);
+fun fail msg (_, modl) = (Fail ([msg], NONE), modl);
 
 fun check_fail _ (Succeed dst, trns) = (dst, trns)
   | check_fail msg (Fail (msgs, e), _) = raise FAIL (msg::msgs, e);
 
-fun select_generator _ _ [] modl =
-      ([], modl) |> fail ("no code generator available")
+fun select_generator _ src [] modl =
+      (SOME src, modl) |> fail ("no code generator available")
   | select_generator mk_msg src gens modl =
       let
         fun handle_fail msgs f =
@@ -888,101 +884,68 @@ fun select_generator _ _ [] modl =
             in
               if ! soft_exc
               then
-                ([], modl) |> f
-                handle FAIL exc => (Fail exc, ([], modl))
-                     | e => (Fail (msgs, SOME e), ([], modl))
+                (SOME src, modl) |> f
+                handle FAIL exc => (Fail exc, modl)
+                     | e => (Fail (msgs, SOME e), modl)
               else
-                ([], modl) |> f
-                handle FAIL exc => (Fail exc, ([], modl))
+                (SOME src, modl) |> f
+                handle FAIL exc => (Fail exc, modl)
             end;
         fun select msgs [(gname, gen)] =
-          handle_fail (msgs @ [mk_msg gname]) (gen src)
-        fun select msgs ((gname, gen)::gens) =
-          let
-            val msgs' = msgs @ [mk_msg gname]
-          in case handle_fail msgs' (gen src)
-          of (Fail (_, NONE), _) =>
-               select msgs' gens
-           | result =>
-               result
+              handle_fail (msgs @ [mk_msg gname]) (gen src)
+          | select msgs ((gname, gen)::gens) =
+              let
+                val msgs' = msgs @ [mk_msg gname]
+              in case handle_fail msgs' (gen src)
+               of (Fail (_, NONE), _) =>
+                   select msgs' gens
+               | result => result
           end;
       in select [] gens end;
 
-fun gen_invoke codegens msg src (deps, modl) =
-  modl
-  |> select_generator (fn gname => "trying code generator " ^ gname ^ " for source " ^ quote msg)
-       src codegens
-  |> check_fail msg
-  ||> (fn (deps', modl') => (append deps' deps, modl'));
-
-fun gen_ensure_def defgens msg name (deps, modl) =
+fun gen_ensure_def defgens msg name (dep, modl) =
   let
-    fun add (name, def) (deps, modl) =
-      let
-        val (checks, trans) = add_check_transform (name, def);
-        fun check (check_defs, checker) modl =
-          let
-            fun get_def' s =
-              if NameSpace.is_qualified s
-              then get_def modl s
-              else Nop
-            val defs =
-              check_defs
-              |> map get_def';
-          in
-            case checker defs
-             of NONE => modl
-              | SOME msg => raise FAIL ([msg], NONE)
-          end;
-        fun transform (name, f) modl =
-          modl
-          |> debug 9 (fn _ => "transforming node " ^ name)
-          |> (if NameSpace.is_qualified name then map_def name f else I);
-      in
-        modl
-        |> debug 10 (fn _ => "considering addition of " ^ name
-             ^ " := " ^ (Pretty.output o pretty_def) def)
-        |> debug 10 (fn _ => "consistency checks")
-        |> fold check checks
-        |> debug 10 (fn _ => "dependencies")
-        |> fold (curry add_dep name) deps
-        |> debug 10 (fn _ => "adding")
-        |> map_def name (fn _ => def)
-        |> debug 10 (fn _ => "transforming")
-        |> fold transform trans
-        |> debug 10 (fn _ => "adding done")
-      end;
-    fun ensure_node name modl =
-      (debug 9 (fn _ => "testing node " ^ quote name) ();
-      if can (get_def modl) name
-      then
-        modl
-        |> debug 9 (fn _ => "asserting node " ^ quote name)
-        |> pair [name]
-      else
-        modl
-        |> debug 9 (fn _ => "allocating node " ^ quote name)
-        |> add_def (name, Nop)
-        |> debug 9 (fn _ => "creating node " ^ quote name)
-        |> select_generator (fn gname => "trying code generator " ^ gname ^ " for definition of " ^ quote name)
-             name defgens
-        |> debug 9 (fn _ => "checking creation of node " ^ quote name)
-        |> check_fail msg
-        |-> (fn (def, names') =>
-           add (name, def)
-           #> fold_map ensure_node names')
-        |-> (fn names' => pair (name :: Library.flat names'))
-      )
+    val msg' = case dep
+     of NONE => msg
+      | SOME dep => msg ^ ", with dependency " ^ quote dep;
+    fun add_dp NONE = I
+      | add_dp (SOME dep) =
+          debug 9 (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
+          #> add_dep (dep, name);
+    fun prep_def def modl =
+      (check_prep_def modl def, modl);
   in
     modl
-    |> ensure_node name
-    |-> (fn names => pair (names@deps))
+    |> (if can (get_def modl) name
+        then
+          debug 9 (fn _ => "asserting node " ^ quote name)
+          #> add_dp dep
+        else
+          debug 9 (fn _ => "allocating node " ^ quote name)
+          #> add_def (name, Undef)
+          #> add_dp dep
+          #> debug 9 (fn _ => "creating node " ^ quote name)
+          #> select_generator (fn gname => "trying code generator " ^ gname ^ " for definition of " ^ quote name)
+               name defgens
+          #> debug 9 (fn _ => "checking creation of node " ^ quote name)
+          #> check_fail msg'
+          #-> (fn def => prep_def def)
+          #-> (fn def =>
+             debug 10 (fn _ => "addition of " ^ name
+               ^ " := " ^ (Pretty.output o pretty_def) def)
+          #> debug 10 (fn _ => "adding")
+          #> ensure_def (name, def)
+          #> debug 10 (fn _ => "postprocessing")
+          #> postprocess_def (name, def)
+          #> debug 10 (fn _ => "adding done")
+       ))
+    |> pair dep
   end;
 
 fun start_transact f modl =
   let
     fun handle_fail f modl =
-      ((([], modl) |> f)
+      (((NONE, modl) |> f)
       handle FAIL (msgs, NONE) =>
         (error o cat_lines) ("code generation failed, while:" :: msgs))
       handle FAIL (msgs, SOME e) =>
@@ -993,142 +956,6 @@ fun start_transact f modl =
     |-> (fn x => fn (_, module) => (x, module))
   end;
 
-
-(** primitive language constructs **)
-
-val class_eq = "Eq"; (*defined for all primitve types and extensionally for all datatypes*)
-val type_bool = "Bool";
-val type_integer = "Integer"; (*infinite!*)
-val type_float = "Float";
-val type_pair = "Pair";
-val type_list = "List";
-val cons_true = "True";
-val cons_false = "False";
-val cons_not = "not";
-val cons_pair = "Pair";
-val cons_nil = "Nil";
-val cons_cons = "Cons";
-val fun_eq = "eq"; (*to class eq*)
-val fun_not = "not";
-val fun_and = "and";
-val fun_or = "or";
-val fun_if = "if";
-val fun_fst = "fst";
-val fun_snd = "snd";
-val fun_add = "add";
-val fun_mult = "mult";
-val fun_minus = "minus";
-val fun_lt = "lt";
-val fun_le = "le";
-val fun_wfrec = "wfrec";
-
-local
-
-val A = IVarT ("a", []);
-val B = IVarT ("b", []);
-val E = IVarT ("e", [class_eq]);
-
-in
-
-val Type_bool = type_bool `%% [];
-val Type_integer = type_integer `%% [];
-val Type_float = type_float `%% [];
-fun Type_pair a b = type_pair `%% [a, b];
-fun Type_list a = type_list `%% [a];
-val Cons_true = IConst (cons_true, Type_bool);
-val Cons_false = IConst (cons_false, Type_bool);
-val Cons_pair = IConst (cons_pair, A `-> B `-> Type_pair A B);
-val Cons_nil = IConst (cons_nil, Type_list A);
-val Cons_cons = IConst (cons_cons, A `-> Type_list A `-> Type_list A);
-val Fun_eq = IConst (fun_eq, E `-> E `-> Type_bool);
-val Fun_not = IConst (fun_not, Type_bool `-> Type_bool);
-val Fun_and = IConst (fun_and, Type_bool `-> Type_bool `-> Type_bool);
-val Fun_or = IConst (fun_or, Type_bool `-> Type_bool `-> Type_bool);
-val Fun_if = IConst (fun_if, Type_bool `-> A `-> A `-> A);
-val Fun_fst = IConst (fun_fst, Type_pair A B `-> A);
-val Fun_snd = IConst (fun_snd, Type_pair A B `-> B);
-val Fun_0 = IConst ("0", Type_integer);
-val Fun_1 = IConst ("1", Type_integer);
-val Fun_add = IConst (fun_add, Type_integer `-> Type_integer `-> Type_integer);
-val Fun_mult = IConst (fun_mult, Type_integer `-> Type_integer `-> Type_integer);
-val Fun_minus = IConst (fun_minus, Type_integer `-> Type_integer);
-val Fun_lt = IConst (fun_lt, Type_integer `-> Type_integer `-> Type_bool);
-val Fun_le = IConst (fun_le, Type_integer `-> Type_integer `-> Type_bool);
-val Fun_wfrec = IConst (fun_wfrec, ((A `-> B) `-> A `-> B) `-> A `-> B);
-
-fun foldl1 f (x::xs) =
-  Library.foldl f (x, xs);
-val ** = foldl1 (uncurry Type_pair);
-val XXp = foldl1 (fn (a, b) =>
-  let
-    val ty_a = itype_of_ipat a;
-    val ty_b = itype_of_ipat b;
-  in ICons ((cons_pair, [a, b]), Type_pair ty_a ty_b) end);
-val XXe = foldl1 (fn (a, b) =>
-  let
-    val ty_a = itype_of_iexpr a;
-    val ty_b = itype_of_iexpr b;
-  in IConst (cons_pair, ty_a `-> ty_b `-> Type_pair ty_a ty_b) `$ a `$ b end);
-
-end; (* local *)
-
-val prims = [class_eq, type_bool, type_integer, type_float, type_pair, type_list,
-  cons_true, cons_false, cons_pair, cons_nil, cons_cons, fun_eq, fun_not, fun_and,
-  fun_or, fun_if, fun_fst, fun_snd, fun_add, fun_mult, fun_minus, fun_lt, fun_le, fun_wfrec];
-
-
-(** equality handling **)
-
-fun invoke_eq gen_ty gen_eq x (trns as (_ , modl)) =
-  let
-    fun mk_eqpred dtname =
-      let
-        val (vs, cons, _) = case get_def modl dtname of Datatype info => info;
-        val arity = map (rpair [class_eq] o fst) vs
-        val ty = IType (dtname, map IVarT arity);
-        fun mk_eq (c, []) =
-              ([ICons ((c, []), ty), ICons ((c, []), ty)], Cons_true)
-          | mk_eq (c, tys) =
-              let
-                val vars1 = Term.invent_names [] "a" (length tys);
-                val vars2 = Term.invent_names vars1 "b" (length tys);
-                fun mk_eq_cons ty' (v1, v2) =
-                  IConst (fun_eq, ty' `-> ty' `-> Type_bool) `$ IVarE (v1, ty) `$ IVarE (v2, ty)
-                fun mk_conj (e1, e2) =
-                  Fun_and `$ e1 `$ e2;
-              in
-                ([ICons ((c, map2 (curry IVarP) vars1 tys), ty),
-                  ICons ((c, map2 (curry IVarP) vars2 tys), ty)],
-                  foldr1 mk_conj (map2 mk_eq_cons tys (vars1 ~~ vars2)))
-              end;
-        val eqs = map mk_eq cons @ [([IVarP ("_", ty), IVarP ("_", ty)], Cons_false)];
-      in
-        (Fun (eqs, (arity, ty `-> ty `-> Type_bool)), arity)
-      end;
-    fun invoke' (IType (tyco, tys)) trns =
-          trns
-          |> fold_map invoke' tys
-          |-> (fn is_eq =>
-                if forall I is_eq
-                  then if NameSpace.is_qualified tyco
-                  then
-                    gen_eq (tyco, mk_eqpred tyco)
-                    #> pair true
-                  else
-                    pair true
-                else
-                  pair false)
-      | invoke' (IFun _) trns =
-          trns 
-          |> pair false
-      | invoke' (IVarT (_, sort)) trns =
-          trns 
-          |> pair (member (op =) sort class_eq)
-  in
-    trns
-    |> gen_ty x
-    |-> (fn ty => invoke' ty)
-  end;
 
 
 (** generic transformation **)
@@ -1188,44 +1015,7 @@ val eta_expand_poly =
       | map_def_fun def = def;
   in map_defs map_def_fun end;
 
-fun tupelize_cons module =
-  let
-    fun replace_cons (cons as (_, [])) =
-          pair cons
-      | replace_cons (cons as (_, [_])) =
-          pair cons
-      | replace_cons (con, tys) =
-          cons con
-          #> pair (con, [** tys])
-    fun replace_def (_, (def as Datatype (vs, cs, insts))) =
-          fold_map replace_cons cs
-          #-> (fn cs => pair (Datatype (vs, cs, insts)))
-      | replace_def (_, def) =
-          pair def
-    fun replace_app cs ((f, ty), es) =
-      if member (op =) cs f
-      then
-        let
-          val (tys, ty') = unfold_fun ty
-        in IConst (f, ** tys `-> ty') `$ XXe es end
-      else IConst (f, ty) `$$ es;
-    fun replace_iexpr cs (IConst (f, ty)) =
-          replace_app cs ((f, ty), [])
-      | replace_iexpr cs (e as IApp _) =
-          (case unfold_app e
-           of (IConst fty, es) => replace_app cs (fty, map (replace_iexpr cs) es)
-            | _ => map_iexpr I I (replace_iexpr cs) e)
-      | replace_iexpr cs e = map_iexpr I I (replace_iexpr cs) e;
-    fun replace_ipat cs (p as ICons ((c, ps), ty)) =
-          if member (op =) cs c then
-            ICons ((c, [XXp (map (replace_ipat cs) ps)]), ty)
-          else map_ipat I (replace_ipat cs) p
-      | replace_ipat cs p = map_ipat I (replace_ipat cs) p;
-  in
-    transform_defs replace_def replace_ipat replace_iexpr [cons_cons] module
-  end;
-
-fun eliminate_classes module =
+(*fun eliminate_classes module =
   let
     fun transform_itype (IVarT (v, s)) =
           IVarT (v, [])
@@ -1335,7 +1125,9 @@ fun eliminate_classes module =
     |-> (fn membrs => fold (fn (name, f) => map_def name (K f)) membrs)
     |> map_defs introduce_dicts
     |> map_defs elim_sorts
-  end;
+  end;*)
+
+fun eliminate_classes module = module;
 
 
 (** generic serialization **)
@@ -1370,10 +1162,7 @@ structure DefNameMangler = NameManglerFun (
 
 fun mk_resolvtab nsp_conn validate module =
   let
-    fun validate' n =
-      let
-        val n' = perhaps validate n
-      in if member (op =) prims n' then n' ^ "'" else n' end;
+    fun validate' n = perhaps validate n;
     fun ensure_unique prfix prfix' name name' (locals, tab) =
       let
         fun uniquify name n =
@@ -1453,21 +1242,32 @@ fun mk_resolv tab =
 
 (* serialization *)
 
-fun serialize s_def s_module validate nsp_conn name_root module =
+fun serialize seri_defs seri_module validate nsp_conn name_root module ctxt =
   let
     val resolvtab = mk_resolvtab nsp_conn validate module;
     val resolver = mk_resolv resolvtab;
-    fun seri prfx ([(name, Module module)]) =
-          s_module (resolver prfx (prfx @ [name] |> NameSpace.pack),
-            List.mapPartial (seri (prfx @ [name]))
-              ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module))
-          |> SOME
-      | seri prfx ds =
-          s_def (resolver prfx) (map
-            (fn (name, Def def) => (resolver prfx (prfx @ [name] |> NameSpace.pack), def)) ds)
+    fun mk_name prfx name =
+      resolver prfx (NameSpace.pack (prfx @ [name]));
+    fun mk_contents prfx module ctxt =
+      ctxt
+      |> fold_map (seri prfx) ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
+      |-> (fn xs => pair (List.mapPartial I xs))
+    and seri prfx ([(name, Module modl)]) ctxt =
+          ctxt
+          |> mk_contents (prfx @ [name]) modl
+          |-> (fn [] => pair NONE
+                | xs => 
+                    seri_module (imports_of module name_root (prfx @ [name])) (mk_name prfx name, xs)
+                    #-> (fn x => pair (SOME x)))
+      | seri prfx ds ctxt =
+          ds
+          |> map (fn (name, Def def) => (mk_name prfx name, def))
+          |> seri_defs (resolver prfx)
+          |> rpair ctxt
   in
-    setmp print_mode [] (fn _ => s_module (name_root, (List.mapPartial (seri [])
-      ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)))) ()
+    ctxt
+    |> mk_contents [] module
+    |-> (fn xs => seri_module [] (name_root, xs))
   end;
 
 end; (* struct *)

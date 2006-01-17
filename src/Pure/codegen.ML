@@ -81,7 +81,7 @@ sig
   val quotes_of: 'a mixfix list -> 'a list
   val num_args_of: 'a mixfix list -> int
   val replace_quotes: 'b list -> 'a mixfix list -> 'b mixfix list
-  val fillin_mixfix: 'a mixfix list -> Pretty.T list -> ('a -> Pretty.T) -> Pretty.T
+  val fillin_mixfix: ('a -> Pretty.T) -> 'a mixfix list -> 'a list -> Pretty.T
   val mk_deftab: theory -> deftab
 
   val get_node: codegr -> string -> node
@@ -658,12 +658,12 @@ fun replace_quotes [] [] = []
   | replace_quotes (x::xs) (Quote _ :: ms) =
       Quote x :: replace_quotes xs ms;
 
-fun fillin_mixfix ms args f =
+fun fillin_mixfix f ms args =
   let
     fun fillin [] [] =
          []
       | fillin (Arg :: ms) (a :: args) =
-          a :: fillin ms args
+          f a :: fillin ms args
       | fillin (Ignore :: ms) args =
           fillin ms args
       | fillin (Module :: ms) args =
@@ -671,7 +671,7 @@ fun fillin_mixfix ms args f =
       | fillin (Pretty p :: ms) args =
           p :: fillin ms args
       | fillin (Quote q :: ms) args =
-          (f q) :: fillin ms args
+          f q :: fillin ms args
   in Pretty.block (fillin ms args) end;
 
 

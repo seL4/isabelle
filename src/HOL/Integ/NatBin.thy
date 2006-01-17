@@ -763,7 +763,6 @@ lemma nat_mult_div_cancel_disj:
      "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
 by (simp add: nat_mult_div_cancel1)
 
-
 ML
 {*
 val eq_nat_nat_iff = thm"eq_nat_nat_iff";

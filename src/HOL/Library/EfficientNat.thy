@@ -51,6 +51,26 @@ fun nat i = if i < 0 then 0 else i;
 *}
   int ("(_)")
 
+(* code_syntax_tyco nat
+  ml (atom "InfInt.int")
+  haskell (atom "Integer")
+
+code_syntax_const 0 :: nat
+  ml ("0 : InfInt.int")
+  haskell (atom "0")
+
+code_syntax_const Suc
+  ml (infixl 8 "_ + 1")
+  haskell (infixl 6 "_ + 1")
+
+code_primconst nat
+ml {*
+fun nat i = if i < 0 then 0 else i;
+*}
+haskell {*
+nat i = if i < 0 then 0 else i
+*} *)
+
 text {*
 Case analysis on natural numbers is rephrased using a conditional
 expression:

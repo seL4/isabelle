@@ -870,6 +870,13 @@ apply (rule mod_add1_eq, simp)
 apply (rule mod_add1_eq [symmetric])
 done
 
+subsection {* Code generator setup *}
+
+code_alias
+  "Divides.op div" "Divides.div"
+  "Divides.op dvd" "Divides.dvd"
+  "Divides.op mod" "Divides.mod"
+
 ML
 {*
 val div_def = thm "div_def"

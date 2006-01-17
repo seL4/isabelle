@@ -774,10 +774,32 @@ attach (test) {*
 fun gen_id_42 aG bG i = (aG i, bG i);
 *}
 
-consts_code
-  "Pair"    ("(_,/ _)")
-  "fst"     ("fst")
-  "snd"     ("snd")
+code_alias
+  "*" "Product_Type.*"
+  "Pair" "Product_Type.Pair"
+  "fst" "Product_Type.fst"
+  "snd" "Product_Type.snd"
+
+code_primconst fst
+ml {*
+fun fst (x, y) = x;
+*}
+
+code_primconst snd
+ml {*
+fun snd (x, y) = y;
+*}
+
+code_syntax_tyco
+  *
+    ml (infix 2 "*")
+    haskell (atom "(__,/ __)")
+
+code_syntax_const
+  fst
+    haskell (atom "fst")
+  snd
+    haskell (atom "snd")
 
 ML {*
 

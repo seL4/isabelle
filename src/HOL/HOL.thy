@@ -1361,4 +1361,42 @@ by (simp add: tag_def)
 lemma tag_False: "tag False = False"
 by (simp add: tag_def)
 
+
+subsection {* Code generator setup *}
+
+code_alias
+  bool "HOL.bool"
+  True "HOL.True"
+  False "HOL.False"
+  "op =" "HOL.op_eq"
+  "op -->" "HOL.op_implies"
+  "op &" "HOL.op_and"
+  "op |" "HOL.op_or"
+  "op +" "IntDef.op_add"
+  "op -" "IntDef.op_minus"
+  "op *" "IntDef.op_times"
+  Not "HOL.not"
+  uminus "HOL.uminus"
+
+code_syntax_tyco bool
+  ml (atom "bool")
+  haskell (atom "Bool")
+
+code_syntax_const
+  Not
+    ml (atom "not")
+    haskell (atom "not")
+  "op &"
+    ml (infixl 1 "andalso")
+    haskell (infixl 3 "&&")
+  "op |"
+    ml (infixl 0 "orelse")
+    haskell (infixl 2 "||")
+  If
+    ml ("if __/ then __/ else __")
+    haskell ("if __/ then __/ else __")
+  "op =" (* an intermediate solution *)
+    ml (infixl 6 "=")
+    haskell (infixl 4 "==")
+
 end

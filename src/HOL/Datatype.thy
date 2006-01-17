@@ -220,4 +220,24 @@ lemma option_map_o_sum_case [simp]:
 
 lemmas [code] = imp_conv_disj
 
+subsubsection {* Codegenerator setup *}
+
+code_syntax_const
+  True
+    ml (atom "true")
+    haskell (atom "True")
+  False
+    ml (atom "false")
+    haskell (atom "False")
+
+code_syntax_const
+  Pair
+    ml (atom "(__,/ __)")
+    haskell (atom "(__,/ __)")
+
+code_syntax_const
+  1 :: "nat"
+    ml ("{*Suc 0*}")
+    haskell ("{*Suc 0*}")
+
 end

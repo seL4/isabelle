@@ -2684,6 +2684,23 @@ fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
 
 consts_code "Cons" ("(_ ::/ _)")
 
+code_alias
+  "List.op @" "List.append"
+  "List.op mem" "List.member"
+
+code_syntax_tyco
+  list
+    ml ("_ list")
+    haskell (atom "[_]")
+
+code_syntax_const
+  Nil
+    ml (atom "[]")
+    haskell (atom "[]")
+  Cons
+    ml (infixr 7 "::" )
+    haskell (infixr 5 ":")
+
 setup list_codegen_setup
 
 setup "[CodegenPackage.rename_inconsistent]"

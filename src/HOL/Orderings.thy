@@ -703,4 +703,10 @@ qed
   leave out the "(xtrans)" above.
 *)
 
+subsection {* Code generator setup *}
+
+code_alias
+  "op <=" "Orderings.op_le"
+  "op <" "Orderings.op_lt"
+
 end
