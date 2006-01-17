@@ -46,11 +46,9 @@ val end_V8 = "======= End of refutation ======="
 (*Identifies the start/end lines of an ATP's output*)
 local open Recon_Parse in
 fun extract_proof s =
-  if cut_exists "Here is a proof with" s then
+  if cut_exists "Formulae used in the proof" s then  (*SPASS*)
     (kill_lines 0
-     o snd o cut_after ":"
-     o snd o cut_after "Here is a proof with"
-     o fst o cut_after " ||  -> .") s
+     o fst o cut_before "Formulae used in the proof") s
   else if cut_exists end_V8 s then
     (kill_lines 0    (*Vampire 8.0*)
      o fst o cut_before end_V8) s
@@ -161,7 +159,7 @@ fun transferSpassInput (fromChild, toParent, ppid, probfile,
     if thisLine = "" (*end of file?*)
     then (trace ("\nspass_extraction_failed: " ^ currentString);
 	  raise EOF)                    
-    else if String.isPrefix "--------------------------SPASS-STOP" thisLine
+    else if String.isPrefix "Formulae used in the proof" thisLine
     then 
       let val proofextract = extract_proof (currentString^thisLine)
       in 
@@ -189,7 +187,7 @@ fun startSpassTransfer (fromChild, toParent, ppid, probfile,
    in                 
       if thisLine = "" then false
       else if String.isPrefix "Here is a proof" thisLine then     
-	 (trace ("\nabout to transfer SPASS proof\n:");
+	 (trace ("\nabout to transfer SPASS proof:\n");
 	  transferSpassInput (fromChild, toParent, ppid, probfile, thisLine, 
  	                     thm, sg_num,clause_arr);
 	  true) handle EOF => false

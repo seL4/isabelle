@@ -97,20 +97,15 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
             (*options are separated by Watcher.setting_sep, currently #"%"*)
             if !prover = "spass"
             then
-              let val optionline = 
+              let val baseopts = "%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
+              val infopts = 
 		      if !AtpCommunication.reconstruct 
-		          (*Proof reconstruction works for only a limited set of 
-		            inference rules*)
-                      then space_implode "%" (!custom_spass) ^
-                           "%-DocProof%-TimeLimit=" ^ time
-                      else "-DocProof%-SOS%-FullRed=0%-TimeLimit=" ^ time (*Auto mode*)
-                  val _ = Output.debug ("SPASS option string is " ^ optionline)
-                  val _ = helper_path "SPASS_HOME" "SPASS"
-                    (*We've checked that SPASS is there for ATP/spassshell to run.*)
-              in 
-                  ([("spass", 
-                     getenv "ISABELLE_HOME" ^ "/src/HOL/Tools/ATP/spassshell",
-                     optionline, probfile)] @ 
+		          (*Proof reconstruction needs a limited set of inf rules*)
+                      then space_implode "%" (!custom_spass)                           
+                      else "-Auto%-SOS=1"
+                  val spass = helper_path "SPASS_HOME" "SPASS"
+            in 
+                ([("spass", spass, infopts ^ baseopts, probfile)] @ 
                   (make_atp_list xs (n+1)))
               end
             else if !prover = "vampire"

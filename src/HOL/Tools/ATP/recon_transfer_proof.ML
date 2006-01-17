@@ -162,15 +162,18 @@ fun get_axiom_names step_nums clause_arr =
             (map (ResClause.get_axiomName o #1) 
 	     (get_clasimp_cls clause_arr step_nums)));   
 
-fun get_axiom_names_spass proofstr clause_arr =
-  let (* parse spass proof into datatype *)
-      val _ = trace ("\nStarted parsing:\n" ^ proofstr)
-      val proof_steps = parse (#1(lex proofstr))
-      val _ = trace "\nParsing finished!"
-      (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
-  in
-    get_axiom_names (get_step_nums (List.filter is_axiom proof_steps) []) clause_arr
-  end;
+ (*String contains multiple lines. We want those of the form 
+     "253[0:Inp] et cetera..."
+  A list consisting of the first number in each line is returned. *)
+fun get_spass_linenums proofstr = 
+  let val toks = String.tokens (not o Char.isAlphaNum)
+      fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
+        | inputno _ = NONE
+      val lines = String.tokens (fn c => c = #"\n") proofstr
+  in  List.mapPartial (inputno o toks) lines  end
+
+fun get_axiom_names_spass proofstr clause_arr  =
+   get_axiom_names (get_spass_linenums proofstr) clause_arr;
     
  (*String contains multiple lines.
   A list consisting of the first number in each line is returned. *)
@@ -189,7 +192,7 @@ fun get_axiom_names_e proofstr clause_arr  =
   A list consisting of the first number in each line is returned. *)
 fun get_vamp_linenums proofstr = 
   let val toks = String.tokens (not o Char.isAlphaNum)
-      fun inputno [n,"input"] = Int.fromString n
+      fun inputno [ntok,"input"] = Int.fromString ntok
         | inputno _ = NONE
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (inputno o toks) lines  end
