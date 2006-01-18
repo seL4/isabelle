@@ -2007,7 +2007,7 @@ lemma freshness_lemma_unique:
   and     f1: "finite ((supp h)::'x set)"
   and     a: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
   shows  "\<exists>!(fr::'a). \<forall>(a::'x). a\<sharp>h \<longrightarrow> (h a) = fr"
-proof
+proof (rule ex_ex1I)
   from pt at f1 a show "\<exists>fr::'a. \<forall>a::'x. a\<sharp>h \<longrightarrow> h a = fr" by (simp add: freshness_lemma)
 next
   fix fr1 fr2
@@ -2640,10 +2640,10 @@ method_setup perm_simp_debug =
 
 method_setup supports_simp =
   {* supports_meth *}
-  {* tactic for deciding whether something supports semthing else *}
+  {* tactic for deciding whether something supports something else *}
 
 method_setup supports_simp_debug =
   {* supports_meth_debug *}
-  {* tactic for deciding equalities involving permutations including debuging facilities *}
+  {* tactic for deciding whether something supports something else including debuging facilities *}
 
 end
