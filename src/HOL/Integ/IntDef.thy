@@ -902,13 +902,11 @@ code_syntax_tyco int
 
 code_syntax_const
   0 :: "int"
-    ml ("0 : IntInf.int")
+    ml (atom "(0:IntInf.int)")
     haskell (atom "0")
   1 :: "int"
-    ml ("1 : IntInf.int")
+    ml (atom "(1:IntInf.int)")
     haskell (atom "1")
-
-code_syntax_const
   "op +" :: "int \<Rightarrow> int \<Rightarrow> int"
     ml (infixl 8 "+")
     haskell (infixl 6 "+")
@@ -925,8 +923,8 @@ code_syntax_const
     ml (infix 6 "<=")
     haskell (infix 4 "<=")
   "neg" :: "int \<Rightarrow> bool"
-    ml ("_ < 0")
-    haskell ("_ < 0")
+    ml ("_/ </ 0")
+    haskell ("_/ </ 0")
 
 ML {*
 fun mk_int_to_nat bin =

@@ -30,6 +30,8 @@ sig
     -> theory -> theory;
   val add_prim_i: string -> string list -> (string * Pretty.T)
     -> theory -> theory;
+  val add_pretty_list: string -> string -> string * (int * string)
+    -> theory -> theory;
   val add_alias: string * string -> theory -> theory;
   val set_is_datatype: (theory -> string -> bool) -> theory -> theory;
   val set_get_all_datatype_cons : (theory -> (string * string) list)
@@ -1087,7 +1089,7 @@ val parse_syntax_tyco =
               target_data |> Symtab.map_entry target
                 (map_target_data
                   (fn (syntax_tyco, syntax_const) =>
-                   (syntax_tyco |> Symtab.update_new
+                   (syntax_tyco |> Symtab.update
                       (tyco, (pretty, stamp ())),
                     syntax_const))),
               logic_data)))
@@ -1096,6 +1098,19 @@ val parse_syntax_tyco =
     CodegenSerializer.parse_syntax (read_quote read_typ exprgen_type)
     #-> (fn reader => pair (mk reader))
   end;
+
+fun add_pretty_syntax_const c target pretty =
+  map_codegen_data
+    (fn (modl, gens, target_data, logic_data) =>
+       (modl, gens,
+        target_data |> Symtab.map_entry target
+          (map_target_data
+            (fn (syntax_tyco, syntax_const) =>
+             (syntax_tyco,
+              syntax_const
+              |> Symtab.update
+                 (c, (pretty, stamp ()))))),
+        logic_data));
 
 val parse_syntax_const =
   let
@@ -1108,21 +1123,28 @@ val parse_syntax_const =
         thy
         |> ensure_prim c target
         |> reader
-        |-> (fn pretty => map_codegen_data
-          (fn (modl, gens, target_data, logic_data) =>
-             (modl, gens,
-              target_data |> Symtab.map_entry target
-                (map_target_data
-                  (fn (syntax_tyco, syntax_const) =>
-                   (syntax_tyco,
-                    syntax_const
-                    |> Symtab.update_new
-                       (c, (pretty, stamp ()))))),
-              logic_data)))
+        |-> (fn pretty => add_pretty_syntax_const c target pretty)
       end;
   in
     CodegenSerializer.parse_syntax (read_quote Sign.read_term exprgen_term)
     #-> (fn reader => pair (mk reader))
+  end;
+
+fun add_pretty_list raw_nil raw_cons (target, seri) thy =
+  let
+    val _ = check_for_target thy target;
+    val tabs = mk_tabs thy;
+    fun mk_const raw_name =
+      let
+        val name = Sign.intern_const thy raw_name;
+      in idf_of_const thy tabs (name, Sign.the_const_type thy name) end;
+    val nil' = mk_const raw_nil;
+    val cons' = mk_const raw_cons;
+    val pr' = CodegenSerializer.pretty_list nil' cons' seri;
+  in
+    thy
+    |> ensure_prim cons' target
+    |> add_pretty_syntax_const cons' target pr'
   end;
 
 

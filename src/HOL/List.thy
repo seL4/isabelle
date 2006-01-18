@@ -2652,9 +2652,14 @@ fun char_codegen thy defs gr dep thyname b (Const ("List.char.Char", _) $ c1 $ c
 
 in
 
-val list_codegen_setup =
-  [Codegen.add_codegen "list_codegen" list_codegen,
-   Codegen.add_codegen "char_codegen" char_codegen];
+val list_codegen_setup = [
+  Codegen.add_codegen "list_codegen" list_codegen,
+  Codegen.add_codegen "char_codegen" char_codegen,
+  fold (CodegenPackage.add_pretty_list "Nil" "Cons") [
+    ("ml", (7, "::")),
+    ("haskell", (5, ":")) 
+  ] 
+];
 
 end;
 *}
@@ -2697,9 +2702,6 @@ code_syntax_const
   Nil
     ml (atom "[]")
     haskell (atom "[]")
-  Cons
-    ml (infixr 7 "::" )
-    haskell (infixr 5 ":")
 
 setup list_codegen_setup
 
