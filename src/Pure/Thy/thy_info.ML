@@ -265,7 +265,7 @@ fun run_file path =
 
 in
 
-fun load_file time path =
+fun load_file time path = Output.toplevel_errors (fn () =>
   if time then
     let val name = Path.pack path in
       timeit (fn () =>
@@ -273,7 +273,7 @@ fun load_file time path =
         run_file path;
         priority ("**** Finished file " ^ quote name ^ " ****\n")))
     end
-  else run_file path;
+  else run_file path) ();
 
 val use = load_file false o Path.unpack;
 val time_use = load_file true o Path.unpack;
@@ -375,9 +375,9 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
       in (visited', (result, name)) end
   end;
 
-fun gen_use_thy' req prfx s =
+fun gen_use_thy' req prfx s = Output.toplevel_errors (fn () =>
   let val (_, (_, name)) = req [] prfx ([], s)
-  in Context.context (get_theory name) end;
+  in Context.context (get_theory name) end) ();
 
 fun gen_use_thy req = gen_use_thy' req Path.current;
 
