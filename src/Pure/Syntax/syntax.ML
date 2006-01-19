@@ -60,7 +60,10 @@ sig
     string * bool -> (string * typ * mixfix) list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
-  val pure_syn: syntax
+  val basic_syn: syntax
+  val basic_nonterms: string list
+  val appl_syntax: (string * string * mixfix) list
+  val applC_syntax: (string * string * mixfix) list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
@@ -292,12 +295,27 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
   end;
 
 
-(* pure_syn *)
+(* basic syntax *)
 
-val pure_syn =
+val basic_syn =
   empty_syntax
   |> extend_syntax default_mode TypeExt.type_ext
   |> extend_syntax default_mode SynExt.pure_ext;
+
+val basic_nonterms =
+  (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
+    SynExt.args, SynExt.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
+    "asms", SynExt.any, SynExt.sprop, "num_const", "index", "struct"]);
+
+val appl_syntax =
+ [("_appl", "[('b => 'a), args] => logic", Mixfix.Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
+  ("_appl", "[('b => 'a), args] => aprop", Mixfix.Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))];
+
+val applC_syntax =
+ [("",       "'a => cargs",                  Mixfix.Delimfix "_"),
+  ("_cargs", "['a, cargs] => cargs",         Mixfix.Mixfix ("_/ _", [1000, 1000], 1000)),
+  ("_applC", "[('b => 'a), cargs] => logic", Mixfix.Mixfix ("(1_/ _)", [1000, 1000], 999)),
+  ("_applC", "[('b => 'a), cargs] => aprop", Mixfix.Mixfix ("(1_/ _)", [1000, 1000], 999))];
 
 
 
