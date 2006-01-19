@@ -471,15 +471,14 @@ fun toggle flag = (flag := not (! flag); ! flag);
 
 fun change r f = r := f (! r);
 
-(*temporarily set flag, handling exceptions*)
+(*temporarily set flag during execution*)
 fun setmp flag value f x =
   let
     val orig_value = ! flag;
-    fun return y = (flag := orig_value; y);
-  in
-    flag := value;
-    return (f x handle exn => (return (); raise exn))
-  end;
+    val _ = flag := value;
+    val result = capture f x;
+    val _ = flag := orig_value;
+  in release result end;
 
 
 (* conditional execution *)
