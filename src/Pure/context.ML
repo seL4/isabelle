@@ -62,8 +62,8 @@ sig
   val use_mltext: string -> bool -> theory option -> unit
   val use_mltext_theory: string -> bool -> theory -> theory
   val use_let: string -> string -> string -> theory -> theory
-  val add_setup: (theory -> theory) list -> unit
-  val setup: unit -> (theory -> theory) list
+  val add_setup: (theory -> theory) -> unit
+  val setup: unit -> theory -> theory
   (*proof context*)
   type proof
   val theory_of_proof: proof -> theory
@@ -476,7 +476,8 @@ fun >> f = set_context (SOME (f (the_context ())));
 
 val ml_output = (writeln, Output.error_msg);
 
-fun use_output verbose txt = use_text ml_output verbose (Symbol.escape txt);
+fun use_output verbose txt =
+  Output.ML_errors (use_text ml_output verbose) (Symbol.escape txt);
 
 fun use_mltext txt verbose opt_thy = setmp opt_thy (fn () => use_output verbose txt) ();
 fun use_mltext_theory txt verbose thy = #2 (pass_theory thy (use_output verbose) txt);
@@ -490,10 +491,10 @@ fun use_let bind body txt =
 (* delayed theory setup *)
 
 local
-  val setup_fns = ref ([]: (theory -> theory) list);
+  val setup_fn = ref (I: theory -> theory);
 in
-  fun add_setup fns = setup_fns := ! setup_fns @ fns;
-  fun setup () = let val fns = ! setup_fns in setup_fns := []; fns end;
+  fun add_setup f = setup_fn := (! setup_fn #> f);
+  fun setup () = let val f = ! setup_fn in setup_fn := I; f end;
 end;
 
 
