@@ -361,6 +361,9 @@ obsolete variants of user-level exceptions (ERROR_MESSAGE,
 Context.PROOF, ProofContext.CONTEXT, Proof.STATE, ProofHistory.FAIL)
 -- use plain ERROR instead.
 
+* ML/Isar: theory setup now has type (theory -> theory), instead of a
+list.  INCOMPATIBILITY, may use #> to compose setup functions.
+
 * Pure/Isar: Toplevel.theory_to_proof admits transactions that modify
 the theory before entering a proof state.  Transactions now always see
 a quasi-functional intermediate checkpoint, both in interactive and
