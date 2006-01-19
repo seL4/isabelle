@@ -1,5 +1,7 @@
 (*  Title:      Pure/Pure.thy
     ID:         $Id$
+
+The actual Pure theory.
 *)
 
 header {* The Pure theory *}
@@ -8,7 +10,10 @@ theory Pure
 imports ProtoPure
 begin
 
+subsection {* Common setup of internal components *}
+
 setup
+
 
 subsection {* Meta-level connectives in assumptions *}
 
