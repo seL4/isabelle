@@ -142,19 +142,19 @@ apply (insert cl_po)
 apply (simp add: PartialOrder_def A_def r_def)
 done
 
-lemma (in PO) reflE: "[| refl A r; x \<in> A|] ==> (x, x) \<in> r"
+lemma (in PO) reflE: "x \<in> A ==> (x, x) \<in> r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def refl_def)
+apply (simp add: PartialOrder_def refl_def A_def r_def)
 done
 
-lemma (in PO) antisymE: "[| antisym r; (a, b) \<in> r; (b, a) \<in> r |] ==> a = b"
+lemma (in PO) antisymE: "[| (a, b) \<in> r; (b, a) \<in> r |] ==> a = b"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def antisym_def)
+apply (simp add: PartialOrder_def antisym_def A_def r_def)
 done
 
-lemma (in PO) transE: "[| trans r; (a, b) \<in> r; (b, c) \<in> r|] ==> (a,c) \<in> r"
+lemma (in PO) transE: "[| (a, b) \<in> r; (b, c) \<in> r|] ==> (a,c) \<in> r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def)
+apply (simp add: PartialOrder_def A_def r_def)
 apply (unfold trans_def, fast)
 done
 
@@ -168,13 +168,13 @@ apply (simp (no_asm) add: PartialOrder_def)
 apply auto
 -- {* refl *}
 apply (simp add: refl_def induced_def)
-apply (blast intro: PO_imp_refl [THEN reflE])
+apply (blast intro: reflE)
 -- {* antisym *}
 apply (simp add: antisym_def induced_def)
-apply (blast intro: PO_imp_sym [THEN antisymE])
+apply (blast intro: antisymE)
 -- {* trans *}
 apply (simp add: trans_def induced_def)
-apply (blast intro: PO_imp_trans [THEN transE])
+apply (blast intro: transE)
 done
 
 lemma (in PO) indE: "[| (x, y) \<in> induced S r; S \<subseteq> A |] ==> (x, y) \<in> r"
@@ -289,14 +289,14 @@ lemma (in PO) left_in_interval:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |] ==> a \<in> interval r a b"
 apply (simp (no_asm_simp) add: interval_def)
 apply (simp add: PO_imp_trans interval_not_empty)
-apply (simp add: PO_imp_refl [THEN reflE])
+apply (simp add: reflE)
 done
 
 lemma (in PO) right_in_interval:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |] ==> b \<in> interval r a b"
 apply (simp (no_asm_simp) add: interval_def)
 apply (simp add: PO_imp_trans interval_not_empty)
-apply (simp add: PO_imp_refl [THEN reflE])
+apply (simp add: reflE)
 done
 
 
@@ -316,7 +316,6 @@ subsection {* lub *}
 
 lemma (in CL) lub_unique: "[| S \<subseteq> A; isLub S cl x; isLub S cl L|] ==> x = L"
 apply (rule antisymE)
-apply (rule CO_antisym)
 apply (auto simp add: isLub_def r_def)
 done
 
@@ -449,7 +448,6 @@ apply (rule lub_in_lattice, fast)
 -- {* @{text "\<forall>x:H. (x, f (lub H r)) \<in> r"} *}
 apply (rule ballI)
 apply (rule transE)
-apply (rule CO_trans)
 -- {* instantiates @{text "(x, ???z) \<in> order cl to (x, f x)"}, *}
 -- {* because of the def of @{text H} *}
 apply fast
@@ -483,7 +481,6 @@ apply (simp add: fix_def)
 apply (rule conjI)
 apply (rule lub_in_lattice, fast)
 apply (rule antisymE)
-apply (rule CO_antisym)
 apply (simp add: flubH_le_lubH)
 apply (simp add: lubH_le_flubH)
 done
@@ -566,12 +563,12 @@ by (unfold interval_def, fast)
 lemma (in CLF) a_less_lub:
      "[| S \<subseteq> A; S \<noteq> {};
          \<forall>x \<in> S. (a,x) \<in> r; \<forall>y \<in> S. (y, L) \<in> r |] ==> (a,L) \<in> r"
-by (blast intro: transE PO_imp_trans)
+by (blast intro: transE)
 
 lemma (in CLF) glb_less_b:
      "[| S \<subseteq> A; S \<noteq> {};
          \<forall>x \<in> S. (x,b) \<in> r; \<forall>y \<in> S. (G, y) \<in> r |] ==> (G,b) \<in> r"
-by (blast intro: transE PO_imp_trans)
+by (blast intro: transE)
 
 lemma (in CLF) S_intv_cl:
      "[| a \<in> A; b \<in> A; S \<subseteq> interval r a b |]==> S \<subseteq> A"
@@ -645,8 +642,7 @@ apply (case_tac "S = {}")
 apply simp
 apply (simp add: induced_def  interval_def)
 apply (rule conjI)
-apply (rule reflE)
-apply (rule CO_refl, assumption)
+apply (rule reflE, assumption)
 apply (rule interval_not_empty)
 apply (rule CO_trans)
 apply (simp add: interval_def)
@@ -773,7 +769,6 @@ lemma (in Tarski) intY1_f_closed: "x \<in> intY1 \<Longrightarrow> f x \<in> int
 apply (simp add: intY1_def  interval_def)
 apply (rule conjI)
 apply (rule transE)
-apply (rule CO_trans)
 apply (rule lubY_le_flubY)
 -- {* @{text "(f (lub Y cl), f x) \<in> r"} *}
 apply (rule_tac f=f in monotoneE)
@@ -832,7 +827,7 @@ lemma (in Tarski) f'z_in_int_rel: "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> 
       ==> ((%x: intY1. f x) z, z) \<in> induced intY1 r"
 apply (simp add: induced_def  intY1_f_closed z_in_interval P_def)
 apply (simp add: fix_imp_eq [of _ f A] fix_subset [of f A, THEN subsetD]
-                 CO_refl [THEN reflE])
+                 reflE)
 done
 
 lemma (in Tarski) tarski_full_lemma:
@@ -849,7 +844,6 @@ apply (simp add: induced_def subsetD v_in_P)
 apply (rule conjI)
 apply (erule Y_ss [THEN subsetD])
 apply (rule_tac b = "lub Y cl" in transE)
-apply (rule CO_trans)
 apply (rule lub_upper)
 apply (rule Y_subset_A, assumption)
 apply (rule_tac b = "Top cl" in interval_imp_mem)
@@ -869,9 +863,8 @@ apply (rule Tarski.glb_lower [OF _ intY1_is_cl, simplified])
   apply (simp add: CL_imp_PO intY1_is_cl)
  apply force
 apply (simp add: induced_def intY1_f_closed z_in_interval)
-apply (simp add: P_def fix_imp_eq [of _ f A]
-                 fix_subset [of f A, THEN subsetD]
-                 CO_refl [THEN reflE])
+apply (simp add: P_def fix_imp_eq [of _ f A] reflE
+                 fix_subset [of f A, THEN subsetD])
 done
 
 lemma CompleteLatticeI_simp:
