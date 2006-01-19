@@ -42,5 +42,5 @@ local
           thy
 	end
 in
-val setup_word = [add_word]
+val setup_word = add_word
 end

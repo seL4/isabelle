@@ -12,7 +12,7 @@ sig
   val mk_bin   : IntInf.int -> term
   val int_tr   : term list -> term
   val int_tr'  : bool -> typ -> term list -> term
-  val setup    : (theory -> theory) list
+  val setup    : theory -> theory
 end;
 
 structure NumeralSyntax: NUMERAL_SYNTAX =
@@ -100,7 +100,7 @@ fun int_tr' _ _ (*"integ_of"*) [t] = Syntax.const "_Int" $ Syntax.free (show_int
 
 
 val setup =
- [Theory.add_trfuns ([], [("_Int", int_tr)], [], []),
-  Theory.add_trfunsT [("integ_of", int_tr'), ("Bin.integ_of", int_tr')]];
+ (Theory.add_trfuns ([], [("_Int", int_tr)], [], []) #>
+  Theory.add_trfunsT [("integ_of", int_tr'), ("Bin.integ_of", int_tr')]);
 
 end;

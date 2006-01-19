@@ -8,7 +8,7 @@ theory HOL/Numeral.
 
 signature NUMERAL_SYNTAX =
 sig
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure NumeralSyntax: NUMERAL_SYNTAX =
@@ -55,9 +55,9 @@ fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
 (* theory setup *)
 
 val setup =
- [Theory.hide_consts_i false ["Numeral.Pls", "Numeral.Min"],
-  Theory.hide_consts_i false ["Numeral.bit.B0", "Numeral.bit.B1"],
-   Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []),
-  Theory.add_trfunsT [("number_of", numeral_tr'), ("Numeral.number_of", numeral_tr')]];
+  Theory.hide_consts_i false ["Numeral.Pls", "Numeral.Min"] #>
+  Theory.hide_consts_i false ["Numeral.bit.B0", "Numeral.bit.B1"] #>
+  Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []) #>
+  Theory.add_trfunsT [("number_of", numeral_tr'), ("Numeral.number_of", numeral_tr')];
 
 end;

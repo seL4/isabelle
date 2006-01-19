@@ -521,7 +521,7 @@ val simprocs = [assoc_fold_simproc, Int_Numeral_Simprocs.combine_numerals]@
 in
 
 val int_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = [mult_strict_left_mono,mult_left_mono] @ mult_mono_thms,
     inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
@@ -529,10 +529,10 @@ val int_arith_setup =
     neqE = thm "linorder_neqE_int" :: neqE,
     simpset = simpset addsimps add_rules
                       addsimprocs simprocs
-                      addcongs [if_weak_cong]}),
-  arith_inj_const ("IntDef.of_nat", HOLogic.natT --> HOLogic.intT),
-  arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT),
-  arith_discrete "IntDef.int"];
+                      addcongs [if_weak_cong]}) #>
+  arith_inj_const ("IntDef.of_nat", HOLogic.natT --> HOLogic.intT) #>
+  arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT) #>
+  arith_discrete "IntDef.int";
 
 end;
 

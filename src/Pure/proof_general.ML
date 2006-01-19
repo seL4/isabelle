@@ -148,7 +148,7 @@ val proof_general_trans =
 
 in
 
-val _ = Context.add_setup [Theory.add_tokentrfuns proof_general_trans];
+val _ = Context.add_setup (Theory.add_tokentrfuns proof_general_trans);
 
 end;
 

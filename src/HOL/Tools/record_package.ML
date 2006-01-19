@@ -39,7 +39,7 @@ sig
     -> theory -> theory
   val add_record_i: string list * string -> (typ list * string) option
     -> (string * typ * mixfix) list -> theory -> theory
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 
@@ -2098,11 +2098,11 @@ val add_record_i = gen_add_record cert_typ (K I);
 (* setup theory *)
 
 val setup =
- [RecordsData.init,
-  Theory.add_trfuns ([], parse_translation, [], []),
-  Theory.add_advanced_trfuns ([], adv_parse_translation, [], []),
+  RecordsData.init #>
+  Theory.add_trfuns ([], parse_translation, [], []) #>
+  Theory.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
   (fn thy => (Simplifier.change_simpset_of thy
-    (fn ss => ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]); thy))];
+    (fn ss => ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]); thy));
 
 (* outer syntax *)
 

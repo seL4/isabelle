@@ -83,7 +83,7 @@ structure BrowserInfoData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val _ = Context.add_setup [BrowserInfoData.init];
+val _ = Context.add_setup BrowserInfoData.init;
 
 fun get_info thy =
   if Context.theory_name thy mem_string [Context.ProtoPureN, Context.PureN, Context.CPureN]

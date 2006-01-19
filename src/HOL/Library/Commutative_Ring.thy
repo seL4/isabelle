@@ -322,6 +322,6 @@ Does not work, since no generic ring operations implementation is there
 generate_code ("ring.ML") test = "norm"*)
 
 use "comm_ring.ML"
-setup "CommRing.setup"
+setup CommRing.setup
 
 end

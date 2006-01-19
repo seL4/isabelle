@@ -11,7 +11,7 @@ sig
   val del: theory attribute
   val get_rec_equations: theory -> string * typ -> (term list * term) list * typ
   val get_thm_equations: theory -> string * typ -> (thm list * typ) option
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure RecfunCodegen : RECFUN_CODEGEN =
@@ -191,14 +191,13 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
   | _ => NONE);
 
 
-val setup = [
-  CodegenData.init,
-  add_codegen "recfun" recfun_codegen,
+val setup =
+  CodegenData.init #>
+  add_codegen "recfun" recfun_codegen #>
   add_attribute ""
     (   Args.del |-- Scan.succeed del
-     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add),
+     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add) #>
   CodegenPackage.add_eqextr
-    ("rec", fn thy => fn _ => get_thm_equations thy)
-];
+    ("rec", fn thy => fn _ => get_thm_equations thy);
 
 end;

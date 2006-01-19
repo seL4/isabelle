@@ -123,7 +123,7 @@ structure Rules = GenericDataFun
     in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
 );
 
-val _ = Context.add_setup [Rules.init];
+val _ = Context.add_setup Rules.init;
 val print_rules = Rules.print;
 
 
@@ -203,7 +203,7 @@ val elim_query  = rule_add elim_queryK I;
 val dest_query  = rule_add elim_queryK Tactic.make_elim;
 
 val _ = Context.add_setup
-  [snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [Attrib.theory (intro_query NONE)])]];
+  (snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [Attrib.theory (intro_query NONE)])]);
 
 
 (* concrete syntax *)
@@ -222,6 +222,6 @@ val rule_atts =
   ("rule", Attrib.common (Attrib.syntax (Scan.lift Args.del >> K rule_del)),
     "remove declaration of intro/elim/dest rule")];
 
-val _ = Context.add_setup [Attrib.add_attributes rule_atts];
+val _ = Context.add_setup (Attrib.add_attributes rule_atts);
 
 end;

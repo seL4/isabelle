@@ -389,7 +389,7 @@ text {*
 setup {*
 let
   fun my_concl ctxt = Logic.strip_imp_concl
-  in [TermStyle.add_style "my_concl" my_concl]
+  in TermStyle.add_style "my_concl" my_concl
 end;
 *}
 (*>*)
@@ -399,7 +399,7 @@ text {*
     \verb!setup {!\verb!*!\\
     \verb!let!\\
     \verb!  fun my_concl ctxt = Logic.strip_imp_concl!\\
-    \verb!  in [TermStyle.add_style "my_concl" my_concl]!\\
+    \verb!  in TermStyle.add_style "my_concl" my_concl!\\
     \verb!end;!\\
     \verb!*!\verb!}!\\
   \end{quote}

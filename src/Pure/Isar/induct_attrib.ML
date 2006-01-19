@@ -134,7 +134,7 @@ structure Induct = GenericDataFun
     end
 );
 
-val _ = Context.add_setup [Induct.init];
+val _ = Context.add_setup Induct.init;
 val print_rules = Induct.print;
 val dest_rules = dest o Induct.get;
 
@@ -224,9 +224,9 @@ val coinduct_att = attrib coinduct_type coinduct_set;
 end;
 
 val _ = Context.add_setup
- [Attrib.add_attributes
+ (Attrib.add_attributes
   [(casesN, Attrib.common cases_att, "declaration of cases rule for type or set"),
    (inductN, Attrib.common induct_att, "declaration of induction rule for type or set"),
-   (coinductN, Attrib.common coinduct_att, "declaration of coinduction rule for type or set")]];
+   (coinductN, Attrib.common coinduct_att, "declaration of coinduction rule for type or set")]);
 
 end;

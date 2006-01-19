@@ -240,7 +240,7 @@ structure CodegenData = TheoryDataFun
        Pretty.strs ("type code generators:" :: map fst tycodegens)]);
 end);
 
-val _ = Context.add_setup [CodegenData.init];
+val _ = Context.add_setup CodegenData.init;
 val print_codegens = CodegenData.print;
 
 
@@ -316,9 +316,9 @@ val code_attr =
     (#attrs (CodegenData.get thy)))));
 
 val _ = Context.add_setup
- [Attrib.add_attributes
+ (Attrib.add_attributes
   [("code", (code_attr, K Attrib.undef_local_attribute),
-     "declare theorems for code generation")]];
+     "declare theorems for code generation")]);
 
 
 (**** preprocessors ****)
@@ -361,7 +361,7 @@ fun unfold_attr (thy, eqn) =
       end)
   in (add_preprocessor prep thy, eqn) end;
 
-val _ = Context.add_setup [add_attribute "unfold" (Scan.succeed unfold_attr)];
+val _ = Context.add_setup (add_attribute "unfold" (Scan.succeed unfold_attr));
 
 
 (**** associate constants with target language code ****)
@@ -834,8 +834,8 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
            end);
 
 val _ = Context.add_setup
- [add_codegen "default" default_codegen,
-  add_tycodegen "default" default_tycodegen];
+ (add_codegen "default" default_codegen #>
+  add_tycodegen "default" default_tycodegen);
 
 
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
@@ -1086,7 +1086,7 @@ fun parse_mixfix rd s =
    | _ => error ("Malformed annotation: " ^ quote s));
 
 val _ = Context.add_setup
-  [assoc_types [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
+  (assoc_types [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
      [("term_of",
        "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
       ("test",
@@ -1098,7 +1098,7 @@ val _ = Context.add_setup
        \        val y = G i;\n\
        \        val f' = !f\n\
        \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
-       \  in (fn x => !f x) end;\n")]))]];
+       \  in (fn x => !f x) end;\n")]))]);
 
 
 structure P = OuterParse and K = OuterKeyword;

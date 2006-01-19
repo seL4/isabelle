@@ -278,7 +278,7 @@ structure GlobalLocalesData = TheoryDataFun
     |> Pretty.writeln;
 end);
 
-val _ = Context.add_setup [GlobalLocalesData.init];
+val _ = Context.add_setup GlobalLocalesData.init;
 
 
 
@@ -293,7 +293,7 @@ structure LocalLocalesData = ProofDataFun
   fun print _ _ = ();
 end);
 
-val _ = Context.add_setup [LocalLocalesData.init];
+val _ = Context.add_setup LocalLocalesData.init;
 
 
 (* access locales *)
@@ -1718,8 +1718,8 @@ fun add_locale_i b = #2 oooo add_locale_context_i b;
 end;
 
 val _ = Context.add_setup
- [add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]],
-  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]]];
+ (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #>
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]]);
 
 
 

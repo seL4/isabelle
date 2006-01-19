@@ -35,16 +35,16 @@ fun mk_realizes_set r rT s (setT as Type ("set", [elT])) =
     incr_boundvars 1 r $ (Const ("op :", elT --> setT --> HOLogic.boolT) $
       Bound 0 $ incr_boundvars 1 s));
 in
-  [Extraction.add_types
+  Extraction.add_types
       [("bool", ([], NONE)),
-       ("set", ([realizes_set_proc], SOME mk_realizes_set))],
-    Extraction.set_preprocessor (fn thy =>
+       ("set", ([realizes_set_proc], SOME mk_realizes_set))] #>
+  Extraction.set_preprocessor (fn thy =>
       Proofterm.rewrite_proof_notypes
         ([], ("HOL/elim_cong", RewriteHOLProof.elim_cong) ::
           ProofRewriteRules.rprocs true) o
       Proofterm.rewrite_proof thy
         (RewriteHOLProof.rews, ProofRewriteRules.rprocs true) o
-      ProofRewriteRules.elim_vars (curry Const "arbitrary"))]
+      ProofRewriteRules.elim_vars (curry Const "arbitrary"))
 end
 *}
 

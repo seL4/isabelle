@@ -8,7 +8,7 @@ Code generator for inductive predicates.
 signature INDUCTIVE_CODEGEN =
 sig
   val add : string option -> theory attribute
-  val setup : (theory -> theory) list
+  val setup : theory -> theory
 end;
 
 structure InductiveCodegen : INDUCTIVE_CODEGEN =
@@ -732,10 +732,9 @@ fun inductive_codegen thy defs gr dep module brack (Const ("op :", _) $ t $ u) =
     | _ => NONE);
 
 val setup =
-  [add_codegen "inductive" inductive_codegen,
-   CodegenData.init,
-   add_attribute "ind"
-     (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add)];
+  add_codegen "inductive" inductive_codegen #>
+  CodegenData.init #>
+  add_attribute "ind" (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add);
 
 end;
 

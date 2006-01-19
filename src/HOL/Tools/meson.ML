@@ -590,11 +590,11 @@ val skolemize_meth = Method.SIMPLE_METHOD' HEADGOAL skolemize_tac;
 val make_clauses_meth = Method.SIMPLE_METHOD' HEADGOAL make_clauses_tac;
 
 val skolemize_setup =
- [Method.add_methods
-  [("skolemize", Method.no_args skolemize_meth, 
-    "Skolemization into existential quantifiers"),
-   ("make_clauses", Method.no_args make_clauses_meth, 
-    "Conversion to !!-quantified meta-level clauses")]];
+  Method.add_methods
+    [("skolemize", Method.no_args skolemize_meth, 
+      "Skolemization into existential quantifiers"),
+     ("make_clauses", Method.no_args make_clauses_meth, 
+      "Conversion to !!-quantified meta-level clauses")];
 
 end;
 

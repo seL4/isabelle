@@ -132,12 +132,12 @@ fun clausify x = syntax ((Scan.lift Args.nat) >> clausify_syntax) x;
 (** theory setup **)
 
 val setup =
-  [Attrib.add_attributes
-     [("binary", (binary_global, binary_local), "binary resolution"),
-      ("paramod", (paramod_global, paramod_local), "paramodulation"),
-      ("demod", (demod_global, demod_local), "demodulation"),
-      ("factor", (factor, factor), "factoring"),
-      ("clausify", (clausify, clausify), "conversion to clauses")]];
+  Attrib.add_attributes
+    [("binary", (binary_global, binary_local), "binary resolution"),
+     ("paramod", (paramod_global, paramod_local), "paramodulation"),
+     ("demod", (demod_global, demod_local), "demodulation"),
+     ("factor", (factor, factor), "factoring"),
+     ("clausify", (clausify, clausify), "conversion to clauses")];
 
 end
 end

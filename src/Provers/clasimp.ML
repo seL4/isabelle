@@ -64,7 +64,7 @@ sig
   val iff_del: Context.generic attribute
   val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
@@ -327,14 +327,14 @@ fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
 (* theory setup *)
 
 val setup =
- [Attrib.add_attributes
-  [("iff", Attrib.common iff_att, "declaration of Simplifier / Classical rules")],
+ (Attrib.add_attributes
+   [("iff", Attrib.common iff_att, "declaration of Simplifier / Classical rules")] #>
   Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
     ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),
     ("bestsimp", clasimp_method' best_simp_tac, "combined best and simp"),
     ("force", clasimp_method' force_tac, "force"),
     ("auto", auto_args auto_meth, "auto"),
-    ("clarsimp", clasimp_method' (CHANGED_PROP oo clarsimp_tac), "clarify simplified goal")]];
+    ("clarsimp", clasimp_method' (CHANGED_PROP oo clarsimp_tac), "clarify simplified goal")]);
 
 end;

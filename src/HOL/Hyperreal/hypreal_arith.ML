@@ -28,15 +28,15 @@ val fast_hypreal_arith_simproc =
     Fast_Arith.lin_arith_prover;
 
 val hypreal_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms @ real_inj_thms, 
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the hypreals are dense!*)
     neqE = neqE,
-    simpset = simpset}),
-  arith_inj_const ("StarDef.star_of", HOLogic.realT --> hyprealT),
-  fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_hypreal_arith_simproc]); thy)];
+    simpset = simpset}) #>
+  arith_inj_const ("StarDef.star_of", HOLogic.realT --> hyprealT) #>
+  (fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_hypreal_arith_simproc]); thy));
 
 end;
 

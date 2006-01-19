@@ -70,7 +70,7 @@ ss must reduce contradictory <= to False.
 
 signature FAST_LIN_ARITH =
 sig
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
   val map_data: ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
                  lessD: thm list, neqE: thm list, simpset: Simplifier.simpset}
                  -> {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
@@ -119,7 +119,7 @@ structure Data = TheoryDataFun
 end);
 
 val map_data = Data.map;
-val setup = [Data.init];
+val setup = Data.init;
 
 
 

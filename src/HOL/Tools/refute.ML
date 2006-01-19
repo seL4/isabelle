@@ -50,7 +50,7 @@ sig
 	val refute_term    : theory -> (string * string) list -> Term.term -> unit  (* tries to find a model that refutes a formula *)
 	val refute_subgoal : theory -> (string * string) list -> Thm.thm -> int -> unit
 
-	val setup : (theory -> theory) list
+	val setup : theory -> theory
 end;
 
 structure Refute : REFUTE =
@@ -2605,25 +2605,25 @@ struct
 	(* (theory -> theory) list *)
 
 	val setup =
-		[RefuteData.init,
-		 add_interpreter "stlc"    stlc_interpreter,
-		 add_interpreter "Pure"    Pure_interpreter,
-		 add_interpreter "HOLogic" HOLogic_interpreter,
-		 add_interpreter "set"     set_interpreter,
-		 add_interpreter "IDT"             IDT_interpreter,
-		 add_interpreter "IDT_constructor" IDT_constructor_interpreter,
-		 add_interpreter "IDT_recursion"   IDT_recursion_interpreter,
-		 add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter,
-		 add_interpreter "Finite_Set.Finites" Finite_Set_Finites_interpreter,
-		 add_interpreter "Nat.op <" Nat_less_interpreter,
-		 add_interpreter "Nat.op +" Nat_plus_interpreter,
-		 add_interpreter "Nat.op -" Nat_minus_interpreter,
-		 add_interpreter "Nat.op *" Nat_mult_interpreter,
-		 add_interpreter "List.op @" List_append_interpreter,
-		 add_interpreter "Lfp.lfp" Lfp_lfp_interpreter,
-		 add_interpreter "Gfp.gfp" Gfp_gfp_interpreter,
-		 add_printer "stlc" stlc_printer,
-		 add_printer "set"  set_printer,
-		 add_printer "IDT"  IDT_printer];
+		 RefuteData.init #>
+		 add_interpreter "stlc"    stlc_interpreter #>
+		 add_interpreter "Pure"    Pure_interpreter #>
+		 add_interpreter "HOLogic" HOLogic_interpreter #>
+		 add_interpreter "set"     set_interpreter #>
+		 add_interpreter "IDT"             IDT_interpreter #>
+		 add_interpreter "IDT_constructor" IDT_constructor_interpreter #>
+		 add_interpreter "IDT_recursion"   IDT_recursion_interpreter #>
+		 add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter #>
+		 add_interpreter "Finite_Set.Finites" Finite_Set_Finites_interpreter #>
+		 add_interpreter "Nat.op <" Nat_less_interpreter #>
+		 add_interpreter "Nat.op +" Nat_plus_interpreter #>
+		 add_interpreter "Nat.op -" Nat_minus_interpreter #>
+		 add_interpreter "Nat.op *" Nat_mult_interpreter #>
+		 add_interpreter "List.op @" List_append_interpreter #>
+		 add_interpreter "Lfp.lfp" Lfp_lfp_interpreter #>
+		 add_interpreter "Gfp.gfp" Gfp_gfp_interpreter #>
+		 add_printer "stlc" stlc_printer #>
+		 add_printer "set"  set_printer #>
+		 add_printer "IDT"  IDT_printer;
 
 end

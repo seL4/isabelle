@@ -9,7 +9,7 @@ signature TRANSFER_TAC =
 sig
   val transfer_tac: thm list -> int -> tactic
   val add_const: string -> theory -> theory
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure Transfer: TRANSFER_TAC =
@@ -127,17 +127,15 @@ end
 val transfer_method = Method.SIMPLE_METHOD' HEADGOAL o transfer_tac;
 
 val setup =
-  [ TransferData.init,
-    Attrib.add_attributes
-    [ ("transfer_intro", intro_attr,
-       "declaration of transfer introduction rule"),
-      ("transfer_unfold", unfold_attr,
-       "declaration of transfer unfolding rule"),
-      ("transfer_refold", refold_attr,
-       "declaration of transfer refolding rule")
-    ],
-    Method.add_method
-    ("transfer", Method.thms_args transfer_method, "transfer principle")
-  ];
+  TransferData.init #>
+  Attrib.add_attributes
+    [("transfer_intro", intro_attr,
+      "declaration of transfer introduction rule"),
+     ("transfer_unfold", unfold_attr,
+      "declaration of transfer unfolding rule"),
+     ("transfer_refold", refold_attr,
+      "declaration of transfer refolding rule")] #>
+  Method.add_method
+    ("transfer", Method.thms_args transfer_method, "transfer principle");
 
 end;

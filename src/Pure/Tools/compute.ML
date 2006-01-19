@@ -277,7 +277,9 @@ fun rewrite_param r n ct =
 
 fun rewrite r ct = rewrite_param r default_naming ct
 
-(* setup of the Pure.compute oracle *)
+
+(* theory setup *)
+
 fun compute_oracle (thy, Param (r, naming, ct)) =
     let
         val _ = Theory.assert_super (theory_of r) thy
@@ -286,6 +288,6 @@ fun compute_oracle (thy, Param (r, naming, ct)) =
         Logic.mk_equals (term_of ct, t')
     end
 
-val _ = Context.add_setup [Theory.add_oracle ("compute", compute_oracle)]
+val _ = Context.add_setup (Theory.add_oracle ("compute", compute_oracle))
 
 end

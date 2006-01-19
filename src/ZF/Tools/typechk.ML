@@ -37,7 +37,7 @@ end;
 signature TYPE_CHECK =
 sig
   include BASIC_TYPE_CHECK
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure TypeCheck: TYPE_CHECK =
@@ -210,10 +210,11 @@ fun typecheck ctxt =
 (** theory setup **)
 
 val setup =
- [TypecheckingData.init, LocalTypecheckingData.init,
-  fn thy => (change_simpset_of thy (fn ss => ss addSolver type_solver); thy),
-  Attrib.add_attributes [("TC", TC_attr, "declaration of typecheck rule")],
-  Method.add_methods [("typecheck", TC_args typecheck, "ZF typecheck")]];
+ (TypecheckingData.init #>
+  LocalTypecheckingData.init #>
+  (fn thy => (change_simpset_of thy (fn ss => ss addSolver type_solver); thy)) #>
+  Attrib.add_attributes [("TC", TC_attr, "declaration of typecheck rule")] #>
+  Method.add_methods [("typecheck", TC_args typecheck, "ZF typecheck")]);
 
 
 (** outer syntax **)

@@ -26,7 +26,7 @@ sig
     val add_shuffle_rule: thm -> theory -> theory
     val shuffle_attr: theory attribute
 
-    val setup      : (theory -> theory) list
+    val setup      : theory -> theory
 end
 
 structure Shuffler :> Shuffler =
@@ -684,13 +684,15 @@ fun add_shuffle_rule thm thy =
 
 fun shuffle_attr (thy,thm) = (add_shuffle_rule thm thy,thm)
 
-val setup = [Method.add_method ("shuffle_tac",Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around"),
-	     Method.add_method ("search_tac",Method.ctxt_args search_meth,"search for suitable theorems"),
-	     ShuffleData.init,
-	     add_shuffle_rule weaken,
-	     add_shuffle_rule equiv_comm,
-	     add_shuffle_rule imp_comm,
-	     add_shuffle_rule Drule.norm_hhf_eq,
-	     add_shuffle_rule Drule.triv_forall_equality,
-	     Attrib.add_attributes [("shuffle_rule",(Attrib.no_args shuffle_attr,K Attrib.undef_local_attribute),"tell the shuffler about the theorem")]]
+val setup =
+  Method.add_method ("shuffle_tac",Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around") #>
+  Method.add_method ("search_tac",Method.ctxt_args search_meth,"search for suitable theorems") #>
+  ShuffleData.init #>
+  add_shuffle_rule weaken #>
+  add_shuffle_rule equiv_comm #>
+  add_shuffle_rule imp_comm #>
+  add_shuffle_rule Drule.norm_hhf_eq #>
+  add_shuffle_rule Drule.triv_forall_equality #>
+  Attrib.add_attributes [("shuffle_rule", (Attrib.no_args shuffle_attr,K Attrib.undef_local_attribute),"tell the shuffler about the theorem")]
+
 end

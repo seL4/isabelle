@@ -58,7 +58,7 @@ signature HYPSUBST =
   val inspect_pair           : bool -> bool -> term * term * typ -> bool
   val mk_eqs                 : bool -> thm -> thm list
   val stac		     : thm -> int -> tactic
-  val hypsubst_setup         : (theory -> theory) list
+  val hypsubst_setup         : theory -> theory
   end;
 
 
@@ -242,8 +242,8 @@ val hyp_subst_meth =
 (* theory setup *)
 
 val hypsubst_setup =
- [Method.add_methods
-  [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
-   ("simplesubst", subst_meth, "simple substitution")]];
+  Method.add_methods
+    [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
+     ("simplesubst", subst_meth, "simple substitution")];
 
 end;

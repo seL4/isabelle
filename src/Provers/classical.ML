@@ -155,7 +155,7 @@ sig
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> Method.src -> Proof.context -> Proof.method
   val cla_method': (claset -> int -> tactic) -> Method.src -> Proof.context -> Proof.method
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 
@@ -1080,7 +1080,7 @@ val setup_methods = Method.add_methods
 
 (** theory setup **)
 
-val setup = [GlobalClaset.init, LocalClaset.init, setup_attrs, setup_methods];
+val setup = GlobalClaset.init #> LocalClaset.init #> setup_attrs #> setup_methods;
 
 
 

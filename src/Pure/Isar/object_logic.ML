@@ -56,7 +56,7 @@ structure ObjectLogicData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val _ = Context.add_setup [ObjectLogicData.init];
+val _ = Context.add_setup ObjectLogicData.init;
 
 
 

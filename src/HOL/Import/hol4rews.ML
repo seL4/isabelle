@@ -758,24 +758,25 @@ local
 	    |> add_hol4_const_mapping "min" "@" false "Hilbert_Choice.Eps"
 in
 val hol4_setup =
-    [HOL4Rewrites.init,
-     HOL4Maps.init,
-     HOL4UNames.init,
-     HOL4DefMaps.init,
-     HOL4Moves.init,
-     HOL4CMoves.init,
-     HOL4ConstMaps.init,
-     HOL4Rename.init,
-     HOL4TypeMaps.init,
-     HOL4Pending.init,
-     HOL4Thms.init,
-     HOL4Dump.init,
-     HOL4DefThy.init,
-     HOL4Imports.init,
-     ImportSegment.init,
-     initial_maps,
-     Attrib.add_attributes [("hol4rew",
-			     (Attrib.no_args add_hol4_rewrite,
-			      Attrib.no_args Attrib.undef_local_attribute),
-			     "HOL4 rewrite rule")]]
+  HOL4Rewrites.init #>
+  HOL4Maps.init #>
+  HOL4UNames.init #>
+  HOL4DefMaps.init #>
+  HOL4Moves.init #>
+  HOL4CMoves.init #>
+  HOL4ConstMaps.init #>
+  HOL4Rename.init #>
+  HOL4TypeMaps.init #>
+  HOL4Pending.init #>
+  HOL4Thms.init #>
+  HOL4Dump.init #>
+  HOL4DefThy.init #>
+  HOL4Imports.init #>
+  ImportSegment.init #>
+  initial_maps #>
+  Attrib.add_attributes
+    [("hol4rew",
+      (Attrib.no_args add_hol4_rewrite,
+       Attrib.no_args Attrib.undef_local_attribute),
+      "HOL4 rewrite rule")]
 end

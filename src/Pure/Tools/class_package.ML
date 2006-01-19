@@ -39,7 +39,7 @@ structure ClassPackage: CLASS_PACKAGE =
 struct
 
 
-(* data kind 'Pure/classes' *)
+(* theory data *)
 
 type class_data = {
   superclasses: class list,
@@ -87,6 +87,7 @@ structure ClassData = TheoryDataFun (
   end
 );
 
+val _ = Context.add_setup ClassData.init;
 val print_classes = ClassData.print;
 
 val lookup_class_data = Symtab.lookup o fst o ClassData.get;
@@ -450,10 +451,5 @@ val instanceP =
 val _ = OuterSyntax.add_parsers [classP, instanceP];
 
 end; (* local *)
-
-
-(* setup *)
-
-val _ = Context.add_setup [ClassData.init];
 
 end; (* struct *)

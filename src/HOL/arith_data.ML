@@ -420,8 +420,8 @@ val add_mono_thms_ordered_field =
 in
 
 val init_lin_arith_data =
- Fast_Arith.setup @
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
+ Fast_Arith.setup #>
+ Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
    {add_mono_thms = add_mono_thms @
     add_mono_thms_ordered_semiring @ add_mono_thms_ordered_field,
     mult_mono_thms = mult_mono_thms,
@@ -433,8 +433,9 @@ val init_lin_arith_data =
                    addsimprocs [ab_group_add_cancel.sum_conv,
                                 ab_group_add_cancel.rel_conv]
                    (*abel_cancel helps it work in abstract algebraic domains*)
-                   addsimprocs nat_cancel_sums_add}),
-  ArithTheoryData.init, arith_discrete "nat"];
+                   addsimprocs nat_cancel_sums_add}) #>
+  ArithTheoryData.init #>
+  arith_discrete "nat";
 
 end;
 
@@ -576,14 +577,14 @@ end;
 (* theory setup *)
 
 val arith_setup =
-  init_lin_arith_data @
-  [fn thy => (Simplifier.change_simpset_of thy (fn ss => ss
+  init_lin_arith_data #>
+  (fn thy => (Simplifier.change_simpset_of thy (fn ss => ss
     addsimprocs (nat_cancel_sums @ [fast_nat_arith_simproc])
-    addSolver (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac)); thy),
+    addSolver (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac)); thy)) #>
   Method.add_methods
     [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
-      "decide linear arithmethic")],
+      "decide linear arithmethic")] #>
   Attrib.add_attributes [("arith_split",
     (Attrib.no_args arith_split_add,
      Attrib.no_args Attrib.undef_local_attribute),
-    "declaration of split rules for arithmetic procedure")]];
+    "declaration of split rules for arithmetic procedure")];

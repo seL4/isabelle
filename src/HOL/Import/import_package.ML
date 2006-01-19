@@ -6,7 +6,7 @@
 signature IMPORT_PACKAGE =
 sig
     val import_meth: Method.src -> Proof.context -> Proof.method
-    val setup      : (theory -> theory) list
+    val setup      : theory -> theory
     val debug      : bool ref
 end
 
@@ -80,6 +80,6 @@ val import_meth = Method.simple_args (Args.name -- Args.name)
 			  Method.SIMPLE_METHOD (import_tac arg thy)
 		      end)
 
-val setup = [Method.add_method("import",import_meth,"Import HOL4 theorem"),ImportData.init]
+val setup = Method.add_method("import",import_meth,"Import HOL4 theorem") #> ImportData.init
 end
 

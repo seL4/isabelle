@@ -75,7 +75,7 @@ sig
   val constrs_of : theory -> string -> term list option
   val case_const_of : theory -> string -> term option
   val weak_case_congs_of : theory -> thm list
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure DatatypePackage : DATATYPE_PACKAGE =
@@ -433,8 +433,8 @@ val distinct_simproc =
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 
 val simproc_setup =
-  [Theory.add_oracle (distinctN, fn (_, ConstrDistinct t) => t),
-   fn thy => ((change_simpset_of thy) (fn ss => ss addsimprocs [distinct_simproc]); thy)];
+  Theory.add_oracle (distinctN, fn (_, ConstrDistinct t) => t) #>
+  (fn thy => ((change_simpset_of thy) (fn ss => ss addsimprocs [distinct_simproc]); thy));
 
 
 (**** translation rules for case ****)
@@ -545,7 +545,7 @@ fun make_case_tr' case_names descr = List.concat (map
     (NameSpace.accesses' case_name)) (descr ~~ case_names));
 
 val trfun_setup =
-  [Theory.add_advanced_trfuns ([], [("_case_syntax", case_tr)], [], [])];
+  Theory.add_advanced_trfuns ([], [("_case_syntax", case_tr)], [], []);
 
 
 (* prepare types *)
@@ -1019,7 +1019,8 @@ val add_datatype = gen_add_datatype read_typ true;
 
 (* setup theory *)
 
-val setup = [DatatypesData.init, Method.add_methods tactic_emulations] @ simproc_setup @ trfun_setup;
+val setup =
+  DatatypesData.init #> Method.add_methods tactic_emulations #> simproc_setup #> trfun_setup;
 
 
 (* outer syntax *)

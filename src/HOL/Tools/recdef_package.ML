@@ -29,7 +29,7 @@ sig
   val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> theory -> Proof.state
   val recdef_tc_i: bstring * theory attribute list -> string -> int option
     -> theory -> Proof.state
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure RecdefPackage: RECDEF_PACKAGE =
@@ -294,14 +294,15 @@ val recdef_tc_i = gen_recdef_tc (K I) (K I);
 (* setup theory *)
 
 val setup =
- [GlobalRecdefData.init, LocalRecdefData.init,
+  GlobalRecdefData.init #>
+  LocalRecdefData.init #>
   Attrib.add_attributes
    [(recdef_simpN, Attrib.common (Attrib.add_del_args simp_add simp_del),
       "declaration of recdef simp rule"),
     (recdef_congN, Attrib.common (Attrib.add_del_args cong_add cong_del),
       "declaration of recdef cong rule"),
     (recdef_wfN, Attrib.common (Attrib.add_del_args wf_add wf_del),
-      "declaration of recdef wf rule")]];
+      "declaration of recdef wf rule")];
 
 
 (* outer syntax *)

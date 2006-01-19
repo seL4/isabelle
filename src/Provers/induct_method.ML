@@ -32,7 +32,7 @@ sig
     cases_tactic
   val coinduct_tac: Proof.context -> bool -> term option list -> term option list ->
     thm option -> thm list -> int -> cases_tactic
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 functor InductMethodFun(Data: INDUCT_METHOD_DATA): INDUCT_METHOD =
@@ -556,9 +556,9 @@ end;
 (** theory setup **)
 
 val setup =
-  [Method.add_methods
+  Method.add_methods
     [(InductAttrib.casesN, cases_meth, "case analysis on types or sets"),
      (InductAttrib.inductN, induct_meth, "induction on types or sets"),
-     (InductAttrib.coinductN, coinduct_meth, "coinduction on types or sets")]];
+     (InductAttrib.coinductN, coinduct_meth, "coinduction on types or sets")];
 
 end;

@@ -73,8 +73,8 @@ sig
   val simp_modifiers': (Args.T list -> (Method.modifier * Args.T list)) list
   val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val method_setup: (Args.T list -> (Method.modifier * Args.T list)) list
-    -> (theory -> theory) list
-  val easy_setup: thm -> thm list -> (theory -> theory) list
+    -> theory -> theory
+  val easy_setup: thm -> thm list -> theory -> theory
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -96,7 +96,7 @@ structure GlobalSimpset = TheoryDataFun
   fun print _ (ref ss) = print_ss ss;
 end);
 
-val _ = Context.add_setup [GlobalSimpset.init];
+val _ = Context.add_setup GlobalSimpset.init;
 val print_simpset = GlobalSimpset.print;
 val get_simpset = ! o GlobalSimpset.get;
 
@@ -128,7 +128,7 @@ structure LocalSimpset = ProofDataFun
   fun print _ ss = print_ss ss;
 end);
 
-val _ = Context.add_setup [LocalSimpset.init];
+val _ = Context.add_setup LocalSimpset.init;
 val print_local_simpset = LocalSimpset.print;
 val get_local_simpset = LocalSimpset.get;
 val put_local_simpset = LocalSimpset.put;
@@ -260,12 +260,12 @@ end;
 (* setup attributes *)
 
 val _ = Context.add_setup
- [Attrib.add_attributes
+ (Attrib.add_attributes
    [(simpN, Attrib.common (Attrib.add_del_args simp_add simp_del),
       "declaration of Simplifier rule"),
     (congN, Attrib.common (Attrib.add_del_args cong_add cong_del),
       "declaration of Simplifier congruence rule"),
-    ("simplified", Attrib.common simplified, "simplified rule")]];
+    ("simplified", Attrib.common simplified, "simplified rule")]);
 
 
 
@@ -318,18 +318,14 @@ fun simp_method' ((prems, tac), FLAGS) ctxt = Method.METHOD (fn facts =>
       ((FLAGS o CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
 
 
-(* setup methods *)
 
-fun setup_methods more_mods = Method.add_methods
+(** setup **)
+
+fun method_setup more_mods = Method.add_methods
  [(simpN, simp_args more_mods simp_method', "simplification"),
   ("simp_all", simp_args more_mods simp_method, "simplification (all goals)")];
 
-fun method_setup mods = [setup_methods mods];
-
-
-(** easy_setup **)
-
-fun easy_setup reflect trivs =
+fun easy_setup reflect trivs = method_setup [] #> (fn thy =>
   let
     val trivialities = Drule.reflexive_thm :: trivs;
 
@@ -345,14 +341,14 @@ fun easy_setup reflect trivs =
       else [thm RS reflect] handle THM _ => [];
 
     fun mksimps thm = mk_eq (Drule.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
-
-    fun init_ss thy =
-      (GlobalSimpset.get thy :=
-        empty_ss setsubgoaler asm_simp_tac
-        setSSolver safe_solver
-        setSolver unsafe_solver
-        setmksimps mksimps; thy);
-  in method_setup [] @ [init_ss] end;
+  in
+    GlobalSimpset.get thy :=
+      empty_ss setsubgoaler asm_simp_tac
+      setSSolver safe_solver
+      setSolver unsafe_solver
+      setmksimps mksimps;
+    thy
+  end);
 
 
 open MetaSimplifier;

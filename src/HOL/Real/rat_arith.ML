@@ -38,17 +38,16 @@ val int_inj_thms = [of_int_le_iff RS iffD2, of_int_less_iff RS iffD2,
 val ratT = Type("Rational.rat", []);
 
 val rat_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD,
- neqE, simpset} =>
+  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the rats are dense!*)
     neqE =  neqE,
     simpset = simpset addsimps simps
-                      addsimprocs simprocs}),
-  arith_inj_const("IntDef.of_nat", HOLogic.natT --> ratT),
-  arith_inj_const("IntDef.of_int", HOLogic.intT --> ratT),
-  fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_rat_arith_simproc]); thy)];
+                      addsimprocs simprocs}) #>
+  arith_inj_const("IntDef.of_nat", HOLogic.natT --> ratT) #>
+  arith_inj_const("IntDef.of_int", HOLogic.intT --> ratT) #>
+  (fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_rat_arith_simproc]); thy));
 
 end;

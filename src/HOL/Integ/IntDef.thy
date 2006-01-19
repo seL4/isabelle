@@ -948,12 +948,12 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
 
 *}
 
-setup {*[
-  Codegen.add_codegen "number_of_codegen" number_of_codegen,
+setup {*
+  Codegen.add_codegen "number_of_codegen" number_of_codegen #>
   CodegenPackage.add_appconst
-    ("Numeral.number_of", ((1, 1), CodegenPackage.appgen_number_of mk_int_to_nat bin_to_int "IntDef.int" "nat")),
+    ("Numeral.number_of", ((1, 1), CodegenPackage.appgen_number_of mk_int_to_nat bin_to_int "IntDef.int" "nat")) #>
   CodegenPackage.set_int_tyco "IntDef.int"
-]*}
+*}
 
 quickcheck_params [default_type = int]
 

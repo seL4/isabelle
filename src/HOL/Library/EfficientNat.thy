@@ -222,8 +222,8 @@ fun clause_suc_preproc thy ths =
   end;
 
 val suc_preproc_setup =
-  [Codegen.add_preprocessor eqn_suc_preproc,
-   Codegen.add_preprocessor clause_suc_preproc];
+  Codegen.add_preprocessor eqn_suc_preproc #>
+  Codegen.add_preprocessor clause_suc_preproc;
 *}
 
 setup suc_preproc_setup

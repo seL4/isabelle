@@ -46,16 +46,13 @@ val eproverF_tac = res_atp_tac eprover_oracle ResAtpSetup.Fol (!eprover_time);
 
 val eproverH_tac = res_atp_tac eprover_oracle ResAtpSetup.Hol (!eprover_time);
 
-val ResAtps_setup = [Method.add_methods 
-		 [("vampireF", ResAtpSetup.atp_method vampireF_tac, "A Vampire method for FOL problems"),
-		   ("eproverF", ResAtpSetup.atp_method eproverF_tac, "A E prover method for FOL problems"),
-			("vampireH",ResAtpSetup.atp_method vampireH_tac, "A Vampire method for HOL problems"),
-				("eproverH",ResAtpSetup.atp_method eproverH_tac,"A E prover method for HOL problems"),
-				("eprover",ResAtpSetup.atp_method eprover_tac,"A E prover method for FOL and HOL problems"),
-				("vampire",ResAtpSetup.atp_method vampire_tac,"A Vampire method for FOL and HOL problems")
-]];
-
-
-
+val ResAtps_setup =
+  Method.add_methods 
+    [("vampireF", ResAtpSetup.atp_method vampireF_tac, "Vampire for FOL problems"),
+     ("eproverF", ResAtpSetup.atp_method eproverF_tac, "E prover for FOL problems"),
+     ("vampireH", ResAtpSetup.atp_method vampireH_tac, "Vampire for HOL problems"),
+     ("eproverH", ResAtpSetup.atp_method eproverH_tac, "E prover for HOL problems"),
+     ("eprover", ResAtpSetup.atp_method eprover_tac, "E prover for FOL and HOL problems"),
+     ("vampire", ResAtpSetup.atp_method vampire_tac, "Vampire for FOL and HOL problems")];
 
 end

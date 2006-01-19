@@ -35,7 +35,7 @@ sig
   val split_add: Context.generic attribute
   val split_del: Context.generic attribute
   val split_modifiers : (Args.T list -> (Method.modifier * Args.T list)) list
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
@@ -455,9 +455,9 @@ fun split_meth src =
 (* theory setup *)
 
 val setup =
- [Attrib.add_attributes
+ (Attrib.add_attributes
   [(splitN, Attrib.common (Attrib.add_del_args split_add split_del),
-    "declaration of case split rule")],
-  Method.add_methods [(splitN, split_meth, "apply case split rule")]];
+    "declaration of case split rule")] #>
+  Method.add_methods [(splitN, split_meth, "apply case split rule")]);
 
 end;

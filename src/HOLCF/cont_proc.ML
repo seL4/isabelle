@@ -10,7 +10,7 @@ sig
   val all_cont_thms: term -> thm list
   val cont_tac: int -> tactic
   val cont_proc: theory -> simproc
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure ContProc: CONT_PROC =
@@ -110,6 +110,6 @@ in
 end;
 
 val setup =
-  [fn thy => (Simplifier.change_simpset_of thy (fn ss => ss addsimprocs [cont_proc thy]); thy)];
+  (fn thy => (Simplifier.change_simpset_of thy (fn ss => ss addsimprocs [cont_proc thy]); thy));
 
 end;

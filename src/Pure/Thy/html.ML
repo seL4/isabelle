@@ -253,7 +253,7 @@ val html_trans =
   ("var",   style "var"),
   ("xstr",  style "xstr")];
 
-val _ = Context.add_setup [Theory.add_mode_tokentrfuns htmlN html_trans];
+val _ = Context.add_setup (Theory.add_mode_tokentrfuns htmlN html_trans);
 
 
 

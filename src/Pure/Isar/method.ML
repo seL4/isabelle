@@ -544,7 +544,7 @@ structure MethodsData = TheoryDataFun
     end;
 end);
 
-val _ = Context.add_setup [MethodsData.init];
+val _ = Context.add_setup MethodsData.init;
 val print_methods = MethodsData.print;
 
 
@@ -721,9 +721,9 @@ val rename_meth = goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac;
 val rotate_meth = goal_args (Scan.optional Args.int 1) Tactic.rotate_tac;
 
 
-(* pure_methods *)
+(* theory setup *)
 
-val pure_methods =
+val _ = Context.add_setup (add_methods
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing (insert current facts only)"),
@@ -751,9 +751,7 @@ val pure_methods =
   ("thin_tac", thin_meth, "remove premise (dynamic instantiation)"),
   ("rename_tac", rename_meth, "rename parameters of goal (dynamic instantiation)"),
   ("rotate_tac", rotate_meth, "rotate assumptions of goal"),
-  ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
-
-val _ = Context.add_setup [add_methods pure_methods];
+  ("tactic", simple_args Args.name tactic, "ML tactic as proof method")]);
 
 
 (*final declarations of this structure!*)

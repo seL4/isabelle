@@ -33,7 +33,7 @@ structure StyleData = TheoryDataFun
   fun print _ tab = Pretty.writeln (Pretty.strs ("antiquote styles:" :: Symtab.keys tab));
 end);
 
-val _ = Context.add_setup [StyleData.init];
+val _ = Context.add_setup StyleData.init;
 val print_styles = StyleData.print;
 
 
@@ -68,26 +68,27 @@ fun style_parm_premise i ctxt t =
   end;
 
 val _ = Context.add_setup
- [add_style "lhs" (fst oo style_binargs),
-  add_style "rhs" (snd oo style_binargs),
-  add_style "prem1" (style_parm_premise 1),
-  add_style "prem2" (style_parm_premise 2),
-  add_style "prem3" (style_parm_premise 3),
-  add_style "prem4" (style_parm_premise 4),
-  add_style "prem5" (style_parm_premise 5),
-  add_style "prem6" (style_parm_premise 6),
-  add_style "prem7" (style_parm_premise 7),
-  add_style "prem8" (style_parm_premise 8),
-  add_style "prem9" (style_parm_premise 9),
-  add_style "prem10" (style_parm_premise 10),
-  add_style "prem11" (style_parm_premise 11),
-  add_style "prem12" (style_parm_premise 12),
-  add_style "prem13" (style_parm_premise 13),
-  add_style "prem14" (style_parm_premise 14),
-  add_style "prem15" (style_parm_premise 15),
-  add_style "prem16" (style_parm_premise 16),
-  add_style "prem17" (style_parm_premise 17),
-  add_style "prem18" (style_parm_premise 18),
-  add_style "prem19" (style_parm_premise 19),
-  add_style "concl" (K Logic.strip_imp_concl)];
+ (add_style "lhs" (fst oo style_binargs) #>
+  add_style "rhs" (snd oo style_binargs) #>
+  add_style "prem1" (style_parm_premise 1) #>
+  add_style "prem2" (style_parm_premise 2) #>
+  add_style "prem3" (style_parm_premise 3) #>
+  add_style "prem4" (style_parm_premise 4) #>
+  add_style "prem5" (style_parm_premise 5) #>
+  add_style "prem6" (style_parm_premise 6) #>
+  add_style "prem7" (style_parm_premise 7) #>
+  add_style "prem8" (style_parm_premise 8) #>
+  add_style "prem9" (style_parm_premise 9) #>
+  add_style "prem10" (style_parm_premise 10) #>
+  add_style "prem11" (style_parm_premise 11) #>
+  add_style "prem12" (style_parm_premise 12) #>
+  add_style "prem13" (style_parm_premise 13) #>
+  add_style "prem14" (style_parm_premise 14) #>
+  add_style "prem15" (style_parm_premise 15) #>
+  add_style "prem16" (style_parm_premise 16) #>
+  add_style "prem17" (style_parm_premise 17) #>
+  add_style "prem18" (style_parm_premise 18) #>
+  add_style "prem19" (style_parm_premise 19) #>
+  add_style "concl" (K Logic.strip_imp_concl));
+
 end;

@@ -425,7 +425,7 @@ qed "restrict_to_left";
 
 (* default simpset *)
 val simpsetup =
-  [fn thy => (change_simpset_of thy (fn _ => HOL_ss addcongs [if_weak_cong]); thy)];
+  (fn thy => (change_simpset_of thy (fn _ => HOL_ss addcongs [if_weak_cong]); thy));
 
 
 (*** integration of simplifier with classical reasoner ***)

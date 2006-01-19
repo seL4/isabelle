@@ -9,7 +9,7 @@ Realizers for induction and elimination rules
 signature INDUCTIVE_REALIZER =
 sig
   val add_ind_realizers: string -> string list -> theory -> theory
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure InductiveRealizer : INDUCTIVE_REALIZER =
@@ -487,9 +487,10 @@ val rlz_attrib_global = Attrib.syntax
     Scan.option (Scan.lift (Args.colon) |--
       Scan.repeat1 Args.global_const))) >> rlz_attrib);
 
-val setup = [Attrib.add_attributes [("ind_realizer",
-  (rlz_attrib_global, K Attrib.undef_local_attribute),
-  "add realizers for inductive set")]];
+val setup =
+  Attrib.add_attributes [("ind_realizer",
+    (rlz_attrib_global, K Attrib.undef_local_attribute),
+    "add realizers for inductive set")];
 
 end;
 

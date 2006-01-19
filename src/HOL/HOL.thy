@@ -911,9 +911,7 @@ subsubsection {* Classical Reasoner setup *}
 use "cladata.ML"
 setup hypsubst_setup
 
-setup {*
-  [ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)]
-*}
+setup {* ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac) *}
 
 setup Classical.setup
 setup clasetup
@@ -1233,7 +1231,7 @@ fun eq_codegen thy defs gr dep thyname b t =
 
 in
 
-val eq_codegen_setup = [Codegen.add_codegen "eq_codegen" eq_codegen];
+val eq_codegen_setup = Codegen.add_codegen "eq_codegen" eq_codegen;
 
 end;
 *}

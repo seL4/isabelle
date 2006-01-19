@@ -16,7 +16,7 @@ sig
   include BASIC_SPLIT_RULE
   val split_rule_var: term * thm -> thm
   val split_rule_goal: string list list -> thm -> thm
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure SplitRule: SPLIT_RULE =
@@ -141,9 +141,9 @@ fun split_format x = Attrib.syntax
     >> (fn xss => Attrib.rule (K (split_rule_goal xss)))) x;
 
 val setup =
- [Attrib.add_attributes
-  [("split_format", (split_format, split_format),
-    "split pair-typed subterms in premises, or function arguments")]];
+  Attrib.add_attributes
+    [("split_format", (split_format, split_format),
+      "split pair-typed subterms in premises, or function arguments")];
 
 end;
 

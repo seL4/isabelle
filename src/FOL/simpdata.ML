@@ -361,7 +361,7 @@ bind_thms ("cla_simps",
 (*classical simprules too*)
 val FOL_ss = IFOL_ss addsimps (cla_simps @ cla_ex_simps @ cla_all_simps);
 
-val simpsetup = [fn thy => (change_simpset_of thy (fn _ => FOL_ss); thy)];
+val simpsetup = (fn thy => (change_simpset_of thy (fn _ => FOL_ss); thy));
 
 
 (*** integration of simplifier with classical reasoner ***)

@@ -304,8 +304,10 @@ structure CodegenData = TheoryDataFun
     target_data = Symtab.join (K (merge_target_data #> SOME))
       (target_data1, target_data2)
   };
-  fun print thy _ = writeln "sorry, this stuff is too complicated...";
+  fun print _ _ = ();
 end);
+
+val _ = Context.add_setup CodegenData.init;
 
 fun map_codegen_data f thy =
   case CodegenData.get thy
@@ -1311,18 +1313,17 @@ val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>", constantsK, dependingK
 
 
 
-(** setup **)
+(** theory setup **)
 
-val _ = Context.add_setup [
-  CodegenData.init,
-(*   add_appconst_i ("op =", ((2, 2), appgen_eq)),  *)
-  add_eqextr ("defs", eqextr_defs),
-  add_defgen ("clsdecl", defgen_clsdecl),
-  add_defgen ("funs", defgen_funs),
-  add_defgen ("clsmem", defgen_clsmem),
-  add_defgen ("datatypecons", defgen_datatypecons)(*,
-  add_defgen ("clsinst", defgen_clsinst)  *)
-];
+val _ = Context.add_setup
+ (add_eqextr ("defs", eqextr_defs) #>
+  add_defgen ("clsdecl", defgen_clsdecl) #>
+  add_defgen ("funs", defgen_funs) #>
+  add_defgen ("clsmem", defgen_clsmem) #>
+  add_defgen ("datatypecons", defgen_datatypecons));
+
+(*   add_appconst_i ("op =", ((2, 2), appgen_eq))  *)
+(*   add_defgen ("clsinst", defgen_clsinst)  *)
 
 end; (* local *)
 

@@ -79,7 +79,7 @@ signature BLAST =
   val depth_limit : int ref
   val blast_tac         : claset -> int -> tactic
   val Blast_tac         : int -> tactic
-  val setup             : (theory -> theory) list
+  val setup             : theory -> theory
   (*debugging tools*)
   val stats             : bool ref
   val trace             : bool ref
@@ -1329,7 +1329,7 @@ fun blast_meth NONE = Data.cla_meth' blast_tac
   | blast_meth (SOME lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
 
 val setup =
- [Method.add_methods [("blast", blast_args blast_meth, "tableau prover")]];
+  Method.add_methods [("blast", blast_args blast_meth, "tableau prover")];
 
 
 end;

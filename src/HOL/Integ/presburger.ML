@@ -14,7 +14,7 @@ signature PRESBURGER =
 sig
  val presburger_tac : bool -> bool -> int -> tactic
  val presburger_method : bool -> bool -> int -> Proof.method
- val setup : (theory -> theory) list
+ val setup : theory -> theory
  val trace : bool ref
 end;
 
@@ -364,12 +364,12 @@ fun presburger_method q a i = Method.METHOD (fn facts =>
   Method.insert_tac facts 1 THEN presburger_tac q a i)
 
 val setup =
-  [Method.add_method ("presburger",
-     presburger_args presburger_method,
-     "decision procedure for Presburger arithmetic"),
-   ArithTheoryData.map (fn {splits, inj_consts, discrete, presburger} =>
-     {splits = splits, inj_consts = inj_consts, discrete = discrete,
-      presburger = SOME (presburger_tac true true)})];
+  Method.add_method ("presburger",
+    presburger_args presburger_method,
+    "decision procedure for Presburger arithmetic") #>
+  ArithTheoryData.map (fn {splits, inj_consts, discrete, presburger} =>
+    {splits = splits, inj_consts = inj_consts, discrete = discrete,
+      presburger = SOME (presburger_tac true true)});
 
 end;
 

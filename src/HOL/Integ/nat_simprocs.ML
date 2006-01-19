@@ -554,10 +554,10 @@ val simprocs = [Nat_Numeral_Simprocs.combine_numerals]@
 in
 
 val nat_simprocs_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms, lessD = lessD, neqE = neqE,
     simpset = simpset addsimps add_rules
-                      addsimprocs simprocs})];
+                      addsimprocs simprocs});
 
 end;

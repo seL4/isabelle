@@ -179,7 +179,7 @@ structure ProverData = TheoryDataFun
   fun print _ (ref pack) = print_pack pack;
 end);
 
-val prover_setup = [ProverData.init];
+val prover_setup = ProverData.init;
 
 val print_pack = ProverData.print;
 val pack_ref_of = ProverData.get;

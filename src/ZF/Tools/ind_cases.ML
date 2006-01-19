@@ -9,7 +9,7 @@ signature IND_CASES =
 sig
   val declare: string -> (simpset -> cterm -> thm) -> theory -> theory
   val inductive_cases: ((bstring * Attrib.src list) * string list) list -> theory -> theory
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure IndCases: IND_CASES =
@@ -72,9 +72,9 @@ val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
 (* package setup *)
 
 val setup =
- [IndCasesData.init,
+ (IndCasesData.init #>
   Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
-    "dynamic case analysis on sets")]];
+    "dynamic case analysis on sets")]);
 
 
 (* outer syntax *)

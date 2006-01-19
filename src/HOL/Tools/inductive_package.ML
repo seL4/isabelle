@@ -55,7 +55,7 @@ sig
     theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure InductivePackage: INDUCTIVE_PACKAGE =
@@ -868,10 +868,10 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
 (* setup theory *)
 
 val setup =
- [InductiveData.init,
+  InductiveData.init #>
   Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
-    "dynamic case analysis on sets")],
-  Attrib.add_attributes [("mono", mono_attr, "declaration of monotonicity rule")]];
+    "dynamic case analysis on sets")] #>
+  Attrib.add_attributes [("mono", mono_attr, "declaration of monotonicity rule")];
 
 
 (* outer syntax *)

@@ -7,7 +7,7 @@ A proof method to perform a substiution using an equation.
 
 signature EQSUBST =
 sig
-  val setup : (Theory.theory -> Theory.theory) list
+  val setup : theory -> theory
 end;
 
 structure EqSubst: EQSUBST =
@@ -337,6 +337,6 @@ fun subst_meth src =
 
 
 val setup =
-  [Method.add_method ("subst", subst_meth, "substiution with an equation")];
+  Method.add_method ("subst", subst_meth, "substiution with an equation");
 
 end;

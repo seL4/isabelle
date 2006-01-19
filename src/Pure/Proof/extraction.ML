@@ -214,7 +214,7 @@ structure ExtractionData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-val _ = Context.add_setup [ExtractionData.init];
+val _ = Context.add_setup ExtractionData.init;
 
 fun read_condeq thy =
   let val thy' = add_syntax thy
@@ -401,7 +401,7 @@ fun add_types tys thy =
 (** Pure setup **)
 
 val _ = Context.add_setup
-  [add_types [("prop", ([], NONE))],
+  (add_types [("prop", ([], NONE))] #>
 
    add_typeof_eqns
      ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
@@ -422,7 +422,7 @@ val _ = Context.add_setup
     \    (typeof (!!x::'a. PROP P (x))) == (Type (TYPE('a => 'P)))",
 
       "(%x. typeof (f (x))) == (%x. Type (TYPE('f))) ==>  \
-    \    (typeof (f)) == (Type (TYPE('f)))"],
+    \    (typeof (f)) == (Type (TYPE('f)))"] #>
 
    add_realizes_eqns
      ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
@@ -442,12 +442,12 @@ val _ = Context.add_setup
     \    (!!x. PROP realizes (Null) (PROP P (x)))",
 
       "(realizes (r) (!!x. PROP P (x))) ==  \
-    \  (!!x. PROP realizes (r (x)) (PROP P (x)))"],
+    \  (!!x. PROP realizes (r (x)) (PROP P (x)))"] #>
 
    Attrib.add_attributes
      [("extraction_expand",
        (Attrib.no_args add_expand_thm, K Attrib.undef_local_attribute),
-       "specify theorems / definitions to be expanded during extraction")]];
+       "specify theorems / definitions to be expanded during extraction")]);
 
 
 (**** extract program ****)

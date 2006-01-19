@@ -48,7 +48,7 @@ val antisym_less = Simplifier.simproc (Theory.sign_of (the_context()))
 in
 
 val antisym_setup =
- [fn thy => (Simplifier.change_simpset_of thy
-  (fn ss => ss addsimprocs [antisym_le, antisym_less]); thy)]
+ (fn thy => (Simplifier.change_simpset_of thy
+  (fn ss => ss addsimprocs [antisym_le, antisym_less]); thy));
 
 end

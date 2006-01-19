@@ -136,7 +136,7 @@ structure AxclassesData = TheoryDataFun
     in Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest tab))) end;
 end);
 
-val _ = Context.add_setup [AxclassesData.init];
+val _ = Context.add_setup AxclassesData.init;
 val print_axclasses = AxclassesData.print;
 
 
@@ -334,10 +334,10 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
     default_intro_classes_tac facts;
 
-val _ = Context.add_setup [Method.add_methods
+val _ = Context.add_setup (Method.add_methods
  [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
-   "back-chain introduction rules of axiomatic type classes"),
-  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule")]];
+    "back-chain introduction rules of axiomatic type classes"),
+  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule")]);
 
 
 

@@ -204,7 +204,7 @@ structure ContextData = ProofDataFun
   fun print _ _ = ();
 );
 
-val _ = Context.add_setup [ContextData.init];
+val _ = Context.add_setup ContextData.init;
 
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 

@@ -15,7 +15,7 @@ sig
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
   val rep_datatype: thmref * Attrib.src list -> thmref * Attrib.src list ->
     (thmref * Attrib.src list) list -> (thmref * Attrib.src list) list -> theory -> theory
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 
@@ -185,13 +185,13 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 (* theory setup *)
 
 val setup =
- [DatatypesData.init,
-  ConstructorsData.init,
+ (DatatypesData.init #>
+  ConstructorsData.init #>
   Method.add_methods
     [("induct_tac", Method.goal_args Args.name induct_tac,
       "induct_tac emulation (dynamic instantiation!)"),
      ("case_tac", Method.goal_args Args.name exhaust_tac,
-      "datatype case_tac emulation (dynamic instantiation!)")]];
+      "datatype case_tac emulation (dynamic instantiation!)")]);
 
 
 (* outer syntax *)

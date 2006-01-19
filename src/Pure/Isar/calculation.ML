@@ -46,7 +46,7 @@ structure CalculationData = GenericDataFun
     end;
 );
 
-val _ = Context.add_setup [CalculationData.init];
+val _ = Context.add_setup CalculationData.init;
 val print_rules = CalculationData.print;
 
 
@@ -97,13 +97,13 @@ val trans_att = Attrib.add_del_args trans_add trans_del;
 val sym_att = Attrib.add_del_args sym_add sym_del;
 
 val _ = Context.add_setup
- [Attrib.add_attributes
+ (Attrib.add_attributes
    [("trans", Attrib.common trans_att, "declaration of transitivity rule"),
     ("sym", Attrib.common sym_att, "declaration of symmetry rule"),
-    ("symmetric", Attrib.common (Attrib.no_args symmetric), "resolution with symmetry rule")],
-  snd o PureThy.add_thms
+    ("symmetric", Attrib.common (Attrib.no_args symmetric), "resolution with symmetry rule")] #>
+  PureThy.add_thms
    [(("", transitive_thm), [Attrib.theory trans_add]),
-    (("", symmetric_thm), [Attrib.theory sym_add])]];
+    (("", symmetric_thm), [Attrib.theory sym_add])] #> snd);
 
 
 

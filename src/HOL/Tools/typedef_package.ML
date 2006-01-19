@@ -23,7 +23,7 @@ sig
     * (string * string) option -> theory -> Proof.state
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -360,9 +360,9 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
   | typedef_tycodegen thy defs gr dep module brack _ = NONE;
 
 val setup =
-  [TypedefData.init,
-   Codegen.add_codegen "typedef" typedef_codegen,
-   Codegen.add_tycodegen "typedef" typedef_tycodegen];
+  TypedefData.init #>
+  Codegen.add_codegen "typedef" typedef_codegen #>
+  Codegen.add_tycodegen "typedef" typedef_tycodegen;
 
 
 

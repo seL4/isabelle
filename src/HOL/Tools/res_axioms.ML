@@ -27,8 +27,8 @@ signature RES_AXIOMS =
   val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
   val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
 
-  val meson_method_setup : (theory -> theory) list  (*Reconstruction.thy*)
-  val setup : (theory -> theory) list               (*Main.thy*)
+  val meson_method_setup : theory -> theory
+  val setup : theory -> theory
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -471,9 +471,9 @@ fun meson_meth ths ctxt =
     (CHANGED_PROP o Meson.meson_claset_tac (cnf_rules_of_ths ths) (local_claset_of ctxt));
 
 val meson_method_setup =
- [Method.add_methods
-  [("meson", Method.thms_ctxt_args meson_meth, 
-    "The MESON resolution proof procedure")]];
+  Method.add_methods
+    [("meson", Method.thms_ctxt_args meson_meth, 
+      "The MESON resolution proof procedure")];
 
 
 
@@ -497,6 +497,6 @@ val setup_attrs = Attrib.add_attributes
  [("skolem", (skolem_global, skolem_local),
     "skolemization of a theorem")];
 
-val setup = [clause_cache_setup, setup_attrs];
+val setup = clause_cache_setup #> setup_attrs;
 
 end; 

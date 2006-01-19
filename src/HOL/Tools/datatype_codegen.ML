@@ -7,7 +7,7 @@ Code generator for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
-  val setup: (theory -> theory) list
+  val setup: theory -> theory
 end;
 
 structure DatatypeCodegen : DATATYPE_CODEGEN =
@@ -297,18 +297,17 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
 
-val setup = [
-  add_codegen "datatype" datatype_codegen,
-  add_tycodegen "datatype" datatype_tycodegen,
+val setup =
+  add_codegen "datatype" datatype_codegen #>
+  add_tycodegen "datatype" datatype_tycodegen #>
   CodegenPackage.set_is_datatype
-    DatatypePackage.is_datatype,
+    DatatypePackage.is_datatype #>
   CodegenPackage.set_get_all_datatype_cons
-    DatatypePackage.get_all_datatype_cons,
+    DatatypePackage.get_all_datatype_cons #>
   CodegenPackage.add_defgen
-    ("datatype", CodegenPackage.defgen_datatype DatatypePackage.get_datatype DatatypePackage.get_datatype_cons),
+    ("datatype", CodegenPackage.defgen_datatype DatatypePackage.get_datatype DatatypePackage.get_datatype_cons) #>
   CodegenPackage.ensure_datatype_case_consts
     DatatypePackage.get_datatype_case_consts
-    DatatypePackage.get_case_const_data
-];
+    DatatypePackage.get_case_const_data;
 
 end;

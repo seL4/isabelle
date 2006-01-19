@@ -114,7 +114,7 @@ structure AttributesData = TheoryDataFun
     end;
 end);
 
-val _ = Context.add_setup [AttributesData.init];
+val _ = Context.add_setup AttributesData.init;
 val print_attributes = AttributesData.print;
 
 
@@ -487,7 +487,7 @@ fun internal_att x = syntax (Scan.lift Args.internal_attribute) x;
 (* theory setup *)
 
 val _ = Context.add_setup
- [add_attributes
+ (add_attributes
    [("tagged", common tagged, "tagged theorem"),
     ("untagged", common untagged, "untagged theorem"),
     ("COMP", common COMP_att, "direct composition with rules (no lifting)"),
@@ -511,7 +511,7 @@ val _ = Context.add_setup
     ("rulify", (no_args ObjectLogic.declare_rulify, no_args undef_local_attribute),
       "declaration of rulify rule"),
     ("rule_format", common rule_format_att, "result put into standard rule format"),
-    ("attribute", common internal_att, "internal attribute")]];
+    ("attribute", common internal_att, "internal attribute")]);
 
 end;
 

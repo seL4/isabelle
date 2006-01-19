@@ -42,9 +42,9 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val FOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 
                      addSEs [exE,alt_ex1E] addEs [allE];
 
-val cla_setup = [fn thy => (change_claset_of thy (fn _ => FOL_cs); thy)];
+val cla_setup = (fn thy => (change_claset_of thy (fn _ => FOL_cs); thy));
 
 val case_setup =
- [Method.add_methods
+ (Method.add_methods
     [("case_tac", Method.goal_args Args.name case_tac,
-      "case_tac emulation (dynamic instantiation!)")]];
+      "case_tac emulation (dynamic instantiation!)")]);
