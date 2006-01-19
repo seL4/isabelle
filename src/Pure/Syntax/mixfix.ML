@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Mixfix declarations, infixes, binders. Also parts of the Pure syntax.
+Mixfix declarations, infixes, binders.
 *)
 
 signature MIXFIX0 =
@@ -32,12 +32,6 @@ sig
   val fix_mixfix: string -> mixfix -> mixfix
   val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
-  val pure_nonterms: string list
-  val pure_syntax: (string * string * mixfix) list
-  val pure_syntax_output: (string * string * mixfix) list
-  val pure_appl_syntax: (string * string * mixfix) list
-  val pure_applC_syntax: (string * string * mixfix) list
-  val pure_xsym_syntax: (string * string * mixfix) list
 end;
 
 signature MIXFIX =
@@ -224,80 +218,5 @@ fun syn_ext_consts is_logtype const_decls =
     SynExt.syn_ext' true is_logtype
       mfix xconsts ([], binder_trs, binder_trs', []) [] ([], [])
   end;
-
-
-
-(** Pure syntax **)
-
-val pure_nonterms =
-  (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
-    SynExt.args, SynExt.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", SynExt.any, SynExt.sprop, "num_const", "index", "struct"]);
-
-val pure_syntax =
- [("_lambda",     "[pttrns, 'a] => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
-  ("_abs",        "'a",                        NoSyn),
-  ("",            "'a => " ^ SynExt.args,      Delimfix "_"),
-  ("_args",       "['a, " ^ SynExt.args ^ "] => " ^ SynExt.args, Delimfix "_,/ _"),
-  ("",            "id => idt",                 Delimfix "_"),
-  ("_idtdummy",   "idt",                       Delimfix "'_"),
-  ("_idtyp",      "[id, type] => idt",         Mixfix ("_::_", [], 0)),
-  ("_idtypdummy", "type => idt",               Mixfix ("'_()::_", [], 0)),
-  ("",            "idt => idt",                Delimfix "'(_')"),
-  ("",            "idt => idts",               Delimfix "_"),
-  ("_idts",       "[idt, idts] => idts",       Mixfix ("_/ _", [1, 0], 0)),
-  ("",            "idt => pttrn",              Delimfix "_"),
-  ("",            "pttrn => pttrns",           Delimfix "_"),
-  ("_pttrns",     "[pttrn, pttrns] => pttrns", Mixfix ("_/ _", [1, 0], 0)),
-  ("",            "id => aprop",               Delimfix "_"),
-  ("",            "longid => aprop",           Delimfix "_"),
-  ("",            "var => aprop",              Delimfix "_"),
-  ("_DDDOT",      "aprop",                     Delimfix "..."),
-  ("_aprop",      "aprop => prop",             Delimfix "PROP _"),
-  ("_asm",        "prop => asms",              Delimfix "_"),
-  ("_asms",       "[prop, asms] => asms",      Delimfix "_;/ _"),
-  ("_bigimpl",    "[asms, prop] => prop",      Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
-  ("_ofclass",    "[type, logic] => prop",     Delimfix "(1OFCLASS/(1'(_,/ _')))"),
-  ("_mk_ofclass", "_",                         NoSyn),
-  ("_TYPE",       "type => logic",             Delimfix "(1TYPE/(1'(_')))"),
-  ("",            "id => logic",               Delimfix "_"),
-  ("",            "longid => logic",           Delimfix "_"),
-  ("",            "var => logic",              Delimfix "_"),
-  ("_DDDOT",      "logic",                     Delimfix "..."),
-  ("_constify",   "num => num_const",          Delimfix "_"),
-  ("_indexnum",   "num_const => index",        Delimfix "\\<^sub>_"),
-  ("_index",      "logic => index",            Delimfix "(00\\<^bsub>_\\<^esub>)"),
-  ("_indexdefault", "index",                   Delimfix ""),
-  ("_indexvar",   "index",                     Delimfix "'\\<index>"),
-  ("_struct",     "index => logic",            Mixfix ("\\<struct>_", [1000], 1000))];
-
-val pure_syntax_output =
- [("prop", "prop => prop", Mixfix ("_", [0], 0)),
-  ("_meta_conjunction", "prop => prop => prop", InfixrName ("&&", 2))];
-
-val pure_appl_syntax =
- [("_appl", "[('b => 'a), args] => logic", Mixfix ("(1_/(1'(_')))", [SynExt.max_pri, 0], SynExt.max_pri)),
-  ("_appl", "[('b => 'a), args] => aprop", Mixfix ("(1_/(1'(_')))", [SynExt.max_pri, 0], SynExt.max_pri))];
-
-val pure_applC_syntax =
- [("",       "'a => cargs",                  Delimfix "_"),
-  ("_cargs", "['a, cargs] => cargs",         Mixfix ("_/ _", [SynExt.max_pri, SynExt.max_pri], SynExt.max_pri)),
-  ("_applC", "[('b => 'a), cargs] => logic", Mixfix ("(1_/ _)", [SynExt.max_pri, SynExt.max_pri], SynExt.max_pri - 1)),
-  ("_applC", "[('b => 'a), cargs] => aprop", Mixfix ("(1_/ _)", [SynExt.max_pri, SynExt.max_pri], SynExt.max_pri - 1))];
-
-val pure_xsym_syntax =
- [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
-  ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
-  ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [SynExt.max_pri, 0], SynExt.max_pri)),
-  ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
-  ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
-  ("_idtypdummy", "type => idt",        Mixfix ("'_()\\<Colon>_", [], 0)),
-  ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-  ("==",       "['a, 'a] => prop",      InfixrName ("\\<equiv>", 2)),
-  ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
-  ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
-  ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
-  ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
-  ("_DDDOT",   "logic",                 Delimfix "\\<dots>")];
 
 end;
