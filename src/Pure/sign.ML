@@ -211,7 +211,7 @@ structure SignData = TheoryDataFun
     make_sign (NameSpace.default_naming, syn, tsig, consts);
 
   val empty =
-    make_sign (NameSpace.default_naming, Syntax.pure_syn, Type.empty_tsig, Consts.empty);
+    make_sign (NameSpace.default_naming, Syntax.basic_syn, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let
