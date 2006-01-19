@@ -461,9 +461,8 @@ end;
 
 (* generic_setup *)
 
-fun generic_setup NONE = (fn thy => thy |> Library.apply (Context.setup ()))
-  | generic_setup (SOME txt) =
-      Context.use_let "val setup: (theory -> theory) list" "Library.apply setup" txt;
+fun generic_setup NONE = (fn thy => thy |> Context.setup ())
+  | generic_setup (SOME txt) = Context.use_let "val setup: theory -> theory" "setup" txt;
 
 
 (* add_oracle *)
@@ -502,13 +501,67 @@ val proto_pure =
     ("prop", 0, NoSyn),
     ("itself", 1, NoSyn),
     ("dummy", 0, NoSyn)]
-  |> Theory.add_nonterminals Syntax.pure_nonterms
-  |> Theory.add_syntax Syntax.pure_syntax
-  |> Theory.add_syntax Syntax.pure_appl_syntax
-  |> Theory.add_modesyntax (Symbol.xsymbolsN, true) Syntax.pure_xsym_syntax
+  |> Theory.add_nonterminals Syntax.basic_nonterms
   |> Theory.add_syntax
-   [("==>", "prop => prop => prop", Delimfix "op ==>"),
-    (Term.dummy_patternN, "aprop", Delimfix "'_")]
+   [("_lambda",     "[pttrns, 'a] => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
+    ("_abs",        "'a",                        NoSyn),
+    ("",            "'a => args",                Delimfix "_"),
+    ("_args",       "['a, args] => args",        Delimfix "_,/ _"),
+    ("",            "id => idt",                 Delimfix "_"),
+    ("_idtdummy",   "idt",                       Delimfix "'_"),
+    ("_idtyp",      "[id, type] => idt",         Mixfix ("_::_", [], 0)),
+    ("_idtypdummy", "type => idt",               Mixfix ("'_()::_", [], 0)),
+    ("",            "idt => idt",                Delimfix "'(_')"),
+    ("",            "idt => idts",               Delimfix "_"),
+    ("_idts",       "[idt, idts] => idts",       Mixfix ("_/ _", [1, 0], 0)),
+    ("",            "idt => pttrn",              Delimfix "_"),
+    ("",            "pttrn => pttrns",           Delimfix "_"),
+    ("_pttrns",     "[pttrn, pttrns] => pttrns", Mixfix ("_/ _", [1, 0], 0)),
+    ("",            "id => aprop",               Delimfix "_"),
+    ("",            "longid => aprop",           Delimfix "_"),
+    ("",            "var => aprop",              Delimfix "_"),
+    ("_DDDOT",      "aprop",                     Delimfix "..."),
+    ("_aprop",      "aprop => prop",             Delimfix "PROP _"),
+    ("_asm",        "prop => asms",              Delimfix "_"),
+    ("_asms",       "[prop, asms] => asms",      Delimfix "_;/ _"),
+    ("_bigimpl",    "[asms, prop] => prop",      Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
+    ("_ofclass",    "[type, logic] => prop",     Delimfix "(1OFCLASS/(1'(_,/ _')))"),
+    ("_mk_ofclass", "_",                         NoSyn),
+    ("_TYPE",       "type => logic",             Delimfix "(1TYPE/(1'(_')))"),
+    ("",            "id => logic",               Delimfix "_"),
+    ("",            "longid => logic",           Delimfix "_"),
+    ("",            "var => logic",              Delimfix "_"),
+    ("_DDDOT",      "logic",                     Delimfix "..."),
+    ("_constify",   "num => num_const",          Delimfix "_"),
+    ("_indexnum",   "num_const => index",        Delimfix "\\<^sub>_"),
+    ("_index",      "logic => index",            Delimfix "(00\\<^bsub>_\\<^esub>)"),
+    ("_indexdefault", "index",                   Delimfix ""),
+    ("_indexvar",   "index",                     Delimfix "'\\<index>"),
+    ("_struct",     "index => logic",            Mixfix ("\\<struct>_", [1000], 1000)),
+    ("==>",         "prop => prop => prop",      Delimfix "op ==>"),
+    (Term.dummy_patternN, "aprop",               Delimfix "'_")]
+  |> Theory.add_syntax Syntax.appl_syntax
+  |> Theory.add_modesyntax (Symbol.xsymbolsN, true)
+   [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
+    ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
+    ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
+    ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
+    ("_idtypdummy", "type => idt",        Mixfix ("'_()\\<Colon>_", [], 0)),
+    ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
+    ("==",       "['a, 'a] => prop",      InfixrName ("\\<equiv>", 2)),
+    ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
+    ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
+    ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
+    ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
+    ("_DDDOT",   "logic",                 Delimfix "\\<dots>")]
+  |> Theory.add_modesyntax ("", false)
+   [("prop", "prop => prop", Mixfix ("_", [0], 0)),
+    ("_meta_conjunction", "prop => prop => prop", InfixrName ("&&", 2))]
+  |> Theory.add_modesyntax ("HTML", false)
+   [("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
+  |> Theory.add_trfuns Syntax.pure_trfuns
+  |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Theory.add_consts
    [("==", "'a => 'a => prop", InfixrName ("==", 2)),
     ("==>", "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
@@ -522,10 +575,8 @@ val proto_pure =
      Const ("all", (aT --> propT) --> propT),
      Const ("TYPE", a_itselfT),
      Const (Term.dummy_patternN, aT)]
-  |> Theory.add_modesyntax ("", false)
-       (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
-  |> Theory.add_trfuns Syntax.pure_trfuns
-  |> Theory.add_trfunsT Syntax.pure_trfunsT
+  |> Theory.add_syntax
+   []
   |> Sign.local_path
   |> (add_defs_i false o map Thm.no_attributes)
        [("prop_def", Logic.mk_equals (Logic.protect A, A))] |> snd
