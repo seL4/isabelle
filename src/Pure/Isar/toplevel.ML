@@ -339,7 +339,8 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr _ Kill (State NONE) = raise UNDEF
   | apply_tr _ Kill (State (SOME (node, (_, kill)))) =
       (kill (History.current node); State NONE)
-  | apply_tr int (Keep f) state = (raise_interrupt (f int) state; state)
+  | apply_tr int (Keep f) state =
+      (setmp Output.do_toplevel_errors false (raise_interrupt (f int)) state; state)
   | apply_tr _ (History _) (State NONE) = raise UNDEF
   | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
   | apply_tr int (Transaction (hist, f)) state = transaction hist (fn x => f int x) state;
@@ -629,12 +630,10 @@ fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
 end;
 
 
-(* program: independent of state *)
+(* toplevel program: independent of state *)
 
 fun program f =
-  ((fn () => debugging f () handle exn => error (exn_message exn))
-    |> setmp Output.do_toplevel_errors true
-    |> Output.toplevel_errors) ();
+  Output.ML_errors (fn () => debugging f () handle exn => error (exn_message exn)) ();
 
 
 
