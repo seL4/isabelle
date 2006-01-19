@@ -10,7 +10,7 @@ We extend the datatype
 @{text formula} by a new constructor
 *};
 (*<*)
-datatype formula = Atom atom
+datatype formula = Atom "atom"
                   | Neg formula
                   | And formula formula
                   | AX formula

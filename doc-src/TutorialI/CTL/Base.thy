@@ -76,7 +76,7 @@ Again, we could have made @{term M} a parameter of everything.
 Finally we introduce a type of atomic propositions
 *}
 
-typedecl atom
+typedecl "atom"
 
 text{*\noindent
 and a \emph{labelling function}

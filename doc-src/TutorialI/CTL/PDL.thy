@@ -12,7 +12,7 @@ syntax trees, they are naturally modelled as a datatype:%
 shown to be equivalent.}
 *}
 
-datatype formula = Atom atom
+datatype formula = Atom "atom"
                   | Neg formula
                   | And formula formula
                   | AX formula
