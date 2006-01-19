@@ -201,7 +201,7 @@ fun create_nom_typedecls ak_names thy =
                         HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
       in
           AxClass.add_axclass_i (cl_name, ["HOL.type"])
-                [((cl_name^"1", axiom1),[Simplifier.simp_add_global]), 
+                [((cl_name^"1", axiom1),[Attrib.theory Simplifier.simp_add]), 
                  ((cl_name^"2", axiom2),[]),                           
                  ((cl_name^"3", axiom3),[])] thy                          
       end) ak_names_types thy6;

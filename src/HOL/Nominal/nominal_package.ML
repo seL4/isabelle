@@ -428,13 +428,13 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         (List.take (descr, length new_type_names)) |>
       PureThy.add_thmss
         [((space_implode "_" new_type_names ^ "_unfolded_perm_eq",
-          unfolded_perm_eq_thms), [Simplifier.simp_add_global]),
+          unfolded_perm_eq_thms), [Attrib.theory Simplifier.simp_add]),
          ((space_implode "_" new_type_names ^ "_perm_empty",
-          perm_empty_thms), [Simplifier.simp_add_global]),
+          perm_empty_thms), [Attrib.theory Simplifier.simp_add]),
          ((space_implode "_" new_type_names ^ "_perm_append",
-          perm_append_thms), [Simplifier.simp_add_global]),
+          perm_append_thms), [Attrib.theory Simplifier.simp_add]),
          ((space_implode "_" new_type_names ^ "_perm_eq",
-          perm_eq_thms), [Simplifier.simp_add_global])];
+          perm_eq_thms), [Attrib.theory Simplifier.simp_add])];
   
     (**** Define representing sets ****)
 
@@ -1071,7 +1071,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          length new_type_names))
       end) atoms;
 
-    val simp_atts = replicate (length new_type_names) [Simplifier.simp_add_global];
+    val simp_atts = replicate (length new_type_names) [Attrib.theory Simplifier.simp_add];
 
     val (_, thy9) = thy8 |>
       Theory.add_path big_name |>
