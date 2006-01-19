@@ -47,6 +47,7 @@ sig
   exception TOPLEVEL_ERROR
   val do_toplevel_errors: bool ref
   val toplevel_errors: ('a -> 'b) -> 'a -> 'b
+  val ML_errors: ('a -> 'b) -> 'a -> 'b
   val panic: string -> unit
   val info: string -> unit
   val debug: string -> unit
@@ -138,6 +139,8 @@ fun toplevel_errors f x =
   if ! do_toplevel_errors then
     f x handle ERROR msg => (error_msg msg; raise TOPLEVEL_ERROR)
   else f x;
+
+fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
 
 
 (* AList operations *)
