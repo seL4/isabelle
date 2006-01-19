@@ -272,7 +272,7 @@ fun try_ml_file name time =
     else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
-fun run_thy name path = Output.toplevel_errors (fn () =>
+fun run_thy name path =
   let
     val text = Source.of_list (Library.untabify (explode (File.read path)));
     val _ = Present.init_theory name;
@@ -288,7 +288,7 @@ fun run_thy name path = Output.toplevel_errors (fn () =>
     IsarOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
     |> Buffer.content
     |> Present.theory_output name
-  end) ();
+  end;
 
 in
 
