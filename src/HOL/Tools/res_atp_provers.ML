@@ -19,6 +19,13 @@ fun if_proof_E instr =
   else if (thisLine = "") then false
   else if_proof_E instr end;		
 
+local 
+
+fun locations [] = ()
+|   locations (s::ss) = (warning s; locations ss);
+
+in 
+
 fun call_vampire (files:string list, time: int) = 
   let val output = (space_implode " " files) ^ "  "
       val runtime = "-t " ^ (string_of_int time)
@@ -37,7 +44,7 @@ fun call_eprover (files:string list, time:int) =
   in if_proof_E instr
   end; 
 
-
+end
 
 fun vampire_o thy ((helper,files),time) = (if (call_vampire (helper @ files,time)) then (warning (hd files); ResAtpSetup.cond_rm_tmp files;HOLogic.mk_Trueprop HOLogic.false_const)  
   else (ResAtpSetup.cond_rm_tmp files;raise Fail ("vampire oracle failed")));
