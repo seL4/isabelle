@@ -86,20 +86,20 @@ fun untyped_HOL_helper1 () =
 fun HOL_helper1 () =
     let val tp_level = hol_typ_level ()
     in
-	case tp_level of T_FULL => full_typed_HOL_helper1 ()
-		       | T_PARTIAL => partial_typed_HOL_helper1 ()
-		       | T_CONST => const_typed_HOL_helper1 ()
-		       | T_NONE => untyped_HOL_helper1 ()
+	case tp_level of T_FULL => (warning "Full type"; full_typed_HOL_helper1 ())
+		       | T_PARTIAL => (warning "Partial type"; partial_typed_HOL_helper1 ())
+		       | T_CONST => (warning "Const type"; const_typed_HOL_helper1 ())
+		       | T_NONE => (warning "Untyped"; untyped_HOL_helper1 ())
     end;
 
 
 fun HOL_comb () =
     let val tp_level = hol_typ_level ()
     in
-	case tp_level of T_FULL => full_typed_comb ()
-		       | T_PARTIAL => partial_typed_comb ()
-		       | T_CONST => const_typed_comb ()
-		       | T_NONE => untyped_comb ()
+	case tp_level of T_FULL => (warning "Full type"; full_typed_comb ())
+		       | T_PARTIAL => (warning "Partial type"; partial_typed_comb ())
+		       | T_CONST => (warning "Const type"; const_typed_comb ())
+		       | T_NONE => (warning "Untyped"; untyped_comb ())
     end;
 
 
