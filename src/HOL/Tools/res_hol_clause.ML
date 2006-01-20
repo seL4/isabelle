@@ -330,33 +330,39 @@ fun simp_type_of (Type (a, Ts)) =
   | simp_type_of (TFree (a,s)) = ResClause.mk_fol_type("Fixed",ResClause.make_fixed_type_var a,[])
   | simp_type_of (TVar (v,s)) = ResClause.mk_fol_type("Var",ResClause.make_schematic_type_var v,[]);
 
-
-
 fun comb_typ ("COMBI",t) = 
     let val t' = domain_type t
     in
 	[simp_type_of t']
     end
   | comb_typ ("COMBK",t) = 
-    let val (ab,_) = strip_type t
+    let val a = domain_type t
+	val b = domain_type (range_type t)
     in
-	map simp_type_of ab
+	map simp_type_of [a,b]
     end
   | comb_typ ("COMBS",t) = 
     let val t' = domain_type t
-	val ([a,b],c) = strip_type t' 
+	val a = domain_type t'
+	val b = domain_type (range_type t')
+	val c = range_type (range_type t')
     in 
 	map simp_type_of [a,b,c]
     end
   | comb_typ ("COMBB",t) = 
-    let val ([ab,ca,c],b) = strip_type t
+    let val ab = domain_type t
+	val ca = domain_type (range_type t)
 	val a = domain_type ab
+	val b = range_type ab
+	val c = domain_type ca
     in
 	map simp_type_of [a,b,c]
     end
   | comb_typ ("COMBC",t) =
     let val t1 = domain_type t
-	val ([a,b],c) = strip_type t1
+	val a = domain_type t1
+	val b = domain_type (range_type t1)
+	val c = range_type (range_type t1)
     in
 	map simp_type_of [a,b,c]
     end;
