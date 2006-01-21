@@ -92,20 +92,18 @@ sig
   val beta_conv: cterm -> cterm -> cterm
   val plain_prop_of: thm -> term
   val add_used: thm -> string list -> string list
-  val rule_attribute: ('a -> thm -> thm) -> 'a attribute
-  val declaration_attribute: (thm -> 'a -> 'a) -> 'a attribute
   val map_tags: (tag list -> tag list) -> thm -> thm
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
-  val tag: tag -> 'a attribute
-  val untag: string -> 'a attribute
+  val tag: tag -> attribute
+  val untag: string -> attribute
   val get_kind: thm -> string
-  val kind: string -> 'a attribute
+  val kind: string -> attribute
   val theoremK: string
   val lemmaK: string
   val corollaryK: string
   val internalK: string
-  val kind_internal: 'a attribute
+  val kind_internal: attribute
   val has_internal: tag list -> bool
   val is_internal: thm -> bool
   val flexflex_unique: thm -> thm
@@ -324,11 +322,7 @@ fun add_used thm used =
 
 
 
-(** basic attributes **)
-
-fun rule_attribute f (x, th) = (x, f x th);
-fun declaration_attribute f (x, th) = (f th x, th);
-
+(** theorem tags **)
 
 (* add / delete tags *)
 
@@ -338,8 +332,8 @@ fun map_tags f thm =
 fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
 fun untag_rule s = map_tags (filter_out (equal s o #1));
 
-fun tag tg x = rule_attribute (K (tag_rule tg)) x;
-fun untag s x = rule_attribute (K (untag_rule s)) x;
+fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;
+fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
 
 fun simple_tag name x = tag (name, []) x;
 
@@ -357,7 +351,7 @@ fun get_kind thm =
   | _ => "unknown");
 
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
-fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
+fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
 fun kind_internal x = kind internalK x;
 fun has_internal tags = exists (fn ("kind", [k]) => k = internalK | _ => false) tags;
 val is_internal = has_internal o Thm.tags_of_thm;
