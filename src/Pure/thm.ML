@@ -71,7 +71,7 @@ signature BASIC_THM =
     tpairs: (cterm * cterm) list,
     prop: cterm}
   exception THM of string * int * thm list
-  type 'a attribute     (* = 'a * thm -> 'a * thm *)
+  type attribute     (* = Context.generic * thm -> Context.generic * thm *)
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
   val theory_of_thm: thm -> theory
@@ -141,10 +141,12 @@ sig
   val cabs: cterm -> cterm -> cterm
   val major_prem_of: thm -> term
   val no_prems: thm -> bool
+  val rule_attribute: (Context.generic -> thm -> thm) -> attribute
+  val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
+  val theory_attributes: attribute list -> theory * thm -> theory * thm
+  val proof_attributes: attribute list -> Context.proof * thm -> Context.proof * thm
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
-  val apply_attributes: 'a attribute list -> 'a * thm -> 'a * thm
-  val applys_attributes: 'a attribute list -> 'a * thm list -> 'a * thm list
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val get_name_tags: thm -> string * tag list
@@ -397,12 +399,22 @@ fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}
 
 
 (*attributes subsume any kind of rules or context modifiers*)
-type 'a attribute = 'a * thm -> 'a * thm;
+type attribute = Context.generic * thm -> Context.generic * thm;
+
+fun rule_attribute f (x, th) = (x, f x th);
+fun declaration_attribute f (x, th) = (f th x, th);
+
+fun apply_attributes mk dest =
+  let
+    fun app [] = I
+      | app ((f: attribute) :: fs) = fn (x, th) => f (mk x, th) |>> dest |> app fs;
+  in app end;
+
+val theory_attributes = apply_attributes Context.Theory Context.the_theory;
+val proof_attributes = apply_attributes Context.Proof Context.the_proof;
 
 fun no_attributes x = (x, []);
 fun simple_fact x = [(x, [])];
-val apply_attributes = Library.apply;
-fun applys_attributes atts = foldl_map (Library.apply atts);
 
 
 (* hyps *)
