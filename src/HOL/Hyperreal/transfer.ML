@@ -2,20 +2,20 @@
     ID          : $Id$
     Author      : Brian Huffman
 
-Transfer principle tactic for nonstandard analysis
+Transfer principle tactic for nonstandard analysis.
 *)
 
-signature TRANSFER_TAC =
+signature TRANSFER =
 sig
-  val transfer_tac: thm list -> int -> tactic
+  val transfer_tac: Proof.context -> thm list -> int -> tactic
   val add_const: string -> theory -> theory
   val setup: theory -> theory
 end;
 
-structure Transfer: TRANSFER_TAC =
+structure Transfer: TRANSFER =
 struct
 
-structure TransferData = TheoryDataFun
+structure TransferData = GenericDataFun
 (struct
   val name = "HOL/transfer";
   type T = {
@@ -25,7 +25,6 @@ structure TransferData = TheoryDataFun
     consts: string list
   };
   val empty = {intros = [], unfolds = [], refolds = [], consts = []};
-  val copy = I;
   val extend = I;
   fun merge _
     ({intros = intros1, unfolds = unfolds1,
@@ -59,29 +58,26 @@ fun unstar_term consts term =
 
 val atomizers = map thm ["atomize_all", "atomize_imp", "atomize_eq"]
 
-fun transfer_thm_of thy ths t =
+fun transfer_thm_of ctxt ths t =
   let
-    val {intros,unfolds,refolds,consts} = TransferData.get thy
+    val thy = ProofContext.theory_of ctxt;
+    val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt)
     val (_$_$t') = concl_of (Tactic.rewrite true unfolds (cterm_of thy t))
     val u = unstar_term consts t'
-    val tacs =
-      [ rewrite_goals_tac (ths @ refolds @ unfolds)
-      , rewrite_goals_tac atomizers
-      , match_tac [transitive_thm] 1
-      , resolve_tac [transfer_start] 1
-      , REPEAT_ALL_NEW (resolve_tac intros) 1
-      , match_tac [reflexive_thm] 1 ]
-  in Goal.prove thy [] [] (Logic.mk_equals (t,u)) (fn _ => EVERY tacs) end
+    val tac =
+      rewrite_goals_tac (ths @ refolds @ unfolds) THEN
+      rewrite_goals_tac atomizers THEN
+      match_tac [transitive_thm] 1 THEN
+      resolve_tac [transfer_start] 1 THEN
+      REPEAT_ALL_NEW (resolve_tac intros) 1 THEN
+      match_tac [reflexive_thm] 1
+  in Goal.prove thy [] [] (Logic.mk_equals (t,u)) (K tac) end
 
-fun transfer_tac ths =
+fun transfer_tac ctxt ths =
     SUBGOAL (fn (t,i) =>
         (fn th =>
-            let val thy = theory_of_thm th
-                val tr = transfer_thm_of thy ths t
-            in rewrite_goals_tac [tr] th
-            end
-        )
-    )
+            let val tr = transfer_thm_of ctxt ths t
+            in rewrite_goals_tac [tr] th end))
 
 local
 fun map_intros f = TransferData.map
@@ -96,46 +92,32 @@ fun map_refolds f = TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=f refolds, consts=consts})
 in
-fun intro_add_global (thy, thm) = (map_intros (Drule.add_rule thm) thy, thm);
-fun intro_del_global (thy, thm) = (map_intros (Drule.del_rule thm) thy, thm);
+val intro_add = Thm.declaration_attribute (map_intros o Drule.add_rule);
+val intro_del = Thm.declaration_attribute (map_intros o Drule.del_rule);
 
-fun unfold_add_global (thy, thm) = (map_unfolds (Drule.add_rule thm) thy, thm);
-fun unfold_del_global (thy, thm) = (map_unfolds (Drule.del_rule thm) thy, thm);
+val unfold_add = Thm.declaration_attribute (map_unfolds o Drule.add_rule);
+val unfold_del = Thm.declaration_attribute (map_unfolds o Drule.del_rule);
 
-fun refold_add_global (thy, thm) = (map_refolds (Drule.add_rule thm) thy, thm);
-fun refold_del_global (thy, thm) = (map_refolds (Drule.del_rule thm) thy, thm);
+val refold_add = Thm.declaration_attribute (map_refolds o Drule.add_rule);
+val refold_del = Thm.declaration_attribute (map_refolds o Drule.del_rule);
 end
 
-fun add_const c = TransferData.map
+fun add_const c = Context.theory_map (TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
-    {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts})
+    {intros=intros, unfolds=unfolds, refolds=refolds, consts=c::consts}))
 
-local
-  val undef_local =
-    Attrib.add_del_args
-      Attrib.undef_local_attribute
-      Attrib.undef_local_attribute;
-in
-  val intro_attr =
-   (Attrib.add_del_args intro_add_global intro_del_global, undef_local);
-  val unfold_attr =
-   (Attrib.add_del_args unfold_add_global unfold_del_global, undef_local);
-  val refold_attr =
-   (Attrib.add_del_args refold_add_global refold_del_global, undef_local);
-end
-
-val transfer_method = Method.SIMPLE_METHOD' HEADGOAL o transfer_tac;
+val transfer_method = Method.thms_ctxt_args (fn ths => fn ctxt =>
+  Method.SIMPLE_METHOD' HEADGOAL (transfer_tac ctxt ths));
 
 val setup =
   TransferData.init #>
   Attrib.add_attributes
-    [("transfer_intro", intro_attr,
+    [("transfer_intro", Attrib.add_del_args intro_add intro_del,
       "declaration of transfer introduction rule"),
-     ("transfer_unfold", unfold_attr,
+     ("transfer_unfold", Attrib.add_del_args unfold_add unfold_del,
       "declaration of transfer unfolding rule"),
-     ("transfer_refold", refold_attr,
+     ("transfer_refold", Attrib.add_del_args refold_add refold_del,
       "declaration of transfer refolding rule")] #>
-  Method.add_method
-    ("transfer", Method.thms_args transfer_method, "transfer principle");
+  Method.add_method ("transfer", transfer_method, "transfer principle");
 
 end;

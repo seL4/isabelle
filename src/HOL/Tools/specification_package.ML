@@ -8,8 +8,8 @@ Package for defining constants by specification.
 signature SPECIFICATION_PACKAGE =
 sig
   val quiet_mode: bool ref
-  val add_specification_i: string option -> (bstring * xstring * bool) list ->
-    theory attribute
+  val add_specification: string option -> (bstring * xstring * bool) list ->
+    theory * thm -> theory * thm
 end
 
 structure SpecificationPackage: SPECIFICATION_PACKAGE =
@@ -82,10 +82,14 @@ fun proc_exprop axiomatic cos arg =
       | NONE => mk_definitional cos arg
 end
 
-fun add_specification_i axiomatic cos arg =
+fun add_specification axiomatic cos arg =
     arg |> apsnd freezeT
         |> proc_exprop axiomatic cos
         |> apsnd standard
+
+fun add_spec x y (context, thm) =
+  (Context.the_theory context, thm) |> add_specification x y |>> Context.Theory;
+
 
 (* Collect all intances of constants in term *)
 
@@ -200,7 +204,7 @@ fun process_spec axiomatic cos alt_props thy =
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps
                              |> apsnd standard
-                             |> Thm.apply_attributes (map (Attrib.global_attribute thy) atts)
+                             |> Thm.theory_attributes (map (Attrib.attribute thy) atts)
                              |> add_final
                              |> Library.swap
                     end
@@ -224,9 +228,11 @@ fun process_spec axiomatic cos alt_props thy =
                 arg |> apsnd freezeT
                     |> process_all (zip3 alt_names rew_imps frees)
             end
+            fun post_proc (context, th) =
+                post_process (Context.theory_of context, th) |>> Context.Theory;
     in
       IsarThy.theorem_i Drule.internalK
-        ("", [add_specification_i axiomatic (zip3 names cnames overloaded), post_process])
+        ("", [add_spec axiomatic (zip3 names cnames overloaded), post_proc])
         (HOLogic.mk_Trueprop ex_prop, ([], [])) thy
     end
 
