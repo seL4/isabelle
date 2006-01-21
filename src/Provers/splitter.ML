@@ -32,8 +32,8 @@ sig
   val delsplits       : simpset * thm list -> simpset
   val Addsplits       : thm list -> unit
   val Delsplits       : thm list -> unit
-  val split_add: Context.generic attribute
-  val split_del: Context.generic attribute
+  val split_add: attribute
+  val split_del: attribute
   val split_modifiers : (Args.T list -> (Method.modifier * Args.T list)) list
   val setup: theory -> theory
 end;
@@ -443,9 +443,9 @@ val split_del = Simplifier.attrib (op delsplits);
 (* methods *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.colon >> K ((I, Attrib.context split_add): Method.modifier),
-  Args.$$$ splitN -- Args.add -- Args.colon >> K (I, Attrib.context split_add),
-  Args.$$$ splitN -- Args.del -- Args.colon >> K (I, Attrib.context split_del)];
+ [Args.$$$ splitN -- Args.colon >> K ((I, split_add): Method.modifier),
+  Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add),
+  Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del)];
 
 fun split_meth src =
   Method.syntax Attrib.local_thms src
@@ -456,8 +456,7 @@ fun split_meth src =
 
 val setup =
  (Attrib.add_attributes
-  [(splitN, Attrib.common (Attrib.add_del_args split_add split_del),
-    "declaration of case split rule")] #>
+  [(splitN, Attrib.add_del_args split_add split_del, "declaration of case split rule")] #>
   Method.add_methods [(splitN, split_meth, "apply case split rule")]);
 
 end;

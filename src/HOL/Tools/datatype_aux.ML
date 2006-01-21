@@ -15,10 +15,10 @@ sig
   val add_path : bool -> string -> theory -> theory
   val parent_path : bool -> theory -> theory
 
-  val store_thmss_atts : string -> string list -> theory attribute list list -> thm list list
+  val store_thmss_atts : string -> string list -> attribute list list -> thm list list
     -> theory -> thm list list * theory
   val store_thmss : string -> string list -> thm list list -> theory -> thm list list * theory
-  val store_thms_atts : string -> string list -> theory attribute list list -> thm list
+  val store_thms_atts : string -> string list -> attribute list list -> thm list
     -> theory -> thm list * theory
   val store_thms : string -> string list -> thm list -> theory -> thm list * theory
 

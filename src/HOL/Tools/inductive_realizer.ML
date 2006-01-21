@@ -467,7 +467,7 @@ fun add_ind_realizers name rsets thy =
     Library.foldl (add_ind_realizer rsets intrs induct raw_induct elims) (thy, vss)
   end
 
-fun rlz_attrib arg (thy, thm) =
+fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.map_theory
   let
     fun err () = error "ind_realizer: bad rule";
     val sets =
@@ -476,21 +476,19 @@ fun rlz_attrib arg (thy, thm) =
          | xs => map (set_of o fst o HOLogic.dest_imp) xs)
          handle TERM _ => err () | Empty => err ();
   in 
-    (add_ind_realizers (hd sets) (case arg of
+    add_ind_realizers (hd sets)
+      (case arg of
         NONE => sets | SOME NONE => []
       | SOME (SOME sets') => sets \\ sets')
-      thy, thm)
-  end;
+  end);
 
-val rlz_attrib_global = Attrib.syntax
+val ind_realizer = Attrib.syntax
  ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
     Scan.option (Scan.lift (Args.colon) |--
-      Scan.repeat1 Args.global_const))) >> rlz_attrib);
+      Scan.repeat1 Args.const))) >> rlz_attrib);
 
 val setup =
-  Attrib.add_attributes [("ind_realizer",
-    (rlz_attrib_global, K Attrib.undef_local_attribute),
-    "add realizers for inductive set")];
+  Attrib.add_attributes [("ind_realizer", ind_realizer, "add realizers for inductive set")];
 
 end;
 

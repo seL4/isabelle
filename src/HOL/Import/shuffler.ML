@@ -24,7 +24,7 @@ sig
     val print_shuffles: theory -> unit
 
     val add_shuffle_rule: thm -> theory -> theory
-    val shuffle_attr: theory attribute
+    val shuffle_attr: attribute
 
     val setup      : theory -> theory
 end
@@ -682,7 +682,7 @@ fun add_shuffle_rule thm thy =
 	else ShuffleData.put (thm::shuffles) thy
     end
 
-fun shuffle_attr (thy,thm) = (add_shuffle_rule thm thy,thm)
+val shuffle_attr = Thm.declaration_attribute (Context.map_theory o add_shuffle_rule);
 
 val setup =
   Method.add_method ("shuffle_tac",Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around") #>
@@ -693,6 +693,6 @@ val setup =
   add_shuffle_rule imp_comm #>
   add_shuffle_rule Drule.norm_hhf_eq #>
   add_shuffle_rule Drule.triv_forall_equality #>
-  Attrib.add_attributes [("shuffle_rule", (Attrib.no_args shuffle_attr,K Attrib.undef_local_attribute),"tell the shuffler about the theorem")]
+  Attrib.add_attributes [("shuffle_rule", Attrib.no_args shuffle_attr, "declare rule for shuffler")]
 
 end

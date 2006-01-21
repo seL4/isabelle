@@ -12,7 +12,7 @@ sig
   val get_info: theory -> string -> {super_classes: class list, intro: thm, axioms: thm list}
   val add_axclass: bstring * xstring list -> ((bstring * string) * Attrib.src list) list ->
     theory -> {intro: thm, axioms: thm list} * theory
-  val add_axclass_i: bstring * class list -> ((bstring * term) * theory attribute list) list ->
+  val add_axclass_i: bstring * class list -> ((bstring * term) * attribute list) list ->
     theory -> {intro: thm, axioms: thm list} * theory
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
@@ -216,7 +216,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
 
 in
 
-val add_axclass = ext_axclass Sign.intern_class Theory.read_axm Attrib.global_attribute;
+val add_axclass = ext_axclass Sign.intern_class Theory.read_axm Attrib.attribute;
 val add_axclass_i = ext_axclass (K I) Theory.cert_axm (K I);
 
 end;

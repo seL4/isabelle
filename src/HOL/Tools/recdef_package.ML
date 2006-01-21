@@ -11,24 +11,23 @@ sig
   val print_recdefs: theory -> unit
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
-  val simp_add: Context.generic attribute
-  val simp_del: Context.generic attribute
-  val cong_add: Context.generic attribute
-  val cong_del: Context.generic attribute
-  val wf_add: Context.generic attribute
-  val wf_del: Context.generic attribute
+  val simp_add: attribute
+  val simp_del: attribute
+  val cong_add: attribute
+  val cong_del: attribute
+  val wf_add: attribute
+  val wf_del: attribute
   val add_recdef: bool -> xstring -> string -> ((bstring * string) * Attrib.src list) list ->
     Attrib.src option -> theory -> theory
       * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * theory attribute list) list ->
+  val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * attribute list) list ->
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (thmref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
-  val defer_recdef_i: xstring -> term list -> (thm list * theory attribute list) list
+  val defer_recdef_i: xstring -> term list -> (thm list * attribute list) list
     -> theory -> theory * {induct_rules: thm}
   val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> theory -> Proof.state
-  val recdef_tc_i: bstring * theory attribute list -> string -> int option
-    -> theory -> Proof.state
+  val recdef_tc_i: bstring * attribute list -> string -> int option -> theory -> Proof.state
   val setup: theory -> theory
 end;
 
@@ -148,7 +147,7 @@ val map_local_hints = LocalRecdefData.map;
 fun map_hints f (Context.Theory thy) = Context.Theory (map_global_hints f thy)
   | map_hints f (Context.Proof ctxt) = Context.Proof (map_local_hints f ctxt);
 
-fun attrib f = Attrib.declaration (map_hints o f);
+fun attrib f = Thm.declaration_attribute (map_hints o f);
 
 val simp_add = attrib (map_simps o Drule.add_rule);
 val simp_del = attrib (map_simps o Drule.del_rule);
@@ -165,15 +164,15 @@ val recdef_congN = "recdef_cong";
 val recdef_wfN = "recdef_wf";
 
 val recdef_modifiers =
- [Args.$$$ recdef_simpN -- Args.colon >> K ((I, Attrib.context simp_add): Method.modifier),
-  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (I, Attrib.context simp_add),
-  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (I, Attrib.context simp_del),
-  Args.$$$ recdef_congN -- Args.colon >> K (I, Attrib.context cong_add),
-  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (I, Attrib.context cong_add),
-  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (I, Attrib.context cong_del),
-  Args.$$$ recdef_wfN -- Args.colon >> K (I, Attrib.context wf_add),
-  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (I, Attrib.context wf_add),
-  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (I, Attrib.context wf_del)] @
+ [Args.$$$ recdef_simpN -- Args.colon >> K ((I, simp_add): Method.modifier),
+  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (I, simp_add),
+  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (I, simp_del),
+  Args.$$$ recdef_congN -- Args.colon >> K (I, cong_add),
+  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (I, cong_add),
+  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (I, cong_del),
+  Args.$$$ recdef_wfN -- Args.colon >> K (I, wf_add),
+  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (I, wf_add),
+  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (I, wf_del)] @
   Clasimp.clasimp_modifiers;
 
 
@@ -223,8 +222,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
         tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
     val rules = map (map #1) (Library.partition_eq (Library.eq_snd (op =)) rules_idx);
-    val simp_att = if null tcs then
-      [Attrib.theory Simplifier.simp_add, RecfunCodegen.add NONE] else [];
+    val simp_att = if null tcs then [Simplifier.simp_add, RecfunCodegen.add NONE] else [];
 
     val ((simps' :: rules', [induct']), thy) =
       thy
@@ -239,7 +237,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
       |> Theory.parent_path;
   in (thy, result) end;
 
-val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints;
+val add_recdef = gen_add_recdef Tfl.define Attrib.attribute prepare_hints;
 fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y z w ();
 
 
@@ -284,7 +282,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i thy =
         " in recdef definition of " ^ quote name);
   in IsarThy.theorem_i Drule.internalK (bname, atts) (HOLogic.mk_Trueprop tc, ([], [])) thy end;
 
-val recdef_tc = gen_recdef_tc Attrib.global_attribute Sign.intern_const;
+val recdef_tc = gen_recdef_tc Attrib.attribute Sign.intern_const;
 val recdef_tc_i = gen_recdef_tc (K I) (K I);
 
 
@@ -297,12 +295,9 @@ val setup =
   GlobalRecdefData.init #>
   LocalRecdefData.init #>
   Attrib.add_attributes
-   [(recdef_simpN, Attrib.common (Attrib.add_del_args simp_add simp_del),
-      "declaration of recdef simp rule"),
-    (recdef_congN, Attrib.common (Attrib.add_del_args cong_add cong_del),
-      "declaration of recdef cong rule"),
-    (recdef_wfN, Attrib.common (Attrib.add_del_args wf_add wf_del),
-      "declaration of recdef wf rule")];
+   [(recdef_simpN, Attrib.add_del_args simp_add simp_del, "declaration of recdef simp rule"),
+    (recdef_congN, Attrib.add_del_args cong_add cong_del, "declaration of recdef cong rule"),
+    (recdef_wfN, Attrib.add_del_args wf_add wf_del, "declaration of recdef wf rule")];
 
 
 (* outer syntax *)

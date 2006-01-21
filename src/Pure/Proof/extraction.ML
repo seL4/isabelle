@@ -355,7 +355,7 @@ fun realizes_of thy vs t prop =
 
 (** expanding theorems / definitions **)
 
-fun add_expand_thm (thy, thm) =
+fun add_expand_thm thm thy =
   let
     val {realizes_eqns, typeof_eqns, types, realizers,
       defs, expand, prep} = ExtractionData.get thy;
@@ -379,10 +379,13 @@ fun add_expand_thm (thy, thm) =
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
          realizers = realizers, defs = defs,
-         expand = (name, prop_of thm) ins expand, prep = prep}) thy, thm)
+         expand = (name, prop_of thm) ins expand, prep = prep}) thy)
   end;
 
-fun add_expand_thms thms thy = Library.foldl (fst o add_expand_thm) (thy, thms);
+val add_expand_thms = fold add_expand_thm;
+
+val extraction_expand =
+  Attrib.no_args (Thm.declaration_attribute (Context.map_theory o add_expand_thm));
 
 
 (** types with computational content **)
@@ -445,8 +448,7 @@ val _ = Context.add_setup
     \  (!!x. PROP realizes (r (x)) (PROP P (x)))"] #>
 
    Attrib.add_attributes
-     [("extraction_expand",
-       (Attrib.no_args add_expand_thm, K Attrib.undef_local_attribute),
+     [("extraction_expand", extraction_expand,
        "specify theorems / definitions to be expanded during extraction")]);
 
 

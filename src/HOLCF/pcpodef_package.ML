@@ -144,8 +144,9 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
           ||> Theory.parent_path;
       in (theory', defs) end;
     
-    fun pcpodef_result (theory, UUmem_admissible) =
+    fun pcpodef_result (context, UUmem_admissible) =
       let
+        val theory = Context.the_theory context;
         val UUmem = UUmem_admissible RS conjunct1;
         val admissible = UUmem_admissible RS conjunct2;
       in
@@ -153,18 +154,19 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
         |> make_po (Tactic.rtac exI 1 THEN Tactic.rtac UUmem 1)
         |> make_cpo admissible
         |> make_pcpo UUmem
-        |> (fn (theory', (type_def, _, _)) => (theory', type_def))
+        |> (fn (theory', (type_def, _, _)) => (Context.Theory theory', type_def))
       end;
   
-    fun cpodef_result (theory, nonempty_admissible) =
+    fun cpodef_result (context, nonempty_admissible) =
       let
+        val theory = Context.the_theory context;
         val nonempty = nonempty_admissible RS conjunct1;
         val admissible = nonempty_admissible RS conjunct2;
       in
         theory
         |> make_po (Tactic.rtac nonempty 1)
         |> make_cpo admissible
-        |> (fn (theory', (type_def, _, _)) => (theory', type_def))
+        |> (fn (theory', (type_def, _, _)) => (Context.Theory theory', type_def))
       end;
   
   in (goal, if pcpo then pcpodef_result else cpodef_result) end

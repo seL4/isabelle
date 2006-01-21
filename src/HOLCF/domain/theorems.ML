@@ -368,7 +368,7 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("inverts" , inverts ),
 		("injects" , injects ),
 		("copy_rews", copy_rews)])))
-       |> (snd o PureThy.add_thmss [(("match_rews", mat_rews), [Attrib.theory Simplifier.simp_add])])
+       |> (snd o PureThy.add_thmss [(("match_rews", mat_rews), [Simplifier.simp_add])])
        |> Theory.parent_path |> rpair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
                  pat_rews @ dist_les @ dist_eqs @ copy_rews)
 end; (* let *)

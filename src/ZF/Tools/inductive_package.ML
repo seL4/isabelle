@@ -29,7 +29,7 @@ sig
   (*Insert definitions for the recursive sets, which
      must *already* be declared as constants in parent theory!*)
   val add_inductive_i: bool -> term list * term ->
-    ((bstring * term) * theory attribute list) list ->
+    ((bstring * term) * attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
     ((bstring * string) * Attrib.src list) list ->
@@ -515,7 +515,7 @@ let
      val ([induct', mutual_induct'], thy') =
        thy
        |> PureThy.add_thms [((co_prefix ^ "induct", induct),
-             [case_names, Attrib.theory (InductAttrib.induct_set big_rec_name)]),
+             [case_names, InductAttrib.induct_set big_rec_name]),
            (("mutual_induct", mutual_induct), [case_names])];
     in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
@@ -537,7 +537,7 @@ let
     |> PureThy.add_thms
       [(("bnd_mono", bnd_mono), []),
        (("dom_subset", dom_subset), []),
-       (("cases", elim), [case_names, Attrib.theory (InductAttrib.cases_set big_rec_name)])]
+       (("cases", elim), [case_names, InductAttrib.cases_set big_rec_name])]
     ||>> (PureThy.add_thmss o map Thm.no_attributes)
         [("defs", defs),
          ("intros", intrs)];
@@ -561,7 +561,7 @@ let
 fun add_inductive (srec_tms, sdom_sum) intr_srcs
     (raw_monos, raw_con_defs, raw_type_intrs, raw_type_elims) thy =
   let
-    val intr_atts = map (map (Attrib.global_attribute thy) o snd) intr_srcs;
+    val intr_atts = map (map (Attrib.attribute thy) o snd) intr_srcs;
     val sintrs = map fst intr_srcs ~~ intr_atts;
     val read = Sign.simple_read_term thy;
     val rec_tms = map (read Ind_Syntax.iT) srec_tms;

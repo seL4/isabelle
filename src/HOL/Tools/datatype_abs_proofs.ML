@@ -19,7 +19,7 @@ signature DATATYPE_ABS_PROOFS =
 sig
   val prove_casedist_thms : string list ->
     DatatypeAux.descr list -> (string * sort) list -> thm ->
-    theory attribute list -> theory -> thm list * theory
+    attribute list -> theory -> thm list * theory
   val prove_primrec_thms : bool -> string list ->
     DatatypeAux.descr list -> (string * sort) list ->
       DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->

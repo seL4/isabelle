@@ -7,7 +7,7 @@ Code generator for inductive predicates.
 
 signature INDUCTIVE_CODEGEN =
 sig
-  val add : string option -> theory attribute
+  val add : string option -> attribute
   val setup : theory -> theory
 end;
 
@@ -45,7 +45,7 @@ fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
 
 fun add_node (g, x) = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
 
-fun add optmod (p as (thy, thm)) =
+fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
   let
     val {intros, graph, eqns} = CodegenData.get thy;
     fun thyname_of s = (case optmod of
@@ -54,22 +54,22 @@ fun add optmod (p as (thy, thm)) =
       _ $ (Const ("op :", _) $ _ $ t) => (case head_of t of
         Const (s, _) =>
           let val cs = foldr add_term_consts [] (prems_of thm)
-          in (CodegenData.put
+          in CodegenData.put
             {intros = intros |>
              Symtab.update (s, Symtab.lookup_multi intros s @ [(thm, thyname_of s)]),
              graph = foldr (uncurry (Graph.add_edge o pair s))
                (Library.foldl add_node (graph, s :: cs)) cs,
-             eqns = eqns} thy, thm)
+             eqns = eqns} thy
           end
-      | _ => (warn thm; p))
+      | _ => (warn thm; thy))
     | _ $ (Const ("op =", _) $ t $ _) => (case head_of t of
         Const (s, _) =>
-          (CodegenData.put {intros = intros, graph = graph,
+          CodegenData.put {intros = intros, graph = graph,
              eqns = eqns |> Symtab.update
-               (s, Symtab.lookup_multi eqns s @ [(thm, thyname_of s)])} thy, thm)
-      | _ => (warn thm; p))
-    | _ => (warn thm; p))
-  end;
+               (s, Symtab.lookup_multi eqns s @ [(thm, thyname_of s)])} thy
+      | _ => (warn thm; thy))
+    | _ => (warn thm; thy))
+  end));
 
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy

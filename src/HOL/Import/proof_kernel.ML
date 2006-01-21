@@ -1988,7 +1988,7 @@ fun new_specification thyname thmname names hth thy =
 	    val thy1 = foldr (fn(name,thy)=>
 				snd (get_defname thyname name thy)) thy1 names
 	    fun new_name name = fst (get_defname thyname name thy1)
-	    val (thy',res) = SpecificationPackage.add_specification_i NONE
+	    val (thy',res) = SpecificationPackage.add_specification NONE
 				 (map (fn name => (new_name name,name,false)) names)
 				 (thy1,th)
 	    val res' = Drule.freeze_all res

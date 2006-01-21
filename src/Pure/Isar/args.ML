@@ -8,8 +8,8 @@ support for embedded values and static binding.
 
 signature ARGS =
 sig
-  datatype value = Name of string | Typ of typ | Term of term | Fact of thm list |
-    Attribute of Context.generic attribute
+  datatype value =
+    Name of string | Typ of typ | Term of term | Fact of thm list | Attribute of attribute
   type T
   val string_of: T -> string
   val mk_ident: string * Position.T -> T
@@ -20,7 +20,7 @@ sig
   val mk_typ: typ -> T
   val mk_term: term -> T
   val mk_fact: thm list -> T
-  val mk_attribute: Context.generic attribute -> T
+  val mk_attribute: attribute -> T
   val stopper: T * (T -> bool)
   val not_eof: T -> bool
   type src
@@ -64,7 +64,7 @@ sig
   val internal_typ: T list -> typ * T list
   val internal_term: T list -> term * T list
   val internal_fact: T list -> thm list * T list
-  val internal_attribute: T list -> Context.generic attribute * T list
+  val internal_attribute: T list -> attribute * T list
   val named_name: (string -> string) -> T list -> string * T list
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
@@ -118,7 +118,7 @@ datatype value =
   Typ of typ |
   Term of term |
   Fact of thm list |
-  Attribute of Context.generic attribute;
+  Attribute of attribute;
 
 datatype slot =
   Empty |

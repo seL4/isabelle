@@ -14,8 +14,8 @@ sig
   val drop_judgment: theory -> term -> term
   val fixed_judgment: theory -> string -> term
   val ensure_propT: theory -> term -> term
-  val declare_atomize: theory attribute
-  val declare_rulify: theory attribute
+  val declare_atomize: attribute
+  val declare_rulify: attribute
   val atomize_term: theory -> term -> term
   val atomize_cterm: theory -> cterm -> thm
   val atomize_thm: thm -> thm
@@ -24,8 +24,8 @@ sig
   val atomize_goal: int -> thm -> thm
   val rulify: thm -> thm
   val rulify_no_asm: thm -> thm
-  val rule_format: 'a attribute
-  val rule_format_no_asm: 'a attribute
+  val rule_format: attribute
+  val rule_format_no_asm: attribute
 end;
 
 structure ObjectLogic: OBJECT_LOGIC =
@@ -123,11 +123,13 @@ fun ensure_propT thy t =
 val get_atomize = #1 o #2 o ObjectLogicData.get;
 val get_rulify = #2 o #2 o ObjectLogicData.get;
 
-val add_atomize = ObjectLogicData.map o Library.apsnd o Library.apfst o Drule.add_rule;
-val add_rulify = ObjectLogicData.map o Library.apsnd o Library.apsnd o Drule.add_rule;
+val declare_atomize =
+  Thm.declaration_attribute (Context.map_theory o ObjectLogicData.map o
+    Library.apsnd o Library.apfst o Drule.add_rule);
 
-fun declare_atomize (thy, th) = (add_atomize th thy, th);
-fun declare_rulify (thy, th) = (add_rulify th thy, th);
+val declare_rulify =
+  Thm.declaration_attribute (Context.map_theory o ObjectLogicData.map o
+    Library.apsnd o Library.apsnd o Drule.add_rule);
 
 
 (* atomize *)
@@ -164,8 +166,8 @@ fun gen_rulify full thm =
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;
 
-fun rule_format x = Drule.rule_attribute (fn _ => rulify) x;
-fun rule_format_no_asm x = Drule.rule_attribute (fn _ => rulify_no_asm) x;
+fun rule_format x = Thm.rule_attribute (fn _ => rulify) x;
+fun rule_format_no_asm x = Thm.rule_attribute (fn _ => rulify_no_asm) x;
 
 
 end;

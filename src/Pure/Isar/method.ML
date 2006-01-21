@@ -581,7 +581,7 @@ fun add_methods raw_meths thy =
 
 val add_method = add_methods o Library.single;
 
-fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
+fun Method name meth cmt = Context.>> (add_method (name, meth, cmt));
 
 
 (* method_setup *)
@@ -615,7 +615,7 @@ fun no_args m = ctxt_args (K m);
 
 (* sections *)
 
-type modifier = (ProofContext.context -> ProofContext.context) * ProofContext.context attribute;
+type modifier = (ProofContext.context -> ProofContext.context) * attribute;
 
 local
 
@@ -623,7 +623,7 @@ fun sect ss = Scan.first (map Scan.lift ss);
 fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
 fun thmss ss = Scan.repeat (thms ss) >> List.concat;
 
-fun apply (f, att) (ctxt, ths) = Thm.applys_attributes [att] (f ctxt, ths);
+fun apply (f, att) (ctxt, ths) = foldl_map (Thm.proof_attributes [att]) (f ctxt, ths);
 
 fun section ss = (sect ss -- thmss ss) :-- (fn (m, ths) => Scan.depend (fn ctxt =>
   Scan.succeed (apply m (ctxt, ths)))) >> #2;
@@ -662,13 +662,13 @@ fun modifier name kind kind' att =
     >> (pair (I: ProofContext.context -> ProofContext.context) o att);
 
 val iprover_modifiers =
- [modifier destN Args.bang_colon Args.bang (Attrib.context o ContextRules.dest_bang),
-  modifier destN Args.colon (Scan.succeed ()) (Attrib.context o ContextRules.dest),
-  modifier elimN Args.bang_colon Args.bang (Attrib.context o ContextRules.elim_bang),
-  modifier elimN Args.colon (Scan.succeed ()) (Attrib.context o ContextRules.elim),
-  modifier introN Args.bang_colon Args.bang (Attrib.context o ContextRules.intro_bang),
-  modifier introN Args.colon (Scan.succeed ()) (Attrib.context o ContextRules.intro),
-  Args.del -- Args.colon >> K (I, Attrib.context ContextRules.rule_del)];
+ [modifier destN Args.bang_colon Args.bang ContextRules.dest_bang,
+  modifier destN Args.colon (Scan.succeed ()) ContextRules.dest,
+  modifier elimN Args.bang_colon Args.bang ContextRules.elim_bang,
+  modifier elimN Args.colon (Scan.succeed ()) ContextRules.elim,
+  modifier introN Args.bang_colon Args.bang ContextRules.intro_bang,
+  modifier introN Args.colon (Scan.succeed ()) ContextRules.intro,
+  Args.del -- Args.colon >> K (I, ContextRules.rule_del)];
 
 in
 

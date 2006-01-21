@@ -38,16 +38,16 @@ sig
      intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}) option
   val the_mk_cases: theory -> string -> string -> thm
   val print_inductives: theory -> unit
-  val mono_add_global: theory attribute
-  val mono_del_global: theory attribute
+  val mono_add: attribute
+  val mono_del: attribute
   val get_monos: theory -> thm list
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
   val inductive_cases: ((bstring * Attrib.src list) * string list) list -> theory -> theory
-  val inductive_cases_i: ((bstring * theory attribute list) * term list) list -> theory -> theory
+  val inductive_cases_i: ((bstring * attribute list) * term list) list -> theory -> theory
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
-    ((bstring * term) * theory attribute list) list -> thm list -> theory -> theory *
+    ((bstring * term) * attribute list) list -> thm list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val add_inductive: bool -> bool -> string list ->
@@ -128,7 +128,7 @@ fun put_inductives names info = InductiveData.map (apfst (fn tab =>
 (** monotonicity rules **)
 
 val get_monos = #2 o InductiveData.get;
-fun map_monos f = InductiveData.map (Library.apsnd f);
+val map_monos = Context.map_theory o InductiveData.map o Library.apsnd;
 
 fun mk_mono thm =
   let
@@ -148,12 +148,8 @@ fun mk_mono thm =
 
 (* attributes *)
 
-fun mono_add_global (thy, thm) = (map_monos (Drule.add_rules (mk_mono thm)) thy, thm);
-fun mono_del_global (thy, thm) = (map_monos (Drule.del_rules (mk_mono thm)) thy, thm);
-
-val mono_attr =
- (Attrib.add_del_args mono_add_global mono_del_global,
-  Attrib.add_del_args Attrib.undef_local_attribute Attrib.undef_local_attribute);
+val mono_add = Thm.declaration_attribute (map_monos o Drule.add_rules o mk_mono);
+val mono_del = Thm.declaration_attribute (map_monos o Drule.del_rules o mk_mono);
 
 
 
@@ -435,12 +431,11 @@ fun add_cases_induct no_elim no_induct coind names elims induct =
       thy
       |> Theory.parent_path
       |> Theory.add_path (Sign.base_name name)
-      |> PureThy.add_thms [(("cases", elim), [Attrib.theory (InductAttrib.cases_set name)])] |> snd
+      |> PureThy.add_thms [(("cases", elim), [InductAttrib.cases_set name])] |> snd
       |> Theory.restore_naming thy;
     val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
-    val induct_att =
-      Attrib.theory o (if coind then InductAttrib.coinduct_set else InductAttrib.induct_set);
+    val induct_att = if coind then InductAttrib.coinduct_set else InductAttrib.induct_set;
     val induct_specs =
       if no_induct then I
       else
@@ -577,7 +572,7 @@ fun gen_inductive_cases prep_att prep_prop args thy =
      ((a, map (prep_att thy) atts), map (Thm.no_attributes o single o mk_cases) props));
   in thy |> IsarThy.theorems_i Drule.lemmaK facts |> snd end;
 
-val inductive_cases = gen_inductive_cases Attrib.global_attribute ProofContext.read_prop;
+val inductive_cases = gen_inductive_cases Attrib.attribute ProofContext.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 
 
@@ -852,7 +847,7 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
     fun read_rule s = Thm.read_cterm thy (s, propT)
       handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s);
     val intr_ts = map (Thm.term_of o read_rule o snd o fst) intro_srcs;
-    val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
+    val intr_atts = map (map (Attrib.attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts thy cs intr_ts;
 
     val (monos, thy') = thy |> IsarThy.apply_theorems raw_monos;
@@ -871,7 +866,8 @@ val setup =
   InductiveData.init #>
   Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
     "dynamic case analysis on sets")] #>
-  Attrib.add_attributes [("mono", mono_attr, "declaration of monotonicity rule")];
+  Attrib.add_attributes [("mono", Attrib.add_del_args mono_add mono_del,
+    "declaration of monotonicity rule")];
 
 
 (* outer syntax *)

@@ -8,16 +8,16 @@ Derived theory and proof operations.
 signature ISAR_THY =
 sig
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
+  val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> theory
   val add_defs: bool * ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val add_defs_i: bool * ((bstring * term) * theory attribute list) list -> theory -> theory
+  val add_defs_i: bool * ((bstring * term) * attribute list) list -> theory -> theory
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
-  val apply_theorems_i: (thm list * theory attribute list) list -> theory -> thm list * theory
+  val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
   val theorems: string ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
     -> theory -> (string * thm list) list * theory 
   val theorems_i: string ->
-    ((bstring * theory attribute list) * (thm list * theory attribute list) list) list
+    ((bstring * attribute list) * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
   val smart_theorems: string -> xstring option ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
@@ -34,7 +34,7 @@ sig
     bool -> Proof.state -> Proof.state
   val theorem: string -> string * Attrib.src list -> string * (string list * string list) ->
     theory -> Proof.state
-  val theorem_i: string -> string * theory attribute list -> term * (term list * term list) ->
+  val theorem_i: string -> string * attribute list -> term * (term list * term list) ->
     theory -> Proof.state
   val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text * Method.text option ->
@@ -58,7 +58,7 @@ struct
 (* axioms and defs *)
 
 fun add_axms f args thy =
-  f (map (fn (x, srcs) => (x, map (Attrib.global_attribute thy) srcs)) args) thy;
+  f (map (fn (x, srcs) => (x, map (Attrib.attribute thy) srcs)) args) thy;
 
 val add_axioms = add_axms (snd oo PureThy.add_axioms);
 val add_axioms_i = snd oo PureThy.add_axioms_i;
@@ -73,7 +73,7 @@ fun present_theorems kind (named_thmss, thy) =
     Context.setmp (SOME thy) (Present.results (kind ^ "s")) named_thmss);
 
 fun theorems kind args thy = thy
-  |> PureThy.note_thmss (Drule.kind kind) (Attrib.map_facts (Attrib.global_attribute thy) args)
+  |> PureThy.note_thmss (Drule.kind kind) (Attrib.map_facts (Attrib.attribute thy) args)
   |> tap (present_theorems kind);
 
 fun theorems_i kind args =

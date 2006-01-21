@@ -33,15 +33,15 @@ sig
   val consume: thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
   val add_consumes: int -> thm -> thm
-  val consumes: int -> 'a attribute
-  val consumes_default: int -> 'a attribute
+  val consumes: int -> attribute
+  val consumes_default: int -> attribute
   val name: string list -> thm -> thm
-  val case_names: string list -> 'a attribute
-  val case_conclusion: string * string list -> 'a attribute
+  val case_names: string list -> attribute
+  val case_conclusion: string * string list -> attribute
   val save: thm -> thm -> thm
   val get: thm -> (string * string list) list * int
   val rename_params: string list list -> thm -> thm
-  val params: string list list -> 'a attribute
+  val params: string list list -> attribute
   val mutual_rule: thm list -> (int list * thm) option
   val strict_mutual_rule: thm list -> int list * thm
 end;
@@ -232,7 +232,7 @@ fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 
 val save_consumes = put_consumes o lookup_consumes;
 
-fun consumes n x = Drule.rule_attribute (K (put_consumes (SOME n))) x;
+fun consumes n x = Thm.rule_attribute (K (put_consumes (SOME n))) x;
 fun consumes_default n x =
   if Library.is_some (lookup_consumes (#2 x)) then x else consumes n x;
 
@@ -251,7 +251,7 @@ fun lookup_case_names th = AList.lookup (op =) (Thm.tags_of_thm th) case_names_t
 
 val save_case_names = add_case_names o lookup_case_names;
 val name = add_case_names o SOME;
-fun case_names ss = Drule.rule_attribute (K (name ss));
+fun case_names ss = Thm.rule_attribute (K (name ss));
 
 
 
@@ -277,7 +277,7 @@ fun save_case_concls th =
     | _ => NONE)
   in fold add_case_concl concls end;
 
-fun case_conclusion concl = Drule.rule_attribute (fn _ => add_case_concl concl);
+fun case_conclusion concl = Thm.rule_attribute (fn _ => add_case_concl concl);
 
 
 
@@ -304,7 +304,7 @@ fun rename_params xss th =
   |> fold_index (fn (i, xs) => Thm.rename_params_rule (xs, i + 1)) xss
   |> save th;
 
-fun params xss = Drule.rule_attribute (K (rename_params xss));
+fun params xss = Thm.rule_attribute (K (rename_params xss));
 
 
 

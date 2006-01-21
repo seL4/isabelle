@@ -7,14 +7,10 @@ Recursive function definition package for HOLCF.
 
 signature FIXREC_PACKAGE =
 sig
-  val add_fixrec: bool -> ((string * Attrib.src list) * string) list list
-    -> theory -> theory
-  val add_fixrec_i: bool -> ((string * theory attribute list) * term) list list
-    -> theory -> theory
-  val add_fixpat: (string * Attrib.src list) * string list
-    -> theory -> theory
-  val add_fixpat_i: (string * theory attribute list) * term list
-    -> theory -> theory
+  val add_fixrec: bool -> ((string * Attrib.src list) * string) list list -> theory -> theory
+  val add_fixrec_i: bool -> ((string * attribute list) * term) list list -> theory -> theory
+  val add_fixpat: (string * Attrib.src list) * string list -> theory -> theory
+  val add_fixpat_i: (string * attribute list) * term list -> theory -> theory
 end;
 
 structure FixrecPackage: FIXREC_PACKAGE =
@@ -250,7 +246,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
       val (simp_thms, thy'') = PureThy.add_thms simps thy';
       
       val simp_names = map (fn name => name^"_simps") cnames;
-      val simp_attribute = rpair [Attrib.theory Simplifier.simp_add];
+      val simp_attribute = rpair [Simplifier.simp_add];
       val simps' = map simp_attribute (simp_names ~~ unconcat lengths simp_thms);
     in
       (snd o PureThy.add_thmss simps') thy''
@@ -258,7 +254,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     else thy'
   end;
 
-val add_fixrec = gen_add_fixrec Sign.read_prop Attrib.global_attribute;
+val add_fixrec = gen_add_fixrec Sign.read_prop Attrib.attribute;
 val add_fixrec_i = gen_add_fixrec Sign.cert_prop (K I);
 
 
@@ -286,7 +282,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     (snd o PureThy.add_thmss [((name, simps), atts)]) thy
   end;
 
-val add_fixpat = gen_add_fixpat Sign.read_term Attrib.global_attribute;
+val add_fixpat = gen_add_fixpat Sign.read_term Attrib.attribute;
 val add_fixpat_i = gen_add_fixpat Sign.cert_term (K I);
 
 

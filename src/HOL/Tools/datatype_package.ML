@@ -39,8 +39,8 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list} * theory
-  val rep_datatype_i : string list option -> (thm list * theory attribute list) list list ->
-    (thm list * theory attribute list) list list -> (thm list * theory attribute list) ->
+  val rep_datatype_i : string list option -> (thm list * attribute list) list list ->
+    (thm list * attribute list) list list -> (thm list * attribute list) ->
     theory ->
       {distinct : thm list list,
        inject : thm list list,
@@ -350,10 +350,10 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
                   weak_case_congs cong_att =
   (snd o PureThy.add_thmss [(("simps", simps), []),
     (("", List.concat case_thms @ size_thms @ 
-          List.concat distinct  @ rec_thms), [Attrib.theory Simplifier.simp_add]),
+          List.concat distinct  @ rec_thms), [Simplifier.simp_add]),
     (("", size_thms @ rec_thms),             [RecfunCodegen.add NONE]),
-    (("", List.concat inject),               [Attrib.theory iff_add]),
-    (("", map name_notE (List.concat distinct)),  [Attrib.theory (Classical.safe_elim NONE)]),
+    (("", List.concat inject),               [iff_add]),
+    (("", map name_notE (List.concat distinct)),  [Classical.safe_elim NONE]),
     (("", weak_case_congs),                  [cong_att])]);
 
 
@@ -365,10 +365,10 @@ fun add_cases_induct infos induction =
     fun proj i = ProjectRule.project induction (i + 1);
 
     fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
-      [(("", proj index), [Attrib.theory (InductAttrib.induct_type name)]),
-       (("", exhaustion), [Attrib.theory (InductAttrib.cases_type name)])];
+      [(("", proj index), [InductAttrib.induct_type name]),
+       (("", exhaustion), [InductAttrib.cases_type name])];
     fun unnamed_rule i =
-      (("", proj i), [Drule.kind_internal, Attrib.theory (InductAttrib.induct_type "")]);
+      (("", proj i), [Drule.kind_internal, InductAttrib.induct_type ""]);
   in
     PureThy.add_thms
       (List.concat (map named_rules infos) @
@@ -747,7 +747,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       |> Theory.add_advanced_trfuns ([], [], make_case_tr' case_names' (hd descr), [])
       |> Theory.add_path (space_implode "_" new_type_names)
       |> add_rules simps case_thms size_thms rec_thms inject distinct
-           weak_case_congs (Attrib.theory Simplifier.cong_add)
+          weak_case_congs Simplifier.cong_add
       |> put_datatypes (fold Symtab.update dt_infos dt_info)
       |> add_cases_induct dt_infos induct
       |> Theory.parent_path
@@ -806,7 +806,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       |> Theory.add_advanced_trfuns ([], [], make_case_tr' case_names (hd descr), [])
       |> Theory.add_path (space_implode "_" new_type_names)
       |> add_rules simps case_thms size_thms rec_thms inject distinct
-            weak_case_congs (Attrib.theory (Simplifier.attrib (op addcongs)))
+          weak_case_congs (Simplifier.attrib (op addcongs))
       |> put_datatypes (fold Symtab.update dt_infos dt_info)
       |> add_cases_induct dt_infos induct
       |> Theory.parent_path
@@ -913,7 +913,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val thy11 = thy10 |>
       Theory.add_advanced_trfuns ([], [], make_case_tr' case_names descr, []) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
-                weak_case_congs (Attrib.theory (Simplifier.attrib (op addcongs))) |> 
+        weak_case_congs (Simplifier.attrib (op addcongs)) |> 
       put_datatypes (fold Symtab.update dt_infos dt_info) |>
       add_cases_induct dt_infos induction' |>
       Theory.parent_path |>

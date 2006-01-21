@@ -223,8 +223,9 @@ structure ArithTheoryData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
-  {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, presburger= presburger}) thy, thm);
+val arith_split_add = Thm.declaration_attribute (fn thm =>
+  Context.map_theory (ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
+    {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, presburger= presburger})));
 
 fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
   {splits = splits, inj_consts = inj_consts, discrete = d :: discrete, presburger= presburger});
@@ -584,7 +585,5 @@ val arith_setup =
   Method.add_methods
     [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
       "decide linear arithmethic")] #>
-  Attrib.add_attributes [("arith_split",
-    (Attrib.no_args arith_split_add,
-     Attrib.no_args Attrib.undef_local_attribute),
+  Attrib.add_attributes [("arith_split", Attrib.no_args arith_split_add,
     "declaration of split rules for arithmetic procedure")];

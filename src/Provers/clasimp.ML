@@ -56,12 +56,12 @@ sig
   val fast_simp_tac: clasimpset -> int -> tactic
   val slow_simp_tac: clasimpset -> int -> tactic
   val best_simp_tac: clasimpset -> int -> tactic
-  val attrib: (clasimpset * thm list -> clasimpset) -> Context.generic attribute
+  val attrib: (clasimpset * thm list -> clasimpset) -> attribute
   val get_local_clasimpset: Proof.context -> clasimpset
   val local_clasimpset_of: Proof.context -> clasimpset
-  val iff_add: Context.generic attribute
-  val iff_add': Context.generic attribute
-  val iff_del: Context.generic attribute
+  val iff_add: attribute
+  val iff_add': attribute
+  val iff_del: attribute
   val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val setup: theory -> theory
@@ -151,7 +151,7 @@ fun delIff delcs delss ((cs, ss), th) =
   end;
 
 fun modifier att (x, ths) =
-  fst (Thm.applys_attributes [att] (x, rev ths));
+  fst (foldl_map (Library.apply [att]) (x, rev ths));
 
 val addXIs = modifier (ContextRules.intro_query NONE);
 val addXEs = modifier (ContextRules.elim_query NONE);
@@ -265,7 +265,7 @@ fun local_clasimpset_of ctxt =
 
 (* attributes *)
 
-fun attrib f = Attrib.declaration (fn th =>
+fun attrib f = Thm.declaration_attribute (fn th =>
  fn Context.Theory thy => (change_clasimpset_of thy (fn css => f (css, [th])); Context.Theory thy)
   | Context.Proof ctxt =>
       let
@@ -295,10 +295,9 @@ val iff_att = Attrib.syntax (Scan.lift
 val iffN = "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Scan.option Args.add -- Args.colon
-    >> K ((I, Attrib.context iff_add): Method.modifier),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (I, Attrib.context iff_add'),
-  Args.$$$ iffN -- Args.del -- Args.colon >> K (I, Attrib.context iff_del)];
+ [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K ((I, iff_add): Method.modifier),
+  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (I, iff_add'),
+  Args.$$$ iffN -- Args.del -- Args.colon >> K (I, iff_del)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @
@@ -328,7 +327,7 @@ fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
 
 val setup =
  (Attrib.add_attributes
-   [("iff", Attrib.common iff_att, "declaration of Simplifier / Classical rules")] #>
+   [("iff", iff_att, "declaration of Simplifier / Classical rules")] #>
   Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
     ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),

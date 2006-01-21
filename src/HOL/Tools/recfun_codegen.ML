@@ -7,8 +7,8 @@ Code generator for recursive functions.
 
 signature RECFUN_CODEGEN =
 sig
-  val add: string option -> theory attribute
-  val del: theory attribute
+  val add: string option -> attribute
+  val del: attribute
   val get_rec_equations: theory -> string * typ -> (term list * term) list * typ
   val get_thm_equations: theory -> string * typ -> (thm list * typ) option
   val setup: theory -> theory
@@ -38,25 +38,25 @@ val const_of = dest_Const o head_of o fst o dest_eqn;
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
   string_of_thm thm);
 
-fun add optmod (p as (thy, thm)) =
+fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
   let
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
   in
     if Pattern.pattern (lhs_of thm) then
-      (CodegenData.put (Symtab.update_multi (s, (thm, optmod)) tab) thy, thm)
-    else (warn thm; p)
-  end handle TERM _ => (warn thm; p);
+      CodegenData.put (Symtab.update_multi (s, (thm, optmod)) tab) thy
+    else (warn thm; thy)
+  end handle TERM _ => (warn thm; thy)));
 
-fun del (p as (thy, thm)) =
+val del = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
   let
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
   in case Symtab.lookup tab s of
-      NONE => p
-    | SOME thms => (CodegenData.put (Symtab.update (s,
-        gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy, thm)
-  end handle TERM _ => (warn thm; p);
+      NONE => thy
+    | SOME thms =>
+        CodegenData.put (Symtab.update (s, gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy
+  end handle TERM _ => (warn thm; thy)));
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =

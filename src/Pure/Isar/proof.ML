@@ -47,19 +47,19 @@ sig
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     state -> state
   val assm_i: ProofContext.export ->
-    ((string * context attribute list) * (term * (term list * term list)) list) list
+    ((string * attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val assume: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     state -> state
-  val assume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
+  val assume_i: ((string * attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val presume: ((string * Attrib.src list) * (string * (string list * string list)) list) list
     -> state -> state
-  val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
+  val presume_i: ((string * attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val def: ((string * Attrib.src list) * (string * (string * string list))) list ->
     state -> state
-  val def_i: ((string * context attribute list) * (string * (term * term list))) list ->
+  val def_i: ((string * attribute list) * (string * (term * term list))) list ->
     state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
@@ -67,18 +67,18 @@ sig
   val simple_note_thms: string -> thm list -> state -> state
   val note_thmss: ((string * Attrib.src list) *
     (thmref * Attrib.src list) list) list -> state -> state
-  val note_thmss_i: ((string * context attribute list) *
-    (thm list * context attribute list) list) list -> state -> state
+  val note_thmss_i: ((string * attribute list) *
+    (thm list * attribute list) list) list -> state -> state
   val from_thmss: ((thmref * Attrib.src list) list) list -> state -> state
-  val from_thmss_i: ((thm list * context attribute list) list) list -> state -> state
+  val from_thmss_i: ((thm list * attribute list) list) list -> state -> state
   val with_thmss: ((thmref * Attrib.src list) list) list -> state -> state
-  val with_thmss_i: ((thm list * context attribute list) list) list -> state -> state
+  val with_thmss_i: ((thm list * attribute list) list) list -> state -> state
   val using: ((thmref * Attrib.src list) list) list -> state -> state
-  val using_i: ((thm list * context attribute list) list) list -> state -> state
+  val using_i: ((thm list * attribute list) list) list -> state -> state
   val unfolding: ((thmref * Attrib.src list) list) list -> state -> state
-  val unfolding_i: ((thm list * context attribute list) list) list -> state -> state
+  val unfolding_i: ((thm list * attribute list) list) list -> state -> state
   val invoke_case: string * string option list * Attrib.src list -> state -> state
-  val invoke_case_i: string * string option list * context attribute list -> state -> state
+  val invoke_case_i: string * string option list * attribute list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state Seq.seq
@@ -89,13 +89,13 @@ sig
   val apply_end: Method.text -> state -> state Seq.seq
   val goal_names: string option -> string -> string list -> string
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
-    (theory -> 'a -> context attribute) ->
+    (theory -> 'a -> attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state Seq.seq
   val global_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
-    (theory -> 'a -> theory attribute) ->
+    (theory -> 'a -> attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> Method.text option -> (thm list list -> theory -> theory) ->
     string option -> string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
@@ -114,21 +114,21 @@ sig
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     bool -> state -> state
   val have_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((string * context attribute list) * (term * (term list * term list)) list) list ->
+    ((string * attribute list) * (term * (term list * term list)) list) list ->
     bool -> state -> state
   val show: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((string * context attribute list) * (term * (term list * term list)) list) list ->
+    ((string * attribute list) * (term * (term list * term list)) list) list ->
     bool -> state -> state
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string option -> string * Attrib.src list ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     context -> state
   val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
-    string option -> string * theory attribute list ->
-    ((string * theory attribute list) * (term * (term list * term list)) list) list ->
+    string option -> string * attribute list ->
+    ((string * attribute list) * (term * (term list * term list)) list) list ->
     context -> state
 end;
 
@@ -534,7 +534,7 @@ fun gen_assume asm prep_att exp args state =
 
 in
 
-val assm      = gen_assume ProofContext.add_assms Attrib.local_attribute;
+val assm      = gen_assume ProofContext.add_assms Attrib.attribute;
 val assm_i    = gen_assume ProofContext.add_assms_i (K I);
 val assume    = assm ProofContext.assume_export;
 val assume_i  = assm_i ProofContext.assume_export;
@@ -566,7 +566,7 @@ fun gen_def fix prep_att prep_binds args state =
 
 in
 
-val def = gen_def fix Attrib.local_attribute ProofContext.match_bind;
+val def = gen_def fix Attrib.attribute ProofContext.match_bind;
 val def_i = gen_def fix_i (K I) ProofContext.match_bind_i;
 
 end;
@@ -603,15 +603,15 @@ fun gen_thmss note_ctxt more_facts opt_chain opt_result prep_atts args state =
 
 in
 
-val note_thmss = gen_thmss ProofContext.note_thmss (K []) I #2 Attrib.local_attribute;
+val note_thmss = gen_thmss ProofContext.note_thmss (K []) I #2 Attrib.attribute;
 val note_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) I #2 (K I);
 
 val from_thmss =
-  gen_thmss ProofContext.note_thmss (K []) chain #2 Attrib.local_attribute o no_binding;
+  gen_thmss ProofContext.note_thmss (K []) chain #2 Attrib.attribute o no_binding;
 val from_thmss_i = gen_thmss ProofContext.note_thmss_i (K []) chain #2 (K I) o no_binding;
 
 val with_thmss =
-  gen_thmss ProofContext.note_thmss the_facts chain #2 Attrib.local_attribute o no_binding;
+  gen_thmss ProofContext.note_thmss the_facts chain #2 Attrib.attribute o no_binding;
 val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain #2 (K I) o no_binding;
 
 val local_results = gen_thmss ProofContext.note_thmss_i (K []) I I (K I);
@@ -642,9 +642,9 @@ val unfold_goal = Tactic.rewrite_goals_rule;
 
 in
 
-val using = gen_using append_using (K I) ProofContext.note_thmss Attrib.local_attribute;
+val using = gen_using append_using (K I) ProofContext.note_thmss Attrib.attribute;
 val using_i = gen_using append_using (K I) ProofContext.note_thmss_i (K I);
-val unfolding = gen_using unfold_using unfold_goal ProofContext.note_thmss Attrib.local_attribute;
+val unfolding = gen_using unfold_using unfold_goal ProofContext.note_thmss Attrib.attribute;
 val unfolding_i = gen_using unfold_using unfold_goal ProofContext.note_thmss_i (K I);
 
 end;
@@ -671,7 +671,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
 
 in
 
-val invoke_case = gen_invoke_case Attrib.local_attribute;
+val invoke_case = gen_invoke_case Attrib.attribute;
 val invoke_case_i = gen_invoke_case (K I);
 
 end;
@@ -957,11 +957,11 @@ fun gen_theorem prep_att prepp kind before_qed after_qed target a =
 
 in
 
-val have = gen_have Attrib.local_attribute ProofContext.bind_propp;
+val have = gen_have Attrib.attribute ProofContext.bind_propp;
 val have_i = gen_have (K I) ProofContext.bind_propp_i;
-val show = gen_show Attrib.local_attribute ProofContext.bind_propp;
+val show = gen_show Attrib.attribute ProofContext.bind_propp;
 val show_i = gen_show (K I) ProofContext.bind_propp_i;
-val theorem = gen_theorem Attrib.global_attribute ProofContext.bind_propp_schematic;
+val theorem = gen_theorem Attrib.attribute ProofContext.bind_propp_schematic;
 val theorem_i = gen_theorem (K I) ProofContext.bind_propp_schematic_i;
 
 end;

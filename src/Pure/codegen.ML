@@ -26,7 +26,7 @@ sig
 
   val add_codegen: string -> term codegen -> theory -> theory
   val add_tycodegen: string -> typ codegen -> theory -> theory
-  val add_attribute: string -> (Args.T list -> theory attribute * Args.T list) -> theory -> theory
+  val add_attribute: string -> (Args.T list -> attribute * Args.T list) -> theory -> theory
   val add_preprocessor: (theory -> thm list -> thm list) -> theory -> theory
   val preprocess: theory -> thm list -> thm list
   val preprocess_term: theory -> term -> term
@@ -207,7 +207,7 @@ structure CodegenData = TheoryDataFun
      tycodegens : (string * typ codegen) list,
      consts : ((string * typ) * (term mixfix list * (string * string) list)) list,
      types : (string * (typ mixfix list * (string * string) list)) list,
-     attrs: (string * (Args.T list -> theory attribute * Args.T list)) list,
+     attrs: (string * (Args.T list -> attribute * Args.T list)) list,
      preprocs: (stamp * (theory -> thm list -> thm list)) list,
      modules: codegr Symtab.table,
      test_params: test_params};
@@ -312,13 +312,11 @@ fun add_attribute name att thy =
 fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
 
 val code_attr =
-  Attrib.syntax (Scan.peek (fn thy => foldr op || Scan.fail (map mk_parser
-    (#attrs (CodegenData.get thy)))));
+  Attrib.syntax (Scan.peek (fn context => foldr op || Scan.fail (map mk_parser
+    (#attrs (CodegenData.get (Context.theory_of context))))));
 
 val _ = Context.add_setup
- (Attrib.add_attributes
-  [("code", (code_attr, K Attrib.undef_local_attribute),
-     "declare theorems for code generation")]);
+  (Attrib.add_attributes [("code", code_attr, "declare theorems for code generation")]);
 
 
 (**** preprocessors ****)
@@ -348,10 +346,9 @@ fun preprocess_term thy t =
     | _ => err ()
   end;
 
-fun unfold_attr (thy, eqn) =
+val unfold_attr = Thm.declaration_attribute (fn eqn => Context.map_theory
   let
-    val names = term_consts
-      (fst (Logic.dest_equals (prop_of eqn)));
+    val names = term_consts (fst (Logic.dest_equals (prop_of eqn)));
     fun prep thy = map (fn th =>
       let val prop = prop_of th
       in
@@ -359,7 +356,7 @@ fun unfold_attr (thy, eqn) =
         then rewrite_rule [eqn] (Thm.transfer thy th)
         else th
       end)
-  in (add_preprocessor prep thy, eqn) end;
+  in add_preprocessor prep end);
 
 val _ = Context.add_setup (add_attribute "unfold" (Scan.succeed unfold_attr));
 

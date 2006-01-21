@@ -13,7 +13,7 @@ sig
     ((bstring * string option * mixfix) option * ((bstring * Attrib.src list) * string)) list ->
     theory -> theory
   val add_constdefs_i: (string * typ option) list *
-    ((bstring * typ option * mixfix) option * ((bstring * theory attribute list) * term)) list ->
+    ((bstring * typ option * mixfix) option * ((bstring * attribute list) * term)) list ->
     theory -> theory
 end;
 
@@ -66,7 +66,7 @@ fun gen_constdefs prep_vars prep_term prep_att (raw_structs, specs) thy =
   in Pretty.writeln (Specification.pretty_consts ctxt decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_legacy
-  ProofContext.read_term_legacy Attrib.global_attribute;
+  ProofContext.read_term_legacy Attrib.attribute;
 val add_constdefs_i = gen_constdefs ProofContext.cert_vars_legacy ProofContext.cert_term (K I);
 
 end;

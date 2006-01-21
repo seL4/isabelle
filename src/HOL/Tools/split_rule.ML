@@ -136,13 +136,13 @@ fun split_rule_goal xss rl =
 
 fun split_format x = Attrib.syntax
   (Scan.lift (Args.parens (Args.$$$ "complete"))
-    >> K (Attrib.rule (K complete_split_rule)) ||
+    >> K (Thm.rule_attribute (K complete_split_rule)) ||
   Args.and_list1 (Scan.lift (Scan.repeat Args.name))
-    >> (fn xss => Attrib.rule (K (split_rule_goal xss)))) x;
+    >> (fn xss => Thm.rule_attribute (K (split_rule_goal xss)))) x;
 
 val setup =
   Attrib.add_attributes
-    [("split_format", (split_format, split_format),
+    [("split_format", split_format,
       "split pair-typed subterms in premises, or function arguments")];
 
 end;

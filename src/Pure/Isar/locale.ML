@@ -72,7 +72,7 @@ sig
 
   (* Storing results *)
   val smart_note_thmss: string -> string option ->
-    ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
+    ((bstring * attribute list) * (thm list * attribute list) list) list ->
     theory -> (bstring * thm list) list * theory
   val note_thmss: string -> xstring ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
@@ -86,8 +86,8 @@ sig
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     theory -> Proof.state
   val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
-    string * theory attribute list -> Element.context_i element list ->
-    ((string * theory attribute list) * (term * (term list * term list)) list) list ->
+    string * attribute list -> Element.context_i element list ->
+    ((string * attribute list) * (term * (term list * term list)) list) list ->
     theory -> Proof.state
   val theorem_in_locale: string -> Method.text option ->
     (thm list list -> thm list list -> theory -> theory) ->
@@ -838,7 +838,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       ((ctxt, mode), [])
   | activate_elem _ ((ctxt, Assumed axs), Assumes asms) =
       let
-        val asms' = Attrib.map_specs (Attrib.context_attribute_i ctxt) asms;
+        val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
         val ts = List.concat (map (map #1 o #2) asms');
         val (ps, qs) = splitAt (length ts, axs);
         val (_, ctxt') =
@@ -849,7 +849,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       ((ctxt, Derived ths), [])
   | activate_elem _ ((ctxt, Assumed axs), Defines defs) =
       let
-        val defs' = Attrib.map_specs (Attrib.context_attribute_i ctxt) defs;
+        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val (_, ctxt') =
         ctxt |> ProofContext.add_assms_i ProofContext.def_export
           (defs' |> map (fn ((name, atts), (t, ps)) =>
@@ -860,7 +860,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       ((ctxt, Derived ths), [])
   | activate_elem is_ext ((ctxt, mode), Notes facts) =
       let
-        val facts' = Attrib.map_facts (Attrib.context_attribute_i ctxt) facts;
+        val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
         val (res, ctxt') = ctxt |> ProofContext.note_thmss_i facts';
       in ((ctxt', mode), if is_ext then res else []) end;
 
@@ -1445,7 +1445,7 @@ fun note_thmss_registrations kind target args thy =
             (Element.inst_term insts) (Element.inst_thm thy insts);
         val args' = args |> map (fn ((n, atts), [(ths, [])]) =>
             ((NameSpace.qualified prfx n,
-              map (Attrib.global_attribute_i thy) (map inst_atts atts @ atts2)),
+              map (Attrib.attribute_i thy) (map inst_atts atts @ atts2)),
              [(map (Drule.standard o satisfy_protected prems o
             Element.inst_thm thy insts) ths, [])]));
       in global_note_accesses_i (Drule.kind kind) prfx args' thy |> snd end;
@@ -1777,7 +1777,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
 
 in
 
-val theorem = gen_theorem Attrib.global_attribute intern_attrib read_context_statement;
+val theorem = gen_theorem Attrib.attribute intern_attrib read_context_statement;
 val theorem_i = gen_theorem (K I) (K I) cert_context_statement;
 
 val theorem_in_locale = gen_theorem_in_locale intern Attrib.intern_src intern_attrib
@@ -1875,7 +1875,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
       (swap ooo global_note_accesses_i (Drule.kind ""))
-      Attrib.global_attribute_i Drule.standard
+      Attrib.attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => fn (t, th) =>
          add_global_witness (n, map Logic.varify ps)
@@ -1884,7 +1884,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
       get_local_registration
       local_note_accesses_i
-      Attrib.context_attribute_i I
+      (Attrib.attribute_i o ProofContext.theory_of) I
       put_local_registration
       add_local_witness x;
 
@@ -2067,11 +2067,11 @@ fun prep_registration_in_locale target expr thy =
             fun activate_elem (Notes facts) thy =
                 let
                   val facts' = facts
-                      |> Attrib.map_facts (Attrib.global_attribute_i thy o
+                      |> Attrib.map_facts (Attrib.attribute_i thy o
                          Args.map_values I (Element.instT_type (#1 insts))
                            (Element.inst_term insts)
                            (disch o Element.inst_thm thy insts o satisfy))
-                      |> map (apfst (apsnd (fn a => a @ map (Attrib.global_attribute thy) atts2)))
+                      |> map (apfst (apsnd (fn a => a @ map (Attrib.attribute thy) atts2)))
                       |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
                       |> map (apfst (apfst (NameSpace.qualified prfx)))
                 in

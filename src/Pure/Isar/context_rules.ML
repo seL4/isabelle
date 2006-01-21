@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
-Declarations of intro/elim/dest rules in Pure; see
-Provers/classical.ML for a more specialized version of the same idea.
+Declarations of intro/elim/dest rules in Pure (see also
+Provers/classical.ML for a more specialized version of the same idea).
 *)
 
 signature CONTEXT_RULES =
@@ -20,18 +20,19 @@ sig
   val addWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val Swrap: ProofContext.context -> (int -> tactic) -> int -> tactic
   val wrap: ProofContext.context -> (int -> tactic) -> int -> tactic
-  val intro_bang: int option -> Context.generic attribute
-  val elim_bang: int option -> Context.generic attribute
-  val dest_bang: int option -> Context.generic attribute
-  val intro: int option -> Context.generic attribute
-  val elim: int option -> Context.generic attribute
-  val dest: int option -> Context.generic attribute
-  val intro_query: int option -> Context.generic attribute
-  val elim_query: int option -> Context.generic attribute
-  val dest_query: int option -> Context.generic attribute
-  val rule_del: Context.generic attribute
-  val add_args: (int option -> 'a attribute) -> (int option -> 'a attribute) ->
-    (int option -> 'a attribute) -> Attrib.src -> 'a attribute
+  val intro_bang: int option -> attribute
+  val elim_bang: int option -> attribute
+  val dest_bang: int option -> attribute
+  val intro: int option -> attribute
+  val elim: int option -> attribute
+  val dest: int option -> attribute
+  val intro_query: int option -> attribute
+  val elim_query: int option -> attribute
+  val dest_query: int option -> attribute
+  val rule_del: attribute
+  val add_args:
+    (int option -> attribute) -> (int option -> attribute) -> (int option -> attribute) ->
+    Attrib.src -> attribute
 end;
 
 structure ContextRules: CONTEXT_RULES =
@@ -166,7 +167,7 @@ fun find_rules weighted facts goals =
 (* wrappers *)
 
 fun gen_add_wrapper upd w =
-  Context.map_theory (Rules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
+  Context.theory_map (Rules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
     make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers)));
 
 val addSWrapper = gen_add_wrapper Library.apfst;
@@ -203,7 +204,7 @@ val elim_query  = rule_add elim_queryK I;
 val dest_query  = rule_add elim_queryK Tactic.make_elim;
 
 val _ = Context.add_setup
-  (snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [Attrib.theory (intro_query NONE)])]);
+  (snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query NONE])]);
 
 
 (* concrete syntax *)
@@ -213,13 +214,10 @@ fun add_args a b c x = Attrib.syntax
     >> (fn (f, n) => f n)) x;
 
 val rule_atts =
- [("intro", Attrib.common (add_args intro_bang intro intro_query),
-    "declaration of introduction rule"),
-  ("elim", Attrib.common (add_args elim_bang elim elim_query),
-    "declaration of elimination rule"),
-  ("dest", Attrib.common (add_args dest_bang dest dest_query),
-    "declaration of destruction rule"),
-  ("rule", Attrib.common (Attrib.syntax (Scan.lift Args.del >> K rule_del)),
+ [("intro", add_args intro_bang intro intro_query, "declaration of introduction rule"),
+  ("elim", add_args elim_bang elim elim_query, "declaration of elimination rule"),
+  ("dest", add_args dest_bang dest dest_query, "declaration of destruction rule"),
+  ("rule", Attrib.syntax (Scan.lift Args.del >> K rule_del),
     "remove declaration of intro/elim/dest rule")];
 
 val _ = Context.add_setup (Attrib.add_attributes rule_atts);

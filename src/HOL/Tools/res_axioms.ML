@@ -484,18 +484,15 @@ fun conj2_rule (th1,th2) = conjI OF [th1,th2];
 (*Conjoin a list of clauses to recreate a single theorem*)
 val conj_rule = foldr1 conj2_rule;
 
-fun skolem_global_fun (thy, th) = 
-  let val name = Thm.name_of_thm th
-      val (cls,thy') = skolem_cache_thm ((name,th), thy)
-  in  (thy', conj_rule cls)  end;
-
-val skolem_global = Attrib.no_args skolem_global_fun;
-
-fun skolem_local x = Attrib.no_args (Attrib.rule (K (conj_rule o skolem_thm))) x;
+fun skolem (Context.Theory thy, th) =
+      let
+        val name = Thm.name_of_thm th
+        val (cls, thy') = skolem_cache_thm ((name, th), thy)
+      in (Context.Theory thy', conj_rule cls) end
+  | skolem (context, th) = (context, conj_rule (skolem_thm th));
 
 val setup_attrs = Attrib.add_attributes
- [("skolem", (skolem_global, skolem_local),
-    "skolemization of a theorem")];
+  [("skolem", Attrib.no_args skolem, "skolemization of a theorem")];
 
 val setup = clause_cache_setup #> setup_attrs;
 

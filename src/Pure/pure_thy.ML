@@ -47,35 +47,30 @@ sig
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
-  val store_thm: (bstring * thm) * theory attribute list -> theory -> thm * theory
+  val store_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val smart_store_thms: (bstring * thm list) -> thm list
   val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
-  val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> thm list * theory
-  val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory
-    -> thm list list * theory 
-  val note_thmss: theory attribute -> ((bstring * theory attribute list) *
-    (thmref * theory attribute list) list) list ->
-    theory -> (bstring * thm list) list * theory
-  val note_thmss_i: theory attribute -> ((bstring * theory attribute list) *
-    (thm list * theory attribute list) list) list ->
-    theory -> (bstring * thm list) list * theory
-  val add_axioms: ((bstring * string) * theory attribute list) list ->
-    theory -> thm list * theory
-  val add_axioms_i: ((bstring * term) * theory attribute list) list ->
-    theory -> thm list * theory
-  val add_axiomss: ((bstring * string list) * theory attribute list) list ->
+  val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
+  val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory 
+  val note_thmss: attribute -> ((bstring * attribute list) *
+    (thmref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+  val note_thmss_i: attribute -> ((bstring * attribute list) *
+    (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+  val add_axioms: ((bstring * string) * attribute list) list -> theory -> thm list * theory
+  val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> thm list * theory
+  val add_axiomss: ((bstring * string list) * attribute list) list ->
     theory -> thm list list * theory
-  val add_axiomss_i: ((bstring * term list) * theory attribute list) list ->
+  val add_axiomss_i: ((bstring * term list) * attribute list) list ->
     theory -> thm list list * theory
-  val add_defs: bool -> ((bstring * string) * theory attribute list) list ->
+  val add_defs: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_i: bool -> ((bstring * term) * theory attribute list) list ->
+  val add_defs_i: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defss: bool -> ((bstring * string list) * theory attribute list) list ->
+  val add_defss: bool -> ((bstring * string list) * attribute list) list ->
     theory -> thm list list * theory
-  val add_defss_i: bool -> ((bstring * term list) * theory attribute list) list ->
+  val add_defss_i: bool -> ((bstring * term list) * attribute list) list ->
     theory -> thm list list * theory
   val generic_setup: string option -> theory -> theory
   val add_oracle: bstring * string * string -> theory -> theory
@@ -340,8 +335,7 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((bname, thms), atts) =
-  enter_thms pre_name (name_thms false)
-    (Thm.applys_attributes atts) (bname, thms);
+  enter_thms pre_name (name_thms false) (foldl_map (Thm.theory_attributes atts)) (bname, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -359,7 +353,7 @@ local
 
 fun gen_note_thss get kind_att ((bname, more_atts), ths_atts) thy =
   let
-    fun app (x, (ths, atts)) = Thm.applys_attributes atts (x, ths);
+    fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
       name_thmss (name_thms false) (apsnd List.concat o foldl_map app)
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);

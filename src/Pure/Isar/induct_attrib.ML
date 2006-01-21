@@ -25,12 +25,12 @@ sig
   val find_inductS: Proof.context -> term -> thm list
   val find_coinductT: Proof.context -> typ -> thm list
   val find_coinductS: Proof.context -> term -> thm list
-  val cases_type: string -> Context.generic attribute
-  val cases_set: string -> Context.generic attribute
-  val induct_type: string -> Context.generic attribute
-  val induct_set: string -> Context.generic attribute
-  val coinduct_type: string -> Context.generic attribute
-  val coinduct_set: string -> Context.generic attribute
+  val cases_type: string -> attribute
+  val cases_set: string -> attribute
+  val induct_type: string -> attribute
+  val induct_set: string -> attribute
+  val coinduct_type: string -> attribute
+  val coinduct_set: string -> attribute
   val casesN: string
   val inductN: string
   val coinductN: string
@@ -225,8 +225,8 @@ end;
 
 val _ = Context.add_setup
  (Attrib.add_attributes
-  [(casesN, Attrib.common cases_att, "declaration of cases rule for type or set"),
-   (inductN, Attrib.common induct_att, "declaration of induction rule for type or set"),
-   (coinductN, Attrib.common coinduct_att, "declaration of coinduction rule for type or set")]);
+  [(casesN, cases_att, "declaration of cases rule for type or set"),
+   (inductN, induct_att, "declaration of induction rule for type or set"),
+   (coinductN, coinduct_att, "declaration of coinduction rule for type or set")]);
 
 end;

@@ -11,7 +11,7 @@ signature PRIMREC_PACKAGE =
 sig
   val quiet_mode: bool ref
   val add_primrec: ((bstring * string) * Attrib.src list) list -> theory -> theory * thm list
-  val add_primrec_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
+  val add_primrec_i: ((bstring * term) * attribute list) list -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -191,13 +191,13 @@ fun add_primrec_i args thy =
       |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
     val (_, thy3) =
       thy2
-      |> PureThy.add_thmss [(("simps", eqn_thms'), [Attrib.theory Simplifier.simp_add])]
+      |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add])]
       ||> Theory.parent_path;
   in (thy3, eqn_thms') end;
 
 fun add_primrec args thy =
   add_primrec_i (map (fn ((name, s), srcs) =>
-    ((name, Sign.simple_read_term (sign_of thy) propT s), map (Attrib.global_attribute thy) srcs))
+    ((name, Sign.simple_read_term (sign_of thy) propT s), map (Attrib.attribute thy) srcs))
     args) thy;
 
 

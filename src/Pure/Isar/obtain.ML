@@ -40,7 +40,7 @@ sig
     ((string * Attrib.src list) * (string * (string list * string list)) list) list
     -> bool -> Proof.state -> Proof.state
   val obtain_i: (string * typ option) list ->
-    ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
+    ((string * attribute list) * (term * (term list * term list)) list) list
     -> bool -> Proof.state -> Proof.state
   val guess: (string * string option) list -> bool -> Proof.state -> Proof.state
   val guess_i: (string * typ option) list -> bool -> Proof.state -> Proof.state
@@ -137,7 +137,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(thesisN, NONE)]
     |> Proof.assume_i
-      [((thatN, [Attrib.context (ContextRules.intro_query NONE)]), [(that_prop, ([], []))])]
+      [((thatN, [ContextRules.intro_query NONE]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(("", []), [(thesis, ([], []))])] false
@@ -146,7 +146,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
 
 in
 
-val obtain = gen_obtain Attrib.local_attribute ProofContext.read_vars ProofContext.read_propp;
+val obtain = gen_obtain Attrib.attribute ProofContext.read_vars ProofContext.read_propp;
 val obtain_i = gen_obtain (K I) ProofContext.cert_vars ProofContext.cert_propp;
 
 end;

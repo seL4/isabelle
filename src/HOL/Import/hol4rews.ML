@@ -258,15 +258,16 @@ structure HOL4Rewrites = TheoryDataFun(HOL4RewritesArgs);
 val hol4_debug = ref false
 fun message s = if !hol4_debug then writeln s else ()
 
-fun add_hol4_rewrite (thy,th) =
+fun add_hol4_rewrite (context, th) =
     let
+        val thy = Context.the_theory context;
 	val _ = message "Adding HOL4 rewrite"
 	val th1 = th RS eq_reflection
 	val current_rews = HOL4Rewrites.get thy
 	val new_rews = gen_ins Thm.eq_thm (th1,current_rews)
 	val updated_thy  = HOL4Rewrites.put new_rews thy
     in
-	(updated_thy,th1)
+	(Context.Theory updated_thy,th1)
     end;
 
 fun ignore_hol4 bthy bthm thy =
@@ -775,8 +776,5 @@ val hol4_setup =
   ImportSegment.init #>
   initial_maps #>
   Attrib.add_attributes
-    [("hol4rew",
-      (Attrib.no_args add_hol4_rewrite,
-       Attrib.no_args Attrib.undef_local_attribute),
-      "HOL4 rewrite rule")]
+    [("hol4rew", Attrib.no_args add_hol4_rewrite, "HOL4 rewrite rule")]
 end

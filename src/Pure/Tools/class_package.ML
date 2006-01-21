@@ -15,7 +15,7 @@ sig
     -> ((bstring * string) * Attrib.src list) list
     -> theory -> Proof.state
   val add_instance_arity_i: (string * sort list) * sort
-    -> ((bstring * term) * theory attribute list) list
+    -> ((bstring * term) * attribute list) list
     -> theory -> Proof.state
   val add_classentry: class -> xstring list -> xstring list -> theory -> theory
 

@@ -109,10 +109,10 @@ sig
   val hide_thms: bool -> string list -> context -> context
   val put_thms: string * thm list option -> context -> context
   val note_thmss:
-    ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
+    ((bstring * attribute list) * (thmref * attribute list) list) list ->
       context -> (bstring * thm list) list * context
   val note_thmss_i:
-    ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
+    ((bstring * attribute list) * (thm list * attribute list) list) list ->
       context -> (bstring * thm list) list * context
   val read_vars: (string * string option * mixfix) list -> context ->
     (string * typ option * mixfix) list * context
@@ -129,10 +129,10 @@ sig
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
   val add_assms: export ->
-    ((string * context attribute list) * (string * (string list * string list)) list) list ->
+    ((string * attribute list) * (string * (string list * string list)) list) list ->
     context -> (bstring * thm list) list * context
   val add_assms_i: export ->
-    ((string * context attribute list) * (term * (term list * term list)) list) list ->
+    ((string * attribute list) * (term * (term list * term list)) list) list ->
     context -> (bstring * thm list) list * context
   val assume_export: export
   val presume_export: export
@@ -1042,7 +1042,7 @@ local
 fun gen_note_thmss get = fold_map (fn ((name, more_attrs), ths_attrs) => fn ctxt =>
   let
     fun app (th, attrs) (ct, ths) =
-      let val (ct', th') = Thm.applys_attributes (attrs @ more_attrs) (ct, get ctxt th)
+      let val (ct', th') = foldl_map (Thm.proof_attributes (attrs @ more_attrs)) (ct, get ctxt th)
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
     val thms = List.concat (rev rev_thms);

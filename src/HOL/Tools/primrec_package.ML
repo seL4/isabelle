@@ -10,7 +10,7 @@ sig
   val quiet_mode: bool ref
   val add_primrec: string -> ((bstring * string) * Attrib.src list) list
     -> theory -> theory * thm list
-  val add_primrec_i: string -> ((bstring * term) * theory attribute list) list
+  val add_primrec_i: string -> ((bstring * term) * attribute list) list
     -> theory -> theory * thm list
 end;
 
@@ -258,7 +258,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val (simps', thy'') = PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts) thy';
     val thy''' = thy''
       |> (snd o PureThy.add_thmss [(("simps", simps'),
-           [Attrib.theory Simplifier.simp_add, RecfunCodegen.add NONE])])
+          [Simplifier.simp_add, RecfunCodegen.add NONE])])
       |> (snd o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
       |> Theory.parent_path
   in
@@ -270,7 +270,7 @@ fun add_primrec alt_name eqns thy =
   let
     val sign = Theory.sign_of thy;
     val ((names, strings), srcss) = apfst split_list (split_list eqns);
-    val atts = map (map (Attrib.global_attribute thy)) srcss;
+    val atts = map (map (Attrib.attribute thy)) srcss;
     val eqn_ts = map (fn s => term_of (Thm.read_cterm sign (s, propT))
       handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s)) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop eq)))

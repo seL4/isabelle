@@ -150,8 +150,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       else
         (NONE, thy);
 
-    fun typedef_result (theory, nonempty) =
-      theory
+    fun typedef_result (context, nonempty) =
+      Context.the_theory context
       |> put_typedef newT oldT (full Abs_name) (full Rep_name)
       |> add_typedecls [(t, vs, mx)]
       |> Theory.add_consts_i
@@ -176,23 +176,19 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                 ((Rep_name ^ "_inject", make Rep_inject), []),
                 ((Abs_name ^ "_inject", make Abs_inject), []),
                 ((Rep_name ^ "_cases", make Rep_cases),
-                  [RuleCases.case_names [Rep_name],
-                    Attrib.theory (InductAttrib.cases_set full_name)]),
+                  [RuleCases.case_names [Rep_name], InductAttrib.cases_set full_name]),
                 ((Abs_name ^ "_cases", make Abs_cases),
-                  [RuleCases.case_names [Abs_name],
-                    Attrib.theory (InductAttrib.cases_type full_tname)]),
+                  [RuleCases.case_names [Abs_name], InductAttrib.cases_type full_tname]),
                 ((Rep_name ^ "_induct", make Rep_induct),
-                  [RuleCases.case_names [Rep_name],
-                    Attrib.theory (InductAttrib.induct_set full_name)]),
+                  [RuleCases.case_names [Rep_name], InductAttrib.induct_set full_name]),
                 ((Abs_name ^ "_induct", make Abs_induct),
-                  [RuleCases.case_names [Abs_name],
-                    Attrib.theory (InductAttrib.induct_type full_tname)])])
+                  [RuleCases.case_names [Abs_name], InductAttrib.induct_type full_tname])])
             ||> Theory.parent_path;
           val result = {type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
             Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
-        in ((theory'', type_definition), result) end);
+        in ((Context.Theory theory'', type_definition), result) end);
 
 
     (* errors *)
@@ -220,7 +216,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
     (*test theory errors now!*)
     val test_thy = Theory.copy thy;
-    val _ = (test_thy,
+    val _ = (Context.Theory test_thy,
       setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal) |> typedef_result;
 
   in (cset, goal, goal_pat, typedef_result) end
@@ -239,7 +235,8 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
     val non_empty = Goal.prove thy [] [] goal (K tac) handle ERROR msg =>
       cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
-    val ((thy', _), result) = (thy, non_empty) |> typedef_result;
+    val (thy', result) =
+      (Context.Theory thy, non_empty) |> typedef_result |>> (Context.the_theory o fst);
   in (thy', result) end;
 
 in

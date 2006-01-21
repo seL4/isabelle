@@ -13,18 +13,18 @@ sig
     (string * string option * mixfix) list *
       ((string * Attrib.src list) * string list) list -> Proof.context ->
     ((string * typ * mixfix) list *
-      ((string * Context.generic attribute list) * term list) list) * Proof.context
+      ((string * attribute list) * term list) list) * Proof.context
   val cert_specification:
     (string * typ option * mixfix) list *
-      ((string * Context.generic attribute list) * term list) list -> Proof.context ->
+      ((string * attribute list) * term list) list -> Proof.context ->
     ((string * typ * mixfix) list *
-      ((string * Context.generic attribute list) * term list) list) * Proof.context
+      ((string * attribute list) * term list) list) * Proof.context
   val axiomatize:
     (string * string option * mixfix) list *
       ((bstring * Attrib.src list) * string list) list -> theory -> thm list list * theory
   val axiomatize_i:
     (string * typ option * mixfix) list *
-      ((bstring * Context.generic attribute list) * term list) list -> theory ->
+      ((bstring * attribute list) * term list) list -> theory ->
     thm list list * theory
 end;
 
@@ -61,7 +61,7 @@ fun prep_specification prep_vars prep_propp prep_att
   in ((params, (names ~~ atts) ~~ specs), specs_ctxt) end;
 
 fun read_specification x =
-  prep_specification ProofContext.read_vars ProofContext.read_propp Attrib.generic_attribute x;
+  prep_specification ProofContext.read_vars ProofContext.read_propp Attrib.attribute x;
 fun cert_specification x =
   prep_specification ProofContext.cert_vars ProofContext.cert_propp (K I) x;
 
@@ -73,7 +73,7 @@ fun gen_axiomatize prep args thy =
     val ((consts, specs), ctxt) = prep args (ProofContext.init thy);
     val subst = consts |> map (fn (x, T, _) => (Free (x, T), Const (Sign.full_name thy x, T)));
     val axioms = specs |> map (fn ((name, att), ts) =>
-      ((name, map (Term.subst_atomic subst) ts), map Attrib.theory att));
+      ((name, map (Term.subst_atomic subst) ts), att));
     val (thms, thy') =
       thy
       |> Theory.add_consts_i consts

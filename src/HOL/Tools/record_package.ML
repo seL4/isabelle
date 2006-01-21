@@ -1215,8 +1215,8 @@ fun cert_typ sign (env, raw_T) =
 (* attributes *)
 
 fun case_names_fields x = RuleCases.case_names ["fields"] x;
-fun induct_type_global name = [case_names_fields, Attrib.theory (InductAttrib.induct_type name)];
-fun cases_type_global name = [case_names_fields, Attrib.theory (InductAttrib.cases_type name)];
+fun induct_type_global name = [case_names_fields, InductAttrib.induct_type name];
+fun cases_type_global name = [case_names_fields, InductAttrib.cases_type name];
 
 (* tactics *)
 
@@ -1993,8 +1993,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val final_thy =
       thms_thy
       |> (snd oo PureThy.add_thmss)
-          [(("simps", sel_upd_simps), [Attrib.theory Simplifier.simp_add]),
-           (("iffs",iffs), [Attrib.theory iff_add])]
+          [(("simps", sel_upd_simps), [Simplifier.simp_add]),
+           (("iffs",iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme')
       |> put_sel_upd (names @ [full_moreN]) sel_upd_simps
       |> add_record_equalities extension_id equality'

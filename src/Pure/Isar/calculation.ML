@@ -9,11 +9,11 @@ signature CALCULATION =
 sig
   val print_rules: Context.generic -> unit
   val get_calculation: Proof.state -> thm list option
-  val trans_add: Context.generic attribute
-  val trans_del: Context.generic attribute
-  val sym_add: Context.generic attribute
-  val sym_del: Context.generic attribute
-  val symmetric: Context.generic attribute
+  val trans_add: attribute
+  val trans_del: attribute
+  val sym_add: attribute
+  val sym_del: attribute
+  val symmetric: attribute
   val also: (thmref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
   val also_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
   val finally: (thmref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
@@ -60,9 +60,8 @@ fun get_calculation state =
 val calculationN = "calculation";
 
 fun put_calculation calc =
-  `Proof.level #-> (fn lev =>
-    Proof.map_context (Context.the_proof o
-        CalculationData.map (apsnd (K (Option.map (rpair lev) calc))) o Context.Proof))
+  `Proof.level #-> (fn lev => Proof.map_context (Context.proof_map
+     (CalculationData.map (apsnd (K (Option.map (rpair lev) calc))))))
   #> Proof.put_thms (calculationN, calc);
 
 
@@ -71,20 +70,20 @@ fun put_calculation calc =
 
 (* add/del rules *)
 
-val trans_add = Attrib.declaration (CalculationData.map o apfst o apfst o NetRules.insert);
-val trans_del = Attrib.declaration (CalculationData.map o apfst o apfst o NetRules.delete);
+val trans_add = Thm.declaration_attribute (CalculationData.map o apfst o apfst o NetRules.insert);
+val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o NetRules.delete);
 
 val sym_add =
-  Attrib.declaration (CalculationData.map o apfst o apsnd o Drule.add_rule)
+  Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Drule.add_rule)
   #> ContextRules.elim_query NONE;
 val sym_del =
-  Attrib.declaration (CalculationData.map o apfst o apsnd o Drule.del_rule)
+  Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Drule.del_rule)
   #> ContextRules.rule_del;
 
 
 (* symmetric *)
 
-val symmetric = Attrib.rule (fn x => fn th =>
+val symmetric = Thm.rule_attribute (fn x => fn th =>
   (case Seq.chop (2, Drule.multi_resolves [th] (#2 (#1 (CalculationData.get x)))) of
     ([th'], _) => th'
   | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
@@ -98,12 +97,12 @@ val sym_att = Attrib.add_del_args sym_add sym_del;
 
 val _ = Context.add_setup
  (Attrib.add_attributes
-   [("trans", Attrib.common trans_att, "declaration of transitivity rule"),
-    ("sym", Attrib.common sym_att, "declaration of symmetry rule"),
-    ("symmetric", Attrib.common (Attrib.no_args symmetric), "resolution with symmetry rule")] #>
+   [("trans", trans_att, "declaration of transitivity rule"),
+    ("sym", sym_att, "declaration of symmetry rule"),
+    ("symmetric", Attrib.no_args symmetric, "resolution with symmetry rule")] #>
   PureThy.add_thms
-   [(("", transitive_thm), [Attrib.theory trans_add]),
-    (("", symmetric_thm), [Attrib.theory sym_add])] #> snd);
+   [(("", transitive_thm), [trans_add]),
+    (("", symmetric_thm), [sym_add])] #> snd);
 
 
 

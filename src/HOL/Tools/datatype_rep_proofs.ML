@@ -15,7 +15,7 @@ signature DATATYPE_REP_PROOFS =
 sig
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
     string list -> DatatypeAux.descr list -> (string * sort) list ->
-      (string * mixfix) list -> (string * mixfix) list list -> theory attribute
+      (string * mixfix) list -> (string * mixfix) list list -> attribute
         -> theory -> (thm list list * thm list list * thm list list *
           DatatypeAux.simproc_dist list * thm) * theory
 end;
