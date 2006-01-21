@@ -2,100 +2,62 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Symbolic theorem attributes.
+Symbolic representation of attributes -- with name and syntax.
 *)
 
 signature BASIC_ATTRIB =
 sig
   val print_attributes: theory -> unit
-  val Attribute: bstring ->
-    (Args.src -> theory attribute) * (Args.src -> ProofContext.context attribute) ->
-    string -> unit
+  val Attribute: bstring -> (Args.src -> attribute) -> string -> unit
 end;
 
 signature ATTRIB =
 sig
   include BASIC_ATTRIB
-  val rule: ('a -> thm -> thm) -> 'a attribute
-  val declaration: (thm -> 'a -> 'a) -> 'a attribute
   type src
-  val theory: Context.generic attribute -> theory attribute
-  val context: Context.generic attribute -> ProofContext.context attribute
-  val generic: theory attribute * ProofContext.context attribute -> Context.generic attribute
-  val common: (src -> Context.generic attribute) ->
-    (src -> theory attribute) * (src -> ProofContext.context attribute)
   exception ATTRIB_FAIL of (string * Position.T) * exn
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
-  val global_attribute_i: theory -> src -> theory attribute
-  val global_attribute: theory -> src -> theory attribute
-  val local_attribute_i: theory -> src -> ProofContext.context attribute
-  val local_attribute: theory -> src -> ProofContext.context attribute
-  val context_attribute_i: ProofContext.context -> Args.src -> ProofContext.context attribute
-  val context_attribute: ProofContext.context -> Args.src -> ProofContext.context attribute
-  val undef_global_attribute: theory attribute
-  val undef_local_attribute: ProofContext.context attribute
-  val generic_attribute_i: theory -> src -> Context.generic attribute
-  val generic_attribute: theory -> src -> Context.generic attribute
-  val map_specs: ('a -> 'b attribute) ->
-    (('c * 'a list) * 'd) list -> (('c * 'b attribute list) * 'd) list
-  val map_facts: ('a -> 'b attribute) ->
+  val attribute: theory -> src -> attribute
+  val attribute_i: theory -> src -> attribute
+  val map_specs: ('a -> attribute) ->
+    (('c * 'a list) * 'd) list -> (('c * attribute list) * 'd) list
+  val map_facts: ('a -> attribute) ->
     (('c * 'a list) * ('d * 'a list) list) list ->
-    (('c * 'b attribute list) * ('d * 'b attribute list) list) list
-  val crude_closure: ProofContext.context -> src -> src
-  val add_attributes: (bstring * ((src -> theory attribute) *
-      (src -> ProofContext.context attribute)) * string) list -> theory -> theory
+    (('c * attribute list) * ('d * attribute list) list) list
+  val crude_closure: Context.proof -> src -> src
+  val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
   val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
   val global_thms: theory * Args.T list -> thm list * (theory * Args.T list)
   val global_thmss: theory * Args.T list -> thm list * (theory * Args.T list)
-  val local_thm: ProofContext.context * Args.T list ->
-    thm * (ProofContext.context * Args.T list)
-  val local_thms: ProofContext.context * Args.T list ->
-    thm list * (ProofContext.context * Args.T list)
-  val local_thmss: ProofContext.context * Args.T list ->
-    thm list * (ProofContext.context * Args.T list)
+  val local_thm: Context.proof * Args.T list -> thm * (Context.proof * Args.T list)
+  val local_thms: Context.proof * Args.T list -> thm list * (Context.proof * Args.T list)
+  val local_thmss: Context.proof * Args.T list -> thm list * (Context.proof * Args.T list)
   val thm: Context.generic * Args.T list -> thm * (Context.generic * Args.T list)
   val thms: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
   val thmss: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
-  val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> src -> 'a attribute
-  val no_args: 'a attribute -> src -> 'a attribute
-  val add_del_args: 'a attribute -> 'a attribute -> src -> 'a attribute
-  val attribute: Context.generic attribute -> src
+  val syntax: (Context.generic * Args.T list ->
+    attribute * (Context.generic * Args.T list)) -> src -> attribute
+  val no_args: attribute -> src -> attribute
+  val add_del_args: attribute -> attribute -> src -> attribute
+  val internal: attribute -> src
 end;
 
 structure Attrib: ATTRIB =
 struct
 
-val rule = Drule.rule_attribute;
-val declaration = Drule.declaration_attribute;
-
 type src = Args.src;
 
 
 
-(** generic attributes **)
+(** named attributes **)
 
-fun generic (global_att, local_att) =
-   fn (Context.Theory thy, th) => apfst Context.Theory (global_att (thy, th))
-    | (Context.Proof ctxt, th) => apfst Context.Proof (local_att (ctxt, th));
-
-fun theory att (thy, th) = apfst Context.the_theory (att (Context.Theory thy, th));
-fun context att (ctxt, th) = apfst Context.the_proof (att (Context.Proof ctxt, th));
-
-fun common att = (theory o att, context o att);
-
-
-
-(** attributes theory data **)
-
-(* datatype attributes *)
+(* theory data *)
 
 structure AttributesData = TheoryDataFun
 (struct
   val name = "Isar/attributes";
-  type T =
-    ((((src -> theory attribute) * (src -> ProofContext.context attribute))
-        * string) * stamp) NameSpace.table;
+  type T = (((src -> attribute) * string) * stamp) NameSpace.table;
 
   val empty = NameSpace.empty_table;
   val copy = I;
@@ -124,38 +86,22 @@ val intern = NameSpace.intern o #1 o AttributesData.get;
 val intern_src = Args.map_name o intern;
 
 
-(* get global / local attributes *)
+(* get attributes *)
 
 exception ATTRIB_FAIL of (string * Position.T) * exn;
 
-fun gen_attribute which thy =
+fun attribute_i thy =
   let
     val attrs = #2 (AttributesData.get thy);
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup attrs name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME ((p, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (which p src))
+        | SOME ((att, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (att src))
       end;
   in attr end;
 
-val global_attribute_i = gen_attribute fst;
-fun global_attribute thy = global_attribute_i thy o intern_src thy;
-
-val local_attribute_i = gen_attribute snd;
-fun local_attribute thy = local_attribute_i thy o intern_src thy;
-
-val context_attribute_i = local_attribute_i o ProofContext.theory_of;
-val context_attribute = local_attribute o ProofContext.theory_of;
-
-val undef_global_attribute: theory attribute =
-  fn _ => error "attribute undefined in theory context";
-
-val undef_local_attribute: ProofContext.context attribute =
-  fn _ => error "attribute undefined in proof context";
-
-fun generic_attribute thy src = generic (global_attribute thy src, local_attribute thy src);
-fun generic_attribute_i thy src = generic (global_attribute_i thy src, local_attribute_i thy src);
+fun attribute thy = attribute_i thy o intern_src thy;
 
 
 (* attributed declarations *)
@@ -167,11 +113,12 @@ fun map_facts f = map (apfst (apsnd (map f)) o apsnd (map (apsnd (map f))));
 (* crude_closure *)
 
 (*Produce closure without knowing facts in advance! The following
-  should work reasonably well for attribute parsers that do not peek
-  at the thm structure.*)
+  works reasonably well for attribute parsers that do not peek at the
+  thm structure.*)
 
 fun crude_closure ctxt src =
- (try (fn () => context_attribute_i ctxt src (ctxt, Drule.asm_rl)) ();
+ (try (fn () => attribute_i (ProofContext.theory_of ctxt) src
+    (Context.Proof ctxt, Drule.asm_rl)) ();
   Args.closure src);
 
 
@@ -179,8 +126,8 @@ fun crude_closure ctxt src =
 
 fun add_attributes raw_attrs thy =
   let
-    val new_attrs = raw_attrs |> map (fn (name, (f, g), comment) =>
-      (name, (((f, g), comment), stamp ())));
+    val new_attrs =
+      raw_attrs |> map (fn (name, att, comment) => (name, ((att, comment), stamp ())));
     fun add attrs = NameSpace.extend_table (Sign.naming_of thy) (attrs, new_attrs)
       handle Symtab.DUPS dups =>
         error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
@@ -202,7 +149,7 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 
 local
 
-fun gen_thm theory_of attrib get pick = Scan.depend (fn st =>
+fun gen_thm theory_of apply get pick = Scan.depend (fn st =>
  (Scan.ahead Args.alt_name -- Args.named_fact (get st o Fact)
     >> (fn (s, fact) => ("", Fact s, fact)) ||
   Scan.ahead Args.name -- Args.named_fact (get st o Name) -- Args.thm_sel
@@ -213,26 +160,25 @@ fun gen_thm theory_of attrib get pick = Scan.depend (fn st =>
   >> (fn ((name, thmref, fact), srcs) =>
     let
       val ths = PureThy.select_thm thmref fact;
-      val atts = map (attrib (theory_of st)) srcs;
-      val (st', ths') = Thm.applys_attributes atts (st, ths);
+      val atts = map (attribute_i (theory_of st)) srcs;
+      val (st', ths') = foldl_map (apply atts) (st, ths);
     in (st', pick name ths') end));
 
 val get_thms = Context.cases PureThy.get_thms ProofContext.get_thms;
 
 in
 
-val global_thm = gen_thm I global_attribute_i PureThy.get_thms PureThy.single_thm;
-val global_thms = gen_thm I global_attribute_i PureThy.get_thms (K I);
+val global_thm = gen_thm I Thm.theory_attributes PureThy.get_thms PureThy.single_thm;
+val global_thms = gen_thm I Thm.theory_attributes PureThy.get_thms (K I);
 val global_thmss = Scan.repeat global_thms >> List.concat;
 
 val local_thm =
-  gen_thm ProofContext.theory_of local_attribute_i ProofContext.get_thms PureThy.single_thm;
-val local_thms =
-  gen_thm ProofContext.theory_of local_attribute_i ProofContext.get_thms (K I);
+  gen_thm ProofContext.theory_of Thm.proof_attributes ProofContext.get_thms PureThy.single_thm;
+val local_thms = gen_thm ProofContext.theory_of Thm.proof_attributes ProofContext.get_thms (K I);
 val local_thmss = Scan.repeat local_thms >> List.concat;
 
-val thm = gen_thm Context.theory_of generic_attribute_i get_thms PureThy.single_thm;
-val thms = gen_thm Context.theory_of generic_attribute_i get_thms (K I);
+val thm = gen_thm Context.theory_of Library.apply get_thms PureThy.single_thm;
+val thms = gen_thm Context.theory_of Library.apply get_thms (K I);
 val thmss = Scan.repeat thms >> List.concat;
 
 end;
@@ -264,14 +210,14 @@ fun untagged x = syntax (Scan.lift Args.name >> Drule.untag) x;
 
 val COMP_att =
   syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm
-    >> (fn (i, B) => Drule.rule_attribute (fn _ => fn A => Drule.compose_single (A, i, B))));
+    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => Drule.compose_single (A, i, B))));
 
 val THEN_att =
   syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm
-    >> (fn (i, B) => Drule.rule_attribute (fn _ => fn A => A RSN (i, B))));
+    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B))));
 
 val OF_att =
-  syntax (thmss >> (fn Bs => Drule.rule_attribute (fn _ => fn A => Bs MRS A)));
+  syntax (thmss >> (fn Bs => Thm.rule_attribute (fn _ => fn A => Bs MRS A)));
 
 
 (* read_instantiate: named instantiation of type and term variables *)
@@ -450,8 +396,8 @@ fun rename_abs src = syntax
 
 (* unfold / fold definitions *)
 
-val unfolded = syntax (thmss >> (fn defs => Drule.rule_attribute (K (Tactic.rewrite_rule defs))));
-val folded = syntax (thmss >> (fn defs => Drule.rule_attribute (K (Tactic.fold_rule defs))));
+val unfolded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (Tactic.rewrite_rule defs))));
+val folded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (Tactic.fold_rule defs))));
 
 
 (* rule cases *)
@@ -471,15 +417,15 @@ fun rule_format_att x = syntax (Args.mode "no_asm"
 
 (* misc rules *)
 
-fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
-fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
-fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
-fun eta_long x = no_args (Drule.rule_attribute (K (Drule.fconv_rule Drule.eta_long_conversion))) x;
+fun standard x = no_args (Thm.rule_attribute (K Drule.standard)) x;
+fun elim_format x = no_args (Thm.rule_attribute (K Tactic.make_elim)) x;
+fun no_vars x = no_args (Thm.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
+fun eta_long x = no_args (Thm.rule_attribute (K (Drule.fconv_rule Drule.eta_long_conversion))) x;
 
 
 (* internal attribute *)
 
-fun attribute att = Args.src (("Pure.attribute", [Args.mk_attribute att]), Position.none);
+fun internal att = Args.src (("Pure.attribute", [Args.mk_attribute att]), Position.none);
 
 fun internal_att x = syntax (Scan.lift Args.internal_attribute) x;
 
@@ -488,30 +434,28 @@ fun internal_att x = syntax (Scan.lift Args.internal_attribute) x;
 
 val _ = Context.add_setup
  (add_attributes
-   [("tagged", common tagged, "tagged theorem"),
-    ("untagged", common untagged, "untagged theorem"),
-    ("COMP", common COMP_att, "direct composition with rules (no lifting)"),
-    ("THEN", common THEN_att, "resolution with rule"),
-    ("OF", common OF_att, "rule applied to facts"),
-    ("where", common where_att, "named instantiation of theorem"),
-    ("of", common of_att, "rule applied to terms"),
-    ("rename_abs", common rename_abs, "rename bound variables in abstractions"),
-    ("unfolded", common unfolded, "unfolded definitions"),
-    ("folded", common folded, "folded definitions"),
-    ("standard", common standard, "result put into standard form"),
-    ("elim_format", common elim_format, "destruct rule turned into elimination rule format"),
-    ("no_vars", common no_vars, "frozen schematic vars"),
-    ("eta_long", common eta_long, "put theorem into eta long beta normal form"),
-    ("consumes", common consumes, "number of consumed facts"),
-    ("case_names", common case_names, "named rule cases"),
-    ("case_conclusion", common case_conclusion, "named conclusion of rule cases"),
-    ("params", common params, "named rule parameters"),
-    ("atomize", (no_args ObjectLogic.declare_atomize, no_args undef_local_attribute),
-      "declaration of atomize rule"),
-    ("rulify", (no_args ObjectLogic.declare_rulify, no_args undef_local_attribute),
-      "declaration of rulify rule"),
-    ("rule_format", common rule_format_att, "result put into standard rule format"),
-    ("attribute", common internal_att, "internal attribute")]);
+   [("tagged", tagged, "tagged theorem"),
+    ("untagged", untagged, "untagged theorem"),
+    ("COMP", COMP_att, "direct composition with rules (no lifting)"),
+    ("THEN", THEN_att, "resolution with rule"),
+    ("OF", OF_att, "rule applied to facts"),
+    ("where", where_att, "named instantiation of theorem"),
+    ("of", of_att, "rule applied to terms"),
+    ("rename_abs", rename_abs, "rename bound variables in abstractions"),
+    ("unfolded", unfolded, "unfolded definitions"),
+    ("folded", folded, "folded definitions"),
+    ("standard", standard, "result put into standard form"),
+    ("elim_format", elim_format, "destruct rule turned into elimination rule format"),
+    ("no_vars", no_vars, "frozen schematic vars"),
+    ("eta_long", eta_long, "put theorem into eta long beta normal form"),
+    ("consumes", consumes, "number of consumed facts"),
+    ("case_names", case_names, "named rule cases"),
+    ("case_conclusion", case_conclusion, "named conclusion of rule cases"),
+    ("params", params, "named rule parameters"),
+    ("atomize", no_args ObjectLogic.declare_atomize, "declaration of atomize rule"),
+    ("rulify", no_args ObjectLogic.declare_rulify, "declaration of rulify rule"),
+    ("rule_format", rule_format_att, "result put into standard rule format"),
+    ("attribute", internal_att, "internal attribute")]);
 
 end;
 
