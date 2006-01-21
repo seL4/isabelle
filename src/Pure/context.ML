@@ -75,8 +75,10 @@ sig
   val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
   val the_theory: generic -> theory
   val the_proof: generic -> proof
-  val map_theory: (generic -> generic) -> theory -> theory
-  val map_proof: (generic -> generic) -> proof -> proof
+  val map_theory: (theory -> theory) -> generic -> generic
+  val map_proof: (proof -> proof) -> generic -> generic
+  val theory_map: (generic -> generic) -> theory -> theory
+  val proof_map: (generic -> generic) -> proof -> proof
   val theory_of: generic -> theory   (*total*)
   val proof_of: generic -> proof     (*total*)
 end;
@@ -186,8 +188,8 @@ fun make_data theory proof = {theory = theory, proof = proof};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 fun make_history name vers ints = {name = name, version = vers, intermediates = ints};
 
-fun map_theory f {theory, proof} = make_data (f theory) proof;
-fun map_proof f {theory, proof} = make_data theory (f proof);
+fun map_theory_data f {theory, proof} = make_data (f theory) proof;
+fun map_proof_data f {theory, proof} = make_data theory (f proof);
 
 val the_self = the o #self o identity_of;
 val parents_of = #parents o ancestry_of;
@@ -332,8 +334,9 @@ fun change_thy name f (thy as Theory ({self, id, ids, iids}, data, ancestry, his
     val (self', data', ancestry') =
       if is_draft thy then (self, data, ancestry)    (*destructive change!*)
       else if #version history > 0
-      then (NONE, map_theory copy_data data, ancestry)
-      else (NONE, map_theory extend_data data, make_ancestry [thy] (thy :: #ancestors ancestry));
+      then (NONE, map_theory_data copy_data data, ancestry)
+      else (NONE, map_theory_data extend_data data,
+        make_ancestry [thy] (thy :: #ancestors ancestry));
     val data'' = f data';
   in create_thy name self' id ids iids data'' ancestry' history end;
 
@@ -343,7 +346,7 @@ val extend_thy = modify_thy I;
 
 fun copy_thy (thy as Theory ({id, ids, iids, ...}, data, ancestry, history)) =
   (check_thy thy;
-    create_thy draftN NONE id ids iids (map_theory copy_data data) ancestry history);
+    create_thy draftN NONE id ids iids (map_theory_data copy_data data) ancestry history);
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
   (make_data Inttab.empty Inttab.empty) (make_ancestry [] []) (make_history ProtoPureN 0 []);
@@ -430,7 +433,7 @@ fun get k dest thy =
       error ("Failed to access theory data " ^ quote (invoke_name k)))
   | NONE => error ("Uninitialized theory data " ^ quote (invoke_name k)));
 
-fun put k mk x = modify_thy (map_theory (Inttab.update (k, mk x)));
+fun put k mk x = modify_thy (map_theory_data (Inttab.update (k, mk x)));
 fun init k = put k I (invoke_empty k);
 
 end;
@@ -553,7 +556,7 @@ fun declare name init =
     val _ = change kinds (Inttab.update (k, kind));
   in k end;
 
-fun init k = modify_thy (map_proof (Inttab.update (k, ())));
+fun init k = modify_thy (map_proof_data (Inttab.update (k, ())));
 
 fun get k dest prf =
   (case Inttab.lookup (data_of_proof prf) k of
@@ -576,11 +579,14 @@ datatype generic = Theory of theory | Proof of proof;
 fun cases f _ (Theory thy) = f thy
   | cases _ g (Proof prf) = g prf;
 
-val the_theory = cases I (fn _ => raise Fail "Bad generic context: theory expected");
-val the_proof = cases (fn _ => raise Fail "Bad generic context: proof context expected") I;
+val the_theory = cases I (fn _ => raise Fail "Ill-typed context: theory expected");
+val the_proof = cases (fn _ => raise Fail "Ill-typed context: proof expected") I;
 
-fun map_theory f = the_theory o f o Theory;
-fun map_proof f = the_proof o f o Proof;
+fun map_theory f = Theory o f o the_theory;
+fun map_proof f = Proof o f o the_proof;
+
+fun theory_map f = the_theory o f o Theory;
+fun proof_map f = the_proof o f o Proof;
 
 val theory_of = cases I theory_of_proof;
 val proof_of = cases init_proof I;
