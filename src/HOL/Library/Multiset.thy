@@ -291,43 +291,39 @@ lemma setsum_decr:
   done
 
 lemma rep_multiset_induct_aux:
-  assumes "P (\<lambda>a. (0::nat))"
-    and "!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))"
+  assumes 1: "P (\<lambda>a. (0::nat))"
+    and 2: "!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))"
   shows "\<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
-proof -
-  note premises = prems [unfolded multiset_def]
-  show ?thesis
-    apply (unfold multiset_def)
-    apply (induct_tac n, simp, clarify)
-     apply (subgoal_tac "f = (\<lambda>a.0)")
-      apply simp
-      apply (rule premises)
-     apply (rule ext, force, clarify)
-    apply (frule setsum_SucD, clarify)
-    apply (rename_tac a)
-    apply (subgoal_tac "finite {x. 0 < (f (a := f a - 1)) x}")
-     prefer 2
-     apply (rule finite_subset)
-      prefer 2
-      apply assumption
-     apply simp
-     apply blast
-    apply (subgoal_tac "f = (f (a := f a - 1))(a := (f (a := f a - 1)) a + 1)")
-     prefer 2
-     apply (rule ext)
-     apply (simp (no_asm_simp))
-     apply (erule ssubst, rule premises, blast)
-    apply (erule allE, erule impE, erule_tac [2] mp, blast)
-    apply (simp (no_asm_simp) add: setsum_decr del: fun_upd_apply One_nat_def)
-    apply (subgoal_tac "{x. x \<noteq> a --> 0 < f x} = {x. 0 < f x}")
-     prefer 2
-     apply blast
-    apply (subgoal_tac "{x. x \<noteq> a \<and> 0 < f x} = {x. 0 < f x} - {a}")
-     prefer 2
-     apply blast
-    apply (simp add: le_imp_diff_is_add setsum_diff1_nat cong: conj_cong)
-    done
-qed
+  apply (unfold multiset_def)
+  apply (induct_tac n, simp, clarify)
+   apply (subgoal_tac "f = (\<lambda>a.0)")
+    apply simp
+    apply (rule 1)
+   apply (rule ext, force, clarify)
+  apply (frule setsum_SucD, clarify)
+  apply (rename_tac a)
+  apply (subgoal_tac "finite {x. 0 < (f (a := f a - 1)) x}")
+   prefer 2
+   apply (rule finite_subset)
+    prefer 2
+    apply assumption
+   apply simp
+   apply blast
+  apply (subgoal_tac "f = (f (a := f a - 1))(a := (f (a := f a - 1)) a + 1)")
+   prefer 2
+   apply (rule ext)
+   apply (simp (no_asm_simp))
+   apply (erule ssubst, rule 2 [unfolded multiset_def], blast)
+  apply (erule allE, erule impE, erule_tac [2] mp, blast)
+  apply (simp (no_asm_simp) add: setsum_decr del: fun_upd_apply One_nat_def)
+  apply (subgoal_tac "{x. x \<noteq> a --> 0 < f x} = {x. 0 < f x}")
+   prefer 2
+   apply blast
+  apply (subgoal_tac "{x. x \<noteq> a \<and> 0 < f x} = {x. 0 < f x} - {a}")
+   prefer 2
+   apply blast
+  apply (simp add: le_imp_diff_is_add setsum_diff1_nat cong: conj_cong)
+  done
 
 theorem rep_multiset_induct:
   "f \<in> multiset ==> P (\<lambda>a. 0) ==>
@@ -456,19 +452,19 @@ proof
         fix K
         assume N: "N = M0 + K"
         assume "\<forall>b. b :# K --> (b, a) \<in> r"
-	then have "M0 + K \<in> ?W"
+        then have "M0 + K \<in> ?W"
         proof (induct K)
-	  case empty
+          case empty
           from M0 show "M0 + {#} \<in> ?W" by simp
-	next
-	  case (add K x)
-	  from add.prems have "(x, a) \<in> r" by simp
+        next
+          case (add K x)
+          from add.prems have "(x, a) \<in> r" by simp
           with wf_hyp have "\<forall>M \<in> ?W. M + {#x#} \<in> ?W" by blast
-	  moreover from add have "M0 + K \<in> ?W" by simp
+          moreover from add have "M0 + K \<in> ?W" by simp
           ultimately have "(M0 + K) + {#x#} \<in> ?W" ..
           then show "M0 + (K + {#x#}) \<in> ?W" by (simp only: union_assoc)
         qed
-	then show "N \<in> ?W" by (simp only: N)
+        then show "N \<in> ?W" by (simp only: N)
       qed
     qed
   } note tedious_reasoning = this
@@ -602,9 +598,7 @@ defs (overloaded)
   le_multiset_def: "M' <= M == M' = M \<or> M' < (M::'a multiset)"
 
 lemma trans_base_order: "trans {(x', x). x' < (x::'a::order)}"
-  apply (unfold trans_def)
-  apply (blast intro: order_less_trans)
-  done
+  unfolding trans_def by (blast intro: order_less_trans)
 
 text {*
  \medskip Irreflexivity.
@@ -647,26 +641,22 @@ theorem mult_less_asym:
   by (insert mult_less_not_sym, blast)
 
 theorem mult_le_refl [iff]: "M <= (M::'a::order multiset)"
-by (unfold le_multiset_def, auto)
+  unfolding le_multiset_def by auto
 
 text {* Anti-symmetry. *}
 
 theorem mult_le_antisym:
     "M <= N ==> N <= M ==> M = (N::'a::order multiset)"
-  apply (unfold le_multiset_def)
-  apply (blast dest: mult_less_not_sym)
-  done
+  unfolding le_multiset_def by (blast dest: mult_less_not_sym)
 
 text {* Transitivity. *}
 
 theorem mult_le_trans:
     "K <= M ==> M <= N ==> K <= (N::'a::order multiset)"
-  apply (unfold le_multiset_def)
-  apply (blast intro: mult_less_trans)
-  done
+  unfolding le_multiset_def by (blast intro: mult_less_trans)
 
 theorem mult_less_le: "(M < N) = (M <= N \<and> M \<noteq> (N::'a::order multiset))"
-by (unfold le_multiset_def, auto)
+  unfolding le_multiset_def by auto
 
 text {* Partial order. *}
 
@@ -709,9 +699,8 @@ lemma union_less_mono:
 
 lemma union_le_mono:
     "A <= C ==> B <= D ==> A + B <= C + (D::'a::order multiset)"
-  apply (unfold le_multiset_def)
-  apply (blast intro: union_less_mono union_less_mono1 union_less_mono2)
-  done
+  unfolding le_multiset_def
+  by (blast intro: union_less_mono union_less_mono1 union_less_mono2)
 
 lemma empty_leI [iff]: "{#} <= (M::'a::order multiset)"
   apply (unfold le_multiset_def less_multiset_def)
@@ -756,7 +745,7 @@ lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
 lemma multiset_of_append [simp]:
     "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
   by (induct xs fixing: ys) (auto simp: union_ac)
-  
+
 lemma surj_multiset_of: "surj multiset_of"
   apply (unfold surj_def, rule allI)
   apply (rule_tac M=y in multiset_induct, auto)
@@ -816,10 +805,10 @@ defs
   mset_le_def: "xs \<le># ys == (\<forall>a. count xs a \<le> count ys a)"
 
 lemma mset_le_refl[simp]: "xs \<le># xs"
-  by (unfold mset_le_def) auto
+  unfolding mset_le_def by auto
 
 lemma mset_le_trans: "\<lbrakk> xs \<le># ys; ys \<le># zs \<rbrakk> \<Longrightarrow> xs \<le># zs"
-  by (unfold mset_le_def) (fast intro: order_trans)
+  unfolding mset_le_def by (fast intro: order_trans)
 
 lemma mset_le_antisym: "\<lbrakk> xs\<le># ys; ys \<le># xs\<rbrakk> \<Longrightarrow> xs = ys"
   apply (unfold mset_le_def)
@@ -834,10 +823,10 @@ lemma mset_le_exists_conv:
   done
 
 lemma mset_le_mono_add_right_cancel[simp]: "(xs + zs \<le># ys + zs) = (xs \<le># ys)"
-  by (unfold mset_le_def) auto
+  unfolding mset_le_def by auto
 
 lemma mset_le_mono_add_left_cancel[simp]: "(zs + xs \<le># zs + ys) = (xs \<le># ys)"
-  by (unfold mset_le_def) auto
+  unfolding mset_le_def by auto
 
 lemma mset_le_mono_add: "\<lbrakk> xs \<le># ys; vs \<le># ws \<rbrakk> \<Longrightarrow> xs + vs \<le># ys + ws"
   apply (unfold mset_le_def)
@@ -847,10 +836,10 @@ lemma mset_le_mono_add: "\<lbrakk> xs \<le># ys; vs \<le># ws \<rbrakk> \<Longri
   done
 
 lemma mset_le_add_left[simp]: "xs \<le># xs + ys"
-  by (unfold mset_le_def) auto
+  unfolding mset_le_def by auto
 
 lemma mset_le_add_right[simp]: "ys \<le># xs + ys"
-  by (unfold mset_le_def) auto
+  unfolding mset_le_def by auto
 
 lemma multiset_of_remdups_le: "multiset_of (remdups x) \<le># multiset_of x"
   apply (induct x)

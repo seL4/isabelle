@@ -21,13 +21,13 @@ instance list :: (type) order
   by intro_classes (auto simp add: prefix_def strict_prefix_def)
 
 lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
-  by (unfold prefix_def) blast
+  unfolding prefix_def by blast
 
 lemma prefixE [elim?]: "xs \<le> ys ==> (!!zs. ys = xs @ zs ==> C) ==> C"
-  by (unfold prefix_def) blast
+  unfolding prefix_def by blast
 
 lemma strict_prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
-  by (unfold strict_prefix_def prefix_def) blast
+  unfolding strict_prefix_def prefix_def by blast
 
 lemma strict_prefixE' [elim?]:
   assumes lt: "xs < ys"
@@ -35,16 +35,16 @@ lemma strict_prefixE' [elim?]:
   shows C
 proof -
   from lt obtain us where "ys = xs @ us" and "xs \<noteq> ys"
-    by (unfold strict_prefix_def prefix_def) blast
+    unfolding strict_prefix_def prefix_def by blast
   with r show ?thesis by (auto simp add: neq_Nil_conv)
 qed
 
 lemma strict_prefixI [intro?]: "xs \<le> ys ==> xs \<noteq> ys ==> xs < (ys::'a list)"
-  by (unfold strict_prefix_def) blast
+  unfolding strict_prefix_def by blast
 
 lemma strict_prefixE [elim?]:
     "xs < ys ==> (xs \<le> ys ==> xs \<noteq> (ys::'a list) ==> C) ==> C"
-  by (unfold strict_prefix_def) blast
+  unfolding strict_prefix_def by blast
 
 
 subsection {* Basic properties of prefixes *}
@@ -160,17 +160,17 @@ constdefs
   "xs \<parallel> ys == \<not> xs \<le> ys \<and> \<not> ys \<le> xs"
 
 lemma parallelI [intro]: "\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> xs \<parallel> ys"
-  by (unfold parallel_def) blast
+  unfolding parallel_def by blast
 
 lemma parallelE [elim]:
     "xs \<parallel> ys ==> (\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> C) ==> C"
-  by (unfold parallel_def) blast
+  unfolding parallel_def by blast
 
 theorem prefix_cases:
   "(xs \<le> ys ==> C) ==>
     (ys < xs ==> C) ==>
     (xs \<parallel> ys ==> C) ==> C"
-  by (unfold parallel_def strict_prefix_def) blast
+  unfolding parallel_def strict_prefix_def by blast
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"

@@ -64,10 +64,10 @@ typedef 'a quot = "{{x. a \<sim> x} | a::'a::eqv. True}"
   by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
-  by (unfold quot_def) blast
+  unfolding quot_def by blast
 
 lemma quotE [elim]: "R \<in> quot ==> (!!a. R = {x. a \<sim> x} ==> C) ==> C"
-  by (unfold quot_def) blast
+  unfolding quot_def by blast
 
 text {*
  \medskip Abstracted equivalence classes are the canonical
@@ -83,11 +83,11 @@ proof (cases A)
   fix R assume R: "A = Abs_quot R"
   assume "R \<in> quot" hence "\<exists>a. R = {x. a \<sim> x}" by blast
   with R have "\<exists>a. A = Abs_quot {x. a \<sim> x}" by blast
-  thus ?thesis by (unfold class_def)
+  thus ?thesis unfolding class_def .
 qed
 
 lemma quot_cases [cases type: quot]: "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
-  by (insert quot_exhaust) blast
+  using quot_exhaust by blast
 
 
 subsection {* Equality on quotients *}

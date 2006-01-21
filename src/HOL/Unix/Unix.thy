@@ -653,11 +653,11 @@ constdefs
   "can_exec root xs \<equiv> \<exists>root'. root =xs\<Rightarrow> root'"
 
 lemma can_exec_nil: "can_exec root []"
-  by (unfold can_exec_def) (blast intro: transitions.intros)
+  unfolding can_exec_def by (blast intro: transitions.intros)
 
 lemma can_exec_cons:
     "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> can_exec root' xs \<Longrightarrow> can_exec root (x # xs)"
-  by (unfold can_exec_def) (blast intro: transitions.intros)
+  unfolding can_exec_def by (blast intro: transitions.intros)
 
 text {*
   \medskip In case that we already know that a certain sequence can be
@@ -677,7 +677,7 @@ next
       xs_y: "r =(xs @ [y])\<Rightarrow> root''"
     by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
   from xs_y Cons.hyps obtain root' r' where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
-    by (unfold can_exec_def) blast
+    unfolding can_exec_def by blast
   from x xs have "root =(x # xs)\<Rightarrow> root'"
     by (rule transitions.cons)
   with y show ?case by blast
@@ -913,7 +913,7 @@ lemma (in invariant) cannot_rmdir:
   shows False
 proof -
   from inv obtain "file" where "access root bogus_path user\<^isub>1 {} = Some file"
-    by (unfold invariant_def) blast
+    unfolding invariant_def by blast
   moreover
   from rmdir obtain att where
       "access root [user\<^isub>1, name\<^isub>1] user\<^isub>1 {} = Some (Env att empty)"
@@ -1076,7 +1076,7 @@ proof -
       from inv3 lookup' and not_writable user\<^isub>1_not_root
       have "access root' path user\<^isub>1 {Writable} = None"
         by (simp add: access_def)
-      with inv1' inv2' inv3 show ?thesis by (unfold invariant_def) blast
+      with inv1' inv2' inv3 show ?thesis unfolding invariant_def by blast
     qed
   qed
 qed

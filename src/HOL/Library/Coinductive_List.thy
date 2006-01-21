@@ -51,7 +51,7 @@ coinductive "LList A"
 
 lemma LList_mono: "A \<subseteq> B \<Longrightarrow> LList A \<subseteq> LList B"
     -- {* This justifies using @{text LList} in other recursive type definitions. *}
-  by (unfold LList.defs) (blast intro!: gfp_mono)
+  unfolding LList.defs by (blast intro!: gfp_mono)
 
 consts
   LList_corec_aux :: "nat \<Rightarrow> ('a \<Rightarrow> ('b Datatype_Universe.item \<times> 'a) option) \<Rightarrow>
@@ -129,11 +129,11 @@ proof
 qed
 
 lemma NIL_type: "NIL \<in> llist"
-  by (unfold llist_def) (rule LList.NIL)
+  unfolding llist_def by (rule LList.NIL)
 
 lemma CONS_type: "a \<in> range Datatype_Universe.Leaf \<Longrightarrow>
     M \<in> llist \<Longrightarrow> CONS a M \<in> llist"
-  by (unfold llist_def) (rule LList.CONS)
+  unfolding llist_def by (rule LList.CONS)
 
 lemma llistI: "x \<in> LList (range Datatype_Universe.Leaf) \<Longrightarrow> x \<in> llist"
   by (simp add: llist_def)
@@ -448,7 +448,7 @@ proof -
   def h' \<equiv> "\<lambda>x. LList_corec x f"
   then have h': "\<And>x. h' x =
       (case f x of None \<Rightarrow> NIL | Some (z, w) \<Rightarrow> CONS z (h' w))"
-    by (unfold h'_def) (simp add: LList_corec)
+    unfolding h'_def by (simp add: LList_corec)
   have "(h x, h' x) \<in> {(h u, h' u) | u. True}" by blast
   then show "h x = h' x"
   proof (coinduct rule: LList_equalityI [where A = UNIV])
