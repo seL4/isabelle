@@ -320,14 +320,9 @@ context, notably GenericDataFun for uniform theory and proof data.
 * Pure: simplified internal attribute type, which is now always
 Context.generic * thm -> Context.generic * thm.  Global (theory)
 vs. local (Proof.context) attributes have been discontinued, while
-minimizing code duplication.  The following basic operations build and
-apply attributes (see also structure Context for further operations on
-Context.generic):
-
-  Thm.rule_attribute: (Context.generic -> thm -> thm) -> attribute
-  Thm.declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
-  Thm.theory_attributes: attribute list -> theory * thm -> theory * thm
-  Thm.proof_attributes: attribute list -> Context.proof * thm -> Context.proof * thm
+minimizing code duplication.  Thm.rule_attribute and
+Thm.declaration_attribute build canonical attributes; see also
+structure Context for further operations on Context.generic.
 
 INCOMPATIBILITY, need to adapt attribute type declarations and
 definitions.  Hint: make proper use of GenericDataFun and generic
