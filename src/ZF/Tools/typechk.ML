@@ -3,74 +3,70 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
-Tactics for type checking -- from CTT.
+Automated type checking (cf. CTT).
 *)
-
-infix 4 addTCs delTCs;
-
-signature BASIC_TYPE_CHECK =
-sig
-  type tcset
-  val addTCs: tcset * thm list -> tcset
-  val delTCs: tcset * thm list -> tcset
-  val typecheck_tac: tcset -> tactic
-  val type_solver_tac: tcset -> thm list -> int -> tactic
-  val print_tc: tcset -> unit
-  val print_tcset: theory -> unit
-  val tcset_ref_of: theory -> tcset ref
-  val tcset_of: theory -> tcset
-  val tcset: unit -> tcset
-  val TCSET: (tcset -> tactic) -> tactic
-  val TCSET': (tcset -> 'a -> tactic) -> 'a -> tactic
-  val AddTCs: thm list -> unit
-  val DelTCs: thm list -> unit
-  val TC_add_global: theory attribute
-  val TC_del_global: theory attribute
-  val TC_add_local: Proof.context attribute
-  val TC_del_local: Proof.context attribute
-  val Typecheck_tac: tactic
-  val Type_solver_tac: thm list -> int -> tactic
-  val local_tcset_of: Proof.context -> tcset
-  val type_solver: solver
-end;
 
 signature TYPE_CHECK =
 sig
-  include BASIC_TYPE_CHECK
+  val print_tcset: Context.generic -> unit
+  val TC_add: attribute
+  val TC_del: attribute
+  val typecheck_tac: Proof.context -> tactic
+  val type_solver_tac: Proof.context -> thm list -> int -> tactic
+  val type_solver: solver
   val setup: theory -> theory
 end;
 
 structure TypeCheck: TYPE_CHECK =
 struct
 
-datatype tcset =
-    TC of {rules: thm list,     (*the type-checking rules*)
-           net: thm Net.net};   (*discrimination net of the same rules*)
+(* datatype tcset *)
 
+datatype tcset = TC of
+ {rules: thm list,     (*the type-checking rules*)
+  net: thm Net.net};   (*discrimination net of the same rules*)
 
-val mem_thm = gen_mem Drule.eq_thm_prop
-and rem_thm = gen_rem Drule.eq_thm_prop;
-
-fun addTC (cs as TC{rules, net}, th) =
-  if mem_thm (th, rules) then
-         (warning ("Ignoring duplicate type-checking rule\n" ^
-                   string_of_thm th);
-          cs)
+fun add_rule th (tcs as TC {rules, net}) =
+  if member Drule.eq_thm_prop rules th then
+    (warning ("Ignoring duplicate type-checking rule\n" ^ Display.string_of_thm th); tcs)
   else
-      TC{rules  = th::rules,
-         net = Net.insert_term (K false) (concl_of th, th) net};
+    TC {rules = th :: rules,
+        net = Net.insert_term (K false) (Thm.concl_of th, th) net};
+
+fun del_rule th (tcs as TC {rules, net}) =
+  if member Drule.eq_thm_prop rules th then
+    TC {net = Net.delete_term Drule.eq_thm_prop (Thm.concl_of th, th) net,
+        rules = remove Drule.eq_thm_prop th rules}
+  else (warning ("No such type-checking rule\n" ^ Display.string_of_thm th); tcs);
 
 
-fun delTC (cs as TC{rules, net}, th) =
-  if mem_thm (th, rules) then
-      TC{net = Net.delete_term Drule.eq_thm_prop (concl_of th, th) net,
-         rules  = rem_thm (rules,th)}
-  else (warning ("No such type-checking rule\n" ^ (string_of_thm th));
-        cs);
+(* generic data *)
 
-val op addTCs = Library.foldl addTC;
-val op delTCs = Library.foldl delTC;
+structure Data = GenericDataFun
+(
+  val name = "ZF/type-checking";
+  type T = tcset
+  val empty = TC {rules = [], net = Net.empty};
+  val extend = I;
 
+  fun merge _ (TC {rules, net}, TC {rules = rules', net = net'}) =
+    TC {rules = gen_union Drule.eq_thm_prop (rules, rules'),
+        net = Net.merge Drule.eq_thm_prop (net, net')};
+
+  fun print context (TC {rules, ...}) =
+    Pretty.writeln (Pretty.big_list "type-checking rules:"
+      (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
+);
+
+val print_tcset = Data.print;
+
+val TC_add = Thm.declaration_attribute (Data.map o add_rule);
+val TC_del = Thm.declaration_attribute (Data.map o del_rule);
+
+val tcset_of = Data.get o Context.Proof;
+
+
+(* tactics *)
 
 (*resolution using a net rather than rules*)
 fun net_res_tac maxr net =
@@ -95,7 +91,7 @@ val test_assume_tac = SUBGOAL(fn (prem,i) =>
 fun typecheck_step_tac (TC{net,...}) =
     FIRSTGOAL (test_assume_tac ORELSE' net_res_tac 3 net);
 
-fun typecheck_tac tcset = REPEAT (typecheck_step_tac tcset);
+fun typecheck_tac ctxt = REPEAT (typecheck_step_tac (tcset_of ctxt));
 
 (*Compiles a term-net for speed*)
 val basic_res_tac = net_resolve_tac [TrueI,refl,reflexive_thm,iff_refl,
@@ -103,132 +99,38 @@ val basic_res_tac = net_resolve_tac [TrueI,refl,reflexive_thm,iff_refl,
 
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)
-fun type_solver_tac tcset hyps = SELECT_GOAL
+fun type_solver_tac ctxt hyps = SELECT_GOAL
     (DEPTH_SOLVE (etac FalseE 1
                   ORELSE basic_res_tac 1
                   ORELSE (ares_tac hyps 1
-                          APPEND typecheck_step_tac tcset)));
+                          APPEND typecheck_step_tac (tcset_of ctxt))));
+
+val type_solver = Simplifier.mk_solver' "ZF typecheck" (fn ss =>
+  type_solver_tac (Simplifier.the_context ss) (Simplifier.prems_of_ss ss));
 
 
+(* concrete syntax *)
 
-fun merge_tc (TC{rules,net}, TC{rules=rules',net=net'}) =
-    TC {rules = gen_union Drule.eq_thm_prop (rules,rules'),
-        net = Net.merge Drule.eq_thm_prop (net, net')};
+val TC_att = Attrib.add_del_args TC_add TC_del;
 
-(*print tcsets*)
-fun print_tc (TC{rules,...}) =
-    Pretty.writeln
-       (Pretty.big_list "type-checking rules:" (map Display.pretty_thm rules));
+val typecheck_meth =
+  Method.only_sectioned_args
+    [Args.add -- Args.colon >> K (I, TC_add),
+     Args.del -- Args.colon >> K (I, TC_del)]
+  (fn ctxt => Method.SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)));
 
-
-(** global tcset **)
-
-structure TypecheckingArgs =
-struct
-  val name = "ZF/type-checker";
-  type T = tcset ref;
-  val empty = ref (TC{rules=[], net=Net.empty});
-  fun copy (ref tc) = ref tc;
-  val extend = copy;
-  fun merge _ (ref tc1, ref tc2) = ref (merge_tc (tc1, tc2));
-  fun print _ (ref tc) = print_tc tc;
-end;
-
-structure TypecheckingData = TheoryDataFun(TypecheckingArgs);
-
-val print_tcset = TypecheckingData.print;
-val tcset_ref_of = TypecheckingData.get;
-val tcset_of = ! o tcset_ref_of;
-val tcset = tcset_of o Context.the_context;
-val tcset_ref = tcset_ref_of o Context.the_context;
-
-fun TCSET tacf st = tacf (tcset_of (Thm.theory_of_thm st)) st;
-fun TCSET' tacf i st = tacf (tcset_of (Thm.theory_of_thm st)) i st;
+val _ = OuterSyntax.add_parsers
+  [OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+      Toplevel.keep (print_tcset o Toplevel.context_of)))];
 
 
-(* change global tcset *)
-
-fun change_tcset f x = tcset_ref () := (f (tcset (), x));
-
-val AddTCs = change_tcset (op addTCs);
-val DelTCs = change_tcset (op delTCs);
-
-fun Typecheck_tac st = typecheck_tac (tcset()) st;
-
-fun Type_solver_tac hyps = type_solver_tac (tcset()) hyps;
-
-
-
-(** local tcset **)
-
-structure LocalTypecheckingData = ProofDataFun
-(struct
-  val name = TypecheckingArgs.name;
-  type T = tcset;
-  val init = tcset_of;
-  fun print _ tcset = print_tc tcset;
-end);
-
-val local_tcset_of = LocalTypecheckingData.get;
-
-
-(* solver *)
-
-val type_solver = Simplifier.mk_solver' "ZF types" (fn ss =>
-  type_solver_tac (local_tcset_of (Simplifier.the_context ss)) (Simplifier.prems_of_ss ss));
-
-
-(* attributes *)
-
-fun global_att f (thy, th) =
-  let val r = tcset_ref_of thy
-  in r := f (! r, th); (thy, th) end;
-
-fun local_att f (ctxt, th) = (LocalTypecheckingData.map (fn tcset => f (tcset, th)) ctxt, th);
-
-val TC_add_global = global_att addTC;
-val TC_del_global = global_att delTC;
-val TC_add_local = local_att addTC;
-val TC_del_local = local_att delTC;
-
-val TC_attr =
- (Attrib.add_del_args TC_add_global TC_del_global,
-  Attrib.add_del_args TC_add_local TC_del_local);
-
-
-(* methods *)
-
-fun TC_args x = Method.only_sectioned_args
-  [Args.add -- Args.colon >> K (I, TC_add_local),
-   Args.del -- Args.colon >> K (I, TC_del_local)] x;
-
-fun typecheck ctxt =
-  Method.SIMPLE_METHOD (CHANGED (typecheck_tac (local_tcset_of ctxt)));
-
-
-
-(** theory setup **)
+(* theory setup *)
 
 val setup =
- (TypecheckingData.init #>
-  LocalTypecheckingData.init #>
-  (fn thy => (change_simpset_of thy (fn ss => ss addSolver type_solver); thy)) #>
-  Attrib.add_attributes [("TC", TC_attr, "declaration of typecheck rule")] #>
-  Method.add_methods [("typecheck", TC_args typecheck, "ZF typecheck")]);
-
-
-(** outer syntax **)
-
-val print_tcsetP =
-  OuterSyntax.improper_command "print_tcset" "print context of ZF type-checker"
-    OuterKeyword.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o (Toplevel.keep
-      (Toplevel.node_case print_tcset (LocalTypecheckingData.print o Proof.context_of)))));
-
-val _ = OuterSyntax.add_parsers [print_tcsetP];
-
+  Data.init #>
+  Attrib.add_attributes [("TC", TC_att, "declaration of type-checking rule")] #>
+  Method.add_methods [("typecheck", typecheck_meth, "ZF type-checking")] #>
+  (fn thy => (change_simpset_of thy (fn ss => ss setSolver type_solver); thy));
 
 end;
-
-structure BasicTypeCheck: BASIC_TYPE_CHECK = TypeCheck;
-open BasicTypeCheck;
