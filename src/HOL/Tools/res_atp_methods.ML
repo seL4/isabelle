@@ -35,16 +35,16 @@ fun res_atp_tac res_atp_oracle mode timeLimit ctxt user_thms n thm =
 
 (* vampire and eprover tactics *)
 
-val vampire_tac = res_atp_tac vampire_oracle ResAtpSetup.Auto (!vampire_time);
-val eprover_tac = res_atp_tac eprover_oracle ResAtpSetup.Auto(!eprover_time);
+fun vampire_tac st = res_atp_tac vampire_oracle ResAtpSetup.Auto (!vampire_time) st;
+fun eprover_tac st = res_atp_tac eprover_oracle ResAtpSetup.Auto (!eprover_time) st;
 
-val vampireF_tac = res_atp_tac vampire_oracle ResAtpSetup.Fol(!vampire_time);
+fun vampireF_tac st = res_atp_tac vampire_oracle ResAtpSetup.Fol (!vampire_time) st;
 
-val vampireH_tac = res_atp_tac vampire_oracle ResAtpSetup.Hol (!vampire_time);
+fun vampireH_tac st = res_atp_tac vampire_oracle ResAtpSetup.Hol (!vampire_time) st;
 
-val eproverF_tac = res_atp_tac eprover_oracle ResAtpSetup.Fol (!eprover_time);
+fun eproverF_tac st = res_atp_tac eprover_oracle ResAtpSetup.Fol (!eprover_time) st;
 
-val eproverH_tac = res_atp_tac eprover_oracle ResAtpSetup.Hol (!eprover_time);
+fun eproverH_tac st = res_atp_tac eprover_oracle ResAtpSetup.Hol (!eprover_time) st;
 
 val ResAtps_setup =
   Method.add_methods 
