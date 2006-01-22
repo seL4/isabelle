@@ -2231,6 +2231,7 @@ constdefs
   abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a noption))" ("[_]._" [100,100] 100)
   "[a].x \<equiv> (\<lambda>b. (if b=a then nSome(x) else (if b\<sharp>x then nSome([(a,b)]\<bullet>x) else nNone)))"
 
+(* FIXME: should be called perm_if and placed close to the definition of permutations on bools *)
 lemma abs_fun_if: 
   fixes pi :: "'x prm"
   and   x  :: "'a"
