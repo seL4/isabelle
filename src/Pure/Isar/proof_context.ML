@@ -14,6 +14,7 @@ sig
   val theory_of: context -> theory
   val init: theory -> context
   val set_body: bool -> context -> context
+  val restore_body: context -> context -> context
   val assms_of: context -> term list
   val prems_of: context -> thm list
   val fact_index_of: context -> FactIndex.T
@@ -239,6 +240,7 @@ val syntax_of = #syntax o rep_context;
 
 val is_body = #1 o #fixes o rep_context;
 fun set_body b = map_fixes (fn (_, fixes) => (b, fixes));
+fun restore_body ctxt = set_body (is_body ctxt);
 
 val fixes_of = #2 o #fixes o rep_context;
 val fixed_names_of = map #2 o fixes_of;
