@@ -5,7 +5,7 @@ sig
   val create_nom_typedecls : string list -> theory -> theory
   val atoms_of : theory -> string list
   val mk_permT : typ -> typ
-  val setup : (theory -> theory) list
+  val setup : theory -> theory
 end
 
 structure NominalAtoms : NOMINAL_ATOMS =
@@ -784,6 +784,6 @@ val atom_declP =
 
 val _ = OuterSyntax.add_parsers [atom_declP];
 
-val setup = [NominalData.init];
+val setup = NominalData.init;
 
 end;
