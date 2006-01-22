@@ -457,8 +457,8 @@ lemma subtype_reflexivity:
 using a b
 proof(nominal_induct T avoiding: \<Gamma> rule: ty.induct)
   case (Forall X T\<^isub>1 T\<^isub>2)
-  have ih_T\<^isub>1: "\<And>\<Gamma>. \<turnstile> \<Gamma> ok \<Longrightarrow> T\<^isub>1 closed_in \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>1 <: T\<^isub>1" by fact 
-  have ih_T\<^isub>2: "\<And>\<Gamma>. \<turnstile> \<Gamma> ok \<Longrightarrow> T\<^isub>2 closed_in \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>2 <: T\<^isub>2" by fact
+  have ih_T\<^isub>1: "\<And>\<Gamma>. \<lbrakk>\<turnstile> \<Gamma> ok; T\<^isub>1 closed_in \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>1 <: T\<^isub>1" by fact 
+  have ih_T\<^isub>2: "\<And>\<Gamma>. \<lbrakk>\<turnstile> \<Gamma> ok; T\<^isub>2 closed_in \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>2 <: T\<^isub>2" by fact
   have fresh_cond: "X\<sharp>\<Gamma>" by fact
   hence fresh_domain: "X\<sharp>(domain \<Gamma>)" by (simp add: fresh_domain)
   have "(\<forall>[X<:T\<^isub>2].T\<^isub>1) closed_in \<Gamma>" by fact
@@ -479,13 +479,14 @@ lemma subtype_reflexivity_semiautomated:
   shows "\<Gamma> \<turnstile> T <: T"
 using a b
 apply(nominal_induct T avoiding: \<Gamma> rule: ty.induct)
-apply(auto simp add: ty.supp abs_supp closed_in_def supp_atm)
+apply(auto simp add: ty.supp abs_supp supp_atm closed_in_def)
   --{* Too bad that this instantiation cannot be found automatically by
   \isakeyword{auto}; \isakeyword{blast} would find it if we had not used 
   an explicit definition for @{text "closed_in_def"}. *}
 apply(drule_tac x="(tyvrs, ty2)#\<Gamma>" in meta_spec)
-apply(force simp add: closed_in_def fresh_domain)
+apply(force dest: fresh_domain simp add: closed_in_def)
 done
+
 
 section {* Weakening *}
 
@@ -699,7 +700,7 @@ proof (induct Q fixing: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule: me
     assume "\<Gamma>' \<turnstile> S' <: Q" --{* left-hand derivation *}
       and  "\<Gamma>' \<turnstile> Q <: T"  --{* right-hand derivation *}
     thus "\<Gamma>' \<turnstile> S' <: T"
-    proof (nominal_induct \<Gamma>' S' Q\<equiv>Q avoiding: \<Gamma>' S' rule: subtype_of_induct) 
+    proof (nominal_induct \<Gamma>' S' Q\<equiv>Q rule: subtype_of_induct) 
       case (S_Top \<Gamma> S) 
 	--{* \begin{minipage}[t]{0.9\textwidth}
 	In this case the left-hand derivation is @{term "\<Gamma> \<turnstile> S <: Top"}, giving
