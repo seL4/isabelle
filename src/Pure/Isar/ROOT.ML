@@ -22,11 +22,13 @@ use "net_rules.ML";
 use "induct_attrib.ML";
 
 (*derived theory and proof elements*)
-use "specification.ML";
-use "constdefs.ML";
+use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
-use "calculation.ML";
+use "local_theory.ML";
+use "specification.ML";
+use "constdefs.ML";
+
 
 (*outer syntax*)
 use "antiquote.ML";
