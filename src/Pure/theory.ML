@@ -342,7 +342,8 @@ fun gen_add_finals prep_term overloaded args thy =
     fun const_of (Const const) = const
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = Defs.define (Sign.the_const_type thy) (c ^ " axiom") (c, T) [];
+    fun specify (c, T) =
+      Defs.define (Sign.the_const_type thy) (c ^ " axiom") (prep_const thy (c, T)) [];
     val finalize = specify o check_overloading thy overloaded o
       const_of o no_vars (Sign.pp thy) o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
