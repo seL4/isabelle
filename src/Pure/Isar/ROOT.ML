@@ -29,7 +29,6 @@ use "local_theory.ML";
 use "specification.ML";
 use "constdefs.ML";
 
-
 (*outer syntax*)
 use "antiquote.ML";
 use "outer_parse.ML";
