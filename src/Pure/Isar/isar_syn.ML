@@ -195,8 +195,10 @@ val constdefsP =
 
 val axiomatizationP =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
-    (P.fixes -- Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.named_spec)) []
-    >> (Toplevel.theory o (#2 oo Specification.axiomatize)));
+    (P.opt_locale_target --
+      Scan.optional P.fixes [] --
+      Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.named_spec)) []
+    >> (fn ((x, y), z) => Toplevel.theory_context (#2 o Specification.axiomatization x y z)));
 
 
 (* theorems *)
