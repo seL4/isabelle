@@ -199,7 +199,7 @@ fun match_params ctxt vars rule =
   in (xs' @ ys', rule') end;
 
 fun inferred_type (x, _, mx) ctxt =
-  let val ((_, T), ctxt') = ProofContext.inferred_type x ctxt
+  let val ((_, T), ctxt') = ProofContext.inferred_param x ctxt
   in ((x, SOME T, mx), ctxt') end;
 
 fun gen_guess prep_vars raw_vars int state =
