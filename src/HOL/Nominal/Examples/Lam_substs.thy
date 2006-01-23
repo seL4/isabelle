@@ -567,7 +567,7 @@ lemma rec_function:
   assumes f: "finite ((supp (f1,f2,f3))::name set)"
   and     c: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
   shows "\<exists>!y. (t,y)\<in>rec f1 f2 f3"
-proof 
+proof (rule ex_ex1I)
   case goal1
   show ?case by (rule rec_total[OF f, OF c])
 next
