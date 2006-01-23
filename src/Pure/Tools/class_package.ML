@@ -2,14 +2,14 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Haskell98-like operational view on type classes.
+Type classes, simulated by locales.
 *)
 
 signature CLASS_PACKAGE =
 sig
-  val add_class: bstring -> Locale.expr -> Element.context list -> theory
+  val add_class: bstring -> class list -> Element.context list -> theory
     -> ProofContext.context * theory
-  val add_class_i: bstring -> Locale.expr -> Element.context_i list -> theory
+  val add_class_i: bstring -> class list -> Element.context_i list -> theory
     -> ProofContext.context * theory
   val add_instance_arity: (xstring * string list) * string
     -> ((bstring * string) * Attrib.src list) list
@@ -19,6 +19,9 @@ sig
     -> theory -> Proof.state
   val add_classentry: class -> xstring list -> xstring list -> theory -> theory
 
+  val intern_class: theory -> xstring -> string
+  val extern_class: theory -> string -> xstring
+  val certify_class: theory -> class -> class
   val syntactic_sort_of: theory -> sort -> sort
   val the_superclasses: theory -> class -> class list
   val the_consts_sign: theory -> class -> string * (string * typ) list
@@ -95,7 +98,7 @@ val lookup_const_class = Symtab.lookup o snd o ClassData.get;
 
 fun get_class_data thy class =
   case lookup_class_data thy class
-    of NONE => error ("undeclared class " ^ quote class)
+    of NONE => error ("undeclared operational class " ^ quote class)
      | SOME data => data;
 
 fun add_class_data (class, (superclasses, name_locale, name_axclass, classvar, consts)) =
@@ -126,6 +129,18 @@ fun add_inst_data (class, inst) =
           });
 
 
+(* name handling *)
+
+fun certify_class thy class =
+  (get_class_data thy class; class);
+
+fun intern_class thy raw_class =
+  certify_class thy (Sign.intern_class thy raw_class);
+
+fun extern_class thy class =
+  Sign.extern_class thy (certify_class thy class);
+
+
 (* classes and instances *)
 
 fun subst_clsvar v ty_subst =
@@ -134,10 +149,16 @@ fun subst_clsvar v ty_subst =
 
 local
 
-open Element
-
-fun gen_add_class add_locale bname raw_import raw_body thy =
+fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
   let
+    val supclasses = map (prep_class thy) raw_supclasses;
+    val supsort = case map (#name_axclass o get_class_data thy) supclasses
+     of [] => Sign.defaultS thy
+      | sort => Sorts.certify_sort (Sign.classes_of thy) sort;
+    val locexpr = case supclasses
+     of [] => Locale.empty
+      | _ => (Locale.Merge o map (Locale.Locale o #name_locale o get_class_data thy))
+                supclasses;
     fun extract_assumes c_adds elems =
       let
         fun subst_free ts =
@@ -149,7 +170,7 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
       in
         elems
         |> (map o List.mapPartial)
-            (fn (Assumes asms) => (SOME o map (map fst o snd)) asms
+            (fn (Element.Assumes asms) => (SOME o map (map fst o snd)) asms
               | _ => NONE)
         |> Library.flat o Library.flat o Library.flat
         |> subst_free
@@ -157,23 +178,30 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
     fun extract_tyvar_name thy tys =
       fold (curry add_typ_tfrees) tys []
       |> (fn [(v, sort)] =>
-                if Sorts.sort_eq (Sign.classes_of thy) (Sign.defaultS thy, sort)
+                if Sorts.sort_le (Sign.classes_of thy) (swap (sort, supsort))
                 then v 
                 else error ("illegal sort constraint on class type variable: " ^ Sign.string_of_sort thy sort)
            | [] => error ("no class type variable")
            | vs => error ("more than one type variable: " ^ (commas o map (Sign.string_of_typ thy o TFree)) vs))
-    fun extract_tyvar_consts thy elems =
-      elems
-      |> Library.flat
-      |> List.mapPartial
-           (fn (Fixes consts) => SOME consts
-             | _ => NONE)
-      |> Library.flat
-      |> map (fn (c, ty, syn) =>
-           ((c, the ty), (Syntax.unlocalize_mixfix o Syntax.fix_mixfix c) syn))
-      |> `(fn consts => extract_tyvar_name thy (map (snd o fst) consts))
-      |-> (fn v => map ((apfst o apsnd) (subst_clsvar v (TFree (v, []))))
-         #> pair v);
+    fun extract_tyvar_consts thy (import_elems, body_elems) =
+      let
+        fun get_elems elems =
+          elems
+          |> Library.flat
+          |> List.mapPartial
+               (fn (Element.Fixes consts) => SOME consts
+                 | _ => NONE)
+          |> Library.flat
+          |> map (fn (c, ty, syn) =>
+               ((c, the ty), (Syntax.unlocalize_mixfix o Syntax.fix_mixfix c) syn))
+        val import_consts = get_elems import_elems;
+        val body_consts = get_elems body_elems;
+        val v = extract_tyvar_name thy (map (snd o fst) (import_consts @ body_consts));
+        fun subst_ty cs =
+          map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) cs;
+        val import_cs = subst_ty import_consts;
+        val body_cs = subst_ty body_consts;
+      in (v, (import_cs, body_cs)) end;
     fun add_global_const v ((c, ty), syn) thy =
       thy
       |> Sign.add_consts_i [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]
@@ -181,35 +209,42 @@ fun gen_add_class add_locale bname raw_import raw_body thy =
     fun add_global_constraint v class (_, (c, ty)) thy =
       thy
       |> Sign.add_const_constraint_i (c, subst_clsvar v (TVar ((v, 0), [class])) ty);
+    fun interpret name_locale cs ax_axioms thy =
+      thy
+      |> Locale.interpretation (NameSpace.base name_locale, [])
+           (Locale.Locale name_locale)
+             (map (fn ((c, _), _) => SOME (Sign.intern_const thy c)) cs)
+      |> Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE)
+      |> swap;
     fun print_ctxt ctxt elem = 
       map Pretty.writeln (Element.pretty_ctxt ctxt elem)
   in
     thy
-    |> add_locale bname raw_import raw_body
+    |> add_locale bname locexpr raw_body
     |-> (fn ((import_elems, body_elems), ctxt) =>
        `(fn thy => Locale.intern thy bname)
     #-> (fn name_locale =>
-          `(fn thy => extract_tyvar_consts thy body_elems)
-    #-> (fn (v, c_defs) =>
+          `(fn thy => extract_tyvar_consts thy (import_elems, body_elems))
+    #-> (fn (v, (c_global, c_defs)) =>
           fold_map (add_global_const v) c_defs
     #-> (fn c_adds =>
-          AxClass.add_axclass_i (bname, Sign.defaultS thy)
+          AxClass.add_axclass_i (bname, supsort)
             (map (Thm.no_attributes o pair "") (extract_assumes c_adds (import_elems @ body_elems)))
-    #-> (fn _ =>
+    #-> (fn { axioms = ax_axioms : thm list, ...} =>
           `(fn thy => Sign.intern_class thy bname)
     #-> (fn name_axclass =>
           fold (add_global_constraint v name_axclass) c_adds
-    #> add_class_data (name_locale, ([], name_locale, name_axclass, v, map snd c_adds))
+    #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, v, map snd c_adds))
     #> tap (fn _ => (map o map) (print_ctxt ctxt) import_elems)
     #> tap (fn _ => (map o map) (print_ctxt ctxt) body_elems)
-    #> pair ctxt
+    #> interpret name_locale (c_global @ c_defs) ax_axioms
     ))))))
   end;
 
 in
 
-val add_class = gen_add_class (Locale.add_locale_context true);
-val add_class_i = gen_add_class (Locale.add_locale_context_i true);
+val add_class = gen_add_class (Locale.add_locale_context true) intern_class;
+val add_class_i = gen_add_class (Locale.add_locale_context_i true) certify_class;
 
 end; (* local *)
 
@@ -239,23 +274,25 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
       let
         fun eq_c ((c1, ty1), (c2, ty2)) = c1 = c2
           andalso Sign.typ_instance thy (ty1, ty2)
-          andalso Sign.typ_instance thy (ty2, ty1)
-        val _ = case fold (remove eq_c) c_given c_req
-         of [] => ()
-          | cs => error ("no definition(s) given for"
-                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
+          andalso Sign.typ_instance thy (ty2, ty1);
         val _ = case fold (remove eq_c) c_req c_given
          of [] => ()
-          | cs => error ("superfluous definition(s) given for"
+          | cs => error ("superfluous definition(s) given for "
+                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
+        val _ = case fold (remove eq_c) c_given c_req
+         of [] => ()
+          | cs => error ("no definition(s) given for "
                     ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
       in thy end;
+    fun after_qed cs =
+      fold Sign.add_const_constraint_i cs
+      #> fold (fn class => add_inst_data (class, (tyco, Context.theory_name thy))) sort;
   in
     thy
     |> fold_map get_remove_contraint (map fst c_req)
-    ||> tap (fn thy => check_defs (get_c_given thy) c_req)
+    ||> tap (fn thy => check_defs (get_c_given thy) c_req thy)
     ||> add_defs (true, raw_defs)
-    |-> (fn cs => fold Sign.add_const_constraint_i cs)
-    |> AxClass.instance_arity_i arity
+    |-> (fn cs => AxClass.instance_arity_i (after_qed cs) arity)
   end;
 
 val add_instance_arity = fn x => gen_instance_arity (AxClass.read_arity) IsarThy.add_defs read_axm x;
@@ -430,22 +467,19 @@ in
 
 val (classK, instanceK) = ("class", "class_instance")
 
-val locale_val =
-  (P.locale_expr --
-    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.context_element)) [] ||
-  Scan.repeat1 P.context_element >> pair Locale.empty);
-
 val classP =
   OuterSyntax.command classK "operational type classes" K.thy_decl
-    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
+    (P.name --| P.$$$ "="
+     -- Scan.optional (Scan.repeat1 (P.name --| P.$$$ "+")) []
+     -- Scan.optional (P.!!! (Scan.repeat1 P.context_element)) []
       >> (Toplevel.theory_context
-          o (fn f => swap o f) o (fn (bname, (expr, elems)) => add_class bname expr elems)));
+          o (fn f => swap o f) o (fn ((bname, supclasses), elems) => add_class bname supclasses elems)));
 
 val instanceP =
-  OuterSyntax.command instanceK "" K.thy_goal
+  OuterSyntax.command instanceK "declare instance for operational type class" K.thy_goal
     (P.xname -- (P.$$$ "::" |-- P.!!! P.arity)
       -- Scan.repeat1 P.spec_name
-      >> (Toplevel.theory_to_proof
+      >> (Toplevel.print oo Toplevel.theory_to_proof
           o (fn ((tyco, (asorts, sort)), defs) => add_instance_arity ((tyco, asorts), sort) defs)));
 
 val _ = OuterSyntax.add_parsers [classP, instanceP];
