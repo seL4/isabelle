@@ -85,10 +85,10 @@ constdefs
            (| pset = S, order = induced S (order cl) |): CompleteLattice }"
 
 syntax
-  "@SL"  :: "['a set, 'a potype] => bool" ("_ <\<subseteq> _" [51,50]50)
+  "@SL"  :: "['a set, 'a potype] => bool" ("_ <<= _" [51,50]50)
 
 translations
-  "S <\<subseteq> cl" == "S : sublattice `` {cl}"
+  "S <<= cl" == "S : sublattice `` {cl}"
 
 constdefs
   dual :: "'a potype => 'a potype"
@@ -303,12 +303,12 @@ done
 subsection {* sublattice *}
 
 lemma (in PO) sublattice_imp_CL:
-     "S <\<subseteq> cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
+     "S <<= cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
 by (simp add: sublattice_def CompleteLattice_def A_def r_def)
 
 lemma (in CL) sublatticeI:
      "[| S \<subseteq> A; (| pset = S, order = induced S r |) \<in> CompleteLattice |]
-      ==> S <\<subseteq> cl"
+      ==> S <<= cl"
 by (simp add: sublattice_def A_def r_def)
 
 
@@ -659,7 +659,7 @@ lemmas (in CLF) intv_CL_glb = intv_CL_lub [THEN Rdual]
 
 lemma (in CLF) interval_is_sublattice:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {} |]
-        ==> interval r a b <\<subseteq> cl"
+        ==> interval r a b <<= cl"
 apply (rule sublatticeI)
 apply (simp add: interval_subset)
 apply (rule CompleteLatticeI)
@@ -737,7 +737,7 @@ apply (rule Y_ss [simplified P_def])
 done
 
 lemma (in Tarski) lubY_in_A: "lub Y cl \<in> A"
-by (simp add: Y_subset_A [THEN lub_in_lattice])
+  by (rule Y_subset_A [THEN lub_in_lattice])
 
 lemma (in Tarski) lubY_le_flubY: "(lub Y cl, f (lub Y cl)) \<in> r"
 apply (rule lub_least)
