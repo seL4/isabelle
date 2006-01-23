@@ -798,13 +798,13 @@ fun snd (x, y) = y;
 code_syntax_tyco
   *
     ml (infix 2 "*")
-    haskell (atom "(__,/ __)")
+    haskell (target_atom "(__,/ __)")
 
 code_syntax_const
   fst
-    haskell (atom "fst")
+    haskell (target_atom "fst")
   snd
-    haskell (atom "snd")
+    haskell (target_atom "snd")
 
 ML {*
 

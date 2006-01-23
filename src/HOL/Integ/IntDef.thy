@@ -897,16 +897,16 @@ consts_code
   "neg"                         ("(_ < 0)")
 
 code_syntax_tyco int
-  ml (atom "IntInf.int")
-  haskell (atom "Integer")
+  ml (target_atom "IntInf.int")
+  haskell (target_atom "Integer")
 
 code_syntax_const
   0 :: "int"
-    ml (atom "(0:IntInf.int)")
-    haskell (atom "0")
+    ml (target_atom "(0:IntInf.int)")
+    haskell (target_atom "0")
   1 :: "int"
-    ml (atom "(1:IntInf.int)")
-    haskell (atom "1")
+    ml (target_atom "(1:IntInf.int)")
+    haskell (target_atom "1")
   "op +" :: "int \<Rightarrow> int \<Rightarrow> int"
     ml (infixl 8 "+")
     haskell (infixl 6 "+")
@@ -914,8 +914,8 @@ code_syntax_const
     ml (infixl 9 "*")
     haskell (infixl 7 "*")
   uminus :: "int \<Rightarrow> int"
-    ml (atom "~")
-    haskell (atom "negate")
+    ml (target_atom "~")
+    haskell (target_atom "negate")
   "op <" :: "int \<Rightarrow> int \<Rightarrow> bool"
     ml (infix 6 "<")
     haskell (infix 4 "<")

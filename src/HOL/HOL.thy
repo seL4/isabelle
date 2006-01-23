@@ -1377,13 +1377,13 @@ code_alias
   uminus "HOL.uminus"
 
 code_syntax_tyco bool
-  ml (atom "bool")
-  haskell (atom "Bool")
+  ml (target_atom "bool")
+  haskell (target_atom "Bool")
 
 code_syntax_const
   Not
-    ml (atom "not")
-    haskell (atom "not")
+    ml (target_atom "not")
+    haskell (target_atom "not")
   "op &"
     ml (infixl 1 "andalso")
     haskell (infixl 3 "&&")

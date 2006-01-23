@@ -29,11 +29,11 @@ and gen_set aG i = gen_set' aG i i;
 
 code_syntax_tyco set
   ml ("_ list")
-  haskell (atom "[_]")
+  haskell (target_atom "[_]")
 
 code_syntax_const "{}"
-  ml (atom "[]")
-  haskell (atom "[]")
+  ml (target_atom "[]")
+  haskell (target_atom "[]")
 
 consts_code
   "{}"      ("[]")

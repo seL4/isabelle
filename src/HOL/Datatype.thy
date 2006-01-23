@@ -224,16 +224,16 @@ subsubsection {* Codegenerator setup *}
 
 code_syntax_const
   True
-    ml (atom "true")
-    haskell (atom "True")
+    ml (target_atom "true")
+    haskell (target_atom "True")
   False
-    ml (atom "false")
-    haskell (atom "False")
+    ml (target_atom "false")
+    haskell (target_atom "False")
 
 code_syntax_const
   Pair
-    ml (atom "(__,/ __)")
-    haskell (atom "(__,/ __)")
+    ml (target_atom "(__,/ __)")
+    haskell (target_atom "(__,/ __)")
 
 code_syntax_const
   1 :: "nat"

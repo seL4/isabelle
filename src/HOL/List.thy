@@ -2694,12 +2694,12 @@ code_alias
 code_syntax_tyco
   list
     ml ("_ list")
-    haskell (atom "[_]")
+    haskell (target_atom "[_]")
 
 code_syntax_const
   Nil
-    ml (atom "[]")
-    haskell (atom "[]")
+    ml (target_atom "[]")
+    haskell (target_atom "[]")
 
 setup list_codegen_setup
 

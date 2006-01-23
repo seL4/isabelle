@@ -52,12 +52,12 @@ fun nat i = if i < 0 then 0 else i;
   int ("(_)")
 
 (* code_syntax_tyco nat
-  ml (atom "InfInt.int")
-  haskell (atom "Integer")
+  ml (target_atom "InfInt.int")
+  haskell (target_atom "Integer")
 
 code_syntax_const 0 :: nat
   ml ("0 : InfInt.int")
-  haskell (atom "0")
+  haskell (target_atom "0")
 
 code_syntax_const Suc
   ml (infixl 8 "_ + 1")
