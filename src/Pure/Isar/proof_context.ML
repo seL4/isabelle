@@ -35,7 +35,6 @@ sig
   val string_of_thm: context -> thm -> string
   val used_types: context -> string list
   val default_type: context -> string -> typ option
-  val infer_type: context -> string -> typ
   val read_typ: context -> string -> typ
   val read_typ_syntax: context -> string -> typ
   val read_typ_abbrev: context -> string -> typ
@@ -63,7 +62,9 @@ sig
   val cert_term_pats: typ -> context -> term list -> term list
   val cert_prop_pats: context -> term list -> term list
   val declare_term: term -> context -> context
-  val inferred_type: string -> context -> (string * typ) * context
+  val infer_type: context -> string -> typ
+  val inferred_param: string -> context -> (string * typ) * context
+  val inferred_fixes: context -> (string * typ) list * context
   val read_tyname: context -> string -> typ
   val read_const: context -> string -> term
   val warn_extra_tfrees: context -> context -> context
@@ -407,13 +408,6 @@ val used_types = #3 o defaults_of;
 
 fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
 
-fun infer_type ctxt x =
-  (case try (fn () =>
-      Sign.infer_types (pp ctxt) (theory_of ctxt) (def_type ctxt false) (def_sort ctxt)
-        (used_types ctxt) true ([Free (x, dummyT)], TypeInfer.logicT)) () of
-    SOME (Free (_, T), _) => T
-  | _ => error ("Failed to infer type of fixed variable " ^ quote x));
-
 
 
 (** prepare types **)
@@ -680,11 +674,24 @@ fun declare_term t ctxt =
   |> map_defaults (fn (types, sorts, used, occ) =>
       (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types, sorts, used, occ));
 
-fun inferred_type x ctxt =
+end;
+
+
+(* inferred types of parameters *)
+
+fun infer_type ctxt x =
+  (case try (fn () =>
+      Sign.infer_types (pp ctxt) (theory_of ctxt) (def_type ctxt false) (def_sort ctxt)
+        (used_types ctxt) true ([Free (x, dummyT)], TypeInfer.logicT)) () of
+    SOME (Free (_, T), _) => T
+  | _ => error ("Failed to infer type of fixed variable " ^ quote x));
+
+fun inferred_param x ctxt =
   let val T = infer_type ctxt x
   in ((x, T), ctxt |> declare_term (Free (x, T))) end;
 
-end;
+fun inferred_fixes ctxt =
+  fold_map inferred_param (rev (fixed_names_of ctxt)) ctxt;
 
 
 (* type and constant names *)
