@@ -231,21 +231,22 @@ fun prep_inst (concl, xs) =	(*exception UnequalLengths *)
 
 in
 
-fun gen_induct_tac inst_tac (varss, opt_rule) i state =
+fun gen_induct_tac inst_tac (varss, opt_rule) i state = 
+  SUBGOAL (fn (Bi,_) =>
   let
-    val (_, _, Bi, _) = Thm.dest_state (state, i);
-    val {sign, ...} = Thm.rep_thm state;
     val (rule, rule_name) =
-      (case opt_rule of
-        SOME r => (r, "Induction rule")
-      | NONE =>
-          let val tn = find_tname (hd (List.mapPartial I (List.concat varss))) Bi
-          in (#induction (datatype_info_err sign tn), "Induction rule for type " ^ tn) end);
-
+      case opt_rule of
+	  SOME r => (r, "Induction rule")
+	| NONE =>
+	    let val tn = find_tname (hd (List.mapPartial I (List.concat varss))) Bi
+                val {sign, ...} = Thm.rep_thm state
+	    in (#induction (datatype_info_err sign tn), "Induction rule for type " ^ tn) 
+	    end
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = List.concat (map prep_inst (concls ~~ varss)) handle UnequalLengths =>
       error (rule_name ^ " has different numbers of variables");
-  in occs_in_prems (inst_tac insts rule) (map #2 insts) i state end;
+  in occs_in_prems (inst_tac insts rule) (map #2 insts) i end)
+  i state;
 
 fun induct_tac s =
   gen_induct_tac Tactic.res_inst_tac'
