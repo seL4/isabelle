@@ -136,9 +136,8 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 (*We write out problem files for each subgoal. Argument pf generates filenames,
   and allows the suppression of the suffix "_1" in problem-generation mode.*)
 fun write_problem_files pf (ctxt,th)  =
-  let val prems = Thm.prems_of th
-      val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt (hd prems) 
-              (*FIXME: hack!! need to consider relevance for all prems*)
+  let val goals = Thm.prems_of th
+      val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt goals 
       val _ = Output.debug ("claset and simprules total clauses = " ^ 
                      Int.toString (Array.length clause_arr))
       val thy = ProofContext.theory_of ctxt
@@ -157,7 +156,7 @@ fun write_problem_files pf (ctxt,th)  =
 		       (axclauses,classrel_clauses,arity_clauses);
 		 all_tac))]) n th;
 	    pf n :: writenext (n-1))
-      in (writenext (length prems), clause_arr) end;
+      in (writenext (length goals), clause_arr) end;
 
 val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
                                     Posix.Process.pid * string list) option);

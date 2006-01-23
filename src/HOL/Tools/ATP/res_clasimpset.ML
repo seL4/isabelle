@@ -79,7 +79,7 @@ signature RES_CLASIMP =
   val relevant : int ref
   val use_simpset: bool ref
   val get_clasimp_lemmas : 
-         Proof.context -> term -> 
+         Proof.context -> term list -> 
          (ResClause.clause * thm) Array.array * ResClause.clause list 
   end;
 
@@ -317,15 +317,15 @@ fun make_unique ht xs =
 (*Write out the claset and simpset rules of the supplied theory.
   FIXME: argument "goal" is a hack to allow relevance filtering.
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
-fun get_clasimp_lemmas ctxt goal = 
+fun get_clasimp_lemmas ctxt goals = 
   let val claset_thms =
-	    map put_name_pair
-	      (ReduceAxiomsN.relevant_filter (!relevant) goal 
+	    map put_name_pair  (*FIXME: relevance filter should use ALL goals*)
+	      (ReduceAxiomsN.relevant_filter (!relevant) (hd goals)
 		(ResAxioms.claset_rules_of_ctxt ctxt))
       val simpset_thms = 
 	    if !use_simpset then 
 		  map put_name_pair 
-		    (ReduceAxiomsN.relevant_filter (!relevant) goal
+		    (ReduceAxiomsN.relevant_filter (!relevant) (hd goals)
 		      (ResAxioms.simpset_rules_of_ctxt ctxt))
 	    else []
       val banned = make_banned_test (map #1 (claset_thms@simpset_thms))
