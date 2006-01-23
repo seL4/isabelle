@@ -15,9 +15,10 @@ by (simp add: symKeys_def)
 
 subsection{*Asymmetric Keys*}
 
+datatype keymode = Signature | Encryption
+
 consts
-  (*the bool is TRUE if a signing key*)
-  publicKey :: "[bool,agent] => key"
+  publicKey :: "[keymode,agent] => key"
 
 syntax
   pubEK :: "agent => key"
@@ -28,13 +29,13 @@ syntax
   priSK :: "agent => key"
 
 translations
-  "pubEK"  == "publicKey False"
-  "pubSK"  == "publicKey True"
+  "pubEK"  == "publicKey Encryption"
+  "pubSK"  == "publicKey Signature"
 
   (*BEWARE!! priEK, priSK DON'T WORK with inj, range, image, etc.*)
   "privateKey b A" == "invKey (publicKey b A)"
-  "priEK A"  == "privateKey False A"
-  "priSK A"  == "privateKey True A"
+  "priEK A"  == "privateKey Encryption A"
+  "priSK A"  == "privateKey Signature A"
 
 
 text{*These translations give backward compatibility.  They represent the
@@ -53,8 +54,10 @@ text{*By freeness of agents, no two agents have the same key.  Since
 specification (publicKey)
   injective_publicKey:
     "publicKey b A = publicKey c A' ==> b=c & A=A'"
-   apply (rule exI [of _ "%b A. 2 * agent_case 0 (\<lambda>n. n + 2) 1 A + (if b then 1 else 0)"])
-   apply (auto simp add: inj_on_def split: agent.split, presburger+)
+   apply (rule exI [of _ 
+       "%b A. 2 * agent_case 0 (\<lambda>n. n + 2) 1 A + keymode_case 0 1 b"])
+   apply (auto simp add: inj_on_def split: agent.split keymode.split)
+   apply presburger+
    done                       
 
 
@@ -63,7 +66,8 @@ axioms
     keys are private!) *)
   privateKey_neq_publicKey [iff]: "privateKey b A \<noteq> publicKey c A'"
 
-declare privateKey_neq_publicKey [THEN not_sym, iff]
+lemmas publicKey_neq_privateKey = privateKey_neq_publicKey [THEN not_sym]
+declare publicKey_neq_privateKey [iff]
 
 
 subsection{*Basic properties of @{term pubK} and @{term priK}*}
@@ -151,12 +155,14 @@ by (auto simp add: invKey_K)
 lemma priK_neq_shrK [iff]: "shrK A \<noteq> privateKey b C"
 by (simp add: symKeys_neq_imp_neq)
 
-declare priK_neq_shrK [THEN not_sym, simp]
+lemmas shrK_neq_priK = priK_neq_shrK [THEN not_sym]
+declare shrK_neq_priK [simp]
 
 lemma pubK_neq_shrK [iff]: "shrK A \<noteq> publicKey b C"
 by (simp add: symKeys_neq_imp_neq)
 
-declare pubK_neq_shrK [THEN not_sym, simp]
+lemmas shrK_neq_pubK = pubK_neq_shrK [THEN not_sym]
+declare shrK_neq_pubK [simp]
 
 lemma priEK_noteq_shrK [simp]: "priEK A \<noteq> shrK B" 
 by auto
@@ -272,32 +278,37 @@ by blast
 lemma shrK_neq: "Key K \<notin> used evs ==> shrK B \<noteq> K"
 by blast
 
-declare shrK_neq [THEN not_sym, simp]
+lemmas neq_shrK = shrK_neq [THEN not_sym]
+declare neq_shrK [simp]
 
 
 subsection{*Function @{term spies} *}
 
+lemma not_SignatureE [elim!]: "b \<noteq> Signature \<Longrightarrow> b = Encryption"
+  by (cases b, auto) 
+
 text{*Agents see their own private keys!*}
 lemma priK_in_initState [iff]: "Key (privateKey b A) \<in> initState A"
-by (induct_tac "A", auto)
+  by (cases A, auto)
 
 text{*Agents see all public keys!*}
 lemma publicKey_in_initState [iff]: "Key (publicKey b A) \<in> initState B"
-by (case_tac "B", auto)
+  by (cases B, auto) 
 
 text{*All public keys are visible*}
 lemma spies_pubK [iff]: "Key (publicKey b A) \<in> spies evs"
 apply (induct_tac "evs")
-apply (simp_all add: imageI knows_Cons split add: event.split)
+apply (auto simp add: imageI knows_Cons split add: event.split)
 done
 
-declare spies_pubK [THEN analz.Inj, iff]
+lemmas analz_spies_pubK = spies_pubK [THEN analz.Inj]
+declare analz_spies_pubK [iff]
 
 text{*Spy sees private keys of bad agents!*}
 lemma Spy_spies_bad_privateKey [intro!]:
      "A \<in> bad ==> Key (privateKey b A) \<in> spies evs"
 apply (induct_tac "evs")
-apply (simp_all add: imageI knows_Cons split add: event.split)
+apply (auto simp add: imageI knows_Cons split add: event.split)
 done
 
 text{*Spy sees long-term shared keys of bad agents!*}

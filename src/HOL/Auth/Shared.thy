@@ -37,7 +37,8 @@ primrec
 subsection{*Basic properties of shrK*}
 
 (*Injectiveness: Agents' long-term keys are distinct.*)
-declare inj_shrK [THEN inj_eq, iff]
+lemmas shrK_injective = inj_shrK [THEN inj_eq]
+declare shrK_injective [iff]
 
 lemma invKey_K [simp]: "invKey K = K"
 apply (insert isSym_keys)
