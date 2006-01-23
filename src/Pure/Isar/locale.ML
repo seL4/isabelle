@@ -41,7 +41,6 @@ sig
 
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
-  val the_params: theory -> string -> (string * typ) list
   val init: string -> theory -> Proof.context
 
   (* Processing of locale statements *)  (* FIXME export more abstract version *)
@@ -318,10 +317,6 @@ fun the_locale thy name =
   (case get_locale thy name of
     SOME loc => loc
   | NONE => error ("Unknown locale " ^ quote name));
-
-fun the_params thy name =
-  let val {params = (ps, _), ...} = the_locale thy name
-  in map fst ps end;
 
 
 (* access registrations *)
