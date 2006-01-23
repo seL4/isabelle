@@ -62,7 +62,7 @@ attach {*
 fun Ball S P = Library.forall P S;
 *}
 
-code_generate "op mem"
+code_generate ("op mem")
 
 code_primconst "insert"
   depending_on ("List.const.member")
