@@ -923,8 +923,6 @@ struct
 (* {...}     : parameters that control the translation/model generation      *)
 (* t         : term to be translated into a propositional formula            *)
 (* negate    : if true, find a model that makes 't' false (rather than true) *)
-(* Note: exception 'TimeOut' is raised if the algorithm does not terminate   *)
-(*       within 'maxtime' seconds (if 'maxtime' >0)                          *)
 (* ------------------------------------------------------------------------- *)
 
 	(* theory -> params -> Term.term -> bool -> unit *)
@@ -1014,9 +1012,9 @@ struct
 			writeln ("Trying to find a model that " ^ (if negate then "refutes" else "satisfies") ^ ": "
 				^ Sign.string_of_term (sign_of thy) t);
 			if maxtime>0 then (
-				TimeLimit.timeLimit (Time.fromSeconds (Int.toLarge maxtime))
+				interrupt_timeout (Time.fromSeconds (Int.toLarge maxtime))
 					wrapper ()
-				handle TimeLimit.TimeOut =>
+				handle Interrupt =>
 					writeln ("\nSearch terminated, time limit ("
 						^ string_of_int maxtime ^ (if maxtime=1 then " second" else " seconds")
 						^ ") exceeded.")

@@ -59,6 +59,11 @@ fun print_depth n =
 | _ => use "ML-Systems/cpu-timer-gc.ML");
 
 
+(* bounded time execution *)
+
+use "ML-Systems/smlnj-interrupt-timeout.ML";
+
+
 (*prompts*)
 fun ml_prompts p1 p2 =
   (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);

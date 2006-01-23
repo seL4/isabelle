@@ -62,8 +62,12 @@ use "ML-Systems/cpu-timer-basis.ML";
 
 (* bounded time execution *)
 
+(* FIXME proper implementation for Cygwin available? *)
+fun interrupt_timeout time f x =
+  f x;
+
 unless_cygwin
-  use "ML-Systems/polyml-time-limit.ML";
+  use "ML-Systems/polyml-interrupt-timeout.ML";
 
 
 (* prompts *)
