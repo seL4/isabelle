@@ -88,9 +88,9 @@ sig
 
   val serialize:
     ((string -> string) -> (string * def) list -> 'a option)
-    -> (string list -> string * 'a list -> 'b -> 'a * 'b)
+    -> (string list -> string * 'a list -> 'a)
     -> (string -> string option)
-    -> string list list -> string -> module -> 'b -> 'a * 'b;
+    -> string list list -> string -> module -> 'a;
 end;
 
 signature CODEGEN_THINGOL_OP =
@@ -1242,32 +1242,25 @@ fun mk_resolv tab =
 
 (* serialization *)
 
-fun serialize seri_defs seri_module validate nsp_conn name_root module ctxt =
+fun serialize seri_defs seri_module validate nsp_conn name_root module =
   let
     val resolvtab = mk_resolvtab nsp_conn validate module;
     val resolver = mk_resolv resolvtab;
     fun mk_name prfx name =
       resolver prfx (NameSpace.pack (prfx @ [name]));
-    fun mk_contents prfx module ctxt =
-      ctxt
-      |> fold_map (seri prfx) ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
-      |-> (fn xs => pair (List.mapPartial I xs))
-    and seri prfx ([(name, Module modl)]) ctxt =
-          ctxt
-          |> mk_contents (prfx @ [name]) modl
-          |-> (fn [] => pair NONE
-                | xs => 
-                    seri_module (imports_of module name_root (prfx @ [name])) (mk_name prfx name, xs)
-                    #-> (fn x => pair (SOME x)))
-      | seri prfx ds ctxt =
+    fun mk_contents prfx module =
+      List.mapPartial (seri prfx) ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
+    and seri prfx ([(name, Module modl)]) =
+          (case mk_contents (prfx @ [name]) modl
+           of [] => NONE
+            | xs => 
+                SOME (seri_module (imports_of module name_root (prfx @ [name])) (mk_name prfx name, xs)))
+      | seri prfx ds =
           ds
           |> map (fn (name, Def def) => (mk_name prfx name, def))
           |> seri_defs (resolver prfx)
-          |> rpair ctxt
   in
-    ctxt
-    |> mk_contents [] module
-    |-> (fn xs => seri_module [] (name_root, xs))
+    seri_module [] (name_root, (mk_contents [] module))
   end;
 
 end; (* struct *)

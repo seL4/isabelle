@@ -6,9 +6,6 @@ Code generator from Isabelle theories to
 intermediate language ("Thin-gol").
 *)
 
-(*NOTE: for simplifying developement, this package contains
-some stuff which will finally be moved upwards to HOL*)
-
 signature CODEGEN_PACKAGE =
 sig
   type auxtab;
@@ -16,7 +13,8 @@ sig
     -> (string * typ) -> (thm list * typ) option;
   type defgen;
   type appgen = theory -> auxtab
-    -> (string * typ) * term list -> CodegenThingol.transact -> CodegenThingol.iexpr * CodegenThingol.transact;
+    -> (string * typ) * term list -> CodegenThingol.transact
+    -> CodegenThingol.iexpr * CodegenThingol.transact;
 
   val add_appconst: string * ((int * int) * appgen) -> theory -> theory;
   val add_appconst_i: xstring * ((int * int) * appgen) -> theory -> theory;
@@ -937,7 +935,8 @@ fun mk_tabs thy =
                   overltab1
                   |> Symtab.update_new (c, (Sign.the_const_constraint thy c, map fst tytab)),
                   overltab2
-                  |> fold (fn (ty, _) => ConstNameMangler.declare thy (idf_of_name thy nsp_overl c, (Sign.the_const_constraint thy c, ty)) #> snd) tytab
+                  |> fold (fn (ty, _) => ConstNameMangler.declare thy
+                       (idf_of_name thy nsp_overl c, (Sign.the_const_constraint thy c, ty)) #> snd) tytab
                 ))) deftab;
     fun mk_dtcontab thy =
       DatatypeconsNameMangler.empty
@@ -962,10 +961,10 @@ fun mk_tabs thy =
     val clsmemtab = mk_clsmemtab thy;
   in ((deftab, clsmemtab), (insttab, overltabs, dtcontab)) end;
 
-fun check_for_target thy target =
-  if (Symtab.defined o #target_data o CodegenData.get) thy target
-  then ()
-  else error ("unknown code target language: " ^ quote target);
+fun get_serializer target =
+  case Symtab.lookup (!serializers) target
+   of SOME seri => seri
+    | NONE => error ("unknown code target language: " ^ quote target);
 
 fun map_module f =
   map_codegen_data (fn (modl, gens, target_data, logic_data) =>
@@ -1070,7 +1069,7 @@ val parse_syntax_tyco =
   let
     fun mk reader raw_tyco target thy =
       let
-        val _ = check_for_target thy target;
+        val _ = get_serializer target;
         fun check_tyco tyco =
           if Sign.declared_tyname thy tyco
           then tyco
@@ -1118,7 +1117,7 @@ val parse_syntax_const =
   let
     fun mk reader raw_const target thy =
       let
-        val _ = check_for_target thy target;
+        val _ = get_serializer target;
         val tabs = mk_tabs thy;
         val c = idf_of_const thy tabs (read_const thy raw_const);
       in
@@ -1134,7 +1133,7 @@ val parse_syntax_const =
 
 fun add_pretty_list raw_nil raw_cons (target, seri) thy =
   let
-    val _ = check_for_target thy target;
+    val _ = get_serializer target;
     val tabs = mk_tabs thy;
     fun mk_const raw_name =
       let
@@ -1151,57 +1150,41 @@ fun add_pretty_list raw_nil raw_cons (target, seri) thy =
 
 
 
-(** code generation **)
+(** toplevel interface **)
 
-fun generate_code raw_consts thy =
-  let
-    val consts = map (read_const thy) raw_consts;
-    fun generate thy tabs = fold_map (ensure_def_const thy tabs) consts
-  in
-    thy
-    |> expand_module generate
-  end;
+local
 
-fun serialize_code target filename raw_consts thy =
-  let
-    fun get_serializer thy target =
+fun generate_code (SOME raw_consts) thy =
       let
-        val _ = check_for_target thy target;
+        val consts = map (read_const thy) raw_consts;
+        fun generate thy tabs = fold_map (ensure_def_const thy tabs) consts
+      in
+        thy
+        |> expand_module generate
+        |-> (fn cs => pair (SOME cs))
+      end
+  | generate_code NONE thy =
+      (NONE, thy);
+
+fun serialize_code target seri raw_consts thy =
+  let
+    fun serialize cs thy =
+      let
+        val module = (#modl o CodegenData.get) thy;
         val target_data =
           thy
           |> CodegenData.get
           |> #target_data
           |> (fn data => (the oo Symtab.lookup) data target);
-      in
-        (the o Symtab.lookup (! serializers)) target (
+        in (seri (
           (Option.map fst oo Symtab.lookup o #syntax_tyco) target_data,
           (Option.map fst oo Symtab.lookup o #syntax_const) target_data
-        )
-      end;
-    fun use_code code =
-      if target = "ml" andalso filename = "-"
-      then use_text Context.ml_output false code
-      else File.write (Path.unpack filename) (code ^ "\n");
-    fun serialize thy cs =
-      let
-        val module = (#modl o CodegenData.get) thy;
-        val seri = get_serializer thy target "Generated";
-      in case cs
-       of [] => seri NONE module () |> fst |> Pretty.output |> use_code
-        | cs => seri (SOME cs) module () |> fst |> Pretty.output |> use_code
-      end;
+        ) "Generated" cs module : unit; thy) end;
   in
     thy
-    |> (if is_some raw_consts then generate_code (the raw_consts) else pair [])
-    |-> (fn cs => `(fn thy => serialize thy cs))
-    |-> (fn _ => I)
+    |> generate_code raw_consts
+    |-> (fn cs => serialize cs)
   end;
-
-
-
-(** toplevel interface **)
-
-local
 
 structure P = OuterParse
 and K = OuterKeyword
@@ -1214,8 +1197,8 @@ val (classK, generateK, serializeK,
   ("code_class", "code_generate", "code_serialize",
    "code_primclass", "code_primtyco", "code_primconst",
    "code_syntax_tyco", "code_syntax_const", "code_alias");
-val (constantsK, dependingK) =
-  ("constants", "depending_on");
+val dependingK =
+  ("depending_on");
 
 val classP =
   OuterSyntax.command classK "codegen data for classes" K.thy_decl (
@@ -1227,21 +1210,26 @@ val classP =
 
 val generateP =
   OuterSyntax.command generateK "generate executable code for constants" K.thy_decl (
-    Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-    >> (fn consts =>
-          Toplevel.theory (generate_code consts #> snd))
+    P.$$$ "("
+    |-- Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
+    --| P.$$$ ")"
+    >> (fn raw_consts =>
+          Toplevel.theory (generate_code (SOME raw_consts) #> snd))
   );
 
 val serializeP =
   OuterSyntax.command serializeK "serialize executable code for constants" K.thy_decl (
     P.name
-    -- P.name
     -- Scan.option (
-         P.$$$ constantsK
+         P.$$$ "("
          |-- Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
+         --| P.$$$ ")"
        )
-    >> (fn ((target, filename), raw_consts) =>
-          Toplevel.theory (serialize_code target filename raw_consts))
+    #-> (fn (target, raw_consts) =>
+          get_serializer target
+          >> (fn seri =>
+            Toplevel.theory (serialize_code target seri raw_consts)
+          ))
   );
 
 val aliasP =
@@ -1309,7 +1297,7 @@ val syntax_constP =
 
 val _ = OuterSyntax.add_parsers [classP, generateP, serializeP, aliasP,
   primclassP, primtycoP, primconstP, syntax_tycoP, syntax_constP];
-val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>", constantsK, dependingK];
+val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>", dependingK];
 
 
 
