@@ -9,6 +9,7 @@ Abstract syntax operations of the Pure meta-logic.
 signature LOGIC =
 sig
   val is_all: term -> bool
+  val dest_all: term -> typ * term
   val mk_equals: term * term -> term
   val dest_equals: term -> term * term
   val is_equals: term -> bool
@@ -69,6 +70,10 @@ struct
 
 fun is_all (Const ("all", _) $ _) = true
   | is_all _ = false;
+
+fun dest_all (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ A) = (T, A)
+  | dest_all t = raise TERM ("dest_all", [t]);
+
 
 
 (** equality **)
