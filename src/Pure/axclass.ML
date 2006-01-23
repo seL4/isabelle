@@ -22,8 +22,8 @@ sig
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
   val instance_subclass: xstring * xstring -> theory -> Proof.state
   val instance_subclass_i: class * class -> theory -> Proof.state
-  val instance_arity: xstring * string list * string -> theory -> Proof.state
-  val instance_arity_i: string * sort list * sort -> theory -> Proof.state
+  val instance_arity: (theory -> theory) -> xstring * string list * string -> theory -> Proof.state
+  val instance_arity_i: (theory -> theory) -> string * sort list * sort -> theory -> Proof.state
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> string * sort list * sort -> arity
   val intro_classes_tac: thm list -> tactic
@@ -303,19 +303,22 @@ end;
 
 local
 
-fun gen_instance mk_prop add_thms inst thy = thy
+fun gen_instance mk_prop add_thms after_qed inst thy =
+  thy
   |> ProofContext.init
-  |> Proof.theorem_i Drule.internalK NONE (fold add_thms) NONE ("", [])
-    (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
+  |> Proof.theorem_i Drule.internalK NONE (after_qed oo fold add_thms) NONE ("", [])
+       (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
 
 in
 
 val instance_subclass =
-  gen_instance (single oo (mk_classrel oo read_classrel)) add_classrel_thms;
+  gen_instance (single oo (mk_classrel oo read_classrel)) add_classrel_thms I;
 val instance_subclass_i =
-  gen_instance (single oo (mk_classrel oo cert_classrel)) add_classrel_thms;
-val instance_arity = gen_instance (mk_arities oo read_arity) add_arity_thms;
-val instance_arity_i = gen_instance (mk_arities oo cert_arity) add_arity_thms;
+  gen_instance (single oo (mk_classrel oo cert_classrel)) add_classrel_thms I;
+val instance_arity =
+  gen_instance (mk_arities oo read_arity) add_arity_thms;
+val instance_arity_i =
+  gen_instance (mk_arities oo cert_arity) add_arity_thms;
 
 end;
 
@@ -354,7 +357,7 @@ val axclassP =
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> instance_subclass ||
-      P.xname -- (P.$$$ "::" |-- P.!!! P.arity) >> (instance_arity o P.triple2))
+      P.xname -- (P.$$$ "::" |-- P.!!! P.arity) >> (instance_arity I o P.triple2))
     >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [axclassP, instanceP];
