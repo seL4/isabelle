@@ -16,7 +16,7 @@ val hol_full_types = ResHolClause.full_types;
 val hol_partial_types = ResHolClause.partial_types;
 val hol_const_types_only = ResHolClause.const_types_only;
 val hol_no_types = ResHolClause.no_types;
-val hol_typ_level = ResHolClause.find_typ_level;
+fun hol_typ_level () = ResHolClause.find_typ_level ();
 
 fun is_typed_hol () = 
     let val tp_level = hol_typ_level()
@@ -84,22 +84,22 @@ fun untyped_HOL_helper1 () =
 
 
 fun HOL_helper1 () =
-    let val tp_level = hol_typ_level ()
+    let val tp_level = !ResHolClause.typ_level
     in
-	case tp_level of T_FULL => (warning "Full type"; full_typed_HOL_helper1 ())
-		       | T_PARTIAL => (warning "Partial type"; partial_typed_HOL_helper1 ())
-		       | T_CONST => (warning "Const type"; const_typed_HOL_helper1 ())
-		       | T_NONE => (warning "Untyped"; untyped_HOL_helper1 ())
+	case tp_level of ResHolClause.T_PARTIAL => (warning "Partial type helper"; partial_typed_HOL_helper1 ())
+		       | ResHolClause.T_FULL => (warning "Full type helper"; full_typed_HOL_helper1 ())
+		       | ResHolClause.T_CONST => (warning "Const type helper"; const_typed_HOL_helper1 ())
+		       | ResHolClause.T_NONE => (warning "Untyped helper"; untyped_HOL_helper1 ())
     end;
 
 
 fun HOL_comb () =
-    let val tp_level = hol_typ_level ()
+    let val tp_level = !ResHolClause.typ_level
     in
-	case tp_level of T_FULL => (warning "Full type"; full_typed_comb ())
-		       | T_PARTIAL => (warning "Partial type"; partial_typed_comb ())
-		       | T_CONST => (warning "Const type"; const_typed_comb ())
-		       | T_NONE => (warning "Untyped"; untyped_comb ())
+	case tp_level of ResHolClause.T_FULL => (warning "Full type comb"; full_typed_comb ())
+		       | ResHolClause.T_PARTIAL => (warning "Partial type comb"; partial_typed_comb ())
+		       | ResHolClause.T_CONST => (warning "Const type comb"; const_typed_comb ())
+		       | ResHolClause.T_NONE => (warning "Untyped comb"; untyped_comb ())
     end;
 
 
