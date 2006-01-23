@@ -142,7 +142,6 @@ val not_refl_disj_D = thm"meson_not_refl_disj_D";
 
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
-(Output.debug ("refl_clause_aux " ^ Int.toString n ^ " " ^ string_of_thm th);
        case HOLogic.dest_Trueprop (concl_of th) of
 	  (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) => 
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
@@ -152,7 +151,7 @@ fun refl_clause_aux 0 th = th
 		 handle THM _ => refl_clause_aux (n-1) (th RS disj_comm))  (*ignore*)
 	    else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
 	| (Const ("op |", _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
-	| _ => (*not a disjunction*) th);
+	| _ => (*not a disjunction*) th;
 
 fun notequal_lits_count (Const ("op |", _) $ P $ Q) = 
       notequal_lits_count P + notequal_lits_count Q
@@ -393,10 +392,9 @@ val nnf_simps = [Ex1_def,Ball_def,Bex_def,tag_True,tag_False]
 
 val nnf_ss =
     HOL_basic_ss addsimps
-     (nnf_simps @ [if_True, if_False, if_cancel, if_eq_cancel, cases_simp]
-     @ ex_simps @ all_simps @ simp_thms)
-     addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc]
-     addsplits [split_if];
+     (nnf_simps @ [if_True, if_False, if_cancel, if_eq_cancel, cases_simp] @
+      thms"split_ifs" @ ex_simps @ all_simps @ simp_thms)
+     addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc];
 
 fun make_nnf th = th |> simplify nnf_ss
                      |> make_nnf1
