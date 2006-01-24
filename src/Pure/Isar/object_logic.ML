@@ -17,11 +17,13 @@ sig
   val declare_atomize: attribute
   val declare_rulify: attribute
   val atomize_term: theory -> term -> term
-  val atomize_cterm: theory -> cterm -> thm
+  val atomize_cterm: cterm -> thm
   val atomize_thm: thm -> thm
   val atomize_tac: int -> tactic
   val full_atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
+  val reverse_atomize_term: theory -> term -> term
+  val reverse_atomize_tac: int -> tactic
   val rulify: thm -> thm
   val rulify_no_asm: thm -> thm
   val rule_format: attribute
@@ -121,6 +123,7 @@ fun ensure_propT thy t =
 (* maintain rules *)
 
 val get_atomize = #1 o #2 o ObjectLogicData.get;
+val get_reverse_atomize = map Thm.symmetric o get_atomize;
 val get_rulify = #2 o #2 o ObjectLogicData.get;
 
 val declare_atomize =
@@ -142,7 +145,7 @@ fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
 
-fun atomize_cterm thy = Tactic.rewrite true (get_atomize thy);
+fun atomize_cterm ct = Tactic.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
 fun atomize_thm th = rewrite_rule (get_atomize (Thm.theory_of_thm th)) th;
 
 fun atomize_tac i st =
@@ -155,6 +158,12 @@ fun full_atomize_tac i st =
 
 fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
+
+
+(* reverse atomize -- not necessarily the same as rulify! *)
+
+fun reverse_atomize_term thy = MetaSimplifier.rewrite_term thy (get_reverse_atomize thy) [];
+fun reverse_atomize_tac i st = rewrite_goal_tac (get_reverse_atomize (Thm.theory_of_thm st)) i st;
 
 
 (* rulify *)
