@@ -187,8 +187,13 @@ val constdecl =
 val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
 val constdefsP =
-  OuterSyntax.command "constdefs" "standard constant definitions" K.thy_decl
+  OuterSyntax.command "constdefs" "old-style constant definitions" K.thy_decl
     (structs -- Scan.repeat1 constdef >> (Toplevel.theory o Constdefs.add_constdefs));
+
+val definitionP =
+  OuterSyntax.command "definition" "standard constant definition" K.thy_decl
+    (P.opt_locale_target -- Scan.repeat1 constdef
+    >> (fn (x, y) => Toplevel.theory_context (#2 o Specification.definition x y)));
 
 
 (* constant specifications *)
@@ -197,7 +202,7 @@ val axiomatizationP =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
     (P.opt_locale_target --
       Scan.optional P.fixes [] --
-      Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.named_spec)) []
+      Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.spec)) []
     >> (fn ((x, y), z) => Toplevel.theory_context (#2 o Specification.axiomatization x y z)));
 
 
@@ -857,9 +862,9 @@ val _ = OuterSyntax.add_parsers [
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, judgmentP, constsP, finalconstsP, syntaxP, no_syntaxP,
-  translationsP, axiomsP, defsP, constdefsP, axiomatizationP,
-  theoremsP, lemmasP, declareP, globalP, localP, hideP, useP, mlP,
-  ml_commandP, ml_setupP, setupP, method_setupP,
+  translationsP, axiomsP, defsP, constdefsP, definitionP,
+  axiomatizationP, theoremsP, lemmasP, declareP, globalP, localP,
+  hideP, useP, mlP, ml_commandP, ml_setupP, setupP, method_setupP,
   parse_ast_translationP, parse_translationP, print_translationP,
   typed_print_translationP, print_ast_translationP,
   token_translationP, oracleP, localeP,
