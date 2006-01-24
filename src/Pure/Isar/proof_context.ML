@@ -69,7 +69,7 @@ sig
   val read_const: context -> string -> term
   val warn_extra_tfrees: context -> context -> context
   val generalize: context -> context -> term list -> term list
-  val export: context -> context -> thm -> thm
+  val export_standard: context -> context -> thm -> thm
   val exports: context -> context -> thm -> thm Seq.seq
   val goal_exports: context -> context -> thm -> thm Seq.seq
   val drop_schematic: indexname * term option -> indexname * term option
@@ -142,6 +142,7 @@ sig
   val export_view: cterm list -> context -> context -> thm -> thm
   val mk_def: context -> (string * term) list -> term list
   val cert_def: context -> term -> string * term
+  val abs_def: term -> (string * typ) * term
   val def_export: export
   val add_def: string * term -> context -> ((string * typ) * thm) * context
   val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
@@ -784,7 +785,7 @@ fun common_exports is_goal inner outer =
       end)
   end;
 
-fun export inner outer =
+fun export_standard inner outer =
   let val exp = common_exports false inner outer in
     fn th =>
       (case Seq.pull (exp th) of
@@ -1143,7 +1144,7 @@ fun fix_frees t ctxt =
     fun add (Free (x, T)) = if is_fixed ctxt x then I else insert (op =) (x, SOME T, NoSyn)
       | add _ = I;
     val fixes = rev (fold_aterms add t []);
-  in snd (add_fixes_i fixes ctxt) end;
+  in ctxt |> set_body false |> add_fixes_i fixes |> snd |> restore_body ctxt end;
 
 fun auto_fixes (arg as (ctxt, (propss, x))) =
   if is_body ctxt then arg
@@ -1216,7 +1217,7 @@ fun add_view outer view = map_assms (fn (asms, prems) =>
     val asms' = asms1 @ [(view, assume_export)] @ asms2;
   in (asms', prems) end);
 
-fun export_view view inner outer = export (add_view outer view inner) outer;
+fun export_view view inner outer = export_standard (add_view outer view inner) outer;
 
 
 (* definitions *)
@@ -1231,7 +1232,7 @@ fun mk_def ctxt args =
 fun cert_def ctxt eq =
   let
     fun err msg = cat_error msg
-      ("The error(s) above occurred in local definition: " ^ string_of_term ctxt eq);
+      ("The error(s) above occurred in definition: " ^ string_of_term ctxt eq);
     val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
       handle TERM _ => err "Not a meta-equality (==)";
     val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
@@ -1250,6 +1251,16 @@ fun cert_def ctxt eq =
       err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
     (c, Term.list_all_free (List.mapPartial (try Term.dest_Free) xs, eq))
   end;
+
+fun abs_def eq =
+  let
+    val body = Term.strip_all_body eq;
+    val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
+    val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (vars, body));
+    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
+    val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
+  in (Term.dest_Free f, eq') end;
+
 
 fun head_of_def cprop =
   #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
