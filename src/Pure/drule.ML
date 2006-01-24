@@ -725,8 +725,9 @@ val abs_def =
   let
     fun contract_lhs th =
       Thm.transitive (Thm.symmetric (beta_eta_conversion (fst (dest_equals (cprop_of th))))) th;
-    fun abstract cx = Thm.abstract_rule
-      (case Thm.term_of cx of Var ((x, _), _) => x | Free (x, _) => x | _ => "x") cx;
+    fun abstract cx th = Thm.abstract_rule
+        (case Thm.term_of cx of Var ((x, _), _) => x | Free (x, _) => x | _ => "x") cx th
+      handle THM _ => raise THM ("Malformed definitional equation", 0, [th]);
   in
     contract_lhs
     #> `(snd o strip_comb o fst o dest_equals o cprop_of)
