@@ -1020,21 +1020,12 @@ local
 
 val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
-fun abstract_term eq =    (*assumes well-formedness according to ProofContext.cert_def*)
-  let
-    val body = Term.strip_all_body eq;
-    val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
-    val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (vars, body));
-    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
-    val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
-  in (Term.dest_Free f, eq') end;
-
 fun abstract_thm thy eq =
   Thm.assume (Thm.cterm_of thy eq) |> Drule.gen_all |> Drule.abs_def;
 
 fun bind_def ctxt (name, ps) eq (xs, env, ths) =
   let
-    val ((y, T), b) = abstract_term eq;
+    val ((y, T), b) = ProofContext.abs_def eq;
     val b' = norm_term env b;
     val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = err_in_locale ctxt (msg ^ ": " ^ quote y) [(name, map fst ps)];
@@ -1530,7 +1521,7 @@ fun atomize_spec thy ts =
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, ObjectLogic.atomize_cterm thy (Thm.cterm_of thy t))
+    else (body, bodyT, ObjectLogic.atomize_cterm (Thm.cterm_of thy t))
   end;
 
 fun aprop_tr' n c = (c, fn args =>
@@ -1765,7 +1756,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
 
     fun after_qed' results =
       let val locale_results = results |> (map o map)
-          (ProofContext.export elems_ctxt' locale_ctxt') in
+          (ProofContext.export_standard elems_ctxt' locale_ctxt') in
         curry (add_thmss kind locale ((names ~~ locale_attss) ~~ locale_results)) locale_ctxt
         #-> (fn res =>
           if name = "" andalso null locale_atts then I
