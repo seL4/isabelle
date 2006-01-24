@@ -22,6 +22,12 @@ sig
   val axiomatization_i: string option -> (string * typ option * mixfix) list ->
     ((bstring * Attrib.src list) * term list) list -> theory ->
     (term list * (bstring * thm list) list) * (theory * Proof.context)
+  val definition: xstring option ->
+    ((string * string option * mixfix) option * ((string * Attrib.src list) * string)) list ->
+    theory -> (term * (bstring * thm)) list * (theory * Proof.context)
+  val definition_i: string option ->
+    ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
+    theory -> (term * (bstring * thm)) list * (theory * Proof.context)
 end;
 
 structure Specification: SPECIFICATION =
@@ -56,17 +62,60 @@ fun cert_specification x =
 
 fun gen_axiomatization prep init locale raw_vars raw_specs thy =
   let
-    val ((vars, specs), ctxt) = init locale thy |> prep raw_vars raw_specs;
+    val ctxt = init locale thy;
+    val (vars, specs) = fst (prep raw_vars raw_specs ctxt);
+
     val (consts, consts_ctxt) = ctxt |> LocalTheory.consts vars;
     val subst = Term.subst_atomic (map (Free o fst) vars ~~ consts);
+
     val (axioms, axioms_ctxt) =
       consts_ctxt
       |> LocalTheory.axioms (specs |> map (fn (a, props) => (a, map subst props)))
-      ||> LocalTheory.map_theory (Theory.add_finals_i false (map Term.head_of consts));
+      ||> LocalTheory.theory (Theory.add_finals_i false (map Term.head_of consts));
+
     val _ = Pretty.writeln (LocalTheory.pretty_consts ctxt (map fst vars));
   in ((consts, axioms), `LocalTheory.exit axioms_ctxt) end;
 
 val axiomatization = gen_axiomatization read_specification LocalTheory.init;
 val axiomatization_i = gen_axiomatization cert_specification LocalTheory.init_i;
+
+
+(* definition *)
+
+fun gen_definition prep init locale args thy =
+  let
+    fun define (raw_var, (raw_a, raw_prop)) ctxt =
+      let
+        val (vars, [(a, [prop])]) = fst (prep (the_list raw_var) [(raw_a, [raw_prop])] ctxt);
+        val ((x, T), rhs) = prop
+          |> Logic.strip_imp_concl
+          |> ObjectLogic.reverse_atomize_term thy
+          |> (snd o ProofContext.cert_def ctxt)
+          |> ProofContext.abs_def;
+        val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
+          if x = x' then mx
+          else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
+
+        fun prove ctxt' const def =
+          let
+            val prop' = Term.subst_atomic [(Free (x, T), const)] prop;
+            val (As, B) = Logic.strip_horn prop';
+          in
+            (Goal.prove (ProofContext.theory_of ctxt') [] As B (K (ALLGOALS
+              (ObjectLogic.reverse_atomize_tac THEN'
+                Tactic.rewrite_goal_tac [def] THEN'
+                Tactic.resolve_tac [Drule.reflexive_thm])))
+              handle ERROR msg => cat_error msg "Failed to prove definitional specification.")
+            |> LocalTheory.standard (ProofContext.fix_frees prop' ctxt')
+          end;
+      in ctxt |> LocalTheory.def' prove ((x, mx), (a, rhs)) |>> pair (x, T) end;
+
+    val ctxt = init locale thy;
+    val ((decls, defs), defs_ctxt) = ctxt |> fold_map define args |>> split_list;
+    val _ = Pretty.writeln (LocalTheory.pretty_consts ctxt decls);
+  in (defs, `LocalTheory.exit defs_ctxt) end;
+
+val definition = gen_definition read_specification LocalTheory.init;
+val definition_i = gen_definition cert_specification LocalTheory.init_i;
 
 end;
