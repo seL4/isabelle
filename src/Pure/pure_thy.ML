@@ -52,6 +52,7 @@ sig
   val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
+  val name_multi: string -> 'a list -> (string * 'a) list
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory 
   val note_thmss: attribute -> ((bstring * attribute list) *
