@@ -12,6 +12,8 @@ theory Refute_Examples imports Main
 
 begin
 
+refute_params [satsolver="dpll"]
+
 lemma "P \<and> Q"
   apply (rule conjI)
   refute 1  -- {* refutes @{term "P"} *}
@@ -150,7 +152,7 @@ oops
 text {* A true statement (also testing names of free and bound variables being identical) *}
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
-  refute
+  refute [maxsize=4]
   apply fast
 done
 
@@ -1087,5 +1089,7 @@ oops
 lemma "P (inverse (p::'a\<times>'b))"
   refute
 oops
+
+refute_params [satsolver="auto"]
 
 end
