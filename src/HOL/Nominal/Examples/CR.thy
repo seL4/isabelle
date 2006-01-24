@@ -204,7 +204,7 @@ lemma beta_induct[consumes 1, case_names b1 b2 b3 b4]:
   and a1:    "\<And>t s1 s2 x. s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (App s1 t) (App s2 t)"
   and a2:    "\<And>t s1 s2 x. s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (App t s1) (App t s2)"
   and a3:    "\<And>a s1 s2 x. a\<sharp>x \<Longrightarrow> s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (Lam [a].s1) (Lam [a].s2)"
-  and a4:    "\<And>a t1 s1 x. a\<sharp>(s1,x) \<Longrightarrow> P x (App (Lam [a].t1) s1) (t1[a::=s1])"
+  and a4:    "\<And>a t1 s1 x. a\<sharp>x \<Longrightarrow> P x (App (Lam [a].t1) s1) (t1[a::=s1])"
   shows "P x t s"
 proof -
   from a have "\<And>(pi::name prm) x. P x (pi\<bullet>t) (pi\<bullet>s)"
@@ -239,7 +239,7 @@ proof -
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>s1,pi\<bullet>s2,x)"
 	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
       then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>(pi\<bullet>s2,x)" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
+	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
 	by (force simp add: fresh_prod fresh_atm)
       have x: "P x (App (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>s1)) (pi\<bullet>s2)) ((([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)])"
 	using a4 f2 by (blast intro!: eqvt_beta)
@@ -291,7 +291,7 @@ lemma one_induct[consumes 1, case_names o1 o2 o3 o4]:
               P x (App t1 s1) (App t2 s2)"
   and a3:    "\<And>a s1 s2 x. a\<sharp>x \<Longrightarrow> s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (Lam [a].s1) (Lam [a].s2)"
   and a4:    "\<And>a t1 t2 s1 s2 x. 
-              a\<sharp>(s1,s2,x) \<Longrightarrow> t1\<longrightarrow>\<^isub>1t2 \<Longrightarrow> (\<And>z. P z t1 t2) \<Longrightarrow> s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (\<And>z. P z s1 s2) 
+              a\<sharp>x \<Longrightarrow> t1\<longrightarrow>\<^isub>1t2 \<Longrightarrow> (\<And>z. P z t1 t2) \<Longrightarrow> s1\<longrightarrow>\<^isub>1s2 \<Longrightarrow> (\<And>z. P z s1 s2) 
               \<Longrightarrow> P x (App (Lam [a].t1) s1) (t2[a::=s2])"
   shows "P x t s"
 proof -
@@ -332,7 +332,7 @@ proof -
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>t1,pi\<bullet>t2,pi\<bullet>s1,pi\<bullet>s2,x)"
 	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
       then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>(pi\<bullet>s1,pi\<bullet>s2,x)" and f3: "c\<sharp>(pi\<bullet>t1)" and f4: "c\<sharp>(pi\<bullet>t2)"
+	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>t1)" and f4: "c\<sharp>(pi\<bullet>t2)"
 	by (force simp add: fresh_prod at_fresh[OF at_name_inst])
       have x: "P x (App (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>t1)) (pi\<bullet>s1)) ((([(c,pi\<bullet>a)]@pi)\<bullet>t2)[c::=(pi\<bullet>s2)])"
 	using a4 f2 j0 j1 j2 j3 by (simp, blast intro!: eqvt_one)
@@ -496,7 +496,7 @@ lemma one_subst:
   assumes a: "M\<longrightarrow>\<^isub>1M'"
   and     b: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N]\<longrightarrow>\<^isub>1M'[x::=N']" 
-using prems
+using a b
 proof (nominal_induct M M' avoiding: N N' x rule: one_induct)
   case (o1 M)
   thus ?case by (simp add: one_subst_aux)
@@ -508,7 +508,7 @@ next
   thus ?case by simp
 next
   case (o4 a M1 M2 N1 N2)
-  have e3: "a\<sharp>N1" "a\<sharp>N2" "a\<sharp>N" "a\<sharp>N'" "a\<sharp>x" by fact
+  have e3: "a\<sharp>N" "a\<sharp>N'" "a\<sharp>x" by fact
   show ?case
   proof -
     have "(App (Lam [a].M1) N1)[x::=N] = App (Lam [a].(M1[x::=N])) (N1[x::=N])" using e3 by simp
