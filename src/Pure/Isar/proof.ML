@@ -858,7 +858,7 @@ fun global_goal print_results prep_att prepp
     fun after_qed' results =
       (case target of NONE => I
       | SOME prfx => store_results (NameSpace.base prfx)
-          (map (map (ProofContext.export ctxt thy_ctxt
+          (map (map (ProofContext.export_standard ctxt thy_ctxt
             #> Drule.strip_shyps_warning)) results))
       #> after_qed results;
   in
