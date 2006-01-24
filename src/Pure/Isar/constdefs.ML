@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
 
-Standard constant definitions, with type-inference and optional
+Old-style constant definitions, with type-inference and optional
 structure context; specifications need to observe strictly sequential
 dependencies; no support for overloading.
 *)
