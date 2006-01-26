@@ -500,7 +500,7 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
   let
     val _ = clean_message "  Proving the elimination rules ...";
 
-    val rules1 = [CollectE, disjE, make_elim vimageD, exE];
+    val rules1 = [CollectE, disjE, make_elim vimageD, exE, FalseE];
     val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @ map make_elim [Inl_inject, Inr_inject];
   in
     mk_elims cs cTs params intr_ts intr_names |> map (fn (t, cases) =>
@@ -657,7 +657,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          rewrite_goals_tac (map mk_meta_eq (vimage_Int::Int_Collect::vimage_simps)),
          fold_goals_tac rec_sets_defs,
          (*This CollectE and disjE separates out the introduction rules*)
-         REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE, exE])),
+         REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE, exE, FalseE])),
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
          REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac)),
@@ -719,7 +719,8 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
     (* make a disjunction of all introduction rules *)
 
     val fp_fun = absfree (sname, setT, (HOLogic.Collect_const sumT) $
-      absfree (xname, sumT, foldr1 HOLogic.mk_disj (map transform_rule intr_ts)));
+      absfree (xname, sumT, if null intr_ts then HOLogic.false_const
+        else foldr1 HOLogic.mk_disj (map transform_rule intr_ts)));
 
     (* add definiton of recursive sets to theory *)
 
@@ -880,7 +881,7 @@ fun mk_ind coind ((sets, intrs), monos) =
 fun ind_decl coind =
   Scan.repeat1 P.term --
   (P.$$$ "intros" |--
-    P.!!! (Scan.repeat1 (P.opt_thm_name ":" -- P.prop))) --
+    P.!!! (Scan.repeat (P.opt_thm_name ":" -- P.prop))) --
   Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) []
   >> (Toplevel.theory o mk_ind coind);
 
