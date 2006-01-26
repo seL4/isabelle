@@ -8,4 +8,4 @@ Bounded time execution (similar to SML/NJ's TimeLimit structure).
 
 fun interrupt_timeout time f x =
   TimeLimit.timeLimit time f x
-    handle TimeLimit.TimeOut => raise SML90.Interrupt;
+    handle TimeLimit.TimeOut => raise Interrupt;

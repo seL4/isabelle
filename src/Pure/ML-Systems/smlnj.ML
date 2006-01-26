@@ -59,11 +59,6 @@ fun print_depth n =
 | _ => use "ML-Systems/cpu-timer-gc.ML");
 
 
-(* bounded time execution *)
-
-use "ML-Systems/smlnj-interrupt-timeout.ML";
-
-
 (*prompts*)
 fun ml_prompts p1 p2 =
   (Compiler.Control.primaryPrompt := p1; Compiler.Control.secondaryPrompt := p2);
@@ -108,7 +103,6 @@ fun use_text (print, err) verbose txt =
   end;
 
 
-
 (** interrupts **)
 
 exception Interrupt;
@@ -149,6 +143,12 @@ end;
               then use "ML-Systems/smlnj-basis-compat.ML"
               else ()
 | _ => ());
+
+
+
+(* bounded time execution *)
+
+use "ML-Systems/smlnj-interrupt-timeout.ML";
 
 
 (** Signal handling: emulation of the Poly/ML Signal structure. Note that types
