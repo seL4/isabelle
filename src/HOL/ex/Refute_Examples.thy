@@ -156,13 +156,13 @@ lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall
   apply fast
 done
 
-text {* "A type has at most 5 elements." *}
+text {* "A type has at most 4 elements." *}
 
-lemma "a=b | a=c | a=d | a=e | a=f | b=c | b=d | b=e | b=f | c=d | c=e | c=f | d=e | d=f | e=f"
+lemma "a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
   refute
 oops
 
-lemma "\<forall>a b c d e f. a=b | a=c | a=d | a=e | a=f | b=c | b=d | b=e | b=f | c=d | c=e | c=f | d=e | d=f | e=f"
+lemma "\<forall>a b c d e. a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
   refute  -- {* quantification causes an expansion of the formula; the
                 previous version with free variables is refuted much faster *}
 oops
