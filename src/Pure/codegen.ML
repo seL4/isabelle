@@ -763,7 +763,7 @@ fun default_codegen thy defs gr dep module brack t =
                  NONE =>
                    let
                      val _ = message ("expanding definition of " ^ s);
-                     val (Ts, _) = strip_type T;
+                     val (Ts, _) = strip_type U;
                      val (args', rhs') =
                        if not (null args) orelse null Ts then (args, rhs) else
                          let val v = Free (new_name rhs "x", hd Ts)
