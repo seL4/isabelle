@@ -360,7 +360,7 @@ local
 
 fun enter_locale NONE = Toplevel.theory I
   | enter_locale (SOME loc) = Toplevel.theory_context (fn thy =>
-      (thy, #3 (Locale.read_context_statement (SOME loc) [] [] (ProofContext.init thy))));
+      (#2 (Locale.init (Locale.intern thy loc) thy), thy));
 
 fun present_text proof present loc (s, pos) = Toplevel.keep' (fn int => fn state =>
  (Toplevel.assert (can Toplevel.proof_of state = proof);

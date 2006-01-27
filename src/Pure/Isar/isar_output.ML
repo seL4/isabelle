@@ -115,10 +115,10 @@ fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T l
 
 fun args scan f src state : string =
   let
+    val thy = Toplevel.theory_of state;
     val ctxt0 =
       if ! locale = "" then Toplevel.body_context_of state
-      else #3 (Locale.read_context_statement (SOME (! locale)) [] []
-        (ProofContext.init (Toplevel.theory_of state)));
+      else #2 (Locale.init (Locale.intern thy (! locale)) thy);
     val (ctxt, x) = syntax scan src ctxt0;
   in f src ctxt x end;
 
