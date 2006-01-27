@@ -21,9 +21,9 @@ sig
     -> theory -> (string * thm list) list * theory
   val smart_theorems: string -> xstring option ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list ->
-    theory -> theory * Proof.context
+    theory -> Proof.context * theory
   val declare_theorems: xstring option ->
-    (thmref * Attrib.src list) list -> theory -> theory * Proof.context
+    (thmref * Attrib.src list) list -> theory -> Proof.context * theory
   val have: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     bool -> Proof.state -> Proof.state
   val hence: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
@@ -68,16 +68,16 @@ fun add_defs_i (x, args) = (snd oo PureThy.add_defs_i x) args;
 
 (* theorems *)
 
-fun present_theorems kind (named_thmss, thy) =
-  conditional (kind <> "" andalso kind <> Drule.internalK) (fn () =>
-    Context.setmp (SOME thy) (Present.results (kind ^ "s")) named_thmss);
+fun present_theorems kind (res, thy) =
+  conditional (kind <> "" andalso kind <> PureThy.internalK) (fn () =>
+    Context.setmp (SOME thy) (Present.results (kind ^ "s")) res);
 
 fun theorems kind args thy = thy
-  |> PureThy.note_thmss (Drule.kind kind) (Attrib.map_facts (Attrib.attribute thy) args)
+  |> PureThy.note_thmss kind (Attrib.map_facts (Attrib.attribute thy) args)
   |> tap (present_theorems kind);
 
 fun theorems_i kind args =
-  PureThy.note_thmss_i (Drule.kind kind) args
+  PureThy.note_thmss_i kind args
   #> tap (present_theorems kind);
 
 fun apply_theorems args = apfst (List.concat o map snd) o theorems "" [(("", []), args)];
@@ -86,10 +86,10 @@ fun apply_theorems_i args = apfst (List.concat o map snd) o theorems_i "" [(("",
 fun smart_theorems kind NONE args thy = thy
       |> theorems kind args
       |> tap (present_theorems kind)
-      |> (fn (_, thy) => (thy, ProofContext.init thy))
+      |> (fn (_, thy) => `ProofContext.init thy)
   | smart_theorems kind (SOME loc) args thy = thy
       |> Locale.note_thmss kind loc args
-      |> tap (present_theorems kind o apsnd fst)
+      |> tap (fn ((_, res), (_, thy')) => present_theorems kind (res, thy'))
       |> #2;
 
 fun declare_theorems opt_loc args =

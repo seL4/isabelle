@@ -214,8 +214,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
       |> Locale.interpretation (NameSpace.base name_locale, [])
            (Locale.Locale name_locale)
              (map (fn ((c, _), _) => SOME (Sign.intern_const thy c)) cs)
-      |> Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE)
-      |> swap;
+      |> Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE);
     fun print_ctxt ctxt elem = 
       map Pretty.writeln (Element.pretty_ctxt ctxt elem)
   in
@@ -473,7 +472,7 @@ val classP =
      -- Scan.optional (Scan.repeat1 (P.name --| P.$$$ "+")) []
      -- Scan.optional (P.!!! (Scan.repeat1 P.context_element)) []
       >> (Toplevel.theory_context
-          o (fn f => swap o f) o (fn ((bname, supclasses), elems) => add_class bname supclasses elems)));
+          o (fn ((bname, supclasses), elems) => add_class bname supclasses elems)));
 
 val instanceP =
   OuterSyntax.command instanceK "declare instance for operational type class" K.thy_goal
