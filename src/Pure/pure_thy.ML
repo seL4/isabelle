@@ -29,6 +29,21 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  val map_tags: (tag list -> tag list) -> thm -> thm
+  val tag_rule: tag -> thm -> thm
+  val untag_rule: string -> thm -> thm
+  val tag: tag -> attribute
+  val untag: string -> attribute
+  val get_kind: thm -> string
+  val kind_rule: string -> thm -> thm
+  val kind: string -> attribute
+  val theoremK: string
+  val lemmaK: string
+  val corollaryK: string
+  val internalK: string
+  val kind_internal: attribute
+  val has_internal: tag list -> bool
+  val is_internal: thm -> bool
   val string_of_thmref: thmref -> string
   val print_theorems_diff: theory -> theory -> unit
   val get_thm_closure: theory -> thmref -> thm
@@ -55,9 +70,11 @@ sig
   val name_multi: string -> 'a list -> (string * 'a) list
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory 
-  val note_thmss: attribute -> ((bstring * attribute list) *
+  val note_thmss: string -> ((bstring * attribute list) *
     (thmref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
-  val note_thmss_i: attribute -> ((bstring * attribute list) *
+  val note_thmss_i: string -> ((bstring * attribute list) *
+    (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+  val note_thmss_qualified: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val add_axioms: ((bstring * string) * attribute list) list -> theory -> thm list * theory
   val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> thm list * theory
@@ -79,6 +96,42 @@ end;
 
 structure PureThy: PURE_THY =
 struct
+
+
+(*** theorem tags ***)
+
+(* add / delete tags *)
+
+fun map_tags f thm =
+  Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
+
+fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
+fun untag_rule s = map_tags (filter_out (equal s o #1));
+
+fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;
+fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
+
+fun simple_tag name x = tag (name, []) x;
+
+
+(* theorem kinds *)
+
+val theoremK = "theorem";
+val lemmaK = "lemma";
+val corollaryK = "corollary";
+val internalK = "internal";
+
+fun get_kind thm =
+  (case AList.lookup (op =) ((#2 o Thm.get_name_tags) thm) "kind" of
+    SOME (k :: _) => k
+  | _ => "unknown");
+
+fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
+fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
+fun kind_internal x = kind internalK x;
+fun has_internal tags = exists (fn ("kind", [k]) => k = internalK | _ => false) tags;
+val is_internal = has_internal o Thm.tags_of_thm;
+
 
 
 (*** theorem database ***)
@@ -293,13 +346,13 @@ fun hide_thms fully names thy =
 fun gen_names _ len "" = replicate len ""
   | gen_names j len name = map (fn i => name ^ "_" ^ string_of_int i) (j + 1 upto j + len);
 
-fun name_multi name xs = gen_names 0 (length xs) name ~~ xs;
+fun name_multi name [x] = [(name, x)]
+  | name_multi name xs = gen_names 0 (length xs) name ~~ xs;
 
 fun name_thm pre (name, thm) =
   if Thm.name_of_thm thm <> "" andalso pre then thm else Thm.name_thm (name, thm);
 
-fun name_thms pre name [x] = [name_thm pre (name, x)]
-  | name_thms pre name xs = map (name_thm pre) (name_multi name xs);
+fun name_thms pre name xs = map (name_thm pre) (name_multi name xs);
 
 fun name_thmss name xs =
   (case filter_out (null o fst) xs of
@@ -352,21 +405,25 @@ val add_thms = gen_add_thms (name_thms true);
 
 local
 
-fun gen_note_thss get kind_att ((bname, more_atts), ths_atts) thy =
+fun gen_note_thmss get k = fold_map (fn ((bname, more_atts), ths_atts) => fn thy =>
   let
     fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
       name_thmss (name_thms false) (apsnd List.concat o foldl_map app)
-      (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);
-  in ((bname, thms), thy') end;
-
-fun gen_note_thmss get kind_att =
-  fold_map (gen_note_thss get kind_att);
+      (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind k])) ths_atts);
+  in ((bname, thms), thy') end);
 
 in
 
 val note_thmss = gen_note_thmss get_thms;
 val note_thmss_i = gen_note_thmss (K I);
+
+fun note_thmss_qualified k path facts thy =
+  thy
+  |> Theory.add_path path
+  |> Theory.no_base_names
+  |> note_thmss_i k facts
+  ||> Theory.restore_naming thy;
 
 end;
 
