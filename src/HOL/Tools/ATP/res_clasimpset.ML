@@ -260,20 +260,19 @@ fun get_clasimp_lemmas ctxt goals =
       val claset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok claset_thms)
       val simpset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok simpset_thms)
  
-
-     val cls_thms_list = make_unique (mk_clause_table 2200) 
+      val cls_thms_list = make_unique (mk_clause_table 2200) 
                                       (List.concat (simpset_cls_thms@claset_cls_thms))
-
-     val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter cls_thms_list goals
+      val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter cls_thms_list goals
       (* Identify the set of clauses to be written out *)
-      val clauses = map #1(relevant_cls_thms_list);
+      val clauses = map #1 (relevant_cls_thms_list);
       val cls_nums = map ResClause.num_of_clauses clauses;
       (*Note: in every case, cls_num = 1.  I think that only conjecture clauses
 	can have any other value.*)
       val whole_list = List.concat 
 	    (map clause_numbering (ListPair.zip (relevant_cls_thms_list, cls_nums)));
-      
   in  (* create array of put clausename, number pairs into it *)
+      assert (map #1 whole_list = clauses) "get_clasimp_lemmas";
+      (*So get rid of cls_nums and clause_numbering; return simply cls_thms_list*)
       (Array.fromList whole_list, clauses)
   end;
 

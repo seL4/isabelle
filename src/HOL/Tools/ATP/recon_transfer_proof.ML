@@ -268,7 +268,7 @@ fun rules_to_string [] = "NONE"
 (*The signal handler in watcher.ML must be able to read the output of this.*)
 fun prover_lemma_list_aux getax proofstr probfile toParent ppid clause_arr = 
  let val _ = trace
-               ("\nGetting lemma names. proofstr is " ^ proofstr ^
+               ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
                 "\nprobfile is " ^ probfile ^
                 "  num of clauses is " ^ string_of_int (Array.length clause_arr))
      val axiom_names = getax proofstr clause_arr
