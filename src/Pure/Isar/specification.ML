@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Makarius
 
-Common theory/locale specifications --- with type-inference, but
-without internal polymorphism.
+Common theory/locale specifications --- with type-inference and
+toplevel polymorphism.
 *)
 
 signature SPECIFICATION =
@@ -18,16 +18,16 @@ sig
     Proof.context
   val axiomatization: xstring option -> (string * string option * mixfix) list ->
     ((bstring * Attrib.src list) * string list) list -> theory ->
-    (term list * (bstring * thm list) list) * (theory * Proof.context)
+    (term list * (bstring * thm list) list) * (Proof.context * theory)
   val axiomatization_i: string option -> (string * typ option * mixfix) list ->
     ((bstring * Attrib.src list) * term list) list -> theory ->
-    (term list * (bstring * thm list) list) * (theory * Proof.context)
+    (term list * (bstring * thm list) list) * (Proof.context * theory)
   val definition: xstring option ->
     ((string * string option * mixfix) option * ((string * Attrib.src list) * string)) list ->
-    theory -> (term * (bstring * thm)) list * (theory * Proof.context)
+    theory -> (term * (bstring * thm)) list * (Proof.context * theory)
   val definition_i: string option ->
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
-    theory -> (term * (bstring * thm)) list * (theory * Proof.context)
+    theory -> (term * (bstring * thm)) list * (Proof.context * theory)
 end;
 
 structure Specification: SPECIFICATION =
@@ -73,8 +73,10 @@ fun gen_axiomatization prep init locale raw_vars raw_specs thy =
       |> LocalTheory.axioms (specs |> map (fn (a, props) => (a, map subst props)))
       ||> LocalTheory.theory (Theory.add_finals_i false (map Term.head_of consts));
 
-    val _ = Pretty.writeln (LocalTheory.pretty_consts ctxt (map fst vars));
-  in ((consts, axioms), `LocalTheory.exit axioms_ctxt) end;
+    val _ =
+      if null vars then ()
+      else Pretty.writeln (LocalTheory.pretty_consts ctxt (map fst vars));
+  in ((consts, axioms), LocalTheory.exit axioms_ctxt) end;
 
 val axiomatization = gen_axiomatization read_specification LocalTheory.init;
 val axiomatization_i = gen_axiomatization cert_specification LocalTheory.init_i;
@@ -88,8 +90,9 @@ fun gen_definition prep init locale args thy =
       let
         val (vars, [(a, [prop])]) = fst (prep (the_list raw_var) [(raw_a, [raw_prop])] ctxt);
         val ((x, T), rhs) = prop
+          |> ObjectLogic.rulify_term thy
+          |> ObjectLogic.unatomize_term thy   (*produce meta-level equality*)
           |> Logic.strip_imp_concl
-          |> ObjectLogic.reverse_atomize_term thy
           |> (snd o ProofContext.cert_def ctxt)
           |> ProofContext.abs_def;
         val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
@@ -98,22 +101,30 @@ fun gen_definition prep init locale args thy =
 
         fun prove ctxt' const def =
           let
+            val thy' = ProofContext.theory_of ctxt';
             val prop' = Term.subst_atomic [(Free (x, T), const)] prop;
-            val (As, B) = Logic.strip_horn prop';
+            val frees = Term.fold_aterms (fn Free (x, _) =>
+              if ProofContext.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
           in
-            (Goal.prove (ProofContext.theory_of ctxt') [] As B (K (ALLGOALS
-              (ObjectLogic.reverse_atomize_tac THEN'
+            Goal.prove thy' frees [] prop' (K (ALLGOALS
+              (ObjectLogic.rulify_tac THEN'
+                ObjectLogic.unatomize_tac THEN'
                 Tactic.rewrite_goal_tac [def] THEN'
                 Tactic.resolve_tac [Drule.reflexive_thm])))
-              handle ERROR msg => cat_error msg "Failed to prove definitional specification.")
-            |> LocalTheory.standard (ProofContext.fix_frees prop' ctxt')
+            handle ERROR msg => cat_error msg "Failed to prove definitional specification."
           end;
-      in ctxt |> LocalTheory.def' prove ((x, mx), (a, rhs)) |>> pair (x, T) end;
+      in
+        ctxt
+        |> LocalTheory.def_finish prove ((x, mx), (a, rhs))
+        |>> pair (x, T)
+      end;
 
     val ctxt = init locale thy;
     val ((decls, defs), defs_ctxt) = ctxt |> fold_map define args |>> split_list;
-    val _ = Pretty.writeln (LocalTheory.pretty_consts ctxt decls);
-  in (defs, `LocalTheory.exit defs_ctxt) end;
+    val _ =
+      if null decls then ()
+      else Pretty.writeln (LocalTheory.pretty_consts ctxt decls);
+  in (defs, LocalTheory.exit defs_ctxt) end;
 
 val definition = gen_definition read_specification LocalTheory.init;
 val definition_i = gen_definition cert_specification LocalTheory.init_i;
