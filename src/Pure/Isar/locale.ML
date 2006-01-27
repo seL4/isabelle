@@ -43,6 +43,15 @@ sig
   val extern: theory -> string -> xstring
   val init: string -> theory -> Proof.context
 
+  (* The specification of a locale *)
+
+  val parameters_of: theory -> string ->
+    (string * typ option * mixfix) list
+  val local_asms_of: theory -> string ->
+    ((string * Attrib.src list) * term list) list
+  val global_asms_of: theory -> string ->
+    ((string * Attrib.src list) * term list) list
+
   (* Processing of locale statements *)  (* FIXME export more abstract version *)
   val read_context_statement: xstring option -> Element.context element list ->
     (string * (string list * string list)) list list -> Proof.context ->
@@ -1251,6 +1260,42 @@ fun read_facts x = prep_facts ProofContext.get_thms Attrib.intern_src x;
 fun cert_facts x = prep_facts (K I) (K I) x;
 
 end;
+
+
+(* Get the specification of a locale *)
+
+(* The global specification is made from the parameters and global
+   assumptions, the local specification from the parameters and the local
+   assumptions. *)
+
+local
+
+fun gen_asms_of get thy name =
+  let
+    val ctxt = ProofContext.init thy;
+    val (_, raw_elemss) = flatten (ctxt, I) (([], Symtab.empty), Expr (Locale name));
+    val ((_, elemss, _), _) = read_elemss false ctxt [] raw_elemss [];
+  in
+    elemss |> map (fn (_, es) => map (fn Int e => e) es)
+      |> Library.flat
+      |> Library.mapfilter (fn Assumes asms => SOME asms | _ => NONE)
+      |> get
+      |> map (apsnd (map fst))
+  end;
+
+in
+
+fun parameters_of thy name =
+  the_locale thy name |> #params |> #1
+    |> map (fn ((p, T), mix) => (p, SOME T, mix));
+
+fun local_asms_of thy name =
+  gen_asms_of Library.last_elem thy name;
+
+fun global_asms_of thy name =
+  gen_asms_of Library.flat thy name;
+
+end (* local *)
 
 
 (* full context statements: import + elements + conclusion *)
