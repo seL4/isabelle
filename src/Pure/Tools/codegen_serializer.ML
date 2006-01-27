@@ -284,7 +284,7 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
       case unfoldr dest_cons e2
        of (es, IConst (c, _)) => (writeln (string_of_int (length es));
             if c = thingol_nil
-            then Pretty.gen_list "," "[" "]" (map (pr NOBR) (e1::es))
+            then Pretty.enum "," "[" "]" (map (pr NOBR) (e1::es))
             else pretty_default fxy pr e1 e2)
         | _ => pretty_default fxy pr e1 e2;
   in ((2, 2), pretty_compact) end;
@@ -345,7 +345,7 @@ fun ml_from_defs (is_cons, needs_type)
       | ml_from_type _ (IVarT (_, sort)) =
           "cannot serialize sort constrained type variable to ML: " ^ commas sort |> error
       | ml_from_type _ (IDictT fs) =
-          Pretty.gen_list "," "{" "}" (
+          Pretty.enum "," "{" "}" (
             map (fn (f, ty) =>
               Pretty.block [str (ml_from_label f ^ ": "), ml_from_type NOBR ty]) fs
           );
@@ -360,7 +360,7 @@ fun ml_from_defs (is_cons, needs_type)
                 else
                   ps
                   |> map (ml_from_pat BR)
-                  |> Pretty.gen_list "," "(" ")"
+                  |> Pretty.enum "," "(" ")"
                   |> single
                   |> cons ((str o resolv) f)
                   |> brackify fxy
@@ -433,7 +433,7 @@ fun ml_from_defs (is_cons, needs_type)
       | ml_from_expr fxy (IInst _) =
           error "cannot serialize poly instant to ML"
       | ml_from_expr fxy (IDictE fs) =
-          Pretty.gen_list "," "{" "}" (
+          Pretty.enum "," "{" "}" (
             map (fn (f, e) =>
               Pretty.block [str (ml_from_label f ^ " = "), ml_from_expr NOBR e]) fs
           )
@@ -456,7 +456,7 @@ fun ml_from_defs (is_cons, needs_type)
     and ml_mk_app f es =
       if is_cons f andalso length es > 1
       then
-        [(str o resolv) f, Pretty.gen_list " *" "(" ")" (map (ml_from_expr BR) es)]
+        [(str o resolv) f, Pretty.enum " *" "(" ")" (map (ml_from_expr BR) es)]
       else
         (str o resolv) f :: map (ml_from_expr BR) es
     and ml_from_app fxy =
@@ -648,7 +648,7 @@ fun hs_from_defs is_cons (from_prim, (tyco_syntax, const_syntax)) resolv defs =
           | from_sctxt vs =
               vs
               |> map (fn (v, cls) => str ((upper_first o resolv) cls ^ " " ^ lower_first v))
-              |> Pretty.gen_list "," "(" ")"
+              |> Pretty.enum "," "(" ")"
               |> (fn p => Pretty.block [p, str " => "])
       in 
         vs

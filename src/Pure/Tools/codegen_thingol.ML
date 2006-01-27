@@ -317,16 +317,16 @@ fun eq_itype (ty1, ty2) =
 (* simple diagnosis *)
 
 fun pretty_itype (IType (tyco, tys)) =
-      Pretty.gen_list "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
+      Pretty.enum "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
   | pretty_itype (IFun (ty1, ty2)) =
-      Pretty.gen_list "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
+      Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
   | pretty_itype (IVarT (v, sort)) =
       Pretty.str (v ^ enclose "|" "|" (space_implode "|" sort))
   | pretty_itype (IDictT _) =
       Pretty.str "<DictT>";
 
 fun pretty_ipat (ICons ((cons, ps), ty)) =
-      Pretty.gen_list " " "(" ")"
+      Pretty.enum " " "(" ")"
         (Pretty.str cons :: map pretty_ipat ps @ [Pretty.str ":: ", pretty_itype ty])
   | pretty_ipat (IVarP (v, ty)) =
       Pretty.block [Pretty.str ("?" ^ v ^ "::"), pretty_itype ty];
@@ -479,10 +479,10 @@ fun pretty_def Undef =
   | pretty_def (Prim prims) =
       Pretty.str ("<PRIM " ^ (commas o map fst) prims ^ ">")
   | pretty_def (Fun (eqs, (_, ty))) =
-      Pretty.gen_list " |" "" "" (
+      Pretty.enum " |" "" "" (
         map (fn (ps, body) =>
           Pretty.block [
-            Pretty.gen_list "," "[" "]" (map pretty_ipat ps),
+            Pretty.enum "," "[" "]" (map pretty_ipat ps),
             Pretty.str " |->",
             Pretty.brk 1,
             pretty_iexpr body,
@@ -500,22 +500,22 @@ fun pretty_def Undef =
       Pretty.block [
         Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
         Pretty.str " |=> ",
-        Pretty.gen_list " |" "" ""
+        Pretty.enum " |" "" ""
           (map (fn (c, tys) => (Pretty.block o Pretty.breaks) (Pretty.str c :: map pretty_itype tys)) cs),
         Pretty.str ", instances ",
-        Pretty.gen_list "," "[" "]" (map Pretty.str insts)
+        Pretty.enum "," "[" "]" (map Pretty.str insts)
       ]
   | pretty_def (Datatypecons dtname) =
       Pretty.str ("cons " ^ dtname)
   | pretty_def (Class ((supcls, (v, mems)), insts)) =
       Pretty.block [
         Pretty.str ("class var " ^ v ^ "extending "),
-        Pretty.gen_list "," "[" "]" (map Pretty.str supcls),
+        Pretty.enum "," "[" "]" (map Pretty.str supcls),
         Pretty.str " with ",
-        Pretty.gen_list "," "[" "]"
+        Pretty.enum "," "[" "]"
           (map (fn (m, (_, ty)) => Pretty.block [Pretty.str (m ^ "::"), pretty_itype ty]) mems),
         Pretty.str " instances ",
-        Pretty.gen_list "," "[" "]" (map Pretty.str insts)
+        Pretty.enum "," "[" "]" (map Pretty.str insts)
       ]
   | pretty_def (Classmember clsname) =
       Pretty.block [
@@ -529,7 +529,7 @@ fun pretty_def Undef =
         Pretty.str ", (",
         Pretty.str tyco,
         Pretty.str ", ",
-        Pretty.gen_list "," "[" "]" (map (Pretty.gen_list "," "{" "}" o map Pretty.str o snd) arity),
+        Pretty.enum "," "[" "]" (map (Pretty.enum "," "{" "}" o map Pretty.str o snd) arity),
         Pretty.str "))"
       ];
 
