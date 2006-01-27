@@ -32,19 +32,20 @@ sig
   val fbrk: T
   val blk: int * T list -> T
   val unbreakable: T -> T
-  val quote: T -> T
-  val backquote: T -> T
-  val commas: T list -> T list
   val breaks: T list -> T list
   val fbreaks: T list -> T list
   val block: T list -> T
   val strs: string list -> T
+  val chunks: T list -> T
+  val quote: T -> T
+  val backquote: T -> T
+  val separate: string -> T list -> T list
+  val commas: T list -> T list
   val enclose: string -> string -> T list -> T
+  val enum: string -> string -> string -> T list -> T
   val list: string -> string -> T list -> T
-  val gen_list: string -> string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
-  val chunks: T list -> T
   val indent: int -> T -> T
   val string_of: T -> string
   val output_buffer: T -> Buffer.T
@@ -205,32 +206,31 @@ fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
 
 (* utils *)
 
-fun quote prt = blk (1, [str "\"", prt, str "\""]);
-fun backquote prt = blk (1, [str "`", prt, str "`"]);
-
-fun separate_pretty sep prts =
-  prts
-  |> map single
-  |> separate [str sep, brk 1]
-  |> List.concat;
-
-val commas = separate_pretty ",";
-
-fun breaks prts = separate (brk 1) prts;
-fun fbreaks prts = separate fbrk prts;
+fun breaks prts = Library.separate (brk 1) prts;
+fun fbreaks prts = Library.separate fbrk prts;
 
 fun block prts = blk (2, prts);
 
 val strs = block o breaks o map str;
+fun chunks prts = blk (0, fbreaks prts);
+
+fun quote prt = blk (1, [str "\"", prt, str "\""]);
+fun backquote prt = blk (1, [str "`", prt, str "`"]);
+
+fun separate sep prts =
+  List.concat (Library.separate [str sep, brk 1] (map single prts));
+
+val commas = separate ",";
 
 fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
-fun gen_list sep lpar rpar prts = enclose lpar rpar (separate_pretty sep prts);
-val list = gen_list ",";
+fun enum sep lpar rpar prts = enclose lpar rpar (separate sep prts);
+
+val list = enum ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
+
 fun big_list name prts = block (fbreaks (str name :: prts));
-fun chunks prts = blk (0, fbreaks prts);
 
 fun indent 0 prt = prt
   | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
