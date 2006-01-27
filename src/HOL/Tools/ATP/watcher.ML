@@ -127,7 +127,7 @@ fun getCmds (toParentStr, fromParentStr, cmdList) =
                     (prover, proverCmd, settings, probfile)::cmdList) 
        end
        handle Bind => 
-          (trace "getCmds: command parsing failed!";
+          (trace "\ngetCmds: command parsing failed!";
            getCmds (toParentStr, fromParentStr, cmdList))
   end
 	    
@@ -353,37 +353,39 @@ fun createWatcher (th, clause_arr) =
 	     (Output.debug ("\nReaping a watcher, childpid = " ^ string_of_pid childpid);
 	      killWatcher childpid (*???; reapWatcher (childpid, childin, childout)*) )
 	    else ())
-     val _ = Output.debug ("subgoals forked to createWatcher: "^ prems_string_of th);
-     fun proofHandler n = 
-       let val outcome = TextIO.inputLine childin
+     fun proofHandler _ = 
+       let val _ = trace("\nIn signal handler for pid " ^ string_of_pid childpid)
+           val outcome = TextIO.inputLine childin
 	   val probfile = TextIO.inputLine childin
 	   val sgno = number_from_filename probfile
 	   val text = string_of_subgoal th sgno
-	   val _ = Output.debug ("In signal handler. outcome = \"" ^ outcome ^ 
-		        "\"\nprobfile = " ^ probfile ^
-		        "\nGoals being watched: "^  Int.toString (!goals_being_watched))
+	   fun report s = priority ("Subgoal " ^ Int.toString sgno ^ ": " ^ s);
        in 
+	 Output.debug ("In signal handler. outcome = \"" ^ outcome ^ 
+		       "\"\nprobfile = " ^ probfile ^
+		       "\nGoals being watched: "^  Int.toString (!goals_being_watched));
 	 if String.isPrefix "[" outcome (*indicates a proof reconstruction*)
 	 then (priority (Recon_Transfer.apply_res_thm outcome);
 	       decr_watched())
 	 else if String.isPrefix "Invalid" outcome
-	 then (priority ("Subgoal is not provable:\n" ^ text);
+	 then (report ("Subgoal is not provable:\n" ^ text);
 	       decr_watched())
 	 else if String.isPrefix "Failure" outcome
-	 then (priority ("Proof attempt failed:\n" ^ text);
+	 then (report ("Proof attempt failed:\n" ^ text);
 	       decr_watched()) 
 	(* print out a list of rules used from clasimpset*)
 	 else if String.isPrefix "Success" outcome
-	 then (priority (outcome ^ text);
+	 then (report (outcome ^ text);
 	       decr_watched())
 	  (* if proof translation failed *)
 	 else if String.isPrefix "Translation failed" outcome
-	 then (priority (outcome ^ text);
+	 then (report (outcome ^ text);
 	       decr_watched())
-	 else (priority "System error in proof handler";
+	 else (report "System error in proof handler";
 	       decr_watched())
        end
- in IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE proofHandler);
+ in Output.debug ("subgoals forked to createWatcher: "^ prems_string_of th);
+    IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE proofHandler);
     (childin, childout, childpid)
   end
 
