@@ -3,75 +3,6 @@
     Copyright   2004  University of Cambridge
 *)
 
-structure ReduceAxiomsN =
-(* Author: Jia Meng, Cambridge University Computer Laboratory
-   Remove irrelevant axioms used for a proof of a goal, with with iteration control
-   Initial version. Needs elaboration. *)
-
-struct
-
-fun add_term_consts_rm ncs (Const(c, _)) cs = if (c mem ncs) then cs else (c ins_string cs)
-  | add_term_consts_rm ncs (t $ u) cs =
-      add_term_consts_rm ncs t (add_term_consts_rm ncs u cs)
-  | add_term_consts_rm ncs (Abs(_,_,t)) cs = add_term_consts_rm ncs t cs
-  | add_term_consts_rm ncs _ cs = cs;
-
-fun term_consts_rm ncs t = add_term_consts_rm ncs t [];
-fun thm_consts_rm ncs thm = term_consts_rm ncs (prop_of thm);
-fun consts_of_thm (n,thm) = thm_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] thm;
-fun consts_of_term term = term_consts_rm ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] term;
-
-fun make_pairs [] _ = []
-  | make_pairs (x::xs) y = (x,y)::(make_pairs xs y);
-
-fun const_thm_list_aux [] cthms = cthms
-  | const_thm_list_aux (thm::thms) cthms =
-    let val consts = consts_of_thm thm
-	val cthms' = make_pairs consts thm 
-    in const_thm_list_aux thms (cthms' @ cthms) end;
-
-fun const_thm_list thms = const_thm_list_aux thms [];
-
-fun make_thm_table thms = Symtab.make_multi (const_thm_list thms);
-
-fun consts_in_goal goal = consts_of_term goal;
-
-fun axioms_having_consts_aux [] tab thms = thms
-  | axioms_having_consts_aux (c::cs) tab thms =
-    let val thms2 = Option.getOpt (Symtab.lookup tab c, [])
-    in axioms_having_consts_aux cs tab (thms2 union thms) end;
-
-fun axioms_having_consts cs tab = axioms_having_consts_aux cs tab [];
-
-fun relevant_axioms goal thmTab n =  
-    let fun relevant_axioms_aux1 cs k =
-	    let val thms1 = axioms_having_consts cs thmTab
-		val cs1 = foldl (op union_string) [] (map consts_of_thm thms1)
-	    in
-		if (cs1 subset cs) orelse n <= k then (k,thms1) 
-		else relevant_axioms_aux1 (cs1 union cs) (k+1)
-	    end
-    in  relevant_axioms_aux1 (consts_in_goal goal) 1  end;
-
-fun relevant_filter n goal thms = 
-    if n<=0 then thms 
-    else #2 (relevant_axioms goal (make_thm_table thms) n);
-
-(* find the thms from thy that contain relevant constants, n is the iteration number *)
-fun find_axioms_n thy goal n =
-    let val clasetR = ResAxioms.claset_rules_of_thy thy
-	val simpsetR = ResAxioms.simpset_rules_of_thy thy	  
-	val table = make_thm_table (clasetR @ simpsetR)	
-    in relevant_axioms goal table n end;
-
-fun find_axioms_n_c thy goal n =
-    let val current_thms = PureThy.thms_of thy
-	val table = make_thm_table current_thms
-    in relevant_axioms goal table n end;
-
-end;
-
-
 signature RES_CLASIMP = 
   sig
   val blacklist : string list ref (*Theorems forbidden in the output*)
@@ -319,28 +250,28 @@ fun make_unique ht xs =
   To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
 fun get_clasimp_lemmas ctxt goals = 
   let val claset_thms =
-	    map put_name_pair  (*FIXME: relevance filter should use ALL goals*)
-	      (ReduceAxiomsN.relevant_filter (!relevant) (hd goals)
-		(ResAxioms.claset_rules_of_ctxt ctxt))
+	  map put_name_pair (ResAxioms.claset_rules_of_ctxt ctxt)
       val simpset_thms = 
 	    if !use_simpset then 
-		  map put_name_pair 
-		    (ReduceAxiomsN.relevant_filter (!relevant) (hd goals)
-		      (ResAxioms.simpset_rules_of_ctxt ctxt))
+		map put_name_pair (ResAxioms.simpset_rules_of_ctxt ctxt)
 	    else []
       val banned = make_banned_test (map #1 (claset_thms@simpset_thms))
       fun ok (a,_) = not (banned a)
       val claset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok claset_thms)
       val simpset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok simpset_thms)
-      val cls_thms_list = make_unique (mk_clause_table 2200) 
+ 
+
+     val cls_thms_list = make_unique (mk_clause_table 2200) 
                                       (List.concat (simpset_cls_thms@claset_cls_thms))
+
+     val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter cls_thms_list goals
       (* Identify the set of clauses to be written out *)
-      val clauses = map #1(cls_thms_list);
+      val clauses = map #1(relevant_cls_thms_list);
       val cls_nums = map ResClause.num_of_clauses clauses;
       (*Note: in every case, cls_num = 1.  I think that only conjecture clauses
 	can have any other value.*)
       val whole_list = List.concat 
-	    (map clause_numbering (ListPair.zip (cls_thms_list, cls_nums)));
+	    (map clause_numbering (ListPair.zip (relevant_cls_thms_list, cls_nums)));
       
   in  (* create array of put clausename, number pairs into it *)
       (Array.fromList whole_list, clauses)
