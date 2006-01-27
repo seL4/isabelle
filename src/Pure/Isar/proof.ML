@@ -99,17 +99,17 @@ sig
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> Method.text option -> (thm list list -> theory -> theory) ->
     string option -> string * 'a list -> ((string * 'a list) * 'b) list -> context -> state
-  val global_qed: Method.text option * bool -> state -> theory * context
+  val global_qed: Method.text option * bool -> state -> context * theory
   val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
   val local_default_proof: state -> state Seq.seq
   val local_immediate_proof: state -> state Seq.seq
   val local_done_proof: state -> state Seq.seq
   val local_skip_proof: bool -> state -> state Seq.seq
-  val global_terminal_proof: Method.text * Method.text option -> state -> theory * context
-  val global_default_proof: state -> theory * context
-  val global_immediate_proof: state -> theory * context
-  val global_done_proof: state -> theory * context
-  val global_skip_proof: bool -> state -> theory * context
+  val global_terminal_proof: Method.text * Method.text option -> state -> context * theory
+  val global_default_proof: state -> context * theory
+  val global_immediate_proof: state -> context * theory
+  val global_done_proof: state -> context * theory
+  val global_skip_proof: bool -> state -> context * theory
   val have: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
     bool -> state -> state
@@ -614,9 +614,9 @@ val with_thmss =
   gen_thmss ProofContext.note_thmss the_facts chain #2 Attrib.attribute o no_binding;
 val with_thmss_i = gen_thmss ProofContext.note_thmss_i the_facts chain #2 (K I) o no_binding;
 
-val local_results = gen_thmss ProofContext.note_thmss_i (K []) I I (K I);
-fun global_results kind =
-  PureThy.note_thmss_i (Drule.kind kind) o map (apsnd Thm.simple_fact);
+val local_results =
+  gen_thmss ProofContext.note_thmss_i (K []) I I (K I) o map (apsnd Thm.simple_fact);
+fun global_results kind = PureThy.note_thmss_i kind o map (apsnd Thm.simple_fact);
 
 fun get_thmss state srcs = the_facts (note_thmss [(("", []), srcs)] state);
 fun simple_note_thms name thms = note_thmss_i [((name, []), [(thms, [])])];
@@ -821,7 +821,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
     val ((names, attss), propp) = prep_names (prep_att (theory_of state)) stmt;
 
     fun after_qed' results =
-      local_results ((names ~~ attss) ~~ map Thm.simple_fact results)
+      local_results ((names ~~ attss) ~~ results)
       #-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
       #> after_qed results;
   in
@@ -877,7 +877,7 @@ fun global_qeds txt =
   #> Seq.map generic_qed
   #> Seq.maps (fn (((_, after_qed), results), state) =>
     Seq.lift after_qed results (theory_of state)
-    |> Seq.map (rpair (context_of state)))
+    |> Seq.map (pair (context_of state)))
   |> Seq.DETERM;   (*backtracking may destroy theory!*)
 
 fun global_qed txt =
