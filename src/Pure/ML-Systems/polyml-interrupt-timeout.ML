@@ -6,6 +6,7 @@
 Bounded time execution (similar to SML/NJ's TimeLimit structure) for Poly/ML.
 *)
 
+(* FIXME: this code appears to disable signal handling in child databases altogether (?)
 local
 
   val alarm_active = ref false;
@@ -20,8 +21,6 @@ local
     end));
 
 in
-
-  (* Time.time -> ('a -> 'b) -> 'a -> 'b *)
 
   fun interrupt_timeout time f x =
   let
@@ -42,3 +41,7 @@ in
   end;
 
 end;
+*)
+
+fun interrupt_timeout time f x =
+  f x;
