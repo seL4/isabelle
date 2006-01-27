@@ -72,7 +72,7 @@ sig
     -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
-  val theory_context: (theory -> theory * Proof.context) -> transition -> transition
+  val theory_context: (theory -> Proof.context * theory) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
@@ -82,7 +82,7 @@ sig
   val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val proof_to_theory: (Proof.state -> theory) -> transition -> transition
   val proof_to_theory': (bool -> Proof.state -> theory) -> transition -> transition
-  val proof_to_theory_context: (bool -> Proof.state -> theory * Proof.context)
+  val proof_to_theory_context: (bool -> Proof.state -> Proof.context * theory)
     -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val forget_proof: transition -> transition
@@ -454,12 +454,12 @@ fun theory' f = app_current (fn int =>
   (fn Theory (thy, _) => Theory (f int thy, NONE) | _ => raise UNDEF));
 
 fun theory_context f = app_current
-  (K (fn Theory (thy, _) => Theory (apsnd SOME (f thy)) | _ => raise UNDEF));
+  (K (fn Theory (thy, _) => Theory (swap (apfst SOME (f thy))) | _ => raise UNDEF));
 
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
     if ! skip_proofs then
-      SkipProof ((History.init (undo_limit int) 0, #1 (Proof.global_skip_proof int (f thy))), thy)
+      SkipProof ((History.init (undo_limit int) 0, #2 (Proof.global_skip_proof int (f thy))), thy)
     else Proof (ProofHistory.init (undo_limit int) (f thy), thy)
   | _ => raise UNDEF));
 
@@ -490,7 +490,7 @@ val forget_proof = map_current (fn _ =>
 
 fun proof_to_theory' f = end_proof (rpair NONE oo f);
 fun proof_to_theory f = proof_to_theory' (K f);
-fun proof_to_theory_context f = end_proof (apsnd SOME oo f);
+fun proof_to_theory_context f = end_proof ((swap o apfst SOME) oo f);
 
 fun skip_proof_to_theory p = map_current (fn _ =>
   (fn SkipProof ((h, thy), _) =>
