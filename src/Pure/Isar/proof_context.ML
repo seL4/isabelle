@@ -127,6 +127,7 @@ sig
   val add_fixes: (string * string option * mixfix) list -> context -> string list * context
   val add_fixes_i: (string * typ option * mixfix) list -> context -> string list * context
   val add_fixes_legacy: (string * typ option * mixfix) list -> context -> string list * context
+  val invent_fixes: string list -> context -> string list * context
   val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
@@ -157,6 +158,8 @@ sig
   val prems_limit: int ref
   val pretty_ctxt: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
+  val debug: bool ref
+  val pprint_context: context -> pprint_args -> unit
 end;
 
 structure ProofContext: PROOF_CONTEXT =
@@ -1110,7 +1113,7 @@ local
 fun no_dups _ [] = ()
   | no_dups ctxt dups = error ("Duplicate variable(s): " ^ commas_quote dups);
 
-fun gen_fixes prep raw_vars ctxt =
+fun gen_fixes prep invent raw_vars ctxt =
   let
     val (ys, zs) = split_list (fixes_of ctxt);
     val (vars, ctxt') = prep raw_vars ctxt;
@@ -1118,6 +1121,7 @@ fun gen_fixes prep raw_vars ctxt =
     val _ = no_dups ctxt (duplicates xs);
     val xs' =
       if is_body ctxt then Term.variantlist (map Syntax.skolem xs, zs)
+      else if invent then Term.variantlist (xs, zs)
       else (no_dups ctxt (xs inter_string ys); no_dups ctxt (xs inter_string zs); xs);
     val vars' = map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars;
   in
@@ -1130,9 +1134,10 @@ fun gen_fixes prep raw_vars ctxt =
 
 in
 
-val add_fixes = gen_fixes read_vars;
-val add_fixes_i = gen_fixes cert_vars;
-val add_fixes_legacy = gen_fixes cert_vars_legacy;
+val add_fixes = gen_fixes read_vars false;
+val add_fixes_i = gen_fixes cert_vars false;
+val add_fixes_legacy = gen_fixes cert_vars_legacy false;
+fun invent_fixes xs = gen_fixes cert_vars true (map (fn x => (x, NONE, NoSyn)) xs);
 
 end;
 
@@ -1144,7 +1149,13 @@ fun fix_frees t ctxt =
     fun add (Free (x, T)) = if is_fixed ctxt x then I else insert (op =) (x, SOME T, NoSyn)
       | add _ = I;
     val fixes = rev (fold_aterms add t []);
-  in ctxt |> set_body false |> add_fixes_i fixes |> snd |> restore_body ctxt end;
+  in
+    ctxt
+    |> declare_term t
+    |> set_body false
+    |> (snd o add_fixes_i fixes)
+    |> restore_body ctxt
+  end;
 
 fun auto_fixes (arg as (ctxt, (propss, x))) =
   if is_body ctxt then arg
@@ -1189,8 +1200,10 @@ fun gen_assms prepp exp args ctxt =
 
     val new_asms = List.concat (map #1 results);
     val new_prems = map #2 results;
-    val ctxt3 = ctxt2 |> map_assms (fn (asms, prems) => (asms @ [(new_asms, exp)], prems @ new_prems))
-    val ctxt4 = ctxt3 |> put_thms ("prems", SOME (prems_of ctxt3));
+    val ctxt3 = ctxt2
+      |> map_assms (fn (asms, prems) => (asms @ [(new_asms, exp)], prems @ new_prems))
+    val ctxt4 = ctxt3
+      |> put_thms ("prems", SOME (prems_of ctxt3));
   in (map #3 results, warn_extra_tfrees ctxt ctxt4) end;
 
 in
@@ -1495,7 +1508,16 @@ fun pretty_context ctxt =
     verb pretty_cases (K ctxt) @
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb single (fn () => Pretty.strs ("used type variable names:" :: used))
+    verb single (fn () => Pretty.strs ("used type variable names:" :: rev used))
   end;
+
+
+(* toplevel pretty printing *)
+
+val debug = ref false;
+
+fun pprint_context ctxt = Pretty.pprint
+ (if ! debug then Pretty.quote (Pretty.big_list "proof context:" (pretty_context ctxt))
+  else Pretty.str "<context>");
 
 end;
