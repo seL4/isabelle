@@ -65,7 +65,7 @@ fun print_results true = Pretty.writeln oo pretty_results
   | print_results false = K (K ());
 
 fun present_results ctxt ((kind, name), res) =
-  if kind = "" orelse kind = Drule.internalK then ()
+  if kind = "" orelse kind = PureThy.internalK then ()
   else (print_results true ctxt ((kind, name), res);
     Context.setmp (SOME (ProofContext.theory_of ctxt))
       (Present.results kind) (name_results name res));

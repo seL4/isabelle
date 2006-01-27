@@ -212,10 +212,10 @@ fun theorems kind = P.opt_locale_target -- P.name_facts
   >> (Toplevel.theory_context o uncurry (IsarThy.smart_theorems kind));
 
 val theoremsP =
-  OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems Drule.theoremK);
+  OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems PureThy.theoremK);
 
 val lemmasP =
-  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems Drule.lemmaK);
+  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems PureThy.lemmaK);
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
@@ -322,7 +322,7 @@ val localeP =
     ((P.opt_keyword "open" >> not) -- P.name
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory_context o (fn ((x, y), (z, w)) =>
-          Locale.add_locale_context x y z w #> (fn ((_, ctxt), thy) => (thy, ctxt)))));
+          Locale.add_locale_context x y z w #> (fn ((_, ctxt), thy) => (ctxt, thy)))));
 
 val opt_inst =
   Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) [];
@@ -359,9 +359,9 @@ fun gen_theorem kind =
       general_statement >> (fn ((x, y), (z, w)) =>
       (Toplevel.print o Toplevel.theory_to_proof (Locale.smart_theorem kind x y z w))));
 
-val theoremP = gen_theorem Drule.theoremK;
-val lemmaP = gen_theorem Drule.lemmaK;
-val corollaryP = gen_theorem Drule.corollaryK;
+val theoremP = gen_theorem PureThy.theoremK;
+val lemmaP = gen_theorem PureThy.lemmaK;
+val corollaryP = gen_theorem PureThy.corollaryK;
 
 val haveP =
   OuterSyntax.command "have" "state local goal"

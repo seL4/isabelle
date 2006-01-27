@@ -363,7 +363,7 @@ local
 fun find_inductT ctxt insts =
   fold_rev multiply (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
     |> map (InductAttrib.find_inductT ctxt o Term.fastype_of)) [[]]
-  |> filter_out (forall Drule.is_internal);
+  |> filter_out (forall PureThy.is_internal);
 
 fun find_inductS ctxt (fact :: _) = map single (InductAttrib.find_inductS ctxt (Thm.concl_of fact))
   | find_inductS _ _ = [];

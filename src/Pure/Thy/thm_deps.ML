@@ -39,7 +39,7 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
   | make_deps_graph prf = (fn p as (gra, parents) =>
       let val ((name, tags), prf') = dest_thm_axm prf
       in
-        if name <> "" andalso not (Drule.has_internal tags) then
+        if name <> "" andalso not (PureThy.has_internal tags) then
           if not (Symtab.defined gra name) then
             let
               val (gra', parents') = make_deps_graph prf' (gra, []);

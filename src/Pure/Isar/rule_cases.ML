@@ -225,8 +225,8 @@ fun get_consumes th = the_default 0 (lookup_consumes th);
 
 fun put_consumes NONE th = th
   | put_consumes (SOME n) th = th
-      |> Drule.untag_rule consumes_tagN
-      |> Drule.tag_rule (consumes_tagN, [Library.string_of_int n]);
+      |> PureThy.untag_rule consumes_tagN
+      |> PureThy.tag_rule (consumes_tagN, [Library.string_of_int n]);
 
 fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 
@@ -244,8 +244,8 @@ val case_names_tagN = "case_names";
 
 fun add_case_names NONE = I
   | add_case_names (SOME names) =
-      Drule.untag_rule case_names_tagN
-      #> Drule.tag_rule (case_names_tagN, names);
+      PureThy.untag_rule case_names_tagN
+      #> PureThy.tag_rule (case_names_tagN, names);
 
 fun lookup_case_names th = AList.lookup (op =) (Thm.tags_of_thm th) case_names_tagN;
 
@@ -262,7 +262,7 @@ val case_concl_tagN = "case_conclusion";
 fun is_case_concl name ((a, b :: _): tag) = (a = case_concl_tagN andalso b = name)
   | is_case_concl _ _ = false;
 
-fun add_case_concl (name, cs) = Drule.map_tags (fn tags =>
+fun add_case_concl (name, cs) = PureThy.map_tags (fn tags =>
   filter_out (is_case_concl name) tags @ [(case_concl_tagN, name :: cs)]);
 
 fun get_case_concls th name =

@@ -202,8 +202,8 @@ fun add_del_args add del x = syntax
 
 (* tags *)
 
-fun tagged x = syntax (tag >> Drule.tag) x;
-fun untagged x = syntax (Scan.lift Args.name >> Drule.untag) x;
+fun tagged x = syntax (tag >> PureThy.tag) x;
+fun untagged x = syntax (Scan.lift Args.name >> PureThy.untag) x;
 
 
 (* rule composition *)

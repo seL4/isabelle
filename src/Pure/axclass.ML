@@ -306,7 +306,7 @@ local
 fun gen_instance mk_prop add_thms after_qed inst thy =
   thy
   |> ProofContext.init
-  |> Proof.theorem_i Drule.internalK NONE (after_qed oo fold add_thms) NONE ("", [])
+  |> Proof.theorem_i PureThy.internalK NONE (after_qed oo fold add_thms) NONE ("", [])
        (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
 
 in

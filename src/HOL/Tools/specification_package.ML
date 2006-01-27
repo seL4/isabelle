@@ -231,7 +231,7 @@ fun process_spec axiomatic cos alt_props thy =
             fun post_proc (context, th) =
                 post_process (Context.theory_of context, th) |>> Context.Theory;
     in
-      IsarThy.theorem_i Drule.internalK
+      IsarThy.theorem_i PureThy.internalK
         ("", [add_spec axiomatic (zip3 names cnames overloaded), post_proc])
         (HOLogic.mk_Trueprop ex_prop, ([], [])) thy
     end

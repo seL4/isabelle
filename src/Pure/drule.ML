@@ -92,20 +92,6 @@ sig
   val beta_conv: cterm -> cterm -> cterm
   val plain_prop_of: thm -> term
   val add_used: thm -> string list -> string list
-  val map_tags: (tag list -> tag list) -> thm -> thm
-  val tag_rule: tag -> thm -> thm
-  val untag_rule: string -> thm -> thm
-  val tag: tag -> attribute
-  val untag: string -> attribute
-  val get_kind: thm -> string
-  val kind: string -> attribute
-  val theoremK: string
-  val lemmaK: string
-  val corollaryK: string
-  val internalK: string
-  val kind_internal: attribute
-  val has_internal: tag list -> bool
-  val is_internal: thm -> bool
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
   val local_standard: thm -> thm
@@ -319,42 +305,6 @@ fun add_used thm used =
     |> fold (curry add_term_tvarnames) hyps
     |> fold (curry add_term_tvarnames) (Thm.terms_of_tpairs tpairs)
   end;
-
-
-
-(** theorem tags **)
-
-(* add / delete tags *)
-
-fun map_tags f thm =
-  Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
-
-fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
-fun untag_rule s = map_tags (filter_out (equal s o #1));
-
-fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;
-fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
-
-fun simple_tag name x = tag (name, []) x;
-
-
-(* theorem kinds *)
-
-val theoremK = "theorem";
-val lemmaK = "lemma";
-val corollaryK = "corollary";
-val internalK = "internal";
-
-fun get_kind thm =
-  (case AList.lookup (op =) ((#2 o Thm.get_name_tags) thm) "kind" of
-    SOME (k :: _) => k
-  | _ => "unknown");
-
-fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
-fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
-fun kind_internal x = kind internalK x;
-fun has_internal tags = exists (fn ("kind", [k]) => k = internalK | _ => false) tags;
-val is_internal = has_internal o Thm.tags_of_thm;
 
 
 
@@ -984,9 +934,9 @@ local
   val prop_def = #1 (freeze_thaw ProtoPure.prop_def);
 in
   val protect = Thm.capply (cert Logic.protectC);
-  val protectI = store_thm "protectI" (kind_rule internalK (standard
+  val protectI = store_thm "protectI" (PureThy.kind_rule PureThy.internalK (standard
       (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
-  val protectD = store_thm "protectD" (kind_rule internalK (standard
+  val protectD = store_thm "protectD" (PureThy.kind_rule PureThy.internalK (standard
       (Thm.equal_elim prop_def (Thm.assume (protect A)))));
   val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
 end;

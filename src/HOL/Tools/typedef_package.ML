@@ -256,7 +256,7 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
     val (_, goal, goal_pat, att_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     val att = #1 o att_result;
-  in IsarThy.theorem_i Drule.internalK ("", [att]) (goal, ([goal_pat], [])) thy end;
+  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, ([goal_pat], [])) thy end;
 
 in
 

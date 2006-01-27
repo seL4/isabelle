@@ -280,7 +280,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i thy =
     val tc = List.nth (tcs, i - 1) handle Subscript =>
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
-  in IsarThy.theorem_i Drule.internalK (bname, atts) (HOLogic.mk_Trueprop tc, ([], [])) thy end;
+  in IsarThy.theorem_i PureThy.internalK (bname, atts) (HOLogic.mk_Trueprop tc, ([], [])) thy end;
 
 val recdef_tc = gen_recdef_tc Attrib.attribute Sign.intern_const;
 val recdef_tc_i = gen_recdef_tc (K I) (K I);

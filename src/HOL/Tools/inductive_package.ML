@@ -570,7 +570,7 @@ fun gen_inductive_cases prep_att prep_prop args thy =
 
     val facts = args |> map (fn ((a, atts), props) =>
      ((a, map (prep_att thy) atts), map (Thm.no_attributes o single o mk_cases) props));
-  in thy |> IsarThy.theorems_i Drule.lemmaK facts |> snd end;
+  in thy |> IsarThy.theorems_i PureThy.lemmaK facts |> snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.attribute ProofContext.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
