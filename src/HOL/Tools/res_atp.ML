@@ -74,8 +74,8 @@ fun tptp_inputs_tfrees ths pf n (axclauses,classrel_clauses,arity_clauses) =
 fun dfg_inputs_tfrees ths pf n (axclauses,classrel_clauses,arity_clauses) = 
     let val clss = ResClause.make_conjecture_clauses (map prop_of ths)
         (*FIXME: classrel_clauses and arity_clauses*)
-        val probN = ResClause.clauses2dfg clss (!problem_name ^ "_" ^ Int.toString n)
-                        axclauses [] [] []    
+        val probN = ResClause.clauses2dfg (!problem_name ^ "_" ^ Int.toString n)
+                        axclauses clss 
 	val out = TextIO.openOut(pf n)
     in
 	writeln_strs out [probN]; TextIO.closeOut out
@@ -106,14 +106,14 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
                   val spass = helper_path "SPASS_HOME" "SPASS"
             in 
                 ([("spass", spass, infopts ^ baseopts, probfile)] @ 
-                  (make_atp_list xs (n+1)))
+                  make_atp_list xs (n+1))
               end
             else if !prover = "vampire"
 	    then 
               let val vampire = helper_path "VAMPIRE_HOME" "vampire"
               in
                 ([("vampire", vampire, "-m 100000%-t " ^ time, probfile)] @
-                 (make_atp_list xs (n+1)))       (*BEWARE! spaces in options!*)
+                 make_atp_list xs (n+1))       (*BEWARE! spaces in options!*)
               end
       	     else if !prover = "E"
       	     then
@@ -122,7 +122,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 		  ([("E", Eprover, 
 		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time,
 		     probfile)] @
-		   (make_atp_list xs (n+1)))
+		   make_atp_list xs (n+1))
 	       end
 	     else error ("Invalid prover name: " ^ !prover)
           end

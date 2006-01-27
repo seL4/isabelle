@@ -26,8 +26,7 @@ signature RES_CLAUSE =
   val num_of_clauses : clause -> int
 
   val clause2dfg : clause -> string * string list
-  val clauses2dfg : clause list -> string -> clause list -> clause list ->
-	   (string * int) list -> (string * int) list -> string
+  val clauses2dfg : string -> clause list -> clause list -> string
   val tfree_dfg_clause : string -> string
 
   val arity_clause_thy: theory -> arityClause list 
@@ -103,13 +102,10 @@ val clrelclause_prefix = "clsrel_";
 
 val const_prefix = "c_";
 val tconst_prefix = "tc_"; 
-
 val class_prefix = "class_"; 
-
 
 fun union_all xss = foldl (op union) [] xss;
 
- 
 (*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
       Symtab.make [("op =", "equal"),
@@ -197,8 +193,7 @@ fun make_fixed_type_const c = tconst_prefix ^ lookup_type_const c;
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
 
-
-(***** definitions and functions for FOL clauses, prepared for conversion into TPTP format or SPASS format. *****)
+(***** definitions and functions for FOL clauses, for conversion to TPTP or DFG format. *****)
 
 val keep_types = ref true;
 
@@ -213,9 +208,6 @@ type axiom_name = string;
 
 type polarity = bool;
 
-type indexname = Term.indexname;
-
-
 (* "tag" is used for vampire specific syntax  *)
 type tag = bool; 
 
@@ -225,12 +217,10 @@ type tag = bool;
 val tagged = ref false;
 
 type pred_name = string;
-type sort = Term.sort;
-
-
 
 datatype typ_var = FOLTVar of indexname | FOLTFree of string;
 
+(*FIXME: give the constructors more sensible names*)
 datatype fol_type = AtomV of string
 		  | AtomF of string
 		  | Comp of string * fol_type list;
@@ -248,8 +238,8 @@ fun mk_fol_type ("Var",x,_) = AtomV(x)
   | mk_fol_type ("Comp",con,args) = Comp(con,args)
 
 
-
-datatype type_literal = LTVar of string | LTFree of string;
+(*First string is the type class; the second is a TVar or TFfree*)
+datatype type_literal = LTVar of string * string | LTFree of string * string;
 
 datatype folTerm = UVar of string * fol_type
                  | Fun of string * fol_type list * folTerm list;
@@ -270,17 +260,11 @@ datatype clause =
 		    literals: literal list,
 		    types_sorts: (typ_var * sort) list, 
                     tvar_type_literals: type_literal list, 
-                    tfree_type_literals: type_literal list ,
-                    tvars: string list,
-                    predicates: (string*int) list,
-                    functions: (string*int) list};
+                    tfree_type_literals: type_literal list,
+                    predicates: (string*int) list};
 
 
 exception CLAUSE of string * term;
-
-fun get_literals (c as Clause(cls)) = #literals cls;
-
-fun components_of_literal (Literal (pol,pred,tag)) = ((pol,pred),tag);
 
 fun predicate_name (Predicate(predname,_,_)) = predname;
 
@@ -301,7 +285,7 @@ fun isTaut (Clause {literals,...}) = exists isTrue literals;
 
 fun make_clause (clause_id,axiom_name,kind,literals,
                  types_sorts,tvar_type_literals,
-                 tfree_type_literals,tvars, predicates, functions) =
+                 tfree_type_literals,predicates) =
   if forall isFalse literals 
   then error "Problem too trivial for resolution (empty clause)"
   else
@@ -309,8 +293,7 @@ fun make_clause (clause_id,axiom_name,kind,literals,
              literals = literals, types_sorts = types_sorts,
              tvar_type_literals = tvar_type_literals,
              tfree_type_literals = tfree_type_literals,
-             tvars = tvars, predicates = predicates, 
-             functions = functions};
+             predicates = predicates};
 
 
 (** Some Clause destructor functions **)
@@ -320,8 +303,6 @@ fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
 fun get_axiomName (Clause cls) = #axiom_name cls;
 
 fun get_clause_id (Clause cls) = #clause_id cls;
-
-fun funcs_of_cls (Clause cls) = #functions cls;
 
 fun preds_of_cls (Clause cls) = #predicates cls;
 
@@ -339,23 +320,14 @@ fun init thy = (const_typargs := Sign.const_typargs thy);
 (*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
   TVars it contains.*)    
 fun type_of (Type (a, Ts)) = 
-      let val (folTyps, (ts, funcs)) = types_of Ts 
+      let val (folTyps, ts) = types_of Ts 
 	  val t = make_fixed_type_const a
-      in    
-	  (Comp(t,folTyps), (ts, (t, length Ts)::funcs))
-      end
-  | type_of (TFree (a,s)) = 
-      let val t = make_fixed_type_var a
-      in (AtomF(t), ([((FOLTFree a),s)], [(t,0)])) end
-  | type_of (TVar (v, s)) = (AtomV(make_schematic_type_var v), ([((FOLTVar v),s)], []))
+      in (Comp(t,folTyps), ts) end
+  | type_of (TFree (a,s)) = (AtomF(make_fixed_type_var a), [(FOLTFree a, s)]) 
+  | type_of (TVar (v, s)) = (AtomV(make_schematic_type_var v), [(FOLTVar v, s)])
 and types_of Ts =
-      let val foltyps_ts = map type_of Ts 
-	  val (folTyps,ts_funcs) = ListPair.unzip foltyps_ts
-	  val (ts, funcslist) = ListPair.unzip ts_funcs
-      in    
-	  (folTyps, (union_all ts, union_all funcslist))
-      end;
-
+      let val (folTyps,ts) = ListPair.unzip (map type_of Ts)
+      in (folTyps, union_all ts) end;
 
 
 fun const_types_of (c,T) = types_of (!const_typargs (c,T));
@@ -364,12 +336,10 @@ fun const_types_of (c,T) = types_of (!const_typargs (c,T));
    universal vars, although it is represented as "Free(...)" by Isabelle *)
 val isMeta = String.isPrefix "METAHYP1_"
 
-fun pred_name_type (Const(c,T)) = 
-      let val (contys,(folTyps,funcs)) = const_types_of (c,T)
-      in (make_fixed_const c, (contys,folTyps), funcs) end
+fun pred_name_type (Const(c,T)) = (make_fixed_const c, const_types_of (c,T))
   | pred_name_type (Free(x,T))  = 
       if isMeta x then raise CLAUSE("Predicate Not First Order 1", Free(x,T)) 
-      else (make_fixed_var x, ([],[]), [])
+      else (make_fixed_var x, ([],[]))
   | pred_name_type (v as Var _) = raise CLAUSE("Predicate Not First Order 2", v)
   | pred_name_type t        = raise CLAUSE("Predicate input unexpected", t);
 
@@ -381,87 +351,51 @@ fun eq_arg_type (Type("fun",[T,_])) =
     let val (folT,_) = type_of T;
     in  folT  end;
 
-fun fun_name_type (Const("op =",T)) args =   (*FIXME: Is this special treatment of = needed??*)
-      let val t = make_fixed_const "op ="
-      in (t, ([eq_arg_type T], []), [(t,2)]) end
-  | fun_name_type (Const(c,T)) args = 
-      let val t = make_fixed_const c
-	  val (contys, (folTyps,funcs)) = const_types_of (c,T)
-	  val arity = num_typargs(c,T) + length args
-      in
-	  (t, (contys,folTyps), ((t,arity)::funcs))
-      end
- | fun_name_type (Free(x,T)) args  = 
-      let val t = make_fixed_var x
-      in  (t, ([],[]), [(t, length args)]) end
+fun fun_name_type (Const(c,T)) args = (make_fixed_const c, const_types_of (c,T))
+  | fun_name_type (Free(x,T)) args  = 
+       if isMeta x then raise CLAUSE("Function Not First Order", Free(x,T))
+       else (make_fixed_var x, ([],[]))
   | fun_name_type f args = raise CLAUSE("Function Not First Order 1", f);
 
-
 fun term_of (Var(ind_nm,T)) = 
-      let val (folType,(ts,funcs)) = type_of T
-      in
-	  (UVar(make_schematic_var ind_nm, folType), (ts, funcs))
-      end
+      let val (folType,ts) = type_of T
+      in (UVar(make_schematic_var ind_nm, folType), ts) end
   | term_of (Free(x,T)) = 
-      let val (folType, (ts,funcs)) = type_of T
+      let val (folType, ts) = type_of T
       in
-	  if isMeta x then (UVar(make_schematic_var(x,0),folType),
-			    (ts, ((make_schematic_var(x,0)),0)::funcs))
-	  else
-	      (Fun(make_fixed_var x, [folType], []), 
-	       (ts, ((make_fixed_var x),0)::funcs))
+	  if isMeta x then (UVar(make_schematic_var(x,0),folType), ts)
+	  else (Fun(make_fixed_var x, [folType], []), ts)
       end
-  | term_of (Const(c,T)) =  (* impossible to be equality *)
-      let val (contys, (folTyps,funcs)) = const_types_of (c,T)
-      in
-	  (Fun(make_fixed_const c, contys, []),
-	   (folTyps, ((make_fixed_const c),0)::funcs))
-      end    
   | term_of app = 
       let val (f,args) = strip_comb app
-          val _ = case f of Const(_,_) => ()
-			  | Free(s,_)  => 
-			      if isMeta s 
-			      then raise CLAUSE("Function Not First Order 2", f)
-			      else ()
-			  | _ => raise CLAUSE("Function Not First Order 3", f);
-	  val (funName,(contys,ts1),funcs) = fun_name_type f args
-	  val (args',(ts2,funcs')) = terms_of args
+	  val (funName,(contys,ts1)) = fun_name_type f args
+	  val (args',ts2) = terms_of args
       in
 	  (Fun(funName,contys,args'), 
-	   (union_all (ts1::ts2), 
-	    union_all(funcs::funcs')))
+	   (union_all (ts1::ts2)))
       end
-and terms_of ts =  
-      let val (args, ts_funcs) = ListPair.unzip (map term_of ts)
-      in
-	  (args, ListPair.unzip ts_funcs)
-      end
+and terms_of ts = ListPair.unzip (map term_of ts)
 
 
 fun pred_of (Const("op =", typ), args) =
       let val arg_typ = eq_arg_type typ 
-	  val (args',(ts,funcs)) = terms_of args
+	  val (args',ts) = terms_of args
 	  val equal_name = make_fixed_const "op ="
       in
 	  (Predicate(equal_name,[arg_typ],args'),
 	   union_all ts, 
-	   [((make_fixed_var equal_name), 2)], 
-	   union_all funcs)
+	   [((make_fixed_var equal_name), 2)])
       end
   | pred_of (pred,args) = 
-      let val (predName,(predType,ts1), pfuncs) = pred_name_type pred
-	  val (args',(ts2,ffuncs)) = terms_of args
+      let val (predName, (predType,ts1)) = pred_name_type pred
+	  val (args',ts2) = terms_of args
 	  val ts3 = union_all (ts1::ts2)
-	  val ffuncs' = union_all ffuncs
-	  val newfuncs = pfuncs union ffuncs'
 	  val arity = 
 	    case pred of
 		Const (c,T) => num_typargs(c,T) + length args
 	      | _ => length args
       in
-	  (Predicate(predName,predType,args'), ts3, 
-	   [(predName, arity)], newfuncs)
+	  (Predicate(predName,predType,args'), ts3, [(predName, arity)])
       end;
 
 
@@ -474,20 +408,20 @@ fun predicate_of ((Const("Not",_) $ P), polarity, tag) =
         (pred_of (strip_comb term), polarity, tag);
 
 fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
-  | literals_of_term1 (args as (lits, ts, preds, funcs)) (Const("op |",_) $ P $ Q) = 
-      let val (lits', ts', preds', funcs') = literals_of_term1 args P
+  | literals_of_term1 (args as (lits, ts, preds)) (Const("op |",_) $ P $ Q) = 
+      let val (lits', ts', preds') = literals_of_term1 args P
       in
-	  literals_of_term1 (lits', ts', preds' union preds, funcs' union funcs) Q
+	  literals_of_term1 (lits', ts', preds' union preds) Q
       end
-  | literals_of_term1 (lits, ts, preds, funcs) P =
-      let val ((pred, ts', preds', funcs'), pol, tag) = predicate_of (P,true,false)
+  | literals_of_term1 (lits, ts, preds) P =
+      let val ((pred, ts', preds'), pol, tag) = predicate_of (P,true,false)
 	  val lits' = Literal(pol,pred,tag) :: lits
       in
-	  (lits', ts union ts', preds' union preds, funcs' union funcs)
+	  (lits', ts union ts', preds' union preds)
       end;
 
 
-val literals_of_term = literals_of_term1 ([],[],[],[]);
+val literals_of_term = literals_of_term1 ([],[],[]);
 
 
 
@@ -649,12 +583,8 @@ fun lits_eq ([],[]) vtvars = (true,vtvars)
 
 
 (*Equality of two clauses up to variable renaming*)
-fun clause_eq (cls1,cls2) =
-    let val lits1 = get_literals cls1
-	val lits2 = get_literals cls2
-    in
-	length lits1 = length lits2 andalso #1 (lits_eq (lits1,lits2) ([],[]))
-    end;
+fun clause_eq (Clause{literals=lits1,...}, Clause{literals=lits2,...}) =
+  length lits1 = length lits2 andalso #1 (lits_eq (lits1,lits2) ([],[]));
 
 
 (*** Hash function for clauses ***)
@@ -671,32 +601,24 @@ fun hashw_pred (Predicate(pn,_,args), w) =
 fun hash1_literal (Literal(true,pred,_)) = hashw_pred (pred, 0w0)
   | hash1_literal (Literal(false,pred,_)) = Word.notb (hashw_pred (pred, 0w0));
   
-fun hash_clause clause = Word.toIntX (xor_words (map hash1_literal (get_literals clause)));
+fun hash_clause (Clause{literals,...}) =
+  Word.toIntX (xor_words (map hash1_literal literals));
 
 
-(* FIX: not sure what to do with these funcs *)
-
-(*Make literals for sorted type variables*) 
+(*Make literals for sorted type variables.  FIXME: can it use map?*) 
 fun sorts_on_typs (_, [])   = ([]) 
   | sorts_on_typs (v, "HOL.type" :: s) =
       sorts_on_typs (v,s)                (*IGNORE sort "type"*)
-  | sorts_on_typs ((FOLTVar indx), (s::ss)) =
-      LTVar((make_type_class s) ^ 
-        "(" ^ (make_schematic_type_var indx) ^ ")") :: 
-      (sorts_on_typs ((FOLTVar indx), ss))
-  | sorts_on_typs ((FOLTFree x), (s::ss)) =
-      LTFree((make_type_class s) ^ "(" ^ (make_fixed_type_var x) ^ ")") :: 
-      (sorts_on_typs ((FOLTFree x), ss));
+  | sorts_on_typs ((FOLTVar indx), s::ss) =
+      LTVar(make_type_class s, make_schematic_type_var indx) :: 
+      sorts_on_typs ((FOLTVar indx), ss)
+  | sorts_on_typs ((FOLTFree x), s::ss) =
+      LTFree(make_type_class s, make_fixed_type_var x) :: 
+      sorts_on_typs ((FOLTFree x), ss);
 
 
-(*UGLY: seems to be parsing the "show sorts" output, removing anything that
-  starts with a left parenthesis.*)
-fun remove_type str = hd (String.fields (fn c => c = #"(") str);
-
-fun pred_of_sort (LTVar x) = ((remove_type x),1)
-|   pred_of_sort (LTFree x) = ((remove_type x),1)
-
-
+fun pred_of_sort (LTVar (s,ty)) = (s,1)
+|   pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return two separate lists.
   The first is for TVars, the second for TFrees.*)
@@ -744,17 +666,13 @@ fun get_tvar_strs [] = []
       end
   | get_tvar_strs((FOLTFree x,s)::tss) = distinct (get_tvar_strs tss)
 
-(* FIX add preds and funcs to add typs aux here *)
-
 fun make_axiom_clause_thm thm (ax_name,cls_id) =
-    let val (lits,types_sorts, preds, funcs) = literals_of_term (prop_of thm)
+    let val (lits,types_sorts, preds) = literals_of_term (prop_of thm)
 	val lits' = sort_lits lits
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
-        val tvars = get_tvar_strs types_sorts
     in 
 	make_clause(cls_id,ax_name,Axiom,
-	            lits',types_sorts,tvar_lits,tfree_lits,
-	            tvars, preds, funcs)
+	            lits',types_sorts,tvar_lits,tfree_lits,preds)
     end;
 
 
@@ -762,13 +680,11 @@ fun make_axiom_clause_thm thm (ax_name,cls_id) =
 fun make_conjecture_clause n t =
     let val _ = check_is_fol_term t
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
-	val (lits,types_sorts, preds, funcs) = literals_of_term t
+	val (lits,types_sorts, preds) = literals_of_term t
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds 
-        val tvars = get_tvar_strs types_sorts
     in
 	make_clause(n,"conjecture",Conjecture,
-	            lits,types_sorts,tvar_lits,tfree_lits,
-	            tvars, preds, funcs)
+	            lits,types_sorts,tvar_lits,tfree_lits,preds)
     end;
     
 fun make_conjecture_clauses_aux _ [] = []
@@ -782,14 +698,12 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0
 fun make_axiom_clause term (ax_name,cls_id) =
     let val _ = check_is_fol_term term 
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Axiom is not FOL", term) 
-	val (lits,types_sorts, preds,funcs) = literals_of_term term
+	val (lits,types_sorts, preds) = literals_of_term term
 	val lits' = sort_lits lits
 	val (tvar_lits,tfree_lits, preds) = add_typs_aux types_sorts preds
-        val tvars = get_tvar_strs types_sorts	
     in 
 	make_clause(cls_id,ax_name,Axiom,
-	            lits',types_sorts,tvar_lits,tfree_lits,
-	            tvars, preds,funcs)
+	            lits',types_sorts,tvar_lits,tfree_lits,preds)
     end;
 
 
@@ -799,10 +713,8 @@ fun make_axiom_clause term (ax_name,cls_id) =
 
 exception ARCLAUSE of string;
  
-
 type class = string; 
 type tcons = string; 
-
 
 datatype arLit = TConsLit of bool * (class * tcons * string list) | TVarLit of bool * (class * string);
  
@@ -814,8 +726,8 @@ datatype arityClause =
 			 premLits: arLit list};
 
 
-fun get_TVars 0 = []
-  | get_TVars n = ("T_" ^ (Int.toString n)) :: get_TVars (n-1);
+fun gen_TVars 0 = []
+  | gen_TVars n = ("T_" ^ Int.toString n) :: gen_TVars (n-1);
 
 fun pack_sort(_,[])  = []
   | pack_sort(tvar, "HOL.type"::srt) = pack_sort(tvar, srt)   (*IGNORE sort "type"*)
@@ -827,7 +739,7 @@ fun make_TConsLit (b,(cls,tcons,tvars)) = TConsLit(b,(make_type_class cls,make_f
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
 fun make_axiom_arity_clause (tcons, n, (res,args)) =
    let val nargs = length args
-       val tvars = get_TVars nargs
+       val tvars = gen_TVars nargs
        val tvars_srts = ListPair.zip (tvars,args)
        val tvars_srts' = union_all(map pack_sort tvars_srts)
        val false_tvars_srts' = map (pair false) tvars_srts'
@@ -891,12 +803,12 @@ fun arity_clause_thy thy =
 type classrelClauses = classrelClause list Symtab.table;
 
 val classrel_of = #2 o #classes o Type.rep_tsig o Sign.tsig_of;
-fun classrel_clauses_classrel (C: Sorts.classes) = map classrelClauses_of (Graph.dest C);
+
+fun classrel_clauses_classrel (C: Sorts.classes) =
+  map classrelClauses_of (Graph.dest C);
+
 val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of;
 
-
-
-(****!!!! Changed for typed equality !!!!****)
 
 fun wrap_eq_type typ t = eq_typ_wrapper ^"(" ^ t ^ "," ^ typ ^ ")";
 
@@ -943,13 +855,8 @@ fun dfg_literal (Literal(pol,pred,tag)) =
 	if pol then pred_string else "not(" ^pred_string ^ ")"  
     end;
 
-
-(* FIX: what does this mean? *)
-(*fun dfg_of_typeLit (LTVar x) = "not(" ^ x ^ ")"
-  | dfg_of_typeLit (LTFree x) = "(" ^ x ^ ")";*)
-
-fun dfg_of_typeLit (LTVar x) =  x 
-  | dfg_of_typeLit (LTFree x) = x ;
+fun dfg_of_typeLit (LTVar (s,ty)) = "not(" ^ s ^ "(" ^ ty ^ "))"
+  | dfg_of_typeLit (LTFree (s,ty)) = "(" ^ s ^ "(" ^ ty ^ "))";
  
 (*Make the string of universal quantifiers for a clause*)
 fun forall_open ([],[]) = ""
@@ -985,10 +892,8 @@ fun dfg_folterms (Literal(pol,pred,tag)) =
   let val Predicate (predname, _, folterms) = pred
   in  folterms  end
 
- 
 fun get_uvars (UVar(a,typ)) = [a] 
 |   get_uvars (Fun (_,typ,tlist)) = union_all(map get_uvars tlist)
-
 
 fun is_uvar (UVar _) = true
 |   is_uvar (Fun _) = false;
@@ -1003,93 +908,46 @@ fun dfg_vars (Clause cls) =
         union_all(map get_uvars folterms)
     end
 
-
-fun dfg_tvars (Clause cls) =(#tvars cls)
-
-
-	
-(* make this return funcs and preds too? *)
 fun string_of_predname (Predicate("equal",_,terms)) = "EQUALITY"
   | string_of_predname (Predicate(name,_,terms)) = name
-    
-	
-
-fun concat_with sep []  = ""
-  | concat_with sep [x] = "(" ^ x ^ ")"
-  | concat_with sep (x::xs) = "(" ^ x ^ ")" ^  sep ^ (concat_with sep xs);
 
 fun dfg_pred (Literal(pol,pred,tag)) ax_name = 
     (string_of_predname pred) ^ " " ^ ax_name
 
-fun dfg_clause cls =
+fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,types_sorts,...}) =
     let val (lits,tfree_lits) = dfg_clause_aux cls 
-             (*"lits" includes the typing assumptions (TVars)*)
+            (*"lits" includes the typing assumptions (TVars)*)
         val vars = dfg_vars cls
-        val tvars = dfg_tvars cls
-	val knd = string_of_kind cls
+        val tvars = get_tvar_strs types_sorts
+        val preds = preds_of_cls cls
+	val knd = name_of_kind kind
 	val lits_str = commas lits
-	val cls_id = get_clause_id cls
-	val axname = get_axiomName cls
-	val cls_str = gen_dfg_cls(cls_id,axname,knd,lits_str,tvars, vars) 			
-        fun typ_clss k [] = []
-          | typ_clss k (tfree :: tfrees) = 
-              (gen_dfg_type_cls(cls_id,axname,knd,tfree,k, tvars,vars)) :: 
-              (typ_clss (k+1) tfrees)
-    in 
-	cls_str :: (typ_clss 0 tfree_lits)
-    end;
+	val cls_str = gen_dfg_cls(clause_id,axiom_name,knd,lits_str,tvars,vars) 
+    in (cls_str, tfree_lits) end;
 
-fun string_of_arity (name, num) =  name ^ "," ^ (Int.toString num) 
+fun string_of_arity (name, num) =  "(" ^ name ^ "," ^ Int.toString num ^ ")"
 
 fun string_of_preds preds = 
-  "predicates[" ^ (concat_with ", " (map string_of_arity preds)) ^ "].\n";
+  "predicates[" ^ commas(map string_of_arity preds) ^ "].\n";
 
 fun string_of_funcs funcs =
-  "functions[" ^ (concat_with ", " (map string_of_arity funcs)) ^ "].\n" ;
-
+  "functions[" ^ commas(map string_of_arity funcs) ^ "].\n" ;
 
 fun string_of_symbols predstr funcstr = 
   "list_of_symbols.\n" ^ predstr  ^ funcstr  ^ "end_of_list.\n\n";
 
-
 fun string_of_axioms axstr = 
   "list_of_clauses(axioms,cnf).\n" ^ axstr ^ "end_of_list.\n\n";
-
 
 fun string_of_conjectures conjstr = 
   "list_of_clauses(conjectures,cnf).\n" ^ conjstr ^ "end_of_list.\n\n";
 
-fun string_of_descrip () = 
-  "list_of_descriptions.\nname({*[ File     : ],[ Names    :]*}).\nauthor({*[ Source   :]*}).\nstatus(unknown).\ndescription({*[ Refs     :]*}).\nend_of_list.\n\n"
+fun string_of_start name = "begin_problem(" ^ name ^ ").\n\n";
 
-
-fun string_of_start name = "%------------------------------------------------------------------------------\nbegin_problem(" ^ name ^ ").\n\n";
-
-
-fun string_of_end () = "end_problem.\n%------------------------------------------------------------------------------";
-
-
-fun clause2dfg cls =
-    let val (lits,tfree_lits) = dfg_clause_aux cls 
-            (*"lits" includes the typing assumptions (TVars)*)
-	val cls_id = get_clause_id cls
-	val ax_name = get_axiomName cls
-        val vars = dfg_vars cls
-        val tvars = dfg_tvars cls
-        val funcs = funcs_of_cls cls
-        val preds = preds_of_cls cls
-	val knd = string_of_kind cls
-	val lits_str = commas lits
-	val cls_str = gen_dfg_cls(cls_id,ax_name,knd,lits_str,tvars,vars) 
-    in
-	(cls_str,tfree_lits) 
-    end;
-
-
+fun string_of_descrip name = "list_of_descriptions.\nname({*" ^ name ^ "*}).\nauthor({*Isabelle*}).\nstatus(unknown).\ndescription({*auto-generated*}).\nend_of_list.\n\n"
 
 fun tfree_dfg_clause tfree_lit =
   "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ")."
-
 
 fun gen_dfg_file probname axioms conjectures funcs preds = 
     let val axstrs_tfrees = (map clause2dfg axioms)
@@ -1102,35 +960,47 @@ fun gen_dfg_file probname axioms conjectures funcs preds =
         val funcstr = string_of_funcs funcs
         val predstr = string_of_preds preds
     in
-       (string_of_start probname) ^ (string_of_descrip ()) ^ 
-       (string_of_symbols funcstr predstr) ^  
-       (string_of_axioms axstr) ^
-       (string_of_conjectures conjstr) ^ (string_of_end ())
+       string_of_start probname ^ string_of_descrip probname ^
+       string_of_symbols funcstr predstr ^  
+       string_of_axioms axstr ^
+       string_of_conjectures conjstr ^ "end_problem.\n"
     end;
    
-fun clauses2dfg [] probname axioms conjectures funcs preds = 
-      let val funcs' = (union_all(map funcs_of_cls axioms)) @ funcs
-	  val preds' = (union_all(map preds_of_cls axioms)) @ preds
-      in
-	 gen_dfg_file probname axioms conjectures funcs' preds' 
-      end
- | clauses2dfg (cls::clss) probname axioms conjectures funcs preds = 
-     let val (lits,tfree_lits) = dfg_clause_aux cls
-	       (*"lits" includes the typing assumptions (TVars)*)
-	 val cls_id = get_clause_id cls
-	 val ax_name = get_axiomName cls
-	 val vars = dfg_vars cls
-	 val tvars = dfg_tvars cls
-	 val funcs' = (funcs_of_cls cls) union funcs
-	 val preds' = (preds_of_cls cls) union preds
-	 val knd = string_of_kind cls
-	 val lits_str = concat_with ", " lits
-	 val axioms' = if knd = "axiom" then (cls::axioms) else axioms
-	 val conjectures' = 
-	     if knd = "conjecture" then (cls::conjectures) else conjectures
-     in
-	 clauses2dfg clss probname axioms' conjectures' funcs' preds' 
-     end;
+fun add_clause_preds (cls,preds) = (preds_of_cls cls) union preds;
+val preds_of_clauses = foldl add_clause_preds []
+
+(*FIXME: can replace expensive list operations (ins) by trees (symtab)*)
+
+fun add_foltype_funcs (AtomV _, funcs) = funcs
+  | add_foltype_funcs (AtomF a, funcs) = (a,0) ins funcs
+  | add_foltype_funcs (Comp(a,tys), funcs) = 
+      foldl add_foltype_funcs ((a, length tys) ins funcs) tys;
+
+fun add_folterm_funcs (UVar _, funcs) = funcs
+  | add_folterm_funcs (Fun(a,tys,[]), funcs) = (a,0) ins funcs
+      (*A constant is a special case: it has no type argument even if overloaded*)
+  | add_folterm_funcs (Fun(a,tys,tms), funcs) = 
+      foldl add_foltype_funcs 
+	    (foldl add_folterm_funcs ((a, length tys + length tms) ins funcs) tms) 
+	    tys
+
+fun add_predicate_funcs (Predicate(_,tys,tms), funcs) = 
+    foldl add_foltype_funcs (foldl add_folterm_funcs funcs tms) tys;
+
+fun add_literal_funcs (Literal(_,pred,_), funcs) = add_predicate_funcs (pred,funcs)
+
+fun add_clause_funcs (Clause {literals, ...}, funcs) =
+  foldl add_literal_funcs funcs literals;
+
+val funcs_of_clauses = foldl add_clause_funcs []
+
+
+fun clauses2dfg probname axioms conjectures = 
+  let val clss = conjectures @ axioms
+  in
+     gen_dfg_file probname axioms conjectures 
+       (funcs_of_clauses clss) (preds_of_clauses clss)
+  end
 
 
 fun string_of_arClauseID (ArityClause {clause_id,axiom_name,...}) =
@@ -1186,8 +1056,8 @@ fun tptp_literal (Literal(pol,pred,tag)) =
 	tagged_pol ^ pred_string
     end;
 
-fun tptp_of_typeLit (LTVar x) = "--" ^ x
-  | tptp_of_typeLit (LTFree x) = "++" ^ x;
+fun tptp_of_typeLit (LTVar (s,ty)) = "--" ^ s ^ "(" ^ ty ^ ")"
+  | tptp_of_typeLit (LTFree (s,ty)) = "++" ^ s ^ "(" ^ ty ^ ")";
  
 
 fun gen_tptp_cls (cls_id,ax_name,knd,lits) = 
