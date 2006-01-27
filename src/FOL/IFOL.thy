@@ -239,6 +239,15 @@ next
   thus "x == y" by (rule eq_reflection)
 qed
 
+lemma atomize_iff [atomize]: "(A == B) == Trueprop (A <-> B)"
+proof
+  assume "A == B"
+  show "A <-> B" by (unfold prems) (rule iff_refl)
+next
+  assume "A <-> B"
+  thus "A == B" by (rule iff_reflection)
+qed
+
 lemma atomize_conj [atomize]:
   "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
 proof
