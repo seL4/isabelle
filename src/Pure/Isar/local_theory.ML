@@ -7,7 +7,6 @@ Local theory operations, with optional target locale.
 
 signature LOCAL_THEORY =
 sig
-  val locale_of: Proof.context -> string option
   val params_of: Proof.context -> (string * typ) list
   val hyps_of: Proof.context -> term list
   val standard: Proof.context -> thm -> thm
@@ -16,9 +15,12 @@ sig
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val init: xstring option -> theory -> Proof.context
   val init_i: string option -> theory -> Proof.context
-  val exit: Proof.context -> theory
+  val exit: Proof.context -> Proof.context * theory
   val consts: ((string * typ) * mixfix) list -> Proof.context -> term list * Proof.context
   val axioms: ((string * Attrib.src list) * term list) list -> Proof.context ->
+    (bstring * thm list) list * Proof.context
+  val axioms_finish: (Proof.context -> thm -> thm) ->
+    ((string * Attrib.src list) * term list) list -> Proof.context ->
     (bstring * thm list) list * Proof.context
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context -> (bstring * thm list) list * Proof.context
@@ -26,7 +28,7 @@ sig
     (bstring * thm list) * Proof.context
   val def: (string * mixfix) * ((string * Attrib.src list) * term) ->
     Proof.context -> (term * (bstring * thm)) * Proof.context
-  val def': (Proof.context -> term -> thm -> thm) ->
+  val def_finish: (Proof.context -> term -> thm -> thm) ->
     (string * mixfix) * ((string * Attrib.src list) * term) ->
     Proof.context -> (term * (bstring * thm)) * Proof.context
 end;
@@ -34,28 +36,34 @@ end;
 structure LocalTheory: LOCAL_THEORY =
 struct
 
-
 (** local context data **)
 
 structure Data = ProofDataFun
 (
   val name = "Isar/local_theory";
   type T =
-   {locale: string option,
+   {locale: (string * (cterm list * Proof.context)) option,
     params: (string * typ) list,
     hyps: term list,
-    standard: Proof.context -> thm -> thm,
     exit: theory -> theory};
-  fun init _ = {locale = NONE, params = [], hyps = [], standard = K Drule.standard, exit = I};
+  fun init thy = {locale = NONE, params = [], hyps = [], exit = I};
   fun print _ _ = ();
 );
 
 val _ = Context.add_setup Data.init;
 
+fun map_locale f = Data.map (fn {locale, params, hyps, exit} =>
+  {locale = Option.map (fn (loc, (view, ctxt)) => (loc, (view, f ctxt))) locale,
+    params = params, hyps = hyps, exit = exit});
+
 val locale_of = #locale o Data.get;
 val params_of = #params o Data.get;
 val hyps_of = #hyps o Data.get;
-fun standard ctxt = #standard (Data.get ctxt) ctxt;
+
+fun standard ctxt =
+  (case #locale (Data.get ctxt) of
+    NONE => Drule.standard
+  | SOME (_, (_, loc_ctxt)) => ProofContext.export_standard ctxt loc_ctxt);
 
 
 (* pretty_consts *)
@@ -78,32 +86,44 @@ fun pretty_consts ctxt cs =
 end;
 
 
+(* theory/locale substructures *)
 
-(** theory **)
+fun transfer thy =
+  ProofContext.transfer thy #> map_locale (ProofContext.transfer thy);
 
-fun theory f ctxt =
-  ProofContext.transfer (f (ProofContext.theory_of ctxt)) ctxt;
+fun theory f ctxt = transfer (f (ProofContext.theory_of ctxt)) ctxt;
 
 fun theory_result f ctxt =
   let val (res, thy') = f (ProofContext.theory_of ctxt)
-  in (res, ProofContext.transfer thy' ctxt) end;
+  in (res, transfer thy' ctxt) end;
+
+fun locale_result f ctxt =
+  (case locale_of ctxt of
+    NONE => error "Local theory: no locale context"
+  | SOME (loc, (view, loc_ctxt)) =>
+      let
+        val (res, loc_ctxt') = f loc_ctxt;
+        val thy' = ProofContext.theory_of loc_ctxt';
+      in (res, ctxt |> map_locale (K loc_ctxt') |> transfer thy') end);
+
+
+(* init -- exit *)
 
 fun init_i NONE thy = ProofContext.init thy
   | init_i (SOME loc) thy =
       thy
       |> Locale.init loc
-      |> ProofContext.inferred_fixes
-      |> (fn (params, ctxt) => Data.put
-          {locale = SOME loc,
+      ||>> ProofContext.inferred_fixes
+      |> (fn ((view, params), ctxt) => Data.put
+          {locale = SOME (loc, (view, ctxt)),
            params = params,
            hyps = ProofContext.assms_of ctxt,
-           standard = fn inner => ProofContext.export_standard inner ctxt,
            exit = Sign.restore_naming thy} ctxt)
       |> theory (Sign.add_path (Sign.base_name loc) #> Sign.no_base_names);
 
-fun init target thy = init_i (Option.map (Locale.intern thy) target) thy;
+fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
-fun exit ctxt = #exit (Data.get ctxt) (ProofContext.theory_of ctxt);
+fun exit ctxt = (ctxt, #exit (Data.get ctxt) (ProofContext.theory_of ctxt));
 
 
 
@@ -116,7 +136,7 @@ fun consts decls ctxt =
     val thy = ProofContext.theory_of ctxt;
     val params = params_of ctxt;
     val ps = map Free params;
-    val Ps = map snd params;
+    val Ps = map #2 params;
   in
     ctxt
     |> theory (Sign.add_consts_i (decls |> map (fn ((c, T), mx) => (c, Ps ---> T, mx))))
@@ -125,17 +145,23 @@ fun consts decls ctxt =
   end;
 
 
-(* fact definition *)
+(* fact definitions *)
 
 fun notes kind facts ctxt =
-  (case locale_of ctxt of
-    NONE => ctxt |> theory_result
-      (PureThy.note_thmss_i (Drule.kind kind)
-        (Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts))
-  | SOME loc => ctxt |> theory_result (Locale.note_thmss_i kind loc facts #> apsnd #1));
+  let
+    val attrib = Attrib.attribute_i (ProofContext.theory_of ctxt);
+    val facts' = map (apsnd (map (apfst (map (standard ctxt))))) facts;
+  in
+    ctxt |>
+    (case locale_of ctxt of
+      NONE => theory_result (PureThy.note_thmss_i kind (Attrib.map_facts attrib facts'))
+    | SOME (loc, view_ctxt) =>
+        locale_result (K (apfst #1 (Locale.add_thmss kind loc facts' view_ctxt))))
+    ||> (#2 o ProofContext.note_thmss_i (Attrib.map_facts attrib facts))
+  end;
 
 fun note (a, ths) ctxt =
-  ctxt |> notes Drule.theoremK [(a, [(ths, [])])] |>> hd;
+  ctxt |> notes PureThy.theoremK [(a, [(ths, [])])] |>> hd;
 
 
 (* axioms *)
@@ -162,36 +188,33 @@ fun add_axiom hyps (name, prop) thy =
 
 in
 
-fun axioms specs ctxt =
-  let
-    fun name_list name [x] = [(name, x)]
-      | name_list name xs = PureThy.name_multi name xs;
-    val fixes_ctxt = fold (fold ProofContext.fix_frees o snd) specs ctxt;
-  in
-    ctxt |> fold_map (fn ((name, atts), props) =>
-      theory_result (fold_map (add_axiom (hyps_of ctxt)) (name_list name props))
-      #-> (fn ths => note ((name, atts), map (standard fixes_ctxt) ths))) specs
-  end;
+fun axioms_finish finish = fold_map (fn ((name, atts), props) =>
+  fold ProofContext.fix_frees props
+  #> (fn ctxt => ctxt
+    |> theory_result (fold_map (add_axiom (hyps_of ctxt)) (PureThy.name_multi name props))
+    |-> (fn ths => note ((name, atts), map (finish ctxt) ths))));
+
+val axioms = axioms_finish (K I);
 
 end;
 
 
-(* constant definition *)
+(* constant definitions *)
 
 local
 
-fun add_def (name, prop) thy =
-  let
-    val thy' = thy |> Theory.add_defs_i false [(name, prop)];
-    val th = Thm.get_axiom_i thy' (Sign.full_name thy' name);
-    val cert = Thm.cterm_of thy';
-    val subst = map2 (fn var => fn free => (cert (Var var), cert (Free free)))
-      (Term.add_vars (Thm.prop_of th) []) (Term.add_frees prop []);
-  in (Drule.cterm_instantiate subst th, thy') end;
+fun add_def (name, prop) =
+  Theory.add_defs_i false [(name, prop)] #> (fn thy =>
+    let
+      val th = Thm.get_axiom_i thy (Sign.full_name thy name);
+      val cert = Thm.cterm_of thy;
+      val subst = map2 (fn var => fn free => (cert (Var var), cert (Free free)))
+        (Term.add_vars (Thm.prop_of th) []) (Term.add_frees prop []);
+    in (Drule.cterm_instantiate subst th, thy) end);
 
 in
 
-fun def' finish (var, spec) ctxt =
+fun def_finish finish (var, spec) ctxt =
   let
     val (x, mx) = var;
     val ((name, atts), rhs) = spec;
@@ -205,9 +228,8 @@ fun def' finish (var, spec) ctxt =
       #> apfst (fn (b, [th]) => (lhs, (b, th))))
   end;
 
-end;
+val def = def_finish (K (K I));
 
-fun def (var, spec) =
-  def' (fn ctxt => fn _ => standard (ProofContext.fix_frees (snd spec) ctxt)) (var, spec);
+end;
 
 end;
