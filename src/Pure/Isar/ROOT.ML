@@ -10,6 +10,7 @@ use "object_logic.ML";
 use "rule_cases.ML";
 use "auto_bind.ML";
 use "proof_context.ML";
+use "local_defs.ML";
 use "proof_display.ML";
 use "args.ML";
 use "attrib.ML";
