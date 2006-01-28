@@ -90,18 +90,18 @@ constdefs
   induct_conj where "induct_conj(A, B) == A \<and> B"
 
 lemma induct_forall_eq: "(!!x. P(x)) == Trueprop(induct_forall(\<lambda>x. P(x)))"
-  by (unfold atomize_all induct_forall_def)
+  unfolding atomize_all induct_forall_def .
 
 lemma induct_implies_eq: "(A ==> B) == Trueprop(induct_implies(A, B))"
-  by (unfold atomize_imp induct_implies_def)
+  unfolding atomize_imp induct_implies_def .
 
 lemma induct_equal_eq: "(x == y) == Trueprop(induct_equal(x, y))"
-  by (unfold atomize_eq induct_equal_def)
+  unfolding atomize_eq induct_equal_def .
 
 lemma induct_conj_eq:
   includes meta_conjunction_syntax
   shows "(A && B) == Trueprop(induct_conj(A, B))"
-  by (unfold atomize_conj induct_conj_def)
+  unfolding atomize_conj induct_conj_def .
 
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
 lemmas induct_rulify [symmetric, standard] = induct_atomize
