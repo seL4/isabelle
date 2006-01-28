@@ -193,8 +193,8 @@ fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.em
 
 (* unfold/fold definitions *)
 
-fun unfold_meth ths = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac ths));
-fun fold_meth ths = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac ths));
+fun unfold_meth ths = SIMPLE_METHOD (CHANGED_PROP (ObjectLogic.unfold_tac ths));
+fun fold_meth ths = SIMPLE_METHOD (CHANGED_PROP (ObjectLogic.fold_tac ths));
 
 
 (* atomize rule statements *)
