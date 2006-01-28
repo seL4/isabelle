@@ -847,9 +847,9 @@ val welcomeP =
 val _ = OuterSyntax.add_keywords
  ["!", "!!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
   "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes",
-  "begin", "binder", "concl", "constrains", "defines", "files",
-  "fixes", "imports", "in", "includes", "infix", "infixl", "infixr",
-  "is", "notes", "open", "output", "overloaded", "shows", "structure",
+  "begin", "binder", "concl", "constrains", "defines", "fixes",
+  "imports", "in", "includes", "infix", "infixl", "infixr", "is",
+  "notes", "open", "output", "overloaded", "shows", "structure",
   "uses", "where", "|", "\\<equiv>", "\\<leftharpoondown>",
   "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>"];
 
