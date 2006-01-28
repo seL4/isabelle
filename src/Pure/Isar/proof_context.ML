@@ -141,11 +141,6 @@ sig
   val presume_export: export
   val add_view: context -> cterm list -> context -> context
   val export_view: cterm list -> context -> context -> thm -> thm
-  val mk_def: context -> (string * term) list -> term list
-  val cert_def: context -> term -> string * term
-  val abs_def: term -> (string * typ) * term
-  val def_export: export
-  val add_def: string * term -> context -> ((string * typ) * thm) * context
   val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
   val apply_case: RuleCases.T -> context -> (string * term list) list * context
   val get_case: context -> string -> string option list -> RuleCases.T
@@ -1231,71 +1226,6 @@ fun add_view outer view = map_assms (fn (asms, prems) =>
   in (asms', prems) end);
 
 fun export_view view inner outer = export_standard (add_view outer view inner) outer;
-
-
-(* definitions *)
-
-fun mk_def ctxt args =
-  let
-    val (xs, rhss) = split_list args;
-    val (bind, _) = bind_fixes xs ctxt;
-    val lhss = map (fn (x, rhs) => bind (Free (x, Term.fastype_of rhs))) args;
-  in map Logic.mk_equals (lhss ~~ rhss) end;
-
-fun cert_def ctxt eq =
-  let
-    fun err msg = cat_error msg
-      ("The error(s) above occurred in definition: " ^ string_of_term ctxt eq);
-    val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
-      handle TERM _ => err "Not a meta-equality (==)";
-    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
-    val (c, _) = Term.dest_Free f handle TERM _ =>
-      err "Head of lhs must be a free/fixed variable";
-
-    fun is_free (Free (x, _)) = not (is_fixed ctxt x)
-      | is_free _ = false;
-    val extra_frees = List.filter is_free (term_frees rhs) \\ xs;
-  in
-    conditional (not (forall (is_Bound orf is_free) xs andalso null (duplicates xs))) (fn () =>
-      err "Arguments of lhs must be distinct free/bound variables");
-    conditional (f mem Term.term_frees rhs) (fn () =>
-      err "Element to be defined occurs on rhs");
-    conditional (not (null extra_frees)) (fn () =>
-      err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
-    (c, Term.list_all_free (List.mapPartial (try Term.dest_Free) xs, eq))
-  end;
-
-fun abs_def eq =
-  let
-    val body = Term.strip_all_body eq;
-    val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
-    val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (vars, body));
-    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
-    val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
-  in (Term.dest_Free f, eq') end;
-
-
-fun head_of_def cprop =
-  #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
-  |> Thm.cterm_of (Thm.theory_of_cterm cprop);
-
-fun def_export _ cprops thm =
-  thm
-  |> Drule.implies_intr_list cprops
-  |> Drule.forall_intr_list (map head_of_def cprops)
-  |> Drule.forall_elim_vars 0
-  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
-
-fun add_def (x, t) ctxt =
-  let
-    val [eq] = mk_def ctxt [(x, t)];
-    val x' = Term.dest_Free (fst (Logic.dest_equals eq));
-  in
-    ctxt
-    |> add_fixes_i [(x, NONE, NoSyn)] |> snd
-    |> add_assms_i def_export [(("", []), [(eq, ([], []))])]
-    |>> (fn [(_, [th])] => (x', th))
-  end;
 
 
 
