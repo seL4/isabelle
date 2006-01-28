@@ -65,6 +65,7 @@ sig
   val transitive_thm: thm
   val symmetric_fun: thm -> thm
   val extensional: thm -> thm
+  val equals_cong: thm
   val imp_cong: thm
   val swap_prems_eq: thm
   val equal_abs_elim: cterm  -> thm -> thm
@@ -626,6 +627,9 @@ fun extensional eq =
   let val eq' =
     abstract_rule "x" (snd (Thm.dest_comb (fst (dest_equals (cprop_of eq))))) eq
   in equal_elim (eta_conversion (cprop_of eq')) eq' end;
+
+val equals_cong =
+  store_standard_thm_open "equals_cong" (Thm.reflexive (read_prop "x == y"));
 
 val imp_cong =
   let
