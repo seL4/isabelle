@@ -22,23 +22,27 @@ sig
   val atomize_tac: int -> tactic
   val full_atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
-  val unatomize_term: theory -> term -> term
-  val unatomize_tac: int -> tactic
   val rulify_term: theory -> term -> term
   val rulify_tac: int -> tactic
   val rulify: thm -> thm
   val rulify_no_asm: thm -> thm
   val rule_format: attribute
   val rule_format_no_asm: attribute
+  val meta_rewrite_cterm: cterm -> thm
+  val meta_rewrite_thm: thm -> thm
+  val meta_rewrite_tac: int -> tactic
+  val unfold: thm list -> thm -> thm
+  val unfold_goals: thm list -> thm -> thm
+  val unfold_tac: thm list -> tactic
+  val fold: thm list -> thm -> thm
+  val fold_tac: thm list -> tactic
 end;
 
 structure ObjectLogic: OBJECT_LOGIC =
 struct
 
 
-(** object-logic theory data **)
-
-(* data kind 'Pure/object-logic' *)
+(** theory data **)
 
 structure ObjectLogicData = TheoryDataFun
 (struct
@@ -66,7 +70,7 @@ val _ = Context.add_setup ObjectLogicData.init;
 
 (** generic treatment of judgments -- with a single argument only **)
 
-(* add_judgment(_i) *)
+(* add judgment *)
 
 local
 
@@ -125,7 +129,6 @@ fun ensure_propT thy t =
 (* maintain rules *)
 
 val get_atomize = #1 o #2 o ObjectLogicData.get;
-val get_unatomize = map Thm.symmetric o get_atomize;
 val get_rulify = #2 o #2 o ObjectLogicData.get;
 
 val declare_atomize =
@@ -162,12 +165,6 @@ fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
 
 
-(* unatomize -- not necessarily the same as rulify *)
-
-fun unatomize_term thy = MetaSimplifier.rewrite_term thy (get_unatomize thy) [];
-fun unatomize_tac i st = rewrite_goal_tac (get_unatomize (Thm.theory_of_thm st)) i st;
-
-
 (* rulify *)
 
 fun rulify_term thy = MetaSimplifier.rewrite_term thy (get_rulify thy) [];
@@ -183,5 +180,37 @@ val rulify_no_asm = gen_rulify false;
 fun rule_format x = Thm.rule_attribute (fn _ => rulify) x;
 fun rule_format_no_asm x = Thm.rule_attribute (fn _ => rulify_no_asm) x;
 
+
+(* handle object-level equalities *)
+
+local
+
+val equals_ss =
+  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
+    addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
+
+fun rewrite rules =
+  MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE)) (equals_ss addsimps rules);
+
+in
+
+fun meta_rewrite_cterm ct =
+  let val thy = Thm.theory_of_cterm ct in
+    Thm.transitive
+      (rewrite (get_rulify thy) ct)
+      (rewrite (map Thm.symmetric (get_atomize thy)) ct)    (*produce meta-level equality*)
+  end;
+
+val meta_rewrite_thm = Drule.fconv_rule meta_rewrite_cterm;
+fun meta_rewrite_tac i =
+  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) meta_rewrite_cterm));
+
+val unfold       = Tactic.rewrite_rule       o map meta_rewrite_thm;
+val unfold_goals = Tactic.rewrite_goals_rule o map meta_rewrite_thm;
+val unfold_tac   = Tactic.rewrite_goals_tac  o map meta_rewrite_thm;
+val fold         = Tactic.fold_rule          o map meta_rewrite_thm;
+val fold_tac     = Tactic.fold_goals_tac     o map meta_rewrite_thm;
+
+end;
 
 end;
