@@ -557,11 +557,11 @@ fun gen_def fix prep_att prep_binds args state =
     val names = map (fn ("", x) => Thm.def_name x | (name, _) => name) (raw_names ~~ xs);
     val atts = map (map (prep_att thy)) raw_atts;
     val (rhss, state') = state |> map_context_result (prep_binds false (map swap raw_rhss));
-    val eqs = ProofContext.mk_def (context_of state') (xs ~~ rhss);
+    val eqs = LocalDefs.mk_def (context_of state') (xs ~~ rhss);
   in
     state'
     |> fix (map (rpair NONE) xs)
-    |> assm_i ProofContext.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, ([], []))]) eqs)
+    |> assm_i LocalDefs.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, ([], []))]) eqs)
   end;
 
 in
@@ -637,15 +637,15 @@ fun gen_using f g note prep_atts args state =
     in (statement, f ths using, g ths goal, before_qed, after_qed) end));
 
 fun append_using ths using = using @ ths;
-fun unfold_using ths = map (Tactic.rewrite_rule ths);
-val unfold_goal = Tactic.rewrite_goals_rule;
+fun unfold_using ths = map (ObjectLogic.unfold ths);
+val unfold_goals = ObjectLogic.unfold_goals;
 
 in
 
 val using = gen_using append_using (K I) ProofContext.note_thmss Attrib.attribute;
 val using_i = gen_using append_using (K I) ProofContext.note_thmss_i (K I);
-val unfolding = gen_using unfold_using unfold_goal ProofContext.note_thmss Attrib.attribute;
-val unfolding_i = gen_using unfold_using unfold_goal ProofContext.note_thmss_i (K I);
+val unfolding = gen_using unfold_using unfold_goals ProofContext.note_thmss Attrib.attribute;
+val unfolding_i = gen_using unfold_using unfold_goals ProofContext.note_thmss_i (K I);
 
 end;
 
