@@ -396,8 +396,8 @@ fun rename_abs src = syntax
 
 (* unfold / fold definitions *)
 
-val unfolded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (Tactic.rewrite_rule defs))));
-val folded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (Tactic.fold_rule defs))));
+val unfolded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (ObjectLogic.unfold defs))));
+val folded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (ObjectLogic.fold defs))));
 
 
 (* rule cases *)
