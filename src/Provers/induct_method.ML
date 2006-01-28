@@ -342,7 +342,7 @@ end;
 fun add_defs def_insts =
   let
     fun add (SOME (SOME x, t)) ctxt =
-          let val ((lhs, def), ctxt') = ProofContext.add_def (x, t) ctxt
+          let val ((lhs, def), ctxt') = LocalDefs.add_def (x, t) ctxt
           in ((SOME (Free lhs), [def]), ctxt') end
       | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
       | add NONE ctxt = ((NONE, []), ctxt);
