@@ -67,8 +67,14 @@ certain special cases of literal facts:
 
 * Isar: added command 'unfolding', which is structurally similar to
 'using', but affects both the goal state and facts by unfolding given
-meta-level equations.  Thus many occurrences of the 'unfold' method or
+rewrite rules.  Thus many occurrences of the 'unfold' method or
 'unfolded' attribute may be replaced by first-class proof text.
+
+* Isar: methods 'unfold' / 'fold', attributes 'unfolded' / 'folded',
+and command 'unfolding' now all support object-level equalities
+(potentially conditional).  The underlying notion of rewrite rule is
+analogous to the 'rule_format' attribute, but *not* that of the
+Simplifier (which is usually more generous).
 
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
@@ -347,7 +353,7 @@ Tactic.prove).  Note that OldGoals.prove_goalw_cterm has long been
 obsolete, it is ill-behaved in a local proof context (e.g. with local
 fixes/assumes or in a locale context).
 
-* ML/Isar: simplified treatment of user-level errors, using exception
+* Isar: simplified treatment of user-level errors, using exception
 ERROR of string uniformly.  Function error now merely raises ERROR,
 without any side effect on output channels.  The Isar toplevel takes
 care of proper display of ERROR exceptions.  ML code may use plain
@@ -366,12 +372,15 @@ obsolete variants of user-level exceptions (ERROR_MESSAGE,
 Context.PROOF, ProofContext.CONTEXT, Proof.STATE, ProofHistory.FAIL)
 -- use plain ERROR instead.
 
-* ML/Isar: theory setup now has type (theory -> theory), instead of a
+* Isar: theory setup now has type (theory -> theory), instead of a
 list.  INCOMPATIBILITY, may use #> to compose setup functions.
 
-* Pure/Isar: Toplevel.theory_to_proof admits transactions that modify
-the theory before entering a proof state.  Transactions now always see
-a quasi-functional intermediate checkpoint, both in interactive and
+* Isar: installed ML toplevel pretty printer for type Proof.context,
+subject to ProofContext.debug/verbose flags.
+
+* Isar: Toplevel.theory_to_proof admits transactions that modify the
+theory before entering a proof state.  Transactions now always see a
+quasi-functional intermediate checkpoint, both in interactive and
 batch mode.
 
 * Simplifier: the simpset of a running simplification process now
