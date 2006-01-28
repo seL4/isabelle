@@ -863,9 +863,9 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val (_, ctxt') =
-        ctxt |> ProofContext.add_assms_i ProofContext.def_export
+        ctxt |> ProofContext.add_assms_i LocalDefs.def_export
           (defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val (c, t') = ProofContext.cert_def ctxt t
+            let val (c, t') = LocalDefs.cert_def ctxt t
             in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end))
       in ((ctxt', Assumed axs), []) end
   | activate_elem _ ((ctxt, Derived ths), Defines defs) =
@@ -1028,7 +1028,7 @@ fun abstract_thm thy eq =
 
 fun bind_def ctxt (name, ps) eq (xs, env, ths) =
   let
-    val ((y, T), b) = ProofContext.abs_def eq;
+    val ((y, T), b) = LocalDefs.abs_def eq;
     val b' = norm_term env b;
     val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = err_in_locale ctxt (msg ^ ": " ^ quote y) [(name, map fst ps)];
@@ -1101,7 +1101,7 @@ fun closeup _ false elem = elem
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, (ps, qs)) => (close_frees t, (no_binds ps, no_binds qs))) propps)))
         | Defines defs => Defines (defs |> map (fn (a, (t, ps)) =>
-            (a, (close_frees (#2 (ProofContext.cert_def ctxt t)), no_binds ps))))
+            (a, (close_frees (#2 (LocalDefs.cert_def ctxt t)), no_binds ps))))
         | e => e)
       end;
 
