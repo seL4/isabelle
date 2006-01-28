@@ -11,25 +11,26 @@ sig
   val hyps_of: Proof.context -> term list
   val standard: Proof.context -> thm -> thm
   val pretty_consts: Proof.context -> (string * typ) list -> Pretty.T
+  val print_consts: Proof.context -> (string * typ) list -> unit
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val init: xstring option -> theory -> Proof.context
   val init_i: string option -> theory -> Proof.context
   val exit: Proof.context -> Proof.context * theory
-  val consts: ((string * typ) * mixfix) list -> Proof.context -> term list * Proof.context
-  val axioms: ((string * Attrib.src list) * term list) list -> Proof.context ->
+  val consts: ((bstring * typ) * mixfix) list -> Proof.context -> term list * Proof.context
+  val axioms: ((bstring * Attrib.src list) * term list) list -> Proof.context ->
     (bstring * thm list) list * Proof.context
   val axioms_finish: (Proof.context -> thm -> thm) ->
-    ((string * Attrib.src list) * term list) list -> Proof.context ->
+    ((bstring * Attrib.src list) * term list) list -> Proof.context ->
     (bstring * thm list) list * Proof.context
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context -> (bstring * thm list) list * Proof.context
   val note: (bstring * Attrib.src list) * thm list -> Proof.context ->
     (bstring * thm list) * Proof.context
-  val def: (string * mixfix) * ((string * Attrib.src list) * term) ->
+  val def: (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     Proof.context -> (term * (bstring * thm)) * Proof.context
   val def_finish: (Proof.context -> term -> thm -> thm) ->
-    (string * mixfix) * ((string * Attrib.src list) * term) ->
+    (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     Proof.context -> (term * (bstring * thm)) * Proof.context
 end;
 
@@ -66,7 +67,7 @@ fun standard ctxt =
   | SOME (_, (_, loc_ctxt)) => ProofContext.export_standard ctxt loc_ctxt);
 
 
-(* pretty_consts *)
+(* print consts *)
 
 local
 
@@ -82,6 +83,9 @@ fun pretty_consts ctxt cs =
   (case params_of ctxt of
     [] => pretty_vars ctxt "constants" cs
   | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
+
+fun print_consts _ [] = ()
+  | print_consts ctxt cs = Pretty.writeln (pretty_consts ctxt cs);
 
 end;
 
