@@ -192,8 +192,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
                (fn (Element.Fixes consts) => SOME consts
                  | _ => NONE)
           |> Library.flat
-          |> map (fn (c, ty, syn) =>
-               ((c, the ty), (Syntax.unlocalize_mixfix o Syntax.fix_mixfix c) syn))
+          |> map (fn (c, ty, syn) => ((c, the ty), Syntax.unlocalize_mixfix syn))
         val import_consts = get_elems import_elems;
         val body_consts = get_elems body_elems;
         val v = extract_tyvar_name thy (map (snd o fst) (import_consts @ body_consts));
