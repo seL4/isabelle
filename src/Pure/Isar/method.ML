@@ -35,8 +35,8 @@ sig
   val cheating: bool -> ProofContext.context -> method
   val intro: thm list -> method
   val elim: thm list -> method
-  val unfold: thm list -> method
-  val fold: thm list -> method
+  val unfold: bool -> thm list -> ProofContext.context -> method
+  val fold: bool -> thm list -> ProofContext.context -> method
   val atomize: bool -> method
   val this: method
   val fact: thm list -> ProofContext.context -> method
@@ -193,8 +193,8 @@ fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.em
 
 (* unfold/fold definitions *)
 
-fun unfold_meth ths = SIMPLE_METHOD (CHANGED_PROP (ObjectLogic.unfold_tac ths));
-fun fold_meth ths = SIMPLE_METHOD (CHANGED_PROP (ObjectLogic.fold_tac ths));
+fun unfold_meth b ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.unfold_tac ctxt b ths));
+fun fold_meth b ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.fold_tac ctxt b ths));
 
 
 (* atomize rule statements *)
@@ -254,9 +254,11 @@ fun trace ctxt rules =
 
 local
 
-fun gen_rule_tac tac rules [] i st = tac rules i st
-  | gen_rule_tac tac rules facts i st =
-      Seq.maps (fn rule => (tac o single) rule i st) (Drule.multi_resolves facts rules);
+fun gen_rule_tac tac rules facts =
+  (fn i => fn st =>
+    if null facts then tac rules i st
+    else Seq.maps (fn rule => (tac o single) rule i st) (Drule.multi_resolves facts rules))
+  THEN_ALL_NEW Tactic.norm_hhf_tac;
 
 fun gen_arule_tac tac j rules facts =
   EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);
@@ -648,6 +650,13 @@ fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expec
 end;
 
 
+(* unfold syntax *)
+
+fun unfold_syntax m src =
+  syntax ((Args.mode "raw" >> not) -- Attrib.local_thmss) src
+  #> (fn (ctxt, (b, ths)) => m b ths ctxt);
+
+
 (* iprover syntax *)
 
 local
@@ -728,10 +737,10 @@ val _ = Context.add_setup (add_methods
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing (insert current facts only)"),
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
-  ("unfold", thms_args unfold_meth, "unfold definitions"),
   ("intro", thms_args intro, "repeatedly apply introduction rules"),
   ("elim", thms_args elim, "repeatedly apply elimination rules"),
-  ("fold", thms_args fold_meth, "fold definitions"),
+  ("unfold", unfold_syntax unfold_meth, "unfold definitions"),
+  ("fold", unfold_syntax fold_meth, "fold definitions"),
   ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
   ("iprover", iprover_meth, "intuitionistic proof search"),
