@@ -1108,7 +1108,7 @@ local
 fun no_dups _ [] = ()
   | no_dups ctxt dups = error ("Duplicate variable(s): " ^ commas_quote dups);
 
-fun gen_fixes prep invent raw_vars ctxt =
+fun gen_fixes prep raw_vars ctxt =
   let
     val (ys, zs) = split_list (fixes_of ctxt);
     val (vars, ctxt') = prep raw_vars ctxt;
@@ -1116,7 +1116,6 @@ fun gen_fixes prep invent raw_vars ctxt =
     val _ = no_dups ctxt (duplicates xs);
     val xs' =
       if is_body ctxt then Term.variantlist (map Syntax.skolem xs, zs)
-      else if invent then Term.variantlist (xs, zs)
       else (no_dups ctxt (xs inter_string ys); no_dups ctxt (xs inter_string zs); xs);
     val vars' = map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars;
   in
@@ -1129,12 +1128,20 @@ fun gen_fixes prep invent raw_vars ctxt =
 
 in
 
-val add_fixes = gen_fixes read_vars false;
-val add_fixes_i = gen_fixes cert_vars false;
-val add_fixes_legacy = gen_fixes cert_vars_legacy false;
-fun invent_fixes xs = gen_fixes cert_vars true (map (fn x => (x, NONE, NoSyn)) xs);
+val add_fixes = gen_fixes read_vars;
+val add_fixes_i = gen_fixes cert_vars;
+val add_fixes_legacy = gen_fixes cert_vars_legacy;
 
 end;
+
+
+(* invent fixes *)
+
+fun invent_fixes xs ctxt =
+  ctxt
+  |> set_body true
+  |> add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs)
+  ||> restore_body ctxt;
 
 
 (* fixes vs. frees *)
