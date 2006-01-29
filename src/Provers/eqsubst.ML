@@ -337,6 +337,6 @@ fun subst_meth src =
 
 
 val setup =
-  Method.add_method ("subst", subst_meth, "substiution with an equation");
+  Method.add_method ("subst", subst_meth, "single-step substitution");
 
 end;

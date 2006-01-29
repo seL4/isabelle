@@ -473,7 +473,7 @@ fun meson_meth ths ctxt =
 val meson_method_setup =
   Method.add_methods
     [("meson", Method.thms_ctxt_args meson_meth, 
-      "The MESON resolution proof procedure")];
+      "MESON resolution proof procedure")];
 
 
 
