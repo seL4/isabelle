@@ -632,18 +632,21 @@ fun gen_using f g note prep_atts args state =
   state
   |> assert_backward
   |> map_context_result (note (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
-  |-> (fn named_facts => map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
-    let val ths = List.concat (map snd named_facts)
-    in (statement, f ths using, g ths goal, before_qed, after_qed) end));
+  |> (fn (named_facts, state') =>
+    state' |> map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
+      let
+        val ctxt = context_of state';
+        val ths = List.concat (map snd named_facts);
+      in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
-fun append_using ths using = using @ ths;
-fun unfold_using ths = map (ObjectLogic.unfold ths);
-val unfold_goals = ObjectLogic.unfold_goals;
+fun append_using _ ths using = using @ ths;
+fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt true ths);
+fun unfold_goals ctxt ths = LocalDefs.unfold_goals ctxt true ths;
 
 in
 
-val using = gen_using append_using (K I) ProofContext.note_thmss Attrib.attribute;
-val using_i = gen_using append_using (K I) ProofContext.note_thmss_i (K I);
+val using = gen_using append_using (K (K I)) ProofContext.note_thmss Attrib.attribute;
+val using_i = gen_using append_using (K (K I)) ProofContext.note_thmss_i (K I);
 val unfolding = gen_using unfold_using unfold_goals ProofContext.note_thmss Attrib.attribute;
 val unfolding_i = gen_using unfold_using unfold_goals ProofContext.note_thmss_i (K I);
 
