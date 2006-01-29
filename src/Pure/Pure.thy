@@ -73,7 +73,8 @@ qed
 lemma imp_conjunction [unfolded prop_def]:
   includes meta_conjunction_syntax
   shows "(PROP A ==> PROP prop (PROP B && PROP C)) == (PROP A ==> PROP B) && (PROP A ==> PROP C)"
-proof (unfold prop_def, rule)
+  unfolding prop_def
+proof
   assume conj: "PROP A ==> PROP B && PROP C"
   fix X assume r: "(PROP A ==> PROP B) ==> (PROP A ==> PROP C) ==> PROP X"
   show "PROP X"
@@ -121,6 +122,6 @@ qed
 lemma conjunction_assoc:
   includes meta_conjunction_syntax
   shows "((PROP A && PROP B) && PROP C) == (PROP A && (PROP B && PROP C))"
-  by (rule equal_intr_rule) (unfold imp_conjunction conjunction_imp)
+  unfolding conjunction_imp .
 
 end
