@@ -8,9 +8,8 @@ theory CPure
 imports Pure
 begin
 
-setup {*
-  Theory.del_modesyntax Syntax.default_mode Syntax.appl_syntax #>
-  Theory.add_syntax Syntax.applC_syntax
-*}
+subsection {* Specific modifications, see ROOT.ML *}
+
+setup
 
 end
