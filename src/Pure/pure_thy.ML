@@ -612,8 +612,6 @@ val proto_pure =
     ("_meta_conjunction", "prop => prop => prop", InfixrName ("&&", 2))]
   |> Theory.add_modesyntax ("HTML", false)
    [("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
-  |> Theory.add_trfuns Syntax.pure_trfuns
-  |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Theory.add_consts
    [("==", "'a => 'a => prop", InfixrName ("==", 2)),
     ("==>", "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
@@ -627,8 +625,8 @@ val proto_pure =
      Const ("all", (aT --> propT) --> propT),
      Const ("TYPE", a_itselfT),
      Const (Term.dummy_patternN, aT)]
-  |> Theory.add_syntax
-   []
+  |> Theory.add_trfuns Syntax.pure_trfuns
+  |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
   |> (add_defs_i false o map Thm.no_attributes)
        [("prop_def", Logic.mk_equals (Logic.protect A, A))] |> snd
