@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Basic operations on local definitions.
+Local definitions.
 *)
 
 signature LOCAL_DEFS =
@@ -10,15 +10,25 @@ sig
   val mk_def: ProofContext.context -> (string * term) list -> term list
   val cert_def: ProofContext.context -> term -> string * term
   val abs_def: term -> (string * typ) * term
-  val derived_def: ProofContext.context -> term ->
-    ((string * typ) * term) * (ProofContext.context -> term -> thm -> thm)
   val def_export: ProofContext.export
   val add_def: string * term -> ProofContext.context ->
     ((string * typ) * thm) * ProofContext.context
+  val print_rules: Context.generic -> unit
+  val defn_add: attribute
+  val defn_del: attribute
+  val unfold: ProofContext.context -> bool -> thm list -> thm -> thm
+  val unfold_goals: ProofContext.context -> bool -> thm list -> thm -> thm
+  val unfold_tac: ProofContext.context -> bool -> thm list -> tactic
+  val fold: ProofContext.context -> bool -> thm list -> thm -> thm
+  val fold_tac: ProofContext.context -> bool -> thm list -> tactic
+  val derived_def: ProofContext.context -> term ->
+    ((string * typ) * term) * (ProofContext.context -> term -> thm -> thm)
 end;
 
 structure LocalDefs: LOCAL_DEFS =
 struct
+
+(** primitive definitions **)
 
 (* prepare defs *)
 
@@ -70,34 +80,6 @@ fun abs_def eq =
   in (Term.dest_Free f, eq') end;
 
 
-(* derived defs -- potentially within the object-logic *)
-
-fun derived_def ctxt prop =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val ((c, T), rhs) = prop
-      |> Thm.cterm_of thy
-      |> ObjectLogic.meta_rewrite_cterm
-      |> (snd o Logic.dest_equals o Thm.prop_of)
-      |> Logic.strip_imp_concl
-      |> (snd o cert_def ctxt)
-      |> abs_def;
-    fun prove ctxt' t def =
-      let
-        val thy' = ProofContext.theory_of ctxt';
-        val prop' = Term.subst_atomic [(Free (c, T), t)] prop;
-        val frees = Term.fold_aterms (fn Free (x, _) =>
-          if ProofContext.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
-      in
-        Goal.prove thy' frees [] prop' (K (ALLGOALS
-          (ObjectLogic.meta_rewrite_tac THEN'
-            Tactic.rewrite_goal_tac [def] THEN'
-            Tactic.resolve_tac [Drule.reflexive_thm])))
-        handle ERROR msg => cat_error msg "Failed to prove definitional specification."
-      end;
-  in (((c, T), rhs), prove) end;
-
-
 (* export defs *)
 
 fun head_of_def cprop =
@@ -124,5 +106,85 @@ fun add_def (x, t) ctxt =
     |> ProofContext.add_assms_i def_export [(("", []), [(eq, ([], []))])]
     |>> (fn [(_, [th])] => (x', th))
   end;
+
+
+
+(** defived definitions **)
+
+(* transformation rules *)
+
+structure Data = GenericDataFun
+(
+  val name = "Pure/derived_defs";
+  type T = thm list;
+  val empty = []
+  val extend = I;
+  fun merge _ = Drule.merge_rules;
+  fun print context rules =
+    Pretty.writeln (Pretty.big_list "definitional transformations:"
+      (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
+);
+
+val _ = Context.add_setup Data.init;
+
+val print_rules = Data.print;
+val get_rules = Data.get o Context.Proof;
+
+val defn_add = Thm.declaration_attribute (Data.map o Drule.add_rule);
+val defn_del = Thm.declaration_attribute (Data.map o Drule.del_rule);
+
+
+(* transform rewrite rules *)
+
+val equals_ss =
+  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
+    addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
+
+fun meta_rewrite ctxt =
+  MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
+    (equals_ss addsimps (get_rules ctxt));
+
+val meta_rewrite_thm = Drule.fconv_rule o meta_rewrite;
+
+fun meta_rewrite_tac ctxt i =
+  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite ctxt)));
+
+fun transformed f _ false = f
+  | transformed f ctxt true = f o map (meta_rewrite_thm ctxt);
+
+val unfold       = transformed Tactic.rewrite_rule;
+val unfold_goals = transformed Tactic.rewrite_goals_rule;
+val unfold_tac   = transformed Tactic.rewrite_goals_tac;
+val fold         = transformed Tactic.fold_rule;
+val fold_tac     = transformed Tactic.fold_goals_tac;
+
+
+(* derived defs -- potentially within the object-logic *)
+
+fun derived_def ctxt prop =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val ((c, T), rhs) = prop
+      |> Thm.cterm_of thy
+      |> meta_rewrite ctxt
+      |> (snd o Logic.dest_equals o Thm.prop_of)
+      |> Logic.strip_imp_concl
+      |> (snd o cert_def ctxt)
+      |> abs_def;
+    fun prove ctxt' t def =
+      let
+        val thy' = ProofContext.theory_of ctxt';
+        val prop' = Term.subst_atomic [(Free (c, T), t)] prop;
+        val frees = Term.fold_aterms (fn Free (x, _) =>
+          if ProofContext.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
+      in
+        Goal.prove thy' frees [] prop' (K (ALLGOALS
+          (meta_rewrite_tac ctxt' THEN'
+            Tactic.rewrite_goal_tac [def] THEN'
+            Tactic.resolve_tac [Drule.reflexive_thm])))
+        handle ERROR msg => cat_error msg "Failed to prove definitional specification."
+      end;
+  in (((c, T), rhs), prove) end;
+
 
 end;
