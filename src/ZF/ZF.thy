@@ -336,6 +336,13 @@ lemma ball_cong [cong]:
     "[| A=A';  !!x. x\<in>A' ==> P(x) <-> P'(x) |] ==> (\<forall>x\<in>A. P(x)) <-> (\<forall>x\<in>A'. P'(x))"
 by (simp add: Ball_def)
 
+lemma atomize_ball:
+    "(!!x. x \<in> A ==> P(x)) == Trueprop (\<forall>x\<in>A. P(x))"
+  by (simp only: Ball_def atomize_all atomize_imp)
+
+lemmas [symmetric, rulify] = atomize_ball
+  and [symmetric, defn] = atomize_ball
+
 
 subsection{*Bounded existential quantifier*}
 
