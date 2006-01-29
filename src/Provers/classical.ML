@@ -1021,7 +1021,8 @@ fun some_rule_tac ctxt (CS {xtra_netpair, ...}) facts = SUBGOAL (fn (goal, i) =>
   in
     Method.trace ctxt rules;
     fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq)
-  end);
+  end)
+  THEN_ALL_NEW Tactic.norm_hhf_tac;
 
 fun rule_tac [] ctxt cs facts = some_rule_tac ctxt cs facts
   | rule_tac rules _ _ facts = Method.rule_tac rules facts;
