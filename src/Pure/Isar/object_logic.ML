@@ -28,14 +28,6 @@ sig
   val rulify_no_asm: thm -> thm
   val rule_format: attribute
   val rule_format_no_asm: attribute
-  val meta_rewrite_cterm: cterm -> thm
-  val meta_rewrite_thm: thm -> thm
-  val meta_rewrite_tac: int -> tactic
-  val unfold: thm list -> thm -> thm
-  val unfold_goals: thm list -> thm -> thm
-  val unfold_tac: thm list -> tactic
-  val fold: thm list -> thm -> thm
-  val fold_tac: thm list -> tactic
 end;
 
 structure ObjectLogic: OBJECT_LOGIC =
@@ -179,38 +171,5 @@ val rulify_no_asm = gen_rulify false;
 
 fun rule_format x = Thm.rule_attribute (fn _ => rulify) x;
 fun rule_format_no_asm x = Thm.rule_attribute (fn _ => rulify_no_asm) x;
-
-
-(* handle object-level equalities *)
-
-local
-
-val equals_ss =
-  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
-    addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
-
-fun rewrite rules =
-  MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE)) (equals_ss addsimps rules);
-
-in
-
-fun meta_rewrite_cterm ct =
-  let val thy = Thm.theory_of_cterm ct in
-    Thm.transitive
-      (rewrite (get_rulify thy) ct)
-      (rewrite (map Thm.symmetric (get_atomize thy)) ct)    (*produce meta-level equality*)
-  end;
-
-val meta_rewrite_thm = Drule.fconv_rule meta_rewrite_cterm;
-fun meta_rewrite_tac i =
-  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) meta_rewrite_cterm));
-
-val unfold       = Tactic.rewrite_rule       o map meta_rewrite_thm;
-val unfold_goals = Tactic.rewrite_goals_rule o map meta_rewrite_thm;
-val unfold_tac   = Tactic.rewrite_goals_tac  o map meta_rewrite_thm;
-val fold         = Tactic.fold_rule          o map meta_rewrite_thm;
-val fold_tac     = Tactic.fold_goals_tac     o map meta_rewrite_thm;
-
-end;
 
 end;
