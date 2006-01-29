@@ -396,8 +396,12 @@ fun rename_abs src = syntax
 
 (* unfold / fold definitions *)
 
-val unfolded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (ObjectLogic.unfold defs))));
-val folded = syntax (thmss >> (fn defs => Thm.rule_attribute (K (ObjectLogic.fold defs))));
+fun unfolded_syntax rule =
+  syntax ((Args.mode "raw" >> not) -- thmss >>
+    (fn (b, ths) => Thm.rule_attribute (fn context => rule (Context.proof_of context) b ths)));
+
+val unfolded = unfolded_syntax LocalDefs.unfold;
+val folded = unfolded_syntax LocalDefs.fold;
 
 
 (* rule cases *)
@@ -455,6 +459,8 @@ val _ = Context.add_setup
     ("atomize", no_args ObjectLogic.declare_atomize, "declaration of atomize rule"),
     ("rulify", no_args ObjectLogic.declare_rulify, "declaration of rulify rule"),
     ("rule_format", rule_format_att, "result put into standard rule format"),
+    ("defn", add_del_args LocalDefs.defn_add LocalDefs.defn_del,
+      "declaration of definitional transformations"),
     ("attribute", internal_att, "internal attribute")]);
 
 end;
