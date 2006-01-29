@@ -1011,7 +1011,8 @@ lemma atomize_ball:
     "(!!x. x \<in> A ==> P x) == Trueprop (\<forall>x\<in>A. P x)"
   by (simp only: Ball_def atomize_all atomize_imp)
 
-declare atomize_ball [symmetric, rulify]
+lemmas [symmetric, rulify] = atomize_ball
+  and [symmetric, defn] = atomize_ball
 
 
 subsection {* Further set-theory lemmas *}

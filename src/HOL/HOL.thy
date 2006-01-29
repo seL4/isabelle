@@ -904,6 +904,7 @@ next
 qed
 
 lemmas [symmetric, rulify] = atomize_all atomize_imp
+  and [symmetric, defn] = atomize_all atomize_imp atomize_eq
 
 
 subsubsection {* Classical Reasoner setup *}
