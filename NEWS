@@ -323,6 +323,9 @@ mangling (bijective mapping from any expression values to strings).
 provides some facilities for code that works in either kind of
 context, notably GenericDataFun for uniform theory and proof data.
 
+* Pure: 'advanced' translation functions (parse_translation etc.) now
+use Context.generic instead of just theory.
+
 * Pure: simplified internal attribute type, which is now always
 Context.generic * thm -> Context.generic * thm.  Global (theory)
 vs. local (Proof.context) attributes have been discontinued, while
