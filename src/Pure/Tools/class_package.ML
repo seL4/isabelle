@@ -17,7 +17,8 @@ sig
   val add_instance_arity_i: (string * sort list) * sort
     -> ((bstring * term) * attribute list) list
     -> theory -> Proof.state
-  val add_classentry: class -> xstring list -> xstring list -> theory -> theory
+  val add_classentry: class -> xstring list -> theory -> theory
+  val add_classinsts: class -> xstring list -> theory -> theory
 
   val intern_class: theory -> xstring -> string
   val extern_class: theory -> string -> xstring
@@ -152,6 +153,13 @@ local
 fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
   let
     val supclasses = map (prep_class thy) raw_supclasses;
+    fun get_allcs class =
+      let
+        val data = get_class_data thy class 
+      in
+        Library.flat (map get_allcs (#superclasses data) @ [#consts data])
+      end;
+    val supcs = Library.flat (map get_allcs supclasses)
     val supsort = case map (#name_axclass o get_class_data thy) supclasses
      of [] => Sign.defaultS thy
       | sort => Sorts.certify_sort (Sign.classes_of thy) sort;
@@ -159,22 +167,18 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
      of [] => Locale.empty
       | _ => (Locale.Merge o map (Locale.Locale o #name_locale o get_class_data thy))
                 supclasses;
-    fun extract_assumes c_adds elems =
-      let
-        fun subst_free ts =
-          let
-            val get_ty = the o AList.lookup (op =) (fold Term.add_frees ts []);
-            val subst_map = map (fn (c, (c', _)) =>
-              (Free (c, get_ty c), Const (c', get_ty c))) c_adds;
-          in map (subst_atomic subst_map) ts end;
-      in
-        elems
-        |> (map o List.mapPartial)
-            (fn (Element.Assumes asms) => (SOME o map (map fst o snd)) asms
-              | _ => NONE)
-        |> Library.flat o Library.flat o Library.flat
-        |> subst_free
-      end;
+    fun mk_c_lookup c_global supcs c_adds =
+      map2 (fn ((c, _), _) => pair c) c_global supcs @ c_adds
+    fun extract_assumes v c_lookup elems =
+      elems
+      |> (map o List.mapPartial)
+          (fn (Element.Assumes asms) => (SOME o map (map fst o snd)) asms
+            | _ => NONE)
+      |> Library.flat o Library.flat o Library.flat
+      |> (map o map_aterms) (fn Free (c, ty) => Const ((fst o the o AList.lookup (op =) c_lookup) c, ty)
+                             | t => t)
+      |> tap (fn ts => writeln ("(1) axclass axioms: " ^
+          (commas o map (Sign.string_of_term thy)) ts));
     fun extract_tyvar_name thy tys =
       fold (curry add_typ_tfrees) tys []
       |> (fn [(v, sort)] =>
@@ -211,8 +215,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
     fun interpret name_locale cs ax_axioms thy =
       thy
       |> Locale.interpretation (NameSpace.base name_locale, [])
-           (Locale.Locale name_locale)
-             (map (fn ((c, _), _) => SOME (Sign.intern_const thy c)) cs)
+           (Locale.Locale name_locale) (map (SOME o fst) cs)
       |> Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE);
     fun print_ctxt ctxt elem = 
       map Pretty.writeln (Element.pretty_ctxt ctxt elem)
@@ -227,7 +230,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
           fold_map (add_global_const v) c_defs
     #-> (fn c_adds =>
           AxClass.add_axclass_i (bname, supsort)
-            (map (Thm.no_attributes o pair "") (extract_assumes c_adds (import_elems @ body_elems)))
+            (map (Thm.no_attributes o pair "") (extract_assumes v (mk_c_lookup c_global supcs c_adds) body_elems))
     #-> (fn { axioms = ax_axioms : thm list, ...} =>
           `(fn thy => Sign.intern_class thy bname)
     #-> (fn name_axclass =>
@@ -235,7 +238,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_body thy =
     #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, v, map snd c_adds))
     #> tap (fn _ => (map o map) (print_ctxt ctxt) import_elems)
     #> tap (fn _ => (map o map) (print_ctxt ctxt) body_elems)
-    #> interpret name_locale (c_global @ c_defs) ax_axioms
+    #> interpret name_locale (supcs @ (map (fn ((c, ty), _) => (Sign.intern_const thy c, ty)) c_defs)) ax_axioms
     ))))))
   end;
 
@@ -270,9 +273,15 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
     fun get_c_given thy = map (fst o dest_def o snd o tap_def thy o fst) raw_defs;
     fun check_defs c_given c_req thy =
       let
-        fun eq_c ((c1, ty1), (c2, ty2)) = c1 = c2
-          andalso Sign.typ_instance thy (ty1, ty2)
-          andalso Sign.typ_instance thy (ty2, ty1);
+        fun eq_c ((c1, ty1), (c2, ty2)) = 
+          let
+            val ty1' = Type.varifyT ty1;
+            val ty2' = Type.varifyT ty2;
+          in
+            c1 = c2
+            andalso Sign.typ_instance thy (ty1', ty2')
+            andalso Sign.typ_instance thy (ty2', ty1')
+          end;
         val _ = case fold (remove eq_c) c_req c_given
          of [] => ()
           | cs => error ("superfluous definition(s) given for "
@@ -427,7 +436,7 @@ fun extract_sortlookup thy (c, raw_typ_use) =
 
 (* intermediate auxiliary *)
 
-fun add_classentry raw_class raw_cs raw_insts thy =
+fun add_classentry raw_class raw_cs thy =
   let
     val class = Sign.intern_class thy raw_class;
     val cs_proto =
@@ -446,13 +455,19 @@ fun add_classentry raw_class raw_cs raw_insts thy =
           then TFree (v, [])
           else TVar var
          ) ty));
-    val insts = map (rpair (Context.theory_name thy) o Sign.intern_type thy) raw_insts;
   in
     thy
     |> add_class_data (class, ([], "", class, v, cs))
-    |> fold (curry add_inst_data class) insts
   end;
 
+fun add_classinsts raw_class raw_insts thy =
+  let
+    val class = Sign.intern_class thy raw_class;
+    val insts = map (rpair (Context.theory_name thy) o Sign.intern_type thy) raw_insts;
+  in
+    thy
+    |> fold (curry add_inst_data class) insts
+  end;
 
 (* toplevel interface *)
 
@@ -463,22 +478,23 @@ and K = OuterKeyword
 
 in
 
-val (classK, instanceK) = ("class", "class_instance")
+val (classK, instanceK) = ("class", "instance")
 
 val classP =
-  OuterSyntax.command classK "operational type classes" K.thy_decl
-    (P.name --| P.$$$ "="
-     -- Scan.optional (Scan.repeat1 (P.name --| P.$$$ "+")) []
-     -- Scan.optional (P.!!! (Scan.repeat1 P.context_element)) []
+  OuterSyntax.command classK "operational type classes" K.thy_decl (
+    P.name --| P.$$$ "="
+    -- Scan.optional (Scan.repeat1 (P.name --| P.$$$ "+")) []
+    -- Scan.optional (P.!!! (Scan.repeat1 P.context_element)) []
       >> (Toplevel.theory_context
           o (fn ((bname, supclasses), elems) => add_class bname supclasses elems)));
 
 val instanceP =
-  OuterSyntax.command instanceK "declare instance for operational type class" K.thy_goal
-    (P.xname -- (P.$$$ "::" |-- P.!!! P.arity)
-      -- Scan.repeat1 P.spec_name
-      >> (Toplevel.print oo Toplevel.theory_to_proof
-          o (fn ((tyco, (asorts, sort)), defs) => add_instance_arity ((tyco, asorts), sort) defs)));
+  OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
+      P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> AxClass.instance_subclass
+      || P.xname -- (P.$$$ "::" |-- P.!!! P.arity) -- Scan.repeat P.spec_name
+           >> (fn ((tyco, (asorts, sort)), []) => AxClass.instance_arity I (tyco, asorts, sort)
+                | ((tyco, (asorts, sort)), defs) => add_instance_arity ((tyco, asorts), sort) defs)
+    ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [classP, instanceP];
 
