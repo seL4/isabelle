@@ -507,7 +507,7 @@ fun pretty_def Undef =
       Pretty.block [
         Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
         Pretty.str " |=> ",
-        Pretty.gen_list " |" "" ""
+        Pretty.enum " |" "" ""
           (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
             (Pretty.str c :: map pretty_itype tys)) cs),
         Pretty.str ", instances ",
@@ -520,7 +520,7 @@ fun pretty_def Undef =
         Pretty.str ("class var " ^ v ^ "extending "),
         Pretty.enum "," "[" "]" (map Pretty.str supcls),
         Pretty.str " with ",
-        Pretty.gen_list "," "[" "]"
+        Pretty.enum "," "[" "]"
           (map (fn (m, (_, ty)) => Pretty.block
             [Pretty.str (m ^ "::"), pretty_itype ty]) mems),
         Pretty.str " instances ",
@@ -538,7 +538,7 @@ fun pretty_def Undef =
         Pretty.str ", (",
         Pretty.str tyco,
         Pretty.str ", ",
-        Pretty.gen_list "," "[" "]" (map (Pretty.gen_list "," "{" "}" o
+        Pretty.enum "," "[" "]" (map (Pretty.enum "," "{" "}" o
           map Pretty.str o snd) arity),
         Pretty.str "))"
       ];
