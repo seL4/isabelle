@@ -62,7 +62,7 @@ attach {*
 fun Ball S P = Library.forall P S;
 *}
 
-code_generate ("op mem")
+code_generate "op mem"
 
 code_primconst "insert"
   depending_on ("List.const.member")
@@ -77,8 +77,9 @@ insert x xs =
 *}
 
 code_primconst "op Un"
-  depending_on ("List.const.insert")
+  depending_on ("Set.const.insert")
 ml {*
+nonfix union;
 fun union xs [] = xs
   | union [] ys = ys
   | union (x::xs) ys = union xs (insert x ys);
@@ -92,6 +93,7 @@ union (x:xs) ys = union xs (insert x ys)
 code_primconst "op Int"
   depending_on ("List.const.member")
 ml {*
+nonfix inter;
 fun inter [] ys = []
   | inter (x::xs) ys =
       if List.member x ys
@@ -139,32 +141,32 @@ image f = img [] where
   img xs (y:ys) = img (insert (f y) xs) ys;
 *}
 
-code_primconst "UNION"
-  depending_on ("List.const.union")
-ml {*
-fun UNION [] f = []
-  | UNION (x::xs) f = union (f x) (UNION xs);
-*}
-haskell {*
-UNION [] f = []
-UNION (x:xs) f = union (f x) (UNION xs);
-*}
-
 code_primconst "INTER"
-  depending_on ("List.const.inter")
+  depending_on ("Set.const.inter")
 ml {*
 fun INTER [] f = []
-  | INTER (x::xs) f = inter (f x) (INTER xs);
+  | INTER (x::xs) f = inter (f x) (INTER xs f);
 *}
 haskell {*
 INTER [] f = []
-INTER (x:xs) f = inter (f x) (INTER xs);
+INTER (x:xs) f = inter (f x) (INTER xs f);
+*}
+
+code_primconst "UNION"
+  depending_on ("Set.const.union")
+ml {*
+fun UNION [] f = []
+  | UNION (x::xs) f = union (f x) (UNION xs f);
+*}
+haskell {*
+UNION [] f = []
+UNION (x:xs) f = union (f x) (UNION xs f);
 *}
 
 code_primconst "Ball"
 ml {*
 fun Ball [] f = true
-  | Ball (x::xs) f = f x andalso Ball f xs;
+  | Ball (x::xs) f = f x andalso Ball xs f;
 *}
 haskell {*
 Ball = all . flip
@@ -173,7 +175,7 @@ Ball = all . flip
 code_primconst "Bex"
 ml {*
 fun Bex [] f = false
-  | Bex (x::xs) f = f x orelse Bex f xs;
+  | Bex (x::xs) f = f x orelse Bex xs f;
 *}
 haskell {*
 Ball = any . flip

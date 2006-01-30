@@ -2244,4 +2244,10 @@ lemmas basic_trans_rules [trans] =
   ord_eq_less_trans
   trans
 
+subsection {* Code generator setup *}
+
+code_alias
+  "op Int" "Set.inter"
+  "op Un" "Set.union"
+
 end
