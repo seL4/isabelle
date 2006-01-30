@@ -480,7 +480,7 @@ fun make_axiom_clause term (ax_name,cls_id) =
     let val term' = comb_of term
 	val (lits,ctypes_sorts) = literals_of_term term'
 	val lits' = sort_lits lits
-	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux2 ctypes_sorts
+	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
 	make_clause(cls_id,ax_name,Axiom,
 		    lits',ctypes_sorts,ctvar_lits,ctfree_lits)
@@ -490,7 +490,7 @@ fun make_axiom_clause term (ax_name,cls_id) =
 fun make_conjecture_clause n t =
     let val t' = comb_of t
 	val (lits,ctypes_sorts) = literals_of_term t'
-	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux2 ctypes_sorts
+	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
 	make_clause(n,"conjecture",Conjecture,lits,ctypes_sorts,ctvar_lits,ctfree_lits)
     end;
