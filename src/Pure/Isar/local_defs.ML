@@ -16,6 +16,7 @@ sig
   val print_rules: Context.generic -> unit
   val defn_add: attribute
   val defn_del: attribute
+  val meta_rewrite_rule: Context.generic -> thm -> thm
   val unfold: ProofContext.context -> bool -> thm list -> thm -> thm
   val unfold_goals: ProofContext.context -> bool -> thm list -> thm -> thm
   val unfold_tac: ProofContext.context -> bool -> thm list -> tactic
@@ -113,7 +114,7 @@ fun add_def (x, t) ctxt =
 
 (* transformation rules *)
 
-structure Data = GenericDataFun
+structure Rules = GenericDataFun
 (
   val name = "Pure/derived_defs";
   type T = thm list;
@@ -125,13 +126,12 @@ structure Data = GenericDataFun
       (map (ProofContext.pretty_thm (Context.proof_of context)) rules));
 );
 
-val _ = Context.add_setup Data.init;
+val _ = Context.add_setup Rules.init;
 
-val print_rules = Data.print;
-val get_rules = Data.get o Context.Proof;
+val print_rules = Rules.print;
 
-val defn_add = Thm.declaration_attribute (Data.map o Drule.add_rule);
-val defn_del = Thm.declaration_attribute (Data.map o Drule.del_rule);
+val defn_add = Thm.declaration_attribute (Rules.map o Drule.add_rule);
+val defn_del = Thm.declaration_attribute (Rules.map o Drule.del_rule);
 
 
 (* transform rewrite rules *)
@@ -140,17 +140,17 @@ val equals_ss =
   MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
     addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
 
-fun meta_rewrite ctxt =
+fun meta_rewrite context =
   MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
-    (equals_ss addsimps (get_rules ctxt));
+    (equals_ss addsimps (Rules.get context));
 
-val meta_rewrite_thm = Drule.fconv_rule o meta_rewrite;
+val meta_rewrite_rule = Drule.fconv_rule o meta_rewrite;
 
 fun meta_rewrite_tac ctxt i =
-  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite ctxt)));
+  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite (Context.Proof ctxt))));
 
 fun transformed f _ false = f
-  | transformed f ctxt true = f o map (meta_rewrite_thm ctxt);
+  | transformed f ctxt true = f o map (meta_rewrite_rule (Context.Proof ctxt));
 
 val unfold       = transformed Tactic.rewrite_rule;
 val unfold_goals = transformed Tactic.rewrite_goals_rule;
@@ -166,7 +166,7 @@ fun derived_def ctxt prop =
     val thy = ProofContext.theory_of ctxt;
     val ((c, T), rhs) = prop
       |> Thm.cterm_of thy
-      |> meta_rewrite ctxt
+      |> meta_rewrite (Context.Proof ctxt)
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> Logic.strip_imp_concl
       |> (snd o cert_def ctxt)
