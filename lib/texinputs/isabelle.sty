@@ -10,9 +10,9 @@
 
 \newcommand{\isabellecontext}{UNKNOWN}
 
-\newcommand{\isastyle}{\small\tt\slshape}
-\newcommand{\isastyleminor}{\small\tt\slshape}
-\newcommand{\isastylescript}{\footnotesize\tt\slshape}
+\newcommand{\isastyle}{\UNDEF}
+\newcommand{\isastyleminor}{\UNDEF}
+\newcommand{\isastylescript}{\UNDEF}
 \newcommand{\isastyletext}{\normalsize\rm}
 \newcommand{\isastyletxt}{\rm}
 \newcommand{\isastylecmt}{\rm}
@@ -52,51 +52,53 @@
 \newcommand{\isasep}{}
 \newcommand{\isadigit}[1]{#1}
 
-\chardef\isacharbang=`\!
-\chardef\isachardoublequote=`\"
-\chardef\isachardoublequoteopen=`\"
-\chardef\isachardoublequoteclose=`\"
-\chardef\isacharhash=`\#
-\chardef\isachardollar=`\$
-\chardef\isacharpercent=`\%
-\chardef\isacharampersand=`\&
-\chardef\isacharprime=`\'
-\chardef\isacharparenleft=`\(
-\chardef\isacharparenright=`\)
-\chardef\isacharasterisk=`\*
-\chardef\isacharplus=`\+
-\chardef\isacharcomma=`\,
-\chardef\isacharminus=`\-
-\chardef\isachardot=`\.
-\chardef\isacharslash=`\/
-\chardef\isacharcolon=`\:
-\chardef\isacharsemicolon=`\;
-\chardef\isacharless=`\<
-\chardef\isacharequal=`\=
-\chardef\isachargreater=`\>
-\chardef\isacharquery=`\?
-\chardef\isacharat=`\@
-\chardef\isacharbrackleft=`\[
-\chardef\isacharbackslash=`\\
-\chardef\isacharbrackright=`\]
-\chardef\isacharcircum=`\^
-\chardef\isacharunderscore=`\_
-\chardef\isacharbackquote=`\`
-\chardef\isacharbackquoteopen=`\`
-\chardef\isacharbackquoteclose=`\`
-\chardef\isacharbraceleft=`\{
-\chardef\isacharbar=`\|
-\chardef\isacharbraceright=`\}
-\chardef\isachartilde=`\~
-\def\isacharverbatimopen{\isacharbraceleft\isacharasterisk}
-\def\isacharverbatimclose{\isacharasterisk\isacharbraceright}
+\newcommand{\isachardefaults}{%
+\chardef\isacharbang=`\!%
+\chardef\isachardoublequote=`\"%
+\chardef\isachardoublequoteopen=`\"%
+\chardef\isachardoublequoteclose=`\"%
+\chardef\isacharhash=`\#%
+\chardef\isachardollar=`\$%
+\chardef\isacharpercent=`\%%
+\chardef\isacharampersand=`\&%
+\chardef\isacharprime=`\'%
+\chardef\isacharparenleft=`\(%
+\chardef\isacharparenright=`\)%
+\chardef\isacharasterisk=`\*%
+\chardef\isacharplus=`\+%
+\chardef\isacharcomma=`\,%
+\chardef\isacharminus=`\-%
+\chardef\isachardot=`\.%
+\chardef\isacharslash=`\/%
+\chardef\isacharcolon=`\:%
+\chardef\isacharsemicolon=`\;%
+\chardef\isacharless=`\<%
+\chardef\isacharequal=`\=%
+\chardef\isachargreater=`\>%
+\chardef\isacharquery=`\?%
+\chardef\isacharat=`\@%
+\chardef\isacharbrackleft=`\[%
+\chardef\isacharbackslash=`\\%
+\chardef\isacharbrackright=`\]%
+\chardef\isacharcircum=`\^%
+\chardef\isacharunderscore=`\_%
+\def\isacharunderscorekeyword{\_}%
+\chardef\isacharbackquote=`\`%
+\chardef\isacharbackquoteopen=`\`%
+\chardef\isacharbackquoteclose=`\`%
+\chardef\isacharbraceleft=`\{%
+\chardef\isacharbar=`\|%
+\chardef\isacharbraceright=`\}%
+\chardef\isachartilde=`\~%
+\def\isacharverbatimopen{\isacharbraceleft\isacharasterisk}%
+\def\isacharverbatimclose{\isacharasterisk\isacharbraceright}%
+}
 
 
 % keyword and section markup
 
-\newcommand{\isakeywordcharunderscore}{\_}
 \newcommand{\isakeyword}[1]
-{\emph{\bf\def\isachardot{.}\def\isacharunderscore{\isakeywordcharunderscore}%
+{\emph{\bf\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
 \def\isacharbraceleft{\{}\def\isacharbraceright{\}}#1}}
 \newcommand{\isacommand}[1]{\isakeyword{#1}}
 
@@ -118,21 +120,30 @@
 \newcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
 
 
-% alternative styles
+% styles
 
-\newcommand{\isabellestyle}{}
 \def\isabellestyle#1{\csname isabellestyle#1\endcsname}
+
+\newcommand{\isabellestyledefault}{%
+\renewcommand{\isastyle}{\small\tt\slshape}%
+\renewcommand{\isastyleminor}{\small\tt\slshape}%
+\renewcommand{\isastylescript}{\footnotesize\tt\slshape}%
+\isachardefaults%
+}
+\isabellestyledefault
 
 \newcommand{\isabellestylett}{%
 \renewcommand{\isastyle}{\small\tt}%
 \renewcommand{\isastyleminor}{\small\tt}%
 \renewcommand{\isastylescript}{\footnotesize\tt}%
+\isachardefaults%
 }
+
 \newcommand{\isabellestyleit}{%
 \renewcommand{\isastyle}{\small\it}%
 \renewcommand{\isastyleminor}{\it}%
 \renewcommand{\isastylescript}{\footnotesize\it}%
-\renewcommand{\isakeywordcharunderscore}{\mbox{-}}%
+\renewcommand{\isacharunderscorekeyword}{\mbox{-}}%
 \renewcommand{\isacharbang}{\isamath{!}}%
 \renewcommand{\isachardoublequote}{}%
 \renewcommand{\isachardoublequoteopen}{}%
