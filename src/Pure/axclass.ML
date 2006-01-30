@@ -354,13 +354,7 @@ val axclassP =
         P.!!! (P.list1 P.xname)) []) -- Scan.repeat P.spec_name
       >> (Toplevel.theory o (snd oo uncurry add_axclass)));
 
-val instanceP =
-  OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
-   ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> instance_subclass ||
-      P.xname -- (P.$$$ "::" |-- P.!!! P.arity) >> (instance_arity I o P.triple2))
-    >> (Toplevel.print oo Toplevel.theory_to_proof));
-
-val _ = OuterSyntax.add_parsers [axclassP, instanceP];
+val _ = OuterSyntax.add_parsers [axclassP];
 
 end;
 
