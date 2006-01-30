@@ -14,7 +14,6 @@ sig
       -> OuterParse.token list ->
       ((string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iexpr pretty_syntax option)
-      -> string
       -> string list option
       -> CodegenThingol.module -> unit)
       * OuterParse.token list;
@@ -31,7 +30,7 @@ end;
 structure CodegenSerializer: CODEGEN_SERIALIZER =
 struct
 
-open CodegenThingolOp;
+open CodegenThingol;
 infix 8 `%%;
 infixr 6 `->;
 infixr 6 `-->;
@@ -39,6 +38,7 @@ infix 4 `$;
 infix 4 `$$;
 infixr 5 `|->;
 infixr 5 `|-->;
+
 
 (** generic serialization **)
 
@@ -155,7 +155,7 @@ fun parse_mixfix reader s ctxt =
 
 fun parse_nonatomic_mixfix reader s ctxt =
   case parse_mixfix reader s ctxt
-   of ([Pretty _], _) => error ("mixfix contains just one pretty element; either declare as " ^ quote "atom" ^ " or consider adding a break")
+   of ([Pretty _], _) => error ("mixfix contains just one pretty element; either declare as " ^ quote atomK ^ " or consider adding a break")
     | x => x;
 
 fun parse_syntax_proto reader = OuterParse.$$$ "(" |-- (
@@ -212,18 +212,28 @@ type serializer =
     -> OuterParse.token list ->
     ((string -> CodegenThingol.itype pretty_syntax option)
       * (string -> CodegenThingol.iexpr pretty_syntax option)
-    -> string
     -> string list option
     -> CodegenThingol.module -> unit)
     * OuterParse.token list;
 
-fun abstract_serializer (target, nspgrp) (from_defs, from_module, validator)
-  postprocess preprocess (tyco_syntax, const_syntax) name_root select module =
+fun pretty_of_prim target resolv (name, primdef) =
+  let
+    fun pr (CodegenThingol.Pretty p) = p
+      | pr (CodegenThingol.Name s) = resolv s;
+  in case AList.lookup (op = : string * string -> bool) primdef target
+   of NONE => error ("no primitive definition for " ^ quote name)
+    | SOME ps => (Pretty.block o map pr) ps
+  end;
+
+fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator)
+  postprocess preprocess (tyco_syntax, const_syntax) select module =
   let
     fun from_prim (name, prim) =
       case AList.lookup (op = : string * string -> bool) prim target
        of NONE => error ("no primitive definition for " ^ quote name)
         | SOME p => p;
+    fun from_module' imps ((name_qual, name), defs) =
+      from_module imps ((name_qual, name), defs) |> postprocess name_qual;
   in
     module
     |> debug 3 (fn _ => "selecting submodule...")
@@ -233,8 +243,8 @@ fun abstract_serializer (target, nspgrp) (from_defs, from_module, validator)
     |> preprocess
     |> debug 3 (fn _ => "serializing...")
     |> serialize (from_defs (from_prim, (tyco_syntax, const_syntax)))
-         from_module validator nspgrp name_root
-    |> postprocess
+         from_module' validator nspgrp name_root
+    |> K ()
   end;
 
 fun abstract_validator keywords name =
@@ -255,13 +265,42 @@ fun abstract_validator keywords name =
     |> (fn name' => if name = name' then NONE else SOME name')
   end;
 
+fun write_file mkdir path p = (
+    if mkdir
+      then
+        File.mkdir (Path.dir path)
+      else ();
+      File.write path (Pretty.output p ^ "\n");
+      p
+  );
+
+fun mk_module_file postprocess_module ext path name p =
+  let
+    val prfx = Path.dir path;
+    val name' = case name
+     of "" => Path.base path
+      | _ => (Path.ext ext o Path.unpack o implode o separate "/" o NameSpace.unpack) name;
+  in
+    p
+    |> write_file true (Path.append prfx name')
+    |> postprocess_module name
+  end;
+
 fun parse_single_file serializer =
-  OuterParse.name
-  >> (fn path => serializer (fn p => File.write (Path.unpack path) (Pretty.output p ^ "\n")));
+  OuterParse.path
+  >> (fn path => serializer
+        (fn "" => write_file false path #> K NONE
+          | _ => SOME));
+
+fun parse_multi_file postprocess_module ext serializer =
+  OuterParse.path
+  >> (fn path => (serializer o mk_module_file postprocess_module ext) path);
 
 fun parse_internal serializer =
   OuterParse.name
-  >> (fn "-" => serializer (fn p => use_text Context.ml_output false (Pretty.output p))
+  >> (fn "-" => serializer
+        (fn "" => (fn p => (use_text Context.ml_output false (Pretty.output p); NONE))
+          | _ => SOME)
        | _ => Scan.fail ());
 
 
@@ -270,7 +309,7 @@ fun parse_internal serializer =
 fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
   let
     fun dest_cons (IApp (IApp (IConst (c, _), e1), e2)) =
-          if (writeln (c ^ " - " ^ thingol_cons); c = thingol_cons)
+          if c = thingol_cons
           then SOME (e1, e2)
           else NONE
       | dest_cons  _ = NONE;
@@ -282,7 +321,7 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
       ];
     fun pretty_compact fxy pr [e1, e2] =
       case unfoldr dest_cons e2
-       of (es, IConst (c, _)) => (writeln (string_of_int (length es));
+       of (es, IConst (c, _)) =>
             if c = thingol_nil
             then Pretty.enum "," "[" "]" (map (pr NOBR) (e1::es))
             else pretty_default fxy pr e1 e2)
@@ -553,11 +592,11 @@ fun ml_from_defs (is_cons, needs_type)
           NONE
       | ml_from_def (name, Classinst _) =
           error ("can't serialize instance declaration " ^ quote name ^ " to ML")
-  in (writeln ("ML defs " ^ (commas o map fst) defs); case defs
+  in case defs
    of (_, Fun _)::_ => ml_from_funs defs
     | (_, Datatypecons _)::_ => ml_from_datatypes defs
     | (_, Datatype _)::_ => ml_from_datatypes defs
-    | [def] => ml_from_def def)
+    | [def] => ml_from_def def
   end;
 
 in
@@ -567,7 +606,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, int_tyco) nspgrp =
     val reserved_ml = ThmDatabase.ml_reserved @ [
       "bool", "int", "list", "true", "false"
     ];
-    fun ml_from_module _ (name, ps) =
+    fun ml_from_module _ ((_, name), ps) =
       Pretty.chunks ([
         str ("structure " ^ name ^ " = "),
         str "struct",
@@ -585,7 +624,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, int_tyco) nspgrp =
           false;
     fun is_cons c = has_nsp c nsp_dtcon;
     val serializer = abstract_serializer (target, nspgrp)
-      (ml_from_defs (is_cons, needs_type), ml_from_module, abstract_validator reserved_ml);
+      "ROOT" (ml_from_defs (is_cons, needs_type), ml_from_module, abstract_validator reserved_ml);
     fun eta_expander module const_syntax s =
       case const_syntax s
        of SOME ((i, _), _) => i
@@ -605,9 +644,17 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, int_tyco) nspgrp =
       |> eta_expand_poly
       |> debug 3 (fn _ => "eliminating classes...")
       |> eliminate_classes;
+    val parse_multi =
+      OuterParse.name
+      #-> (fn "dir" => 
+               parse_multi_file
+                 (K o SOME o str o suffix ";" o prefix "val _ = use "
+                  o quote o suffix ".ML" o translate_string (fn "." => "/" | s => s)) "ML" serializer
+            | _ => Scan.fail ());
   in
-    (parse_single_file serializer
-    || parse_internal serializer)
+    (parse_multi
+     || parse_internal serializer
+     || parse_single_file serializer)
     >> (fn seri => fn (tyco_syntax, const_syntax) => seri 
          (preprocess const_syntax) (tyco_syntax, const_syntax))
   end;
@@ -749,22 +796,24 @@ fun hs_from_defs is_cons (from_prim, (tyco_syntax, const_syntax)) resolv defs =
             [str ("let"), Pretty.fbrk, map mk_bind ps |> Pretty.chunks] |> Pretty.block,
             [str ("in "), hs_from_expr NOBR body] |> Pretty.block
           ] end
-      | hs_from_expr fxy (ICase (e, c::cs)) =
+      | hs_from_expr fxy (ICase (e, cs)) =
           let
-            fun mk_clause definer (p, e) =
+            fun mk_clause (p, e) =
               Pretty.block [
-                str definer,
                 hs_from_pat NOBR p,
                 str " ->",
                 Pretty.brk 1,
                 hs_from_expr NOBR e
               ]
-          in brackify fxy (
-            str "case"
-            :: hs_from_expr NOBR e
-            :: mk_clause "of " c
-            :: map (mk_clause "| ") cs
-          ) end
+          in Pretty.block [
+            str "case",
+            Pretty.brk 1,
+            hs_from_expr NOBR e,
+            Pretty.brk 1,
+            str "of",
+            Pretty.fbrk,
+            (Pretty.chunks o map mk_clause) cs
+          ] end
       | hs_from_expr fxy (IInst (e, _)) =
           hs_from_expr fxy e
       | hs_from_expr fxy (IDictE _) =
@@ -883,16 +932,16 @@ fun hs_from_thingol target nsp_dtcon nspgrp =
         val (pr, b) = split_last (NameSpace.unpack s);
         val (c::cs) = String.explode b;
       in NameSpace.pack (pr @ [String.implode (Char.toUpper c :: cs)]) end;
-    fun hs_from_module _ (name, ps) =
-      Pretty.block [
-          str ("module " ^ (upper_first name) ^ " where"),
-          Pretty.fbrk,
-          Pretty.fbrk,
+    fun hs_from_module imps ((_, name), ps) =
+      (Pretty.block o Pretty.fbreaks) (
+          str ("module " ^ (upper_first name) ^ " where")
+      :: map (str o prefix "import ") imps @ [
+          str "",
           Pretty.chunks (separate (str "") ps)
-      ];
+      ]);
     fun is_cons c = has_nsp c nsp_dtcon;
     val serializer = abstract_serializer (target, nspgrp)
-      (hs_from_defs is_cons, hs_from_module, abstract_validator reserved_hs);
+      "Main" (hs_from_defs is_cons, hs_from_module, abstract_validator reserved_hs);
     fun eta_expander const_syntax c =
       const_syntax c
       |> Option.map (fst o fst)
@@ -903,7 +952,7 @@ fun hs_from_thingol target nsp_dtcon nspgrp =
       |> debug 3 (fn _ => "eta-expanding...")
       |> eta_expand (eta_expander const_syntax);
   in
-    parse_single_file serializer
+    parse_multi_file ((K o K) NONE) "hs" serializer
     >> (fn seri => fn (tyco_syntax, const_syntax) => seri 
          (preprocess const_syntax) (tyco_syntax, const_syntax))
   end;

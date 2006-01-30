@@ -46,15 +46,28 @@ sig
   val vars_of_ipats: ipat list -> string list;
   val vars_of_iexprs: iexpr list -> string list;
 
+  val `%% : string * itype list -> itype;
+  val `-> : itype * itype -> itype;
+  val `--> : itype list * itype -> itype;
+  val `$ : iexpr * iexpr -> iexpr;
+  val `$$ : iexpr * iexpr list -> iexpr;
+  val `|-> : (vname * itype) * iexpr -> iexpr;
+  val `|--> : (vname * itype) list * iexpr -> iexpr;
+
   type funn = (ipat list * iexpr) list * (ClassPackage.sortcontext * itype);
+  datatype prim =
+      Pretty of Pretty.T
+    | Name of string;
   datatype def =
       Undef
     | Prim of (string * Pretty.T option) list
     | Fun of funn
     | Typesyn of (vname * string list) list * itype
-    | Datatype of ((vname * string list) list * (string * itype list) list) * string list
+    | Datatype of ((vname * string list) list * (string * itype list) list)
+        * string list
     | Datatypecons of string
-    | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)) * string list
+    | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list))
+        * string list
     | Classmember of class
     | Classinst of (class * (string * (vname * sort) list)) * (string * funn) list;
   type module;
@@ -88,25 +101,12 @@ sig
 
   val serialize:
     ((string -> string) -> (string * def) list -> 'a option)
-    -> (string list -> string * 'a list -> 'a)
+    -> (string list -> (string * string) * 'a list -> 'a option)
     -> (string -> string option)
-    -> string list list -> string -> module -> 'a;
+    -> string list list -> string -> module -> 'a option;
 end;
 
-signature CODEGEN_THINGOL_OP =
-sig
-  include CODEGEN_THINGOL;
-  val `%% : string * itype list -> itype;
-  val `-> : itype * itype -> itype;
-  val `--> : itype list * itype -> itype;
-  val `$ : iexpr * iexpr -> iexpr;
-  val `$$ : iexpr * iexpr list -> iexpr;
-  val `|-> : (vname * itype) * iexpr -> iexpr;
-  val `|--> : (vname * itype) list * iexpr -> iexpr;
-end;
-
-
-structure CodegenThingolOp: CODEGEN_THINGOL_OP =
+structure CodegenThingol: CODEGEN_THINGOL =
 struct
 
 (** auxiliary **)
@@ -368,7 +368,8 @@ fun itype_of_iexpr (IConst (_, ty)) = ty
             if ty2 = itype_of_iexpr e2
             then ty'
             else error ("inconsistent application: in " ^ Pretty.output (pretty_iexpr e)
-              ^ ", " ^ (Pretty.output o pretty_itype) ty2 ^ " vs. " ^ (Pretty.output o pretty_itype o itype_of_iexpr) e2)
+              ^ ", " ^ (Pretty.output o pretty_itype) ty2
+              ^ " vs. " ^ (Pretty.output o pretty_itype o itype_of_iexpr) e2)
        | _ => error ("expression is not a function: " ^ Pretty.output (pretty_iexpr e1)))
   | itype_of_iexpr (IInst (e, cs)) = itype_of_iexpr e
   | itype_of_iexpr (IAbs ((_, ty1), e2)) = ty1 `-> itype_of_iexpr e2
@@ -451,14 +452,20 @@ fun instant_itype (v, sty) ty =
 
 type funn = (ipat list * iexpr) list * (ClassPackage.sortcontext * itype);
 
+datatype prim =
+    Pretty of Pretty.T
+  | Name of string;
+
 datatype def =
     Undef
   | Prim of (string * Pretty.T option) list
   | Fun of funn
   | Typesyn of (vname * string list) list * itype
-  | Datatype of ((vname * string list) list * (string * itype list) list) * string list
+  | Datatype of ((vname * string list) list * (string * itype list) list)
+      * string list
   | Datatypecons of string
-  | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)) * string list
+  | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list))
+      * string list
   | Classmember of class
   | Classinst of (class * (string * (vname * sort) list)) * (string * funn) list;
 
@@ -500,8 +507,9 @@ fun pretty_def Undef =
       Pretty.block [
         Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
         Pretty.str " |=> ",
-        Pretty.enum " |" "" ""
-          (map (fn (c, tys) => (Pretty.block o Pretty.breaks) (Pretty.str c :: map pretty_itype tys)) cs),
+        Pretty.gen_list " |" "" ""
+          (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
+            (Pretty.str c :: map pretty_itype tys)) cs),
         Pretty.str ", instances ",
         Pretty.enum "," "[" "]" (map Pretty.str insts)
       ]
@@ -512,8 +520,9 @@ fun pretty_def Undef =
         Pretty.str ("class var " ^ v ^ "extending "),
         Pretty.enum "," "[" "]" (map Pretty.str supcls),
         Pretty.str " with ",
-        Pretty.enum "," "[" "]"
-          (map (fn (m, (_, ty)) => Pretty.block [Pretty.str (m ^ "::"), pretty_itype ty]) mems),
+        Pretty.gen_list "," "[" "]"
+          (map (fn (m, (_, ty)) => Pretty.block
+            [Pretty.str (m ^ "::"), pretty_itype ty]) mems),
         Pretty.str " instances ",
         Pretty.enum "," "[" "]" (map Pretty.str insts)
       ]
@@ -529,7 +538,8 @@ fun pretty_def Undef =
         Pretty.str ", (",
         Pretty.str tyco,
         Pretty.str ", ",
-        Pretty.enum "," "[" "]" (map (Pretty.enum "," "{" "}" o map Pretty.str o snd) arity),
+        Pretty.gen_list "," "[" "]" (map (Pretty.gen_list "," "{" "}" o
+          map Pretty.str o snd) arity),
         Pretty.str "))"
       ];
 
@@ -562,7 +572,9 @@ fun pretty_deps modl =
           :: map (fn s => Pretty.str ("<-> " ^ s)) mutbs
           @ map (fn s => Pretty.str ("<-- " ^ s)) preds
           @ map (fn s => Pretty.str ("--> " ^ s)) succs
-          @ (the_list oo Option.mapPartial) ((fn Module modl' => SOME (pretty_deps modl') | _ => NONE) o Graph.get_node modl) (SOME key)
+          @ (the_list oo Option.mapPartial)
+            ((fn Module modl' => SOME (pretty_deps modl')
+               | _ => NONE) o Graph.get_node modl) (SOME key)
         )
       end
   in
@@ -673,10 +685,12 @@ fun add_prim name deps (target, primdef) =
                 |> Graph.new_node (base, (Def o Prim) [(target, SOME primdef)])
             | SOME (Def (Prim prim)) =>
                 if AList.defined (op =) prim target
-                then error ("already primitive definition (" ^ target ^ ") present for " ^ name)
+                then error ("already primitive definition (" ^ target
+                  ^ ") present for " ^ name)
                 else
                   module
-                  |> Graph.map_node base ((K o Def o Prim) (AList.update (op =) (target, SOME primdef) prim))
+                  |> Graph.map_node base ((K o Def o Prim) (AList.update (op =)
+                       (target, SOME primdef) prim))
             | _ => error ("already non-primitive definition present for " ^ name))
       | add (m::ms) module =
           module
@@ -697,8 +711,9 @@ fun ensure_prim name target =
                 |> Graph.new_node (base, (Def o Prim) [(target, NONE)])
             | SOME (Def (Prim prim)) =>
                 module
-                |> Graph.map_node base ((K o Def o Prim) (AList.default (op =) (target, NONE) prim))
-            | _ => error ("already non-primitive definition present for " ^ name))
+                |> Graph.map_node base ((K o Def o Prim) (AList.default (op =)
+                     (target, NONE) prim))
+            | _ => module)
       | ensure (m::ms) module =
           module
           |> Graph.default_node (m, Module empty_module)
@@ -772,19 +787,21 @@ fun partof names modl =
       |> Module;
   in
     Module modl
-    |> select (fold (mk_ipath o dest_name) (filter NameSpace.is_qualified names) (PN ([], [])))
+    |> select (fold (mk_ipath o dest_name)
+         (filter NameSpace.is_qualified names) (PN ([], [])))
     |> dest_modl
   end;
 
-fun imports_of modl name_root name =
+fun imports_of modl name =
   let
     fun imports prfx [] modl =
           []
       | imports prfx (m::ms) modl =
           map (cons m) (imports (prfx @ [m]) ms ((dest_modl oo Graph.get_node) modl m))
-          @ map single (Graph.imm_preds modl m);
+          @ map single (Graph.imm_succs modl m);
   in
-    map (cons name_root) (imports [] name modl)
+    modl
+    |> imports [] name 
     |> map NameSpace.pack
   end;
 
@@ -794,7 +811,8 @@ fun check_samemodule names =
       val modn = (fst o dest_name) name
     in
      fn NONE => SOME modn
-      | SOME mod' => if modn = mod' then SOME modn else error "inconsistent name prefix for simultanous names"
+      | SOME mod' => if modn = mod' then SOME modn
+          else error "inconsistent name prefix for simultanous names"
     end
   ) names NONE;
 
@@ -804,7 +822,8 @@ fun check_funeqs eqs =
       val l = length pats
     in
      fn NONE => SOME l
-      | SOME l' => if l = l' then SOME l else error "function definition with different number of arguments"
+      | SOME l' => if l = l' then SOME l
+          else error "function definition with different number of arguments"
     end
   ) eqs NONE; eqs);
 
@@ -925,8 +944,8 @@ fun gen_ensure_def defgens msg name (dep, modl) =
           #> add_def (name, Undef)
           #> add_dp dep
           #> debug 9 (fn _ => "creating node " ^ quote name)
-          #> select_generator (fn gname => "trying code generator " ^ gname ^ " for definition of " ^ quote name)
-               name defgens
+          #> select_generator (fn gname => "trying code generator "
+               ^ gname ^ " for definition of " ^ quote name) name defgens
           #> debug 9 (fn _ => "checking creation of node " ^ quote name)
           #> check_fail msg'
           #-> (fn def => prep_def def)
@@ -1229,12 +1248,15 @@ fun mk_resolv tab =
     fun resolver modl name =
       if NameSpace.is_qualified name then
         let
-          val _ = debug 12 (fn name' => "resolving " ^ quote name ^ " in " ^ (quote o NameSpace.pack) modl) ();
-          val modl' = if null modl then [] else (NameSpace.unpack o the o Symtab.lookup tab o NameSpace.pack) modl;
+          val _ = debug 12 (fn name' => "resolving " ^ quote name ^ " in "
+               ^ (quote o NameSpace.pack) modl) ();
+          val modl' = if null modl then [] else
+            (NameSpace.unpack o the o Symtab.lookup tab o NameSpace.pack) modl;
           val name' = (NameSpace.unpack o the o Symtab.lookup tab) name
         in
           (NameSpace.pack o snd o snd o get_prefix (op =)) (modl', name')
-          |> debug 12 (fn name' => "resolving " ^ quote name ^ " to " ^ quote name' ^ " in " ^ (quote o NameSpace.pack) modl)
+          |> debug 12 (fn name' => "resolving " ^ quote name ^ " to "
+               ^ quote name' ^ " in " ^ (quote o NameSpace.pack) modl)
         end
       else name
   in resolver end;
@@ -1247,28 +1269,21 @@ fun serialize seri_defs seri_module validate nsp_conn name_root module =
     val resolvtab = mk_resolvtab nsp_conn validate module;
     val resolver = mk_resolv resolvtab;
     fun mk_name prfx name =
-      resolver prfx (NameSpace.pack (prfx @ [name]));
+      let
+        val name_qual = NameSpace.pack (prfx @ [name])
+      in (name_qual, resolver prfx name_qual) end;
     fun mk_contents prfx module =
-      List.mapPartial (seri prfx) ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
+      List.mapPartial (seri prfx)
+        ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
     and seri prfx ([(name, Module modl)]) =
-          (case mk_contents (prfx @ [name]) modl
-           of [] => NONE
-            | xs => 
-                SOME (seri_module (imports_of module name_root (prfx @ [name])) (mk_name prfx name, xs)))
+          seri_module (map (resolver []) (imports_of module (prfx @ [name])))
+            (mk_name prfx name, mk_contents (prfx @ [name]) modl)
       | seri prfx ds =
-          ds
-          |> map (fn (name, Def def) => (mk_name prfx name, def))
-          |> seri_defs (resolver prfx)
+          seri_defs (resolver prfx)
+            (map (fn (name, Def def) => (snd (mk_name prfx name), def)) ds)
   in
-    seri_module [] (name_root, (mk_contents [] module))
+    seri_module (map (resolver []) (Graph.strong_conn module |> List.concat |> rev))
+      (("", name_root), (mk_contents [] module))
   end;
-
-end; (* struct *)
-
-
-structure CodegenThingol : CODEGEN_THINGOL =
-struct
-
-open CodegenThingolOp;
 
 end; (* struct *)

@@ -76,7 +76,7 @@ end;
 structure CodegenPackage : CODEGEN_PACKAGE =
 struct
 
-open CodegenThingolOp;
+open CodegenThingol;
 infix 8 `%%;
 infixr 6 `->;
 infixr 6 `-->;
@@ -673,10 +673,14 @@ fun mk_fun thy tabs (c, ty) trns =
         let
           val sortctxt = ClassPackage.extract_sortctxt thy ty;
           fun dest_eqthm eq_thm =
-            eq_thm
-            |> prop_of
-            |> Logic.dest_equals
-            |> apfst (strip_comb #> snd);
+            let
+              val ((t, args), rhs) = (apfst strip_comb o Logic.dest_equals o prop_of) eq_thm;
+            in case t
+             of Const (c', _) => if c' = c then (args, rhs)
+                 else error ("illegal function equation for " ^ quote c
+                   ^ ", actually defining " ^ quote c')
+              | _ => error ("illegal function equation for " ^ quote c)
+            end;
           fun mk_eq (args, rhs) trns =
             trns
             |> fold_map (exprgen_term thy tabs o devarify_term) args
@@ -1179,7 +1183,7 @@ fun serialize_code target seri raw_consts thy =
         in (seri (
           (Option.map fst oo Symtab.lookup o #syntax_tyco) target_data,
           (Option.map fst oo Symtab.lookup o #syntax_const) target_data
-        ) "Generated" cs module : unit; thy) end;
+        ) cs module : unit; thy) end;
   in
     thy
     |> generate_code raw_consts
@@ -1191,28 +1195,18 @@ and K = OuterKeyword
 
 in
 
-val (classK, generateK, serializeK,
+val (generateK, serializeK,
      primclassK, primtycoK, primconstK,
      syntax_tycoK, syntax_constK, aliasK) =
-  ("code_class", "code_generate", "code_serialize",
+  ("code_generate", "code_serialize",
    "code_primclass", "code_primtyco", "code_primconst",
    "code_syntax_tyco", "code_syntax_const", "code_alias");
 val dependingK =
   ("depending_on");
 
-val classP =
-  OuterSyntax.command classK "codegen data for classes" K.thy_decl (
-    P.xname
-    -- ((P.$$$ "\\<Rightarrow>" || P.$$$ "=>") |-- (P.list1 P.name))
-    -- (Scan.optional ((P.$$$ "\\<Rightarrow>" || P.$$$ "=>") |-- (P.list1 P.name)) [])
-    >> (fn ((name, tycos), consts) => (Toplevel.theory (ClassPackage.add_classentry name consts tycos)))
-  )
-
 val generateP =
   OuterSyntax.command generateK "generate executable code for constants" K.thy_decl (
-    P.$$$ "("
-    |-- Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-    --| P.$$$ ")"
+    Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
     >> (fn raw_consts =>
           Toplevel.theory (generate_code (SOME raw_consts) #> snd))
   );
@@ -1220,13 +1214,11 @@ val generateP =
 val serializeP =
   OuterSyntax.command serializeK "serialize executable code for constants" K.thy_decl (
     P.name
-    -- Scan.option (
-         P.$$$ "("
-         |-- Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-         --| P.$$$ ")"
-       )
+    -- Scan.option (Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ)))
     #-> (fn (target, raw_consts) =>
-          get_serializer target
+          P.$$$ "("
+          |-- get_serializer target
+          --| P.$$$ ")"
           >> (fn seri =>
             Toplevel.theory (serialize_code target seri raw_consts)
           ))
@@ -1268,9 +1260,6 @@ val primconstP =
             (Toplevel.theory oo fold) (add_prim_const raw_const depends) primdefs)
   );
 
-val _ : OuterParse.token list -> (string -> string -> theory -> theory) * OuterParse.token list
- = parse_syntax_tyco;
-
 val syntax_tycoP =
   OuterSyntax.command syntax_tycoK "define code syntax for type constructor" K.thy_decl (
     Scan.repeat1 (
@@ -1295,23 +1284,23 @@ val syntax_constP =
           fold (fn (target, modifier) => modifier raw_c target) syns)
   );
 
-val _ = OuterSyntax.add_parsers [classP, generateP, serializeP, aliasP,
+val _ = OuterSyntax.add_parsers [generateP, serializeP, aliasP,
   primclassP, primtycoP, primconstP, syntax_tycoP, syntax_constP];
-val _ = OuterSyntax.add_keywords ["\\<Rightarrow>", "=>", dependingK];
+val _ = OuterSyntax.add_keywords [dependingK];
 
 
 
 (** theory setup **)
 
-val _ = Context.add_setup
- (add_eqextr ("defs", eqextr_defs) #>
-  add_defgen ("clsdecl", defgen_clsdecl) #>
-  add_defgen ("funs", defgen_funs) #>
-  add_defgen ("clsmem", defgen_clsmem) #>
-  add_defgen ("datatypecons", defgen_datatypecons));
-
+val _ = Context.add_setup (
+  add_eqextr ("defs", eqextr_defs)
+  #> add_defgen ("funs", defgen_funs)
+  #> add_defgen ("clsdecl", defgen_clsdecl)
+  #> add_defgen ("clsmem", defgen_clsmem)
+  #> add_defgen ("clsinst", defgen_clsinst)
+  #> add_defgen ("datatypecons", defgen_datatypecons)
 (*   add_appconst_i ("op =", ((2, 2), appgen_eq))  *)
-(*   add_defgen ("clsinst", defgen_clsinst)  *)
+);
 
 end; (* local *)
 
