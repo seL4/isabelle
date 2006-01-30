@@ -399,7 +399,7 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'hide' ('(' 'open' ')')? name (nameref + )
+  'hide' ('(open)')? name (nameref + )
   ;
 \end{rail}
 
@@ -456,7 +456,9 @@ following commands provide some way to do so.
 \begin{rail}
   'use' name
   ;
-  ('ML' | MLcommand | MLsetup | 'setup') text
+  ('ML' | MLcommand | MLsetup) text
+  ;
+  'setup' text?
   ;
   methodsetup name '=' text text
   ;
@@ -480,9 +482,10 @@ following commands provide some way to do so.
   
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
   applying $text$, which refers to an ML expression of type
-  \texttt{(theory~->~theory)~list}.  The $\isarkeyword{setup}$ command is the
+  \texttt{theory~->~theory)}.  The $\isarkeyword{setup}$ command is the
   canonical way to initialize any object-logic specific tools and packages
-  written in ML.
+  written in ML.  If the $text$ is omitted, the setup value is taken from the
+  implicit context maintained via \verb,Context.add_setup,.
   
 \item [$\isarkeyword{method_setup}~name = text~description$] defines a proof
   method in the current theory.  The given $text$ has to be an ML expression
@@ -544,7 +547,7 @@ tactic.
 
 \begin{rail}
   ( parseasttranslation | parsetranslation | printtranslation | typedprinttranslation |
-  printasttranslation ) ('(' 'advanced' ')')? text;
+  printasttranslation ) ('(advanced)')? text;
 
   tokentranslation text
 \end{rail}
@@ -566,24 +569,24 @@ val token_translation       :
 \end{ttbox}
 
 In case that the $(advanced)$ option is given, the corresponding translation
-functions may depend on the signature of the current theory context.  This
-allows to implement advanced syntax mechanisms, as translations functions may
-refer to specific theory declarations and auxiliary data.
+functions may depend on the current theory context.  This allows to implement
+advanced syntax mechanisms, as translations functions may refer to specific
+theory declarations and auxiliary data.
 
 See also \cite[\S8]{isabelle-ref} for more information on the general concept
 of syntax transformations in Isabelle.
 
 \begin{ttbox}
 val parse_ast_translation:
-  (string * (Sign.sg -> ast list -> ast)) list
+  (string * (theory -> ast list -> ast)) list
 val parse_translation:
-  (string * (Sign.sg -> term list -> term)) list
+  (string * (theory -> term list -> term)) list
 val print_translation:
-  (string * (Sign.sg -> term list -> term)) list
+  (string * (theory -> term list -> term)) list
 val typed_print_translation:
-  (string * (Sign.sg -> bool -> typ -> term list -> term)) list
+  (string * (theory -> bool -> typ -> term list -> term)) list
 val print_ast_translation:
-  (string * (Sign.sg -> ast list -> ast)) list
+  (string * (theory -> ast list -> ast)) list
 \end{ttbox}
 
 
