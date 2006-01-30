@@ -568,25 +568,26 @@ val token_translation       :
   (string * string * (string -> string * real)) list
 \end{ttbox}
 
-In case that the $(advanced)$ option is given, the corresponding translation
-functions may depend on the current theory context.  This allows to implement
-advanced syntax mechanisms, as translations functions may refer to specific
-theory declarations and auxiliary data.
+In case that the $(advanced)$ option is given, the corresponding
+translation functions may depend on the current theory or proof
+context.  This allows to implement advanced syntax mechanisms, as
+translations functions may refer to specific theory declarations or
+auxiliary proof data.
 
 See also \cite[\S8]{isabelle-ref} for more information on the general concept
 of syntax transformations in Isabelle.
 
 \begin{ttbox}
 val parse_ast_translation:
-  (string * (theory -> ast list -> ast)) list
+  (string * (Context.generic -> ast list -> ast)) list
 val parse_translation:
-  (string * (theory -> term list -> term)) list
+  (string * (Context.generic -> term list -> term)) list
 val print_translation:
-  (string * (theory -> term list -> term)) list
+  (string * (Context.generic -> term list -> term)) list
 val typed_print_translation:
-  (string * (theory -> bool -> typ -> term list -> term)) list
+  (string * (Context.generic -> bool -> typ -> term list -> term)) list
 val print_ast_translation:
-  (string * (theory -> ast list -> ast)) list
+  (string * (Context.generic -> ast list -> ast)) list
 \end{ttbox}
 
 

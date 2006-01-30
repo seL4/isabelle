@@ -187,7 +187,7 @@ fun cert_axm thy (name, raw_tm) =
 
 fun read_def_axm (thy, types, sorts) used (name, str) =
   let
-    val ts = Syntax.read thy (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
+    val ts = Syntax.read (Context.Theory thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
     val (t, _) = Sign.infer_types (Sign.pp thy) thy types sorts used true (ts, propT);
   in cert_axm thy (name, t) end
   handle ERROR msg => err_in_axm msg name;

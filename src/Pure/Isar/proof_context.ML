@@ -355,7 +355,8 @@ fun transfer thy = add_syntax [] o Context.transfer_proof thy;
 
 (** pretty printing **)
 
-fun pretty_term' thy ctxt t = Sign.pretty_term' (syn_of' thy ctxt) thy (context_tr' ctxt t);
+fun pretty_term' thy ctxt t =
+  Sign.pretty_term' (syn_of' thy ctxt) (Context.Proof ctxt) (context_tr' ctxt t);
 fun pretty_term ctxt t = pretty_term' (theory_of ctxt) ctxt (context_tr' ctxt t);
 fun pretty_typ ctxt T = Sign.pretty_typ (theory_of ctxt) T;
 fun pretty_sort ctxt S = Sign.pretty_sort (theory_of ctxt) S;
@@ -414,7 +415,7 @@ fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
 local
 
 fun read_typ_aux read ctxt s =
-  read (syn_of ctxt) (theory_of ctxt, def_sort ctxt) s;
+  read (syn_of ctxt) (Context.Proof ctxt) (def_sort ctxt) s;
 
 fun cert_typ_aux cert ctxt raw_T =
   cert (theory_of ctxt) raw_T handle TYPE (msg, _, _) => error msg;
@@ -493,11 +494,12 @@ fun extern_skolem ctxt =
 
 (* read wrt. theory *)     (*exception ERROR*)
 
-fun read_def_termTs freeze pp syn thy (types, sorts, used) sTs =
-  Sign.read_def_terms' pp (Sign.is_logtype thy) syn (thy, types, sorts) used freeze sTs;
+fun read_def_termTs freeze pp syn ctxt (types, sorts, used) sTs =
+  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn
+    (Context.Proof ctxt) (types, sorts) used freeze sTs;
 
-fun read_def_termT freeze pp syn thy defaults sT =
-  apfst hd (read_def_termTs freeze pp syn thy defaults [sT]);
+fun read_def_termT freeze pp syn ctxt defaults sT =
+  apfst hd (read_def_termTs freeze pp syn ctxt defaults [sT]);
 
 fun read_term_thy freeze pp syn thy defaults s =
   #1 (read_def_termT freeze pp syn thy defaults (s, TypeInfer.logicT));
@@ -575,7 +577,7 @@ fun gen_read' read app pattern schematic
     val sorts = append_env (def_sort ctxt) more_sorts;
     val used = used_types ctxt @ more_used;
   in
-    (read (pp ctxt) (syn_of ctxt) (theory_of ctxt) (types, sorts, used) s
+    (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) s
       handle TERM (msg, _) => error msg)
     |> app (intern_skolem ctxt internal)
     |> app (if pattern then I else norm_term ctxt schematic)

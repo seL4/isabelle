@@ -442,19 +442,20 @@ val simproc_setup =
 
 fun find_first f = Library.find_first f;
 
-fun case_tr sg [t, u] =
+fun case_tr context [t, u] =
     let
+      val thy = Context.theory_of context;
       fun case_error s name ts = raise TERM ("Error in case expression" ^
         getOpt (Option.map (curry op ^ " for datatype ") name, "") ^ ":\n" ^ s, ts);
       fun dest_case1 (Const ("_case1", _) $ t $ u) = (case strip_comb t of
-            (Const (s, _), ts) => (Sign.intern_const sg s, ts)
-          | (Free (s, _), ts) => (Sign.intern_const sg s, ts)
+            (Const (s, _), ts) => (Sign.intern_const thy s, ts)
+          | (Free (s, _), ts) => (Sign.intern_const thy s, ts)
           | _ => case_error "Head is not a constructor" NONE [t, u], u)
         | dest_case1 t = raise TERM ("dest_case1", [t]);
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
         | dest_case2 t = [t];
       val cases as ((cname, _), _) :: _ = map dest_case1 (dest_case2 u);
-      val tab = Symtab.dest (get_datatypes sg);
+      val tab = Symtab.dest (get_datatypes thy);
       val (cases', default) = (case split_last cases of
           (cases', (("dummy_pattern", []), t)) => (cases', SOME t)
         | _ => (cases, NONE))
@@ -498,9 +499,9 @@ fun case_tr sg [t, u] =
           | _ => list_comb (Syntax.const case_name, fs) $ t
         end
     end
-  | case_tr sg ts = raise TERM ("case_tr", ts);
+  | case_tr _ ts = raise TERM ("case_tr", ts);
 
-fun case_tr' constrs sg ts =
+fun case_tr' constrs context ts =
   if length ts <> length constrs + 1 then raise Match else
   let
     val (fs, x) = split_last ts;
@@ -516,7 +517,7 @@ fun case_tr' constrs sg ts =
         (loose_bnos (strip_abs_body t))
       end;
     val cases = map (fn ((cname, dts), t) =>
-      (Sign.extern_const sg cname,
+      (Sign.extern_const (Context.theory_of context) cname,
        strip_abs (length dts) t, is_dependent (length dts) t))
       (constrs ~~ fs);
     fun count_cases (cs, (_, _, true)) = cs

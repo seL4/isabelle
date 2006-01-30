@@ -48,13 +48,13 @@ sig
     (string * ((bool -> typ -> term list -> term) * stamp)) list *
     (string * ((ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_advanced_trfuns:
-    (string * ((theory -> ast list -> ast) * stamp)) list *
-    (string * ((theory -> term list -> term) * stamp)) list *
-    (string * ((theory -> bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((theory -> ast list -> ast) * stamp)) list -> syntax -> syntax
+    (string * ((Context.generic -> ast list -> ast) * stamp)) list *
+    (string * ((Context.generic -> term list -> term) * stamp)) list *
+    (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Context.generic -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (string -> string * real)) list -> syntax -> syntax
   val extend_trrules_i: ast trrule list -> syntax -> syntax
-  val extend_trrules: theory -> (string -> bool) -> syntax ->
+  val extend_trrules: Context.generic -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
   val remove_const_gram: (string -> bool) ->
     string * bool -> (string * typ * mixfix) list -> syntax -> syntax
@@ -67,13 +67,13 @@ sig
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
-  val read: theory -> (string -> bool) -> syntax -> typ -> string -> term list
-  val read_typ: theory -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
+  val read: Context.generic -> (string -> bool) -> syntax -> typ -> string -> term list
+  val read_typ: Context.generic -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
-  val read_sort: theory -> syntax -> string -> sort
-  val pretty_term: theory -> syntax -> bool -> term -> Pretty.T
-  val pretty_typ: theory -> syntax -> typ -> Pretty.T
-  val pretty_sort: theory -> syntax -> sort -> Pretty.T
+  val read_sort: Context.generic -> syntax -> string -> sort
+  val pretty_term: Context.generic -> syntax -> bool -> term -> Pretty.T
+  val pretty_typ: Context.generic -> syntax -> typ -> Pretty.T
+  val pretty_sort: Context.generic -> syntax -> sort -> Pretty.T
   val ambiguity_level: int ref
   val ambiguity_is_error: bool ref
 end;
@@ -169,12 +169,12 @@ datatype syntax =
     gram: Parser.gram,
     consts: string list,
     prmodes: string list,
-    parse_ast_trtab: ((theory -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
+    parse_ast_trtab: ((Context.generic -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
     parse_ruletab: ruletab,
-    parse_trtab: ((theory -> term list -> term) * stamp) Symtab.table,
-    print_trtab: ((theory -> bool -> typ -> term list -> term) * stamp) list Symtab.table,
+    parse_trtab: ((Context.generic -> term list -> term) * stamp) Symtab.table,
+    print_trtab: ((Context.generic -> bool -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
-    print_ast_trtab: ((theory -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
+    print_ast_trtab: ((Context.generic -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     tokentrtab: (string * (string * ((string -> string * real) * stamp)) list) list,
     prtabs: Printer.prtabs} * stamp;
 
@@ -376,7 +376,7 @@ end;
 val ambiguity_level = ref 1;
 val ambiguity_is_error = ref false
 
-fun read_asts thy is_logtype (Syntax (tabs, _)) xids root str =
+fun read_asts context is_logtype (Syntax (tabs, _)) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
@@ -384,41 +384,41 @@ fun read_asts thy is_logtype (Syntax (tabs, _)) xids root str =
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
     fun show_pt pt =
-      Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts thy (K NONE) [pt])));
+      Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts context (K NONE) [pt])));
   in
     conditional (length pts > ! ambiguity_level) (fn () =>
       if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
       else (warning ("Ambiguous input " ^ quote str ^ "\n" ^
           "produces " ^ string_of_int (length pts) ^ " parse trees.");
          List.app (warning o show_pt) pts));
-    SynTrans.pts_to_asts thy (lookup_tr parse_ast_trtab) pts
+    SynTrans.pts_to_asts context (lookup_tr parse_ast_trtab) pts
   end;
 
 
 (* read *)
 
-fun read thy is_logtype (syn as Syntax (tabs, _)) ty str =
+fun read context is_logtype (syn as Syntax (tabs, _)) ty str =
   let
     val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts thy is_logtype syn false (SynExt.typ_to_nonterm ty) str;
+    val asts = read_asts context is_logtype syn false (SynExt.typ_to_nonterm ty) str;
   in
-    SynTrans.asts_to_terms thy (lookup_tr parse_trtab)
+    SynTrans.asts_to_terms context (lookup_tr parse_trtab)
       (map (Ast.normalize_ast (Symtab.lookup_multi parse_ruletab)) asts)
   end;
 
 
 (* read types *)
 
-fun read_typ thy syn get_sort map_sort str =
-  (case read thy (K false) syn SynExt.typeT str of
+fun read_typ context syn get_sort map_sort str =
+  (case read context (K false) syn SynExt.typeT str of
     [t] => TypeExt.typ_of_term (get_sort (TypeExt.raw_term_sorts t)) map_sort t
   | _ => error "read_typ: ambiguous syntax");
 
 
 (* read sorts *)
 
-fun read_sort thy syn str =
-  (case read thy (K false) syn TypeExt.sortT str of
+fun read_sort context syn str =
+  (case read context (K false) syn TypeExt.sortT str of
     [t] => TypeExt.sort_of_term t
   | _ => error "read_sort: ambiguous syntax");
 
@@ -452,7 +452,7 @@ fun check_rule (rule as (lhs, rhs)) =
   | NONE => rule);
 
 
-fun read_pattern thy is_logtype syn (root, str) =
+fun read_pattern context is_logtype syn (root, str) =
   let
     val Syntax ({consts, ...}, _) = syn;
 
@@ -462,7 +462,7 @@ fun read_pattern thy is_logtype syn (root, str) =
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
   in
-    (case read_asts thy is_logtype syn true root str of
+    (case read_asts context is_logtype syn true root str of
       [ast] => constify ast
     | _ => error ("Syntactically ambiguous input: " ^ quote str))
   end handle ERROR msg =>
@@ -480,19 +480,19 @@ fun prep_rules rd_pat raw_rules =
 
 (** pretty terms, typs, sorts **)
 
-fun pretty_t t_to_ast prt_t thy (syn as Syntax (tabs, _)) curried t =
+fun pretty_t t_to_ast prt_t context (syn as Syntax (tabs, _)) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
-    val ast = t_to_ast thy (lookup_tr' print_trtab) t;
+    val ast = t_to_ast context (lookup_tr' print_trtab) t;
   in
-    prt_t thy curried prtabs (lookup_tr' print_ast_trtab)
+    prt_t context curried prtabs (lookup_tr' print_ast_trtab)
       (lookup_tokentr tokentrtab (! print_mode))
       (Ast.normalize_ast (Symtab.lookup_multi print_ruletab) ast)
   end;
 
 val pretty_term = pretty_t Printer.term_to_ast Printer.pretty_term_ast;
-fun pretty_typ thy syn = pretty_t Printer.typ_to_ast Printer.pretty_typ_ast thy syn false;
-fun pretty_sort thy syn = pretty_t Printer.sort_to_ast Printer.pretty_typ_ast thy syn false;
+fun pretty_typ context syn = pretty_t Printer.typ_to_ast Printer.pretty_typ_ast context syn false;
+fun pretty_sort context syn = pretty_t Printer.sort_to_ast Printer.pretty_typ_ast context syn false;
 
 
 
@@ -509,9 +509,9 @@ val extend_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
 val extend_tokentrfuns     = ext_syntax SynExt.syn_ext_tokentrfuns;
 val extend_trrules_i       = ext_syntax SynExt.syn_ext_rules o prep_rules I;
 
-fun extend_trrules thy is_logtype syn rules =
+fun extend_trrules context is_logtype syn rules =
   ext_syntax' (K SynExt.syn_ext_rules) (K false) default_mode
-    (prep_rules (read_pattern thy is_logtype syn) rules);
+    (prep_rules (read_pattern context is_logtype syn) rules);
 
 fun remove_const_gram is_logtype prmode decls =
   remove_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);

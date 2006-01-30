@@ -50,10 +50,11 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val pts_to_asts: theory -> (string -> (theory -> Ast.ast list -> Ast.ast) option) ->
+  val pts_to_asts: Context.generic ->
+    (string -> (Context.generic -> Ast.ast list -> Ast.ast) option) ->
     Parser.parsetree list -> Ast.ast list
-  val asts_to_terms: theory -> (string -> (theory -> term list -> term) option) ->
-    Ast.ast list -> term list
+  val asts_to_terms: Context.generic ->
+    (string -> (Context.generic -> term list -> term) option) -> Ast.ast list -> term list
 end;
 
 structure SynTrans: SYN_TRANS =
@@ -460,14 +461,14 @@ fun struct_trfuns structs =
 
 (** pts_to_asts **)
 
-fun pts_to_asts thy trf pts =
+fun pts_to_asts context trf pts =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => transform_failure (fn exn =>
             EXCEPTION (exn, "Error in parse ast translation for " ^ quote a))
-          (fn () => f thy args) ());
+          (fn () => f context args) ());
 
     (*translate pt bottom-up*)
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
@@ -484,14 +485,14 @@ fun pts_to_asts thy trf pts =
 
 val fixedN = "\\<^fixed>";
 
-fun asts_to_terms thy trf asts =
+fun asts_to_terms context trf asts =
   let
     fun trans a args =
       (case trf a of
         NONE => Term.list_comb (Lexicon.const a, args)
       | SOME f => transform_failure (fn exn =>
             EXCEPTION (exn, "Error in parse translation for " ^ quote a))
-          (fn () => f thy args) ());
+          (fn () => f context args) ());
 
     fun term_of (Ast.Constant a) = trans a []
       | term_of (Ast.Variable x) = Lexicon.read_var x

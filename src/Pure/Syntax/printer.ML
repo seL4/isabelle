@@ -18,22 +18,22 @@ end;
 signature PRINTER =
 sig
   include PRINTER0
-  val term_to_ast: theory -> (string -> (theory -> bool -> typ -> term list -> term) list) ->
-    term -> Ast.ast
-  val typ_to_ast: theory -> (string -> (theory -> bool -> typ -> term list -> term) list) ->
-    typ -> Ast.ast
-  val sort_to_ast: theory -> (string -> (theory -> bool -> typ -> term list -> term) list) ->
-    sort -> Ast.ast
+  val term_to_ast: Context.generic ->
+    (string -> (Context.generic -> bool -> typ -> term list -> term) list) -> term -> Ast.ast
+  val typ_to_ast: Context.generic ->
+    (string -> (Context.generic -> bool -> typ -> term list -> term) list) -> typ -> Ast.ast
+  val sort_to_ast: Context.generic ->
+    (string -> (Context.generic -> bool -> typ -> term list -> term) list) -> sort -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
   val extend_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
-  val pretty_term_ast: theory -> bool -> prtabs
-    -> (string -> (theory -> Ast.ast list -> Ast.ast) list)
+  val pretty_term_ast: Context.generic -> bool -> prtabs
+    -> (string -> (Context.generic -> Ast.ast list -> Ast.ast) list)
     -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
-  val pretty_typ_ast: theory -> bool -> prtabs
-    -> (string -> (theory -> Ast.ast list -> Ast.ast) list)
+  val pretty_typ_ast: Context.generic -> bool -> prtabs
+    -> (string -> (Context.generic -> Ast.ast list -> Ast.ast) list)
     -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
 end;
 
@@ -58,17 +58,17 @@ fun pp_show_brackets pp = Pretty.pp (setmp show_brackets true (Pretty.term pp),
 
 (* apply print (ast) translation function *)
 
-fun apply_trans thy name a fns args =
+fun apply_trans context name a fns args =
   let
     fun app_first [] = raise Match
-      | app_first (f :: fs) = f thy args handle Match => app_first fs;
+      | app_first (f :: fs) = f context args handle Match => app_first fs;
   in
     transform_failure (fn Match => Match
       | exn => EXCEPTION (exn, "Error in " ^ name ^ " for " ^ quote a))
       app_first fns
   end;
 
-fun apply_typed x y fs = map (fn f => fn thy => f thy x y) fs;
+fun apply_typed x y fs = map (fn f => fn context => f context x y) fs;
 
 
 (* simple_ast_of *)
@@ -87,7 +87,7 @@ fun simple_ast_of (Const (c, _)) = Ast.Constant c
 
 (** sort_to_ast, typ_to_ast **)
 
-fun ast_of_termT thy trf tm =
+fun ast_of_termT context trf tm =
   let
     fun ast_of (t as Const ("_class", _) $ Free _) = simple_ast_of t
       | ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of t
@@ -99,12 +99,12 @@ fun ast_of_termT thy trf tm =
           | (f, args) => Ast.Appl (map ast_of (f :: args)))
       | ast_of t = simple_ast_of t
     and trans a args =
-      ast_of (apply_trans thy "print translation" a (apply_typed false dummyT (trf a)) args)
+      ast_of (apply_trans context "print translation" a (apply_typed false dummyT (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
   in ast_of tm end;
 
-fun sort_to_ast thy trf S = ast_of_termT thy trf (TypeExt.term_of_sort S);
-fun typ_to_ast thy trf T = ast_of_termT thy trf (TypeExt.term_of_typ (! show_sorts) T);
+fun sort_to_ast context trf S = ast_of_termT context trf (TypeExt.term_of_sort S);
+fun typ_to_ast context trf T = ast_of_termT context trf (TypeExt.term_of_typ (! show_sorts) T);
 
 
 
@@ -121,7 +121,7 @@ fun mark_freevars ((t as Const (c, _)) $ u) =
       else Lexicon.const "_var" $ t
   | mark_freevars a = a;
 
-fun ast_of_term thy trf show_all_types no_freeTs show_types show_sorts tm =
+fun ast_of_term context trf show_all_types no_freeTs show_types show_sorts tm =
   let
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
@@ -158,13 +158,13 @@ fun ast_of_term thy trf show_all_types no_freeTs show_types show_sorts tm =
       | (t, ts) => Ast.mk_appl (simple_ast_of t) (map ast_of ts))
 
     and trans a T args =
-      ast_of (apply_trans thy "print translation" a (apply_typed show_sorts T (trf a)) args)
+      ast_of (apply_trans context "print translation" a (apply_typed show_sorts T (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and constrain t T =
       if show_types andalso T <> dummyT then
         Ast.Appl [Ast.Constant SynExt.constrainC, simple_ast_of t,
-          ast_of_termT thy trf (TypeExt.term_of_typ show_sorts T)]
+          ast_of_termT context trf (TypeExt.term_of_typ show_sorts T)]
       else simple_ast_of t
   in
     tm
@@ -174,8 +174,8 @@ fun ast_of_term thy trf show_all_types no_freeTs show_types show_sorts tm =
     |> ast_of
   end;
 
-fun term_to_ast thy trf tm =
-  ast_of_term thy trf (! show_all_types) (! show_no_free_types)
+fun term_to_ast context trf tm =
+  ast_of_term context trf (! show_all_types) (! show_no_free_types)
     (! show_types orelse ! show_sorts orelse ! show_all_types) (! show_sorts) tm;
 
 
@@ -265,9 +265,9 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-fun pretty thy tabs trf tokentrf type_mode curried ast0 p0 =
+fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
   let
-    val trans = apply_trans thy "print ast translation";
+    val trans = apply_trans context "print ast translation";
 
     fun token_trans c [Ast.Variable x] =
           (case tokentrf c of
@@ -290,7 +290,7 @@ fun pretty thy tabs trf tokentrf type_mode curried ast0 p0 =
             val (Ts, args') = synT (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty thy tabs trf tokentrf true curried t p @ Ts, args')
+            else (pretty context tabs trf tokentrf true curried t p @ Ts, args')
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
@@ -353,15 +353,15 @@ fun pretty thy tabs trf tokentrf type_mode curried ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast thy curried prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty thy (mode_tabs prtabs (! print_mode))
+fun pretty_term_ast context curried prtabs trf tokentrf ast =
+  Pretty.blk (0, pretty context (mode_tabs prtabs (! print_mode))
     trf tokentrf false curried ast 0);
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast thy _ prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty thy (mode_tabs prtabs (! print_mode))
+fun pretty_typ_ast context _ prtabs trf tokentrf ast =
+  Pretty.blk (0, pretty context (mode_tabs prtabs (! print_mode))
     trf tokentrf true false ast 0);
 
 end;
