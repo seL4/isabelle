@@ -324,7 +324,7 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
        of (es, IConst (c, _)) =>
             if c = thingol_nil
             then Pretty.enum "," "[" "]" (map (pr NOBR) (e1::es))
-            else pretty_default fxy pr e1 e2)
+            else pretty_default fxy pr e1 e2
         | _ => pretty_default fxy pr e1 e2;
   in ((2, 2), pretty_compact) end;
 
