@@ -124,7 +124,7 @@ specifications.
   ;
   contextelem: fixes | constrains | assumes | defines | notes | includes
   ;
-  fixes: 'fixes' (name ('::' type)? structmixfix? + 'and')
+  fixes: 'fixes' ((name ('::' type)? structmixfix? | vars) + 'and')
   ;
   constrains: 'constrains' (name '::' type + 'and')
   ;
@@ -1145,7 +1145,7 @@ assumptions to be included as well.
 \end{matharray}
 
 \begin{rail}
-  ('intro' | 'elim' | 'dest') ('!' | () | '?')
+  ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
   ;
   'rule' 'del'
   ;
@@ -1158,13 +1158,15 @@ assumptions to be included as well.
 \item [$\isarcmd{print_claset}$] prints the collection of rules declared to
   the Classical Reasoner, which is also known as ``simpset'' internally
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
-
+  
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
   destruction rules, respectively.  By default, rules are considered as
   \emph{unsafe} (i.e.\ not applied blindly without backtracking), while a
   single ``!'' classifies as \emph{safe}.  Rule declarations marked by ``?''
-  coincide with those of Isabelle/Pure, cf.\ \S\ref{sec:pure-meth-att} (i.e.\
-  are only applied in single steps of the $rule$ method).
+  coincide with those of Isabelle/Pure, cf.\ \S\ref{sec:pure-meth-att} (i.e.\ 
+  are only applied in single steps of the $rule$ method).  The optional
+  natural number specifies an explicit weight argument, which is ignored by
+  automated tools, but determines the search order of single rule steps.
 
 \item [$rule~del$] deletes introduction, elimination, or destruction rules from
   the context.
