@@ -304,8 +304,8 @@ val setup =
     DatatypePackage.is_datatype #>
   CodegenPackage.set_get_all_datatype_cons
     DatatypePackage.get_all_datatype_cons #>
-  CodegenPackage.add_defgen
-    ("datatype", CodegenPackage.defgen_datatype DatatypePackage.get_datatype DatatypePackage.get_datatype_cons) #>
+  CodegenPackage.set_defgen_datatype
+    (CodegenPackage.defgen_datatype_proto DatatypePackage.get_datatype DatatypePackage.get_datatype_cons) #>
   CodegenPackage.ensure_datatype_case_consts
     DatatypePackage.get_datatype_case_consts
     DatatypePackage.get_case_const_data;
