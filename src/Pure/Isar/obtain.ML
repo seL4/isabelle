@@ -8,15 +8,18 @@ fixes/assumes may be introduced into the present context; 'guess' is
 similar, but derives these elements from the course of reasoning!
 
   <chain_facts>
-  obtain x where "P x" <proof> ==
+  obtain x where "A x" <proof> ==
 
-  have "!!thesis. (!!x. P x ==> thesis) ==> thesis"
+  have "!!thesis. (!!x. A x ==> thesis) ==> thesis"
   proof succeed
     fix thesis
-    assume that [intro?]: "!!x. P x ==> thesis"
-    <chain_facts> show thesis <proof (insert that)>
+    assume that [intro?]: "!!x. A x ==> thesis"
+    <chain_facts>
+    show thesis
+      apply (insert that)
+      <proof>
   qed
-  fix x assm (obtained) "P x"
+  fix x assm <<obtain_export>> "A x"
 
 
   <chain_facts>
@@ -25,13 +28,13 @@ similar, but derives these elements from the course of reasoning!
   {
     fix thesis
     <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turns goal into "thesis ==> Goal thesis" *}
+      apply magic      -- {* turns goal into "thesis ==> #thesis" *}
       <proof body>
-      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> Goal thesis" into
-        "Goal ((!!x. P x ==> thesis) ==> thesis)" which is a finished goal state *}
+      apply_end magic  -- {* turns final "(!!x. P x ==> thesis) ==> #thesis" into
+        "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
       <proof end>
   }
-  fix x assm (obtained) "P x"
+  fix x assm <<obtain_export>> "A x"
 *)
 
 signature OBTAIN =
@@ -52,6 +55,14 @@ struct
 
 (** obtain_export **)
 
+(*
+    [x]
+    [A x]
+      :
+      B
+    -----
+      B
+*)
 fun obtain_export ctxt parms rule cprops thm =
   let
     val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
@@ -136,8 +147,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, ([], []))])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(thesisN, NONE)]
-    |> Proof.assume_i
-      [((thatN, [ContextRules.intro_query NONE]), [(that_prop, ([], []))])]
+    |> Proof.assume_i [((thatN, [ContextRules.intro_query NONE]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(("", []), [(thesis, ([], []))])] false

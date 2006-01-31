@@ -63,7 +63,7 @@ use "Proof/proofchecker.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
 
-(*theory syntax -- new format*)
+(*theory syntax*)
 use "Isar/outer_lex.ML";
 
 (*theory presentation*)
