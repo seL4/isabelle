@@ -640,8 +640,8 @@ fun gen_using f g note prep_atts args state =
       in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
 fun append_using _ ths using = using @ ths;
-fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt true ths);
-fun unfold_goals ctxt ths = LocalDefs.unfold_goals ctxt true ths;
+fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt ths);
+val unfold_goals = LocalDefs.unfold_goals;
 
 in
 
