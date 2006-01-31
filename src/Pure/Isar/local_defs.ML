@@ -7,9 +7,9 @@ Local definitions.
 
 signature LOCAL_DEFS =
 sig
-  val mk_def: ProofContext.context -> (string * term) list -> term list
   val cert_def: ProofContext.context -> term -> string * term
   val abs_def: term -> (string * typ) * term
+  val mk_def: ProofContext.context -> (string * term) list -> term list
   val def_export: ProofContext.export
   val add_def: string * term -> ProofContext.context ->
     ((string * typ) * thm) * ProofContext.context
@@ -17,11 +17,11 @@ sig
   val defn_add: attribute
   val defn_del: attribute
   val meta_rewrite_rule: Context.generic -> thm -> thm
-  val unfold: ProofContext.context -> bool -> thm list -> thm -> thm
-  val unfold_goals: ProofContext.context -> bool -> thm list -> thm -> thm
-  val unfold_tac: ProofContext.context -> bool -> thm list -> tactic
-  val fold: ProofContext.context -> bool -> thm list -> thm -> thm
-  val fold_tac: ProofContext.context -> bool -> thm list -> tactic
+  val unfold: ProofContext.context -> thm list -> thm -> thm
+  val unfold_goals: ProofContext.context -> thm list -> thm -> thm
+  val unfold_tac: ProofContext.context -> thm list -> tactic
+  val fold: ProofContext.context -> thm list -> thm -> thm
+  val fold_tac: ProofContext.context -> thm list -> tactic
   val derived_def: ProofContext.context -> term ->
     ((string * typ) * term) * (ProofContext.context -> term -> thm -> thm)
 end;
@@ -33,13 +33,7 @@ struct
 
 (* prepare defs *)
 
-fun mk_def ctxt args =
-  let
-    val (xs, rhss) = split_list args;
-    val (bind, _) = ProofContext.bind_fixes xs ctxt;
-    val lhss = map (fn (x, rhs) => bind (Free (x, Term.fastype_of rhs))) args;
-  in map Logic.mk_equals (lhss ~~ rhss) end;
-
+(*c x == t[x] to !!x. c x == t[x]*)
 fun cert_def ctxt eq =
   let
     fun err msg = cat_error msg
@@ -54,15 +48,14 @@ fun cert_def ctxt eq =
     fun check_arg (Bound _) = true
       | check_arg (Free (x, _)) = not (ProofContext.is_fixed ctxt x)
       | check_arg t = (case try Logic.dest_type t of SOME (TFree _) => true | _ => false);
-    fun close_arg (Free (x, T)) t = Term.all T $ Term.absfree (x, T, t)
-      | close_arg (Const ("TYPE", T)) t = Term.all T $ Term.absdummy (T, t)
-      | close_arg _ t = t;
+    fun close_arg (Bound _) t = t
+      | close_arg x t = Term.all (Term.fastype_of x) $ lambda x t;
 
     val extra_frees = Term.fold_aterms (fn v as Free (x, _) =>
       if ProofContext.is_fixed ctxt x orelse member (op aconv) xs v then I
       else insert (op =) x | _ => I) rhs [];
   in
-    if not (forall check_arg xs) orelse has_duplicates (op =) xs then
+    if not (forall check_arg xs) orelse has_duplicates (op aconv) xs then
       err "Arguments of lhs must be distinct free/bound variables"
     else if not (null extra_frees) then
       err ("Extra free variables on rhs: " ^ commas_quote extra_frees)
@@ -71,6 +64,7 @@ fun cert_def ctxt eq =
     else (c, fold_rev close_arg xs eq)
   end;
 
+(*!!x. c x == t[x] to c == %x. t[x]*)
 fun abs_def eq =
   let
     val body = Term.strip_all_body eq;
@@ -80,6 +74,14 @@ fun abs_def eq =
     val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
   in (Term.dest_Free f, eq') end;
 
+(*c == t*)
+fun mk_def ctxt args =
+  let
+    val (xs, rhss) = split_list args;
+    val (bind, _) = ProofContext.bind_fixes xs ctxt;
+    val lhss = map (fn (x, rhs) => bind (Free (x, Term.fastype_of rhs))) args;
+  in map Logic.mk_equals (lhss ~~ rhss) end;
+
 
 (* export defs *)
 
@@ -87,6 +89,14 @@ fun head_of_def cprop =
   #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
   |> Thm.cterm_of (Thm.theory_of_cterm cprop);
 
+(*
+  [x]
+  [x == t]
+     :
+    B x
+  --------
+    B t
+*)
 fun def_export _ cprops thm =
   thm
   |> Drule.implies_intr_list cprops
@@ -134,7 +144,7 @@ val defn_add = Thm.declaration_attribute (Rules.map o Drule.add_rule);
 val defn_del = Thm.declaration_attribute (Rules.map o Drule.del_rule);
 
 
-(* transform rewrite rules *)
+(* meta rewrite rules *)
 
 val equals_ss =
   MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
@@ -149,14 +159,16 @@ val meta_rewrite_rule = Drule.fconv_rule o meta_rewrite;
 fun meta_rewrite_tac ctxt i =
   PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite (Context.Proof ctxt))));
 
-fun transformed f _ false = f
-  | transformed f ctxt true = f o map (meta_rewrite_rule (Context.Proof ctxt));
 
-val unfold       = transformed Tactic.rewrite_rule;
-val unfold_goals = transformed Tactic.rewrite_goals_rule;
-val unfold_tac   = transformed Tactic.rewrite_goals_tac;
-val fold         = transformed Tactic.fold_rule;
-val fold_tac     = transformed Tactic.fold_goals_tac;
+(* rewriting with object-level rules *)
+
+fun meta f ctxt = f o map (meta_rewrite_rule (Context.Proof ctxt));
+
+val unfold       = meta Tactic.rewrite_rule;
+val unfold_goals = meta Tactic.rewrite_goals_rule;
+val unfold_tac   = meta Tactic.rewrite_goals_tac;
+val fold         = meta Tactic.fold_rule;
+val fold_tac     = meta Tactic.fold_goals_tac;
 
 
 (* derived defs -- potentially within the object-logic *)
