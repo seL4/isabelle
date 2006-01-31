@@ -63,7 +63,7 @@ fun gen_constdefs prep_vars prep_term prep_att (raw_structs, specs) thy =
     val ctxt = ProofContext.init thy;
     val (structs, _) = prep_vars (map (fn (x, T) => (x, T, Structure)) raw_structs) ctxt;
     val (decls, thy') = fold_map (gen_constdef prep_vars prep_term prep_att structs) specs thy;
-  in Pretty.writeln (LocalTheory.pretty_consts ctxt decls); thy' end;
+  in Pretty.writeln (LocalTheory.pretty_consts ctxt (K true) decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars_legacy
   ProofContext.read_term_legacy Attrib.attribute;
