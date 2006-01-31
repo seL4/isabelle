@@ -13,7 +13,6 @@ sig
   val helper_path: string -> string -> string
   val problem_name: string ref
   val time_limit: int ref
-  val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
 end;
 
 structure ResAtp: RES_ATP =
@@ -48,39 +47,6 @@ fun probfile_nosuffix _ =
   else error ("No such directory: " ^ !destdir);
 
 fun prob_pathname n = probfile_nosuffix n ^ "_" ^ Int.toString n;
-
-
-(**** For running in Isar ****)
-
-fun writeln_strs _   []      = ()
-  | writeln_strs out (s::ss) = (TextIO.output (out, s); TextIO.output (out, "\n"); writeln_strs out ss);
-
-(* write out a subgoal as tptp clauses to the file "xxxx_N"*)
-fun tptp_inputs_tfrees ths pf n (axclauses,classrel_clauses,arity_clauses) =
-  let
-    val clss = ResClause.make_conjecture_clauses (map prop_of ths)
-    val (tptp_clss,tfree_litss) = ListPair.unzip (map ResClause.clause2tptp clss)
-    val tfree_clss = map ResClause.tfree_clause (foldl (op union_string) [] tfree_litss)
-    val classrel_cls = map ResClause.tptp_classrelClause classrel_clauses
-    val arity_cls = map ResClause.tptp_arity_clause arity_clauses
-    val out = TextIO.openOut(pf n)
-  in
-    writeln_strs out (List.concat (map ResClause.tptp_clause axclauses));
-    writeln_strs out (tfree_clss @ tptp_clss @ classrel_cls @ arity_cls);
-    TextIO.closeOut out
-  end;
-
-(* write out a subgoal in DFG format to the file "xxxx_N"*)
-fun dfg_inputs_tfrees ths pf n (axclauses,classrel_clauses,arity_clauses) = 
-    let val clss = ResClause.make_conjecture_clauses (map prop_of ths)
-        (*FIXME: classrel_clauses and arity_clauses*)
-        val probN = ResClause.clauses2dfg (!problem_name ^ "_" ^ Int.toString n)
-                        axclauses clss 
-	val out = TextIO.openOut(pf n)
-    in
-	writeln_strs out [probN]; TextIO.closeOut out
-    end;
-
 
 (* call prover with settings and problem file for the current subgoal *)
 fun watcher_call_provers sign sg_terms (childin, childout, pid) =
@@ -145,14 +111,15 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
       val arity_clauses = if !ResClause.keep_types then ResClause.arity_clause_thy thy else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
-      val write = if !prover = "spass" then dfg_inputs_tfrees else tptp_inputs_tfrees
+      val write = if !prover = "spass" then ResClause.dfg_write_file 
+                                       else ResClause.tptp_write_file
       fun writenext n =
 	if n=0 then []
 	 else
 	   (SELECT_GOAL
 	    (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
 	      METAHYPS(fn negs => 
-		(write (make_clauses negs) pf n 
+		(write (make_clauses negs) (pf n) 
 		       (axclauses,classrel_clauses,arity_clauses);
 		 all_tac))]) n th;
 	    pf n :: writenext (n-1))

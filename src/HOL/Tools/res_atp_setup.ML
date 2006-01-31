@@ -325,7 +325,7 @@ fun atp_axioms_g tptp_ax_fn rules file =
 	val (clss,errs) = tptp_ax_fn rules
 	val clss' = ResClause.union_all clss
     in
-	ResAtp.writeln_strs out clss';
+	ResClause.writeln_strs out clss';
 	TextIO.closeOut out;
 	([file],errs)
     end;
@@ -353,11 +353,11 @@ fun filtered_tptp_conjectures_hol terms =
 fun atp_conjectures_h_g filt_conj_fn hyp_cls =
     let val (tptp_h_clss,tfree_litss) = filt_conj_fn hyp_cls
 	val tfree_lits = ResClause.union_all tfree_litss
-	val tfree_clss = map ResClause.tfree_clause tfree_lits 
+	val tfree_clss = map ResClause.tptp_tfree_clause tfree_lits 
 	val hypsfile = hyps_file ()
         val out = TextIO.openOut(hypsfile)
     in
-        ResAtp.writeln_strs out (tfree_clss @ tptp_h_clss);
+        ResClause.writeln_strs out (tfree_clss @ tptp_h_clss);
         TextIO.closeOut out; warning hypsfile;
         ([hypsfile],tfree_lits)
     end;
@@ -368,11 +368,11 @@ fun atp_conjectures_h_hol hyp_cls = atp_conjectures_h_g filtered_tptp_conjecture
 
 fun atp_conjectures_c_g filt_conj_fn conj_cls n tfrees =
     let val (tptp_c_clss,tfree_litss) = filt_conj_fn conj_cls
-	val tfree_clss = map ResClause.tfree_clause ((ResClause.union_all tfree_litss) \\ tfrees)
+	val tfree_clss = map ResClause.tptp_tfree_clause ((ResClause.union_all tfree_litss) \\ tfrees)
 	val probfile = prob_file n
 	val out = TextIO.openOut(probfile)		 	
     in
-	ResAtp.writeln_strs out (tfree_clss @ tptp_c_clss);
+	ResClause.writeln_strs out (tfree_clss @ tptp_c_clss);
 	TextIO.closeOut out;
 	warning probfile; 
 	probfile 
@@ -410,7 +410,7 @@ fun tptp_types_sorts thy =
 	    let val tsfile = types_sorts_file ()
 		val out = TextIO.openOut(tsfile)
 	    in
-		ResAtp.writeln_strs out (classrel_cls @ arity_cls);
+		ResClause.writeln_strs out (classrel_cls @ arity_cls);
 		TextIO.closeOut out;
 		[tsfile]
 	    end

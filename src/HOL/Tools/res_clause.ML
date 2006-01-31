@@ -25,9 +25,6 @@ signature RES_CLAUSE =
   val isTaut : clause -> bool
   val num_of_clauses : clause -> int
 
-  val clauses2dfg : string -> clause list -> clause list -> string
-  val tfree_dfg_clause : string -> string
-
   val arity_clause_thy: theory -> arityClause list 
   val classrel_clauses_thy: theory -> classrelClause list 
 
@@ -35,7 +32,7 @@ signature RES_CLAUSE =
   val tptp_classrelClause : classrelClause -> string
   val tptp_clause : clause -> string list
   val clause2tptp : clause -> string * string list
-  val tfree_clause : string -> string
+  val tptp_tfree_clause : string -> string
   val schematic_var_prefix : string
   val fixed_var_prefix : string
   val tvar_prefix : string
@@ -76,9 +73,16 @@ signature RES_CLAUSE =
   val types_ord : fol_type list * fol_type list -> order
   val string_of_fol_type : fol_type -> string
   val mk_fol_type: string * string * fol_type list -> fol_type
-  val types_eq :fol_type list * fol_type list ->
-   (string * string) list * (string * string) list -> bool * ((string * string) list * (string * string) list)
+  val types_eq: fol_type list * fol_type list -> 
+        (string*string) list * (string*string) list -> 
+        bool * ((string*string) list * (string*string) list)
   val check_var_pairs: ''a * ''b -> (''a * ''b) list -> int
+
+  val dfg_write_file: thm list -> string -> 
+        (clause list * classrelClause list * arityClause list) -> unit
+  val tptp_write_file: thm list -> string -> 
+        (clause list * classrelClause list * arityClause list) -> unit
+  val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
   end;
 
 structure ResClause : RES_CLAUSE =
@@ -794,17 +798,21 @@ fun string_of_clausename (cls_id,ax_name) =
 
 fun string_of_type_clsname (cls_id,ax_name,idx) = 
     string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
+
+(*Write a list of strings to a file*)
+fun writeln_strs os = List.app (fn s => TextIO.output (os,s));
+
     
 
 (********************************)
 (* Code for producing DFG files *)
 (********************************)
 
-fun dfg_literal (Literal(pol,pred,tag)) =
-    let val pred_string = string_of_predicate pred
-    in
-	if pol then pred_string else "not(" ^pred_string ^ ")"  
-    end;
+(*Attach sign in DFG syntax: false means negate.*)
+fun dfg_sign true s = s
+  | dfg_sign false s = "not(" ^ s ^ ")"  
+
+fun dfg_literal (Literal(pol,pred,tag)) = dfg_sign pol (string_of_predicate pred)
 
 fun dfg_of_typeLit (LTVar (s,ty)) = "not(" ^ s ^ "(" ^ ty ^ "))"
   | dfg_of_typeLit (LTFree (s,ty)) = s ^ "(" ^ ty ^ ")";
@@ -819,13 +827,13 @@ fun forall_close ([],[]) = ""
 fun gen_dfg_cls (cls_id,ax_name,knd,lits,tvars,vars) = 
     "clause( %(" ^ knd ^ ")\n" ^ forall_open(vars,tvars) ^ 
     "or(" ^ lits ^ ")" ^ forall_close(vars,tvars) ^ ",\n" ^ 
-    string_of_clausename (cls_id,ax_name) ^  ").";
+    string_of_clausename (cls_id,ax_name) ^  ").\n\n";
 
 (*FIXME: UNUSED*)
 fun gen_dfg_type_cls (cls_id,ax_name,knd,tfree_lit,idx,tvars,vars) = 
     "clause( %(" ^ knd ^ ")\n" ^ forall_open(vars,tvars) ^ 
     "or( " ^ tfree_lit ^ ")" ^ forall_close(vars,tvars) ^ ",\n" ^ 
-    string_of_type_clsname (cls_id,ax_name,idx) ^  ").";
+    string_of_type_clsname (cls_id,ax_name,idx) ^  ").\n\n";
 
 fun dfg_clause_aux (Clause cls) = 
   let val lits = map dfg_literal (#literals cls)
@@ -887,35 +895,24 @@ fun string_of_funcs [] = ""
 fun string_of_symbols predstr funcstr = 
   "list_of_symbols.\n" ^ predstr  ^ funcstr  ^ "end_of_list.\n\n";
 
-fun string_of_axioms axstr = 
-  "list_of_clauses(axioms,cnf).\n" ^ axstr ^ "end_of_list.\n\n";
+fun write_axioms (out, strs) = 
+  (TextIO.output (out, "list_of_clauses(axioms,cnf).\n");
+   writeln_strs out strs;
+   TextIO.output (out, "end_of_list.\n\n"));
 
-fun string_of_conjectures conjstr = 
-  "list_of_clauses(conjectures,cnf).\n" ^ conjstr ^ "end_of_list.\n\n";
+fun write_conjectures (out, strs) = 
+  (TextIO.output (out, "list_of_clauses(conjectures,cnf).\n");
+   writeln_strs out strs;
+   TextIO.output (out, "end_of_list.\n\n"));
 
 fun string_of_start name = "begin_problem(" ^ name ^ ").\n\n";
 
-fun string_of_descrip name = "list_of_descriptions.\nname({*" ^ name ^ "*}).\nauthor({*Isabelle*}).\nstatus(unknown).\ndescription({*auto-generated*}).\nend_of_list.\n\n"
+fun string_of_descrip name = 
+  "list_of_descriptions.\nname({*" ^ name ^ "*}).\nauthor({*Isabelle*}).\nstatus(unknown).\ndescription({*auto-generated*}).\nend_of_list.\n\n"
 
-fun tfree_dfg_clause tfree_lit =
-  "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ")."
+fun dfg_tfree_clause tfree_lit =
+  "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
 
-fun gen_dfg_file probname axioms conjectures funcs preds = 
-    let val axstrs_tfrees = (map clause2dfg axioms)
-	val (axstrs, atfrees) = ListPair.unzip axstrs_tfrees
-        val axstr = (space_implode "\n" axstrs) ^ "\n\n"
-	val (conjstrs, atfrees) = ListPair.unzip (map clause2dfg conjectures)
-        val tfree_clss = map tfree_dfg_clause (union_all atfrees) 
-        val conjstr = (space_implode "\n" (tfree_clss@conjstrs)) ^ "\n\n"
-        val funcstr = string_of_funcs funcs
-        val predstr = string_of_preds preds
-    in
-       string_of_start probname ^ string_of_descrip probname ^
-       string_of_symbols funcstr predstr ^  
-       string_of_axioms axstr ^
-       string_of_conjectures conjstr ^ "end_problem.\n"
-    end;
-   
 
 (*** Find all occurrences of predicates in types, terms, literals... ***)
 
@@ -969,42 +966,34 @@ fun add_clause_funcs (Clause {literals, ...}, funcs) =
 
 val funcs_of_clauses = Symtab.dest o (foldl add_clause_funcs Symtab.empty)
 
-
-fun clauses2dfg probname axioms conjectures = 
-  let val clss = conjectures @ axioms
-  in
-     gen_dfg_file probname axioms conjectures 
-       (funcs_of_clauses clss) (preds_of_clauses clss)
-  end
-
-
 fun string_of_arClauseID (ArityClause {clause_id,axiom_name,...}) =
     arclause_prefix ^ ascii_of axiom_name ^ "_" ^ Int.toString clause_id;
 
 fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
 
-(*FIXME!!! currently is TPTP format!*)
-fun dfg_of_arLit (TConsLit(b,(c,t,args))) =
-      let val pol = if b then "++" else "--"
-	  val arg_strs = paren_pack args
-      in 
-	  pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
-      end
-  | dfg_of_arLit (TVarLit(b,(c,str))) =
-      let val pol = if b then "++" else "--"
-      in
-	  pol ^ c ^ "(" ^ str ^ ")"
-      end;
+fun dfg_of_arLit (TConsLit(pol,(c,t,args))) =
+      dfg_sign pol (c ^ "(" ^ t ^ paren_pack args ^ ")")
+  | dfg_of_arLit (TVarLit(pol,(c,str))) =
+      dfg_sign pol (c ^ "(" ^ str ^ ")")
     
-
 fun dfg_of_conclLit (ArityClause arcls) = dfg_of_arLit (#conclLit arcls);
      
-
 fun dfg_of_premLits (ArityClause arcls) = map dfg_of_arLit (#premLits arcls);
 		
+fun dfg_classrelLits sub sup = 
+    let val tvar = "(T)"
+    in 
+	"not(" ^ sub ^ tvar ^ "), " ^ sup ^ tvar
+    end;
 
-
-(*FIXME: would this have variables in a forall? *)
+fun dfg_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
+  let val relcls_id = clrelclause_prefix ^ ascii_of subclass ^ "_" ^ 
+		      Int.toString clause_id
+      val lits = dfg_classrelLits (make_type_class subclass) (make_type_class superclass)
+  in
+      "clause(\nor( " ^ lits ^ ")),\n" ^
+      relcls_id ^ ").\n\n"
+  end; 
 
 fun dfg_arity_clause arcls = 
   let val arcls_id = string_of_arClauseID arcls
@@ -1013,8 +1002,35 @@ fun dfg_arity_clause arcls =
       val knd = string_of_arKind arcls
       val all_lits = concl_lit :: prems_lits
   in
-      "clause( %(" ^ knd ^ ")\n" ^  "or( " ^ (bracket_pack all_lits) ^ ")),\n" ^
-       arcls_id ^  ")."
+      "clause( %(" ^ knd ^ ")\n" ^  "or( " ^ bracket_pack all_lits ^ ")),\n" ^
+       arcls_id ^ ").\n\n"
+  end;
+
+(* write out a subgoal in DFG format to the file "xxxx_N"*)
+fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) = 
+  let 
+    val conjectures = make_conjecture_clauses (map prop_of ths)
+    val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
+    val classrel_cls = map dfg_classrelClause classrel_clauses
+    val arity_cls = map dfg_arity_clause arity_clauses
+    val clss = conjectures @ axclauses
+    val funcs = (funcs_of_clauses clss)
+    and preds = (preds_of_clauses clss)
+    val out = TextIO.openOut filename
+    and probname = Path.pack (Path.base (Path.unpack filename))
+    val axstrs_tfrees = (map clause2dfg axclauses)
+    val (axstrs, _) = ListPair.unzip axstrs_tfrees
+    val tfree_clss = map dfg_tfree_clause (union_all tfree_litss) 
+    val funcstr = string_of_funcs funcs
+    val predstr = string_of_preds preds
+  in
+      TextIO.output (out, string_of_start probname); 
+      TextIO.output (out, string_of_descrip probname); 
+      TextIO.output (out, string_of_symbols funcstr predstr); 
+      write_axioms (out, axstrs); 
+      write_conjectures (out, tfree_clss@dfg_clss); 
+      TextIO.output (out, "end_problem.\n");
+      TextIO.closeOut out
   end;
 
 
@@ -1037,11 +1053,11 @@ fun tptp_of_typeLit (LTVar (s,ty)) = "--" ^ s ^ "(" ^ ty ^ ")"
 
 fun gen_tptp_cls (cls_id,ax_name,knd,lits) = 
     "input_clause(" ^ string_of_clausename (cls_id,ax_name) ^ "," ^ 
-    knd ^ "," ^ lits ^ ").";
+    knd ^ "," ^ lits ^ ").\n";
 
 fun gen_tptp_type_cls (cls_id,ax_name,knd,tfree_lit,idx) = 
     "input_clause(" ^ string_of_type_clsname (cls_id,ax_name,idx) ^ "," ^ 
-    knd ^ ",[" ^ tfree_lit ^ "]).";
+    knd ^ ",[" ^ tfree_lit ^ "]).\n";
 
 fun tptp_type_lits (Clause cls) = 
     let val lits = map tptp_literal (#literals cls)
@@ -1086,8 +1102,8 @@ fun clause2tptp cls =
     end;
 
 
-fun tfree_clause tfree_lit =
-    "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).";
+fun tptp_tfree_clause tfree_lit =
+    "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).\n";
 
 
 fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
@@ -1115,7 +1131,7 @@ fun tptp_arity_clause arcls =
 	val all_lits = concl_lit :: prems_lits
     in
 	"input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ 
-	(bracket_pack all_lits) ^ ")."
+	(bracket_pack all_lits) ^ ").\n"
     end;
 
 fun tptp_classrelLits sub sup = 
@@ -1129,7 +1145,26 @@ fun tptp_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
                         Int.toString clause_id
 	val lits = tptp_classrelLits (make_type_class subclass) (make_type_class superclass)
     in
-	"input_clause(" ^ relcls_id ^ ",axiom," ^ lits ^ ")."
+	"input_clause(" ^ relcls_id ^ ",axiom," ^ lits ^ ").\n"
     end; 
+
+(* write out a subgoal as tptp clauses to the file "xxxx_N"*)
+fun tptp_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
+  let
+    val clss = make_conjecture_clauses (map prop_of ths)
+    val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
+    val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
+    val classrel_cls = map tptp_classrelClause classrel_clauses
+    val arity_cls = map tptp_arity_clause arity_clauses
+    val out = TextIO.openOut filename
+  in
+    List.app (writeln_strs out o tptp_clause) axclauses;
+    writeln_strs out tfree_clss;
+    writeln_strs out tptp_clss;
+    writeln_strs out classrel_cls;
+    writeln_strs out arity_cls;
+    TextIO.closeOut out
+  end;
+
 
 end;
