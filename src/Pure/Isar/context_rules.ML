@@ -94,7 +94,7 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
 
 structure Rules = GenericDataFun
 (
-  val name = "Isar/rules";
+  val name = "Pure/rules";
   type T = T;
 
   val empty = make_rules ~1 [] empty_netpairs ([], []);
