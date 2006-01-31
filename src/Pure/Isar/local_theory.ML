@@ -10,14 +10,16 @@ sig
   val params_of: Proof.context -> (string * typ) list
   val hyps_of: Proof.context -> term list
   val standard: Proof.context -> thm -> thm
-  val pretty_consts: Proof.context -> (string * typ) list -> Pretty.T
-  val print_consts: Proof.context -> (string * typ) list -> unit
+  val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
+  val print_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val init: xstring option -> theory -> Proof.context
   val init_i: string option -> theory -> Proof.context
   val exit: Proof.context -> Proof.context * theory
   val consts: ((bstring * typ) * mixfix) list -> Proof.context -> term list * Proof.context
+  val consts_restricted: (string * typ -> bool) ->
+    ((bstring * typ) * mixfix) list -> Proof.context -> term list * Proof.context
   val axioms: ((bstring * Attrib.src list) * term list) list -> Proof.context ->
     (bstring * thm list) list * Proof.context
   val axioms_finish: (Proof.context -> thm -> thm) ->
@@ -41,7 +43,7 @@ struct
 
 structure Data = ProofDataFun
 (
-  val name = "Isar/local_theory";
+  val name = "Pure/local_theory";
   type T =
    {locale: (string * (cterm list * Proof.context)) option,
     params: (string * typ) list,
@@ -79,13 +81,13 @@ fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
 
 in
 
-fun pretty_consts ctxt cs =
-  (case params_of ctxt of
+fun pretty_consts ctxt pred cs =
+  (case filter pred (params_of ctxt) of
     [] => pretty_vars ctxt "constants" cs
   | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
 
-fun print_consts _ [] = ()
-  | print_consts ctxt cs = Pretty.writeln (pretty_consts ctxt cs);
+fun print_consts _ _ [] = ()
+  | print_consts ctxt pred cs = Pretty.writeln (pretty_consts ctxt pred cs);
 
 end;
 
@@ -135,10 +137,10 @@ fun exit ctxt = (ctxt, #exit (Data.get ctxt) (ProofContext.theory_of ctxt));
 
 (* consts *)
 
-fun consts decls ctxt =
+fun consts_restricted pred decls ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val params = params_of ctxt;
+    val params = filter pred (params_of ctxt);
     val ps = map Free params;
     val Ps = map #2 params;
   in
@@ -147,6 +149,8 @@ fun consts decls ctxt =
     |> pair (decls |> map (fn ((c, T), _) =>
       Term.list_comb (Const (Sign.full_name thy c, Ps ---> T), ps)))
   end;
+
+val consts = consts_restricted (K true);
 
 
 (* fact definitions *)
@@ -223,9 +227,10 @@ fun def_finish finish (var, spec) ctxt =
     val (x, mx) = var;
     val ((name, atts), rhs) = spec;
     val name' = if name = "" then Thm.def_name x else name;
+    val rhs_frees = Term.add_frees rhs [];
   in
     ctxt
-    |> consts [((x, Term.fastype_of rhs), mx)]
+    |> consts_restricted (member (op =) rhs_frees) [((x, Term.fastype_of rhs), mx)]
     |-> (fn [lhs] =>
       theory_result (add_def (name', Logic.mk_equals (lhs, rhs)))
       #-> (fn th => fn ctxt' => note ((name', atts), [finish ctxt' lhs th]) ctxt')
