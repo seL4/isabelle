@@ -6,82 +6,61 @@ ML data structure for storing/printing FOL clauses and arity clauses.
 Typed equality is treated differently.
 *)
 
-(* works for writeoutclasimp on typed *)
 signature RES_CLAUSE =
   sig
-  val keep_types : bool ref
-  val special_equal : bool ref
-  val tagged : bool ref
-
-  exception ARCLAUSE of string
   exception CLAUSE of string * term
-  type arityClause 
-  type classrelClause
-  type clause
-  val init : theory -> unit
-  val make_axiom_clause : Term.term -> string * int -> clause
-  val make_conjecture_clauses : term list -> clause list
-  val get_axiomName : clause ->  string
-  val isTaut : clause -> bool
-  val num_of_clauses : clause -> int
-
-  val arity_clause_thy: theory -> arityClause list 
-  val classrel_clauses_thy: theory -> classrelClause list 
-
-  val tptp_arity_clause : arityClause -> string
-  val tptp_classrelClause : classrelClause -> string
-  val tptp_clause : clause -> string list
-  val clause2tptp : clause -> string * string list
-  val tptp_tfree_clause : string -> string
-  val schematic_var_prefix : string
-  val fixed_var_prefix : string
-  val tvar_prefix : string
-  val tfree_prefix : string
-  val clause_prefix : string 
-  val arclause_prefix : string
-  val const_prefix : string
-  val tconst_prefix : string 
-  val class_prefix : string 
-
-  val union_all : ''a list list -> ''a list
-  val ascii_of : String.string -> String.string
-  val paren_pack : string list -> string
-  val bracket_pack : string list -> string
-  val make_schematic_var : String.string * int -> string
-  val make_fixed_var : String.string -> string
-  val make_schematic_type_var : string * int -> string
-  val make_fixed_type_var : string -> string
-  val make_fixed_const : String.string -> string		
-  val make_fixed_type_const : String.string -> string   
-  val make_type_class : String.string -> string
-  val isMeta : String.string -> bool
-  
+  type clause and arityClause and classrelClause
+  type fol_type
   type typ_var
-  val mk_typ_var_sort : Term.typ -> typ_var * sort
   type type_literal
   val add_typs_aux : (typ_var * string list) list -> type_literal list * type_literal list
+  val arity_clause_thy: theory -> arityClause list 
+  val ascii_of : string -> string
+  val bracket_pack : string list -> string
+  val check_var_pairs: ''a * ''b -> (''a * ''b) list -> int
+  val classrel_clauses_thy: theory -> classrelClause list 
+  val clause_eq : clause * clause -> bool
+  val clause_prefix : string 
+  val clause2tptp : clause -> string * string list
+  val const_prefix : string
+  val dfg_write_file: thm list -> string -> (clause list * classrelClause list * arityClause list) -> unit
+  val fixed_var_prefix : string
   val gen_tptp_cls : int * string * string * string -> string
   val gen_tptp_type_cls : int * string * string * string * int -> string
-  val tptp_of_typeLit : type_literal -> string
-
-  (*for hashing*)
-  val clause_eq : clause * clause -> bool
+  val get_axiomName : clause ->  string
   val hash_clause : clause -> int
-
+  val init : theory -> unit
+  val isMeta : string -> bool
+  val isTaut : clause -> bool
+  val keep_types : bool ref
   val list_ord : ('a * 'b -> order) -> 'a list * 'b list -> order
-  type fol_type
-  val types_ord : fol_type list * fol_type list -> order
-  val string_of_fol_type : fol_type -> string
+  val make_axiom_clause : Term.term -> string * int -> clause
+  val make_conjecture_clauses : term list -> clause list
+  val make_fixed_const : string -> string		
+  val make_fixed_type_const : string -> string   
+  val make_fixed_type_var : string -> string
+  val make_fixed_var : string -> string
+  val make_schematic_type_var : string * int -> string
+  val make_schematic_var : string * int -> string
+  val make_type_class : string -> string
   val mk_fol_type: string * string * fol_type list -> fol_type
-  val types_eq: fol_type list * fol_type list -> 
-        (string*string) list * (string*string) list -> 
-        bool * ((string*string) list * (string*string) list)
-  val check_var_pairs: ''a * ''b -> (''a * ''b) list -> int
-
-  val dfg_write_file: thm list -> string -> 
-        (clause list * classrelClause list * arityClause list) -> unit
-  val tptp_write_file: thm list -> string -> 
-        (clause list * classrelClause list * arityClause list) -> unit
+  val mk_typ_var_sort : Term.typ -> typ_var * sort
+  val num_of_clauses : clause -> int
+  val paren_pack : string list -> string
+  val schematic_var_prefix : string
+  val special_equal : bool ref
+  val string_of_fol_type : fol_type -> string
+  val tconst_prefix : string 
+  val tfree_prefix : string
+  val tptp_arity_clause : arityClause -> string
+  val tptp_classrelClause : classrelClause -> string
+  val tptp_of_typeLit : type_literal -> string
+  val tptp_tfree_clause : string -> string
+  val tptp_write_file: thm list -> string -> (clause list * classrelClause list * arityClause list) -> unit
+  val tvar_prefix : string
+  val types_eq: fol_type list * fol_type list -> (string*string) list * (string*string) list -> bool * ((string*string) list * (string*string) list)
+  val types_ord : fol_type list * fol_type list -> order
+  val union_all : ''a list list -> ''a list
   val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
   end;
 
@@ -361,8 +340,7 @@ fun term_of (Var(ind_nm,T)) =
 	  val (funName,(contys,ts1)) = fun_name_type f args
 	  val (args',ts2) = terms_of args
       in
-	  (Fun(funName,contys,args'), 
-	   (union_all (ts1::ts2)))
+	  (Fun(funName,contys,args'), union_all (ts1::ts2))
       end
 and terms_of ts = ListPair.unzip (map term_of ts)
 
@@ -671,7 +649,8 @@ exception ARCLAUSE of string;
 type class = string; 
 type tcons = string; 
 
-datatype arLit = TConsLit of bool * (class * tcons * string list) | TVarLit of bool * (class * string);
+datatype arLit = TConsLit of bool * (class * tcons * string list)
+               | TVarLit of bool * (class * string);
  
 datatype arityClause =  
 	 ArityClause of {clause_id: clause_id,
@@ -688,8 +667,9 @@ fun pack_sort(_,[])  = []
   | pack_sort(tvar, "HOL.type"::srt) = pack_sort(tvar, srt)   (*IGNORE sort "type"*)
   | pack_sort(tvar, cls::srt) =  (make_type_class cls, tvar) :: pack_sort(tvar, srt);
     
-fun make_TVarLit (b,(cls,str)) = TVarLit(b,(cls,str));
-fun make_TConsLit (b,(cls,tcons,tvars)) = TConsLit(b,(make_type_class cls,make_fixed_type_const tcons,tvars));
+fun make_TVarLit (b, (cls,str)) = TVarLit(b, (cls,str));
+fun make_TConsLit (b, (cls,tcons,tvars)) = 
+      TConsLit(b, (make_type_class cls, make_fixed_type_const tcons, tvars));
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
 fun make_axiom_arity_clause (tcons, n, (res,args)) =
@@ -717,25 +697,33 @@ fun num_of_clauses (Clause cls) =
 (**** Isabelle class relations ****)
 
 datatype classrelClause = 
-	 ClassrelClause of {clause_id: clause_id,
+	 ClassrelClause of {axiom_name: axiom_name,
 			    subclass: class,
 			    superclass: class};
 
 fun make_axiom_classrelClause n subclass superclass =
-  ClassrelClause {clause_id = n,
-                  subclass = subclass, superclass = superclass};
+  ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of subclass ^ 
+                                "_" ^ Int.toString n,
+                  subclass = make_type_class subclass, 
+                  superclass = make_type_class superclass};
 
 fun classrelClauses_of_aux n sub [] = []
   | classrelClauses_of_aux n sub ("HOL.type"::sups) = (*Should be ignored*)
       classrelClauses_of_aux n sub sups
   | classrelClauses_of_aux n sub (sup::sups) =
-      ClassrelClause {clause_id = n, subclass = sub, superclass = sup} 
-      :: classrelClauses_of_aux (n+1) sub sups;
+      make_axiom_classrelClause n sub sup :: classrelClauses_of_aux (n+1) sub sups;
 
 fun classrelClauses_of (sub,sups) = classrelClauses_of_aux 0 sub sups;
 
+val classrel_of = #2 o #classes o Type.rep_tsig o Sign.tsig_of;
 
-(***** Isabelle arities *****)
+fun classrel_clauses_classrel (C: Sorts.classes) =
+  map classrelClauses_of (Graph.dest C);
+
+val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of;
+
+
+(** Isabelle arities **)
 
 fun arity_clause _ (tcons, []) = []
   | arity_clause n (tcons, ("HOL.type",_)::ars) =  (*Should be ignored*)
@@ -753,17 +741,79 @@ fun arity_clause_thy thy =
   in multi_arity_clause (Symtab.dest arities) end;
 
 
-(* Isabelle classes *)
+(**** Find occurrences of predicates in clauses ****)
 
-type classrelClauses = classrelClause list Symtab.table;
+(*FIXME: multiple-arity checking doesn't work, as update_new is the wrong 
+  function (it flags repeated declarations of a function, even with the same arity)*)
 
-val classrel_of = #2 o #classes o Type.rep_tsig o Sign.tsig_of;
+fun update_many (tab, keypairs) = foldl (uncurry Symtab.update) tab keypairs;
 
-fun classrel_clauses_classrel (C: Sorts.classes) =
-  map classrelClauses_of (Graph.dest C);
+fun add_predicate_preds (Predicate(pname,tys,tms), preds) = 
+  if pname = "equal" then preds (*equality is built-in and requires no declaration*)
+  else Symtab.update (pname, length tys + length tms) preds
 
-val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of;
+fun add_literal_preds (Literal(_,pred,_), preds) = add_predicate_preds (pred,preds)
 
+fun add_type_sort_preds ((FOLTVar indx,s), preds) = 
+      update_many (preds, map pred_of_sort (sorts_on_typs (FOLTVar indx, s)))
+  | add_type_sort_preds ((FOLTFree x,s), preds) =
+      update_many (preds, map pred_of_sort (sorts_on_typs (FOLTFree x, s)));
+
+fun add_clause_preds (Clause {literals, types_sorts, ...}, preds) =
+  foldl add_literal_preds (foldl add_type_sort_preds preds types_sorts) literals
+  handle Symtab.DUP a => raise ERROR ("predicate " ^ a ^ " has multiple arities")
+
+fun add_classrelClause_preds (ClassrelClause {subclass,superclass,...}, preds) =
+  Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
+
+fun add_arityClause_preds (ArityClause {conclLit,...}, preds) =
+  let val TConsLit(_, (tclass, _, _)) = conclLit
+  in  Symtab.update (tclass,1) preds  end;
+
+fun preds_of_clauses clauses clsrel_clauses arity_clauses = 
+  Symtab.dest
+    (foldl add_classrelClause_preds 
+      (foldl add_arityClause_preds
+        (foldl add_clause_preds Symtab.empty clauses)
+        arity_clauses)
+      clsrel_clauses)
+
+(*** Find occurrences of functions in clauses ***)
+
+fun add_foltype_funcs (AtomV _, funcs) = funcs
+  | add_foltype_funcs (AtomF a, funcs) = Symtab.update (a,0) funcs
+  | add_foltype_funcs (Comp(a,tys), funcs) = 
+      foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
+
+fun add_folterm_funcs (UVar _, funcs) = funcs
+  | add_folterm_funcs (Fun(a,tys,[]), funcs) = Symtab.update (a,0) funcs
+      (*A constant is a special case: it has no type argument even if overloaded*)
+  | add_folterm_funcs (Fun(a,tys,tms), funcs) = 
+      foldl add_foltype_funcs 
+	    (foldl add_folterm_funcs (Symtab.update (a, length tys + length tms) funcs) 
+	           tms) 
+	    tys
+
+fun add_predicate_funcs (Predicate(_,tys,tms), funcs) = 
+    foldl add_foltype_funcs (foldl add_folterm_funcs funcs tms) tys;
+
+fun add_literal_funcs (Literal(_,pred,_), funcs) = add_predicate_funcs (pred,funcs)
+
+fun add_arityClause_funcs (ArityClause {conclLit,...}, funcs) =
+  let val TConsLit(_, (_, tcons, tvars)) = conclLit
+  in  Symtab.update (tcons, length tvars) funcs  end;
+
+fun add_clause_funcs (Clause {literals, ...}, funcs) =
+  foldl add_literal_funcs funcs literals
+  handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
+
+fun funcs_of_clauses clauses arity_clauses = 
+  Symtab.dest (foldl add_arityClause_funcs 
+                     (foldl add_clause_funcs Symtab.empty clauses)
+                     arity_clauses)
+
+
+(**** String-oriented operations ****)
 
 fun wrap_eq_type typ t = eq_typ_wrapper ^"(" ^ t ^ "," ^ typ ^ ")";
 
@@ -803,10 +853,7 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 fun writeln_strs os = List.app (fn s => TextIO.output (os,s));
 
     
-
-(********************************)
-(* Code for producing DFG files *)
-(********************************)
+(**** Producing DFG files ****)
 
 (*Attach sign in DFG syntax: false means negate.*)
 fun dfg_sign true s = s
@@ -817,62 +864,39 @@ fun dfg_literal (Literal(pol,pred,tag)) = dfg_sign pol (string_of_predicate pred
 fun dfg_of_typeLit (LTVar (s,ty)) = "not(" ^ s ^ "(" ^ ty ^ "))"
   | dfg_of_typeLit (LTFree (s,ty)) = s ^ "(" ^ ty ^ ")";
  
-(*Make the string of universal quantifiers for a clause*)
-fun forall_open ([],[]) = ""
-  | forall_open (vars,tvars) = "forall([" ^ (commas (tvars@vars))^ "],\n"
+(*Enclose the clause body by quantifiers, if necessary*)
+fun dfg_forall [] body = body  
+  | dfg_forall vars body = "forall([" ^ commas vars ^ "],\n" ^ body ^ ")"
 
-fun forall_close ([],[]) = ""
-  | forall_close (vars,tvars) = ")"
-
-fun gen_dfg_cls (cls_id,ax_name,knd,lits,tvars,vars) = 
-    "clause( %(" ^ knd ^ ")\n" ^ forall_open(vars,tvars) ^ 
-    "or(" ^ lits ^ ")" ^ forall_close(vars,tvars) ^ ",\n" ^ 
+fun gen_dfg_cls (cls_id, ax_name, knd, lits, vars) = 
+    "clause( %(" ^ knd ^ ")\n" ^ 
+    dfg_forall vars ("or(" ^ lits ^ ")") ^ ",\n" ^ 
     string_of_clausename (cls_id,ax_name) ^  ").\n\n";
 
-(*FIXME: UNUSED*)
-fun gen_dfg_type_cls (cls_id,ax_name,knd,tfree_lit,idx,tvars,vars) = 
-    "clause( %(" ^ knd ^ ")\n" ^ forall_open(vars,tvars) ^ 
-    "or( " ^ tfree_lit ^ ")" ^ forall_close(vars,tvars) ^ ",\n" ^ 
-    string_of_type_clsname (cls_id,ax_name,idx) ^  ").\n\n";
-
-fun dfg_clause_aux (Clause cls) = 
-  let val lits = map dfg_literal (#literals cls)
+fun dfg_clause_aux (Clause{literals, tvar_type_literals, tfree_type_literals, ...}) = 
+  let val lits = map dfg_literal literals
       val tvar_lits_strs = 
-	  if !keep_types then map dfg_of_typeLit (#tvar_type_literals cls) 
+	  if !keep_types then map dfg_of_typeLit tvar_type_literals
 	  else []
       val tfree_lits =
-          if !keep_types then map dfg_of_typeLit (#tfree_type_literals cls)
+          if !keep_types then map dfg_of_typeLit tfree_type_literals
           else []
   in
       (tvar_lits_strs @ lits, tfree_lits)
   end; 
-
 
 fun dfg_folterms (Literal(pol,pred,tag)) = 
   let val Predicate (_, _, folterms) = pred
   in  folterms  end
 
 fun get_uvars (UVar(a,typ)) = [a] 
-|   get_uvars (Fun (_,typ,tlist)) = union_all(map get_uvars tlist)
+  | get_uvars (Fun (_,typ,tlist)) = union_all(map get_uvars tlist)
 
-fun is_uvar (UVar _) = true
-|   is_uvar (Fun _) = false;
-
-fun uvar_name (UVar(a,_)) = a
-|   uvar_name (Fun (a,_,_)) = raise CLAUSE("Not a variable", Const(a,dummyT));
-
-fun dfg_vars (Clause cls) =
-    let val lits = #literals cls
-        val folterms = List.concat (map dfg_folterms lits)
+fun dfg_vars (Clause {literals,...}) =
+    let val folterms = List.concat (map dfg_folterms literals)
     in 
         union_all(map get_uvars folterms)
     end
-
-fun string_of_predname (Predicate("equal",_,terms)) = "EQUALITY"
-  | string_of_predname (Predicate(name,_,terms)) = name
-
-fun dfg_pred (Literal(pol,pred,tag)) ax_name = 
-    (string_of_predname pred) ^ " " ^ ax_name
 
 fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,types_sorts,...}) =
     let val (lits,tfree_lits) = dfg_clause_aux cls 
@@ -881,7 +905,7 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,types_sorts,...}) =
         val tvars = get_tvar_strs types_sorts
 	val knd = name_of_kind kind
 	val lits_str = commas lits
-	val cls_str = gen_dfg_cls(clause_id,axiom_name,knd,lits_str,tvars,vars) 
+	val cls_str = gen_dfg_cls(clause_id, axiom_name, knd, lits_str, tvars@vars) 
     in (cls_str, tfree_lits) end;
 
 fun string_of_arity (name, num) =  "(" ^ name ^ "," ^ Int.toString num ^ ")"
@@ -895,142 +919,69 @@ fun string_of_funcs [] = ""
 fun string_of_symbols predstr funcstr = 
   "list_of_symbols.\n" ^ predstr  ^ funcstr  ^ "end_of_list.\n\n";
 
-fun write_axioms (out, strs) = 
-  (TextIO.output (out, "list_of_clauses(axioms,cnf).\n");
-   writeln_strs out strs;
-   TextIO.output (out, "end_of_list.\n\n"));
-
-fun write_conjectures (out, strs) = 
-  (TextIO.output (out, "list_of_clauses(conjectures,cnf).\n");
-   writeln_strs out strs;
-   TextIO.output (out, "end_of_list.\n\n"));
-
 fun string_of_start name = "begin_problem(" ^ name ^ ").\n\n";
 
 fun string_of_descrip name = 
-  "list_of_descriptions.\nname({*" ^ name ^ "*}).\nauthor({*Isabelle*}).\nstatus(unknown).\ndescription({*auto-generated*}).\nend_of_list.\n\n"
+  "list_of_descriptions.\nname({*" ^ name ^ 
+  "*}).\nauthor({*Isabelle*}).\nstatus(unknown).\ndescription({*auto-generated*}).\nend_of_list.\n\n"
 
 fun dfg_tfree_clause tfree_lit =
   "clause( %(conjecture)\n" ^ "or( " ^ tfree_lit ^ "),\n" ^ "tfree_tcs" ^ ").\n\n"
 
-
-(*** Find all occurrences of predicates in types, terms, literals... ***)
-
-(*FIXME: multiple-arity checking doesn't work, as update_new is the wrong 
-  function (it flags repeated declarations of a function, even with the same arity)*)
-
-fun update_many (tab, keypairs) = foldl (uncurry Symtab.update) tab keypairs;
-
-fun add_predicate_preds (Predicate(pname,tys,tms), preds) = 
-  if pname = "equal" then preds (*equality is built-in and requires no declaration*)
-  else Symtab.update (pname, length tys + length tms) preds
-
-fun add_literal_preds (Literal(_,pred,_), preds) = add_predicate_preds (pred,preds)
-
-fun add_type_sort_preds ((FOLTVar indx,s), preds) = 
-      update_many (preds, map pred_of_sort (sorts_on_typs (FOLTVar indx, s)))
-  | add_type_sort_preds ((FOLTFree x,s), preds) =
-      update_many (preds, map pred_of_sort (sorts_on_typs (FOLTFree x, s)));
-
-fun add_clause_preds (Clause {literals, types_sorts, ...}, preds) =
-  foldl add_literal_preds (foldl add_type_sort_preds preds types_sorts) literals
-  handle Symtab.DUP a => raise ERROR ("predicate " ^ a ^ " has multiple arities")
-
-val preds_of_clauses = Symtab.dest o (foldl add_clause_preds Symtab.empty)
-
-
-(*** Find all occurrences of functions in types, terms, literals... ***)
-
-fun add_foltype_funcs (AtomV _, funcs) = funcs
-  | add_foltype_funcs (AtomF a, funcs) = Symtab.update (a,0) funcs
-  | add_foltype_funcs (Comp(a,tys), funcs) = 
-      foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
-
-fun add_folterm_funcs (UVar _, funcs) = funcs
-  | add_folterm_funcs (Fun(a,tys,[]), funcs) = Symtab.update (a,0) funcs
-      (*A constant is a special case: it has no type argument even if overloaded*)
-  | add_folterm_funcs (Fun(a,tys,tms), funcs) = 
-      foldl add_foltype_funcs 
-	    (foldl add_folterm_funcs (Symtab.update (a, length tys + length tms) funcs) 
-	           tms) 
-	    tys
-
-fun add_predicate_funcs (Predicate(_,tys,tms), funcs) = 
-    foldl add_foltype_funcs (foldl add_folterm_funcs funcs tms) tys;
-
-fun add_literal_funcs (Literal(_,pred,_), funcs) = add_predicate_funcs (pred,funcs)
-
-fun add_clause_funcs (Clause {literals, ...}, funcs) =
-  foldl add_literal_funcs funcs literals
-  handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
-
-val funcs_of_clauses = Symtab.dest o (foldl add_clause_funcs Symtab.empty)
-
 fun string_of_arClauseID (ArityClause {clause_id,axiom_name,...}) =
     arclause_prefix ^ ascii_of axiom_name ^ "_" ^ Int.toString clause_id;
-
-fun string_of_arKind (ArityClause arcls) = name_of_kind(#kind arcls);
 
 fun dfg_of_arLit (TConsLit(pol,(c,t,args))) =
       dfg_sign pol (c ^ "(" ^ t ^ paren_pack args ^ ")")
   | dfg_of_arLit (TVarLit(pol,(c,str))) =
       dfg_sign pol (c ^ "(" ^ str ^ ")")
     
-fun dfg_of_conclLit (ArityClause arcls) = dfg_of_arLit (#conclLit arcls);
-     
-fun dfg_of_premLits (ArityClause arcls) = map dfg_of_arLit (#premLits arcls);
-		
 fun dfg_classrelLits sub sup = 
     let val tvar = "(T)"
     in 
 	"not(" ^ sub ^ tvar ^ "), " ^ sup ^ tvar
     end;
 
-fun dfg_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
-  let val relcls_id = clrelclause_prefix ^ ascii_of subclass ^ "_" ^ 
-		      Int.toString clause_id
-      val lits = dfg_classrelLits (make_type_class subclass) (make_type_class superclass)
-  in
-      "clause(\nor( " ^ lits ^ ")),\n" ^
-      relcls_id ^ ").\n\n"
-  end; 
-
-fun dfg_arity_clause arcls = 
+fun dfg_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
+  "clause(forall([T],\nor( " ^ dfg_classrelLits subclass superclass ^ ")),\n" ^
+  axiom_name ^ ").\n\n";
+      
+fun dfg_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) = 
   let val arcls_id = string_of_arClauseID arcls
-      val concl_lit = dfg_of_conclLit arcls
-      val prems_lits = dfg_of_premLits arcls
-      val knd = string_of_arKind arcls
-      val all_lits = concl_lit :: prems_lits
+      val knd = name_of_kind kind
+      val TConsLit(_, (_,_,tvars)) = conclLit
+      val lits = map dfg_of_arLit (conclLit :: premLits)
   in
-      "clause( %(" ^ knd ^ ")\n" ^  "or( " ^ bracket_pack all_lits ^ ")),\n" ^
-       arcls_id ^ ").\n\n"
+      "clause( %(" ^ knd ^ ")\n" ^ 
+      dfg_forall tvars ("or( " ^ commas lits ^ ")") ^ ",\n" ^
+      arcls_id ^ ").\n\n"
   end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
 fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) = 
   let 
     val conjectures = make_conjecture_clauses (map prop_of ths)
-    val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
-    val classrel_cls = map dfg_classrelClause classrel_clauses
-    val arity_cls = map dfg_arity_clause arity_clauses
+    val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
     val clss = conjectures @ axclauses
-    val funcs = (funcs_of_clauses clss)
-    and preds = (preds_of_clauses clss)
+    val funcs = funcs_of_clauses clss arity_clauses
+    and preds = preds_of_clauses clss classrel_clauses arity_clauses
     val out = TextIO.openOut filename
     and probname = Path.pack (Path.base (Path.unpack filename))
-    val axstrs_tfrees = (map clause2dfg axclauses)
-    val (axstrs, _) = ListPair.unzip axstrs_tfrees
+    val (axstrs, _) = ListPair.unzip (map clause2dfg axclauses)
     val tfree_clss = map dfg_tfree_clause (union_all tfree_litss) 
-    val funcstr = string_of_funcs funcs
-    val predstr = string_of_preds preds
   in
-      TextIO.output (out, string_of_start probname); 
-      TextIO.output (out, string_of_descrip probname); 
-      TextIO.output (out, string_of_symbols funcstr predstr); 
-      write_axioms (out, axstrs); 
-      write_conjectures (out, tfree_clss@dfg_clss); 
-      TextIO.output (out, "end_problem.\n");
-      TextIO.closeOut out
+    TextIO.output (out, string_of_start probname); 
+    TextIO.output (out, string_of_descrip probname); 
+    TextIO.output (out, string_of_symbols (string_of_funcs funcs) (string_of_preds preds)); 
+    TextIO.output (out, "list_of_clauses(axioms,cnf).\n");
+    writeln_strs out axstrs;
+    List.app (curry TextIO.output out o dfg_classrelClause) classrel_clauses;
+    List.app (curry TextIO.output out o dfg_arity_clause) arity_clauses;
+    TextIO.output (out, "end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n");
+    writeln_strs out tfree_clss;
+    writeln_strs out dfg_clss;
+    TextIO.output (out, "end_of_list.\n\nend_problem.\n");
+    TextIO.closeOut out
   end;
 
 
@@ -1038,7 +989,12 @@ fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
 (* code to produce TPTP files   *)
 (********************************)
 
-fun tptp_literal (Literal(pol,pred,tag)) =
+
+(*Attach sign in TPTP syntax: false means negate.*)
+fun tptp_sign true s = "++" ^ s
+  | tptp_sign false s = "--" ^ s
+
+fun tptp_literal (Literal(pol,pred,tag)) =  (*FIXME REMOVE TAGGING*)
     let val pred_string = string_of_predicate pred
 	val tagged_pol = 
 	      if (tag andalso !tagged) then (if pol then "+++" else "---")
@@ -1107,32 +1063,17 @@ fun tptp_tfree_clause tfree_lit =
 
 
 fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
-      let val pol = if b then "++" else "--"
-	  val  arg_strs = paren_pack args
-      in 
-	  pol ^ c ^ "(" ^ t ^ arg_strs ^ ")"
-      end
+      tptp_sign b (c ^ "(" ^ t ^ paren_pack args ^ ")")
   | tptp_of_arLit (TVarLit(b,(c,str))) =
-      let val pol = if b then "++" else "--"
-      in
-	  pol ^ c ^ "(" ^ str ^ ")"
-      end;
+      tptp_sign b (c ^ "(" ^ str ^ ")")
     
-
-fun tptp_of_conclLit (ArityClause arcls) = tptp_of_arLit (#conclLit arcls);
-     
-fun tptp_of_premLits (ArityClause arcls) = map tptp_of_arLit (#premLits arcls);
-		
-fun tptp_arity_clause arcls = 
-    let val arcls_id = string_of_arClauseID arcls
-	val concl_lit = tptp_of_conclLit arcls
-	val prems_lits = tptp_of_premLits arcls
-	val knd = string_of_arKind arcls
-	val all_lits = concl_lit :: prems_lits
-    in
-	"input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ 
-	(bracket_pack all_lits) ^ ").\n"
-    end;
+fun tptp_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) = 
+  let val arcls_id = string_of_arClauseID arcls
+      val knd = name_of_kind kind
+      val lits = map tptp_of_arLit (conclLit :: premLits)
+  in
+    "input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ bracket_pack lits ^ ").\n"
+  end;
 
 fun tptp_classrelLits sub sup = 
     let val tvar = "(T)"
@@ -1140,13 +1081,8 @@ fun tptp_classrelLits sub sup =
 	"[--" ^ sub ^ tvar ^ ",++" ^ sup ^ tvar ^ "]"
     end;
 
-fun tptp_classrelClause (ClassrelClause {clause_id,subclass,superclass,...}) =
-    let val relcls_id = clrelclause_prefix ^ ascii_of subclass ^ "_" ^ 
-                        Int.toString clause_id
-	val lits = tptp_classrelLits (make_type_class subclass) (make_type_class superclass)
-    in
-	"input_clause(" ^ relcls_id ^ ",axiom," ^ lits ^ ").\n"
-    end; 
+fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
+  "input_clause(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n" 
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
@@ -1154,17 +1090,14 @@ fun tptp_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
     val clss = make_conjecture_clauses (map prop_of ths)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
-    val classrel_cls = map tptp_classrelClause classrel_clauses
-    val arity_cls = map tptp_arity_clause arity_clauses
     val out = TextIO.openOut filename
   in
     List.app (writeln_strs out o tptp_clause) axclauses;
     writeln_strs out tfree_clss;
     writeln_strs out tptp_clss;
-    writeln_strs out classrel_cls;
-    writeln_strs out arity_cls;
+    List.app (curry TextIO.output out o tptp_classrelClause) classrel_clauses;
+    List.app (curry TextIO.output out o tptp_arity_clause) arity_clauses;
     TextIO.closeOut out
   end;
-
 
 end;
