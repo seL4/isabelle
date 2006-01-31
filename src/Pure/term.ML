@@ -895,6 +895,7 @@ fun abstract_over (v, body) =
 
 fun lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
   | lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
+  | lambda (v as Const ("TYPE", T)) t = Abs ("uu", T, abstract_over (v, t))
   | lambda v t = raise TERM ("lambda", [v, t]);
 
 (*Form an abstraction over a free variable.*)
