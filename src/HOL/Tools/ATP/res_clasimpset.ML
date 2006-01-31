@@ -204,17 +204,6 @@ fun fake_thm_name th =
 fun put_name_pair ("",th) = (fake_thm_name th, th)
   | put_name_pair (a,th)  = (a,th);
 
-(* outputs a list of (thm,clause) pairs *)
-
-fun multi x 0 xlist = xlist
-   |multi x n xlist = multi x (n-1) (x::xlist);
-
-fun clause_numbering ((clause, theorem), num_of_cls) = 
-    let val numbers = 0 upto (num_of_cls - 1)
-    in 
-	multi (clause, theorem) num_of_cls []
-    end;
-    
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
 
 exception HASH_CLAUSE and HASH_STRING;
@@ -263,17 +252,8 @@ fun get_clasimp_lemmas ctxt goals =
       val cls_thms_list = make_unique (mk_clause_table 2200) 
                                       (List.concat (simpset_cls_thms@claset_cls_thms))
       val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter cls_thms_list goals
-      (* Identify the set of clauses to be written out *)
-      val clauses = map #1 (relevant_cls_thms_list);
-      val cls_nums = map ResClause.num_of_clauses clauses;
-      (*Note: in every case, cls_num = 1.  I think that only conjecture clauses
-	can have any other value.*)
-      val whole_list = List.concat 
-	    (map clause_numbering (ListPair.zip (relevant_cls_thms_list, cls_nums)));
   in  (* create array of put clausename, number pairs into it *)
-      assert (map #1 whole_list = clauses) "get_clasimp_lemmas";
-      (*So get rid of cls_nums and clause_numbering; return simply cls_thms_list*)
-      (Array.fromList whole_list, clauses)
+      (Array.fromList relevant_cls_thms_list, map #1 (relevant_cls_thms_list))
   end;
 
 

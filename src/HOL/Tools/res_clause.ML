@@ -45,7 +45,6 @@ signature RES_CLAUSE =
   val make_type_class : string -> string
   val mk_fol_type: string * string * fol_type list -> fol_type
   val mk_typ_var_sort : Term.typ -> typ_var * sort
-  val num_of_clauses : clause -> int
   val paren_pack : string list -> string
   val schematic_var_prefix : string
   val special_equal : bool ref
@@ -190,7 +189,7 @@ type axiom_name = string;
 
 type polarity = bool;
 
-(* "tag" is used for vampire specific syntax  *)
+(* "tag" is used for vampire specific syntax FIXME REMOVE *)
 type tag = bool; 
 
 
@@ -236,9 +235,9 @@ datatype clause =
 		    axiom_name: axiom_name,
 		    kind: kind,
 		    literals: literal list,
-		    types_sorts: (typ_var * sort) list, 
-                    tvar_type_literals: type_literal list, 
-                    tfree_type_literals: type_literal list};
+		    types_sorts: (typ_var * sort) list};
+
+fun get_axiomName (Clause cls) = #axiom_name cls;
 
 exception CLAUSE of string * term;
 
@@ -254,24 +253,12 @@ fun isTrue (Literal (pol,Predicate(pname,_,[]),_)) =
   
 fun isTaut (Clause {literals,...}) = exists isTrue literals;  
 
-fun make_clause (clause_id,axiom_name,kind,literals,
-                 types_sorts,tvar_type_literals,tfree_type_literals) =
+fun make_clause (clause_id, axiom_name, kind, literals, types_sorts) =
   if forall isFalse literals 
   then error "Problem too trivial for resolution (empty clause)"
   else
      Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind, 
-             literals = literals, types_sorts = types_sorts,
-             tvar_type_literals = tvar_type_literals,
-             tfree_type_literals = tfree_type_literals};
-
-
-(** Some Clause destructor functions **)
-
-fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
-
-fun get_axiomName (Clause cls) = #axiom_name cls;
-
-fun get_clause_id (Clause cls) = #clause_id cls;
+             literals = literals, types_sorts = types_sorts};
 
 
 (*Declarations of the current theory--to allow suppressing types.*)
@@ -588,10 +575,7 @@ fun add_typs_aux [] = ([],[])
       end;
 
 
-fun add_typs (Clause cls) = add_typs_aux (#types_sorts cls)  
-
-
-(** make axiom clauses, hypothesis clauses and conjecture clauses. **)
+(** make axiom and conjecture clauses. **)
 
 fun get_tvar_strs [] = []
   | get_tvar_strs ((FOLTVar indx,s)::tss) = 
@@ -603,23 +587,18 @@ fun get_tvar_strs [] = []
 
 fun make_axiom_clause_thm thm (ax_name,cls_id) =
     let val (lits,types_sorts) = literals_of_term (prop_of thm)
-	val lits' = sort_lits lits
-	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts  
     in 
-	make_clause(cls_id,ax_name,Axiom,
-	            lits',types_sorts,tvar_lits,tfree_lits)
+	make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts)
     end;
 
 
-(* check if a clause is FOL first*)
+(* check if a clause is first-order before making a conjecture clause*)
 fun make_conjecture_clause n t =
     let val _ = check_is_fol_term t
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
 	val (lits,types_sorts) = literals_of_term t
-	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts 
     in
-	make_clause(n,"conjecture",Conjecture,
-	            lits,types_sorts,tvar_lits,tfree_lits)
+	make_clause(n, "conjecture", Conjecture, lits, types_sorts)
     end;
     
 fun make_conjecture_clauses_aux _ [] = []
@@ -635,10 +614,8 @@ fun make_axiom_clause term (ax_name,cls_id) =
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Axiom is not FOL", term) 
 	val (lits,types_sorts) = literals_of_term term
 	val lits' = sort_lits lits
-	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
     in 
-	make_clause(cls_id,ax_name,Axiom,
-	            lits',types_sorts,tvar_lits,tfree_lits)
+	make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts)
     end;
 
 
@@ -684,14 +661,6 @@ fun make_axiom_arity_clause (tcons, n, (res,args)) =
                    conclLit = make_TConsLit(true, (res,tcons,tvars)), 
                    premLits = map make_TVarLit false_tvars_srts'}
    end;
-    
-(*The number of clauses generated from cls, including type clauses. It's always 1
-  except for conjecture clauses.*)
-fun num_of_clauses (Clause cls) =
-    let val num_tfree_lits = 
-	      if !keep_types then length (#tfree_type_literals cls)
-	      else 0
-    in 	1 + num_tfree_lits  end;
 
 
 (**** Isabelle class relations ****)
@@ -873,14 +842,13 @@ fun gen_dfg_cls (cls_id, ax_name, knd, lits, vars) =
     dfg_forall vars ("or(" ^ lits ^ ")") ^ ",\n" ^ 
     string_of_clausename (cls_id,ax_name) ^  ").\n\n";
 
-fun dfg_clause_aux (Clause{literals, tvar_type_literals, tfree_type_literals, ...}) = 
+fun dfg_clause_aux (Clause{literals, types_sorts, ...}) = 
   let val lits = map dfg_literal literals
+      val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
       val tvar_lits_strs = 
-	  if !keep_types then map dfg_of_typeLit tvar_type_literals
-	  else []
+	  if !keep_types then map dfg_of_typeLit tvar_lits else []
       val tfree_lits =
-          if !keep_types then map dfg_of_typeLit tfree_type_literals
-          else []
+          if !keep_types then map dfg_of_typeLit tfree_lits else []
   in
       (tvar_lits_strs @ lits, tfree_lits)
   end; 
@@ -985,10 +953,7 @@ fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
   end;
 
 
-(********************************)
-(* code to produce TPTP files   *)
-(********************************)
-
+(**** Produce TPTP files ****)
 
 (*Attach sign in TPTP syntax: false means negate.*)
 fun tptp_sign true s = "++" ^ s
@@ -1006,7 +971,6 @@ fun tptp_literal (Literal(pol,pred,tag)) =  (*FIXME REMOVE TAGGING*)
 fun tptp_of_typeLit (LTVar (s,ty)) = "--" ^ s ^ "(" ^ ty ^ ")"
   | tptp_of_typeLit (LTFree (s,ty)) = "++" ^ s ^ "(" ^ ty ^ ")";
  
-
 fun gen_tptp_cls (cls_id,ax_name,knd,lits) = 
     "input_clause(" ^ string_of_clausename (cls_id,ax_name) ^ "," ^ 
     knd ^ "," ^ lits ^ ").\n";
@@ -1015,52 +979,28 @@ fun gen_tptp_type_cls (cls_id,ax_name,knd,tfree_lit,idx) =
     "input_clause(" ^ string_of_type_clsname (cls_id,ax_name,idx) ^ "," ^ 
     knd ^ ",[" ^ tfree_lit ^ "]).\n";
 
-fun tptp_type_lits (Clause cls) = 
-    let val lits = map tptp_literal (#literals cls)
-	val tvar_lits_strs =
-	      if !keep_types 
-	      then (map tptp_of_typeLit (#tvar_type_literals cls)) 
-	      else []
-	val tfree_lits = 
-	      if !keep_types
-	      then (map tptp_of_typeLit (#tfree_type_literals cls)) 
-	      else []
+fun tptp_type_lits (Clause {literals, types_sorts, ...}) = 
+    let val lits = map tptp_literal literals
+	val (tvar_lits,tfree_lits) = add_typs_aux types_sorts
+        val tvar_lits_strs =
+            if !keep_types then map tptp_of_typeLit tvar_lits else []
+	val tfree_lits =
+	    if !keep_types then map tptp_of_typeLit tfree_lits else []
     in
 	(tvar_lits_strs @ lits, tfree_lits)
     end; 
 
-fun tptp_clause cls =
+fun clause2tptp (cls as Clause {clause_id, axiom_name, kind, ...}) =
     let val (lits,tfree_lits) = tptp_type_lits cls 
             (*"lits" includes the typing assumptions (TVars)*)
-	val cls_id = get_clause_id cls
-	val ax_name = get_axiomName cls
-	val knd = string_of_kind cls
-	val lits_str = bracket_pack lits
-	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 			 
-	fun typ_clss k [] = []
-          | typ_clss k (tfree :: tfrees) = 
-              gen_tptp_type_cls(cls_id,ax_name,knd,tfree,k) :: 
-              typ_clss (k+1) tfrees
-    in 
-	cls_str :: (typ_clss 0 tfree_lits)
-    end;
-
-fun clause2tptp cls =
-    let val (lits,tfree_lits) = tptp_type_lits cls 
-            (*"lits" includes the typing assumptions (TVars)*)
-	val cls_id = get_clause_id cls
-	val ax_name = get_axiomName cls
-	val knd = string_of_kind cls
-	val lits_str = bracket_pack lits
-	val cls_str = gen_tptp_cls(cls_id,ax_name,knd,lits_str) 
+	val knd = name_of_kind kind
+	val cls_str = gen_tptp_cls(clause_id, axiom_name, knd, bracket_pack lits) 
     in
 	(cls_str,tfree_lits) 
     end;
 
-
 fun tptp_tfree_clause tfree_lit =
     "input_clause(" ^ "tfree_tcs," ^ "conjecture" ^ ",[" ^ tfree_lit ^ "]).\n";
-
 
 fun tptp_of_arLit (TConsLit(b,(c,t,args))) =
       tptp_sign b (c ^ "(" ^ t ^ paren_pack args ^ ")")
@@ -1092,7 +1032,7 @@ fun tptp_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
   in
-    List.app (writeln_strs out o tptp_clause) axclauses;
+    List.app (curry TextIO.output out o #1 o clause2tptp) axclauses;
     writeln_strs out tfree_clss;
     writeln_strs out tptp_clss;
     List.app (curry TextIO.output out o tptp_classrelClause) classrel_clauses;
