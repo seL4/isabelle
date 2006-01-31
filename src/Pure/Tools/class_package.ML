@@ -37,6 +37,7 @@ sig
                       | Lookup of class list * (string * int)
   val extract_sortctxt: theory -> typ -> sortcontext
   val extract_sortlookup: theory -> string * typ -> sortlookup list list
+  val extract_sortlookup_inst: theory -> class * string -> class -> sortlookup list list
 end;
 
 structure ClassPackage: CLASS_PACKAGE =
@@ -385,9 +386,8 @@ fun extract_sortctxt thy ty =
 datatype sortlookup = Instance of (class * string) * sortlookup list list
                     | Lookup of class list * (string * int)
 
-fun extract_sortlookup thy (c, raw_typ_use) =
+fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
   let
-    val raw_typ_def = Sign.the_const_constraint thy c;
     val typ_def = Type.varifyT raw_typ_def;
     val typ_use = Type.varifyT raw_typ_use;
     val match_tab = Sign.typ_match thy (typ_def, typ_use) Vartab.empty;
@@ -411,6 +411,19 @@ fun extract_sortlookup thy (c, raw_typ_use) =
               let val (deriv, classindex) = mk_class_deriv thy (syntactic_sort_of thy sort_use) class
               in Lookup (deriv, (vname, classindex)) end;
           in map mk_look sort_def end;
+
+  in
+    sortctxt
+    |> map (tab_lookup o fst)
+    |> map (apfst (syntactic_sort_of thy))
+    |> filter (not o null o fst)
+    |> map mk_lookup
+  end;
+
+fun extract_sortlookup thy (c, raw_typ_use) =
+  let
+    val raw_typ_def = Sign.the_const_constraint thy c;
+    val typ_def = Type.varifyT raw_typ_def;
     fun reorder_sortctxt ctxt =
       case lookup_const_class thy c
        of NONE => ctxt
@@ -425,14 +438,19 @@ fun extract_sortlookup thy (c, raw_typ_use) =
               (v, (the o AList.lookup (op =) ctxt) v) :: AList.delete (op =) v ctxt
             end;
   in
-    extract_sortctxt thy ((fst o Type.freeze_thaw_type) raw_typ_def)
-    |> reorder_sortctxt
-    |> map (tab_lookup o fst)
-    |> map (apfst (syntactic_sort_of thy))
-    |> filter (not o null o fst)
-    |> map mk_lookup
+    extract_lookup thy
+      (reorder_sortctxt (extract_sortctxt thy ((fst o Type.freeze_thaw_type) raw_typ_def)))
+      raw_typ_def raw_typ_use
   end;
 
+fun extract_sortlookup_inst thy (class, tyco) supclass =
+  let
+    fun mk_typ class = Type (tyco, (map TFree o fst o the_inst_sign thy) (class, tyco))
+    val typ_def = mk_typ class;
+    val typ_use = mk_typ supclass;
+  in
+    extract_lookup thy (extract_sortctxt thy typ_def) typ_def typ_use
+  end;
 
 (* intermediate auxiliary *)
 
