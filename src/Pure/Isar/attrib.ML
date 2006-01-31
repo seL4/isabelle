@@ -397,8 +397,8 @@ fun rename_abs src = syntax
 (* unfold / fold definitions *)
 
 fun unfolded_syntax rule =
-  syntax ((Args.mode "raw" >> not) -- thmss >>
-    (fn (b, ths) => Thm.rule_attribute (fn context => rule (Context.proof_of context) b ths)));
+  syntax (thmss >>
+    (fn ths => Thm.rule_attribute (fn context => rule (Context.proof_of context) ths)));
 
 val unfolded = unfolded_syntax LocalDefs.unfold;
 val folded = unfolded_syntax LocalDefs.fold;
