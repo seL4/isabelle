@@ -35,8 +35,8 @@ sig
   val cheating: bool -> ProofContext.context -> method
   val intro: thm list -> method
   val elim: thm list -> method
-  val unfold: bool -> thm list -> ProofContext.context -> method
-  val fold: bool -> thm list -> ProofContext.context -> method
+  val unfold: thm list -> ProofContext.context -> method
+  val fold: thm list -> ProofContext.context -> method
   val atomize: bool -> method
   val this: method
   val fact: thm list -> ProofContext.context -> method
@@ -193,8 +193,8 @@ fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.em
 
 (* unfold/fold definitions *)
 
-fun unfold_meth b ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.unfold_tac ctxt b ths));
-fun fold_meth b ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.fold_tac ctxt b ths));
+fun unfold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.unfold_tac ctxt ths));
+fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.fold_tac ctxt ths));
 
 
 (* atomize rule statements *)
@@ -650,13 +650,6 @@ fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expec
 end;
 
 
-(* unfold syntax *)
-
-fun unfold_syntax m src =
-  syntax ((Args.mode "raw" >> not) -- Attrib.local_thmss) src
-  #> (fn (ctxt, (b, ths)) => m b ths ctxt);
-
-
 (* iprover syntax *)
 
 local
@@ -739,8 +732,8 @@ val _ = Context.add_setup (add_methods
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
   ("intro", thms_args intro, "repeatedly apply introduction rules"),
   ("elim", thms_args elim, "repeatedly apply elimination rules"),
-  ("unfold", unfold_syntax unfold_meth, "unfold definitions"),
-  ("fold", unfold_syntax fold_meth, "fold definitions"),
+  ("unfold", thms_ctxt_args unfold_meth, "unfold definitions"),
+  ("fold", thms_ctxt_args fold_meth, "fold definitions"),
   ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
   ("iprover", iprover_meth, "intuitionistic proof search"),
