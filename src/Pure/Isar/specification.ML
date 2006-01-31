@@ -70,22 +70,23 @@ fun gen_axioms prep init exit print raw_vars raw_specs context =
     val ctxt = init context;
     val (vars, specs) = fst (prep raw_vars raw_specs ctxt);
     val cs = map fst vars;
+    val spec_frees = member (op =) (fold (fold Term.add_frees o snd) specs []);
 
-    val (consts, consts_ctxt) = ctxt |> LocalTheory.consts vars;
+    val (consts, consts_ctxt) = ctxt |> LocalTheory.consts_restricted spec_frees vars;
     val subst = Term.subst_atomic (map Free cs ~~ consts);
 
     val (axioms, axioms_ctxt) =
       consts_ctxt
       |> LocalTheory.axioms (specs |> map (fn (a, props) => (a, map subst props)))
       ||> LocalTheory.theory (Theory.add_finals_i false (map Term.head_of consts));
-    val _ = print ctxt cs;
+    val _ = print ctxt spec_frees cs;
   in ((consts, axioms), exit axioms_ctxt) end;
 
 fun axiomatization loc =
   gen_axioms read_specification (LocalTheory.init loc) LocalTheory.exit LocalTheory.print_consts;
 fun axiomatization_i loc =
   gen_axioms cert_specification (LocalTheory.init_i loc) LocalTheory.exit LocalTheory.print_consts;
-val axiomatization_loc = gen_axioms cert_specification I I (K (K ()));
+val axiomatization_loc = gen_axioms cert_specification I I (K (K (K ())));
 
 
 (* definition *)
@@ -107,13 +108,14 @@ fun gen_defs prep init exit print args context =
 
     val ctxt = init context;
     val ((cs, defs), defs_ctxt) = ctxt |> fold_map define args |>> split_list;
-    val _ = print ctxt cs;
+    val def_frees = member (op =) (fold (Term.add_frees o fst) defs []);
+    val _ = print ctxt def_frees cs;
   in (defs, exit defs_ctxt) end;
 
 fun definition loc =
   gen_defs read_specification (LocalTheory.init loc) LocalTheory.exit LocalTheory.print_consts;
 fun definition_i loc =
   gen_defs cert_specification (LocalTheory.init_i loc) LocalTheory.exit LocalTheory.print_consts;
-val definition_loc = gen_defs cert_specification I I (K (K ()));
+val definition_loc = gen_defs cert_specification I I (K (K (K ())));
 
 end;
