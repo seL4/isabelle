@@ -1220,9 +1220,23 @@ end;
 
 (* basic assumptions *)
 
+(*
+    [A]
+     : 
+     B
+  --------
+  #A ==> B
+*)
 fun assume_export true = Seq.single oo Drule.implies_intr_protected
   | assume_export false = Seq.single oo Drule.implies_intr_list;
 
+(*
+    [A]
+     : 
+     B
+  -------
+  A ==> B
+*)
 fun presume_export _ = assume_export false;
 
 
