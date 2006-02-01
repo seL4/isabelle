@@ -82,8 +82,8 @@ infixr 6 `->;
 infixr 6 `-->;
 infix 4 `$;
 infix 4 `$$;
-infixr 5 `|->;
-infixr 5 `|-->;
+infixr 3 `|->;
+infixr 3 `|-->;
 
 (* auxiliary *)
 
@@ -100,6 +100,7 @@ fun merge_opt _ (x1, NONE) = x1
 
 (* shallow name spaces *)
 
+val nsp_module = ""; (* a dummy by convention *)
 val nsp_class = "class";
 val nsp_tyco = "tyco";
 val nsp_const = "const";
@@ -189,14 +190,14 @@ val serializers = ref (
        #ml CodegenSerializer.serializers
        |> apsnd (fn seri => seri
             (nsp_dtcon, nsp_class, K false)
-            [[nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst]]
+            [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst]]
           )
      )
   |> Symtab.update (
        #haskell CodegenSerializer.serializers
        |> apsnd (fn seri => seri
             nsp_dtcon
-            [[nsp_class], [nsp_tyco], [nsp_const, nsp_overl, nsp_mem], [nsp_dtcon], [nsp_inst]]
+            [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const, nsp_overl, nsp_mem], [nsp_dtcon], [nsp_inst]]
           )
      )
 );
@@ -499,7 +500,7 @@ fun set_int_tyco tyco thy =
          #ml CodegenSerializer.serializers
          |> apsnd (fn seri => seri
               (nsp_dtcon, nsp_class, fn tyco' => tyco' = idf_of_name thy nsp_tyco tyco )
-              [[nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_mem, nsp_inst]]
+              [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_mem, nsp_inst]]
             )
        )
     ); thy);
@@ -546,7 +547,7 @@ and ensure_def_tyco thy tabs tyco trns =
   end
 and exprgen_tyvar_sort thy tabs (v, sort) trns =
   trns
-  |> fold_map (ensure_def_class thy tabs) (ClassPackage.syntactic_sort_of thy sort)
+  |> fold_map (ensure_def_class thy tabs) (ClassPackage.operational_sort_of thy sort)
   |-> (fn sort => pair (unprefix "'" v, sort))
 and exprgen_type thy tabs (TVar _) trns =
       error "TVar encountered during code generation"
@@ -565,16 +566,15 @@ and exprgen_type thy tabs (TVar _) trns =
       ||>> fold_map (exprgen_type thy tabs) tys
       |-> (fn (tyco, tys) => pair (tyco `%% tys));
 
-fun mk_lookup thy tabs (ClassPackage.Instance (inst as (cls, tyco), ls)) trns =
+fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
       trns
-      |> ensure_def_class thy tabs cls
-      ||>> ensure_def_inst thy tabs inst
-      ||>> (fold_map o fold_map) (mk_lookup thy tabs) ls
-      |-> (fn ((cls, i), ls) => pair (ClassPackage.Instance ((cls, i), ls)))
-  | mk_lookup thy tabs (ClassPackage.Lookup (clss, (v, i))) trns =
+      |> ensure_def_inst thy tabs inst
+      ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs) ls
+      |-> (fn (inst, ls) => pair (Instance (inst, ls)))
+  | exprgen_classlookup thy tabs (ClassPackage.Lookup (clss, (v, i))) trns =
       trns
       |> fold_map (ensure_def_class thy tabs) clss
-      |-> (fn clss => pair (ClassPackage.Lookup (clss, (v |> unprefix "'", i))))
+      |-> (fn clss => pair (Lookup (clss, (v |> unprefix "'", i))))
 and mk_fun thy tabs (c, ty) trns =
   case get_first (fn eqx => eqx (c, ty)) (get_eqextrs thy tabs)
    of SOME (eq_thms, ty) =>
@@ -597,14 +597,9 @@ and mk_fun thy tabs (c, ty) trns =
             |-> (fn (args, rhs) => pair (args, rhs))
         in
           trns
-          |> debug 6 (fn _ => "(1) retrieved function equations for " ^
-               quote (c ^ "::" ^ Sign.string_of_typ thy ty))
           |> fold_map (mk_eq o dest_eqthm) eq_thms
-          |> debug 6 (fn _ => "(2) building equations")
           ||>> (exprgen_type thy tabs o devarify_type) ty
-          |> debug 6 (fn _ => "(3) building type")
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
-          |> debug 6 (fn _ => "(4) building sort context")
           |-> (fn ((eqs, ty), sortctxt) => (pair o SOME) (eqs, (sortctxt, ty)))
         end
     | NONE => (NONE, trns)
@@ -612,15 +607,15 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
   let
     fun defgen_inst thy (tabs as (_, (insttab, _, _))) inst trns =
       case Option.map (InstNameMangler.rev thy insttab) (name_of_idf thy nsp_inst inst)
-       of SOME (_, (cls, tyco)) =>
+       of SOME (_, (class, tyco)) =>
             let
-              val (arity, memdefs) = ClassPackage.the_inst_sign thy (cls, tyco);
+              val (arity, memdefs) = ClassPackage.the_inst_sign thy (class, tyco);
               fun gen_suparity supclass trns =
                 trns
-                |> ensure_def_inst thy tabs (supclass, tyco)
-                ||>> (fold_map o fold_map) (mk_lookup thy tabs)
-                     (ClassPackage.extract_sortlookup_inst thy (cls, tyco) supclass)
-                |-> (fn (inst, ls) => pair (supclass, (inst, ls)));
+                |> (fold_map o fold_map) (exprgen_classlookup thy tabs)
+                     (ClassPackage.extract_classlookup_inst thy (supclass, tyco) supclass)
+                ||>> ensure_def_inst thy tabs (supclass, tyco)
+                |-> (fn (ls, _) => pair (supclass, ls));
               fun gen_membr (m, ty) trns =
                 trns
                 |> mk_fun thy tabs (m, ty)
@@ -630,18 +625,13 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
               trns
               |> debug 5 (fn _ => "trying defgen class instance for (" ^ quote cls
                    ^ ", " ^ quote tyco ^ ")")
-              |> ensure_def_class thy tabs cls
-              |> debug 5 (fn _ => "(1) got class")
+              |> ensure_def_class thy tabs class
               ||>> ensure_def_tyco thy tabs tyco
-              |> debug 5 (fn _ => "(2) got type")
               ||>> fold_map (exprgen_tyvar_sort thy tabs) arity
-              |> debug 5 (fn _ => "(3) got arity")
-              ||>> fold_map gen_suparity (ClassPackage.the_superclasses thy cls)
-              |> debug 5 (fn _ => "(4) got superarities")
+              ||>> fold_map gen_suparity (ClassPackage.the_superclasses thy class)
               ||>> fold_map gen_membr memdefs
-              |> debug 5 (fn _ => "(5) got members")
-              |-> (fn ((((cls, tyco), arity), suparities), memdefs) =>
-                     succeed (Classinst (((cls, (tyco, arity)), suparities), memdefs)))
+              |-> (fn ((((class, tyco), arity), suparities), memdefs) =>
+                     succeed (Classinst (((class, (tyco, arity)), suparities), memdefs)))
             end
         | _ =>
             trns |> fail ("no class instance found for " ^ quote inst);
@@ -732,8 +722,8 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
 and appgen_default thy tabs ((c, ty), ts) trns =
   trns
   |> ensure_def_const thy tabs (c, ty)
-  ||>> (fold_map o fold_map) (mk_lookup thy tabs)
-         (ClassPackage.extract_sortlookup thy (c, ty))
+  ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
+         (ClassPackage.extract_classlookup thy (c, ty))
   ||>> (exprgen_type thy tabs o devarify_type) ty
   ||>> fold_map (exprgen_term thy tabs o devarify_term) ts
   |-> (fn (((c, ls), ty), es) =>
@@ -845,7 +835,7 @@ fun appgen_split strip_abs thy tabs (c, [t2]) trns =
     trns
     |> exprgen_term thy tabs p
     ||>> exprgen_term thy tabs body
-    |-> (fn (IVarE v, body) => pair (IAbs (v, body)))
+    |-> (fn (IVarE v, body) => pair (v `|-> body))
   end;
 
 fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,

@@ -37,8 +37,8 @@ infixr 6 `->;
 infixr 6 `-->;
 infix 4 `$;
 infix 4 `$$;
-infixr 5 `|->;
-infixr 5 `|-->;
+infixr 3 `|->;
+infixr 3 `|-->;
 
 
 (** generic serialization **)
@@ -366,6 +366,40 @@ fun ml_from_defs (is_cons, needs_type)
       #> NameSpace.base
       #> translate_string (fn "_" => "__" | "." => "_" | c => c)
       #> str;
+    fun ml_from_label' l =
+      Pretty.block [str "#", ml_from_label l];
+    fun ml_from_lookup fxy [] p =
+          p
+      | ml_from_lookup fxy [l] p =
+          brackify fxy [
+            ml_from_label' l,
+            p
+          ]
+      | ml_from_lookup fxy ls p =
+          brackify fxy [
+            Pretty.enum " o" "(" ")" (map ml_from_label' ls),
+            p
+          ];
+    fun ml_from_sortlookup fxy ls =
+      let
+        fun from_classlookup fxy (Instance (inst, lss)) =
+              brackify fxy (
+                (str o resolv) inst
+                :: map (ml_from_sortlookup BR) lss
+              )
+          | from_classlookup fxy (Lookup (classes, (v, ~1))) =
+              ml_from_lookup BR classes (str v)
+          | from_classlookup fxy (Lookup (classes, (v, i))) =
+              ml_from_lookup BR (string_of_int (i+1) :: classes) (str v)
+      in case ls
+       of [l] => from_classlookup fxy l
+        | ls => (Pretty.list "(" ")" o map (from_classlookup NOBR)) ls
+      end;
+    val ml_from_label =
+      resolv
+      #> NameSpace.base
+      #> translate_string (fn "_" => "__" | "." => "_" | c => c)
+      #> str;
     fun ml_from_type fxy (IType (tyco, tys)) =
           (case tyco_syntax tyco
            of NONE =>
@@ -397,95 +431,74 @@ fun ml_from_defs (is_cons, needs_type)
             ]
           end
       | ml_from_type _ (IVarT (v, _)) =
-          str ("'" ^ v)
-      | ml_from_type _ (IDictT fs) =
-          Pretty.enum "," "{" "}" (
-            map (fn (f, ty) =>
-              Pretty.block [ml_from_label f, str ": ", ml_from_type NOBR ty]) fs
-          );
-    fun ml_from_expr sortctxt fxy (e as IApp (e1, e2)) =
+          str ("'" ^ v);
+    fun ml_from_expr fxy (e as IApp (e1, e2)) =
           (case unfold_const_app e
-           of SOME x => ml_from_app sortctxt fxy x
+           of SOME x => ml_from_app fxy x
             | NONE =>
                 brackify fxy [
-                  ml_from_expr sortctxt NOBR e1,
-                  ml_from_expr sortctxt BR e2
+                  ml_from_expr NOBR e1,
+                  ml_from_expr BR e2
                 ])
-      | ml_from_expr sortctxt fxy (e as IConst x) =
-          ml_from_app sortctxt fxy (x, [])
-      | ml_from_expr sortctxt fxy (IVarE (v, _)) =
+      | ml_from_expr fxy (e as IConst x) =
+          ml_from_app fxy (x, [])
+      | ml_from_expr fxy (IVarE (v, _)) =
           str v
-      | ml_from_expr sortctxt fxy (IAbs ((v, _), e)) =
+      | ml_from_expr fxy (IAbs ((v, _), e)) =
           brackify fxy [
             str ("fn " ^ v ^ " =>"),
-            ml_from_expr sortctxt NOBR e
+            ml_from_expr NOBR e
           ]
-      | ml_from_expr sortctxt fxy (e as ICase (_, [_])) =
+      | ml_from_expr fxy (e as ICase (_, [_])) =
           let
             val (ps, e) = unfold_let e;
             fun mk_val (p, e) = Pretty.block [
                 str "val ",
-                ml_from_expr sortctxt fxy p,
+                ml_from_expr fxy p,
                 str " =",
                 Pretty.brk 1,
-                ml_from_expr sortctxt NOBR e,
+                ml_from_expr NOBR e,
                 str ";"
               ]
           in Pretty.chunks [
             [str ("let"), Pretty.fbrk, map mk_val ps |> Pretty.chunks] |> Pretty.block,
-            [str ("in"), Pretty.fbrk, ml_from_expr sortctxt NOBR e] |> Pretty.block,
+            [str ("in"), Pretty.fbrk, ml_from_expr NOBR e] |> Pretty.block,
             str ("end")
           ] end
-      | ml_from_expr sortctxt fxy (ICase (e, c::cs)) =
+      | ml_from_expr fxy (ICase (e, c::cs)) =
           let
             fun mk_clause definer (p, e) =
               Pretty.block [
                 str definer,
-                ml_from_expr sortctxt NOBR p,
+                ml_from_expr NOBR p,
                 str " =>",
                 Pretty.brk 1,
-                ml_from_expr sortctxt NOBR e
+                ml_from_expr NOBR e
               ]
           in brackify fxy (
             str "case"
-            :: ml_from_expr sortctxt NOBR e
+            :: ml_from_expr NOBR e
             :: mk_clause "of " c
             :: map (mk_clause "| ") cs
           ) end
-      | ml_from_expr sortctxt fxy (IDictE fs) =
-          Pretty.enum "," "{" "}" (
-            map (fn (f, e) =>
-              Pretty.block [ml_from_label f, str " = ", ml_from_expr sortctxt NOBR e]) fs
-          )
-      | ml_from_expr sortctxt fxy (ILookup ([], v)) =
-          str v
-      | ml_from_expr sortctxt fxy (ILookup ([l], v)) =
-          brackify fxy [
-            str "#",
-            ml_from_label l,
-            str v
-          ]
-      (*| ml_from_expr sortctxt fxy (ILookup (ls, v)) =
-          brackify fxy [
-            str ("("
-              ^ (ls |> map ((fn s => "#" ^ s) o ml_from_label) |> foldr1 (fn (l, e) => l ^ " o " ^ e))
-              ^ ")"),
-            str v
-          ]*)
-      | ml_from_expr _ _ e =
+      | ml_from_expr _ e =
           error ("dubious expression: " ^ (Pretty.output o pretty_iexpr) e)
-    and ml_mk_app sortctxt f es =
+    and ml_mk_app f es =
       if is_cons f andalso length es > 1
       then
-        [(str o resolv) f, Pretty.enum " *" "(" ")" (map (ml_from_expr sortctxt BR) es)]
+        [(str o resolv) f, Pretty.enum " *" "(" ")" (map (ml_from_expr BR) es)]
       else
-        (str o resolv) f :: map (ml_from_expr sortctxt BR) es
-    and ml_from_app sortctxt fxy (((f, _), ls), es) =
-      let
-        val _ = ();
-      in
-        from_app (ml_mk_app sortctxt) (ml_from_expr sortctxt) const_syntax fxy (f, es)
-      end;
+        (str o resolv) f :: map (ml_from_expr BR) es
+    and ml_from_app fxy (((c, _), lss), es) =
+      case map (ml_from_sortlookup BR) lss
+       of [] =>
+            from_app ml_mk_app ml_from_expr const_syntax fxy (c, es)
+        | lss =>
+            brackify fxy (
+              (str o resolv) c
+              :: (lss
+              @ map (ml_from_expr BR) es)
+            );
     fun ml_from_funs (ds as d::ds_tl) =
       let
         fun mk_definer [] = "val"
@@ -501,15 +514,16 @@ fun ml_from_defs (is_cons, needs_type)
         val definer = the (fold check_args ds NONE);
         fun mk_eq definer sortctxt f ty (pats, expr) =
           let
+            val args = map (str o fst) sortctxt @ map (ml_from_expr BR) pats;
             val lhs = [str (definer ^ " " ^ f)]
-                       @ (if null pats
+                       @ (if null args
                           then [str ":", ml_from_type NOBR ty]
-                          else map (ml_from_expr sortctxt BR) pats)
-            val rhs = [str "=", ml_from_expr sortctxt NOBR expr]
+                          else args)
+            val rhs = [str "=", ml_from_expr NOBR expr]
           in
             Pretty.block (separate (Pretty.brk 1) (lhs @ rhs))
           end
-        fun mk_fun definer (f, Fun (eqs as eq::eq_tl, (sortctxt , ty))) =
+        fun mk_fun definer (f, Fun (eqs as eq::eq_tl, (sortctxt, ty))) =
           let
             val (pats_hd::pats_tl) = (fst o split_list) eqs;
             val shift = if null eq_tl then I else map (Pretty.block o single);
@@ -614,15 +628,20 @@ fun ml_from_defs (is_cons, needs_type)
       | ml_from_def (name, Classinst (((class, (tyco, arity)), suparities), memdefs)) =
           let
             val definer = if null arity then "val" else "fun"
-            fun from_supclass (supclass, (inst, ls)) = str "<DUMMY>"
+            fun from_supclass (supclass, lss) =
+              (Pretty.block o Pretty.breaks) (
+                ml_from_label supclass
+                :: str "="
+                :: map (ml_from_sortlookup NOBR) lss
+              );
             fun from_memdef (m, def) =
               ((the o ml_from_funs) [(m, Fun def)], Pretty.block [
-                (str o resolv) m,
+                ml_from_label m,
                 Pretty.brk 1,
                 str "=",
                 Pretty.brk 1,
                 (str o resolv) m
-              ])
+              ]);
             fun mk_memdefs supclassexprs [] =
                   Pretty.enum "," "{" "};" (
                     supclassexprs
@@ -677,8 +696,6 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
     fun needs_type (IType (tyco, _)) =
           has_nsp tyco nsp_class
           orelse is_int_tyco tyco
-      | needs_type (IDictT _) =
-          true
       | needs_type _ =
           false;
     fun is_cons c = has_nsp c nsp_dtcon;
@@ -700,7 +717,9 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
       |> debug 3 (fn _ => "eta-expanding...")
       |> eta_expand (eta_expander module const_syntax)
       |> debug 3 (fn _ => "eta-expanding polydefs...")
-      |> eta_expand_poly;
+      |> eta_expand_poly
+      |> debug 3 (fn _ => "unclashing expression/type variables...")
+      |> unclash_vars;
     val parse_multi =
       OuterParse.name
       #-> (fn "dir" => 
@@ -783,9 +802,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             hs_from_type (INFX (1, R)) t2
           ]
       | hs_from_type fxy (IVarT (v, _)) =
-          (str o lower_first) v
-      | hs_from_type fxy (IDictT _) =
-          error "can't serialize dictionary type to hs";
+          (str o lower_first) v;
     fun hs_from_sctxt_type (sctxt, ty) =
       Pretty.block [hs_from_sctxt sctxt, hs_from_type NOBR ty]
     fun hs_from_expr fxy (e as IApp (e1, e2)) =
@@ -842,10 +859,6 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             Pretty.fbrk,
             (Pretty.chunks o map mk_clause) cs
           ] end
-      | hs_from_expr fxy (IDictE _) =
-          error "can't serialize dictionary expression to hs"
-      | hs_from_expr fxy (ILookup _) =
-          error "can't serialize lookup expression to hs"
     and hs_mk_app c es =
       (str o resolv_const) c :: map (hs_from_expr BR) es
     and hs_from_app fxy (((c, _), ls), es) =

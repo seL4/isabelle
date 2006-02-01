@@ -8,19 +8,18 @@ Intermediate language ("Thin-gol") for code extraction.
 signature CODEGEN_THINGOL =
 sig
   type vname = string;
+  datatype classlookup = Instance of string * classlookup list list
+                       | Lookup of class list * (string * int);
   datatype itype =
       IType of string * itype list
     | IFun of itype * itype
-    | IVarT of vname * sort
-    | IDictT of (string * itype) list;
+    | IVarT of vname * sort;
   datatype iexpr =
-      IConst of (string * itype) * ClassPackage.sortlookup list list
+      IConst of (string * itype) * classlookup list list
     | IVarE of vname * itype
     | IApp of iexpr * iexpr
     | IAbs of (vname * itype) * iexpr
-    | ICase of iexpr * (iexpr * iexpr) list
-    | IDictE of (string * iexpr) list
-    | ILookup of (string list * vname);
+    | ICase of iexpr * (iexpr * iexpr) list;
   val mk_funs: itype list * itype -> itype;
   val mk_apps: iexpr * iexpr list -> iexpr;
   val mk_abss: (vname * itype) list * iexpr -> iexpr;
@@ -33,11 +32,8 @@ sig
   val unfold_abs: iexpr -> (vname * itype) list * iexpr;
   val unfold_let: iexpr -> (iexpr * iexpr) list * iexpr;
   val unfold_const_app: iexpr ->
-    (((string * itype) * ClassPackage.sortlookup list list) * iexpr list) option;
+    (((string * itype) * classlookup list list) * iexpr list) option;
   val itype_of_iexpr: iexpr -> itype;
-  val eq_itype: itype * itype -> bool;
-  val tvars_of_itypes: itype list -> string list;
-  val names_of_iexprs: iexpr list -> string list;
 
   val `%% : string * itype list -> itype;
   val `-> : itype * itype -> itype;
@@ -63,7 +59,7 @@ sig
         * string list
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
-          * (class * (string * ClassPackage.sortlookup list list)) list)
+          * (class * classlookup list list) list)
         * (string * funn) list;
   type module;
   type transact;
@@ -87,6 +83,7 @@ sig
 
   val eta_expand: (string -> int) -> module -> module;
   val eta_expand_poly: module -> module;
+  val unclash_vars: module -> module;
 
   val debug_level: int ref;
   val debug: int -> ('a -> string) -> 'a -> 'a;
@@ -145,27 +142,25 @@ infixr 6 `->;
 infixr 6 `-->;
 infix 4 `$;
 infix 4 `$$;
-infixr 5 `|->;
-infixr 5 `|-->;
+infixr 3 `|->;
+infixr 3 `|-->;
 
 type vname = string;
+
+datatype classlookup = Instance of string * classlookup list list
+                     | Lookup of class list * (string * int);
 
 datatype itype =
     IType of string * itype list
   | IFun of itype * itype
-  | IVarT of vname * sort
-    (*ML auxiliary*)
-  | IDictT of (string * itype) list;
+  | IVarT of vname * sort;
 
 datatype iexpr =
-    IConst of (string * itype) * ClassPackage.sortlookup list list
+    IConst of (string * itype) * classlookup list list
   | IVarE of vname * itype
   | IApp of iexpr * iexpr
   | IAbs of (vname * itype) * iexpr
-  | ICase of iexpr * (iexpr * iexpr) list
-    (*ML auxiliary*)
-  | IDictE of (string * iexpr) list
-  | ILookup of (string list * vname);
+  | ICase of iexpr * (iexpr * iexpr) list;
 
 (*
   variable naming conventions
@@ -203,6 +198,34 @@ val op `--> = mk_funs;
 val op `$$ = mk_apps;
 val op `|--> = mk_abss;
 
+fun pretty_itype (IType (tyco, tys)) =
+      Pretty.enum "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
+  | pretty_itype (IFun (ty1, ty2)) =
+      Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
+  | pretty_itype (IVarT (v, sort)) =
+      Pretty.str (v ^ enclose "|" "|" (space_implode "|" sort));
+
+fun pretty_iexpr (IConst ((c, ty), _)) =
+      Pretty.block [Pretty.str (c ^ "::"), pretty_itype ty]
+  | pretty_iexpr (IVarE (v, ty)) =
+      Pretty.block [Pretty.str ("?" ^ v ^ "::"), pretty_itype ty]
+  | pretty_iexpr (IApp (e1, e2)) =
+      Pretty.enclose "(" ")" [pretty_iexpr e1, Pretty.brk 1, pretty_iexpr e2]
+  | pretty_iexpr (IAbs ((v, ty), e)) =
+      Pretty.enclose "(" ")" [Pretty.str ("?" ^ v ^ " |->"), Pretty.brk 1, pretty_iexpr e]
+  | pretty_iexpr (ICase (e, cs)) =
+      Pretty.enclose "(" ")" [
+        Pretty.str "case ",
+        pretty_iexpr e,
+        Pretty.enclose "(" ")" (map (fn (p, e) =>
+          Pretty.block [
+            pretty_iexpr p,
+            Pretty.str " => ",
+            pretty_iexpr e
+          ]
+        ) cs)
+      ];
+
 val unfold_fun = unfoldr
   (fn IFun t => SOME t
     | _ => NONE);
@@ -231,41 +254,52 @@ fun map_itype f_itype (IType (tyco, tys)) =
   | map_itype _ (ty as IVarT _) =
       ty;
 
-fun map_iexpr f_itype f_iexpr (IApp (e1, e2)) =
-      f_iexpr e1 `$ f_iexpr e2
-  | map_iexpr f_itype f_iexpr (IAbs (v, e)) =
-      IAbs (v, f_iexpr e)
-  | map_iexpr f_itype f_iexpr (ICase (e, ps)) =
-      ICase (f_iexpr e, map (fn (p, e) => (f_iexpr p, f_iexpr e)) ps)
-  | map_iexpr _ _ (e as IConst _) =
+fun map_iexpr f (IApp (e1, e2)) =
+      f e1 `$ f e2
+  | map_iexpr f (IAbs (v, e)) =
+      v `|-> f e
+  | map_iexpr f (ICase (e, ps)) =
+      ICase (f e, map (fn (p, e) => (f p, f e)) ps)
+  | map_iexpr _ (e as IConst _) =
       e
-  | map_iexpr _ _ (e as IVarE _) =
-      e
-  | map_iexpr f_itype f_iexpr (IDictE ms) =
-      IDictE (map (apsnd f_iexpr) ms)
-  | map_iexpr _ _ (e as ILookup _) =
+  | map_iexpr _ (e as IVarE _) =
       e;
 
-fun fold_itype f_itype (IFun (t1, t2)) =
-      f_itype t1 #> f_itype t2
-  | fold_itype _ (ty as IType _) =
-      I
-  | fold_itype _ (ty as IVarT _) =
-      I;
+fun map_atype f (ty as IVarT _) =
+      f ty
+  | map_atype f ty =
+      map_itype (map_atype f) ty;
 
-fun fold_iexpr f_itype f_iexpr (IApp (e1, e2)) =
-      f_iexpr e1 #> f_iexpr e2
-  | fold_iexpr f_itype f_iexpr (IAbs (v, e)) =
-      f_iexpr e
-  | fold_iexpr f_itype f_iexpr (ICase (e, ps)) =
-      f_iexpr e #> fold (fn (p, e) => f_iexpr p #> f_iexpr e) ps
-  | fold_iexpr _ _ (e as IConst _) =
-      I
-  | fold_iexpr _ _ (e as IVarE _) =
-      I;
+fun map_aexpr f (e as IConst _) = 
+      f e
+  | map_aexpr f (e as IVarE _) =
+      f e
+  | map_aexpr f e =
+      map_iexpr (map_aexpr f) e;
 
+fun map_iexpr_itype f =
+  let
+    fun mapp (IConst ((c, ty), ctxt)) = IConst ((c, f ty), ctxt)
+      | mapp (IVarE (v, ty)) = IVarE (v, f ty)
+  in map_aexpr mapp end;
 
-(* simple type matching *)
+fun fold_atype f (IFun (ty1, ty2)) =
+      fold_atype f ty1 #> fold_atype f ty2
+  | fold_atype f (ty as IType _) =
+      f ty
+  | fold_atype f (ty as IVarT _) =
+      f ty;
+
+fun fold_aexpr f (IApp (e1, e2)) =
+      fold_aexpr f e1 #> fold_aexpr f e2
+  | fold_aexpr f (IAbs (v, e)) =
+      fold_aexpr f e
+  | fold_aexpr f (ICase (e, ps)) =
+      fold_aexpr f e #> fold (fn (p, e) => fold_aexpr f p #> fold_aexpr f e) ps
+  | fold_aexpr f (e as IConst _) =
+      f e
+  | fold_aexpr f (e as IVarE _) =
+      f e;
 
 fun eq_itype (ty1, ty2) =
   let
@@ -292,6 +326,12 @@ fun eq_itype (ty1, ty2) =
     handle NO_MATCH => false
   end;
 
+fun instant_itype f =
+  let
+    fun instant (IVarT x) = f x
+      | instant y = map_itype instant y;
+  in map_itype instant end;
+
 
 (* simple diagnosis *)
 
@@ -300,9 +340,7 @@ fun pretty_itype (IType (tyco, tys)) =
   | pretty_itype (IFun (ty1, ty2)) =
       Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
   | pretty_itype (IVarT (v, sort)) =
-      Pretty.str (v ^ enclose "|" "|" (space_implode "|" sort))
-  | pretty_itype (IDictT _) =
-      Pretty.str "<DictT>";
+      Pretty.str (v ^ enclose "|" "|" (space_implode "|" sort));
 
 fun pretty_iexpr (IConst ((c, ty), _)) =
       Pretty.block [Pretty.str (c ^ "::"), pretty_itype ty]
@@ -323,25 +361,10 @@ fun pretty_iexpr (IConst ((c, ty), _)) =
             pretty_iexpr e
           ]
         ) cs)
-      ]
-  | pretty_iexpr (IDictE _) =
-      Pretty.str "<DictE>"
-  | pretty_iexpr (ILookup (ls, v)) =
-      Pretty.str ("<Lookup: " ^ commas ls ^ " in " ^ v ^ ">");
+      ];
 
 
 (* language auxiliary *)
-
-
-fun instant_itype (v, sty) ty =
-  let
-    fun instant (IType (tyco, tys)) =
-          tyco `%% map instant tys
-      | instant (IFun (ty1, ty2)) =
-          instant ty1 `-> instant ty2
-      | instant (w as (IVarT (u, _))) =
-          if v = u then sty else w
-  in instant ty end;
 
 fun itype_of_iexpr (IConst ((_, ty), s)) = ty
   | itype_of_iexpr (IVarE (_, ty)) = ty
@@ -356,35 +379,25 @@ fun itype_of_iexpr (IConst ((_, ty), s)) = ty
   | itype_of_iexpr (IAbs ((_, ty1), e2)) = ty1 `-> itype_of_iexpr e2
   | itype_of_iexpr (ICase ((_, [(_, e)]))) = itype_of_iexpr e;
 
-fun tvars_of_itypes tys =
+fun type_vnames ty = 
   let
-    fun vars (IType (_, tys)) =
-          fold vars tys
-      | vars (IFun (ty1, ty2)) =
-          vars ty1 #> vars ty2
-      | vars (IVarT (v, _)) =
-          insert (op =) v
-  in fold vars tys [] end;
+    fun extr (IVarT (v, _)) =
+      insert (op =) v
+  in fold_atype extr ty end;
 
-fun names_of_iexprs es =
+fun expr_names e =
   let
-    fun vars (IConst ((c, _), _)) =
+    fun extr (IConst ((c, _), _)) =
           insert (op =) c
-      | vars (IVarE (v, _)) =
+      | extr (IVarE (v, _)) =
           insert (op =) v
-      | vars (IApp (e1, e2)) =
-          vars e1 #> vars e2
-      | vars (IAbs ((v, _), e)) =
-          insert (op =) v
-          #> vars e
-      | vars (ICase (e, cs)) =
-          vars e
-          #> fold (fn (p, e) => vars p #> vars e) cs
-      | vars (IDictE ms) =
-          fold (vars o snd) ms
-      | vars (ILookup (_, v)) =
-          cons v
-  in fold vars es [] end;
+  in fold_aexpr extr e end;
+
+fun invent seed used =
+  let
+    val x = Term.variant used seed
+  in (x, x :: used) end;
+
 
 
 (** language module system - definitions, modules, transactions **)
@@ -409,7 +422,7 @@ datatype def =
       * string list
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
-        * (class * (string * ClassPackage.sortlookup list list)) list)
+        * (class * classlookup list list) list)
       * (string * funn) list;
 
 datatype node = Def of def | Module of node Graph.T;
@@ -576,28 +589,6 @@ fun add_def (name, def) =
           #> Graph.map_node m (Module o add ms o dest_modl)
   in add modl end;
 
-fun map_def name f =
-  let
-    val (modl, base) = dest_name name;
-    fun mapp [] =
-          Graph.map_node base (Def o f o dest_def)
-      | mapp (m::ms) =
-          Graph.map_node m (Module o mapp ms o dest_modl)
-  in mapp modl end;
-
-fun ensure_def (name, Undef) module =
-      (case try (get_def module) name
-       of NONE => (error "attempted to add Undef to module")
-        | SOME Undef => (error "attempted to add Undef to module")
-        | SOME def' => map_def name (K def') module)
-  | ensure_def (name, def) module =
-      (case try (get_def module) name
-       of NONE => add_def (name, def) module
-        | SOME Undef => map_def name (K def) module
-        | SOME def' => if eq_def (def, def')
-            then module
-            else error ("tried to overwrite definition " ^ name));
-
 fun add_dep (name1, name2) modl =
   if name1 = name2 then modl
   else
@@ -617,6 +608,48 @@ fun add_dep (name1, name2) modl =
             node
             |> Graph.map_node m (Module o add ms o dest_modl);
     in add ms modl end;
+
+fun map_def name f =
+  let
+    val (modl, base) = dest_name name;
+    fun mapp [] =
+          Graph.map_node base (Def o f o dest_def)
+      | mapp (m::ms) =
+          Graph.map_node m (Module o mapp ms o dest_modl)
+  in mapp modl end;
+
+fun map_defs f =
+  let
+    fun mapp (Def def) =
+          (Def o f) def
+      | mapp (Module modl) =
+          (Module o Graph.map_nodes mapp) modl
+  in dest_modl o mapp o Module end;
+
+fun fold_defs f =
+  let
+    fun fol prfix (name, Def def) =
+          f (NameSpace.pack (prfix @ [name]), def)
+      | fol prfix (name, Module modl) =
+          Graph.fold_nodes (fol (prfix @ [name])) modl
+  in Graph.fold_nodes (fol []) end;
+
+fun add_deps f modl =
+  modl
+  |> fold add_dep ([] |> fold_defs (append o f) modl);
+
+fun ensure_def (name, Undef) module =
+      (case try (get_def module) name
+       of NONE => (error "attempted to add Undef to module")
+        | SOME Undef => (error "attempted to add Undef to module")
+        | SOME def' => map_def name (K def') module)
+  | ensure_def (name, def) module =
+      (case try (get_def module) name
+       of NONE => add_def (name, def) module
+        | SOME Undef => map_def name (K def) module
+        | SOME def' => if eq_def (def, def')
+            then module
+            else error ("tried to overwrite definition " ^ name));
 
 fun add_prim name deps (target, primdef) =
   let
@@ -662,46 +695,6 @@ fun ensure_prim name target =
           |> Graph.default_node (m, Module empty_module)
           |> Graph.map_node m (Module o ensure ms o dest_modl)
   in ensure modl end;
-
-fun map_defs f =
-  let
-    fun mapp (Def def) =
-          (Def o f) def
-      | mapp (Module modl) =
-          (Module o Graph.map_nodes mapp) modl
-  in dest_modl o mapp o Module end;
-
-fun fold_defs f =
-  let
-    fun fol prfix (name, Def def) =
-          f (NameSpace.pack (prfix @ [name]), def)
-      | fol prfix (name, Module modl) =
-          Graph.fold_nodes (fol (prfix @ [name])) modl
-  in Graph.fold_nodes (fol []) end;
-
-fun add_deps f modl =
-  modl
-  |> fold add_dep ([] |> fold_defs (append o f) modl);
-
-fun fold_map_defs f =
-  let
-    fun foldmap prfix (name, Def def) =
-          apfst Def o f (NameSpace.pack (prfix @ [name]), def)
-      | foldmap prfix (name, Module modl) =
-          apfst Module o Graph.fold_map_nodes (foldmap (prfix @ [name])) modl
-  in Graph.fold_map_nodes (foldmap []) end;
-
-fun map_def_fun f_iexpr (Fun (eqs, cty)) =
-      Fun (map (fn (ps, rhs) => (map f_iexpr ps, f_iexpr rhs)) eqs, cty)
-  | map_def_fun _ def = def;
-
-fun transform_defs f_def f_iexpr s modl =
-  let
-    val (modl', s') = fold_map_defs f_def modl s
-  in
-    modl'
-    |> map_defs (map_def_fun (f_iexpr s'))
-  end;
 
 fun merge_module modl12 =
   let
@@ -799,11 +792,13 @@ fun check_prep_def modl Undef =
         val _ = if length memdefs > length memdefs
           then error "too many member definitions given"
           else ();
+        fun instant (w, ty) (var as (v, _)) =
+          if v = w then ty else IVarT var;
         fun mk_memdef (m, (ctxt, ty)) =
           case AList.lookup (op =) memdefs m
            of NONE => error ("missing definition for member " ^ quote m)
             | SOME (eqs, (ctxt', ty')) =>
-                if eq_itype (ty |> instant_itype (v, tyco `%% map IVarT arity), ty')
+                if eq_itype (instant_itype (instant (v, tyco `%% map IVarT arity)) ty, ty')
                 then (m, (check_funeqs eqs, (ctxt', ty')))
                 else error ("inconsistent type for member definition " ^ quote m)
       in Classinst (d, map mk_memdef membrs) end;
@@ -922,40 +917,64 @@ fun start_transact f modl =
 
 (** generic transformation **)
 
+fun map_def_fun f (Fun funn) =
+      Fun (f funn)
+  | map_def_fun _ def = def;
+
+fun map_def_fun_expr f (eqs, cty) =
+  (map (fn (ps, rhs) => (map f ps, f rhs)) eqs, cty);
+
 fun eta_expand query =
   let
-    fun eta_app (((f, ty), ls), es) =
-      let
-        val delta = query f - length es;
-        val add_n = if delta < 0 then 0 else delta;
-        val tys =
-          (fst o unfold_fun) ty
-          |> curry Library.drop (length es)
-          |> curry Library.take add_n
-        val add_vars =
-          Term.invent_names (names_of_iexprs es) "x" add_n ~~ tys;
-      in
-        Library.foldr IAbs (add_vars,
-          IConst ((f, ty), ls) `$$ es `$$ (map IVarE add_vars))
-      end;
-    fun eta_iexpr e =
+    fun eta e =
      case unfold_const_app e
-      of SOME x => eta_app x
-       | NONE => map_iexpr I eta_iexpr e;
-  in map_defs (map_def_fun eta_iexpr) end;
+      of SOME (((f, ty), ls), es) =>
+          let
+            val delta = query f - length es;
+            val add_n = if delta < 0 then 0 else delta;
+            val tys =
+              (fst o unfold_fun) ty
+              |> curry Library.drop (length es)
+              |> curry Library.take add_n
+            val add_vars =
+              Term.invent_names (fold expr_names es []) "x" add_n ~~ tys;
+          in
+            add_vars `|--> IConst ((f, ty), ls) `$$ es `$$ map IVarE add_vars
+          end
+       | NONE => map_iexpr eta e;
+  in (map_defs o map_def_fun o map_def_fun_expr) eta end;
 
 val eta_expand_poly =
   let
-    fun map_def_fun (def as Fun ([([], e)], cty as (sortctxt, (ty as IFun (ty1, ty2))))) =
+    fun eta (funn as ([([], e)], cty as (sortctxt, (ty as IFun (ty1, ty2))))) =
           if (not o null) sortctxt
-            orelse (null o tvars_of_itypes) [ty]
-          then def
+            orelse null (type_vnames ty [])
+          then funn
           else
             let
-              val add_var = (hd (Term.invent_names (names_of_iexprs [e]) "x" 1), ty1)
-            in (Fun ([([IVarE add_var], IAbs (add_var, e))], cty)) end
-      | map_def_fun def = def;
-  in map_defs map_def_fun end;
+              val add_var = (hd (Term.invent_names (expr_names e []) "x" 1), ty1)
+            in (([([IVarE add_var], add_var `|-> e)], cty)) end
+      | eta funn = funn;
+  in (map_defs o map_def_fun) eta end;
+
+val unclash_vars = 
+  let
+    fun unclash (eqs, (sortctxt, ty)) =
+      let
+        val used_expr =
+          fold (fn (pats, rhs) => fold expr_names pats #> expr_names rhs) eqs [];
+        val used_type = map fst sortctxt;
+        val clash = gen_union (op =) (used_expr, used_type);
+        val rename_map = fold_map (fn c => invent c #-> (fn c' => pair (c, c'))) clash [] |> fst;
+        fun rename (v, sort) =
+          (perhaps (AList.lookup (op =) rename_map) v, sort);
+        val rename_typ = instant_itype (IVarT o rename);
+        val rename_expr = map_iexpr_itype rename_typ;
+        fun rename_eq (args, rhs) = (map rename_expr args, rename_expr rhs)
+      in
+        (map rename_eq eqs, (map rename sortctxt, rename_typ ty))
+      end;
+  in (map_defs o map_def_fun) unclash end;
 
 
 
@@ -963,33 +982,101 @@ val eta_expand_poly =
 
 (* resolving *)
 
-structure ModlNameMangler = NameManglerFun (
-  type ctxt = string -> string option;
-  type src = string;
-  val ord = string_ord;
-  fun mk _ _ = "";
-  fun is_valid _ _ = true;
-  fun maybe_unique validate name = (SOME oo perhaps) validate name;
-  fun re_mangle _ dst = error ("no such module name: " ^ quote dst);
-);
-
-structure DefNameMangler = NameManglerFun (
-  type ctxt = string -> string option;
+structure NameMangler = NameManglerFun (
+  type ctxt = (string * string -> string) * (string -> string option);
   type src = string * string;
   val ord = prod_ord string_ord string_ord;
-  fun mk validate ((shallow, name), 0) =
-        (case validate name
+  fun mk (preprocess, validate) ((shallow, name), 0) =
+        (case validate (preprocess (shallow, name))
          of NONE => name
-          | _ => mk validate ((shallow, name), 1))
-    | mk validate ((shallow, name), i) =
-        shallow ^ "_" ^ name ^ "_" ^ string_of_int (i+1)
+          | _ => mk (preprocess, validate) ((shallow, name), 1))
+    | mk (preprocess, validate) (("", name), i) =
+        preprocess ("", name ^ "_" ^ string_of_int (i+1))
+        |> perhaps validate
+    | mk (preprocess, validate) ((shallow, name), i) =
+        preprocess (shallow, shallow ^ "_" ^ name ^ "_" ^ string_of_int (i+1))
         |> perhaps validate;
   fun is_valid _ _ = true;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
 );
 
-fun mk_resolvtab nsp_conn validate module =
+fun mk_deresolver module nsp_conn preprocess validate =
+  let
+    datatype tabnode = N of string * tabnode Symtab.table option;
+    fun mk module manglers tab =
+      let
+        fun mk_name name =
+          case NameSpace.unpack name
+           of [n] => ("", n)
+            | [s, n] => (s, n);
+        fun in_conn (shallow, conn) =
+          member (op = : string * string -> bool) conn shallow;
+        fun add_name name =
+          let
+            val n as (shallow, _) = mk_name name;
+            fun diag (nm as (name, n')) = (writeln ("resolving " ^ quote name ^ " to " ^ quote n'); nm);
+          in
+            AList.map_entry_yield in_conn shallow (
+              NameMangler.declare (preprocess, validate) n
+              #-> (fn n' => pair (name, n'))
+            ) #> apfst the #> apfst diag
+          end;
+        val (renamings, manglers') =
+          fold_map add_name (Graph.keys module) manglers;
+        fun extend_tab (n, n') =
+          if (length o NameSpace.unpack) n = 1
+          then
+            Symtab.update_new
+              (n, N (n', SOME (mk ((dest_modl o Graph.get_node module) n) manglers' Symtab.empty)))
+          else
+            Symtab.update_new (n, N (n', NONE));
+      in fold extend_tab renamings tab end;
+    fun get_path_name [] tab =
+          ([], SOME tab)
+      | get_path_name [p] tab =
+          let
+            val _ = writeln ("(1) " ^ p);
+            val SOME (N (p', tab')) = Symtab.lookup tab p
+          in ([p'], tab') end
+      | get_path_name [p1, p2] tab =
+          let
+            val _ = (writeln o prefix "(2) " o NameSpace.pack) [p1, p2];
+          in case Symtab.lookup tab p1
+           of SOME (N (p', SOME tab')) => 
+                let
+                  val _ = writeln ("(2) 'twas a module");
+                  val (ps', tab'') = get_path_name [p2] tab'
+                in (p' :: ps', tab'') end
+            | NONE =>
+                let
+                  val _ = writeln ("(2) 'twas a definition");
+                  val SOME (N (p', NONE)) = Symtab.lookup tab (NameSpace.pack [p1, p2])
+                in ([p'], NONE) end
+          end
+      | get_path_name (p::ps) tab =
+          let
+            val _ = (writeln o prefix "(3) " o commas) (p::ps);
+            val SOME (N (p', SOME tab')) = Symtab.lookup tab p
+            val (ps', tab'') = get_path_name ps tab'
+          in (p' :: ps', tab'') end;
+    fun deresolv tab prefix name =
+      if (is_some o Int.fromString) name
+      then name
+      else let
+        val _ = writeln ("(0) prefix: " ^ commas prefix);
+        val _ = writeln ("(0) name: " ^ name)
+        val (common, (_, rem)) = get_prefix (op =) (prefix, NameSpace.unpack name);
+        val _ = writeln ("(0) common: " ^ commas common);
+        val _ = writeln ("(0) rem: " ^ commas rem);
+        val (_, SOME tab') = get_path_name common tab;
+        val (name', _) = get_path_name rem tab';
+      in NameSpace.pack name' end;
+  in deresolv (mk module (AList.make (K NameMangler.empty) nsp_conn) Symtab.empty) end;
+
+val _ : module -> string list list -> (string * string -> string) -> (string -> string option) -> string list -> string -> string = mk_deresolver;
+
+fun mk_resolvtab' nsp_conn validate module =
   let
     fun validate' n = perhaps validate n;
     fun ensure_unique prfix prfix' name name' (locals, tab) =
@@ -1076,8 +1163,8 @@ fun mk_resolv tab =
 
 fun serialize seri_defs seri_module validate nsp_conn name_root module =
   let
-    val resolvtab = mk_resolvtab nsp_conn validate module;
-    val resolver = mk_resolv resolvtab;
+(*     val resolver = mk_deresolver module nsp_conn snd validate;  *)
+    val resolver = mk_resolv (mk_resolvtab' nsp_conn validate module);
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])
