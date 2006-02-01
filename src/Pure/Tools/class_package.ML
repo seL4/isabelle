@@ -23,7 +23,7 @@ sig
   val intern_class: theory -> xstring -> string
   val extern_class: theory -> string -> xstring
   val certify_class: theory -> class -> class
-  val syntactic_sort_of: theory -> sort -> sort
+  val operational_sort_of: theory -> sort -> sort
   val the_superclasses: theory -> class -> class list
   val the_consts_sign: theory -> class -> string * (string * typ) list
   val lookup_const_class: theory -> string -> class option
@@ -33,11 +33,11 @@ sig
   val print_classes: theory -> unit
 
   type sortcontext = (string * sort) list
-  datatype sortlookup = Instance of (class * string) * sortlookup list list
-                      | Lookup of class list * (string * int)
+  datatype classlookup = Instance of (class * string) * classlookup list list
+                       | Lookup of class list * (string * int)
   val extract_sortctxt: theory -> typ -> sortcontext
-  val extract_sortlookup: theory -> string * typ -> sortlookup list list
-  val extract_sortlookup_inst: theory -> class * string -> class -> sortlookup list list
+  val extract_classlookup: theory -> string * typ -> classlookup list list
+  val extract_classlookup_inst: theory -> class * string -> class -> classlookup list list
 end;
 
 structure ClassPackage: CLASS_PACKAGE =
@@ -314,13 +314,13 @@ fun is_class thy cls =
   |> Option.map (not o null o #consts)
   |> the_default false;
 
-fun syntactic_sort_of thy sort =
+fun operational_sort_of thy sort =
   let
     val classes = Sign.classes_of thy;
     fun get_sort cls =
       if is_class thy cls
       then [cls]
-      else syntactic_sort_of thy (Sorts.superclasses classes cls);
+      else operational_sort_of thy (Sorts.superclasses classes cls);
   in
     map get_sort sort
     |> Library.flat
@@ -331,7 +331,7 @@ fun the_superclasses thy class =
   if is_class thy class
   then
     Sorts.superclasses (Sign.classes_of thy) class
-    |> syntactic_sort_of thy
+    |> operational_sort_of thy
   else
     error ("no syntactic class: " ^ class);
 
@@ -351,7 +351,7 @@ fun the_inst_sign thy (class, tyco) =
     val _ = if is_class thy class then () else error ("no syntactic class: " ^ class);
     val arity = 
       Sorts.mg_domain (Sign.classes_arities_of thy) tyco [class]
-      |> map (syntactic_sort_of thy);
+      |> map (operational_sort_of thy);
     val clsvar = (#var o the o Symtab.lookup ((fst o ClassData.get) thy)) class;
     val const_sign = (snd o the_consts_sign thy) class;
     fun add_var sort used =
@@ -380,10 +380,10 @@ type sortcontext = (string * sort) list;
 
 fun extract_sortctxt thy ty =
   (typ_tfrees o fst o Type.freeze_thaw_type) ty
-  |> map (apsnd (syntactic_sort_of thy))
+  |> map (apsnd (operational_sort_of thy))
   |> filter (not o null o snd);
 
-datatype sortlookup = Instance of (class * string) * sortlookup list list
+datatype classlookup = Instance of (class * string) * classlookup list list
                     | Lookup of class list * (string * int)
 
 fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
@@ -396,31 +396,38 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
       (the oo get_first) (fn subclass =>
         Sorts.class_le_path (Sign.classes_of thy) (subclass, superclass)
       ) subclasses;
+    fun find_index_class subclass subclasses =
+      let
+        val i = find_index_eq subclass subclasses;
+        val _ = if i < 0 then error "could not find class" else ();
+      in case subclasses
+       of [_] => ~1
+        | _ => i
+      end;
     fun mk_class_deriv thy subclasses superclass =
       case get_superclass_derivation (subclasses, superclass)
       of (subclass::deriv) =>
-        ((rev o filter (is_class thy)) deriv, find_index_eq subclass subclasses);
+        ((rev o filter (is_class thy)) deriv, find_index_class subclass subclasses);
     fun mk_lookup (sort_def, (Type (tycon, tys))) =
           let
             val arity_lookup = map2 (curry mk_lookup)
-              (map (syntactic_sort_of thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def)) tys
+              (map (operational_sort_of thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def)) tys
           in map (fn class => Instance ((class, tycon), arity_lookup)) sort_def end
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
           let
             fun mk_look class =
-              let val (deriv, classindex) = mk_class_deriv thy (syntactic_sort_of thy sort_use) class
+              let val (deriv, classindex) = mk_class_deriv thy (operational_sort_of thy sort_use) class
               in Lookup (deriv, (vname, classindex)) end;
           in map mk_look sort_def end;
-
   in
     sortctxt
     |> map (tab_lookup o fst)
-    |> map (apfst (syntactic_sort_of thy))
+    |> map (apfst (operational_sort_of thy))
     |> filter (not o null o fst)
     |> map mk_lookup
   end;
 
-fun extract_sortlookup thy (c, raw_typ_use) =
+fun extract_classlookup thy (c, raw_typ_use) =
   let
     val raw_typ_def = Sign.the_const_constraint thy c;
     val typ_def = Type.varifyT raw_typ_def;
@@ -443,7 +450,7 @@ fun extract_sortlookup thy (c, raw_typ_use) =
       raw_typ_def raw_typ_use
   end;
 
-fun extract_sortlookup_inst thy (class, tyco) supclass =
+fun extract_classlookup_inst thy (class, tyco) supclass =
   let
     fun mk_typ class = Type (tyco, (map TFree o fst o the_inst_sign thy) (class, tyco))
     val typ_def = mk_typ class;
@@ -451,6 +458,7 @@ fun extract_sortlookup_inst thy (class, tyco) supclass =
   in
     extract_lookup thy (extract_sortctxt thy typ_def) typ_def typ_use
   end;
+
 
 (* intermediate auxiliary *)
 
