@@ -1202,8 +1202,14 @@ fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
 attach (test) {*
 fun gen_bool i = one_of [false, true];
 *}
+  "prop"  ("bool")
+attach (term_of) {*
+fun term_of_prop b =
+  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
+*}
 
 consts_code
+  "Trueprop" ("(_)")
   "True"    ("true")
   "False"   ("false")
   "Not"     ("not")
@@ -1230,14 +1236,34 @@ fun eq_codegen thy defs gr dep thyname b t =
          thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
      | _ => NONE);
 
+exception Evaluation of term;
+
+fun evaluation_oracle (thy, Evaluation t) =
+  Logic.mk_equals (t, Codegen.eval_term thy t);
+
+fun evaluation_conv ct =
+  let val {sign, t, ...} = rep_cterm ct
+  in Thm.invoke_oracle_i sign "HOL.Evaluation" (sign, Evaluation t) end;
+
+fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (equal i) evaluation_conv));
+
+val evaluation_meth =
+  Method.no_args (Method.METHOD (fn _ => evaluation_tac 1 THEN rtac TrueI 1));
+
 in
 
 val eq_codegen_setup = Codegen.add_codegen "eq_codegen" eq_codegen;
+
+val evaluation_oracle_setup =
+  Theory.add_oracle ("Evaluation", evaluation_oracle) #>
+  Method.add_method ("evaluation", evaluation_meth, "solve goal by evaluation");
 
 end;
 *}
 
 setup eq_codegen_setup
+setup evaluation_oracle_setup
 
 
 subsection {* Other simple lemmas *}
