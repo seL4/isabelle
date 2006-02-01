@@ -20,6 +20,8 @@ sig
     -> ('b * 'c) list -> ('b * 'c) list
   val map_entry: ('a * 'b -> bool) -> 'a -> ('c -> 'c)
     -> ('b * 'c) list -> ('b * 'c) list
+  val map_entry_yield: ('a * 'b -> bool) -> 'a -> ('c -> 'd * 'c)
+    -> ('b * 'c) list -> 'd option * ('b * 'c) list
   val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
   val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b option) ->
     ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list         (*exception DUP*)
@@ -72,6 +74,17 @@ fun map_entry eq key f xs =
     fun mapp 1 ((x as (key, value))::xs) = (key, f value) :: xs
       | mapp i (x::xs) = x :: mapp (i-1) xs;
   in if i = 0 then xs else mapp i xs end;
+
+fun map_entry_yield eq key f xs =
+  let
+    val i = find_index eq xs key;
+    fun mapp 1 ((x as (key, value))::xs) =
+          let val (r, value') = f value
+          in (SOME r, (key, value') :: xs) end
+      | mapp i (x::xs) =
+          let val (r, xs') = mapp (i-1) xs
+          in (r, x::xs') end;
+  in if i = 0 then (NONE, xs) else mapp i xs end;
 
 exception DUP;
 
