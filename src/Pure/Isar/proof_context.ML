@@ -1108,7 +1108,7 @@ end;
 local
 
 fun no_dups _ [] = ()
-  | no_dups ctxt dups = error ("Duplicate variable(s): " ^ commas_quote dups);
+  | no_dups ctxt dups = error ("Duplicate fixed variable(s): " ^ commas_quote dups);
 
 fun gen_fixes prep raw_vars ctxt =
   let
