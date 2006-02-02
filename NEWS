@@ -76,6 +76,44 @@ and command 'unfolding' now all support object-level equalities
 analogous to the 'rule_format' attribute, but *not* that of the
 Simplifier (which is usually more generous).
 
+* Isar: the conclusion of a long theorem statement is now either
+'shows' (a simultaneous conjunction, as before), or 'obtains'
+(essentially a disjunction of cases with local parameters and
+assumptions).  The latter allows to express general elimination rules
+adequately.  In this notation common elimination rules look like this:
+
+  lemma exE:    -- "EX x. P x ==> (!!x. P x ==> thesis) ==> thesis"
+    assumes "EX x. P x"
+    obtains x where "P x"
+
+  lemma conjE:  -- "A & B ==> (A ==> B ==> thesis) ==> thesis"
+    assumes "A & B"
+    obtains A and B
+
+  lemma disjE:  -- "A | B ==> (A ==> thesis) ==> (B ==> thesis) ==> thesis"
+    assumes "A | B"
+    obtains
+      A
+    | B
+
+The subsequent classical rules refer to the formal "thesis"
+explicitly:
+
+  lemma classical:     -- "(~ thesis ==> thesis) ==> thesis"
+    obtains "~ thesis"
+
+  lemma Peirce's_Law:  -- "((thesis ==> A) ==> thesis) ==> thesis"
+    obtains "thesis ==> A"
+
+The actual proof of an 'obtains' statement is analogous to that of the
+Isar 'obtain' element, only that there may be several cases.  Optional
+case names may be specified in parentheses; these will be also used to
+annotate the resulting rule for later use with the 'cases' method
+(cf. attribute case_names).
+
+* Isar: 'obtain' takes an optional case name for the local context
+introduction rule (default "that").
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals
@@ -118,11 +156,13 @@ sufficiently flexible induction hypotheses):
 See also HOL/Isar_examples/Puzzle.thy for an application of the this
 particular technique.
 
-(3) This is how to perform existential reasoning ('obtain') by
-induction, while avoiding explicit object-logic encodings:
+(3) This is how to perform existential reasoning ('obtains' or
+'obtain') by induction, while avoiding explicit object-logic
+encodings:
 
-  fix n :: nat
-  obtain x :: 'a where "P n x" and "Q n x"
+  lemma
+    fixes n :: nat
+    obtains x :: 'a where "P n x" and "Q n x"
   proof (induct n fixing: thesis)
     case 0
     obtain x where "P 0 x" and "Q 0 x" sorry
