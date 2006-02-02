@@ -226,7 +226,8 @@ fun get_consumes th = the_default 0 (lookup_consumes th);
 fun put_consumes NONE th = th
   | put_consumes (SOME n) th = th
       |> PureThy.untag_rule consumes_tagN
-      |> PureThy.tag_rule (consumes_tagN, [Library.string_of_int n]);
+      |> PureThy.tag_rule
+        (consumes_tagN, [Library.string_of_int (if n < 0 then Thm.nprems_of th + n else n)]);
 
 fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 
