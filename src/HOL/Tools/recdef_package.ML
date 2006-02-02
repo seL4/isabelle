@@ -29,6 +29,10 @@ sig
   val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> theory -> Proof.state
   val recdef_tc_i: bstring * attribute list -> string -> int option -> theory -> Proof.state
   val setup: theory -> theory
+
+(* HACK: This has to be exported, since the new recdef-package uses the same hints *)
+  val get_local_hints: ProofContext.context -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
+  val get_global_hints: theory -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
 end;
 
 structure RecdefPackage: RECDEF_PACKAGE =
