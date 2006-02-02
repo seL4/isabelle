@@ -33,11 +33,11 @@ sig
   val inst_term: typ Symtab.table * term Symtab.table -> term -> term
   val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
   val inst_ctxt: theory -> typ Symtab.table * term Symtab.table -> context_i -> context_i
-  datatype ('typ, 'term, 'att) stmt =
-    Shows of ((string * 'att list) * ('term * ('term list * 'term list)) list) list |
+  datatype ('typ, 'term) stmt =
+    Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
     Obtains of (string * ((string * 'typ option) list * 'term list)) list
-  type statement  (*= (string, string, Attrib.src) stmt*)
-  type statement_i  (*= (typ, term, attribute) stmt*)
+  type statement  (*= (string, string) stmt*)
+  type statement_i  (*= (typ, term) stmt*)
 end;
 
 structure Element: ELEMENT =
@@ -261,11 +261,11 @@ fun inst_ctxt thy envs =
 
 (** concluding statements **)
 
-datatype ('typ, 'term, 'att) stmt =
-  Shows of ((string * 'att list) * ('term * ('term list * 'term list)) list) list |
+datatype ('typ, 'term) stmt =
+  Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
   Obtains of (string * ((string * 'typ option) list * 'term list)) list;
 
-type statement = (string, string, Attrib.src) stmt;
-type statement_i = (typ, term, attribute) stmt;
+type statement = (string, string) stmt;
+type statement_i = (typ, term) stmt;
 
 end;
