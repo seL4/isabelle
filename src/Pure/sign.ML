@@ -309,6 +309,17 @@ val extern_sort = map o extern_class;
 
 local
 
+fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
+  | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
+  | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
+
+fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
+  | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
+  | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
+  | map_term _ _ _ (t as Bound _) = t
+  | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
+  | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
+
 fun mapping add_names f t =
   let
     fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
@@ -317,12 +328,12 @@ fun mapping add_names f t =
   in get end;
 
 fun typ_mapping f g thy T =
-  T |> Term.map_typ
+  T |> map_typ
     (mapping add_typ_classes (f thy) T)
     (mapping add_typ_tycons (g thy) T);
 
 fun term_mapping f g h thy t =
-  t |> Term.map_term
+  t |> map_term
     (mapping add_term_classes (f thy) t)
     (mapping add_term_tycons (g thy) t)
     (mapping add_term_consts (h thy) t);
