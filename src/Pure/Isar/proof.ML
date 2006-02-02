@@ -36,6 +36,7 @@ sig
   val pretty_goals: bool -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
+  val refine_insert: thm list -> state -> state
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
@@ -421,6 +422,9 @@ in
 
 val refine = apply_text true;
 val refine_end = apply_text false;
+
+fun refine_insert [] = I
+  | refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
 
