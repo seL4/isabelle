@@ -90,12 +90,11 @@ fun head_of_def cprop =
   |> Thm.cterm_of (Thm.theory_of_cterm cprop);
 
 (*
-  [x]
-  [x == t]
-     :
-    B x
-  --------
-    B t
+  [x, x == t]
+       :
+      B x
+  -----------
+      B t
 *)
 fun def_export _ cprops thm =
   thm
