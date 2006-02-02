@@ -506,6 +506,13 @@ in
 
 val (classK, instanceK) = ("class", "instance")
 
+val parse_inst =
+  P.xname -- (
+    Scan.repeat P.sort --| P.$$$ "::" -- P.sort
+    || P.$$$ "::" |-- P.!!! P.arity
+  )
+  >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort))
+
 val classP =
   OuterSyntax.command classK "operational type classes" K.thy_decl (
     P.name --| P.$$$ "="
@@ -517,9 +524,9 @@ val classP =
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> AxClass.instance_subclass
-      || P.xname -- (P.$$$ "::" |-- P.!!! P.arity) -- Scan.repeat P.spec_name
-           >> (fn ((tyco, (asorts, sort)), []) => AxClass.instance_arity I (tyco, asorts, sort)
-                | ((tyco, (asorts, sort)), defs) => add_instance_arity ((tyco, asorts), sort) defs)
+      || parse_inst -- Scan.repeat P.spec_name
+           >> (fn (((tyco, asorts), sort), []) => AxClass.instance_arity I (tyco, asorts, sort)
+                | (inst, defs) => add_instance_arity inst defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [classP, instanceP];
