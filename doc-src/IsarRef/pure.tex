@@ -852,12 +852,18 @@ $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
 (\S\ref{sec:tactic-commands}).  The $induct$ method covered in
 \S\ref{sec:cases-induct} acts on multiple claims simultaneously.
 
-Claims at the theory level may be either in short or long form.  A short goal
-merely consists of several simultaneous propositions (often just one).  A long
-goal includes an explicit context specification for the subsequent
-conclusions, involving local parameters; here the role of each part of the
-statement is explicitly marked by separate keywords (see also
-\S\ref{sec:locale}).
+Claims at the theory level may be either in short or long form.  A
+short goal merely consists of several simultaneous propositions (often
+just one).  A long goal includes an explicit context specification for
+the subsequent conclusion, involving local parameters.  Here the role
+of each part of the statement is explicitly marked by separate
+keywords (see also \S\ref{sec:locale}).
+\indexisarelem{shows}\indexisarelem{obtains}Moreover, there are two
+kinds of conclusions: $\isarkeyword{shows}$ states several
+simultaneous propositions (essentially a big conjunction), while
+$\isarkeyword{obtains}$ claims several simultaneous simultaneous
+contexts of (essentially a big disjunction of eliminated parameters
+and assumptions, cf.\ \S\ref{sec:obtain}).
 
 \begin{rail}
   ('lemma' | 'theorem' | 'corollary') locale? (goal | longgoal)
@@ -867,7 +873,11 @@ statement is explicitly marked by separate keywords (see also
   
   goal: (props + 'and')
   ;
-  longgoal: thmdecl? (contextelem *) 'shows' goal
+  longgoal: thmdecl? (contextelem *) conclusion
+  ;
+  conclusion: 'shows' goal | 'obtains' (parname? case + '|')
+  ;
+  case: (vars + 'and') 'where' (props + 'and')
   ;
 \end{rail}
 
@@ -917,6 +927,12 @@ Any goal statement causes some term abbreviations (such as $\Var{thesis}$) to
 be bound automatically, see also \S\ref{sec:term-abbrev}.  Furthermore, the
 local context of a (non-atomic) goal is provided via the
 $rule_context$\indexisarcase{rule-context} case.
+
+The optional case names of $\isarkeyword{obtains}$ have a twofold
+meaning: (1) during the of this claim they refer to the the local
+context introductions, (2) the resulting rule is annotated accordingly
+to support symbolic case splits when used with the $cases$ method (cf.
+\S\ref{sec:cases-induct}).
 
 \medskip
 
