@@ -107,14 +107,13 @@ specifications.
 \end{matharray}
 
 \indexouternonterm{contextexpr}\indexouternonterm{contextelem}
-
-\railalias{printlocale}{print\_locale}
-\railterm{printlocale}
+\indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
+\indexisarelem{defines}\indexisarelem{notes}\indexisarelem{includes}
 
 \begin{rail}
   'locale' ('(open)')? name ('=' localeexpr)?
   ;
-  printlocale '!'? localeexpr
+  'print\_locale' '!'? localeexpr
   ;
   localeexpr: ((contextexpr '+' (contextelem+)) | contextexpr | (contextelem+))
   ;
@@ -391,7 +390,7 @@ eliminated from any result exported from the context later, provided that the
 corresponding parameters do \emph{not} occur in the conclusion.
 
 \begin{rail}
-  'obtain' (vars + 'and') 'where' (props + 'and')
+  'obtain' parname? (vars + 'and') 'where' (props + 'and')
   ;
   'guess' (vars + 'and')
   ;
@@ -425,6 +424,9 @@ introduction) of object-level existential and conjunctions, to elimination
 over results of symbolic evaluation of recursive definitions, for example.
 Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
 where the result is treated as a genuine assumption.
+
+An alternative name to be used instead of ``$that$'' above may be
+given in parentheses.
 
 \medskip
 
