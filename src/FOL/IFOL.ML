@@ -24,5 +24,3 @@ struct
   val eq_reflection = eq_reflection;
   val iff_reflection = iff_reflection;
 end;
-
-open IFOL;
