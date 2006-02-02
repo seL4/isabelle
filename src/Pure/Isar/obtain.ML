@@ -39,14 +39,20 @@ similar, but derives these elements from the course of reasoning!
 
 signature OBTAIN =
 sig
-  val obtain: (string * string option) list ->
+  val obtain: string -> (string * string option) list ->
     ((string * Attrib.src list) * (string * (string list * string list)) list) list
     -> bool -> Proof.state -> Proof.state
-  val obtain_i: (string * typ option) list ->
+  val obtain_i: string -> (string * typ option) list ->
     ((string * attribute list) * (term * (term list * term list)) list) list
     -> bool -> Proof.state -> Proof.state
   val guess: (string * string option) list -> bool -> Proof.state -> Proof.state
   val guess_i: (string * typ option) list -> bool -> Proof.state -> Proof.state
+  val statement: (string * ((string * 'typ option) list * 'term list)) list ->
+    (('typ, 'term, 'fact) Element.ctxt list *
+      ((string * 'a list) * ('term * ('term list * 'term list)) list) list) *
+    (((string * 'b list) * (term * (term list * term list)) list) list -> Proof.context ->
+      (((string * 'c list) * (term * (term list * term list)) list) list * thm list) *
+        Proof.context)
 end;
 
 structure Obtain: OBTAIN =
@@ -56,12 +62,11 @@ struct
 (** obtain_export **)
 
 (*
-    [x]
-    [A x]
-      :
-      B
-    -----
-      B
+  [x, A x]
+     :
+     B
+  --------
+     B
 *)
 fun obtain_export ctxt parms rule cprops thm =
   let
@@ -95,11 +100,12 @@ fun bind_judgment ctxt name =
     val (t as _ $ Free v) = bind (ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) name);
   in (v, t) end;
 
-local
-
 val thatN = "that";
 
-fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
+local
+
+fun gen_obtain prep_att prep_vars prep_propp
+    name raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
@@ -129,6 +135,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     val parm_names =
       List.mapPartial (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
 
+    val that_name = if name = "" then thatN else name;
     val that_prop =
       Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, thesis))
       |> Library.curry Logic.list_rename_params (map #2 parm_names);
@@ -147,7 +154,7 @@ fun gen_obtain prep_att prep_vars prep_propp raw_vars raw_asms int state =
     |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, ([], []))])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(thesisN, NONE)]
-    |> Proof.assume_i [((thatN, [ContextRules.intro_query NONE]), [(that_prop, ([], []))])]
+    |> Proof.assume_i [((that_name, [ContextRules.intro_query NONE]), [(that_prop, ([], []))])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(("", []), [(thesis, ([], []))])] false
@@ -267,5 +274,41 @@ val guess = gen_guess ProofContext.read_vars;
 val guess_i = gen_guess ProofContext.cert_vars;
 
 end;
+
+
+
+(** statements with several cases **)
+
+fun statement cases =
+  let
+    val elems = cases |> map (fn (_, (vars, _)) =>
+      Element.Constrains (vars |> List.mapPartial (fn (x, SOME T) => SOME (x, T) | _ => NONE)));
+    val concl = cases |> map (fn (_, (_, props)) => (("", []), map (rpair ([], [])) props));
+
+    fun mk_stmt stmt ctxt =
+      let
+        val thesis =
+          ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
+        fun assume_case ((name, (vars, _)), (_, propp)) ctxt' =
+          let
+            val xs = map fst vars;
+            val props = map fst propp;
+            val (parms, ctxt'') =
+              ctxt'
+              |> fold ProofContext.declare_term props
+              |> fold_map ProofContext.inferred_param xs;
+            val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
+          in
+            ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
+            ctxt' |> ProofContext.add_assms_i ProofContext.assume_export
+              [((name, [ContextRules.intro_query NONE]), [(asm, ([], []))])]
+            |>> (fn [(_, [th])] => th)
+          end;
+        val (ths, ctxt') = ctxt
+          |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
+          |> fold_map assume_case (cases ~~ stmt)
+          |-> (fn ths => ProofContext.note_thmss_i [((thatN, []), [(ths, [])])] #> #2 #> pair ths);
+      in (([(("", []), [(thesis, ([], []))])], ths), ctxt') end;
+  in ((elems, concl), mk_stmt) end;
 
 end;
