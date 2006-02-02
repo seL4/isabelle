@@ -80,7 +80,7 @@ Simplifier (which is usually more generous).
 'shows' (a simultaneous conjunction, as before), or 'obtains'
 (essentially a disjunction of cases with local parameters and
 assumptions).  The latter allows to express general elimination rules
-adequately.  In this notation common elimination rules look like this:
+adequately; in this notation common elimination rules look like this:
 
   lemma exE:    -- "EX x. P x ==> (!!x. P x ==> thesis) ==> thesis"
     assumes "EX x. P x"
@@ -96,20 +96,21 @@ adequately.  In this notation common elimination rules look like this:
       A
     | B
 
-The subsequent classical rules refer to the formal "thesis"
+The subsequent classical rules even refer to the formal "thesis"
 explicitly:
 
   lemma classical:     -- "(~ thesis ==> thesis) ==> thesis"
     obtains "~ thesis"
 
-  lemma Peirce's_Law:  -- "((thesis ==> A) ==> thesis) ==> thesis"
-    obtains "thesis ==> A"
+  lemma Peirce's_Law:  -- "((thesis ==> something) ==> thesis) ==> thesis"
+    obtains "thesis ==> something"
 
 The actual proof of an 'obtains' statement is analogous to that of the
-Isar 'obtain' element, only that there may be several cases.  Optional
-case names may be specified in parentheses; these will be also used to
-annotate the resulting rule for later use with the 'cases' method
-(cf. attribute case_names).
+Isar proof element 'obtain', only that there may be several cases.
+Optional case names may be specified in parentheses; these will be
+available both in the present proof and as annotations in the
+resulting rule, for later use with the 'cases' method (cf. attribute
+case_names).
 
 * Isar: 'obtain' takes an optional case name for the local context
 introduction rule (default "that").
