@@ -194,8 +194,6 @@ sig
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
   val invent_names: string list -> string -> int -> string list
-  val map_typ: (string -> string) -> (string -> string) -> typ -> typ
-  val map_term: (string -> string) -> (string -> string) -> (string -> string) -> term -> term
   val dest_abs: string * typ * term -> string * term
   val bound: int -> string
   val is_bound: string -> bool
@@ -1123,19 +1121,6 @@ fun exists_subterm P =
   in ex end;
 
 fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
-
-(*map classes, tycons*)
-fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
-  | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
-  | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
-
-(*map classes, tycons, consts*)
-fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
-  | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
-  | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
-  | map_term _ _ _ (t as Bound _) = t
-  | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
-  | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
 
 
 (** TFrees and TVars **)
