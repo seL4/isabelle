@@ -33,6 +33,7 @@ sig
   val unfold_let: iexpr -> (iexpr * iexpr) list * iexpr;
   val unfold_const_app: iexpr ->
     (((string * itype) * classlookup list list) * iexpr list) option;
+  val ensure_pat: iexpr -> iexpr;
   val itype_of_iexpr: iexpr -> itype;
 
   val `%% : string * itype list -> itype;
@@ -378,6 +379,13 @@ fun itype_of_iexpr (IConst ((_, ty), s)) = ty
        | _ => error ("expression is not a function: " ^ Pretty.output (pretty_iexpr e1)))
   | itype_of_iexpr (IAbs ((_, ty1), e2)) = ty1 `-> itype_of_iexpr e2
   | itype_of_iexpr (ICase ((_, [(_, e)]))) = itype_of_iexpr e;
+
+fun ensure_pat (e as IConst (_, [])) = e
+  | ensure_pat (e as IVarE _) = e
+  | ensure_pat (e as IApp (e1, e2)) =
+      (ensure_pat e1 `$ ensure_pat e2; e)
+  | ensure_pat e =
+      error ("illegal expression for pattern: " ^ (Pretty.output o pretty_iexpr) e);
 
 fun type_vnames ty = 
   let
@@ -1163,8 +1171,8 @@ fun mk_resolv tab =
 
 fun serialize seri_defs seri_module validate nsp_conn name_root module =
   let
-(*     val resolver = mk_deresolver module nsp_conn snd validate;  *)
-    val resolver = mk_resolv (mk_resolvtab' nsp_conn validate module);
+    val resolver = mk_deresolver module nsp_conn snd validate;
+(*     val resolver = mk_resolv (mk_resolvtab' nsp_conn validate module);  *)
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])
@@ -1177,7 +1185,7 @@ fun serialize seri_defs seri_module validate nsp_conn name_root module =
             (mk_name prfx name, mk_contents (prfx @ [name]) modl)
       | seri prfx ds =
           seri_defs (resolver prfx)
-            (map (fn (name, Def def) => (snd (mk_name prfx name), def)) ds)
+            (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
     seri_module (map (resolver []) (Graph.strong_conn module |> List.concat |> rev))
       (("", name_root), (mk_contents [] module))

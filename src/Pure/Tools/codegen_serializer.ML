@@ -499,7 +499,7 @@ fun ml_from_defs (is_cons, needs_type)
               :: (lss
               @ map (ml_from_expr BR) es)
             );
-    fun ml_from_funs (ds as d::ds_tl) =
+    fun ml_from_funs (defs as def::defs_tl) =
       let
         fun mk_definer [] = "val"
           | mk_definer _ = "fun";
@@ -511,37 +511,33 @@ fun ml_from_defs (is_cons, needs_type)
               else error ("mixing simultaneous vals and funs not implemented")
           | check_args _ _ =
               error ("function definition block containing other definitions than functions")
-        val definer = the (fold check_args ds NONE);
-        fun mk_eq definer sortctxt f ty (pats, expr) =
+        fun mk_fun definer (name, Fun (eqs as eq::eq_tl, (sortctxt, ty))) =
           let
-            val args = map (str o fst) sortctxt @ map (ml_from_expr BR) pats;
-            val lhs = [str (definer ^ " " ^ f)]
-                       @ (if null args
-                          then [str ":", ml_from_type NOBR ty]
-                          else args)
-            val rhs = [str "=", ml_from_expr NOBR expr]
-          in
-            Pretty.block (separate (Pretty.brk 1) (lhs @ rhs))
-          end
-        fun mk_fun definer (f, Fun (eqs as eq::eq_tl, (sortctxt, ty))) =
-          let
-            val (pats_hd::pats_tl) = (fst o split_list) eqs;
             val shift = if null eq_tl then I else map (Pretty.block o single);
-          in (Pretty.block o Pretty.fbreaks o shift) (
-               mk_eq definer sortctxt f ty eq
-               :: map (mk_eq "|" sortctxt f ty) eq_tl
-             )
+            fun mk_eq definer (pats, expr) =
+              (Pretty.block o Pretty.breaks) (
+                [str definer, (str o resolv) name]
+                @ (if null pats
+                   then [str ":", ml_from_type NOBR ty]
+                   else map (str o fst) sortctxt @ map (ml_from_expr BR) pats)
+                @ [str "=", ml_from_expr NOBR expr]
+              )
+          in
+            (Pretty.block o Pretty.fbreaks o shift) (
+              mk_eq definer eq
+              :: map (mk_eq "|") eq_tl
+            )
           end;
       in
         chunk_defs (
-          mk_fun definer d
-          :: map (mk_fun "and") ds_tl
+          mk_fun (the (fold check_args defs NONE)) def
+          :: map (mk_fun "and") defs_tl
         ) |> SOME
       end;
     fun ml_from_datatypes defs =
       let
         val defs' = List.mapPartial
-          (fn (name, Datatype info) => SOME (name, info)
+          (fn (name, Datatype info) => SOME (resolv name, info)
             | (name, Datatypecons _) => NONE
             | (name, def) => error ("datatype block containing illegal def: "
                 ^ (Pretty.output o pretty_def) def)
@@ -557,19 +553,18 @@ fun ml_from_defs (is_cons, needs_type)
                      (map (ml_from_type NOBR) tys)
               )
         fun mk_datatype definer (t, ((vs, cs), _)) =
-          Pretty.block (
+          (Pretty.block o Pretty.breaks) (
             str definer
             :: ml_from_type NOBR (t `%% map IVarT vs)
-            :: str " ="
-            :: Pretty.brk 1
-            :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons cs)
+            :: str "="
+            :: separate (str "|") (map mk_cons cs)
           )
       in
         case defs'
-         of d::ds_tl =>
+         of (def::defs_tl) =>
             chunk_defs (
-              mk_datatype "datatype " d
-              :: map (mk_datatype "and ") ds_tl
+              mk_datatype "datatype " def
+              :: map (mk_datatype "and ") defs_tl
             ) |> SOME
           | _ => NONE
       end
@@ -661,7 +656,7 @@ fun ml_from_defs (is_cons, needs_type)
             Pretty.block [
               (Pretty.block o Pretty.breaks) (
                 str definer
-                :: str name
+                :: (str o resolv) name
                 :: map (str o fst) arity
               ),
               Pretty.brk 1,
@@ -867,7 +862,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
       let
         fun from_eq name (args, rhs) =
           Pretty.block [
-            str (lower_first name),
+            (str o lower_first o resolv) name,
             Pretty.block (map (fn p => Pretty.block [Pretty.brk 1, hs_from_expr BR p]) args),
             Pretty.brk 1,
             str ("="),
@@ -880,26 +875,14 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
       | hs_from_def (name, Prim prim) =
           from_prim (name, prim)
       | hs_from_def (name, Fun (eqs, (sctxt, ty))) =
-          let
-            fun from_eq name (args, rhs) =
-              Pretty.block [
-                str (lower_first name),
-                Pretty.block (map (fn p => Pretty.block [Pretty.brk 1, hs_from_expr BR p]) args),
-                Pretty.brk 1,
-                str ("="),
-                Pretty.brk 1,
-                hs_from_expr NOBR rhs
-              ]
-          in
-            Pretty.chunks [
-              Pretty.block [
-                str (lower_first name ^ " ::"),
-                Pretty.brk 1,
-                hs_from_sctxt_type (sctxt, ty)
-              ],
-              hs_from_funeqs (name, eqs)
-            ] |> SOME
-          end
+          Pretty.chunks [
+            Pretty.block [
+              (str o lower_first o resolv) (name ^ " ::"),
+              Pretty.brk 1,
+              hs_from_sctxt_type (sctxt, ty)
+            ],
+            hs_from_funeqs (name, eqs)
+          ] |> SOME
       | hs_from_def (name, Typesyn (vs, ty)) =
           Pretty.block [
             str "type ",
@@ -941,7 +924,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             Pretty.block [
               str "class ",
               hs_from_sctxt (map (fn class => (v, [class])) supclasss),
-              str ((upper_first name) ^ " " ^ v),
+              str ((upper_first o resolv) name ^ " " ^ v),
               str " where",
               Pretty.fbrk,
               Pretty.chunks (map mk_member membrs)
@@ -957,7 +940,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             hs_from_sctxt_type (arity, IType (tyco, map (IVarT o rpair [] o fst) arity)),
             str " where",
             Pretty.fbrk,
-            Pretty.chunks (map (fn (m, (eqs, _)) => hs_from_funeqs (resolv m, eqs)) memdefs)
+            Pretty.chunks (map (fn (m, (eqs, _)) => hs_from_funeqs (m, eqs)) memdefs)
           ] |> SOME
   in
     case List.mapPartial (fn (name, def) => hs_from_def (name, def)) defs

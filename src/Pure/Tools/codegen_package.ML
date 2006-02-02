@@ -36,12 +36,7 @@ sig
   val set_defgen_datatype: defgen -> theory -> theory;
   val set_int_tyco: string -> theory -> theory;
 
-  val exprgen_type: theory -> auxtab
-    -> typ -> CodegenThingol.transact -> CodegenThingol.itype * CodegenThingol.transact;
-  val exprgen_term: theory -> auxtab
-    -> term -> CodegenThingol.transact -> CodegenThingol.iexpr * CodegenThingol.transact;
   val appgen_default: appgen;
-
   val appgen_let: (int -> term -> term list * term)
     -> appgen;
   val appgen_split: (int -> term -> term list * term)
@@ -84,19 +79,6 @@ infix 4 `$;
 infix 4 `$$;
 infixr 3 `|->;
 infixr 3 `|-->;
-
-(* auxiliary *)
-
-fun devarify_type ty = (fst o Type.freeze_thaw_type o Term.zero_var_indexesT) ty;
-fun devarify_term t = (fst o Type.freeze_thaw o Term.zero_var_indexes) t;
-
-val is_number = is_some o Int.fromString;
-
-fun merge_opt _ (x1, NONE) = x1
-  | merge_opt _ (NONE, x2) = x2
-  | merge_opt eq (SOME x1, SOME x2) =
-      if eq (x1, x2) then SOME x1 else error ("incompatible options during merge");
-
 
 (* shallow name spaces *)
 
@@ -204,6 +186,11 @@ val serializers = ref (
 
 
 (* theory data for code generator *)
+
+fun merge_opt _ (x1, NONE) = x1
+  | merge_opt _ (NONE, x2) = x2
+  | merge_opt eq (SOME x1, SOME x2) =
+      if eq (x1, x2) then SOME x1 else error ("incompatible options during merge");
 
 type gens = {
   appconst: ((int * int) * (appgen * stamp)) Symtab.table,
@@ -506,6 +493,75 @@ fun set_int_tyco tyco thy =
     ); thy);
 
 
+(* sophisticated devarification *)
+
+fun assert f msg x =
+  if f x then x
+    else error msg;
+
+val _ : ('a -> bool) -> string -> 'a -> 'a = assert;
+
+fun devarify_typs tys =
+  let
+    fun add_rename (var as ((v, _), sort)) used = 
+      let
+        val v' = variant used v
+      in (((var, TFree (v', sort)), (v', TVar var)), v' :: used) end;
+    fun typ_names (Type (tyco, tys)) (vars, names) =
+          (vars, names |> insert (op =) (NameSpace.base tyco))
+          |> fold typ_names tys
+      | typ_names (TFree (v, _)) (vars, names) =
+          (vars, names |> insert (op =) v)
+      | typ_names (TVar (v, sort)) (vars, names) =
+          (vars |> AList.update (op =) (v, sort), names);
+    val (vars, used) = fold typ_names tys ([], []);
+    val (renames, reverse) = fold_map add_rename vars used |> fst |> split_list;
+  in
+    (reverse, (map o map_atyps) (Term.instantiateT renames) tys)
+  end;
+
+fun burrow_typs_yield f ts =
+  let
+    val typtab =
+      fold (fold_types (fn ty => Typtab.update (ty, dummyT)))
+        ts Typtab.empty;
+    val typs = Typtab.keys typtab;
+    val (x, typs') = f typs;
+    val typtab' = fold2 (Typtab.update oo pair) typs typs' typtab;
+  in
+    (x, (map o map_term_types) (the o Typtab.lookup typtab') ts)
+  end;
+
+fun devarify_terms ts =
+  let
+    fun add_rename (var as ((v, _), ty)) used = 
+      let
+        val v' = variant used v
+      in (((var, Free (v', ty)), (v', Var var)), v' :: used) end;
+    fun term_names (Const (c, _)) (vars, names) =
+          (vars, names |> insert (op =) (NameSpace.base c))
+      | term_names (Free (v, _)) (vars, names) =
+          (vars, names |> insert (op =) v)
+      | term_names (Var (v, sort)) (vars, names) =
+          (vars |> AList.update (op =) (v, sort), names)
+      | term_names (Bound _) vars_names =
+          vars_names
+      | term_names (Abs (v, _, _)) (vars, names) =
+          (vars, names |> insert (op =) v)
+      | term_names (t1 $ t2) vars_names =
+          vars_names |> term_names t1 |> term_names t2
+    val (vars, used) = fold term_names ts ([], []);
+    val (renames, reverse) = fold_map add_rename vars used |> fst |> split_list;
+  in
+    (reverse, (map o map_aterms) (Term.instantiate ([], renames)) ts)
+  end;
+
+fun devarify_term_typs ts =
+  ts
+  |> devarify_terms
+  |-> (fn reverse => burrow_typs_yield devarify_typs
+  #-> (fn reverseT => pair (reverseT, reverse)));
+
 (* definition and expression generators *)
 
 fun ensure_def_class thy tabs cls trns =
@@ -521,7 +577,7 @@ fun ensure_def_class thy tabs cls trns =
               trns
               |> debug 5 (fn _ => "trying defgen class declaration for " ^ quote cls)
               |> fold_map (ensure_def_class thy tabs) (ClassPackage.the_superclasses thy cls)
-              ||>> fold_map (exprgen_type thy tabs o devarify_type o snd) cs
+              ||>> (codegen_type thy tabs o map snd) cs
               ||>> (fold_map o fold_map) (exprgen_tyvar_sort thy tabs) sortctxts
               |-> (fn ((supcls, memtypes), sortctxts) => succeed
                 (Class ((supcls, ("a", idfs ~~ (sortctxts ~~ memtypes))), [])))
@@ -564,7 +620,9 @@ and exprgen_type thy tabs (TVar _) trns =
       trns
       |> ensure_def_tyco thy tabs tyco
       ||>> fold_map (exprgen_type thy tabs) tys
-      |-> (fn (tyco, tys) => pair (tyco `%% tys));
+      |-> (fn (tyco, tys) => pair (tyco `%% tys))
+and codegen_type thy tabs =
+  fold_map (exprgen_type thy tabs) o snd o devarify_typs;
 
 fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
       trns
@@ -590,17 +648,12 @@ and mk_fun thy tabs (c, ty) trns =
                    ^ ", actually defining " ^ quote c')
               | _ => error ("illegal function equation for " ^ quote c)
             end;
-          fun mk_eq (args, rhs) trns =
-            trns
-            |> fold_map (exprgen_term thy tabs o devarify_term) args
-            ||>> (exprgen_term thy tabs o devarify_term) rhs
-            |-> (fn (args, rhs) => pair (args, rhs))
         in
           trns
-          |> fold_map (mk_eq o dest_eqthm) eq_thms
-          ||>> (exprgen_type thy tabs o devarify_type) ty
+          |> (codegen_eqs thy tabs o map dest_eqthm) eq_thms
+          ||>> codegen_type thy tabs [ty]
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
-          |-> (fn ((eqs, ty), sortctxt) => (pair o SOME) (eqs, (sortctxt, ty)))
+          |-> (fn ((eqs, [ty]), sortctxt) => (pair o SOME) (eqs, (sortctxt, ty)))
         end
     | NONE => (NONE, trns)
 and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
@@ -690,19 +743,21 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       trns
       |> appgen thy tabs ((f, ty), [])
       |-> (fn e => pair e)
-  | exprgen_term thy tabs (Var ((v, 0), ty)) trns =
+  (* | exprgen_term thy tabs (Var ((v, 0), ty)) trns =
       trns
-      |> (exprgen_type thy tabs o devarify_type) ty
+      |> (exprgen_type thy tabs) ty
       |-> (fn ty => pair (IVarE (v, ty)))
   | exprgen_term thy tabs (Var ((_, _), _)) trns =
-      error "Var with index greater 0 encountered during code generation"
+      error "Var with index greater 0 encountered during code generation" *)
+  | exprgen_term thy tabs (Var _) trns =
+      error "Var encountered during code generation"
   | exprgen_term thy tabs (Free (v, ty)) trns =
       trns
-      |> (exprgen_type thy tabs o devarify_type) ty
+      |> exprgen_type thy tabs ty
       |-> (fn ty => pair (IVarE (v, ty)))
   | exprgen_term thy tabs (Abs (v, ty, t)) trns =
       trns
-      |> (exprgen_type thy tabs o devarify_type) ty
+      |> exprgen_type thy tabs ty
       ||>> exprgen_term thy tabs (subst_bound (Free (v, ty), t))
       |-> (fn (ty, e) => pair ((v, ty) `|-> e))
   | exprgen_term thy tabs (t as t1 $ t2) trns =
@@ -719,14 +774,20 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
             ||>> fold_map (exprgen_term thy tabs) ts
             |-> (fn (e, es) => pair (e `$$ es))
       end
+and codegen_term thy tabs =
+  fold_map (exprgen_term thy tabs) o snd o devarify_term_typs
+and codegen_eqs thy tabs =
+  apfst (map (fn (rhs::args) => (args, rhs)))
+    oo fold_burrow (codegen_term thy tabs)
+    o map (fn (args, rhs) => (rhs :: args))
 and appgen_default thy tabs ((c, ty), ts) trns =
   trns
   |> ensure_def_const thy tabs (c, ty)
   ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
          (ClassPackage.extract_classlookup thy (c, ty))
-  ||>> (exprgen_type thy tabs o devarify_type) ty
-  ||>> fold_map (exprgen_term thy tabs o devarify_term) ts
-  |-> (fn (((c, ls), ty), es) =>
+  ||>> codegen_type thy tabs [ty]
+  ||>> fold_map (exprgen_term thy tabs) ts
+  |-> (fn (((c, ls), [ty]), es) =>
          pair (IConst ((c, ty), ls) `$$ es))
 and appgen thy tabs ((f, ty), ts) trns =
   case Symtab.lookup ((#appconst o #gens o CodegenData.get) thy) f
@@ -739,7 +800,7 @@ and appgen thy tabs ((f, ty), ts) trns =
           in
             trns
             |> debug 10 (fn _ => "eta-expanding")
-            |> fold_map (exprgen_type thy tabs o devarify_type) tys
+            |> fold_map (exprgen_type thy tabs) tys
             ||>> ag thy tabs ((f, ty), ts @ map2 (curry Free) vs tys)
             |-> (fn (tys, e) => pair ((vs ~~ tys) `|--> e))
           end
@@ -842,7 +903,7 @@ fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
   Type (_, [_, ty as Type (tyco, [])])), [bin]) trns =
     if tyco = tyco_int then
       trns
-      |> (exprgen_type thy tabs o devarify_type) ty
+      |> exprgen_type thy tabs ty
       |-> (fn ty => pair (CodegenThingol.IConst (((IntInf.toString o bin_to_int) bin, ty), [])))
     else if tyco = tyco_nat then
       trns
@@ -902,7 +963,7 @@ fun defgen_datatype_proto get_datatype get_datacons thy (tabs as (_, (_, _, dtco
                 trns
                 |> debug 5 (fn _ => "trying defgen datatype for " ^ quote dtco)
                 |> fold_map (exprgen_tyvar_sort thy tabs) vars
-                ||>> (fold_map o fold_map) (exprgen_type thy tabs o devarify_type) cotys
+                ||>> fold_map (codegen_type thy tabs) cotys
                 |-> (fn (sorts, tys) => succeed (Datatype
                      ((sorts, coidfs ~~ tys), [])))
               end
@@ -1056,9 +1117,10 @@ fun read_const thy (raw_c, raw_ty) =
   in (c, ty) end;
 
 fun read_quote reader gen raw thy =
-  expand_module
-    (fn thy => fn tabs => gen thy tabs (reader thy raw))
-    thy;
+  thy
+  |> expand_module
+       (fn thy => fn tabs => (gen thy tabs o single o reader thy) raw)
+  |-> (fn [x] => pair x);
 
 fun gen_add_prim prep_name prep_primdef raw_name deps (target, raw_primdef) thy =
   let
@@ -1133,8 +1195,7 @@ val parse_syntax_tyco =
               logic_data)))
       end;
   in
-    CodegenSerializer.parse_syntax
-      (read_quote read_typ (fn thy => fn tabs => exprgen_type thy tabs o devarify_type))
+    CodegenSerializer.parse_syntax (read_quote read_typ codegen_type)
     #-> (fn reader => pair (mk reader))
   end;
 
@@ -1165,7 +1226,7 @@ val parse_syntax_const =
         |-> (fn pretty => add_pretty_syntax_const c target pretty)
       end;
   in
-    CodegenSerializer.parse_syntax (read_quote Sign.read_term exprgen_term)
+    CodegenSerializer.parse_syntax (read_quote Sign.read_term codegen_term)
     #-> (fn reader => pair (mk reader))
   end;
 
