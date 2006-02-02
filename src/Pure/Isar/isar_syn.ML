@@ -348,15 +348,11 @@ val interpretP =
 
 (* statements *)
 
-val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
-val general_statement =
-  statement >> pair [] || Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement);
-
 fun gen_theorem kind =
   OuterSyntax.command kind ("state " ^ kind) K.thy_goal
     (P.opt_locale_target -- Scan.optional (P.opt_thm_name ":" --|
-      Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
-      general_statement >> (fn ((x, y), (z, w)) =>
+      Scan.ahead (P.locale_keyword || P.statement_keyword)) ("", []) --
+      P.general_statement >> (fn ((x, y), (z, w)) =>
       (Toplevel.print o Toplevel.theory_to_proof (Locale.smart_theorem kind x y z w))));
 
 val theoremP = gen_theorem PureThy.theoremK;
@@ -366,22 +362,22 @@ val corollaryP = gen_theorem PureThy.corollaryK;
 val haveP =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.have));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.have));
 
 val henceP =
   OuterSyntax.command "hence" "abbreviates \"then have\""
     (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.hence));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.hence));
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation"
     (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.show));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.show));
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\""
     (K.tag_proof K.prf_goal)
-    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.thus));
+    (P.statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.thus));
 
 
 (* facts *)
@@ -429,12 +425,12 @@ val fixP =
 val assumeP =
   OuterSyntax.command "assume" "assume propositions"
     (K.tag_proof K.prf_asm)
-    (statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume)));
+    (P.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume)));
 
 val presumeP =
   OuterSyntax.command "presume" "assume propositions, to be established later"
     (K.tag_proof K.prf_asm)
-    (statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume)));
+    (P.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume)));
 
 val defP =
   OuterSyntax.command "def" "local definition"
@@ -446,8 +442,8 @@ val defP =
 val obtainP =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
-    (Scan.optional (P.simple_fixes --| P.$$$ "where") [] -- statement
-      >> (Toplevel.print oo (Toplevel.proof' o uncurry Obtain.obtain)));
+    (P.parname -- Scan.optional (P.simple_fixes --| P.$$$ "where") [] -- P.statement
+      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain x y z)));
 
 val guessP =
   OuterSyntax.command "guess" "wild guessing (unstructured)"
@@ -849,9 +845,10 @@ val _ = OuterSyntax.add_keywords
   "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes",
   "begin", "binder", "concl", "constrains", "defines", "fixes",
   "imports", "in", "includes", "infix", "infixl", "infixr", "is",
-  "notes", "open", "output", "overloaded", "shows", "structure",
-  "uses", "where", "|", "\\<equiv>", "\\<leftharpoondown>",
-  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>"];
+  "notes", "obtains", "open", "output", "overloaded", "shows",
+  "structure", "uses", "where", "|", "\\<equiv>",
+  "\\<leftharpoondown>", "\\<rightharpoonup>",
+  "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val _ = OuterSyntax.add_parsers [
   (*theory structure*)
