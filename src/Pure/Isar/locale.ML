@@ -52,7 +52,7 @@ sig
   val global_asms_of: theory -> string ->
     ((string * Attrib.src list) * term list) list
 
-  (* Processing of locale statements *)  (* FIXME export more abstract version *)
+  (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
     (string * (string list * string list)) list list -> Proof.context ->
     string option * (cterm list * Proof.context) * (cterm list * Proof.context) *
@@ -92,26 +92,21 @@ sig
     ((string * thm list) list * (string * thm list) list) * Proof.context
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
-    string * Attrib.src list -> Element.context element list ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
   val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
-    string * attribute list -> Element.context_i element list ->
-    ((string * attribute list) * (term * (term list * term list)) list) list ->
+    string * attribute list -> Element.context_i element list -> Element.statement_i ->
     theory -> Proof.state
   val theorem_in_locale: string -> Method.text option ->
     (thm list list -> thm list list -> theory -> theory) ->
-    xstring -> string * Attrib.src list -> Element.context element list ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    xstring -> string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
   val theorem_in_locale_i: string -> Method.text option ->
     (thm list list -> thm list list -> theory -> theory) ->
     string -> string * Attrib.src list -> Element.context_i element list ->
-    ((string * Attrib.src list) * (term * (term list * term list)) list) list ->
-    theory -> Proof.state
+    (typ, term, Attrib.src) Element.stmt -> theory -> Proof.state
   val smart_theorem: string -> xstring option ->
-    string * Attrib.src list -> Element.context element list ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+    string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
   val interpretation: string * Attrib.src list -> expr -> string option list ->
     theory -> Proof.state
@@ -1108,9 +1103,7 @@ fun closeup _ false elem = elem
 
 fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
       (x, AList.lookup (op =) parms x, mx)) fixes)
-  | finish_ext_elem parms _ (Constrains csts, _) =
-      (* FIXME fails if x is not a parameter *)
-      Constrains (map (fn (x, _) => (x, (the o AList.lookup (op =) parms) x)) csts)
+  | finish_ext_elem parms _ (Constrains _, _) = Constrains []
   | finish_ext_elem _ close (Assumes asms, propp) =
       close (Assumes (map #1 asms ~~ propp))
   | finish_ext_elem _ close (Defines defs, propp) =
@@ -1746,23 +1739,35 @@ fun intern_attrib thy = map_elem (Element.map_ctxt
 fun global_goal prep_att =
   Proof.global_goal ProofDisplay.present_results prep_att ProofContext.bind_propp_schematic_i;
 
-fun gen_theorem prep_att prep_elem prep_stmt kind before_qed after_qed a raw_elems concl thy =
+fun insert_facts [] = I
+  | insert_facts ths = Seq.hd o Proof.refine (Method.Basic (K (Method.insert ths)));
+
+fun conclusion (Element.Shows concl) = (([], concl), fn stmt => fn ctxt => ((stmt, []), ctxt))
+  | conclusion (Element.Obtains cases) = apfst (apfst (map Elem)) (Obtain.statement cases);
+
+fun gen_theorem prep_att prep_elem prep_stmt kind before_qed after_qed a raw_elems raw_concl thy =
   let
+    val ((concl_elems, concl), mk_stmt) = conclusion raw_concl;
     val thy_ctxt = ProofContext.init thy;
-    val elems = map (prep_elem thy) raw_elems;
+    val elems = map (prep_elem thy) (raw_elems @ concl_elems);
     val (_, _, (view, ctxt), propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
-    val ctxt' = ctxt |> ProofContext.add_view thy_ctxt view;
-    val stmt = map fst concl ~~ propp;
-  in global_goal prep_att kind before_qed after_qed (SOME "") a stmt ctxt' end;
+    val ((stmt, facts), goal_ctxt) = ctxt
+      |> ProofContext.add_view thy_ctxt view
+      |> mk_stmt (map fst concl ~~ propp);
+  in
+    global_goal prep_att kind before_qed after_qed (SOME "") a stmt goal_ctxt
+    |> insert_facts facts
+  end;
 
 fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
-    kind before_qed after_qed raw_loc (name, atts) raw_elems concl thy =
+    kind before_qed after_qed raw_loc (name, atts) raw_elems raw_concl thy =
   let
+    val ((concl_elems, concl), mk_stmt) = conclusion raw_concl;
     val loc = prep_locale thy raw_loc;
     val loc_atts = map (prep_src thy) atts;
     val loc_attss = map (map (prep_src thy) o snd o fst) concl;
     val target = if no_target then NONE else SOME (extern thy loc);
-    val elems = map (prep_elem thy) raw_elems;
+    val elems = map (prep_elem thy) (raw_elems @ concl_elems);
     val names = map (fst o fst) concl;
 
     val thy_ctxt = ProofContext.init thy;
@@ -1774,11 +1779,12 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     val loc_ctxt' = loc_ctxt
       |> ProofContext.add_view thy_ctxt loc_view;
 
-    val stmt = map (apsnd (K []) o fst) concl ~~ propp;
+    val ((stmt, facts), goal_ctxt) =
+      elems_ctxt' |> mk_stmt (map (apsnd (K []) o fst) concl ~~ propp);
 
     fun after_qed' results =
       let val loc_results = results |> (map o map)
-          (ProofContext.export_standard elems_ctxt' loc_ctxt') in
+          (ProofContext.export_standard goal_ctxt loc_ctxt') in
         curry (locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)) loc_ctxt
         #-> (fn res =>
           if name = "" andalso null loc_atts then I
@@ -1786,7 +1792,10 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
         #> #2
         #> after_qed loc_results results
       end;
-  in global_goal (K I) kind before_qed after_qed' target (name, []) stmt elems_ctxt' end;
+  in
+    global_goal (K I) kind before_qed after_qed' target (name, []) stmt goal_ctxt
+    |> insert_facts facts
+  end;
 
 in
 
@@ -1802,7 +1811,7 @@ val theorem_in_locale_i = gen_theorem_in_locale (K I) (K I) (K I)
 val theorem_in_locale_no_target = gen_theorem_in_locale (K I) (K I) (K I)
   cert_context_statement true;
 
-fun smart_theorem kind NONE a [] concl =
+fun smart_theorem kind NONE a [] (Element.Shows concl) =
       Proof.theorem kind NONE (K I) (SOME "") a concl o ProofContext.init
   | smart_theorem kind NONE a elems concl =
       theorem kind NONE (K I) a elems concl
@@ -2144,7 +2153,8 @@ fun interpretation_in_locale (raw_target, expr) thy =
     val after_qed = K (activate o prep_result propss);
   in
     thy
-    |> theorem_in_locale_no_target kind NONE after_qed target ("", []) [] (prep_propp propss)
+    |> theorem_in_locale_no_target kind NONE after_qed target ("", []) []
+      (Element.Shows (prep_propp propss))
     |> refine_protected
   end;
 
