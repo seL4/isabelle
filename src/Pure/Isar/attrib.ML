@@ -20,11 +20,11 @@ sig
   val intern_src: theory -> src -> src
   val attribute: theory -> src -> attribute
   val attribute_i: theory -> src -> attribute
-  val map_specs: ('a -> attribute) ->
-    (('c * 'a list) * 'd) list -> (('c * attribute list) * 'd) list
-  val map_facts: ('a -> attribute) ->
+  val map_specs: ('a -> 'att) ->
+    (('c * 'a list) * 'd) list -> (('c * 'att list) * 'd) list
+  val map_facts: ('a -> 'att) ->
     (('c * 'a list) * ('d * 'a list) list) list ->
-    (('c * attribute list) * ('d * attribute list) list) list
+    (('c * 'att list) * ('d * 'att list) list) list
   val crude_closure: Context.proof -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
   val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
