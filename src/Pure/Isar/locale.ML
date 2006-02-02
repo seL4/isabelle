@@ -95,7 +95,7 @@ sig
     string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
   val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
-    string * attribute list -> Element.context_i element list -> Element.statement_i ->
+    string * Attrib.src list -> Element.context_i element list -> Element.statement_i ->
     theory -> Proof.state
   val theorem_in_locale: string -> Method.text option ->
     (thm list list -> thm list list -> theory -> theory) ->
@@ -104,7 +104,7 @@ sig
   val theorem_in_locale_i: string -> Method.text option ->
     (thm list list -> thm list list -> theory -> theory) ->
     string -> string * Attrib.src list -> Element.context_i element list ->
-    (typ, term, Attrib.src) Element.stmt -> theory -> Proof.state
+    Element.statement_i -> theory -> Proof.state
   val smart_theorem: string -> xstring option ->
     string * Attrib.src list -> Element.context element list -> Element.statement ->
     theory -> Proof.state
@@ -117,7 +117,6 @@ end;
 
 structure Locale: LOCALE =
 struct
-
 
 (** locale elements and expressions **)
 
@@ -1736,18 +1735,18 @@ local
 fun intern_attrib thy = map_elem (Element.map_ctxt
   {name = I, var = I, typ = I, term = I, fact = I, attrib = Attrib.intern_src thy});
 
-fun global_goal prep_att =
-  Proof.global_goal ProofDisplay.present_results prep_att ProofContext.bind_propp_schematic_i;
+val global_goal = Proof.global_goal ProofDisplay.present_results
+  Attrib.attribute_i ProofContext.bind_propp_schematic_i;
 
-fun insert_facts [] = I
-  | insert_facts ths = Seq.hd o Proof.refine (Method.Basic (K (Method.insert ths)));
+fun conclusion prep_att (Element.Shows concl) =
+      (([], concl), fn stmt => fn ctxt => ((Attrib.map_specs prep_att stmt, []), ctxt))
+  | conclusion _ (Element.Obtains cases) = apfst (apfst (map Elem)) (Obtain.statement cases);
 
-fun conclusion (Element.Shows concl) = (([], concl), fn stmt => fn ctxt => ((stmt, []), ctxt))
-  | conclusion (Element.Obtains cases) = apfst (apfst (map Elem)) (Obtain.statement cases);
-
-fun gen_theorem prep_att prep_elem prep_stmt kind before_qed after_qed a raw_elems raw_concl thy =
+fun gen_theorem prep_src prep_elem prep_stmt
+    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl thy =
   let
-    val ((concl_elems, concl), mk_stmt) = conclusion raw_concl;
+    val atts = map (prep_src thy) raw_atts;
+    val ((concl_elems, concl), mk_stmt) = conclusion (prep_src thy) raw_concl;
     val thy_ctxt = ProofContext.init thy;
     val elems = map (prep_elem thy) (raw_elems @ concl_elems);
     val (_, _, (view, ctxt), propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
@@ -1755,14 +1754,14 @@ fun gen_theorem prep_att prep_elem prep_stmt kind before_qed after_qed a raw_ele
       |> ProofContext.add_view thy_ctxt view
       |> mk_stmt (map fst concl ~~ propp);
   in
-    global_goal prep_att kind before_qed after_qed (SOME "") a stmt goal_ctxt
-    |> insert_facts facts
+    global_goal kind before_qed after_qed (SOME "") (name, atts) stmt goal_ctxt
+    |> Proof.refine_insert facts
   end;
 
 fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     kind before_qed after_qed raw_loc (name, atts) raw_elems raw_concl thy =
   let
-    val ((concl_elems, concl), mk_stmt) = conclusion raw_concl;
+    val ((concl_elems, concl), mk_stmt) = conclusion (prep_src thy) raw_concl;
     val loc = prep_locale thy raw_loc;
     val loc_atts = map (prep_src thy) atts;
     val loc_attss = map (map (prep_src thy) o snd o fst) concl;
@@ -1793,13 +1792,13 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
         #> after_qed loc_results results
       end;
   in
-    global_goal (K I) kind before_qed after_qed' target (name, []) stmt goal_ctxt
-    |> insert_facts facts
+    global_goal kind before_qed after_qed' target (name, []) stmt goal_ctxt
+    |> Proof.refine_insert facts
   end;
 
 in
 
-val theorem = gen_theorem Attrib.attribute intern_attrib read_context_statement;
+val theorem = gen_theorem Attrib.intern_src intern_attrib read_context_statement;
 val theorem_i = gen_theorem (K I) (K I) cert_context_statement;
 
 val theorem_in_locale = gen_theorem_in_locale intern Attrib.intern_src intern_attrib

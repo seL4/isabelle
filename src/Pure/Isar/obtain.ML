@@ -49,9 +49,9 @@ sig
   val guess_i: (string * typ option) list -> bool -> Proof.state -> Proof.state
   val statement: (string * ((string * 'typ option) list * 'term list)) list ->
     (('typ, 'term, 'fact) Element.ctxt list *
-      ((string * 'a list) * ('term * ('term list * 'term list)) list) list) *
-    (((string * 'b list) * (term * (term list * term list)) list) list -> Proof.context ->
-      (((string * 'c list) * (term * (term list * term list)) list) list * thm list) *
+      ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list) *
+    (((string * Attrib.src list) * (term * (term list * term list)) list) list -> Proof.context ->
+      (((string * Attrib.src list) * (term * (term list * term list)) list) list * thm list) *
         Proof.context)
 end;
 
@@ -158,7 +158,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(("", []), [(thesis, ([], []))])] false
-    |-> (Proof.refine o Method.Basic o K o Method.insert) |> Seq.hd
+    |-> Proof.refine_insert
   end;
 
 in
@@ -281,6 +281,8 @@ end;
 
 fun statement cases =
   let
+    val names =
+      cases |> map_index (fn (i, ("", _)) => string_of_int (i + 1) | (_, (name, _)) => name);
     val elems = cases |> map (fn (_, (vars, _)) =>
       Element.Constrains (vars |> List.mapPartial (fn (x, SOME T) => SOME (x, T) | _ => NONE)));
     val concl = cases |> map (fn (_, (_, props)) => (("", []), map (rpair ([], [])) props));
@@ -289,6 +291,9 @@ fun statement cases =
       let
         val thesis =
           ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
+        val atts = map Attrib.internal
+          [RuleCases.consumes (~ (length cases)), RuleCases.case_names names];
+
         fun assume_case ((name, (vars, _)), (_, propp)) ctxt' =
           let
             val xs = map fst vars;
@@ -308,7 +313,7 @@ fun statement cases =
           |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (cases ~~ stmt)
           |-> (fn ths => ProofContext.note_thmss_i [((thatN, []), [(ths, [])])] #> #2 #> pair ths);
-      in (([(("", []), [(thesis, ([], []))])], ths), ctxt') end;
+      in (([(("", atts), [(thesis, ([], []))])], ths), ctxt') end;
   in ((elems, concl), mk_stmt) end;
 
 end;
