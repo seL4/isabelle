@@ -1270,10 +1270,11 @@ fun gen_asms_of get thy name =
     val (_, raw_elemss) = flatten (ctxt, I) (([], Symtab.empty), Expr (Locale name));
     val ((_, elemss, _), _) = read_elemss false ctxt [] raw_elemss [];
   in
-    elemss |> map (fn (_, es) => map (fn Int e => e) es)
+    elemss |> get
+      |> map (fn (_, es) => map (fn Int e => e) es)
       |> Library.flat
       |> Library.mapfilter (fn Assumes asms => SOME asms | _ => NONE)
-      |> get
+      |> Library.flat
       |> map (apsnd (map fst))
   end;
 
@@ -1284,10 +1285,10 @@ fun parameters_of thy name =
     |> map (fn ((p, T), mix) => (p, SOME T, mix));
 
 fun local_asms_of thy name =
-  gen_asms_of Library.last_elem thy name;
+  gen_asms_of (single o Library.last_elem) thy name;
 
 fun global_asms_of thy name =
-  gen_asms_of Library.flat thy name;
+  gen_asms_of I thy name;
 
 end (* local *)
 
