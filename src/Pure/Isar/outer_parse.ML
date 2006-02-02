@@ -50,6 +50,7 @@ sig
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
   val path: token list -> Path.T * token list
+  val parname: token list -> string * token list
   val sort: token list -> string * token list
   val arity: token list -> (string list * string) * token list
   val type_args: token list -> string list * token list
@@ -87,6 +88,11 @@ sig
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
+  val statement: token list ->
+    ((bstring * Attrib.src list) * (string * (string list * string list)) list) list * token list
+  val general_statement: token list ->
+    (Element.context Locale.element list * Element.statement) * OuterLex.token list
+  val statement_keyword: token list -> string * token list
   val method: token list -> Method.text * token list
 end;
 
@@ -198,6 +204,8 @@ val name = group "name declaration" (short_ident || sym_ident || string || numbe
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.unpack;
+
+val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 
 
 (* sorts and arities *)
@@ -380,6 +388,23 @@ val locale_element = group "locale element"
 val context_element = group "context element" loc_element;
 
 end;
+
+
+(* statements *)
+
+val statement = and_list1 (opt_thm_name ":" -- Scan.repeat1 propp);
+
+val obtain_case =
+  parname -- (Scan.optional (simple_fixes --| $$$ "where") [] --
+    (and_list1 (Scan.repeat1 prop) >> List.concat));
+
+val general_statement =
+  statement >> (fn x => ([], Element.Shows x)) ||
+  Scan.repeat locale_element --
+   ($$$ "shows" |-- !!! statement >> Element.Shows ||
+    $$$ "obtains" |-- !!! (enum1 "|" obtain_case) >> Element.Obtains);
+
+val statement_keyword = $$$ "shows" || $$$ "obtains";
 
 
 (* proof methods *)
