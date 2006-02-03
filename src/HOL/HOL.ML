@@ -4,7 +4,6 @@ val choice_eq = thm "choice_eq";
 
 structure HOL =
 struct
-  val thy = the_context ();
   val eq_reflection = eq_reflection;
   val refl = refl;
   val subst = subst;
@@ -26,3 +25,12 @@ struct
 end;
 
 open HOL;
+
+structure HOL =
+struct
+
+open HOL;
+
+val thy = the_context ();
+
+end;
