@@ -99,8 +99,6 @@ sig
   val compose_single: thm * int * thm -> thm
   val add_rule: thm -> thm list -> thm list
   val del_rule: thm -> thm list -> thm list
-  val add_rules: thm list -> thm list -> thm list
-  val del_rules: thm list -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
   val imp_cong_rule: thm -> thm -> thm
   val beta_eta_conversion: cterm -> thm
@@ -588,11 +586,9 @@ val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*maintain lists of theorems --- preserving canonical order*)
-fun del_rules rs rules = Library.gen_rems eq_thm_prop (rules, rs);
-fun add_rules rs rules = rs @ del_rules rs rules;
-val del_rule = del_rules o single;
-val add_rule = add_rules o single;
-fun merge_rules (rules1, rules2) = gen_merge_lists' eq_thm_prop rules1 rules2;
+val del_rule = remove eq_thm_prop;
+fun add_rule th = cons th o del_rule th;
+val merge_rules = Library.merge eq_thm_prop;
 
 (*weak_eq_thm: ignores variable renaming and (some) type variable renaming*)
 val weak_eq_thm = Thm.eq_thm o pairself (forall_intr_vars o freezeT);
