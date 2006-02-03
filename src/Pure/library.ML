@@ -183,17 +183,16 @@ sig
   val translate_string: (string -> string) -> string -> string
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
-  val mem: ''a * ''a list -> bool
-  val mem_int: int * int list -> bool
-  val mem_string: string * string list -> bool
-  val gen_mem: ('a * 'b -> bool) -> 'a * 'b list -> bool
-  val ins: ''a * ''a list -> ''a list
-  val ins_int: int * int list -> int list
-  val ins_string: string * string list -> string list
-  val gen_ins: ('a * 'a -> bool) -> 'a * 'a list -> 'a list
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
   val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
+  val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
+  val mem: ''a * ''a list -> bool
+  val mem_int: int * int list -> bool
+  val mem_string: string * string list -> bool
+  val ins: ''a * ''a list -> ''a list
+  val ins_int: int * int list -> int list
+  val ins_string: string * string list -> string list
   val union: ''a list * ''a list -> ''a list
   val union_int: int list * int list -> int list
   val union_string: string list * string list -> string list
@@ -907,38 +906,27 @@ fun replicate_string 0 _ = ""
 
 (** lists as sets -- see also Pure/General/ord_list.ML **)
 
-(*membership in a list*)
-fun x mem [] = false
-  | x mem (y :: ys) = x = y orelse x mem ys;
+(*canonical member, insert, remove*)
+fun member eq list x =
+  let
+    fun memb [] = false
+      | memb (y :: ys) = eq (x, y) orelse memb ys;
+  in memb list end;
 
-(*membership in a list, optimized version for ints*)
-fun (x:int) mem_int [] = false
-  | x mem_int (y :: ys) = x = y orelse x mem_int ys;
+fun insert eq x xs = if member eq xs x then xs else x :: xs;
+fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
 
-(*membership in a list, optimized version for strings*)
-fun (x:string) mem_string [] = false
-  | x mem_string (y :: ys) = x = y orelse x mem_string ys;
+fun merge _ ([], ys) = ys
+  | merge eq (xs, ys) = fold_rev (insert eq) ys xs;
 
-(*generalized membership test*)
-fun gen_mem eq (x, []) = false
-  | gen_mem eq (x, y :: ys) = eq (x, y) orelse gen_mem eq (x, ys);
+(*old-style infixes*)
+fun x mem xs = member (op =) xs x;
+fun (x: int) mem_int xs = member (op =) xs x;
+fun (x: string) mem_string xs = member (op =) xs x;
 
-(*member, insert, and remove -- with canonical argument order*)
-fun member eq xs x = gen_mem eq (x, xs);
-fun insert eq x xs = if gen_mem eq (x, xs) then xs else x :: xs;
-fun remove eq x xs = if gen_mem eq (x, xs) then filter_out (fn y => eq (x, y)) xs else xs;
-
-(*insertion into list if not already there*)
-fun (x ins xs) = if x mem xs then xs else x :: xs;
-
-(*insertion into list, optimized version for ints*)
-fun (x ins_int xs) = if x mem_int xs then xs else x :: xs;
-
-(*insertion into list, optimized version for strings*)
-fun (x ins_string xs) = if x mem_string xs then xs else x :: xs;
-
-(*generalized insertion*)
-fun gen_ins eq (x, xs) = insert eq x xs;
+fun x ins xs = insert (op =) x xs;
+fun (x:int) ins_int xs = insert (op =) x xs;
+fun (x:string) ins_string xs = insert (op =) x xs;
 
 (*union of sets represented as lists: no repetitions*)
 fun xs union [] = xs
@@ -958,7 +946,7 @@ fun (xs:string list) union_string [] = xs
 (*generalized union*)
 fun gen_union eq (xs, []) = xs
   | gen_union eq ([], ys) = ys
-  | gen_union eq (x :: xs, ys) = gen_union eq (xs, gen_ins eq (x, ys));
+  | gen_union eq (x :: xs, ys) = gen_union eq (xs, insert eq x ys);
 
 
 (*intersection*)
@@ -979,8 +967,8 @@ fun ([]:string list) inter_string ys = []
 (*generalized intersection*)
 fun gen_inter eq ([], ys) = []
   | gen_inter eq (x::xs, ys) =
-      if gen_mem eq (x,ys) then x :: gen_inter eq (xs, ys)
-                           else      gen_inter eq (xs, ys);
+      if member eq ys x then x :: gen_inter eq (xs, ys)
+      else gen_inter eq (xs, ys);
 
 
 (*subset*)
@@ -1003,7 +991,7 @@ fun eq_set (xs, ys) =
 fun eq_set_string ((xs: string list), ys) =
   xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
 
-fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
+fun gen_subset eq (xs, ys) = forall (member eq ys) xs;
 
 
 (*removing an element from a list WITHOUT duplicates*)
@@ -1014,17 +1002,15 @@ fun ys \\ xs = foldl (op \) (ys,xs);
 
 (*removing an element from a list -- possibly WITH duplicates*)
 fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
-fun gen_rems eq (xs, ys) = filter_out (fn x => gen_mem eq (x, ys)) xs;
+fun gen_rems eq (xs, ys) = filter_out (member eq ys) xs;
 
 (*makes a list of the distinct members of the input; preserves order, takes
   first of equal elements*)
 fun gen_distinct eq lst =
   let
-    val memb = gen_mem eq;
-
     fun dist (rev_seen, []) = rev rev_seen
       | dist (rev_seen, x :: xs) =
-          if memb (x, rev_seen) then dist (rev_seen, xs)
+          if member eq rev_seen x then dist (rev_seen, xs)
           else dist (x :: rev_seen, xs);
   in
     dist ([], lst)
@@ -1041,11 +1027,9 @@ fun findrep [] = []
   order, takes first of equal elements*)
 fun gen_duplicates eq lst =
   let
-    val memb = gen_mem eq;
-
     fun dups (rev_dups, []) = rev rev_dups
       | dups (rev_dups, x :: xs) =
-          if memb (x, rev_dups) orelse not (memb (x, xs)) then
+          if member eq rev_dups x orelse not (member eq xs x) then
             dups (rev_dups, xs)
           else dups (x :: rev_dups, xs);
   in
@@ -1064,7 +1048,7 @@ fun has_duplicates eq =
 
 (** association lists **)
 
-(* lists as tables *)
+(* lists as tables -- legacy operations *)
 
 fun gen_merge_lists _ xs [] = xs
   | gen_merge_lists _ [] ys = ys
