@@ -41,7 +41,7 @@ sig
     -> appgen;
   val appgen_split: (int -> term -> term list * term)
     -> appgen;
-  val appgen_number_of: (term -> term) -> (term -> IntInf.int) -> string -> string
+  val appgen_number_of: (term -> term) -> (theory -> term -> IntInf.int) -> string -> string
     -> appgen;
   val add_case_const: (theory -> string -> (string * int) list option) -> xstring
     -> theory -> theory;
@@ -904,7 +904,7 @@ fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
     if tyco = tyco_int then
       trns
       |> exprgen_type thy tabs ty
-      |-> (fn ty => pair (CodegenThingol.IConst (((IntInf.toString o bin_to_int) bin, ty), [])))
+      |-> (fn ty => pair (CodegenThingol.IConst (((IntInf.toString o bin_to_int thy) bin, ty), [])))
     else if tyco = tyco_nat then
       trns
       |> exprgen_term thy tabs (mk_int_to_nat bin)

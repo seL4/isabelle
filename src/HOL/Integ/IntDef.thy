@@ -931,7 +931,7 @@ fun mk_int_to_nat bin =
   Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT)
   $ (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin);
 
-fun bin_to_int bin = HOLogic.dest_binum bin
+fun bin_to_int thy bin = HOLogic.dest_binum bin
   handle TERM _
     => error ("not a number: " ^ Sign.string_of_term thy bin);
 
