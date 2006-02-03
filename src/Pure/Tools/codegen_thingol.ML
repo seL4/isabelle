@@ -94,6 +94,7 @@ sig
     ((string -> string) -> (string * def) list -> 'a option)
     -> (string list -> (string * string) * 'a list -> 'a option)
     -> (string -> string option)
+    -> (string * string -> string)
     -> string list list -> string -> module -> 'a option;
 end;
 
@@ -1047,7 +1048,7 @@ fun mk_deresolver module nsp_conn preprocess validate =
             val SOME (N (p', tab')) = Symtab.lookup tab p
           in ([p'], tab') end
       | get_path_name [p1, p2] tab =
-          case Symtab.lookup tab p1
+          (case Symtab.lookup tab p1
            of SOME (N (p', SOME tab')) => 
                 let
                   val (ps', tab'') = get_path_name [p2] tab'
@@ -1055,7 +1056,7 @@ fun mk_deresolver module nsp_conn preprocess validate =
             | NONE =>
                 let
                   val SOME (N (p', NONE)) = Symtab.lookup tab (NameSpace.pack [p1, p2])
-                in ([p'], NONE) end
+                in ([p'], NONE) end)
       | get_path_name (p::ps) tab =
           let
             val SOME (N (p', SOME tab')) = Symtab.lookup tab p
@@ -1074,9 +1075,9 @@ fun mk_deresolver module nsp_conn preprocess validate =
 
 (* serialization *)
 
-fun serialize seri_defs seri_module validate nsp_conn name_root module =
+fun serialize seri_defs seri_module validate preprocess nsp_conn name_root module =
   let
-    val resolver = mk_deresolver module nsp_conn snd validate;
+    val resolver = mk_deresolver module nsp_conn preprocess validate;
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])

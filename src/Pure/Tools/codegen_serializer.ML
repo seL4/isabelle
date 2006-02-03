@@ -24,7 +24,7 @@ sig
   val pretty_list: string -> string -> int * string -> CodegenThingol.iexpr pretty_syntax;
   val serializers: {
     ml: string * (string * string * (string -> bool) -> serializer),
-    haskell: string * (string -> serializer)
+    haskell: string * (string list -> serializer)
   }
 end;
 
@@ -242,7 +242,7 @@ fun pretty_of_prim target resolv (name, primdef) =
     | SOME ps => (Pretty.block o map pr) ps
   end;
 
-fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator)
+fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
     postprocess preprocess (class_syntax : string -> string option, tyco_syntax, const_syntax)
     select module =
   let
@@ -261,7 +261,7 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     |> preprocess
     |> debug 3 (fn _ => "serializing...")
     |> serialize (from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax)))
-         from_module' validator nspgrp name_root
+         from_module' validator postproc nspgrp name_root
     |> K ()
   end;
 
@@ -703,7 +703,8 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
           false;
     fun is_cons c = has_nsp c nsp_dtcon;
     val serializer = abstract_serializer (target, nspgrp)
-      "ROOT" (ml_from_defs (is_cons, needs_type), ml_from_module, abstract_validator reserved_ml);
+      "ROOT" (ml_from_defs (is_cons, needs_type), ml_from_module,
+        abstract_validator reserved_ml, snd);
     fun eta_expander module const_syntax s =
       case const_syntax s
        of SOME ((i, _), _) => i
@@ -742,43 +743,18 @@ end; (* local *)
 
 local
 
-fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
+fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
     resolv defs =
   let
-    fun upper_first s =
-      let
-        val (pr, b) = split_last (NameSpace.unpack s);
-        val (c::cs) = String.explode b;
-      in NameSpace.pack (pr @ [String.implode (Char.toUpper c :: cs)]) end;
-    fun lower_first s =
-      let
-        val (pr, b) = split_last (NameSpace.unpack s);
-        val (c::cs) = String.explode b;
-      in NameSpace.pack (pr @ [String.implode (Char.toLower c :: cs)]) end;
-    val resolv = fn s =>
-      let
-        val (prfix, base) = (split_last o NameSpace.unpack o resolv) s
-      in
-        NameSpace.pack (map upper_first prfix @ [base])
-      end;
-    fun resolv_const f =
-      if NameSpace.is_qualified f
-      then
-        if is_cons f
-        then (upper_first o resolv) f
-        else (lower_first o resolv) f
-      else
-        f;
     fun hs_from_sctxt vs =
       let
         fun from_class cls =
-         case class_syntax cls
-          of NONE => (upper_first o resolv) cls
-           | SOME cls => cls
+          class_syntax cls
+          |> the_default (resolv cls)
         fun from_sctxt [] = str ""
           | from_sctxt vs =
               vs
-              |> map (fn (v, cls) => str (from_class cls ^ " " ^ lower_first v))
+              |> map (fn (v, cls) => str (from_class cls ^ " " ^ v))
               |> Pretty.enum "," "(" ")"
               |> (fn p => Pretty.block [p, str " => "])
       in 
@@ -790,7 +766,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
     fun hs_from_type fxy (IType (tyco, tys)) =
           (case tyco_syntax tyco
            of NONE =>
-                brackify fxy ((str o upper_first o resolv) tyco :: map (hs_from_type BR) tys)
+                brackify fxy ((str o resolv) tyco :: map (hs_from_type BR) tys)
             | SOME ((i, k), pr) =>
                 if not (i <= length tys andalso length tys <= k)
                 then error ("number of argument mismatch in customary serialization: "
@@ -805,7 +781,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             hs_from_type (INFX (1, R)) t2
           ]
       | hs_from_type fxy (IVarT (v, _)) =
-          (str o lower_first) v;
+          str v;
     fun hs_from_sctxt_type (sctxt, ty) =
       Pretty.block [hs_from_sctxt sctxt, hs_from_type NOBR ty]
     fun hs_from_expr fxy (e as IApp (e1, e2)) =
@@ -819,14 +795,14 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
       | hs_from_expr fxy (e as IConst x) =
           hs_from_app fxy (x, [])
       | hs_from_expr fxy (IVarE (v, _)) =
-          (str o lower_first) v
+          str v
       | hs_from_expr fxy (e as IAbs _) =
           let
             val (vs, body) = unfold_abs e
           in
             brackify fxy (
               str "\\"
-              :: map (str o lower_first o fst) vs @ [
+              :: map (str o fst) vs @ [
               str "->",
               hs_from_expr NOBR body
             ])
@@ -863,14 +839,14 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             (Pretty.chunks o map mk_clause) cs
           ] end
     and hs_mk_app c es =
-      (str o resolv_const) c :: map (hs_from_expr BR) es
+      (str o resolv) c :: map (hs_from_expr BR) es
     and hs_from_app fxy (((c, _), ls), es) =
       from_app hs_mk_app hs_from_expr const_syntax fxy (c, es);
     fun hs_from_funeqs (name, eqs) =
       let
         fun from_eq name (args, rhs) =
           Pretty.block [
-            (str o lower_first o resolv) name,
+            (str o resolv) name,
             Pretty.block (map (fn p => Pretty.block [Pretty.brk 1, hs_from_expr BR p]) args),
             Pretty.brk 1,
             str ("="),
@@ -885,7 +861,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
       | hs_from_def (name, Fun (eqs, (sctxt, ty))) =
           Pretty.chunks [
             Pretty.block [
-              (str o suffix " ::" o lower_first o resolv) name,
+              (str o suffix " ::" o resolv) name,
               Pretty.brk 1,
               hs_from_sctxt_type (sctxt, ty)
             ],
@@ -903,7 +879,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
           let
             fun mk_cons (co, tys) =
               (Pretty.block o Pretty.breaks) (
-                str ((upper_first o resolv) co)
+                (str o resolv) co
                 :: map (hs_from_type NOBR) tys
               )
           in
@@ -932,7 +908,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
             Pretty.block [
               str "class ",
               hs_from_sctxt (map (fn class => (v, [class])) supclasss),
-              str ((upper_first o resolv) name ^ " " ^ v),
+              str (resolv name ^ " " ^ v),
               str " where",
               Pretty.fbrk,
               Pretty.chunks (map mk_member membrs)
@@ -943,7 +919,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
       | hs_from_def (_, Classinst (((clsname, (tyco, arity)), _), memdefs)) = 
           Pretty.block [
             str "instance ",
-            hs_from_sctxt_type (arity, IType ((upper_first o resolv) clsname, map (IVarT o rpair [] o fst) arity)),
+            hs_from_sctxt_type (arity, IType (clsname, map (IVarT o rpair [] o fst) arity)),
             str " ",
             hs_from_sctxt_type (arity, IType (tyco, map (IVarT o rpair [] o fst) arity)),
             str " where",
@@ -958,7 +934,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
 
 in
 
-fun hs_from_thingol target nsp_dtcon nspgrp =
+fun hs_from_thingol target nsps_upper nspgrp =
   let
     val reserved_hs = [
       "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
@@ -967,21 +943,22 @@ fun hs_from_thingol target nsp_dtcon nspgrp =
     ] @ [
       "Bool", "fst", "snd", "Integer", "True", "False", "negate"
     ];
-    fun upper_first s =
-      let
-        val (pr, b) = split_last (NameSpace.unpack s);
-        val (c::cs) = String.explode b;
-      in NameSpace.pack (pr @ [String.implode (Char.toUpper c :: cs)]) end;
     fun hs_from_module imps ((_, name), ps) =
       (Pretty.block o Pretty.fbreaks) (
-          str ("module " ^ (upper_first name) ^ " where")
+          str ("module " ^ name ^ " where")
       :: map (str o prefix "import ") imps @ [
           str "",
           Pretty.chunks (separate (str "") ps)
       ]);
-    fun is_cons c = has_nsp c nsp_dtcon;
+    fun postproc (shallow, n) =
+      let
+        fun ch_first f = String.implode o nth_map 0 f o String.explode;
+      in if member (op =) nsps_upper shallow
+        then ch_first Char.toUpper n
+        else ch_first Char.toLower n
+      end;
     val serializer = abstract_serializer (target, nspgrp)
-      "Main" (hs_from_defs is_cons, hs_from_module, abstract_validator reserved_hs);
+      "Main" (hs_from_defs, hs_from_module, abstract_validator reserved_hs, postproc);
     fun eta_expander const_syntax c =
       const_syntax c
       |> Option.map (fst o fst)

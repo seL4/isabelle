@@ -178,7 +178,7 @@ val serializers = ref (
   |> Symtab.update (
        #haskell CodegenSerializer.serializers
        |> apsnd (fn seri => seri
-            nsp_dtcon
+            [nsp_module, nsp_class, nsp_tyco, nsp_dtcon]
             [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const, nsp_overl, nsp_mem], [nsp_dtcon], [nsp_inst]]
           )
      )
