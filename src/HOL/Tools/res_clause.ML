@@ -34,7 +34,7 @@ signature RES_CLAUSE =
   val isTaut : clause -> bool
   val keep_types : bool ref
   val list_ord : ('a * 'b -> order) -> 'a list * 'b list -> order
-  val make_axiom_clause : Term.term -> string * int -> clause
+  val make_axiom_clause : Term.term -> string * int -> clause option
   val make_conjecture_clauses : term list -> clause list
   val make_fixed_const : string -> string		
   val make_fixed_type_const : string -> string   
@@ -392,14 +392,13 @@ fun type_ord (AtomV(_),AtomV(_)) = EQUAL
 		      | _ => con_ord
     end
 and
-
-types_ord ([],[]) = EQUAL
+    types_ord ([],[]) = EQUAL
   | types_ord (tps1,tps2) = list_ord type_ord (tps1,tps2);
 
 
-fun term_ord (UVar(_,_),UVar(_,_)) = EQUAL
-  | term_ord (UVar(_,_),_) = LESS
-  | term_ord (Fun(_,_,_),UVar(_)) = GREATER
+fun term_ord (UVar _, UVar _) = EQUAL
+  | term_ord (UVar _, _) = LESS
+  | term_ord (Fun _, UVar _) = GREATER
   | term_ord (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) = 
      (case string_ord (f1,f2) of
          EQUAL => 
@@ -408,8 +407,7 @@ fun term_ord (UVar(_,_),UVar(_,_)) = EQUAL
        | fn_ord => fn_ord)
 
 and
-
-  terms_ord ([],[]) = EQUAL
+      terms_ord ([],[]) = EQUAL
     | terms_ord (tms1,tms2) = list_ord term_ord (tms1,tms2);
 
 
@@ -469,7 +467,7 @@ fun term_eq (UVar(v1,tp1),UVar(v2,tp2)) (vars,tvars) =
     (case check_var_pairs (v1,v2) vars of 0 => type_eq (tp1,tp2) (((v1,v2)::vars),tvars)
 					| 1 => type_eq (tp1,tp2) (vars,tvars)
 					| 2 => (false,(vars,tvars)))
-  | term_eq (UVar(_,_),_) vtvars = (false,vtvars)
+  | term_eq (UVar _,_) vtvars = (false,vtvars)
   | term_eq (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) vtvars =
       let val (eq1,vtvars1) = 
 	      if f1 = f2 then terms_eq (tms1,tms2) vtvars
@@ -529,7 +527,7 @@ fun clause_eq (Clause{literals=lits1,...}, Clause{literals=lits2,...}) =
 
 val xor_words = List.foldl Word.xorb 0w0;
 
-fun hashw_term (UVar(_,_), w) = w
+fun hashw_term (UVar _, w) = w
   | hashw_term (Fun(f,tps,args), w) = 
       List.foldl hashw_term (Polyhash.hashw_string (f,w)) args;
   
@@ -579,18 +577,8 @@ fun add_typs_aux [] = ([],[])
 
 fun get_tvar_strs [] = []
   | get_tvar_strs ((FOLTVar indx,s)::tss) = 
-      let val vstr = make_schematic_type_var indx
-      in
-	  vstr ins (get_tvar_strs tss)
-      end
-  | get_tvar_strs((FOLTFree x,s)::tss) = distinct (get_tvar_strs tss)
-
-fun make_axiom_clause_thm thm (ax_name,cls_id) =
-    let val (lits,types_sorts) = literals_of_term (prop_of thm)
-    in 
-	make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts)
-    end;
-
+      (make_schematic_type_var indx) ins (get_tvar_strs tss)
+  | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
 
 (* check if a clause is first-order before making a conjecture clause*)
 fun make_conjecture_clause n t =
@@ -607,15 +595,32 @@ fun make_conjecture_clauses_aux _ [] = []
 
 val make_conjecture_clauses = make_conjecture_clauses_aux 0
 
+(** Too general means, positive equality literal with a variable X as one operand,
+  when X does not occur properly in the other operand. This rules out clearly
+  inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
+
+fun occurs a (UVar(b,_)) = a=b
+  | occurs a (Fun (_,_,ts)) = exists (occurs a) ts
+
+(*Is the first operand a variable that does not properly occur in the second operand?*)
+fun too_general_terms (UVar _, UVar _) = false
+  | too_general_terms (Fun _, _) = false
+  | too_general_terms (UVar (a,_), t) = not (occurs a t);
+
+fun too_general_lit (Literal (true,Predicate("equal",_,[x,y]),_)) =
+      too_general_terms (x,y) orelse too_general_terms(y,x)
+  | too_general_lit _ = false;
 
 (*before converting an axiom clause to "clause" format, check if it is FOL*)
 fun make_axiom_clause term (ax_name,cls_id) =
     let val _ = check_is_fol_term term 
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Axiom is not FOL", term) 
 	val (lits,types_sorts) = literals_of_term term
-	val lits' = sort_lits lits
     in 
-	make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts)
+	if forall too_general_lit lits then
+	   (Output.debug ("Omitting " ^ ax_name ^ ": equalities are too general"); 
+	    NONE)
+	else SOME (make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts))
     end;
 
 
@@ -861,10 +866,7 @@ fun get_uvars (UVar(a,typ)) = [a]
   | get_uvars (Fun (_,typ,tlist)) = union_all(map get_uvars tlist)
 
 fun dfg_vars (Clause {literals,...}) =
-    let val folterms = List.concat (map dfg_folterms literals)
-    in 
-        union_all(map get_uvars folterms)
-    end
+  union_all (map get_uvars (List.concat (map dfg_folterms literals)))
 
 fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,types_sorts,...}) =
     let val (lits,tfree_lits) = dfg_clause_aux cls 

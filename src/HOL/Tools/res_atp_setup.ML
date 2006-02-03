@@ -291,7 +291,9 @@ fun cnf_hyps_thms ctxt =
 (**** clausification ****)
 fun cls_axiom_fol _ _ [] = []
   | cls_axiom_fol name i (tm::tms) =
-   (ResClause.make_axiom_clause tm (name,i)) :: (cls_axiom_fol name (i+1) tms);
+      case ResClause.make_axiom_clause tm (name,i) of 
+          SOME cls => cls :: cls_axiom_fol name (i+1) tms
+        | NONE => cls_axiom_fol name i tms;
 
 fun cls_axiom_hol  _ _ [] = []
   | cls_axiom_hol name i (tm::tms) =

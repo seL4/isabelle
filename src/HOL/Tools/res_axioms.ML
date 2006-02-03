@@ -398,9 +398,10 @@ fun cnf_rules2 [] err_list = ([],err_list)
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
 fun make_axiom_clauses _ _ [] = []
-  | make_axiom_clauses name i (cls::clss) =
-      (ResClause.make_axiom_clause (prop_of cls) (name,i), cls) ::
-      (make_axiom_clauses name (i+1) clss)
+  | make_axiom_clauses name i (th::ths) =
+      case ResClause.make_axiom_clause (prop_of th) (name,i) of 
+          SOME cls => (cls, th) :: make_axiom_clauses name (i+1) ths
+        | NONE => make_axiom_clauses name i ths;
 
 (* outputs a list of (clause,theorem) pairs *)
 fun clausify_axiom_pairs (name,th) = 
@@ -408,9 +409,9 @@ fun clausify_axiom_pairs (name,th) =
            (make_axiom_clauses name 0 (cnf_axiom (name,th)));
 
 fun make_axiom_clausesH _ _ [] = []
-  | make_axiom_clausesH name i (cls::clss) =
-      (ResHolClause.make_axiom_clause (prop_of cls) (name,i), cls) ::
-      (make_axiom_clausesH name (i+1) clss)
+  | make_axiom_clausesH name i (th::ths) =
+      (ResHolClause.make_axiom_clause (prop_of th) (name,i), th) ::
+      (make_axiom_clausesH name (i+1) ths)
 
 fun clausify_axiom_pairsH (name,th) = 
     filter (fn (c,th) => not (ResHolClause.isTaut c))
