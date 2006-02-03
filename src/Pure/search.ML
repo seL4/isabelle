@@ -63,7 +63,7 @@ fun DEPTH_FIRST satp tac =
 	  case Seq.pull q of
 	      NONE         => depth used qs
 	    | SOME(st,stq) => 
-		if satp st andalso not (gen_mem eq_thm (st, used))
+		if satp st andalso not (member eq_thm used st)
 		then SOME(st, Seq.make
 			         (fn()=> depth (st::used) (stq::qs)))
 		else depth used (tac st :: stq :: qs)

@@ -95,7 +95,7 @@ fun add_spec x y (context, thm) =
 
 fun collect_consts (        t $ u,tms) = collect_consts (u,collect_consts (t,tms))
   | collect_consts (   Abs(_,_,t),tms) = collect_consts (t,tms)
-  | collect_consts (tm as Const _,tms) = gen_ins (op aconv) (tm,tms)
+  | collect_consts (tm as Const _,tms) = insert (op aconv) tm tms
   | collect_consts (            _,tms) = tms
 
 (* Complementing Type.varify... *)

@@ -264,7 +264,7 @@ fun add_hol4_rewrite (context, th) =
 	val _ = message "Adding HOL4 rewrite"
 	val th1 = th RS eq_reflection
 	val current_rews = HOL4Rewrites.get thy
-	val new_rews = gen_ins Thm.eq_thm (th1,current_rews)
+	val new_rews = insert Thm.eq_thm th1 current_rews
 	val updated_thy  = HOL4Rewrites.put new_rews thy
     in
 	(Context.Theory updated_thy,th1)

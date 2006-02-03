@@ -374,7 +374,7 @@ fun add_expand_thm thm thy =
          typeof_eqns = add_rule (([],
            Logic.dest_equals (prop_of (Drule.abs_def thm))), typeof_eqns),
          types = types,
-         realizers = realizers, defs = gen_ins eq_thm (thm, defs),
+         realizers = realizers, defs = insert eq_thm thm defs,
          expand = expand, prep = prep}
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,

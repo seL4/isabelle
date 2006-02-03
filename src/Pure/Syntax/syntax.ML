@@ -218,8 +218,8 @@ fun extend_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     ({input = if inout then xprods @ input else input,
       lexicon = if inout then Scan.extend_lexicon lexicon (SynExt.delims_of xprods) else lexicon,
       gram = if inout then Parser.extend_gram gram xprods else gram,
-      consts = merge_lists' consts1 consts2,
-      prmodes = mode ins_string (merge_lists' prmodes1 prmodes2),
+      consts = Library.merge (op =) (consts1, consts2),
+      prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
         extend_trtab "parse ast translation" parse_ast_translation parse_ast_trtab,
       parse_ruletab = extend_ruletab parse_rules parse_ruletab,
@@ -278,11 +278,11 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
       print_ast_trtab = print_ast_trtab2, tokentrtab = tokentrtab2, prtabs = prtabs2} = tabs2;
   in
     Syntax
-    ({input = merge_lists' input1 input2,
+    ({input = Library.merge (op =) (input1, input2),
       lexicon = Scan.merge_lexicons lexicon1 lexicon2,
       gram = Parser.merge_grams gram1 gram2,
       consts = sort_distinct string_ord (consts1 @ consts2),
-      prmodes = merge_lists prmodes1 prmodes2,
+      prmodes = Library.merge (op =) (prmodes1, prmodes2),
       parse_ast_trtab =
         merge_trtabs "parse ast translation" parse_ast_trtab1 parse_ast_trtab2,
       parse_ruletab = merge_ruletabs parse_ruletab1 parse_ruletab2,

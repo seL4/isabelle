@@ -148,8 +148,8 @@ fun mk_mono thm =
 
 (* attributes *)
 
-val mono_add = Thm.declaration_attribute (map_monos o Drule.add_rules o mk_mono);
-val mono_del = Thm.declaration_attribute (map_monos o Drule.del_rules o mk_mono);
+val mono_add = Thm.declaration_attribute (map_monos o fold Drule.add_rule o mk_mono);
+val mono_del = Thm.declaration_attribute (map_monos o fold Drule.del_rule o mk_mono);
 
 
 

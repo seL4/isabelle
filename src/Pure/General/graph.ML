@@ -55,9 +55,7 @@ type key = Key.key;
 
 val eq_key = equal EQUAL o Key.ord;
 
-infix mem_key;
-val op mem_key = gen_mem eq_key;
-
+val member_key = member eq_key;
 val remove_key = remove eq_key;
 
 
@@ -68,11 +66,8 @@ type keys = unit Table.table;
 
 val empty_keys = Table.empty: keys;
 
-infix mem_keys;
-fun x mem_keys tab = Table.defined (tab: keys) x;
-
-infix ins_keys;
-fun x ins_keys tab = Table.insert (K true) (x, ()) (tab: keys);
+fun member_keys tab = Table.defined (tab: keys);
+fun insert_keys x tab = Table.insert (K true) (x, ()) (tab: keys);
 
 
 (* graphs *)
@@ -126,8 +121,8 @@ fun map_node_yield x f = map_entry_yield x (fn (i, ps) =>
 fun reachable next xs =
   let
     fun reach x (rs, R) =
-      if x mem_keys R then (rs, R)
-      else apfst (cons x) (fold reach (next x) (rs, x ins_keys R))
+      if member_keys R x then (rs, R)
+      else apfst (cons x) (fold reach (next x) (rs, insert_keys x R))
   in fold_map (fn x => reach x o pair []) xs empty_keys end;
 
 (*immediate*)
@@ -161,7 +156,7 @@ fun find_paths G (x, y) =
     val (_, X) = reachable (imm_succs G) [x];
     fun paths ps p =
       if not (null ps) andalso eq_key (p, x) then [p :: ps]
-      else if p mem_keys X andalso not (p mem_key ps)
+      else if member_keys X p andalso not (member_key ps p)
       then List.concat (map (paths (p :: ps)) (imm_preds G p))
       else [];
   in paths [] y end;
@@ -184,7 +179,7 @@ fun del_nodes xs (Graph tab) =
 
 (* edges *)
 
-fun is_edge G (x, y) = y mem_key imm_succs G x handle UNDEF _ => false;
+fun is_edge G (x, y) = member_key (imm_succs G x) y handle UNDEF _ => false;
 
 fun add_edge (x, y) G =
   if is_edge G (x, y) then G
