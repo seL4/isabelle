@@ -1044,27 +1044,20 @@ fun mk_deresolver module nsp_conn preprocess validate =
           ([], SOME tab)
       | get_path_name [p] tab =
           let
-            val _ = writeln ("(1) " ^ p);
             val SOME (N (p', tab')) = Symtab.lookup tab p
           in ([p'], tab') end
       | get_path_name [p1, p2] tab =
-          let
-            val _ = (writeln o prefix "(2) " o NameSpace.pack) [p1, p2];
-          in case Symtab.lookup tab p1
+          case Symtab.lookup tab p1
            of SOME (N (p', SOME tab')) => 
                 let
-                  val _ = writeln ("(2) 'twas a module");
                   val (ps', tab'') = get_path_name [p2] tab'
                 in (p' :: ps', tab'') end
             | NONE =>
                 let
-                  val _ = writeln ("(2) 'twas a definition");
                   val SOME (N (p', NONE)) = Symtab.lookup tab (NameSpace.pack [p1, p2])
                 in ([p'], NONE) end
-          end
       | get_path_name (p::ps) tab =
           let
-            val _ = (writeln o prefix "(3) " o commas) (p::ps);
             val SOME (N (p', SOME tab')) = Symtab.lookup tab p
             val (ps', tab'') = get_path_name ps tab'
           in (p' :: ps', tab'') end;
@@ -1072,99 +1065,11 @@ fun mk_deresolver module nsp_conn preprocess validate =
       if (is_some o Int.fromString) name
       then name
       else let
-        val _ = writeln ("(0) prefix: " ^ commas prefix);
-        val _ = writeln ("(0) name: " ^ name)
         val (common, (_, rem)) = get_prefix (op =) (prefix, NameSpace.unpack name);
-        val _ = writeln ("(0) common: " ^ commas common);
-        val _ = writeln ("(0) rem: " ^ commas rem);
         val (_, SOME tab') = get_path_name common tab;
         val (name', _) = get_path_name rem tab';
       in NameSpace.pack name' end;
   in deresolv (mk module (AList.make (K NameMangler.empty) nsp_conn) Symtab.empty) end;
-
-val _ : module -> string list list -> (string * string -> string) -> (string -> string option) -> string list -> string -> string = mk_deresolver;
-
-fun mk_resolvtab' nsp_conn validate module =
-  let
-    fun validate' n = perhaps validate n;
-    fun ensure_unique prfix prfix' name name' (locals, tab) =
-      let
-        fun uniquify name n =
-          let
-            val name' = if n = 0 then name else name ^ "_" ^ string_of_int n
-          in
-            if member (op =) locals name'
-            then uniquify name (n+1)
-            else case validate name
-              of NONE => name'
-               | SOME name' => uniquify name' n
-          end;
-        val name'' = uniquify name' 0;
-      in
-        (locals, tab)
-        |> apsnd (Symtab.update_new
-             (NameSpace.pack (prfix @ [name]), NameSpace.pack (prfix' @ [name''])))
-        |> apfst (cons name'')
-        |> pair name''
-      end;
-    fun fill_in prfix prfix' node tab =
-      let
-        val keys = Graph.keys node;
-        val nodes = AList.make (Graph.get_node node) keys;
-        val (mods, defs) =
-          nodes
-          |> List.partition (fn (_, Module _) => true | _ => false)
-          |> apfst (map (fn (name, Module m) => (name, m)))
-          |> apsnd (map fst)
-        fun modl_validate (name, modl) (locals, tab) =
-          (locals, tab)
-          |> ensure_unique prfix prfix' name name
-          |-> (fn name' => apsnd (fill_in (prfix @ [name]) (prfix @ [name']) modl))
-        fun ensure_unique_sidf sidf =
-          let
-            val [shallow, name] = NameSpace.unpack sidf;
-          in
-            nsp_conn
-            |> get_first
-                (fn grp => if member (op =) grp shallow
-                  then grp |> remove (op =) shallow |> SOME else NONE)
-            |> these
-            |> map (fn s => NameSpace.pack [s, name])
-            |> exists (member (op =) defs)
-            |> (fn b => if b then sidf else name)
-          end;
-        fun def_validate sidf (locals, tab) =
-          (locals, tab)
-          |> ensure_unique prfix prfix' sidf (ensure_unique_sidf sidf)
-          |> snd
-      in
-        ([], tab)
-        |> fold modl_validate mods
-        |> fold def_validate defs
-        |> snd
-      end;
-  in
-    Symtab.empty
-    |> fill_in [] [] module
-  end;
-
-fun mk_resolv tab =
-  let
-    fun resolver modl name =
-      if NameSpace.is_qualified name then
-        let
-          val _ = debug 12 (fn name' => "resolving " ^ quote name ^ " in "
-               ^ (quote o NameSpace.pack) modl) ();
-          val modl' = if null modl then [] else
-            (NameSpace.unpack o the o Symtab.lookup tab o NameSpace.pack) modl;
-          val name' = (NameSpace.unpack o the o Symtab.lookup tab) name
-        in
-          (NameSpace.pack o snd o snd o get_prefix (op =)) (modl', name')
-          |> debug 12 (fn name' => "resolving " ^ quote name ^ " to "
-               ^ quote name' ^ " in " ^ (quote o NameSpace.pack) modl)
-        end
-      else name
-  in resolver end;
 
 
 (* serialization *)
@@ -1172,7 +1077,6 @@ fun mk_resolv tab =
 fun serialize seri_defs seri_module validate nsp_conn name_root module =
   let
     val resolver = mk_deresolver module nsp_conn snd validate;
-(*     val resolver = mk_resolv (mk_resolvtab' nsp_conn validate module);  *)
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])

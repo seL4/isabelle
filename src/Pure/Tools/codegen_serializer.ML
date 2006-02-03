@@ -404,11 +404,11 @@ fun ml_from_defs (is_cons, needs_type)
           (case tyco_syntax tyco
            of NONE =>
                 let
-                  val f' = (str o resolv) tyco
+                  val tyco' = (str o resolv) tyco
                 in case map (ml_from_type BR) tys
-                 of [] => f'
-                  | [p] => Pretty.block [p, Pretty.brk 1, f']
-                  | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, f']
+                 of [] => tyco'
+                  | [p] => Pretty.block [p, Pretty.brk 1, tyco']
+                  | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, tyco']
                 end
             | SOME ((i, k), pr) =>
                 if not (i <= length tys andalso length tys <= k)
@@ -442,8 +442,16 @@ fun ml_from_defs (is_cons, needs_type)
                 ])
       | ml_from_expr fxy (e as IConst x) =
           ml_from_app fxy (x, [])
-      | ml_from_expr fxy (IVarE (v, _)) =
-          str v
+      | ml_from_expr fxy (IVarE (v, ty)) =
+          if needs_type ty
+            then
+              Pretty.enclose "(" ")" [
+                str v,
+                str ":",
+                ml_from_type NOBR ty
+              ]
+            else
+              str v
       | ml_from_expr fxy (IAbs ((v, _), e)) =
           brackify fxy [
             str ("fn " ^ v ^ " =>"),
@@ -537,7 +545,7 @@ fun ml_from_defs (is_cons, needs_type)
     fun ml_from_datatypes defs =
       let
         val defs' = List.mapPartial
-          (fn (name, Datatype info) => SOME (resolv name, info)
+          (fn (name, Datatype info) => SOME (name, info)
             | (name, Datatypecons _) => NONE
             | (name, def) => error ("datatype block containing illegal def: "
                 ^ (Pretty.output o pretty_def) def)
@@ -563,7 +571,7 @@ fun ml_from_defs (is_cons, needs_type)
         case defs'
          of (def::defs_tl) =>
             chunk_defs (
-              mk_datatype "datatype " def
+              mk_datatype "datatype" def
               :: map (mk_datatype "and ") defs_tl
             ) |> SOME
           | _ => NONE
@@ -877,7 +885,7 @@ fun hs_from_defs is_cons (from_prim, (class_syntax, tyco_syntax, const_syntax))
       | hs_from_def (name, Fun (eqs, (sctxt, ty))) =
           Pretty.chunks [
             Pretty.block [
-              (str o lower_first o resolv) (name ^ " ::"),
+              (str o suffix " ::" o lower_first o resolv) name,
               Pretty.brk 1,
               hs_from_sctxt_type (sctxt, ty)
             ],

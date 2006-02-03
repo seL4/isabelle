@@ -505,19 +505,19 @@ fun devarify_typs tys =
   let
     fun add_rename (var as ((v, _), sort)) used = 
       let
-        val v' = variant used v
+        val v' = "'" ^ variant used (unprefix "'" v)
       in (((var, TFree (v', sort)), (v', TVar var)), v' :: used) end;
     fun typ_names (Type (tyco, tys)) (vars, names) =
           (vars, names |> insert (op =) (NameSpace.base tyco))
           |> fold typ_names tys
       | typ_names (TFree (v, _)) (vars, names) =
-          (vars, names |> insert (op =) v)
-      | typ_names (TVar (v, sort)) (vars, names) =
-          (vars |> AList.update (op =) (v, sort), names);
+          (vars, names |> insert (op =) (unprefix "'" v))
+      | typ_names (TVar (vi, sort)) (vars, names) =
+          (vars |> AList.update (op =) (vi, sort), names);
     val (vars, used) = fold typ_names tys ([], []);
     val (renames, reverse) = fold_map add_rename vars used |> fst |> split_list;
   in
-    (reverse, (map o map_atyps) (Term.instantiateT renames) tys)
+    (reverse, map (Term.instantiateT renames) tys)
   end;
 
 fun burrow_typs_yield f ts =
@@ -553,7 +553,7 @@ fun devarify_terms ts =
     val (vars, used) = fold term_names ts ([], []);
     val (renames, reverse) = fold_map add_rename vars used |> fst |> split_list;
   in
-    (reverse, (map o map_aterms) (Term.instantiate ([], renames)) ts)
+    (reverse, map (Term.instantiate ([], renames)) ts)
   end;
 
 fun devarify_term_typs ts =
