@@ -197,10 +197,13 @@ by auto
 ML_setup {*
 local
   val meta_UU_reorient = thm "UU_reorient" RS eq_reflection;
-  fun is_UU (Const ("Pcpo.UU",_)) = true
-    | is_UU _ = false;
   fun reorient_proc sg _ (_ $ t $ u) =
-    if is_UU u then NONE else SOME meta_UU_reorient;
+    case u of
+        Const("Pcpo.UU",_) => NONE
+      | Const("0", _) => NONE
+      | Const("1", _) => NONE
+      | Const("Numeral.number_of", _) $ _ => NONE
+      | _ => SOME meta_UU_reorient;
 in
   val UU_reorient_simproc = 
     Simplifier.simproc (the_context ())
