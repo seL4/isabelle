@@ -31,11 +31,14 @@ sig
   val norm_types_same: Type.tyenv -> typ list -> typ list
   val beta_norm: term -> term
   val head_norm: env -> term -> term
+  val eta_contract: term -> term
+  val beta_eta_contract: term -> term
   val fastype: env -> typ list -> term -> typ
   val typ_subst_TVars: Type.tyenv -> typ -> typ
   val subst_TVars: Type.tyenv -> term -> term
   val subst_Vars: tenv -> term -> term
   val subst_vars: Type.tyenv * tenv -> term -> term
+  val expand_atom: Type.tsig -> typ -> typ * term -> term
 end;
 
 structure Envir : ENVIR =
@@ -211,6 +214,32 @@ fun head_norm env t =
   in hnorm t handle SAME => t end;
 
 
+(*Eta-contract a term (fully)*)
+
+fun eta_contract t =
+  let
+    exception SAME;
+    fun eta (Abs (a, T, body)) =
+      ((case eta body of
+          body' as (f $ Bound 0) =>
+            if loose_bvar1 (f, 0) then Abs(a, T, body')
+            else incr_boundvars ~1 f
+        | body' => Abs (a, T, body')) handle SAME =>
+       (case body of
+          (f $ Bound 0) =>
+            if loose_bvar1 (f, 0) then raise SAME
+            else incr_boundvars ~1 f
+        | _ => raise SAME))
+      | eta (f $ t) =
+          (let val f' = eta f
+           in f' $ etah t end handle SAME => f $ eta t)
+      | eta _ = raise SAME
+    and etah t = (eta t handle SAME => t)
+  in etah t end;
+
+val beta_eta_contract = eta_contract o beta_norm;
+
+
 (*finds type of term without checking that combinations are consistent
   Ts holds types of bound variables*)
 fun fastype (Envir {iTs, ...}) =
@@ -246,7 +275,7 @@ val subst_TVars = map_term_types o typ_subst_TVars;
 
 (*Substitute for Vars in a term *)
 fun subst_Vars itms t = if Vartab.is_empty itms then t else
-  let fun subst (v as Var ixnT) = getOpt (lookup' (itms, ixnT), v)
+  let fun subst (v as Var ixnT) = the_default v (lookup' (itms, ixnT))
         | subst (Abs (a, T, t)) = Abs (a, T, subst t)
         | subst (f $ t) = subst f $ subst t
         | subst t = t
@@ -264,5 +293,12 @@ fun subst_vars (iTs, itms) =
         | subst (Abs (a, T, t)) = Abs(a, typ_subst_TVars iTs T, subst t)
         | subst (f $ t) = subst f $ subst t
   in subst end;
+
+
+(* expand_atom *)
+
+fun expand_atom tsig T (U, u) =
+  subst_TVars (Type.typ_match tsig (U, T) Vartab.empty) u
+  handle Type.TYPE_MATCH => raise TYPE ("expand_atom: ill-typed replacement", [T, U], [u]);
 
 end;
