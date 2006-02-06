@@ -56,6 +56,7 @@ sig
   val fastype_of1: typ list * term -> typ
   val fastype_of: term -> typ
   val list_abs: (string * typ) list * term -> term
+  val strip_abs: term -> (string * typ) list * term
   val strip_abs_body: term -> term
   val strip_abs_vars: term -> (string * typ) list
   val strip_qnt_body: string -> term -> term
@@ -69,11 +70,11 @@ sig
   val map_type_tvar: (indexname * sort -> typ) -> typ -> typ
   val map_type_tfree: (string * sort -> typ) -> typ -> typ
   val map_term_types: (typ -> typ) -> term -> term
-  val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
   val fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
+  val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
   val add_term_names: term * string list -> string list
   val add_term_varnames: term -> indexname list -> indexname list
   val term_varnames: term -> indexname list
@@ -390,6 +391,11 @@ fun argument_type_of tm =
 
 
 val list_abs = Library.foldr (fn ((x, T), t) => Abs (x, T, t));
+
+fun strip_abs (Abs (a, T, t)) =
+      let val (a', t') = strip_abs t
+      in ((a, T) :: a', t') end
+  | strip_abs t = ([], t);
 
 (* maps  (x1,...,xn)t   to   t  *)
 fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t
