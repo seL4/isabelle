@@ -48,14 +48,12 @@ sig
   val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
-  val lookup_multi: 'a list table -> key -> 'a list
-  val update_multi: (key * 'a) -> 'a list table -> 'a list table
-  val remove_multi: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
-  val make_multi: (key * 'a) list -> 'a list table
-  val dest_multi: 'a list table -> (key * 'a) list
-  val merge_multi: ('a * 'a -> bool) ->
-    'a list table * 'a list table -> 'a list table                     (*exception DUPS*)
-  val merge_multi': ('a * 'a -> bool) ->
+  val lookup_list: 'a list table -> key -> 'a list
+  val update_list: (key * 'a) -> 'a list table -> 'a list table
+  val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
+  val make_list: (key * 'a) list -> 'a list table
+  val dest_list: 'a list table -> (key * 'a) list
+  val merge_list: ('a * 'a -> bool) ->
     'a list table * 'a list table -> 'a list table                     (*exception DUPS*)
 end;
 
@@ -365,17 +363,16 @@ fun merge eq tabs = join (fn _ => fn (y, x) => if eq (y, x) then SOME y else NON
 
 (* tables with multiple entries per key *)
 
-fun lookup_multi tab key = if_none (lookup tab key) [];
-fun update_multi (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
+fun lookup_list tab key = these (lookup tab key);
+fun update_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 
-fun remove_multi eq (key, x) tab =
+fun remove_list eq (key, x) tab =
   map_entry key (fn xs => (case Library.remove eq x xs of [] => raise UNDEF key | ys => ys)) tab
   handle UNDEF _ => delete key tab;
 
-fun make_multi args = fold_rev update_multi args empty;
-fun dest_multi tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
-fun merge_multi eq = join (fn _ => fn (xs, xs') => SOME (gen_merge_lists eq xs xs'));
-fun merge_multi' eq = join (fn _ => fn (xs, xs') => SOME (gen_merge_lists' eq xs xs'));
+fun make_list args = fold_rev update_list args empty;
+fun dest_list tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
+fun merge_list eq = join (fn _ => SOME o Library.merge eq);
 
 
 (*final declarations of this structure!*)
