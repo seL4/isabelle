@@ -17,9 +17,7 @@ signature PATTERN =
 sig
   val trace_unify_fail: bool ref
   val aeconv: term * term -> bool
-  val eta_contract: term -> term
   val eta_long: typ list -> term -> term
-  val beta_eta_contract: term -> term
   val eta_contract_atom: term -> term
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val first_order_match: theory -> term * term
@@ -272,31 +270,6 @@ and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
 fun unify thy = unif thy [];
 
 
-(*Eta-contract a term (fully)*)
-
-fun eta_contract t =
-  let
-    exception SAME;
-    fun eta (Abs (a, T, body)) =
-      ((case eta body of
-          body' as (f $ Bound 0) =>
-            if loose_bvar1 (f, 0) then Abs(a, T, body')
-            else incr_boundvars ~1 f
-        | body' => Abs (a, T, body')) handle SAME =>
-       (case body of
-          (f $ Bound 0) =>
-            if loose_bvar1 (f, 0) then raise SAME
-            else incr_boundvars ~1 f
-        | _ => raise SAME))
-      | eta (f $ t) =
-          (let val f' = eta f
-           in f' $ etah t end handle SAME => f $ eta t)
-      | eta _ = raise SAME
-    and etah t = (eta t handle SAME => t)
-  in etah t end;
-
-val beta_eta_contract = eta_contract o Envir.beta_norm;
-
 (*Eta-contract a term from outside: just enough to reduce it to an atom
 DOESN'T QUITE WORK!
 *)
@@ -476,7 +449,7 @@ fun rewrite_term thy rules procs tm =
       in (abs, t') end;
 
     fun match_rew tm (tm1, tm2) =
-      let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2 in
+      let val rtm = the_default tm2 (Term.rename_abs tm1 tm tm2) in
         SOME (Envir.subst_vars (match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
           handle MATCH => NONE
       end;
@@ -489,16 +462,16 @@ fun rewrite_term thy rules procs tm =
     fun rew1 bounds (Var _) _ = NONE
       | rew1 bounds skel tm = (case rew2 bounds skel tm of
           SOME tm1 => (case rew tm1 of
-              SOME (tm2, skel') => SOME (if_none (rew1 bounds skel' tm2) tm2)
+              SOME (tm2, skel') => SOME (the_default tm2 (rew1 bounds skel' tm2))
             | NONE => SOME tm1)
         | NONE => (case rew tm of
-              SOME (tm1, skel') => SOME (if_none (rew1 bounds skel' tm1) tm1)
+              SOME (tm1, skel') => SOME (the_default tm1 (rew1 bounds skel' tm1))
             | NONE => NONE))
 
     and rew2 bounds skel (tm1 $ tm2) = (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
-              in SOME (if_none (rew2 bounds skel0 tm') tm') end
+              in SOME (the_default tm' (rew2 bounds skel0 tm')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 $ skel2 => (skel1, skel2)
@@ -521,7 +494,7 @@ fun rewrite_term thy rules procs tm =
           end
       | rew2 _ _ _ = NONE;
 
-  in if_none (rew1 0 skel0 tm) tm end;
+  in the_default tm (rew1 0 skel0 tm) end;
 
 end;
 
