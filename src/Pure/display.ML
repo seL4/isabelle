@@ -161,6 +161,7 @@ fun pretty_full_theory thy =
     fun prt_typ ty = Pretty.quote (Sign.pretty_typ thy ty);
     val prt_typ_no_tvars = prt_typ o Type.freeze_type;
     fun prt_term t = Pretty.quote (Sign.pretty_term thy t);
+    val prt_term_no_vars = prt_term o Logic.unvarify;
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -189,21 +190,22 @@ fun pretty_full_theory thy =
 
     val pretty_arities = List.concat o map (fn (t, ars) => map (prt_arity t) ars);
 
-    fun pretty_const (c, ty) = Pretty.block
-      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
+    fun pretty_const (c, (ty, rhs)) = Pretty.block
+      ([Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty] @
+        (case rhs of NONE => [] | SOME t => [Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t]));
 
-    fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
+    fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
 
     val {axioms, defs = _, oracles} = Theory.rep_theory thy;
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
-    val {declarations, constraints} = Consts.dest consts;
+    val {constants, constraints} = Consts.dest consts;
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
     val clsses = NameSpace.dest_table (apsnd (Symtab.make o Graph.dest) classes);
     val tdecls = NameSpace.dest_table types;
     val arties = NameSpace.dest_table (Sign.type_space thy, arities);
-    val cnsts = NameSpace.extern_table declarations;
-    val cnsts' = NameSpace.extern_table constraints;
+    val cnsts = NameSpace.extern_table constants;
+    val cnstrs = NameSpace.extern_table constraints |> map (apsnd (rpair NONE));
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
   in
@@ -218,7 +220,7 @@ fun pretty_full_theory thy =
       Pretty.big_list "logical types:" (List.mapPartial (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities arties),
       Pretty.big_list "consts:" (map pretty_const cnsts),
-      Pretty.big_list "const constraints:" (map pretty_const cnsts'),
+      Pretty.big_list "const constraints:" (map pretty_const cnstrs),
       Pretty.big_list "axioms:" (map prt_axm axms),
       Pretty.strs ("oracles:" :: (map #1 oras))]
   end;
