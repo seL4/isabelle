@@ -26,7 +26,7 @@ structure CodegenData = TheoryDataFun
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge_multi' (Drule.eq_thm_prop o pairself fst);
+  fun merge _ = Symtab.merge_list (Drule.eq_thm_prop o pairself fst);
   fun print _ _ = ();
 end);
 
@@ -44,7 +44,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy
     val (s, _) = const_of (prop_of thm);
   in
     if Pattern.pattern (lhs_of thm) then
-      CodegenData.put (Symtab.update_multi (s, (thm, optmod)) tab) thy
+      CodegenData.put (Symtab.update_list (s, (thm, optmod)) tab) thy
     else (warn thm; thy)
   end handle TERM _ => (warn thm; thy)));
 

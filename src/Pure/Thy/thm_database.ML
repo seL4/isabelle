@@ -105,7 +105,7 @@ fun legacy_bindings thy =
       "val " ^ bname ^ " = thm" ^ (if singleton then "" else "s") ^ " " ^ quote xname;
   in
     Symtab.keys thms |> List.mapPartial prune
-    |> Symtab.make_multi |> Symtab.dest |> sort_wrt #1
+    |> Symtab.make_list |> Symtab.dest |> sort_wrt #1
     |> map (fn (prfx, entries) =>
       entries |> sort_wrt #1 |> map mk_thm |> cat_lines |> mk_struct prfx)
     |> cat_lines

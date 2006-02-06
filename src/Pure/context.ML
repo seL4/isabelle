@@ -416,7 +416,7 @@ fun finish_thy thy =
 
 fun dest_data name_of tab =
   map name_of (Inttab.keys tab)
-  |> map (rpair ()) |> Symtab.make_multi |> Symtab.dest
+  |> map (rpair ()) |> Symtab.make_list |> Symtab.dest
   |> map (apsnd length)
   |> map (fn (name, 1) => name | (name, n) => name ^ enclose "[" "]" (string_of_int n));
 

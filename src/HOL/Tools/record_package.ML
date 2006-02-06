@@ -413,7 +413,7 @@ fun get_extT_fields thy T =
     fun varify (a, S) = TVar ((a, midx), S);
     val varifyT = map_type_tfree varify;
     val {records,extfields,...} = RecordsData.get thy;
-    val (flds,(more,_)) = split_last (Symtab.lookup_multi extfields name);
+    val (flds,(more,_)) = split_last (Symtab.lookup_list extfields name);
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
     val (subst,_) = fold (Sign.typ_unify thy) (but_last args ~~ but_last Ts) (Vartab.empty,0);
@@ -839,7 +839,7 @@ fun prove_split_simp thy ss T prop =
 local
 fun eq (s1:string) (s2:string) = (s1 = s2);
 fun has_field extfields f T =
-     exists (fn (eN,_) => exists (eq f o fst) (Symtab.lookup_multi extfields eN))
+     exists (fn (eN,_) => exists (eq f o fst) (Symtab.lookup_list extfields eN))
        (dest_recTs T);
 in
 (* record_simproc *)

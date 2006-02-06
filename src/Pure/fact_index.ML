@@ -64,8 +64,8 @@ fun add do_props known (fact as (_, ths)) (Index {facts, consts, frees, props}) 
     val (cs, xs) = fold (index_thm known) ths ([], []);
 
     val facts' = fact :: facts;
-    val consts' = consts |> fold (fn c => Symtab.update_multi (c, entry)) cs;
-    val frees' = frees |> fold (fn x => Symtab.update_multi (x, entry)) xs;
+    val consts' = consts |> fold (fn c => Symtab.update_list (c, entry)) cs;
+    val frees' = frees |> fold (fn x => Symtab.update_list (x, entry)) xs;
     val props' = props |> K do_props ?
       fold (fn th => Net.insert_term (K false) (Thm.prop_of th, th)) ths;
   in Index {facts = facts', consts = consts', frees = frees', props = props'} end;
@@ -89,8 +89,8 @@ in
 
 fun find idx ([], []) = facts idx
   | find (Index {consts, frees, ...}) (cs, xs) =
-      (map (Symtab.lookup_multi consts) cs @
-        map (Symtab.lookup_multi frees) xs) |> intersects |> map #2;
+      (map (Symtab.lookup_list consts) cs @
+        map (Symtab.lookup_list frees) xs) |> intersects |> map #2;
 
 end
 
