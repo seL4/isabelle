@@ -18,6 +18,10 @@ open Codegen;
 
 (**** theory data ****)
 
+fun merge_rules tabs =
+  Symtab.join (fn _ => fn (ths, ths') =>
+    SOME (gen_merge_lists (Drule.eq_thm_prop o pairself fst) ths ths')) tabs;
+
 structure CodegenData = TheoryDataFun
 (struct
   val name = "HOL/inductive_codegen";
@@ -31,11 +35,9 @@ structure CodegenData = TheoryDataFun
   val extend = I;
   fun merge _ ({intros=intros1, graph=graph1, eqns=eqns1},
     {intros=intros2, graph=graph2, eqns=eqns2}) =
-    {intros = Symtab.merge_multi (Drule.eq_thm_prop o pairself fst)
-       (intros1, intros2),
+    {intros = merge_rules (intros1, intros2),
      graph = Graph.merge (K true) (graph1, graph2),
-     eqns = Symtab.merge_multi (Drule.eq_thm_prop o pairself fst)
-       (eqns1, eqns2)};
+     eqns = merge_rules (eqns1, eqns2)};
   fun print _ _ = ();
 end);
 
@@ -56,7 +58,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy
           let val cs = foldr add_term_consts [] (prems_of thm)
           in CodegenData.put
             {intros = intros |>
-             Symtab.update (s, Symtab.lookup_multi intros s @ [(thm, thyname_of s)]),
+             Symtab.update (s, Symtab.lookup_list intros s @ [(thm, thyname_of s)]),
              graph = foldr (uncurry (Graph.add_edge o pair s))
                (Library.foldl add_node (graph, s :: cs)) cs,
              eqns = eqns} thy
@@ -66,7 +68,7 @@ fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy
         Const (s, _) =>
           CodegenData.put {intros = intros, graph = graph,
              eqns = eqns |> Symtab.update
-               (s, Symtab.lookup_multi eqns s @ [(thm, thyname_of s)])} thy
+               (s, Symtab.lookup_list eqns s @ [(thm, thyname_of s)])} thy
       | _ => (warn thm; thy))
     | _ => (warn thm; thy))
   end));
