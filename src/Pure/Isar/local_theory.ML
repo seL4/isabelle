@@ -5,35 +5,38 @@
 Local theory operations, with optional target locale.
 *)
 
+type local_theory = Proof.context;
+
 signature LOCAL_THEORY =
 sig
-  val params_of: Proof.context -> (string * typ) list
-  val hyps_of: Proof.context -> term list
-  val standard: Proof.context -> thm -> thm
-  val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
-  val print_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
-  val theory: (theory -> theory) -> Proof.context -> Proof.context
-  val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
-  val init: xstring option -> theory -> Proof.context
-  val init_i: string option -> theory -> Proof.context
-  val exit: Proof.context -> Proof.context * theory
-  val consts: ((bstring * typ) * mixfix) list -> Proof.context -> term list * Proof.context
+  val params_of: local_theory -> (string * typ) list
+  val hyps_of: local_theory -> term list
+  val standard: local_theory -> thm -> thm
+  val pretty_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
+  val quiet_mode: bool ref
+  val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
+  val theory: (theory -> theory) -> local_theory -> local_theory
+  val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
+  val init: xstring option -> theory -> local_theory
+  val init_i: string option -> theory -> local_theory
+  val exit: local_theory -> local_theory * theory
+  val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
   val consts_restricted: (string * typ -> bool) ->
-    ((bstring * typ) * mixfix) list -> Proof.context -> term list * Proof.context
-  val axioms: ((bstring * Attrib.src list) * term list) list -> Proof.context ->
-    (bstring * thm list) list * Proof.context
-  val axioms_finish: (Proof.context -> thm -> thm) ->
-    ((bstring * Attrib.src list) * term list) list -> Proof.context ->
-    (bstring * thm list) list * Proof.context
+    ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
+  val axioms: ((bstring * Attrib.src list) * term list) list -> local_theory ->
+    (bstring * thm list) list * local_theory
+  val axioms_finish: (local_theory -> thm -> thm) ->
+    ((bstring * Attrib.src list) * term list) list -> local_theory ->
+    (bstring * thm list) list * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    Proof.context -> (bstring * thm list) list * Proof.context
-  val note: (bstring * Attrib.src list) * thm list -> Proof.context ->
-    (bstring * thm list) * Proof.context
+    local_theory -> (bstring * thm list) list * local_theory
+  val note: (bstring * Attrib.src list) * thm list -> local_theory ->
+    (bstring * thm list) * local_theory
   val def: (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
-    Proof.context -> (term * (bstring * thm)) * Proof.context
-  val def_finish: (Proof.context -> term -> thm -> thm) ->
+    local_theory -> (term * (bstring * thm)) * local_theory
+  val def_finish: (local_theory -> term -> thm -> thm) ->
     (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
-    Proof.context -> (term * (bstring * thm)) * Proof.context
+    local_theory -> (term * (bstring * thm)) * local_theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -71,6 +74,8 @@ fun standard ctxt =
 
 (* print consts *)
 
+val quiet_mode = ref false;
+
 local
 
 fun pretty_var ctxt (x, T) =
@@ -87,7 +92,8 @@ fun pretty_consts ctxt pred cs =
   | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
 
 fun print_consts _ _ [] = ()
-  | print_consts ctxt pred cs = Pretty.writeln (pretty_consts ctxt pred cs);
+  | print_consts ctxt pred cs =
+      if ! quiet_mode then () else Pretty.writeln (pretty_consts ctxt pred cs);
 
 end;
 
