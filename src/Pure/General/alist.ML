@@ -35,12 +35,12 @@ struct
 
 fun find_index eq xs key =
   let
-    fun find [] _ = 0
+    fun find [] _ = ~1
       | find ((key', value)::xs) i =
           if eq (key, key')
           then i
           else find xs (i+1);
-  in find xs 1 end;
+  in find xs 0 end;
 
 fun lookup _ [] _ = NONE
   | lookup eq ((key, value)::xs) key' =
@@ -54,9 +54,9 @@ fun defined _ [] _ = false
 fun update eq (x as (key, value)) xs =
   let
     val i = find_index eq xs key;
-    fun upd 1 (_::xs) = (x::xs)
+    fun upd 0 (_::xs) = x :: xs
       | upd i (x::xs) = x :: upd (i-1) xs;
-  in if i = 0 then x::xs else upd i xs end;
+  in if i = ~1 then x::xs else upd i xs end;
 
 fun default eq (key, value) xs =
   if defined eq xs key then xs else (key, value)::xs;
@@ -64,51 +64,43 @@ fun default eq (key, value) xs =
 fun delete eq key xs =
   let
     val i = find_index eq xs key;
-    fun del 1 (_::xs) = xs
+    fun del 0 (_::xs) = xs
       | del i (x::xs) = x :: del (i-1) xs;
-  in if i = 0 then xs else del i xs end;
+  in if i = ~1 then xs else del i xs end;
 
 fun map_entry eq key f xs =
   let
     val i = find_index eq xs key;
-    fun mapp 1 ((x as (key, value))::xs) = (key, f value) :: xs
+    fun mapp 0 ((x as (key, value))::xs) = (key, f value) :: xs
       | mapp i (x::xs) = x :: mapp (i-1) xs;
-  in if i = 0 then xs else mapp i xs end;
+  in if i = ~1 then xs else mapp i xs end;
 
 fun map_entry_yield eq key f xs =
   let
     val i = find_index eq xs key;
-    fun mapp 1 ((x as (key, value))::xs) =
+    fun mapp 0 ((x as (key, value))::xs) =
           let val (r, value') = f value
           in (SOME r, (key, value') :: xs) end
       | mapp i (x::xs) =
           let val (r, xs') = mapp (i-1) xs
           in (r, x::xs') end;
-  in if i = 0 then (NONE, xs) else mapp i xs end;
+  in if i = ~1 then (NONE, xs) else mapp i xs end;
 
 exception DUP;
 
 fun join eq f (xs, ys) =
   let
-    fun add (key, x) xs =
+    fun add (y as (key, value)) xs =
       (case lookup eq xs key of
-        NONE => update eq (key, x) xs
-      | SOME y =>
-          (case f key (y, x) of
-            SOME z => update eq (key, z) xs
+        NONE => cons y xs
+      | SOME value' =>
+          (case f key (value', value) of
+            SOME value'' => update eq (key, value'') xs
           | NONE => raise DUP));
-  in fold_rev add xs ys end;
+  in fold_rev add ys xs end;
 
-fun merge eq_key eq_val (xs, ys) =
-  let
-    fun add (x as (key, value)) ys =
-      case lookup eq_key ys key
-       of NONE => update eq_key x ys
-        | SOME value' =>
-            if eq_val (value, value')
-            then ys
-            else raise DUP;
-  in fold_rev add xs ys end;
+fun merge eq_key eq_val =
+  join eq_key (K (fn (yx as (_, x)) => if eq_val yx then SOME x else NONE));
 
 fun make keyfun =
   let fun keypair x = (x, keyfun x)
