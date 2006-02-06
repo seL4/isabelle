@@ -151,7 +151,7 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 local
 
 fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-  | inst_typ env (T as TFree (x, _)) = if_none (AList.lookup (op =) env x) T
+  | inst_typ env (T as TFree (x, _)) = the_default T (AList.lookup (op =) env x)
   | inst_typ _ T = T;
 
 fun certify_typ normalize syntax tsig ty =
@@ -487,7 +487,7 @@ fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
 
 fun insert_arities pp classes (t, ars) arities =
   let val ars' =
-    Symtab.lookup_multi arities t
+    Symtab.lookup_list arities t
     |> fold_rev (fold_rev (insert pp classes t)) (map (complete classes) ars)
   in Symtab.update (t, ars') arities end;
 

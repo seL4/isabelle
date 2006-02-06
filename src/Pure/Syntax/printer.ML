@@ -191,7 +191,7 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
-fun mode_tab prtabs mode = if_none (AList.lookup (op =) prtabs mode) Symtab.empty;
+fun mode_tab prtabs mode = the_default Symtab.empty (AList.lookup (op =) prtabs mode);
 fun mode_tabs prtabs modes = List.mapPartial (AList.lookup (op =) prtabs) (modes @ [""]);
 
 
@@ -248,13 +248,13 @@ fun change_prtabs f mode xprods prtabs =
     val tab = fold f fmts (mode_tab prtabs mode);
   in AList.update (op =) (mode, tab) prtabs end;
 
-fun extend_prtabs m = change_prtabs Symtab.update_multi m;
-fun remove_prtabs m = change_prtabs (Symtab.remove_multi (op =)) m;
+fun extend_prtabs m = change_prtabs Symtab.update_list m;
+fun remove_prtabs m = change_prtabs (Symtab.remove_list (op =)) m;
 
 fun merge_prtabs prtabs1 prtabs2 =
   let
     val modes = distinct (map fst (prtabs1 @ prtabs2));
-    fun merge m = (m, Symtab.merge_multi' (op =) (mode_tab prtabs1 m, mode_tab prtabs2 m));
+    fun merge m = (m, Symtab.merge_list (op =) (mode_tab prtabs1 m, mode_tab prtabs2 m));
   in map merge modes end;
 
 
@@ -330,7 +330,7 @@ fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
 
         (*find matching table entry, or print as prefix / postfix*)
         fun prnt ([], []) = prefixT tup
-          | prnt ([], tb :: tbs) = prnt (Symtab.lookup_multi tb a, tbs)
+          | prnt ([], tb :: tbs) = prnt (Symtab.lookup_list tb a, tbs)
           | prnt ((pr, n, p') :: prnps, tbs) =
               if nargs = n then parT (pr, args, p, p')
               else if nargs > n andalso not type_mode then
