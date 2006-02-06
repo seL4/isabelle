@@ -25,24 +25,19 @@ struct
 fun gen_constdef prep_vars prep_term prep_att
     structs (raw_decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
-    fun err msg ts =
-      error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
+    fun err msg ts = error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
 
-    val (_, ctxt) = thy |> ProofContext.init |> ProofContext.add_fixes_i structs;
-    val ((d, mx), ctxt') =
+    val thy_ctxt = ProofContext.init thy;
+    val struct_ctxt = #2 (ProofContext.add_fixes_i structs thy_ctxt);
+    val ((d, mx), var_ctxt) =
       (case raw_decl of
-        NONE => ((NONE, NoSyn), ctxt)
+        NONE => ((NONE, NoSyn), struct_ctxt)
       | SOME raw_var =>
-          ctxt |> prep_vars [raw_var] |-> (fn [(x, T, mx)] =>
+          struct_ctxt |> prep_vars [raw_var] |-> (fn [(x, T, mx)] =>
             ProofContext.add_fixes_legacy [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
-    val prop = prep_term ctxt' raw_prop;
-    val concl = Logic.strip_imp_concl prop;
-    val (lhs, _) = Logic.dest_equals concl handle TERM _ =>
-      err "Not a meta-equality (==):" [concl];
-    val head = Term.head_of lhs;
-    val (c, T) = Term.dest_Free head handle TERM _ =>
-      err "Locally fixed variable required as head of definition:" [head];
+    val prop = prep_term var_ctxt raw_prop;
+    val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
     val _ = (case d of NONE => () | SOME c' =>
       if c <> c' then
         err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
