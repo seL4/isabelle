@@ -255,7 +255,7 @@ fun dest_comb (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
 
 (*Destruct abstraction in cterms*)
 fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
-      let val (y', t') = Term.dest_abs (if_none a x, T, t) in
+      let val (y', t') = Term.dest_abs (the_default x a, T, t) in
         (Cterm {t = Free (y', T), T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
           Cterm {t = t', T = U, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
@@ -282,7 +282,7 @@ fun capply
 fun cabs
   (ct1 as Cterm {t = t1, T = T1, maxidx = maxidx1, sorts = sorts1, ...})
   (ct2 as Cterm {t = t2, T = T2, maxidx = maxidx2, sorts = sorts2, ...}) =
-    let val t = lambda t1 t2 handle TERM _ => raise CTERM "cabs: first arg is not a variable" in
+    let val t = lambda t1 t2 handle TERM _ => raise CTERM "cabs: malformed first argument" in
       Cterm {thy_ref = merge_thys0 ct1 ct2,
         t = t, T = T1 --> T2,
         maxidx = Int.max (maxidx1, maxidx2),
@@ -380,7 +380,7 @@ fun crep_thm (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
 fun terms_of_tpairs tpairs = fold_rev (fn (t, u) => cons t o cons u) tpairs [];
 
 fun eq_tpairs ((t, u), (t', u')) = t aconv t' andalso u aconv u';
-val union_tpairs = gen_merge_lists eq_tpairs;
+fun union_tpairs ts us = Library.merge eq_tpairs (ts, us);
 val maxidx_tpairs = fold (fn (t, u) => Term.maxidx_term t #> Term.maxidx_term u);
 
 fun attach_tpairs tpairs prop =
@@ -820,7 +820,7 @@ fun eta_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
     shyps = sorts,
     hyps = [],
     tpairs = [],
-    prop = Logic.mk_equals (t, Pattern.eta_contract t)};
+    prop = Logic.mk_equals (t, Envir.eta_contract t)};
 
 (*The abstraction rule.  The Free or Var x must not be free in the hypotheses.
   The bound variable will be named "a" (since x will be something like x320)
@@ -1340,7 +1340,7 @@ fun rename_bvs([],_,_,_) = I
                               else Var((y,i),T)
                  | NONE=> t)
           | rename(Abs(x,T,t)) =
-              Abs (if_none (AList.lookup (op =) al x) x, T, rename t)
+              Abs (the_default x (AList.lookup (op =) al x), T, rename t)
           | rename(f$t) = rename f $ rename t
           | rename(t) = t;
         fun strip_ren Ai = strip_apply rename (Ai,B)
