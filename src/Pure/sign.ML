@@ -25,6 +25,8 @@ sig
   val del_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_abbrevs: (bstring * string * mixfix) list -> theory -> theory
+  val add_abbrevs_i: (bstring * term * mixfix) list -> theory -> theory
   val add_const_constraint: xstring * string -> theory -> theory
   val add_const_constraint_i: string * typ -> theory -> theory
   val add_classes: (bstring * xstring list) list -> theory -> theory
@@ -116,6 +118,7 @@ sig
   val const_monomorphic: theory -> string -> bool
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
+  val const_expansion: theory -> string * typ -> term option
   val class_space: theory -> NameSpace.T
   val type_space: theory -> NameSpace.T
   val const_space: theory -> NameSpace.T
@@ -155,6 +158,8 @@ sig
   val certify_prop: Pretty.pp -> theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
+  val no_vars: Pretty.pp -> term -> term
+  val cert_def: Pretty.pp -> term -> (string * typ) * term
   val read_sort': Syntax.syntax -> Context.generic -> string -> sort
   val read_sort: theory -> string -> sort
   val read_typ': Syntax.syntax -> Context.generic ->
@@ -183,8 +188,6 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
-  val const_of_class: class -> string
-  val class_of_const: string -> class
   include SIGN_THEORY
 end
 
@@ -285,6 +288,7 @@ val const_type = try o the_const_type;
 val const_monomorphic = Consts.monomorphic o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
+fun const_expansion thy = Consts.expansion (tsig_of thy) (consts_of thy);
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = is_some oo const_type;
@@ -324,7 +328,7 @@ fun mapping add_names f t =
   let
     fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
     val tab = List.mapPartial f' (add_names (t, []));
-    fun get x = if_none (AList.lookup (op =) tab x) x;
+    fun get x = the_default x (AList.lookup (op =) tab x);
   in get end;
 
 fun typ_mapping f g thy T =
@@ -439,28 +443,18 @@ fun certify_term pp thy tm =
   let
     val _ = Context.check_thy thy;
 
-    val tm' = map_term_types (certify_typ thy) tm;
+    fun check_vars (t $ u) = (check_vars t; check_vars u)
+      | check_vars (Abs (_, _, t)) = check_vars t
+      | check_vars (t as Var ((x, i), _)) =
+          if i < 0 then raise TYPE ("Malformed variable: " ^ quote x, [], [t]) else ()
+      | check_vars _ = ();
+
+    val tm' = tm
+      |> map_term_types (certify_typ thy)
+      |> Consts.certify pp (tsig_of thy) (consts_of thy)
+      |> tap check_vars;
     val tm' = if tm = tm' then tm else tm';  (*avoid copying of already normal term*)
-
-    fun err msg = raise TYPE (msg, [], [tm']);
-
-    fun show_const a T = quote a ^ " :: " ^ Pretty.string_of_typ pp T;
-
-    fun check_atoms (t $ u) = (check_atoms t; check_atoms u)
-      | check_atoms (Abs (_, _, t)) = check_atoms t
-      | check_atoms (Const (a, T)) =
-          (case const_type thy a of
-            NONE => err ("Undeclared constant " ^ show_const a T)
-          | SOME U =>
-              if typ_instance thy (T, U) then ()
-              else err ("Illegal type for constant " ^ show_const a T))
-      | check_atoms (Var ((x, i), _)) =
-          if i < 0 then err ("Malformed variable: " ^ quote x) else ()
-      | check_atoms _ = ();
-  in
-    check_atoms tm';
-    (tm', type_check pp tm', maxidx_of_term tm')
-  end;
+  in (tm', type_check pp tm', maxidx_of_term tm') end;
 
 end;
 
@@ -470,6 +464,24 @@ fun certify_prop pp thy tm =
 
 fun cert_term thy tm = #1 (certify_term (pp thy) thy tm);
 fun cert_prop thy tm = #1 (certify_prop (pp thy) thy tm);
+
+
+(* specifications *)
+
+fun no_vars pp tm =
+  (case (Term.term_vars tm, Term.term_tvars tm) of
+    ([], []) => tm
+  | (ts, ixns) => error (Pretty.string_of (Pretty.block (Pretty.breaks
+      (Pretty.str "Illegal schematic variable(s) in term:" ::
+       map (Pretty.term pp) ts @ map (Pretty.typ pp o TVar) ixns)))));
+
+fun cert_def pp tm =
+  let val ((lhs, rhs), _) = tm
+    |> no_vars pp
+    |> Logic.strip_imp_concl
+    |> Logic.dest_def pp Term.is_Const (K false) (K false)
+  in (Term.dest_Const (Term.head_of lhs), rhs) end
+  handle TERM (msg, _) => error msg;
 
 
 
@@ -715,6 +727,35 @@ val add_consts_i = gen_add_consts certify_typ;
 end;
 
 
+(* add abbreviations *)
+
+local
+
+fun gen_add_abbrevs prep_term raw_args thy =
+  let
+    val prep_tm =
+      Compress.term thy o Logic.varify o no_vars (pp thy) o Term.no_dummy_patterns o prep_term thy;
+    fun prep (raw_c, raw_t, mx) =
+      let
+        val c = Syntax.const_name raw_c mx;
+        val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg)
+          handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
+      in ((c, t), (raw_c, Term.fastype_of t, mx)) end;
+    val (abbrs, syn) = split_list (map prep raw_args);
+  in
+    thy
+    |> map_consts (fold (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy)) abbrs)
+    |> add_syntax_i syn
+  end;
+
+in
+
+val add_abbrevs = gen_add_abbrevs read_term;
+val add_abbrevs_i = gen_add_abbrevs cert_term;
+
+end;
+
+
 (* add constraints *)
 
 fun gen_add_constraint int_const prep_typ (raw_c, raw_T) thy =
@@ -732,12 +773,6 @@ val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
 
 (* add type classes *)
 
-val classN = "_class";
-
-val const_of_class = suffix classN;
-fun class_of_const c = unsuffix classN c
-  handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
-
 fun gen_add_class int_class (bclass, raw_classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
@@ -745,7 +780,7 @@ fun gen_add_class int_class (bclass, raw_classes) thy =
       val syn' = Syntax.extend_consts [bclass] syn;
       val tsig' = Type.add_classes (pp thy) naming [(bclass, classes)] tsig;
     in (naming, syn', tsig', consts) end)
-  |> add_consts_i [(const_of_class bclass, a_itselfT --> propT, NoSyn)];
+  |> add_consts_i [(Logic.const_of_class bclass, a_itselfT --> propT, NoSyn)];
 
 val add_classes = fold (gen_add_class intern_class);
 val add_classes_i = fold (gen_add_class (K I));
