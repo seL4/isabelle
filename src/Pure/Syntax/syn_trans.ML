@@ -20,6 +20,7 @@ sig
   val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
+  val bound_vars: (string * typ) list -> term -> term
   val variant_abs': string * typ * term -> string * term
   val fixedN: string
 end;
@@ -236,6 +237,9 @@ fun applC_ast_tr' (f, []) = raise Ast.AST ("applC_ast_tr'", [f])
 
 fun mark_boundT x_T = Lexicon.const "_bound" $ Free x_T;
 fun mark_bound x = mark_boundT (x, dummyT);
+
+fun bound_vars vars body =
+  subst_bounds (map mark_boundT (Term.rename_wrt_term body vars), body);
 
 fun strip_abss vars_of body_of tm =
   let
