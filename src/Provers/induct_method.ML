@@ -307,8 +307,8 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
       |> `(Thm.prop_of #> Logic.strip_assums_concl)
       |-> (fn pred $ arg =>
         Drule.cterm_instantiate
-          [(cert (Term.head_of pred), cert (Unify.rlist_abs (xs, body))),
-           (cert (Term.head_of arg), cert (Unify.rlist_abs (xs, v)))]);
+          [(cert (Term.head_of pred), cert (Logic.rlist_abs (xs, body))),
+           (cert (Term.head_of arg), cert (Logic.rlist_abs (xs, v)))]);
 
     fun goal_concl k xs (Const ("all", _) $ Abs (a, T, B)) = goal_concl k ((a, T) :: xs) B
       | goal_concl 0 xs B =
