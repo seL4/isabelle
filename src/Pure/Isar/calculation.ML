@@ -128,7 +128,7 @@ val get_rules = #1 o CalculationData.get o Context.Proof o Proof.context_of;
 fun calculate prep_rules final raw_rules int state =
   let
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
-    val eq_prop = op aconv o pairself (Pattern.eta_contract o strip_assums_concl);
+    val eq_prop = op aconv o pairself (Envir.beta_eta_contract o strip_assums_concl);
     fun projection ths th = Library.exists (Library.curry eq_prop th) ths;
 
     val opt_rules = Option.map (prep_rules state) raw_rules;
