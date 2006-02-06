@@ -69,7 +69,7 @@ fun process_eqn sign (eq, rec_fns) =
     if length middle > 1 then 
       raise RecError "more than one non-variable in pattern"
     else
-     (check_vars "repeated variable names in pattern: " (duplicates lfrees);
+     (check_vars "repeated variable names in pattern: " (gen_duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
         (map dest_Free (term_frees rhs) \\ lfrees);
       case AList.lookup (op =) rec_fns fnameT of

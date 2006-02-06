@@ -71,7 +71,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
     val new_eqn = (cname, (rhs, cargs, eq))
 
   in
-    if not (null (duplicates lfrees)) then
+    if (not o null o gen_duplicates (op =)) lfrees then
       raise RecError "repeated variable name in pattern"
     else if not ((map dest_Free (term_frees rhs)) subset lfrees) then
       raise RecError "extra variables on rhs"

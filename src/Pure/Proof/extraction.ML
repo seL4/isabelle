@@ -365,7 +365,7 @@ fun add_expand_thm thm thy =
 
     val is_def =
       (case strip_comb (fst (Logic.dest_equals (prop_of thm))) of
-         (Const _, ts) => forall is_Var ts andalso null (duplicates ts)
+         (Const _, ts) => forall is_Var ts andalso not (has_duplicates (op =) ts)
            andalso can (Thm.get_axiom_i thy) name
        | _ => false) handle TERM _ => false;
   in

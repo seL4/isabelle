@@ -902,8 +902,8 @@ fun shrink_proof thy =
               if ch orelse ch' then prf' % Option.map compress_term t' else prf) end
       | shrink' ls lev ts prfs (prf as PBound i) =
           (if exists (fn SOME (Bound j) => lev-j <= List.nth (ls, i) | _ => true) ts
-             orelse not (null (duplicates
-               (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))))
+             orelse has_duplicates (op =)
+               (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
       | shrink' ls lev ts prfs (Hyp t) = ([], false, map (pair false) ts, Hyp (compress_term t))
       | shrink' ls lev ts prfs (prf as MinProof _) =

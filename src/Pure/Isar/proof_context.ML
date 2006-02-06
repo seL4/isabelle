@@ -1115,7 +1115,7 @@ fun gen_fixes prep raw_vars ctxt =
     val (ys, zs) = split_list (fixes_of ctxt);
     val (vars, ctxt') = prep raw_vars ctxt;
     val xs = map #1 vars;
-    val _ = no_dups ctxt (duplicates xs);
+    val _ = no_dups ctxt (gen_duplicates (op =) xs);
     val xs' =
       if is_body ctxt then Term.variantlist (map Syntax.skolem xs, zs)
       else (no_dups ctxt (xs inter_string ys); no_dups ctxt (xs inter_string zs); xs);

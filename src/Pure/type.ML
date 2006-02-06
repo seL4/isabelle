@@ -624,7 +624,7 @@ fun add_abbrev naming (a, vs, rhs) tsig = tsig |> change_types (fn types =>
     val rhs' = strip_sorts (no_tvars (cert_typ_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
   in
-    (case duplicates vs of
+    (case gen_duplicates (op =) vs of
       [] => []
     | dups => err ("Duplicate variables on lhs: " ^ commas_quote dups));
     (case gen_rems (op =) (map (#1 o #1) (typ_tvars rhs'), vs) of

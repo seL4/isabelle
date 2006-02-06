@@ -628,7 +628,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 fun add_typedecls decls thy =
   let
     fun type_of (a, vs, mx) =
-      if null (duplicates vs) then (a, length vs, mx)
+      if not (has_duplicates (op =) vs) then (a, length vs, mx)
       else error ("Duplicate parameters in type declaration: " ^ quote a);
   in add_types (map type_of decls) thy end;
 

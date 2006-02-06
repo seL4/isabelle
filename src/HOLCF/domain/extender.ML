@@ -43,15 +43,15 @@ fun check_and_sort_domain (dtnvs: (string * typ list) list,
      cons'' : ((string * mixfix * (bool * string option * typ) list) list) list) sg =
   let
     val defaultS = Sign.defaultS sg;
-    val test_dupl_typs = (case duplicates (map fst dtnvs) of 
+    val test_dupl_typs = (case gen_duplicates (op =) (map fst dtnvs) of 
 	[] => false | dups => error ("Duplicate types: " ^ commas_quote dups));
-    val test_dupl_cons = (case duplicates (map first (List.concat cons'')) of 
+    val test_dupl_cons = (case gen_duplicates (op =) (map first (List.concat cons'')) of 
 	[] => false | dups => error ("Duplicate constructors: " 
 							 ^ commas_quote dups));
-    val test_dupl_sels = (case duplicates (List.mapPartial second
+    val test_dupl_sels = (case gen_duplicates (op =) (List.mapPartial second
 			       (List.concat (map third (List.concat cons'')))) of
         [] => false | dups => error("Duplicate selectors: "^commas_quote dups));
-    val test_dupl_tvars = exists(fn s=>case duplicates(map(fst o dest_TFree)s)of
+    val test_dupl_tvars = exists(fn s=>case gen_duplicates (op =) (map(fst o dest_TFree)s)of
 	[] => false | dups => error("Duplicate type arguments: " 
 		   ^commas_quote dups)) (map snd dtnvs);
     (* test for free type variables, illegal sort constraints on rhs,
