@@ -18,8 +18,6 @@ sig
   val trace_types: bool ref
   val search_bound: int ref
   (*other exports*)
-  val combound: term * int * int -> term
-  val rlist_abs: (string * typ) list * term -> term
   val smash_unifiers: theory * Envir.env * (term * term) list -> Envir.env Seq.seq
   val unifiers: theory * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
@@ -198,11 +196,6 @@ fun get_eta_var ([], _, Var vT)  =  vT
   | get_eta_var _ = raise ASSIGN;
 
 
-(* ([xn,...,x1], t)   ======>   (x1,...,xn)t *)
-fun rlist_abs ([], body) = body
-  | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
-
-
 (*Solve v=u by assignment -- "fixedpoint" to Huet -- if v not in u.
   If v occurs rigidly then nonunifiable.
   If v occurs nonrigidly then must use full algorithm. *)
@@ -211,7 +204,7 @@ fun assignment thy (env, rbinder, t, u) =
     in  case rigid_occurs_term (ref [], env, v, u) of
 	      NoOcc => let val env = unify_types thy (body_type env T,
 						 fastype env (rbinder,u),env)
-		in Envir.update ((vT, rlist_abs (rbinder, u)), env) end
+		in Envir.update ((vT, Logic.rlist_abs (rbinder, u)), env) end
 	    | Nonrigid =>  raise ASSIGN
 	    | Rigid =>  raise CANTUNIFY
     end;
@@ -295,11 +288,6 @@ fun SIMPL thy (env,dpairs) : Envir.env * dpair list * dpair list =
     end;
 
 
-(*computes t(Bound(n+k-1),...,Bound(n))  *)
-fun combound (t, n, k) = 
-    if  k>0  then  combound (t,n+1,k-1) $ (Bound n)  else  t;
-
-
 (*Makes the terms E1,...,Em,    where Ts = [T...Tm]. 
   Each Ei is   ?Gi(B.(n-1),...,B.0), and has type Ti
   The B.j are bound vars of binder.
@@ -309,7 +297,7 @@ fun make_args name (binder: typ list, env, []) = (env, [])   (*frequent case*)
   | make_args name (binder: typ list, env, Ts) : Envir.env * term list =
        let fun funtype T = binder--->T;
 	   val (env', vars) = Envir.genvars name (env, map funtype Ts)
-       in  (env',  map (fn var=> combound(var, 0, length binder)) vars)  end;
+       in  (env',  map (fn var=> Logic.combound(var, 0, length binder)) vars)  end;
 
 
 (*Abstraction over a list of types, like list_abs*)
@@ -379,7 +367,7 @@ in case uhead of
       | Var (w,uary) => 
 	    (*a flex-flex dpair: make variable for t*)
 	    let val (env', newhd) = Envir.genvar (#1 w) (env, Ts---> base)
-		val tabs = combound(newhd, 0, length Ts)
+		val tabs = Logic.combound(newhd, 0, length Ts)
 		val tsub = list_comb(newhd,targs)
 	    in  Seq.single (tabs, (env', (rbinder,tsub,u):: dpairs)) 
 	    end
@@ -414,7 +402,7 @@ in if occurs_terms (ref [], env, v, [u]) then raise ASSIGN
    else let val env = unify_types thy (body_type env T,
 				  fastype env (rbinder,u),
 				  env)
-	in Envir.vupdate ((vT, rlist_abs (rbinder, u)), env) end
+	in Envir.vupdate ((vT, Logic.rlist_abs (rbinder, u)), env) end
 end;
 
 
@@ -503,7 +491,7 @@ fun clean_term banned (env,t) =
 fun add_tpair (rbinder, (t0,u0), tpairs) : (term*term) list =
   if t0 aconv u0 then tpairs  
   else
-  let val t = rlist_abs(rbinder, t0)  and  u = rlist_abs(rbinder, u0);
+  let val t = Logic.rlist_abs(rbinder, t0)  and  u = Logic.rlist_abs(rbinder, u0);
       fun same(t',u') = (t aconv t') andalso (u aconv u')
   in  if exists same tpairs  then tpairs  else (t,u)::tpairs  end;
 
@@ -552,7 +540,7 @@ fun add_ffpair thy ((rbinder,t0,u0), (env,tpairs))
 fun print_dpairs thy msg (env,dpairs) =
   let fun pdp (rbinder,t,u) =
         let fun termT t = Sign.pretty_term thy
-                              (Envir.norm_term env (rlist_abs(rbinder,t)))
+                              (Envir.norm_term env (Logic.rlist_abs(rbinder,t)))
             val bsymbs = [termT u, Pretty.str" =?=", Pretty.brk 1,
                           termT t];
         in tracing(Pretty.string_of(Pretty.blk(0,bsymbs))) end;
