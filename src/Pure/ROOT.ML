@@ -31,14 +31,14 @@ use "compress.ML";
 cd "Syntax"; use "ROOT.ML"; cd "..";
 
 (*core of tactical proof system*)
+use "envir.ML";
+use "logic.ML";
 use "type_infer.ML";
 use "consts.ML";
 use "sign.ML";
-use "envir.ML";
 use "pattern.ML";
 use "unify.ML";
 use "net.ML";
-use "logic.ML";
 use "defs.ML";
 use "theory.ML";
 use "proofterm.ML";
