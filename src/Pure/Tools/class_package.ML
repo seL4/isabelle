@@ -246,7 +246,7 @@ end; (* local *)
 
 fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy = 
   let
-    val dest_def = Theory.dest_def (Sign.pp thy) handle TERM (msg, _) => error msg;
+    val pp = Sign.pp thy;
     val arity as (tyco, asorts, sort) = prep_arity thy ((fn ((x, y), z) => (x, y, z)) raw_arity);
     val ty_inst = Type (tyco, map2 (curry TVar o rpair 0) (Term.invent_names [] "'a" (length asorts)) asorts)
     fun get_c_req class =
@@ -268,7 +268,7 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
     fun check_defs raw_defs c_req thy =
       let
         val thy' = Sign.add_arities_i [(tyco, asorts, sort)] thy;
-        val c_given = map (fst o dest_def o snd o tap_def thy' o fst) raw_defs;
+        val c_given = map (fst o Sign.cert_def pp o snd o tap_def thy' o fst) raw_defs;
         fun eq_c ((c1, ty1), (c2, ty2)) = 
           let
             val ty1' = Type.varifyT ty1;
@@ -297,12 +297,6 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
     ||> add_defs (true, raw_defs)
     |-> (fn cs => AxClass.instance_arity_i (after_qed cs) arity)
   end;
-
-val _ : string option ->
-    ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
-    theory -> (term * (bstring * thm)) list * (Proof.context * theory)
-  = Specification.definition_i;
-
 
 val add_instance_arity = fn x => gen_instance_arity (AxClass.read_arity) IsarThy.add_defs read_axm x;
 val add_instance_arity_i = fn x => gen_instance_arity (AxClass.cert_arity) IsarThy.add_defs_i (K I) x;
