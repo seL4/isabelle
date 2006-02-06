@@ -1069,7 +1069,7 @@ fun rename_inconsistent thy =
           |> fold (Symtab.fold (Symtab.remove (K true)) o get) (Theory.parents_of thy)
           |> Symtab.keys;
         val names = own_tables (#2 o #types o Type.rep_tsig o Sign.tsig_of)
-          @ own_tables (#2 o #declarations o Consts.dest o #consts o Sign.rep_sg);
+          @ own_tables (#2 o #constants o Consts.dest o #consts o Sign.rep_sg);
         fun diff names =
           fold (fn name =>
             if is_prefix (op =) (NameSpace.unpack thyname) (NameSpace.unpack name)
