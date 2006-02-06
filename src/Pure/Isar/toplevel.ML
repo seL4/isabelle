@@ -73,6 +73,7 @@ sig
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> Proof.context * theory) -> transition -> transition
+  val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
@@ -294,7 +295,7 @@ fun transaction _ _ (State NONE) = raise UNDEF
           handle exn => error_state cont_node exn;
       in
         if is_stale result
-        then return (error_state back_node (if_none err stale_theory))
+        then return (error_state back_node (the_default stale_theory err))
         else return (result, err)
       end;
 
@@ -455,6 +456,8 @@ fun theory' f = app_current (fn int =>
 
 fun theory_context f = app_current
   (K (fn Theory (thy, _) => Theory (swap (apfst SOME (f thy))) | _ => raise UNDEF));
+
+fun local_theory loc f = theory_context (LocalTheory.init loc #> f #> LocalTheory.exit);
 
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
