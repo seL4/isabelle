@@ -193,7 +193,7 @@ val constdefsP =
 val definitionP =
   OuterSyntax.command "definition" "standard constant definition" K.thy_decl
     (P.opt_locale_target -- Scan.repeat1 constdef
-    >> (fn (x, y) => Toplevel.theory_context (#2 o Specification.definition x y)));
+    >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
 
 
 (* constant specifications *)
@@ -201,9 +201,9 @@ val definitionP =
 val axiomatizationP =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
     (P.opt_locale_target --
-      Scan.optional P.fixes [] --
-      Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.spec)) []
-    >> (fn ((x, y), z) => Toplevel.theory_context (#2 o Specification.axiomatization x y z)));
+     (Scan.optional P.fixes [] --
+      Scan.optional (P.$$$ "where" |-- P.!!! (P.and_list1 P.spec)) [])
+    >> (fn (loc, (x, y)) => Toplevel.local_theory loc (#2 o Specification.axiomatization x y)));
 
 
 (* theorems *)
