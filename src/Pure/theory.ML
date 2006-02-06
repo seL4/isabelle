@@ -45,7 +45,6 @@ sig
   val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
-  val dest_def: Pretty.pp -> term -> (string * typ) * term
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_defs: bool -> (bstring * string) list -> theory -> theory
@@ -166,13 +165,6 @@ fun assert_super thy1 thy2 =
 fun err_in_axm msg name =
   cat_error msg ("The error(s) above occurred in axiom " ^ quote name);
 
-fun no_vars pp tm =
-  (case (Term.term_vars tm, Term.term_tvars tm) of
-    ([], []) => tm
-  | (ts, ixns) => error (Pretty.string_of (Pretty.block (Pretty.breaks
-      (Pretty.str "Illegal schematic variable(s) in term:" ::
-       map (Pretty.term pp) ts @ map (Pretty.typ pp o TVar) ixns)))));
-
 fun cert_axm thy (name, raw_tm) =
   let
     val pp = Sign.pp thy;
@@ -182,7 +174,7 @@ fun cert_axm thy (name, raw_tm) =
   in
     Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
     assert (T = propT) "Term not of type prop";
-    (name, no_vars pp t)
+    (name, Sign.no_vars pp t)
   end;
 
 fun read_def_axm (thy, types, sorts) used (name, str) =
@@ -198,7 +190,7 @@ fun inferT_axm thy (name, pre_tm) =
   let
     val pp = Sign.pp thy;
     val (t, _) = Sign.infer_types pp thy (K NONE) (K NONE) [] true ([pre_tm], propT);
-  in (name, no_vars pp t) end
+  in (name, Sign.no_vars pp t) end
   handle ERROR msg => err_in_axm msg name;
 
 
@@ -252,45 +244,6 @@ fun check_overloading thy overloaded (c, T) =
   end;
 
 
-(* dest_def *)
-
-fun dest_def pp tm =
-  let
-    fun err msg = raise TERM (msg, [tm]);
-
-    val (lhs, rhs) = Logic.dest_equals (Logic.strip_imp_concl tm)
-      handle TERM _ => err "Not a meta-equality (==)";
-    val (head, args) = Term.strip_comb (Pattern.beta_eta_contract lhs);
-    val (c, T) = Term.dest_Const head
-      handle TERM _ => err "Head of lhs not a constant";
-
-    fun dest_free (Free (x, _)) = x
-      | dest_free (Const ("TYPE", Type ("itself", [TFree (x, _)]))) = x
-      | dest_free _ = raise Match;
-
-    val show_terms = commas_quote o map (Pretty.string_of_term pp);
-    val show_frees = commas_quote o map dest_free;
-    val show_tfrees = commas_quote o map fst;
-
-    val lhs_nofrees = filter (not o can dest_free) args;
-    val lhs_dups = gen_duplicates (op aconv) args;
-    val rhs_extras = term_frees rhs |> fold (remove op aconv) args;
-    val rhs_extrasT = term_tfrees rhs |> fold (remove op =) (typ_tfrees T);
-  in
-    if not (null lhs_nofrees) then
-      err ("Non-variables as arguments on lhs: " ^ show_terms lhs_nofrees)
-    else if not (null lhs_dups) then
-      err ("Duplicate variables on lhs: " ^ show_frees lhs_dups)
-    else if not (null rhs_extras) then
-      err ("Extra variables on rhs: " ^ show_frees rhs_extras)
-    else if not (null rhs_extrasT) then
-      err ("Extra type variables on rhs: " ^ show_tfrees rhs_extrasT)
-    else if exists_Const (equal (c, T)) rhs then
-      err ("Constant to be defined occurs on rhs")
-    else ((c, T), rhs)
-  end;
-
-
 (* check_def *)
 
 fun check_def thy overloaded (bname, tm) defs =
@@ -300,14 +253,13 @@ fun check_def thy overloaded (bname, tm) defs =
      [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Pretty.typ pp (Type.freeze_type T))];
 
-    val _ = no_vars pp tm;
     val name = Sign.full_name thy bname;
-    val (const, rhs) = dest_def pp tm handle TERM (msg, _) => error msg;
+    val (lhs_const, rhs) = Sign.cert_def pp tm;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
-    val _ = check_overloading thy overloaded const;
+    val _ = check_overloading thy overloaded lhs_const;
   in
     defs |> Defs.define (Sign.the_const_type thy)
-      name (prep_const thy const) (map (prep_const thy) rhs_consts)
+      name (prep_const thy lhs_const) (map (prep_const thy) rhs_consts)
   end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
@@ -345,7 +297,7 @@ fun gen_add_finals prep_term overloaded args thy =
     fun specify (c, T) =
       Defs.define (Sign.the_const_type thy) (c ^ " axiom") (prep_const thy (c, T)) [];
     val finalize = specify o check_overloading thy overloaded o
-      const_of o no_vars (Sign.pp thy) o prep_term thy;
+      const_of o Sign.no_vars (Sign.pp thy) o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
 
 in
