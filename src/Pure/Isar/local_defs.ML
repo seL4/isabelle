@@ -7,7 +7,7 @@ Local definitions.
 
 signature LOCAL_DEFS =
 sig
-  val cert_def: ProofContext.context -> term -> string * term
+  val cert_def: ProofContext.context -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
   val mk_def: ProofContext.context -> (string * term) list -> term list
   val def_export: ProofContext.export
@@ -22,7 +22,7 @@ sig
   val unfold_tac: ProofContext.context -> thm list -> tactic
   val fold: ProofContext.context -> thm list -> thm -> thm
   val fold_tac: ProofContext.context -> thm list -> tactic
-  val derived_def: ProofContext.context -> term ->
+  val derived_def: ProofContext.context -> bool -> term ->
     ((string * typ) * term) * (ProofContext.context -> term -> thm -> thm)
 end;
 
@@ -33,48 +33,19 @@ struct
 
 (* prepare defs *)
 
-(*c x == t[x] to !!x. c x == t[x]*)
 fun cert_def ctxt eq =
   let
-    fun err msg = cat_error msg
-      ("The error(s) above occurred in definition: " ^ ProofContext.string_of_term ctxt eq);
+    val pp = ProofContext.pp ctxt;
+    val display_term = quote o Pretty.string_of_term pp;
+    fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^ display_term eq);
+    val ((lhs, _), eq') = eq
+      |> Sign.no_vars pp
+      |> Logic.dest_def pp Term.is_Free (ProofContext.is_fixed ctxt) (K true)
+      handle TERM (msg, _) => err msg | ERROR msg => err msg;
+  in (Term.dest_Free (Term.head_of lhs), eq') end;
 
-    val (lhs, rhs) = Logic.dest_equals (Term.strip_all_body eq)
-      handle TERM _ => err "Not a meta-equality (==)";
-    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
-    val (c, _) = Term.dest_Free f handle TERM _ =>
-      err "Head of lhs must be a free/fixed variable";
+val abs_def = Logic.abs_def #> apfst Term.dest_Free;
 
-    fun check_arg (Bound _) = true
-      | check_arg (Free (x, _)) = not (ProofContext.is_fixed ctxt x)
-      | check_arg t = (case try Logic.dest_type t of SOME (TFree _) => true | _ => false);
-    fun close_arg (Bound _) t = t
-      | close_arg x t = Term.all (Term.fastype_of x) $ lambda x t;
-
-    val extra_frees = Term.fold_aterms (fn v as Free (x, _) =>
-      if ProofContext.is_fixed ctxt x orelse member (op aconv) xs v then I
-      else insert (op =) x | _ => I) rhs [];
-  in
-    if not (forall check_arg xs) orelse has_duplicates (op aconv) xs then
-      err "Arguments of lhs must be distinct free/bound variables"
-    else if not (null extra_frees) then
-      err ("Extra free variables on rhs: " ^ commas_quote extra_frees)
-    else if Term.exists_subterm (fn t => t = f) rhs then
-      err "Element to be defined occurs on rhs"
-    else (c, fold_rev close_arg xs eq)
-  end;
-
-(*!!x. c x == t[x] to c == %x. t[x]*)
-fun abs_def eq =
-  let
-    val body = Term.strip_all_body eq;
-    val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
-    val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (vars, body));
-    val (f, xs) = Term.strip_comb (Pattern.beta_eta_contract lhs);
-    val eq' = Term.list_abs_free (map Term.dest_Free xs, rhs);
-  in (Term.dest_Free f, eq') end;
-
-(*c == t*)
 fun mk_def ctxt args =
   let
     val (xs, rhss) = split_list args;
@@ -86,7 +57,7 @@ fun mk_def ctxt args =
 (* export defs *)
 
 fun head_of_def cprop =
-  #1 (Term.strip_comb (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)))))
+  Term.head_of (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop))))
   |> Thm.cterm_of (Thm.theory_of_cterm cprop);
 
 (*
@@ -172,16 +143,15 @@ val fold_tac     = meta Tactic.fold_goals_tac;
 
 (* derived defs -- potentially within the object-logic *)
 
-fun derived_def ctxt prop =
+fun derived_def ctxt conditional prop =
   let
     val thy = ProofContext.theory_of ctxt;
     val ((c, T), rhs) = prop
       |> Thm.cterm_of thy
       |> meta_rewrite (Context.Proof ctxt)
       |> (snd o Logic.dest_equals o Thm.prop_of)
-      |> Logic.strip_imp_concl
-      |> (snd o cert_def ctxt)
-      |> abs_def;
+      |> K conditional ? Logic.strip_imp_concl
+      |> (abs_def o #2 o cert_def ctxt);
     fun prove ctxt' t def =
       let
         val thy' = ProofContext.theory_of ctxt';
@@ -196,6 +166,5 @@ fun derived_def ctxt prop =
         handle ERROR msg => cat_error msg "Failed to prove definitional specification."
       end;
   in (((c, T), rhs), prove) end;
-
 
 end;
