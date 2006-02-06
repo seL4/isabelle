@@ -80,7 +80,7 @@ val empty_rules : rules = {next = 0, rs = [], net = Net.empty};
 
 fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
   {next = next - 1, rs = r :: rs, net = Net.insert_term (K false)
-     (Pattern.eta_contract lhs, (next, r)) net};
+     (Envir.eta_contract lhs, (next, r)) net};
 
 fun merge_rules
   ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
@@ -113,7 +113,7 @@ fun condrew thy rules procs =
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)
           (sort (int_ord o pairself fst)
-            (Net.match_term rules (Pattern.eta_contract tm)))
+            (Net.match_term rules (Envir.eta_contract tm)))
       end;
 
   in rew end;
@@ -205,8 +205,7 @@ structure ExtractionData = TheoryDataFun
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = merge_alists types1 types2,
-     realizers = Symtab.merge_multi' (eq_set o pairself #1)
-       (realizers1, realizers2),
+     realizers = Symtab.merge_list (eq_set o pairself #1) (realizers1, realizers2),
      defs = gen_merge_lists eq_thm defs1 defs2,
      expand = merge_lists expand1 expand2,
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
@@ -300,7 +299,7 @@ fun gen_add_realizers prep_rlz rs thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
-       realizers = fold (Symtab.update_multi o prep_rlz thy) rs realizers,
+       realizers = fold (Symtab.update_list o prep_rlz thy) rs realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -601,7 +600,7 @@ fun extract thms thy =
           in
             if etype_of thy' vs' [] prop = nullT andalso
               realizes_null vs' prop aconv prop then (defs, prf0)
-            else case find vs' (Symtab.lookup_multi realizers s) of
+            else case find vs' (Symtab.lookup_list realizers s) of
               SOME (_, prf) => (defs, prf_subst_TVars tye' prf)
             | NONE => error ("corr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
@@ -708,7 +707,7 @@ fun extract thms thy =
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
           in
-            case find vs' (Symtab.lookup_multi realizers s) of
+            case find vs' (Symtab.lookup_list realizers s) of
               SOME (t, _) => (defs, subst_TVars tye' t)
             | NONE => error ("extr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
