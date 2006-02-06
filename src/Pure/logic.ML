@@ -28,17 +28,24 @@ sig
   val dest_conjunction: term -> term * term
   val dest_conjunctions: term -> term list
   val strip_horn: term -> term list * term
+  val dest_type: term -> typ
+  val const_of_class: class -> string
+  val class_of_const: string -> class
+  val mk_inclass: typ * class -> term
+  val dest_inclass: term -> typ * class
+  val dest_def: Pretty.pp -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
+    term -> (term * term) * term
+  val abs_def: term -> term * term
   val mk_cond_defpair: term list -> term * term -> string * term
   val mk_defpair: term * term -> string * term
   val mk_type: typ -> term
-  val dest_type: term -> typ
-  val mk_inclass: typ * class -> term
-  val dest_inclass: term -> typ * class
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
   val occs: term * term -> bool
   val close_form: term -> term
+  val combound: term * int * int -> term
+  val rlist_abs: (string * typ) list * term -> term
   val incr_indexes: typ list * int -> term -> term
   val incr_tvar: int -> typ -> typ
   val lift_abs: int -> term -> term -> term
@@ -167,17 +174,6 @@ fun dest_conjunctions t =
 
 
 
-(** definitions **)
-
-fun mk_cond_defpair As (lhs, rhs) =
-  (case Term.head_of lhs of
-    Const (name, _) =>
-      (Sign.base_name name ^ "_def", list_implies (As, mk_equals (lhs, rhs)))
-  | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
-
-fun mk_defpair lhs_rhs = mk_cond_defpair [] lhs_rhs;
-
-
 (** types as terms **)
 
 fun mk_type ty = Const ("TYPE", itselfT ty);
@@ -188,13 +184,85 @@ fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
 
 (** class constraints **)
 
+val classN = "_class";
+
+val const_of_class = suffix classN;
+fun class_of_const c = unsuffix classN c
+  handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
+
 fun mk_inclass (ty, c) =
-  Const (Sign.const_of_class c, itselfT ty --> propT) $ mk_type ty;
+  Const (const_of_class c, itselfT ty --> propT) $ mk_type ty;
 
 fun dest_inclass (t as Const (c_class, _) $ ty) =
-      ((dest_type ty, Sign.class_of_const c_class)
+      ((dest_type ty, class_of_const c_class)
         handle TERM _ => raise TERM ("dest_inclass", [t]))
   | dest_inclass t = raise TERM ("dest_inclass", [t]);
+
+
+
+(** definitions **)
+
+(*c x == t[x] to !!x. c x == t[x]*)
+fun dest_def pp check_head is_fixed is_fixedT eq =
+  let
+    fun err msg = raise TERM (msg, [eq]);
+    val bound_vars = Syntax.bound_vars (Term.strip_all_vars eq);
+    val display_terms = commas_quote o map (Pretty.string_of_term pp o bound_vars);
+    val display_types = commas_quote o map (Pretty.string_of_typ pp);
+
+    val (lhs, rhs) = dest_equals (Term.strip_all_body eq)
+      handle TERM _ => err "Not a meta-equality (==)";
+    val (head, args) = Term.strip_comb (Envir.beta_eta_contract lhs);
+    val head_tfrees = Term.add_tfrees head [];
+
+    fun check_arg (Bound _) = true
+      | check_arg (Free (x, _)) = not (is_fixed x)
+      | check_arg (Const ("TYPE", Type ("itself", [TFree _]))) = true
+      | check_arg _ = false;
+    fun close_arg (Bound _) t = t
+      | close_arg x t = Term.all (Term.fastype_of x) $ lambda x t;
+
+    val lhs_bads = filter_out check_arg args;
+    val lhs_dups = gen_duplicates (op aconv) args;
+    val rhs_extras = Term.fold_aterms (fn v as Free (x, _) =>
+      if is_fixed x orelse member (op aconv) args v then I
+      else insert (op aconv) v | _ => I) rhs [];
+    val rhs_extrasT = Term.fold_aterms (Term.fold_types (fn v as TFree (a, S) =>
+      if is_fixedT a orelse member (op =) head_tfrees (a, S) then I
+      else insert (op =) v | _ => I)) rhs [];
+  in
+    if not (check_head head) then
+      err ("Bad head of lhs: " ^ display_terms [head])
+    else if not (null lhs_bads) then
+      err ("Bad arguments on lhs: " ^ display_terms lhs_bads)
+    else if not (null lhs_dups) then
+      err ("Duplicate arguments on lhs: " ^ display_terms lhs_dups)
+    else if not (null rhs_extras) then
+      err ("Extra variables on rhs: " ^ display_terms rhs_extras)
+    else if not (null rhs_extrasT) then
+      err ("Extra type variables on rhs: " ^ display_types rhs_extrasT)
+    else if exists_subterm (fn t => t aconv head) rhs then
+      err "Entity to be defined occurs on rhs"
+    else ((lhs, rhs), fold_rev close_arg args eq)
+  end;
+
+(*!!x. c x == t[x] to c == %x. t[x]*)
+fun abs_def eq =
+  let
+    val body = Term.strip_all_body eq;
+    val vars = map Free (Term.rename_wrt_term body (Term.strip_all_vars eq));
+    val (lhs, rhs) = dest_equals (Term.subst_bounds (vars, body));
+    val (lhs', args) = Term.strip_comb lhs;
+    val rhs' = Term.list_abs_free (map Term.dest_Free args, rhs);
+  in (lhs', rhs') end;
+
+fun mk_cond_defpair As (lhs, rhs) =
+  (case Term.head_of lhs of
+    Const (name, _) =>
+      (NameSpace.base name ^ "_def", list_implies (As, mk_equals (lhs, rhs)))
+  | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
+
+fun mk_defpair lhs_rhs = mk_cond_defpair [] lhs_rhs;
 
 
 (** protected propositions **)
@@ -218,7 +286,17 @@ fun close_form A =
   list_all_free (sort_wrt fst (map dest_Free (term_frees A)), A);
 
 
+
 (*** Specialized operations for resolution... ***)
+
+(*computes t(Bound(n+k-1),...,Bound(n))  *)
+fun combound (t, n, k) =
+    if  k>0  then  combound (t,n+1,k-1) $ (Bound n)  else  t;
+
+(* ([xn,...,x1], t)   ======>   (x1,...,xn)t *)
+fun rlist_abs ([], body) = body
+  | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
+
 
 local exception SAME in
 
@@ -242,7 +320,7 @@ fun incr_indexes ([], 0) t = t
     val incrT = if k = 0 then I else incrT k;
 
     fun incr lev (Var ((x, i), T)) =
-          Unify.combound (Var ((x, i + k), Ts ---> (incrT T handle SAME => T)), lev, n)
+          combound (Var ((x, i + k), Ts ---> (incrT T handle SAME => T)), lev, n)
       | incr lev (Abs (x, T, body)) =
           (Abs (x, incrT T, incr (lev + 1) body handle SAME => body)
             handle SAME => Abs (x, T, incr (lev + 1) body))
@@ -385,15 +463,14 @@ fun strip_assums_all (params, Const("all",_)$Abs(a,T,t)) =
 fun assum_pairs(nasms,A) =
   let val (params, A') = strip_assums_all ([],A)
       val (Hs,B) = strip_assums_imp (nasms,[],A')
-      fun abspar t = Unify.rlist_abs(params, t)
+      fun abspar t = rlist_abs(params, t)
       val D = abspar B
       fun pairrev ([], pairs) = pairs
         | pairrev (H::Hs, pairs) = pairrev(Hs,  (abspar H, D) :: pairs)
   in  pairrev (Hs,[])
   end;
 
-(*Converts Frees to Vars and TFrees to TVars so that axioms can be written
-  without (?) everywhere*)
+(*Converts Frees to Vars and TFrees to TVars*)
 fun varify (Const(a, T)) = Const (a, Type.varifyT T)
   | varify (Free (a, T)) = Var ((a, 0), Type.varifyT T)
   | varify (Var (ixn, T)) = Var (ixn, Type.varifyT T)
@@ -401,7 +478,7 @@ fun varify (Const(a, T)) = Const (a, Type.varifyT T)
   | varify (Abs (a, T, body)) = Abs (a, Type.varifyT T, varify body)
   | varify (f $ t) = varify f $ varify t;
 
-(*Inverse of varify.  Converts axioms back to their original form.*)
+(*Inverse of varify.*)
 fun unvarify (Const (a, T)) = Const (a, Type.unvarifyT T)
   | unvarify (Free (a, T)) = Free (a, Type.unvarifyT T)
   | unvarify (Var ((a, 0), T)) = Free (a, Type.unvarifyT T)
