@@ -430,7 +430,7 @@ fun decomp_simp thm =
       raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
     val (_, elhs) = Drule.dest_equals (Thm.cprop_of (Thm.eta_conversion lhs));
     val elhs = if term_of elhs aconv term_of lhs then lhs else elhs;  (*share identical copies*)
-    val erhs = Pattern.eta_contract (term_of rhs);
+    val erhs = Envir.eta_contract (term_of rhs);
     val perm =
       var_perm (term_of elhs, erhs) andalso
       not (term_of elhs aconv erhs) andalso
@@ -551,7 +551,7 @@ fun add_cong (ss, thm) = ss |>
     let
       val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
-    (*val lhs = Pattern.eta_contract lhs;*)
+    (*val lhs = Envir.eta_contract lhs;*)
       val a = valOf (cong_name (head_of (term_of lhs))) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (alist, weak) = congs;
@@ -565,7 +565,7 @@ fun del_cong (ss, thm) = ss |>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
         raise SIMPLIFIER ("Congruence not a meta-equality", thm);
-    (*val lhs = Pattern.eta_contract lhs;*)
+    (*val lhs = Envir.eta_contract lhs;*)
       val a = valOf (cong_name (head_of lhs)) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;

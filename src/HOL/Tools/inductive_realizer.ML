@@ -336,7 +336,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         end
       else ((recs, dummies), replicate (length rs) Extraction.nullt))
         ((get #rec_thms dt_info, dummies), rss);
-    val rintrs = map (fn (intr, c) => Pattern.eta_contract
+    val rintrs = map (fn (intr, c) => Envir.eta_contract
       (Extraction.realizes_of thy2 vs
         c (prop_of (forall_intr_list (map (cterm_of (sign_of thy2) o Var)
           (rev (Term.add_vars (prop_of intr) []) \\ params')) intr))))

@@ -1052,9 +1052,9 @@ fun permute_prems j k 0 th = Thm.permute_prems j k th
 
 fun rearrange sg tm th =
     let
-	val tm' = Pattern.beta_eta_contract tm
+	val tm' = Envir.beta_eta_contract tm
 	fun find []      n = permute_prems 0 1 0 (implies_intr (Thm.cterm_of sg tm) th)
-	  | find (p::ps) n = if tm' aconv (Pattern.beta_eta_contract p)
+	  | find (p::ps) n = if tm' aconv (Envir.beta_eta_contract p)
 			     then permute_prems n 1 0 th
 			     else find ps (n+1)
     in

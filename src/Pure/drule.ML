@@ -854,7 +854,7 @@ fun is_norm_hhf tm =
       | is_norm (t $ u) = is_norm t andalso is_norm u
       | is_norm (Abs (_, _, t)) = is_norm t
       | is_norm _ = true;
-  in is_norm (Pattern.beta_eta_contract tm) end;
+  in is_norm (Envir.beta_eta_contract tm) end;
 
 fun norm_hhf thy t =
   if is_norm_hhf t then t
@@ -1012,7 +1012,7 @@ fun rename_bvars' xs thm =
     fun rename [] t = ([], t)
       | rename (x' :: xs) (Abs (x, T, t)) =
           let val (xs', t') = rename xs t
-          in (xs', Abs (getOpt (x',x), T, t')) end
+          in (xs', Abs (the_default x x', T, t')) end
       | rename xs (t $ u) =
           let
             val (xs', t') = rename xs t;

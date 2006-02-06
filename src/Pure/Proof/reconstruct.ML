@@ -326,7 +326,7 @@ fun prop_of0 Hs (PBound i) = List.nth (Hs, i)
   | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 
-val prop_of' = Pattern.eta_contract oo (Envir.beta_norm oo prop_of0);
+val prop_of' = Envir.beta_eta_contract oo prop_of0;
 val prop_of = prop_of' [];
 
 
