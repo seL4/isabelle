@@ -180,7 +180,7 @@ datatype ctxt =
     assms:
       ((cterm list * export) list *              (*assumes and views: A ==> _*)
         (string * thm list) list),               (*prems: A |- A*)
-    binds: (term * typ) Vartab.table,            (*term bindings*)
+    binds: (typ * term) Vartab.table,            (*term bindings*)
     thms: NameSpace.naming *                     (*local thms*)
       thm list NameSpace.table * FactIndex.T,
     cases: (string * (RuleCases.T * bool)) list, (*local contexts*)
@@ -400,7 +400,7 @@ fun def_type ctxt pattern xi =
     (case Vartab.lookup types xi of
       NONE =>
         if pattern then NONE
-        else Vartab.lookup binds xi |> Option.map (TypeInfer.polymorphicT o #2)
+        else Vartab.lookup binds xi |> Option.map (TypeInfer.polymorphicT o #1)
     | some => some)
   end;
 
@@ -516,30 +516,32 @@ fun read_props_thy freeze pp syn thy defaults =
 
 (* norm_term *)
 
-(*beta normal form for terms (not eta normal form), chase variables in
-  bindings environment (code taken from Pure/envir.ML)*)
-
-fun unifyT ctxt (T, U) =
-  let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
-  in #1 (Sign.typ_unify (theory_of ctxt) (T, U) (Vartab.empty, maxidx)) end;
+(*
+  - expand abbreviations (polymorphic Consts)
+  - expand term bindings (polymorphic Vars)
+  - beta contraction
+*)
 
 fun norm_term ctxt schematic =
   let
-    (*raised when norm has no effect on a term, to do sharing instead of copying*)
-    exception SAME;
+    val thy = theory_of ctxt;
+    val tsig = Sign.tsig_of thy;
+    val expansion = Sign.const_expansion thy;
+    val binding = Vartab.lookup (binds_of ctxt);
 
-    val binds = binds_of ctxt;
-    fun norm (t as Var (xi, T)) =
-          (case Vartab.lookup binds xi of
-            SOME (u, U) =>
-              let
-                val env = unifyT ctxt (T, U) handle Type.TUNIFY =>
-                  raise TYPE ("norm_term: ill-typed variable assignment", [T, U], [t, u]);
-                val u' = Envir.subst_TVars env u;
-              in norm u' handle SAME => u' end
+    exception SAME;
+    fun norm (Const c) =
+          (case expansion c of
+            SOME u => (norm u handle SAME => u)
+          | NONE => raise SAME)
+      | norm (Var (xi, T)) =
+          (case binding xi of
+            SOME b =>
+              let val u = Envir.expand_atom tsig T b
+              in norm u handle SAME => u end
           | NONE =>
-            if schematic then raise SAME
-            else error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi))
+              if schematic then raise SAME
+              else error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
       | norm (f $ t) =
@@ -651,7 +653,7 @@ val ins_used = fold_term_types (fn t =>
   fold_atyps (fn TFree (x, _) => insert (op =) x | _ => I));
 
 val ins_occs = fold_term_types (fn t =>
-  fold_atyps (fn TFree (x, _) => Symtab.update_multi (x, t) | _ => I));
+  fold_atyps (fn TFree (x, _) => Symtab.update_list (x, t) | _ => I));
 
 fun ins_skolem def_ty = fold_rev (fn (x, x') =>
   (case def_ty x' of
@@ -748,7 +750,7 @@ fun generalize_tfrees inner outer =
     val occs_outer = type_occs_of outer;
     fun add a gen =
       if Symtab.defined occs_outer a orelse
-        exists still_fixed (Symtab.lookup_multi occs_inner a)
+        exists still_fixed (Symtab.lookup_list occs_inner a)
       then gen else a :: gen;
   in fn tfrees => fold add tfrees [] end;
 
@@ -812,7 +814,7 @@ fun upd_bind ((x, i), t) =
     val t' =
       if null (Term.term_tvars t \\ Term.typ_tvars T) then t
       else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
-  in declare_term t' #> map_binds (Vartab.update ((x, i), (t', T))) end;
+  in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
 
 fun del_upd_bind (xi, NONE) = del_bind xi
   | del_upd_bind (xi, SOME t) = upd_bind (xi, t);
@@ -1337,7 +1339,7 @@ val print_syntax = Syntax.print_syntax o syn_of;
 fun pretty_binds ctxt =
   let
     val binds = binds_of ctxt;
-    fun prt_bind (xi, (t, T)) = pretty_term ctxt (Logic.mk_equals (Var (xi, T), t));
+    fun prt_bind (xi, (T, t)) = pretty_term ctxt (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
