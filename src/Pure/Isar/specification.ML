@@ -9,31 +9,25 @@ toplevel polymorphism.
 signature SPECIFICATION =
 sig
   val read_specification: (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * string list) list -> Proof.context ->
+    ((string * Attrib.src list) * string list) list -> local_theory ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
-    Proof.context
+    local_theory
   val cert_specification: (string * typ option * mixfix) list ->
-    ((string * Attrib.src list) * term list) list -> Proof.context ->
+    ((string * Attrib.src list) * term list) list -> local_theory ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
-    Proof.context
-  val axiomatization: xstring option -> (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string list) list -> theory ->
-    (term list * (bstring * thm list) list) * (Proof.context * theory)
-  val axiomatization_i: string option -> (string * typ option * mixfix) list ->
-    ((bstring * Attrib.src list) * term list) list -> theory ->
-    (term list * (bstring * thm list) list) * (Proof.context * theory)
-  val axiomatization_loc: (string * typ option * mixfix) list ->
-    ((bstring * Attrib.src list) * term list) list -> Proof.context ->
-    (term list * (bstring * thm list) list) * Proof.context
-  val definition: xstring option ->
+    local_theory
+  val axiomatization: (string * string option * mixfix) list ->
+    ((bstring * Attrib.src list) * string list) list -> local_theory ->
+    (term list * (bstring * thm list) list) * local_theory
+  val axiomatization_i: (string * typ option * mixfix) list ->
+    ((bstring * Attrib.src list) * term list) list -> local_theory ->
+    (term list * (bstring * thm list) list) * local_theory
+  val definition:
     ((string * string option * mixfix) option * ((string * Attrib.src list) * string)) list ->
-    theory -> (term * (bstring * thm)) list * (Proof.context * theory)
-  val definition_i: string option ->
+    local_theory -> (term * (bstring * thm)) list * local_theory
+  val definition_i:
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
-    theory -> (term * (bstring * thm)) list * (Proof.context * theory)
-  val definition_loc:
-    ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
-    Proof.context -> (term * (bstring * thm)) list * Proof.context
+    local_theory -> (term * (bstring * thm)) list * local_theory
 end;
 
 structure Specification: SPECIFICATION =
@@ -65,9 +59,8 @@ fun cert_specification x =
 
 (* axiomatization *)
 
-fun gen_axioms prep init exit print raw_vars raw_specs context =
+fun gen_axioms prep raw_vars raw_specs ctxt =
   let
-    val ctxt = init context;
     val (vars, specs) = fst (prep raw_vars raw_specs ctxt);
     val cs = map fst vars;
     val spec_frees = member (op =) (fold (fold Term.add_frees o snd) specs []);
@@ -79,43 +72,36 @@ fun gen_axioms prep init exit print raw_vars raw_specs context =
       consts_ctxt
       |> LocalTheory.axioms (specs |> map (fn (a, props) => (a, map subst props)))
       ||> LocalTheory.theory (Theory.add_finals_i false (map Term.head_of consts));
-    val _ = print ctxt spec_frees cs;
-  in ((consts, axioms), exit axioms_ctxt) end;
+    val _ = LocalTheory.print_consts ctxt spec_frees cs;
+  in ((consts, axioms), axioms_ctxt) end;
 
-fun axiomatization loc =
-  gen_axioms read_specification (LocalTheory.init loc) LocalTheory.exit LocalTheory.print_consts;
-fun axiomatization_i loc =
-  gen_axioms cert_specification (LocalTheory.init_i loc) LocalTheory.exit LocalTheory.print_consts;
-val axiomatization_loc = gen_axioms cert_specification I I (K (K (K ())));
+val axiomatization = gen_axioms read_specification;
+val axiomatization_i = gen_axioms cert_specification;
 
 
 (* definition *)
 
-fun gen_defs prep init exit print args context =
+fun gen_defs prep args ctxt =
   let
-    fun define (raw_var, (raw_a, raw_prop)) ctxt =
+    fun define (raw_var, (raw_a, raw_prop)) ctxt' =
       let
-        val (vars, [(a, [prop])]) = fst (prep (the_list raw_var) [(raw_a, [raw_prop])] ctxt);
-        val (((x, T), rhs), prove) = LocalDefs.derived_def ctxt prop;
+        val (vars, [(a, [prop])]) = fst (prep (the_list raw_var) [(raw_a, [raw_prop])] ctxt');
+        val (((x, T), rhs), prove) = LocalDefs.derived_def ctxt' true prop;
         val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
           if x = x' then mx
           else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
       in
-        ctxt
+        ctxt'
         |> LocalTheory.def_finish prove ((x, mx), (a, rhs))
         |>> pair (x, T)
       end;
 
-    val ctxt = init context;
     val ((cs, defs), defs_ctxt) = ctxt |> fold_map define args |>> split_list;
     val def_frees = member (op =) (fold (Term.add_frees o fst) defs []);
-    val _ = print ctxt def_frees cs;
-  in (defs, exit defs_ctxt) end;
+    val _ = LocalTheory.print_consts ctxt def_frees cs;
+  in (defs, defs_ctxt) end;
 
-fun definition loc =
-  gen_defs read_specification (LocalTheory.init loc) LocalTheory.exit LocalTheory.print_consts;
-fun definition_i loc =
-  gen_defs cert_specification (LocalTheory.init_i loc) LocalTheory.exit LocalTheory.print_consts;
-val definition_loc = gen_defs cert_specification I I (K (K (K ())));
+val definition = gen_defs read_specification;
+val definition_i = gen_defs cert_specification;
 
 end;
