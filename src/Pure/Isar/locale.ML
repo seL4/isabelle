@@ -570,7 +570,7 @@ fun unique_parms ctxt elemss =
   let
     val param_decls =
       List.concat (map (fn (((name, (ps, qs)), _), _) => map (rpair (name, ps)) qs) elemss)
-      |> Symtab.make_multi |> Symtab.dest;
+      |> Symtab.make_list |> Symtab.dest;
   in
     (case find_first (fn (_, ids) => length ids > 1) param_decls of
       SOME (q, ids) => err_in_locale ctxt ("Multiple declaration of parameter " ^ quote q)
@@ -596,7 +596,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
         end;
     fun unify_list (T :: Us) = fold (unify T) Us
       | unify_list [] = I;
-    val (unifier, _) = fold unify_list (map #2 (Symtab.dest (Symtab.make_multi parms)))
+    val (unifier, _) = fold unify_list (map #2 (Symtab.dest (Symtab.make_list parms)))
       (Vartab.empty, maxidx);
 
     val parms' = map (apsnd (Envir.norm_type unifier)) (gen_distinct (eq_fst (op =)) parms);
@@ -855,7 +855,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
         val (_, ctxt') =
         ctxt |> ProofContext.add_assms_i LocalDefs.def_export
           (defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val (c, t') = LocalDefs.cert_def ctxt t
+            let val ((c, _), t') = LocalDefs.cert_def ctxt t
             in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end))
       in ((ctxt', Assumed axs), []) end
   | activate_elem _ ((ctxt, Derived ths), Defines defs) =
