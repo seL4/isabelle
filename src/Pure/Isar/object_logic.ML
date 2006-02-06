@@ -105,7 +105,7 @@ fun fixed_judgment thy x =
     val c = judgment_name thy;
     val aT = TFree ("'a", []);
     val T =
-      if_none (Sign.const_type thy c) (aT --> propT)
+      the_default (aT --> propT) (Sign.const_type thy c)
       |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));
     val U = Term.domain_type T handle Match => aT;
   in Const (c, T) $ Free (x, U) end;

@@ -150,7 +150,7 @@ fun extern space name =
 (* basic operations *)
 
 fun map_space f xname (NameSpace tab) =
-  NameSpace (Symtab.update (xname, f (if_none (Symtab.lookup tab xname) ([], []))) tab);
+  NameSpace (Symtab.update (xname, f (the_default ([], []) (Symtab.lookup tab xname))) tab);
 
 fun del (name: string) = remove (op =) name;
 fun add name names = name :: del name names;
@@ -179,7 +179,7 @@ fun hide fully name space =
 
 fun merge (NameSpace tab1, space2) = Symtab.fold (fn (xname, (names1, names1')) =>
   xname |> map_space (fn (names2, names2') =>
-    (merge_lists' names2 names1, merge_lists' names2' names1'))) tab1 space2;
+    (Library.merge (op =) (names2, names1), Library.merge (op =) (names2', names1')))) tab1 space2;
 
 
 

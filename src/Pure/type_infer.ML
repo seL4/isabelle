@@ -482,7 +482,7 @@ fun get_sort tsig def_sort map_sort raw_env =
 
 fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm =
   let
-    fun get_type xi = if_none (def_type xi) dummyT;
+    fun get_type xi = the_default dummyT (def_type xi);
     fun is_free x = is_some (def_type (x, ~1));
     val raw_env = Syntax.raw_term_sorts tm;
     val sort_of = get_sort tsig def_sort map_sort raw_env;

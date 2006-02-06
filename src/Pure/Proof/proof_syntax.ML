@@ -192,17 +192,17 @@ fun term_of _ (PThm ((name, _), _, _, NONE)) =
       mk_tyapp (Const (NameSpace.append "axm" name, proofT), Ts)
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) = 
-      let val T = getOpt (opT,dummyT)
+      let val T = the_default dummyT opT
       in Const ("Abst", (T --> proofT) --> proofT) $
         Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
       end
   | term_of Ts (AbsP (s, t, prf)) =
-      AbsPt $ getOpt (t, Const ("dummy_pattern", propT)) $
+      AbsPt $ the_default (Term.dummy_pattern propT) t $
         Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
   | term_of Ts (prf1 %% prf2) =
       AppPt $ term_of Ts prf1 $ term_of Ts prf2
   | term_of Ts (prf % opt) = 
-      let val t = getOpt (opt, Const ("dummy_pattern", dummyT))
+      let val t = the_default (Term.dummy_pattern dummyT) opt
       in Const ("Appt",
         [proofT, fastype_of1 (Ts, t) handle TERM _ => dummyT] ---> proofT) $
           term_of Ts prf $ t

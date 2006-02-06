@@ -351,7 +351,7 @@ in
     else if is_ascii_quasi s then Quasi
     else if is_ascii_blank s then Blank
     else if is_char s then Other
-    else if_none (Symtab.lookup symbol_kinds s) Other;
+    else the_default Other (Symtab.lookup symbol_kinds s);
 end;
 
 fun is_letter s = kind s = Letter;

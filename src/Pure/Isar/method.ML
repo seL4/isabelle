@@ -176,7 +176,7 @@ end;
 (* shuffle subgoals *)
 
 fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
-fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
+fun defer opt_i = METHOD (K (Tactic.defer_tac (the_default 1 opt_i)));
 
 
 (* cheating *)
@@ -333,7 +333,7 @@ fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac e
 in
 
 fun iprover_tac ctxt opt_lim =
-  SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intprover_tac ctxt [] 0) 4 1);
+  SELECT_GOAL (DEEPEN (2, the_default 20 opt_lim) (intprover_tac ctxt [] 0) 4 1);
 
 end;
 

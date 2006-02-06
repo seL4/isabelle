@@ -94,7 +94,7 @@ fun insert eq (keys,x) net =
             Net{comb=comb, var=ins1(keys,var), atoms=atoms}
         | ins1 (AtomK a :: keys, Net{comb,var,atoms}) =
             let
-              val net' = if_none (Symtab.lookup atoms a) empty;
+              val net' = the_default empty (Symtab.lookup atoms a);
               val atoms' = Symtab.update (a, ins1 (keys, net')) atoms;
             in  Net{comb=comb, var=var, atoms=atoms'}  end
   in  ins1 (keys,net)  end;
@@ -222,7 +222,7 @@ fun subtract eq net1 net2 =
           subtr comb1 comb2
           #> subtr var1 var2
           #> Symtab.fold (fn (a, net) =>
-            subtr (if_none (Symtab.lookup atoms1 a) emptynet) net) atoms2
+            subtr (the_default emptynet (Symtab.lookup atoms1 a)) net) atoms2
   in subtr net1 net2 [] end;
 
 fun entries net = subtract (K false) empty net;

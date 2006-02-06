@@ -139,7 +139,7 @@ fun filter_intro ctxt goal (_, thm) =
     val concl = Logic.concl_of_goal goal 1;
     val ss = is_matching_thm extract_intro ctxt true concl thm;
   in
-    if is_some ss then SOME (Thm.nprems_of thm, valOf ss) else NONE
+    if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
   end;
 
 fun filter_elim ctxt goal (_, thm) =
@@ -176,7 +176,7 @@ fun filter_simp ctxt t (_, thm) =
       (map Thm.full_prop_of o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
     val ss = is_matching_thm extract_simp ctxt false t thm
   in
-    if is_some ss then SOME (Thm.nprems_of thm, valOf ss) else NONE
+    if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
   end;
 
 
