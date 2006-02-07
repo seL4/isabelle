@@ -34,7 +34,6 @@ signature BASIC_THM =
   val crep_cterm: cterm ->
     {thy: theory, sign: theory, t: term, T: ctyp, maxidx: int, sorts: sort list}
   val theory_of_cterm: cterm -> theory
-  val sign_of_cterm: cterm -> theory    (*obsolete*)
   val term_of: cterm -> term
   val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
@@ -229,8 +228,6 @@ fun crep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
   end;
 
 fun theory_of_cterm (Cterm {thy_ref, ...}) = Theory.deref thy_ref;
-val sign_of_cterm = theory_of_cterm;
-
 fun term_of (Cterm {t, ...}) = t;
 
 fun ctyp_of_term (Cterm {thy_ref, T, sorts, ...}) =
@@ -238,7 +235,7 @@ fun ctyp_of_term (Cterm {thy_ref, T, sorts, ...}) =
 
 fun cterm_of thy tm =
   let
-    val (t, T, maxidx) = Sign.certify_term (Sign.pp thy) thy tm;
+    val (t, T, maxidx) = Sign.certify_term thy tm;
     val sorts = may_insert_term_sorts thy t [];
   in Cterm {thy_ref = Theory.self_ref thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
@@ -1515,8 +1512,7 @@ fun invoke_oracle_i thy1 name =
     fn (thy2, data) =>
       let
         val thy' = Theory.merge (Theory.deref thy_ref1, thy2);
-        val (prop, T, maxidx) =
-          Sign.certify_term (Sign.pp thy') thy' (oracle (thy', data));
+        val (prop, T, maxidx) = Sign.certify_term thy' (oracle (thy', data));
       in
         if T <> propT then
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
