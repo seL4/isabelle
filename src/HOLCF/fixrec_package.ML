@@ -50,19 +50,14 @@ infix 0 ==;  fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===; fun S === T = %%:"op =" $ S $ T;
 infix 9 `  ; fun f ` x = %%:"Cfun.Rep_CFun" $ f $ x;
 
-(* infers the type of a term *)
+(* infers the type of a term *)  (* FIXME better avoid this low-level stuff *)
 (* similar to Theory.inferT_axm, but allows any type, not just propT *)
 fun infer sg t =
-  fst (Sign.infer_types (Sign.pp sg) sg (K NONE) (K NONE) [] true ([t],dummyT));
-
-(* Similar to Term.lambda, but also allows abstraction over constants *)
-fun lambda' (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
-  | lambda' (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
-  | lambda' (v as Const (x, T)) t = Abs (Sign.base_name x, T, abstract_over (v, t))
-  | lambda' v t = raise TERM ("lambda'", [v, t]);
+  fst (Sign.infer_types (Sign.pp sg) sg (Sign.consts_of sg) (K NONE) (K NONE) [] true
+    ([t],dummyT));
 
 (* builds the expression (LAM v. rhs) *)
-fun big_lambda v rhs = %%:"Cfun.Abs_CFun"$(lambda' v rhs);
+fun big_lambda v rhs = %%:"Cfun.Abs_CFun"$(Term.lambda v rhs);
 
 (* builds the expression (LAM v1 v2 .. vn. rhs) *)
 fun big_lambdas [] rhs = rhs
