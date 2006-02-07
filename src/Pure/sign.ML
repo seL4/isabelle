@@ -25,8 +25,8 @@ sig
   val del_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_abbrevs: (bstring * string * mixfix) list -> theory -> theory
-  val add_abbrevs_i: (bstring * term * mixfix) list -> theory -> theory
+  val add_abbrevs: bool -> (bstring * string * mixfix) list -> theory -> theory
+  val add_abbrevs_i: bool -> (bstring * term * mixfix) list -> theory -> theory
   val add_const_constraint: xstring * string -> theory -> theory
   val add_const_constraint_i: string * typ -> theory -> theory
   val add_classes: (bstring * xstring list) list -> theory -> theory
@@ -109,6 +109,7 @@ sig
   val typ_match: theory -> typ * typ -> Type.tyenv -> Type.tyenv
   val typ_unify: theory -> typ * typ -> Type.tyenv * int -> Type.tyenv * int
   val is_logtype: theory -> string -> bool
+  val consts_of: theory -> Consts.T
   val const_constraint: theory -> string -> typ option
   val the_const_constraint: theory -> string -> typ
   val const_type: theory -> string -> typ option
@@ -118,7 +119,6 @@ sig
   val const_monomorphic: theory -> string -> bool
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
-  val const_expansion: theory -> string * typ -> term option
   val class_space: theory -> NameSpace.T
   val type_space: theory -> NameSpace.T
   val const_space: theory -> NameSpace.T
@@ -133,9 +133,8 @@ sig
   val intern_typ: theory -> typ -> typ
   val extern_typ: theory -> typ -> typ
   val intern_term: theory -> term -> term
-  val extern_term: theory -> term -> term
   val intern_tycons: theory -> typ -> typ
-  val pretty_term': Syntax.syntax -> Context.generic -> term -> Pretty.T
+  val pretty_term': Syntax.syntax -> Consts.T -> Context.generic -> term -> Pretty.T
   val pretty_term: theory -> term -> Pretty.T
   val pretty_typ: theory -> typ -> Pretty.T
   val pretty_sort: theory -> sort -> Pretty.T
@@ -154,8 +153,9 @@ sig
   val certify_typ: theory -> typ -> typ
   val certify_typ_syntax: theory -> typ -> typ
   val certify_typ_abbrev: theory -> typ -> typ
-  val certify_term: Pretty.pp -> theory -> term -> term * typ * int
-  val certify_prop: Pretty.pp -> theory -> term -> term * typ * int
+  val certify: bool -> bool -> Pretty.pp -> theory -> term -> term * typ * int
+  val certify_term: theory -> term -> term * typ * int
+  val certify_prop: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
   val no_vars: Pretty.pp -> term -> term
@@ -173,14 +173,14 @@ sig
   val read_typ_abbrev: theory * (indexname -> sort option) -> string -> typ
   val read_tyname: theory -> string -> typ
   val read_const: theory -> string -> term
-  val infer_types_simult: Pretty.pp -> theory -> (indexname -> typ option) ->
+  val infer_types_simult: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> (term list * typ) list -> term list * (indexname * typ) list
-  val infer_types: Pretty.pp -> theory -> (indexname -> typ option) ->
+  val infer_types: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> term list * typ -> term * (indexname * typ) list
-  val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Context.generic ->
-    (indexname -> typ option) * (indexname -> sort option) ->
+  val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Consts.T ->
+    Context.generic -> (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
     theory * (indexname -> typ option) * (indexname -> sort option) ->
@@ -288,7 +288,6 @@ val const_type = try o the_const_type;
 val const_monomorphic = Consts.monomorphic o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
-fun const_expansion thy = Consts.expansion (tsig_of thy) (consts_of thy);
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = is_some oo const_type;
@@ -299,7 +298,7 @@ val declared_const = is_some oo const_type;
 
 val class_space = #1 o #classes o Type.rep_tsig o tsig_of;
 val type_space = #1 o #types o Type.rep_tsig o tsig_of;
-val const_space = Consts.space o consts_of;
+val const_space = Consts.space_of o consts_of;
 
 val intern_class = NameSpace.intern o class_space;
 val extern_class = NameSpace.extern o class_space;
@@ -347,7 +346,7 @@ in
 val intern_typ = typ_mapping intern_class intern_type;
 val extern_typ = typ_mapping extern_class extern_type;
 val intern_term = term_mapping intern_class intern_type intern_const;
-val extern_term = term_mapping extern_class extern_type extern_const;
+val extern_term = term_mapping extern_class extern_type;
 val intern_tycons = typ_mapping (K I) intern_type;
 
 end;
@@ -356,13 +355,14 @@ end;
 
 (** pretty printing of terms, types etc. **)
 
-fun pretty_term' syn context t =
+fun pretty_term' syn consts context t =
   let
     val thy = Context.theory_of context;
     val curried = Context.exists_name Context.CPureN thy;
-  in Syntax.pretty_term context syn curried (extern_term thy t) end;
+    val extern = NameSpace.extern (Consts.space_of consts);
+  in Syntax.pretty_term context syn curried (extern_term (K extern) thy t) end;
 
-fun pretty_term thy t = pretty_term' (syn_of thy) (Context.Theory thy) t;
+fun pretty_term thy t = pretty_term' (syn_of thy) (consts_of thy) (Context.Theory thy) t;
 
 fun pretty_typ thy T = Syntax.pretty_typ (Context.Theory thy) (syn_of thy) (extern_typ thy T);
 fun pretty_sort thy S = Syntax.pretty_sort (Context.Theory thy) (syn_of thy) (extern_sort thy S);
@@ -405,11 +405,10 @@ val certify_typ_syntax = certify Type.cert_typ_syntax;
 val certify_typ_abbrev = certify Type.cert_typ_abbrev;
 
 
-(* certify_term *)
+(* certify term/prop *)
 
 local
 
-(*determine and check the type of a term*)
 fun type_check pp tm =
   let
     fun err_appl why bs t T u U =
@@ -434,36 +433,36 @@ fun type_check pp tm =
                 if T1 = U then T2 else err_appl "Incompatible operand type" bs t T u U
             | _ => err_appl "Operator not of function type" bs t T u U)
           end;
-
   in typ_of ([], tm) end;
+
+fun err msg = raise TYPE (msg, [], []);
+
+fun check_vars (t $ u) = (check_vars t; check_vars u)
+  | check_vars (Abs (_, _, t)) = check_vars t
+  | check_vars (Var (xi as (_, i), _)) =
+      if i < 0 then err ("Malformed variable: " ^ quote (Term.string_of_vname xi)) else ()
+  | check_vars _ = ();
 
 in
 
-fun certify_term pp thy tm =
+fun certify normalize prop pp thy tm =
   let
     val _ = Context.check_thy thy;
+    val _ = check_vars tm;
+    val tm' = Term.map_term_types (certify_typ thy) tm;
+    val T = type_check pp tm';
+    val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
+    val tm'' = Consts.certify pp (tsig_of thy) (consts_of thy) tm';
+    val tm'' = if normalize then tm'' else tm';
+  in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-    fun check_vars (t $ u) = (check_vars t; check_vars u)
-      | check_vars (Abs (_, _, t)) = check_vars t
-      | check_vars (t as Var ((x, i), _)) =
-          if i < 0 then raise TYPE ("Malformed variable: " ^ quote x, [], [t]) else ()
-      | check_vars _ = ();
+fun certify_term thy = certify true false (pp thy) thy;
+fun certify_prop thy = certify true true (pp thy) thy;
 
-    val tm' = tm
-      |> map_term_types (certify_typ thy)
-      |> Consts.certify pp (tsig_of thy) (consts_of thy)
-      |> tap check_vars;
-    val tm' = if tm = tm' then tm else tm';  (*avoid copying of already normal term*)
-  in (tm', type_check pp tm', maxidx_of_term tm') end;
+val cert_term = #1 oo certify_term;
+val cert_prop = #1 oo certify_prop;
 
 end;
-
-fun certify_prop pp thy tm =
-  let val res as (tm', T, _) = certify_term pp thy tm
-  in if T <> propT then raise TYPE ("Term not of type prop", [T], [tm']) else res end;
-
-fun cert_term thy tm = #1 (certify_term (pp thy) thy tm);
-fun cert_prop thy tm = #1 (certify_prop (pp thy) thy tm);
 
 
 (* specifications *)
@@ -538,11 +537,7 @@ fun read_tyname thy raw_c =
     | _ => error ("Undeclared type constructor: " ^ quote c))
   end;
 
-fun read_const thy raw_c =
-  let
-    val c = intern_const thy raw_c;
-    val _ = the_const_type thy c handle TYPE (msg, _, _) => error msg;
-  in Const (c, dummyT) end;
+val read_const = Consts.read_const o consts_of;
 
 
 
@@ -558,15 +553,16 @@ fun read_const thy raw_c =
   typs: expected types
 *)
 
-fun infer_types_simult pp thy def_type def_sort used freeze args =
+fun infer_types_simult pp thy consts def_type def_sort used freeze args =
   let
     val termss = fold_rev (multiply o fst) args [[]];
     val typs =
       map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
 
     fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (const_constraint thy) def_type def_sort (intern_const thy) (intern_tycons thy)
-        (intern_sort thy) used freeze typs ts)
+        (try (Consts.constraint consts)) def_type def_sort
+        (NameSpace.intern (Consts.space_of consts))
+        (intern_tycons thy) (intern_sort thy) used freeze typs ts)
       handle TYPE (msg, _, _) => Exn (ERROR msg);
 
     val err_results = map infer termss;
@@ -590,22 +586,23 @@ fun infer_types_simult pp thy def_type def_sort used freeze args =
       cat_lines (map (Pretty.string_of_term pp) (List.concat (map fst results)))))
   end;
 
-fun infer_types pp thy def_type def_sort used freeze tsT =
-  apfst hd (infer_types_simult pp thy def_type def_sort used freeze [tsT]);
+fun infer_types pp thy consts def_type def_sort used freeze tsT =
+  apfst hd (infer_types_simult pp thy consts def_type def_sort used freeze [tsT]);
 
 
 (* read_def_terms -- read terms and infer types *)    (*exception ERROR*)
 
-fun read_def_terms' pp is_logtype syn context (types, sorts) used freeze sTs =
+fun read_def_terms' pp is_logtype syn consts context (types, sorts) used freeze sTs =
   let
     val thy = Context.theory_of context;
     fun read (s, T) =
       let val T' = certify_typ thy T handle TYPE (msg, _, _) => error msg
       in (Syntax.read context is_logtype syn T' s, T') end;
-  in infer_types_simult pp thy types sorts used freeze (map read sTs) end;
+  in infer_types_simult pp thy consts types sorts used freeze (map read sTs) end;
 
 fun read_def_terms (thy, types, sorts) =
-  read_def_terms' (pp thy) (is_logtype thy) (syn_of thy) (Context.Theory thy) (types, sorts);
+  read_def_terms' (pp thy) (is_logtype thy) (syn_of thy) (consts_of thy)
+    (Context.Theory thy) (types, sorts);
 
 fun simple_read_term thy T s =
   let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]
@@ -731,7 +728,7 @@ end;
 
 local
 
-fun gen_add_abbrevs prep_term raw_args thy =
+fun gen_add_abbrevs prep_term revert raw_args thy =
   let
     val prep_tm =
       Compress.term thy o Logic.varify o no_vars (pp thy) o Term.no_dummy_patterns o prep_term thy;
@@ -744,7 +741,7 @@ fun gen_add_abbrevs prep_term raw_args thy =
     val (abbrs, syn) = split_list (map prep raw_args);
   in
     thy
-    |> map_consts (fold (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy)) abbrs)
+    |> map_consts (fold (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) revert) abbrs)
     |> add_syntax_i syn
   end;
 
