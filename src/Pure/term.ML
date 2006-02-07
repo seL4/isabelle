@@ -897,7 +897,7 @@ fun abstract_over (v, body) =
         | _ => raise SAME);
   in abs 0 body handle SAME => body end;
 
-fun lambda (v as Const (x, T)) t = Abs (x, T, abstract_over (v, t))
+fun lambda (v as Const (x, T)) t = Abs (NameSpace.base x, T, abstract_over (v, t))
   | lambda (v as Free (x, T)) t = Abs (x, T, abstract_over (v, t))
   | lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
   | lambda v t = raise TERM ("lambda", [v, t]);
