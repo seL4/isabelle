@@ -214,8 +214,7 @@ sig
   val gen_distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val distinct: ''a list -> ''a list
   val findrep: ''a list -> ''a list
-  val gen_duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
-  val duplicates: ''a list -> ''a list
+  val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
   (*lists as tables -- see also Pure/General/alist.ML*)
@@ -233,6 +232,7 @@ sig
   val accesses_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> 'a list
 
   (*orders*)
+  val is_equal: order -> bool
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
   val eq_ord: ('a -> order) -> 'a -> bool
@@ -1025,18 +1025,14 @@ fun findrep [] = []
 
 (*returns a list containing all repeated elements exactly once; preserves
   order, takes first of equal elements*)
-fun gen_duplicates eq lst =
+fun duplicates eq lst =
   let
     fun dups (rev_dups, []) = rev rev_dups
       | dups (rev_dups, x :: xs) =
           if member eq rev_dups x orelse not (member eq xs x) then
             dups (rev_dups, xs)
           else dups (x :: rev_dups, xs);
-  in
-    dups ([], lst)
-  end;
-
-fun duplicates l = gen_duplicates (op =) l;
+  in dups ([], lst) end;
 
 fun has_duplicates eq =
   let
@@ -1099,6 +1095,9 @@ fun accesses_bal (f, g, x) n =
 
 
 (** orders **)
+
+fun is_equal EQUAL = true
+  | is_equal _ = false;
 
 fun rev_order LESS = GREATER
   | rev_order EQUAL = EQUAL
