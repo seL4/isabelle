@@ -53,7 +53,7 @@ struct
 
 type key = Key.key;
 
-val eq_key = equal EQUAL o Key.ord;
+val eq_key = is_equal o Key.ord;
 
 val member_key = member eq_key;
 val remove_key = remove eq_key;
