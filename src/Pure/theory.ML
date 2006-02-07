@@ -167,20 +167,19 @@ fun err_in_axm msg name =
 
 fun cert_axm thy (name, raw_tm) =
   let
-    val pp = Sign.pp thy;
-    val (t, T, _) = Sign.certify_term pp thy raw_tm
+    val (t, T, _) = Sign.certify_prop thy raw_tm
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg;
   in
     Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
-    assert (T = propT) "Term not of type prop";
-    (name, Sign.no_vars pp t)
+    (name, Sign.no_vars (Sign.pp thy) t)
   end;
 
 fun read_def_axm (thy, types, sorts) used (name, str) =
   let
     val ts = Syntax.read (Context.Theory thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
-    val (t, _) = Sign.infer_types (Sign.pp thy) thy types sorts used true (ts, propT);
+    val (t, _) =
+      Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy) types sorts used true (ts, propT);
   in cert_axm thy (name, t) end
   handle ERROR msg => err_in_axm msg name;
 
@@ -189,7 +188,8 @@ fun read_axm thy name_str = read_def_axm (thy, K NONE, K NONE) [] name_str;
 fun inferT_axm thy (name, pre_tm) =
   let
     val pp = Sign.pp thy;
-    val (t, _) = Sign.infer_types pp thy (K NONE) (K NONE) [] true ([pre_tm], propT);
+    val (t, _) =
+      Sign.infer_types pp thy (Sign.consts_of thy) (K NONE) (K NONE) [] true ([pre_tm], propT);
   in (name, Sign.no_vars pp t) end
   handle ERROR msg => err_in_axm msg name;
 
