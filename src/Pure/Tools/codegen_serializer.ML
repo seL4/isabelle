@@ -20,7 +20,7 @@ sig
       * OuterParse.token list;
   val parse_syntax: (string -> 'b -> 'a * 'b) -> OuterParse.token list ->
     ('b -> 'a pretty_syntax * 'b) * OuterParse.token list;
-  val parse_targetdef: (string -> string) -> string -> string;
+  val parse_targetdef: string -> CodegenThingol.prim list;
   val pretty_list: string -> string -> int * string -> CodegenThingol.iexpr pretty_syntax;
   val serializers: {
     ml: string * (string * string * (string -> bool) -> serializer),
@@ -207,18 +207,16 @@ fun newline_correct s =
                       | xs => xs) o explode)
   |> space_implode "\n";
 
-fun parse_named_quote resolv s =
+fun parse_targetdef s =
   case Scan.finite Symbol.stopper (Scan.repeat (
-         ($$ "`" |-- $$ "`")
+         ($$ "`" |-- $$ "`" >> (CodegenThingol.Pretty o str))
       || ($$ "`" |-- Scan.repeat1 (Scan.unless ($$ "`") (Scan.one Symbol.not_eof))
-            --| $$ "`" >> (resolv o implode))
+            --| $$ "`" >> (fn ["_"] => Name | s => error ("malformed antiquote: " ^ implode s)))
       || Scan.repeat1
-           (Scan.unless ($$ "`") (Scan.one Symbol.not_eof)) >> implode
-    ) >> implode) (Symbol.explode s)
+           (Scan.unless ($$ "`") (Scan.one Symbol.not_eof)) >> (CodegenThingol.Pretty o str o implode)
+    )) (Symbol.explode s)
    of (p, []) => p
-    | (p, ss) => error ("Malformed definition: " ^ quote p ^ " - " ^ commas ss);
-
-fun parse_targetdef resolv = parse_named_quote resolv o newline_correct;
+    | (p, ss) => error ("Malformed definition: " ^ quote s ^ " - " ^ commas ss);
 
 
 (* abstract serializer *)
@@ -227,29 +225,26 @@ type serializer =
     string list list
     -> OuterParse.token list ->
     ((string -> string option)
-      * (string -> CodegenThingol.itype pretty_syntax option)
-      * (string -> CodegenThingol.iexpr pretty_syntax option)
+      * (string -> itype pretty_syntax option)
+      * (string -> iexpr pretty_syntax option)
     -> string list option
-    -> CodegenThingol.module -> unit)
+    -> module -> unit)
     * OuterParse.token list;
 
-fun pretty_of_prim target resolv (name, primdef) =
-  let
-    fun pr (CodegenThingol.Pretty p) = p
-      | pr (CodegenThingol.Name s) = resolv s;
-  in case AList.lookup (op = : string * string -> bool) primdef target
-   of NONE => error ("no primitive definition for " ^ quote name)
-    | SOME ps => (Pretty.block o map pr) ps
-  end;
-
 fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
-    postprocess preprocess (class_syntax : string -> string option, tyco_syntax, const_syntax)
+    postprocess preprocess (class_syntax, tyco_syntax, const_syntax)
     select module =
   let
-    fun from_prim (name, prim) =
-      case AList.lookup (op = : string * string -> bool) prim target
+    fun pretty_of_prim resolv (name, primdef) =
+      let
+        fun pr (CodegenThingol.Pretty p) = p
+          | pr Name = (str o resolv) name;
+      in case AList.lookup (op = : string * string -> bool) primdef target
        of NONE => error ("no primitive definition for " ^ quote name)
-        | SOME p => p;
+        | SOME ps => (case map pr ps
+           of [] => NONE
+            | ps => (SOME o Pretty.block) ps)
+      end;
     fun from_module' imps ((name_qual, name), defs) =
       from_module imps ((name_qual, name), defs) |> postprocess name_qual;
   in
@@ -260,7 +255,7 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     |> debug 3 (fn _ => "preprocessing...")
     |> preprocess
     |> debug 3 (fn _ => "serializing...")
-    |> serialize (from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax)))
+    |> serialize (from_defs (pretty_of_prim, (class_syntax : string -> string option, tyco_syntax, const_syntax)))
          from_module' validator postproc nspgrp name_root
     |> K ()
   end;
@@ -400,16 +395,17 @@ fun ml_from_defs (is_cons, needs_type)
       #> NameSpace.base
       #> translate_string (fn "_" => "__" | "." => "_" | c => c)
       #> str;
-    fun ml_from_type fxy (IType (tyco, tys)) =
+    fun ml_from_tycoexpr fxy (tyco, tys) =
+      let
+        val tyco' = (str o resolv) tyco
+      in case map (ml_from_type BR) tys
+       of [] => tyco'
+        | [p] => Pretty.block [p, Pretty.brk 1, tyco']
+        | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, tyco']
+      end
+    and ml_from_type fxy (IType (tycoexpr as (tyco, tys))) =
           (case tyco_syntax tyco
-           of NONE =>
-                let
-                  val tyco' = (str o resolv) tyco
-                in case map (ml_from_type BR) tys
-                 of [] => tyco'
-                  | [p] => Pretty.block [p, Pretty.brk 1, tyco']
-                  | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, tyco']
-                end
+           of NONE => ml_from_tycoexpr fxy (tyco, tys)
             | SOME ((i, k), pr) =>
                 if not (i <= length tys andalso length tys <= k)
                 then error ("number of argument mismatch in customary serialization: "
@@ -563,7 +559,7 @@ fun ml_from_defs (is_cons, needs_type)
         fun mk_datatype definer (t, ((vs, cs), _)) =
           (Pretty.block o Pretty.breaks) (
             str definer
-            :: ml_from_type NOBR (t `%% map IVarT vs)
+            :: ml_from_tycoexpr NOBR (t, map IVarT vs)
             :: str "="
             :: separate (str "|") (map mk_cons cs)
           )
@@ -579,13 +575,13 @@ fun ml_from_defs (is_cons, needs_type)
     fun ml_from_def (name, Undef) =
           error ("empty definition during serialization: " ^ quote name)
       | ml_from_def (name, Prim prim) =
-          from_prim (name, prim)
+          from_prim resolv (name, prim)
       | ml_from_def (name, Typesyn (vs, ty)) =
         (map (fn (vname, []) => () | _ =>
             error "can't serialize sort constrained type declaration to ML") vs;
           Pretty.block [
             str "type ",
-            ml_from_type NOBR (name `%% map IVarT vs),
+            ml_from_tycoexpr NOBR (name, map IVarT vs),
             str " =",
             Pretty.brk 1,
             ml_from_type NOBR ty,
@@ -723,7 +719,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
       |> debug 3 (fn _ => "eta-expanding polydefs...")
       |> eta_expand_poly
       |> debug 3 (fn _ => "unclashing expression/type variables...")
-      |> unclash_vars;
+      |> unclash_vars_tvars;
     val parse_multi =
       OuterParse.name
       #-> (fn "dir" => 
@@ -743,7 +739,7 @@ end; (* local *)
 
 local
 
-fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
+fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax))
     resolv defs =
   let
     fun hs_from_sctxt vs =
@@ -763,10 +759,12 @@ fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
         |> Library.flat
         |> from_sctxt
       end;
-    fun hs_from_type fxy (IType (tyco, tys)) =
+    fun hs_from_tycoexpr fxy (tyco, tys) =
+      brackify fxy ((str o resolv) tyco :: map (hs_from_type BR) tys)
+    and hs_from_type fxy (IType (tycoexpr as (tyco, tys))) =
           (case tyco_syntax tyco
            of NONE =>
-                brackify fxy ((str o resolv) tyco :: map (hs_from_type BR) tys)
+                hs_from_tycoexpr fxy tycoexpr
             | SOME ((i, k), pr) =>
                 if not (i <= length tys andalso length tys <= k)
                 then error ("number of argument mismatch in customary serialization: "
@@ -782,6 +780,8 @@ fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
           ]
       | hs_from_type fxy (IVarT (v, _)) =
           str v;
+    fun hs_from_sctxt_tycoexpr (sctxt, tycoexpr) =
+      Pretty.block [hs_from_sctxt sctxt, hs_from_tycoexpr NOBR tycoexpr]
     fun hs_from_sctxt_type (sctxt, ty) =
       Pretty.block [hs_from_sctxt sctxt, hs_from_type NOBR ty]
     fun hs_from_expr fxy (e as IApp (e1, e2)) =
@@ -857,20 +857,24 @@ fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
     fun hs_from_def (name, Undef) =
           error ("empty statement during serialization: " ^ quote name)
       | hs_from_def (name, Prim prim) =
-          from_prim (name, prim)
+          from_prim resolv (name, prim)
       | hs_from_def (name, Fun (eqs, (sctxt, ty))) =
-          Pretty.chunks [
-            Pretty.block [
-              (str o suffix " ::" o resolv) name,
-              Pretty.brk 1,
-              hs_from_sctxt_type (sctxt, ty)
-            ],
-            hs_from_funeqs (name, eqs)
-          ] |> SOME
+          let
+            val body = hs_from_funeqs (name, eqs);
+          in if with_typs then
+            Pretty.chunks [
+              Pretty.block [
+                (str o suffix " ::" o resolv) name,
+                Pretty.brk 1,
+                hs_from_sctxt_type (sctxt, ty)
+              ],
+              body
+            ] |> SOME
+          else SOME body end
       | hs_from_def (name, Typesyn (vs, ty)) =
           Pretty.block [
             str "type ",
-            hs_from_sctxt_type (vs, CodegenThingol.IType (name, map CodegenThingol.IVarT vs)),
+            hs_from_sctxt_tycoexpr (vs, (name, map IVarT vs)),
             str " =",
             Pretty.brk 1,
             hs_from_sctxt_type ([], ty)
@@ -885,7 +889,7 @@ fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
           in
             Pretty.block ((
               str "data "
-              :: hs_from_sctxt_type (vs, CodegenThingol.IType (name, map CodegenThingol.IVarT vs))
+              :: hs_from_sctxt_type (vs, IType (name, map IVarT vs))
               :: str " ="
               :: Pretty.brk 1
               :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs)
@@ -919,9 +923,9 @@ fun hs_from_defs (from_prim, (class_syntax, tyco_syntax, const_syntax))
       | hs_from_def (_, Classinst (((clsname, (tyco, arity)), _), memdefs)) = 
           Pretty.block [
             str "instance ",
-            hs_from_sctxt_type (arity, IType (clsname, map (IVarT o rpair [] o fst) arity)),
+            hs_from_sctxt_tycoexpr (arity, (clsname, map (IVarT o rpair [] o fst) arity)),
             str " ",
-            hs_from_sctxt_type (arity, IType (tyco, map (IVarT o rpair [] o fst) arity)),
+            hs_from_sctxt_tycoexpr (arity, (tyco, map (IVarT o rpair [] o fst) arity)),
             str " where",
             Pretty.fbrk,
             Pretty.chunks (map (fn (m, (eqs, _)) => hs_from_funeqs (m, eqs)) memdefs)
@@ -946,7 +950,7 @@ fun hs_from_thingol target nsps_upper nspgrp =
     fun hs_from_module imps ((_, name), ps) =
       (Pretty.block o Pretty.fbreaks) (
           str ("module " ^ name ^ " where")
-      :: map (str o prefix "import ") imps @ [
+      :: map (str o prefix "import qualified ") imps @ [
           str "",
           Pretty.chunks (separate (str "") ps)
       ]);
@@ -957,8 +961,8 @@ fun hs_from_thingol target nsps_upper nspgrp =
         then ch_first Char.toUpper n
         else ch_first Char.toLower n
       end;
-    val serializer = abstract_serializer (target, nspgrp)
-      "Main" (hs_from_defs, hs_from_module, abstract_validator reserved_hs, postproc);
+    fun serializer with_typs = abstract_serializer (target, nspgrp)
+      "Main" (hs_from_defs with_typs, hs_from_module, abstract_validator reserved_hs, postproc);
     fun eta_expander const_syntax c =
       const_syntax c
       |> Option.map (fst o fst)
@@ -967,10 +971,11 @@ fun hs_from_thingol target nsps_upper nspgrp =
       module
       |> tap (Pretty.writeln o pretty_deps)
       |> debug 3 (fn _ => "eta-expanding...")
-      |> eta_expand (eta_expander const_syntax);
+      |> eta_expand (eta_expander const_syntax)
   in
-    parse_multi_file ((K o K) NONE) "hs" serializer
-    >> (fn seri => fn (class_syntax, tyco_syntax, const_syntax) => seri 
+    (Scan.optional (OuterParse.name >> (fn "no_typs" => false | s => Scan.fail_with (fn _ => "illegal flag: " ^ quote s) true)) true
+    #-> (fn with_typs => parse_multi_file ((K o K) NONE) "hs" (serializer with_typs)))
+    >> (fn (seri) => fn (class_syntax, tyco_syntax, const_syntax) => seri 
          (preprocess const_syntax) (class_syntax, tyco_syntax, const_syntax))
   end;
 

@@ -267,8 +267,11 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
       end;
     fun check_defs raw_defs c_req thy =
       let
-        val thy' = Sign.add_arities_i [(tyco, asorts, sort)] thy;
-        val c_given = map (fst o Sign.cert_def pp o snd o tap_def thy' o fst) raw_defs;
+        val thy' = thy |> Theory.copy |> Sign.add_arities_i [(tyco, asorts, sort)];
+        fun get_c raw_def =
+          (fst o Sign.cert_def pp o snd o tap_def thy' o fst) raw_def;
+        val c_given = map get_c raw_defs;
+(*         spec_opt_name   *)
         fun eq_c ((c1, ty1), (c2, ty2)) = 
           let
             val ty1' = Type.varifyT ty1;
@@ -298,8 +301,8 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
     |-> (fn cs => AxClass.instance_arity_i (after_qed cs) arity)
   end;
 
-val add_instance_arity = fn x => gen_instance_arity (AxClass.read_arity) IsarThy.add_defs read_axm x;
-val add_instance_arity_i = fn x => gen_instance_arity (AxClass.cert_arity) IsarThy.add_defs_i (K I) x;
+val add_instance_arity = gen_instance_arity (AxClass.read_arity) IsarThy.add_defs read_axm;
+val add_instance_arity_i = gen_instance_arity (AxClass.cert_arity) IsarThy.add_defs_i (K I);
 
 
 (* queries *)
@@ -521,7 +524,7 @@ val classP_exp =
     P.name --| P.$$$ "="
     -- Scan.optional (Scan.repeat1 (P.name --| P.$$$ "+")) []
     -- Scan.optional (P.!!! (Scan.repeat1 P.context_element)) []
-      >> (Toplevel.theory_to_proof
+      >> (Toplevel.print oo Toplevel.theory_to_proof
           o (fn ((bname, supclasses), elems) => add_class_exp bname supclasses elems)));
 
 val instanceP =

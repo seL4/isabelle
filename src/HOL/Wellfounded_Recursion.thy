@@ -290,10 +290,10 @@ fun wfrec f x = f (wfrec f) x;
 
 code_primconst wfrec
 ml {*
-fun wfrec f x = f (wfrec f) x;
+fun `_` f x = f (`_` f) x;
 *}
 haskell {*
-wfrec f x = f (wfrec f) x
+`_` f x = f (`_` f) x
 *}
 
 (* code_syntax_const

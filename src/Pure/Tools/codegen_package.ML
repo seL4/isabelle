@@ -19,21 +19,21 @@ sig
   val add_appconst: string * ((int * int) * appgen) -> theory -> theory;
   val add_appconst_i: xstring * ((int * int) * appgen) -> theory -> theory;
   val add_eqextr: string * eqextr -> theory -> theory;
-  val add_prim_class: xstring -> string list -> (string * string)
+  val add_prim_class: xstring -> (string * string)
     -> theory -> theory;
-  val add_prim_tyco: xstring -> string list -> (string * string)
+  val add_prim_tyco: xstring -> (string * string)
     -> theory -> theory;
-  val add_prim_const: xstring * string option -> string list -> (string * string)
+  val add_prim_const: xstring * string option -> (string * string)
     -> theory -> theory;
-  val add_prim_i: string -> string list -> (string * Pretty.T)
+  val add_prim_i: string -> (string * CodegenThingol.prim list)
     -> theory -> theory;
   val add_pretty_list: string -> string -> string * (int * string)
     -> theory -> theory;
   val add_alias: string * string -> theory -> theory;
-  val set_is_datatype: (theory -> string -> bool) -> theory -> theory;
   val set_get_all_datatype_cons : (theory -> (string * string) list)
     -> theory -> theory;
-  val set_defgen_datatype: defgen -> theory -> theory;
+  val set_get_datatype: (theory -> string -> ((string * sort) list * (string * typ list) list) option)
+    -> theory -> theory;
   val set_int_tyco: string -> theory -> theory;
 
   val appgen_default: appgen;
@@ -47,9 +47,6 @@ sig
     -> theory -> theory;
   val add_case_const_i: (theory -> string -> (string * int) list option) -> string
     -> theory -> theory;
-  val defgen_datatype_proto: (theory -> string -> ((string * sort) list * string list) option)
-    -> (theory -> string * string -> typ list option)
-    -> defgen;
 
   val print_codegen_generated: theory -> unit;
   val rename_inconsistent: theory -> theory;
@@ -214,30 +211,29 @@ fun merge_gens
   } : gens;
 
 type logic_data = {
-  is_datatype: ((theory -> string -> bool) * stamp) option,
   get_all_datatype_cons: ((theory -> (string * string) list) * stamp) option,
-  defgen_datatype: (defgen * stamp) option,
+  get_datatype: ((theory -> string -> ((string * sort) list * (string * typ list) list) option) * stamp) option,
   alias: string Symtab.table * string Symtab.table
 };
 
-fun map_logic_data f { is_datatype, get_all_datatype_cons, defgen_datatype, alias } =
+fun map_logic_data f { get_all_datatype_cons, get_datatype, alias } =
   let
-    val ((is_datatype, get_all_datatype_cons, defgen_datatype), alias) =
-      f ((is_datatype, get_all_datatype_cons, defgen_datatype), alias)
-  in { is_datatype = is_datatype, get_all_datatype_cons = get_all_datatype_cons,
-    defgen_datatype = defgen_datatype, alias = alias } : logic_data end;
+    val ((get_all_datatype_cons, get_datatype), alias) =
+      f ((get_all_datatype_cons, get_datatype), alias)
+  in { get_all_datatype_cons = get_all_datatype_cons,
+    get_datatype = get_datatype, alias = alias } : logic_data end;
 
 fun merge_logic_data
-  ({ is_datatype = is_datatype1, get_all_datatype_cons = get_all_datatype_cons1,
-       defgen_datatype = defgen_datatype1, alias = alias1 },
-   { is_datatype = is_datatype2, get_all_datatype_cons = get_all_datatype_cons2,
-       defgen_datatype = defgen_datatype2, alias = alias2 }) =
+  ({ get_all_datatype_cons = get_all_datatype_cons1,
+       get_datatype = get_datatype1, alias = alias1 },
+   { get_all_datatype_cons = get_all_datatype_cons2,
+       get_datatype = get_datatype2, alias = alias2 }) =
   let
   in
-    { is_datatype = merge_opt (eq_snd (op =)) (is_datatype1, is_datatype2),
-      get_all_datatype_cons = merge_opt (eq_snd (op =))
+    { get_all_datatype_cons = merge_opt (eq_snd (op =))
         (get_all_datatype_cons1, get_all_datatype_cons2),
-      defgen_datatype = merge_opt (eq_snd (op =)) (defgen_datatype1, defgen_datatype2),
+      get_datatype = merge_opt (eq_snd (op =))
+        (get_datatype1, get_datatype2),
       alias = (Symtab.merge (op =) (fst alias1, fst alias2),
                Symtab.merge (op =) (snd alias1, snd alias2)) } : logic_data
   end;
@@ -277,8 +273,8 @@ structure CodegenData = TheoryDataFun
   val empty = {
     modl = empty_module,
     gens = { appconst = Symtab.empty, eqextrs = [] } : gens,
-    logic_data = { is_datatype = NONE, get_all_datatype_cons = NONE,
-      defgen_datatype = NONE,
+    logic_data = { get_all_datatype_cons = NONE,
+      get_datatype = NONE,
       alias = (Symtab.empty, Symtab.empty) } : logic_data,
     target_data =
       Symtab.empty
@@ -437,48 +433,31 @@ fun add_eqextr (name, eqx) =
 fun get_eqextrs thy tabs =
   (map (fn (_, (eqx, _)) => eqx thy tabs) o #eqextrs o #gens o CodegenData.get) thy;
 
-fun set_is_datatype f =
-  map_codegen_data
-    (fn (modl, gens, target_data, logic_data) =>
-       (modl, gens, target_data,
-        logic_data
-        |> map_logic_data (apfst (fn (is_datatype, get_all_datatype_cons, defgen_datatype)
-             => (SOME (f, stamp ()), get_all_datatype_cons, defgen_datatype)))));
-
-fun is_datatype thy =
-  case (#is_datatype o #logic_data o CodegenData.get) thy
-   of NONE => K false
-    | SOME (f, _) => f thy;
-
 fun set_get_all_datatype_cons f =
   map_codegen_data
     (fn (modl, gens, target_data, logic_data) =>
        (modl, gens, target_data,
         logic_data
-        |> map_logic_data ((apfst (fn (is_datatype, get_all_datatype_cons, defgen_datatype)
-             => (is_datatype, SOME (f, stamp ()), defgen_datatype))))));
+        |> map_logic_data ((apfst (fn (get_all_datatype_cons, get_datatype)
+             => (SOME (f, stamp ()), get_datatype))))));
 
 fun get_all_datatype_cons thy =
   case (#get_all_datatype_cons o #logic_data o CodegenData.get) thy
    of NONE => []
     | SOME (f, _) => f thy;
 
-fun set_defgen_datatype f =
+fun set_get_datatype f =
   map_codegen_data
     (fn (modl, gens, target_data, logic_data) =>
        (modl, gens, target_data,
         logic_data
-        |> map_logic_data ((apfst (fn (is_datatype, get_all_datatype_cons, defgen_datatype)
-             => (is_datatype, get_all_datatype_cons, SOME (f, stamp ())))))));
+        |> map_logic_data ((apfst (fn (get_all_datatype_cons, get_datatype)
+             => (get_all_datatype_cons, SOME (f, stamp ())))))));
 
-fun defgen_datatype thy tabs dtco trns =
-  case (#defgen_datatype o #logic_data o CodegenData.get) thy
-   of NONE =>
-        trns
-        |> fail ("no datatype definition generator present")
-    | SOME (f, _) => 
-        trns
-        |> f thy tabs dtco;
+fun get_datatype thy =
+  case (#get_datatype o #logic_data o CodegenData.get) thy
+   of NONE => K NONE
+    | SOME (f, _) => f thy;
 
 fun set_int_tyco tyco thy =
   (serializers := (
@@ -594,6 +573,28 @@ fun ensure_def_class thy tabs cls trns =
   end
 and ensure_def_tyco thy tabs tyco trns =
   let
+    fun defgen_datatype thy (tabs as (_, (_, _, dtcontab))) dtco trns =
+      case name_of_idf thy nsp_tyco dtco
+       of SOME dtco =>
+            (case get_datatype thy dtco
+             of SOME (vars, cos) =>
+                  let
+                    val cos' = map (fn (co, tys) => (DatatypeconsNameMangler.get thy dtcontab (co, dtco) |>
+                      idf_of_name thy nsp_dtcon, tys)) cos;
+                  in
+                    trns
+                    |> debug 5 (fn _ => "trying defgen datatype for " ^ quote dtco)
+                    |> fold_map (exprgen_tyvar_sort thy tabs) vars
+                    ||>> fold_map (fn (c, ty) => codegen_type thy tabs ty #-> (fn ty' => pair (c, ty'))) cos'
+                    |-> (fn (sorts, cos'') => succeed (Datatype
+                         ((sorts, cos''), [])))
+                  end
+              | NONE =>
+                  trns
+                  |> fail ("no datatype found for " ^ quote dtco))
+        | NONE =>
+            trns
+            |> fail ("not a type constructor: " ^ quote dtco)
     val tyco' = idf_of_name thy nsp_tyco tyco;
   in
     trns
@@ -709,6 +710,15 @@ and ensure_def_const thy (tabs as ((_, clsmemtab), (_, overltab, dtcontab))) (c,
         | NONE =>
             trns
             |> fail ("not a constant: " ^ quote c);
+    fun defgen_clsmem thy tabs m trns =
+      case name_of_idf thy nsp_mem m
+       of SOME m =>
+            trns
+            |> debug 5 (fn _ => "trying defgen class member for " ^ quote m)
+            |> ensure_def_class thy tabs ((the o ClassPackage.lookup_const_class thy) m)
+            |-> (fn cls => succeed Undef)
+        | _ =>
+            trns |> fail ("no class member found for " ^ quote m)
     fun defgen_datatypecons thy (tabs as (_, (_, _, dtcontab))) co trns =
       case Option.map (DatatypeconsNameMangler.rev thy dtcontab) (name_of_idf thy nsp_dtcon co)
        of SOME (co, dtco) =>
@@ -719,25 +729,21 @@ and ensure_def_const thy (tabs as ((_, clsmemtab), (_, overltab, dtcontab))) (c,
         | _ =>
             trns
             |> fail ("not a datatype constructor: " ^ quote co);
-    fun defgen_clsmem thy tabs m trns =
-      case name_of_idf thy nsp_mem m
-       of SOME m =>
-            trns
-            |> debug 5 (fn _ => "trying defgen class member for " ^ quote m)
-            |> ensure_def_class thy tabs ((the o ClassPackage.lookup_const_class thy) m)
-            |-> (fn cls => succeed Undef)
-        | _ =>
-            trns |> fail ("no class member found for " ^ quote m)
-    val c' = idf_of_const thy tabs (c, ty);
+    fun get_defgen idf =
+      if (is_some oo name_of_idf thy) nsp_const idf
+        orelse (is_some oo name_of_idf thy) nsp_overl idf
+      then ("funs", defgen_funs thy tabs)
+      else if (is_some oo name_of_idf thy) nsp_mem idf
+      then ("clsmem", defgen_clsmem thy tabs)
+      else if (is_some oo name_of_idf thy) nsp_dtcon idf
+      then ("datatypecons", defgen_datatypecons thy tabs)
+      else error ("illegal shallow name space for constant: " ^ quote idf);
+    val idf = idf_of_const thy tabs (c, ty);
   in
     trns
     |> debug 4 (fn _ => "generating constant " ^ quote c)
-    |> gen_ensure_def
-         [("funs", defgen_funs thy tabs),
-          ("clsmem", defgen_clsmem thy tabs),
-          ("datatypecons", defgen_datatypecons thy tabs)]
-         ("generating constant " ^ quote c) c'
-    |> pair c'
+    |> gen_ensure_def ((single o get_defgen) idf) ("generating constant " ^ quote c) idf
+    |> pair idf
   end
 and exprgen_term thy tabs (Const (f, ty)) trns =
       trns
@@ -950,30 +956,6 @@ fun gen_add_case_const prep_c get_case_const_data raw_c thy =
 val add_case_const = gen_add_case_const Sign.intern_const;
 val add_case_const_i = gen_add_case_const (K I);
 
-fun defgen_datatype_proto get_datatype get_datacons thy (tabs as (_, (_, _, dtcontab))) dtco trns =
-  case name_of_idf thy nsp_tyco dtco
-   of SOME dtco =>
-        (case get_datatype thy dtco
-         of SOME (vars, cos) =>
-              let
-                val cotys = map (the o get_datacons thy o rpair dtco) cos;
-                val coidfs = map (fn co => (DatatypeconsNameMangler.get thy dtcontab (co, dtco)) |>
-                  idf_of_name thy nsp_dtcon) cos;
-              in
-                trns
-                |> debug 5 (fn _ => "trying defgen datatype for " ^ quote dtco)
-                |> fold_map (exprgen_tyvar_sort thy tabs) vars
-                ||>> fold_map (codegen_type thy tabs) cotys
-                |-> (fn (sorts, tys) => succeed (Datatype
-                     ((sorts, coidfs ~~ tys), [])))
-              end
-          | NONE =>
-              trns
-              |> fail ("no datatype found for " ^ quote dtco))
-    | NONE =>
-        trns
-        |> fail ("not a type constructor: " ^ quote dtco)
-
 
 
 (** theory interface **)
@@ -1054,9 +1036,9 @@ fun map_module f =
   map_codegen_data (fn (modl, gens, target_data, logic_data) =>
     (f modl, gens, target_data, logic_data));
 
-fun expand_module gen thy =
+fun expand_module init gen thy =
   (#modl o CodegenData.get) thy
-  |> start_transact (gen thy (mk_tabs thy))
+  |> start_transact init (gen thy (mk_tabs thy))
   |-> (fn x:'a => fn modl => (x, map_module (K modl) thy));
 
 fun rename_inconsistent thy =
@@ -1116,13 +1098,13 @@ fun read_const thy (raw_c, raw_ty) =
       | SOME raw_ty => read_typ thy raw_ty;
   in (c, ty) end;
 
-fun read_quote reader gen raw thy =
+fun read_quote get reader gen raw thy =
   thy
-  |> expand_module
+  |> expand_module ((SOME o get) thy)
        (fn thy => fn tabs => (gen thy tabs o single o reader thy) raw)
   |-> (fn [x] => pair x);
 
-fun gen_add_prim prep_name prep_primdef raw_name deps (target, raw_primdef) thy =
+fun gen_add_prim prep_name prep_primdef raw_name (target, raw_primdef) thy =
   let
     val _ = if Symtab.defined ((#target_data o CodegenData.get) thy) target
       then () else error ("unknown target language: " ^ quote target);
@@ -1131,19 +1113,19 @@ fun gen_add_prim prep_name prep_primdef raw_name deps (target, raw_primdef) thy 
     val primdef = prep_primdef raw_primdef;
   in
     thy
-    |> map_module (CodegenThingol.add_prim name deps (target, primdef))
+    |> map_module (CodegenThingol.add_prim name (target, primdef))
   end;
 
 val add_prim_i = gen_add_prim ((K o K) I) I;
 val add_prim_class = gen_add_prim
   (fn thy => K (idf_of_name thy nsp_class o Sign.intern_class thy))
-  (Pretty.str o CodegenSerializer.parse_targetdef I);
+  CodegenSerializer.parse_targetdef;
 val add_prim_tyco = gen_add_prim
   (fn thy => K (idf_of_name thy nsp_tyco o Sign.intern_type thy))
-  (Pretty.str o CodegenSerializer.parse_targetdef I);
+  CodegenSerializer.parse_targetdef;
 val add_prim_const = gen_add_prim
   (fn thy => fn tabs => idf_of_const thy tabs o read_const thy)
-  (Pretty.str o CodegenSerializer.parse_targetdef I);
+  CodegenSerializer.parse_targetdef;
 
 val ensure_prim = (map_module oo CodegenThingol.ensure_prim);
 
@@ -1164,20 +1146,20 @@ fun gen_add_syntax_class prep_class class target pretty thy =
 
 val add_syntax_class = gen_add_syntax_class Sign.intern_class;
 
-val parse_syntax_tyco =
+fun parse_syntax_tyco raw_tyco =
   let
-    fun mk reader raw_tyco target thy =
+    fun check_tyco thy tyco =
+      if Sign.declared_tyname thy tyco
+      then tyco
+      else error ("no such type constructor: " ^ quote tyco);
+    fun prep_tyco thy tyco =
+      tyco
+      |> Sign.intern_type thy
+      |> check_tyco thy
+      |> idf_of_name thy nsp_tyco;
+    fun mk reader target thy =
       let
         val _ = get_serializer target;
-        fun check_tyco tyco =
-          if Sign.declared_tyname thy tyco
-          then tyco
-          else error ("no such type constructor: " ^ quote tyco);
-        fun prep_tyco thy tyco =
-          tyco
-          |> Sign.intern_type thy
-          |> check_tyco
-          |> idf_of_name thy nsp_tyco;
         val tyco = prep_tyco thy raw_tyco;
       in
         thy
@@ -1195,7 +1177,7 @@ val parse_syntax_tyco =
               logic_data)))
       end;
   in
-    CodegenSerializer.parse_syntax (read_quote read_typ codegen_type)
+    CodegenSerializer.parse_syntax (read_quote (fn thy => prep_tyco thy raw_tyco) read_typ codegen_type)
     #-> (fn reader => pair (mk reader))
   end;
 
@@ -1212,13 +1194,14 @@ fun add_pretty_syntax_const c target pretty =
                  (c, (pretty, stamp ()))))),
         logic_data));
 
-val parse_syntax_const =
+fun parse_syntax_const raw_const =
   let
-    fun mk reader raw_const target thy =
+    fun prep_const thy raw_const =
+      idf_of_const thy (mk_tabs thy) (read_const thy raw_const);
+    fun mk reader target thy =
       let
         val _ = get_serializer target;
-        val tabs = mk_tabs thy;
-        val c = idf_of_const thy tabs (read_const thy raw_const);
+        val c = prep_const thy raw_const;
       in
         thy
         |> ensure_prim c target
@@ -1226,7 +1209,7 @@ val parse_syntax_const =
         |-> (fn pretty => add_pretty_syntax_const c target pretty)
       end;
   in
-    CodegenSerializer.parse_syntax (read_quote Sign.read_term codegen_term)
+    CodegenSerializer.parse_syntax (read_quote (fn thy => prep_const thy raw_const) Sign.read_term codegen_term)
     #-> (fn reader => pair (mk reader))
   end;
 
@@ -1259,7 +1242,7 @@ fun generate_code (SOME raw_consts) thy =
         fun generate thy tabs = fold_map (ensure_def_const thy tabs) consts
       in
         thy
-        |> expand_module generate
+        |> expand_module NONE generate
         |-> (fn cs => pair (SOME cs))
       end
   | generate_code NONE thy =
@@ -1297,8 +1280,6 @@ val (generateK, serializeK,
   ("code_generate", "code_serialize",
    "code_primclass", "code_primtyco", "code_primconst",
    "code_syntax_class", "code_syntax_tyco", "code_syntax_const", "code_alias");
-val dependingK =
-  ("depending_on");
 
 val generateP =
   OuterSyntax.command generateK "generate executable code for constants" K.thy_decl (
@@ -1329,31 +1310,25 @@ val aliasP =
 val primclassP =
   OuterSyntax.command primclassK "define target-lanugage specific class" K.thy_decl (
     P.xname
-    -- Scan.optional (P.$$$ dependingK |--
-         P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") []
     -- Scan.repeat1 (P.name -- P.text)
-      >> (fn ((raw_class, depends), primdefs) =>
-            (Toplevel.theory oo fold) (add_prim_class raw_class depends) primdefs)
+      >> (fn (raw_class, primdefs) =>
+            (Toplevel.theory oo fold) (add_prim_class raw_class) primdefs)
   );
 
 val primtycoP =
   OuterSyntax.command primtycoK "define target-lanugage specific type constructor" K.thy_decl (
     P.xname
-    -- Scan.optional (P.$$$ dependingK |--
-         P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") []
     -- Scan.repeat1 (P.name -- P.text)
-      >> (fn ((raw_tyco, depends), primdefs) =>
-            (Toplevel.theory oo fold) (add_prim_tyco raw_tyco depends) primdefs)
+      >> (fn (raw_tyco, primdefs) =>
+            (Toplevel.theory oo fold) (add_prim_tyco raw_tyco) primdefs)
   );
 
 val primconstP =
   OuterSyntax.command primconstK "define target-lanugage specific constant" K.thy_decl (
     (P.xname -- Scan.option (P.$$$ "::" |-- P.typ))
-    -- Scan.optional (P.$$$ dependingK |--
-         P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") []
     -- Scan.repeat1 (P.name -- P.text)
-      >> (fn ((raw_const, depends), primdefs) =>
-            (Toplevel.theory oo fold) (add_prim_const raw_const depends) primdefs)
+      >> (fn (raw_const, primdefs) =>
+            (Toplevel.theory oo fold) (add_prim_const raw_const) primdefs)
   );
 
 val syntax_classP =
@@ -1372,29 +1347,28 @@ val syntax_tycoP =
   OuterSyntax.command syntax_tycoK "define code syntax for type constructor" K.thy_decl (
     Scan.repeat1 (
       P.xname
-      -- Scan.repeat1 (
-           P.name -- parse_syntax_tyco
-         )
+      #-> (fn raw_tyco => Scan.repeat1 (
+             P.name -- parse_syntax_tyco raw_tyco
+          ))
     )
-    >> (Toplevel.theory oo fold) (fn (raw_tyco, syns) =>
-          fold (fn (target, modifier) => modifier raw_tyco target) syns)
+    >> (Toplevel.theory oo fold o fold)
+          (fn (target, modifier) => modifier target)
   );
 
 val syntax_constP =
   OuterSyntax.command syntax_constK "define code syntax for constant" K.thy_decl (
     Scan.repeat1 (
       (P.xname -- Scan.option (P.$$$ "::" |-- P.typ))
-      -- Scan.repeat1 (
-           P.name -- parse_syntax_const
-         )
+      #-> (fn raw_const => Scan.repeat1 (
+             P.name -- parse_syntax_const raw_const
+          ))
     )
-    >> (Toplevel.theory oo fold) (fn (raw_c, syns) =>
-          fold (fn (target, modifier) => modifier raw_c target) syns)
+    >> (Toplevel.theory oo fold o fold) 
+          (fn (target, modifier) => modifier target)
   );
 
 val _ = OuterSyntax.add_parsers [generateP, serializeP, aliasP,
   primclassP, primtycoP, primconstP, syntax_tycoP, syntax_constP];
-val _ = OuterSyntax.add_keywords [dependingK];
 
 
 

@@ -66,9 +66,7 @@ sig
   val print_datatypes : theory -> unit
   val datatype_info : theory -> string -> DatatypeAux.datatype_info option
   val datatype_info_err : theory -> string -> DatatypeAux.datatype_info
-  val is_datatype : theory -> string -> bool
-  val get_datatype : theory -> string -> ((string * sort) list * string list) option
-  val get_datatype_cons : theory -> string * string -> typ list option
+  val get_datatype : theory -> string -> ((string * sort) list * (string * typ list) list) option
   val get_datatype_case_consts : theory -> string list
   val get_case_const_data : theory -> string -> (string * int) list option
   val get_all_datatype_cons : theory -> (string * string) list
@@ -129,42 +127,20 @@ fun case_const_of thy tname = (case datatype_info thy tname of
 
 val weak_case_congs_of = map (#weak_case_cong o #2) o Symtab.dest o get_datatypes;
 
-fun is_datatype thy dtco =
-  Symtab.lookup (get_datatypes thy) dtco
-  |> is_some;
-
 fun get_datatype thy dtco =
-  dtco
-  |> Symtab.lookup (get_datatypes thy)
-  |> Option.map (fn info => (#sorts info,
-      (get_first (fn (_, (dtco', _, cs)) =>
-        if dtco = dtco'
-        then SOME (map fst cs)
-        else NONE) (#descr info) |> the)));
-  
-fun get_datatype_cons thy (co, dtco) =
   let
-    val descr =
-      dtco
-      |> Symtab.lookup (get_datatypes thy)
-      |> Option.map #descr
-      |> these
-    val one_descr =
-      descr
-      |> get_first (fn (_, (dtco', vs, cs)) =>
-          if dtco = dtco'
-          then SOME (vs, cs)
-          else NONE);
-  in
-    if is_some one_descr
-    then
-      the one_descr
-      |> (fn (vs, cs) =>
-          co
-          |> AList.lookup (op =) cs
-          |> Option.map (map (DatatypeAux.typ_of_dtyp descr (map (rpair [])
-               (map DatatypeAux.dest_DtTFree vs)))))
-    else NONE
+    fun get_cons descr vs =
+      apsnd (map (DatatypeAux.typ_of_dtyp descr
+        ((map (rpair []) o map DatatypeAux.dest_DtTFree) vs)));
+    fun get_info ({ sorts, descr, ... } : DatatypeAux.datatype_info) =
+      (sorts,
+        ((the oo get_first) (fn (_, (dtco', tys, cs)) =>
+            if dtco = dtco'
+            then SOME (map (get_cons descr tys) cs)
+            else NONE) descr));
+  in case Symtab.lookup (get_datatypes thy) dtco
+   of SOME info => (SOME o get_info) info
+    | NONE => NONE
   end;
 
 fun get_datatype_case_consts thy =
@@ -180,7 +156,7 @@ fun get_case_const_data thy c =
 
 fun get_all_datatype_cons thy =
   Symtab.fold (fn (dtco, _) => fold
-    (fn co => cons (co, dtco))
+    (fn (co, _) => cons (co, dtco))
       ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
 
 fun find_tname var Bi =

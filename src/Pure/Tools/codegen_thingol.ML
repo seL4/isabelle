@@ -47,10 +47,10 @@ sig
   type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
   datatype prim =
       Pretty of Pretty.T
-    | Name of string;
+    | Name;
   datatype def =
       Undef
-    | Prim of (string * Pretty.T option) list
+    | Prim of (string * prim list) list
     | Fun of funn
     | Typesyn of (vname * string list) list * itype
     | Datatype of ((vname * string list) list * (string * itype list) list)
@@ -70,7 +70,7 @@ sig
   val pretty_module: module -> Pretty.T; 
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
-  val add_prim: string -> string list -> (string * Pretty.T) -> module -> module;
+  val add_prim: string -> (string * prim list) -> module -> module;
   val ensure_prim: string -> string -> module -> module;
   val get_def: module -> string -> def;
   val merge_module: module * module -> module;
@@ -80,11 +80,11 @@ sig
   val fail: string -> transact -> 'a transact_fin;
   val gen_ensure_def: (string * gen_defgen) list -> string
     -> string -> transact -> transact;
-  val start_transact: (transact -> 'a * transact) -> module -> 'a * module;
+  val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
 
   val eta_expand: (string -> int) -> module -> module;
   val eta_expand_poly: module -> module;
-  val unclash_vars: module -> module;
+  val unclash_vars_tvars: module -> module;
 
   val debug_level: int ref;
   val debug: int -> ('a -> string) -> 'a -> 'a;
@@ -417,11 +417,11 @@ type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
 
 datatype prim =
     Pretty of Pretty.T
-  | Name of string;
+  | Name;
 
 datatype def =
     Undef
-  | Prim of (string * Pretty.T option) list
+  | Prim of (string * prim list) list
   | Fun of funn
   | Typesyn of (vname * string list) list * itype
   | Datatype of ((vname * string list) list * (string * itype list) list)
@@ -660,14 +660,14 @@ fun ensure_def (name, Undef) module =
             then module
             else error ("tried to overwrite definition " ^ name));
 
-fun add_prim name deps (target, primdef) =
+fun add_prim name (target, primdef as _::_) =
   let
     val (modl, base) = dest_name name;
     fun add [] module =
           (case try (Graph.get_node module) base
            of NONE =>
                 module
-                |> Graph.new_node (base, (Def o Prim) [(target, SOME primdef)])
+                |> Graph.new_node (base, (Def o Prim) [(target, primdef)])
             | SOME (Def (Prim prim)) =>
                 if AList.defined (op =) prim target
                 then error ("already primitive definition (" ^ target
@@ -675,16 +675,13 @@ fun add_prim name deps (target, primdef) =
                 else
                   module
                   |> Graph.map_node base ((K o Def o Prim) (AList.update (op =)
-                       (target, SOME primdef) prim))
+                       (target, primdef) prim))
             | _ => error ("already non-primitive definition present for " ^ name))
       | add (m::ms) module =
           module
           |> Graph.default_node (m, Module empty_module)
           |> Graph.map_node m (Module o add ms o dest_modl)
-  in
-    add modl
-    #> fold (curry add_dep name) deps
-  end;
+  in add modl end;
 
 fun ensure_prim name target =
   let
@@ -693,11 +690,11 @@ fun ensure_prim name target =
           (case try (Graph.get_node module) base
            of NONE =>
                 module
-                |> Graph.new_node (base, (Def o Prim) [(target, NONE)])
+                |> Graph.new_node (base, (Def o Prim) [(target, [])])
             | SOME (Def (Prim prim)) =>
                 module
                 |> Graph.map_node base ((K o Def o Prim) (AList.default (op =)
-                     (target, NONE) prim))
+                     (target, []) prim))
             | _ => module)
       | ensure (m::ms) module =
           module
@@ -908,16 +905,16 @@ fun gen_ensure_def defgens msg name (dep, modl) =
     |> pair dep
   end;
 
-fun start_transact f modl =
+fun start_transact init f modl =
   let
-    fun handle_fail f modl =
-      (((NONE, modl) |> f)
+    fun handle_fail f x =
+      (f x
       handle FAIL (msgs, NONE) =>
         (error o cat_lines) ("code generation failed, while:" :: msgs))
       handle FAIL (msgs, SOME e) =>
         ((writeln o cat_lines) ("code generation failed, while:" :: msgs); raise e);
   in
-    modl
+    (init, modl)
     |> handle_fail f
     |-> (fn x => fn (_, module) => (x, module))
   end;
@@ -966,7 +963,7 @@ val eta_expand_poly =
       | eta funn = funn;
   in (map_defs o map_def_fun) eta end;
 
-val unclash_vars = 
+val unclash_vars_tvars = 
   let
     fun unclash (eqs, (sortctxt, ty)) =
       let
@@ -986,7 +983,6 @@ val unclash_vars =
   in (map_defs o map_def_fun) unclash end;
 
 
-
 (** generic serialization **)
 
 (* resolving *)
@@ -995,22 +991,25 @@ structure NameMangler = NameManglerFun (
   type ctxt = (string * string -> string) * (string -> string option);
   type src = string * string;
   val ord = prod_ord string_ord string_ord;
-  fun mk (preprocess, validate) ((shallow, name), 0) =
-        (case validate (preprocess (shallow, name))
-         of NONE => name
-          | _ => mk (preprocess, validate) ((shallow, name), 1))
-    | mk (preprocess, validate) (("", name), i) =
-        preprocess ("", name ^ "_" ^ string_of_int (i+1))
+  fun mk (postprocess, validate) ((shallow, name), 0) =
+        let
+          val name' = postprocess (shallow, name);
+        in case validate name'
+         of NONE => name'
+          | _ => mk (postprocess, validate) ((shallow, name), 1)
+        end
+    | mk (postprocess, validate) (("", name), i) =
+        postprocess ("", name ^ "_" ^ string_of_int (i+1))
         |> perhaps validate
-    | mk (preprocess, validate) ((shallow, name), i) =
-        preprocess (shallow, shallow ^ "_" ^ name ^ "_" ^ string_of_int (i+1))
+    | mk (postprocess, validate) ((shallow, name), i) =
+        postprocess (shallow, shallow ^ "_" ^ name ^ "_" ^ string_of_int (i+1))
         |> perhaps validate;
   fun is_valid _ _ = true;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
 );
 
-fun mk_deresolver module nsp_conn preprocess validate =
+fun mk_deresolver module nsp_conn postprocess validate =
   let
     datatype tabnode = N of string * tabnode Symtab.table option;
     fun mk module manglers tab =
@@ -1024,12 +1023,11 @@ fun mk_deresolver module nsp_conn preprocess validate =
         fun add_name name =
           let
             val n as (shallow, _) = mk_name name;
-            fun diag (nm as (name, n')) = (writeln ("resolving " ^ quote name ^ " to " ^ quote n'); nm);
           in
             AList.map_entry_yield in_conn shallow (
-              NameMangler.declare (preprocess, validate) n
+              NameMangler.declare (postprocess, validate) n
               #-> (fn n' => pair (name, n'))
-            ) #> apfst the #> apfst diag
+            ) #> apfst the
           end;
         val (renamings, manglers') =
           fold_map add_name (Graph.keys module) manglers;
@@ -1075,9 +1073,9 @@ fun mk_deresolver module nsp_conn preprocess validate =
 
 (* serialization *)
 
-fun serialize seri_defs seri_module validate preprocess nsp_conn name_root module =
+fun serialize seri_defs seri_module validate postprocess nsp_conn name_root module =
   let
-    val resolver = mk_deresolver module nsp_conn preprocess validate;
+    val resolver = mk_deresolver module nsp_conn postprocess validate;
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])

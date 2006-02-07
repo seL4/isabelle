@@ -62,123 +62,70 @@ attach {*
 fun Ball S P = Library.forall P S;
 *}
 
-code_generate "op mem"
+consts
+  flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c"
+  member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool"
+  insert_ :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  remove :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
-code_primconst "insert"
-  depending_on ("List.const.member")
-ml {*
-fun insert x xs =
-  if List.member x xs then xs
-  else x::xs;
-*}
-haskell {*
-insert x xs =
-  if elem x xs then xs else x:xs
-*}
+defs
+  flip_def: "flip f a b == f b a"
+  member_def: "member xs x == x mem xs"
+  insert_def: "insert_ x xs == if member xs x then xs else x#xs"
 
-code_primconst "op Un"
-  depending_on ("Set.const.insert")
-ml {*
-nonfix union;
-fun union xs [] = xs
-  | union [] ys = ys
-  | union (x::xs) ys = union xs (insert x ys);
-*}
-haskell {*
-union xs [] = xs
-union [] ys = ys
-union (x:xs) ys = union xs (insert x ys)
-*}
+primrec
+  "remove x [] = []"
+  "remove x (y#ys) = (if x = y then ys else y # remove x ys)"
 
-code_primconst "op Int"
-  depending_on ("List.const.member")
-ml {*
-nonfix inter;
-fun inter [] ys = []
-  | inter (x::xs) ys =
-      if List.member x ys
-      then x :: inter xs ys
-      else inter xs ys;
-*}
-haskell {*
-inter [] ys = []
-inter (x:xs) ys =
-  if elem x ys
-  then x : inter xs ys
-  else inter xs ys
-*}
+primrec
+  "inter [] ys = []"
+  "inter (x#xs) ys = (let xs' = inter xs ys in if member ys x then x#xs' else xs')"
 
-code_primconst  "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-ml {*
-fun op_minus ys [] = ys
-  | op_minus ys (x::xs) =
-      let
-        fun minus [] x = []
-          | minus (y::ys) x = if x = y then ys else y :: minus ys x
-      in
-        op_minus (minus ys x) xs
-      end;
-*}
-haskell {*
-op_minus ys [] = ys
-op_minus ys (x:xs) = op_minus (minus ys x) xs where
-  minus [] x = []
-  minus (y:ys) x = if x = y then ys else y : minus ys x
-*}
+code_syntax_const "insert"
+  ml ("{*insert_*} _ _")
+  haskell ("{*insert_*} _ _")
 
-code_primconst "image"
-  depending_on ("List.const.insert")
-ml {*
-fun image f =
-  let
-    fun img xs [] = xs
-      | img xs (y::ys) = img (insert (f y) xs) ys;
-  in img [] end;;
-*}
-haskell {*
-image f = img [] where
-  img xs [] = xs
-  img xs (y:ys) = img (insert (f y) xs) ys;
-*}
+code_syntax_const "op Un"
+  ml ("{*foldr insert_*} _ _")
+  haskell ("{*foldr insert_*} _ _")
 
-code_primconst "INTER"
-  depending_on ("Set.const.inter")
-ml {*
-fun INTER [] f = []
-  | INTER (x::xs) f = inter (f x) (INTER xs f);
-*}
-haskell {*
-INTER [] f = []
-INTER (x:xs) f = inter (f x) (INTER xs f);
-*}
+code_syntax_const "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  ml ("{*(flip o foldr) remove*} _ _")
+  haskell ("{*(flip o foldr) remove*} _ _")
 
-code_primconst "UNION"
-  depending_on ("Set.const.union")
-ml {*
-fun UNION [] f = []
-  | UNION (x::xs) f = union (f x) (UNION xs f);
-*}
-haskell {*
-UNION [] f = []
-UNION (x:xs) f = union (f x) (UNION xs f);
-*}
+code_syntax_const "op Int"
+  ml ("{*inter*} _ _")
+  haskell ("{*inter*} _ _")
+
+code_syntax_const "image"
+  ml ("{*\<lambda>f. foldr (insert_ o f)*} _ _ _")
+  haskell ("{*\<lambda>f. foldr (insert_ o f)*} _ _ _")
+
+code_syntax_const "INTER"
+  ml ("{*\<lambda>xs f.  foldr (inter o f) xs*} _ _")
+  haskell ("{*\<lambda>xs f.  foldr (inter o f) xs*} _ _")
+
+code_syntax_const "UNION"
+  ml ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*} _ _")
+  haskell ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*} _ _")
 
 code_primconst "Ball"
 ml {*
-fun Ball [] f = true
-  | Ball (x::xs) f = f x andalso Ball xs f;
+fun `_` [] f = true
+  | `_` (x::xs) f = f x andalso `_` xs f;
 *}
 haskell {*
-Ball = all . flip
+`_` = flip all
 *}
 
 code_primconst "Bex"
 ml {*
-fun Bex [] f = false
-  | Bex (x::xs) f = f x orelse Bex xs f;
+fun `_` [] f = false
+  | `_` (x::xs) f = f x orelse `_` xs f;
 *}
 haskell {*
-Ball = any . flip
+`_` = flip any
 *}
 
 end

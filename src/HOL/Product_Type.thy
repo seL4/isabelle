@@ -787,12 +787,12 @@ code_alias
 
 code_primconst fst
 ml {*
-fun fst (x, y) = x;
+fun `_` (x, y) = x;
 *}
 
 code_primconst snd
 ml {*
-fun snd (x, y) = y;
+fun `_` (x, y) = y;
 *}
 
 code_syntax_tyco
