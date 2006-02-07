@@ -127,7 +127,7 @@ fun merge_tokentrtabs tabs1 tabs2 =
         val trs2 = these (AList.lookup (op =) tabs2 mode);
         val trs = gen_distinct eq_tr (trs1 @ trs2);
       in
-        (case gen_duplicates (eq_fst (op =)) trs of
+        (case duplicates (eq_fst (op =)) trs of
           [] => (mode, trs)
         | dups => error ("More than one token translation function in mode " ^
             quote mode ^ " for " ^ commas_quote (map name dups)))

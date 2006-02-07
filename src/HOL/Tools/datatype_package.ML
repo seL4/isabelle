@@ -540,7 +540,7 @@ fun cert_typ sign ((Ts, sorts), raw_T) =
       TYPE (msg, _, _) => error msg;
     val sorts' = add_typ_tfrees (T, sorts)
   in (Ts @ [T],
-      case gen_duplicates (op =) (map fst sorts') of
+      case duplicates (op =) (map fst sorts') of
          [] => sorts'
        | dups => error ("Inconsistent sort constraints for " ^ commas dups))
   end;
@@ -932,14 +932,14 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
     val (tyvars, _, _, _)::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
       let val full_tname = Sign.full_name sign (Syntax.type_name tname mx)
-      in (case gen_duplicates (op =) tvs of
+      in (case duplicates (op =) tvs of
             [] => if eq_set (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
                   else error ("Mutually recursive datatypes must have same type parameters")
           | dups => error ("Duplicate parameter(s) for datatype " ^ full_tname ^
               " : " ^ commas dups))
       end) dts);
 
-    val _ = (case gen_duplicates (op =) (map fst new_dts) @ gen_duplicates (op =) new_type_names of
+    val _ = (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
       [] => () | dups => error ("Duplicate datatypes: " ^ commas dups));
 
     fun prep_dt_spec ((dts', constr_syntax, sorts, i), (tvs, tname, mx, constrs)) =
@@ -962,7 +962,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
           Library.foldl prep_constr (([], [], sorts), constrs)
 
       in
-        case gen_duplicates (op =) (map fst constrs') of
+        case duplicates (op =) (map fst constrs') of
            [] =>
              (dts' @ [(i, (Sign.full_name sign (Syntax.type_name tname mx),
                 map DtTFree tvs, constrs'))],

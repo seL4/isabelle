@@ -462,7 +462,7 @@ fun get_sort tsig def_sort map_sort raw_env =
       xi = xi' andalso Type.eq_sort tsig (S, S');
 
     val env = gen_distinct eq (map (apsnd map_sort) raw_env);
-    val _ = (case gen_duplicates (eq_fst (op =)) env of [] => ()
+    val _ = (case duplicates (eq_fst (op =)) env of [] => ()
       | dups => error ("Inconsistent sort constraints for type variable(s) "
           ^ commas_quote (map (Syntax.string_of_vname' o fst) dups)));
 

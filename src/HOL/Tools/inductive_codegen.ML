@@ -231,7 +231,7 @@ fun select_mode_prem thy modes vs ps =
             val (in_ts, out_ts) = get_args is 1 us;
             val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
             val vTs = List.concat (map term_vTs out_ts');
-            val dupTs = map snd (gen_duplicates (op =) vTs) @
+            val dupTs = map snd (duplicates (op =) vTs) @
               List.mapPartial (AList.lookup (op =) vTs) vs;
           in
             terms_vs (in_ts @ in_ts') subset vs andalso
@@ -258,7 +258,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
     val in_vs = terms_vs in_ts;
     val concl_vs = terms_vs ts
   in
-    forall is_eqT (map snd (gen_duplicates (op =) (List.concat (map term_vTs in_ts)))) andalso
+    forall is_eqT (map snd (duplicates (op =) (List.concat (map term_vTs in_ts)))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
     (case check_mode_prems (arg_vs union in_vs) ps of
        NONE => false

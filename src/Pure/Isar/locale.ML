@@ -675,7 +675,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
 
     fun rename_parms top ren ((name, ps), (parms, mode)) =
       let val ps' = map (Element.rename ren) ps in
-        (case duplicates ps' of
+        (case duplicates (op =) ps' of
           [] => ((name, ps'),
                  if top then (map (Element.rename ren) parms,
                    map_mode (map (fn (t, th) =>

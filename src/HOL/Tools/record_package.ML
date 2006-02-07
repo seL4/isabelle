@@ -2060,7 +2060,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
       else ["Duplicate definition of record " ^ quote name];
 
     val err_dup_parms =
-      (case gen_duplicates (op =) params of
+      (case duplicates (op =) params of
         [] => []
       | dups => ["Duplicate parameter(s) " ^ commas dups]);
 
@@ -2072,7 +2072,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     val err_no_fields = if null bfields then ["No fields present"] else [];
 
     val err_dup_fields =
-      (case gen_duplicates (op =) (map #1 bfields) of
+      (case duplicates (op =) (map #1 bfields) of
         [] => []
       | dups => ["Duplicate field(s) " ^ commas_quote dups]);
 
@@ -2081,7 +2081,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
       else ["Illegal field name " ^ quote moreN];
 
     val err_dup_sorts =
-      (case gen_duplicates (op =) envir_names of
+      (case duplicates (op =) envir_names of
         [] => []
       | dups => ["Inconsistent sort constraints for " ^ commas dups]);
 

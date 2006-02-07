@@ -41,7 +41,7 @@ fun welcome () = "Welcome to " ^ name () ^ " (" ^ version ^ ")";
 
 fun add_path reset s =
   let val sess = ! session @ [s] in
-    (case gen_duplicates (op =) sess of
+    (case duplicates (op =) sess of
       [] => (session := sess; session_path := ((if reset then [] else ! session_path) @ [s]))
     | dups => error ("Duplicate session identifiers " ^ commas_quote dups ^ " in " ^ str_of sess))
   end;

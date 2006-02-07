@@ -200,7 +200,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       else ["Illegal schematic variable(s) on rhs"];
 
     val dup_lhs_tfrees =
-      (case gen_duplicates (op =) lhs_tfrees of [] => []
+      (case duplicates (op =) lhs_tfrees of [] => []
       | dups => ["Duplicate type variables on lhs: " ^ show_names dups]);
 
     val extra_rhs_tfrees =

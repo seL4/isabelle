@@ -223,7 +223,7 @@ fun dest_def pp check_head is_fixed is_fixedT eq =
       | close_arg x t = Term.all (Term.fastype_of x) $ lambda x t;
 
     val lhs_bads = filter_out check_arg args;
-    val lhs_dups = gen_duplicates (op aconv) args;
+    val lhs_dups = duplicates (op aconv) args;
     val rhs_extras = Term.fold_aterms (fn v as Free (x, _) =>
       if is_fixed x orelse member (op aconv) args v then I
       else insert (op aconv) v | _ => I) rhs [];

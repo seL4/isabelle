@@ -99,7 +99,7 @@ fun dest_arity tm =
         Type (t, tys) => (t, map dest_varT tys handle TYPE _ => err ())
       | _ => err ());
     val ss =
-      if null (gen_duplicates (eq_fst (op =)) tvars)
+      if null (duplicates (eq_fst (op =)) tvars)
       then map snd tvars else err ();
   in (t, ss, c) end;
 
