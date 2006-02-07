@@ -19,8 +19,9 @@ infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
 (* ----- general proof facilities ------------------------------------------- *)
 
+(* FIXME better avoid this low-level stuff *)
 fun inferT sg pre_tm =
-  #1 (Sign.infer_types (Sign.pp sg) sg (K NONE) (K NONE) [] true ([pre_tm],propT));
+  #1 (Sign.infer_types (Sign.pp sg) sg (Sign.consts_of sg) (K NONE) (K NONE) [] true ([pre_tm],propT));
 
 fun pg'' thy defs t tacs =
   let val t' = inferT thy t in
