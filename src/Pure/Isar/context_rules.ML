@@ -59,7 +59,7 @@ val kind_names =
   (elim_queryK, "extra elimination rules (elim?)")];
 
 val rule_kinds = map #1 kind_names;
-val rule_indexes = distinct (map #1 rule_kinds);
+val rule_indexes = gen_distinct (op =) (map #1 rule_kinds);
 
 
 (* context data *)

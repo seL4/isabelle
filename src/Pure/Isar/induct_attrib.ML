@@ -55,7 +55,7 @@ fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_t
 
 fun vars_of tm =
   Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []
-  |> Library.distinct
+  |> gen_distinct (op =)
   |> rev;
 
 local

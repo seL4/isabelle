@@ -166,7 +166,7 @@ fun delims_of xprods =
     fun dels_of (XProd (_, xsymbs, _, _)) =
       List.mapPartial del_of xsymbs;
   in
-    map Symbol.explode (distinct (List.concat (map dels_of xprods)))
+    map Symbol.explode (gen_distinct (op =) (List.concat (map dels_of xprods)))
   end;
 
 
@@ -362,12 +362,12 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
 
     val (xprods, parse_rules') = map (mfix_to_xprod convert is_logtype) mfixes
       |> split_list |> apsnd (rev o List.concat);
-    val mfix_consts = distinct (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
+    val mfix_consts = gen_distinct (op =) (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
   in
     SynExt {
       xprods = xprods,
       consts = consts union_string mfix_consts,
-      prmodes = distinct (map (fn (m, _, _) => m) tokentrfuns),
+      prmodes = gen_distinct (op =) (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules' @ parse_rules,
       parse_translation = parse_translation,

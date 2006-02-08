@@ -133,7 +133,7 @@ fun merge_tokentrtabs tabs1 tabs2 =
             quote mode ^ " for " ^ commas_quote (map name dups)))
       end;
   in
-    map merge (distinct (map fst (tabs1 @ tabs2)))
+    map merge (gen_distinct (op =) (map fst (tabs1 @ tabs2)))
   end;
 
 fun extend_tokentrtab tokentrs tabs =

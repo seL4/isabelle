@@ -77,7 +77,7 @@ val uniq_assume_tac =
           and concl = discard_proof (Logic.strip_assums_concl prem)
       in
           if exists (fn hyp => hyp aconv concl) hyps
-          then case distinct (List.filter (fn hyp=> could_unify(hyp,concl)) hyps) of
+          then case gen_distinct (op =) (List.filter (fn hyp=> could_unify(hyp,concl)) hyps) of
                    [_] => assume_tac i
                  |  _  => no_tac
           else no_tac

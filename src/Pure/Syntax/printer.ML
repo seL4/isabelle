@@ -253,7 +253,7 @@ fun remove_prtabs m = change_prtabs (Symtab.remove_list (op =)) m;
 
 fun merge_prtabs prtabs1 prtabs2 =
   let
-    val modes = distinct (map fst (prtabs1 @ prtabs2));
+    val modes = gen_distinct (op =) (map fst (prtabs1 @ prtabs2));
     fun merge m = (m, Symtab.merge_list (op =) (mode_tab prtabs1 m, mode_tab prtabs2 m));
   in map merge modes end;
 

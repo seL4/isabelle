@@ -567,7 +567,7 @@ val lhs_of_thm = #1 o Logic.dest_equals o prop_of;
   Returns longest lhs first to avoid folding its subexpressions.*)
 fun sort_lhs_depths defs =
   let val keylist = AList.make (term_depth o lhs_of_thm) defs
-      val keys = distinct (sort (rev_order o int_ord) (map #2 keylist))
+      val keys = gen_distinct (op =) (sort (rev_order o int_ord) (map #2 keylist))
   in map (AList.find (op =) keylist) keys end;
 
 val rev_defs = sort_lhs_depths o map symmetric;

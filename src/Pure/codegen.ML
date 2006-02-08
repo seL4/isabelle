@@ -856,7 +856,7 @@ fun output_code gr module xs =
   in
     if module = "" then
       let
-        val modules = distinct (map (#2 o snd) code);
+        val modules = gen_distinct (op =) (map (#2 o snd) code);
         val mod_gr = foldr (uncurry Graph.add_edge_acyclic)
           (foldr (uncurry (Graph.new_node o rpair ())) Graph.empty modules)
           (List.concat (map (fn (s, (_, module, _)) => map (pair module)
