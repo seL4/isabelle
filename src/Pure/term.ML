@@ -442,7 +442,7 @@ fun size_of_term tm =
   in add_size (tm, 0) end;
 
 fun map_atyps f (Type (a, Ts)) = Type (a, map (map_atyps f) Ts)
-  | map_atyps f T = T;
+  | map_atyps f T = f T;
 
 fun map_aterms f (t $ u) = map_aterms f t $ map_aterms f u
   | map_aterms f (Abs (a, T, t)) = Abs (a, T, map_aterms f t)
