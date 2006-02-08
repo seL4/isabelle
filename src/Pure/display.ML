@@ -238,32 +238,30 @@ val show_consts = ref false;  (*true: show consts with types in proof state outp
 
 local
 
-fun ins_entry (x, y) [] = [(x, [y])]
-  | ins_entry (x, y) ((pair as (x', ys')) :: pairs) =
-      if x = x' then (x', y ins ys') :: pairs
-      else pair :: ins_entry (x, y) pairs;
+fun ins_entry (x, y) =
+  AList.default (op =) (x, []) #>
+  AList.map_entry (op =) x (insert (op =) y);
 
-fun add_consts (Const (c, T), env) = ins_entry (T, (c, T)) env
-  | add_consts (t $ u, env) = add_consts (u, add_consts (t, env))
-  | add_consts (Abs (_, _, t), env) = add_consts (t, env)
-  | add_consts (_, env) = env;
+val add_consts = Term.fold_aterms
+  (fn Const (c, T) => ins_entry (T, (c, T))
+    | _ => I);
 
-fun add_vars (Free (x, T), env) = ins_entry (T, (x, ~1)) env
-  | add_vars (Var (xi, T), env) = ins_entry (T, xi) env
-  | add_vars (Abs (_, _, t), env) = add_vars (t, env)
-  | add_vars (t $ u, env) = add_vars (u, add_vars (t, env))
-  | add_vars (_, env) = env;
+val add_vars = Term.fold_aterms
+  (fn Free (x, T) => ins_entry (T, (x, ~1))
+    | Var (xi, T) => ins_entry (T, xi)
+    | _ => I);
 
-fun add_varsT (Type (_, Ts), env) = foldr add_varsT env Ts
-  | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
-  | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
+val add_varsT = Term.fold_atyps
+  (fn TFree (x, S) => ins_entry (S, (x, ~1))
+    | TVar (xi, S) => ins_entry (S, xi)
+    | _ => I);
 
 fun sort_idxs vs = map (apsnd (sort (prod_ord string_ord int_ord))) vs;
 fun sort_cnsts cs = map (apsnd (sort_wrt fst)) cs;
 
-fun consts_of t = sort_cnsts (add_consts (t, []));
-fun vars_of t = sort_idxs (add_vars (t, []));
-fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
+fun consts_of t = sort_cnsts (add_consts t []);
+fun vars_of t = sort_idxs (add_vars t []);
+fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
 in
 
