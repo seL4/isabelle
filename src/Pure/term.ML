@@ -448,19 +448,8 @@ fun map_aterms f (t $ u) = map_aterms f t $ map_aterms f u
   | map_aterms f (Abs (a, T, t)) = Abs (a, T, map_aterms f t)
   | map_aterms f t = f t;
 
-fun map_type_tvar f =
-  let
-    fun map_aux (Type (a, Ts)) = Type (a, map map_aux Ts)
-      | map_aux (TVar x) = f x
-      | map_aux T = T;
-  in map_aux end;
-
-fun map_type_tfree f =
-  let
-    fun map_aux (Type (a, Ts)) = Type (a, map map_aux Ts)
-      | map_aux (TFree x) = f x
-      | map_aux T = T;
-  in map_aux end;
+fun map_type_tvar f = map_atyps (fn TVar x => f x | T => T);
+fun map_type_tfree f = map_atyps (fn TFree x => f x | T => T);
 
 fun map_term_types f =
   let
