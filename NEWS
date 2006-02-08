@@ -308,6 +308,8 @@ for example "A -> B" => "Pi A (%_. B)".
 "t = s" to False (by simproc "neq_simproc").  For backward
 compatibility this can be disabled by ML "reset use_neq_simproc".
 
+* "m dvd n" where m and n are numbers is evaluated to True/False by simp.
+
 * Tactics 'sat' and 'satx' reimplemented, several improvements: goals
 no longer need to be stated as "<prems> ==> False", equivalences (i.e.
 "=" on type bool) are handled, variable names of the form "lit_<n>"
