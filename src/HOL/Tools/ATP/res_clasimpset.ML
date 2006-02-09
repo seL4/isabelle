@@ -23,9 +23,9 @@ val use_simpset = ref false;   (*Performance is much better without simprules*)
   FIXME: this blacklist needs to be maintained using theory data and added to using
   an attribute.*)
 val blacklist = ref
-  ["Datatype.not_None_eq_iff2",
-   "Datatype.not_Some_eq_D",
-   "Datatype.not_Some_eq",
+  ["Datatype.not_None_eq",    (*Says everything is None or Some. Probably prolific.*)
+   "Datatype.not_Some_eq_D",  (*Says everything is None or Some. Probably prolific.*)
+   "Datatype.not_Some_eq",    (*Says everything is None or Some. Probably prolific.*)
    "Datatype.option.size_1",
    "Datatype.option.size_2",
    "Datatype.prod.size",
@@ -57,6 +57,7 @@ val blacklist = ref
    "IntDiv.zero_less_zpower_abs_iff",
    "List.append_eq_append_conv",
    "List.Cons_in_lex",
+   "List.hd_Cons_tl",   (*Says everything is [] or Cons. Probably prolific.*)
    "List.in_listsD",
    "List.in_listsI",
    "List.lists.Cons",
