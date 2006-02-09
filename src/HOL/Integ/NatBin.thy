@@ -196,7 +196,10 @@ by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric])
 
 subsubsection{* Divisibility *}
 
-declare dvd_eq_mod_eq_0[of "number_of x" "number_of y", standard, simp]
+lemmas dvd_eq_mod_eq_0_number_of =
+  dvd_eq_mod_eq_0 [of "number_of x" "number_of y", standard]
+
+declare dvd_eq_mod_eq_0_number_of [simp]
 
 ML
 {*

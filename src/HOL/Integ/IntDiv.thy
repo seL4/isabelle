@@ -1047,7 +1047,10 @@ subsection {* The Divides Relation *}
 lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
 by(simp add:dvd_def zmod_eq_0_iff)
 
-declare zdvd_iff_zmod_eq_0[of "number_of x" "number_of y", standard, simp]
+lemmas zdvd_iff_zmod_eq_0_number_of =
+  zdvd_iff_zmod_eq_0 [of "number_of x" "number_of y", standard]
+
+declare zdvd_iff_zmod_eq_0_number_of [simp]
 
 lemma zdvd_0_right [iff]: "(m::int) dvd 0"
 by (simp add: dvd_def)
