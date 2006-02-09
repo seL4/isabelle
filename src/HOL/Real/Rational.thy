@@ -113,7 +113,7 @@ lemma inverse_congruent:
 by (auto simp add: congruent_def mult_commute)
 
 lemma le_congruent2:
-  "(\<lambda>x y. (fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y))
+  "(\<lambda>x y. {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})
    respects2 ratrel"
 proof (clarsimp simp add: congruent2_def)
   fix a b a' b' c d c' d'::int
@@ -152,36 +152,8 @@ proof (clarsimp simp add: congruent2_def)
   finally show "?le a b c d = ?le a' b' c' d'" .
 qed
 
-lemma All_equiv_class:
-  "equiv A r ==> f respects r ==> a \<in> A
-    ==> (\<forall>x \<in> r``{a}. f x) = f a"
-apply safe
-apply (drule (1) equiv_class_self)
-apply simp
-apply (drule (1) congruent.congruent)
-apply simp
-done
-
-lemma congruent2_implies_congruent_All:
-  "equiv A1 r1 ==> equiv A2 r2 ==> congruent2 r1 r2 f ==> a \<in> A2 ==>
-    congruent r1 (\<lambda>x1. \<forall>x2 \<in> r2``{a}. f x1 x2)"
-  apply (unfold congruent_def)
-  apply clarify
-  apply (rule equiv_type [THEN subsetD, THEN SigmaE2], assumption+)
-  apply (simp add: UN_equiv_class congruent2_implies_congruent)
-  apply (unfold congruent2_def equiv_def refl_def)
-  apply (blast del: equalityI)
-  done
-
-lemma All_equiv_class2:
-  "equiv A1 r1 ==> equiv A2 r2 ==> congruent2 r1 r2 f ==> a1 \<in> A1 ==> a2 \<in> A2
-    ==> (\<forall>x1 \<in> r1``{a1}. \<forall>x2 \<in> r2``{a2}. f x1 x2) = f a1 a2"
-  by (simp add: All_equiv_class congruent2_implies_congruent
-    congruent2_implies_congruent_All)
-
 lemmas UN_ratrel = UN_equiv_class [OF equiv_ratrel]
 lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
-lemmas All_ratrel2 = All_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
 
 subsubsection {* Standard operations on rational numbers *}
@@ -215,9 +187,8 @@ defs (overloaded)
   divide_rat_def:  "q / r == q * inverse (r::rat)"
 
   le_rat_def:
-   "q \<le> (r::rat) ==
-    \<forall>x \<in> Rep_Rat q. \<forall>y \<in> Rep_Rat r.
-        (fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)"
+   "q \<le> r == contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
+      {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
 
   less_rat_def: "(z < (w::rat)) == (z \<le> w & z \<noteq> w)"
 
@@ -258,7 +229,7 @@ by (simp add: divide_rat_def inverse_rat mult_rat)
 
 theorem le_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
   (Fract a b \<le> Fract c d) = ((a * d) * (b * d) \<le> (c * b) * (b * d))"
-by (simp add: Fract_def le_rat_def le_congruent2 All_ratrel2)
+by (simp add: Fract_def le_rat_def le_congruent2 UN_ratrel2)
 
 theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
     (Fract a b < Fract c d) = ((a * d) * (b * d) < (c * b) * (b * d))"
