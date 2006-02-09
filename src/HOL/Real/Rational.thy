@@ -243,17 +243,6 @@ theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \
 
 subsubsection {* The ordered field of rational numbers *}
 
-lemma rat_add_assoc: "(q + r) + s = q + (r + (s::rat))"
-  by (induct q, induct r, induct s)
-     (simp add: add_rat add_ac mult_ac int_distrib)
-
-lemma rat_add_0: "0 + q = (q::rat)"
-  by (induct q) (simp add: zero_rat add_rat)
-
-lemma rat_left_minus: "(-q) + q = (0::rat)"
-  by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
-
-
 instance rat :: field
 proof
   fix q r s :: rat
