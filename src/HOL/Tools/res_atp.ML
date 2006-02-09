@@ -100,16 +100,21 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
   end
 
 (*We write out problem files for each subgoal. Argument pf generates filenames,
-  and allows the suppression of the suffix "_1" in problem-generation mode.*)
+  and allows the suppression of the suffix "_1" in problem-generation mode.
+  FIXME: does not cope with &&, and it isn't easy because one could have multiple
+  subgoals, each involving &&.*)
 fun write_problem_files pf (ctxt,th)  =
   let val goals = Thm.prems_of th
+      val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals));
       val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt goals 
       val _ = Output.debug ("claset and simprules total clauses = " ^ 
                      Int.toString (Array.length clause_arr))
       val thy = ProofContext.theory_of ctxt
-      val classrel_clauses = if !ResClause.keep_types then ResClause.classrel_clauses_thy thy else []
+      val classrel_clauses = 
+          if !ResClause.keep_types then ResClause.classrel_clauses_thy thy else []
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
-      val arity_clauses = if !ResClause.keep_types then ResClause.arity_clause_thy thy else []
+      val arity_clauses = 
+          if !ResClause.keep_types then ResClause.arity_clause_thy thy else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val write = if !prover = "spass" then ResClause.dfg_write_file 
                                        else ResClause.tptp_write_file
@@ -174,7 +179,6 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     Output.debug ("subgoals in isar_atp:\n" ^ 
            Pretty.string_of (ProofContext.pretty_term ctxt
              (Logic.mk_conjunction_list (Thm.prems_of goal))));
-    Output.debug ("number of subgoals in isar_atp: " ^ Int.toString (Thm.nprems_of goal));
     Output.debug ("current theory: " ^ Context.theory_name thy);
     hook_count := !hook_count +1;
     Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
