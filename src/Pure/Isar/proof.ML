@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-The Isar/VM proof language interpreter.
+The Isar/VM proof language interpreter: maintains a structured flow of
+context elements, goals, refinements, and facts.
 *)
 
 signature PROOF =
