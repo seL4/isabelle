@@ -30,10 +30,10 @@ ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
 ML_OPTIONS="-H 80"
 ML_DBASE=""
 
-# Poly/ML 4.x
-#ML_PLATFORM=$("$ISABELLE_HOME/lib/scripts/polyml-platform")
-#ML_HOME="$ISABELLE_HOME/contrib/polyml/$ML_PLATFORM/$ML_PLATFORM"
-#ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
+# Poly/ML 4.2.0 (manual settings)
+#ML_PLATFORM=x86-linux
+#ML_HOME=/usr/local/polyml/x86-linux"
+#ML_SYSTEM=polyml-4.2.0
 #ML_OPTIONS="-H 80"
 
 # Standard ML of New Jersey 110 or later
