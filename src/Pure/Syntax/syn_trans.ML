@@ -22,7 +22,6 @@ sig
   val mark_boundT: string * typ -> term
   val bound_vars: (string * typ) list -> term -> term
   val variant_abs': string * typ * term -> string * term
-  val fixedN: string
 end;
 
 signature SYN_TRANS1 =
@@ -487,8 +486,6 @@ fun pts_to_asts context trf pts =
 
 (** asts_to_terms **)
 
-val fixedN = "\\<^fixed>";
-
 fun asts_to_terms context trf asts =
   let
     fun trans a args =
@@ -506,13 +503,12 @@ fun asts_to_terms context trf asts =
           Term.list_comb (term_of ast, map term_of asts)
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
 
-    fun free_fixed (a as Const (c, T)) =
-          (case try (unprefix fixedN) c of
-            NONE => a
+    val free_fixed = Term.map_aterms
+      (fn t as Const (c, T) =>
+          (case try (unprefix Lexicon.fixedN) c of
+            NONE => t
           | SOME x => Free (x, T))
-      | free_fixed (Abs (x, T, t)) = Abs (x, T, free_fixed t)
-      | free_fixed (t $ u) = free_fixed t $ free_fixed u
-      | free_fixed a = a;
+        | t => t);
 
     val exn_results = map (capture (term_of #> free_fixed)) asts;
     val exns = List.mapPartial get_exn exn_results;
