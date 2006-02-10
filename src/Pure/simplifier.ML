@@ -251,7 +251,7 @@ fun get_ss (Context.Theory thy) = simpset_of thy
 in
 
 val simplified =
-  Attrib.syntax (conv_mode -- Attrib.thmss >> (fn (f, ths) => Thm.rule_attribute (fn x =>
+  Attrib.syntax (conv_mode -- Attrib.thms >> (fn (f, ths) => Thm.rule_attribute (fn x =>
     f ((if null ths then I else MetaSimplifier.clear_ss) (get_ss x) addsimps ths))));
 
 end;

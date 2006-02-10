@@ -262,7 +262,7 @@ fun case_tac t = gen_case_tac Tactic.res_inst_tac' (t, NONE);
 local
 
 val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.$$$ ":");
-val opt_rule = Scan.option (rule_spec |-- Attrib.local_thm);
+val opt_rule = Scan.option (rule_spec |-- Attrib.thm);
 
 val varss =
   Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name))));

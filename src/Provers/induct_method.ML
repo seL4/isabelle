@@ -491,29 +491,29 @@ fun single_rule [rule] = rule
 
 fun named_rule k arg get =
   Scan.lift (Args.$$$ k -- Args.colon) |-- Scan.repeat arg :--
-    (fn names => Scan.peek (fn ctxt => Scan.succeed (names |> map (fn name =>
-      (case get ctxt name of SOME x => x
+    (fn names => Scan.peek (fn context => Scan.succeed (names |> map (fn name =>
+      (case get (Context.proof_of context) name of SOME x => x
       | NONE => error ("No rule for " ^ k ^ " " ^ quote name)))))) >> #2;
 
 fun rule get_type get_set =
-  named_rule InductAttrib.typeN Args.local_tyname get_type ||
-  named_rule InductAttrib.setN Args.local_const get_set ||
-  Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.local_thmss;
+  named_rule InductAttrib.typeN Args.tyname get_type ||
+  named_rule InductAttrib.setN Args.const get_set ||
+  Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.thms;
 
 val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS >> single_rule;
 val induct_rule = rule InductAttrib.lookup_inductT InductAttrib.lookup_inductS;
 val coinduct_rule =
   rule InductAttrib.lookup_coinductT InductAttrib.lookup_coinductS >> single_rule;
 
-val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.local_term >> SOME;
+val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
 
 val def_inst =
   ((Scan.lift (Args.name --| (Args.$$$ "\\<equiv>" || Args.$$$ "==")) >> SOME)
-      -- Args.local_term) >> SOME ||
+      -- Args.term) >> SOME ||
     inst >> Option.map (pair NONE);
 
-val free = Scan.state -- Args.local_term >> (fn (_, Free v) => v | (ctxt, t) =>
-  error ("Bad free variable: " ^ ProofContext.string_of_term ctxt t));
+val free = Scan.state -- Args.term >> (fn (_, Free v) => v | (context, t) =>
+  error ("Bad free variable: " ^ ProofContext.string_of_term (Context.proof_of context) t));
 
 fun unless_more_args scan = Scan.unless (Scan.lift
   ((Args.$$$ fixingN || Args.$$$ takingN || Args.$$$ InductAttrib.typeN ||

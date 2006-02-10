@@ -16,7 +16,7 @@ sig
   val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
-  val args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
+  val args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
@@ -110,8 +110,7 @@ fun integer s =
 
 (* args syntax *)
 
-fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))) =
-  Args.syntax "antiquotation" scan;
+fun syntax scan = Args.context_syntax "antiquotation" scan;
 
 fun args scan f src state : string =
   let
@@ -505,20 +504,20 @@ fun output_ml ml src ctxt txt =
 (* commands *)
 
 val _ = add_commands
- [("thm", args Attrib.local_thmss (output_list pretty_thm)),
-  ("thm_style", args (Scan.lift Args.liberal_name -- Attrib.local_thm) (output pretty_thm_style)),
-  ("prop", args Args.local_prop (output pretty_term)),
-  ("term", args Args.local_term (output pretty_term)),
-  ("term_style", args (Scan.lift Args.liberal_name -- Args.local_term) (output pretty_term_style)),
-  ("term_type", args Args.local_term (output pretty_term_typ)),
-  ("typeof", args Args.local_term (output pretty_term_typeof)),
-  ("const", args Args.local_term (output pretty_term_const)),
-  ("typ", args Args.local_typ_abbrev (output ProofContext.pretty_typ)),
+ [("thm", args Attrib.thms (output_list pretty_thm)),
+  ("thm_style", args (Scan.lift Args.liberal_name -- Attrib.thm) (output pretty_thm_style)),
+  ("prop", args Args.prop (output pretty_term)),
+  ("term", args Args.term (output pretty_term)),
+  ("term_style", args (Scan.lift Args.liberal_name -- Args.term) (output pretty_term_style)),
+  ("term_type", args Args.term (output pretty_term_typ)),
+  ("typeof", args Args.term (output pretty_term_typeof)),
+  ("const", args Args.term (output pretty_term_const)),
+  ("typ", args Args.typ_abbrev (output ProofContext.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output (K pretty_text))),
   ("goals", output_goals true),
   ("subgoals", output_goals false),
-  ("prf", args Attrib.local_thmss (output (pretty_prf false))),
-  ("full_prf", args Attrib.local_thmss (output (pretty_prf true))),
+  ("prf", args Attrib.thms (output (pretty_prf false))),
+  ("full_prf", args Attrib.thms (output (pretty_prf true))),
   ("ML", args (Scan.lift Args.name) (output_ml ml_val)),
   ("ML_type", args (Scan.lift Args.name) (output_ml ml_type)),
   ("ML_struct", args (Scan.lift Args.name) (output_ml ml_struct))];

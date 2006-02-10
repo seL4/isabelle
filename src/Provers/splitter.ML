@@ -448,7 +448,7 @@ val split_modifiers =
   Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del)];
 
 fun split_meth src =
-  Method.syntax Attrib.local_thms src
+  Method.syntax Attrib.thms src
   #> (fn (_, ths) => Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o gen_split_tac ths));
 
 
