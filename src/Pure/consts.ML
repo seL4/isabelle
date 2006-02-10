@@ -22,7 +22,7 @@ sig
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val declare: NameSpace.naming -> bstring * typ -> T -> T
-  val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> bool -> string * term -> T -> T
+  val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> bool -> bstring * term -> T -> T
   val constrain: string * typ -> T -> T
   val hide: bool -> string -> T -> T
   val empty: T
@@ -166,7 +166,7 @@ fun revert_abbrev const rhs =
   let
     val (xs, body) = Term.strip_abs (Envir.beta_eta_contract rhs);
     val vars = fold (fn (x, T) => cons (Var ((x, 0), T))) (Term.rename_wrt_term body xs) [];
-  in (Term.list_comb (Const const, vars), Term.subst_bounds (rev vars, body)) end;
+  in (Term.subst_bounds (rev vars, body), Term.list_comb (Const const, vars)) end;
 
 fun abbreviate pp tsig naming revert (c, raw_rhs) consts =
     consts |> map_consts (fn (decls, abbrevs, constraints) =>
