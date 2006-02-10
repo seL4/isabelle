@@ -87,14 +87,16 @@ cd "IsaPlanner"; use "ROOT.ML"; cd "..";
 cd "Tools"; use "ROOT.ML"; cd "..";
 
 (*configuration for Proof General*)
-setmp proofs 1 use "proof_general.ML";
+(use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general.ML";
 
-use_thy "Pure"; structure Pure = struct val thy = theory "Pure" end;
+use_thy "Pure";
+structure Pure = struct val thy = theory "Pure" end;
 
 Context.add_setup
  (Theory.del_modesyntax Syntax.default_mode Syntax.appl_syntax #>
   Theory.add_syntax Syntax.applC_syntax);
-use_thy "CPure"; structure CPure = struct val thy = theory "CPure" end;
+use_thy "CPure";
+structure CPure = struct val thy = theory "CPure" end;
 
 (*final ML setup*)
 use "install_pp.ML";
