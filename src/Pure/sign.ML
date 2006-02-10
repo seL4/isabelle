@@ -133,8 +133,9 @@ sig
   val intern_typ: theory -> typ -> typ
   val extern_typ: theory -> typ -> typ
   val intern_term: theory -> term -> term
+  val extern_term: (string -> xstring) -> theory -> term -> term
   val intern_tycons: theory -> typ -> typ
-  val pretty_term': Syntax.syntax -> Consts.T -> Context.generic -> term -> Pretty.T
+  val pretty_term': Syntax.syntax -> Context.generic -> term -> Pretty.T
   val pretty_term: theory -> term -> Pretty.T
   val pretty_typ: theory -> typ -> Pretty.T
   val pretty_sort: theory -> sort -> Pretty.T
@@ -323,30 +324,40 @@ fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
   | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
   | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
 
+val add_classesT = Term.fold_atyps
+  (fn TFree (_, S) => fold (insert (op =)) S
+    | TVar (_, S) => fold (insert (op =)) S
+    | _ => I);
+
+fun add_tyconsT (Type (c, Ts)) = insert (op =) c #> fold add_tyconsT Ts
+  | add_tyconsT _ = I;
+
+val add_consts = Term.fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
+
 fun mapping add_names f t =
   let
     fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
-    val tab = List.mapPartial f' (add_names (t, []));
+    val tab = List.mapPartial f' (add_names t []);
     fun get x = the_default x (AList.lookup (op =) tab x);
   in get end;
 
 fun typ_mapping f g thy T =
   T |> map_typ
-    (mapping add_typ_classes (f thy) T)
-    (mapping add_typ_tycons (g thy) T);
+    (mapping add_classesT (f thy) T)
+    (mapping add_tyconsT (g thy) T);
 
 fun term_mapping f g h thy t =
   t |> map_term
-    (mapping add_term_classes (f thy) t)
-    (mapping add_term_tycons (g thy) t)
-    (mapping add_term_consts (h thy) t);
+    (mapping (Term.fold_types add_classesT) (f thy) t)
+    (mapping (Term.fold_types add_tyconsT) (g thy) t)
+    (mapping add_consts (h thy) t);
 
 in
 
 val intern_typ = typ_mapping intern_class intern_type;
 val extern_typ = typ_mapping extern_class extern_type;
 val intern_term = term_mapping intern_class intern_type intern_const;
-val extern_term = term_mapping extern_class extern_type;
+fun extern_term h = term_mapping extern_class extern_type (K h);
 val intern_tycons = typ_mapping (K I) intern_type;
 
 end;
@@ -355,14 +366,13 @@ end;
 
 (** pretty printing of terms, types etc. **)
 
-fun pretty_term' syn consts context t =
-  let
-    val thy = Context.theory_of context;
-    val curried = Context.exists_name Context.CPureN thy;
-    val extern = NameSpace.extern (Consts.space_of consts);
-  in Syntax.pretty_term context syn curried (extern_term (K extern) thy t) end;
+fun pretty_term' syn context t =
+  let val curried = Context.exists_name Context.CPureN (Context.theory_of context)
+  in Syntax.pretty_term context syn curried t end;
 
-fun pretty_term thy t = pretty_term' (syn_of thy) (consts_of thy) (Context.Theory thy) t;
+fun pretty_term thy t =
+  pretty_term' (syn_of thy) (Context.Theory thy)
+    (extern_term (NameSpace.extern (Consts.space_of (consts_of thy))) thy t);
 
 fun pretty_typ thy T = Syntax.pretty_typ (Context.Theory thy) (syn_of thy) (extern_typ thy T);
 fun pretty_sort thy S = Syntax.pretty_sort (Context.Theory thy) (syn_of thy) (extern_sort thy S);
