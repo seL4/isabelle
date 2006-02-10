@@ -33,6 +33,8 @@ sig
   val read_nat: string -> int option
   val read_xnum: string -> IntInf.int
   val read_idents: string -> string list
+  val fixedN: string
+  val constN: string
 end;
 
 signature LEXICON =
@@ -348,13 +350,16 @@ fun read_variable str =
   in Scan.read Symbol.stopper scan (Symbol.explode str) end;
 
 
-(* variable kinds *)
+(* specific identifiers *)
 
 val internal = suffix "_";
 val dest_internal = unsuffix "_";
 
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
+
+val constN = "\\<^const>";
+val fixedN = "\\<^fixed>";
 
 
 (* read_nat *)
