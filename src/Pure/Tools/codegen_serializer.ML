@@ -98,19 +98,10 @@ fun from_app mk_app from_expr const_syntax fxy (c, es) =
           end;
   in mk (const_syntax c) es end;
 
-val _ : (string -> iexpr list -> Pretty.T list)
-                 -> (fixity -> iexpr -> Pretty.T)
-                    -> (string
-                        -> ((int * int)
-                            * (fixity
-                               -> (fixity -> iexpr -> Pretty.T)
-                                  -> iexpr list -> Pretty.T)) option)
-                       -> fixity -> string * iexpr list -> Pretty.T = from_app;
-
 fun fillin_mixfix fxy_this ms fxy_ctxt pr args =
   let
     fun fillin [] [] =
-         []
+          []
       | fillin (Arg fxy :: ms) (a :: args) =
           pr fxy a :: fillin ms args
       | fillin (Ignore :: ms) args =
@@ -118,7 +109,11 @@ fun fillin_mixfix fxy_this ms fxy_ctxt pr args =
       | fillin (Pretty p :: ms) args =
           p :: fillin ms args
       | fillin (Quote q :: ms) args =
-          pr BR q :: fillin ms args;
+          pr BR q :: fillin ms args
+      | fillin [] _ =
+          error ("inconsistent mixfix: too many arguments")
+      | fillin _ [] =
+          error ("inconsistent mixfix: too less arguments");
   in gen_brackify (eval_fxy fxy_this fxy_ctxt) (fillin ms args) end;
 
 

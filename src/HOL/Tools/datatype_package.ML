@@ -70,6 +70,7 @@ sig
   val get_datatype_case_consts : theory -> string list
   val get_case_const_data : theory -> string -> (string * int) list option
   val get_all_datatype_cons : theory -> (string * string) list
+  val get_eq_equations: theory -> string -> thm list
   val constrs_of : theory -> string -> term list option
   val case_const_of : theory -> string -> term option
   val weak_case_congs_of : theory -> thm list
@@ -158,6 +159,32 @@ fun get_all_datatype_cons thy =
   Symtab.fold (fn (dtco, _) => fold
     (fn (co, _) => cons (co, dtco))
       ((snd o the oo get_datatype) thy dtco)) (get_datatypes thy) [];
+
+fun get_eq_equations thy dtco =
+  case get_datatype thy dtco
+   of SOME (vars, cos) =>
+        let
+          fun co_inject thm =
+            ((fst o dest_Const o fst o strip_comb o fst o HOLogic.dest_eq o fst
+              o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) thm, thm RS HOL.eq_reflection);
+          val inject = (map co_inject o #inject o the o datatype_info thy) dtco;
+          fun mk_refl co =
+            let
+              fun infer t =
+                (fst o Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy) (K NONE) (K NONE) [] true)
+                  ([t], Type (dtco, map (fn (v, sort) => TVar ((v, 0), sort)) vars))
+              val t = (Thm.cterm_of thy o infer) (Const (co, dummyT));
+            in
+              HOL.refl 
+              |> Drule.instantiate' [(SOME o Thm.ctyp_of_term) t] [SOME t]
+              |> (fn thm => thm RS Eq_TrueI)
+            end;
+          fun get_eq co =
+           case AList.lookup (op =) inject co
+            of SOME eq => eq
+             | NONE => mk_refl co;
+        in map (get_eq o fst) cos end
+   | NONE => [];
 
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)

@@ -297,13 +297,17 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
 
-val setup =
+val setup = 
   add_codegen "datatype" datatype_codegen #>
   add_tycodegen "datatype" datatype_tycodegen #>
   CodegenPackage.set_get_datatype
     DatatypePackage.get_datatype #>
   CodegenPackage.set_get_all_datatype_cons
     DatatypePackage.get_all_datatype_cons #>
+  (fn thy => thy |> CodegenPackage.add_eqextr_default ("equality",
+    (CodegenPackage.eqextr_eq
+      DatatypePackage.get_eq_equations
+      (Sign.read_term thy "False")))) #>
   CodegenPackage.ensure_datatype_case_consts
     DatatypePackage.get_datatype_case_consts
     DatatypePackage.get_case_const_data;

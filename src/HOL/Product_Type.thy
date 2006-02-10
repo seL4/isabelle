@@ -780,7 +780,7 @@ consts_code
   "snd"     ("snd")
 
 code_alias
-  "*" "Product_Type.*"
+  "*" "Product_Type.pair"
   "Pair" "Product_Type.Pair"
   "fst" "Product_Type.fst"
   "snd" "Product_Type.snd"
