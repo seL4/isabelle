@@ -131,10 +131,6 @@ sig
   val variant: string list -> string -> string
   val variantlist: string list * string list -> string list
     (*note reversed order of args wrt. variant!*)
-  val add_typ_classes: typ * class list -> class list
-  val add_typ_tycons: typ * string list -> string list
-  val add_term_classes: term * class list -> class list
-  val add_term_tycons: term * string list -> string list
   val add_term_consts: term * string list -> string list
   val term_consts: term -> string list
   val exists_subterm: (term -> bool) -> term -> bool
@@ -1089,17 +1085,7 @@ fun invent_names _ _ 0 = []
 
 (** Consts etc. **)
 
-fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes cs Ts
-  | add_typ_classes (TFree (_, S), cs) = S union cs
-  | add_typ_classes (TVar (_, S), cs) = S union cs;
-
-fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (c ins_string cs) Ts
-  | add_typ_tycons (_, cs) = cs;
-
-val add_term_classes = it_term_types add_typ_classes;
-val add_term_tycons = it_term_types add_typ_tycons;
-
-fun add_term_consts (Const (c, _), cs) = c ins_string cs
+fun add_term_consts (Const (c, _), cs) = insert (op =) c cs
   | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
   | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
   | add_term_consts (_, cs) = cs;
