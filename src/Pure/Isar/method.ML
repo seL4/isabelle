@@ -76,15 +76,14 @@ sig
   val add_method: bstring * (src -> ProofContext.context -> method) * string
     -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
-  val syntax: (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list))
+  val syntax: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
     -> src -> ProofContext.context -> ProofContext.context * 'a
   val simple_args: (Args.T list -> 'a * Args.T list)
     -> ('a -> ProofContext.context -> method) -> src -> ProofContext.context -> method
   val ctxt_args: (ProofContext.context -> method) -> src -> ProofContext.context -> method
   val no_args: method -> src -> ProofContext.context -> method
   type modifier
-  val sectioned_args: (ProofContext.context * Args.T list ->
-      'a * (ProofContext.context * Args.T list)) ->
+  val sectioned_args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (Args.T list -> modifier * Args.T list) list ->
     ('a -> ProofContext.context -> 'b) -> src -> ProofContext.context -> 'b
   val bang_sectioned_args:
@@ -92,7 +91,7 @@ sig
     (thm list -> ProofContext.context -> 'a) -> src -> ProofContext.context -> 'a
   val bang_sectioned_args':
     (Args.T list -> modifier * Args.T list) list ->
-    (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list)) ->
+    (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     ('a -> thm list -> ProofContext.context -> 'b) -> src -> ProofContext.context -> 'b
   val only_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
@@ -103,13 +102,11 @@ sig
   val thm_args: (thm -> 'a) -> src -> ProofContext.context -> 'a
   val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
     -> src -> ProofContext.context -> method
-  val goal_args': (ProofContext.context * Args.T list ->
-      'a * (ProofContext.context * Args.T list))
+  val goal_args': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
     -> ('a -> int -> tactic) -> src -> ProofContext.context -> method
   val goal_args_ctxt: (Args.T list -> 'a * Args.T list) ->
     (ProofContext.context -> 'a -> int -> tactic) -> src -> ProofContext.context -> method
-  val goal_args_ctxt': (ProofContext.context * Args.T list ->
-    'a * (ProofContext.context * Args.T list)) ->
+  val goal_args_ctxt': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (ProofContext.context -> 'a -> int -> tactic) -> src -> ProofContext.context -> method
 end;
 
@@ -602,9 +599,7 @@ fun method_setup (name, txt, cmt) =
 
 (* basic *)
 
-fun syntax (scan:
-    (ProofContext.context * Args.T list -> 'a * (ProofContext.context * Args.T list))) =
-  Args.syntax "method" scan;
+fun syntax scan = Args.context_syntax "method" scan;
 
 fun simple_args scan f src ctxt : method =
   #2 (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
@@ -622,13 +617,12 @@ type modifier = (ProofContext.context -> ProofContext.context) * attribute;
 local
 
 fun sect ss = Scan.first (map Scan.lift ss);
-fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
-fun thmss ss = Scan.repeat (thms ss) >> List.concat;
+fun thms ss = Scan.repeat (Scan.unless (sect ss) Attrib.multi_thm) >> List.concat;
 
-fun apply (f, att) (ctxt, ths) = foldl_map (Thm.proof_attributes [att]) (f ctxt, ths);
+fun apply (f, att) (context, ths) = foldl_map att (Context.map_proof f context, ths);
 
-fun section ss = (sect ss -- thmss ss) :-- (fn (m, ths) => Scan.depend (fn ctxt =>
-  Scan.succeed (apply m (ctxt, ths)))) >> #2;
+fun section ss = (sect ss -- thms ss) :-- (fn (m, ths) => Scan.depend (fn context =>
+  Scan.succeed (apply m (context, ths)))) >> #2;
 
 fun sectioned args ss = args -- Scan.repeat (section ss);
 
@@ -643,7 +637,7 @@ fun bang_sectioned_args' ss scan f =
   sectioned_args (Args.bang_facts -- scan >> swap) ss (uncurry f);
 fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
 
-fun thms_ctxt_args f = sectioned_args (thmss []) [] f;
+fun thms_ctxt_args f = sectioned_args (thms []) [] f;
 fun thms_args f = thms_ctxt_args (K o f);
 fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expected");
 
@@ -686,19 +680,19 @@ end;
 (* tactic syntax *)
 
 fun nat_thms_args f = uncurry f oo
-  (#2 oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.local_thmss));
+  (#2 oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.thms));
 
 val insts =
   Scan.optional
     (Args.enum1 "and" (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
-      Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thmss;
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
 
 fun inst_args f src ctxt = f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
 
 val insts_var =
   Scan.optional
     (Args.enum1 "and" (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
-      Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thmss;
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
 
 fun inst_args_var f src ctxt =
   f ctxt (#2 (syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
