@@ -32,6 +32,7 @@ sig
   val fix_mixfix: string -> mixfix -> mixfix
   val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
+  val mixfix_conflict: mixfix * mixfix -> bool
 end;
 
 signature MIXFIX =
@@ -141,6 +142,23 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Infixr _) = 2
   | mixfix_args (Binder _) = 1
   | mixfix_args Structure = 0;
+
+fun mixfix_conflict (mx1, mx2) =
+  let
+    fun content kind sy = SOME (kind, SynExt.mfix_delims sy);
+    fun content_of (Mixfix (sy, _, _)) = content 0 sy
+      | content_of (Delimfix sy) = content 0 sy
+      | content_of (InfixName (sy, _)) = content 1 sy
+      | content_of (InfixlName (sy, _)) = content 1 sy
+      | content_of (InfixrName (sy, _)) = content 1 sy
+      | content_of (Binder (sy, _, _)) = content 2 sy
+      | content_of _ = NONE;
+  in
+    (case (content_of mx1, content_of mx2) of
+      (SOME (kind1, delims1), SOME (kind2, delims2)) =>
+        (kind1 = 0 orelse kind2 = 0 orelse kind1 = kind2) andalso delims1 = delims2
+    | _ => false)
+  end;
 
 
 (* syn_ext_types *)
