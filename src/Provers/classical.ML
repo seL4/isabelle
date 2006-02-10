@@ -675,10 +675,10 @@ fun cs addSE2    (name, thm) =
   treatment of priority might get muddled up.*)
 fun merge_cs (cs as CS{safeIs, safeEs, hazIs, hazEs, ...},
      CS{safeIs=safeIs2, safeEs=safeEs2, hazIs=hazIs2, hazEs=hazEs2, swrappers, uwrappers, ...}) =
-  let val safeIs' = gen_rems Drule.eq_thm_prop (safeIs2,safeIs)
-      val safeEs' = gen_rems Drule.eq_thm_prop (safeEs2,safeEs)
-      val hazIs' = gen_rems Drule.eq_thm_prop (hazIs2, hazIs)
-      val hazEs' = gen_rems Drule.eq_thm_prop (hazEs2, hazEs)
+  let val safeIs' = fold rem_thm safeIs safeIs2
+      val safeEs' = fold rem_thm safeEs safeEs2
+      val hazIs' = fold rem_thm hazIs hazIs2
+      val hazEs' = fold rem_thm hazEs hazEs2
       val cs1   = cs addSIs safeIs'
                      addSEs safeEs'
                      addIs  hazIs'

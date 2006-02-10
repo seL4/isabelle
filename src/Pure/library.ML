@@ -925,8 +925,9 @@ fun (x: int) mem_int xs = member (op =) xs x;
 fun (x: string) mem_string xs = member (op =) xs x;
 
 fun x ins xs = insert (op =) x xs;
-fun (x:int) ins_int xs = insert (op =) x xs;
-fun (x:string) ins_string xs = insert (op =) x xs;
+fun (x: int) ins_int xs = insert (op =) x xs;
+fun (x: string) ins_string xs = insert (op =) x xs;
+
 
 (*union of sets represented as lists: no repetitions*)
 fun xs union [] = xs
