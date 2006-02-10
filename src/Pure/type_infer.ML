@@ -497,6 +497,9 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
           else constrain (Abs (x, certT T, decode t)) (decodeT typ --> dummyT)
       | decode (Abs (x, T, t)) = Abs (x, certT T, decode t)
       | decode (t $ u) = decode t $ decode u
+      | decode (Const (x, T)) =
+          let val c = (case try (unprefix Syntax.constN) x of SOME c => c | NONE => map_const x)
+          in Const (c, certT T) end
       | decode (Free (x, T)) =
           let val c = map_const x in
             if not (is_free x) andalso (is_const c orelse NameSpace.is_qualified c) then
@@ -507,8 +510,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
       | decode (Var (xi, T)) =
           if T = dummyT then Var (xi, get_type xi)
           else constrain (Var (xi, certT T)) (get_type xi)
-      | decode (t as Bound _) = t
-      | decode (Const (c, T)) = Const (map_const c, certT T);
+      | decode (t as Bound _) = t;
   in decode tm end;
 
 
