@@ -9,6 +9,7 @@ Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 use "object_logic.ML";
 use "rule_cases.ML";
 use "auto_bind.ML";
+use "local_syntax.ML";
 use "proof_context.ML";
 use "local_defs.ML";
 use "proof_display.ML";

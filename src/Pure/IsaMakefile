@@ -37,10 +37,10 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML             
   Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/constdefs.ML        \
   Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML                   \
   Isar/induct_attrib.ML Isar/isar_cmd.ML Isar/isar_output.ML                    \
-  Isar/isar_syn.ML Isar/isar_thy.ML Isar/local_defs.ML Isar/local_theory.ML 	\
-  Isar/locale.ML Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML 		\
-  Isar/obtain.ML Isar/outer_keyword.ML Isar/outer_lex.ML Isar/outer_parse.ML    \
-  Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML                      \
+  Isar/isar_syn.ML Isar/isar_thy.ML Isar/local_defs.ML Isar/local_syntax.ML	\
+  Isar/local_theory.ML Isar/locale.ML Isar/method.ML Isar/net_rules.ML 		\
+  Isar/object_logic.ML Isar/obtain.ML Isar/outer_keyword.ML Isar/outer_lex.ML 	\
+  Isar/outer_parse.ML Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML	\
   Isar/proof_display.ML Isar/proof_history.ML Isar/rule_cases.ML                \
   Isar/session.ML Isar/skip_proof.ML Isar/specification.ML Isar/term_style.ML	\
   Isar/thy_header.ML Isar/toplevel.ML ML-Systems/cpu-timer-basis.ML             \
