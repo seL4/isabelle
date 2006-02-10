@@ -374,11 +374,15 @@ Context.generic * thm -> Context.generic * thm.  Global (theory)
 vs. local (Proof.context) attributes have been discontinued, while
 minimizing code duplication.  Thm.rule_attribute and
 Thm.declaration_attribute build canonical attributes; see also
-structure Context for further operations on Context.generic.
+structure Context for further operations on Context.generic, notably
+GenericDataFun.  INCOMPATIBILITY, need to adapt attribute type
+declarations and definitions.
 
-INCOMPATIBILITY, need to adapt attribute type declarations and
-definitions.  Hint: make proper use of GenericDataFun and generic
-Args/Attrib syntax instead of working around legacy code.
+* Pure/Isar: Args/Attrib parsers operate on Context.generic --
+global/local versions on theory vs. Proof.context have been
+discontinued; Attrib.syntax and Method.syntax have been adapted
+accordingly.  INCOMPATIBILITY, need to adapt parser expressions for
+attributes, methods, etc.
 
 * Pure: several functions of signature "... -> theory -> theory * ..."
 have been reoriented to "... -> theory -> ... * theory" in order to
