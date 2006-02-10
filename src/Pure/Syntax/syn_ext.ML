@@ -53,6 +53,7 @@ sig
       print_ast_translation:
         (string * ((Context.generic -> Ast.ast list -> Ast.ast) * stamp)) list,
       token_translation: (string * string * (string -> string * real)) list}
+  val mfix_delims: string -> string list
   val mfix_args: string -> int
   val escape_mfix: string -> string
   val unlocalize_mfix: string -> string
@@ -155,19 +156,10 @@ datatype xprod = XProd of string * xsymb list * string * int;
 val max_pri = 1000;   (*maximum legal priority*)
 val chain_pri = ~1;   (*dummy for chain productions*)
 
-
-(* delims_of *)
-
 fun delims_of xprods =
-  let
-    fun del_of (Delim s) = SOME s
-      | del_of _ = NONE;
-
-    fun dels_of (XProd (_, xsymbs, _, _)) =
-      List.mapPartial del_of xsymbs;
-  in
-    map Symbol.explode (gen_distinct (op =) (List.concat (map dels_of xprods)))
-  end;
+  fold (fn XProd (_, xsymbs, _, _) =>
+    fold (fn Delim s => insert (op =) s | _ => I) xsymbs) xprods []
+  |> map Symbol.explode;
 
 
 
@@ -198,42 +190,49 @@ val typ_to_nonterm = typ_to_nt any;
 val typ_to_nonterm1 = typ_to_nt logic;
 
 
-(* read_mixfix *)
+(* read mixfix annotations *)
 
 local
-  fun is_meta c = c mem ["(", ")", "/", "_", "\\<index>"];
 
-  val scan_delim_char =
-    $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
-    Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
+fun is_meta c = c mem ["(", ")", "/", "_", "\\<index>"];
 
-  fun read_int ["0", "0"] = ~1
-    | read_int cs = #1 (Library.read_int cs);
+val scan_delim_char =
+  $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
+  Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
-  val scan_sym =
-    $$ "_" >> K (Argument ("", 0)) ||
-    $$ "\\<index>" >> K index ||
-    $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o read_int) ||
-    $$ ")" >> K En ||
-    $$ "/" -- $$ "/" >> K (Brk ~1) ||
-    $$ "/" |-- Scan.any Symbol.is_blank >> (Brk o length) ||
-    Scan.any1 Symbol.is_blank >> (Space o implode) ||
-    Scan.repeat1 scan_delim_char >> (Delim o implode);
+fun read_int ["0", "0"] = ~1
+  | read_int cs = #1 (Library.read_int cs);
 
-  val scan_symb =
-    scan_sym >> SOME ||
-    $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
+val scan_sym =
+  $$ "_" >> K (Argument ("", 0)) ||
+  $$ "\\<index>" >> K index ||
+  $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o read_int) ||
+  $$ ")" >> K En ||
+  $$ "/" -- $$ "/" >> K (Brk ~1) ||
+  $$ "/" |-- Scan.any Symbol.is_blank >> (Brk o length) ||
+  Scan.any1 Symbol.is_blank >> (Space o implode) ||
+  Scan.repeat1 scan_delim_char >> (Delim o implode);
 
-  val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
-  val read_symbs = List.mapPartial I o the o Scan.read Symbol.stopper scan_symbs;
+val scan_symb =
+  scan_sym >> SOME ||
+  $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
 
-  fun unique_index xsymbs =
-    if length (List.filter is_index xsymbs) <= 1 then xsymbs
-    else error "Duplicate index arguments (\\<index>)";
+val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
+val read_symbs = List.mapPartial I o the o Scan.read Symbol.stopper scan_symbs;
+
+fun unique_index xsymbs =
+  if length (List.filter is_index xsymbs) <= 1 then xsymbs
+  else error "Duplicate index arguments (\\<index>)";
+
 in
-  val read_mixfix = unique_index o read_symbs o Symbol.explode;
-  val mfix_args = length o List.filter is_argument o read_mixfix;
-  val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
+
+val read_mfix = unique_index o read_symbs o Symbol.explode;
+
+fun mfix_delims sy = fold_rev (fn Delim s => cons s | _ => I) (read_mfix sy) [];
+val mfix_args = length o List.filter is_argument o read_mfix;
+
+val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
+
 end;
 
 val unlocalize_mfix =
@@ -287,7 +286,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
       | logify_types _ a = a;
 
 
-    val raw_symbs = read_mixfix sy handle ERROR msg => err_in_mfix msg mfix;
+    val raw_symbs = read_mfix sy handle ERROR msg => err_in_mfix msg mfix;
     val args = List.filter (fn Argument _ => true | _ => false) raw_symbs;
     val (const', typ', parse_rules) =
       if not (exists is_index args) then (const, typ, [])
