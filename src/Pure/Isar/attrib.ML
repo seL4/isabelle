@@ -27,15 +27,9 @@ sig
     (('c * 'att list) * ('d * 'att list) list) list
   val crude_closure: Context.proof -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
-  val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
-  val global_thms: theory * Args.T list -> thm list * (theory * Args.T list)
-  val global_thmss: theory * Args.T list -> thm list * (theory * Args.T list)
-  val local_thm: Context.proof * Args.T list -> thm * (Context.proof * Args.T list)
-  val local_thms: Context.proof * Args.T list -> thm list * (Context.proof * Args.T list)
-  val local_thmss: Context.proof * Args.T list -> thm list * (Context.proof * Args.T list)
   val thm: Context.generic * Args.T list -> thm * (Context.generic * Args.T list)
   val thms: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
-  val thmss: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
+  val multi_thm: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
   val syntax: (Context.generic * Args.T list ->
     attribute * (Context.generic * Args.T list)) -> src -> attribute
   val no_args: attribute -> src -> attribute
@@ -149,37 +143,28 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 
 local
 
-fun gen_thm theory_of apply get pick = Scan.depend (fn st =>
- (Scan.ahead Args.alt_name -- Args.named_fact (get st o Fact)
+val get_thms = Context.cases PureThy.get_thms ProofContext.get_thms;
+
+fun gen_thm pick = Scan.depend (fn st =>
+ (Scan.ahead Args.alt_name -- Args.named_fact (get_thms st o Fact)
     >> (fn (s, fact) => ("", Fact s, fact)) ||
-  Scan.ahead Args.name -- Args.named_fact (get st o Name) -- Args.thm_sel
+  Scan.ahead Args.name -- Args.named_fact (get_thms st o Name) -- Args.thm_sel
     >> (fn ((name, fact), sel) => (name, NameSelection (name, sel), fact)) ||
-  Scan.ahead Args.name -- Args.named_fact (get st o Name)
+  Scan.ahead Args.name -- Args.named_fact (get_thms st o Name)
     >> (fn (name, fact) => (name, Name name, fact))) --
-  Args.opt_attribs (intern (theory_of st))
+  Args.opt_attribs (intern (Context.theory_of st))
   >> (fn ((name, thmref, fact), srcs) =>
     let
       val ths = PureThy.select_thm thmref fact;
-      val atts = map (attribute_i (theory_of st)) srcs;
-      val (st', ths') = foldl_map (apply atts) (st, ths);
+      val atts = map (attribute_i (Context.theory_of st)) srcs;
+      val (st', ths') = foldl_map (Library.apply atts) (st, ths);
     in (st', pick name ths') end));
-
-val get_thms = Context.cases PureThy.get_thms ProofContext.get_thms;
 
 in
 
-val global_thm = gen_thm I Thm.theory_attributes PureThy.get_thms PureThy.single_thm;
-val global_thms = gen_thm I Thm.theory_attributes PureThy.get_thms (K I);
-val global_thmss = Scan.repeat global_thms >> List.concat;
-
-val local_thm =
-  gen_thm ProofContext.theory_of Thm.proof_attributes ProofContext.get_thms PureThy.single_thm;
-val local_thms = gen_thm ProofContext.theory_of Thm.proof_attributes ProofContext.get_thms (K I);
-val local_thmss = Scan.repeat local_thms >> List.concat;
-
-val thm = gen_thm Context.theory_of Library.apply get_thms PureThy.single_thm;
-val thms = gen_thm Context.theory_of Library.apply get_thms (K I);
-val thmss = Scan.repeat thms >> List.concat;
+val thm = gen_thm PureThy.single_thm;
+val multi_thm = gen_thm (K I);
+val thms = Scan.repeat multi_thm >> List.concat;
 
 end;
 
@@ -217,7 +202,7 @@ val THEN_att =
     >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B))));
 
 val OF_att =
-  syntax (thmss >> (fn Bs => Thm.rule_attribute (fn _ => fn A => Bs MRS A)));
+  syntax (thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => Bs MRS A)));
 
 
 (* read_instantiate: named instantiation of type and term variables *)
@@ -397,7 +382,7 @@ fun rename_abs src = syntax
 (* unfold / fold definitions *)
 
 fun unfolded_syntax rule =
-  syntax (thmss >>
+  syntax (thms >>
     (fn ths => Thm.rule_attribute (fn context => rule (Context.proof_of context) ths)));
 
 val unfolded = unfolded_syntax LocalDefs.unfold;

@@ -69,31 +69,21 @@ sig
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
   val named_fact: (string -> thm list) -> T list -> thm list * T list
-  val global_typ_abbrev: theory * T list -> typ * (theory * T list)
-  val global_typ: theory * T list -> typ * (theory * T list)
-  val global_term: theory * T list -> term * (theory * T list)
-  val global_prop: theory * T list -> term * (theory * T list)
-  val local_typ_abbrev: ProofContext.context * T list -> typ * (ProofContext.context * T list)
-  val local_typ: ProofContext.context * T list -> typ * (ProofContext.context * T list)
-  val local_term: ProofContext.context * T list -> term * (ProofContext.context * T list)
-  val local_prop: ProofContext.context * T list -> term * (ProofContext.context * T list)
   val typ_abbrev: Context.generic * T list -> typ * (Context.generic * T list)
   val typ: Context.generic * T list -> typ * (Context.generic * T list)
   val term: Context.generic * T list -> term * (Context.generic * T list)
   val prop: Context.generic * T list -> term * (Context.generic * T list)
-  val global_tyname: theory * T list -> string * (theory * T list)
-  val global_const: theory * T list -> string * (theory * T list)
-  val local_tyname: ProofContext.context * T list -> string * (ProofContext.context * T list)
-  val local_const: ProofContext.context * T list -> string * (ProofContext.context * T list)
   val tyname: Context.generic * T list -> string * (Context.generic * T list)
   val const: Context.generic * T list -> string * (Context.generic * T list)
   val thm_sel: T list -> PureThy.interval list * T list
-  val bang_facts: ProofContext.context * T list -> thm list * (ProofContext.context * T list)
+  val bang_facts: Context.generic * T list -> thm list * (Context.generic * T list)
   val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
     -> ((int -> tactic) -> tactic) * ('a * T list)
   val attribs: (string -> string) -> T list -> src list * T list
   val opt_attribs: (string -> string) -> T list -> src list * T list
-  val syntax: string -> ('a * T list -> 'b * ('a * T list)) -> src -> 'a -> 'a * 'b
+  val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'b * 'a
+  val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
+    src -> ProofContext.context -> ProofContext.context * 'a
   val pretty_src: ProofContext.context -> src -> Pretty.T
   val pretty_attribs: ProofContext.context -> src list -> Pretty.T list
 end;
@@ -307,16 +297,6 @@ fun named_fact get = internal_fact || (alt_string || named) >> evaluate Fact get
 
 (* terms and types *)
 
-val global_typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o ProofContext.init);
-val global_typ = Scan.peek (named_typ o ProofContext.read_typ o ProofContext.init);
-val global_term = Scan.peek (named_term o ProofContext.read_term o ProofContext.init);
-val global_prop = Scan.peek (named_term o ProofContext.read_prop o ProofContext.init);
-
-val local_typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev);
-val local_typ = Scan.peek (named_typ o ProofContext.read_typ);
-val local_term = Scan.peek (named_term o ProofContext.read_term);
-val local_prop = Scan.peek (named_term o ProofContext.read_prop);
-
 val typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o Context.proof_of);
 val typ = Scan.peek (named_typ o ProofContext.read_typ o Context.proof_of);
 val term = Scan.peek (named_term o ProofContext.read_term o Context.proof_of);
@@ -325,17 +305,11 @@ val prop = Scan.peek (named_term o ProofContext.read_prop o Context.proof_of);
 
 (* type and constant names *)
 
-val dest_tyname = fn Type (c, _) => c | TFree (a, _) => a | _ => "";
-val dest_const = fn Const (c, _) => c | Free (x, _) => x | _ => "";
+val tyname = Scan.peek (named_typ o Context.cases Sign.read_tyname ProofContext.read_tyname)
+  >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
-val global_tyname = Scan.peek (named_typ o Sign.read_tyname) >> dest_tyname;
-val global_const = Scan.peek (named_term o Sign.read_const) >> dest_const;
-val local_tyname = Scan.peek (named_typ o ProofContext.read_tyname) >> dest_tyname;
-val local_const = Scan.peek (named_term o ProofContext.read_const) >> dest_const;
-val tyname =
-  Scan.peek (named_typ o Context.cases Sign.read_tyname ProofContext.read_tyname) >> dest_tyname;
-val const =
-  Scan.peek (named_term o Context.cases Sign.read_const ProofContext.read_const) >> dest_const;
+val const = Scan.peek (named_term o Context.cases Sign.read_const ProofContext.read_const)
+  >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
 
 
 (* misc *)
@@ -345,8 +319,8 @@ val thm_sel = parens (list1
   nat --| $$$ "-" >> PureThy.From ||
   nat >> PureThy.Single));
 
-val bang_facts = Scan.peek (fn ctxt =>
-  $$$ "!" >> K (ProofContext.prems_of ctxt) || Scan.succeed []);
+val bang_facts = Scan.peek (fn context =>
+  $$$ "!" >> K (ProofContext.prems_of (Context.proof_of context)) || Scan.succeed []);
 
 
 (* goal specification *)
@@ -403,6 +377,8 @@ fun syntax kind scan (src as Src ((s, args), pos)) st =
   | (_, (_, args')) =>
       error (kind ^ " " ^ quote s ^ Position.str_of pos ^ ": bad arguments\n  " ^
         space_implode " " (map string_of args')));
+
+fun context_syntax kind scan src = apfst Context.the_proof o syntax kind scan src o Context.Proof;
 
 
 
