@@ -401,10 +401,10 @@ val obtain_case =
 val general_statement =
   statement >> (fn x => ([], Element.Shows x)) ||
   Scan.repeat locale_element --
-   ($$$ "shows" |-- !!! statement >> Element.Shows ||
-    $$$ "obtains" |-- !!! (enum1 "|" obtain_case) >> Element.Obtains);
+   ($$$ "obtains" |-- !!! (enum1 "|" obtain_case) >> Element.Obtains ||
+    $$$ "shows" |-- !!! statement >> Element.Shows);
 
-val statement_keyword = $$$ "shows" || $$$ "obtains";
+val statement_keyword =  $$$ "obtains" || $$$ "shows";
 
 
 (* proof methods *)
