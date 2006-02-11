@@ -113,6 +113,7 @@ sig
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
+  val chop: int -> 'a list -> 'a list * 'a list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
@@ -141,7 +142,9 @@ sig
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val prefixes1: 'a list -> 'a list list
+  val prefixes: 'a list -> 'a list list
   val suffixes1: 'a list -> 'a list list
+  val suffixes: 'a list -> 'a list list
 
   (*integers*)
   val gcd: IntInf.int * IntInf.int -> IntInf.int
@@ -565,6 +568,12 @@ fun foldl_map f =
 
 (* basic list functions *)
 
+fun chop 0 xs = ([], xs)
+  | chop _ [] = ([], [])
+  | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
+
+fun splitAt (n, xs) = chop n xs;
+
 (*take the first n elements from a list*)
 fun take (n, []) = []
   | take (n, x :: xs) =
@@ -574,11 +583,6 @@ fun take (n, []) = []
 fun drop (n, []) = []
   | drop (n, x :: xs) =
       if n > 0 then drop (n - 1, xs) else x :: xs;
-
-fun splitAt(n,[]) = ([],[])
-  | splitAt(n,xs as x::ys) =
-      if n>0 then let val (ps,qs) = splitAt(n-1,ys) in (x::ps,qs) end
-      else ([],xs)
 
 fun dropwhile P [] = []
   | dropwhile P (ys as x::xs) = if P x then dropwhile P xs else ys;
@@ -742,8 +746,10 @@ fun take_suffix _ [] = ([], [])
 fun prefixes1 [] = []
   | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
 
-fun suffixes1 xs = map rev (prefixes1 (rev xs));
+fun prefixes xs = [] :: prefixes1 xs;
 
+fun suffixes1 xs = map rev (prefixes1 (rev xs));
+fun suffixes xs = [] :: suffixes1 xs;
 
 
 (** integers **)
