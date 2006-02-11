@@ -30,6 +30,7 @@ sig
   val drop_base: string -> string
   val map_base: (string -> string) -> string -> string
   val suffixes_prefixes: 'a list -> 'a list list
+  val suffixes_prefixes_split: int -> int -> 'a list -> 'a list list
   val accesses: string -> string list
   val accesses': string -> string list
   type T
@@ -45,9 +46,9 @@ sig
   val declare: naming -> string -> T -> T
   val default_naming: naming
   val add_path: string -> naming -> naming
-  val qualified_names: naming -> naming
   val no_base_names: naming -> naming
-  val custom_accesses: (string list -> string list list) -> naming -> naming
+  val qualified_names: naming -> naming
+  val qualified_force_prefix: string -> naming -> naming
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     naming -> naming
   type 'a table (*= T * 'a Symtab.table*)
@@ -91,11 +92,29 @@ fun map_base _ "" = ""
       let val names = unpack name
       in pack (nth_map (length names - 1) f names) end;
 
-fun suffixes_prefixes xs =
+
+(* accesses *)
+
+infixr 6 @@;
+fun ([] @@ yss) = []
+  | ((xs :: xss) @@ yss) = map (fn ys => xs @ ys) yss @ (xss @@ yss);
+
+fun suffixes_prefixes list =
   let
-    val (qs, b) = split_last xs;
-    val sfxs = Library.suffixes1 xs;
-    val pfxs = map (fn x => x @ [b]) (Library.prefixes1 qs);
+    val (xs, ws) = chop (length list - 1) list;
+    val sfxs = suffixes xs @@ [ws];
+    val pfxs = prefixes1 xs @@ [ws];
+  in sfxs @ pfxs end;
+
+fun suffixes_prefixes_split i k list =
+  let
+    val (((xs, ys), zs), ws) = list |> chop i ||>> chop k ||>> chop (length list - (i + k + 1));
+    val sfxs =
+      [ys] @@ suffixes zs @@ [ws] @
+      suffixes1 xs @@ [ys @ zs @ ws];
+    val pfxs =
+      prefixes1 xs @@ [ys @ ws] @
+      [xs @ ys] @@ prefixes1 zs @@ [ws];
   in sfxs @ pfxs end;
 
 val accesses = map pack o suffixes_prefixes o unpack;
@@ -224,12 +243,15 @@ fun add_path elems (Naming (path, policy)) =
   else if elems = ".." then Naming (drop_base path, policy)
   else Naming (append path elems, policy);
 
-fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs));
-
 fun no_base_names (Naming (path, (qualify, accs))) =
   Naming (path, (qualify, filter_out (fn [_] => true | _ => false) o accs));
 
-fun custom_accesses accs (Naming (path, (qualify, _))) = Naming (path, (qualify, accs));
+fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs));
+
+fun qualified_force_prefix prfx (Naming (path, _)) =
+  Naming (path,
+    (qualified, suffixes_prefixes_split (length (unpack path)) (length (unpack prfx))));
+
 fun set_policy policy (Naming (path, _)) = Naming (path, policy);
 
 
