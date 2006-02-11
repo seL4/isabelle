@@ -18,7 +18,7 @@ sig
   val extern_term: (string -> xstring) -> theory -> T -> term -> term
 end;
 
-structure LocalSyntax (* : LOCAL_SYNTAX *) =
+structure LocalSyntax: LOCAL_SYNTAX =
 struct
 
 (* datatype T *)
@@ -26,7 +26,7 @@ struct
 datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
   local_syntax: Syntax.syntax,
-  mixfixes: (string * typ * mixfix) list * (string * typ * mixfix) list,
+  mixfixes: (((string * bool) * string list list) * (string * typ * mixfix)) list,
   idents: string list * string list * string list};
 
 fun make_syntax (thy_syntax, local_syntax, mixfixes, idents) =
@@ -46,7 +46,7 @@ val structs_of = #1 o idents_of;
 
 (* build syntax *)
 
-fun build_syntax thy (mixfixes as (mxs, mxs_output), idents as (structs, _, _)) =
+fun build_syntax thy (mixfixes, idents as (structs, _, _)) =
   let
     val thy_syntax = Sign.syn_of thy;
     val is_logtype = Sign.is_logtype thy;
@@ -55,11 +55,12 @@ fun build_syntax thy (mixfixes as (mxs, mxs_output), idents as (structs, _, _)) 
       |> Syntax.extend_trfuns
          (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
           map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
-      |> Syntax.extend_const_gram is_logtype ("", false) mxs_output
-      |> Syntax.extend_const_gram is_logtype ("", true) mxs;
+      |> Syntax.extend_const_gram is_logtype ("", false)
+         (map (fn (((x, _), _), (c, T, _)) => (c, T, Syntax.literal x)) mixfixes)
+      |> Syntax.extend_const_gram is_logtype ("", true) (map snd mixfixes)
   in make_syntax (thy_syntax, local_syntax, mixfixes, idents) end
 
-fun init thy = build_syntax thy (([], []), ([], [], []));
+fun init thy = build_syntax thy ([], ([], [], []));
 
 fun rebuild thy (syntax as Syntax {mixfixes, idents, ...}) =
   if is_consistent thy syntax then syntax
@@ -70,31 +71,35 @@ fun rebuild thy (syntax as Syntax {mixfixes, idents, ...}) =
 
 local
 
-fun mixfix_conflict (mx1, (_, _, mx2)) = Syntax.mixfix_conflict (mx1, mx2);
-fun mixfix_proper (_, _, mx) = mx <> NoSyn andalso mx <> Structure;
+fun mixfix_nosyn (_, (_, _, mx)) = mx = NoSyn;
+fun mixfix_struct (_, (_, _, mx)) = mx = Structure;
 
-fun mixfix_output (c, T, _) =
-  let val c' = unprefix Syntax.fixedN c handle Fail _ => unprefix Syntax.constN c
-  in (c, T, Syntax.literal c') end;
+fun mixfix_conflict (content1: string list list, ((_, content2), _)) =
+  exists (fn x => exists (fn y => x = y) content2) content1;
+
+fun add_mixfix (fixed, (x, T, mx)) =
+  let
+    val content = Syntax.mixfix_content mx;
+    val c = if fixed then Syntax.fixedN ^ x else Syntax.constN ^ x;
+  in remove mixfix_conflict content #> cons (((x, fixed), content), (c, T, mx)) end;
+
+fun prep_struct (fixed, (c, _, Structure)) =
+      if fixed then SOME c
+      else error ("Bad mixfix declaration for const: " ^ quote c)
+  | prep_struct _ = NONE;
 
 in
 
-fun add_syntax thy decls (Syntax {mixfixes = (mxs, _), idents = (structs, _, _), ...}) =
-  let
-    fun add_mx (fixed, (c, T, mx)) =
-      remove mixfix_conflict mx #>
-      cons (if fixed then Syntax.fixedN ^ c else Syntax.constN ^ c, T, mx);
-    val mxs' = mxs |> fold add_mx (filter (mixfix_proper o snd) decls);
-
-    val fixes' = List.mapPartial (try (unprefix Syntax.fixedN) o #1) mxs';
-    val consts' = List.mapPartial (try (unprefix Syntax.constN) o #1) mxs';
-
-    fun prep_struct (fixed, (c, _, Structure)) =
-          if fixed then SOME c
-          else error ("Bad mixfix declaration for const: " ^ quote c)
-      | prep_struct _ = NONE;
-    val structs' = structs @ List.mapPartial prep_struct decls;
-  in build_syntax thy ((mxs', map mixfix_output mxs'), (structs', fixes', consts')) end;
+fun add_syntax thy raw_decls (syntax as (Syntax {mixfixes, idents = (structs, _, _), ...})) =
+  (case filter_out mixfix_nosyn raw_decls of
+    [] => syntax
+  | decls =>
+      let
+        val mixfixes' = mixfixes |> fold add_mixfix (filter_out mixfix_struct decls);
+        val fixes' = fold (fn (((x, true), _), _) => cons x | _ => I) mixfixes' [];
+        val consts' = fold (fn (((x, false), _), _) => cons x | _ => I) mixfixes' [];
+        val structs' = structs @ List.mapPartial prep_struct decls;
+      in build_syntax thy (mixfixes', (structs', fixes', consts')) end);
 
 end;
 
