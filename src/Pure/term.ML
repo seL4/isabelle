@@ -190,6 +190,7 @@ sig
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
+  val variant_name: (string -> bool) -> string -> string
   val invent_names: string list -> string -> int -> string list
   val dest_abs: string * typ * term -> string * term
   val bound: int -> string
@@ -1058,15 +1059,17 @@ fun maxidx_of_term t = maxidx_term t ~1;
 
 (*** Printing ***)
 
-(*Makes a variant of a name distinct from the names in 'used'.
-  First attaches the suffix and then increments this;
-  preserves a suffix of underscores "_". *)
-fun variant used name =
+(*Makes a variant of a name distinct from already used names.  First
+  attaches the suffix and then increments this; preserves a suffix of
+  underscores "_". *)
+fun variant_name used name =
   let
-    val (c, u) = pairself implode (Library.take_suffix (equal "_") (Symbol.explode name));
-    fun vary2 c = if ((c ^ u) mem_string used) then vary2 (Symbol.bump_string c) else c;
-    fun vary1 c = if ((c ^ u) mem_string used) then vary2 (Symbol.bump_init c) else c;
+    val (c, u) = pairself implode (Library.take_suffix (fn s => s = "_") (Symbol.explode name));
+    fun vary2 c = if used (c ^ u) then vary2 (Symbol.bump_string c) else c;
+    fun vary1 c = if used (c ^ u) then vary2 (Symbol.bump_init c) else c;
   in vary1 (if c = "" then "u" else c) ^ u end;
+
+fun variant used_names = variant_name (member (op =) used_names);
 
 (*Create variants of the list of names, with priority to the first ones*)
 fun variantlist ([], used) = []
