@@ -252,7 +252,7 @@ fun get_clasimp_lemmas ctxt goals =
  
       val cls_thms_list = make_unique (mk_clause_table 2200) 
                                       (List.concat (simpset_cls_thms@claset_cls_thms))
-      val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter cls_thms_list goals
+      val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals
   in  (* create array of put clausename, number pairs into it *)
       (Array.fromList relevant_cls_thms_list, map #1 (relevant_cls_thms_list))
   end;
