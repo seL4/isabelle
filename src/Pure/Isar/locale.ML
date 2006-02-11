@@ -86,6 +86,8 @@ sig
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     cterm list * Proof.context ->
     ((string * thm list) list * (string * thm list) list) * Proof.context
+  val add_abbrevs: string -> bool -> (bstring * term * mixfix) list ->
+    cterm list * Proof.context -> Proof.context
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string * Attrib.src list -> Element.context element list -> Element.statement ->
@@ -143,10 +145,10 @@ type locale =
        from the locale predicate to the normalised assumptions of the locale
        (cf. [1], normalisation of locale expressions.)
     *)
-  import: expr,                                       (*dynamic import*)
-  elems: (Element.context_i * stamp) list,            (*static content*)
-  params: ((string * typ) * mixfix) list * string list,
-                                                      (*all/local params*)
+  import: expr,                                                     (*dynamic import*)
+  elems: (Element.context_i * stamp) list,                          (*static content*)
+  params: ((string * typ) * mixfix) list * string list,             (*all/local params*)
+  abbrevs: ((bool * (bstring * term * mixfix) list) * stamp) list,  (*abbreviations*)
   regs: ((string * string list) * (term * thm) list) list}
     (* Registrations: indentifiers and witness theorems of locales interpreted
        in the locale.
@@ -263,11 +265,14 @@ structure GlobalLocalesData = TheoryDataFun
   val copy = I;
   val extend = I;
 
-  fun join_locs _ ({predicate, import, elems, params, regs}: locale,
-      {elems = elems', regs = regs', ...}: locale) =
-    SOME {predicate = predicate, import = import,
+  fun join_locs _ ({predicate, import, elems, params, abbrevs, regs}: locale,
+      {elems = elems', abbrevs = abbrevs', regs = regs', ...}: locale) =
+    SOME
+     {predicate = predicate,
+      import = import,
       elems = gen_merge_lists (eq_snd (op =)) elems elems',
       params = params,
+      abbrevs = Library.merge (eq_snd (op =)) (abbrevs, abbrevs'),
       regs = merge_alists regs regs'};
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locs (locs1, locs2),
@@ -320,11 +325,12 @@ fun the_locale thy name =
 
 fun change_locale name f thy =
   let
-    val {predicate, import, elems , params, regs} = the_locale thy name;
-    val (predicate', import', elems', params', regs') = f (predicate, import, elems, params, regs);
+    val {predicate, import, elems , params, abbrevs, regs} = the_locale thy name;
+    val (predicate', import', elems', params', abbrevs', regs') =
+      f (predicate, import, elems, params, abbrevs, regs);
   in
     put_locale name {predicate = predicate', import = import', elems = elems',
-      params = params', regs = regs'} thy
+      params = params', abbrevs = abbrevs', regs = regs'} thy
   end;
 
 
@@ -389,8 +395,8 @@ val put_local_registration =
      gen_put_registration LocalLocalesData.map ProofContext.theory_of;
 
 fun put_registration_in_locale name id =
-  change_locale name (fn (predicate, import, elems, params, regs) =>
-    (predicate, import, elems, params, regs @ [(id, [])]));
+  change_locale name (fn (predicate, import, elems, params, abbrevs, regs) =>
+    (predicate, import, elems, params, abbrevs, regs @ [(id, [])]));
 
 
 (* add witness theorem to registration in theory or context,
@@ -405,11 +411,11 @@ fun add_global_witness id thm =
 val add_local_witness = LocalLocalesData.map oo add_witness;
 
 fun add_witness_in_locale name id thm =
-  change_locale name (fn (predicate, import, elems, params, regs) =>
+  change_locale name (fn (predicate, import, elems, params, abbrevs, regs) =>
     let
       fun add (id', thms) =
         if id = id' then (id', thm :: thms) else (id', thms);
-    in (predicate, import, elems, params, map add regs) end);
+    in (predicate, import, elems, params, abbrevs, map add regs) end);
 
 
 (* printing of registrations *)
@@ -720,7 +726,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
             (fn (Assumes asms, _) => List.concat (map (map #1 o #2) asms)
               | _ => [])
             elems);
-          val (axs1, axs2) = splitAt (length ts, axioms);
+          val (axs1, axs2) = chop (length ts) axioms;
         in (((name, parms), (all_ps, Assumed axs1)), axs2) end
       | axiomify all_ps (id, (_, Derived ths)) axioms =
           ((id, (all_ps, Derived ths)), axioms);
@@ -842,7 +848,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
       let
         val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
         val ts = List.concat (map (map #1 o #2) asms');
-        val (ps, qs) = splitAt (length ts, axs);
+        val (ps, qs) = chop (length ts) axs;
         val (_, ctxt') =
           ctxt |> fold ProofContext.fix_frees ts
           |> ProofContext.add_assms_i (axioms_export ps) asms';
@@ -1171,7 +1177,7 @@ fun prep_elemss prep_vars prepp do_close context fixed_params raw_elemss raw_con
         (* CB: resolve schematic variables (patterns) in conclusion and external elements. *)
         val all_propp' = map2 (curry (op ~~))
           (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
-        val (concl, propp) = splitAt (length raw_concl, all_propp')
+        val (concl, propp) = chop (length raw_concl) all_propp';
       in (propp, (ctxt, concl)) end
 
     val (proppss, (ctxt, concl)) =
@@ -1306,7 +1312,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       (ids ~~ all_elemss);
 
     (* CB: all_elemss and parms contain the correct parameter types *)
-    val (ps,qs) = splitAt(length raw_import_elemss, all_elemss')
+    val (ps, qs) = chop (length raw_import_elemss) all_elemss';
     val (import_ctxt, (import_elemss, _)) =
       activate_facts prep_facts (context, ps);
 
@@ -1346,8 +1352,6 @@ fun cert_context import body ctxt = #1 (cert_ctxt true [] import (map Elem body)
 val read_context_statement = prep_statement intern read_ctxt;
 val cert_context_statement = prep_statement (K I) cert_ctxt;
 
-fun init loc thy = #2 (cert_context_statement (SOME loc) [] [] (ProofContext.init thy));
-
 end;
 
 
@@ -1370,45 +1374,19 @@ fun print_locale thy show_facts import body =
 
 (** store results **)
 
-(* accesses of interpreted theorems *)
+(* naming of interpreted theorems *)
 
-local
-
-(*fully qualified name in theory is T.p.r.n where
-  T: theory name, p: interpretation prefix, r: renaming prefix, n: name*)  (* FIXME not necessarily so *)
-fun global_accesses _ [] = []
-  | global_accesses "" [T, n] = [[T, n], [n]]
-  | global_accesses "" [T, r, n] = [[T, r, n], [T, n], [r, n], [n]]
-  | global_accesses _ [T, p, n] = [[T, p, n], [p, n]]
-  | global_accesses _ [T, p, r, n] = [[T, p, r, n], [T, p, n], [p, r, n], [p, n]]
-  | global_accesses _ names = error ("Bad name declaration " ^ quote (NameSpace.pack names));
-
-(*fully qualified name in context is p.r.n where
-  p: interpretation prefix, r: renaming prefix, n: name*)  (* FIXME not necessarily so *)
-fun local_accesses _ [] = []
-  | local_accesses "" [n] = [[n]]
-  | local_accesses "" [r, n] = [[r, n], [n]]
-  | local_accesses _ [p, n] = [[p, n]]
-  | local_accesses _ [p, r, n] = [[p, r, n], [p, n]]
-  | local_accesses _ names = error ("Bad name declaration " ^ quote (NameSpace.pack names));
-
-in
-
-fun global_note_accesses_i kind prfx args thy =
+fun global_note_prefix_i kind prfx args thy =
   thy
-  |> Theory.qualified_names
-  |> Theory.custom_accesses (global_accesses prfx)
+  |> Theory.qualified_force_prefix prfx
   |> PureThy.note_thmss_i kind args
   ||> Theory.restore_naming thy;
 
-fun local_note_accesses_i prfx args ctxt =
+fun local_note_prefix_i prfx args ctxt =
   ctxt
-  |> ProofContext.qualified_names
-  |> ProofContext.custom_accesses (local_accesses prfx)
+  |> ProofContext.qualified_force_prefix prfx
   |> ProofContext.note_thmss_i args |> swap
   |>> ProofContext.restore_naming ctxt;
-
-end;
 
 
 (* collect witness theorems for global registration;
@@ -1456,8 +1434,26 @@ fun note_thmss_registrations kind target args thy =
               map (Attrib.attribute_i thy) (map inst_atts atts @ atts2)),
              [(map (Drule.standard o satisfy_protected prems o
             Element.inst_thm thy insts) ths, [])]));
-      in global_note_accesses_i kind prfx args' thy |> snd end;
+      in global_note_prefix_i kind prfx args' thy |> snd end;
   in fold activate regs thy end;
+
+
+(* abbreviations *)
+
+fun add_abbrevs loc revert decls =
+  snd #> ProofContext.add_abbrevs_i revert decls #>
+  ProofContext.map_theory (change_locale loc
+    (fn (predicate, import, elems, params, abbrevs, regs) =>
+      (predicate, import, elems, params, ((revert, decls), stamp ()) :: abbrevs, regs)));
+
+fun init_abbrevs loc ctxt =
+  fold_rev (uncurry ProofContext.add_abbrevs_i o fst)
+    (#abbrevs (the_locale (ProofContext.theory_of ctxt) loc)) ctxt;
+
+fun init loc =
+  ProofContext.init
+  #> init_abbrevs loc
+  #> (#2 o cert_context_statement (SOME loc) [] []);
 
 
 (* theory/locale results *)
@@ -1477,8 +1473,8 @@ fun gen_thmss prep_facts global_results kind loc args (view, ctxt) thy =
       activate_facts prep_facts (ctxt, [((("", []), Assumed []), [Ext (Notes args)])]);
     val (facts', thy') =
       thy
-      |> change_locale loc (fn (predicate, import, elems, params, regs) =>
-        (predicate, import, elems @ [(Notes args', stamp ())], params, regs))
+      |> change_locale loc (fn (predicate, import, elems, params, abbrevs, regs) =>
+        (predicate, import, elems @ [(Notes args', stamp ())], params, abbrevs, regs))
       |> note_thmss_registrations kind loc args'
       |> global_results (map (#1 o #1) args' ~~ map #2 facts) (view, ctxt);
   in ((facts, facts'), (ProofContext.transfer thy' ctxt', thy')) end;
@@ -1589,10 +1585,9 @@ fun def_pred bname parms defs ts norm_ts thy =
 fun assumes_to_notes (Assumes asms) axms =
        axms
        |> fold_map (fn (a, spec) => fn axs =>
-            let val (ps, qs) = splitAt (length spec, axs)
-            in ((a, [(ps, [])]), qs) end
-          ) asms
-       |-> (fn asms' => pair (Notes asms'))
+            let val (ps, qs) = chop (length spec) axs
+            in ((a, [(ps, [])]), qs) end) asms
+       |-> (pair o Notes)
   | assumes_to_notes e axms = (e, axms);
 
 (* CB: changes only "new" elems, these have identifier ("", _). *)
@@ -1681,7 +1676,7 @@ fun gen_add_locale prep_ctxt prep_expr
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
                    val ts = List.concat (List.mapPartial (fn (Assumes asms) =>
                      SOME (List.concat (map (map #1 o #2) asms)) | _ => NONE) elems);
-                   val (axs1, axs2) = splitAt (length ts, axs);
+                   val (axs1, axs2) = chop (length ts) axs;
                  in (axs2, ((id, Assumed axs1), elems)) end)
         |> snd;
     val pred_ctxt = ProofContext.init pred_thy;
@@ -1696,8 +1691,9 @@ fun gen_add_locale prep_ctxt prep_expr
     |> declare_locale name
     |> put_locale name {predicate = predicate, import = import,
         elems = map (fn e => (e, stamp ())) elems',
-        params = (params_of elemss' |>
-          map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))), map #1 (params_of body_elemss)),
+        params = (params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
+          map #1 (params_of body_elemss)),
+        abbrevs = [],
         regs = []}
     |> pair (body_ctxt)
   end;
@@ -1709,12 +1705,9 @@ val add_locale_i = gen_add_locale cert_context (K I);
 
 end;
 
-val _ = Context.add_setup (
-  add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]]
-  #> snd
-  #> add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]]
-  #> snd
-)
+val _ = Context.add_setup
+ (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #> snd #>
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]] #> snd);
 
 
 
@@ -1759,7 +1752,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     val elems = map (prep_elem thy) (raw_elems @ concl_elems);
     val names = map (fst o fst) concl;
 
-    val thy_ctxt = ProofContext.init thy;
+    val thy_ctxt = init_abbrevs loc (ProofContext.init thy);
     val (_, (loc_view, loc_ctxt), (elems_view, elems_ctxt), propp) =
       prep_stmt (SOME raw_loc) elems (map snd concl) thy_ctxt;
     val elems_ctxt' = elems_ctxt
@@ -1885,7 +1878,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
-      (swap ooo global_note_accesses_i "")
+      (swap ooo global_note_prefix_i "")
       Attrib.attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => fn (t, th) =>
@@ -1894,7 +1887,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
       get_local_registration
-      local_note_accesses_i
+      local_note_prefix_i
       (Attrib.attribute_i o ProofContext.theory_of) I
       put_local_registration
       add_local_witness x;
@@ -2010,7 +2003,7 @@ fun prep_registration_in_locale target expr thy =
     val fixed = the_locale thy target |> #params |> #1 |> map #1;
     val ((all_ids, syn), raw_elemss) = flatten (ctxt, intern_expr thy)
         ((raw_target_ids, target_syn), Expr expr);
-    val (target_ids, ids) = splitAt (length raw_target_ids, all_ids);
+    val (target_ids, ids) = chop (length raw_target_ids) all_ids;
     val ((parms, elemss, _), _) = read_elemss false ctxt fixed raw_elemss [];
 
     (** compute proof obligations **)
@@ -2087,7 +2080,7 @@ fun prep_registration_in_locale target expr thy =
                       |> map (apfst (apfst (NameSpace.qualified prfx)))
                 in
                   thy
-                  |> global_note_accesses_i "" prfx facts'
+                  |> global_note_prefix_i "" prfx facts'
                   |> snd
                 end
               | activate_elem _ thy = thy;
