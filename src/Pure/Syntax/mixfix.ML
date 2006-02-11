@@ -32,7 +32,7 @@ sig
   val fix_mixfix: string -> mixfix -> mixfix
   val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
-  val mixfix_conflict: mixfix * mixfix -> bool
+  val mixfix_content: mixfix -> string list list
 end;
 
 signature MIXFIX =
@@ -143,23 +143,6 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Binder _) = 1
   | mixfix_args Structure = 0;
 
-fun mixfix_conflict (mx1, mx2) =
-  let
-    fun content kind sy = SOME (kind, SynExt.mfix_delims sy);
-    fun content_of (Mixfix (sy, _, _)) = content 0 sy
-      | content_of (Delimfix sy) = content 0 sy
-      | content_of (InfixName (sy, _)) = content 1 sy
-      | content_of (InfixlName (sy, _)) = content 1 sy
-      | content_of (InfixrName (sy, _)) = content 1 sy
-      | content_of (Binder (sy, _, _)) = content 2 sy
-      | content_of _ = NONE;
-  in
-    (case (content_of mx1, content_of mx2) of
-      (SOME (kind1, delims1), SOME (kind2, delims2)) =>
-        (kind1 = 0 orelse kind2 = 0 orelse kind1 = kind2) andalso delims1 = delims2
-    | _ => false)
-  end;
-
 
 (* syn_ext_types *)
 
@@ -235,6 +218,21 @@ fun syn_ext_consts is_logtype const_decls =
   in
     SynExt.syn_ext' true is_logtype
       mfix xconsts ([], binder_trs, binder_trs', []) [] ([], [])
+  end;
+
+fun mixfix_content mx =
+  let
+    fun delims sy = SynExt.mfix_delims sy;
+    fun op_delims sy = let val ds = delims sy in ["op" :: ds, ds] end;
+  in
+    case mx of
+      Mixfix (sy, _, _) => [delims sy]
+    | Delimfix sy => [delims sy]
+    | InfixName (sy, _) => op_delims sy
+    | InfixlName (sy, _) => op_delims sy
+    | InfixrName (sy, _) => op_delims sy
+    | Binder (sy, _, _) => [delims sy @ ["."]]
+    | _ => []
   end;
 
 end;
