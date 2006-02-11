@@ -181,7 +181,157 @@ fun relevance_filter2_aux axioms goals =
 
 fun relevance_filter2 axioms goals = map fst (relevance_filter2_aux axioms goals);
 
+(******************************************************************)
+(*       the third relevance filtering strategy                   *)
+(******************************************************************)
 
+(*** unit clauses ***)
+datatype clause_type = Unit_neq | Unit_geq | Other
+
+val add_unit = ref true;
+
+
+fun literals_of_term args (Const ("Trueprop",_) $ P) = literals_of_term args P
+  | literals_of_term args (Const ("op |",_) $ P $ Q) = 
+    literals_of_term (literals_of_term args P) Q
+  | literals_of_term args P = (P::args);
+
+
+fun is_ground t = if (term_vars t = []) then (term_frees t = []) else false;
+
+
+fun eq_clause_type (P,Q) = 
+    if ((is_ground P) orelse (is_ground Q)) then Unit_geq else Other;
+
+fun unit_clause_type (Const ("op =",_) $ P $ Q) = eq_clause_type (P,Q)
+  | unit_clause_type _ = Unit_neq;
+
+fun clause_type tm = 
+    let val lits = literals_of_term [] tm
+	val nlits = length lits
+    in 
+	if (nlits > 1) then Other
+	else unit_clause_type (hd lits)
+    end;
+
+(*** constants with types ***)
+
+datatype const_typ =  CTVar | CType of string * const_typ list
+
+fun uni_type (CType (con1,args1)) (CType (con2,args2)) = (con1 = con2) andalso (uni_types args1 args2)
+  | uni_type (CType (_,_)) CTVar = true
+  | uni_type CTVar CTVar = true
+  | uni_type CTVar _ = false
+
+and 
+     uni_types [] [] = true
+      | uni_types (a1::as1) (a2::as2) = (uni_type a1 a2) andalso (uni_types as1 as2);
+
+
+
+fun uni_constants (c1,ctp1) (c2,ctp2) = (c1 = c2) andalso (uni_types ctp1 ctp2);
+
+fun uni_mem _ [] = false
+  | uni_mem (c,c_typ) ((c1,c_typ1)::ctyps) = (uni_constants (c,c_typ) (c1,c_typ1)) orelse (uni_mem (c,c_typ) ctyps);
+
+
+
+fun const_typ_of (Type (c,typs)) = CType (c,map const_typ_of typs) 
+  | const_typ_of (TFree(_,_)) = CTVar
+  | const_typ_of (TVar(_,_)) = CTVar
+
+
+fun const_w_typ thy (c,tp) = 
+    let val tvars = Sign.const_typargs thy (c,tp)
+    in
+	(c,map const_typ_of tvars)
+    end;
+
+fun add_term_consts_typs_rm thy ncs (Const(c, tp)) cs = if (c mem ncs) then cs else (const_w_typ thy (c,tp) ins cs)
+  | add_term_consts_typs_rm thy ncs (t $ u) cs =
+      add_term_consts_typs_rm thy ncs  t (add_term_consts_typs_rm thy ncs u cs)
+  | add_term_consts_typs_rm thy ncs (Abs(_,_,t)) cs = add_term_consts_typs_rm thy ncs t cs
+  | add_term_consts_typs_rm thy ncs _ cs = cs;
+
+fun term_consts_typs_rm thy ncs t = add_term_consts_typs_rm thy ncs t [];
+
+fun consts_typs_of_term thy term = term_consts_typs_rm thy ["Trueprop","==>","all","Ex","op &", "op |", "Not", "All", "op -->", "op =", "==", "True", "False"] term;
+
+
+fun consts_typs_in_goal thy goal = consts_typs_of_term thy goal;
+
+fun get_goal_consts_typs thy cs = foldl (op union) [] (map (consts_typs_in_goal thy) cs)
+
+
+(******** filter clauses ********)
+
+fun part3 gctyps [] (s1,s2) = (s1,s2)
+  | part3 gctyps (s::ss) (s1,s2) = if (uni_mem s gctyps) then part3 gctyps ss (s::s1,s2) else part3 gctyps ss (s1,s::s2);
+
+
+fun find_clause_weight_s_3 gctyps consts_typs wa =
+    let val (rel,irrel) = part3 gctyps consts_typs ([],[])
+    in
+	((real (length rel))/(real (length consts_typs))) * wa
+    end;
+
+
+fun find_clause_weight_m_3 [] (_,w) = w
+  | find_clause_weight_m_3 ((_,(_,(refconsts_typs,wa)))::y) (consts_typs,w) =
+    let val w' = find_clause_weight_s_3 refconsts_typs consts_typs wa
+    in
+	if (w < w') then find_clause_weight_m_3 y (consts_typs,w')
+	else find_clause_weight_m_3 y (consts_typs,w)
+    end;
+
+
+fun relevant_clauses_ax_g_3 _ [] _ (ax,r) = (ax,r)
+  | relevant_clauses_ax_g_3 gctyps ((cls_typ,(clsthm,(consts_typs,_)))::y) P (ax,r) =
+    let val weight = find_clause_weight_s_3 gctyps consts_typs 1.0
+    in
+	if P <= weight then relevant_clauses_ax_g_3 gctyps y P ((cls_typ,(clsthm,(consts_typs,weight)))::ax,r)
+	else relevant_clauses_ax_g_3 gctyps y P (ax,(cls_typ,(clsthm,(consts_typs,weight)))::r)
+    end;
+
+fun relevant_clauses_ax_3 rel_axs [] P (addc,tmpc) keep =
+    (case addc of [] => (rel_axs @ keep,tmpc)
+		| _ => case tmpc of [] => (addc @ rel_axs @ keep,[])
+				  | _ => relevant_clauses_ax_3 addc tmpc P ([],[]) (rel_axs @ keep))
+  | relevant_clauses_ax_3 rel_axs ((cls_typ,(clsthm,(consts_typs,weight)))::e_axs) P (addc,tmpc) keep =
+    let val weight' = find_clause_weight_m_3 rel_axs (consts_typs,weight)
+	val e_ax' = (cls_typ,(clsthm,(consts_typs,weight')))
+    in
+	if P <= weight' then relevant_clauses_ax_3 rel_axs e_axs P (e_ax'::addc,tmpc) keep
+	else relevant_clauses_ax_3 rel_axs e_axs P (addc,e_ax'::tmpc) keep
+    end;
+
+fun initialize3 thy [] ax_weights = ax_weights
+  | initialize3 thy ((cls,thm)::clss_thms) ax_weights =
+    let val tm = prop_of thm
+	val cls_type = clause_type tm
+	val consts = consts_typs_of_term thy tm
+    in
+	initialize3 thy clss_thms ((cls_type,((cls,thm),(consts,0.0)))::ax_weights)
+    end;
+
+fun add_unit_clauses ax [] = ax
+  | add_unit_clauses ax ((cls_typ,consts_weight)::cs) =
+    case cls_typ of Unit_neq => add_unit_clauses ((cls_typ,consts_weight)::ax) cs
+		  | Unit_geq => add_unit_clauses ((cls_typ,consts_weight)::ax) cs
+		  | Other => add_unit_clauses ax cs;
+
+fun relevance_filter3_aux thy axioms goals = 
+    let val pass = !pass_mark
+	val axioms_weights = initialize3 thy axioms []
+	val goals_consts_typs = get_goal_consts_typs thy goals
+	val (rel_clauses,nrel_clauses) = relevant_clauses_ax_g_3 goals_consts_typs axioms_weights pass ([],[]) 
+	val (ax,r) = relevant_clauses_ax_3 rel_clauses nrel_clauses pass ([],[]) []
+    in
+	if (!add_unit) then add_unit_clauses ax r else ax
+    end;
+
+fun relevance_filter3 thy axioms goals = map fst (map snd (relevance_filter3_aux thy axioms goals));
+    
 
 
 (******************************************************************)
@@ -190,9 +340,10 @@ fun relevance_filter2 axioms goals = map fst (relevance_filter2_aux axioms goals
 
 exception RELEVANCE_FILTER of string;
 
-fun relevance_filter axioms goals = 
+fun relevance_filter thy axioms goals = 
     let val cls = (case (!strategy) of 1 => relevance_filter1 axioms goals
 				     | 2 => relevance_filter2 axioms goals
+				     | 3 => relevance_filter3 thy axioms goals
 				     | _ => raise RELEVANCE_FILTER("strategy doesn't exists"))
     in
 	cls
