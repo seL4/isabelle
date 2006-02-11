@@ -19,6 +19,7 @@ sig
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val init: xstring option -> theory -> local_theory
   val init_i: string option -> theory -> local_theory
+  val restore: local_theory -> local_theory
   val exit: local_theory -> local_theory * theory
   val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
   val consts_restricted: (string * typ -> bool) ->
@@ -55,7 +56,6 @@ structure Data = ProofDataFun
   fun init thy = {locale = NONE, params = [], hyps = [], exit = I};
   fun print _ _ = ();
 );
-
 val _ = Context.add_setup Data.init;
 
 fun map_locale f = Data.map (fn {locale, params, hyps, exit} =>
@@ -112,14 +112,18 @@ fun theory_result f ctxt =
 fun locale_result f ctxt =
   (case locale_of ctxt of
     NONE => error "Local theory: no locale context"
-  | SOME (loc, (view, loc_ctxt)) =>
+  | SOME (_, view_ctxt) =>
       let
-        val (res, loc_ctxt') = f loc_ctxt;
+        val (res, loc_ctxt') = f view_ctxt;
         val thy' = ProofContext.theory_of loc_ctxt';
       in (res, ctxt |> map_locale (K loc_ctxt') |> transfer thy') end);
 
+fun locale f ctxt =
+  if is_none (locale_of ctxt) then ctxt
+  else #2 (locale_result (f #> pair ()) ctxt);
 
-(* init -- exit *)
+
+(* init -- restore -- exit *)
 
 fun init_i NONE thy = ProofContext.init thy
   | init_i (SOME loc) thy =
@@ -135,6 +139,11 @@ fun init_i NONE thy = ProofContext.init thy
 
 fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
+fun restore ctxt =
+  (case locale_of ctxt of
+    NONE => ctxt
+  | SOME (_, (_, loc_ctxt)) => loc_ctxt |> Data.put (Data.get ctxt));
+
 fun exit ctxt = (ctxt, #exit (Data.get ctxt) (ProofContext.theory_of ctxt));
 
 
@@ -149,11 +158,18 @@ fun consts_restricted pred decls ctxt =
     val params = filter pred (params_of ctxt);
     val ps = map Free params;
     val Ps = map #2 params;
+    val abbrevs = decls |> map (fn ((c, T), mx) =>
+      let val t = Term.list_comb (Const (Sign.full_name thy c, Ps ---> T), ps)
+      in (c, t, mx) end);
   in
-    ctxt
-    |> theory (Sign.add_consts_i (decls |> map (fn ((c, T), mx) => (c, Ps ---> T, mx))))
-    |> pair (decls |> map (fn ((c, T), _) =>
-      Term.list_comb (Const (Sign.full_name thy c, Ps ---> T), ps)))
+    ctxt |>
+    (case locale_of ctxt of
+      NONE => theory (Sign.add_consts_i (map (fn ((c, T), mx) => (c, T, mx)) decls))
+    | SOME (loc, _) =>
+        theory (Sign.add_consts_i (map (fn ((c, T), _) => (c, Ps ---> T, NoSyn)) decls)) #>
+        locale (Locale.add_abbrevs loc true abbrevs) #>
+        ProofContext.add_abbrevs_i true abbrevs)
+    |> pair (map #2 abbrevs)
   end;
 
 val consts = consts_restricted (K true);
@@ -169,8 +185,8 @@ fun notes kind facts ctxt =
     ctxt |>
     (case locale_of ctxt of
       NONE => theory_result (PureThy.note_thmss_i kind (Attrib.map_facts attrib facts'))
-    | SOME (loc, view_ctxt) =>
-        locale_result (K (apfst #1 (Locale.add_thmss kind loc facts' view_ctxt))))
+    | SOME (loc, _) =>
+        locale_result (apfst #1 o Locale.add_thmss kind loc facts'))
     ||> (#2 o ProofContext.note_thmss_i (Attrib.map_facts attrib facts))
   end;
 
