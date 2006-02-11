@@ -1219,7 +1219,7 @@ fun rotate_rule k i state =
     val Bi' =
       if 0 = m orelse m = n then Bi
       else if 0 < m andalso m < n then
-        let val (ps, qs) = splitAt (m, asms)
+        let val (ps, qs) = chop m asms
         in list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
   in
@@ -1249,7 +1249,7 @@ fun permute_prems j k rl =
     val prop' =
       if 0 = m orelse m = n_j then prop
       else if 0 < m andalso m < n_j then
-        let val (ps, qs) = splitAt (m, moved_prems)
+        let val (ps, qs) = chop m moved_prems
         in Logic.list_implies (fixed_prems @ qs @ ps, concl) end
       else raise THM ("permute_prems: k", k, [rl]);
   in

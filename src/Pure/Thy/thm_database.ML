@@ -92,7 +92,7 @@ fun legacy_bindings thy =
           else NONE;
         val names = NameSpace.unpack name;
       in
-        (case #2 (splitAt (length names - 2, names)) of
+        (case #2 (chop (length names - 2) names) of
           [bname] => result "" bname
         | [prfx, bname] => result (if prfx = thy_name then "" else prfx) bname
         | _ => NONE)

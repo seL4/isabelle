@@ -81,12 +81,12 @@ fun dest_binops cs tm =
 
 fun extract_fixes NONE prop = (strip_params prop, [])
   | extract_fixes (SOME outline) prop =
-      splitAt (length (Logic.strip_params outline), strip_params prop);
+      chop (length (Logic.strip_params outline)) (strip_params prop);
 
 fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
   | extract_assumes qual (SOME outline) prop =
       let val (hyps, prems) =
-        splitAt (length (Logic.strip_assums_hyp outline), Logic.strip_assums_hyp prop)
+        chop (length (Logic.strip_assums_hyp outline)) (Logic.strip_assums_hyp prop)
       in ([(qual case_hypsN, hyps)], [(qual case_premsN, prems)]) end;
 
 fun extract_case is_open thy (case_outline, raw_prop) name concls =
