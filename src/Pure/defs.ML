@@ -76,8 +76,8 @@ fun merge pp
     val consts' = (consts1, consts2) |> Graph.merge_acyclic (K true)
       handle Graph.CYCLES cycles => err_cyclic cycles;
     val specified' = (specified1, specified2) |> Symtab.join (fn c => fn (orig_specs1, specs2) =>
-      SOME (Inttab.fold (fn spec2 => fn specs1 =>
-        (check_specified c spec2 orig_specs1; Inttab.update spec2 specs1)) specs2 orig_specs1));
+      Inttab.fold (fn spec2 => fn specs1 =>
+        (check_specified c spec2 orig_specs1; Inttab.update spec2 specs1)) specs2 orig_specs1);
   in make_defs (consts', specified') end;
 
 end;

@@ -704,13 +704,12 @@ fun ensure_prim name target =
 
 fun merge_module modl12 =
   let
-    fun join_module (Module m1, Module m2) =
-          (SOME o Module) (merge_module (m1, m2))
-      | join_module (Def d1, Def d2) =
-          if eq_def (d1, d2) then (SOME o Def) d1 else NONE
-      | join_module _ =
-          NONE
-  in Graph.join (K join_module) modl12 end;
+    fun join_module _ (Module m1, Module m2) =
+          Module (merge_module (m1, m2))
+      | join_module name (Def d1, Def d2) =
+          if eq_def (d1, d2) then Def d1 else raise Graph.DUP name
+      | join_module name _ = raise Graph.DUP name
+  in Graph.join join_module modl12 end;
 
 fun partof names modl =
   let

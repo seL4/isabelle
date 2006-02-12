@@ -20,7 +20,7 @@ open Codegen;
 
 fun merge_rules tabs =
   Symtab.join (fn _ => fn (ths, ths') =>
-    SOME (gen_merge_lists (Drule.eq_thm_prop o pairself fst) ths ths')) tabs;
+    gen_merge_lists (Drule.eq_thm_prop o pairself fst) ths ths') tabs;
 
 structure CodegenData = TheoryDataFun
 (struct

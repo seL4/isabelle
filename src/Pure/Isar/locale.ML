@@ -193,7 +193,7 @@ struct
 
   (* joining of registrations: prefix and attributes of left theory,
      thms are equal, no attempt to subsumption testing *)
-  fun join (r1, r2) = Termtab.join (fn _ => fn (reg, _) => SOME reg) (r1, r2);
+  fun join (r1, r2) = Termtab.join (fn _ => fn (reg, _) => reg) (r1, r2);
 
   fun dest regs = map (apfst untermify) (Termtab.dest regs);
 
@@ -267,7 +267,6 @@ structure GlobalLocalesData = TheoryDataFun
 
   fun join_locs _ ({predicate, import, elems, params, abbrevs, regs}: locale,
       {elems = elems', abbrevs = abbrevs', regs = regs', ...}: locale) =
-    SOME
      {predicate = predicate,
       import = import,
       elems = gen_merge_lists (eq_snd (op =)) elems elems',
@@ -276,7 +275,7 @@ structure GlobalLocalesData = TheoryDataFun
       regs = merge_alists regs regs'};
   fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locs (locs1, locs2),
-     Symtab.join (K (SOME o Registrations.join)) (regs1, regs2));
+     Symtab.join (K Registrations.join) (regs1, regs2));
 
   fun print _ (space, locs, _) =
     Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))

@@ -304,8 +304,7 @@ structure CodegenData = TheoryDataFun
     modl = merge_module (modl1, modl2),
     gens = merge_gens (gens1, gens2),
     logic_data = merge_logic_data (logic_data1, logic_data2),
-    target_data = Symtab.join (K (merge_target_data #> SOME))
-      (target_data1, target_data2)
+    target_data = Symtab.join (K merge_target_data) (target_data1, target_data2)
   };
   fun print _ _ = ();
 end);
