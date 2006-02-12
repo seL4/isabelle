@@ -929,7 +929,6 @@ defs (overloaded)
 instance real :: number_ring
 by (intro_classes, simp add: real_number_of_def) 
 
-
 text{*Collapse applications of @{term real} to @{term number_of}*}
 lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"
 by (simp add:  real_of_int_def of_int_number_of_eq)
@@ -944,6 +943,19 @@ by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
 use "real_arith.ML"
 
 setup real_arith_setup
+
+
+lemma real_diff_mult_distrib:
+  fixes a::real
+  shows "a * (b - c) = a * b - a * c" 
+proof -
+  have "a * (b - c) = a * (b + -c)" by simp
+  also have "\<dots> = (b + -c) * a" by simp
+  also have "\<dots> = b*a + (-c)*a" by (rule real_add_mult_distrib)
+  also have "\<dots> = a*b - a*c" by simp
+  finally show ?thesis .
+qed
+
 
 subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
 
@@ -1025,7 +1037,6 @@ apply (rule_tac a1 = y in add_left_commute [THEN ssubst])
 apply (rule real_add_assoc [THEN subst])
 apply (rule abs_triangle_ineq)
 done
-
 
 
 ML

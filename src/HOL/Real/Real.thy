@@ -1,4 +1,4 @@
 theory Real
-imports RComplete RealPow
+imports ContNotDenum RealPow
 begin
 end

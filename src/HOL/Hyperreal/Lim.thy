@@ -3,6 +3,7 @@
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
+    GMVT by Benjamin Porter, 2005
 *)
 
 header{*Limits, Continuity and Differentiation*}
@@ -15,16 +16,16 @@ text{*Standard and Nonstandard Definitions*}
 
 constdefs
   LIM :: "[real=>real,real,real] => bool"
-				("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
+        ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
   "f -- a --> L ==
      \<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s
-			  --> \<bar>f x + -L\<bar> < r"
+        --> \<bar>f x + -L\<bar> < r"
 
   NSLIM :: "[real=>real,real,real] => bool"
-			      ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
+            ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
   "f -- a --NS> L == (\<forall>x. (x \<noteq> hypreal_of_real a &
-		      x @= hypreal_of_real a -->
-		      ( *f* f) x @= hypreal_of_real L))"
+          x @= hypreal_of_real a -->
+          ( *f* f) x @= hypreal_of_real L))"
 
   isCont :: "[real=>real,real] => bool"
   "isCont f a == (f -- a --> (f a))"
@@ -32,29 +33,29 @@ constdefs
   isNSCont :: "[real=>real,real] => bool"
     --{*NS definition dispenses with limit notions*}
   "isNSCont f a == (\<forall>y. y @= hypreal_of_real a -->
-			   ( *f* f) y @= hypreal_of_real (f a))"
+         ( *f* f) y @= hypreal_of_real (f a))"
 
   deriv:: "[real=>real,real,real] => bool"
     --{*Differentiation: D is derivative of function f at x*}
-			    ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+          ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
   "DERIV f x :> D == ((%h. (f(x + h) + -f x)/h) -- 0 --> D)"
 
   nsderiv :: "[real=>real,real,real] => bool"
-			    ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+          ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
   "NSDERIV f x :> D == (\<forall>h \<in> Infinitesimal - {0}.
-			(( *f* f)(hypreal_of_real x + h) +
-			 - hypreal_of_real (f x))/h @= hypreal_of_real D)"
+      (( *f* f)(hypreal_of_real x + h) +
+       - hypreal_of_real (f x))/h @= hypreal_of_real D)"
 
   differentiable :: "[real=>real,real] => bool"   (infixl "differentiable" 60)
   "f differentiable x == (\<exists>D. DERIV f x :> D)"
 
-  NSdifferentiable :: "[real=>real,real] => bool"   
+  NSdifferentiable :: "[real=>real,real] => bool"
                        (infixl "NSdifferentiable" 60)
   "f NSdifferentiable x == (\<exists>D. NSDERIV f x :> D)"
 
   increment :: "[real=>real,real,hypreal] => hypreal"
   "increment f x h == (@inc. f NSdifferentiable x &
-		       inc = ( *f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
+           inc = ( *f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
 
   isUCont :: "(real=>real) => bool"
   "isUCont f ==  \<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x + -y\<bar> < s --> \<bar>f x + -f y\<bar> < r"
@@ -133,7 +134,7 @@ by (blast dest: LIM_add LIM_minus)
 
 lemma LIM_diff:
     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) - g(x)) -- x --> l-m"
-by (simp add: diff_minus LIM_add_minus) 
+by (simp add: diff_minus LIM_add_minus)
 
 
 lemma LIM_const_not_eq: "k \<noteq> L ==> ~ ((%x. k) -- a --> L)"
@@ -146,7 +147,7 @@ proof (simp add: linorder_neq_iff LIM_eq, elim disjE)
     assume s: "0<s"
     { from s show "s/2 + a < a \<or> a < s/2 + a" by arith
      next
-      from s show "\<bar>s / 2 + a - a\<bar> < s" by (simp add: abs_if) 
+      from s show "\<bar>s / 2 + a - a\<bar> < s" by (simp add: abs_if)
      next
       from s show "~ \<bar>k-L\<bar> < L-k" by (simp add: abs_if) }
   qed
@@ -159,7 +160,7 @@ next
     assume s: "0<s"
     { from s show "s/2 + a < a \<or> a < s/2 + a" by arith
      next
-      from s show "\<bar>s / 2 + a - a\<bar> < s" by (simp add: abs_if) 
+      from s show "\<bar>s / 2 + a - a\<bar> < s" by (simp add: abs_if)
      next
       from s show "~ \<bar>k-L\<bar> < k-L" by (simp add: abs_if) }
   qed
@@ -167,11 +168,11 @@ qed
 
 lemma LIM_const_eq: "(%x. k) -- x --> L ==> k = L"
 apply (rule ccontr)
-apply (blast dest: LIM_const_not_eq) 
+apply (blast dest: LIM_const_not_eq)
 done
 
 lemma LIM_unique: "[| f -- a --> L; f -- a --> M |] ==> L = M"
-apply (drule LIM_diff, assumption) 
+apply (drule LIM_diff, assumption)
 apply (auto dest!: LIM_const_eq)
 done
 
@@ -198,7 +199,7 @@ proof (simp add: LIM_eq abs_mult, clarify)
     assume "x \<noteq> a \<and> \<bar>x-a\<bar> < min fs gs"
     with fs_lt gs_lt
     have "\<bar>f x\<bar> < 1" and "\<bar>g x\<bar> < r" by (auto simp add: fs_lt)
-    hence "\<bar>f x\<bar> * \<bar>g x\<bar> < 1*r" by (rule abs_mult_less) 
+    hence "\<bar>f x\<bar> * \<bar>g x\<bar> < 1*r" by (rule abs_mult_less)
     thus "\<bar>f x\<bar> * \<bar>g x\<bar> < r" by simp
   qed
 qed
@@ -228,7 +229,7 @@ apply (simp add: LIM_def NSLIM_def approx_def)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff, safe)
 apply (rule_tac x = xa in star_cases)
 apply (auto simp add: real_add_minus_iff starfun star_n_minus star_of_def star_n_add star_n_eq_iff)
-apply (rule bexI [OF _ Rep_star_star_n], clarify) 
+apply (rule bexI [OF _ Rep_star_star_n], clarify)
 apply (drule_tac x = u in spec, clarify)
 apply (drule_tac x = s in spec, clarify)
 apply (subgoal_tac "\<forall>n::nat. (Xa n) \<noteq> x & \<bar>(Xa n) + - x\<bar> < s --> \<bar>f (Xa n) + - L\<bar> < u")
@@ -594,7 +595,7 @@ done
 lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. \<bar>z + - y\<bar> < s & r \<le> \<bar>f z + -f y\<bar>
       ==> \<forall>n::nat. \<exists>z y. \<bar>z + -y\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f z + -f y\<bar>"
 apply clarify
-apply (cut_tac n1 = n 
+apply (cut_tac n1 = n
        in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
 done
 
@@ -772,8 +773,8 @@ apply (drule_tac c = "u - hypreal_of_real x" and b = "hypreal_of_real D" in appr
 apply (drule_tac [!] hypreal_not_eq_minus_iff [THEN iffD1])
 apply (subgoal_tac [2] "( *f* (%z. z-x)) u \<noteq> (0::hypreal) ")
 apply (auto simp add: diff_minus
-	       approx_minus_iff [THEN iffD1, THEN mem_infmal_iff [THEN iffD2]]
-		     Infinitesimal_subset_HFinite [THEN subsetD])
+         approx_minus_iff [THEN iffD1, THEN mem_infmal_iff [THEN iffD2]]
+         Infinitesimal_subset_HFinite [THEN subsetD])
 done
 
 lemma NSDERIVD4:
@@ -881,7 +882,7 @@ lemma NSDERIV_mult: "[| NSDERIV f x :> Da; NSDERIV g x :> Db |]
       ==> NSDERIV (%x. f x * g x) x :> (Da * g(x)) + (Db * f(x))"
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
 apply (auto dest!: spec
-	    simp add: starfun_lambda_cancel lemma_nsderiv1)
+      simp add: starfun_lambda_cancel lemma_nsderiv1)
 apply (simp (no_asm) add: add_divide_distrib)
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
 apply (auto simp add: times_divide_eq_right [symmetric]
@@ -1330,7 +1331,7 @@ apply (induct_tac "n")
 apply (auto simp add: Bolzano_bisect_le Let_def split_def)
 done
 
-lemma eq_divide_2_times_iff: "((x::real) = y / (2 * z)) = (2 * x = y/z)" 
+lemma eq_divide_2_times_iff: "((x::real) = y / (2 * z)) = (2 * x = y/z)"
 apply (auto)
 apply (drule_tac f = "%u. (1/2) *u" in arg_cong)
 apply (simp)
@@ -1498,7 +1499,7 @@ by (blast intro: reals_complete)
 lemma isCont_has_Ub: "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
          ==> \<exists>M. (\<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M) &
                    (\<forall>N. N < M --> (\<exists>x. a \<le> x & x \<le> b & N < f(x)))"
-apply (cut_tac S = "Collect (%y. \<exists>x. a \<le> x & x \<le> b & y = f x)" 
+apply (cut_tac S = "Collect (%y. \<exists>x. a \<le> x & x \<le> b & y = f x)"
         in lemma_reals_complete)
 apply auto
 apply (drule isCont_bounded, assumption)
@@ -1601,12 +1602,12 @@ proof -
     assume "0 < h" "h < s"
     with all [of h] show "f x < f (x+h)"
     proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric]
-		split add: split_if_asm)
+    split add: split_if_asm)
       assume "~ (f (x+h) - f x) / h < l" and h: "0 < h"
       with l
       have "0 < (f (x+h) - f x) / h" by arith
       thus "f x < f (x+h)"
-	by (simp add: pos_less_divide_eq h)
+  by (simp add: pos_less_divide_eq h)
     qed
   qed
 qed
@@ -1630,12 +1631,12 @@ proof -
     assume "0 < h" "h < s"
     with all [of "-h"] show "f x < f (x-h)"
     proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric]
-		split add: split_if_asm)
+    split add: split_if_asm)
       assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h"
       with l
       have "0 < (f (x-h) - f x) / h" by arith
       thus "f x < f (x-h)"
-	by (simp add: pos_less_divide_eq h)
+  by (simp add: pos_less_divide_eq h)
     qed
   qed
 qed
@@ -1742,9 +1743,9 @@ proof -
       hence ax': "a<x'" and x'b: "x'<b" by auto
       from lemma_interval [OF ax' x'b]
       obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x'-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
-	by blast
+  by blast
       hence bound': "\<forall>y. \<bar>x'-y\<bar> < d \<longrightarrow> f x' \<le> f y" using x'_min
-	by blast
+  by blast
       from differentiableD [OF dif [OF ax'b]]
       obtain l where der: "DERIV f x' :> l" ..
       have "l=0" by (rule DERIV_local_min [OF der d bound'])
@@ -1759,7 +1760,7 @@ proof -
       obtain r where ar: "a < r" and rb: "r < b" by blast
       from lemma_interval [OF ar rb]
       obtain d where d: "0<d" and bound: "\<forall>y. \<bar>r-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
-	by blast
+  by blast
       have eq_fb: "\<forall>z. a \<le> z --> z \<le> b --> f z = f b"
       proof (clarify)
         fix z::real
@@ -1798,7 +1799,7 @@ next
   hence ba: "b-a \<noteq> 0" by arith
   show ?thesis
     by (rule real_mult_left_cancel [OF ba, THEN iffD1],
-        simp add: right_diff_distrib, 
+        simp add: right_diff_distrib,
         simp add: left_diff_distrib)
 qed
 
@@ -1888,10 +1889,10 @@ apply (auto dest!: DERIV_const_ratio_const simp add: mult_assoc)
 done
 
 lemma real_average_minus_first [simp]: "((a + b) /2 - a) = (b-a)/(2::real)"
-by (simp) 
+by (simp)
 
 lemma real_average_minus_second [simp]: "((b + a)/2 - a) = (b-a)/(2::real)"
-by (simp) 
+by (simp)
 
 text{*Gallileo's "trick": average velocity = av. of end velocities*}
 
@@ -2059,6 +2060,319 @@ proof (simp add: isCont_iff LIM_eq)
     qed
   qed
 qed
+
+
+lemma differentiable_const: "(\<lambda>z. a) differentiable x"
+  apply (unfold differentiable_def)
+  apply (rule_tac x=0 in exI)
+  apply simp
+  done
+
+lemma differentiable_sum:
+  assumes "f differentiable x"
+  and "g differentiable x"
+  shows "(\<lambda>x. f x + g x) differentiable x"
+proof -
+  from prems have "\<exists>D. DERIV f x :> D" by (unfold differentiable_def)
+  then obtain df where "DERIV f x :> df" ..
+  moreover from prems have "\<exists>D. DERIV g x :> D" by (unfold differentiable_def)
+  then obtain dg where "DERIV g x :> dg" ..
+  ultimately have "DERIV (\<lambda>x. f x + g x) x :> df + dg" by (rule DERIV_add)
+  hence "\<exists>D. DERIV (\<lambda>x. f x + g x) x :> D" by auto
+  thus ?thesis by (fold differentiable_def)
+qed
+
+lemma differentiable_diff:
+  assumes "f differentiable x"
+  and "g differentiable x"
+  shows "(\<lambda>x. f x - g x) differentiable x"
+proof -
+  from prems have "f differentiable x" by simp
+  moreover
+  from prems have "\<exists>D. DERIV g x :> D" by (unfold differentiable_def)
+  then obtain dg where "DERIV g x :> dg" ..
+  then have "DERIV (\<lambda>x. - g x) x :> -dg" by (rule DERIV_minus)
+  hence "\<exists>D. DERIV (\<lambda>x. - g x) x :> D" by auto
+  hence "(\<lambda>x. - g x) differentiable x" by (fold differentiable_def)
+  ultimately 
+  show ?thesis
+    by (auto simp: real_diff_def dest: differentiable_sum)
+qed
+
+lemma differentiable_mult:
+  assumes "f differentiable x"
+  and "g differentiable x"
+  shows "(\<lambda>x. f x * g x) differentiable x"
+proof -
+  from prems have "\<exists>D. DERIV f x :> D" by (unfold differentiable_def)
+  then obtain df where "DERIV f x :> df" ..
+  moreover from prems have "\<exists>D. DERIV g x :> D" by (unfold differentiable_def)
+  then obtain dg where "DERIV g x :> dg" ..
+  ultimately have "DERIV (\<lambda>x. f x * g x) x :> df * g x + dg * f x" by (simp add: DERIV_mult)
+  hence "\<exists>D. DERIV (\<lambda>x. f x * g x) x :> D" by auto
+  thus ?thesis by (fold differentiable_def)
+qed
+
+
+theorem GMVT:
+  assumes alb: "a < b"
+  and fc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
+  and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable x"
+  and gc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont g x"
+  and gd: "\<forall>x. a < x \<and> x < b \<longrightarrow> g differentiable x"
+  shows "\<exists>g'c f'c c. DERIV g c :> g'c \<and> DERIV f c :> f'c \<and> a < c \<and> c < b \<and> ((f b - f a) * g'c) = ((g b - g a) * f'c)"
+proof -
+  let ?h = "\<lambda>x. (f b - f a)*(g x) - (g b - g a)*(f x)"
+  from prems have "a < b" by simp
+  moreover have "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?h x"
+  proof -
+    have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. f b - f a) x" by simp
+    with gc have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. (f b - f a) * g x) x"
+      by (auto intro: isCont_mult)
+    moreover
+    have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. g b - g a) x" by simp
+    with fc have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. (g b - g a) * f x) x"
+      by (auto intro: isCont_mult)
+    ultimately show ?thesis
+      by (fastsimp intro: isCont_diff)
+  qed
+  moreover
+  have "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable x"
+  proof -
+    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. f b - f a) differentiable x" by (simp add: differentiable_const)
+    with gd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (f b - f a) * g x) differentiable x" by (simp add: differentiable_mult)
+    moreover
+    have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. g b - g a) differentiable x" by (simp add: differentiable_const)
+    with fd have "\<forall>x. a < x \<and> x < b \<longrightarrow> (\<lambda>x. (g b - g a) * f x) differentiable x" by (simp add: differentiable_mult)
+    ultimately show ?thesis by (simp add: differentiable_diff)
+  qed
+  ultimately have "\<exists>l z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" by (rule MVT)
+  then obtain l where ldef: "\<exists>z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" ..
+  then obtain c where cdef: "a < c \<and> c < b \<and> DERIV ?h c :> l \<and> ?h b - ?h a = (b - a) * l" ..
+
+  from cdef have cint: "a < c \<and> c < b" by auto
+  with gd have "g differentiable c" by simp
+  hence "\<exists>D. DERIV g c :> D" by (rule differentiableD)
+  then obtain g'c where g'cdef: "DERIV g c :> g'c" ..
+
+  from cdef have "a < c \<and> c < b" by auto
+  with fd have "f differentiable c" by simp
+  hence "\<exists>D. DERIV f c :> D" by (rule differentiableD)
+  then obtain f'c where f'cdef: "DERIV f c :> f'c" ..
+
+  from cdef have "DERIV ?h c :> l" by auto
+  moreover
+  {
+    from g'cdef have "DERIV (\<lambda>x. (f b - f a) * g x) c :> g'c * (f b - f a)"
+      apply (insert DERIV_const [where k="f b - f a"])
+      apply (drule meta_spec [of _ c])
+      apply (drule DERIV_mult [where f="(\<lambda>x. f b - f a)" and g=g])
+      by simp_all
+    moreover from f'cdef have "DERIV (\<lambda>x. (g b - g a) * f x) c :> f'c * (g b - g a)"
+      apply (insert DERIV_const [where k="g b - g a"])
+      apply (drule meta_spec [of _ c])
+      apply (drule DERIV_mult [where f="(\<lambda>x. g b - g a)" and g=f])
+      by simp_all
+    ultimately have "DERIV ?h c :>  g'c * (f b - f a) - f'c * (g b - g a)"
+      by (simp add: DERIV_diff)
+  }
+  ultimately have leq: "l =  g'c * (f b - f a) - f'c * (g b - g a)" by (rule DERIV_unique)
+
+  {
+    from cdef have "?h b - ?h a = (b - a) * l" by auto
+    also with leq have "\<dots> = (b - a) * (g'c * (f b - f a) - f'c * (g b - g a))" by simp
+    finally have "?h b - ?h a = (b - a) * (g'c * (f b - f a) - f'c * (g b - g a))" by simp
+  }
+  moreover
+  {
+    have "?h b - ?h a =
+         ((f b)*(g b) - (f a)*(g b) - (g b)*(f b) + (g a)*(f b)) -
+          ((f b)*(g a) - (f a)*(g a) - (g b)*(f a) + (g a)*(f a))"
+      by (simp add: mult_ac add_ac real_diff_mult_distrib)
+    hence "?h b - ?h a = 0" by auto
+  }
+  ultimately have "(b - a) * (g'c * (f b - f a) - f'c * (g b - g a)) = 0" by auto
+  with alb have "g'c * (f b - f a) - f'c * (g b - g a) = 0" by simp
+  hence "g'c * (f b - f a) = f'c * (g b - g a)" by simp
+  hence "(f b - f a) * g'c = (g b - g a) * f'c" by (simp add: mult_ac)
+
+  with g'cdef f'cdef cint show ?thesis by auto
+qed
+
+
+lemma LIMSEQ_SEQ_conv1:
+  assumes "X -- a --> L"
+  shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
+proof -
+  {
+    from prems have Xdef: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r" by (unfold LIM_def)
+    
+    fix S
+    assume as: "(\<forall>n. S n \<noteq> a) \<and> S ----> a"
+    then have "S ----> a" by auto
+    then have Sdef: "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < r))" by (unfold LIMSEQ_def)
+    {
+      fix r
+      from Xdef have Xdef2: "0 < r --> (\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r)" by simp
+      {
+        assume rgz: "0 < r"
+
+        from Xdef2 rgz have "\<exists>s > 0. \<forall>x. x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r" by simp 
+        then obtain s where sdef: "s > 0 \<and> (\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> \<bar>X x + -L\<bar> < r)" by auto
+        then have aux: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> \<bar>X x + -L\<bar> < r" by auto
+        {
+          fix n
+          from aux have "S n \<noteq> a \<and> \<bar>S n + -a\<bar> < s \<longrightarrow> \<bar>X (S n) + -L\<bar> < r" by simp
+          with as have imp2: "\<bar>S n + -a\<bar> < s --> \<bar>X (S n) + -L\<bar> < r" by auto
+        }
+        hence "\<forall>n. \<bar>S n + -a\<bar> < s --> \<bar>X (S n) + -L\<bar> < r" ..
+        moreover
+        from Sdef sdef have imp1: "\<exists>no. \<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < s" by auto  
+        then obtain no where "\<forall>n. no \<le> n --> \<bar>S n + -a\<bar> < s" by auto
+        ultimately have "\<forall>n. no \<le> n \<longrightarrow> \<bar>X (S n) + -L\<bar> < r" by simp
+        hence "\<exists>no. \<forall>n. no \<le> n \<longrightarrow> \<bar>X (S n) + -L\<bar> < r" by auto
+      }
+    }
+    hence "(\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>X (S n) + -L\<bar> < r))" by simp
+    hence "(\<lambda>n. X (S n)) ----> L" by (fold LIMSEQ_def)
+  }
+  thus ?thesis by simp
+qed
+
+lemma LIMSEQ_SEQ_conv2:
+  assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
+  shows "X -- a --> L"
+proof (rule ccontr)
+  assume "\<not> (X -- a --> L)"
+  hence "\<not> (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r)" by (unfold LIM_def)
+  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. \<not>(x \<noteq> a \<and> \<bar>x + -a\<bar> < s --> \<bar>X x + -L\<bar> < r)" by simp
+  hence "\<exists>r > 0. \<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> \<bar>X x + -L\<bar> \<ge> r)" by (simp add: linorder_not_less)
+  then obtain r where rdef: "r > 0 \<and> (\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> \<bar>X x + -L\<bar> \<ge> r))" by auto
+
+  let ?F = "\<lambda>n::nat. SOME x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r"
+  have "?F ----> a"
+  proof -
+    {
+      fix e::real
+      assume "0 < e"
+        (* choose no such that inverse (real (Suc n)) < e *)
+      have "\<exists>no. inverse (real (Suc no)) < e" by (rule reals_Archimedean)
+      then obtain m where nodef: "inverse (real (Suc m)) < e" by auto
+      {
+        fix n
+        assume mlen: "m \<le> n"
+        then have
+          "inverse (real (Suc n)) \<le> inverse (real (Suc m))"
+          by auto
+        moreover have
+          "\<bar>?F n + -a\<bar> < inverse (real (Suc n))"
+        proof -
+          from rdef have
+            "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r"
+            by simp
+          hence
+            "(?F n)\<noteq>a \<and> \<bar>(?F n) + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X (?F n) + -L\<bar> \<ge> r"
+            by (simp add: some_eq_ex [symmetric])
+          thus ?thesis by simp
+        qed
+        moreover from nodef have
+          "inverse (real (Suc m)) < e" .
+        ultimately have "\<bar>?F n + -a\<bar> < e" by arith
+      }
+      then have "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n + -a\<bar> < e" by auto
+    }
+    thus ?thesis by (unfold LIMSEQ_def, simp)
+  qed
+  
+  moreover have "\<forall>n. ?F n \<noteq> a"
+  proof -
+    {
+      fix n
+      from rdef have
+        "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r"
+        by simp
+      hence "?F n \<noteq> a" by (simp add: some_eq_ex [symmetric])
+    }
+    thus ?thesis ..
+  qed
+  moreover from prems have "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L" by simp
+  ultimately have "(\<lambda>n. X (?F n)) ----> L" by simp
+  
+  moreover have "\<not> ((\<lambda>n. X (?F n)) ----> L)"
+  proof -
+    {
+      fix no::nat
+      obtain n where "n = no + 1" by simp
+      then have nolen: "no \<le> n" by simp
+        (* We prove this by showing that for any m there is an n\<ge>m such that |X (?F n) - L| \<ge> r *)
+      from rdef have "\<forall>s > 0. \<exists>x. (x \<noteq> a \<and> \<bar>x + -a\<bar> < s \<and> \<bar>X x + -L\<bar> \<ge> r)" ..
+
+      then have "\<exists>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < inverse (real (Suc n)) \<and> \<bar>X x + -L\<bar> \<ge> r" by simp
+      
+      hence "\<bar>X (?F n) + -L\<bar> \<ge> r" by (simp add: some_eq_ex [symmetric])
+      with nolen have "\<exists>n. no \<le> n \<and> \<bar>X (?F n) + -L\<bar> \<ge> r" by auto
+    }
+    then have "(\<forall>no. \<exists>n. no \<le> n \<and> \<bar>X (?F n) + -L\<bar> \<ge> r)" by simp
+    with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> \<bar>X (?F n) + -L\<bar> \<ge> e)" by auto
+    thus ?thesis by (unfold LIMSEQ_def, auto simp add: linorder_not_less)
+  qed
+  ultimately show False by simp
+qed
+
+
+lemma LIMSEQ_SEQ_conv:
+  "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L) = (X -- a --> L)"
+proof
+  assume "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
+  show "X -- a --> L" by (rule LIMSEQ_SEQ_conv2)
+next
+  assume "(X -- a --> L)"
+  show "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L" by (rule LIMSEQ_SEQ_conv1)
+qed
+
+lemma real_sqz:
+  fixes a::real
+  assumes "a < c"
+  shows "\<exists>b. a < b \<and> b < c"
+proof
+  let ?b = "(a + c) / 2"
+  have "a < ?b" by simp
+  moreover
+  have "?b < c" by simp
+  ultimately
+  show "a < ?b \<and> ?b < c" by simp
+qed
+
+lemma LIM_offset:
+  assumes "(\<lambda>x. f x) -- a --> L"
+  shows "(\<lambda>x. f (x+c)) -- (a-c) --> L"
+proof -
+  have "f -- a --> L" .
+  hence
+    fd: "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s --> \<bar>f x + -L\<bar> < r"
+    by (unfold LIM_def)
+  {
+    fix r::real
+    assume rgz: "0 < r"
+    with fd have "\<exists>s > 0. \<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s --> \<bar>f x + -L\<bar> < r" by simp
+    then obtain s where sgz: "s > 0" and ax: "\<forall>x. x\<noteq>a \<and> \<bar>x + -a\<bar> < s \<longrightarrow> \<bar>f x + -L\<bar> < r" by auto
+    from ax have ax2: "\<forall>x. (x+c)\<noteq>a \<and> \<bar>(x+c) + -a\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" by auto
+    {
+      fix x::real
+      from ax2 have nt: "(x+c)\<noteq>a \<and> \<bar>(x+c) + -a\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" ..
+      moreover have "((x+c)\<noteq>a) = (x\<noteq>(a-c))" by auto
+      moreover have "((x+c) + -a) = (x + -(a-c))" by simp
+      ultimately have "x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" by simp
+    }
+    then have "\<forall>x. x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" ..
+    with sgz have "\<exists>s > 0. \<forall>x. x\<noteq>(a-c) \<and> \<bar>x + -(a-c)\<bar> < s \<longrightarrow> \<bar>f (x+c) + -L\<bar> < r" by auto
+  }
+  then have
+    "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> (a-c) & \<bar>x + -(a-c)\<bar> < s --> \<bar>f (x+c) + -L\<bar> < r" by simp
+  thus ?thesis by (fold LIM_def)
+qed
+
+
 
 ML
 {*
