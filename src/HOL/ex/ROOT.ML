@@ -19,6 +19,7 @@ time_use_thy "Antiquote";
 time_use_thy "Multiquote";
 
 time_use_thy "NatSum";
+time_use_thy "ThreeDivides";
 time_use_thy "Intuitionistic";
 time_use_thy "Classical";
 time_use_thy "CTL";

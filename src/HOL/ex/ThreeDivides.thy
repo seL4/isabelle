@@ -31,58 +31,6 @@ section {* Formal proof *}
 
 subsection {* Miscellaneous summation lemmas *}
 
-text {* We can decompose a sum into an expanded form by removing
-its first element. *}
-
-lemma sum_rmv_head:
-  fixes m::nat
-  assumes m: "0 < m"
-  shows "(\<Sum>x<m. P x) = P 0 + (\<Sum>x\<in>{1..<m}. P x)"
-  (is "?lhs = ?rhs")
-proof -
-  let ?a = "\<Sum>x\<in>({0} \<union> {0<..<m}). P x"
-  from m
-  have "{0..<m} = {0} \<union> {0<..<m}"
-    by (simp only: ivl_disj_un_singleton)
-  hence "?lhs = ?a"
-    by (simp add: atLeast0LessThan)
-  moreover
-  have "?a = ?rhs"
-    by (simp add: setsum_Un ivl_disj_int 
-                  atLeastSucLessThan_greaterThanLessThan)
-  ultimately 
-  show ?thesis by simp
-qed
-
-text {* This lemma states that the difference of two sums ranging over
-the same elements is the sum of their individual differences. *}
-
-lemma sum_distrib [rule_format]:
-  fixes x::nat and P::"nat\<Rightarrow>nat"
-  shows
-  "\<forall>x. Q x \<le> P x  \<Longrightarrow>
-  (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x)"
-proof (induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n)
-
-  let ?lhs = "(\<Sum>x<n. P x) - (\<Sum>x<n. Q x)"
-  let ?rhs = "\<Sum>x<n. P x - Q x"
-
-  from Suc have "?lhs = ?rhs" by simp
-  moreover
-  from Suc have "?lhs + P n - Q n = ?rhs + (P n - Q n)" by simp
-  moreover
-  from Suc have
-    "(\<Sum>x<n. P x) + P n - ((\<Sum>x<n. Q x) + Q n) = ?rhs + (P n - Q n)"
-    by (subst diff_diff_left[symmetric],
-        subst diff_add_assoc2)
-       (auto simp: diff_add_assoc2 intro: setsum_mono)
-  ultimately
-  show ?case by simp
-qed
-
 text {* If $a$ divides @{text "A x"} for all x then $a$ divides any
 sum over terms of the form @{text "(A x)*(P x)"} for arbitrary $P$. *}
 
@@ -115,7 +63,7 @@ lemma digit_diff_split:
   fixes n::nat and nd::nat and x::nat
   shows "\<And>n. n = (\<Sum>x\<in>{..<nd}. (D x)*((10::nat)^x)) \<Longrightarrow>
              (n - (\<Sum>x<nd. (D x))) = (\<Sum>x<nd. (D x)*(10^x - 1))"
-by (simp add: sum_distrib diff_mult_distrib2)
+by (simp add: sum_diff_distrib diff_mult_distrib2)
 
 text {* Now we prove that 3 always divides numbers of the form $10^x - 1$. *}
 lemma three_divs_0 [rule_format, simplified]:
@@ -259,7 +207,7 @@ next
          (simp add: atLeast0LessThan)
     also have
       "\<dots> = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
-      by (simp add: sum_rmv_head cdef)
+      by (simp add: setsum_rmv_head [symmetric] cdef)
     finally 
     show "m = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)" .
   qed

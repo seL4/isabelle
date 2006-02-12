@@ -715,6 +715,26 @@ corollary setsum_shift_bounds_Suc_ivl:
   "setsum f {Suc m..<Suc n} = setsum (%i. f(Suc i)){m..<n}"
 by (simp add:setsum_shift_bounds_nat_ivl[where k=1,simplified])
 
+lemma setsum_rmv_head:
+  fixes m::nat
+  assumes m: "0 < m"
+  shows "P 0 + (\<Sum>x\<in>{1..<m}. P x) = (\<Sum>x<m. P x)"
+  (is "?lhs = ?rhs")
+proof -
+  let ?a = "\<Sum>x\<in>({0} \<union> {0<..<m}). P x"
+  from m
+  have "{0..<m} = {0} \<union> {0<..<m}"
+    by (simp only: ivl_disj_un_singleton)
+  hence "?rhs = ?a"
+    by (simp add: atLeast0LessThan)
+  moreover
+  have "?a = ?lhs"
+    by (simp add: setsum_Un ivl_disj_int 
+                  atLeastSucLessThan_greaterThanLessThan)
+  ultimately 
+  show ?thesis by simp
+qed
+
 subsection {* The formula for geometric sums *}
 
 lemma geometric_sum:
@@ -726,6 +746,33 @@ lemma geometric_sum:
   apply (simp add: right_distrib diff_minus mult_commute power_Suc)
   done
 
+
+
+lemma sum_diff_distrib:
+  fixes P::"nat\<Rightarrow>nat"
+  shows
+  "\<forall>x. Q x \<le> P x  \<Longrightarrow>
+  (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x)"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n)
+
+  let ?lhs = "(\<Sum>x<n. P x) - (\<Sum>x<n. Q x)"
+  let ?rhs = "\<Sum>x<n. P x - Q x"
+
+  from Suc have "?lhs = ?rhs" by simp
+  moreover
+  from Suc have "?lhs + P n - Q n = ?rhs + (P n - Q n)" by simp
+  moreover
+  from Suc have
+    "(\<Sum>x<n. P x) + P n - ((\<Sum>x<n. Q x) + Q n) = ?rhs + (P n - Q n)"
+    by (subst diff_diff_left[symmetric],
+        subst diff_add_assoc2)
+       (auto simp: diff_add_assoc2 intro: setsum_mono)
+  ultimately
+  show ?case by simp
+qed
 
 
 ML
