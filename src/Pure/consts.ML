@@ -9,6 +9,7 @@ constraints.
 signature CONSTS =
 sig
   type T
+  val eq_consts: T * T -> bool
   val dest: T ->
    {constants: (typ * term option) NameSpace.table,
     constraints: typ NameSpace.table}
@@ -41,29 +42,31 @@ datatype decl =
 datatype T = Consts of
  {decls: (decl * serial) NameSpace.table,
   abbrevs: (term * term) list,
-  constraints: typ Symtab.table};
+  constraints: typ Symtab.table} * stamp;
+
+fun eq_consts (Consts (_, s1), Consts (_, s2)) = s1 = s2;
 
 fun make_consts (decls, abbrevs, constraints) =
-  Consts {decls = decls, abbrevs = abbrevs, constraints = constraints};
+  Consts ({decls = decls, abbrevs = abbrevs, constraints = constraints}, stamp ());
 
-fun map_consts f (Consts {decls, abbrevs, constraints}) =
+fun map_consts f (Consts ({decls, abbrevs, constraints}, _)) =
   make_consts (f (decls, abbrevs, constraints));
 
-fun dest (Consts {decls = (space, decls), abbrevs = _, constraints}) =
+fun dest (Consts ({decls = (space, decls), abbrevs = _, constraints}, _)) =
  {constants = (space, Symtab.fold
     (fn (c, (LogicalConst (T, _), _)) => Symtab.update (c, (T, NONE))
       | (c, (Abbreviation (T, t), _)) => Symtab.update (c, (T, SOME t))) decls Symtab.empty),
   constraints = (space, constraints)};
 
-fun space_of (Consts {decls = (space, _), ...}) = space;
-fun abbrevs_of (Consts {abbrevs, ...}) = abbrevs;
+fun space_of (Consts ({decls = (space, _), ...}, _)) = space;
+fun abbrevs_of (Consts ({abbrevs, ...}, _)) = abbrevs;
 
 
 (* lookup consts *)
 
 fun err_undeclared c = raise TYPE ("Undeclared constant: " ^ quote c, [], []);
 
-fun the_const (Consts {decls = (_, tab), ...}) c =
+fun the_const (Consts ({decls = (_, tab), ...}, _)) c =
   (case Symtab.lookup tab c of SOME (decl, _) => decl | NONE => err_undeclared c);
 
 fun logical_const consts c =
@@ -72,7 +75,7 @@ fun logical_const consts c =
 fun declaration consts c = #1 (logical_const consts c);
 fun monomorphic consts c = null (#2 (logical_const consts c));
 
-fun constraint (consts as Consts {constraints, ...}) c =
+fun constraint (consts as Consts ({constraints, ...}, _)) c =
   (case Symtab.lookup constraints c of
     SOME T => T
   | NONE => (case the_const consts c of LogicalConst (T, _) => T | Abbreviation (T, _) => T));
@@ -162,11 +165,20 @@ fun declare naming (c, declT) = map_consts (fn (decls, abbrevs, constraints) =>
 
 (* abbreviations *)
 
+local
+
+fun strip_abss (Abs (a, T, t)) =
+      ([], t) :: map (fn (xs, b) => ((a, T) :: xs, b)) (strip_abss t)
+  | strip_abss t = [([], t)];
+
 fun revert_abbrev const rhs =
   let
-    val (xs, body) = Term.strip_abs (Envir.beta_eta_contract rhs);
-    val vars = fold (fn (x, T) => cons (Var ((x, 0), T))) (Term.rename_wrt_term body xs) [];
-  in (Term.subst_bounds (rev vars, body), Term.list_comb (Const const, vars)) end;
+    fun abbrev (xs, body) =
+      let val vars = fold (fn (x, T) => cons (Var ((x, 0), T))) (Term.rename_wrt_term body xs) []
+      in (Term.subst_bounds (rev vars, body), Term.list_comb (Const const, vars)) end;
+  in map abbrev (rev (strip_abss (Envir.beta_eta_contract rhs))) end;
+
+in
 
 fun abbreviate pp tsig naming revert (c, raw_rhs) consts =
     consts |> map_consts (fn (decls, abbrevs, constraints) =>
@@ -175,8 +187,10 @@ fun abbreviate pp tsig naming revert (c, raw_rhs) consts =
     val T = Term.fastype_of rhs;
     val decls' = decls |> extend_decls naming (c, (Abbreviation (T, rhs), serial ()));
     val abbrevs' =
-      if revert then revert_abbrev (NameSpace.full naming c, T) rhs :: abbrevs else abbrevs;
+      if revert then revert_abbrev (NameSpace.full naming c, T) rhs @ abbrevs else abbrevs;
   in (decls', abbrevs', constraints) end);
+
+end;
 
 
 (* constraints *)
@@ -190,8 +204,8 @@ fun constrain (c, T) = map_consts (fn (decls, abbrevs, constraints) =>
 val empty = make_consts (NameSpace.empty_table, [], Symtab.empty);
 
 fun merge
-   (Consts {decls = decls1, abbrevs = abbrevs1, constraints = constraints1},
-    Consts {decls = decls2, abbrevs = abbrevs2, constraints = constraints2}) =
+   (Consts ({decls = decls1, abbrevs = abbrevs1, constraints = constraints1}, _),
+    Consts ({decls = decls2, abbrevs = abbrevs2, constraints = constraints2}, _)) =
   let
     val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
       handle Symtab.DUPS cs => err_dup_consts cs;
