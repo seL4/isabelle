@@ -15,8 +15,8 @@ text {*
 The following document presents a proof of the Three Divides N theorem
 formalised in the Isabelle/Isar theorem proving system.
 
-{\em Theorem}: 3 divides n if and only if 3 divides the sum of all
-digits in n.
+{\em Theorem}: $3$ divides $n$ if and only if $3$ divides the sum of all
+digits in $n$.
 
 {\em Informal Proof}:
 Take $n = \sum{n_j * 10^j}$ where $n_j$ is the $j$'th least
@@ -61,12 +61,12 @@ denote the $i$'th element in a sequence of numbers. *}
 
 lemma digit_diff_split:
   fixes n::nat and nd::nat and x::nat
-  shows "\<And>n. n = (\<Sum>x\<in>{..<nd}. (D x)*((10::nat)^x)) \<Longrightarrow>
+  shows "n = (\<Sum>x\<in>{..<nd}. (D x)*((10::nat)^x)) \<Longrightarrow>
              (n - (\<Sum>x<nd. (D x))) = (\<Sum>x<nd. (D x)*(10^x - 1))"
 by (simp add: sum_diff_distrib diff_mult_distrib2)
 
 text {* Now we prove that 3 always divides numbers of the form $10^x - 1$. *}
-lemma three_divs_0 [rule_format, simplified]:
+lemma three_divs_0:
   shows "(3::nat) dvd (10^x - 1)"
 proof (induct x)
   case 0 show ?case by simp
@@ -83,11 +83,11 @@ next
   thus ?case by simp
 qed
 
-text {* Expanding on the previous lemma and lemma @{text "div_sum\<dots>"} *}
+text {* Expanding on the previous lemma and lemma @{text "div_sum"}. *}
 lemma three_divs_1:
   fixes D :: "nat \<Rightarrow> nat"
   shows "3 dvd (\<Sum>x<nd. D x * (10^x - 1))"
-  by (subst nat_mult_commute, rule div_sum) (simp add: three_divs_0)
+  by (subst nat_mult_commute, rule div_sum) (simp add: three_divs_0 [simplified])
 
 text {* Using lemmas @{text "digit_diff_split"} and 
 @{text "three_divs_1"} we now prove the following lemma. 
@@ -95,8 +95,9 @@ text {* Using lemmas @{text "digit_diff_split"} and
 lemma three_divs_2:
   fixes nd::nat and D::"nat\<Rightarrow>nat"
   shows "3 dvd ((\<Sum>x<nd. (D x)*(10^x)) - (\<Sum>x<nd. (D x)))"
-proof (simp only: digit_diff_split)
-  from three_divs_1 show "3 dvd (\<Sum>x<nd. D x * (10 ^ x - 1))" .
+proof -
+  from three_divs_1 have "3 dvd (\<Sum>x<nd. D x * (10 ^ x - 1))" .
+  thus ?thesis by (simp only: digit_diff_split)
 qed
 
 text {* 
@@ -111,7 +112,7 @@ lemma three_div_general:
   shows "(3 dvd (\<Sum>x<nd. D x * 10^x)) = (3 dvd (\<Sum>x<nd. D x))"
 proof
   have mono: "(\<Sum>x<nd. D x) \<le> (\<Sum>x<nd. D x * 10^x)"
-    by (rule setsum_mono, simp)
+    by (rule setsum_mono) simp
   txt {* This lets us form the term
          @{term "(\<Sum>x<nd. D x * 10^x) - (\<Sum>x<nd. D x)"} *}
 
@@ -174,8 +175,8 @@ our theorem. It states that an expansion of some natural number $n$
 into a sequence of its individual digits is always possible. *}
 
 lemma exp_exists:
-  "\<And>m. nd = nlen m \<Longrightarrow> m = (\<Sum>x<nd. (m div (10::nat)^x mod 10) * 10^x)"
-proof (induct nd)
+  "m = (\<Sum>x<nlen m. (m div (10::nat)^x mod 10) * 10^x)"
+proof (induct nd \<equiv> "nlen m" fixing: m)
   case 0 thus ?case by (simp add: nlen_zero)
 next
   case (Suc nd)
@@ -184,15 +185,14 @@ next
     m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)"
     by blast
   have "\<exists>c. m = 10*(m div 10) + c \<and> c < 10" by presburger
-  from this obtain c where mexp: "m = 10*(m div 10) + c \<and> c < 10" ..
+  then obtain c where mexp: "m = 10*(m div 10) + c \<and> c < 10" ..
   then have cdef: "c = m mod 10" by arith
-  show "m = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
+  show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)"
   proof -
-    have "Suc nd = nlen m" .
-    then have
-      "nd = nlen (m div 10)" by (rule nlen_suc)
+    from `Suc nd = nlen m`
+    have "nd = nlen (m div 10)" by (rule nlen_suc)
     with IH have
-      "m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)"  by simp
+      "m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)" by simp
     with mexp have
       "m = 10*(\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x) + c" by simp
     also have
@@ -208,8 +208,9 @@ next
     also have
       "\<dots> = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
       by (simp add: setsum_rmv_head [symmetric] cdef)
-    finally 
-    show "m = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)" .
+    also note `Suc nd = nlen m`
+    finally
+    show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)" .
   qed
 qed
 
@@ -223,9 +224,7 @@ theorem. *}
 theorem three_divides_nat:
   shows "(3 dvd n) = (3 dvd sumdig n)"
 proof (unfold sumdig_def)
-  obtain nd where "nd = nlen n" by simp
-  moreover
-  have "n = (\<Sum>x<nd. (n div (10::nat)^x mod 10) * 10^x)"
+  have "n = (\<Sum>x<nlen n. (n div (10::nat)^x mod 10) * 10^x)"
     by (rule exp_exists)
   moreover
   have "3 dvd (\<Sum>x<nlen n. (n div (10::nat)^x mod 10) * 10^x) =
