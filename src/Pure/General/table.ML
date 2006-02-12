@@ -18,6 +18,7 @@ sig
   type 'a table
   exception DUP of key
   exception DUPS of key list
+  exception SAME
   exception UNDEF of key
   val empty: 'a table
   val is_empty: 'a table -> bool
@@ -40,13 +41,14 @@ sig
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUPS*)
   val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUPS*)
-  val join: (key -> 'a * 'a -> 'a option) ->
+  val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a table * 'a table -> 'a table                                    (*exception DUPS*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUPS*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
   val delete_safe: key -> 'a table -> 'a table
   val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
+  val replace: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
   val lookup_list: 'a list table -> key -> 'a list
   val update_list: (key * 'a) -> 'a list table -> 'a list table
@@ -149,26 +151,46 @@ fun max_key Empty = NONE
 
 (* lookup *)
 
-fun lookup Empty _ = NONE
-  | lookup (Branch2 (left, (k, x), right)) key =
-      (case Key.ord (key, k) of
-        LESS => lookup left key
-      | EQUAL => SOME x
-      | GREATER => lookup right key)
-  | lookup (Branch3 (left, (k1, x1), mid, (k2, x2), right)) key =
-      (case Key.ord (key, k1) of
-        LESS => lookup left key
-      | EQUAL => SOME x1
-      | GREATER =>
-          (case Key.ord (key, k2) of
-            LESS => lookup mid key
-          | EQUAL => SOME x2
-          | GREATER => lookup right key));
+fun lookup tab key =
+  let
+    fun look Empty = NONE
+      | look (Branch2 (left, (k, x), right)) =
+          (case Key.ord (key, k) of
+            LESS => look left
+          | EQUAL => SOME x
+          | GREATER => look right)
+      | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+          (case Key.ord (key, k1) of
+            LESS => look left
+          | EQUAL => SOME x1
+          | GREATER =>
+              (case Key.ord (key, k2) of
+                LESS => look mid
+              | EQUAL => SOME x2
+              | GREATER => look right));
+  in look tab end;
 
-fun defined tab key = is_some (lookup tab key);
+fun defined tab key =
+  let
+    fun def Empty = false
+      | def (Branch2 (left, (k, x), right)) =
+          (case Key.ord (key, k) of
+            LESS => def left
+          | EQUAL => true
+          | GREATER => def right)
+      | def (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+          (case Key.ord (key, k1) of
+            LESS => def left
+          | EQUAL => true
+          | GREATER =>
+              (case Key.ord (key, k2) of
+                LESS => def mid
+              | EQUAL => true
+              | GREATER => def right));
+  in def tab end;
 
 
-(* updates *)
+(* modify *)
 
 datatype 'a growth =
   Stay of 'a table |
@@ -224,22 +246,6 @@ fun update (key, x) tab = modify key (fn _ => x) tab;
 fun update_new (key, x) tab = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
 fun default (key, x) tab = modify key (fn NONE => x | SOME _ => raise SAME) tab;
 fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
-
-
-(* extend and make *)
-
-fun extend (table, args) =
-  let
-    fun add (key, x) (tab, dups) =
-      if defined tab key then (tab, key :: dups)
-      else (update (key, x) tab, dups);
-  in
-    (case fold add args (table, []) of
-      (table', []) => table'
-    | (_, dups) => raise DUPS (rev dups))
-  end;
-
-fun make pairs = extend (empty, pairs);
 
 
 (* delete *)
@@ -325,7 +331,7 @@ fun delete_safe key tab = delete key tab handle UNDEF _ => tab;
 end;
 
 
-(* member, insert and remove *)
+(* membership operations *)
 
 fun member eq tab (key, x) =
   (case lookup tab key of
@@ -335,33 +341,39 @@ fun member eq tab (key, x) =
 fun insert eq (key, x) =
   modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else raise DUP key);
 
+fun replace eq (key, x) =
+  modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else x);
+
 fun remove eq (key, x) tab =
   (case lookup tab key of
     NONE => tab
   | SOME y => if eq (x, y) then delete key tab else tab);
 
 
-(* join and merge *)
+(* simultaneous modifications *)
+
+fun reject_dups (tab, []) = tab
+  | reject_dups (_, dups) = raise DUPS (rev dups);
+
+fun extend (table, args) =
+  let
+    fun add (key, x) (tab, dups) =
+      (update_new (key, x) tab, dups) handle DUP dup => (tab, dup :: dups);
+  in reject_dups (fold add args (table, [])) end;
+
+fun make entries = extend (empty, entries);
 
 fun join f (table1, table2) =
   let
-    fun add (key, x) (tab, dups) =
-      (case lookup tab key of
-        NONE => (update (key, x) tab, dups)
-      | SOME y =>
-          (case f key (y, x) of
-            SOME z => (update (key, z) tab, dups)
-          | NONE => (tab, key :: dups)));
-  in
-    (case fold_table add table2 (table1, []) of
-      (table', []) => table'
-    | (_, dups) => raise DUPS (rev dups))
-  end;
+    fun add (key, y) (tab, dups) =
+      let val tab' = modify key (fn NONE => y | SOME x => f key (x, y)) tab
+      in (tab', dups) end handle DUP dup => (tab, dup :: dups);
+  in reject_dups (fold_table add table2 (table1, [])) end;
 
-fun merge eq tabs = join (fn _ => fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
+fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP key);
 
 
-(* tables with multiple entries per key *)
+(* list tables *)
 
 fun lookup_list tab key = these (lookup tab key);
 fun update_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
@@ -372,7 +384,7 @@ fun remove_list eq (key, x) tab =
 
 fun make_list args = fold_rev update_list args empty;
 fun dest_list tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
-fun merge_list eq = join (fn _ => SOME o Library.merge eq);
+fun merge_list eq = join (fn _ => Library.merge eq);
 
 
 (*final declarations of this structure!*)
