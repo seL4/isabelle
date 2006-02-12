@@ -127,19 +127,19 @@ val accesses' = map pack o Library.suffixes1 o unpack;
 (* datatype T *)
 
 datatype T =
-  NameSpace of (string list * string list) Symtab.table;
+  NameSpace of ((string list * string list) * stamp) Symtab.table;
 
 val empty = NameSpace Symtab.empty;
 
 fun lookup (NameSpace tab) xname =
   (case Symtab.lookup tab xname of
     NONE => (xname, true)
-  | SOME ([], []) => (xname, true)
-  | SOME ([name], _) => (name, true)
-  | SOME (name :: _, _) => (name, false)
-  | SOME ([], name' :: _) => (hidden name', true));
+  | SOME (([], []), _) => (xname, true)
+  | SOME (([name], _), _) => (name, true)
+  | SOME ((name :: _, _), _) => (name, false)
+  | SOME (([], name' :: _), _) => (hidden name', true));
 
-fun valid_accesses (NameSpace tab) name = Symtab.fold (fn (xname, (names, _)) =>
+fun valid_accesses (NameSpace tab) name = Symtab.fold (fn (xname, ((names, _), _)) =>
   if not (null names) andalso hd names = name then cons xname else I) tab [];
 
 
@@ -169,7 +169,11 @@ fun extern space name =
 (* basic operations *)
 
 fun map_space f xname (NameSpace tab) =
-  NameSpace (Symtab.update (xname, f (the_default ([], []) (Symtab.lookup tab xname))) tab);
+  let val entry' =
+    (case Symtab.lookup tab xname of
+      NONE => f ([], [])
+    | SOME (entry, _) => f entry)
+  in NameSpace (Symtab.update (xname, (entry', stamp ())) tab) end;
 
 fun del (name: string) = remove (op =) name;
 fun add name names = name :: del name names;
@@ -196,9 +200,13 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (NameSpace tab1, space2) = Symtab.fold (fn (xname, (names1, names1')) =>
-  xname |> map_space (fn (names2, names2') =>
-    (Library.merge (op =) (names2, names1), Library.merge (op =) (names2', names1')))) tab1 space2;
+fun merge (NameSpace tab1, NameSpace tab2) =
+  NameSpace ((tab1, tab2) |> Symtab.join
+    (K (fn (((names1, names1'), stamp1), ((names2, names2'), stamp2)) =>
+      if stamp1 = stamp2 then raise Symtab.SAME
+      else
+        ((Library.merge (op =) (names2, names1),
+          Library.merge (op =) (names2', names1')), stamp ()))));
 
 
 
