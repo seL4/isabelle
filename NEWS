@@ -357,10 +357,14 @@ functions for alists, tables, etc:
 Note that fold_index starts counting at index 0, not 1 like foldln
 used to.
 
-* Pure/General: name_mangler.ML provides a functor for generic name
+* Pure/General/name_mangler.ML provides a functor for generic name
 mangling (bijective mapping from any expression values to strings).
 
-* Pure/General: rat.ML implements rational numbers.
+* Pure/General/rat.ML implements rational numbers.
+
+* Pure/General/table.ML: the join operations now works via exceptions
+DUP/SAME instead of type option.  This is simpler in simple cases, and
+admits slightly more efficient complex applications.
 
 * Pure: datatype Context.generic joins theory/Proof.context and
 provides some facilities for code that works in either kind of

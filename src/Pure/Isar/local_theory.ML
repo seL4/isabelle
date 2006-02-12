@@ -100,14 +100,11 @@ end;
 
 (* theory/locale substructures *)
 
-fun transfer thy =
-  ProofContext.transfer thy #> map_locale (ProofContext.transfer thy);
-
-fun theory f ctxt = transfer (f (ProofContext.theory_of ctxt)) ctxt;
-
 fun theory_result f ctxt =
   let val (res, thy') = f (ProofContext.theory_of ctxt)
-  in (res, transfer thy' ctxt) end;
+  in (res, ctxt |> map_locale (ProofContext.transfer thy') |> ProofContext.transfer thy') end;
+
+fun theory f ctxt = #2 (theory_result (f #> pair ()) ctxt);
 
 fun locale_result f ctxt =
   (case locale_of ctxt of
@@ -116,7 +113,7 @@ fun locale_result f ctxt =
       let
         val (res, loc_ctxt') = f view_ctxt;
         val thy' = ProofContext.theory_of loc_ctxt';
-      in (res, ctxt |> map_locale (K loc_ctxt') |> transfer thy') end);
+      in (res, ctxt |> map_locale (K loc_ctxt') |> ProofContext.transfer thy') end);
 
 fun locale f ctxt =
   if is_none (locale_of ctxt) then ctxt
