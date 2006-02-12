@@ -112,6 +112,9 @@ struct
 
 (* data kinds and access methods *)
 
+(*private copy avoids potential conflict of table exceptions*)
+structure Datatab = TableFun(type key = int val ord = int_ord);
+
 local
 
 type kind =
@@ -121,10 +124,10 @@ type kind =
   extend: Object.T -> Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T};
 
-val kinds = ref (Inttab.empty: kind Inttab.table);
+val kinds = ref (Datatab.empty: kind Datatab.table);
 
 fun invoke meth_name meth_fn k =
-  (case Inttab.lookup (! kinds) k of
+  (case Datatab.lookup (! kinds) k of
     SOME kind => meth_fn kind |> transform_failure (fn exn =>
       EXCEPTION (exn, "Theory data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
   | NONE => sys_error ("Invalid theory data identifier " ^ string_of_int k));
@@ -141,14 +144,14 @@ fun declare_theory_data name empty copy extend merge =
   let
     val k = serial ();
     val kind = {name = name, empty = empty, copy = copy, extend = extend, merge = merge};
-    val _ = conditional (Inttab.exists (equal name o #name o #2) (! kinds)) (fn () =>
+    val _ = conditional (Datatab.exists (equal name o #name o #2) (! kinds)) (fn () =>
       warning ("Duplicate declaration of theory data " ^ quote name));
-    val _ = change kinds (Inttab.update (k, kind));
+    val _ = change kinds (Datatab.update (k, kind));
   in k end;
 
-val copy_data = Inttab.map' invoke_copy;
-val extend_data = Inttab.map' invoke_extend;
-fun merge_data pp = Inttab.join (SOME oo invoke_merge pp) o pairself extend_data;
+val copy_data = Datatab.map' invoke_copy;
+val extend_data = Datatab.map' invoke_extend;
+fun merge_data pp = Datatab.join (invoke_merge pp) o pairself extend_data;
 
 end;
 
@@ -164,8 +167,8 @@ datatype theory =
     ids: string Inttab.table,           (*identifiers of ancestors*)
     iids: string Inttab.table} *        (*identifiers of intermediate checkpoints*)
    (*data*)
-   {theory: Object.T Inttab.table,      (*theory data record*)
-    proof: unit Inttab.table} *         (*proof data kinds*)
+   {theory: Object.T Datatab.table,     (*theory data record*)
+    proof: unit Datatab.table} *        (*proof data kinds*)
    (*ancestry*)
    {parents: theory list,               (*immediate predecessors*)
     ancestors: theory list} *           (*all predecessors*)
@@ -349,7 +352,7 @@ fun copy_thy (thy as Theory ({id, ids, iids, ...}, data, ancestry, history)) =
     create_thy draftN NONE id ids iids (map_theory_data copy_data data) ancestry history);
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
-  (make_data Inttab.empty Inttab.empty) (make_ancestry [] []) (make_history ProtoPureN 0 []);
+  (make_data Datatab.empty Datatab.empty) (make_ancestry [] []) (make_history ProtoPureN 0 []);
 
 
 (* named theory nodes *)
@@ -363,7 +366,7 @@ fun merge_thys pp (thy1, thy2) =
       val data1 = data_of thy1 and data2 = data_of thy2;
       val data = make_data
         (merge_data (pp thy1) (#theory data1, #theory data2))
-        (Inttab.merge (K true) (#proof data1, #proof data2));
+        (Datatab.merge (K true) (#proof data1, #proof data2));
       val ancestry = make_ancestry [] [];
       val history = make_history "" 0 [];
     in create_thy draftN NONE (serial (), draftN) ids iids data ancestry history end;
@@ -415,7 +418,7 @@ fun finish_thy thy =
 (* theory data *)
 
 fun dest_data name_of tab =
-  map name_of (Inttab.keys tab)
+  map name_of (Datatab.keys tab)
   |> map (rpair ()) |> Symtab.make_list |> Symtab.dest
   |> map (apsnd length)
   |> map (fn (name, 1) => name | (name, n) => name ^ enclose "[" "]" (string_of_int n));
@@ -428,12 +431,12 @@ struct
 val declare = declare_theory_data;
 
 fun get k dest thy =
-  (case Inttab.lookup (#theory (data_of thy)) k of
+  (case Datatab.lookup (#theory (data_of thy)) k of
     SOME x => (dest x handle Match =>
       error ("Failed to access theory data " ^ quote (invoke_name k)))
   | NONE => error ("Uninitialized theory data " ^ quote (invoke_name k)));
 
-fun put k mk x = modify_thy (map_theory_data (Inttab.update (k, mk x)));
+fun put k mk x = modify_thy (map_theory_data (Datatab.update (k, mk x)));
 fun init k = put k I (invoke_empty k);
 
 end;
@@ -506,7 +509,7 @@ end;
 
 (* datatype proof *)
 
-datatype proof = Proof of theory_ref * Object.T Inttab.table;
+datatype proof = Proof of theory_ref * Object.T Datatab.table;
 
 fun theory_of_proof (Proof (thy_ref, _)) = deref thy_ref;
 fun data_of_proof (Proof (_, data)) = data;
@@ -526,10 +529,10 @@ type kind =
  {name: string,
   init: theory -> Object.T};
 
-val kinds = ref (Inttab.empty: kind Inttab.table);
+val kinds = ref (Datatab.empty: kind Datatab.table);
 
 fun invoke meth_name meth_fn k =
-  (case Inttab.lookup (! kinds) k of
+  (case Datatab.lookup (! kinds) k of
     SOME kind => meth_fn kind |> transform_failure (fn exn =>
       EXCEPTION (exn, "Proof data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
   | NONE => sys_error ("Invalid proof data identifier " ^ string_of_int k));
@@ -542,7 +545,7 @@ in
 val proof_data_of = dest_data invoke_name o #proof o data_of;
 
 fun init_proof thy =
-  Proof (self_ref thy, Inttab.map' (fn k => fn _ => invoke_init k thy) (#proof (data_of thy)));
+  Proof (self_ref thy, Datatab.map' (fn k => fn _ => invoke_init k thy) (#proof (data_of thy)));
 
 structure ProofData =
 struct
@@ -551,20 +554,20 @@ fun declare name init =
   let
     val k = serial ();
     val kind = {name = name, init = init};
-    val _ = conditional (Inttab.exists (equal name o #name o #2) (! kinds)) (fn () =>
+    val _ = conditional (Datatab.exists (equal name o #name o #2) (! kinds)) (fn () =>
       warning ("Duplicate declaration of proof data " ^ quote name));
-    val _ = change kinds (Inttab.update (k, kind));
+    val _ = change kinds (Datatab.update (k, kind));
   in k end;
 
-fun init k = modify_thy (map_proof_data (Inttab.update (k, ())));
+fun init k = modify_thy (map_proof_data (Datatab.update (k, ())));
 
 fun get k dest prf =
-  (case Inttab.lookup (data_of_proof prf) k of
+  (case Datatab.lookup (data_of_proof prf) k of
     SOME x => (dest x handle Match =>
       error ("Failed to access proof data " ^ quote (invoke_name k)))
   | NONE => error ("Uninitialized proof data " ^ quote (invoke_name k)));
 
-fun put k mk x = map_prf (Inttab.update (k, mk x));
+fun put k mk x = map_prf (Datatab.update (k, mk x));
 
 end;
 
