@@ -182,7 +182,7 @@ datatype ctxt =
   Ctxt of
    {naming: NameSpace.naming,                     (*local naming conventions*)
     syntax: LocalSyntax.T,                        (*local syntax*)
-    consts: Consts.T,                             (*const abbreviations*)
+    consts: Consts.T * Consts.T,                  (*global/local consts*)
     fixes: bool * (string * string) list,         (*fixes: !!x. _ with proof body flag*)
     assms:
       ((cterm list * export) list *               (*assumes and views: A ==> _*)
@@ -205,8 +205,9 @@ structure ContextData = ProofDataFun
   val name = "Isar/context";
   type T = ctxt;
   fun init thy =
-    make_ctxt (NameSpace.default_naming, LocalSyntax.init thy, Sign.consts_of thy,
-      (false, []), ([], []), Vartab.empty, (NameSpace.empty_table, FactIndex.empty), [],
+    make_ctxt (NameSpace.default_naming, LocalSyntax.init thy,
+      (Sign.consts_of thy, Sign.consts_of thy), (false, []), ([], []),
+      Vartab.empty, (NameSpace.empty_table, FactIndex.empty), [],
       (Vartab.empty, Vartab.empty, [], Symtab.empty));
   fun print _ _ = ();
 );
@@ -260,7 +261,7 @@ val naming_of = #naming o rep_context;
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
 
-val consts_of = #consts o rep_context;
+val consts_of = #2 o #consts o rep_context;
 
 val is_body = #1 o #fixes o rep_context;
 fun set_body b = map_fixes (fn (_, fixes) => (b, fixes));
@@ -291,7 +292,11 @@ fun is_known ctxt x = Vartab.defined (#1 (defaults_of ctxt)) (x, ~1) orelse is_f
 
 fun transfer_syntax thy =
   map_syntax (LocalSyntax.rebuild thy) #>
-  map_consts (fn consts => Consts.merge (Sign.consts_of thy, consts));
+  map_consts (fn consts as (global_consts, local_consts) =>
+    let val thy_consts = Sign.consts_of thy in
+      if Consts.eq_consts (thy_consts, global_consts) then consts
+      else (thy_consts, Consts.merge (thy_consts, local_consts))
+    end);
 
 fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
 
@@ -577,8 +582,8 @@ val ins_types = fold_aterms
     | _ => I);
 
 val ins_sorts = fold_types (fold_atyps
-  (fn TFree (x, S) => Vartab.update ((x, ~1), S)
-    | TVar v => Vartab.update v
+  (fn TFree (x, S) => Vartab.replace (op =) ((x, ~1), S)
+    | TVar v => Vartab.replace (op =) v
     | _ => I));
 
 val ins_used = fold_term_types (fn t =>
@@ -1080,7 +1085,7 @@ fun gen_abbrevs prep_vars prep_term revert = fold (fn (raw_c, raw_t, raw_mx) => 
   in
     ctxt
     |> declare_term t
-    |> map_consts (Consts.abbreviate (pp ctxt) (tsig_of ctxt) naming revert (c, t))
+    |> map_consts (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) naming revert (c, t)))
     |> map_syntax (LocalSyntax.add_syntax thy [(false, (NameSpace.full naming c, T, mx))])
   end);
 
@@ -1330,8 +1335,8 @@ val print_syntax = Syntax.print_syntax o syn_of;
 
 fun pretty_consts ctxt =
   let
-    val (space, consts) = #constants (Consts.dest (consts_of ctxt));
-    val globals = #2 (#constants (Consts.dest (Sign.consts_of (theory_of ctxt))));
+    val ((_, globals), (space, consts)) =
+      pairself (#constants o Consts.dest) (#consts (rep_context ctxt));
     fun local_abbrev (_, (_, NONE)) = I
       | local_abbrev (c, (T, SOME t)) =
           if Symtab.defined globals c then I else cons (c, Logic.mk_equals (Const (c, T), t));
