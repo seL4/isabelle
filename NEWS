@@ -363,8 +363,8 @@ mangling (bijective mapping from any expression values to strings).
 * Pure/General/rat.ML implements rational numbers.
 
 * Pure/General/table.ML: the join operations now works via exceptions
-DUP/SAME instead of type option.  This is simpler in simple cases, and
-admits slightly more efficient complex applications.
+DUP/SAME instead of type option.  This is both simpler and admits
+slightly more efficient complex applications.
 
 * Pure: datatype Context.generic joins theory/Proof.context and
 provides some facilities for code that works in either kind of
