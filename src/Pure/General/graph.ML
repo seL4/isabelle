@@ -9,9 +9,10 @@ signature GRAPH =
 sig
   type key
   type 'a T
-  exception UNDEF of key
   exception DUP of key
   exception DUPS of key list
+  exception SAME
+  exception UNDEF of key
   val empty: 'a T
   val keys: 'a T -> key list
   val dest: 'a T -> (key * key list) list
@@ -37,7 +38,8 @@ sig
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUPS*)
-  val join: (key -> 'a * 'a -> 'a option) -> 'a T * 'a T -> 'a T      (*exception DUPS*)
+  val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
+    'a T * 'a T -> 'a T                                               (*exception DUPS*)
   exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception CYCLES*)
   val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception CYCLES*)
@@ -74,9 +76,10 @@ fun insert_keys x tab = Table.insert (K true) (x, ()) (tab: keys);
 
 datatype 'a T = Graph of ('a * (key list * key list)) Table.table;
 
-exception UNDEF of key;
 exception DUP = Table.DUP;
 exception DUPS = Table.DUPS;
+exception UNDEF = Table.UNDEF;
+exception SAME = Table.SAME;
 
 val empty = Graph Table.empty;
 fun keys (Graph tab) = Table.keys tab;
@@ -205,9 +208,7 @@ fun edges G = diff_edges G empty;
 fun no_edges (i, _) = (i, ([], []));
 
 fun join f (Graph tab1, G2 as Graph tab2) =
-  let
-    fun join_node key ((i1, edges1), (i2, _)) =
-      (Option.map (rpair edges1) o f key) (i1, i2);
+  let fun join_node key ((i1, edges1), (i2, _)) = (f key (i1, i2), edges1)
   in fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2))) end;
 
 fun gen_merge add eq (Graph tab1, G2 as Graph tab2) =
