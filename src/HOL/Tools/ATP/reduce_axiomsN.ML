@@ -232,7 +232,7 @@ and
 fun uni_constants (c1,ctp1) (c2,ctp2) = (c1 = c2) andalso (uni_types ctp1 ctp2);
 
 fun uni_mem _ [] = false
-  | uni_mem (c,c_typ) ((c1,c_typ1)::ctyps) = (uni_constants (c,c_typ) (c1,c_typ1)) orelse (uni_mem (c,c_typ) ctyps);
+  | uni_mem (c,c_typ) ((c1,c_typ1)::ctyps) = (uni_constants (c1,c_typ1) (c,c_typ)) orelse (uni_mem (c,c_typ) ctyps);
 
 
 
