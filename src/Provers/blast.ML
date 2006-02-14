@@ -604,8 +604,24 @@ fun showTerm d (Const (a,_)) = Term.Const (a,dummyT)
 
 fun string_of sign d t = Sign.string_of_term sign (showTerm d t);
 
+(*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
+  Ex(P) is duplicated as the assumption ~Ex(P). *)
+fun negOfGoal (Const ("*Goal*", _) $ G) = negate G
+  | negOfGoal G = G;
+
+fun negOfGoal2 (G,md) = (negOfGoal G, md);
+
+(*Converts all Goals to Nots in the safe parts of a branch.  They could
+  have been moved there from the literals list after substitution (equalSubst).
+  There can be at most one--this function could be made more efficient.*)
+fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
+
+(*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
+fun negOfGoal_tac i = TRACE Data.ccontr (rtac Data.ccontr) i THEN
+                      rotate_tac ~1 i;
+
 fun traceTerm sign t =
-  let val t' = norm t
+  let val t' = norm (negOfGoal t)
       val stm = string_of sign 8 t'
   in
       case topType sign t' of
@@ -791,22 +807,6 @@ fun hasSkolem (Skolem _)     = true
   Skolem terms then allow duplication.*)
 fun joinMd md [] = []
   | joinMd md (G::Gs) = (G, hasSkolem G orelse md) :: joinMd md Gs;
-
-(*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
-  Ex(P) is duplicated as the assumption ~Ex(P). *)
-fun negOfGoal (Const ("*Goal*", _) $ G) = negate G
-  | negOfGoal G = G;
-
-fun negOfGoal2 (G,md) = (negOfGoal G, md);
-
-(*Converts all Goals to Nots in the safe parts of a branch.  They could
-  have been moved there from the literals list after substitution (equalSubst).
-  There can be at most one--this function could be made more efficient.*)
-fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
-
-(*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
-fun negOfGoal_tac i = TRACE Data.ccontr (rtac Data.ccontr) i THEN
-                      rotate_tac ~1 i;
 
 
 (** Backtracking and Pruning **)
