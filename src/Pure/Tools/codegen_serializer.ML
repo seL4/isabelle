@@ -92,7 +92,7 @@ fun from_app mk_app from_expr const_syntax fxy (c, es) =
           brackify fxy (mk_app c es)
       | mk (SOME ((i, k), pr)) es =
           let
-            val (es1, es2) = splitAt (k, es);
+            val (es1, es2) = Library.chop k es;
           in
             brackify fxy (pr fxy from_expr es1 :: map (from_expr BR) es2)
           end;
@@ -209,7 +209,7 @@ fun parse_targetdef s =
             --| $$ "`" >> (fn ["_"] => Name | s => error ("malformed antiquote: " ^ implode s)))
       || Scan.repeat1
            (Scan.unless ($$ "`") (Scan.one Symbol.not_eof)) >> (CodegenThingol.Pretty o str o implode)
-    )) (Symbol.explode s)
+    )) ((Symbol.explode o Symbol.strip_blanks) s)
    of (p, []) => p
     | (p, ss) => error ("Malformed definition: " ^ quote s ^ " - " ^ commas ss);
 
@@ -343,8 +343,9 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
 local
 
 fun ml_from_defs (is_cons, needs_type)
-    (from_prim, (_, tyco_syntax, const_syntax)) resolv defs =
+    (from_prim, (_, tyco_syntax, const_syntax)) resolver prefix defs =
   let
+    val resolv = resolver prefix;
     fun chunk_defs ps =
       let
         val (p_init, p_last) = split_last ps
@@ -443,10 +444,12 @@ fun ml_from_defs (is_cons, needs_type)
               ]
             else
               str v
-      | ml_from_expr fxy (IAbs ((v, _), e)) =
-          brackify fxy [
-            str ("fn " ^ v ^ " =>"),
-            ml_from_expr NOBR e
+      | ml_from_expr fxy (IAbs (e1, e2)) =
+          brackify BR [
+            str "fn",
+            ml_from_expr NOBR e1,
+            str "=>",
+            ml_from_expr NOBR e2
           ]
       | ml_from_expr fxy (e as ICase (_, [_])) =
           let
@@ -485,13 +488,24 @@ fun ml_from_defs (is_cons, needs_type)
     and ml_mk_app f es =
       if is_cons f andalso length es > 1
       then
-        [(str o resolv) f, Pretty.enum " *" "(" ")" (map (ml_from_expr BR) es)]
+        [(str o resolv) f, Pretty.enum "," "(" ")" (map (ml_from_expr BR) es)]
       else
         (str o resolv) f :: map (ml_from_expr BR) es
-    and ml_from_app fxy (((c, _), lss), es) =
+    and ml_from_app fxy (((c, ty), lss), es) =
       case map (ml_from_sortlookup BR) lss
        of [] =>
-            from_app ml_mk_app ml_from_expr const_syntax fxy (c, es)
+            let
+              val p = from_app ml_mk_app ml_from_expr const_syntax fxy (c, es)
+            in if needs_type ty
+              then
+                Pretty.enclose "(" ")" [
+                  p,
+                  str ":",
+                  ml_from_type NOBR ty
+                ]
+              else
+                p
+            end
         | lss =>
             brackify fxy (
               (str o resolv) c
@@ -551,7 +565,7 @@ fun ml_from_defs (is_cons, needs_type)
                 :: separate (Pretty.block [str " *", Pretty.brk 1])
                      (map (ml_from_type NOBR) tys)
               )
-        fun mk_datatype definer (t, ((vs, cs), _)) =
+        fun mk_datatype definer (t, (vs, cs)) =
           (Pretty.block o Pretty.breaks) (
             str definer
             :: ml_from_tycoexpr NOBR (t, map IVarT vs)
@@ -583,7 +597,7 @@ fun ml_from_defs (is_cons, needs_type)
             str ";"
             ]
           ) |> SOME
-      | ml_from_def (name, Class ((supclasses, (v, membrs)), _)) =
+      | ml_from_def (name, Class (supclasses, (v, membrs))) =
           let
             val pv = str ("'" ^ v);
             fun from_supclass class =
@@ -702,7 +716,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
         | _ => if has_nsp s nsp_dtcon
                then case get_def module s
                 of Datatypecons dtname => case get_def module dtname
-                of Datatype ((_, cs), _) =>
+                of Datatype (_, cs) =>
                   let val l = AList.lookup (op =) cs s |> the |> length
                   in if l >= 2 then l else 0 end
                 else 0;
@@ -735,8 +749,14 @@ end; (* local *)
 local
 
 fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax))
-    resolv defs =
+    resolver prefix defs =
   let
+    fun resolv s = if NameSpace.is_qualified s
+      then resolver "" s
+      else if nth_string s 0 = "~"
+        then enclose "(" ")" ("negate " ^ unprefix "~" s)
+        else s;
+    val resolv_here = (resolver o NameSpace.base) prefix;
     fun hs_from_sctxt vs =
       let
         fun from_class cls =
@@ -793,13 +813,13 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
           str v
       | hs_from_expr fxy (e as IAbs _) =
           let
-            val (vs, body) = unfold_abs e
+            val (es, e) = unfold_abs e
           in
-            brackify fxy (
+            brackify BR (
               str "\\"
-              :: map (str o fst) vs @ [
+              :: map (hs_from_expr BR) es @ [
               str "->",
-              hs_from_expr NOBR body
+              hs_from_expr NOBR e
             ])
           end
       | hs_from_expr fxy (e as ICase (_, [_])) =
@@ -841,7 +861,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       let
         fun from_eq name (args, rhs) =
           Pretty.block [
-            (str o resolv) name,
+            (str o resolv_here) name,
             Pretty.block (map (fn p => Pretty.block [Pretty.brk 1, hs_from_expr BR p]) args),
             Pretty.brk 1,
             str ("="),
@@ -852,14 +872,14 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
     fun hs_from_def (name, Undef) =
           error ("empty statement during serialization: " ^ quote name)
       | hs_from_def (name, Prim prim) =
-          from_prim resolv (name, prim)
+          from_prim resolv_here (name, prim)
       | hs_from_def (name, Fun (eqs, (sctxt, ty))) =
           let
             val body = hs_from_funeqs (name, eqs);
           in if with_typs then
             Pretty.chunks [
               Pretty.block [
-                (str o suffix " ::" o resolv) name,
+                (str o suffix " ::" o resolv_here) name,
                 Pretty.brk 1,
                 hs_from_sctxt_type (sctxt, ty)
               ],
@@ -869,22 +889,22 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       | hs_from_def (name, Typesyn (vs, ty)) =
           Pretty.block [
             str "type ",
-            hs_from_sctxt_tycoexpr (vs, (name, map IVarT vs)),
+            hs_from_sctxt_tycoexpr (vs, (resolv_here name, map IVarT vs)),
             str " =",
             Pretty.brk 1,
             hs_from_sctxt_type ([], ty)
           ] |> SOME
-      | hs_from_def (name, Datatype ((vs, constrs), _)) =
+      | hs_from_def (name, Datatype (vs, constrs)) =
           let
             fun mk_cons (co, tys) =
               (Pretty.block o Pretty.breaks) (
-                (str o resolv) co
+                (str o resolv_here) co
                 :: map (hs_from_type NOBR) tys
               )
           in
             Pretty.block ((
               str "data "
-              :: hs_from_sctxt_type (vs, IType (name, map IVarT vs))
+              :: hs_from_sctxt_type (vs, IType (resolv_here name, map IVarT vs))
               :: str " ="
               :: Pretty.brk 1
               :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs)
@@ -895,11 +915,11 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
           end |> SOME
       | hs_from_def (_, Datatypecons _) =
           NONE
-      | hs_from_def (name, Class ((supclasss, (v, membrs)), _)) =
+      | hs_from_def (name, Class (supclasss, (v, membrs))) =
           let
             fun mk_member (m, (sctxt, ty)) =
               Pretty.block [
-                str (resolv m ^ " ::"),
+                str (resolv_here m ^ " ::"),
                 Pretty.brk 1,
                 hs_from_sctxt_type (sctxt, ty)
               ]
@@ -907,7 +927,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             Pretty.block [
               str "class ",
               hs_from_sctxt (map (fn class => (v, [class])) supclasss),
-              str (resolv name ^ " " ^ v),
+              str (resolv_here name ^ " " ^ v),
               str " where",
               Pretty.fbrk,
               Pretty.chunks (map mk_member membrs)
@@ -943,12 +963,12 @@ fun hs_from_thingol target nsps_upper nspgrp =
       "Bool", "fst", "snd", "Integer", "True", "False", "negate"
     ];
     fun hs_from_module imps ((_, name), ps) =
-      (Pretty.block o Pretty.fbreaks) (
-          str ("module " ^ name ^ " where")
-      :: map (str o prefix "import qualified ") imps @ [
-          str "",
-          Pretty.chunks (separate (str "") ps)
-      ]);
+      (Pretty.chunks) (
+        str ("module " ^ name ^ " where")
+        :: map (str o prefix "import qualified ") imps @ (
+          str ""
+          :: separate (str "") ps
+      ));
     fun postproc (shallow, n) =
       let
         fun ch_first f = String.implode o nth_map 0 f o String.explode;

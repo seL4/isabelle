@@ -46,6 +46,7 @@ sig
     -> appgen;
   val appgen_number_of: (term -> term) -> (theory -> term -> IntInf.int) -> string -> string
     -> appgen;
+  val appgen_wfrec: appgen;
   val eqextr_eq: (theory -> string -> thm list) -> term
     -> eqextr_default;
   val add_case_const: (theory -> string -> (string * int) list option) -> xstring
@@ -84,6 +85,10 @@ infixr 3 `|-->;
 
 (* shallow name spaces *)
 
+val alias_ref = ref (fn thy : theory => fn s : string => s, fn thy : theory => fn s : string => s);
+fun alias_get name = (fst o !) alias_ref name;
+fun alias_rev name = (snd o !) alias_ref name;
+
 val nsp_module = ""; (* a dummy by convention *)
 val nsp_class = "class";
 val nsp_tyco = "tyco";
@@ -93,11 +98,43 @@ val nsp_dtcon = "dtcon";
 val nsp_mem = "mem";
 val nsp_inst = "inst";
 
+fun add_nsp shallow name =
+  name
+  |> NameSpace.unpack
+  |> split_last
+  |> apsnd (single #> cons shallow)
+  |> (op @)
+  |> NameSpace.pack;
+
+fun dest_nsp nsp idf =
+  let
+    val idf' = NameSpace.unpack idf;
+    val (idf'', idf_base) = split_last idf';
+    val (modl, shallow) = split_last idf'';
+  in
+    if nsp = shallow
+   then (SOME o NameSpace.pack) (modl @ [idf_base])
+    else NONE
+  end;
+
+fun idf_of_name thy shallow name =
+  name
+  |> alias_get thy
+  |> add_nsp shallow;
+
+fun name_of_idf thy shallow idf =
+  idf
+  |> dest_nsp shallow
+  |> Option.map (alias_rev thy);
+
 
 (* code generator basics *)
 
-val alias_ref = ref (fn thy : theory => fn s : string => s);
-fun alias_get name = ! alias_ref name;
+type deftab = (typ * (thm * string)) list Symtab.table;
+
+fun eq_typ thy (ty1, ty2) =
+  Sign.typ_instance thy (ty1, ty2)
+  andalso Sign.typ_instance thy (ty2, ty1);
 
 structure InstNameMangler = NameManglerFun (
   type ctxt = theory;
@@ -112,11 +149,19 @@ structure InstNameMangler = NameManglerFun (
 );
 
 structure ConstNameMangler = NameManglerFun (
-  type ctxt = theory;
+  type ctxt = theory * deftab;
   type src = string * (typ * typ);
   val ord = prod_ord string_ord (prod_ord Term.typ_ord Term.typ_ord);
-  fun mk thy ((c, (ty_decl, ty)), i) =
+  fun mk (thy, deftab) ((c, (ty_decl, ty)), i) =
     let
+      val thyname = if c = "op ="
+        then
+          (NameSpace.drop_base o alias_get thy o fst o dest_Type o hd o fst o strip_type) ty
+        else (the o get_first
+          (fn (ty', (_, thyname)) => if eq_typ thy (ty, ty') then SOME thyname else NONE)
+          o the o Symtab.lookup deftab) c;
+      val c' = idf_of_name thy nsp_overl c;
+      val c'' = NameSpace.append thyname (NameSpace.append nsp_overl (NameSpace.base c'));
       fun mangle (Type (tyco, tys)) =
             (NameSpace.base o alias_get thy) tyco :: Library.flat (List.mapPartial mangle tys) |> SOME
         | mangle _ =
@@ -128,7 +173,7 @@ structure ConstNameMangler = NameManglerFun (
       |> List.mapPartial mangle
       |> Library.flat
       |> null ? K ["x"]
-      |> cons c
+      |> cons c''
       |> space_implode "_"
       |> curry (op ^ o swap) ((implode oo replicate) i "'")
     end;
@@ -162,7 +207,7 @@ structure DatatypeconsNameMangler = NameManglerFun (
   fun re_mangle _ dst = error ("no such datatype constructor: " ^ quote dst);
 );
 
-type auxtab = ((typ * thm) list Symtab.table * string Symtab.table)
+type auxtab = (deftab * string Symtab.table)
   * (InstNameMangler.T * ((typ * typ list) Symtab.table * ConstNameMangler.T)
   * DatatypeconsNameMangler.T);
 type eqextr = theory -> auxtab
@@ -327,7 +372,7 @@ fun print_code thy =
   end;
 
 
-(* name handling *)
+(* advanced name handling *)
 
 fun add_alias (src, dst) =
   map_codegen_data
@@ -338,47 +383,18 @@ fun add_alias (src, dst) =
             (tab |> Symtab.update (src, dst),
              tab_rev |> Symtab.update (dst, src))))));
 
-val _ = alias_ref := (perhaps o Symtab.lookup o fst o #alias o #logic_data o CodegenData.get);
-val alias_rev = perhaps o Symtab.lookup o snd o #alias o #logic_data o CodegenData.get;
+val _ = alias_ref := (perhaps o Symtab.lookup o fst o #alias o #logic_data o CodegenData.get,
+  perhaps o Symtab.lookup o snd o #alias o #logic_data o CodegenData.get);
 
-fun add_nsp shallow name =
-  name
-  |> NameSpace.unpack
-  |> split_last
-  |> apsnd (single #> cons shallow)
-  |> (op @)
-  |> NameSpace.pack;
-
-fun dest_nsp nsp idf =
-  let
-    val idf' = NameSpace.unpack idf;
-    val (idf'', idf_base) = split_last idf';
-    val (modl, shallow) = split_last idf'';
-  in
-    if nsp = shallow
-   then (SOME o NameSpace.pack) (modl @ [idf_base])
-    else NONE
-  end;
-
-fun idf_of_name thy shallow name =
-  name
-  |> alias_get thy
-  |> add_nsp shallow;
-
-fun name_of_idf thy shallow idf =
-  idf
-  |> dest_nsp shallow
-  |> Option.map (alias_rev thy);
-
-fun idf_of_const thy (tabs as ((_, clsmemtab), (_, (overltab1, overltab2), dtcontab)))
+fun idf_of_const thy (tabs as ((deftab, clsmemtab), (_, (overltab1, overltab2), dtcontab)))
       (c, ty) =
   let
     fun get_overloaded (c, ty) =
       case Symtab.lookup overltab1 c
        of SOME (ty_decl, tys) =>
             (case find_first (curry (Sign.typ_instance thy) ty) tys
-             of SOME ty' => ConstNameMangler.get thy overltab2
-                  (idf_of_name thy nsp_overl c, (ty_decl, ty')) |> SOME
+             of SOME ty' => ConstNameMangler.get (thy, deftab) overltab2
+                  (c, (ty_decl, ty')) |> SOME
               | _ => NONE)
         | _ => NONE
     fun get_datatypecons (c, ty) =
@@ -395,15 +411,14 @@ fun idf_of_const thy (tabs as ((_, clsmemtab), (_, (overltab1, overltab2), dtcon
     | NONE => idf_of_name thy nsp_const c
   end;
 
-fun recconst_of_idf thy (_, (_, (_, overltab2), _)) idf =
+fun recconst_of_idf thy ((deftab, _), (_, (_, overltab2), _)) idf =
   case name_of_idf thy nsp_const idf
    of SOME c => SOME (c, Sign.the_const_type thy c)
     | NONE => (
         case dest_nsp nsp_overl idf
          of SOME _ =>
               idf
-              |> ConstNameMangler.rev thy overltab2
-              |> apfst (the o name_of_idf thy nsp_overl)
+              |> ConstNameMangler.rev (thy, deftab) overltab2
               |> apsnd snd
               |> SOME
           | NONE => NONE
@@ -494,10 +509,6 @@ fun set_int_tyco tyco thy =
 
 (* sophisticated devarification *)
 
-fun eq_typ thy (ty1, ty2) =
-  Sign.typ_instance thy (ty1, ty2)
-  andalso Sign.typ_instance thy (ty2, ty1);
-
 fun devarify_typs tys =
   let
     fun add_rename (vi as (v, _), sorts) used =
@@ -583,7 +594,7 @@ fun ensure_def_class thy tabs cls trns =
               ||>> (codegen_type thy tabs o map snd) cs
               ||>> (fold_map o fold_map) (exprgen_tyvar_sort thy tabs) sortctxts
               |-> (fn ((supcls, memtypes), sortctxts) => succeed
-                (Class ((supcls, ("a", idfs ~~ (sortctxts ~~ memtypes))), [])))
+                (Class (supcls, ("a", idfs ~~ (sortctxts ~~ memtypes)))))
             end
         | _ =>
             trns
@@ -611,7 +622,7 @@ and ensure_def_tyco thy tabs tyco trns =
                     |> fold_map (exprgen_tyvar_sort thy tabs) vars
                     ||>> fold_map (fn (c, ty) => codegen_type thy tabs ty #-> (fn ty' => pair (c, ty'))) cos'
                     |-> (fn (sorts, cos'') => succeed (Datatype
-                         ((sorts, cos''), [])))
+                         (sorts, cos'')))
                   end
               | NONE =>
                   trns
@@ -799,7 +810,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       trns
       |> exprgen_type thy tabs ty
       ||>> exprgen_term thy tabs (subst_bound (Free (v, ty), t))
-      |-> (fn (ty, e) => pair ((v, ty) `|-> e))
+      |-> (fn (ty, e) => pair (IVarE (v, ty) `|-> e))
   | exprgen_term thy tabs (t as t1 $ t2) trns =
       let
         val (t', ts) = strip_comb t
@@ -842,7 +853,7 @@ and appgen thy tabs ((f, ty), ts) trns =
             |> debug 10 (fn _ => "eta-expanding")
             |> fold_map (exprgen_type thy tabs) tys
             ||>> ag thy tabs ((f, ty), ts @ map2 (curry Free) vs tys)
-            |-> (fn (tys, e) => pair ((vs ~~ tys) `|--> e))
+            |-> (fn (tys, e) => pair (map2 (curry IVarE) vs tys `|--> e))
           end
         else if length ts > imax then
           trns
@@ -863,7 +874,7 @@ and appgen thy tabs ((f, ty), ts) trns =
 (* function extractors *)
 
 fun eqextr_defs thy ((deftab, _), _) (c, ty) =
-  Option.mapPartial (get_first (fn (ty', thm) => if eq_typ thy (ty, ty')
+  Option.mapPartial (get_first (fn (ty', (thm, _)) => if eq_typ thy (ty, ty')
     then SOME ([thm], ty')
     else NONE
   )) (Symtab.lookup deftab c);
@@ -871,28 +882,16 @@ fun eqextr_defs thy ((deftab, _), _) (c, ty) =
 
 (* parametrized generators, for instantiation in HOL *)
 
-fun appgen_let strip_abs thy tabs ((c, ty), [t2, t3]) trns =
+fun appgen_let strip_abs thy tabs ((c, ty), [t_val, t_cont]) trns =
   let
-    fun dest_let (l as Const (c', _) $ t $ u) =
-          if c = c' then
-            case strip_abs 1 u
-             of ([p], u') => apfst (cons (p, t)) (dest_let u')
-              | _ => ([], l)
-          else ([], t)
-      | dest_let t = ([], t);
-    fun mk_let (l, r) trns =
-      trns
-      |> exprgen_term thy tabs l
-      ||>> exprgen_term thy tabs r
-      |-> (fn (l, r) => pair (r, l));
-    val (lets, body) = dest_let (Const (c, ty) $ t2 $ t3)
+    val ([t_abs], t_body) = strip_abs 1 t_cont;
   in
     trns
-    |> fold_map mk_let lets
-    ||>> exprgen_term thy tabs body
-    |-> (fn (lets, body) =>
-         pair (Library.foldr (fn ((e, p), body) => ICase (e, [(p, body)])) (lets, body)))
-  end
+    |> exprgen_term thy tabs t_val
+    ||>> exprgen_term thy tabs t_abs
+    ||>> exprgen_term thy tabs t_body
+    |-> (fn ((e, abs), body) => pair (ICase (e, [(abs, body)])))
+  end;
 
 fun appgen_split strip_abs thy tabs (c, [t2]) trns =
   let
@@ -901,7 +900,7 @@ fun appgen_split strip_abs thy tabs (c, [t2]) trns =
     trns
     |> exprgen_term thy tabs p
     ||>> exprgen_term thy tabs body
-    |-> (fn (IVarE v, body) => pair (v `|-> body))
+    |-> (fn (e, body) => pair (e `|-> body))
   end;
 
 fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
@@ -914,6 +913,23 @@ fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
       trns
       |> exprgen_term thy tabs (mk_int_to_nat bin)
     else error ("invalid type constructor for numeral: " ^ quote tyco);
+
+fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
+  let
+    val ty_def = (op ---> o apfst tl o strip_type o Sign.the_const_type thy) c;
+    val ty' = (op ---> o apfst tl o strip_type) ty;
+    val idf = idf_of_const thy tabs (c, ty);
+  in
+    trns
+    |> gen_ensure_def [("wfrec", (K o succeed) Undef)] ("generating wfrec") idf
+    |> exprgen_type thy tabs ty'
+    ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
+           (ClassPackage.extract_classlookup thy (c, ty))
+    ||>> codegen_type thy tabs [ty_def]
+    ||>> exprgen_term thy tabs tf
+    ||>> exprgen_term thy tabs tx
+    |-> (fn ((((_, ls), [ty]), tf), tx) => pair (IConst ((idf, ty), ls) `$ tf `$ tx))
+  end;
 
 fun eqextr_eq f fals thy tabs ("op =", ty) =
       (case ty
@@ -974,24 +990,29 @@ fun mk_tabs thy =
   let
     fun extract_defs thy =
       let
-        fun dest tm =
+        fun dest thm =
           let
-            val (lhs, rhs) = Logic.dest_equals (prop_of tm);
+            val (lhs, rhs) = Logic.dest_equals (prop_of thm);
             val (t, args) = strip_comb lhs;
             val (c, ty) = dest_Const t
-          in if forall is_Var args then SOME ((c, ty), tm) else NONE
+          in if forall is_Var args then SOME ((c, ty), thm) else NONE
           end handle TERM _ => NONE;
         fun prep_def def = (case Codegen.preprocess thy [def] of
           [def'] => def' | _ => error "mk_tabs: bad preprocessor");
-        fun add_def (name, _) =
+        fun add_def thyname (name, _) =
           case (dest o prep_def o Thm.get_axiom thy) name
-           of SOME ((c, ty), tm) =>
-                Symtab.default (c, []) #> Symtab.map_entry c (cons (ty, tm))
+           of SOME ((c, ty), thm) =>
+                Symtab.default (c, [])
+                #> Symtab.map_entry c (cons (ty, (thm, thyname)))
             | NONE => I
+        fun get_defs thy =
+          let
+            val thyname = Context.theory_name thy;
+            val defs = (snd o #axioms o Theory.rep_theory) thy;
+          in Symtab.fold (add_def thyname) defs end;
       in
         Symtab.empty
-        |> fold (Symtab.fold add_def o snd o #axioms o Theory.rep_theory)
-             (thy :: Theory.ancestors_of thy)
+        |> fold get_defs (thy :: Theory.ancestors_of thy)
       end;
     fun mk_insttab thy =
       InstNameMangler.empty
@@ -1000,7 +1021,7 @@ fun mk_tabs thy =
             (fn (tyco, thyname) => InstNameMangler.declare thy (thyname, (cls, tyco))) clsinsts)
                  (ClassPackage.get_classtab thy)
       |-> (fn _ => I);
-    fun add_monoeq thy (overltab1, overltab2) =
+    fun add_monoeq thy deftab (overltab1, overltab2) =
       let
         val c = "op =";
         val ty = Sign.the_const_type thy c;
@@ -1013,8 +1034,8 @@ fun mk_tabs thy =
         (overltab1
          |> Symtab.update_new (c, (ty, tys)),
          overltab2
-         |> fold (fn ty' => ConstNameMangler.declare thy
-              (idf_of_name thy nsp_overl c, (ty, ty')) #> snd) tys)
+         |> fold (fn ty' => ConstNameMangler.declare (thy, deftab)
+              (c, (ty, ty')) #> snd) tys)
       end;
     fun mk_overltabs thy deftab =
       (Symtab.empty, ConstNameMangler.empty)
@@ -1026,11 +1047,11 @@ fun mk_tabs thy =
                     overltab1
                     |> Symtab.update_new (c, (Sign.the_const_type thy c, map fst tytab)),
                     overltab2
-                    |> fold (fn (ty, _) => ConstNameMangler.declare thy
-                         (idf_of_name thy nsp_overl c, (Sign.the_const_type thy c, ty)) #> snd) tytab))
+                    |> fold (fn (ty, (_, thyname)) => ConstNameMangler.declare (thy, deftab)
+                         (c, (Sign.the_const_type thy c, ty)) #> snd) tytab))
                 else I
           ) deftab
-      |> add_monoeq thy;
+      |> add_monoeq thy deftab;
     fun mk_dtcontab thy =
       DatatypeconsNameMangler.empty
       |> fold_map

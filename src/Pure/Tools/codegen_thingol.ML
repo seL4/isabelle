@@ -18,18 +18,18 @@ sig
       IConst of (string * itype) * classlookup list list
     | IVarE of vname * itype
     | IApp of iexpr * iexpr
-    | IAbs of (vname * itype) * iexpr
+    | IAbs of iexpr * iexpr
     | ICase of iexpr * (iexpr * iexpr) list;
   val mk_funs: itype list * itype -> itype;
   val mk_apps: iexpr * iexpr list -> iexpr;
-  val mk_abss: (vname * itype) list * iexpr -> iexpr;
+  val mk_abss: iexpr list * iexpr -> iexpr;
   val pretty_itype: itype -> Pretty.T;
   val pretty_iexpr: iexpr -> Pretty.T;
   val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list;
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
   val unfold_fun: itype -> itype list * itype;
   val unfold_app: iexpr -> iexpr * iexpr list;
-  val unfold_abs: iexpr -> (vname * itype) list * iexpr;
+  val unfold_abs: iexpr -> iexpr list * iexpr;
   val unfold_let: iexpr -> (iexpr * iexpr) list * iexpr;
   val unfold_const_app: iexpr ->
     (((string * itype) * classlookup list list) * iexpr list) option;
@@ -41,8 +41,8 @@ sig
   val `--> : itype list * itype -> itype;
   val `$ : iexpr * iexpr -> iexpr;
   val `$$ : iexpr * iexpr list -> iexpr;
-  val `|-> : (vname * itype) * iexpr -> iexpr;
-  val `|--> : (vname * itype) list * iexpr -> iexpr;
+  val `|-> : iexpr * iexpr -> iexpr;
+  val `|--> : iexpr list * iexpr -> iexpr;
 
   type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
   datatype prim =
@@ -52,12 +52,10 @@ sig
       Undef
     | Prim of (string * prim list) list
     | Fun of funn
-    | Typesyn of (vname * string list) list * itype
-    | Datatype of ((vname * string list) list * (string * itype list) list)
-        * string list
+    | Typesyn of (vname * sort) list * itype
+    | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
-    | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list))
-        * string list
+    | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
           * (class * classlookup list list) list)
@@ -91,7 +89,7 @@ sig
   val soft_exc: bool ref;
 
   val serialize:
-    ((string -> string) -> (string * def) list -> 'a option)
+    ((string -> string -> string) -> string -> (string * def) list -> 'a option)
     -> (string list -> (string * string) * 'a list -> 'a option)
     -> (string -> string option)
     -> (string * string -> string)
@@ -161,7 +159,7 @@ datatype iexpr =
     IConst of (string * itype) * classlookup list list
   | IVarE of vname * itype
   | IApp of iexpr * iexpr
-  | IAbs of (vname * itype) * iexpr
+  | IAbs of iexpr * iexpr
   | ICase of iexpr * (iexpr * iexpr) list;
 
 (*
@@ -213,8 +211,8 @@ fun pretty_iexpr (IConst ((c, ty), _)) =
       Pretty.block [Pretty.str ("?" ^ v ^ "::"), pretty_itype ty]
   | pretty_iexpr (IApp (e1, e2)) =
       Pretty.enclose "(" ")" [pretty_iexpr e1, Pretty.brk 1, pretty_iexpr e2]
-  | pretty_iexpr (IAbs ((v, ty), e)) =
-      Pretty.enclose "(" ")" [Pretty.str ("?" ^ v ^ " |->"), Pretty.brk 1, pretty_iexpr e]
+  | pretty_iexpr (IAbs (e1, e2)) =
+      Pretty.enclose "(" ")" [pretty_iexpr e1, Pretty.brk 1, Pretty.str "|->", Pretty.brk 1, pretty_iexpr e2]
   | pretty_iexpr (ICase (e, cs)) =
       Pretty.enclose "(" ")" [
         Pretty.str "case ",
@@ -334,40 +332,6 @@ fun instant_itype f =
       | instant y = map_itype instant y;
   in map_itype instant end;
 
-
-(* simple diagnosis *)
-
-fun pretty_itype (IType (tyco, tys)) =
-      Pretty.enum "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
-  | pretty_itype (IFun (ty1, ty2)) =
-      Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
-  | pretty_itype (IVarT (v, sort)) =
-      Pretty.str (v ^ enclose "|" "|" (space_implode "|" sort));
-
-fun pretty_iexpr (IConst ((c, ty), _)) =
-      Pretty.block [Pretty.str (c ^ "::"), pretty_itype ty]
-  | pretty_iexpr (IVarE (v, ty)) =
-      Pretty.block [Pretty.str ("?" ^ v ^ "::"), pretty_itype ty]
-  | pretty_iexpr (IApp (e1, e2)) =
-      Pretty.enclose "(" ")" [pretty_iexpr e1, Pretty.brk 1, pretty_iexpr e2]
-  | pretty_iexpr (IAbs ((v, ty), e)) =
-      Pretty.enclose "(" ")" [Pretty.str ("?" ^ v ^ " |->"), Pretty.brk 1, pretty_iexpr e]
-  | pretty_iexpr (ICase (e, cs)) =
-      Pretty.enclose "(" ")" [
-        Pretty.str "case ",
-        pretty_iexpr e,
-        Pretty.enclose "(" ")" (map (fn (p, e) =>
-          Pretty.block [
-            pretty_iexpr p,
-            Pretty.str " => ",
-            pretty_iexpr e
-          ]
-        ) cs)
-      ];
-
-
-(* language auxiliary *)
-
 fun itype_of_iexpr (IConst ((_, ty), s)) = ty
   | itype_of_iexpr (IVarE (_, ty)) = ty
   | itype_of_iexpr (e as IApp (e1, e2)) = (case itype_of_iexpr e1
@@ -378,7 +342,7 @@ fun itype_of_iexpr (IConst ((_, ty), s)) = ty
               ^ ", " ^ (Pretty.output o pretty_itype) ty2
               ^ " vs. " ^ (Pretty.output o pretty_itype o itype_of_iexpr) e2)
        | _ => error ("expression is not a function: " ^ Pretty.output (pretty_iexpr e1)))
-  | itype_of_iexpr (IAbs ((_, ty1), e2)) = ty1 `-> itype_of_iexpr e2
+  | itype_of_iexpr (IAbs (e1, e2)) = itype_of_iexpr e1 `-> itype_of_iexpr e2
   | itype_of_iexpr (ICase ((_, [(_, e)]))) = itype_of_iexpr e;
 
 fun ensure_pat (e as IConst (_, [])) = e
@@ -391,7 +355,8 @@ fun ensure_pat (e as IConst (_, [])) = e
 fun type_vnames ty = 
   let
     fun extr (IVarT (v, _)) =
-      insert (op =) v
+          insert (op =) v
+      | extr _ = I;
   in fold_atype extr ty end;
 
 fun expr_names e =
@@ -423,12 +388,10 @@ datatype def =
     Undef
   | Prim of (string * prim list) list
   | Fun of funn
-  | Typesyn of (vname * string list) list * itype
-  | Datatype of ((vname * string list) list * (string * itype list) list)
-      * string list
+  | Typesyn of (vname * sort) list * itype
+  | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
-  | Class of (class list * (vname * (string * (ClassPackage.sortcontext * itype)) list))
-      * string list
+  | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
         * (class * classlookup list list) list)
@@ -468,28 +431,24 @@ fun pretty_def Undef =
         Pretty.str " |=> ",
         pretty_itype ty
       ]
-  | pretty_def (Datatype ((vs, cs), insts)) =
+  | pretty_def (Datatype (vs, cs)) =
       Pretty.block [
         Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
         Pretty.str " |=> ",
         Pretty.enum " |" "" ""
           (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
-            (Pretty.str c :: map pretty_itype tys)) cs),
-        Pretty.str ", instances ",
-        Pretty.enum "," "[" "]" (map Pretty.str insts)
+            (Pretty.str c :: map pretty_itype tys)) cs)
       ]
   | pretty_def (Datatypecons dtname) =
       Pretty.str ("cons " ^ dtname)
-  | pretty_def (Class ((supcls, (v, mems)), insts)) =
+  | pretty_def (Class (supcls, (v, mems))) =
       Pretty.block [
         Pretty.str ("class var " ^ v ^ "extending "),
         Pretty.enum "," "[" "]" (map Pretty.str supcls),
         Pretty.str " with ",
         Pretty.enum "," "[" "]"
           (map (fn (m, (_, ty)) => Pretty.block
-            [Pretty.str (m ^ "::"), pretty_itype ty]) mems),
-        Pretty.str " instances ",
-        Pretty.enum "," "[" "]" (map Pretty.str insts)
+            [Pretty.str (m ^ "::"), pretty_itype ty]) mems)
       ]
   | pretty_def (Classmember clsname) =
       Pretty.block [
@@ -609,7 +568,9 @@ fun add_dep (name1, name2) modl =
       val add_edge =
         if null r1 andalso null r2
         then Graph.add_edge
-        else Graph.add_edge_acyclic
+        else fn edge => (Graph.add_edge_acyclic edge
+          handle Graph.CYCLES _ => error ("adding dependency "
+            ^ quote name1 ^ " -> " ^ quote name2 ^ " would result in module dependency cycle"))
       fun add [] node =
             node
             |> add_edge (s1, s2)
@@ -776,24 +737,17 @@ fun check_prep_def modl Undef =
       Fun (check_funeqs eqs, d)
   | check_prep_def modl (d as Typesyn _) =
       d
-  | check_prep_def modl (d as Datatype (_, insts)) =
-      if null insts
-      then d
-      else error "attempted to add datatype with bare instances"
+  | check_prep_def modl (d as Datatype _) =
+      d
   | check_prep_def modl (Datatypecons dtco) =
       error "attempted to add bare datatype constructor"
-  | check_prep_def modl (d as Class ((_, (v, membrs)), insts)) =
-      if null insts
-      then
-        if member (op =) (map fst (Library.flat (map (fst o snd) membrs))) v
-        then error "incorrectly abstracted class type variable"
-        else d
-      else error "attempted to add class with bare instances"
+  | check_prep_def modl (d as Class _) =
+      d
   | check_prep_def modl (Classmember _) =
       error "attempted to add bare class member"
   | check_prep_def modl (Classinst ((d as ((class, (tyco, arity)), _), memdefs))) =
       let
-        val Class ((_, (v, membrs)), _) = get_def modl class;
+        val Class (_, (v, membrs)) = get_def modl class;
         val _ = if length memdefs > length memdefs
           then error "too many member definitions given"
           else ();
@@ -808,7 +762,7 @@ fun check_prep_def modl Undef =
                 else error ("inconsistent type for member definition " ^ quote m)
       in Classinst (d, map mk_memdef membrs) end;
 
-fun postprocess_def (name, Datatype ((_, constrs), _)) =
+fun postprocess_def (name, Datatype (_, constrs)) =
       (check_samemodule (name :: map fst constrs);
       fold (fn (co, _) =>
         ensure_def (co, Datatypecons name)
@@ -816,7 +770,7 @@ fun postprocess_def (name, Datatype ((_, constrs), _)) =
         #> add_dep (name, co)
       ) constrs
       )
-  | postprocess_def (name, Class ((_, (_, membrs)), _)) =
+  | postprocess_def (name, Class (_, (_, membrs))) =
       (check_samemodule (name :: map fst membrs);
       fold (fn (m, _) =>
         ensure_def (m, Classmember name)
@@ -824,10 +778,6 @@ fun postprocess_def (name, Datatype ((_, constrs), _)) =
         #> add_dep (name, m)
       ) membrs
       )
-  | postprocess_def (name, Classinst (((class, (tyco, _)), _), _)) =
-      map_def class (fn Datatype (d, insts) => Datatype (d, name::insts)
-                      | d => d)
-      #> map_def class (fn Class (d, insts) => Class (d, name::insts))
   | postprocess_def _ =
       I;
 
@@ -942,9 +892,9 @@ fun eta_expand query =
               |> curry Library.drop (length es)
               |> curry Library.take add_n
             val add_vars =
-              Term.invent_names (fold expr_names es []) "x" add_n ~~ tys;
+              map2 (curry IVarE) (Term.invent_names (fold expr_names es []) "x" add_n) tys;
           in
-            add_vars `|--> IConst ((f, ty), ls) `$$ es `$$ map IVarE add_vars
+            add_vars `|--> IConst ((f, ty), ls) `$$ es `$$ add_vars
           end
        | NONE => map_iexpr eta e;
   in (map_defs o map_def_fun o map_def_fun_expr) eta end;
@@ -956,9 +906,13 @@ val eta_expand_poly =
             orelse null (type_vnames ty [])
           then funn
           else
-            let
-              val add_var = (hd (Term.invent_names (expr_names e []) "x" 1), ty1)
-            in (([([IVarE add_var], add_var `|-> e)], cty)) end
+            (case unfold_abs e
+             of ([], e) =>
+                  let
+                    val add_var = IVarE (hd (Term.invent_names (expr_names e []) "x" 1), ty1)
+                  in (([([add_var], add_var `|-> e)], cty)) end
+              | eq => 
+                  (([eq], cty)))
       | eta funn = funn;
   in (map_defs o map_def_fun) eta end;
 
@@ -1075,6 +1029,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
 fun serialize seri_defs seri_module validate postprocess nsp_conn name_root module =
   let
     val resolver = mk_deresolver module nsp_conn postprocess validate;
+    fun sresolver s = (resolver o NameSpace.unpack) s
     fun mk_name prfx name =
       let
         val name_qual = NameSpace.pack (prfx @ [name])
@@ -1086,7 +1041,7 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
           seri_module (map (resolver []) (imports_of module (prfx @ [name])))
             (mk_name prfx name, mk_contents (prfx @ [name]) modl)
       | seri prfx ds =
-          seri_defs (resolver prfx)
+          seri_defs sresolver (NameSpace.pack prfx)
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
     seri_module (map (resolver []) (Graph.strong_conn module |> List.concat |> rev))

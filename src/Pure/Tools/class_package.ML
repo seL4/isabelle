@@ -58,13 +58,13 @@ type class_data = {
 structure ClassData = TheoryDataFun (
   struct
     val name = "Pure/classes";
-    type T = class_data Symtab.table * class Symtab.table;
-    val empty = (Symtab.empty, Symtab.empty);
+    type T = class_data Symtab.table * (class Symtab.table * string Symtab.table);
+    val empty = (Symtab.empty, (Symtab.empty, Symtab.empty));
     val copy = I;
     val extend = I;
-    fun merge _ ((t1, r1), (t2, r2))=
+    fun merge _ ((t1, (c1, l1)), (t2, (c2, l2)))=
       (Symtab.merge (op =) (t1, t2),
-       Symtab.merge (op =) (r1, r2));
+       (Symtab.merge (op =) (c1, c2), Symtab.merge (op =) (l1, l2)));
     fun print thy (tab, _) =
       let
         fun pretty_class (name, {superclasses, name_locale, name_axclass, var, consts, insts}) =
@@ -95,217 +95,17 @@ structure ClassData = TheoryDataFun (
 val _ = Context.add_setup ClassData.init;
 val print_classes = ClassData.print;
 
-val lookup_class_data = Symtab.lookup o fst o ClassData.get;
-val lookup_const_class = Symtab.lookup o snd o ClassData.get;
 
-fun get_class_data thy class =
+(* queries *)
+
+val lookup_class_data = Symtab.lookup o fst o ClassData.get;
+val lookup_const_class = Symtab.lookup o fst o snd o ClassData.get;
+val lookup_locale_class = Symtab.lookup o snd o snd o ClassData.get;
+
+fun the_class_data thy class =
   case lookup_class_data thy class
     of NONE => error ("undeclared operational class " ^ quote class)
      | SOME data => data;
-
-fun add_class_data (class, (superclasses, name_locale, name_axclass, classvar, consts)) =
-  ClassData.map (fn (classtab, consttab) => (
-    classtab 
-    |> Symtab.update (class, {
-         superclasses = superclasses,
-         name_locale = name_locale,
-         name_axclass = name_axclass,
-         var = classvar,
-         consts = consts,
-         insts = []
-       }),
-    consttab
-    |> fold (fn (c, _) => Symtab.update (c, class)) consts
-  ));
-
-fun add_inst_data (class, inst) =
-  (ClassData.map o apfst o Symtab.map_entry class)
-    (fn {superclasses, name_locale, name_axclass, var, consts, insts}
-      => {
-           superclasses = superclasses,
-           name_locale = name_locale,
-           name_axclass = name_axclass,
-           var = var,
-           consts = consts,
-           insts = insts @ [inst]
-          });
-
-
-(* name handling *)
-
-fun certify_class thy class =
-  (get_class_data thy class; class);
-
-fun intern_class thy raw_class =
-  certify_class thy (Sign.intern_class thy raw_class);
-
-fun extern_class thy class =
-  Sign.extern_class thy (certify_class thy class);
-
-
-(* classes and instances *)
-
-fun subst_clsvar v ty_subst =
-  map_type_tfree (fn u as (w, _) =>
-    if w = v then ty_subst else TFree u);
-
-local
-
-fun gen_add_class add_locale prep_class do_proof bname raw_supclasses raw_body thy =
-  let
-    val supclasses = map (prep_class thy) raw_supclasses;
-    fun get_allcs class =
-      let
-        val data = get_class_data thy class 
-      in
-        Library.flat (map get_allcs (#superclasses data) @ [#consts data])
-      end;
-    val supcs = Library.flat (map get_allcs supclasses)
-    val supsort = case map (#name_axclass o get_class_data thy) supclasses
-     of [] => Sign.defaultS thy
-      | sort => Sorts.certify_sort (Sign.classes_of thy) sort;
-    val locexpr = case supclasses
-     of [] => Locale.empty
-      | _ => (Locale.Merge o map (Locale.Locale o #name_locale o get_class_data thy))
-                supclasses;
-    fun mk_c_lookup c_global supcs c_adds =
-      map2 (fn ((c, _), _) => pair c) c_global supcs @ c_adds
-    fun extract_tyvar_consts thy name_locale =
-      let
-        fun extract_tyvar_name thy tys =
-          fold (curry add_typ_tfrees) tys []
-          |> (fn [(v, sort)] =>
-                    if Sorts.sort_le (Sign.classes_of thy) (swap (sort, supsort))
-                    then v 
-                    else error ("illegal sort constraint on class type variable: " ^ Sign.string_of_sort thy sort)
-               | [] => error ("no class type variable")
-               | vs => error ("more than one type variable: " ^ (commas o map (Sign.string_of_typ thy o TFree)) vs))
-        val raw_consts =
-          Locale.parameters_of thy name_locale
-          |> map (apsnd Syntax.unlocalize_mixfix)
-          |> ((curry splitAt o length) supcs);
-        val v = (extract_tyvar_name thy o map (snd o fst) o op @) raw_consts;
-        fun subst_ty cs =
-          map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) cs;
-        val consts = (subst_ty (fst raw_consts), subst_ty (snd raw_consts));
-        val _ = (writeln o commas o map (fst o fst)) (fst consts);
-        val _ = (writeln o commas o map (fst o fst)) (snd consts);
-      in (v, consts) end;
-    fun add_global_const v ((c, ty), syn) thy =
-      thy
-      |> Sign.add_consts_i [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]
-      |> `(fn thy => (c, (Sign.intern_const thy c |> print, ty)))
-    fun extract_assumes thy name_locale c_lookup =
-      Locale.local_asms_of thy name_locale
-      |> map snd
-      |> Library.flat
-      |> (map o map_aterms) (fn Free (c, ty) => Const ((fst o the o AList.lookup (op =) c_lookup) c, ty)
-                             | t => t)
-      |> tap (fn ts => writeln ("(1) axclass axioms: " ^
-          (commas o map (Sign.string_of_term thy)) ts));
-    fun add_global_constraint v class (_, (c, ty)) thy =
-      thy
-      |> Sign.add_const_constraint_i (c, subst_clsvar v (TVar ((v, 0), [class])) ty);
-    fun interpret name_locale cs ax_axioms thy =
-      thy
-      |> Locale.interpretation (NameSpace.base name_locale, [])
-           (Locale.Locale name_locale) (map (SOME o fst) cs)
-      |> do_proof ax_axioms;
-  in
-    thy
-    |> add_locale bname locexpr raw_body
-    |-> (fn ctxt =>
-       `(fn thy => Locale.intern thy bname)
-    #-> (fn name_locale =>
-          `(fn thy => extract_tyvar_consts thy name_locale)
-    #-> (fn (v, (c_global, c_defs)) =>
-          fold_map (add_global_const v) c_defs
-    #-> (fn c_adds =>
-       `(fn thy => extract_assumes thy name_locale (mk_c_lookup c_global supcs c_adds))
-    #-> (fn assumes =>
-          AxClass.add_axclass_i (bname, supsort) (map (Thm.no_attributes o pair "") assumes))
-    #-> (fn { axioms = ax_axioms : thm list, ...} =>
-          `(fn thy => Sign.intern_class thy bname)
-    #-> (fn name_axclass =>
-          fold (add_global_constraint v name_axclass) c_adds
-    #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, v, map snd c_adds))
-    #> interpret name_locale (supcs @ (map (fn ((c, ty), _) => (Sign.intern_const thy c, ty)) c_defs)) ax_axioms
-    ))))))
-  end;
-
-in
-
-val add_class = gen_add_class (Locale.add_locale true) intern_class
-  (fn ax_axioms => Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE));
-val add_class_i = gen_add_class (Locale.add_locale_i true) certify_class
-  (fn ax_axioms => Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE));
-val add_class_exp = gen_add_class (Locale.add_locale true) intern_class
-  (K I);
-
-end; (* local *)
-
-fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy = 
-  let
-    val pp = Sign.pp thy;
-    val arity as (tyco, asorts, sort) = prep_arity thy ((fn ((x, y), z) => (x, y, z)) raw_arity);
-    val ty_inst = Type (tyco, map2 (curry TVar o rpair 0) (Term.invent_names [] "'a" (length asorts)) asorts)
-    fun get_c_req class =
-      let
-        val data = get_class_data thy class;
-        val subst_ty = map_type_tfree (fn (var as (v, _)) =>
-          if #var data = v then ty_inst else TFree var)
-      in (map (apsnd subst_ty) o #consts) data end;
-    val c_req = (Library.flat o map get_c_req) sort;
-    fun get_remove_contraint c thy =
-      let
-        val ty1 = Sign.the_const_constraint thy c;
-        val ty2 = Sign.the_const_type thy c;
-      in
-        thy
-        |> Sign.add_const_constraint_i (c, ty2)
-        |> pair (c, ty1)
-      end;
-    fun check_defs raw_defs c_req thy =
-      let
-        val thy' = thy |> Theory.copy |> Sign.add_arities_i [(tyco, asorts, sort)];
-        fun get_c raw_def =
-          (fst o Sign.cert_def pp o snd o tap_def thy' o fst) raw_def;
-        val c_given = map get_c raw_defs;
-(*         spec_opt_name   *)
-        fun eq_c ((c1, ty1), (c2, ty2)) = 
-          let
-            val ty1' = Type.varifyT ty1;
-            val ty2' = Type.varifyT ty2;
-          in
-            c1 = c2
-            andalso Sign.typ_instance thy (ty1', ty2')
-            andalso Sign.typ_instance thy (ty2', ty1')
-          end;
-        val _ = case fold (remove eq_c) c_req c_given
-         of [] => ()
-          | cs => error ("superfluous definition(s) given for "
-                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
-        val _ = case fold (remove eq_c) c_given c_req
-         of [] => ()
-          | cs => error ("no definition(s) given for "
-                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
-      in thy end;
-    fun after_qed cs =
-      fold Sign.add_const_constraint_i cs
-      #> fold (fn class => add_inst_data (class, (tyco, Context.theory_name thy))) sort;
-  in
-    thy
-    |> tap (fn thy => check_defs raw_defs c_req thy)
-    |> fold_map get_remove_contraint (map fst c_req)
-    ||> add_defs (true, raw_defs)
-    |-> (fn cs => AxClass.instance_arity_i (after_qed cs) arity)
-  end;
-
-val add_instance_arity = gen_instance_arity (AxClass.read_arity) IsarThy.add_defs read_axm;
-val add_instance_arity_i = gen_instance_arity (AxClass.cert_arity) IsarThy.add_defs_i (K I);
-
-
-(* queries *)
 
 fun is_class thy cls =
   lookup_class_data thy cls
@@ -333,24 +133,33 @@ fun the_superclasses thy class =
   else
     error ("no syntactic class: " ^ class);
 
+fun the_ancestry thy classes =
+  let
+    fun ancestry class anc =
+      anc
+      |> cons class
+      |> fold ancestry (the_superclasses thy class);
+  in fold ancestry classes [] end;
+
+fun subst_clsvar v ty_subst =
+  map_type_tfree (fn u as (w, _) =>
+    if w = v then ty_subst else TFree u);
+
 fun the_consts_sign thy class =
   let
-    val data = (the oo Symtab.lookup) ((fst o ClassData.get) thy) class
+    val data = the_class_data thy class
   in (#var data, #consts data) end;
 
-fun lookup_const_class thy =
-  Symtab.lookup ((snd o ClassData.get) thy);
-
-fun the_instances thy class =
-  (#insts o the o Symtab.lookup ((fst o ClassData.get) thy)) class;
+val the_instances =
+  #insts oo the_class_data;
 
 fun the_inst_sign thy (class, tyco) =
   let
     val _ = if is_class thy class then () else error ("no syntactic class: " ^ class);
-    val arity = 
+    val arity =
       Sorts.mg_domain (Sign.classes_arities_of thy) tyco [class]
       |> map (operational_sort_of thy);
-    val clsvar = (#var o the o Symtab.lookup ((fst o ClassData.get) thy)) class;
+    val clsvar = (#var o the_class_data thy) class;
     val const_sign = (snd o the_consts_sign thy) class;
     fun add_var sort used =
       let
@@ -370,6 +179,218 @@ fun get_classtab thy =
     (fn (class, { consts = consts, insts = insts, ... }) =>
       Symtab.update_new (class, (map fst consts, insts)))
        ((fst o ClassData.get) thy) Symtab.empty;
+
+
+(* updaters *)
+
+fun add_class_data (class, (superclasses, name_locale, name_axclass, classvar, consts)) =
+  ClassData.map (fn (classtab, (consttab, loctab)) => (
+    classtab
+    |> Symtab.update (class, {
+         superclasses = superclasses,
+         name_locale = name_locale,
+         name_axclass = name_axclass,
+         var = classvar,
+         consts = consts,
+         insts = []
+       }),
+    (consttab
+    |> fold (fn (c, _) => Symtab.update (c, class)) consts,
+    loctab
+    |> Symtab.update (name_locale, class))
+  ));
+
+fun add_inst_data (class, inst) =
+  (ClassData.map o apfst o Symtab.map_entry class)
+    (fn {superclasses, name_locale, name_axclass, var, consts, insts}
+      => {
+           superclasses = superclasses,
+           name_locale = name_locale,
+           name_axclass = name_axclass,
+           var = var,
+           consts = consts,
+           insts = insts @ [inst]
+          });
+
+
+(* name handling *)
+
+fun certify_class thy class =
+  (the_class_data thy class; class);
+
+fun intern_class thy raw_class =
+  certify_class thy (Sign.intern_class thy raw_class);
+
+fun extern_class thy class =
+  Sign.extern_class thy (certify_class thy class);
+
+
+(* classes and instances *)
+
+local
+
+fun intern_expr thy (Locale.Locale xname) = Locale.Locale (Locale.intern thy xname)
+  | intern_expr thy (Locale.Merge exprs) = Locale.Merge (map (intern_expr thy) exprs)
+  | intern_expr thy (Locale.Rename (expr, xs)) = Locale.Rename (intern_expr thy expr, xs);
+
+fun gen_add_class add_locale prep_expr eval_expr do_proof bname raw_expr raw_body thy =
+  let
+    val ((import_asms, supclasses), locexpr) = (eval_expr thy o prep_expr thy) raw_expr;
+    val supsort =
+      supclasses
+      |> map (#name_axclass o the_class_data thy)
+      |> Sorts.certify_sort (Sign.classes_of thy)
+      |> null ? K (Sign.defaultS thy);
+    val _ = writeln ("got sort: " ^ Sign.string_of_sort thy supsort);
+    val _ = writeln ("got asms: " ^ (cat_lines o map (Sign.string_of_term thy) o Library.flat o map (snd o fst)) import_asms);
+    val supcs = (Library.flat o map (snd o the_consts_sign thy) o the_ancestry thy) supclasses;
+    fun mk_c_lookup c_global supcs c_adds =
+      map2 (fn ((c, _), _) => pair c) c_global supcs @ c_adds;
+    fun extract_tyvar_consts thy name_locale =
+      let
+        fun extract_tyvar_name thy tys =
+          fold (curry add_typ_tfrees) tys []
+          |> (fn [(v, sort)] =>
+                    if Sorts.sort_le (Sign.classes_of thy) (swap (sort, supsort))
+                    then v
+                    else error ("illegal sort constraint on class type variable: " ^ Sign.string_of_sort thy sort)
+               | [] => error ("no class type variable")
+               | vs => error ("more than one type variable: " ^ (commas o map (Sign.string_of_typ thy o TFree)) vs))
+        val raw_consts =
+          Locale.parameters_of thy name_locale
+          |> map (apsnd Syntax.unlocalize_mixfix)
+          |> Library.chop (length supcs);
+        val v = (extract_tyvar_name thy o map (snd o fst) o op @) raw_consts;
+        fun subst_ty cs =
+          map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) cs;
+        val consts = (subst_ty (fst raw_consts), subst_ty (snd raw_consts));
+        (*val _ = (writeln o commas o map (fst o fst)) (fst consts);
+        val _ = (writeln o commas o map (fst o fst)) (snd consts);*)
+      in (v, consts) end;
+    fun add_global_const v ((c, ty), syn) thy =
+      thy
+      |> Sign.add_consts_i [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]
+      |> `(fn thy => (c, (Sign.intern_const thy c, ty)))
+    fun subst_assume c_lookup renaming =
+      map_aterms (fn Free (c, ty) => Const ((fst o the o AList.lookup (op =) c_lookup o perhaps (AList.lookup (op =) renaming)) c, ty)
+                   | t => t)
+    fun extract_assumes thy name_locale c_lookup =
+      map (rpair []) (Locale.local_asms_of thy name_locale) @ import_asms
+      |> map (fn (((name, atts), ts), renaming) => ((name, map (Attrib.attribute thy) atts), (map (subst_assume c_lookup renaming)) ts));
+    fun rearrange_assumes ((name, atts), ts) =
+      map (rpair atts o pair "") ts
+    fun add_global_constraint v class (_, (c, ty)) thy =
+      thy
+      |> Sign.add_const_constraint_i (c, subst_clsvar v (TVar ((v, 0), [class])) ty);
+    fun ad_hoc_const thy class v (c, ty) =
+      let
+        val ty' = subst_clsvar v (TFree (v, [class])) ty;
+        val s_ty = setmp print_mode [] (setmp show_types true (setmp show_sorts true (Sign.string_of_typ thy))) ty';
+        val s = c ^ "::" ^ enclose "(" ")" s_ty;
+        val _ = writeln ("our constant: " ^ s);
+      in SOME s end;
+    fun interpret name_locale name_axclass v cs ax_axioms thy =
+      thy
+      |> Locale.interpretation (NameSpace.base name_locale, [])
+           (Locale.Locale name_locale) (map (ad_hoc_const thy name_axclass v) cs)
+      |> do_proof ax_axioms;
+  in
+    thy
+    |> add_locale bname locexpr raw_body
+    |-> (fn ctxt =>
+       `(fn thy => Locale.intern thy bname)
+    #-> (fn name_locale =>
+          `(fn thy => extract_tyvar_consts thy name_locale)
+    #-> (fn (v, (c_global, c_defs)) =>
+          fold_map (add_global_const v) c_defs
+    #-> (fn c_adds =>
+       `(fn thy => extract_assumes thy name_locale (mk_c_lookup c_global supcs c_adds))
+    #-> (fn assumes =>
+          AxClass.add_axclass_i (bname, supsort) ((Library.flat o map rearrange_assumes) assumes))
+    #-> (fn { axioms = ax_axioms : thm list, ...} =>
+          `(fn thy => Sign.intern_class thy bname)
+    #-> (fn name_axclass =>
+          fold (add_global_constraint v name_axclass) c_adds
+    #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, v, map snd c_adds))
+    #> interpret name_locale name_axclass v (supcs @ map snd c_adds) ax_axioms
+    ))))))
+  end;
+
+fun eval_expr_supclasses thy [] = (([], []), Locale.empty)
+  | eval_expr_supclasses thy supclasses =
+      (([], supclasses),
+        (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data thy)) supclasses);
+
+in
+
+val add_class = gen_add_class (Locale.add_locale true) (map o intern_class)
+  eval_expr_supclasses (fn ax_axioms => Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE));
+val add_class_i = gen_add_class (Locale.add_locale_i true) (map o certify_class)
+  eval_expr_supclasses (fn ax_axioms => Proof.global_terminal_proof (Method.Basic (Method.fact ax_axioms), NONE));
+val add_class_exp = gen_add_class (Locale.add_locale true) (map o intern_class)
+  eval_expr_supclasses (K I);
+
+end; (* local *)
+
+fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
+  let
+    val pp = Sign.pp thy;
+    val arity as (tyco, asorts, sort) = prep_arity thy ((fn ((x, y), z) => (x, y, z)) raw_arity);
+    val ty_inst = Type (tyco, map2 (curry TVar o rpair 0) (Term.invent_names [] "'a" (length asorts)) asorts)
+    fun get_c_req class =
+      let
+        val data = the_class_data thy class;
+        val subst_ty = map_type_tfree (fn (var as (v, _)) =>
+          if #var data = v then ty_inst else TFree var)
+      in (map (apsnd subst_ty) o #consts) data end;
+    val c_req = (Library.flat o map get_c_req) sort;
+    fun get_remove_contraint c thy =
+      let
+        val ty1 = Sign.the_const_constraint thy c;
+        val ty2 = Sign.the_const_type thy c;
+      in
+        thy
+        |> Sign.add_const_constraint_i (c, ty2)
+        |> pair (c, ty1)
+      end;
+    fun check_defs raw_defs c_req thy =
+      let
+        val thy' = thy |> Theory.copy |> Sign.add_arities_i [(tyco, asorts, sort)];
+        fun get_c raw_def =
+          (fst o Sign.cert_def pp o snd o tap_def thy' o fst) raw_def;
+        val c_given = map get_c raw_defs;
+(*         spec_opt_name   *)
+        fun eq_c ((c1, ty1), (c2, ty2)) =
+          let
+            val ty1' = Type.varifyT ty1;
+            val ty2' = Type.varifyT ty2;
+          in
+            c1 = c2
+            andalso Sign.typ_instance thy (ty1', ty2')
+            andalso Sign.typ_instance thy (ty2', ty1')
+          end;
+        val _ = case fold (remove eq_c) c_req c_given
+         of [] => ()
+          | cs => error ("superfluous definition(s) given for "
+                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
+        (*val _ = case fold (remove eq_c) c_given c_req
+      of [] => ()
+          | cs => error ("no definition(s) given for "
+                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);*)
+      in thy end;
+    fun after_qed cs =
+      fold Sign.add_const_constraint_i cs
+      #> fold (fn class => add_inst_data (class, (tyco, Context.theory_name thy))) sort;
+  in
+    thy
+    |> tap (fn thy => check_defs raw_defs c_req thy)
+    |> fold_map get_remove_contraint (map fst c_req)
+    ||> add_defs (true, raw_defs)
+    |-> (fn cs => AxClass.instance_arity_i (after_qed cs) arity)
+  end;
+
+val add_instance_arity = gen_instance_arity (AxClass.read_arity) IsarThy.add_defs read_axm;
+val add_instance_arity_i = gen_instance_arity (AxClass.cert_arity) IsarThy.add_defs_i (K I);
 
 
 (* extracting dictionary obligations from types *)
@@ -434,7 +455,7 @@ fun extract_classlookup thy (c, raw_typ_use) =
        of NONE => ctxt
         | SOME class =>
             let
-              val data = (the o Symtab.lookup ((fst o ClassData.get) thy)) class;
+              val data = the_class_data thy class;
               val sign = (Type.varifyT o the o AList.lookup (op =) (#consts data)) c;
               val match_tab = Sign.typ_match thy (sign, typ_def) Vartab.empty;
               val v : string = case Vartab.lookup match_tab (#var data, 0)
@@ -467,7 +488,7 @@ fun add_classentry raw_class raw_cs thy =
       raw_cs
       |> map (Sign.intern_const thy)
       |> map (fn c => (c, Sign.the_const_constraint thy c));
-    val used = 
+    val used =
       []
       |> fold (fn (_, ty) => curry (gen_union (op =))
            ((map (fst o fst) o typ_tvars) ty @ (map fst o typ_tfrees) ty)) cs_proto
@@ -511,6 +532,11 @@ val parse_inst =
   )
   >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort))
 
+val locale_val =
+  (P.locale_expr --
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 P.context_element)) [] ||
+  Scan.repeat1 P.context_element >> pair Locale.empty);
+
 val classP =
   OuterSyntax.command classK "operational type classes" K.thy_decl (
     P.name --| P.$$$ "="
@@ -524,7 +550,7 @@ val classP_exp =
     P.name --| P.$$$ "="
     -- Scan.optional (Scan.repeat1 (P.name --| P.$$$ "+")) []
     -- Scan.optional (P.!!! (Scan.repeat1 P.context_element)) []
-      >> (Toplevel.print oo Toplevel.theory_to_proof
+      >> ((Toplevel.print oo Toplevel.theory_to_proof)
           o (fn ((bname, supclasses), elems) => add_class_exp bname supclasses elems)));
 
 val instanceP =
