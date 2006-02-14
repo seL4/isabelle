@@ -808,36 +808,22 @@ code_syntax_const
 
 ML {*
 
-signature PRODUCT_TYPE_CODEGEN =
-sig
-  val strip_abs: int -> term -> term list * term;
-end;
-
-structure ProductTypeCodegen : PRODUCT_TYPE_CODEGEN =
-struct
-
-fun strip_abs 0 t = ([], t)
-  | strip_abs i (Abs (s, T, t)) =
+fun strip_abs_split 0 t = ([], t)
+  | strip_abs_split i (Abs (s, T, t)) =
       let
         val s' = Codegen.new_name t s;
         val v = Free (s', T)
-      in apfst (cons v) (strip_abs (i-1) (subst_bound (v, t))) end
-  | strip_abs i (u as Const ("split", _) $ t) = (case strip_abs (i+1) t of
+      in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
+  | strip_abs_split i (u as Const ("split", _) $ t) = (case strip_abs_split (i+1) t of
         (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
       | _ => ([], u))
-  | strip_abs i t = ([], t);
-
-end;
-
-local
-
-open ProductTypeCodegen;
+  | strip_abs_split i t = ([], t);
 
 fun let_codegen thy defs gr dep thyname brack t = (case strip_comb t of
     (t1 as Const ("Let", _), t2 :: t3 :: ts) =>
     let
       fun dest_let (l as Const ("Let", _) $ t $ u) =
-          (case strip_abs 1 u of
+          (case strip_abs_split 1 u of
              ([p], u') => apfst (cons (p, t)) (dest_let u')
            | _ => ([], l))
         | dest_let t = ([], t);
@@ -868,7 +854,7 @@ fun let_codegen thy defs gr dep thyname brack t = (case strip_comb t of
 
 fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
     (t1 as Const ("split", _), t2 :: ts) =>
-      (case strip_abs 1 (t1 $ t2) of
+      (case strip_abs_split 1 (t1 $ t2) of
          ([p], u) =>
            let
              val (gr1, q) = Codegen.invoke_codegen thy defs dep thyname false (gr, p);
@@ -883,17 +869,14 @@ fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
        | _ => NONE)
   | _ => NONE);
 
-in
-
 val prod_codegen_setup =
   Codegen.add_codegen "let_codegen" let_codegen #>
   Codegen.add_codegen "split_codegen" split_codegen #>
   CodegenPackage.add_appconst
-    ("Let", ((2, 2), CodegenPackage.appgen_let strip_abs)) #>
+    ("Let", ((2, 2), CodegenPackage.appgen_let strip_abs_split)) #>
   CodegenPackage.add_appconst
-    ("split", ((1, 1), CodegenPackage.appgen_split strip_abs));
+    ("split", ((1, 1), CodegenPackage.appgen_split strip_abs_split));
 
-end;
 *}
 
 setup prod_codegen_setup

@@ -1397,9 +1397,9 @@ code_alias
   "op -->" "HOL.op_implies"
   "op &" "HOL.op_and"
   "op |" "HOL.op_or"
-  "op +" "IntDef.op_add"
-  "op -" "IntDef.op_minus"
-  "op *" "IntDef.op_times"
+  "op +" "HOL.op_add"
+  "op -" "HOL.op_minus"
+  "op *" "HOL.op_times"
   Not "HOL.not"
   uminus "HOL.uminus"
   arbitrary "HOL.arbitrary"
@@ -1419,9 +1419,9 @@ code_syntax_const
     ml (infixl 0 "orelse")
     haskell (infixl 2 "||")
   If
-    ml ("if __/ then __/ else __")
-    haskell ("if __/ then __/ else __")
-  "op =" (* an intermediate solution *)
+    ml (target_atom "(if __/ then __/ else __)")
+    haskell (target_atom "(if __/ then __/ else __)")
+  "op =" (* an intermediate solution for polymorphic equality *)
     ml (infixl 6 "=")
     haskell (infixl 4 "==")
   arbitrary

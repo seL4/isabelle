@@ -706,7 +706,7 @@ qed
 subsection {* Code generator setup *}
 
 code_alias
-  "op <=" "IntDef.op_le"
-  "op <" "IntDef.op_lt"
+  "op <=" "Orderings.op_le"
+  "op <" "Orderings.op_lt"
 
 end

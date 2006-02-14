@@ -183,7 +183,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/SetsAndFunctions.thy Library/BigO.thy \
-  Library/EfficientNat.thy Library/ExecutableSet.thy \
+  Library/EfficientNat.thy Library/ExecutableSet.thy Library/ExecutableRat.thy \
   Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
