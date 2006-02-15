@@ -73,6 +73,7 @@ sig
 
     val to_isa_thm : thm -> (term * term) list * Thm.thm
     val to_isa_term: term -> Term.term
+    val to_hol_thm : Thm.thm -> thm
 
     val REFL : term -> theory -> theory * thm
     val ASSUME : term -> theory -> theory * thm
@@ -124,6 +125,7 @@ datatype thm = HOLThm of (Term.term * Term.term) list * Thm.thm
 
 fun hthm2thm (HOLThm (_, th)) = th 
 
+fun to_hol_thm th = HOLThm ([], th)
 
 datatype proof_info
   = Info of {disk_info: (string * string) option ref}
@@ -199,6 +201,8 @@ fun simple_smart_string_of_cterm ct =
 	ct)
     end
 
+exception SMART_STRING
+
 fun smart_string_of_cterm ct =
     let
 	val {sign,t,T,...} = rep_cterm ct
@@ -207,8 +211,10 @@ fun smart_string_of_cterm ct =
 		   handle TERM _ => ct)
 	fun match cu = t aconv (term_of cu)
 	fun G 0 = Library.setmp show_types true (Library.setmp show_sorts true)
-	  | G 1 = Library.setmp show_all_types true (G 0)
-          | G _ = error ("ProofKernel.smart_string_of_cterm internal error")
+	  | G 1 = Library.setmp show_brackets true (G 0)
+	  | G 2 = Library.setmp show_all_types true (G 0)
+	  | G 3 = Library.setmp show_brackets true (G 2)
+          | G _ = raise SMART_STRING 
 	fun F n =
 	    let
 		val str = Library.setmp show_brackets false (G n string_of_cterm) ct
@@ -219,6 +225,7 @@ fun smart_string_of_cterm ct =
 		else F (n+1)
 	    end
 	    handle ERROR mesg => F (n+1)
+		 | SMART_STRING => raise ERROR ("smart_string failed for: "^(G 0 string_of_cterm ct))
     in
       Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end
@@ -1041,14 +1048,7 @@ fun mk_GEN v th sg =
 	res
     end
 
-(* rotate left k places, leaving the first j and last l premises alone
-*)
-
-fun permute_prems j k 0 th = Thm.permute_prems j k th
-  | permute_prems j k l th =
-    th |> Thm.permute_prems 0 (~l)
-       |> Thm.permute_prems (j+l) k
-       |> Thm.permute_prems 0 l
+val permute_prems = Thm.permute_prems 
 
 fun rearrange sg tm th =
     let
@@ -1140,7 +1140,7 @@ fun disambiguate_frees thm =
       val new_name = new_name' "a"
       fun replace_name n' (Free (n, t)) = Free (n', t)
         | replace_name n' _ = ERR "replace_name"
-      (* map: old oder fresh name -> old free, 
+      (* map: old or fresh name -> old free, 
          invmap: old free which has fresh name assigned to it -> fresh name *)
       fun dis (v, mapping as (map,invmap)) =
           let val n = name_of v in
@@ -1176,7 +1176,7 @@ val debug = ref false
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
 
-val conjE_helper = Thm.permute_prems 0 1 conjE
+val conjE_helper = permute_prems 0 1 conjE
 
 fun get_hol4_thm thyname thmname thy =
     case get_hol4_theorem thyname thmname thy of
@@ -1286,6 +1286,8 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 			val hth as HOLThm args = mk_res th
 			val thy' =  thy |> add_hol4_theorem thyname thmname args
 					|> add_hol4_mapping thyname thmname isaname
+			val _ = ImportRecorder.add_hol_theorem thyname thmname (snd args)
+			val _ = ImportRecorder.add_hol_mapping thyname thmname isaname
 		    in
 			(thy',SOME hth)
 		    end
@@ -1351,6 +1353,7 @@ fun intern_store_thm gen_output thyname thmname hth thy =
 	val rew = rewrite_hol4_term (concl_of th) thy
 	val th  = equal_elim rew th
 	val thy' = add_hol4_pending thyname thmname args thy
+	val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth') 
         val th = disambiguate_frees th
 	val thy2 = if gen_output
 		   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^ 
@@ -1903,34 +1906,45 @@ fun new_definition thyname constname rhs thy =
 	val csyn = mk_syn thy constname
 	val thy1 = case HOL4DefThy.get thy of
 		       Replaying _ => thy
-		     | _ => Theory.add_consts_i [(constname,ctype,csyn)] thy
+		     | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)]; Theory.add_consts_i [(constname,ctype,csyn)] thy)
 	val eq = mk_defeq constname rhs' thy1
 	val (thms, thy2) = PureThy.add_defs_i false [((thmname,eq),[])] thy1
+	val _ = ImportRecorder.add_defs thmname eq
 	val def_thm = hd thms
 	val thm' = def_thm RS meta_eq_to_obj_eq_thm
 	val (thy',th) = (thy2, thm')
 	val fullcname = Sign.intern_const thy' constname
 	val thy'' = add_hol4_const_mapping thyname constname true fullcname thy'
+	val _ = ImportRecorder.add_hol_const_mapping thyname constname fullcname
 	val (linfo,tm24) = disamb_term (mk_teq constname rhs' thy'')
 	val rew = rewrite_hol4_term eq thy''
 	val crhs = cterm_of thy'' (#2 (Logic.dest_equals (prop_of rew)))
 	val thy22 = if (def_name constname) = thmname andalso not redeclared andalso csyn = NoSyn
 		    then
-			add_dump ("constdefs\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^ "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n  " ^ (smart_string_of_cterm crhs)) thy''
+			let
+			    val p1 = quotename constname
+			    val p2 = string_of_ctyp (ctyp_of thy'' ctype)
+			    val p3 = Syntax.string_of_mixfix csyn
+			    val p4 = smart_string_of_cterm crhs
+			in
+			    add_dump ("constdefs\n  " ^p1^ " :: \"" ^p2^ "\" "^p3^ "\n  " ^p4) thy''  
+			end
 		    else
-			add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^
-				  "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
-				 thy''
-
+			(add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^
+				   "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
+				  thy'')
 	val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
-		     SOME (_,res) => HOLThm(rens_of linfo,res)
-		   | NONE => raise ERR "new_definition" "Bad conclusion"
+		      SOME (_,res) => HOLThm(rens_of linfo,res)
+		    | NONE => raise ERR "new_definition" "Bad conclusion"
 	val fullname = Sign.full_name thy22 thmname
 	val thy22' = case opt_get_output_thy thy22 of
-			 "" => add_hol4_mapping thyname thmname fullname thy22
+			 "" => (ImportRecorder.add_hol_mapping thyname thmname fullname; 
+				add_hol4_mapping thyname thmname fullname thy22)
 		       | output_thy =>
 			 let
 			     val moved_thmname = output_thy ^ "." ^ thyname ^ "." ^ thmname
+			     val _ = ImportRecorder.add_hol_move fullname moved_thmname
+			     val _ = ImportRecorder.add_hol_mapping thyname thmname moved_thmname
 			 in
 			     thy22 |> add_hol4_move fullname moved_thmname
 				   |> add_hol4_mapping thyname thmname moved_thmname
@@ -1981,6 +1995,7 @@ fun new_specification thyname thmname names hth thy =
 			       val str = Library.foldl (fn (acc,(c,T,csyn)) =>
 						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
 			       val thy' = add_dump str thy
+			       val _ = ImportRecorder.add_consts consts
 			   in
 			       Theory.add_consts_i consts thy'
 			   end
@@ -1988,9 +2003,11 @@ fun new_specification thyname thmname names hth thy =
 	    val thy1 = foldr (fn(name,thy)=>
 				snd (get_defname thyname name thy)) thy1 names
 	    fun new_name name = fst (get_defname thyname name thy1)
+	    val names' = map (fn name => (new_name name,name,false)) names
 	    val (thy',res) = SpecificationPackage.add_specification NONE
-				 (map (fn name => (new_name name,name,false)) names)
+				 names'
 				 (thy1,th)
+	    val _ = ImportRecorder.add_specification names' th
 	    val res' = Drule.freeze_all res
 	    val hth = HOLThm(rens,res')
 	    val rew = rewrite_hol4_term (concl_of res') thy'
@@ -2056,17 +2073,20 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val tnames = map fst tfrees
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy
+	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy	    
+            val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
 
 	    val fulltyname = Sign.intern_type thy' tycname
 	    val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
+	    val _ = ImportRecorder.add_hol_type_mapping thyname tycname fulltyname
 
 	    val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th3))
 	    val _ = if has_ren hth' then warning ("Theorem " ^ thmname ^ " needs variable-disambiguating")
 		    else ()
 	    val thy4 = add_hol4_pending thyname thmname args thy''
+	    val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
 
 	    val rew = rewrite_hol4_term (concl_of td_th) thy4
 	    val th  = equal_elim rew (Thm.transfer thy4 td_th)
@@ -2146,7 +2166,8 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val tnames = sort string_ord (map fst tfrees)
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false NONE typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
+	    val (thy', typedef_info) = TypedefPackage.add_typedef_i false NONE typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
+	    val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
 	    val fulltyname = Sign.intern_type thy' tycname
 	    val aty = Type (fulltyname, map mk_vartype tnames)
 	    val abs_ty = tT --> aty
@@ -2161,9 +2182,11 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val _ = if Drule.vars_of th4 = [] then () else raise ERR "type_introduction" "no term variables expected any more"
 	    val _ = message ("step 3: thyname="^thyname^", tycname="^tycname^", fulltyname="^fulltyname)
             val thy'' = add_hol4_type_mapping thyname tycname true fulltyname thy'
+	    val _ = ImportRecorder.add_hol_type_mapping thyname tycname fulltyname
             val _ = message "step 4"
 	    val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th4))
 	    val thy4 = add_hol4_pending thyname thmname args thy''
+	    val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
 	   
 	    val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4))) *)
 	    val c   =

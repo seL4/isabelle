@@ -21,6 +21,7 @@ sig
     val getItem : 'a seq -> ('a * 'a seq) option
     val nth : 'a seq * int -> 'a
     val take : 'a seq * int -> 'a seq
+    val take_at_most : 'a seq * int -> 'a list
     val drop : 'a seq * int -> 'a seq
     val rev : 'a seq -> 'a seq
     val concat : 'a seq seq -> 'a seq
@@ -90,7 +91,7 @@ exception Empty
 fun getItem (Seq s) = force s
 fun make f = Seq (delay f)
 
-fun null s = isSome (getItem s)
+fun null s = is_none (getItem s)
 
 local
     fun F n NONE = n
@@ -147,6 +148,12 @@ fun take (s,n) =
     then raise Subscript
     else F' s n
 end
+
+fun take_at_most (s,n) = 
+    if n <= 0 then [] else
+    case getItem s of 
+	NONE => []
+      | SOME (x,s') => x::(take_at_most (s',n-1))
 
 local
     fun F s 0 = s

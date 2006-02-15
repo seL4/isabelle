@@ -6,6 +6,7 @@
 signature HOL4_IMPORT_SYNTAX =
 sig
     type token = OuterSyntax.token
+    type command  = token list -> (theory -> theory) * token list 
 
     val import_segment: token list -> (theory -> theory) * token list
     val import_theory : token list -> (theory -> theory) * token list
@@ -22,6 +23,9 @@ sig
     val const_moves   : token list -> (theory -> theory) * token list
     val const_renames : token list -> (theory -> theory) * token list
 
+    val skip_import_dir : token list -> (theory -> theory) * token list
+    val skip_import     : token list -> (theory -> theory) * token list
+
     val setup        : unit -> unit
 end
 
@@ -29,6 +33,7 @@ structure HOL4ImportSyntax :> HOL4_IMPORT_SYNTAX =
 struct
 
 type token = OuterSyntax.token
+type command  = token list -> (theory -> theory) * token list 
 
 local structure P = OuterParse and K = OuterKeyword in
 
@@ -36,11 +41,19 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val import_segment = P.name >> set_import_segment
 
+
 val import_theory = P.name >> (fn thyname =>
 			       fn thy =>
 				  thy |> set_generating_thy thyname
 				      |> Theory.add_path thyname
 				      |> add_dump (";setup_theory " ^ thyname))
+
+fun do_skip_import_dir s = (ImportRecorder.set_skip_import_dir (SOME s); I)
+val skip_import_dir : command = P.string >> do_skip_import_dir
+
+val lower = String.map Char.toLower
+fun do_skip_import s = (ImportRecorder.set_skip_import (case lower s of "on" => true | "off" => false | _ => Scan.fail ()); I)
+val skip_import : command = P.short_ident >> do_skip_import
 
 fun end_import toks =
     Scan.succeed
@@ -50,13 +63,21 @@ fun end_import toks =
 		val segname = get_import_segment thy
 		val (int_thms,facts) = Replay.setup_int_thms thyname thy
 		val thmnames = List.filter (not o should_ignore thyname thy) facts
-               (* val _ = set show_types
-                val _ = set show_sorts*)
+		fun replay thy = 
+		    let
+			val _ = ImportRecorder.load_history thyname
+			val thy = Replay.import_thms thyname int_thms thmnames thy
+			    handle x => (ImportRecorder.save_history thyname; raise x)
+			val _ = ImportRecorder.save_history thyname
+			val _ = ImportRecorder.clear_history ()
+		    in
+			thy
+		    end					
 	    in
 		thy |> clear_import_thy
 		    |> set_segment thyname segname
 		    |> set_used_names facts
-		    |> Replay.import_thms thyname int_thms thmnames
+		    |> replay 
 		    |> clear_used_names
 		    |> export_hol4_pending
 		    |> Theory.parent_path
@@ -211,6 +232,12 @@ val parsers =
    OuterSyntax.command "end_import"
 		       "End HOL4 import"
 		       K.thy_decl (end_import >> Toplevel.theory),
+   OuterSyntax.command "skip_import_dir" 
+                       "Sets caching directory for skipping importing"
+                       K.thy_decl (skip_import_dir >> Toplevel.theory),
+   OuterSyntax.command "skip_import" 
+                       "Switches skipping importing on or off"
+                       K.thy_decl (skip_import >> Toplevel.theory),		      
    OuterSyntax.command "setup_theory"
 		       "Setup HOL4 theory replaying"
 		       K.thy_decl (setup_theory >> Toplevel.theory),

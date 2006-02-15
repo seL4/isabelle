@@ -3,7 +3,8 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory HOL4Compat imports HOL4Setup Divides Primes Real begin
+theory HOL4Compat imports HOL4Setup Divides Primes Real 
+begin
 
 lemma EXISTS_UNIQUE_DEF: "(Ex1 P) = (Ex P & (ALL x y. P x & P y --> (x = y)))"
   by auto

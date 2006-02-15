@@ -91,6 +91,16 @@ constdefs
 lemma NUMERAL_BIT1_altdef: "NUMERAL_BIT1 n = Suc (n + n)"
   by (simp add: NUMERAL_BIT1_def)
 
+consts
+  sumlift :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> (('a + 'b) \<Rightarrow> 'c)"
 
+primrec
+  "sumlift f g (Inl a) = f a"
+  "sumlift f g (Inr b) = g b"
+  
+lemma sum_Recursion: "\<exists> f. (\<forall> a. f (Inl a) = Inl' a) \<and> (\<forall> b. f (Inr b) = Inr' b)"
+  apply (rule exI[where x="sumlift Inl' Inr'"])
+  apply auto
+  done
 
 end

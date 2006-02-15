@@ -5,6 +5,10 @@
 
 theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin;
 
+;skip_import_dir "/home/obua/tmp/cache"
+
+;skip_import on
+
 ;import_segment "hollight";
 
 setup_dump "../HOLLight" "HOLLight";
@@ -24,9 +28,9 @@ ignore_thms
   DEF_IND_SUC
   DEF_IND_0
   DEF_NUM_REP
- (* TYDEF_sum
+  TYDEF_sum
   DEF_INL
-  DEF_INR*);
+  DEF_INR;
 
 type_maps
   ind > Nat.ind
@@ -34,8 +38,8 @@ type_maps
   fun > fun
   N_1 >  Product_Type.unit
   prod > "*"
-  num > nat;
- (* sum > "+";*)
+  num > nat
+  sum > "+";
 
 const_renames
   "==" > "eqeq"
@@ -74,10 +78,10 @@ const_maps
   "*" > "op *" :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   "-" > "op -" :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   BIT0 > HOLLightCompat.NUMERAL_BIT0
-  BIT1 > HOL4Compat.NUMERAL_BIT1;
- (* INL > Sum_Type.Inl
-  INR > Sum_Type.Inr
-  HAS_SIZE > HOLLightCompat.HAS_SIZE*)
+  BIT1 > HOL4Compat.NUMERAL_BIT1
+  INL > Sum_Type.Inl
+  INR > Sum_Type.Inr;
+ (* HAS_SIZE > HOLLightCompat.HAS_SIZE; *)
 
 (*import_until "TYDEF_sum"
 

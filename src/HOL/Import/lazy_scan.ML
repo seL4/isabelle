@@ -19,7 +19,7 @@ sig
     val --|      : ('a,'b) scanner * ('a,'c) scanner -> ('a,'b) scanner
     val |--      : ('a,'b) scanner * ('a,'c) scanner -> ('a,'c) scanner
     val ^^       : ('a,string) scanner * ('a,string) scanner
-		   -> ('a,string) scanner
+		   -> ('a,string) scanner 
     val ||       : ('a,'b) scanner * ('a,'b) scanner -> ('a,'b) scanner
     val one      : ('a -> bool) -> ('a,'a) scanner
     val succeed  : 'b -> ('a,'b) scanner
@@ -30,11 +30,14 @@ sig
     val repeat   : ('a,'b) scanner -> ('a,'b list) scanner
     val repeat1  : ('a,'b) scanner -> ('a,'b list) scanner
     val ahead    : ('a,'b) scanner -> ('a,'b) scanner
-    val unless   : ('a LazySeq.seq -> bool) -> ('a,'b) scanner -> ('a,'b) scanner
+    val unless   : ('a, 'b) scanner -> ('a,'c) scanner -> ('a,'c) scanner
     val $$       : ''a -> (''a,''a) scanner
     val !!       : ('a LazySeq.seq -> string) -> ('a,'b) scanner -> ('a,'b) scanner
     val scan_full: ('a,'b) scanner -> 'a LazySeq.seq -> 'b LazySeq.seq
 
+    val scan_id : (string, string) scanner
+    val this : ''a list -> (''a, ''a list) scanner
+    val this_string : string -> (string, string) scanner
 end
 
 structure LazyScan :> LAZY_SCAN =
@@ -202,5 +205,12 @@ fun scan_full sc toks =
     in
 	LazySeq.make (fn () => F toks)
     end
+
+val scan_id = one Symbol.is_letter ^^ (any Symbol.is_letdig >> implode);
+
+fun this [] = (fn toks => ([], toks))
+  | this (xs' as (x::xs)) = one (fn y => x=y) -- this xs >> K xs'
+
+fun this_string s = this (explode s) >> K s
 
 end

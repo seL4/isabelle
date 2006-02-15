@@ -3,9 +3,8 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory HOL4Setup imports MakeEqual
-  uses "susp.ML" "lazy_seq.ML" "lazy_scan.ML"
-    ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import_package.ML") begin
+theory HOL4Setup imports MakeEqual ImportRecorder
+  uses ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import_package.ML") begin
 
 section {* General Setup *}
 
