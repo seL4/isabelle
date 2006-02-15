@@ -8,8 +8,6 @@ theory CPure
 imports Pure
 begin
 
-subsection {* Specific modifications, see ROOT.ML *}
-
-setup
+setup  -- {* Some syntax modifications, see ROOT.ML *}
 
 end

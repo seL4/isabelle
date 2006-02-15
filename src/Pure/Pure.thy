@@ -10,9 +10,7 @@ theory Pure
 imports ProtoPure
 begin
 
-subsection {* Common setup of internal components *}
-
-setup
+setup  -- {* Common setup of internal components *}
 
 
 subsection {* Meta-level connectives in assumptions *}
