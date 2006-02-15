@@ -68,8 +68,8 @@ code_syntax_const 0 :: nat
   haskell (target_atom "0")
 
 code_syntax_const Suc
-  ml (infixl 8 "_ + 1")
-  haskell (infixl 6 "_ + 1")
+  ml (target_atom "(__ + 1)")
+  haskell (target_atom "(__ + 1)")
 
 text {*
 Case analysis on natural numbers is rephrased using a conditional

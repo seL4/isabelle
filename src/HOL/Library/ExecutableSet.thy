@@ -83,32 +83,32 @@ primrec
   "inter (x#xs) ys = (let xs' = inter xs ys in if member ys x then x#xs' else xs')"
 
 code_syntax_const "insert"
-  ml ("{*insert_*} _ _")
-  haskell ("{*insert_*} _ _")
+  ml ("{*insert_*}")
+  haskell ("{*insert_*}")
 
 code_syntax_const "op Un"
-  ml ("{*foldr insert_*} _ _")
-  haskell ("{*foldr insert_*} _ _")
+  ml ("{*foldr insert_*}")
+  haskell ("{*foldr insert_*}")
 
 code_syntax_const "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  ml ("{*(flip o foldr) remove*} _ _")
-  haskell ("{*(flip o foldr) remove*} _ _")
+  ml ("{*(flip o foldr) remove*}")
+  haskell ("{*(flip o foldr) remove*}")
 
 code_syntax_const "op Int"
-  ml ("{*inter*} _ _")
-  haskell ("{*inter*} _ _")
+  ml ("{*inter*}")
+  haskell ("{*inter*}")
 
 code_syntax_const "image"
-  ml ("{*\<lambda>f. foldr (insert_ o f)*} _ _ _")
-  haskell ("{*\<lambda>f. foldr (insert_ o f)*} _ _ _")
+  ml ("{*\<lambda>f. foldr (insert_ o f)*}")
+  haskell ("{*\<lambda>f. foldr (insert_ o f)*}")
 
 code_syntax_const "INTER"
-  ml ("{*\<lambda>xs f.  foldr (inter o f) xs*} _ _")
-  haskell ("{*\<lambda>xs f.  foldr (inter o f) xs*} _ _")
+  ml ("{*\<lambda>xs f.  foldr (inter o f) xs*}")
+  haskell ("{*\<lambda>xs f.  foldr (inter o f) xs*}")
 
 code_syntax_const "UNION"
-  ml ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*} _ _")
-  haskell ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*} _ _")
+  ml ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*}")
+  haskell ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*}")
 
 code_primconst "Ball"
 ml {*
