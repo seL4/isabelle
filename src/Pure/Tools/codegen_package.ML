@@ -39,6 +39,11 @@ sig
     -> theory -> theory;
   val set_int_tyco: string -> theory -> theory;
 
+  val codegen_incr: term -> theory -> (string * CodegenThingol.def) list * theory;
+  val get_ml_fun_datatype: theory -> (string -> string)
+    -> ((string * CodegenThingol.funn) list -> Pretty.T)
+        * ((string * CodegenThingol.datatyp) list -> Pretty.T);
+
   val appgen_default: appgen;
   val appgen_let: (int -> term -> term list * term)
     -> appgen;
@@ -500,7 +505,7 @@ fun set_int_tyco tyco thy =
     |> Symtab.update (
          #ml CodegenSerializer.serializers
          |> apsnd (fn seri => seri
-            (nsp_dtcon, nsp_class, fn tyco' => tyco' = idf_of_name thy nsp_tyco tyco )
+            (nsp_dtcon, nsp_class, fn tyco' => tyco' = idf_of_name thy nsp_tyco tyco)
               [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_mem, nsp_inst]]
             )
        )
@@ -591,7 +596,7 @@ fun ensure_def_class thy tabs cls trns =
               trns
               |> debug 5 (fn _ => "trying defgen class declaration for " ^ quote cls)
               |> fold_map (ensure_def_class thy tabs) (ClassPackage.the_superclasses thy cls)
-              ||>> (codegen_type thy tabs o map snd) cs
+              ||>> (exprsgen_type thy tabs o map snd) cs
               ||>> (fold_map o fold_map) (exprgen_tyvar_sort thy tabs) sortctxts
               |-> (fn ((supcls, memtypes), sortctxts) => succeed
                 (Class (supcls, ("a", idfs ~~ (sortctxts ~~ memtypes)))))
@@ -620,7 +625,7 @@ and ensure_def_tyco thy tabs tyco trns =
                     trns
                     |> debug 5 (fn _ => "trying defgen datatype for " ^ quote dtco)
                     |> fold_map (exprgen_tyvar_sort thy tabs) vars
-                    ||>> fold_map (fn (c, ty) => codegen_type thy tabs ty #-> (fn ty' => pair (c, ty'))) cos'
+                    ||>> fold_map (fn (c, ty) => exprsgen_type thy tabs ty #-> (fn ty' => pair (c, ty'))) cos'
                     |-> (fn (sorts, cos'') => succeed (Datatype
                          (sorts, cos'')))
                   end
@@ -657,7 +662,7 @@ and exprgen_type thy tabs (TVar _) trns =
       |> ensure_def_tyco thy tabs tyco
       ||>> fold_map (exprgen_type thy tabs) tys
       |-> (fn (tyco, tys) => pair (tyco `%% tys))
-and codegen_type thy tabs =
+and exprsgen_type thy tabs =
   fold_map (exprgen_type thy tabs) o snd o devarify_typs;
 
 fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
@@ -695,9 +700,9 @@ and mk_fun thy tabs (c, ty) trns =
             end;
         in
           trns
-          |> (codegen_eqs thy tabs o map dest_eqthm) eq_thms
-          ||>> (codegen_eqs thy tabs o the_list o Option.map mk_default) default
-          ||>> codegen_type thy tabs [ty]
+          |> (exprsgen_eqs thy tabs o map dest_eqthm) eq_thms
+          ||>> (exprsgen_eqs thy tabs o the_list o Option.map mk_default) default
+          ||>> exprsgen_type thy tabs [ty]
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
           |-> (fn (((eqs, eq_default), [ty]), sortctxt) => (pair o SOME) (eqs @ eq_default, (sortctxt, ty)))
         end
@@ -825,18 +830,18 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
             ||>> fold_map (exprgen_term thy tabs) ts
             |-> (fn (e, es) => pair (e `$$ es))
       end
-and codegen_term thy tabs =
+and exprsgen_term thy tabs =
   fold_map (exprgen_term thy tabs) o snd o devarify_term_typs
-and codegen_eqs thy tabs =
+and exprsgen_eqs thy tabs =
   apfst (map (fn (rhs::args) => (args, rhs)))
-    oo fold_burrow (codegen_term thy tabs)
+    oo fold_burrow (exprsgen_term thy tabs)
     o map (fn (args, rhs) => (rhs :: args))
 and appgen_default thy tabs ((c, ty), ts) trns =
   trns
   |> ensure_def_const thy tabs (c, ty)
   ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
          (ClassPackage.extract_classlookup thy (c, ty))
-  ||>> codegen_type thy tabs [ty]
+  ||>> exprsgen_type thy tabs [ty]
   ||>> fold_map (exprgen_term thy tabs) ts
   |-> (fn (((c, ls), [ty]), es) =>
          pair (IConst ((c, ty), ls) `$$ es))
@@ -925,7 +930,7 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
     |> exprgen_type thy tabs ty'
     ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
            (ClassPackage.extract_classlookup thy (c, ty))
-    ||>> codegen_type thy tabs [ty_def]
+    ||>> exprsgen_type thy tabs [ty_def]
     ||>> exprgen_term thy tabs tf
     ||>> exprgen_term thy tabs tx
     |-> (fn ((((_, ls), [ty]), tf), tx) => pair (IConst ((idf, ty), ls) `$ tf `$ tx))
@@ -988,6 +993,8 @@ val add_case_const_i = gen_add_case_const (K I);
 
 fun mk_tabs thy =
   let
+    fun get_specifications thy c =
+      Defs.specifications_of (Theory.defs_of thy) c;
     fun extract_defs thy =
       let
         fun dest thm =
@@ -1037,6 +1044,25 @@ fun mk_tabs thy =
          |> fold (fn ty' => ConstNameMangler.declare (thy, deftab)
               (c, (ty, ty')) #> snd) tys)
       end;
+    (* über *alle*: (map fst o NameSpace.dest_table o Consts.space_of o Sign.consts_of) thy
+       * (c, ty) reicht dann zur zünftigen Deklaration
+       * somit fliegt ein Haufen Grusch raus, deftab bleibt allerdings wegen thyname
+      fun mk_overltabs thy =
+      (Symtab.empty, ConstNameMangler.empty)
+      |> Symtab.fold
+          (fn c => if (is_none o ClassPackage.lookup_const_class thy) c
+            then case get_specifications thy c
+             of [_] => NONE
+              | tys => fold
+                (fn (overltab1, overltab2) => (
+                    overltab1
+                    |> Symtab.update_new (c, (Sign.the_const_type thy c, tys)),
+                    overltab2
+                    |> fold (fn (ty, (_, thyname)) => ConstNameMangler.declare (thy, deftab)
+                         (c, (Sign.the_const_type thy c, ty)) #> snd) tys))
+                else I
+          ) deftab
+      |> add_monoeq thy deftab;*)
     fun mk_overltabs thy deftab =
       (Symtab.empty, ConstNameMangler.empty)
       |> Symtab.fold
@@ -1126,6 +1152,23 @@ fun ensure_datatype_case_consts get_datatype_case_consts get_case_const_data thy
     fold ensure (get_datatype_case_consts thy) thy
   end;
 
+fun codegen_incr t thy =
+  thy
+  |> `(#modl o CodegenData.get)
+  ||>> expand_module NONE (fn thy => fn tabs => exprsgen_term thy tabs [t])
+  ||>> `(#modl o CodegenData.get)
+  |-> (fn ((modl_old, _), modl_new) => pair (CodegenThingol.diff_module (modl_new, modl_old)));
+
+fun get_ml_fun_datatype thy resolv =
+  let
+    val target_data = 
+      ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
+  in
+    CodegenSerializer.ml_fun_datatype (nsp_dtcon, nsp_class, K false)
+      ((Option.map fst oo Symtab.lookup o #syntax_tyco) target_data,
+      (Option.map fst oo Symtab.lookup o #syntax_const) target_data)
+      resolv
+  end;
 
 
 (** target languages **)
@@ -1200,11 +1243,15 @@ fun parse_syntax_tyco raw_tyco =
       if Sign.declared_tyname thy tyco
       then tyco
       else error ("no such type constructor: " ^ quote tyco);
-    fun prep_tyco thy tyco =
-      tyco
+    fun prep_tyco thy raw_tyco =
+      raw_tyco
       |> Sign.intern_type thy
       |> check_tyco thy
       |> idf_of_name thy nsp_tyco;
+    fun no_args_tyco thy raw_tyco =
+      AList.lookup (op =) ((NameSpace.dest_table o #types o Type.rep_tsig o Sign.tsig_of) thy)
+        (Sign.intern_type thy raw_tyco)
+      |> (fn SOME ((Type.LogicalType i), _) => i);
     fun mk reader target thy =
       let
         val _ = get_serializer target;
@@ -1225,7 +1272,8 @@ fun parse_syntax_tyco raw_tyco =
               logic_data)))
       end;
   in
-    CodegenSerializer.parse_syntax (read_quote (fn thy => prep_tyco thy raw_tyco) read_typ codegen_type)
+    CodegenSerializer.parse_syntax (fn thy => no_args_tyco thy raw_tyco)
+    (read_quote (fn thy => prep_tyco thy raw_tyco) read_typ exprsgen_type)
     #-> (fn reader => pair (mk reader))
   end;
 
@@ -1246,6 +1294,8 @@ fun parse_syntax_const raw_const =
   let
     fun prep_const thy raw_const =
       idf_of_const thy (mk_tabs thy) (read_const thy raw_const);
+    fun no_args_const thy raw_const =
+      (length o fst o strip_type o snd o read_const thy) raw_const;
     fun mk reader target thy =
       let
         val _ = get_serializer target;
@@ -1257,7 +1307,8 @@ fun parse_syntax_const raw_const =
         |-> (fn pretty => add_pretty_syntax_const c target pretty)
       end;
   in
-    CodegenSerializer.parse_syntax (read_quote (fn thy => prep_const thy raw_const) Sign.read_term codegen_term)
+    CodegenSerializer.parse_syntax (fn thy => no_args_const thy raw_const)
+      (read_quote (fn thy => prep_const thy raw_const) Sign.read_term exprsgen_term)
     #-> (fn reader => pair (mk reader))
   end;
 

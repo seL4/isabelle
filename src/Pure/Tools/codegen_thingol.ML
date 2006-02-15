@@ -45,6 +45,7 @@ sig
   val `|--> : iexpr list * iexpr -> iexpr;
 
   type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
+  type datatyp = (vname * sort) list * (string * itype list) list;
   datatype prim =
       Pretty of Pretty.T
     | Name;
@@ -53,7 +54,7 @@ sig
     | Prim of (string * prim list) list
     | Fun of funn
     | Typesyn of (vname * sort) list * itype
-    | Datatype of (vname * sort) list * (string * itype list) list
+    | Datatype of datatyp
     | Datatypecons of string
     | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
     | Classmember of class
@@ -72,6 +73,7 @@ sig
   val ensure_prim: string -> string -> module -> module;
   val get_def: module -> string -> def;
   val merge_module: module * module -> module;
+  val diff_module: module * module -> (string * def) list;
   val partof: string list -> module -> module;
   val has_nsp: string -> string -> bool;
   val succeed: 'a -> transact -> 'a transact_fin;
@@ -379,6 +381,7 @@ fun invent seed used =
 (* type definitions *)
 
 type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
+type datatyp = (vname * sort) list * (string * itype list) list;
 
 datatype prim =
     Pretty of Pretty.T
@@ -389,7 +392,7 @@ datatype def =
   | Prim of (string * prim list) list
   | Fun of funn
   | Typesyn of (vname * sort) list * itype
-  | Datatype of (vname * sort) list * (string * itype list) list
+  | Datatype of datatyp
   | Datatypecons of string
   | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
   | Classmember of class
@@ -671,6 +674,23 @@ fun merge_module modl12 =
           if eq_def (d1, d2) then Def d1 else raise Graph.DUP name
       | join_module name _ = raise Graph.DUP name
   in Graph.join join_module modl12 end;
+
+fun diff_module modl12 =
+  let
+    fun diff_entry prefix modl2 (name, Def def1) = 
+          let
+            val e2 = try (Graph.get_node modl2) name
+          in if is_some e2 andalso eq_def (def1, (dest_def o the) e2)
+            then I
+            else cons (NameSpace.pack (prefix @ [name]), def1)
+          end
+      | diff_entry prefix modl2 (name, Module modl1) =
+          diff_modl (prefix @ [name]) (modl1,
+            (the_default empty_module o Option.map dest_modl o try (Graph.get_node modl2)) name)
+    and diff_modl prefix (modl1, modl2) =
+      fold (diff_entry prefix modl2)
+        ((AList.make (Graph.get_node modl1) o Library.flat o Graph.strong_conn) modl1)
+  in diff_modl [] modl12 [] end;
 
 fun partof names modl =
   let

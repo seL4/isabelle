@@ -18,14 +18,20 @@ sig
       -> string list option
       -> CodegenThingol.module -> unit)
       * OuterParse.token list;
-  val parse_syntax: (string -> 'b -> 'a * 'b) -> OuterParse.token list ->
+  val parse_syntax: ('b -> int) -> (string -> 'b -> 'a * 'b) -> OuterParse.token list ->
     ('b -> 'a pretty_syntax * 'b) * OuterParse.token list;
   val parse_targetdef: string -> CodegenThingol.prim list;
   val pretty_list: string -> string -> int * string -> CodegenThingol.iexpr pretty_syntax;
   val serializers: {
     ml: string * (string * string * (string -> bool) -> serializer),
     haskell: string * (string list -> serializer)
-  }
+  };
+  val ml_fun_datatype: string * string * (string -> bool)
+    -> ((string -> CodegenThingol.itype pretty_syntax option)
+        * (string -> CodegenThingol.iexpr pretty_syntax option))
+    -> (string -> string)
+    -> ((string * CodegenThingol.funn) list -> Pretty.T)
+        * ((string * CodegenThingol.datatyp) list -> Pretty.T);
 end;
 
 structure CodegenSerializer: CODEGEN_SERIALIZER =
@@ -177,19 +183,20 @@ fun parse_syntax_proto reader = OuterParse.$$$ "(" |-- (
     || pair (parse_nonatomic_mixfix reader, BR)
   ) -- OuterParse.string --| OuterParse.$$$ ")" >> (fn ((p, fxy), s) => (p s, fxy));
 
-fun parse_syntax reader =
+fun parse_syntax no_args reader =
   let
     fun is_arg (Arg _) = true
       | is_arg Ignore = true
       | is_arg _ = false;
-    fun mk fixity mfx =
+    fun mk fixity mfx ctxt =
       let
-        val i = length (List.filter is_arg mfx)
-      in ((i, i), fillin_mixfix fixity mfx) end;
+        val i = (length o List.filter is_arg) mfx;
+        val _ = if i > no_args ctxt then error "too many arguments in codegen syntax" else ();
+      in (((i, i), fillin_mixfix fixity mfx), ctxt) end;
   in
     parse_syntax_proto reader
-    #-> (fn (mfx_reader, fixity) : ('Z -> 'Y mixfix list * 'Z) * fixity =>
-      pair (mfx_reader #-> (fn mfx => pair (mk fixity mfx)))
+    #-> (fn (mfx_reader, fixity) =>
+      pair (mfx_reader #-> (fn mfx => mk fixity mfx))
     )
   end;
 
@@ -342,55 +349,39 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
 
 local
 
-fun ml_from_defs (is_cons, needs_type)
-    (from_prim, (_, tyco_syntax, const_syntax)) resolver prefix defs =
+fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
   let
-    val resolv = resolver prefix;
-    fun chunk_defs ps =
-      let
-        val (p_init, p_last) = split_last ps
-      in
-        Pretty.chunks (p_init @ [Pretty.block ([p_last, str ";"])])
-      end;
     val ml_from_label =
-      resolv
-      #> NameSpace.base
-      #> translate_string (fn "_" => "__" | "." => "_" | c => c)
-      #> str;
-    fun ml_from_label' l =
-      Pretty.block [str "#", ml_from_label l];
-    fun ml_from_lookup fxy [] p =
-          p
-      | ml_from_lookup fxy [l] p =
-          brackify fxy [
-            ml_from_label' l,
-            p
-          ]
-      | ml_from_lookup fxy ls p =
-          brackify fxy [
-            Pretty.enum " o" "(" ")" (map ml_from_label' ls),
-            p
-          ];
+      str o translate_string (fn "_" => "__" | "." => "_" | c => c)
+        o NameSpace.base o resolv;
     fun ml_from_sortlookup fxy ls =
       let
+        fun from_label l =
+          Pretty.block [str "#", ml_from_label l];
+        fun from_lookup fxy [] p = p
+          | from_lookup fxy [l] p =
+              brackify fxy [
+                from_label l,
+                p
+              ]
+          | from_lookup fxy ls p =
+              brackify fxy [
+                Pretty.enum " o" "(" ")" (map from_label ls),
+                p
+              ];
         fun from_classlookup fxy (Instance (inst, lss)) =
               brackify fxy (
                 (str o resolv) inst
                 :: map (ml_from_sortlookup BR) lss
               )
           | from_classlookup fxy (Lookup (classes, (v, ~1))) =
-              ml_from_lookup BR classes (str v)
+              from_lookup BR classes (str v)
           | from_classlookup fxy (Lookup (classes, (v, i))) =
-              ml_from_lookup BR (string_of_int (i+1) :: classes) (str v)
+              from_lookup BR (string_of_int (i+1) :: classes) (str v)
       in case ls
        of [l] => from_classlookup fxy l
         | ls => (Pretty.list "(" ")" o map (from_classlookup NOBR)) ls
       end;
-    val ml_from_label =
-      resolv
-      #> NameSpace.base
-      #> translate_string (fn "_" => "__" | "." => "_" | c => c)
-      #> str;
     fun ml_from_tycoexpr fxy (tyco, tys) =
       let
         val tyco' = (str o resolv) tyco
@@ -422,7 +413,7 @@ fun ml_from_defs (is_cons, needs_type)
               ml_from_type (INFX (1, R)) t2
             ]
           end
-      | ml_from_type _ (IVarT (v, _)) =
+      | ml_from_type fxy (IVarT (v, _)) =
           str ("'" ^ v);
     fun ml_from_expr fxy (e as IApp (e1, e2)) =
           (case unfold_const_app e
@@ -512,19 +503,29 @@ fun ml_from_defs (is_cons, needs_type)
               :: (lss
               @ map (ml_from_expr BR) es)
             );
+  in (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) end;
+
+fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
+  let
+    val (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
+      ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
+    fun chunk_defs ps =
+      let
+        val (p_init, p_last) = split_last ps
+      in
+        Pretty.chunks (p_init @ [Pretty.block ([p_last, str ";"])])
+      end;
     fun ml_from_funs (defs as def::defs_tl) =
       let
         fun mk_definer [] = "val"
           | mk_definer _ = "fun";
-        fun check_args (_, Fun ((pats, _)::_, _)) NONE =
+        fun check_args (_, ((pats, _)::_, _)) NONE =
               SOME (mk_definer pats)
-          | check_args (_, Fun ((pats, _)::_, _)) (SOME definer) =
+          | check_args (_, ((pats, _)::_, _)) (SOME definer) =
               if mk_definer pats = definer
               then SOME definer
               else error ("mixing simultaneous vals and funs not implemented")
-          | check_args _ _ =
-              error ("function definition block containing other definitions than functions")
-        fun mk_fun definer (name, Fun (eqs as eq::eq_tl, (sortctxt, ty))) =
+        fun mk_fun definer (name, (eqs as eq::eq_tl, (sortctxt, ty))) =
           let
             val shift = if null eq_tl then I else map (Pretty.block o single);
             fun mk_eq definer (pats, expr) =
@@ -545,16 +546,10 @@ fun ml_from_defs (is_cons, needs_type)
         chunk_defs (
           mk_fun (the (fold check_args defs NONE)) def
           :: map (mk_fun "and") defs_tl
-        ) |> SOME
+        )
       end;
-    fun ml_from_datatypes defs =
+    fun ml_from_datatypes (defs as (def::defs_tl)) =
       let
-        val defs' = List.mapPartial
-          (fn (name, Datatype info) => SOME (name, info)
-            | (name, Datatypecons _) => NONE
-            | (name, def) => error ("datatype block containing illegal def: "
-                ^ (Pretty.output o pretty_def) def)
-          ) defs
         fun mk_cons (co, []) =
               str (resolv co)
           | mk_cons (co, tys) =
@@ -573,14 +568,27 @@ fun ml_from_defs (is_cons, needs_type)
             :: separate (str "|") (map mk_cons cs)
           )
       in
-        case defs'
-         of (def::defs_tl) =>
-            chunk_defs (
-              mk_datatype "datatype" def
-              :: map (mk_datatype "and ") defs_tl
-            ) |> SOME
-          | _ => NONE
-      end
+        chunk_defs (
+          mk_datatype "datatype" def
+          :: map (mk_datatype "and") defs_tl
+        )
+      end;
+  in (ml_from_funs, ml_from_datatypes) end;
+
+fun ml_from_defs (is_cons, needs_type)
+    (from_prim, (_, tyco_syntax, const_syntax)) resolver prefix defs =
+  let
+    val resolv = resolver prefix;
+    val (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
+      ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
+    val (ml_from_funs, ml_from_datatypes) =
+      ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
+    val filter_datatype =
+      List.mapPartial
+        (fn (name, Datatype info) => SOME (name, info)
+          | (name, Datatypecons _) => NONE
+          | (name, def) => error ("datatype block containing illegal def: "
+                ^ (Pretty.output o pretty_def) def));
     fun ml_from_def (name, Undef) =
           error ("empty definition during serialization: " ^ quote name)
       | ml_from_def (name, Prim prim) =
@@ -643,7 +651,7 @@ fun ml_from_defs (is_cons, needs_type)
                 :: map (ml_from_sortlookup NOBR) lss
               );
             fun from_memdef (m, def) =
-              ((the o ml_from_funs) [(m, Fun def)], Pretty.block [
+              (ml_from_funs [(m, def)], Pretty.block [
                 ml_from_label m,
                 Pretty.brk 1,
                 str "=",
@@ -679,11 +687,21 @@ fun ml_from_defs (is_cons, needs_type)
             ] |> SOME
           end;
   in case defs
-   of (_, Fun _)::_ => ml_from_funs defs
-    | (_, Datatypecons _)::_ => ml_from_datatypes defs
-    | (_, Datatype _)::_ => ml_from_datatypes defs
+   of (_, Fun _)::_ => (SOME o ml_from_funs o map (fn (name, Fun info) => (name, info))) defs
+    | (_, Datatypecons _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
+    | (_, Datatype _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
     | [def] => ml_from_def def
   end;
+
+fun ml_annotators (nsp_dtcon, nsp_class, is_int_tyco) =
+  let
+    fun needs_type (IType (tyco, _)) =
+          has_nsp tyco nsp_class
+          orelse is_int_tyco tyco
+      | needs_type _ =
+          false;
+    fun is_cons c = has_nsp c nsp_dtcon;
+  in (is_cons, needs_type) end;
 
 in
 
@@ -701,12 +719,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
         str "",
         str ("end; (* struct " ^ name ^ " *)")
       ]);
-    fun needs_type (IType (tyco, _)) =
-          has_nsp tyco nsp_class
-          orelse is_int_tyco tyco
-      | needs_type _ =
-          false;
-    fun is_cons c = has_nsp c nsp_dtcon;
+    val (is_cons, needs_type) = ml_annotators (nsp_dtcon, nsp_class, is_int_tyco);
     val serializer = abstract_serializer (target, nspgrp)
       "ROOT" (ml_from_defs (is_cons, needs_type), ml_from_module,
         abstract_validator reserved_ml, snd);
@@ -743,6 +756,9 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
     >> (fn seri => fn (class_syntax, tyco_syntax, const_syntax) => seri 
          (preprocess const_syntax) (class_syntax, tyco_syntax, const_syntax))
   end;
+
+fun ml_fun_datatype (nsp_dtcon, nsp_class, is_int_tyco) =
+  ml_fun_datatyp (ml_annotators (nsp_dtcon, nsp_class, is_int_tyco));
 
 end; (* local *)
 
