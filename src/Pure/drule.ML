@@ -75,6 +75,7 @@ sig
   val revcut_rl: thm
   val thin_rl: thm
   val triv_forall_equality: thm
+  val distinct_prems_rl: thm
   val swap_prems_rl: thm
   val equal_intr_rule: thm
   val equal_elim_rule1: thm
@@ -770,6 +771,18 @@ val triv_forall_equality =
     store_standard_thm_open "triv_forall_equality"
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))
         (implies_intr V  (forall_intr x (assume V))))
+  end;
+
+(* (PROP ?Phi ==> PROP ?Phi ==> PROP ?Psi) ==>
+   (PROP ?Phi ==> PROP ?Psi)
+*)
+val distinct_prems_rl =
+  let
+    val AAB = read_prop "PROP Phi ==> PROP Phi ==> PROP Psi"
+    val A = read_prop "PROP Phi";
+  in
+    store_standard_thm_open "distinct_prems_rl"
+      (implies_intr_list [AAB, A] (implies_elim_list (assume AAB) [assume A, assume A]))
   end;
 
 (* (PROP ?PhiA ==> PROP ?PhiB ==> PROP ?Psi) ==>
