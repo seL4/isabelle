@@ -65,8 +65,9 @@ fun define const_type name lhs rhs = map_defs (fn (consts, specified) =>
         (check_specified c spec specs; Inttab.update spec specs));
   in (consts', specified') end);
 
-fun specifications_of (Defs { specified, ... }) c =
-  (map (snd o snd) o Inttab.dest o the o Symtab.lookup specified) c;
+fun specifications_of (Defs {specified, ...}) c =
+  (map (snd o snd) o Inttab.dest o the_default Inttab.empty o Symtab.lookup specified) c;
+
 
 (* empty and merge *)
 
