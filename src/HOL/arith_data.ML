@@ -461,7 +461,7 @@ solver all the time rather than add the additional check. *)
    (l <= min m n + k) = (l <= m+k & l <= n+k)
 *)
 local
-(* a simpset for computations subject to optimazation !!! *)
+(* a simpset for computations subject to optimization !!! *)
 (*
 val binarith = map thm
   ["Pls_0_eq", "Min_1_eq",
