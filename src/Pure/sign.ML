@@ -66,7 +66,7 @@ sig
   val local_path: theory -> theory
   val no_base_names: theory -> theory
   val qualified_names: theory -> theory
-  val qualified_force_prefix: string -> theory -> theory
+  val sticky_prefix: string -> theory -> theory
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     theory -> theory
   val restore_naming: theory -> theory -> theory
@@ -884,12 +884,12 @@ val add_trrules_i = map_syn o Syntax.extend_trrules_i;
 
 (* modify naming *)
 
-val add_path               = map_naming o NameSpace.add_path;
-val no_base_names          = map_naming NameSpace.no_base_names;
-val qualified_names        = map_naming NameSpace.qualified_names;
-val qualified_force_prefix = map_naming o NameSpace.qualified_force_prefix;
-val set_policy             = map_naming o NameSpace.set_policy;
-val restore_naming         = map_naming o K o naming_of;
+val add_path        = map_naming o NameSpace.add_path;
+val no_base_names   = map_naming NameSpace.no_base_names;
+val qualified_names = map_naming NameSpace.qualified_names;
+val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
+val set_policy      = map_naming o NameSpace.set_policy;
+val restore_naming  = map_naming o K o naming_of;
 
 val parent_path   = add_path "..";
 val root_path     = add_path "/";
