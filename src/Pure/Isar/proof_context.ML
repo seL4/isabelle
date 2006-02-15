@@ -55,7 +55,6 @@ sig
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
   val read_prop_schematic: context -> string -> term
-  val read_terms: context -> string list -> term list
   val read_term_pats: typ -> context -> string list -> term list
   val read_prop_pats: context -> string list -> term list
   val cert_term: context -> term -> term
@@ -109,7 +108,7 @@ sig
   val extern_thm: context -> string -> xstring
   val no_base_names: context -> context
   val qualified_names: context -> context
-  val qualified_force_prefix: string -> context -> context
+  val sticky_prefix: string -> context -> context
   val restore_naming: context -> context -> context
   val hide_thms: bool -> string list -> context -> context
   val put_thms: string * thm list option -> context -> context
@@ -981,10 +980,10 @@ fun lthms_containing ctxt spec =
 
 val extern_thm = NameSpace.extern o #1 o #1 o thms_of;
 
-val no_base_names = map_naming NameSpace.no_base_names;
+val no_base_names   = map_naming NameSpace.no_base_names;
 val qualified_names = map_naming NameSpace.qualified_names;
-val qualified_force_prefix = map_naming o NameSpace.qualified_force_prefix;
-val restore_naming = map_naming o K o naming_of;
+val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
+val restore_naming  = map_naming o K o naming_of;
 
 fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
   ((fold (NameSpace.hide fully) names space, tab), index));
