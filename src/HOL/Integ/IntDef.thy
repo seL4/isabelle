@@ -281,7 +281,6 @@ instance int :: linorder
 
 
 lemmas zless_linear = linorder_less_linear [where 'a = int]
-lemmas linorder_neqE_int = linorder_neqE[where 'a = int]
 
 
 lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"

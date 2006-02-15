@@ -526,7 +526,7 @@ val int_arith_setup =
     mult_mono_thms = [mult_strict_left_mono,mult_left_mono] @ mult_mono_thms,
     inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
     lessD = lessD @ [zless_imp_add1_zle],
-    neqE = thm "linorder_neqE_int" :: neqE,
+    neqE = neqE,
     simpset = simpset addsimps add_rules
                       addsimprocs simprocs
                       addcongs [if_weak_cong]}) #>
