@@ -532,12 +532,11 @@ fun print_atom((a,d),r) =
               else IntInf.toString p ^ "/" ^ IntInf.toString q
   in a ^ " = " ^ s end;
 
-fun print_ex sds =
+fun produce_ex sds =
   curry (op ~~) sds
   #> map print_atom
   #> commas
-  #> curry (op ^) "Counter example:\n"
-  #> tracing;
+  #> curry (op ^) "Counter example:\n";
 
 fun trace_ex(sg,params,atoms,discr,n,hist:history) =
   if null hist then ()
@@ -546,9 +545,12 @@ fun trace_ex(sg,params,atoms,discr,n,hist:history) =
            val (v,lineqs) :: hist' = hist
            val start = if v = ~1 then (findex0 discr n lineqs,hist')
                        else (replicate n Rat.zero,hist)
-       in warning "arith failed - see trace for a counter example";
-          print_ex ((map s_of_t atoms)~~discr) (findex discr start)
-          handle NoEx => (tracing "Sorry, no counter example.")
+           val ex = SOME (produce_ex ((map s_of_t atoms)~~discr) (findex discr start))
+             handle NoEx => NONE;
+       in
+         (case ex of
+           SOME s => (warning "arith failed - see trace for a counter example"; tracing s)
+         | NONE => warning "arith failed")
        end;
 
 fun mknat pTs ixs (atom,i) =
