@@ -11,6 +11,7 @@ sig
   type T
   val define: (string -> typ) -> string -> string * typ -> (string * typ) list -> T -> T
   val empty: T
+  val specifications_of: T -> string -> typ list
   val merge: Pretty.pp -> T * T -> T
 end
 
@@ -64,6 +65,8 @@ fun define const_type name lhs rhs = map_defs (fn (consts, specified) =>
         (check_specified c spec specs; Inttab.update spec specs));
   in (consts', specified') end);
 
+fun specifications_of (Defs { specified, ... }) c =
+  (map (snd o snd) o Inttab.dest o the o Symtab.lookup specified) c;
 
 (* empty and merge *)
 
