@@ -146,26 +146,11 @@ fun eqsubst_tac' ctxt searchf instepthm i th =
     in stepthms |> Seq.maps rewrite_with_thm end;
 
 
-(* Tactic.distinct_subgoals_tac -- fails to free type variables *)
-
-(* custom version of distinct subgoals that works with term and
-   type variables. Asssumes th is in beta-eta normal form.
-   Also, does nothing if flexflex contraints are present. *)
+(* distinct subgoals *)
 fun distinct_subgoals th =
-    if List.null (Thm.tpairs_of th) then
-      let val (fixes,fixedthm) = IsaND.fix_vars_and_tvars th
-        val (fixedthconcl,cprems) = IsaND.hide_prems fixedthm
-      in
-        IsaND.unfix_frees_and_tfrees
-          fixes
-          (Drule.implies_intr_list
-             (Library.gen_distinct
-                (fn (x, y) => Thm.term_of x = Thm.term_of y)
-                cprems) fixedthconcl)
-      end
-    else th;
+  the_default th (SINGLE distinct_subgoals_tac th);
 
-(* General substiuttion of multiple occurances using one of
+(* General substitution of multiple occurances using one of
    the given theorems*)
 exception eqsubst_occL_exp of
           string * (int list) * (thm list) * int * thm;
