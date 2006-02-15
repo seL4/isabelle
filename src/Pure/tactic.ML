@@ -199,25 +199,30 @@ fun dmatch_tac rls   = ematch_tac (map make_elim rls);
 (*Smash all flex-flex disagreement pairs in the proof state.*)
 val flexflex_tac = PRIMSEQ flexflex_rule;
 
-
-(*Remove duplicate subgoals.  By Mark Staples*)
-local
-fun cterm_aconv (a,b) = term_of a aconv term_of b;
-in
+(*Remove duplicate subgoals.*)
 fun distinct_subgoals_tac state =
-    let val (frozth,thawfn) = freeze_thaw state
-        val froz_prems = cprems_of frozth
-        val assumed = implies_elim_list frozth (map assume froz_prems)
-        val implied = implies_intr_list (gen_distinct cterm_aconv froz_prems)
-                                        assumed;
-    in  (*Applying Thm.varifyT to the result of thawfn would (re-)generalize
-          all type variables that appear in the subgoals. Unfortunately, it
-          would also break the function AxClass.intro_classes_tac, even in the
-          trivial case where the type class has no axioms.*)
-        Seq.single (thawfn implied)
-    end
-end;
+  let
+    val perm_tac = PRIMITIVE oo Thm.permute_prems;
 
+    fun distinct_tac (i, k) =
+      perm_tac 0 (i - 1) THEN
+      perm_tac 1 (k - 1) THEN
+      DETERM (PRIMSEQ (fn st =>
+        Thm.compose_no_flatten false (st, 0) 1
+          (Drule.incr_indexes st Drule.distinct_prems_rl))) THEN
+      perm_tac 1 (1 - k) THEN
+      perm_tac 0 (1 - i);
+
+    fun distinct_subgoal_tac i st =
+      (case Library.drop (i - 1, Thm.prems_of st) of
+        [] => no_tac st
+      | A :: Bs =>
+          st |> EVERY (fold (fn (B, k) =>
+            if A aconv B then cons (distinct_tac (i, k)) else I) (Bs ~~ (1 upto length Bs)) []));
+
+    val goals = Thm.prems_of state;
+    val dups = distinct (eq_fst (op aconv)) (goals ~~ (1 upto length goals));
+  in EVERY (rev (map (distinct_subgoal_tac o snd) dups)) state end;
 
 (*Determine print names of goal parameters (reversed)*)
 fun innermost_params i st =
@@ -567,7 +572,7 @@ val lhs_of_thm = #1 o Logic.dest_equals o prop_of;
   Returns longest lhs first to avoid folding its subexpressions.*)
 fun sort_lhs_depths defs =
   let val keylist = AList.make (term_depth o lhs_of_thm) defs
-      val keys = gen_distinct (op =) (sort (rev_order o int_ord) (map #2 keylist))
+      val keys = sort_distinct (rev_order o int_ord) (map #2 keylist)
   in map (AList.find (op =) keylist) keys end;
 
 val rev_defs = sort_lhs_depths o map symmetric;
