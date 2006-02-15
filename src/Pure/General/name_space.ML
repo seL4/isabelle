@@ -48,7 +48,7 @@ sig
   val add_path: string -> naming -> naming
   val no_base_names: naming -> naming
   val qualified_names: naming -> naming
-  val qualified_force_prefix: string -> naming -> naming
+  val sticky_prefix: string -> naming -> naming
   val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
     naming -> naming
   type 'a table (*= T * 'a Symtab.table*)
@@ -256,9 +256,9 @@ fun no_base_names (Naming (path, (qualify, accs))) =
 
 fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs));
 
-fun qualified_force_prefix prfx (Naming (path, _)) =
-  Naming (path,
-    (qualified, suffixes_prefixes_split (length (unpack path)) (length (unpack prfx))));
+fun sticky_prefix prfx (Naming (path, (qualify, _))) =
+  Naming (append path prfx,
+    (qualify, suffixes_prefixes_split (length (unpack path)) (length (unpack prfx))));
 
 fun set_policy policy (Naming (path, _)) = Naming (path, policy);
 
