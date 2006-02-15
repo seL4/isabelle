@@ -1157,8 +1157,9 @@ fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
       (Thm.theory_of_cterm ct) (Thm.term_of ct)
   end);
 
-fun rewrite_cterm mode prover raw_ss ct =
+fun rewrite_cterm mode prover raw_ss raw_ct =
   let
+    val ct = Thm.adjust_maxidx raw_ct;
     val {thy, t, maxidx, ...} = Thm.rep_cterm ct;
     val ss = fallback_context thy raw_ss;
     val _ = inc simp_depth;
