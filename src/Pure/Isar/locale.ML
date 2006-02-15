@@ -69,11 +69,10 @@ sig
   val print_local_registrations': bool -> string -> Proof.context -> unit
   val print_local_registrations: bool -> string -> Proof.context -> unit
 
-  (* FIXME avoid duplicates *)
   val add_locale: bool -> bstring -> expr -> Element.context list -> theory
-    -> Proof.context * theory
+    -> Proof.context (*body context!*) * theory
   val add_locale_i: bool -> bstring -> expr -> Element.context_i list -> theory
-    -> Proof.context * theory
+    -> Proof.context (*body context!*) * theory
 
   (* Storing results *)
   val note_thmss: string -> xstring ->
@@ -537,10 +536,10 @@ fun unify_frozen ctxt maxidx Ts Us =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (List.mapPartial I Vs));
   in map (Option.map (Envir.norm_type unifier')) Vs end;
 
-fun params_of elemss = gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss));
-fun params_of' elemss = gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst o fst) elemss));
+fun params_of elemss = distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss));
+fun params_of' elemss = distinct (eq_fst (op =)) (List.concat (map (snd o fst o fst) elemss));
 fun params_syn_of syn elemss =
-  gen_distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss)) |>
+  distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss)) |>
     map (apfst (fn x => (x, the (Symtab.lookup syn x))));
 
 
@@ -604,7 +603,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
     val (unifier, _) = fold unify_list (map #2 (Symtab.dest (Symtab.make_list parms)))
       (Vartab.empty, maxidx);
 
-    val parms' = map (apsnd (Envir.norm_type unifier)) (gen_distinct (eq_fst (op =)) parms);
+    val parms' = map (apsnd (Envir.norm_type unifier)) (distinct (eq_fst (op =)) parms);
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
 
     fun inst_parms (i, ps) =
@@ -758,8 +757,8 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
             val ren = renaming xs parms'
               handle ERROR msg => err_in_locale' ctxt msg ids';
 
-            val ids'' = gen_distinct (eq_fst (op =)) (map (rename_parms top ren) ids');
-            val parms'' = distinct (List.concat (map (#2 o #1) ids''));
+            val ids'' = distinct (eq_fst (op =)) (map (rename_parms top ren) ids');
+            val parms'' = distinct (op =) (List.concat (map (#2 o #1) ids''));
             val syn'' = syn' |> Symtab.dest |> map (Element.rename_var ren) |> Symtab.make;
             (* check for conflicting syntax? *)
           in (ids'', parms'', syn'') end
@@ -1317,7 +1316,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
 
     val (ctxt, (elemss, _)) =
       activate_facts prep_facts (import_ctxt, qs);
-    val stmt = gen_distinct Term.aconv
+    val stmt = distinct Term.aconv
        (List.concat (map (fn ((_, Assumed axs), _) =>
          List.concat (map (#hyps o Thm.rep_thm o #2) axs)
                            | ((_, Derived _), _) => []) qs));
@@ -1377,13 +1376,15 @@ fun print_locale thy show_facts import body =
 
 fun global_note_prefix_i kind prfx args thy =
   thy
-  |> Theory.qualified_force_prefix prfx
+  |> Theory.qualified_names
+  |> Theory.sticky_prefix prfx
   |> PureThy.note_thmss_i kind args
   ||> Theory.restore_naming thy;
 
 fun local_note_prefix_i prfx args ctxt =
   ctxt
-  |> ProofContext.qualified_force_prefix prfx
+  |> ProofContext.qualified_names
+  |> ProofContext.sticky_prefix prfx
   |> ProofContext.note_thmss_i args |> swap
   |>> ProofContext.restore_naming ctxt;
 
@@ -1429,8 +1430,7 @@ fun note_thmss_registrations kind target args thy =
           Args.map_values I (Element.instT_type (#1 insts))
             (Element.inst_term insts) (Element.inst_thm thy insts);
         val args' = args |> map (fn ((n, atts), [(ths, [])]) =>
-            ((NameSpace.qualified prfx n,
-              map (Attrib.attribute_i thy) (map inst_atts atts @ atts2)),
+            ((n, map (Attrib.attribute_i thy) (map inst_atts atts @ atts2)),
              [(map (Drule.standard o satisfy_protected prems o
             Element.inst_thm thy insts) ths, [])]));
       in global_note_prefix_i kind prfx args' thy |> snd end;
@@ -1683,19 +1683,20 @@ fun gen_add_locale prep_ctxt prep_expr
       (pred_ctxt, axiomify predicate_axioms elemss');
     val export = ProofContext.export_view predicate_statement ctxt thy_ctxt;
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
-    val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))
-  in
-    pred_thy
-    |> PureThy.note_thmss_qualified "" bname facts' |> snd
-    |> declare_locale name
-    |> put_locale name {predicate = predicate, import = import,
+    val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'));
+
+    val thy' = pred_thy
+      |> PureThy.note_thmss_qualified "" bname facts' |> snd
+      |> declare_locale name
+      |> put_locale name
+       {predicate = predicate,
+        import = import,
         elems = map (fn e => (e, stamp ())) elems',
         params = (params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
           map #1 (params_of body_elemss)),
         abbrevs = [],
-        regs = []}
-    |> pair (body_ctxt)
-  end;
+        regs = []};
+  in (ProofContext.transfer thy' body_ctxt, thy') end;
 
 in
 
@@ -1835,9 +1836,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
               (* insert interpretation attributes *)
               |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
               (* discharge hyps *)
-              |> map (apsnd (map (apfst (map disch))))
-              (* prefix names *)
-              |> map (apfst (apfst (NameSpace.qualified prfx)))
+              |> map (apsnd (map (apfst (map disch))));
           in fst (note prfx facts' thy_ctxt) end
         | activate_elem _ _ _ thy_ctxt = thy_ctxt;
 
@@ -2076,7 +2075,6 @@ fun prep_registration_in_locale target expr thy =
                            (disch o Element.inst_thm thy insts o satisfy))
                       |> map (apfst (apsnd (fn a => a @ map (Attrib.attribute thy) atts2)))
                       |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
-                      |> map (apfst (apfst (NameSpace.qualified prfx)))
                 in
                   thy
                   |> global_note_prefix_i "" prfx facts'
