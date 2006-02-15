@@ -214,9 +214,8 @@ sig
   val \\ : ''a list * ''a list -> ''a list
   val gen_rem: ('a * 'b -> bool) -> 'a list * 'b -> 'a list
   val gen_rems: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
-  val gen_distinct: ('a * 'a -> bool) -> 'a list -> 'a list
-  val distinct: ''a list -> ''a list
   val findrep: ''a list -> ''a list
+  val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
@@ -1011,24 +1010,20 @@ fun ys \\ xs = foldl (op \) (ys,xs);
 fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
 fun gen_rems eq (xs, ys) = filter_out (member eq ys) xs;
 
+(*returns the tail beginning with the first repeated element, or []*)
+fun findrep [] = []
+  | findrep (x :: xs) = if x mem xs then x :: xs else findrep xs;
+
+
 (*makes a list of the distinct members of the input; preserves order, takes
   first of equal elements*)
-fun gen_distinct eq lst =
+fun distinct eq lst =
   let
     fun dist (rev_seen, []) = rev rev_seen
       | dist (rev_seen, x :: xs) =
           if member eq rev_seen x then dist (rev_seen, xs)
           else dist (x :: rev_seen, xs);
-  in
-    dist ([], lst)
-  end;
-
-fun distinct l = gen_distinct (op =) l;
-
-(*returns the tail beginning with the first repeated element, or []*)
-fun findrep [] = []
-  | findrep (x :: xs) = if x mem xs then x :: xs else findrep xs;
-
+  in dist ([], lst) end;
 
 (*returns a list containing all repeated elements exactly once; preserves
   order, takes first of equal elements*)

@@ -290,7 +290,7 @@ local
 
 val remdups_tac = SUBGOAL (fn (g, i) =>
   let val prems = Logic.strip_assums_hyp g in
-    REPEAT_DETERM_N (length prems - length (gen_distinct op aconv prems))
+    REPEAT_DETERM_N (length prems - length (distinct op aconv prems))
     (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
   end);
 
@@ -393,7 +393,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
           map
             (fn (xi, t) =>
               pairself (Thm.cterm_of thy) (Var (xi, fastype_of t), t))
-            (gen_distinct
+            (distinct
               (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
               (xis ~~ ts));
         (* Lift and instantiate rule *)

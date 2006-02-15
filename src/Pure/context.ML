@@ -379,8 +379,8 @@ fun begin_thy pp name imports =
   else
     let
       val parents =
-        maximal_thys (gen_distinct eq_thy (map check_thy imports));
-      val ancestors = gen_distinct eq_thy (parents @ List.concat (map ancestors_of parents));
+        maximal_thys (distinct eq_thy (map check_thy imports));
+      val ancestors = distinct eq_thy (parents @ List.concat (map ancestors_of parents));
       val Theory ({id, ids, iids, ...}, data, _, _) =
         (case parents of
           [] => error "No parent theories"

@@ -1665,7 +1665,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* prepare print translation functions *)
     val field_tr's =
-      print_translation (distinct (List.concat (map NameSpace.accesses' (full_moreN :: names))));
+      print_translation (distinct (op =)
+        (List.concat (map NameSpace.accesses' (full_moreN :: names))));
 
     val adv_ext_tr's =
     let

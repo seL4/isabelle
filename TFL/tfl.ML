@@ -316,7 +316,7 @@ local fun mk_functional_err s = raise TFL_ERR "mk_functional" s
         | single [f] = f
         | single fs  =
               (*multiple function names?*)
-              if length (gen_distinct same_name fs) < length fs
+              if length (distinct same_name fs) < length fs
               then mk_functional_err
                    "The function being declared appears with multiple types"
               else mk_functional_err
@@ -328,7 +328,7 @@ fun mk_functional thy clauses =
                    handle TERM _ => raise TFL_ERR "mk_functional"
                         "recursion equations must use the = relation")
      val (funcs,pats) = ListPair.unzip (map (fn (t$u) =>(t,u)) L)
-     val atom = single (gen_distinct (op aconv) funcs)
+     val atom = single (distinct (op aconv) funcs)
      val (fname,ftype) = dest_atom atom
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,

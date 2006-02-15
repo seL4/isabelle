@@ -324,7 +324,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;
     fun get f = (these oo Option.map) f;
-    val rec_names = distinct (map (fst o dest_Const o head_of o fst o
+    val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) (get #rec_thms dt_info));
     val (_, constrss) = foldl_map (fn ((recs, dummies), (s, rs)) =>
       if s mem rsets then
@@ -341,7 +341,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         c (prop_of (forall_intr_list (map (cterm_of (sign_of thy2) o Var)
           (rev (Term.add_vars (prop_of intr) []) \\ params')) intr))))
             (intrs ~~ List.concat constrss);
-    val rlzsets = distinct (map (fn rintr => snd (HOLogic.dest_mem
+    val rlzsets = distinct (op =) (map (fn rintr => snd (HOLogic.dest_mem
       (HOLogic.dest_Trueprop (Logic.strip_assums_concl rintr)))) rintrs);
 
     (** realizability predicate **)

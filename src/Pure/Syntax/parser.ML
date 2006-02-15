@@ -845,7 +845,7 @@ fun produce prods chains stateset i indata prev_token =
                            SOME (a, prec) | _ => NONE)
                           (Array.sub (stateset, i-1));
               val allowed =
-                gen_distinct (op =) (get_starts nts [] @
+                distinct (op =) (get_starts nts [] @
                   (List.mapPartial (fn (_, _, _, Terminal a :: _, _, _) => SOME a
                                | _ => NONE)
                              (Array.sub (stateset, i-1))));

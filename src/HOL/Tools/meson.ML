@@ -420,7 +420,7 @@ fun make_clauses ths =
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
     name_thms "Horn#"
-      (gen_distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) [] ths));
+      (distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) [] ths));
 
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)
@@ -525,7 +525,7 @@ fun make_meta_clause th =
 
 fun make_meta_clauses ths =
     name_thms "MClause#"
-      (gen_distinct Drule.eq_thm_prop (map make_meta_clause ths));
+      (distinct Drule.eq_thm_prop (map make_meta_clause ths));
 
 (*Permute a rule's premises to move the i-th premise to the last position.*)
 fun make_last i th =

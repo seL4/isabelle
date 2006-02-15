@@ -54,9 +54,7 @@ fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_t
 (* variables -- ordered left-to-right, preferring right *)
 
 fun vars_of tm =
-  Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []
-  |> gen_distinct (op =)
-  |> rev;
+  rev (distinct (op =) (Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []));
 
 local
 

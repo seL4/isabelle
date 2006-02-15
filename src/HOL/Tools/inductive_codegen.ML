@@ -177,7 +177,7 @@ fun print_modes modes = message ("Inferred modes:\n" ^
     string_of_mode ms)) modes));
 
 val term_vs = map (fst o fst o dest_Var) o term_vars;
-val terms_vs = distinct o List.concat o (map term_vs);
+val terms_vs = distinct (op =) o List.concat o (map term_vs);
 
 (** collect all Vars in a term (with duplicates!) **)
 fun term_vTs tm =
@@ -441,7 +441,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
           end
       | compile_prems out_ts vs names gr ps =
           let
-            val vs' = distinct (List.concat (vs :: map term_vs out_ts));
+            val vs' = distinct (op =) (List.concat (vs :: map term_vs out_ts));
             val SOME (p, mode as SOME (Mode ((_, js), _))) =
               select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;

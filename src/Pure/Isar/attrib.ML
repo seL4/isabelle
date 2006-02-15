@@ -238,8 +238,8 @@ fun instantiate thy envT env thm =
     fun prepT (a, T) = (Thm.ctyp_of thy (TVar (a, the_sort sorts a)), Thm.ctyp_of thy T);
     fun prep (xi, t) = pairself (Thm.cterm_of thy) (Var (xi, Term.fastype_of t), t);
   in
-    Drule.instantiate (map prepT (gen_distinct (op =) envT),
-      map prep (gen_distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
+    Drule.instantiate (map prepT (distinct (op =) envT),
+      map prep (distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
   end;
 
 in

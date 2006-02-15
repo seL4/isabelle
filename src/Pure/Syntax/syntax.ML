@@ -111,7 +111,7 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_list SynExt.eq_trfun (tab1, tab2);
 (** tables of token translation functions **)
 
 fun lookup_tokentr tabs modes =
-  let val trs = gen_distinct (eq_fst (op =))
+  let val trs = distinct (eq_fst (op =))
     (List.concat (map (these o AList.lookup (op =) tabs) (modes @ [""])))
   in fn c => Option.map fst (AList.lookup (op =) trs c) end;
 
@@ -125,16 +125,14 @@ fun merge_tokentrtabs tabs1 tabs2 =
       let
         val trs1 = these (AList.lookup (op =) tabs1 mode);
         val trs2 = these (AList.lookup (op =) tabs2 mode);
-        val trs = gen_distinct eq_tr (trs1 @ trs2);
+        val trs = distinct eq_tr (trs1 @ trs2);
       in
         (case duplicates (eq_fst (op =)) trs of
           [] => (mode, trs)
         | dups => error ("More than one token translation function in mode " ^
             quote mode ^ " for " ^ commas_quote (map name dups)))
       end;
-  in
-    map merge (gen_distinct (op =) (map fst (tabs1 @ tabs2)))
-  end;
+  in map merge (distinct (op =) (map fst (tabs1 @ tabs2))) end;
 
 fun extend_tokentrtab tokentrs tabs =
   let

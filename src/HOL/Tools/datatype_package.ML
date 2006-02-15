@@ -326,7 +326,7 @@ fun dt_recs (DtTFree _) = []
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
     fun the_bname i = Sign.base_name (#1 (valOf (AList.lookup (op =) descr i)));
-    val bnames = map the_bname (distinct (List.concat (map dt_recs args)));
+    val bnames = map the_bname (distinct (op =) (List.concat (map dt_recs args)));
   in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
 
 
@@ -492,7 +492,7 @@ fun case_tr context [t, u] =
             ([], true, SOME _) =>
               case_error "Extra '_' dummy pattern" (SOME tname) [u]
           | (_ :: _, _, _) =>
-              let val extra = distinct (map (fst o fst) cases'')
+              let val extra = distinct (op =) (map (fst o fst) cases'')
               in case extra \\ map fst constrs of
                   [] => case_error ("More than one clause for constructor(s) " ^
                     commas extra) (SOME tname) [u]

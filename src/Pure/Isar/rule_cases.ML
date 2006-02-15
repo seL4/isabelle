@@ -130,7 +130,7 @@ fun extract_case is_open thy (case_outline, raw_prop) name concls =
   in
     if len = 0 then NONE
     else if len = 1 then SOME (common_case (hd cases))
-    else if is_none case_outline orelse length (gen_distinct (op =) (map fst cases)) > 1 then NONE
+    else if is_none case_outline orelse length (distinct (op =) (map fst cases)) > 1 then NONE
     else SOME (nested_case (hd cases))
   end;
 

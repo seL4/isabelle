@@ -227,7 +227,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val sg = Theory.sign_of thy;
     val dt_info = DatatypePackage.get_datatypes thy;
     val rec_eqns = foldr (process_eqn sg) [] (map snd eqns);
-    val tnames = distinct (map (#1 o snd) rec_eqns);
+    val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
     val main_fns = 
       map (fn (tname, {index, ...}) =>

@@ -158,9 +158,8 @@ fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums =
 
 (* get names of clasimp axioms used*)
 fun get_axiom_names step_nums clause_arr =
-  distinct (sort_strings 
-            (map (ResClause.get_axiomName o #1) 
-	     (get_clasimp_cls clause_arr step_nums)));   
+  sort_distinct string_ord
+    (map (ResClause.get_axiomName o #1) (get_clasimp_cls clause_arr step_nums));
 
  (*String contains multiple lines. We want those of the form 
      "253[0:Inp] et cetera..."
@@ -221,13 +220,13 @@ fun get_axioms_used proof_steps thms clause_arr  =
      
      val vars = map thm_vars clauses
     
-     val distvars = distinct (fold append vars [])
+     val distvars = distinct (op =) (fold append vars [])
      val clause_terms = map prop_of clauses  
      val clause_frees = List.concat (map term_frees clause_terms)
 
      val frees = map lit_string_with_nums clause_frees;
 
-     val distfrees = distinct frees
+     val distfrees = distinct (op =) frees
 
      val metas = map Meson.make_meta_clause clauses
      val ax_strs = map #3 axioms

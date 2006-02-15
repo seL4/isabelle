@@ -115,7 +115,7 @@ fun dest_vtype (TVar x) = x
 val is_vartype = can dest_vtype;
 
 val type_vars  = map mk_prim_vartype o typ_tvars
-fun type_varsl L = distinct (fold (curry op @ o type_vars) L []);
+fun type_varsl L = distinct (op =) (fold (curry op @ o type_vars) L []);
 
 val alpha  = mk_vartype "'a"
 val beta   = mk_vartype "'b"
