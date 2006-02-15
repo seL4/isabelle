@@ -7,23 +7,24 @@ The Isabelle/Isar toplevel.
 
 signature TOPLEVEL =
 sig
+  exception UNDEF
   type node
   val theory_node: node -> theory option
   val proof_node: node -> ProofHistory.T option
+  val cases_node: (theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
+  val body_context_node: node option -> xstring option -> Proof.context
   type state
   val toplevel: state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
   val level: state -> int
-  exception UNDEF
   val assert: bool -> unit
   val node_history_of: state -> node History.T
   val node_of: state -> node
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val context_of: state -> Context.generic
   val theory_of: state -> theory
-  val body_context_of: state -> Proof.context
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
   val enter_forward_proof: state -> Proof.state
@@ -43,7 +44,6 @@ sig
   val skip_proofs: bool ref
   exception TERMINATE
   exception RESTART
-  val no_body_context: state -> state
   val checkpoint: state -> state
   val copy: state -> state
   type transition
@@ -73,7 +73,8 @@ sig
   val theory: (theory -> theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_context: (theory -> Proof.context * theory) -> transition -> transition
-  val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
+  val local_theory: xstring option -> (local_theory -> local_theory) ->
+    transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
@@ -87,12 +88,13 @@ sig
     -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val forget_proof: transition -> transition
+  val present_local_theory: xstring option -> (bool -> node -> unit) -> transition -> transition
+  val present_proof: (bool -> node -> unit) -> transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
-  val command: transition -> state -> state
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
   val program: (unit -> 'a) -> 'a
@@ -111,6 +113,9 @@ struct
 
 (** toplevel state **)
 
+exception UNDEF;
+
+
 (* datatype state *)
 
 datatype node =
@@ -121,6 +126,17 @@ datatype node =
 
 val theory_node = fn Theory (thy, _) => SOME thy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
+
+fun cases_node f _ (Theory (thy, _)) = f thy
+  | cases_node _ g (Proof (prf, _)) = g (ProofHistory.current prf)
+  | cases_node f _ (SkipProof ((_, thy), _)) = f thy;
+
+fun body_context_node (SOME (Theory (_, SOME ctxt))) NONE = ctxt
+  | body_context_node (SOME node) loc =
+      node |> cases_node (LocalTheory.init loc)
+       (if is_some loc then LocalTheory.init loc o Proof.theory_of
+        else Proof.context_of)
+  | body_context_node NONE _ = raise UNDEF;
 
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
@@ -146,8 +162,6 @@ fun str_of_state (State NONE) = "at top level"
 
 (* top node *)
 
-exception UNDEF;
-
 fun assert true = ()
   | assert false = raise UNDEF;
 
@@ -159,20 +173,10 @@ val node_of = History.current o node_history_of;
 fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node_of state));
 fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
 
-fun node_case f g state =
-  (case node_of state of
-    Theory (thy, _) => f thy
-  | Proof (prf, _) => g (ProofHistory.current prf)
-  | SkipProof ((_, thy), _) => f thy);
+fun node_case f g state = cases_node f g (node_of state);
 
 val context_of = node_case Context.Theory (Context.Proof o Proof.context_of);
 val theory_of = node_case I Proof.theory_of;
-
-fun body_context_of state =
-  (case node_of state of
-    Theory (_, SOME ctxt) => ctxt
-  | _ => node_case ProofContext.init Proof.context_of state);
-
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
 fun proof_position_of state =
@@ -263,7 +267,9 @@ val stale_theory = ERROR "Stale theory encountered after succesful execution!";
 fun checkpoint_node (Theory (thy, ctxt)) = Theory (Theory.checkpoint thy, ctxt)
   | checkpoint_node node = node;
 
-fun copy_node (Theory (thy, ctxt)) = Theory (Theory.copy thy, ctxt)
+fun copy_node (Theory (thy, ctxt)) =
+      let val thy' = Theory.copy thy
+      in Theory (thy', Option.map (ProofContext.transfer thy') ctxt) end
   | copy_node node = node;
 
 fun return (result, NONE) = result
@@ -302,7 +308,6 @@ fun transaction _ _ (State NONE) = raise UNDEF
 fun mapping f (State (SOME (node, term))) = State (SOME (History.map f node, term))
   | mapping _ state = state;
 
-val no_body_context = mapping (fn Theory (thy, _) => Theory (thy, NONE) | node => node);
 val checkpoint = mapping checkpoint_node;
 val copy = mapping copy_node;
 
@@ -457,7 +462,7 @@ fun theory' f = app_current (fn int =>
 fun theory_context f = app_current
   (K (fn Theory (thy, _) => Theory (swap (apfst SOME (f thy))) | _ => raise UNDEF));
 
-fun local_theory loc f = theory_context (LocalTheory.init loc #> f #> LocalTheory.exit);
+fun local_theory loc f = theory_context (LocalTheory.mapping loc f);
 
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
@@ -500,6 +505,13 @@ fun skip_proof_to_theory p = map_current (fn _ =>
     if p (History.current h) then Theory (thy, NONE)
     else raise UNDEF
   | _ => raise UNDEF));
+
+fun present_local_theory loc f = app_current (fn int =>
+  (fn Theory (thy, _) => Theory (swap (apfst SOME (LocalTheory.mapping loc I thy)))
+    | _ => raise UNDEF) #> tap (f int));
+
+fun present_proof f = map_current (fn int =>
+  (fn node as Proof _ => node | _ => raise UNDEF) #> tap (f int));
 
 val unknown_theory = imperative (fn () => warning "Unknown theory context");
 val unknown_proof = imperative (fn () => warning "Unknown proof context");
@@ -595,12 +607,6 @@ fun apply int tr st =
   | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
   | (state', SOME exn) => SOME (state', SOME (exn, at_command tr))
   | (state', NONE) => SOME (state', NONE));
-
-fun command tr st =
-  (case apply false tr st of
-    SOME (st', NONE) => st'
-  | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
-  | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
 end;
 
