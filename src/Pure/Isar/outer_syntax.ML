@@ -37,7 +37,7 @@ sig
   val print_commands: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
-  val check_text: string * Position.T -> Toplevel.state -> unit
+  val check_text: string * Position.T -> Toplevel.node option -> unit
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> bool -> unit Toplevel.isar
