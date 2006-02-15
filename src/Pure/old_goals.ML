@@ -31,7 +31,6 @@ sig
   val by: tactic -> unit
   val back: unit -> unit
   val choplev: int -> unit
-  val chop: unit -> unit
   val undo: unit -> unit
   val bind_thm: string * thm -> unit
   val bind_thms: string * thm list -> unit
@@ -44,7 +43,6 @@ sig
   val qed_goalw_spec_mp: string -> theory -> thm list -> string
     -> (thm list -> tactic list) -> unit
   val no_qed: unit -> unit
-  val thms_containing: xstring list -> (string * thm) list
 end;
 
 signature OLD_GOALS =
@@ -52,6 +50,7 @@ sig
   include GOALS
   val legacy: bool ref
   type proof
+  val chop: unit -> unit
   val reset_goals: unit -> unit
   val result_error_fn: (thm -> string -> thm) ref
   val print_sign_exn: theory -> exn -> 'a
@@ -502,9 +501,7 @@ fun fd rl = fds [rl];
 fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 
 
-(** theorem database operations **)
-
-(* store *)
+(** theorem database **)
 
 fun bind_thm (name, thm) = ThmDatabase.ml_store_thm (name, standard thm);
 fun bind_thms (name, thms) = ThmDatabase.ml_store_thms (name, map standard thms);
@@ -521,20 +518,6 @@ fun qed_goalw_spec_mp name thy defs s p =
   bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
 
 fun no_qed () = ();
-
-
-(* retrieve *)
-
-fun thms_containing raw_consts =
-  let
-    val thy = Thm.theory_of_thm (topthm ());
-    val consts = map (Sign.intern_const thy) raw_consts;
-  in
-    (case List.filter (is_none o Sign.const_type thy) consts of
-      [] => ()
-    | cs => error ("thms_containing: undeclared consts " ^ commas_quote cs));
-    PureThy.thms_containing_consts thy consts
-  end;
 
 end;
 
