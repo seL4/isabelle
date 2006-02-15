@@ -21,6 +21,9 @@ sig
   val init_i: string option -> theory -> local_theory
   val restore: local_theory -> local_theory
   val exit: local_theory -> local_theory * theory
+  val restore_naming: local_theory -> local_theory
+  val naming: local_theory -> local_theory
+  val mapping: xstring option -> (local_theory -> local_theory) -> theory -> local_theory * theory
   val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
   val consts_restricted: (string * typ -> bool) ->
     ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
@@ -43,6 +46,7 @@ end;
 structure LocalTheory: LOCAL_THEORY =
 struct
 
+
 (** local context data **)
 
 structure Data = ProofDataFun
@@ -52,15 +56,15 @@ structure Data = ProofDataFun
    {locale: (string * (cterm list * Proof.context)) option,
     params: (string * typ) list,
     hyps: term list,
-    exit: theory -> theory};
-  fun init thy = {locale = NONE, params = [], hyps = [], exit = I};
+    restore_naming: theory -> theory};
+  fun init thy = {locale = NONE, params = [], hyps = [], restore_naming = I};
   fun print _ _ = ();
 );
 val _ = Context.add_setup Data.init;
 
-fun map_locale f = Data.map (fn {locale, params, hyps, exit} =>
+fun map_locale f = Data.map (fn {locale, params, hyps, restore_naming} =>
   {locale = Option.map (fn (loc, (view, ctxt)) => (loc, (view, f ctxt))) locale,
-    params = params, hyps = hyps, exit = exit});
+    params = params, hyps = hyps, restore_naming = restore_naming});
 
 val locale_of = #locale o Data.get;
 val params_of = #params o Data.get;
@@ -131,8 +135,7 @@ fun init_i NONE thy = ProofContext.init thy
           {locale = SOME (loc, (view, ctxt)),
            params = params,
            hyps = ProofContext.assms_of ctxt,
-           exit = Sign.restore_naming thy} ctxt)
-      |> theory (Sign.add_path (Sign.base_name loc) #> Sign.no_base_names);
+           restore_naming = Sign.restore_naming thy} ctxt);
 
 fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 
@@ -141,7 +144,20 @@ fun restore ctxt =
     NONE => ctxt
   | SOME (_, (_, loc_ctxt)) => loc_ctxt |> Data.put (Data.get ctxt));
 
-fun exit ctxt = (ctxt, #exit (Data.get ctxt) (ProofContext.theory_of ctxt));
+fun exit ctxt = (ctxt, ProofContext.theory_of ctxt);
+
+
+(* local naming *)
+
+fun naming ctxt =
+  (case locale_of ctxt of
+    NONE => ctxt
+  | SOME (loc, _) => ctxt |> theory (Sign.sticky_prefix (Sign.base_name loc)));
+
+fun restore_naming ctxt = theory (#restore_naming (Data.get ctxt)) ctxt;
+
+fun mapping loc f =
+  init loc #> naming #> f #> restore_naming #> exit;
 
 
 
