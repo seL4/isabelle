@@ -1357,6 +1357,21 @@ proof -
   thus ?thesis by (simp add: pt2[OF pt])
 qed
 
+lemma pt_perm_compose':
+  fixes pi1 :: "'x prm"
+  and   pi2 :: "'x prm"
+  and   x  :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "(pi2\<bullet>pi1)\<bullet>x = pi2\<bullet>(pi1\<bullet>((rev pi2)\<bullet>x))" 
+proof -
+  have "pi2\<bullet>(pi1\<bullet>((rev pi2)\<bullet>x)) = (pi2\<bullet>pi1)\<bullet>(pi2\<bullet>((rev pi2)\<bullet>x))"
+    by (rule pt_perm_compose[OF pt, OF at])
+  also have "\<dots> = (pi2\<bullet>pi1)\<bullet>x" by (simp add: pt_pi_rev[OF pt, OF at])
+  finally have "pi2\<bullet>(pi1\<bullet>((rev pi2)\<bullet>x)) = (pi2\<bullet>pi1)\<bullet>x" by simp
+  thus ?thesis by simp
+qed
+
 lemma pt_perm_compose_rev:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
@@ -1545,7 +1560,7 @@ lemma pt_fun_app_eq:
   by (simp add: perm_fun_def pt_rev_pi[OF pt, OF at])
 
 
---"sometimes pt_fun_app_eq does to much; this lemma 'corrects it'"
+--"sometimes pt_fun_app_eq does too much; this lemma 'corrects it'"
 lemma pt_perm:
   fixes x  :: "'a"
   and   pi1 :: "'x prm"
