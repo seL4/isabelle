@@ -354,42 +354,30 @@ val print_type = print_item string_of_type;
 
 fun add_header s = Toplevel.keep' (fn int => fn state =>
   (Toplevel.assert (Toplevel.is_toplevel state);
-   if int then OuterSyntax.check_text s state else ()));
+   if int then OuterSyntax.check_text s NONE else ()));
 
 local
 
-fun enter_locale NONE = Toplevel.theory I
-  | enter_locale (SOME loc) = Toplevel.theory_context (fn thy =>
-      (#2 (Locale.init (Locale.intern thy loc) thy), thy));
+fun present _ txt true node = OuterSyntax.check_text txt (SOME node)
+  | present f (s, _) false node =
+      Context.setmp (try (Toplevel.cases_node I Proof.theory_of) node) f s;
 
-fun present_text proof present loc (s, pos) = Toplevel.keep' (fn int => fn state =>
- (Toplevel.assert (can Toplevel.proof_of state = proof);
-  if int then
-    state
-    |> Toplevel.copy
-    |> Toplevel.no_body_context
-    |> Toplevel.command
-      (Toplevel.empty |> Toplevel.position pos |> enter_locale loc |> Toplevel.keep (K ()))
-    |> OuterSyntax.check_text (s, pos)
-  else Context.setmp (SOME (Toplevel.theory_of state)) present s;
-  raise Toplevel.UNDEF));
-
-fun theory f (loc, txt) = enter_locale loc o present_text false f loc txt;
-fun proof f txt = Toplevel.print o Toplevel.proof I o present_text true f NONE txt;
+fun present_local_theory f (loc, txt) = Toplevel.present_local_theory loc (present f txt);
+fun present_proof f txt = Toplevel.print o Toplevel.present_proof (present f txt);
 
 in
 
-val add_chapter = theory Present.section;
-val add_section = theory Present.section;
-val add_subsection = theory Present.subsection;
-val add_subsubsection = theory Present.subsubsection;
-val add_text = theory (K ());
-fun add_text_raw txt = theory (K ()) (NONE, txt);
-val add_txt = proof (K ());
-val add_txt_raw = add_txt;
-val add_sect = add_txt;
-val add_subsect = add_txt;
-val add_subsubsect = add_txt;
+val add_chapter       = present_local_theory Present.section;
+val add_section       = present_local_theory Present.section;
+val add_subsection    = present_local_theory Present.subsection;
+val add_subsubsection = present_local_theory Present.subsubsection;
+val add_text          = present_local_theory (K ());
+fun add_text_raw txt  = present_local_theory (K ()) (NONE, txt);
+val add_txt           = present_proof (K ());
+val add_txt_raw       = add_txt;
+val add_sect          = add_txt;
+val add_subsect       = add_txt;
+val add_subsubsect    = add_txt;
 
 end;
 
