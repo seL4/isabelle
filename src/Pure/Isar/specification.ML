@@ -28,6 +28,10 @@ sig
   val definition_i:
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
+  val abbreviation: bool -> ((string * string option * mixfix) option * string) list ->
+    local_theory -> local_theory
+  val abbreviation_i: bool -> ((string * typ option * mixfix) option * term) list ->
+    local_theory -> local_theory
 end;
 
 structure Specification: SPECIFICATION =
@@ -103,5 +107,30 @@ fun gen_defs prep args ctxt =
 
 val definition = gen_defs read_specification;
 val definition_i = gen_defs cert_specification;
+
+
+(* abbreviation *)
+
+fun gen_abbrevs prep revert args ctxt =
+  let
+    fun abbrev (raw_var, raw_prop) ctxt' =
+      let
+        val (vars, [(_, [prop])]) = fst (prep (the_list raw_var) [(("", []), [raw_prop])] ctxt');
+        val ((x, T), rhs) = #1 (LocalDefs.derived_def ctxt' false prop);
+        val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
+          if x = x' then mx
+          else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote x'));
+      in
+        ctxt'
+        |> LocalTheory.abbrev revert ((x, mx), rhs)
+        |> pair (x, T)
+      end;
+
+    val (cs, abbrs_ctxt) = ctxt |> fold_map abbrev args;
+    val _ = LocalTheory.print_consts ctxt (K false) cs;
+  in abbrs_ctxt end;
+
+val abbreviation = gen_abbrevs read_specification;
+val abbreviation_i = gen_abbrevs cert_specification;
 
 end;
