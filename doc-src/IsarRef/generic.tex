@@ -3,6 +3,92 @@
 
 \section{Theory specification commands}
 
+\subsection{Derived specifications}
+
+\indexisarcmd{definition}\indexisaratt{defn}
+\indexisarcmd{abbreviation}\indexisarcmd{axiomatization}
+\begin{matharray}{rcll}
+  \isarcmd{definition} & : & \isarkeep{local{\dsh}theory} \\
+  defn & : & \isaratt \\
+  \isarcmd{abbreviation} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{axiomatization} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
+\end{matharray}
+
+These specification mechanisms provide a slightly more abstract view
+than the underlying primitives of $\CONSTS$, $\DEFS$ (see
+\S\ref{sec:consts}), and $\isarkeyword{axioms}$ (see
+\S\ref{sec:axms-thms}).  In particular, type-inference is commonly
+available, and result names need not be given.
+
+\begin{rail}
+  'definition' locale? (constdecl? constdef +)
+  ;
+
+  'abbreviation' locale? '(output)'? (constdecl? prop +)
+  ;
+  'axiomatization' locale? consts? ('where' specs)?
+  ;
+
+  consts: ((name ('::' type)? structmixfix? | vars) + 'and')
+  ;
+  specs: (thmdecl? props + 'and')
+  ;
+\end{rail}
+
+\begin{descr}
+  
+\item $\isarkeyword{definition}~c~\isarkeyword{where}~eq$ produces an
+  internal definition $c \equiv t$ according to the specification
+  given as $eq$, which is then turned into a proven fact.  The given
+  proposition may deviate from internal meta-level equality according
+  to the rewrite rules declared as $defn$ by the object-logic.  This
+  typically covers object-level equality $x = t$ and equivalence $A
+  \leftrightarrow B$.  Users normally need not change the $defn$
+  setup.
+  
+  Definitions may be presented with explicit arguments on the LHS, as
+  well as additional conditions, e.g.\ $f\;x\;y = t$ instead of $f
+  \equiv \lambda x\;y. t$ and $y \not= 0 \Imp g\;x\;y = u$ instead of
+  an unguarded $g \equiv \lambda x\;y. u$.
+  
+  Multiple definitions are processed consecutively; no overloading is
+  supported here.
+  
+\item $\isarkeyword{abbreviation}~c~\isarkeyword{where}~eq$ introduces
+  a syntactic constant which is associated with a certain term derived
+  from the specification given as $eq$.  The very same transformations
+  as for $\isarkeyword{definition}$ are applied here, although
+  additional conditions are not supported.
+  
+  Abbreviations participate in the usual type-inference process, but
+  are expanded before the logic ever sees them.  The expansion is
+  one-way by default; the ``$(output)$'' option makes abbreviations
+  fold back whenever terms are pretty printed.  The latter needs some
+  care to avoid overlapping or looping syntactic replacements!
+  
+\item $\isarkeyword{axiomatization} ~ c@1 \dots c@n ~
+  \isarkeyword{where} ~ A@1 \dots A@m$ introduces several constants
+  simultaneously and states axiomatic properties for these.  The
+  constants are marked as being specified once and for all, which
+  prevents additional specifications being issued later on.
+  
+  Note that axiomatic specifications are only appropriate when
+  declaring a new logical system.  Normal applications should only use
+  definitional mechanisms!
+
+\end{descr}
+
+Any of these specifications support an optional target locale context
+(cf.\ \S\ref{sec:locale}).  In the latter case, constants being
+introduced depend on certain fixed parameters of the locale context;
+the constant name is qualified by the locale base name.  A syntactic
+abbreviation takes care for convenient input and output of such terms,
+making the parameters implicit and using the original short name.
+Outside the locale context, the specified entities are available in
+generalized form, with the parameters being open to explicit
+instantiation.
+
+
 \subsection{Axiomatic type classes}\label{sec:axclass}
 
 \indexisarcmd{axclass}\indexisarcmd{instance}\indexisarmeth{intro-classes}
@@ -101,7 +187,7 @@ specifications.
 
 \indexisarcmd{locale}\indexisarcmd{print-locale}\indexisarcmd{print-locales}
 \begin{matharray}{rcl}
-  \isarcmd{locale} & : & \isarkeep{theory} \\
+  \isarcmd{locale} & : & \isartrans{theory}{local{\dsh}theory} \\
   \isarcmd{print_locale}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_locales}^* & : & \isarkeep{theory~|~proof} \\
 \end{matharray}
