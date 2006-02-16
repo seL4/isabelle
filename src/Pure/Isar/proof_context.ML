@@ -111,7 +111,8 @@ sig
   val sticky_prefix: string -> context -> context
   val restore_naming: context -> context -> context
   val hide_thms: bool -> string list -> context -> context
-  val put_thms: string * thm list option -> context -> context
+  val put_thms: bool -> string * thm list option -> context -> context
+  val put_thms_internal: string * thm list option -> context -> context
   val note_thmss:
     ((bstring * attribute list) * (thmref * attribute list) list) list ->
       context -> (bstring * thm list) list * context
@@ -199,12 +200,14 @@ fun make_ctxt (naming, syntax, consts, fixes, assms, binds, thms, cases, default
   Ctxt {naming = naming, syntax = syntax, consts = consts, fixes = fixes, assms = assms,
     binds = binds, thms = thms, cases = cases, defaults = defaults};
 
+val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
+
 structure ContextData = ProofDataFun
 (
   val name = "Isar/context";
   type T = ctxt;
   fun init thy =
-    make_ctxt (NameSpace.default_naming, LocalSyntax.init thy,
+    make_ctxt (local_naming, LocalSyntax.init thy,
       (Sign.consts_of thy, Sign.consts_of thy), (false, []), ([], []),
       Vartab.empty, (NameSpace.empty_table, FactIndex.empty), [],
       (Vartab.empty, Vartab.empty, [], Symtab.empty));
@@ -581,8 +584,8 @@ val ins_types = fold_aterms
     | _ => I);
 
 val ins_sorts = fold_types (fold_atyps
-  (fn TFree (x, S) => Vartab.replace (op =) ((x, ~1), S)
-    | TVar v => Vartab.replace (op =) v
+  (fn TFree (x, S) => Vartab.update ((x, ~1), S)
+    | TVar v => Vartab.update v
     | _ => I));
 
 val ins_used = fold_term_types (fn t =>
@@ -598,10 +601,11 @@ fun ins_skolem def_ty = fold_rev (fn (x, x') =>
 
 in
 
-fun declare_syntax t =
-  map_defaults (fn (types, sorts, used, occ) => (ins_types t types, sorts, used, occ))
-  #> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts t sorts, used, occ))
-  #> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used t used, occ));
+fun declare_syntax t = map_defaults (fn (types, sorts, used, occ) =>
+ (ins_types t types,
+  ins_sorts t sorts,
+  ins_used t used,
+  occ));
 
 fun declare_var (x, opt_T, mx) ctxt =
   let val T = (case opt_T of SOME T => T | NONE => TypeInfer.mixfixT mx)
@@ -610,9 +614,11 @@ fun declare_var (x, opt_T, mx) ctxt =
 fun declare_term t ctxt =
   ctxt
   |> declare_syntax t
-  |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs t occ))
   |> map_defaults (fn (types, sorts, used, occ) =>
-      (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types, sorts, used, occ));
+     (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types,
+      sorts,
+      used,
+      ins_occs t occ));
 
 end;
 
@@ -991,23 +997,28 @@ fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
 
 (* put_thms *)
 
-fun put_thms ("", NONE) ctxt = ctxt
-  | put_thms ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
+fun put_thms _ ("", NONE) ctxt = ctxt
+  | put_thms _ ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
       let
         val index' = FactIndex.add_local (is_known ctxt) ("", ths) index;
       in (facts, index') end)
-  | put_thms (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
+  | put_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
         val name = NameSpace.full (naming_of ctxt) bname;
         val tab' = Symtab.delete_safe name tab;
       in ((space, tab'), index) end)
-  | put_thms (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
+  | put_thms do_index (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
         val name = NameSpace.full (naming_of ctxt) bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
         val tab' = Symtab.update (name, ths) tab;
-        val index' = FactIndex.add_local (is_known ctxt) (name, ths) index;
+        val index' =
+          if do_index then FactIndex.add_local (is_known ctxt) (name, ths) index
+          else index;
       in ((space', tab'), index') end);
+
+fun put_thms_internal thms ctxt =
+  ctxt |> map_naming (K local_naming) |> put_thms false thms |> restore_naming ctxt;
 
 
 (* note_thmss *)
@@ -1021,7 +1032,7 @@ fun gen_note_thmss get = fold_map (fn ((name, more_attrs), ths_attrs) => fn ctxt
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
     val thms = List.concat (rev rev_thms);
-  in ((name, thms), ctxt' |> put_thms (name, SOME thms)) end);
+  in ((name, thms), ctxt' |> put_thms true (name, SOME thms)) end);
 
 in
 
@@ -1205,7 +1216,7 @@ fun gen_assms prepp exp args ctxt =
     val ctxt3 = ctxt2
       |> map_assms (fn (asms, prems) => (asms @ [(new_asms, exp)], prems @ new_prems))
     val ctxt4 = ctxt3
-      |> put_thms ("prems", SOME (prems_of ctxt3));
+      |> put_thms_internal (AutoBind.premsN, SOME (prems_of ctxt3));
   in (map #3 results, warn_extra_tfrees ctxt ctxt4) end;
 
 in
