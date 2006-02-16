@@ -361,6 +361,8 @@ fun replay_chached_thm int_thms thyname thmname =
 	    add_hol4_type_mapping thyname tycname true fulltyname thy
 	  | delta (Indexed_theorem (i, th)) thy = 
 	    (Array.update (int_thms,i-1,SOME (P.to_hol_thm (th_of thy th))); thy)	    	    
+          | delta (Protect_varname (s,t)) thy =
+	    (P.replay_protect_varname s t; thy)
     in
 	rps
     end

@@ -112,7 +112,8 @@ sig
     val new_axiom : string -> term -> theory -> theory * thm
 
     val prin : term -> unit 
-    val protect_factname : string -> string
+    val protect_factname : string -> string 
+    val replay_protect_varname : string -> string -> unit
 end
 
 structure ProofKernel :> ProofKernel =
@@ -480,11 +481,26 @@ fun protect_varname s =
       let
 	  val _ = invented_isavar := IntInf.+ (!invented_isavar, IntInf.fromInt 1)
 	  val t = "u_"^(IntInf.toString (!invented_isavar))
+	  val _ = ImportRecorder.protect_varname s t
           val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
       in
 	  t
       end
 
+exception REPLAY_PROTECT_VARNAME of string*string*string
+
+fun replay_protect_varname s t = 
+	case Symtab.lookup (!protected_varnames) s of
+	  SOME t' => raise REPLAY_PROTECT_VARNAME (s, t, t')
+	| NONE => 	
+          let
+	      val _ = invented_isavar := IntInf.+ (!invented_isavar, IntInf.fromInt 1)
+	      val t = "u_"^(IntInf.toString (!invented_isavar))
+              val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
+          in
+	      ()
+          end	       	
+	 
 fun protect_boundvarname s = if innocent_varname s andalso valid_boundvarname s then s else "u"
 
 fun mk_lambda (v as Free (x, T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
