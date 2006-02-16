@@ -41,6 +41,7 @@ sig
   val def_finish: (local_theory -> term -> thm -> thm) ->
     (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
+  val abbrev: bool -> (bstring * mixfix) * term -> local_theory -> local_theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -275,5 +276,19 @@ fun def_finish finish (var, spec) ctxt =
 val def = def_finish (K (K I));
 
 end;
+
+
+(* constant abbreviations *)
+
+fun abbrev revert ((x, mx), rhs) ctxt =
+  let val abbrevs = [(x, rhs, mx)] in
+    ctxt |>
+    (case locale_of ctxt of
+      NONE =>
+        theory (Sign.add_abbrevs_i revert abbrevs)
+    | SOME (loc, _) =>
+        locale (Locale.add_abbrevs loc revert abbrevs) #>
+        ProofContext.add_abbrevs_i revert abbrevs)
+  end;
 
 end;
