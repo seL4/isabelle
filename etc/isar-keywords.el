@@ -21,6 +21,7 @@
     "ProofGeneral\\.restart"
     "ProofGeneral\\.try_context_thy_only"
     "ProofGeneral\\.undo"
+    "abbreviation"
     "also"
     "apply"
     "apply_end"
@@ -38,6 +39,7 @@
     "cd"
     "chapter"
     "class"
+    "class_exp"
     "classes"
     "classrel"
     "clear_undos"
@@ -225,7 +227,6 @@
     "constrains"
     "contains"
     "defines"
-    "depending_on"
     "distinct"
     "file"
     "fixes"
@@ -362,6 +363,7 @@
 
 (defconst isar-keywords-theory-decl
   '("ML_setup"
+    "abbreviation"
     "arities"
     "automaton"
     "axclass"
@@ -436,6 +438,7 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
+    "class_exp"
     "corollary"
     "cpodef"
     "instance"
