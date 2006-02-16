@@ -11,12 +11,9 @@ begin
 
 subsection {* List constructors over the datatype universe *}
 
-constdefs
-  NIL :: "'a Datatype_Universe.item"
-  "NIL \<equiv> Datatype_Universe.In0 (Datatype_Universe.Numb 0)"
-  CONS :: "'a Datatype_Universe.item \<Rightarrow> 'a Datatype_Universe.item
-    \<Rightarrow> 'a Datatype_Universe.item"
-  "CONS M N \<equiv> Datatype_Universe.In1 (Datatype_Universe.Scons M N)"
+definition
+  "NIL = Datatype_Universe.In0 (Datatype_Universe.Numb 0)"
+  "CONS M N = Datatype_Universe.In1 (Datatype_Universe.Scons M N)"
 
 lemma CONS_not_NIL [iff]: "CONS M N \<noteq> NIL"
   and NIL_not_CONS [iff]: "NIL \<noteq> CONS M N"
@@ -30,9 +27,8 @@ lemma CONS_UN1: "CONS M (\<Union>x. f x) = (\<Union>x. CONS M (f x))"
     -- {* A continuity result? *}
   by (simp add: CONS_def In1_UN1 Scons_UN1_y)
 
-constdefs
-  List_case where
-  "List_case c h \<equiv> Datatype_Universe.Case (\<lambda>_. c) (Datatype_Universe.Split h)"
+definition
+  "List_case c h = Datatype_Universe.Case (\<lambda>_. c) (Datatype_Universe.Split h)"
 
 lemma List_case_NIL [simp]: "List_case c h NIL = c"
   and List_case_CONS [simp]: "List_case c h (CONS M N) = h M N"
@@ -63,10 +59,8 @@ primrec
       None \<Rightarrow> NIL
     | Some (z, w) \<Rightarrow> CONS z (LList_corec_aux k f w))"
 
-constdefs
-  LList_corec :: "'a \<Rightarrow> ('a \<Rightarrow> ('b Datatype_Universe.item \<times> 'a) option) \<Rightarrow>
-    'b Datatype_Universe.item"
-  "LList_corec a f \<equiv> \<Union>k. LList_corec_aux k f a"
+definition
+  "LList_corec a f = (\<Union>k. LList_corec_aux k f a)"
 
 text {*
   Note: the subsequent recursion equation for @{text LList_corec} may
@@ -150,12 +144,9 @@ proof -
   finally show ?thesis .
 qed
 
-constdefs
-  LNil :: "'a llist"
-  "LNil \<equiv> Abs_llist NIL"
-
-  LCons :: "'a \<Rightarrow> 'a llist \<Rightarrow> 'a llist"
-  "LCons x xs \<equiv> Abs_llist (CONS (Datatype_Universe.Leaf x) (Rep_llist xs))"
+definition
+  "LNil = Abs_llist NIL"
+  "LCons x xs = Abs_llist (CONS (Datatype_Universe.Leaf x) (Rep_llist xs))"
 
 lemma LCons_not_LNil [iff]: "LCons x xs \<noteq> LNil"
   apply (simp add: LNil_def LCons_def)
@@ -202,11 +193,9 @@ proof (cases l)
 qed
 
 
-constdefs
-  llist_case :: "'b \<Rightarrow> ('a \<Rightarrow> 'a llist \<Rightarrow> 'b) \<Rightarrow> 'a llist \<Rightarrow> 'b"
-  "llist_case c d l \<equiv>
+definition
+  "llist_case c d l =
     List_case c (\<lambda>x y. d (inv Datatype_Universe.Leaf x) (Abs_llist y)) (Rep_llist l)"
-
 translations
   "case p of LNil \<Rightarrow> a | LCons x l \<Rightarrow> b" \<rightleftharpoons> "llist_case a (\<lambda>x l. b) p"
 
@@ -219,9 +208,8 @@ lemma llist_case_LCons [simp]: "llist_case c d (LCons M N) = d M N"
     CONS_type Abs_llist_inverse Rep_llist Rep_llist_inverse inj_Leaf)
 
 
-constdefs
-  llist_corec :: "'a \<Rightarrow> ('a \<Rightarrow> ('b \<times> 'a) option) \<Rightarrow> 'b llist"
-  "llist_corec a f \<equiv>
+definition
+  "llist_corec a f =
     Abs_llist (LList_corec a
       (\<lambda>z.
         case f z of None \<Rightarrow> None
@@ -539,8 +527,7 @@ subsection {* Derived operations -- both on the set and abstract type *}
 
 subsubsection {* @{text Lconst} *}
 
-constdefs
-  Lconst where
+definition
   "Lconst M \<equiv> lfp (\<lambda>N. CONS M N)"
 
 lemma Lconst_fun_mono: "mono (CONS M)"
@@ -580,12 +567,9 @@ lemma gfp_Lconst_eq_LList_corec:
 
 subsubsection {* @{text Lmap} and @{text lmap} *}
 
-constdefs
-  Lmap where
-  "Lmap f M \<equiv> LList_corec M (List_case None (\<lambda>x M'. Some (f x, M')))"
-
-  lmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a llist \<Rightarrow> 'b llist"
-  "lmap f l \<equiv> llist_corec l
+definition
+  "Lmap f M = LList_corec M (List_case None (\<lambda>x M'. Some (f x, M')))"
+  "lmap f l = llist_corec l
     (\<lambda>z.
       case z of LNil \<Rightarrow> None
       | LCons y z \<Rightarrow> Some (f y, z))"
@@ -678,15 +662,12 @@ lemma lmap_ident [simp]: "lmap (\<lambda>x. x) l = l"
 
 subsubsection {* @{text Lappend} *}
 
-constdefs
-  Lappend where
-  "Lappend M N \<equiv> LList_corec (M, N)
+definition
+  "Lappend M N = LList_corec (M, N)
     (split (List_case
         (List_case None (\<lambda>N1 N2. Some (N1, (NIL, N2))))
         (\<lambda>M1 M2 N. Some (M1, (M2, N)))))"
-
-  lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist"
-  "lappend l n \<equiv> llist_corec (l, n)
+  "lappend l n = llist_corec (l, n)
     (split (llist_case
         (llist_case None (\<lambda>n1 n2. Some (n1, (LNil, n2))))
         (\<lambda>l1 l2 n. Some (l1, (l2, n)))))"
@@ -760,9 +741,9 @@ subsection{* iterates *}
 
 text {* @{text llist_fun_equalityI} cannot be used here! *}
 
-constdefs
+definition
   iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist"
-  "iterates f a \<equiv> llist_corec a (\<lambda>x. Some (x, f x))"
+  "iterates f a = llist_corec a (\<lambda>x. Some (x, f x))"
 
 lemma iterates: "iterates f x = LCons x (iterates f (f x))"
   apply (unfold iterates_def)

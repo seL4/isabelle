@@ -160,15 +160,13 @@ text {*
   \cite{Nipkow-et-al:2000:HOL}.
 *}
 
-constdefs
-  attributes :: "file \<Rightarrow> att"
-  "attributes file \<equiv>
+definition
+  "attributes file =
     (case file of
       Val (att, text) \<Rightarrow> att
     | Env att dir \<Rightarrow> att)"
 
-  attributes_update :: "att \<Rightarrow> file \<Rightarrow> file"
-  "attributes_update att file \<equiv>
+  "attributes_update att file =
     (case file of
       Val (att', text) \<Rightarrow> Val (att, text)
     | Env att' dir \<Rightarrow> Env att dir)"
@@ -201,9 +199,8 @@ text {*
   has user id 0).
 *}
 
-constdefs
-  init :: "uid set \<Rightarrow> file"
-  "init users \<equiv>
+definition
+  "init users =
     Env \<lparr>owner = 0, others = {Readable}\<rparr>
       (\<lambda>u. if u \<in> users then Some (Env \<lparr>owner = u, others = {Readable}\<rparr> empty)
         else None)"
@@ -223,8 +220,7 @@ text {*
   access a file unconditionally (in our simplified model).
 *}
 
-constdefs
-  access :: "file \<Rightarrow> path \<Rightarrow> uid \<Rightarrow> perms \<Rightarrow> file option"
+definition
   "access root path uid perms \<equiv>
     (case lookup root path of
       None \<Rightarrow> None
@@ -648,8 +644,7 @@ text {*
   transition.
 *}
 
-constdefs
-  can_exec :: "file \<Rightarrow> operation list \<Rightarrow> bool"
+definition
   "can_exec root xs \<equiv> \<exists>root'. root =xs\<Rightarrow> root'"
 
 lemma can_exec_nil: "can_exec root []"
@@ -843,13 +838,12 @@ locale situation =
   notes facts = user\<^isub>1_known user\<^isub>1_not_root users_neq
     perms\<^isub>1_writable perms\<^isub>2_not_writable
 
-  fixes bogus :: "operation list"
-    and bogus_path :: path
-  defines "bogus \<equiv>
+definition (in situation)
+  "bogus =
      [Mkdir user\<^isub>1 perms\<^isub>1 [user\<^isub>1, name\<^isub>1],
       Mkdir user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2],
       Creat user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2, name\<^isub>3]]"
-    and "bogus_path \<equiv> [user\<^isub>1, name\<^isub>1, name\<^isub>2]"
+  "bogus_path = [user\<^isub>1, name\<^isub>1, name\<^isub>2]"
 
 text {*
   The @{term bogus} operations are the ones that lead into the uncouth
@@ -867,9 +861,8 @@ text {*
   neither owned and nor writable by @{term user\<^isub>1}.
 *}
 
-locale invariant = situation +
-  fixes invariant :: "file \<Rightarrow> path \<Rightarrow> bool"
-  defines "invariant root path \<equiv>
+definition (in situation)
+  "invariant root path \<equiv>
     (\<exists>att dir.
       access root path user\<^isub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
       user\<^isub>1 \<noteq> owner att \<and>
@@ -907,7 +900,7 @@ text {*
   we just have to inspect rather special cases.
 *}
 
-lemma (in invariant) cannot_rmdir:
+lemma (in situation) cannot_rmdir:
   assumes inv: "invariant root bogus_path"
     and rmdir: "root \<midarrow>(Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1])\<rightarrow> root'"
   shows False
@@ -923,7 +916,7 @@ proof -
   ultimately show False by (simp add: bogus_path_def)
 qed
 
-lemma (in invariant)
+lemma (in situation)
   assumes init: "init users =bogus\<Rightarrow> root"
   notes eval = facts access_def init_def
   shows init_invariant: "invariant root bogus_path"
@@ -946,7 +939,7 @@ text {*
   required here.
 *}
 
-lemma (in invariant) preserve_invariant:
+lemma (in situation) preserve_invariant:
   assumes tr: "root \<midarrow>x\<rightarrow> root'"
     and inv: "invariant root path"
     and uid: "uid_of x = user\<^isub>1"
@@ -1090,8 +1083,7 @@ text {*
   overall procedure (see \secref{sec:unix-inv-procedure}).
 *}
 
-corollary result:
-  includes invariant
+corollary (in situation)
   assumes bogus: "init users =bogus\<Rightarrow> root"
   shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user\<^isub>1) \<and>
     can_exec root (xs @ [Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1]]))"
@@ -1099,12 +1091,5 @@ proof -
   from cannot_rmdir init_invariant preserve_invariant
     and bogus show ?thesis by (rule general_procedure)
 qed
-
-text {*
-  So this is our final result:
-
-  @{thm [display, show_question_marks = false] result [OF
-  invariant.intro, OF situation.intro]}
-*}
 
 end

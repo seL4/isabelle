@@ -155,9 +155,9 @@ lemma set_mono_prefix:
 
 subsection {* Parallel lists *}
 
-constdefs
+definition
   parallel :: "'a list => 'a list => bool"    (infixl "\<parallel>" 50)
-  "xs \<parallel> ys == \<not> xs \<le> ys \<and> \<not> ys \<le> xs"
+  "(xs \<parallel> ys) = (\<not> xs \<le> ys \<and> \<not> ys \<le> xs)"
 
 lemma parallelI [intro]: "\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> xs \<parallel> ys"
   unfolding parallel_def by blast
@@ -215,9 +215,9 @@ qed
 
 subsection {* Postfix order on lists *}
 
-constdefs
+definition
   postfix :: "'a list => 'a list => bool"  ("(_/ >>= _)" [51, 50] 50)
-  "xs >>= ys == \<exists>zs. xs = zs @ ys"
+  "(xs >>= ys) = (\<exists>zs. xs = zs @ ys)"
 
 lemma postfix_refl [simp, intro!]: "xs >>= xs"
   by (auto simp add: postfix_def)

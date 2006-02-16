@@ -23,10 +23,9 @@ inductive "acc r"
   intros
     accI: "(!!y. (y, x) \<in> r ==> y \<in> acc r) ==> x \<in> acc r"
 
-syntax
+abbreviation (output)
   termi :: "('a \<times> 'a) set => 'a set"
-translations
-  "termi r" == "acc (r\<inverse>)"
+  "termi r == acc (r\<inverse>)"
 
 
 subsection {* Induction rules *}

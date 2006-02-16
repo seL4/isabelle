@@ -12,10 +12,9 @@ text {*
   Lifting beta-reduction to lists of terms, reducing exactly one element.
 *}
 
-syntax
-  "_list_beta" :: "dB => dB => bool"   (infixl "=>" 50)
-translations
-  "rs => ss" == "(rs, ss) : step1 beta"
+abbreviation (output)
+  list_beta :: "dB list => dB list => bool"   (infixl "=>" 50)
+  "(rs => ss) = ((rs, ss) : step1 beta)"
 
 lemma head_Var_reduction:
   "Var n \<degree>\<degree> rs -> v \<Longrightarrow> \<exists>ss. rs => ss \<and> v = Var n \<degree>\<degree> ss"

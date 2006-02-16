@@ -10,12 +10,12 @@ theory Primes
 imports Main
 begin
 
-constdefs
+definition
   coprime :: "nat => nat => bool"
-  "coprime m n == gcd (m, n) = 1"
+  "coprime m n = (gcd (m, n) = 1)"
 
   prime :: "nat \<Rightarrow> bool"
-  "prime p == 1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p)"
+  "prime p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 
 lemma two_is_prime: "prime 2"

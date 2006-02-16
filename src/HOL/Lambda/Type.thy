@@ -11,9 +11,9 @@ theory Type imports ListApplication begin
 
 subsection {* Environments *}
 
-constdefs
+definition
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_<_:_>" [90, 0, 0] 91)
-  "e<i:a> \<equiv> \<lambda>j. if j < i then e j else if j = i then a else e (j - 1)"
+  "e<i:a> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
 syntax (xsymbols)
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 syntax (HTML output)
@@ -47,21 +47,23 @@ consts
   typing :: "((nat \<Rightarrow> type) \<times> dB \<times> type) set"
   typings :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
 
-syntax
-  "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "=>>" 200)
-  "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |- _ : _" [50, 50, 50] 50)
-  "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
+abbreviation (output)
+  funs :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "=>>" 200)
+  "Ts =>> T = foldr Fun Ts T"
+
+  typing_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |- _ : _" [50, 50, 50] 50)
+  "(env |- t : T) = ((env, t, T) \<in> typing)"
+
+  typings_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ ||- _ : _" [50, 50, 50] 50)
+  "(env ||- ts : Ts) = typings env ts Ts"
+
 syntax (xsymbols)
-  "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
+  typing_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 syntax (latex)
-  "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "\<Rrightarrow>" 200)
-  "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
+  funs :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "\<Rrightarrow>" 200)
+  typings_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
-translations
-  "Ts \<Rrightarrow> T" \<rightleftharpoons> "foldr Fun Ts T"
-  "env \<turnstile> t : T" \<rightleftharpoons> "(env, t, T) \<in> typing"
-  "env \<tturnstile> ts : Ts" \<rightleftharpoons> "typings env ts Ts"
 
 inductive typing
   intros

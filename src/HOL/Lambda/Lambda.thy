@@ -56,15 +56,15 @@ subsection {* Beta-reduction *}
 consts
   beta :: "(dB \<times> dB) set"
 
-syntax
-  "_beta" :: "[dB, dB] => bool"  (infixl "->" 50)
-  "_beta_rtrancl" :: "[dB, dB] => bool"  (infixl "->>" 50)
+abbreviation (output)
+  beta_red :: "[dB, dB] => bool"  (infixl "->" 50)
+  "(s -> t) = ((s, t) \<in> beta)"
+  beta_reds :: "[dB, dB] => bool"  (infixl "->>" 50)
+  "(s ->> t) = ((s, t) \<in> beta^*)"
+
 syntax (latex)
-  "_beta" :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
-  "_beta_rtrancl" :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
-translations
-  "s \<rightarrow>\<^sub>\<beta> t" == "(s, t) \<in> beta"
-  "s \<rightarrow>\<^sub>\<beta>\<^sup>* t" == "(s, t) \<in> beta^*"
+  beta_red :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+  beta_reds :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
 
 inductive beta
   intros

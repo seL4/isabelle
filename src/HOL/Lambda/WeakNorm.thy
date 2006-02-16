@@ -16,9 +16,9 @@ Felix Joachimski and Ralph Matthes \cite{Matthes-Joachimski-AML}.
 
 subsection {* Terms in normal form *}
 
-constdefs
+definition
   listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-  "listall P xs \<equiv> (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
+  "listall P xs == (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
 
 declare listall_def [extraction_expand]
 
@@ -361,12 +361,11 @@ qed
 consts -- {* A computationally relevant copy of @{term "e \<turnstile> t : T"} *}
   rtyping :: "((nat \<Rightarrow> type) \<times> dB \<times> type) set"
 
-syntax
-  "_rtyping" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |-\<^sub>R _ : _" [50, 50, 50] 50)
+abbreviation (output)
+  rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |-\<^sub>R _ : _" [50, 50, 50] 50)
+  "(e |-\<^sub>R t : T) = ((e, t, T) \<in> rtyping)"
 syntax (xsymbols)
-  "_rtyping" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
-translations
-  "e \<turnstile>\<^sub>R t : T" \<rightleftharpoons> "(e, t, T) \<in> rtyping"
+  rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
 
 inductive rtyping
   intros

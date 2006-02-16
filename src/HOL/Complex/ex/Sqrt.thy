@@ -17,17 +17,17 @@ text {*
   theorem.
 *}
 
-constdefs
-  rationals :: "real set"    ("\<rat>")
-  "\<rat> \<equiv> {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
+definition
+  rationals  ("\<rat>")
+  "\<rat> = {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
 
-theorem rationals_rep: "x \<in> \<rat> \<Longrightarrow>
-  \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real m / real n \<and> gcd (m, n) = 1"
+theorem rationals_rep [elim?]:
+  assumes "x \<in> \<rat>"
+  obtains m n where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd (m, n) = 1"
 proof -
-  assume "x \<in> \<rat>"
-  then obtain m n :: nat where
+  from `x \<in> \<rat>` obtain m n :: nat where
       n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n"
-    by (unfold rationals_def) blast
+    unfolding rationals_def by blast
   let ?gcd = "gcd (m, n)"
   from n have gcd: "?gcd \<noteq> 0" by (simp add: gcd_zero)
   let ?k = "m div ?gcd"
@@ -58,13 +58,8 @@ proof -
     with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
     with gcd show ?thesis by simp
   qed
-  ultimately show ?thesis by blast
+  ultimately show ?thesis ..
 qed
-
-lemma [elim?]: "r \<in> \<rat> \<Longrightarrow>
-  (\<And>m n. n \<noteq> 0 \<Longrightarrow> \<bar>r\<bar> = real m / real n \<Longrightarrow> gcd (m, n) = 1 \<Longrightarrow> C)
-    \<Longrightarrow> C"
-  using rationals_rep by blast
 
 
 subsection {* Main theorem *}
@@ -74,10 +69,11 @@ text {*
   irrational.
 *}
 
-theorem sqrt_prime_irrational: "prime p \<Longrightarrow> sqrt (real p) \<notin> \<rat>"
+theorem sqrt_prime_irrational:
+  assumes "prime p"
+  shows "sqrt (real p) \<notin> \<rat>"
 proof
-  assume p_prime: "prime p"
-  then have p: "1 < p" by (simp add: prime_def)
+  from `prime p` have p: "1 < p" by (simp add: prime_def)
   assume "sqrt (real p) \<in> \<rat>"
   then obtain m n where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
@@ -94,12 +90,12 @@ proof
   have "p dvd m \<and> p dvd n"
   proof
     from eq have "p dvd m\<twosuperior>" ..
-    with p_prime show "p dvd m" by (rule prime_dvd_power_two)
+    with `prime p` show "p dvd m" by (rule prime_dvd_power_two)
     then obtain k where "m = p * k" ..
     with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
     with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
     then have "p dvd n\<twosuperior>" ..
-    with p_prime show "p dvd n" by (rule prime_dvd_power_two)
+    with `prime p` show "p dvd n" by (rule prime_dvd_power_two)
   qed
   then have "p dvd gcd (m, n)" ..
   with gcd have "p dvd 1" by simp
@@ -119,10 +115,11 @@ text {*
   structure, it is probably closer to proofs seen in mathematics.
 *}
 
-theorem "prime p \<Longrightarrow> sqrt (real p) \<notin> \<rat>"
+theorem
+  assumes "prime p"
+  shows "sqrt (real p) \<notin> \<rat>"
 proof
-  assume p_prime: "prime p"
-  then have p: "1 < p" by (simp add: prime_def)
+  from `prime p` have p: "1 < p" by (simp add: prime_def)
   assume "sqrt (real p) \<in> \<rat>"
   then obtain m n where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
@@ -134,12 +131,12 @@ proof
   also have "\<dots> * real (n\<twosuperior>) = real (p * n\<twosuperior>)" by simp
   finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
   then have "p dvd m\<twosuperior>" ..
-  with p_prime have dvd_m: "p dvd m" by (rule prime_dvd_power_two)
+  with `prime p` have dvd_m: "p dvd m" by (rule prime_dvd_power_two)
   then obtain k where "m = p * k" ..
   with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
   with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
   then have "p dvd n\<twosuperior>" ..
-  with p_prime have "p dvd n" by (rule prime_dvd_power_two)
+  with `prime p` have "p dvd n" by (rule prime_dvd_power_two)
   with dvd_m have "p dvd gcd (m, n)" by (rule gcd_greatest)
   with gcd have "p dvd 1" by simp
   then have "p \<le> 1" by (simp add: dvd_imp_le)

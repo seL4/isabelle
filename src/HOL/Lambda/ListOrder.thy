@@ -13,9 +13,9 @@ text {*
   element.
 *}
 
-constdefs
+definition
   step1 :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-  "step1 r ==
+  "step1 r =
     {(ys, xs). \<exists>us z z' vs. xs = us @ z # vs \<and> (z', z) \<in> r \<and> ys =
       us @ z' # vs}"
 

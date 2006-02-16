@@ -74,9 +74,9 @@ text {*
  representation of elements of a quotient type.
 *}
 
-constdefs
+definition
   "class" :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
-  "\<lfloor>a\<rfloor> == Abs_quot {x. a \<sim> x}"
+  "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
@@ -133,9 +133,9 @@ qed
 
 subsection {* Picking representing elements *}
 
-constdefs
+definition
   pick :: "'a::equiv quot => 'a"
-  "pick A == SOME a. A = \<lfloor>a\<rfloor>"
+  "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
 
 theorem pick_equiv [intro]: "pick \<lfloor>a\<rfloor> \<sim> a"
 proof (unfold pick_def)
