@@ -117,8 +117,8 @@ introduction rule (default "that").
 
 * Isar/locales: new derived specification elements 'definition',
 'abbreviation', 'axiomatization', which support type-inference, admit
-object-level specifications (equality, equivalence), and may used
-within an optional locale context.  For example:
+object-level specifications (equality, equivalence).  See also the
+isar-ref manual.  Examples:
 
   definition
     "f x y = x + y + 1"
@@ -134,14 +134,16 @@ within an optional locale context.  For example:
     neq  (infix "=!=" 50)
     "(x =!= y) <-> ~ (x === y)"
 
-Within a locale context, constants being introduced depend on certain
-fixed parameters, and the constant name is qualified by the locale
-base name.  An internal abbreviation takes care for convenient input
-and output, making the parameters implicit and using the original
-short name.  Presently, abbreviations are only available "in" a target
-locale, but not inherited by general import expressions.
+These specifications may be also used in a locale context.  Then the
+constants being introduced depend on certain fixed parameters, and the
+constant name is qualified by the locale base name.  An internal
+abbreviation takes care for convenient input and output, making the
+parameters implicit and using the original short name.  See
+HOL/ex/Abstract_NAT.thy for an example of deriving polymorphic
+entities from a monomorphic theory.
 
-See the isar-ref manual for further details.
+Presently, abbreviations are only available 'in' a target locale, but
+not inherited by general import expressions.
 
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
