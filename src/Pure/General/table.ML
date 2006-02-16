@@ -48,7 +48,6 @@ sig
   val delete_safe: key -> 'a table -> 'a table
   val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
-  val replace: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
   val lookup_list: 'a list table -> key -> 'a list
   val update_list: (key * 'a) -> 'a list table -> 'a list table
@@ -340,9 +339,6 @@ fun member eq tab (key, x) =
 
 fun insert eq (key, x) =
   modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else raise DUP key);
-
-fun replace eq (key, x) =
-  modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else x);
 
 fun remove eq (key, x) tab =
   (case lookup tab key of
