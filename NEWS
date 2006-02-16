@@ -115,6 +115,34 @@ case_names).
 * Isar: 'obtain' takes an optional case name for the local context
 introduction rule (default "that").
 
+* Isar/locales: new derived specification elements 'definition',
+'abbreviation', 'axiomatization', which support type-inference, admit
+object-level specifications (equality, equivalence), and may used
+within an optional locale context.  For example:
+
+  definition
+    "f x y = x + y + 1"
+    "g x = f x x"
+
+  thm f_def g_def
+
+  axiomatization
+    eq  (infix "===" 50)
+    where eq_refl: "x === x" and eq_subst: "x === y ==> P x ==> P y"
+
+  abbreviation (output)
+    neq  (infix "=!=" 50)
+    "(x =!= y) <-> ~ (x === y)"
+
+Within a locale context, constants being introduced depend on certain
+fixed parameters, and the constant name is qualified by the locale
+base name.  An internal abbreviation takes care for convenient input
+and output, making the parameters implicit and using the original
+short name.  Presently, abbreviations are only available "in" a target
+locale, but not inherited by general import expressions.
+
+See the isar-ref manual for further details.
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals
@@ -363,8 +391,8 @@ mangling (bijective mapping from any expression values to strings).
 * Pure/General/rat.ML implements rational numbers.
 
 * Pure/General/table.ML: the join operations now works via exceptions
-DUP/SAME instead of type option.  This is both simpler and admits
-slightly more efficient complex applications.
+DUP/SAME instead of type option.  This is simpler in simple cases, and
+admits slightly more efficient complex applications.
 
 * Pure: datatype Context.generic joins theory/Proof.context and
 provides some facilities for code that works in either kind of
