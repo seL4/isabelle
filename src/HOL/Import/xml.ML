@@ -12,23 +12,28 @@ sig
   val text_charref: string -> string
   val cdata: string -> string
   val element: string -> (string * string) list -> string list -> string
+  
   datatype tree =
       Elem of string * (string * string) list * tree list
     | Text of string
+  
   val string_of_tree: tree -> string
   val tree_of_string: string -> tree
+
+  val encoded_string_of_tree : tree -> string
+  val tree_of_encoded_string : string -> tree
 end;
 
-structure XML =
+structure XML :> XML =
 struct
 
-structure Scan = LazyScan
+structure Seq = ListScannerSeq
+structure Scan = Scanner (structure Seq = Seq)
 open Scan
 
 (** string based representation (small scale) **)
 
 val header = "<?xml version=\"1.0\"?>\n";
-
 
 (* text and character data *)
 
@@ -89,7 +94,7 @@ fun string_of_tree tree =
 
 (** XML parsing **)
 
-fun beginning n xs = Symbol.beginning n (LazySeq.take_at_most (xs, n))
+fun beginning n xs = Symbol.beginning n (Seq.take_at_most xs n)
 
 fun err s xs =
   "XML parsing error: " ^ s ^ "\nfound: " ^ quote (beginning 100 xs) ;
@@ -149,11 +154,44 @@ val parse_document =
 
 fun tree_of_string s =
     let
-	val seq = LazySeq.of_list (Symbol.explode s)
+	val seq = Seq.fromString s
 	val scanner = !! (err "Malformed element") (scan_whspc |-- parse_elem --| scan_whspc)
 	val (x, toks) = scanner seq
     in
-	if LazySeq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
+	if Seq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
     end
-	
+
+(* More efficient saving and loading of xml trees employing a proprietary external format *)
+
+fun write_lstring s buf = buf |> Buffer.add (string_of_int (size s)) |> Buffer.add " " |> Buffer.add s
+fun parse_lstring toks = (scan_nat --| one Symbol.is_blank :-- (fn i => repeat_fixed i (one (K true))) >> snd >> implode) toks
+
+fun write_list w l buf = buf |> Buffer.add (string_of_int (length l)) |> Buffer.add " " |> fold w l     
+fun parse_list sc = scan_nat --| one Symbol.is_blank :-- (fn i => repeat_fixed i sc) >> snd
+
+fun write_tree (Text s) buf = buf |> Buffer.add "T" |> write_lstring s
+  | write_tree (Elem (name, attrs, children)) buf = 
+    buf |> Buffer.add "E" 
+	|> write_lstring name 
+	|> write_list (fn (a,b) => fn buf => buf |> write_lstring a |> write_lstring b) attrs 
+	|> write_list write_tree children
+
+fun parse_tree toks = (one (K true) :-- (fn "T" => parse_lstring >> Text | "E" => parse_elem | _ => raise SyntaxError) >> snd) toks
+and parse_elem toks = (parse_lstring -- parse_list (parse_lstring -- parse_lstring) -- parse_list parse_tree >> (fn ((n, a), c) => Elem (n,a,c))) toks
+
+fun encoded_string_of_tree tree = Buffer.content (write_tree tree Buffer.empty)
+
+fun tree_of_encoded_string s = 
+    let
+	fun print (a,b) = writeln (a^" "^(string_of_int b))
+	val _ = print ("length of encoded string: ", size s)
+	val _ = writeln "Seq.fromString..."
+	val seq = timeit (fn () => Seq.fromString s)
+	val  _ = print ("length of sequence", timeit (fn () => Seq.length seq))
+	val scanner = !! (err "Malformed encoded xml") parse_tree
+	val (x, toks) = scanner seq
+    in
+	if Seq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
+    end	       
+
 end;

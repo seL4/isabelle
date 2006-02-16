@@ -57,6 +57,9 @@ sig
 
   val write_to_file: 'a output -> string -> 'a -> unit
   val read_from_file: 'a input -> string -> 'a
+
+  val serialize_to_file : 'a output -> string -> 'a -> unit
+  val deserialize_from_file : 'a input -> string -> 'a
 end;
 
 structure XMLConv : XML_CONV =
@@ -240,20 +243,26 @@ fun mixfix_of_xml e =
     ) e
 
 
-fun write_to_file output fname x = File.write (Path.unpack fname) (XML.string_of_tree (output x))
+fun to_file f output fname x = File.write (Path.unpack fname) (f (output x))
  
-fun read_from_file input fname = 
+fun from_file f input fname = 
     let
 	val _ = writeln "read_from_file enter"
 	val s = File.read (Path.unpack fname)
 	val _ = writeln "done: read file"
-	val tree = timeit (fn () => XML.tree_of_string s)
+	val tree = timeit (fn () => f s)
 	val _ = writeln "done: tree"
 	val x = timeit (fn () => input tree)
 	val _ = writeln "done: input"
     in
 	x
     end
+
+fun write_to_file x = to_file XML.string_of_tree x
+fun read_from_file x = timeit (fn () => (writeln "read_from_file"; from_file XML.tree_of_string x))
+
+fun serialize_to_file x = to_file XML.encoded_string_of_tree x
+fun deserialize_from_file x = timeit (fn () => (writeln "deserialize_from_file"; from_file XML.tree_of_encoded_string x))
 
 end;
 

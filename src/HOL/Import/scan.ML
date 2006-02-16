@@ -1,16 +1,18 @@
 (*  Title:      HOL/Import/lazy_scan.ML
     ID:         $Id$
-    Author:     Sebastian Skalberg, TU Muenchen
+    Author:     Sebastian Skalberg, TU Muenchen / Steven Obua, TU Muenchen
 
-Scanner combinators for lazy sequences.
+Scanner combinators for sequences.
 *)
 
-signature LAZY_SCAN =
+signature SCANNER =
 sig
+
+    include SCANNER_SEQ
 
     exception SyntaxError
 
-    type ('a,'b) scanner = 'a LazySeq.seq -> 'b * 'a LazySeq.seq
+    type ('a,'b) scanner = 'a seq -> 'b * 'a seq
 
     val :--      : ('a,'b) scanner * ('b -> ('a,'c) scanner)
 		   -> ('a,'b*'c) scanner
@@ -22,6 +24,7 @@ sig
 		   -> ('a,string) scanner 
     val ||       : ('a,'b) scanner * ('a,'b) scanner -> ('a,'b) scanner
     val one      : ('a -> bool) -> ('a,'a) scanner
+    val anyone   : ('a,'a) scanner
     val succeed  : 'b -> ('a,'b) scanner
     val any      : ('a -> bool) -> ('a,'a list) scanner
     val any1     : ('a -> bool) -> ('a,'a list) scanner
@@ -33,9 +36,8 @@ sig
     val ahead    : ('a,'b) scanner -> ('a,'b) scanner
     val unless   : ('a, 'b) scanner -> ('a,'c) scanner -> ('a,'c) scanner
     val $$       : ''a -> (''a,''a) scanner
-    val !!       : ('a LazySeq.seq -> string) -> ('a,'b) scanner -> ('a,'b) scanner
-    val scan_full: ('a,'b) scanner -> 'a LazySeq.seq -> 'b LazySeq.seq
-
+    val !!       : ('a seq -> string) -> ('a,'b) scanner -> ('a,'b) scanner
+    
     val scan_id : (string, string) scanner
     val scan_nat : (string, int) scanner
 
@@ -43,7 +45,7 @@ sig
     val this_string : string -> (string, string) scanner
 end
 
-structure LazyScan :> LAZY_SCAN =
+functor Scanner (structure Seq : SCANNER_SEQ) : SCANNER =
 struct
 
 infix 7 |-- --|
@@ -54,7 +56,10 @@ infix 0 ||
 exception SyntaxError
 exception Fail of string
 
-type ('a,'b) scanner = 'a LazySeq.seq -> 'b * 'a LazySeq.seq
+type 'a seq = 'a Seq.seq
+type ('a,'b) scanner = 'a seq -> 'b * 'a seq
+
+val pull = Seq.pull
 
 fun (sc1 :-- sc2) toks =
     let
@@ -106,17 +111,14 @@ fun (sc1 || sc2) toks =
     (sc1 toks)
     handle SyntaxError => sc2 toks
 
-fun one p toks =
-    case LazySeq.getItem toks of
-	NONE => raise SyntaxError
-      | SOME(t,toks) => if p t
-			then (t,toks)
-			else raise SyntaxError
+fun anyone toks = case pull toks of NONE => raise SyntaxError | SOME x => x
+
+fun one p toks = case anyone toks of x as (t, toks) => if p t then x else raise SyntaxError
 
 fun succeed e toks = (e,toks)
 
 fun any p toks =
-    case LazySeq.getItem toks of
+    case pull toks of
 	NONE =>  ([],toks)
       | SOME(x,toks2) => if p x
 			 then
@@ -203,21 +205,6 @@ fun $$ arg = one (fn x => x = arg)
 fun !! f sc toks = (sc toks
 		    handle SyntaxError => raise Fail (f toks))
 
-fun scan_full sc toks =
-    let
-	fun F toks =
-	    if LazySeq.null toks
-	    then NONE
-	    else
-		let
-		    val (x,toks') = sc toks
-		in
-		    SOME(x,LazySeq.make (fn () => F toks'))
-		end
-    in
-	LazySeq.make (fn () => F toks)
-    end
-
 val scan_id = one Symbol.is_letter ^^ (any Symbol.is_letdig >> implode);
 
 val nat_of_list = the o Int.fromString o implode 
@@ -230,3 +217,4 @@ fun this [] = (fn toks => ([], toks))
 fun this_string s = this (explode s) >> K s
 
 end
+

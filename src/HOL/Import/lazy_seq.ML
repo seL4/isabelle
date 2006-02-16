@@ -8,12 +8,11 @@ Alternative version of lazy sequences.
 signature LAZY_SEQ =
 sig
 
-    type 'a seq
+    include EXTENDED_SCANNER_SEQ
 
     (* From LIST *)
 
-    val null : 'a seq -> bool
-    val length : 'a seq -> int
+    val fromString : string -> string seq
     val @ : 'a seq * 'a seq -> 'a seq
     val hd : 'a seq -> 'a
     val tl : 'a seq -> 'a seq
@@ -21,7 +20,6 @@ sig
     val getItem : 'a seq -> ('a * 'a seq) option
     val nth : 'a seq * int -> 'a
     val take : 'a seq * int -> 'a seq
-    val take_at_most : 'a seq * int -> 'a list
     val drop : 'a seq * int -> 'a seq
     val rev : 'a seq -> 'a seq
     val concat : 'a seq seq -> 'a seq
@@ -89,6 +87,7 @@ datatype 'a seq = Seq of ('a * 'a seq) option susp
 exception Empty
 
 fun getItem (Seq s) = force s
+val pull = getItem
 fun make f = Seq (delay f)
 
 fun null s = is_none (getItem s)
@@ -149,11 +148,11 @@ fun take (s,n) =
     else F' s n
 end
 
-fun take_at_most (s,n) = 
+fun take_at_most s n = 
     if n <= 0 then [] else
     case getItem s of 
 	NONE => []
-      | SOME (x,s') => x::(take_at_most (s',n-1))
+      | SOME (x,s') => x::(take_at_most s' (n-1))
 
 local
     fun F s 0 = s
@@ -547,4 +546,9 @@ fun foldr f e s =
 	F e (getItem s)
     end
 
+fun fromString s = of_list (Symbol.explode s)
+
 end
+
+structure LazyScan = Scanner (structure Seq = LazySeq)
+
