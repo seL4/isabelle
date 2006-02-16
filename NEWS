@@ -145,6 +145,9 @@ entities from a monomorphic theory.
 Presently, abbreviations are only available 'in' a target locale, but
 not inherited by general import expressions.
 
+Also note that 'abbreviation' may be used as a type-safe replacement
+for 'syntax' + 'translations' in common applications.
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals
