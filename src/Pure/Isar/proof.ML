@@ -20,7 +20,8 @@ sig
   val map_context: (context -> context) -> state -> state
   val warn_extra_tfrees: state -> state -> state
   val add_binds_i: (indexname * term option) list -> state -> state
-  val put_thms: string * thm list option -> state -> state
+  val put_thms: bool -> string * thm list option -> state -> state
+  val put_thms_internal: string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val put_facts: thm list option -> state -> state
@@ -215,8 +216,8 @@ fun map_context_result f state =
 
 val warn_extra_tfrees = map_context o ProofContext.warn_extra_tfrees o context_of;
 val add_binds_i = map_context o ProofContext.add_binds_i;
-val put_thms = map_context o ProofContext.put_thms;
-val get_case = ProofContext.get_case o context_of;
+val put_thms = map_context oo ProofContext.put_thms;
+val put_thms_internal = map_context o ProofContext.put_thms_internal;
 
 
 (* facts *)
@@ -232,8 +233,8 @@ fun the_fact state =
   | _ => error "Single theorem expected");
 
 fun put_facts facts =
-  map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  #> put_thms (AutoBind.thisN, facts);
+  map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
+  put_thms_internal (AutoBind.thisN, facts);
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> put_facts (SOME (List.concat (map snd named_factss) @ more_facts)));
@@ -665,8 +666,8 @@ local
 fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   let
     val atts = map (prep_att (theory_of state)) raw_atts;
-    val (asms, state') =
-      map_context_result (ProofContext.apply_case (get_case state name xs)) state;
+    val (asms, state') = state |> map_context_result (fn ctxt =>
+      ctxt |> ProofContext.apply_case (ProofContext.get_case ctxt name xs));
     val assumptions = asms |> map (fn (a, ts) => ((a, atts), map (rpair ([], [])) ts));
   in
     state'
