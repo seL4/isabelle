@@ -606,9 +606,9 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
 
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
-$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy ex/BT.thy ex/BinEx.thy	\
-  ex/Classical.thy ex/Chinese.thy Library/Commutative_Ring.thy		\
-  ex/Commutative_RingEx.thy						\
+$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Abstract_NAT.thy ex/Antiquote.thy	\
+  ex/BT.thy ex/BinEx.thy ex/Classical.thy ex/Chinese.thy 		\
+  Library/Commutative_Ring.thy ex/Commutative_RingEx.thy		\
   ex/Commutative_Ring_Complete.thy ex/Hebrew.thy			\
   ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy	\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\

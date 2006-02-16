@@ -5,6 +5,7 @@ Miscellaneous examples for Higher-Order Logic.
 *)
 
 time_use_thy "Higher_Order_Logic";
+time_use_thy "Abstract_NAT";
 
 time_use_thy "Recdefs";
 time_use_thy "InductiveInvariant_examples";
