@@ -328,18 +328,6 @@ fun replay_chached_thm int_thms thyname thmname =
 	  | rps (t::ts) thy = rps ts (rp t thy)
 	and rp (ThmEntry (thyname', thmname', aborted, History history)) thy = rps history thy	    
 	  | rp (DeltaEntry ds) thy = fold delta ds thy
-(*    datatype deltastate = Consts of (string * typ * mixfix) list
-			| Specification of (string * string * bool) list * term
-			| Hol_mapping of string * string * string
-			| Hol_pending of string * string * term
-			| Hol_const_mapping of string * string * string
-			| Hol_move of string * string
-			| Defs of string * term
-			| Hol_theorem of string * string * term
-			| Typedef of string option * (string * string list * mixfix) * term * (string * string) option * term 
-			| Hol_type_mapping of string * string * string
-			| Indexed_theorem of int * term
-*)
 	and delta (Specification (names, th)) thy = 
 	    fst (SpecificationPackage.add_specification NONE names (thy,th_of thy th))
 	  | delta (Hol_mapping (thyname, thmname, isaname)) thy = 
@@ -361,8 +349,8 @@ fun replay_chached_thm int_thms thyname thmname =
 	    add_hol4_type_mapping thyname tycname true fulltyname thy
 	  | delta (Indexed_theorem (i, th)) thy = 
 	    (Array.update (int_thms,i-1,SOME (P.to_hol_thm (th_of thy th))); thy)	    	    
-          | delta (Protect_varname (s,t)) thy =
-	    (P.replay_protect_varname s t; thy)
+          | delta (Protect_varname (s,t)) thy = (P.replay_protect_varname s t; thy)
+	  | delta (Dump s) thy = P.replay_add_dump s thy
     in
 	rps
     end

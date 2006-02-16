@@ -13,6 +13,7 @@ sig
 			| Hol_type_mapping of string * string * string
 			| Indexed_theorem of int * term
 	                | Protect_varname of string * string
+			| Dump of string
 
     datatype history = History of history_entry list
 	 and history_entry = ThmEntry of string*string*bool*history | DeltaEntry of deltastate list
@@ -37,6 +38,7 @@ sig
     val add_hol_type_mapping : string -> string -> string -> unit
     val add_indexed_theorem : int -> thm -> unit
     val protect_varname : string -> string -> unit
+    val add_dump : string -> unit
 
     val set_skip_import_dir : string option -> unit
     val get_skip_import_dir : unit -> string option
@@ -63,6 +65,7 @@ datatype deltastate = Consts of (string * typ * mixfix) list
 		    | Hol_type_mapping of string * string * string
 		    | Indexed_theorem of int * term
 	            | Protect_varname of string * string
+		    | Dump of string
 
 datatype history_entry = StartReplay of string*string  
 		       | StopReplay of string*string
@@ -108,6 +111,7 @@ local
       | delta (Hol_type_mapping args) = wrap "hol_type_mapping" hol_type_mapping args
       | delta (Indexed_theorem args) = wrap "indexed_theorem" indexed_theorem args
       | delta (Protect_varname args) = wrap "protect_varname" entry args
+      | delta (Dump args) = wrap "dump" string args
 
     fun history_entry (StartReplay args) = wrap "startreplay" entry args
       | history_entry (StopReplay args) = wrap "stopreplay" entry args
@@ -146,6 +150,7 @@ local
       | delta "hol_type_mapping" = unwrap Hol_type_mapping hol_type_mapping
       | delta "indexed_theorem" = unwrap Indexed_theorem indexed_theorem
       | delta "protect_varname" = unwrap Protect_varname entry
+      | delta "dump" = unwrap Dump string
       | delta _ = raise ParseException "delta"
 
     val delta = fn e => delta (name_of_wrap e) e
@@ -178,6 +183,7 @@ fun add_hol_pending thyname thmname th = add_delta (Hol_pending (thyname, thmnam
 fun add_specification names th = add_delta (Specification (names, prop_of th)) 
 fun add_indexed_theorem i th = add_delta (Indexed_theorem (i, prop_of th))
 fun protect_varname s t = add_delta (Protect_varname (s,t))
+fun add_dump s = add_delta (Dump s)
 			    
 fun set_skip_import_dir dir = (history_dir := dir)
 fun get_skip_import_dir () = !history_dir

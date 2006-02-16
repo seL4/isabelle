@@ -114,6 +114,7 @@ sig
     val prin : term -> unit 
     val protect_factname : string -> string 
     val replay_protect_varname : string -> string -> unit
+    val replay_add_dump : string -> theory -> theory
 end
 
 structure ProofKernel :> ProofKernel =
@@ -127,6 +128,9 @@ datatype thm = HOLThm of (Term.term * Term.term) list * Thm.thm
 fun hthm2thm (HOLThm (_, th)) = th 
 
 fun to_hol_thm th = HOLThm ([], th)
+
+val replay_add_dump = add_dump
+fun add_dump s thy = (ImportRecorder.add_dump s; replay_add_dump s thy)
 
 datatype proof_info
   = Info of {disk_info: (string * string) option ref}
