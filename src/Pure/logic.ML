@@ -206,13 +206,15 @@ fun dest_inclass (t as Const (c_class, _) $ ty) =
 fun dest_def pp check_head is_fixed is_fixedT eq =
   let
     fun err msg = raise TERM (msg, [eq]);
-    val bound_vars = Syntax.bound_vars (Term.strip_all_vars eq);
-    val display_terms = commas_quote o map (Pretty.string_of_term pp o bound_vars);
+    val eq_vars = Term.strip_all_vars eq;
+    val eq_body = Term.strip_all_body eq;
+
+    val display_terms = commas_quote o map (Pretty.string_of_term pp o Syntax.bound_vars eq_vars);
     val display_types = commas_quote o map (Pretty.string_of_typ pp);
 
-    val (lhs, rhs) = dest_equals (Term.strip_all_body eq)
-      handle TERM _ => err "Not a meta-equality (==)";
-    val (head, args) = Term.strip_comb (Envir.beta_eta_contract lhs);
+    val (raw_lhs, rhs) = dest_equals eq_body handle TERM _ => err "Not a meta-equality (==)";
+    val lhs = Envir.beta_eta_contract raw_lhs;
+    val (head, args) = Term.strip_comb lhs;
     val head_tfrees = Term.add_tfrees head [];
 
     fun check_arg (Bound _) = true
@@ -243,7 +245,7 @@ fun dest_def pp check_head is_fixed is_fixedT eq =
       err ("Extra type variables on rhs: " ^ display_types rhs_extrasT)
     else if exists_subterm (fn t => t aconv head) rhs then
       err "Entity to be defined occurs on rhs"
-    else ((lhs, rhs), fold_rev close_arg args eq)
+    else ((lhs, rhs), fold_rev close_arg args (Term.list_all (eq_vars, (mk_equals (lhs, rhs)))))
   end;
 
 (*!!x. c x == t[x] to c == %x. t[x]*)
