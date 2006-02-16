@@ -138,7 +138,7 @@ These specifications may be also used in a locale context.  Then the
 constants being introduced depend on certain fixed parameters, and the
 constant name is qualified by the locale base name.  An internal
 abbreviation takes care for convenient input and output, making the
-parameters implicit and using the original short name.  See
+parameters implicit and using the original short name.  See also
 HOL/ex/Abstract_NAT.thy for an example of deriving polymorphic
 entities from a monomorphic theory.
 
