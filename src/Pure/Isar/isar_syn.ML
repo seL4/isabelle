@@ -175,25 +175,34 @@ val defsP =
     (opt_overloaded -- Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarThy.add_defs));
 
 
-(* constant definitions *)
-
-val structs =
-  Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (P.simple_fixes --| P.$$$ ")")) [];
+(* constant definitions and abbreviations *)
 
 val constdecl =
   (P.name --| P.$$$ "where") >> (fn x => (x, NONE, NoSyn)) ||
     P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix' >> P.triple1 ||
     P.name -- (P.mixfix >> pair NONE) >> P.triple2;
+
 val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
+val structs =
+  Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (P.simple_fixes --| P.$$$ ")")) [];
+
 val constdefsP =
-  OuterSyntax.command "constdefs" "old-style constant definitions" K.thy_decl
+  OuterSyntax.command "constdefs" "old-style constant definition" K.thy_decl
     (structs -- Scan.repeat1 constdef >> (Toplevel.theory o Constdefs.add_constdefs));
 
 val definitionP =
-  OuterSyntax.command "definition" "standard constant definition" K.thy_decl
+  OuterSyntax.command "definition" "constant definition" K.thy_decl
     (P.opt_locale_target -- Scan.repeat1 constdef
     >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
+
+val abbreviationP =
+  OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
+    (P.opt_locale_target --
+      Scan.optional (P.$$$ "(" -- P.$$$ "output" -- P.$$$ ")" >> K true) false --
+      Scan.repeat1 (Scan.option constdecl -- P.prop)
+    >> (fn ((loc, revert), args) =>
+         Toplevel.local_theory loc (Specification.abbreviation revert args)));
 
 
 (* constant specifications *)
@@ -860,11 +869,11 @@ val _ = OuterSyntax.add_parsers [
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, judgmentP, constsP, finalconstsP, syntaxP, no_syntaxP,
   translationsP, axiomsP, defsP, constdefsP, definitionP,
-  axiomatizationP, theoremsP, lemmasP, declareP, globalP, localP,
-  hideP, useP, mlP, ml_commandP, ml_setupP, setupP, method_setupP,
-  parse_ast_translationP, parse_translationP, print_translationP,
-  typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP, localeP,
+  abbreviationP, axiomatizationP, theoremsP, lemmasP, declareP,
+  globalP, localP, hideP, useP, mlP, ml_commandP, ml_setupP, setupP,
+  method_setupP, parse_ast_translationP, parse_translationP,
+  print_translationP, typed_print_translationP,
+  print_ast_translationP, token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
