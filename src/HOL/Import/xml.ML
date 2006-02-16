@@ -27,7 +27,7 @@ end;
 structure XML :> XML =
 struct
 
-structure Seq = ListScannerSeq
+structure Seq = VectorScannerSeq
 structure Scan = Scanner (structure Seq = Seq)
 open Scan
 
