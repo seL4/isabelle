@@ -106,12 +106,12 @@ also changed interactively by $\CONTEXT$ without creating a new theory.
 \indexisarcmd{chapter}\indexisarcmd{section}\indexisarcmd{subsection}
 \indexisarcmd{subsubsection}\indexisarcmd{text}\indexisarcmd{text-raw}
 \begin{matharray}{rcl}
-  \isarcmd{chapter} & : & \isartrans{theory}{theory} \\
-  \isarcmd{section} & : & \isartrans{theory}{theory} \\
-  \isarcmd{subsection} & : & \isartrans{theory}{theory} \\
-  \isarcmd{subsubsection} & : & \isartrans{theory}{theory} \\
-  \isarcmd{text} & : & \isartrans{theory}{theory} \\
-  \isarcmd{text_raw} & : & \isartrans{theory}{theory} \\
+  \isarcmd{chapter} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{section} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{subsection} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{subsubsection} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{text} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{text_raw} & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
 Apart from formal comments (see \S\ref{sec:comments}), markup commands provide
@@ -235,7 +235,7 @@ preceding the actual theory definition.
 \end{descr}
 
 
-\subsection{Constants and simple definitions}\label{sec:consts}
+\subsection{Primitive constants and definitions}\label{sec:consts}
 
 \indexisarcmd{consts}\indexisarcmd{defs}\indexisarcmd{constdefs}\indexoutertoken{constdecl}
 \begin{matharray}{rcl}
