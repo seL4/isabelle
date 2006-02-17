@@ -247,9 +247,8 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy IMPP/Com.ML \
 
 ## HOL-Complex-Import
 
-IMPORTER_FILES = Import/lazy_seq.ML Import/lazy_scan.ML \
-  Import/proof_kernel.ML Import/replay.ML Import/susp.ML \
-  Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
+IMPORTER_FILES = Import/lazy_seq.ML Import/proof_kernel.ML Import/replay.ML \
+  Import/susp.ML Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
   Import/HOL4Syntax.thy Import/HOL4Compat.thy Import/import_syntax.ML \
   Import/hol4rews.ML Import/import_package.ML Import/ROOT.ML
 
