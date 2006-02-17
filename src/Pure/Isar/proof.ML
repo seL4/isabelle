@@ -886,7 +886,7 @@ fun global_qeds txt =
   #> Seq.map generic_qed
   #> Seq.maps (fn (((_, after_qed), results), state) =>
     Seq.lift after_qed results (theory_of state)
-    |> Seq.map (pair (context_of state)))
+    |> Seq.map (fn thy => (ProofContext.transfer thy (context_of state), thy)))
   |> Seq.DETERM;   (*backtracking may destroy theory!*)
 
 fun global_qed txt =
