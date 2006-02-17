@@ -27,8 +27,8 @@ sig
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
   val add_abbrevs: bool -> (bstring * string * mixfix) list -> theory -> theory
   val add_abbrevs_i: bool -> (bstring * term * mixfix) list -> theory -> theory
-  val add_const_constraint: xstring * string -> theory -> theory
-  val add_const_constraint_i: string * typ -> theory -> theory
+  val add_const_constraint: xstring * string option -> theory -> theory
+  val add_const_constraint_i: string * typ option -> theory -> theory
   val add_classes: (bstring * xstring list) list -> theory -> theory
   val add_classes_i: (bstring * class list) list -> theory -> theory
   val add_classrel: (xstring * xstring) list -> theory -> theory
@@ -765,14 +765,14 @@ end;
 
 (* add constraints *)
 
-fun gen_add_constraint int_const prep_typ (raw_c, raw_T) thy =
+fun gen_add_constraint int_const prep_typ (raw_c, opt_T) thy =
   let
     val c = int_const thy raw_c;
-    val T = Term.zero_var_indexesT (Term.no_dummyT (prep_typ thy raw_T))
+    fun prepT raw_T =
+      let val T = Type.varifyT (Type.no_tvars (Term.no_dummyT (prep_typ thy raw_T)))
+      in cert_term thy (Const (c, T)); T end
       handle TYPE (msg, _, _) => error msg;
-    val _ = cert_term thy (Const (c, T))
-      handle TYPE (msg, _, _) => error msg;
-  in thy |> map_consts (Consts.constrain (c, T)) end;
+  in thy |> map_consts (Consts.constrain (c, Option.map prepT opt_T)) end;
 
 val add_const_constraint = gen_add_constraint intern_const (read_typ o no_def_sort);
 val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
