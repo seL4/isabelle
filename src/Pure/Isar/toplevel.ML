@@ -264,12 +264,10 @@ fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
 val stale_theory = ERROR "Stale theory encountered after succesful execution!";
 
-fun checkpoint_node (Theory (thy, ctxt)) = Theory (Theory.checkpoint thy, ctxt)
+fun checkpoint_node (Theory (thy, _)) = Theory (Theory.checkpoint thy, NONE)
   | checkpoint_node node = node;
 
-fun copy_node (Theory (thy, ctxt)) =
-      let val thy' = Theory.copy thy
-      in Theory (thy', Option.map (ProofContext.transfer thy') ctxt) end
+fun copy_node (Theory (thy, _)) = Theory (Theory.copy thy, NONE)
   | copy_node node = node;
 
 fun return (result, NONE) = result
