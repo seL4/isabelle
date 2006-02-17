@@ -27,8 +27,11 @@ end;
 structure XML :> XML =
 struct
 
-structure Seq = VectorScannerSeq
-structure Scan = Scanner (structure Seq = Seq)
+(*structure Seq = VectorScannerSeq
+structure Scan = Scanner (structure Seq = Seq)*)
+structure Seq = StringScannerSeq
+structure Scan = StringScanner
+
 open Scan
 
 (** string based representation (small scale) **)

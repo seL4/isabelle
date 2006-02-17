@@ -1,51 +1,60 @@
-(*  Title:      HOL/Import/scan.ML
+(*  Title:      HOL/Import/mono_scan.ML
     ID:         $Id$
-    Author:     Sebastian Skalberg, TU Muenchen / Steven Obua, TU Muenchen
+    Author:     Steven Obua, TU Muenchen
 
-Scanner combinators for sequences.
+    Monomorphic scanner combinators for monomorphic sequences.
 *)
 
-signature SCANNER =
+signature MONO_SCANNER =
 sig
 
-    include SCANNER_SEQ
+    include MONO_SCANNER_SEQ
 
     exception SyntaxError
 
-    type ('a,'b) scanner = 'a seq -> 'b * 'a seq
+    type 'a scanner = seq -> 'a * seq
 
-    val :--      : ('a,'b) scanner * ('b -> ('a,'c) scanner)
-		   -> ('a,'b*'c) scanner
-    val --       : ('a,'b) scanner * ('a,'c) scanner -> ('a,'b*'c) scanner
-    val >>       : ('a,'b) scanner * ('b -> 'c) -> ('a,'c) scanner
-    val --|      : ('a,'b) scanner * ('a,'c) scanner -> ('a,'b) scanner
-    val |--      : ('a,'b) scanner * ('a,'c) scanner -> ('a,'c) scanner
-    val ^^       : ('a,string) scanner * ('a,string) scanner
-		   -> ('a,string) scanner 
-    val ||       : ('a,'b) scanner * ('a,'b) scanner -> ('a,'b) scanner
-    val one      : ('a -> bool) -> ('a,'a) scanner
-    val anyone   : ('a,'a) scanner
-    val succeed  : 'b -> ('a,'b) scanner
-    val any      : ('a -> bool) -> ('a,'a list) scanner
-    val any1     : ('a -> bool) -> ('a,'a list) scanner
-    val optional : ('a,'b) scanner -> 'b -> ('a,'b) scanner
-    val option   : ('a,'b) scanner -> ('a,'b option) scanner
-    val repeat   : ('a,'b) scanner -> ('a,'b list) scanner
-    val repeat1  : ('a,'b) scanner -> ('a,'b list) scanner
-    val repeat_fixed : int -> ('a, 'b) scanner -> ('a, 'b list) scanner  
-    val ahead    : ('a,'b) scanner -> ('a,'b) scanner
-    val unless   : ('a, 'b) scanner -> ('a,'c) scanner -> ('a,'c) scanner
-    val $$       : ''a -> (''a,''a) scanner
-    val !!       : ('a seq -> string) -> ('a,'b) scanner -> ('a,'b) scanner
-    
-    val scan_id : (string, string) scanner
-    val scan_nat : (string, int) scanner
+    val :--      : 'a scanner * ('a -> 'b scanner)
+		   -> ('a*'b) scanner
+    val --       : 'a scanner * 'b scanner -> ('a * 'b) scanner
+    val >>       : 'a scanner * ('a -> 'b) -> 'b scanner
+    val --|      : 'a scanner * 'b scanner -> 'a scanner
+    val |--      : 'a scanner * 'b scanner -> 'b scanner
+    val ^^       : string scanner * string scanner
+		   -> string scanner 
+    val ||       : 'a scanner * 'a scanner -> 'a scanner
+    val one      : (item -> bool) -> item scanner
+    val anyone   : item scanner
+    val succeed  : 'a -> 'a scanner
+    val any      : (item -> bool) -> item list scanner
+    val any1     : (item -> bool) -> item list scanner
+    val optional : 'a scanner -> 'a -> 'a scanner
+    val option   : 'a scanner -> 'a option scanner
+    val repeat   : 'a scanner -> 'a list scanner
+    val repeat1  : 'a scanner -> 'a list scanner
+    val repeat_fixed : int -> 'a scanner -> 'a list scanner  
+    val ahead    : 'a scanner -> 'a scanner
+    val unless   : 'a scanner -> 'b scanner -> 'b scanner
+    val !!       : (seq -> string) -> 'a scanner -> 'a scanner
 
-    val this : ''a list -> (''a, ''a list) scanner
-    val this_string : string -> (string, string) scanner
 end
 
-functor Scanner (structure Seq : SCANNER_SEQ) : SCANNER =
+signature STRING_SCANNER =
+sig
+
+    include MONO_SCANNER  where type item = string
+
+    val $$       : item -> item scanner
+    
+    val scan_id : string scanner
+    val scan_nat : int scanner
+
+    val this : item list -> item list scanner
+    val this_string : string -> string scanner					    
+
+end    
+
+functor MonoScanner (structure Seq : MONO_SCANNER_SEQ) : MONO_SCANNER =
 struct
 
 infix 7 |-- --|
@@ -56,8 +65,9 @@ infix 0 ||
 exception SyntaxError
 exception Fail of string
 
-type 'a seq = 'a Seq.seq
-type ('a,'b) scanner = 'a seq -> 'b * 'a seq
+type seq = Seq.seq
+type item = Seq.item
+type 'a scanner = seq -> 'a * seq
 
 val pull = Seq.pull
 
@@ -200,10 +210,19 @@ fun unless test sc toks =
 	else raise SyntaxError
     end
 
-fun $$ arg = one (fn x => x = arg)
-
 fun !! f sc toks = (sc toks
 		    handle SyntaxError => raise Fail (f toks))
+
+end
+
+
+structure StringScanner : STRING_SCANNER =
+struct
+
+structure Scan = MonoScanner(structure Seq = StringScannerSeq)
+open Scan
+
+fun $$ arg = one (fn x => x = arg)
 
 val scan_id = one Symbol.is_letter ^^ (any Symbol.is_letdig >> implode);
 
@@ -217,4 +236,3 @@ fun this [] = (fn toks => ([], toks))
 fun this_string s = this (explode s) >> K s
 
 end
-
