@@ -546,7 +546,7 @@ fun foldr f e s =
 	F e (getItem s)
     end
 
-fun fromString s = of_list (Symbol.explode s)
+fun fromString s = of_list (explode s)
 
 end
 

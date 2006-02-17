@@ -94,6 +94,6 @@ structure Extended = ExtendScannerSeq (structure Seq = Incubator)
 open Extended
 
 val fromList = I
-val fromString = Symbol.explode
+val fromString = explode
 
 end
