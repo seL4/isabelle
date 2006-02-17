@@ -207,6 +207,7 @@ fun mk_stuple [] = %%:ONE_N
 |   mk_stuple ts = foldr1 spair ts;
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
 |   mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
+fun mk_maybeT T = Type ("Fixrec.maybe",[T]);
 fun cpair_pat (p1,p2) = %%:cpair_patN $ p1 $ p2;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);

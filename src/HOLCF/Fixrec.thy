@@ -14,84 +14,81 @@ subsection {* Maybe monad type *}
 
 defaultsort cpo
 
-types 'a maybe = "one ++ 'a u"
+pcpodef (open) 'a maybe = "UNIV::(one ++ 'a u) set"
+by simp
 
 constdefs
   fail :: "'a maybe"
-  "fail \<equiv> sinl\<cdot>ONE"
+  "fail \<equiv> Abs_maybe (sinl\<cdot>ONE)"
 
   return :: "'a \<rightarrow> 'a maybe"
-  "return \<equiv> sinr oo up"
+  "return \<equiv> \<Lambda> x. Abs_maybe (sinr\<cdot>(up\<cdot>x))"
+
+  maybe_when :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a maybe \<rightarrow> 'b::pcpo"
+  "maybe_when \<equiv> \<Lambda> f r m. sscase\<cdot>(\<Lambda> x. f)\<cdot>(fup\<cdot>r)\<cdot>(Rep_maybe m)"
 
 lemma maybeE:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = fail \<Longrightarrow> Q; \<And>x. p = return\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 apply (unfold fail_def return_def)
-apply (rule_tac p=p in ssumE, simp)
+apply (cases p, rename_tac r)
+apply (rule_tac p=r in ssumE, simp add: Abs_maybe_strict)
 apply (rule_tac p=x in oneE, simp, simp)
-apply (rule_tac p=y in upE, simp, simp)
+apply (rule_tac p=y in upE, simp, simp add: cont_Abs_maybe)
 done
 
 lemma return_defined [simp]: "return\<cdot>x \<noteq> \<bottom>"
-by (simp add: return_def)
+by (simp add: return_def cont_Abs_maybe Abs_maybe_defined)
 
 lemma fail_defined [simp]: "fail \<noteq> \<bottom>"
-by (simp add: fail_def)
+by (simp add: fail_def Abs_maybe_defined)
 
 lemma return_eq [simp]: "(return\<cdot>x = return\<cdot>y) = (x = y)"
-by (simp add: return_def)
+by (simp add: return_def cont_Abs_maybe Abs_maybe_inject)
 
 lemma return_neq_fail [simp]:
   "return\<cdot>x \<noteq> fail" "fail \<noteq> return\<cdot>x"
-by (simp_all add: return_def fail_def)
+by (simp_all add: return_def fail_def cont_Abs_maybe Abs_maybe_inject)
+
+lemma maybe_when_rews [simp]:
+  "maybe_when\<cdot>f\<cdot>r\<cdot>\<bottom> = \<bottom>"
+  "maybe_when\<cdot>f\<cdot>r\<cdot>fail = f"
+  "maybe_when\<cdot>f\<cdot>r\<cdot>(return\<cdot>x) = r\<cdot>x"
+by (simp_all add: return_def fail_def maybe_when_def cont_Rep_maybe
+                  cont_Abs_maybe Abs_maybe_inverse Rep_maybe_strict)
+
+translations
+  "case m of fail \<Rightarrow> t1 | return\<cdot>x \<Rightarrow> t2" == "maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
 
 
 subsubsection {* Monadic bind operator *}
 
 constdefs
   bind :: "'a maybe \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> 'b maybe"
-  "bind \<equiv> \<Lambda> m f. sscase\<cdot>sinl\<cdot>(fup\<cdot>f)\<cdot>m"
-
-syntax ">>=" :: "['a maybe, 'a \<rightarrow> 'b maybe] \<Rightarrow> 'b maybe" (infixl ">>=" 50)
-translations "m >>= f" == "bind\<cdot>m\<cdot>f"
-
-nonterminals
-  maybebind maybebinds
-
-syntax 
-  "_MBIND"  :: "pttrn \<Rightarrow> 'a maybe \<Rightarrow> maybebind"         ("(2_ <-/ _)" 10)
-  ""        :: "maybebind \<Rightarrow> maybebinds"                ("_")
-
-  "_MBINDS" :: "[maybebind, maybebinds] \<Rightarrow> maybebinds"  ("_;/ _")
-  "_MDO"    :: "[maybebinds, 'a maybe] \<Rightarrow> 'a maybe"     ("(do _;/ (_))" 10)
-
-translations
-  "_MDO (_MBINDS b bs) e" == "_MDO b (_MDO bs e)"
-  "do (x,y) <- m; e" == "m >>= (LAM <x,y>. e)" 
-  "do x <- m; e"            == "m >>= (LAM x. e)"
+  "bind \<equiv> \<Lambda> m f. case m of fail \<Rightarrow> fail | return\<cdot>x \<Rightarrow> f\<cdot>x"
 
 text {* monad laws *}
 
-lemma bind_strict [simp]: "UU >>= f = UU"
+lemma bind_strict [simp]: "bind\<cdot>\<bottom>\<cdot>f = \<bottom>"
 by (simp add: bind_def)
 
-lemma bind_fail [simp]: "fail >>= f = fail"
-by (simp add: bind_def fail_def)
+lemma bind_fail [simp]: "bind\<cdot>fail\<cdot>f = fail"
+by (simp add: bind_def)
 
-lemma left_unit [simp]: "(return\<cdot>a) >>= k = k\<cdot>a"
-by (simp add: bind_def return_def)
+lemma left_unit [simp]: "bind\<cdot>(return\<cdot>a)\<cdot>k = k\<cdot>a"
+by (simp add: bind_def)
 
-lemma right_unit [simp]: "m >>= return = m"
+lemma right_unit [simp]: "bind\<cdot>m\<cdot>return = m"
 by (rule_tac p=m in maybeE, simp_all)
 
-lemma bind_assoc [simp]:
- "(do b <- (do a <- m; k\<cdot>a); h\<cdot>b) = (do a <- m; b <- k\<cdot>a; h\<cdot>b)"
+lemma bind_assoc:
+ "bind\<cdot>(bind\<cdot>m\<cdot>k)\<cdot>h = bind\<cdot>m\<cdot>(\<Lambda> a. bind\<cdot>(k\<cdot>a)\<cdot>h)"
 by (rule_tac p=m in maybeE, simp_all)
 
 subsubsection {* Run operator *}
 
 constdefs
-  run:: "'a::pcpo maybe \<rightarrow> 'a"
-  "run \<equiv> sscase\<cdot>\<bottom>\<cdot>(fup\<cdot>ID)"
+  run:: "'a maybe \<rightarrow> 'a::pcpo"
+  "run \<equiv> maybe_when\<cdot>\<bottom>\<cdot>ID"
 
 text {* rewrite rules for run *}
 
@@ -99,16 +96,16 @@ lemma run_strict [simp]: "run\<cdot>\<bottom> = \<bottom>"
 by (simp add: run_def)
 
 lemma run_fail [simp]: "run\<cdot>fail = \<bottom>"
-by (simp add: run_def fail_def)
+by (simp add: run_def)
 
 lemma run_return [simp]: "run\<cdot>(return\<cdot>x) = x"
-by (simp add: run_def return_def)
+by (simp add: run_def)
 
 subsubsection {* Monad plus operator *}
 
 constdefs
   mplus :: "'a maybe \<rightarrow> 'a maybe \<rightarrow> 'a maybe"
-  "mplus \<equiv> \<Lambda> m1 m2. sscase\<cdot>(\<Lambda> x. m2)\<cdot>(fup\<cdot>return)\<cdot>m1"
+  "mplus \<equiv> \<Lambda> m1 m2. case m1 of fail \<Rightarrow> m2 | return\<cdot>x \<Rightarrow> m1"
 
 syntax "+++" :: "['a maybe, 'a maybe] \<Rightarrow> 'a maybe" (infixr "+++" 65)
 translations "m1 +++ m2" == "mplus\<cdot>m1\<cdot>m2"
@@ -119,10 +116,10 @@ lemma mplus_strict [simp]: "\<bottom> +++ m = \<bottom>"
 by (simp add: mplus_def)
 
 lemma mplus_fail [simp]: "fail +++ m = m"
-by (simp add: mplus_def fail_def)
+by (simp add: mplus_def)
 
 lemma mplus_return [simp]: "return\<cdot>x +++ m = return\<cdot>x"
-by (simp add: mplus_def return_def)
+by (simp add: mplus_def)
 
 lemma mplus_fail2 [simp]: "m +++ fail = m"
 by (rule_tac p=m in maybeE, simp_all)
@@ -254,7 +251,8 @@ types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
 
 constdefs
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat"
-  "cpair_pat p1 p2 \<equiv> \<Lambda>\<langle>x, y\<rangle>. do a <- p1\<cdot>x; b <- p2\<cdot>y; return\<cdot>\<langle>a, b\<rangle>"
+  "cpair_pat p1 p2 \<equiv> \<Lambda>\<langle>x, y\<rangle>.
+    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>\<langle>a, b\<rangle>))"
 
   spair_pat ::
   "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a::pcpo \<otimes> 'b::pcpo, 'c \<times> 'd) pat"
@@ -389,7 +387,7 @@ constdefs
   "wild_pat \<equiv> \<Lambda> x. return\<cdot>()"
 
   as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe"
-  "as_pat p \<equiv> \<Lambda> x. do a <- p\<cdot>x; return\<cdot>\<langle>x, a\<rangle>"
+  "as_pat p \<equiv> \<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>\<langle>x, a\<rangle>)"
 
   lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)"
   "lazy_pat p \<equiv> \<Lambda> x. return\<cdot>(run\<cdot>(p\<cdot>x))"
