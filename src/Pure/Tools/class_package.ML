@@ -279,9 +279,8 @@ fun gen_add_class add_locale prep_expr eval_expr do_proof bname raw_expr raw_bod
       |> map (fn (((name, atts), ts), renaming) => ((name, map (Attrib.attribute thy) atts), (map (subst_assume c_lookup renaming)) ts));
     fun rearrange_assumes ((name, atts), ts) =
       map (rpair atts o pair "") ts
-    fun add_global_constraint v class (_, (c, ty)) thy =
-      thy
-      |> Sign.add_const_constraint_i (c, subst_clsvar v (TVar ((v, 0), [class])) ty);
+    fun add_global_constraint v class (_, (c, ty)) thy = thy
+      |> Sign.add_const_constraint_i (c, SOME (subst_clsvar v (TFree (v, [class])) ty));
     fun ad_hoc_const thy class v (c, ty) =
       let
         val ty' = subst_clsvar v (TFree (v, [class])) ty;
@@ -344,15 +343,9 @@ fun gen_instance_arity prep_arity add_defs tap_def raw_arity raw_defs thy =
           if #var data = v then ty_inst else TFree var)
       in (map (apsnd subst_ty) o #consts) data end;
     val c_req = (Library.flat o map get_c_req) sort;
-    fun get_remove_contraint c thy =
-      let
-        val ty1 = Sign.the_const_constraint thy c;
-        val ty2 = Sign.the_const_type thy c;
-      in
-        thy
-        |> Sign.add_const_constraint_i (c, ty2)
-        |> pair (c, ty1)
-      end;
+    fun get_remove_contraint c thy = thy
+      |> Sign.add_const_constraint_i (c, NONE)
+      |> pair (c, SOME (Type.unvarifyT (Sign.the_const_constraint thy c)));
     fun check_defs raw_defs c_req thy =
       let
         val thy' = thy |> Theory.copy |> Sign.add_arities_i [(tyco, asorts, sort)];
