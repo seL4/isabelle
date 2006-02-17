@@ -24,7 +24,7 @@ sig
   val instance: T -> string * typ list -> typ
   val declare: NameSpace.naming -> bstring * typ -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> bool -> bstring * term -> T -> T
-  val constrain: string * typ -> T -> T
+  val constrain: string * typ option -> T -> T
   val hide: bool -> string -> T -> T
   val empty: T
   val merge: T * T -> T
@@ -195,8 +195,10 @@ end;
 
 (* constraints *)
 
-fun constrain (c, T) = map_consts (fn (decls, abbrevs, constraints) =>
-  (decls, abbrevs, Symtab.update (c, T) constraints));
+fun constrain (c, opt_T) consts = consts |> map_consts (fn (decls, abbrevs, constraints) =>
+  (the_const consts c handle TYPE (msg, _, _) => error msg;
+    (decls, abbrevs, constraints |>
+      (case opt_T of SOME T => Symtab.update (c, T) | NONE => Symtab.delete_safe c))));
 
 
 (* empty and merge *)
