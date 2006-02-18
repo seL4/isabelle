@@ -202,6 +202,11 @@ fun dest_inclass (t as Const (c_class, _) $ ty) =
 
 (** definitions **)
 
+fun term_kind (Const _) = "existing constant "
+  | term_kind (Free _) = "free variable "
+  | term_kind (Bound _) = "bound variable "
+  | term_kind _ = "";
+
 (*c x == t[x] to !!x. c x == t[x]*)
 fun dest_def pp check_head is_fixed is_fixedT eq =
   let
@@ -234,7 +239,7 @@ fun dest_def pp check_head is_fixed is_fixedT eq =
       else insert (op =) v | _ => I)) rhs [];
   in
     if not (check_head head) then
-      err ("Bad head of lhs: " ^ display_terms [head])
+      err ("Bad head of lhs: " ^ term_kind head ^ display_terms [head])
     else if not (null lhs_bads) then
       err ("Bad arguments on lhs: " ^ display_terms lhs_bads)
     else if not (null lhs_dups) then
