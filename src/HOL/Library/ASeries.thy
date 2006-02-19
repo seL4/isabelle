@@ -24,14 +24,14 @@ element).
 "http://mathworld.wolfram.com/ArithmeticSeries.html")
   The proof is a simple forward proof. Let $S$ equal the sum above and
   $a$ the first element, then we have
-\begin{align}
-\nonumber  S &= a + (a+d) + (a+2d) + ... a_n \\
-\nonumber    &= n*a + d (0 + 1 + 2 + ... n-1) \\
-\nonumber    &= n*a + d (\frac{1}{2} * (n-1) * n)    \mbox{..using a simple sum identity} \\
-\nonumber    &= \frac{n}{2} (2a + d(n-1)) \\
-\nonumber    & \mbox{..but $(a+a_n = a + (a + d(n-1)) = 2a + d(n-1))$ so} \\
-\nonumber  S &= \frac{n}{2} (a + a_n)
-\end{align}
+\begin{tabular}{ll}
+  $S$ &$= a + (a+d) + (a+2d) + ... a_n$ \\
+    &$= n*a + d (0 + 1 + 2 + ... n-1)$ \\
+    &$= n*a + d (\frac{1}{2} * (n-1) * n)$   ..using a simple sum identity \\
+    &$= \frac{n}{2} (2a + d(n-1))$ \\
+    & ..but $(a+a_n = a + (a + d(n-1)) = 2a + d(n-1))$ so \\
+  $S$ &$= \frac{n}{2} (a + a_n)$
+\end{tabular}
 *}
 
 section {* Formal Proof *}
