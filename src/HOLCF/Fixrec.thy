@@ -208,7 +208,7 @@ translations
 parse_translation {*
 (* rewrites (_pat x) => (return) *)
 (* rewrites (_var x t) => (Abs_CFun (%x. t)) *)
-  [("_pat", K (Syntax.const "return")),
+  [("_pat", K (Syntax.const "Fixrec.return")),
    mk_binder_tr ("_var", "Abs_CFun")];
 *}
 
@@ -242,7 +242,7 @@ print_translation {*
 *}
 
 translations
-  "x" <= "_match return (_var x)"
+  "x" <= "_match Fixrec.return (_var x)"
 
 
 subsection {* Pattern combinators for data constructors *}
@@ -539,5 +539,10 @@ val branch_def = thm "branch_def";
 subsection {* Initializing the fixrec package *}
 
 use "fixrec_package.ML"
+
+setup {*
+  Theory.hide_consts_i false
+    ["Fixrec.return", "Fixrec.bind", "Fixrec.fail"]
+*}
 
 end
