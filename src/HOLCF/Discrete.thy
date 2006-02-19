@@ -8,7 +8,7 @@ Discrete CPOs.
 header {* Discrete cpo types *}
 
 theory Discrete
-imports Cont Datatype
+imports Cont
 begin
 
 datatype 'a discr = Discr "'a :: type"

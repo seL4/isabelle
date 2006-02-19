@@ -8,7 +8,7 @@ Lifting.
 header {* The type of lifted values *}
 
 theory Up
-imports Cfun Sum_Type Datatype
+imports Cfun
 begin
 
 defaultsort cpo

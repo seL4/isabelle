@@ -6,7 +6,7 @@ HOLCF -- a semantic extension of HOL by the LCF logic.
 *)
 
 theory HOLCF
-imports Sprod Ssum Up Lift Discrete One Tr Domain
+imports Sprod Ssum Up Lift Discrete One Tr Domain Main
 uses
   "holcf_logic.ML"
   "cont_consts.ML"

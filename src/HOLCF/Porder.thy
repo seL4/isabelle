@@ -6,7 +6,7 @@
 header {* Partial orders *}
 
 theory Porder
-imports Main
+imports Datatype
 begin
 
 subsection {* Type class for partial orders *}
