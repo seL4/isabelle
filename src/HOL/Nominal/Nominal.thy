@@ -453,11 +453,13 @@ lemma at_fresh:
   shows "(a\<sharp>b) = (a\<noteq>b)" 
   by (simp add: at_supp[OF at] fresh_def)
 
-lemma at_prm_fresh[rule_format]:
+lemma at_prm_fresh:
   fixes c :: "'x"
   and   pi:: "'x prm"
   assumes at: "at TYPE('x)"
-  shows "c\<sharp>pi \<longrightarrow> pi\<bullet>c = c"
+  and     a: "c\<sharp>pi" 
+  shows "pi\<bullet>c = c"
+using a
 apply(induct pi)
 apply(simp add: at1[OF at]) 
 apply(force simp add: fresh_list_cons at2[OF at] fresh_prod at_fresh[OF at] at3[OF at])
@@ -467,7 +469,7 @@ lemma at_prm_rev_eq:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
   assumes at: "at TYPE('x)"
-  shows a: "((rev pi1) \<triangleq> (rev pi2)) = (pi1 \<triangleq> pi2)"
+  shows "((rev pi1) \<triangleq> (rev pi2)) = (pi1 \<triangleq> pi2)"
 proof (simp add: prm_eq_def, auto)
   fix x
   assume "\<forall>x::'x. (rev pi1)\<bullet>x = (rev pi2)\<bullet>x"
@@ -483,7 +485,30 @@ next
   hence "(rev pi2)\<bullet>x = (rev pi1)\<bullet>(x::'x)" by (simp add: at_bij1[OF at])
   thus "(rev pi1)\<bullet>x = (rev pi2)\<bullet>(x::'x)" by simp
 qed
+
+lemma at_prm_eq_append:
+  fixes pi1 :: "'x prm"
+  and   pi2 :: "'x prm"
+  and   pi3 :: "'x prm"
+  assumes at: "at TYPE('x)"
+  and     a: "pi1 \<triangleq> pi2"
+  shows "(pi3@pi1) \<triangleq> (pi3@pi2)"
+using a by (simp add: prm_eq_def at_append[OF at] at_bij[OF at])
+
+lemma at_prm_eq_trans:
+  fixes pi1 :: "'x prm"
+  and   pi2 :: "'x prm"
+  and   pi3 :: "'x prm"
+  assumes a1: "pi1 \<triangleq> pi2"
+  and     a2: "pi2 \<triangleq> pi3"  
+  shows "pi1 \<triangleq> pi3"
+using a1 a2 by (auto simp add: prm_eq_def)
   
+lemma at_prm_eq_refl:
+  fixes pi :: "'x prm"
+  shows "pi \<triangleq> pi"
+by (simp add: prm_eq_def)
+
 lemma at_prm_rev_eq1:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
@@ -502,7 +527,7 @@ lemma at_ds2:
   and   a  :: "'x"
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
-  shows "(pi@[((rev pi)\<bullet>a,(rev pi)\<bullet>b)]) \<triangleq> ([(a,b)]@pi)"
+  shows "([(a,b)]@pi) \<triangleq> (pi@[((rev pi)\<bullet>a,(rev pi)\<bullet>b)])"
   by (force simp add: prm_eq_def at_append[OF at] at_bij[OF at] at_pi_rev[OF at] 
       at_rev_pi[OF at] at_calc[OF at])
 
@@ -591,6 +616,23 @@ apply(drule sym)
 apply(simp)
 apply(simp add: at_ds8_aux[OF at])
 apply(simp add: at_rev_pi[OF at])
+done
+
+lemma at_ds10:
+  fixes pi1 :: "'x prm"
+  and   pi2 :: "'x prm"
+  and   a  :: "'x"
+  and   b  :: "'x"
+  assumes at: "at TYPE('x)"
+  and     a:  "b\<sharp>(rev pi1)"
+  shows "(pi2@([(pi1\<bullet>a,b)]@pi1)) \<triangleq> (pi2@(pi1@[(a,b)]))"
+using a
+apply -
+apply(rule at_prm_eq_append[OF at])
+apply(rule at_prm_eq_trans)
+apply(rule at_ds2[OF at])
+apply(simp add: at_prm_fresh[OF at] at_rev_pi[OF at])
+apply(rule at_prm_eq_refl)
 done
 
 --"there always exists an atom not being in a finite set"
