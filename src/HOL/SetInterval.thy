@@ -715,24 +715,39 @@ corollary setsum_shift_bounds_Suc_ivl:
   "setsum f {Suc m..<Suc n} = setsum (%i. f(Suc i)){m..<n}"
 by (simp add:setsum_shift_bounds_nat_ivl[where k=1,simplified])
 
-lemma setsum_rmv_head:
+lemma setsum_head:
+  fixes n :: nat
+  assumes mn: "m <= n" 
+  shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
+proof -
+  from mn
+  have "{m..n} = {m} \<union> {m<..n}"
+    by (auto intro: ivl_disj_un_singleton)
+  hence "?lhs = (\<Sum>x\<in>{m} \<union> {m<..n}. P x)"
+    by (simp add: atLeast0LessThan)
+  also have "\<dots> = ?rhs" by simp
+  finally show ?thesis .
+qed
+
+lemma setsum_head_upt:
   fixes m::nat
   assumes m: "0 < m"
-  shows "P 0 + (\<Sum>x\<in>{1..<m}. P x) = (\<Sum>x<m. P x)"
-  (is "?lhs = ?rhs")
+  shows "(\<Sum>x<m. P x) = P 0 + (\<Sum>x\<in>{1..<m}. P x)"
 proof -
-  let ?a = "\<Sum>x\<in>({0} \<union> {0<..<m}). P x"
-  from m
-  have "{0..<m} = {0} \<union> {0<..<m}"
-    by (simp only: ivl_disj_un_singleton)
-  hence "?rhs = ?a"
+  have "(\<Sum>x<m. P x) = (\<Sum>x\<in>{0..<m}. P x)" 
     by (simp add: atLeast0LessThan)
-  moreover
-  have "?a = ?lhs"
-    by (simp add: setsum_Un ivl_disj_int 
-                  atLeastSucLessThan_greaterThanLessThan)
-  ultimately 
-  show ?thesis by simp
+  also 
+  from m 
+  have "\<dots> = (\<Sum>x\<in>{0..m - 1}. P x)"
+    by (cases m) (auto simp add: atLeastLessThanSuc_atLeastAtMost)
+  also
+  have "\<dots> = P 0 + (\<Sum>x\<in>{0<..m - 1}. P x)"
+    by (simp add: setsum_head)
+  also 
+  from m 
+  have "{0<..m - 1} = {1..<m}" 
+    by (cases m) (auto simp add: atLeastLessThanSuc_atLeastAtMost)
+  finally show ?thesis .
 qed
 
 subsection {* The formula for geometric sums *}

@@ -280,7 +280,6 @@ apply (simp add: add_ac)
 apply simp
 done
 
-
 lemma sumr_pos_lt_pair:
      "[|summable f; 
         \<forall>d. 0 < (f(n + (Suc(Suc 0) * d))) + f(n + ((Suc(Suc 0) * d) + 1))|]  
@@ -408,6 +407,21 @@ lemma summable_le2:
 apply (auto intro: summable_comparison_test intro!: summable_le)
 apply (simp add: abs_le_interval_iff)
 done
+
+(* specialisation for the common 0 case *)
+lemma suminf_0_le:
+  fixes f::"nat\<Rightarrow>real"
+  assumes gt0: "\<forall>n. 0 \<le> f n" and sm: "summable f"
+  shows "0 \<le> suminf f"
+proof -
+  let ?g = "(\<lambda>n. (0::real))"
+  from gt0 have "\<forall>n. ?g n \<le> f n" by simp
+  moreover have "summable ?g" by (rule summable_zero)
+  moreover from sm have "summable f" .
+  ultimately have "suminf ?g \<le> suminf f" by (rule summable_le)
+  then show "0 \<le> suminf f" by (simp add: suminf_zero)
+qed 
+
 
 text{*Absolute convergence imples normal convergence*}
 lemma summable_rabs_cancel: "summable (%n. abs (f n)) ==> summable f"

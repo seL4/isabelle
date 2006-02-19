@@ -14,3 +14,6 @@ use_thy "NSPrimes";
 
 no_document use_thy "BigO";
 use_thy "BigO_Complex";
+
+use_thy "ASeries_Complex";
+use_thy "HarmonicSeries";
