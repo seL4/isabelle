@@ -17,3 +17,4 @@ use_thy "BigO_Complex";
 
 use_thy "ASeries_Complex";
 use_thy "HarmonicSeries";
+use_thy "DenumRat";
