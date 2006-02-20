@@ -210,8 +210,7 @@ fun cnf skoths (th,ths) =
       and cnf_nil th = (cnf_aux (th,[]))
   in 
     name_ref := 19;  (*It's safe to reset this in a top-level call to cnf*)
-    (cnf skoths (th RS conjunct1, cnf skoths (th RS conjunct2, ths))
-     handle THM _ => (*not a conjunction*) cnf_aux (th, ths))
+    cnf_aux (th,ths)
   end;
 
 (*Convert all suitable free variables to schematic variables, 
