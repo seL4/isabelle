@@ -18,16 +18,15 @@ sig
   val add_arity_thms: thm list -> theory -> theory
   val add_inst_subclass: xstring * xstring -> tactic -> theory -> theory
   val add_inst_subclass_i: class * class -> tactic -> theory -> theory
-  val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
-  val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
+  val add_inst_arity: (theory -> theory) -> xstring * string list * string -> tactic -> theory -> theory
+  val add_inst_arity_i: (theory -> theory) -> string * sort list * sort -> tactic -> theory -> theory
   val instance_subclass: xstring * xstring -> theory -> Proof.state
   val instance_subclass_i: class * class -> theory -> Proof.state
   val instance_arity: (theory -> theory) -> xstring * string list * string -> theory -> Proof.state
   val instance_arity_i: (theory -> theory) -> string * sort list * sort -> theory -> Proof.state
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> string * sort list * sort -> arity
-  val intro_classes_tac: thm list -> tactic
-  val default_intro_classes_tac: thm list -> tactic
+  val class_axms: theory -> thm list
 end;
 
 structure AxClass: AX_CLASS =
@@ -278,7 +277,7 @@ fun ext_inst_subclass prep_classrel raw_cc tac thy =
       cat_error msg ("The error(s) above occurred while trying to prove " ^ txt);
   in add_classrel_thms [th] thy end;
 
-fun ext_inst_arity prep_arity raw_arity tac thy =
+fun ext_inst_arity prep_arity (after_qed : theory -> theory) raw_arity tac thy =
   let
     val arity = prep_arity thy raw_arity;
     val txt = quote (Sign.string_of_arity thy arity);
@@ -287,7 +286,11 @@ fun ext_inst_arity prep_arity raw_arity tac thy =
     val ths = Goal.prove_multi thy [] [] props
       (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
         cat_error msg ("\nThe error(s) above occurred while trying to prove " ^ txt);
-  in add_arity_thms ths thy end;
+  in
+    thy
+    |> add_arity_thms ths
+    |> after_qed
+  end;
 
 in
 
@@ -321,26 +324,6 @@ val instance_arity_i =
   gen_instance (mk_arities oo cert_arity) add_arity_thms;
 
 end;
-
-
-(* tactics and methods *)
-
-fun intro_classes_tac facts st =
-  (ALLGOALS (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.theory_of_thm st))))
-    THEN Tactic.distinct_subgoals_tac) st;
-
-fun default_intro_classes_tac [] = intro_classes_tac []
-  | default_intro_classes_tac _ = Tactical.no_tac;    (*no error message!*)
-
-fun default_tac rules ctxt facts =
-  HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
-    default_intro_classes_tac facts;
-
-val _ = Context.add_setup (Method.add_methods
- [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
-    "back-chain introduction rules of axiomatic type classes"),
-  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule")]);
 
 
 
