@@ -346,7 +346,9 @@ val tag_elim  = preserve_name (fn th => tagD RS th);
 
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
-      val intros = safeIs @ hazIs
+      val intros = [subset_refl] @ safeIs @ hazIs
+          (*subset_refl is a special case: obviously useful in resolution, but
+            harmful if added as a default intro rule.*)
       val elims  = map Classical.classical_rule (safeEs @ hazEs)
   in
      Output.debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 
