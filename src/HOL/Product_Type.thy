@@ -785,26 +785,10 @@ code_alias
   "fst" "Product_Type.fst"
   "snd" "Product_Type.snd"
 
-code_primconst fst
-ml {*
-fun `_` (x, y) = x;
-*}
-
-code_primconst snd
-ml {*
-fun `_` (x, y) = y;
-*}
-
 code_syntax_tyco
   *
     ml (infix 2 "*")
     haskell (target_atom "(__,/ __)")
-
-code_syntax_const
-  fst
-    haskell (target_atom "fst")
-  snd
-    haskell (target_atom "snd")
 
 ML {*
 

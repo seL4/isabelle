@@ -235,6 +235,12 @@ code_syntax_const
     ml (target_atom "(__,/ __)")
     haskell (target_atom "(__,/ __)")
 
+lemma [code]:
+  "fst (x, y) = x" by simp
+
+lemma [code]:
+  "snd (x, y) = y" by simp
+
 code_syntax_const
   1 :: "nat"
     ml ("{*Suc 0*}")

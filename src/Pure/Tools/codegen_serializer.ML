@@ -976,7 +976,7 @@ fun hs_from_thingol target nsps_upper nspgrp =
       "import", "default", "forall", "let", "in", "class", "qualified", "data",
       "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
     ] @ [
-      "Bool", "fst", "snd", "Integer", "True", "False", "negate"
+      "Bool", "Integer", "True", "False", "negate"
     ];
     fun hs_from_module imps ((_, name), ps) =
       (Pretty.chunks) (

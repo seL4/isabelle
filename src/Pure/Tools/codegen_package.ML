@@ -159,12 +159,11 @@ structure ConstNameMangler = NameManglerFun (
   val ord = prod_ord string_ord (prod_ord Term.typ_ord Term.typ_ord);
   fun mk (thy, deftab) ((c, (ty_decl, ty)), i) =
     let
-      val thyname = if c = "op ="
-        then
-          (NameSpace.drop_base o alias_get thy o fst o dest_Type o hd o fst o strip_type) ty
-        else (the o get_first
+      val thyname = case (get_first
           (fn (ty', (_, thyname)) => if eq_typ thy (ty, ty') then SOME thyname else NONE)
-          o the o Symtab.lookup deftab) c;
+            o these o Symtab.lookup deftab) c
+        of SOME thyname => thyname
+         | _ => (NameSpace.drop_base o alias_get thy o fst o dest_Type o hd o fst o strip_type) ty
       val c' = idf_of_name thy nsp_overl c;
       val c'' = NameSpace.append thyname (NameSpace.append nsp_overl (NameSpace.base c'));
       fun mangle (Type (tyco, tys)) =
