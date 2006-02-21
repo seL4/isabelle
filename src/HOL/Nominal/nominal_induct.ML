@@ -56,7 +56,7 @@ fun inst_mutual_rule thy insts avoiding rules =
         List.mapPartial (fn (z, SOME t) => SOME (z, t) | _ => NONE) (zs ~~ inst)
       end;
      val substs =
-       map2 subst insts rules |> List.concat |> distinct
+       map2 subst insts rules |> List.concat |> distinct (op =)
        |> map (pairself (Thm.cterm_of thy));
   in (((cases, concls), consumes), Drule.cterm_instantiate substs rule) end;
 
@@ -90,9 +90,9 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
     val ((insts, defs), defs_ctxt) = fold_map InductMethod.add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map ObjectLogic.atomize_thm) defs;
 
-    val finish_rule = PolyML.print #>
+    val finish_rule =
       split_all_tuples
-      #> rename_params_rule true (map (ProofContext.revert_skolem defs_ctxt o fst) avoiding) #> PolyML.print;
+      #> rename_params_rule true (map (ProofContext.revert_skolem defs_ctxt o fst) avoiding);
     fun rule_cases r = RuleCases.make_nested true (Thm.prop_of r) (InductMethod.rulified_term r);
   in
     (fn i => fn st =>
@@ -108,9 +108,10 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
                 (nth_list fixings (j - 1))))
           THEN' InductMethod.inner_atomize_tac) j))
         THEN' InductMethod.atomize_tac) i st |> Seq.maps (fn st' =>
-            InductMethod.guess_instance (finish_rule (InductMethod.internalize more_consumes rule)) i (PolyML.print st')
+            InductMethod.guess_instance
+              (finish_rule (InductMethod.internalize more_consumes rule)) i st'
             |> Seq.maps (fn rule' =>
-              CASES (rule_cases (PolyML.print rule') cases)
+              CASES (rule_cases rule' cases)
                 (Tactic.rtac (rename_params_rule false [] rule') i THEN
                   PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
     THEN_ALL_NEW_CASES InductMethod.rulify_tac
