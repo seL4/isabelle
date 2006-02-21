@@ -11,13 +11,18 @@ fun MLname s = "nbe_" ^ s;
 val quote = quote;
 
 FIXME xtab in theory
-*)
-(*
-structure NBE_Codegen =
-struct
 
 FIXME CodegenThingol names! which "error"?
 *)
+
+signature NBE_CODEGEN =
+sig
+  val export: Theory.theory -> string * CodegenThingol.def -> string
+end
+
+
+structure NBE_Codegen: NBE_CODEGEN =
+struct
 
 val is_constr = NBE_Eval.is_constr;
 val Eval = "NBE_Eval";
@@ -132,6 +137,10 @@ fun export thy (nm,CodegenThingol.Fun(eqns,_)) =
     S.Let (globals @ [code]) register
   end
   | export _ _ = "\"NBE no op\"";
+
+end;
+
+(*
 
 val use_show = fn s => (writeln ("\n---generated code:\n"^ s);
      use_text(writeln o enclose "\n---compiler echo:\n" "\n---\n",
@@ -337,15 +346,10 @@ test (nbe(Cmul $ (CS $ (CS $ Fx)) $ (CS $ (CS $ (CS $ Fy)))))
  (A (C "add", V "y"),A(A (C "mul", V "x"),A(C "S",A(C "S",A(C "S", V"y")))))))))))));
 ()
 end;
-
-
-
+*)
 
 
 (*
-  | export(nm,Fun(cls,(_,ty)))
-  | export _ = ""
-
 fun top_eval st thy =
 let val t = Sign.read_term thy st
     val tabs = CodegenPackage.mk_tabs thy;
@@ -369,4 +373,5 @@ val _ = OuterSyntax.add_parsers [nbeP];
 ProofGeneral.write_keywords "nbe";
 (* isar-keywords-nbe.el -> isabelle/etc/
    Isabelle -k nbe *)
+
 *)

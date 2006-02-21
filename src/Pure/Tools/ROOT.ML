@@ -20,3 +20,7 @@ use "am_interpreter.ML";
 use "am_compiler.ML";
 use "am_util.ML";
 use "compute.ML";
+
+(* norm-by-eval *)
+use "nbe_eval.ML";
+use "nbe_codegen.ML";
