@@ -31,10 +31,9 @@ datatype 'a com =
   | Cond "'a bexp" "'a com" "'a com"
   | While "'a bexp" "'a assn" "'a com"
 
-syntax
-  "_skip" :: "'a com"    ("SKIP")
-translations
-  "SKIP" == "Basic id"
+abbreviation (output)
+  Skip  ("SKIP")
+  "SKIP == Basic id"
 
 types
   'a sem = "'a => 'a => bool"
@@ -169,10 +168,10 @@ proof
   then obtain n where "iter n b (Sem c) s s'" by auto
   from this and s show "s' : P Int -b"
   proof (induct n fixing: s)
-    case (0 s)
+    case 0
     thus ?case by auto
   next
-    case (Suc n s)
+    case (Suc n)
     then obtain s'' where b: "s : b" and sem: "Sem c s s''"
       and iter: "iter n b (Sem c) s'' s'"
       by auto
