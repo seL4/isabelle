@@ -22,6 +22,7 @@ sig
   val strip_prems: int * term list * term -> term list * term
   val count_prems: term * int -> int
   val nth_prem: int * term -> term
+  val conjunction: term
   val mk_conjunction: term * term -> term
   val mk_conjunction_list: term list -> term
   val mk_conjunction_list2: term list list -> term
@@ -144,10 +145,10 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 (** conjunction **)
 
+val conjunction = Const ("ProtoPure.conjunction", propT --> propT --> propT);
+
 (*A && B*)
-fun mk_conjunction (t, u) =
-  Term.list_all ([("X", propT)],
-    mk_implies (list_implies (map (Term.incr_boundvars 1) [t, u], Bound 0), Bound 0));
+fun mk_conjunction (A, B) = conjunction $ A $ B;
 
 (*A && B && C -- improper*)
 fun mk_conjunction_list [] = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0))
@@ -158,12 +159,7 @@ fun mk_conjunction_list2 tss =
   mk_conjunction_list (map mk_conjunction_list (filter_out null tss));
 
 (*A && B*)
-fun dest_conjunction
-      (t as Const ("all", _) $ Abs (_, _,
-        Const ("==>", _) $ (Const ("==>", _) $ A $ (Const ("==>", _) $ B $ Bound 0)) $ Bound 0)) =
-      if Term.loose_bvar1 (A, 0) orelse Term.loose_bvar1 (B, 0)
-      then raise TERM ("dest_conjunction", [t])
-      else (Term.incr_boundvars ~1 A, Term.incr_boundvars ~1 B)
+fun dest_conjunction (Const ("ProtoPure.conjunction", _) $ A $ B) = (A, B)
   | dest_conjunction t = raise TERM ("dest_conjunction", [t]);
 
 (*((A && B) && C) && D && E -- flat*)

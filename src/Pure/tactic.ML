@@ -642,8 +642,7 @@ fun filter_prems_tac p =
 (* meta-level conjunction *)
 
 val conj_tac = SUBGOAL (fn (goal, i) =>
-  if can Logic.dest_conjunction goal then
-    (fn st => compose_tac (false, Drule.incr_indexes st Drule.conj_intr_thm, 2) i st)
+  if can Logic.dest_conjunction goal then rtac Drule.conjunctionI i
   else no_tac);
 
 val conjunction_tac = TRY o REPEAT_ALL_NEW conj_tac;
