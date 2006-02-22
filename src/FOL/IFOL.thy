@@ -45,10 +45,9 @@ consts
   Ex1           :: "('a => o) => o"             (binder "EX! " 10)
 
 
-syntax
-  "_not_equal"  :: "['a, 'a] => o"              (infixl "~=" 50)
-translations
-  "x ~= y"      == "~ (x = y)"
+abbreviation (output)
+  not_equal     :: "['a, 'a] => o"              (infixl "~=" 50)
+  "x ~= y == ~ (x = y)"
 
 syntax (xsymbols)
   Not           :: "o => o"                     ("\<not> _" [40] 40)
@@ -57,7 +56,7 @@ syntax (xsymbols)
   "ALL "        :: "[idts, o] => o"             ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, o] => o"             ("(3\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, o] => o"             ("(3\<exists>!_./ _)" [0, 10] 10)
-  "_not_equal"  :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
+  not_equal     :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
   "op -->"      :: "[o, o] => o"                (infixr "\<longrightarrow>" 25)
   "op <->"      :: "[o, o] => o"                (infixr "\<longleftrightarrow>" 25)
 
@@ -68,7 +67,7 @@ syntax (HTML output)
   "ALL "        :: "[idts, o] => o"             ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, o] => o"             ("(3\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, o] => o"             ("(3\<exists>!_./ _)" [0, 10] 10)
-  "_not_equal"  :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
+  not_equal     :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
 
 
 local
@@ -249,18 +248,21 @@ next
 qed
 
 lemma atomize_conj [atomize]:
-  "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
+  includes meta_conjunction_syntax
+  shows "(A && B) == Trueprop (A & B)"
 proof
-  assume "!!C. (A ==> B ==> PROP C) ==> PROP C"
-  show "A & B" by (rule conjI)
+  assume conj: "A && B"
+  show "A & B"
+  proof (rule conjI)
+    from conj show A by (rule conjunctionD1)
+    from conj show B by (rule conjunctionD2)
+  qed
 next
-  fix C
-  assume "A & B"
-  assume "A ==> B ==> PROP C"
-  thus "PROP C"
-  proof this
-    show A by (rule conjunct1)
-    show B by (rule conjunct2)
+  assume conj: "A & B"
+  show "A && B"
+  proof -
+    from conj show A ..
+    from conj show B ..
   qed
 qed
 
