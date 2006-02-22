@@ -18,15 +18,17 @@ sig
   val add_arity_thms: thm list -> theory -> theory
   val add_inst_subclass: xstring * xstring -> tactic -> theory -> theory
   val add_inst_subclass_i: class * class -> tactic -> theory -> theory
-  val add_inst_arity: (theory -> theory) -> xstring * string list * string -> tactic -> theory -> theory
-  val add_inst_arity_i: (theory -> theory) -> string * sort list * sort -> tactic -> theory -> theory
+  val add_inst_arity: (theory -> theory) ->
+    xstring * string list * string -> tactic -> theory -> theory
+  val add_inst_arity_i: (theory -> theory) ->
+    string * sort list * sort -> tactic -> theory -> theory
   val instance_subclass: xstring * xstring -> theory -> Proof.state
   val instance_subclass_i: class * class -> theory -> Proof.state
   val instance_arity: (theory -> theory) -> xstring * string list * string -> theory -> Proof.state
   val instance_arity_i: (theory -> theory) -> string * sort list * sort -> theory -> Proof.state
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> string * sort list * sort -> arity
-  val class_axms: theory -> thm list
+  val class_intros: theory -> thm list
 end;
 
 structure AxClass: AX_CLASS =
@@ -146,8 +148,7 @@ fun get_info thy c =
     NONE => error ("Unknown axclass " ^ quote c)
   | SOME info => info);
 
-
-fun class_axms thy =
+fun class_intros thy =
   let val classes = Sign.classes thy in
     map (Thm.class_triv thy) classes @
     List.mapPartial (Option.map #intro o lookup_info thy) classes

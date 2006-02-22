@@ -268,12 +268,12 @@ fun read_sort thy =
 
 (* tactics and methods *)
 
-fun class_loc_axms thy =
-  AxClass.class_axms thy @ the_intros thy;
+fun class_intros thy =
+  AxClass.class_intros thy @ the_intros thy;
 
 fun intro_classes_tac facts st =
   (ALLGOALS (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (class_loc_axms (Thm.theory_of_thm st))))
+      REPEAT_ALL_NEW (resolve_tac (class_intros (Thm.theory_of_thm st))))
     THEN Tactic.distinct_subgoals_tac) st;
 
 fun default_intro_classes_tac [] = intro_classes_tac []
