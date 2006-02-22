@@ -81,8 +81,6 @@ sig
   val equal_elim_rule1: thm
   val inst: string -> string -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
-  val incr_indexes: thm -> thm -> thm
-  val incr_indexes_wrt: int list -> ctyp list -> cterm list -> thm list -> thm -> thm
 end;
 
 signature DRULE =
@@ -107,6 +105,7 @@ sig
   val forall_conv: int -> (cterm -> thm) -> cterm -> thm
   val concl_conv: int -> (cterm -> thm) -> cterm -> thm
   val prems_conv: int -> (int -> cterm -> thm) -> cterm -> thm
+  val conjunction_cong: thm -> thm -> thm
   val conjunction_conv: int -> (int -> cterm -> thm) -> cterm -> thm
   val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
   val fconv_rule: (cterm -> thm) -> thm -> thm
@@ -131,15 +130,19 @@ sig
   val unvarifyT: thm -> thm
   val unvarify: thm -> thm
   val tvars_intr_list: string list -> thm -> (string * (indexname * sort)) list * thm
+  val incr_indexes: thm -> thm -> thm
+  val incr_indexes2: thm -> thm -> thm -> thm
   val remdups_rl: thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
+  val conjunctionD1: thm
+  val conjunctionD2: thm
+  val conjunctionI: thm
   val conj_intr: thm -> thm -> thm
   val conj_intr_list: thm list -> thm
   val conj_elim: thm -> thm * thm
   val conj_elim_list: thm -> thm list
   val conj_elim_precise: int list -> thm -> thm list list
-  val conj_intr_thm: thm
   val conj_curry: thm -> thm
   val abs_def: thm -> thm
   val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
@@ -152,20 +155,24 @@ struct
 
 (** some cterm->cterm operations: faster than calling cterm_of! **)
 
+fun dest_binop ct =
+  let val (ct1, ct2) = Thm.dest_comb ct
+  in (#2 (Thm.dest_comb ct1), ct2) end;
+
 fun dest_implies ct =
   (case Thm.term_of ct of
-    (Const ("==>", _) $ _ $ _) =>
-      let val (ct1, ct2) = Thm.dest_comb ct
-      in (#2 (Thm.dest_comb ct1), ct2) end
+    (Const ("==>", _) $ _ $ _) => dest_binop ct
   | _ => raise TERM ("dest_implies", [term_of ct]));
 
 fun dest_equals ct =
   (case Thm.term_of ct of
-    (Const ("==", _) $ _ $ _) =>
-      let val (ct1, ct2) = Thm.dest_comb ct
-      in (#2 (Thm.dest_comb ct1), ct2) end
+    (Const ("==", _) $ _ $ _) => dest_binop ct
     | _ => raise TERM ("dest_equals", [term_of ct]));
 
+fun dest_conjunction ct =
+  (case Thm.term_of ct of
+    (Const ("ProtoPure.conjunction", _) $ _ $ _) => dest_binop ct
+  | _ => raise TERM ("dest_conjunction", [term_of ct]));
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
@@ -719,15 +726,21 @@ fun prems_conv 0 _ = reflexive
             | SOME (A, B) => imp_cong_rule (cv i A) (conv (i + 1) B));
   in conv 1 end;
 
+
 (*rewrite the A's in A1 && ... && An*)
+
+val conjunction_cong =
+  Thm.combination o Thm.combination (Thm.reflexive (cterm_of ProtoPure.thy Logic.conjunction));
+
 fun conjunction_conv 0 _ = reflexive
   | conjunction_conv n cv =
       let
         fun conv i ct =
-          if i <> n andalso can Logic.dest_conjunction (term_of ct) then
-            forall_conv 1
-              (prems_conv 1 (K (prems_conv 2 (fn 1 => cv i | 2 => conv (i + 1))))) ct
-          else cv i ct;
+          if i = n then cv i ct
+          else
+            (case try dest_conjunction ct of
+              NONE => cv i ct
+            | SOME (A, B) => conjunction_cong (cv i A) (conv (i + 1) B));
       in conv 1 end;
 
 
@@ -1068,14 +1081,8 @@ fun tvars_intr_list tfrees thm =
 
 fun incr_indexes th = Thm.incr_indexes (#maxidx (Thm.rep_thm th) + 1);
 
-fun incr_indexes_wrt is cTs cts thms =
-  let
-    val maxidx =
-      Library.foldl Int.max (~1, is @
-        map (maxidx_of_typ o #T o Thm.rep_ctyp) cTs @
-        map (#maxidx o Thm.rep_cterm) cts @
-        map (#maxidx o Thm.rep_thm) thms);
-  in Thm.incr_indexes (maxidx + 1) end;
+fun incr_indexes2 th1 th2 =
+  Thm.incr_indexes (Int.max (#maxidx (Thm.rep_thm th1), #maxidx (Thm.rep_thm th2)) + 1);
 
 
 (* freeze_all *)
@@ -1126,30 +1133,33 @@ local
   val B = read_prop "PROP B";
   val C = read_prop "PROP C";
   val ABC = read_prop "PROP A ==> PROP B ==> PROP C";
+  val A_B = read_prop "PROP ProtoPure.conjunction(A, B)"
 
-  val proj1 =
-    forall_intr_list [A, B] (implies_intr_list [A, B] (Thm.assume A))
-    |> forall_elim_vars 0;
+  val conjunction_def = #1 (freeze_thaw ProtoPure.conjunction_def);
 
-  val proj2 =
-    forall_intr_list [A, B] (implies_intr_list [A, B] (Thm.assume B))
-    |> forall_elim_vars 0;
-
-  val conj_intr_rule =
-    forall_intr_list [A, B] (implies_intr_list [A, B]
-      (Thm.forall_intr C (Thm.implies_intr ABC
-        (implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B]))))
-    |> forall_elim_vars 0;
+  fun conjunctionD which =
+    implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
+    forall_elim_vars 0 (Thm.equal_elim conjunction_def (Thm.assume A_B));
 in
 
-fun conj_intr tha thb = thb COMP (tha COMP incr_indexes_wrt [] [] [] [tha, thb] conj_intr_rule);
+val conjunctionD1 = store_standard_thm "conjunctionD1" (conjunctionD #1);
+val conjunctionD2 = store_standard_thm "conjunctionD2" (conjunctionD #2);
+
+val conjunctionI = store_standard_thm "conjunctionI"
+  (implies_intr_list [A, B]
+    (Thm.equal_elim
+      (Thm.symmetric conjunction_def)
+      (Thm.forall_intr C (Thm.implies_intr ABC
+        (implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B])))));
+
+fun conj_intr tha thb = thb COMP (tha COMP incr_indexes2 tha thb conjunctionI);
 
 fun conj_intr_list [] = asm_rl
   | conj_intr_list ths = foldr1 (uncurry conj_intr) ths;
 
 fun conj_elim th =
-  let val th' = forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th
-  in (incr_indexes th' proj1 COMP th', incr_indexes th' proj2 COMP th') end;
+ (th COMP incr_indexes th conjunctionD1,
+  th COMP incr_indexes th conjunctionD2);
 
 (*((A && B) && C) && D && E -- flat*)
 fun conj_elim_list th =
@@ -1168,9 +1178,6 @@ fun conj_elim_precise spans =
       | elims (n :: ns) (th :: ths) = elim n th :: elims ns ths
       | elims _ _ = [];
   in elims spans o elim (length (filter_out (equal 0) spans)) end;
-
-val conj_intr_thm = store_standard_thm_open "conjunctionI"
-  (implies_intr_list [A, B] (conj_intr (Thm.assume A) (Thm.assume B)));
 
 end;
 
