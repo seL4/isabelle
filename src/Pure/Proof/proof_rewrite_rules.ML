@@ -34,6 +34,10 @@ fun rew b =
 
     fun rew' _ (PThm (("ProtoPure.protectD", _), _, _, _) % _ %%
         (PThm (("ProtoPure.protectI", _), _, _, _) % _ %% prf)) = SOME prf
+      | rew' _ (PThm (("ProtoPure.conjunctionD1", _), _, _, _) % _ % _ %%
+        (PThm (("ProtoPure.conjunctionI", _), _, _, _) % _ % _ %% prf %% _)) = SOME prf
+      | rew' _ (PThm (("ProtoPure.conjunctionD2", _), _, _, _) % _ % _ %%
+        (PThm (("ProtoPure.conjunctionI", _), _, _, _) % _ % _ %% _ %% prf)) = SOME prf
       | rew' _ (PAxm ("ProtoPure.equal_elim", _, _) % _ % _ %%
         (PAxm ("ProtoPure.equal_intr", _, _) % _ % _ %% prf %% _)) = SOME prf
       | rew' _ (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
