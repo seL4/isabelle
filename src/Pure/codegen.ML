@@ -225,12 +225,12 @@ structure CodegenData = TheoryDataFun
      {codegens = codegens2, tycodegens = tycodegens2,
       consts = consts2, types = types2, attrs = attrs2,
       preprocs = preprocs2, modules = modules2, test_params = test_params2}) =
-    {codegens = merge_alists' codegens1 codegens2,
-     tycodegens = merge_alists' tycodegens1 tycodegens2,
+    {codegens = AList.merge (op =) (K true) (codegens1, codegens2),
+     tycodegens = AList.merge (op =) (K true) (tycodegens1, tycodegens2),
      consts = merge_alists consts1 consts2,
      types = merge_alists types1 types2,
      attrs = merge_alists attrs1 attrs2,
-     preprocs = merge_alists' preprocs1 preprocs2,
+     preprocs = AList.merge (op =) (K true) (preprocs1, preprocs2),
      modules = Symtab.merge (K true) (modules1, modules2),
      test_params = merge_test_params test_params1 test_params2};
 

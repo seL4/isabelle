@@ -221,11 +221,8 @@ sig
 
   (*lists as tables -- see also Pure/General/alist.ML*)
   val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
-  val gen_merge_lists': ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val merge_lists: ''a list -> ''a list -> ''a list
-  val merge_lists': ''a list -> ''a list -> ''a list
   val merge_alists: (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
-  val merge_alists': (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
 
   (*balanced trees*)
   exception Balance
@@ -1043,24 +1040,14 @@ fun has_duplicates eq =
   in dups end;
 
 
-
-(** association lists **)
-
-(* lists as tables -- legacy operations *)
+(** association lists -- legacy operations **)
 
 fun gen_merge_lists _ xs [] = xs
   | gen_merge_lists _ [] ys = ys
   | gen_merge_lists eq xs ys = xs @ gen_rems eq (ys, xs);
 
-fun gen_merge_lists' _ xs [] = xs
-  | gen_merge_lists' _ [] ys = ys
-  | gen_merge_lists' eq xs ys = gen_rems eq (ys, xs) @ xs;
-
 fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
-fun merge_lists' xs ys = gen_merge_lists' (op =) xs ys;
 fun merge_alists al = gen_merge_lists (eq_fst (op =)) al;
-fun merge_alists' al = gen_merge_lists' (eq_fst (op =)) al;
-
 
 
 (** balanced trees **)
