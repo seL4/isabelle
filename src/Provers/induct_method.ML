@@ -42,7 +42,6 @@ val meta_spec = thm "Pure.meta_spec";
 val all_conjunction = thm "Pure.all_conjunction";
 val imp_conjunction = thm "Pure.imp_conjunction";
 val conjunction_imp = thm "Pure.conjunction_imp";
-val conjunction_assoc = thm "Pure.conjunction_assoc";
 val conjunction_congs = [all_conjunction, imp_conjunction];
 
 
@@ -182,23 +181,11 @@ fun rulified_term thm =
     val (As, B) = Logic.strip_horn (Thm.prop_of thm);
   in (thy, Logic.list_implies (map rulify As, rulify B)) end;
 
-val curry_prems_tac =
-  let
-    val rule = conjunction_imp;
-    val thy = Thm.theory_of_thm rule;
-    val proc = Simplifier.simproc_i thy "curry_prems"
-      [#1 (Logic.dest_equals (Thm.prop_of rule))]
-      (fn _ => fn ss => fn _ =>  (*WORKAROUND: prevent descending into meta conjunctions*)
-        if exists (equal propT o #2 o #1) (#2 (#bounds (#1 (Simplifier.rep_ss ss))))
-        then NONE else SOME rule);
-    val ss = MetaSimplifier.theory_context thy Simplifier.empty_ss addsimprocs [proc];
-  in Simplifier.full_simp_tac ss end;
-
 val rulify_tac =
   Tactic.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
   Tactic.rewrite_goal_tac Data.rulify_fallback THEN'
   Tactic.conjunction_tac THEN_ALL_NEW
-  (curry_prems_tac THEN' Tactic.norm_hhf_tac);
+  (Tactic.rewrite_goal_tac [conjunction_imp] THEN' Tactic.norm_hhf_tac);
 
 
 (* prepare rule *)

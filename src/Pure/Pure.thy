@@ -42,61 +42,40 @@ lemma all_conjunction:
   shows "(!!x. PROP A(x) && PROP B(x)) == ((!!x. PROP A(x)) && (!!x. PROP B(x)))"
 proof
   assume conj: "!!x. PROP A(x) && PROP B(x)"
-  fix X assume r: "(!!x. PROP A(x)) ==> (!!x. PROP B(x)) ==> PROP X"
-  show "PROP X"
-  proof (rule r)
+  show "(\<And>x. PROP A(x)) && (\<And>x. PROP B(x))"
+  proof -
     fix x
-    from conj show "PROP A(x)" .
-    from conj show "PROP B(x)" .
+    from conj show "PROP A(x)" by (rule conjunctionD1)
+    from conj show "PROP B(x)" by (rule conjunctionD2)
   qed
 next
   assume conj: "(!!x. PROP A(x)) && (!!x. PROP B(x))"
   fix x
-  fix X assume r: "PROP A(x) ==> PROP B(x) ==> PROP X"
-  show "PROP X"
-  proof (rule r)
-    show "PROP A(x)"
-    proof (rule conj)
-      assume "!!x. PROP A(x)"
-      then show "PROP A(x)" .
-    qed
-    show "PROP B(x)"
-    proof (rule conj)
-      assume "!!x. PROP B(x)"
-      then show "PROP B(x)" .
-    qed
+  show "PROP A(x) && PROP B(x)"
+  proof -
+    show "PROP A(x)" by (rule conj [THEN conjunctionD1, rule_format])
+    show "PROP B(x)" by (rule conj [THEN conjunctionD2, rule_format])
   qed
 qed
 
-lemma imp_conjunction [unfolded prop_def]:
+lemma imp_conjunction:
   includes meta_conjunction_syntax
-  shows "(PROP A ==> PROP prop (PROP B && PROP C)) == (PROP A ==> PROP B) && (PROP A ==> PROP C)"
-  unfolding prop_def
+  shows "(PROP A ==> PROP B && PROP C) == (PROP A ==> PROP B) && (PROP A ==> PROP C)"
 proof
   assume conj: "PROP A ==> PROP B && PROP C"
-  fix X assume r: "(PROP A ==> PROP B) ==> (PROP A ==> PROP C) ==> PROP X"
-  show "PROP X"
-  proof (rule r)
+  show "(PROP A ==> PROP B) && (PROP A ==> PROP C)"
+  proof -
     assume "PROP A"
-    from conj [OF `PROP A`] show "PROP B" .
-    from conj [OF `PROP A`] show "PROP C" .
+    from conj [OF `PROP A`] show "PROP B" by (rule conjunctionD1)
+    from conj [OF `PROP A`] show "PROP C" by (rule conjunctionD2)
   qed
 next
   assume conj: "(PROP A ==> PROP B) && (PROP A ==> PROP C)"
   assume "PROP A"
-  fix X assume r: "PROP B ==> PROP C ==> PROP X"
-  show "PROP X"
-  proof (rule r)
-    show "PROP B"
-    proof (rule conj)
-      assume "PROP A ==> PROP B"
-      from this [OF `PROP A`] show "PROP B" .
-    qed
-    show "PROP C"
-    proof (rule conj)
-      assume "PROP A ==> PROP C"
-      from this [OF `PROP A`] show "PROP C" .
-    qed
+  show "PROP B && PROP C"
+  proof -
+    from `PROP A` show "PROP B" by (rule conj [THEN conjunctionD1])
+    from `PROP A` show "PROP C" by (rule conj [THEN conjunctionD2])
   qed
 qed
 
@@ -112,14 +91,9 @@ next
   assume conj: "PROP A && PROP B"
   show "PROP C"
   proof (rule r)
-    from conj show "PROP A" .
-    from conj show "PROP B" .
+    from conj show "PROP A" by (rule conjunctionD1)
+    from conj show "PROP B" by (rule conjunctionD2)
   qed
 qed
-
-lemma conjunction_assoc:
-  includes meta_conjunction_syntax
-  shows "((PROP A && PROP B) && PROP C) == (PROP A && (PROP B && PROP C))"
-  unfolding conjunction_imp .
 
 end
