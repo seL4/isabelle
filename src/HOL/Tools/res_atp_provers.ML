@@ -19,6 +19,7 @@ fun if_proof_E instr =
   else if (thisLine = "") then false
   else if_proof_E instr end;		
 
+
 local 
 
 fun locations [] = ()
@@ -27,7 +28,8 @@ fun locations [] = ()
 in 
 
 fun call_vampire (files:string list, time: int) = 
-  let val output = (space_implode " " files) ^ "  "
+  let val _ = locations files
+      val output = (space_implode " " files) ^ "  "
       val runtime = "-t " ^ (string_of_int time)
       val vampire = ResAtp.helper_path "VAMPIRE_HOME" "vampire"
       val ch:(TextIO.instream,TextIO.outstream) Unix.proc = Unix.execute(vampire, [runtime,output])
@@ -36,7 +38,8 @@ fun call_vampire (files:string list, time: int) =
   end;
 
 fun call_eprover (files:string list, time:int) =
-  let val output = (space_implode " " files) ^ "  "
+  let val _ = locations files
+      val output = (space_implode " " files) ^ "  "
       val eprover = ResAtp.helper_path "E_HOME" "/PROVER/eprover"
       val runtime = "--cpu-limit=" ^ (string_of_int time)
       val ch:(TextIO.instream,TextIO.outstream) Unix.proc = Unix.execute(eprover, [runtime,"--tptp-format","-tAuto","-xAuto",output])
@@ -51,7 +54,7 @@ fun vampire_o thy ((helper,files),time) = (if (call_vampire (helper @ files,time
 
 
 fun eprover_o thy ((helper,files),time) = (if (call_eprover (helper @ files,time)) then (warning (hd files); ResAtpSetup.cond_rm_tmp files;HOLogic.mk_Trueprop HOLogic.false_const)
-  else (raise Fail ("eprover oracle failed")));
+  else (ResAtpSetup.cond_rm_tmp files;raise Fail ("eprover oracle failed")));
 
 end;
 
