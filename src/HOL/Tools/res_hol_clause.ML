@@ -513,7 +513,7 @@ val type_wrapper = "typeinfo";
 
 datatype type_level = T_FULL | T_PARTIAL | T_CONST | T_NONE;
 
-val typ_level = ref T_PARTIAL;
+val typ_level = ref T_FULL;
 
 fun full_types () = (typ_level:=T_FULL);
 fun partial_types () = (typ_level:=T_PARTIAL);
