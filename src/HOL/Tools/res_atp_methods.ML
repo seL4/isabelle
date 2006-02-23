@@ -26,12 +26,12 @@ fun eproverLimit () = !eprover_time;
 
 (* convert the negated 1st subgoal into CNF, write to files and call an ATP oracle *)
 fun res_atp_tac res_atp_oracle mode timeLimit ctxt user_thms n thm =
-    SELECT_GOAL
-	((EVERY1 [rtac ccontr,ObjectLogic.atomize_tac, skolemize_tac, 
+    (SELECT_GOAL
+	(EVERY1 [rtac ccontr,ObjectLogic.atomize_tac, skolemize_tac, 
 		  METAHYPS(fn negs =>
 			      HEADGOAL(Tactic.rtac 
 					   (res_atp_oracle (ProofContext.theory_of ctxt) 
-							   (ResAtpSetup.prep_atp_input mode ctxt negs user_thms n, timeLimit))))]) handle Fail _ => no_tac) n thm;
+							   (ResAtpSetup.prep_atp_input mode ctxt negs user_thms n, timeLimit))))]) n thm) handle (Fail _) => Seq.empty;
 
 (* vampire and eprover tactics *)
 
