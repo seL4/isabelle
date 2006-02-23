@@ -619,16 +619,14 @@ apply(simp add: at_rev_pi[OF at])
 done
 
 lemma at_ds10:
-  fixes pi1 :: "'x prm"
-  and   pi2 :: "'x prm"
+  fixes pi :: "'x prm"
   and   a  :: "'x"
   and   b  :: "'x"
   assumes at: "at TYPE('x)"
-  and     a:  "b\<sharp>(rev pi1)"
-  shows "(pi2@([(pi1\<bullet>a,b)]@pi1)) \<triangleq> (pi2@(pi1@[(a,b)]))"
+  and     a:  "b\<sharp>(rev pi)"
+  shows "([(pi\<bullet>a,b)]@pi) \<triangleq> (pi@[(a,b)])"
 using a
 apply -
-apply(rule at_prm_eq_append[OF at])
 apply(rule at_prm_eq_trans)
 apply(rule at_ds2[OF at])
 apply(simp add: at_prm_fresh[OF at] at_rev_pi[OF at])
@@ -667,6 +665,27 @@ lemma at_finite_select: "at (TYPE('a)) \<Longrightarrow> finite (S::'a set) \<Lo
   apply (rule notI)
   apply simp
   done
+
+lemma at_two:
+  assumes at: "at TYPE('x)"
+  shows "\<exists>(a::'x) (b::'x). a\<noteq>b"
+proof -
+  have inf1: "infinite (UNIV::'x set)" by (rule at4[OF at])
+  hence "UNIV \<noteq> ({}::'x set)" by blast
+  hence "\<exists>(a::'x). a\<in>UNIV" by blast
+  then obtain a::"'x" where mem1: "a\<in>UNIV" by blast
+  from inf1 have inf2: "infinite (UNIV-{a})" by (rule infinite_remove)
+  have "(UNIV-{a}) \<noteq> ({}::'x set)" 
+  proof (rule_tac ccontr, drule_tac notnotD)
+    assume "UNIV-{a} = ({}::'x set)"
+    with inf2 have "infinite ({}::'x set)" by simp
+    then show "False" by (auto intro: infinite_nonempty)
+  qed
+  hence "\<exists>(b::'x). b\<in>(UNIV-{a})" by blast
+  then obtain b::"'x" where mem2: "b\<in>(UNIV-{a})" by blast
+  from mem1 mem2 have "a\<noteq>b" by blast
+  then show "\<exists>(a::'x) (b::'x). a\<noteq>b" by blast
+qed
 
 --"the at-props imply the pt-props"
 lemma at_pt_inst:
@@ -2667,6 +2686,33 @@ lemma perm_eq_lam:
   and   pi :: "'x prm"
   shows "((pi\<bullet>(\<lambda>x. f x))=y) = ((\<lambda>x. (pi\<bullet>(f ((rev pi)\<bullet>x))))=y)"
   by (simp add: perm_fun_def)
+
+
+section {* test *}
+lemma at_prm_eq_compose:
+  fixes pi1 :: "'x prm"
+  and   pi2 :: "'x prm"
+  and   pi3 :: "'x prm"
+  assumes at: "at TYPE('x)"
+  and     a: "pi1 \<triangleq> pi2"
+  shows "(pi3\<bullet>pi1) \<triangleq> (pi3\<bullet>pi2)"
+proof -
+  have pt: "pt TYPE('x) TYPE('x)" by (rule at_pt_inst[OF at])
+  have pt_prm: "pt TYPE('x prm) TYPE('x)" 
+    by (rule pt_list_inst[OF pt_prod_inst[OF pt, OF pt]])  
+  from a show ?thesis
+    apply -
+    apply(auto simp add: prm_eq_def)
+    apply(rule_tac pi="rev pi3" in pt_bij4[OF pt, OF at])
+    apply(rule trans)
+    apply(rule pt_perm_compose[OF pt, OF at])
+    apply(simp add: pt_rev_pi[OF pt_prm, OF at])
+    apply(rule sym)
+    apply(rule trans)
+    apply(rule pt_perm_compose[OF pt, OF at])
+    apply(simp add: pt_rev_pi[OF pt_prm, OF at])
+    done
+qed
 
 
 (***************************************)
