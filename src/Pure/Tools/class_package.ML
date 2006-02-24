@@ -539,7 +539,7 @@ fun instance_arity do_proof = gen_instance_arity AxClass.read_arity add_defs_ove
 fun instance_arity_i do_proof = gen_instance_arity AxClass.cert_arity add_defs_overloaded_i
   (K I) do_proof;
 val setup_proof = AxClass.instance_arity_i;
-fun tactic_proof tac after_qed arity = AxClass.add_inst_arity_i after_qed arity tac;
+fun tactic_proof tac after_qed arity = AxClass.add_inst_arity_i arity tac #> after_qed;
 
 in
 
@@ -566,7 +566,7 @@ fun gen_add_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) th
 fun instance_sort do_proof = gen_add_instance_sort intern_class read_sort do_proof;
 fun instance_sort_i do_proof = gen_add_instance_sort certify_class certify_sort do_proof;
 val setup_proof = AxClass.instance_arity_i I ("", [], []);
-fun tactic_proof tac = AxClass.add_inst_arity_i I ("", [], []) tac;
+fun tactic_proof tac = AxClass.add_inst_arity_i ("", [], []) tac;
 
 in
 

@@ -18,10 +18,8 @@ sig
   val add_arity_thms: thm list -> theory -> theory
   val add_inst_subclass: xstring * xstring -> tactic -> theory -> theory
   val add_inst_subclass_i: class * class -> tactic -> theory -> theory
-  val add_inst_arity: (theory -> theory) ->
-    xstring * string list * string -> tactic -> theory -> theory
-  val add_inst_arity_i: (theory -> theory) ->
-    string * sort list * sort -> tactic -> theory -> theory
+  val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
+  val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
   val instance_subclass: xstring * xstring -> theory -> Proof.state
   val instance_subclass_i: class * class -> theory -> Proof.state
   val instance_arity: (theory -> theory) -> xstring * string list * string -> theory -> Proof.state
@@ -278,7 +276,7 @@ fun ext_inst_subclass prep_classrel raw_cc tac thy =
       cat_error msg ("The error(s) above occurred while trying to prove " ^ txt);
   in add_classrel_thms [th] thy end;
 
-fun ext_inst_arity prep_arity (after_qed : theory -> theory) raw_arity tac thy =
+fun ext_inst_arity prep_arity raw_arity tac thy =
   let
     val arity = prep_arity thy raw_arity;
     val txt = quote (Sign.string_of_arity thy arity);
@@ -287,11 +285,7 @@ fun ext_inst_arity prep_arity (after_qed : theory -> theory) raw_arity tac thy =
     val ths = Goal.prove_multi thy [] [] props
       (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
         cat_error msg ("\nThe error(s) above occurred while trying to prove " ^ txt);
-  in
-    thy
-    |> add_arity_thms ths
-    |> after_qed
-  end;
+  in add_arity_thms ths thy end;
 
 in
 

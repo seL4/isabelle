@@ -98,12 +98,12 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
     fun make_po tac thy =
       thy
       |> TypedefPackage.add_typedef_i def (SOME name) (t, vs, mx) set opt_morphs tac
-      |>> AxClass.add_inst_arity_i I (full_tname, lhs_sorts, ["Porder.sq_ord"])
+      |>> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Porder.sq_ord"])
            (ClassPackage.intro_classes_tac [])
       |>>> (PureThy.add_defs_i true [Thm.no_attributes less_def] #> Library.swap)
       |> (fn (thy', ({type_definition, set_def, ...}, [less_definition])) =>
            thy'
-           |> AxClass.add_inst_arity_i I (full_tname, lhs_sorts, ["Porder.po"])
+           |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Porder.po"])
              (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
            |> rpair (type_definition, less_definition, set_def));
     
@@ -113,7 +113,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
         val cpo_thms = [type_def, less_def, admissible'];
         val (_, theory') =
           theory
-          |> AxClass.add_inst_arity_i I (full_tname, lhs_sorts, ["Pcpo.cpo"])
+          |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.cpo"])
             (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
           |> Theory.add_path name
           |> PureThy.add_thms
@@ -132,7 +132,7 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
         val pcpo_thms = [type_def, less_def, UUmem'];
         val (_, theory') =
           theory
-          |> AxClass.add_inst_arity_i I (full_tname, lhs_sorts, ["Pcpo.pcpo"])
+          |> AxClass.add_inst_arity_i (full_tname, lhs_sorts, ["Pcpo.pcpo"])
             (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
           |> Theory.add_path name
           |> PureThy.add_thms
