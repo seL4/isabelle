@@ -23,7 +23,7 @@ fun dt_recs (DtTFree _) = []
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
     fun the_bname i = Sign.base_name (#1 (valOf (AList.lookup (op =) descr i)));
-    val bnames = map the_bname (distinct (List.concat (map dt_recs args)));
+    val bnames = map the_bname (distinct op = (List.concat (map dt_recs args)));
   in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
 
 
@@ -411,17 +411,17 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (fn _ => EVERY [indtac induction perm_indnames 1,
              ALLGOALS (asm_full_simp_tac simps)])))
       in
-        foldl (fn ((s, tvs), thy) => AxClass.add_inst_arity_i
+        foldl (fn ((s, tvs), thy) => AxClass.add_inst_arity_i I
             (s, replicate (length tvs) (cp_class :: classes), [cp_class])
-            (AxClass.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
+            (ClassPackage.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
           thy (full_new_type_names' ~~ tyvars)
       end;
 
     val (perm_thmss,thy3) = thy2 |>
       fold (fn name1 => fold (composition_instance name1) atoms) atoms |>
       curry (Library.foldr (fn ((i, (tyname, args, _)), thy) =>
-        AxClass.add_inst_arity_i (tyname, replicate (length args) classes, classes)
-        (AxClass.intro_classes_tac [] THEN REPEAT (EVERY
+        AxClass.add_inst_arity_i I (tyname, replicate (length args) classes, classes)
+        (ClassPackage.intro_classes_tac [] THEN REPEAT (EVERY
            [resolve_tac perm_empty_thms 1,
             resolve_tac perm_append_thms 1,
             resolve_tac perm_eq_thms 1, assume_tac 1])) thy))
@@ -457,7 +457,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           apfst (cons dt) (strip_option dt')
       | strip_option dt = ([], dt);
 
-    val dt_atomTs = distinct (map (typ_of_dtyp descr sorts')
+    val dt_atomTs = distinct op = (map (typ_of_dtyp descr sorts')
       (List.concat (map (fn (_, (_, _, cs)) => List.concat
         (map (List.concat o map (fst o strip_option) o snd) cs)) descr)));
 
@@ -585,10 +585,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun pt_instance ((class, atom), perm_closed_thms) =
       fold (fn (((({Abs_inverse, Rep_inverse, Rep, ...},
         perm_def), name), tvs), perm_closed) => fn thy =>
-          AxClass.add_inst_arity_i
+          AxClass.add_inst_arity_i I
             (Sign.intern_type thy name,
               replicate (length tvs) (classes @ cp_classes), [class])
-            (EVERY [AxClass.intro_classes_tac [],
+            (EVERY [ClassPackage.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
               asm_full_simp_tac (simpset_of thy addsimps [Rep_inverse]) 1,
               asm_full_simp_tac (simpset_of thy addsimps
@@ -609,10 +609,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val cp1' = PureThy.get_thm thy (Name (name ^ "_inst")) RS cp1
       in fold (fn ((((({Abs_inverse, Rep_inverse, Rep, ...},
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
-          AxClass.add_inst_arity_i
+          AxClass.add_inst_arity_i I
             (Sign.intern_type thy name,
               replicate (length tvs) (classes @ cp_classes), [class])
-            (EVERY [AxClass.intro_classes_tac [],
+            (EVERY [ClassPackage.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
               asm_full_simp_tac (simpset_of thy addsimps
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
@@ -1086,10 +1086,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms ||>
       fold (fn (atom, ths) => fn thy =>
         let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
-        in fold (fn T => AxClass.add_inst_arity_i
+        in fold (fn T => AxClass.add_inst_arity_i I
             (fst (dest_Type T),
               replicate (length sorts) [class], [class])
-            (AxClass.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
+            (ClassPackage.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms);
 
     (**** strong induction theorem ****)

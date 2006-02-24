@@ -390,18 +390,18 @@ fun create_nom_typedecls ak_names thy =
            val cls_name = Sign.full_name (sign_of thy') ("pt_"^ak_name);
            val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name'^"_inst")); 
 
-           val proof1 = EVERY [AxClass.intro_classes_tac [],
+           val proof1 = EVERY [ClassPackage.intro_classes_tac [],
                                  rtac ((at_inst RS at_pt_inst) RS pt1) 1,
                                  rtac ((at_inst RS at_pt_inst) RS pt2) 1,
                                  rtac ((at_inst RS at_pt_inst) RS pt3) 1,
                                  atac 1];
            val simp_s = HOL_basic_ss addsimps 
                         PureThy.get_thmss thy' [Name (ak_name^"_prm_"^ak_name'^"_def")];  
-           val proof2 = EVERY [AxClass.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
+           val proof2 = EVERY [ClassPackage.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
 
          in
            thy'
-           |> AxClass.add_inst_arity_i (qu_name,[],[cls_name])
+           |> AxClass.add_inst_arity_i I (qu_name,[],[cls_name])
               (if ak_name = ak_name' then proof1 else proof2)
          end) ak_names thy) ak_names thy12c;
 
@@ -422,7 +422,7 @@ fun create_nom_typedecls ak_names thy =
           val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
           
           fun pt_proof thm = 
-	      EVERY [AxClass.intro_classes_tac [],
+	      EVERY [ClassPackage.intro_classes_tac [],
                      rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
 
           val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
@@ -435,15 +435,15 @@ fun create_nom_typedecls ak_names thy =
           val pt_thm_set   = pt_inst RS pt_set_inst
        in 
 	thy
-	|> AxClass.add_inst_arity_i ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
-        |> AxClass.add_inst_arity_i ("nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
-        |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
-        |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
-        |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
-        |> AxClass.add_inst_arity_i ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+	|> AxClass.add_inst_arity_i I ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
+        |> AxClass.add_inst_arity_i I ("nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
+        |> AxClass.add_inst_arity_i I ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
+        |> AxClass.add_inst_arity_i I ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
+        |> AxClass.add_inst_arity_i I ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
+        |> AxClass.add_inst_arity_i I ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                     (pt_proof pt_thm_nprod)
-        |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
-        |> AxClass.add_inst_arity_i ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
+        |> AxClass.add_inst_arity_i I ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
+        |> AxClass.add_inst_arity_i I ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
      end) ak_names thy13; 
 
        (*<<<<<<<  fs_<ak> class instances  >>>>>>>*)
@@ -469,14 +469,14 @@ fun create_nom_typedecls ak_names thy =
 	       (if ak_name = ak_name'
 	        then
 	          let val at_thm = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
-                  in  EVERY [AxClass.intro_classes_tac [],
+                  in  EVERY [ClassPackage.intro_classes_tac [],
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
                 else
 		  let val dj_inst = PureThy.get_thm thy' (Name ("dj_"^ak_name'^"_"^ak_name));
                       val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, Finites.emptyI]; 
-                  in EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1] end)      
+                  in EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1] end)      
         in 
-	 AxClass.add_inst_arity_i (qu_name,[],[qu_class]) proof thy' 
+	 AxClass.add_inst_arity_i I (qu_name,[],[qu_class]) proof thy' 
         end) ak_names thy) ak_names thy18;
 
        (* shows that                  *)
@@ -491,7 +491,7 @@ fun create_nom_typedecls ak_names thy =
         let
           val cls_name = Sign.full_name (sign_of thy) ("fs_"^ak_name);
           val fs_inst  = PureThy.get_thm thy (Name ("fs_"^ak_name^"_inst"));
-          fun fs_proof thm = EVERY [AxClass.intro_classes_tac [], rtac (thm RS fs1) 1];      
+          fun fs_proof thm = EVERY [ClassPackage.intro_classes_tac [], rtac (thm RS fs1) 1];      
 
           val fs_thm_unit  = fs_unit_inst;
           val fs_thm_prod  = fs_inst RS (fs_inst RS fs_prod_inst);
@@ -500,12 +500,12 @@ fun create_nom_typedecls ak_names thy =
           val fs_thm_optn  = fs_inst RS fs_option_inst;
         in 
          thy 
-         |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
-         |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
-         |> AxClass.add_inst_arity_i ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+         |> AxClass.add_inst_arity_i I ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
+         |> AxClass.add_inst_arity_i I ("*",[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
+         |> AxClass.add_inst_arity_i I ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                      (fs_proof fs_thm_nprod) 
-         |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
-         |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
+         |> AxClass.add_inst_arity_i I ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
+         |> AxClass.add_inst_arity_i I ("Datatype.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
         end) ak_names thy20; 
 
        (*<<<<<<<  cp_<ak>_<ai> class instances  >>>>>>>*)
@@ -536,7 +536,7 @@ fun create_nom_typedecls ak_names thy =
                     val pt_inst  = PureThy.get_thm thy'' (Name ("pt_"^ak_name''^"_inst"));
 		    val at_inst  = PureThy.get_thm thy'' (Name ("at_"^ak_name''^"_inst"));
                   in 
-		   EVERY [AxClass.intro_classes_tac [], 
+		   EVERY [ClassPackage.intro_classes_tac [], 
                           rtac (at_inst RS (pt_inst RS pt_perm_compose)) 1]
                   end)
 		else
@@ -548,10 +548,10 @@ fun create_nom_typedecls ak_names thy =
 					   [Name (ak_name' ^"_prm_"^ak_name^"_def"),
                                             Name (ak_name''^"_prm_"^ak_name^"_def")]));  
 		  in 
-                    EVERY [AxClass.intro_classes_tac [], simp_tac simp_s 1]
+                    EVERY [ClassPackage.intro_classes_tac [], simp_tac simp_s 1]
                   end))
 	      in
-                AxClass.add_inst_arity_i (name,[],[cls_name]) proof thy''
+                AxClass.add_inst_arity_i I (name,[],[cls_name]) proof thy''
 	      end) ak_names thy') ak_names thy) ak_names thy24;
       
        (* shows that                                                    *) 
@@ -570,7 +570,7 @@ fun create_nom_typedecls ak_names thy =
             val pt_inst  = PureThy.get_thm thy' (Name ("pt_"^ak_name^"_inst"));
             val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
 
-            fun cp_proof thm  = EVERY [AxClass.intro_classes_tac [],rtac (thm RS cp1) 1];     
+            fun cp_proof thm  = EVERY [ClassPackage.intro_classes_tac [],rtac (thm RS cp1) 1];     
 	  
             val cp_thm_unit = cp_unit_inst;
             val cp_thm_prod = cp_inst RS (cp_inst RS cp_prod_inst);
@@ -580,12 +580,12 @@ fun create_nom_typedecls ak_names thy =
             val cp_thm_noptn = cp_inst RS cp_noption_inst;
         in
          thy'
-         |> AxClass.add_inst_arity_i ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
-	 |> AxClass.add_inst_arity_i ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
-         |> AxClass.add_inst_arity_i ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
-         |> AxClass.add_inst_arity_i ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
-         |> AxClass.add_inst_arity_i ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
-         |> AxClass.add_inst_arity_i ("nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> AxClass.add_inst_arity_i I ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
+	 |> AxClass.add_inst_arity_i I ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
+         |> AxClass.add_inst_arity_i I ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
+         |> AxClass.add_inst_arity_i I ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
+         |> AxClass.add_inst_arity_i I ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
+         |> AxClass.add_inst_arity_i I ("nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
         end) ak_names thy) ak_names thy25;
        
      (* show that discrete nominal types are permutation types, finitely     *) 
@@ -599,9 +599,9 @@ fun create_nom_typedecls ak_names thy =
 	     let
 	       val qu_class = Sign.full_name (sign_of thy) ("pt_"^ak_name);
 	       val simp_s = HOL_basic_ss addsimps [defn];
-               val proof = EVERY [AxClass.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];      
+               val proof = EVERY [ClassPackage.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];      
              in  
-	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+	       AxClass.add_inst_arity_i I (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;
 
           fun discrete_fs_inst discrete_ty defn = 
@@ -610,9 +610,9 @@ fun create_nom_typedecls ak_names thy =
 	       val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
 	       val supp_def = thm "nominal.supp_def";
                val simp_s = HOL_ss addsimps [supp_def,Collect_const,Finites.emptyI,defn];
-               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
+               val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];      
              in  
-	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+	       AxClass.add_inst_arity_i I (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;  
 
           fun discrete_cp_inst discrete_ty defn = 
@@ -621,9 +621,9 @@ fun create_nom_typedecls ak_names thy =
 	       val qu_class = Sign.full_name (sign_of thy) ("cp_"^ak_name^"_"^ak_name');
 	       val supp_def = thm "nominal.supp_def";
                val simp_s = HOL_ss addsimps [defn];
-               val proof = EVERY [AxClass.intro_classes_tac [], asm_simp_tac simp_s 1];      
+               val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];      
              in  
-	       AxClass.add_inst_arity_i (discrete_ty,[],[qu_class]) proof thy
+	       AxClass.add_inst_arity_i I (discrete_ty,[],[qu_class]) proof thy
              end) ak_names)) ak_names;  
           
         in
