@@ -785,11 +785,6 @@ code_alias
   "fst" "Product_Type.fst"
   "snd" "Product_Type.snd"
 
-code_syntax_tyco
-  *
-    ml (infix 2 "*")
-    haskell (target_atom "(__,/ __)")
-
 ML {*
 
 fun strip_abs_split 0 t = ([], t)

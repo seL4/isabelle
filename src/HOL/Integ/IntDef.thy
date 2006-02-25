@@ -900,28 +900,28 @@ code_syntax_tyco int
   haskell (target_atom "Integer")
 
 code_syntax_const
-  0 :: "int"
+  "0 :: int"
     ml (target_atom "(0:IntInf.int)")
     haskell (target_atom "0")
-  1 :: "int"
+  "1 :: int"
     ml (target_atom "(1:IntInf.int)")
     haskell (target_atom "1")
-  "op +" :: "int \<Rightarrow> int \<Rightarrow> int"
+  "op + :: int \<Rightarrow> int \<Rightarrow> int"
     ml (infixl 8 "+")
     haskell (infixl 6 "+")
-  "op *" :: "int \<Rightarrow> int \<Rightarrow> int"
+  "op * :: int \<Rightarrow> int \<Rightarrow> int"
     ml (infixl 9 "*")
     haskell (infixl 7 "*")
-  uminus :: "int \<Rightarrow> int"
+  "uminus :: int \<Rightarrow> int"
     ml (target_atom "~")
     haskell (target_atom "negate")
-  "op <" :: "int \<Rightarrow> int \<Rightarrow> bool"
+  "op < :: int \<Rightarrow> int \<Rightarrow> bool"
     ml (infix 6 "<")
     haskell (infix 4 "<")
-  "op <=" :: "int \<Rightarrow> int \<Rightarrow> bool"
+  "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
     ml (infix 6 "<=")
     haskell (infix 4 "<=")
-  "neg" :: "int \<Rightarrow> bool"
+  "neg :: int \<Rightarrow> bool"
     ml ("_/ </ 0")
     haskell ("_/ </ 0")
 

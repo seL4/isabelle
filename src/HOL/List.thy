@@ -2691,6 +2691,8 @@ code_alias
   "List.op @" "List.append"
   "List.op mem" "List.member"
 
+code_generate Nil Cons
+
 code_syntax_tyco
   list
     ml ("_ list")

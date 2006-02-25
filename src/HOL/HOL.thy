@@ -1407,23 +1407,7 @@ code_alias
   uminus "HOL.uminus"
   arbitrary "HOL.arbitrary"
 
-code_syntax_tyco bool
-  ml (target_atom "bool")
-  haskell (target_atom "Bool")
-
 code_syntax_const
-  Not
-    ml (target_atom "not")
-    haskell (target_atom "not")
-  "op &"
-    ml (infixl 1 "andalso")
-    haskell (infixl 3 "&&")
-  "op |"
-    ml (infixl 0 "orelse")
-    haskell (infixl 2 "||")
-  If
-    ml (target_atom "(if __/ then __/ else __)")
-    haskell (target_atom "(if __/ then __/ else __)")
   "op =" (* an intermediate solution for polymorphic equality *)
     ml (infixl 6 "=")
     haskell (infixl 4 "==")

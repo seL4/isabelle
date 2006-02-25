@@ -222,18 +222,25 @@ lemmas [code] = imp_conv_disj
 
 subsubsection {* Codegenerator setup *}
 
-code_syntax_const
-  True
-    ml (target_atom "true")
-    haskell (target_atom "True")
-  False
-    ml (target_atom "false")
-    haskell (target_atom "False")
+lemma [code]:
+  "(\<not> True) = False" by (rule HOL.simp_thms)
 
-code_syntax_const
-  Pair
-    ml (target_atom "(__,/ __)")
-    haskell (target_atom "(__,/ __)")
+lemma [code]:
+  "(\<not> False) = True" by (rule HOL.simp_thms)
+
+lemma [code]:
+  fixes x shows "(True \<and> True) = True"
+  and "(False \<and> x) = False"
+  and "(x \<and> False) = False" by simp_all
+
+lemma [code]:
+  fixes x shows "(False \<or> False) = False"
+  and "(True \<or> x) = True"
+  and "(x \<or> True) = True" by simp_all
+
+declare
+  if_True [code]
+  if_False [code]
 
 lemma [code]:
   "fst (x, y) = x" by simp
@@ -241,8 +248,46 @@ lemma [code]:
 lemma [code]:
   "snd (x, y) = y" by simp
 
+code_generate True False Not "op &" "op |" If
+
+code_syntax_tyco bool
+  ml (target_atom "bool")
+  haskell (target_atom "Bool")
+
 code_syntax_const
-  1 :: "nat"
+  True
+    ml (target_atom "true")
+    haskell (target_atom "True")
+  False
+    ml (target_atom "false")
+    haskell (target_atom "False")
+  Not
+    ml (target_atom "not")
+    haskell (target_atom "not")
+  "op &"
+    ml (infixl 1 "andalso")
+    haskell (infixl 3 "&&")
+  "op |"
+    ml (infixl 0 "orelse")
+    haskell (infixl 2 "||")
+  If
+    ml (target_atom "(if __/ then __/ else __)")
+    haskell (target_atom "(if __/ then __/ else __)")
+
+code_generate Pair
+
+code_syntax_tyco
+  *
+    ml (infix 2 "*")
+    haskell (target_atom "(__,/ __)")
+
+code_syntax_const
+  Pair
+    ml (target_atom "(__,/ __)")
+    haskell (target_atom "(__,/ __)")
+
+code_syntax_const
+  "1 :: nat"
     ml ("{*Suc 0*}")
     haskell ("{*Suc 0*}")
 
