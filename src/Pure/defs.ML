@@ -9,9 +9,10 @@ are only tracked for non-overloaded definitions!
 signature DEFS =
 sig
   type T
-  val define: (string -> typ) -> string -> string * typ -> (string * typ) list -> T -> T
+  val define: (string -> typ) -> (bool * string) * string
+    -> string * typ -> (string * typ) list -> T -> T
   val empty: T
-  val specifications_of: T -> string -> typ list
+  val specifications_of: T -> string -> (typ * string) list
   val merge: Pretty.pp -> T * T -> T
 end
 
@@ -21,8 +22,10 @@ struct
 (** datatype T **)
 
 datatype T = Defs of
- {consts: typ Graph.T,                                 (*constant declarations and dependencies*)
-  specified: (string * typ) Inttab.table Symtab.table}; (*specification name and const type*)
+ {consts: typ Graph.T,
+    (*constant declarations and dependencies*)
+  specified: (bool * string * string * typ) Inttab.table Symtab.table};
+    (*is proper definition?, theory name, specification name and const type*)
 
 fun make_defs (consts, specified) = Defs {consts = consts, specified = specified};
 fun map_defs f (Defs {consts, specified}) = make_defs (f (consts, specified));
@@ -34,7 +37,7 @@ fun disjoint_types T U =
   (Type.raw_unify (T, Logic.incr_tvar (maxidx_of_typ T + 1) U) Vartab.empty; false)
     handle Type.TUNIFY => true;
 
-fun check_specified c (i, (a, T)) = Inttab.forall (fn (j, (b, U)) =>
+fun check_specified c (i, (_, a, _, T)) = Inttab.forall (fn (j, (_, b, _, U)) =>
   i = j orelse not (Type.could_unify (T, U)) orelse disjoint_types T U orelse
     error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
       " for constant " ^ quote c));
@@ -46,14 +49,14 @@ fun err_cyclic cycles =
   error ("Cyclic dependency of constants:\n" ^
     cat_lines (map (space_implode " -> " o map quote o rev) cycles));
 
-fun define const_type name lhs rhs = map_defs (fn (consts, specified) =>
+fun define const_type ((is_def, thyname), name) lhs rhs = map_defs (fn (consts, specified) =>
   let
     fun declare (a, _) = Graph.default_node (a, const_type a);
     fun add_deps (a, bs) G = Graph.add_deps_acyclic (a, bs) G
       handle Graph.CYCLES cycles => err_cyclic cycles;
 
     val (c, T) = lhs;
-    val spec = (serial (), (name, T));
+    val spec = (serial (), (is_def, name, thyname, T));
     val no_overloading = Type.raw_instance (const_type c, T);
 
     val consts' =
@@ -66,7 +69,10 @@ fun define const_type name lhs rhs = map_defs (fn (consts, specified) =>
   in (consts', specified') end);
 
 fun specifications_of (Defs {specified, ...}) c =
-  (map (snd o snd) o Inttab.dest o the_default Inttab.empty o Symtab.lookup specified) c;
+  (List.mapPartial
+    (fn (_, (false, _, _, _)) => NONE
+      | (_, (true, _, thyname, ty)) => SOME (ty, thyname)) o Inttab.dest
+    o the_default Inttab.empty o Symtab.lookup specified) c;
 
 
 (* empty and merge *)

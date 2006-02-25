@@ -259,7 +259,8 @@ fun check_def thy overloaded (bname, tm) defs =
     val _ = check_overloading thy overloaded lhs_const;
   in
     defs |> Defs.define (Sign.the_const_type thy)
-      name (prep_const thy lhs_const) (map (prep_const thy) rhs_consts)
+      ((true, Context.theory_name thy), name) (prep_const thy lhs_const)
+      (map (prep_const thy) rhs_consts)
   end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
@@ -295,7 +296,7 @@ fun gen_add_finals prep_term overloaded args thy =
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
     fun specify (c, T) =
-      Defs.define (Sign.the_const_type thy) (c ^ " axiom") (prep_const thy (c, T)) [];
+      Defs.define (Sign.the_const_type thy) ((false, Context.theory_name thy), c ^ " axiom") (prep_const thy (c, T)) [];
     val finalize = specify o check_overloading thy overloaded o
       const_of o Sign.no_vars (Sign.pp thy) o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
