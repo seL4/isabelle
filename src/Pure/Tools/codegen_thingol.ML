@@ -5,7 +5,7 @@
 Intermediate language ("Thin-gol") for code extraction.
 *)
 
-signature CODEGEN_THINGOL =
+signature BASIC_CODEGEN_THINGOL =
 sig
   type vname = string;
   datatype classlookup = Instance of string * classlookup list list
@@ -20,6 +20,11 @@ sig
     | IApp of iexpr * iexpr
     | IAbs of iexpr * iexpr
     | ICase of iexpr * (iexpr * iexpr) list;
+end;
+
+signature CODEGEN_THINGOL =
+sig
+  include BASIC_CODEGEN_THINGOL;
   val mk_funs: itype list * itype -> itype;
   val mk_apps: iexpr * iexpr list -> iexpr;
   val mk_abss: iexpr list * iexpr -> iexpr;
@@ -59,12 +64,11 @@ sig
     | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
-          * (class * classlookup list list) list)
-        * (string * funn) list;
+          * (class * (string * classlookup list list)) list)
+        * (string * (string * funn)) list;
   type module;
   type transact;
   type 'dst transact_fin;
-  type gen_defgen = string -> transact -> def transact_fin;
   val pretty_def: def -> Pretty.T;
   val pretty_module: module -> Pretty.T; 
   val pretty_deps: module -> Pretty.T;
@@ -78,7 +82,7 @@ sig
   val has_nsp: string -> string -> bool;
   val succeed: 'a -> transact -> 'a transact_fin;
   val fail: string -> transact -> 'a transact_fin;
-  val gen_ensure_def: (string * gen_defgen) list -> string
+  val ensure_def: (string * (string -> transact -> def transact_fin)) list -> string
     -> string -> transact -> transact;
   val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
 
@@ -397,15 +401,14 @@ datatype def =
   | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
-        * (class * classlookup list list) list)
-      * (string * funn) list;
+        * (class * (string * classlookup list list)) list)
+      * (string * (string * funn)) list;
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
 type transact = Graph.key option * module;
 datatype 'dst transact_res = Succeed of 'dst | Fail of string list * exn option;
 type 'dst transact_fin = 'dst transact_res * module;
-type gen_defgen = string -> transact -> def transact_fin;
 exception FAIL of string list * exn option;
 
 val eq_def = (op =);
@@ -611,12 +614,12 @@ fun add_deps f modl =
   modl
   |> fold add_dep ([] |> fold_defs (append o f) modl);
 
-fun ensure_def (name, Undef) module =
+fun add_def_incr (name, Undef) module =
       (case try (get_def module) name
        of NONE => (error "attempted to add Undef to module")
         | SOME Undef => (error "attempted to add Undef to module")
         | SOME def' => map_def name (K def') module)
-  | ensure_def (name, def) module =
+  | add_def_incr (name, def) module =
       (case try (get_def module) name
        of NONE => add_def (name, def) module
         | SOME Undef => map_def name (K def) module
@@ -776,16 +779,16 @@ fun check_prep_def modl Undef =
         fun mk_memdef (m, (ctxt, ty)) =
           case AList.lookup (op =) memdefs m
            of NONE => error ("missing definition for member " ^ quote m)
-            | SOME (eqs, (ctxt', ty')) =>
+            | SOME (m', (eqs, (ctxt', ty'))) =>
                 if eq_itype (instant_itype (instant (v, tyco `%% map IVarT arity)) ty, ty')
-                then (m, (check_funeqs eqs, (ctxt', ty')))
+                then (m, (m', (check_funeqs eqs, (ctxt', ty'))))
                 else error ("inconsistent type for member definition " ^ quote m)
       in Classinst (d, map mk_memdef membrs) end;
 
 fun postprocess_def (name, Datatype (_, constrs)) =
       (check_samemodule (name :: map fst constrs);
       fold (fn (co, _) =>
-        ensure_def (co, Datatypecons name)
+        add_def_incr (co, Datatypecons name)
         #> add_dep (co, name)
         #> add_dep (name, co)
       ) constrs
@@ -793,7 +796,7 @@ fun postprocess_def (name, Datatype (_, constrs)) =
   | postprocess_def (name, Class (_, (_, membrs))) =
       (check_samemodule (name :: map fst membrs);
       fold (fn (m, _) =>
-        ensure_def (m, Classmember name)
+        add_def_incr (m, Classmember name)
         #> add_dep (m, name)
         #> add_dep (name, m)
       ) membrs
@@ -835,7 +838,7 @@ fun select_generator _ src [] modl =
           end;
       in select [] gens end;
 
-fun gen_ensure_def defgens msg name (dep, modl) =
+fun ensure_def defgens msg name (dep, modl) =
   let
     val msg' = case dep
      of NONE => msg
@@ -866,7 +869,7 @@ fun gen_ensure_def defgens msg name (dep, modl) =
              debug 10 (fn _ => "addition of " ^ name
                ^ " := " ^ (Pretty.output o pretty_def) def)
           #> debug 10 (fn _ => "adding")
-          #> ensure_def (name, def)
+          #> add_def_incr (name, def)
           #> debug 10 (fn _ => "postprocessing")
           #> postprocess_def (name, def)
           #> debug 10 (fn _ => "adding done")
@@ -914,7 +917,7 @@ fun eta_expand query =
             val add_vars =
               map2 (curry IVarE) (Term.invent_names (fold expr_names es []) "x" add_n) tys;
           in
-            add_vars `|--> IConst ((f, ty), ls) `$$ es `$$ add_vars
+            add_vars `|--> IConst ((f, ty), ls) `$$ map eta es `$$ add_vars
           end
        | NONE => map_iexpr eta e;
   in (map_defs o map_def_fun o map_def_fun_expr) eta end;
@@ -1069,3 +1072,5 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
   end;
 
 end; (* struct *)
+
+structure BasicCodegenThingol: BASIC_CODEGEN_THINGOL = CodegenThingol;

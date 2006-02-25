@@ -92,16 +92,19 @@ fun brackify fxy_ctxt ps =
 fun brackify_infix infx fxy_ctxt ps =
   gen_brackify (eval_fxy (INFX infx) fxy_ctxt) (Pretty.breaks ps);
 
-fun from_app mk_app from_expr const_syntax fxy (c, es) =
+fun from_app mk_app from_expr const_syntax fxy ((c, ty), es) =
   let
     fun mk NONE es =
           brackify fxy (mk_app c es)
       | mk (SOME ((i, k), pr)) es =
-          let
-            val (es1, es2) = Library.chop k es;
-          in
-            brackify fxy (pr fxy from_expr es1 :: map (from_expr BR) es2)
-          end;
+          (*if i <= length es then*)
+            let
+              val (es1, es2) = chop k es;
+            in
+              brackify fxy (pr fxy from_expr es1 :: map (from_expr BR) es2)
+            end
+          (*else
+            error ("illegal const_syntax")*)
   in mk (const_syntax c) es end;
 
 fun fillin_mixfix fxy_this ms fxy_ctxt pr args =
@@ -253,7 +256,6 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     module
     |> debug 3 (fn _ => "selecting submodule...")
     |> (if is_some select then (partof o the) select else I)
-    |> tap (Pretty.writeln o pretty_deps)
     |> debug 3 (fn _ => "preprocessing...")
     |> preprocess
     |> debug 3 (fn _ => "serializing...")
@@ -477,16 +479,17 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
       | ml_from_expr _ e =
           error ("dubious expression: " ^ (Pretty.output o pretty_iexpr) e)
     and ml_mk_app f es =
-      if is_cons f andalso length es > 1
-      then
+      if is_cons f andalso length es > 1 then
         [(str o resolv) f, Pretty.enum "," "(" ")" (map (ml_from_expr BR) es)]
+      else if has_nsp f "mem" then 
+        Pretty.block [str "#", ml_from_label f] :: map (ml_from_expr BR) es
       else
         (str o resolv) f :: map (ml_from_expr BR) es
     and ml_from_app fxy (((c, ty), lss), es) =
       case map (ml_from_sortlookup BR) lss
        of [] =>
             let
-              val p = from_app ml_mk_app ml_from_expr const_syntax fxy (c, es)
+              val p = from_app ml_mk_app ml_from_expr const_syntax fxy ((c, ty), es)
             in if needs_type ty
               then
                 Pretty.enclose "(" ")" [
@@ -525,15 +528,28 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               if mk_definer pats = definer
               then SOME definer
               else error ("mixing simultaneous vals and funs not implemented")
+        fun mk_class v class =
+          str (prefix "'" v ^ " " ^ resolv class)
+        fun from_tyvar (v, sort) =
+          Pretty.block [
+            str "(",
+            str v,
+            str ":",
+            case sort
+             of [class] => mk_class v class
+              | _ => Pretty.enum " *" "" "" (map (mk_class v) sort),
+            str ")"
+          ];
         fun mk_fun definer (name, (eqs as eq::eq_tl, (sortctxt, ty))) =
           let
-            val shift = if null eq_tl then I else map (Pretty.block o single);
+            val shift = if null eq_tl then I else
+              map (Pretty.block o single o Pretty.block o single);
             fun mk_eq definer (pats, expr) =
               (Pretty.block o Pretty.breaks) (
                 [str definer, (str o resolv) name]
                 @ (if null pats
                    then [str ":", ml_from_type NOBR ty]
-                   else map (str o fst) sortctxt @ map (ml_from_expr BR) pats)
+                   else map from_tyvar sortctxt @ map (ml_from_expr BR) pats)
                 @ [str "=", ml_from_expr NOBR expr]
               )
           in
@@ -553,13 +569,12 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
         fun mk_cons (co, []) =
               str (resolv co)
           | mk_cons (co, tys) =
-              Pretty.block (
-                str (resolv co)
-                :: str " of"
-                :: Pretty.brk 1
-                :: separate (Pretty.block [str " *", Pretty.brk 1])
-                     (map (ml_from_type NOBR) tys)
-              )
+              Pretty.block [
+                str (resolv co),
+                str " of",
+                Pretty.brk 1,
+                Pretty.enum " *" "" "" (map (ml_from_type NOBR) tys)
+              ]
         fun mk_datatype definer (t, (vs, cs)) =
           (Pretty.block o Pretty.breaks) (
             str definer
@@ -589,6 +604,54 @@ fun ml_from_defs (is_cons, needs_type)
           | (name, Datatypecons _) => NONE
           | (name, def) => error ("datatype block containing illegal def: "
                 ^ (Pretty.output o pretty_def) def));
+    fun filter_class defs = 
+      case List.mapPartial
+        (fn (name, Class info) => SOME (name, info)
+          | (name, Classmember _) => NONE
+          | (name, def) => error ("class block containing illegal def: "
+                ^ (Pretty.output o pretty_def) def)) defs
+       of [class] => class
+        | _ => error ("class block without class: " ^ (commas o map (quote o fst)) defs)
+    fun ml_from_class (name, (supclasses, (v, membrs))) =
+      let
+        fun from_supclass class =
+          Pretty.block [
+            ml_from_label class,
+            str ":",
+            Pretty.brk 1,
+            str ("'" ^ v),
+            Pretty.brk 1,
+            (str o resolv) class
+          ];
+        fun from_membr (m, (_, ty)) =
+          Pretty.block [
+            ml_from_label m,
+            str ":",
+            Pretty.brk 1,
+            ml_from_type NOBR ty
+          ];
+        fun from_membr_fun (m, _) =
+          (Pretty.block o Pretty.breaks) [
+            str "fun",
+            (str o resolv) m, 
+            Pretty.enclose "(" ")" [str (v ^ ":'" ^ v ^ " " ^ resolv name)],
+            str "=",
+            Pretty.block [str "#", ml_from_label m],
+            str (v ^ ";")
+          ];
+      in
+        Pretty.chunks (
+          (Pretty.block o Pretty.breaks) [
+            str "type",
+            str ("'" ^ v),
+            (str o resolv) name,
+            str "=",
+            Pretty.enum "," "{" "};" (
+              map from_supclass supclasses @ map from_membr membrs
+            )
+          ]
+        :: map from_membr_fun membrs)
+      end
     fun ml_from_def (name, Undef) =
           error ("empty definition during serialization: " ^ quote name)
       | ml_from_def (name, Prim prim) =
@@ -605,59 +668,23 @@ fun ml_from_defs (is_cons, needs_type)
             str ";"
             ]
           ) |> SOME
-      | ml_from_def (name, Class (supclasses, (v, membrs))) =
-          let
-            val pv = str ("'" ^ v);
-            fun from_supclass class =
-              Pretty.block [
-                ml_from_label class,
-                str ":",
-                Pretty.brk 1,
-                pv,
-                Pretty.brk 1,
-                (str o resolv) class
-              ]
-            fun from_membr (m, (_, ty)) =
-              Pretty.block [
-                ml_from_label m,
-                str ":",
-                Pretty.brk 1,
-                ml_from_type NOBR ty
-              ]
-          in
-            Pretty.block [
-              str "type",
-              Pretty.brk 1,
-              pv,
-              Pretty.brk 1,
-              (str o resolv) name,
-              Pretty.brk 1,
-              str "=",
-              Pretty.brk 1,
-              Pretty.enum "," "{" "};" (
-                map from_supclass supclasses @ map from_membr membrs
-              )
-            ] |> SOME
-          end
-      | ml_from_def (_, Classmember _) =
-          NONE
       | ml_from_def (name, Classinst (((class, (tyco, arity)), suparities), memdefs)) =
           let
             val definer = if null arity then "val" else "fun"
-            fun from_supclass (supclass, lss) =
+            fun from_supclass (supclass, (supinst, lss)) =
               (Pretty.block o Pretty.breaks) (
                 ml_from_label supclass
                 :: str "="
+                :: (str o resolv) supinst
                 :: map (ml_from_sortlookup NOBR) lss
               );
-            fun from_memdef (m, def) =
-              (ml_from_funs [(m, def)], Pretty.block [
-                ml_from_label m,
-                Pretty.brk 1,
-                str "=",
-                Pretty.brk 1,
-                (str o resolv) m
-              ]);
+            fun from_memdef (m, (_, def)) =
+              (ml_from_funs [(m, def)], (Pretty.block o Pretty.breaks) (
+                ml_from_label m
+                :: str "="
+                :: (str o resolv) m
+                :: map (str o fst) arity
+              ));
             fun mk_memdefs supclassexprs [] =
                   Pretty.enum "," "{" "};" (
                     supclassexprs
@@ -669,7 +696,7 @@ fun ml_from_defs (is_cons, needs_type)
                     Pretty.chunks [
                       [str ("let"), Pretty.fbrk, defs |> Pretty.chunks]
                         |> Pretty.block,
-                      [str ("in "), Pretty.enum "," "{" "};" (supclassexprs @ assigns)]
+                      [str ("in "), Pretty.enum "," "{" "} end;" (supclassexprs @ assigns)]
                         |> Pretty.block
                     ] 
                   end;
@@ -690,7 +717,10 @@ fun ml_from_defs (is_cons, needs_type)
    of (_, Fun _)::_ => (SOME o ml_from_funs o map (fn (name, Fun info) => (name, info))) defs
     | (_, Datatypecons _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
     | (_, Datatype _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
+    | (_, Class _)::_ => (SOME o ml_from_class o filter_class) defs
+    | (_, Classmember _)::_ => (SOME o ml_from_class o filter_class) defs
     | [def] => ml_from_def def
+    | defs => error ("illegal mutual dependencies: " ^ (commas o map fst) defs)
   end;
 
 fun ml_annotators (nsp_dtcon, nsp_class, is_int_tyco) =
@@ -708,7 +738,7 @@ in
 fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
   let
     val reserved_ml = ThmDatabase.ml_reserved @ [
-      "bool", "int", "list", "true", "false", "o"
+      "bool", "int", "list", "true", "false", "not", "o"
     ];
     fun ml_from_module _ ((_, name), ps) =
       Pretty.chunks ([
@@ -735,7 +765,6 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
                 else 0;
     fun preprocess const_syntax module =
       module
-      |> tap (Pretty.writeln o pretty_deps)
       |> debug 3 (fn _ => "eta-expanding...")
       |> eta_expand (eta_expander module const_syntax)
       |> debug 3 (fn _ => "eta-expanding polydefs...")
@@ -871,8 +900,8 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
           ] end
     and hs_mk_app c es =
       (str o resolv) c :: map (hs_from_expr BR) es
-    and hs_from_app fxy (((c, _), ls), es) =
-      from_app hs_mk_app hs_from_expr const_syntax fxy (c, es);
+    and hs_from_app fxy (((c, ty), ls), es) =
+      from_app hs_mk_app hs_from_expr const_syntax fxy ((c, ty), es);
     fun hs_from_funeqs (name, eqs) =
       let
         fun from_eq name (args, rhs) =
@@ -959,7 +988,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             hs_from_sctxt_tycoexpr (arity, (tyco, map (IVarT o rpair [] o fst) arity)),
             str " where",
             Pretty.fbrk,
-            Pretty.chunks (map (fn (m, (eqs, _)) => hs_from_funeqs (m, eqs)) memdefs)
+            Pretty.chunks (map (fn (m, (_, (eqs, _))) => hs_from_funeqs (m, eqs)) memdefs)
           ] |> SOME
   in
     case List.mapPartial (fn (name, def) => hs_from_def (name, def)) defs
@@ -1000,7 +1029,6 @@ fun hs_from_thingol target nsps_upper nspgrp =
       |> the_default 0;
     fun preprocess const_syntax module =
       module
-      |> tap (Pretty.writeln o pretty_deps)
       |> debug 3 (fn _ => "eta-expanding...")
       |> eta_expand (eta_expander const_syntax)
   in

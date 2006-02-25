@@ -12,16 +12,16 @@ sig
   val add_class_i: bstring -> class list -> Element.context_i list -> theory
     -> ProofContext.context * theory
   val add_instance_arity: (xstring * string list) * string
-    -> ((bstring * Attrib.src list) * string) list
+    -> bstring * Attrib.src list -> ((bstring * Attrib.src list) * string) list
     -> theory -> Proof.state
   val add_instance_arity_i: (string * sort list) * sort
-    -> ((bstring * attribute list) * term) list
+    -> bstring * attribute list -> ((bstring * attribute list) * term) list
     -> theory -> Proof.state
   val prove_instance_arity: tactic -> (xstring * string list) * string
-    -> ((bstring * Attrib.src list) * string) list
+    -> bstring * Attrib.src list -> ((bstring * Attrib.src list) * string) list
     -> theory -> theory
   val prove_instance_arity_i: tactic -> (string * sort list) * sort
-    -> ((bstring * attribute list) * term) list
+    -> bstring * attribute list -> ((bstring * attribute list) * term) list
     -> theory -> theory
   val add_instance_sort: string * string -> theory -> Proof.state
   val add_instance_sort_i: class * sort -> theory -> Proof.state
@@ -372,7 +372,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_elems thy =
           |> map (apsnd Syntax.unlocalize_mixfix)
         val v = (extract_tyvar_name thy o map (snd o fst)) consts1;
         val consts2 = map ((apfst o apsnd) (subst_clsvar v (TFree (v, [])))) consts1;
-      in (v, Library.chop (length supcs) consts2) end;
+      in (v, chop (length supcs) consts2) end;
     fun add_consts v raw_cs_sup raw_cs_this thy =
       let
         val mapp_sub = map2 (fn ((c, _), _) => pair c) raw_cs_sup supcs
@@ -397,7 +397,7 @@ fun gen_add_class add_locale prep_class bname raw_supclasses raw_elems thy =
       end;
     fun add_global_constraint v class (c, ty) thy =
       thy
-      |> Sign.add_const_constraint_i (c, SOME (subst_clsvar v (TVar ((v, 0), [class])) ty));
+      |> Sign.add_const_constraint_i (c, SOME (subst_clsvar v (TFree (v, [class])) ty));
     fun mk_const thy class v (c, ty) =
       Const (c, subst_clsvar v (TFree (v, [class])) ty);
   in
@@ -460,11 +460,15 @@ fun gen_add_defs_overloaded prep_att tap_def add_defs tyco raw_defs thy =
 val add_defs_overloaded = gen_add_defs_overloaded Attrib.attribute Sign.read_term PureThy.add_defs;
 val add_defs_overloaded_i = gen_add_defs_overloaded (K I) (K I) PureThy.add_defs_i;
 
-fun gen_instance_arity prep_arity add_defs tap_def do_proof raw_arity raw_defs theory =
+fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (raw_name, raw_atts) raw_defs theory =
   let
     val pp = Sign.pp theory;
     val arity as (tyco, asorts, sort) = prep_arity theory ((fn ((x, y), z) => (x, y, z)) raw_arity);
     val ty_inst = Type (tyco, map2 (curry TVar o rpair 0) (Term.invent_names [] "'a" (length asorts)) asorts)
+    val name = case raw_name
+     of "" => Thm.def_name ((space_implode "_" o map NameSpace.base) sort ^ "_" ^ NameSpace.base tyco)
+      | _ => raw_name;
+    val atts = map (prep_att theory) raw_atts;
     fun get_classes thy tyco sort =
       let
         fun get class classes =
@@ -489,7 +493,7 @@ fun gen_instance_arity prep_arity add_defs tap_def do_proof raw_arity raw_defs t
       in
         thy
         |> Sign.add_const_constraint_i (c, NONE)
-        |> pair (c, ty)
+        |> pair (c, Type.unvarifyT ty)
       end;
     fun check_defs raw_defs c_req thy =
       let
@@ -519,7 +523,7 @@ fun gen_instance_arity prep_arity add_defs tap_def do_proof raw_arity raw_defs t
       Thm.def_name ((space_implode "_" o map NameSpace.base) sort ^ "_" ^ NameSpace.base tyco);
     fun note_all tyco sort thms thy =
       thy
-      |> PureThy.note_thmss_i PureThy.internalK [((mangle_alldef_name tyco sort, []), [(thms, [])])]
+      |> PureThy.note_thmss_i PureThy.internalK [((name, atts), [(thms, [])])]
       |> snd;
     fun after_qed cs thy =
       thy
@@ -534,9 +538,9 @@ fun gen_instance_arity prep_arity add_defs tap_def do_proof raw_arity raw_defs t
     |-> (fn cs => do_proof (after_qed cs) arity)
   end;
 
-fun instance_arity do_proof = gen_instance_arity AxClass.read_arity add_defs_overloaded
+fun instance_arity do_proof = gen_instance_arity AxClass.read_arity Attrib.attribute add_defs_overloaded
   (fn thy => fn t => (snd o read_axm thy) ("", t)) do_proof;
-fun instance_arity_i do_proof = gen_instance_arity AxClass.cert_arity add_defs_overloaded_i
+fun instance_arity_i do_proof = gen_instance_arity AxClass.cert_arity (K I) add_defs_overloaded_i
   (K I) do_proof;
 val setup_proof = AxClass.instance_arity_i;
 fun tactic_proof tac after_qed arity = AxClass.add_inst_arity_i arity tac #> after_qed;
@@ -552,21 +556,60 @@ end; (* local *)
 
 local
 
-val _ = ();
+fun fish_thms (name, expr) after_qed thy =
+  let
+    val _ = writeln ("sub " ^ name)
+    val suplocales = (fn Locale.Merge es => map (fn Locale.Locale n => n) es) expr;
+    val _ = writeln ("super " ^ commas suplocales)
+    fun get_c name = 
+      (map (NameSpace.base o fst o fst) o Locale.parameters_of thy) name;
+    fun get_a name =
+      (map (NameSpace.base o fst o fst) o Locale.local_asms_of thy) name;
+    fun get_t supname =
+      map (NameSpace.append (NameSpace.append name ((space_implode "_" o get_c) supname)) o NameSpace.base)
+        (get_a name);
+    val names = map get_t suplocales;
+    val _ = writeln ("fishing for " ^ (commas o map commas) names);
+  in
+    thy
+    |> after_qed ((map o map) (Drule.standard o get_thm thy o Name) names)
+  end;
+
+fun add_interpretation_in (after_qed : thm list list -> theory -> theory) (name, expr) thy =
+  thy
+  |> Locale.interpretation_in_locale (name, expr);
+
+fun prove_interpretation_in tac (after_qed : thm list list -> theory -> theory) (name, expr) thy =
+  thy
+  |> Locale.interpretation_in_locale (name, expr)
+  |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
+  |-> (fn _ => I);
 
 fun gen_add_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory =
   let
     val class = prep_class theory raw_class;
     val sort = prep_sort theory raw_sort;
+    val loc_name = (#name_locale o the_class_data theory) class;
+    val loc_expr = if null sort
+      then Locale.empty
+      else
+       (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data theory)) sort;
+    fun after_qed thmss thy =
+      (writeln "---"; (Pretty.writeln o Display.pretty_thms o Library.flat) thmss; writeln "---"; fold (fn supclass =>
+        AxClass.add_inst_subclass_i (class, supclass)
+          (ALLGOALS (K (intro_classes_tac [])) THEN
+            (ALLGOALS o resolve_tac o Library.flat) thmss)
+      ) sort thy)
   in
     theory
-    |> do_proof
+    |> do_proof after_qed (loc_name, loc_expr)
   end;
 
 fun instance_sort do_proof = gen_add_instance_sort intern_class read_sort do_proof;
 fun instance_sort_i do_proof = gen_add_instance_sort certify_class certify_sort do_proof;
-val setup_proof = AxClass.instance_arity_i I ("", [], []);
-fun tactic_proof tac = AxClass.add_inst_arity_i ("", [], []) tac;
+
+val setup_proof = add_interpretation_in;
+val tactic_proof = prove_interpretation_in;
 
 in
 
@@ -574,13 +617,6 @@ val add_instance_sort = instance_sort setup_proof;
 val add_instance_sort_i = instance_sort_i setup_proof;
 val prove_instance_sort = instance_sort o tactic_proof;
 val prove_instance_sort_i = instance_sort_i o tactic_proof;
-
-(*
-interpretation_in_locale: loc_name * loc_expr -> theory -> Proof.state
-  --> rausdestilieren
-*)
-(* switch: wenn es nur axclasses sind
-  --> alte Methode, diesen switch möglichst weit am Parser dran *)
 
 end; (* local *)
 
@@ -630,10 +666,15 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
           in map mk_look sort_def end;
   in
     sortctxt
+(*     |> print  *)
     |> map (tab_lookup o fst)
+(*     |> print  *)
     |> map (apfst (operational_sort_of thy))
+(*     |> print  *)
     |> filter (not o null o fst)
+(*     |> print  *)
     |> map mk_lookup
+(*     |> print  *)
   end;
 
 fun extract_classlookup thy (c, raw_typ_use) =
@@ -662,8 +703,8 @@ fun extract_classlookup thy (c, raw_typ_use) =
 fun extract_classlookup_inst thy (class, tyco) supclass =
   let
     fun mk_typ class = Type (tyco, (map TFree o fst o the_inst_sign thy) (class, tyco))
-    val typ_def = mk_typ class;
-    val typ_use = mk_typ supclass;
+    val typ_def = mk_typ supclass;
+    val typ_use = mk_typ class;
   in
     extract_lookup thy (extract_sortctxt thy typ_def) typ_def typ_use
   end;
@@ -680,12 +721,22 @@ in
 
 val (classK, instanceK) = ("class", "instance")
 
+fun wrap_add_instance_subclass (class, sort) thy =
+  case Sign.read_sort thy sort
+   of [class'] =>
+      if (is_some o lookup_class_data thy o Sign.intern_class thy) class
+        andalso (is_some o lookup_class_data thy o Sign.intern_class thy) class'
+      then
+        add_instance_sort (class, sort) thy
+      else
+        AxClass.instance_subclass (class, sort) thy
+    | _ => add_instance_sort (class, sort) thy;
+
 val parse_inst =
-  P.xname -- (
-    Scan.repeat P.sort --| P.$$$ "::" -- P.sort
-    || P.$$$ "::" |-- P.!!! P.arity
-  )
-  >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort))
+  (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 P.sort --| P.$$$ ")")) [] -- P.xname --| P.$$$ "::" -- P.sort)
+    >> (fn ((asorts, tyco), sort) => ((tyco, asorts), sort))
+  || (P.xname --| P.$$$ "::" -- P.!!! P.arity)
+    >> (fn (tyco, (asorts, sort)) => ((tyco, asorts), sort));
 
 val locale_val =
   (P.locale_expr --
@@ -702,12 +753,10 @@ val classP =
 
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
-      P.$$$ "target_atom" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.sort)
-           >> (fn (class, sort) => add_instance_sort (class, sort))
-      || P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> AxClass.instance_subclass
-      || parse_inst -- Scan.repeat (P.opt_thm_name ":" -- P.prop)
-           >> (fn (((tyco, asorts), sort), []) => AxClass.instance_arity I (tyco, asorts, sort)
-                | (inst, defs) => add_instance_arity inst defs)
+      P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> wrap_add_instance_subclass
+      || P.opt_thm_name ":" -- (parse_inst -- Scan.repeat (P.opt_thm_name ":" -- P.prop))
+           >> (fn (("", []), (((tyco, asorts), sort), [])) => AxClass.instance_arity I (tyco, asorts, sort)
+                | (natts, (inst, defs)) => add_instance_arity inst natts defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [classP, instanceP];
