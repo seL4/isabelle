@@ -63,7 +63,7 @@ code_syntax_tyco nat
   ml (target_atom "IntInf.int")
   haskell (target_atom "Integer")
 
-code_syntax_const 0 :: nat
+code_syntax_const "0 :: nat"
   ml (target_atom "(0:IntInf.int)")
   haskell (target_atom "0")
 

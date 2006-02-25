@@ -82,7 +82,7 @@ primrec
   "inter [] ys = []"
   "inter (x#xs) ys = (let xs' = inter xs ys in if member ys x then x#xs' else xs')"
 
-code_syntax_const "insert"
+code_syntax_const insert
   ml ("{*insert_*}")
   haskell ("{*insert_*}")
 
@@ -90,7 +90,7 @@ code_syntax_const "op Un"
   ml ("{*foldr insert_*}")
   haskell ("{*foldr insert_*}")
 
-code_syntax_const "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
+code_syntax_const "op - :: 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
   ml ("{*(flip o foldr) remove*}")
   haskell ("{*(flip o foldr) remove*}")
 
@@ -98,19 +98,19 @@ code_syntax_const "op Int"
   ml ("{*inter*}")
   haskell ("{*inter*}")
 
-code_syntax_const "image"
+code_syntax_const image
   ml ("{*\<lambda>f. foldr (insert_ o f)*}")
   haskell ("{*\<lambda>f. foldr (insert_ o f)*}")
 
-code_syntax_const "INTER"
+code_syntax_const INTER
   ml ("{*\<lambda>xs f.  foldr (inter o f) xs*}")
   haskell ("{*\<lambda>xs f.  foldr (inter o f) xs*}")
 
-code_syntax_const "UNION"
+code_syntax_const UNION
   ml ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*}")
   haskell ("{*\<lambda>xs f.  foldr (foldr insert_ o f) xs*}")
 
-code_primconst "Ball"
+code_primconst Ball
 ml {*
 fun `_` [] f = true
   | `_` (x::xs) f = f x andalso `_` xs f;
@@ -119,7 +119,7 @@ haskell {*
 `_` = flip all
 *}
 
-code_primconst "Bex"
+code_primconst Bex
 ml {*
 fun `_` [] f = false
   | `_` (x::xs) f = f x orelse `_` xs f;

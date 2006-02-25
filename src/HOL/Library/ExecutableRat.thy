@@ -95,28 +95,28 @@ code_syntax_const
   Fract
     ml ("{*of_quotient*}")
     haskell ("{*of_quotient*}")
-  0 :: "rat"
+  "0 :: rat"
     ml ("{*0::erat*}")
     haskell ("{*1::erat*}")
-  1 :: "rat"
+  "1 :: rat"
     ml ("{*1::erat*}")
     haskell ("{*1::erat*}")
-  "op +" :: "rat \<Rightarrow> rat \<Rightarrow> rat"
+  "op + :: rat \<Rightarrow> rat \<Rightarrow> rat"
     ml ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
     haskell ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-  uminus :: "rat \<Rightarrow> rat"
+  "uminus :: rat \<Rightarrow> rat"
     ml ("{*uminus :: erat \<Rightarrow> erat*}")
     haskell ("{*uminus :: erat \<Rightarrow> erat*}")
-  "op *" :: "rat \<Rightarrow> rat \<Rightarrow> rat"
+  "op * :: rat \<Rightarrow> rat \<Rightarrow> rat"
     ml ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
     haskell ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-  inverse :: "rat \<Rightarrow> rat"
+  "inverse :: rat \<Rightarrow> rat"
     ml ("{*inverse :: erat \<Rightarrow> erat*}")
     haskell ("{*inverse :: erat \<Rightarrow> erat*}")
-  divide :: "rat \<Rightarrow> rat \<Rightarrow> rat"
+  "divide :: rat \<Rightarrow> rat \<Rightarrow> rat"
     ml ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
     haskell ("{*op * :: erat \<Rightarrow> erat \<Rightarrow> erat*}/ _/ ({*inverse :: erat \<Rightarrow> erat*}/ _)")
-  "op <=" :: "rat \<Rightarrow> rat \<Rightarrow> bool"
+  "op <= :: rat \<Rightarrow> rat \<Rightarrow> bool"
     ml ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
     haskell ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
 
