@@ -542,11 +542,11 @@ val read_prop_pats = read_term_pats propT;
 fun read_term_legacy ctxt =
   gen_read' (read_term_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
 
-val read_term              = gen_read (read_term_thy true) I false false;
-val read_prop              = gen_read (read_prop_thy true) I false false;
-val read_prop_schematic    = gen_read (read_prop_thy true) I false true;
-val read_terms             = gen_read (read_terms_thy true) map false false;
-fun read_props schematic   = gen_read (read_props_thy true) map false schematic;
+val read_term            = gen_read (read_term_thy true) I false false;
+val read_prop            = gen_read (read_prop_thy true) I false false;
+val read_prop_schematic  = gen_read (read_prop_thy true) I false true;
+val read_terms           = gen_read (read_terms_thy true) map false false;
+fun read_props schematic = gen_read (read_props_thy true) map false schematic;
 
 end;
 
@@ -998,9 +998,9 @@ fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
 (* put_thms *)
 
 fun put_thms _ ("", NONE) ctxt = ctxt
-  | put_thms _ ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
+  | put_thms do_index ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
       let
-        val index' = FactIndex.add_local (is_known ctxt) ("", ths) index;
+        val index' = FactIndex.add_local do_index (is_known ctxt) ("", ths) index;
       in (facts, index') end)
   | put_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
@@ -1012,9 +1012,7 @@ fun put_thms _ ("", NONE) ctxt = ctxt
         val name = NameSpace.full (naming_of ctxt) bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
         val tab' = Symtab.update (name, ths) tab;
-        val index' =
-          if do_index then FactIndex.add_local (is_known ctxt) (name, ths) index
-          else index;
+        val index' = FactIndex.add_local do_index (is_known ctxt) (name, ths) index;
       in ((space', tab'), index') end);
 
 fun put_thms_internal thms ctxt =
