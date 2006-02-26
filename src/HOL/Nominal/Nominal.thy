@@ -666,15 +666,12 @@ lemma at_finite_select: "at (TYPE('a)) \<Longrightarrow> finite (S::'a set) \<Lo
   apply simp
   done
 
-lemma at_two:
+lemma at_different:
   assumes at: "at TYPE('x)"
-  shows "\<exists>(a::'x) (b::'x). a\<noteq>b"
+  shows "\<exists>(b::'x). a\<noteq>b"
 proof -
-  have inf1: "infinite (UNIV::'x set)" by (rule at4[OF at])
-  hence "UNIV \<noteq> ({}::'x set)" by blast
-  hence "\<exists>(a::'x). a\<in>UNIV" by blast
-  then obtain a::"'x" where mem1: "a\<in>UNIV" by blast
-  from inf1 have inf2: "infinite (UNIV-{a})" by (rule infinite_remove)
+  have "infinite (UNIV::'x set)" by (rule at4[OF at])
+  hence inf2: "infinite (UNIV-{a})" by (rule infinite_remove)
   have "(UNIV-{a}) \<noteq> ({}::'x set)" 
   proof (rule_tac ccontr, drule_tac notnotD)
     assume "UNIV-{a} = ({}::'x set)"
@@ -683,8 +680,8 @@ proof -
   qed
   hence "\<exists>(b::'x). b\<in>(UNIV-{a})" by blast
   then obtain b::"'x" where mem2: "b\<in>(UNIV-{a})" by blast
-  from mem1 mem2 have "a\<noteq>b" by blast
-  then show "\<exists>(a::'x) (b::'x). a\<noteq>b" by blast
+  from mem2 have "a\<noteq>b" by blast
+  then show "\<exists>(b::'x). a\<noteq>b" by blast
 qed
 
 --"the at-props imply the pt-props"
