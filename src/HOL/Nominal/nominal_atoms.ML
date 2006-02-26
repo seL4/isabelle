@@ -658,7 +658,8 @@ fun create_nom_typedecls ak_names thy =
        val pt_fresh_fresh    = thm "nominal.pt_fresh_fresh";
        val pt_bij            = thm "nominal.pt_bij";
        val pt_perm_compose   = thm "nominal.pt_perm_compose";
-       val perm_eq_app       = thm "nominal.perm_eq_app";
+       val pt_perm_compose'  = thm "nominal.pt_perm_compose'";
+       val perm_app          = thm "nominal.pt_fun_app_eq";
        val at_fresh          = thm "nominal.at_fresh";
        val at_calc           = thms "nominal.at_calc";
        val at_supp           = thm "nominal.at_supp";
@@ -667,6 +668,8 @@ fun create_nom_typedecls ak_names thy =
        val fresh_left        = thm "nominal.pt_fresh_left";
        val fresh_bij_ineq    = thm "nominal.pt_fresh_bij_ineq";
        val fresh_bij         = thm "nominal.pt_fresh_bij";
+       val pt_pi_rev         = thm "nominal.pt_pi_rev";
+       val pt_rev_pi         = thm "nominal.pt_rev_pi";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -732,13 +735,18 @@ fun create_nom_typedecls ak_names thy =
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
+            ||>> PureThy.add_thmss 
+	      let val thms1 = inst_pt_at [pt_pi_rev];
+		  val thms2 = inst_pt_at [pt_rev_pi];
+              in [(("perm_pi_simp",thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
             ||>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_pt_at [pt_perm_compose];
 		  val thms2 = instR cp1 (Library.flat cps');
               in [(("perm_compose",thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss [(("perm_app_eq", inst_pt_at [perm_eq_app]),[])]
+            ||>> PureThy.add_thmss [(("perm_compose'",inst_pt_at [pt_perm_compose']),[])] 
+            ||>> PureThy.add_thmss [(("perm_app", inst_pt_at [perm_app]),[])]
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
             ||>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
             ||>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
