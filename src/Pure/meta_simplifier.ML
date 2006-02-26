@@ -1190,10 +1190,9 @@ fun rewrite_term thy rules procs =
 fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
-fun rewrite_goals_rule_aux _ []   th = th
-  | rewrite_goals_rule_aux prover thms th =
-      Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, false) prover
-        (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
+fun rewrite_goals_rule_aux prover thms th =
+  Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, true) prover
+    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
