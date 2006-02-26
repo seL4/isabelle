@@ -13,7 +13,7 @@ sig
   val could_unify: T -> term -> thm list
   val empty: T
   val add_global: (string * thm list) -> T -> T
-  val add_local: (string -> bool) -> (string * thm list) -> T -> T
+  val add_local: bool -> (string -> bool) -> (string * thm list) -> T -> T
   val find: T -> spec -> (string * thm list) list
 end;
 
@@ -58,19 +58,23 @@ fun could_unify (Index {props, ...}) = Net.unify_term props;
 val empty =
   Index {facts = [], consts = Symtab.empty, frees = Symtab.empty, props = Net.empty};
 
-fun add do_props known (fact as (_, ths)) (Index {facts, consts, frees, props}) =
+fun add do_props do_index known (fact as (_, ths)) (Index {facts, consts, frees, props}) =
   let
     val entry = (serial (), fact);
     val (cs, xs) = fold (index_thm known) ths ([], []);
 
-    val facts' = fact :: facts;
-    val consts' = consts |> fold (fn c => Symtab.update_list (c, entry)) cs;
-    val frees' = frees |> fold (fn x => Symtab.update_list (x, entry)) xs;
-    val props' = props |> K do_props ?
-      fold (fn th => Net.insert_term (K false) (Thm.prop_of th, th)) ths;
+    val (facts', consts', frees') =
+      if do_index then
+       (fact :: facts,
+        consts |> fold (fn c => Symtab.update_list (c, entry)) cs,
+        frees |> fold (fn x => Symtab.update_list (x, entry)) xs)
+      else (facts, consts, frees);
+    val props' =
+      if do_props then props |> fold (fn th => Net.insert_term (K false) (Thm.prop_of th, th)) ths
+      else props;
   in Index {facts = facts', consts = consts', frees = frees', props = props'} end;
 
-val add_global = add false (K false);
+val add_global = add false true (K false);
 val add_local = add true;
 
 
