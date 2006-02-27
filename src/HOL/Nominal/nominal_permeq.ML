@@ -15,33 +15,30 @@ fun dynamic_thm ss name =
 fun perm_eval_tac ss i =
     let
         val perm_eq_app   = thm "nominal.pt_fun_app_eq";
-        val at_inst       = dynamic_thm ss "at_name_inst";
-        val pt_inst       = dynamic_thm ss "pt_name_inst";
 
         fun perm_eval_simproc sg ss redex =
         (case redex of 
         (* case pi o (f x) == (pi o f) (pi o x)    *)
         (* special treatment in cases of constants *)
-        (Const("nominal.perm",Type("fun",[Type("List.list",[Type("*",[ty,_])]),_])) $ pi $ (f $ x)) 
-        => let
-             val _ = warning ("type: "^Sign.string_of_typ (sign_of (the_context())) ty)
+        (Const("nominal.perm",
+           Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
+           let
+             val name = Sign.base_name n
+             val at_inst = dynamic_thm ss ("at_"^name^"_inst");
+             val pt_inst = dynamic_thm ss ("pt_"^name^"_inst");
            in
 
-           (case f of
+           (case (head_of f) of
                     (* nothing to do on constants *)
-                    (* FIXME: proper treatment of constants *)
-                      Const(_,_)                   => NONE
-                    | (Const(_,_) $ _)             => NONE
-                    | ((Const(_,_) $ _) $ _)       => NONE
-                    | (((Const(_,_) $ _) $ _) $ _) => NONE
+                      Const _ => NONE
                     | _ => 
                        (* FIXME: analyse type here or at "pty"*)
 		       SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection))
             end
 
         (* case pi o (%x. f x) == (%x. pi o (f ((rev pi)o x))) *)
-        | (Const("nominal.perm",_) $ pi $ (Abs _)) 
-        => let 
+        | (Const("nominal.perm",_) $ pi $ (Abs _)) => 
+           let 
              val perm_fun_def = thm "nominal.perm_fun_def"
            in SOME (perm_fun_def) end
 
