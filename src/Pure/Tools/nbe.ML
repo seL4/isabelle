@@ -32,22 +32,28 @@ fun use_show s = (writeln ("\n---generated code:\n"^ s);
                                 "\n---\n")
       true s);
 
-val tab = ref Symtab.empty
-fun lookup s = the(Symtab.lookup (!tab) s)
-fun update sx = (tab := Symtab.update sx (!tab))
+val tab : NBE_Eval.Univ Symtab.table ref = ref Symtab.empty;
+fun lookup s = the(Symtab.lookup (!tab) s);
+fun update sx = (tab := Symtab.update sx (!tab));
 fun defined s = Symtab.defined (!tab) s;
 
 fun top_nbe st thy =
-let val t = Sign.read_term thy st
-    val ((t',diff),thy') = CodegenPackage.codegen_incr t thy
-    val _ = (tab := NBE_Data.get thy;
+  let
+    val t = Sign.read_term thy st;
+    val nbe_tab = NBE_Data.get thy;
+    val modl_old = CodegenThingol.partof (Symtab.keys nbe_tab)
+      (CodegenPackage.get_root_module thy);
+    val (t', thy') = CodegenPackage.codegen_term t thy
+    val modl_new = CodegenPackage.get_root_module thy;
+    val diff = CodegenThingol.diff_module (modl_old, modl_new);
+    val _ = (tab := nbe_tab;
              Library.seq (use_show o NBE_Codegen.generate defined) diff)
     val thy'' = NBE_Data.put (!tab) thy'
     val nt' = NBE_Eval.nbe (!tab) t'
     val _ = print nt'
-in
-  thy''
-end
+  in
+    thy''
+  end;
 
 structure P = OuterParse and K = OuterKeyword;
 

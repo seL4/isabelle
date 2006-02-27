@@ -38,10 +38,11 @@ sig
     -> theory -> theory;
   val set_int_tyco: string -> theory -> theory;
 
-  val codegen_incr: term -> theory -> (CodegenThingol.iexpr * (string * CodegenThingol.def) list) * theory;
+  val codegen_term: term -> theory -> CodegenThingol.iexpr * theory;
   val is_dtcon: string -> bool;
-  val consts_of_idfs: theory -> string list -> (string * (string * typ)) list
-
+  val consts_of_idfs: theory -> string list -> (string * typ) list;
+  val idfs_of_consts: theory -> (string * typ) list -> string list;
+  val get_root_module: theory -> CodegenThingol.module;
   val get_ml_fun_datatype: theory -> (string -> string)
     -> ((string * CodegenThingol.funn) list -> Pretty.T)
         * ((string * CodegenThingol.datatyp) list -> Pretty.T);
@@ -188,7 +189,7 @@ structure ConstNameMangler = NameManglerFun (
       |> curry (op ^ o swap) ((implode oo replicate) i "'")
     end;
   fun is_valid _ _ = true;
-  fun maybe_unique thy (c, ty) = 
+  fun maybe_unique thy (c, ty) =
     if is_overloaded thy c
       then NONE
       else (SOME o idf_of_name thy nsp_const) c;
@@ -475,7 +476,7 @@ fun add_eqextr_default (name, eqx) =
         gens |> map_gens
           (fn (appconst, eqextrs) =>
             (appconst, eqextrs
-             |> Output.update_warn (op =) ("overwriting existing equation extractor " ^ name)
+    |> Output.update_warn (op =) ("overwriting existing equation extractor " ^ name)
                  (name, (eqx, stamp ())))),
              target_data, logic_data));
 
@@ -660,7 +661,7 @@ and exprgen_type thy tabs (TVar _) trns =
   | exprgen_type thy tabs (TFree v_s) trns =
       trns
       |> exprgen_tyvar_sort thy tabs v_s
-      |-> (fn v_s => pair (IVarT v_s))
+      |-> (fn (v, sort) => pair (IVarT v))
   | exprgen_type thy tabs (Type ("fun", [t1, t2])) trns =
       trns
       |> exprgen_type thy tabs t1
@@ -907,14 +908,15 @@ fun appgen_let strip_abs thy tabs ((c, ty), [t_val, t_cont]) trns =
   end;
 
 fun appgen_split strip_abs thy tabs (c, [t2]) trns =
-  let
-    val ([p], body) = strip_abs 1 (Const c $ t2)
-  in
-    trns
-    |> exprgen_term thy tabs p
-    ||>> exprgen_term thy tabs body
-    |-> (fn (e, body) => pair (e `|-> body))
-  end;
+  case strip_abs 1 (Const c $ t2)
+   of ([p], body) =>
+        trns
+        |> exprgen_term thy tabs p
+        ||>> exprgen_term thy tabs body
+        |-> (fn (e, body) => pair (e `|-> body))
+    | _ =>
+        trns
+        |> appgen_default thy tabs (c, [t2]);
 
 fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
   Type (_, [_, ty as Type (tyco, [])])), [bin]) trns =
@@ -1074,7 +1076,7 @@ fun mk_tabs thy =
             let
               val c = "op =";
               val ty = Sign.the_const_type thy c;
-              fun inst dtco = 
+              fun inst dtco =
                 map_atyps (fn _ => Type (dtco,
                   (map (fn (v, sort) => TVar ((v, 0), sort)) o fst o the o get_datatype thy) dtco)) ty
               val dtcos = fold (insert (op =) o snd) (get_all_datatype_cons thy) [];
@@ -1096,7 +1098,7 @@ fun mk_tabs thy =
             ) (get_all_datatype_cons thy) [])
       |-> (fn _ => I);
     fun mk_clsmemtab thy =
-      Symtab.empty
+   Symtab.empty
       |> Symtab.fold
           (fn (class, (clsmems, _)) => fold
             (fn clsmem => Symtab.update (clsmem, class)) clsmems)
@@ -1159,25 +1161,24 @@ fun ensure_datatype_case_consts get_datatype_case_consts get_case_const_data thy
     fold ensure (get_datatype_case_consts thy) thy
   end;
 
-fun codegen_incr t thy =
+fun codegen_term t thy =
   thy
-  |> `(#modl o CodegenData.get)
-  ||>> expand_module NONE exprsgen_term [t]
-  ||>> `(#modl o CodegenData.get)
-  |-> (fn ((modl_old, [t]), modl_new) => pair (t, CodegenThingol.diff_module (modl_new, modl_old)));
+  |> expand_module NONE exprsgen_term [t]
+  |-> (fn [t] => pair t);
 
 val is_dtcon = has_nsp nsp_dtcon;
 
 fun consts_of_idfs thy =
-  let
-    val tabs = mk_tabs thy;
-  in
-    map (fn idf => (idf, (the o recconst_of_idf thy tabs) idf))
-  end;
+  map (the o recconst_of_idf thy (mk_tabs thy));
+
+fun idfs_of_consts thy =
+  map (idf_of_const thy (mk_tabs thy));
+
+val get_root_module = (#modl o CodegenData.get);
 
 fun get_ml_fun_datatype thy resolv =
   let
-    val target_data = 
+    val target_data =
       ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
   in
     CodegenSerializer.ml_fun_datatype (nsp_dtcon, nsp_class, K false)
@@ -1342,9 +1343,9 @@ fun add_pretty_list raw_nil raw_cons (target, seri) thy =
 (** toplevel interface **)
 
 local
- 
+
 fun generate_code (SOME raw_consts) thy =
-      let
+   let
         val consts = map (read_const thy) raw_consts;
       in
         thy

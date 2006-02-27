@@ -286,6 +286,33 @@ code_syntax_const
     ml (target_atom "(__,/ __)")
     haskell (target_atom "(__,/ __)")
 
+code_generate Unity
+
+code_syntax_tyco
+  unit
+    ml (target_atom "unit")
+    haskell (target_atom "()")
+
+code_syntax_const
+  Unity
+    ml (target_atom "()")
+    haskell (target_atom "()")
+
+code_generate None Some
+
+code_syntax_tyco
+  option
+    ml ("_ option")
+    haskell ("Maybe _")
+
+code_syntax_const
+  None
+    ml (target_atom "NONE")
+    haskell (target_atom "Nothing")
+  Some
+    ml (target_atom "SOME")
+    haskell (target_atom "Just")
+
 code_syntax_const
   "1 :: nat"
     ml ("{*Suc 0*}")

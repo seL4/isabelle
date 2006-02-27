@@ -13,7 +13,8 @@ sig
   datatype itype =
       IType of string * itype list
     | IFun of itype * itype
-    | IVarT of vname * sort;
+    | IVarT of vname;
+  type ityp = ClassPackage.sortcontext * itype;
   datatype iexpr =
       IConst of (string * itype) * classlookup list list
     | IVarE of vname * itype
@@ -49,8 +50,8 @@ sig
   val `|-> : iexpr * iexpr -> iexpr;
   val `|--> : iexpr list * iexpr -> iexpr;
 
-  type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
-  type datatyp = (vname * sort) list * (string * itype list) list;
+  type funn = (iexpr list * iexpr) list * ityp;
+  type datatyp = ClassPackage.sortcontext * (string * itype list) list;
   datatype prim =
       Pretty of Pretty.T
     | Name;
@@ -61,7 +62,7 @@ sig
     | Typesyn of (vname * sort) list * itype
     | Datatype of datatyp
     | Datatypecons of string
-    | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
+    | Class of class list * (vname * (string * ityp) list)
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
           * (class * (string * classlookup list list)) list)
@@ -159,7 +160,8 @@ datatype classlookup = Instance of string * classlookup list list
 datatype itype =
     IType of string * itype list
   | IFun of itype * itype
-  | IVarT of vname * sort;
+  | IVarT of vname;
+type ityp = ClassPackage.sortcontext * itype;
 
 datatype iexpr =
     IConst of (string * itype) * classlookup list list
@@ -204,12 +206,16 @@ val op `--> = mk_funs;
 val op `$$ = mk_apps;
 val op `|--> = mk_abss;
 
+val pretty_sortcontext =
+  Pretty.commas o map (fn (v, sort) => (Pretty.block o Pretty.breaks)
+    [Pretty.str v, Pretty.str "::", Pretty.enum "&" "" "" (map Pretty.str sort)]);
+
 fun pretty_itype (IType (tyco, tys)) =
       Pretty.enum "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
   | pretty_itype (IFun (ty1, ty2)) =
       Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
-  | pretty_itype (IVarT (v, sort)) =
-      Pretty.str (v ^ enclose "|" "|" (space_implode "|" sort));
+  | pretty_itype (IVarT v) =
+      Pretty.str v;
 
 fun pretty_iexpr (IConst ((c, ty), _)) =
       Pretty.block [Pretty.str (c ^ "::"), pretty_itype ty]
@@ -307,19 +313,22 @@ fun fold_aexpr f (IApp (e1, e2)) =
   | fold_aexpr f (e as IVarE _) =
       f e;
 
-fun eq_itype (ty1, ty2) =
+fun eq_ityp ((sctxt1, ty1), (sctxt2, ty2)) =
   let
     exception NO_MATCH;
-    fun eq (IVarT (v1, sort1)) (IVarT (v2, sort2)) subs =
-          if sort1 <> sort2
-          then raise NO_MATCH
-          else
-            (case AList.lookup (op =) subs v1
-             of NONE => subs |> AList.update (op =) (v1, v2)
-              | (SOME v1') =>
-                  if v1' <> v2
-                  then raise NO_MATCH
-                  else subs)
+    fun eq_sctxt subs sctxt1 sctxt2 =
+      map (fn (v, sort) => case AList.lookup (op =) subs v
+       of NONE => raise NO_MATCH
+        | SOME v' => case AList.lookup (op =) sctxt2 v'
+           of NONE => raise NO_MATCH
+            | SOME sort' => if sort <> sort' then raise NO_MATCH else ()) sctxt1
+    fun eq (IVarT v1) (IVarT v2) subs =
+          (case AList.lookup (op =) subs v1
+           of NONE => subs |> AList.update (op =) (v1, v2)
+            | SOME v1' =>
+                if v1' <> v2
+                then raise NO_MATCH
+                else subs)
       | eq (IType (tyco1, tys1)) (IType (tyco2, tys2)) subs =
           if tyco1 <> tyco2
           then raise NO_MATCH
@@ -360,7 +369,7 @@ fun ensure_pat (e as IConst (_, [])) = e
 
 fun type_vnames ty = 
   let
-    fun extr (IVarT (v, _)) =
+    fun extr (IVarT v) =
           insert (op =) v
       | extr _ = I;
   in fold_atype extr ty end;
@@ -384,8 +393,8 @@ fun invent seed used =
 
 (* type definitions *)
 
-type funn = (iexpr list * iexpr) list * (ClassPackage.sortcontext * itype);
-type datatyp = (vname * sort) list * (string * itype list) list;
+type funn = (iexpr list * iexpr) list * ityp;
+type datatyp = ClassPackage.sortcontext * (string * itype list) list;
 
 datatype prim =
     Pretty of Pretty.T
@@ -398,7 +407,7 @@ datatype def =
   | Typesyn of (vname * sort) list * itype
   | Datatype of datatyp
   | Datatypecons of string
-  | Class of class list * (vname * (string * (ClassPackage.sortcontext * itype)) list)
+  | Class of class list * (vname * (string * ityp) list)
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
         * (class * (string * classlookup list list)) list)
@@ -433,13 +442,13 @@ fun pretty_def Undef =
         )
   | pretty_def (Typesyn (vs, ty)) =
       Pretty.block [
-        Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
+        Pretty.list "(" ")" (pretty_sortcontext vs),
         Pretty.str " |=> ",
         pretty_itype ty
       ]
   | pretty_def (Datatype (vs, cs)) =
       Pretty.block [
-        Pretty.list "(" ")" (map (pretty_itype o IVarT) vs),
+        Pretty.list "(" ")" (pretty_sortcontext vs),
         Pretty.str " |=> ",
         Pretty.enum " |" "" ""
           (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
@@ -774,14 +783,17 @@ fun check_prep_def modl Undef =
         val _ = if length memdefs > length memdefs
           then error "too many member definitions given"
           else ();
-        fun instant (w, ty) (var as (v, _)) =
-          if v = w then ty else IVarT var;
-        fun mk_memdef (m, (ctxt, ty)) =
+        fun instant (w, ty) v =
+          if v = w then ty else IVarT v;
+        fun mk_memdef (m, (sortctxt, ty)) =
           case AList.lookup (op =) memdefs m
            of NONE => error ("missing definition for member " ^ quote m)
-            | SOME (m', (eqs, (ctxt', ty'))) =>
-                if eq_itype (instant_itype (instant (v, tyco `%% map IVarT arity)) ty, ty')
-                then (m, (m', (check_funeqs eqs, (ctxt', ty'))))
+            | SOME (m', (eqs, (sortctxt', ty'))) =>
+                if eq_ityp
+                  ((sortctxt |> fold (fn v_sort => AList.update (op =) v_sort) arity,
+                     instant_itype (instant (v, tyco `%% map (IVarT o fst) arity)) ty),
+                  (sortctxt', ty'))
+                then (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
                 else error ("inconsistent type for member definition " ^ quote m)
       in Classinst (d, map mk_memdef membrs) end;
 
@@ -933,7 +945,7 @@ val eta_expand_poly =
              of ([], e) =>
                   let
                     val add_var = IVarE (hd (Term.invent_names (expr_names e []) "x" 1), ty1)
-                  in (([([add_var], add_var `|-> e)], cty)) end
+                  in (([([add_var], e `$ add_var)], cty)) end
               | eq => 
                   (([eq], cty)))
       | eta funn = funn;
@@ -948,13 +960,13 @@ val unclash_vars_tvars =
         val used_type = map fst sortctxt;
         val clash = gen_union (op =) (used_expr, used_type);
         val rename_map = fold_map (fn c => invent c #-> (fn c' => pair (c, c'))) clash [] |> fst;
-        fun rename (v, sort) =
-          (perhaps (AList.lookup (op =) rename_map) v, sort);
+        val rename =
+          perhaps (AList.lookup (op =) rename_map);
         val rename_typ = instant_itype (IVarT o rename);
         val rename_expr = map_iexpr_itype rename_typ;
         fun rename_eq (args, rhs) = (map rename_expr args, rename_expr rhs)
       in
-        (map rename_eq eqs, (map rename sortctxt, rename_typ ty))
+        (map rename_eq eqs, (map (apfst rename) sortctxt, rename_typ ty))
       end;
   in (map_defs o map_def_fun) unclash end;
 
@@ -975,10 +987,13 @@ structure NameMangler = NameManglerFun (
           | _ => mk (postprocess, validate) ((shallow, name), 1)
         end
     | mk (postprocess, validate) (("", name), i) =
-        postprocess ("", name ^ "_" ^ string_of_int (i+1))
+        postprocess ("", name ^ replicate_string i "'")
+        |> perhaps validate
+    | mk (postprocess, validate) ((shallow, name), 1) =
+        postprocess (shallow, shallow ^ "_" ^ name)
         |> perhaps validate
     | mk (postprocess, validate) ((shallow, name), i) =
-        postprocess (shallow, shallow ^ "_" ^ name ^ "_" ^ string_of_int (i+1))
+        postprocess (shallow, name ^ replicate_string i "'")
         |> perhaps validate;
   fun is_valid _ _ = true;
   fun maybe_unique _ _ = NONE;

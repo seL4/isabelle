@@ -26,6 +26,7 @@ sig
     ml: string * (string * string * (string -> bool) -> serializer),
     haskell: string * (string list -> serializer)
   };
+  val mk_flat_ml_resolver: string list -> string -> string;
   val ml_fun_datatype: string * string * (string -> bool)
     -> ((string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iexpr pretty_syntax option))
@@ -264,6 +265,23 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     |> K ()
   end;
 
+fun replace_invalid s =
+  let
+    fun replace_invalid c =
+      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
+        andalso not (NameSpace.separator = c)
+      then c
+      else "_";
+    fun contract "_" (acc as "_" :: _) = acc
+      | contract c acc = c :: acc;
+    fun contract_underscores s =
+      implode (fold_rev contract (explode s) []);
+  in
+    s
+    |> translate_string replace_invalid
+    |> contract_underscores
+  end;
+
 fun abstract_validator keywords name =
   let
     fun replace_invalid c =
@@ -351,6 +369,23 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
 
 local
 
+val reserved_ml = ThmDatabase.ml_reserved @ [
+  "bool", "int", "list", "unit", "option", "true", "false", "not", "None", "Some", "o"
+];
+
+structure NameMangler = NameManglerFun (
+  type ctxt = string list;
+  type src = string;
+  val ord = string_ord;
+  fun mk reserved_ml (name, 0) =
+        (replace_invalid o NameSpace.base) name
+    | mk reserved_ml (name, i) =
+        (replace_invalid o NameSpace.base) name ^ replicate_string i "'";
+  fun is_valid reserved_ml = not o member (op =) reserved_ml;
+  fun maybe_unique _ _ = NONE;
+  fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
+);
+
 fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
   let
     val ml_from_label =
@@ -415,7 +450,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               ml_from_type (INFX (1, R)) t2
             ]
           end
-      | ml_from_type fxy (IVarT (v, _)) =
+      | ml_from_type fxy (IVarT v) =
           str ("'" ^ v);
     fun ml_from_expr fxy (e as IApp (e1, e2)) =
           (case unfold_const_app e
@@ -578,7 +613,7 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
         fun mk_datatype definer (t, (vs, cs)) =
           (Pretty.block o Pretty.breaks) (
             str definer
-            :: ml_from_tycoexpr NOBR (t, map IVarT vs)
+            :: ml_from_tycoexpr NOBR (t, map (IVarT o fst) vs)
             :: str "="
             :: separate (str "|") (map mk_cons cs)
           )
@@ -661,7 +696,7 @@ fun ml_from_defs (is_cons, needs_type)
             error "can't serialize sort constrained type declaration to ML") vs;
           Pretty.block [
             str "type ",
-            ml_from_tycoexpr NOBR (name, map IVarT vs),
+            ml_from_tycoexpr NOBR (name, map (IVarT o fst) vs),
             str " =",
             Pretty.brk 1,
             ml_from_type NOBR ty,
@@ -737,9 +772,6 @@ in
 
 fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
   let
-    val reserved_ml = ThmDatabase.ml_reserved @ [
-      "bool", "int", "list", "true", "false", "not", "o"
-    ];
     fun ml_from_module _ ((_, name), ps) =
       Pretty.chunks ([
         str ("structure " ^ name ^ " = "),
@@ -785,6 +817,14 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
     >> (fn seri => fn (class_syntax, tyco_syntax, const_syntax) => seri 
          (preprocess const_syntax) (class_syntax, tyco_syntax, const_syntax))
   end;
+
+fun mk_flat_ml_resolver names =
+  let
+    val mangler =
+      NameMangler.empty
+      |> fold_map (NameMangler.declare reserved_ml) names
+      |-> (fn _ => I)
+  in NameMangler.get reserved_ml mangler end;
 
 fun ml_fun_datatype (nsp_dtcon, nsp_class, is_int_tyco) =
   ml_fun_datatyp (ml_annotators (nsp_dtcon, nsp_class, is_int_tyco));
@@ -838,7 +878,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             str "->",
             hs_from_type (INFX (1, R)) t2
           ]
-      | hs_from_type fxy (IVarT (v, _)) =
+      | hs_from_type fxy (IVarT v) =
           str v;
     fun hs_from_sctxt_tycoexpr (sctxt, tycoexpr) =
       Pretty.block [hs_from_sctxt sctxt, hs_from_tycoexpr NOBR tycoexpr]
@@ -934,7 +974,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       | hs_from_def (name, Typesyn (vs, ty)) =
           Pretty.block [
             str "type ",
-            hs_from_sctxt_tycoexpr (vs, (resolv_here name, map IVarT vs)),
+            hs_from_sctxt_tycoexpr (vs, (resolv_here name, map (IVarT o fst) vs)),
             str " =",
             Pretty.brk 1,
             hs_from_sctxt_type ([], ty)
@@ -949,7 +989,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
           in
             Pretty.block ((
               str "data "
-              :: hs_from_sctxt_type (vs, IType (resolv_here name, map IVarT vs))
+              :: hs_from_sctxt_type (vs, IType (resolv_here name, map (IVarT o fst) vs))
               :: str " ="
               :: Pretty.brk 1
               :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs)
@@ -983,9 +1023,9 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       | hs_from_def (_, Classinst (((clsname, (tyco, arity)), _), memdefs)) = 
           Pretty.block [
             str "instance ",
-            hs_from_sctxt_tycoexpr (arity, (clsname, map (IVarT o rpair [] o fst) arity)),
+            hs_from_sctxt_tycoexpr (arity, (clsname, map (IVarT o fst) arity)),
             str " ",
-            hs_from_sctxt_tycoexpr (arity, (tyco, map (IVarT o rpair [] o fst) arity)),
+            hs_from_sctxt_tycoexpr (arity, (tyco, map (IVarT o fst) arity)),
             str " where",
             Pretty.fbrk,
             Pretty.chunks (map (fn (m, (_, (eqs, _))) => hs_from_funeqs (m, eqs)) memdefs)
@@ -1005,7 +1045,7 @@ fun hs_from_thingol target nsps_upper nspgrp =
       "import", "default", "forall", "let", "in", "class", "qualified", "data",
       "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
     ] @ [
-      "Bool", "Integer", "True", "False", "negate"
+      "Bool", "Integer", "Maybe", "True", "False", "Nothing", "Just", "negate"
     ];
     fun hs_from_module imps ((_, name), ps) =
       (Pretty.chunks) (
