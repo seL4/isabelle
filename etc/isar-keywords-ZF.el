@@ -36,7 +36,6 @@
     "cd"
     "chapter"
     "class"
-    "class_exp"
     "classes"
     "classrel"
     "clear_undos"
@@ -104,6 +103,7 @@
     "next"
     "no_syntax"
     "nonterminals"
+    "norm_by_eval"
     "note"
     "obtain"
     "oops"
@@ -372,6 +372,7 @@
     "method_setup"
     "no_syntax"
     "nonterminals"
+    "norm_by_eval"
     "oracle"
     "parse_ast_translation"
     "parse_translation"
@@ -399,8 +400,7 @@
     "inductive_cases"))
 
 (defconst isar-keywords-theory-goal
-  '("class_exp"
-    "corollary"
+  '("corollary"
     "instance"
     "interpretation"
     "lemma"
