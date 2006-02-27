@@ -24,3 +24,4 @@ use "compute.ML";
 (* norm-by-eval *)
 use "nbe_eval.ML";
 use "nbe_codegen.ML";
+use "nbe.ML";

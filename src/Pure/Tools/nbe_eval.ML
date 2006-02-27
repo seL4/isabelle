@@ -6,7 +6,6 @@
 
 (* Optimizations:
  int instead of string in Constr
- xtab as real table
  treat int via ML ints
 *)
 
@@ -20,20 +19,18 @@ datatype nterm =
   | A of nterm*nterm (* Application *)
   | AbsN of int*nterm ; (* Binding of named Variables *)
 
-val nbe: term -> nterm
-
 datatype Univ = 
     Constr of string*(Univ list)       (* Named Constructors *)
   | Var of string*(Univ list)          (* Free variables *)
   | BVar of int*(Univ list)            (* Bound named variables *)
   | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm);
                                             (* Functions *)
+val nbe: Univ Symtab.table -> CodegenThingol.iexpr -> nterm
+
 val apply: Univ -> Univ -> Univ;
 val to_term: Univ -> nterm;
 
-val lookup: string -> Univ;
-val is_constr: string -> bool;
-val register: string * (Univ list -> Univ) * int -> unit
+val mk_Fun: string * (Univ list -> Univ) * int -> string * Univ
 val new_name: unit -> int;
 
 (* For testing
@@ -109,21 +106,16 @@ fun  apply (Fun(f,xs,1,name))  x = f (x::xs)
    | apply (Var(name,args))    x = Var(name,x::args)
    | apply (BVar(name,args))   x = BVar(name,x::args);
 
+fun mk_Fun(name,v,0) = (name,v [])
+  | mk_Fun(name,v,n) = (name,Fun(v,[],n, fn () => C name));
+
 (* ---------------- table with the meaning of constants -------------------- *)
 
-val xfun_tab: (string * Univ)list ref = ref [];
-fun do_register sx = (xfun_tab := sx :: !xfun_tab);
-fun register(name,v,0) = do_register(name,v [])
-  | register(name,v,n) = do_register(name,Fun(v,[],n, fn () => C name));
+val xfun_tab: Univ Symtab.table ref = ref Symtab.empty;
 
-fun do_lookup [] s          = NONE
-  |	do_lookup ((n,v)::xs) s = if (s=n) then SOME v else do_lookup xs s;
-
-fun lookup s = case do_lookup (!xfun_tab) s of
+fun lookup s = case Symtab.lookup (!xfun_tab) s of
     SOME x => x
   | NONE   => Constr(s,[]);
-
-fun is_constr s = is_none (do_lookup (!xfun_tab) s);
 
 (* ------------------ evaluation with greetings to Tarski ------------------ *)
 
@@ -135,17 +127,21 @@ fun new_name() = (counter := !counter +1; !counter);
 
 (* greetings to Tarski *)
 
-fun eval(Const(f,_)) xs = lookup f
-  | eval(Free(x,_)) xs = Var(x,[])
-  | eval(Bound n) xs = List.nth(xs,n)
-  | eval(s $ t) xs = apply (eval s xs) (eval t xs)
-  | eval(Abs(_,_, t)) xs = Fun ((fn [x] => eval t (x::xs)),[],1,
-                           fn () => let val var = new_name() in
-                         AbsN(var, to_term (eval t ((BVar(var,[]) :: xs)))) end);
+structure IL = CodegenThingol
+
+fun eval(IL.IConst((f,_),_)) xs = lookup f
+  | eval(IL.IVarE(n,_)) xs =
+      (case AList.lookup (op =) xs n of NONE => Var(n,[])
+       | SOME v => v)
+  | eval(IL.IApp(s,t)) xs = apply (eval s xs) (eval t xs)
+  | eval(IL.IAbs(IL.IVarE(n,_), t)) xs =
+      Fun (fn [x] => eval t ((n,x)::xs), [], 1,
+           fn () => let val var = new_name() in
+                 AbsN(var, to_term (eval t ((n,BVar(var,[])) :: xs))) end);
 
 
 (* finally... *)
 
-fun nbe t = (counter :=0; to_term(eval t []));
+fun nbe tab t = (counter :=0; xfun_tab := tab; to_term(eval t []));
 
 end;

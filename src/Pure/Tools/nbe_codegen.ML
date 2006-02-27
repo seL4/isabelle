@@ -7,27 +7,23 @@
    all defining equations have same number of arguments.
 
 FIXME
-fun MLname s = "nbe_" ^ s;
+fun MLname
 val quote = quote;
 
-FIXME xtab in theory
-
-FIXME CodegenThingol names! which "error"?
+FIXME CodegenThingol names!
 *)
 
 signature NBE_CODEGEN =
 sig
-  val export: Theory.theory -> string * CodegenThingol.def -> string
+  val generate: (string -> bool) -> string * CodegenThingol.def -> string
 end
 
 
 structure NBE_Codegen: NBE_CODEGEN =
 struct
 
-val is_constr = NBE_Eval.is_constr;
 val Eval = "NBE_Eval";
-val Eval_register= Eval ^ ".register";
-val Eval_lookup  = Eval ^ ".lookup";
+val Eval_mk_Fun  = Eval ^ ".mk_Fun";
 val Eval_apply   = Eval ^ ".apply";
 val Eval_Constr  = Eval ^ ".Constr";
 val Eval_C       = Eval ^ ".C";
@@ -37,7 +33,7 @@ val Eval_BVar    = Eval ^ ".BVar";
 val Eval_new_name = Eval ^ ".new_name";
 val Eval_to_term = Eval ^ ".to_term";
 
-fun MLname s = "nbe_" ^ s;
+fun MLname s = "nbe_" ^ translate_string (fn "." => "_" | c => c) s;
 fun MLvname s  = "v_" ^ MLname s;
 fun MLparam n  = "p_" ^ string_of_int n;
 fun MLintern s = "i_" ^ MLname s;
@@ -68,6 +64,9 @@ fun Let ds e = "let\n" ^ (space_implode "\n" ds) ^ " in " ^ e ^ " end"
 
 end
 
+val tab_lookup = S.app "NormByEval.lookup";
+val tab_update = S.app "NormByEval.update";
+
 fun mk_nbeFUN(nm,e) =
   S.app Eval_Fun (S.tup [S.abs(S.list [MLvname nm])e,S.list [],"1",
       S.abs(S.tup [])(S.Let 
@@ -88,13 +87,12 @@ fun selfcall nm ar args =
 	(S.quote nm))]);
 
 
-fun mk_rexpr nm ar =
+fun mk_rexpr defined nm ar =
   let fun mk args t = case t of
     CodegenThingol.IConst((s,_),_) => 
     if s=nm then selfcall nm ar args
-    else if is_constr s then S.app Eval_Constr 
-                                   (S.tup [S.quote s,S.list args ])
-    else S.nbe_apps (MLname s) args
+    else if defined s then S.nbe_apps (MLname s) args
+    else S.app Eval_Constr (S.tup [S.quote s,S.list args ])
   | CodegenThingol.IVarE(s,_) => S.nbe_apps (MLvname s) args
   | CodegenThingol.IApp(e1,e2) => mk (args @ [mk [] e2]) e1
   | CodegenThingol.IAbs(CodegenThingol.IVarE(nm,_), e) =>
@@ -112,7 +110,8 @@ val mk_lexpr =
   | _ => sys_error "NBE mk_lexpr illegal pattern"
   in mk [] end;
 
-fun mk_eqn nm ar (lhs,e) = ([S.list(map mk_lexpr (rev lhs))], mk_rexpr nm ar e);
+fun mk_eqn defined nm ar (lhs,e) =
+  ([S.list(map mk_lexpr (rev lhs))], mk_rexpr defined nm ar e);
 
 fun funs_of_expr(CodegenThingol.IConst((s,_),_),fs) = s::fs
   | funs_of_expr(CodegenThingol.IApp(e1,e2),fs) =
@@ -120,23 +119,23 @@ fun funs_of_expr(CodegenThingol.IConst((s,_),_),fs) = s::fs
   | funs_of_expr(CodegenThingol.IAbs(_, e),fs) = funs_of_expr(e,fs)
   | funs_of_expr(_,fs) = fs;
 
-fun lookup nm =
-  S.Val (MLname nm) (S.app Eval_lookup (S.quote nm));
+fun lookup nm = S.Val (MLname nm) (tab_lookup (S.quote nm));
 
-fun export thy (nm,CodegenThingol.Fun(eqns,_)) =
+fun generate defined (nm,CodegenThingol.Fun(eqns,_)) =
   let
     val ar = length(fst(hd eqns));
     val params = S.list (rev (MLparams ar));
     val funs = Library.flat(map (fn (_,e) => funs_of_expr(e,[])) eqns) \ nm;
-    val globals = map lookup (filter_out is_constr funs);
+    val globals = map lookup (filter defined funs);
     val default_eqn = ([params], S.app Eval_Constr (S.tup[S.quote nm,params]));
-    val code = S.eqns (MLname nm) (map (mk_eqn nm ar) eqns @ [default_eqn])
-    val register = S.app Eval_register
-                     (S.tup[S.quote nm, MLname nm, string_of_int ar])
+    val code = S.eqns (MLname nm)
+                      (map (mk_eqn defined nm ar) eqns @ [default_eqn])
+    val register = tab_update
+        (S.app Eval_mk_Fun (S.tup[S.quote nm, MLname nm, string_of_int ar]))
   in
     S.Let (globals @ [code]) register
   end
-  | export _ _ = "\"NBE no op\"";
+  | generate _ _ = "";
 
 end;
 
@@ -150,7 +149,7 @@ val use_show = fn s => (writeln ("\n---generated code:\n"^ s);
 
 val dummyIT = CodegenThingol.IType("DUMMY",[]);
 
-use_show(export "" ("append",CodegenThingol.Fun(
+use_show(NBE_Codegen.generate (the_context()) ("append",CodegenThingol.Fun(
   [([CodegenThingol.IConst(("Nil",dummyIT),[]),
      CodegenThingol.IVarE("ys",dummyIT)],
     CodegenThingol.IVarE("ys",dummyIT)),
@@ -205,7 +204,7 @@ test (nbe(Cappend $ (CCons $ Fx $ (CCons $ Fy $ Fxs)) $ (CCons$Fy$Fys)))
 end;
 
 
-use_show(export "" ("app",CodegenThingol.Fun(
+use_show(NBE_Codegen.generate (the_context()) ("app",CodegenThingol.Fun(
   [
   ([CodegenThingol.IConst(("Nil",dummyIT),[])],
     CodegenThingol.IAbs(CodegenThingol.IVarE("ys",dummyIT),
@@ -265,7 +264,7 @@ test (nbe(Cappend $ (CCons $ Fx $ (CCons $ Fy $ Fxs)) $ (CCons$Fy$Fys)))
 end;
 
 
-use_show(export "" ("add",CodegenThingol.Fun(
+use_show(NBE_Codegen.generate (the_context()) ("add",CodegenThingol.Fun(
   [
   ([CodegenThingol.IConst(("0",dummyIT),[])],
     CodegenThingol.IAbs(CodegenThingol.IVarE("n",dummyIT),
@@ -303,7 +302,7 @@ end;
 
 
 
-use_show(export "" ("mul",CodegenThingol.Fun(
+use_show(NBE_Codegen.generate (the_context()) ("mul",CodegenThingol.Fun(
   [
   ([CodegenThingol.IConst(("0",dummyIT),[])],
     CodegenThingol.IAbs(CodegenThingol.IVarE("n",dummyIT),
@@ -346,32 +345,4 @@ test (nbe(Cmul $ (CS $ (CS $ Fx)) $ (CS $ (CS $ (CS $ Fy)))))
  (A (C "add", V "y"),A(A (C "mul", V "x"),A(C "S",A(C "S",A(C "S", V"y")))))))))))));
 ()
 end;
-*)
-
-
-(*
-fun top_eval st thy =
-let val t = Sign.read_term thy st
-    val tabs = CodegenPackage.mk_tabs thy;
-    val thy') =
-      CodegenPackage.expand_module NONE (CodegenPackage.codegen_term
-         thy tabs [t]) thy
-    val s = map export diff
-in use s; (* FIXME val thy'' = thy' |> *)
-   Pretty.writeln (Sign.pretty_term thy t');
-   thy'
-end
-
-structure P = OuterParse;
-
-val nbeP =
-  OuterSyntax.command "norm_by_eval" "norm by eval" K.thy_decl
-    (P.term >> (Toplevel.theory o top_eval));
-
-val _ = OuterSyntax.add_parsers [nbeP];
-
-ProofGeneral.write_keywords "nbe";
-(* isar-keywords-nbe.el -> isabelle/etc/
-   Isabelle -k nbe *)
-
 *)
