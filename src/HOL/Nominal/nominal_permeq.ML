@@ -105,13 +105,27 @@ fun perm_simp_tac tactical ss i =
 (* perm_simp_tac plus additional tactics to decide            *)
 (* support problems                                           *)
 (* the "repeating"-depth is set to 40 - this seems sufficient *)
-fun perm_supports_tac tactical ss i = 
+(*fun perm_supports_tac tactical ss i = 
     DETERM (REPEAT_DETERM_N 40 
       (FIRST[tactical (perm_eval_tac ss i),
              tactical (apply_perm_compose_tac ss i),
              tactical (apply_cong_tac i), 
              tactical (unfold_perm_fun_def_tac i),
              tactical (expand_fun_eq_tac i)]));
+*)
+
+(* perm_simp_tac plus additional tactics to decide            *)
+(* support problems                                           *)
+(* the "repeating"-depth is set to 40 - this seems sufficient *)
+fun perm_supports_tac tactical ss n = 
+    if n=0 then K all_tac
+    else DETERM o 
+         (FIRST'[fn i => tactical (perm_eval_tac ss i),
+                fn i => tactical (apply_perm_compose_tac ss i),
+                fn i => tactical (apply_cong_tac i), 
+                fn i => tactical (unfold_perm_fun_def_tac i),
+                fn i => tactical (expand_fun_eq_tac i)]
+         THEN_ALL_NEW (TRY o (perm_supports_tac tactical ss (n-1))));
 
 (* tactic that first unfolds the support definition          *)
 (* and strips off the intros, then applies perm_supports_tac *)
@@ -122,12 +136,55 @@ fun supports_tac tactical ss i =
       val fresh_prod   = thm "nominal.fresh_prod";
       val simps        = [supports_def,symmetric fresh_def,fresh_prod]
   in
-      EVERY [tactical ("unfolding of supports ",simp_tac (HOL_basic_ss addsimps simps) i),
-             tactical ("stripping of foralls  " ,REPEAT_DETERM (rtac allI i)),
-             tactical ("geting rid of the imps",rtac impI i),
-             tactical ("eliminating conjuncts ",REPEAT_DETERM (etac  conjE i)),
-             tactical ("applying perm_simp    ",perm_supports_tac tactical ss i)]
+      EVERY [tactical ("unfolding of supports ", simp_tac (HOL_basic_ss addsimps simps) i),
+             tactical ("stripping of foralls  ", REPEAT_DETERM (rtac allI i)),
+             tactical ("geting rid of the imps", rtac impI i),
+             tactical ("eliminating conjuncts ", REPEAT_DETERM (etac  conjE i)),
+             tactical ("applying perm_simp    ", perm_supports_tac tactical ss 10 i)]
   end;
+
+
+(* tactic that guesses the finite-support of a goal *)
+
+fun collect_vars i (Bound j) vs = if j < i then vs else Bound (j - i) ins vs
+  | collect_vars i (v as Free _) vs = v ins vs
+  | collect_vars i (v as Var _) vs = v ins vs
+  | collect_vars i (Const _) vs = vs
+  | collect_vars i (Abs (_, _, t)) vs = collect_vars (i+1) t vs
+  | collect_vars i (t $ u) vs = collect_vars i u (collect_vars i t vs);
+
+val supports_rule = thm "supports_finite";
+
+fun finite_guess_tac tactical ss i st =
+    let val goal = List.nth(cprems_of st, i-1)
+    in
+      case Logic.strip_assums_concl (term_of goal) of
+          _ $ (Const ("op :", _) $ (Const ("nominal.supp", T) $ x) $
+            Const ("Finite_Set.Finites", _)) =>
+          let
+            val cert = Thm.cterm_of (sign_of_thm st);
+            val ps = Logic.strip_params (term_of goal);
+            val Ts = rev (map snd ps);
+            val vs = collect_vars 0 x [];
+            val s = foldr (fn (v, s) =>
+                HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
+              HOLogic.unit vs;
+            val s' = list_abs (ps,
+              Const ("nominal.supp", fastype_of1 (Ts, s) --> body_type T) $ s);
+            val supports_rule' = Thm.lift_rule goal supports_rule;
+            val _ $ (_ $ S $ _) =
+              Logic.strip_assums_concl (hd (prems_of supports_rule'));
+            val supports_rule'' = Drule.cterm_instantiate
+              [(cert (head_of S), cert s')] supports_rule'
+          in
+            (tactical ("guessing of the right supports-set",
+                      EVERY [compose_tac (false, supports_rule'', 2) i,
+                             asm_full_simp_tac ss (i+1),
+                             supports_tac tactical ss i])) st
+          end
+        | _ => Seq.empty
+    end
+    handle Subscript => Seq.empty
 
 in             
 
@@ -136,10 +193,12 @@ fun simp_meth_setup tac =
   Method.only_sectioned_args (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
   (Method.SIMPLE_METHOD' HEADGOAL o tac o local_simpset_of);
 
-val perm_eq_meth        = simp_meth_setup (perm_simp_tac NO_DEBUG_tac);
-val perm_eq_meth_debug  = simp_meth_setup (perm_simp_tac DEBUG_tac);
-val supports_meth       = simp_meth_setup (supports_tac NO_DEBUG_tac);
-val supports_meth_debug = simp_meth_setup (supports_tac DEBUG_tac);
+val perm_eq_meth         = simp_meth_setup (perm_simp_tac NO_DEBUG_tac);
+val perm_eq_meth_debug   = simp_meth_setup (perm_simp_tac DEBUG_tac);
+val supports_meth        = simp_meth_setup (supports_tac NO_DEBUG_tac);
+val supports_meth_debug  = simp_meth_setup (supports_tac DEBUG_tac);
+val finite_gs_meth       = simp_meth_setup (finite_guess_tac NO_DEBUG_tac);
+val finite_gs_meth_debug = simp_meth_setup (finite_guess_tac DEBUG_tac);
 
 end
 
