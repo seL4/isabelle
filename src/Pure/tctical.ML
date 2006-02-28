@@ -34,6 +34,7 @@ sig
   val INTLEAVE          : tactic * tactic -> tactic
   val INTLEAVE'         : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val METAHYPS          : (thm list -> tactic) -> int -> tactic
+  val metahyps_thms     : int -> thm -> thm list option
   val no_tac            : tactic
   val ORELSE            : tactic * tactic -> tactic
   val ORELSE'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
@@ -410,19 +411,25 @@ local
   fun mk_inst (var as Var(v,T))  = (var,  free_of "METAHYP1_" (v,T))
 in
 
-fun metahyps_aux_tac tacf (prem,i) state =
-  let val {sign,maxidx,...} = rep_thm state
-      val cterm = cterm_of sign
-      (*find all vars in the hyps -- should find tvars also!*)
+(*Common code for METAHYPS and metahyps_thms*)
+fun metahyps_split_prem prem =
+  let (*find all vars in the hyps -- should find tvars also!*)
       val hyps_vars = foldr add_term_vars [] (Logic.strip_assums_hyp prem)
       val insts = map mk_inst hyps_vars
       (*replace the hyps_vars by Frees*)
       val prem' = subst_atomic insts prem
       val (params,hyps,concl) = strip_context prem'
+  in (insts,params,hyps,concl)  end;
+
+fun metahyps_aux_tac tacf (prem,gno) state =
+  let val (insts,params,hyps,concl) = metahyps_split_prem prem 
+      val {sign,maxidx,...} = rep_thm state
+      val cterm = cterm_of sign
+      val chyps = map cterm hyps
+      val hypths = map assume chyps
+      val subprems = map (forall_elim_vars 0) hypths
       val fparams = map Free params
       val cparams = map cterm fparams
-      and chyps = map cterm hyps
-      val hypths = map assume chyps
       fun swap_ctpair (t,u) = (cterm u, cterm t)
       (*Subgoal variables: make Free; lift type over params*)
       fun mk_subgoal_inst concl_vars (var as Var(v,T)) =
@@ -460,13 +467,20 @@ fun metahyps_aux_tac tacf (prem,i) state =
                 (implies_intr_list emBs
                   (forall_intr_list cparams (implies_intr_list chyps Cth)))
         end
-      val subprems = map (forall_elim_vars 0) hypths
-      and st0 = trivial (cterm concl)
       (*function to replace the current subgoal*)
       fun next st = bicompose false (false, relift st, nprems_of st)
-                    i state
-  in Seq.maps next (tacf subprems st0) end;
+                    gno state
+  in Seq.maps next (tacf subprems (trivial (cterm concl))) end;
+
 end;
+
+(*Returns the theorem list that METAHYPS would supply to its tactic*)
+fun metahyps_thms i state =
+  let val prem = Logic.nth_prem (i, Thm.prop_of state) 
+      val (insts,params,hyps,concl) = metahyps_split_prem prem 
+      val cterm = cterm_of (#sign (rep_thm state))
+  in SOME (map (forall_elim_vars 0 o assume o cterm) hyps) end
+  handle TERM ("nth_prem", [A]) => NONE;
 
 fun METAHYPS tacf = SUBGOAL (metahyps_aux_tac tacf);
 
