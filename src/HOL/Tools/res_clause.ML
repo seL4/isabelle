@@ -700,19 +700,21 @@ val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of
 (** Isabelle arities **)
 
 fun arity_clause _ (tcons, []) = []
-  | arity_clause n (tcons, ("HOL.type",_)::ars) =  (*Should be ignored*)
+  | arity_clause n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
       arity_clause n (tcons,ars)
   | arity_clause n (tcons, ar::ars) =
       make_axiom_arity_clause (tcons,n,ar) :: 
       arity_clause (n+1) (tcons,ars);
 
 fun multi_arity_clause [] = []
-  | multi_arity_clause (tcon_ar :: tcons_ars)  =
-      arity_clause 0 tcon_ar  @  multi_arity_clause tcons_ars 
+  | multi_arity_clause ((tcons,ars) :: tc_arlists) =
+      (*Reversal ensures that older entries always get the same axiom name*)
+      arity_clause 0 (tcons, rev ars)  @  
+      multi_arity_clause tc_arlists 
 
 fun arity_clause_thy thy =
   let val arities = #arities (Type.rep_tsig (Sign.tsig_of thy))
-  in multi_arity_clause (Symtab.dest arities) end;
+  in multi_arity_clause (rev (Symtab.dest arities)) end;
 
 
 (**** Find occurrences of predicates in clauses ****)
@@ -935,10 +937,10 @@ fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
     val clss = conjectures @ axclauses
     val funcs = funcs_of_clauses clss arity_clauses
     and preds = preds_of_clauses clss classrel_clauses arity_clauses
-    val out = TextIO.openOut filename
     and probname = Path.pack (Path.base (Path.unpack filename))
     val (axstrs, _) = ListPair.unzip (map clause2dfg axclauses)
     val tfree_clss = map dfg_tfree_clause (union_all tfree_litss) 
+    val out = TextIO.openOut filename
   in
     TextIO.output (out, string_of_start probname); 
     TextIO.output (out, string_of_descrip probname); 
