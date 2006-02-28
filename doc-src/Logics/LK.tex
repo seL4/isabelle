@@ -27,7 +27,7 @@ object-logic.  Once in Isabelle, change the context to theory \texttt{LK.thy}:
 isabelle Sequents
 context LK.thy;
 \end{ttbox}
-Model logic and linear logic are also available, but unfortunately they are
+Modal logic and linear logic are also available, but unfortunately they are
 not documented.
 
 
@@ -305,7 +305,7 @@ and~\ref{sec:sequent-provers} give full details.
 According to the cut-elimination theorem, the cut rule can be eliminated
 from proofs of sequents.  But the rule is still essential.  It can be used
 to structure a proof into lemmas, avoiding repeated proofs of the same
-formula.  More importantly, the cut rule can not be eliminated from
+formula.  More importantly, the cut rule cannot be eliminated from
 derivations of rules.  For example, there is a trivial cut-free proof of
 the sequent \(P\conj Q\turn Q\conj P\).
 Noting this, we might want to derive a rule for swapping the conjuncts
