@@ -6,8 +6,6 @@
 signature RES_CLASIMP = 
   sig
   val blacklist : string list ref (*Theorems forbidden in the output*)
-  val theory_blacklist : string list ref (*entire blacklisted theories*)
-  val relevant : int ref
   val use_simpset: bool ref
   val get_clasimp_lemmas : 
          Proof.context -> term list -> 
@@ -182,13 +180,6 @@ Very prolific and somewhat obscure:
    "Set.UnionI",
 *)
 
-val theory_blacklist = ref
-  ["Datatype_Universe.",    (*unnecessary in virtually all proofs*)
-   "Equiv_Relations."]  
-
-
-val relevant = ref 0;  (*Relevance filtering is off by default*)
-
 (*The "name" of a theorem is its statement, if nothing else is available.*)
 val plain_string_of_thm =
     setmp show_question_marks false 
@@ -215,12 +206,10 @@ fun insert_suffixed_names ht x =
       Polyhash.insert ht (x^"_iff2", ()); 
       Polyhash.insert ht (x^"_dest", ())); 
 
-fun banned_theory s = exists (fn thy => String.isPrefix thy s) (!theory_blacklist);
-
 fun make_banned_test xs = 
   let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
                                 (6000, HASH_STRING)
-      fun banned s = isSome (Polyhash.peek ht s) orelse banned_theory s
+      fun banned s = isSome (Polyhash.peek ht s)
   in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
       app (insert_suffixed_names ht) (!blacklist @ xs); 
       banned
@@ -235,9 +224,7 @@ fun mk_clause_table n =
 fun make_unique ht xs = 
       (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
 
-(*Write out the claset and simpset rules of the supplied theory.
-  FIXME: argument "goal" is a hack to allow relevance filtering.
-  To reduce the number of clauses produced, set ResClasimp.relevant:=1*)
+(*Write out the claset and simpset rules of the supplied theory.*)
 fun get_clasimp_lemmas ctxt goals = 
   let val claset_thms =
 	  map put_name_pair (ResAxioms.claset_rules_of_ctxt ctxt)
@@ -249,10 +236,10 @@ fun get_clasimp_lemmas ctxt goals =
       fun ok (a,_) = not (banned a)
       val claset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok claset_thms)
       val simpset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok simpset_thms)
- 
       val cls_thms_list = make_unique (mk_clause_table 2200) 
                                       (List.concat (simpset_cls_thms@claset_cls_thms))
-      val relevant_cls_thms_list = ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals
+      val relevant_cls_thms_list =
+          ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals
   in  (* create array of put clausename, number pairs into it *)
       (Array.fromList relevant_cls_thms_list, map #1 (relevant_cls_thms_list))
   end;
