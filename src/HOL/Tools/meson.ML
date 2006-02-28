@@ -104,12 +104,6 @@ fun literals (Const("Trueprop",_) $ P) = literals P
 (*number of literals in a term*)
 val nliterals = length o literals;
 
-(*Generation of unique names -- maxidx cannot be relied upon to increase!
-  Cannot rely on "variant", since variables might coincide when literals
-  are joined to make a clause...
-  19 chooses "U" as the first variable name*)
-val name_ref = ref 19;
-
 
 (*** Tautology Checking ***)
 
@@ -166,13 +160,20 @@ fun refl_clause th =
 
 (*** The basic CNF transformation ***)
 
+(*Generation of unique names -- maxidx cannot be relied upon to increase!
+  Cannot rely on "variant", since variables might coincide when literals
+  are joined to make a clause...
+  19 chooses "U" as the first variable name*)
+val name_ref = ref 19;
+
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, call "generalize". *)
 fun freeze_spec th =
-  let val sth = th RS spec
+  let val names = add_term_names (prop_of th, [])
       val newname = (name_ref := !name_ref + 1;
-		     radixstring(26, "A", !name_ref))
-  in  read_instantiate [("x", newname)] sth  end;
+		     variant names (radixstring(26, "A", !name_ref)))
+      val spec' = read_instantiate [("x", newname)] spec
+  in  th RS spec'  end;
 
 (*Used with METAHYPS below. There is one assumption, which gets bound to prem
   and then normalized via function nf. The normal form is given to resolve_tac,
@@ -202,12 +203,10 @@ fun cnf skoths (th,ths) =
 	  | Const ("op |", _) => (*disjunction*)
 	      let val tac =
 		  (METAHYPS (resop cnf_nil) 1) THEN
-		   (fn st' => st' |>  
-		      METAHYPS 
-		        (resop cnf_nil) 1)
+		   (fn st' => st' |> METAHYPS (resop cnf_nil) 1)
 	      in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
 	  | _ => (*no work to do*) th::ths 
-      and cnf_nil th = (cnf_aux (th,[]))
+      and cnf_nil th = cnf_aux (th,[])
   in 
     name_ref := 19;  (*It's safe to reset this in a top-level call to cnf*)
     cnf_aux (th,ths)
