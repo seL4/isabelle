@@ -127,21 +127,24 @@ fun new_name() = (counter := !counter +1; !counter);
 
 (* greetings to Tarski *)
 
-structure IL = CodegenThingol
+open BasicCodegenThingol;
 
-fun eval(IL.IConst((f,_),_)) xs = lookup f
-  | eval(IL.IVarE(n,_)) xs =
-      (case AList.lookup (op =) xs n of NONE => Var(n,[])
-       | SOME v => v)
-  | eval(IL.IApp(s,t)) xs = apply (eval s xs) (eval t xs)
-  | eval(IL.IAbs(IL.IVarE(n,_), t)) xs =
-      Fun (fn [x] => eval t ((n,x)::xs), [], 1,
-           fn () => let val var = new_name() in
-                 AbsN(var, to_term (eval t ((n,BVar(var,[])) :: xs))) end);
+fun eval xs (IConst ((f, _), _)) = lookup f
+  | eval xs (IVar n) =
+      AList.lookup (op =) xs n
+      |> the_default (Var (n, []))
+  | eval xs (s `$ t) = apply (eval xs s) (eval xs t)
+  | eval xs ((n, _) `|-> t) =
+      Fun (fn [x] => eval (AList.update (op =) (n, x) xs) t,
+             [], 1,
+             fn () => let val var = new_name() in
+                 AbsN (var, to_term (eval (AList.update (op =) (n, BVar (var, [])) xs) t)) end)
+  | eval xs (IAbs (_, t)) = eval xs t
+  | eval xs (ICase (_, t)) = eval xs t;
 
 
 (* finally... *)
 
-fun nbe tab t = (counter :=0; xfun_tab := tab; to_term(eval t []));
+fun nbe tab t = (counter :=0; xfun_tab := tab; to_term(eval [] t));
 
 end;

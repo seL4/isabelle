@@ -38,15 +38,8 @@ end;
 structure CodegenSerializer: CODEGEN_SERIALIZER =
 struct
 
-open CodegenThingol;
-infix 8 `%%;
-infixr 6 `->;
-infixr 6 `-->;
-infix 4 `$;
-infix 4 `$$;
-infixr 3 `|->;
-infixr 3 `|-->;
-
+open BasicCodegenThingol;
+val debug = CodegenThingol.debug;
 
 (** generic serialization **)
 
@@ -217,7 +210,7 @@ fun parse_targetdef s =
   case Scan.finite Symbol.stopper (Scan.repeat (
          ($$ "`" |-- $$ "`" >> (CodegenThingol.Pretty o str))
       || ($$ "`" |-- Scan.repeat1 (Scan.unless ($$ "`") (Scan.one Symbol.not_eof))
-            --| $$ "`" >> (fn ["_"] => Name | s => error ("malformed antiquote: " ^ implode s)))
+            --| $$ "`" >> (fn ["_"] => CodegenThingol.Name | s => error ("malformed antiquote: " ^ implode s)))
       || Scan.repeat1
            (Scan.unless ($$ "`") (Scan.one Symbol.not_eof)) >> (CodegenThingol.Pretty o str o implode)
     )) ((Symbol.explode o Symbol.strip_blanks) s)
@@ -234,7 +227,7 @@ type serializer =
       * (string -> itype pretty_syntax option)
       * (string -> iexpr pretty_syntax option)
     -> string list option
-    -> module -> unit)
+    -> CodegenThingol.module -> unit)
     * OuterParse.token list;
 
 fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
@@ -244,7 +237,7 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     fun pretty_of_prim resolv (name, primdef) =
       let
         fun pr (CodegenThingol.Pretty p) = p
-          | pr Name = (str o resolv) name;
+          | pr CodegenThingol.Name = (str o resolv) name;
       in case AList.lookup (op = : string * string -> bool) primdef target
        of NONE => error ("no primitive definition for " ^ quote name)
         | SOME ps => (case map pr ps
@@ -256,11 +249,11 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
   in
     module
     |> debug 3 (fn _ => "selecting submodule...")
-    |> (if is_some select then (partof o the) select else I)
+    |> (if is_some select then (CodegenThingol.partof o the) select else I)
     |> debug 3 (fn _ => "preprocessing...")
     |> preprocess
     |> debug 3 (fn _ => "serializing...")
-    |> serialize (from_defs (pretty_of_prim, (class_syntax : string -> string option, tyco_syntax, const_syntax)))
+    |> CodegenThingol.serialize (from_defs (pretty_of_prim, (class_syntax : string -> string option, tyco_syntax, const_syntax)))
          from_module' validator postproc nspgrp name_root
     |> K ()
   end;
@@ -343,7 +336,7 @@ fun parse_internal serializer =
 
 fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
   let
-    fun dest_cons (IApp (IApp (IConst ((c, _), _), e1), e2)) =
+    fun dest_cons (IConst ((c, _), _) `$ e1 `$ e2) =
           if c = thingol_cons
           then SOME (e1, e2)
           else NONE
@@ -355,7 +348,7 @@ fun pretty_list thingol_nil thingol_cons (target_pred, target_cons) =
         pr (INFX (target_pred, R)) e2
       ];
     fun pretty_compact fxy pr [e1, e2] =
-      case unfoldr dest_cons e2
+      case CodegenThingol.unfoldr dest_cons e2
        of (es, IConst ((c, _), _)) =>
             if c = thingol_nil
             then Pretty.enum "," "[" "]" (map (pr NOBR) (e1::es))
@@ -427,7 +420,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
         | [p] => Pretty.block [p, Pretty.brk 1, tyco']
         | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, tyco']
       end
-    and ml_from_type fxy (IType (tycoexpr as (tyco, tys))) =
+    and ml_from_type fxy (tycoexpr as tyco `%% tys) =
           (case tyco_syntax tyco
            of NONE => ml_from_tycoexpr fxy (tyco, tys)
             | SOME ((i, k), pr) =>
@@ -437,7 +430,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
                   ^ string_of_int i ^ " to " ^ string_of_int k
                   ^ " expected")
                 else pr fxy ml_from_type tys)
-      | ml_from_type fxy (IFun (t1, t2)) =
+      | ml_from_type fxy (t1 `-> t2) =
           let
             val brackify = gen_brackify
               (case fxy
@@ -450,102 +443,109 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               ml_from_type (INFX (1, R)) t2
             ]
           end
-      | ml_from_type fxy (IVarT v) =
+      | ml_from_type fxy (ITyVar v) =
           str ("'" ^ v);
-    fun ml_from_expr fxy (e as IApp (e1, e2)) =
-          (case unfold_const_app e
+    fun typify trans ty p =
+      let
+        fun needs_type_t (tyco `%% tys) =
+            needs_type tyco
+            orelse trans
+              andalso exists needs_type_t tys
+        | needs_type_t (ITyVar _) =
+            false
+        | needs_type_t (ty1 `-> ty2) =
+            trans
+            andalso (needs_type_t ty1 orelse needs_type_t ty2);
+      in if needs_type_t ty
+        then
+          Pretty.enclose "(" ")" [
+            p,
+            str ":",
+            ml_from_type NOBR ty
+          ]
+        else p
+      end;
+    fun ml_from_expr fxy (e as IConst x) =
+          ml_from_app fxy (x, [])
+      | ml_from_expr fxy (IVar v) =
+          str v
+      | ml_from_expr fxy (e as e1 `$ e2) =
+          (case CodegenThingol.unfold_const_app e
            of SOME x => ml_from_app fxy x
             | NONE =>
                 brackify fxy [
                   ml_from_expr NOBR e1,
                   ml_from_expr BR e2
                 ])
-      | ml_from_expr fxy (e as IConst x) =
-          ml_from_app fxy (x, [])
-      | ml_from_expr fxy (IVarE (v, ty)) =
-          if needs_type ty
-            then
-              Pretty.enclose "(" ")" [
-                str v,
-                str ":",
-                ml_from_type NOBR ty
-              ]
-            else
-              str v
-      | ml_from_expr fxy (IAbs (e1, e2)) =
+      | ml_from_expr fxy ((v, ty) `|-> e) =
           brackify BR [
             str "fn",
-            ml_from_expr NOBR e1,
+            typify true ty (str v),
             str "=>",
-            ml_from_expr NOBR e2
+            ml_from_expr NOBR e
           ]
-      | ml_from_expr fxy (e as ICase (_, [_])) =
+      | ml_from_expr fxy (IAbs (((ve, vty), be), _)) =
+          brackify BR [
+            str "fn",
+            typify true vty (ml_from_expr NOBR ve),
+            str "=>",
+            ml_from_expr NOBR be
+          ]
+      | ml_from_expr fxy (e as ICase ((_, [_]), _)) =
           let
-            val (ps, e) = unfold_let e;
-            fun mk_val (p, e) = Pretty.block [
-                str "val ",
-                ml_from_expr fxy p,
-                str " =",
-                Pretty.brk 1,
-                ml_from_expr NOBR e,
+            val (ves, be) = CodegenThingol.unfold_let e;
+            fun mk_val ((ve, vty), se) = Pretty.block [
+                (Pretty.block o Pretty.breaks) [
+                  str "val",
+                  typify true vty (ml_from_expr NOBR ve),
+                  str "=",
+                  ml_from_expr NOBR se
+                ],
                 str ";"
-              ]
+              ];
           in Pretty.chunks [
-            [str ("let"), Pretty.fbrk, map mk_val ps |> Pretty.chunks] |> Pretty.block,
-            [str ("in"), Pretty.fbrk, ml_from_expr NOBR e] |> Pretty.block,
+            [str ("let"), Pretty.fbrk, map mk_val ves |> Pretty.chunks] |> Pretty.block,
+            [str ("in"), Pretty.fbrk, ml_from_expr NOBR be] |> Pretty.block,
             str ("end")
           ] end
-      | ml_from_expr fxy (ICase (e, c::cs)) =
+      | ml_from_expr fxy (ICase (((de, dty), bse::bses), _)) =
           let
-            fun mk_clause definer (p, e) =
-              Pretty.block [
+            fun mk_clause definer (se, be) =
+              (Pretty.block o Pretty.breaks) [
                 str definer,
-                ml_from_expr NOBR p,
-                str " =>",
-                Pretty.brk 1,
-                ml_from_expr NOBR e
+                ml_from_expr NOBR se,
+                str "=>",
+                ml_from_expr NOBR be
               ]
           in brackify fxy (
             str "case"
-            :: ml_from_expr NOBR e
-            :: mk_clause "of " c
-            :: map (mk_clause "| ") cs
+            :: typify true dty (ml_from_expr NOBR de)
+            :: mk_clause "of" bse
+            :: map (mk_clause "|") bses
           ) end
       | ml_from_expr _ e =
-          error ("dubious expression: " ^ (Pretty.output o pretty_iexpr) e)
+          error ("dubious expression: " ^ (Pretty.output o CodegenThingol.pretty_iexpr) e)
     and ml_mk_app f es =
       if is_cons f andalso length es > 1 then
         [(str o resolv) f, Pretty.enum "," "(" ")" (map (ml_from_expr BR) es)]
-      else if has_nsp f "mem" then 
-        Pretty.block [str "#", ml_from_label f] :: map (ml_from_expr BR) es
       else
         (str o resolv) f :: map (ml_from_expr BR) es
     and ml_from_app fxy (((c, ty), lss), es) =
       case map (ml_from_sortlookup BR) lss
        of [] =>
-            let
-              val p = from_app ml_mk_app ml_from_expr const_syntax fxy ((c, ty), es)
-            in if needs_type ty
-              then
-                Pretty.enclose "(" ")" [
-                  p,
-                  str ":",
-                  ml_from_type NOBR ty
-                ]
-              else
-                p
-            end
+            from_app ml_mk_app ml_from_expr const_syntax fxy ((c, ty), es)
+            |> typify false ty
         | lss =>
             brackify fxy (
               (str o resolv) c
               :: (lss
               @ map (ml_from_expr BR) es)
             );
-  in (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) end;
+  in (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) end;
 
 fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
   let
-    val (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
+    val (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) =
       ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
     fun chunk_defs ps =
       let
@@ -579,12 +579,18 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           let
             val shift = if null eq_tl then I else
               map (Pretty.block o single o Pretty.block o single);
+            fun mk_arg e ty =
+              ml_from_expr BR e
+              |> typify true ty
             fun mk_eq definer (pats, expr) =
               (Pretty.block o Pretty.breaks) (
                 [str definer, (str o resolv) name]
                 @ (if null pats
                    then [str ":", ml_from_type NOBR ty]
-                   else map from_tyvar sortctxt @ map (ml_from_expr BR) pats)
+                   else
+                     map from_tyvar sortctxt
+                     @ map2 mk_arg pats
+                         ((curry Library.take (length pats) o fst o CodegenThingol.unfold_fun) ty))
                 @ [str "=", ml_from_expr NOBR expr]
               )
           in
@@ -613,7 +619,7 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
         fun mk_datatype definer (t, (vs, cs)) =
           (Pretty.block o Pretty.breaks) (
             str definer
-            :: ml_from_tycoexpr NOBR (t, map (IVarT o fst) vs)
+            :: ml_from_tycoexpr NOBR (t, map (ITyVar o fst) vs)
             :: str "="
             :: separate (str "|") (map mk_cons cs)
           )
@@ -629,22 +635,22 @@ fun ml_from_defs (is_cons, needs_type)
     (from_prim, (_, tyco_syntax, const_syntax)) resolver prefix defs =
   let
     val resolv = resolver prefix;
-    val (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
+    val (ml_from_label, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) =
       ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
     val (ml_from_funs, ml_from_datatypes) =
       ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
     val filter_datatype =
       List.mapPartial
-        (fn (name, Datatype info) => SOME (name, info)
-          | (name, Datatypecons _) => NONE
+        (fn (name, CodegenThingol.Datatype info) => SOME (name, info)
+          | (name, CodegenThingol.Datatypecons _) => NONE
           | (name, def) => error ("datatype block containing illegal def: "
-                ^ (Pretty.output o pretty_def) def));
+                ^ (Pretty.output o CodegenThingol.pretty_def) def));
     fun filter_class defs = 
       case List.mapPartial
-        (fn (name, Class info) => SOME (name, info)
-          | (name, Classmember _) => NONE
+        (fn (name, CodegenThingol.Class info) => SOME (name, info)
+          | (name, CodegenThingol.Classmember _) => NONE
           | (name, def) => error ("class block containing illegal def: "
-                ^ (Pretty.output o pretty_def) def)) defs
+                ^ (Pretty.output o CodegenThingol.pretty_def) def)) defs
        of [class] => class
         | _ => error ("class block without class: " ^ (commas o map (quote o fst)) defs)
     fun ml_from_class (name, (supclasses, (v, membrs))) =
@@ -687,23 +693,23 @@ fun ml_from_defs (is_cons, needs_type)
           ]
         :: map from_membr_fun membrs)
       end
-    fun ml_from_def (name, Undef) =
+    fun ml_from_def (name, CodegenThingol.Undef) =
           error ("empty definition during serialization: " ^ quote name)
-      | ml_from_def (name, Prim prim) =
+      | ml_from_def (name, CodegenThingol.Prim prim) =
           from_prim resolv (name, prim)
-      | ml_from_def (name, Typesyn (vs, ty)) =
+      | ml_from_def (name, CodegenThingol.Typesyn (vs, ty)) =
         (map (fn (vname, []) => () | _ =>
             error "can't serialize sort constrained type declaration to ML") vs;
           Pretty.block [
             str "type ",
-            ml_from_tycoexpr NOBR (name, map (IVarT o fst) vs),
+            ml_from_tycoexpr NOBR (name, map (ITyVar o fst) vs),
             str " =",
             Pretty.brk 1,
             ml_from_type NOBR ty,
             str ";"
             ]
           ) |> SOME
-      | ml_from_def (name, Classinst (((class, (tyco, arity)), suparities), memdefs)) =
+      | ml_from_def (name, CodegenThingol.Classinst (((class, (tyco, arity)), suparities), memdefs)) =
           let
             val definer = if null arity then "val" else "fun"
             fun from_supclass (supclass, (supinst, lss)) =
@@ -749,23 +755,21 @@ fun ml_from_defs (is_cons, needs_type)
             ] |> SOME
           end;
   in case defs
-   of (_, Fun _)::_ => (SOME o ml_from_funs o map (fn (name, Fun info) => (name, info))) defs
-    | (_, Datatypecons _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
-    | (_, Datatype _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
-    | (_, Class _)::_ => (SOME o ml_from_class o filter_class) defs
-    | (_, Classmember _)::_ => (SOME o ml_from_class o filter_class) defs
+   of (_, CodegenThingol.Fun _)::_ => (SOME o ml_from_funs o map (fn (name, CodegenThingol.Fun info) => (name, info))) defs
+    | (_, CodegenThingol.Datatypecons _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
+    | (_, CodegenThingol.Datatype _)::_ => (SOME o ml_from_datatypes o filter_datatype) defs
+    | (_, CodegenThingol.Class _)::_ => (SOME o ml_from_class o filter_class) defs
+    | (_, CodegenThingol.Classmember _)::_ => (SOME o ml_from_class o filter_class) defs
     | [def] => ml_from_def def
     | defs => error ("illegal mutual dependencies: " ^ (commas o map fst) defs)
   end;
 
 fun ml_annotators (nsp_dtcon, nsp_class, is_int_tyco) =
   let
-    fun needs_type (IType (tyco, _)) =
-          has_nsp tyco nsp_class
-          orelse is_int_tyco tyco
-      | needs_type _ =
-          false;
-    fun is_cons c = has_nsp c nsp_dtcon;
+    fun needs_type tyco =
+      CodegenThingol.has_nsp tyco nsp_class
+      orelse is_int_tyco tyco;
+    fun is_cons c = CodegenThingol.has_nsp c nsp_dtcon;
   in (is_cons, needs_type) end;
 
 in
@@ -788,21 +792,22 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
     fun eta_expander module const_syntax s =
       case const_syntax s
        of SOME ((i, _), _) => i
-        | _ => if has_nsp s nsp_dtcon
-               then case get_def module s
-                of Datatypecons dtname => case get_def module dtname
-                of Datatype (_, cs) =>
+        | _ => if CodegenThingol.has_nsp s nsp_dtcon
+               then case CodegenThingol.get_def module s
+                of CodegenThingol.Datatypecons dtname =>
+                  case CodegenThingol.get_def module dtname
+                of CodegenThingol.Datatype (_, cs) =>
                   let val l = AList.lookup (op =) cs s |> the |> length
                   in if l >= 2 then l else 0 end
                 else 0;
     fun preprocess const_syntax module =
       module
       |> debug 3 (fn _ => "eta-expanding...")
-      |> eta_expand (eta_expander module const_syntax)
+      |> CodegenThingol.eta_expand (eta_expander module const_syntax)
       |> debug 3 (fn _ => "eta-expanding polydefs...")
-      |> eta_expand_poly
+      |> CodegenThingol.eta_expand_poly
       |> debug 3 (fn _ => "unclashing expression/type variables...")
-      |> unclash_vars_tvars;
+      |> CodegenThingol.unclash_vars_tvars;
     val parse_multi =
       OuterParse.name
       #-> (fn "dir" => 
@@ -861,10 +866,10 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       end;
     fun hs_from_tycoexpr fxy (tyco, tys) =
       brackify fxy ((str o resolv) tyco :: map (hs_from_type BR) tys)
-    and hs_from_type fxy (IType (tycoexpr as (tyco, tys))) =
+    and hs_from_type fxy (tycoexpr as tyco `%% tys) =
           (case tyco_syntax tyco
            of NONE =>
-                hs_from_tycoexpr fxy tycoexpr
+                hs_from_tycoexpr fxy (tyco, tys)
             | SOME ((i, k), pr) =>
                 if not (i <= length tys andalso length tys <= k)
                 then error ("number of argument mismatch in customary serialization: "
@@ -872,71 +877,80 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
                   ^ string_of_int i ^ " to " ^ string_of_int k
                   ^ " expected")
                 else pr fxy hs_from_type tys)
-      | hs_from_type fxy (IFun (t1, t2)) =
+      | hs_from_type fxy (t1 `-> t2) =
           brackify_infix (1, R) fxy [
             hs_from_type (INFX (1, X)) t1,
             str "->",
             hs_from_type (INFX (1, R)) t2
           ]
-      | hs_from_type fxy (IVarT v) =
+      | hs_from_type fxy (ITyVar v) =
           str v;
     fun hs_from_sctxt_tycoexpr (sctxt, tycoexpr) =
       Pretty.block [hs_from_sctxt sctxt, hs_from_tycoexpr NOBR tycoexpr]
     fun hs_from_sctxt_type (sctxt, ty) =
       Pretty.block [hs_from_sctxt sctxt, hs_from_type NOBR ty]
-    fun hs_from_expr fxy (e as IApp (e1, e2)) =
-          (case unfold_const_app e
+    fun hs_from_expr fxy (e as IConst x) =
+          hs_from_app fxy (x, [])
+      | hs_from_expr fxy (e as (e1 `$ e2)) =
+          (case CodegenThingol.unfold_const_app e
            of SOME x => hs_from_app fxy x
             | _ =>
                 brackify fxy [
                   hs_from_expr NOBR e1,
                   hs_from_expr BR e2
                 ])
-      | hs_from_expr fxy (e as IConst x) =
-          hs_from_app fxy (x, [])
-      | hs_from_expr fxy (IVarE (v, _)) =
-          str v
-      | hs_from_expr fxy (e as IAbs _) =
+      | hs_from_expr fxy (IVar v) =
+          (str o String.implode o nth_map 0 Char.toLower o String.explode) v
+      | hs_from_expr fxy (e as _ `|-> _) =
           let
-            val (es, e) = unfold_abs e
+            val (es, e) = CodegenThingol.unfold_abs e
           in
             brackify BR (
               str "\\"
-              :: map (hs_from_expr BR) es @ [
+              :: map (hs_from_expr BR o fst) es @ [
               str "->",
               hs_from_expr NOBR e
             ])
           end
-      | hs_from_expr fxy (e as ICase (_, [_])) =
+      | hs_from_expr fxy (e as IAbs _) =
           let
-            val (ps, body) = unfold_let e;
-            fun mk_bind (p, e) = Pretty.block [
+            val (es, e) = CodegenThingol.unfold_abs e
+          in
+            brackify BR (
+              str "\\"
+              :: map (hs_from_expr BR o fst) es @ [
+              str "->",
+              hs_from_expr NOBR e
+            ])
+          end
+      | hs_from_expr fxy (e as ICase ((_, [_]), _)) =
+          let
+            val (ps, body) = CodegenThingol.unfold_let e;
+            fun mk_bind ((p, _), e) = (Pretty.block o Pretty.breaks) [
                 hs_from_expr BR p,
-                str " =",
-                Pretty.brk 1,
+                str "=",
                 hs_from_expr NOBR e
               ];
           in Pretty.chunks [
             [str ("let"), Pretty.fbrk, map mk_bind ps |> Pretty.chunks] |> Pretty.block,
             [str ("in "), hs_from_expr NOBR body] |> Pretty.block
           ] end
-      | hs_from_expr fxy (ICase (e, cs)) =
+      | hs_from_expr fxy (ICase (((de, _), bses), _)) =
           let
-            fun mk_clause (p, e) =
-              Pretty.block [
-                hs_from_expr NOBR p,
-                str " ->",
-                Pretty.brk 1,
-                hs_from_expr NOBR e
+            fun mk_clause (se, be) =
+              (Pretty.block o Pretty.breaks) [
+                hs_from_expr NOBR se,
+                str "->",
+                hs_from_expr NOBR be
               ]
           in Pretty.block [
             str "case",
             Pretty.brk 1,
-            hs_from_expr NOBR e,
+            hs_from_expr NOBR de,
             Pretty.brk 1,
             str "of",
             Pretty.fbrk,
-            (Pretty.chunks o map mk_clause) cs
+            (Pretty.chunks o map mk_clause) bses
           ] end
     and hs_mk_app c es =
       (str o resolv) c :: map (hs_from_expr BR) es
@@ -954,11 +968,11 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             hs_from_expr NOBR rhs
           ]
       in Pretty.chunks (map (from_eq name) eqs) end;
-    fun hs_from_def (name, Undef) =
+    fun hs_from_def (name, CodegenThingol.Undef) =
           error ("empty statement during serialization: " ^ quote name)
-      | hs_from_def (name, Prim prim) =
+      | hs_from_def (name, CodegenThingol.Prim prim) =
           from_prim resolv_here (name, prim)
-      | hs_from_def (name, Fun (eqs, (sctxt, ty))) =
+      | hs_from_def (name, CodegenThingol.Fun (eqs, (sctxt, ty))) =
           let
             val body = hs_from_funeqs (name, eqs);
           in if with_typs then
@@ -971,15 +985,15 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
               body
             ] |> SOME
           else SOME body end
-      | hs_from_def (name, Typesyn (vs, ty)) =
+      | hs_from_def (name, CodegenThingol.Typesyn (sctxt, ty)) =
           Pretty.block [
             str "type ",
-            hs_from_sctxt_tycoexpr (vs, (resolv_here name, map (IVarT o fst) vs)),
+            hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt)),
             str " =",
             Pretty.brk 1,
             hs_from_sctxt_type ([], ty)
           ] |> SOME
-      | hs_from_def (name, Datatype (vs, constrs)) =
+      | hs_from_def (name, CodegenThingol.Datatype (sctxt, constrs)) =
           let
             fun mk_cons (co, tys) =
               (Pretty.block o Pretty.breaks) (
@@ -989,7 +1003,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
           in
             Pretty.block ((
               str "data "
-              :: hs_from_sctxt_type (vs, IType (resolv_here name, map (IVarT o fst) vs))
+              :: hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt))
               :: str " ="
               :: Pretty.brk 1
               :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs)
@@ -998,9 +1012,9 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
               str "deriving Show"
             ])
           end |> SOME
-      | hs_from_def (_, Datatypecons _) =
+      | hs_from_def (_, CodegenThingol.Datatypecons _) =
           NONE
-      | hs_from_def (name, Class (supclasss, (v, membrs))) =
+      | hs_from_def (name, CodegenThingol.Class (supclasss, (v, membrs))) =
           let
             fun mk_member (m, (sctxt, ty)) =
               Pretty.block [
@@ -1018,14 +1032,14 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
               Pretty.chunks (map mk_member membrs)
             ] |> SOME
           end
-      | hs_from_def (name, Classmember _) =
+      | hs_from_def (name, CodegenThingol.Classmember _) =
           NONE
-      | hs_from_def (_, Classinst (((clsname, (tyco, arity)), _), memdefs)) = 
+      | hs_from_def (_, CodegenThingol.Classinst (((clsname, (tyco, arity)), _), memdefs)) = 
           Pretty.block [
             str "instance ",
-            hs_from_sctxt_tycoexpr (arity, (clsname, map (IVarT o fst) arity)),
+            hs_from_sctxt_tycoexpr (arity, (clsname, map (ITyVar o fst) arity)),
             str " ",
-            hs_from_sctxt_tycoexpr (arity, (tyco, map (IVarT o fst) arity)),
+            hs_from_sctxt_tycoexpr (arity, (tyco, map (ITyVar o fst) arity)),
             str " where",
             Pretty.fbrk,
             Pretty.chunks (map (fn (m, (_, (eqs, _))) => hs_from_funeqs (m, eqs)) memdefs)
@@ -1045,7 +1059,7 @@ fun hs_from_thingol target nsps_upper nspgrp =
       "import", "default", "forall", "let", "in", "class", "qualified", "data",
       "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
     ] @ [
-      "Bool", "Integer", "Maybe", "True", "False", "Nothing", "Just", "negate"
+      "Bool", "Integer", "Maybe", "True", "False", "Nothing", "Just", "not", "negate"
     ];
     fun hs_from_module imps ((_, name), ps) =
       (Pretty.chunks) (
@@ -1070,7 +1084,7 @@ fun hs_from_thingol target nsps_upper nspgrp =
     fun preprocess const_syntax module =
       module
       |> debug 3 (fn _ => "eta-expanding...")
-      |> eta_expand (eta_expander const_syntax)
+      |> CodegenThingol.eta_expand (eta_expander const_syntax)
   in
     (Scan.optional (OuterParse.name >> (fn "no_typs" => false | s => Scan.fail_with (fn _ => "illegal flag: " ^ quote s) true)) true
     #-> (fn with_typs => parse_multi_file ((K o K) NONE) "hs" (serializer with_typs)))

@@ -83,13 +83,6 @@ structure CodegenPackage : CODEGEN_PACKAGE =
 struct
 
 open CodegenThingol;
-infix 8 `%%;
-infixr 6 `->;
-infixr 6 `-->;
-infix 4 `$;
-infix 4 `$$;
-infixr 3 `|->;
-infixr 3 `|-->;
 
 (* shallow name spaces *)
 
@@ -661,7 +654,7 @@ and exprgen_type thy tabs (TVar _) trns =
   | exprgen_type thy tabs (TFree v_s) trns =
       trns
       |> exprgen_tyvar_sort thy tabs v_s
-      |-> (fn (v, sort) => pair (IVarT v))
+      |-> (fn (v, sort) => pair (ITyVar v))
   | exprgen_type thy tabs (Type ("fun", [t1, t2])) trns =
       trns
       |> exprgen_type thy tabs t1
@@ -815,7 +808,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
   | exprgen_term thy tabs (Free (v, ty)) trns =
       trns
       |> exprgen_type thy tabs ty
-      |-> (fn ty => pair (IVarE (v, ty)))
+      |-> (fn ty => pair (IVar v))
   | exprgen_term thy tabs (Abs (abs as (_, ty, _))) trns =
       let
         val (v, t) = Term.variant_abs abs
@@ -823,7 +816,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
         trns
         |> exprgen_type thy tabs ty
         ||>> exprgen_term thy tabs t
-        |-> (fn (ty, e) => pair (IVarE (v, ty) `|-> e))
+        |-> (fn (ty, e) => pair ((v, ty) `|-> e))
       end
   | exprgen_term thy tabs (t as t1 $ t2) trns =
       let
@@ -867,7 +860,7 @@ and appgen thy tabs ((f, ty), ts) trns =
             |> debug 10 (fn _ => "eta-expanding")
             |> fold_map (exprgen_type thy tabs) tys
             ||>> ag thy tabs ((f, ty), ts @ map2 (curry Free) vs tys)
-            |-> (fn (tys, e) => pair (map2 (curry IVarE) vs tys `|--> e))
+            |-> (fn (tys, e) => pair (vs ~~ tys `|--> e))
           end
         else if length ts > imax then
           trns
@@ -875,7 +868,7 @@ and appgen thy tabs ((f, ty), ts) trns =
                ^ string_of_int (length ts) ^ ")")
           |> ag thy tabs ((f, ty), Library.take (imax, ts))
           ||>> fold_map (exprgen_term thy tabs) (Library.drop (imax, ts))
-          |-> (fn es => pair (mk_apps es))
+          |-> (fn (e, es) => pair (e `$$ es))
         else
           trns
           |> debug 10 (fn _ => "keeping arguments")
@@ -896,27 +889,32 @@ fun eqextr_defs thy ((deftab, _), _) (c, ty) =
 
 (* parametrized generators, for instantiation in HOL *)
 
-fun appgen_let strip_abs thy tabs ((c, ty), [t_val, t_cont]) trns =
+fun appgen_let strip_abs thy tabs (app as ((c, ty), [dt, ct])) trns =
   let
-    val ([t_abs], t_body) = strip_abs 1 t_cont;
+    val ([st], bt) = strip_abs 1 ct;
+    val dtyp = (hd o fst o strip_type) ty
   in
     trns
-    |> exprgen_term thy tabs t_val
-    ||>> exprgen_term thy tabs t_abs
-    ||>> exprgen_term thy tabs t_body
-    |-> (fn ((e, abs), body) => pair (ICase (e, [(abs, body)])))
+    |> exprgen_term thy tabs dt
+    ||>> exprgen_type thy tabs dtyp
+    ||>> exprgen_term thy tabs st
+    ||>> exprgen_term thy tabs bt
+    ||>> appgen_default thy tabs app
+    |-> (fn ((((de, dty), se), be), e0) => pair (ICase (((de, dty), [(se, be)]), e0)))
   end;
 
-fun appgen_split strip_abs thy tabs (c, [t2]) trns =
-  case strip_abs 1 (Const c $ t2)
-   of ([p], body) =>
+fun appgen_split strip_abs thy tabs (app as (c as (_, ty), [t])) trns =
+  case strip_abs 1 (Const c $ t)
+   of ([vt], tb) =>
         trns
-        |> exprgen_term thy tabs p
-        ||>> exprgen_term thy tabs body
-        |-> (fn (e, body) => pair (e `|-> body))
+        |> exprgen_term thy tabs vt
+        ||>> exprgen_type thy tabs (((fn [_, ty] => ty) o fst o strip_type) ty)
+        ||>> exprgen_term thy tabs tb
+        ||>> appgen_default thy tabs app
+        |-> (fn (((ve, vty), be), e0) => pair (IAbs (((ve, vty), be), e0)))
     | _ =>
         trns
-        |> appgen_default thy tabs (c, [t2]);
+        |> appgen_default thy tabs app;
 
 fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
   Type (_, [_, ty as Type (tyco, [])])), [bin]) trns =
@@ -975,7 +973,7 @@ fun eqextr_eq f fals thy tabs ("op =", ty) =
   | eqextr_eq f fals thy tabs _ =
       NONE;
 
-fun appgen_datatype_case cos thy tabs ((_, ty), ts) trns =
+fun appgen_datatype_case cos thy tabs (app as ((_, ty), ts)) trns =
   let
     val (ts', t) = split_last ts;
     val (tys, dty) = (split_last o fst o strip_type) ty;
@@ -997,8 +995,10 @@ fun appgen_datatype_case cos thy tabs ((_, ty), ts) trns =
   in
     trns
     |> exprgen_term thy tabs t
+    ||>> exprgen_type thy tabs dty
     ||>> fold_map cg_case_d ((cos ~~ tys) ~~ ts')
-    |-> (fn (t, ds) => pair (ICase (t, ds)))
+    ||>> appgen_default thy tabs app
+    |-> (fn (((de, dty), bses), e0) => pair (ICase (((de, dty), bses), e0)))
   end;
 
 fun gen_add_case_const prep_c get_case_const_data raw_c thy =

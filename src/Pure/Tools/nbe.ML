@@ -44,8 +44,9 @@ fun top_nbe st thy =
     val modl_old = CodegenThingol.partof (Symtab.keys nbe_tab)
       (CodegenPackage.get_root_module thy);
     val (t', thy') = CodegenPackage.codegen_term t thy
-    val modl_new = CodegenPackage.get_root_module thy;
-    val diff = CodegenThingol.diff_module (modl_old, modl_new);
+    val modl_new = CodegenPackage.get_root_module thy';
+    val diff = CodegenThingol.diff_module (modl_new, modl_old);
+    val _ = writeln ("new definitions: " ^ (commas o map fst) diff);
     val _ = (tab := nbe_tab;
              Library.seq (use_show o NBE_Codegen.generate defined) diff)
     val thy'' = NBE_Data.put (!tab) thy'
