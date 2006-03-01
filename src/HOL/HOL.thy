@@ -918,6 +918,9 @@ setup hypsubst_setup
 setup {* ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac) *}
 
 setup Classical.setup
+
+setup ResAtpSet.setup
+
 setup clasetup
 
 declare ex_ex1I [rule del, intro! 2]
