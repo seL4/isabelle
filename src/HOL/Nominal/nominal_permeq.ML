@@ -14,32 +14,26 @@ fun dynamic_thm ss name =
 (* initial simplification step in the tactic *)
 fun perm_eval_tac ss i =
     let
-        val perm_eq_app   = thm "nominal.pt_fun_app_eq";
-
         fun perm_eval_simproc sg ss redex =
         (case redex of 
-        (* case pi o (f x) == (pi o f) (pi o x)    *)
-        (* special treatment in cases of constants *)
+        (* case pi o (f x) == (pi o f) (pi o x)            *)
+        (* special treatment when head of f is a constants *)
         (Const("nominal.perm",
            Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
-           let
-             val name = Sign.base_name n
-             val at_inst = dynamic_thm ss ("at_"^name^"_inst");
-             val pt_inst = dynamic_thm ss ("pt_"^name^"_inst");
-           in
-
            (case (head_of f) of
-                    (* nothing to do on constants *)
-                      Const _ => NONE
-                    | _ => 
-                       (* FIXME: analyse type here or at "pty"*)
-		       SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection))
-            end
+                Const _ => NONE     (* nothing to do on constants *)
+              | _ => 
+		let
+		    val name = Sign.base_name n
+		    val at_inst     = dynamic_thm ss ("at_"^name^"_inst")
+		    val pt_inst     = dynamic_thm ss ("pt_"^name^"_inst")  
+		    val perm_eq_app = thm "nominal.pt_fun_app_eq"	  
+		in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end)
 
         (* case pi o (%x. f x) == (%x. pi o (f ((rev pi)o x))) *)
         | (Const("nominal.perm",_) $ pi $ (Abs _)) => 
            let 
-             val perm_fun_def = thm "nominal.perm_fun_def"
+               val perm_fun_def = thm "nominal.perm_fun_def"
            in SOME (perm_fun_def) end
 
         (* no redex otherwise *) 
@@ -50,16 +44,15 @@ fun perm_eval_tac ss i =
 	    ["nominal.perm pi x"] perm_eval_simproc;
 
         (* these lemmas are created dynamically according to the atom types *) 
-	val perm_swap     = dynamic_thms ss "perm_swap";
-        val perm_fresh    = dynamic_thms ss "perm_fresh_fresh";
-        val perm_bij      = dynamic_thms ss "perm_bij";
-        val perm_compose' = dynamic_thms ss "perm_compose'";
-        val perm_pi_simp  = dynamic_thms ss "perm_pi_simp";
+	val perm_swap     = dynamic_thms ss "perm_swap"
+	val perm_fresh    = dynamic_thms ss "perm_fresh_fresh"
+        val perm_bij      = dynamic_thms ss "perm_bij"
+        val perm_compose' = dynamic_thms ss "perm_compose'"
+        val perm_pi_simp  = dynamic_thms ss "perm_pi_simp"
         val ss' = ss addsimps (perm_swap@perm_fresh@perm_bij@perm_compose'@perm_pi_simp)
-                     addsimprocs [perm_eval];
-                    
     in
-      ("general simplification step", FIRST [rtac conjI i, asm_full_simp_tac ss' i])
+      ("general simplification step", 
+        FIRST [rtac conjI i, asm_full_simp_tac (ss' addsimprocs [perm_eval]) i])
     end;
 
 (* applies the perm_compose rule - this rule would loop in the simplifier     *)
@@ -102,29 +95,18 @@ fun NO_DEBUG_tac (_,tac) = CHANGED tac;
 fun perm_simp_tac tactical ss i = 
     DETERM (tactical (perm_eval_tac ss i));
 
-(* perm_simp_tac plus additional tactics to decide            *)
-(* support problems                                           *)
-(* the "repeating"-depth is set to 40 - this seems sufficient *)
-(*fun perm_supports_tac tactical ss i = 
-    DETERM (REPEAT_DETERM_N 40 
-      (FIRST[tactical (perm_eval_tac ss i),
-             tactical (apply_perm_compose_tac ss i),
-             tactical (apply_cong_tac i), 
-             tactical (unfold_perm_fun_def_tac i),
-             tactical (expand_fun_eq_tac i)]));
-*)
 
 (* perm_simp_tac plus additional tactics to decide            *)
 (* support problems                                           *)
-(* the "repeating"-depth is set to 40 - this seems sufficient *)
+(* the "recursion"-depth is set to 10 - this seems sufficient *)
 fun perm_supports_tac tactical ss n = 
     if n=0 then K all_tac
     else DETERM o 
          (FIRST'[fn i => tactical (perm_eval_tac ss i),
-                fn i => tactical (apply_perm_compose_tac ss i),
-                fn i => tactical (apply_cong_tac i), 
-                fn i => tactical (unfold_perm_fun_def_tac i),
-                fn i => tactical (expand_fun_eq_tac i)]
+                 fn i => tactical (apply_perm_compose_tac ss i),
+		 fn i => tactical (apply_cong_tac i), 
+                 fn i => tactical (unfold_perm_fun_def_tac i),
+		 fn i => tactical (expand_fun_eq_tac i)]
          THEN_ALL_NEW (TRY o (perm_supports_tac tactical ss (n-1))));
 
 (* tactic that first unfolds the support definition          *)
