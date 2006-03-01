@@ -4,7 +4,36 @@
 Set of rules used for ATPs
 *)
 
-structure ResAtpSet =
+signature RES_ATPSET =
+sig
+    type atpset
+    val local_AtpSet_of: Proof.context -> atpset
+    val add_atp_rules: atpset * Thm.thm list -> atpset
+    val del_atp_rules: atpset * Thm.thm list -> atpset
+    val get_AtpSet: theory -> atpset
+    val print_local_AtpSet: Proof.context -> unit
+    val AtpSet_of: theory -> atpset
+    val add_atp_rule: Thm.thm * atpset -> atpset
+    val del_atp_rule: Thm.thm * atpset -> atpset
+    val print_atpset: atpset -> unit
+    val setup: theory -> theory
+    val get_local_AtpSet: Proof.context -> atpset
+    val rep_as: atpset -> Thm.thm list
+    val merge_atpset: atpset * atpset -> atpset
+    val add_atp_rule': Thm.thm -> atpset -> atpset
+    val del_atp_rule': Thm.thm -> atpset -> atpset
+    val Add_AtpRs: Thm.thm list -> unit
+    val Del_AtpRs: Thm.thm list -> unit
+    val empty_atpset: atpset
+    val put_local_AtpSet: atpset -> Proof.context -> Proof.context
+    val print_AtpSet: theory -> unit
+    val atp_rules_of_thy: theory -> Thm.thm list
+    val atp_rules_of_ctxt: Proof.context -> Thm.thm list
+end;
+
+
+
+structure ResAtpSet : RES_ATPSET =
 
 struct
 
@@ -41,6 +70,7 @@ fun print_atpset (AtpSet thms) =
 	    |> Pretty.chunks |> Pretty.writeln
     end;
 
+fun rep_as (AtpSet thms) = thms;
 
 (* global AtpSet *)
 
@@ -70,6 +100,7 @@ fun Add_AtpRs args = change_AtpSet (fn ars => add_atp_rules (ars,args));
 
 fun Del_AtpRs args = change_AtpSet (fn ars => del_atp_rules (ars,args));
 
+fun atp_rules_of_thy thy = rep_as (AtpSet_of thy);
 
 (* local AtpSet *)
 
@@ -87,8 +118,9 @@ val get_local_AtpSet = LocalAtpSet.get;
 
 val put_local_AtpSet = LocalAtpSet.put;
 
-fun local_AtpSet_of ctxt = get_local_AtpSet;
+fun local_AtpSet_of ctxt = get_local_AtpSet ctxt;
 
+fun atp_rules_of_ctxt ctxt = rep_as (local_AtpSet_of ctxt);
 
 (* attributes *)
 fun attrib f = Thm.declaration_attribute (fn th =>
