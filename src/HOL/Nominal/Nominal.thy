@@ -556,6 +556,13 @@ lemma at_ds5:
   shows "[(a,b)] \<triangleq> [(b,a)]"
   by (force simp add: prm_eq_def at_calc[OF at])
 
+lemma at_ds5': 
+  fixes a  :: "'x"
+  and   b  :: "'x"
+  assumes at: "at TYPE('x)"
+  shows "[(a,b),(b,a)] \<triangleq> []"
+  by (force simp add: prm_eq_def at_calc[OF at])
+
 lemma at_ds6: 
   fixes a  :: "'x"
   and   b  :: "'x"
@@ -1017,6 +1024,20 @@ lemma pt_swap_bij:
   and     at: "at TYPE('x)"
   shows "[(a,b)]\<bullet>([(a,b)]\<bullet>x) = x"
   by (rule pt_bij2[OF pt, OF at], simp)
+
+lemma pt_swap_bij':
+  fixes a  :: "'x"
+  and   b  :: "'x"
+  and   x  :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "[(a,b)]\<bullet>([(b,a)]\<bullet>x) = x"
+apply(simp add: pt2[OF pt,symmetric])
+apply(rule trans)
+apply(rule pt3[OF pt])
+apply(rule at_ds5'[OF at])
+apply(rule pt1[OF pt])
+done
 
 lemma pt_set_bij1:
   fixes pi :: "'x prm"
@@ -2747,4 +2768,11 @@ method_setup supports_simp_debug =
   {* supports_meth_debug *}
   {* tactic for deciding whether something supports something else including debuging facilities *}
 
+method_setup finite_guess =
+  {* finite_gs_meth *}
+  {* tactic for deciding whether something has finite support *}
+
+method_setup finite_guess_debug =
+  {* finite_gs_meth_debug *}
+  {* tactic for deciding whether something has finite support including debuging facilities *}
 end
