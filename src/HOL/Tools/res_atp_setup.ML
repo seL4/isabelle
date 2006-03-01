@@ -151,6 +151,11 @@ fun string_of_logic FOL = "FOL"
   | string_of_logic HOLC = "HOLC"
   | string_of_logic HOLCS = "HOLCS";
 
+
+fun is_fol_logic FOL = true
+  | is_fol_logic  _ = false
+
+
 (*HOLCS will not occur here*)
 fun upgrade_lg HOLC _ = HOLC
   | upgrade_lg HOL HOLC = HOLC
@@ -263,7 +268,30 @@ fun problem_logic (conj_cls,hyp_cls,userR,claR,simpR) =
 	lg5
     end;
 
+(***************************************************************)
+(* Clauses used by FOL ATPs                                    *)
+(***************************************************************)
 
+datatype clause = FOLClause of ResClause.clause 
+		| HOLClause of ResHolClause.clause
+
+
+fun isTaut (FOLClause cls) = ResClause.isTaut cls
+  | isTaut (HOLClause cls) = ResHolClause.isTaut cls
+
+
+fun clause2tptp (FOLClause cls) = ResClause.clause2tptp cls
+  | clause2tptp (HOLClause cls) = ResHolClause.clause2tptp cls
+
+
+fun make_clause_fol cls = FOLClause cls
+
+fun make_clause_hol cls = HOLClause cls
+
+fun make_conjecture_clauses is_fol terms =
+    if is_fol then map make_clause_fol (ResClause.make_conjecture_clauses terms)
+    else
+	map make_clause_hol (ResHolClause.make_conjecture_clauses terms)
 
 (***************************************************************)
 (* prover-specific output format:                              *)
@@ -289,42 +317,35 @@ fun cnf_hyps_thms ctxt =
     end;
 
 (**** clausification ****)
-fun cls_axiom_fol _ _ [] = []
-  | cls_axiom_fol name i (tm::tms) =
-      case ResClause.make_axiom_clause tm (name,i) of 
-          SOME cls => cls :: cls_axiom_fol name (i+1) tms
-        | NONE => cls_axiom_fol name i tms;
 
-fun cls_axiom_hol  _ _ [] = []
-  | cls_axiom_hol name i (tm::tms) =
-   (ResHolClause.make_axiom_clause tm (name,i)) :: (cls_axiom_hol name (i+1) tms);
+fun cls_axiom _ _ _ [] = []
+  | cls_axiom is_fol name i (tm::tms) =
+    if is_fol then 
+	(case ResClause.make_axiom_clause tm (name,i) of 
+             SOME cls => (FOLClause cls) :: cls_axiom true  name (i+1) tms
+           | NONE => cls_axiom true name i tms)
+    else
+	(HOLClause (ResHolClause.make_axiom_clause tm (name,i))) :: (cls_axiom false name (i+1) tms);
 
 
-fun filtered_tptp_axiom_fol name clss =
-    (fst(ListPair.unzip (map ResClause.clause2tptp (filter (fn c => not (ResClause.isTaut c)) (cls_axiom_fol name 0 clss)))),[])
+fun filtered_tptp_axiom is_fol name clss =
+    (fst(ListPair.unzip (map clause2tptp (filter (fn c => not (isTaut c)) (cls_axiom is_fol name 0 clss)))),[])
     handle _ => ([],[name]);
 
-fun filtered_tptp_axiom_hol name clss =
-    (fst(ListPair.unzip (map ResHolClause.clause2tptp (filter (fn c => not (ResHolClause.isTaut c)) (cls_axiom_hol name 0 clss)))),[])
-    handle _ => ([],[name]);
-
-fun tptp_axioms_g filt_ax_fn [] err = ([],err)
-  | tptp_axioms_g filt_ax_fn ((name,clss)::nclss) err =
-    let val (nclss1,err1) = tptp_axioms_g filt_ax_fn nclss err
-	val (clsstrs,err_name_list) = filt_ax_fn name clss
+fun tptp_axioms_aux _ [] err = ([],err)
+  | tptp_axioms_aux is_fol ((name,clss)::nclss) err =
+    let val (nclss1,err1) = tptp_axioms_aux is_fol nclss err
+	val (clsstrs,err_name_list) = filtered_tptp_axiom is_fol name clss
     in
 	case clsstrs of [] => (nclss1,err_name_list @ err1) 
 		      | _ => (clsstrs::nclss1,err1)
     end;
-		
-fun tptp_axioms_fol rules = tptp_axioms_g filtered_tptp_axiom_fol rules [];
 
-fun tptp_axioms_hol rules = tptp_axioms_g filtered_tptp_axiom_hol rules [];
+fun tptp_axioms is_fol rules = tptp_axioms_aux is_fol rules [];
 
-
-fun atp_axioms_g tptp_ax_fn rules file =
+fun atp_axioms is_fol rules file = 
     let val out = TextIO.openOut file
-	val (clss,errs) = tptp_ax_fn rules
+	val (clss,errs) = tptp_axioms is_fol rules
 	val clss' = ResClause.union_all clss
     in
 	ResClause.writeln_strs out clss';
@@ -333,27 +354,16 @@ fun atp_axioms_g tptp_ax_fn rules file =
     end;
 
 
-fun atp_axioms_fol rules file = atp_axioms_g tptp_axioms_fol rules file;
-
-fun atp_axioms_hol rules file = atp_axioms_g tptp_axioms_hol rules file;
-
-
-fun filtered_tptp_conjectures_fol terms =
-    let val clss = ResClause.make_conjecture_clauses terms
-	val clss' = filter (fn c => not (ResClause.isTaut c)) clss
+fun filtered_tptp_conjectures is_fol terms =
+    let val clss = make_conjecture_clauses is_fol terms
+	val clss' = filter (fn c => not (isTaut c)) clss
     in
-	ListPair.unzip (map ResClause.clause2tptp clss')
+	ListPair.unzip (map clause2tptp clss')
     end;
 
-fun filtered_tptp_conjectures_hol terms =
-    let val clss = ResHolClause.make_conjecture_clauses terms
-	val clss' = filter (fn c => not (ResHolClause.isTaut c)) clss
-    in
-	ListPair.unzip (map ResHolClause.clause2tptp clss')
-    end;
 
-fun atp_conjectures_h_g filt_conj_fn hyp_cls =
-    let val (tptp_h_clss,tfree_litss) = filt_conj_fn hyp_cls
+fun atp_conjectures_h is_fol hyp_cls =
+    let val (tptp_h_clss,tfree_litss) = filtered_tptp_conjectures is_fol hyp_cls
 	val tfree_lits = ResClause.union_all tfree_litss
 	val tfree_clss = map ResClause.tptp_tfree_clause tfree_lits 
 	val hypsfile = hyps_file ()
@@ -364,12 +374,9 @@ fun atp_conjectures_h_g filt_conj_fn hyp_cls =
         ([hypsfile],tfree_lits)
     end;
 
-fun atp_conjectures_h_fol hyp_cls = atp_conjectures_h_g filtered_tptp_conjectures_fol hyp_cls;
 
-fun atp_conjectures_h_hol hyp_cls = atp_conjectures_h_g filtered_tptp_conjectures_hol hyp_cls;
-
-fun atp_conjectures_c_g filt_conj_fn conj_cls n tfrees =
-    let val (tptp_c_clss,tfree_litss) = filt_conj_fn conj_cls
+fun atp_conjectures_c is_fol conj_cls n tfrees =
+    let val (tptp_c_clss,tfree_litss) = filtered_tptp_conjectures is_fol conj_cls
 	val tfree_clss = map ResClause.tptp_tfree_clause ((ResClause.union_all tfree_litss) \\ tfrees)
 	val probfile = prob_file n
 	val out = TextIO.openOut(probfile)		 	
@@ -380,26 +387,18 @@ fun atp_conjectures_c_g filt_conj_fn conj_cls n tfrees =
 	probfile 
     end;
 
-fun atp_conjectures_c_fol conj_cls n tfrees = atp_conjectures_c_g filtered_tptp_conjectures_fol conj_cls n tfrees;
 
-fun atp_conjectures_c_hol conj_cls n tfrees = atp_conjectures_c_g filtered_tptp_conjectures_hol conj_cls n tfrees;
-
-
-fun atp_conjectures_g atp_conj_h_fn atp_conj_c_fn [] conj_cls n =
-    let val probfile = atp_conj_c_fn conj_cls n []
+fun atp_conjectures is_fol [] conj_cls n =
+    let val probfile = atp_conjectures_c is_fol conj_cls n []
     in
 	[probfile]
     end
-  | atp_conjectures_g atp_conj_h_fn atp_conj_c_fn hyp_cls conj_cls n =
-    let val (hypsfile,tfree_lits) = atp_conj_h_fn hyp_cls
-	val probfile = atp_conj_c_fn conj_cls n tfree_lits
+  | atp_conjectures is_fol hyp_cls conj_cls n =
+    let val (hypsfile,tfree_lits) = atp_conjectures_h is_fol hyp_cls
+	val probfile = atp_conjectures_c is_fol conj_cls n tfree_lits
     in
 	(probfile::hypsfile)
     end;
-
-fun atp_conjectures_fol hyp_cls conj_cls n = atp_conjectures_g atp_conjectures_h_fol atp_conjectures_c_fol hyp_cls conj_cls n;
-
-fun atp_conjectures_hol hyp_cls conj_cls n = atp_conjectures_g atp_conjectures_h_hol atp_conjectures_c_hol hyp_cls conj_cls n;
 
 
 (**** types and sorts ****)
@@ -427,11 +426,12 @@ fun tptp_types_sorts thy =
 
 datatype mode = Auto | Fol | Hol;
 
-fun write_out_g logic atp_ax_fn atp_conj_fn (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
-    let val (files1,err1) = if (null claR) then ([],[]) else (atp_ax_fn claR (claset_file()))
-	val (files2,err2) = if (null simpR) then ([],[]) else (atp_ax_fn simpR (simpset_file ()))
-	val (files3,err3) = if (null userR) then ([],[]) else (atp_ax_fn userR (local_lemma_file ()))
-	val files4 = atp_conj_fn hyp_cls conj_cls n
+fun write_out logic (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
+    let val is_fol = is_fol_logic logic
+	val (files1,err1) = if (null claR) then ([],[]) else (atp_axioms is_fol claR (claset_file()))
+	val (files2,err2) = if (null simpR) then ([],[]) else (atp_axioms is_fol simpR (simpset_file ()))
+	val (files3,err3) = if (null userR) then ([],[]) else (atp_axioms is_fol userR (local_lemma_file ()))
+	val files4 = atp_conjectures is_fol hyp_cls conj_cls n
 	val errs = err1 @ err2 @ err3 @ err
 	val logic' = if !include_combS then HOLCS 
 		     else 
@@ -445,24 +445,15 @@ fun write_out_g logic atp_ax_fn atp_conj_fn (claR,simpR,userR,hyp_cls,conj_cls,n
 	(helpers,files4 @ files1 @ files2 @ files3)
     end;
 
-fun write_out_fol (claR,simpR,userR,hyp_cls,conj_cls,n,err) = write_out_g FOL atp_axioms_fol atp_conjectures_fol (claR,simpR,userR,hyp_cls,conj_cls,n,err);
 
-fun write_out_hol (claR,simpR,userR,hyp_cls,conj_cls,n,err) = write_out_g HOL atp_axioms_hol atp_conjectures_hol (claR,simpR,userR,hyp_cls,conj_cls,n,err);
-
-fun write_out_fol_ts ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =  
-    let val ts_file = if (!fol_keep_types) then tptp_types_sorts (ProofContext.theory_of ctxt) else []
-	val (helpers,files) = write_out_fol (claR,simpR,userR,hyp_cls,conj_cls,n,err) 
+fun write_out_ts is_fol ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
+    let val ts_file = if ((is_fol andalso (!fol_keep_types)) orelse ((not is_fol) andalso (is_typed_hol ()))) then tptp_types_sorts (ProofContext.theory_of ctxt) else []
+	val logic = if is_fol then FOL else HOL
+	val (helpers,files) = write_out logic (claR,simpR,userR,hyp_cls,conj_cls,n,err)
     in
-	(helpers,files@ts_file)
+	(helpers,files)
     end;
-
-fun write_out_hol_ts ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =  
-    let val ts_file = if (is_typed_hol()) then tptp_types_sorts (ProofContext.theory_of ctxt) else []
-	val (helpers,files) = write_out_hol (claR,simpR,userR,hyp_cls,conj_cls,n,err)
-    in
-	(helpers,files@ts_file)
-    end;
-
+ 
 
 fun prep_atp_input mode ctxt conjectures user_thms n =
     let val conj_cls = map prop_of (make_clauses conjectures) 
@@ -472,8 +463,8 @@ fun prep_atp_input mode ctxt conjectures user_thms n =
 			       | Fol => FOL
 			       | Hol => HOL
     in
-	case logic of FOL => write_out_fol_ts ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,errs)
-		    | _ => write_out_hol_ts ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,errs)
+	case logic of FOL => write_out_ts true ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,errs)
+		    | _ => write_out_ts false ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,errs)
 			   
     end;
 
