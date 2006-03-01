@@ -10,18 +10,29 @@ fun dynamic_thms ss name =
 fun dynamic_thm ss name = 
     ProofContext.get_thm (Simplifier.the_context ss) (Name name);
 
-(* FIXME: make it usable for all atom-types *)
 (* initial simplification step in the tactic *)
 fun perm_eval_tac ss i =
     let
         fun perm_eval_simproc sg ss redex =
+        let 
+	   
+           (* the "application" case below is only applicable when the head   *)
+           (* of f is not a constant  or when it is a permuattion with two or *) 
+           (* more arguments                                                  *)
+           fun applicable t = 
+	       (case (strip_comb t) of
+		  (Const ("nominal.perm",_),ts) => (length ts) >= 2
+		| (Const _,_) => false
+		| _ => true)
+
+	in
         (case redex of 
-        (* case pi o (f x) == (pi o f) (pi o x)            *)
-        (* special treatment when head of f is a constants *)
+        (* case pi o (f x) == (pi o f) (pi o x)          *)
+        (* special treatment according to the head of f  *)
         (Const("nominal.perm",
-           Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
-           (case (head_of f) of
-                Const _ => NONE     (* nothing to do on constants *)
+          Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
+	   (case (applicable f) of
+                false => NONE  
               | _ => 
 		let
 		    val name = Sign.base_name n
@@ -37,7 +48,7 @@ fun perm_eval_tac ss i =
            in SOME (perm_fun_def) end
 
         (* no redex otherwise *) 
-        | _ => NONE);
+        | _ => NONE) end
 
 	val perm_eval =
 	    Simplifier.simproc (Theory.sign_of (the_context ())) "perm_eval" 
@@ -87,7 +98,7 @@ fun expand_fun_eq_tac i =
 
 (* debugging *)
 fun DEBUG_tac (msg,tac) = 
-    EVERY [CHANGED tac, print_tac ("after "^msg)]; 
+    CHANGED (EVERY [tac, print_tac ("after "^msg)]); 
 fun NO_DEBUG_tac (_,tac) = CHANGED tac; 
 
 (* Main Tactic *)
