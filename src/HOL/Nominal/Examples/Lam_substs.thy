@@ -192,7 +192,6 @@ lemma rec_trans:
   shows   "(t,y')\<in>rec f1 f2 f3"
 using a b by simp
 
-
 lemma rec_prm_equiv:
   fixes f1 ::"('a::pt_name) f1_ty"
   and   f2 ::"('a::pt_name) f2_ty"
@@ -267,6 +266,7 @@ next
   qed
   thus ?case using a1' a2 by (force intro: rec.r3 rec_trans)
 qed
+
 
 lemma rec_perm:
   fixes f1 ::"('a::pt_name) f1_ty"
@@ -640,6 +640,13 @@ apply(rule f)
 apply(rule c)
 done
 
+lemma rfun'_equiv_aux:
+  fixes pi::"name prm"
+  assumes f: "finite ((supp (f1,f2,f3))::name set)"
+  and     c: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
+  shows "pi\<bullet>(rfun' f1 f2 f3 t pi') = (pi\<bullet>rfun' f1 f2 f3 t) (pi\<bullet>pi')" 
+by (simp add: perm_app)
+
 lemma rfun'_supports:
   fixes f1::"('a::pt_name) f1_ty"
   and   f2::"('a::pt_name) f2_ty"
@@ -793,7 +800,7 @@ proof -
   qed
   let ?g = "(\<lambda>a'. f3 a' (rfun' f1 f2 f3 t ([]@[(a,a')])))"
   have a0: "((supp (f3,a,([]::name prm),rfun' f1 f2 f3 t))::name set) supports ?g"
-    by (supports_simp add: perm_append)
+    by (supports_simp add: perm_append rfun'_equiv_aux[OF f, OF c])
   have a1: "finite ((supp (f3,a,([]::name prm),rfun' f1 f2 f3 t))::name set)"
     using f' by (simp add: supp_prod fs_name1 rfun'_finite_supp[OF f, OF c])
   from a0 a1 have a2: "finite ((supp ?g)::name set)"
