@@ -670,6 +670,7 @@ fun create_nom_typedecls ak_names thy =
        val fresh_bij         = thm "nominal.pt_fresh_bij";
        val pt_pi_rev         = thm "nominal.pt_pi_rev";
        val pt_rev_pi         = thm "nominal.pt_rev_pi";
+       val fresh_fun_eqvt    = thm "nominal.fresh_fun_equiv";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -776,6 +777,7 @@ fun create_nom_typedecls ak_names thy =
 	      let val thms1 = inst_pt_at [fresh_bij]
 		  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
 	      in [(("fresh_eqvt", thms1 @ thms2),[])] end
+            ||>> PureThy.add_thmss [(("fresh_fun_eqvt",inst_pt_at [fresh_fun_eqvt]),[])]
 	   end;
 
     in NominalData.put (fold Symtab.update (map (rpair ()) full_ak_names)
