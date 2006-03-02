@@ -270,7 +270,7 @@ fun skolem_of_nnf th =
 (*also works for HOL*) 
 fun skolem_thm th = 
   let val nnfth = to_nnf th
-  in  Meson.make_cnf (skolem_of_nnf nnfth) nnfth
+  in  rm_redundant_cls (Meson.make_cnf (skolem_of_nnf nnfth) nnfth)
   end
   handle THM _ => [];
 
@@ -282,7 +282,7 @@ fun skolem thy (name,th) =
         (fn nnfth => 
           let val (thy',defs) = declare_skofuns cname nnfth thy
               val skoths = map skolem_of_def defs
-          in (thy', Meson.make_cnf skoths nnfth) end)
+          in (thy', rm_redundant_cls (Meson.make_cnf skoths nnfth)) end)
       (SOME (to_nnf th)  handle THM _ => NONE) 
   end;
 
@@ -346,9 +346,7 @@ val tag_elim  = preserve_name (fn th => tagD RS th);
 
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
-      val intros = [subset_refl] @ safeIs @ hazIs
-          (*subset_refl is a special case: obviously useful in resolution, but
-            harmful if added as a default intro rule.*)
+      val intros = safeIs @ hazIs
       val elims  = map Classical.classical_rule (safeEs @ hazEs)
   in
      Output.debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 

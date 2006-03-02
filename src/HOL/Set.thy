@@ -522,7 +522,7 @@ ML {*
 lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
 
-lemma subset_refl [simp]: "A \<subseteq> A"
+lemma subset_refl [simp,atp]: "A \<subseteq> A"
   by fast
 
 lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
