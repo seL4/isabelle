@@ -29,11 +29,10 @@ next
 qed
 
 lemma forget_automatic: 
-  assumes a: "a\<sharp>t1"
-  shows "t1[a::=t2] = t1"
-  using a
-  by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
-     (auto simp add: abs_fresh fresh_atm)
+  assumes asm: "a\<sharp>t\<^isub>1"
+  shows "t\<^isub>1[a::=t\<^isub>2] = t\<^isub>1"
+  using asm by (nominal_induct t\<^isub>1 avoiding: a t\<^isub>2 rule: lam.induct)
+             (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
   fixes a :: "name"
@@ -60,13 +59,10 @@ qed
 
 lemma fresh_fact_automatic: 
   fixes a::"name"
-  assumes a: "a\<sharp>t1"
-  and     b: "a\<sharp>t2"
-  shows "a\<sharp>(t1[b::=t2])"
-using a b
-by (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
-   (auto simp add: abs_fresh fresh_atm)
-
+  assumes asm: "a\<sharp>t\<^isub>1" "a\<sharp>t\<^isub>2"
+  shows "a\<sharp>(t\<^isub>1[b::=t\<^isub>2])"
+using asm by (nominal_induct t\<^isub>1 avoiding: a b t\<^isub>2 rule: lam.induct)
+             (auto simp add: abs_fresh fresh_atm)
 
 lemma subs_lemma:  
   fixes x::"name"
@@ -109,7 +105,7 @@ proof (nominal_induct M avoiding: x y N L rule: lam.induct)
   qed
 next
   case (Lam z M1) (* case 2: lambdas *)
-  have ih: "\<And>x y N L. x\<noteq>y \<Longrightarrow> x\<sharp>L \<Longrightarrow> M1[x::=N][y::=L] = M1[y::=L][x::=N[y::=L]]" by fact
+  have ih: "\<And>x y N L. \<lbrakk>x\<noteq>y; x\<sharp>L\<rbrakk> \<Longrightarrow> M1[x::=N][y::=L] = M1[y::=L][x::=N[y::=L]]" by fact
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
   have "z\<sharp>x" "z\<sharp>y" "z\<sharp>N" "z\<sharp>L" by fact
@@ -128,12 +124,10 @@ next
 qed
 
 lemma subs_lemma_automatic:  
-  assumes a: "x\<noteq>y"
-  and     b: "x\<sharp>L"
+  assumes asm: "x\<noteq>y" "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
-using a b
-by (nominal_induct M avoiding: x y N L rule: lam.induct)
-   (auto simp add: fresh_fact forget)
+using asm by (nominal_induct M avoiding: x y N L rule: lam.induct)
+             (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
   assumes a: "c\<sharp>t1"
@@ -243,6 +237,79 @@ proof -
 	by (force simp add: fresh_prod fresh_atm)
       have x: "P x (App (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>s1)) (pi\<bullet>s2)) ((([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)])"
 	using a4 f2 by (blast intro!: eqvt_beta)
+      have alpha1: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>s1))) = (Lam [(pi\<bullet>a)].(pi\<bullet>s1))" using f1 f3
+	by (simp add: lam.inject alpha)
+      have alpha2: "(([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)] = (pi\<bullet>s1)[(pi\<bullet>a)::=(pi\<bullet>s2)]"
+	using f3 by (simp only: subst_rename[symmetric] pt_name2)
+      show "P x (App (Lam [(pi\<bullet>a)].(pi\<bullet>s1)) (pi\<bullet>s2)) ((pi\<bullet>s1)[(pi\<bullet>a)::=(pi\<bullet>s2)])"
+	using x alpha1 alpha2 by (simp only: pt_name2)
+    qed
+  qed
+  hence "P x (([]::name prm)\<bullet>t) (([]::name prm)\<bullet>s)" by blast 
+  thus ?thesis by simp
+qed
+
+lemma beta_induct_aux:
+  fixes  P :: "'a::fs_name\<Rightarrow>lam \<Rightarrow> lam \<Rightarrow>bool"
+  and    t :: "lam"
+  and    s :: "lam"
+  and    x :: "'a::fs_name"
+  assumes a: "t\<longrightarrow>\<^isub>\<beta>s"
+  and a1: "\<And>t s1 s2 x. s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (App s1 t) (App s2 t)"
+  and a2: "\<And>t s1 s2 x. s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (App t s1) (App t s2)"
+  and a3: "\<And>a s1 s2 x. a\<sharp>x \<Longrightarrow> s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (Lam [a].s1) (Lam [a].s2)"
+  and a4: "\<And>a t1 s1 x. a\<sharp>(x,s1) \<Longrightarrow> P x (App (Lam [a].t1) s1) (t1[a::=s1])"
+  and eq: "\<And>(pi::name prm) x t s. P x t s \<Longrightarrow> P (pi\<bullet>x) (pi\<bullet>t) (pi\<bullet>s)"
+  shows "P x t s"
+using a
+proof (induct fixing: x)
+    case b1 thus ?case using a1 by blast
+  next
+    case b2 thus ?case using a2 by blast
+  next
+    case (b3 a s1 s2)
+    have j1: "s1 \<longrightarrow>\<^isub>\<beta> s2" by fact
+    have j2: "\<And>x. P x s1 s2" by fact
+    show ?case 
+    proof -
+      have f: "\<exists>c::name. c\<sharp>(a,s1,s2,x)"
+	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+      then obtain c::"name" 
+	where f1: "c\<noteq>a" and f2: "c\<sharp>x" and f3: "c\<sharp>s1" and f4: "c\<sharp>s2"
+	by (force simp add: fresh_prod fresh_atm)
+      have x1: "([(c,a)]\<bullet>s1) \<longrightarrow>\<^isub>\<beta> ([(c,a)]\<bullet>s2)" using j1 by (rule eqvt_beta)
+      have x2: "\<And>x. P x ([(c,a)]\<bullet>s1) ([(c,a)]\<bullet>s2)" using j2 eq 
+	apply -
+	apply(drule_tac x="[(c,a)]\<bullet>x" in meta_spec)
+	apply(drule_tac x="[(c,a)]\<bullet>x" in meta_spec)
+	apply(drule_tac x="s1" in meta_spec)
+        apply(drule_tac x="s2" in meta_spec)
+	apply(drule_tac x="[(c,a)]" in meta_spec)
+	apply(simp add: perm_swap)
+	done
+      have x: "P x (Lam [c].([(c,a)]\<bullet>s1)) (Lam [c].([(c,a)]\<bullet>s2))"
+	using a3 f2 x1 x2 by blast
+      have alpha1: "(Lam [c].([(c,a)]\<bullet>s1)) = (Lam [a].s1)" using f1 f3
+	by (simp add: lam.inject alpha)
+      have alpha2: "(Lam [c].([(c,a)]\<bullet>s2)) = (Lam [a].s2)" using f1 f3
+	by (simp add: lam.inject alpha)
+      show " P x (Lam [a].s1) (Lam [a].s2)"
+	using x alpha1 alpha2 by (simp only: pt_name2)
+    qed
+  next
+    case (b4 a s1 s2)
+    show ?case
+    proof - 
+      have f: "\<exists>c::name. c\<sharp>(a,s1,s2,x)"
+	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
+      then obtain c::"name" 
+	where f1: "c\<noteq>a" and f2: "c\<sharp>x" and f3: "c\<sharp>s1" and f4: "c\<sharp>s2" and f5: "c\<sharp>(x,s2)"
+	by (force simp add: fresh_prod fresh_atm)
+      have x: "P x (App (Lam [c].([(c,a)]\<bullet>s1)) s2) (([(c,a)]\<bullet>s1)[c::=s2])"
+	using a4 f5 
+	(* HERE *)
+
+	by (blast intro!: eqvt_beta)
       have alpha1: "(Lam [c].([(c,pi\<bullet>a)]\<bullet>(pi\<bullet>s1))) = (Lam [(pi\<bullet>a)].(pi\<bullet>s1))" using f1 f3
 	by (simp add: lam.inject alpha)
       have alpha2: "(([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)] = (pi\<bullet>s1)[(pi\<bullet>a)::=(pi\<bullet>s2)]"
