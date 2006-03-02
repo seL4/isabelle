@@ -8,6 +8,7 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports CPure
 uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+    "Tools/res_atpset.ML"
 
 begin
 
@@ -1018,10 +1019,14 @@ lemma conj_comms:
     and conj_left_commute: "(P&(Q&R)) = (Q&(P&R))" by iprover+
 lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by iprover
 
+lemmas conj_ac = conj_commute conj_left_commute conj_assoc
+
 lemma disj_comms:
   shows disj_commute: "(P|Q) = (Q|P)"
     and disj_left_commute: "(P|(Q|R)) = (Q|(P|R))" by iprover+
 lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by iprover
+
+lemmas disj_ac = disj_commute disj_left_commute disj_assoc
 
 lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by iprover
 lemma conj_disj_distribR: "((P|Q)&R) = (P&R | Q&R)" by iprover

@@ -31,9 +31,6 @@ use "~~/src/Provers/Arith/cancel_div_mod.ML";
 use "~~/src/Provers/quasi.ML";
 use "~~/src/Provers/order.ML";
 
-
-use "Tools/res_atpset.ML";
-
 with_path "Integ" use_thy "Main";
 
 path_add "~~/src/HOL/Library";
