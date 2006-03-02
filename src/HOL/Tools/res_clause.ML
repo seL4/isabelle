@@ -432,7 +432,7 @@ fun check_var_pairs (x,y) [] = 0
   | check_var_pairs (x,y) ((u,v)::w) =
     if (x,y) = (u,v) then 1 
     else
-	if (x = u) orelse (y = v) then 2 (*conflict*)
+	if x=u orelse y=v then 2 (*conflict*)
 	else check_var_pairs (x,y) w;
 
 fun type_eq (AtomV(v1),AtomV(v2)) (vars,tvars) =
@@ -451,9 +451,7 @@ fun type_eq (AtomV(v1),AtomV(v2)) (vars,tvars) =
       end
   | type_eq (Comp(_,_),_) vtvars = (false,vtvars)
 
-and
-
-    types_eq ([],[]) vtvars = (true,vtvars)
+and types_eq ([],[]) vtvars = (true,vtvars)
   | types_eq (tp1::tps1,tp2::tps2) vtvars =
       let val (eq1,vtvars1) = type_eq (tp1,tp2) vtvars
 	  val (eq2,vtvars2) = if eq1 then types_eq (tps1,tps2) vtvars1
@@ -480,9 +478,7 @@ fun term_eq (UVar(v1,tp1),UVar(v2,tp2)) (vars,tvars) =
       end
   | term_eq (Fun(_,_,_),_) vtvars = (false,vtvars)
 
-and
-
-    terms_eq ([],[]) vtvars = (true,vtvars)
+and terms_eq ([],[]) vtvars = (true,vtvars)
   | terms_eq (tm1::tms1,tm2::tms2) vtvars =
       let val (eq1,vtvars1) = term_eq (tm1,tm2) vtvars
 	  val (eq2,vtvars2) = if eq1 then terms_eq (tms1,tms2) vtvars1
@@ -494,7 +490,7 @@ and
 
 fun pred_eq (Predicate(pname1,tps1,tms1),Predicate(pname2,tps2,tms2)) vtvars =
     let val (eq1,vtvars1) = 
-	    if (pname1 = pname2) then terms_eq (tms1,tms2) vtvars
+	    if pname1 = pname2 then terms_eq (tms1,tms2) vtvars
 	    else (false,vtvars)
 	val (eq2,vtvars2) = 
 	    if eq1 then types_eq (tps1,tps2) vtvars1
@@ -508,19 +504,18 @@ fun lit_eq (Literal(pol1,pred1,_),Literal(pol2,pred2,_)) vtvars =
     if (pol1 = pol2) then pred_eq (pred1,pred2) vtvars
     else (false,vtvars);
 
-(*must have the same number of literals*)
 fun lits_eq ([],[]) vtvars = (true,vtvars)
   | lits_eq (l1::ls1,l2::ls2) vtvars = 
-    let val (eq1,vtvars1) = lit_eq (l1,l2) vtvars
-    in
-	if eq1 then lits_eq (ls1,ls2) vtvars1
-	else (false,vtvars1)
-    end;
-
+      let val (eq1,vtvars1) = lit_eq (l1,l2) vtvars
+      in
+	  if eq1 then lits_eq (ls1,ls2) vtvars1
+	  else (false,vtvars1)
+      end
+  | lits_eq _ vtvars = (false,vtvars);
 
 (*Equality of two clauses up to variable renaming*)
 fun clause_eq (Clause{literals=lits1,...}, Clause{literals=lits2,...}) =
-  length lits1 = length lits2 andalso #1 (lits_eq (lits1,lits2) ([],[]));
+  #1 (lits_eq (lits1,lits2) ([],[]));
 
 
 (*** Hash function for clauses ***)
