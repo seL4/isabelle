@@ -51,8 +51,14 @@ fun norm_by_eval_i t thy =
              Library.seq (use_show o NBE_Codegen.generate defined) diff);
     val thy'' = NBE_Data.put (!tab) thy';
     val nt' = NBE_Eval.nbe (!tab) t';
-    val t' = NBE_Codegen.nterm_to_term thy'' nt';
     val _ = print nt';
+    val t' = NBE_Codegen.nterm_to_term thy'' nt';
+(*
+    val _ = print t';
+    val (t'', _) =
+      Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy) (K NONE) (K NONE)
+        [] true ([t'], type_of t);
+*)
     val _ = (Pretty.writeln o Sign.pretty_term thy'') t';
   in
     (t', thy'')
