@@ -776,8 +776,6 @@ fun gen_id_42 aG bG i = (aG i, bG i);
 
 consts_code
   "Pair"    ("(_,/ _)")
-  "fst"     ("fst")
-  "snd"     ("snd")
 
 code_alias
   "*" "Product_Type.pair"

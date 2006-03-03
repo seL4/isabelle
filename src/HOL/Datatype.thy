@@ -229,24 +229,22 @@ lemma [code]:
   "(\<not> False) = True" by (rule HOL.simp_thms)
 
 lemma [code]:
-  fixes x shows "(True \<and> True) = True"
-  and "(False \<and> x) = False"
-  and "(x \<and> False) = False" by simp_all
+  shows "(False \<and> x) = False"
+  and   "(True \<and> x) = x"
+  and   "(x \<and> False) = False"
+  and   "(x \<and> True) = x" by simp_all
 
 lemma [code]:
-  fixes x shows "(False \<or> False) = False"
-  and "(True \<or> x) = True"
-  and "(x \<or> True) = True" by simp_all
+  shows "(False \<or> x) = x"
+  and   "(True \<or> x) = True"
+  and   "(x \<or> False) = x"
+  and   "(x \<or> True) = True" by simp_all
 
 declare
   if_True [code]
   if_False [code]
-
-lemma [code]:
-  "fst (x, y) = x" by simp
-
-lemma [code]:
-  "snd (x, y) = y" by simp
+  fst_conv [code]
+  snd_conv [code]
 
 code_generate True False Not "op &" "op |" If
 
