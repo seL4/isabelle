@@ -98,11 +98,9 @@ fun mk_rexpr defined nm ar =
     else S.app Eval_Constr (S.tup [S.quote s,S.list args ])
   | IVar s => S.nbe_apps (MLvname s) args
   | e1 `$ e2 => mk (args @ [mk [] e2]) e1
-  | (nm, _) `|-> e =>
-      S.nbe_apps (mk_nbeFUN(nm, mk [] e)) args
+  | (nm, _) `|-> e => S.nbe_apps (mk_nbeFUN(nm, mk [] e)) args
   | IAbs (_, e) => mk args e
   | ICase (_, e) => mk args e
-  | _ => sys_error "NBE mkexpr"
   in mk [] end;
 
 val mk_lexpr =
@@ -117,8 +115,15 @@ val mk_lexpr =
   | _ => sys_error "NBE mk_lexpr illegal pattern"
   in mk [] end;
 
+fun vars (IVar s) = [s]
+  | vars (e1 `$ e2) = (vars e1) @ (vars e2)
+  | vars (IAbs(_,e)) = vars e
+  | vars (ICase(_,e)) = vars e
+  | vars _ = [] (* note that a lambda won't occur here anyway *)
+
 fun mk_eqn defined nm ar (lhs,e) =
-  ([S.list(map mk_lexpr (rev lhs))], mk_rexpr defined nm ar e);
+  if has_duplicates (op =) (Library.flat (map vars lhs)) then [] else
+  [([S.list(map mk_lexpr (rev lhs))], mk_rexpr defined nm ar e)];
 
 fun consts_of (IConst ((s, _), _)) = insert (op =) s
   | consts_of (e1 `$ e2) =
@@ -138,7 +143,8 @@ fun generate defined (nm, CodegenThingol.Fun (eqns, _)) =
         val globals = map lookup (filter defined funs);
         val default_eqn = ([params], S.app Eval_Constr (S.tup[S.quote nm,params]));
         val code = S.eqns (MLname nm)
-                          (map (mk_eqn defined nm ar) eqns @ [default_eqn])
+                          (Library.flat(map (mk_eqn defined nm ar) eqns) 
+                           @ [default_eqn])
         val register = tab_update
             (S.app Eval_mk_Fun (S.tup[S.quote nm, MLname nm, string_of_int ar]))
       in
@@ -168,211 +174,3 @@ fun nterm_to_term thy t =
   in to_term [] t end;
 
 end;
-
-(*
-
-val use_show = fn s => (writeln ("\n---generated code:\n"^ s);
-     use_text(writeln o enclose "\n---compiler echo:\n" "\n---\n",
-              writeln o enclose "\n--- compiler echo (with error!):\n" 
-                                "\n---\n")
-      true s);
-
-val dummyIT = CodegenThingol.IType("DUMMY",[]);
-
-use_show(NBE_Codegen.generate (the_context()) ("append",CodegenThingol.Fun(
-  [([CodegenThingol.IConst(("Nil",dummyIT),[]),
-     CodegenThingol.IVarE("ys",dummyIT)],
-    CodegenThingol.IVarE("ys",dummyIT)),
-   ([CodegenThingol.IApp(
-       CodegenThingol.IApp(
-         CodegenThingol.IConst(("Cons",dummyIT),[]),
-         CodegenThingol.IVarE("x",dummyIT)),
-       CodegenThingol.IVarE("xs",dummyIT)),
-     CodegenThingol.IVarE("ys",dummyIT)],
-    CodegenThingol.IApp(
-       CodegenThingol.IApp(
-         CodegenThingol.IConst(("Cons",dummyIT),[]),
-         CodegenThingol.IVarE("x",dummyIT)),
-       CodegenThingol.IApp(
-         CodegenThingol.IApp(
-           CodegenThingol.IConst(("append",dummyIT),[]),
-           CodegenThingol.IVarE("xs",dummyIT)),
-         CodegenThingol.IVarE("ys",dummyIT))))]
-  ,([],dummyIT))));
-
-
-let
-fun test a b = if a=b then () else error "oops!";
-
-val CNil = Const("Nil",dummyT);
-val CCons = Const("Cons",dummyT);
-val Cappend = Const("append",dummyT);
-val Fx = Free("x",dummyT);
-val Fy = Free("y",dummyT);
-val Fxs = Free("xs",dummyT);
-val Fys = Free("ys",dummyT);
-open NBE_Eval
-in
-test (nbe(CNil)) (C "Nil");
-test (nbe(CCons)) (C "Cons");
-test (nbe(Cappend)) (C "append");
-test (nbe(Cappend $ CNil $ CNil)) (C "Nil");
-test (nbe(Cappend $ Fxs)) (A (C "append", V "xs"));
-test (nbe(Cappend $ Fxs $ Fys)) (A (A (C "append", V "xs"), V "ys"));
-test (nbe(Cappend $ CNil $ Fxs)) (V "xs");
-test (nbe(Cappend $ (CCons $ Fx $ Fxs) $ Fys))
-     (A (A (C "Cons", V "x"), A (A (C "append", V "xs"), V "ys")));
-test (nbe(Cappend $ (CCons $ Fx $ Fxs) $ (CCons $ Fy $ Fys)))
-     (A (A (C "Cons", V "x"), A (A (C "append", V "xs"), A (A (C "Cons", V "y"), V "ys"))));
-test (nbe(Cappend $ (CCons $ Fx $ (CCons $ Fy $ Fxs)) $ (CCons$Fy$Fys)))
- (A
-      (A (C "Cons", V "x"),
-         A
-            (A (C "Cons", V "y"),
-               A (A (C "append", V "xs"), A (A (C "Cons", V "y"), V "ys")))))
-
-end;
-
-
-use_show(NBE_Codegen.generate (the_context()) ("app",CodegenThingol.Fun(
-  [
-  ([CodegenThingol.IConst(("Nil",dummyIT),[])],
-    CodegenThingol.IAbs(CodegenThingol.IVarE("ys",dummyIT),
-                        CodegenThingol.IVarE("ys",dummyIT))),
-
-   ([CodegenThingol.IApp(
-       CodegenThingol.IApp(
-         CodegenThingol.IConst(("Cons",dummyIT),[]),
-         CodegenThingol.IVarE("x",dummyIT)),
-       CodegenThingol.IVarE("xs",dummyIT))],
-    CodegenThingol.IAbs(CodegenThingol.IVarE("ys",dummyIT),
-    CodegenThingol.IApp(
-       CodegenThingol.IApp(
-         CodegenThingol.IConst(("Cons",dummyIT),[]),
-         CodegenThingol.IVarE("x",dummyIT)),
-       CodegenThingol.IApp(
-         CodegenThingol.IApp(
-           CodegenThingol.IConst(("app",dummyIT),[]),
-           CodegenThingol.IVarE("xs",dummyIT)),
-         CodegenThingol.IVarE("ys",dummyIT)))))]
-  ,([],dummyIT))));
-
-
-let
-fun test a b = if a=b then () else error "oops!";
-
-val CNil = Const("Nil",dummyT);
-val CCons = Const("Cons",dummyT);
-val Cappend = Const("app",dummyT);
-val Fx = Free("x",dummyT);
-val Fy = Free("y",dummyT);
-val Fxs = Free("xs",dummyT);
-val Fys = Free("ys",dummyT);
-open NBE_Eval
-in
-test (nbe(CNil)) (C "Nil");
-test (nbe(CCons)) (C "Cons");
-test (nbe(Cappend)) (C "app");
-test (nbe(Cappend $ CNil)) (AbsN (1, B 1));
-test (nbe(Cappend $ CNil $ CNil)) (C "Nil");
-test (nbe(Cappend $ Fxs)) (A (C "app", V "xs"));
-test (nbe(Cappend $ Fxs $ Fys)) (A (A (C "app", V "xs"), V "ys"));
-test (nbe(Cappend $ CNil $ Fxs)) (V "xs");
-test (nbe(Cappend $ (CCons $ Fx $ Fxs) $ Fys))
-     (A (A (C "Cons", V "x"), A (A (C "app", V "xs"), V "ys")));
-test (nbe(Cappend $ (CCons $ Fx $ Fxs))) 
-   (AbsN (1, A (A (C "Cons", V "x"), A (A (C "app", V "xs"), B 1))));
-test (nbe(Cappend $ (CCons $ Fx $ Fxs) $ (CCons $ Fy $ Fys)))
-     (A (A (C "Cons", V "x"), A (A (C "app", V "xs"), A (A (C "Cons", V "y"), V "ys"))));
-test (nbe(Cappend $ (CCons $ Fx $ (CCons $ Fy $ Fxs)) $ (CCons$Fy$Fys)))
- (A
-      (A (C "Cons", V "x"),
-         A
-            (A (C "Cons", V "y"),
-               A (A (C "app", V "xs"), A (A (C "Cons", V "y"), V "ys")))));
-()
-end;
-
-
-use_show(NBE_Codegen.generate (the_context()) ("add",CodegenThingol.Fun(
-  [
-  ([CodegenThingol.IConst(("0",dummyIT),[])],
-    CodegenThingol.IAbs(CodegenThingol.IVarE("n",dummyIT),
-                        CodegenThingol.IVarE("n",dummyIT))),
-   ([CodegenThingol.IApp(
-       CodegenThingol.IConst(("S",dummyIT),[]),
-       CodegenThingol.IVarE("n",dummyIT))],
-    CodegenThingol.IAbs(CodegenThingol.IVarE("m",dummyIT),
-      CodegenThingol.IApp(
-         CodegenThingol.IConst(("S",dummyIT),[]),
-           CodegenThingol.IApp(
-             CodegenThingol.IApp(
-               CodegenThingol.IConst(("add",dummyIT),[]),
-               CodegenThingol.IVarE("n",dummyIT)),
-             CodegenThingol.IVarE("m",dummyIT)))))]
-  ,([],dummyIT))));
-
-
-let
-fun test a b = if a=b then () else error "oops!";
-
-val C0 = Const("0",dummyT);
-val CS = Const("S",dummyT);
-val Cadd = Const("add",dummyT);
-val Fx = Free("x",dummyT);
-val Fy = Free("y",dummyT);
-open NBE_Eval
-in
-test (nbe(Cadd $ C0)) (AbsN (1, B 1));
-test (nbe(Cadd $ C0 $ C0)) (C "0");
-test (nbe(Cadd $ (CS $ (CS $ (CS $ Fx))) $ (CS $ (CS $ (CS $ Fy)))))
-(A (C "S", A (C "S", A (C "S", A (A (C "add", V "x"), A (C "S", A (C "S", A (C "S", V "y")))))))
-)
-end;
-
-
-
-use_show(NBE_Codegen.generate (the_context()) ("mul",CodegenThingol.Fun(
-  [
-  ([CodegenThingol.IConst(("0",dummyIT),[])],
-    CodegenThingol.IAbs(CodegenThingol.IVarE("n",dummyIT),
-                        CodegenThingol.IConst(("0",dummyIT),[]))),
-   ([CodegenThingol.IApp(
-       CodegenThingol.IConst(("S",dummyIT),[]),
-       CodegenThingol.IVarE("n",dummyIT))],
-    CodegenThingol.IAbs(CodegenThingol.IVarE("m",dummyIT),
-      CodegenThingol.IApp(
-       CodegenThingol.IApp(
-         CodegenThingol.IConst(("add",dummyIT),[]),
-        CodegenThingol.IVarE("m",dummyIT)),
-           CodegenThingol.IApp(
-             CodegenThingol.IApp(
-               CodegenThingol.IConst(("mul",dummyIT),[]),
-               CodegenThingol.IVarE("n",dummyIT)),
-             CodegenThingol.IVarE("m",dummyIT)))))]
-  ,([],dummyIT))));
-
-
-let
-fun test a b = if a=b then () else error "oops!";
-
-val C0 = Const("0",dummyT);
-val CS = Const("S",dummyT);
-val Cmul = Const("mul",dummyT);
-val Fx = Free("x",dummyT);
-val Fy = Free("y",dummyT);
-open NBE_Eval
-in
-test (nbe(Cmul $ C0)) (AbsN (1, C "0"));
-test (nbe(Cmul $ C0 $ Fx)) (C "0");
-test (nbe(Cmul $ (CS $ (CS $ (CS $ C0)))))
-(AbsN (1, A (A (C "add", B 1), A (A (C "add", B 1), A (A (C "add", B 1), C "0")))));
-test (nbe(Cmul $ (CS $ (CS $ (CS $ Fx)))))
- (AbsN (1, A (A (C "add", B 1), A (A (C "add", B 1),
-                     A (A (C "add", B 1), A (A (C "mul", V "x"), B 1))))));
-test (nbe(Cmul $ (CS $ (CS $ Fx)) $ (CS $ (CS $ (CS $ Fy)))))
-(A (C "S", A(C "S",A(C "S",A(A (C "add", V "y"),A(C "S",A(C "S",A(C "S",A
- (A (C "add", V "y"),A(A (C "mul", V "x"),A(C "S",A(C "S",A(C "S", V"y")))))))))))));
-()
-end;
-*)
