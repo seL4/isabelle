@@ -1,5 +1,7 @@
 (*  ID:         $Id$
-    Author:     Klaus Aehlig, Tobias Nipkow
+    Author:     Klaus Aehlig, LMU Muenchen; Tobias Nipkow, TU Muenchen
+
+Code generator for "normalization by evaluation".
 *)
 
 (* Global asssumptions:
@@ -14,7 +16,8 @@ val quote = quote;
 
 signature NBE_CODEGEN =
 sig
-  val generate: (string -> bool) -> string * CodegenThingol.def -> string
+  val generate: (string -> bool) -> string * CodegenThingol.def -> string;
+  val nterm_to_term: theory -> NBE_Eval.nterm -> term;
 end
 
 
@@ -63,8 +66,8 @@ fun Let ds e = "let\n" ^ (space_implode "\n" ds) ^ " in " ^ e ^ " end"
 
 end
 
-val tab_lookup = S.app "NormByEval.lookup";
-val tab_update = S.app "NormByEval.update";
+val tab_lookup = S.app "NBE.lookup";
+val tab_update = S.app "NBE.update";
 
 fun mk_nbeFUN(nm,e) =
   S.app Eval_Fun (S.tup [S.abs(S.list [MLvname nm])e,S.list [],"1",
@@ -117,31 +120,52 @@ val mk_lexpr =
 fun mk_eqn defined nm ar (lhs,e) =
   ([S.list(map mk_lexpr (rev lhs))], mk_rexpr defined nm ar e);
 
-fun funs_of_expr (IConst ((s, _), _)) = insert (op =) s
-  | funs_of_expr (e1 `$ e2) =
-      funs_of_expr e1 #> funs_of_expr e2
-  | funs_of_expr (_ `|-> e) = funs_of_expr e
-  | funs_of_expr (IAbs (_, e)) = funs_of_expr e
-  | funs_of_expr (ICase (_, e)) = funs_of_expr e
-  | funs_of_expr _ = I;
+fun consts_of (IConst ((s, _), _)) = insert (op =) s
+  | consts_of (e1 `$ e2) =
+      consts_of e1 #> consts_of e2
+  | consts_of (_ `|-> e) = consts_of e
+  | consts_of (IAbs (_, e)) = consts_of e
+  | consts_of (ICase (_, e)) = consts_of e
+  | consts_of _ = I;
 
 fun lookup nm = S.Val (MLname nm) (tab_lookup (S.quote nm));
 
 fun generate defined (nm, CodegenThingol.Fun (eqns, _)) =
-  let
-    val ar = length(fst(hd eqns));
-    val params = S.list (rev (MLparams ar));
-    val funs = Library.flat(map (fn (_,e) => funs_of_expr e []) eqns) \ nm;
-    val globals = map lookup (filter defined funs);
-    val default_eqn = ([params], S.app Eval_Constr (S.tup[S.quote nm,params]));
-    val code = S.eqns (MLname nm)
-                      (map (mk_eqn defined nm ar) eqns @ [default_eqn])
-    val register = tab_update
-        (S.app Eval_mk_Fun (S.tup[S.quote nm, MLname nm, string_of_int ar]))
-  in
-    S.Let (globals @ [code]) register
-  end
+      let
+        val ar = length(fst(hd eqns));
+        val params = S.list (rev (MLparams ar));
+        val funs = Library.flat(map (fn (_,e) => consts_of e []) eqns) \ nm;
+        val globals = map lookup (filter defined funs);
+        val default_eqn = ([params], S.app Eval_Constr (S.tup[S.quote nm,params]));
+        val code = S.eqns (MLname nm)
+                          (map (mk_eqn defined nm ar) eqns @ [default_eqn])
+        val register = tab_update
+            (S.app Eval_mk_Fun (S.tup[S.quote nm, MLname nm, string_of_int ar]))
+      in
+        S.Let (globals @ [code]) register
+      end
   | generate _ _ = "";
+
+open NBE_Eval;
+
+fun nterm_to_term thy t =
+  let
+    fun consts_of (C s) = insert (op =) s
+      | consts_of (V _) = I
+      | consts_of (B _) = I
+      | consts_of (A (t1, t2)) = consts_of t1 #> consts_of t2
+      | consts_of (AbsN (_, t)) = consts_of t;
+    val consts = consts_of t [];
+    val the_const = AList.lookup (op =)
+      (consts ~~ CodegenPackage.consts_of_idfs thy consts)
+      #> the_default ("", dummyT);
+    fun to_term bounds (C s) = Const (the_const s)
+      | to_term bounds (V s) = Free (s, dummyT)
+      | to_term bounds (B i) = Bound (find_index (fn j => i = j) bounds)
+      | to_term bounds (A (t1, t2)) = to_term bounds t1 $ to_term bounds t2
+      | to_term bounds (AbsN (i, t)) =
+          Abs("u", dummyT, to_term (i::bounds) t);
+  in to_term [] t end;
 
 end;
 

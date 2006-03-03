@@ -19,5 +19,6 @@ norm_by_eval "%(xs, ys). xs @ ys"
 norm_by_eval "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f])"
 norm_by_eval "%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True"
 norm_by_eval "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
+norm_by_eval "rev [a, b, c]"
 
 end

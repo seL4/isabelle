@@ -1,8 +1,8 @@
 (*  ID:         $Id$
-    Author:     Klaus Aehlig, Tobias Nipkow
-*)
+    Author:     Klaus Aehlig, LMU Muenchen; Tobias Nipkow, TU Muenchen
 
-(* ------------------------------ Evaluator  ------------------------------ *)
+Evaluator infrastructure for "normalization by evaluation".
+*)
 
 (* Optimizations:
  int instead of string in Constr
@@ -11,50 +11,42 @@
 
 signature NBE_EVAL =
 sig
-(* named terms used for output only *)
-datatype nterm =
-    C of string (* Named Constants *)
-  | V of string (* Free Variable *)
-  | B of int (* Named(!!) Bound Variables *)
-  | A of nterm*nterm (* Application *)
-  | AbsN of int*nterm ; (* Binding of named Variables *)
+  (*named terms used for output only*)
+  datatype nterm =
+      C of string         (*named constants*)
+    | V of string         (*free variable*)
+    | B of int            (*named(!!) bound variables*)
+    | A of nterm * nterm  (*application*)
+    | AbsN of int * nterm (*binding of named variables*);
+  datatype Univ = 
+      Constr of string*(Univ list)       (*named constructors*)
+    | Var of string*(Univ list)          (*free variables*)
+    | BVar of int*(Univ list)            (*bound named variables*)
+    | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm)
+                                         (*functions*);
 
-datatype Univ = 
-    Constr of string*(Univ list)       (* Named Constructors *)
-  | Var of string*(Univ list)          (* Free variables *)
-  | BVar of int*(Univ list)            (* Bound named variables *)
-  | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm);
-                                            (* Functions *)
-val nbe: Univ Symtab.table -> CodegenThingol.iexpr -> nterm
+  val nbe: Univ Symtab.table -> CodegenThingol.iexpr -> nterm;
+  val apply: Univ -> Univ -> Univ;
 
-val apply: Univ -> Univ -> Univ;
-val to_term: Univ -> nterm;
+  val to_term: Univ -> nterm;
 
-val mk_Fun: string * (Univ list -> Univ) * int -> string * Univ
-val new_name: unit -> int;
+  val mk_Fun: string * (Univ list -> Univ) * int -> string * Univ;
+  val new_name: unit -> int;
 
-(* For testing
-val eval: term -> (Univ list) -> Univ
-*)
-
+  (* For testing
+  val eval: (Univ list) -> term -> Univ
+  *)
 end;
 
-(* FIXME add_funs and relatives should NOT be exported. Eventually it
-should work like for quickcheck: Eval generates code which leaves the
-function values in a public reference variable, the code is executed,
-and the value of the reference variable is added to the internal
-tables, all in one go, w/o interruption. *)
-
-
-structure NBE_Eval:NBE_EVAL =
+structure NBE_Eval: NBE_EVAL =
 struct
 
 datatype nterm =
-    C of string (* Named Constants *)
-  | V of string (* Free Variable *)
-  | B of int (* Named(!!) Variables *)
-  | A of nterm * nterm (* Application *)
-  | AbsN of int * nterm (* Binding of named Variables *);
+    C of string
+  | V of string
+  | B of int
+  | A of nterm * nterm
+  | AbsN of int * nterm;
 
 fun apps t args = foldr (fn (y,x) => A(x,y)) t args;
 
@@ -100,11 +92,11 @@ fun to_term (Constr(name, args))    = apps (C name) (map to_term args)
    reasonably we applied in a semantical way.
 *)
 
-fun  apply (Fun(f,xs,1,name))  x = f (x::xs)
-   | apply (Fun(f,xs,n,name))  x = Fun(f,x::xs,n-1,name)
-   | apply (Constr(name,args)) x = Constr(name,x::args)
-   | apply (Var(name,args))    x = Var(name,x::args)
-   | apply (BVar(name,args))   x = BVar(name,x::args);
+fun apply (Fun(f,xs,1,name))  x = f (x::xs)
+  | apply (Fun(f,xs,n,name))  x = Fun(f,x::xs,n-1,name)
+  | apply (Constr(name,args)) x = Constr(name,x::args)
+  | apply (Var(name,args))    x = Var(name,x::args)
+  | apply (BVar(name,args))   x = BVar(name,x::args);
 
 fun mk_Fun(name,v,0) = (name,v [])
   | mk_Fun(name,v,n) = (name,Fun(v,[],n, fn () => C name));
@@ -123,7 +115,7 @@ fun lookup s = case Symtab.lookup (!xfun_tab) s of
 
 val counter = ref 0;
 
-fun new_name() = (counter := !counter +1; !counter);
+fun new_name () = (counter := !counter +1; !counter);
 
 (* greetings to Tarski *)
 
@@ -141,7 +133,6 @@ fun eval xs (IConst ((f, _), _)) = lookup f
                  AbsN (var, to_term (eval (AList.update (op =) (n, BVar (var, [])) xs) t)) end)
   | eval xs (IAbs (_, t)) = eval xs t
   | eval xs (ICase (_, t)) = eval xs t;
-
 
 (* finally... *)
 

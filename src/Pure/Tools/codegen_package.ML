@@ -420,7 +420,7 @@ fun idf_of_const thy (tabs as ((deftab, clsmemtab), (_, (overltab1, overltab2), 
     | NONE => idf_of_name thy nsp_const c
   end;
 
-fun recconst_of_idf thy ((deftab, _), (_, (_, overltab2), _)) idf =
+fun recconst_of_idf thy (_, (_, (_, overltab2), _)) idf =
   case name_of_idf thy nsp_const idf
    of SOME c => SOME (c, Sign.the_const_type thy c)
     | NONE => (
@@ -432,6 +432,16 @@ fun recconst_of_idf thy ((deftab, _), (_, (_, overltab2), _)) idf =
           | NONE => NONE
       );
 
+fun const_of_idf thy (tabs as (_, (_, _, dtcontab))) idf =
+  case recconst_of_idf thy tabs idf
+   of SOME c_ty => SOME c_ty
+    | NONE => case dest_nsp nsp_mem idf
+       of SOME c => SOME (c, Sign.the_const_constraint thy c)
+        | NONE => case name_of_idf thy nsp_dtcon idf
+           of SOME idf' => let
+                val c = (fst o DatatypeconsNameMangler.rev thy dtcontab) idf'
+              in SOME (c, Sign.the_const_type thy c) end
+            | NONE => NONE;
 
 (* further theory data accessors *)
 
@@ -1163,13 +1173,13 @@ fun ensure_datatype_case_consts get_datatype_case_consts get_case_const_data thy
 
 fun codegen_term t thy =
   thy
-  |> expand_module NONE exprsgen_term [t]
+  |> expand_module NONE exprsgen_term [Codegen.preprocess_term thy t]
   |-> (fn [t] => pair t);
 
 val is_dtcon = has_nsp nsp_dtcon;
 
 fun consts_of_idfs thy =
-  map (the o recconst_of_idf thy (mk_tabs thy));
+  map (the o const_of_idf thy (mk_tabs thy));
 
 fun idfs_of_consts thy =
   map (idf_of_const thy (mk_tabs thy));
