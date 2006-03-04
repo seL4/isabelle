@@ -61,7 +61,8 @@ sig
     Then of text list |
     Orelse of text list |
     Try of text |
-    Repeat1 of text
+    Repeat1 of text |
+    SelectGoals of int * text
   val primitive_text: (thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -507,7 +508,8 @@ datatype text =
   Then of text list |
   Orelse of text list |
   Try of text |
-  Repeat1 of text;
+  Repeat1 of text |
+  SelectGoals of int * text;
 
 val primitive_text = Basic o K o SIMPLE_METHOD o PRIMITIVE;
 val succeed_text = Basic (K succeed);
@@ -619,10 +621,10 @@ local
 fun sect ss = Scan.first (map Scan.lift ss);
 fun thms ss = Scan.repeat (Scan.unless (sect ss) Attrib.multi_thm) >> List.concat;
 
-fun apply (f, att) (context, ths) = foldl_map att (Context.map_proof f context, ths);
+fun app (f, att) (context, ths) = foldl_map att (Context.map_proof f context, ths);
 
 fun section ss = (sect ss -- thms ss) :-- (fn (m, ths) => Scan.depend (fn context =>
-  Scan.succeed (apply m (context, ths)))) >> #2;
+  Scan.succeed (app m (context, ths)))) >> #2;
 
 fun sectioned args ss = args -- Scan.repeat (section ss);
 
