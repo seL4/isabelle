@@ -303,6 +303,9 @@ fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) 
       in map_context f (State (nd, node' :: nodes')) end
   | map_goal _ _ state = state;
 
+fun set_goal goal = map_goal I (fn (statement, using, _, before_qed, after_qed) =>
+  (statement, using, goal, before_qed, after_qed));
+
 fun using_facts using = map_goal I (fn (statement, _, goal, before_qed, after_qed) =>
   (statement, using, goal, before_qed, after_qed));
 
@@ -371,7 +374,7 @@ fun pretty_state nr state =
   end;
 
 fun pretty_goals main state =
-  let val (ctxt, (_, {goal, ...})) = find_goal state
+  let val (ctxt, (_, goal)) = get_goal state
   in pretty_goals_local ctxt "" (false, main) (! Display.goals_limit) goal end;
 
 
@@ -408,6 +411,17 @@ fun apply_method current_context meth_fun state =
           (K (statement, using, goal', before_qed, after_qed)))
   end;
 
+fun select_goals n meth state =
+  let val goal = #2 (#2 (get_goal state)) in
+    state
+    |> Seq.lift set_goal
+      (Seq.maps (Tactic.precise_conjunction_tac 1 n) (Goal.extract 1 n goal))
+    |> Seq.maps meth
+    |> Seq.maps (fn state' => state'
+      |> Seq.lift set_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
+    |> Seq.maps (apply_method true (K Method.succeed))
+  end;
+
 fun apply_text cc text state =
   let
     val thy = theory_of state;
@@ -417,7 +431,8 @@ fun apply_text cc text state =
       | eval (Method.Then txts) = Seq.EVERY (map eval txts)
       | eval (Method.Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Method.Try txt) = Seq.TRY (eval txt)
-      | eval (Method.Repeat1 txt) = Seq.REPEAT1 (eval txt);
+      | eval (Method.Repeat1 txt) = Seq.REPEAT1 (eval txt)
+      | eval (Method.SelectGoals (n, txt)) = select_goals n (eval txt);
   in eval text state end;
 
 in
@@ -443,15 +458,12 @@ fun refine_tac rule =
       else all_tac)));
 
 fun refine_goal print_rule inner raw_rule state =
-  let val (outer, (_, {statement, using, goal, before_qed, after_qed})) = find_goal state in
+  let val (outer, (_, goal)) = get_goal state in
     raw_rule
     |> ProofContext.goal_exports inner outer
     |> Seq.maps (fn rule =>
       (print_rule outer rule;
-        goal
-        |> FINDGOAL (refine_tac rule)
-        |> Seq.map (fn goal' =>
-          map_goal I (K (statement, using, goal', before_qed, after_qed)) state)))
+        Seq.lift set_goal (FINDGOAL (refine_tac rule) goal) state))
   end;
 
 in
