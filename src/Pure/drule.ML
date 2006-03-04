@@ -105,6 +105,7 @@ sig
   val forall_conv: int -> (cterm -> thm) -> cterm -> thm
   val concl_conv: int -> (cterm -> thm) -> cterm -> thm
   val prems_conv: int -> (int -> cterm -> thm) -> cterm -> thm
+  val mk_conjunction: cterm * cterm -> cterm
   val conjunction_cong: thm -> thm -> thm
   val conjunction_conv: int -> (int -> cterm -> thm) -> cterm -> thm
   val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
@@ -143,7 +144,7 @@ sig
   val conj_elim: thm -> thm * thm
   val conj_elim_list: thm -> thm list
   val conj_elim_precise: int list -> thm -> thm list list
-  val conj_curry: thm -> thm
+  val conj_uncurry: int -> thm -> thm
   val abs_def: thm -> thm
   val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
   val read_instantiate': (indexname * string) list -> thm -> thm
@@ -197,10 +198,11 @@ fun ctyp_fun f cT =
   let val {T, thy, ...} = Thm.rep_ctyp cT
   in Thm.ctyp_of thy (f T) end;
 
+val conjunction = cterm_of ProtoPure.thy Logic.conjunction;
 val implies = cterm_of ProtoPure.thy Term.implies;
 
-(*cterm version of mk_implies*)
-fun mk_implies(A,B) = Thm.capply (Thm.capply implies A) B;
+fun mk_implies (A, B) = Thm.capply (Thm.capply implies A) B;
+fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
 fun list_implies([], B) = B
@@ -729,8 +731,7 @@ fun prems_conv 0 _ = reflexive
 
 (*rewrite the A's in A1 && ... && An*)
 
-val conjunction_cong =
-  Thm.combination o Thm.combination (Thm.reflexive (cterm_of ProtoPure.thy Logic.conjunction));
+val conjunction_cong = Thm.combination o Thm.combination (Thm.reflexive conjunction);
 
 fun conjunction_conv 0 _ = reflexive
   | conjunction_conv n cv =
@@ -1181,16 +1182,21 @@ fun conj_elim_precise spans =
 
 end;
 
-fun conj_curry th =
+(*
+  A1 ==> ... ==> An ==> B
+  -----------------------
+   A1 && ... && An ==> B
+*)
+fun conj_uncurry n th =
   let
     val {thy, maxidx, ...} = Thm.rep_thm th;
-    val n = Thm.nprems_of th;
+    val m = if n = ~1 then Thm.nprems_of th else Int.min (n, Thm.nprems_of th);
   in
-    if n < 2 then th
+    if m < 2 then th
     else
       let
         val cert = Thm.cterm_of thy;
-        val As = map (fn i => Free ("A" ^ string_of_int i, propT)) (1 upto n);
+        val As = map (fn i => Free ("A" ^ string_of_int i, propT)) (1 upto m);
         val B = Free ("B", propT);
         val C = cert (Logic.mk_conjunction_list As);
         val D = cert (Logic.list_implies (As, B));
