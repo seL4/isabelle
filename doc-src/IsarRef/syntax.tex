@@ -288,16 +288,18 @@ for an infix of an implicit structure.
 
 \subsection{Proof methods}\label{sec:syn-meth}
 
-Proof methods are either basic ones, or expressions composed of methods via
-``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
-``\texttt{?}'' (try), ``\texttt{+}'' (repeat at least once).  In practice,
-proof methods are usually just a comma separated list of
-\railqtok{nameref}~\railnonterm{args} specifications.  Note that parentheses
-may be dropped for single method specifications (with no arguments).
+Proof methods are either basic ones, or expressions composed of
+methods via ``\texttt{,}'' (sequential composition), ``\texttt{|}''
+(alternative choices), ``\texttt{?}'' (try), ``\texttt{+}'' (repeat at
+least once), ``\texttt{[$n$]}'' (restriction to first $n$ sub-goals).
+In practice, proof methods are usually just a comma separated list of
+\railqtok{nameref}~\railnonterm{args} specifications.  Note that
+parentheses may be dropped for single method specifications (with no
+arguments).
 
 \indexouternonterm{method}
 \begin{rail}
-  method: (nameref | '(' methods ')') (() | '?' | '+')
+  method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat ']')
   ;
   methods: (nameref args | method) + (',' | '|')
   ;
