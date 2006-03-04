@@ -418,6 +418,7 @@ fun meth4 x =
 and meth3 x =
  (meth4 --| $$$ "?" >> Method.Try ||
   meth4 --| $$$ "+" >> Method.Repeat1 ||
+  meth4 -- ($$$ "[" |-- nat --| $$$ "]") >> (Method.SelectGoals o swap) ||
   meth4) x
 and meth2 x =
  (position (xname -- args1 is_symid_meth false) >> (Method.Source o Args.src) ||
