@@ -657,12 +657,12 @@ val precise_conjunction_tac =
 fun CONJUNCTS tac =
   SELECT_GOAL (conjunction_tac 1
     THEN tac
-    THEN PRIMITIVE Drule.conj_curry);
+    THEN PRIMITIVE (Drule.conj_uncurry ~1));
 
 fun PRECISE_CONJUNCTS n tac =
   SELECT_GOAL (precise_conjunction_tac n 1
     THEN tac
-    THEN PRIMITIVE Drule.conj_curry);
+    THEN PRIMITIVE (Drule.conj_uncurry ~1));
 
 end;
 
