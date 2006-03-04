@@ -26,6 +26,8 @@ sig
     (thm list -> tactic) -> thm list
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
+  val extract: int -> int -> thm -> thm Seq.seq
+  val retrofit: int -> int -> thm -> thm -> thm Seq.seq
 end;
 
 structure Goal: GOAL =
@@ -168,30 +170,23 @@ fun prove_raw casms cprop tac =
   | NONE => error "Tactic failed.");
 
 
-(* SELECT_GOAL *)
 
-(*Tactical for restricting the effect of a tactic to subgoal i.  Works
-  by making a new state from subgoal i, applying tac to it, and
-  composing the resulting thm with the original state.*)
+(** local goal states **)
 
-local
+fun extract i n st =
+  (if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st then Seq.empty
+   else if n = 1 then Seq.single (Thm.cprem_of st i)
+   else Seq.single (foldr1 Drule.mk_conjunction (map (Thm.cprem_of st) (i upto (i + n - 1)))))
+  |> Seq.map (Thm.adjust_maxidx #> init);
 
-fun SELECT tac i st =
-  init (Thm.adjust_maxidx (Thm.cprem_of st i))
-  |> tac
-  |> Seq.maps (fn st' =>
-    Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i st);
-
-in
+fun retrofit i n st' =
+  (if n = 1 then I
+   else Drule.rotate_prems (i - 1) #> Drule.conj_uncurry n #> Drule.rotate_prems (1 - i))
+  #> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
 
 fun SELECT_GOAL tac i st =
-  let val n = Thm.nprems_of st in
-    if 1 <= i andalso i <= n then
-      if n = 1 then tac st else SELECT tac i st
-    else Seq.empty
-  end;
-
-end;
+  if Thm.nprems_of st = 1 then tac st
+  else Seq.lifts (retrofit i 1) (Seq.maps tac (extract i 1 st)) st;
 
 end;
 
