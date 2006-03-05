@@ -45,7 +45,7 @@ struct
 
 (* ------------------------------------------------------------------------- *)
 (* type of partial (satisfying) assignments: 'a i = NONE' means that 'a' is  *)
-(*      a satisfying assigment regardless of the value of variable 'i'       *)
+(*      a satisfying assignment regardless of the value of variable 'i'      *)
 (* ------------------------------------------------------------------------- *)
 
 	type assignment = int -> bool option;
