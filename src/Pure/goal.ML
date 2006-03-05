@@ -185,7 +185,7 @@ fun retrofit i n st' =
   #> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
 
 fun SELECT_GOAL tac i st =
-  if Thm.nprems_of st = 1 then tac st
+  if Thm.nprems_of st = 1 andalso i = 1 then tac st
   else Seq.lifts (retrofit i 1) (Seq.maps tac (extract i 1 st)) st;
 
 end;
