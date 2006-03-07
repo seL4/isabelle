@@ -149,17 +149,17 @@ fun numstr [] = ""
 
 (* retrieve the axioms that were obtained from the clasimpset *)
 
-fun get_clasimp_cls (clause_arr: (ResClause.clause * thm) array) step_nums = 
-    let val clasimp_nums = List.filter (is_clasimp_ax (Array.length clause_arr - 1)) 
+fun get_clasimp_cls (names_arr: string array) step_nums = 
+    let val clasimp_nums = List.filter (is_clasimp_ax (Array.length names_arr - 1)) 
 	                   (map subone step_nums)
     in
-	map (fn x =>  Array.sub(clause_arr, x)) clasimp_nums
+	map (fn x =>  Array.sub(names_arr, x)) clasimp_nums
     end
 
 (* get names of clasimp axioms used*)
-fun get_axiom_names step_nums clause_arr =
+fun get_axiom_names step_nums names_arr =
   sort_distinct string_ord
-    (map (ResClause.get_axiomName o #1) (get_clasimp_cls clause_arr step_nums));
+    (get_clasimp_cls names_arr step_nums);
 
  (*String contains multiple lines. We want those of the form 
      "253[0:Inp] et cetera..."
@@ -171,8 +171,8 @@ fun get_spass_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (inputno o toks) lines  end
 
-fun get_axiom_names_spass proofstr clause_arr  =
-   get_axiom_names (get_spass_linenums proofstr) clause_arr;
+fun get_axiom_names_spass proofstr names_arr  =
+   get_axiom_names (get_spass_linenums proofstr) names_arr;
     
  (*String contains multiple lines.
   A list consisting of the first number in each line is returned. *)
@@ -183,8 +183,8 @@ fun get_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (firstno o numerics) lines  end
 
-fun get_axiom_names_e proofstr clause_arr  =
-   get_axiom_names (get_linenums proofstr) clause_arr;
+fun get_axiom_names_e proofstr names_arr  =
+   get_axiom_names (get_linenums proofstr) names_arr;
     
  (*String contains multiple lines. We want those of the form 
      "*********** [448, input] ***********".
@@ -196,8 +196,8 @@ fun get_vamp_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (inputno o toks) lines  end
 
-fun get_axiom_names_vamp proofstr clause_arr  =
-   get_axiom_names (get_vamp_linenums proofstr) clause_arr;
+fun get_axiom_names_vamp proofstr names_arr  =
+   get_axiom_names (get_vamp_linenums proofstr) names_arr;
     
 
 (***********************************************)
@@ -212,7 +212,7 @@ fun numclstr (vars, []) str = str
 
 fun addvars c (a,b)  = (a,b,c)
 
-fun get_axioms_used proof_steps thms clause_arr  =
+fun get_axioms_used proof_steps thms names_arr  =
  let val axioms = (List.filter is_axiom) proof_steps
      val step_nums = get_step_nums axioms []
 
@@ -265,12 +265,12 @@ fun rules_to_string [] = "NONE"
 
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
-fun prover_lemma_list_aux getax proofstr probfile toParent ppid clause_arr = 
+fun prover_lemma_list_aux getax proofstr probfile toParent ppid names_arr = 
  let val _ = trace
                ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
                 "\nprobfile is " ^ probfile ^
-                "  num of clauses is " ^ string_of_int (Array.length clause_arr))
-     val axiom_names = getax proofstr clause_arr
+                "  num of clauses is " ^ string_of_int (Array.length names_arr))
+     val axiom_names = getax proofstr names_arr
      val ax_str = rules_to_string axiom_names
     in 
 	 trace ("\nDone. Lemma list is " ^ ax_str);
@@ -298,7 +298,7 @@ val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 
 (**** Full proof reconstruction for SPASS (not really working) ****)
 
-fun spass_reconstruct proofstr probfile toParent ppid thms clause_arr = 
+fun spass_reconstruct proofstr probfile toParent ppid thms names_arr = 
   let val _ = trace ("\nspass_reconstruct. Proofstr is "^proofstr)
       val tokens = #1(lex proofstr)
 
@@ -315,7 +315,7 @@ fun spass_reconstruct proofstr probfile toParent ppid thms clause_arr =
       (* subgoal this is, and turn it into meta_clauses *)
       (* should prob add array and table here, so that we can get axioms*)
       (* produced from the clasimpset rather than the problem *)
-      val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms clause_arr
+      val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps  thms names_arr
       
       (*val numcls_string = numclstr ( vars, numcls) ""*)
       val _ = trace "\ngot axioms"
