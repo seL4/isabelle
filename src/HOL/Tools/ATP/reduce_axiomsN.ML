@@ -75,11 +75,11 @@ fun find_clause_weight_m_1 [] (_,w) = w
 
 
 fun relevant_clauses_ax_g_1 _ []  _ (ax,r) = (ax,r)
-  | relevant_clauses_ax_g_1 gconsts  ((clsthm,(consts,_))::y) P (ax,r) =
+  | relevant_clauses_ax_g_1 gconsts  ((clstm,(consts,_))::y) P (ax,r) =
     let val weight = find_clause_weight_s_1 gconsts consts 1.0
     in
-	if  P <= weight then relevant_clauses_ax_g_1 gconsts y P ((clsthm,(consts,weight))::ax,r)
-	else relevant_clauses_ax_g_1 gconsts y P (ax,(clsthm,(consts,weight))::r)
+	if  P <= weight then relevant_clauses_ax_g_1 gconsts y P ((clstm,(consts,weight))::ax,r)
+	else relevant_clauses_ax_g_1 gconsts y P (ax,(clstm,(consts,weight))::r)
     end;
 
 
@@ -87,22 +87,21 @@ fun relevant_clauses_ax_1 rel_axs  [] P (addc,tmpc) keep =
     (case addc of [] => rel_axs @ keep
 		| _ => case tmpc of [] => addc @ rel_axs @ keep
 				  | _ => relevant_clauses_ax_1 addc tmpc P ([],[]) (rel_axs @ keep))
-  | relevant_clauses_ax_1 rel_axs ((clsthm,(consts,weight))::e_axs) P (addc,tmpc) keep = 
+  | relevant_clauses_ax_1 rel_axs ((clstm,(consts,weight))::e_axs) P (addc,tmpc) keep = 
     let val weight' = find_clause_weight_m_1 rel_axs (consts,weight) 
-	val e_ax' = (clsthm,(consts, weight'))
+	val e_ax' = (clstm,(consts, weight'))
     in
 	
-	if P <= weight' then relevant_clauses_ax_1 rel_axs e_axs P ((clsthm,(consts,weight'))::addc,tmpc) keep
-	else relevant_clauses_ax_1 rel_axs e_axs P (addc,(clsthm,(consts,weight'))::tmpc) keep 
+	if P <= weight' then relevant_clauses_ax_1 rel_axs e_axs P ((clstm,(consts,weight'))::addc,tmpc) keep
+	else relevant_clauses_ax_1 rel_axs e_axs P (addc,(clstm,(consts,weight'))::tmpc) keep 
     end;
 
 
 fun initialize [] ax_weights = ax_weights
-  | initialize ((cls,thm)::clss_thms) ax_weights =
-    let val tm = prop_of thm
-	val consts = consts_of_term tm
+  | initialize ((tm,name)::tms_names) ax_weights =
+    let val consts = consts_of_term tm
     in
-	initialize clss_thms (((cls,thm),(consts,0.0))::ax_weights)
+	initialize tms_names (((tm,name),(consts,0.0))::ax_weights)
     end;
 
 fun relevance_filter1_aux axioms goals = 
@@ -139,11 +138,11 @@ fun find_clause_weight_m_2 [] (_,w) = w
 
 
 fun relevant_clauses_ax_g_2 _ []  _ (ax,r) = (ax,r)
-  | relevant_clauses_ax_g_2 gpconsts  ((clsthm,(pconsts,_))::y) P (ax,r) =
+  | relevant_clauses_ax_g_2 gpconsts  ((clstm,(pconsts,_))::y) P (ax,r) =
     let val weight = find_clause_weight_s_2 gpconsts pconsts 1.0
     in
-	if  P <= weight then relevant_clauses_ax_g_2 gpconsts y P ((clsthm,(pconsts,weight))::ax,r)
-	else relevant_clauses_ax_g_2 gpconsts y P (ax,(clsthm,(pconsts,weight))::r)
+	if  P <= weight then relevant_clauses_ax_g_2 gpconsts y P ((clstm,(pconsts,weight))::ax,r)
+	else relevant_clauses_ax_g_2 gpconsts y P (ax,(clstm,(pconsts,weight))::r)
     end;
 
 
@@ -151,22 +150,21 @@ fun relevant_clauses_ax_2 rel_axs  [] P (addc,tmpc) keep =
     (case addc of [] => rel_axs @ keep
 		| _ => case tmpc of [] => addc @ rel_axs @ keep
 				  | _ => relevant_clauses_ax_2 addc tmpc P ([],[]) (rel_axs @ keep))
-  | relevant_clauses_ax_2 rel_axs ((clsthm,(pconsts,weight))::e_axs) P (addc,tmpc) keep = 
+  | relevant_clauses_ax_2 rel_axs ((clstm,(pconsts,weight))::e_axs) P (addc,tmpc) keep = 
     let val weight' = find_clause_weight_m_2 rel_axs (pconsts,weight) 
-	val e_ax' = (clsthm,(pconsts, weight'))
+	val e_ax' = (clstm,(pconsts, weight'))
     in
 	
-	if P <= weight' then relevant_clauses_ax_2 rel_axs e_axs P ((clsthm,(pconsts,weight'))::addc,tmpc) keep
-	else relevant_clauses_ax_2 rel_axs e_axs P (addc,(clsthm,(pconsts,weight'))::tmpc) keep 
+	if P <= weight' then relevant_clauses_ax_2 rel_axs e_axs P ((clstm,(pconsts,weight'))::addc,tmpc) keep
+	else relevant_clauses_ax_2 rel_axs e_axs P (addc,(clstm,(pconsts,weight'))::tmpc) keep 
     end;
 
 
 fun initialize_w_pol [] ax_weights = ax_weights
-  | initialize_w_pol ((cls,thm)::clss_thms) ax_weights =
-    let val tm = prop_of thm
-	val consts = pconsts_of_term tm
+  | initialize_w_pol ((tm,name)::tms_names) ax_weights =
+    let val consts = pconsts_of_term tm
     in
-	initialize_w_pol clss_thms (((cls,thm),(consts,0.0))::ax_weights)
+	initialize_w_pol tms_names (((tm,name),(consts,0.0))::ax_weights)
     end;
 
 
@@ -286,32 +284,31 @@ fun find_clause_weight_m_3 [] (_,w) = w
 
 
 fun relevant_clauses_ax_g_3 _ [] _ (ax,r) = (ax,r)
-  | relevant_clauses_ax_g_3 gctyps ((cls_typ,(clsthm,(consts_typs,_)))::y) P (ax,r) =
+  | relevant_clauses_ax_g_3 gctyps ((cls_typ,(clstm,(consts_typs,_)))::y) P (ax,r) =
     let val weight = find_clause_weight_s_3 gctyps consts_typs 1.0
     in
-	if P <= weight then relevant_clauses_ax_g_3 gctyps y P ((cls_typ,(clsthm,(consts_typs,weight)))::ax,r)
-	else relevant_clauses_ax_g_3 gctyps y P (ax,(cls_typ,(clsthm,(consts_typs,weight)))::r)
+	if P <= weight then relevant_clauses_ax_g_3 gctyps y P ((cls_typ,(clstm,(consts_typs,weight)))::ax,r)
+	else relevant_clauses_ax_g_3 gctyps y P (ax,(cls_typ,(clstm,(consts_typs,weight)))::r)
     end;
 
 fun relevant_clauses_ax_3 rel_axs [] P (addc,tmpc) keep =
     (case addc of [] => (rel_axs @ keep,tmpc)
 		| _ => case tmpc of [] => (addc @ rel_axs @ keep,[])
 				  | _ => relevant_clauses_ax_3 addc tmpc P ([],[]) (rel_axs @ keep))
-  | relevant_clauses_ax_3 rel_axs ((cls_typ,(clsthm,(consts_typs,weight)))::e_axs) P (addc,tmpc) keep =
+  | relevant_clauses_ax_3 rel_axs ((cls_typ,(clstm,(consts_typs,weight)))::e_axs) P (addc,tmpc) keep =
     let val weight' = find_clause_weight_m_3 rel_axs (consts_typs,weight)
-	val e_ax' = (cls_typ,(clsthm,(consts_typs,weight')))
+	val e_ax' = (cls_typ,(clstm,(consts_typs,weight')))
     in
 	if P <= weight' then relevant_clauses_ax_3 rel_axs e_axs P (e_ax'::addc,tmpc) keep
 	else relevant_clauses_ax_3 rel_axs e_axs P (addc,e_ax'::tmpc) keep
     end;
 
 fun initialize3 thy [] ax_weights = ax_weights
-  | initialize3 thy ((cls,thm)::clss_thms) ax_weights =
-    let val tm = prop_of thm
-	val cls_type = clause_type tm
+  | initialize3 thy ((tm,name)::tms_names) ax_weights =
+    let val cls_type = clause_type tm
 	val consts = consts_typs_of_term thy tm
     in
-	initialize3 thy clss_thms ((cls_type,((cls,thm),(consts,0.0)))::ax_weights)
+	initialize3 thy tms_names ((cls_type,((tm,name),(consts,0.0)))::ax_weights)
     end;
 
 fun add_unit_clauses ax [] = ax
