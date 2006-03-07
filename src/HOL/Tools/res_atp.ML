@@ -15,14 +15,14 @@ sig
   val time_limit: int ref
    
   datatype mode = Auto | Fol | Hol
-  val write_subgoal_file: mode -> Proof.context -> Thm.thm list -> Thm.thm list -> int -> string
+  val write_subgoal_file: mode -> Proof.context -> thm list -> thm list -> int -> string
   val vampire_time: int ref
   val eprover_time: int ref
   val run_vampire: int -> unit
   val run_eprover: int -> unit
   val vampireLimit: unit -> int
   val eproverLimit: unit -> int
-  val atp_method: (ProofContext.context -> Thm.thm list -> int -> Tactical.tactic) ->
+  val atp_method: (ProofContext.context -> thm list -> int -> Tactical.tactic) ->
 		  Method.src -> ProofContext.context -> Method.method
   val cond_rm_tmp: string -> unit
   val keep_atp_input: bool ref
@@ -33,10 +33,10 @@ sig
   val hol_no_types: unit -> unit
   val hol_typ_level: unit -> ResHolClause.type_level
   val run_relevance_filter: bool ref
-
+  val invoke_atp_ml : ProofContext.context * thm -> unit
 end;
 
-structure ResAtp: RES_ATP =
+structure ResAtp : RES_ATP =
 struct
 
 (********************************************************************)
@@ -341,6 +341,8 @@ fun cnf_hyps_thms ctxt =
 
 datatype mode = Auto | Fol | Hol;
 
+val linkup_logic_mode = ref Fol;
+
 fun tptp_writer logic goals filename (axioms,classrels,arities) =
     if is_fol_logic logic then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
     else
@@ -468,7 +470,9 @@ fun write_problem_files pf (ctxt,th)  =
 		  negs_clauses::(get_neg_subgoals (n - 1))
 	      end
       val neg_subgoals = get_neg_subgoals (length goals) 
-      val goals_logic = problem_logic_goals neg_subgoals
+      val goals_logic = case !linkup_logic_mode of Auto => problem_logic_goals neg_subgoals
+						 | Fol => FOL
+						 | Hol => HOL
       val keep_types = if is_fol_logic goals_logic then !ResClause.keep_types else is_typed_hol ()
       val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
@@ -522,15 +526,12 @@ val isar_atp_writeonly = setmp print_mode []
 
 (** the Isar toplevel hook **)
 
-val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
-  let
-    val proof = Toplevel.proof_of state
-    val (ctxt, (_, goal)) = Proof.get_goal proof;
-    val thy = ProofContext.theory_of ctxt;
+fun invoke_atp_ml (ctxt, goal) =
+  let val thy = ProofContext.theory_of ctxt;
   in
     Output.debug ("subgoals in isar_atp:\n" ^ 
-           Pretty.string_of (ProofContext.pretty_term ctxt
-             (Logic.mk_conjunction_list (Thm.prems_of goal))));
+		  Pretty.string_of (ProofContext.pretty_term ctxt
+		    (Logic.mk_conjunction_list (Thm.prems_of goal))));
     Output.debug ("current theory: " ^ Context.theory_name thy);
     hook_count := !hook_count +1;
     Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
@@ -538,14 +539,19 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     ResHolClause.init thy;
     if !destdir = "" andalso !time_limit > 0 then isar_atp (ctxt, goal)
     else isar_atp_writeonly (ctxt, goal)
-  end);
+  end;
+
+val invoke_atp = Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep
+ (fn state =>
+  let val (ctxt, (_, goal)) = Proof.get_goal (Toplevel.proof_of state)
+  in  invoke_atp_ml (ctxt, goal)  end);
 
 val call_atpP =
   OuterSyntax.command 
     "ProofGeneral.call_atp" 
     "call automatic theorem provers" 
     OuterKeyword.diag
-    (Scan.succeed (Toplevel.no_timing o invoke_atp));
+    (Scan.succeed invoke_atp);
 
 val _ = OuterSyntax.add_parsers [call_atpP];
 
