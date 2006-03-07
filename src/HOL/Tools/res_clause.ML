@@ -371,13 +371,10 @@ val literals_of_term = literals_of_term1 ([],[]);
 fun list_ord _ ([],[]) = EQUAL
   | list_ord _ ([],_) = LESS
   | list_ord _ (_,[]) = GREATER
-  | list_ord ord (x::xs, y::ys) =
-    let val xy_ord = ord(x,y)
-    in
-	case xy_ord of EQUAL => list_ord ord (xs,ys)
-		     | _ => xy_ord
-    end;
-
+  | list_ord ord (x::xs, y::ys) = 
+      (case ord(x,y) of EQUAL => list_ord ord (xs,ys)
+	 	      | xy_ord => xy_ord);
+		     
 fun type_ord (AtomV(_),AtomV(_)) = EQUAL
   | type_ord (AtomV(_),_) = LESS
   | type_ord (AtomF(_),AtomV(_)) = GREATER
@@ -386,11 +383,8 @@ fun type_ord (AtomV(_),AtomV(_)) = EQUAL
   | type_ord (Comp(_,_),AtomV(_)) = GREATER
   | type_ord (Comp(_,_),AtomF(_)) = GREATER
   | type_ord (Comp(con1,args1),Comp(con2,args2)) = 
-    let val con_ord = string_ord(con1,con2)
-    in
-	case con_ord of EQUAL => types_ord (args1,args2)
-		      | _ => con_ord
-    end
+      (case string_ord(con1,con2) of EQUAL => types_ord (args1,args2)
+		      | con_ord => con_ord)
 and
     types_ord ([],[]) = EQUAL
   | types_ord (tps1,tps2) = list_ord type_ord (tps1,tps2);
@@ -608,15 +602,17 @@ fun too_general_lit (Literal (true,Predicate("equal",_,[x,y]),_)) =
 
 (*before converting an axiom clause to "clause" format, check if it is FOL*)
 fun make_axiom_clause term (ax_name,cls_id) =
-    let val _ = check_is_fol_term term 
-	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Axiom is not FOL", term) 
-	val (lits,types_sorts) = literals_of_term term
+    let val (lits,types_sorts) = literals_of_term term
     in 
-	if forall too_general_lit lits then
+	if not (Meson.is_fol_term term) then
+	   (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); 
+	    NONE)
+	else if forall too_general_lit lits then
 	   (Output.debug ("Omitting " ^ ax_name ^ ": equalities are too general"); 
 	    NONE)
 	else SOME (make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts))
-    end;
+    end
+    handle CLAUSE _ => NONE;
 
 
 fun make_axiom_clauses_terms [] = []
@@ -932,6 +928,7 @@ fun dfg_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) =
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
 fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) = 
   let 
+    val _ = Output.debug ("Preparing to write the DFG file " ^ filename)
     val conjectures = make_conjecture_clauses (map prop_of ths)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
     val clss = conjectures @ axclauses
@@ -1031,6 +1028,7 @@ fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
 fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) =
   let
+    val _ = Output.debug ("Preparing to write the TPTP file " ^ filename)
     val clss = make_conjecture_clauses terms
     val axclauses' = make_axiom_clauses_terms axclauses
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
