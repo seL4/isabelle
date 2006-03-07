@@ -55,7 +55,7 @@ signature RES_CLAUSE =
   val tptp_classrelClause : classrelClause -> string
   val tptp_of_typeLit : type_literal -> string
   val tptp_tfree_clause : string -> string
-  val tptp_write_file: thm list -> string -> (clause list * classrelClause list * arityClause list) -> unit
+  val tptp_write_file: term list -> string -> ((Term.term * (string * int)) list * classrelClause list * arityClause list) -> unit
   val tvar_prefix : string
   val types_eq: fol_type list * fol_type list -> (string*string) list * (string*string) list -> bool * ((string*string) list * (string*string) list)
   val types_ord : fol_type list * fol_type list -> order
@@ -619,6 +619,11 @@ fun make_axiom_clause term (ax_name,cls_id) =
     end;
 
 
+fun make_axiom_clauses_terms [] = []
+  | make_axiom_clauses_terms ((tm,(name,id))::tms) =
+    case make_axiom_clause tm (name,id) of SOME cls => if isTaut cls then make_axiom_clauses_terms tms else cls :: make_axiom_clauses_terms tms
+						    | NONE => make_axiom_clauses_terms tms;
+    
 (**** Isabelle arities ****)
 
 exception ARCLAUSE of string;
@@ -1024,14 +1029,15 @@ fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "input_clause(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n" 
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
-fun tptp_write_file ths filename (axclauses,classrel_clauses,arity_clauses) =
+fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) =
   let
-    val clss = make_conjecture_clauses (map prop_of ths)
+    val clss = make_conjecture_clauses terms
+    val axclauses' = make_axiom_clauses_terms axclauses
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
   in
-    List.app (curry TextIO.output out o #1 o clause2tptp) axclauses;
+    List.app (curry TextIO.output out o #1 o clause2tptp) axclauses';
     writeln_strs out tfree_clss;
     writeln_strs out tptp_clss;
     List.app (curry TextIO.output out o tptp_classrelClause) classrel_clauses;
