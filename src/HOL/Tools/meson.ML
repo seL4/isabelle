@@ -36,7 +36,6 @@ sig
   val select_literal	: int -> thm -> thm
   val skolemize_tac	: int -> tactic
   val make_clauses_tac	: int -> tactic
-  val check_is_fol : thm -> thm
   val check_is_fol_term : term -> term
 end
 
@@ -289,12 +288,15 @@ val has_bool_arg_const =
 (*Raises an exception if any Vars in the theorem mention type bool; they
   could cause make_horn to loop! Also rejects functions whose arguments are 
   Booleans or other functions.*)
-fun check_is_fol_term term =
-    if exists (has_bool o fastype_of) (term_vars term)  orelse
-        not (Term.is_first_order ["all","All","Ex"] term) orelse
-        has_bool_arg_const term  orelse  
-        has_meta_conn term
-    then raise TERM("check_is_fol_term",[term]) else term;
+fun is_fol_term t =
+    not (exists (has_bool o fastype_of) (term_vars t)  orelse
+	 not (Term.is_first_order ["all","All","Ex"] t) orelse
+	 has_bool_arg_const t  orelse  
+	 has_meta_conn t);
+
+(*FIXME: replace this by the boolean-valued version above!*)
+fun check_is_fol_term t =
+    if is_fol_term t then t else raise TERM("check_is_fol_term",[t]);
 
 fun check_is_fol th = (check_is_fol_term (prop_of th); th);
 
@@ -548,17 +550,15 @@ fun select_literal i cl = negate_head (make_last i cl);
   leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
   might generate many subgoals.*)
 
-val skolemize_tac = 
-  SUBGOAL
-    (fn (prop,_) =>
-     let val ts = Logic.strip_assums_hyp prop
-     in EVERY1 
-	 [METAHYPS
+fun skolemize_tac i st = 
+  let val ts = Logic.strip_assums_hyp (List.nth (prems_of st, i-1))
+  in 
+     EVERY' [METAHYPS
 	    (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1
                          THEN REPEAT (etac exE 1))),
-	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
-     end);
-
+            REPEAT_DETERM_N (length ts) o (etac thin_rl)] i st
+  end
+  handle Subscript => Seq.empty;
 
 (*Top-level conversion to meta-level clauses. Each clause has  
   leading !!-bound universal variables, to express generality. To get 
