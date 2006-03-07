@@ -24,10 +24,11 @@ sig
     | `-> of itype * itype
     | ITyVar of vname;
   datatype iexpr =
-      IConst of (string * itype) * iclasslookup list list
+      IConst of string * (iclasslookup list list * itype)
     | IVar of vname
     | `$ of iexpr * iexpr
     | `|-> of (vname * itype) * iexpr
+    | INum of (IntInf.int (*positive!*) * itype) * unit
     | IAbs of ((iexpr * itype) * iexpr) * iexpr
         (* (((binding expression (ve), binding type (vty)),
                 body expression (be)), native expression (e0)) *)
@@ -52,8 +53,11 @@ sig
   val unfold_abs: iexpr -> (iexpr * itype) list * iexpr;
   val unfold_let: iexpr -> ((iexpr * itype) * iexpr) list * iexpr;
   val unfold_const_app: iexpr ->
-    (((string * itype) * iclasslookup list list) * iexpr list) option;
-  val ensure_pat: iexpr -> iexpr;
+    ((string * (iclasslookup list list * itype)) * iexpr list) option;
+  val add_constnames: iexpr -> string list -> string list;
+  val add_varnames: iexpr -> string list -> string list;
+  val is_pat: iexpr -> bool;
+  val map_pure: (iexpr -> 'a) -> iexpr -> 'a;
 
   type funn = (iexpr list * iexpr) list * (sortcontext * itype);
   type datatyp = sortcontext * (string * itype list) list;
@@ -161,10 +165,11 @@ datatype itype =
   | ITyVar of vname;
 
 datatype iexpr =
-    IConst of (string * itype) * iclasslookup list list
+    IConst of string * (iclasslookup list list * itype)
   | IVar of vname
   | `$ of iexpr * iexpr
   | `|-> of (vname * itype) * iexpr
+  | INum of (IntInf.int (*positive!*) * itype) * unit
   | IAbs of ((iexpr * itype) * iexpr) * iexpr
   | ICase of ((iexpr * itype) * (iexpr * iexpr) list) * iexpr;
     (*see also signature*)
@@ -208,7 +213,7 @@ fun pretty_itype (tyco `%% tys) =
   | pretty_itype (ITyVar v) =
       Pretty.str v;
 
-fun pretty_iexpr (IConst ((c, _), _)) =
+fun pretty_iexpr (IConst (c, _)) =
       Pretty.str c
   | pretty_iexpr (IVar v) =
       Pretty.str ("?" ^ v)
@@ -218,6 +223,8 @@ fun pretty_iexpr (IConst ((c, _), _)) =
   | pretty_iexpr ((v, ty) `|-> e) =
       (Pretty.enclose "(" ")" o Pretty.breaks)
         [Pretty.str v, Pretty.str "::", pretty_itype ty, Pretty.str "|->", pretty_iexpr e]
+  | pretty_iexpr (INum ((n, _), _)) =
+      (Pretty.str o IntInf.toString) n
   | pretty_iexpr (IAbs (((e1, _), e2), _)) =
       (Pretty.enclose "(" ")" o Pretty.breaks)
         [pretty_iexpr e1, Pretty.str "|->", pretty_iexpr e2]
@@ -271,6 +278,8 @@ fun map_iexpr _ (e as IConst _) =
       f e1 `$ f e2
   | map_iexpr f ((v, ty) `|-> e) =
       (v, ty) `|-> f e
+  | map_iexpr _ (e as INum _) =
+      e
   | map_iexpr f (IAbs (((ve, vty), be), e0)) =
       IAbs (((f ve, vty), f be), e0)
   | map_iexpr f (ICase (((de, dty), bses), e0)) =
@@ -278,8 +287,8 @@ fun map_iexpr _ (e as IConst _) =
 
 fun map_iexpr_itype f =
   let
-    fun mapp (IConst ((c, ty), sctxt)) = IConst ((c, f ty), sctxt)
-      | mapp ((v, ty) `|-> e) = (v, f ty) `|-> mapp e
+    fun mapp ((v, ty) `|-> e) = (v, f ty) `|-> mapp e
+      | mapp (INum ((n, ty), e)) = INum ((n, f ty), e)
       | mapp (IAbs (((ve, vty), be), e0)) =
           IAbs (((mapp ve, f vty), mapp be), e0)
       | mapp (ICase (((de, dty), bses), e0)) =
@@ -321,12 +330,27 @@ fun instant_itype f =
       | instant y = map_itype instant y;
   in map_itype instant end;
 
-fun ensure_pat (e as IConst (_, [])) = e
-  | ensure_pat (e as IVar _) = e
-  | ensure_pat (e as (e1 `$ e2)) =
-      (ensure_pat e1; ensure_pat e2; e)
-  | ensure_pat e =
-      error ("illegal expression for pattern: " ^ (Pretty.output o pretty_iexpr) e);
+fun is_pat (e as IConst (_, ([], _))) = true
+  | is_pat (e as IVar _) = true
+  | is_pat (e as (e1 `$ e2)) =
+      is_pat e1 andalso is_pat e2
+  | is_pat (e as INum _) = true
+  | is_pat e = false;
+
+fun map_pure f (e as IConst _) =
+      f e
+  | map_pure f (e as IVar _) =
+      f e
+  | map_pure f (e as _ `$ _) =
+      f e
+  | map_pure f (e as _ `|-> _) =
+      f e
+  | map_pure _ (INum _) =
+      error ("sorry, no pure representation of numerals so far")
+  | map_pure f (IAbs (_, e0)) =
+      f e0
+  | map_pure f (ICase (_, e0)) =
+      f e0;
 
 fun has_tyvars (_ `%% tys) =
       exists has_tyvars tys
@@ -335,18 +359,35 @@ fun has_tyvars (_ `%% tys) =
   | has_tyvars (ty1 `-> ty2) =
       has_tyvars ty1 orelse has_tyvars ty2;
 
-fun varnames_of (IConst ((c, _), _)) =
+fun add_constnames (IConst (c, _)) =
+      insert (op =) c
+  | add_constnames (IVar _) =
       I
-  | varnames_of (IVar v) =
+  | add_constnames (e1 `$ e2) =
+      add_constnames e1 #> add_constnames e2
+  | add_constnames (_ `|-> e) =
+      add_constnames e
+  | add_constnames (INum _) =
+      I
+  | add_constnames (IAbs (_, e)) =
+      add_constnames e
+  | add_constnames (ICase (_, e)) =
+      add_constnames e;
+
+fun add_varnames (IConst _) =
+      I
+  | add_varnames (IVar v) =
       insert (op =) v
-  | varnames_of (e1 `$ e2) =
-      varnames_of e1 #> varnames_of e2
-  | varnames_of ((v, _) `|-> e) =
-      insert (op =) v #> varnames_of e
-  | varnames_of (IAbs (((ve, _), be), _)) =
-      varnames_of ve #> varnames_of be
-  | varnames_of (ICase (((de, _), bses), _)) =
-      varnames_of de #> fold (fn (be, se) => varnames_of be #> varnames_of se) bses;
+  | add_varnames (e1 `$ e2) =
+      add_varnames e1 #> add_varnames e2
+  | add_varnames ((v, _) `|-> e) =
+      insert (op =) v #> add_varnames e
+  | add_varnames (INum _) =
+      I
+  | add_varnames (IAbs (((ve, _), be), _)) =
+      add_varnames ve #> add_varnames be
+  | add_varnames (ICase (((de, _), bses), _)) =
+      add_varnames de #> fold (fn (be, se) => add_varnames be #> add_varnames se) bses;
 
 fun invent seed used =
   let
@@ -884,17 +925,17 @@ fun eta_expand query =
   let
     fun eta e =
      case unfold_const_app e
-      of SOME (((f, ty), ls), es) =>
+      of SOME (const as (c, (_, ty)), es) =>
           let
-            val delta = query f - length es;
+            val delta = query c - length es;
             val add_n = if delta < 0 then 0 else delta;
             val tys =
               (fst o unfold_fun) ty
               |> curry Library.drop (length es)
               |> curry Library.take add_n
-            val vs = (Term.invent_names (fold varnames_of es []) "x" add_n)
+            val vs = (Term.invent_names (fold add_varnames es []) "x" add_n)
           in
-            vs ~~ tys `|--> IConst ((f, ty), ls) `$$ map eta es `$$ map IVar vs
+            vs ~~ tys `|--> IConst const `$$ map eta es `$$ map IVar vs
           end
        | NONE => map_iexpr eta e;
   in (map_defs o map_def_fun o map_def_fun_expr) eta end;
@@ -908,7 +949,7 @@ val eta_expand_poly =
           else (case unfold_abs e
            of ([], e) =>
               let
-                val add_var = IVar (hd (Term.invent_names (varnames_of e []) "x" 1))
+                val add_var = IVar (hd (Term.invent_names (add_varnames e []) "x" 1))
               in (([([add_var], e `$ add_var)], cty)) end
             | _ =>  funn)
       | eta funn = funn;
@@ -919,7 +960,7 @@ val unclash_vars_tvars =
     fun unclash (eqs, (sortctxt, ty)) =
       let
         val used_expr =
-          fold (fn (pats, rhs) => fold varnames_of pats #> varnames_of rhs) eqs [];
+          fold (fn (pats, rhs) => fold add_varnames pats #> add_varnames rhs) eqs [];
         val used_type = map fst sortctxt;
         val clash = gen_union (op =) (used_expr, used_type);
         val rename_map = fold_map (fn c => invent c #-> (fn c' => pair (c, c'))) clash [] |> fst;

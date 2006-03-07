@@ -246,6 +246,9 @@ declare
   fst_conv [code]
   snd_conv [code]
 
+lemma [code unfold]:
+  "1 == Suc 0" by simp
+
 code_generate True False Not "op &" "op |" If
 
 code_syntax_tyco bool
@@ -310,10 +313,5 @@ code_syntax_const
   Some
     ml (target_atom "SOME")
     haskell (target_atom "Just")
-
-code_syntax_const
-  "1 :: nat"
-    ml ("{*Suc 0*}")
-    haskell ("{*Suc 0*}")
 
 end

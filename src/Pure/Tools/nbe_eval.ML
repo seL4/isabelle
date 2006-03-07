@@ -121,18 +121,19 @@ fun new_name () = (counter := !counter +1; !counter);
 
 open BasicCodegenThingol;
 
-fun eval xs (IConst ((f, _), _)) = lookup f
-  | eval xs (IVar n) =
-      AList.lookup (op =) xs n
-      |> the_default (Var (n, []))
-  | eval xs (s `$ t) = apply (eval xs s) (eval xs t)
-  | eval xs ((n, _) `|-> t) =
-      Fun (fn [x] => eval (AList.update (op =) (n, x) xs) t,
+fun eval xs =
+  let
+    fun evl (IConst (c, _)) = lookup c
+      | evl (IVar n) =
+          AList.lookup (op =) xs n
+          |> the_default (Var (n, []))
+      | evl (s `$ t) = apply (eval xs s) (eval xs t)
+      | evl ((n, _) `|-> t) =
+          Fun (fn [x] => eval (AList.update (op =) (n, x) xs) t,
              [], 1,
              fn () => let val var = new_name() in
                  AbsN (var, to_term (eval (AList.update (op =) (n, BVar (var, [])) xs) t)) end)
-  | eval xs (IAbs (_, t)) = eval xs t
-  | eval xs (ICase (_, t)) = eval xs t;
+  in CodegenThingol.map_pure evl end;
 
 (* finally... *)
 

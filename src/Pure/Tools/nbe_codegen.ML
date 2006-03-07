@@ -91,55 +91,43 @@ fun selfcall nm ar args =
 open BasicCodegenThingol;
 
 fun mk_rexpr defined nm ar =
-  let fun mk args t = case t of
-    IConst((s,_),_) => 
-    if s=nm then selfcall nm ar args
-    else if defined s then S.nbe_apps (MLname s) args
-    else S.app Eval_Constr (S.tup [S.quote s,S.list args ])
-  | IVar s => S.nbe_apps (MLvname s) args
-  | e1 `$ e2 => mk (args @ [mk [] e2]) e1
-  | (nm, _) `|-> e => S.nbe_apps (mk_nbeFUN(nm, mk [] e)) args
-  | IAbs (_, e) => mk args e
-  | ICase (_, e) => mk args e
+  let
+    fun mk args = CodegenThingol.map_pure (mk' args)
+    and mk' args (IConst (c, _)) =
+          if c = nm then selfcall nm ar args
+          else if defined c then S.nbe_apps (MLname c) args
+          else S.app Eval_Constr (S.tup [S.quote c, S.list args])
+      | mk' args (IVar s) = S.nbe_apps (MLvname s) args
+      | mk' args (e1 `$ e2) = mk (args @ [mk [] e2]) e1
+      | mk' args ((nm, _) `|-> e) = S.nbe_apps (mk_nbeFUN (nm, mk [] e)) args;
   in mk [] end;
 
 val mk_lexpr =
-  let fun mk args t = case t of
-    IConst((s,_),_) =>
-      S.app Eval_Constr (S.tup [S.quote s, S.list args])
-  | IVar s => if args = [] then MLvname s else 
-      sys_error "NBE mk_lexpr illegal higher order pattern"
-  | e1 `$ e2 => mk (args @ [mk [] e2]) e1
-  | IAbs (_, e) => mk args e
-  | ICase (_, e) => mk args e
-  | _ => sys_error "NBE mk_lexpr illegal pattern"
+  let
+    fun mk args = CodegenThingol.map_pure (mk' args)
+    and mk' args (IConst (c, _)) =
+          S.app Eval_Constr (S.tup [S.quote c, S.list args])
+      | mk' args (IVar s) = if args = [] then MLvname s else 
+          sys_error "NBE mk_lexpr illegal higher order pattern"
+      | mk' args (e1 `$ e2) = mk (args @ [mk [] e2]) e1
+      | mk' args (_ `|-> _) =
+          sys_error "NBE mk_lexpr illegal pattern";
   in mk [] end;
 
-fun vars (IVar s) = [s]
-  | vars (e1 `$ e2) = (vars e1) @ (vars e2)
-  | vars (IAbs(_,e)) = vars e
-  | vars (ICase(_,e)) = vars e
-  | vars _ = [] (* note that a lambda won't occur here anyway *)
-
 fun mk_eqn defined nm ar (lhs,e) =
-  if has_duplicates (op =) (Library.flat (map vars lhs)) then [] else
+  if has_duplicates (op =) (fold CodegenThingol.add_varnames lhs []) then [] else
   [([S.list(map mk_lexpr (rev lhs))], mk_rexpr defined nm ar e)];
-
-fun consts_of (IConst ((s, _), _)) = insert (op =) s
-  | consts_of (e1 `$ e2) =
-      consts_of e1 #> consts_of e2
-  | consts_of (_ `|-> e) = consts_of e
-  | consts_of (IAbs (_, e)) = consts_of e
-  | consts_of (ICase (_, e)) = consts_of e
-  | consts_of _ = I;
 
 fun lookup nm = S.Val (MLname nm) (tab_lookup (S.quote nm));
 
 fun generate defined (nm, CodegenThingol.Fun (eqns, _)) =
       let
-        val ar = length(fst(hd eqns));
-        val params = S.list (rev (MLparams ar));
-        val funs = Library.flat(map (fn (_,e) => consts_of e []) eqns) \ nm;
+        val ar = (length o fst o hd) eqns;
+        val params = (S.list o rev o MLparams) ar;
+        val funs =
+          []
+          |> fold (fn (_, e) => CodegenThingol.add_constnames e) eqns
+          |> remove (op =) nm;
         val globals = map lookup (filter defined funs);
         val default_eqn = ([params], S.app Eval_Constr (S.tup[S.quote nm,params]));
         val code = S.eqns (MLname nm)

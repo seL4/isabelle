@@ -6,15 +6,16 @@ Temporary test of nbe module.
 theory nbe
 imports Main
 begin
+
 ML"reset quick_and_dirty"
 
 declare disj_assoc[code]
 
 norm_by_eval "(P | Q) | R"
 
-lemma[code]: "(P \<longrightarrow> P)=True" by blast
+(*lemma[code]: "(P \<longrightarrow> P) = True" by blast
 norm_by_eval "P \<longrightarrow> P"
-norm_by_eval "True \<longrightarrow> P"
+norm_by_eval "True \<longrightarrow> P"*)
 
 
 datatype n = Z | S n
@@ -51,7 +52,6 @@ primrec
 primrec
 "exp m Z = S Z"
 "exp m (S n) = mul (exp m n) m"
-
 
 norm_by_eval "mul2 (S(S(S(S(S(S(S Z))))))) (S(S(S(S(S Z)))))"
 norm_by_eval "mul (S(S(S(S(S(S(S Z))))))) (S(S(S(S(S Z)))))"
@@ -94,16 +94,21 @@ norm_by_eval "%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True
 norm_by_eval "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
 norm_by_eval "rev [a, b, c]"
 
-end
-
-(*
-ML"set Toplevel.debug"
 norm_by_eval "case n of None \<Rightarrow> True | Some((x,y),(u,v)) \<Rightarrow> False"
 norm_by_eval "let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)"
 norm_by_eval "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z))"
-*)
-(* to be done
-norm_by_eval "max 0 (0::nat)"
 norm_by_eval "last[a,b,c]"
- Numerals! *)
+
+text {*
+  won't work since it relies on 
+  polymorphically used ad-hoc overloaded function:
+  norm_by_eval "max 0 (0::nat)"
+*}
+
+text {*
+  Numerals still take their time\<dots>
+*}
+
+end
+
 

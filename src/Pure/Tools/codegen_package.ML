@@ -138,7 +138,7 @@ fun eq_typ thy (ty1, ty2) =
   andalso Sign.typ_instance thy (ty2, ty1);
 
 fun is_overloaded thy c = case Defs.specifications_of (Theory.defs_of thy) c
- of [] => false
+ of [] => true
   | [(ty, _)] => not (eq_typ thy (ty, Sign.the_const_type thy c))
   | _ => true;
 
@@ -161,10 +161,17 @@ structure ConstNameMangler = NameManglerFun (
   fun mk thy ((c, ty), i) =
     let
       val c' = idf_of_name thy nsp_overl c;
-      val prefix = case (AList.lookup (eq_typ thy)
-          (Defs.specifications_of (Theory.defs_of thy) c)) ty
-       of SOME thyname => NameSpace.append thyname nsp_overl
-        | NONE => NameSpace.drop_base c';
+      val prefix = 
+        case (AList.lookup (eq_typ thy)
+            (Defs.specifications_of (Theory.defs_of thy) c)) ty
+         of SOME thyname => NameSpace.append thyname nsp_overl
+          | NONE => if c = "op ="
+              then
+                NameSpace.append
+                  (((fn s => Codegen.thyname_of_type s thy) o fst o dest_Type o hd o fst o strip_type) ty)
+                  nsp_overl
+              else
+                NameSpace.drop_base c';
       val c'' = NameSpace.append prefix (NameSpace.base c');
       fun mangle (Type (tyco, tys)) =
             (NameSpace.base o alias_get thy) tyco :: Library.flat (List.mapPartial mangle tys) |> SOME
@@ -399,13 +406,13 @@ fun idf_of_const thy (tabs as ((deftab, clsmemtab), (_, (overltab1, overltab2), 
       (c, ty) =
   let
     fun get_overloaded (c, ty) =
-      case Symtab.lookup overltab1 c
+      (case Symtab.lookup overltab1 c
        of SOME tys =>
             (case find_first (curry (Sign.typ_instance thy) ty) tys
              of SOME ty' => ConstNameMangler.get thy overltab2
                   (c, ty') |> SOME
               | _ => NONE)
-        | _ => NONE
+        | _ => NONE)
     fun get_datatypecons (c, ty) =
       case (snd o strip_type) ty
        of Type (tyco, _) =>
@@ -851,12 +858,12 @@ and exprsgen_eqs thy tabs =
 and appgen_default thy tabs ((c, ty), ts) trns =
   trns
   |> ensure_def_const thy tabs (c, ty)
+  ||>> exprsgen_type thy tabs [ty]
   ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
          (ClassPackage.extract_classlookup thy (c, ty))
-  ||>> exprsgen_type thy tabs [ty]
   ||>> fold_map (exprgen_term thy tabs) ts
-  |-> (fn (((c, ls), [ty]), es) =>
-         pair (IConst ((c, ty), ls) `$$ es))
+  |-> (fn (((c, [ty]), ls), es) =>
+         pair (IConst (c, (ls, ty)) `$$ es))
 and appgen thy tabs ((f, ty), ts) trns =
   case Symtab.lookup ((#appconst o #gens o CodegenData.get) thy) f
    of SOME ((imin, imax), (ag, _)) =>
@@ -899,43 +906,48 @@ fun eqextr_defs thy ((deftab, _), _) (c, ty) =
 
 (* parametrized generators, for instantiation in HOL *)
 
-fun appgen_let strip_abs thy tabs (app as ((c, ty), [dt, ct])) trns =
-  let
-    val ([st], bt) = strip_abs 1 ct;
-    val dtyp = (hd o fst o strip_type) ty
-  in
-    trns
-    |> exprgen_term thy tabs dt
-    ||>> exprgen_type thy tabs dtyp
-    ||>> exprgen_term thy tabs st
-    ||>> exprgen_term thy tabs bt
-    ||>> appgen_default thy tabs app
-    |-> (fn ((((de, dty), se), be), e0) => pair (ICase (((de, dty), [(se, be)]), e0)))
-  end;
-
-fun appgen_split strip_abs thy tabs (app as (c as (_, ty), [t])) trns =
+fun appgen_split strip_abs thy tabs (app as (c, [t])) trns =
   case strip_abs 1 (Const c $ t)
-   of ([vt], tb) =>
+   of ([vt], bt) =>
         trns
         |> exprgen_term thy tabs vt
-        ||>> exprgen_type thy tabs (((fn [_, ty] => ty) o fst o strip_type) ty)
-        ||>> exprgen_term thy tabs tb
+        ||>> exprgen_type thy tabs (type_of vt)
+        ||>> exprgen_term thy tabs bt
         ||>> appgen_default thy tabs app
         |-> (fn (((ve, vty), be), e0) => pair (IAbs (((ve, vty), be), e0)))
     | _ =>
         trns
         |> appgen_default thy tabs app;
 
+fun appgen_let strip_abs thy tabs (app as ((c, ty), [dt, ct])) trns =
+  case strip_abs 1 ct
+   of ([st], bt) =>
+        trns
+        |> exprgen_term thy tabs dt
+        ||>> exprgen_type thy tabs (type_of dt)
+        ||>> exprgen_term thy tabs st
+        ||>> exprgen_term thy tabs bt
+        ||>> appgen_default thy tabs app
+        |-> (fn ((((de, dty), se), be), e0) => pair (ICase (((de, dty), [(se, be)]), e0)))
+    | _ =>
+        trns
+        |> appgen_default thy tabs app;
+
 fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
   Type (_, [_, ty as Type (tyco, [])])), [bin]) trns =
-    if tyco = tyco_int then
+    if tyco = tyco_nat then
       trns
-      |> exprgen_type thy tabs ty
-      |-> (fn ty => pair (CodegenThingol.IConst (((IntInf.toString o bin_to_int thy) bin, ty), [])))
-    else if tyco = tyco_nat then
-      trns
-      |> exprgen_term thy tabs (mk_int_to_nat bin)
-    else error ("invalid type constructor for numeral: " ^ quote tyco);
+      |> exprgen_term thy tabs (mk_int_to_nat bin) (*should be a preprocessor's work*)
+    else
+      let
+        val i = bin_to_int thy bin;
+        val _ = if i < 0 then error ("negative numeral: " ^ IntInf.toString i) else ();
+          (*should be a preprocessor's work*)
+      in
+        trns
+        |> exprgen_type thy tabs ty
+        |-> (fn ty => pair (CodegenThingol.INum ((i, ty), ())))
+      end;
 
 fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
   let
@@ -951,25 +963,7 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
     ||>> exprsgen_type thy tabs [ty_def]
     ||>> exprgen_term thy tabs tf
     ||>> exprgen_term thy tabs tx
-    |-> (fn ((((_, ls), [ty]), tf), tx) => pair (IConst ((idf, ty), ls) `$ tf `$ tx))
-  end;
-
-
-fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
-  let
-    val ty_def = (op ---> o apfst tl o strip_type o Sign.the_const_type thy) c;
-    val ty' = (op ---> o apfst tl o strip_type) ty;
-    val idf = idf_of_const thy tabs (c, ty);
-  in
-    trns
-    |> ensure_def [("wfrec", (K o succeed) Undef)] ("generating wfrec") idf
-    |> exprgen_type thy tabs ty'
-    ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
-           (ClassPackage.extract_classlookup thy (c, ty))
-    ||>> exprsgen_type thy tabs [ty_def]
-    ||>> exprgen_term thy tabs tf
-    ||>> exprgen_term thy tabs tx
-    |-> (fn ((((_, ls), [ty]), tf), tx) => pair (IConst ((idf, ty), ls) `$ tf `$ tx))
+    |-> (fn ((((_, ls), [ty]), tf), tx) => pair (IConst (idf, (ls, ty)) `$ tf `$ tx))
   end;
 
 fun eqextr_eq f fals thy tabs ("op =", ty) =
