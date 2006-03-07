@@ -227,8 +227,7 @@ fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
   | hashw_term ((Var(_,_)), w) = w
   | hashw_term ((Bound _), w) = w
   | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
-  | hashw_term ((P$Q), w) =
-    hashw_term (Q, (hashw_term (P, w)));
+  | hashw_term ((P$Q), w) = hashw_term (Q, (hashw_term (P, w)));
 
 fun hashw_pred (P,w) = 
     let val (p,args) = strip_comb P
@@ -241,8 +240,7 @@ fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_pred(P,0w0))
 
 
 fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
-  | get_literals (Const("op |",_)$P$Q) lits =
-    get_literals Q (get_literals P lits)
+  | get_literals (Const("op |",_)$P$Q) lits = get_literals Q (get_literals P lits)
   | get_literals lit lits = (lit::lits);
 
 
@@ -263,14 +261,14 @@ fun mem_tm tm [] = false
 
 fun insert_tms [] tms_names = tms_names
   | insert_tms ((tm,name)::tms_names) tms_names' =
-    if mem_tm tm tms_names' then insert_tms tms_names tms_names' else insert_tms tms_names ((tm,name)::tms_names');
+      if mem_tm tm tms_names' then insert_tms tms_names tms_names' 
+      else insert_tms tms_names ((tm,name)::tms_names');
 
 fun warning_thms [] = ()
   | warning_thms ((name,thm)::nthms) = 
-    let val nthm = name ^ ": " ^ (string_of_thm thm)
-    in
-	(warning nthm; warning_thms nthms)
-    end;
+      let val nthm = name ^ ": " ^ (string_of_thm thm)
+      in warning nthm; warning_thms nthms  end;
+ 
 (*Write out the claset, simpset and atpset rules of the supplied theory.*)
 (* also write supplied user rules, they are not relevance filtered *)
 fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_atpset) run_filter =
@@ -290,17 +288,21 @@ fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_a
       val user_rules = map put_name_pair user_thms
       val banned = make_banned_test (map #1 (user_rules@atpset_thms@claset_thms@simpset_thms))
       fun ok (a,_) = not (banned a) 	   
-      val claset_cls_tms = if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok claset_thms)
-			   else ResAxioms.clausify_rules_pairs_abs claset_thms
-      val simpset_cls_tms = if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok simpset_thms)
-			    else ResAxioms.clausify_rules_pairs_abs simpset_thms
-      val atpset_cls_tms = if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok atpset_thms)
-			   else ResAxioms.clausify_rules_pairs_abs atpset_thms
+      val claset_cls_tms = 
+            if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok claset_thms)
+            else ResAxioms.clausify_rules_pairs_abs claset_thms
+      val simpset_cls_tms = 
+      	    if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok simpset_thms)
+	    else ResAxioms.clausify_rules_pairs_abs simpset_thms
+      val atpset_cls_tms = 
+      	    if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok atpset_thms)
+	    else ResAxioms.clausify_rules_pairs_abs atpset_thms
       val user_cls_tms = ResAxioms.clausify_rules_pairs_abs user_rules (* no filter here, because user supplied rules *)
       val cls_tms_list = make_unique (mk_clause_table 2200) 
-                                      (List.concat (user_cls_tms@atpset_cls_tms@simpset_cls_tms@claset_cls_tms))
+                           (List.concat (user_cls_tms@atpset_cls_tms@simpset_cls_tms@claset_cls_tms))
       val relevant_cls_tms_list =
-	  if run_filter then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_tms_list goals
+	  if run_filter 
+	  then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_tms_list goals
 	  else cls_tms_list
       val all_relevant_cls_tms_list = insert_tms (List.concat user_cls_tms) relevant_cls_tms_list (*ensure all user supplied rules are output*)	  
     in
