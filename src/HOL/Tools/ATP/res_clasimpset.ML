@@ -7,14 +7,17 @@ signature RES_CLASIMP =
   sig
   val blacklist : string list ref (*Theorems forbidden in the output*)
   val use_simpset: bool ref
-  val get_clasimp_lemmas : 
-         Proof.context -> term list -> 
-         (ResClause.clause * thm) Array.array * ResClause.clause list 
+  val get_clasimp_atp_lemmas : 
+      Proof.context ->
+      Term.term list ->
+      (string * Thm.thm) list ->
+      (bool * bool * bool) -> bool -> string Array.array * (Term.term * (string * int)) list
   end;
-
+  
 structure ResClasimp : RES_CLASIMP =
 struct
 val use_simpset = ref false;   (*Performance is much better without simprules*)
+
 
 (*In general, these produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
@@ -215,37 +218,95 @@ fun make_banned_test xs =
       banned
   end;
 
+
+(*** a hash function from Term.term to int, and also a hash table ***)
+val xor_words = List.foldl Word.xorb 0w0;
+
+fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
+  | hashw_term ((Free(_,_)), w) = w
+  | hashw_term ((Var(_,_)), w) = w
+  | hashw_term ((Bound _), w) = w
+  | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
+  | hashw_term ((P$Q), w) =
+    hashw_term (Q, (hashw_term (P, w)));
+
+fun hashw_pred (P,w) = 
+    let val (p,args) = strip_comb P
+    in
+	List.foldl hashw_term w (p::args)
+    end;
+
+fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_pred(P,0w0))
+  | hash_literal P = hashw_pred(P,0w0);
+
+
+fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
+  | get_literals (Const("op |",_)$P$Q) lits =
+    get_literals Q (get_literals P lits)
+  | get_literals lit lits = (lit::lits);
+
+
+fun hash_term term = Word.toIntX (xor_words (map hash_literal (get_literals term [])));
+
+
 (*Create a hash table for clauses, of the given size*)
 fun mk_clause_table n =
-      Polyhash.mkTable (ResClause.hash_clause, ResClause.clause_eq)
+      Polyhash.mkTable (hash_term, Term.aconv)
                        (n, HASH_CLAUSE);
 
 (*Use a hash table to eliminate duplicates from xs*)
 fun make_unique ht xs = 
       (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
 
-(*Write out the claset and simpset rules of the supplied theory.*)
-fun get_clasimp_lemmas ctxt goals = 
-  let val claset_thms =
-	  map put_name_pair (ResAxioms.claset_rules_of_ctxt ctxt)
+fun mem_tm tm [] = false
+  | mem_tm tm ((tm',name)::tms_names) = Term.aconv (tm,tm') orelse mem_tm tm tms_names;
+
+fun insert_tms [] tms_names = tms_names
+  | insert_tms ((tm,name)::tms_names) tms_names' =
+    if mem_tm tm tms_names' then insert_tms tms_names tms_names' else insert_tms tms_names ((tm,name)::tms_names');
+
+fun warning_thms [] = ()
+  | warning_thms ((name,thm)::nthms) = 
+    let val nthm = name ^ ": " ^ (string_of_thm thm)
+    in
+	(warning nthm; warning_thms nthms)
+    end;
+(*Write out the claset, simpset and atpset rules of the supplied theory.*)
+(* also write supplied user rules, they are not relevance filtered *)
+fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_atpset) run_filter =
+    let val claset_thms =
+	    if use_claset then
+		map put_name_pair (ResAxioms.claset_rules_of_ctxt ctxt)
+	    else []
       val simpset_thms = 
-	    if !use_simpset then 
+	    if (!use_simpset andalso use_simpset') then (* temporary, may merge two use_simpset later *)  
 		map put_name_pair (ResAxioms.simpset_rules_of_ctxt ctxt)
 	    else []
-      val banned = make_banned_test (map #1 (claset_thms@simpset_thms))
-      fun ok (a,_) = not (banned a)
-      val claset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok claset_thms)
-      val simpset_cls_thms = ResAxioms.clausify_rules_pairs (filter ok simpset_thms)
-      val cls_thms_list = make_unique (mk_clause_table 2200) 
-                                      (List.concat (simpset_cls_thms@claset_cls_thms))
-      val relevant_cls_thms_list =
-          ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals
-  in  (* create array of put clausename, number pairs into it *)
-      (Array.fromList relevant_cls_thms_list, map #1 (relevant_cls_thms_list))
-  end;
-
-
+      val atpset_thms =
+	  if use_atpset then
+	      map put_name_pair (ResAxioms.atpset_rules_of_ctxt ctxt)
+	  else []
+      val _ = warning_thms atpset_thms
+      val user_rules = map put_name_pair user_thms
+      val banned = make_banned_test (map #1 (user_rules@atpset_thms@claset_thms@simpset_thms))
+      fun ok (a,_) = not (banned a) 	   
+      val claset_cls_tms = if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok claset_thms)
+			   else ResAxioms.clausify_rules_pairs_abs claset_thms
+      val simpset_cls_tms = if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok simpset_thms)
+			    else ResAxioms.clausify_rules_pairs_abs simpset_thms
+      val atpset_cls_tms = if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok atpset_thms)
+			   else ResAxioms.clausify_rules_pairs_abs atpset_thms
+      val user_cls_tms = ResAxioms.clausify_rules_pairs_abs user_rules (* no filter here, because user supplied rules *)
+      val cls_tms_list = make_unique (mk_clause_table 2200) 
+                                      (List.concat (user_cls_tms@atpset_cls_tms@simpset_cls_tms@claset_cls_tms))
+      val relevant_cls_tms_list =
+	  if run_filter then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_tms_list goals
+	  else cls_tms_list
+      val all_relevant_cls_tms_list = insert_tms (List.concat user_cls_tms) relevant_cls_tms_list (*ensure all user supplied rules are output*)	  
+    in
+	(Array.fromList (map fst (map snd all_relevant_cls_tms_list)), all_relevant_cls_tms_list)
 end;
 
 
 	
+end;
