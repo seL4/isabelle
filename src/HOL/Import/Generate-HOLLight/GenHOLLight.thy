@@ -30,7 +30,8 @@ ignore_thms
   DEF_NUM_REP
   TYDEF_sum
   DEF_INL
-  DEF_INR;
+  DEF_INR
+  TYDEF_option;
 
 type_maps
   ind > Nat.ind
@@ -39,7 +40,8 @@ type_maps
   N_1 >  Product_Type.unit
   prod > "*"
   num > nat
-  sum > "+";
+  sum > "+"
+  option > Datatype.option;
 
 const_renames
   "==" > "eqeq"

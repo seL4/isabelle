@@ -40,7 +40,8 @@ test: \
   HOL-UNITY \
   HOL-Unix \
   HOL-W0 \
-  HOL-ex
+  HOL-ZF \
+  HOL-ex 
     # ^ this is the sort position
 
 all: test images
@@ -451,6 +452,14 @@ $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy \
   Unix/document/root.bib Unix/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Unix
 
+## HOL-ZF
+
+HOL-ZF: HOL $(LOG)/HOL-ZF.gz
+
+$(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML  \
+  ZF/Helper.thy ZF/LProd.thy ZF/HOLZF.thy \
+  ZF/MainZF.thy ZF/Games.thy ZF/document/root.tex
+	@$(ISATOOL) usedir $(OUT)/HOL ZF
 
 ## HOL-Modelcheck
 

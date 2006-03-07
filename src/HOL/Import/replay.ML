@@ -369,7 +369,13 @@ fun import_thms thyname int_thms thmnames thy =
 		     (entry::cached, normal)
 		 end)
 	    else
-		raise ERR "import_thms" ("cached theorems are not in-sync, expected: "^thmname^", found: "^thmname')
+		let
+		    val _ = writeln ("cached theorems are not in-sync,  expected: "^thmname^", found: "^thmname')
+		    val _ = writeln ("proceeding with next uncached theorem...")
+		in
+		    ([], thmname::names)
+		end
+	(*	raise ERR "import_thms" ("cached theorems are not in-sync, expected: "^thmname^", found: "^thmname')*)
 	  | zip (thmname::_) (DeltaEntry _ :: _) = 
  	    raise ERR "import_thms" ("expected theorem '"^thmname^"', but found a delta")
 	fun zip' xs (History ys) = 
