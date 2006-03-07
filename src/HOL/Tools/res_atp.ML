@@ -1,4 +1,4 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory
+(*  Author: Jia Meng, Cambridge University Computer Laboratory, NICTA
     ID: $Id$
     Copyright 2004 University of Cambridge
 
@@ -13,19 +13,44 @@ sig
   val helper_path: string -> string -> string
   val problem_name: string ref
   val time_limit: int ref
+   
+  datatype mode = Auto | Fol | Hol
+  val write_subgoal_file: mode -> Proof.context -> Thm.thm list -> Thm.thm list -> int -> string
+  val vampire_time: int ref
+  val eprover_time: int ref
+  val run_vampire: int -> unit
+  val run_eprover: int -> unit
+  val vampireLimit: unit -> int
+  val eproverLimit: unit -> int
+  val atp_method: (ProofContext.context -> Thm.thm list -> int -> Tactical.tactic) ->
+		  Method.src -> ProofContext.context -> Method.method
+  val cond_rm_tmp: string -> unit
+  val keep_atp_input: bool ref
+  val fol_keep_types: bool ref
+  val hol_full_types: unit -> unit
+  val hol_partial_types: unit -> unit
+  val hol_const_types_only: unit -> unit
+  val hol_no_types: unit -> unit
+  val hol_typ_level: unit -> ResHolClause.type_level
+  val run_relevance_filter: bool ref
+
 end;
 
 structure ResAtp: RES_ATP =
 struct
 
-val call_atp = ref false;
+(********************************************************************)
+(* some settings for both background automatic ATP calling procedure*)
+(* and also explicit ATP invocation methods                         *)
+(********************************************************************)
+
+(*** background linkup ***)
+val call_atp = ref false; 
 val hook_count = ref 0;
 val time_limit = ref 30;
-
 val prover = ref "E";   (* use E as the default prover *)
 val custom_spass =   (*specialized options for SPASS*)
       ref ["-Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub"];
-
 val destdir = ref "";   (*Empty means write files to /tmp*)
 val problem_name = ref "prob";
 
@@ -47,6 +72,328 @@ fun probfile_nosuffix _ =
   else error ("No such directory: " ^ !destdir);
 
 fun prob_pathname n = probfile_nosuffix n ^ "_" ^ Int.toString n;
+
+
+(*** ATP methods ***)
+val vampire_time = ref 60;
+val eprover_time = ref 60;
+fun run_vampire time =  
+    if (time >0) then vampire_time:= time
+    else vampire_time:=60;
+
+fun run_eprover time = 
+    if (time > 0) then eprover_time:= time
+    else eprover_time:=60;
+
+fun vampireLimit () = !vampire_time;
+fun eproverLimit () = !eprover_time;
+
+val keep_atp_input = ref false;
+val fol_keep_types = ResClause.keep_types;
+val hol_full_types = ResHolClause.full_types;
+val hol_partial_types = ResHolClause.partial_types;
+val hol_const_types_only = ResHolClause.const_types_only;
+val hol_no_types = ResHolClause.no_types;
+fun hol_typ_level () = ResHolClause.find_typ_level ();
+fun is_typed_hol () = 
+    let val tp_level = hol_typ_level()
+    in
+	not (tp_level = ResHolClause.T_NONE)
+    end;
+val include_combS = ResHolClause.include_combS;
+val include_min_comb = ResHolClause.include_min_comb;
+
+fun atp_input_file () =
+    let val file = !problem_name 
+    in
+	if !destdir = "" then File.platform_path (File.tmp_path (Path.basic file))
+	else if File.exists (File.unpack_platform_path (!destdir))
+	then !destdir ^ "/" ^ file
+	else error ("No such directory: " ^ !destdir)
+    end;
+
+val include_simpset = ref false;
+val include_claset = ref false; 
+val include_atpset = ref true;
+val add_simpset = (fn () => include_simpset:=true);
+val add_claset = (fn () => include_claset:=true);
+val add_clasimp = (fn () => include_simpset:=true;include_claset:=true);
+val add_atpset = (fn () => include_atpset:=true);
+val rm_simpset = (fn () => include_simpset:=false);
+val rm_claset = (fn () => include_claset:=false);
+val rm_clasimp = (fn () => include_simpset:=false;include_claset:=false);
+val rm_atpset = (fn () => include_atpset:=false);
+
+(*** paths for HOL helper files ***)
+fun full_typed_comb_inclS () =
+    helper_path "E_HOME" "additionals/full_comb_inclS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/full_comb_inclS";
+
+fun full_typed_comb_noS () =
+    helper_path "E_HOME" "additionals/full_comb_noS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/full_comb_noS";
+									      
+fun partial_typed_comb_inclS () =
+    helper_path "E_HOME" "additionals/par_comb_inclS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/par_comb_inclS";
+
+fun partial_typed_comb_noS () =
+    helper_path "E_HOME" "additionals/par_comb_noS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/par_comb_noS";
+
+fun const_typed_comb_inclS () =
+    helper_path "E_HOME" "additionals/const_comb_inclS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/const_comb_inclS";
+
+fun const_typed_comb_noS () =
+    helper_path "E_HOME" "additionals/const_comb_noS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/const_comb_noS";
+
+fun untyped_comb_inclS () =
+    helper_path "E_HOME" "additionals/u_comb_inclS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/u_comb_inclS";
+
+fun untyped_comb_noS () =
+    helper_path "E_HOME" "additionals/u_comb_noS"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/u_comb_noS";
+
+fun full_typed_HOL_helper1 () =
+    helper_path "E_HOME" "additionals/full_helper1"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/full_helper1";
+
+fun partial_typed_HOL_helper1 () = 
+    helper_path "E_HOME" "additionals/par_helper1"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/par_helper1";
+
+fun const_typed_HOL_helper1 () = 
+    helper_path "E_HOME" "additionals/const_helper1"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/const_helper1";
+
+fun untyped_HOL_helper1 () = 
+    helper_path "E_HOME" "additionals/u_helper1"
+    handle _ => helper_path "VAMPIRE_HOME" "additionals/u_helper1";
+
+fun get_full_typed_helpers () =
+    (full_typed_HOL_helper1 (), full_typed_comb_noS (), full_typed_comb_inclS ());
+
+fun get_partial_typed_helpers () =
+    (partial_typed_HOL_helper1 (), partial_typed_comb_noS (), partial_typed_comb_inclS ());
+
+fun get_const_typed_helpers () =
+    (const_typed_HOL_helper1 (), const_typed_comb_noS (), const_typed_comb_inclS ());
+
+fun get_untyped_helpers () =
+    (untyped_HOL_helper1 (), untyped_comb_noS (), untyped_comb_inclS ());
+
+fun get_all_helpers () =
+    (get_full_typed_helpers (), get_partial_typed_helpers (), get_const_typed_helpers (), get_untyped_helpers ());
+
+
+(**** relevance filter ****)
+val run_relevance_filter = ref true;
+
+(******************************************************************)
+(* detect whether a given problem (clauses) is FOL/HOL/HOLC/HOLCS *)
+(******************************************************************)
+
+datatype logic = FOL | HOL | HOLC | HOLCS;
+
+fun string_of_logic FOL = "FOL"
+  | string_of_logic HOL = "HOL"
+  | string_of_logic HOLC = "HOLC"
+  | string_of_logic HOLCS = "HOLCS";
+
+
+fun is_fol_logic FOL = true
+  | is_fol_logic  _ = false
+
+
+(*HOLCS will not occur here*)
+fun upgrade_lg HOLC _ = HOLC
+  | upgrade_lg HOL HOLC = HOLC
+  | upgrade_lg HOL _ = HOL
+  | upgrade_lg FOL lg = lg; 
+
+(* check types *)
+fun has_bool (Type("bool",_)) = true
+  | has_bool (Type(_, Ts)) = exists has_bool Ts
+  | has_bool _ = false;
+
+fun has_bool_arg tp = 
+    let val (targs,tr) = strip_type tp
+    in
+	exists has_bool targs
+    end;
+
+fun is_fn_tp (Type("fun",_)) = true
+  | is_fn_tp _ = false;
+
+
+exception FN_LG of term;
+
+fun fn_lg (t as Const(f,tp)) (lg,seen) = 
+    if has_bool tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
+  | fn_lg (t as Free(f,tp)) (lg,seen) = 
+    if has_bool tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
+  | fn_lg (t as Var(f,tp)) (lg,seen) =
+    if is_fn_tp tp orelse has_bool tp then (upgrade_lg HOL lg,t ins seen)
+    else (lg,t ins seen)
+  | fn_lg (t as Abs(_,_,_)) (lg,seen) = (upgrade_lg HOLC lg,t ins seen)
+  | fn_lg f _ = raise FN_LG(f); 
+
+
+fun term_lg [] (lg,seen) = (lg,seen)
+  | term_lg (tm::tms) (FOL,seen) =
+    let val (f,args) = strip_comb tm
+	val (lg',seen') = if f mem seen then (FOL,seen) 
+			  else fn_lg f (FOL,seen)
+
+	 in
+	     term_lg (args@tms) (lg',seen')
+    end
+  | term_lg _ (lg,seen) = (lg,seen)
+
+exception PRED_LG of term;
+
+fun pred_lg (t as Const(P,tp)) (lg,seen)= 
+    if has_bool_arg tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen) 
+  | pred_lg (t as Free(P,tp)) (lg,seen) =
+    if has_bool_arg tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen)
+  | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, t ins seen)
+  | pred_lg P _ = raise PRED_LG(P);
+
+
+fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
+  | lit_lg P (lg,seen) =
+    let val (pred,args) = strip_comb P
+	val (lg',seen') = if pred mem seen then (lg,seen) 
+			  else pred_lg pred (lg,seen)
+    in
+	term_lg args (lg',seen')
+    end;
+
+fun lits_lg [] (lg,seen) = (lg,seen)
+  | lits_lg (lit::lits) (FOL,seen) =
+    lits_lg lits (lit_lg lit (FOL,seen))
+  | lits_lg lits (lg,seen) = (lg,seen);
+
+
+fun logic_of_clause tm (lg,seen) =
+    let val tm' = HOLogic.dest_Trueprop tm
+	val disjs = HOLogic.dest_disj tm'
+    in
+	lits_lg disjs (lg,seen)
+    end;
+
+fun lits_lg [] (lg,seen) = (lg,seen)
+  | lits_lg (lit::lits) (FOL,seen) =
+    lits_lg lits (lit_lg lit (FOL,seen))
+  | lits_lg lits (lg,seen) = (lg,seen);
+
+
+fun logic_of_clause tm (lg,seen) =
+    let val tm' = HOLogic.dest_Trueprop tm
+	val disjs = HOLogic.dest_disj tm'
+    in
+	lits_lg disjs (lg,seen)
+    end;
+
+fun logic_of_clauses [] (lg,seen) = (lg,seen)
+  | logic_of_clauses (cls::clss) (FOL,seen) =
+    logic_of_clauses clss (logic_of_clause cls (FOL,seen))
+  | logic_of_clauses (cls::clss) (lg,seen) = (lg,seen);
+
+fun logic_of_nclauses [] (lg,seen) = (lg,seen)
+  | logic_of_nclauses (cls::clss) (FOL,seen) =
+    logic_of_nclauses clss (logic_of_clauses (snd cls) (FOL,seen))
+  | logic_of_nclauses clss (lg,seen) = (lg,seen);
+
+fun problem_logic (goal_cls,rules_cls) =
+    let val (lg1,seen1) = logic_of_clauses goal_cls (FOL,[])
+	val (lg2,seen2) = logic_of_nclauses rules_cls (lg1,seen1)
+    in
+	lg2
+    end;
+
+fun problem_logic_goals_aux [] (lg,seen) = lg
+  | problem_logic_goals_aux (subgoal::subgoals) (lg,seen) = 
+    problem_logic_goals_aux subgoals (logic_of_clauses subgoal (lg,seen));
+    
+fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
+
+
+(***************************************************************)
+(* ATP invocation methods setup                                *)
+(***************************************************************)
+
+
+(**** prover-specific format: TPTP ****)
+
+
+fun cnf_hyps_thms ctxt = 
+    let val ths = ProofContext.prems_of ctxt
+    in
+	ResClause.union_all (map ResAxioms.skolem_thm ths)
+    end;
+
+
+(**** write to files ****)
+
+datatype mode = Auto | Fol | Hol;
+
+fun tptp_writer logic goals filename (axioms,classrels,arities) =
+    if is_fol_logic logic then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
+    else
+	ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) (get_all_helpers());
+
+
+fun write_subgoal_file mode ctxt conjectures user_thms n =
+    let val conj_cls = map prop_of (make_clauses conjectures) 
+	val hyp_cls = map prop_of (cnf_hyps_thms ctxt)
+	val goal_cls = conj_cls@hyp_cls
+	val user_rules = map ResAxioms.pairname user_thms
+	val (names_arr,axclauses_as_tms) = ResClasimp.get_clasimp_atp_lemmas ctxt (goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
+	val thy = ProofContext.theory_of ctxt
+	val prob_logic = case mode of Auto => problem_logic_goals [goal_cls]
+				    | Fol => FOL
+				    | Hol => HOL
+	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
+	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
+	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
+	val writer = tptp_writer
+	val file = atp_input_file()
+    in
+	(writer prob_logic goal_cls file (axclauses_as_tms,classrel_clauses,arity_clauses);
+	 warning ("Writing to " ^ file);
+	 file)
+    end;
+
+
+(**** remove tmp files ****)
+fun cond_rm_tmp file = 
+    if !keep_atp_input then warning "ATP input kept..." 
+    else if !destdir <> "" then warning ("ATP input kept in directory " ^ (!destdir))
+    else (warning "deleting ATP inputs..."; OS.FileSys.remove file);
+
+
+(****** setup ATPs as Isabelle methods ******)
+fun atp_meth' tac ths ctxt = 
+    Method.SIMPLE_METHOD' HEADGOAL
+    (tac ctxt ths);
+
+fun atp_meth tac ths ctxt = 
+    let val thy = ProofContext.theory_of ctxt
+	val _ = ResClause.init thy
+	val _ = ResHolClause.init thy
+    in
+	atp_meth' tac ths ctxt
+    end;
+
+fun atp_method tac = Method.thms_ctxt_args (atp_meth tac);
+
+(***************************************************************)
+(* automatic ATP invocation                                    *)
+(***************************************************************)
 
 (* call prover with settings and problem file for the current subgoal *)
 fun watcher_call_provers sign sg_terms (childin, childout, pid) =
@@ -105,30 +452,35 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
   subgoals, each involving &&.*)
 fun write_problem_files pf (ctxt,th)  =
   let val goals = Thm.prems_of th
-      val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals));
-      val (clause_arr, axclauses) = ResClasimp.get_clasimp_lemmas ctxt goals 
-      val _ = Output.debug ("claset and simprules total clauses = " ^ 
-                     Int.toString (Array.length clause_arr))
+      val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
+      val (names_arr, axclauses_as_terms) = ResClasimp.get_clasimp_atp_lemmas ctxt goals [] (true,true,true) (!run_relevance_filter) (* no user supplied rules here, because no user invocation *)
+      val _ = Output.debug ("claset, simprules and atprules total clauses = " ^ 
+                     Int.toString (Array.length names_arr))
       val thy = ProofContext.theory_of ctxt
-      val classrel_clauses = 
-          if !ResClause.keep_types then ResClause.classrel_clauses_thy thy else []
+      fun get_neg_subgoals n =
+	  if n=0 then []
+	  else
+	      let val st = Seq.hd (EVERY'
+				       [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac] n th)
+		  val negs = Option.valOf (metahyps_thms n st)
+		  val negs_clauses = map prop_of (make_clauses negs)
+	      in
+		  negs_clauses::(get_neg_subgoals (n - 1))
+	      end
+      val neg_subgoals = get_neg_subgoals (length goals) 
+      val goals_logic = problem_logic_goals neg_subgoals
+      val keep_types = if is_fol_logic goals_logic then !ResClause.keep_types else is_typed_hol ()
+      val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
-      val arity_clauses = 
-          if !ResClause.keep_types then ResClause.arity_clause_thy thy else []
+      val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
-      val write = if !prover = "spass" then ResClause.dfg_write_file 
-                                       else ResClause.tptp_write_file
-      fun writenext n =
-	if n=0 then []
-	 else
-	   (SELECT_GOAL
-	    (EVERY1 [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac, 
-	      METAHYPS(fn negs => 
-		(write (make_clauses negs) (pf n) 
-		       (axclauses,classrel_clauses,arity_clauses);
-		 all_tac))]) n th;
-	    pf n :: writenext (n-1))
-      in (writenext (length goals), clause_arr) end;
+      val writer = (*if !prover ~= "spass" then *)tptp_writer 
+      fun write_all [] _ = []
+	| write_all (subgoal::subgoals) k =
+	  (writer goals_logic subgoal (pf k) (axclauses_as_terms,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
+  in
+      (write_all neg_subgoals (length goals), names_arr)
+  end;
 
 val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
                                     Posix.Process.pid * string list) option);
@@ -150,8 +502,8 @@ val isar_atp = setmp print_mode []
   else
     let
       val _ = kill_last_watcher()
-      val (files,clause_arr) = write_problem_files prob_pathname (ctxt,th)
-      val (childin, childout, pid) = Watcher.createWatcher (th, clause_arr)
+      val (files,names_arr) = write_problem_files prob_pathname (ctxt,th)
+      val (childin, childout, pid) = Watcher.createWatcher (th, names_arr)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
       Output.debug ("problem files: " ^ space_implode ", " files); 
@@ -183,6 +535,7 @@ val invoke_atp = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     hook_count := !hook_count +1;
     Output.debug ("in hook for time: " ^ Int.toString (!hook_count));
     ResClause.init thy;
+    ResHolClause.init thy;
     if !destdir = "" andalso !time_limit > 0 then isar_atp (ctxt, goal)
     else isar_atp_writeonly (ctxt, goal)
   end);
