@@ -17,6 +17,8 @@ val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
 fun init thy = (include_combS:=false;include_min_comb:=false;const_typargs := Sign.const_typargs thy);
 
+
+
 (**********************************************************************)
 (* convert a Term.term with lambdas into a Term.term with combinators *) 
 (**********************************************************************)
@@ -486,6 +488,13 @@ fun make_axiom_clause term (ax_name,cls_id) =
 		    lits',ctypes_sorts,ctvar_lits,ctfree_lits)
     end;
 
+fun make_axiom_clauses_terms [] = []
+  | make_axiom_clauses_terms ((tm,(name,id))::tms) =
+    let val cls = make_axiom_clause tm (name,id)
+	val clss = make_axiom_clauses_terms tms
+    in
+	if isTaut cls then clss else (cls::clss)
+    end;
 
 fun make_conjecture_clause n t =
     let val t' = comb_of t
@@ -726,5 +735,56 @@ fun hash_literal (Literal(true,pred)) = hash_combterm(pred,0w0)
   | hash_literal (Literal(false,pred)) = Word.notb(hash_combterm(pred,0w0));
 
 fun hash_clause clause = xor_words (map hash_literal (get_literals clause));
+
+(**********************************************************************)
+(* write clauses to files                                             *)
+(**********************************************************************)
+
+fun read_in [] = []
+  | read_in (f1::fs) =
+    let val lines = read_in fs
+	val input = TextIO.openIn f1
+	fun reading () =
+	    let val nextline = TextIO.inputLine input
+	    in
+		if nextline = "" then (TextIO.closeIn input; [])
+		else nextline::(reading ())
+	    end
+    in
+	((reading ()) @ lines)
+    end;
+
+ 
+fun get_helper_clauses (full,partial,const,untyped) =
+    let val (helper1,noS,inclS) = case !typ_level of T_FULL => (warning "Fully-typed HOL"; full)
+						   | T_PARTIAL => (warning "Partially-typed HOL"; partial)
+						   | T_CONST => (warning "Const-only-typed HOL"; const)
+						   | T_NONE => (warning "Untyped HOL"; untyped)
+	val needed_helpers = if !include_combS then (warning "Include combinator S"; [helper1,inclS]) else
+			     if !include_min_comb then (warning "Include min combinators"; [helper1,noS])
+			     else (warning "No combinator is used"; [helper1])
+    in
+	read_in needed_helpers
+    end;
+
+
+(* write TPTP format to a single file *)
+(* when "get_helper_clauses" is called, "include_combS" and "include_min_comb" should have correct values already *)
+fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) helpers =
+    let val clss = make_conjecture_clauses terms
+	val axclauses' = make_axiom_clauses_terms axclauses
+	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
+	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
+	val out = TextIO.openOut filename
+	val helper_clauses = get_helper_clauses helpers
+    in
+	List.app (curry TextIO.output out o #1 o clause2tptp) axclauses';
+	ResClause.writeln_strs out tfree_clss;
+	ResClause.writeln_strs out tptp_clss;
+	List.app (curry TextIO.output out o ResClause.tptp_classrelClause) classrel_clauses;
+	List.app (curry TextIO.output out o ResClause.tptp_arity_clause) arity_clauses;
+	List.app (curry TextIO.output out) helper_clauses;
+	TextIO.closeOut out
+    end;
 
 end
