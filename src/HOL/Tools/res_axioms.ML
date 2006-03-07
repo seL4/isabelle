@@ -393,27 +393,28 @@ val cnf_rules = cnf_rules_g cnf_axiom;
 
 fun cnf_rules1 [] err_list = ([],err_list)
   | cnf_rules1 ((name,th) :: ths) err_list =
-    let val (ts,es) = cnf_rules1 ths err_list
-    in
-	((name,cnf_axiom (name,th)) :: ts,es) handle _ => (ts,(name::es)) end;
+      let val (ts,es) = cnf_rules1 ths err_list
+      in ((name,cnf_axiom (name,th)) :: ts,es) handle _ => (ts,(name::es)) end;
 
 fun cnf_rules2 [] err_list = ([],err_list)
   | cnf_rules2 ((name,th) :: ths) err_list =
-    let val (ts,es) = cnf_rules2 ths err_list
-    in
-	((name,map prop_of (cnf_axiom (name,th))) :: ts,es) handle _ => (ts,(name::es)) end;
+      let val (ts,es) = cnf_rules2 ths err_list
+      in
+	((name,map prop_of (cnf_axiom (name,th))) :: ts,es) handle _ => (ts,(name::es)) 
+      end;
 
-fun clausify_rules_pairs_abs_aux [] err_list = ([],err_list)
-  | clausify_rules_pairs_abs_aux ((name,th)::ths) err_list =
-    let val (ts,es) = clausify_rules_pairs_abs_aux ths err_list
-	fun pair_name_cls k (n, []) = []
-	  | pair_name_cls k (n, (cls::clss)) =
-	    (prop_of cls,(n,k))::(pair_name_cls (k + 1) (n, clss))
-    in
-	(pair_name_cls 0 (name,(cnf_axiom(name,th)))::ts,es) handle _ => (ts,(name::es))
-    end;
+fun clausify_rules_pairs_abs_aux [] = []
+  | clausify_rules_pairs_abs_aux ((name,th)::ths) =
+      let val ts = clausify_rules_pairs_abs_aux ths
+	  fun pair_name_cls k (n, []) = []
+	    | pair_name_cls k (n, cls::clss) =
+		(prop_of cls, (n,k)) :: (pair_name_cls (k+1) (n, clss))
+      in
+	  pair_name_cls 0 (name, (cnf_axiom(name,th))) :: ts
+	  handle THM _ => ts | ResClause.CLAUSE _ => ts | ResHolClause.LAM2COMB _ => ts
+      end;
 
-fun clausify_rules_pairs_abs thms = fst (clausify_rules_pairs_abs_aux thms []);
+fun clausify_rules_pairs_abs thms = rev (clausify_rules_pairs_abs_aux thms);
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
