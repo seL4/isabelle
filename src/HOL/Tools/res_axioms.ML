@@ -26,9 +26,13 @@ signature RES_AXIOMS =
   val skolem_thm : thm -> thm list
   val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
   val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
-
+  val clausify_rules_pairs_abs : (string * thm) list -> (Term.term * (string * int)) list list
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
+
+  val atpset_rules_of_thy : theory -> (string * thm) list
+  val atpset_rules_of_ctxt : Proof.context -> (string * thm) list
+
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -367,9 +371,13 @@ fun rules_of_simpset ss =
 fun claset_rules_of_thy thy = rules_of_claset (claset_of thy);
 fun simpset_rules_of_thy thy = rules_of_simpset (simpset_of thy);
 
+fun atpset_rules_of_thy thy = map pairname (ResAtpSet.atp_rules_of_thy thy);
+
+
 fun claset_rules_of_ctxt ctxt = rules_of_claset (local_claset_of ctxt);
 fun simpset_rules_of_ctxt ctxt = rules_of_simpset (local_simpset_of ctxt);
 
+fun atpset_rules_of_ctxt ctxt = map pairname (ResAtpSet.atp_rules_of_ctxt ctxt);
 
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)
 
@@ -394,6 +402,19 @@ fun cnf_rules2 [] err_list = ([],err_list)
     let val (ts,es) = cnf_rules2 ths err_list
     in
 	((name,map prop_of (cnf_axiom (name,th))) :: ts,es) handle _ => (ts,(name::es)) end;
+
+fun clausify_rules_pairs_abs_aux [] err_list = ([],err_list)
+  | clausify_rules_pairs_abs_aux ((name,th)::ths) err_list =
+    let val (ts,es) = clausify_rules_pairs_abs_aux ths err_list
+	fun pair_name_cls k (n, []) = []
+	  | pair_name_cls k (n, (cls::clss)) =
+	    (prop_of cls,(n,k))::(pair_name_cls (k + 1) (n, clss))
+    in
+	(pair_name_cls 0 (name,(cnf_axiom(name,th)))::ts,es) handle _ => (ts,(name::es))
+    end;
+
+fun clausify_rules_pairs_abs thms = fst (clausify_rules_pairs_abs_aux thms []);
+
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
