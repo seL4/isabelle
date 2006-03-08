@@ -257,7 +257,7 @@ preceding the actual theory definition.
 
   structs: '(' 'structure' (vars + 'and') ')'
   ;
-  constdecl: (name '::' type) mixfix | (name '::' type) | name 'where' | mixfix
+  constdecl: ((name '::' type) mixfix | (name '::' type)) 'where'? | name 'where'
   ;
   constdef: thmdecl? prop
   ;

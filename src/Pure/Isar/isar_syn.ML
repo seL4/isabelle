@@ -179,8 +179,9 @@ val defsP =
 
 val constdecl =
   (P.name --| P.$$$ "where") >> (fn x => (x, NONE, NoSyn)) ||
-    P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix' >> P.triple1 ||
-    P.name -- (P.mixfix >> pair NONE) >> P.triple2;
+    P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix'
+      --| Scan.option (P.$$$ "where") >> P.triple1 ||
+    P.name -- (P.mixfix >> pair NONE) --| Scan.option (P.$$$ "where") >> P.triple2;
 
 val constdef = Scan.option constdecl -- (P.opt_thm_name ":" -- P.prop);
 
