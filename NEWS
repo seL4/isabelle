@@ -82,7 +82,7 @@ sub-goals, which need to exist. (Recall that proper Isar proof methods
 do not admit arbitrary goal addressing, unlike certain tactic
 emulations.)  For example, ``simp_all [3]'' simplifies the first three
 sub-goals, while (rule foo, simp_all)[] simplifies all new goals that
-emerge from applying rule foo$to the originally first one.
+emerge from applying rule foo to the originally first one.
 
 * Isar: the conclusion of a long theorem statement is now either
 'shows' (a simultaneous conjunction, as before), or 'obtains'
