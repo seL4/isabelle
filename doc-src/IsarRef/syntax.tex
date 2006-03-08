@@ -291,24 +291,34 @@ for an infix of an implicit structure.
 Proof methods are either basic ones, or expressions composed of
 methods via ``\texttt{,}'' (sequential composition), ``\texttt{|}''
 (alternative choices), ``\texttt{?}'' (try), ``\texttt{+}'' (repeat at
-least once), ``\texttt{[$n$]}'' (restriction to first $n$ sub-goals).
-In practice, proof methods are usually just a comma separated list of
-\railqtok{nameref}~\railnonterm{args} specifications.  Note that
-parentheses may be dropped for single method specifications (with no
-arguments).
+least once), ``\texttt{[$n$]}'' (restriction to first $n$ sub-goals,
+default $n = 1$).  In practice, proof methods are usually just a comma
+separated list of \railqtok{nameref}~\railnonterm{args}
+specifications.  Note that parentheses may be dropped for single
+method specifications (with no arguments).
 
 \indexouternonterm{method}
 \begin{rail}
-  method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat ']')
+  method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat? ']')
   ;
   methods: (nameref args | method) + (',' | '|')
   ;
 \end{rail}
 
-Proper use of Isar proof methods does \emph{not} involve goal addressing.
-Nevertheless, specifying goal ranges may occasionally come in handy in
-emulating tactic scripts.  Note that $[n-]$ refers to all goals, starting from
-$n$.  All goals may be specified by $[!]$, which is the same as $[1-]$.
+Proper Isar proof methods do \emph{not} admit arbitrary goal
+addressing, but refer either to the first sub-goal or all sub-goals
+uniformly.  The goal restriction operator ``\texttt{[$n$]}'' evaluates
+a method expression within a sandbox consisting of the first $n$
+sub-goals (which need to exist).  For example,
+$simp_all\mbox{\tt[}3\mbox{\tt]}$ simplifies the first three
+sub-goals, while $(rule~foo, simp_all)\mbox{\tt[]}$ simplifies all new
+goals that emerge from applying rule $foo$ to the originally first
+one.
+
+Improper methods, notably tactic emulations, offer a separate
+low-level goal addressing scheme as explicit argument to the
+individual tactic being involved.  Here $[!]$ refers to all goals, and
+$[n-]$ to all goals starting from $n$,
 
 \indexouternonterm{goalspec}
 \begin{rail}

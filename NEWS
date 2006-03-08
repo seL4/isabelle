@@ -76,6 +76,14 @@ and command 'unfolding' now all support object-level equalities
 analogous to the 'rule_format' attribute, but *not* that of the
 Simplifier (which is usually more generous).
 
+* Isar: the goal restriction operator [N] (default N = 1) evaluates a
+method expression within a sandbox consisting of the first N
+sub-goals, which need to exist. (Recall that proper Isar proof methods
+do not admit arbitrary goal addressing, unlike certain tactic
+emulations.)  For example, ``simp_all [3]'' simplifies the first three
+sub-goals, while (rule foo, simp_all)[] simplifies all new goals that
+emerge from applying rule foo$to the originally first one.
+
 * Isar: the conclusion of a long theorem statement is now either
 'shows' (a simultaneous conjunction, as before), or 'obtains'
 (essentially a disjunction of cases with local parameters and
