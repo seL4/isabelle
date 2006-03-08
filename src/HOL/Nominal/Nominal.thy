@@ -1488,7 +1488,7 @@ proof (rule ccontr)
   hence "\<exists>a. a\<in>(supp x) \<and> a\<notin>S" by force
   then obtain a where b1: "a\<in>supp x" and b2: "a\<notin>S" by force
   from a1 b2 have "\<forall>b. (b\<notin>S \<longrightarrow> ([(a,b)]\<bullet>x = x))" by (unfold "op supports_def", force)
-  with a1 have "{b. [(a,b)]\<bullet>x \<noteq> x}\<subseteq>S" by (unfold "op supports_def", force)
+  hence "{b. [(a,b)]\<bullet>x \<noteq> x}\<subseteq>S" by force
   with a2 have "finite {b. [(a,b)]\<bullet>x \<noteq> x}" by (simp add: finite_subset)
   hence "a\<notin>(supp x)" by (unfold supp_def, auto)
   with b1 show False by simp
@@ -2140,37 +2140,6 @@ next
   with b show "fr = h a" by force
 qed
 
-
-lemma fresh_fun_supports:
-  fixes h :: "'x\<Rightarrow>'a"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and     at: "at TYPE('x)" 
-  and     f1: "finite ((supp h)::'x set)"
-  and     a: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
-  shows "((supp h)::'x set) supports (fresh_fun h)"
-  apply(simp add: "op supports_def")
-  apply(fold fresh_def)
-  apply(auto)
-  apply(subgoal_tac "\<exists>(a''::'x). a''\<sharp>(h,a,b)")(*A*)
-  apply(erule exE)
-  apply(simp add: fresh_prod)
-  apply(auto)
-  apply(rotate_tac 2)
-  apply(drule fresh_fun_app[OF pt, OF at, OF f1, OF a])
-  apply(simp add: at_fresh[OF at])
-  apply(simp add: pt_fun_app_eq[OF at_pt_inst[OF at], OF at])
-  apply(auto simp add: at_calc[OF at])
-  apply(subgoal_tac "[(a, b)]\<bullet>h = h")(*B*)
-  apply(simp)
-  (*B*)
-  apply(rule pt_fresh_fresh[OF pt_fun_inst[OF at_pt_inst[OF at], OF pt], OF at, OF at])
-  apply(assumption)+
-  (*A*)
-  apply(rule at_exists_fresh[OF at])
-  apply(simp add: supp_prod)
-  apply(simp add: f1 at_supp[OF at])
-  done
-
 lemma fresh_fun_equiv:
   fixes h :: "'x\<Rightarrow>'a"
   and   pi:: "'x prm"
@@ -2200,6 +2169,19 @@ proof -
   have d2: "?RHS = (pi\<bullet>h) (pi\<bullet>a')" using c3 a2 by (simp add: fresh_fun_app[OF pta, OF at, OF f2])
   show ?thesis using d1 d2 by (simp add: pt_fun_app_eq[OF ptb, OF at])
 qed
+
+lemma fresh_fun_supports:
+  fixes h :: "'x\<Rightarrow>'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)" 
+  and     f1: "finite ((supp h)::'x set)"
+  and     a: "\<exists>(a::'x). (a\<sharp>h \<and> a\<sharp>(h a))"
+  shows "((supp h)::'x set) supports (fresh_fun h)"
+  apply(simp add: "op supports_def" fresh_def[symmetric])
+  apply(auto)
+  apply(simp add: fresh_fun_equiv[OF pt, OF at, OF f1, OF a])
+  apply(simp add: pt_fresh_fresh[OF pt_fun_inst[OF at_pt_inst[OF at], OF pt], OF at, OF at])
+  done
   
 section {* disjointness properties *}
 (*=================================*)
