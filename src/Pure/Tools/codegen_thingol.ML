@@ -329,7 +329,7 @@ fun instant_itype f =
   let
     fun instant (ITyVar x) = f x
       | instant y = map_itype instant y;
-  in map_itype instant end;
+  in instant end;
 
 fun is_pat (e as IConst (_, ([], _))) = true
   | is_pat (e as IVar _) = true
@@ -800,13 +800,24 @@ fun check_prep_def modl Undef =
           case AList.lookup (op =) memdefs m
            of NONE => error ("missing definition for member " ^ quote m)
             | SOME (m', (eqs, (sortctxt', ty'))) =>
-                if eq_ityp
-                  ((sortctxt |> fold (fn v_sort => AList.update (op =) v_sort) arity,
-                     instant_itype (instant (v, tyco `%% map (ITyVar o fst) arity)) ty),
-                  (sortctxt', ty'))
+                let
+                  val sortctxt'' = sortctxt |> fold (fn v_sort => AList.update (op =) v_sort) arity;
+                  val ty'' = instant_itype (instant (v, tyco `%% map (ITyVar o fst) arity)) ty;
+                in if eq_ityp ((sortctxt'', ty''), (sortctxt', ty'))
                 then (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
-                else (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
-(*                 error ("inconsistent type for member definition " ^ quote m)  *)
+                else
+                  error ("inconsistent type for member definition " ^ quote m ^ " [" ^ v ^ "]: "
+                    ^ (Pretty.output o Pretty.block o Pretty.breaks) [
+                      Pretty.list "(" ")" (pretty_sortcontext sortctxt''),
+                      Pretty.str "|=>",
+                      pretty_itype ty''
+                    ] ^ " vs. " ^ (Pretty.output o Pretty.block o Pretty.breaks) [
+                      Pretty.list "(" ")" (pretty_sortcontext sortctxt'),
+                      Pretty.str "|=>",
+                      pretty_itype ty'
+                    ]
+                  )
+                end
       in Classinst (d, map mk_memdef membrs) end
   | check_prep_def modl Classinstmember =
       error "attempted to add bare class instance member";
