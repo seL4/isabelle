@@ -412,15 +412,16 @@ fun apply_method current_context meth_fun state =
   end;
 
 fun select_goals n meth state =
-  let val goal = #2 (#2 (get_goal state)) in
+  state
+  |> (#2 o #2 o get_goal)
+  |> ALLGOALS Tactic.conjunction_tac
+  |> Seq.maps (fn goal =>
     state
-    |> Seq.lift set_goal
-      (Seq.maps (Tactic.precise_conjunction_tac 1 n) (Goal.extract 1 n goal))
+    |> Seq.lift set_goal (Goal.extract 1 n goal |> Seq.maps (Tactic.conjunction_tac 1))
     |> Seq.maps meth
     |> Seq.maps (fn state' => state'
       |> Seq.lift set_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
-    |> Seq.maps (apply_method true (K Method.succeed))
-  end;
+    |> Seq.maps (apply_method true (K Method.succeed)));
 
 fun apply_text cc text state =
   let
