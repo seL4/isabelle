@@ -805,7 +805,8 @@ fun check_prep_def modl Undef =
                      instant_itype (instant (v, tyco `%% map (ITyVar o fst) arity)) ty),
                   (sortctxt', ty'))
                 then (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
-                else error ("inconsistent type for member definition " ^ quote m)
+                else (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
+(*                 error ("inconsistent type for member definition " ^ quote m)  *)
       in Classinst (d, map mk_memdef membrs) end
   | check_prep_def modl Classinstmember =
       error "attempted to add bare class instance member";

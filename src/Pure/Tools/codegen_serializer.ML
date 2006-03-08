@@ -756,7 +756,10 @@ fun ml_from_defs (is_cons, needs_type)
                     Pretty.chunks [
                       [str ("let"), Pretty.fbrk, defs |> Pretty.chunks]
                         |> Pretty.block,
-                      [str ("in "), Pretty.enum "," "{" "} end;" (supclassexprs @ assigns)]
+                      [str ("in "), Pretty.enum "," "{" "} : "
+                        (supclassexprs @ assigns),
+                        ml_from_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity]),
+                        str " end;"]
                         |> Pretty.block
                     ] 
                   end;
