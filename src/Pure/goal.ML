@@ -179,10 +179,10 @@ fun extract i n st =
    else Seq.single (foldr1 Drule.mk_conjunction (map (Thm.cprem_of st) (i upto (i + n - 1)))))
   |> Seq.map (Thm.adjust_maxidx #> init);
 
-fun retrofit i n st' =
-  (if n = 1 then I
-   else Drule.rotate_prems (i - 1) #> Drule.conj_uncurry n #> Drule.rotate_prems (1 - i))
-  #> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
+fun retrofit i n st' st =
+  (if n = 1 then st
+   else st |> Drule.rotate_prems (i - 1) |> Drule.conj_uncurry n |> Drule.rotate_prems (1 - i))
+  |> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
 
 fun SELECT_GOAL tac i st =
   if Thm.nprems_of st = 1 andalso i = 1 then tac st
