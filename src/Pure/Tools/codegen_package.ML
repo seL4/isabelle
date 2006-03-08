@@ -98,6 +98,7 @@ val nsp_overl = "overl";
 val nsp_dtcon = "dtcon";
 val nsp_mem = "mem";
 val nsp_inst = "inst";
+val nsp_instmem = "instmem";
 
 fun add_nsp shallow name =
   name
@@ -224,7 +225,7 @@ structure DatatypeconsNameMangler = NameManglerFun (
   fun re_mangle _ dst = error ("no such datatype constructor: " ^ quote dst);
 );
 
-type auxtab = (deftab * string Symtab.table)
+type auxtab = deftab
   * (InstNameMangler.T * (typ list Symtab.table * ConstNameMangler.T)
   * DatatypeconsNameMangler.T);
 type eqextr = theory -> auxtab
@@ -240,14 +241,14 @@ val serializers = ref (
        #ml CodegenSerializer.serializers
        |> apsnd (fn seri => seri
             (nsp_dtcon, nsp_class, K false)
-            [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst]]
+            [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
           )
      )
   |> Symtab.update (
        #haskell CodegenSerializer.serializers
        |> apsnd (fn seri => seri
             [nsp_module, nsp_class, nsp_tyco, nsp_dtcon]
-            [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const, nsp_overl, nsp_mem], [nsp_dtcon], [nsp_inst]]
+            [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const, nsp_overl, nsp_mem], [nsp_dtcon], [nsp_inst], [nsp_instmem]]
           )
      )
 );
@@ -402,7 +403,7 @@ fun add_alias (src, dst) =
 val _ = alias_ref := (perhaps o Symtab.lookup o fst o #alias o #logic_data o CodegenData.get,
   perhaps o Symtab.lookup o snd o #alias o #logic_data o CodegenData.get);
 
-fun idf_of_const thy (tabs as ((deftab, clsmemtab), (_, (overltab1, overltab2), dtcontab)))
+fun idf_of_const thy (tabs as (deftab, (_, (overltab1, overltab2), dtcontab)))
       (c, ty) =
   let
     fun get_overloaded (c, ty) =
@@ -422,7 +423,7 @@ fun idf_of_const thy (tabs as ((deftab, clsmemtab), (_, (overltab1, overltab2), 
    of SOME c' => idf_of_name thy nsp_dtcon c'
     | NONE => case get_overloaded (c, ty)
    of SOME idf => idf
-    | NONE => case Symtab.lookup clsmemtab c
+    | NONE => case ClassPackage.lookup_const_class thy c
    of SOME _ => idf_of_name thy nsp_mem c
     | NONE => idf_of_name thy nsp_const c
   end;
@@ -526,7 +527,7 @@ fun set_int_tyco tyco thy =
          #ml CodegenSerializer.serializers
          |> apsnd (fn seri => seri
             (nsp_dtcon, nsp_class, fn tyco' => tyco' = idf_of_name thy nsp_tyco tyco)
-              [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_mem, nsp_inst]]
+              [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_mem, nsp_inst, nsp_instmem]]
             )
        )
     ); thy);
@@ -694,15 +695,24 @@ fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
       trns
       |> fold_map (ensure_def_class thy tabs) clss
       |-> (fn clss => pair (Lookup (clss, (v |> unprefix "'", i))))
-and mk_fun thy tabs (c, ty) trns =
-  case get_first (fn (name, eqx) => (eqx (c, ty))) (get_eqextrs thy tabs)
-   of SOME ((eq_thms, default), ty) =>
+and mk_fun thy tabs restrict (c, ty1) trns =
+  case get_first (fn (name, eqx) => (eqx (c, ty1))) (get_eqextrs thy tabs)
+   of SOME ((eq_thms, default), ty2) =>
         let
-          val sortctxt = ClassPackage.extract_sortctxt thy ty;
+          val ty3 = if restrict then ty1 else ty2;
+          val sortctxt = ClassPackage.extract_sortctxt thy ty3;
+          val instantiate = if restrict
+            then
+              let
+                val tab_lookup = snd o the o Vartab.lookup (Sign.typ_match thy (ty2, ty1) Vartab.empty);
+              in map_term_types (map_atyps (fn (TVar (vi, _)) => tab_lookup vi
+                                             | ty => ty)) end
+            else I
           fun dest_eqthm eq_thm =
             let
               val ((t, args), rhs) =
-                (apfst strip_comb o Logic.dest_equals o prop_of o Drule.zero_var_indexes) eq_thm;
+                (apfst strip_comb o Logic.dest_equals o instantiate
+                  o prop_of o Drule.zero_var_indexes) eq_thm;
             in case t
              of Const (c', _) => if c' = c then (args, rhs)
                  else error ("illegal function equation for " ^ quote c
@@ -711,7 +721,7 @@ and mk_fun thy tabs (c, ty) trns =
             end;
           fun mk_default t =
             let
-              val (tys, ty') = strip_type ty;
+              val (tys, ty') = strip_type ty3;
               val vs = Term.invent_names (add_term_names (t, [])) "x" (length tys);
             in
               if (not o eq_typ thy) (type_of t, ty')
@@ -722,7 +732,7 @@ and mk_fun thy tabs (c, ty) trns =
           trns
           |> (exprsgen_eqs thy tabs o map dest_eqthm) eq_thms
           ||>> (exprsgen_eqs thy tabs o the_list o Option.map mk_default) default
-          ||>> exprsgen_type thy tabs [ty]
+          ||>> exprsgen_type thy tabs [ty3]
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
           |-> (fn (((eqs, eq_default), [ty]), sortctxt) => (pair o SOME) (eqs @ eq_default, (sortctxt, ty)))
         end
@@ -739,12 +749,12 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
                 |> ensure_def_class thy tabs supclass
                 ||>> ensure_def_inst thy tabs (supclass, tyco)
                 ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
-                      (ClassPackage.extract_classlookup_inst thy (supclass, tyco) supclass)
+                      (ClassPackage.extract_classlookup_inst thy (class, tyco) supclass)
                 |-> (fn ((supclass, inst), lss) => pair (supclass, (inst, lss)));
               fun gen_membr (m, ty) trns =
                 trns
-                |> mk_fun thy tabs (m, ty)
-                |-> (fn SOME funn => pair (idf_of_name thy nsp_mem m, (idf_of_name thy nsp_mem m ^ "'", funn))
+                |> mk_fun thy tabs true (m, ty)
+                |-> (fn SOME funn => pair (idf_of_name thy nsp_mem m, (idf_of_name thy nsp_instmem m, funn))
                       | NONE => error ("could not derive definition for member " ^ quote m));
             in
               trns
@@ -760,7 +770,7 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
             end
         | _ =>
             trns |> fail ("no class instance found for " ^ quote inst);
-    val thyname = (the o AList.lookup (op =) (ClassPackage.the_instances thy cls)) tyco;
+    val (_, thyname) = (the o AList.lookup (op =) (ClassPackage.the_instances thy cls)) tyco;
     val inst = idf_of_name thy nsp_inst (InstNameMangler.get thy insttab (thyname, (cls, tyco)));
   in
     trns
@@ -769,13 +779,13 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
          ("generating instance " ^ quote cls ^ " / " ^ quote tyco) inst
     |> pair inst
   end
-and ensure_def_const thy (tabs as ((_, clsmemtab), (_, overltab, dtcontab))) (c, ty) trns =
+and ensure_def_const thy (tabs as (_, (_, overltab, dtcontab))) (c, ty) trns =
   let
     fun defgen_funs thy tabs c trns =
       case recconst_of_idf thy tabs c
        of SOME (c, ty) =>
             trns
-            |> mk_fun thy tabs (c, ty)
+            |> mk_fun thy tabs false (c, ty)
             |-> (fn (SOME funn) => succeed (Fun funn)
                   | NONE => fail ("no defining equations found for " ^ quote c))
         | NONE =>
@@ -897,7 +907,7 @@ and appgen thy tabs ((f, ty), ts) trns =
 
 (* function extractors *)
 
-fun eqextr_defs thy ((deftab, _), _) (c, ty) =
+fun eqextr_defs thy (deftab, _) (c, ty) =
   Option.mapPartial (get_first (fn (ty', (thm, _)) => if eq_typ thy (ty, ty')
     then SOME ([thm], ty')
     else NONE
@@ -906,8 +916,8 @@ fun eqextr_defs thy ((deftab, _), _) (c, ty) =
 
 (* parametrized generators, for instantiation in HOL *)
 
-fun appgen_split strip_abs thy tabs (app as (c, [t])) trns =
-  case strip_abs 1 (Const c $ t)
+fun appgen_split strip_abs thy tabs (app as (c_ty, [t])) trns =
+  case strip_abs 1 (Const c_ty $ t)
    of ([vt], bt) =>
         trns
         |> exprgen_term thy tabs vt
@@ -1054,7 +1064,7 @@ fun mk_tabs thy =
     fun mk_insttab thy =
       InstNameMangler.empty
       |> Symtab.fold_map
-          (fn (cls, (clsmems, clsinsts)) => fold_map
+          (fn (cls, clsinsts) => fold_map
             (fn (tyco, thyname) => InstNameMangler.declare thy (thyname, (cls, tyco))) clsinsts)
                  (ClassPackage.get_classtab thy)
       |-> (fn _ => I);
@@ -1101,18 +1111,11 @@ fun mk_tabs thy =
               in AList.default (op =) (key, []) #> AList.map_entry (op =) key (cons (co, dtco)) end
             ) (get_all_datatype_cons thy) [])
       |-> (fn _ => I);
-    fun mk_clsmemtab thy =
-   Symtab.empty
-      |> Symtab.fold
-          (fn (class, (clsmems, _)) => fold
-            (fn clsmem => Symtab.update (clsmem, class)) clsmems)
-              (ClassPackage.get_classtab thy);
     val deftab = extract_defs thy;
     val insttab = mk_insttab thy;
     val overltabs = mk_overltabs thy;
     val dtcontab = mk_dtcontab thy;
-    val clsmemtab = mk_clsmemtab thy;
-  in ((deftab, clsmemtab), (insttab, overltabs, dtcontab)) end;
+  in (deftab, (insttab, overltabs, dtcontab)) end;
 
 fun get_serializer target =
   case Symtab.lookup (!serializers) target

@@ -35,9 +35,9 @@ sig
   val the_superclasses: theory -> class -> class list
   val the_consts_sign: theory -> class -> string * (string * typ) list
   val lookup_const_class: theory -> string -> class option
-  val the_instances: theory -> class -> (string * string) list
+  val the_instances: theory -> class -> (string * ((sort list) * string)) list
   val the_inst_sign: theory -> class * string -> (string * sort) list * (string * typ) list
-  val get_classtab: theory -> (string list * (string * string) list) Symtab.table
+  val get_classtab: theory -> (string * string) list Symtab.table
 
   val print_classes: theory -> unit
   val intro_classes_tac: thm list -> tactic
@@ -62,23 +62,25 @@ type class_data = {
   name_axclass: string,
   intro: thm option,
   var: string,
-  consts: (string * typ) list,
-  insts: (string * string) list (* [type constructor ~> theory name] *)
+  consts: (string * typ) list
 };
 
 structure ClassData = TheoryDataFun (
   struct
     val name = "Pure/classes";
-    type T = class_data Graph.T * (class Symtab.table * string Symtab.table);
-    val empty = (Graph.empty, (Symtab.empty, Symtab.empty));
+    type T = (class_data Graph.T
+      * (string * (sort list * string)) list Symtab.table)
+        (* class ~> tyco ~> (arity, thyname) *)
+      * class Symtab.table;
+    val empty = ((Graph.empty, Symtab.empty), Symtab.empty);
     val copy = I;
     val extend = I;
-    fun merge _ ((t1, (c1, l1)), (t2, (c2, l2)))=
-      (Graph.merge (op =) (t1, t2),
-       (Symtab.merge (op =) (c1, c2), Symtab.merge (op =) (l1, l2)));
-    fun print thy (gr, _) =
+    fun merge _ (((g1, c1), f1), ((g2, c2), f2)) =
+      ((Graph.merge (op =) (g1, g2), Symtab.join (fn _ => AList.merge (op =) (K false)) (c1, c2)),
+       Symtab.merge (op =) (f1, f2));
+    fun print thy ((gr, _), _) =
       let
-        fun pretty_class gr (name, {name_locale, name_axclass, intro, var, consts, insts}) =
+        fun pretty_class gr (name, {name_locale, name_axclass, intro, var, consts}) =
           (Pretty.block o Pretty.fbreaks) [
             Pretty.str ("class " ^ name ^ ":"),
             (Pretty.block o Pretty.fbreaks) (
@@ -91,10 +93,6 @@ structure ClassData = TheoryDataFun (
             (Pretty.block o Pretty.fbreaks) (
               Pretty.str "constants: "
               :: map (fn (c, ty) => Pretty.str (c ^ " :: " ^ Sign.string_of_typ thy ty)) consts
-            ),
-            (Pretty.block o Pretty.fbreaks) (
-              Pretty.str "instances: "
-              :: map (fn (tyco, thyname) => Pretty.str (tyco ^ ", in theory " ^ thyname)) insts
             )
           ]
       in
@@ -110,9 +108,9 @@ val print_classes = ClassData.print;
 
 (* queries *)
 
-val lookup_class_data = try o Graph.get_node o fst o ClassData.get;
-val lookup_const_class = Symtab.lookup o fst o snd o ClassData.get;
-val lookup_locale_class = Symtab.lookup o snd o snd o ClassData.get;
+val lookup_class_data = try o Graph.get_node o fst o fst o ClassData.get;
+val the_instances = these oo Symtab.lookup o snd o fst o ClassData.get;
+val lookup_const_class = Symtab.lookup o snd o ClassData.get;
 
 fun the_class_data thy class =
   case lookup_class_data thy class
@@ -148,7 +146,7 @@ fun the_superclasses thy class =
 fun get_superclass_derivation thy (subclass, superclass) =
   if subclass = superclass
     then SOME [subclass]
-    else case Graph.find_paths ((fst o ClassData.get) thy) (subclass, superclass)
+    else case Graph.find_paths ((fst o fst o ClassData.get) thy) (subclass, superclass)
       of [] => NONE
        | (p::_) => (SOME o filter (is_class thy)) p;
 
@@ -162,7 +160,7 @@ fun the_ancestry thy classes =
 
 fun the_intros thy =
   let
-    val gr = (fst o ClassData.get) thy;
+    val gr = (fst o fst o ClassData.get) thy;
   in (List.mapPartial (#intro o Graph.get_node gr) o Graph.keys) gr end;
 
 fun subst_clsvar v ty_subst =
@@ -174,15 +172,11 @@ fun the_consts_sign thy class =
     val data = the_class_data thy class
   in (#var data, #consts data) end;
 
-val the_instances =
-  #insts oo the_class_data;
-
 fun the_inst_sign thy (class, tyco) =
   let
     val _ = if is_class thy class then () else error ("no syntactic class: " ^ class);
     val arity =
-      Sorts.mg_domain (Sign.classes_arities_of thy) tyco [class]
-      |> map (operational_sort_of thy);
+      (fst o the o AList.lookup (op =) (the_instances thy class)) tyco
     val clsvar = (#var o the_class_data thy) class;
     val const_sign = (snd o the_consts_sign thy) class;
     fun add_var sort used =
@@ -190,7 +184,7 @@ fun the_inst_sign thy (class, tyco) =
         val v = hd (Term.invent_names used "'a" 1)
       in ((v, sort), v::used) end;
     val (vsorts, _) =
-      []
+      [clsvar]
       |> fold (fn (_, ty) => curry (gen_union (op =))
            ((map (fst o fst) o typ_tvars) ty @ (map fst o typ_tfrees) ty)) const_sign
       |> fold_map add_var arity;
@@ -199,43 +193,33 @@ fun the_inst_sign thy (class, tyco) =
   in (vsorts, inst_signs) end;
 
 fun get_classtab thy =
-  Graph.fold_nodes
-    (fn (class, { consts = consts, insts = insts, ... }) =>
-      Symtab.update_new (class, (map fst consts, insts)))
-       ((fst o ClassData.get) thy) Symtab.empty;
+  (Symtab.map o map)
+    (fn (tyco, (_, thyname)) => (tyco, thyname)) ((snd o fst o ClassData.get) thy);
 
 
 (* updaters *)
 
 fun add_class_data (class, (superclasses, name_locale, name_axclass, intro, var, consts)) =
-  ClassData.map (fn (classtab, (consttab, loctab)) => (
-    classtab
+  ClassData.map (fn ((gr, tab), consttab) => ((
+    gr
     |> Graph.new_node (class, {
          name_locale = name_locale,
          name_axclass = name_axclass,
          intro = intro,
          var = var,
-         consts = consts,
-         insts = []
+         consts = consts
        })
     |> fold (curry Graph.add_edge_acyclic class) superclasses,
-    (consttab
-    |> fold (fn (c, _) => Symtab.update (c, class)) consts,
-    loctab
-    |> Symtab.update (name_locale, class))
+    tab
+    |> Symtab.update (class, [])),
+    consttab
+    |> fold (fn (c, _) => Symtab.update (c, class)) consts
   ));
 
 fun add_inst_data (class, inst) =
-  (ClassData.map o apfst o Graph.map_node class)
-    (fn {name_locale, name_axclass, intro, var, consts, insts}
-      => {
-           name_locale = name_locale,
-           name_axclass = name_axclass,
-           intro = intro,
-           var = var,
-           consts = consts,
-           insts = insts @ [inst]
-          });
+  ClassData.map (fn ((gr, tab), consttab) =>
+     ((gr, tab |>
+    (Symtab.map_entry class (AList.update (op =) inst))), consttab));
 
 
 (* name handling *)
@@ -468,7 +452,7 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
     fun get_classes thy tyco sort =
       let
         fun get class classes =
-          if AList.defined (op =) ((#insts o the_class_data thy) class) tyco
+          if AList.defined (op =) ((the_instances thy) class) tyco
             then classes
             else classes
               |> cons class
@@ -524,7 +508,7 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
     fun after_qed cs thy =
       thy
       |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
-      |> fold (fn class => add_inst_data (class, (tyco, Context.theory_name thy))) sort;
+      |> fold (fn class => add_inst_data (class, (tyco, (asorts, Context.theory_name thy)))) sort;
   in
     theory
     |> check_defs raw_defs cs
@@ -623,7 +607,16 @@ fun extract_sortctxt thy ty =
   |> filter (not o null o snd);
 
 datatype classlookup = Instance of (class * string) * classlookup list list
-                    | Lookup of class list * (string * int)
+                     | Lookup of class list * (string * int)
+
+fun pretty_lookup' (Instance ((class, tyco), lss)) =
+      (Pretty.block o Pretty.breaks) (
+        Pretty.enum "," "{" "}" [Pretty.str class, Pretty.str tyco]
+        :: map pretty_lookup lss
+      )
+  | pretty_lookup' (Lookup (classes, (v, i))) =
+      Pretty.enum " <" "[" "]" (map Pretty.str classes @ [Pretty.str (v ^ "!" ^ string_of_int i)])
+and pretty_lookup ls = (Pretty.enum "," "(" ")" o map pretty_lookup') ls;
 
 fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
   let
@@ -646,11 +639,12 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
           ) subclasses;
         val i' = if length subclasses = 1 then ~1 else i;
       in (rev deriv, i') end;
-    fun mk_lookup (sort_def, (Type (tycon, tys))) =
-          let
-            val arity_lookup = map2 (curry mk_lookup)
-              (map (operational_sort_of thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tycon sort_def)) tys
-          in map (fn class => Instance ((class, tycon), arity_lookup)) sort_def end
+    fun mk_lookup (sort_def, (Type (tyco, tys))) =
+          map (fn class => Instance ((class, tyco),
+            map2 (curry mk_lookup)
+              ((fst o the o AList.lookup (op =) (the_instances thy class)) tyco)
+              tys)
+          ) sort_def
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
           let
             fun mk_look class =
@@ -659,15 +653,10 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
           in map mk_look sort_def end;
   in
     sortctxt
-(*     |> print  *)
     |> map (tab_lookup o fst)
-(*     |> print  *)
     |> map (apfst (operational_sort_of thy))
-(*     |> print  *)
     |> filter (not o null o fst)
-(*     |> print  *)
     |> map mk_lookup
-(*     |> print  *)
   end;
 
 fun extract_classlookup thy (c, raw_typ_use) =

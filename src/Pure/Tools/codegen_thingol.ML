@@ -75,7 +75,8 @@ sig
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
           * (class * (string * iclasslookup list list)) list)
-        * (string * (string * funn)) list;
+        * (string * (string * funn)) list
+    | Classinstmember;
   type module;
   type transact;
   type 'dst transact_fin;
@@ -418,7 +419,8 @@ datatype def =
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
         * (class * (string * iclasslookup list list)) list)
-      * (string * (string * funn)) list;
+      * (string * (string * funn)) list
+  | Classinstmember;
 
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
@@ -487,7 +489,9 @@ fun pretty_def Undef =
         Pretty.enum "," "[" "]" (map (Pretty.enum "," "{" "}" o
           map Pretty.str o snd) arity),
         Pretty.str "))"
-      ];
+      ]
+  | pretty_def Classinstmember =
+      Pretty.str "class instance member";
 
 fun pretty_module modl =
   let
@@ -802,7 +806,9 @@ fun check_prep_def modl Undef =
                   (sortctxt', ty'))
                 then (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
                 else error ("inconsistent type for member definition " ^ quote m)
-      in Classinst (d, map mk_memdef membrs) end;
+      in Classinst (d, map mk_memdef membrs) end
+  | check_prep_def modl Classinstmember =
+      error "attempted to add bare class instance member";
 
 fun postprocess_def (name, Datatype (_, constrs)) =
       (check_samemodule (name :: map fst constrs);
@@ -819,6 +825,12 @@ fun postprocess_def (name, Datatype (_, constrs)) =
         #> add_dep (m, name)
         #> add_dep (name, m)
       ) membrs
+      )
+  | postprocess_def (name, Classinst (_, memdefs)) =
+      (check_samemodule (name :: map (fst o snd) memdefs);
+      fold (fn (_, (m', _)) =>
+        add_def_incr (m', Classinstmember)
+      ) memdefs
       )
   | postprocess_def _ =
       I;
