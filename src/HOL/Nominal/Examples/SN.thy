@@ -77,7 +77,7 @@ lemma beta_induct[consumes 1, case_names b1 b2 b3 b4]:
   and a1:    "\<And>t s1 s2 x. s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (App s1 t) (App s2 t)"
   and a2:    "\<And>t s1 s2 x. s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (App t s1) (App t s2)"
   and a3:    "\<And>a s1 s2 x. a\<sharp>x \<Longrightarrow> s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (\<And>z. P z s1 s2) \<Longrightarrow> P x (Lam [a].s1) (Lam [a].s2)"
-  and a4:    "\<And>a t1 s1 x. a\<sharp>(s1,x) \<Longrightarrow> P x (App (Lam [a].t1) s1) (t1[a::=s1])"
+  and a4:    "\<And>a t1 s1 x. a\<sharp>x \<Longrightarrow> P x (App (Lam [a].t1) s1) (t1[a::=s1])"
   shows "P x t s"
 proof -
   from a have "\<And>(pi::name prm) x. P x (pi\<bullet>t) (pi\<bullet>s)"
@@ -112,7 +112,7 @@ proof -
       have f: "\<exists>c::name. c\<sharp>(pi\<bullet>a,pi\<bullet>s1,pi\<bullet>s2,x)"
 	by (rule at_exists_fresh[OF at_name_inst], simp add: fs_name1)
       then obtain c::"name" 
-	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>(pi\<bullet>s2,x)" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
+	where f1: "c\<noteq>(pi\<bullet>a)" and f2: "c\<sharp>x" and f3: "c\<sharp>(pi\<bullet>s1)" and f4: "c\<sharp>(pi\<bullet>s2)"
 	by (force simp add: fresh_prod fresh_atm)
       have x: "P x (App (Lam [c].(([(c,pi\<bullet>a)]@pi)\<bullet>s1)) (pi\<bullet>s2)) ((([(c,pi\<bullet>a)]@pi)\<bullet>s1)[c::=(pi\<bullet>s2)])"
 	using a4 f2 by (blast intro!: eqvt_beta)
@@ -857,7 +857,6 @@ apply(simp)
 (*A*)
 apply(simp add: fresh_list_cons fresh_prod)
 done
-
 lemma all_RED: 
   assumes a: "\<Gamma>\<turnstile>t:\<tau>"
   and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
@@ -867,6 +866,27 @@ proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam.induct)
   case (Lam a t) --"lambda case"
   have ih: "\<And>\<Gamma> \<tau> \<theta>. \<Gamma> \<turnstile> t:\<tau> \<Longrightarrow> 
                     (\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>) 
+                    \<Longrightarrow> t[<\<theta>>]\<in>RED \<tau>" 
+  and  \<theta>_cond: "\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>" 
+  and fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" 
+  and "\<Gamma> \<turnstile> Lam [a].t:\<tau>" by fact
+  hence "\<exists>\<tau>1 \<tau>2. \<tau>=\<tau>1\<rightarrow>\<tau>2 \<and> ((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" using t3_elim fresh by simp
+  then obtain \<tau>1 \<tau>2 where \<tau>_inst: "\<tau>=\<tau>1\<rightarrow>\<tau>2" and typing: "((a,\<tau>1)#\<Gamma>)\<turnstile>t:\<tau>2" by blast
+  from ih have "\<forall>s\<in>RED \<tau>1. t[<\<theta>>][a::=s] \<in> RED \<tau>2" using fresh typing \<theta>_cond
+    by (force dest: fresh_context simp add: psubst_subst)
+  hence "(Lam [a].(t[<\<theta>>])) \<in> RED (\<tau>1 \<rightarrow> \<tau>2)" by (simp only: abs_RED)
+  thus "(Lam [a].t)[<\<theta>>] \<in> RED \<tau>" using fresh \<tau>_inst by simp
+qed (force dest!: t1_elim t2_elim)+
+
+
+lemma all_RED: 
+  assumes a: "\<Gamma>\<turnstile>t:\<tau>"
+  and     b: "\<forall>a \<sigma>. (a,\<sigma>)\<in>set(\<Gamma>) \<longrightarrow> (a\<in>set(domain \<theta>)\<and>\<theta><a>\<in>RED \<sigma>)" 
+  shows "t[<\<theta>>]\<in>RED \<tau>"
+using a b
+proof(nominal_induct t avoiding: \<Gamma> \<tau> \<theta> rule: lam.induct)
+  case (Lam a t) --"lambda case"
+  have ih: "\<And>\<Gamma> \<tau> \<theta>. \<lbrakk>\<Gamma> \<turnstile> t:\<tau>; \<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>\<rbrakk> 
                     \<Longrightarrow> t[<\<theta>>]\<in>RED \<tau>" 
   and  \<theta>_cond: "\<forall>c \<sigma>. (c,\<sigma>)\<in>set \<Gamma> \<longrightarrow> c\<in>set (domain \<theta>) \<and>  \<theta><c>\<in>RED \<sigma>" 
   and fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" 
