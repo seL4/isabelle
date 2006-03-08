@@ -204,16 +204,19 @@ fun err_illegal_level i =
   error ("Illegal level of detail for proof objects: " ^ string_of_int i);
 
 fun if_ora b = if b then oracles_of_proof else K;
+val min_proof = MinProof ([], [], []);
 
 fun infer_derivs f (ora1, prf1) (ora2, prf2) =
-  (ora1 orelse ora2, 
-   case !proofs of
-     2 => f prf1 prf2
-   | 1 => MinProof (([], [], []) |> mk_min_proof prf1 |> mk_min_proof prf2)
-   | 0 => MinProof ([], [], if_ora ora2 (if_ora ora1 [] prf1) prf2)
-   | i => err_illegal_level i);
+  let val ora = ora1 orelse ora2 in
+    (ora,
+      case !proofs of
+        2 => f prf1 prf2
+      | 1 => MinProof (([], [], []) |> mk_min_proof prf1 |> mk_min_proof prf2)
+      | 0 => if ora then MinProof ([], [], if_ora ora2 (if_ora ora1 [] prf1) prf2) else min_proof
+      | i => err_illegal_level i)
+  end;
 
-fun infer_derivs' f = infer_derivs (K f) (false, MinProof ([], [], []));
+fun infer_derivs' f = infer_derivs (K f) (false, min_proof);
 
 fun (prf %> t) = prf % SOME t;
 
