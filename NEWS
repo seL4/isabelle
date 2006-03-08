@@ -328,9 +328,6 @@ for example "A -> B" => "Pi A (%_. B)".
 
 *** HOL ***
 
-* Prefer ex1I over ex_ex1I in single-step reasoning, e.g. by the
-'rule' method.
-
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
@@ -342,6 +339,11 @@ for example "A -> B" => "Pi A (%_. B)".
 compatibility this can be disabled by ML "reset use_neq_simproc".
 
 * "m dvd n" where m and n are numbers is evaluated to True/False by simp.
+
+* Theorem Cons_eq_map_conv no longer has attribute `simp'.
+
+* Prefer ex1I over ex_ex1I in single-step reasoning, e.g. by the
+'rule' method.
 
 * Tactics 'sat' and 'satx' reimplemented, several improvements: goals
 no longer need to be stated as "<prems> ==> False", equivalences (i.e.
