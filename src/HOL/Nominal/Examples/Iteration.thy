@@ -21,8 +21,7 @@ intros
 it1: "(Var a,\<lambda>pi. f1(pi\<bullet>a)) \<in> it f1 f2 f3"
 it2: "\<lbrakk>(t1,r1) \<in> it f1 f2 f3; (t2,r2) \<in> it f1 f2 f3\<rbrakk> \<Longrightarrow> 
       (App t1 t2,\<lambda>pi. f2 (r1 pi) (r2 pi)) \<in> it f1 f2 f3"
-it3: "(t,r) \<in> it f1 f2 f3 \<Longrightarrow> 
-      (Lam [a].t,\<lambda>pi. fresh_fun (\<lambda>a'. f3 a' (r (pi@[(a,a')])))) \<in> it f1 f2 f3"
+it3: "(t,r) \<in> it f1 f2 f3 \<Longrightarrow> (Lam [a].t,\<lambda>pi. fresh_fun (\<lambda>a'. f3 a' (r (pi@[(a,a')])))) \<in> it f1 f2 f3"
 
 constdefs
   itfun' :: "'a f1_ty \<Rightarrow> 'a f2_ty \<Rightarrow> 'a f3_ty \<Rightarrow> lam \<Rightarrow> name prm \<Rightarrow> ('a::pt_name)" 
@@ -33,13 +32,10 @@ constdefs
 
 lemma it_total:
   shows "\<exists>r. (t,r) \<in> it f1 f2 f3"
-  apply(induct t rule: lam.induct_weak)
-  apply(auto intro: it.intros)
-  done
+  by (induct t rule: lam.induct_weak, auto intro: it.intros)
 
 lemma it_prm_eq:
-  assumes a: "(t,y) \<in> it f1 f2 f3"
-  and     b: "pi1 \<triangleq> pi2"
+  assumes a: "(t,y) \<in> it f1 f2 f3" and b: "pi1 \<triangleq> pi2"
   shows "y pi1 = y pi2"
 using a b
 apply(induct fixing: pi1 pi2)
@@ -51,55 +47,13 @@ apply(drule_tac x="pi2@[(a,x)]" in meta_spec)
 apply(force simp add: prm_eq_def pt2[OF pt_name_inst])
 done
 
-lemma f3_freshness_conditions_simple:
-  fixes f3::"('a::pt_name) f3_ty"
-  and   y ::"name prm \<Rightarrow> 'a::pt_name"
-  and   a ::"name"
-  and   pi::"name prm"
-  assumes a: "finite ((supp f3)::name set)"
-  and     b: "finite ((supp y)::name set)"
-  and     c: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
-  shows "\<exists>(a''::name). a''\<sharp>(\<lambda>a'. f3 a' (y (pi@[(a,a')]))) \<and> a''\<sharp>(\<lambda>a'. f3 a' (y (pi@[(a,a')]))) a''" 
-proof -
-  from c obtain a' where d0: "a'\<sharp>f3" and d1: "\<forall>(y::'a::pt_name). a'\<sharp>f3 a' y" by force
-  have "\<exists>(a''::name). a''\<sharp>(f3,a,a',pi,y)" 
-    by (rule at_exists_fresh[OF at_name_inst],  simp add: supp_prod fs_name1 a b)
-  then obtain a'' where d2: "a''\<sharp>f3" and d3: "a''\<noteq>a'" and d3b: "a''\<sharp>(f3,a,pi,y)" 
-    by (auto simp add: fresh_prod at_fresh[OF at_name_inst])
-  have d3c: "a''\<notin>((supp (f3,a,pi,y))::name set)" using d3b by (simp add: fresh_def)
-  have d4: "a''\<sharp>f3 a'' (y (pi@[(a,a'')]))"
-  proof -
-    have d5: "[(a'',a')]\<bullet>f3 = f3" 
-      by (rule pt_fresh_fresh[OF pt_name_inst, OF at_name_inst, OF d2, OF d0]) 
-    from d1 have "\<forall>(y::'a::pt_name). ([(a'',a')]\<bullet>a')\<sharp>([(a'',a')]\<bullet>(f3 a' y))"
-      by (simp add: pt_fresh_bij[OF pt_name_inst, OF at_name_inst])
-    hence "\<forall>(y::'a::pt_name). a''\<sharp>(f3 a'' ([(a'',a')]\<bullet>y))" using d3 d5 
-      by (simp add: at_calc[OF at_name_inst] pt_fun_app_eq[OF pt_name_inst, OF at_name_inst])
-    hence "a''\<sharp>(f3 a'' ([(a'',a')]\<bullet>((rev [(a'',a')])\<bullet>(y (pi@[(a,a'')])))))" by force
-    thus ?thesis by (simp only: pt_pi_rev[OF pt_name_inst, OF at_name_inst])
-  qed
-  have d6: "a''\<sharp>(\<lambda>a'. f3 a' (y (pi@[(a,a')])))"
-  proof -
-    from a b have d7: "finite ((supp (f3,a,pi,y))::name set)" by (simp add: supp_prod fs_name1)
-    have "((supp (f3,a,pi,y))::name set) supports (\<lambda>a'. f3 a' (y (pi@[(a,a')])))" 
-      by (supports_simp add: perm_append)
-    with d7 d3c show ?thesis by (simp add: supports_fresh)
-  qed
-  from d6 d4 show ?thesis by force
-qed
-
-text {* FIXME: this lemma should be thrown out somehow *}
 lemma f3_freshness_conditions:
   fixes f3::"('a::pt_name) f3_ty"
   and   y ::"name prm \<Rightarrow> 'a::pt_name"
-  and   a ::"name"
-  and   pi1::"name prm"
-  and   pi2::"name prm"
   assumes a: "finite ((supp f3)::name set)"
   and     b: "finite ((supp y)::name set)"
-  and     c: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
-  shows "\<exists>(a''::name). a''\<sharp>(\<lambda>a'. f3 a' (y (pi1@[(a,a')]@pi2))) \<and> 
-                       a''\<sharp>(\<lambda>a'. f3 a' (y (pi1@[(a,a')]@pi2))) a''" 
+  and     c: "\<exists>a. a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
+  shows "\<exists>a''. a''\<sharp>(\<lambda>a'. f3 a' (y (pi1@[(a,a')]@pi2))) \<and> a''\<sharp>(\<lambda>a'. f3 a' (y (pi1@[(a,a')]@pi2))) a''" 
 proof -
   from c obtain a' where d0: "a'\<sharp>f3" and d1: "\<forall>(y::'a::pt_name). a'\<sharp>f3 a' y" by force
   have "\<exists>(a''::name). a''\<sharp>(f3,a,a',pi1,pi2,y)" 
@@ -109,14 +63,11 @@ proof -
   have d3c: "a''\<notin>((supp (f3,a,pi1,pi2,y))::name set)" using d3b by (simp add: fresh_def)
   have d4: "a''\<sharp>f3 a'' (y (pi1@[(a,a'')]@pi2))"
   proof -
-    have d5: "[(a'',a')]\<bullet>f3 = f3" 
-      by (rule pt_fresh_fresh[OF pt_name_inst, OF at_name_inst, OF d2, OF d0]) 
-    from d1 have "\<forall>(y::'a::pt_name). ([(a'',a')]\<bullet>a')\<sharp>([(a'',a')]\<bullet>(f3 a' y))"
-      by (simp add: pt_fresh_bij[OF pt_name_inst, OF at_name_inst])
-    hence "\<forall>(y::'a::pt_name). a''\<sharp>(f3 a'' ([(a'',a')]\<bullet>y))" using d3 d5 
-      by (simp add: at_calc[OF at_name_inst] pt_fun_app_eq[OF pt_name_inst, OF at_name_inst])
+    have d5: "[(a'',a')]\<bullet>f3 = f3" using d2 d0 by perm_simp 
+    from d1 have "\<forall>(y::'a::pt_name). ([(a'',a')]\<bullet>a')\<sharp>([(a'',a')]\<bullet>(f3 a' y))" by (simp add: fresh_eqvt)
+    hence "\<forall>(y::'a::pt_name). a''\<sharp>(f3 a'' ([(a'',a')]\<bullet>y))" using d3 d5 by (perm_simp add: calc_atm)
     hence "a''\<sharp>(f3 a'' ([(a'',a')]\<bullet>((rev [(a'',a')])\<bullet>(y (pi1@[(a,a'')]@pi2)))))" by force
-    thus ?thesis by (simp only: pt_pi_rev[OF pt_name_inst, OF at_name_inst])
+    thus ?thesis by perm_simp
   qed
   have d6: "a''\<sharp>(\<lambda>a'. f3 a' (y (pi1@[(a,a')]@pi2)))"
   proof -
@@ -127,6 +78,15 @@ proof -
   qed
   from d6 d4 show ?thesis by force
 qed
+
+lemma f3_freshness_conditions_simple:
+  fixes f3::"('a::pt_name) f3_ty"
+  and   y ::"name prm \<Rightarrow> 'a::pt_name"
+  assumes a: "finite ((supp f3)::name set)"
+  and     b: "finite ((supp y)::name set)"
+  and     c: "\<exists>a. a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
+  shows "\<exists>a''. a''\<sharp>(\<lambda>a'. f3 a' (y (pi@[(a,a')]))) \<and> a''\<sharp>(\<lambda>a'. f3 a' (y (pi@[(a,a')]))) a''"
+using a b c by (simp add: f3_freshness_conditions[of _ _ _ _ "[]",simplified])
 
 lemma it_fin_supp: 
   assumes f: "finite ((supp (f1,f2,f3))::name set)"
@@ -150,12 +110,10 @@ next
     show "\<exists>(a''::name). a''\<sharp>(?g' pi) \<and> a''\<sharp>((?g' pi) a'')" using f c ih
       by (rule_tac f3_freshness_conditions_simple, simp_all add: supp_prod)
   qed
-  show ?case using fact1 fact2 ih f
-    by (finite_guess add: fresh_fun_eqvt perm_append supp_prod fs_name1)
+  show ?case using fact1 fact2 ih f by (finite_guess add: fresh_fun_eqvt perm_append supp_prod fs_name1)
 qed 
 
-lemma it_trans: 
-  shows "\<lbrakk>(t,r)\<in>rec f1 f2 f3; r=r'\<rbrakk> \<Longrightarrow> (t,r')\<in>rec f1 f2 f3" by simp
+lemma it_trans: "\<lbrakk>(t,r)\<in>rec f1 f2 f3; r=r'\<rbrakk> \<Longrightarrow> (t,r')\<in>rec f1 f2 f3" by simp
 
 lemma it_perm_aux:
   assumes f: "finite ((supp (f1,f2,f3))::name set)"
@@ -202,8 +160,7 @@ next
 	then show ?thesis by simp
       qed
       then show "fresh_fun (?g pi') = fresh_fun (?h pi')"
-	using f1 fin_g fr_g f2 fin_h fr_h
-	by (simp add: fresh_fun_app[OF pt_name_inst, OF at_name_inst])
+	using f1 fin_g fr_g f2 fin_h fr_h by (simp add: fresh_fun_app[OF pt_name_inst, OF at_name_inst])
     qed
   qed
   hence "(\<lambda>pi'. (fresh_fun (?g pi'))) = (\<lambda>pi'. (fresh_fun (?h pi')))" by (simp add: expand_fun_eq)
@@ -216,8 +173,7 @@ lemma it_perm:
   and     a: "(pi\<bullet>t,y) \<in> it f1 f2 f3"
   shows "(t, \<lambda>pi2. y (pi2@(rev pi))) \<in> it f1 f2 f3"
 proof - 
-  from a have "((rev pi)\<bullet>(pi\<bullet>t),\<lambda>pi2. y (pi2@(rev pi))) \<in> it f1 f2 f3" 
-    using f c by (simp add: it_perm_aux)
+  from a f c have "((rev pi)\<bullet>(pi\<bullet>t),\<lambda>pi2. y (pi2@(rev pi))) \<in> it f1 f2 f3" by (simp add: it_perm_aux)
   thus ?thesis by perm_simp
 qed
 
@@ -246,8 +202,7 @@ next
     assume i5: "[c].t = [a].t'"
     and    i6: "(t',r'') \<in> it f1 f2 f3"
     hence fin_r'': "finite ((supp r'')::name set)" using f c by (auto intro: it_fin_supp)
-    let ?g = "\<lambda>a'. f3 a' (r (pi@[(c,a')]))"
-    and ?h = "\<lambda>a'. f3 a' (r'' (pi@[(a,a')]))"
+    let ?g = "\<lambda>a'. f3 a' (r (pi@[(c,a')]))" and ?h = "\<lambda>a'. f3 a' (r'' (pi@[(a,a')]))"
     show "fresh_fun ?g = fresh_fun ?h" using i5
     proof (cases "a=c")
       case True
@@ -271,16 +226,14 @@ next
       then obtain d::"name" 
 	where f1: "d\<sharp>?g" and f2: "d\<sharp>?h" and f3: "d\<sharp>t" and f4: "d\<noteq>a" and f5: "d\<noteq>c" 
 	by (force simp add: fresh_prod fresh_atm)
-      have g1: "[(a,d)]\<bullet>t = t" 
-	by (rule pt_fresh_fresh[OF pt_name_inst, OF at_name_inst, OF i11, OF f3]) 
+      have g1: "[(a,d)]\<bullet>t = t" using i11 f3 by perm_simp
       from i6 have "(([(a,c)]@[(a,d)])\<bullet>t,r'') \<in> it f1 f2 f3" using g1 i10 by (simp only: pt_name2)
-      hence "(t, \<lambda>pi2. r'' (pi2@(rev ([(a,c)]@[(a,d)])))) \<in> it f1 f2 f3"
+      hence "(t, \<lambda>pi2. r'' (pi2@(rev ([(a,c)]@[(a,d)])))) \<in> it f1 f2 f3" 
 	by (simp only: it_perm[OF f, OF c])
       hence g2: "(t, \<lambda>pi2. r'' (pi2@([(a,d)]@[(a,c)]))) \<in> it f1 f2 f3" by simp
       have "distinct [a,c,d]" using i9 f4 f5 by force
       hence g3: "(pi@[(c,d)]@[(a,d)]@[(a,c)]) \<triangleq> (pi@[(a,d)])"
-	by (rule_tac at_prm_eq_append[OF at_name_inst], 
-            force simp add: prm_eq_def at_calc[OF at_name_inst])
+	by (rule_tac at_prm_eq_append[OF at_name_inst], force simp add: prm_eq_def calc_atm)
       have "fresh_fun ?g = ?g d" using fin_g fr_g f1
 	by (simp add: fresh_fun_app[OF pt_name_inst, OF at_name_inst])
       also have "\<dots> = f3 d ((\<lambda>pi2. r'' (pi2@([(a,d)]@[(a,c)]))) (pi@[(c,d)]))" using ih g2 by simp 
@@ -297,10 +250,8 @@ lemma it_function:
   assumes f: "finite ((supp (f1,f2,f3))::name set)"
   and     c: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(r::'a::pt_name). a\<sharp>f3 a r)"
   shows "\<exists>!r. (t,r) \<in> it f1 f2 f3"
-proof (rule ex_ex1I)
-  case goal1 show "\<exists>r. (t,r) \<in> it f1 f2 f3" by (rule it_total)
-next
-  case (goal2 r1 r2)
+proof (rule ex_ex1I, rule it_total)
+  case (goal1 r1 r2)
   have a1: "(t,r1) \<in> it f1 f2 f3" and a2: "(t,r2) \<in> it f1 f2 f3" by fact
   hence "\<forall>pi. r1 pi = r2 pi" using it_unique[OF f, OF c] by simp
   thus "r1=r2" by (simp add: expand_fun_eq) 
@@ -342,13 +293,9 @@ next
 qed
 
 lemma the1_equality': 
-  assumes a: "\<exists>!r. P r"
-  and     b: "P b" 
-  and     c: "b y = a"
+  assumes a: "\<exists>!r. P r" and b: "P b" and c: "b y = a"
   shows "(THE r. P r) y = a"
-apply(simp add: c[symmetric])
-apply(rule fun_cong[OF the1_equality, OF a, OF b])
-done
+  by (simp add: c[symmetric], rule fun_cong[OF the1_equality, OF a, OF b])
 
 lemma itfun'_prm:
   assumes f: "finite ((supp (f1,f2,f3))::name set)"
@@ -357,8 +304,7 @@ lemma itfun'_prm:
 apply(auto simp add: itfun_def itfun'_def)
 apply(rule the1_equality'[OF it_function, OF f, OF c])
 apply(rule it_perm_aux[OF f, OF c])
-apply(rule theI'[OF it_function,OF f, OF c])
-apply(simp)
+apply(rule theI'[OF it_function,OF f, OF c], simp)
 done
 
 lemma itfun'_eqvt:
@@ -368,7 +314,6 @@ lemma itfun'_eqvt:
   shows "pi1\<bullet>(itfun' f1 f2 f3 t pi2) = itfun' (pi1\<bullet>f1) (pi1\<bullet>f2) (pi1\<bullet>f3) (pi1\<bullet>t) (pi1\<bullet>pi2)"
 proof -
   have f_pi: "finite ((supp (pi1\<bullet>f1,pi1\<bullet>f2,pi1\<bullet>f3))::name set)" using f
-    (* FIXME: check why proof (finite_guess_debug add: perm_append fs_name1) does not work *)
     by (simp add: supp_prod pt_supp_finite_pi[OF pt_name_inst, OF at_name_inst])
   have fs_pi: "\<exists>(a::name). a\<sharp>(pi1\<bullet>f3) \<and> (\<forall>(y::'a::pt_name). a\<sharp>(pi1\<bullet>f3) a y)" 
   proof -
@@ -391,8 +336,7 @@ proof -
     apply(rule it_eqvt[OF f, OF c])
     apply(rule theI'[OF it_function,OF f, OF c])
     apply(rule sym)
-    apply(rule pt_bij2[OF pt_name_inst, OF at_name_inst])
-    apply(perm_simp)
+    apply(rule pt_bij2[OF pt_name_inst, OF at_name_inst], perm_simp)
     done
 qed
 
@@ -424,8 +368,7 @@ lemma itfun_Lam_aux2:
 proof -
   have eq1: "itfun f1 f2 f3 (Lam [b].([(b,a)]\<bullet>t)) = itfun f1 f2 f3 (Lam [a].t)"
   proof -
-    have "Lam [b].([(b,a)]\<bullet>t) = Lam [a].t" using a
-      by (simp add: lam.inject alpha fresh_prod fresh_atm)
+    have "Lam [b].([(b,a)]\<bullet>t) = Lam [a].t" using a by (simp add: lam.inject alpha fresh_prod fresh_atm)
     thus ?thesis by simp
   qed
   let ?g = "(\<lambda>a'. f3 a' (itfun' f1 f2 f3 t ([]@[(a,a')])))"
@@ -436,20 +379,17 @@ proof -
         finite_guess add: itfun'_eqvt[OF f, OF c] supp_prod fs_name1)
   have fresh_b: "b\<sharp>?g" 
   proof -
-    have "finite ((supp (a,t,f1,f2,f3))::name set)" using f
-      by (simp add: supp_prod fs_name1)
+    have "finite ((supp (a,t,f1,f2,f3))::name set)" using f by (simp add: supp_prod fs_name1)
     moreover 
     have "((supp (a,t,f1,f2,f3))::name set) supports ?g"
       by (supports_simp add: itfun'_eqvt[OF f, OF c] perm_append)
-    ultimately show ?thesis using a
-      by (auto intro!: supports_fresh, simp add: fresh_def)
+    ultimately show ?thesis using a by (auto intro!: supports_fresh, simp add: fresh_def)
   qed
   have "itfun f1 f2 f3 (Lam [b].([(b,a)]\<bullet>t)) = itfun f1 f2 f3 (Lam [a].t)" by (simp add: eq1)
   also have "\<dots> = fresh_fun ?g" by (rule itfun_Lam_aux1[OF f, OF c])
-  also have "\<dots> = ?g b" using fresh_b fin_g fr_g
+  also have "\<dots> = ?g b" using fresh_b fin_g fr_g 
     by (simp add: fresh_fun_app[OF pt_name_inst, OF at_name_inst])
-  also have "\<dots> = f3 b (itfun f1 f2 f3 ([(a,b)]\<bullet>t))"
-    by (simp add: itfun_def itfun'_prm[OF f, OF c]) 
+  also have "\<dots> = f3 b (itfun f1 f2 f3 ([(a,b)]\<bullet>t))" by (simp add: itfun_def itfun'_prm[OF f, OF c]) 
   finally show "itfun f1 f2 f3 (Lam [b].([(b,a)]\<bullet>t)) = f3 b (itfun f1 f2 f3 ([(a,b)]\<bullet>t))" by simp 
 qed
 
@@ -465,10 +405,9 @@ proof -
   have fresh_b: "b\<sharp>(a,[(b,a)]\<bullet>t,f1,f2,f3)" using a a1 a2
     by (simp add: fresh_prod fresh_atm fresh_left calc_atm)
   have "itfun f1 f2 f3 (Lam [b].t) = itfun f1 f2 f3 (Lam [b].(([(b,a)])\<bullet>([(b,a)]\<bullet>t)))" by (perm_simp)
-  also have "\<dots> = f3 b (itfun f1 f2 f3 (([(a,b)])\<bullet>([(b,a)]\<bullet>t)))" using fresh_b
-    by (rule itfun_Lam_aux2[OF f, OF c])
+  also have "\<dots> = f3 b (itfun f1 f2 f3 (([(a,b)])\<bullet>([(b,a)]\<bullet>t)))" 
+    using fresh_b f c by (simp add: itfun_Lam_aux2)
   also have "\<dots> = f3 b (itfun f1 f2 f3 t)" by (simp add: pt_swap_bij'[OF pt_name_inst, OF at_name_inst])
   finally show ?thesis by simp
 qed
-
 end
