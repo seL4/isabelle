@@ -34,6 +34,14 @@ sig
   val hol_typ_level: unit -> ResHolClause.type_level
   val run_relevance_filter: bool ref
   val invoke_atp_ml : ProofContext.context * thm -> unit
+  val add_claset : unit -> unit
+  val add_simpset : unit -> unit
+  val add_clasimp : unit -> unit
+  val add_atpset : unit -> unit
+  val rm_claset : unit -> unit
+  val rm_simpset : unit -> unit
+  val rm_atpset : unit -> unit
+  val rm_clasimp : unit -> unit
 end;
 
 structure ResAtp : RES_ATP =
@@ -117,11 +125,11 @@ val include_claset = ref false;
 val include_atpset = ref true;
 val add_simpset = (fn () => include_simpset:=true);
 val add_claset = (fn () => include_claset:=true);
-val add_clasimp = (fn () => include_simpset:=true;include_claset:=true);
+val add_clasimp = (fn () => (include_simpset:=true;include_claset:=true));
 val add_atpset = (fn () => include_atpset:=true);
 val rm_simpset = (fn () => include_simpset:=false);
 val rm_claset = (fn () => include_claset:=false);
-val rm_clasimp = (fn () => include_simpset:=false;include_claset:=false);
+val rm_clasimp = (fn () => (include_simpset:=false;include_claset:=false));
 val rm_atpset = (fn () => include_atpset:=false);
 
 (*** paths for HOL helper files ***)
@@ -268,39 +276,41 @@ fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
     let val (pred,args) = strip_comb P
 	val (lg',seen') = if pred mem seen then (lg,seen) 
 			  else pred_lg pred (lg,seen)
+	val _ = if is_fol_logic lg' then () else warning ("Found a HOL predicate: " ^ (Term.str_of_term pred))
     in
 	term_lg args (lg',seen')
     end;
 
 fun lits_lg [] (lg,seen) = (lg,seen)
   | lits_lg (lit::lits) (FOL,seen) =
-    lits_lg lits (lit_lg lit (FOL,seen))
-  | lits_lg lits (lg,seen) = (lg,seen);
-
-
-fun logic_of_clause tm (lg,seen) =
-    let val tm' = HOLogic.dest_Trueprop tm
-	val disjs = HOLogic.dest_disj tm'
+    let val (lg,seen') = lit_lg lit (FOL,seen)
+	val _ =  if is_fol_logic lg then () else warning ("Found a HOL literal: " ^ (Term.str_of_term lit))
     in
-	lits_lg disjs (lg,seen)
-    end;
-
-fun lits_lg [] (lg,seen) = (lg,seen)
-  | lits_lg (lit::lits) (FOL,seen) =
-    lits_lg lits (lit_lg lit (FOL,seen))
+	lits_lg lits (lg,seen')
+    end
   | lits_lg lits (lg,seen) = (lg,seen);
 
 
+fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = 
+    dest_disj_aux t (dest_disj_aux t' disjs)
+  | dest_disj_aux t disjs = t::disjs;
+
+fun dest_disj t = dest_disj_aux t [];
+
 fun logic_of_clause tm (lg,seen) =
     let val tm' = HOLogic.dest_Trueprop tm
-	val disjs = HOLogic.dest_disj tm'
+	val disjs = dest_disj tm'
     in
 	lits_lg disjs (lg,seen)
     end;
 
 fun logic_of_clauses [] (lg,seen) = (lg,seen)
   | logic_of_clauses (cls::clss) (FOL,seen) =
-    logic_of_clauses clss (logic_of_clause cls (FOL,seen))
+    let val (lg,seen') = logic_of_clause cls (FOL,seen)
+	val _ = if is_fol_logic lg then () else warning ("Found a HOL clause: " ^ (Term.str_of_term cls))
+    in
+	logic_of_clauses clss (lg,seen')
+    end
   | logic_of_clauses (cls::clss) (lg,seen) = (lg,seen);
 
 fun logic_of_nclauses [] (lg,seen) = (lg,seen)
