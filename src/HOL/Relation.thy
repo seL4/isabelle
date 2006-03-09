@@ -82,6 +82,9 @@ lemma antisym_Id: "antisym Id"
   -- {* A strange result, since @{text Id} is also symmetric. *}
   by (simp add: antisym_def)
 
+lemma sym_Id: "sym Id"
+  by (simp add: sym_def)
+
 lemma trans_Id: "trans Id"
   by (simp add: trans_def)
 
@@ -151,6 +154,29 @@ lemma reflI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> ref
 lemma reflD: "refl A r ==> a : A ==> (a, a) : r"
   by (unfold refl_def) blast
 
+lemma reflD1: "refl A r ==> (x, y) : r ==> x : A"
+  by (unfold refl_def) blast
+
+lemma reflD2: "refl A r ==> (x, y) : r ==> y : A"
+  by (unfold refl_def) blast
+
+lemma refl_Int: "refl A r ==> refl B s ==> refl (A \<inter> B) (r \<inter> s)"
+  by (unfold refl_def) blast
+
+lemma refl_Un: "refl A r ==> refl B s ==> refl (A \<union> B) (r \<union> s)"
+  by (unfold refl_def) blast
+
+lemma refl_INTER:
+  "ALL x:S. refl (A x) (r x) ==> refl (INTER S A) (INTER S r)"
+  by (unfold refl_def) fast
+
+lemma refl_UNION:
+  "ALL x:S. refl (A x) (r x) \<Longrightarrow> refl (UNION S A) (UNION S r)"
+  by (unfold refl_def) blast
+
+lemma refl_diag: "refl A (diag A)"
+  by (rule reflI [OF diag_subset_Times diagI])
+
 
 subsection {* Antisymmetry *}
 
@@ -161,11 +187,41 @@ lemma antisymI:
 lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
   by (unfold antisym_def) iprover
 
+lemma antisym_subset: "r \<subseteq> s ==> antisym s ==> antisym r"
+  by (unfold antisym_def) blast
 
-subsection {* Symmetry and Transitivity *}
+lemma antisym_empty [simp]: "antisym {}"
+  by (unfold antisym_def) blast
+
+lemma antisym_diag [simp]: "antisym (diag A)"
+  by (unfold antisym_def) blast
+
+
+subsection {* Symmetry *}
+
+lemma symI: "(!!a b. (a, b) : r ==> (b, a) : r) ==> sym r"
+  by (unfold sym_def) iprover
 
 lemma symD: "sym r ==> (a, b) : r ==> (b, a) : r"
   by (unfold sym_def, blast)
+
+lemma sym_Int: "sym r ==> sym s ==> sym (r \<inter> s)"
+  by (fast intro: symI dest: symD)
+
+lemma sym_Un: "sym r ==> sym s ==> sym (r \<union> s)"
+  by (fast intro: symI dest: symD)
+
+lemma sym_INTER: "ALL x:S. sym (r x) ==> sym (INTER S r)"
+  by (fast intro: symI dest: symD)
+
+lemma sym_UNION: "ALL x:S. sym (r x) ==> sym (UNION S r)"
+  by (fast intro: symI dest: symD)
+
+lemma sym_diag [simp]: "sym (diag A)"
+  by (rule symI) clarify
+
+
+subsection {* Transitivity *}
 
 lemma transI:
   "(!!x y z. (x, y) : r ==> (y, z) : r ==> (x, z) : r) ==> trans r"
@@ -173,6 +229,15 @@ lemma transI:
 
 lemma transD: "trans r ==> (a, b) : r ==> (b, c) : r ==> (a, c) : r"
   by (unfold trans_def) iprover
+
+lemma trans_Int: "trans r ==> trans s ==> trans (r \<inter> s)"
+  by (fast intro: transI elim: transD)
+
+lemma trans_INTER: "ALL x:S. trans (r x) ==> trans (INTER S r)"
+  by (fast intro: transI elim: transD)
+
+lemma trans_diag [simp]: "trans (diag A)"
+  by (fast intro: transI elim: transD)
 
 
 subsection {* Converse *}
@@ -197,20 +262,44 @@ lemma converse_converse [simp]: "(r^-1)^-1 = r"
 lemma converse_rel_comp: "(r O s)^-1 = s^-1 O r^-1"
   by blast
 
+lemma converse_Int: "(r \<inter> s)^-1 = r^-1 \<inter> s^-1"
+  by blast
+
+lemma converse_Un: "(r \<union> s)^-1 = r^-1 \<union> s^-1"
+  by blast
+
+lemma converse_INTER: "(INTER S r)^-1 = (INT x:S. (r x)^-1)"
+  by fast
+
+lemma converse_UNION: "(UNION S r)^-1 = (UN x:S. (r x)^-1)"
+  by blast
+
 lemma converse_Id [simp]: "Id^-1 = Id"
   by blast
 
 lemma converse_diag [simp]: "(diag A)^-1 = diag A"
   by blast
 
-lemma refl_converse: "refl A r ==> refl A (converse r)"
-  by (unfold refl_def) blast
+lemma refl_converse [simp]: "refl A (converse r) = refl A r"
+  by (unfold refl_def) auto
 
-lemma antisym_converse: "antisym (converse r) = antisym r"
+lemma sym_converse [simp]: "sym (converse r) = sym r"
+  by (unfold sym_def) blast
+
+lemma antisym_converse [simp]: "antisym (converse r) = antisym r"
   by (unfold antisym_def) blast
 
-lemma trans_converse: "trans (converse r) = trans r"
+lemma trans_converse [simp]: "trans (converse r) = trans r"
   by (unfold trans_def) blast
+
+lemma sym_conv_converse_eq: "sym r = (r^-1 = r)"
+  by (unfold sym_def) fast
+
+lemma sym_Un_converse: "sym (r \<union> r^-1)"
+  by (unfold sym_def) blast
+
+lemma sym_Int_converse: "sym (r \<inter> r^-1)"
+  by (unfold sym_def) blast
 
 
 subsection {* Domain *}
@@ -371,6 +460,20 @@ lemma single_valuedD:
   "single_valued r ==> (x, y) : r ==> (x, z) : r ==> y = z"
   by (simp add: single_valued_def)
 
+lemma single_valued_rel_comp:
+  "single_valued r ==> single_valued s ==> single_valued (r O s)"
+  by (unfold single_valued_def) blast
+
+lemma single_valued_subset:
+  "r \<subseteq> s ==> single_valued s ==> single_valued r"
+  by (unfold single_valued_def) blast
+
+lemma single_valued_Id [simp]: "single_valued Id"
+  by (unfold single_valued_def) blast
+
+lemma single_valued_diag [simp]: "single_valued (diag A)"
+  by (unfold single_valued_def) blast
+
 
 subsection {* Graphs given by @{text Collect} *}
 
@@ -385,6 +488,9 @@ lemma Image_Collect_split [simp]: "{(x,y). P x y} `` A = {y. EX x:A. P x y}"
 
 
 subsection {* Inverse image *}
+
+lemma sym_inv_image: "sym r ==> sym (inv_image r f)"
+  by (unfold sym_def inv_image_def) blast
 
 lemma trans_inv_image: "trans r ==> trans (inv_image r f)"
   apply (unfold trans_def inv_image_def)

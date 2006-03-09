@@ -82,6 +82,9 @@ lemmas rtrancl_induct2 =
   rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
 
+lemma reflexive_rtrancl: "reflexive (r^*)"
+  by (unfold refl_def) fast
+
 lemma trans_rtrancl: "trans(r^*)"
   -- {* transitivity of transitive closure!! -- by induction *}
 proof (rule transI)
@@ -167,6 +170,9 @@ qed
 
 lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
   by (fast dest!: rtrancl_converseD intro!: rtrancl_converseI)
+
+lemma sym_rtrancl: "sym r ==> sym (r^*)"
+  by (simp only: sym_conv_converse_eq rtrancl_converse [symmetric])
 
 theorem converse_rtrancl_induct[consumes 1]:
   assumes major: "(a, b) : r^*"
@@ -307,6 +313,9 @@ lemma trancl_converseD: "(x, y) \<in> (r^-1)^+ ==> (x, y) \<in> (r^+)^-1"
 lemma trancl_converse: "(r^-1)^+ = (r^+)^-1"
   by (fastsimp simp add: split_tupled_all
     intro!: trancl_converseI trancl_converseD)
+
+lemma sym_trancl: "sym r ==> sym (r^+)"
+  by (simp only: sym_conv_converse_eq trancl_converse [symmetric])
 
 lemma converse_trancl_induct:
   assumes major: "(a,b) : r^+"
