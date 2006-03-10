@@ -27,15 +27,15 @@ by auto
 
 subsection{*Extensions to Theory @{text List}*}
 
-subsubsection{*"minus l x" erase the first element of "l" equal to "x"*}
+subsubsection{*"remove l x" erase the first element of "l" equal to "x"*}
 
-consts minus :: "'a list => 'a => 'a list"
+consts remove :: "'a list => 'a => 'a list"
 
 primrec
-"minus [] y = []"
-"minus (x#xs) y = (if x=y then xs else x # minus xs y)"
+"remove [] y = []"
+"remove (x#xs) y = (if x=y then xs else x # remove xs y)"
 
-lemma set_minus: "set (minus l x) <= set l"
+lemma set_remove: "set (remove l x) <= set l"
 by (induct l, auto)
 
 subsection{*Extensions to Theory @{text Message}*}

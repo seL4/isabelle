@@ -330,10 +330,10 @@ val sg = sign_of th
 		
 val float_const = Const ("Float.float", HOLogic.mk_prodT (HOLogic.intT, HOLogic.intT) --> HOLogic.realT)
 
-val float_add_const = Const ("op +", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
-val float_diff_const = Const ("op -", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
-val float_mult_const = Const ("op *", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
-val float_uminus_const = Const ("uminus", HOLogic.realT --> HOLogic.realT)
+val float_add_const = Const ("HOL.plus", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
+val float_diff_const = Const ("HOL.minus", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
+val float_mult_const = Const ("HOL.times", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
+val float_uminus_const = Const ("HOL.uminus", HOLogic.realT --> HOLogic.realT)
 val float_abs_const = Const ("HOL.abs", HOLogic.realT --> HOLogic.realT)
 val float_le_const = Const ("op <=", HOLogic.realT --> HOLogic.realT --> HOLogic.boolT)
 val float_pprt_const = Const ("OrderedGroup.pprt", HOLogic.realT --> HOLogic.realT)

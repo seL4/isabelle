@@ -15,13 +15,13 @@ text {*
 
 datatype erat = Rat bool int int
 
-instance erat :: zero by intro_classes
-instance erat :: one by intro_classes
-instance erat :: plus by intro_classes
-instance erat :: minus by intro_classes
-instance erat :: times by intro_classes
-instance erat :: inverse by intro_classes
-instance erat :: ord by intro_classes
+instance erat :: zero ..
+instance erat :: one ..
+instance erat :: plus ..
+instance erat :: minus ..
+instance erat :: times ..
+instance erat :: inverse ..
+instance erat :: ord ..
 
 consts
   norm :: "erat \<Rightarrow> erat"
@@ -85,12 +85,6 @@ code_syntax_tyco rat
   ml (target_atom "{*erat*}")
   haskell (target_atom "{*erat*}")
 
-code_alias
-  (* an intermediate solution until name resolving of ad-hoc overloaded
-     constants is refined *)
-  "HOL.inverse" "Rational.inverse"
-  "HOL.divide" "Rational.divide"
-
 code_syntax_const
   Fract
     ml ("{*of_quotient*}")
@@ -103,7 +97,7 @@ code_syntax_const
     haskell ("{*1::erat*}")
   "op + :: rat \<Rightarrow> rat \<Rightarrow> rat"
     ml ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
-    haskell ("{*op + :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
+    haskell ("{*HOL.plus :: erat \<Rightarrow> erat \<Rightarrow> erat*}")
   "uminus :: rat \<Rightarrow> rat"
     ml ("{*uminus :: erat \<Rightarrow> erat*}")
     haskell ("{*uminus :: erat \<Rightarrow> erat*}")

@@ -10,7 +10,7 @@ def_maps
 const_maps
   "sup" > "HOL4Real.real.sup"
   "sum" > "HOL4Real.real.sum"
-  "real_sub" > "op -" :: "real => real => real"
+  "real_sub" > "HOL.minus" :: "real => real => real"
   "real_of_num" > "RealDef.real" :: "nat => real"
   "real_lte" > "op <=" :: "real => real => bool"
   "real_gt" > "HOL4Compat.real_gt"

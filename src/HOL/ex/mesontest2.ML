@@ -547,9 +547,9 @@ val COM002_1 = prove
 \  (has(p4::'a,goto(out))) &        \
 \  (follows(p5::'a,p4)) &   \
 \  (follows(p6::'a,p3)) &   \
-\  (has(p6::'a,assign(register_k::'a,times(num2::'a,register_k)))) &   \
+\  (has(p6::'a,assign(register_k::'a,mtimes(num2::'a,register_k)))) &   \
 \  (follows(p7::'a,p6)) &   \
-\  (has(p7::'a,assign(register_j::'a,plus(register_j::'a,num1)))) &    \
+\  (has(p7::'a,assign(register_j::'a,mplus(register_j::'a,num1)))) &    \
 \  (follows(p8::'a,p7)) &   \
 \  (has(p8::'a,goto(loop))) &       \
 \  (~succeeds(p3::'a,p3)) --> False",
@@ -570,9 +570,9 @@ val COM002_2 = prove
 \  (has(p4::'a,goto(out))) &        \
 \  (follows(p5::'a,p4)) &   \
 \  (follows(p6::'a,p3)) &   \
-\  (has(p6::'a,assign(register_k::'a,times(num2::'a,register_k)))) &   \
+\  (has(p6::'a,assign(register_k::'a,mtimes(num2::'a,register_k)))) &   \
 \  (follows(p7::'a,p6)) &   \
-\  (has(p7::'a,assign(register_j::'a,plus(register_j::'a,num1)))) &    \
+\  (has(p7::'a,assign(register_j::'a,mplus(register_j::'a,num1)))) &    \
 \  (follows(p8::'a,p7)) &   \
 \  (has(p8::'a,goto(loop))) &       \
 \  (fails(p3::'a,p3)) --> False",
@@ -767,7 +767,6 @@ val GEO002_ax_eq =
 \  (\\<forall>X V1 V2 V3 Y V4 V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,X,V4,V5),continuous(V1::'a,V2,V3,Y,V4,V5))) &    \
 \  (\\<forall>X V1 V2 V3 V4 Y V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,X,V5),continuous(V1::'a,V2,V3,V4,Y,V5))) &    \
 \  (\\<forall>X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y)))";
-
 
 (*4272 inferences so far.  Searching to depth 10.  29.4 secs*)
 val GEO017_2 = prove_hard
@@ -1224,26 +1223,26 @@ val MSC002_1 = prove
 
 (*73 inferences so far.  Searching to depth 10.  0.2 secs*)
 val MSC003_1 = prove
- ("(\\<forall>Number_of_small_parts Small_part Big_part Number_of_mid_parts Mid_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) --> in'(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Mid_part) | has_parts(Big_part::'a,times(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &        \
-\  (\\<forall>Big_part Mid_part Number_of_mid_parts Number_of_small_parts Small_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) & has_parts(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Number_of_small_parts,Small_part) --> has_parts(Big_part::'a,times(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &   \
+ ("(\\<forall>Number_of_small_parts Small_part Big_part Number_of_mid_parts Mid_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) --> in'(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Mid_part) | has_parts(Big_part::'a,mtimes(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &        \
+\  (\\<forall>Big_part Mid_part Number_of_mid_parts Number_of_small_parts Small_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) & has_parts(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Number_of_small_parts,Small_part) --> has_parts(Big_part::'a,mtimes(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &   \
 \  (in'(john::'a,boy)) &    \
 \  (\\<forall>X. in'(X::'a,boy) --> in'(X::'a,human)) & \
 \  (\\<forall>X. in'(X::'a,hand) --> has_parts(X::'a,num5,fingers)) &      \
 \  (\\<forall>X. in'(X::'a,human) --> has_parts(X::'a,num2,arm)) & \
 \  (\\<forall>X. in'(X::'a,arm) --> has_parts(X::'a,num1,hand)) &  \
-\  (~has_parts(john::'a,times(num2::'a,num1),hand)) --> False",
+\  (~has_parts(john::'a,mtimes(num2::'a,num1),hand)) --> False",
   meson_tac 1);
 
 (*1486 inferences so far.  Searching to depth 20.  1.2 secs*)
 val MSC004_1 = prove
- ("(\\<forall>Number_of_small_parts Small_part Big_part Number_of_mid_parts Mid_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) --> in'(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Mid_part) | has_parts(Big_part::'a,times(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &        \
-\  (\\<forall>Big_part Mid_part Number_of_mid_parts Number_of_small_parts Small_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) & has_parts(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Number_of_small_parts,Small_part) --> has_parts(Big_part::'a,times(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &   \
+ ("(\\<forall>Number_of_small_parts Small_part Big_part Number_of_mid_parts Mid_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) --> in'(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Mid_part) | has_parts(Big_part::'a,mtimes(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &        \
+\  (\\<forall>Big_part Mid_part Number_of_mid_parts Number_of_small_parts Small_part. has_parts(Big_part::'a,Number_of_mid_parts,Mid_part) & has_parts(object_in(Big_part::'a,Mid_part,Small_part,Number_of_mid_parts,Number_of_small_parts),Number_of_small_parts,Small_part) --> has_parts(Big_part::'a,mtimes(Number_of_mid_parts::'a,Number_of_small_parts),Small_part)) &   \
 \  (in'(john::'a,boy)) &    \
 \  (\\<forall>X. in'(X::'a,boy) --> in'(X::'a,human)) & \
 \  (\\<forall>X. in'(X::'a,hand) --> has_parts(X::'a,num5,fingers)) &      \
 \  (\\<forall>X. in'(X::'a,human) --> has_parts(X::'a,num2,arm)) & \
 \  (\\<forall>X. in'(X::'a,arm) --> has_parts(X::'a,num1,hand)) &  \
-\  (~has_parts(john::'a,times(times(num2::'a,num1),num5),fingers)) --> False",
+\  (~has_parts(john::'a,mtimes(mtimes(num2::'a,num1),num5),fingers)) --> False",
   meson_tac 1);
 
 (*100 inferences so far.  Searching to depth 12.  0.1 secs*)

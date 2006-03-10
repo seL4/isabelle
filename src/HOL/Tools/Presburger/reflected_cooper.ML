@@ -16,10 +16,10 @@ fun i_of_term vs t =
       | Const("0",iT) => Cst 0
       | Const("1",iT) => Cst 1
       | Bound i => Var (nat (IntInf.fromInt i))
-      | Const("uminus",_)$t' => Neg (i_of_term vs t')
-      | Const ("op +",_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
-      | Const ("op -",_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
-      | Const ("op *",_)$t1$t2 => Mult (i_of_term vs t1,i_of_term vs t2)
+      | Const("HOL.uminus",_)$t' => Neg (i_of_term vs t')
+      | Const ("HOL.plus",_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
+      | Const ("HOL.minus",_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
+      | Const ("HOL.times",_)$t1$t2 => Mult (i_of_term vs t1,i_of_term vs t2)
       | Const ("Numeral.number_of",_)$t' => Cst (HOLogic.dest_binum t')
       | _ => error "i_of_term: unknown term";
 	
@@ -77,12 +77,12 @@ fun term_of_i vs t =
     case t of 
 	Cst i => CooperDec.mk_numeral i
       | Var n => valOf (myassoc2 vs n)
-      | Neg t' => Const("uminus",iT --> iT)$(term_of_i vs t')
-      | Add(t1,t2) => Const("op +",[iT,iT] ---> iT)$
+      | Neg t' => Const("HOL.uminus",iT --> iT)$(term_of_i vs t')
+      | Add(t1,t2) => Const("HOL.plus",[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Sub(t1,t2) => Const("op -",[iT,iT] ---> iT)$
+      | Sub(t1,t2) => Const("HOL.minus",[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Mult(t1,t2) => Const("op *",[iT,iT] ---> iT)$
+      | Mult(t1,t2) => Const("HOL.times",[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2);
 
 fun term_of_qf vs t = 

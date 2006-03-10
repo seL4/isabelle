@@ -154,16 +154,16 @@ struct
       | lit (Const("0", _)) = 0
       | lit (Const("1", _)) = 1
     (*translation of a literal expression [no variables]*)
-    fun litExp (Const("op +", T) $ x $ y) =
+    fun litExp (Const("HOL.plus", T) $ x $ y) =
           if is_numeric_op T then (litExp x) + (litExp y)
           else fail t
-      | litExp (Const("op -", T) $ x $ y) =
+      | litExp (Const("HOL.minus", T) $ x $ y) =
           if is_numeric_op T then (litExp x) - (litExp y)
           else fail t
-      | litExp (Const("op *", T) $ x $ y) =
+      | litExp (Const("HOL.times", T) $ x $ y) =
           if is_numeric_op T then (litExp x) * (litExp y)
           else fail t
-      | litExp (Const("uminus", T) $ x)   =
+      | litExp (Const("HOL.uminus", T) $ x)   =
           if is_numeric_op T then ~(litExp x)
           else fail t
       | litExp t = lit t
@@ -171,21 +171,21 @@ struct
     (*translation of a real/rational expression*)
     fun suc t = Interp("+", [Int 1, t])
     fun tm (Const("Suc", T) $ x) = suc (tm x)
-      | tm (Const("op +", T) $ x $ y) =
+      | tm (Const("HOL.plus", T) $ x $ y) =
           if is_numeric_op T then Interp("+", [tm x, tm y])
           else fail t
-      | tm (Const("op -", T) $ x $ y) =
+      | tm (Const("HOL.minus", T) $ x $ y) =
           if is_numeric_op T then
               Interp("+", [tm x, Interp("*", [Int ~1, tm y])])
           else fail t
-      | tm (Const("op *", T) $ x $ y) =
+      | tm (Const("HOL.times", T) $ x $ y) =
           if is_numeric_op T then Interp("*", [tm x, tm y])
           else fail t
       | tm (Const("RealDef.rinv", T) $ x) =
           if domain_type T = HOLogic.realT then
               Rat(1, litExp x)
           else fail t
-      | tm (Const("uminus", T) $ x) =
+      | tm (Const("HOL.uminus", T) $ x) =
           if is_numeric_op T then Interp("*", [Int ~1, tm x])
           else fail t
       | tm t = Int (lit t)

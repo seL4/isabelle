@@ -40,7 +40,7 @@ consts_code
   "insert"  ("(_ ins _)")
   "op Un"   ("(_ union _)")
   "op Int"  ("(_ inter _)")
-  "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("(_ \\\\ _)")
+  "HOL.minus" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("(_ \\\\ _)")
   "image"   ("\<module>image")
 attach {*
 fun image f S = distinct (map f S);

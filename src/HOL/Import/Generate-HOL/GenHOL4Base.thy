@@ -182,9 +182,9 @@ const_maps
   ">="         > HOL4Compat.nat_ge
   FUNPOW       > HOL4Compat.FUNPOW
   "<="         > "op <="          :: "[nat,nat]=>bool"
-  "+"          > "op +"           :: "[nat,nat]=>nat"
-  "*"          > "op *"           :: "[nat,nat]=>nat"
-  "-"          > "op -"           :: "[nat,nat]=>nat"
+  "+"          > "HOL.plus"       :: "[nat,nat]=>nat"
+  "*"          > "HOL.times"      :: "[nat,nat]=>nat"
+  "-"          > "HOL.minus"      :: "[nat,nat]=>nat"
   MIN          > Orderings.min    :: "[nat,nat]=>nat"
   MAX          > Orderings.max    :: "[nat,nat]=>nat"
   DIV          > "Divides.op div" :: "[nat,nat]=>nat"

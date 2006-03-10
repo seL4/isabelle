@@ -622,9 +622,9 @@ struct
 			| Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
 			| Const ("Finite_Set.Finites", T) => collect_type_axioms (axs, T)
 			| Const ("op <", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => collect_type_axioms (axs, T)
-			| Const ("op +", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
-			| Const ("op -", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
-			| Const ("op *", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
+			| Const ("HOL.plus", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
+			| Const ("HOL.minus", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
+			| Const ("HOL.times", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			| Const ("List.op @", T)          => collect_type_axioms (axs, T)
 			| Const ("Lfp.lfp", T)            => collect_type_axioms (axs, T)
 			| Const ("Gfp.gfp", T)            => collect_type_axioms (axs, T)
@@ -2162,13 +2162,13 @@ struct
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
-	(* only an optimization: 'op +' could in principle be interpreted with    *)
+	(* only an optimization: 'HOL.plus' could in principle be interpreted with*)
 	(* interpreters available already (using its definition), but the code    *)
 	(* below is more efficient                                                *)
 
 	fun Nat_plus_interpreter thy model args t =
 		case t of
-		  Const ("op +", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+		  Const ("HOL.plus", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
 			let
 				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
 				val size_nat      = size_of_type i_nat
@@ -2196,7 +2196,7 @@ struct
 
 	fun Nat_minus_interpreter thy model args t =
 		case t of
-		  Const ("op -", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+		  Const ("HOL.minus", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
 			let
 				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
 				val size_nat      = size_of_type i_nat
@@ -2215,13 +2215,13 @@ struct
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
-	(* only an optimization: 'op *' could in principle be interpreted with    *)
-	(* interpreters available already (using its definition), but the code    *)
-	(* below is more efficient                                                *)
+	(* only an optimization: 'HOL.times' could in principle be interpreted with *)
+	(* interpreters available already (using its definition), but the code      *)
+	(* below is more efficient                                                  *)
 
 	fun Nat_mult_interpreter thy model args t =
 		case t of
-		  Const ("op *", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+		  Const ("HOL.times", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
 			let
 				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
 				val size_nat      = size_of_type i_nat

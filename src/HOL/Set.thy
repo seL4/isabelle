@@ -958,7 +958,7 @@ lemmas mem_simps =
   outer-level constant, which in this case is just "op :"; we instead need
   to use term-nets to associate patterns with rules.  Also, if a rule fails to
   apply, then the formula should be kept.
-  [("uminus", Compl_iff RS iffD1), ("op -", [Diff_iff RS iffD1]),
+  [("HOL.uminus", Compl_iff RS iffD1), ("HOL.minus", [Diff_iff RS iffD1]),
    ("op Int", [IntD1,IntD2]),
    ("Collect", [CollectD]), ("Inter", [InterD]), ("INTER", [INT_D])]
  *)

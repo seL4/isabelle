@@ -976,7 +976,7 @@ lemma CDERIV_quotient:
 apply (simp add: diff_minus)
 apply (drule_tac f = g in CDERIV_inverse_fun)
 apply (drule_tac [2] CDERIV_mult, assumption+)
-apply (simp add: divide_inverse right_distrib power_inverse minus_mult_left 
+apply (simp add: divide_inverse left_distrib power_inverse minus_mult_left 
                  mult_ac 
             del: minus_mult_right [symmetric] minus_mult_left [symmetric]
                  complexpow_Suc)

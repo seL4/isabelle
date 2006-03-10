@@ -77,13 +77,13 @@ fun reif_pol T vs t =
 (* reification of polynom expressions *)
 fun reif_polex T vs t =
     case t of
-        Const("op +",_)$a$b => (polex_add T)
+        Const("HOL.plus",_)$a$b => (polex_add T)
                                    $ (reif_polex T vs a)$(reif_polex T vs b)
-      | Const("op -",_)$a$b => (polex_sub T)
+      | Const("HOL.minus",_)$a$b => (polex_sub T)
                                    $ (reif_polex T vs a)$(reif_polex T vs b)
-      | Const("op *",_)$a$b =>  (polex_mul T)
+      | Const("HOL.times",_)$a$b =>  (polex_mul T)
                                     $ (reif_polex T vs a)$ (reif_polex T vs b)
-      | Const("uminus",_)$a => (polex_neg T)
+      | Const("HOL.uminus",_)$a => (polex_neg T)
                                    $ (reif_polex T vs a)
       | (Const("Nat.power",_)$a$n) => (polex_pow T) $ (reif_polex T vs a) $ n
 

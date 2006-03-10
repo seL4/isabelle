@@ -126,6 +126,7 @@ sig
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
+  val get_index: ('a -> 'b option) -> 'a list -> (int * 'b) option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
@@ -631,6 +632,15 @@ fun get_first _ [] = NONE
       (case f x of
         NONE => get_first f xs
       | some => some);
+
+fun get_index f =
+  let
+    fun get _ [] = NONE
+      | get i (x::xs) = 
+          case f x
+           of NONE => get (i+1) xs
+            | SOME y => SOME (i, y)
+  in get 0 end;
 
 (*flatten a list of lists to a list*)
 val flat = List.concat;

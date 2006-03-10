@@ -340,6 +340,33 @@ for example "A -> B" => "Pi A (%_. B)".
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
 
+* Renamed some (legacy-named) constants in HOL.thy:
+    op +   ~> HOL.plus
+    op -   ~> HOL.minus
+    uminus ~> HOL.uminus
+    op *   ~> HOL.times
+
+Adaptions may be required in the following cases:
+
+a) User-defined constants using any of the names "plus", "minus", or "times"
+The standard syntax translations for "+", "-" and "*" may go wrong.
+INCOMPATIBILITY: use more specific names.
+
+b) Variables named "plus", "minus", or "times"
+INCOMPATIBILITY: use more specific names.
+
+c) Commutative equations theorems (e. g. "a + b = b + a")
+Since the changing of names also changes the order of terms, commutative rewrites
+perhaps will be applied when not applied before or the other way round.
+Experience shows that thiis is rarely the case (only two adaptions in the whole
+Isabelle distribution).
+INCOMPATIBILITY: rewrite proof; sometimes already an exchange of a distributive
+law may suffice.
+
+d) ML code directly refering to constant names
+This in general only affects hand-written proof tactics, simprocs and so on.
+INCOMPATIBILITY: grep your sourcecode and replace names.
+
 * "LEAST x:A. P" expands to "LEAST x. x:A & P" (input only).
 
 * In the context of the assumption "~(s = t)" the Simplifier rewrites

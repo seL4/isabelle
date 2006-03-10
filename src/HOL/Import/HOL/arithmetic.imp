@@ -24,9 +24,9 @@ const_maps
   ">=" > "HOL4Compat.nat_ge"
   ">" > "HOL4Compat.nat_gt"
   "<=" > "op <=" :: "nat => nat => bool"
-  "-" > "op -" :: "nat => nat => nat"
-  "+" > "op +" :: "nat => nat => nat"
-  "*" > "op *" :: "nat => nat => nat"
+  "-" > "HOL.minus" :: "nat => nat => nat"
+  "+" > "HOL.plus" :: "nat => nat => nat"
+  "*" > "HOL.times" :: "nat => nat => nat"
 
 thm_maps
   "num_case_def" > "HOL4Compat.num_case_def"

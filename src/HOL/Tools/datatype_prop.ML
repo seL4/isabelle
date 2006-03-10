@@ -366,7 +366,7 @@ fun make_size descr sorts thy =
     val size_consts = map (fn (s, T) =>
       Const (s, T --> HOLogic.natT)) (size_names ~~ recTs);
 
-    fun plus (t1, t2) = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
+    fun plus (t1, t2) = Const ("HOL.plus", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
 
     fun make_size_eqn size_const T (cname, cargs) =
       let

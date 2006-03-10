@@ -17,7 +17,7 @@ struct
 (* mk_sum, mk_norm_sum *)
 
 val one = HOLogic.mk_nat 1;
-val mk_plus = HOLogic.mk_binop "op +";
+val mk_plus = HOLogic.mk_binop "HOL.plus";
 
 fun mk_sum [] = HOLogic.zero
   | mk_sum [t] = t
@@ -32,7 +32,7 @@ fun mk_norm_sum ts =
 
 (* dest_sum *)
 
-val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
+val dest_plus = HOLogic.dest_bin "HOL.plus" HOLogic.natT;
 
 fun dest_sum tm =
   if HOLogic.is_zero tm then []
@@ -137,8 +137,8 @@ end);
 structure DiffCancelSums = CancelSumsFun
 (struct
   open Sum;
-  val mk_bal = HOLogic.mk_binop "op -";
-  val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT;
+  val mk_bal = HOLogic.mk_binop "HOL.minus";
+  val dest_bal = HOLogic.dest_bin "HOL.minus" HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac diff_cancel;
 end);
 
@@ -267,14 +267,14 @@ fun number_of_Sucs (Const("Suc",_) $ n) = number_of_Sucs n + 1
 
 fun demult inj_consts =
 let
-fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
+fun demult((mC as Const("HOL.times",_)) $ s $ t,m) = ((case s of
         Const("Numeral.number_of",_)$n
         => demult(t,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum n)))
-      | Const("uminus",_)$(Const("Numeral.number_of",_)$n)
+      | Const("HOL.uminus",_)$(Const("Numeral.number_of",_)$n)
         => demult(t,Rat.mult(m,Rat.rat_of_intinf(~(HOLogic.dest_binum n))))
       | Const("Suc",_) $ _
         => demult(t,Rat.mult(m,Rat.rat_of_int(number_of_Sucs s)))
-      | Const("op *",_) $ s1 $ s2 => demult(mC $ s1 $ (mC $ s2 $ t),m)
+      | Const("HOL.times",_) $ s1 $ s2 => demult(mC $ s1 $ (mC $ s2 $ t),m)
       | Const("HOL.divide",_) $ numt $ (Const("Numeral.number_of",_)$dent) =>
           let val den = HOLogic.dest_binum dent
           in if den = 0 then raise Zero
@@ -291,7 +291,7 @@ fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
   | demult(t as Const("Numeral.number_of",_)$n,m) =
       ((NONE,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum n)))
        handle TERM _ => (SOME t,m))
-  | demult(Const("uminus",_)$t, m) = demult(t,Rat.mult(m,Rat.rat_of_int(~1)))
+  | demult(Const("HOL.uminus",_)$t, m) = demult(t,Rat.mult(m,Rat.rat_of_int(~1)))
   | demult(t as Const f $ x, m) =
       (if f mem inj_consts then SOME x else SOME t,m)
   | demult(atom,m) = (SOME atom,m)
@@ -303,15 +303,15 @@ in demult end;
 fun decomp2 inj_consts (rel,lhs,rhs) =
 let
 (* Turn term into list of summand * multiplicity plus a constant *)
-fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
-  | poly(all as Const("op -",T) $ s $ t, m, pi) =
+fun poly(Const("HOL.plus",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
+  | poly(all as Const("HOL.minus",T) $ s $ t, m, pi) =
       if nT T then add_atom(all,m,pi) else poly(s,m,poly(t,Rat.neg m,pi))
-  | poly(all as Const("uminus",T) $ t, m, pi) =
+  | poly(all as Const("HOL.uminus",T) $ t, m, pi) =
       if nT T then add_atom(all,m,pi) else poly(t,Rat.neg m,pi)
   | poly(Const("0",_), _, pi) = pi
   | poly(Const("1",_), m, (p,i)) = (p,Rat.add(i,m))
   | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,Rat.add(i,m)))
-  | poly(t as Const("op *",_) $ _ $ _, m, pi as (p,i)) =
+  | poly(t as Const("HOL.times",_) $ _ $ _, m, pi as (p,i)) =
       (case demult inj_consts (t,m) of
          (NONE,m') => (p,Rat.add(i,m))
        | (SOME u,m') => add_atom(u,m',pi))

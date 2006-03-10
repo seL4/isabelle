@@ -1119,37 +1119,37 @@ lemma ARITH_ADD: "(op &::bool => bool => bool)
    (%x::nat.
        (All::(nat => bool) => bool)
         (%xa::nat.
-            (op =::nat => nat => bool) ((op +::nat => nat => nat) x xa)
-             ((op +::nat => nat => nat) x xa))))
+            (op =::nat => nat => bool) ((HOL.plus::nat => nat => nat) x xa)
+             ((HOL.plus::nat => nat => nat) x xa))))
  ((op &::bool => bool => bool)
-   ((op =::nat => nat => bool) ((op +::nat => nat => nat) (0::nat) (0::nat))
+   ((op =::nat => nat => bool) ((HOL.plus::nat => nat => nat) (0::nat) (0::nat))
      (0::nat))
    ((op &::bool => bool => bool)
      ((All::(nat => bool) => bool)
        (%x::nat.
            (op =::nat => nat => bool)
-            ((op +::nat => nat => nat) (0::nat)
+            ((HOL.plus::nat => nat => nat) (0::nat)
               ((NUMERAL_BIT0::nat => nat) x))
             ((NUMERAL_BIT0::nat => nat) x)))
      ((op &::bool => bool => bool)
        ((All::(nat => bool) => bool)
          (%x::nat.
              (op =::nat => nat => bool)
-              ((op +::nat => nat => nat) (0::nat)
+              ((HOL.plus::nat => nat => nat) (0::nat)
                 ((NUMERAL_BIT1::nat => nat) x))
               ((NUMERAL_BIT1::nat => nat) x)))
        ((op &::bool => bool => bool)
          ((All::(nat => bool) => bool)
            (%x::nat.
                (op =::nat => nat => bool)
-                ((op +::nat => nat => nat) ((NUMERAL_BIT0::nat => nat) x)
+                ((HOL.plus::nat => nat => nat) ((NUMERAL_BIT0::nat => nat) x)
                   (0::nat))
                 ((NUMERAL_BIT0::nat => nat) x)))
          ((op &::bool => bool => bool)
            ((All::(nat => bool) => bool)
              (%x::nat.
                  (op =::nat => nat => bool)
-                  ((op +::nat => nat => nat) ((NUMERAL_BIT1::nat => nat) x)
+                  ((HOL.plus::nat => nat => nat) ((NUMERAL_BIT1::nat => nat) x)
                     (0::nat))
                   ((NUMERAL_BIT1::nat => nat) x)))
            ((op &::bool => bool => bool)
@@ -1158,44 +1158,44 @@ lemma ARITH_ADD: "(op &::bool => bool => bool)
                    (All::(nat => bool) => bool)
                     (%xa::nat.
                         (op =::nat => nat => bool)
-                         ((op +::nat => nat => nat)
+                         ((HOL.plus::nat => nat => nat)
                            ((NUMERAL_BIT0::nat => nat) x)
                            ((NUMERAL_BIT0::nat => nat) xa))
                          ((NUMERAL_BIT0::nat => nat)
-                           ((op +::nat => nat => nat) x xa)))))
+                           ((HOL.plus::nat => nat => nat) x xa)))))
              ((op &::bool => bool => bool)
                ((All::(nat => bool) => bool)
                  (%x::nat.
                      (All::(nat => bool) => bool)
                       (%xa::nat.
                           (op =::nat => nat => bool)
-                           ((op +::nat => nat => nat)
+                           ((HOL.plus::nat => nat => nat)
                              ((NUMERAL_BIT0::nat => nat) x)
                              ((NUMERAL_BIT1::nat => nat) xa))
                            ((NUMERAL_BIT1::nat => nat)
-                             ((op +::nat => nat => nat) x xa)))))
+                             ((HOL.plus::nat => nat => nat) x xa)))))
                ((op &::bool => bool => bool)
                  ((All::(nat => bool) => bool)
                    (%x::nat.
                        (All::(nat => bool) => bool)
                         (%xa::nat.
                             (op =::nat => nat => bool)
-                             ((op +::nat => nat => nat)
+                             ((HOL.plus::nat => nat => nat)
                                ((NUMERAL_BIT1::nat => nat) x)
                                ((NUMERAL_BIT0::nat => nat) xa))
                              ((NUMERAL_BIT1::nat => nat)
-                               ((op +::nat => nat => nat) x xa)))))
+                               ((HOL.plus::nat => nat => nat) x xa)))))
                  ((All::(nat => bool) => bool)
                    (%x::nat.
                        (All::(nat => bool) => bool)
                         (%xa::nat.
                             (op =::nat => nat => bool)
-                             ((op +::nat => nat => nat)
+                             ((HOL.plus::nat => nat => nat)
                                ((NUMERAL_BIT1::nat => nat) x)
                                ((NUMERAL_BIT1::nat => nat) xa))
                              ((NUMERAL_BIT0::nat => nat)
                                ((Suc::nat => nat)
-                                 ((op +::nat => nat => nat) x
+                                 ((HOL.plus::nat => nat => nat) x
                                    xa))))))))))))))"
   by (import hollight ARITH_ADD)
 
@@ -1258,7 +1258,7 @@ lemma ARITH_MULT: "(op &::bool => bool => bool)
                            ((op *::nat => nat => nat)
                              ((NUMERAL_BIT0::nat => nat) x)
                              ((NUMERAL_BIT1::nat => nat) xa))
-                           ((op +::nat => nat => nat)
+                           ((HOL.plus::nat => nat => nat)
                              ((NUMERAL_BIT0::nat => nat) x)
                              ((NUMERAL_BIT0::nat => nat)
                                ((NUMERAL_BIT0::nat => nat)
@@ -1272,7 +1272,7 @@ lemma ARITH_MULT: "(op &::bool => bool => bool)
                              ((op *::nat => nat => nat)
                                ((NUMERAL_BIT1::nat => nat) x)
                                ((NUMERAL_BIT0::nat => nat) xa))
-                             ((op +::nat => nat => nat)
+                             ((HOL.plus::nat => nat => nat)
                                ((NUMERAL_BIT0::nat => nat) xa)
                                ((NUMERAL_BIT0::nat => nat)
                                  ((NUMERAL_BIT0::nat => nat)
@@ -1285,9 +1285,9 @@ lemma ARITH_MULT: "(op &::bool => bool => bool)
                              ((op *::nat => nat => nat)
                                ((NUMERAL_BIT1::nat => nat) x)
                                ((NUMERAL_BIT1::nat => nat) xa))
-                             ((op +::nat => nat => nat)
+                             ((HOL.plus::nat => nat => nat)
                                ((NUMERAL_BIT1::nat => nat) x)
-                               ((op +::nat => nat => nat)
+                               ((HOL.plus::nat => nat => nat)
                                  ((NUMERAL_BIT0::nat => nat) xa)
                                  ((NUMERAL_BIT0::nat => nat)
                                    ((NUMERAL_BIT0::nat => nat)
@@ -7462,7 +7462,7 @@ constdefs
       (%i::nat.
           ($::('A::type, ('M::type, 'N::type) finite_sum) cart
               => nat => 'A::type)
-           u ((op +::nat => nat => nat) i
+           u ((HOL.plus::nat => nat => nat) i
                ((dimindex::('M::type => bool) => nat)
                  (hollight.UNIV::'M::type => bool)))))"
 
@@ -7478,14 +7478,14 @@ lemma DEF_sndcart: "(op =::(('A::type, ('M::type, 'N::type) finite_sum) cart
       (%i::nat.
           ($::('A::type, ('M::type, 'N::type) finite_sum) cart
               => nat => 'A::type)
-           u ((op +::nat => nat => nat) i
+           u ((HOL.plus::nat => nat => nat) i
                ((dimindex::('M::type => bool) => nat)
                  (hollight.UNIV::'M::type => bool)))))"
   by (import hollight DEF_sndcart)
 
 lemma DIMINDEX_HAS_SIZE_FINITE_SUM: "(HAS_SIZE::(('M::type, 'N::type) finite_sum => bool) => nat => bool)
  (hollight.UNIV::('M::type, 'N::type) finite_sum => bool)
- ((op +::nat => nat => nat)
+ ((HOL.plus::nat => nat => nat)
    ((dimindex::('M::type => bool) => nat) (hollight.UNIV::'M::type => bool))
    ((dimindex::('N::type => bool) => nat)
      (hollight.UNIV::'N::type => bool)))"
@@ -7494,7 +7494,7 @@ lemma DIMINDEX_HAS_SIZE_FINITE_SUM: "(HAS_SIZE::(('M::type, 'N::type) finite_sum
 lemma DIMINDEX_FINITE_SUM: "(op =::nat => nat => bool)
  ((dimindex::(('M::type, 'N::type) finite_sum => bool) => nat)
    (hollight.UNIV::('M::type, 'N::type) finite_sum => bool))
- ((op +::nat => nat => nat)
+ ((HOL.plus::nat => nat => nat)
    ((dimindex::('M::type => bool) => nat) (hollight.UNIV::'M::type => bool))
    ((dimindex::('N::type => bool) => nat)
      (hollight.UNIV::'N::type => bool)))"
@@ -8025,7 +8025,7 @@ constdefs
  (nsum::('q_51017::type => bool) => ('q_51017::type => nat) => nat)
  ((iterate::(nat => nat => nat)
             => ('q_51017::type => bool) => ('q_51017::type => nat) => nat)
-   (op +::nat => nat => nat))"
+   (HOL.plus::nat => nat => nat))"
 
 lemma DEF_nsum: "(op =::(('q_51017::type => bool) => ('q_51017::type => nat) => nat)
        => (('q_51017::type => bool) => ('q_51017::type => nat) => nat)
@@ -8033,17 +8033,17 @@ lemma DEF_nsum: "(op =::(('q_51017::type => bool) => ('q_51017::type => nat) => 
  (nsum::('q_51017::type => bool) => ('q_51017::type => nat) => nat)
  ((iterate::(nat => nat => nat)
             => ('q_51017::type => bool) => ('q_51017::type => nat) => nat)
-   (op +::nat => nat => nat))"
+   (HOL.plus::nat => nat => nat))"
   by (import hollight DEF_nsum)
 
 lemma NEUTRAL_ADD: "(op =::nat => nat => bool)
- ((neutral::(nat => nat => nat) => nat) (op +::nat => nat => nat)) (0::nat)"
+ ((neutral::(nat => nat => nat) => nat) (HOL.plus::nat => nat => nat)) (0::nat)"
   by (import hollight NEUTRAL_ADD)
 
 lemma NEUTRAL_MUL: "neutral op * = NUMERAL_BIT1 0"
   by (import hollight NEUTRAL_MUL)
 
-lemma MONOIDAL_ADD: "(monoidal::(nat => nat => nat) => bool) (op +::nat => nat => nat)"
+lemma MONOIDAL_ADD: "(monoidal::(nat => nat => nat) => bool) (HOL.plus::nat => nat => nat)"
   by (import hollight MONOIDAL_ADD)
 
 lemma MONOIDAL_MUL: "(monoidal::(nat => nat => nat) => bool) (op *::nat => nat => nat)"
@@ -8068,7 +8068,7 @@ lemma NSUM_DIFF: "ALL (f::'q_51175::type => nat) (s::'q_51175::type => bool)
   by (import hollight NSUM_DIFF)
 
 lemma NSUM_SUPPORT: "ALL (x::'q_51214::type => nat) xa::'q_51214::type => bool.
-   FINITE (support op + x xa) --> nsum (support op + x xa) x = nsum xa x"
+   FINITE (support HOL.plus x xa) --> nsum (support HOL.plus x xa) x = nsum xa x"
   by (import hollight NSUM_SUPPORT)
 
 lemma NSUM_ADD: "ALL (f::'q_51260::type => nat) (g::'q_51260::type => nat)

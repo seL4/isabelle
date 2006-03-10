@@ -39,7 +39,7 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_numeral 0;
-val mk_plus = HOLogic.mk_binop "op +";
+val mk_plus = HOLogic.mk_binop "HOL.plus";
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -50,7 +50,7 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = HOLogic.zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
+val dest_plus = HOLogic.dest_bin "HOL.plus" HOLogic.natT;
 
 (*extract the outer Sucs from a term and convert them to a binary numeral*)
 fun dest_Sucs (k, Const ("Suc", _) $ t) = dest_Sucs (k+1, t)
@@ -85,14 +85,14 @@ fun prep_simproc (name, pats, proc) =
 (*** CancelNumerals simprocs ***)
 
 val one = mk_numeral 1;
-val mk_times = HOLogic.mk_binop "op *";
+val mk_times = HOLogic.mk_binop "HOL.times";
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = HOLogic.dest_bin "op *" HOLogic.natT;
+val dest_times = HOLogic.dest_bin "HOL.times" HOLogic.natT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -213,8 +213,8 @@ structure LeCancelNumerals = CancelNumeralsFun
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "op -"
-  val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop "HOL.minus"
+  val dest_bal = HOLogic.dest_bin "HOL.minus" HOLogic.natT
   val bal_add1 = nat_diff_add_eq1 RS trans
   val bal_add2 = nat_diff_add_eq2 RS trans
 );

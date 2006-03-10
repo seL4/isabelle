@@ -165,11 +165,11 @@ val lf_dvd = thm "lf_dvd";
 (* ------------------------------------------------------------------------- *)
 
 fun norm_zero_one fm = case fm of
-  (Const ("op *",_) $ c $ t) => 
+  (Const ("HOL.times",_) $ c $ t) => 
     if c = one then (norm_zero_one t)
     else if (dest_numeral c = ~1) 
-         then (Const("uminus",HOLogic.intT --> HOLogic.intT) $ (norm_zero_one t))
-         else (HOLogic.mk_binop "op *" (norm_zero_one c,norm_zero_one t))
+         then (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $ (norm_zero_one t))
+         else (HOLogic.mk_binop "HOL.times" (norm_zero_one c,norm_zero_one t))
   |(node $ rest) => ((norm_zero_one node)$(norm_zero_one rest))
   |(Abs(x,T,p)) => (Abs(x,T,(norm_zero_one p)))
   |_ => fm;
@@ -255,13 +255,13 @@ fun thm_of sg decomp t =
 (*==================================================*)
 
 fun decomp_adjustcoeffeq sg x l fm = case fm of
-    (Const("Not",_)$(Const("op <",_) $(Const("0",_)) $(rt as (Const ("op +", _)$(Const ("op *",_) $    c $ y ) $z )))) => 
+    (Const("Not",_)$(Const("op <",_) $(Const("0",_)) $(rt as (Const ("HOL.plus", _)$(Const ("HOL.times",_) $    c $ y ) $z )))) => 
      let  
         val m = l div (dest_numeral c) 
         val n = if (x = y) then abs (m) else 1
-        val xtm = (HOLogic.mk_binop "op *" ((mk_numeral ((m div n)*l) ), x)) 
+        val xtm = (HOLogic.mk_binop "HOL.times" ((mk_numeral ((m div n)*l) ), x)) 
         val rs = if (x = y) 
-                 then (HOLogic.mk_binrel "op <" (zero,linear_sub [] (mk_numeral n) (HOLogic.mk_binop "op +" ( xtm ,( linear_cmul n z) )))) 
+                 then (HOLogic.mk_binrel "op <" (zero,linear_sub [] (mk_numeral n) (HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
                  else HOLogic.mk_binrel "op <" (zero,linear_sub [] one rt )
         val ck = cterm_of sg (mk_numeral n)
         val cc = cterm_of sg c
@@ -273,14 +273,14 @@ fun decomp_adjustcoeffeq sg x l fm = case fm of
         in ([], fn [] => [th1,(prove_elementar sg "sa" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans)
         end
 
-  |(Const(p,_) $a $( Const ("op +", _)$(Const ("op *",_) $ 
+  |(Const(p,_) $a $( Const ("HOL.plus", _)$(Const ("HOL.times",_) $ 
       c $ y ) $t )) => 
    if (is_arith_rel fm) andalso (x = y) 
    then  
         let val m = l div (dest_numeral c) 
            val k = (if p = "op <" then abs(m) else m)  
-           val xtm = (HOLogic.mk_binop "op *" ((mk_numeral ((m div k)*l) ), x))
-           val rs = (HOLogic.mk_binrel p ((linear_cmul k a),(HOLogic.mk_binop "op +" ( xtm ,( linear_cmul k t) )))) 
+           val xtm = (HOLogic.mk_binop "HOL.times" ((mk_numeral ((m div k)*l) ), x))
+           val rs = (HOLogic.mk_binrel p ((linear_cmul k a),(HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul k t) )))) 
 
            val ck = cterm_of sg (mk_numeral k)
            val cc = cterm_of sg c
@@ -335,28 +335,28 @@ let
    val cfalse = cterm_of sg HOLogic.false_const
    val fm = norm_zero_one fm1
   in  case fm1 of 
-      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z))) => 
+      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z))) => 
          if (x=y) andalso (c1= zero) andalso (c2= one) then (instantiate' [SOME cboolT] [SOME ctrue] (fm_modd_minf))
            else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_minf))
 
-      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z)) =>
+      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
   	   if (is_arith_rel fm) andalso (x=y) andalso (c1= zero) andalso (c2= one) 
 	   then (instantiate' [SOME cboolT] [SOME cfalse] (fm_modd_minf))
 	 	 else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_minf)) 
 
-      |(Const("op <",_) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z )) =>
+      |(Const("op <",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
            if (y=x) andalso (c1 = zero) then 
             if (pm1 = one) then (instantiate' [SOME cboolT] [SOME cfalse] (fm_modd_minf)) else
 	     (instantiate' [SOME cboolT] [SOME ctrue] (fm_modd_minf))
 	    else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_minf))
   
-      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
          if y=x then  let val cz = cterm_of sg (norm_zero_one z)
 			  val fm2 = HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero)
 	 	      in(instantiate' [] [SOME cz ] ((((prove_elementar sg "ss" fm2)) RS(((zdvd_iff_zmod_eq_0)RS sym) RS iffD1) ) RS (not_dvd_modd_minf)))
 		      end
 		else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_minf))
-      |(Const("Divides.op dvd",_)$ d $ (db as (Const ("op +",_) $ (Const ("op *",_) $
+      |(Const("Divides.op dvd",_)$ d $ (db as (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $
       c $ y ) $ z))) => 
          if y=x then  let val cz = cterm_of sg (norm_zero_one z)
 			  val fm2 = HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero)
@@ -373,22 +373,22 @@ fun rho_for_eq_minf x dlcm  sg fm1 =
    let
    val fm = norm_zero_one fm1
     in  case fm1 of 
-      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z))) => 
+      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z))) => 
          if  (x=y) andalso (c1=zero) andalso (c2=one) 
 	   then (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (neq_eq_minf))
            else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_minf))
 
-      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z)) =>
+      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
   	   if (is_arith_rel fm) andalso (x=y) andalso ((c1=zero) orelse (c1 = norm_zero_one zero)) andalso ((c2=one) orelse (c1 = norm_zero_one one))
 	     then (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (eq_eq_minf))
 	     else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_minf)) 
 
-      |(Const("op <",_) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z )) =>
+      |(Const("op <",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
            if (y=x) andalso (c1 =zero) then 
             if pm1 = one then (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (le_eq_minf)) else
 	     (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (len_eq_minf))
 	    else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_minf))
-      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
          if y=x then  let val cd = cterm_of sg (norm_zero_one d)
 	 		  val cz = cterm_of sg (norm_zero_one z)
 	 	      in(instantiate' [] [SOME cd,  SOME cz] (not_dvd_eq_minf)) 
@@ -396,7 +396,7 @@ fun rho_for_eq_minf x dlcm  sg fm1 =
 
 		else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_minf))
 		
-      |(Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+      |(Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
          if y=x then  let val cd = cterm_of sg (norm_zero_one d)
 	 		  val cz = cterm_of sg (norm_zero_one z)
 	 	      in(instantiate' [] [SOME cd, SOME cz ] (dvd_eq_minf))
@@ -431,30 +431,30 @@ let
   val cfalse = cterm_of sg HOLogic.false_const
   val fm = norm_zero_one fm1
  in  case fm1 of 
-      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z))) => 
+      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z))) => 
          if ((x=y) andalso (c1= zero) andalso (c2= one))
 	 then (instantiate' [SOME cboolT] [SOME ctrue] (fm_modd_pinf))
          else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_pinf))
 
-      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z)) =>
+      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
   	if ((is_arith_rel fm) andalso (x = y) andalso (c1 = zero)  andalso (c2 = one)) 
 	then (instantiate' [SOME cboolT] [SOME cfalse] (fm_modd_pinf))
 	else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_pinf))
 
-      |(Const("op <",_) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z )) =>
+      |(Const("op <",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
         if ((y=x) andalso (c1 = zero)) then 
           if (pm1 = one) 
 	  then (instantiate' [SOME cboolT] [SOME ctrue] (fm_modd_pinf)) 
 	  else (instantiate' [SOME cboolT] [SOME cfalse] (fm_modd_pinf))
 	else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_pinf))
   
-      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
          if y=x then  let val cz = cterm_of sg (norm_zero_one z)
 			  val fm2 = HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero)
 	 	      in(instantiate' [] [SOME cz ] ((((prove_elementar sg "ss" fm2)) RS(((zdvd_iff_zmod_eq_0)RS sym) RS iffD1) ) RS (not_dvd_modd_pinf)))
 		      end
 		else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_modd_pinf))
-      |(Const("Divides.op dvd",_)$ d $ (db as (Const ("op +",_) $ (Const ("op *",_) $
+      |(Const("Divides.op dvd",_)$ d $ (db as (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $
       c $ y ) $ z))) => 
          if y=x then  let val cz = cterm_of sg (norm_zero_one z)
 			  val fm2 = HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero)
@@ -472,22 +472,22 @@ fun rho_for_eq_pinf x dlcm sg fm1 =
   let
 					val fm = norm_zero_one fm1
     in  case fm1 of 
-      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z))) => 
+      (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z))) => 
          if  (x=y) andalso (c1=zero) andalso (c2=one) 
 	   then (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (neq_eq_pinf))
            else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_pinf))
 
-      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z)) =>
+      |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
   	   if (is_arith_rel fm) andalso (x=y) andalso ((c1=zero) orelse (c1 = norm_zero_one zero)) andalso ((c2=one) orelse (c1 = norm_zero_one one))
 	     then (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (eq_eq_pinf))
 	     else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_pinf)) 
 
-      |(Const("op <",_) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z )) =>
+      |(Const("op <",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
            if (y=x) andalso (c1 =zero) then 
             if pm1 = one then (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (le_eq_pinf)) else
 	     (instantiate' [] [SOME (cterm_of sg (norm_zero_one z))] (len_eq_pinf))
 	    else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_pinf))
-      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+      |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
          if y=x then  let val cd = cterm_of sg (norm_zero_one d)
 	 		  val cz = cterm_of sg (norm_zero_one z)
 	 	      in(instantiate' [] [SOME cd,  SOME cz] (not_dvd_eq_pinf)) 
@@ -495,7 +495,7 @@ fun rho_for_eq_pinf x dlcm sg fm1 =
 
 		else (instantiate' [SOME cboolT] [SOME (cterm_of sg fm)] (fm_eq_pinf))
 		
-      |(Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+      |(Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
          if y=x then  let val cd = cterm_of sg (norm_zero_one d)
 	 		  val cz = cterm_of sg (norm_zero_one z)
 	 	      in(instantiate' [] [SOME cd, SOME cz ] (dvd_eq_pinf))
@@ -567,31 +567,31 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
     val cat = cterm_of sg (norm_zero_one at)
   in
   case at of 
-   (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z))) => 
+   (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z))) => 
       if  (x=y) andalso (c1=zero) andalso (c2=one) 
 	 then let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one (linear_cmul ~1 z)) $ B)
-	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one  z)))
+	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one  z)))
 		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma]([th3,th1,th2] MRS (not_bst_p_ne)))
 	 end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cB,SOME cat] (not_bst_p_fm))
 
-   |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("op +", T) $(Const ("op *",_) $ c2 $ y) $z)) =>
+   |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", T) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
      if (is_arith_rel at) andalso (x=y)
 	then let val bst_z = norm_zero_one (linear_neg (linear_add [] z (mk_numeral 1)))
 	         in let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ bst_z $ B)
-	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (bst_z,Const("op -",T) $ (Const("uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("1",HOLogic.intT))))
+	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (bst_z,Const("HOL.minus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("1",HOLogic.intT))))
 		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma] ([th3,th1,th2] MRS (not_bst_p_eq)))
 	 end
        end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cB,SOME cat] (not_bst_p_fm))
 
-   |(Const("op <",_) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z )) =>
+   |(Const("op <",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
         if (y=x) andalso (c1 =zero) then 
         if pm1 = one then 
 	  let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one (linear_cmul ~1 z)) $ B)
-              val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)))
+              val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)))
 	  in  (instantiate' [] [SOME cfma,  SOME cdlcm]([th1,th2] MRS (not_bst_p_gt)))
 	    end
 	 else let val th1 = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),dlcm))
@@ -599,7 +599,7 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
 	      end
       else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cB,SOME cat] (not_bst_p_fm))
 
-   |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+   |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
       if y=x then  
            let val cz = cterm_of sg (norm_zero_one z)
 	       val th1 = (prove_elementar sg "ss"  (HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero))) RS (((zdvd_iff_zmod_eq_0)RS sym) RS iffD1)
@@ -607,7 +607,7 @@ fun generate_atomic_not_bst_p sg (x as Free(xn,xT)) fm dlcm B at =
 	     end
       else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cB,SOME cat] (not_bst_p_fm))
 
-   |(Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+   |(Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
        if y=x then  
 	 let val cz = cterm_of sg (norm_zero_one z)
 	     val th1 = (prove_elementar sg "ss"  (HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero))) RS (((zdvd_iff_zmod_eq_0)RS sym) RS iffD1)
@@ -658,26 +658,26 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
     val cat = cterm_of sg (norm_zero_one at)
   in
   case at of 
-   (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("op +", _) $(Const ("op *",_) $ c2 $ y) $z))) => 
+   (Const ("Not", _) $ (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus", _) $(Const ("HOL.times",_) $ c2 $ y) $z))) => 
       if  (x=y) andalso (c1=zero) andalso (c2=one) 
 	 then let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one (linear_cmul ~1 z)) $ A)
-	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one  z)))
+	          val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq ((norm_zero_one (linear_cmul ~1 z)),Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one  z)))
 		  val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma]([th3,th1,th2] MRS (not_ast_p_ne)))
 	 end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
 
-   |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("op +", T) $(Const ("op *",_) $ c2 $ y) $z)) =>
+   |(Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $(Const ("HOL.plus", T) $(Const ("HOL.times",_) $ c2 $ y) $z)) =>
      if (is_arith_rel at) andalso (x=y)
 	then let val ast_z = norm_zero_one (linear_sub [] one z )
 	         val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ ast_z $ A)
-	         val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (ast_z,Const("op +",T) $ (Const("uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("1",HOLogic.intT))))
+	         val th2 =  prove_elementar sg "ss" (HOLogic.mk_eq (ast_z,Const("HOL.plus",T) $ (Const("HOL.uminus",HOLogic.intT --> HOLogic.intT) $(norm_zero_one z)) $ (Const("1",HOLogic.intT))))
 		 val th3 = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),dlcm))
 	 in  (instantiate' [] [SOME cfma] ([th3,th1,th2] MRS (not_ast_p_eq)))
        end
          else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
 
-   |(Const("op <",_) $ c1 $(Const ("op +", _) $(Const ("op *",_) $ pm1 $ y ) $ z )) =>
+   |(Const("op <",_) $ c1 $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z )) =>
         if (y=x) andalso (c1 =zero) then 
         if pm1 = (mk_numeral ~1) then 
 	  let val th1 = prove_elementar sg "ss" (Const ("op :",HOLogic.intT --> (HOLogic.mk_setT HOLogic.intT) --> HOLogic.boolT) $ (norm_zero_one z) $ A)
@@ -689,7 +689,7 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
 	      end
       else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
 
-   |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+   |Const ("Not",_) $ (Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
       if y=x then  
            let val cz = cterm_of sg (norm_zero_one z)
 	       val th1 = (prove_elementar sg "ss"  (HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero))) RS (((zdvd_iff_zmod_eq_0)RS sym) RS iffD1)
@@ -697,7 +697,7 @@ fun generate_atomic_not_ast_p sg (x as Free(xn,xT)) fm dlcm A at =
 	     end
       else (instantiate' [] [SOME cfma,  SOME cdlcm, SOME cA,SOME cat] (not_ast_p_fm))
 
-   |(Const("Divides.op dvd",_)$ d $ (Const ("op +",_) $ (Const ("op *",_) $ c $ y ) $ z)) => 
+   |(Const("Divides.op dvd",_)$ d $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $ c $ y ) $ z)) => 
        if y=x then  
 	 let val cz = cterm_of sg (norm_zero_one z)
 	     val th1 = (prove_elementar sg "ss"  (HOLogic.mk_binrel "op =" (HOLogic.mk_binop "Divides.op mod" (dlcm,d),norm_zero_one zero))) RS (((zdvd_iff_zmod_eq_0)RS sym) RS iffD1)

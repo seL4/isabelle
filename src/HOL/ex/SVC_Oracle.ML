@@ -46,21 +46,21 @@ fun svc_abstract t =
       | lit (t as Const("Numeral.number_of", _) $ w) = t
       | lit t = replace t
     (*abstraction of a real/rational expression*)
-    fun rat ((c as Const("op +", _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const("op -", _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const("op /", _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const("op *", _)) $ x $ y) = c $ (rat x) $ (rat y)
-      | rat ((c as Const("uminus", _)) $ x) = c $ (rat x)
+    fun rat ((c as Const("HOL.plus", _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const("HOL.minus", _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const("HOL.divide", _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const("HOL.times", _)) $ x $ y) = c $ (rat x) $ (rat y)
+      | rat ((c as Const("HOL.uminus", _)) $ x) = c $ (rat x)
       | rat t = lit t
     (*abstraction of an integer expression: no div, mod*)
-    fun int ((c as Const("op +", _)) $ x $ y) = c $ (int x) $ (int y)
-      | int ((c as Const("op -", _)) $ x $ y) = c $ (int x) $ (int y)
-      | int ((c as Const("op *", _)) $ x $ y) = c $ (int x) $ (int y)
-      | int ((c as Const("uminus", _)) $ x) = c $ (int x)
+    fun int ((c as Const("HOL.plus", _)) $ x $ y) = c $ (int x) $ (int y)
+      | int ((c as Const("HOL.minus", _)) $ x $ y) = c $ (int x) $ (int y)
+      | int ((c as Const("HOL.times", _)) $ x $ y) = c $ (int x) $ (int y)
+      | int ((c as Const("HOL.uminus", _)) $ x) = c $ (int x)
       | int t = lit t
     (*abstraction of a natural number expression: no minus*)
-    fun nat ((c as Const("op +", _)) $ x $ y) = c $ (nat x) $ (nat y)
-      | nat ((c as Const("op *", _)) $ x $ y) = c $ (nat x) $ (nat y)
+    fun nat ((c as Const("HOL.plus", _)) $ x $ y) = c $ (nat x) $ (nat y)
+      | nat ((c as Const("HOL.times", _)) $ x $ y) = c $ (nat x) $ (nat y)
       | nat ((c as Const("Suc", _)) $ x) = c $ (nat x)
       | nat t = lit t
     (*abstraction of a relation: =, <, <=*)

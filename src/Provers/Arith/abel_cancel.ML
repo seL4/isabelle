@@ -31,28 +31,28 @@ struct
 open Data;
 
  fun zero t = Const ("0", t);
- fun minus t = Const ("uminus", t --> t);
+ fun minus t = Const ("HOL.uminus", t --> t);
 
- fun add_terms pos (Const ("op +", _) $ x $ y, ts) =
+ fun add_terms pos (Const ("HOL.plus", _) $ x $ y, ts) =
          add_terms pos (x, add_terms pos (y, ts))
-   | add_terms pos (Const ("op -", _) $ x $ y, ts) =
+   | add_terms pos (Const ("HOL.minus", _) $ x $ y, ts) =
          add_terms pos (x, add_terms (not pos) (y, ts))
-   | add_terms pos (Const ("uminus", _) $ x, ts) =
+   | add_terms pos (Const ("HOL.uminus", _) $ x, ts) =
          add_terms (not pos) (x, ts)
    | add_terms pos (x, ts) = (pos,x) :: ts;
 
  fun terms fml = add_terms true (fml, []);
 
-fun zero1 pt (u as (c as Const("op +",_)) $ x $ y) =
+fun zero1 pt (u as (c as Const("HOL.plus",_)) $ x $ y) =
       (case zero1 pt x of NONE => (case zero1 pt y of NONE => NONE
                                    | SOME z => SOME(c $ x $ z))
        | SOME z => SOME(c $ z $ y))
-  | zero1 (pos,t) (u as (c as Const("op -",_)) $ x $ y) =
+  | zero1 (pos,t) (u as (c as Const("HOL.minus",_)) $ x $ y) =
       (case zero1 (pos,t) x of
          NONE => (case zero1 (not pos,t) y of NONE => NONE
                   | SOME z => SOME(c $ x $ z))
        | SOME z => SOME(c $ z $ y))
-  | zero1 (pos,t) (u as (c as Const("uminus",_)) $ x) =
+  | zero1 (pos,t) (u as (c as Const("HOL.uminus",_)) $ x) =
       (case zero1 (not pos,t) x of NONE => NONE
        | SOME z => SOME(c $ z))
   | zero1 (pos,t) u =
@@ -77,7 +77,7 @@ fun cancel sg t =
               then tracing ("Abel cancel: " ^ string_of_cterm (cterm_of sg t))
               else ()
       val c $ lhs $ rhs = t
-      val opp = case c of Const("op +",_) => true | _ => false;
+      val opp = case c of Const("HOL.plus",_) => true | _ => false;
       val (pos,l) = find_common opp (terms lhs) (terms rhs)
       val posr = if opp then not pos else pos
       val t' = c $ (the(zero1 (pos,l) lhs)) $ (the(zero1 (posr,l) rhs))

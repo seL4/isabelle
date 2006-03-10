@@ -204,7 +204,7 @@ by (induct l, auto)
 
 lemmas mem_cnb_minus_substI = mem_cnb_minus [THEN ssubst]
 
-lemma cnb_minus [simp]: "x mem l ==> cnb (minus l x) = cnb l - crypt_nb x"
+lemma cnb_minus [simp]: "x mem l ==> cnb (remove l x) = cnb l - crypt_nb x"
 apply (induct l, auto)
 by (erule_tac l1=l and x1=x in mem_cnb_minus_substI, simp)
 
@@ -238,7 +238,7 @@ by (rule kparts_msg_set)
 subsection{*list corresponding to "decrypt"*}
 
 constdefs decrypt' :: "msg list => key => msg => msg list"
-"decrypt' l K Y == Y # minus l (Crypt K Y)"
+"decrypt' l K Y == Y # remove l (Crypt K Y)"
 
 declare decrypt'_def [simp]
 
@@ -274,7 +274,7 @@ apply (drule_tac x="decrypt' l' K Y" in spec, simp add: mem_iff)
 apply (subgoal_tac "Crypt K Y:parts (set l)")
 apply (drule parts_cnb, rotate_tac -1, simp)
 apply (clarify, drule_tac X="Key Ka" and H="insert Y (set l')" in analz_sub)
-apply (rule insert_mono, rule set_minus)
+apply (rule insert_mono, rule set_remove)
 apply (simp add: analz_insertD, blast)
 (* Crypt K Y:parts (set l) *)
 apply (blast dest: kparts_parts)
@@ -284,7 +284,7 @@ apply (subgoal_tac "GuardK n Ks (set l')", simp)
 apply (rule_tac K=K in guardK_Crypt, simp add: GuardK_def, simp)
 apply (drule_tac t="set l'" in sym, simp)
 apply (rule GuardK_kparts, simp, simp)
-apply (rule_tac B="set l'" in subset_trans, rule set_minus, blast)
+apply (rule_tac B="set l'" in subset_trans, rule set_remove, blast)
 by (rule kparts_set)
 
 lemma GuardK_invKey_finite: "[| Key n:analz G; GuardK n Ks G; finite G |]

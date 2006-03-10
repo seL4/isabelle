@@ -20,7 +20,7 @@ constdefs (structure R)
   a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
   "a_inv R == m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
 
-  minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
+  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y == x \<oplus> (\<ominus> y)"
 
 locale abelian_monoid = struct G +
@@ -95,7 +95,7 @@ lemma (in abelian_group) a_inv_closed [intro, simp]:
 
 lemma (in abelian_group) minus_closed [intro, simp]:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<ominus> y \<in> carrier G"
-  by (simp add: minus_def)
+  by (simp add: a_minus_def)
 
 lemma (in abelian_group) a_l_cancel [simp]:
   "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
@@ -431,7 +431,7 @@ qed
 
 lemma (in ring) minus_eq:
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
-  by (simp only: minus_def)
+  by (simp only: a_minus_def)
 
 lemmas (in ring) ring_simprules =
   a_closed zero_closed a_inv_closed minus_closed m_closed one_closed

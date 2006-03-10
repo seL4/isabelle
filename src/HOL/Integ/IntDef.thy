@@ -886,14 +886,14 @@ lemma [code]: "nat i = nat_aux 0 i"
   by (simp add: nat_aux_def)
 
 consts_code
-  "0" :: "int"                  ("0")
-  "1" :: "int"                  ("1")
-  "uminus" :: "int => int"      ("~")
-  "op +" :: "int => int => int" ("(_ +/ _)")
-  "op *" :: "int => int => int" ("(_ */ _)")
-  "op <" :: "int => int => bool" ("(_ </ _)")
-  "op <=" :: "int => int => bool" ("(_ <=/ _)")
-  "neg"                         ("(_ < 0)")
+  "0" :: "int"                       ("0")
+  "1" :: "int"                       ("1")
+  "HOL.uminus" :: "int => int"       ("~")
+  "HOL.plus" :: "int => int => int"  ("(_ +/ _)")
+  "HOL.times" :: "int => int => int" ("(_ */ _)")
+  "op <" :: "int => int => bool"     ("(_ </ _)")
+  "op <=" :: "int => int => bool"    ("(_ <=/ _)")
+  "neg"                              ("(_ < 0)")
 
 code_syntax_tyco int
   ml (target_atom "IntInf.int")

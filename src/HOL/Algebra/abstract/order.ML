@@ -8,7 +8,7 @@
 (*** Term order for commutative rings ***)
 
 fun ring_ord a =
-  find_index_eq a ["0", "op +", "uminus", "op -", "1", "op *"];
+  find_index (fn a' => a = a') ["0", "HOL.plus", "HOL.uminus", "HOL.minus", "1", "HOL.times"];
 
 fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
 
@@ -18,9 +18,9 @@ val intT = HOLogic.intT;
 val a = Free ("a", intT);
 val b = Free ("b", intT);
 val c = Free ("c", intT);
-val plus = Const ("op +", [intT, intT]--->intT);
-val mult = Const ("op *", [intT, intT]--->intT);
-val uminus = Const ("uminus", intT-->intT);
+val plus = Const ("HOL.plus", [intT, intT]--->intT);
+val mult = Const ("HOL.times", [intT, intT]--->intT);
+val uminus = Const ("HOL.uminus", intT-->intT);
 val one = Const ("1", intT);
 val f = Const("f", intT-->intT);
 

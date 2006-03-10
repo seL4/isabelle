@@ -198,15 +198,20 @@ axclass minus < type
 axclass times < type
 axclass inverse < type
 
+consts
+  plus             :: "['a::plus, 'a]  => 'a"       (infixl "+" 65)
+  uminus           :: "'a::minus => 'a"             ("- _" [81] 80)
+  minus            :: "['a::minus, 'a] => 'a"       (infixl "-" 65)
+  abs              :: "'a::minus => 'a"
+  times            :: "['a::times, 'a] => 'a"       (infixl "*" 70)
+  inverse          :: "'a::inverse => 'a"
+  divide           :: "['a::inverse, 'a] => 'a"     (infixl "'/" 70)
+
 global
 
 consts
   "0"           :: "'a::zero"                       ("0")
   "1"           :: "'a::one"                        ("1")
-  "+"           :: "['a::plus, 'a]  => 'a"          (infixl 65)
-  -             :: "['a::minus, 'a] => 'a"          (infixl 65)
-  uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
-  *             :: "['a::times, 'a] => 'a"          (infixl 70)
 
 syntax
   "_index1"  :: index    ("\<^sub>1")
@@ -222,12 +227,6 @@ typed_print_translation {*
       else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
   in [tr' "0", tr' "1"] end;
 *} -- {* show types that are presumably too general *}
-
-
-consts
-  abs           :: "'a::minus => 'a"
-  inverse       :: "'a::inverse => 'a"
-  divide        :: "['a::inverse, 'a] => 'a"        (infixl "'/" 70)
 
 syntax (xsymbols)
   abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
@@ -1408,11 +1407,7 @@ code_alias
   "op -->" "HOL.op_implies"
   "op &" "HOL.op_and"
   "op |" "HOL.op_or"
-  "op +" "HOL.op_add"
-  "op -" "HOL.op_minus"
-  "op *" "HOL.op_times"
   Not "HOL.not"
-  uminus "HOL.uminus"
   arbitrary "HOL.arbitrary"
 
 code_syntax_const

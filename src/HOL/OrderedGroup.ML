@@ -8,7 +8,7 @@ struct
 
 (*** Term order for abelian groups ***)
 
-fun agrp_ord a = find_index_eq a ["0", "op +", "uminus", "op -"];
+fun agrp_ord a = find_index (fn a' => a = a') ["0", "HOL.plus", "HOL.uminus", "HOL.minus"];
 
 fun termless_agrp (a, b) = (Term.term_lpo agrp_ord (a, b) = LESS);
 
@@ -16,9 +16,9 @@ local
   val ac1 = mk_meta_eq (thm "add_assoc");
   val ac2 = mk_meta_eq (thm "add_commute");
   val ac3 = mk_meta_eq (thm "add_left_commute");
-  fun solve_add_ac thy _ (_ $ (Const ("op +",_) $ _ $ _) $ _) =
+  fun solve_add_ac thy _ (_ $ (Const ("HOL.plus",_) $ _ $ _) $ _) =
         SOME ac1
-    | solve_add_ac thy _ (_ $ x $ (Const ("op +",_) $ y $ z)) =
+    | solve_add_ac thy _ (_ $ x $ (Const ("HOL.plus",_) $ y $ z)) =
         if termless_agrp (y, x) then SOME ac3 else NONE
     | solve_add_ac thy _ (_ $ x $ y) =
         if termless_agrp (y, x) then SOME ac2 else NONE

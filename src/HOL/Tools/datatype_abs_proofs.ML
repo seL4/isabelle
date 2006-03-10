@@ -404,7 +404,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val def_names = map (fn s => s ^ "_def") (DatatypeProp.indexify_names
       (map (fn T => name_of_typ T ^ "_size") recTs));
 
-    fun plus (t1, t2) = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
+    fun plus (t1, t2) = Const ("HOL.plus", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
 
     fun make_sizefun (_, cargs) =
       let

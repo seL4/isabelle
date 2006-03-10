@@ -21,8 +21,8 @@ const_maps
   real_1   > 1           :: real
   real_neg > uminus      :: "real => real"
   inv      > HOL.inverse :: "real => real"
-  real_add > "op +"      :: "[real,real] => real"
-  real_mul > "op *"      :: "[real,real] => real"
+  real_add > HOL.plus    :: "[real,real] => real"
+  real_mul > HOL.times   :: "[real,real] => real"
   real_lt  > "op <"      :: "[real,real] => bool";
 
 ignore_thms
@@ -52,7 +52,7 @@ const_maps
   real_gt     > HOL4Compat.real_gt
   real_ge     > HOL4Compat.real_ge
   real_lte    > "op <="      :: "[real,real] => bool"
-  real_sub    > "op -"       :: "[real,real] => real"
+  real_sub    > HOL.minus    :: "[real,real] => real"
   "/"         > HOL.divide   :: "[real,real] => real"
   pow         > Nat.power    :: "[real,nat] => real"
   abs         > HOL.abs      :: "real => real"

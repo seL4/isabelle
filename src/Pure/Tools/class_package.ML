@@ -623,18 +623,10 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
     val typ_def = Type.varifyT raw_typ_def;
     val typ_use = Type.varifyT raw_typ_use;
     val match_tab = Sign.typ_match thy (typ_def, typ_use) Vartab.empty;
-    fun get_first_index f =
-      let
-        fun get _ [] = NONE
-          | get i (x::xs) = 
-              case f x
-               of NONE => get (i+1) xs
-                | SOME y => SOME (i, y)
-      in get 0 end;
     fun tab_lookup vname = (the o Vartab.lookup match_tab) (vname, 0);
     fun mk_class_deriv thy subclasses superclass =
       let
-        val (i, (subclass::deriv)) = (the oo get_first_index) (fn subclass =>
+        val (i, (subclass::deriv)) = (the oo get_index) (fn subclass =>
             get_superclass_derivation thy (subclass, superclass)
           ) subclasses;
         val i' = if length subclasses = 1 then ~1 else i;

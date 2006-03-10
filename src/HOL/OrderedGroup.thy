@@ -899,8 +899,7 @@ by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 lemma abs_triangle_ineq: "abs(a+b) \<le> abs a + abs(b::'a::lordered_ab_group_abs)"
 proof -
   have g:"abs a + abs b = join (a+b) (join (-a-b) (join (-a+b) (a + (-b))))" (is "_=join ?m ?n")
-    apply (simp add: abs_lattice add_meet_join_distribs join_aci)
-    by (simp only: diff_minus)
+    by (simp add: abs_lattice add_meet_join_distribs join_aci diff_minus)
   have a:"a+b <= join ?m ?n" by (simp add: meet_join_le)
   have b:"-a-b <= ?n" by (simp add: meet_join_le) 
   have c:"?n <= join ?m ?n" by (simp add: meet_join_le)

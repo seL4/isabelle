@@ -197,11 +197,11 @@ fun find_first_numeral past (t::terms) =
          handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
-val mk_plus = HOLogic.mk_binop "op +";
+val mk_plus = HOLogic.mk_binop "HOL.plus";
 
 fun mk_minus t = 
   let val T = Term.fastype_of t
-  in Const ("uminus", T --> T) $ t
+  in Const ("HOL.uminus", T --> T) $ t
   end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
@@ -213,22 +213,22 @@ fun mk_sum T []        = mk_numeral T 0
 fun long_mk_sum T []        = mk_numeral T 0
   | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
-val dest_plus = HOLogic.dest_bin "op +" Term.dummyT;
+val dest_plus = HOLogic.dest_bin "HOL.plus" Term.dummyT;
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const ("op +", _) $ t $ u, ts) =
+fun dest_summing (pos, Const ("HOL.plus", _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const ("op -", _) $ t $ u, ts) =
+  | dest_summing (pos, Const ("HOL.minus", _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
         if pos then t::ts else mk_minus t :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
 
-val mk_diff = HOLogic.mk_binop "op -";
-val dest_diff = HOLogic.dest_bin "op -" Term.dummyT;
+val mk_diff = HOLogic.mk_binop "HOL.minus";
+val dest_diff = HOLogic.dest_bin "HOL.minus" Term.dummyT;
 
-val mk_times = HOLogic.mk_binop "op *";
+val mk_times = HOLogic.mk_binop "HOL.times";
 
 fun mk_prod T = 
   let val one = mk_numeral T 1
@@ -241,7 +241,7 @@ fun mk_prod T =
 fun long_mk_prod T []        = mk_numeral T 1
   | long_mk_prod T (t :: ts) = mk_times (t, mk_prod T ts);
 
-val dest_times = HOLogic.dest_bin "op *" Term.dummyT;
+val dest_times = HOLogic.dest_bin "HOL.times" Term.dummyT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -252,7 +252,7 @@ fun dest_prod t =
 fun mk_coeff (k, t) = mk_times (mk_numeral (Term.fastype_of t) k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
-fun dest_coeff sign (Const ("uminus", _) $ t) = dest_coeff (~sign) t
+fun dest_coeff sign (Const ("HOL.uminus", _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
     let val ts = sort Term.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
