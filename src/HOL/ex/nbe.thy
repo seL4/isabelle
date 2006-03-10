@@ -105,8 +105,8 @@ norm_by_eval "last[a,b,c]"
   norm_by_eval "max 0 (0::nat)"
 *)
 
-text (*
+text {*
   Numerals still take their time\<dots>
-*)
+*}
 
 end
