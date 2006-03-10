@@ -22,6 +22,7 @@ imports
   Commutative_Ring
   Coinductive_List
   ASeries
+  AssocList
 begin
 end
 (*>*)
