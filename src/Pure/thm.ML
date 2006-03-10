@@ -619,9 +619,9 @@ fun adjust_maxidx_thm (Thm {thy_ref, der, shyps, hyps, tpairs, prop, ...}) =
 fun assume raw_ct =
   let val Cterm {thy_ref, t = prop, T, maxidx, sorts} = adjust_maxidx raw_ct in
     if T <> propT then
-      raise THM ("assume: assumptions must have type prop", 0, [])
+      raise THM ("assume: prop", 0, [])
     else if maxidx <> ~1 then
-      raise THM ("assume: assumptions may not contain schematic variables", maxidx, [])
+      raise THM ("assume: variables", maxidx, [])
     else Thm {thy_ref = thy_ref,
       der = Pt.infer_derivs' I (false, Pt.Hyp prop),
       maxidx = ~1,
