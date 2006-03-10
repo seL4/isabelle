@@ -99,15 +99,15 @@ norm_by_eval "let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)"
 norm_by_eval "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z))"
 norm_by_eval "last[a,b,c]"
 
-text {*
+(
   won't work since it relies on 
   polymorphically used ad-hoc overloaded function:
   norm_by_eval "max 0 (0::nat)"
-*}
+*)
 
-text {*
+text (*
   Numerals still take their time\<dots>
-*}
+*)
 
 end
 
