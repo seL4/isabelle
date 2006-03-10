@@ -7,7 +7,7 @@ theory nbe
 imports Main
 begin
 
-ML"reset quick_and_dirty"
+ML "reset quick_and_dirty"
 
 declare disj_assoc[code]
 
@@ -99,7 +99,7 @@ norm_by_eval "let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)"
 norm_by_eval "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z))"
 norm_by_eval "last[a,b,c]"
 
-(
+(*
   won't work since it relies on 
   polymorphically used ad-hoc overloaded function:
   norm_by_eval "max 0 (0::nat)"
@@ -110,5 +110,3 @@ text (*
 *)
 
 end
-
-
