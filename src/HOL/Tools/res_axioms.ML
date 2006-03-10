@@ -301,9 +301,9 @@ fun skolem_cache_thm ((name,th), thy) =
 	       (change clause_cache (Symtab.update (name, (th, cls))); (cls,thy')))
     | SOME (th',cls) =>
         if eq_thm(th,th') then (cls,thy)
-	else (warning ("skolem_cache: Ignoring variant of theorem " ^ name); 
-	      warning (string_of_thm th);
-	      warning (string_of_thm th');
+	else (Output.debug ("skolem_cache: Ignoring variant of theorem " ^ name); 
+	      Output.debug (string_of_thm th);
+	      Output.debug (string_of_thm th');
 	      ([th],thy));
 	      
 fun skolem_cache ((name,th), thy) = #2 (skolem_cache_thm ((name,th), thy));
@@ -319,9 +319,9 @@ fun cnf_axiom_g cnf (name,th) =
 		  in change clause_cache (Symtab.update (s, (th, cls))); cls end
 	      | SOME(th',cls) =>
 		  if eq_thm(th,th') then cls
-		  else (warning ("cnf_axiom: duplicate or variant of theorem " ^ name); 
-		        warning (string_of_thm th);
-		        warning (string_of_thm th');
+		  else (Output.debug ("cnf_axiom: duplicate or variant of theorem " ^ name); 
+		        Output.debug (string_of_thm th);
+		        Output.debug (string_of_thm th');
 		        cls);
 
 fun pairname th = (Thm.name_of_thm th, th);
