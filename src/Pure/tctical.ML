@@ -482,7 +482,35 @@ fun metahyps_thms i state =
   in SOME (map (forall_elim_vars 0 o assume o cterm) hyps) end
   handle TERM ("nth_prem", [A]) => NONE;
 
-fun METAHYPS tacf = SUBGOAL (metahyps_aux_tac tacf);
+
+fun find_vars thy (Const(c,tp)) vars =
+    let val tvars = Term.typ_tvars tp
+    in
+	case tvars of [] => vars
+		    | _ => insert (op =) (c ^ " has type: " ^ (Sign.string_of_typ thy tp)) vars
+    end
+  | find_vars thy (t as Var(_,_)) vars =
+    insert (op =) ("Var " ^ (Term.str_of_term t)) vars
+  | find_vars _ (Free(_,_)) vars = vars
+  | find_vars _ (Bound _) vars = vars
+  | find_vars thy (Abs(_,tp,b)) vars = find_vars thy b vars
+  | find_vars thy (t1 $ t2) vars = 
+    find_vars thy t2 (find_vars thy t1 vars);
+
+  
+fun warning_multi [] = ()
+  | warning_multi (str1::strs) =
+    (warning str1; warning_multi strs);
+
+fun print_vars_terms thy (n,thm) =
+    let val prem = Logic.nth_prem (n, Thm.prop_of thm)
+	val tms = find_vars thy prem []
+    in
+	(warning "Found schematic vars in assumptions: "; warning_multi tms)
+    end;
+
+fun METAHYPS tacf n thm = SUBGOAL (metahyps_aux_tac tacf) n thm
+    handle THM("assume: variables",_,_) => (print_vars_terms (theory_of_thm thm) (n,thm); Seq.empty)
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
 fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
