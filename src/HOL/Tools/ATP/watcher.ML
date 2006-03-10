@@ -26,7 +26,9 @@ val createWatcher :
     thm * string Array.array -> 
     TextIO.instream * TextIO.outstream * Posix.Process.pid
 val killWatcher : Posix.Process.pid -> unit
+val killChild  : ('a, 'b) Unix.proc -> OS.Process.status
 val setting_sep : char
+val reapAll : unit -> unit
 end
 
 
@@ -227,8 +229,8 @@ fun checkChildren (th, names_arr, toParentStr, children) =
 			    (childIn, toParentStr, ppid, file, th, sgno,names_arr)  
 		     | _ => (trace ("\nBad prover! " ^ prover); true) )
 		in
-		 if childDone (*child has found a proof and transferred it*)
-		 then (Unix.reap proc_handle; OS.FileSys.remove file;
+		 if childDone (*ATP has reported back (with success OR failure)*)
+		 then (Unix.reap proc_handle;  OS.FileSys.remove file;
 		       check children)
 		 else child :: check children
 	      end
@@ -320,9 +322,10 @@ fun setupWatcher (th,names_arr) =
 (* Start a watcher and set up signal handlers             *)
 (**********************************************************)
 
-fun reapAll s = (*Signal handler to tidy away dead processes*)
+(*Signal handler to tidy away zombie processes*)
+fun reapAll() = 
      (case Posix.Process.waitpid_nh(Posix.Process.W_ANY_CHILD, []) of
-	  SOME _ => reapAll s | NONE => ()) 
+	  SOME _ => reapAll() | NONE => ()) 
      handle OS.SysErr _ => ()
 
 (*FIXME: does the main process need something like this?
