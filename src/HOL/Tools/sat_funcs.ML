@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Stephan Merz and Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
     Author:     Tjark Weber
-    Copyright   2005
+    Copyright   2005-2006
 
 
 Proof reconstruction from SAT solvers.
@@ -14,15 +14,14 @@ Proof reconstruction from SAT solvers.
     We use a sequent presentation of clauses to speed up resolution
     proof reconstruction.
     We call such clauses "raw clauses", which are of the form
-          [| c1; c2; ...; ck |] ==> False
+          x1; ...; xn; c1; c2; ...; ck |- False
+    (note the use of |- instead of ==>, i.e. of Isabelle's (meta-)hyps here),
     where each clause ci is of the form
-          [| l1; l2; ...; lm |] ==> False,
-    where each li is a literal (see also comments in cnf_funcs.ML).
+          ~ (l1 | l2 | ... | lm) ==> False,
+    where each xi and each li is a literal (see also comments in cnf_funcs.ML).
 
-    -- Observe that this is the "dualized" version of the standard
-       clausal form
-           l1' \/ l2' \/ ... \/ lm', where li is the negation normal
-       form of ~li'.
+    This does not work for goals containing schematic variables!
+
        The tactic produces a clause representation of the given goal
        in DIMACS format and invokes a SAT solver, which should return
        a proof consisting of a sequence of resolution steps, indicating
@@ -65,21 +64,15 @@ val trace_sat = ref false;
 
 val counter = ref 0;
 
-(* ------------------------------------------------------------------------- *)
-(* swap_prem: convert raw clauses of the form                                *)
-(*        [| l1; l2; ...; li; ... |] ==> False                               *)
-(*      to                                                                   *)
-(*        [| l1; l2; ... |] ==> ~li .                                        *)
-(*      Note that ~li may be equal to ~~a for some atom a.                   *)
-(* ------------------------------------------------------------------------- *)
-
-(* Thm.thm -> int -> Thm.thm *)
-
-fun swap_prem raw_cl i =
-	Seq.hd ((metacut_tac raw_cl 1  (* [| [| ?P; False |] ==> False; ?P ==> l1; ...; ?P ==> li; ... |] ==> ~ ?P *)
-		THEN atac (i+1)            (* [| [| li; False |] ==> False; li ==> l1; ... |] ==> ~ li *)
-		THEN atac 1                (* [| li ==> l1; ... |] ==> ~ li *)
-		THEN ALLGOALS cnf.weakening_tac) notI);
+(* Thm.thm *)
+val resolution_thm =  (* "[| P ==> False; ~P ==> False |] ==> False" *)
+	let
+		val cterm = cterm_of (the_context ())
+		val Q     = Var (("Q", 0), HOLogic.boolT)
+		val False = HOLogic.false_const
+	in
+		Thm.instantiate ([], [(cterm Q, cterm False)]) case_split_thm
+	end;
 
 (* ------------------------------------------------------------------------- *)
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
@@ -109,35 +102,70 @@ fun resolve_raw_clauses [] =
 		fun is_neg (Const ("Not", _) $ _) = true
 		  | is_neg _                      = false
 
-		(* find out which premises are used in the resolution *)
-		(* Term.term list -> Term.term list -> int -> (int * int * bool) *)
-		fun res_prems []      _  _    =
+		(* find out which two hyps are used in the resolution *)
+		(* Term.term list -> Term.term list -> Term.term * Term.term *)
+		fun res_hyps [] _ =
 			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
-		  | res_prems (x::xs) ys idx1 =
-			let
-				val x'   = HOLogic.dest_Trueprop x
-				val idx2 = find_index_eq (dual x') ys
-			in
-				if idx2 = (~1) then
-					res_prems xs ys (idx1+1)
+		  | res_hyps _ [] =
+			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+		  | res_hyps ((Const ("Trueprop", _) $ x) :: xs) ys =
+			let val dx = dual x in
+				(* hyps are implemented as ordered list in the kernel, and *)
+				(* stripping 'Trueprop' should not change the order        *)
+				if OrdList.member Term.fast_term_ord ys dx then
+					(x, dx)
 				else
-					(idx1, idx2, is_neg x')
+					res_hyps xs ys
 			end
+		  | res_hyps (_ :: xs) ys =
+			(* hyps are implemented as ordered list in the kernel, all hyps are of *)
+			(* the form 'Trueprop $ lit' or 'implies $ (negated clause) $ False',  *)
+			(* and the former are LESS than the latter according to the order --   *)
+			(* therefore there is no need to continue the search via               *)
+			(* 'res_hyps xs ys' here                                               *)
+			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
 
 		(* Thm.thm -> Thm.thm -> Thm.thm *)
 		fun resolution c1 c2 =
 		let
 			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ string_of_thm c1 ^ "\nwith clause: " ^ string_of_thm c2)
+					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1)))
+						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2))) ^ ")")
 				else ()
 
-			val prems2                   = map HOLogic.dest_Trueprop (prems_of c2)
-			val (idx1, idx2, is_neg_lit) = res_prems (prems_of c1) prems2 0
-			val swap_c1                  = swap_prem c1 (idx1+1)
-			val swap_c1_nnf              = if is_neg_lit then Seq.hd (rtac swap_c1 1 notnotD) else swap_c1  (* deal with double-negation *)
-			val c_new                    = Seq.hd ((rtac swap_c1_nnf (idx2+1) THEN distinct_subgoals_tac) c2)
+			(* Term.term list -> Term.term list *)
+			fun dest_filter_Trueprop []                                  = []
+			  | dest_filter_Trueprop ((Const ("Trueprop", _) $ x) :: xs) = x :: dest_filter_Trueprop xs
+			  | dest_filter_Trueprop (_ :: xs)                           =      dest_filter_Trueprop xs
 
-			val _ = if !trace_sat then tracing ("Resulting clause: " ^ string_of_thm c_new) else ()
+			val hyps1    =                        (#hyps o rep_thm) c1
+			(* minor optimization: dest/filter over the second list outside 'res_hyps' to do it only once *)
+			val hyps2    = (dest_filter_Trueprop o #hyps o rep_thm) c2
+
+			val (l1, l2) = res_hyps hyps1 hyps2  (* the two literals used for resolution, with 'Trueprop' stripped *)
+			val is_neg   = is_neg l1
+
+			val c1'      = Thm.implies_intr (cterm_of (theory_of_thm c1) (HOLogic.mk_Trueprop l1)) c1  (* Gamma1 |- l1 ==> False *)
+			val c2'      = Thm.implies_intr (cterm_of (theory_of_thm c2) (HOLogic.mk_Trueprop l2)) c2  (* Gamma2 |- l2 ==> False *)
+
+			val res_thm  =  (* |- (lit ==> False) ==> (~lit ==> False) ==> False *)
+				let
+					val P          = Var (("P", 0), HOLogic.boolT)
+					val (lit, thy) = if is_neg then (l2, theory_of_thm c2') else (l1, theory_of_thm c1')
+					val cterm      = cterm_of thy
+				in
+					Thm.instantiate ([], [(cterm P, cterm lit)]) resolution_thm
+				end
+
+			val _ = if !trace_sat then
+					tracing ("Resolution theorem: " ^ string_of_thm res_thm)
+				else ()
+
+			val c_new    = Thm.implies_elim (Thm.implies_elim res_thm (if is_neg then c2' else c1')) (if is_neg then c1' else c2')  (* Gamma1, Gamma2 |- False *)
+
+			val _ = if !trace_sat then
+					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new))) ^ ")")
+				else ()
 			val _ = inc counter
 		in
 			c_new
@@ -248,11 +276,17 @@ in
 				(* but converted to raw clause format                  *)
 				val max_idx     = valOf (Inttab.max_key clause_table)
 				val clause_arr  = Array.array (max_idx + 1, NONE)
-				val raw_clauses = map (Seq.hd o distinct_subgoals_tac o cnf.clause2raw_thm) non_triv_clauses
+				val raw_clauses = map cnf.clause2raw_thm non_triv_clauses
+				(* Every raw clause has only its literals and itself as hyp, and hyps are *)
+				(* accumulated during resolution steps.  Experimental results indicate    *)
+				(* that it is NOT faster to weaken all raw_clauses to contain every       *)
+				(* clause in the hyps beforehand.                                         *)
 				val _           = fold (fn thm => fn idx => (Array.update (clause_arr, idx, SOME thm); idx+1)) raw_clauses 0
-			in
 				(* replay the proof to derive the empty clause *)
-				replay_proof clause_arr (clause_table, empty_id)
+				val FalseThm    = replay_proof clause_arr (clause_table, empty_id)
+			in
+				(* convert the hyps back to the original format *)
+				cnf.rawhyps2clausehyps_thm FalseThm
 			end)
 	| SatSolver.UNSATISFIABLE NONE =>
 		if !quick_and_dirty then (

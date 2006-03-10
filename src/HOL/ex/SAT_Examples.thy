@@ -1,7 +1,7 @@
 (*  Title:      HOL/ex/SAT_Examples.thy
     ID:         $Id$
     Author:     Alwen Tiu, Tjark Weber
-    Copyright   2005
+    Copyright   2005-2006
 *)
 
 header {* Examples for the 'sat' and 'satx' tactic *}
@@ -11,6 +11,7 @@ theory SAT_Examples imports Main
 begin
 
 ML {* set sat.trace_sat; *}
+ML {* set quick_and_dirty; *}
 
 lemma "True"
 by sat
@@ -64,10 +65,9 @@ e | f | (a & d) ;
 by satx
 
 ML {* reset sat.trace_sat; *}
+ML {* reset quick_and_dirty; *}
 
-(*
 ML {* Toplevel.profiling := 1; *}
-*)
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
 
@@ -488,8 +488,6 @@ using 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 200 201 202 203 204
 by sat
 
-(*
 ML {* Toplevel.profiling := 0; *}
-*)
 
 end

@@ -2,14 +2,14 @@
     ID:         $Id$
     Author:     Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
     Author:     Tjark Weber
-    Copyright   2005
+    Copyright   2005-2006
 
   Description:
   This file contains functions and tactics to transform a formula into
   Conjunctive Normal Form (CNF).
   A formula in CNF is of the following form:
 
-      (x11 | x12 | .. x1n) & ... & (xm1 | xm2 | ... | xmk)
+      (x11 | x12 | ... | x1n) & ... & (xm1 | xm2 | ... | xmk)
       False
       True
 
@@ -23,11 +23,13 @@
   representation of clauses, which we call the "raw clauses".
   Raw clauses are of the form
 
-      x1 ==> x2 ==> .. ==> xn ==> False ,
+      x1', x2', ..., xn', ~ (x1 | x2 | ... | xn) ==> False |- False ,
 
-  where each xi is a literal. Note that the above raw clause corresponds
-  to the clause (x1' | ... | xn'), where each xi' is the negation normal
-  form of ~xi.
+  where each xi is a literal, and each xi' is the negation normal form of ~xi.
+
+  Raw clauses may contain further hyps of the form "~ clause ==> False".
+  Literals are successively removed from the hyps of raw clauses by resolution
+  during SAT proof reconstruction.
 *)
 
 signature CNF =
@@ -37,8 +39,8 @@ sig
 	val is_clause         : Term.term -> bool
 	val clause_is_trivial : Term.term -> bool
 
-	val is_raw_clause  : Term.term -> bool
-	val clause2raw_thm : Thm.thm -> Thm.thm
+	val clause2raw_thm         : Thm.thm -> Thm.thm
+	val rawhyps2clausehyps_thm : Thm.thm -> Thm.thm
 
 	val weakening_tac : int -> Tactical.tactic  (* removes the first hypothesis of a subgoal *)
 
@@ -137,24 +139,10 @@ fun clause_is_trivial c =
 	end;
 
 (* ------------------------------------------------------------------------- *)
-(* is_raw_clause: returns true iff the term is of the form                   *)
-(*        x1 ==> ... ==> xn ==> False ,                                      *)
-(*      with n >= 1, where each xi is a literal                              *)
-(* ------------------------------------------------------------------------- *)
-
-(* Term.term -> bool *)
-
-fun is_raw_clause (Const ("==>", _) $ x $ y) =
-	is_literal x andalso
-		(y = HOLogic.mk_Trueprop HOLogic.false_const orelse is_raw_clause y)
-  | is_raw_clause _                          =
-	false;
-
-(* ------------------------------------------------------------------------- *)
 (* clause2raw_thm: translates a clause into a raw clause, i.e.               *)
-(*        x1 | ... | xn                                                      *)
+(*        ... |- x1 | ... | xn                                               *)
 (*      (where each xi is a literal) is translated to                        *)
-(*        x1' ==> ... ==> xn' ==> False ,                                    *)
+(*        ~(x1 | ... | xn) ==> False, x1', ..., xn' |- False ,               *)
 (*      where each xi' is the negation normal form of ~xi.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -162,7 +150,9 @@ fun is_raw_clause (Const ("==>", _) $ x $ y) =
 
 fun clause2raw_thm c =
 let
-	val thm1 = c RS clause2raw_notE  (* ~(x1 | ... | xn) ==> False *)
+	val disj               = HOLogic.dest_Trueprop (prop_of c)
+	val not_disj_imp_false = Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_not disj), HOLogic.mk_Trueprop HOLogic.false_const)
+	val thm1 = Thm.assume (cterm_of (theory_of_thm c) not_disj_imp_false)  (* ~(x1 | ... | xn) ==> False |- ~(x1 | ... | xn) ==> False *)
 	(* eliminates negated disjunctions from the i-th premise, possibly *)
 	(* adding new premises, then continues with the (i+1)-th premise   *)
 	(* Thm.thm -> int -> Thm.thm *)
@@ -171,11 +161,36 @@ let
 			thm
 		else
 			not_disj_to_prem (Seq.hd (REPEAT_DETERM (rtac clause2raw_not_disj i) thm)) (i+1)
-	val thm2 = not_disj_to_prem thm1 1  (* ~x1 ==> ... ==> ~xn ==> False *)
-	val thm3 = Seq.hd (TRYALL (rtac clause2raw_not_not) thm2)  (* x1' ==> ... ==> xn' ==> False *)
+	val thm2 = not_disj_to_prem thm1 1  (* ~(x1 | ... | xn) ==> False |- ~x1 ==> ... ==> ~xn ==> False *)
+	val thm3 = Seq.hd (TRYALL (rtac clause2raw_not_not) thm2)  (* ~(x1 | ... | xn) ==> False |- x1' ==> ... ==> xn' ==> False *)
+	val thy3 = theory_of_thm thm3
+	val thm4 = fold (fn prem => fn thm => Thm.implies_elim thm (Thm.assume (cterm_of thy3 prem))) (prems_of thm3) thm3  (* ~(x1 | ... | xn) ==> False, x1', ..., xn' |- False *)
 in
-	thm3
+	thm4
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* rawhyps2clausehyps_thm: translates all hyps of the form "~P ==> False" to *)
+(*      hyps of the form "P"                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* Thm.thm -> Thm.thm *)
+
+fun rawhyps2clausehyps_thm c =
+	fold (fn hyp => fn thm =>
+		case hyp of Const ("==>", _) $ (Const ("Trueprop", _) $ (Const ("Not", _) $ P)) $ (Const ("Trueprop", _) $ Const ("False", _)) =>
+			let
+				val cterm = cterm_of (theory_of_thm thm)
+				val thm1  = Thm.implies_intr (cterm hyp) thm  (* hyps |- (~P ==> False) ==> goal *)
+				val varP  = Var (("P", 0), HOLogic.boolT)
+				val notE  = Thm.instantiate ([], [(cterm varP, cterm P)]) clause2raw_notE  (* P ==> ~P ==> False *)
+				val notE' = Thm.implies_elim notE (Thm.assume (cterm (HOLogic.mk_Trueprop P)))  (* P |- ~P ==> False *)
+				val thm2  = Thm.implies_elim thm1 notE'  (* hyps, P |- goal *)
+			in
+				thm2
+			end
+		          | _                                                                                                                  =>
+			thm) (#hyps (rep_thm c)) c;
 
 (* ------------------------------------------------------------------------- *)
 (* inst_thm: instantiates a theorem with a list of terms                     *)
