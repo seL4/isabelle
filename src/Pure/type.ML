@@ -480,7 +480,7 @@ fun insert pp C t (c, Ss) ars =
   | SOME Ss' =>
       if Sorts.sorts_le C (Ss, Ss') then ars
       else if Sorts.sorts_le C (Ss', Ss)
-      then coregular pp C t (c, Ss) (ars \ (c, Ss'))
+      then coregular pp C t (c, Ss) (remove (op =) (c, Ss') ars)
       else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
 fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
@@ -619,8 +619,7 @@ fun syntactic types (Type (c, Ts)) =
 
 fun add_abbrev naming (a, vs, rhs) tsig = tsig |> change_types (fn types =>
   let
-    fun err msg =
-      error (msg ^ "\nThe error(s) above occurred in type abbreviation: " ^ quote a);
+    fun err msg = cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote a);
     val rhs' = strip_sorts (no_tvars (cert_typ_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
   in

@@ -13,14 +13,14 @@ sig
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
   (*rules*)
-  val prove_conv: tactic -> tactic -> Sign.sg -> term * term -> thm
+  val prove_conv: tactic -> tactic -> theory -> term * term -> thm
   val norm_tac: tactic			(*AC0 etc.*)
   val multiply_tac: IntInf.int -> tactic	(*apply a ~~ b  ==  k * a ~~ k * b  (for k > 0)*)
 end;
 
 signature CANCEL_FACTOR =
 sig
-  val proc: Sign.sg -> thm list -> term -> thm option
+  val proc: theory -> thm list -> term -> thm option
 end;
 
 

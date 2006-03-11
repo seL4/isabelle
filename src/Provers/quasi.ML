@@ -61,9 +61,9 @@ sig
        where Rel is one of "<", "<=", "=" and "~=",
        other relation symbols cause an error message *)
   (* decomp_trans is used by trans_tac, it may only return Rel = "<=" *)
-  val decomp_trans: Sign.sg -> term -> (term * string * term) option
+  val decomp_trans: theory -> term -> (term * string * term) option
   (* decomp_quasi is used by quasi_tac *)
-  val decomp_quasi: Sign.sg -> term -> (term * string * term) option
+  val decomp_quasi: theory -> term -> (term * string * term) option
 end;
 
 signature QUASI_TAC = 
@@ -117,7 +117,7 @@ fun getprf   (Less (_, _, p)) = p
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkasm_trans sign (t, n) :  Sign.sg -> (Term.term * int)  -> less         *)
+(* mkasm_trans sign (t, n) :  theory -> (Term.term * int)  -> less          *)
 (*                                                                          *)
 (* Tuple (t, n) (t an assumption, n its index in the assumptions) is        *)
 (* translated to an element of type less.                                   *)
@@ -136,7 +136,7 @@ fun mkasm_trans sign (t, n) =
   
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkasm_quasi sign (t, n) : Sign.sg -> (Term.term * int) -> less           *)
+(* mkasm_quasi sign (t, n) : theory -> (Term.term * int) -> less            *)
 (*                                                                          *)
 (* Tuple (t, n) (t an assumption, n its index in the assumptions) is        *)
 (* translated to an element of type less.                                   *)
@@ -163,7 +163,7 @@ fun mkasm_quasi sign (t, n) =
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkconcl_trans sign t : Sign.sg -> Term.term -> less                      *)
+(* mkconcl_trans sign t : theory -> Term.term -> less                       *)
 (*                                                                          *)
 (* Translates conclusion t to an element of type less.                      *)
 (* Only for Conclusions of form x <= y or x < y.                            *)
@@ -181,7 +181,7 @@ fun mkconcl_trans sign t =
   
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkconcl_quasi sign t : Sign.sg -> Term.term -> less                      *)
+(* mkconcl_quasi sign t : theory -> Term.term -> less                       *)
 (*                                                                          *)
 (* Translates conclusion t to an element of type less.                      *)
 (* Quasi orders only.                                                       *)
@@ -504,7 +504,7 @@ fun findQuasiProof (leG, neqE) subgoal =
 (* *********************************************************************** *)
 (*                                                                         *)
 (* solveLeTrans sign (asms,concl) :                                        *)
-(* Sign.sg -> less list * Term.term -> proof list                          *)
+(* theory -> less list * Term.term -> proof list                           *)
 (*                                                                         *)
 (* Solves                                                                  *)
 (*                                                                         *)
@@ -527,7 +527,7 @@ fun solveLeTrans sign (asms, concl) =
 (* *********************************************************************** *)
 (*                                                                         *)
 (* solveQuasiOrder sign (asms,concl) :                                     *)
-(* Sign.sg -> less list * Term.term -> proof list                          *)
+(* theory -> less list * Term.term -> proof list                           *)
 (*                                                                         *)
 (* Find proof if possible for quasi order.                                 *)
 (*                                                                         *)

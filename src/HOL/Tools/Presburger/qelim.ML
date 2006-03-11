@@ -8,7 +8,7 @@ and proof generation for multiple quantified formulae.
 
 signature QELIM =
  sig
- val tproof_of_mlift_qelim: Sign.sg -> (term -> bool) ->
+ val tproof_of_mlift_qelim: theory -> (term -> bool) ->
    (string list -> term -> thm) -> (term -> thm) ->
    (term -> thm) -> term -> thm
 
@@ -19,7 +19,7 @@ struct
 open CooperDec;
 open CooperProof;
 
-val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
+val cboolT = ctyp_of HOL.thy HOLogic.boolT;
 
 (* List of the theorems to be used in the following*)
 

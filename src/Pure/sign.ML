@@ -82,7 +82,6 @@ end
 
 signature SIGN =
 sig
-  type sg    (*obsolete*)
   val init_data: theory -> theory
   val rep_sg: theory ->
    {naming: NameSpace.naming,
@@ -199,8 +198,6 @@ end
 
 structure Sign: SIGN =
 struct
-
-type sg = theory;
 
 
 (** datatype sign **)

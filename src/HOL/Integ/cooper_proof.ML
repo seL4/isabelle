@@ -17,13 +17,13 @@ sig
   val qe_exI : thm
   val list_to_set : typ -> term list -> term
   val qe_get_terms : thm -> term * term
-  val cooper_prv  : Sign.sg -> term -> term -> thm
-  val proof_of_evalc : Sign.sg -> term -> thm
-  val proof_of_cnnf : Sign.sg -> term -> (term -> thm) -> thm
-  val proof_of_linform : Sign.sg -> string list -> term -> thm
-  val proof_of_adjustcoeffeq : Sign.sg -> term -> IntInf.int -> term -> thm
-  val prove_elementar : Sign.sg -> string -> term -> thm
-  val thm_of : Sign.sg -> (term -> (term list * (thm list -> thm))) -> term -> thm
+  val cooper_prv  : theory -> term -> term -> thm
+  val proof_of_evalc : theory -> term -> thm
+  val proof_of_cnnf : theory -> term -> (term -> thm) -> thm
+  val proof_of_linform : theory -> string list -> term -> thm
+  val proof_of_adjustcoeffeq : theory -> term -> IntInf.int -> term -> thm
+  val prove_elementar : theory -> string -> term -> thm
+  val thm_of : theory -> (term -> (term list * (thm list -> thm))) -> term -> thm
 end;
 
 structure CooperProof : COOPER_PROOF =

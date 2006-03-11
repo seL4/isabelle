@@ -61,9 +61,9 @@ sig
        where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
        other relation symbols cause an error message *)
   (* decomp_part is used by partial_tac *)
-  val decomp_part: Sign.sg -> term -> (term * string * term) option
+  val decomp_part: theory -> term -> (term * string * term) option
   (* decomp_lin is used by linear_tac *)
-  val decomp_lin: Sign.sg -> term -> (term * string * term) option
+  val decomp_lin: theory -> term -> (term * string * term) option
 end;
 
 signature ORDER_TAC  =
@@ -117,7 +117,7 @@ fun getprf   (Less (_, _, p)) = p
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkasm_partial sign (t, n) : Sign.sg -> (Term.term * int) -> less         *)
+(* mkasm_partial sign (t, n) : theory -> (Term.term * int) -> less          *)
 (*                                                                          *)
 (* Tuple (t, n) (t an assumption, n its index in the assumptions) is        *)
 (* translated to an element of type less.                                   *)
@@ -145,7 +145,7 @@ fun mkasm_partial sign (t, n) =
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkasm_linear sign (t, n) : Sign.sg -> (Term.term * int) -> less          *)
+(* mkasm_linear sign (t, n) : theory -> (Term.term * int) -> less           *)
 (*                                                                          *)
 (* Tuple (t, n) (t an assumption, n its index in the assumptions) is        *)
 (* translated to an element of type less.                                   *)
@@ -175,7 +175,7 @@ fun mkasm_linear sign (t, n) =
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkconcl_partial sign t : Sign.sg -> Term.term -> less                    *)
+(* mkconcl_partial sign t : theory -> Term.term -> less                     *)
 (*                                                                          *)
 (* Translates conclusion t to an element of type less.                      *)
 (* Partial orders only.                                                     *)
@@ -195,7 +195,7 @@ fun mkconcl_partial sign t =
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkconcl_linear sign t : Sign.sg -> Term.term -> less                     *)
+(* mkconcl_linear sign t : theory -> Term.term -> less                      *)
 (*                                                                          *)
 (* Translates conclusion t to an element of type less.                      *)
 (* Linear orders only.                                                      *)
@@ -1010,7 +1010,7 @@ end;
 (* *********************************************************************** *)
 (*                                                                         *)
 (* solvePartialOrder sign (asms,concl) :                                   *)
-(* Sign.sg -> less list * Term.term -> proof list                          *)
+(* theory -> less list * Term.term -> proof list                           *)
 (*                                                                         *)
 (* Find proof if possible for partial orders.                              *)
 (*                                                                         *)
@@ -1036,7 +1036,7 @@ fun solvePartialOrder sign (asms, concl) =
 (* *********************************************************************** *)
 (*                                                                         *)
 (* solveTotalOrder sign (asms,concl) :                                     *)
-(* Sign.sg -> less list * Term.term -> proof list                          *)
+(* theory -> less list * Term.term -> proof list                           *)
 (*                                                                         *)
 (* Find proof if possible for linear orders.                               *)
 (*                                                                         *)

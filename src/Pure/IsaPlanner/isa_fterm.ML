@@ -50,7 +50,7 @@ signature ISA_FTERM =
        * Term.term)
        option
     val clean_unify_ft :
-       Sign.sg ->
+       theory ->
        int ->
        Term.term ->
        FcTerm ->

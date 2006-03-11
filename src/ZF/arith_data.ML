@@ -12,7 +12,7 @@ sig
   val nat_cancel: simproc list
   (*tools for use in similar applications*)
   val gen_trans_tac: thm -> thm option -> tactic
-  val prove_conv: string -> tactic list -> Sign.sg ->
+  val prove_conv: string -> tactic list -> theory ->
                   thm list -> string list -> term * term -> thm option
   val simplify_meta_eq: thm list -> simpset -> thm -> thm
   (*debugging*)

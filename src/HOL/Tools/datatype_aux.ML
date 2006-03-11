@@ -62,7 +62,7 @@ sig
   val get_rec_types : descr -> (string * sort) list -> typ list
   val check_nonempty : descr list -> unit
   val unfold_datatypes : 
-    Sign.sg -> descr -> (string * sort) list -> datatype_info Symtab.table ->
+    theory -> descr -> (string * sort) list -> datatype_info Symtab.table ->
       descr -> int -> descr list * int
 end;
 

@@ -56,7 +56,7 @@ sig
   val allify_conditions' :
       (string * Term.typ) list -> Thm.thm -> Thm.thm * Thm.cterm list
   val assume_allified :
-      Sign.sg -> (string * Term.sort) list * (string * Term.typ) list
+      theory -> (string * Term.sort) list * (string * Term.typ) list
       -> Term.term -> (Thm.cterm * Thm.thm)
 
   (* meta level fixed params (i.e. !! vars) *)
