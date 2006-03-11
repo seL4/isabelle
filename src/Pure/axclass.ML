@@ -2,76 +2,49 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Axiomatic type class package.
+Axiomatic type classes: pure logical content.
 *)
 
 signature AX_CLASS =
 sig
-  val quiet_mode: bool ref
+  val mk_classrel: class * class -> term
+  val dest_classrel: term -> class * class
+  val mk_arity: string * sort list * class -> term
+  val mk_arities: string * sort list * sort -> term list
+  val dest_arity: term -> string * sort list * class
   val print_axclasses: theory -> unit
   val get_info: theory -> string -> {super_classes: class list, intro: thm, axioms: thm list}
+  val class_intros: theory -> thm list
   val add_axclass: bstring * xstring list -> ((bstring * string) * Attrib.src list) list ->
     theory -> {intro: thm, axioms: thm list} * theory
   val add_axclass_i: bstring * class list -> ((bstring * term) * attribute list) list ->
     theory -> {intro: thm, axioms: thm list} * theory
-  val add_classrel_thms: thm list -> theory -> theory
-  val add_arity_thms: thm list -> theory -> theory
-  val add_inst_subclass: xstring * xstring -> tactic -> theory -> theory
-  val add_inst_subclass_i: class * class -> tactic -> theory -> theory
-  val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
-  val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
-  val instance_subclass: xstring * xstring -> theory -> Proof.state
-  val instance_subclass_i: class * class -> theory -> Proof.state
-  val instance_arity: (theory -> theory) -> xstring * string list * string -> theory -> Proof.state
-  val instance_arity_i: (theory -> theory) -> string * sort list * sort -> theory -> Proof.state
-  val read_arity: theory -> xstring * string list * string -> arity
-  val cert_arity: theory -> string * sort list * sort -> arity
-  val class_intros: theory -> thm list
+  val add_classrel: thm list -> theory -> theory
+  val add_arity: thm list -> theory -> theory
+  val prove_subclass: class * class -> tactic -> theory -> theory
+  val prove_arity: string * sort list * sort -> tactic -> theory -> theory
 end;
 
 structure AxClass: AX_CLASS =
 struct
 
 
-(** utilities **)
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-
-
-(* type vars *)
-
-fun map_typ_frees f (Type (t, tys)) = Type (t, map (map_typ_frees f) tys)
-  | map_typ_frees f (TFree a) = f a
-  | map_typ_frees _ a = a;
-
-val map_term_tfrees = map_term_types o map_typ_frees;
+(** abstract syntax operations **)
 
 fun aT S = TFree ("'a", S);
 
 fun dest_varT (TFree (x, S)) = ((x, ~1), S)
-  | dest_varT (TVar xi_S) = xi_S
-  | dest_varT T = raise TYPE ("dest_varT", [T], []);
+  | dest_varT (TVar a) = a
+  | dest_varT T = raise TYPE ("AxClass.dest_varT", [T], []);
 
 
-
-(** abstract syntax operations **)
-
-(* names *)
-
-val introN = "intro";
-val axiomsN = "axioms";
-
-
-(* subclass relations as terms *)
+(* subclass propositions *)
 
 fun mk_classrel (c1, c2) = Logic.mk_inclass (aT [c1], c2);
 
 fun dest_classrel tm =
   let
-    fun err () = raise TERM ("dest_classrel", [tm]);
+    fun err () = raise TERM ("AxClass.dest_classrel", [tm]);
 
     val (ty, c2) = Logic.dest_inclass tm handle TERM _ => err ();
     val c1 = (case dest_varT ty of (_, [c]) => c | _ => err ())
@@ -79,7 +52,7 @@ fun dest_classrel tm =
   in (c1, c2) end;
 
 
-(* arities as terms *)
+(* arity propositions *)
 
 fun mk_arity (t, Ss, c) =
   let
@@ -90,7 +63,7 @@ fun mk_arities (t, Ss, S) = map (fn c => mk_arity (t, Ss, c)) S;
 
 fun dest_arity tm =
   let
-    fun err () = raise TERM ("dest_arity", [tm]);
+    fun err () = raise TERM ("AxClass.dest_arity", [tm]);
 
     val (ty, c) = Logic.dest_inclass tm handle TERM _ => err ();
     val (t, tvars) =
@@ -98,13 +71,16 @@ fun dest_arity tm =
         Type (t, tys) => (t, map dest_varT tys handle TYPE _ => err ())
       | _ => err ());
     val ss =
-      if null (duplicates (eq_fst (op =)) tvars)
-      then map snd tvars else err ();
+      if has_duplicates (eq_fst (op =)) tvars then err ()
+      else map snd tvars;
   in (t, ss, c) end;
 
 
 
 (** axclass info **)
+
+val introN = "intro";
+val axiomsN = "axioms";
 
 type axclass_info =
   {super_classes: class list,
@@ -164,7 +140,10 @@ fun err_bad_axsort ax c =
 fun err_bad_tfrees ax =
   error ("More than one type variable in axiom " ^ quote ax);
 
-fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axioms_atts thy =
+fun replace_tfree T = map_term_types (Term.map_atyps (fn TFree _ => T | U => U));
+
+fun gen_axclass prep_class prep_axm prep_att
+    (bclass, raw_super_classes) raw_axioms_atts thy =
   let
     val class = Sign.full_name thy bclass;
     val super_classes = map (prep_class thy) raw_super_classes;
@@ -179,7 +158,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
     fun abs_axm ax =
       if null (term_tfrees ax) then
         Logic.mk_implies (Logic.mk_inclass (aT [], class), ax)
-      else map_term_tfrees (K (aT [class])) ax;
+      else replace_tfree (aT [class]) ax;
     val abs_axms = map (abs_axm o snd) axms;
 
     fun axm_sort (name, ax) =
@@ -189,7 +168,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
       | _ => err_bad_tfrees name);
     val axS = Sign.certify_sort class_thy (List.concat (map axm_sort axms));
 
-    val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
+    val int_axm = Logic.close_form o replace_tfree (aT axS);
     fun inclass c = Logic.mk_inclass (aT axS, c);
 
     val intro_axm = Logic.list_implies
@@ -214,8 +193,8 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
 
 in
 
-val add_axclass = ext_axclass Sign.intern_class Theory.read_axm Attrib.attribute;
-val add_axclass_i = ext_axclass (K I) Theory.cert_axm (K I);
+val add_axclass = gen_axclass Sign.intern_class Theory.read_axm Attrib.attribute;
+val add_axclass_i = gen_axclass (K I) Theory.cert_axm (K I);
 
 end;
 
@@ -223,117 +202,47 @@ end;
 
 (** proven class instantiation **)
 
-(* add thms to type signature *)
+(* primitive rules *)
 
-fun add_classrel_thms thms thy =
+fun add_classrel ths thy =
   let
-    fun prep_thm thm =
+    fun prep_thm th =
       let
-        val prop = Drule.plain_prop_of (Thm.transfer thy thm);
+        val prop = Drule.plain_prop_of (Thm.transfer thy th);
         val (c1, c2) = dest_classrel prop handle TERM _ =>
-          raise THM ("add_classrel_thms: not a class relation", 0, [thm]);
+          raise THM ("AxClass.add_classrel: not a class relation", 0, [th]);
       in (c1, c2) end;
-  in Theory.add_classrel_i (map prep_thm thms) thy end;
+  in Theory.add_classrel_i (map prep_thm ths) thy end;
 
-fun add_arity_thms thms thy =
+fun add_arity ths thy =
   let
-    fun prep_thm thm =
+    fun prep_thm th =
       let
-        val prop = Drule.plain_prop_of (Thm.transfer thy thm);
+        val prop = Drule.plain_prop_of (Thm.transfer thy th);
         val (t, ss, c) = dest_arity prop handle TERM _ =>
-          raise THM ("add_arity_thms: not an arity", 0, [thm]);
+          raise THM ("AxClass.add_arity: not a type arity", 0, [th]);
       in (t, ss, [c]) end;
-  in Theory.add_arities_i (map prep_thm thms) thy end;
+  in Theory.add_arities_i (map prep_thm ths) thy end;
 
 
-(* prepare classes and arities *)
+(* tactical proofs *)
 
-fun read_class thy c = Sign.certify_class thy (Sign.intern_class thy c);
-
-fun test_classrel thy cc = (Type.add_classrel (Sign.pp thy) [cc] (Sign.tsig_of thy); cc);
-fun cert_classrel thy = test_classrel thy o Library.pairself (Sign.certify_class thy);
-fun read_classrel thy = test_classrel thy o Library.pairself (read_class thy);
-
-fun test_arity thy ar = (Type.add_arities (Sign.pp thy) [ar] (Sign.tsig_of thy); ar);
-
-fun prep_arity prep_tycon prep_sort prep thy (t, Ss, x) =
-  test_arity thy (prep_tycon thy t, map (prep_sort thy) Ss, prep thy x);
-
-val read_arity = prep_arity Sign.intern_type Sign.read_sort Sign.read_sort;
-val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
-
-
-(* instance declarations -- tactical proof *)
-
-local
-
-fun ext_inst_subclass prep_classrel raw_cc tac thy =
+fun prove_subclass raw_rel tac thy =
   let
-    val (c1, c2) = prep_classrel thy raw_cc;
-    val txt = quote (Sign.string_of_classrel thy [c1, c2]);
-    val _ = message ("Proving class inclusion " ^ txt ^ " ...");
-    val th = Goal.prove thy [] [] (mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
-      cat_error msg ("The error(s) above occurred while trying to prove " ^ txt);
-  in add_classrel_thms [th] thy end;
+    val (c1, c2) = Sign.cert_classrel thy raw_rel;
+    val th = Goal.prove thy [] [] (mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
+      cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
+        quote (Sign.string_of_classrel thy [c1, c2]));
+  in add_classrel [th] thy end;
 
-fun ext_inst_arity prep_arity raw_arity tac thy =
+fun prove_arity raw_arity tac thy =
   let
-    val arity = prep_arity thy raw_arity;
-    val txt = quote (Sign.string_of_arity thy arity);
-    val _ = message ("Proving type arity " ^ txt ^ " ...");
-    val props = (mk_arities arity);
+    val arity = Sign.cert_arity thy raw_arity;
+    val props = mk_arities arity;
     val ths = Goal.prove_multi thy [] [] props
       (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
-        cat_error msg ("\nThe error(s) above occurred while trying to prove " ^ txt);
-  in add_arity_thms ths thy end;
-
-in
-
-val add_inst_subclass = ext_inst_subclass read_classrel;
-val add_inst_subclass_i = ext_inst_subclass cert_classrel;
-val add_inst_arity = ext_inst_arity read_arity;
-val add_inst_arity_i = ext_inst_arity cert_arity;
-
-end;
-
-
-(* instance declarations -- Isar proof *)
-
-local
-
-fun gen_instance mk_prop add_thms after_qed inst thy =
-  thy
-  |> ProofContext.init
-  |> Proof.theorem_i PureThy.internalK NONE (after_qed oo fold add_thms) NONE ("", [])
-       (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
-
-in
-
-val instance_subclass =
-  gen_instance (single oo (mk_classrel oo read_classrel)) add_classrel_thms I;
-val instance_subclass_i =
-  gen_instance (single oo (mk_classrel oo cert_classrel)) add_classrel_thms I;
-val instance_arity =
-  gen_instance (mk_arities oo read_arity) add_arity_thms;
-val instance_arity_i =
-  gen_instance (mk_arities oo cert_arity) add_arity_thms;
-
-end;
-
-
-
-(** outer syntax **)
-
-local structure P = OuterParse and K = OuterKeyword in
-
-val axclassP =
-  OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []) -- Scan.repeat P.spec_name
-      >> (Toplevel.theory o (snd oo uncurry add_axclass)));
-
-val _ = OuterSyntax.add_parsers [axclassP];
-
-end;
+        cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
+          quote (Sign.string_of_arity thy arity));
+  in add_arity ths thy end;
 
 end;
