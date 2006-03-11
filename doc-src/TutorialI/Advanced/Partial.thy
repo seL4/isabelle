@@ -34,8 +34,8 @@ Even ordinary definitions allow underdefinedness, this time by means of
 preconditions:
 *}
 
-constdefs minus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-"n \<le> m \<Longrightarrow> minus m n \<equiv> m - n"
+constdefs subtract :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+"n \<le> m \<Longrightarrow> subtract m n \<equiv> m - n"
 
 text{*
 The rest of this section is devoted to the question of how to define
@@ -49,7 +49,7 @@ text{*
 \index{recursion!guarded}%
 Neither \isacommand{primrec} nor \isacommand{recdef} allow to
 prefix an equation with a condition in the way ordinary definitions do
-(see @{const minus} above). Instead we have to move the condition over
+(see @{const subtract} above). Instead we have to move the condition over
 to the right-hand side of the equation. Given a partial function $f$
 that should satisfy the recursion equation $f(x) = t$ over its domain
 $dom(f)$, we turn this into the \isacommand{recdef}
