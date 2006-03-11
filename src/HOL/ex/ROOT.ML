@@ -57,7 +57,7 @@ else
 
 time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
-time_use_thy "nbe";
+no_document time_use_thy "nbe";
 
 no_document use_thy "Word";
 time_use_thy "Adder";
