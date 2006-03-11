@@ -161,8 +161,13 @@ sig
   val cert_prop: theory -> term -> term
   val no_vars: Pretty.pp -> term -> term
   val cert_def: Pretty.pp -> term -> (string * typ) * term
+  val read_class: theory -> xstring -> class
   val read_sort': Syntax.syntax -> Context.generic -> string -> sort
   val read_sort: theory -> string -> sort
+  val read_classrel: theory -> xstring * xstring -> class * class
+  val cert_classrel: theory -> class * class -> class * class
+  val read_arity: theory -> xstring * string list * string -> arity
+  val cert_arity: theory -> arity -> arity
   val read_typ': Syntax.syntax -> Context.generic ->
     (indexname -> sort option) -> string -> typ
   val read_typ_syntax': Syntax.syntax -> Context.generic ->
@@ -496,7 +501,9 @@ fun cert_def pp tm =
 
 (** read and certify entities **)    (*exception ERROR*)
 
-(* sorts *)
+(* classes and sorts *)
+
+fun read_class thy c = certify_class thy (intern_class thy c);
 
 fun read_sort' syn context str =
   let
@@ -506,6 +513,26 @@ fun read_sort' syn context str =
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
 fun read_sort thy str = read_sort' (syn_of thy) (Context.Theory thy) str;
+
+
+(* class relations *)
+
+fun prep_classrel prep thy raw_rel =
+  let val rel = Library.pairself (prep thy) raw_rel
+  in Type.add_classrel (pp thy) [rel] (tsig_of thy); rel end;
+
+val read_classrel = prep_classrel read_class;
+val cert_classrel = prep_classrel certify_class;
+
+
+(* type arities *)
+
+fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
+  let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
+  in Type.add_arities (pp thy) [arity] (tsig_of thy); arity end;
+
+val read_arity = prep_arity intern_type read_sort;
+val cert_arity = prep_arity (K I) certify_sort;
 
 
 (* types *)
