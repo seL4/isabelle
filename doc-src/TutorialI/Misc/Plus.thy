@@ -4,18 +4,18 @@ theory Plus imports Main begin
 
 text{*\noindent Define the following addition function *}
 
-consts plus :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+consts add :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 primrec
-"plus m 0 = m"
-"plus m (Suc n) = plus (Suc m) n"
+"add m 0 = m"
+"add m (Suc n) = add (Suc m) n"
 
 text{*\noindent and prove*}
 (*<*)
-lemma [simp]: "!m. plus m n = m+n"
+lemma [simp]: "!m. add m n = m+n"
 apply(induct_tac n)
 by(auto)
 (*>*)
-lemma "plus m n = m+n"
+lemma "add m n = m+n"
 (*<*)
 by(simp)
 
