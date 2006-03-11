@@ -264,6 +264,28 @@ fun default_tac rules ctxt facts =
     default_intro_classes_tac facts;
 
 
+(* axclass instances *)
+
+local
+
+fun gen_instance mk_prop add_thms after_qed inst thy =
+  thy
+  |> ProofContext.init
+  |> Proof.theorem_i PureThy.internalK NONE (after_qed oo fold add_thms) NONE ("", [])
+       (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
+
+in
+
+val axclass_instance_subclass =
+  gen_instance (single oo (AxClass.mk_classrel oo Sign.read_classrel)) AxClass.add_classrel I;
+val axclass_instance_arity =
+  gen_instance (AxClass.mk_arities oo Sign.read_arity) AxClass.add_arity;
+val axclass_instance_arity_i =
+  gen_instance (AxClass.mk_arities oo Sign.cert_arity) AxClass.add_arity;
+
+end;
+
+
 (* classes and instances *)
 
 local
@@ -518,12 +540,12 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
     |-> (fn cs => do_proof (after_qed cs) arity)
   end;
 
-fun instance_arity' do_proof = gen_instance_arity AxClass.read_arity Attrib.attribute add_defs_overloaded
+fun instance_arity' do_proof = gen_instance_arity Sign.read_arity Attrib.attribute add_defs_overloaded
   (fn thy => fn t => (snd o read_axm thy) ("", t)) do_proof;
-fun instance_arity_i' do_proof = gen_instance_arity AxClass.cert_arity (K I) add_defs_overloaded_i
+fun instance_arity_i' do_proof = gen_instance_arity Sign.cert_arity (K I) add_defs_overloaded_i
   (K I) do_proof;
-val setup_proof = AxClass.instance_arity_i;
-fun tactic_proof tac after_qed arity = AxClass.add_inst_arity_i arity tac #> after_qed;
+val setup_proof = axclass_instance_arity_i;
+fun tactic_proof tac after_qed arity = AxClass.prove_arity arity tac #> after_qed;
 
 in
 
@@ -575,7 +597,7 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
        (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data theory)) sort;
     fun after_qed thmss thy =
       (writeln "---"; (Pretty.writeln o Display.pretty_thms o Library.flat) thmss; writeln "---"; fold (fn supclass =>
-        AxClass.add_inst_subclass_i (class, supclass)
+        AxClass.prove_subclass (class, supclass)
           (ALLGOALS (K (intro_classes_tac [])) THEN
             (ALLGOALS o resolve_tac o Library.flat) thmss)
       ) sort thy)
@@ -703,7 +725,7 @@ fun wrap_add_instance_subclass (class, sort) thy =
       then
         instance_sort (class, sort) thy
       else
-        AxClass.instance_subclass (class, sort) thy
+        axclass_instance_subclass (class, sort) thy
     | _ => instance_sort (class, sort) thy;
 
 val parse_inst =
@@ -729,7 +751,7 @@ val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> wrap_add_instance_subclass
       || P.opt_thm_name ":" -- (parse_inst -- Scan.repeat (P.opt_thm_name ":" -- P.prop))
-           >> (fn (("", []), (((tyco, asorts), sort), [])) => AxClass.instance_arity I (tyco, asorts, sort)
+           >> (fn (("", []), (((tyco, asorts), sort), [])) => axclass_instance_arity I (tyco, asorts, sort)
                 | (natts, (inst, defs)) => instance_arity inst natts defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
