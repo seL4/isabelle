@@ -89,6 +89,12 @@ val defaultsortP =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
     (P.sort >> (Toplevel.theory o Theory.add_defsort));
 
+val axclassP =
+  OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
+    ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+        P.!!! (P.list1 P.xname)) []) -- Scan.repeat P.spec_name
+      >> (Toplevel.theory o (snd oo uncurry AxClass.add_axclass)));
+
 
 (* types *)
 
@@ -867,9 +873,9 @@ val _ = OuterSyntax.add_parsers [
   headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
   (*theory sections*)
-  classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
-  aritiesP, judgmentP, constsP, finalconstsP, syntaxP, no_syntaxP,
-  translationsP, axiomsP, defsP, constdefsP, definitionP,
+  classesP, classrelP, defaultsortP, axclassP, typedeclP, typeabbrP,
+  nontermP, aritiesP, judgmentP, constsP, finalconstsP, syntaxP,
+  no_syntaxP, translationsP, axiomsP, defsP, constdefsP, definitionP,
   abbreviationP, axiomatizationP, theoremsP, lemmasP, declareP,
   globalP, localP, hideP, useP, mlP, ml_commandP, ml_setupP, setupP,
   method_setupP, parse_ast_translationP, parse_translationP,
