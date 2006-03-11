@@ -30,6 +30,7 @@ use "locale.ML";
 use "local_theory.ML";
 use "specification.ML";
 use "constdefs.ML";
+use "../axclass.ML";
 
 (*outer syntax*)
 use "antiquote.ML";

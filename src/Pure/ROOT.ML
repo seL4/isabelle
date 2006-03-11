@@ -78,7 +78,6 @@ use "Thy/thm_database.ML";
 (*the Isar system*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 
-use "axclass.ML";
 use "Proof/extraction.ML";
 
 (*the IsaPlanner subsystem*)
