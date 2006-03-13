@@ -390,6 +390,8 @@ as foo_bar.inducts;
 * Library: added theory Coinductive_List of potentially infinite lists
 as greatest fixed-point.
 
+* Library: added theory AssocList which implements (finite) maps as 
+association lists.
 
 *** ML ***
 
