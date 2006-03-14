@@ -34,6 +34,9 @@ check the given source text as ML type/structure, printing verbatim.
 
 *** Pure ***
 
+* Command 'no_translations' removes translation rules from theory
+syntax.
+
 * Isar: improper proof element 'guess' is like 'obtain', but derives
 the obtained context from the course of reasoning!  For example:
 
@@ -390,8 +393,9 @@ as foo_bar.inducts;
 * Library: added theory Coinductive_List of potentially infinite lists
 as greatest fixed-point.
 
-* Library: added theory AssocList which implements (finite) maps as 
+* Library: added theory AssocList which implements (finite) maps as
 association lists.
+
 
 *** ML ***
 
