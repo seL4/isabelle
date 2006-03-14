@@ -39,6 +39,7 @@ sig
   val inst_ctxt: theory -> typ Symtab.table * term Symtab.table -> context_i -> context_i
   val pretty_stmt: ProofContext.context -> statement_i -> Pretty.T list
   val pretty_ctxt: ProofContext.context -> context_i -> Pretty.T list
+  val pretty_statement: ProofContext.context -> string -> thm -> Pretty.T
 end;
 
 structure Element: ELEMENT =
@@ -229,9 +230,10 @@ fun inst_ctxt thy envs =
 
 (** pretty printing **)
 
-fun pretty_items _ _ _ [] = []
-  | pretty_items ctxt sep prfx (x :: xs) =
-      Pretty.block [Pretty.str prfx, Pretty.brk 1, x] :: pretty_items ctxt sep ("  " ^ sep) xs;
+fun pretty_items _ _ [] = []
+  | pretty_items keyword sep (x :: ys) =
+      Pretty.block [Pretty.keyword keyword, Pretty.brk 1, x] ::
+        map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (name, atts) sep =
   if name = "" andalso null atts then []
@@ -245,20 +247,21 @@ fun pretty_stmt ctxt =
   let
     val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val prt_terms = separate (Pretty.keyword "and") o map prt_term;
     val prt_name_atts = pretty_name_atts ctxt;
 
     fun prt_show (a, ts) =
-      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
+      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ prt_terms (map fst ts)));
 
     fun prt_var (x, SOME T) = Pretty.block [Pretty.str (x ^ " ::"), Pretty.brk 1, prt_typ T]
       | prt_var (x, NONE) = Pretty.str x;
 
-    fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (map prt_term ts))
+    fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
       | prt_obtain (_, (xs, ts)) = Pretty.block (Pretty.breaks
-          (map prt_var xs @ [Pretty.str "where"] @ map prt_term ts));
+          (map prt_var xs @ [Pretty.keyword "where"] @ prt_terms ts));
   in
-    fn Shows shows => pretty_items ctxt "and" "shows" (map prt_show shows)
-     | Obtains obtains => pretty_items ctxt "|" "obtains" (map prt_obtain obtains)
+    fn Shows shows => pretty_items "shows" "and" (map prt_show shows)
+     | Obtains obtains => pretty_items "obtains" "|" (map prt_obtain obtains)
   end;
 
 
@@ -270,11 +273,10 @@ fun pretty_ctxt ctxt =
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
     val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
     val prt_name_atts = pretty_name_atts ctxt;
-    val prt_items = pretty_items ctxt "and";
 
-    fun prt_mixfix mx =
-      let val s = Syntax.string_of_mixfix mx
-      in if s = "" then [] else [Pretty.brk 2, Pretty.str s] end;
+    fun prt_mixfix NoSyn = []
+      | prt_mixfix mx = [Pretty.brk 2, Syntax.pretty_mixfix mx];
+
     fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
           prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
       | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_mixfix mx);
@@ -291,11 +293,69 @@ fun pretty_ctxt ctxt =
     fun prt_note (a, ths) =
       Pretty.block (Pretty.breaks (List.concat (prt_name_atts a "=" :: map prt_fact ths)));
   in
-    fn Fixes fixes => prt_items "fixes" (map prt_fix fixes)
-     | Constrains xs => prt_items "constrains" (map prt_constrain xs)
-     | Assumes asms => prt_items "assumes" (map prt_asm asms)
-     | Defines defs => prt_items "defines" (map prt_def defs)
-     | Notes facts => prt_items "notes" (map prt_note facts)
+    fn Fixes fixes => pretty_items "fixes" "and" (map prt_fix fixes)
+     | Constrains xs => pretty_items "constrains" "and" (map prt_constrain xs)
+     | Assumes asms => pretty_items "assumes" "and" (map prt_asm asms)
+     | Defines defs => pretty_items "defines" "and" (map prt_def defs)
+     | Notes facts => pretty_items "notes" "and" (map prt_note facts)
   end;
+
+
+(* pretty_statement *)
+
+local
+
+fun thm_name kind th prts =
+  let val head =
+    (case #1 (Thm.get_name_tags th) of
+      "" => Pretty.command kind
+    | a => Pretty.block [Pretty.command kind, Pretty.brk 1, Pretty.str (Sign.base_name a ^ ":")])
+  in Pretty.block (Pretty.fbreaks (head :: prts)) end;
+
+fun obtain prop ctxt =
+  let
+    val xs = ProofContext.rename_frees ctxt [] (Logic.strip_params prop);
+    val args = rev (map Free xs);
+    val As = Logic.strip_assums_hyp prop |> map (fn t => Term.subst_bounds (args, t));
+    val ctxt' = ctxt |> fold ProofContext.declare_term args;
+  in (("", (map (apsnd SOME) xs, As)), ctxt') end;
+
+in
+
+fun pretty_statement ctxt kind raw_th =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val th = Goal.norm_hhf raw_th;
+    val maxidx = #maxidx (Thm.rep_thm th);
+
+    fun standard_thesis t =
+      let
+        val C = ObjectLogic.drop_judgment thy (Thm.concl_of th);
+        val C' = Var ((AutoBind.thesisN, maxidx + 1), Term.fastype_of C);
+      in Term.subst_atomic [(C, C')] t end;
+
+    val raw_prop =
+      Thm.prop_of th
+      |> singleton (ProofContext.monomorphic ctxt)
+      |> K (ObjectLogic.is_elim th) ? standard_thesis
+      |> Term.zero_var_indexes;
+
+    val vars = Term.add_vars raw_prop [];
+    val frees = ProofContext.rename_frees ctxt [raw_prop] (map (apfst fst) vars);
+    val fixes = rev (filter_out (equal AutoBind.thesisN o #1) frees);
+
+    val prop = Term.instantiate ([], vars ~~ map Free frees) raw_prop;
+    val (prems, concl) = Logic.strip_horn prop;
+    val thesis = ObjectLogic.fixed_judgment thy AutoBind.thesisN;
+    val (asms, cases) = take_suffix (fn prem => thesis aconv Logic.strip_assums_concl prem) prems;
+  in
+    pretty_ctxt ctxt (Fixes (map (fn (x, T) => (x, SOME T, NoSyn)) fixes)) @
+    pretty_ctxt ctxt (Assumes (map (fn t => (("", []), [(t, ([], []))])) asms)) @
+    pretty_stmt ctxt
+     (if null cases then Shows [(("", []), [(concl, ([], []))])]
+      else Obtains (#1 (fold_map obtain cases (ctxt |> ProofContext.declare_term prop))))
+  end |> thm_name kind raw_th;
+
+end;
 
 end;
