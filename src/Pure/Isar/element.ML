@@ -7,6 +7,11 @@ Explicit data structures for some Isar language elements.
 
 signature ELEMENT =
 sig
+  datatype ('typ, 'term) stmt =
+    Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
+    Obtains of (string * ((string * 'typ option) list * 'term list)) list
+  type statement  (*= (string, string) stmt*)
+  type statement_i  (*= (typ, term) stmt*)
   datatype ('typ, 'term, 'fact) ctxt =
     Fixes of (string * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
@@ -20,7 +25,6 @@ sig
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_values: (typ -> typ) -> (term -> term) -> (thm -> thm) -> context_i -> context_i
-  val pretty_ctxt: ProofContext.context -> context_i -> Pretty.T list
   val rename: (string * (string * mixfix option)) list -> string -> string
   val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
@@ -33,15 +37,24 @@ sig
   val inst_term: typ Symtab.table * term Symtab.table -> term -> term
   val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
   val inst_ctxt: theory -> typ Symtab.table * term Symtab.table -> context_i -> context_i
-  datatype ('typ, 'term) stmt =
-    Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
-    Obtains of (string * ((string * 'typ option) list * 'term list)) list
-  type statement  (*= (string, string) stmt*)
-  type statement_i  (*= (typ, term) stmt*)
+  val pretty_stmt: ProofContext.context -> statement_i -> Pretty.T list
+  val pretty_ctxt: ProofContext.context -> context_i -> Pretty.T list
 end;
 
 structure Element: ELEMENT =
 struct
+
+
+(** conclusions **)
+
+datatype ('typ, 'term) stmt =
+  Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
+  Obtains of (string * ((string * 'typ option) list * 'term list)) list;
+
+type statement = (string, string) stmt;
+type statement_i = (typ, term) stmt;
+
+
 
 (** context elements **)
 
@@ -72,51 +85,6 @@ fun map_ctxt {name, var, typ, term, fact, attrib} =
 fun map_ctxt_values typ term thm = map_ctxt
   {name = I, var = I, typ = typ, term = term, fact = map thm,
     attrib = Args.map_values I typ term thm};
-
-
-(* pretty_ctxt *)
-
-fun pretty_ctxt ctxt =
-  let
-    val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
-    val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
-    val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
-    val prt_atts = Args.pretty_attribs ctxt;
-
-    fun prt_mixfix mx =
-      let val s = Syntax.string_of_mixfix mx
-      in if s = "" then [] else [Pretty.brk 2, Pretty.str s] end;
-    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
-          prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
-      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_mixfix mx);
-    fun prt_constrain (x, T) = prt_fix (x, SOME T, NoSyn);
-
-    fun prt_name name = Pretty.str (ProofContext.extern_thm ctxt name);
-    fun prt_name_atts (name, atts) sep =
-      if name = "" andalso null atts then []
-      else [Pretty.block (Pretty.breaks (prt_name name :: prt_atts atts @ [Pretty.str sep]))];
-
-    fun prt_asm (a, ts) =
-      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
-    fun prt_def (a, (t, _)) =
-      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ [prt_term t]));
-
-    fun prt_fact (ths, []) = map prt_thm ths
-      | prt_fact (ths, atts) =
-          Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths)) :: prt_atts atts;
-    fun prt_note (a, ths) =
-      Pretty.block (Pretty.breaks (List.concat (prt_name_atts a "=" :: map prt_fact ths)));
-
-    fun items _ [] = []
-      | items prfx (x :: xs) =
-          Pretty.block [Pretty.str prfx, Pretty.brk 1, x] :: items "  and" xs;
-  in
-    fn Fixes fixes => items "fixes" (map prt_fix fixes)
-     | Constrains xs => items "constrains" (map prt_constrain xs)
-     | Assumes asms => items "assumes" (map prt_asm asms)
-     | Defines defs => items "defines" (map prt_def defs)
-     | Notes facts => items "notes" (map prt_note facts)
-  end;
 
 
 
@@ -259,13 +227,75 @@ fun inst_ctxt thy envs =
 
 
 
-(** concluding statements **)
+(** pretty printing **)
 
-datatype ('typ, 'term) stmt =
-  Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
-  Obtains of (string * ((string * 'typ option) list * 'term list)) list;
+fun pretty_items _ _ _ [] = []
+  | pretty_items ctxt sep prfx (x :: xs) =
+      Pretty.block [Pretty.str prfx, Pretty.brk 1, x] :: pretty_items ctxt sep ("  " ^ sep) xs;
 
-type statement = (string, string) stmt;
-type statement_i = (typ, term) stmt;
+fun pretty_name_atts ctxt (name, atts) sep =
+  if name = "" andalso null atts then []
+  else [Pretty.block (Pretty.breaks (Pretty.str (ProofContext.extern_thm ctxt name) ::
+    Args.pretty_attribs ctxt atts @ [Pretty.str sep]))];
+
+
+(* pretty_stmt *)
+
+fun pretty_stmt ctxt =
+  let
+    val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
+    val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val prt_name_atts = pretty_name_atts ctxt;
+
+    fun prt_show (a, ts) =
+      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
+
+    fun prt_var (x, SOME T) = Pretty.block [Pretty.str (x ^ " ::"), Pretty.brk 1, prt_typ T]
+      | prt_var (x, NONE) = Pretty.str x;
+
+    fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (map prt_term ts))
+      | prt_obtain (_, (xs, ts)) = Pretty.block (Pretty.breaks
+          (map prt_var xs @ [Pretty.str "where"] @ map prt_term ts));
+  in
+    fn Shows shows => pretty_items ctxt "and" "shows" (map prt_show shows)
+     | Obtains obtains => pretty_items ctxt "|" "obtains" (map prt_obtain obtains)
+  end;
+
+
+(* pretty_ctxt *)
+
+fun pretty_ctxt ctxt =
+  let
+    val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
+    val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
+    val prt_name_atts = pretty_name_atts ctxt;
+    val prt_items = pretty_items ctxt "and";
+
+    fun prt_mixfix mx =
+      let val s = Syntax.string_of_mixfix mx
+      in if s = "" then [] else [Pretty.brk 2, Pretty.str s] end;
+    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
+          prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
+      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_mixfix mx);
+    fun prt_constrain (x, T) = prt_fix (x, SOME T, NoSyn);
+
+    fun prt_asm (a, ts) =
+      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
+    fun prt_def (a, (t, _)) =
+      Pretty.block (Pretty.breaks (prt_name_atts a ":" @ [prt_term t]));
+
+    fun prt_fact (ths, []) = map prt_thm ths
+      | prt_fact (ths, atts) = Pretty.enclose "(" ")"
+          (Pretty.breaks (map prt_thm ths)) :: Args.pretty_attribs ctxt atts;
+    fun prt_note (a, ths) =
+      Pretty.block (Pretty.breaks (List.concat (prt_name_atts a "=" :: map prt_fact ths)));
+  in
+    fn Fixes fixes => prt_items "fixes" (map prt_fix fixes)
+     | Constrains xs => prt_items "constrains" (map prt_constrain xs)
+     | Assumes asms => prt_items "assumes" (map prt_asm asms)
+     | Defines defs => prt_items "defines" (map prt_def defs)
+     | Notes facts => prt_items "notes" (map prt_note facts)
+  end;
 
 end;
