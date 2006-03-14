@@ -70,7 +70,9 @@ sig
   val rename_frees: context -> term list -> (string * 'a) list -> (string * 'a) list
   val warn_extra_tfrees: context -> context -> context
   val generalize: context -> context -> term list -> term list
+  val monomorphic: context -> term list -> term list
   val polymorphic: context -> term list -> term list
+  val hidden_polymorphism: term -> typ -> (indexname * sort) list
   val export_standard: context -> context -> thm -> thm
   val exports: context -> context -> thm -> thm Seq.seq
   val goal_exports: context -> context -> thm -> thm Seq.seq
@@ -720,14 +722,22 @@ fun generalize inner outer ts =
 
 (* polymorphic terms *)
 
+fun monomorphic ctxt ts =
+  let
+    val tvars = fold Term.add_tvars ts [];
+    val tfrees = map TFree (rename_frees ctxt ts (map (apfst fst) tvars));
+    val specialize = Term.instantiate ((tvars ~~ tfrees), []);
+  in map specialize ts end;
+
 fun polymorphic ctxt ts =
   generalize (ctxt |> fold declare_term ts) ctxt ts;
 
-fun extra_tvars t T =
-  let val tvarsT = Term.add_tvarsT T [] in
-    Term.fold_types (Term.fold_atyps
-      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t []
-  end;
+fun hidden_polymorphism t T =
+  let
+    val tvarsT = Term.add_tvarsT T [];
+    val extra_tvars = Term.fold_types (Term.fold_atyps
+      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
+  in extra_tvars end;
 
 
 
@@ -781,7 +791,7 @@ fun upd_bind ((x, i), t) =
   let
     val T = Term.fastype_of t;
     val t' =
-      if null (extra_tvars t T) then t
+      if null (hidden_polymorphism t T) then t
       else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
   in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
 
@@ -1088,7 +1098,7 @@ fun gen_abbrevs prep_vars prep_term revert = fold (fn (raw_c, raw_t, raw_mx) => 
     val [t] = polymorphic ctxt [prep_term ctxt raw_t];
     val T = Term.fastype_of t;
     val _ =
-      if null (extra_tvars t T) then ()
+      if null (hidden_polymorphism t T) then ()
       else error ("Extra type variables on rhs of abbreviation: " ^ quote c);
   in
     ctxt
