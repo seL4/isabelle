@@ -14,6 +14,7 @@ sig
   val drop_judgment: theory -> term -> term
   val fixed_judgment: theory -> string -> term
   val ensure_propT: theory -> term -> term
+  val is_elim: thm -> bool
   val declare_atomize: attribute
   val declare_rulify: attribute
   val atomize_term: theory -> term -> term
@@ -113,6 +114,18 @@ fun fixed_judgment thy x =
 fun ensure_propT thy t =
   let val T = Term.fastype_of t
   in if T = propT then t else Const (judgment_name thy, T --> propT) $ t end;
+
+
+(* elimination rules *)
+
+fun is_elim rule =
+  let
+    val thy = Thm.theory_of_thm rule;
+    val concl = Thm.concl_of rule;
+  in
+    Term.is_Var (drop_judgment thy concl) andalso
+      exists (fn prem => concl aconv Logic.strip_assums_concl prem) (Thm.prems_of rule)
+  end;
 
 
 
