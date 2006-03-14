@@ -58,7 +58,9 @@ sig
   val print_ast_translation: bool * string -> theory -> theory
   val token_translation: string -> theory -> theory
   val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
+  val del_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
   val add_trrules_i: ast Syntax.trrule list -> theory -> theory
+  val del_trrules_i: ast Syntax.trrule list -> theory -> theory
   val add_path: string -> theory -> theory
   val parent_path: theory -> theory
   val root_path: theory -> theory
@@ -293,7 +295,7 @@ val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
-val declared_const = is_some oo const_type;
+val declared_const = is_some oo const_constraint;
 
 
 
@@ -897,13 +899,16 @@ val token_translation =
 end;
 
 
-(* add translation rules *)
+(* translation rules *)
 
-fun add_trrules args thy = thy |> map_syn (fn syn =>
+fun gen_trrules f args thy = thy |> map_syn (fn syn =>
   let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
-  in Syntax.extend_trrules (Context.Theory thy) (is_logtype thy) syn rules syn end);
+  in f (Context.Theory thy) (is_logtype thy) syn rules syn end);
 
+val add_trrules = gen_trrules Syntax.extend_trrules;
+val del_trrules = gen_trrules Syntax.remove_trrules;
 val add_trrules_i = map_syn o Syntax.extend_trrules_i;
+val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 
 
 (* modify naming *)
