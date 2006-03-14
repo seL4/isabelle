@@ -178,29 +178,13 @@ FAILED"; classical_rule will strenthen this to
     [| inj f; ~ W ==> f x = f y; x = y ==> W |] ==> W
 *)
 
-local
-
-fun equal_concl concl prop =
-  concl aconv Logic.strip_assums_concl prop;
-
-fun is_elim rule =
-  let
-    val thy = Thm.theory_of_thm rule;
-    val concl = Thm.concl_of rule;
-  in
-    Term.is_Var (ObjectLogic.drop_judgment thy concl) andalso
-    exists (equal_concl concl) (Thm.prems_of rule)
-  end;
-
-in
-
 fun classical_rule rule =
-  if is_elim rule then
+  if ObjectLogic.is_elim rule then
     let
       val rule' = rule RS classical;
       val concl' = Thm.concl_of rule';
       fun redundant_hyp goal =
-         equal_concl concl' goal orelse
+        concl' aconv Logic.strip_assums_concl goal orelse
           (case Logic.strip_assums_hyp goal of
             hyp :: hyps => exists (fn t => t aconv hyp) hyps
           | _ => false);
@@ -215,7 +199,6 @@ fun classical_rule rule =
     in if Drule.weak_eq_thm (rule, rule'') then rule else rule'' end
   else rule;
 
-end;
 
 
 (*** Useful tactics for classical reasoning ***)
