@@ -691,10 +691,10 @@ fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
       |> ensure_def_inst thy tabs inst
       ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs) ls
       |-> (fn (inst, ls) => pair (Instance (inst, ls)))
-  | exprgen_classlookup thy tabs (ClassPackage.Lookup (clss, (v, i))) trns =
+  | exprgen_classlookup thy tabs (ClassPackage.Lookup (clss, (v, (i, j)))) trns =
       trns
       |> fold_map (ensure_def_class thy tabs) clss
-      |-> (fn clss => pair (Lookup (clss, (v |> unprefix "'", i))))
+      |-> (fn clss => pair (Lookup (clss, (v |> unprefix "'", if j = 1 then ~1 else i))))
 and mk_fun thy tabs restrict (c, ty1) trns =
   case get_first (fn (name, eqx) => (eqx (c, ty1))) (get_eqextrs thy tabs)
    of SOME ((eq_thms, default), ty2) =>
@@ -734,7 +734,7 @@ and mk_fun thy tabs restrict (c, ty1) trns =
           ||>> (exprsgen_eqs thy tabs o the_list o Option.map mk_default) default
           ||>> exprsgen_type thy tabs [ty3]
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
-          |-> (fn (((eqs, eq_default), [ty]), sortctxt) => (pair o SOME) (eqs @ eq_default, (sortctxt, ty)))
+          |-> (fn (((eqs, eq_default), [ty]), sortctxt) => (pair o SOME) ((eqs @ eq_default, (sortctxt, ty)), ty3))
         end
     | NONE => (NONE, trns)
 and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
@@ -754,8 +754,12 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
               fun gen_membr (m, ty) trns =
                 trns
                 |> mk_fun thy tabs true (m, ty)
-                |-> (fn SOME funn => pair (idf_of_name thy nsp_mem m, (idf_of_name thy nsp_instmem m, funn))
-                      | NONE => error ("could not derive definition for member " ^ quote m));
+                |-> (fn NONE => error ("could not derive definition for member " ^ quote m)
+                      | SOME (funn, ty_use) =>
+                    (fold_map o fold_map) (exprgen_classlookup thy tabs)
+                       (ClassPackage.extract_classlookup_member thy (ty, ty_use))
+                #-> (fn lss =>
+                       pair (idf_of_name thy nsp_mem m, ((idf_of_name thy nsp_instmem m, funn), lss))));
             in
               trns
               |> debug 5 (fn _ => "trying defgen class instance for (" ^ quote cls
@@ -786,7 +790,7 @@ and ensure_def_const thy (tabs as (_, (_, overltab, dtcontab))) (c, ty) trns =
        of SOME (c, ty) =>
             trns
             |> mk_fun thy tabs false (c, ty)
-            |-> (fn (SOME funn) => succeed (Fun funn)
+            |-> (fn SOME (funn, _) => succeed (Fun funn)
                   | NONE => fail ("no defining equations found for " ^ quote c))
         | NONE =>
             trns
@@ -908,7 +912,8 @@ and appgen thy tabs ((f, ty), ts) trns =
 (* function extractors *)
 
 fun eqextr_defs thy (deftab, _) (c, ty) =
-  Option.mapPartial (get_first (fn (ty', (thm, _)) => if eq_typ thy (ty, ty')
+  Option.mapPartial (get_first (fn (ty', (thm, _)) =>
+    if eq_typ thy (ty, ty')
     then SOME ([thm], ty')
     else NONE
   )) (Symtab.lookup deftab c);

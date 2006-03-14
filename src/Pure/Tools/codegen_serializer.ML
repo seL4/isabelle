@@ -407,7 +407,8 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           str v,
           str ":",
           case sort
-           of [class] => mk_class v class
+           of [] => str "unit"
+            | [class] => mk_class v class
             | _ => Pretty.enum " *" "" "" (map (mk_class v) sort),
           str ")"
         ]
@@ -437,7 +438,8 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           | from_classlookup fxy (Lookup (classes, (v, i))) =
               from_lookup BR (string_of_int (i+1) :: classes) (str v)
       in case ls
-       of [l] => from_classlookup fxy l
+       of [] => str "()"
+        | [l] => from_classlookup fxy l
         | ls => (Pretty.list "(" ")" o map (from_classlookup NOBR)) ls
       end;
     fun ml_from_tycoexpr fxy (tyco, tys) =
@@ -738,43 +740,46 @@ fun ml_from_defs (is_cons, needs_type)
                 :: (str o resolv) supinst
                 :: map (ml_from_sortlookup NOBR) lss
               );
-            fun from_memdef (m, (m', def)) =
+            fun from_memdef (m, ((m', def), lss)) =
               (ml_from_funs [(m', def)], (Pretty.block o Pretty.breaks) (
                 ml_from_label m
                 :: str "="
                 :: (str o resolv) m'
-                :: map (str o fst) arity
+                :: map (ml_from_sortlookup NOBR) lss
               ));
+            fun mk_corp rhs =
+              (Pretty.block o Pretty.breaks) (
+                str definer
+                :: (str o resolv) name
+                :: map ml_from_tyvar arity
+                @ [str "=", rhs]
+              );
             fun mk_memdefs supclassexprs [] =
                   Pretty.enum "," "{" "};" (
                     supclassexprs
-                  )
+                  ) |> mk_corp
               | mk_memdefs supclassexprs memdefs =
                   let
                     val (defs, assigns) = (split_list o map from_memdef) memdefs;
                   in
                     Pretty.chunks [
-                      [str ("let"), Pretty.fbrk, defs |> Pretty.chunks]
-                        |> Pretty.block,
-                      [str ("in "), Pretty.enum "," "{" "} : "
-                        (supclassexprs @ assigns),
-                        ml_from_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity]),
-                        str " end;"]
-                        |> Pretty.block
-                    ] 
+                      Pretty.block [
+                        str "local",
+                        Pretty.fbrk,
+                        Pretty.chunks defs
+                      ],
+                      Pretty.block [str "in", Pretty.brk 1,
+                        (mk_corp o Pretty.block o Pretty.breaks) [
+                          Pretty.enum "," "{" "}" (supclassexprs @ assigns),
+                          str ":",
+                          ml_from_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
+                        ]
+                      ],
+                      str "end; (* instance *)"
+                    ]
                   end;
           in
-            Pretty.block [
-              (Pretty.block o Pretty.breaks) (
-                str definer
-                :: (str o resolv) name
-                :: map ml_from_tyvar arity
-              ),
-              Pretty.brk 1,
-              str "=",
-              Pretty.brk 1,
-              mk_memdefs (map from_supclass suparities) memdefs
-            ] |> SOME
+            mk_memdefs (map from_supclass suparities) memdefs |> SOME
           end
       | ml_from_def (name, CodegenThingol.Classinstmember) = NONE;
   in case defs
@@ -1071,7 +1076,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             hs_from_type BR (tyco `%% map (ITyVar o fst) arity),
             str " where",
             Pretty.fbrk,
-            Pretty.chunks (map (fn (m, (_, (eqs, ty))) => hs_from_funeqs (m, (eqs, ty))) memdefs)
+            Pretty.chunks (map (fn (m, ((_, (eqs, ty)), _)) => hs_from_funeqs (m, (eqs, ty))) memdefs)
           ] |> SOME
       | hs_from_def (_, CodegenThingol.Classinstmember) =
           NONE

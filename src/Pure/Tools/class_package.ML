@@ -24,6 +24,8 @@ sig
   val instance_sort_i: class * sort -> theory -> Proof.state
   val prove_instance_sort: tactic -> class * sort -> theory -> theory
 
+  val use_cp_instance: bool ref;
+
   val intern_class: theory -> xstring -> class
   val intern_sort: theory -> sort -> sort
   val extern_class: theory -> class -> xstring
@@ -45,10 +47,11 @@ sig
 
   type sortcontext = (string * sort) list
   datatype classlookup = Instance of (class * string) * classlookup list list
-                       | Lookup of class list * (string * int)
+                       | Lookup of class list * (string * (int * int))
   val extract_sortctxt: theory -> typ -> sortcontext
   val extract_classlookup: theory -> string * typ -> classlookup list list
   val extract_classlookup_inst: theory -> class * string -> class -> classlookup list list
+  val extract_classlookup_member: theory -> typ * typ -> classlookup list list
 end;
 
 structure ClassPackage: CLASS_PACKAGE =
@@ -176,7 +179,7 @@ fun the_inst_sign thy (class, tyco) =
   let
     val _ = if is_class thy class then () else error ("no syntactic class: " ^ class);
     val arity =
-      (fst o the o AList.lookup (op =) (the_instances thy class)) tyco
+      Sorts.mg_domain (Sign.classes_arities_of thy) tyco [class];
     val clsvar = (#var o the_class_data thy) class;
     val const_sign = (snd o the_consts_sign thy) class;
     fun add_var sort used =
@@ -497,11 +500,10 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
         |> Sign.add_const_constraint_i (c, NONE)
         |> pair (c, Type.unvarifyT ty)
       end;
-    fun check_defs raw_defs c_req thy =
+    fun check_defs0 thy raw_defs c_req =
       let
-        val thy' = (Sign.add_arities_i [(tyco, asorts, sort)] o Theory.copy) thy;
         fun get_c raw_def =
-          (fst o Sign.cert_def pp o tap_def thy' o snd) raw_def;
+          (fst o Sign.cert_def pp o tap_def thy o snd) raw_def;
         val c_given = map get_c raw_defs;
         fun eq_c ((c1, ty1), (c2, ty2)) =
           let
@@ -509,18 +511,22 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
             val ty2' = Type.varifyT ty2;
           in
             c1 = c2
-            andalso Sign.typ_instance thy' (ty1', ty2')
-            andalso Sign.typ_instance thy' (ty2', ty1')
+            andalso Sign.typ_instance thy (ty1', ty2')
+            andalso Sign.typ_instance thy (ty2', ty1')
           end;
         val _ = case fold (remove eq_c) c_req c_given
          of [] => ()
           | cs => error ("superfluous definition(s) given for "
-                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy' ty))) cs);
+                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
         val _ = case fold (remove eq_c) c_given c_req
          of [] => ()
           | cs => error ("no definition(s) given for "
-                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy' ty))) cs);
-      in thy end;
+                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
+      in () end;
+    fun check_defs1 raw_defs c_req thy =
+      let
+        val thy' = (Sign.add_arities_i [(tyco, asorts, sort)] o Theory.copy) thy
+      in (check_defs0 thy' raw_defs c_req; thy) end;
     fun mangle_alldef_name tyco sort =
       Thm.def_name ((space_implode "_" o map NameSpace.base) sort ^ "_" ^ NameSpace.base tyco);
     fun note_all tyco sort thms thy =
@@ -530,10 +536,12 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
     fun after_qed cs thy =
       thy
       |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
-      |> fold (fn class => add_inst_data (class, (tyco, (asorts, Context.theory_name thy)))) sort;
+      |> fold (fn class =>
+        add_inst_data (class, (tyco,
+          (map (operational_sort_of thy) asorts, Context.theory_name thy)))) sort;
   in
     theory
-    |> check_defs raw_defs cs
+    |> check_defs1 raw_defs cs
     |> fold_map get_remove_contraint (map fst cs)
     ||>> add_defs tyco (map (pair NONE) raw_defs)
     |-> (fn (cs, defnames) => note_all tyco sort defnames #> pair cs)
@@ -629,15 +637,15 @@ fun extract_sortctxt thy ty =
   |> filter (not o null o snd);
 
 datatype classlookup = Instance of (class * string) * classlookup list list
-                     | Lookup of class list * (string * int)
+                     | Lookup of class list * (string * (int * int))
 
 fun pretty_lookup' (Instance ((class, tyco), lss)) =
       (Pretty.block o Pretty.breaks) (
         Pretty.enum "," "{" "}" [Pretty.str class, Pretty.str tyco]
         :: map pretty_lookup lss
       )
-  | pretty_lookup' (Lookup (classes, (v, i))) =
-      Pretty.enum " <" "[" "]" (map Pretty.str classes @ [Pretty.str (v ^ "!" ^ string_of_int i)])
+  | pretty_lookup' (Lookup (classes, (v, (i, j)))) =
+      Pretty.enum " <" "[" "]" (map Pretty.str classes @ [Pretty.str (v ^ "!" ^ string_of_int i ^ "/" ^ string_of_int j)])
 and pretty_lookup ls = (Pretty.enum "," "(" ")" o map pretty_lookup') ls;
 
 fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
@@ -651,8 +659,7 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
         val (i, (subclass::deriv)) = (the oo get_index) (fn subclass =>
             get_superclass_derivation thy (subclass, superclass)
           ) subclasses;
-        val i' = if length subclasses = 1 then ~1 else i;
-      in (rev deriv, i') end;
+      in (rev deriv, (i, length subclasses)) end;
     fun mk_lookup (sort_def, (Type (tyco, tys))) =
           map (fn class => Instance ((class, tyco),
             map2 (curry mk_lookup)
@@ -705,6 +712,8 @@ fun extract_classlookup_inst thy (class, tyco) supclass =
     extract_lookup thy (extract_sortctxt thy typ_def) typ_def typ_use
   end;
 
+fun extract_classlookup_member thy (ty_decl, ty_use) =
+  extract_lookup thy (extract_sortctxt thy ty_decl) ty_decl ty_use;
 
 (* toplevel interface *)
 
@@ -717,10 +726,13 @@ in
 
 val (classK, instanceK) = ("class", "instance")
 
+val use_cp_instance = ref false;
+
 fun wrap_add_instance_subclass (class, sort) thy =
   case Sign.read_sort thy sort
    of [class'] =>
-      if (is_some o lookup_class_data thy o Sign.intern_class thy) class
+      if ! use_cp_instance
+        andalso (is_some o lookup_class_data thy o Sign.intern_class thy) class
         andalso (is_some o lookup_class_data thy o Sign.intern_class thy) class'
       then
         instance_sort (class, sort) thy

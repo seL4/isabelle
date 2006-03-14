@@ -75,7 +75,7 @@ sig
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
           * (class * (string * iclasslookup list list)) list)
-        * (string * (string * funn)) list
+        * (string * ((string * funn) * iclasslookup list list)) list
     | Classinstmember;
   type module;
   type transact;
@@ -419,7 +419,7 @@ datatype def =
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
         * (class * (string * iclasslookup list list)) list)
-      * (string * (string * funn)) list
+      * (string * ((string * funn) * iclasslookup list list)) list
   | Classinstmember;
 
 datatype node = Def of def | Module of node Graph.T;
@@ -799,12 +799,12 @@ fun check_prep_def modl Undef =
         fun mk_memdef (m, (sortctxt, ty)) =
           case AList.lookup (op =) memdefs m
            of NONE => error ("missing definition for member " ^ quote m)
-            | SOME (m', (eqs, (sortctxt', ty'))) =>
+            | SOME ((m', (eqs, (sortctxt', ty'))), lss) =>
                 let
                   val sortctxt'' = sortctxt |> fold (fn v_sort => AList.update (op =) v_sort) arity;
                   val ty'' = instant_itype (instant (v, tyco `%% map (ITyVar o fst) arity)) ty;
                 in if eq_ityp ((sortctxt'', ty''), (sortctxt', ty'))
-                then (m, (m', (check_funeqs eqs, (sortctxt', ty'))))
+                then (m, ((m', (check_funeqs eqs, (sortctxt', ty'))), lss))
                 else
                   error ("inconsistent type for member definition " ^ quote m ^ " [" ^ v ^ "]: "
                     ^ (Pretty.output o Pretty.block o Pretty.breaks) [
@@ -839,8 +839,8 @@ fun postprocess_def (name, Datatype (_, constrs)) =
       ) membrs
       )
   | postprocess_def (name, Classinst (_, memdefs)) =
-      (check_samemodule (name :: map (fst o snd) memdefs);
-      fold (fn (_, (m', _)) =>
+      (check_samemodule (name :: map (fst o fst o snd) memdefs);
+      fold (fn (_, ((m', _), _)) =>
         add_def_incr (m', Classinstmember)
       ) memdefs
       )
