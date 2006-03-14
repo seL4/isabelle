@@ -28,6 +28,8 @@ sig
   type T
   val raw_str: string * real -> T
   val str: string -> T
+  val command: string -> T
+  val keyword: string -> T
   val brk: int -> T
   val fbrk: T
   val blk: int * T list -> T
@@ -37,6 +39,7 @@ sig
   val block: T list -> T
   val strs: string list -> T
   val chunks: T list -> T
+  val chunks2: T list -> T
   val quote: T -> T
   val backquote: T -> T
   val separate: string -> T list -> T list
@@ -190,6 +193,9 @@ fun length (Block (_, _, len)) = len
 fun raw_str (s, len) = String (s, Real.round len);
 val str = String o apsnd Real.round o Output.output_width;
 
+val command = String o apsnd Real.round o Output.keyword_width true;
+val keyword = String o apsnd Real.round o Output.keyword_width false;
+
 fun brk wd = Break (false, wd);
 val fbrk = Break (true, 2);
 
@@ -213,6 +219,7 @@ fun block prts = blk (2, prts);
 
 val strs = block o breaks o map str;
 fun chunks prts = blk (0, fbreaks prts);
+fun chunks2 prts = blk (0, List.concat (Library.separate [fbrk, fbrk] (map single prts)));
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
 fun backquote prt = blk (1, [str "`", prt, str "`"]);
