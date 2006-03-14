@@ -95,11 +95,11 @@ in
 
 fun setup_xsymbols_output () =
   Output.add_mode xsymbolsN
-    (xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
+    (xsymbols_output, K xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
 
 fun setup_pgml_output () =
   Output.add_mode pgmlN
-    (pgml_output, Symbol.default_indent, Symbol.encode_raw);
+    (pgml_output, K pgml_output, Symbol.default_indent, Symbol.encode_raw);
 
 end;
 

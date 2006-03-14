@@ -160,10 +160,12 @@ fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, real (Symbol.length syms)) end;
 
+fun latex_keyword cmd =
+  apfst (enclose (if cmd then "\\isacommand{" else "\\isakeyword{") "}") o latex_output;
+
 fun latex_indent "" = ""
   | latex_indent s = enclose "\\isaindent{" "}" s;
 
-val _ = Output.add_mode latexN (latex_output, latex_indent o #1, Symbol.encode_raw);
-
+val _ = Output.add_mode latexN (latex_output, latex_keyword, latex_indent o #1, Symbol.encode_raw);
 
 end;

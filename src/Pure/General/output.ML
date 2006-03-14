@@ -42,6 +42,8 @@ sig
   val has_mode: string -> bool
   val output_width: string -> string * real
   val output: string -> string
+  val keyword_width: bool -> string -> string * real
+  val keyword: bool -> string -> string
   val indent: string * int -> string
   val raw: string -> string
   exception TOPLEVEL_ERROR
@@ -53,7 +55,8 @@ sig
   val debug: string -> unit
   val error_msg: string -> unit
   val add_mode: string ->
-    (string -> string * real) * (string * int -> string) * (string -> string) -> unit
+    (string -> string * real) * (bool -> string -> string * real) *
+    (string * int -> string) * (string -> string) -> unit
   val accumulated_time: unit -> unit
 end;
 
@@ -67,7 +70,8 @@ val print_mode = ref ([]: string list);
 fun has_mode s = s mem_string ! print_mode;
 
 type mode_fns =
- {output_width: string -> string * real,
+ {output: string -> string * real,
+  keyword: bool -> string -> string * real,
   indent: string * int -> string,
   raw: string -> string};
 
@@ -83,8 +87,10 @@ fun get_mode () =
       (case lookup_mode "" of SOME p => p
       | NONE => raise MISSING_DEFAULT_OUTPUT));  (*sys_error would require output again!*)
 
-fun output_width x = #output_width (get_mode ()) x;
+fun output_width x = #output (get_mode ()) x;
 val output = #1 o output_width;
+fun keyword_width b x = #keyword (get_mode ()) b x;
+val keyword = #1 oo keyword_width;
 fun indent x = #indent (get_mode ()) x;
 fun raw x = #raw (get_mode ()) x;
 
@@ -162,10 +168,11 @@ fun update_warn eq msg (kv as (key, value)) xs =
 
 (* add_mode *)
 
-fun add_mode name (f, g, h) =
+fun add_mode name (output, keyword, indent, raw) =
  (if is_none (lookup_mode name) then ()
   else warning ("Redeclaration of symbol print mode: " ^ quote name);
-  modes := Symtab.update (name, {output_width = f, indent = g, raw = h}) (! modes));
+  change modes (Symtab.update (name,
+    {output = output, keyword = keyword, indent = indent, raw = raw})));
 
 
 

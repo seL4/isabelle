@@ -54,6 +54,7 @@ sig
   val bump_string: string -> string
   val length: symbol list -> int
   val default_output: string -> string * real
+  val default_keyword: bool -> string -> string * real
   val default_indent: string * int -> string
   val default_raw: string -> string
   val xsymbolsN: string
@@ -480,10 +481,11 @@ fun bump_string str =
 (* default *)
 
 fun default_output s = (s, real (size s));
+fun default_keyword (_: bool) = default_output;
 fun default_indent (_: string, k) = spaces k;
 fun default_raw (s: string) = s;
 
-val _ = Output.add_mode "" (default_output, default_indent, default_raw);
+val _ = Output.add_mode "" (default_output, default_keyword, default_indent, default_raw);
 
 
 (* xsymbols *)

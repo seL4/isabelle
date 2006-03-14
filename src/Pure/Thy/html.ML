@@ -236,9 +236,6 @@ val output_symbols = map #2 o output_syms;
 end;
 
 
-val _ = Output.add_mode htmlN (output_width, Symbol.default_indent, Symbol.encode_raw);
-
-
 (* token translations *)
 
 fun style s =
@@ -265,9 +262,10 @@ type text = string;
 (* atoms *)
 
 val plain = output;
-fun name s = "<span class=\"name\">" ^ output s ^ "</span>";
-fun keyword s = "<span class=\"keyword\">" ^ output s ^ "</span>";
-fun file_name s = "<span class=\"filename\">" ^ output s ^ "</span>";
+val name = enclose "<span class=\"name\">" "</span>" o output;
+val keyword = enclose "<span class=\"keyword\">" "</span>" o output;
+val keyword_width = apfst (enclose "<span class=\"keyword\">" "</span>") o output_width;
+val file_name = enclose "<span class=\"filename\">" "</span>" o output;
 val file_path = file_name o Url.pack;
 
 
@@ -439,5 +437,10 @@ fun section heading = "\n\n<h2>" ^ plain heading ^ "</h2>\n";
 fun subsection heading = "\n\n<h3>" ^ plain heading ^ "</h3>\n";
 fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
 
+
+(* mode output *)
+
+val _ = Output.add_mode htmlN
+  (output_width, K keyword_width, Symbol.default_indent, Symbol.encode_raw);
 
 end;
