@@ -183,6 +183,8 @@ fun print_exn e =
 
 (* Compatibility. *)
 
+val string_of_mixfix = Pretty.string_of o Syntax.pretty_mixfix;
+
 fun mk_syn thy c =
   if Syntax.is_identifier c andalso not (Syntax.is_keyword (Sign.syn_of thy) c) then NoSyn
   else Syntax.literal c
@@ -289,7 +291,6 @@ fun implode_subst [] = []
   | implode_subst (x::r::rest) = ((x,r)::(implode_subst rest))
   | implode_subst _ = raise ERR "implode_subst" "malformed substitution list"
 
-fun apboth f (x,y) = (f x,f y)
 end
 open Lib
 
@@ -1240,7 +1241,7 @@ fun split_name str =
     let
 	val sub = Substring.full str
 	val (f,idx) = apsnd Substring.string (Substring.splitr Char.isDigit sub)
-	val (newstr,u) = apboth Substring.string (Substring.splitr (fn c => c = #"_") f)
+	val (newstr,u) = pairself Substring.string (Substring.splitr (fn c => c = #"_") f)
     in
 	if not (idx = "") andalso u = "_"
 	then SOME (newstr,valOf(Int.fromString idx))
@@ -1944,14 +1945,14 @@ fun new_definition thyname constname rhs thy =
 			let
 			    val p1 = quotename constname
 			    val p2 = string_of_ctyp (ctyp_of thy'' ctype)
-			    val p3 = Syntax.string_of_mixfix csyn
+			    val p3 = string_of_mixfix csyn
 			    val p4 = smart_string_of_cterm crhs
 			in
 			    add_dump ("constdefs\n  " ^p1^ " :: \"" ^p2^ "\" "^p3^ "\n  " ^p4) thy''  
 			end
 		    else
 			(add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^
-				   "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
+				   "\" " ^ (string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
 				  thy'')
 	val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
 		      SOME (_,res) => HOLThm(rens_of linfo,res)
@@ -2013,7 +2014,7 @@ fun new_specification thyname thmname names hth thy =
 							      ((cname,cT,mk_syn thy cname)::cs,p)
 							  end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
 			       val str = Library.foldl (fn (acc,(c,T,csyn)) =>
-						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
+						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (string_of_mixfix csyn)) ("consts",consts)
 			       val thy' = add_dump str thy
 			       val _ = ImportRecorder.add_consts consts
 			   in
@@ -2125,7 +2126,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
 	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " 
-				 ^ (Syntax.string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
+				 ^ (string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
 	    
 	    val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hol4 [OF type_definition_" ^ tycname ^ "]") thy5
               
@@ -2140,7 +2141,7 @@ fun add_dump_constdefs thy defname constname rhs ty =
     let
 	val n = quotename constname
 	val t = string_of_ctyp (ctyp_of thy ty)
-	val syn = Syntax.string_of_mixfix (mk_syn thy constname)
+	val syn = string_of_mixfix (mk_syn thy constname)
 	(*val eq = smart_string_of_cterm (cterm_of thy (Const(rhs, ty)))*)
         val eq = quote (constname ^ " == "^rhs)
 	val d = case defname of NONE => "" | SOME defname => (quotename defname)^" : "
@@ -2151,7 +2152,7 @@ fun add_dump_constdefs thy defname constname rhs ty =
 fun add_dump_syntax thy name = 
     let
       val n = quotename name
-      val syn = Syntax.string_of_mixfix (mk_syn thy name)
+      val syn = string_of_mixfix (mk_syn thy name)
     in
       add_dump ("syntax\n  "^n^" :: _ "^syn) thy
     end
@@ -2224,7 +2225,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 			    else Library.setmp show_all_types true smart_string_of_cterm
 	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ 
               " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " ^ 
-	      (Syntax.string_of_mixfix tsyn) ^ " morphisms "^
+	      (string_of_mixfix tsyn) ^ " morphisms "^
               (quote rep_name)^" "^(quote abs_name)^"\n"^ 
 	      ("  apply (rule light_ex_imp_nonempty[where t="^
               (proc_prop (cterm_of thy4 t))^"])\n"^              
