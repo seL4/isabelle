@@ -26,7 +26,7 @@ sig
   include MIXFIX0
   val literal: string -> mixfix
   val no_syn: 'a * 'b -> 'a * 'b * mixfix
-  val string_of_mixfix: mixfix -> string
+  val pretty_mixfix: mixfix -> Pretty.T
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
   val fix_mixfix: string -> mixfix -> mixfix
@@ -66,25 +66,33 @@ val literal = Delimfix o SynExt.escape_mfix;
 fun no_syn (x, y) = (x, y, NoSyn);
 
 
-(* string_of_mixfix *)
+(* pretty_mixfix *)
 
-val parens = enclose "(" ")";
-val brackets = enclose "[" "]";
-val spaces = space_implode " ";
+local
 
-fun string_of_mixfix NoSyn = ""
-  | string_of_mixfix (Mixfix (sy, ps, p)) =
-      parens (spaces [quote sy, brackets (commas (map string_of_int ps)), string_of_int p])
-  | string_of_mixfix (Delimfix sy) = parens (quote sy)
-  | string_of_mixfix (InfixName (sy, p)) = parens (spaces ["infix", quote sy, string_of_int p])
-  | string_of_mixfix (InfixlName (sy, p)) = parens (spaces ["infixl", quote sy, string_of_int p])
-  | string_of_mixfix (InfixrName (sy, p)) = parens (spaces ["infixl", quote sy, string_of_int p])
-  | string_of_mixfix (Infix p) = parens (spaces ["infix", string_of_int p])
-  | string_of_mixfix (Infixl p) = parens (spaces ["infixl", string_of_int p])
-  | string_of_mixfix (Infixr p) = parens (spaces ["infixr", string_of_int p])
-  | string_of_mixfix (Binder (sy, p1, p2)) =
-      parens (spaces ["binder", quote sy, brackets (string_of_int p1), string_of_int p2])
-  | string_of_mixfix Structure = "(structure)";
+val quoted = Pretty.quote o Pretty.str;
+val keyword = Pretty.keyword;
+val parens = Pretty.enclose "(" ")";
+val brackets = Pretty.enclose "[" "]";
+val int = Pretty.str o string_of_int;
+
+in
+
+fun pretty_mixfix NoSyn = Pretty.str ""
+  | pretty_mixfix (Mixfix (s, ps, p)) =
+      parens (Pretty.breaks [quoted s, brackets (Pretty.commas (map int ps)), int p])
+  | pretty_mixfix (Delimfix s) = parens [quoted s]
+  | pretty_mixfix (InfixName (s, p)) = parens (Pretty.breaks [keyword "infix", quoted s, int p])
+  | pretty_mixfix (InfixlName (s, p)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
+  | pretty_mixfix (InfixrName (s, p)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
+  | pretty_mixfix (Infix p) = parens (Pretty.breaks [keyword "infix", int p])
+  | pretty_mixfix (Infixl p) = parens (Pretty.breaks [keyword "infixl", int p])
+  | pretty_mixfix (Infixr p) = parens (Pretty.breaks [keyword "infixr", int p])
+  | pretty_mixfix (Binder (s, p1, p2)) =
+      parens (Pretty.breaks [keyword "binder", quoted s, brackets [int p1], int p2])
+  | pretty_mixfix Structure = parens [keyword "structure"];
+
+end;
 
 
 (* syntax specifications *)
