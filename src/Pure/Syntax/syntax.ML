@@ -53,11 +53,14 @@ sig
     (string * ((Context.generic -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Context.generic -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (string -> string * real)) list -> syntax -> syntax
-  val extend_trrules_i: ast trrule list -> syntax -> syntax
-  val extend_trrules: Context.generic -> (string -> bool) -> syntax ->
-    (string * string) trrule list -> syntax -> syntax
   val remove_const_gram: (string -> bool) ->
     string * bool -> (string * typ * mixfix) list -> syntax -> syntax
+  val extend_trrules: Context.generic -> (string -> bool) -> syntax ->
+    (string * string) trrule list -> syntax -> syntax
+  val remove_trrules: Context.generic -> (string -> bool) -> syntax ->
+    (string * string) trrule list -> syntax -> syntax
+  val extend_trrules_i: ast trrule list -> syntax -> syntax
+  val remove_trrules_i: ast trrule list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
   val basic_syn: syntax
@@ -442,6 +445,8 @@ fun print_rule (ParseRule _) = NONE
   | print_rule (ParsePrintRule pats) = SOME (swap pats);
 
 
+local
+
 fun check_rule (rule as (lhs, rhs)) =
   (case Ast.rule_error rule of
     SOME msg =>
@@ -467,12 +472,20 @@ fun read_pattern context is_logtype syn (root, str) =
     cat_error msg ("The error(s) above occurred in translation pattern " ^
       quote str);
 
-
 fun prep_rules rd_pat raw_rules =
   let val rules = map (map_trrule rd_pat) raw_rules in
     (map check_rule (List.mapPartial parse_rule rules),
       map check_rule (List.mapPartial print_rule rules))
   end
+
+in
+
+val cert_rules = prep_rules I;
+
+fun read_rules context is_logtype syn =
+  prep_rules (read_pattern context is_logtype syn);
+
+end;
 
 
 
@@ -494,7 +507,7 @@ fun pretty_sort context syn = pretty_t Printer.sort_to_ast Printer.pretty_typ_as
 
 
 
-(** extend syntax **)
+(** modify syntax **)
 
 fun ext_syntax' f is_logtype prmode decls = extend_syntax prmode (f is_logtype decls);
 fun ext_syntax f = ext_syntax' (K f) (K false) default_mode;
@@ -505,15 +518,18 @@ val extend_consts          = ext_syntax SynExt.syn_ext_const_names;
 val extend_trfuns          = ext_syntax SynExt.syn_ext_trfuns;
 val extend_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
 val extend_tokentrfuns     = ext_syntax SynExt.syn_ext_tokentrfuns;
-val extend_trrules_i       = ext_syntax SynExt.syn_ext_rules o prep_rules I;
-
-fun extend_trrules context is_logtype syn rules =
-  ext_syntax' (K SynExt.syn_ext_rules) (K false) default_mode
-    (prep_rules (read_pattern context is_logtype syn) rules);
 
 fun remove_const_gram is_logtype prmode decls =
   remove_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
 
+fun extend_trrules context is_logtype syn =
+  ext_syntax SynExt.syn_ext_rules o read_rules context is_logtype syn;
+
+fun remove_trrules context is_logtype syn =
+  remove_syntax default_mode o SynExt.syn_ext_rules o read_rules context is_logtype syn;
+
+val extend_trrules_i = ext_syntax SynExt.syn_ext_rules o cert_rules;
+val remove_trrules_i = remove_syntax default_mode o SynExt.syn_ext_rules o cert_rules;
 
 
 (*export parts of internal Syntax structures*)
