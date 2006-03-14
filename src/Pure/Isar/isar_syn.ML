@@ -738,6 +738,10 @@ val print_casesP =
   OuterSyntax.improper_command "print_cases" "print cases of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_cases));
 
+val print_stmtsP =
+  OuterSyntax.improper_command "print_statement" "print theorems as long statements" K.diag
+    (opt_modes -- P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
+
 val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
     (opt_modes -- P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
@@ -895,14 +899,14 @@ val _ = OuterSyntax.add_parsers [
   cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
   interpretationP, interpretP,
   (*diagnostic commands*)
-  pretty_setmarginP,
-  print_commandsP, print_contextP, print_theoryP, print_syntaxP,
-  print_theoremsP, print_localesP, print_localeP,
+  pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
+  print_syntaxP, print_theoremsP, print_localesP, print_localeP,
   print_registrationsP, print_attributesP, print_simpsetP,
   print_rulesP, print_induct_rulesP, print_trans_rulesP,
   print_methodsP, print_antiquotationsP, thm_depsP, find_theoremsP,
-  print_bindsP, print_lthmsP, print_casesP, print_thmsP, print_prfsP,
-  print_full_prfsP, print_propP, print_termP, print_typeP,
+  print_bindsP, print_lthmsP, print_casesP, print_stmtsP, print_thmsP,
+  print_prfsP, print_full_prfsP, print_propP, print_termP,
+  print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
