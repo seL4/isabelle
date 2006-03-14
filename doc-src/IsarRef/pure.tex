@@ -257,7 +257,7 @@ preceding the actual theory definition.
 
   structs: '(' 'structure' (vars + 'and') ')'
   ;
-  constdecl: ((name '::' type) mixfix | (name '::' type)) 'where'? | name 'where'
+  constdecl:  ((name '::' type mixfix | name '::' type | name mixfix) 'where'?) | name 'where'
   ;
   constdef: thmdecl? prop
   ;
@@ -299,11 +299,13 @@ preceding the actual theory definition.
 
 \subsection{Syntax and translations}\label{sec:syn-trans}
 
-\indexisarcmd{syntax}\indexisarcmd{no-syntax}\indexisarcmd{translations}
+\indexisarcmd{syntax}\indexisarcmd{no-syntax}
+\indexisarcmd{translations}\indexisarcmd{no-translations}
 \begin{matharray}{rcl}
   \isarcmd{syntax} & : & \isartrans{theory}{theory} \\
   \isarcmd{no_syntax} & : & \isartrans{theory}{theory} \\
   \isarcmd{translations} & : & \isartrans{theory}{theory} \\
+  \isarcmd{no_translations} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
 \railalias{rightleftharpoons}{\isasymrightleftharpoons}
@@ -315,13 +317,10 @@ preceding the actual theory definition.
 \railalias{leftharpoondown}{\isasymleftharpoondown}
 \railterm{leftharpoondown}
 
-\railalias{nosyntax}{no\_syntax}
-\railterm{nosyntax}
-
 \begin{rail}
-  ('syntax' | nosyntax) mode? (constdecl +)
+  ('syntax' | 'no\_syntax') mode? (constdecl +)
   ;
-  'translations' (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
+  ('translations' | 'no\_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
   ;
 
   mode: ('(' ( name | 'output' | name 'output' ) ')')
@@ -349,6 +348,11 @@ preceding the actual theory definition.
   rules (\isasymrightharpoonup), or print rules (\isasymleftharpoondown).
   Translation patterns may be prefixed by the syntactic category to be used
   for parsing; the default is $logic$.
+  
+\item [$\isarkeyword{no_translations}~rules$] removes syntactic
+  translation rules, which are interpreted in the same manner as for
+  $\isarkeyword{translations}$ above.
+
 \end{descr}
 
 
