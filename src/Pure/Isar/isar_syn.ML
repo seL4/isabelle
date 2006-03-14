@@ -169,6 +169,10 @@ val translationsP =
   OuterSyntax.command "translations" "declare syntax translation rules" K.thy_decl
     (Scan.repeat1 trans_line >> (Toplevel.theory o Theory.add_trrules));
 
+val no_translationsP =
+  OuterSyntax.command "no_translations" "remove syntax translation rules" K.thy_decl
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Theory.del_trrules));
+
 
 (* axioms and definitions *)
 
@@ -875,11 +879,11 @@ val _ = OuterSyntax.add_parsers [
   (*theory sections*)
   classesP, classrelP, defaultsortP, axclassP, typedeclP, typeabbrP,
   nontermP, aritiesP, judgmentP, constsP, finalconstsP, syntaxP,
-  no_syntaxP, translationsP, axiomsP, defsP, constdefsP, definitionP,
-  abbreviationP, axiomatizationP, theoremsP, lemmasP, declareP,
-  globalP, localP, hideP, useP, mlP, ml_commandP, ml_setupP, setupP,
-  method_setupP, parse_ast_translationP, parse_translationP,
-  print_translationP, typed_print_translationP,
+  no_syntaxP, translationsP, no_translationsP, axiomsP, defsP,
+  constdefsP, definitionP, abbreviationP, axiomatizationP, theoremsP,
+  lemmasP, declareP, globalP, localP, hideP, useP, mlP, ml_commandP,
+  ml_setupP, setupP, method_setupP, parse_ast_translationP,
+  parse_translationP, print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
