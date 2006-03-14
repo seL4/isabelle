@@ -122,6 +122,10 @@ available both in the present proof and as annotations in the
 resulting rule, for later use with the 'cases' method (cf. attribute
 case_names).
 
+* Isar: 'print_statement' prints theorems from the current theory or
+proof context in long statement form, according to the syntax of a
+top-level lemma.
+
 * Isar: 'obtain' takes an optional case name for the local context
 introduction rule (default "that").
 

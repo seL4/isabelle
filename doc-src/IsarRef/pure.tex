@@ -832,6 +832,7 @@ the order of facts is less significant here.
 
 \indexisarcmd{lemma}\indexisarcmd{theorem}\indexisarcmd{corollary}
 \indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
+\indexisarcmd{print_statement}
 \begin{matharray}{rcl}
   \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
@@ -840,6 +841,7 @@ the order of facts is less significant here.
   \isarcmd{show} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
   \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
   \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{print_statement}^* & : & \isarkeep{theory~|~proof} \\
 \end{matharray}
 
 From a theory context, proof mode is entered by an initial goal command such
@@ -873,6 +875,8 @@ and assumptions, cf.\ \S\ref{sec:obtain}).
   ('lemma' | 'theorem' | 'corollary') locale? (goal | longgoal)
   ;
   ('have' | 'show' | 'hence' | 'thus') goal
+  ;
+  'print\_statement' modes? thmrefs
   ;
   
   goal: (props + 'and')
@@ -924,6 +928,10 @@ and assumptions, cf.\ \S\ref{sec:obtain}).
   
 \item [$\THUSNAME$] abbreviates ``$\THEN~\SHOWNAME$''.  Note that $\THUSNAME$
   is also equivalent to ``$\FROM{this}~\SHOWNAME$''.
+  
+\item [$\isarkeyword{print_statement}~\vec a$] prints theorems from
+  the current theory or proof context in long statement form,
+  according to the syntax for $\isarkeyword{lemma}$ given above.
 
 \end{descr}
 
