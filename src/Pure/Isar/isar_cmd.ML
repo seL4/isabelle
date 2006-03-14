@@ -64,6 +64,8 @@ sig
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
+  val print_stmts: string list * (thmref * Attrib.src list) list
+    -> Toplevel.transition -> Toplevel.transition
   val print_thms: string list * (thmref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
   val print_prfs: bool -> string list * (thmref * Attrib.src list) list option
@@ -293,7 +295,12 @@ val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
     ProofContext.print_cases (Proof.context_of (Toplevel.proof_of state)));
 
 
-(* print theorems / types / terms / props *)
+(* print theorems, terms, types etc. *)
+
+fun string_of_stmts state ms args = with_modes ms (fn () =>
+  Proof.get_thmss state args
+  |> map (Element.pretty_statement (Proof.context_of state) PureThy.lemmaK)
+  |> Pretty.chunks2 |> Pretty.string_of);
 
 fun string_of_thms state ms args = with_modes ms (fn () =>
   Pretty.string_of (ProofContext.pretty_thms (Proof.context_of state)
@@ -343,6 +350,7 @@ fun string_of_type state ms s =
 fun print_item string_of (x, y) = Toplevel.keep (fn state =>
   writeln (string_of (Toplevel.enter_forward_proof state) x y));
 
+val print_stmts = print_item string_of_stmts;
 val print_thms = print_item string_of_thms;
 fun print_prfs full = print_item (string_of_prfs full);
 val print_prop = print_item string_of_prop;
