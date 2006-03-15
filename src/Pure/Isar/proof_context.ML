@@ -662,7 +662,7 @@ fun rename_frees ctxt ts frees =
     val (types, sorts, _, _) = defaults_of (ctxt |> fold declare_syntax ts);
     fun rename (x, X) xs =
       let
-        fun used y = member (op =) xs y orelse
+        fun used y = y = "" orelse y = "'" orelse member (op =) xs y orelse
           Vartab.defined types (y, ~1) orelse Vartab.defined sorts (y, ~1);
         val x' = Term.variant_name used x;
       in ((x', X), x' :: xs) end;
@@ -725,7 +725,7 @@ fun generalize inner outer ts =
 fun monomorphic ctxt ts =
   let
     val tvars = fold Term.add_tvars ts [];
-    val tfrees = map TFree (rename_frees ctxt ts (map (apfst fst) tvars));
+    val tfrees = map TFree (rename_frees ctxt ts (map (pair "'" o #2) tvars));
     val specialize = Term.instantiate ((tvars ~~ tfrees), []);
   in map specialize ts end;
 
