@@ -411,7 +411,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (fn _ => EVERY [indtac induction perm_indnames 1,
              ALLGOALS (asm_full_simp_tac simps)])))
       in
-        foldl (fn ((s, tvs), thy) => AxClass.add_inst_arity_i
+        foldl (fn ((s, tvs), thy) => AxClass.prove_arity
             (s, replicate (length tvs) (cp_class :: classes), [cp_class])
             (ClassPackage.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
           thy (full_new_type_names' ~~ tyvars)
@@ -420,7 +420,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (perm_thmss,thy3) = thy2 |>
       fold (fn name1 => fold (composition_instance name1) atoms) atoms |>
       curry (Library.foldr (fn ((i, (tyname, args, _)), thy) =>
-        AxClass.add_inst_arity_i (tyname, replicate (length args) classes, classes)
+        AxClass.prove_arity (tyname, replicate (length args) classes, classes)
         (ClassPackage.intro_classes_tac [] THEN REPEAT (EVERY
            [resolve_tac perm_empty_thms 1,
             resolve_tac perm_append_thms 1,
@@ -585,7 +585,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun pt_instance ((class, atom), perm_closed_thms) =
       fold (fn (((({Abs_inverse, Rep_inverse, Rep, ...},
         perm_def), name), tvs), perm_closed) => fn thy =>
-          AxClass.add_inst_arity_i
+          AxClass.prove_arity
             (Sign.intern_type thy name,
               replicate (length tvs) (classes @ cp_classes), [class])
             (EVERY [ClassPackage.intro_classes_tac [],
@@ -609,7 +609,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val cp1' = PureThy.get_thm thy (Name (name ^ "_inst")) RS cp1
       in fold (fn ((((({Abs_inverse, Rep_inverse, Rep, ...},
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
-          AxClass.add_inst_arity_i
+          AxClass.prove_arity
             (Sign.intern_type thy name,
               replicate (length tvs) (classes @ cp_classes), [class])
             (EVERY [ClassPackage.intro_classes_tac [],
@@ -1086,7 +1086,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms ||>
       fold (fn (atom, ths) => fn thy =>
         let val class = Sign.intern_class thy ("fs_" ^ Sign.base_name atom)
-        in fold (fn T => AxClass.add_inst_arity_i
+        in fold (fn T => AxClass.prove_arity
             (fst (dest_Type T),
               replicate (length sorts) [class], [class])
             (ClassPackage.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
