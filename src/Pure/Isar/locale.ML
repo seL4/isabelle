@@ -47,6 +47,8 @@ sig
 
   val parameters_of: theory -> string ->
     ((string * typ) * mixfix) list
+  val parameters_of_expr: theory -> expr ->
+    ((string * typ) * mixfix) list
   val local_asms_of: theory -> string ->
     ((string * Attrib.src list) * term list) list
   val global_asms_of: theory -> string ->
@@ -1274,6 +1276,14 @@ in
 
 fun parameters_of thy name =
   the_locale thy name |> #params |> fst;
+
+fun parameters_of_expr thy expr =
+  let
+    val ctxt = ProofContext.init thy;
+    val ((_, syn), raw_elemss) = flatten (ctxt, intern_expr thy)
+        (([], Symtab.empty), Expr expr);
+    val ((parms, _, _), _) = read_elemss false ctxt [] raw_elemss [];
+  in map (fn p as (n, _) => (p, Symtab.lookup syn n |> the)) parms end;
 
 fun local_asms_of thy name =
   gen_asms_of (single o Library.last_elem) thy name;
