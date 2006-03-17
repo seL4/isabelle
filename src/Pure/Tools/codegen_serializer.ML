@@ -413,7 +413,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           str ")"
         ]
       end;
-    fun ml_from_sortlookup fxy ls =
+    fun ml_from_sortlookup fxy lss =
       let
         fun from_label l =
           Pretty.block [str "#", ml_from_label l];
@@ -437,10 +437,10 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               from_lookup BR classes (str v)
           | from_classlookup fxy (Lookup (classes, (v, i))) =
               from_lookup BR (string_of_int (i+1) :: classes) (str v)
-      in case ls
+      in case lss
        of [] => str "()"
-        | [l] => from_classlookup fxy l
-        | ls => (Pretty.list "(" ")" o map (from_classlookup NOBR)) ls
+        | [ls] => from_classlookup fxy ls
+        | lss => (Pretty.list "(" ")" o map (from_classlookup NOBR)) lss
       end;
     fun ml_from_tycoexpr fxy (tyco, tys) =
       let
@@ -738,7 +738,9 @@ fun ml_from_defs (is_cons, needs_type)
                 ml_from_label supclass
                 :: str "="
                 :: (str o resolv) supinst
-                :: map (ml_from_sortlookup NOBR) lss
+                :: (if null lss andalso (not o null) arity
+                     then [str "()"]
+                     else map (ml_from_sortlookup NOBR) lss)
               );
             fun from_memdef (m, ((m', def), lss)) =
               (ml_from_funs [(m', def)], (Pretty.block o Pretty.breaks) (

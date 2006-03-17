@@ -136,7 +136,7 @@ type deftab = (typ * (thm * string)) list Symtab.table;
 
 fun eq_typ thy (ty1, ty2) =
   Sign.typ_instance thy (ty1, ty2)
-  andalso Sign.typ_instance thy (ty2, ty1);
+    andalso Sign.typ_instance thy (ty2, ty1);
 
 fun is_overloaded thy c = case Defs.specifications_of (Theory.defs_of thy) c
  of [] => true
@@ -754,7 +754,8 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
               fun gen_membr (m, ty) trns =
                 trns
                 |> mk_fun thy tabs true (m, ty)
-                |-> (fn NONE => error ("could not derive definition for member " ^ quote m)
+                |-> (fn NONE => error ("could not derive definition for member "
+                          ^ quote m ^ " :: " ^ Sign.string_of_typ thy ty)
                       | SOME (funn, ty_use) =>
                     (fold_map o fold_map) (exprgen_classlookup thy tabs)
                        (ClassPackage.extract_classlookup_member thy (ty, ty_use))
@@ -913,7 +914,7 @@ and appgen thy tabs ((f, ty), ts) trns =
 
 fun eqextr_defs thy (deftab, _) (c, ty) =
   Option.mapPartial (get_first (fn (ty', (thm, _)) =>
-    if eq_typ thy (ty, ty')
+    if Sign.typ_instance thy (ty, ty') 
     then SOME ([thm], ty')
     else NONE
   )) (Symtab.lookup deftab c);
