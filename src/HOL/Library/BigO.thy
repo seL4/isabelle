@@ -582,7 +582,7 @@ lemma bigo_setsum_main: "ALL x. ALL y : A x. 0 <= h x y ==>
   apply (subst abs_of_nonneg) back back
   apply (rule setsum_nonneg)
   apply force
-  apply (subst setsum_mult)
+  apply (subst setsum_right_distrib)
   apply (rule allI)
   apply (rule order_trans)
   apply (rule setsum_abs)

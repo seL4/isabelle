@@ -170,7 +170,7 @@ next
     by(rule nat_distrib)
   also have "\<dots> = (\<Sum>k=0..n. (n choose k) * a^(k+1) * b^(n-k)) +
                   (\<Sum>k=0..n. (n choose k) * a^k * b^(n-k+1))"
-    by(simp add: setsum_mult mult_ac)
+    by(simp add: setsum_right_distrib mult_ac)
   also have "\<dots> = (\<Sum>k=0..n. (n choose k) * a^k * b^(n+1-k)) +
                   (\<Sum>k=1..n+1. (n choose (k - 1)) * a^k * b^(n+1-k))"
     by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le

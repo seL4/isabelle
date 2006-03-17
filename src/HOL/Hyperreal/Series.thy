@@ -168,7 +168,7 @@ lemma suminf_zero: "suminf (%n. 0) = 0";
 done;
   
 lemma sums_mult: "f sums a ==> (%n. c * f n) sums (c * a)"
-by (auto simp add: sums_def setsum_mult [symmetric]
+by (auto simp add: sums_def setsum_right_distrib [symmetric]
          intro!: LIMSEQ_mult intro: LIMSEQ_const)
 
 lemma summable_mult: "summable f ==> summable (%n. c * f n)";

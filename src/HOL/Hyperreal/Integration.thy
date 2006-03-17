@@ -345,7 +345,7 @@ done
 lemma Integral_mult_const: "a \<le> b ==> Integral(a,b) (%x. c)  (c*(b - a))"
 apply (auto simp add: order_le_less rsum_def Integral_def)
 apply (rule_tac x = "%x. b - a" in exI)
-apply (auto simp add: setsum_mult [symmetric] gauge_def abs_interval_iff 
+apply (auto simp add: setsum_right_distrib [symmetric] gauge_def abs_interval_iff 
                right_diff_distrib [symmetric] partition tpart_def)
 done
 
@@ -353,7 +353,7 @@ lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
 apply (auto simp add: order_le_less 
             dest: Integral_unique [OF order_refl Integral_zero])
-apply (auto simp add: rsum_def Integral_def setsum_mult[symmetric] mult_assoc)
+apply (auto simp add: rsum_def Integral_def setsum_right_distrib[symmetric] mult_assoc)
 apply (rule_tac a2 = c in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
  prefer 2 apply force
 apply (drule_tac x = "e/abs c" in spec, auto)
@@ -463,7 +463,7 @@ apply (subgoal_tac "ea = (\<Sum>n=0..<psize D. (ea / (b - a)) * (D (Suc n) - (D 
 apply (simp add: abs_minus_commute)
 apply (rule_tac t = ea in ssubst, assumption)
 apply (rule setsum_mono)
-apply (rule_tac [2] setsum_mult [THEN subst])
+apply (rule_tac [2] setsum_right_distrib [THEN subst])
 apply (auto simp add: partition_rhs partition_lhs partition_lb partition_ub
           fine_def)
 done

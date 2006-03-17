@@ -346,7 +346,7 @@ for example "A -> B" => "Pi A (%_. B)".
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
 
-* Renamed some (legacy-named) constants in HOL.thy and Orderings.thy:
+* Renamed constants in HOL.thy and Orderings.thy:
     op +   ~> HOL.plus
     op -   ~> HOL.minus
     uminus ~> HOL.uminus
@@ -384,6 +384,8 @@ compatibility this can be disabled by ML "reset use_neq_simproc".
 * "m dvd n" where m and n are numbers is evaluated to True/False by simp.
 
 * Theorem Cons_eq_map_conv no longer has attribute `simp'.
+
+* Theorem setsum_mult renamed to setsum_right_distrib.
 
 * Prefer ex1I over ex_ex1I in single-step reasoning, e.g. by the
 'rule' method.

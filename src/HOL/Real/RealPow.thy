@@ -231,6 +231,32 @@ by (rule_tac j = 0 in real_le_trans, auto)
 lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
 by (auto simp add: power2_eq_square)
 
+(* The following theorem is by Benjamin Porter *)
+lemma real_sq_order:
+  fixes x::real
+  assumes xgt0: "0 \<le> x" and ygt0: "0 \<le> y" and sq: "x^2 \<le> y^2"
+  shows "x \<le> y"
+proof (rule ccontr)
+  assume "\<not>(x \<le> y)"
+  then have ylx: "y < x" by simp
+  hence "y \<le> x" by simp
+  with xgt0 have "x*y \<le> x*x"
+    by (simp add: pordered_comm_semiring_class.mult_mono)
+  moreover
+  have "\<not> (y = 0)"
+  proof
+    assume "y = 0"
+    with ylx have xg0: "0 < x" by simp
+    from xg0 xg0 have "0 < x*x" by (rule real_mult_order)
+    moreover have "y*y = 0" by simp
+    ultimately show False using sq by auto
+  qed
+  with ygt0 have "0 < y" by simp
+  with ylx have "y*y < x*y" by auto
+  ultimately have "y*y < x*x" by simp
+  with sq show False by (auto simp add: power2_eq_square [symmetric])
+qed
+
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
 

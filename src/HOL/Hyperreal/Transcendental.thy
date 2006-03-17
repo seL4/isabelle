@@ -360,7 +360,7 @@ subsection{*Properties of Power Series*}
 lemma lemma_realpow_diff_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ ((Suc n) - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))::real)"
-by (auto simp add: setsum_mult lemma_realpow_diff mult_ac
+by (auto simp add: setsum_right_distrib lemma_realpow_diff mult_ac
   simp del: setsum_op_ivl_Suc cong: strong_setsum_cong)
 
 lemma lemma_realpow_diff_sumr2:
@@ -491,10 +491,10 @@ apply (auto simp add: lemma_realpow_diff_sumr2
             simp del: realpow_Suc setsum_op_ivl_Suc)
 apply (auto simp add: lemma_realpow_rev_sumr simp del: setsum_op_ivl_Suc)
 apply (auto simp add: real_of_nat_Suc sumr_diff_mult_const left_distrib 
-                sumdiff lemma_termdiff1 setsum_mult)
+                sumdiff lemma_termdiff1 setsum_right_distrib)
 apply (auto intro!: setsum_cong[OF refl] simp add: diff_minus real_add_assoc)
 apply (simp add: diff_minus [symmetric] less_iff_Suc_add)
-apply (auto simp add: setsum_mult lemma_realpow_diff_sumr2 mult_ac simp
+apply (auto simp add: setsum_right_distrib lemma_realpow_diff_sumr2 mult_ac simp
                  del: setsum_op_ivl_Suc realpow_Suc)
 done
 

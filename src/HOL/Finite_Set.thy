@@ -1145,10 +1145,7 @@ lemma setsum_mono3: "finite B ==> A <= B ==>
   apply auto
 done
 
-(* FIXME: this is distributitivty, name as such! *)
-(* suggested name: setsum_right_distrib (CB) *)
-
-lemma setsum_mult: 
+lemma setsum_right_distrib: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
   shows "r * setsum f A = setsum (%n. r * f n) A"
 proof (cases "finite A")
@@ -1269,6 +1266,11 @@ proof (simp add: setsum_cartesian_product)
     done
   finally show "?s = ?t" .
 qed
+
+lemma setsum_product:
+  fixes f :: "nat => ('a::semiring_0_cancel)"
+  shows "setsum f A * setsum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
+  by (simp add: setsum_right_distrib setsum_left_distrib) (rule setsum_commute)
 
 
 subsection {* Generalized product over a set *}

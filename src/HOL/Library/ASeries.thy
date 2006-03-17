@@ -73,7 +73,7 @@ proof cases
     by (rule setsum_addf)
   also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
-    by (simp add: setsum_mult setsum_head_upt)
+    by (simp add: setsum_right_distrib setsum_head_upt)
   also have "(1+1)*\<dots> = (1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..<n}. ?I i)"
     by simp
   also from ngt1 have "{1..<n} = {1..n - 1}"

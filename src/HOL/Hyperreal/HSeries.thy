@@ -73,7 +73,7 @@ done
 
 lemma sumhr_mult: "hypreal_of_real r * sumhr(m,n,f) = sumhr(m,n,%n. r * f n)"
 apply (cases m, cases n)
-apply (simp add: sumhr star_of_def star_n_mult setsum_mult)
+apply (simp add: sumhr star_of_def star_n_mult setsum_right_distrib)
 done
 
 lemma sumhr_split_add: "n < p ==> sumhr(0,n,f) + sumhr(n,p,f) = sumhr(0,p,f)"
