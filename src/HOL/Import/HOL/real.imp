@@ -12,7 +12,7 @@ const_maps
   "sum" > "HOL4Real.real.sum"
   "real_sub" > "HOL.minus" :: "real => real => real"
   "real_of_num" > "RealDef.real" :: "nat => real"
-  "real_lte" > "op <=" :: "real => real => bool"
+  "real_lte" > "Orderings.less_eq" :: "real => real => bool"
   "real_gt" > "HOL4Compat.real_gt"
   "real_ge" > "HOL4Compat.real_ge"
   "pow" > "Nat.power" :: "real => nat => real"

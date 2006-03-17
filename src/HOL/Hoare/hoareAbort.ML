@@ -66,7 +66,7 @@ fun get_vars thm = let  val c = Logic.unprotect (concl_of (thm));
 fun mk_CollectC trm = let val T as Type ("fun",[t,_]) = fastype_of trm 
                       in Collect_const t $ trm end;
 
-fun inclt ty = Const ("op <=", [ty,ty] ---> boolT);
+fun inclt ty = Const ("Orderings.less_eq", [ty,ty] ---> boolT);
 
 (** Makes "Mset <= t" **)
 fun Mset_incl t = let val MsetT = fastype_of t 

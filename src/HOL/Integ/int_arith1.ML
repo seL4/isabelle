@@ -348,8 +348,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <"
-  val dest_bal = HOLogic.dest_bin "op <" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
+  val dest_bal = HOLogic.dest_bin "Orderings.less" Term.dummyT
   val bal_add1 = less_add_iff1 RS trans
   val bal_add2 = less_add_iff2 RS trans
 );
@@ -357,8 +357,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <="
-  val dest_bal = HOLogic.dest_bin "op <=" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
+  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" Term.dummyT
   val bal_add1 = le_add_iff1 RS trans
   val bal_add2 = le_add_iff2 RS trans
 );

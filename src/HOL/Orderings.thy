@@ -18,24 +18,20 @@ axclass
   ord < type
 
 syntax
-  "op <"        :: "['a::ord, 'a] => bool"             ("op <")
-  "op <="       :: "['a::ord, 'a] => bool"             ("op <=")
-
-global
+  "less"        :: "['a::ord, 'a] => bool"             ("op <")
+  "less_eq"     :: "['a::ord, 'a] => bool"             ("op <=")
 
 consts
-  "op <"        :: "['a::ord, 'a] => bool"             ("(_/ < _)"  [50, 51] 50)
-  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ <= _)" [50, 51] 50)
-
-local
+  "less"        :: "['a::ord, 'a] => bool"             ("(_/ < _)"  [50, 51] 50)
+  "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ <= _)" [50, 51] 50)
 
 syntax (xsymbols)
-  "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
-  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
+  "less_eq"     :: "['a::ord, 'a] => bool"             ("op \<le>")
+  "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
 syntax (HTML output)
-  "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
-  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
+  "less_eq"     :: "['a::ord, 'a] => bool"             ("op \<le>")
+  "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
 text{* Syntactic sugar: *}
 
@@ -310,11 +306,11 @@ fun decomp_gen sort sign (Trueprop $ t) =
 	    if of_sort t1
 	    then SOME (t1, "=", t2)
 	    else NONE
-	| dec (Const ("op <=",  _) $ t1 $ t2) =
+	| dec (Const ("Orderings.less_eq",  _) $ t1 $ t2) =
 	    if of_sort t1
 	    then SOME (t1, "<=", t2)
 	    else NONE
-	| dec (Const ("op <",  _) $ t1 $ t2) =
+	| dec (Const ("Orderings.less",  _) $ t1 $ t2) =
 	    if of_sort t1
 	    then SOME (t1, "<", t2)
 	    else NONE
@@ -548,35 +544,35 @@ let
     if v=v' andalso not (v mem (map fst (Term.add_frees n [])))
     then Syntax.const q $ Syntax.mark_bound v' $ n $ P else raise Match;
   fun all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op -->",_) $ (Const ("Orderings.less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_lessAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op -->",_) $ (Const ("Orderings.less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_leAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op -->",_) $ (Const ("Orderings.less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_gtAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op -->",_) $ (Const ("Orderings.less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_geAll" n P;
 
   fun ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op &",_) $ (Const ("Orderings.less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_lessEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op &",_) $ (Const ("Orderings.less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_leEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op &",_) $ (Const ("Orderings.less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_gtEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op &",_) $ (Const ("Orderings.less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_geEx" n P
 in
 [("ALL ", all_tr'), ("EX ", ex_tr')]
@@ -702,11 +698,5 @@ qed
   Alternatively, one can use "declare xtrans [trans]" and then
   leave out the "(xtrans)" above.
 *)
-
-subsection {* Code generator setup *}
-
-code_alias
-  "op <=" "Orderings.op_le"
-  "op <" "Orderings.op_lt"
 
 end

@@ -621,7 +621,7 @@ struct
 			(* other optimizations *)
 			| Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
 			| Const ("Finite_Set.Finites", T) => collect_type_axioms (axs, T)
-			| Const ("op <", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => collect_type_axioms (axs, T)
+			| Const ("Orderings.less", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => collect_type_axioms (axs, T)
 			| Const ("HOL.plus", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			| Const ("HOL.minus", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			| Const ("HOL.times", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
@@ -2146,7 +2146,7 @@ struct
 
 	fun Nat_less_interpreter thy model args t =
 		case t of
-		  Const ("op <", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
+		  Const ("Orderings.less", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
 			let
 				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
 				val size_nat      = size_of_type i_nat

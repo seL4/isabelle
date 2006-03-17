@@ -891,8 +891,8 @@ consts_code
   "HOL.uminus" :: "int => int"       ("~")
   "HOL.plus" :: "int => int => int"  ("(_ +/ _)")
   "HOL.times" :: "int => int => int" ("(_ */ _)")
-  "op <" :: "int => int => bool"     ("(_ </ _)")
-  "op <=" :: "int => int => bool"    ("(_ <=/ _)")
+  "Orderings.less" :: "int => int => bool" ("(_ </ _)")
+  "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                              ("(_ < 0)")
 
 code_syntax_tyco int

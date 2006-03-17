@@ -78,8 +78,8 @@ fun svc_abstract t =
       | fm ((c as Const("True", _))) = c
       | fm ((c as Const("False", _))) = c
       | fm (t as Const("op =",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
-      | fm (t as Const("op <",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
-      | fm (t as Const("op <=", Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const("Orderings.less",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const("Orderings.less_eq", Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm t = replace t
     (*entry point, and abstraction of a meta-formula*)
     fun mt ((c as Const("Trueprop", _)) $ p) = c $ (fm p)

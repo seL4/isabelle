@@ -112,8 +112,8 @@ struct
                          b1 orelse b2)
                      end
                  else (*might be numeric equality*) (t, is_intnat T)
-           | Const("op <", Type ("fun", [T,_]))  => (t, is_intnat T)
-           | Const("op <=", Type ("fun", [T,_])) => (t, is_intnat T)
+           | Const("Orderings.less", Type ("fun", [T,_]))  => (t, is_intnat T)
+           | Const("Orderings.less_eq", Type ("fun", [T,_])) => (t, is_intnat T)
            | _ => (t, false)
          end
    in #1 o tag end;
@@ -219,13 +219,13 @@ struct
                    else fail t
             end
         (*inequalities: possible types are nat, int, real*)
-      | fm pos (t as Const("op <",  Type ("fun", [T,_])) $ x $ y) =
+      | fm pos (t as Const("Orderings.less",  Type ("fun", [T,_])) $ x $ y) =
             if not pos orelse T = HOLogic.realT then
                 Buildin("<", [tm x, tm y])
             else if is_intnat T then
                 Buildin("<=", [suc (tm x), tm y])
             else fail t
-      | fm pos (t as Const("op <=",  Type ("fun", [T,_])) $ x $ y) =
+      | fm pos (t as Const("Orderings.less_eq",  Type ("fun", [T,_])) $ x $ y) =
             if pos orelse T = HOLogic.realT then
                 Buildin("<=", [tm x, tm y])
             else if is_intnat T then

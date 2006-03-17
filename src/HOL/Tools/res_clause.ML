@@ -90,8 +90,8 @@ fun union_all xss = foldl (op union) [] xss;
 (*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
       Symtab.make [("op =", "equal"),
-	  	   ("op <=", "lessequals"),
-		   ("op <", "less"),
+	  	   ("Orderings.less_eq", "lessequals"),
+		   ("Orderings.less", "less"),
 		   ("op &", "and"),
 		   ("op |", "or"),
 		   ("HOL.plus", "plus"),

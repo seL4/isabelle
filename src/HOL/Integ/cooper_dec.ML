@@ -213,12 +213,12 @@ fun linform vars (Const ("Divides.op dvd",_) $ c $ t) =
     else (warning "Nonlinear term --- Non numeral leftside at dvd"
       ;raise COOPER)
   |linform vars  (Const("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ s $ t ) = (mkatom vars "op =" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ t $ s) ) 
-  |linform vars  (Const("op <",_)$ s $t ) = (mkatom vars "op <" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ t $ s))
-  |linform vars  (Const("op >",_) $ s $ t ) = (mkatom vars "op <" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ s $ t)) 
-  |linform vars  (Const("op <=",_)$ s $ t ) = 
-        (mkatom vars "op <" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ (Const("HOL.plus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $t $(mk_numeral 1)) $ s)) 
+  |linform vars  (Const("Orderings.less",_)$ s $t ) = (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ t $ s))
+  |linform vars  (Const("op >",_) $ s $ t ) = (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ s $ t)) 
+  |linform vars  (Const("Orderings.less_eq",_)$ s $ t ) = 
+        (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $ (Const("HOL.plus",HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $t $(mk_numeral 1)) $ s)) 
   |linform vars  (Const("op >=",_)$ s $ t ) = 
-        (mkatom vars "op <" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> 
+        (mkatom vars "Orderings.less" (Const ("HOL.minus",HOLogic.intT --> HOLogic.intT --> 
 	HOLogic.intT) $ (Const("HOL.plus",HOLogic.intT --> HOLogic.intT --> 
 	HOLogic.intT) $s $(mk_numeral 1)) $ t)) 
  
@@ -229,8 +229,8 @@ fun linform vars (Const ("Divides.op dvd",_) $ c $ t) =
 (* ------------------------------------------------------------------------- *) 
  
 fun posineq fm = case fm of  
- (Const ("Not",_)$(Const("op <",_)$ c $ t)) =>
-   (HOLogic.mk_binrel "op <"  (zero , (linear_sub [] (mk_numeral 1) (linear_add [] c t ) ))) 
+ (Const ("Not",_)$(Const("Orderings.less",_)$ c $ t)) =>
+   (HOLogic.mk_binrel "Orderings.less"  (zero , (linear_sub [] (mk_numeral 1) (linear_add [] c t ) ))) 
   | ( Const ("op &",_) $ p $ q)  => HOLogic.mk_conj (posineq p,posineq q)
   | ( Const ("op |",_) $ p $ q ) => HOLogic.mk_disj (posineq p,posineq q)
   | _ => fm; 
@@ -262,7 +262,7 @@ fun adjustcoeff x l fm =
       (Const(p,_) $d $( Const ("HOL.plus", _)$(Const ("HOL.times",_) $ 
       c $ y ) $z )) => if (is_arith_rel fm) andalso (x = y) then  
         let val m = l div (dest_numeral c) 
-            val n = (if p = "op <" then abs(m) else m) 
+            val n = (if p = "Orderings.less" then abs(m) else m) 
             val xtm = HOLogic.mk_binop "HOL.times" ((mk_numeral (m div n)), x) 
 	in
         (HOLogic.mk_binrel p ((linear_cmul n d),(HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
@@ -297,7 +297,7 @@ fun adjustcoeffeq x l fm =
       (Const(p,_) $d $( Const ("HOL.plus", _)$(Const ("HOL.times",_) $ 
       c $ y ) $z )) => if (is_arith_rel fm) andalso (x = y) then  
         let val m = l div (dest_numeral c) 
-            val n = (if p = "op <" then abs(m) else m)  
+            val n = (if p = "Orderings.less" then abs(m) else m)  
             val xtm = (HOLogic.mk_binop "HOL.times" ((mk_numeral ((m div n)*l) ), x))
             in (HOLogic.mk_binrel p ((linear_cmul n d),(HOLogic.mk_binop "HOL.plus" ( xtm ,( linear_cmul n z) )))) 
 	    end 
@@ -319,7 +319,7 @@ fun minusinf x fm = case fm of
   	 if (is_arith_rel fm) andalso (x=y) andalso (c2 = one) andalso (c1 =zero) then HOLogic.false_const  
 	 				 else fm 
  
-  |(Const("op <",_) $ c $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z 
+  |(Const("Orderings.less",_) $ c $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z 
   )) => if (x = y) 
 	then if (pm1 = one) andalso (c = zero) then HOLogic.false_const 
 	     else if (dest_numeral pm1 = ~1) andalso (c = zero) then HOLogic.true_const 
@@ -340,7 +340,7 @@ fun plusinf x fm = case fm of
   	 if (is_arith_rel fm) andalso (x=y) andalso (c2 = one) andalso (c1 =zero) then HOLogic.false_const
 	 				 else fm
 
-  |(Const("op <",_) $ c $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z
+  |(Const("Orderings.less",_) $ c $(Const ("HOL.plus", _) $(Const ("HOL.times",_) $ pm1 $ y ) $ z
   )) => if (x = y) 
 	then if (pm1 = one) andalso (c = zero) then HOLogic.true_const 
 	     else if (dest_numeral pm1 = ~1) andalso (c = zero) then HOLogic.false_const
@@ -378,7 +378,7 @@ fun bset x fm = case fm of
 			 
 			else bset x p 
   |(Const ("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $c2 $ x) $ a)) =>  if (c1 =zero) andalso (c2 = one) then [linear_neg(linear_add [] a (mk_numeral 1))]  else [] 
-  |(Const ("op <",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = one) then [linear_neg a] else [] 
+  |(Const ("Orderings.less",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = one) then [linear_neg a] else [] 
   |(Const ("op &",_) $ p $ q) => (bset x p) union (bset x q) 
   |(Const ("op |",_) $ p $ q) => (bset x p) union (bset x q) 
   |_ => []; 
@@ -398,7 +398,7 @@ fun aset x fm = case fm of
 
 			else aset x p
   |(Const ("op =",Type ("fun",[Type ("IntDef.int", []),_])) $ c1 $ (Const ("HOL.plus",_) $ (Const ("HOL.times",_) $c2 $ x) $ a)) =>  if (c1 =zero) andalso (c2 = one) then [linear_sub [] (mk_numeral 1) a]  else []
-  |(Const ("op <",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = (mk_numeral (~1))) then [a] else []
+  |(Const ("Orderings.less",_) $ c1$ (Const ("HOL.plus",_) $(Const ("HOL.times",_)$ c2 $ x) $ a)) => if (c1 =zero) andalso (c2 = (mk_numeral (~1))) then [a] else []
   |(Const ("op &",_) $ p $ q) => (aset x p) union (aset x q)
   |(Const ("op |",_) $ p $ q) => (aset x p) union (aset x q)
   |_ => [];
@@ -450,7 +450,7 @@ fun dvd_op (d, t) =
 
 
 val operations = 
-  [("op =",op=), ("op <",IntInf.<), ("op >",IntInf.>), ("op <=",IntInf.<=) , 
+  [("op =",op=), ("Orderings.less",IntInf.<), ("op >",IntInf.>), ("Orderings.less_eq",IntInf.<=) , 
    ("op >=",IntInf.>=), 
    ("Divides.op dvd",fn (x,y) =>((IntInf.mod(y, x)) = 0))]; 
  

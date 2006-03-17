@@ -335,12 +335,12 @@ val float_diff_const = Const ("HOL.minus", HOLogic.realT --> HOLogic.realT --> H
 val float_mult_const = Const ("HOL.times", HOLogic.realT --> HOLogic.realT --> HOLogic.realT)
 val float_uminus_const = Const ("HOL.uminus", HOLogic.realT --> HOLogic.realT)
 val float_abs_const = Const ("HOL.abs", HOLogic.realT --> HOLogic.realT)
-val float_le_const = Const ("op <=", HOLogic.realT --> HOLogic.realT --> HOLogic.boolT)
+val float_le_const = Const ("Orderings.less_eq", HOLogic.realT --> HOLogic.realT --> HOLogic.boolT)
 val float_pprt_const = Const ("OrderedGroup.pprt", HOLogic.realT --> HOLogic.realT)
 val float_nprt_const = Const ("OrderedGroup.nprt", HOLogic.realT --> HOLogic.realT)
 
-val nat_le_const = Const ("op <=", HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
-val nat_less_const = Const ("op <", HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
+val nat_le_const = Const ("Orderings.less_eq", HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
+val nat_less_const = Const ("Orderings.less", HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
 val nat_eq_const = Const ("op =", HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
  		  
 val zero = FloatArith.izero

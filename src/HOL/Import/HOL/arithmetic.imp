@@ -23,7 +23,7 @@ const_maps
   "ALT_ZERO" > "HOL4Compat.ALT_ZERO"
   ">=" > "HOL4Compat.nat_ge"
   ">" > "HOL4Compat.nat_gt"
-  "<=" > "op <=" :: "nat => nat => bool"
+  "<=" > "Orderings.less_eq" :: "nat => nat => bool"
   "-" > "HOL.minus" :: "nat => nat => nat"
   "+" > "HOL.plus" :: "nat => nat => nat"
   "*" > "HOL.times" :: "nat => nat => nat"

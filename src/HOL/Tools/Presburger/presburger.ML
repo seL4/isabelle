@@ -133,9 +133,9 @@ val allowed_consts =
    ("op =", bT --> bT --> bT),
    ("Not", bT --> bT),
 
-   ("op <=", iT --> iT --> bT),
+   ("Orderings.less_eq", iT --> iT --> bT),
    ("op =", iT --> iT --> bT),
-   ("op <", iT --> iT --> bT),
+   ("Orderings.less", iT --> iT --> bT),
    ("Divides.op dvd", iT --> iT --> bT),
    ("Divides.op div", iT --> iT --> iT),
    ("Divides.op mod", iT --> iT --> iT),
@@ -147,9 +147,9 @@ val allowed_consts =
    ("HOL.max", iT --> iT --> iT),
    ("HOL.min", iT --> iT --> iT),
 
-   ("op <=", nT --> nT --> bT),
+   ("Orderings.less_eq", nT --> nT --> bT),
    ("op =", nT --> nT --> bT),
-   ("op <", nT --> nT --> bT),
+   ("Orderings.less", nT --> nT --> bT),
    ("Divides.op dvd", nT --> nT --> bT),
    ("Divides.op div", nT --> nT --> nT),
    ("Divides.op mod", nT --> nT --> nT),

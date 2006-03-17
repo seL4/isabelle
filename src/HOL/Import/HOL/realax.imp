@@ -29,7 +29,7 @@ const_maps
   "treal_0" > "HOL4Real.realax.treal_0"
   "real_neg" > "HOL.uminus" :: "real => real"
   "real_mul" > "HOL.times" :: "real => real => real"
-  "real_lt" > "op <" :: "real => real => bool"
+  "real_lt" > "Orderings.less" :: "real => real => bool"
   "real_add" > "HOL.plus" :: "real => real => real"
   "real_1" > "1" :: "real"
   "real_0" > "0" :: "real"

@@ -195,8 +195,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <"
-  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
+  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT
   val bal_add1 = nat_less_add_iff1 RS trans
   val bal_add2 = nat_less_add_iff2 RS trans
 );
@@ -204,8 +204,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <="
-  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
+  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT
   val bal_add1 = nat_le_add_iff1 RS trans
   val bal_add2 = nat_le_add_iff2 RS trans
 );
@@ -315,8 +315,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <"
-  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
+  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT
   val cancel = nat_mult_less_cancel1 RS trans
   val neg_exchanges = true
 )
@@ -324,8 +324,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <="
-  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
+  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT
   val cancel = nat_mult_le_cancel1 RS trans
   val neg_exchanges = true
 )
@@ -391,16 +391,16 @@ structure EqCancelFactor = ExtractCommonTermFun
 structure LessCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <"
-  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
+  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_less_cancel_disj
 );
 
 structure LeCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <="
-  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
+  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_le_cancel_disj
 );
 

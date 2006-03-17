@@ -12,7 +12,7 @@ fun prp t thm = (#prop(rep_thm thm) = t);
 
 fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
   let val prems = prems_of_ss ss;
-      val less = Const("op <",T);
+      val less = Const("Orderings.less",T);
       val t = HOLogic.mk_Trueprop(le $ s $ r);
   in case Library.find_first (prp t) prems of
        NONE =>
@@ -27,7 +27,7 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
 
 fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
   let val prems = prems_of_ss ss;
-      val le = Const("op <=",T);
+      val le = Const("Orderings.less_eq",T);
       val t = HOLogic.mk_Trueprop(le $ r $ s);
   in case Library.find_first (prp t) prems of
        NONE =>

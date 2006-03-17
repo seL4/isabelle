@@ -23,7 +23,7 @@ const_maps
   inv      > HOL.inverse :: "real => real"
   real_add > HOL.plus    :: "[real,real] => real"
   real_mul > HOL.times   :: "[real,real] => real"
-  real_lt  > "op <"      :: "[real,real] => bool";
+  real_lt  > "Orderings.less"      :: "[real,real] => bool";
 
 ignore_thms
     real_TY_DEF
@@ -51,7 +51,7 @@ import_theory real;
 const_maps
   real_gt     > HOL4Compat.real_gt
   real_ge     > HOL4Compat.real_ge
-  real_lte    > "op <="      :: "[real,real] => bool"
+  real_lte    > Orderings.less_eq :: "[real,real] => bool"
   real_sub    > HOL.minus    :: "[real,real] => real"
   "/"         > HOL.divide   :: "[real,real] => real"
   pow         > Nat.power    :: "[real,nat] => real"

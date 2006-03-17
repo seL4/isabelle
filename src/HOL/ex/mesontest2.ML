@@ -985,19 +985,19 @@ val GRP168_1 = prove
   meson_tac 1);
 
 val HEN002_0_ax =
-  "(\\<forall>X Y. less_equal(X::'a,Y) --> equal(Divide(X::'a,Y),zero)) &       \
-\  (\\<forall>X Y. equal(Divide(X::'a,Y),zero) --> less_equal(X::'a,Y)) &       \
-\  (\\<forall>Y X. less_equal(Divide(X::'a,Y),X)) & \
-\  (\\<forall>X Y Z. less_equal(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z))) &       \
-\  (\\<forall>X. less_equal(zero::'a,X)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) & less_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. less_equal(X::'a,identity))";
+  "(\\<forall>X Y. mless_equal(X::'a,Y) --> equal(Divide(X::'a,Y),zero)) &       \
+\  (\\<forall>X Y. equal(Divide(X::'a,Y),zero) --> mless_equal(X::'a,Y)) &       \
+\  (\\<forall>Y X. mless_equal(Divide(X::'a,Y),X)) & \
+\  (\\<forall>X Y Z. mless_equal(Divide(Divide(X::'a,Z),Divide(Y::'a,Z)),Divide(Divide(X::'a,Y),Z))) &       \
+\  (\\<forall>X. mless_equal(zero::'a,X)) &  \
+\  (\\<forall>X Y. mless_equal(X::'a,Y) & mless_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
+\  (\\<forall>X. mless_equal(X::'a,identity))";
 
 val HEN002_0_eq =
   "(\\<forall>A B C. equal(A::'a,B) --> equal(Divide(A::'a,C),Divide(B::'a,C))) &   \
 \  (\\<forall>D F' E. equal(D::'a,E) --> equal(Divide(F'::'a,D),Divide(F'::'a,E))) &        \
-\  (\\<forall>G H I'. equal(G::'a,H) & less_equal(G::'a,I') --> less_equal(H::'a,I')) &     \
-\  (\\<forall>J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K'))";
+\  (\\<forall>G H I'. equal(G::'a,H) & mless_equal(G::'a,I') --> mless_equal(H::'a,I')) &     \
+\  (\\<forall>J L K'. equal(J::'a,K') & mless_equal(L::'a,J) --> mless_equal(L::'a,K'))";
 
 (*250258 inferences so far.  Searching to depth 16.  406.2 secs*)
 val HEN003_3 = prove_hard
@@ -1009,32 +1009,32 @@ val HEN003_3 = prove_hard
 (*202177 inferences so far.  Searching to depth 14.  451 secs*)
 val HEN007_2 = prove_hard
  (EQU001_0_ax ^ " &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) --> quotient(X::'a,Y,zero)) &    \
-\  (\\<forall>X Y. quotient(X::'a,Y,zero) --> less_equal(X::'a,Y)) &    \
-\  (\\<forall>Y Z X. quotient(X::'a,Y,Z) --> less_equal(Z::'a,X)) &     \
-\  (\\<forall>Y X V3 V2 V1 Z V4 V5. quotient(X::'a,Y,V1) & quotient(Y::'a,Z,V2) & quotient(X::'a,Z,V3) & quotient(V3::'a,V2,V4) & quotient(V1::'a,Z,V5) --> less_equal(V4::'a,V5)) &    \
-\  (\\<forall>X. less_equal(zero::'a,X)) &  \
-\  (\\<forall>X Y. less_equal(X::'a,Y) & less_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
-\  (\\<forall>X. less_equal(X::'a,identity)) &      \
+\  (\\<forall>X Y. mless_equal(X::'a,Y) --> quotient(X::'a,Y,zero)) &    \
+\  (\\<forall>X Y. quotient(X::'a,Y,zero) --> mless_equal(X::'a,Y)) &    \
+\  (\\<forall>Y Z X. quotient(X::'a,Y,Z) --> mless_equal(Z::'a,X)) &     \
+\  (\\<forall>Y X V3 V2 V1 Z V4 V5. quotient(X::'a,Y,V1) & quotient(Y::'a,Z,V2) & quotient(X::'a,Z,V3) & quotient(V3::'a,V2,V4) & quotient(V1::'a,Z,V5) --> mless_equal(V4::'a,V5)) &    \
+\  (\\<forall>X. mless_equal(zero::'a,X)) &  \
+\  (\\<forall>X Y. mless_equal(X::'a,Y) & mless_equal(Y::'a,X) --> equal(X::'a,Y)) &  \
+\  (\\<forall>X. mless_equal(X::'a,identity)) &      \
 \  (\\<forall>X Y. quotient(X::'a,Y,Divide(X::'a,Y))) & \
 \  (\\<forall>X Y Z W. quotient(X::'a,Y,Z) & quotient(X::'a,Y,W) --> equal(Z::'a,W)) &      \
 \  (\\<forall>X Y W Z. equal(X::'a,Y) & quotient(X::'a,W,Z) --> quotient(Y::'a,W,Z)) &      \
 \  (\\<forall>X W Y Z. equal(X::'a,Y) & quotient(W::'a,X,Z) --> quotient(W::'a,Y,Z)) &      \
 \  (\\<forall>X W Z Y. equal(X::'a,Y) & quotient(W::'a,Z,X) --> quotient(W::'a,Z,Y)) &      \
-\  (\\<forall>X Z Y. equal(X::'a,Y) & less_equal(Z::'a,X) --> less_equal(Z::'a,Y)) &        \
-\  (\\<forall>X Y Z. equal(X::'a,Y) & less_equal(X::'a,Z) --> less_equal(Y::'a,Z)) &        \
+\  (\\<forall>X Z Y. equal(X::'a,Y) & mless_equal(Z::'a,X) --> mless_equal(Z::'a,Y)) &        \
+\  (\\<forall>X Y Z. equal(X::'a,Y) & mless_equal(X::'a,Z) --> mless_equal(Y::'a,Z)) &        \
 \  (\\<forall>X Y W. equal(X::'a,Y) --> equal(Divide(X::'a,W),Divide(Y::'a,W))) &   \
 \  (\\<forall>X W Y. equal(X::'a,Y) --> equal(Divide(W::'a,X),Divide(W::'a,Y))) &   \
 \  (\\<forall>X. quotient(X::'a,identity,zero)) &   \
 \  (\\<forall>X. quotient(zero::'a,X,zero)) &       \
 \  (\\<forall>X. quotient(X::'a,X,zero)) &  \
 \  (\\<forall>X. quotient(X::'a,zero,X)) &  \
-\  (\\<forall>Y X Z. less_equal(X::'a,Y) & less_equal(Y::'a,Z) --> less_equal(X::'a,Z)) &   \
-\  (\\<forall>W1 X Z W2 Y. quotient(X::'a,Y,W1) & less_equal(W1::'a,Z) & quotient(X::'a,Z,W2) --> less_equal(W2::'a,Y)) &       \
-\  (less_equal(x::'a,y)) &  \
+\  (\\<forall>Y X Z. mless_equal(X::'a,Y) & mless_equal(Y::'a,Z) --> mless_equal(X::'a,Z)) &   \
+\  (\\<forall>W1 X Z W2 Y. quotient(X::'a,Y,W1) & mless_equal(W1::'a,Z) & quotient(X::'a,Z,W2) --> mless_equal(W2::'a,Y)) &       \
+\  (mless_equal(x::'a,y)) &  \
 \  (quotient(z::'a,y,zQy)) &        \
 \  (quotient(z::'a,x,zQx)) &        \
-\  (~less_equal(zQy::'a,zQx)) --> False",
+\  (~mless_equal(zQy::'a,zQx)) --> False",
   meson_tac 1);
 
 (*60026 inferences so far.  Searching to depth 12.  42.2 secs*)
@@ -1044,11 +1044,11 @@ val HEN008_4 = prove_hard
 \  (\\<forall>X. equal(Divide(zero::'a,X),zero)) &  \
 \  (\\<forall>X. equal(Divide(X::'a,X),zero)) &     \
 \  (equal(Divide(a::'a,zero),a)) &  \
-\  (\\<forall>Y X Z. less_equal(X::'a,Y) & less_equal(Y::'a,Z) --> less_equal(X::'a,Z)) &   \
-\  (\\<forall>X Z Y. less_equal(Divide(X::'a,Y),Z) --> less_equal(Divide(X::'a,Z),Y)) & \
-\  (\\<forall>Y Z X. less_equal(X::'a,Y) --> less_equal(Divide(Z::'a,Y),Divide(Z::'a,X))) & \
-\  (less_equal(a::'a,b)) &  \
-\  (~less_equal(Divide(a::'a,c),Divide(b::'a,c))) --> False",
+\  (\\<forall>Y X Z. mless_equal(X::'a,Y) & mless_equal(Y::'a,Z) --> mless_equal(X::'a,Z)) &   \
+\  (\\<forall>X Z Y. mless_equal(Divide(X::'a,Y),Z) --> mless_equal(Divide(X::'a,Z),Y)) & \
+\  (\\<forall>Y Z X. mless_equal(X::'a,Y) --> mless_equal(Divide(Z::'a,Y),Divide(Z::'a,X))) & \
+\  (mless_equal(a::'a,b)) &  \
+\  (~mless_equal(Divide(a::'a,c),Divide(b::'a,c))) --> False",
   meson_tac 1);
 
 
@@ -1075,7 +1075,7 @@ val HEN009_5 = prove
 (*970373 inferences so far.  Searching to depth 17.  890.0 secs*)
 val HEN012_3 = prove_hard
  (EQU001_0_ax ^ "&" ^ HEN002_0_ax ^ "&" ^ HEN002_0_eq ^ " &     \
-\  (~less_equal(a::'a,a)) --> False",
+\  (~mless_equal(a::'a,a)) --> False",
   meson_tac 1);
 
 
@@ -1292,20 +1292,20 @@ val NUM001_0_ax =
 \  (\\<forall>A B. equal(A::'a,B) --> equal(successor(A),successor(B)))";
 
 val NUM001_1_ax =
-  "(\\<forall>A C B. less(A::'a,B) & less(C::'a,A) --> less(C::'a,B)) &     \
-\  (\\<forall>A B C. equal(add(successor(A),B),C) --> less(B::'a,C)) &      \
-\  (\\<forall>A B. less(A::'a,B) --> equal(add(successor(predecessor_of_1st_minus_2nd(B::'a,A)),A),B))";
+  "(\\<forall>A C B. mless(A::'a,B) & mless(C::'a,A) --> mless(C::'a,B)) &     \
+\  (\\<forall>A B C. equal(add(successor(A),B),C) --> mless(B::'a,C)) &      \
+\  (\\<forall>A B. mless(A::'a,B) --> equal(add(successor(predecessor_of_1st_minus_2nd(B::'a,A)),A),B))";
 
 val NUM001_2_ax =
-  "(\\<forall>A B. divides(A::'a,B) --> less(A::'a,B) | equal(A::'a,B)) &  \
-\  (\\<forall>A B. less(A::'a,B) --> divides(A::'a,B)) &        \
+  "(\\<forall>A B. divides(A::'a,B) --> mless(A::'a,B) | equal(A::'a,B)) &  \
+\  (\\<forall>A B. mless(A::'a,B) --> divides(A::'a,B)) &        \
 \  (\\<forall>A B. equal(A::'a,B) --> divides(A::'a,B))";
 
 (*20717 inferences so far.  Searching to depth 11.  13.7 secs*)
 val NUM021_1 = prove
  (EQU001_0_ax ^ "&" ^ NUM001_0_ax ^ "&" ^ NUM001_1_ax ^ "&" ^ NUM001_2_ax ^
- "& (less(b::'a,c)) &        \
-\   (~less(b::'a,a)) &       \
+ "& (mless(b::'a,c)) &        \
+\   (~mless(b::'a,a)) &       \
 \   (divides(c::'a,a)) &     \
 \   (\\<forall>A. ~equal(successor(A),num0)) --> False",
   meson_tac 1);
@@ -1315,7 +1315,7 @@ val NUM024_1 = prove_hard
  (EQU001_0_ax ^ "&" ^ NUM001_0_ax ^ "&" ^ NUM001_1_ax ^ " &        \
 \  (\\<forall>B A. equal(add(A::'a,B),add(B::'a,A))) &  \
 \  (\\<forall>B A C. equal(add(A::'a,B),add(C::'a,B)) --> equal(A::'a,C)) & \
-\  (less(a::'a,a)) &        \
+\  (mless(a::'a,a)) &        \
 \  (\\<forall>A. ~equal(successor(A),num0)) --> False",
   meson_tac 1);
 
@@ -1690,20 +1690,20 @@ val PLA022_2 = prove
 
 (*948 inferences so far.  Searching to depth 18.  1.1 secs*)
 val PRV001_1 = prove
- ("(\\<forall>X Y Z. q1(X::'a,Y,Z) & less_or_equal(X::'a,Y) --> q2(X::'a,Y,Z)) &    \
-\  (\\<forall>X Y Z. q1(X::'a,Y,Z) --> less_or_equal(X::'a,Y) | q3(X::'a,Y,Z)) &   \
+ ("(\\<forall>X Y Z. q1(X::'a,Y,Z) & mless_or_equal(X::'a,Y) --> q2(X::'a,Y,Z)) &    \
+\  (\\<forall>X Y Z. q1(X::'a,Y,Z) --> mless_or_equal(X::'a,Y) | q3(X::'a,Y,Z)) &   \
 \  (\\<forall>Z X Y. q2(X::'a,Y,Z) --> q4(X::'a,Y,Y)) & \
 \  (\\<forall>Z Y X. q3(X::'a,Y,Z) --> q4(X::'a,Y,X)) & \
-\  (\\<forall>X. less_or_equal(X::'a,X)) &  \
-\  (\\<forall>X Y. less_or_equal(X::'a,Y) & less_or_equal(Y::'a,X) --> equal(X::'a,Y)) &    \
-\  (\\<forall>Y X Z. less_or_equal(X::'a,Y) & less_or_equal(Y::'a,Z) --> less_or_equal(X::'a,Z)) &  \
-\  (\\<forall>Y X. less_or_equal(X::'a,Y) | less_or_equal(Y::'a,X)) &  \
-\  (\\<forall>X Y. equal(X::'a,Y) --> less_or_equal(X::'a,Y)) & \
-\  (\\<forall>X Y Z. equal(X::'a,Y) & less_or_equal(X::'a,Z) --> less_or_equal(Y::'a,Z)) &  \
-\  (\\<forall>X Z Y. equal(X::'a,Y) & less_or_equal(Z::'a,X) --> less_or_equal(Z::'a,Y)) &  \
+\  (\\<forall>X. mless_or_equal(X::'a,X)) &  \
+\  (\\<forall>X Y. mless_or_equal(X::'a,Y) & mless_or_equal(Y::'a,X) --> equal(X::'a,Y)) &    \
+\  (\\<forall>Y X Z. mless_or_equal(X::'a,Y) & mless_or_equal(Y::'a,Z) --> mless_or_equal(X::'a,Z)) &  \
+\  (\\<forall>Y X. mless_or_equal(X::'a,Y) | mless_or_equal(Y::'a,X)) &  \
+\  (\\<forall>X Y. equal(X::'a,Y) --> mless_or_equal(X::'a,Y)) & \
+\  (\\<forall>X Y Z. equal(X::'a,Y) & mless_or_equal(X::'a,Z) --> mless_or_equal(Y::'a,Z)) &  \
+\  (\\<forall>X Z Y. equal(X::'a,Y) & mless_or_equal(Z::'a,X) --> mless_or_equal(Z::'a,Y)) &  \
 \  (q1(a::'a,b,c)) &        \
-\  (\\<forall>W. ~(q4(a::'a,b,W) & less_or_equal(a::'a,W) & less_or_equal(b::'a,W) & less_or_equal(W::'a,a))) & \
-\  (\\<forall>W. ~(q4(a::'a,b,W) & less_or_equal(a::'a,W) & less_or_equal(b::'a,W) & less_or_equal(W::'a,b))) --> False",
+\  (\\<forall>W. ~(q4(a::'a,b,W) & mless_or_equal(a::'a,W) & mless_or_equal(b::'a,W) & mless_or_equal(W::'a,a))) & \
+\  (\\<forall>W. ~(q4(a::'a,b,W) & mless_or_equal(a::'a,W) & mless_or_equal(b::'a,W) & mless_or_equal(W::'a,b))) --> False",
   meson_tac 1);
 
 (*PRV is now called SWV (software verification) *)
@@ -1712,14 +1712,14 @@ val SWV001_1_ax =
 \  (\\<forall>X. equal(successor(predecessor(X)),X)) &  \
 \  (\\<forall>X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
 \  (\\<forall>X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
-\  (\\<forall>X. LESS_THAN(predecessor(X),X)) & \
-\  (\\<forall>X. LESS_THAN(X::'a,successor(X))) &   \
-\  (\\<forall>X Y Z. LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,Z) --> LESS_THAN(X::'a,Z)) &      \
-\  (\\<forall>X Y. LESS_THAN(X::'a,Y) | LESS_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
-\  (\\<forall>X. ~LESS_THAN(X::'a,X)) &     \
-\  (\\<forall>Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
-\  (\\<forall>Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
-\  (\\<forall>Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y))";
+\  (\\<forall>X. mless_THAN(predecessor(X),X)) & \
+\  (\\<forall>X. mless_THAN(X::'a,successor(X))) &   \
+\  (\\<forall>X Y Z. mless_THAN(X::'a,Y) & mless_THAN(Y::'a,Z) --> mless_THAN(X::'a,Z)) &      \
+\  (\\<forall>X Y. mless_THAN(X::'a,Y) | mless_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
+\  (\\<forall>X. ~mless_THAN(X::'a,X)) &     \
+\  (\\<forall>Y X. ~(mless_THAN(X::'a,Y) & mless_THAN(Y::'a,X))) &        \
+\  (\\<forall>Y X Z. equal(X::'a,Y) & mless_THAN(X::'a,Z) --> mless_THAN(Y::'a,Z)) &  \
+\  (\\<forall>Y Z X. equal(X::'a,Y) & mless_THAN(Z::'a,X) --> mless_THAN(Z::'a,Y))";
 
 val SWV001_0_eq =
   "(\\<forall>X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
@@ -1729,55 +1729,55 @@ val SWV001_0_eq =
 (*21 inferences so far.  Searching to depth 5.  0.4 secs*)
 val PRV003_1 = prove
  (EQU001_0_ax ^ "&" ^ SWV001_1_ax ^ "&" ^ SWV001_0_eq ^ " &   \
-\  (~LESS_THAN(n::'a,j)) &  \
-\  (LESS_THAN(k::'a,j)) &   \
-\  (~LESS_THAN(k::'a,i)) &  \
-\  (LESS_THAN(i::'a,n)) &   \
-\  (LESS_THAN(a(j),a(k))) &     \
-\  (\\<forall>X. LESS_THAN(X::'a,j) & LESS_THAN(a(X),a(k)) --> LESS_THAN(X::'a,i)) &    \
-\  (\\<forall>X. LESS_THAN(one::'a,i) & LESS_THAN(a(X),a(predecessor(i))) --> LESS_THAN(X::'a,i) | LESS_THAN(n::'a,X)) &   \
-\  (\\<forall>X. ~(LESS_THAN(one::'a,X) & LESS_THAN(X::'a,i) & LESS_THAN(a(X),a(predecessor(X))))) &    \
-\  (LESS_THAN(j::'a,i)) --> False",
+\  (~mless_THAN(n::'a,j)) &  \
+\  (mless_THAN(k::'a,j)) &   \
+\  (~mless_THAN(k::'a,i)) &  \
+\  (mless_THAN(i::'a,n)) &   \
+\  (mless_THAN(a(j),a(k))) &     \
+\  (\\<forall>X. mless_THAN(X::'a,j) & mless_THAN(a(X),a(k)) --> mless_THAN(X::'a,i)) &    \
+\  (\\<forall>X. mless_THAN(one::'a,i) & mless_THAN(a(X),a(predecessor(i))) --> mless_THAN(X::'a,i) | mless_THAN(n::'a,X)) &   \
+\  (\\<forall>X. ~(mless_THAN(one::'a,X) & mless_THAN(X::'a,i) & mless_THAN(a(X),a(predecessor(X))))) &    \
+\  (mless_THAN(j::'a,i)) --> False",
   meson_tac 1);
 
 (*584 inferences so far.  Searching to depth 7.  1.1 secs*)
 val PRV005_1 = prove
  (EQU001_0_ax ^ "&" ^ SWV001_1_ax ^ "&" ^ SWV001_0_eq ^ " &   \
-\  (~LESS_THAN(n::'a,k)) &  \
-\  (~LESS_THAN(k::'a,l)) &  \
-\  (~LESS_THAN(k::'a,i)) &  \
-\  (LESS_THAN(l::'a,n)) &   \
-\  (LESS_THAN(one::'a,l)) & \
-\  (LESS_THAN(a(k),a(predecessor(l)))) &        \
-\  (\\<forall>X. LESS_THAN(X::'a,successor(n)) & LESS_THAN(a(X),a(k)) --> LESS_THAN(X::'a,l)) & \
-\  (\\<forall>X. LESS_THAN(one::'a,l) & LESS_THAN(a(X),a(predecessor(l))) --> LESS_THAN(X::'a,l) | LESS_THAN(n::'a,X)) &   \
-\  (\\<forall>X. ~(LESS_THAN(one::'a,X) & LESS_THAN(X::'a,l) & LESS_THAN(a(X),a(predecessor(X))))) --> False",
+\  (~mless_THAN(n::'a,k)) &  \
+\  (~mless_THAN(k::'a,l)) &  \
+\  (~mless_THAN(k::'a,i)) &  \
+\  (mless_THAN(l::'a,n)) &   \
+\  (mless_THAN(one::'a,l)) & \
+\  (mless_THAN(a(k),a(predecessor(l)))) &        \
+\  (\\<forall>X. mless_THAN(X::'a,successor(n)) & mless_THAN(a(X),a(k)) --> mless_THAN(X::'a,l)) & \
+\  (\\<forall>X. mless_THAN(one::'a,l) & mless_THAN(a(X),a(predecessor(l))) --> mless_THAN(X::'a,l) | mless_THAN(n::'a,X)) &   \
+\  (\\<forall>X. ~(mless_THAN(one::'a,X) & mless_THAN(X::'a,l) & mless_THAN(a(X),a(predecessor(X))))) --> False",
   meson_tac 1);
 
 (*2343 inferences so far.  Searching to depth 8.  3.5 secs*)
 val PRV006_1 = prove
  (EQU001_0_ax ^ "&" ^ SWV001_1_ax ^ "&" ^ SWV001_0_eq ^ " &   \
-\  (~LESS_THAN(n::'a,m)) &  \
-\  (LESS_THAN(i::'a,m)) &   \
-\  (LESS_THAN(i::'a,n)) &   \
-\  (~LESS_THAN(i::'a,one)) &        \
-\  (LESS_THAN(a(i),a(m))) &     \
-\  (\\<forall>X. LESS_THAN(X::'a,successor(n)) & LESS_THAN(a(X),a(m)) --> LESS_THAN(X::'a,i)) & \
-\  (\\<forall>X. LESS_THAN(one::'a,i) & LESS_THAN(a(X),a(predecessor(i))) --> LESS_THAN(X::'a,i) | LESS_THAN(n::'a,X)) &   \
-\  (\\<forall>X. ~(LESS_THAN(one::'a,X) & LESS_THAN(X::'a,i) & LESS_THAN(a(X),a(predecessor(X))))) --> False",
+\  (~mless_THAN(n::'a,m)) &  \
+\  (mless_THAN(i::'a,m)) &   \
+\  (mless_THAN(i::'a,n)) &   \
+\  (~mless_THAN(i::'a,one)) &        \
+\  (mless_THAN(a(i),a(m))) &     \
+\  (\\<forall>X. mless_THAN(X::'a,successor(n)) & mless_THAN(a(X),a(m)) --> mless_THAN(X::'a,i)) & \
+\  (\\<forall>X. mless_THAN(one::'a,i) & mless_THAN(a(X),a(predecessor(i))) --> mless_THAN(X::'a,i) | mless_THAN(n::'a,X)) &   \
+\  (\\<forall>X. ~(mless_THAN(one::'a,X) & mless_THAN(X::'a,i) & mless_THAN(a(X),a(predecessor(X))))) --> False",
   meson_tac 1);
 
 (*86 inferences so far.  Searching to depth 14.  0.1 secs*)
 val PRV009_1 = prove
- ("(\\<forall>Y X. less_or_equal(X::'a,Y) | less(Y::'a,X)) &   \
-\  (less(j::'a,i)) &        \
-\  (less_or_equal(m::'a,p)) &       \
-\  (less_or_equal(p::'a,q)) &       \
-\  (less_or_equal(q::'a,n)) &       \
-\  (\\<forall>X Y. less_or_equal(m::'a,X) & less(X::'a,i) & less(j::'a,Y) & less_or_equal(Y::'a,n) --> less_or_equal(a(X),a(Y))) &      \
-\  (\\<forall>X Y. less_or_equal(m::'a,X) & less_or_equal(X::'a,Y) & less_or_equal(Y::'a,j) --> less_or_equal(a(X),a(Y))) & \
-\  (\\<forall>X Y. less_or_equal(i::'a,X) & less_or_equal(X::'a,Y) & less_or_equal(Y::'a,n) --> less_or_equal(a(X),a(Y))) & \
-\  (~less_or_equal(a(p),a(q))) --> False",
+ ("(\\<forall>Y X. mless_or_equal(X::'a,Y) | mless(Y::'a,X)) &   \
+\  (mless(j::'a,i)) &        \
+\  (mless_or_equal(m::'a,p)) &       \
+\  (mless_or_equal(p::'a,q)) &       \
+\  (mless_or_equal(q::'a,n)) &       \
+\  (\\<forall>X Y. mless_or_equal(m::'a,X) & mless(X::'a,i) & mless(j::'a,Y) & mless_or_equal(Y::'a,n) --> mless_or_equal(a(X),a(Y))) &      \
+\  (\\<forall>X Y. mless_or_equal(m::'a,X) & mless_or_equal(X::'a,Y) & mless_or_equal(Y::'a,j) --> mless_or_equal(a(X),a(Y))) & \
+\  (\\<forall>X Y. mless_or_equal(i::'a,X) & mless_or_equal(X::'a,Y) & mless_or_equal(Y::'a,n) --> mless_or_equal(a(X),a(Y))) & \
+\  (~mless_or_equal(a(p),a(q))) --> False",
   meson_tac 1);
 
 (*222 inferences so far.  Searching to depth 8.  0.4 secs*)

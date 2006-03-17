@@ -115,8 +115,8 @@ end);
 structure LessCancelSums = CancelSumsFun
 (struct
   open Sum;
-  val mk_bal = HOLogic.mk_binrel "op <";
-  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT;
+  val mk_bal = HOLogic.mk_binrel "Orderings.less";
+  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac nat_add_left_cancel_less;
 end);
 
@@ -126,8 +126,8 @@ end);
 structure LeCancelSums = CancelSumsFun
 (struct
   open Sum;
-  val mk_bal = HOLogic.mk_binrel "op <=";
-  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT;
+  val mk_bal = HOLogic.mk_binrel "Orderings.less_eq";
+  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac nat_add_left_cancel_le;
 end);
 
@@ -330,8 +330,8 @@ val (p,i) = poly(lhs,Rat.rat_of_int 1,([],Rat.rat_of_int 0))
 and (q,j) = poly(rhs,Rat.rat_of_int 1,([],Rat.rat_of_int 0))
 
   in case rel of
-       "op <"  => SOME(p,i,"<",q,j)
-     | "op <=" => SOME(p,i,"<=",q,j)
+       "Orderings.less"  => SOME(p,i,"<",q,j)
+     | "Orderings.less_eq" => SOME(p,i,"<=",q,j)
      | "op ="  => SOME(p,i,"=",q,j)
      | _       => NONE
   end handle Zero => NONE;
@@ -544,24 +544,24 @@ fun antisym_eq prems thm =
     val r = #prop(rep_thm thm);
   in
     case r of
-      Tr $ ((c as Const("op <=",T)) $ s $ t) =>
+      Tr $ ((c as Const("Orderings.less_eq",T)) $ s $ t) =>
         let val r' = Tr $ (c $ t $ s)
         in
           case Library.find_first (prp r') prems of
             NONE =>
-              let val r' = Tr $ (HOLogic.Not $ (Const("op <",T) $ s $ t))
+              let val r' = Tr $ (HOLogic.Not $ (Const("Orderings.less",T) $ s $ t))
               in case Library.find_first (prp r') prems of
                    NONE => []
                  | SOME thm' => [(thm' RS not_lessD) RS (thm RS antisym)]
               end
           | SOME thm' => [thm' RS (thm RS antisym)]
         end
-    | Tr $ (Const("Not",_) $ (Const("op <",T) $ s $ t)) =>
-        let val r' = Tr $ (Const("op <=",T) $ s $ t)
+    | Tr $ (Const("Not",_) $ (Const("Orderings.less",T) $ s $ t)) =>
+        let val r' = Tr $ (Const("Orderings.less_eq",T) $ s $ t)
         in
           case Library.find_first (prp r') prems of
             NONE =>
-              let val r' = Tr $ (HOLogic.Not $ (Const("op <",T) $ t $ s))
+              let val r' = Tr $ (HOLogic.Not $ (Const("Orderings.less",T) $ t $ s))
               in case Library.find_first (prp r') prems of
                    NONE => []
                  | SOME thm' =>

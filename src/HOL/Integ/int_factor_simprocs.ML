@@ -103,8 +103,8 @@ structure FieldEqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <"
-  val dest_bal = HOLogic.dest_bin "op <" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
+  val dest_bal = HOLogic.dest_bin "Orderings.less" Term.dummyT
   val cancel = mult_less_cancel_left RS trans
   val neg_exchanges = true
 )
@@ -112,8 +112,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Bin_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "op <="
-  val dest_bal = HOLogic.dest_bin "op <=" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
+  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" Term.dummyT
   val cancel = mult_le_cancel_left RS trans
   val neg_exchanges = true
 )

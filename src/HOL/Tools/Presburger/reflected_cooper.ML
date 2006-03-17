@@ -29,8 +29,8 @@ fun qf_of_term vs t =
     case t of 
 	Const("True",_) => T
       | Const("False",_) => F
-      | Const("op <",_)$t1$t2 => Lt (i_of_term vs t1,i_of_term vs t2)
-      | Const("op <=",_)$t1$t2 => Le (i_of_term vs t1,i_of_term vs t2)
+      | Const("Orderings.less",_)$t1$t2 => Lt (i_of_term vs t1,i_of_term vs t2)
+      | Const("Orderings.less_eq",_)$t1$t2 => Le (i_of_term vs t1,i_of_term vs t2)
       | Const ("Divides.op dvd",_)$t1$t2 => 
 	Divides(i_of_term vs t1,i_of_term vs t2)
       | Const("op =",eqT)$t1$t2 => 
@@ -89,13 +89,13 @@ fun term_of_qf vs t =
     case t of 
 	T => HOLogic.true_const 
       | F => HOLogic.false_const
-      | Lt(t1,t2) => Const("op <",[iT,iT] ---> bT)$
+      | Lt(t1,t2) => Const("Orderings.less",[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Le(t1,t2) => Const("op <=",[iT,iT] ---> bT)$
+      | Le(t1,t2) => Const("Orderings.less_equal",[iT,iT] ---> bT)$
 			  (term_of_i vs t1)$(term_of_i vs t2)
-      | Gt(t1,t2) => Const("op <",[iT,iT] ---> bT)$
+      | Gt(t1,t2) => Const("Orderings.less",[iT,iT] ---> bT)$
 			   (term_of_i vs t2)$(term_of_i vs t1)
-      | Ge(t1,t2) => Const("op <=",[iT,iT] ---> bT)$
+      | Ge(t1,t2) => Const("Orderings.less_equal",[iT,iT] ---> bT)$
 			  (term_of_i vs t2)$(term_of_i vs t1)
       | Eq(t1,t2) => Const("op =",[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
