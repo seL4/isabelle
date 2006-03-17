@@ -85,6 +85,8 @@ sig
   val locale_target: token list -> xstring * token list
   val opt_locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
+  val locale_expr_unless: (token list -> 'a * token list) -> 
+         token list -> Locale.expr * token list 
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
@@ -366,20 +368,23 @@ val loc_element =
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
     >> Element.Notes;
 
-fun plus1 scan =
-  scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
+fun plus1 test scan =
+  scan -- Scan.repeat ($$$ "+" |-- Scan.unless test (!!! scan)) >> op ::;
 
 val rename = name -- Scan.option mixfix;
 
-fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
-and expr1 x = (expr2 -- Scan.repeat1 (maybe rename) >> Locale.Rename || expr2) x
-and expr0 x = (plus1 expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
-
+fun expr test =
+  let 
+    fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
+    and expr1 x = (expr2 -- Scan.repeat1 (maybe rename) >> Locale.Rename || expr2) x
+    and expr0 x = (plus1 test expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
+  in expr0 end;
 in
 
 val locale_target = ($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")");
 val opt_locale_target = Scan.option locale_target;
-val locale_expr = expr0;
+val locale_expr_unless = expr
+val locale_expr = expr loc_keyword;
 val locale_keyword = loc_keyword;
 
 val locale_element = group "locale element"
