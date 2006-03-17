@@ -72,9 +72,9 @@ sig
   val print_local_registrations: bool -> string -> Proof.context -> unit
 
   val add_locale: bool -> bstring -> expr -> Element.context list -> theory
-    -> Proof.context (*body context!*) * theory
+    -> string * Proof.context (*body context!*) * theory
   val add_locale_i: bool -> bstring -> expr -> Element.context_i list -> theory
-    -> Proof.context (*body context!*) * theory
+    -> string * Proof.context (*body context!*) * theory
 
   (* Storing results *)
   val note_thmss: string -> xstring ->
@@ -1708,7 +1708,7 @@ fun gen_add_locale prep_ctxt prep_expr
         lparams = map #1 (params_of body_elemss),
         abbrevs = [],
         regs = []};
-  in (ProofContext.transfer thy' body_ctxt, thy') end;
+  in (name, ProofContext.transfer thy' body_ctxt, thy') end;
 
 in
 
@@ -1718,8 +1718,8 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.add_setup
- (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #> snd #>
-  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]] #> snd);
+ (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #> #3 #>
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]] #> #3);
 
 
 

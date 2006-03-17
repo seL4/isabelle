@@ -316,12 +316,14 @@ fun intro_incr thy name expr =
 fun add_locale opn name expr body thy =
   thy
   |> Locale.add_locale opn name expr body
+  |> (fn (_, ctxt, thy) => (ctxt, thy))
   ||>> `(fn thy => intro_incr thy name expr)
   |-> (fn (ctxt, intro) => pair ((Sign.full_name thy name, intro), ctxt));
 
 fun add_locale_i opn name expr body thy =
   thy
   |> Locale.add_locale_i opn name expr body
+  |> (fn (_, ctxt, thy) => (ctxt, thy))
   ||>> `(fn thy => intro_incr thy name expr)
   |-> (fn (ctxt, intro) => pair ((name, intro), ctxt));
 
