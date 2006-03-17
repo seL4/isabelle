@@ -610,7 +610,7 @@ fun ensure_def_class thy tabs cls trns =
       case name_of_idf thy nsp_class cls
        of SOME cls =>
             let
-              val cs = (snd o ClassPackage.the_consts_sign thy) cls;
+              val (v, cs) = (ClassPackage.the_consts_sign thy) cls;
               val sortctxts = map (ClassPackage.extract_sortctxt thy o snd) cs;
               val idfs = map (idf_of_name thy nsp_mem o fst) cs;
             in
@@ -620,7 +620,7 @@ fun ensure_def_class thy tabs cls trns =
               ||>> (exprsgen_type thy tabs o map snd) cs
               ||>> (fold_map o fold_map) (exprgen_tyvar_sort thy tabs) sortctxts
               |-> (fn ((supcls, memtypes), sortctxts) => succeed
-                (Class (supcls, ("a", idfs ~~ (sortctxts ~~ memtypes)))))
+                (Class (supcls, (unprefix "'" v, idfs ~~ (sortctxts ~~ memtypes)))))
             end
         | _ =>
             trns
