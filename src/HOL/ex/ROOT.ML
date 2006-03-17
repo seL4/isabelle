@@ -57,6 +57,8 @@ else
 
 time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
+no_document time_use_thy "Classpackage";
+no_document time_use_thy "Codegenerator";
 no_document time_use_thy "nbe";
 
 no_document use_thy "Word";
