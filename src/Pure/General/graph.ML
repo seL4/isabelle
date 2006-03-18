@@ -94,6 +94,7 @@ fun get_entry (Graph tab) x =
   | NONE => raise UNDEF x);
 
 fun map_entry x f (G as Graph tab) = Graph (Table.update (x, f (get_entry G x)) tab);
+
 fun map_entry_yield x f (G as Graph tab) =
   let val (a, node') = f (get_entry G x)
   in (a, Graph (Table.update (x, node') tab)) end;
@@ -103,17 +104,15 @@ fun map_entry_yield x f (G as Graph tab) =
 
 fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
 
-fun fold_nodes f (Graph tab) s =
-  Table.fold (fn (k, (i, ps)) => f (k, i)) tab s
+fun fold_nodes f (Graph tab) = Table.fold (fn (k, (i, ps)) => f (k, i)) tab;
 
-fun fold_map_nodes f (Graph tab) s =
-  s
-  |> Table.fold_map (fn (k, (i, ps)) => f (k, i) #> apfst (rpair ps)) tab
-  |> apfst Graph;
+fun fold_map_nodes f (Graph tab) =
+  apfst Graph o Table.fold_map (fn (k, (i, ps)) => f (k, i) #> apfst (rpair ps)) tab;
 
 fun get_node G = #1 o get_entry G;
 
 fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
+
 fun map_node_yield x f = map_entry_yield x (fn (i, ps) =>
   let val (a, i') = f i in (a, (i', ps)) end);
 
@@ -237,12 +236,13 @@ fun merge_acyclic eq GG = gen_merge add_edge_acyclic eq GG;
 (* maintain transitive acyclic graphs *)
 
 fun add_edge_trans_acyclic (x, y) G =
-  add_edge_acyclic (x, y) G |>
-  fold add_edge (Library.product (all_preds G [x]) (all_succs G [y]));
+  add_edge_acyclic (x, y) G
+  |> fold add_edge (Library.product (all_preds G [x]) (all_succs G [y]));
 
 fun merge_trans_acyclic eq (G1, G2) =
-  merge_acyclic eq (G1, G2) |>
-  fold add_edge_trans_acyclic (diff_edges G1 G2 @ diff_edges G2 G1);
+  merge_acyclic eq (G1, G2)
+  |> fold add_edge_trans_acyclic (diff_edges G1 G2)
+  |> fold add_edge_trans_acyclic (diff_edges G2 G1);
 
 end;
 
