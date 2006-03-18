@@ -183,11 +183,13 @@ fun the_consts_sign thy class =
     val data = the_class_data thy class
   in (#var data, (map snd o #consts) data) end;
 
+fun mg_domain thy tyco class =
+  Sorts.mg_domain (Sign.classes_of thy, Sign.arities_of thy) tyco [class];
+
 fun the_inst_sign thy (class, tyco) =
   let
     val _ = if is_operational_class thy class then () else error ("no operational class: " ^ class);
-    val arity =
-      Sorts.mg_domain (Sign.classes_arities_of thy) tyco [class];
+    val arity = mg_domain thy tyco class;
     val clsvar = (#var o the_class_data thy) class;
     val const_sign = (snd o the_consts_sign thy) class;
     fun add_var sort used =
@@ -447,13 +449,6 @@ end; (* local *)
 
 local
 
-fun lift_local_theory_yield f thy =
-  thy
-  |> LocalTheory.init NONE
-  |> f
-  ||>> LocalTheory.exit
-  |-> (fn (x, _) => pair x);
-
 fun gen_add_defs_overloaded prep_att tap_def add_defs tyco raw_defs thy =
   let
     fun invent_name raw_t =
@@ -675,7 +670,7 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
     fun mk_lookup (sort_def, (Type (tyco, tys))) =
           map (fn class => Instance ((class, tyco),
             map2 (curry mk_lookup)
-              (map (operational_sort_of thy) (Sorts.mg_domain (Sign.classes_arities_of thy) tyco [class]))
+              (map (operational_sort_of thy) (mg_domain thy tyco class))
               tys)
           ) sort_def
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
