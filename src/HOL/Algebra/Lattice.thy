@@ -29,7 +29,7 @@ locale partial_order = struct L +
                    x \<in> carrier L; y \<in> carrier L; z \<in> carrier L |] ==> x \<sqsubseteq> z"
 
 constdefs (structure L)
-  less :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
+  lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
   "x \<sqsubset> y == x \<sqsubseteq> y & x ~= y"
 
   -- {* Upper and lower bounds of a set. *}
