@@ -39,8 +39,8 @@ instances:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isamarkupfalse%
-\ less\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharless}{\isacharless}{\isachardoublequoteclose}\ \ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ le\ \ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharless}{\isacharless}{\isacharequal}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}%
+\ lt\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharless}{\isacharless}{\isachardoublequoteclose}\ \ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ le\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharless}{\isacharless}{\isacharequal}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Note that only one occurrence of a type variable in a type needs to be
@@ -88,8 +88,8 @@ what the relation symbols actually mean at type \isa{bool}:%
 \isamarkuptrue%
 \isacommand{defs}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-le{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequoteopen}P\ {\isacharless}{\isacharless}{\isacharequal}\ Q\ {\isasymequiv}\ P\ {\isasymlongrightarrow}\ Q{\isachardoublequoteclose}\isanewline
-less{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}P\ {\isacharless}{\isacharless}\ Q\ {\isasymequiv}\ {\isasymnot}P\ {\isasymand}\ Q{\isachardoublequoteclose}%
+le{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}P\ {\isacharless}{\isacharless}{\isacharequal}\ Q\ {\isasymequiv}\ P\ {\isasymlongrightarrow}\ Q{\isachardoublequoteclose}\isanewline
+lt{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}P\ {\isacharless}{\isacharless}\ Q\ {\isasymequiv}\ {\isasymnot}P\ {\isasymand}\ Q{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 Now \isa{False\ {\isacharless}{\isacharless}{\isacharequal}\ P} is provable:%

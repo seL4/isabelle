@@ -41,7 +41,7 @@ where certain axioms need to hold:%
 refl{\isacharcolon}\ \ \ \ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequoteclose}\isanewline
 trans{\isacharcolon}\ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ z{\isachardoublequoteclose}\isanewline
 antisym{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-less{\isacharunderscore}le{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}%
+lt{\isacharunderscore}le{\isacharcolon}\ \ \ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The first three axioms are the familiar ones, and the final one
@@ -50,7 +50,7 @@ Note that behind the scenes, Isabelle has restricted the axioms to class
 \isa{parord}. For example, the axiom \isa{refl} really is
 \isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isasymColon}parord{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
 
-We have not made \isa{less{\isacharunderscore}le} a global definition because it would
+We have not made \isa{lt{\isacharunderscore}le} a global definition because it would
 fix once and for all that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
 never the other way around. Below you will see why we want to avoid this
 asymmetry. The drawback of our choice is that
@@ -83,7 +83,7 @@ when the proposition is not a theorem.  The proof is easy:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ less{\isacharunderscore}le\ antisym{\isacharparenright}%
+{\isacharparenleft}simp\ add{\isacharcolon}\ lt{\isacharunderscore}le\ antisym{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -125,7 +125,7 @@ of \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isa
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ only{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def\ less{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
+{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ only{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def\ lt{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
 \isacommand{by}\isamarkupfalse%
 {\isacharparenleft}blast{\isacharcomma}\ blast{\isacharcomma}\ blast{\isacharcomma}\ blast{\isacharparenright}%
 \endisatagproof
@@ -196,7 +196,7 @@ as follows:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ less{\isacharunderscore}le{\isacharparenright}\isanewline
+{\isacharparenleft}simp\ add{\isacharcolon}\ lt{\isacharunderscore}le{\isacharparenright}\isanewline
 \isacommand{apply}\isamarkupfalse%
 {\isacharparenleft}insert\ linear{\isacharparenright}\isanewline
 \isacommand{apply}\isamarkupfalse%
@@ -231,7 +231,7 @@ An alternative axiomatization of partial orders takes \isa{{\isacharless}{\isach
 \isacommand{axclass}\isamarkupfalse%
 \ strord\ {\isacharless}\ ordrel\isanewline
 irrefl{\isacharcolon}\ \ \ \ \ {\isachardoublequoteopen}{\isasymnot}\ x\ {\isacharless}{\isacharless}\ x{\isachardoublequoteclose}\isanewline
-less{\isacharunderscore}trans{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}\ z{\isachardoublequoteclose}\isanewline
+lt{\isacharunderscore}trans{\isacharcolon}\ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}\ z{\isachardoublequoteclose}\isanewline
 le{\isacharunderscore}less{\isacharcolon}\ \ \ \ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
@@ -264,7 +264,7 @@ are easily proved:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ add{\isacharcolon}\ less{\isacharunderscore}le{\isacharparenright}\isanewline
+{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ add{\isacharcolon}\ lt{\isacharunderscore}le{\isacharparenright}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
 {\isacharparenleft}blast\ intro{\isacharcolon}\ trans\ antisym{\isacharparenright}\isanewline
 \isacommand{apply}\isamarkupfalse%

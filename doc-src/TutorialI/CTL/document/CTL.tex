@@ -141,9 +141,9 @@ In contrast to the analogous proof for \isa{EF}, and just
 for a change, we do not use fixed point induction.  Park-induction,
 named after David Park, is weaker but sufficient for this proof:
 \begin{center}
-\isa{f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S} \hfill (\isa{lfp{\isacharunderscore}lowerbound})
+\isa{f\ S\ {\isasymle}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymle}\ S} \hfill (\isa{lfp{\isacharunderscore}lowerbound})
 \end{center}
-The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
+The instance of the premise \isa{f\ S\ {\isasymle}\ S} is proved pointwise,
 a decision that \isa{auto} takes for us:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
