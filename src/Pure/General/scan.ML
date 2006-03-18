@@ -28,7 +28,7 @@ sig
   (*concatenation*)
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
   (*one element literal*)
-  val $$ : ''a -> ''a list -> ''a * ''a list
+  val $$ : string -> string list -> string * string list
 end;
 
 signature SCAN =
@@ -39,7 +39,7 @@ sig
   val succeed: 'a -> 'b -> 'a * 'b
   val some: ('a -> 'b option) -> 'a list -> 'b * 'a list
   val one: ('a -> bool) -> 'a list -> 'a * 'a list
-  val this: ''a list -> ''a list -> ''a list * ''a list
+  val this: string list -> string list -> string list * string list
   val this_string: string -> string list -> string * string list
   val any: ('a -> bool) -> 'a list -> 'a list * 'a list
   val any1: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -157,14 +157,14 @@ fun one _ [] = raise MORE NONE
 
 fun $$ _ [] = raise MORE NONE
   | $$ a (x :: xs) =
-      if a = x then (x, xs) else raise FAIL NONE;
+      if (a: string) = x then (x, xs) else raise FAIL NONE;
 
 fun this ys xs =
   let
     fun drop_prefix [] xs = xs
       | drop_prefix (_ :: _) [] = raise MORE NONE
       | drop_prefix (y :: ys) (x :: xs) =
-          if y = x then drop_prefix ys xs else raise FAIL NONE;
+          if (y: string) = x then drop_prefix ys xs else raise FAIL NONE;
   in (ys, drop_prefix ys xs) end;
 
 fun this_string s = this (explode s) >> K s;  (*primitive string -- no symbols here!*)
