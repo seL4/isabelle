@@ -20,7 +20,7 @@ axclass parord < ordrel
 refl:    "x <<= x"
 trans:   "\<lbrakk> x <<= y; y <<= z \<rbrakk> \<Longrightarrow> x <<= z"
 antisym: "\<lbrakk> x <<= y; y <<= x \<rbrakk> \<Longrightarrow> x = y"
-less_le: "x << y = (x <<= y \<and> x \<noteq> y)"
+lt_le:   "x << y = (x <<= y \<and> x \<noteq> y)"
 
 text{*\noindent
 The first three axioms are the familiar ones, and the final one
@@ -29,7 +29,7 @@ Note that behind the scenes, Isabelle has restricted the axioms to class
 @{text parord}. For example, the axiom @{thm[source]refl} really is
 @{thm[show_sorts]refl}.
 
-We have not made @{thm[source]less_le} a global definition because it would
+We have not made @{thm[source] lt_le} a global definition because it would
 fix once and for all that @{text"<<"} is defined in terms of @{text"<<="} and
 never the other way around. Below you will see why we want to avoid this
 asymmetry. The drawback of our choice is that
@@ -54,7 +54,7 @@ The type constraint is necessary because otherwise Isabelle would only assume
 when the proposition is not a theorem.  The proof is easy:
 *}
 
-by(simp add: less_le antisym);
+by(simp add: lt_le antisym);
 
 text{* We could now continue in this vein and develop a whole theory of
 results about partial orders. Eventually we will want to apply these results
@@ -74,7 +74,7 @@ once we have unfolded the definitions
 of @{text"<<"} and @{text"<<="} at type @{typ bool}:
 *}
 
-apply(simp_all (no_asm_use) only: le_bool_def less_bool_def);
+apply(simp_all (no_asm_use) only: le_bool_def lt_bool_def);
 by(blast, blast, blast, blast);
 
 text{*\noindent
@@ -108,7 +108,7 @@ as follows:
 *}
 
 lemma "\<And>x::'a::linord. x << y \<or> x = y \<or> y << x";
-apply(simp add: less_le);
+apply(simp add: lt_le);
 apply(insert linear);
 apply blast;
 done
@@ -130,7 +130,7 @@ An alternative axiomatization of partial orders takes @{text"<<"} rather than
 
 axclass strord < ordrel
 irrefl:     "\<not> x << x"
-less_trans: "\<lbrakk> x << y; y << z \<rbrakk> \<Longrightarrow> x << z"
+lt_trans:   "\<lbrakk> x << y; y << z \<rbrakk> \<Longrightarrow> x << z"
 le_less:    "x <<= y = (x << y \<or> x = y)"
 
 text{*\noindent
@@ -147,7 +147,7 @@ Assuming @{text"'a :: parord"}, the three axioms of class @{text strord}
 are easily proved:
 *}
 
-  apply(simp_all (no_asm_use) add: less_le);
+  apply(simp_all (no_asm_use) add: lt_le);
  apply(blast intro: trans antisym);
 apply(blast intro: refl);
 done
@@ -161,12 +161,12 @@ complain if you also prove the relationship @{text"strord < parord"}.
 (*
 instance strord < parord
 apply intro_classes;
-apply(simp_all (no_asm_use) add: le_less);
-apply(blast intro: less_trans);
+apply(simp_all (no_asm_use) add: le_lt);
+apply(blast intro: lt_trans);
 apply(erule disjE);
 apply(erule disjE);
 apply(rule irrefl[THEN notE]);
-apply(rule less_trans, assumption, assumption);
+apply(rule lt_trans, assumption, assumption);
 apply blast;apply blast;
 apply(blast intro: irrefl[THEN notE]);
 done

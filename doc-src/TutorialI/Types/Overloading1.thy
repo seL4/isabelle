@@ -21,8 +21,8 @@ Its sole purpose is to restrict the use of overloaded constants to meaningful
 instances:
 *}
 
-consts less :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<"  50)
-       le   :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<=" 50)
+consts lt :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<"  50)
+       le :: "('a::ordrel) \<Rightarrow> 'a \<Rightarrow> bool"     (infixl "<<=" 50)
 
 text{*\noindent
 Note that only one occurrence of a type variable in a type needs to be
@@ -54,8 +54,8 @@ what the relation symbols actually mean at type @{typ bool}:
 *}
 
 defs (overloaded)
-le_bool_def:  "P <<= Q \<equiv> P \<longrightarrow> Q"
-less_bool_def: "P << Q \<equiv> \<not>P \<and> Q"
+le_bool_def: "P <<= Q \<equiv> P \<longrightarrow> Q"
+lt_bool_def: "P << Q \<equiv> \<not>P \<and> Q"
 
 text{*\noindent
 Now @{prop"False <<= P"} is provable:
