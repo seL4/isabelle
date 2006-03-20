@@ -474,7 +474,7 @@ lemma strong_bex_cong [cong]:
 
 subsubsection {* Subsets *}
 
-lemma subsetI [intro!]: "(!!x. x:A ==> x:B) ==> A \<subseteq> B"
+lemma subsetI [atp,intro!]: "(!!x. x:A ==> x:B) ==> A \<subseteq> B"
   by (simp add: subset_def)
 
 text {*
