@@ -72,9 +72,9 @@ sig
   val print_local_registrations: bool -> string -> Proof.context -> unit
 
   val add_locale: bool -> bstring -> expr -> Element.context list -> theory
-    -> string * Proof.context (*body context!*) * theory
+    -> (string * Proof.context (*body context!*)) * theory
   val add_locale_i: bool -> bstring -> expr -> Element.context_i list -> theory
-    -> string * Proof.context (*body context!*) * theory
+    -> (string * Proof.context (*body context!*)) * theory
 
   (* Storing results *)
   val note_thmss: string -> xstring ->
@@ -931,6 +931,45 @@ fun intern_expr thy (Locale xname) = Locale (intern thy xname)
   | intern_expr thy (Rename (expr, xs)) = Rename (intern_expr thy expr, xs);
 
 
+(* experimental code for type inference *)
+
+local
+
+fun declare_int_elem (ctxt, Fixes fixes) =
+      (ctxt |> ProofContext.add_fixes_i (map (fn (x, T, mx) =>
+        (x, Option.map (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes) |> snd, [])
+  | declare_int_elem (ctxt, _) = (ctxt, []);
+
+fun declare_ext_elem prep_vars (ctxt, Fixes fixes) =
+      let val (vars, _) = prep_vars fixes ctxt
+      in (ctxt |> ProofContext.add_fixes_i vars |> snd, []) end
+  | declare_ext_elem prep_vars (ctxt, Constrains csts) =
+      let val (_, ctxt') = prep_vars (map (fn (x, T) => (x, SOME T, NoSyn)) csts) ctxt
+      in (ctxt', []) end
+  | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
+  | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
+  | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
+
+fun declare_elems prep_vars (ctxt, (((name, ps), Assumed _), elems)) =
+    let val (ctxt', propps) =
+      (case elems of
+        Int es => foldl_map declare_int_elem (ctxt, es)
+      | Ext e => foldl_map (declare_ext_elem prep_vars) (ctxt, [e]))
+      handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)]
+    in (ctxt', propps) end
+  | declare_elems _ (ctxt, ((_, Derived _), elems)) = (ctxt, []);
+
+in
+
+(* The Plan:
+- tell context about parameters and their syntax (possibly also types)
+- add declarations to context
+- retrieve parameter types
+*)
+
+end; (* local *)
+
+
 (* propositions and bindings *)
 
 (* flatten (ctxt, prep_expr) ((ids, syn), expr)
@@ -1708,7 +1747,7 @@ fun gen_add_locale prep_ctxt prep_expr
         lparams = map #1 (params_of body_elemss),
         abbrevs = [],
         regs = []};
-  in (name, ProofContext.transfer thy' body_ctxt, thy') end;
+  in ((name, ProofContext.transfer thy' body_ctxt), thy') end;
 
 in
 
@@ -1718,8 +1757,8 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.add_setup
- (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #> #3 #>
-  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]] #> #3);
+ (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #> snd #>
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]] #> snd);
 
 
 

@@ -342,7 +342,7 @@ val localeP =
     ((P.opt_keyword "open" >> not) -- P.name
         -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
       >> (Toplevel.theory_context o (fn ((is_open, name), (expr, elems)) =>
-             Locale.add_locale is_open name expr elems #> (fn (_, ctxt, thy) => (ctxt, thy)))));
+             Locale.add_locale is_open name expr elems #> (fn ((_, ctxt), thy) => (ctxt, thy)))));
 
 val opt_inst =
   Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) [];
