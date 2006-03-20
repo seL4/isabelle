@@ -2190,6 +2190,7 @@ fun interpretation_in_locale (raw_target, expr) thy =
 
 fun interpret (prfx, atts) expr insts int state =
   let
+    val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
     val (propss, activate) = prep_local_registration (prfx, atts) expr insts ctxt;
     val kind = goal_name (Proof.theory_of state) "interpret" NONE propss;
