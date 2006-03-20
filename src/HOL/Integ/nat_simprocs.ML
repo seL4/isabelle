@@ -52,17 +52,19 @@ fun long_mk_sum []        = HOLogic.zero
 
 val dest_plus = HOLogic.dest_bin "HOL.plus" HOLogic.natT;
 
-(*extract the outer Sucs from a term and convert them to a binary numeral*)
-fun dest_Sucs (k, Const ("Suc", _) $ t) = dest_Sucs (k+1, t)
-  | dest_Sucs (0, t) = t
-  | dest_Sucs (k, t) = mk_plus (mk_numeral k, t);
+(*Split up a sum into the list of its constituent terms, on the way removing any
+  Sucs and counting them.*)
+fun dest_Suc_sum (Const ("Suc", _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
+  | dest_Suc_sum (t, (k,ts)) = 
+      let val (t1,t2) = dest_plus t
+      in  dest_Suc_sum (t1, dest_Suc_sum (t2, (k,ts)))  end
+      handle TERM _ => (k, t::ts);
 
-fun dest_sum t =
-      let val (t,u) = dest_plus t
-      in  dest_sum t @ dest_sum u  end
-      handle TERM _ => [t];
-
-fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
+(*The Sucs found in the term are converted to a binary numeral*)
+fun dest_Sucs_sum t = 
+  case dest_Suc_sum (t,(0,[])) of
+      (0,ts) => ts
+    | (k,ts) => mk_numeral k :: ts
 
 
 (** Other simproc items **)
@@ -138,21 +140,23 @@ val simplify_meta_eq =
 
 (** Restricted version of dest_Sucs_sum for nat_combine_numerals:
     Simprocs never apply unless the original expression contains at least one
-    numeral in a coefficient position.
+    numeral in a coefficient position. This avoids replacing x+x by
+    2*x, for example, unless numerals have been used already.
 **)
-
-fun ignore_Sucs (Const ("Suc", _) $ t) = ignore_Sucs t
-  | ignore_Sucs t = t;
 
 fun is_numeral (Const("Numeral.number_of", _) $ w) = true
   | is_numeral _ = false;
 
 fun prod_has_numeral t = exists is_numeral (dest_prod t);
 
+fun require_has_numeral ts = 
+    if exists prod_has_numeral ts then ts
+    else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", ts);
+
 fun restricted_dest_Sucs_sum t =
-    if exists prod_has_numeral (dest_sum (ignore_Sucs t))
-    then dest_Sucs_sum t
-    else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", [t]);
+  case dest_Suc_sum (t,(0,[])) of
+      (0,ts) => require_has_numeral ts
+    | (k,ts) => mk_numeral k :: require_has_numeral ts
 
 
 (*Like HOL_ss but with an ordering that brings numerals to the front
