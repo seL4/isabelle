@@ -191,6 +191,7 @@ sig
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
   val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
+  val subtract: ('b * 'a -> bool) -> 'b list -> 'a list -> 'a list
   val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
   val mem: ''a * ''a list -> bool
   val mem_int: int * int list -> bool
@@ -212,6 +213,7 @@ sig
   val eq_set: ''a list * ''a list -> bool
   val eq_set_string: string list * string list -> bool
   val gen_subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val gen_eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val \ : ''a list * ''a -> ''a list
   val \\ : ''a list * ''a list -> ''a list
   val gen_rem: ('a * 'b -> bool) -> 'a list * 'b -> 'a list
@@ -877,7 +879,7 @@ fun space_explode _ "" = []
   | space_explode sep str =
       let
         fun expl chs =
-          (case take_prefix (not_equal sep) chs of
+          (case take_prefix (fn s => s <> sep) chs of
             (cs, []) => [implode cs]
           | (cs, _ :: cs') => implode cs :: expl cs');
       in expl (explode str) end;
@@ -896,7 +898,7 @@ fun untabify chs =
           let val d = tab_width - (pos mod tab_width) in (pos + d, replicate d " ") end
       | untab (pos, c) = (pos + 1, [c]);
   in
-    if not (exists (equal "\t") chs) then chs
+    if not (exists (fn c => c = "\t") chs) then chs
     else flat (#2 (foldl_map untab (0, chs)))
   end;
 
@@ -930,6 +932,8 @@ fun member eq list x =
 
 fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
+
+fun subtract eq = fold (remove eq);
 
 fun merge _ ([], ys) = ys
   | merge eq (xs, ys) = fold_rev (insert eq) ys xs;
@@ -1008,6 +1012,10 @@ fun eq_set_string ((xs: string list), ys) =
   xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
 
 fun gen_subset eq (xs, ys) = forall (member eq ys) xs;
+
+fun gen_eq_set eq (xs, ys) =
+  equal_lists eq (xs, ys) orelse
+    (gen_subset eq (xs, ys) andalso gen_subset (eq o swap) (ys, xs));
 
 
 (*removing an element from a list WITHOUT duplicates*)
