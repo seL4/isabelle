@@ -29,6 +29,7 @@ sig
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
   (*one element literal*)
   val $$ : string -> string list -> string * string list
+  val ~$$ : string -> string list -> string * string list
 end;
 
 signature SCAN =
@@ -99,46 +100,20 @@ exception ABORT of string;              (*dead end*)
 
 (* scanner combinators *)
 
-(*dependent pairing*)
-fun (scan1 :-- scan2) toks =
+fun (scan >> f) xs = scan xs |>> f;
+
+fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
+
+fun (scan1 :-- scan2) xs =
   let
-    val (x, toks2) = scan1 toks;
-    val (y, toks3) = scan2 x toks2;
-  in ((x, y), toks3) end;
+    val (x, ys) = scan1 xs;
+    val (y, zs) = scan2 x ys;
+  in ((x, y), zs) end;
 
-(*sequential pairing*)
-fun (scan1 -- scan2) toks =
-  let
-    val (x, toks2) = scan1 toks;
-    val (y, toks3) = scan2 toks2;
-  in ((x, y), toks3) end;
-
-(*application*)
-fun (scan >> f) toks =
-  let val (x, toks2) = scan toks;
-  in (f x, toks2) end;
-
-(*forget snd*)
-fun (scan1 --| scan2) toks =
-  let
-    val (x, toks2) = scan1 toks;
-    val (_, toks3) = scan2 toks2;
-  in (x, toks3) end;
-
-(*forget fst*)
-fun (scan1 |-- scan2) toks =
-  let val (_, toks2) = scan1 toks;
-  in scan2 toks2 end;
-
-(*concatenation*)
-fun (scan1 ^^ scan2) toks =
-  let
-    val (x, toks2) = scan1 toks;
-    val (y, toks3) = scan2 toks2;
-  in (x ^ y, toks3) end;
-
-(*alternative*)
-fun (scan1 || scan2) toks = scan1 toks handle FAIL _ => scan2 toks;
+fun (scan1 -- scan2) = scan1 :-- (fn _ => scan2);
+fun (scan1 |-- scan2) = scan1 -- scan2 >> #2;
+fun (scan1 --| scan2) = scan1 -- scan2 >> #1;
+fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
 
 
 (* generic scanners *)
@@ -155,9 +130,8 @@ fun one _ [] = raise MORE NONE
   | one pred (x :: xs) =
       if pred x then (x, xs) else raise FAIL NONE;
 
-fun $$ _ [] = raise MORE NONE
-  | $$ a (x :: xs) =
-      if (a: string) = x then (x, xs) else raise FAIL NONE;
+fun $$ a = one (fn s: string => s = a);
+fun ~$$ a = one (fn s: string => s <> a);
 
 fun this ys xs =
   let
@@ -328,20 +302,18 @@ val empty_lexicon = Empty;
 fun extend_lexicon lexicon [] = lexicon
   | extend_lexicon lexicon chrss =
       let
-        fun ext (lex, chrs) =
+        fun ext chrs lex =
           let
-            fun add (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
-                  (case string_ord (c, d) of
-                    LESS => Branch (d, a, add lt chs, eq, gt)
-                  | EQUAL => Branch (d, if null cs then chrs else a, lt, add eq cs, gt)
-                  | GREATER => Branch (d, a, lt, eq, add gt chs))
-              | add Empty [c] =
-                  Branch (c, chrs, Empty, Empty, Empty)
-              | add Empty (c :: cs) =
-                  Branch (c, no_literal, Empty, add Empty cs, Empty)
-              | add lex [] = lex;
-          in add lex chrs end;
-      in Library.foldl ext (lexicon, chrss \\ dest_lex lexicon) end;
+            fun add (chs as c :: cs) (Branch (d, a, lt, eq, gt)) =
+                  (case fast_string_ord (c, d) of
+                    LESS => Branch (d, a, add chs lt, eq, gt)
+                  | EQUAL => Branch (d, if null cs then chrs else a, lt, add cs eq, gt)
+                  | GREATER => Branch (d, a, lt, eq, add chs gt))
+              | add [c] Empty = Branch (c, chrs, Empty, Empty, Empty)
+              | add (c :: cs) Empty = Branch (c, no_literal, Empty, add cs Empty, Empty)
+              | add [] lex = lex;
+          in add chrs lex end;
+      in lexicon |> fold ext (chrss |> subtract (op =) (dest_lex lexicon)) end;
 
 val make_lexicon = extend_lexicon empty_lexicon;
 
@@ -361,7 +333,7 @@ fun merge_lexicons lex1 lex2 =
 fun is_literal Empty _ = false
   | is_literal _ [] = false
   | is_literal (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
-      (case string_ord (c, d) of
+      (case fast_string_ord (c, d) of
         LESS => is_literal lt chs
       | EQUAL => a <> no_literal andalso null cs orelse is_literal eq cs
       | GREATER => is_literal gt chs);
@@ -374,7 +346,7 @@ fun literal lex chrs =
     fun lit Empty res _ = res
       | lit (Branch _) _ [] = raise MORE NONE
       | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
-          (case string_ord (c, d) of
+          (case fast_string_ord (c, d) of
             LESS => lit lt res chs
           | EQUAL => lit eq (if a = no_literal then res else SOME (a, cs)) cs
           | GREATER => lit gt res chs);
