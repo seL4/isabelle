@@ -261,11 +261,11 @@ fun assert_mode pred state =
     else error ("Illegal application of proof command in " ^ quote (mode_name mode) ^ " mode")
   end;
 
-val assert_forward = assert_mode (equal Forward);
-val assert_chain = assert_mode (equal Chain);
-val assert_forward_or_chain = assert_mode (equal Forward orf equal Chain);
-val assert_backward = assert_mode (equal Backward);
-val assert_no_chain = assert_mode (not_equal Chain);
+val assert_forward = assert_mode (fn mode => mode = Forward);
+val assert_chain = assert_mode (fn mode => mode = Chain);
+val assert_forward_or_chain = assert_mode (fn mode => mode = Forward orelse mode = Chain);
+val assert_backward = assert_mode (fn mode => mode = Backward);
+val assert_no_chain = assert_mode (fn mode => mode <> Chain);
 
 val enter_forward = put_mode Forward;
 val enter_chain = put_mode Chain;
@@ -488,7 +488,7 @@ fun conclude_goal state goal propss =
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
     val {hyps, thy, ...} = Thm.rep_thm goal;
-    val bad_hyps = fold (remove (op aconv)) (ProofContext.assms_of ctxt) hyps;
+    val bad_hyps = subtract (op aconv) (ProofContext.assms_of ctxt) hyps;
     val _ = conditional (not (null bad_hyps)) (fn () => error ("Additional hypotheses:\n" ^
         cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
 
