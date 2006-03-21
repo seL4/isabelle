@@ -382,18 +382,12 @@ and fast_arith_neq_limit = Fast_Arith.fast_arith_neq_limit;
 
 local
 
-val isolateSuc =
-  let val thy = theory "Nat"
-  in prove_goal thy "Suc(i+j) = i+j + Suc 0"
-     (fn _ => [simp_tac (simpset_of thy) 1])
-  end;
-
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics.
 *)
 val add_rules =
  [add_zero_left,add_zero_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
-  add_Suc, One_nat_def,isolateSuc,
+  One_nat_def,
   order_less_irrefl, zero_neq_one, zero_less_one, zero_le_one,
   zero_neq_one RS not_sym, not_one_le_zero, not_one_less_zero];
 
