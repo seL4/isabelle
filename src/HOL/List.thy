@@ -54,6 +54,10 @@ consts
   filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
   map_filter :: "('a => 'b) => ('a => bool) => 'a list => 'b list"
 
+abbreviation (output)
+ upto:: "nat => nat => nat list"    ("(1[_../_])")
+"[i..j] = [i..<(Suc j)]"
+
 
 nonterminals lupdbinds lupdbind
 
@@ -70,8 +74,6 @@ syntax
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
   "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [900,0] 900)
 
-  upto:: "nat => nat => nat list"    ("(1[_../_])")
-
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
@@ -79,8 +81,6 @@ translations
 
   "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "list_update xs i x"
-
-  "[i..j]" == "[i..<(Suc j)]"
 
 
 syntax (xsymbols)
@@ -93,17 +93,9 @@ text {*
   Function @{text size} is overloaded for all datatypes. Users may
   refer to the list version as @{text length}. *}
 
-syntax length :: "'a list => nat"
-translations "length" => "size :: _ list => nat"
-
-typed_print_translation {*
-  let
-    fun size_tr' _ (Type ("fun", (Type ("list", _) :: _))) [t] =
-          Syntax.const "length" $ t
-      | size_tr' _ _ _ = raise Match;
-  in [("size", size_tr')] end
-*}
-
+abbreviation (output)
+ length :: "'a list => nat"
+"length = size"
 
 primrec
   "hd(x#xs) = x"
