@@ -84,7 +84,7 @@ fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
 
 fun merge_rules
   ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
-  foldr add_rule {next = next, rs = rs1, net = net} (rs2 \\ rs1);
+  foldr add_rule {next = next, rs = rs1, net = net} (subtract (op =) rs1 rs2);
 
 fun condrew thy rules procs =
   let
@@ -205,7 +205,7 @@ structure ExtractionData = TheoryDataFun
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = merge_alists types1 types2,
-     realizers = Symtab.merge_list (eq_set o pairself #1) (realizers1, realizers2),
+     realizers = Symtab.merge_list (gen_eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = gen_merge_lists eq_thm defs1 defs2,
      expand = merge_lists expand1 expand2,
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
@@ -483,7 +483,7 @@ fun extract thms thy =
 
       in foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
 
-    fun find vs = Option.map snd o find_first (curry eq_set vs o fst);
+    fun find vs = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
     fun find' s = map snd o List.filter (equal s o fst)
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw

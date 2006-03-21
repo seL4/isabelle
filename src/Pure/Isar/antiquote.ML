@@ -36,8 +36,8 @@ structure T = OuterLex;
 
 val scan_txt =
   T.scan_blank ||
-  T.keep_line ($$ "@" --| Scan.ahead (Scan.one (not_equal "{"))) ||
-  T.keep_line (Scan.one (not_equal "@" andf Symbol.not_sync andf Symbol.not_eof));
+  T.keep_line ($$ "@" --| Scan.ahead (~$$ "{")) ||
+  T.keep_line (Scan.one (fn s => s <> "@" andalso Symbol.not_sync s andalso Symbol.not_eof s));
 
 fun escape "\\" = "\\\\"
   | escape "\"" = "\\\""
@@ -48,7 +48,7 @@ val quote_escape = Library.quote o implode o map escape o Symbol.explode;
 val scan_ant =
   T.scan_blank ||
   T.scan_string >> quote_escape ||
-  T.keep_line (Scan.one (not_equal "}" andf Symbol.not_sync andf Symbol.not_eof));
+  T.keep_line (Scan.one (fn s => s <> "}" andalso Symbol.not_sync s andalso Symbol.not_eof s));
 
 val scan_antiq =
   T.keep_line ($$ "@" -- $$ "{") |--

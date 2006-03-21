@@ -342,7 +342,7 @@ fun pretty_statement ctxt kind raw_th =
 
     val vars = Term.add_vars raw_prop [];
     val frees = ProofContext.rename_frees ctxt [raw_prop] (map (apfst fst) vars);
-    val fixes = rev (filter_out (equal AutoBind.thesisN o #1) frees);
+    val fixes = rev (filter_out (fn (x, _) => x = AutoBind.thesisN) frees);
 
     val prop = Term.instantiate ([], vars ~~ map Free frees) raw_prop;
     val (prems, concl) = Logic.strip_horn prop;

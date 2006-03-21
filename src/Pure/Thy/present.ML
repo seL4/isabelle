@@ -261,7 +261,7 @@ fun create_index dir =
 fun update_index dir name =
   (case try get_entries dir of
     NONE => warning ("Browser info: cannot access session index of " ^ quote (Path.pack dir))
-  | SOME es => (put_entries ((es \ name) @ [name]) dir; create_index dir));
+  | SOME es => (put_entries ((remove (op =) name es) @ [name]) dir; create_index dir));
 
 
 (* document versions *)

@@ -214,8 +214,8 @@ fun scan_str q =
   scan_blank ||
   keep_line ($$ "\\") |-- !!! "bad escape character in string"
       (scan_blank || keep_line ($$ q || $$ "\\")) ||
-  keep_line (Scan.one (not_equal q andf not_equal "\\" andf
-    Symbol.not_sync andf Symbol.not_eof));
+  keep_line (Scan.one (fn s => s <> q andalso s <> "\\" andalso
+    Symbol.not_sync s andalso Symbol.not_eof s));
 
 fun scan_strs q =
   keep_line ($$ q) |--
@@ -234,8 +234,8 @@ end;
 
 val scan_verb =
   scan_blank ||
-  keep_line ($$ "*" --| Scan.ahead (Scan.one (not_equal "}"))) ||
-  keep_line (Scan.one (not_equal "*" andf Symbol.not_sync andf Symbol.not_eof));
+  keep_line ($$ "*" --| Scan.ahead (~$$ "}")) ||
+  keep_line (Scan.one (fn s => s <> "*" andalso Symbol.not_sync s andalso Symbol.not_eof s));
 
 val scan_verbatim =
   keep_line ($$ "{" -- $$ "*") |--
@@ -245,7 +245,7 @@ val scan_verbatim =
 
 (* scan space *)
 
-val is_space = Symbol.is_blank andf not_equal "\n";
+fun is_space s = Symbol.is_blank s andalso s <> "\n";
 
 val scan_space =
   (keep_line (Scan.any1 is_space) -- Scan.optional (incr_line ($$ "\n")) "" ||
@@ -258,8 +258,9 @@ val scan_cmt =
   Scan.lift scan_blank ||
   Scan.depend (fn d => keep_line ($$ "(" ^^ $$ "*") >> pair (d + 1)) ||
   Scan.depend (fn 0 => Scan.fail | d => keep_line ($$ "*" ^^ $$ ")") >> pair (d - 1)) ||
-  Scan.lift (keep_line ($$ "*" --| Scan.ahead (Scan.one (not_equal ")")))) ||
-  Scan.lift (keep_line (Scan.one (not_equal "*" andf Symbol.not_sync andf Symbol.not_eof)));
+  Scan.lift (keep_line ($$ "*" --| Scan.ahead (~$$ ")"))) ||
+  Scan.lift (keep_line (Scan.one (fn s =>
+    s <> "*" andalso Symbol.not_sync s andalso Symbol.not_eof s)));
 
 val scan_comment =
   keep_line ($$ "(" -- $$ "*") |--

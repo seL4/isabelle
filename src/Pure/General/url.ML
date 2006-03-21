@@ -53,7 +53,7 @@ fun pack (File p) = pack_path p
 local
 
 val scan_host =
-  (Scan.any1 (not_equal "/" andf Symbol.not_eof) >> implode) --|
+  (Scan.any1 (fn s => s <> "/" andalso Symbol.not_eof s) >> implode) --|
   Scan.ahead ($$ "/" || Scan.one Symbol.is_eof);
 
 val scan_path = Scan.any Symbol.not_eof >> (Path.unpack o implode);

@@ -414,7 +414,7 @@ end;
 (* source *)
 
 val recover =
-  Scan.any ((not o is_blank) andf not_equal "\"" andf not_eof) >> K [malformed];
+  Scan.any (fn s => not (is_blank s) andalso s <> "\"" andalso not_eof s) >> K [malformed];
 
 fun source do_recover src =
   Source.source stopper (Scan.bulk scan) (if do_recover then SOME recover else NONE) src;
@@ -433,7 +433,7 @@ fun sym_explode str =
     else the (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
-val chars_only = not o exists_string (equal "\\");
+val chars_only = not o exists_string (fn s => s = "\\");
 
 
 (* escape *)

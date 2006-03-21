@@ -222,8 +222,8 @@ fun lex_err msg prfx (cs, _) =
 
 val scan_chr =
   $$ "\\" |-- Scan.one Symbol.not_eof ||
-  Scan.one (not_equal "'" andf Symbol.not_eof) ||
-  $$ "'" --| Scan.ahead (Scan.one (not_equal "'"));
+  Scan.one (fn s => s <> "'" andalso Symbol.not_eof s) ||
+  $$ "'" --| Scan.ahead (~$$ "'");
 
 val scan_str =
   $$ "'" |-- $$ "'" |-- !! (lex_err "missing end of string" "''")
@@ -243,8 +243,8 @@ fun explode_xstr str =
 val scan_cmt =
   Scan.depend (fn d => $$ "(" ^^ $$ "*" >> pair (d + 1)) ||
   Scan.depend (fn 0 => Scan.fail | d => $$ "*" ^^ $$ ")" >> pair (d - 1)) ||
-  Scan.lift ($$ "*" --| Scan.ahead (Scan.one (not_equal ")"))) ||
-  Scan.lift (Scan.one (not_equal "*" andf Symbol.not_eof));
+  Scan.lift ($$ "*" --| Scan.ahead (~$$ ")")) ||
+  Scan.lift (Scan.one (fn s => s <> "*" andalso Symbol.not_eof s));
 
 val scan_comment =
   $$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")

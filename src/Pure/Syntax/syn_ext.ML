@@ -217,7 +217,7 @@ val scan_symb =
   scan_sym >> SOME ||
   $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
 
-val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
+val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
 val read_symbs = List.mapPartial I o the o Scan.read Symbol.stopper scan_symbs;
 
 fun unique_index xsymbs =

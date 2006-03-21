@@ -118,7 +118,7 @@ fun unpack_elem "" = Root
         "$" :: cs => variable_elem cs
       | cs => basic_elem cs);
 
-val unpack_elems = map unpack_elem o filter_out (equal "" orf equal ".");
+val unpack_elems = map unpack_elem o filter_out (fn c => c = "" orelse c = ".");
 
 fun unpack str = Path (norm
   (case space_explode "/" str of
@@ -140,7 +140,7 @@ fun ext "" path = path
   | ext e path = split_path (fn (prfx, s) => append (Path prfx) (basic (s ^ "." ^ e))) path;
 
 val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
-  (case take_suffix (not_equal ".") (explode s) of
+  (case take_suffix (fn c => c <> ".") (explode s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (Library.take (length cs - 1, cs)))], implode e)));
 

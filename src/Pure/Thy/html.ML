@@ -223,7 +223,7 @@ local
 in
 
 fun output_width str =
-  if not (exists_string (equal "\\" orf equal "<" orf equal ">" orf equal "&") str)
+  if not (exists_string (fn s => s = "\\" orelse s = "<" orelse s = ">" orelse s = "&") str)
   then Symbol.default_output str
   else
     let val (syms, width) = fold_map (fn (w, s) => fn width => (s, w + width))

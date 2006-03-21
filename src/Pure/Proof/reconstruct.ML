@@ -246,7 +246,7 @@ fun upd_constrs env cs =
       (Vartab.foldl (add_term_ixns o apsnd (snd o snd)) ([], asol), iTs);
     fun check_cs [] = []
       | check_cs ((u, p, vs)::ps) =
-          let val vs' = vs \\ dom;
+          let val vs' = subtract (op =) dom vs;
           in if vs = vs' then (u, p, vs)::check_cs ps
              else (true, p, vs' union vran)::check_cs ps
           end

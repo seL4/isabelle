@@ -68,7 +68,7 @@ fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??."
 
 val separator = ".";
-val is_qualified = exists_string (equal separator);
+val is_qualified = exists_string (fn s => s = separator);
 
 val pack = space_implode separator;
 val unpack = space_explode separator;
@@ -229,7 +229,7 @@ fun declare (Naming (_, (_, accs))) name space =
     error ("Attempt to declare hidden name " ^ quote name)
   else
     let val names = unpack name in
-      conditional (null names orelse exists (equal "") names) (fn () =>
+      conditional (null names orelse exists (fn s => s = "") names) (fn () =>
         error ("Bad name declaration " ^ quote name));
       fold (add_name name) (map pack (accs names)) space
     end;

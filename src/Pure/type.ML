@@ -220,7 +220,8 @@ val unvarifyT = map_type_tvar (fn ((a, 0), S) => TFree (a, S) | v => TVar v);
 
 fun varify (t, fixed) =
   let
-    val fs = add_term_tfrees (t, []) \\ fixed;
+    val fs = Term.fold_types (Term.fold_atyps
+      (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val ixns = add_term_tvar_ixns (t, []);
     val fmap = fs ~~ map (rpair 0) (variantlist (map fst fs, map #1 ixns))
     fun thaw (f as (a, S)) =

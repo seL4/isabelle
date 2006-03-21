@@ -111,7 +111,7 @@ fun disambiguate_names thy prf =
       | rename (prf' as PThm ((s, tags), prf, prop, Ts)) =
           let
             val prop' = if_none (AList.lookup (op =) thms' s) (Bound 0);
-            val ps = map fst (the (Symtab.lookup thms s)) \ prop'
+            val ps = remove (op =) prop' (map fst (the (Symtab.lookup thms s)))
           in if prop = prop' then prf' else
             PThm ((s ^ "_" ^ string_of_int (length ps - find_index_eq prop ps), tags),
               prf, prop, Ts)
@@ -248,7 +248,8 @@ fun read_proof thy =
 
 fun proof_syntax prf =
   let
-    val thm_names = map fst (Symtab.dest (thms_of_proof prf Symtab.empty)) \ "";
+    val thm_names = filter_out (equal "")
+      (map fst (Symtab.dest (thms_of_proof prf Symtab.empty)));
     val axm_names = map fst (Symtab.dest (axms_of_proof prf Symtab.empty));
   in
     add_proof_syntax #>

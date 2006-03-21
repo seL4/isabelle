@@ -450,7 +450,7 @@ fun tpairs_of (Thm {tpairs, ...}) = tpairs;
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
 fun nprems_of th = Logic.count_prems (prop_of th, 0);
-val no_prems = equal 0 o nprems_of;
+fun no_prems th = nprems_of th = 0;
 
 fun major_prem_of th =
   (case prems_of th of

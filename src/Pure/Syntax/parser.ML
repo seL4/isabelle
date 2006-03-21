@@ -60,7 +60,7 @@ val UnknownStart = EndToken;       (*productions for which no starting token is
    (used for expanding chain list)*)
 fun connected_with _ [] relatives = relatives
   | connected_with chains (root :: roots) relatives =
-    let val branches = these (AList.lookup (op =) chains root) \\ relatives;
+    let val branches = subtract (op =) relatives (these (AList.lookup (op =) chains root));
     in connected_with chains (branches @ roots) (branches @ relatives) end;
 
 (* convert productions to grammar;
@@ -93,7 +93,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 let
                   val ((to_nts, to_tks), ps) = Array.sub (prods, to);
 
-                  val new_tks = from_tks \\ to_tks;  (*added lookahead tokens*)
+                  val new_tks = subtract (op =) to_tks from_tks;  (*added lookahead tokens*)
                 in Array.update (prods, to, ((to_nts, to_tks @ new_tks), ps));
                    copy_lookahead tos (if null new_tks then added
                                        else (to, new_tks) :: added)
@@ -149,9 +149,9 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       let
                         val new_lambda = is_none tk andalso nts subset lambdas;
 
-                        val new_tks = (if is_some tk then [the tk] else []) @
-                          Library.foldl token_union ([], map starts_for_nt nts) \\
-                          l_starts;
+                        val new_tks = subtract (op =) l_starts
+                          ((if is_some tk then [the tk] else []) @
+                            Library.foldl token_union ([], map starts_for_nt nts));
 
                         val added_tks' = token_union (new_tks, added_tks);
 
@@ -199,7 +199,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       val (add_lambda, nt_dependencies, added_tks, nt_prods') =
                         examine_prods tk_prods false [] [] nt_prods;
 
-                      val added_nts = nt_dependencies \\ old_nts;
+                      val added_nts = subtract (op =) old_nts nt_dependencies;
 
                       val added_lambdas' =
                         if add_lambda then nt :: added_lambdas
@@ -222,11 +222,11 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 val (added_lambdas, added_starts') =
                   process_nts dependent [] added_starts;
 
-                val added_lambdas' = added_lambdas \\ lambdas;
+                val added_lambdas' = subtract (op =) lambdas added_lambdas;
               in propagate_lambda (ls @ added_lambdas') added_starts'
                                   (added_lambdas' @ lambdas)
               end;
-        in propagate_lambda (lambdas' \\ lambdas) added_starts lambdas' end;
+        in propagate_lambda (subtract (op =) lambdas lambdas') added_starts lambdas' end;
 
       (*insert production into grammar*)
       val (added_starts', prod_count') =
@@ -748,8 +748,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
             val dummy =
               if not (!warned) andalso
                  length (new_states @ States) > (!branching_level) then
-                (warning "Currently parsed expression could be \
-                         \extremely ambiguous.";
+                (warning "Currently parsed expression could be extremely ambiguous.";
                  warned := true)
               else ();
           in

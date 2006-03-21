@@ -171,8 +171,8 @@ local
 fun relevant_names names =
   let
     val (finished, unfinished) =
-      List.filter (equal Context.draftN orf known_thy) names
-      |> List.partition (not_equal Context.draftN andf is_finished);
+      List.filter (fn name => name = Context.draftN orelse known_thy name) names
+      |> List.partition (fn name => name <> Context.draftN andalso is_finished name);
   in (if not (null finished) then [List.last finished] else []) @ unfinished end;
 
 in
