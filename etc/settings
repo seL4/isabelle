@@ -32,7 +32,7 @@ ML_DBASE=""
 
 # Poly/ML 4.2.0 (manual settings)
 #ML_PLATFORM=x86-linux
-#ML_HOME=/usr/local/polyml/x86-linux"
+#ML_HOME=/usr/local/polyml/x86-linux
 #ML_SYSTEM=polyml-4.2.0
 #ML_OPTIONS="-H 80"
 
