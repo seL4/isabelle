@@ -389,7 +389,7 @@ fun vperm (Var _, Var _) = true
   | vperm (t, u) = (t = u);
 
 fun var_perm (t, u) =
-  vperm (t, u) andalso eq_set (term_varnames t, term_varnames u);
+  vperm (t, u) andalso gen_eq_set (op =) (term_varnames t, term_varnames u);
 
 (* FIXME: it seems that the conditions on extra variables are too liberal if
 prems are nonempty: does solving the prems really guarantee instantiation of
@@ -532,7 +532,7 @@ fun is_full_cong_prems [] [] = true
             is_Var x andalso forall is_Bound xs andalso
             null (findrep xs) andalso xs = ys andalso
             (x, y) mem varpairs andalso
-            is_full_cong_prems prems (varpairs \ (x, y))
+            is_full_cong_prems prems (remove (op =) (x, y) varpairs)
           end
       | _ => false);
 
