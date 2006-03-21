@@ -297,10 +297,6 @@ val remdups_tac = SUBGOAL (fn (g, i) =>
 
 fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;
 
-fun gen_eq_set e s1 s2 =
-  length s1 = length s2 andalso
-  gen_subset e (s1, s2) andalso gen_subset e (s2, s1);
-
 val bires_tac = Tactic.biresolution_from_nets_tac ContextRules.orderlist;
 
 fun safe_step_tac ctxt =
@@ -324,7 +320,9 @@ fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac e
     val c = Logic.strip_assums_concl g;
   in
     if member (fn ((ps1, c1), (ps2, c2)) =>
-      c1 aconv c2 andalso gen_eq_set op aconv ps1 ps2) gs (ps, c) then no_tac
+        c1 aconv c2 andalso
+        length ps1 = length ps2 andalso
+        gen_eq_set (op aconv) (ps1, ps2)) gs (ps, c) then no_tac
     else (step_tac ctxt THEN_ALL_NEW intprover_tac ctxt ((ps, c) :: gs) (d + 1) lim) i
   end);
 
