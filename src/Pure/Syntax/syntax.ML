@@ -243,7 +243,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     val {input, lexicon, gram, consts, prmodes,
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
       print_ast_trtab, tokentrtab, prtabs} = tabs;
-    val input' = if inout then fold (remove (op =)) xprods input else input;
+    val input' = if inout then subtract (op =) xprods input else input;
   in
     Syntax
     ({input = input',

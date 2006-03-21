@@ -514,8 +514,8 @@ fun pretty_deps modl =
         val preds_ = Graph.imm_preds modl key;
         val succs_ = Graph.imm_succs modl key;
         val mutbs = gen_inter (op =) (preds_, succs_);
-        val preds = fold (remove (op =)) mutbs preds_;
-        val succs = fold (remove (op =)) mutbs succs_;
+        val preds = subtract (op =) mutbs preds_;
+        val succs = subtract (op =) mutbs succs_;
       in
         (Pretty.block o Pretty.fbreaks) (
           Pretty.str key

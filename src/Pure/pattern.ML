@@ -74,7 +74,7 @@ fun proj_fail thy (env,binders,F,_,is,t) =
   then let val f = Syntax.string_of_vname F
            val xs = bnames binders is
            val u = string_of_term thy env binders t
-           val ys = bnames binders (loose_bnos t \\ is)
+           val ys = bnames binders (subtract (op =) is (loose_bnos t))
        in tracing("Cannot unify variable " ^ f ^
                " (depending on bound variables " ^ xs ^ ")\nwith term " ^ u ^
                "\nTerm contains additional bound variable(s) " ^ ys)

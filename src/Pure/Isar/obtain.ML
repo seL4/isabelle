@@ -208,7 +208,7 @@ fun match_params ctxt vars rule =
     val rule' = rule |> Thm.instantiate (instT, []);
 
     val tvars = Drule.tvars_of rule';
-    val vars = fold (remove op =) (Term.add_vars (Thm.concl_of rule') []) (Drule.vars_of rule');
+    val vars = subtract (op =) (Term.add_vars (Thm.concl_of rule') []) (Drule.vars_of rule');
     val _ =
       if null tvars andalso null vars then ()
       else err ("Illegal schematic variable(s) " ^

@@ -521,11 +521,11 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
             andalso Sign.typ_instance thy (ty1', ty2')
             andalso Sign.typ_instance thy (ty2', ty1')
           end;
-        val _ = case fold (remove eq_c) c_req c_given
+        val _ = case subtract eq_c c_req c_given
          of [] => ()
           | cs => error ("superfluous definition(s) given for "
                     ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
-        val _ = case fold (remove eq_c) c_given c_req
+        val _ = case subtract eq_c c_given c_req
          of [] => ()
           | cs => error ("no definition(s) given for "
                     ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);

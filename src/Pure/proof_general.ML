@@ -1428,7 +1428,7 @@ fun init_setup isar pgip =
   change print_mode (cons proof_generalN o remove (op =) proof_generalN);
   init_pgip_session_id ();
   if pgip then
-    change print_mode (append [pgmlN, pgmlatomsN] o fold (remove (op =)) [pgmlN, pgmlatomsN])
+    change print_mode (append [pgmlN, pgmlatomsN] o subtract (op =) [pgmlN, pgmlatomsN])
   else
     pgip_emacs_compatibility_flag := true;  (* assume this for PG <3.6 compatibility *)
   set_prompts isar pgip;
