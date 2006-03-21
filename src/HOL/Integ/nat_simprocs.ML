@@ -52,20 +52,6 @@ fun long_mk_sum []        = HOLogic.zero
 
 val dest_plus = HOLogic.dest_bin "HOL.plus" HOLogic.natT;
 
-(*Split up a sum into the list of its constituent terms, on the way removing any
-  Sucs and counting them.*)
-fun dest_Suc_sum (Const ("Suc", _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
-  | dest_Suc_sum (t, (k,ts)) = 
-      let val (t1,t2) = dest_plus t
-      in  dest_Suc_sum (t1, dest_Suc_sum (t2, (k,ts)))  end
-      handle TERM _ => (k, t::ts);
-
-(*The Sucs found in the term are converted to a binary numeral*)
-fun dest_Sucs_sum t = 
-  case dest_Suc_sum (t,(0,[])) of
-      (0,ts) => ts
-    | (k,ts) => mk_numeral k :: ts
-
 
 (** Other simproc items **)
 
@@ -121,6 +107,34 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
         handle TERM _ => find_first_coeff (t::past) u terms;
 
 
+(*Split up a sum into the list of its constituent terms, on the way removing any
+  Sucs and counting them.*)
+fun dest_Suc_sum (Const ("Suc", _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
+  | dest_Suc_sum (t, (k,ts)) = 
+      let val (t1,t2) = dest_plus t
+      in  dest_Suc_sum (t1, dest_Suc_sum (t2, (k,ts)))  end
+      handle TERM _ => (k, t::ts);
+
+(*Code for testing whether numerals are already used in the goal*)
+fun is_numeral (Const("Numeral.number_of", _) $ w) = true
+  | is_numeral _ = false;
+
+fun prod_has_numeral t = exists is_numeral (dest_prod t);
+
+(*The Sucs found in the term are converted to a binary numeral. If relaxed is false,
+  an exception is raised unless the original expression contains at least one
+  numeral in a coefficient position.  This prevents nat_combine_numerals from 
+  introducing numerals to goals.*)
+fun dest_Sucs_sum relaxed t = 
+  let val (k,ts) = dest_Suc_sum (t,(0,[]))
+  in
+     if relaxed orelse exists prod_has_numeral ts then 
+       if k=0 then ts
+       else mk_numeral (IntInf.fromInt k) :: ts
+     else raise TERM("Nat_Numeral_Simprocs.dest_Sucs_sum", [t])
+  end;
+
+
 (*Simplify 1*n and n*1 to n*)
 val add_0s  = map rename_numerals [add_0, add_0_right];
 val mult_1s = map rename_numerals [thm"nat_mult_1", thm"nat_mult_1_right"];
@@ -138,27 +152,6 @@ val simplify_meta_eq =
           mult_0, mult_0_right, mult_1, mult_1_right] @ contra_rules);
 
 
-(** Restricted version of dest_Sucs_sum for nat_combine_numerals:
-    Simprocs never apply unless the original expression contains at least one
-    numeral in a coefficient position. This avoids replacing x+x by
-    2*x, for example, unless numerals have been used already.
-**)
-
-fun is_numeral (Const("Numeral.number_of", _) $ w) = true
-  | is_numeral _ = false;
-
-fun prod_has_numeral t = exists is_numeral (dest_prod t);
-
-fun require_has_numeral ts = 
-    if exists prod_has_numeral ts then ts
-    else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", ts);
-
-fun restricted_dest_Sucs_sum t =
-  case dest_Suc_sum (t,(0,[])) of
-      (0,ts) => require_has_numeral ts
-    | (k,ts) => mk_numeral k :: require_has_numeral ts
-
-
 (*Like HOL_ss but with an ordering that brings numerals to the front
   under AC-rewriting.*)
 val num_ss = Int_Numeral_Simprocs.num_ss;
@@ -168,7 +161,7 @@ val num_ss = Int_Numeral_Simprocs.num_ss;
 structure CancelNumeralsCommon =
   struct
   val mk_sum            = (fn T:typ => mk_sum)
-  val dest_sum          = dest_Sucs_sum
+  val dest_sum          = dest_Sucs_sum true
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
@@ -254,7 +247,7 @@ structure CombineNumeralsData =
   struct
   val add               = IntInf.+
   val mk_sum            = (fn T:typ => long_mk_sum)  (*to work for 2*x + 3*x *)
-  val dest_sum          = restricted_dest_Sucs_sum
+  val dest_sum          = dest_Sucs_sum false
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val left_distrib      = left_add_mult_distrib RS trans
