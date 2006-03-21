@@ -234,7 +234,7 @@ fun applC_ast_tr' (f, []) = raise Ast.AST ("applC_ast_tr'", [f])
 
 (* abstraction *)
 
-fun mark_boundT x_T = Lexicon.const "_bound" $ Free x_T;
+fun mark_boundT (x, T) = Const ("_bound", T --> T) $ Free (x, T);
 fun mark_bound x = mark_boundT (x, dummyT);
 
 fun bound_vars vars body =
