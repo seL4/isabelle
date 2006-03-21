@@ -310,6 +310,8 @@ fun map_theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
 (** pretty printing **)
 
+local
+
 fun pretty_term' abbrevs ctxt t =
   let
     val thy = theory_of ctxt;
@@ -320,7 +322,13 @@ fun pretty_term' abbrevs ctxt t =
       |> LocalSyntax.extern_term (NameSpace.extern (Consts.space_of consts)) thy syntax;
   in Sign.pretty_term' (LocalSyntax.syn_of syntax) (Context.Proof ctxt) t' end;
 
+in
+
 val pretty_term = pretty_term' true;
+val pretty_term_no_abbrevs = pretty_term' false;
+
+end;
+
 fun pretty_typ ctxt T = Sign.pretty_typ (theory_of ctxt) T;
 fun pretty_sort ctxt S = Sign.pretty_sort (theory_of ctxt) S;
 fun pretty_classrel ctxt cs = Sign.pretty_classrel (theory_of ctxt) cs;
@@ -342,7 +350,7 @@ fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
       Pretty.block (Pretty.fbreaks (Pretty.str (a ^ ":") :: map (pretty_thm ctxt) ths));
 
 fun pretty_proof ctxt prf =
-  pretty_term' true (ctxt |> transfer_syntax (ProofSyntax.proof_syntax prf (theory_of ctxt)))
+  pretty_term_no_abbrevs (ctxt |> transfer_syntax (ProofSyntax.proof_syntax prf (theory_of ctxt)))
     (ProofSyntax.term_of_proof prf);
 
 fun pretty_proof_of ctxt full th =
@@ -702,7 +710,7 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
 
 fun generalize_tfrees inner outer =
   let
-    val extra_fixes = fixed_names_of inner \\ fixed_names_of outer;
+    val extra_fixes = subtract (op =) (fixed_names_of outer) (fixed_names_of inner);
     fun still_fixed (Free (x, _)) = not (member (op =) extra_fixes x)
       | still_fixed _ = false;
     val occs_inner = type_occs_of inner;
@@ -746,7 +754,7 @@ fun hidden_polymorphism t T =
 fun common_exports is_goal inner outer =
   let
     val gen = generalize_tfrees inner outer;
-    val fixes = fixed_names_of inner \\ fixed_names_of outer;
+    val fixes = subtract (op =) (fixed_names_of outer) (fixed_names_of inner);
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
@@ -1361,7 +1369,7 @@ fun pretty_consts ctxt =
     val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold local_abbrev consts []));
   in
     if null abbrevs andalso not (! verbose) then []
-    else [Pretty.big_list "abbreviations:" (map (pretty_term' false ctxt o #2) abbrevs)]
+    else [Pretty.big_list "abbreviations:" (map (pretty_term_no_abbrevs ctxt o #2) abbrevs)]
   end;
 
 
@@ -1370,7 +1378,7 @@ fun pretty_consts ctxt =
 fun pretty_binds ctxt =
   let
     val binds = binds_of ctxt;
-    fun prt_bind (xi, (T, t)) = pretty_term' false ctxt (Logic.mk_equals (Var (xi, T), t));
+    fun prt_bind (xi, (T, t)) = pretty_term_no_abbrevs ctxt (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
