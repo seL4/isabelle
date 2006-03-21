@@ -1137,8 +1137,7 @@ fun parse_code lib =
    || Scan.repeat1 (P.term >> pair "")) >>
   (fn ((((mode', module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
      let
-       val mode'' = if lib then "library" ins (mode' \ "library")
-         else mode' \ "library";
+       val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
        val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs
      in ((case opt_fname of
          NONE => use_text Context.ml_output false
