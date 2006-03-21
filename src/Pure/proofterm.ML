@@ -164,7 +164,7 @@ fun thms_of_proof (Abst (_, _, prf)) = thms_of_proof prf
   | thms_of_proof (prf' as PThm ((s, _), prf, prop, _)) = (fn tab =>
       case Symtab.lookup tab s of
         NONE => thms_of_proof prf (Symtab.update (s, [(prop, prf')]) tab)
-      | SOME ps => if exists (equal prop o fst) ps then tab else
+      | SOME ps => if exists (fn (p, _) => p = prop) ps then tab else
           thms_of_proof prf (Symtab.update (s, (prop, prf')::ps) tab))
   | thms_of_proof (MinProof (prfs, _, _)) = fold (thms_of_proof o proof_of_min_thm) prfs
   | thms_of_proof _ = I;
@@ -572,7 +572,8 @@ fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
 
 fun varify_proof t fixed prf =
   let
-    val fs = add_term_tfrees (t, []) \\ fixed;
+    val fs = Term.fold_types (Term.fold_atyps
+      (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val ixns = add_term_tvar_ixns (t, []);
     val fmap = fs ~~ variantlist (map fst fs, map #1 ixns)
     fun thaw (f as (a, S)) =
@@ -702,7 +703,7 @@ fun flatten_params_proof i j n (Const ("==>", _) $ A $ B, k) =
   | flatten_params_proof i j n (Const ("all", _) $ Abs (a, T, t), k) =
       Abst (a, NONE (*T*), flatten_params_proof i (j+1) n (t, k))
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
-      map Bound (j-1 downto 0)), map PBound (i-1 downto 0 \ i-n));
+      map Bound (j-1 downto 0)), map PBound (remove (op =) (i-n) (i-1 downto 0)));
 
 fun bicompose_proof flatten Bs oldAs newAs A n rprf sprf =
   let
