@@ -42,8 +42,8 @@ mk_Eq(~in) = `in == False'
 mk_Eq(in) = `in == True'
 where `in' is an (in)equality.
 
-neg_prop(t) = neg if t is wrapped up in Trueprop and
-  nt is the (logically) negated version of t, where the negation
+neg_prop(t) = neg  if t is wrapped up in Trueprop and
+  neg is the (logically) negated version of t, where the negation
   of a negative term is the term itself (no double negation!);
 
 is_nat(parameter-types,t) =  t:nat
