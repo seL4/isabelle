@@ -6,6 +6,7 @@
 signature RES_CLASIMP = 
   sig
   val blacklist : string list ref (*Theorems forbidden in the output*)
+  val whitelist : thm list ref    (*Theorems required in the output*)
   val use_simpset: bool ref
   val get_clasimp_atp_lemmas : 
       Proof.context ->
@@ -18,6 +19,8 @@ structure ResClasimp : RES_CLASIMP =
 struct
 val use_simpset = ref false;   (*Performance is much better without simprules*)
 
+(*The rule subsetI is frequently omitted by the relevance filter.*)
+val whitelist = ref [subsetI]; 
 
 (*In general, these produce clauses that are prolific (match too many equality or
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
@@ -285,7 +288,10 @@ fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_a
 	      map put_name_pair (ResAxioms.atpset_rules_of_ctxt ctxt)
 	  else []
       val _ = warning_thms atpset_thms
-      val user_rules = map put_name_pair user_thms
+      val user_rules = 
+	  case user_thms of  (*use whitelist if there are no user-supplied rules*)
+	       [] => map (put_name_pair o ResAxioms.pairname) (!whitelist)
+	     | _  => map put_name_pair user_thms
       val banned = make_banned_test (map #1 (user_rules@atpset_thms@claset_thms@simpset_thms))
       fun ok (a,_) = not (banned a) 	   
       val claset_cls_tms = 
