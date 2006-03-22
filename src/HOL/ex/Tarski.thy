@@ -134,12 +134,12 @@ done
 
 lemma (in PO) PO_imp_sym: "antisym r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def A_def r_def)
+apply (simp add: PartialOrder_def r_def)
 done
 
 lemma (in PO) PO_imp_trans: "trans r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def A_def r_def)
+apply (simp add: PartialOrder_def r_def)
 done
 
 lemma (in PO) reflE: "x \<in> A ==> (x, x) \<in> r"
@@ -149,12 +149,12 @@ done
 
 lemma (in PO) antisymE: "[| (a, b) \<in> r; (b, a) \<in> r |] ==> a = b"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def antisym_def A_def r_def)
+apply (simp add: PartialOrder_def antisym_def r_def)
 done
 
 lemma (in PO) transE: "[| (a, b) \<in> r; (b, c) \<in> r|] ==> (a,c) \<in> r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def A_def r_def)
+apply (simp add: PartialOrder_def r_def)
 apply (unfold trans_def, fast)
 done
 
@@ -304,7 +304,7 @@ subsection {* sublattice *}
 
 lemma (in PO) sublattice_imp_CL:
      "S <<= cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
-by (simp add: sublattice_def CompleteLattice_def A_def r_def)
+by (simp add: sublattice_def CompleteLattice_def r_def)
 
 lemma (in CL) sublatticeI:
      "[| S \<subseteq> A; (| pset = S, order = induced S r |) \<in> CompleteLattice |]
