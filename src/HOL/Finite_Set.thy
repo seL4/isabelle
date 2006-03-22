@@ -13,10 +13,8 @@ begin
 subsection {* Definition and basic properties *}
 
 consts Finites :: "'a set set"
-syntax
-  finite :: "'a set => bool"
-translations
-  "finite A" == "A : Finites"
+abbreviation (output)
+  "finite A = (A : Finites)"
 
 inductive Finites
   intros

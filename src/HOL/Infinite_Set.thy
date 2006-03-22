@@ -13,10 +13,8 @@ subsection "Infinite Sets"
 
 text {* Some elementary facts about infinite sets, by Stefan Merz. *}
 
-syntax
-  infinite :: "'a set \<Rightarrow> bool"
-translations
-  "infinite S" == "S \<notin> Finites"
+abbreviation (output)
+  "infinite S = (S \<notin> Finites)"
 
 text {*
   Infinite sets are non-empty, and if we remove some elements
