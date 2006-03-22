@@ -23,7 +23,7 @@ Only take premises and conclusions into account that are already (negated)
 
 signature LIN_ARITH_LOGIC =
 sig
-  val conjI:		thm
+  val conjI:		thm (* P ==> Q ==> P & Q *)
   val ccontr:           thm (* (~ P ==> False) ==> P *)
   val notI:             thm (* (P ==> False) ==> ~ P *)
   val not_lessD:        thm (* ~(m < n) ==> n <= m *)
@@ -76,7 +76,7 @@ sig
                  -> {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
                      lessD: thm list, neqE: thm list, simpset: Simplifier.simpset})
                 -> theory -> theory
-  val trace           : bool ref
+  val trace: bool ref
   val fast_arith_neq_limit: int ref
   val lin_arith_prover: theory -> simpset -> term -> thm option
   val     lin_arith_tac:    bool -> int -> tactic
@@ -591,7 +591,8 @@ fun discr initems = map fst (Library.foldl add_datoms ([],initems));
 fun refutes sg (pTs,params) ex =
 let
   fun refute (initems::initemss) js =
-    let val atoms = Library.foldl add_atoms ([],initems)
+    let val _ = trace_msg ("initems: " ^ makestring initems)  (* TODO *)
+        val atoms = Library.foldl add_atoms ([],initems)
         val n = length atoms
         val mkleq = mklineq n atoms
         val ixs = 0 upto (n-1)
@@ -631,6 +632,7 @@ val fast_arith_neq_limit = ref 9;
 
 fun prove sg ps ex Hs concl =
 let val Hitems = map (LA_Data.decomp sg) Hs
+    val _ = trace_msg ("Hitems: " ^ makestring Hitems)  (* TODO *)
 in if count (fn NONE => false | SOME(_,_,r,_,_,_) => r = "~=") Hitems
       > !fast_arith_neq_limit then NONE
    else
