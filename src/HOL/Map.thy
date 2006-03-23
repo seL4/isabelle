@@ -16,29 +16,28 @@ types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)
 translations (type) "a ~=> b " <= (type) "a => b option"
 
 consts
-chg_map	:: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
 map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
 restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" (infixl "|`"  110)
 dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
-map_upds:: "('a ~=> 'b) => 'a list => 'b list => 
-	    ('a ~=> 'b)"
-map_upd_s::"('a ~=> 'b) => 'a set => 'b => 
-	    ('a ~=> 'b)"			 ("_/'(_{|->}_/')" [900,0,0]900)
-map_subst::"('a ~=> 'b) => 'b => 'b => 
-	    ('a ~=> 'b)"			 ("_/'(_~>_/')"    [900,0,0]900)
+map_upds:: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
 
 constdefs
   map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
   "f o_m g  == (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
+syntax
+  empty     ::  "'a ~=> 'b"
+translations
+  "empty"    => "%_. None"
+  "empty"    <= "%x. None"
+
 nonterminals
   maplets maplet
 
 syntax
-  empty	    ::  "'a ~=> 'b"
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /|->/ _")
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[|->]/ _")
   ""         :: "maplet => maplets"             ("_")
@@ -54,23 +53,11 @@ syntax (xsymbols)
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[\<mapsto>]/ _")
 
-  map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
-				    		 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
-  map_subst :: "('a ~=> 'b) => 'b => 'b => 
-	        ('a ~=> 'b)"			 ("_/'(_\<leadsto>_/')"    [900,0,0]900)
- "@chg_map" :: "('a ~=> 'b) => 'a => ('b => 'b) => ('a ~=> 'b)"
-					  ("_/'(_/\<mapsto>\<lambda>_. _')"  [900,0,0,0] 900)
-
 syntax (latex output)
   restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
   --"requires amssymb!"
 
 translations
-  "empty"    => "%_. None"
-  "empty"    <= "%x. None"
-
-  "m(x\<mapsto>\<lambda>y. f)" == "chg_map (\<lambda>y. f) x m"
-
   "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
   "_MapUpd m (_maplet  x y)"    == "m(x:=Some y)"
   "_MapUpd m (_maplets x y)"    == "map_upds m x y"
@@ -79,14 +66,10 @@ translations
   "_Maplets ms1 (_Maplets ms2 ms3)" <= "_Maplets (_Maplets ms1 ms2) ms3"
 
 defs
-chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
-
 map_add_def:   "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
 restrict_map_def: "m|`A == %x. if x : A then m x else None"
 
 map_upds_def: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
-map_upd_s_def: "m(as{|->}b) == %x. if x : as then Some b else m x"
-map_subst_def: "m(a~>b)     == %x. if m x = Some a then Some b else m x"
 
 dom_def: "dom(m) == {a. m a ~= None}"
 ran_def: "ran(m) == {b. EX a. m a = Some b}"
@@ -97,6 +80,38 @@ primrec
   "map_of [] = empty"
   "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
 
+(* special purpose constants that should be defined somewhere else and
+whose syntax is a bit odd as well:
+
+ "@chg_map" :: "('a ~=> 'b) => 'a => ('b => 'b) => ('a ~=> 'b)"
+					  ("_/'(_/\<mapsto>\<lambda>_. _')"  [900,0,0,0] 900)
+  "m(x\<mapsto>\<lambda>y. f)" == "chg_map (\<lambda>y. f) x m"
+
+map_upd_s::"('a ~=> 'b) => 'a set => 'b => 
+	    ('a ~=> 'b)"			 ("_/'(_{|->}_/')" [900,0,0]900)
+map_subst::"('a ~=> 'b) => 'b => 'b => 
+	    ('a ~=> 'b)"			 ("_/'(_~>_/')"    [900,0,0]900)
+
+map_upd_s_def: "m(as{|->}b) == %x. if x : as then Some b else m x"
+map_subst_def: "m(a~>b)     == %x. if m x = Some a then Some b else m x"
+
+  map_upd_s  :: "('a ~=> 'b) => 'a set => 'b => ('a ~=> 'b)"
+				    		 ("_/'(_/{\<mapsto>}/_')" [900,0,0]900)
+  map_subst :: "('a ~=> 'b) => 'b => 'b => 
+	        ('a ~=> 'b)"			 ("_/'(_\<leadsto>_/')"    [900,0,0]900)
+
+
+subsection {* @{term [source] map_upd_s} *}
+
+lemma map_upd_s_apply [simp]: 
+  "(m(as{|->}b)) x = (if x : as then Some b else m x)"
+by (simp add: map_upd_s_def)
+
+lemma map_subst_apply [simp]: 
+  "(m(a~>b)) x = (if m x = Some a then Some b else m x)" 
+by (simp add: map_subst_def)
+
+*)
 
 subsection {* @{term [source] empty} *}
 
@@ -164,18 +179,6 @@ lemma sum_case_map_upd_map_upd[simp]:
 apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
-
-
-subsection {* @{term [source] chg_map} *}
-
-lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
-by (unfold chg_map_def, auto)
-
-lemma chg_map_upd[simp]: "m a = Some b ==> chg_map f a m = m(a|->f b)"
-by (unfold chg_map_def, auto)
-
-lemma chg_map_other [simp]: "a \<noteq> b \<Longrightarrow> chg_map f a m b = m b"
-by (auto simp: chg_map_def split add: option.split)
 
 
 subsection {* @{term [source] map_of} *}
@@ -460,16 +463,6 @@ apply(simp add:Diff_insert[symmetric] insert_absorb)
 apply(simp add: map_upd_upds_conv_if)
 done
 
-
-subsection {* @{term [source] map_upd_s} *}
-
-lemma map_upd_s_apply [simp]: 
-  "(m(as{|->}b)) x = (if x : as then Some b else m x)"
-by (simp add: map_upd_s_def)
-
-lemma map_subst_apply [simp]: 
-  "(m(a~>b)) x = (if m x = Some a then Some b else m x)" 
-by (simp add: map_subst_def)
 
 subsection {* @{term [source] dom} *}
 

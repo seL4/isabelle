@@ -163,11 +163,9 @@ locale congruent =
   fixes r and f
   assumes congruent: "(y,z) \<in> r ==> f y = f z"
 
-syntax
-  RESPECTS ::"['a => 'b, ('a * 'a) set] => bool"  (infixr "respects" 80)
-
-translations
-  "f respects r" == "congruent r f"
+abbreviation (output)
+  RESPECTS :: "('a => 'b) => ('a * 'a) set => bool"  (infixr "respects" 80)
+  "f respects r = congruent r f"
 
 
 lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. f y = c ==> (\<Union>y \<in> A. f(y))=c"
@@ -225,9 +223,12 @@ locale congruent2 =
 text{*Abbreviation for the common case where the relations are identical*}
 syntax
   RESPECTS2 ::"['a => 'b, ('a * 'a) set] => bool"  (infixr "respects2 " 80)
-
 translations
   "f respects2 r" => "congruent2 r r f"
+(*
+Warning: cannot use "abbreviation" here because the two occurrences of
+r may need to be of different type (see Hyperreal/StarDef).
+*)
 
 lemma congruent2_implies_congruent:
     "equiv A r1 ==> congruent2 r1 r2 f ==> a \<in> A ==> congruent r2 (f a)"
@@ -333,7 +334,7 @@ apply(subst card_UN_disjoint)
  apply(fastsimp simp add:inj_on_def)
 apply (simp add:setsum_constant)
 done
-
+(*
 ML
 {*
 val UN_UN_split_split_eq = thm "UN_UN_split_split_eq";
@@ -371,5 +372,5 @@ val refl_comp_subset = thm "refl_comp_subset";
 val subset_equiv_class = thm "subset_equiv_class";
 val sym_trans_comp_subset = thm "sym_trans_comp_subset";
 *}
-
+*)
 end

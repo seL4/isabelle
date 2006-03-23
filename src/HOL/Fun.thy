@@ -62,9 +62,9 @@ constdefs
     "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
 text{*A common special case: functions injective over the entire domain type.*}
-syntax inj   :: "('a => 'b) => bool"
-translations
-  "inj f" == "inj_on f UNIV"
+
+abbreviation (output)
+  "inj f = inj_on f UNIV"
 
 constdefs
   surj :: "('a => 'b) => bool"                   (*surjective*)

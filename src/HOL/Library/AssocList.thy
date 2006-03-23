@@ -16,13 +16,16 @@ consts
   delete     :: "'key \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
   update     :: "'key \<Rightarrow> 'val \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
   updates    :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
-  substitute :: "'val \<Rightarrow> 'val \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
-  map_at     :: "('val \<Rightarrow> 'val) \<Rightarrow> 'key \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val) list"
   merge      :: "('key * 'val)list \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
   compose    :: "('key * 'a)list \<Rightarrow> ('a * 'b)list \<Rightarrow> ('key * 'b)list"
   restrict   :: "('key set) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
 
   clearjunk  :: "('key * 'val)list \<Rightarrow> ('key * 'val)list"
+
+(* a bit special
+  substitute :: "'val \<Rightarrow> 'val \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
+  map_at     :: "('val \<Rightarrow> 'val) \<Rightarrow> 'key \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val) list"
+*)
 
 defs
 delete_def: "delete k \<equiv> filter (\<lambda>p. fst p \<noteq> k)"
@@ -35,15 +38,18 @@ primrec
 "updates (k#ks) vs al = (case vs of [] \<Rightarrow> al 
                          | (v#vs') \<Rightarrow> updates ks vs' (update k v al))"
 primrec
+"merge xs [] = xs"
+"merge xs (p#ps) = update (fst p) (snd p) (merge xs ps)"
+
+(*
+primrec
 "substitute v v' [] = []"
 "substitute v v' (p#ps) = (if snd p = v then (fst p,v')#substitute v v' ps
                           else p#substitute v v' ps)"
 primrec
 "map_at f k [] = []"
 "map_at f k (p#ps) = (if fst p = k then (k,f (snd p))#ps else p # map_at f k ps)"
-primrec
-"merge xs [] = xs"
-"merge xs (p#ps) = update (fst p) (snd p) (merge xs ps)"
+*)
 
 lemma length_delete_le: "length (delete k al) \<le> length al"
 proof (induct al)
@@ -431,7 +437,7 @@ lemma updates_append2_drop[simp]:
   "size xs = size ys \<Longrightarrow> updates xs (ys@zs) al = updates xs ys al"
   by (induct xs fixing: ys al) (auto split: list.splits)
 
-
+(*
 (* ******************************************************************************** *)
 subsection {* @{const substitute} *}
 (* ******************************************************************************** *)
@@ -456,7 +462,8 @@ lemma substitute_filter:
 lemma clearjunk_substitute:
  "clearjunk (substitute v v' al) = substitute v v' (clearjunk al)"
   by (induct al rule: clearjunk.induct) (auto simp add: substitute_filter delete_def)
-
+*)
+(*
 (* ******************************************************************************** *)
 subsection {* @{const map_at} *}
 (* ******************************************************************************** *)
@@ -491,7 +498,7 @@ lemma map_at_update: "map_of al k = Some v \<Longrightarrow> map_at f k al = upd
 
 lemma map_at_other [simp]: "a \<noteq> b \<Longrightarrow> map_of (map_at f a al) b = map_of al b"
   by (simp add: map_at_conv')
-
+*)
 (* ******************************************************************************** *)
 subsection {* @{const merge} *}
 (* ******************************************************************************** *)

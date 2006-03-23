@@ -277,6 +277,23 @@ translations
   "! x:A: P"    == "! x:o2s A. P"
   "? x:A: P"    == "? x:o2s A. P"
 
+section "Special map update"
+
+text{* Deemed too special for theory Map. *}
+
+constdefs
+  chg_map :: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
+ "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
+
+lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
+by (unfold chg_map_def, auto)
+
+lemma chg_map_upd[simp]: "m a = Some b ==> chg_map f a m = m(a|->f b)"
+by (unfold chg_map_def, auto)
+
+lemma chg_map_other [simp]: "a \<noteq> b \<Longrightarrow> chg_map f a m b = m b"
+by (auto simp: chg_map_def split add: option.split)
+
 
 section "unique association lists"
 

@@ -47,9 +47,11 @@ instance set :: (type) "{ord, minus}" ..
 
 subsection {* Additional concrete syntax *}
 
-syntax
-  range         :: "('a => 'b) => 'b set"             -- "of function"
+abbreviation (output)
+  range :: "('a => 'b) => 'b set"             -- "of function"
+  "range f  =  f ` UNIV"
 
+syntax
   "op ~:"       :: "'a => 'a set => bool"                 ("op ~:")  -- "non-membership"
   "op ~:"       :: "'a => 'a set => bool"                 ("(_/ ~: _)" [50, 51] 50)
 
@@ -72,7 +74,6 @@ syntax (HOL)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3? _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "range f"     == "f`UNIV"
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
