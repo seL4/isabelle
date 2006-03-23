@@ -267,10 +267,10 @@ fun insert_tms [] tms_names = tms_names
       if mem_tm tm tms_names' then insert_tms tms_names tms_names' 
       else insert_tms tms_names ((tm,name)::tms_names');
 
-fun warning_thms [] = ()
-  | warning_thms ((name,thm)::nthms) = 
+fun display_thms [] = ()
+  | display_thms ((name,thm)::nthms) = 
       let val nthm = name ^ ": " ^ (string_of_thm thm)
-      in warning nthm; warning_thms nthms  end;
+      in Output.debug nthm; display_thms nthms  end;
  
 (*Write out the claset, simpset and atpset rules of the supplied theory.*)
 (* also write supplied user rules, they are not relevance filtered *)
@@ -287,7 +287,7 @@ fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_a
 	  if use_atpset then
 	      map put_name_pair (ResAxioms.atpset_rules_of_ctxt ctxt)
 	  else []
-      val _ = warning_thms atpset_thms
+      val _ = if !Output.show_debug_msgs then (Output.debug "ATP theorems: "; display_thms atpset_thms) else ()
       val user_rules = 
 	  case user_thms of  (*use whitelist if there are no user-supplied rules*)
 	       [] => map (put_name_pair o ResAxioms.pairname) (!whitelist)
