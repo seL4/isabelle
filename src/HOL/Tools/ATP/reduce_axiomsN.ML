@@ -89,6 +89,7 @@ fun get_goal_consts_typs thy cs = foldl (op union) [] (map (consts_typs_of_term 
 
 (**** Constant / Type Frequencies ****)
 
+
 local
 
 fun cons_nr CTVar = 0
@@ -187,30 +188,49 @@ fun show_cname (name,k) = name ^ "__" ^ Int.toString k;
 fun showax ((_,cname), (_,w)) = 
     Output.debug ("Axiom " ^ show_cname cname ^ " has weight " ^ Real.toString w)
 	      
+exception ConstFree;
+fun dest_ConstFree (Const aT) = aT
+  | dest_ConstFree (Free aT) = aT
+  | dest_ConstFree _ = raise ConstFree;
+
+(*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
+fun defines thy (tm,(name,n)) gctypes =
+  let fun defs hs =
+        let val (rator,args) = strip_comb hs
+            val ct = const_with_typ thy (dest_ConstFree rator)
+        in  forall is_Var args andalso uni_mem ct gctypes  end
+        handle ConstFree => false
+  in    
+    case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ _) => 
+          defs lhs andalso
+          (Output.debug ("Definition found: " ^ name ^ "_" ^ Int.toString n); true)
+      | _ => false
+  end
+
 fun relevance_filter_aux thy axioms goals = 
   let val const_tab = List.foldl (count_axiom_consts thy) Symtab.empty axioms
       val goals_consts_typs = get_goal_consts_typs thy goals
-      fun relevant [] (ax,r) = (ax,r)
-	| relevant ((clstm,consts_typs)::y) (ax,r) =
+      fun relevant [] (rels,nonrels) = (rels,nonrels)
+	| relevant ((clstm,consts_typs)::axs) (rels,nonrels) =
 	    let val weight = clause_weight const_tab goals_consts_typs consts_typs
 		val ccc = (clstm, (consts_typs,weight))
 	    in
-	      if !pass_mark <= weight 
-	      then relevant y (ccc::ax, r)
-	      else relevant y (ax, ccc::r)
+	      if !pass_mark <= weight orelse defines thy clstm goals_consts_typs
+	      then relevant axs (ccc::rels, nonrels)
+	      else relevant axs (rels, ccc::nonrels)
 	    end
       val (rel_clauses,nrel_clauses) =
 	  relevant (map (pair_consts_typs_axiom thy) axioms) ([],[]) 
-      val (ax,r) = relevant_clauses const_tab rel_clauses nrel_clauses ([],[]) []
-      val max_filtered = floor (!reduction_factor * real (length ax))
-      val ax' = Library.take(max_filtered, Library.sort axiom_ord ax)
+      val (rels,nonrels) = relevant_clauses const_tab rel_clauses nrel_clauses ([],[]) []
+      val max_filtered = floor (!reduction_factor * real (length rels))
+      val rels' = Library.take(max_filtered, Library.sort axiom_ord rels)
   in
       if !Output.show_debug_msgs then
 	   (List.app showconst (Symtab.dest const_tab);
-	    List.app showax ax)
+	    List.app showax rels)
       else ();
-      if !add_unit then (filter good_unit_clause r) @ ax'
-      else ax'
+      if !add_unit then (filter good_unit_clause nonrels) @ rels'
+      else rels'
   end;
 
 fun relevance_filter thy axioms goals =
