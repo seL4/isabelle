@@ -410,6 +410,10 @@ translations
   "_as_pat x (_match p v)" <= "_match (as_pat p) (_args (_var x) v)"
   "_lazy_pat (_match p v)" <= "_match (lazy_pat p) v"
 
+text {* Lazy patterns in lambda abstractions *}
+translations
+  "_cabs (_lazy_pat p) r" == "run oo (_Case1 (_lazy_pat p) r)"
+
 lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
 by (simp add: branch_def wild_pat_def)
 
