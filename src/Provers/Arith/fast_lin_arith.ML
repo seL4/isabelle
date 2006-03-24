@@ -591,8 +591,7 @@ fun discr initems = map fst (Library.foldl add_datoms ([],initems));
 fun refutes sg (pTs,params) ex =
 let
   fun refute (initems::initemss) js =
-    let val _ = trace_msg ("initems: " ^ makestring initems)  (* TODO *)
-        val atoms = Library.foldl add_atoms ([],initems)
+    let val atoms = Library.foldl add_atoms ([],initems)
         val n = length atoms
         val mkleq = mklineq n atoms
         val ixs = 0 upto (n-1)
@@ -632,7 +631,6 @@ val fast_arith_neq_limit = ref 9;
 
 fun prove sg ps ex Hs concl =
 let val Hitems = map (LA_Data.decomp sg) Hs
-    val _ = trace_msg ("Hitems: " ^ makestring Hitems)  (* TODO *)
 in if count (fn NONE => false | SOME(_,_,r,_,_,_) => r = "~=") Hitems
       > !fast_arith_neq_limit then NONE
    else
