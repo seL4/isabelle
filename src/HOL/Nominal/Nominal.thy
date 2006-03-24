@@ -495,6 +495,15 @@ lemma at_prm_eq_append:
   shows "(pi3@pi1) \<triangleq> (pi3@pi2)"
 using a by (simp add: prm_eq_def at_append[OF at] at_bij[OF at])
 
+lemma at_prm_eq_append':
+  fixes pi1 :: "'x prm"
+  and   pi2 :: "'x prm"
+  and   pi3 :: "'x prm"
+  assumes at: "at TYPE('x)"
+  and     a: "pi1 \<triangleq> pi2"
+  shows "(pi1@pi3) \<triangleq> (pi2@pi3)"
+using a by (simp add: prm_eq_def at_append[OF at])
+
 lemma at_prm_eq_trans:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
@@ -1355,7 +1364,7 @@ proof
   from a1' a2' have a3: "a\<noteq>b" by force
   from a1' have "([(a,b)]\<bullet>a)\<in>([(a,b)]\<bullet>(supp x))" 
     by (simp only: pt_set_bij[OF at_pt_inst[OF at], OF at])
-  hence "b\<in>([(a,b)]\<bullet>(supp x))" by (simp add: at_append[OF at] at_calc[OF at])
+  hence "b\<in>([(a,b)]\<bullet>(supp x))" by (simp add: at_calc[OF at])
   hence "b\<in>(supp ([(a,b)]\<bullet>x))" by (simp add: pt_perm_supp[OF pt,OF at])
   with a2' neg show False by simp
 qed
@@ -1393,9 +1402,8 @@ lemma pt_fresh_fresh:
   and     a1: "a\<sharp>x" and a2: "b\<sharp>x" 
   shows "[(a,b)]\<bullet>x=x"
 proof (cases "a=b")
-  assume c1: "a=b"
-  have "[(a,a)] \<triangleq> []" by (rule at_ds1[OF at])
-  hence "[(a,b)] \<triangleq> []" using c1 by simp
+  assume "a=b"
+  hence "[(a,b)] \<triangleq> []" by (simp add: at_ds1[OF at])
   hence "[(a,b)]\<bullet>x=([]::'x prm)\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp only: pt1[OF pt])
 next
