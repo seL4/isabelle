@@ -21,14 +21,14 @@ nominal_datatype trm =
   | ImpR "\<guillemotleft>name\<guillemotright>(\<guillemotleft>coname\<guillemotright>trm)" "coname"       ("ImpR [_].<_>._ _" [100,100,100,100] 100)
   | ImpL "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"     ("ImpL <_>._ [_]._ _" [100,100,100,100,100] 100)
 
-thm trm_iter_set.intros[no_vars]
+thm trm_rec_set.intros[no_vars]
   
-lemma it_total:
-  shows "\<exists>r. (t,r) \<in> trm_iter_set f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12"
-  by (induct t rule: trm.induct_weak, auto intro: trm_iter_set.intros)
+lemma rec_total:
+  shows "\<exists>r. (t,r) \<in> trm_rec_set f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12"
+  by (induct t rule: trm.induct_weak, auto intro: trm_rec_set.intros)
 
-lemma it_prm_eq:
-  assumes a: "(t,y) \<in> trm_iter_set f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12" 
+lemma rec_prm_eq:
+  assumes a: "(t,y) \<in> trm_rec_set f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12" 
   and     b: "pi1 \<triangleq> pi2"
   and     c: "pi3 \<triangleq> pi4"
   shows "y pi1 pi3 = y pi2 pi4"
@@ -44,7 +44,8 @@ apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
@@ -56,21 +57,21 @@ apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* NotL *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* AndR *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
@@ -79,54 +80,54 @@ apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* AndL1 *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* AndL1 *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* OrR1 *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* OrR2 *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* OrL *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
@@ -135,14 +136,14 @@ apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* ImpR *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
@@ -151,12 +152,12 @@ apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption)
 apply(rule at_prm_eq_append'[OF at_name_inst], assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 (* ImpL *)
 apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
@@ -165,14 +166,14 @@ apply(rule_tac f="fresh_fun" in arg_cong)
 apply(simp add: expand_fun_eq)
 apply(rule allI)
 apply(tactic {* DatatypeAux.cong_tac 1 *})+
-apply(simp_all)
+apply(simp_all add: pt2[OF pt_name_inst] pt2[OF pt_coname_inst] 
+                    pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(rule at_prm_eq_append'[OF at_coname_inst], assumption, assumption)
 apply(drule meta_spec)+
 apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
-apply(simp add: pt3[OF pt_name_inst] pt3[OF pt_coname_inst])
 done
 
 text {* Induction principles *}
