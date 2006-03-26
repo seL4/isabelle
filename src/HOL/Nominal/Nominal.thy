@@ -1598,40 +1598,41 @@ lemma at_fin_set_supports:
   fixes X::"'x set"
   assumes at: "at TYPE('x)"
   shows "X supports X"
-proof (simp add: "op supports_def", intro strip)
-  fix a b
-  assume "a\<notin>X \<and> b\<notin>X"
-  thus "[(a,b)]\<bullet>X = X" by (force simp add: perm_set_def at_calc[OF at])
+proof -
+  have "\<forall>a b. a\<notin>X \<and> b\<notin>X \<longrightarrow> [(a,b)]\<bullet>X = X" by (auto simp add: perm_set_def at_calc[OF at])
+  then show ?thesis by (simp add: "op supports_def")
 qed
 
+lemma infinite_Collection:
+  assumes a1:"infinite X"
+  and     a2:"\<forall>b\<in>X. P(b)"
+  shows "infinite {b\<in>X. P(b)}"
+  using a1 a2 
+  apply auto
+  apply (subgoal_tac "infinite (X - {b\<in>X. P b})")
+  apply (simp add: set_diff_def)
+  apply (simp add: Diff_infinite_finite)
+  done
+
 lemma at_fin_set_supp:
-  fixes X::"'x set"
+  fixes X::"'x set" 
   assumes at: "at TYPE('x)"
   and     fs: "finite X"
   shows "(supp X) = X"
-proof -
-  have pt_set: "pt TYPE('x set) TYPE('x)" 
-    by (rule pt_set_inst[OF at_pt_inst[OF at]])
-  have X_supports_X: "X supports X" by (rule at_fin_set_supports[OF at])
-  show ?thesis using  pt_set at X_supports_X fs
-  proof (rule supp_is_least_supports[symmetric])
-    show "\<forall>S'. finite S' \<and> S' supports X \<longrightarrow> X \<subseteq> S'"
-    proof (auto)
-      fix S'::"'x set" and x::"'x"
-      assume f: "finite S'"
-      and    s: "S' supports X"
-      and    e1: "x\<in>X"
-      show "x\<in>S'"
-      proof (rule ccontr)
-	assume e2: "x\<notin>S'"
-	have "\<exists>b. b\<notin>(X\<union>S')" by (force intro: ex_in_inf[OF at] simp only: fs f)
-	then obtain b where b1: "b\<notin>X" and b2: "b\<notin>S'" by (auto)
-	from s e2 b2 have c1: "[(x,b)]\<bullet>X=X" by (simp add: "op supports_def")
-	from e1 b1 have c2: "[(x,b)]\<bullet>X\<noteq>X" by (force simp add: perm_set_def at_calc[OF at])
-	show "False" using c1 c2 by simp
-      qed
-    qed
-  qed
+proof (rule subset_antisym)
+  case goal1 
+  show "(supp X) \<subseteq> X" using at_fin_set_supports[OF at] using fs by (simp add: supp_is_subset)
+next
+  case goal2
+  have inf: "infinite (UNIV-X)" using at4[OF at] fs by (auto simp add: Diff_infinite_finite)
+  { fix a::"'x"
+    assume asm: "a\<in>X"
+    hence "\<forall>b\<in>(UNIV-X). [(a,b)]\<bullet>X\<noteq>X" by (auto simp add: perm_set_def at_calc[OF at])
+    with inf have "infinite {b\<in>(UNIV-X). [(a,b)]\<bullet>X\<noteq>X}" by (rule infinite_Collection)
+    hence "infinite {b. [(a,b)]\<bullet>X\<noteq>X}" by (rule_tac infinite_super, auto)
+    hence "a\<in>(supp X)" by (simp add: supp_def)
+  }
+  then show "X\<subseteq>(supp X)" by blast
 qed
 
 section {* Permutations acting on Functions *}
