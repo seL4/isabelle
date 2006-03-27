@@ -1,6 +1,6 @@
 (*  Title:      HOL/OrderedGroup.ML
     ID:         $Id$
-    Author:     Steven Obua, Tobias Nipkow, Technische Universit� Mnchen
+    Author:     Steven Obua, Tobias Nipkow, Technische Universitaet Mnchen
 *)
 
 structure ab_group_add_cancel_data :> ABEL_CANCEL  = 
