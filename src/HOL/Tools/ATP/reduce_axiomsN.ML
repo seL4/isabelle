@@ -7,10 +7,14 @@ struct
 
 val pass_mark = ref 0.6;
 val reduction_factor = ref 1.0;
+val convergence = ref 4.0;   (*Higher numbers allow longer inference chains*)
 
-(*Whether all "simple" unit clauses should be included*)
+(*FIXME DELETE Whether all "simple" unit clauses should be included*)
 val add_unit = ref false;
 val unit_pass_mark = ref 0.0;
+
+(*The default ignores the constant-count and gives the old Strategy 3*)
+val weight_fn = ref (fn x : real => 1.0);
 
 
 (*Including equality in this list might be expected to stop rules like subset_antisym from
@@ -89,7 +93,6 @@ fun get_goal_consts_typs thy cs = foldl (op union) [] (map (consts_typs_of_term 
 
 (**** Constant / Type Frequencies ****)
 
-
 local
 
 fun cons_nr CTVar = 0
@@ -126,9 +129,6 @@ fun count_axiom_consts thy ((t,_), tab) =
 
 (******** filter clauses ********)
 
-(*The default ignores the constant-count and gives the old Strategy 3*)
-val weight_fn = ref (fn x : real => 1.0);
-
 fun const_weight ctab (c, cts) =
   let val pairs = CTtab.dest (Option.valOf (Symtab.lookup ctab c))
       fun add ((cts',m), n) = if uni_types cts cts' then m+n else n
@@ -150,23 +150,28 @@ fun clause_weight ctab gctyps consts_typs =
 	rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
     
-fun relevant_clauses ctab rel_axs [] (addc,tmpc) keep =
-      if null addc orelse null tmpc 
-      then (addc @ rel_axs @ keep, tmpc)   (*termination!*)
-      else relevant_clauses ctab addc tmpc ([],[]) (rel_axs @ keep)
-  | relevant_clauses ctab rel_axs ((clstm,(consts_typs,w))::e_axs) (addc,tmpc) keep =
-      let fun clause_weight_ax (_,(refconsts_typs,wa)) =
-              wa * clause_weight ctab refconsts_typs consts_typs;
-          val weight' = List.foldl Real.max w (map clause_weight_ax rel_axs)
-	  val e_ax' = (clstm, (consts_typs,weight'))
-      in
-	if !pass_mark <= weight' 
-	then relevant_clauses ctab rel_axs e_axs (e_ax'::addc, tmpc) keep
-	else relevant_clauses ctab rel_axs e_axs (addc, e_ax'::tmpc) keep
-      end;
-
 fun pair_consts_typs_axiom thy (tm,name) =
     ((tm,name), (consts_typs_of_term thy tm));
+
+fun relevant_clauses ctab p rel_consts =
+  let fun relevant (newrels,rejects) []  =
+	    if null newrels then [] 
+	    else 
+	      let val new_consts = map #2 newrels
+	          val rel_consts' = foldl (op union) rel_consts new_consts
+                  val newp = p + (1.0-p) / !convergence
+	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
+                 newrels @ relevant_clauses ctab newp rel_consts' rejects
+	      end
+	| relevant (newrels,rejects) ((ax as (clstm,consts_typs)) :: axs) =
+	    let val weight = clause_weight ctab rel_consts consts_typs
+	    in
+	      if p <= weight 
+	      then relevant (ax::newrels, rejects) axs
+	      else relevant (newrels, ax::rejects) axs
+	    end
+    in  Output.debug ("relevant_clauses: " ^ Real.toString p);
+        relevant ([],[]) end;
 
 (*Unit clauses other than non-trivial equations can be included subject to
   a separate (presumably lower) mark. *)
@@ -177,16 +182,9 @@ fun good_unit_clause ((t,_), (_,w)) =
 	| Unit_geq => true
 	| Other => false);
 	
-fun axiom_ord ((_,(_,w1)), (_,(_,w2))) = Real.compare (w2,w1);
-
 fun showconst (c,cttab) = 
       List.app (fn n => Output.debug (Int.toString n ^ " occurrences of " ^ c))
 	        (map #2 (CTtab.dest cttab))
-
-fun show_cname (name,k) = name ^ "__" ^ Int.toString k;
-
-fun showax ((_,cname), (_,w)) = 
-    Output.debug ("Axiom " ^ show_cname cname ^ " has weight " ^ Real.toString w)
 	      
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
@@ -210,27 +208,11 @@ fun defines thy (tm,(name,n)) gctypes =
 fun relevance_filter_aux thy axioms goals = 
   let val const_tab = List.foldl (count_axiom_consts thy) Symtab.empty axioms
       val goals_consts_typs = get_goal_consts_typs thy goals
-      fun relevant [] (rels,nonrels) = (rels,nonrels)
-	| relevant ((clstm,consts_typs)::axs) (rels,nonrels) =
-	    let val weight = clause_weight const_tab goals_consts_typs consts_typs
-		val ccc = (clstm, (consts_typs,weight))
-	    in
-	      if !pass_mark <= weight orelse defines thy clstm goals_consts_typs
-	      then relevant axs (ccc::rels, nonrels)
-	      else relevant axs (rels, ccc::nonrels)
-	    end
-      val (rel_clauses,nrel_clauses) =
-	  relevant (map (pair_consts_typs_axiom thy) axioms) ([],[]) 
-      val (rels,nonrels) = relevant_clauses const_tab rel_clauses nrel_clauses ([],[]) []
-      val max_filtered = floor (!reduction_factor * real (length rels))
-      val rels' = Library.take(max_filtered, Library.sort axiom_ord rels)
+      val rels = relevant_clauses const_tab (!pass_mark) goals_consts_typs 
+                   (map (pair_consts_typs_axiom thy) axioms)
   in
-      if !Output.show_debug_msgs then
-	   (List.app showconst (Symtab.dest const_tab);
-	    List.app showax rels)
-      else ();
-      if !add_unit then (filter good_unit_clause nonrels) @ rels'
-      else rels'
+      Output.debug ("Total relevant: " ^ Int.toString (length rels));
+      rels
   end;
 
 fun relevance_filter thy axioms goals =
