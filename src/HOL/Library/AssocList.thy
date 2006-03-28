@@ -21,7 +21,7 @@ consts
   merge      :: "('key * 'val)list \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
   compose    :: "('key * 'a)list \<Rightarrow> ('a * 'b)list \<Rightarrow> ('key * 'b)list"
   restrict   :: "('key set) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
-  map_val    :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
+  map_ran    :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
 
   clearjunk  :: "('key * 'val)list \<Rightarrow> ('key * 'val)list"
 
@@ -41,8 +41,8 @@ primrec
 "merge xs (p#ps) = update (fst p) (snd p) (merge xs ps)"
 
 primrec
-"map_val f [] = []"
-"map_val f (p#ps) = (fst p, f (fst p) (snd p))#map_val f ps"
+"map_ran f [] = []"
+"map_ran f (p#ps) = (fst p, f (fst p) (snd p))#map_ran f ps"
 
 
 lemma length_delete_le: "length (delete k al) \<le> length al"
@@ -432,23 +432,23 @@ lemma updates_append2_drop[simp]:
   by (induct xs fixing: ys al) (auto split: list.splits)
 
 (* ******************************************************************************** *)
-subsection {* @{const map_val} *}
+subsection {* @{const map_ran} *}
 (* ******************************************************************************** *)
 
-lemma map_val_conv: "map_of (map_val f al) k = option_map (f k) (map_of al k)"
+lemma map_ran_conv: "map_of (map_ran f al) k = option_map (f k) (map_of al k)"
   by (induct al) auto
 
-lemma dom_map_val: "fst ` set (map_val f al) = fst ` set al"
+lemma dom_map_ran: "fst ` set (map_ran f al) = fst ` set al"
   by (induct al) auto
 
-lemma distinct_map_val: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_val f al))"
-  by (induct al) (auto simp add: dom_map_val)
+lemma distinct_map_ran: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_ran f al))"
+  by (induct al) (auto simp add: dom_map_ran)
 
-lemma map_val_filter: "map_val f [p\<in>ps. fst p \<noteq> a] = [p\<in>map_val f ps. fst p \<noteq> a]"
+lemma map_ran_filter: "map_ran f [p\<in>ps. fst p \<noteq> a] = [p\<in>map_ran f ps. fst p \<noteq> a]"
   by (induct ps) auto
 
-lemma clearjunk_map_val: "clearjunk (map_val f al) = map_val f (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: delete_def map_val_filter)
+lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
+  by (induct al rule: clearjunk.induct) (auto simp add: delete_def map_ran_filter)
 
 (* ******************************************************************************** *)
 subsection {* @{const merge} *}
