@@ -11,7 +11,9 @@ imports Map
 begin
 
 text {* The operations preserve distinctness of keys and 
-        function @{term "clearjunk"} distributes over them.*}
+        function @{term "clearjunk"} distributes over them. Since 
+        @{term clearjunk} enforces distinctness of keys it can be used
+        to establish the invariant, e.g. for inductive proofs.*}
 consts 
   delete     :: "'key \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
   update     :: "'key \<Rightarrow> 'val \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
@@ -19,13 +21,10 @@ consts
   merge      :: "('key * 'val)list \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
   compose    :: "('key * 'a)list \<Rightarrow> ('a * 'b)list \<Rightarrow> ('key * 'b)list"
   restrict   :: "('key set) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
+  map_val    :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key * 'val)list \<Rightarrow> ('key * 'val)list"
 
   clearjunk  :: "('key * 'val)list \<Rightarrow> ('key * 'val)list"
 
-(* a bit special
-  substitute :: "'val \<Rightarrow> 'val \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val)list"
-  map_at     :: "('val \<Rightarrow> 'val) \<Rightarrow> 'key \<Rightarrow> ('key * 'val)list \<Rightarrow>  ('key * 'val) list"
-*)
 
 defs
 delete_def: "delete k \<equiv> filter (\<lambda>p. fst p \<noteq> k)"
@@ -41,15 +40,10 @@ primrec
 "merge xs [] = xs"
 "merge xs (p#ps) = update (fst p) (snd p) (merge xs ps)"
 
-(*
 primrec
-"substitute v v' [] = []"
-"substitute v v' (p#ps) = (if snd p = v then (fst p,v')#substitute v v' ps
-                          else p#substitute v v' ps)"
-primrec
-"map_at f k [] = []"
-"map_at f k (p#ps) = (if fst p = k then (k,f (snd p))#ps else p # map_at f k ps)"
-*)
+"map_val f [] = []"
+"map_val f (p#ps) = (fst p, f (fst p) (snd p))#map_val f ps"
+
 
 lemma length_delete_le: "length (delete k al) \<le> length al"
 proof (induct al)
@@ -437,68 +431,25 @@ lemma updates_append2_drop[simp]:
   "size xs = size ys \<Longrightarrow> updates xs (ys@zs) al = updates xs ys al"
   by (induct xs fixing: ys al) (auto split: list.splits)
 
-(*
 (* ******************************************************************************** *)
-subsection {* @{const substitute} *}
+subsection {* @{const map_val} *}
 (* ******************************************************************************** *)
 
-lemma substitute_conv: "map_of (substitute v v' al) k = ((map_of al)(v ~> v')) k"
+lemma map_val_conv: "map_of (map_val f al) k = option_map (f k) (map_of al k)"
   by (induct al) auto
 
-lemma substitute_conv': "map_of (substitute v v' al) = ((map_of al)(v ~> v'))"
-  by (rule ext) (rule substitute_conv)
-
-lemma dom_substitute: "fst ` set (substitute v v' al) = fst ` set al"
+lemma dom_map_val: "fst ` set (map_val f al) = fst ` set al"
   by (induct al) auto
 
-lemma distinct_substitute: 
-  "distinct (map fst al) \<Longrightarrow> distinct (map fst (substitute v v' al))"
-  by (induct al) (auto simp add: dom_substitute)
+lemma distinct_map_val: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_val f al))"
+  by (induct al) (auto simp add: dom_map_val)
 
-lemma substitute_filter: 
-  "(substitute v v' [q\<in>ps . fst q \<noteq> a]) = [q\<in>substitute v v' ps . fst q \<noteq> a]"
+lemma map_val_filter: "map_val f [p\<in>ps. fst p \<noteq> a] = [p\<in>map_val f ps. fst p \<noteq> a]"
   by (induct ps) auto
 
-lemma clearjunk_substitute:
- "clearjunk (substitute v v' al) = substitute v v' (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: substitute_filter delete_def)
-*)
-(*
-(* ******************************************************************************** *)
-subsection {* @{const map_at} *}
-(* ******************************************************************************** *)
-  
-lemma map_at_conv: "map_of (map_at f k al) k' = (chg_map f k (map_of al)) k'"
-  by (induct al) (auto simp add: chg_map_def split: option.splits)
+lemma clearjunk_map_val: "clearjunk (map_val f al) = map_val f (clearjunk al)"
+  by (induct al rule: clearjunk.induct) (auto simp add: delete_def map_val_filter)
 
-lemma map_at_conv': "map_of (map_at f k al) = (chg_map f k (map_of al))"
-  by (rule ext) (rule map_at_conv)
-
-lemma dom_map_at: "fst ` set (map_at f k al) = fst ` set al"
-  by (induct al) auto
-
-lemma distinct_map_at: 
-  assumes "distinct (map fst al)"
-  shows "distinct (map fst (map_at f k al))"
-using prems by (induct al) (auto simp add: dom_map_at)
-
-lemma map_at_notin_filter: 
-  "a \<noteq> k \<Longrightarrow> (map_at f k [q\<in>ps . fst q \<noteq> a]) = [q\<in>map_at f k ps . fst q \<noteq> a]"
-  by (induct ps) auto
-
-lemma clearjunk_map_at:
- "clearjunk (map_at f k al) = map_at f k (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: map_at_notin_filter delete_def)
-
-lemma map_at_new[simp]: "map_of al k = None \<Longrightarrow> map_at f k al = al"
-  by (induct al) auto
-
-lemma map_at_update: "map_of al k = Some v \<Longrightarrow> map_at f k al = update k (f v) al"
-  by (induct al) auto
-
-lemma map_at_other [simp]: "a \<noteq> b \<Longrightarrow> map_of (map_at f a al) b = map_of al b"
-  by (simp add: map_at_conv')
-*)
 (* ******************************************************************************** *)
 subsection {* @{const merge} *}
 (* ******************************************************************************** *)
