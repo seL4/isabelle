@@ -74,7 +74,7 @@ include build/project.mak
 
 # build dependencies
 $(DEP_FILE): $(CONF)
-	build/make_dep.bash "$(FIND)" "$(OUTPUTROOT)" "$(DEP_FILE)" "$(STATICDIRS)"
+	build/make_dep.bash "$(FIND)" "$(OUTPUTROOT)" "$(DEP_FILE)" "$(STATICDIRS)" "$(STATICFILES)"
 
 # build dependencies explicitly
 depends:

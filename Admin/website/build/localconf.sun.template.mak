@@ -11,9 +11,6 @@ ISABELLE_DIST=$(DISTBASE)
 # location of doc content file
 ISABELLE_DOC_CONTENT_FILE=$(DISTBASE)/$(DISTNAME)/doc/Contents
 
-# dirs to copy to build target
-STATICDIRS=css img media misc
-
 # umask/group for target files
 TARGET_UMASK_FILE=u=rw,g=rw,o=r
 TARGET_UMASK_DIR=u=rwx,g=rwx,o=rx,g+s

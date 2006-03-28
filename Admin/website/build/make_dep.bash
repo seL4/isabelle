@@ -8,6 +8,7 @@ FIND="$1"
 OUTPUTROOT="$2"
 DEP_FILE="$3"
 STATICDIRS="$4"
+STATICFILES="$5"
 
 rm -f "$DEP_FILE"
 touch "$DEP_FILE"
@@ -33,7 +34,7 @@ do
 done
 echo "DEP_ALLSTATIC=$allstatic" >> "$DEP_FILE"
 echo >> "$DEP_FILE"
-echo 'DEP_HTML=$(DEP_ALLSTATIC) include/documentationdist.include.html $(DEP_FILE) $(CONF)' >> "$DEP_FILE"
+echo 'DEP_HTML=$(DEP_ALLSTATIC) $(STATICFILES) $(DEP_FILE) $(CONF)' >> "$DEP_FILE"
 echo >> "$DEP_FILE"
 allhtml=''
 for html in $("$FIND" . -name "*.html" -a ! -name "*.include.html")

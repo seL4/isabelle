@@ -7,16 +7,20 @@ conf/distinfo.mak:
 	@echo 'If you have no makedist at hand, check out default $@ from CVS'; \
 	@false; \
 
-project: $(OUTPUTROOT)/dist site
+STATICDIRS=css img media misc
+STATICFILES=include/documentationdist.include.html
+OUTPUTDIST=$(OUTPUTROOT)/dist-$(DISTNAME)
+
+project: $(OUTPUTDIST) site
 .PHONY: project
 
 cleanproject:
-	rm -rf $(OUTPUTROOT)/dist
+	rm -rf $(OUTPUTDIST)
 .PHONY: cleanproject
 
 ifeq ($(RSYNC),)
 
-$(OUTPUTROOT)/dist: $(ISABELLE_DIST)
+$(OUTPUTDIST): $(ISABELLE_DIST)
 	mkdir -p $@
 	$(COPY) -vRud $</[^w]* $@
 	-chgrp -hR $(TARGET_GROUP) $@
@@ -24,10 +28,11 @@ $(OUTPUTROOT)/dist: $(ISABELLE_DIST)
 	-[ ! -e $@/Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
+	ln -s $(OUTPUTDIST) $(OUTPUTROOT)/dist
 
 else
 
-$(OUTPUTROOT)/dist: $(ISABELLE_DIST) SYNC_ALWAYS
+$(OUTPUTDIST): $(ISABELLE_DIST) SYNC_ALWAYS
 	mkdir -p $@
 	$(RSYNC) -v --exclude='/website/' -rlt --delete --delete-after $</ $@
 	-chgrp -hR $(TARGET_GROUP) $@
@@ -35,6 +40,7 @@ $(OUTPUTROOT)/dist: $(ISABELLE_DIST) SYNC_ALWAYS
 	-[ ! -e $@/Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
+	ln -s $(OUTPUTDIST) $(OUTPUTROOT)/dist
 
 SYNC_ALWAYS:
 
