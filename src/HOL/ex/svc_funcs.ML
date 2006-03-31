@@ -5,7 +5,7 @@
 
 Translation functions for the interface to SVC
 
-Based upon the work of Søren T. Heilmann
+Based upon the work of Soren T. Heilmann
 
 Integers and naturals are translated as follows:
   In a positive context, replace x<y by x+1<=y

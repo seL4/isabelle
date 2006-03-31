@@ -8,7 +8,7 @@ This is a proof of the Church-Rosser Theorem for the untyped lambda-calculus.
 
 By Ole Rasmussen, following the Coq proof given in
 
-Gérard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
+Gerard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
 J. Functional Programming 4(3) 1994, 371-394.
 *)
 

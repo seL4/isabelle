@@ -8,7 +8,7 @@ Installing the oracle for SVC (Stanford Validity Checker)
 The following code merely CALLS the oracle;
   the soundness-critical functions are at HOL/Tools/svc_funcs.ML
 
-Based upon the work of Søren T. Heilmann
+Based upon the work of Soren T. Heilmann
 *)
 
 
