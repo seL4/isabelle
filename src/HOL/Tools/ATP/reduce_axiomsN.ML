@@ -6,12 +6,7 @@ structure ReduceAxiomsN =
 struct
 
 val pass_mark = ref 0.6;
-val reduction_factor = ref 1.0;
-val convergence = ref 4.0;   (*Higher numbers allow longer inference chains*)
-
-(*FIXME DELETE Whether all "simple" unit clauses should be included*)
-val add_unit = ref false;
-val unit_pass_mark = ref 0.0;
+val convergence = ref 1.6;   (*Higher numbers allow longer inference chains*)
 
 (*The default ignores the constant-count and gives the old Strategy 3*)
 val weight_fn = ref (fn x : real => 1.0);
@@ -23,28 +18,6 @@ val standard_consts =
   ["Trueprop","==>","all","Ex","op &","op |","Not","All","op -->",
    "op =","==","True","False"];
 
-
-(*** unit clauses ***)
-datatype clause_kind = Unit_neq | Unit_geq | Other
-
-
-fun literals_of_term args (Const ("Trueprop",_) $ P) = literals_of_term args P
-  | literals_of_term args (Const ("op |",_) $ P $ Q) = 
-    literals_of_term (literals_of_term args P) Q
-  | literals_of_term args P = P::args;
-
-fun is_ground t = (term_vars t = []) andalso (term_frees t = []);
-
-fun eq_clause_type (P,Q) = 
-    if ((is_ground P) orelse (is_ground Q)) then Unit_geq else Other;
-
-fun unit_clause_type (Const ("op =",_) $ P $ Q) = eq_clause_type (P,Q)
-  | unit_clause_type _ = Unit_neq;
-
-fun clause_kind tm = 
-    case literals_of_term [] tm of
-        [lit] => unit_clause_type lit
-      | _ => Other;
 
 (*** constants with types ***)
 
@@ -78,7 +51,7 @@ fun const_with_typ thy (c,typ) =
 (*Free variables are counted, as well as constants, to handle locales*)
 fun add_term_consts_typs_rm thy (Const(c, typ)) cs =
       if (c mem standard_consts) then cs 
-      else const_with_typ thy (c,typ) ins cs
+      else const_with_typ thy (c,typ) ins cs   (*suppress multiples*)
   | add_term_consts_typs_rm thy (Free(c, typ)) cs =
       const_with_typ thy (c,typ) ins cs
   | add_term_consts_typs_rm thy (t $ u) cs =
@@ -172,20 +145,8 @@ fun relevant_clauses ctab p rel_consts =
 	    end
     in  Output.debug ("relevant_clauses: " ^ Real.toString p);
         relevant ([],[]) end;
-
-(*Unit clauses other than non-trivial equations can be included subject to
-  a separate (presumably lower) mark. *)
-fun good_unit_clause ((t,_), (_,w)) = 
-     !unit_pass_mark <= w andalso
-     (case clause_kind t of
-	  Unit_neq => true
-	| Unit_geq => true
-	| Other => false);
 	
-fun showconst (c,cttab) = 
-      List.app (fn n => Output.debug (Int.toString n ^ " occurrences of " ^ c))
-	        (map #2 (CTtab.dest cttab))
-	      
+     
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
   | dest_ConstFree (Free aT) = aT
