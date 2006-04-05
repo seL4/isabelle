@@ -6,10 +6,14 @@ structure ReduceAxiomsN =
 struct
 
 val pass_mark = ref 0.6;
-val convergence = ref 1.6;   (*Higher numbers allow longer inference chains*)
+val convergence = ref 2.4;   (*Higher numbers allow longer inference chains*)
+val follow_defs = ref true;  (*Follow definitions. Makes problems bigger.*)
 
-(*The default ignores the constant-count and gives the old Strategy 3*)
-val weight_fn = ref (fn x : real => 1.0);
+fun log_weight2 (x:real) = 1.0 + 2.0/Math.ln (x+1.0);
+
+(*The default seems best in practice. A constant function of one ignores
+  the constant frequencies.*)
+val weight_fn = ref log_weight2;
 
 
 (*Including equality in this list might be expected to stop rules like subset_antisym from
@@ -126,27 +130,6 @@ fun clause_weight ctab gctyps consts_typs =
 fun pair_consts_typs_axiom thy (tm,name) =
     ((tm,name), (consts_typs_of_term thy tm));
 
-fun relevant_clauses ctab p rel_consts =
-  let fun relevant (newrels,rejects) []  =
-	    if null newrels then [] 
-	    else 
-	      let val new_consts = map #2 newrels
-	          val rel_consts' = foldl (op union) rel_consts new_consts
-                  val newp = p + (1.0-p) / !convergence
-	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
-                 newrels @ relevant_clauses ctab newp rel_consts' rejects
-	      end
-	| relevant (newrels,rejects) ((ax as (clstm,consts_typs)) :: axs) =
-	    let val weight = clause_weight ctab rel_consts consts_typs
-	    in
-	      if p <= weight 
-	      then relevant (ax::newrels, rejects) axs
-	      else relevant (newrels, ax::rejects) axs
-	    end
-    in  Output.debug ("relevant_clauses: " ^ Real.toString p);
-        relevant ([],[]) end;
-	
-     
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
   | dest_ConstFree (Free aT) = aT
@@ -166,10 +149,31 @@ fun defines thy (tm,(name,n)) gctypes =
       | _ => false
   end
 
+fun relevant_clauses thy ctab p rel_consts =
+  let fun relevant (newrels,rejects) []  =
+	    if null newrels then [] 
+	    else 
+	      let val new_consts = map #2 newrels
+	          val rel_consts' = foldl (op union) rel_consts new_consts
+                  val newp = p + (1.0-p) / !convergence
+	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
+                 newrels @ relevant_clauses thy ctab newp rel_consts' rejects
+	      end
+	| relevant (newrels,rejects) ((ax as (clstm,consts_typs)) :: axs) =
+	    let val weight = clause_weight ctab rel_consts consts_typs
+	    in
+	      if p <= weight orelse (!follow_defs andalso defines thy clstm rel_consts)
+	      then relevant (ax::newrels, rejects) axs
+	      else relevant (newrels, ax::rejects) axs
+	    end
+    in  Output.debug ("relevant_clauses: " ^ Real.toString p);
+        relevant ([],[]) end;
+	
+     
 fun relevance_filter_aux thy axioms goals = 
   let val const_tab = List.foldl (count_axiom_consts thy) Symtab.empty axioms
       val goals_consts_typs = get_goal_consts_typs thy goals
-      val rels = relevant_clauses const_tab (!pass_mark) goals_consts_typs 
+      val rels = relevant_clauses thy const_tab (!pass_mark) goals_consts_typs 
                    (map (pair_consts_typs_axiom thy) axioms)
   in
       Output.debug ("Total relevant: " ^ Int.toString (length rels));
@@ -177,7 +181,8 @@ fun relevance_filter_aux thy axioms goals =
   end;
 
 fun relevance_filter thy axioms goals =
-  map #1 (relevance_filter_aux thy axioms goals);
+  if !pass_mark < 0.1 then axioms
+  else map #1 (relevance_filter_aux thy axioms goals);
     
 
 end;
