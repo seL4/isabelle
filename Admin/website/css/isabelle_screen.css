@@ -137,3 +137,18 @@ div.mirrorlist ul li {
     font-style: italics;
     padding: 0pt 12pt 0pt 0pt;
 }
+
+/* people list */
+dl.people dt {
+    background-color: #EEEEEE;
+    padding: 2px;
+    margin-top: 8px;
+    height: 50px;
+}
+
+dl.people dd img {
+    float: right;
+    position: relative;
+    margin-right: 3px;
+    top: -52px;
+}

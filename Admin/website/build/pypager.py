@@ -402,7 +402,7 @@ class TransformerHandler(ContentHandler, EntityResolver):
 
         loc, name = posixpath.split(systemId)
         if loc == u"http://www.w3.org/TR/xhtml1/DTD" or loc == u"":
-            systemId = path.join(self._dtd, name)
+            systemId = path.abspath(path.join(self._dtd, name))
         return EntityResolver.resolveEntity(self, publicId, systemId)
 
     def processingInstruction(self, target, data):
