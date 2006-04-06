@@ -98,14 +98,13 @@ fun gen_prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs t
     fun make_po tac thy =
       thy
       |> TypedefPackage.add_typedef_i def (SOME name) (t, vs, mx) set opt_morphs tac
-      |>> AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.sq_ord"])
+      ||> AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.sq_ord"])
            (ClassPackage.intro_classes_tac [])
-      |>>> (PureThy.add_defs_i true [Thm.no_attributes less_def] #> Library.swap)
-      |> (fn (thy', ({type_definition, set_def, ...}, [less_definition])) =>
-           thy'
-           |> AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.po"])
+      ||>> PureThy.add_defs_i true [Thm.no_attributes less_def]
+      |-> (fn ({type_definition, set_def, ...}, [less_definition]) =>
+          AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.po"])
              (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
-           |> rpair (type_definition, less_definition, set_def));
+           #> rpair (type_definition, less_definition, set_def));
     
     fun make_cpo admissible (theory, defs as (type_def, less_def, set_def)) =
       let

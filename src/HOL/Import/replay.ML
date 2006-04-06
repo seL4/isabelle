@@ -344,7 +344,7 @@ fun replay_chached_thm int_thms thyname thmname =
 	  | delta (Hol_theorem (thyname, thmname, th)) thy =
 	    add_hol4_theorem thyname thmname ([], th_of thy th) thy
 	  | delta (Typedef (thmname, typ, c, repabs, th)) thy = 
-	    fst(TypedefPackage.add_typedef_i false thmname typ c repabs (rtac (th_of thy th) 1) thy)
+	    snd (TypedefPackage.add_typedef_i false thmname typ c repabs (rtac (th_of thy th) 1) thy)
 	  | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
 	    add_hol4_type_mapping thyname tycname true fulltyname thy
 	  | delta (Indexed_theorem (i, th)) thy = 

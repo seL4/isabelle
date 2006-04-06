@@ -2094,7 +2094,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val tnames = map fst tfrees
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy	    
+	    val (typedef_info, thy') = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy	    
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 				      
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
@@ -2187,7 +2187,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val tnames = sort string_ord (map fst tfrees)
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val (thy', typedef_info) = TypedefPackage.add_typedef_i false NONE typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
+	    val (typedef_info, thy') = TypedefPackage.add_typedef_i false NONE typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
 	    val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
 	    val fulltyname = Sign.intern_type thy' tycname
 	    val aty = Type (fulltyname, map mk_vartype tnames)

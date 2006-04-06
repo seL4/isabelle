@@ -449,7 +449,7 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
        not simplified. Otherwise large examples (Red-Black trees) are too
        slow.*)
      val case_ss = HOL_basic_ss addcongs
-       DatatypePackage.weak_case_congs_of theory addsimps case_rewrites
+       (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) theory addsimps case_rewrites
      val corollaries' = map (Simplifier.simplify case_ss) corollaries
      val extract = R.CONTEXT_REWRITE_RULE
                      (f, [R], cut_apply, meta_tflCongs@context_congs)

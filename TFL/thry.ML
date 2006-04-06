@@ -59,22 +59,21 @@ fun typecheck thry t =
  * Get information about datatypes
  *---------------------------------------------------------------------------*)
 
-val get_info = Symtab.lookup o DatatypePackage.get_datatypes;
-
-fun match_info thy tname =
-  case (DatatypePackage.case_const_of thy tname, DatatypePackage.constrs_of thy tname) of
-      (SOME case_const, SOME constructors) =>
-        SOME {case_const = case_const, constructors = constructors}
+fun match_info thy dtco =
+  case (DatatypePackage.get_datatype thy dtco,
+         DatatypePackage.get_datatype_constrs thy dtco) of
+      (SOME { case_name, ... }, SOME constructors) =>
+        SOME {case_const = Const (case_name, Sign.the_const_type thy case_name), constructors = map Const constructors}
     | _ => NONE;
 
-fun induct_info thy tname = case get_info thy tname of
+fun induct_info thy dtco = case DatatypePackage.get_datatype thy dtco of
         NONE => NONE
       | SOME {nchotomy, ...} =>
           SOME {nchotomy = nchotomy,
-                constructors = valOf (DatatypePackage.constrs_of thy tname)};
+                constructors = (map Const o the o DatatypePackage.get_datatype_constrs thy) dtco};
 
 fun extract_info thy =
- let val infos = map snd (Symtab.dest (DatatypePackage.get_datatypes thy))
+ let val infos = (map snd o Symtab.dest o DatatypePackage.get_datatypes) thy
  in {case_congs = map (mk_meta_eq o #case_cong) infos,
      case_rewrites = List.concat (map (map mk_meta_eq o #case_rewrites) infos)}
  end;

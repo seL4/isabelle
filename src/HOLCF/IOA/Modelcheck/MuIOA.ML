@@ -157,14 +157,12 @@ merge_var_and_type _ _ = raise malformed;
 
 in
 
-fun mk_sim_oracle sign (subgoal,thl) =
-(let
-        val weak_case_congs = DatatypePackage.weak_case_congs_of sign;
-
-	val concl = (Logic.strip_imp_concl subgoal);
-
-	val ic_str = delete_ul_string(Sign.string_of_term sign (IntC sign concl));
-	val ia_str = delete_ul_string(Sign.string_of_term sign (IntA sign concl));
+fun mk_sim_oracle sign (subgoal, thl) = (
+  let
+    val weak_case_congs = (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) sign;
+    val concl = Logic.strip_imp_concl subgoal;
+    val ic_str = delete_ul_string(Sign.string_of_term sign (IntC sign concl));
+    val ia_str = delete_ul_string(Sign.string_of_term sign (IntA sign concl));
 	val sc_str = delete_ul_string(Sign.string_of_term sign (StartC sign concl));	
 	val sa_str = delete_ul_string(Sign.string_of_term sign (StartA sign concl));
 	val tc_str = delete_ul_string(Sign.string_of_term sign (TransC sign concl));
