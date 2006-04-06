@@ -80,7 +80,7 @@ structure ClassData = TheoryDataFun (
     val copy = I;
     val extend = I;
     fun merge _ (((g1, c1), f1), ((g2, c2), f2)) =
-      ((Graph.merge (op =) (g1, g2), Symtab.join (fn _ => AList.merge (op =) (K false)) (c1, c2)),
+      ((Graph.merge (op =) (g1, g2), Symtab.join (fn _ => AList.merge (op =) (op =)) (c1, c2)),
        Symtab.merge (op =) (f1, f2));
     fun print thy ((gr, _), _) =
       let
@@ -318,16 +318,14 @@ fun intro_incr thy name expr =
 fun add_locale opn name expr body thy =
   thy
   |> Locale.add_locale opn name expr body
-  |> (fn ((_, ctxt), thy) => (ctxt, thy))
   ||>> `(fn thy => intro_incr thy name expr)
-  |-> (fn (ctxt, intro) => pair ((Sign.full_name thy name, intro), ctxt));
+  |-> (fn ((name, ctxt), intro) => pair ((name, intro), ctxt));
 
 fun add_locale_i opn name expr body thy =
   thy
   |> Locale.add_locale_i opn name expr body
-  |> (fn ((_, ctxt), thy) => (ctxt, thy))
   ||>> `(fn thy => intro_incr thy name expr)
-  |-> (fn (ctxt, intro) => pair ((name, intro), ctxt));
+  |-> (fn ((name, ctxt), intro) => pair ((name, intro), ctxt));
 
 fun add_axclass_i (name, supsort) axs thy =
   let
@@ -512,7 +510,7 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
         fun get_c raw_def =
           (fst o Sign.cert_def pp o tap_def thy o snd) raw_def;
         val c_given = map get_c raw_defs;
-        fun eq_c ((c1, ty1), (c2, ty2)) =
+        fun eq_c ((c1 : string, ty1), (c2, ty2)) =
           let
             val ty1' = Type.varifyT ty1;
             val ty2' = Type.varifyT ty2;
@@ -525,10 +523,10 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
          of [] => ()
           | cs => error ("superfluous definition(s) given for "
                     ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
-        val _ = case subtract eq_c c_given c_req
+        (*val _ = case subtract eq_c c_given c_req
          of [] => ()
           | cs => error ("no definition(s) given for "
-                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);
+                    ^ (commas o map (fn (c, ty) => quote (c ^ "::" ^ Sign.string_of_typ thy ty))) cs);*)
       in () end;
     fun check_defs1 raw_defs c_req thy =
       let
