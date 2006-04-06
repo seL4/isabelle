@@ -37,17 +37,20 @@ val const_of = dest_Const o head_of o fst o dest_eqn;
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
   string_of_thm thm);
 
-fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
+fun add optmod = Thm.declaration_attribute (fn thm => Context.map_theory
   let
-    val tab = CodegenData.get thy;
-    val (s, _) = const_of (prop_of thm);
+    fun add thm =
+      if Pattern.pattern (lhs_of thm) then
+        CodegenData.map
+          (Symtab.update_list ((fst o const_of o prop_of) thm, (thm, optmod)))
+      else tap (fn _ => warn thm)
+      handle TERM _ => tap (fn _ => warn thm);
   in
-    if Pattern.pattern (lhs_of thm) then
-      CodegenData.put (Symtab.update_list (s, (thm, optmod)) tab) thy
-    else (warn thm; thy)
-  end handle TERM _ => (warn thm; thy)));
+    add thm
+    #> CodegenTheorems.add_fun thm
+  end);
 
-val del = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
+fun del_thm thm thy =
   let
     val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
@@ -55,7 +58,10 @@ val del = Thm.declaration_attribute (fn thm => Context.map_theory (fn thy =>
       NONE => thy
     | SOME thms =>
         CodegenData.put (Symtab.update (s, gen_rem (eq_thm o apfst fst) (thms, thm)) tab) thy
-  end handle TERM _ => (warn thm; thy)));
+  end handle TERM _ => (warn thm; thy);
+
+val del = Thm.declaration_attribute
+  (fn thm => Context.map_theory (del_thm thm #> CodegenTheorems.del_def thm))
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =
@@ -181,9 +187,7 @@ val setup =
   CodegenData.init #>
   add_codegen "recfun" recfun_codegen #>
   add_attribute ""
-    (   Args.del |-- Scan.succeed del
-     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add) #>
-  CodegenPackage.add_eqextr
-    ("rec", fn thy => fn _ => get_thm_equations thy);
+    (Args.del |-- Scan.succeed del
+     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add);
 
 end;
