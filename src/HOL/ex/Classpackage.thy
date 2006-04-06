@@ -302,8 +302,8 @@ using pow_def nat_pow_one inv_one by simp
 
 instance group_prod_def: (group, group) * :: group
   mult_prod_def: "x \<otimes> y == let (x1, x2) = x in (let (y1, y2) = y in
-              (x1 \<otimes> y1, x2 \<otimes> y2))"
-  mult_one_def: "\<one> == (\<one>, \<one>)"
+              ((x1::'a::group) \<otimes> y1, (x2::'b::group) \<otimes> y2))"
+  mult_one_def: "\<one> == (\<one>::'a::group, \<one>::'b::group)"
   mult_inv_def: "\<div> x == let (x1, x2) = x in (\<div> x1, \<div> x2)"
 by default (simp_all add: split_paired_all group_prod_def semigroup.assoc monoidl.neutl group.invl)
 
