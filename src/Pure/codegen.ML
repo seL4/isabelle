@@ -83,6 +83,7 @@ sig
   val replace_quotes: 'b list -> 'a mixfix list -> 'b mixfix list
   val fillin_mixfix: ('a -> Pretty.T) -> 'a mixfix list -> 'a list -> Pretty.T
   val mk_deftab: theory -> deftab
+  val add_unfold: thm -> theory -> theory
 
   val get_node: codegr -> string -> node
   val add_edge: string * string -> codegr -> codegr
@@ -346,7 +347,7 @@ fun preprocess_term thy t =
     | _ => err ()
   end;
 
-val unfold_attr = Thm.declaration_attribute (fn eqn => Context.map_theory
+fun add_unfold eqn =
   let
     val names = term_consts (fst (Logic.dest_equals (prop_of eqn)));
     fun prep thy = map (fn th =>
@@ -356,9 +357,8 @@ val unfold_attr = Thm.declaration_attribute (fn eqn => Context.map_theory
         then rewrite_rule [eqn] (Thm.transfer thy th)
         else th
       end)
-  in add_preprocessor prep end);
+  in add_preprocessor prep end;
 
-val _ = Context.add_setup (add_attribute "unfold" (Scan.succeed unfold_attr));
 
 
 (**** associate constants with target language code ****)

@@ -150,9 +150,8 @@ fun nterm_to_term thy t =
       | consts_of (A (t1, t2)) = consts_of t1 #> consts_of t2
       | consts_of (AbsN (_, t)) = consts_of t;
     val consts = consts_of t [];
-    val the_const = AList.lookup (op =)
-      (consts ~~ CodegenPackage.consts_of_idfs thy consts)
-      #> the_default ("", dummyT);
+    val the_const = the o AList.lookup (op =)
+      (consts ~~ CodegenPackage.consts_of_idfs thy consts);
     fun to_term bounds (C s) = Const (the_const s)
       | to_term bounds (V s) = Free (s, dummyT)
       | to_term bounds (B i) = Bound (find_index (fn j => i = j) bounds)

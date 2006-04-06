@@ -7,11 +7,11 @@ Miscellaneous tools and packages for Pure Isabelle.
 (*class package*)
 use "class_package.ML";
 
-(*code generator theorems*)
-use "codegen_theorems.ML";
-
 (*code generator, 1st generation*)
 use "../codegen.ML";
+
+(*code generator theorems*)
+use "codegen_theorems.ML";
 
 (*code generator, 2nd generation*)
 use "codegen_thingol.ML";

@@ -84,12 +84,13 @@ sig
   val pretty_module: module -> Pretty.T; 
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
+  val get_def: module -> string -> def;
   val add_prim: string -> (string * prim list) -> module -> module;
   val ensure_prim: string -> string -> module -> module;
-  val get_def: module -> string -> def;
   val merge_module: module * module -> module;
   val diff_module: module * module -> (string * def) list;
-  val partof: string list -> module -> module;
+  val project_module: string list -> module -> module;
+  val purge_module: string list -> module -> module;
   val has_nsp: string -> string -> bool;
   val succeed: 'a -> transact -> 'a transact_fin;
   val fail: string -> transact -> 'a transact_fin;
@@ -101,13 +102,13 @@ sig
   val eta_expand_poly: module -> module;
   val unclash_vars_tvars: module -> module;
 
-  val debug_level: int ref;
-  val debug: int -> ('a -> string) -> 'a -> 'a;
+  val debug: bool ref;
+  val debug_msg: ('a -> string) -> 'a -> 'a;
   val soft_exc: bool ref;
 
   val serialize:
     ((string -> string -> string) -> string -> (string * def) list -> 'a option)
-    -> (string list -> (string * string) * 'a list -> 'a option)
+    -> ((string -> string) -> string list -> (string * string) * 'a list -> 'a option)
     -> (string -> string option)
     -> (string * string -> string)
     -> string list list -> string -> module -> 'a option;
@@ -118,8 +119,8 @@ struct
 
 (** auxiliary **)
 
-val debug_level = ref 0;
-fun debug d f x = (if d <= !debug_level then Output.debug (f x) else (); x);
+val debug = ref false;
+fun debug_msg f x = (if !debug then Output.debug (f x) else (); x);
 val soft_exc = ref true;
 
 fun unfoldl dest x =
@@ -204,11 +205,11 @@ val op `$$ = Library.foldl (op `$);
 val op `|--> = Library.foldr (op `|->);
 
 val pretty_sortcontext =
-  Pretty.commas o map (fn (v, sort) => (Pretty.block o Pretty.breaks)
+  Pretty.list "(" ")" o Pretty.commas o map (fn (v, sort) => (Pretty.block o Pretty.breaks)
     [Pretty.str v, Pretty.str "::", Pretty.enum "&" "" "" (map Pretty.str sort)]);
 
 fun pretty_itype (tyco `%% tys) =
-      Pretty.block (Pretty.str tyco :: map pretty_itype tys)
+      Pretty.enum "" "(" ")" (Pretty.str tyco :: map pretty_itype tys)
   | pretty_itype (ty1 `-> ty2) =
       Pretty.enum "" "(" ")" [pretty_itype ty1, Pretty.str "->", pretty_itype ty2]
   | pretty_itype (ITyVar v) =
@@ -437,7 +438,7 @@ fun pretty_def Undef =
       Pretty.str "<UNDEF>"
   | pretty_def (Prim prims) =
       Pretty.str ("<PRIM " ^ (commas o map fst) prims ^ ">")
-  | pretty_def (Fun (eqs, (_, ty))) =
+  | pretty_def (Fun (eqs, (sortctxt, ty))) =
       Pretty.enum " |" "" "" (
         map (fn (ps, body) =>
           Pretty.block [
@@ -446,18 +447,20 @@ fun pretty_def Undef =
             Pretty.brk 1,
             pretty_iexpr body,
             Pretty.str "::",
+            pretty_sortcontext sortctxt,
+            Pretty.str "/",
             pretty_itype ty
           ]) eqs
         )
   | pretty_def (Typesyn (vs, ty)) =
       Pretty.block [
-        Pretty.list "(" ")" (pretty_sortcontext vs),
+        pretty_sortcontext vs,
         Pretty.str " |=> ",
         pretty_itype ty
       ]
   | pretty_def (Datatype (vs, cs)) =
       Pretty.block [
-        Pretty.list "(" ")" (pretty_sortcontext vs),
+        pretty_sortcontext vs,
         Pretty.str " |=> ",
         Pretty.enum " |" "" ""
           (map (fn (c, tys) => (Pretty.block o Pretty.breaks)
@@ -715,7 +718,9 @@ fun diff_module modl12 =
         ((AList.make (Graph.get_node modl1) o Library.flat o Graph.strong_conn) modl1)
   in diff_modl [] modl12 [] end;
 
-fun partof names modl =
+local 
+
+fun project_trans f names modl =
   let
     datatype pathnode = PN of (string list * (string * pathnode) list);
     fun mk_ipath ([], base) (PN (defs, modls)) =
@@ -727,7 +732,7 @@ fun partof names modl =
           |> (pair defs #> PN);
     fun select (PN (defs, modls)) (Module module) =
       module
-      |> Graph.subgraph (Graph.all_succs module (defs @ map fst modls))
+      |> f (Graph.all_succs module (defs @ map fst modls))
       |> fold (fn (name, modls) => Graph.map_node name (select modls)) modls
       |> Module;
   in
@@ -737,16 +742,34 @@ fun partof names modl =
     |> dest_modl
   end;
 
+in
+
+val project_module = project_trans Graph.subgraph;
+val purge_module = project_trans Graph.del_nodes;
+
+end; (*local*)
+
 fun imports_of modl name =
   let
+    (*fun submodules prfx modl =
+      cons prfx
+      #> Graph.fold_nodes
+          (fn (m, Module modl) => submodules (prfx @ [m]) modl
+            | (_, Def _) => I) modl;
+    fun get_modl name =
+      fold (fn n => fn modl => (dest_modl oo Graph.get_node) modl n) name modl*)
     fun imports prfx [] modl =
           []
       | imports prfx (m::ms) modl =
           map (cons m) (imports (prfx @ [m]) ms ((dest_modl oo Graph.get_node) modl m))
-          @ map single (Graph.imm_succs modl m);
+          @ map single (Graph.imm_succs modl m)
   in
     modl
     |> imports [] name 
+    (*|> cons name
+    |> map (fn name => submodules name (get_modl name) [])
+    |> Library.flat
+    |> remove (op =) name*)
     |> map NameSpace.pack
   end;
 
@@ -808,11 +831,11 @@ fun check_prep_def modl Undef =
                 else
                   error ("inconsistent type for member definition " ^ quote m ^ " [" ^ v ^ "]: "
                     ^ (Pretty.output o Pretty.block o Pretty.breaks) [
-                      Pretty.list "(" ")" (pretty_sortcontext sortctxt''),
+                      pretty_sortcontext sortctxt'',
                       Pretty.str "|=>",
                       pretty_itype ty''
                     ] ^ " vs. " ^ (Pretty.output o Pretty.block o Pretty.breaks) [
-                      Pretty.list "(" ")" (pretty_sortcontext sortctxt'),
+                      pretty_sortcontext sortctxt',
                       Pretty.str "|=>",
                       pretty_itype ty'
                     ]
@@ -888,7 +911,7 @@ fun ensure_def defgens msg name (dep, modl) =
       | SOME dep => msg ^ ", with dependency " ^ quote dep;
     fun add_dp NONE = I
       | add_dp (SOME dep) =
-          debug 9 (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
+          debug_msg (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
           #> add_dep (dep, name);
     fun prep_def def modl =
       (check_prep_def modl def, modl);
@@ -896,26 +919,25 @@ fun ensure_def defgens msg name (dep, modl) =
     modl
     |> (if can (get_def modl) name
         then
-          debug 9 (fn _ => "asserting node " ^ quote name)
+          debug_msg (fn _ => "asserting node " ^ quote name)
           #> add_dp dep
         else
-          debug 9 (fn _ => "allocating node " ^ quote name)
+          debug_msg (fn _ => "allocating node " ^ quote name)
           #> add_def (name, Undef)
           #> add_dp dep
-          #> debug 9 (fn _ => "creating node " ^ quote name)
+          #> debug_msg (fn _ => "creating node " ^ quote name)
           #> select_generator (fn gname => "trying code generator "
                ^ gname ^ " for definition of " ^ quote name) name defgens
-          #> debug 9 (fn _ => "checking creation of node " ^ quote name)
+          #> debug_msg (fn _ => "checking creation of node " ^ quote name)
           #> check_fail msg'
           #-> (fn def => prep_def def)
           #-> (fn def =>
-             debug 10 (fn _ => "addition of " ^ name
-               ^ " := " ^ (Pretty.output o pretty_def) def)
-          #> debug 10 (fn _ => "adding")
+             debug_msg (fn _ => "addition of " ^ name ^ " := " ^ (Pretty.output o pretty_def) def)
+          #> debug_msg (fn _ => "adding")
           #> add_def_incr (name, def)
-          #> debug 10 (fn _ => "postprocessing")
+          #> debug_msg (fn _ => "postprocessing")
           #> postprocess_def (name, def)
-          #> debug 10 (fn _ => "adding done")
+          #> debug_msg (fn _ => "adding done")
        ))
     |> pair dep
   end;
@@ -1080,9 +1102,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
             val (ps', tab'') = get_path_name ps tab'
           in (p' :: ps', tab'') end;
     fun deresolv tab prefix name =
-      if (is_some o Int.fromString) name
-      then name
-      else let
+      let
         val (common, (_, rem)) = get_prefix (op =) (prefix, NameSpace.unpack name);
         val (_, SOME tab') = get_path_name common tab;
         val (name', _) = get_path_name rem tab';
@@ -1104,13 +1124,14 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
       List.mapPartial (seri prfx)
         ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
     and seri prfx ([(name, Module modl)]) =
-          seri_module (map (resolver []) (imports_of module (prfx @ [name])))
+          seri_module (resolver []) (map (resolver []) (imports_of module (prfx @ [name])))
             (mk_name prfx name, mk_contents (prfx @ [name]) modl)
       | seri prfx ds =
           seri_defs sresolver (NameSpace.pack prfx)
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
-    seri_module (map (resolver []) (Graph.strong_conn module |> List.concat |> rev))
+    seri_module (resolver []) (imports_of module [])
+      (*map (resolver []) (Graph.strong_conn module |> List.concat |> rev)*)
       (("", name_root), (mk_contents [] module))
   end;
 

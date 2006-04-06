@@ -41,7 +41,7 @@ fun use_show s = (writeln ("\n---generated code:\n"^ s);
 fun norm_by_eval_i t thy =
   let
     val nbe_tab = NBE_Data.get thy;
-    val modl_old = CodegenThingol.partof (Symtab.keys nbe_tab)
+    val modl_old = CodegenThingol.project_module (Symtab.keys nbe_tab)
       (CodegenPackage.get_root_module thy);
     val (t', thy') = CodegenPackage.codegen_term t thy;
     val modl_new = CodegenPackage.get_root_module thy';
