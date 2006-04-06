@@ -54,16 +54,54 @@ fun perm_eval_tac ss i =
 	    Simplifier.simproc (Theory.sign_of (the_context ())) "perm_eval" 
 	    ["nominal.perm pi x"] perm_eval_simproc;
 
-        (* these lemmas are created dynamically according to the atom types *) 
-	val perm_swap     = dynamic_thms ss "perm_swap"
-	val perm_fresh    = dynamic_thms ss "perm_fresh_fresh"
-        val perm_bij      = dynamic_thms ss "perm_bij"
-        val perm_compose' = dynamic_thms ss "perm_compose'"
-        val perm_pi_simp  = dynamic_thms ss "perm_pi_simp"
-        val ss' = ss addsimps (perm_swap@perm_fresh@perm_bij@perm_compose'@perm_pi_simp)
+      (* applies the pt_perm_compose lemma              *)
+      (*                                                *)
+      (*     pi1 o (pi2 o x) = (pi1 o pi2) o (pi1 o x)  *)
+      (*                                                *)
+      (* in the restricted case where pi1 is a swapping *)
+      (* (a b) coming from a "supports problem"; in     *)
+      (* this rule would cause loops in the simplifier  *) 
+      val pt_perm_compose = thm "pt_perm_compose";
+	  
+      fun perm_compose_simproc i sg ss redex =
+      (case redex of
+        (Const ("nominal.perm", _) $ (pi1 as Const ("List.list.Cons", _) $
+         (Const ("Pair", _) $ Free (a as (_, T as Type (tname, _))) $ Free b) $ 
+           Const ("List.list.Nil", _)) $ (Const ("nominal.perm", 
+            Type ("fun", [Type ("List.list", [Type ("*", [U, _])]), _])) $ pi2 $ t)) =>
+        let
+            val ({bounds = (_, xs), ...}, _) = rep_ss ss
+            val ai = find_index (fn (x, _) => x = a) xs
+	    val bi = find_index (fn (x, _) => x = b) xs
+	    val tname' = Sign.base_name tname
+        in
+            if ai = length xs - i - 1 andalso 
+               bi = length xs - i - 2 andalso 
+               T = U andalso pi1 <> pi2 then
+                SOME (Drule.instantiate'
+	              [SOME (ctyp_of sg (fastype_of t))]
+		      [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
+		      (mk_meta_eq ([PureThy.get_thm sg (Name ("pt_"^tname'^"_inst")),
+	               PureThy.get_thm sg (Name ("at_"^tname'^"_inst"))] MRS pt_perm_compose)))
+            else NONE
+        end
+       | _ => NONE);
+
+      fun perm_compose i =
+	Simplifier.simproc (the_context()) "perm_compose" 
+	["nominal.perm [(a, b)] (nominal.perm pi t)"] (perm_compose_simproc i);
+         
+      (* these lemmas are created dynamically according to the atom types *) 
+      val perm_swap     = dynamic_thms ss "perm_swap"
+      val perm_fresh    = dynamic_thms ss "perm_fresh_fresh"
+      val perm_bij      = dynamic_thms ss "perm_bij"
+      val perm_pi_simp  = dynamic_thms ss "perm_pi_simp"
+      val ss' = ss addsimps (perm_swap@perm_fresh@perm_bij@perm_pi_simp)
     in
       ("general simplification step", 
-        FIRST [rtac conjI i, asm_full_simp_tac (ss' addsimprocs [perm_eval]) i])
+        FIRST [rtac conjI i, 
+               SUBGOAL (fn (g, i) => asm_full_simp_tac 
+                 (ss' addsimprocs [perm_eval,perm_compose (length (Logic.strip_params g)-2)]) i) i])
     end;
 
 (* applies the perm_compose rule - this rule would loop in the simplifier     *)
@@ -114,7 +152,7 @@ fun perm_supports_tac tactical ss n =
     if n=0 then K all_tac
     else DETERM o 
          (FIRST'[fn i => tactical (perm_eval_tac ss i),
-                 fn i => tactical (apply_perm_compose_tac ss i),
+                 (*fn i => tactical (apply_perm_compose_tac ss i),*)
 		 fn i => tactical (apply_cong_tac i), 
                  fn i => tactical (unfold_perm_fun_def_tac i),
 		 fn i => tactical (expand_fun_eq_tac i)]
