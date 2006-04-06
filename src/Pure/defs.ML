@@ -12,7 +12,7 @@ sig
   val define: (string -> typ) -> (bool * string) * string
     -> string * typ -> (string * typ) list -> T -> T
   val empty: T
-  val specifications_of: T -> string -> (typ * string) list
+  val specifications_of: T -> string -> (typ * (string * string)) list
   val merge: Pretty.pp -> T * T -> T
 end
 
@@ -71,7 +71,7 @@ fun define const_type ((is_def, thyname), name) lhs rhs = map_defs (fn (consts, 
 fun specifications_of (Defs {specified, ...}) c =
   (List.mapPartial
     (fn (_, (false, _, _, _)) => NONE
-      | (_, (true, _, thyname, ty)) => SOME (ty, thyname)) o Inttab.dest
+      | (_, (true, specname, thyname, ty)) => SOME (ty, (specname, thyname))) o Inttab.dest
     o the_default Inttab.empty o Symtab.lookup specified) c;
 
 
