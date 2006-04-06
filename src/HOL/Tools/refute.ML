@@ -554,7 +554,7 @@ struct
 						     | MATCH           => get_typedefn axms
 						     | Type.TYPE_MATCH => get_typedefn axms)
 				in
-					case DatatypePackage.datatype_info thy s of
+					case DatatypePackage.get_datatype thy s of
 					  SOME info =>  (* inductive datatype *)
 							(* only collect relevant type axioms for the argument types *)
 							Library.foldl collect_type_axioms (axs, Ts)
@@ -664,14 +664,10 @@ struct
 					fun is_IDT_constructor () =
 						(case body_type T of
 						  Type (s', _) =>
-							(case DatatypePackage.constrs_of thy s' of
+							(case DatatypePackage.get_datatype_constrs thy s' of
 							  SOME constrs =>
-								Library.exists (fn c =>
-									(case c of
-									  Const (cname, ctype) =>
-										cname = s andalso Sign.typ_instance thy (T, ctype)
-									| _ =>
-										raise REFUTE ("collect_axioms", "IDT constructor is not a constant")))
+								Library.exists (fn (cname, cty) =>
+								cname = s andalso Sign.typ_instance thy (T, cty))
 									constrs
 							| NONE =>
 								false)
@@ -773,7 +769,7 @@ struct
 				| Type ("prop", [])      => acc
 				| Type ("set", [T1])     => collect_types (T1, acc)
 				| Type (s, Ts)           =>
-					(case DatatypePackage.datatype_info thy s of
+					(case DatatypePackage.get_datatype thy s of
 					  SOME info =>  (* inductive datatype *)
 						let
 							val index               = #index info
@@ -944,7 +940,7 @@ struct
 			(* TODO: no warning needed for /positive/ occurrences of IDTs       *)
 			val _ = if Library.exists (fn
 				  Type (s, _) =>
-					(case DatatypePackage.datatype_info thy s of
+					(case DatatypePackage.get_datatype thy s of
 					  SOME info =>  (* inductive datatype *)
 						let
 							val index           = #index info
@@ -1647,7 +1643,7 @@ struct
 		val (typs, terms) = model
 		(* Term.typ -> (interpretation * model * arguments) option *)
 		fun interpret_term (Type (s, Ts)) =
-			(case DatatypePackage.datatype_info thy s of
+			(case DatatypePackage.get_datatype thy s of
 			  SOME info =>  (* inductive datatype *)
 				let
 					(* int option -- only recursive IDTs have an associated depth *)
@@ -1723,7 +1719,7 @@ struct
 			  Const (s, T) =>
 				(case body_type T of
 				  Type (s', Ts') =>
-					(case DatatypePackage.datatype_info thy s' of
+					(case DatatypePackage.get_datatype thy s' of
 					  SOME info =>  (* body type is an inductive datatype *)
 						let
 							val index               = #index info
@@ -2511,7 +2507,7 @@ struct
 	in
 		case typeof t of
 		  SOME (Type (s, Ts)) =>
-			(case DatatypePackage.datatype_info thy s of
+			(case DatatypePackage.get_datatype thy s of
 			  SOME info =>  (* inductive datatype *)
 				let
 					val (typs, _)           = model

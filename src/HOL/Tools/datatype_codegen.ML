@@ -7,6 +7,11 @@ Code generator for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
+  val get_datatype_spec_thms: theory -> string
+    -> (((string * sort) list * (string * typ list) list) * tactic) option
+  val get_case_const_data: theory -> string -> (string * int) list option
+  val get_all_datatype_cons: theory -> (string * string) list
+  val get_datatype_case_consts: theory -> string list
   val setup: theory -> theory
 end;
 
@@ -297,19 +302,58 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
 
+(** code 2nd generation **)
+
+fun datatype_tac thy dtco =
+  let
+    val ctxt = Context.init_proof thy;
+    val inject = (#inject o DatatypePackage.the_datatype thy) dtco;
+    val simpset = Simplifier.context ctxt
+      (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
+  in
+    (TRY o ALLGOALS o resolve_tac) [HOL.eq_reflection]
+    THEN (
+      (ALLGOALS o resolve_tac) (eqTrueI :: inject)
+      ORELSE (ALLGOALS o simp_tac) simpset
+    )
+    THEN (ALLGOALS o resolve_tac) [HOL.refl, Drule.reflexive_thm]
+  end;
+
+fun get_datatype_spec_thms thy dtco =
+  case DatatypePackage.get_datatype_spec thy dtco
+   of SOME vs_cos =>
+        SOME (vs_cos, datatype_tac thy dtco)
+    | NONE => NONE;
+
+fun get_all_datatype_cons thy =
+  Symtab.fold (fn (dtco, _) => fold
+    (fn (co, _) => cons (co, dtco))
+      ((snd o the oo DatatypePackage.get_datatype_spec) thy dtco))
+        (DatatypePackage.get_datatypes thy) [];
+
+fun get_case_const_data thy c =
+  case find_first (fn (_, {index, descr, case_name, ...}) =>
+      case_name = c
+    ) ((Symtab.dest o DatatypePackage.get_datatypes) thy)
+   of NONE => NONE
+    | SOME (_, {index, descr, ...}) =>
+        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
+
+fun get_datatype_case_consts thy =
+  Symtab.fold (fn (_, {case_name, ...}) => cons case_name)
+    (DatatypePackage.get_datatypes thy) [];
+
 val setup = 
   add_codegen "datatype" datatype_codegen #>
   add_tycodegen "datatype" datatype_tycodegen #>
+  CodegenTheorems.add_datatype_extr
+    get_datatype_spec_thms #>
   CodegenPackage.set_get_datatype
-    DatatypePackage.get_datatype #>
+    DatatypePackage.get_datatype_spec #>
   CodegenPackage.set_get_all_datatype_cons
-    DatatypePackage.get_all_datatype_cons #>
-  (fn thy => thy |> CodegenPackage.add_eqextr_default ("equality",
-    (CodegenPackage.eqextr_eq
-      DatatypePackage.get_eq_equations
-      (Sign.read_term thy "False")))) #>
+    get_all_datatype_cons #>
   CodegenPackage.ensure_datatype_case_consts
-    DatatypePackage.get_datatype_case_consts
-    DatatypePackage.get_case_const_data;
+    get_datatype_case_consts
+    get_case_const_data;
 
 end;

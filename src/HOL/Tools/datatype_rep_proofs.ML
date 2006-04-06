@@ -184,7 +184,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
           (rtac exI 1 THEN
             QUIET_BREADTH_FIRST (has_fewer_prems 1)
-            (resolve_tac rep_intrs 1))) thy |> #1)
+            (resolve_tac rep_intrs 1))) thy |> snd)
               (parent_path flat_names thy2, types_syntax ~~ tyvars ~~
                 (Library.take (length newTs, consts)) ~~ new_type_names));
 
