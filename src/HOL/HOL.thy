@@ -1399,6 +1399,22 @@ by (simp add: tag_def)
 
 subsection {* Code generator setup *}
 
+ML {*
+val _ =
+  let
+    fun true_tac [] = (ALLGOALS o resolve_tac) [TrueI];
+    fun false_tac [false_asm] = (ALLGOALS o resolve_tac) [FalseE] THEN (ALLGOALS o resolve_tac) [false_asm]
+    fun and_tac impls = (ALLGOALS o resolve_tac) [conjI]
+        THEN (ALLGOALS o resolve_tac) impls;
+    fun eq_tac [] = (ALLGOALS o resolve_tac o single
+      o PureThy.get_thm (the_context ()) o Name) "HOL.atomize_eq";
+  in
+    CodegenTheorems.init_obj (the_context ())
+      "bool" ("True", true_tac) ("False", false_tac)
+        ("op &", and_tac) ("op =", eq_tac)
+  end;
+*}
+
 code_alias
   bool "HOL.bool"
   True "HOL.True"

@@ -222,31 +222,31 @@ lemmas [code] = imp_conv_disj
 
 subsubsection {* Codegenerator setup *}
 
-lemma [code]:
+lemma [code fun]:
   "(\<not> True) = False" by (rule HOL.simp_thms)
 
-lemma [code]:
+lemma [code fun]:
   "(\<not> False) = True" by (rule HOL.simp_thms)
 
-lemma [code]:
+lemma [code fun]:
   shows "(False \<and> x) = False"
   and   "(True \<and> x) = x"
   and   "(x \<and> False) = False"
   and   "(x \<and> True) = x" by simp_all
 
-lemma [code]:
+lemma [code fun]:
   shows "(False \<or> x) = x"
   and   "(True \<or> x) = True"
   and   "(x \<or> False) = x"
   and   "(x \<or> True) = True" by simp_all
 
 declare
-  if_True [code]
-  if_False [code]
+  if_True [code fun]
+  if_False [code fun]
   fst_conv [code]
   snd_conv [code]
 
-lemma [code unfold]:
+lemma [code unfolt]:
   "1 == Suc 0" by simp
 
 code_generate True False Not "op &" "op |" If
