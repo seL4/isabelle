@@ -1281,9 +1281,10 @@ fun extension_typedef name repT alphas thy =
   let
     val UNIV = HOLogic.mk_UNIV repT;
 
-    val (thy',{set_def=SOME def, Abs_induct = abs_induct,
-               Abs_inject=abs_inject, Abs_inverse = abs_inverse,...}) =
-        thy |> setmp TypedefPackage.quiet_mode true
+    val ({set_def=SOME def, Abs_induct = abs_induct,
+               Abs_inject=abs_inject, Abs_inverse = abs_inverse,...}, thy') =
+        thy
+        |> setmp TypedefPackage.quiet_mode true
            (TypedefPackage.add_typedef_i true NONE
              (suffix ext_typeN (Sign.base_name name), alphas, Syntax.NoSyn) UNIV NONE
              (Tactic.rtac UNIV_witness 1))
