@@ -10,20 +10,21 @@ sig
   val quiet_mode: bool ref
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val add_typedef: bool -> string option -> bstring * string list * mixfix ->
-    string -> (bstring * bstring) option -> tactic -> theory -> theory *
+    string -> (bstring * bstring) option -> tactic -> theory ->
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
       Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
-      Rep_induct: thm, Abs_induct: thm}
+      Rep_induct: thm, Abs_induct: thm} * theory
   val add_typedef_i: bool -> string option -> bstring * string list * mixfix ->
-    term -> (bstring * bstring) option -> tactic -> theory -> theory *
+    term -> (bstring * bstring) option -> tactic -> theory ->
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
       Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
-      Rep_induct: thm, Abs_induct: thm}
+      Rep_induct: thm, Abs_induct: thm} * theory
   val typedef: (bool * string) * (bstring * string list * mixfix) * string
     * (string * string) option -> theory -> Proof.state
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
   val setup: theory -> theory
+  structure TypedefData : THEORY_DATA
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -74,7 +75,7 @@ fun message s = if ! quiet_mode then () else writeln s;
 structure TypedefData = TheoryDataFun
 (struct
   val name = "HOL/typedef";
-  type T = (typ * typ * string * string) Symtab.table;
+  type T = ((typ * typ * string * string) * (thm option * thm * thm)) Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
@@ -82,8 +83,9 @@ structure TypedefData = TheoryDataFun
   fun print _ _ = ();
 end);
 
-fun put_typedef newT oldT Abs_name Rep_name =
-  TypedefData.map (Symtab.update_new (fst (dest_Type newT), (newT, oldT, Abs_name, Rep_name)));
+fun put_typedef newT oldT Abs_name Rep_name def inject inverse =
+  TypedefData.map (Symtab.update_new (fst (dest_Type newT),
+    ((newT, oldT, Abs_name, Rep_name), (def, inject, inverse))));
 
 
 (* prepare_typedef *)
@@ -150,9 +152,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       else
         (NONE, thy);
 
-    fun typedef_result (context, nonempty) =
+    fun typedef_result nonempty context =
       Context.the_theory context
-      |> put_typedef newT oldT (full Abs_name) (full Rep_name)
       |> add_typedecls [(t, vs, mx)]
       |> Theory.add_consts_i
        ((if def then [(name, setT', NoSyn)] else []) @
@@ -165,6 +166,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       |-> (fn (set_def, [type_definition]) => fn theory' =>
         let
           fun make th = Drule.standard (th OF [type_definition]);
+          val abs_inject = make Abs_inject;
+          val abs_inverse = make Abs_inverse;
           val ([Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
               Rep_cases, Abs_cases, Rep_induct, Abs_induct], theory'') =
             theory'
@@ -172,9 +175,9 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
             |> PureThy.add_thms
               ([((Rep_name, make Rep), []),
                 ((Rep_name ^ "_inverse", make Rep_inverse), []),
-                ((Abs_name ^ "_inverse", make Abs_inverse), []),
+                ((Abs_name ^ "_inverse", abs_inverse), []),
                 ((Rep_name ^ "_inject", make Rep_inject), []),
-                ((Abs_name ^ "_inject", make Abs_inject), []),
+                ((Abs_name ^ "_inject", abs_inject), []),
                 ((Rep_name ^ "_cases", make Rep_cases),
                   [RuleCases.case_names [Rep_name], InductAttrib.cases_set full_name]),
                 ((Abs_name ^ "_cases", make Abs_cases),
@@ -183,12 +186,14 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                   [RuleCases.case_names [Rep_name], InductAttrib.induct_set full_name]),
                 ((Abs_name ^ "_induct", make Abs_induct),
                   [RuleCases.case_names [Abs_name], InductAttrib.induct_type full_tname])])
-            ||> Theory.parent_path;
+            ||> Theory.parent_path
+            ||> put_typedef newT oldT (full Abs_name) (full Rep_name)
+                 set_def abs_inject abs_inverse
           val result = {type_definition = type_definition, set_def = set_def,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
             Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
-        in ((Context.Theory theory'', type_definition), result) end);
+        in ((type_definition, result), Context.Theory theory'') end);
 
 
     (* errors *)
@@ -216,8 +221,9 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
     (*test theory errors now!*)
     val test_thy = Theory.copy thy;
-    val _ = (Context.Theory test_thy,
-      setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal) |> typedef_result;
+    val _ = 
+      Context.Theory test_thy
+      |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
   in (cset, goal, goal_pat, typedef_result) end
   handle ERROR msg => err_in_typedef msg name;
@@ -235,9 +241,12 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
     val non_empty = Goal.prove thy [] [] goal (K tac) handle ERROR msg =>
       cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
-    val (thy', result) =
-      (Context.Theory thy, non_empty) |> typedef_result |>> (Context.the_theory o fst);
-  in (thy', result) end;
+  in
+    Context.Theory thy
+    |> typedef_result non_empty
+    ||> Context.the_theory
+    |-> (fn (_, result) => pair result)
+  end;
 
 in
 
@@ -255,7 +264,9 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
     val (_, goal, goal_pat, att_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    val att = #1 o att_result;
+    fun att (thy, th) =
+      let val ((th', _), thy') = att_result th thy
+      in (thy', th') end;
   in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, ([goal_pat], [])) thy end;
 
 in
@@ -283,7 +294,7 @@ fun typedef_codegen thy defs gr dep module brack t =
     fun lookup f T =
       (case Symtab.lookup (TypedefData.get thy) (get_name T) of
         NONE => ""
-      | SOME s => f s);
+      | SOME (s, _) => f s);
   in
     (case strip_comb t of
        (Const (s, Type ("fun", [T, U])), ts) =>
@@ -304,7 +315,7 @@ fun mk_tyexpr [] s = Pretty.str s
 fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
       (case Symtab.lookup (TypedefData.get thy) s of
          NONE => NONE
-       | SOME (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
+       | SOME ((newT as Type (tname, Us), oldT, Abs_name, Rep_name), _) =>
            if is_some (Codegen.get_assoc_type thy tname) then NONE else
            let
              val module' = Codegen.if_library
@@ -356,10 +367,47 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
            end)
   | typedef_tycodegen thy defs gr dep module brack _ = NONE;
 
+fun typedef_type_extr thy tyco =
+  case Symtab.lookup (TypedefData.get thy) tyco
+   of SOME ((ty_abs, ty_rep, c_abs, c_rep), (SOME def, inject, _)) =>
+        let
+          val exists_thm =
+            UNIV_I
+            |> Drule.instantiate' [SOME (ctyp_of thy ty_rep)] []
+            |> rewrite_rule [symmetric def];
+        in case try (Tactic.rule_by_tactic ((ALLGOALS o resolve_tac) [exists_thm])) inject
+         of SOME eq_thm => SOME (((Term.typ_tfrees o Type.no_tvars) ty_abs, [(c_abs, [ty_rep])]),
+             (ALLGOALS o resolve_tac) [eq_reflection]
+            THEN (ALLGOALS o resolve_tac) [eq_thm])
+          | NONE => NONE
+        end
+    | _ => NONE;
+
+fun typedef_fun_extr thy (c, ty) =
+  case (fst o strip_type) ty
+   of Type (tyco, _) :: _ =>
+    (case Symtab.lookup (TypedefData.get thy) tyco
+     of SOME ((ty_abs, ty_rep, c_abs, c_rep), (SOME def, _, inverse)) =>
+          if c = c_rep then
+            let
+              val exists_thm =
+                UNIV_I
+                |> Drule.instantiate' [SOME (ctyp_of thy ty_rep)] []
+                |> rewrite_rule [symmetric def]
+            in case try (Tactic.rule_by_tactic ((ALLGOALS o resolve_tac) [exists_thm])) inverse
+             of SOME eq_thm => SOME [eq_thm]
+              | NONE => NONE
+            end
+          else NONE
+      | _ => NONE)
+    | _ => NONE;
+
 val setup =
-  TypedefData.init #>
-  Codegen.add_codegen "typedef" typedef_codegen #>
-  Codegen.add_tycodegen "typedef" typedef_tycodegen;
+  TypedefData.init
+  #> Codegen.add_codegen "typedef" typedef_codegen
+  #> Codegen.add_tycodegen "typedef" typedef_tycodegen
+  #> CodegenTheorems.add_fun_extr (these oo typedef_fun_extr)
+  #> CodegenTheorems.add_datatype_extr typedef_type_extr
 
 
 
