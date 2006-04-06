@@ -915,6 +915,9 @@ code_syntax_const
   "uminus :: int \<Rightarrow> int"
     ml (target_atom "~")
     haskell (target_atom "negate")
+  "op = :: int \<Rightarrow> int \<Rightarrow> bool"
+    ml (infixl 6 "=")
+    haskell (infixl 4 "==")
   "op < :: int \<Rightarrow> int \<Rightarrow> bool"
     ml (infix 6 "<")
     haskell (infix 4 "<")
