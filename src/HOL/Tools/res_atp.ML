@@ -364,7 +364,7 @@ fun write_subgoal_file mode ctxt conjectures user_thms n =
 	val hyp_cls = map prop_of (cnf_hyps_thms ctxt)
 	val goal_cls = conj_cls@hyp_cls
 	val user_rules = map ResAxioms.pairname user_thms
-	val (names_arr,axclauses_as_tms) = ResClasimp.get_clasimp_atp_lemmas ctxt (goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
+	val (names_arr,axclauses_as_thms) = ResClasimp.get_clasimp_atp_lemmas ctxt (goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
 	val thy = ProofContext.theory_of ctxt
 	val prob_logic = case mode of Auto => problem_logic_goals [goal_cls]
 				    | Fol => FOL
@@ -375,7 +375,7 @@ fun write_subgoal_file mode ctxt conjectures user_thms n =
 	val writer = tptp_writer
 	val file = atp_input_file()
     in
-	(writer prob_logic goal_cls file (axclauses_as_tms,classrel_clauses,arity_clauses);
+	(writer prob_logic goal_cls file (axclauses_as_thms,classrel_clauses,arity_clauses);
 	 warning ("Writing to " ^ file);
 	 file)
     end;
