@@ -55,7 +55,7 @@ signature RES_CLAUSE =
   val tptp_classrelClause : classrelClause -> string
   val tptp_of_typeLit : type_literal -> string
   val tptp_tfree_clause : string -> string
-  val tptp_write_file: term list -> string -> ((Term.term * (string * int)) list * classrelClause list * arityClause list) -> unit
+  val tptp_write_file: term list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
   val tvar_prefix : string
   val types_eq: fol_type list * fol_type list -> (string*string) list * (string*string) list -> bool * ((string*string) list * (string*string) list)
   val types_ord : fol_type list * fol_type list -> order
@@ -620,6 +620,11 @@ fun make_axiom_clauses_terms [] = []
     case make_axiom_clause tm (name,id) of SOME cls => if isTaut cls then make_axiom_clauses_terms tms else cls :: make_axiom_clauses_terms tms
 						    | NONE => make_axiom_clauses_terms tms;
     
+fun make_axiom_clauses_thms [] = []
+  | make_axiom_clauses_thms ((thm,(name,id))::thms) =
+    case make_axiom_clause (prop_of thm) (name,id) of SOME cls => if isTaut cls then make_axiom_clauses_thms thms else cls :: make_axiom_clauses_thms thms
+						    | NONE => make_axiom_clauses_thms thms;
+
 (**** Isabelle arities ****)
 
 exception ARCLAUSE of string;
@@ -1030,7 +1035,7 @@ fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) =
   let
     val _ = Output.debug ("Preparing to write the TPTP file " ^ filename)
     val clss = make_conjecture_clauses terms
-    val axclauses' = make_axiom_clauses_terms axclauses
+    val axclauses' = make_axiom_clauses_thms axclauses
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
@@ -1042,5 +1047,9 @@ fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) =
     List.app (curry TextIO.output out o tptp_arity_clause) arity_clauses;
     TextIO.closeOut out
   end;
+
+
+
+
 
 end;

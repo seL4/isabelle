@@ -496,6 +496,15 @@ fun make_axiom_clauses_terms [] = []
 	if isTaut cls then clss else (cls::clss)
     end;
 
+fun make_axiom_clauses_thms [] = []
+  | make_axiom_clauses_thms ((thm,(name,id))::thms) =
+    let val cls = make_axiom_clause (prop_of thm) (name,id)
+	val clss = make_axiom_clauses_thms thms
+    in
+	if isTaut cls then clss else (cls::clss)
+    end;
+
+
 fun make_conjecture_clause n t =
     let val t' = comb_of t
 	val (lits,ctypes_sorts) = literals_of_term t'
@@ -772,7 +781,7 @@ fun get_helper_clauses (full,partial,const,untyped) =
 (* when "get_helper_clauses" is called, "include_combS" and "include_min_comb" should have correct values already *)
 fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) helpers =
     let val clss = make_conjecture_clauses terms
-	val axclauses' = make_axiom_clauses_terms axclauses
+	val axclauses' = make_axiom_clauses_thms axclauses
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
 	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
 	val out = TextIO.openOut filename
