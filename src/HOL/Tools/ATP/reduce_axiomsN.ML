@@ -87,7 +87,7 @@ end;
 
 structure CTtab = TableFun(type key = const_typ list val ord = dict_ord const_typ_ord);
 
-fun count_axiom_consts thy ((t,_), tab) = 
+fun count_axiom_consts thy ((thm,_), tab) = 
   let fun count_const (a, T, tab) =
 	let val (c, cts) = const_with_typ thy (a,T)
 	    val cttab = Option.getOpt (Symtab.lookup tab c, CTtab.empty)
@@ -101,7 +101,7 @@ fun count_axiom_consts thy ((t,_), tab) =
 	    count_term_consts (t, count_term_consts (u, tab))
 	| count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
 	| count_term_consts (_, tab) = tab
-  in  count_term_consts (t, tab)  end;
+  in  count_term_consts (prop_of thm, tab)  end;
 
 
 (******** filter clauses ********)
@@ -127,8 +127,8 @@ fun clause_weight ctab gctyps consts_typs =
 	rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
     
-fun pair_consts_typs_axiom thy (tm,name) =
-    ((tm,name), (consts_typs_of_term thy tm));
+fun pair_consts_typs_axiom thy (thm,name) =
+    ((thm,name), (consts_typs_of_term thy (prop_of thm)));
 
 exception ConstFree;
 fun dest_ConstFree (Const aT) = aT
@@ -136,18 +136,19 @@ fun dest_ConstFree (Const aT) = aT
   | dest_ConstFree _ = raise ConstFree;
 
 (*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
-fun defines thy (tm,(name,n)) gctypes =
-  let fun defs hs =
-        let val (rator,args) = strip_comb hs
-            val ct = const_with_typ thy (dest_ConstFree rator)
-        in  forall is_Var args andalso uni_mem ct gctypes  end
-        handle ConstFree => false
-  in    
-    case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ _) => 
-          defs lhs andalso
-          (Output.debug ("Definition found: " ^ name ^ "_" ^ Int.toString n); true)
-      | _ => false
-  end
+fun defines thy (thm,(name,n)) gctypes =
+    let val tm = prop_of thm
+	fun defs hs =
+            let val (rator,args) = strip_comb hs
+		val ct = const_with_typ thy (dest_ConstFree rator)
+            in  forall is_Var args andalso uni_mem ct gctypes  end
+		handle ConstFree => false
+    in    
+	case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ _) => 
+		   defs lhs andalso
+		   (Output.debug ("Definition found: " ^ name ^ "_" ^ Int.toString n); true)
+		 | _ => false
+    end
 
 fun relevant_clauses thy ctab p rel_consts =
   let fun relevant (newrels,rejects) []  =
@@ -159,10 +160,10 @@ fun relevant_clauses thy ctab p rel_consts =
 	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
                  newrels @ relevant_clauses thy ctab newp rel_consts' rejects
 	      end
-	| relevant (newrels,rejects) ((ax as (clstm,consts_typs)) :: axs) =
+	| relevant (newrels,rejects) ((ax as (clsthm,consts_typs)) :: axs) =
 	    let val weight = clause_weight ctab rel_consts consts_typs
 	    in
-	      if p <= weight orelse (!follow_defs andalso defines thy clstm rel_consts)
+	      if p <= weight orelse (!follow_defs andalso defines thy clsthm rel_consts)
 	      then relevant (ax::newrels, rejects) axs
 	      else relevant (newrels, ax::rejects) axs
 	    end
