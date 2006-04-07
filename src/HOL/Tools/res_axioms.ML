@@ -26,13 +26,13 @@ signature RES_AXIOMS =
   val skolem_thm : thm -> thm list
   val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
   val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
+  val cnf_rules_pairs : (string * Thm.thm) list -> (Thm.thm * (string * int)) list list;
   val clausify_rules_pairs_abs : (string * thm) list -> (Term.term * (string * int)) list list
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
 
   val atpset_rules_of_thy : theory -> (string * thm) list
   val atpset_rules_of_ctxt : Proof.context -> (string * thm) list
-
   end;
 
 structure ResAxioms : RES_AXIOMS =
@@ -402,6 +402,21 @@ fun cnf_rules2 [] err_list = ([],err_list)
       in
 	((name,map prop_of (cnf_axiom (name,th))) :: ts,es) handle _ => (ts,(name::es)) 
       end;
+
+
+fun cnf_rules_pairs_aux [] = []
+  | cnf_rules_pairs_aux ((name,th)::ths) =
+    let val ts = cnf_rules_pairs_aux ths
+	fun pair_name_cls k (n, []) = []
+	  | pair_name_cls k (n, cls::clss) =
+	    (cls, (n,k))::(pair_name_cls (k+1) (n, clss))
+    in
+	(pair_name_cls 0 (name, cnf_axiom(name,th)))::ts
+	handle THM _ => ts | ResClause.CLAUSE _ => ts | ResHolClause.LAM2COMB _ => ts
+    end;
+    
+
+fun cnf_rules_pairs thms = rev (cnf_rules_pairs_aux thms);
 
 fun clausify_rules_pairs_abs_aux [] = []
   | clausify_rules_pairs_abs_aux ((name,th)::ths) =
