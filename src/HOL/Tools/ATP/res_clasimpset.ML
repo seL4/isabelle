@@ -12,7 +12,7 @@ signature RES_CLASIMP =
       Proof.context ->
       Term.term list ->
       (string * Thm.thm) list ->
-      (bool * bool * bool) -> bool -> string Array.array * (Term.term * (string * int)) list
+      (bool * bool * bool) -> bool -> string Array.array * (thm * (string * int)) list
   end;
   
 structure ResClasimp : RES_CLASIMP =
@@ -249,23 +249,25 @@ fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
 
 fun hash_term term = Word.toIntX (xor_words (map hash_literal (get_literals term [])));
 
+fun hash_thm  thm = hash_term (prop_of thm);
 
+fun eq_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
 (*Create a hash table for clauses, of the given size*)
 fun mk_clause_table n =
-      Polyhash.mkTable (hash_term, Term.aconv)
+      Polyhash.mkTable (hash_thm, eq_thm)
                        (n, HASH_CLAUSE);
 
 (*Use a hash table to eliminate duplicates from xs*)
 fun make_unique ht xs = 
       (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
 
-fun mem_tm tm [] = false
-  | mem_tm tm ((tm',name)::tms_names) = Term.aconv (tm,tm') orelse mem_tm tm tms_names;
+fun mem_thm thm [] = false
+  | mem_thm thm ((thm',name)::thms_names) = eq_thm (thm,thm') orelse mem_thm thm thms_names;
 
-fun insert_tms [] tms_names = tms_names
-  | insert_tms ((tm,name)::tms_names) tms_names' =
-      if mem_tm tm tms_names' then insert_tms tms_names tms_names' 
-      else insert_tms tms_names ((tm,name)::tms_names');
+fun insert_thms [] thms_names = thms_names
+  | insert_thms ((thm,name)::thms_names) thms_names' =
+      if mem_thm thm thms_names' then insert_thms thms_names thms_names' 
+      else insert_thms thms_names ((thm,name)::thms_names');
 
 fun display_thms [] = ()
   | display_thms ((name,thm)::nthms) = 
@@ -294,25 +296,25 @@ fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_a
 	     | _  => map put_name_pair user_thms
       val banned = make_banned_test (map #1 (user_rules@atpset_thms@claset_thms@simpset_thms))
       fun ok (a,_) = not (banned a) 	   
-      val claset_cls_tms = 
-            if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok claset_thms)
-            else ResAxioms.clausify_rules_pairs_abs claset_thms
-      val simpset_cls_tms = 
-      	    if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok simpset_thms)
-	    else ResAxioms.clausify_rules_pairs_abs simpset_thms
-      val atpset_cls_tms = 
-      	    if run_filter then ResAxioms.clausify_rules_pairs_abs (filter ok atpset_thms)
-	    else ResAxioms.clausify_rules_pairs_abs atpset_thms
-      val user_cls_tms = ResAxioms.clausify_rules_pairs_abs user_rules (* no filter here, because user supplied rules *)
-      val cls_tms_list = make_unique (mk_clause_table 2200) 
-                           (List.concat (user_cls_tms@atpset_cls_tms@simpset_cls_tms@claset_cls_tms))
-      val relevant_cls_tms_list =
+      val claset_cls_thms = 
+            if run_filter then ResAxioms.cnf_rules_pairs (filter ok claset_thms)
+            else ResAxioms.cnf_rules_pairs claset_thms
+      val simpset_cls_thms = 
+      	    if run_filter then ResAxioms.cnf_rules_pairs (filter ok simpset_thms)
+	    else ResAxioms.cnf_rules_pairs simpset_thms
+      val atpset_cls_thms = 
+      	    if run_filter then ResAxioms.cnf_rules_pairs (filter ok atpset_thms)
+	    else ResAxioms.cnf_rules_pairs atpset_thms
+      val user_cls_thms = ResAxioms.cnf_rules_pairs user_rules (* no filter here, because user supplied rules *)
+      val cls_thms_list = make_unique (mk_clause_table 2200) 
+                           (List.concat (user_cls_thms@atpset_cls_thms@simpset_cls_thms@claset_cls_thms))
+      val relevant_cls_thms_list =
 	  if run_filter 
-	  then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_tms_list goals
-	  else cls_tms_list
-      val all_relevant_cls_tms_list = insert_tms (List.concat user_cls_tms) relevant_cls_tms_list (*ensure all user supplied rules are output*)	  
+	  then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals
+	  else cls_thms_list
+      val all_relevant_cls_thms_list = insert_thms (List.concat user_cls_thms) relevant_cls_thms_list (*ensure all user supplied rules are output*)	  
     in
-	(Array.fromList (map fst (map snd all_relevant_cls_tms_list)), all_relevant_cls_tms_list)
+	(Array.fromList (map fst (map snd all_relevant_cls_thms_list)), all_relevant_cls_thms_list)
 end;
 
 
