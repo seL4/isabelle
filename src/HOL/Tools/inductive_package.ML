@@ -661,7 +661,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
          REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac)),
-         ALLGOALS (simp_tac (HOL_basic_ss addsimps sum_case_rewrites)),
+         rewrite_goals_tac sum_case_rewrites,
          EVERY (map (fn prem =>
            DEPTH_SOLVE_1 (ares_tac [rewrite_rule [inductive_conj_def] prem, conjI, refl] 1)) prems)]));
 
