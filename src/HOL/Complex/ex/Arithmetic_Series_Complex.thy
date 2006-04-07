@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/ASeries.thy
+(*  Title:      HOL/Complex/ex/Arithmetic_Series_Complex
     ID:         $Id$
     Author:     Benjamin Porter, 2006
 *)
@@ -6,8 +6,8 @@
 
 header {* Arithmetic Series for Reals *}
 
-theory ASeries_Complex
-imports Complex_Main ASeries
+theory Arithmetic_Series_Complex
+imports Complex_Main Arithmetic_Series
 begin
 
 lemma arith_series_real:

@@ -15,8 +15,8 @@ use_thy "NSPrimes";
 no_document use_thy "BigO";
 use_thy "BigO_Complex";
 
-no_document use_thy "ASeries";
-use_thy "ASeries_Complex";
+no_document use_thy "Arithmetic_Series";
+use_thy "Arithmetic_Series_Complex";
 use_thy "HarmonicSeries";
 
 no_document use_thy "NatPair";
