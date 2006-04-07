@@ -65,6 +65,8 @@ sig
 
   val thms_of_proof : proof -> (term * proof) list Symtab.table ->
     (term * proof) list Symtab.table
+  val thms_of_proof' : proof -> (term * proof) list Symtab.table ->
+    (term * proof) list Symtab.table
   val axms_of_proof : proof -> proof Symtab.table -> proof Symtab.table
   val oracles_of_proof : (string * term) list -> proof -> (string * term) list
 
@@ -168,6 +170,20 @@ fun thms_of_proof (Abst (_, _, prf)) = thms_of_proof prf
           thms_of_proof prf (Symtab.update (s, (prop, prf')::ps) tab))
   | thms_of_proof (MinProof (prfs, _, _)) = fold (thms_of_proof o proof_of_min_thm) prfs
   | thms_of_proof _ = I;
+
+(* this version does not recursively descend into proofs of (named) theorems *)
+fun thms_of_proof' (Abst (_, _, prf)) = thms_of_proof' prf
+  | thms_of_proof' (AbsP (_, _, prf)) = thms_of_proof' prf
+  | thms_of_proof' (prf1 %% prf2) = thms_of_proof' prf1 #> thms_of_proof' prf2
+  | thms_of_proof' (prf % _) = thms_of_proof' prf
+  | thms_of_proof' (PThm (("", _), prf, prop, _)) = thms_of_proof' prf
+  | thms_of_proof' (prf' as PThm ((s, _), _, prop, _)) = (fn tab =>
+      case Symtab.lookup tab s of
+        NONE => Symtab.update (s, [(prop, prf')]) tab
+      | SOME ps => if exists (fn (p, _) => p = prop) ps then tab else
+          Symtab.update (s, (prop, prf')::ps) tab)
+  | thms_of_proof' (MinProof (prfs, _, _)) = fold (thms_of_proof' o proof_of_min_thm) prfs
+  | thms_of_proof' _ = I;
 
 fun axms_of_proof (Abst (_, _, prf)) = axms_of_proof prf
   | axms_of_proof (AbsP (_, _, prf)) = axms_of_proof prf
