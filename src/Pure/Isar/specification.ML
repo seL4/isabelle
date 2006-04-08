@@ -28,9 +28,9 @@ sig
   val definition_i:
     ((string * typ option * mixfix) option * ((string * Attrib.src list) * term)) list ->
     local_theory -> (term * (bstring * thm)) list * local_theory
-  val abbreviation: bool -> ((string * string option * mixfix) option * string) list ->
+  val abbreviation: string * bool -> ((string * string option * mixfix) option * string) list ->
     local_theory -> local_theory
-  val abbreviation_i: bool -> ((string * typ option * mixfix) option * term) list ->
+  val abbreviation_i: string * bool -> ((string * typ option * mixfix) option * term) list ->
     local_theory -> local_theory
 end;
 
@@ -111,18 +111,20 @@ val definition_i = gen_defs cert_specification;
 
 (* abbreviation *)
 
-fun gen_abbrevs prep revert args ctxt =
+fun gen_abbrevs prep prmode args ctxt =
   let
     fun abbrev (raw_var, raw_prop) ctxt' =
       let
-        val (vars, [(_, [prop])]) = fst (prep (the_list raw_var) [(("", []), [raw_prop])] ctxt');
-        val ((x, T), rhs) = #1 (LocalDefs.derived_def ctxt' false prop);
+        val ((vars, [(_, [prop])]), _) =
+          prep (the_list raw_var) [(("", []), [raw_prop])]
+            (ctxt' |> ProofContext.expand_abbrevs false);
+        val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def ctxt' prop));
         val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
           if x = x' then mx
           else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote x'));
       in
         ctxt'
-        |> LocalTheory.abbrev revert ((x, mx), rhs)
+        |> LocalTheory.abbrev prmode ((x, mx), rhs)
         |> pair (x, T)
       end;
 
