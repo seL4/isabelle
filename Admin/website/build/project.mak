@@ -9,7 +9,8 @@ conf/distinfo.mak:
 
 STATICDIRS=css img media misc
 STATICFILES=include/documentationdist.include.html
-OUTPUTDIST=$(OUTPUTROOT)/dist-$(DISTNAME)
+OUTPUTDIST_REL=dist-$(DISTNAME)
+OUTPUTDIST=$(OUTPUTROOT)/$(OUTPUTDIST_REL)
 
 project: $(OUTPUTDIST) site
 .PHONY: project
@@ -28,7 +29,7 @@ $(OUTPUTDIST): $(ISABELLE_DIST)
 	-[ ! -e $@/Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
-	ln -s $(OUTPUTDIST) $(OUTPUTROOT)/dist
+	( cd $(OUTPUTROOT); ln -s OUTPUTDIST_REL dist )
 
 else
 
@@ -40,7 +41,7 @@ $(OUTPUTDIST): $(ISABELLE_DIST) SYNC_ALWAYS
 	-[ ! -e $@/Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
-	ln -s $(OUTPUTDIST) $(OUTPUTROOT)/dist
+	( cd $(OUTPUTROOT); ln -s OUTPUTDIST_REL dist )
 
 SYNC_ALWAYS:
 
