@@ -209,8 +209,7 @@ val definitionP =
 
 val abbreviationP =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
-    (P.opt_locale_target --
-      Scan.optional (P.$$$ "(" -- P.$$$ "output" -- P.$$$ ")" >> K true) false --
+    (P.opt_locale_target -- opt_mode --
       Scan.repeat1 (Scan.option constdecl -- P.prop)
     >> (fn ((loc, revert), args) =>
          Toplevel.local_theory loc (Specification.abbreviation revert args)));
