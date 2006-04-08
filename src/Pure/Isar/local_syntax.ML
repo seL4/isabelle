@@ -14,8 +14,8 @@ sig
   val structs_of: T -> string list
   val init: theory -> T
   val rebuild: theory -> T -> T
-  val add_syntax: theory -> (bool * (string * typ * mixfix)) list -> T -> T
-  val extern_term: (string -> xstring) -> theory -> T -> term -> term
+  val add_syntax: theory -> string * bool -> (bool * (string * typ * mixfix)) list -> T -> T
+  val extern_term: T -> term -> term
 end;
 
 structure LocalSyntax: LOCAL_SYNTAX =
@@ -27,7 +27,7 @@ datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
   local_syntax: Syntax.syntax,
   mixfixes: (((string * bool) * string list list) * (string * typ * mixfix)) list,
-  idents: string list * string list * string list};
+  idents: string list * string list};
 
 fun make_syntax (thy_syntax, local_syntax, mixfixes, idents) =
   Syntax {thy_syntax = thy_syntax, local_syntax = local_syntax,
@@ -36,7 +36,7 @@ fun make_syntax (thy_syntax, local_syntax, mixfixes, idents) =
 fun map_syntax f (Syntax {thy_syntax, local_syntax, mixfixes, idents}) =
   make_syntax (f (thy_syntax, local_syntax, mixfixes, idents));
 
-fun is_consistent thy (syntax as Syntax {thy_syntax, ...}) =
+fun is_consistent thy (Syntax {thy_syntax, ...}) =
   Syntax.eq_syntax (Sign.syn_of thy, thy_syntax);
 
 fun syn_of (Syntax {local_syntax, ...}) = local_syntax;
@@ -46,7 +46,7 @@ val structs_of = #1 o idents_of;
 
 (* build syntax *)
 
-fun build_syntax thy (mixfixes, idents as (structs, _, _)) =
+fun build_syntax thy (mixfixes, idents as (structs, _)) =
   let
     val thy_syntax = Sign.syn_of thy;
     val is_logtype = Sign.is_logtype thy;
@@ -55,12 +55,10 @@ fun build_syntax thy (mixfixes, idents as (structs, _, _)) =
       |> Syntax.extend_trfuns
          (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
           map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
-      |> Syntax.extend_const_gram is_logtype ("", false)
-         (map (fn (((x, _), _), (c, T, _)) => (c, T, Syntax.literal x)) mixfixes)
-      |> Syntax.extend_const_gram is_logtype ("", true) (map snd mixfixes)
-  in make_syntax (thy_syntax, local_syntax, mixfixes, idents) end
+      |> Syntax.extend_const_gram is_logtype Syntax.default_mode (map snd mixfixes)
+  in make_syntax (thy_syntax, local_syntax, mixfixes, idents) end;
 
-fun init thy = build_syntax thy ([], ([], [], []));
+fun init thy = build_syntax thy ([], ([], []));
 
 fun rebuild thy (syntax as Syntax {mixfixes, idents, ...}) =
   if is_consistent thy syntax then syntax
@@ -80,7 +78,7 @@ fun mixfix_conflict (content1: string list list, ((_, content2), _)) =
 fun add_mixfix (fixed, (x, T, mx)) =
   let
     val content = Syntax.mixfix_content mx;
-    val c = if fixed then Syntax.fixedN ^ x else Syntax.constN ^ x;
+    val c = if fixed then Syntax.fixedN ^ x else x;
   in remove mixfix_conflict content #> cons (((x, fixed), content), (c, T, mx)) end;
 
 fun prep_struct (fixed, (c, _, Structure)) =
@@ -90,27 +88,24 @@ fun prep_struct (fixed, (c, _, Structure)) =
 
 in
 
-fun add_syntax thy raw_decls (syntax as (Syntax {mixfixes, idents = (structs, _, _), ...})) =
+fun add_syntax thy prmode raw_decls (syntax as (Syntax {mixfixes, idents = (structs, _), ...})) =
   (case filter_out mixfix_nosyn raw_decls of
     [] => syntax
   | decls =>
       let
         val mixfixes' = mixfixes |> fold add_mixfix (filter_out mixfix_struct decls);
         val fixes' = fold (fn (((x, true), _), _) => cons x | _ => I) mixfixes' [];
-        val consts' = fold (fn (((x, false), _), _) => cons x | _ => I) mixfixes' [];
         val structs' = structs @ List.mapPartial prep_struct decls;
-      in build_syntax thy (mixfixes', (structs', fixes', consts')) end);
+      in build_syntax thy (mixfixes', (structs', fixes')) end);
 
 end;
 
 
 (* extern_term *)
 
-fun extern_term extern_const thy syntax =
+fun extern_term syntax =
   let
-    val (structs, fixes, consts) = idents_of syntax;
-    fun map_const c =
-      if member (op =) consts c then Syntax.constN ^ c else extern_const c;
+    val (structs, fixes) = idents_of syntax;
     fun map_free (t as Free (x, T)) =
           let val i = Library.find_index_eq x structs + 1 in
             if i = 0 andalso member (op =) fixes x then
@@ -120,7 +115,6 @@ fun extern_term extern_const thy syntax =
             else t
           end
       | map_free t = t;
-  in Sign.extern_term map_const thy #> Term.map_aterms map_free end;
-
+  in Term.map_aterms map_free end;
 
 end;
