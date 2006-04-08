@@ -74,7 +74,7 @@ sig
   val read_typ: Context.generic -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
   val read_sort: Context.generic -> syntax -> string -> sort
-  val pretty_term: Context.generic -> syntax -> bool -> term -> Pretty.T
+  val pretty_term: (string -> xstring) -> Context.generic -> syntax -> bool -> term -> Pretty.T
   val pretty_typ: Context.generic -> syntax -> typ -> Pretty.T
   val pretty_sort: Context.generic -> syntax -> sort -> Pretty.T
   val ambiguity_level: int ref
@@ -501,7 +501,7 @@ fun pretty_t t_to_ast prt_t context (syn as Syntax (tabs, _)) curried t =
       (Ast.normalize_ast (Symtab.lookup_list print_ruletab) ast)
   end;
 
-val pretty_term = pretty_t Printer.term_to_ast Printer.pretty_term_ast;
+val pretty_term = pretty_t Printer.term_to_ast o Printer.pretty_term_ast;
 fun pretty_typ context syn = pretty_t Printer.typ_to_ast Printer.pretty_typ_ast context syn false;
 fun pretty_sort context syn = pretty_t Printer.sort_to_ast Printer.pretty_typ_ast context syn false;
 
