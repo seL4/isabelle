@@ -25,8 +25,8 @@ sig
   val del_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_abbrevs: bool -> (bstring * string * mixfix) list -> theory -> theory
-  val add_abbrevs_i: bool -> (bstring * term * mixfix) list -> theory -> theory
+  val add_abbrevs: string * bool -> (bstring * string * mixfix) list -> theory -> theory
+  val add_abbrevs_i: string * bool -> (bstring * term * mixfix) list -> theory -> theory
   val add_const_constraint: xstring * string option -> theory -> theory
   val add_const_constraint_i: string * typ option -> theory -> theory
   val add_classes: (bstring * xstring list) list -> theory -> theory
@@ -136,7 +136,7 @@ sig
   val intern_term: theory -> term -> term
   val extern_term: (string -> xstring) -> theory -> term -> term
   val intern_tycons: theory -> typ -> typ
-  val pretty_term': Syntax.syntax -> Context.generic -> term -> Pretty.T
+  val pretty_term': Context.generic -> Syntax.syntax -> (string -> xstring) -> term -> Pretty.T
   val pretty_term: theory -> term -> Pretty.T
   val pretty_typ: theory -> typ -> Pretty.T
   val pretty_sort: theory -> sort -> Pretty.T
@@ -155,7 +155,7 @@ sig
   val certify_typ: theory -> typ -> typ
   val certify_typ_syntax: theory -> typ -> typ
   val certify_typ_abbrev: theory -> typ -> typ
-  val certify: bool -> bool -> Pretty.pp -> theory -> term -> term * typ * int
+  val certify': bool -> bool -> Pretty.pp -> Consts.T -> theory -> term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
   val certify_prop: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
@@ -370,13 +370,13 @@ end;
 
 (** pretty printing of terms, types etc. **)
 
-fun pretty_term' syn context t =
+fun pretty_term' context syn ext t =
   let val curried = Context.exists_name Context.CPureN (Context.theory_of context)
-  in Syntax.pretty_term context syn curried t end;
+  in Syntax.pretty_term ext context syn curried t end;
 
 fun pretty_term thy t =
-  pretty_term' (syn_of thy) (Context.Theory thy)
-    (extern_term (NameSpace.extern (Consts.space_of (consts_of thy))) thy t);
+  pretty_term' (Context.Theory thy) (syn_of thy) (Consts.extern (consts_of thy))
+    (extern_term (Consts.extern_early (consts_of thy)) thy t);
 
 fun pretty_typ thy T = Syntax.pretty_typ (Context.Theory thy) (syn_of thy) (extern_typ thy T);
 fun pretty_sort thy S = Syntax.pretty_sort (Context.Theory thy) (syn_of thy) (extern_sort thy S);
@@ -459,20 +459,21 @@ fun check_vars (t $ u) = (check_vars t; check_vars u)
 
 in
 
-fun certify normalize prop pp thy tm =
+fun certify' normalize prop pp consts thy tm =
   let
     val _ = Context.check_thy thy;
     val _ = check_vars tm;
     val tm' = Term.map_term_types (certify_typ thy) tm;
     val T = type_check pp tm';
     val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
-    val tm'' = Consts.certify pp (tsig_of thy) (consts_of thy) tm';
+    val tm'' = Consts.certify pp (tsig_of thy) consts tm';
     val tm'' = if normalize then tm'' else tm';
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-fun certify_term thy = certify true false (pp thy) thy;
-fun certify_prop thy = certify true true (pp thy) thy;
+fun certify_term thy = certify' true false (pp thy) (consts_of thy) thy;
+fun certify_prop thy = certify' true true (pp thy) (consts_of thy) thy;
 
+fun cert_term_abbrev thy = #1 o certify' false false (pp thy) (consts_of thy) thy;
 val cert_term = #1 oo certify_term;
 val cert_prop = #1 oo certify_prop;
 
@@ -596,8 +597,7 @@ fun infer_types_simult pp thy consts def_type def_sort used freeze args =
       map (fn (_, T) => certify_typ thy T handle TYPE (msg, _, _) => error msg) args;
 
     fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (try (Consts.constraint consts)) def_type def_sort
-        (NameSpace.intern (Consts.space_of consts))
+        (try (Consts.constraint consts)) def_type def_sort (Consts.intern consts)
         (intern_tycons thy) (intern_sort thy) used freeze typs ts)
       handle TYPE (msg, _, _) => Exn (ERROR msg);
 
@@ -745,7 +745,7 @@ fun gen_add_consts prep_typ raw_args thy =
       handle ERROR msg =>
         cat_error msg ("in declaration of constant " ^ quote (Syntax.const_name c mx));
     val args = map prep raw_args;
-    val decls = args |> map (fn (c, T, mx) => (Syntax.const_name c mx, T));
+    val decls = args |> map (fn (c, T, mx) => ((Syntax.const_name c mx, T), true));
   in
     thy
     |> map_consts (fold (Consts.declare (naming_of thy)) decls)
@@ -764,27 +764,29 @@ end;
 
 local
 
-fun gen_add_abbrevs prep_term revert raw_args thy =
+fun gen_abbrevs prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
   let
+    val naming = naming_of thy
+      |> K (mode <> "") ? (NameSpace.add_path mode #> NameSpace.no_base_names);
     val prep_tm =
       Compress.term thy o Logic.varify o no_vars (pp thy) o Term.no_dummy_patterns o prep_term thy;
-    fun prep (raw_c, raw_t, mx) =
-      let
-        val c = Syntax.const_name raw_c mx;
-        val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg)
-          handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
-      in ((c, t), (raw_c, Term.fastype_of t, mx)) end;
-    val (abbrs, syn) = split_list (map prep raw_args);
+
+    val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
+    val (c', b) = Syntax.mixfix_const (NameSpace.full naming c) mx;
+    val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg)
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
+    val T = Term.fastype_of t;
   in
     thy
-    |> map_consts (fold (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) revert) abbrs)
-    |> add_syntax_i syn
-  end;
+    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) naming mode ((c, t), b))
+    |> map_syn (Syntax.extend_consts [c])
+    |> add_modesyntax_i (mode, inout) [(c', T, mx)]
+  end);
 
 in
 
-val add_abbrevs = gen_add_abbrevs read_term;
-val add_abbrevs_i = gen_add_abbrevs cert_term;
+val add_abbrevs = gen_abbrevs read_term;
+val add_abbrevs_i = gen_abbrevs cert_term_abbrev;
 
 end;
 
