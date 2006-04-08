@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Check.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 The Model Checker.
 *)

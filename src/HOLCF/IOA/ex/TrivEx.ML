@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/TrivEx.thy
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 Trivial Abstraction Example.
 *)

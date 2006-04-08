@@ -1,6 +1,6 @@
 (*  Title:      HOL/IOA/example/Correctness.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 

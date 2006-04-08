@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoScheds.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 Addsimps [surjective_pairing RS sym];

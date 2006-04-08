@@ -1,6 +1,6 @@
 (*  Title:      HOL/IOA/ex/ROOT.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 This is the ROOT file for the formalization of a semantic model of
 I/O-Automata.  See the README.html file for details.

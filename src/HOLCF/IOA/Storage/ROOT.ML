@@ -1,6 +1,6 @@
 (*  Title:      HOL/IOA/Storage/ROOT.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 Memory storage case study.
 *)

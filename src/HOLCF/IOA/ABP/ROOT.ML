@@ -1,6 +1,6 @@
 (*  Title:      HOL/IOA/ABP/ROOT.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 This is the ROOT file for the Alternating Bit Protocol performed in
 I/O-Automata.  *)

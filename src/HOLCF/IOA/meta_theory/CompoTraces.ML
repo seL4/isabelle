@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoTraces.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 change_simpset (fn ss => ss setmksym (K NONE));

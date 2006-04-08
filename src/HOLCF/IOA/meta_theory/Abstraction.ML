@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Abstraction.thy
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)   
 
 section "cex_abs";

@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Simulations.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 Goal "(A~={}) = (? x. x:A)";

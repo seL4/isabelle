@@ -1,6 +1,6 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.ML
     ID:         $Id$
-    Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
+    Author:     Olaf Mueller, Tobias Nipkow & Konrad Slind
 *)
 
 bind_thms ("asig_projections", [asig_inputs_def, asig_outputs_def, asig_internals_def]);

@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoExecs.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 Delsimps (ex_simps @ all_simps);

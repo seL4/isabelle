@@ -4,7 +4,7 @@
 
 This is the ROOT file for a network transmission protocol (NTP
 subdirectory), performed in the I/O automata formalization by Olaf
-Müller.
+Mueller.
 *)
 
 goals_limit := 1;

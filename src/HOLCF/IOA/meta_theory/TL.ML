@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/TL.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)   
 
 

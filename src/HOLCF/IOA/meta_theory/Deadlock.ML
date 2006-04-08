@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Deadlock.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 (********************************************************************************

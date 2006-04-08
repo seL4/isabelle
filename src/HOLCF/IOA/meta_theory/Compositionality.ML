@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Compositionality.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 Goal "[|eA --> A ; eB & ~eA --> ~A|] ==> (eA | eB) --> A=eA";

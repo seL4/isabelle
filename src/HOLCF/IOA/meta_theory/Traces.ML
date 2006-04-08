@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Traces.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 Theorems about Executions and Traces of I/O automata in HOLCF.
 *)   

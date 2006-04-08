@@ -1,6 +1,6 @@
 (*  Title:      HOL/IOA/NTP/Abschannel.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 
 Derived rules.
 *)

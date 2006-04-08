@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/TLS.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)    
 
 (* global changes to simpset() and claset(), repeated from Traces.ML *)

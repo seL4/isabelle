@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Lemmas.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 (* Logic *)

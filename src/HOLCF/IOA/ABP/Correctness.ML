@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Correctness.ML
     ID:         $Id$
-    Author:     Olaf Müller
+    Author:     Olaf Mueller
 *)
 
 
