@@ -29,7 +29,7 @@ sig
   val extend_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
-  val pretty_term_ast: Context.generic -> bool -> prtabs
+  val pretty_term_ast: (string -> xstring) -> Context.generic -> bool -> prtabs
     -> (string -> (Context.generic -> Ast.ast list -> Ast.ast) list)
     -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
   val pretty_typ_ast: Context.generic -> bool -> prtabs
@@ -265,7 +265,7 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
+fun pretty extern_const context tabs trf tokentrf type_mode curried ast0 p0 =
   let
     val trans = apply_trans context "print ast translation";
 
@@ -290,7 +290,7 @@ fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
             val (Ts, args') = synT (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty context tabs trf tokentrf true curried t p @ Ts, args')
+            else (pretty I context tabs trf tokentrf true curried t p @ Ts, args')
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
@@ -316,7 +316,18 @@ fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
             then [Block (1, String "(" :: pr @ [String ")"])]
             else pr, args))
 
-    and prefixT (_, a, [], _) = [Pretty.str a]
+    and atomT a =
+      (case try (unprefix Lexicon.constN) a of
+        SOME c => Pretty.str (extern_const c)
+      | NONE =>
+          (case try (unprefix Lexicon.fixedN) a of
+            SOME x =>
+              (case tokentrf "_free" of
+                SOME f => Pretty.raw_str (f x)
+              | NONE => Pretty.str x)
+          | NONE => Pretty.str a))
+
+    and prefixT (_, a, [], _) = [atomT a]
       | prefixT (c, _, args, p) = astT (appT (c, args), p)
 
     and splitT 0 ([x], ys) = (x, ys)
@@ -338,7 +349,7 @@ fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
               else prnt (prnps, tbs);
       in
         (case token_trans a args of     (*try token translation function*)
-          SOME s_len => [Pretty.raw_str s_len]
+          SOME s => [Pretty.raw_str s]
         | NONE =>                       (*try print translation functions*)
             astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
       end
@@ -353,15 +364,15 @@ fun pretty context tabs trf tokentrf type_mode curried ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast context curried prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty context (mode_tabs prtabs (! print_mode))
+fun pretty_term_ast extern_const context curried prtabs trf tokentrf ast =
+  Pretty.blk (0, pretty extern_const context (mode_tabs prtabs (! print_mode))
     trf tokentrf false curried ast 0);
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast context _ prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty context (mode_tabs prtabs (! print_mode))
+  Pretty.blk (0, pretty I context (mode_tabs prtabs (! print_mode))
     trf tokentrf true false ast 0);
 
 end;
