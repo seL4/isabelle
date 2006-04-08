@@ -149,8 +149,9 @@ sig
   val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
   val apply_case: RuleCases.T -> context -> (string * term list) list * context
   val get_case: context -> string -> string option list -> RuleCases.T
-  val add_abbrevs: bool -> (bstring * string * mixfix) list -> context -> context
-  val add_abbrevs_i: bool -> (bstring * term * mixfix) list -> context -> context
+  val expand_abbrevs: bool -> context -> context
+  val add_abbrevs: string * bool -> (bstring * string * mixfix) list -> context -> context
+  val add_abbrevs_i: string * bool -> (bstring * term * mixfix) list -> context -> context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -312,15 +313,22 @@ fun map_theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
 local
 
+fun rewrite_term thy rews t =
+  if can Term.type_of t then Pattern.rewrite_term thy rews [] t
+  else (warning "Printing ill-typed term -- cannot expand abbreviations"; t);
+
 fun pretty_term' abbrevs ctxt t =
   let
     val thy = theory_of ctxt;
     val syntax = syntax_of ctxt;
     val consts = consts_of ctxt;
     val t' = t
-      |> K abbrevs ? Pattern.rewrite_term thy (Consts.abbrevs_of consts) []
-      |> LocalSyntax.extern_term (NameSpace.extern (Consts.space_of consts)) thy syntax;
-  in Sign.pretty_term' (LocalSyntax.syn_of syntax) (Context.Proof ctxt) t' end;
+      |> K abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (! print_mode @ [""]))
+      |> Sign.extern_term (Consts.extern_early consts) thy
+      |> LocalSyntax.extern_term syntax;
+  in
+    Sign.pretty_term' (Context.Proof ctxt) (LocalSyntax.syn_of syntax) (Consts.extern consts) t'
+  end;
 
 in
 
@@ -487,7 +495,7 @@ fun read_props_thy freeze pp syn thy defaults =
 
 (* local abbreviations *)
 
-fun expand_consts ctxt =
+fun certify_consts ctxt =
   Consts.certify (pp ctxt) (tsig_of ctxt) (consts_of ctxt);
 
 fun expand_binds ctxt schematic =
@@ -532,7 +540,7 @@ fun gen_read' read app pattern schematic
     (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) s
       handle TERM (msg, _) => error msg)
     |> app (intern_skolem ctxt internal)
-    |> app (expand_consts ctxt)
+    |> app (certify_consts ctxt)
     |> app (if pattern then I else expand_binds ctxt schematic)
     |> app (if pattern then prepare_dummies else reject_dummies)
   end;
@@ -563,12 +571,14 @@ end;
 
 (* certify terms *)
 
+val test = ref (NONE: (context * term) option);
+
 local
 
 fun gen_cert prop pattern schematic ctxt t = t
-  |> expand_consts ctxt
+  |> certify_consts ctxt
   |> (if pattern then I else expand_binds ctxt schematic)
-  |> (fn t' => #1 (Sign.certify false prop (pp ctxt) (theory_of ctxt) t')
+  |> (fn t' => #1 (Sign.certify' false prop (pp ctxt) (consts_of ctxt) (theory_of ctxt) t')
     handle TYPE (msg, _, _) => error msg
       | TERM (msg, _) => error msg);
 
@@ -1071,8 +1081,7 @@ local
 fun prep_vars prep_typ internal legacy =
   fold_map (fn (raw_x, raw_T, raw_mx) => fn ctxt =>
     let
-      val x = Syntax.const_name raw_x raw_mx;
-      val mx = Syntax.fix_mixfix raw_x raw_mx;
+      val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
       val _ =
         if not legacy andalso not (Syntax.is_identifier (no_skolem internal x)) then
           error ("Illegal variable name: " ^ quote x)
@@ -1097,13 +1106,19 @@ end;
 
 (* abbreviations *)
 
+val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
+
 local
 
-fun gen_abbrevs prep_vars prep_term revert = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
+fun gen_abbrevs prep_vars prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
   let
-    val thy = theory_of ctxt and naming = naming_of ctxt;
+    val thy = theory_of ctxt;
+    val naming = naming_of ctxt
+      |> K (mode <> "") ? (NameSpace.add_path mode #> NameSpace.no_base_names);
+
     val ([(c, _, mx)], _) = prep_vars [(raw_c, NONE, raw_mx)] ctxt;
-    val [t] = polymorphic ctxt [prep_term ctxt raw_t];
+    val (c', b) = Syntax.mixfix_const (NameSpace.full naming c) mx;
+    val [t] = polymorphic ctxt [prep_term (ctxt |> expand_abbrevs false) raw_t];
     val T = Term.fastype_of t;
     val _ =
       if null (hidden_polymorphism t T) then ()
@@ -1111,8 +1126,8 @@ fun gen_abbrevs prep_vars prep_term revert = fold (fn (raw_c, raw_t, raw_mx) => 
   in
     ctxt
     |> declare_term t
-    |> map_consts (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) naming revert (c, t)))
-    |> map_syntax (LocalSyntax.add_syntax thy [(false, (NameSpace.full naming c, T, mx))])
+    |> map_consts (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) naming mode ((c, t), b)))
+    |> map_syntax (LocalSyntax.add_syntax thy (mode, inout) [(false, (c', T, mx))])
   end);
 
 in
@@ -1138,6 +1153,8 @@ fun no_dups _ [] = ()
 
 fun gen_fixes prep raw_vars ctxt =
   let
+    val thy = theory_of ctxt;
+
     val (ys, zs) = split_list (fixes_of ctxt);
     val (vars, ctxt') = prep raw_vars ctxt;
     val xs = map #1 vars;
@@ -1149,7 +1166,7 @@ fun gen_fixes prep raw_vars ctxt =
     ctxt'
     |> map_fixes (fn (b, fixes) => (b, rev (xs ~~ xs') @ fixes))
     |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-    |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix)
+    |-> (map_syntax o LocalSyntax.add_syntax thy Syntax.default_mode o map prep_mixfix)
     |> pair xs'
   end;
 
