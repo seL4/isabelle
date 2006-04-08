@@ -29,7 +29,8 @@ sig
   val pretty_mixfix: mixfix -> Pretty.T
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
-  val fix_mixfix: string -> mixfix -> mixfix
+  val const_mixfix: string -> mixfix -> string * mixfix
+  val mixfix_const: string -> mixfix -> string * bool
   val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
   val mixfix_content: mixfix -> string list list
@@ -122,10 +123,15 @@ fun const_name c (InfixName _) = c
   | const_name c (Infixr _) = "op " ^ deprecated (strip_esc c)
   | const_name c _ = c;
 
-fun fix_mixfix c (Infix p) = (deprecated (strip_esc c); InfixName (c, p))
-  | fix_mixfix c (Infixl p) = (deprecated (strip_esc c); InfixlName (c, p))
-  | fix_mixfix c (Infixr p) = (deprecated (strip_esc c); InfixrName (c, p))
+fun fix_mixfix c (Infix p) = InfixName (c, p)
+  | fix_mixfix c (Infixl p) = InfixlName (c, p)
+  | fix_mixfix c (Infixr p) = InfixrName (c, p)
   | fix_mixfix _ mx = mx;
+
+fun const_mixfix c mx = (const_name c mx, fix_mixfix c mx);
+
+fun mixfix_const c NoSyn = (c, true)
+  | mixfix_const c _ = (Lexicon.constN ^ c, false);
 
 fun map_mixfix _ NoSyn = NoSyn
   | map_mixfix f (Mixfix (sy, ps, p)) = Mixfix (f sy, ps, p)
