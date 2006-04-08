@@ -275,7 +275,7 @@ fun extend_table naming ((space, tab), bentries) =
   in (fold (declare naming o #1) entries space, Symtab.extend (tab, entries)) end;
 
 fun merge_tables eq ((space1, tab1), (space2, tab2)) =
-  (merge (space1, space2), (Symtab.merge eq (tab1, tab2)));
+  (merge (space1, space2), Symtab.merge eq (tab1, tab2));
 
 fun ext_table (space, tab) =
   Symtab.fold (fn (name, x) => cons ((name, extern space name), x)) tab []
