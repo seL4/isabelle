@@ -87,7 +87,7 @@ sig
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     cterm list * Proof.context ->
     ((string * thm list) list * (string * thm list) list) * Proof.context
-  val add_abbrevs: string -> bool -> (bstring * term * mixfix) list ->
+  val add_abbrevs: string -> string * bool -> (bstring * term * mixfix) list ->
     cterm list * Proof.context -> Proof.context
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
@@ -150,7 +150,7 @@ type locale =
   elems: (Element.context_i * stamp) list,                          (*static content*)
   params: ((string * typ) * mixfix) list,                           (*all params*)
   lparams: string list,                                             (*local parmas*)
-  abbrevs: ((bool * (bstring * term * mixfix) list) * stamp) list,  (*abbreviations*)
+  abbrevs: (((string * bool) * (bstring * term * mixfix) list) * stamp) list,  (*abbreviations*)
   regs: ((string * string list) * (term * thm) list) list}
     (* Registrations: indentifiers and witness theorems of locales interpreted
        in the locale.
@@ -1490,11 +1490,11 @@ fun note_thmss_registrations kind target args thy =
 
 (* abbreviations *)
 
-fun add_abbrevs loc revert decls =
-  snd #> ProofContext.add_abbrevs_i revert decls #>
+fun add_abbrevs loc prmode decls =
+  snd #> ProofContext.add_abbrevs_i prmode decls #>
   ProofContext.map_theory (change_locale loc
     (fn (predicate, import, elems, params, lparams, abbrevs, regs) =>
-      (predicate, import, elems, params, lparams, ((revert, decls), stamp ()) :: abbrevs, regs)));
+      (predicate, import, elems, params, lparams, ((prmode, decls), stamp ()) :: abbrevs, regs)));
 
 fun init_abbrevs loc ctxt =
   fold_rev (uncurry ProofContext.add_abbrevs_i o fst)

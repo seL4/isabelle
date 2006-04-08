@@ -41,7 +41,7 @@ sig
   val def_finish: (local_theory -> term -> thm -> thm) ->
     (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
-  val abbrev: bool -> (bstring * mixfix) * term -> local_theory -> local_theory
+  val abbrev: string * bool -> (bstring * mixfix) * term -> local_theory -> local_theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -181,8 +181,8 @@ fun consts_restricted pred decls ctxt =
       NONE => theory (Sign.add_consts_i (map (fn ((c, T), mx) => (c, T, mx)) decls))
     | SOME (loc, _) =>
         theory (Sign.add_consts_i (map (fn ((c, T), _) => (c, Ps ---> T, NoSyn)) decls)) #>
-        locale (Locale.add_abbrevs loc true abbrevs) #>
-        ProofContext.add_abbrevs_i true abbrevs)
+        locale (Locale.add_abbrevs loc Syntax.default_mode abbrevs) #>
+        ProofContext.add_abbrevs_i Syntax.default_mode abbrevs)
     |> pair (map #2 abbrevs)
   end;
 
@@ -280,15 +280,15 @@ end;
 
 (* constant abbreviations *)
 
-fun abbrev revert ((x, mx), rhs) ctxt =
+fun abbrev prmode ((x, mx), rhs) ctxt =
   let val abbrevs = [(x, rhs, mx)] in
     ctxt |>
     (case locale_of ctxt of
       NONE =>
-        theory (Sign.add_abbrevs_i revert abbrevs)
+        theory (Sign.add_abbrevs_i prmode abbrevs)
     | SOME (loc, _) =>
-        locale (Locale.add_abbrevs loc revert abbrevs) #>
-        ProofContext.add_abbrevs_i revert abbrevs)
+        locale (Locale.add_abbrevs loc prmode abbrevs) #>
+        ProofContext.add_abbrevs_i prmode abbrevs)
   end;
 
 end;
