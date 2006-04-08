@@ -21,13 +21,13 @@ primrec
 consts
   eta :: "(dB \<times> dB) set"
 
-abbreviation (output)
+abbreviation
   eta_red :: "[dB, dB] => bool"   (infixl "-e>" 50)
-  "(s -e> t) = ((s, t) \<in> eta)"
+  "s -e> t == (s, t) \<in> eta"
   eta_reds :: "[dB, dB] => bool"   (infixl "-e>>" 50)
-  "(s -e>> t) = ((s, t) \<in> eta^*)"
+  "s -e>> t == (s, t) \<in> eta^*"
   eta_red0 :: "[dB, dB] => bool"   (infixl "-e>=" 50)
-  "(s -e>= t) = ((s, t) \<in> eta^=)"
+  "s -e>= t == (s, t) \<in> eta^="
 
 inductive eta
   intros
@@ -224,12 +224,13 @@ subsection {* Parallel eta-reduction *}
 consts
   par_eta :: "(dB \<times> dB) set"
 
-abbreviation (output)
+abbreviation
   par_eta_red :: "[dB, dB] => bool"   (infixl "=e>" 50)
-  "(s =e> t) = ((s, t) \<in> par_eta)"
+  "s =e> t == (s, t) \<in> par_eta"
 
-syntax (xsymbols)
+abbreviation (xsymbols)
   par_eta_red :: "[dB, dB] => bool"   (infixl "\<Rightarrow>\<^sub>\<eta>" 50)
+  "op \<Rightarrow>\<^sub>\<eta> == op =e>"
 
 inductive par_eta
 intros

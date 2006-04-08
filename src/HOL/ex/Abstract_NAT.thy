@@ -37,8 +37,8 @@ inductive "REC zero succ e r"
     Rec_succ: "NAT zero succ \<Longrightarrow> (m, n) \<in> REC zero succ e r \<Longrightarrow>
       (succ m, r m n) \<in> REC zero succ e r"
 
-abbreviation (in NAT) (output)
-  "Rec = REC zero succ"
+abbreviation (in NAT)
+  "Rec == REC zero succ"
 
 lemma (in NAT) Rec_functional:
   fixes x :: 'n

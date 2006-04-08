@@ -24,7 +24,7 @@ available, and result names need not be given.
   'definition' locale? (constdecl? constdef +)
   ;
 
-  'abbreviation' locale? '(output)'? (constdecl? prop +)
+  'abbreviation' locale? mode? (constdecl? prop +)
   ;
   'axiomatization' locale? consts? ('where' specs)?
   ;
@@ -55,16 +55,20 @@ available, and result names need not be given.
   supported here.
   
 \item $\isarkeyword{abbreviation}~c~\isarkeyword{where}~eq$ introduces
-  a syntactic constant which is associated with a certain term derived
-  from the specification given as $eq$.  The very same transformations
-  as for $\isarkeyword{definition}$ are applied here, although
-  additional conditions are not supported.
+  a syntactic constant which is associated with a certain term
+  according to the meta-level equality $eq$.
   
   Abbreviations participate in the usual type-inference process, but
-  are expanded before the logic ever sees them.  The expansion is
-  one-way by default; the ``$(output)$'' option makes abbreviations
-  fold back whenever terms are pretty printed.  The latter needs some
-  care to avoid overlapping or looping syntactic replacements!
+  are expanded before the logic ever sees them.  Pretty printing of
+  terms involves higher-order rewriting with rules stemming from
+  reverted abbreviations.  This needs some care to avoid overlapping
+  or looping syntactic replacements!
+  
+  The optional $mode$ specification restricts output to a particular
+  print mode; using ``$input$'' here achieves the effect of one-way
+  abbreviations.  The mode may also include an ``$output$'' qualifier
+  that affects the concrete syntax declared for abbreviations, cf.\ 
+  $\isarkeyword{syntax}$ in \S\ref{sec:syn-trans}.
   
 \item $\isarkeyword{axiomatization} ~ c@1 \dots c@n ~
   \isarkeyword{where} ~ A@1 \dots A@m$ introduces several constants

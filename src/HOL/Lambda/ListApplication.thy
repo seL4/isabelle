@@ -8,9 +8,9 @@ header {* Application of a term to a list of terms *}
 
 theory ListApplication imports Lambda begin
 
-abbreviation (output)
+abbreviation
   list_application :: "dB => dB list => dB"    (infixl "\<degree>\<degree>" 150)
-  "t \<degree>\<degree> ts = foldl (op \<degree>) t ts"
+  "t \<degree>\<degree> ts == foldl (op \<degree>) t ts"
 
 lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> ts) = (r = s)"
   by (induct ts rule: rev_induct) auto

@@ -33,9 +33,9 @@ definition
   MCollect :: "'a multiset => ('a => bool) => 'a multiset"
   "MCollect M P = Abs_multiset (\<lambda>x. if P x then Rep_multiset M x else 0)"
 
-abbreviation (output)
+abbreviation
   Melem :: "'a => 'a multiset => bool"    ("(_/ :# _)" [50, 51] 50)
-  "(a :# M) = (0 < count M a)"
+  "a :# M == 0 < count M a"
 
 syntax
   "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ : _./ _#})")

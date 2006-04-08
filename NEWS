@@ -144,9 +144,9 @@ isar-ref manual.  Examples:
     eq  (infix "===" 50)
     where eq_refl: "x === x" and eq_subst: "x === y ==> P x ==> P y"
 
-  abbreviation (output)
+  abbreviation
     neq  (infix "=!=" 50)
-    "(x =!= y) <-> ~ (x === y)"
+    "x =!= y == ~ (x === y)"
 
 These specifications may be also used in a locale context.  Then the
 constants being introduced depend on certain fixed parameters, and the
@@ -157,10 +157,9 @@ HOL/ex/Abstract_NAT.thy for an example of deriving polymorphic
 entities from a monomorphic theory.
 
 Presently, abbreviations are only available 'in' a target locale, but
-not inherited by general import expressions.
-
-Also note that 'abbreviation' may be used as a type-safe replacement
-for 'syntax' + 'translations' in common applications.
+not inherited by general import expressions.  Also note that
+'abbreviation' may be used as a type-safe replacement for 'syntax' +
+'translations' in common applications.
 
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level

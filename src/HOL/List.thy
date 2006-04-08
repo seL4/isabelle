@@ -54,9 +54,9 @@ consts
   filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
   map_filter :: "('a => 'b) => ('a => bool) => 'a list => 'b list"
 
-abbreviation (output)
- upto:: "nat => nat => nat list"    ("(1[_../_])")
-"[i..j] = [i..<(Suc j)]"
+abbreviation
+  upto:: "nat => nat => nat list"    ("(1[_../_])")
+  "[i..j] == [i..<(Suc j)]"
 
 
 nonterminals lupdbinds lupdbind
@@ -93,9 +93,9 @@ text {*
   Function @{text size} is overloaded for all datatypes. Users may
   refer to the list version as @{text length}. *}
 
-abbreviation (output)
- length :: "'a list => nat"
-"length = size"
+abbreviation
+  length :: "'a list => nat"
+  "length == size"
 
 primrec
   "hd(x#xs) = x"

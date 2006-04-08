@@ -58,9 +58,9 @@ constdefs
   inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set"
   "inv_image r f == {(x, y). (f x, f y) : r}"
 
-abbreviation (output)
+abbreviation
   reflexive :: "('a * 'a) set => bool"  -- {* reflexivity over a type *}
-  "reflexive = refl UNIV"
+  "reflexive == refl UNIV"
 
 
 subsection {* The identity relation *}

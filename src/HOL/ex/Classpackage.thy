@@ -150,7 +150,7 @@ definition (in monoid)
 
 abbreviation (in monoid)
   abbrev_npow :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75)
-    "(x \<^loc>\<up> n) = npow n x"
+  "x \<^loc>\<up> n == npow n x"
 
 lemma (in monoid) npow_def:
   "x \<^loc>\<up> 0 = \<^loc>\<one>"
@@ -290,7 +290,7 @@ definition (in group)
 
 abbreviation (in group)
   abbrev_pow :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75)
-    "(x \<^loc>\<up> k) = pow k x"
+  "x \<^loc>\<up> k == pow k x"
 
 lemma (in group) int_pow_zero:
   "x \<^loc>\<up> (0::int) = \<^loc>\<one>"

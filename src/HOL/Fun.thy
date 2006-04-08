@@ -59,19 +59,19 @@ syntax (HTML output)
 
 constdefs
   inj_on :: "['a => 'b, 'a set] => bool"         (*injective*)
-    "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
+  "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
 text{*A common special case: functions injective over the entire domain type.*}
 
-abbreviation (output)
-  "inj f = inj_on f UNIV"
+abbreviation
+  "inj f == inj_on f UNIV"
 
 constdefs
   surj :: "('a => 'b) => bool"                   (*surjective*)
-    "surj f == ! y. ? x. y=f(x)"
+  "surj f == ! y. ? x. y=f(x)"
 
   bij :: "('a => 'b) => bool"                    (*bijective*)
-    "bij f == inj f & surj f"
+  "bij f == inj f & surj f"
 
 
 

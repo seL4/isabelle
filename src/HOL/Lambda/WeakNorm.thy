@@ -361,11 +361,13 @@ qed
 consts -- {* A computationally relevant copy of @{term "e \<turnstile> t : T"} *}
   rtyping :: "((nat \<Rightarrow> type) \<times> dB \<times> type) set"
 
-abbreviation (output)
+abbreviation
   rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |-\<^sub>R _ : _" [50, 50, 50] 50)
-  "(e |-\<^sub>R t : T) = ((e, t, T) \<in> rtyping)"
-syntax (xsymbols)
+  "e |-\<^sub>R t : T == (e, t, T) \<in> rtyping"
+
+abbreviation (xsymbols)
   rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
+  "e \<turnstile>\<^sub>R t : T == e |-\<^sub>R t : T"
 
 inductive rtyping
   intros

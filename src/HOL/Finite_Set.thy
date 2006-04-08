@@ -13,8 +13,8 @@ begin
 subsection {* Definition and basic properties *}
 
 consts Finites :: "'a set set"
-abbreviation (output)
-  "finite A = (A : Finites)"
+abbreviation
+  "finite A == A : Finites"
 
 inductive Finites
   intros

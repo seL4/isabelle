@@ -17,9 +17,9 @@ subsection {* Parallel reduction *}
 consts
   par_beta :: "(dB \<times> dB) set"
 
-abbreviation (output)
+abbreviation
   par_beta_red :: "[dB, dB] => bool"  (infixl "=>" 50)
-  "(s => t) = ((s, t) \<in> par_beta)"
+  "s => t == (s, t) \<in> par_beta"
 
 inductive par_beta
   intros

@@ -23,7 +23,7 @@ inductive "acc r"
   intros
     accI: "(!!y. (y, x) \<in> r ==> y \<in> acc r) ==> x \<in> acc r"
 
-abbreviation (output)
+abbreviation
   termi :: "('a \<times> 'a) set => 'a set"
   "termi r == acc (r\<inverse>)"
 

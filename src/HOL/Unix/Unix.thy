@@ -352,11 +352,9 @@ text {*
 consts
   transition :: "(file \<times> operation \<times> file) set"
 
-syntax
-  "_transition" :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
-  ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
-translations
-  "root \<midarrow>x\<rightarrow> root'" \<rightleftharpoons> "(root, x, root') \<in> transition"
+abbreviation
+  transition_rel  ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
+  "root \<midarrow>x\<rightarrow> root' \<equiv> (root, x, root') \<in> transition"
 
 inductive transition
   intros
@@ -510,11 +508,9 @@ text {*
 consts
   transitions :: "(file \<times> operation list \<times> file) set"
 
-syntax
-  "_transitions" :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
-  ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
-translations
-  "root =xs\<Rightarrow> root'" \<rightleftharpoons> "(root, xs, root') \<in> transitions"
+abbreviation
+  transitions_rel  ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
+  "root =xs\<Rightarrow> root' \<equiv> (root, xs, root') \<in> transitions"
 
 inductive transitions
   intros

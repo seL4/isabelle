@@ -31,7 +31,7 @@ datatype 'a com =
   | Cond "'a bexp" "'a com" "'a com"
   | While "'a bexp" "'a assn" "'a com"
 
-abbreviation (output)
+abbreviation
   Skip  ("SKIP")
   "SKIP == Basic id"
 

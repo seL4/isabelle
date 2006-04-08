@@ -47,9 +47,9 @@ instance set :: (type) "{ord, minus}" ..
 
 subsection {* Additional concrete syntax *}
 
-abbreviation (output)
+abbreviation
   range :: "('a => 'b) => 'b set"             -- "of function"
-  "range f  =  f ` UNIV"
+  "range f == f ` UNIV"
 
 syntax
   "op ~:"       :: "'a => 'a set => bool"                 ("op ~:")  -- "non-membership"

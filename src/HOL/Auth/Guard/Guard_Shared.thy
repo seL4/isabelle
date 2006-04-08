@@ -19,9 +19,9 @@ declare initState.simps [simp del]
 
 subsubsection{*a little abbreviation*}
 
-syntax Ciph :: "agent => msg"
-
-translations "Ciph A X" == "Crypt (shrK A) X"
+abbreviation
+  Ciph :: "agent => msg => msg"
+  "Ciph A X == Crypt (shrK A) X"
 
 subsubsection{*agent associated to a key*}
 

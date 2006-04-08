@@ -25,9 +25,9 @@ definition
   "Church_Rosser R =
     (\<forall>x y. (x, y) \<in> (R \<union> R^-1)^* --> (\<exists>z. (x, z) \<in> R^* \<and> (y, z) \<in> R^*))"
 
-abbreviation (output)
+abbreviation
   confluent :: "('a \<times> 'a) set => bool"
-  "confluent R = diamond (R^*)"
+  "confluent R == diamond (R^*)"
 
 
 subsection {* Basic lemmas *}

@@ -163,9 +163,9 @@ locale congruent =
   fixes r and f
   assumes congruent: "(y,z) \<in> r ==> f y = f z"
 
-abbreviation (output)
+abbreviation
   RESPECTS :: "('a => 'b) => ('a * 'a) set => bool"  (infixr "respects" 80)
-  "f respects r = congruent r f"
+  "f respects r == congruent r f"
 
 
 lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. f y = c ==> (\<Union>y \<in> A. f(y))=c"
