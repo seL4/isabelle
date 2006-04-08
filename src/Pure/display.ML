@@ -190,9 +190,12 @@ fun pretty_full_theory thy =
 
     val pretty_arities = List.concat o map (fn (t, ars) => map (prt_arity t) ars);
 
-    fun pretty_const (c, (ty, rhs)) = Pretty.block
-      ([Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty] @
-        (case rhs of NONE => [] | SOME t => [Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t]));
+    fun pretty_const (c, ty) = Pretty.block
+      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
+
+    fun pretty_abbrev (c, (ty, t)) = Pretty.block
+      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty,
+        Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t];
 
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
 
@@ -205,7 +208,9 @@ fun pretty_full_theory thy =
     val tdecls = NameSpace.dest_table types;
     val arties = NameSpace.dest_table (Sign.type_space thy, arities);
     val cnsts = NameSpace.extern_table constants;
-    val cnstrs = NameSpace.extern_table constraints |> map (apsnd (rpair NONE));
+    val log_cnsts = List.mapPartial (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
+    val abbrevs = List.mapPartial (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
+    val cnstrs = NameSpace.extern_table constraints;
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
   in
@@ -219,8 +224,9 @@ fun pretty_full_theory thy =
       Pretty.big_list "syntactic types:" (List.mapPartial (pretty_type true) tdecls),
       Pretty.big_list "logical types:" (List.mapPartial (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities arties),
-      Pretty.big_list "consts:" (map pretty_const cnsts),
-      Pretty.big_list "const constraints:" (map pretty_const cnstrs),
+      Pretty.big_list "logical consts:" (map pretty_const log_cnsts),
+      Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
+      Pretty.big_list "constraints:" (map pretty_const cnstrs),
       Pretty.big_list "axioms:" (map prt_axm axms),
       Pretty.strs ("oracles:" :: (map #1 oras))]
   end;
