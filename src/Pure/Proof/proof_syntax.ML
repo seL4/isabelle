@@ -181,7 +181,7 @@ val Oraclet = Const ("Oracle", propT --> proofT);
 val MinProoft = Const ("MinProof", proofT);
 
 val mk_tyapp = Library.foldl (fn (prf, T) => Const ("Appt",
-  [proofT, itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
+  [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
 fun term_of _ (PThm ((name, _), _, _, NONE)) =
       Const (NameSpace.append "thm" name, proofT)

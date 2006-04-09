@@ -624,7 +624,7 @@ val proto_pure =
     [Const ("==", [aT, aT] ---> propT),
      Const ("==>", [propT, propT] ---> propT),
      Const ("all", (aT --> propT) --> propT),
-     Const ("TYPE", a_itselfT),
+     Const ("TYPE", Term.a_itselfT),
      Const (Term.dummy_patternN, aT)]
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT

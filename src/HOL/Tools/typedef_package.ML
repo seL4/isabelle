@@ -128,7 +128,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
     val (Rep_name, Abs_name) = if_none opt_morphs ("Rep_" ^ name, "Abs_" ^ name);
-    val setT' = map itselfT args_setT ---> setT;
+    val setT' = map Term.itselfT args_setT ---> setT;
     val setC = Term.list_comb (Const (full_name, setT'), map Logic.mk_type args_setT);
     val RepC = Const (full Rep_name, newT --> oldT);
     val AbsC = Const (full Abs_name, oldT --> newT);

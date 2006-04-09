@@ -172,7 +172,7 @@ fun dest_conjunctions t =
 
 (** types as terms **)
 
-fun mk_type ty = Const ("TYPE", itselfT ty);
+fun mk_type ty = Const ("TYPE", Term.itselfT ty);
 
 fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
   | dest_type t = raise TERM ("dest_type", [t]);
@@ -187,7 +187,7 @@ fun class_of_const c = unsuffix classN c
   handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
 
 fun mk_inclass (ty, c) =
-  Const (const_of_class c, itselfT ty --> propT) $ mk_type ty;
+  Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
 
 fun dest_inclass (t as Const (c_class, _) $ ty) =
       ((dest_type ty, class_of_const c_class)

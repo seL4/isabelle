@@ -49,7 +49,7 @@ val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);
 
 fun mk_typ T =
-  Const ("Type", itselfT T --> Type ("Type", [])) $ Logic.mk_type T;
+  Const ("Type", Term.itselfT T --> Type ("Type", [])) $ Logic.mk_type T;
 
 fun typeof_proc defaultS vs (Const ("typeof", _) $ u) =
       SOME (mk_typ (case strip_comb u of
