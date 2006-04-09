@@ -13,6 +13,7 @@ sig
   type export
   val theory_of: context -> theory
   val init: theory -> context
+  val full_name: context -> bstring -> string
   val set_body: bool -> context -> context
   val restore_body: context -> context -> context
   val assms_of: context -> term list
@@ -262,6 +263,7 @@ fun map_defaults f =
     (naming, syntax, consts, fixes, assms, binds, thms, cases, f defaults));
 
 val naming_of = #naming o rep_context;
+val full_name = NameSpace.full o naming_of;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
@@ -1032,12 +1034,12 @@ fun put_thms _ ("", NONE) ctxt = ctxt
       in (facts, index') end)
   | put_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
-        val name = NameSpace.full (naming_of ctxt) bname;
+        val name = full_name ctxt bname;
         val tab' = Symtab.delete_safe name tab;
       in ((space, tab'), index) end)
   | put_thms do_index (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
-        val name = NameSpace.full (naming_of ctxt) bname;
+        val name = full_name ctxt bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
         val tab' = Symtab.update (name, ths) tab;
         val index' = FactIndex.add_local do_index (is_known ctxt) (name, ths) index;
@@ -1112,12 +1114,8 @@ local
 
 fun gen_abbrevs prep_vars prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
   let
-    val thy = theory_of ctxt;
-    val naming = naming_of ctxt
-      |> K (mode <> "") ? (NameSpace.add_path mode #> NameSpace.no_base_names);
-
     val ([(c, _, mx)], _) = prep_vars [(raw_c, NONE, raw_mx)] ctxt;
-    val (c', b) = Syntax.mixfix_const (NameSpace.full naming c) mx;
+    val (c', b) = Syntax.mixfix_const (full_name ctxt c) mx;
     val [t] = polymorphic ctxt [prep_term (ctxt |> expand_abbrevs false) raw_t];
     val T = Term.fastype_of t;
     val _ =
@@ -1126,8 +1124,9 @@ fun gen_abbrevs prep_vars prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_
   in
     ctxt
     |> declare_term t
-    |> map_consts (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) naming mode ((c, t), b)))
-    |> map_syntax (LocalSyntax.add_syntax thy (mode, inout) [(false, (c', T, mx))])
+    |> map_consts
+      (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode ((c, t), b)))
+    |> map_syntax (LocalSyntax.add_syntax (theory_of ctxt) (mode, inout) [(false, (c', T, mx))])
   end);
 
 in
