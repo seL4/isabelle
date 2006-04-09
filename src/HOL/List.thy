@@ -44,6 +44,7 @@ consts
   replicate :: "nat => 'a => 'a list"
   rotate1 :: "'a list \<Rightarrow> 'a list"
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   sublist :: "'a list => nat set => 'a list"
 (* For efficiency *)
   mem :: "'a => 'a list => bool"    (infixl 55)
@@ -212,6 +213,11 @@ list_all2_def:
 
 sublist_def:
  "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..<size xs]))"
+
+primrec
+"splice [] ys = ys"
+"splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
+  -- {*Warning: simpset does not contain the second eqn but a derived one. *}
 
 primrec
   "x mem [] = False"
@@ -2149,6 +2155,18 @@ next
   ultimately show ?case by(simp add: sublist_Cons cong:filter_cong)
 qed
 
+
+subsubsection {* @{const splice} *}
+
+lemma splice_Nil2[simp]:
+ "splice xs [] = xs"
+by (cases xs) simp_all
+
+lemma splice_Cons_Cons[simp]:
+ "splice (x#xs) (y#ys) = x # y # splice xs ys"
+by simp
+
+declare splice.simps(2)[simp del]
 
 subsubsection{*Sets of Lists*}
 
