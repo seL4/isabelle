@@ -38,7 +38,7 @@ constdefs
   atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
   "{l..u} == {l..} Int {..u}"
 
-(* Old syntax, will disappear! *)
+(* Old syntax, no longer supported:
 syntax
   "_lessThan"    :: "('a::ord) => 'a set"	("(1{.._'(})")
   "_greaterThan" :: "('a::ord) => 'a set"	("(1{')_..})")
@@ -51,7 +51,7 @@ translations
   "{)m..n(}" => "{m<..<n}"
   "{m..n(}" => "{m..<n}"
   "{)m..n}" => "{m<..n}"
-
+*)
 
 text{* A note of warning when using @{term"{..<n}"} on type @{typ
 nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
