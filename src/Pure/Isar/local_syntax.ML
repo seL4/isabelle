@@ -21,12 +21,17 @@ end;
 structure LocalSyntax: LOCAL_SYNTAX =
 struct
 
+
 (* datatype T *)
+
+type local_mixfix =
+  ((string * bool) * string list list) *          (*name, fixed?, mixfix content*)
+  ((string * bool) * (string * typ * mixfix));    (*mode, inout?, mixfix syntax*)
 
 datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
   local_syntax: Syntax.syntax,
-  mixfixes: (((string * bool) * string list list) * (string * typ * mixfix)) list,
+  mixfixes: local_mixfix list,
   idents: string list * string list};
 
 fun make_syntax (thy_syntax, local_syntax, mixfixes, idents) =
@@ -53,9 +58,10 @@ fun build_syntax thy (mixfixes, idents as (structs, _)) =
     val (atrs, trs, trs', atrs') = Syntax.struct_trfuns structs;
     val local_syntax = thy_syntax
       |> Syntax.extend_trfuns
-         (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
-          map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
-      |> Syntax.extend_const_gram is_logtype Syntax.default_mode (map snd mixfixes)
+          (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
+           map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
+      |> fold (uncurry (Syntax.extend_const_gram is_logtype))
+          (coalesce (op =) (rev (map snd mixfixes)));
   in make_syntax (thy_syntax, local_syntax, mixfixes, idents) end;
 
 fun init thy = build_syntax thy ([], ([], []));
@@ -72,14 +78,17 @@ local
 fun mixfix_nosyn (_, (_, _, mx)) = mx = NoSyn;
 fun mixfix_struct (_, (_, _, mx)) = mx = Structure;
 
-fun mixfix_conflict (content1: string list list, ((_, content2), _)) =
-  exists (fn x => exists (fn y => x = y) content2) content1;
+fun mixfix_conflict ((content1: string list list, inout1), ((_, content2), ((_, inout2), _))) =
+  inout1 andalso inout2 andalso exists (fn x => exists (fn y => x = y) content2) content1;
 
-fun add_mixfix (fixed, (x, T, mx)) =
+fun add_mixfix (mode, inout) (fixed, (x, T, mx)) =
   let
     val content = Syntax.mixfix_content mx;
     val c = if fixed then Syntax.fixedN ^ x else x;
-  in remove mixfix_conflict content #> cons (((x, fixed), content), (c, T, mx)) end;
+  in
+    remove mixfix_conflict (content, inout) #>
+    cons (((x, fixed), content), ((mode, inout), (c, T, mx)))
+  end;
 
 fun prep_struct (fixed, (c, _, Structure)) =
       if fixed then SOME c
@@ -93,7 +102,7 @@ fun add_syntax thy prmode raw_decls (syntax as (Syntax {mixfixes, idents = (stru
     [] => syntax
   | decls =>
       let
-        val mixfixes' = mixfixes |> fold add_mixfix (filter_out mixfix_struct decls);
+        val mixfixes' = mixfixes |> fold (add_mixfix prmode) (filter_out mixfix_struct decls);
         val fixes' = fold (fn (((x, true), _), _) => cons x | _ => I) mixfixes' [];
         val structs' = structs @ List.mapPartial prep_struct decls;
       in build_syntax thy (mixfixes', (structs', fixes')) end);
