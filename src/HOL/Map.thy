@@ -15,6 +15,14 @@ begin
 types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)
 translations (type) "a ~=> b " <= (type) "a => b option"
 
+abbreviation
+  empty     ::  "'a ~=> 'b"
+  "empty == %x. None"
+
+constdefs
+  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
+  "f o_m g  == (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
+
 consts
 map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
 restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" (infixl "|`"  110)
@@ -23,16 +31,6 @@ ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
 map_upds:: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
-
-constdefs
-  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
-  "f o_m g  == (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
-
-syntax
-  empty     ::  "'a ~=> 'b"
-translations
-  "empty"    => "%_. None"
-  "empty"    <= "%x. None"
 
 nonterminals
   maplets maplet
