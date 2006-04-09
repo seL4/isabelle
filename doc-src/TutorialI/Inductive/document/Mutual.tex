@@ -26,24 +26,24 @@ natural numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isamarkupfalse%
-\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ Even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ Odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{inductive}\isamarkupfalse%
-\ even\ odd\isanewline
+\ Even\ Odd\isanewline
 \isakeyword{intros}\isanewline
-zero{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
-evenI{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
-oddI{\isacharcolon}\ \ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ odd{\isachardoublequoteclose}%
+zero{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
+EvenI{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ Odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
+OddI{\isacharcolon}\ \ {\isachardoublequoteopen}n\ {\isasymin}\ Even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Odd{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The mutually inductive definition of multiple sets is no different from
 that of a single set, except for induction: just as for mutually recursive
 datatypes, induction needs to involve all the simultaneously defined sets. In
-the above case, the induction rule is called \isa{even{\isacharunderscore}odd{\isachardot}induct}
+the above case, the induction rule is called \isa{Even{\isacharunderscore}Odd{\isachardot}induct}
 (simply concatenate the names of the sets involved) and has the conclusion
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}{\isacharquery}x\ {\isasymin}\ even\ {\isasymlongrightarrow}\ {\isacharquery}P\ {\isacharquery}x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isacharquery}y\ {\isasymin}\ odd\ {\isasymlongrightarrow}\ {\isacharquery}Q\ {\isacharquery}y{\isacharparenright}%
+\ \ \ \ \ {\isacharparenleft}{\isacharquery}x\ {\isasymin}\ Even\ {\isasymlongrightarrow}\ {\isacharquery}P\ {\isacharquery}x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isacharquery}y\ {\isasymin}\ Odd\ {\isasymlongrightarrow}\ {\isacharquery}Q\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}
 
 If we want to prove that all even numbers are divisible by two, we have to
@@ -51,7 +51,7 @@ generalize the statement as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}m\ {\isasymin}\ even\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ m{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymin}\ odd\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}{\isacharparenleft}m\ {\isasymin}\ Even\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ m{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymin}\ Odd\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -66,12 +66,12 @@ inductive definitions:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}%
+{\isacharparenleft}rule\ Even{\isacharunderscore}Odd{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ odd{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ Suc\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ n\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Mutual{\isachardot}even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Odd{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ Suc\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ n\isanewline
+\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}
 The first two subgoals are proved by simplification and the final one can be
 proved in the same manner as in \S\ref{sec:rule-induction}
