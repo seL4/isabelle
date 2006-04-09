@@ -27,12 +27,9 @@ constdefs (structure G)
 locale normal = subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier G. H #> x = x <# H)"
 
-
-syntax
-  "@normal" :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60)
-
-translations
-  "H \<lhd> G" == "normal H G"
+abbreviation
+  normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60)
+  "H \<lhd> G \<equiv> normal H G"
 
 
 subsection {*Basic Properties of Cosets*}

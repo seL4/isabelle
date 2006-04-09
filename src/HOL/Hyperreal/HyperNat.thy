@@ -13,8 +13,9 @@ begin
 
 types hypnat = "nat star"
 
-syntax hypnat_of_nat :: "nat => nat star"
-translations "hypnat_of_nat" => "star_of :: nat => nat star"
+abbreviation
+  hypnat_of_nat :: "nat => nat star"
+  "hypnat_of_nat == star_of"
 
 subsection{*Properties Transferred from Naturals*}
 

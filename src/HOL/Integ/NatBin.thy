@@ -18,7 +18,19 @@ instance nat :: number ..
 
 defs (overloaded)
   nat_number_of_def:
-     "(number_of::bin => nat) v == nat ((number_of :: bin => int) v)"
+  "(number_of::bin => nat) v == nat ((number_of :: bin => int) v)"
+
+abbreviation (xsymbols)
+  square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999)
+  "x\<twosuperior> == x^2"
+
+abbreviation (latex output)
+  square1  ("(_\<twosuperior>)" [1000] 999)
+  "square1 x == x^2"
+
+abbreviation (HTML output)
+  square2  ("(_\<twosuperior>)" [1000] 999)
+  "square2 x == x^2"
 
 
 subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}

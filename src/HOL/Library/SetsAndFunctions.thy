@@ -58,21 +58,15 @@ constdefs
   elt_set_times :: "'a::times => 'a set => 'a set"  (infixl "*o" 80)
   "a *o B == {c. EX b:B. c = a * b}"
 
-syntax
-  "elt_set_eq" :: "'a => 'a set => bool"      (infix "=o" 50)
-
-translations
-  "x =o A" => "x : A"
+abbreviation (inout)
+  elt_set_eq :: "'a => 'a set => bool"      (infix "=o" 50)
+  "x =o A == x : A"
 
 instance fun :: (type,semigroup_add)semigroup_add
-  apply intro_classes
-  apply (auto simp add: func_plus add_assoc)
-done
+  by default (auto simp add: func_plus add_assoc)
 
 instance fun :: (type,comm_monoid_add)comm_monoid_add
-  apply intro_classes
-  apply (auto simp add: func_zero func_plus add_ac)
-done
+  by default (auto simp add: func_zero func_plus add_ac)
 
 instance fun :: (type,ab_group_add)ab_group_add
   apply intro_classes
@@ -350,7 +344,8 @@ lemma set_times_plus_distrib3: "((a::'a::semiring) +o C) * D <=
   apply auto
 done
 
-theorems set_times_plus_distribs = set_times_plus_distrib
+theorems set_times_plus_distribs =
+  set_times_plus_distrib
   set_times_plus_distrib2
 
 lemma set_neg_intro: "(a::'a::ring_1) : (- 1) *o C ==> 

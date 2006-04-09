@@ -11,21 +11,19 @@ begin
 
 axclass even_odd < type
 
-instance int :: even_odd ..
-instance nat :: even_odd ..
-
 consts
   even :: "'a::even_odd => bool"
 
-syntax 
-  odd :: "'a::even_odd => bool"
-
-translations 
-  "odd x" == "~even x" 
+instance int :: even_odd ..
+instance nat :: even_odd ..
 
 defs (overloaded)
   even_def: "even (x::int) == x mod 2 = 0"
   even_nat_def: "even (x::nat) == even (int x)"
+
+abbreviation
+  odd :: "'a::even_odd => bool"
+  "odd x == \<not> even x"
 
 
 subsection {* Even and odd are mutually exclusive *}

@@ -50,12 +50,12 @@ abbreviation
   "x ~= y == ~ (x = y)"
 
 abbreviation (xsymbols)
-  not_equal     :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
+  not_equal1  (infixl "\<noteq>" 50)
   "x \<noteq> y == ~ (x = y)"
 
 abbreviation (HTML output)
-  not_equal     :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
-  "not_equal == xsymbols.not_equal"
+  not_equal2  (infixl "\<noteq>" 50)
+  "not_equal2 == not_equal"
 
 syntax (xsymbols)
   Not           :: "o => o"                     ("\<not> _" [40] 40)

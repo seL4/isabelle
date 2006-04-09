@@ -229,7 +229,7 @@ abbreviation
   "s =e> t == (s, t) \<in> par_eta"
 
 abbreviation (xsymbols)
-  par_eta_red :: "[dB, dB] => bool"   (infixl "\<Rightarrow>\<^sub>\<eta>" 50)
+  par_eta_red1 :: "[dB, dB] => bool"   (infixl "\<Rightarrow>\<^sub>\<eta>" 50)
   "op \<Rightarrow>\<^sub>\<eta> == op =e>"
 
 inductive par_eta

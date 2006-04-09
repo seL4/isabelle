@@ -93,10 +93,9 @@ constdefs
   Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"    (binder "\<exists>" 10)
   "Ex \<equiv> \<lambda>P. \<forall>C. (\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
 
-syntax
-  "_not_equal" :: "'a \<Rightarrow> 'a \<Rightarrow> o"    (infixl "\<noteq>" 50)
-translations
-  "x \<noteq> y"  \<rightleftharpoons>  "\<not> (x = y)"
+abbreviation
+  not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"    (infixl "\<noteq>" 50)
+  "x \<noteq> y \<equiv> \<not> (x = y)"
 
 theorem falseE [elim]: "\<bottom> \<Longrightarrow> A"
 proof (unfold false_def)

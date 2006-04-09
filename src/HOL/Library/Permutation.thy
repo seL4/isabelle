@@ -11,10 +11,9 @@ begin
 consts
   perm :: "('a list * 'a list) set"
 
-syntax
-  "_perm" :: "'a list => 'a list => bool"    ("_ <~~> _"  [50, 50] 50)
-translations
-  "x <~~> y" == "(x, y) \<in> perm"
+abbreviation
+  perm_rel :: "'a list => 'a list => bool"    ("_ <~~> _"  [50, 50] 50)
+  "x <~~> y == (x, y) \<in> perm"
 
 inductive perm
   intros

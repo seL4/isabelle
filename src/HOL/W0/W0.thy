@@ -382,11 +382,9 @@ text {* Type inference rules. *}
 consts
   has_type :: "(typ list \<times> expr \<times> typ) set"
 
-syntax
-  "_has_type" :: "typ list \<Rightarrow> expr \<Rightarrow> typ \<Rightarrow> bool"
-    ("((_) |-/ (_) :: (_))" [60, 0, 60] 60)
-translations
-  "a |- e :: t" == "(a, e, t) \<in> has_type"
+abbreviation
+  has_type_rel  ("((_) |-/ (_) :: (_))" [60, 0, 60] 60)
+  "a |- e :: t == (a, e, t) \<in> has_type"
 
 inductive has_type
   intros

@@ -14,8 +14,9 @@ begin
 
 types hypreal = "real star"
 
-syntax hypreal_of_real :: "real => real star"
-translations "hypreal_of_real" => "star_of :: real => real star"
+abbreviation
+  hypreal_of_real :: "real => real star"
+  "hypreal_of_real == star_of"
 
 constdefs
 

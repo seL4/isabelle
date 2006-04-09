@@ -63,9 +63,9 @@ abbreviation
   "s ->> t == (s, t) \<in> beta^*"
 
 abbreviation (latex)
-  beta_red :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+  beta_red1 :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   "op \<rightarrow>\<^sub>\<beta> == op ->"
-  beta_reds :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
+  beta_reds1 :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
   "op \<rightarrow>\<^sub>\<beta>\<^sup>* == op ->>"
 
 inductive beta
