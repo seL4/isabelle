@@ -544,9 +544,6 @@ subsection {* Initializing the fixrec package *}
 
 use "fixrec_package.ML"
 
-setup {*
-  Theory.hide_consts_i false
-    ["Fixrec.return", "Fixrec.bind", "Fixrec.fail"]
-*}
+hide (open) const return bind fail
 
 end
