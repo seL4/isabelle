@@ -84,8 +84,6 @@ sig
   structure Vartab: TABLE
   structure Typtab: TABLE
   structure Termtab: TABLE
-  val itselfT: typ -> typ
-  val a_itselfT: typ
   val propT: typ
   val implies: term
   val all: typ -> term
@@ -162,6 +160,9 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val aT: sort -> typ
+  val itselfT: typ -> typ
+  val a_itselfT: typ
   val argument_type_of: term -> typ
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
@@ -694,6 +695,8 @@ end;
 
 
 (** Connectives of higher order logic **)
+
+fun aT S = TFree ("'a", S);
 
 fun itselfT ty = Type ("itself", [ty]);
 val a_itselfT = itselfT (TFree ("'a", []));
