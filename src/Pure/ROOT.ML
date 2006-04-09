@@ -66,15 +66,6 @@ use "Thy/thy_info.ML";
 (*theory syntax*)
 use "Isar/outer_lex.ML";
 
-(*theory presentation*)
-use "Thy/html.ML";
-use "Thy/latex.ML";
-use "Thy/present.ML";
-use "Thy/thm_deps.ML";
-
-(*theorem database ML interface*)
-use "Thy/thm_database.ML";
-
 (*the Isar system*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 

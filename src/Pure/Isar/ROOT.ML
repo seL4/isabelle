@@ -5,13 +5,22 @@
 Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 *)
 
-(*basic proof engine*)
+(*proof context*)
 use "object_logic.ML";
 use "rule_cases.ML";
 use "auto_bind.ML";
 use "local_syntax.ML";
 use "proof_context.ML";
 use "local_defs.ML";
+
+(*theory presentation*)
+use "../Thy/html.ML";
+use "../Thy/latex.ML";
+use "../Thy/present.ML";
+use "../Thy/thm_deps.ML";
+use "../Thy/thm_database.ML";
+
+(*basic proof engine*)
 use "proof_display.ML";
 use "args.ML";
 use "attrib.ML";
