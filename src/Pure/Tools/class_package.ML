@@ -330,14 +330,11 @@ fun add_locale_i opn name expr body thy =
 fun add_axclass_i (name, supsort) axs thy =
   let
     fun rearrange_axioms ((name, atts), ts) =
-      map (rpair atts o pair "") ts
-  in
-    thy
-    |> AxClass.add_axclass_i (name, supsort)
-          ((Library.flat o map rearrange_axioms) axs)
-    |-> (fn { intro, axioms } =>
-              pair (Sign.full_name thy name, (intro, axioms)))
-  end;
+      map (rpair atts o pair "") ts;
+    val (c, thy') = thy
+      |> AxClass.add_axclass_i (name, supsort) ((Library.flat o map rearrange_axioms) axs);
+    val {intro, axioms, ...} = AxClass.get_info thy' c;
+  in ((c, (intro, axioms)), thy') end;
 
 fun prove_interpretation_i (prfx, atts) expr insts tac thy =
   let
