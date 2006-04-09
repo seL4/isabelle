@@ -126,9 +126,9 @@ fun with_modes modes e =
 fun set_limit _ NONE = ()
   | set_limit r (SOME n) = r := n;
 
-fun pr (ms, (lim1, lim2)) = Toplevel.keep (fn state =>
+fun pr (modes, (lim1, lim2)) = Toplevel.keep (fn state =>
   (set_limit goals_limit lim1; set_limit ProofContext.prems_limit lim2; Toplevel.quiet := false;
-    with_modes ms (fn () => Toplevel.print_state true state)));
+    with_modes modes (fn () => Toplevel.print_state true state)));
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
 val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
@@ -240,8 +240,9 @@ val print_theorems = Toplevel.unknown_theory o print_theorems_theory o print_the
 val print_locales = Toplevel.unknown_theory o
   Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
 
-fun print_locale (show_facts, (import, body)) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  Locale.print_locale (Toplevel.theory_of state) show_facts import body);
+fun print_locale (show_facts, (import, body)) = Toplevel.unknown_theory o
+  Toplevel.keep (fn state =>
+    Locale.print_locale (Toplevel.theory_of state) show_facts import body);
 
 fun print_registrations show_wits name = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case (Locale.print_global_registrations show_wits name)
@@ -297,16 +298,18 @@ val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
 
 (* print theorems, terms, types etc. *)
 
-fun string_of_stmts state ms args = with_modes ms (fn () =>
+local
+
+fun string_of_stmts state args =
   Proof.get_thmss state args
   |> map (Element.pretty_statement (Proof.context_of state) PureThy.lemmaK)
-  |> Pretty.chunks2 |> Pretty.string_of);
+  |> Pretty.chunks2 |> Pretty.string_of;
 
-fun string_of_thms state ms args = with_modes ms (fn () =>
+fun string_of_thms state args =
   Pretty.string_of (ProofContext.pretty_thms (Proof.context_of state)
-    (Proof.get_thmss state args)));
+    (Proof.get_thmss state args));
 
-fun string_of_prfs full state ms arg = with_modes ms (fn () =>
+fun string_of_prfs full state arg =
   Pretty.string_of (case arg of
       NONE =>
         let
@@ -320,42 +323,44 @@ fun string_of_prfs full state ms arg = with_modes ms (fn () =>
         end
     | SOME args => Pretty.chunks
         (map (ProofContext.pretty_proof_of (Proof.context_of state) full)
-          (Proof.get_thmss state args))));
+          (Proof.get_thmss state args)));
 
-fun string_of_prop state ms s =
+fun string_of_prop state s =
   let
     val ctxt = Proof.context_of state;
     val prop = ProofContext.read_prop ctxt s;
-  in
-    with_modes ms (fn () => Pretty.string_of (Pretty.quote (ProofContext.pretty_term ctxt prop)))
-  end;
+  in Pretty.string_of (Pretty.quote (ProofContext.pretty_term ctxt prop)) end;
 
-fun string_of_term state ms s =
+fun string_of_term state s =
   let
     val ctxt = Proof.context_of state;
     val t = ProofContext.read_term ctxt s;
     val T = Term.type_of t;
   in
-    with_modes ms (fn () => Pretty.string_of
+    Pretty.string_of
       (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)])
   end;
 
-fun string_of_type state ms s =
+fun string_of_type state s =
   let
     val ctxt = Proof.context_of state;
     val T = ProofContext.read_typ ctxt s;
-  in with_modes ms (fn () => Pretty.string_of (Pretty.quote (ProofContext.pretty_typ ctxt T))) end;
+  in Pretty.string_of (Pretty.quote (ProofContext.pretty_typ ctxt T)) end;
 
-fun print_item string_of (x, y) = Toplevel.keep (fn state =>
-  writeln (string_of (Toplevel.enter_forward_proof state) x y));
+fun print_item string_of (modes, arg) = Toplevel.keep (fn state => with_modes modes (fn () =>
+  writeln (string_of (Toplevel.enter_forward_proof state) arg)));
+
+in
 
 val print_stmts = print_item string_of_stmts;
 val print_thms = print_item string_of_thms;
-fun print_prfs full = print_item (string_of_prfs full);
+val print_prfs = print_item o string_of_prfs;
 val print_prop = print_item string_of_prop;
 val print_term = print_item string_of_term;
 val print_type = print_item string_of_type;
+
+end;
 
 
 (* markup commands *)
