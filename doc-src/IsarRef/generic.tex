@@ -663,10 +663,11 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
 \end{rail}
 
 \begin{descr}
-
-\item [$unfold~\vec a$ and $fold~\vec a$] expand (or fold back again) the
-  given meta-level definitions throughout all goals; any chained facts
-  provided are inserted into the goal and subject to rewriting as well.
+  
+\item [$unfold~\vec a$ and $fold~\vec a$] expand (or fold back again)
+  the given definitions throughout all goals; any chained facts
+  provided are inserted into the goal and subject to rewriting as
+  well.
 
 \item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
   state.  Note that current facts indicated for forward chaining are ignored.
@@ -733,9 +734,9 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   specified); the $COMP$ version skips the automatic lifting process that is
   normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
-
-\item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back again the
-  given meta-level definitions throughout a rule.
+  
+\item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back
+  again the given definitions throughout a rule.
 
 \item [$elim_format$] turns a destruction rule into elimination rule format,
   by resolving with the rule $\PROP A \Imp (\PROP A \Imp \PROP B) \Imp \PROP
