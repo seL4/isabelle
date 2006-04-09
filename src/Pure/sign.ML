@@ -766,19 +766,17 @@ local
 
 fun gen_abbrevs prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
   let
-    val naming = naming_of thy
-      |> K (mode <> "") ? (NameSpace.add_path mode #> NameSpace.no_base_names);
     val prep_tm =
       Compress.term thy o Logic.varify o no_vars (pp thy) o Term.no_dummy_patterns o prep_term thy;
 
     val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-    val (c', b) = Syntax.mixfix_const (NameSpace.full naming c) mx;
+    val (c', b) = Syntax.mixfix_const (full_name thy c) mx;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val T = Term.fastype_of t;
   in
     thy
-    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) naming mode ((c, t), b))
+    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), b))
     |> map_syn (Syntax.extend_consts [c])
     |> add_modesyntax_i (mode, inout) [(c', T, mx)]
   end);
