@@ -137,6 +137,7 @@ sig
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list -> 'a list list -> 'a list list
   val product: 'a list -> 'b list -> ('a * 'b) list
+  val coalesce: ('a * 'a -> bool) -> ('a * 'b) list -> ('a * 'b list) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
@@ -689,6 +690,19 @@ fun multiply [] _ = []
 fun product _ [] = []
   | product [] _ = []
   | product (x :: xs) ys = map (pair x) ys @ product xs ys;
+
+(*coalesce ranges of equal keys*)
+fun coalesce eq =
+  let
+    fun vals _ [] = ([], [])
+      | vals x (lst as (y, b) :: ps) =
+          if eq (x, y) then vals x ps |>> cons b
+          else ([], lst);
+    fun coal [] = []
+      | coal ((x, a) :: ps) =
+          let val (bs, qs) = vals x ps
+          in (x, a :: bs) :: coal qs end;
+  in coal end;
 
 
 (* filter *)
