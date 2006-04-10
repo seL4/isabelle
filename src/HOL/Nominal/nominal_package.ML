@@ -552,7 +552,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
             (rtac exI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac rep_intrs 1))) thy |> (fn (thy, r) =>
+              (resolve_tac rep_intrs 1))) thy |> (fn (r, thy) =>
         let
           val permT = mk_permT (TFree (variant tvs "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
