@@ -117,7 +117,7 @@ structure AxClassData = TheoryDataFun
   val name = "Pure/axclass";
   type T = axclass Symtab.table * instances;
 
-  val empty = (Symtab.empty, make_instances (Graph.empty, [], []));
+  val empty = (Symtab.empty, make_instances (Graph.empty, [], [])) : T;
   val copy = I;
   val extend = I;
 
