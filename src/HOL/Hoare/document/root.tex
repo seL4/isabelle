@@ -1,0 +1,42 @@
+
+% $Id$
+
+\documentclass[11pt,a4paper]{report}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{isabelle,isabellesym}
+\usepackage{pdfsetup}
+
+\urlstyle{rm}
+\isabellestyle{it}
+
+\renewcommand{\isamarkupheader}[1]{#1}
+
+\begin{document}
+
+\title{Hoare Logic}
+\author{Various}
+\maketitle
+
+\begin{abstract}
+These theories contain a Hoare logic for a simple imperative
+programming language with while-loops, including a verification
+condition generator.
+
+Special infrastructure for modelling and reasoning about pointer
+programs is provided, together with many examples, including Schorr-Waite.
+See \cite{MehtaN-CADE03,MehtaN-IC05} for an excellent exposition.
+\end{abstract}
+
+\pagestyle{plain}
+\thispagestyle{empty}
+\tableofcontents
+
+\newpage
+
+\input{session}
+
+\bibliographystyle{plain}
+\bibliography{root}
+
+\end{document}
