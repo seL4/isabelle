@@ -6,6 +6,8 @@
 signature FSPMLP = 
 sig
     type linprog
+    type vector = FloatSparseMatrixBuilder.vector
+    type matrix = FloatSparseMatrixBuilder.matrix
 
     val y : linprog -> cterm
     val A : linprog -> cterm * cterm
@@ -21,6 +23,9 @@ end
 
 structure fspmlp : FSPMLP = 
 struct
+
+type vector = FloatSparseMatrixBuilder.vector
+type matrix = FloatSparseMatrixBuilder.matrix
 
 type linprog = cterm * (cterm * cterm) * cterm * (cterm * cterm) * cterm * (cterm * cterm)
 
@@ -314,6 +319,7 @@ fun load filename prec safe_propagation =
 	val c = FloatSparseMatrixBuilder.approx_matrix prec id c
     in
 	(y1, A, b2, c, r, (r1, r2))
-    end handle CplexFloatSparseMatrixConverter.Converter s => (raise (Load ("Converter: "^s)))
+    end handle CplexFloatSparseMatrixConverter.Converter s => (raise (Load ("Converter: "^s)))	
+
 
 end

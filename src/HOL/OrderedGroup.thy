@@ -854,6 +854,12 @@ lemma pprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> pprt a 
 lemma nprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a <= nprt b"
   by (simp add: le_def_meet nprt_def meet_aci)
 
+lemma pprt_neg: "pprt (-x) = - nprt x"
+  by (simp add: pprt_def nprt_def)
+
+lemma nprt_neg: "nprt (-x) = - pprt x"
+  by (simp add: pprt_def nprt_def)
+
 lemma iff2imp: "(A=B) \<Longrightarrow> (A \<Longrightarrow> B)"
 by (simp)
 
@@ -1027,6 +1033,8 @@ lemmas diff_le_0_iff_le = le_iff_diff_le_0 [symmetric]
 declare diff_less_0_iff_less [simp]
 declare diff_eq_0_iff_eq [simp]
 declare diff_le_0_iff_le [simp]
+
+
 
 
 ML {*

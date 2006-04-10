@@ -3,7 +3,7 @@
     Author:     Steven Obua
 *)
 
-theory SparseMatrix imports Matrix begin
+theory SparseMatrix imports Matrix LP begin
 
 types 
   'a spvec = "(nat * 'a) list"

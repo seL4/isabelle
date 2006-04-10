@@ -6,6 +6,7 @@
 signature MATRIX_LP = 
 sig
   val lp_dual_estimate_prt : string -> int -> thm 
+  val lp_dual_estimate_prt_primitive : cterm * (cterm * cterm) * (cterm * cterm) * cterm * (cterm * cterm) -> thm
   val matrix_compute : cterm -> thm
   val matrix_simplify : thm -> thm
   val prove_bound : string -> int -> thm
@@ -20,21 +21,27 @@ val sg = sign_of (theory "MatrixLP")
 fun inst_real thm = standard (Thm.instantiate ([(ctyp_of sg (TVar (hd (term_tvars (prop_of thm)))),
 						 ctyp_of sg HOLogic.realT)], []) thm)
 
-fun lp_dual_estimate_prt lptfile prec = 
+fun lp_dual_estimate_prt_primitive (y, (A1, A2), (c1, c2), b, (r1, r2)) = 
     let
 	val th = inst_real (thm "SparseMatrix.spm_mult_le_dual_prts_no_let")
-	val (y, (A1, A2), (c1, c2), b, (r1, r2)) = 
+	fun var s x = (cterm_of sg (Var ((s,0), FloatSparseMatrixBuilder.real_spmatT)), x)
+	val th = Thm.instantiate ([], [var "A1" A1, var "A2" A2, var "y" y, var "c1" c1, var "c2" c2, 
+				       var "r1" r1, var "r2" r2, var "b" b]) th
+    in
+	th
+    end
+
+fun lp_dual_estimate_prt lptfile prec = 
+    let
+	val certificate = 
 	    let
 		open fspmlp
 		val l = load lptfile prec false
 	    in
 		(y l, A l, c l, b l, r12 l)
 	    end		
-	fun var s x = (cterm_of sg (Var ((s,0), FloatSparseMatrixBuilder.real_spmatT)), x)
-	val th = Thm.instantiate ([], [var "A1" A1, var "A2" A2, var "y" y, var "c1" c1, var "c2" c2, 
-				       var "r1" r1, var "r2" r2, var "b" b]) th
     in
-	th
+	lp_dual_estimate_prt_primitive certificate
     end
 	 
 fun read_ct s = read_cterm sg (s, TypeInfer.logicT);

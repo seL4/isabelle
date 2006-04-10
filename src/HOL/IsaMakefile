@@ -672,7 +672,7 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML \
 HOL-Complex-Matrix: HOL-Complex $(OUT)/HOL-Complex-Matrix
 
 $(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex \
-  Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy \
+  Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy \
   Matrix/document/root.tex Matrix/ROOT.ML \
   Matrix/cplex/Cplex.thy Matrix/cplex/CplexMatrixConverter.ML \
   Matrix/cplex/Cplex_tools.ML Matrix/cplex/FloatSparseMatrix.thy \

@@ -116,12 +116,10 @@ apply (rule allI, rule impI)
 apply (drule spec, erule mp, blast) 
 done
 
-
 text{*Transitivity of WF combinators.*}
 lemma trans_lex_prod [intro!]: 
     "[| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)"
 by (unfold trans_def lex_prod_def, blast) 
-
 
 subsubsection{*Wellfoundedness of proper subset on finite sets.*}
 lemma wf_finite_psubset: "wf(finite_psubset)"
