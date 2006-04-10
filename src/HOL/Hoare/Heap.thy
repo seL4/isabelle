@@ -58,6 +58,30 @@ lemma Path_snoc:
 by simp
 
 
+subsection "Non-repeating paths"
+
+constdefs
+  distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
+  "distPath h x as y   \<equiv>   Path h x as y  \<and>  distinct as"
+
+text{* The term @{term"distPath h x as y"} expresses the fact that a
+non-repeating path @{term as} connects location @{term x} to location
+@{term y} by means of the @{term h} field. In the case where @{text "x
+= y"}, and there is a cycle from @{term x} to itself, @{term as} can
+be both @{term "[]"} and the non-repeating list of nodes in the
+cycle. *}
+
+lemma neq_dP: "p \<noteq> q \<Longrightarrow> Path h p Ps q \<Longrightarrow> distinct Ps \<Longrightarrow>
+ EX a Qs. p = Ref a & Ps = a#Qs & a \<notin> set Qs"
+by (case_tac Ps, auto)
+
+
+lemma neq_dP_disp: "\<lbrakk> p \<noteq> q; distPath h p Ps q \<rbrakk> \<Longrightarrow>
+ EX a Qs. p = Ref a \<and> Ps = a#Qs \<and> a \<notin> set Qs"
+apply (simp only:distPath_def)
+by (case_tac Ps, auto)
+
+
 subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
@@ -104,6 +128,13 @@ lemma List_distinct[simp]: "\<And>x. List h x as \<Longrightarrow> distinct as"
 apply(induct as, simp)
 apply(fastsimp dest:List_hd_not_in_tl)
 done
+
+lemma Path_is_List:
+  "\<lbrakk>Path h b Ps (Ref a); a \<notin> set Ps\<rbrakk> \<Longrightarrow> List (h(a := Null)) b (Ps @ [a])"
+apply (induct Ps fixing: b)
+apply (auto simp add:fun_upd_apply)
+done
+
 
 subsection "Functional abstraction"
 

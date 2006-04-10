@@ -402,6 +402,85 @@ done
 
 text"The proof is automatic, but requires a numbet of special lemmas."
 
+
+subsection "Cyclic list reversal"
+
+
+text{* We consider two algorithms for the reversal of circular lists.
+*}
+
+lemma circular_list_rev_I:
+  "VARS next root p q tmp
+  {root = Ref r \<and> distPath next root (r#Ps) root}
+  p := root; q := root^.next;
+  WHILE q \<noteq> root
+  INV {\<exists> ps qs. distPath next p ps root \<and> distPath next q qs root \<and> 
+             root = Ref r \<and> r \<notin> set Ps  \<and> set ps \<inter> set qs = {} \<and> 
+             Ps = (rev ps) @ qs  }
+  DO tmp := q; q := q^.next; tmp^.next := p; p:=tmp OD;
+  root^.next := p
+  { root = Ref r \<and> distPath next root (r#rev Ps) root}"
+apply (simp only:distPath_def)
+apply vcg_simp
+  apply (rule_tac x="[]" in exI)
+  apply auto
+ apply (drule (2) neq_dP)
+ apply clarsimp
+ apply(rule_tac x="a # ps" in exI)
+apply clarsimp
+done
+
+text{* In the beginning, we are able to assert @{term"distPath next
+root as root"}, with @{term"as"} set to @{term"[]"} or
+@{term"[r,a,b,c]"}. Note that @{term"Path next root as root"} would
+additionally give us an infinite number of lists with the recurring
+sequence @{term"[r,a,b,c]"}.
+
+The precondition states that there exists a non-empty non-repeating
+path \mbox{@{term "r # Ps"}} from pointer @{term root} to itself, given that
+@{term root} points to location @{term r}. Pointers @{term p} and
+@{term q} are then set to @{term root} and the successor of @{term
+root} respectively. If @{term "q = root"}, we have circled the loop,
+otherwise we set the @{term next} pointer field of @{term q} to point
+to @{term p}, and shift @{term p} and @{term q} one step forward. The
+invariant thus states that @{term p} and @{term q} point to two
+disjoint lists @{term ps} and @{term qs}, such that @{term"Ps = rev ps
+@ qs"}. After the loop terminates, one
+extra step is needed to close the loop. As expected, the postcondition
+states that the @{term distPath} from @{term root} to itself is now
+@{term "r # (rev Ps)"}.
+
+It may come as a surprise to the reader that the simple algorithm for
+acyclic list reversal, with modified annotations, works for cyclic
+lists as well: *}
+
+
+lemma circular_list_rev_II:
+"VARS next p q tmp
+{p = Ref r \<and> distPath next p (r#Ps) p}
+q:=Null;
+WHILE p \<noteq> Null
+INV
+{ ((q = Null) \<longrightarrow> (\<exists>ps. distPath next p (ps) (Ref r) \<and> ps = r#Ps)) \<and>
+  ((q \<noteq> Null) \<longrightarrow> (\<exists>ps qs. distPath next q (qs) (Ref r) \<and> List next p ps  \<and>
+                   set ps \<inter> set qs = {} \<and> rev qs @ ps = Ps@[r])) \<and>
+  \<not> (p = Null \<and> q = Null) }
+DO tmp := p; p := p^.next; tmp^.next := q; q:=tmp OD
+{q = Ref r \<and> distPath next q (r # rev Ps) q}"
+apply (simp only:distPath_def)
+apply vcg_simp
+  apply clarsimp
+  apply clarsimp
+ apply (case_tac "(q = Null)")
+  apply (fastsimp intro: Path_is_List)
+ apply clarsimp
+ apply (rule_tac x= "bs" in exI)
+ apply (rule_tac x= "y # qs" in exI)
+ apply clarsimp
+apply (auto simp:fun_upd_apply)
+done
+
+
 subsection "Storage allocation"
 
 constdefs new :: "'a set \<Rightarrow> 'a"
