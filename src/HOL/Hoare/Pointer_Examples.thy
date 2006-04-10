@@ -181,6 +181,35 @@ apply vcg_simp
 apply clarsimp
 done
 
+subsection "Splicing two lists"
+
+lemma "VARS tl p q pp qq
+  {List tl p Ps \<and> List tl q Qs \<and> set Ps \<inter> set Qs = {} \<and> size Qs \<le> size Ps}
+  pp := p;
+  WHILE q \<noteq> Null
+  INV {\<exists>as bs qs.
+    distinct as \<and> Path tl p as pp \<and> List tl pp bs \<and> List tl q qs \<and>
+    set bs \<inter> set qs = {} \<and> set as \<inter> (set bs \<union> set qs) = {} \<and>
+    size qs \<le> size bs \<and> splice Ps Qs = as @ splice bs qs}
+  DO qq := q^.tl; q^.tl := pp^.tl; pp^.tl := q; pp := q^.tl; q := qq OD
+  {List tl p (splice Ps Qs)}"
+apply vcg_simp
+  apply(rule_tac x = "[]" in exI)
+  apply fastsimp
+ apply clarsimp
+ apply(rename_tac y bs qqs)
+ apply(case_tac bs) apply simp
+ apply clarsimp
+ apply(rename_tac x bbs)
+ apply(rule_tac x = "as @ [x,y]" in exI)
+ apply simp
+ apply(rule_tac x = "bbs" in exI)
+ apply simp
+ apply(rule_tac x = "qqs" in exI)
+ apply simp
+apply (fastsimp simp:List_app)
+done
+
 
 subsection "Merging two lists"
 
