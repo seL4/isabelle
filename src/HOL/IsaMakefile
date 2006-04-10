@@ -339,7 +339,8 @@ $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.ML Hoare/Arith2.thy \
   Hoare/Heap.thy Hoare/HeapSyntax.thy Hoare/Pointer_Examples.thy \
   Hoare/ROOT.ML Hoare/ExamplesAbort.thy  Hoare/HeapSyntaxAbort.thy \
   Hoare/hoareAbort.ML Hoare/HoareAbort.thy Hoare/SchorrWaite.thy \
-  Hoare/Separation.thy Hoare/SepLogHeap.thy
+  Hoare/Separation.thy Hoare/SepLogHeap.thy \
+  Hoare/document/root.tex Hoare/document/root.bib
 	@$(ISATOOL) usedir $(OUT)/HOL Hoare
 
 
@@ -356,7 +357,7 @@ $(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy \
   HoareParallel/RG_Com.thy HoareParallel/RG_Examples.thy	   \
   HoareParallel/RG_Hoare.thy HoareParallel/RG_Syntax.thy	   \
   HoareParallel/RG_Tran.thy HoareParallel/ROOT.ML		   \
-  HoareParallel/document/root.tex
+  HoareParallel/document/root.tex HoareParallel/document/root.bib
 	@$(ISATOOL) usedir -g true $(OUT)/HOL HoareParallel
 
 
