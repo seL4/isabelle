@@ -22,7 +22,6 @@ sig
   val class_eq: classes -> class * class -> bool
   val class_less: classes -> class * class -> bool
   val class_le: classes -> class * class -> bool
-  val superclasses: classes -> class -> class list
   val sort_eq: classes -> sort * sort -> bool
   val sort_le: classes -> sort * sort -> bool
   val sorts_le: classes -> sort list * sort list -> bool
@@ -105,8 +104,6 @@ type arities = (class * sort list) list Symtab.table;
 fun class_eq (_: classes) (c1, c2:class) = c1 = c2;
 val class_less: classes -> class * class -> bool = Graph.is_edge;
 fun class_le classes (c1, c2) = c1 = c2 orelse class_less classes (c1, c2);
-
-val superclasses = Graph.imm_succs
 
 
 (* sorts *)
