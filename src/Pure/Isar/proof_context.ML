@@ -26,6 +26,8 @@ sig
   val pretty_term: context -> term -> Pretty.T
   val pretty_typ: context -> typ -> Pretty.T
   val pretty_sort: context -> sort -> Pretty.T
+  val pretty_classrel: context -> class list -> Pretty.T
+  val pretty_arity: context -> arity -> Pretty.T
   val pp: context -> Pretty.pp
   val pretty_thm: context -> thm -> Pretty.T
   val pretty_thms: context -> thm list -> Pretty.T
