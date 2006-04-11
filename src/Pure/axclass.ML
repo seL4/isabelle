@@ -2,77 +2,51 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Axiomatic type classes: pure logical content.
+Axiomatic type classes.
 *)
 
 signature AX_CLASS =
 sig
-  val mk_classrel: class * class -> term
-  val dest_classrel: term -> class * class
-  val mk_arity: string * sort list * class -> term
-  val mk_arities: string * sort list * sort -> term list
-  val dest_arity: term -> string * sort list * class
   val print_axclasses: theory -> unit
   val get_info: theory -> class -> {super_classes: class list, intro: thm, axioms: thm list}
   val get_instances: theory ->
-    {classrel: unit Graph.T, subsorts: ((sort * sort) * thm) list, arities: (arity * thm) list}
+   {classes: unit Graph.T,
+    classrel: ((class * class) * thm) list,
+    arities: ((string * sort list * class) * thm) list}
   val class_intros: theory -> thm list
-  val add_axclass: bstring * xstring list -> ((bstring * string) * Attrib.src list) list ->
-    theory -> class * theory
-  val add_axclass_i: bstring * class list -> ((bstring * term) * attribute list) list ->
-    theory -> class * theory
-  val add_classrel: thm list -> theory -> theory
-  val add_arity: thm list -> theory -> theory
-  val prove_subclass: class * class -> tactic -> theory -> theory
+  val add_axclass: bstring * xstring list -> string list ->
+    ((bstring * string) * Attrib.src list) list -> theory -> class * theory
+  val add_axclass_i: bstring * class list -> string list ->
+    ((bstring * term) * attribute list) list -> theory -> class * theory
+  val params_of_sort: theory -> sort -> string list
+  val cert_classrel: theory -> class * class -> class * class
+  val read_classrel: theory -> xstring * xstring -> class * class
+  val add_classrel: thm -> theory -> theory
+  val add_arity: thm -> theory -> theory
+  val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
 end;
 
 structure AxClass: AX_CLASS =
 struct
 
-
-(** abstract syntax operations **)
-
-(* subclass propositions *)
-
-fun mk_classrel (c1, c2) = Logic.mk_inclass (Term.aT [c1], c2);
-
-fun dest_classrel tm =
-  let
-    fun err () = raise TERM ("AxClass.dest_classrel", [tm]);
-
-    val (ty, c2) = Logic.dest_inclass tm handle TERM _ => err ();
-    val c1 = (case dest_TVar ty of (_, [c]) => c | _ => err ())
-      handle TYPE _ => err ();
-  in (c1, c2) end;
-
-
-(* arity propositions *)
-
-fun mk_arity (t, Ss, c) =
-  let
-    val tfrees = ListPair.map TFree (Term.invent_names [] "'a" (length Ss), Ss);
-  in Logic.mk_inclass (Type (t, tfrees), c) end;
-
-fun mk_arities (t, Ss, S) = map (fn c => mk_arity (t, Ss, c)) S;
-
-fun dest_arity tm =
-  let
-    fun err () = raise TERM ("AxClass.dest_arity", [tm]);
-
-    val (ty, c) = Logic.dest_inclass tm handle TERM _ => err ();
-    val (t, tvars) =
-      (case ty of
-        Type (t, tys) => (t, map dest_TVar tys handle TYPE _ => err ())
-      | _ => err ());
-    val ss =
-      if has_duplicates (eq_fst (op =)) tvars then err ()
-      else map snd tvars;
-  in (t, ss, c) end;
-
-
-
 (** theory data **)
+
+(* class parameters (canonical order) *)
+
+type param = string * class;
+
+fun add_param pp ((x, c): param) params =
+  (case AList.lookup (op =) params x of
+    NONE => (x, c) :: params
+  | SOME c' => error ("Duplicate class parameter " ^ quote x ^
+      " for " ^ Pretty.string_of_sort pp [c] ^
+      (if c = c' then "" else " and " ^ Pretty.string_of_sort pp [c'])));
+
+fun merge_params _ ([], qs) = qs
+  | merge_params pp (ps, qs) =
+      fold_rev (fn q => if member (op =) ps q then I else add_param pp q) qs ps;
+
 
 (* axclass *)
 
@@ -87,56 +61,66 @@ datatype axclass = AxClass of
 fun make_axclass (super_classes, intro, axioms) =
   AxClass {super_classes = super_classes, intro = intro, axioms = axioms};
 
+type axclasses = axclass Symtab.table * param list;
+
+fun merge_axclasses pp ((tab1, params1), (tab2, params2)) : axclasses =
+  (Symtab.merge (K true) (tab1, tab2), merge_params pp (params1, params2));
+
 
 (* instances *)
 
 datatype instances = Instances of
- {classrel: unit Graph.T,                 (*raw relation -- no closure!*)
-  subsorts: ((sort * sort) * thm) list,
-  arities: (arity * thm) list};
+ {classes: unit Graph.T,                 (*raw relation -- no closure!*)
+  classrel: ((class * class) * thm) list,
+  arities: ((string * sort list * class) * thm) list};
 
-fun make_instances (classrel, subsorts, arities) =
-  Instances {classrel = classrel, subsorts = subsorts, arities = arities};
+fun make_instances (classes, classrel, arities) =
+  Instances {classes = classes, classrel = classrel, arities = arities};
 
-fun map_instances f (Instances {classrel, subsorts, arities}) =
-  make_instances (f (classrel, subsorts, arities));
+fun map_instances f (Instances {classes, classrel, arities}) =
+  make_instances (f (classes, classrel, arities));
 
 fun merge_instances
-   (Instances {classrel = classrel1, subsorts = subsorts1, arities = arities1},
-    Instances {classrel = classrel2, subsorts = subsorts2, arities = arities2}) =
+   (Instances {classes = classes1, classrel = classrel1, arities = arities1},
+    Instances {classes = classes2, classrel = classrel2, arities = arities2}) =
   make_instances
-   (Graph.merge (K true) (classrel1, classrel2),
-    merge (eq_fst op =) (subsorts1, subsorts2),
+   (Graph.merge (K true) (classes1, classes2),
+    merge (eq_fst op =) (classrel1, classrel2),
     merge (eq_fst op =) (arities1, arities2));
 
 
-(* setup data *)
+(* data *)
 
 structure AxClassData = TheoryDataFun
 (struct
   val name = "Pure/axclass";
-  type T = axclass Symtab.table * instances;
-
-  val empty = (Symtab.empty, make_instances (Graph.empty, [], [])) : T;
+  type T = axclasses * instances;
+  val empty : T = ((Symtab.empty, []), make_instances (Graph.empty, [], []));
   val copy = I;
   val extend = I;
 
-  fun merge _ ((axclasses1, instances1), (axclasses2, instances2)) =
-    (Symtab.merge (K true) (axclasses1, axclasses2), merge_instances (instances1, instances2));
+  fun merge pp ((axclasses1, instances1), (axclasses2, instances2)) =
+    (merge_axclasses pp (axclasses1, axclasses2), merge_instances (instances1, instances2));
 
-  fun print thy (axclasses, _) =
+  fun print thy ((axclasses, params), _) =
     let
-      fun pretty_class c cs = Pretty.block
-        (Pretty.str (Sign.extern_class thy c) :: Pretty.str " <" :: Pretty.brk 1 ::
-          Pretty.breaks (map (Pretty.str o Sign.extern_class thy) cs));
+      val ctxt = ProofContext.init thy;
+      val prt_cls = ProofContext.pretty_sort ctxt o single;
 
-      fun pretty_thms name thms = Pretty.big_list (name ^ ":")
-        (map (Display.pretty_thm_sg thy) thms);
+      fun pretty_class c [] = prt_cls c
+        | pretty_class c cs = Pretty.block
+            (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 :: Pretty.commas (map prt_cls cs));
 
-      fun pretty_axclass (name, AxClass {super_classes, intro, axioms}) =
+      fun pretty_axclass (class, AxClass {super_classes, intro, axioms}) =
         Pretty.block (Pretty.fbreaks
-          [pretty_class name super_classes, pretty_thms introN [intro], pretty_thms axiomsN axioms]);
-    in Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest axclasses))) end;
+         [pretty_class class super_classes,
+          Pretty.strs ("parameters:" ::
+            fold (fn (x, c) => if c = class then cons x else I) params []),
+          ProofContext.pretty_fact ctxt (introN, [intro]),
+          ProofContext.pretty_fact ctxt (axiomsN, axioms)]);
+    in
+      Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest axclasses)))
+    end;
 end);
 
 val _ = Context.add_setup AxClassData.init;
@@ -150,7 +134,7 @@ val get_instances = AxClassData.get #> (fn (_, Instances insts) => insts);
 
 (* lookup *)
 
-val lookup_info = Symtab.lookup o #1 o AxClassData.get;
+val lookup_info = Symtab.lookup o #1 o #1 o AxClassData.get;
 
 fun get_info thy c =
   (case lookup_info thy c of
@@ -178,10 +162,13 @@ fun err_bad_tfrees ax =
 fun replace_tfree T = map_term_types (Term.map_atyps (fn TFree _ => T | U => U));
 
 fun gen_axclass prep_class prep_axm prep_att
-    (bclass, raw_super_classes) raw_axioms_atts thy =
+    (bclass, raw_super_classes) params raw_axioms_atts thy =
   let
+    val pp = Sign.pp thy;
+
     val class = Sign.full_name thy bclass;
     val super_classes = map (prep_class thy) raw_super_classes;
+
     val axms = map (prep_axm thy o fst) raw_axioms_atts;
     val atts = map (map (prep_att thy) o snd) raw_axioms_atts;
 
@@ -223,7 +210,8 @@ fun gen_axclass prep_class prep_axm prep_att
       |> Theory.add_finals_i false [Const (Logic.const_of_class class, Term.a_itselfT --> propT)]
       |> PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts)
       ||> Theory.restore_naming class_thy
-      ||> AxClassData.map (apfst (Symtab.update (class, info)));
+      ||> AxClassData.map (apfst (fn (is, ps) =>
+        (Symtab.update (class, info) is, fold (fn x => add_param pp (x, class)) params ps)));
   in (class, final_thy) end;
 
 in
@@ -237,60 +225,80 @@ end;
 
 (** instantiation proofs **)
 
-(* primitives *)
+(* parameters *)
 
-fun add_classrel ths thy =
+fun params_of_sort thy S =
   let
-    fun add_rel (c1, c2) =
-      Graph.default_node (c1, ()) #> Graph.default_node (c2, ()) #> Graph.add_edge (c1, c2);
-    val rels = ths |> map (fn th =>
-      let
-        val prop = Drule.plain_prop_of (Thm.transfer thy th);
-        val (c1, c2) = dest_classrel prop handle TERM _ =>
-          raise THM ("AxClass.add_classrel: not a class relation", 0, [th]);
-      in (c1, c2) end);
+    val range = Graph.all_succs (Sign.classes_of thy) (Sign.certify_sort thy S);
+    val params = #2 (#1 (AxClassData.get thy));
+  in fold (fn (x, c) => if member (op =) range c then cons x else I) params [] end;
+
+fun cert_classrel thy raw_rel =
+  let
+    val (c1, c2) = pairself (Sign.certify_class thy) raw_rel;
+    val _ = Type.add_classrel (Sign.pp thy) [(c1, c2)] (Sign.tsig_of thy);
+    val _ =
+      (case subtract (op =) (params_of_sort thy [c1]) (params_of_sort thy [c2]) of
+        [] => ()
+      | xs => raise TYPE ("Class " ^ Sign.string_of_sort thy [c1] ^ " lacks parameter(s) " ^
+          commas_quote xs ^ " of " ^ Sign.string_of_sort thy [c2], [], []));
+  in (c1, c2) end;
+
+fun read_classrel thy raw_rel =
+  cert_classrel thy (pairself (Sign.read_class thy) raw_rel)
+    handle TYPE (msg, _, _) => error msg;
+
+
+(* primitive rules *)
+
+fun add_classrel th thy =
+  let
+    fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
+    val prop = Drule.plain_prop_of (Thm.transfer thy th);
+    val rel = Logic.dest_classrel prop handle TERM _ => err ();
+    val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
   in
     thy
-    |> Theory.add_classrel_i rels
-    |> AxClassData.map (apsnd (map_instances (fn (classrel, subsorts, arities) =>
-        (classrel |> fold add_rel rels, (map (pairself single) rels ~~ ths) @ subsorts, arities))))
+    |> Theory.add_classrel_i [(c1, c2)]
+    |> AxClassData.map (apsnd (map_instances (fn (classes, classrel, arities) =>
+      (classes
+          |> Graph.default_node (c1, ())
+          |> Graph.default_node (c2, ())
+          |> Graph.add_edge (c1, c2),
+        ((c1, c2), th) :: classrel, arities))))
   end;
 
-fun add_arity ths thy =
+fun add_arity th thy =
   let
-    val ars = ths |> map (fn th =>
-      let
-        val prop = Drule.plain_prop_of (Thm.transfer thy th);
-        val (t, ss, c) = dest_arity prop handle TERM _ =>
-          raise THM ("AxClass.add_arity: not a type arity", 0, [th]);
-      in (t, ss, [c]) end);
+    val prop = Drule.plain_prop_of (Thm.transfer thy th);
+    val (t, Ss, c) = Logic.dest_arity prop handle TERM _ =>
+      raise THM ("add_arity: malformed type arity", 0, [th]);
   in
     thy
-    |> Theory.add_arities_i ars
-    |> AxClassData.map (apsnd (map_instances (fn (classrel, subsorts, arities) =>
-      (classrel, subsorts, (ars ~~ ths) @ arities))))
+    |> Theory.add_arities_i [(t, Ss, [c])]
+    |> AxClassData.map (apsnd (map_instances (fn (classes, classrel, arities) =>
+      (classes, classrel, ((t, Ss, c), th) :: arities))))
   end;
 
 
 (* tactical proofs *)
 
-fun prove_subclass raw_rel tac thy =
+fun prove_classrel raw_rel tac thy =
   let
-    val (c1, c2) = Sign.cert_classrel thy raw_rel;
-    val th = Goal.prove thy [] [] (mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
+    val (c1, c2) = cert_classrel thy raw_rel;
+    val th = Goal.prove thy [] [] (Logic.mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
       cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
         quote (Sign.string_of_classrel thy [c1, c2]));
-  in add_classrel [th] thy end;
+  in add_classrel th thy end;
 
 fun prove_arity raw_arity tac thy =
   let
     val arity = Sign.cert_arity thy raw_arity;
-    val props = mk_arities arity;
+    val props = Logic.mk_arities arity;
     val ths = Goal.prove_multi thy [] [] props
       (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
         cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
           quote (Sign.string_of_arity thy arity));
-  in add_arity ths thy end;
-
+  in fold add_arity ths thy end;
 
 end;
