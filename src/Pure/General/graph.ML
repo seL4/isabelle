@@ -144,10 +144,8 @@ fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
 fun subgraph keys (Graph tab) =
   let
     val select = member eq_key keys;
-    fun subg (k, (i, (preds, succs))) tab' =
-      if select k
-      then tab' |> Table.update (k, (i, (filter select preds, filter select succs)))
-      else tab'
+    fun subg (k, (i, (preds, succs))) =
+      K (select k) ? Table.update (k, (i, (filter select preds, filter select succs)));
   in Table.empty |> Table.fold subg tab |> Graph end;
 
 
