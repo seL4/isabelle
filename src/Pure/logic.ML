@@ -34,6 +34,10 @@ sig
   val class_of_const: string -> class
   val mk_inclass: typ * class -> term
   val dest_inclass: term -> typ * class
+  val mk_classrel: class * class -> term
+  val dest_classrel: term -> class * class
+  val mk_arities: string * sort list * sort -> term list
+  val dest_arity: term -> string * sort list * class
   val dest_def: Pretty.pp -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
     term -> (term * term) * term
   val abs_def: term -> term * term
@@ -178,21 +182,57 @@ fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
   | dest_type t = raise TERM ("dest_type", [t]);
 
 
-(** class constraints **)
+
+(** type classes **)
+
+(* const names *)
 
 val classN = "_class";
 
 val const_of_class = suffix classN;
+
 fun class_of_const c = unsuffix classN c
   handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
+
+
+(* class constraints *)
 
 fun mk_inclass (ty, c) =
   Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
 
-fun dest_inclass (t as Const (c_class, _) $ ty) =
-      ((dest_type ty, class_of_const c_class)
-        handle TERM _ => raise TERM ("dest_inclass", [t]))
+fun dest_inclass (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
   | dest_inclass t = raise TERM ("dest_inclass", [t]);
+
+
+(* class relations *)
+
+fun mk_classrel (c1, c2) = mk_inclass (Term.aT [c1], c2);
+
+fun dest_classrel tm =
+  (case dest_inclass tm of
+    (TVar (_, [c1]), c2) => (c1, c2)
+  | _ => raise TERM ("dest_classrel", [tm]));
+
+
+(* type arities *)
+
+fun mk_arities (t, Ss, S) =
+  let val T = Type (t, ListPair.map TFree (Term.invent_names [] "'a" (length Ss), Ss))
+  in map (fn c => mk_inclass (T, c)) S end;
+
+fun dest_arity tm =
+  let
+    fun err () = raise TERM ("dest_arity", [tm]);
+
+    val (ty, c) = dest_inclass tm;
+    val (t, tvars) =
+      (case ty of
+        Type (t, tys) => (t, map dest_TVar tys handle TYPE _ => err ())
+      | _ => err ());
+    val Ss =
+      if has_duplicates (eq_fst (op =)) tvars then err ()
+      else map snd tvars;
+  in (t, Ss, c) end;
 
 
 
@@ -266,6 +306,7 @@ fun mk_cond_defpair As (lhs, rhs) =
   | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
 
 fun mk_defpair lhs_rhs = mk_cond_defpair [] lhs_rhs;
+
 
 
 (** protected propositions **)
