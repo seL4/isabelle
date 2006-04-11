@@ -130,21 +130,20 @@ fun is_operational_class thy cls =
 
 fun operational_sort_of thy sort =
   let
-    val classes = Sign.classes_of thy;
     fun get_sort class =
       if is_operational_class thy class
       then [class]
-      else operational_sort_of thy (Sorts.superclasses classes class);
+      else operational_sort_of thy (Sign.super_classes thy class);
   in
     map get_sort sort
     |> Library.flat
-    |> Sorts.norm_sort classes
+    |> Sign.certify_sort thy
   end;
 
 fun the_superclasses thy class =
   if is_class thy class
   then
-    Sorts.superclasses (Sign.classes_of thy) class
+    Sign.super_classes thy class
     |> operational_sort_of thy
   else
     error ("no class: " ^ class);
@@ -284,20 +283,20 @@ fun default_tac rules ctxt facts =
 
 local
 
-fun gen_instance mk_prop add_thms after_qed inst thy =
+fun gen_instance mk_prop add_thm after_qed inst thy =
   thy
   |> ProofContext.init
-  |> Proof.theorem_i PureThy.internalK NONE (after_qed oo fold add_thms) NONE ("", [])
+  |> Proof.theorem_i PureThy.internalK NONE (after_qed oo (fold o fold) add_thm) NONE ("", [])
        (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
 
 in
 
 val axclass_instance_subclass =
-  gen_instance (single oo (AxClass.mk_classrel oo Sign.read_classrel)) AxClass.add_classrel I;
+  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel)) AxClass.add_classrel I;
 val axclass_instance_arity =
-  gen_instance (AxClass.mk_arities oo Sign.read_arity) AxClass.add_arity;
+  gen_instance (Logic.mk_arities oo Sign.read_arity) AxClass.add_arity;
 val axclass_instance_arity_i =
-  gen_instance (AxClass.mk_arities oo Sign.cert_arity) AxClass.add_arity;
+  gen_instance (Logic.mk_arities oo Sign.cert_arity) AxClass.add_arity;
 
 end;
 
@@ -332,7 +331,7 @@ fun add_axclass_i (name, supsort) axs thy =
     fun rearrange_axioms ((name, atts), ts) =
       map (rpair atts o pair "") ts;
     val (c, thy') = thy
-      |> AxClass.add_axclass_i (name, supsort) ((Library.flat o map rearrange_axioms) axs);
+      |> AxClass.add_axclass_i (name, supsort) [] ((Library.flat o map rearrange_axioms) axs);
     val {intro, axioms, ...} = AxClass.get_info thy' c;
   in ((c, (intro, axioms)), thy') end;
 
@@ -537,10 +536,10 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
       |> snd;
     fun after_qed cs thy =
       thy
-      |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
       |> fold (fn class =>
         add_inst_data (class, (tyco,
-          (map (operational_sort_of thy) asorts, Context.theory_name thy)))) sort;
+          (map (operational_sort_of thy) asorts, Context.theory_name thy)))) sort
+      |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs);
   in
     theory
     |> check_defs1 raw_defs cs
@@ -607,7 +606,7 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
        (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data theory)) sort;
     fun after_qed thmss thy =
       (writeln "---"; (Pretty.writeln o Display.pretty_thms o Library.flat) thmss; writeln "---"; fold (fn supclass =>
-        AxClass.prove_subclass (class, supclass)
+        AxClass.prove_classrel (class, supclass)
           (ALLGOALS (K (intro_classes_tac [])) THEN
             (ALLGOALS o resolve_tac o Library.flat) thmss)
       ) sort thy)
