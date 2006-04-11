@@ -100,6 +100,7 @@ sig
   val classes_of: theory -> Sorts.classes
   val arities_of: theory -> Sorts.arities
   val classes: theory -> class list
+  val super_classes: theory -> class -> class list
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
   val of_sort: theory -> typ * sort -> bool
@@ -165,8 +166,6 @@ sig
   val read_class: theory -> xstring -> class
   val read_sort': Syntax.syntax -> Context.generic -> string -> sort
   val read_sort: theory -> string -> sort
-  val read_classrel: theory -> xstring * xstring -> class * class
-  val cert_classrel: theory -> class * class -> class * class
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> arity -> arity
   val read_typ': Syntax.syntax -> Context.generic ->
@@ -271,6 +270,7 @@ val tsig_of = #tsig o rep_sg;
 val classes_of = snd o #classes o Type.rep_tsig o tsig_of;
 val arities_of = #arities o Type.rep_tsig o tsig_of;
 val classes = Type.classes o tsig_of;
+val super_classes = Graph.imm_succs o classes_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
@@ -513,16 +513,6 @@ fun read_sort' syn context str =
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
 fun read_sort thy str = read_sort' (syn_of thy) (Context.Theory thy) str;
-
-
-(* class relations *)
-
-fun prep_classrel prep thy raw_rel =
-  let val rel = Library.pairself (prep thy) raw_rel
-  in Type.add_classrel (pp thy) [rel] (tsig_of thy); rel end;
-
-val read_classrel = prep_classrel read_class;
-val cert_classrel = prep_classrel certify_class;
 
 
 (* type arities *)
