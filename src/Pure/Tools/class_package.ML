@@ -328,10 +328,8 @@ fun add_locale_i opn name expr body thy =
 
 fun add_axclass_i (name, supsort) axs thy =
   let
-    fun rearrange_axioms ((name, atts), ts) =
-      map (rpair atts o pair "") ts;
     val (c, thy') = thy
-      |> AxClass.add_axclass_i (name, supsort) [] ((Library.flat o map rearrange_axioms) axs);
+      |> AxClass.add_axclass_i (name, supsort) [] axs;
     val {intro, axioms, ...} = AxClass.get_info thy' c;
   in ((c, (intro, axioms)), thy') end;
 
@@ -423,7 +421,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     #-> (fn mapp_this =>
           `(fn thy => extract_assumes thy name_locale (mapp_sup @ mapp_this))
     #-> (fn loc_axioms =>
-          add_axclass_i (bname, supsort) loc_axioms
+          add_axclass_i (bname, supsort) (map (apfst (apfst (K ""))) loc_axioms)
     #-> (fn (name_axclass, (_, ax_axioms)) =>
           fold (add_global_constraint v name_axclass) mapp_this
     #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, intro, v, mapp_this))
