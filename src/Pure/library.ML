@@ -112,6 +112,7 @@ sig
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
+  val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
   val chop: int -> 'a list -> 'a list * 'a list
@@ -652,7 +653,7 @@ fun get_index f =
 val flat = List.concat;
 
 fun unflat (xs :: xss) ys =
-      let val (ps,qs) = splitAt(length xs,ys)
+      let val (ps, qs) = chop (length xs) ys
       in ps :: unflat xss qs end
   | unflat [] [] = []
   | unflat _ _ = raise UnequalLengths;
