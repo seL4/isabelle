@@ -75,6 +75,7 @@ signature BASIC_THM =
   val eq_thms: thm list * thm list -> bool
   val theory_of_thm: thm -> theory
   val sign_of_thm: thm -> theory    (*obsolete*)
+  val maxidx_of: thm -> int
   val prop_of: thm -> term
   val proof_of: thm -> Proofterm.proof
   val tpairs_of: thm -> (term * term) list
@@ -443,6 +444,7 @@ val eq_thms = Library.equal_lists eq_thm;
 fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
 val sign_of_thm = theory_of_thm;
 
+fun maxidx_of (Thm {maxidx, ...}) = maxidx;
 fun prop_of (Thm {prop, ...}) = prop;
 fun proof_of (Thm {der = (_, proof), ...}) = proof;
 fun tpairs_of (Thm {tpairs, ...}) = tpairs;
