@@ -219,7 +219,7 @@ fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
 val print_context = Toplevel.keep Toplevel.print_state_context;
 
 val print_theory = Toplevel.unknown_theory o
-  Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
+  Toplevel.keep (ProofDisplay.print_theory o Toplevel.theory_of);
 
 val print_syntax = Toplevel.unknown_theory o
   Toplevel.keep (Display.print_syntax o Toplevel.theory_of) o
@@ -232,8 +232,8 @@ val print_theorems_proof = Toplevel.keep (fn state =>
 val print_theorems_theory = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
   (case Option.map Toplevel.theory_node (History.previous (Toplevel.node_history_of state)) of
-    SOME (SOME prev_thy) => PureThy.print_theorems_diff prev_thy
-  | _ => PureThy.print_theorems));
+    SOME (SOME prev_thy) => ProofDisplay.print_theorems_diff prev_thy
+  | _ => ProofDisplay.print_theorems));
 
 val print_theorems = Toplevel.unknown_theory o print_theorems_theory o print_theorems_proof;
 
