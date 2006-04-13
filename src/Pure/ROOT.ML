@@ -50,6 +50,7 @@ use "drule.ML";
 use "tctical.ML";
 use "search.ML";
 use "meta_simplifier.ML";
+use "conjunction.ML";
 use "goal.ML";
 use "tactic.ML";
 
