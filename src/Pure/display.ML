@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Printing of theories, theorems, etc.
+Printing of theorems, goals, results etc.
 *)
 
 signature BASIC_DISPLAY =
