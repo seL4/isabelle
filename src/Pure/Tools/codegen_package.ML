@@ -127,13 +127,9 @@ fun name_of_idf thy shallow idf =
 
 type deftab = (typ * thm) list Symtab.table;
 
-fun eq_typ thy (ty1, ty2) =
-  Sign.typ_instance thy (ty1, ty2)
-    andalso Sign.typ_instance thy (ty2, ty1);
-
 fun is_overloaded thy c = case Defs.specifications_of (Theory.defs_of thy) c
  of [] => true
-  | [(ty, _)] => not (eq_typ thy (ty, Sign.the_const_type thy c))
+  | [(ty, _)] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
   | _ => true;
 
 structure InstNameMangler = NameManglerFun (
@@ -156,7 +152,7 @@ structure ConstNameMangler = NameManglerFun (
     let
       val c' = idf_of_name thy nsp_overl c;
       val prefix = 
-        case (AList.lookup (eq_typ thy)
+        case (AList.lookup (Sign.typ_equiv thy)
             (Defs.specifications_of (Theory.defs_of thy) c)) ty
          of SOME (_, thyname) => NameSpace.append thyname nsp_overl
           | NONE => if c = "op ="
@@ -173,7 +169,7 @@ structure ConstNameMangler = NameManglerFun (
             NONE
     in
       Vartab.empty
-      |> Sign.typ_match thy (Sign.the_const_type thy c, ty)
+      |> Type.raw_match (Sign.the_const_type thy c, ty)
       |> map (snd o snd) o Vartab.dest
       |> List.mapPartial mangle
       |> Library.flat
@@ -938,7 +934,7 @@ fun mk_tabs thy =
               val is_overl = (is_none o ClassPackage.lookup_const_class thy) c
                andalso case deftab
                of [] => false
-                | [(ty, _)] => not (eq_typ thy (ty, Sign.the_const_type thy c))
+                | [(ty, _)] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
                 | _ => true;
             in if is_overl then (fn (overltab1, overltab2) => (
               overltab1
