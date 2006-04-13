@@ -191,7 +191,7 @@ syntax (xsymbols)
   "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 
 translations
-  "_Case_syntax x ms" == "run\<cdot>(ms\<cdot>x)"
+  "_Case_syntax x ms" == "Fixrec.run\<cdot>(ms\<cdot>x)"
   "_Case2 m ms" == "m \<parallel> ms"
 
 text {* Parsing Case expressions *}
@@ -544,6 +544,6 @@ subsection {* Initializing the fixrec package *}
 
 use "fixrec_package.ML"
 
-hide (open) const return bind fail
+hide (open) const return bind fail run
 
 end
