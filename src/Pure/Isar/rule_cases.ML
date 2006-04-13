@@ -195,7 +195,7 @@ fun unfold_prems_concls defs th =
   if null defs orelse not (can Logic.dest_conjunction (Thm.concl_of th)) then th
   else
     Drule.fconv_rule
-      (Drule.concl_conv ~1 (Drule.conjunction_conv ~1
+      (Drule.concl_conv ~1 (Conjunction.conv ~1
         (K (Drule.prems_conv ~1 (K (Tactic.rewrite true defs)))))) th;
 
 in
@@ -337,7 +337,7 @@ fun mutual_rule [] = NONE
         else
           SOME (ns,
             ths
-            |> foldr1 (uncurry Drule.conj_intr)
+            |> foldr1 (uncurry Conjunction.intr)
             |> Drule.implies_intr_list prems
             |> Drule.standard'
             |> save (hd raw_rules)

@@ -642,7 +642,7 @@ fun filter_prems_tac p =
 (* meta-level conjunction *)
 
 val conj_tac = SUBGOAL (fn (goal, i) =>
-  if can Logic.dest_conjunction goal then rtac Drule.conjunctionI i
+  if can Logic.dest_conjunction goal then rtac Conjunction.conjunctionI i
   else no_tac);
 
 val conjunction_tac = TRY o REPEAT_ALL_NEW conj_tac;
@@ -657,12 +657,12 @@ val precise_conjunction_tac =
 fun CONJUNCTS tac =
   SELECT_GOAL (conjunction_tac 1
     THEN tac
-    THEN PRIMITIVE (Drule.conj_uncurry ~1));
+    THEN PRIMITIVE (Conjunction.uncurry ~1));
 
 fun PRECISE_CONJUNCTS n tac =
   SELECT_GOAL (precise_conjunction_tac n 1
     THEN tac
-    THEN PRIMITIVE (Drule.conj_uncurry ~1));
+    THEN PRIMITIVE (Conjunction.uncurry ~1));
 
 end;
 

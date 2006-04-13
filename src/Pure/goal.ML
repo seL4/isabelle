@@ -147,7 +147,7 @@ fun prove_multi thy xs asms props tac =
     val _ = conditional (not (Pattern.matches thy (Envir.beta_norm prop, prop'))) (fn () =>
       err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
   in
-    hd (Drule.conj_elim_precise [length props] raw_result)
+    hd (Conjunction.elim_precise [length props] raw_result)
     |> map
       (Drule.implies_intr_list casms
         #> Drule.forall_intr_list cparams
@@ -176,12 +176,12 @@ fun prove_raw casms cprop tac =
 fun extract i n st =
   (if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st then Seq.empty
    else if n = 1 then Seq.single (Thm.cprem_of st i)
-   else Seq.single (foldr1 Drule.mk_conjunction (map (Thm.cprem_of st) (i upto (i + n - 1)))))
+   else Seq.single (foldr1 Conjunction.mk_conjunction (map (Thm.cprem_of st) (i upto i + n - 1))))
   |> Seq.map (Thm.adjust_maxidx #> init);
 
 fun retrofit i n st' st =
   (if n = 1 then st
-   else st |> Drule.rotate_prems (i - 1) |> Drule.conj_uncurry n |> Drule.rotate_prems (1 - i))
+   else st |> Drule.rotate_prems (i - 1) |> Conjunction.uncurry n |> Drule.rotate_prems (1 - i))
   |> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
 
 fun SELECT_GOAL tac i st =

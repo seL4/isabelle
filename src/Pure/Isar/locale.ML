@@ -1620,12 +1620,12 @@ fun def_pred bname parms defs ts norm_ts thy =
     val intro = Drule.standard (Goal.prove defs_thy [] norm_ts statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      Tactic.compose_tac (false, Drule.conj_intr_list (map (Thm.assume o cert) norm_ts), 0) 1));
+      Tactic.compose_tac (false, Conjunction.intr_list (map (Thm.assume o cert) norm_ts), 0) 1));
 
     val conjuncts =
-      (Drule.equal_elim_rule1 OF [Thm.symmetric body_eq,
+      (Drule.equal_elim_rule2 OF [body_eq,
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
-      |> Drule.conj_elim_precise [length ts] |> hd;
+      |> Conjunction.elim_precise [length ts] |> hd;
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       prove_protected defs_thy t
        (Tactic.rewrite_goals_tac defs THEN

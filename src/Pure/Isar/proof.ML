@@ -496,7 +496,7 @@ fun conclude_goal state goal propss =
     val _ = conditional (not (Pattern.matches thy
         (Logic.mk_conjunction_list2 propss, Thm.prop_of th))) (fn () =>
       error ("Proved a different theorem:\n" ^ ProofContext.string_of_thm ctxt th));
-  in Drule.conj_elim_precise (map length propss) th end;
+  in Conjunction.elim_precise (map length propss) th end;
 
 
 
