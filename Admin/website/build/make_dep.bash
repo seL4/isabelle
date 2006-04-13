@@ -17,7 +17,7 @@ echo >> "$DEP_FILE"
 allstatic=''
 for dir in $STATICDIRS
 do
-    for file in $("$FIND" "$dir" -follow -type f -a ! -path "*/CVS/*")
+    for file in $("$FIND" "$dir" -follow -type f -a ! -path "*/CVS/*" -a ! -path "*/.svn/*")
     do
         outputfile="\$(OUTPUTROOT)/$file"
         echo "$outputfile: $file" >> "$DEP_FILE"
