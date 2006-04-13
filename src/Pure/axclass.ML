@@ -8,16 +8,12 @@ Axiomatic type classes.
 signature AX_CLASS =
 sig
   val print_axclasses: theory -> unit
-  val get_info: theory -> class -> {super_classes: class list, intro: thm, axioms: thm list}
+  val get_info: theory -> class -> {super: sort, def: thm, intro: thm, axioms: thm list}
   val get_instances: theory ->
    {classes: unit Graph.T,
     classrel: ((class * class) * thm) list,
     arities: ((string * sort list * class) * thm) list}
   val class_intros: theory -> thm list
-  val add_axclass: bstring * xstring list -> string list ->
-    ((bstring * string) * Attrib.src list) list -> theory -> class * theory
-  val add_axclass_i: bstring * class list -> string list ->
-    ((bstring * term) * attribute list) list -> theory -> class * theory
   val params_of_sort: theory -> sort -> string list
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
@@ -25,6 +21,10 @@ sig
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
+  val add_axclass: bstring * xstring list -> string list ->
+    ((bstring * Attrib.src list) * string list) list -> theory -> class * theory
+  val add_axclass_i: bstring * class list -> string list ->
+    ((bstring * attribute list) * term list) list -> theory -> class * theory
 end;
 
 structure AxClass: AX_CLASS =
@@ -54,12 +54,13 @@ val introN = "intro";
 val axiomsN = "axioms";
 
 datatype axclass = AxClass of
- {super_classes: class list,
+ {super: sort,
+  def: thm,
   intro: thm,
   axioms: thm list};
 
-fun make_axclass (super_classes, intro, axioms) =
-  AxClass {super_classes = super_classes, intro = intro, axioms = axioms};
+fun make_axclass (super, def, intro, axioms) =
+  AxClass {super = super, def = def, intro = intro, axioms = axioms};
 
 type axclasses = axclass Symtab.table * param list;
 
@@ -111,11 +112,12 @@ structure AxClassData = TheoryDataFun
         | pretty_class c cs = Pretty.block
             (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 :: Pretty.commas (map prt_cls cs));
 
-      fun pretty_axclass (class, AxClass {super_classes, intro, axioms}) =
+      fun pretty_axclass (class, AxClass {super, def, intro, axioms}) =
         Pretty.block (Pretty.fbreaks
-         [pretty_class class super_classes,
+         [pretty_class class super,
           Pretty.strs ("parameters:" ::
             fold (fn (x, c) => if c = class then cons x else I) params []),
+          ProofContext.pretty_fact ctxt ("def", [def]),
           ProofContext.pretty_fact ctxt (introN, [intro]),
           ProofContext.pretty_fact ctxt (axiomsN, axioms)]);
     in
@@ -128,9 +130,6 @@ val print_axclasses = AxClassData.print;
 
 val get_instances = AxClassData.get #> (fn (_, Instances insts) => insts);
 
-
-
-(** axclass definitions **)
 
 (* lookup *)
 
@@ -149,81 +148,8 @@ fun class_intros thy =
   in map (Thm.class_triv thy) classes @ fold add_intro classes [] end;
 
 
-(* add_axclass(_i) *)
 
-local
-
-fun err_bad_axsort ax c =
-  error ("Sort constraint in axiom " ^ quote ax ^ " not supersort of " ^ quote c);
-
-fun err_bad_tfrees ax =
-  error ("More than one type variable in axiom " ^ quote ax);
-
-fun replace_tfree T = map_term_types (Term.map_atyps (fn TFree _ => T | U => U));
-
-fun gen_axclass prep_class prep_axm prep_att
-    (bclass, raw_super_classes) params raw_axioms_atts thy =
-  let
-    val pp = Sign.pp thy;
-
-    val class = Sign.full_name thy bclass;
-    val super_classes = map (prep_class thy) raw_super_classes;
-
-    val axms = map (prep_axm thy o fst) raw_axioms_atts;
-    val atts = map (map (prep_att thy) o snd) raw_axioms_atts;
-
-    (*declare class*)
-    val class_thy =
-      thy |> Theory.add_classes_i [(bclass, super_classes)];
-
-    (*prepare abstract axioms*)
-    fun abs_axm ax =
-      if null (term_tfrees ax) then
-        Logic.mk_implies (Logic.mk_inclass (Term.aT [], class), ax)
-      else replace_tfree (Term.aT [class]) ax;
-    val abs_axms = map (abs_axm o snd) axms;
-
-    fun axm_sort (name, ax) =
-      (case term_tfrees ax of
-        [] => []
-      | [(_, S)] => if Sign.subsort class_thy ([class], S) then S else err_bad_axsort name class
-      | _ => err_bad_tfrees name);
-    val axS = Sign.certify_sort class_thy (List.concat (map axm_sort axms));
-
-    val int_axm = Logic.close_form o replace_tfree (Term.aT axS);
-    fun inclass c = Logic.mk_inclass (Term.aT axS, c);
-
-    val intro_axm = Logic.list_implies
-      (map inclass super_classes @ map (int_axm o #2) axms, inclass class);
-
-    (*declare axioms and rule*)
-    val (([intro], [axioms]), axms_thy) =
-      class_thy
-      |> Theory.add_path (Logic.const_of_class bclass)
-      |> PureThy.add_axioms_i [Thm.no_attributes (introN, intro_axm)]
-      ||>> PureThy.add_axiomss_i [Thm.no_attributes (axiomsN, abs_axms)];
-    val info = make_axclass (super_classes, intro, axioms);
-
-    (*store info*)
-    val (_, final_thy) =
-      axms_thy
-      |> Theory.add_finals_i false [Const (Logic.const_of_class class, Term.a_itselfT --> propT)]
-      |> PureThy.add_thms ((map #1 axms ~~ axioms) ~~ atts)
-      ||> Theory.restore_naming class_thy
-      ||> AxClassData.map (apfst (fn (is, ps) =>
-        (Symtab.update (class, info) is, fold (fn x => add_param pp (x, class)) params ps)));
-  in (class, final_thy) end;
-
-in
-
-val add_axclass = gen_axclass Sign.intern_class Theory.read_axm Attrib.attribute;
-val add_axclass_i = gen_axclass (K I) Theory.cert_axm (K I);
-
-end;
-
-
-
-(** instantiation proofs **)
+(** instances **)
 
 (* parameters *)
 
@@ -232,6 +158,9 @@ fun params_of_sort thy S =
     val range = Graph.all_succs (Sign.classes_of thy) (Sign.certify_sort thy S);
     val params = #2 (#1 (AxClassData.get thy));
   in fold (fn (x, c) => if member (op =) range c then cons x else I) params [] end;
+
+
+(* class relations *)
 
 fun cert_classrel thy raw_rel =
   let
@@ -261,11 +190,11 @@ fun add_classrel th thy =
     thy
     |> Theory.add_classrel_i [(c1, c2)]
     |> AxClassData.map (apsnd (map_instances (fn (classes, classrel, arities) =>
-      (classes
-          |> Graph.default_node (c1, ())
-          |> Graph.default_node (c2, ())
-          |> Graph.add_edge (c1, c2),
-        ((c1, c2), th) :: classrel, arities))))
+        (classes
+            |> Graph.default_node (c1, ())
+            |> Graph.default_node (c2, ())
+            |> Graph.add_edge (c1, c2),
+          ((c1, c2), th) :: classrel, arities))))
   end;
 
 fun add_arity th thy =
@@ -300,5 +229,82 @@ fun prove_arity raw_arity tac thy =
         cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
           quote (Sign.string_of_arity thy arity));
   in fold add_arity ths thy end;
+
+
+
+(** axclass definitions **)
+
+(* add_axclass(_i) *)
+
+fun gen_axclass prep_class prep_att prep_propp
+    (bclass, raw_super) params raw_specs thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val pp = ProofContext.pp ctxt;
+
+
+    (* prepare specification *)
+
+    val bconst = Logic.const_of_class bclass;
+    val class = Sign.full_name thy bclass;
+    val super = map (prep_class thy) raw_super |> Sign.certify_sort thy;
+
+    fun prep_axiom t =
+      (case Term.add_tfrees t [] of
+        [(a, S)] =>
+          if Sign.subsort thy (super, S) then t
+          else error ("Sort constraint of type variable " ^
+            setmp show_sorts true (Pretty.string_of_typ pp) (TFree (a, S)) ^
+            " needs to be weaker than " ^ Pretty.string_of_sort pp super)
+      | [] => t
+      | _ => error ("Multiple type variables in class axiom:\n" ^ Pretty.string_of_term pp t))
+      |> map_term_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
+      |> Logic.close_form;
+
+    val axiomss = prep_propp (ctxt, map (map (rpair ([], [])) o snd) raw_specs)
+      |> snd |> map (map (prep_axiom o fst));
+    val name_atts = Attrib.map_specs (prep_att thy) raw_specs |> map fst;
+
+
+    (* definition *)
+
+    val conjs = map (curry Logic.mk_inclass (Term.aT [])) super @ List.concat axiomss;
+    val class_eq =
+      Logic.mk_equals (Logic.mk_inclass (Term.aT [], class), Logic.mk_conjunction_list conjs);
+
+    val ([def], def_thy) =
+      thy
+      |> Theory.add_classes_i [(bclass, super)]
+      |> PureThy.add_defs_i false [((Thm.def_name bconst, class_eq), [])];
+    val (raw_intro, (raw_classrel, raw_axioms)) =
+      (Conjunction.split_defined (length conjs) def) ||> chop (length super);
+
+
+    (* facts *)
+
+    val class_triv = Thm.class_triv def_thy class;
+    val ([(_, [intro]), (_, axioms)], facts_thy) =
+      def_thy
+      |> PureThy.note_thmss_qualified "" bconst
+        [((introN, []), [([Drule.standard raw_intro], [])]),
+         ((axiomsN, []), [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
+      ||> fold (fn th => add_classrel (Drule.standard' (class_triv RS th))) raw_classrel;
+
+
+    (* result *)
+
+    val result_thy =
+      facts_thy
+      |> Sign.add_path bconst
+      |> PureThy.note_thmss_i "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
+      |> Sign.restore_naming facts_thy
+      |> AxClassData.map (apfst (fn (is, ps) =>
+        (Symtab.update (class, make_axclass (super, def, intro, axioms)) is,
+          fold (fn x => add_param pp (x, class)) params ps)));
+
+  in (class, result_thy) end;
+
+val add_axclass = gen_axclass Sign.read_class Attrib.attribute ProofContext.read_propp;
+val add_axclass_i = gen_axclass Sign.certify_class (K I) ProofContext.cert_propp;
 
 end;
