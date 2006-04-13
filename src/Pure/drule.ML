@@ -79,6 +79,7 @@ sig
   val swap_prems_rl: thm
   val equal_intr_rule: thm
   val equal_elim_rule1: thm
+  val equal_elim_rule2: thm
   val inst: string -> string -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
 end;
@@ -86,6 +87,7 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val dest_binop: cterm -> cterm * cterm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
@@ -95,6 +97,10 @@ sig
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
   val local_standard: thm -> thm
+  val store_thm: bstring -> thm -> thm
+  val store_standard_thm: bstring -> thm -> thm
+  val store_thm_open: bstring -> thm -> thm
+  val store_standard_thm_open: bstring -> thm -> thm
   val compose_single: thm * int * thm -> thm
   val add_rule: thm -> thm list -> thm list
   val del_rule: thm -> thm list -> thm list
@@ -105,9 +111,6 @@ sig
   val forall_conv: int -> (cterm -> thm) -> cterm -> thm
   val concl_conv: int -> (cterm -> thm) -> cterm -> thm
   val prems_conv: int -> (int -> cterm -> thm) -> cterm -> thm
-  val mk_conjunction: cterm * cterm -> cterm
-  val conjunction_cong: thm -> thm -> thm
-  val conjunction_conv: int -> (int -> cterm -> thm) -> cterm -> thm
   val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
   val fconv_rule: (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
@@ -136,15 +139,6 @@ sig
   val remdups_rl: thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val conjunctionD1: thm
-  val conjunctionD2: thm
-  val conjunctionI: thm
-  val conj_intr: thm -> thm -> thm
-  val conj_intr_list: thm list -> thm
-  val conj_elim: thm -> thm * thm
-  val conj_elim_list: thm -> thm list
-  val conj_elim_precise: int list -> thm -> thm list list
-  val conj_uncurry: int -> thm -> thm
   val abs_def: thm -> thm
   val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
   val read_instantiate': (indexname * string) list -> thm -> thm
@@ -170,11 +164,6 @@ fun dest_equals ct =
     (Const ("==", _) $ _ $ _) => dest_binop ct
     | _ => raise TERM ("dest_equals", [term_of ct]));
 
-fun dest_conjunction ct =
-  (case Thm.term_of ct of
-    (Const ("ProtoPure.conjunction", _) $ _ $ _) => dest_binop ct
-  | _ => raise TERM ("dest_conjunction", [term_of ct]));
-
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
     let val (cA,cB) = dest_implies ct
@@ -198,11 +187,10 @@ fun ctyp_fun f cT =
   let val {T, thy, ...} = Thm.rep_ctyp cT
   in Thm.ctyp_of thy (f T) end;
 
-val conjunction = cterm_of ProtoPure.thy Logic.conjunction;
-val implies = cterm_of ProtoPure.thy Term.implies;
+val cert = cterm_of ProtoPure.thy;
 
+val implies = cert Term.implies;
 fun mk_implies (A, B) = Thm.capply (Thm.capply implies A) B;
-fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
 fun list_implies([], B) = B
@@ -386,7 +374,7 @@ fun lift_all goal th =
   let
     val thy = Theory.merge (Thm.theory_of_cterm goal, Thm.theory_of_thm th);
     val cert = Thm.cterm_of thy;
-    val {maxidx, ...} = Thm.rep_thm th;
+    val maxidx = Thm.maxidx_of th;
     val ps = outer_params (Thm.term_of goal)
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
@@ -441,7 +429,7 @@ fun close_derivation thm =
 val standard' =
   implies_intr_hyps
   #> forall_intr_frees
-  #> `(#maxidx o Thm.rep_thm)
+  #> `Thm.maxidx_of
   #-> (fn maxidx =>
     forall_elim_vars (maxidx + 1)
     #> strip_shyps_warning
@@ -614,7 +602,7 @@ fun store_thm_open name thm = hd (PureThy.smart_store_thms_open (name, [thm]));
 fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
 
 val reflexive_thm =
-  let val cx = cterm_of ProtoPure.thy (Var(("x",0),TVar(("'a",0),[])))
+  let val cx = cert (Var(("x",0),TVar(("'a",0),[])))
   in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
@@ -728,23 +716,6 @@ fun prems_conv 0 _ = reflexive
             | SOME (A, B) => imp_cong_rule (cv i A) (conv (i + 1) B));
   in conv 1 end;
 
-
-(*rewrite the A's in A1 && ... && An*)
-
-val conjunction_cong = Thm.combination o Thm.combination (Thm.reflexive conjunction);
-
-fun conjunction_conv 0 _ = reflexive
-  | conjunction_conv n cv =
-      let
-        fun conv i ct =
-          if i = n then cv i ct
-          else
-            (case try dest_conjunction ct of
-              NONE => cv i ct
-            | SOME (A, B) => conjunction_cong (cv i A) (conv (i + 1) B));
-      in conv 1 end;
-
-
 fun goals_conv pred cv = prems_conv ~1 (fn i => if pred i then cv else reflexive);
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
@@ -780,7 +751,7 @@ val thin_rl =
 val triv_forall_equality =
   let val V  = read_prop "PROP V"
       and QV = read_prop "!!x::'a. PROP V"
-      and x  = read_cterm ProtoPure.thy ("x", TypeInfer.logicT);
+      and x  = cert (Free ("x", Term.aT []));
   in
     store_standard_thm_open "triv_forall_equality"
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))
@@ -827,7 +798,7 @@ val equal_intr_rule =
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
 
-(* [| PROP ?phi == PROP ?psi; PROP ?phi |] ==> PROP ?psi *)
+(* PROP ?phi == PROP ?psi ==> PROP ?phi ==> PROP ?psi *)
 val equal_elim_rule1 =
   let val eq = read_prop "PROP phi == PROP psi"
       and P = read_prop "PROP phi"
@@ -835,8 +806,11 @@ val equal_elim_rule1 =
     (Thm.equal_elim (assume eq) (assume P) |> implies_intr_list [eq, P])
   end;
 
-(* "[| PROP ?phi; PROP ?phi; PROP ?psi |] ==> PROP ?psi" *)
+(* PROP ?psi == PROP ?phi ==> PROP ?phi ==> PROP ?psi *)
+val equal_elim_rule2 =
+  store_standard_thm_open "equal_elim_rule2" (symmetric_thm RS equal_elim_rule1);
 
+(* "[| PROP ?phi; PROP ?phi; PROP ?psi |] ==> PROP ?psi" *)
 val remdups_rl =
   let val P = read_prop "PROP phi" and Q = read_prop "PROP psi";
   in store_standard_thm_open "remdups_rl" (implies_intr_list [P, P, Q] (Thm.assume Q)) end;
@@ -847,7 +821,6 @@ val remdups_rl =
 
 val norm_hhf_eq =
   let
-    val cert = Thm.cterm_of ProtoPure.thy;
     val aT = TFree ("'a", []);
     val all = Term.all aT;
     val x = Free ("x", aT);
@@ -943,9 +916,9 @@ fun equal_abs_elim ca eqth =
       and combth = combination eqth (reflexive ca)
       val {thy,prop,...} = rep_thm eqth
       val (abst,absu) = Logic.dest_equals prop
-      val cterm = cterm_of (Theory.merge (thy,thya))
-  in  transitive (symmetric (beta_conversion false (cterm (abst$a))))
-           (transitive combth (beta_conversion false (cterm (absu$a))))
+      val cert = cterm_of (Theory.merge (thy,thya))
+  in  transitive (symmetric (beta_conversion false (cert (abst$a))))
+           (transitive combth (beta_conversion false (cert (absu$a))))
   end
   handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
 
@@ -956,7 +929,6 @@ fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 (** protected propositions **)
 
 local
-  val cert = Thm.cterm_of ProtoPure.thy;
   val A = cert (Free ("A", propT));
   val prop_def = #1 (freeze_thaw ProtoPure.prop_def);
 in
@@ -1080,10 +1052,10 @@ fun tvars_intr_list tfrees thm =
 
 (* increment var indexes *)
 
-fun incr_indexes th = Thm.incr_indexes (#maxidx (Thm.rep_thm th) + 1);
+fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 
 fun incr_indexes2 th1 th2 =
-  Thm.incr_indexes (Int.max (#maxidx (Thm.rep_thm th1), #maxidx (Thm.rep_thm th2)) + 1);
+  Thm.incr_indexes (Int.max (Thm.maxidx_of th1, Thm.maxidx_of th2) + 1);
 
 
 (* freeze_all *)
@@ -1124,89 +1096,6 @@ val multi_resolve = multi_res 1;
 fun multi_resolves facts rules = Seq.maps (multi_resolve facts) (Seq.of_list rules);
 
 end;
-
-
-
-(** meta-level conjunction **)
-
-local
-  val A = read_prop "PROP A";
-  val B = read_prop "PROP B";
-  val C = read_prop "PROP C";
-  val ABC = read_prop "PROP A ==> PROP B ==> PROP C";
-  val A_B = read_prop "PROP ProtoPure.conjunction(A, B)"
-
-  val conjunction_def = #1 (freeze_thaw ProtoPure.conjunction_def);
-
-  fun conjunctionD which =
-    implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
-    forall_elim_vars 0 (Thm.equal_elim conjunction_def (Thm.assume A_B));
-in
-
-val conjunctionD1 = store_standard_thm "conjunctionD1" (conjunctionD #1);
-val conjunctionD2 = store_standard_thm "conjunctionD2" (conjunctionD #2);
-
-val conjunctionI = store_standard_thm "conjunctionI"
-  (implies_intr_list [A, B]
-    (Thm.equal_elim
-      (Thm.symmetric conjunction_def)
-      (Thm.forall_intr C (Thm.implies_intr ABC
-        (implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B])))));
-
-fun conj_intr tha thb = thb COMP (tha COMP incr_indexes2 tha thb conjunctionI);
-
-fun conj_intr_list [] = asm_rl
-  | conj_intr_list ths = foldr1 (uncurry conj_intr) ths;
-
-fun conj_elim th =
- (th COMP incr_indexes th conjunctionD1,
-  th COMP incr_indexes th conjunctionD2);
-
-(*((A && B) && C) && D && E -- flat*)
-fun conj_elim_list th =
-  let val (th1, th2) = conj_elim th
-  in conj_elim_list th1 @ conj_elim_list th2 end handle THM _ => [th];
-
-(*(A1 && B1 && C1) && (A2 && B2 && C2 && D2) && A3 && B3 -- improper*)
-fun conj_elim_precise spans =
-  let
-    fun elim 0 _ = []
-      | elim 1 th = [th]
-      | elim n th =
-          let val (th1, th2) = conj_elim th
-          in th1 :: elim (n - 1) th2 end;
-    fun elims (0 :: ns) ths = [] :: elims ns ths
-      | elims (n :: ns) (th :: ths) = elim n th :: elims ns ths
-      | elims _ _ = [];
-  in elims spans o elim (length (filter_out (equal 0) spans)) end;
-
-end;
-
-(*
-  A1 ==> ... ==> An ==> B
-  -----------------------
-   A1 && ... && An ==> B
-*)
-fun conj_uncurry n th =
-  let
-    val {thy, maxidx, ...} = Thm.rep_thm th;
-    val m = if n = ~1 then Thm.nprems_of th else Int.min (n, Thm.nprems_of th);
-  in
-    if m < 2 then th
-    else
-      let
-        val cert = Thm.cterm_of thy;
-        val As = map (fn i => Free ("A" ^ string_of_int i, propT)) (1 upto m);
-        val B = Free ("B", propT);
-        val C = cert (Logic.mk_conjunction_list As);
-        val D = cert (Logic.list_implies (As, B));
-        val rule =
-          implies_elim_list (Thm.assume D) (conj_elim_list (Thm.assume C))
-          |> implies_intr_list [D, C]
-          |> forall_intr_frees
-          |> forall_elim_vars (maxidx + 1)
-      in Thm.adjust_maxidx_thm (th COMP rule) end
-  end;
 
 end;
 
