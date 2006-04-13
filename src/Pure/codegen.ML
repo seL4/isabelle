@@ -375,7 +375,7 @@ fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn))
                 NONE => T
               | SOME ty =>
                   let val U = prep_type thy ty
-                  in if Sign.typ_instance thy (U, T) then U
+                  in if Type.raw_instance (U, T) then U
                     else error ("Illegal type constraint for constant " ^ cname)
                   end)
          in

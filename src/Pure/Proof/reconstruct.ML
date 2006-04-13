@@ -75,7 +75,7 @@ fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
       (t as Const (s, T)) = if T = dummyT then (case Sign.const_type sg s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
         | SOME T => 
-            let val T' = Logic.incr_tvar (maxidx + 1) T
+            let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T)
             in (Const (s, T'), T', vTs,
               Envir.Envir {maxidx = maxidx + 1, asol = asol, iTs = iTs})
             end)
