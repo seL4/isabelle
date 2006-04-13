@@ -108,6 +108,7 @@ sig
   val universal_witness: theory -> (typ * sort) option
   val all_sorts_nonempty: theory -> bool
   val typ_instance: theory -> typ * typ -> bool
+  val typ_equiv: theory -> typ * typ -> bool
   val typ_match: theory -> typ * typ -> Type.tyenv -> Type.tyenv
   val typ_unify: theory -> typ * typ -> Type.tyenv * int -> Type.tyenv * int
   val is_logtype: theory -> string -> bool
@@ -278,6 +279,7 @@ val witness_sorts = Type.witness_sorts o tsig_of;
 val universal_witness = Type.universal_witness o tsig_of;
 val all_sorts_nonempty = is_some o universal_witness;
 val typ_instance = Type.typ_instance o tsig_of;
+fun typ_equiv thy (T, U) = typ_instance thy (T, U) andalso typ_instance thy (U, T);
 val typ_match = Type.typ_match o tsig_of;
 val typ_unify = Type.unify o tsig_of;
 fun is_logtype thy c = c mem_string Type.logical_types (tsig_of thy);
@@ -503,7 +505,8 @@ fun cert_def pp tm =
 
 (* classes and sorts *)
 
-fun read_class thy c = certify_class thy (intern_class thy c);
+fun read_class thy c = certify_class thy (intern_class thy c)
+  handle TYPE (msg, _, _) => error msg;
 
 fun read_sort' syn context str =
   let
