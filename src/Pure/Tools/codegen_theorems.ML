@@ -238,6 +238,7 @@ structure CodegenTheorems = TheoryDataFun
   val merge = merge_T;
   fun print (thy : theory) (data : T) =
     let
+      val pretty_thm = ProofContext.pretty_thm (ProofContext.init thy);
       val codethms = (fn T { codethms, ... } => codethms) data;
       val funs = (Symtab.dest o (fn Codethms { funs, ... } => funs)) codethms;
       val preds = (Symtab.dest o (fn Codethms { preds, ... } => preds)) codethms;
@@ -249,7 +250,7 @@ structure CodegenTheorems = TheoryDataFun
         Pretty.fbreaks (
           map (fn (c, thms) => 
             (Pretty.block o Pretty.fbreaks) (
-              Pretty.str c :: map Display.pretty_thm thms
+              Pretty.str c :: map pretty_thm thms
             )
           ) funs
         ) @ [
@@ -257,12 +258,12 @@ structure CodegenTheorems = TheoryDataFun
         Pretty.fbreaks (
           map (fn (c, thms) => 
             (Pretty.block o Pretty.fbreaks) (
-              Pretty.str c :: map Display.pretty_thm thms
+              Pretty.str c :: map pretty_thm thms
             )
           ) preds
         ) @ [
         Pretty.str "unfolding theorems:",
-        (Pretty.block o Pretty.fbreaks o map Display.pretty_thm) unfolds
+        (Pretty.block o Pretty.fbreaks o map pretty_thm) unfolds
       ])
     end;
 end);
@@ -382,7 +383,7 @@ fun common_typ thy _ [] = []
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
         val (ty1::tys) = map extract_typ thms;
-        fun unify ty = Type.unify (Sign.tsig_of thy) (ty1, ty);
+        fun unify ty = Sign.typ_unify thy (ty1, ty);
         val (env, _) = fold unify tys (Vartab.empty, maxidx)
         val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
@@ -394,9 +395,9 @@ fun preprocess thy extract_typ thms =
   |> fold (fn f => f thy) (the_preprocs thy)
   |> map (rewrite_rule (the_unfolds thy))
   |> (if is_some extract_typ then common_typ thy (the extract_typ) else I)
-  |> Drule.conj_intr_list
+  |> Conjunction.intr_list
   |> Drule.zero_var_indexes
-  |> Drule.conj_elim_list
+  |> Conjunction.elim_list
   |> map Drule.unvarifyT
   |> map Drule.unvarify;
 
