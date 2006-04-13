@@ -84,7 +84,7 @@ by (simp add: less_lift_def Def_def Abs_lift_inverse lift_def)
 
 lemma Def_less_is_eq [simp]: "Def x \<sqsubseteq> y = (Def x = y)"
 apply (induct y)
-apply (simp add: eq_UU_iff)
+apply simp
 apply (simp add: Def_inject_less_eq)
 done
 

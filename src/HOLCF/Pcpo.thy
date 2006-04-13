@@ -215,8 +215,11 @@ Addsimprocs [UU_reorient_simproc];
 
 text {* useful lemmas about @{term \<bottom>} *}
 
-lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
+lemma less_UU_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
 by (simp add: po_eq_conv)
+
+lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
+by simp
 
 lemma UU_I: "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
 by (subst eq_UU_iff)

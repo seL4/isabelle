@@ -81,7 +81,6 @@ by (insert stream.injects [of a s b t], auto)
 lemma stream_prefix:
   "[| a && s << t; a ~= UU  |] ==> EX b tt. t = b && tt &  b ~= UU &  s << tt"
 apply (insert stream.exhaust [of t], auto)
-apply (drule eq_UU_iff [THEN iffD2], simp)
 by (drule stream.inverts, auto)
 
 lemma stream_prefix':
@@ -100,7 +99,6 @@ by (insert stream_prefix' [of y "x&&xs" ys],force)
 lemma stream_flat_prefix:
   "[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
 apply (case_tac "y=UU",auto)
-apply (drule eq_UU_iff [THEN iffD2],auto)
 apply (drule stream.inverts,auto)
 apply (drule ax_flat [rule_format],simp)
 by (drule stream.inverts,auto)
@@ -323,8 +321,7 @@ apply (rule stream_finite_lemma1, simp)
 by (rule stream_finite_lemma2,simp)
 
 lemma stream_finite_less: "stream_finite s ==> !t. t<<s --> stream_finite t"
-apply (erule stream_finite_ind [of s])
-apply (clarsimp, drule eq_UU_iff [THEN iffD2], auto)
+apply (erule stream_finite_ind [of s], auto)
 apply (case_tac "t=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1],auto)
 apply (drule stream.inverts, auto)
@@ -457,8 +454,6 @@ by (simp add: slen_def)
 lemma slen_mono_lemma: "stream_finite s ==> ALL t. s << t --> #s <= #t"
 apply (erule stream_finite_ind [of s], auto)
 apply (case_tac "t=UU", auto)
-apply (drule eq_UU_iff [THEN iffD2])
-apply (drule scons_eq_UU [THEN iffD2], simp)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (erule_tac x="y" in allE, auto)
 by (drule stream.inverts, auto)
@@ -489,7 +484,6 @@ apply (case_tac "x=UU", auto)
 apply (simp add: inat_defs)
 apply (simp add: Suc_ile_eq)
 apply (case_tac "y=UU", clarsimp)
-apply (drule eq_UU_iff [THEN iffD2],simp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)+
 apply (erule_tac x="ya" in allE, simp)
 apply (drule stream.inverts,auto)
@@ -498,7 +492,6 @@ by (drule ax_flat [rule_format], simp)
 lemma slen_strict_mono_lemma:
   "stream_finite t ==> !s. #(s::'a::flat stream) = #t &  s << t --> s = t"
 apply (erule stream_finite_ind, auto)
-apply (drule eq_UU_iff [THEN iffD2], simp)
 apply (case_tac "sa=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
 apply (drule stream.inverts, simp, simp, clarsimp)
@@ -652,7 +645,6 @@ lemma i_th_i_rt_step:
 apply (simp add: i_th_def i_rt_Suc_back)
 apply (rule stream.casedist [of "i_rt n s1"],simp)
 apply (rule stream.casedist [of "i_rt n s2"],auto)
-apply (drule eq_UU_iff [THEN iffD2], simp add: scons_eq_UU)
 by (intro monofun_cfun, auto)
 
 lemma i_th_stream_take_Suc [rule_format]:
@@ -821,7 +813,7 @@ by (rule sconc_mono [of UU, simplified])
 lemma empty_sconc [simp]: "(x ooo y = UU) = (x = UU & y = UU)"
 apply (case_tac "#x",auto)
    apply (insert sconc_mono1 [of x y])
-   by (insert eq_UU_iff [THEN iffD2, of x],auto)
+   by auto
 
 (* ----------------------------------------------------------------------- *)
 
@@ -1005,7 +997,5 @@ apply (case_tac "#x")
  apply (simp add: constr_sconc_def)
 apply (simp add: stream.finite_def)
 by (drule slen_take_lemma1,auto)
-
-declare eq_UU_iff [THEN sym, simp add]
 
 end

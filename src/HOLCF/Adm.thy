@@ -182,8 +182,8 @@ by (simp add: po_eq_conv adm_imp adm_not_less adm_compact_not_less)
 lemma compact_UU [simp, intro]: "compact \<bottom>"
 by (rule compactI, simp add: adm_not_free)
 
-lemma adm_not_UU: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x = \<bottom>)"
-by (simp add: eq_UU_iff adm_not_less)
+lemma adm_not_UU: "cont t \<Longrightarrow> adm (\<lambda>x. t x \<noteq> \<bottom>)"
+by (simp add: adm_neq_compact)
 
 lemmas adm_lemmas [simp] =
   adm_not_free adm_conj adm_all2 adm_ball2 adm_disj adm_imp adm_iff

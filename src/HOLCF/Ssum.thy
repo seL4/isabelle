@@ -118,16 +118,16 @@ lemma sinr_less [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubs
 by (simp add: less_Ssum_def Rep_Ssum_sinr)
 
 lemma sinl_less_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr eq_UU_iff)
+by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr)
 
 lemma sinr_less_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr eq_UU_iff)
+by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr)
 
 lemma sinl_eq_sinr [simp]: "(sinl\<cdot>x = sinr\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
-by (simp add: po_eq_conv)
+by (subst po_eq_conv, simp)
 
 lemma sinr_eq_sinl [simp]: "(sinr\<cdot>x = sinl\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
-by (simp add: po_eq_conv)
+by (subst po_eq_conv, simp)
 
 subsection {* Chains of strict sums *}
 
