@@ -508,7 +508,7 @@ fun expand_binds ctxt schematic =
 
     fun expand_var (xi, T) =
       (case Vartab.lookup binds xi of
-        SOME t => Envir.expand_atom (tsig_of ctxt) T t
+        SOME t => Envir.expand_atom T t
       | NONE =>
           if schematic then Var (xi, T)
           else error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi));

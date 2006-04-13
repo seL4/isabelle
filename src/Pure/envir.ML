@@ -38,7 +38,7 @@ sig
   val subst_TVars: Type.tyenv -> term -> term
   val subst_Vars: tenv -> term -> term
   val subst_vars: Type.tyenv * tenv -> term -> term
-  val expand_atom: Type.tsig -> typ -> typ * term -> term
+  val expand_atom: typ -> typ * term -> term
 end;
 
 structure Envir : ENVIR =
@@ -297,8 +297,8 @@ fun subst_vars (iTs, itms) =
 
 (* expand_atom *)
 
-fun expand_atom tsig T (U, u) =
-  subst_TVars (Type.typ_match tsig (U, T) Vartab.empty) u
+fun expand_atom T (U, u) =
+  subst_TVars (Type.raw_match (U, T) Vartab.empty) u
   handle Type.TYPE_MATCH => raise TYPE ("expand_atom: ill-typed replacement", [T, U], [u]);
 
 end;
