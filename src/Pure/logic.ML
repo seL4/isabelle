@@ -27,6 +27,7 @@ sig
   val mk_conjunction_list: term list -> term
   val mk_conjunction_list2: term list list -> term
   val dest_conjunction: term -> term * term
+  val dest_conjunction_list: term -> term list
   val dest_conjunctions: term -> term list
   val strip_horn: term -> term list * term
   val dest_type: term -> typ
@@ -165,6 +166,12 @@ fun mk_conjunction_list2 tss =
 (*A && B*)
 fun dest_conjunction (Const ("ProtoPure.conjunction", _) $ A $ B) = (A, B)
   | dest_conjunction t = raise TERM ("dest_conjunction", [t]);
+
+(*A && B && C -- improper*)
+fun dest_conjunction_list t =
+  (case try dest_conjunction t of
+    NONE => [t]
+  | SOME (A, B) => A :: dest_conjunction_list B);
 
 (*((A && B) && C) && D && E -- flat*)
 fun dest_conjunctions t =
@@ -327,7 +334,7 @@ fun occs (t, u) = exists_subterm (fn s => t aconv s) u;
 
 (*Close up a formula over all free variables by quantification*)
 fun close_form A =
-  list_all_free (sort_wrt fst (map dest_Free (term_frees A)), A);
+  Term.list_all_free (rev (Term.add_frees A []), A);
 
 
 
