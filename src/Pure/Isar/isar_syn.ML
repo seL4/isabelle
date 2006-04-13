@@ -92,7 +92,8 @@ val defaultsortP =
 val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
     ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []) -- Scan.repeat P.spec_name
+        P.!!! (P.list1 P.xname)) []) --
+          Scan.repeat (P.thm_name ":" -- (P.prop >> single))
       >> (fn (x, y) => Toplevel.theory (snd o AxClass.add_axclass x [] y)));
 
 
