@@ -144,12 +144,12 @@ fun certify pp tsig (consts as Consts ({expand_abbrevs, ...}, _)) =
               val T' = Type.cert_typ tsig T;
               val ((U, kind), _) = the_const consts c;
             in
-              if not (Type.typ_instance tsig (T', U)) then
+              if not (Type.raw_instance (T', U)) then
                 err "Illegal type for constant" (c, T)
               else
                 (case (kind, expand_abbrevs) of
                   (Abbreviation u, true) =>
-                    Term.betapplys (Envir.expand_atom tsig T' (U, u) handle TYPE _ =>
+                    Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
                       err "Illegal type for abbreviation" (c, T), map cert args)
                 | _ => comb head)
             end
