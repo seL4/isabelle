@@ -2,11 +2,19 @@
     ID:         $Id$
     Author:     Makarius
 
-Printing of Isar proof configurations etc.
+Printing of theorems, goals, results etc.
 *)
+
+signature BASIC_PROOF_DISPLAY =
+sig
+  val print_theorems: theory -> unit
+  val print_theory: theory -> unit
+end
 
 signature PROOF_DISPLAY =
 sig
+  include BASIC_PROOF_DISPLAY
+  val print_theorems_diff: theory -> theory -> unit
   val string_of_rule: ProofContext.context -> string -> thm -> string
   val print_results: bool -> ProofContext.context ->
     ((string * string) * (string * thm list) list) -> unit
@@ -16,6 +24,29 @@ end
 
 structure ProofDisplay: PROOF_DISPLAY =
 struct
+
+
+(* theorems and theory *)
+
+fun pretty_theorems_diff prev_thms thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val (space, thms) = PureThy.theorems_of thy;
+    val diff_thmss = Symtab.fold (fn fact =>
+      if not (Symtab.member Thm.eq_thms prev_thms fact) then cons fact else I) thms [];
+    val thmss = diff_thmss |> map (apfst (NameSpace.extern space)) |> Library.sort_wrt #1;
+  in Pretty.big_list "theorems:" (map (ProofContext.pretty_fact ctxt) thmss) end;
+
+fun print_theorems_diff prev_thy thy =
+  Pretty.writeln (pretty_theorems_diff (#2 (PureThy.theorems_of prev_thy)) thy);
+
+fun pretty_theorems thy = pretty_theorems_diff Symtab.empty thy;
+
+val print_theorems = Pretty.writeln o pretty_theorems;
+
+fun print_theory thy =
+  Pretty.writeln (Pretty.chunks (Display.pretty_full_theory thy @ [pretty_theorems thy]));
+
 
 (* refinement rule *)
 
@@ -73,3 +104,7 @@ fun present_results ctxt ((kind, name), res) =
 end;
 
 end;
+
+structure BasicProofDisplay: BASIC_PROOF_DISPLAY = ProofDisplay;
+open BasicProofDisplay;
+
