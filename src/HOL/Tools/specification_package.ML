@@ -123,8 +123,6 @@ fun process_spec axiomatic cos alt_props thy =
           | myfoldr f (x::xs) = f (x,myfoldr f xs)
           | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
 
-        fun typ_equiv t u = Sign.typ_instance thy (t,u) andalso Sign.typ_instance thy (u,t);
-
         val rew_imps = alt_props |>
           map (ObjectLogic.atomize_cterm o Thm.read_cterm thy o rpair Term.propT o snd)
         val props' = rew_imps |>
@@ -160,7 +158,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val (cname,ctyp) = dest_Const c'
             in
                 case List.filter (fn t => let val (name,typ) = dest_Const t
-                                     in name = cname andalso typ_equiv typ ctyp
+                                     in name = cname andalso Sign.typ_equiv thy (typ, ctyp)
                                      end) thawed_prop_consts of
                     [] => error ("Specification: No suitable instances of constant \"" ^ (Sign.string_of_term thy c) ^ "\" found")
                   | [cf] => unvarify cf vmap
