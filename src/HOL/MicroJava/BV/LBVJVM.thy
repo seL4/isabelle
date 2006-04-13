@@ -310,7 +310,7 @@ theorem jvm_lbv_complete:
   "wt_jvm_prog G Phi \<Longrightarrow> wt_jvm_prog_lbv G (prg_cert G Phi)"
   apply (unfold wt_jvm_prog_def wt_jvm_prog_lbv_def)
   apply (erule jvm_prog_lift)
-  apply (auto simp add: prg_cert_def intro wt_method_wt_lbv)
+  apply (auto simp add: prg_cert_def intro: wt_method_wt_lbv)
   done  
 
 end
