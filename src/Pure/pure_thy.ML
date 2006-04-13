@@ -12,8 +12,6 @@ sig
     Name of string |
     NameSelection of string * interval list |
     Fact of string
-  val print_theorems: theory -> unit
-  val print_theory: theory -> unit
   val get_thm: theory -> thmref -> thm
   val get_thms: theory -> thmref -> thm list
   val get_thmss: theory -> thmref list -> thm list
@@ -46,7 +44,6 @@ sig
   val has_internal: tag list -> bool
   val is_internal: thm -> bool
   val string_of_thmref: thmref -> string
-  val print_theorems_diff: theory -> theory -> unit
   val get_thm_closure: theory -> thmref -> thm
   val get_thms_closure: theory -> thmref -> thm list
   val single_thm: string -> thm list -> thm
@@ -139,20 +136,6 @@ val is_internal = has_internal o Thm.tags_of_thm;
 
 (** dataype theorems **)
 
-fun pretty_theorems_diff thy prev_thms (space, thms) =
-  let
-    val prt_thm = Display.pretty_thm_sg thy;
-    fun prt_thms (name, [th]) =
-          Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
-      | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
-
-    val diff_thmss = Symtab.fold (fn fact =>
-      if not (Symtab.member eq_thms prev_thms fact) then cons fact else I) thms [];
-    val thmss = diff_thmss |> map (apfst (NameSpace.extern space)) |> Library.sort_wrt #1;
-  in Pretty.big_list "theorems:" (map prt_thms thmss) end;
-
-fun pretty_theorems thy = pretty_theorems_diff thy Symtab.empty;
-
 structure TheoremsData = TheoryDataFun
 (struct
   val name = "Pure/theorems";
@@ -167,7 +150,7 @@ structure TheoremsData = TheoryDataFun
   fun copy (ref x) = ref x;
   val extend = mk_empty;
   fun merge _ = mk_empty;
-  fun print thy (ref {theorems, index}) = Pretty.writeln (pretty_theorems thy theorems);
+  fun print _ _ = ();
 end);
 
 val get_theorems_ref = TheoremsData.get;
@@ -175,20 +158,6 @@ val get_theorems = ! o get_theorems_ref;
 val theorems_of = #theorems o get_theorems;
 val theorem_space = #1 o theorems_of;
 val fact_index_of = #index o get_theorems;
-
-
-(* print theory *)
-
-val print_theorems = TheoremsData.print;
-
-fun print_theorems_diff prev_thy thy =
-  Pretty.writeln (pretty_theorems_diff thy
-    (#2 (theorems_of prev_thy)) (#theorems (get_theorems thy)));
-
-fun print_theory thy =
-  Display.pretty_full_theory thy @
-    [pretty_theorems thy (#theorems (get_theorems thy))]
-  |> Pretty.chunks |> Pretty.writeln;
 
 
 
