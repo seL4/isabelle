@@ -12,22 +12,15 @@ signature RES_AXIOMS =
   val elimRule_tac : thm -> Tactical.tactic
   val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
-  val clausify_axiom_pairs : (string*thm) -> (ResClause.clause*thm) list
-  val clausify_axiom_pairsH : (string*thm) -> (ResHolClause.clause*thm) list
   val cnf_axiom : (string * thm) -> thm list
   val meta_cnf_axiom : thm -> thm list
   val claset_rules_of_thy : theory -> (string * thm) list
   val simpset_rules_of_thy : theory -> (string * thm) list
   val claset_rules_of_ctxt: Proof.context -> (string * thm) list
   val simpset_rules_of_ctxt : Proof.context -> (string * thm) list
-  val clausify_rules_pairs : (string*thm) list -> (ResClause.clause*thm) list list
-  val clausify_rules_pairsH : (string*thm) list -> (ResHolClause.clause*thm) list list
   val pairname : thm -> (string * thm)
   val skolem_thm : thm -> thm list
-  val cnf_rules1 : (string * thm) list -> string list -> (string * thm list) list * string list
-  val cnf_rules2 : (string * thm) list -> string list -> (string * term list) list * string list
   val cnf_rules_pairs : (string * Thm.thm) list -> (Thm.thm * (string * int)) list list;
-  val clausify_rules_pairs_abs : (string * thm) list -> (Term.term * (string * int)) list list
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
 
@@ -391,19 +384,6 @@ fun cnf_rules_g cnf_axiom [] err_list = ([],err_list)
 (*works for both FOL and HOL*)
 val cnf_rules = cnf_rules_g cnf_axiom;
 
-fun cnf_rules1 [] err_list = ([],err_list)
-  | cnf_rules1 ((name,th) :: ths) err_list =
-      let val (ts,es) = cnf_rules1 ths err_list
-      in ((name,cnf_axiom (name,th)) :: ts,es) handle _ => (ts,(name::es)) end;
-
-fun cnf_rules2 [] err_list = ([],err_list)
-  | cnf_rules2 ((name,th) :: ths) err_list =
-      let val (ts,es) = cnf_rules2 ths err_list
-      in
-	((name,map prop_of (cnf_axiom (name,th))) :: ts,es) handle _ => (ts,(name::es)) 
-      end;
-
-
 fun cnf_rules_pairs_aux [] = []
   | cnf_rules_pairs_aux ((name,th)::ths) =
     let val ts = cnf_rules_pairs_aux ths
@@ -418,70 +398,9 @@ fun cnf_rules_pairs_aux [] = []
 
 fun cnf_rules_pairs thms = rev (cnf_rules_pairs_aux thms);
 
-fun clausify_rules_pairs_abs_aux [] = []
-  | clausify_rules_pairs_abs_aux ((name,th)::ths) =
-      let val ts = clausify_rules_pairs_abs_aux ths
-	  fun pair_name_cls k (n, []) = []
-	    | pair_name_cls k (n, cls::clss) =
-		(prop_of cls, (n,k)) :: (pair_name_cls (k+1) (n, clss))
-      in
-	  pair_name_cls 0 (name, (cnf_axiom(name,th))) :: ts
-	  handle THM _ => ts | ResClause.CLAUSE _ => ts | ResHolClause.LAM2COMB _ => ts
-      end;
-
-fun clausify_rules_pairs_abs thms = rev (clausify_rules_pairs_abs_aux thms);
-
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
-fun make_axiom_clauses _ _ [] = []
-  | make_axiom_clauses name i (th::ths) =
-      case ResClause.make_axiom_clause (prop_of th) (name,i) of 
-          SOME cls => (cls, th) :: make_axiom_clauses name (i+1) ths
-        | NONE => make_axiom_clauses name i ths;
-
-(* outputs a list of (clause,theorem) pairs *)
-fun clausify_axiom_pairs (name,th) = 
-    filter (fn (c,th) => not (ResClause.isTaut c))
-           (make_axiom_clauses name 0 (cnf_axiom (name,th)));
-
-fun make_axiom_clausesH _ _ [] = []
-  | make_axiom_clausesH name i (th::ths) =
-      (ResHolClause.make_axiom_clause (prop_of th) (name,i), th) ::
-      (make_axiom_clausesH name (i+1) ths)
-
-fun clausify_axiom_pairsH (name,th) = 
-    filter (fn (c,th) => not (ResHolClause.isTaut c))
-           (make_axiom_clausesH name 0 (cnf_axiom (name,th)));
-
-
-fun clausify_rules_pairs_aux result [] = result
-  | clausify_rules_pairs_aux result ((name,th)::ths) =
-      clausify_rules_pairs_aux (clausify_axiom_pairs (name,th) :: result) ths
-      handle THM (msg,_,_) =>  
-	      (Output.debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
-	       clausify_rules_pairs_aux result ths)
-	 |  ResClause.CLAUSE (msg,t) => 
-	      (Output.debug ("Cannot clausify " ^ name ^ ": " ^ msg ^
-		      ": " ^ TermLib.string_of_term t); 
-	       clausify_rules_pairs_aux result ths)
-
-
-fun clausify_rules_pairs_auxH result [] = result
-  | clausify_rules_pairs_auxH result ((name,th)::ths) =
-      clausify_rules_pairs_auxH (clausify_axiom_pairsH (name,th) :: result) ths
-      handle THM (msg,_,_) =>  
-	      (Output.debug ("Cannot clausify " ^ name ^ ": " ^ msg); 
-	       clausify_rules_pairs_auxH result ths)
-	 |  ResHolClause.LAM2COMB (t) => 
-	      (Output.debug ("Cannot clausify "  ^ TermLib.string_of_term t); 
-	       clausify_rules_pairs_auxH result ths)
-
-
-
-val clausify_rules_pairs = clausify_rules_pairs_aux [];
-
-val clausify_rules_pairsH = clausify_rules_pairs_auxH [];
 
 (*These should include any plausibly-useful theorems, especially if they need
   Skolem functions. FIXME: this list is VERY INCOMPLETE*)

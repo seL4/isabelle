@@ -313,18 +313,6 @@ fun logic_of_clauses [] (lg,seen) = (lg,seen)
     end
   | logic_of_clauses (cls::clss) (lg,seen) = (lg,seen);
 
-fun logic_of_nclauses [] (lg,seen) = (lg,seen)
-  | logic_of_nclauses (cls::clss) (FOL,seen) =
-    logic_of_nclauses clss (logic_of_clauses (snd cls) (FOL,seen))
-  | logic_of_nclauses clss (lg,seen) = (lg,seen);
-
-fun problem_logic (goal_cls,rules_cls) =
-    let val (lg1,seen1) = logic_of_clauses goal_cls (FOL,[])
-	val (lg2,seen2) = logic_of_nclauses rules_cls (lg1,seen1)
-    in
-	lg2
-    end;
-
 fun problem_logic_goals_aux [] (lg,seen) = lg
   | problem_logic_goals_aux (subgoal::subgoals) (lg,seen) = 
     problem_logic_goals_aux subgoals (logic_of_clauses subgoal (lg,seen));
@@ -360,13 +348,13 @@ fun tptp_writer logic goals filename (axioms,classrels,arities) =
 
 
 fun write_subgoal_file mode ctxt conjectures user_thms n =
-    let val conj_cls = map prop_of (make_clauses conjectures) 
-	val hyp_cls = map prop_of (cnf_hyps_thms ctxt)
+    let val conj_cls = make_clauses conjectures 
+	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
 	val user_rules = map ResAxioms.pairname user_thms
-	val (names_arr,axclauses_as_thms) = ResClasimp.get_clasimp_atp_lemmas ctxt (goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
+	val (names_arr,axclauses_as_thms) = ResClasimp.get_clasimp_atp_lemmas ctxt (map prop_of goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
 	val thy = ProofContext.theory_of ctxt
-	val prob_logic = case mode of Auto => problem_logic_goals [goal_cls]
+	val prob_logic = case mode of Auto => problem_logic_goals [map prop_of goal_cls]
 				    | Fol => FOL
 				    | Hol => HOL
 	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
@@ -465,7 +453,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 fun write_problem_files pf (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
-      val (names_arr, axclauses_as_terms) = ResClasimp.get_clasimp_atp_lemmas ctxt goals [] (true,true,true) (!run_relevance_filter) (* no user supplied rules here, because no user invocation *)
+      val (names_arr, axclauses) = ResClasimp.get_clasimp_atp_lemmas ctxt goals [] (true,true,true) (!run_relevance_filter) (* no user supplied rules here, because no user invocation *)
       val _ = Output.debug ("claset, simprules and atprules total clauses = " ^ 
                      Int.toString (Array.length names_arr))
       val thy = ProofContext.theory_of ctxt
@@ -475,12 +463,12 @@ fun write_problem_files pf (ctxt,th)  =
 	      let val st = Seq.hd (EVERY'
 				       [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac] n th)
 		  val negs = Option.valOf (metahyps_thms n st)
-		  val negs_clauses = map prop_of (make_clauses negs)
+		  val negs_clauses = make_clauses negs
 	      in
 		  negs_clauses::(get_neg_subgoals (n - 1))
 	      end
       val neg_subgoals = get_neg_subgoals (length goals) 
-      val goals_logic = case !linkup_logic_mode of Auto => problem_logic_goals neg_subgoals
+      val goals_logic = case !linkup_logic_mode of Auto => problem_logic_goals (map (map prop_of) neg_subgoals)
 						 | Fol => FOL
 						 | Hol => HOL
       val keep_types = if is_fol_logic goals_logic then !ResClause.keep_types else is_typed_hol ()
@@ -491,7 +479,7 @@ fun write_problem_files pf (ctxt,th)  =
       val writer = (*if !prover ~= "spass" then *)tptp_writer 
       fun write_all [] _ = []
 	| write_all (subgoal::subgoals) k =
-	  (writer goals_logic subgoal (pf k) (axclauses_as_terms,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
+	  (writer goals_logic subgoal (pf k) (axclauses,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
   in
       (write_all neg_subgoals (length goals), names_arr)
   end;
