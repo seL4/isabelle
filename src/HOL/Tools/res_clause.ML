@@ -34,8 +34,8 @@ signature RES_CLAUSE =
   val isTaut : clause -> bool
   val keep_types : bool ref
   val list_ord : ('a * 'b -> order) -> 'a list * 'b list -> order
-  val make_axiom_clause : Term.term -> string * int -> clause option
-  val make_conjecture_clauses : term list -> clause list
+  val make_axiom_clause : thm -> string * int -> clause option
+  val make_conjecture_clauses : thm list -> clause list
   val make_fixed_const : string -> string		
   val make_fixed_type_const : string -> string   
   val make_fixed_type_var : string -> string
@@ -55,7 +55,7 @@ signature RES_CLAUSE =
   val tptp_classrelClause : classrelClause -> string
   val tptp_of_typeLit : type_literal -> string
   val tptp_tfree_clause : string -> string
-  val tptp_write_file: term list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
+  val tptp_write_file: thm list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
   val tvar_prefix : string
   val types_eq: fol_type list * fol_type list -> (string*string) list * (string*string) list -> bool * ((string*string) list * (string*string) list)
   val types_ord : fol_type list * fol_type list -> order
@@ -570,8 +570,9 @@ fun get_tvar_strs [] = []
   | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
 
 (* check if a clause is first-order before making a conjecture clause*)
-fun make_conjecture_clause n t =
-    let val _ = check_is_fol_term t
+fun make_conjecture_clause n thm =
+    let val t = prop_of thm
+	val _ = check_is_fol_term t
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
 	val (lits,types_sorts) = literals_of_term t
     in
@@ -601,8 +602,9 @@ fun too_general_lit (Literal (true,Predicate("equal",_,[x,y]),_)) =
   | too_general_lit _ = false;
 
 (*before converting an axiom clause to "clause" format, check if it is FOL*)
-fun make_axiom_clause term (ax_name,cls_id) =
-    let val (lits,types_sorts) = literals_of_term term
+fun make_axiom_clause thm (ax_name,cls_id) =
+    let val term = prop_of thm
+	val (lits,types_sorts) = literals_of_term term
     in 
 	if not (Meson.is_fol_term term) then
 	   (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); 
@@ -615,15 +617,10 @@ fun make_axiom_clause term (ax_name,cls_id) =
     handle CLAUSE _ => NONE;
 
 
-fun make_axiom_clauses_terms [] = []
-  | make_axiom_clauses_terms ((tm,(name,id))::tms) =
-    case make_axiom_clause tm (name,id) of SOME cls => if isTaut cls then make_axiom_clauses_terms tms else cls :: make_axiom_clauses_terms tms
-						    | NONE => make_axiom_clauses_terms tms;
-    
-fun make_axiom_clauses_thms [] = []
-  | make_axiom_clauses_thms ((thm,(name,id))::thms) =
-    case make_axiom_clause (prop_of thm) (name,id) of SOME cls => if isTaut cls then make_axiom_clauses_thms thms else cls :: make_axiom_clauses_thms thms
-						    | NONE => make_axiom_clauses_thms thms;
+fun make_axiom_clauses [] = []
+  | make_axiom_clauses ((thm,(name,id))::thms) =
+    case make_axiom_clause thm (name,id) of SOME cls => if isTaut cls then make_axiom_clauses thms else cls :: make_axiom_clauses thms
+						    | NONE => make_axiom_clauses thms;
 
 (**** Isabelle arities ****)
 
@@ -934,7 +931,7 @@ fun dfg_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) =
 fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) = 
   let 
     val _ = Output.debug ("Preparing to write the DFG file " ^ filename)
-    val conjectures = make_conjecture_clauses (map prop_of ths)
+    val conjectures = make_conjecture_clauses ths
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
     val clss = conjectures @ axclauses
     val funcs = funcs_of_clauses clss arity_clauses
@@ -1031,11 +1028,11 @@ fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "input_clause(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n" 
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
-fun tptp_write_file terms filename (axclauses,classrel_clauses,arity_clauses) =
+fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
   let
     val _ = Output.debug ("Preparing to write the TPTP file " ^ filename)
-    val clss = make_conjecture_clauses terms
-    val axclauses' = make_axiom_clauses_thms axclauses
+    val clss = make_conjecture_clauses thms
+    val axclauses' = make_axiom_clauses axclauses
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
