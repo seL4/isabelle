@@ -325,12 +325,15 @@ fun cls_axiom _ _ _ [] = []
              SOME cls => (FOLClause cls) :: cls_axiom true  name (i+1) tms
            | NONE => cls_axiom true name i tms)
     else
-	(HOLClause (ResHolClause.make_axiom_clause tm (name,i))) :: (cls_axiom false name (i+1) tms);
+	HOLClause (ResHolClause.make_axiom_clause tm (name,i)) :: 
+	cls_axiom false name (i+1) tms;
 
 
 fun filtered_tptp_axiom is_fol name clss =
-    (fst(ListPair.unzip (map clause2tptp (filter (fn c => not (isTaut c)) (cls_axiom is_fol name 0 clss)))),[])
-    handle _ => ([],[name]);
+  (fst
+   (ListPair.unzip 
+    (map clause2tptp (filter (fn c => not (isTaut c)) (cls_axiom is_fol name 0 clss)))),
+   [])   handle _ => ([],[name]);
 
 fun tptp_axioms_aux _ [] err = ([],err)
   | tptp_axioms_aux is_fol ((name,clss)::nclss) err =
@@ -427,23 +430,26 @@ fun tptp_types_sorts thy =
 datatype mode = Auto | Fol | Hol;
 
 fun write_out logic (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
-    let val is_fol = is_fol_logic logic
-	val (files1,err1) = if (null claR) then ([],[]) else (atp_axioms is_fol claR (claset_file()))
-	val (files2,err2) = if (null simpR) then ([],[]) else (atp_axioms is_fol simpR (simpset_file ()))
-	val (files3,err3) = if (null userR) then ([],[]) else (atp_axioms is_fol userR (local_lemma_file ()))
-	val files4 = atp_conjectures is_fol hyp_cls conj_cls n
-	val errs = err1 @ err2 @ err3 @ err
-	val logic' = if !include_combS then HOLCS 
-		     else 
-			 if !include_min_comb then HOLC else logic
-	val _ = warning ("Problems are " ^ (string_of_logic logic'))
-	val _ = if (null errs) then () else warning ("Can't clausify thms: " ^ (ResClause.paren_pack errs))
-	val helpers = case logic' of FOL => []
-				   | HOL => [HOL_helper1 ()]
-				   | _ => [HOL_helper1(),HOL_comb()] (*HOLC or HOLCS*)
-    in
-	(helpers,files4 @ files1 @ files2 @ files3)
-    end;
+  let val is_fol = is_fol_logic logic
+      val (files1,err1) = if (null claR) then ([],[]) 
+                          else (atp_axioms is_fol claR (claset_file()))
+      val (files2,err2) = if (null simpR) then ([],[]) 
+                          else (atp_axioms is_fol simpR (simpset_file ()))
+      val (files3,err3) = if (null userR) then ([],[]) 
+                          else (atp_axioms is_fol userR (local_lemma_file ()))
+      val files4 = atp_conjectures is_fol hyp_cls conj_cls n
+      val errs = err1 @ err2 @ err3 @ err
+      val logic' = if !include_combS then HOLCS 
+		   else 
+		       if !include_min_comb then HOLC else logic
+      val _ = warning ("Problems are " ^ (string_of_logic logic'))
+      val _ = if (null errs) then () else warning ("Can't clausify thms: " ^ (ResClause.paren_pack errs))
+      val helpers = case logic' of FOL => []
+				 | HOL => [HOL_helper1 ()]
+				 | _ => [HOL_helper1(),HOL_comb()] (*HOLC or HOLCS*)
+  in
+      (helpers,files4 @ files1 @ files2 @ files3)
+  end;
 
 
 fun write_out_ts is_fol ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
@@ -457,7 +463,8 @@ fun write_out_ts is_fol ctxt (claR,simpR,userR,hyp_cls,conj_cls,n,err) =
 
 fun prep_atp_input mode ctxt conjectures user_thms n =
     let val conj_cls = map prop_of (make_clauses conjectures) 
-	val (userR,simpR,claR,errs) = cnf_rules_tms ctxt user_thms (!include_claset,!include_simpset) 
+	val (userR,simpR,claR,errs) = 
+	    cnf_rules_tms ctxt user_thms (!include_claset,!include_simpset) 
 	val hyp_cls = map prop_of (cnf_hyps_thms ctxt) 
 	val logic = case mode of Auto => problem_logic (conj_cls,hyp_cls,userR,claR,simpR)
 			       | Fol => FOL
