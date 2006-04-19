@@ -342,9 +342,17 @@ datatype mode = Auto | Fol | Hol;
 val linkup_logic_mode = ref Fol;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) =
-    if is_fol_logic logic then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
-    else
-	ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) (get_all_helpers());
+    if is_fol_logic logic 
+    then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
+    else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) 
+	   (get_all_helpers());
+
+(*2006-04-07: not working: goals has type thm list (not term list as above) and
+  axioms has type ResClause.clause list (not (thm * (string * int)) list as above)*)
+fun dfg_writer logic goals filename (axioms,classrels,arities) =
+    if is_fol_logic logic 
+    then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
+    else error "DFG output for higher-order translations is not implemented"
 
 
 fun write_subgoal_file mode ctxt conjectures user_thms n =
@@ -360,7 +368,7 @@ fun write_subgoal_file mode ctxt conjectures user_thms n =
 	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
-	val writer = tptp_writer
+        val writer = (*if !prover = "spass" then dfg_writer else*) tptp_writer 
 	val file = atp_input_file()
     in
 	(writer prob_logic goal_cls file (axclauses_as_thms,classrel_clauses,arity_clauses);
@@ -405,37 +413,30 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
             val time = Int.toString (!time_limit)
           in
             Output.debug ("problem file in watcher_call_provers is " ^ probfile);
-            (*Avoid command arguments containing spaces: Poly/ML and SML/NJ
-              versions of Unix.execute treat them differently!*)
             (*options are separated by Watcher.setting_sep, currently #"%"*)
             if !prover = "spass"
             then
-              let val baseopts = "%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
-              val infopts = 
-		      if !AtpCommunication.reconstruct 
-		          (*Proof reconstruction needs a limited set of inf rules*)
-                      then space_implode "%" (!custom_spass)                           
-                      else "-Auto%-SOS=1"
-                  val spass = helper_path "SPASS_HOME" "SPASS"
-            in 
-                ([("spass", spass, infopts ^ baseopts, probfile)] @ 
-                  make_atp_list xs (n+1))
+              let val spass = helper_path "SPASS_HOME" "SPASS"
+                  val sopts =
+   "-Auto%-SOS=1%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
+              in 
+                  ("spass", spass, sopts, probfile) :: make_atp_list xs (n+1)
               end
             else if !prover = "vampire"
 	    then 
               let val vampire = helper_path "VAMPIRE_HOME" "vampire"
+                  val casc = if !time_limit > 70 then "--mode casc%" else ""
+                  val vopts = casc ^ "-m 100000%-t " ^ time
               in
-                ([("vampire", vampire, "-m 100000%-t " ^ time, probfile)] @
-                 make_atp_list xs (n+1))       (*BEWARE! spaces in options!*)
+                  ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
               end
       	     else if !prover = "E"
       	     then
 	       let val Eprover = helper_path "E_HOME" "eproof"
 	       in
-		  ([("E", Eprover, 
-		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time,
-		     probfile)] @
-		   make_atp_list xs (n+1))
+		  ("E", Eprover, 
+		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time, probfile) ::
+		   make_atp_list xs (n+1)
 	       end
 	     else error ("Invalid prover name: " ^ !prover)
           end
@@ -476,7 +477,7 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
       val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
-      val writer = (*if !prover ~= "spass" then *)tptp_writer 
+      val writer = (*if !prover = "spass" then dfg_writer else*) tptp_writer 
       fun write_all [] _ = []
 	| write_all (subgoal::subgoals) k =
 	  (writer goals_logic subgoal (pf k) (axclauses,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
@@ -490,7 +491,7 @@ val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream *
 fun kill_last_watcher () =
     (case !last_watcher_pid of 
          NONE => ()
-       | SOME (_, childout, pid, files) => 
+       | SOME (_, _, pid, files) => 
 	  (Output.debug ("Killing old watcher, pid = " ^ string_of_pid pid);
 	   Watcher.killWatcher pid;  
 	   ignore (map (try OS.FileSys.remove) files)))
