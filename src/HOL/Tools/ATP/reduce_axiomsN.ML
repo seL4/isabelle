@@ -138,14 +138,16 @@ fun dest_ConstFree (Const aT) = aT
 (*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
 fun defines thy (thm,(name,n)) gctypes =
     let val tm = prop_of thm
-	fun defs hs =
-            let val (rator,args) = strip_comb hs
+	fun defs lhs rhs =
+            let val (rator,args) = strip_comb lhs
 		val ct = const_with_typ thy (dest_ConstFree rator)
-            in  forall is_Var args andalso uni_mem ct gctypes  end
-		handle ConstFree => false
+            in  forall is_Var args andalso uni_mem ct gctypes andalso
+                term_varnames rhs subset term_varnames lhs
+            end
+	    handle ConstFree => false
     in    
-	case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ _) => 
-		   defs lhs andalso
+	case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ rhs) => 
+		   defs lhs rhs andalso
 		   (Output.debug ("Definition found: " ^ name ^ "_" ^ Int.toString n); true)
 		 | _ => false
     end
