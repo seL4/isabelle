@@ -233,6 +233,7 @@ fun mk_typ_var_sort (TFree(a,s)) = (FOLTFree a,s)
 datatype clause = 
 	 Clause of {clause_id: clause_id,
 		    axiom_name: axiom_name,
+		    th: thm,
 		    kind: kind,
 		    literals: literal list,
 		    types_sorts: (typ_var * sort) list};
@@ -253,11 +254,12 @@ fun isTrue (Literal (pol,Predicate(pname,_,[]),_)) =
   
 fun isTaut (Clause {literals,...}) = exists isTrue literals;  
 
-fun make_clause (clause_id, axiom_name, kind, literals, types_sorts) =
+fun make_clause (clause_id, axiom_name, th, kind, literals, types_sorts) =
   if forall isFalse literals 
   then error "Problem too trivial for resolution (empty clause)"
   else
-     Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind, 
+     Clause {clause_id = clause_id, axiom_name = axiom_name, 
+             th = th, kind = kind, 
              literals = literals, types_sorts = types_sorts};
 
 
@@ -576,7 +578,7 @@ fun make_conjecture_clause n thm =
 	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
 	val (lits,types_sorts) = literals_of_term t
     in
-	make_clause(n, "conjecture", Conjecture, lits, types_sorts)
+	make_clause(n, "conjecture", thm, Conjecture, lits, types_sorts)
     end;
     
 fun make_conjecture_clauses_aux _ [] = []
@@ -612,7 +614,7 @@ fun make_axiom_clause thm (ax_name,cls_id) =
 	else if forall too_general_lit lits then
 	   (Output.debug ("Omitting " ^ ax_name ^ ": equalities are too general"); 
 	    NONE)
-	else SOME (make_clause(cls_id, ax_name, Axiom, sort_lits lits, types_sorts))
+	else SOME (make_clause(cls_id, ax_name, thm, Axiom, sort_lits lits, types_sorts))
     end
     handle CLAUSE _ => NONE;
 
