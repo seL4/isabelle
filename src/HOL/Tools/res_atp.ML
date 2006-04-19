@@ -15,6 +15,7 @@ sig
   val time_limit: int ref
    
   datatype mode = Auto | Fol | Hol
+  val linkup_logic_mode : mode ref
   val write_subgoal_file: mode -> Proof.context -> thm list -> thm list -> int -> string
   val vampire_time: int ref
   val eprover_time: int ref
@@ -339,7 +340,7 @@ fun cnf_hyps_thms ctxt =
 
 datatype mode = Auto | Fol | Hol;
 
-val linkup_logic_mode = ref Fol;
+val linkup_logic_mode = ref Auto;
 
 fun tptp_writer logic goals filename (axioms,classrels,arities) =
     if is_fol_logic logic 
