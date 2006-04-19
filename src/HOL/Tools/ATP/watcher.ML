@@ -195,12 +195,16 @@ fun number_from_filename s =
              error "")
     | numbers => valOf (Int.fromString (List.last numbers));
 
-(* call ATP.  Settings should be a list of strings  ["-t300", "-m100000"]*)
+(*Call ATP.  Settings should be a list of strings  ["-t 300", "-m 100000"],
+  which we convert below to ["-t", "300", "-m", "100000"] using String.tokens.
+  Otherwise, the SML/NJ version of Unix.execute will escape the spaces, and
+  Vampire will reject the switches.*)
 fun execCmds [] procList = procList
   | execCmds ((prover,proverCmd,settings,file)::cmds) procList  =
       let val _ = trace ("\nAbout to execute command: " ^ proverCmd ^ " " ^ file)
+          val settings' = List.concat (map (String.tokens Char.isSpace) settings)
 	  val childhandle:(TextIO.instream,TextIO.outstream) Unix.proc  = 
-	       Unix.execute(proverCmd, settings@[file])
+	       Unix.execute(proverCmd, settings' @ [file])
 	  val (instr, outstr) = Unix.streamsOf childhandle
 	  val newProcList = {prover=prover, file=file, proc_handle=childhandle,
 			     instr=instr, outstr=outstr} :: procList
