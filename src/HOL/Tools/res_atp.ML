@@ -224,29 +224,31 @@ fun upgrade_lg HOLC _ = HOLC
   | upgrade_lg FOL lg = lg; 
 
 (* check types *)
-fun has_bool (Type("bool",_)) = true
-  | has_bool (Type(_, Ts)) = exists has_bool Ts
-  | has_bool _ = false;
+fun has_bool_hfn (Type("bool",_)) = true
+  | has_bool_hfn (Type("fun",_)) = true
+  | has_bool_hfn (Type(_, Ts)) = exists has_bool_hfn Ts
+  | has_bool_hfn _ = false;
 
-fun has_bool_arg tp = 
+fun is_hol_fn tp =
     let val (targs,tr) = strip_type tp
     in
-	exists has_bool targs
+	exists (has_bool_hfn) (tr::targs)
     end;
 
-fun is_fn_tp (Type("fun",_)) = true
-  | is_fn_tp _ = false;
-
+fun is_hol_pred tp =
+    let val (targs,tr) = strip_type tp
+    in
+	exists (has_bool_hfn) targs
+    end;
 
 exception FN_LG of term;
 
 fun fn_lg (t as Const(f,tp)) (lg,seen) = 
-    if has_bool tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
+    if is_hol_fn tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
   | fn_lg (t as Free(f,tp)) (lg,seen) = 
-    if has_bool tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
+    if is_hol_fn tp then (upgrade_lg HOL lg, t ins seen) else (lg, t ins seen) 
   | fn_lg (t as Var(f,tp)) (lg,seen) =
-    if is_fn_tp tp orelse has_bool tp then (upgrade_lg HOL lg,t ins seen)
-    else (lg,t ins seen)
+    if is_hol_fn tp then (upgrade_lg HOL lg,t ins seen) else (lg,t ins seen)
   | fn_lg (t as Abs(_,_,_)) (lg,seen) = (upgrade_lg HOLC lg,t ins seen)
   | fn_lg f _ = raise FN_LG(f); 
 
@@ -256,7 +258,7 @@ fun term_lg [] (lg,seen) = (lg,seen)
     let val (f,args) = strip_comb tm
 	val (lg',seen') = if f mem seen then (FOL,seen) 
 			  else fn_lg f (FOL,seen)
-
+	val _ = if is_fol_logic lg' then () else warning ("Found a HOL term: " ^ (Term.str_of_term f))
 	 in
 	     term_lg (args@tms) (lg',seen')
     end
@@ -265,9 +267,9 @@ fun term_lg [] (lg,seen) = (lg,seen)
 exception PRED_LG of term;
 
 fun pred_lg (t as Const(P,tp)) (lg,seen)= 
-    if has_bool_arg tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen) 
+    if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen) 
   | pred_lg (t as Free(P,tp)) (lg,seen) =
-    if has_bool_arg tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen)
+    if is_hol_pred tp then (upgrade_lg HOL lg, t ins seen) else (lg,t ins seen)
   | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, t ins seen)
   | pred_lg P _ = raise PRED_LG(P);
 
