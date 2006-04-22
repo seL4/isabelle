@@ -196,8 +196,7 @@ datatype combterm = CombConst of string * ctyp * ctyp list
 		  | CombFree of string * ctyp
 		  | CombVar of string * ctyp
 		  | CombApp of combterm * combterm * ctyp
-		  | Bool of combterm
-		  | Equal of combterm * combterm;
+		  | Bool of combterm;
 datatype literal = Literal of polarity * combterm;
 
 
@@ -243,7 +242,6 @@ fun term_ord (CombVar(_,_),CombVar(_,_)) = EQUAL
     end
   | term_ord (CombConst(_,_,_),_) = LESS
   | term_ord (CombApp(_,_,_),Bool(_)) = raise TERM_ORD("bool")
-  | term_ord (CombApp(_,_,_),Equal(_,_)) = LESS
   | term_ord (CombApp(f1,arg1,tp1),CombApp(f2,arg2,tp2)) =
     let val ord1 = term_ord (f1,f2)
 	val ord2 = case ord1 of EQUAL => term_ord (arg1,arg2)
@@ -253,15 +251,9 @@ fun term_ord (CombVar(_,_),CombVar(_,_)) = EQUAL
 		   | _ => ord2
     end
   | term_ord (CombApp(_,_,_),_) = GREATER
-  | term_ord (Bool(_),_) = raise TERM_ORD("bool")
-  | term_ord (Equal(t1,t2),Equal(t3,t4)) = ResClause.list_ord term_ord ([t1,t2],[t3,t4])
-  | term_ord (Equal(_,_),_) = GREATER;
+  | term_ord (Bool(_),_) = raise TERM_ORD("bool");
 
-fun predicate_ord (Equal(_,_),Bool(_)) = LESS
-  | predicate_ord (Equal(t1,t2),Equal(t3,t4)) = 
-    ResClause.list_ord term_ord ([t1,t2],[t3,t4])
-  | predicate_ord (Bool(_),Equal(_,_)) = GREATER
-  | predicate_ord (Bool(t1),Bool(t2)) = term_ord (t1,t2)
+fun predicate_ord (Bool(t1),Bool(t2)) = term_ord (t1,t2)
 
 
 fun literal_ord (Literal(false,_),Literal(true,_)) = LESS
@@ -437,12 +429,6 @@ fun combterm_of (Const(c,t)) =
     in
 	(v'',ts)
     end
-  | combterm_of (Const("op =",T) $ P $ Q) = (*FIXME: allow equal between bools?*)
-    let val (P',tsP) = combterm_of P        
-	val (Q',tsQ) = combterm_of Q
-    in
-	(Equal(P',Q'),tsP union tsQ)
-    end
   | combterm_of (t as (P $ Q)) =
     let val (P',tsP) = combterm_of P
 	val (Q',tsQ) = combterm_of Q
@@ -551,8 +537,9 @@ exception STRING_OF_COMBTERM of int;
 (* convert literals of clauses into strings *)
 fun string_of_combterm1_aux _ (CombConst(c,tp,_)) = 
     let val tp' = string_of_ctyp tp
+	val c' = if c = "equal" then "fequal" else c
     in
-	(wrap_type (c,tp'),tp')
+	(wrap_type (c',tp'),tp')
     end
   | string_of_combterm1_aux _ (CombFree(v,tp)) = 
     let val tp' = string_of_ctyp tp
@@ -575,26 +562,33 @@ fun string_of_combterm1_aux _ (CombConst(c,tp,_)) =
     in	(r,tp')
 
     end
+  | string_of_combterm1_aux is_pred (Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))) =
+    if is_pred then 
+	let val (s1,_) = string_of_combterm1_aux false t1
+	    val (s2,_) = string_of_combterm1_aux false t2
+	in
+	    ("equal" ^ (ResClause.paren_pack [s1,s2]),bool_tp)
+	end
+    else
+	let val (t,_) = string_of_combterm1_aux false (CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))
+	in
+	    (t,bool_tp)
+	end
   | string_of_combterm1_aux is_pred (Bool(t)) = 
     let val (t',_) = string_of_combterm1_aux false t
 	val r = if is_pred then bool_str ^ (ResClause.paren_pack [t'])
 		else t'
     in
 	(r,bool_tp)
-    end
-  | string_of_combterm1_aux _ (Equal(t1,t2)) =
-    let val (s1,_) = string_of_combterm1_aux false t1
-	val (s2,_) = string_of_combterm1_aux false t2
-    in
-	("equal" ^ (ResClause.paren_pack [s1,s2]),bool_tp) 
     end;
 
 fun string_of_combterm1 is_pred term = fst (string_of_combterm1_aux is_pred term);
 
 fun string_of_combterm2 _ (CombConst(c,tp,tvars)) = 
     let val tvars' = map string_of_ctyp tvars
+	val c' = if c = "equal" then "fequal" else c
     in
-	c ^ (ResClause.paren_pack tvars')
+	c' ^ (ResClause.paren_pack tvars')
     end
   | string_of_combterm2 _ (CombFree(v,tp)) = v
   | string_of_combterm2 _ (CombVar(v,tp)) = v
@@ -604,17 +598,21 @@ fun string_of_combterm2 _ (CombConst(c,tp,tvars)) =
     in
 	app_str ^ (ResClause.paren_pack [s1,s2])
     end
+  | string_of_combterm2 is_pred (Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))) =
+    if is_pred then 
+	let val s1 = string_of_combterm2 false t1
+	    val s2 = string_of_combterm2 false t2
+	in
+	    ("equal" ^ (ResClause.paren_pack [s1,s2]))
+	end
+    else
+	string_of_combterm2 false (CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))
+ 
   | string_of_combterm2 is_pred (Bool(t)) = 
     let val t' = string_of_combterm2 false t
     in
 	if is_pred then bool_str ^ (ResClause.paren_pack [t'])
 	else t'
-    end
-  | string_of_combterm2 _ (Equal(t1,t2)) =
-    let val s1 = string_of_combterm2 false t1
-	val s2 = string_of_combterm2 false t2
-    in
-	("equal" ^ (ResClause.paren_pack [s1,s2])) 
     end;
 
 
@@ -696,14 +694,7 @@ fun combterm_eq (CombConst(c1,tp1,tps1),CombConst(c2,tp2,tps2)) vtvars =
     end
   | combterm_eq (CombApp(_,_,_),_) vtvars = (false,vtvars)
   | combterm_eq (Bool(t1),Bool(t2)) vtvars = combterm_eq (t1,t2) vtvars
-  | combterm_eq (Bool(_),_) vtvars = (false,vtvars)
-  | combterm_eq (Equal(t1,t2),Equal(t3,t4)) vtvars =
-    let val (eq1,vtvars1) = combterm_eq (t1,t3) vtvars
-    in
-	if eq1 then combterm_eq (t2,t4) vtvars1
-	else (eq1,vtvars1)
-    end
-  | combterm_eq (Equal(t1,t2),_) vtvars = (false,vtvars);
+  | combterm_eq (Bool(_),_) vtvars = (false,vtvars);
 
 fun lit_eq (Literal(pol1,pred1),Literal(pol2,pred2)) vtvars =
     if (pol1 = pol2) then combterm_eq (pred1,pred2) vtvars
@@ -730,9 +721,7 @@ fun hash_combterm (CombVar(_,_),w) = w
   | hash_combterm (CombFree(f,_),w) = Polyhash.hashw_string(f,w)
   | hash_combterm (CombConst(c,tp,tps),w) = Polyhash.hashw_string(c,w)
   | hash_combterm (CombApp(f,arg,tp),w) = hash_combterm (arg, hash_combterm (f,w))
-  | hash_combterm (Bool(t),w) = hash_combterm (t,w)
-  | hash_combterm (Equal(t1,t2),w) = 
-    List.foldl hash_combterm (Polyhash.hashw_string ("equal",w)) [t1,t2]
+  | hash_combterm (Bool(t),w) = hash_combterm (t,w);
 
 fun hash_literal (Literal(true,pred)) = hash_combterm(pred,0w0)
   | hash_literal (Literal(false,pred)) = Word.notb(hash_combterm(pred,0w0));
