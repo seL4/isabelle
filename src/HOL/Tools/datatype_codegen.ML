@@ -311,12 +311,12 @@ fun datatype_tac thy dtco =
     val simpset = Simplifier.context ctxt
       (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
   in
-    (TRY o ALLGOALS o resolve_tac) [HOL.eq_reflection]
+    (TRY o ALLGOALS o match_tac) [HOL.eq_reflection]
     THEN (
-      (ALLGOALS o resolve_tac) (eqTrueI :: inject)
+      (ALLGOALS o match_tac) (eqTrueI :: inject)
       ORELSE (ALLGOALS o simp_tac) simpset
     )
-    THEN (ALLGOALS o resolve_tac) [HOL.refl, Drule.reflexive_thm]
+    THEN (ALLGOALS o match_tac) [HOL.refl, Drule.reflexive_thm]
   end;
 
 fun get_datatype_spec_thms thy dtco =
