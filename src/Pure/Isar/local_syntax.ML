@@ -61,7 +61,7 @@ fun build_syntax thy (mixfixes, idents as (structs, _)) =
           (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
            map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
       |> fold (uncurry (Syntax.extend_const_gram is_logtype))
-          (coalesce (op =) (rev (map snd mixfixes)));
+          (AList.coalesce (op =) (rev (map snd mixfixes)));
   in make_syntax (thy_syntax, local_syntax, mixfixes, idents) end;
 
 fun init thy = build_syntax thy ([], ([], []));

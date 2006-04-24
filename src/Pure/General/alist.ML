@@ -2,9 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Association lists -- lists of (key, value) pairs with unique keys.
-A light-weight representation of finite mappings;
-see also Pure/General/table.ML for a more scalable implementation.
+Association lists -- lists of (key, value) pairs.
 *)
 
 signature ALIST =
@@ -22,12 +20,15 @@ sig
     -> ('b * 'c) list -> ('b * 'c) list
   val map_entry_yield: ('a * 'b -> bool) -> 'a -> ('c -> 'd * 'c)
     -> ('b * 'c) list -> 'd option * ('b * 'c) list
-  val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
   val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b option) ->
     ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list         (*exception DUP*)
   val merge: ('a * 'a -> bool) -> ('b * 'b -> bool)
     -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
+  val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
   val find: ('a * 'b -> bool) -> ('c * 'b) list -> 'a -> 'c list
+  val coalesce: ('a * 'a -> bool) -> ('a * 'b) list -> ('a * 'b list) list
+    (*coalesce ranges of equal neighbour keys*)
+  val group: ('a * 'a -> bool) -> ('a * 'b) list -> ('a * 'b list) list
 end;
 
 structure AList: ALIST =
@@ -111,5 +112,20 @@ fun find eq [] _ = []
       let
         val values = find eq xs value';
       in if eq (value', value) then key :: values else values end;
+
+fun coalesce eq =
+  let
+    fun vals _ [] = ([], [])
+      | vals x (lst as (y, b) :: ps) =
+          if eq (x, y) then vals x ps |>> cons b
+          else ([], lst);
+    fun coal [] = []
+      | coal ((x, a) :: ps) =
+          let val (bs, qs) = vals x ps
+          in (x, a :: bs) :: coal qs end;
+  in coal end;
+
+fun group eq xs =
+  fold_rev (fn (k, v) => default eq (k, []) #> map_entry eq k (cons v)) xs [];
 
 end;

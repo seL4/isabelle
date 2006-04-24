@@ -52,6 +52,8 @@ sig
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
   val perhaps: ('a -> 'a option) -> 'a -> 'a
+  val eq_opt: ('a * 'b -> bool) -> 'a option * 'b option -> bool
+  val merge_opt: ('a * 'a -> bool) -> 'a option * 'a option -> 'a option
 
   (*exceptions*)
   val try: ('a -> 'b) -> 'a -> 'b option
@@ -81,6 +83,7 @@ sig
   val snd: 'a * 'b -> 'b
   val eq_fst: ('a * 'c -> bool) -> ('a * 'b) * ('c * 'd) -> bool
   val eq_snd: ('b * 'd -> bool) -> ('a * 'b) * ('c * 'd) -> bool
+  val eq_pair: ('a * 'c -> bool) -> ('b * 'd -> bool) -> ('a * 'b) * ('c * 'd) -> bool
   val swap: 'a * 'b -> 'b * 'a
   val apfst: ('a -> 'b) -> 'a * 'c -> 'b * 'c
   val apsnd: ('a -> 'b) -> 'c * 'a -> 'c * 'b
@@ -130,6 +133,7 @@ sig
   val find_first: ('a -> bool) -> 'a list -> 'a option
   val get_index: ('a -> 'b option) -> 'a list -> (int * 'b) option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
+  val eq_list: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val ~~ : 'a list * 'b list -> ('a * 'b) list
@@ -138,7 +142,6 @@ sig
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list -> 'a list list -> 'a list list
   val product: 'a list -> 'b list -> ('a * 'b) list
-  val coalesce: ('a * 'a -> bool) -> ('a * 'b) list -> ('a * 'b list) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
@@ -361,6 +364,13 @@ fun is_none (SOME _) = false
 
 fun perhaps f x = the_default x (f x);
 
+fun eq_opt eq (NONE, NONE) = true
+  | eq_opt eq (SOME x, SOME y) = eq (x, y)
+  | eq_opt _ _ = false;
+
+fun merge_opt _ (NONE, y) = y
+  | merge_opt _ (x, NONE) = x
+  | merge_opt eq (SOME x, SOME y) = if eq (x, y) then SOME y else raise Option;
 
 (* exceptions *)
 
@@ -428,6 +438,7 @@ fun snd (x, y) = y;
 
 fun eq_fst eq ((x1, _), (x2, _)) = eq (x1, x2);
 fun eq_snd eq ((_, y1), (_, y2)) = eq (y1, y2);
+fun eq_pair eqx eqy ((x1, y1), (x2, y2)) = eqx (x1, x2) andalso eqy (y1, y2);
 
 fun swap (x, y) = (y, x);
 
@@ -649,6 +660,10 @@ fun get_index f =
             | SOME y => SOME (i, y)
   in get 0 end;
 
+fun eq_list _ ([], []) = true
+  | eq_list eq (x::xs, y::ys) = eq (x, y) andalso eq_list eq (xs, ys)
+  | eq_list _ _ = false;
+
 (*flatten a list of lists to a list*)
 val flat = List.concat;
 
@@ -691,19 +706,6 @@ fun multiply [] _ = []
 fun product _ [] = []
   | product [] _ = []
   | product (x :: xs) ys = map (pair x) ys @ product xs ys;
-
-(*coalesce ranges of equal keys*)
-fun coalesce eq =
-  let
-    fun vals _ [] = ([], [])
-      | vals x (lst as (y, b) :: ps) =
-          if eq (x, y) then vals x ps |>> cons b
-          else ([], lst);
-    fun coal [] = []
-      | coal ((x, a) :: ps) =
-          let val (bs, qs) = vals x ps
-          in (x, a :: bs) :: coal qs end;
-  in coal end;
 
 
 (* filter *)
