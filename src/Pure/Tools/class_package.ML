@@ -60,7 +60,7 @@ struct
 
 (* theory data *)
 
-type class_data = {
+datatype class_data = ClassData of {
   name_locale: string,
   name_axclass: string,
   intro: thm option,
@@ -69,22 +69,33 @@ type class_data = {
     (*locale parameter ~> toplevel const*)
 };
 
+fun rep_classdata (ClassData c) = c;
+fun eq_classdata (ClassData {
+  name_locale = name_locale1, name_axclass = name_axclass1, intro = intro1,
+    var = var1, consts = consts1}, ClassData {
+  name_locale = name_locale2, name_axclass = name_axclass2, intro = intro2,
+    var = var2, consts = consts2}) =
+  name_locale1 = name_locale2 andalso name_axclass1 = name_axclass2
+  andalso eq_opt eq_thm (intro1, intro2) andalso var1 = var2
+  andalso eq_list (eq_pair (op =) (eq_pair (op =) (Type.eq_type Vartab.empty)))
+    (consts1, consts2);
+
 structure ClassData = TheoryDataFun (
   struct
     val name = "Pure/classes";
     type T = (class_data Graph.T
       * (string * (sort list * string)) list Symtab.table)
-        (* class ~> tyco ~> (arity, thyname) *)
+        (*class ~> tyco ~> (arity, thyname)*)
       * class Symtab.table;
     val empty = ((Graph.empty, Symtab.empty), Symtab.empty);
     val copy = I;
     val extend = I;
-    fun merge _ (((g1, c1), f1), ((g2, c2), f2)) =
-      ((Graph.merge (op =) (g1, g2), Symtab.join (fn _ => AList.merge (op =) (op =)) (c1, c2)),
+    fun merge _ (((g1, c1), f1) : T, ((g2, c2), f2)) =
+      ((Graph.merge eq_classdata (g1, g2), Symtab.join (fn _ => AList.merge (op =) (op =)) (c1, c2)),
        Symtab.merge (op =) (f1, f2));
     fun print thy ((gr, _), _) =
       let
-        fun pretty_class gr (name, {name_locale, name_axclass, intro, var, consts}) =
+        fun pretty_class gr (name, ClassData {name_locale, name_axclass, intro, var, consts}) =
           (Pretty.block o Pretty.fbreaks) [
             Pretty.str ("class " ^ name ^ ":"),
             (Pretty.block o Pretty.fbreaks) (
@@ -112,7 +123,7 @@ val print_classes = ClassData.print;
 
 (* queries *)
 
-val lookup_class_data = try o Graph.get_node o fst o fst o ClassData.get;
+val lookup_class_data = Option.map rep_classdata oo try o Graph.get_node o fst o fst o ClassData.get;
 val the_instances = these oo Symtab.lookup o snd o fst o ClassData.get;
 val lookup_const_class = Symtab.lookup o snd o ClassData.get;
 
@@ -166,7 +177,7 @@ fun the_ancestry thy classes =
 fun the_intros thy =
   let
     val gr = (fst o fst o ClassData.get) thy;
-  in (List.mapPartial (#intro o Graph.get_node gr) o Graph.keys) gr end;
+  in (List.mapPartial (#intro o rep_classdata o Graph.get_node gr) o Graph.keys) gr end;
 
 fun subst_clsvar v ty_subst =
   map_type_tfree (fn u as (w, _) =>
@@ -214,7 +225,7 @@ fun get_classtab thy =
 fun add_class_data (class, (superclasses, name_locale, name_axclass, intro, var, consts)) =
   ClassData.map (fn ((gr, tab), consttab) => ((
     gr
-    |> Graph.new_node (class, {
+    |> Graph.new_node (class, ClassData {
          name_locale = name_locale,
          name_axclass = name_axclass,
          intro = intro,
