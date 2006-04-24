@@ -3,7 +3,7 @@
     Author:     Stephan Merz 
 *)
 
-header {* Infnite Sets and Related Concepts*}
+header {* Infinite Sets and Related Concepts*}
 
 theory Infinite_Set
 imports Hilbert_Choice Binomial
