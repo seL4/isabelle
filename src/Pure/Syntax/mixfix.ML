@@ -143,7 +143,9 @@ fun map_mixfix _ NoSyn = NoSyn
   | map_mixfix _ Structure = Structure
   | map_mixfix _ _ = raise Fail ("map_mixfix: illegal occurrence of unnamed infix");
 
-val unlocalize_mixfix = map_mixfix SynExt.unlocalize_mfix;
+fun unlocalize_mixfix mx =
+  let val mx' = map_mixfix SynExt.unlocalize_mfix mx
+  in if mx = mx' then NoSyn else mx' end;
 
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = SynExt.mfix_args sy
