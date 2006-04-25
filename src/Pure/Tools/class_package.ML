@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Type classes, simulated by locales.
+Type classes derived from primitive axclasses and locales.
 *)
 
 signature CLASS_PACKAGE =
@@ -112,7 +112,7 @@ structure ClassData = TheoryDataFun (
           ]
       in
         (Pretty.writeln o Pretty.chunks o map (pretty_class gr)
-          o AList.make (Graph.get_node gr) o Library.flat o Graph.strong_conn) gr
+          o AList.make (Graph.get_node gr) o flat o Graph.strong_conn) gr
       end;
   end
 );
@@ -147,7 +147,7 @@ fun operational_sort_of thy sort =
       else operational_sort_of thy (Sign.super_classes thy class);
   in
     map get_sort sort
-    |> Library.flat
+    |> flat
     |> Sign.certify_sort thy
   end;
 
@@ -193,13 +193,10 @@ fun the_consts_sign thy class =
     val data = the_class_data thy class
   in (#var data, (map snd o #consts) data) end;
 
-fun mg_domain thy tyco class =
-  Sorts.mg_domain (Sign.classes_of thy, Sign.arities_of thy) tyco [class];
-
 fun the_inst_sign thy (class, tyco) =
   let
     val _ = if is_operational_class thy class then () else error ("no operational class: " ^ class);
-    val arity = mg_domain thy tyco class;
+    val arity = Sign.arity_sorts thy tyco [class];
     val clsvar = (#var o the_class_data thy) class;
     val const_sign = (snd o the_consts_sign thy) class;
     fun add_var sort used =
@@ -289,6 +286,12 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
     default_intro_classes_tac facts;
 
+val _ = Context.add_setup (Method.add_methods
+ [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+    "back-chain introduction rules of classes"),
+  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
+    "apply some intro/elim rule")]);
+
 
 (* axclass instances *)
 
@@ -325,15 +328,15 @@ fun intro_incr thy name expr =
     else fish_thm (name ^ "_axioms")
   end;
 
-fun add_locale opn name expr body thy =
+fun add_locale name expr body thy =
   thy
-  |> Locale.add_locale opn name expr body
+  |> Locale.add_locale true name expr body
   ||>> `(fn thy => intro_incr thy name expr)
   |-> (fn ((name, ctxt), intro) => pair ((name, intro), ctxt));
 
-fun add_locale_i opn name expr body thy =
+fun add_locale_i name expr body thy =
   thy
-  |> Locale.add_locale_i opn name expr body
+  |> Locale.add_locale_i true name expr body
   ||>> `(fn thy => intro_incr thy name expr)
   |-> (fn ((name, ctxt), intro) => pair ((name, intro), ctxt));
 
@@ -372,21 +375,18 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     val supsort =
       supclasses
       |> map (#name_axclass o the_class_data thy)
-      |> Sorts.certify_sort (Sign.classes_of thy)
+      |> Sign.certify_sort thy
       |> null ? K (Sign.defaultS thy);
-    val expr = if null supclasses
-      then Locale.empty
-      else
-       (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data thy)) supclasses;
+    val expr = (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data thy)) supclasses;
     val mapp_sup = AList.make
-      (the o AList.lookup (op =) ((Library.flat o map (the_parm_map thy) o the_ancestry thy) supclasses))
+      (the o AList.lookup (op =) ((flat o map (the_parm_map thy) o the_ancestry thy) supclasses))
       ((map (fst o fst) o Locale.parameters_of_expr thy) expr);
     fun extract_tyvar_consts thy name_locale =
       let
         fun extract_tyvar_name thy tys =
           fold (curry add_typ_tfrees) tys []
           |> (fn [(v, sort)] =>
-              if Sorts.sort_le (Sign.classes_of thy) (swap (sort, supsort))
+              if Sign.subsort thy (supsort, sort)
                     then v
                     else error ("illegal sort constraint on class type variable: " ^ Sign.string_of_sort thy sort)
                | [] => error ("no class type variable")
@@ -445,8 +445,8 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
 
 in
 
-val class = gen_class (add_locale true) intern_class;
-val class_i = gen_class (add_locale_i true) certify_class;
+val class = gen_class add_locale intern_class;
+val class_i = gen_class add_locale_i certify_class;
 
 end; (* local *)
 
@@ -501,7 +501,7 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
         val subst_ty = map_type_tfree (fn (var as (v, _)) =>
           if #var data = v then ty_inst else TFree var)
       in (map (apsnd subst_ty o snd) o #consts) data end;
-    val cs = (Library.flat o map get_consts) classes;
+    val cs = (flat o map get_consts) classes;
     fun get_remove_contraint c thy =
       let
         val ty = Sign.the_const_constraint thy c;
@@ -609,15 +609,13 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
     val class = prep_class theory raw_class;
     val sort = prep_sort theory raw_sort;
     val loc_name = (#name_locale o the_class_data theory) class;
-    val loc_expr = if null sort
-      then Locale.empty
-      else
-       (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data theory)) sort;
+    val loc_expr =
+      (Locale.Merge o map (Locale.Locale o #name_locale o the_class_data theory)) sort;
     fun after_qed thmss thy =
-      (writeln "---"; (Pretty.writeln o Display.pretty_thms o Library.flat) thmss; writeln "---"; fold (fn supclass =>
+      (writeln "---"; (Pretty.writeln o Display.pretty_thms o flat) thmss; writeln "---"; fold (fn supclass =>
         AxClass.prove_classrel (class, supclass)
           (ALLGOALS (K (intro_classes_tac [])) THEN
-            (ALLGOALS o resolve_tac o Library.flat) thmss)
+            (ALLGOALS o resolve_tac o flat) thmss)
       ) sort thy)
   in
     theory
@@ -673,7 +671,7 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
     fun mk_lookup (sort_def, (Type (tyco, tys))) =
           map (fn class => Instance ((class, tyco),
             map2 (curry mk_lookup)
-              (map (operational_sort_of thy) (mg_domain thy tyco class))
+              (map (operational_sort_of thy) (Sign.arity_sorts thy tyco [class]))
               tys)
           ) sort_def
       | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
@@ -783,11 +781,6 @@ val instanceP =
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [classP, instanceP];
-
-val _ = Context.add_setup (Method.add_methods
- [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
-    "back-chain introduction rules of classes"),
-  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule")]);
 
 end; (* local *)
 
