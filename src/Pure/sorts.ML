@@ -11,6 +11,7 @@ sig
   val eq_set: sort list * sort list -> bool
   val union: sort list -> sort list -> sort list
   val subtract: sort list -> sort list -> sort list
+  val remove_sort: sort -> sort list -> sort list
   val insert_sort: sort -> sort list -> sort list
   val insert_typ: typ -> sort list -> sort list
   val insert_typs: typ list -> sort list -> sort list
@@ -60,6 +61,7 @@ val eq_set = OrdList.eq_set Term.sort_ord;
 val op union = OrdList.union Term.sort_ord;
 val subtract = OrdList.subtract Term.sort_ord;
 
+val remove_sort = OrdList.remove Term.sort_ord;
 val insert_sort = OrdList.insert Term.sort_ord;
 
 fun insert_typ (TFree (_, S)) Ss = insert_sort S Ss
