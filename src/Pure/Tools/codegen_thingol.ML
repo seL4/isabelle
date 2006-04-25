@@ -715,7 +715,7 @@ fun diff_module modl12 =
             (the_default empty_module o Option.map dest_modl o try (Graph.get_node modl2)) name)
     and diff_modl prefix (modl1, modl2) =
       fold (diff_entry prefix modl2)
-        ((AList.make (Graph.get_node modl1) o Library.flat o Graph.strong_conn) modl1)
+        ((AList.make (Graph.get_node modl1) o flat o Graph.strong_conn) modl1)
   in diff_modl [] modl12 [] end;
 
 local 
@@ -768,7 +768,7 @@ fun imports_of modl name =
     |> imports [] name 
     (*|> cons name
     |> map (fn name => submodules name (get_modl name) [])
-    |> Library.flat
+    |> flat
     |> remove (op =) name*)
     |> map NameSpace.pack
   end;

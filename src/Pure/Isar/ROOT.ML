@@ -36,10 +36,10 @@ use "induct_attrib.ML";
 use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
+use "../axclass.ML";
 use "local_theory.ML";
 use "specification.ML";
 use "constdefs.ML";
-use "../axclass.ML";
 
 (*outer syntax*)
 use "antiquote.ML";

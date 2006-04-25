@@ -326,12 +326,11 @@ fun pretty_statement ctxt kind raw_th =
   let
     val thy = ProofContext.theory_of ctxt;
     val th = Goal.norm_hhf raw_th;
-    val maxidx = #maxidx (Thm.rep_thm th);
 
     fun standard_thesis t =
       let
         val C = ObjectLogic.drop_judgment thy (Thm.concl_of th);
-        val C' = Var ((AutoBind.thesisN, maxidx + 1), Term.fastype_of C);
+        val C' = Var ((AutoBind.thesisN, Thm.maxidx_of th + 1), Term.fastype_of C);
       in Term.subst_atomic [(C, C')] t end;
 
     val raw_prop =

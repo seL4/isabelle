@@ -231,7 +231,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
               val (_, rhs) = Logic.dest_equals prop;
               val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (foldr (fn p => Abs ("", dummyT, abstract_over p)) rhs vs),
-                map valOf ts);
+                map the ts);
             in
               change_type (SOME [fastype_of1 (Ts, rhs')]) reflexive_axm %> rhs'
             end

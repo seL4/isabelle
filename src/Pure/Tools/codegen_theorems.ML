@@ -441,7 +441,7 @@ fun get_funs thy (c, ty) =
      of [] =>
           Defs.specifications_of (Theory.defs_of thy) c
           |> map (PureThy.get_thms thy o Name o fst o snd)
-          |> Library.flat
+          |> flat
           |> append (getf_first_list (map (fn f => f thy) (the_funs_extrs thy)) (c, ty))
           |> map (dest_fun thy)
           |> filter_typ

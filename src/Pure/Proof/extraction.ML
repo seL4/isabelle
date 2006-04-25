@@ -101,7 +101,7 @@ fun condrew thy rules procs =
       in
         get_first (fn (_, (prems, (tm1, tm2))) =>
         let
-          fun ren t = getOpt (Term.rename_abs tm1 tm t, t);
+          fun ren t = the_default t (Term.rename_abs tm1 tm t);
           val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
           val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm) (Vartab.empty, Vartab.empty);
           val prems' = map (pairself (Envir.subst_vars env o inc o ren)) prems;
@@ -463,7 +463,7 @@ fun extract thms thy =
     val procs = List.concat (map (fst o snd) types);
     val rtypes = map fst types;
     val typroc = typeof_proc (Sign.defaultS thy');
-    val prep = getOpt (prep, K I) thy' o ProofRewriteRules.elim_defs thy' false defs o
+    val prep = the_default (K I) prep thy' o ProofRewriteRules.elim_defs thy' false defs o
       Reconstruct.expand_proof thy' (("", NONE) :: map (apsnd SOME) expand);
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 

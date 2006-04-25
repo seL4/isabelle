@@ -164,7 +164,7 @@ structure ConstNameMangler = NameManglerFun (
                 NameSpace.drop_base c';
       val c'' = NameSpace.append prefix (NameSpace.base c');
       fun mangle (Type (tyco, tys)) =
-            (NameSpace.base o alias_get thy) tyco :: Library.flat (List.mapPartial mangle tys) |> SOME
+            (NameSpace.base o alias_get thy) tyco :: flat (List.mapPartial mangle tys) |> SOME
         | mangle _ =
             NONE
     in
@@ -172,7 +172,7 @@ structure ConstNameMangler = NameManglerFun (
       |> Type.raw_match (Sign.the_const_type thy c, ty)
       |> map (snd o snd) o Vartab.dest
       |> List.mapPartial mangle
-      |> Library.flat
+      |> flat
       |> null ? K ["x"]
       |> cons c''
       |> space_implode "_"
@@ -959,7 +959,7 @@ fun mk_tabs thy =
                 in map_atyps (fn _ => ty_inst) ty end;
               val tys =
                 (Type.logical_types o Sign.tsig_of) thy
-                |> filter (fn tyco => (is_some oo try) (Sorts.mg_domain (Sign.classes_of thy, Sign.arities_of thy) tyco) (Sign.defaultS thy))
+                |> filter (fn tyco => can (Sign.arity_sorts thy tyco) (Sign.defaultS thy))
                 |> map inst
             in
               (overltab1
@@ -1027,7 +1027,7 @@ fun rename_inconsistent thy =
             then I
             else cons (name, NameSpace.append thyname (NameSpace.base name))) names [];
       in diff names end;
-    val inconsistent = map get_inconsistent (ThyInfo.names ()) |> Library.flat;
+    val inconsistent = map get_inconsistent (ThyInfo.names ()) |> flat;
     fun add (src, dst) thy =
       if (is_some oo Symtab.lookup o fst o #alias o #logic_data o CodegenData.get) thy src
       then (warning ("code generator alias already defined for " ^ quote src ^ ", will not overwrite"); thy)

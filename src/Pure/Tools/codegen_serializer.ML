@@ -892,7 +892,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       in 
         vs
         |> map (fn (v, sort) => map (pair v) sort)
-        |> Library.flat
+        |> flat
         |> from_sctxt
       end;
     fun hs_from_tycoexpr fxy (tyco, tys) =
