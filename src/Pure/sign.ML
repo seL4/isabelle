@@ -152,6 +152,8 @@ sig
   val pprint_term: theory -> term -> pprint_args -> unit
   val pprint_typ: theory -> typ -> pprint_args -> unit
   val pp: theory -> Pretty.pp
+  val arity_number: theory -> string -> int
+  val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
@@ -412,6 +414,9 @@ fun pp thy = Pretty.pp (pretty_term thy, pretty_typ thy, pretty_sort thy,
 
 (* certify wrt. type signature *)
 
+val arity_number = Type.arity_number o tsig_of;
+fun arity_sorts thy = Type.arity_sorts (pp thy) (tsig_of thy);
+
 fun certify cert = cert o tsig_of o Context.check_thy;
 
 val certify_class      = certify Type.cert_class;
@@ -561,11 +566,8 @@ end;
 (* type and constant names *)
 
 fun read_tyname thy raw_c =
-  let val c = intern_type thy raw_c in
-    (case Symtab.lookup (#2 (#types (Type.rep_tsig (tsig_of thy)))) c of
-      SOME (Type.LogicalType n, _) => Type (c, replicate n dummyT)
-    | _ => error ("Undeclared type constructor: " ^ quote c))
-  end;
+  let val c = intern_type thy raw_c
+  in Type (c, replicate (arity_number thy c) dummyT) end;
 
 val read_const = Consts.read_const o consts_of;
 
