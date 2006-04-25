@@ -29,12 +29,15 @@ sig
   val eq_sort: tsig -> sort * sort -> bool
   val subsort: tsig -> sort * sort -> bool
   val of_sort: tsig -> typ * sort -> bool
+  val inter_sort: tsig -> sort * sort -> sort
   val cert_class: tsig -> class -> class
   val cert_sort: tsig -> sort -> sort
   val witness_sorts: tsig -> sort list -> sort list -> (typ * sort) list
   val cert_typ: tsig -> typ -> typ
   val cert_typ_syntax: tsig -> typ -> typ
   val cert_typ_abbrev: tsig -> typ -> typ
+  val arity_number: tsig -> string -> int
+  val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
@@ -135,6 +138,7 @@ fun universal_witness (TSig {witness, ...}) = witness;
 fun eq_sort (TSig {classes, ...}) = Sorts.sort_eq (#2 classes);
 fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
 fun of_sort (TSig {classes, arities, ...}) = Sorts.of_sort (#2 classes, arities);
+fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
 fun cert_class (TSig {classes, ...}) = Sorts.certify_class (#2 classes);
 fun cert_sort (TSig {classes, ...}) = Sorts.certify_sort (#2 classes);
@@ -193,6 +197,19 @@ val cert_typ_syntax = certify_typ true true;
 val cert_typ_abbrev = certify_typ false true;
 
 end;
+
+
+(* type arities *)
+
+fun arity_number (TSig {types = (_, types), ...}) a =
+  (case Symtab.lookup types a of
+    SOME (LogicalType n, _) => n
+  | _ => error (undecl_type a));
+
+fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
+  | arity_sorts pp (TSig {classes, arities, ...}) a S =
+      Sorts.mg_domain (#2 classes, arities) a S handle Sorts.DOMAIN (a, c) =>
+        error ("No way to get " ^ Pretty.string_of_arity pp (a, [], [c]));
 
 
 
