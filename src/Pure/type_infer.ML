@@ -257,31 +257,29 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
 exception NO_UNIFIER of string;
 
 
-fun unify pp classes arities =
+fun unify pp tsig =
   let
 
     (* adjust sorts of parameters *)
 
-    fun not_in_sort x S' S =
+    fun not_of_sort x S' S =
       "Variable " ^ x ^ "::" ^ Pretty.string_of_sort pp S' ^ " not of sort " ^
         Pretty.string_of_sort pp S;
 
-    fun no_domain (a, c) = "No way to get " ^ Pretty.string_of_arity pp (a, [], [c]);
-
     fun meet (_, []) = ()
       | meet (Link (r as (ref (Param S'))), S) =
-          if Sorts.sort_le classes (S', S) then ()
-          else r := mk_param (Sorts.inter_sort classes (S', S))
+          if Type.subsort tsig (S', S) then ()
+          else r := mk_param (Type.inter_sort tsig (S', S))
       | meet (Link (ref T), S) = meet (T, S)
       | meet (PType (a, Ts), S) =
-          ListPair.app meet (Ts, Sorts.mg_domain (classes, arities) a S
-            handle Sorts.DOMAIN ac => raise NO_UNIFIER (no_domain ac))
+          ListPair.app meet (Ts, Type.arity_sorts pp tsig a S
+            handle ERROR msg => raise NO_UNIFIER msg)
       | meet (PTFree (x, S'), S) =
-          if Sorts.sort_le classes (S', S) then ()
-          else raise NO_UNIFIER (not_in_sort x S' S)
+          if Type.subsort tsig (S', S) then ()
+          else raise NO_UNIFIER (not_of_sort x S' S)
       | meet (PTVar (xi, S'), S) =
-          if Sorts.sort_le classes (S', S) then ()
-          else raise NO_UNIFIER (not_in_sort (Syntax.string_of_vname xi) S' S)
+          if Type.subsort tsig (S', S) then ()
+          else raise NO_UNIFIER (not_of_sort (Syntax.string_of_vname xi) S' S)
       | meet (Param _, _) = sys_error "meet";
 
 
@@ -332,7 +330,7 @@ fun appl_error pp why t T u U =
 
 (* infer *)                                     (*DESTRUCTIVE*)
 
-fun infer pp classes arities =
+fun infer pp tsig =
   let
     (* errors *)
 
@@ -376,7 +374,7 @@ fun infer pp classes arities =
 
     (* main *)
 
-    val unif = unify pp classes arities;
+    val unif = unify pp tsig;
 
     fun inf _ (PConst (_, T)) = T
       | inf _ (PFree (_, T)) = T
@@ -402,7 +400,7 @@ fun infer pp classes arities =
 
 (* basic_infer_types *)
 
-fun basic_infer_types pp const_type classes arities used freeze is_param ts Ts =
+fun basic_infer_types pp tsig const_type used freeze is_param ts Ts =
   let
     (*convert to preterms/typs*)
     val (Tps, Ts') = pretyps_of (K true) ([], Ts);
@@ -410,7 +408,7 @@ fun basic_infer_types pp const_type classes arities used freeze is_param ts Ts =
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
-    val _ = List.app (fn t => (infer pp classes arities t; ())) tTs';
+    val _ = List.app (fn t => (infer pp tsig t; ())) tTs';
 
     (*collect result unifier*)
     fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); NONE)
@@ -529,13 +527,12 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
 fun infer_types pp tsig const_type def_type def_sort
     map_const map_type map_sort used freeze pat_Ts raw_ts =
   let
-    val {classes, arities, ...} = Type.rep_tsig tsig;
     val pat_Ts' = map (Type.cert_typ tsig) pat_Ts;
     val is_const = is_some o const_type;
     val raw_ts' =
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
-    val (ts, Ts, unifier) = basic_infer_types pp const_type
-      (#2 classes) arities used freeze is_param raw_ts' pat_Ts';
+    val (ts, Ts, unifier) =
+      basic_infer_types pp tsig const_type used freeze is_param raw_ts' pat_Ts';
   in (ts, unifier) end;
 
 end;
