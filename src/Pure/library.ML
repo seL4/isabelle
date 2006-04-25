@@ -115,6 +115,7 @@ sig
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
+  val flat: 'a list list -> 'a list
   val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
@@ -287,7 +288,6 @@ sig
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
   val last_elem: 'a list -> 'a
-  val flat: 'a list list -> 'a list
   val seq: ('a -> unit) -> 'a list -> unit
   val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
   val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
@@ -654,17 +654,16 @@ fun get_first _ [] = NONE
 fun get_index f =
   let
     fun get _ [] = NONE
-      | get i (x::xs) = 
+      | get i (x :: xs) =
           case f x
-           of NONE => get (i+1) xs
+           of NONE => get (i + 1) xs
             | SOME y => SOME (i, y)
   in get 0 end;
 
 fun eq_list _ ([], []) = true
-  | eq_list eq (x::xs, y::ys) = eq (x, y) andalso eq_list eq (xs, ys)
+  | eq_list eq (x :: xs, y :: ys) = eq (x, y) andalso eq_list eq (xs, ys)
   | eq_list _ _ = false;
 
-(*flatten a list of lists to a list*)
 val flat = List.concat;
 
 fun unflat (xs :: xss) ys =
