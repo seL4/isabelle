@@ -2,19 +2,20 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Axiomatic type classes.
+Axiomatic type classes: managing predicates and parameter collections.
 *)
 
 signature AX_CLASS =
 sig
   val print_axclasses: theory -> unit
-  val get_info: theory -> class -> {super: sort, def: thm, intro: thm, axioms: thm list}
+  val get_info: theory -> class -> {def: thm, intro: thm, axioms: thm list}
   val get_instances: theory ->
    {classes: unit Graph.T,
     classrel: ((class * class) * thm) list,
     arities: ((string * sort list * class) * thm) list}
   val class_intros: theory -> thm list
-  val params_of_sort: theory -> sort -> string list
+  val params_of: theory -> class -> string list
+  val all_params_of: theory -> sort -> string list
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
   val add_classrel: thm -> theory -> theory
@@ -29,6 +30,7 @@ end;
 
 structure AxClass: AX_CLASS =
 struct
+
 
 (** theory data **)
 
@@ -54,15 +56,14 @@ val introN = "intro";
 val axiomsN = "axioms";
 
 datatype axclass = AxClass of
- {super: sort,
-  def: thm,
+ {def: thm,
   intro: thm,
   axioms: thm list};
 
-fun make_axclass (super, def, intro, axioms) =
-  AxClass {super = super, def = def, intro = intro, axioms = axioms};
-
 type axclasses = axclass Symtab.table * param list;
+
+fun make_axclass (def, intro, axioms) =
+  AxClass {def = def, intro = intro, axioms = axioms};
 
 fun merge_axclasses pp ((tab1, params1), (tab2, params2)) : axclasses =
   (Symtab.merge (K true) (tab1, tab2), merge_params pp (params1, params2));
@@ -99,39 +100,15 @@ structure AxClassData = TheoryDataFun
   val empty : T = ((Symtab.empty, []), make_instances (Graph.empty, [], []));
   val copy = I;
   val extend = I;
-
   fun merge pp ((axclasses1, instances1), (axclasses2, instances2)) =
     (merge_axclasses pp (axclasses1, axclasses2), merge_instances (instances1, instances2));
-
-  fun print thy ((axclasses, params), _) =
-    let
-      val ctxt = ProofContext.init thy;
-      val prt_cls = ProofContext.pretty_sort ctxt o single;
-
-      fun pretty_class c [] = prt_cls c
-        | pretty_class c cs = Pretty.block
-            (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 :: Pretty.commas (map prt_cls cs));
-
-      fun pretty_axclass (class, AxClass {super, def, intro, axioms}) =
-        Pretty.block (Pretty.fbreaks
-         [pretty_class class super,
-          Pretty.strs ("parameters:" ::
-            fold (fn (x, c) => if c = class then cons x else I) params []),
-          ProofContext.pretty_fact ctxt ("def", [def]),
-          ProofContext.pretty_fact ctxt (introN, [intro]),
-          ProofContext.pretty_fact ctxt (axiomsN, axioms)]);
-    in
-      Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest axclasses)))
-    end;
+  fun print _ _ = ();
 end);
 
 val _ = Context.add_setup AxClassData.init;
-val print_axclasses = AxClassData.print;
-
-val get_instances = AxClassData.get #> (fn (_, Instances insts) => insts);
 
 
-(* lookup *)
+(* lookup classes *)
 
 val lookup_info = Symtab.lookup o #1 o #1 o AxClassData.get;
 
@@ -148,16 +125,38 @@ fun class_intros thy =
   in map (Thm.class_triv thy) classes @ fold add_intro classes [] end;
 
 
+(* lookup parameters *)
+
+fun get_params thy pred =
+  let val params = #2 (#1 (AxClassData.get thy))
+  in fold (fn (x, c) => if pred c then cons x else I) params [] end;
+
+fun params_of thy c = get_params thy (fn c' => c' = c);
+fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
+
+
+(* print_axclasses *)
+
+fun print_axclasses thy =
+  let
+    val axclasses = #1 (#1 (AxClassData.get thy));
+    val ctxt = ProofContext.init thy;
+
+    fun pretty_axclass (class, AxClass {def, intro, axioms}) =
+      Pretty.block (Pretty.fbreaks
+       [Pretty.block
+          [Pretty.str "axclass ", ProofContext.pretty_sort ctxt [class], Pretty.str ":"],
+        Pretty.strs ("parameters:" :: params_of thy class),
+        ProofContext.pretty_fact ctxt ("def", [def]),
+        ProofContext.pretty_fact ctxt (introN, [intro]),
+        ProofContext.pretty_fact ctxt (axiomsN, axioms)]);
+  in Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest axclasses))) end;
+
+
 
 (** instances **)
 
-(* parameters *)
-
-fun params_of_sort thy S =
-  let
-    val range = Graph.all_succs (Sign.classes_of thy) (Sign.certify_sort thy S);
-    val params = #2 (#1 (AxClassData.get thy));
-  in fold (fn (x, c) => if member (op =) range c then cons x else I) params [] end;
+val get_instances = AxClassData.get #> (fn (_, Instances insts) => insts);
 
 
 (* class relations *)
@@ -167,7 +166,7 @@ fun cert_classrel thy raw_rel =
     val (c1, c2) = pairself (Sign.certify_class thy) raw_rel;
     val _ = Type.add_classrel (Sign.pp thy) [(c1, c2)] (Sign.tsig_of thy);
     val _ =
-      (case subtract (op =) (params_of_sort thy [c1]) (params_of_sort thy [c2]) of
+      (case subtract (op =) (all_params_of thy [c1]) (all_params_of thy [c2]) of
         [] => ()
       | xs => raise TYPE ("Class " ^ Sign.string_of_sort thy [c1] ^ " lacks parameter(s) " ^
           commas_quote xs ^ " of " ^ Sign.string_of_sort thy [c2], [], []));
@@ -299,7 +298,7 @@ fun gen_axclass prep_class prep_att prep_propp
       |> PureThy.note_thmss_i "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> AxClassData.map (apfst (fn (is, ps) =>
-        (Symtab.update (class, make_axclass (super, def, intro, axioms)) is,
+        (Symtab.update (class, make_axclass (def, intro, axioms)) is,
           fold (fn x => add_param pp (x, class)) params ps)));
 
   in (class, result_thy) end;
