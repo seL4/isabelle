@@ -29,7 +29,7 @@ $(OUTPUTDIST): $(ISABELLE_DIST)
 	-[ ! -e $@/Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
-	( cd $(OUTPUTROOT); ln -s $(OUTPUTDIST_REL) dist )
+	( cd $(OUTPUTROOT); [ ! -e dist ] && ln -s $(OUTPUTDIST_REL) dist || true)
 
 else
 
@@ -41,7 +41,7 @@ $(OUTPUTDIST): $(ISABELLE_DIST) SYNC_ALWAYS
 	-[ ! -e $@/Isabelle ] && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
-	( cd $(OUTPUTROOT); ln -s $(OUTPUTDIST_REL) dist )
+	( cd $(OUTPUTROOT); [ ! -e dist ] && ln -s $(OUTPUTDIST_REL) dist || true)
 
 SYNC_ALWAYS:
 
