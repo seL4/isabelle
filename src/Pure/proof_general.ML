@@ -172,12 +172,12 @@ local
         ("class",  pgip_class),
         ("seq",    string_of_int (pgip_serial())),
         ("id",     !pgip_id)] @
-       if_none (Option.map (single o (pair "destid")) (! pgip_refid)) [] @
+       the_default [] (Option.map (single o (pair "destid")) (! pgip_refid)) @
        (* destid=refid since Isabelle only communicates back to sender,
           so we may omit refid from attributes.
-       if_none (Option.map (single o (pair "refid"))  (! pgip_refid)) [] @
+       the_default [] (Option.map (single o (pair "refid"))  (! pgip_refid)) @
        *)
-       if_none (Option.map (single o (pair "refseq")) (! pgip_refseq)) [])
+       the_default [] (Option.map (single o (pair "refseq")) (! pgip_refseq)))
       pgips;
 
 in
@@ -1102,7 +1102,7 @@ fun hasprefs () =
                                               ("default", default)]
                        [ty]) prefs)]) (!preferences)
 
-fun allprefs () = Library.foldl (op @) ([], map snd (!preferences))
+fun allprefs () = maps snd (!preferences)
 
 fun setpref name value =
     (case AList.lookup (op =) (allprefs ()) name of

@@ -61,9 +61,8 @@ fun search_tlr_all_f f ft =
           in
           (case t' of
             (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft),
-                       Seq.cons(f ft,
-                                  maux (IsaFTerm.focus_right ft)))
-          | (Abs _) => Seq.cons(f ft, maux (IsaFTerm.focus_abs ft))
+                       Seq.cons (f ft) (maux (IsaFTerm.focus_right ft)))
+          | (Abs _) => Seq.cons (f ft) (maux (IsaFTerm.focus_abs ft))
           | leaf => Seq.single (f ft)) end
     in maux ft end;
 
@@ -76,10 +75,9 @@ fun search_tlr_valid_f f ft =
           in
           (case (IsaFTerm.focus_of_fcterm ft) of
             (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft),
-                       Seq.cons(hereseq,
-                                  maux (IsaFTerm.focus_right ft)))
-          | (Abs _) => Seq.cons(hereseq, maux (IsaFTerm.focus_abs ft))
-          | leaf => Seq.single (hereseq))
+                       Seq.cons hereseq (maux (IsaFTerm.focus_right ft)))
+          | (Abs _) => Seq.cons hereseq (maux (IsaFTerm.focus_abs ft))
+          | leaf => Seq.single hereseq)
           end
     in maux ft end;
 

@@ -57,7 +57,7 @@ fun mk_tvar (Envir.Envir {iTs, asol, maxidx}, s) =
   (Envir.Envir {iTs = iTs, asol = asol, maxidx = maxidx+1},
    TVar (("'t", maxidx+1), s));
 
-fun mk_abs Ts t = Library.foldl (fn (u, T) => Abs ("", T, u)) (t, Ts);
+val mk_abs = fold (fn T => fn u => Abs ("", T, u));
 
 fun unifyT sg env T U =
   let

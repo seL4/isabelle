@@ -516,12 +516,12 @@ fun new_node p (gr, x) = (Graph.new_node p gr, x);
 
 fun theory_of_type s thy =
   if Sign.declared_tyname thy s
-  then SOME (if_none (get_first (theory_of_type s) (Theory.parents_of thy)) thy)
+  then SOME (the_default thy (get_first (theory_of_type s) (Theory.parents_of thy)))
   else NONE;
 
 fun theory_of_const s thy =
   if Sign.declared_const thy s
-  then SOME (if_none (get_first (theory_of_const s) (Theory.parents_of thy)) thy)
+  then SOME (the_default thy (get_first (theory_of_const s) (Theory.parents_of thy)))
   else NONE;
 
 fun thyname_of_type s thy = (case theory_of_type s thy of
@@ -587,7 +587,7 @@ fun mk_deftab thy =
           NONE => defs
         | SOME (s, (T, (args, rhs))) => Symtab.update
             (s, (T, (thyname, split_last (rename_terms (args @ [rhs])))) ::
-            if_none (Symtab.lookup defs s) []) defs))
+            the_default [] (Symtab.lookup defs s)) defs))
   in
     foldl (fn ((thyname, axms), defs) =>
       Symtab.foldl (add_def thyname) (defs, axms)) Symtab.empty axmss

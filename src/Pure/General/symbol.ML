@@ -499,7 +499,7 @@ fun sym_len s =
   else if s = "\\<spacespace>" then 2
   else 1;
 
-fun sym_length ss = Library.foldl (fn (n, s) => sym_len s + n) (0, ss);
+fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
 
 fun symbol_output str =
   if chars_only str then default_output str

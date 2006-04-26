@@ -129,7 +129,7 @@ fun fold_ast _ [] = raise Match
   | fold_ast _ [y] = y
   | fold_ast c (x :: xs) = Appl [Constant c, x, fold_ast c xs];
 
-fun fold_ast_p c = Library.foldr (fn (x, xs) => Appl [Constant c, x, xs]);
+fun fold_ast_p c = uncurry (fold_rev (fn x => fn xs => Appl [Constant c, x, xs]));
 
 
 (* unfold asts *)

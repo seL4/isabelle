@@ -325,7 +325,7 @@ let (*Produce copies of uarg and cons them in front of uargs*)
 	    (mc (rbinder, targs,eta_norm env (rbinder, Envir.head_norm env uarg),
 		 (env, dpairs)));
 	(*Produce sequence of all possible ways of copying the arg list*)
-    fun copyargs [] = Seq.cons( ([],ed), Seq.empty)
+    fun copyargs [] = Seq.cons ([],ed) Seq.empty
       | copyargs (uarg::uargs) = Seq.maps (copycons uarg) (copyargs uargs);
     val (uhead,uargs) = strip_comb u;
     val base = body_type env (fastype env (rbinder,uhead));
@@ -577,7 +577,7 @@ fun hounifiers (thy,env, tus : (term*term)list)
   in add_unify 1 ((env, dps), Seq.empty) end;
 
 fun unifiers (params as (thy, env, tus)) =
-  Seq.cons ((fold (Pattern.unify thy) tus env, []), Seq.empty)
+  Seq.cons (fold (Pattern.unify thy) tus env, []) Seq.empty
     handle Pattern.Unif => Seq.empty
          | Pattern.Pattern => hounifiers params;
 

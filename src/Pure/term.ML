@@ -390,7 +390,7 @@ fun argument_type_of tm =
   in arg 0 [] tm end;
 
 
-val list_abs = Library.foldr (fn ((x, T), t) => Abs (x, T, t));
+val list_abs = uncurry (fold_rev (fn (x, T) => fn t => Abs (x, T, t)));
 
 fun strip_abs (Abs (a, T, t)) =
       let val (a', t') = strip_abs t

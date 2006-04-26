@@ -97,7 +97,7 @@ fun disambiguate_names thy prf =
     val thms' = map (apsnd Thm.full_prop_of) (PureThy.all_thms_of thy);
 
     val tab = Symtab.foldl (fn (tab, (key, ps)) =>
-      let val prop = if_none (AList.lookup (op =) thms' key) (Bound 0)
+      let val prop = the_default (Bound 0) (AList.lookup (op =) thms' key)
       in fst (foldr (fn ((prop', prf), x as (tab, i)) =>
         if prop <> prop' then
           (Symtab.update (key ^ "_" ^ string_of_int i, prf) tab, i+1)
@@ -110,7 +110,7 @@ fun disambiguate_names thy prf =
       | rename (prf % t) = rename prf % t
       | rename (prf' as PThm ((s, tags), prf, prop, Ts)) =
           let
-            val prop' = if_none (AList.lookup (op =) thms' s) (Bound 0);
+            val prop' = the_default (Bound 0) (AList.lookup (op =) thms' s);
             val ps = remove (op =) prop' (map fst (the (Symtab.lookup thms s)))
           in if prop = prop' then prf' else
             PThm ((s ^ "_" ^ string_of_int (length ps - find_index_eq prop ps), tags),
@@ -180,16 +180,16 @@ val Hypt = Const ("Hyp", propT --> proofT);
 val Oraclet = Const ("Oracle", propT --> proofT);
 val MinProoft = Const ("MinProof", proofT);
 
-val mk_tyapp = Library.foldl (fn (prf, T) => Const ("Appt",
+val mk_tyapp = fold (fn T => fn prf => Const ("Appt",
   [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
 fun term_of _ (PThm ((name, _), _, _, NONE)) =
       Const (NameSpace.append "thm" name, proofT)
   | term_of _ (PThm ((name, _), _, _, SOME Ts)) =
-      mk_tyapp (Const (NameSpace.append "thm" name, proofT), Ts)
+      mk_tyapp Ts (Const (NameSpace.append "thm" name, proofT))
   | term_of _ (PAxm (name, _, NONE)) = Const (NameSpace.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =
-      mk_tyapp (Const (NameSpace.append "axm" name, proofT), Ts)
+      mk_tyapp Ts (Const (NameSpace.append "axm" name, proofT))
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) = 
       let val T = the_default dummyT opT

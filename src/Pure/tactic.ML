@@ -577,7 +577,7 @@ fun sort_lhs_depths defs =
 
 val rev_defs = sort_lhs_depths o map symmetric;
 
-fun fold_rule defs thm = Library.foldl (fn (th, ds) => rewrite_rule ds th) (thm, rev_defs defs);
+fun fold_rule defs = fold rewrite_rule (rev_defs defs);
 fun fold_tac defs = EVERY (map rewrite_tac (rev_defs defs));
 fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 
@@ -628,12 +628,12 @@ fun defer_tac i = PRIMITIVE (permute_prems (i-1) 1);
 fun filter_prems_tac p =
   let fun Then NONE tac = SOME tac
         | Then (SOME tac) tac' = SOME(tac THEN' tac');
-      fun thins ((tac,n),H) =
+      fun thins H (tac,n) =
         if p H then (tac,n+1)
         else (Then tac (rotate_tac n THEN' etac thin_rl),0);
   in SUBGOAL(fn (subg,n) =>
        let val Hs = Logic.strip_assums_hyp subg
-       in case fst(Library.foldl thins ((NONE,0),Hs)) of
+       in case fst(fold thins Hs (NONE,0)) of
             NONE => no_tac | SOME tac => tac n
        end)
   end;

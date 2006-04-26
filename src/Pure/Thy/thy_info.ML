@@ -86,7 +86,7 @@ fun add_deps name parents G = Graph.add_deps_acyclic (name, parents) G
   handle Graph.CYCLES namess => error (cat_lines (map cycle_msg namess));
 
 fun upd_deps name entry G =
-  Library.foldl (fn (H, parent) => Graph.del_edge (parent, name) H) (G, Graph.imm_preds G name)
+  fold (fn parent => Graph.del_edge (parent, name)) (Graph.imm_preds G name) G
   |> Graph.map_node name (K entry);
 
 fun update_node name parents entry G =
@@ -243,8 +243,8 @@ fun check_unfinished fail name =
 (* load_file *)
 
 val opt_path = Option.map (Path.dir o fst o ThyLoad.get_thy);
-fun opt_path' (d: deps option) = if_none (Option.map (opt_path o #master) d) NONE;
-fun opt_path'' d = if_none (Option.map opt_path' d) NONE;
+fun opt_path' (d: deps option) = the_default NONE (Option.map (opt_path o #master) d);
+fun opt_path'' d = the_default NONE (Option.map opt_path' d);
 
 local
 
@@ -360,7 +360,7 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
           handle ERROR msg => cat_error msg
             (loader_msg "the error(s) above occurred while examining theory" [name] ^
               (if null initiators then "" else required_by "\n" initiators));
-        val dir' = if_none (opt_path'' new_deps) dir;
+        val dir' = the_default dir (opt_path'' new_deps);
         val (visited', parent_results) = foldl_map (req_parent dir') (name :: visited, parents);
 
         val thy = if not really then SOME (get_theory name) else NONE;
@@ -424,7 +424,7 @@ fun begin_theory present name parents uses int =
   let
     val bparents = map base_of_path parents;
     val dir' = opt_path'' (lookup_deps name);
-    val dir = if_none dir' Path.current;
+    val dir = the_default Path.current dir';
     val assert_thy = if int then quiet_update_thy' true dir else weak_use_thy dir;
     val _ = check_unfinished error name;
     val _ = List.app assert_thy parents;

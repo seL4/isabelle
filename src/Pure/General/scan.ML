@@ -248,7 +248,7 @@ fun read stopper scan xs =
 
 fun drain def_prmpt get stopper scan ((state, xs), src) =
   (scan (state, xs), src) handle MORE prmpt =>
-    (case get (if_none prmpt def_prmpt) src of
+    (case get (the_default def_prmpt prmpt) src of
       ([], _) => (finite' stopper scan (state, xs), src)
     | (xs', src') => drain def_prmpt get stopper scan ((state, xs @ xs'), src'));
 
@@ -258,7 +258,7 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (Output.error_msg (if_none msg "Syntax error."); drain_with recover inp);
+        (Output.error_msg (the_default "Syntax error." msg); drain_with recover inp);
 
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of

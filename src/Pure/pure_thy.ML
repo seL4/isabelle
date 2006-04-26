@@ -415,8 +415,8 @@ fun smart_store _ (name, []) =
       fst (enter_thms (name_thm true) (name_thm false) I (name, [thm]) (Thm.theory_of_thm thm))
   | smart_store name_thm (name, thms) =
       let
-        fun merge (thy, th) = Theory.merge (thy, Thm.theory_of_thm th);
-        val thy = Library.foldl merge (Thm.theory_of_thm (hd thms), tl thms);
+        fun merge th thy = Theory.merge (thy, Thm.theory_of_thm th);
+        val thy = fold merge (tl thms) (Thm.theory_of_thm (hd thms));
       in fst (enter_thms (name_thm true) (name_thm false) I (name, thms) thy) end;
 
 in

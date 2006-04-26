@@ -119,11 +119,11 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     fun mk_nonempty A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val goal = mk_nonempty set;
-    val goal_pat = mk_nonempty (Var (if_none (Syntax.read_variable name) (name, 0), setT));
+    val goal_pat = mk_nonempty (Var (the_default (name, 0) (Syntax.read_variable name), setT));
 
     (*lhs*)
     val defS = Sign.defaultS thy;
-    val lhs_tfrees = map (fn v => (v, if_none (AList.lookup (op =) rhs_tfrees v) defS)) vs;
+    val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
     val args_setT = lhs_tfrees
       |> filter (member (op =) rhs_tfrees andf (not o member (op =) rhs_tfreesT))
       |> map TFree;
@@ -132,7 +132,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
-    val (Rep_name, Abs_name) = if_none opt_morphs ("Rep_" ^ name, "Abs_" ^ name);
+    val (Rep_name, Abs_name) = the_default ("Rep_" ^ name, "Abs_" ^ name) opt_morphs;
     val setT' = map Term.itselfT args_setT ---> setT;
     val setC = Term.list_comb (Const (full_name, setT'), map Logic.mk_type args_setT);
     val RepC = Const (full Rep_name, newT --> oldT);
@@ -303,7 +303,7 @@ val typedef_decl =
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
 fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef ((def, if_none opt_name (Syntax.type_name t mx)), (t, vs, mx), A, morphs);
+  typedef ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
 
 val typedefP =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal

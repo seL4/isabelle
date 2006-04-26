@@ -276,7 +276,7 @@ fun eta_contr tm =
 
 
 fun abs_tr' tm =
-  Library.foldr (fn (x, t) => Lexicon.const "_abs" $ x $ t)
+  uncurry (fold_rev (fn x => fn t => Lexicon.const "_abs" $ x $ t))
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
 fun atomic_abs_tr' (x, T, t) =

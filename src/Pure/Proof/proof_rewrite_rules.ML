@@ -200,7 +200,7 @@ fun rewrite_terms r =
         fun strip [] t = t
           | strip (_ :: xs) (Abs (_, _, t)) = strip xs t;
       in
-        strip Ts (Library.foldl (uncurry lambda o Library.swap) (t', frees))
+        strip Ts (fold lambda frees t')
       end;
 
     fun rew Ts (prf1 %% prf2) = rew Ts prf1 %% rew Ts prf2

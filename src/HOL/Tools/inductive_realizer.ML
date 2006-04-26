@@ -208,7 +208,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       else NONE) rss;
     val fs = List.concat (snd (foldl_map (fn (intrs, (prems, dummy)) =>
       let
-        val (intrs1, intrs2) = splitAt (length prems, intrs);
+        val (intrs1, intrs2) = chop (length prems) intrs;
         val fs = map (fn (rule, intr) =>
           fun_of_prem thy rsets vs params rule intr) (prems ~~ intrs1)
       in (intrs2, if dummy then Const ("arbitrary",
@@ -330,7 +330,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       if s mem rsets then
         let
           val (d :: dummies') = dummies;
-          val (recs1, recs2) = splitAt (length rs, if d then tl recs else recs)
+          val (recs1, recs2) = chop (length rs) (if d then tl recs else recs)
         in ((recs2, dummies'), map (head_of o hd o rev o snd o strip_comb o
           fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) recs1)
         end

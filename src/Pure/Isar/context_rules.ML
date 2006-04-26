@@ -108,9 +108,9 @@ structure Rules = GenericDataFun
       val rules = Library.merge (fn ((_, (k1, th1)), (_, (k2, th2))) =>
           k1 = k2 andalso Drule.eq_thm_prop (th1, th2)) (rules1, rules2);
       val next = ~ (length rules);
-      val netpairs = Library.foldl (fn (nps, (n, (w, ((i, b), th)))) =>
-          nth_map i (curry insert_tagged_brl ((w, n), (b, th))) nps)
-        (empty_netpairs, next upto ~1 ~~ rules);
+      val netpairs = fold (fn (n, (w, ((i, b), th))) =>
+          nth_map i (curry insert_tagged_brl ((w, n), (b, th))))
+        (next upto ~1 ~~ rules) empty_netpairs;
     in make_rules (next - 1) rules netpairs wrappers end
 
   fun print generic (Rules {rules, ...}) =

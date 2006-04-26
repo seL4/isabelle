@@ -103,7 +103,7 @@ val rm = OS.FileSys.remove o platform_path;
 fun mkdir path = system_command ("mkdir -p " ^ shell_path path);
 
 fun is_dir path =
-  if_none (try OS.FileSys.isDir (platform_path path)) false;
+  the_default false (try OS.FileSys.isDir (platform_path path));
 
 
 (* read / write files *)

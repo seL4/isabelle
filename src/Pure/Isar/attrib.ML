@@ -219,7 +219,7 @@ fun the_sort sorts xi = the (sorts xi)
 fun the_type types xi = the (types xi)
   handle Option.Option => error_var "No such variable in theorem: " xi;
 
-fun unify_types thy types ((unifier, maxidx), (xi, u)) =
+fun unify_types thy types (xi, u) (unifier, maxidx) =
   let
     val T = the_type types xi;
     val U = Term.fastype_of u;
@@ -283,7 +283,7 @@ fun read_instantiate mixed_insts (generic, thm) =
 
     val types' = #1 (Drule.types_sorts thm');
     val unifier = map (apsnd snd) (Vartab.dest (#1
-      (Library.foldl (unify_types thy types') ((Vartab.empty, 0), internal_insts))));
+      (fold (unify_types thy types') internal_insts (Vartab.empty, 0))));
 
     val type_insts'' = map (typ_subst unifier) type_insts';
     val internal_insts'' = map (subst unifier) internal_insts;
