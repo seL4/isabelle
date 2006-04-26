@@ -4,7 +4,11 @@ Contributions to Isabelle
 
 * October 2005: Martin Wildmoser, TUM
   Sketch for Isar 'guess' element.
-  
+
+* February 2006: Benjamin Porter, NICTA
+  HOL and HOL-Complex: generalied mean value theorem, continuum is
+  not denumerable, harmonic and arithmetic series, and denumerability
+  of rationals.
 
 Contributions to Isabelle 2005
 ------------------------------
