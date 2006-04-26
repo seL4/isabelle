@@ -48,7 +48,6 @@ sig
   val these: 'a list option -> 'a list
   val the_default: 'a -> 'a option -> 'a
   val the_list: 'a option -> 'a list
-  val if_none: 'a option -> 'a -> 'a
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
   val perhaps: ('a -> 'a option) -> 'a -> 'a
@@ -116,11 +115,11 @@ sig
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val flat: 'a list list -> 'a list
+  val maps: ('a -> 'b list) -> 'a list -> 'b list
   val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
   val chop: int -> 'a list -> 'a list * 'a list
-  val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
   val nth_update: int * 'a -> 'a list -> 'a list
@@ -352,10 +351,6 @@ fun the_default x (SOME y) = y
 fun the_list (SOME x) = [x]
   | the_list _ = []
 
-(*strict!*)
-fun if_none NONE y = y
-  | if_none (SOME x) _ = x;
-
 fun is_some (SOME _) = true
   | is_some NONE = false;
 
@@ -371,6 +366,7 @@ fun eq_opt eq (NONE, NONE) = true
 fun merge_opt _ (NONE, y) = y
   | merge_opt _ (x, NONE) = x
   | merge_opt eq (SOME x, SOME y) = if eq (x, y) then SOME y else raise Option;
+
 
 (* exceptions *)
 
@@ -587,8 +583,6 @@ fun chop 0 xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
 
-fun splitAt (n, xs) = chop n xs;
-
 (*take the first n elements from a list*)
 fun take (n, []) = []
   | take (n, x :: xs) =
@@ -610,9 +604,9 @@ fun nth_list xss i = nth xss i handle Subscript => [];
 
 (*update nth element*)
 fun nth_update (n, x) xs =
-    (case splitAt (n, xs) of
-      (_, []) => raise Subscript
-    | (prfx, _ :: sffx') => prfx @ (x :: sffx'))
+  (case chop n xs of
+    (_, []) => raise Subscript
+  | (prfx, _ :: sffx') => prfx @ (x :: sffx'));
 
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
@@ -665,6 +659,8 @@ fun eq_list _ ([], []) = true
   | eq_list _ _ = false;
 
 val flat = List.concat;
+
+fun maps f = flat o map f;
 
 fun unflat (xs :: xss) ys =
       let val (ps, qs) = chop (length xs) ys
@@ -1095,7 +1091,7 @@ exception Balance;      (*indicates non-positive argument to balancing fun*)
 fun fold_bal f [x] = x
   | fold_bal f [] = raise Balance
   | fold_bal f xs =
-      let val (ps,qs) = splitAt(length xs div 2, xs)
+      let val (ps, qs) = chop (length xs div 2) xs
       in  f (fold_bal f ps, fold_bal f qs)  end;
 
 (*construct something of the form f(...g(...(x)...)) for balanced access*)
