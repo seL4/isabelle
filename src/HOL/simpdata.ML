@@ -410,13 +410,6 @@ by (case_tac "P" 1);
 by (ALLGOALS (asm_simp_tac (HOL_ss addsimps prems)));
 qed "expand_case";
 
-(*Used in Auth proofs.  Typically P contains Vars that become instantiated
-  during unification.*)
-fun expand_case_tac P i =
-    res_inst_tac [("P",P)] expand_case i THEN
-    Simp_tac (i+1) THEN
-    Simp_tac i;
-
 (*This lemma restricts the effect of the rewrite rule u=v to the left-hand
   side of an equality.  Used in {Integ,Real}/simproc.ML*)
 Goal "x=y ==> (x=z) = (y=z)";
