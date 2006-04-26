@@ -252,7 +252,7 @@ fun print_theorems ctxt opt_goal opt_limit raw_criteria =
 
     val matches = all_filters filters (find_thms ctxt ([], []));
     val len = length matches;
-    val limit = if_none opt_limit (! thms_containing_limit);
+    val limit = the_default (! thms_containing_limit) opt_limit;
 
     fun prt_fact (thmref, thm) =
       ProofContext.pretty_fact ctxt (PureThy.string_of_thmref thmref, [thm]);
