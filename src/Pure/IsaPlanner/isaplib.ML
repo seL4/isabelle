@@ -143,7 +143,7 @@ fun all_but_last_of_seq s =
 	    (case Seq.pull s2 of 
 	       NONE => NONE
 	     | SOME (a2,s3) => 
-	       SOME (a, all_but_last_of_seq (Seq.cons (a2,s3))))
+	       SOME (a, all_but_last_of_seq (Seq.cons a2 s3)))
     in
       Seq.make f
     end;
@@ -178,7 +178,7 @@ fun skipto_seqseq m s =
             NONE => skipmore n
           | SOME (h,t) => 
             (case Seq.pull h of NONE => skip_occs n t
-             | SOME _ => if n <= 1 then skipseq (Seq.cons (h, t))
+             | SOME _ => if n <= 1 then skipseq (Seq.cons h t)
                          else skip_occs (n - 1) t)
     in (skip_occs m s) end;
 

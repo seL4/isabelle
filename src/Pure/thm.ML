@@ -1429,7 +1429,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                  hyps = union_hyps rhyps shyps,
                  tpairs = ntpairs,
                  prop = Logic.list_implies normp}
-        in  Seq.cons(th, thq)  end  handle COMPOSE => thq;
+        in  Seq.cons th thq  end  handle COMPOSE => thq;
      val (rAs,B) = Logic.strip_prems(nsubgoal, [], rprop)
        handle TERM _ => raise THM("bicompose: rule", 0, [orule,state]);
      (*Modify assumptions, deleting n-th if n>0 for e-resolution*)

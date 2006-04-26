@@ -339,7 +339,7 @@ val focus_to_concl_of_term = focus_to_concl o fcterm_of_term;
 (* FIXME: make truly lazy *)
 fun focuseq_to_subgoals ft = 
     if (Logic.is_implies (focus_of_fcterm ft)) then 
-      Seq.cons (focus_right (focus_left ft), focuseq_to_subgoals (focus_right ft))
+      Seq.cons (focus_right (focus_left ft)) (focuseq_to_subgoals (focus_right ft))
     else
       Seq.empty;
 

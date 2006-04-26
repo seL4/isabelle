@@ -14,7 +14,7 @@ sig
   val make: (unit -> ('a * 'a seq) option) -> 'a seq
   val pull: 'a seq -> ('a * 'a seq) option
   val empty: 'a seq
-  val cons: 'a * 'a seq -> 'a seq
+  val cons: 'a -> 'a seq -> 'a seq
   val single: 'a -> 'a seq
   val try: ('a -> 'b) -> 'a -> 'b seq
   val hd: 'a seq -> 'a
@@ -70,9 +70,9 @@ val empty = Seq (fn () => NONE);
 (*prefix an element to the sequence -- use cons (x, xq) only if
   evaluation of xq need not be delayed, otherwise use
   make (fn () => SOME (x, xq))*)
-fun cons x_xq = make (fn () => SOME x_xq);
+fun cons x xq = make (fn () => SOME (x, xq));
 
-fun single x = cons (x, empty);
+fun single x = cons x empty;
 
 (*head and tail -- beware of calling the sequence function twice!!*)
 fun hd xq = #1 (the (pull xq))
@@ -101,7 +101,7 @@ fun list_of xq =
   | SOME (x, xq') => x :: list_of xq');
 
 (*conversion from list to sequence*)
-fun of_list xs = foldr cons empty xs;
+fun of_list xs = fold_rev cons xs empty;
 
 
 (*sequence append:  put the elements of xq in front of those of yq*)
@@ -239,6 +239,6 @@ fun INTERVAL f i j x =
 fun DETERM f x =
   (case pull (f x) of
     NONE => empty
-  | SOME (x', _) => cons (x', empty));
+  | SOME (x', _) => cons x' empty);
 
 end;

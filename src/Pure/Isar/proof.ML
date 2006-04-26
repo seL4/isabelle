@@ -892,7 +892,7 @@ fun global_goal print_results prep_att prepp
 fun check_result msg sq =
   (case Seq.pull sq of
     NONE => error msg
-  | SOME res => Seq.cons res);
+  | SOME (s', sq') => Seq.cons s' sq');
 
 fun global_qeds txt =
   end_proof true txt

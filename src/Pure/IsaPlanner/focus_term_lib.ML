@@ -334,7 +334,7 @@ local open MinTermS open UpTermLib in
     let 
       val botleft = (focus_bot_left_leaf in_t)
     in
-      Seq.cons (botleft, (Seq.make (next_leaf_of_fcterm_seq_aux botleft)) )
+      Seq.cons botleft (Seq.make (next_leaf_of_fcterm_seq_aux botleft))
     end;
 
   fun upsize_of_fcterm (focus(t, ut)) = upsize_of_upterm ut;
