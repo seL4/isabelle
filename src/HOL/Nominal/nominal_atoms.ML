@@ -520,6 +520,7 @@ fun create_nom_typedecls ak_names thy =
        val cp_option_inst  = thm "cp_option_inst";
        val cp_noption_inst = thm "cp_noption_inst";
        val pt_perm_compose = thm "pt_perm_compose";
+       
        val dj_pp_forget    = thm "dj_perm_perm_forget";
 
        (* shows that <aj> is an instance of cp_<ak>_<ai>  *)
@@ -645,32 +646,32 @@ fun create_nom_typedecls ak_names thy =
 
        (* abbreviations for some lemmas *)
        (*===============================*)
-       val abs_fun_pi        = thm "nominal.abs_fun_pi";
-       val abs_fun_pi_ineq   = thm "nominal.abs_fun_pi_ineq";
-       val abs_fun_eq        = thm "nominal.abs_fun_eq";
-       val dj_perm_forget    = thm "nominal.dj_perm_forget";
-       val dj_pp_forget      = thm "nominal.dj_perm_perm_forget";
-       val fresh_iff         = thm "nominal.fresh_abs_fun_iff";
-       val fresh_iff_ineq    = thm "nominal.fresh_abs_fun_iff_ineq";
-       val abs_fun_supp      = thm "nominal.abs_fun_supp";
-       val abs_fun_supp_ineq = thm "nominal.abs_fun_supp_ineq";
-       val pt_swap_bij       = thm "nominal.pt_swap_bij";
-       val pt_fresh_fresh    = thm "nominal.pt_fresh_fresh";
-       val pt_bij            = thm "nominal.pt_bij";
-       val pt_perm_compose   = thm "nominal.pt_perm_compose";
-       val pt_perm_compose'  = thm "nominal.pt_perm_compose'";
-       val perm_app          = thm "nominal.pt_fun_app_eq";
-       val at_fresh          = thm "nominal.at_fresh";
-       val at_calc           = thms "nominal.at_calc";
-       val at_supp           = thm "nominal.at_supp";
-       val dj_supp           = thm "nominal.dj_supp";
-       val fresh_left_ineq   = thm "nominal.pt_fresh_left_ineq";
-       val fresh_left        = thm "nominal.pt_fresh_left";
-       val fresh_bij_ineq    = thm "nominal.pt_fresh_bij_ineq";
-       val fresh_bij         = thm "nominal.pt_fresh_bij";
-       val pt_pi_rev         = thm "nominal.pt_pi_rev";
-       val pt_rev_pi         = thm "nominal.pt_rev_pi";
-       val fresh_fun_eqvt    = thm "nominal.fresh_fun_equiv";
+       val abs_fun_pi          = thm "nominal.abs_fun_pi";
+       val abs_fun_pi_ineq     = thm "nominal.abs_fun_pi_ineq";
+       val abs_fun_eq          = thm "nominal.abs_fun_eq";
+       val dj_perm_forget      = thm "nominal.dj_perm_forget";
+       val dj_pp_forget        = thm "nominal.dj_perm_perm_forget";
+       val fresh_iff           = thm "nominal.fresh_abs_fun_iff";
+       val fresh_iff_ineq      = thm "nominal.fresh_abs_fun_iff_ineq";
+       val abs_fun_supp        = thm "nominal.abs_fun_supp";
+       val abs_fun_supp_ineq   = thm "nominal.abs_fun_supp_ineq";
+       val pt_swap_bij         = thm "nominal.pt_swap_bij";
+       val pt_fresh_fresh      = thm "nominal.pt_fresh_fresh";
+       val pt_bij              = thm "nominal.pt_bij";
+       val pt_perm_compose     = thm "nominal.pt_perm_compose";
+       val pt_perm_compose'    = thm "nominal.pt_perm_compose'";
+       val perm_app            = thm "nominal.pt_fun_app_eq";
+       val at_fresh            = thm "nominal.at_fresh";
+       val at_calc             = thms "nominal.at_calc";
+       val at_supp             = thm "nominal.at_supp";
+       val dj_supp             = thm "nominal.dj_supp";
+       val fresh_left_ineq     = thm "nominal.pt_fresh_left_ineq";
+       val fresh_left          = thm "nominal.pt_fresh_left";
+       val fresh_bij_ineq      = thm "nominal.pt_fresh_bij_ineq";
+       val fresh_bij           = thm "nominal.pt_fresh_bij";
+       val pt_pi_rev           = thm "nominal.pt_pi_rev";
+       val pt_rev_pi           = thm "nominal.pt_rev_pi";
+       val fresh_fun_eqvt      = thm "nominal.fresh_fun_equiv";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)

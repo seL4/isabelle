@@ -176,6 +176,31 @@ apply(drule meta_mp, erule_tac [2] meta_mp)
 apply(assumption, rule at_prm_eq_append'[OF at_name_inst], assumption)
 done
 
+lemma rec_fin_supp: 
+assumes f: "finite ((supp (f1,f2,f3,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12))::name set)"
+  and   c: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>t (r::'a::pt_name). a\<sharp>f3 a t r)"
+  and   a: "(t,r) \<in> trm_rec_set f1 f2 f3"
+  shows "finite ((supp r)::name set)"
+using a 
+proof (induct)
+  case goal1 thus ?case using f by (finite_guess add: supp_prod fs_name1)
+next
+  case goal2 thus ?case using f by (finite_guess add: supp_prod fs_name1)
+next
+  case (goal3 c t r)
+  have ih: "finite ((supp r)::name set)" by fact
+  let ?g' = "\<lambda>pi a'. f3 a' ((pi@[(c,a')])\<bullet>t) (r (pi@[(c,a')]))"     --"helper function"
+  have fact1: "\<forall>pi. finite ((supp (?g' pi))::name set)" using f ih
+    by (rule_tac allI, finite_guess add: perm_append supp_prod fs_name1)
+  have fact2: "\<forall>pi. \<exists>(a''::name). a''\<sharp>(?g' pi) \<and> a''\<sharp>((?g' pi) a'')" 
+  proof 
+    fix pi::"name prm"
+    show "\<exists>(a''::name). a''\<sharp>(?g' pi) \<and> a''\<sharp>((?g' pi) a'')" using f c ih 
+      by (rule_tac f3_freshness_conditions_simple, simp_all add: supp_prod)
+  qed
+  show ?case using fact1 fact2 ih f by (finite_guess add: fresh_fun_eqvt perm_append supp_prod fs_name1)
+qed 
+
 text {* Induction principles *}
 
 thm trm.induct_weak --"weak"

@@ -264,7 +264,7 @@ lemma it_eqvt:
   and     a: "(t,r) \<in> it f1 f2 f3"
   shows "(pi\<bullet>t,pi\<bullet>r) \<in> it (pi\<bullet>f1) (pi\<bullet>f2) (pi\<bullet>f3)"
 using a proof(induct)
-  case it1 show ?case by (perm_simp add: it.intros)
+  case it1 show ?case by (perm_simp add: it.intros perm_compose')
 next
   case it2 thus ?case by (perm_simp add: it.intros)
 next
@@ -375,8 +375,9 @@ proof -
   have fin_g: "finite ((supp ?g)::name set)" 
     using f by (finite_guess add: itfun'_eqvt[OF f, OF c] supp_prod fs_name1)
   have fr_g: "\<exists>(a''::name). a''\<sharp>?g \<and> a''\<sharp>(?g a'')" using f c 
-    by (rule_tac f3_freshness_conditions_simple, auto simp add: supp_prod, 
-        finite_guess add: itfun'_eqvt[OF f, OF c] supp_prod fs_name1)
+    apply (rule_tac f3_freshness_conditions_simple, auto simp add: supp_prod, 
+           finite_guess add: itfun'_eqvt[OF f, OF c] supp_prod fs_name1)
+    done
   have fresh_b: "b\<sharp>?g" 
   proof -
     have "finite ((supp (a,t,f1,f2,f3))::name set)" using f by (simp add: supp_prod fs_name1)

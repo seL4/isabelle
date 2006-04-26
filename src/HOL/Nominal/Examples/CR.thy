@@ -32,7 +32,7 @@ lemma forget_automatic:
   assumes asm: "a\<sharp>t\<^isub>1"
   shows "t\<^isub>1[a::=t\<^isub>2] = t\<^isub>1"
   using asm by (nominal_induct t\<^isub>1 avoiding: a t\<^isub>2 rule: lam.induct)
-             (auto simp add: abs_fresh fresh_atm)
+               (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
   fixes a :: "name"
@@ -108,7 +108,7 @@ next
   have ih: "\<And>x y N L. \<lbrakk>x\<noteq>y; x\<sharp>L\<rbrakk> \<Longrightarrow> M1[x::=N][y::=L] = M1[y::=L][x::=N[y::=L]]" by fact
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
-  have "z\<sharp>x" "z\<sharp>y" "z\<sharp>N" "z\<sharp>L" by fact
+  have fs: "z\<sharp>x" "z\<sharp>y" "z\<sharp>N" "z\<sharp>L" by fact
   hence "z\<sharp>N[y::=L]" by (simp add: fresh_fact)
   show "(Lam [z].M1)[x::=N][y::=L] = (Lam [z].M1)[y::=L][x::=N[y::=L]]" (is "?LHS=?RHS") 
   proof -
