@@ -762,6 +762,67 @@ lemma geometric_sum:
   done
 
 
+subsection {* The formula for arithmetic sums *}
+
+lemma gauss_sum:
+  "((1::'a::comm_semiring_1_cancel) + 1)*(\<Sum>i\<in>{1..n}. of_nat i) =
+   of_nat n*((of_nat n)+1)"
+proof (induct n)
+  case 0
+  show ?case by simp
+next
+  case (Suc n)
+  then show ?case by (simp add: right_distrib add_assoc mult_ac)
+qed
+
+theorem arith_series_general:
+  "((1::'a::comm_semiring_1_cancel) + 1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
+  of_nat n * (a + (a + of_nat(n - 1)*d))"
+proof cases
+  assume ngt1: "n > 1"
+  let ?I = "\<lambda>i. of_nat i" and ?n = "of_nat n"
+  have
+    "(\<Sum>i\<in>{..<n}. a+?I i*d) =
+     ((\<Sum>i\<in>{..<n}. a) + (\<Sum>i\<in>{..<n}. ?I i*d))"
+    by (rule setsum_addf)
+  also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
+  also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
+    by (simp add: setsum_right_distrib setsum_head_upt mult_ac)
+  also have "(1+1)*\<dots> = (1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..<n}. ?I i)"
+    by (simp add: left_distrib right_distrib)
+  also from ngt1 have "{1..<n} = {1..n - 1}"
+    by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)    
+  also from ngt1 
+  have "(1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..n - 1}. ?I i) = ((1+1)*?n*a + d*?I (n - 1)*?I n)"
+    by (simp only: mult_ac gauss_sum [of "n - 1"])
+       (simp add:  mult_ac of_nat_Suc [symmetric])
+  finally show ?thesis by (simp add: mult_ac add_ac right_distrib)
+next
+  assume "\<not>(n > 1)"
+  hence "n = 1 \<or> n = 0" by auto
+  thus ?thesis by (auto simp: mult_ac right_distrib)
+qed
+
+lemma arith_series_nat:
+  "Suc (Suc 0) * (\<Sum>i\<in>{..<n}. a+i*d) = n * (a + (a+(n - 1)*d))"
+proof -
+  have
+    "((1::nat) + 1) * (\<Sum>i\<in>{..<n::nat}. a + of_nat(i)*d) =
+    of_nat(n) * (a + (a + of_nat(n - 1)*d))"
+    by (rule arith_series_general)
+  thus ?thesis by (auto simp add: of_nat_id)
+qed
+
+lemma arith_series_int:
+  "(2::int) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
+  of_nat n * (a + (a + of_nat(n - 1)*d))"
+proof -
+  have
+    "((1::int) + 1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
+    of_nat(n) * (a + (a + of_nat(n - 1)*d))"
+    by (rule arith_series_general)
+  thus ?thesis by simp
+qed
 
 lemma sum_diff_distrib:
   fixes P::"nat\<Rightarrow>nat"

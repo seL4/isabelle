@@ -7,7 +7,7 @@
 header {* Arithmetic Series for Reals *}
 
 theory Arithmetic_Series_Complex
-imports Complex_Main Arithmetic_Series
+imports Complex_Main 
 begin
 
 lemma arith_series_real:

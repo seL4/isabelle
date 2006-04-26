@@ -21,7 +21,6 @@ imports
   Char_ord
   Commutative_Ring
   Coinductive_List
-  Arithmetic_Series
   AssocList
 begin
 end
