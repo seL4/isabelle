@@ -239,7 +239,7 @@ val lemmasP =
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
-    (P.opt_locale_target -- (P.and_list1 P.xthms1 >> List.concat)
+    (P.opt_locale_target -- (P.and_list1 P.xthms1 >> flat)
       >> (Toplevel.theory_context o uncurry IsarThy.declare_theorems));
 
 

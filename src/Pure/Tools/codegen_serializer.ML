@@ -322,7 +322,7 @@ fun constructive_fun (name, (eqs, ty)) =
       then SOME eq
       else (warning ("in function " ^ quote name ^ ", throwing away one "
         ^ "non-executable function clause"); NONE)
-  in case List.mapPartial check_eq eqs
+  in case map_filter check_eq eqs
    of [] => error ("in function " ^ quote name ^ ", no"
         ^ "executable function clauses found")
     | eqs => (name, (eqs, ty))
@@ -666,13 +666,13 @@ fun ml_from_defs (is_cons, needs_type)
     val (ml_from_funs, ml_from_datatypes) =
       ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
     val filter_datatype =
-      List.mapPartial
+      map_filter
         (fn (name, CodegenThingol.Datatype info) => SOME (name, info)
           | (name, CodegenThingol.Datatypecons _) => NONE
           | (name, def) => error ("datatype block containing illegal def: "
                 ^ (Pretty.output o CodegenThingol.pretty_def) def));
     fun filter_class defs = 
-      case List.mapPartial
+      case map_filter
         (fn (name, CodegenThingol.Class info) => SOME (name, info)
           | (name, CodegenThingol.Classmember _) => NONE
           | (name, def) => error ("class block containing illegal def: "
@@ -1085,7 +1085,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
       | hs_from_def (_, CodegenThingol.Classinstmember) =
           NONE
   in
-    case List.mapPartial (fn (name, def) => hs_from_def (name, def)) defs
+    case map_filter (fn (name, def) => hs_from_def (name, def)) defs
      of [] => NONE
       | l => (SOME o Pretty.chunks o separate (str "")) l
   end;

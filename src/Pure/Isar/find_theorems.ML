@@ -93,7 +93,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
     val match_thm = matches o refine_term;
   in
     map (substsize o refine_term)
-        (List.filter match_thm (extract_terms term_src)) |> bestmatch
+        (filter match_thm (extract_terms term_src)) |> bestmatch
   end;
 
 
@@ -124,7 +124,7 @@ fun filter_dest ctxt goal (_, thm) =
     val prems = Logic.prems_of_goal goal 1;
 
     fun try_subst prem = is_matching_thm extract_dest ctxt true prem thm;
-    val successful = prems |> List.mapPartial try_subst;
+    val successful = prems |> map_filter try_subst;
   in
     (*if possible, keep best substitution (one with smallest size)*)
     (*dest rules always have assumptions, so a dest with one
@@ -155,7 +155,7 @@ fun filter_elim ctxt goal (_, thm) =
       fun goal_tree prem = (combine prem goal_concl);
       fun try_subst prem =
         is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
-      val successful = prems |> List.mapPartial try_subst;
+      val successful = prems |> map_filter try_subst;
     in
     (*elim rules always have assumptions, so an elim with one
       assumption is as good as an intro rule with none*)
@@ -226,7 +226,7 @@ fun all_filters filters thms =
       prod_ord int_ord int_ord ((p1, s1), (p0, s0));
   in
     map (`(eval_filters filters)) thms
-    |> List.mapPartial (fn (SOME x, y) => SOME (x, y) | (NONE, _) => NONE)
+    |> map_filter (fn (SOME x, y) => SOME (x, y) | (NONE, _) => NONE)
     |> sort thm_ord |> map #2
   end;
 
@@ -237,11 +237,9 @@ end;
 
 fun find_thms ctxt spec =
   (PureThy.thms_containing (ProofContext.theory_of ctxt) spec
-    |> map PureThy.selections
-    |> List.concat) @
+    |> maps PureThy.selections) @
   (ProofContext.lthms_containing ctxt spec
-    |> map PureThy.selections
-    |> List.concat
+    |> maps PureThy.selections
     |> distinct (fn ((r1, th1), (r2, th2)) =>
         r1 = r2 andalso Drule.eq_thm_prop (th1, th2)));
 

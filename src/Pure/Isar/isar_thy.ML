@@ -80,8 +80,8 @@ fun theorems_i kind args =
   PureThy.note_thmss_i kind args
   #> tap (present_theorems kind);
 
-fun apply_theorems args = apfst (List.concat o map snd) o theorems "" [(("", []), args)];
-fun apply_theorems_i args = apfst (List.concat o map snd) o theorems_i "" [(("", []), args)];
+fun apply_theorems args = apfst (maps snd) o theorems "" [(("", []), args)];
+fun apply_theorems_i args = apfst (maps snd) o theorems_i "" [(("", []), args)];
 
 fun smart_theorems kind NONE args thy = thy
       |> theorems kind args

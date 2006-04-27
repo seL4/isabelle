@@ -113,7 +113,7 @@ fun remove_dups (c::cs) =
   | remove_dups [] = []
 
 fun constants_of PVar = []
-  | constants_of (PConst (c, ps)) = c :: List.concat (map constants_of ps)
+  | constants_of (PConst (c, ps)) = c :: maps constants_of ps
 
 fun constants_of_term (Var _) = []
   | constants_of_term (Abs m) = constants_of_term m
@@ -133,7 +133,7 @@ fun load_rules sname name prog =
 		"structure "^name^" = struct",
 		"",
 		"datatype term = App of term * term | Abs of term | Var of int | Const of int | Closure of term list * term"]
-	val constants = remove_dups (List.concat (map (fn (p, r) => ((constants_of p)@(constants_of_term r))) prog))
+	val constants = remove_dups (maps (fn (p, r) => ((constants_of p)@(constants_of_term r))) prog)
 	val _ = map (fn x => write (" | c"^(str x))) constants
 	val _ = writelist [
 		"",

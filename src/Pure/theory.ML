@@ -144,7 +144,7 @@ val axiom_space = #1 o #axioms o rep_theory;
 val oracle_space = #1 o #oracles o rep_theory;
 
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
-fun all_axioms_of thy = List.concat (map axioms_of (thy :: ancestors_of thy));
+fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
 
 val defs_of = #defs o rep_theory;
 

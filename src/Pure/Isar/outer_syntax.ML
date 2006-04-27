@@ -197,10 +197,10 @@ fun toplevel_source term do_trace do_recover cmd src =
     |> Source.source T.stopper
       (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K NONE || P.not_eof >> SOME))
       (if do_recover then SOME recover else NONE)
-    |> Source.mapfilter I
+    |> Source.map_filter I
     |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term do_trace (cmd ())) xs))
       (if do_recover then SOME recover else NONE)
-    |> Source.mapfilter I
+    |> Source.map_filter I
   end;
 
 

@@ -267,7 +267,7 @@ fun gen_axclass prep_class prep_att prep_propp
 
     (* definition *)
 
-    val conjs = map (curry Logic.mk_inclass (Term.aT [])) super @ List.concat axiomss;
+    val conjs = map (curry Logic.mk_inclass (Term.aT [])) super @ flat axiomss;
     val class_eq =
       Logic.mk_equals (Logic.mk_inclass (Term.aT [], class), Logic.mk_conjunction_list conjs);
 

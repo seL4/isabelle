@@ -538,16 +538,12 @@ fun netMkRules P vars (nps: netpair list) =
   case P of
       (Const ("*Goal*", _) $ G) =>
         let val pG = mk_Trueprop (toTerm 2 G)
-            val intrs = List.concat
-                             (map (fn (inet,_) => Net.unify_term inet pG)
-                              nps)
+            val intrs = maps (fn (inet,_) => Net.unify_term inet pG) nps
         in  map (fromIntrRule vars o #2) (Tactic.orderlist intrs)  end
     | _ =>
         let val pP = mk_Trueprop (toTerm 3 P)
-            val elims = List.concat
-                             (map (fn (_,enet) => Net.unify_term enet pP)
-                              nps)
-        in  List.mapPartial (fromRule vars o #2) (Tactic.orderlist elims)  end;
+            val elims = maps (fn (_,enet) => Net.unify_term enet pP) nps
+        in  map_filter (fromRule vars o #2) (Tactic.orderlist elims)  end;
 
 
 (*Pending formulae carry md (may duplicate) flags*)

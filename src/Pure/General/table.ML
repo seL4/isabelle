@@ -379,7 +379,7 @@ fun remove_list eq (key, x) tab =
   handle UNDEF _ => delete key tab;
 
 fun make_list args = fold_rev update_list args empty;
-fun dest_list tab = List.concat (map (fn (key, xs) => map (pair key) xs) (dest tab));
+fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
 fun merge_list eq = join (fn _ => Library.merge eq);
 
 

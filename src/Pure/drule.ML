@@ -534,7 +534,7 @@ fun tha RS thb = tha RSN (1,thb);
 fun thas RLN (i,thbs) =
   let val resolve = biresolution false (map (pair false) thas) i
       fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
-  in  List.concat (map resb thbs)  end;
+  in maps resb thbs end;
 
 fun thas RL thbs = thas RLN (1,thbs);
 
@@ -961,8 +961,8 @@ fun instantiate' cTs cts thm =
   let
     fun err msg =
       raise TYPE ("instantiate': " ^ msg,
-        List.mapPartial (Option.map Thm.typ_of) cTs,
-        List.mapPartial (Option.map Thm.term_of) cts);
+        map_filter (Option.map Thm.typ_of) cTs,
+        map_filter (Option.map Thm.term_of) cts);
 
     fun inst_of (v, ct) =
       (Thm.cterm_of (Thm.theory_of_cterm ct) (Var v), ct)

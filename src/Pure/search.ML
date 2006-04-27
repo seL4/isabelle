@@ -243,7 +243,7 @@ fun gen_BREADTH_FIRST message satpred (tac:tactic) =
 	      ([],[]) => []
 	    | ([],nonsats) => 
 		  (message("breadth=" ^ string_of_int(length nonsats));
-		   bfs (List.concat (map tacf nonsats)))
+		   bfs (maps tacf nonsats))
 	    | (sats,_)  => sats)
   in (fn st => Seq.of_list (bfs [st])) end;
 

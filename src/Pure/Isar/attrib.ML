@@ -164,7 +164,7 @@ in
 
 val thm = gen_thm PureThy.single_thm;
 val multi_thm = gen_thm (K I);
-val thms = Scan.repeat multi_thm >> List.concat;
+val thms = Scan.repeat multi_thm >> flat;
 
 end;
 
@@ -250,11 +250,11 @@ fun read_instantiate mixed_insts (generic, thm) =
     val ctxt = Context.proof_of generic;
 
     val (type_insts, term_insts) = List.partition (is_tvar o fst) (map snd mixed_insts);
-    val internal_insts = term_insts |> List.mapPartial
+    val internal_insts = term_insts |> map_filter
       (fn (xi, Args.Term t) => SOME (xi, t)
       | (_, Args.Name _) => NONE
       | (xi, _) => error_var "Term argument expected for " xi);
-    val external_insts = term_insts |> List.mapPartial
+    val external_insts = term_insts |> map_filter
       (fn (xi, Args.Name s) => SOME (xi, s) | _ => NONE);
 
 

@@ -279,7 +279,7 @@ fun tokenize lex xids chs =
       Scan.one Symbol.is_blank >> K NONE;
   in
     (case Scan.error (Scan.finite Symbol.stopper (Scan.repeat scan_token)) chs of
-      (toks, []) => List.mapPartial I toks @ [EndToken]
+      (toks, []) => map_filter I toks @ [EndToken]
     | (_, cs) => error ("Inner lexical error at: " ^ quote (implode cs)))
   end;
 

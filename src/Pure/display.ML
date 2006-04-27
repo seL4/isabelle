@@ -188,7 +188,7 @@ fun pretty_full_theory thy =
           if not syn then NONE
           else SOME (prt_typ (Type (t, [])));
 
-    val pretty_arities = List.concat o map (fn (t, ars) => map (prt_arity t) ars);
+    val pretty_arities = maps (fn (t, ars) => map (prt_arity t) ars);
 
     fun pretty_const (c, ty) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
@@ -208,8 +208,8 @@ fun pretty_full_theory thy =
     val tdecls = NameSpace.dest_table types;
     val arties = NameSpace.dest_table (Sign.type_space thy, arities);
     val cnsts = NameSpace.extern_table constants;
-    val log_cnsts = List.mapPartial (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
-    val abbrevs = List.mapPartial (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
+    val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
+    val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
     val cnstrs = NameSpace.extern_table constraints;
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
@@ -221,8 +221,8 @@ fun pretty_full_theory thy =
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
       pretty_witness witness,
-      Pretty.big_list "syntactic types:" (List.mapPartial (pretty_type true) tdecls),
-      Pretty.big_list "logical types:" (List.mapPartial (pretty_type false) tdecls),
+      Pretty.big_list "syntactic types:" (map_filter (pretty_type true) tdecls),
+      Pretty.big_list "logical types:" (map_filter (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities arties),
       Pretty.big_list "logical consts:" (map pretty_const log_cnsts),
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),

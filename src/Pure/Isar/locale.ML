@@ -201,7 +201,7 @@ struct
 
   (* registrations that subsume t *)
   fun subsumers thy t regs =
-    List.filter (fn (t', _) => Pattern.matches thy (t', t)) (Termtab.dest regs);
+    filter (fn (t', _) => Pattern.matches thy (t', t)) (Termtab.dest regs);
 
   (* look up registration, pick one that subsumes the query *)
   fun lookup sign (regs, ts) =
@@ -235,7 +235,7 @@ struct
     in (case subs of
         [] => let
                 val sups =
-                  List.filter (fn (t', _) => Pattern.matches sign (t, t')) (Termtab.dest regs);
+                  filter (fn (t', _) => Pattern.matches sign (t, t')) (Termtab.dest regs);
                 val sups' = map (apfst untermify) sups
               in (Termtab.update (t, (attn, [])) regs, sups') end
       | _ => (regs, []))
@@ -480,7 +480,7 @@ fun err_in_locale ctxt msg ids =
     val thy = ProofContext.theory_of ctxt;
     fun prt_id (name, parms) =
       [Pretty.block (Pretty.breaks (map Pretty.str (extern thy name :: parms)))];
-    val prt_ids = List.concat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
+    val prt_ids = flat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
     val err_msg =
       if forall (equal "" o #1) ids then msg
       else msg ^ "\n" ^ Pretty.string_of (Pretty.block
@@ -537,19 +537,19 @@ fun unify_frozen ctxt maxidx Ts Us =
       | unify _ env = env;
     val (unifier, _) = fold unify (Ts' ~~ Us') (Vartab.empty, maxidx'');
     val Vs = map (Option.map (Envir.norm_type unifier)) Us';
-    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (List.mapPartial I Vs));
+    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map_filter I Vs));
   in map (Option.map (Envir.norm_type unifier')) Vs end;
 
-fun params_of elemss = distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss));
-fun params_of' elemss = distinct (eq_fst (op =)) (List.concat (map (snd o fst o fst) elemss));
+fun params_of elemss = distinct (eq_fst (op =)) (maps (snd o fst) elemss);
+fun params_of' elemss = distinct (eq_fst (op =)) (maps (snd o fst o fst) elemss);
 fun params_syn_of syn elemss =
-  distinct (eq_fst (op =)) (List.concat (map (snd o fst) elemss)) |>
+  distinct (eq_fst (op =)) (maps (snd o fst) elemss) |>
     map (apfst (fn x => (x, the (Symtab.lookup syn x))));
 
 
 (* CB: param_types has the following type:
   ('a * 'b option) list -> ('a * 'b) list *)
-fun param_types ps = List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
+fun param_types ps = map_filter (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
 
 
 fun merge_syntax ctxt ids ss = Symtab.merge (op =) ss
@@ -577,7 +577,7 @@ local
 fun unique_parms ctxt elemss =
   let
     val param_decls =
-      List.concat (map (fn (((name, (ps, qs)), _), _) => map (rpair (name, ps)) qs) elemss)
+      maps (fn (((name, (ps, qs)), _), _) => map (rpair (name, ps)) qs) elemss
       |> Symtab.make_list |> Symtab.dest;
   in
     (case find_first (fn (_, ids) => length ids > 1) param_decls of
@@ -594,7 +594,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
 
     fun varify i = Term.map_type_tfree (fn (a, S) => TVar ((a, i), S));
     fun varify_parms (i, ps) = map (apsnd (varify i)) (param_types ps);
-    val parms = fixed_parms @ List.concat (map varify_parms idx_parmss);
+    val parms = fixed_parms @ maps varify_parms idx_parmss;
 
     fun unify T U envir = Sign.typ_unify thy (U, T) envir
       handle Type.TUNIFY =>
@@ -611,8 +611,8 @@ fun unify_parms ctxt fixed_parms raw_parmss =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
 
     fun inst_parms (i, ps) =
-      foldr Term.add_typ_tfrees [] (List.mapPartial snd ps)
-      |> List.mapPartial (fn (a, S) =>
+      foldr Term.add_typ_tfrees [] (map_filter snd ps)
+      |> map_filter (fn (a, S) =>
           let val T = Envir.norm_type unifier' (TVar ((a, i), S))
           in if T = TFree (a, S) then NONE else SOME (a, T) end)
       |> Symtab.make;
@@ -716,7 +716,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
           val new_ids' = map (fn (id, ths) =>
               (id, ([], Derived ths))) (new_ids ~~ new_ths);
         in
-          fold add_regs new_idTs (ths @ List.concat new_ths, ids @ new_ids')
+          fold add_regs new_idTs (ths @ flat new_ths, ids @ new_ids')
         end;
 
     (* distribute top-level axioms over assumed ids *)
@@ -724,10 +724,10 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
     fun axiomify all_ps ((name, parms), (_, Assumed _)) axioms =
         let
           val {elems, ...} = the_locale thy name;
-          val ts = List.concat (map
-            (fn (Assumes asms, _) => List.concat (map (map #1 o #2) asms)
+          val ts = maps
+            (fn (Assumes asms, _) => maps (map #1 o #2) asms
               | _ => [])
-            elems);
+            elems;
           val (axs1, axs2) = chop (length ts) axioms;
         in (((name, parms), (all_ps, Assumed axs1)), axs2) end
       | axiomify all_ps (id, (_, Derived ths)) axioms =
@@ -762,7 +762,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
               handle ERROR msg => err_in_locale' ctxt msg ids';
 
             val ids'' = distinct (eq_fst (op =)) (map (rename_parms top ren) ids');
-            val parms'' = distinct (op =) (List.concat (map (#2 o #1) ids''));
+            val parms'' = distinct (op =) (maps (#2 o #1) ids'');
             val syn'' = syn' |> Symtab.dest |> map (Element.rename_var ren) |> Symtab.make;
             (* check for conflicting syntax? *)
           in (ids'', parms'', syn'') end
@@ -849,7 +849,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
   | activate_elem _ ((ctxt, Assumed axs), Assumes asms) =
       let
         val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
-        val ts = List.concat (map (map #1 o #2) asms');
+        val ts = maps (map #1 o #2) asms';
         val (ps, qs) = chop (length ts) axs;
         val (_, ctxt') =
           ctxt |> fold ProofContext.fix_frees ts
@@ -895,7 +895,7 @@ fun activate_elemss prep_facts =
     fold_map (fn (((name, ps), mode), raw_elems) => fn ctxt =>
       let
         val elems = map (prep_facts ctxt) raw_elems;
-        val (ctxt', res) = apsnd List.concat
+        val (ctxt', res) = apsnd flat
             (activate_elems (((name, ps), mode), elems) ctxt);
         val elems' = elems |> map (Element.map_ctxt
           {name = I, var = I, typ = I, term = I, fact = I, attrib = Args.closure});
@@ -916,7 +916,7 @@ in
 
 fun activate_facts prep_facts (ctxt, args) =
   let val ((elemss, factss), ctxt') = activate_elemss prep_facts args ctxt |>> split_list
-  in (ctxt', (elemss, List.concat factss)) end;
+  in (ctxt', (elemss, flat factss)) end;
 
 end;
 
@@ -1047,7 +1047,7 @@ fun declare_elemss prep_vars fixed_params raw_elemss ctxt =
       fold ProofContext.declare_term (map Free fixed_params) ctxt;
     val int_elemss =
       raw_elemss
-      |> List.mapPartial (fn (id, Int es) => SOME (id, es) | _ => NONE)
+      |> map_filter (fn (id, Int es) => SOME (id, es) | _ => NONE)
       |> unify_elemss ctxt_with_fixed fixed_params;
     val (_, raw_elemss') =
       foldl_map (fn ((_, es) :: elemss, (id, Int _)) => (elemss, (id, Int es)) | x => x)
@@ -1086,7 +1086,7 @@ fun eval_text _ _ _ (Fixes _) text = text
   | eval_text _ (_, Assumed _) is_ext (Assumes asms)
         (((exts, exts'), (ints, ints')), (xs, env, defs)) =
       let
-        val ts = List.concat (map (map #1 o #2) asms);
+        val ts = maps (map #1 o #2) asms;
         val ts' = map (norm_term env) ts;
         val spec' =
           if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
@@ -1165,7 +1165,7 @@ fun finish_elems ctxt parms _ ((text, wits), ((id, Int e), _)) =
         val [(id' as (_, mode), es)] = unify_elemss ctxt parms [(id, e)];
         val wits' = case mode of Assumed _ => wits | Derived ths => wits @ ths;
         val text' = fold (eval_text ctxt id' false) es text;
-        val es' = List.mapPartial
+        val es' = map_filter
               (finish_derived (ProofContext.theory_of ctxt) wits' mode) es;
       in ((text', wits'), (id', map Int es')) end
   | finish_elems ctxt parms do_close ((text, wits), ((id, Ext e), [propp])) =
@@ -1214,7 +1214,7 @@ fun prep_elemss prep_vars prepp do_close context fixed_params raw_elemss raw_con
         val (ctxt, all_propp) =
           prepp (fold ProofContext.declare_term (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
         (* CB: add type information from conclusion and external elements to context *)
-        val ctxt = fold ProofContext.declare_term (List.concat (map (map fst) all_propp)) ctxt;
+        val ctxt = fold ProofContext.declare_term (maps (map fst) all_propp) ctxt;
         (* CB: resolve schematic variables (patterns) in conclusion and external elements. *)
         val all_propp' = map2 (curry (op ~~))
           (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
@@ -1307,9 +1307,9 @@ fun gen_asms_of get thy name =
   in
     elemss |> get
       |> map (fn (_, es) => map (fn Int e => e) es)
-      |> Library.flat
-      |> Library.mapfilter (fn Assumes asms => SOME asms | _ => NONE)
-      |> Library.flat
+      |> flat
+      |> map_filter (fn Assumes asms => SOME asms | _ => NONE)
+      |> flat
       |> map (apsnd (map fst))
   end;
 
@@ -1350,7 +1350,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val ((ids, syn), raw_elemsss) = foldl_map (flatten (context, prep_expr thy))
       ((import_ids, import_syn), elements);
 
-    val raw_elemss = List.concat raw_elemsss;
+    val raw_elemss = flat raw_elemsss;
     (* CB: raw_import_elemss @ raw_elemss is the normalised list of
        context elements obtained from import and elements. *)
     val ((parms, all_elemss, concl), (spec, (_, _, defs))) = prep_elemss do_close
@@ -1368,9 +1368,8 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val (ctxt, (elemss, _)) =
       activate_facts prep_facts (import_ctxt, qs);
     val stmt = distinct Term.aconv
-       (List.concat (map (fn ((_, Assumed axs), _) =>
-         List.concat (map (#hyps o Thm.rep_thm o #2) axs)
-                           | ((_, Derived _), _) => []) qs));
+       (maps (fn ((_, Assumed axs), _) => maps (#hyps o Thm.rep_thm o #2) axs
+                           | ((_, Derived _), _) => []) qs);
     val cstmt = map (cterm_of thy) stmt;
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss, syn)), (parms, spec, defs)), (cstmt, concl))
@@ -1411,7 +1410,7 @@ fun print_locale thy show_facts import body =
     val (((_, import_elemss), (ctxt, elemss, _)), _) =
       read_context import body (ProofContext.init thy);
     val prt_elem = Element.pretty_ctxt ctxt;
-    val all_elems = List.concat (map #2 (import_elemss @ elemss));
+    val all_elems = maps #2 (import_elemss @ elemss);
   in
     Pretty.big_list "locale elements:" (all_elems
       |> (if show_facts then I else filter (fn Notes _ => false | _ => true))
@@ -1456,7 +1455,7 @@ fun collect_global_witnesses thy parms ids vts = let
     fun vinst_names ps = map (the o Symtab.lookup vinst) ps;
     val inst = Symtab.make (parms ~~ ts);
     val ids' = map (apsnd vinst_names) ids;
-    val wits = List.concat (map (snd o the o get_global_registration thy) ids');
+    val wits = maps (snd o the o get_global_registration thy) ids';
   in ((tinst, inst), wits) end;
 
 
@@ -1468,7 +1467,7 @@ fun note_thmss_registrations kind target args thy =
     val parms = the_locale thy target |> #params |> map fst;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
       (([], Symtab.empty), Expr (Locale target)) |> fst |> fst
-      |> List.mapPartial (fn (id, (_, Assumed _)) => SOME id | _ => NONE)
+      |> map_filter (fn (id, (_, Assumed _)) => SOME id | _ => NONE)
 
     val regs = get_global_registrations thy target;
 
@@ -1598,7 +1597,7 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val (body, bodyT, body_eq) = atomize_spec thy norm_ts;
     val env = Term.add_term_free_names (body, []);
-    val xs = List.filter (fn (x, _) => x mem_string env) parms;
+    val xs = filter (fn (x, _) => x mem_string env) parms;
     val Ts = map #2 xs;
     val extraTs = (Term.term_tfrees body \\ foldr Term.add_typ_tfrees [] Ts)
       |> Library.sort_wrt #1 |> map TFree;
@@ -1724,8 +1723,8 @@ fun gen_add_locale prep_ctxt prep_expr
 
     fun axiomify axioms elemss =
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
-                   val ts = List.concat (List.mapPartial (fn (Assumes asms) =>
-                     SOME (List.concat (map (map #1 o #2) asms)) | _ => NONE) elems);
+                   val ts = flat (map_filter (fn (Assumes asms) =>
+                     SOME (maps (map #1 o #2) asms) | _ => NONE) elems);
                    val (axs1, axs2) = chop (length ts) axs;
                  in (axs2, ((id, Assumed axs1), elems)) end)
         |> snd;
@@ -1734,7 +1733,7 @@ fun gen_add_locale prep_ctxt prep_expr
       (pred_ctxt, axiomify predicate_axioms elemss');
     val export = ProofContext.export_view predicate_statement ctxt thy_ctxt;
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
-    val elems' = List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'));
+    val elems' = maps #2 (filter (equal "" o #1 o #1) elemss');
 
     val thy' = pred_thy
       |> PureThy.note_thmss_qualified "" bname facts' |> snd
@@ -1821,7 +1820,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
         curry (locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)) loc_ctxt
         #-> (fn res =>
           if name = "" andalso null loc_atts then I
-          else #2 o locale_results kind loc [((name, loc_atts), List.concat (map #2 res))])
+          else #2 o locale_results kind loc [((name, loc_atts), maps #2 res)])
         #> #2
         #> after_qed loc_results results
       end;
@@ -1863,7 +1862,7 @@ local
 fun extract_asms_elem (Fixes _) ts = ts
   | extract_asms_elem (Constrains _) ts = ts
   | extract_asms_elem (Assumes asms) ts =
-      ts @ List.concat (map (fn (_, ams) => map (fn (t, _) => t) ams) asms)
+      ts @ maps (fn (_, ams) => map (fn (t, _) => t) ams) asms
   | extract_asms_elem (Defines defs) ts =
       ts @ map (fn (_, (def, _)) => def) defs
   | extract_asms_elem (Notes _) ts = ts;
@@ -1907,7 +1906,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
         |> fold (fn (id, thms) => fold (add_wit id) thms)
            (map fst propss ~~ thmss);
 
-      val prems = List.concat (List.mapPartial
+      val prems = flat (map_filter
             (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
               | ((_, Derived _), _) => NONE) all_elemss);
       val disch = satisfy_protected prems;
@@ -1916,7 +1915,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
       val thy_ctxt'' = thy_ctxt'
         (* add witnesses of Derived elements *)
         |> fold (fn (id, thms) => fold (add_wit id o apsnd disch) thms)
-           (List.mapPartial (fn ((_, Assumed _), _) => NONE
+           (map_filter (fn ((_, Assumed _), _) => NONE
               | ((id, Derived thms), _) => SOME (id, thms)) all_elemss)
     in
       thy_ctxt''
@@ -1963,7 +1962,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val pvTs = map Type.varifyT pTs;
 
     (* instantiations given by user *)
-    val given = List.mapPartial (fn (_, (NONE, _)) => NONE
+    val given = map_filter (fn (_, (NONE, _)) => NONE
          | (x, (SOME inst, T)) => SOME (x, (inst, T))) (ps ~~ (insts ~~ pvTs));
     val (given_ps, given_insts) = split_list given;
     val tvars = foldr Term.add_typ_tvars [] pvTs;
@@ -1992,7 +1991,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val inst = Symtab.make (given_ps ~~ map rename vs);
 
     (* defined params without user input *)
-    val not_given = List.mapPartial (fn (x, (NONE, T)) => SOME (x, T)
+    val not_given = map_filter (fn (x, (NONE, T)) => SOME (x, T)
          | (_, (SOME _, _)) => NONE) (ps ~~ (insts ~~ pTs));
     fun add_def (p, pT) inst =
       let
@@ -2018,7 +2017,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
           (Element.inst_term insts t, Element.inst_thm thy insts th))) mode)));
 
     (* remove fragments already registered with theory or context *)
-    val new_inst_elemss = List.filter (fn ((id, _), _) =>
+    val new_inst_elemss = filter (fn ((id, _), _) =>
           not (test_reg thy_ctxt id)) inst_elemss;
     val new_ids = map #1 new_inst_elemss;
 
@@ -2072,11 +2071,11 @@ fun prep_registration_in_locale target expr thy =
           the target, unless already present
         - add facts of induced registrations to theory **)
 
-    val t_ids = List.mapPartial
+    val t_ids = map_filter
         (fn (id, (_, Assumed _)) => SOME id | _ => NONE) target_ids;
 
     fun activate thmss thy = let
-        val satisfy = satisfy_protected (List.concat thmss);
+        val satisfy = satisfy_protected (flat thmss);
         val ids_elemss_thmss = ids_elemss ~~ thmss;
         val regs = get_global_registrations thy target;
 
@@ -2090,7 +2089,7 @@ fun prep_registration_in_locale target expr thy =
             fun inst_parms ps = map
                   (the o AList.lookup (op =) (map #1 fixed ~~ vts)) ps;
             val disch = satisfy_protected wits;
-            val new_elemss = List.filter (fn (((name, ps), _), _) =>
+            val new_elemss = filter (fn (((name, ps), _), _) =>
                 not (test_global_registration thy (name, inst_parms ps))) (ids_elemss);
             fun activate_assumed_id (((_, Derived _), _), _) thy = thy
               | activate_assumed_id ((((name, ps), Assumed _), _), thms) thy = let

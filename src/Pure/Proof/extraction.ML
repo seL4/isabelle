@@ -307,7 +307,7 @@ fun prep_realizer thy =
   let
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy;
-    val procs = List.concat (map (fst o snd) types);
+    val procs = maps (fst o snd) types;
     val rtypes = map fst types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val thy' = add_syntax thy;
@@ -343,7 +343,7 @@ fun realizes_of thy vs t prop =
     val thy' = add_syntax thy;
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy';
-    val procs = List.concat (map (fst o snd) types);
+    val procs = maps (fst o snd) types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val prop' = Pattern.rewrite_term thy'
       (map (Logic.dest_equals o prop_of) defs) [] prop;
@@ -460,7 +460,7 @@ fun extract thms thy =
     val thy' = add_syntax thy;
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
-    val procs = List.concat (map (fst o snd) types);
+    val procs = maps (fst o snd) types;
     val rtypes = map fst types;
     val typroc = typeof_proc (Sign.defaultS thy');
     val prep = the_default (K I) prep thy' o ProofRewriteRules.elim_defs thy' false defs o

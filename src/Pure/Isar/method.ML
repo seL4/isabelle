@@ -265,7 +265,7 @@ fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val rules =
       if not (null arg_rules) then arg_rules
-      else List.concat (ContextRules.find_rules false facts goal ctxt)
+      else flat (ContextRules.find_rules false facts goal ctxt)
   in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
@@ -617,7 +617,7 @@ type modifier = (ProofContext.context -> ProofContext.context) * attribute;
 local
 
 fun sect ss = Scan.first (map Scan.lift ss);
-fun thms ss = Scan.repeat (Scan.unless (sect ss) Attrib.multi_thm) >> List.concat;
+fun thms ss = Scan.repeat (Scan.unless (sect ss) Attrib.multi_thm) >> flat;
 
 fun app (f, att) (context, ths) = foldl_map att (Context.map_proof f context, ths);
 

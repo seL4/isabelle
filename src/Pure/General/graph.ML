@@ -132,13 +132,13 @@ fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = List.concat o fst o reachable (imm_preds G);
-fun all_succs G = List.concat o fst o reachable (imm_succs G);
+fun all_preds G = flat o fst o reachable (imm_preds G);
+fun all_succs G = flat o fst o reachable (imm_succs G);
 
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
 fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
-  (List.concat (rev (fst (reachable (imm_succs G) (keys G)))))));
+  (flat (rev (fst (reachable (imm_succs G) (keys G)))))));
 
 (*subgraph induced by node subset*)
 fun subgraph keys (Graph tab) =
@@ -157,7 +157,7 @@ fun find_paths G (x, y) =
     fun paths ps p =
       if not (null ps) andalso eq_key (p, x) then [p :: ps]
       else if member_keys X p andalso not (member_key ps p)
-      then List.concat (map (paths (p :: ps)) (imm_preds G p))
+      then maps (paths (p :: ps)) (imm_preds G p)
       else [];
   in paths [] y end;
 
@@ -194,7 +194,7 @@ fun del_edge (x, y) G =
   else G;
 
 fun diff_edges G1 G2 =
-  List.concat (dest G1 |> map (fn (x, ys) => ys |> List.mapPartial (fn y =>
+  flat (dest G1 |> map (fn (x, ys) => ys |> map_filter (fn y =>
     if is_edge G2 (x, y) then NONE else SOME (x, y))));
 
 fun edges G = diff_edges G empty;

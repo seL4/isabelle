@@ -257,7 +257,7 @@ fun fix_tvars_upto_idx ix th =
       val prop = (Thm.prop_of th);
       val tvars = List.foldr Term.add_term_tvars [] (prop :: tpairs);
       val ctyfixes = 
-          Library.mapfilter 
+          map_filter 
             (fn (v as ((s,i),ty)) => 
                 if i <= ix then SOME (ctypify (TVar v), ctypify (TFree (s,ty)))
                 else NONE) tvars;
@@ -271,7 +271,7 @@ fun fix_vars_upto_idx ix th =
       val vars = map Term.dest_Var (List.foldr Term.add_term_vars 
                                                [] (prop :: tpairs));
       val cfixes = 
-          Library.mapfilter 
+          map_filter 
             (fn (v as ((s,i),ty)) => 
                 if i <= ix then SOME (ctermify (Var v), ctermify (Free (s,ty)))
                 else NONE) vars;

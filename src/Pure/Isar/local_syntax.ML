@@ -104,7 +104,7 @@ fun add_syntax thy prmode raw_decls (syntax as (Syntax {mixfixes, idents = (stru
       let
         val mixfixes' = mixfixes |> fold (add_mixfix prmode) (filter_out mixfix_struct decls);
         val fixes' = fold (fn (((x, true), _), _) => cons x | _ => I) mixfixes' [];
-        val structs' = structs @ List.mapPartial prep_struct decls;
+        val structs' = structs @ map_filter prep_struct decls;
       in build_syntax thy (mixfixes', (structs', fixes')) end);
 
 end;

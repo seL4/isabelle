@@ -398,7 +398,7 @@ all its Vars? Better: a dynamic check each time a rule is applied.
 fun rewrite_rule_extra_vars prems elhs erhs =
   not (term_varnames erhs subset fold add_term_varnames prems (term_varnames elhs))
   orelse
-  not (term_tvars erhs subset (term_tvars elhs union List.concat (map term_tvars prems)));
+  not (term_tvars erhs subset (term_tvars elhs union maps term_tvars prems));
 
 (*simple test for looping rewrite rules and stupid orientations*)
 fun default_reorient thy prems lhs rhs =
@@ -488,16 +488,16 @@ fun orient_rrule ss (thm, name) =
   end;
 
 fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
-  List.concat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms);
+  maps (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms;
 
 fun orient_comb_simps comb mk_rrule (ss, thms) =
   let
     val rews = extract_rews (ss, thms);
-    val rrules = List.concat (map mk_rrule rews);
+    val rrules = maps mk_rrule rews;
   in Library.foldl comb (ss, rrules) end;
 
 fun extract_safe_rrules (ss, thm) =
-  List.concat (map (orient_rrule ss) (extract_rews (ss, [thm])));
+  maps (orient_rrule ss) (extract_rews (ss, [thm]));
 
 (*add rewrite rules explicitly; do not reorient!*)
 fun ss addsimps thms =
@@ -570,7 +570,7 @@ fun del_cong (ss, thm) = ss |>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;
       val alist2 = List.filter (fn (x, _) => x <> a) alist;
-      val weak2 = alist2 |> List.mapPartial (fn (a, {thm, ...}: cong) =>
+      val weak2 = alist2 |> map_filter (fn (a, {thm, ...}: cong) =>
         if is_full_cong thm then NONE else SOME a);
     in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
@@ -1037,7 +1037,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
         in (extract_safe_rrules (ss, asm), SOME asm) end
 
     and add_rrules (rrss, asms) ss =
-      Library.foldl (insert_rrule true) (ss, List.concat rrss) |> add_prems (List.mapPartial I asms)
+      Library.foldl (insert_rrule true) (ss, flat rrss) |> add_prems (map_filter I asms)
 
     and disch r (prem, eq) =
       let

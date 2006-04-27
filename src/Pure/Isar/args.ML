@@ -352,7 +352,7 @@ and args1 blk x =
   ((Scan.repeat1
     (Scan.repeat1 (atomic blk) ||
       argsp "(" ")" ||
-      argsp "[" "]")) >> List.concat) x
+      argsp "[" "]")) >> flat) x
 and argsp l r x =
   (Scan.trace (&&& l -- !!! (args true -- &&& r)) >> #2) x;
 

@@ -345,7 +345,7 @@ val add_consts = Term.fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
 fun mapping add_names f t =
   let
     fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
-    val tab = List.mapPartial f' (add_names t []);
+    val tab = map_filter f' (add_names t []);
     fun get x = the_default x (AList.lookup (op =) tab x);
   in get end;
 
@@ -385,7 +385,7 @@ fun pretty_term thy t =
 fun pretty_typ thy T = Syntax.pretty_typ (Context.Theory thy) (syn_of thy) (extern_typ thy T);
 fun pretty_sort thy S = Syntax.pretty_sort (Context.Theory thy) (syn_of thy) (extern_sort thy S);
 
-fun pretty_classrel thy cs = Pretty.block (List.concat
+fun pretty_classrel thy cs = Pretty.block (flat
   (separate [Pretty.str " <", Pretty.brk 1] (map (single o pretty_sort thy o single) cs)));
 
 fun pretty_arity thy (a, Ss, S) =
@@ -597,8 +597,8 @@ fun infer_types_simult pp thy consts def_type def_sort used freeze args =
       handle TYPE (msg, _, _) => Exn (ERROR msg);
 
     val err_results = map infer termss;
-    val errs = List.mapPartial (fn Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
-    val results = List.mapPartial get_result err_results;
+    val errs = map_filter (fn Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
+    val results = map_filter get_result err_results;
 
     val ambiguity = length termss;
     fun ambig_msg () =
@@ -614,7 +614,7 @@ fun infer_types_simult pp thy consts def_type def_sort used freeze args =
           \You may still want to disambiguate your grammar or your input."
       else (); hd results)
     else (cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
-      cat_lines (map (Pretty.string_of_term pp) (List.concat (map fst results)))))
+      cat_lines (map (Pretty.string_of_term pp) (maps fst results))))
   end;
 
 fun infer_types pp thy consts def_type def_sort used freeze tsT =

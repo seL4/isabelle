@@ -280,8 +280,8 @@ val fixes_of = #2 o #fixes o rep_context;
 val fixed_names_of = map #2 o fixes_of;
 
 val assumptions_of = #1 o #assms o rep_context;
-val assms_of = map Thm.term_of o List.concat o map #1 o assumptions_of;
-val prems_of = List.concat o map #2 o #2 o #assms o rep_context;
+val assms_of = map Thm.term_of o maps #1 o assumptions_of;
+val prems_of = maps #2 o #2 o #assms o rep_context;
 
 val binds_of = #binds o rep_context;
 
@@ -778,7 +778,7 @@ fun common_exports is_goal inner outer =
       let
         val thy = Thm.theory_of_thm rule;
         val prop = Thm.full_prop_of rule;
-        val frees = map (Thm.cterm_of thy) (List.mapPartial (Term.find_free prop) fixes);
+        val frees = map (Thm.cterm_of thy) (map_filter (Term.find_free prop) fixes);
         val tfrees = gen (Term.add_term_tfree_names (prop, []));
       in
         rule
@@ -849,7 +849,7 @@ fun simult_matches ctxt [] = []
           then () else fail ();
         fun norm_bind (xi, (_, t)) =
           if member (op =) domain xi then SOME (xi, Envir.norm_term env t) else NONE;
-      in List.mapPartial norm_bind (Envir.alist_of env) end;
+      in map_filter norm_bind (Envir.alist_of env) end;
 
 
 (* add_binds(_i) *)
@@ -889,7 +889,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
   let
     val ts = prep_terms ctxt (map snd raw_binds);
     val (binds, ctxt') =
-      apfst List.concat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
+      apfst flat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
     val binds' =
       if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
       else binds;
@@ -922,7 +922,7 @@ fun prep_propp schematic prep_props prep_pats (context, args) =
           in ((prop, chop (length raw_pats1) pats), (ctxt', props)) end
       | prep _ _ = sys_error "prep_propp";
     val (propp, (context', _)) = (fold_map o fold_map) prep args
-      (context, prep_props schematic context (List.concat (map (map fst) args)));
+      (context, prep_props schematic context (maps (map fst) args));
   in (context', propp) end;
 
 fun matches ctxt (prop, (pats1, pats2)) =
@@ -931,7 +931,7 @@ fun matches ctxt (prop, (pats1, pats2)) =
 fun gen_bind_propp prepp (ctxt, raw_args) =
   let
     val (ctxt', args) = prepp (ctxt, raw_args);
-    val binds = List.concat (List.concat (map (map (matches ctxt')) args));
+    val binds = flat (flat (map (map (matches ctxt')) args));
     val propss = map (map #1) args;
 
     (*generalize result: context evaluated now, binds added later*)
@@ -1061,7 +1061,7 @@ fun gen_note_thmss get = fold_map (fn ((name, more_attrs), ths_attrs) => fn ctxt
       let val (ct', th') = foldl_map (Thm.proof_attributes (attrs @ more_attrs)) (ct, get ctxt th)
       in (ct', th' :: ths) end;
     val (ctxt', rev_thms) = fold app ths_attrs (ctxt, []);
-    val thms = List.concat (rev rev_thms);
+    val thms = flat (rev rev_thms);
   in ((name, thms), ctxt' |> put_thms true (name, SOME thms)) end);
 
 in
@@ -1245,7 +1245,7 @@ fun gen_assms prepp exp args ctxt =
     val (propss, ctxt1) = swap (prepp (ctxt, map snd args));
     val (results, ctxt2) = fold_map gen_assm (map fst args ~~ propss) ctxt1;
 
-    val new_asms = List.concat (map #1 results);
+    val new_asms = maps #1 results;
     val new_prems = map #2 results;
     val ctxt3 = ctxt2
       |> map_assms (fn (asms, prems) => (asms @ [(new_asms, exp)], prems @ new_prems))
@@ -1428,13 +1428,13 @@ fun pretty_cases ctxt =
 
     fun prt_sect _ _ _ [] = []
       | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
-            List.concat (Library.separate sep (map (Library.single o prt) xs))))];
+            flat (Library.separate sep (map (Library.single o prt) xs))))];
 
     fun prt_case (name, (fixes, (asms, (lets, cs)))) = Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
         prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
-          (List.mapPartial (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
+          (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
           else prt_sect "assume" [Pretty.str "and"] prt_asm asms) @
         prt_sect "subcases:" [] (Pretty.str o fst) cs));

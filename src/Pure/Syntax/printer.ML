@@ -192,7 +192,7 @@ datatype symb =
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
 fun mode_tab prtabs mode = the_default Symtab.empty (AList.lookup (op =) prtabs mode);
-fun mode_tabs prtabs modes = List.mapPartial (AList.lookup (op =) prtabs) (modes @ [""]);
+fun mode_tabs prtabs modes = map_filter (AList.lookup (op =) prtabs) (modes @ [""]);
 
 
 (* xprod_to_fmt *)
@@ -244,7 +244,7 @@ val empty_prtabs = [];
 
 fun change_prtabs f mode xprods prtabs =
   let
-    val fmts = List.mapPartial xprod_to_fmt xprods;
+    val fmts = map_filter xprod_to_fmt xprods;
     val tab = fold f fmts (mode_tab prtabs mode);
   in AList.update (op =) (mode, tab) prtabs end;
 

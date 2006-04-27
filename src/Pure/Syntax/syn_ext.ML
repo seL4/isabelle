@@ -218,7 +218,7 @@ val scan_symb =
   $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
-val read_symbs = List.mapPartial I o the o Scan.read Symbol.stopper scan_symbs;
+val read_symbs = map_filter I o the o Scan.read Symbol.stopper scan_symbs;
 
 fun unique_index xsymbs =
   if length (List.filter is_index xsymbs) <= 1 then xsymbs
@@ -360,7 +360,7 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
       print_ast_translation) = trfuns;
 
     val (xprods, parse_rules') = map (mfix_to_xprod convert is_logtype) mfixes
-      |> split_list |> apsnd (rev o List.concat);
+      |> split_list |> apsnd (rev o flat);
     val mfix_consts =
       distinct (op =) (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
   in

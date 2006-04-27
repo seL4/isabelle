@@ -100,7 +100,7 @@ fun instantiate_tfrees thy subst =
       |> Option.map (fn v => (certT (TVar v), certT T));
   in
     Drule.tvars_intr_list (map fst subst) #->
-    (fn vs => Thm.instantiate (List.mapPartial (inst vs) subst, []))
+    (fn vs => Thm.instantiate (map_filter (inst vs) subst, []))
   end;
 
 fun instantiate_frees thy subst =
@@ -144,7 +144,7 @@ fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
 fun rename_thm ren th =
   let
     val subst = Drule.frees_of th
-      |> List.mapPartial (fn (x, T) =>
+      |> map_filter (fn (x, T) =>
         let val x' = rename ren x
         in if x = x' then NONE else SOME ((x, T), (Free (x', T))) end);
   in
@@ -169,7 +169,7 @@ fun instT_term env =
 
 fun instT_subst env th =
   Drule.tfrees_of th
-  |> List.mapPartial (fn (a, S) =>
+  |> map_filter (fn (a, S) =>
     let
       val T = TFree (a, S);
       val T' = the_default T (Symtab.lookup env a);
@@ -209,7 +209,7 @@ fun inst_thm thy (envT, env) th =
     let
       val substT = instT_subst envT th;
       val subst = Drule.frees_of th
-        |> List.mapPartial (fn (x, T) =>
+        |> map_filter (fn (x, T) =>
           let
             val T' = instT_type envT T;
             val t = Free (x, T');
@@ -291,7 +291,7 @@ fun pretty_ctxt ctxt =
       | prt_fact (ths, atts) = Pretty.enclose "(" ")"
           (Pretty.breaks (map prt_thm ths)) :: Args.pretty_attribs ctxt atts;
     fun prt_note (a, ths) =
-      Pretty.block (Pretty.breaks (List.concat (prt_name_atts a "=" :: map prt_fact ths)));
+      Pretty.block (Pretty.breaks (flat (prt_name_atts a "=" :: map prt_fact ths)));
   in
     fn Fixes fixes => pretty_items "fixes" "and" (map prt_fix fixes)
      | Constrains xs => pretty_items "constrains" "and" (map prt_constrain xs)

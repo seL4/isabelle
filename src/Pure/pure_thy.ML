@@ -219,7 +219,7 @@ fun select_thm (Name _) thms = thms
             error ("Bad subscript " ^ string_of_int i ^ " for " ^
               quote name ^ " (length " ^ string_of_int n ^ ")")
           else List.nth (thms, i - 1);
-      in map select (List.concat (map (interval n) is)) end;
+      in map select (maps (interval n) is) end;
 
 
 (* selections *)
@@ -263,7 +263,7 @@ fun get_thms theory thmref =
     |> the_thms name |> select_thm thmref |> map (Thm.transfer theory)
   end;
 
-fun get_thmss thy thmrefs = List.concat (map (get_thms thy) thmrefs);
+fun get_thmss thy thmrefs = maps (get_thms thy) thmrefs;
 fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
 
 fun thm name = get_thm (the_context ()) (Name name);
@@ -279,14 +279,13 @@ fun valid_thms thy (thmref, ths) =
 
 fun thms_containing theory spec =
   (theory :: Theory.ancestors_of theory)
-  |> map (fn thy =>
+  |> maps (fn thy =>
       FactIndex.find (fact_index_of thy) spec
       |> List.filter (fn (name, ths) => valid_thms theory (Name name, ths))
-      |> distinct (eq_fst (op =)))
-  |> List.concat;
+      |> distinct (eq_fst (op =)));
 
 fun thms_containing_consts thy consts =
-  thms_containing thy (consts, []) |> map #2 |> List.concat
+  thms_containing thy (consts, []) |> maps #2
   |> map (fn th => (Thm.name_of_thm th, th));
 
 
@@ -294,9 +293,9 @@ fun thms_containing_consts thy consts =
 
 fun thms_of thy =
   let val thms = #2 (theorems_of thy)
-  in map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms))) end;
+  in map (fn th => (Thm.name_of_thm th, th)) (maps snd (Symtab.dest thms)) end;
 
-fun all_thms_of thy = List.concat (map thms_of (thy :: Theory.ancestors_of thy));
+fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
 
 
@@ -379,7 +378,7 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_atts), ths_atts) => fn thy
   let
     fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
-      name_thmss (name_thms false) (apsnd List.concat o foldl_map app)
+      name_thmss (name_thms false) (apsnd flat o foldl_map app)
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind k])) ths_atts);
   in ((bname, thms), thy') end);
 

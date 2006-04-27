@@ -248,7 +248,7 @@ fun witness_sorts (classes, arities) log_types hyps sorts =
       | check_result (SOME (T, S)) =
           if of_sort (classes, arities) (T, S) then SOME (T, S)
           else sys_error ("Sorts.witness_sorts: bad witness for sort " ^ str_of_sort S);
-  in List.mapPartial check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
+  in map_filter check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
 
 end;
 

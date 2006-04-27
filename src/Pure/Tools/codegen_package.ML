@@ -164,14 +164,14 @@ structure ConstNameMangler = NameManglerFun (
                 NameSpace.drop_base c';
       val c'' = NameSpace.append prefix (NameSpace.base c');
       fun mangle (Type (tyco, tys)) =
-            (NameSpace.base o alias_get thy) tyco :: flat (List.mapPartial mangle tys) |> SOME
+            (NameSpace.base o alias_get thy) tyco :: flat (map_filter mangle tys) |> SOME
         | mangle _ =
             NONE
     in
       Vartab.empty
       |> Type.raw_match (Sign.the_const_type thy c, ty)
       |> map (snd o snd) o Vartab.dest
-      |> List.mapPartial mangle
+      |> map_filter mangle
       |> flat
       |> null ? K ["x"]
       |> cons c''

@@ -262,11 +262,11 @@ val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 val params = Scan.repeat1 name -- Scan.option ($$$ "::" |-- !!! typ)
   >> (fn (xs, T) => map (rpair T) xs);
 
-val simple_fixes = and_list1 params >> List.concat;
+val simple_fixes = and_list1 params >> flat;
 
 val fixes =
   and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- mixfix >> (single o triple1) ||
-    params >> map Syntax.no_syn) >> List.concat;
+    params >> map Syntax.no_syn) >> flat;
 
 
 (* terms *)
@@ -311,7 +311,7 @@ and args1 is_symid blk x =
   ((Scan.repeat1
     (Scan.repeat1 (atom_arg is_symid blk) ||
       paren_args "(" ")" (args is_symid) ||
-      paren_args "[" "]" (args is_symid))) >> List.concat) x;
+      paren_args "[" "]" (args is_symid))) >> flat) x;
 
 val arguments = args T.is_sid false;
 
@@ -350,7 +350,7 @@ val locale_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K Structure |
 
 val locale_fixes =
   and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- locale_mixfix >> (single o triple1) ||
-    params >> map Syntax.no_syn) >> List.concat;
+    params >> map Syntax.no_syn) >> flat;
 
 local
 
@@ -401,7 +401,7 @@ val statement = and_list1 (opt_thm_name ":" -- Scan.repeat1 propp);
 
 val obtain_case =
   parname -- (Scan.optional (simple_fixes --| $$$ "where") [] --
-    (and_list1 (Scan.repeat1 prop) >> List.concat));
+    (and_list1 (Scan.repeat1 prop) >> flat));
 
 val general_statement =
   statement >> (fn x => ([], Element.Shows x)) ||

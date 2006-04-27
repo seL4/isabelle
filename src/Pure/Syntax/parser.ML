@@ -418,7 +418,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
           map prod_of_chain ((these o AList.lookup (op =) chains) tag);
       in map (pretty_prod name) nt_prods end;
 
-  in List.concat (map pretty_nt taglist) end;
+  in maps pretty_nt taglist end;
 
 
 (** Operations on gramars **)
@@ -840,12 +840,12 @@ fun produce prods chains stateset i indata prev_token =
                   end;
 
               val nts =
-                List.mapPartial (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) =>
+                map_filter (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) =>
                            SOME (a, prec) | _ => NONE)
                           (Array.sub (stateset, i-1));
               val allowed =
                 distinct (op =) (get_starts nts [] @
-                  (List.mapPartial (fn (_, _, _, Terminal a :: _, _, _) => SOME a
+                  (map_filter (fn (_, _, _, Terminal a :: _, _, _) => SOME a
                                | _ => NONE)
                              (Array.sub (stateset, i-1))));
           in syntax_error (if prev_token = EndToken then indata
@@ -862,7 +862,7 @@ fun produce prods chains stateset i indata prev_token =
        end));
 
 
-fun get_trees l = List.mapPartial (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE)
+fun get_trees l = map_filter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE)
                             l;
 
 fun earley prods tags chains startsymbol indata =

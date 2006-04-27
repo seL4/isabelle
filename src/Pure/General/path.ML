@@ -153,7 +153,7 @@ fun eval (Variable s) =
     | path => rep (unpack path))
   | eval x = [x];
 
-val expand = rep #> map eval #> List.concat #> norm #> Path;
+val expand = rep #> maps eval #> norm #> Path;
 val position = expand #> pack #> quote #> Position.line_name 1;
 
 end;

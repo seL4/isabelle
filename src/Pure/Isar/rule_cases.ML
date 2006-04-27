@@ -107,7 +107,7 @@ fun extract_case is_open thy (case_outline, raw_prop) name concls =
           else abs fixes1 (app (map (Term.dummy_pattern o #2) fixes2) (abs fixes2 t));
 
         val (assumes1, assumes2) = extract_assumes (NameSpace.qualified name) case_outline prop
-          |> pairself (map (apsnd (List.concat o map Logic.dest_conjunctions)));
+          |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
 
         val concl = ObjectLogic.drop_judgment thy (Logic.strip_assums_concl prop);
         val binds =
@@ -272,7 +272,7 @@ fun get_case_concls th name =
   | _ => []);
 
 fun save_case_concls th =
-  let val concls = Thm.tags_of_thm th |> List.mapPartial
+  let val concls = Thm.tags_of_thm th |> map_filter
     (fn (a, b :: cs) =>
       if a = case_concl_tagN then SOME (b, cs) else NONE
     | _ => NONE)

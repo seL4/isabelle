@@ -237,7 +237,7 @@ fun put_facts facts =
   put_thms_internal (AutoBind.thisN, facts);
 
 fun these_factss more_facts (named_factss, state) =
-  (named_factss, state |> put_facts (SOME (List.concat (map snd named_factss) @ more_facts)));
+  (named_factss, state |> put_facts (SOME (maps snd named_factss @ more_facts)));
 
 fun export_facts inner outer =
   (case get_facts inner of
@@ -655,7 +655,7 @@ fun gen_using f g note prep_atts args state =
     state' |> map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
       let
         val ctxt = context_of state';
-        val ths = List.concat (map snd named_facts);
+        val ths = maps snd named_facts;
       in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
 fun append_using _ ths using = using @ ths;
@@ -794,7 +794,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> enter_forward
       |> open_block
       |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
-    val props = List.concat propss;
+    val props = flat propss;
 
     val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list2 propss));
     val after_qed' = after_qed |>> (fn after_local =>
@@ -823,7 +823,7 @@ fun generic_qed state =
     val outer_ctxt = context_of outer_state;
 
     val props =
-      List.concat stmt
+      flat stmt
       |> ProofContext.generalize goal_ctxt outer_ctxt;
     val results =
       stmt
@@ -874,7 +874,7 @@ fun global_goal print_results prep_att prepp
       #> global_results kind ((names ~~ attss) ~~ res)
       #-> (fn res' =>
         (print_results thy_ctxt ((kind, name), res') : unit;
-          #2 o global_results kind [((name, atts), List.concat (map #2 res'))]))
+          #2 o global_results kind [((name, atts), maps #2 res')]))
       #> Sign.restore_naming thy;
 
     fun after_qed' results =
@@ -961,7 +961,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       |> capture;
 
     fun after_qed' results =
-      refine_goals print_rule (context_of state) (List.concat results)
+      refine_goals print_rule (context_of state) (flat results)
       #> Seq.maps (after_qed results);
   in
     state

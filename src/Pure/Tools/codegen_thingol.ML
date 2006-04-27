@@ -503,7 +503,7 @@ fun pretty_module modl =
             Pretty.str ("module " ^ name ^ " {")
             :: Pretty.brk 1
             :: Pretty.chunks (map pretty (AList.make (Graph.get_node modl)
-                 (Graph.strong_conn modl |> List.concat |> rev)))
+                 (Graph.strong_conn modl |> flat |> rev)))
             :: Pretty.str "}" :: nil
           )
       | pretty (name, Def def) =
@@ -533,7 +533,7 @@ fun pretty_deps modl =
   in
     modl
     |> Graph.strong_conn
-    |> List.concat
+    |> flat
     |> rev
     |> map one_node
     |> Pretty.chunks
@@ -1121,7 +1121,7 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
         val name_qual = NameSpace.pack (prfx @ [name])
       in (name_qual, resolver prfx name_qual) end;
     fun mk_contents prfx module =
-      List.mapPartial (seri prfx)
+      map_filter (seri prfx)
         ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
     and seri prfx ([(name, Module modl)]) =
           seri_module (resolver []) (map (resolver []) (imports_of module (prfx @ [name])))
@@ -1131,7 +1131,7 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
     seri_module (resolver []) (imports_of module [])
-      (*map (resolver []) (Graph.strong_conn module |> List.concat |> rev)*)
+      (*map (resolver []) (Graph.strong_conn module |> flat |> rev)*)
       (("", name_root), (mk_contents [] module))
   end;
 

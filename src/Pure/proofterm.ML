@@ -414,15 +414,15 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 (**** substitutions ****)
 
 fun del_conflicting_tvars envT T = Term.instantiateT
-  (List.mapPartial (fn ixnS as (_, S) =>
+  (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (envT, ixnS); NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (typ_tvars T)) T;
 
 fun del_conflicting_vars env t = Term.instantiate
-  (List.mapPartial (fn ixnS as (_, S) =>
+  (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (type_env env, ixnS); NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (term_tvars t),
-   List.mapPartial (fn Var (ixnT as (_, T)) =>
+   map_filter (fn Var (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
         SOME (ixnT, Free ("dummy", T))) (term_vars t)) t;
 
@@ -836,7 +836,7 @@ fun is_fun (Type ("fun", _)) = true
 
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then
-    vs union List.mapPartial (fn Var (ixn, T) =>
+    vs union map_filter (fn Var (ixn, T) =>
       if is_fun T then SOME ixn else NONE | _ => NONE) (vars_of t)
   else vs;
 
@@ -903,7 +903,7 @@ fun shrink_proof thy =
           in (b, is, ch, if ch then Abst (a, Option.map compress_typ T, body') else prf) end
       | shrink ls lev (prf as AbsP (a, t, body)) =
           let val (b, is, ch, body') = shrink (lev::ls) lev body
-          in (b orelse member (op =) is 0, List.mapPartial (fn 0 => NONE | i => SOME (i-1)) is,
+          in (b orelse member (op =) is 0, map_filter (fn 0 => NONE | i => SOME (i-1)) is,
             ch, if ch then AbsP (a, Option.map compress_term t, body') else prf)
           end
       | shrink ls lev prf =

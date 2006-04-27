@@ -413,7 +413,7 @@ fun basic_infer_types pp tsig const_type used freeze is_param ts Ts =
     (*collect result unifier*)
     fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); NONE)
       | ch_var xi_T = SOME xi_T;
-    val env = List.mapPartial ch_var Tps;
+    val env = map_filter ch_var Tps;
 
     (*convert back to terms/typs*)
     val mk_var =

@@ -429,7 +429,7 @@ fun preprocess_term thy t =
 
 fun get_funs thy (c, ty) =
   let
-    val filter_typ = Library.mapfilter (fn ((_, ty'), thm) =>
+    val filter_typ = map_filter (fn ((_, ty'), thm) =>
       if Sign.typ_instance thy (ty', ty)
         orelse Sign.typ_instance thy (ty, ty')
       then SOME thm else debug_msg (fn _ => "dropping " ^ string_of_thm thm) NONE);

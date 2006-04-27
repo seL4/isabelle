@@ -69,7 +69,7 @@ fun define const_type ((is_def, thyname), name) lhs rhs = map_defs (fn (consts, 
   in (consts', specified') end);
 
 fun specifications_of (Defs {specified, ...}) c =
-  (List.mapPartial
+  (map_filter
     (fn (_, (false, _, _, _)) => NONE
       | (_, (true, specname, thyname, ty)) => SOME (ty, (specname, thyname))) o Inttab.dest
     o the_default Inttab.empty o Symtab.lookup specified) c;

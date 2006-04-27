@@ -183,7 +183,7 @@ fun syn_ext_types type_decls =
         | _ => error ("Bad mixfix declaration for type: " ^ quote t))
       end;
 
-    val mfix = List.mapPartial mfix_of type_decls;
+    val mfix = map_filter mfix_of type_decls;
     val xconsts = map name_of type_decls;
   in SynExt.syn_ext mfix xconsts ([], [], [], []) [] ([], []) end;
 
@@ -224,9 +224,9 @@ fun syn_ext_consts is_logtype const_decls =
     fun binder (c, _, Binder (sy, _, _)) = SOME (sy, c)
       | binder _ = NONE;
 
-    val mfix = List.concat (map mfix_of const_decls);
+    val mfix = maps mfix_of const_decls;
     val xconsts = map name_of const_decls;
-    val binders = List.mapPartial binder const_decls;
+    val binders = map_filter binder const_decls;
     val binder_trs = binders |> map (SynExt.stamp_trfun binder_stamp o
         apsnd K o SynTrans.mk_binder_tr);
     val binder_trs' = binders |> map (SynExt.stamp_trfun binder_stamp o

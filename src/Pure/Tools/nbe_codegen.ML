@@ -131,8 +131,7 @@ fun generate defined (nm, CodegenThingol.Fun (eqns, _)) =
         val globals = map lookup (filter defined funs);
         val default_eqn = ([params], S.app Eval_Constr (S.tup[S.quote nm,params]));
         val code = S.eqns (MLname nm)
-                          (Library.flat(map (mk_eqn defined nm ar) eqns) 
-                           @ [default_eqn])
+                          (maps (mk_eqn defined nm ar) eqns @ [default_eqn])
         val register = tab_update
             (S.app Eval_mk_Fun (S.tup[S.quote nm, MLname nm, string_of_int ar]))
       in

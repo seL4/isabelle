@@ -123,7 +123,7 @@ fun prove_multi thy xs asms props tac =
     val frees = Term.add_frees statement [];
     val fixed_frees = filter_out (member (op =) xs o #1) frees;
     val fixed_tfrees = fold (Term.add_tfreesT o #2) fixed_frees [];
-    val params = List.mapPartial (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
+    val params = map_filter (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
 
     fun err msg = cat_error msg
       ("The error(s) above occurred for the goal statement:\n" ^

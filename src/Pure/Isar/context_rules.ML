@@ -118,7 +118,7 @@ structure Rules = GenericDataFun
       val ctxt = Context.proof_of generic;
       fun prt_kind (i, b) =
         Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
-          (List.mapPartial (fn (_, (k, th)) =>
+          (map_filter (fn (_, (k, th)) =>
               if k = (i, b) then SOME (ProofContext.pretty_thm ctxt th) else NONE)
             (sort (int_ord o pairself fst) rules));
     in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;

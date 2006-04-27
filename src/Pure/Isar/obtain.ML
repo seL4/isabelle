@@ -119,7 +119,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
-    val asm_props = List.concat (map (map fst) proppss);
+    val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
@@ -131,9 +131,9 @@ fun gen_obtain prep_att prep_vars prep_propp
     fun occs_var x = Library.get_first (fn t =>
       Term.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
     val raw_parms = map occs_var xs;
-    val parms = List.mapPartial I raw_parms;
+    val parms = map_filter I raw_parms;
     val parm_names =
-      List.mapPartial (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
+      map_filter (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
@@ -284,7 +284,7 @@ fun statement cases =
     val names =
       cases |> map_index (fn (i, ("", _)) => string_of_int (i + 1) | (_, (name, _)) => name);
     val elems = cases |> map (fn (_, (vars, _)) =>
-      Element.Constrains (vars |> List.mapPartial (fn (x, SOME T) => SOME (x, T) | _ => NONE)));
+      Element.Constrains (vars |> map_filter (fn (x, SOME T) => SOME (x, T) | _ => NONE)));
     val concl = cases |> map (fn (_, (_, props)) => (("", []), map (rpair ([], [])) props));
 
     fun mk_stmt stmt ctxt =

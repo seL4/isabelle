@@ -462,8 +462,7 @@ fun biresolution_from_nets_tac order match (inet,enet) =
     (fn (prem,i) =>
       let val hyps = Logic.strip_assums_hyp prem
           and concl = Logic.strip_assums_concl prem
-          val kbrls = Net.unify_term inet concl @
-                      List.concat (map (Net.unify_term enet) hyps)
+          val kbrls = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps
       in PRIMSEQ (biresolution match (order kbrls) i) end);
 
 (*versions taking pre-built nets.  No filtering of brls*)

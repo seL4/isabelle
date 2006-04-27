@@ -177,7 +177,7 @@ fun the_ancestry thy classes =
 fun the_intros thy =
   let
     val gr = (fst o fst o ClassData.get) thy;
-  in (List.mapPartial (#intro o rep_classdata o Graph.get_node gr) o Graph.keys) gr end;
+  in (map_filter (#intro o rep_classdata o Graph.get_node gr) o Graph.keys) gr end;
 
 fun subst_clsvar v ty_subst =
   map_type_tfree (fn u as (w, _) =>

@@ -442,8 +442,7 @@ fun mk_id s = if s = "" then "" else
             | (true, "isup") => "" :: check_str zs
             | (ctrl, s') => (if ctrl then "ctrl_" ^ s' else s') :: check_str zs)
         | (ys, zs) => implode ys :: check_str zs);
-    val s' = space_implode "_"
-      (List.concat (map (check_str o Symbol.explode) (NameSpace.unpack s)))
+    val s' = space_implode "_" (maps (check_str o Symbol.explode) (NameSpace.unpack s))
   in
     if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
@@ -537,7 +536,7 @@ fun rename_terms ts =
     val names = foldr add_term_names
       (map (fst o fst) (Drule.vars_of_terms ts)) ts;
     val reserved = names inter ThmDatabase.ml_reserved;
-    val (illegal, alt_names) = split_list (List.mapPartial (fn s =>
+    val (illegal, alt_names) = split_list (map_filter (fn s =>
       let val s' = mk_id s in if s = s' then NONE else SOME (s, s') end) names)
     val ps = (reserved @ illegal) ~~
       variantlist (map (suffix "'") reserved @ alt_names, names);
@@ -564,7 +563,7 @@ fun is_instance thy T1 T2 =
 fun get_assoc_code thy s T = Option.map snd (Library.find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
-fun get_aux_code xs = List.mapPartial (fn (m, code) =>
+fun get_aux_code xs = map_filter (fn (m, code) =>
   if m = "" orelse m mem !mode then SOME code else NONE) xs;
 
 fun mk_deftab thy =
@@ -841,7 +840,7 @@ fun add_to_module name s = AList.map_entry (op =) name (suffix s);
 
 fun output_code gr module xs =
   let
-    val code = List.mapPartial (fn s =>
+    val code = map_filter (fn s =>
       let val c as (_, module', _) = Graph.get_node gr s
       in if module = "" orelse module = module' then SOME (s, c) else NONE end)
         (rev (Graph.all_preds gr xs));
@@ -859,9 +858,9 @@ fun output_code gr module xs =
         val modules = distinct (op =) (map (#2 o snd) code);
         val mod_gr = foldr (uncurry Graph.add_edge_acyclic)
           (foldr (uncurry (Graph.new_node o rpair ())) Graph.empty modules)
-          (List.concat (map (fn (s, (_, module, _)) => map (pair module)
+          (maps (fn (s, (_, module, _)) => map (pair module)
             (filter_out (equal module) (map (#2 o Graph.get_node gr)
-              (Graph.imm_succs gr s)))) code));
+              (Graph.imm_succs gr s)))) code);
         val modules' =
           rev (Graph.all_preds mod_gr (map (#2 o Graph.get_node gr) xs))
       in
@@ -896,13 +895,13 @@ fun gen_generate_code prep_term thy modules module =
     val (gr', ps) = foldl_map (fn (gr, (s, t)) => apsnd (pair s)
       (invoke_codegen thy defs "<Top>" module false (gr, t)))
         (gr, map (apsnd (expand o preprocess_term thy o prep_term thy)) xs);
-    val code = List.mapPartial
+    val code = map_filter
       (fn ("", _) => NONE
         | (s', p) => SOME (Pretty.string_of (Pretty.block
           [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1, p, Pretty.str ";"]))) ps;
     val code' = space_implode "\n\n" code ^ "\n\n";
     val code'' =
-      List.mapPartial (fn (name, s) =>
+      map_filter (fn (name, s) =>
           if "library" mem !mode andalso name = module andalso null code
           then NONE
           else SOME (name, mk_struct name s))
@@ -923,7 +922,7 @@ val generate_code = gen_generate_code
 val strip_tname = implode o tl o explode;
 
 fun pretty_list xs = Pretty.block (Pretty.str "[" ::
-  List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
+  flat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
   [Pretty.str "]"]);
 
 fun mk_type p (TVar ((s, i), _)) = Pretty.str
@@ -940,8 +939,8 @@ fun mk_term_of gr module p (TVar ((s, i), _)) = Pretty.str
       (Pretty.block (separate (Pretty.brk 1)
         (Pretty.str (mk_qual_id module
           (get_type_id' (fn s' => "term_of_" ^ s') s gr)) ::
-        List.concat (map (fn T =>
-          [mk_term_of gr module true T, mk_type true T]) Ts))));
+        maps (fn T =>
+          [mk_term_of gr module true T, mk_type true T]) Ts)));
 
 
 (**** Test data generators ****)
@@ -985,7 +984,7 @@ fun test_term thy sz i t =
               Pretty.brk 1, Pretty.str "then NONE",
               Pretty.brk 1, Pretty.str "else ",
               Pretty.block [Pretty.str "SOME ", Pretty.block (Pretty.str "[" ::
-                List.concat (separate [Pretty.str ",", Pretty.brk 1]
+                flat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn ((s, T), s') => [Pretty.block
                     [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of gr "Generated" false T)

@@ -219,13 +219,13 @@ fun block prts = blk (2, prts);
 
 val strs = block o breaks o map str;
 fun chunks prts = blk (0, fbreaks prts);
-fun chunks2 prts = blk (0, List.concat (Library.separate [fbrk, fbrk] (map single prts)));
+fun chunks2 prts = blk (0, flat (Library.separate [fbrk, fbrk] (map single prts)));
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
 fun backquote prt = blk (1, [str "`", prt, str "`"]);
 
 fun separate sep prts =
-  List.concat (Library.separate [str sep, brk 1] (map single prts));
+  flat (Library.separate [str sep, brk 1] (map single prts));
 
 val commas = separate ",";
 

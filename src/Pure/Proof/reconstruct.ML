@@ -110,7 +110,7 @@ fun cantunify sg (t, u) = error ("Non-unifiable terms:\n" ^
 
 fun decompose sg Ts (env, p as (t, u)) =
   let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify sg p
-    else apsnd List.concat (foldl_map (decompose sg Ts) (uT env T U, ts ~~ us))
+    else apsnd flat (foldl_map (decompose sg Ts) (uT env T U, ts ~~ us))
   in case pairself (strip_comb o Envir.head_norm env) p of
       ((Const c, ts), (Const d, us)) => rigrig c d (unifyT sg) ts us
     | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT sg) ts us

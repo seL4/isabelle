@@ -197,7 +197,7 @@ fun matching unif t (net,nets) =
                | _ => rands t (net, var::nets)  (*var could match also*)
   end;
 
-fun extract_leaves l = List.concat (map (fn Leaf(xs) => xs) l);
+fun extract_leaves l = maps (fn Leaf xs => xs) l;
 
 (*return items whose key could match t, WHICH MUST BE BETA-ETA NORMAL*)
 fun match_term net t =
@@ -236,7 +236,7 @@ fun dest (Leaf xs) = map (pair []) xs
   | dest (Net {comb, var, atoms}) =
       map (cons_fst CombK) (dest comb) @
       map (cons_fst VarK) (dest var) @
-      List.concat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) (Symtab.dest atoms));
+      maps (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) (Symtab.dest atoms);
 
 fun merge eq (net1, net2) = fold (insert_safe eq) (dest net2) net1;
 

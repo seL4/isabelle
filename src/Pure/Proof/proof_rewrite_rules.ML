@@ -246,11 +246,11 @@ fun elim_defs thy r defs prf =
     val f = if not r then I else
       let
         val cnames = map (fst o dest_Const o fst) defs';
-        val thms = List.concat (map (fn (s, ps) =>
+        val thms = maps (fn (s, ps) =>
             if s mem defnames then []
             else map (pair s o SOME o fst) (filter_out (fn (p, _) =>
               null (term_consts p inter cnames)) ps))
-          (Symtab.dest (thms_of_proof prf Symtab.empty)))
+          (Symtab.dest (thms_of_proof prf Symtab.empty))
       in Reconstruct.expand_proof thy thms end
   in
     rewrite_terms (Pattern.rewrite_term thy defs' [])

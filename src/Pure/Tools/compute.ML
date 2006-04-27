@@ -24,7 +24,7 @@ structure Compute : COMPUTE = struct
 
 exception Make of string;
 
-fun is_mono_typ (Type (_, list)) = List.all is_mono_typ list
+fun is_mono_typ (Type (_, list)) = forall is_mono_typ list
   | is_mono_typ _ = false
 
 fun is_mono_term (Const (_, t)) = is_mono_typ t
@@ -247,9 +247,8 @@ fun make thy ths =
     let
       val (_, {mk_rews={mk=mk,mk_eq_True=emk, ...},...}) = rep_ss (simpset_of thy)
       fun mk_eq_True th = (case emk th of NONE => [th] | SOME th' => [th, th'])
-      fun app f l = List.concat (map f l)
     in
-      basic_make thy (app mk (app mk_eq_True ths))
+      basic_make thy (maps mk (maps mk_eq_True ths))
     end
 
 fun compute (Computer r) naming ct =

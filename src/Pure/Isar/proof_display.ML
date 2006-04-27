@@ -62,7 +62,7 @@ val string_of_rule = Pretty.string_of ooo pretty_rule;
 local
 
 fun pretty_facts ctxt =
-  List.concat o (separate [Pretty.fbrk, Pretty.str "and "]) o
+  flat o (separate [Pretty.fbrk, Pretty.str "and "]) o
     map (single o ProofContext.pretty_fact ctxt);
 
 fun pretty_results ctxt ((kind, ""), facts) =
@@ -76,7 +76,7 @@ fun pretty_results ctxt ((kind, ""), facts) =
 fun name_results "" res = res
   | name_results name res =
       let
-        val n = length (List.concat (map snd res));
+        val n = length (maps snd res);
         fun name_res (a, ths) i =
           let
             val m = length ths;

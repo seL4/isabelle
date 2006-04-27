@@ -467,8 +467,8 @@ fun pts_to_asts context trf pts =
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
 
     val exn_results = map (capture ast_of) pts;
-    val exns = List.mapPartial get_exn exn_results;
-    val results = List.mapPartial get_result exn_results
+    val exns = map_filter get_exn exn_results;
+    val results = map_filter get_result exn_results
   in (case (results, exns) of ([], exn :: _) => raise exn | _ => results) end;
 
 
@@ -500,8 +500,8 @@ fun asts_to_terms context trf asts =
         | t => t);
 
     val exn_results = map (capture (term_of #> free_fixed)) asts;
-    val exns = List.mapPartial get_exn exn_results;
-    val results = List.mapPartial get_result exn_results
+    val exns = map_filter get_exn exn_results;
+    val results = map_filter get_result exn_results
   in (case (results, exns) of ([], exn :: _) => raise exn | _ => results) end;
 
 end;

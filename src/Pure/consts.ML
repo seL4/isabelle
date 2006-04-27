@@ -67,7 +67,7 @@ fun map_consts f (Consts ({decls, constraints, rev_abbrevs, expand_abbrevs}, _))
   make_consts (f (decls, constraints, rev_abbrevs, expand_abbrevs));
 
 fun abbrevs_of (Consts ({rev_abbrevs, ...}, _)) modes =
-  List.concat (map (Symtab.lookup_list rev_abbrevs) modes);
+  maps (Symtab.lookup_list rev_abbrevs) modes;
 
 
 (* dest consts *)

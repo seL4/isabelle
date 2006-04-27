@@ -493,7 +493,7 @@ fun tell_thm_deps ths = conditional (Output.has_mode thm_depsN) (fn () =>
 in
 
 fun setup_present_hook () =
-  Present.add_hook (fn _ => fn res => tell_thm_deps (List.concat (map #2 res)));
+  Present.add_hook (fn _ => fn res => tell_thm_deps (maps #2 res));
 
 end;
 
@@ -1456,7 +1456,7 @@ fun defconst name strs =
   "\n  '(" ^ space_implode "\n    " (map (quote o regexp_quote) strs) ^ "))\n";
 
 fun make_elisp_commands commands kind = defconst kind
-  (commands |> List.mapPartial (fn (c, _, k, _) => if k = kind then SOME c else NONE));
+  (commands |> map_filter (fn (c, _, k, _) => if k = kind then SOME c else NONE));
 
 fun make_elisp_syntax (keywords, commands) =
   ";;\n\

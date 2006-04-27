@@ -327,7 +327,7 @@ fun calc_blowup (l:IntInf.int list) =
 (* ------------------------------------------------------------------------- *)
 
 fun allpairs f xs ys =
-  List.concat(map (fn x => map (fn y => f x y) ys) xs);
+  maps (fn x => map (fn y => f x y) ys) xs;
 
 fun extract_first p =
   let fun extract xs (y::ys) = if p y then (SOME y,xs@ys)
@@ -414,7 +414,7 @@ fun mkthm (sg, ss) asms just =
       val simpset' = Simplifier.inherit_context ss simpset;
       val atoms = Library.foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
-                        ([], List.mapPartial (fn thm => if Thm.no_prems thm
+                        ([], map_filter (fn thm => if Thm.no_prems thm
                                         then LA_Data.decomp sg (concl_of thm)
                                         else NONE) asms)
 
@@ -596,7 +596,7 @@ let
         val mkleq = mklineq n atoms
         val ixs = 0 upto (n-1)
         val iatoms = atoms ~~ ixs
-        val natlineqs = List.mapPartial (mknat pTs ixs) iatoms
+        val natlineqs = map_filter (mknat pTs ixs) iatoms
         val ineqs = map mkleq initems @ natlineqs
     in case elim(ineqs,[]) of
          Success(j) =>
@@ -726,7 +726,7 @@ handle THM _ => NONE;
 *)
 fun lin_arith_prover sg ss concl =
 let
-    val thms = List.concat(map LA_Logic.atomize (prems_of_ss ss));
+    val thms = maps LA_Logic.atomize (prems_of_ss ss);
     val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Logic.mk_Trueprop concl
 in case prove sg ([],[]) false Hs Tconcl of (* concl provable? *)

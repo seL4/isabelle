@@ -157,7 +157,7 @@ fun loaded_files name =
     NONE => []
   | SOME {master, files, ...} =>
       (case master of SOME m => [#1 (ThyLoad.get_thy m)] | NONE => []) @
-      (List.mapPartial (Option.map #1 o #2) files));
+      (map_filter (Option.map #1 o #2) files));
 
 fun get_preds name =
   (thy_graph Graph.imm_preds name) handle Graph.UNDEF _ =>
@@ -222,7 +222,7 @@ fun check_unfinished name =
 in
 
 fun touch_thys names =
-  List.app outdate_thy (thy_graph Graph.all_succs (List.mapPartial check_unfinished names));
+  List.app outdate_thy (thy_graph Graph.all_succs (map_filter check_unfinished names));
 
 fun touch_thy name = touch_thys [name];
 fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
@@ -298,7 +298,7 @@ fun load_thy really ml time initiators dir name =
       else #1 (ThyLoad.deps_thy dir name ml);
 
     val files = get_files name;
-    val missing_files = List.mapPartial (fn (path, NONE) => SOME (Path.pack path) | _ => NONE) files;
+    val missing_files = map_filter (fn (path, NONE) => SOME (Path.pack path) | _ => NONE) files;
   in
     if null missing_files then ()
     else warning (loader_msg "unresolved dependencies of theory" [name] ^
@@ -434,7 +434,7 @@ fun begin_theory present name parents uses int =
     val deps =
       if known_thy name then get_deps name
       else (init_deps NONE (map #1 uses));   (*records additional ML files only!*)
-    val uses_now = List.mapPartial (fn (x, true) => SOME x | _ => NONE) uses;
+    val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
 
     val _ = change_thys (update_node name bparents (deps, SOME (Theory.copy theory)));
     val theory' = theory |> present dir' name bparents uses;
@@ -470,7 +470,7 @@ fun register_theory theory =
     fun get_variant (x, y_name) =
       if Theory.eq_thy (x, get_theory y_name) then NONE
       else SOME y_name;
-    val variants = List.mapPartial get_variant (parents ~~ parent_names);
+    val variants = map_filter get_variant (parents ~~ parent_names);
 
     fun register G =
       (Graph.new_node (name, (NONE, SOME theory)) G

@@ -114,8 +114,7 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_list SynExt.eq_trfun (tab1, tab2);
 (** tables of token translation functions **)
 
 fun lookup_tokentr tabs modes =
-  let val trs = distinct (eq_fst (op =))
-    (List.concat (map (these o AList.lookup (op =) tabs) (modes @ [""])))
+  let val trs = distinct (eq_fst (op =)) (maps (these o AList.lookup (op =) tabs) (modes @ [""]))
   in fn c => Option.map fst (AList.lookup (op =) trs c) end;
 
 fun merge_tokentrtabs tabs1 tabs2 =
@@ -150,7 +149,7 @@ fun extend_tokentrtab tokentrs tabs =
 
 type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
-fun dest_ruletab tab = List.concat (map snd (Symtab.dest tab));
+fun dest_ruletab tab = maps snd (Symtab.dest tab);
 
 
 (* empty, extend, merge ruletabs *)
@@ -474,8 +473,8 @@ fun read_pattern context is_logtype syn (root, str) =
 
 fun prep_rules rd_pat raw_rules =
   let val rules = map (map_trrule rd_pat) raw_rules in
-    (map check_rule (List.mapPartial parse_rule rules),
-      map check_rule (List.mapPartial print_rule rules))
+    (map check_rule (map_filter parse_rule rules),
+      map check_rule (map_filter print_rule rules))
   end
 
 in

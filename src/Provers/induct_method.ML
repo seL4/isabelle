@@ -80,7 +80,7 @@ fun prep_inst thy align tune (tm, ts) =
     val xs = InductAttrib.vars_of tm;
   in
     align "Rule has fewer variables than instantiations given" xs ts
-    |> List.mapPartial prep_var
+    |> map_filter prep_var
   end;
 
 
@@ -129,7 +129,7 @@ fun cases_tac ctxt is_open insts opt_rule facts =
     fun inst_rule r =
       if null insts then `RuleCases.get r
       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
-        |> (List.concat o map (prep_inst thy align_left I))
+        |> maps (prep_inst thy align_left I)
         |> Drule.cterm_instantiate) r |> pair (RuleCases.get r);
 
     val ruleq =
@@ -333,7 +333,7 @@ fun add_defs def_insts =
           in ((SOME (Free lhs), [def]), ctxt') end
       | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
       | add NONE ctxt = ((NONE, []), ctxt);
-  in fold_map add def_insts #> apfst (split_list #> apsnd List.concat) end;
+  in fold_map add def_insts #> apfst (split_list #> apsnd flat) end;
 
 
 (* induct_tac *)
@@ -348,7 +348,7 @@ fun add_defs def_insts =
 local
 
 fun find_inductT ctxt insts =
-  fold_rev multiply (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
+  fold_rev multiply (insts |> map_filter (fn [] => NONE | ts => List.last ts)
     |> map (InductAttrib.find_inductT ctxt o Term.fastype_of)) [[]]
   |> filter_out (forall PureThy.is_internal);
 
@@ -370,7 +370,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
       (if null insts then `RuleCases.get r
        else (align_left "Rule has fewer conclusions than arguments given"
           (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
-        |> (List.concat o map (prep_inst thy align_right (atomize_term thy)))
+        |> maps (prep_inst thy align_right (atomize_term thy))
         |> Drule.cterm_instantiate) r |> pair (RuleCases.get r))
       |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
@@ -380,7 +380,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
       | NONE =>
           (find_inductS ctxt facts @
             map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts))
-          |> List.mapPartial RuleCases.mutual_rule
+          |> map_filter RuleCases.mutual_rule
           |> tap (trace_rules ctxt InductAttrib.inductN o map #2)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
@@ -389,7 +389,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
   in
     (fn i => fn st =>
       ruleq
-      |> Seq.maps (RuleCases.consume (List.concat defs) facts)
+      |> Seq.maps (RuleCases.consume (flat defs) facts)
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS

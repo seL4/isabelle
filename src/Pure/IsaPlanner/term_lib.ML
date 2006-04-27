@@ -428,8 +428,7 @@ is a valid wave rule... *)
   | term_contains1 T (ah $ at) (bh $ bt) =
     (term_contains1 T ah (bh $ bt)) @
     (term_contains1 T at (bh $ bt)) @
-    (List.concat (map (fn inT => (term_contains1 inT at bt))
-               (term_contains1 T ah bh)))
+    (maps (fn inT => (term_contains1 inT at bt)) (term_contains1 T ah bh))
 
   | term_contains1 T a (bh $ bt) = []
 
