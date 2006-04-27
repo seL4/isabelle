@@ -1420,6 +1420,22 @@ apply (induct i, auto)
 apply (case_tac j, auto)
 done
 
+lemma take_zip:
+ "!!xs ys. take n (zip xs ys) = zip (take n xs) (take n ys)"
+apply (induct n)
+ apply simp
+apply (case_tac xs, simp)
+apply (case_tac ys, simp_all)
+done
+
+lemma drop_zip:
+ "!!xs ys. drop n (zip xs ys) = zip (drop n xs) (drop n ys)"
+apply (induct n)
+ apply simp
+apply (case_tac xs, simp)
+apply (case_tac ys, simp_all)
+done
+
 
 subsubsection {* @{text list_all2} *}
 
