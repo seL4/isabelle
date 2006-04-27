@@ -671,7 +671,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                (index, constrs2))
              end) descr);
 
-    val (descr1, descr2) = splitAt (length new_type_names, descr'');
+    val (descr1, descr2) = chop (length new_type_names) descr'';
     val descr' = [descr1, descr2];
 
     val typ_of_dtyp' = replace_types' o typ_of_dtyp descr sorts';
