@@ -367,7 +367,7 @@ fun decomp sg =
   let val {discrete, inj_consts, ...} = ArithTheoryData.get sg
   in decomp2 (sg,discrete,inj_consts) end
 
-fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_bin n)
+fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_binum n)
 
 end;
 

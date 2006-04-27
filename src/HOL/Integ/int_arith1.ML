@@ -182,7 +182,7 @@ val num_ss = HOL_ss settermless numtermless;
 
 (** Utilities **)
 
-fun mk_numeral T n = HOLogic.number_of_const T $ HOLogic.mk_bin n;
+fun mk_numeral T n = HOLogic.number_of_const T $ HOLogic.mk_binum n;
 
 (*Decodes a binary INTEGER*)
 fun dest_numeral (Const("0", _)) = 0

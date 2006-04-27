@@ -80,7 +80,7 @@ form [int,int]---> int*)
  
 fun mk_numeral 0 = Const("0",HOLogic.intT)
    |mk_numeral 1 = Const("1",HOLogic.intT)
-   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_bin n); 
+   |mk_numeral n = (HOLogic.number_of_const HOLogic.intT) $ (HOLogic.mk_binum n); 
  
 (*Transform an Term to an natural number*)	  
 	  

@@ -36,7 +36,7 @@ attach (term_of) {*
 fun term_of_nat 0 = Const ("0", HOLogic.natT)
   | term_of_nat 1 = Const ("1", HOLogic.natT)
   | term_of_nat i = HOLogic.number_of_const HOLogic.natT $
-      HOLogic.mk_bin (IntInf.fromInt i);
+      HOLogic.mk_binum (IntInf.fromInt i);
 *}
 attach (test) {*
 fun gen_nat i = random_range 0 i;

@@ -23,7 +23,7 @@ fun rename_numerals th =
 
 (*Utilities*)
 
-fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_bin n;
+fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_binum n;
 
 (*Decodes a unary or binary numeral to a NATURAL NUMBER*)
 fun dest_numeral (Const ("0", _)) = 0

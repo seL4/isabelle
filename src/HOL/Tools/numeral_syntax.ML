@@ -38,7 +38,7 @@ fun dest_bin_str tm =
 (* translation of integer numeral tokens to and from bitstrings *)
 
 fun numeral_tr (*"_Numeral"*) [t as Const (str, _)] =
-      (Syntax.const "Numeral.number_of" $ (HOLogic.mk_bin (valOf (IntInf.fromString str))))
+      (Syntax.const "Numeral.number_of" $ (HOLogic.mk_binum (valOf (IntInf.fromString str))))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =

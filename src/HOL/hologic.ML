@@ -83,7 +83,7 @@ sig
   val number_of_const: typ -> term
   val int_of: int list -> IntInf.int
   val dest_binum: term -> IntInf.int
-  val mk_bin: IntInf.int -> term
+  val mk_binum: IntInf.int -> term
   val bin_of : term -> int list
   val listT : typ -> typ
   val mk_list: ('a -> term) -> typ -> 'a list -> term
@@ -318,7 +318,7 @@ fun mk_bit 0 = B0_const
   | mk_bit 1 = B1_const
   | mk_bit _ = sys_error "mk_bit";
 
-fun mk_bin  n =
+fun mk_binum n =
   let
     fun mk_bit n = if n = 0 then B0_const else B1_const;
 
@@ -341,7 +341,7 @@ val intT = Type ("IntDef.int", []);
 
 fun mk_int 0 = Const ("0", intT)
   | mk_int 1 = Const ("1", intT)
-  | mk_int i = number_of_const intT $ mk_bin i;
+  | mk_int i = number_of_const intT $ mk_binum i;
 
 
 (* real *)
