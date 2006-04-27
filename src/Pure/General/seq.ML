@@ -29,6 +29,7 @@ sig
   val flat: 'a seq seq -> 'a seq
   val map: ('a -> 'b) -> 'a seq -> 'b seq
   val maps: ('a -> 'b seq) -> 'a seq -> 'b seq
+  val map_filter: ('a -> 'b option) -> 'a seq -> 'b seq
   val lift: ('a -> 'b -> 'c) -> 'a seq -> 'b -> 'c seq
   val lifts: ('a -> 'b -> 'c seq) -> 'a seq -> 'b -> 'c seq
   val print: (int -> 'a -> unit) -> int -> 'a seq -> unit
@@ -156,6 +157,7 @@ fun map f xq =
     | SOME (x, xq') => SOME (f x, map f xq')));
 
 fun maps f = flat o map f;
+fun map_filter f = maps (fn x => (case f x of NONE => empty | SOME y => single y));
 
 fun lift f xq y = map (fn x => f x y) xq;
 fun lifts f xq y = maps (fn x => f x y) xq;
