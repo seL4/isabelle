@@ -144,6 +144,7 @@ sig
   val product: 'a list -> 'b list -> ('a * 'b) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
+  val map_filter: ('a -> 'b option) -> 'a list -> 'b list
   val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -289,7 +290,6 @@ sig
   val last_elem: 'a list -> 'a
   val seq: ('a -> unit) -> 'a list -> unit
   val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
 end;
 
 structure Library: LIBRARY =
@@ -579,6 +579,9 @@ fun foldl_map f =
 
 (* basic list functions *)
 
+fun maps f [] = []
+  | maps f (x :: xs) = f x @ maps f xs;
+
 fun chop 0 xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
@@ -660,8 +663,6 @@ fun eq_list _ ([], []) = true
 
 val flat = List.concat;
 
-fun maps f = flat o map f;
-
 fun unflat (xs :: xss) ys =
       let val (ps, qs) = chop (length xs) ys
       in ps :: unflat xss qs end
@@ -708,7 +709,7 @@ fun product _ [] = []
 (*copy the list preserving elements that satisfy the predicate*)
 val filter = List.filter;
 fun filter_out f = filter (not o f);
-val mapfilter = List.mapPartial;
+val map_filter = List.mapPartial;
 
 
 (* lists of pairs *)
