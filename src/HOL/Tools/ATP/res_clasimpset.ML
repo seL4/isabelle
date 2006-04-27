@@ -27,15 +27,7 @@ val whitelist = ref [subsetI];
   FIXME: this blacklist needs to be maintained using theory data and added to using
   an attribute.*)
 val blacklist = ref
-  ["Datatype.not_None_eq",    (*Says everything is None or Some. Probably prolific.*)
-   "Datatype.not_Some_eq_D",  (*Says everything is None or Some. Probably prolific.*)
-   "Datatype.not_Some_eq",    (*Says everything is None or Some. Probably prolific.*)
-   "Datatype.option.size_1",
-   "Datatype.option.size_2",
-   "Datatype.prod.size",
-   "Datatype.sum.size_1",
-   "Datatype.sum.size_2",
-   "Datatype.unit.size",
+  ["Datatype.prod.size",
    "Divides.dvd_0_left_iff",
    "Finite_Set.card_0_eq",
    "Finite_Set.card_infinite",
@@ -53,31 +45,23 @@ val blacklist = ref
    "Finite_Set.min_max.below_inf_sup_Inf_Sup.sup_Inf_absorb", 
    "Finite_Set.min.f_below_strict_below.below_f_conv",        (*duplicates in Orderings.*)
    "Finite_Set.min.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
-   "Infinite_Set.atmost_one_unique",
-   "IntArith.zabs_less_one_iff",
    "IntDef.Integ.Abs_Integ_inject",
    "IntDef.Integ.Abs_Integ_inverse",
    "IntDiv.zdvd_0_left",
-   "IntDiv.zero_less_zpower_abs_iff",
    "List.append_eq_append_conv",
-   "List.Cons_in_lex",
    "List.hd_Cons_tl",   (*Says everything is [] or Cons. Probably prolific.*)
    "List.in_listsD",
    "List.in_listsI",
    "List.lists.Cons",
    "List.listsE",
-   "List.take_eq_Nil",
-   "Nat.less_one",
    "Nat.less_one", (*not directional? obscure*)
    "Nat.not_gr0",
    "Nat.one_eq_mult_iff", (*duplicate by symmetry*)
    "NatArith.of_nat_0_eq_iff",
    "NatArith.of_nat_eq_0_iff",
    "NatArith.of_nat_le_0_iff",
-   "NatSimprocs.divide_le_0_iff_number_of",  (*seldom used; often prolific*)
    "NatSimprocs.divide_le_0_iff_number_of",  (*too many clauses*)
    "NatSimprocs.divide_less_0_iff_number_of",
-   "NatSimprocs.divide_less_0_iff_number_of",   (*too many clauses*)
    "NatSimprocs.equation_minus_iff_1",  (*not directional*)
    "NatSimprocs.equation_minus_iff_number_of", (*not directional*)
    "NatSimprocs.le_minus_iff_1", (*not directional*)
@@ -92,11 +76,8 @@ val blacklist = ref
    "NatSimprocs.mult_le_cancel_right_number_of", (*excessive case analysis*)
    "NatSimprocs.mult_less_cancel_left_number_of", (*excessive case analysis*)
    "NatSimprocs.mult_less_cancel_right_number_of", (*excessive case analysis*)
-   "NatSimprocs.zero_le_divide_iff_number_of",
    "NatSimprocs.zero_le_divide_iff_number_of", (*excessive case analysis*)
    "NatSimprocs.zero_less_divide_iff_number_of",
-   "NatSimprocs.zero_less_divide_iff_number_of", (*excessive case analysis*)
-   "OrderedGroup.abs_0_eq",
    "OrderedGroup.abs_0_eq", (*duplicate by symmetry*)
    "OrderedGroup.diff_eq_0_iff_eq", (*prolific?*)
    "OrderedGroup.join_0_eq_0",
@@ -106,8 +87,6 @@ val blacklist = ref
    "OrderedGroup.pprt_mono",   (*obscure*)
    "Parity.even_nat_power",   (*obscure, somewhat prolilfic*)
    "Parity.power_eq_0_iff_number_of",
-   "Parity.power_eq_0_iff_number_of",
-   "Parity.power_le_zero_eq_number_of",
    "Parity.power_le_zero_eq_number_of",   (*obscure and prolific*)
    "Parity.power_less_zero_eq_number_of",
    "Parity.zero_le_power_eq_number_of",   (*obscure and prolific*)
@@ -123,15 +102,11 @@ val blacklist = ref
    "Ring_and_Field.divide_eq_1_iff",
    "Ring_and_Field.divide_eq_eq_1",
    "Ring_and_Field.divide_le_0_1_iff",
-   "Ring_and_Field.divide_le_eq_1_neg",
    "Ring_and_Field.divide_le_eq_1_neg",  (*obscure and prolific*)
-   "Ring_and_Field.divide_le_eq_1_pos",
    "Ring_and_Field.divide_le_eq_1_pos",  (*obscure and prolific*)
    "Ring_and_Field.divide_less_0_1_iff",
    "Ring_and_Field.divide_less_eq_1_neg",  (*obscure and prolific*)
-   "Ring_and_Field.divide_less_eq_1_pos",
    "Ring_and_Field.divide_less_eq_1_pos",  (*obscure and prolific*)
-   "Ring_and_Field.eq_divide_eq_1",
    "Ring_and_Field.eq_divide_eq_1", (*duplicate by symmetry*)
    "Ring_and_Field.field_mult_cancel_left",
    "Ring_and_Field.field_mult_cancel_right",
@@ -139,13 +114,9 @@ val blacklist = ref
    "Ring_and_Field.inverse_le_iff_le",
    "Ring_and_Field.inverse_less_iff_less_neg",
    "Ring_and_Field.inverse_less_iff_less",
-   "Ring_and_Field.le_divide_eq_1_neg",
    "Ring_and_Field.le_divide_eq_1_neg", (*obscure and prolific*)
-   "Ring_and_Field.le_divide_eq_1_pos",
    "Ring_and_Field.le_divide_eq_1_pos", (*obscure and prolific*)
-   "Ring_and_Field.less_divide_eq_1_neg",
    "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
-   "Ring_and_Field.less_divide_eq_1_pos",
    "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
    "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
    "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
@@ -172,10 +143,8 @@ val blacklist = ref
    "SetInterval.atLeastLessThan_iff", (*obscure and prolific*)
    "SetInterval.greaterThanAtMost_iff", (*obscure and prolific*)
    "SetInterval.greaterThanLessThan_iff", (*obscure and prolific*)
-   "SetInterval.ivl_subset", (*excessive case analysis*)
-   "Sum_Type.InlI",
-   "Sum_Type.InrI"];
-   
+   "SetInterval.ivl_subset"];  (*excessive case analysis*)
+    
 (*These might be prolific but are probably OK, and min and max are basic.
    "Orderings.max_less_iff_conj", 
    "Orderings.min_less_iff_conj",
