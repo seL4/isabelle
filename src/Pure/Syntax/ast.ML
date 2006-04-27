@@ -98,23 +98,16 @@ fun head_of_rule (lhs, _) = head_of_ast lhs;
 
 (** check translation rules **)
 
-(*a wellformed rule (lhs, rhs): (ast * ast) obeys the following conditions:
-   - the lhs has unique vars,
-   - vars of rhs is subset of vars of lhs*)
-
 fun rule_error (rule as (lhs, rhs)) =
   let
-    fun vars_of (Constant _) = []
-      | vars_of (Variable x) = [x]
-      | vars_of (Appl asts) = List.concat (map vars_of asts);
+    fun add_vars (Constant _) = I
+      | add_vars (Variable x) = cons x
+      | add_vars (Appl asts) = fold add_vars asts;
 
-    fun unique (x :: xs) = not (x mem xs) andalso unique xs
-      | unique [] = true;
-
-    val lvars = vars_of lhs;
-    val rvars = vars_of rhs;
+    val lvars = add_vars lhs [];
+    val rvars = add_vars rhs [];
   in
-    if not (unique lvars) then SOME "duplicate vars in lhs"
+    if has_duplicates (op =) lvars then SOME "duplicate vars in lhs"
     else if not (rvars subset lvars) then SOME "rhs contains extra variables"
     else NONE
   end;

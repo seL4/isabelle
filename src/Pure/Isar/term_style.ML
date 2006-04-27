@@ -62,7 +62,7 @@ fun style_binargs ctxt t =
 
 fun style_parm_premise i ctxt t =
   let val prems = Logic.strip_imp_prems t in
-    if i <= length prems then List.nth (prems, i - 1)
+    if i <= length prems then nth prems (i - 1)
     else error ("Not enough premises for prem" ^ string_of_int i ^
       " in propositon: " ^ ProofContext.string_of_term ctxt t)
   end;
