@@ -15,24 +15,30 @@ datatype 'a bt =
   | Br 'a  "'a bt"  "'a bt"
 
 consts
-  n_nodes :: "'a bt => nat"
-  n_leaves :: "'a bt => nat"
-  reflect :: "'a bt => 'a bt"
-  bt_map :: "('a => 'b) => ('a bt => 'b bt)"
-  preorder :: "'a bt => 'a list"
-  inorder :: "'a bt => 'a list"
+  n_nodes   :: "'a bt => nat"
+  n_leaves  :: "'a bt => nat"
+  depth     :: "'a bt => nat"
+  reflect   :: "'a bt => 'a bt"
+  bt_map    :: "('a => 'b) => ('a bt => 'b bt)"
+  preorder  :: "'a bt => 'a list"
+  inorder   :: "'a bt => 'a list"
   postorder :: "'a bt => 'a list"
+  append    :: "'a bt => 'a bt => 'a bt"
 
 primrec
-  "n_nodes (Lf) = 0"
+  "n_nodes Lf = 0"
   "n_nodes (Br a t1 t2) = Suc (n_nodes t1 + n_nodes t2)"
 
 primrec
-  "n_leaves (Lf) = Suc 0"
+  "n_leaves Lf = Suc 0"
   "n_leaves (Br a t1 t2) = n_leaves t1 + n_leaves t2"
 
 primrec
-  "reflect (Lf) = Lf"
+  "depth Lf = 0"
+  "depth (Br a t1 t2) = max (depth t1) (depth t2)"
+
+primrec
+  "reflect Lf = Lf"
   "reflect (Br a t1 t2) = Br a (reflect t2) (reflect t1)"
 
 primrec
@@ -40,16 +46,20 @@ primrec
   "bt_map f (Br a t1 t2) = Br (f a) (bt_map f t1) (bt_map f t2)"
 
 primrec
-  "preorder (Lf) = []"
+  "preorder Lf = []"
   "preorder (Br a t1 t2) = [a] @ (preorder t1) @ (preorder t2)"
 
 primrec
-  "inorder (Lf) = []"
+  "inorder Lf = []"
   "inorder (Br a t1 t2) = (inorder t1) @ [a] @ (inorder t2)"
 
 primrec
-  "postorder (Lf) = []"
+  "postorder Lf = []"
   "postorder (Br a t1 t2) = (postorder t1) @ (postorder t2) @ [a]"
+
+primrec
+  "append Lf t = t"
+  "append (Br a t1 t2) t = Br a (append t1 t) (append t2 t)"
 
 
 text {* \medskip BT simplification *}
@@ -62,6 +72,11 @@ lemma n_leaves_reflect: "n_leaves (reflect t) = n_leaves t"
 lemma n_nodes_reflect: "n_nodes (reflect t) = n_nodes t"
   apply (induct t)
    apply auto
+  done
+
+lemma depth_reflect: "depth (reflect t) = depth t"
+  apply (induct t)
+   apply (simp_all add: max_ac)
   done
 
 text {*
@@ -101,6 +116,40 @@ lemma inorder_reflect: "inorder (reflect t) = rev (inorder t)"
 lemma postorder_reflect: "postorder (reflect t) = rev (preorder t)"
   apply (induct t)
    apply simp_all
+  done
+
+text {*
+ Analogues of the standard properties of the append function for lists.
+*}
+
+lemma append_assoc [simp]:
+     "append (append t1 t2) t3 = append t1 (append t2 t3)"
+  apply (induct t1)
+   apply simp_all
+  done
+
+lemma append_Lf2 [simp]: "append t Lf = t"
+  apply (induct t)
+   apply simp_all
+  done
+
+lemma max_add_distrib_left:
+  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
+  shows  "(max x y) + z = max (x+z) (y+z)"
+apply (rule max_of_mono [THEN sym])
+apply clarify
+apply (rule add_le_cancel_right)
+done
+
+lemma depth_append [simp]: "depth (append t1 t2) = depth t1 + depth t2"
+  apply (induct t1)
+   apply (simp_all add: max_add_distrib_left)
+  done
+
+lemma n_leaves_append [simp]:
+     "n_leaves (append t1 t2) = n_leaves t1 * n_leaves t2"
+  apply (induct t1)
+   apply (simp_all add: left_distrib)
   done
 
 end
