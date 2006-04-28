@@ -1,0 +1,8 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%extensionality, untyped
+
+input_clause(a18,axiom,
+[--equal(hAPP(F,hAPP(hAPP(hEXTENT,F),G)),hAPP(G,hAPP(hAPP(hEXTENT,F),G))),
+++equal(F,G)]).
+

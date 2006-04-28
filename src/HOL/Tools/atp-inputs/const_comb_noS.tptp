@@ -1,0 +1,48 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%typed combinator reduction for const-types-only (no S)
+
+%K P Q --> P
+input_clause(a1,axiom,
+[++equal(hAPP(hAPP(c_COMBK(A,B),P),Q),P)]).
+
+%I P --> P
+input_clause(a3,axiom,
+[++equal(hAPP(c_COMBI(T),P),P)]).
+
+%B P Q R --> P(Q R)
+input_clause(a4,axiom,
+[++equal(hAPP(hAPP(hAPP(c_COMBB(A,B,C),P),Q),R),hAPP(P,hAPP(Q,R)))]).
+
+
+%C P Q R --> P R Q
+input_clause(a5,axiom,
+[++equal(hAPP(hAPP(hAPP(c_COMBC(A,B,C),P),Q),R),hAPP(hAPP(P,R),Q))]).
+
+%the combinators are all different
+input_clause(a6,axiom,
+[--equal(c_COMBI(T),c_COMBK(A,B))]).
+
+input_clause(a8,axiom,
+[--equal(c_COMBI(T),c_COMBB(A,B,C))]).
+
+input_clause(a9,axiom,
+[--equal(c_COMBI(T),c_COMBC(A,B,C))]).
+
+input_clause(a11,axiom,
+[--equal(c_COMBK(A,B),c_COMBB(A1,B1,C1))]).
+
+input_clause(a12,axiom,
+[--equal(c_COMBK(A,B),c_COMBC(A2,B2,C2))]).
+
+input_clause(a15,axiom,
+[--equal(c_COMBB(A1,B1,C1),c_COMBC(A2,B2,C2))]).
+
+input_clause(a16,axiom,
+[--hBOOL(hAPP(hAPP(fequal(A),X),Y)),++equal(X,Y)]).
+
+input_clause(a17,axiom,
+[++hBOOL(hAPP(hAPP(fequal(A),X),Y)),--equal(X,Y)]).
+
+
+

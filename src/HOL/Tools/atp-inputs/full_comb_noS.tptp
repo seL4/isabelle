@@ -1,0 +1,52 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%typed combinator reduction for full-types (no S)
+
+%K P Q --> P
+input_clause(a1,axiom,
+[++equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(P,A)),tc_fun(B,A)),typeinfo(Q,B)),A),typeinfo(P,A))]).
+
+%I P --> P
+input_clause(a3,axiom,
+[++equal(typeinfo(hAPP(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(P,T)),T),typeinfo(P,T))]).
+
+%B P Q R --> P(Q R)
+input_clause(a4,axiom,
+[++equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBB,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))),typeinfo(P,tc_fun(A,B))),tc_fun(tc_fun(C,A),tc_fun(C,B))),typeinfo(Q,tc_fun(C,A))),tc_fun(C,B)),typeinfo(R,C)),B),typeinfo(hAPP(typeinfo(P,tc_fun(A,B)),typeinfo(hAPP(typeinfo(Q,tc_fun(C,A)),typeinfo(R,C)),A)),B))]).
+
+
+%C P Q R --> P R Q
+input_clause(a5,axiom,
+[++equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBC,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))),typeinfo(P,tc_fun(A,tc_fun(B,C)))),tc_fun(B,tc_fun(A,C))),typeinfo(Q,B)),tc_fun(A,C)),typeinfo(R,A)),C),typeinfo(hAPP(typeinfo(hAPP(typeinfo(P,tc_fun(A,tc_fun(B,C))),typeinfo(R,A)),tc_fun(B,C)),typeinfo(Q,B)),C))]).
+
+%the combinators are all different
+input_clause(a6,axiom,
+[--equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))))]).
+
+input_clause(a8,axiom,
+[--equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBB,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))))]).
+
+
+input_clause(a9,axiom,
+[--equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBC,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))))]).
+
+input_clause(a11,axiom,
+[--equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))))]).
+
+
+input_clause(a12,axiom,
+[--equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))]).
+
+
+input_clause(a15,axiom,
+[--equal(typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))]).
+
+input_clause(a16,axiom,
+[--hBOOL(typeinfo(hAPP(typeinfo(hAPP(typeinfo(fequal,tc_fun(A,tc_fun(A,tc_bool))),typeinfo(X,A)),tc_fun(A,tc_bool)),typeinfo(Y,A)),tc_bool)),
+++equal(typeinfo(X,A),typeinfo(Y,A))]).
+
+input_clause(a17,axiom,
+[++hBOOL(typeinfo(hAPP(typeinfo(hAPP(typeinfo(fequal,tc_fun(A,tc_fun(A,tc_bool))),typeinfo(X,A)),tc_fun(A,tc_bool)),typeinfo(Y,A)),tc_bool)),
+--equal(typeinfo(X,A),typeinfo(Y,A))]).
+
+

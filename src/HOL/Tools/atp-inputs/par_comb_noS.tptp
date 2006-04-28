@@ -1,0 +1,50 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%typed combinator reduction for partial-types (no S)
+
+%K P Q --> P
+input_clause(a1,axiom,
+[++equal(hAPP(hAPP(c_COMBK,P,tc_fun(A,tc_fun(B,A))),Q,tc_fun(B,A)),P)]).
+
+%I P --> P
+input_clause(a3,axiom,
+[++equal(hAPP(c_COMBI,P,tc_fun(T,T)),P)]).
+
+
+%B P Q R --> P(Q R)
+input_clause(a4,axiom,
+[++equal(hAPP(hAPP(hAPP(c_COMBB,P,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))),Q,tc_fun(tc_fun(C,A),tc_fun(C,B))),R,tc_fun(C,B)),hAPP(P,hAPP(Q,R,tc_fun(C,A)),tc_fun(A,B)))]).
+
+
+%C P Q R --> P R Q
+input_clause(a5,axiom,
+[++equal(hAPP(hAPP(hAPP(c_COMBC,P,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))),Q,tc_fun(B,tc_fun(A,C))),R,tc_fun(A,C)),hAPP(hAPP(P,R,tc_fun(A,tc_fun(B,C))),Q,tc_fun(B,C)))]).
+
+%the combinators are all different
+input_clause(a6,axiom,
+[--equal(c_COMBI,c_COMBK)]).
+
+input_clause(a8,axiom,
+[--equal(c_COMBI,c_COMBB)]).
+
+input_clause(a9,axiom,
+[--equal(c_COMBI,c_COMBC)]).
+
+input_clause(a11,axiom,
+[--equal(c_COMBK,c_COMBB)]).
+
+input_clause(a12,axiom,
+[--equal(c_COMBK,c_COMBC)]).
+
+input_clause(a15,axiom,
+[--equal(c_COMBB,c_COMBC)]).
+
+input_clause(a16,axiom,
+[--hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool))),
+++equal(X,Y)]).
+
+input_clause(a17,axiom,
+[++hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool))),
+--equal(X,Y)]).
+
+
