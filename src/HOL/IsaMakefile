@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Complex-Generate-HOL HOL-Complex-Generate-HOLLight
-images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix TLA HOL4
+images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix HOL-Nominal TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -30,6 +30,7 @@ test: \
   HOL-MicroJava \
   HOL-Modelcheck \
   HOL-NanoJava \
+  HOL-Nominal-Examples \
   HOL-NumberTheory \
   HOL-Prolog \
   HOL-SET-Protocol \
@@ -725,10 +726,32 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Memory
 
 
+## HOL-Nominal
+
+HOL-Nominal: HOL $(OUT)/HOL-Nominal
+
+$(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML Nominal/Nominal.thy		\
+  Nominal/nominal_atoms.ML Nominal/nominal_induct.ML				\
+  Nominal/nominal_package.ML Nominal/nominal_permeq.ML
+	@cd Nominal; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
+
+
+## HOL-Nominal-Examples
+
+HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
+
+$(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal Library/Accessible_Part.thy	\
+  Nominal/Examples/ROOT.ML Nominal/Examples/CR.thy 				\
+  Nominal/Examples/Iteration.thy Nominal/Examples/Lam_substs.thy		\
+  Nominal/Examples/Recursion.thy Nominal/Examples/SN.thy			\
+  Nominal/Examples/Weakening.thy
+	@cd Nominal; $(ISATOOL) usedir $(OUT)/HOL-Nominal Examples
+
+
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL $(OUT)/HOL-Complex $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL $(OUT)/HOL-Complex $(OUT)/HOL-Nominal $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
@@ -739,6 +762,7 @@ clean:
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
                 $(LOG)/HOL-Bali.gz \
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
+                $(LOG)/HOL-Nominal-Examples.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Complex-Matrix \
 		$(LOG)/HOL-Complex.gz \
