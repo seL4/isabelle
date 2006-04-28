@@ -741,7 +741,8 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML Nominal/Nominal.thy		\
 HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 
 $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal Library/Accessible_Part.thy	\
-  Nominal/Examples/ROOT.ML Nominal/Examples/CR.thy 				\
+  Nominal/Examples/ROOT.ML Nominal/Examples/CR.thy Nominal/Examples/Class.thy	\
+  Nominal/Examples/Fsub.thy Nominal/Examples/Lambda_mu.thy			\
   Nominal/Examples/Iteration.thy Nominal/Examples/Lam_substs.thy		\
   Nominal/Examples/Recursion.thy Nominal/Examples/SN.thy			\
   Nominal/Examples/Weakening.thy
