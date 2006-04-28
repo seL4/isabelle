@@ -1,7 +1,10 @@
-(* $Id$ *)
+(*  Title:      HOL/Nominal/nominal_permeq.ML
+    ID:         $Id$
+    Author:     Christian Urban, TU Muenchen
 
-(* METHODS FOR SIMPLIFYING PERMUTATIONS AND     *)
-(* FOR ANALYSING EQUATION INVOLVING PERMUTATION *)
+Methods for simplifying permutations and
+for analysing equations involving permutations.
+*)
 
 local
 
@@ -10,8 +13,8 @@ fun dynamic_thms ss name = ProofContext.get_thms (Simplifier.the_context ss) (Na
 fun dynamic_thm ss name = ProofContext.get_thm (Simplifier.the_context ss) (Name name);
 
 (* a tactic simplyfying permutations *)
-val perm_fun_def = thm "nominal.perm_fun_def"
-val perm_eq_app = thm "nominal.pt_fun_app_eq"
+val perm_fun_def = thm "Nominal.perm_fun_def"
+val perm_eq_app = thm "Nominal.pt_fun_app_eq"
 
 fun perm_eval_tac ss i =
     let
@@ -22,7 +25,7 @@ fun perm_eval_tac ss i =
            (* more arguments                                                  *)
            fun applicable t = 
 	       (case (strip_comb t) of
-		  (Const ("nominal.perm",_),ts) => (length ts) >= 2
+		  (Const ("Nominal.perm",_),ts) => (length ts) >= 2
 		| (Const _,_) => false
 		| _ => true)
 
@@ -30,7 +33,7 @@ fun perm_eval_tac ss i =
         (case redex of 
         (* case pi o (f x) == (pi o f) (pi o x)          *)
         (* special treatment according to the head of f  *)
-        (Const("nominal.perm",
+        (Const("Nominal.perm",
           Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
 	   (case (applicable f) of
                 false => NONE  
@@ -42,14 +45,14 @@ fun perm_eval_tac ss i =
 		in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end)
 
         (* case pi o (%x. f x) == (%x. pi o (f ((rev pi)o x))) *)
-        | (Const("nominal.perm",_) $ pi $ (Abs _)) => SOME (perm_fun_def)
+        | (Const("Nominal.perm",_) $ pi $ (Abs _)) => SOME (perm_fun_def)
 
         (* no redex otherwise *) 
         | _ => NONE) end
 
 	val perm_eval =
 	    Simplifier.simproc (Theory.sign_of (the_context ())) "perm_eval" 
-	    ["nominal.perm pi x"] perm_eval_simproc;
+	    ["Nominal.perm pi x"] perm_eval_simproc;
 
       (* these lemmas are created dynamically according to the atom types *) 
       val perm_swap        = dynamic_thms ss "perm_swap"
@@ -80,8 +83,8 @@ fun perm_compose_tac ss i =
     let
 	fun perm_compose_simproc sg ss redex =
 	(case redex of
-           (Const ("nominal.perm", Type ("fun", [Type ("List.list", 
-             [Type ("*", [T as Type (tname,_),_])]),_])) $ pi1 $ (Const ("nominal.perm", 
+           (Const ("Nominal.perm", Type ("fun", [Type ("List.list", 
+             [Type ("*", [T as Type (tname,_),_])]),_])) $ pi1 $ (Const ("Nominal.perm", 
                Type ("fun", [Type ("List.list", [Type ("*", [U as Type (uname,_),_])]),_])) $ 
                 pi2 $ t)) =>
         let
@@ -107,7 +110,7 @@ fun perm_compose_tac ss i =
 	  
       val perm_compose  =
 	Simplifier.simproc (the_context()) "perm_compose" 
-	["nominal.perm pi1 (nominal.perm pi2 t)"] perm_compose_simproc;
+	["Nominal.perm pi1 (Nominal.perm pi2 t)"] perm_compose_simproc;
 
       val ss' = Simplifier.theory_context (the_context ()) empty_ss	  
 
@@ -133,7 +136,7 @@ fun apply_cong_tac i =
 (*   %x. pi o (f ((rev pi) o x)) = rhs        *)
 fun unfold_perm_fun_def_tac i = 
     let
-	val perm_fun_def = thm "nominal.perm_fun_def"
+	val perm_fun_def = thm "Nominal.perm_fun_def"
     in
 	("unfolding of permutations on functions", 
          rtac (perm_fun_def RS meta_eq_to_obj_eq RS trans) i)
@@ -148,7 +151,7 @@ fun ext_fun_tac i = ("extensionality expansion of functions", rtac ext i);
 (* should be able to analyse pi o fresh_fun () = fresh_fun instances *) 
 fun fresh_fun_eqvt_tac i =
     let
-	val fresh_fun_equiv = thm "nominal.fresh_fun_equiv_ineq"
+	val fresh_fun_equiv = thm "Nominal.fresh_fun_equiv_ineq"
     in
 	("fresh_fun equivariance", rtac (fresh_fun_equiv RS trans) i)
     end		       
@@ -184,9 +187,9 @@ fun perm_full_simp_tac tactical ss =
 (* and strips off the intros, then applies perm_full_simp_tac *)
 fun supports_tac tactical ss i =
   let 
-      val supports_def = thm "nominal.op supports_def";
-      val fresh_def    = thm "nominal.fresh_def";
-      val fresh_prod   = thm "nominal.fresh_prod";
+      val supports_def = thm "Nominal.op supports_def";
+      val fresh_def    = thm "Nominal.fresh_def";
+      val fresh_prod   = thm "Nominal.fresh_prod";
       val simps        = [supports_def,symmetric fresh_def,fresh_prod]
   in
       EVERY [tactical ("unfolding of supports   ", simp_tac (HOL_basic_ss addsimps simps) i),
@@ -215,7 +218,7 @@ fun finite_guess_tac tactical ss i st =
     let val goal = List.nth(cprems_of st, i-1)
     in
       case Logic.strip_assums_concl (term_of goal) of
-          _ $ (Const ("op :", _) $ (Const ("nominal.supp", T) $ x) $
+          _ $ (Const ("op :", _) $ (Const ("Nominal.supp", T) $ x) $
             Const ("Finite_Set.Finites", _)) =>
           let
             val cert = Thm.cterm_of (sign_of_thm st);
@@ -226,7 +229,7 @@ fun finite_guess_tac tactical ss i st =
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
               HOLogic.unit vs;
             val s' = list_abs (ps,
-              Const ("nominal.supp", fastype_of1 (Ts, s) --> body_type T) $ s);
+              Const ("Nominal.supp", fastype_of1 (Ts, s) --> body_type T) $ s);
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));

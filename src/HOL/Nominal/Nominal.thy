@@ -1,6 +1,6 @@
 (* $Id$ *)
 
-theory nominal 
+theory Nominal 
 imports Main
 uses
   ("nominal_atoms.ML")
@@ -8,8 +8,6 @@ uses
   ("nominal_induct.ML") 
   ("nominal_permeq.ML")
 begin 
-
-ML {* reset NameSpace.unique_names; *}
 
 section {* Permutations *}
 (*======================*)
@@ -2838,4 +2836,5 @@ method_setup finite_guess =
 method_setup finite_guess_debug =
   {* finite_gs_meth_debug *}
   {* tactic for deciding whether something has finite support including debuging facilities *}
+
 end

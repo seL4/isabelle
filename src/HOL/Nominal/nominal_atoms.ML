@@ -1,4 +1,9 @@
-(* $Id$ *)
+(*  Title:      HOL/Nominal/nominal_atoms.ML
+    ID:         $Id$
+    Author:     Christian Urban and Stefan Berghofer, TU Muenchen
+
+Declaration of atom types to be used in nominal datatypes.
+*)
 
 signature NOMINAL_ATOMS =
 sig
@@ -80,7 +85,7 @@ fun create_nom_typedecls ak_names thy =
         val ab = Free ("ab", HOLogic.mk_prodT (T, T))
         val cif = Const ("HOL.If", HOLogic.boolT --> T --> T --> T);
         val cswap_akname = Const (swap_name, swapT);
-        val cswap = Const ("nominal.swap", swapT)
+        val cswap = Const ("Nominal.swap", swapT)
 
         val name = "swap_"^ak_name^"_def";
         val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -136,7 +141,7 @@ fun create_nom_typedecls ak_names thy =
           val perm_def_name = ak_name ^ "_prm_" ^ ak_name';
           val pi = Free ("pi", mk_permT T);
           val a  = Free ("a", T');
-          val cperm = Const ("nominal.perm", mk_permT T --> T' --> T');
+          val cperm = Const ("Nominal.perm", mk_permT T --> T' --> T');
           val cperm_def = Const (Sign.full_name (sign_of thy') perm_def_name, mk_permT T --> T' --> T');
 
           val name = ak_name ^ "_prm_" ^ ak_name' ^ "_def";
@@ -154,7 +159,7 @@ fun create_nom_typedecls ak_names thy =
       let
         val ak_name_qu = Sign.full_name (sign_of thy5) (ak_name);
         val i_type = Type(ak_name_qu,[]);
-	val cat = Const ("nominal.at",(Term.itselfT i_type)  --> HOLogic.boolT);
+	val cat = Const ("Nominal.at",(Term.itselfT i_type)  --> HOLogic.boolT);
         val at_type = Logic.mk_type i_type;
         val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy5
                                   [Name "at_def",
@@ -185,10 +190,10 @@ fun create_nom_typedecls ak_names thy =
           val x   = Free ("x", ty);
           val pi1 = Free ("pi1", mk_permT T);
           val pi2 = Free ("pi2", mk_permT T);
-          val cperm = Const ("nominal.perm", mk_permT T --> ty --> ty);
+          val cperm = Const ("Nominal.perm", mk_permT T --> ty --> ty);
           val cnil  = Const ("List.list.Nil", mk_permT T);
           val cappend = Const ("List.op @",mk_permT T --> mk_permT T --> mk_permT T);
-          val cprm_eq = Const ("nominal.prm_eq",mk_permT T --> mk_permT T --> HOLogic.boolT);
+          val cprm_eq = Const ("Nominal.prm_eq",mk_permT T --> mk_permT T --> HOLogic.boolT);
           (* nil axiom *)
           val axiom1 = HOLogic.mk_Trueprop (HOLogic.mk_eq 
                        (cperm $ cnil $ x, x));
@@ -217,7 +222,7 @@ fun create_nom_typedecls ak_names thy =
         val pt_name_qu = Sign.full_name (sign_of thy7) ("pt_"^ak_name);
         val i_type1 = TFree("'x",[pt_name_qu]);
         val i_type2 = Type(ak_name_qu,[]);
-	val cpt = Const ("nominal.pt",(Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
+	val cpt = Const ("Nominal.pt",(Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
         val pt_type = Logic.mk_type i_type1;
         val at_type = Logic.mk_type i_type2;
         val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy7
@@ -243,7 +248,7 @@ fun create_nom_typedecls ak_names thy =
 	  val pt_name = Sign.full_name (sign_of thy) ("pt_"^ak_name);
           val ty = TFree("'a",["HOL.type"]);
           val x   = Free ("x", ty);
-          val csupp    = Const ("nominal.supp", ty --> HOLogic.mk_setT T);
+          val csupp    = Const ("Nominal.supp", ty --> HOLogic.mk_setT T);
           val cfinites = Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT T))
           
           val axiom1   = HOLogic.mk_Trueprop (HOLogic.mk_mem (csupp $ x, cfinites));
@@ -263,7 +268,7 @@ fun create_nom_typedecls ak_names thy =
          val fs_name_qu = Sign.full_name (sign_of thy11) ("fs_"^ak_name);
          val i_type1 = TFree("'x",[fs_name_qu]);
          val i_type2 = Type(ak_name_qu,[]);
- 	 val cfs = Const ("nominal.fs", 
+ 	 val cfs = Const ("Nominal.fs", 
                                  (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
          val fs_type = Logic.mk_type i_type1;
          val at_type = Logic.mk_type i_type2;
@@ -290,9 +295,9 @@ fun create_nom_typedecls ak_names thy =
                val x   = Free ("x", ty);
                val pi1 = Free ("pi1", mk_permT T);
 	       val pi2 = Free ("pi2", mk_permT T');                  
-	       val cperm1 = Const ("nominal.perm", mk_permT T  --> ty --> ty);
-               val cperm2 = Const ("nominal.perm", mk_permT T' --> ty --> ty);
-               val cperm3 = Const ("nominal.perm", mk_permT T  --> mk_permT T' --> mk_permT T');
+	       val cperm1 = Const ("Nominal.perm", mk_permT T  --> ty --> ty);
+               val cperm2 = Const ("Nominal.perm", mk_permT T' --> ty --> ty);
+               val cperm3 = Const ("Nominal.perm", mk_permT T  --> mk_permT T' --> mk_permT T');
 
                val ax1   = HOLogic.mk_Trueprop 
 			   (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
@@ -313,7 +318,7 @@ fun create_nom_typedecls ak_names thy =
              val i_type0 = TFree("'a",[cp_name_qu]);
              val i_type1 = Type(ak_name_qu,[]);
              val i_type2 = Type(ak_name_qu',[]);
-	     val ccp = Const ("nominal.cp",
+	     val ccp = Const ("Nominal.cp",
                              (Term.itselfT i_type0)-->(Term.itselfT i_type1)-->
                                                       (Term.itselfT i_type2)-->HOLogic.boolT);
              val at_type  = Logic.mk_type i_type1;
@@ -344,7 +349,7 @@ fun create_nom_typedecls ak_names thy =
 	         val ak_name_qu' = Sign.full_name (sign_of thy') (ak_name');
                  val i_type1 = Type(ak_name_qu,[]);
                  val i_type2 = Type(ak_name_qu',[]);
-	         val cdj = Const ("nominal.disjoint",
+	         val cdj = Const ("Nominal.disjoint",
                            (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
                  val at_type  = Logic.mk_type i_type1;
                  val at_type' = Logic.mk_type i_type2;
@@ -436,11 +441,11 @@ fun create_nom_typedecls ak_names thy =
        in 
 	thy
 	|> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
-        |> AxClass.prove_arity ("nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
+        |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
         |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
         |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
         |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
-        |> AxClass.prove_arity ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+        |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                     (pt_proof pt_thm_nprod)
         |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
         |> AxClass.prove_arity ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
@@ -502,7 +507,7 @@ fun create_nom_typedecls ak_names thy =
          thy 
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
          |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
-         |> AxClass.prove_arity ("nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+         |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                      (fs_proof fs_thm_nprod) 
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
          |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
@@ -586,7 +591,7 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
-         |> AxClass.prove_arity ("nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
         end) ak_names thy) ak_names thy25;
        
      (* show that discrete nominal types are permutation types, finitely     *) 
@@ -609,7 +614,7 @@ fun create_nom_typedecls ak_names thy =
 	     fold (fn ak_name => fn thy =>
 	     let
 	       val qu_class = Sign.full_name (sign_of thy) ("fs_"^ak_name);
-	       val supp_def = thm "nominal.supp_def";
+	       val supp_def = thm "Nominal.supp_def";
                val simp_s = HOL_ss addsimps [supp_def,Collect_const,Finites.emptyI,defn];
                val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];      
              in  
@@ -620,7 +625,7 @@ fun create_nom_typedecls ak_names thy =
 	     fold (fn ak_name' => (fold (fn ak_name => fn thy =>
 	     let
 	       val qu_class = Sign.full_name (sign_of thy) ("cp_"^ak_name^"_"^ak_name');
-	       val supp_def = thm "nominal.supp_def";
+	       val supp_def = thm "Nominal.supp_def";
                val simp_s = HOL_ss addsimps [defn];
                val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];      
              in  
@@ -646,32 +651,32 @@ fun create_nom_typedecls ak_names thy =
 
        (* abbreviations for some lemmas *)
        (*===============================*)
-       val abs_fun_pi          = thm "nominal.abs_fun_pi";
-       val abs_fun_pi_ineq     = thm "nominal.abs_fun_pi_ineq";
-       val abs_fun_eq          = thm "nominal.abs_fun_eq";
-       val dj_perm_forget      = thm "nominal.dj_perm_forget";
-       val dj_pp_forget        = thm "nominal.dj_perm_perm_forget";
-       val fresh_iff           = thm "nominal.fresh_abs_fun_iff";
-       val fresh_iff_ineq      = thm "nominal.fresh_abs_fun_iff_ineq";
-       val abs_fun_supp        = thm "nominal.abs_fun_supp";
-       val abs_fun_supp_ineq   = thm "nominal.abs_fun_supp_ineq";
-       val pt_swap_bij         = thm "nominal.pt_swap_bij";
-       val pt_fresh_fresh      = thm "nominal.pt_fresh_fresh";
-       val pt_bij              = thm "nominal.pt_bij";
-       val pt_perm_compose     = thm "nominal.pt_perm_compose";
-       val pt_perm_compose'    = thm "nominal.pt_perm_compose'";
-       val perm_app            = thm "nominal.pt_fun_app_eq";
-       val at_fresh            = thm "nominal.at_fresh";
-       val at_calc             = thms "nominal.at_calc";
-       val at_supp             = thm "nominal.at_supp";
-       val dj_supp             = thm "nominal.dj_supp";
-       val fresh_left_ineq     = thm "nominal.pt_fresh_left_ineq";
-       val fresh_left          = thm "nominal.pt_fresh_left";
-       val fresh_bij_ineq      = thm "nominal.pt_fresh_bij_ineq";
-       val fresh_bij           = thm "nominal.pt_fresh_bij";
-       val pt_pi_rev           = thm "nominal.pt_pi_rev";
-       val pt_rev_pi           = thm "nominal.pt_rev_pi";
-       val fresh_fun_eqvt      = thm "nominal.fresh_fun_equiv";
+       val abs_fun_pi          = thm "Nominal.abs_fun_pi";
+       val abs_fun_pi_ineq     = thm "Nominal.abs_fun_pi_ineq";
+       val abs_fun_eq          = thm "Nominal.abs_fun_eq";
+       val dj_perm_forget      = thm "Nominal.dj_perm_forget";
+       val dj_pp_forget        = thm "Nominal.dj_perm_perm_forget";
+       val fresh_iff           = thm "Nominal.fresh_abs_fun_iff";
+       val fresh_iff_ineq      = thm "Nominal.fresh_abs_fun_iff_ineq";
+       val abs_fun_supp        = thm "Nominal.abs_fun_supp";
+       val abs_fun_supp_ineq   = thm "Nominal.abs_fun_supp_ineq";
+       val pt_swap_bij         = thm "Nominal.pt_swap_bij";
+       val pt_fresh_fresh      = thm "Nominal.pt_fresh_fresh";
+       val pt_bij              = thm "Nominal.pt_bij";
+       val pt_perm_compose     = thm "Nominal.pt_perm_compose";
+       val pt_perm_compose'    = thm "Nominal.pt_perm_compose'";
+       val perm_app            = thm "Nominal.pt_fun_app_eq";
+       val at_fresh            = thm "Nominal.at_fresh";
+       val at_calc             = thms "Nominal.at_calc";
+       val at_supp             = thm "Nominal.at_supp";
+       val dj_supp             = thm "Nominal.dj_supp";
+       val fresh_left_ineq     = thm "Nominal.pt_fresh_left_ineq";
+       val fresh_left          = thm "Nominal.pt_fresh_left";
+       val fresh_bij_ineq      = thm "Nominal.pt_fresh_bij_ineq";
+       val fresh_bij           = thm "Nominal.pt_fresh_bij";
+       val pt_pi_rev           = thm "Nominal.pt_pi_rev";
+       val pt_rev_pi           = thm "Nominal.pt_rev_pi";
+       val fresh_fun_eqvt      = thm "Nominal.fresh_fun_equiv";
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
