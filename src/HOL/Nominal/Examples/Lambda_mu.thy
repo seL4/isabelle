@@ -1,7 +1,7 @@
 (* $Id$ *)
 
-theory lambda_mu 
-imports "../nominal" 
+theory Lambda_mu 
+imports "../Nominal" 
 begin
 
 section {* Lambda-Mu according to a paper by Gavin Bierman *}
@@ -14,3 +14,4 @@ nominal_datatype trm = Var   "var"
                      | Pss  "mvar" "trm"
                      | Act  "\<guillemotleft>mvar\<guillemotright>trm"  ("Act [_]._" [100,100] 100)
 
+end

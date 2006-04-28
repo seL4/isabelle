@@ -1,8 +1,8 @@
 (* $Id$ *)
 
 (*<*)
-theory fsub
-imports "../nominal" 
+theory Fsub
+imports "../Nominal" 
 begin
 (*>*)
 
