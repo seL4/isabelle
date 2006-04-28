@@ -1,6 +1,7 @@
 (* $Id$ *)
+
 theory Iteration
-imports "../nominal"
+imports "../Nominal"
 begin
 
 atom_decl name
@@ -411,4 +412,5 @@ proof -
   also have "\<dots> = f3 b (itfun f1 f2 f3 t)" by (simp add: pt_swap_bij'[OF pt_name_inst, OF at_name_inst])
   finally show ?thesis by simp
 qed
+
 end

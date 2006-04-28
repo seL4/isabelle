@@ -1,9 +1,8 @@
 (* $Id$ *)
 
-theory lam_substs
-imports "Iteration" 
+theory Lam_substs
+imports Iteration
 begin
-
 
 constdefs 
   depth_Var :: "name \<Rightarrow> nat"

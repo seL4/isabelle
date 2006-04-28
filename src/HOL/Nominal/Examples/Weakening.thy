@@ -1,7 +1,7 @@
 (* $Id$ *)
 
-theory weakening 
-imports "../nominal" 
+theory Weakening 
+imports "../Nominal" 
 begin
 
 (* WEAKENING EXAMPLE*)
@@ -230,6 +230,6 @@ next
   have "((a,\<tau>)#\<Gamma>1) \<lless> ((a,\<tau>)#\<Gamma>2)" using a2 by (simp add: sub_def)
   moreover
   have "valid ((a,\<tau>)#\<Gamma>2)" using v2 (* fails *) 
+    oops
 
-
-
+end
