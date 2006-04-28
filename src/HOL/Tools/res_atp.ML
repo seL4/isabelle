@@ -133,70 +133,6 @@ val rm_claset = (fn () => include_claset:=false);
 val rm_clasimp = (fn () => (include_simpset:=false;include_claset:=false));
 val rm_atpset = (fn () => include_atpset:=false);
 
-(*** paths for HOL helper files ***)
-fun full_typed_comb_inclS () =
-    helper_path "E_HOME" "additionals/full_comb_inclS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/full_comb_inclS";
-
-fun full_typed_comb_noS () =
-    helper_path "E_HOME" "additionals/full_comb_noS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/full_comb_noS";
-									      
-fun partial_typed_comb_inclS () =
-    helper_path "E_HOME" "additionals/par_comb_inclS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/par_comb_inclS";
-
-fun partial_typed_comb_noS () =
-    helper_path "E_HOME" "additionals/par_comb_noS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/par_comb_noS";
-
-fun const_typed_comb_inclS () =
-    helper_path "E_HOME" "additionals/const_comb_inclS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/const_comb_inclS";
-
-fun const_typed_comb_noS () =
-    helper_path "E_HOME" "additionals/const_comb_noS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/const_comb_noS";
-
-fun untyped_comb_inclS () =
-    helper_path "E_HOME" "additionals/u_comb_inclS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/u_comb_inclS";
-
-fun untyped_comb_noS () =
-    helper_path "E_HOME" "additionals/u_comb_noS"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/u_comb_noS";
-
-fun full_typed_HOL_helper1 () =
-    helper_path "E_HOME" "additionals/full_helper1"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/full_helper1";
-
-fun partial_typed_HOL_helper1 () = 
-    helper_path "E_HOME" "additionals/par_helper1"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/par_helper1";
-
-fun const_typed_HOL_helper1 () = 
-    helper_path "E_HOME" "additionals/const_helper1"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/const_helper1";
-
-fun untyped_HOL_helper1 () = 
-    helper_path "E_HOME" "additionals/u_helper1"
-    handle _ => helper_path "VAMPIRE_HOME" "additionals/u_helper1";
-
-fun get_full_typed_helpers () =
-    (full_typed_HOL_helper1 (), full_typed_comb_noS (), full_typed_comb_inclS ());
-
-fun get_partial_typed_helpers () =
-    (partial_typed_HOL_helper1 (), partial_typed_comb_noS (), partial_typed_comb_inclS ());
-
-fun get_const_typed_helpers () =
-    (const_typed_HOL_helper1 (), const_typed_comb_noS (), const_typed_comb_inclS ());
-
-fun get_untyped_helpers () =
-    (untyped_HOL_helper1 (), untyped_comb_noS (), untyped_comb_inclS ());
-
-fun get_all_helpers () =
-    (get_full_typed_helpers (), get_partial_typed_helpers (), get_const_typed_helpers (), get_untyped_helpers ());
-
 
 (**** relevance filter ****)
 val run_relevance_filter = ref true;
@@ -347,8 +283,7 @@ val linkup_logic_mode = ref Auto;
 fun tptp_writer logic goals filename (axioms,classrels,arities) =
     if is_fol_logic logic 
     then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
-    else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) 
-	   (get_all_helpers());
+    else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities);
 
 (*2006-04-07: not working: goals has type thm list (not term list as above) and
   axioms has type ResClause.clause list (not (thm * (string * int)) list as above)*)
