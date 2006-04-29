@@ -128,6 +128,7 @@ sig
   val vars_of: thm -> (indexname * typ) list
   val tfrees_of: thm -> (string * sort) list
   val frees_of: thm -> (string * typ) list
+  val unconstrainTs: thm -> thm
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
@@ -319,6 +320,9 @@ fun fold_terms f th =
 
 fun tfrees_of th = rev (fold_terms Term.add_tfrees th []);
 fun frees_of th = rev (fold_terms Term.add_frees th []);
+
+fun unconstrainTs th =
+  fold_rev (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar) (tvars_of th) th;
 
 (*Strip extraneous shyps as far as possible*)
 fun strip_shyps_warning thm =
