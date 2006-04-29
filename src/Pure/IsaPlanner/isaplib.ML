@@ -20,7 +20,6 @@ sig
   val nat_seq : int Seq.seq
   val nth_of_seq : int -> 'a Seq.seq -> 'a option
   val pair_seq : 'a Seq.seq -> 'b Seq.seq -> ('a * 'b) Seq.seq
-  val seq_is_empty : 'a Seq.seq -> bool
   val number_seq : 'a Seq.seq -> (int * 'a) Seq.seq
 
   datatype 'a skipseqT = 
@@ -67,41 +66,19 @@ structure IsaPLib : ISAP_LIB =
 struct
  
 (* Seq *)
-fun seq_map_to_some_filter f s0 =
-    let 
-      fun recf s () = 
-          case (Seq.pull s) of 
-            NONE => NONE
-          | SOME (NONE,s') => recf s' ()
-          | SOME (SOME d, s') => 
-            SOME (f d, Seq.make (recf s'))
-    in Seq.make (recf s0) end;
+fun seq_map_to_some_filter f = Seq.map_filter (Option.map f);
+fun seq_mapfilter f = Seq.map_filter f;
 
-fun seq_mapfilter f s0 =
-    let 
-      fun recf s () = 
-          case (Seq.pull s) of 
-            NONE => NONE
-          | SOME (a,s') => 
-            (case f a of NONE => recf s' ()
-                       | SOME b => SOME (b, Seq.make (recf s')))
-    in Seq.make (recf s0) end;
-
-
+(* the sequence of natural numbers *)
+val nat_seq = 
+    let fun nseq i () = SOME (i, Seq.make (nseq (i+1)))
+    in Seq.make (nseq 1)
+    end;
 
 (* a simple function to pair with each element of a list, a number *)
 fun number_list i [] = []
 	| number_list i (h::t) = 
 		(i,h)::(number_list (i+1) t)
-
-(* check to see if a sequence is empty *)
-fun seq_is_empty s = is_none (Seq.pull s);
-
-(* the sequence of natural numbers *)
-val nat_seq = 
-      let fun nseq i () = SOME (i, Seq.make (nseq (i+1)))
-      in Seq.make (nseq 1)
-      end;
 
 (* create a sequence of pairs of the elements of the two sequences
    If one sequence becomes empty, then so does the pairing of them. 
@@ -152,16 +129,18 @@ fun all_but_last_of_seq s =
 
 
   (* nth elem for sequenes, return none if out of bounds *)
-  fun nth_of_seq i l = 
-           if (seq_is_empty l) then NONE 
-           else if i <= 1 then SOME (Seq.hd l)
-           else nth_of_seq (i-1) (Seq.tl l);
+  fun nth_of_seq i l =
+    (case Seq.pull l of
+      NONE => NONE
+    | SOME (x, xq) =>
+        if i <= 1 then SOME x
+        else nth_of_seq (i - 1) xq);
 
   (* for use with tactics... gives no_tac if element isn't there *)
-  fun NTH n f st = 
-      let val r = nth_of_seq n (f st) in 
-        if (is_none r) then Seq.empty else (Seq.single (valOf r))
-      end;
+  fun NTH n f st =
+    (case nth_of_seq n (f st) of
+      NONE => Seq.empty
+    | SOME r => Seq.single r);
  
   (* First result of a tactic... uses NTH, so if there is no elements,
 
@@ -257,7 +236,7 @@ fun get_ends_of gr (e as (u,l)) [] = e
     else if gr(l,h) then get_ends_of gr (u,h) t
     else get_ends_of gr (u,l) t;
 
-fun flatmap f = List.concat o map f;
+fun flatmap f = maps f;
 
   (* quick removal of "rs" elements from "ls" when (eqf (r,l)) is true 
 		 Ignores ordering. *)
@@ -333,7 +312,6 @@ fun forall_list f [] = true
 
 
   (* options *)
-  fun aptosome NONE f = NONE
-    | aptosome (SOME x) f = SOME (f x);
+  fun aptosome opt f = Option.map f opt;
 
 end;
