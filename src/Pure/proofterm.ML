@@ -784,7 +784,7 @@ fun abstract_rule x a prf =
   abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
 
 fun check_comb (PAxm ("ProtoPure.combination", _, _) % f % g % _ % _ %% prf %% _) =
-      isSome f orelse check_comb prf
+      is_some f orelse check_comb prf
   | check_comb (PAxm ("ProtoPure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
       check_comb prf1 andalso check_comb prf2
   | check_comb (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
@@ -1099,27 +1099,27 @@ fun rewrite_prf tymatch (rules, procs) prf =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars (~1) 0 prf'
-            in SOME (getOpt (rew Ts prf'', (prf'', skel0))) end
+            in SOME (the_default (prf'', skel0) (rew Ts prf'')) end
       | rew0 Ts (prf as Abst (_, _, prf' % SOME (Bound 0))) =
           if prf_loose_bvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars 0 (~1) prf'
-            in SOME (getOpt (rew Ts prf'', (prf'', skel0))) end
+            in SOME (the_default (prf'', skel0) (rew Ts prf'')) end
       | rew0 Ts prf = rew Ts prf;
 
     fun rew1 _ (Hyp (Var _)) _ = NONE
       | rew1 Ts skel prf = (case rew2 Ts skel prf of
           SOME prf1 => (case rew0 Ts prf1 of
-              SOME (prf2, skel') => SOME (getOpt (rew1 Ts skel' prf2, prf2))
+              SOME (prf2, skel') => SOME (the_default prf2 (rew1 Ts skel' prf2))
             | NONE => SOME prf1)
         | NONE => (case rew0 Ts prf of
-              SOME (prf1, skel') => SOME (getOpt (rew1 Ts skel' prf1, prf1))
+              SOME (prf1, skel') => SOME (the_default prf1 (rew1 Ts skel' prf1))
             | NONE => NONE))
 
     and rew2 Ts skel (prf % SOME t) = (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
-              in SOME (getOpt (rew2 Ts skel0 prf', prf')) end
+              in SOME (the_default prf' (rew2 Ts skel0 prf')) end
           | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf of
               SOME prf' => SOME (prf' % SOME t)
             | NONE => NONE))
@@ -1128,7 +1128,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
       | rew2 Ts skel (prf1 %% prf2) = (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
-              in SOME (getOpt (rew2 Ts skel0 prf', prf')) end
+              in SOME (the_default prf' (rew2 Ts skel0 prf')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 %% skel2 => (skel1, skel2)
@@ -1141,7 +1141,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
                     SOME prf2' => SOME (prf1 %% prf2')
                   | NONE => NONE)
             end)
-      | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (getOpt (T,dummyT) :: Ts)
+      | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (the_default dummyT T :: Ts)
               (case skel of Abst (_, _, skel') => skel' | _ => skel0) prf of
             SOME prf' => SOME (Abst (s, T, prf'))
           | NONE => NONE)
@@ -1151,7 +1151,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
           | NONE => NONE)
       | rew2 _ _ _ = NONE
 
-  in getOpt (rew1 [] skel0 prf, prf) end;
+  in the_default prf (rew1 [] skel0 prf) end;
 
 fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
   Sign.typ_match thy (f ()) tyenv handle Type.TYPE_MATCH => raise PMatch);

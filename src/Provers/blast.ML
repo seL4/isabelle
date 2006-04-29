@@ -650,7 +650,7 @@ fun traceVars sign ntrl =
           | 1 => immediate_output"\t1 variable UPDATED:"
           | n => immediate_output("\t" ^ Int.toString n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
-       List.app (fn v => immediate_output("   " ^ string_of sign 4 (valOf (!v))))
+       List.app (fn v => immediate_output("   " ^ string_of sign 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
        writeln"")
     else ();

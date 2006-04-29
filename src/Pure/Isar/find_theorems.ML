@@ -204,7 +204,7 @@ fun filter_crit _ _ (Name name) = filter_name name
   | filter_crit ctxt _ (Simp pat) = filter_simp ctxt pat
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
-fun opt_not x = if isSome x then NONE else SOME (0, 0);
+fun opt_not x = if is_some x then NONE else SOME (0, 0);
 
 fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y : int)
  |  opt_add _ _ = NONE;

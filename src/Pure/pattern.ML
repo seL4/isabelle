@@ -153,7 +153,7 @@ fun mknewhnf(env,binders,is,F as (a,_),T,js) =
 
 (* mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ] *)
 fun mk_proj_list is =
-    let fun mk(i::is,j) = if isSome i then j :: mk(is,j-1) else mk(is,j-1)
+    let fun mk(i::is,j) = if is_some i then j :: mk(is,j-1) else mk(is,j-1)
           | mk([],_)    = []
     in mk(is,length is - 1) end;
 

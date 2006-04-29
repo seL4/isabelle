@@ -236,7 +236,7 @@ fun rev_abbrev const rhs =
     fun abbrev (xs, body) =
       let val vars = fold (fn (x, T) => cons (Var ((x, 0), T))) (Term.rename_wrt_term body xs) []
       in (Term.subst_bounds (rev vars, body), Term.list_comb (Const const, vars)) end;
-  in map abbrev (rev (strip_abss (Envir.beta_eta_contract rhs))) end;
+  in map abbrev (strip_abss (Envir.beta_eta_contract rhs)) end;
 
 in
 
@@ -254,8 +254,7 @@ fun abbreviate pp tsig naming mode ((c, raw_rhs), early) consts =
         val decls' = decls
           |> extend_decls naming (c, (((T, Abbreviation rhs'), early), stamp ()));
         val rev_abbrevs' = rev_abbrevs
-          |> Symtab.default (mode, [])
-          |> Symtab.map_entry mode (append (rev_abbrev (NameSpace.full naming c, T) rhs));
+          |> fold (curry Symtab.update_list mode) (rev_abbrev (NameSpace.full naming c, T) rhs);
       in (decls', constraints, rev_abbrevs', expand_abbrevs) end)
   end;
 

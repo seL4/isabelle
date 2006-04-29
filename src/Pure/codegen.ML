@@ -1011,8 +1011,9 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
     val (gi, frees) = Logic.goal_params
       (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
     val gi' = ObjectLogic.atomize_term thy (map_term_types
-      (map_type_tfree (fn p as (s, _) => getOpt (AList.lookup (op =) tvinsts s,
-        getOpt (default_type, TFree p)))) (subst_bounds (frees, strip gi)));
+      (map_type_tfree (fn p as (s, _) =>
+        the_default (the_default (TFree p) default_type)
+          (AList.lookup (op =) tvinsts s))) (subst_bounds (frees, strip gi)));
   in case test_term (Toplevel.theory_of st) size iterations gi' of
       NONE => writeln "No counterexamples found."
     | SOME cex => writeln ("Counterexample found:\n" ^
@@ -1189,8 +1190,7 @@ val testP =
     (   parse_test_params >> (fn f => fn thy => apfst (f thy))
      || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
     (fn (ps, g) => Toplevel.keep (fn st =>
-      test_goal (app (getOpt (Option.map
-          (map (fn f => f (Toplevel.theory_of st))) ps, []))
+      test_goal (app (the_default [] (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
         (get_test_params (Toplevel.theory_of st), [])) g st)));
 
 val valueP =

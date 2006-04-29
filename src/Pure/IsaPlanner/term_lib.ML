@@ -354,14 +354,9 @@ fun readwty tstr tystr =
     if ty1 = ty2 then term_name_eq t1 t2 l
     else NONE
   | term_name_eq (ah $ at) (bh $ bt) l =
-    let
-      val lopt = (term_name_eq ah bh l)
-    in
-      if isSome lopt then
-	      term_name_eq at bt (valOf lopt)
-      else
-        NONE
-    end
+      (case term_name_eq ah bh l of
+        NONE => NONE
+      | SOME l' => term_name_eq at bt l')
   | term_name_eq (Const(a,T)) (Const(b,U)) l =
     if a=b andalso T=U then SOME l
     else NONE
@@ -380,12 +375,12 @@ fun readwty tstr tystr =
  (* checks to see if the term in a name-equivalent member of the list of terms. *)
   fun get_name_eq_member a [] = NONE
     | get_name_eq_member a (h :: t) =
-        if isSome (term_name_eq a h []) then SOME h
+        if is_some (term_name_eq a h []) then SOME h
 				else get_name_eq_member a t;
 
   fun name_eq_member a [] = false
     | name_eq_member a (h :: t) =
-        if isSome (term_name_eq a h []) then true
+        if is_some (term_name_eq a h []) then true
 				else name_eq_member a t;
 
   (* true if term is a variable *)

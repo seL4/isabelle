@@ -552,7 +552,7 @@ fun add_cong (ss, thm) = ss |>
       val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
-      val a = valOf (cong_name (head_of (term_of lhs))) handle Option =>
+      val a = the (cong_name (head_of (term_of lhs))) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (alist, weak) = congs;
       val alist2 = overwrite_warn (alist, (a, {lhs = lhs, thm = thm}))
@@ -566,7 +566,7 @@ fun del_cong (ss, thm) = ss |>
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
         raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
-      val a = valOf (cong_name (head_of lhs)) handle Option =>
+      val a = the (cong_name (head_of lhs)) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;
       val alist2 = List.filter (fn (x, _) => x <> a) alist;
@@ -1010,7 +1010,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
                              val thm = congc (prover ss) ss maxidx cong t0;
-                             val t = getOpt (Option.map rhs_of thm, t0);
+                             val t = the_default t0 (Option.map rhs_of thm);
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
@@ -1062,12 +1062,12 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
           let
             val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
-              Drule.mk_implies (prem, getOpt (Option.map rhs_of eq, concl));
+              Drule.mk_implies (prem, the_default concl (Option.map rhs_of eq));
             val dprem = Option.map (curry (disch false) prem)
           in case rewritec (prover, thy, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
             | SOME (eq', _) => transitive2 (Library.foldl (disch false o swap)
-                  (valOf (transitive3 (dprem eq) eq'), prems))
+                  (the (transitive3 (dprem eq) eq'), prems))
                 (mut_impc0 (rev prems) (rhs_of eq') (rev rrss) (rev asms) ss)
           end
 
@@ -1112,7 +1112,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
      and nonmut_impc ct ss =
        let val (prem, conc) = dest_implies ct;
            val thm1 = if simprem then botc skel0 ss prem else NONE;
-           val prem1 = getOpt (Option.map rhs_of thm1, prem);
+           val prem1 = the_default prem (Option.map rhs_of thm1);
            val ss1 = if not useprem then ss else add_rrules
              (apsnd single (apfst single (rules_of_prem ss prem1))) ss
        in (case botc skel0 ss1 conc of

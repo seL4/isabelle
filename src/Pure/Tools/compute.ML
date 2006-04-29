@@ -177,7 +177,7 @@ fun basic_make thy raw_ths =
 
                 fun make_pattern table invtable n vars (var as AbstractMachine.Var v) =
                     let
-                        val var' = valOf (AMTermTab.lookup invtable var)
+                        val var' = the (AMTermTab.lookup invtable var)
                         val table = Termtab.delete var' table
                         val invtable = AMTermTab.delete var invtable
                         val vars = Inttab.update_new (v, n) vars handle Inttab.DUP _ =>
