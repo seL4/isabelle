@@ -113,6 +113,7 @@ signature BASIC_THM =
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val trivial: cterm -> thm
   val class_triv: theory -> class -> thm
+  val unconstrainT: ctyp -> thm -> thm
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
@@ -1077,6 +1078,25 @@ fun class_triv thy c =
       prop = t}
   end;
 
+(*Internalize sort constraints of type variable*)
+fun unconstrainT
+    (Ctyp {thy_ref = thy_ref1, T, ...})
+    (th as Thm {thy_ref = thy_ref2, der, maxidx, shyps, hyps, tpairs, prop}) =
+  let
+    val ((x, i), S) = Term.dest_TVar T handle TYPE _ =>
+      raise THM ("unconstrainT: not a type variable", 0, [th]);
+    val T' = TVar ((x, i), []);
+    val unconstrain = Term.map_term_types (Term.map_atyps (fn U => if U = T then T' else U));
+    val constraints = map (curry Logic.mk_inclass T') S;
+  in
+    Thm {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
+      der = Pt.infer_derivs' I (false, Pt.PAxm ("ProtoPure.unconstrainT", prop, SOME [])),
+      maxidx = Int.max (maxidx, i),
+      shyps = Sorts.remove_sort S shyps,
+      hyps = hyps,
+      tpairs = map (pairself unconstrain) tpairs,
+      prop = Logic.list_implies (constraints, unconstrain prop)}
+  end;
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
