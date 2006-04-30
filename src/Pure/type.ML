@@ -65,15 +65,15 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_classes: Pretty.pp -> NameSpace.naming -> (bstring * class list) list -> tsig -> tsig
+  val add_class: Pretty.pp -> NameSpace.naming -> bstring * class list -> tsig -> tsig
   val hide_classes: bool -> string list -> tsig -> tsig
-  val add_classrel: Pretty.pp -> (class * class) list -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
   val add_types: NameSpace.naming -> (bstring * int) list -> tsig -> tsig
   val add_abbrevs: NameSpace.naming -> (string * string list * typ) list -> tsig -> tsig
   val add_nonterminals: NameSpace.naming -> string list -> tsig -> tsig
   val hide_types: bool -> string list -> tsig -> tsig
-  val add_arities: Pretty.pp -> arity list -> tsig -> tsig
+  val add_arity: Pretty.pp -> arity -> tsig -> tsig
+  val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
   val merge_tsigs: Pretty.pp -> tsig * tsig -> tsig
 end;
 
@@ -140,8 +140,12 @@ fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
 fun of_sort (TSig {classes, arities, ...}) = Sorts.of_sort (#2 classes, arities);
 fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
-fun cert_class (TSig {classes, ...}) = Sorts.certify_class (#2 classes);
-fun cert_sort (TSig {classes, ...}) = Sorts.certify_sort (#2 classes);
+fun cert_class (TSig {classes, ...}) c =
+  if can (Graph.get_node (#2 classes)) c then c
+  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+
+fun cert_sort (tsig as TSig {classes, ...}) =
+  Sorts.norm_sort (#2 classes) o map (cert_class tsig);
 
 fun witness_sorts (tsig as TSig {classes, arities, log_types, ...}) =
   Sorts.witness_sorts (#2 classes, arities) log_types;
@@ -160,7 +164,7 @@ fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
 
 fun certify_typ normalize syntax tsig ty =
   let
-    val TSig {classes = (_, classes), types = (_, types), ...} = tsig;
+    val TSig {types = (_, types), ...} = tsig;
     fun err msg = raise TYPE (msg, [ty], []);
 
     val check_syntax =
@@ -181,11 +185,11 @@ fun certify_typ normalize syntax tsig ty =
             | SOME (Nonterminal, _) => (nargs 0; check_syntax c; T)
             | NONE => err (undecl_type c))
           end
-      | cert (TFree (x, S)) = TFree (x, Sorts.certify_sort classes S)
+      | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
       | cert (TVar (xi as (_, i), S)) =
           if i < 0 then
             err ("Malformed type variable: " ^ quote (Term.string_of_vname xi))
-          else TVar (xi, Sorts.certify_sort classes S);
+          else TVar (xi, cert_sort tsig S);
 
     val ty' = cert ty;
   in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
@@ -463,95 +467,7 @@ fun eq_type tye (T, T') =
 
 (** extend and merge type signatures **)
 
-(* arities *)
-
-local
-
-fun err_decl t decl = error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t);
-
-fun for_classes _ NONE = ""
-  | for_classes pp (SOME (c1, c2)) =
-      " for classes " ^ Pretty.string_of_classrel pp [c1, c2];
-
-fun err_conflict pp t cc (c, Ss) (c', Ss') =
-  error ("Conflict of type arities" ^ for_classes pp cc ^ ":\n  " ^
-    Pretty.string_of_arity pp (t, Ss, [c]) ^ " and\n  " ^
-    Pretty.string_of_arity pp (t, Ss', [c']));
-
-fun coregular pp C t (c, Ss) ars =
-  let
-    fun conflict (c', Ss') =
-      if Sorts.class_le C (c, c') andalso not (Sorts.sorts_le C (Ss, Ss')) then
-        SOME ((c, c'), (c', Ss'))
-      else if Sorts.class_le C (c', c) andalso not (Sorts.sorts_le C (Ss', Ss)) then
-        SOME ((c', c), (c', Ss'))
-      else NONE;
-  in
-    (case Library.get_first conflict ars of
-      SOME ((c1, c2), (c', Ss')) => err_conflict pp t (SOME (c1, c2)) (c, Ss) (c', Ss')
-    | NONE => (c, Ss) :: ars)
-  end;
-
-fun insert pp C t (c, Ss) ars =
-  (case AList.lookup (op =) ars c of
-    NONE => coregular pp C t (c, Ss) ars
-  | SOME Ss' =>
-      if Sorts.sorts_le C (Ss, Ss') then ars
-      else if Sorts.sorts_le C (Ss', Ss)
-      then coregular pp C t (c, Ss) (remove (op =) (c, Ss') ars)
-      else err_conflict pp t NONE (c, Ss) (c, Ss'));
-
-fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
-
-fun insert_arities pp classes (t, ars) arities =
-  let val ars' =
-    Symtab.lookup_list arities t
-    |> fold_rev (fold_rev (insert pp classes t)) (map (complete classes) ars)
-  in Symtab.update (t, ars') arities end;
-
-fun insert_table pp classes = Symtab.fold (fn (t, ars) =>
-  insert_arities pp classes (t, map (apsnd (map (Sorts.norm_sort classes))) ars));
-
-in
-
-fun add_arities pp decls tsig = tsig |> map_tsig (fn (classes, default, types, arities) =>
-  let
-    fun prep (t, Ss, S) =
-      (case Symtab.lookup (snd types) t of
-        SOME (LogicalType n, _) =>
-          if length Ss = n then
-            (t, map (cert_sort tsig) Ss, cert_sort tsig S)
-              handle TYPE (msg, _, _) => error msg
-          else error (bad_nargs t)
-      | SOME (decl, _) => err_decl t decl
-      | NONE => error (undecl_type t));
-
-    val ars = decls |> map ((fn (t, Ss, S) => (t, map (fn c => (c, Ss)) S)) o prep);
-    val arities' = fold (insert_arities pp (snd classes)) ars arities;
-  in (classes, default, types, arities') end);
-
-fun rebuild_arities pp classes arities =
-  Symtab.empty
-  |> insert_table pp classes arities;
-
-fun merge_arities pp classes (arities1, arities2) =
-  Symtab.empty
-  |> insert_table pp classes arities1
-  |> insert_table pp classes arities2;
-
-end;
-
-
 (* classes *)
-
-local
-
-fun err_dup_classes cs =
-  error ("Duplicate declaration of class(es): " ^ commas_quote cs);
-
-fun err_cyclic_classes pp css =
-  error (cat_lines (map (fn cs =>
-    "Cycle in class relation: " ^ Pretty.string_of_classrel pp cs) css));
 
 fun add_class pp naming (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types, arities) =>
@@ -560,40 +476,39 @@ fun add_class pp naming (c, cs) tsig =
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
       val space' = space |> NameSpace.declare naming c';
-      val classes' = classes |> Graph.new_node (c', stamp ())
-        handle Graph.DUP dup => err_dup_classes [dup];
-      val classes'' = classes' |> fold Graph.add_edge_trans_acyclic (map (pair c') cs')
-        handle Graph.CYCLES css => err_cyclic_classes pp css;
-    in ((space', classes''), default, types, arities) end);
-
-in
-
-val add_classes = fold oo add_class;
-
-fun add_classrel pp ps tsig =
-  tsig |> map_tsig (fn ((space, classes), default, types, arities) =>
-    let
-      val ps' = map (pairself (cert_class tsig)) ps
-        handle TYPE (msg, _, _) => error msg;
-      val classes' = classes |> fold Graph.add_edge_trans_acyclic ps'
-        handle Graph.CYCLES css => err_cyclic_classes pp css;
-      val default' = default |> Sorts.norm_sort classes';
-      val arities' = arities |> rebuild_arities pp classes';
-    in ((space, classes'), default', types, arities') end);
-
-fun merge_classes pp ((space1, classes1), (space2, classes2)) =
-  let
-    val space = NameSpace.merge (space1, space2);
-    val classes =
-      Graph.merge_trans_acyclic (op =) (classes1, classes2)
-        handle Graph.DUPS cs => err_dup_classes cs
-          | Graph.CYCLES css => err_cyclic_classes pp css;
-  in (space, classes) end;
-
-end;
+      val classes' = classes |> Sorts.add_class pp (c', cs');
+    in ((space', classes'), default, types, arities) end);
 
 fun hide_classes fully cs = map_tsig (fn ((space, classes), default, types, arities) =>
   ((fold (NameSpace.hide fully) cs space, classes), default, types, arities));
+
+
+(* arities *)
+
+fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn (classes, default, types, arities) =>
+  let
+    val _ =
+      (case Symtab.lookup (#2 types) t of
+        SOME (LogicalType n, _) => if length Ss <> n then error (bad_nargs t) else ()
+      | SOME (decl, _) => error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t)
+      | NONE => error (undecl_type t));
+    val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
+      handle TYPE (msg, _, _) => error msg;
+    val arities' = arities |> Sorts.add_arities pp (#2 classes) ((t, map (fn c' => (c', Ss')) S'));
+  in (classes, default, types, arities') end);
+
+
+(* classrel *)
+
+fun add_classrel pp rel tsig =
+  tsig |> map_tsig (fn ((space, classes), default, types, arities) =>
+    let
+      val rel' = pairself (cert_class tsig) rel
+        handle TYPE (msg, _, _) => error msg;
+      val classes' = classes |> Sorts.add_classrel pp rel;
+      val default' = default |> Sorts.norm_sort classes';
+      val arities' = arities |> Sorts.rebuild_arities pp classes';
+    in ((space, classes'), default', types, arities') end);
 
 
 (* default sort *)
@@ -673,15 +588,16 @@ fun hide_types fully cs = map_tsig (fn (classes, default, (space, types), aritie
 
 fun merge_tsigs pp (tsig1, tsig2) =
   let
-    val (TSig {classes = classes1, default = default1, types = types1, arities = arities1,
-      log_types = _, witness = _}) = tsig1;
-    val (TSig {classes = classes2, default = default2, types = types2, arities = arities2,
-      log_types = _, witness = _}) = tsig2;
+    val (TSig {classes = (space1, classes1), default = default1, types = types1,
+      arities = arities1, log_types = _, witness = _}) = tsig1;
+    val (TSig {classes = (space2, classes2), default = default2, types = types2,
+      arities = arities2, log_types = _, witness = _}) = tsig2;
 
-    val classes' = merge_classes pp (classes1, classes2);
-    val default' = Sorts.inter_sort (#2 classes') (default1, default2);
+    val space' = NameSpace.merge (space1, space2);
+    val classes' = Sorts.merge_classes pp (classes1, classes2);
+    val default' = Sorts.inter_sort classes' (default1, default2);
     val types' = merge_types (types1, types2);
-    val arities' = merge_arities pp (#2 classes') (arities1, arities2);
-  in build_tsig (classes', default', types', arities') end;
+    val arities' = Sorts.merge_arities pp classes' (arities1, arities2);
+  in build_tsig ((space', classes'), default', types', arities') end;
 
 end;
