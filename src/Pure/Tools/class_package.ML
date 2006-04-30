@@ -343,8 +343,8 @@ fun add_locale_i name expr body thy =
 fun add_axclass_i (name, supsort) axs thy =
   let
     val (c, thy') = thy
-      |> AxClass.add_axclass_i (name, supsort) [] axs;
-    val {intro, axioms, ...} = AxClass.get_info thy' c;
+      |> AxClass.define_class_i (name, supsort) [] axs;
+    val {intro, axioms, ...} = AxClass.get_definition thy' c;
   in ((c, (intro, axioms)), thy') end;
 
 fun prove_interpretation_i (prfx, atts) expr insts tac thy =
@@ -535,7 +535,7 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
       in () end;
     fun check_defs1 raw_defs c_req thy =
       let
-        val thy' = (Sign.add_arities_i [(tyco, asorts, sort)] o Theory.copy) thy
+        val thy' = (Sign.primitive_arity (tyco, asorts, sort) o Theory.copy) thy
       in (check_defs0 thy' raw_defs c_req; thy) end;
     fun mangle_alldef_name tyco sort =
       Thm.def_name ((space_implode "_" o map NameSpace.base) sort ^ "_" ^ NameSpace.base tyco);
