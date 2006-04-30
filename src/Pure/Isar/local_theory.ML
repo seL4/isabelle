@@ -214,7 +214,7 @@ local
 
 fun add_axiom hyps (name, prop) thy =
   let
-    val name' = if name = "" then "axiom_" ^ string_of_int (serial ()) else name;
+    val name' = if name = "" then "axiom_" ^ serial_string () else name;
     val frees = rev ([] |> Term.add_frees prop |> fold Term.add_frees hyps);
     val prop' = Term.list_all_free (frees, Logic.list_implies (hyps, prop));
     val thy' = thy |> Theory.add_axioms_i [(name', prop')];
