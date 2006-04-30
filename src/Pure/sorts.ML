@@ -2,12 +2,11 @@
     ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
-Type classes and sorts.
+The order-sorted algebra of type classes.
 *)
 
 signature SORTS =
 sig
-  (*operations on ordered lists*)
   val eq_set: sort list * sort list -> bool
   val union: sort list -> sort list -> sort list
   val subtract: sort list -> sort list -> sort list
@@ -17,7 +16,6 @@ sig
   val insert_typs: typ list -> sort list -> sort list
   val insert_term: term -> sort list -> sort list
   val insert_terms: term list -> sort list -> sort list
-  (*signature information*)
   type classes
   type arities
   val class_eq: classes -> class * class -> bool
@@ -28,17 +26,22 @@ sig
   val sorts_le: classes -> sort list * sort list -> bool
   val inter_sort: classes -> sort * sort -> sort
   val norm_sort: classes -> sort -> sort
-  val certify_class: classes -> class -> class
-  val certify_sort: classes -> sort -> sort
   val of_sort: classes * arities -> typ * sort -> bool
   exception DOMAIN of string * class
   val mg_domain: classes * arities -> string -> sort -> sort list  (*exception DOMAIN*)
   val witness_sorts: classes * arities -> string list ->
     sort list -> sort list -> (typ * sort) list
+  val add_arities: Pretty.pp -> classes -> string * (class * sort list) list -> arities -> arities
+  val rebuild_arities: Pretty.pp -> classes -> arities -> arities
+  val merge_arities: Pretty.pp -> classes -> arities * arities -> arities
+  val add_class: Pretty.pp -> class * class list -> classes -> classes
+  val add_classrel: Pretty.pp -> class * class -> classes -> classes
+  val merge_classes: Pretty.pp -> classes * classes -> classes
 end;
 
 structure Sorts: SORTS =
 struct
+
 
 (** type classes and sorts **)
 
@@ -50,8 +53,6 @@ struct
   Sorts are intersections of finitely many classes. They are
   represented by lists of classes.  Normal forms of sorts are sorted
   lists of minimal classes (wrt. current class inclusion).
-
-  (types already defined in Pure/term.ML)
 *)
 
 
@@ -130,19 +131,9 @@ fun norm_sort _ [] = []
   | norm_sort classes S = sort_distinct string_ord (filter (minimal_class classes S) S);
 
 
-(* certify *)
 
-fun certify_class classes c =
-  if can (Graph.get_node classes) c then c
-  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+(** intersection -- preserving minimality **)
 
-fun certify_sort classes = norm_sort classes o map (certify_class classes);
-
-
-
-(** intersection **)
-
-(*intersect class with sort (preserves minimality)*)
 fun inter_class classes c S =
   let
     fun intr [] = [c]
@@ -152,7 +143,6 @@ fun inter_class classes c S =
           else c' :: intr c's
   in intr S end;
 
-(*instersect sorts (preserves minimality)*)
 fun inter_sort classes (S1, S2) =
   sort_strings (fold (inter_class classes) S1 S2);
 
@@ -249,6 +239,103 @@ fun witness_sorts (classes, arities) log_types hyps sorts =
           if of_sort (classes, arities) (T, S) then SOME (T, S)
           else sys_error ("Sorts.witness_sorts: bad witness for sort " ^ str_of_sort S);
   in map_filter check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
+
+end;
+
+
+
+(** build sort algebras **)
+
+(* classes *)
+
+local
+
+fun err_dup_classes cs =
+  error ("Duplicate declaration of class(es): " ^ commas_quote cs);
+
+fun err_cyclic_classes pp css =
+  error (cat_lines (map (fn cs =>
+    "Cycle in class relation: " ^ Pretty.string_of_classrel pp cs) css));
+
+in
+
+fun add_class pp (c, cs) classes =
+  let
+    val classes' = classes |> Graph.new_node (c, stamp ())
+      handle Graph.DUP dup => err_dup_classes [dup];
+    val classes'' = classes' |> fold Graph.add_edge_trans_acyclic (map (pair c) cs)
+      handle Graph.CYCLES css => err_cyclic_classes pp css;
+  in classes'' end;
+
+fun add_classrel pp rel classes =
+  classes |> Graph.add_edge_trans_acyclic rel
+    handle Graph.CYCLES css => err_cyclic_classes pp css;
+
+fun merge_classes pp args : classes =
+  Graph.merge_trans_acyclic (op =) args
+    handle Graph.DUPS cs => err_dup_classes cs
+        | Graph.CYCLES css => err_cyclic_classes pp css;
+
+end;
+
+
+(* arities *)
+
+local
+
+fun for_classes _ NONE = ""
+  | for_classes pp (SOME (c1, c2)) =
+      " for classes " ^ Pretty.string_of_classrel pp [c1, c2];
+
+fun err_conflict pp t cc (c, Ss) (c', Ss') =
+  error ("Conflict of type arities" ^ for_classes pp cc ^ ":\n  " ^
+    Pretty.string_of_arity pp (t, Ss, [c]) ^ " and\n  " ^
+    Pretty.string_of_arity pp (t, Ss', [c']));
+
+fun coregular pp C t (c, Ss) ars =
+  let
+    fun conflict (c', Ss') =
+      if class_le C (c, c') andalso not (sorts_le C (Ss, Ss')) then
+        SOME ((c, c'), (c', Ss'))
+      else if class_le C (c', c) andalso not (sorts_le C (Ss', Ss)) then
+        SOME ((c', c), (c', Ss'))
+      else NONE;
+  in
+    (case get_first conflict ars of
+      SOME ((c1, c2), (c', Ss')) => err_conflict pp t (SOME (c1, c2)) (c, Ss) (c', Ss')
+    | NONE => (c, Ss) :: ars)
+  end;
+
+fun insert pp C t (c, Ss) ars =
+  (case AList.lookup (op =) ars c of
+    NONE => coregular pp C t (c, Ss) ars
+  | SOME Ss' =>
+      if sorts_le C (Ss, Ss') then ars
+      else if sorts_le C (Ss', Ss)
+      then coregular pp C t (c, Ss) (remove (op =) (c, Ss') ars)
+      else err_conflict pp t NONE (c, Ss) (c, Ss'));
+
+fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
+
+in
+
+fun add_arities pp classes (t, ars) arities =
+  let val ars' =
+    Symtab.lookup_list arities t
+    |> fold_rev (fold_rev (insert pp classes t)) (map (complete classes) ars)
+  in Symtab.update (t, ars') arities end;
+
+fun add_arities_table pp classes = Symtab.fold (fn (t, ars) =>
+  add_arities pp classes (t, map (apsnd (map (norm_sort classes))) ars));
+
+fun rebuild_arities pp classes arities =
+  Symtab.empty
+  |> add_arities_table pp classes arities;
+
+fun merge_arities pp classes (arities1, arities2) =
+  Symtab.empty
+  |> add_arities_table pp classes arities1
+  |> add_arities_table pp classes arities2;
 
 end;
 
