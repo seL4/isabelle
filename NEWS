@@ -467,6 +467,17 @@ structure Context for further operations on Context.generic, notably
 GenericDataFun.  INCOMPATIBILITY, need to adapt attribute type
 declarations and definitions.
 
+* Pure/kernel: consts certification ignores sort constraints given in
+signature declarations.  (This information is not relevant to the
+logic, but only for type inference.)  IMPORTANT INTERNAL CHANGE.
+
+* Pure: axiomatic type classes are now purely definitional, with
+explicit proofs of class axioms and super class relations performed
+internally.  See Pure/axclass.ML for the main internal interfaces --
+notably AxClass.define_class supercedes AxClass.add_axclass, and
+AxClass.axiomatize_class/classrel/arity supercede
+Sign.add_classes/classrel/arities.
+
 * Pure/Isar: Args/Attrib parsers operate on Context.generic --
 global/local versions on theory vs. Proof.context have been
 discontinued; Attrib.syntax and Method.syntax have been adapted
