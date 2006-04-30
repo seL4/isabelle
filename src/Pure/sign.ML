@@ -15,8 +15,6 @@ sig
   val add_nonterminals: bstring list -> theory -> theory
   val add_tyabbrs: (bstring * string list * string * mixfix) list -> theory -> theory
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> theory -> theory
-  val add_arities: (xstring * string list * string) list -> theory -> theory
-  val add_arities_i: (string * sort list * sort) list -> theory -> theory
   val add_syntax: (bstring * string * mixfix) list -> theory -> theory
   val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
   val add_modesyntax: (string * bool) -> (bstring * string * mixfix) list -> theory -> theory
@@ -29,10 +27,9 @@ sig
   val add_abbrevs_i: string * bool -> (bstring * term * mixfix) list -> theory -> theory
   val add_const_constraint: xstring * string option -> theory -> theory
   val add_const_constraint_i: string * typ option -> theory -> theory
-  val add_classes: (bstring * xstring list) list -> theory -> theory
-  val add_classes_i: (bstring * class list) list -> theory -> theory
-  val add_classrel: (xstring * xstring) list -> theory -> theory
-  val add_classrel_i: (class * class) list -> theory -> theory
+  val primitive_class: string * class list -> theory -> theory
+  val primitive_classrel: class * class -> theory -> theory
+  val primitive_arity: arity -> theory -> theory
   val add_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
@@ -527,7 +524,7 @@ fun read_sort thy str = read_sort' (syn_of thy) (Context.Theory thy) str;
 
 fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
   let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
-  in Type.add_arities (pp thy) [arity] (tsig_of thy); arity end;
+  in Type.add_arity (pp thy) arity (tsig_of thy); arity end;
 
 val read_arity = prep_arity intern_type read_sort;
 val cert_arity = prep_arity (K I) certify_sort;
@@ -698,19 +695,6 @@ val add_tyabbrs = fold (gen_add_tyabbr (read_typ_syntax o no_def_sort));
 val add_tyabbrs_i = fold (gen_add_tyabbr certify_typ_syntax);
 
 
-(* add type arities *)
-
-fun gen_add_arities int_type prep_sort arities thy = thy |> map_tsig (fn tsig =>
-  let
-    fun prep_arity (a, Ss, S) = (int_type thy a, map (prep_sort thy) Ss, prep_sort thy S)
-      handle ERROR msg => cat_error msg ("in arity for type " ^ quote a);
-    val tsig' = Type.add_arities (pp thy) (map prep_arity arities) tsig;
-  in tsig' end);
-
-val add_arities = gen_add_arities intern_type read_sort;
-val add_arities_i = gen_add_arities (K I) certify_sort;
-
-
 (* modify syntax *)
 
 fun gen_syntax change_gram prep_typ prmode args thy =
@@ -799,31 +783,18 @@ val add_const_constraint = gen_add_constraint intern_const (read_typ o no_def_so
 val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
 
 
-(* add type classes *)
+(* primitive classes and arities *)
 
-fun gen_add_class int_class (bclass, raw_classes) thy =
+fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val classes = map (int_class thy) raw_classes;
       val syn' = Syntax.extend_consts [bclass] syn;
-      val tsig' = Type.add_classes (pp thy) naming [(bclass, classes)] tsig;
+      val tsig' = Type.add_class (pp thy) naming (bclass, classes) tsig;
     in (naming, syn', tsig', consts) end)
   |> add_consts_i [(Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
-val add_classes = fold (gen_add_class intern_class);
-val add_classes_i = fold (gen_add_class (K I));
-
-
-(* add to classrel *)
-
-fun gen_add_classrel int_class raw_pairs thy = thy |> map_tsig (fn tsig =>
-  let
-    val pairs = map (pairself (int_class thy)) raw_pairs;
-    val tsig' = Type.add_classrel (pp thy) pairs tsig;
-  in tsig' end);
-
-val add_classrel = gen_add_classrel intern_class;
-val add_classrel_i = gen_add_classrel (K I);
+fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (pp thy) arg);
+fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (pp thy) arg);
 
 
 (* add translation functions *)
