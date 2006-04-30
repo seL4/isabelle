@@ -249,6 +249,21 @@ theorem typedef_Rep_defined:
  apply (simp add: type_definition.Rep_inject [OF type])
 done
 
+subsection {* Proving a subtype is flat *}
+
+theorem typedef_flat:
+  fixes Abs :: "'a::flat \<Rightarrow> 'b::pcpo"
+  assumes type: "type_definition Rep Abs A"
+    and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+    and UU_in_A: "\<bottom> \<in> A"
+  shows "OFCLASS('b, flat_class)"
+ apply (intro_classes)
+ apply (unfold less)
+ apply (simp add: type_definition.Rep_inject [OF type, symmetric])
+ apply (simp add: typedef_Rep_strict [OF type less UU_in_A])
+ apply (simp add: ax_flat)
+done
+
 subsection {* HOLCF type definition package *}
 
 use "pcpodef_package.ML"
