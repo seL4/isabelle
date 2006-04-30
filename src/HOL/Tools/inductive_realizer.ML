@@ -308,8 +308,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val thy1' = thy1 |>
       Theory.copy |>
       Theory.add_types (map (fn s => (Sign.base_name s, ar, NoSyn)) tnames) |>
-      Theory.add_arities_i (map (fn s =>
-        (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames) |>
+      fold (fn s => AxClass.axiomatize_arity_i
+        (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames |>
         Extraction.add_typeof_eqns_i ty_eqs;
     val dts = List.mapPartial (fn (s, rs) => if s mem rsets then
       SOME (dt_of_intrs thy1' vs rs) else NONE) rss;
