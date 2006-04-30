@@ -78,12 +78,12 @@ val txt_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "txt_raw"
 val classesP =
   OuterSyntax.command "classes" "declare type classes" K.thy_decl
     (Scan.repeat1 (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []) >> (Toplevel.theory o Theory.add_classes));
+        P.!!! (P.list1 P.xname)) []) >> (Toplevel.theory o fold AxClass.axiomatize_class));
 
 val classrelP =
   OuterSyntax.command "classrel" "state inclusion of type classes (axiomatic!)" K.thy_decl
     (P.and_list1 (P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname))
-    >> (Toplevel.theory o Theory.add_classrel));
+    >> (Toplevel.theory o AxClass.axiomatize_classrel));
 
 val defaultsortP =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
@@ -94,7 +94,7 @@ val axclassP =
     ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []) --
           Scan.repeat (P.thm_name ":" -- (P.prop >> single))
-      >> (fn (x, y) => Toplevel.theory (snd o AxClass.add_axclass x [] y)));
+      >> (fn (x, y) => Toplevel.theory (snd o AxClass.define_class x [] y)));
 
 
 (* types *)
@@ -118,7 +118,7 @@ val nontermP =
 val aritiesP =
   OuterSyntax.command "arities" "state type arities (axiomatic!)" K.thy_decl
     (Scan.repeat1 (P.xname -- (P.$$$ "::" |-- P.!!! P.arity) >> P.triple2)
-      >> (Toplevel.theory o Theory.add_arities));
+      >> (Toplevel.theory o fold AxClass.axiomatize_arity));
 
 
 (* consts and syntax *)
