@@ -277,6 +277,7 @@ sig
   val stamp: unit -> stamp
   type serial
   val serial: unit -> serial
+  val serial_string: unit -> string
   structure Object: sig type T end
 end;
 
@@ -1307,6 +1308,8 @@ val stamp: unit -> stamp = ref;
 type serial = int;
 local val count = ref 0
 in fun serial () = inc count end;
+
+val serial_string = string_of_int o serial;
 
 
 (* generic objects *)
