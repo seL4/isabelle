@@ -349,6 +349,7 @@ val define_class_i = def_class Sign.certify_class (K I) ProofContext.cert_propp;
 end;
 
 
+
 (** axiomatizations **)
 
 local
