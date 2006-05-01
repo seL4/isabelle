@@ -82,7 +82,7 @@ fun insert_terms [] Ss = Ss
   | insert_terms (t :: ts) Ss = insert_terms ts (insert_term t Ss);
 
 
-(* sort signature information *)
+(* order-sorted algebra *)
 
 (*
   classes: graph representing class declarations together with proper
@@ -90,13 +90,14 @@ fun insert_terms [] Ss = Ss
 
   arities: table of association lists of all type arities; (t, ars)
     means that type constructor t has the arities ars; an element (c,
-    Ss) of ars represents the arity t::(Ss)c.  "Coregularity" of the
-    arities structure requires that for any two declarations
-    t::(Ss1)c1 and t::(Ss2)c2 such that c1 <= c2 holds Ss1 <= Ss2.
+    (c0, Ss)) of ars represents the arity t::(Ss)c being derived via
+    c0 < c.  "Coregularity" of the arities structure requires that for
+    any two declarations t::(Ss1)c1 and t::(Ss2)c2 such that c1 <= c2
+    holds Ss1 <= Ss2.
 *)
 
 type classes = stamp Graph.T;
-type arities = (class * sort list) list Symtab.table;
+type arities = (class * (class * sort list)) list Symtab.table;
 
 
 
@@ -159,7 +160,7 @@ fun mg_domain (classes, arities) a S =
     fun dom c =
       (case AList.lookup (op =) (Symtab.lookup_list arities a) c of
         NONE => raise DOMAIN (a, c)
-      | SOME Ss => Ss);
+      | SOME (_, Ss) => Ss);
     fun dom_inter c Ss = ListPair.map (inter_sort classes) (dom c, Ss);
   in
     (case S of
@@ -233,12 +234,11 @@ in
 
 fun witness_sorts (classes, arities) log_types hyps sorts =
   let
-    (*double check result of witness construction*)
-    fun check_result NONE = NONE
-      | check_result (SOME (T, S)) =
+    fun double_check_result NONE = NONE
+      | double_check_result (SOME (T, S)) =
           if of_sort (classes, arities) (T, S) then SOME (T, S)
           else sys_error ("Sorts.witness_sorts: bad witness for sort " ^ str_of_sort S);
-  in map_filter check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
+  in map_filter double_check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
 
 end;
 
@@ -292,9 +292,9 @@ fun err_conflict pp t cc (c, Ss) (c', Ss') =
     Pretty.string_of_arity pp (t, Ss, [c]) ^ " and\n  " ^
     Pretty.string_of_arity pp (t, Ss', [c']));
 
-fun coregular pp C t (c, Ss) ars =
+fun coregular pp C t (c, (c0, Ss)) ars =
   let
-    fun conflict (c', Ss') =
+    fun conflict (c', (_, Ss')) =
       if class_le C (c, c') andalso not (sorts_le C (Ss, Ss')) then
         SOME ((c, c'), (c', Ss'))
       else if class_le C (c', c) andalso not (sorts_le C (Ss', Ss)) then
@@ -303,19 +303,20 @@ fun coregular pp C t (c, Ss) ars =
   in
     (case get_first conflict ars of
       SOME ((c1, c2), (c', Ss')) => err_conflict pp t (SOME (c1, c2)) (c, Ss) (c', Ss')
-    | NONE => (c, Ss) :: ars)
+    | NONE => (c, (c0, Ss)) :: ars)
   end;
 
-fun insert pp C t (c, Ss) ars =
+fun insert pp C t (c, (c0, Ss)) ars =
   (case AList.lookup (op =) ars c of
-    NONE => coregular pp C t (c, Ss) ars
-  | SOME Ss' =>
+    NONE => coregular pp C t (c, (c0, Ss)) ars
+  | SOME (_, Ss') =>
       if sorts_le C (Ss, Ss') then ars
-      else if sorts_le C (Ss', Ss)
-      then coregular pp C t (c, Ss) (remove (op =) (c, Ss') ars)
+      else if sorts_le C (Ss', Ss) then
+        coregular pp C t (c, (c0, Ss))
+          (filter_out (fn (c'', (_, Ss'')) => c = c'' andalso Ss'' = Ss') ars)
       else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
-fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
+fun complete C (c0, Ss) = map (rpair (c0, Ss)) (Graph.all_succs C [c0]);
 
 in
 
@@ -326,7 +327,7 @@ fun add_arities pp classes (t, ars) arities =
   in Symtab.update (t, ars') arities end;
 
 fun add_arities_table pp classes = Symtab.fold (fn (t, ars) =>
-  add_arities pp classes (t, map (apsnd (map (norm_sort classes))) ars));
+  add_arities pp classes (t, map (apsnd (map (norm_sort classes)) o snd) ars));
 
 fun rebuild_arities pp classes arities =
   Symtab.empty
