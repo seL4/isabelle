@@ -98,9 +98,29 @@ lemma bt_map_reflect: "bt_map f (reflect t) = reflect (bt_map f t)"
    apply simp_all
   done
 
+lemma preorder_bt_map: "preorder (bt_map f t) = map f (preorder t)"
+  apply (induct t)
+   apply simp_all
+  done
+
 lemma inorder_bt_map: "inorder (bt_map f t) = map f (inorder t)"
   apply (induct t)
    apply simp_all
+  done
+
+lemma postorder_bt_map: "postorder (bt_map f t) = map f (postorder t)"
+  apply (induct t)
+   apply simp_all
+  done
+
+lemma depth_bt_map [simp]: "depth (bt_map f t) = depth t"
+  apply (induct t)
+   apply simp_all
+  done
+
+lemma n_leaves_bt_map [simp]: "n_leaves (bt_map f t) = n_leaves t"
+  apply (induct t)
+   apply (simp_all add: left_distrib)
   done
 
 lemma preorder_reflect: "preorder (reflect t) = rev (postorder t)"
@@ -133,14 +153,6 @@ lemma append_Lf2 [simp]: "append t Lf = t"
    apply simp_all
   done
 
-lemma max_add_distrib_left:
-  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
-  shows  "(max x y) + z = max (x+z) (y+z)"
-apply (rule max_of_mono [THEN sym])
-apply clarify
-apply (rule add_le_cancel_right)
-done
-
 lemma depth_append [simp]: "depth (append t1 t2) = depth t1 + depth t2"
   apply (induct t1)
    apply (simp_all add: max_add_distrib_left)
@@ -150,6 +162,12 @@ lemma n_leaves_append [simp]:
      "n_leaves (append t1 t2) = n_leaves t1 * n_leaves t2"
   apply (induct t1)
    apply (simp_all add: left_distrib)
+  done
+
+lemma bt_map_append:
+     "bt_map f (append t1 t2) = append (bt_map f t1) (bt_map f t2)"
+  apply (induct t1)
+   apply simp_all
   done
 
 end
