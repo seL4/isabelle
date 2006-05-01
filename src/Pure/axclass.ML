@@ -29,7 +29,7 @@ sig
   val axiomatize_classrel_i: (class * class) list -> theory -> theory
   val axiomatize_arity: xstring * string list * string -> theory -> theory
   val axiomatize_arity_i: arity -> theory -> theory
-  val of_sort: theory -> typ * sort -> thm list
+  val of_sort: theory -> typ * sort -> thm list option
 end;
 
 structure AxClass: AX_CLASS =
@@ -149,11 +149,18 @@ fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
 
 val get_instances = AxClassData.get #> (fn (_, ref (Instances insts)) => insts);
 
+fun lookup_classrel thy =
+  Option.map (Thm.transfer thy) o AList.lookup (op =) (#classrel (get_instances thy));
+
+fun lookup_arity thy =
+  Option.map (Thm.transfer thy) oo
+    (AList.lookup (op =) o Symtab.lookup_list (#arities (get_instances thy)));
+
+val lookup_type = AList.lookup (op =) oo (Typtab.lookup_list o #types o get_instances);
+
+
 fun store_instance f thy (x, th) =
-  let
-    val th' = Drule.standard' th;
-    val _ = change (#2 (AxClassData.get thy)) (map_instances (f (x, th')));
-  in th' end;
+  (change (#2 (AxClassData.get thy)) (map_instances (f (x, th))); th);
 
 val store_classrel = store_instance (fn ((c1, c2), th) => fn (classes, classrel, arities, types) =>
   (classes
@@ -222,9 +229,10 @@ fun add_classrel th thy =
 
 fun add_arity th thy =
   let
+    fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
     val prop = Drule.plain_prop_of (Thm.transfer thy th);
-    val (t, Ss, c) = Logic.dest_arity prop handle TERM _ =>
-      raise THM ("add_arity: malformed type arity", 0, [th]);
+    val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
+    val _ = if map (Sign.certify_sort thy) Ss = Ss then () else err ();
     val thy' = thy |> Sign.primitive_arity (t, Ss, [c]);
     val _ = store_arity thy' ((t, Ss, c), Drule.unconstrainTs th);
   in thy' end;
@@ -382,70 +390,55 @@ end;
 
 local
 
-fun derive_classrel thy (c1, c2) =
+fun derive_classrel thy (th, c1) c2 =
   let
-    val {classes, classrel, ...} = get_instances thy;
-    val lookup = AList.lookup (op =) classrel;
-    fun derive [c, c'] = the (lookup (c, c'))
+    fun derive [c, c'] = the (lookup_classrel thy (c, c'))
       | derive (c :: c' :: cs) = derive [c, c'] RS derive (c' :: cs);
-  in
-    (case lookup (c1, c2) of
-      SOME rule => rule
-    | NONE =>
-        (case Graph.find_paths classes (c1, c2) of
-          [] => error ("Cannot derive class relation " ^ Sign.string_of_classrel thy [c1, c2])
-        | path :: _ => store_classrel thy ((c1, c2), derive path)))
-  end;
+    val th' =
+      (case lookup_classrel thy (c1, c2) of
+        SOME rule => rule
+      | NONE =>
+          (case Graph.find_paths (#classes (get_instances thy)) (c1, c2) of
+            [] => error ("Cannot derive class relation " ^ Sign.string_of_classrel thy [c1, c2])
+          | path :: _ => store_classrel thy ((c1, c2), derive path)))
+  in th RS th' end;
 
-fun weaken_subclass thy (c1, th) c2 =
-  if c1 = c2 then th
-  else th RS derive_classrel thy (c1, c2);
-
-fun weaken_subsort thy S1 S2 = S2 |> map (fn c2 =>
-  (case S1 |> find_first (fn (c1, _) => Sign.subsort thy ([c1], [c2])) of
-    SOME c1 => weaken_subclass thy c1 c2
-  | NONE => error ("Cannot derive subsort relation " ^
-      Sign.string_of_sort thy (map #1 S1) ^ " < " ^ Sign.string_of_sort thy S2)));
-
-fun apply_arity thy t dom c =
-  let
-    val {arities, ...} = get_instances thy;
-    val subsort = Sign.subsort thy;
-    val Ss = map (map #1) dom;
-  in
-    (case Symtab.lookup_list arities t |> find_first (fn ((c', Ss'), _) =>
-        subsort ([c'], [c]) andalso ListPair.all subsort (Ss, Ss')) of
-      SOME ((c', Ss'), rule) =>
-        weaken_subclass thy (c', rule OF flat (map2 (weaken_subsort thy) dom Ss')) c
-    | NONE => error ("Cannot derive type arity " ^ Sign.string_of_arity thy (t, Ss, [c])))
+fun derive_constructor thy a dom c =
+  let val Ss = map (map snd) dom and ths = maps (map fst) dom in
+    (case lookup_arity thy a (c, Ss) of
+      SOME rule => ths MRS rule
+    | NONE => error ("Cannot derive type arity " ^ Sign.string_of_arity thy (a, Ss, [c])))
   end;
 
 fun derive_type _ (_, []) = []
   | derive_type thy (typ, sort) =
       let
-        val hyps = Term.fold_atyps
+        val vars = Term.fold_atyps
             (fn T as TFree (_, S) => insert (eq_fst op =) (T, S)
               | T as TVar (_, S) => insert (eq_fst op =) (T, S)
-              | _ => I) typ []
-          |> map (fn (T, S) => (T, S ~~ Drule.sort_triv thy (T, S)));
-
-        fun derive (Type (a, Ts)) S =
-              let
-                val Ss = Sign.arity_sorts thy a S;
-                val ds = map (fn (T, S) => S ~~ derive T S) (Ts ~~ Ss);
-              in map (apply_arity thy a ds) S end
-          | derive T S = weaken_subsort thy (the_default [] (AList.lookup (op =) hyps T)) S;
-
-        val ths = derive typ sort;
+              | _ => I) typ [];
+        val hyps = vars |> map (fn (T, S) => (T, Drule.sort_triv thy (T, S) ~~ S));
+        val ths = (typ, sort)
+          |> Sorts.of_sort_derivation (Sign.pp thy) (Sign.classes_of thy, Sign.arities_of thy)
+            {classrel = derive_classrel thy,
+              constructor = derive_constructor thy,
+              variable = the_default [] o AList.lookup (op =) hyps};
       in map (store_type thy) (map (pair typ) sort ~~ ths) end;
 
 in
 
 fun of_sort thy (typ, sort) =
-  let
-    fun lookup () = AList.lookup (op =) (Typtab.lookup_list (#types (get_instances thy)) typ);
-    val _ = derive_type thy (typ, filter (is_none o lookup ()) sort);
-  in map (the o lookup ()) sort end;
+  if Sign.of_sort thy (typ, sort) then
+    let
+      val cert = Thm.cterm_of thy;
+      fun derive c =
+        Goal.finish (the (lookup_type thy typ c) RS Goal.init (cert (Logic.mk_inclass (typ, c))))
+        |> Thm.adjust_maxidx_thm;
+      val _ = derive_type thy (typ, filter (is_none o lookup_type thy typ) sort)
+        handle ERROR msg => cat_error msg ("The error(s) above occurred for sort derivation: " ^
+          Sign.string_of_typ thy typ ^ " :: " ^ Sign.string_of_sort thy sort);
+    in SOME (map derive sort) end
+  else NONE;
 
 end;
 
