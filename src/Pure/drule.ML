@@ -128,6 +128,7 @@ sig
   val vars_of: thm -> (indexname * typ) list
   val tfrees_of: thm -> (string * sort) list
   val frees_of: thm -> (string * typ) list
+  val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val rename_bvars: (string * string) list -> thm -> thm
@@ -321,10 +322,21 @@ fun fold_terms f th =
 fun tfrees_of th = rev (fold_terms Term.add_tfrees th []);
 fun frees_of th = rev (fold_terms Term.add_frees th []);
 
+
+(* type classes and sorts *)
+
+fun sort_triv thy (T, S) =
+  let
+    val certT = Thm.ctyp_of thy;
+    val cT = certT T;
+    fun class_triv c =
+      Thm.class_triv thy c
+      |> Thm.instantiate ([(certT (TVar (("'a", 0), [c])), cT)], []);
+  in map class_triv S end;
+
 fun unconstrainTs th =
   fold_rev (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar) (tvars_of th) th;
 
-(*Strip extraneous shyps as far as possible*)
 fun strip_shyps_warning thm =
   let
     val str_of_sort = Pretty.str_of o Sign.pretty_sort (Thm.theory_of_thm thm);
