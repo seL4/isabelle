@@ -420,42 +420,31 @@ fun apply_arity thy t dom c =
     | NONE => error ("Cannot derive type arity " ^ Sign.string_of_arity thy (t, Ss, [c])))
   end;
 
-fun derive_type thy hyps =
-  let
-    fun derive (Type (a, Ts)) S =
-          let val Ss = Sign.arity_sorts thy a S
-          in map (apply_arity thy a (map2 (fn T => fn S => S ~~ derive T S) Ts Ss)) S end
-      | derive (TFree (a, [])) S =
-          weaken_subsort thy (the_default [] (AList.lookup (op =) hyps a)) S
-      | derive T _ = error ("Illegal occurrence of type variable " ^
-          setmp show_sorts true (Sign.string_of_typ thy) T);
-  in derive end;
+fun derive_type _ (_, []) = []
+  | derive_type thy (typ, sort) =
+      let
+        val hyps = Term.fold_atyps
+            (fn T as TFree (_, S) => insert (eq_fst op =) (T, S)
+              | T as TVar (_, S) => insert (eq_fst op =) (T, S)
+              | _ => I) typ []
+          |> map (fn (T, S) => (T, S ~~ Drule.sort_triv thy (T, S)));
+
+        fun derive (Type (a, Ts)) S =
+              let
+                val Ss = Sign.arity_sorts thy a S;
+                val ds = map (fn (T, S) => S ~~ derive T S) (Ts ~~ Ss);
+              in map (apply_arity thy a ds) S end
+          | derive T S = weaken_subsort thy (the_default [] (AList.lookup (op =) hyps T)) S;
+
+        val ths = derive typ sort;
+      in map (store_type thy) (map (pair typ) sort ~~ ths) end;
 
 in
 
 fun of_sort thy (typ, sort) =
   let
     fun lookup () = AList.lookup (op =) (Typtab.lookup_list (#types (get_instances thy)) typ);
-    val sort' = filter (is_none o lookup ()) sort;
-    val _ = conditional (not (null sort')) (fn () =>
-      let
-        val vars = Term.fold_atyps (insert (op =)) typ [];
-        val renaming =
-          map2 (fn T => fn a => (T, (a, case T of TFree (_, S) => S | TVar (_, S) => S)))
-            vars (Term.invent_names [] "'a" (length vars));
-        val typ' = typ |> Term.map_atyps
-          (fn T => TFree (#1 (the (AList.lookup (op =) renaming T)), []));
-
-        val hyps = renaming |> map (fn (_, (a, S)) => (a, S ~~ (S |> map (fn c =>
-          Thm.assume (Thm.cterm_of thy (Logic.mk_inclass (TFree (a, []), c)))))));
-        val inst = renaming |> map (fn (T, (a, S)) =>
-          pairself (Thm.ctyp_of thy) (TVar ((a, 0), S), T));
-
-        val ths =
-          derive_type thy hyps typ' sort'
-          |> map (Thm.instantiate (inst, []));
-        val _ = map (store_type thy) (map (pair typ) sort' ~~ ths);
-      in () end);
+    val _ = derive_type thy (typ, filter (is_none o lookup ()) sort);
   in map (the o lookup ()) sort end;
 
 end;
