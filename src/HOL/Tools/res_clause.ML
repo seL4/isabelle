@@ -713,8 +713,9 @@ fun multi_arity_clause [] = []
       multi_arity_clause tc_arlists 
 
 fun arity_clause_thy thy =
-  let val arities = #arities (Type.rep_tsig (Sign.tsig_of thy))
-  in multi_arity_clause (rev (Symtab.dest arities)) end;
+  let val arities =
+    Symtab.dest (Sign.arities_of thy) |> map (apsnd (map (fn (c, (_, Ss)) => (c, Ss))));
+  in multi_arity_clause (rev arities) end;
 
 
 (**** Find occurrences of predicates in clauses ****)

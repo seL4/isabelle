@@ -157,7 +157,7 @@ fun pretty_full_theory thy =
   let
     fun prt_cls c = Sign.pretty_sort thy [c];
     fun prt_sort S = Sign.pretty_sort thy S;
-    fun prt_arity t (c, Ss) = Sign.pretty_arity thy (t, Ss, [c]);
+    fun prt_arity t (c, (_, Ss)) = Sign.pretty_arity thy (t, Ss, [c]);
     fun prt_typ ty = Pretty.quote (Sign.pretty_typ thy ty);
     val prt_typ_no_tvars = prt_typ o Type.freeze_type;
     fun prt_term t = Pretty.quote (Sign.pretty_term thy t);
