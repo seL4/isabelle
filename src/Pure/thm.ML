@@ -1066,7 +1066,7 @@ fun trivial (Cterm {thy_ref, t =A, T, maxidx, sorts}) =
 (*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
 fun class_triv thy c =
   let val Cterm {thy_ref, t, maxidx, sorts, ...} =
-    cterm_of thy (Logic.mk_inclass (TVar (("'a", 0), [c]), c))
+    cterm_of thy (Logic.mk_inclass (TVar (("'a", 0), [c]), Sign.certify_class thy c))
       handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
   in
     Thm {thy_ref = thy_ref,
