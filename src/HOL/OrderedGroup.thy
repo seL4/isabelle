@@ -335,6 +335,26 @@ lemma add_strict_increasing2:
   shows "[|0\<le>a; b<c|] ==> b < a + c"
 by (insert add_le_less_mono [of 0 a b c], simp)
 
+lemma max_add_distrib_left:
+  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
+  shows  "(max x y) + z = max (x+z) (y+z)"
+by (rule max_of_mono [THEN sym], rule add_le_cancel_right)
+
+lemma min_add_distrib_left:
+  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
+  shows  "(min x y) + z = min (x+z) (y+z)"
+by (rule min_of_mono [THEN sym], rule add_le_cancel_right)
+
+lemma max_diff_distrib_left:
+  fixes z :: "'a::pordered_ab_group_add"
+  shows  "(max x y) - z = max (x-z) (y-z)"
+by (simp add: diff_minus, rule max_add_distrib_left) 
+
+lemma min_diff_distrib_left:
+  fixes z :: "'a::pordered_ab_group_add"
+  shows  "(min x y) - z = min (x-z) (y-z)"
+by (simp add: diff_minus, rule min_add_distrib_left) 
+
 
 subsection {* Ordering Rules for Unary Minus *}
 

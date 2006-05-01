@@ -68,14 +68,14 @@ lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
   by (simp add: min_def)
 
 lemma min_of_mono:
-    "ALL x y. (f x <= f y) = (x <= y) ==> min (f m) (f n) = f (min m n)"
+    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
   by (simp add: min_def)
 
 lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
   by (simp add: max_def)
 
 lemma max_of_mono:
-    "ALL x y. (f x <= f y) = (x <= y) ==> max (f m) (f n) = f (max m n)"
+    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
   by (simp add: max_def)
 
 
