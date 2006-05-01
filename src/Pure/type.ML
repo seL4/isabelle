@@ -212,8 +212,8 @@ fun arity_number (TSig {types = (_, types), ...}) a =
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
   | arity_sorts pp (TSig {classes, arities, ...}) a S =
-      Sorts.mg_domain (#2 classes, arities) a S handle Sorts.DOMAIN (a, c) =>
-        error ("No way to get " ^ Pretty.string_of_arity pp (a, [], [c]));
+      Sorts.mg_domain (#2 classes, arities) a S
+        handle Sorts.DOMAIN d => Sorts.domain_error pp d;
 
 
 
