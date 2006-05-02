@@ -16,6 +16,8 @@ sig
   val full_name: context -> bstring -> string
   val set_body: bool -> context -> context
   val restore_body: context -> context -> context
+  val set_syntax_mode: string * bool -> context -> context
+  val restore_syntax_mode: context -> context -> context
   val assms_of: context -> term list
   val prems_of: context -> thm list
   val fact_index_of: context -> FactIndex.T
@@ -269,6 +271,8 @@ val full_name = NameSpace.full o naming_of;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
+val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
+val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
 val consts_of = #2 o #consts o rep_context;
 
@@ -1128,7 +1132,10 @@ fun gen_abbrevs prep_vars prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_
     |> declare_term t
     |> map_consts
       (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode ((c, t), b)))
-    |> map_syntax (LocalSyntax.add_syntax (theory_of ctxt) (mode, inout) [(false, (c', T, mx))])
+    |> map_syntax (fn syntax => syntax
+        |> LocalSyntax.set_mode (mode, inout)
+        |> LocalSyntax.add_syntax (theory_of ctxt) [(false, (c', T, mx))]
+        |> LocalSyntax.restore_mode syntax)
   end);
 
 in
@@ -1167,7 +1174,7 @@ fun gen_fixes prep raw_vars ctxt =
     ctxt'
     |> map_fixes (fn (b, fixes) => (b, rev (xs ~~ xs') @ fixes))
     |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-    |-> (map_syntax o LocalSyntax.add_syntax thy Syntax.default_mode o map prep_mixfix)
+    |-> (map_syntax o LocalSyntax.add_syntax thy o map prep_mixfix)
     |> pair xs'
   end;
 
