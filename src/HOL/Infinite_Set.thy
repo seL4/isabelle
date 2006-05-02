@@ -24,17 +24,17 @@ text {*
 
 lemma infinite_nonempty:
   "\<not> (infinite {})"
-by simp
+  by simp
 
 lemma infinite_remove:
   "infinite S \<Longrightarrow> infinite (S - {a})"
-by simp
+  by simp
 
 lemma Diff_infinite_finite:
   assumes T: "finite T" and S: "infinite S"
   shows "infinite (S-T)"
-using T
-proof (induct)
+  using T
+proof induct
   from S
   show "infinite (S - {})" by auto
 next
@@ -49,17 +49,15 @@ qed
 
 lemma Un_infinite:
   "infinite S \<Longrightarrow> infinite (S \<union> T)"
-by simp
+  by simp
 
 lemma infinite_super:
   assumes T: "S \<subseteq> T" and S: "infinite S"
   shows "infinite T"
 proof (rule ccontr)
   assume "\<not>(infinite T)"
-  with T
-  have "finite S" by (simp add: finite_subset)
-  with S
-  show False by simp
+  with T have "finite S" by (simp add: finite_subset)
+  with S show False by simp
 qed
 
 text {*
@@ -356,13 +354,17 @@ defs
   INF_def:  "Inf_many P \<equiv> infinite {x. P x}"
   MOST_def: "Alm_all P \<equiv> \<not>(INF x. \<not> P x)"
 
-syntax (xsymbols)
-  "MOST " :: "[idts, bool] \<Rightarrow> bool"       ("(3\<forall>\<^sub>\<infinity>_./ _)" [0,10] 10)
-  "INF "    :: "[idts, bool] \<Rightarrow> bool"     ("(3\<exists>\<^sub>\<infinity>_./ _)" [0,10] 10)
+abbreviation (xsymbols)
+  Inf_many1  (binder "\<exists>\<^sub>\<infinity>" 10)
+  "Inf_many1 == Inf_many"
+  Alm_all1  (binder "\<forall>\<^sub>\<infinity>" 10)
+  "Alm_all1 == Alm_all"
 
-syntax (HTML output)
-  "MOST " :: "[idts, bool] \<Rightarrow> bool"       ("(3\<forall>\<^sub>\<infinity>_./ _)" [0,10] 10)
-  "INF "    :: "[idts, bool] \<Rightarrow> bool"     ("(3\<exists>\<^sub>\<infinity>_./ _)" [0,10] 10)
+abbreviation (HTML output)
+  Inf_many2  (binder "\<exists>\<^sub>\<infinity>" 10)
+  "Inf_many2 == Inf_many"
+  Alm_all2  (binder "\<forall>\<^sub>\<infinity>" 10)
+  "Alm_all2 == Alm_all"
 
 lemma INF_EX:
   "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
@@ -421,12 +423,12 @@ constdefs
   "atmost_one S \<equiv> \<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x=y"
 
 lemma atmost_one_empty: "S={} \<Longrightarrow> atmost_one S"
-by (simp add: atmost_one_def)
+  by (simp add: atmost_one_def)
 
 lemma atmost_one_singleton: "S = {x} \<Longrightarrow> atmost_one S"
-by (simp add: atmost_one_def)
+  by (simp add: atmost_one_def)
 
 lemma atmost_one_unique [elim]: "\<lbrakk> atmost_one S; x \<in> S; y \<in> S \<rbrakk> \<Longrightarrow> y=x"
-by (simp add: atmost_one_def)
+  by (simp add: atmost_one_def)
 
 end
