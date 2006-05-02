@@ -5,7 +5,7 @@
 
 *)
 
-header{*The Integers as Equivalence Classes over Pairs of Natural Numbers*}
+header{*The Integers as Equivalence Classes over Pairs of Natural Numbers*} 
 
 theory IntDef
 imports Equiv_Relations NatArith
@@ -108,10 +108,10 @@ proof -
 qed
 
 lemma zminus_zminus: "- (- z) = (z::int)"
-by (cases z, simp add: minus)
+  by (cases z) (simp add: minus)
 
 lemma zminus_0: "- 0 = (0::int)"
-by (simp add: int_def Zero_int_def minus)
+  by (simp add: int_def Zero_int_def minus)
 
 
 subsection{*Integer Addition*}
@@ -129,13 +129,13 @@ proof -
 qed
 
 lemma zminus_zadd_distrib: "- (z + w) = (- z) + (- w::int)"
-by (cases z, cases w, simp add: minus add)
+  by (cases z, cases w) (simp add: minus add)
 
 lemma zadd_commute: "(z::int) + w = w + z"
-by (cases z, cases w, simp add: add_ac add)
+  by (cases z, cases w) (simp add: add_ac add)
 
 lemma zadd_assoc: "((z1::int) + z2) + z3 = z1 + (z2 + z3)"
-by (cases z1, cases z2, cases z3, simp add: add add_assoc)
+  by (cases z1, cases z2, cases z3) (simp add: add add_assoc)
 
 (*For AC rewriting*)
 lemma zadd_left_commute: "x + (y + z) = y + ((x + z)  ::int)"
@@ -149,13 +149,13 @@ lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
 lemmas zmult_ac = OrderedGroup.mult_ac
 
 lemma zadd_int: "(int m) + (int n) = int (m + n)"
-by (simp add: int_def add)
+  by (simp add: int_def add)
 
 lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
-by (simp add: zadd_int zadd_assoc [symmetric])
+  by (simp add: zadd_int zadd_assoc [symmetric])
 
 lemma int_Suc: "int (Suc m) = 1 + (int m)"
-by (simp add: One_int_def zadd_int)
+  by (simp add: One_int_def zadd_int)
 
 (*also for the instance declaration int :: comm_monoid_add*)
 lemma zadd_0: "(0::int) + z = z"
@@ -564,10 +564,12 @@ by (simp add: linorder_not_less neg_def)
 subsection{*The Set of Natural Numbers*}
 
 constdefs
-   Nats  :: "'a::comm_semiring_1_cancel set"
-    "Nats == range of_nat"
+  Nats  :: "'a::comm_semiring_1_cancel set"
+  "Nats == range of_nat"
 
-syntax (xsymbols)    Nats :: "'a set"   ("\<nat>")
+abbreviation (xsymbols)
+  Nats1  ("\<nat>")
+  "\<nat> == Nats"
 
 lemma of_nat_in_Nats [simp]: "of_nat n \<in> Nats"
 by (simp add: Nats_def)
@@ -686,22 +688,22 @@ declare of_int_eq_0_iff [simp]
 
 lemma of_int_eq_id [simp]: "of_int = (id :: int => int)"
 proof
- fix z
- show "of_int z = id z"  
-  by (cases z,
-      simp add: of_int add minus int_eq_of_nat [symmetric] int_def diff_minus)
+  fix z
+  show "of_int z = id z"  
+    by (cases z)
+      (simp add: of_int add minus int_eq_of_nat [symmetric] int_def diff_minus)
 qed
 
 
 subsection{*The Set of Integers*}
 
 constdefs
-   Ints  :: "'a::comm_ring_1 set"
-    "Ints == range of_int"
+  Ints  :: "'a::comm_ring_1 set"
+  "Ints == range of_int"
 
-
-syntax (xsymbols)
-  Ints      :: "'a set"                   ("\<int>")
+abbreviation (xsymbols)
+  Ints1  ("\<int>")
+  "\<int> == Ints"
 
 lemma Ints_0 [simp]: "0 \<in> Ints"
 apply (simp add: Ints_def)
@@ -746,11 +748,14 @@ by (induct n, auto)
 lemma of_int_int_eq [simp]: "of_int (int n) = of_nat n"
 by (simp add: int_eq_of_nat)
 
-lemma Ints_cases [case_names of_int, cases set: Ints]:
-  "q \<in> \<int> ==> (!!z. q = of_int z ==> C) ==> C"
-proof (simp add: Ints_def)
-  assume "!!z. q = of_int z ==> C"
-  assume "q \<in> range of_int" thus C ..
+lemma Ints_cases [cases set: Ints]:
+  assumes "q \<in> \<int>"
+  obtains (of_int) z where "q = of_int z"
+  unfolding Ints_def
+proof -
+  from `q \<in> \<int>` have "q \<in> range of_int" unfolding Ints_def .
+  then obtain z where "q = of_int z" ..
+  then show thesis ..
 qed
 
 lemma Ints_induct [case_names of_int, induct set: Ints]:
@@ -768,12 +773,12 @@ text{*By Jeremy Avigad*}
 
 
 lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
-  apply (case_tac "finite A")
+  apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
 
 lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
-  apply (case_tac "finite A")
+  apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
 
@@ -781,12 +786,12 @@ lemma int_setsum: "int (setsum f A) = (\<Sum>x\<in>A. int(f x))"
   by (simp add: int_eq_of_nat of_nat_setsum)
 
 lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
-  apply (case_tac "finite A")
+  apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
 
 lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
-  apply (case_tac "finite A")
+  apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
 

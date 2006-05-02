@@ -85,7 +85,7 @@ syntax (HTML output)
 local
 
 
-subsubsection {* Abstract constants and syntax *}
+subsubsection {* Definitions *}
 
 global
 
@@ -99,6 +99,30 @@ consts
   Sigma    :: "['a set, 'a => 'b set] => ('a * 'b) set"
 
 local
+
+defs
+  Pair_def:     "Pair a b == Abs_Prod (Pair_Rep a b)"
+  fst_def:      "fst p == THE a. EX b. p = Pair a b"
+  snd_def:      "snd p == THE b. EX a. p = Pair a b"
+  split_def:    "split == (%c p. c (fst p) (snd p))"
+  curry_def:    "curry == (%c x y. c (Pair x y))"
+  prod_fun_def: "prod_fun f g == split (%x y. Pair (f x) (g y))"
+  Sigma_def:    "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
+
+abbreviation
+  Times :: "['a set, 'b set] => ('a * 'b) set"  (infixr "<*>" 80)
+  "A <*> B == Sigma A (%_. B)"
+
+abbreviation (xsymbols)
+  Times1  (infixr "\<times>" 80)
+  "Times1 == Times"
+
+abbreviation (HTML output)
+  Times2  (infixr "\<times>" 80)
+  "Times2 == Times"
+
+
+subsubsection {* Concrete syntax *}
 
 text {*
   Patterns -- extends pre-defined type @{typ pttrn} used in
@@ -116,7 +140,6 @@ syntax
   ""            :: "pttrn => patterns"                  ("_")
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
   "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" 10)
-  "@Times" ::"['a set,  'a => 'b set] => ('a * 'b) set" (infixr "<*>" 80)
 
 translations
   "(x, y)"       == "Pair x y"
@@ -126,9 +149,7 @@ translations
   "_abs (Pair x y) t" => "%(x,y).t"
   (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
-
-  "SIGMA x:A. B" => "Sigma A (%x. B)"
-  "A <*> B"      => "Sigma A (%_. B)"
+  "SIGMA x:A. B" == "Sigma A (%x. B)"
 
 (* reconstructs pattern from (nested) splits, avoiding eta-contraction of body*)
 (* works best with enclosing "let", if "let" does not avoid eta-contraction   *)
@@ -157,7 +178,6 @@ in [("split", split_tr')]
 end
 *}
 
-
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation {*
 let
@@ -184,33 +204,11 @@ in [("split", split_guess_names_tr')]
 end 
 *}
 
-text{*Deleted x-symbol and html support using @{text"\<Sigma>"} (Sigma) because of the danger of confusion with Sum.*}
-
-syntax (xsymbols)
-  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
-
-syntax (HTML output)
-  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
-
-print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
-
-
-subsubsection {* Definitions *}
-
-defs
-  Pair_def:     "Pair a b == Abs_Prod(Pair_Rep a b)"
-  fst_def:      "fst p == THE a. EX b. p = (a, b)"
-  snd_def:      "snd p == THE b. EX a. p = (a, b)"
-  split_def:    "split == (%c p. c (fst p) (snd p))"
-  curry_def:    "curry == (%c x y. c (x,y))"
-  prod_fun_def: "prod_fun f g == split(%x y.(f(x), g(y)))"
-  Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
-
 
 subsubsection {* Lemmas and proof tool setup *}
 
 lemma ProdI: "Pair_Rep a b : Prod"
-  by (unfold Prod_def) blast
+  unfolding Prod_def by blast
 
 lemma Pair_Rep_inject: "Pair_Rep a b = Pair_Rep a' b' ==> a = a' & b = b'"
   apply (unfold Pair_Rep_def)
@@ -235,10 +233,10 @@ lemma Pair_eq [iff]: "((a, b) = (a', b')) = (a = a' & b = b')"
   by (blast elim!: Pair_inject)
 
 lemma fst_conv [simp]: "fst (a, b) = a"
-  by (unfold fst_def) blast
+  unfolding fst_def by blast
 
 lemma snd_conv [simp]: "snd (a, b) = b"
-  by (unfold snd_def) blast
+  unfolding snd_def by blast
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
   by simp
@@ -255,7 +253,7 @@ lemma PairE_lemma: "EX x y. p = (x, y)"
   done
 
 lemma PairE [cases type: *]: "(!!x y. p = (x, y) ==> Q) ==> Q"
-  by (insert PairE_lemma [of p]) blast
+  using PairE_lemma [of p] by blast
 
 ML {*
   local val PairE = thm "PairE" in
@@ -281,12 +279,11 @@ lemma split_paired_all: "(!!x. PROP P x) == (!!a b. PROP P (a, b))"
 proof
   fix a b
   assume "!!x. PROP P x"
-  thus "PROP P (a, b)" .
+  then show "PROP P (a, b)" .
 next
   fix x
   assume "!!a b. PROP P (a, b)"
-  hence "PROP P (fst x, snd x)" .
-  thus "PROP P x" by simp
+  from `PROP P (fst x, snd x)` show "PROP P x" by simp
 qed
 
 lemmas split_tupled_all = split_paired_all unit_all_eq2

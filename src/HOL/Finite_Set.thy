@@ -803,6 +803,10 @@ constdefs
   setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
   "setsum f A == if finite A then fold (op +) f 0 A else 0"
 
+abbreviation
+  Setsum  ("\<Sum>_" [1000] 999)
+  "\<Sum>A == setsum (%x. x) A"
+
 text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
 written @{text"\<Sum>x\<in>A. e"}. *}
 
@@ -831,30 +835,17 @@ translations
   "SUM x|P. t" => "setsum (%x. t) {x. P}"
   "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
 
-text{* Finally we abbreviate @{term"\<Sum>x\<in>A. x"} by @{text"\<Sum>A"}. *}
-
-syntax
-  "_Setsum" :: "'a set => 'a::comm_monoid_mult"  ("\<Sum>_" [1000] 999)
-
-parse_translation {*
-  let
-    fun Setsum_tr [A] = Syntax.const "setsum" $ Term.absdummy (dummyT, Bound 0) $ A
-  in [("_Setsum", Setsum_tr)] end;
-*}
-
 print_translation {*
 let
-  fun setsum_tr' [Abs(_,_,Bound 0), A] = Syntax.const "_Setsum" $ A
-    | setsum_tr' [Abs(x,Tx,t), Const ("Collect",_) $ Abs(y,Ty,P)] = 
-       if x<>y then raise Match
-       else let val x' = Syntax.mark_bound x
-                val t' = subst_bound(x',t)
-                val P' = subst_bound(x',P)
-            in Syntax.const "_qsetsum" $ Syntax.mark_bound x $ P' $ t' end
-in
-[("setsum", setsum_tr')]
-end
+  fun setsum_tr' [Abs(x,Tx,t), Const ("Collect",_) $ Abs(y,Ty,P)] = 
+    if x<>y then raise Match
+    else let val x' = Syntax.mark_bound x
+             val t' = subst_bound(x',t)
+             val P' = subst_bound(x',P)
+         in Syntax.const "_qsetsum" $ Syntax.mark_bound x $ P' $ t' end
+in [("setsum", setsum_tr')] end
 *}
+
 
 lemma setsum_empty [simp]: "setsum f {} = 0"
   by (simp add: setsum_def)
@@ -995,10 +986,11 @@ lemma setsum_diff1'[rule_format]: "finite A \<Longrightarrow> a \<in> A \<longri
 (* By Jeremy Siek: *)
 
 lemma setsum_diff_nat: 
-  assumes finB: "finite B"
-  shows "B \<subseteq> A \<Longrightarrow> (setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
-using finB
-proof (induct)
+  assumes "finite B"
+    and "B \<subseteq> A"
+  shows "(setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
+  using prems
+proof induct
   show "setsum f (A - {}) = (setsum f A) - (setsum f {})" by simp
 next
   fix F x assume finF: "finite F" and xnotinF: "x \<notin> F"
@@ -1026,15 +1018,15 @@ lemma setsum_diff:
 proof -
   from le have finiteB: "finite B" using finite_subset by auto
   show ?thesis using finiteB le
-    proof (induct)
-      case empty
-      thus ?case by auto
-    next
-      case (insert x F)
-      thus ?case using le finiteB 
-	by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
-    qed
+  proof (induct)
+    case empty
+    thus ?case by auto
+  next
+    case (insert x F)
+    thus ?case using le finiteB 
+      by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
   qed
+qed
 
 lemma setsum_mono:
   assumes le: "\<And>i. i\<in>K \<Longrightarrow> f (i::'a) \<le> ((g i)::('b::{comm_monoid_add, pordered_ab_semigroup_add}))"
@@ -1042,13 +1034,12 @@ lemma setsum_mono:
 proof (cases "finite K")
   case True
   thus ?thesis using le
-  proof (induct)
+  proof induct
     case empty
     thus ?case by simp
   next
     case insert
-    thus ?case using add_mono 
-      by force
+    thus ?case using add_mono by fastsimp
   qed
 next
   case False
@@ -1057,10 +1048,11 @@ next
 qed
 
 lemma setsum_strict_mono:
-fixes f :: "'a \<Rightarrow> 'b::{pordered_cancel_ab_semigroup_add,comm_monoid_add}"
-assumes fin_ne: "finite A"  "A \<noteq> {}"
-shows "(!!x. x:A \<Longrightarrow> f x < g x) \<Longrightarrow> setsum f A < setsum g A"
-using fin_ne
+  fixes f :: "'a \<Rightarrow> 'b::{pordered_cancel_ab_semigroup_add,comm_monoid_add}"
+  assumes "finite A"  "A \<noteq> {}"
+    and "!!x. x:A \<Longrightarrow> f x < g x"
+  shows "setsum f A < setsum g A"
+  using prems
 proof (induct rule: finite_ne_induct)
   case singleton thus ?case by simp
 next
@@ -1068,7 +1060,7 @@ next
 qed
 
 lemma setsum_negf:
- "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
+  "setsum (%x. - (f x)::'a::ab_group_add) A = - setsum f A"
 proof (cases "finite A")
   case True thus ?thesis by (induct set: Finites, auto)
 next
@@ -1076,8 +1068,8 @@ next
 qed
 
 lemma setsum_subtractf:
- "setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
-  setsum f A - setsum g A"
+  "setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
+    setsum f A - setsum g A"
 proof (cases "finite A")
   case True thus ?thesis by (simp add: diff_minus setsum_addf setsum_negf)
 next
@@ -1085,27 +1077,33 @@ next
 qed
 
 lemma setsum_nonneg:
-assumes nn: "\<forall>x\<in>A. (0::'a::{pordered_ab_semigroup_add,comm_monoid_add}) \<le> f x"
-shows "0 \<le> setsum f A"
+  assumes nn: "\<forall>x\<in>A. (0::'a::{pordered_ab_semigroup_add,comm_monoid_add}) \<le> f x"
+  shows "0 \<le> setsum f A"
 proof (cases "finite A")
   case True thus ?thesis using nn
-  apply (induct set: Finites, auto)
-  apply (subgoal_tac "0 + 0 \<le> f x + setsum f F", simp)
-  apply (blast intro: add_mono)
-  done
+  proof (induct)
+    case empty then show ?case by simp
+  next
+    case (insert x F)
+    then have "0 + 0 \<le> f x + setsum f F" by (blast intro: add_mono)
+    with insert show ?case by simp
+  qed
 next
   case False thus ?thesis by (simp add: setsum_def)
 qed
 
 lemma setsum_nonpos:
-assumes np: "\<forall>x\<in>A. f x \<le> (0::'a::{pordered_ab_semigroup_add,comm_monoid_add})"
-shows "setsum f A \<le> 0"
+  assumes np: "\<forall>x\<in>A. f x \<le> (0::'a::{pordered_ab_semigroup_add,comm_monoid_add})"
+  shows "setsum f A \<le> 0"
 proof (cases "finite A")
   case True thus ?thesis using np
-  apply (induct set: Finites, auto)
-  apply (subgoal_tac "f x + setsum f F \<le> 0 + 0", simp)
-  apply (blast intro: add_mono)
-  done
+  proof (induct)
+    case empty then show ?case by simp
+  next
+    case (insert x F)
+    then have "f x + setsum f F \<le> 0 + 0" by (blast intro: add_mono)
+    with insert show ?case by simp
+  qed
 next
   case False thus ?thesis by (simp add: setsum_def)
 qed
@@ -1277,6 +1275,10 @@ constdefs
   setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
   "setprod f A == if finite A then fold (op *) f 1 A else 1"
 
+abbreviation
+  Setprod  ("\<Prod>_" [1000] 999)
+  "\<Prod>A == setprod (%x. x) A"
+
 syntax
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(3PROD _:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
@@ -1301,24 +1303,6 @@ syntax (HTML output)
 translations
   "PROD x|P. t" => "setprod (%x. t) {x. P}"
   "\<Prod>x|P. t" => "setprod (%x. t) {x. P}"
-
-text{* Finally we abbreviate @{term"\<Prod>x\<in>A. x"} by @{text"\<Prod>A"}. *}
-
-syntax
-  "_Setprod" :: "'a set => 'a::comm_monoid_mult"  ("\<Prod>_" [1000] 999)
-
-parse_translation {*
-  let
-    fun Setprod_tr [A] = Syntax.const "setprod" $ Abs ("", dummyT, Bound 0) $ A
-  in [("_Setprod", Setprod_tr)] end;
-*}
-print_translation {*
-let fun setprod_tr' [Abs(x,Tx,t), A] =
-    if t = Bound 0 then Syntax.const "_Setprod" $ A else raise Match
-in
-[("setprod", setprod_tr')]
-end
-*}
 
 
 lemma setprod_empty [simp]: "setprod f {} = 1"
