@@ -356,28 +356,28 @@ val distinctN = "constr_distinct";
 
 exception ConstrDistinct of term;
 
-fun distinct_proc sg ss (t as Const ("op =", _) $ t1 $ t2) =
+fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
   (case (stripC (0, t1), stripC (0, t2)) of
      ((i, Const (cname1, T1)), (j, Const (cname2, T2))) =>
          (case (stripT (0, T1), stripT (0, T2)) of
             ((i', Type (tname1, _)), (j', Type (tname2, _))) =>
                 if tname1 = tname2 andalso not (cname1 = cname2) andalso i = i' andalso j = j' then
-                   (case (get_datatype_descr sg) tname1 of
+                   (case (get_datatype_descr thy) tname1 of
                       SOME (_, (_, constrs)) => let val cnames = map fst constrs
                         in if cname1 mem cnames andalso cname2 mem cnames then
                              let val eq_t = Logic.mk_equals (t, Const ("False", HOLogic.boolT));
-                                 val eq_ct = cterm_of sg eq_t;
-                                 val Datatype_thy = theory "Datatype";
+                                 val eq_ct = cterm_of thy eq_t;
+                                 val Datatype_thy = ThyInfo.the_theory "Datatype" thy;
                                  val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
                                    map (get_thm Datatype_thy o Name)
                                      ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
-                             in (case (#distinct (the_datatype sg tname1)) of
+                             in (case (#distinct (the_datatype thy tname1)) of
                                  QuickAndDirty => SOME (Thm.invoke_oracle
-                                   Datatype_thy distinctN (sg, ConstrDistinct eq_t))
-                               | FewConstrs thms => SOME (Goal.prove sg [] [] eq_t (K
+                                   Datatype_thy distinctN (thy, ConstrDistinct eq_t))
+                               | FewConstrs thms => SOME (Goal.prove thy [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
                                     atac 2, resolve_tac thms 1, etac FalseE 1])))
-                               | ManyConstrs (thm, simpset) => SOME (Goal.prove sg [] [] eq_t (K
+                               | ManyConstrs (thm, simpset) => SOME (Goal.prove thy [] [] eq_t (K
                                    (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
                                     full_simp_tac (Simplifier.inherit_context ss simpset) 1,
                                     REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
@@ -390,7 +390,7 @@ fun distinct_proc sg ss (t as Const ("op =", _) $ t1 $ t2) =
                 else NONE
           | _ => NONE)
    | _ => NONE)
-  | distinct_proc sg _ _ = NONE;
+  | distinct_proc thy _ _ = NONE;
 
 val distinct_simproc =
   Simplifier.simproc HOL.thy distinctN ["s = t"] distinct_proc;
