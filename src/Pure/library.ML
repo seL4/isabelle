@@ -67,10 +67,11 @@ sig
   val get_exn: 'a result -> exn option
 
   (*errors*)
+  exception SYS_ERROR of string
+  val sys_error: string -> 'a
   exception ERROR of string
   val error: string -> 'a
   val cat_error: string -> string -> 'a
-  val sys_error: string -> 'a
   val assert: bool -> string -> unit
   val deny: bool -> string -> unit
   val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
@@ -405,14 +406,14 @@ fun get_exn (Exn exn) = SOME exn
 
 (* errors *)
 
-exception ERROR of string;
+exception SYS_ERROR of string;
+fun sys_error msg = raise SYS_ERROR msg;
 
+exception ERROR of string;
 fun error msg = raise ERROR msg;
 
 fun cat_error "" msg = error msg
   | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
-
-fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
