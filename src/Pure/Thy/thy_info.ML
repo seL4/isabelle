@@ -32,6 +32,7 @@ sig
   val if_known_thy: (string -> unit) -> string -> unit
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
+  val the_theory: string -> theory -> theory
   val get_preds: string -> string list
   val loaded_files: string -> Path.T list
   val touch_child_thys: string -> unit
@@ -194,6 +195,10 @@ fun get_theory name =
   (case lookup_theory name of
     (SOME theory) => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
+
+fun the_theory name thy =
+  if Context.theory_name thy = name then thy
+  else get_theory name;
 
 fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory));
 
