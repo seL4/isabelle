@@ -33,20 +33,19 @@ syntax (HTML output)
   "less_eq"     :: "['a::ord, 'a] => bool"             ("op \<le>")
   "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
-text{* Syntactic sugar: *}
+abbreviation (input)
+  greater  (infixl ">" 50)
+  "x > y == y < x"
+  greater_eq  (infixl ">=" 50)
+  "x >= y == y <= x"
 
-syntax
-  "_gt" :: "'a::ord => 'a => bool"             (infixl ">" 50)
-  "_ge" :: "'a::ord => 'a => bool"             (infixl ">=" 50)
-translations
-  "x > y"  => "y < x"
-  "x >= y" => "y <= x"
+abbreviation (xsymbols)
+  greater_eq1  (infixl "\<ge>" 50)
+  "x \<ge> y == x >= y"
 
-syntax (xsymbols)
-  "_ge"       :: "'a::ord => 'a => bool"             (infixl "\<ge>" 50)
-
-syntax (HTML output)
-  "_ge"       :: "['a::ord, 'a] => bool"             (infixl "\<ge>" 50)
+abbreviation (HTML output)
+  greater_eq2  (infixl "\<ge>" 50)
+  "greater_eq2 == greater_eq"
 
 
 subsection {* Monotonicity *}

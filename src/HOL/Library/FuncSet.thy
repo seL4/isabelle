@@ -19,14 +19,20 @@ constdefs
   "restrict" :: "['a => 'b, 'a set] => ('a => 'b)"
   "restrict f A == (%x. if x \<in> A then f x else arbitrary)"
 
+abbreviation
+  funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr "->" 60)
+  "A -> B == Pi A (%_. B)"
+
+abbreviation (xsymbols)
+  funcset1  (infixr "\<rightarrow>" 60)
+  "funcset1 == funcset"
+
 syntax
   "@Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
-  funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr "->" 60)
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3%_:_./ _)" [0,0,3] 3)
 
 syntax (xsymbols)
   "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
-  funcset :: "['a set, 'b set] => ('a => 'b) set"  (infixr "\<rightarrow>" 60)
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
 syntax (HTML output)
@@ -34,15 +40,12 @@ syntax (HTML output)
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
 translations
-  "PI x:A. B" => "Pi A (%x. B)"
-  "A -> B" => "Pi A (%_. B)"
+  "PI x:A. B" == "Pi A (%x. B)"
   "%x:A. f" == "restrict (%x. f) A"
 
 constdefs
   "compose" :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
   "compose A g f == \<lambda>x\<in>A. g (f x)"
-
-print_translation {* [("Pi", dependent_tr' ("@Pi", "funcset"))] *}
 
 
 subsection{*Basic Properties of @{term Pi}*}

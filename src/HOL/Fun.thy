@@ -39,23 +39,25 @@ translations
 *)
 
 constdefs
- override_on :: "('a => 'b) => ('a => 'b) => 'a set => ('a => 'b)"
-"override_on f g A == %a. if a : A then g a else f a"
+  override_on :: "('a => 'b) => ('a => 'b) => 'a set => ('a => 'b)"
+  "override_on f g A == %a. if a : A then g a else f a"
 
- id :: "'a => 'a"
-"id == %x. x"
+  id :: "'a => 'a"
+  "id == %x. x"
 
- comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
-"f o g == %x. f(g(x))"
+  comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
+  "f o g == %x. f(g(x))"
 
 text{*compatibility*}
 lemmas o_def = comp_def
 
-syntax (xsymbols)
-  comp :: "['b => 'c, 'a => 'b, 'a] => 'c"        (infixl "\<circ>" 55)
-syntax (HTML output)
-  comp :: "['b => 'c, 'a => 'b, 'a] => 'c"        (infixl "\<circ>" 55)
+abbreviation (xsymbols)
+  comp1  (infixl "\<circ>" 55)
+  "comp1 == comp"
 
+abbreviation (HTML output)
+  comp2  (infixl "\<circ>" 55)
+  "comp2 == comp"
 
 constdefs
   inj_on :: "['a => 'b, 'a set] => bool"         (*injective*)
