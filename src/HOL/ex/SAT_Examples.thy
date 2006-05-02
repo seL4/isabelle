@@ -64,6 +64,11 @@ e | f | (a & d) ;
 ~(c | (~p & (p | (q & ~q)))) |] ==> False"
 by satx
 
+text {* eta-Equivalence *}
+
+lemma "(ALL x. P x) | ~ All P"
+by sat
+
 ML {* reset sat.trace_sat; *}
 ML {* reset quick_and_dirty; *}
 

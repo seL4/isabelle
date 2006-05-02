@@ -242,6 +242,9 @@ let
 	(* trivial clauses during preprocessing, and otherwise our clause     *)
 	(* numbering would be off                                             *)
 	val non_triv_clauses  = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o prop_of) clauses
+	val _                 = if !trace_sat then
+			tracing ("Non-trivial clauses:\n" ^ space_implode "\n" (map (string_of_cterm o cprop_of) non_triv_clauses))
+		else ()
 	(* translate clauses from HOL terms to PropLogic.prop_formula *)
 	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o prop_of) non_triv_clauses Termtab.empty
 	val _                 = if !trace_sat then
@@ -333,12 +336,13 @@ fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm prems) 1) i;
 (*      (handling meta-logical connectives in B properly before negating),   *)
 (*      then replaces meta-logical connectives in the premises (i.e. "==>",  *)
 (*      "!!" and "==") by connectives of the HOL object-logic (i.e. by       *)
-(*      "-->", "!", and "=")                                                 *)
+(*      "-->", "!", and "="), then performs beta-eta-normalization           *)
 (* ------------------------------------------------------------------------- *)
 
 (* int -> Tactical.tactic *)
 
-fun pre_cnf_tac i = rtac ccontr i THEN ObjectLogic.atomize_tac i;
+fun pre_cnf_tac i = rtac ccontr i THEN ObjectLogic.atomize_tac i THEN
+  (fn st => Seq.single (Thm.equal_elim (Drule.beta_eta_conversion (cprop_of st)) st));
 
 (* ------------------------------------------------------------------------- *)
 (* cnfsat_tac: checks if the empty clause "False" occurs among the premises; *)
