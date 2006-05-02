@@ -230,15 +230,12 @@ fun innermost_params i st =
   in rename_wrt_term Bi (Logic.strip_params Bi) end;
 
 (*params of subgoal i as they are printed*)
-fun params_of_state st i =
-  let val (_, _, Bi, _) = dest_state(st,i)
-      val params = Logic.strip_params Bi
-  in rev(rename_wrt_term Bi params) end;
+fun params_of_state i st = rev (innermost_params i st);
 
 (*read instantiations with respect to subgoal i of proof state st*)
 fun read_insts_in_state (st, i, sinsts, rule) =
   let val thy = Thm.theory_of_thm st
-      and params = params_of_state st i
+      and params = params_of_state i st
       and rts = types_sorts rule and (types,sorts) = types_sorts st
       fun types'(a, ~1) = (case AList.lookup (op =) params a of NONE => types (a, ~1) | sm => sm)
         | types' ixn = types ixn;
@@ -249,7 +246,7 @@ fun read_insts_in_state (st, i, sinsts, rule) =
 fun lift_inst_rule' (st, i, sinsts, rule) =
 let val (Tinsts,insts) = read_insts_in_state (st, i, sinsts, rule)
     and {maxidx,...} = rep_thm st
-    and params = params_of_state st i
+    and params = params_of_state i st
     val paramTs = map #2 params
     and inc = maxidx+1
     fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> Logic.incr_tvar inc T)
@@ -283,7 +280,7 @@ NB: the types in insts must be correctly instantiated already,
 *)
 fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
 let val {maxidx,thy,...} = rep_thm st
-    val paramTs = map #2 (params_of_state st i)
+    val paramTs = map #2 (params_of_state i st)
     and inc = maxidx+1
     fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> Logic.incr_tvar inc T)
     (*lift only Var, not term, which must be lifted already*)
