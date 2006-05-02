@@ -13,20 +13,12 @@ import sys
 import os
 from os import path
 import posixpath
-import codecs
 import shlex
 import optparse
 import time
 
-# xml imports
-from xml.sax.saxutils import escape
-from xml.sax.saxutils import quoteattr
-from xml.sax import make_parser as makeParser
-from xml.sax.handler import ContentHandler
-from xml.sax.handler import EntityResolver
-from xml.sax.xmlreader import AttributesImpl as Attributes
-from xml.sax import SAXException
-from xml.sax import SAXParseException
+# xhtml parsing
+from xhtmlparse import TransformerHandler, parseWithER
 
 nbsp = unichr(160)
 
@@ -34,7 +26,7 @@ nbsp = unichr(160)
 outputEncoding = 'UTF-8'
 
 # implement your own functions for PIs here
-class Functions:
+class Functions(object):
 
     def __init__(self, pc, valdict, modtime, encodingMeta):
 
@@ -254,37 +246,13 @@ class PathCalculator:
 
         return common or ""
 
-# the XML transformer
-class TransformerHandler(ContentHandler, EntityResolver):
+class FunctionsHandler(TransformerHandler):
 
     def __init__(self, out, encoding, dtd, func):
 
-        ContentHandler.__init__(self)
-        #~ EntityResolver.__init__(self)
-        self._out = codecs.getwriter(encoding)(out)
-        self._ns_contexts = [{}] # contains uri -> prefix dicts
-        self._current_context = self._ns_contexts[-1]
-        self._undeclared_ns_maps = []
-        self._encoding = encoding
-        self._lastStart = False
+        super(FunctionsHandler, self).__init__(out, encoding, dtd)
         self._func = func
-        self._characterBuffer = {}
-        self._currentXPath = []
         self._title = None
-        self._init = False
-        self._dtd = dtd
-
-    def closeLastStart(self):
-
-        if self._lastStart:
-            self._out.write(u'>')
-            self._lastStart = False
-
-    def flushCharacterBuffer(self):
-
-        content = escape(u"".join(self._characterBuffer))
-        self._out.write(content)
-        self._characterBuffer = []
 
     def transformAbsPath(self, attrs, attrname):
 
@@ -300,42 +268,15 @@ class TransformerHandler(ContentHandler, EntityResolver):
         else:
             return attrs
 
-    def startDocument(self):
-
-        if not self._init:
-            if self._encoding.upper() != 'UTF-8':
-                self._out.write(u'<?xml version="1.0" encoding="%s"?>\n' %
-                                self._encoding)
-            else:
-                self._out.write(u'<?xml version="1.0"?>\n')
-            self._init = True
-
-    def startPrefixMapping(self, prefix, uri):
-
-        self._ns_contexts.append(self._current_context.copy())
-        self._current_context[uri] = prefix
-        self._undeclared_ns_maps.append((prefix, uri))
-
-    def endPrefixMapping(self, prefix):
-
-        self._current_context = self._ns_contexts[-1]
-        del self._ns_contexts[-1]
-
     def startElement(self, name, attrs):
 
         if name == u"dummy:wrapper":
             return
-        self.closeLastStart()
-        self.flushCharacterBuffer()
-        self._out.write(u'<' + name)
         # this list is not exhaustive
         for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
-        for (key, value) in attrs.items():
-            self._out.write(u' %s=%s' % (key, quoteattr(value)))
-        self._currentXPath.append(name)
-        self._lastStart = True
+        super(FunctionsHandler, self).startElement(name, attrs)
 
     def endElement(self, name):
 
@@ -343,67 +284,7 @@ class TransformerHandler(ContentHandler, EntityResolver):
             return
         elif name == u'title':
             self._title = u"".join(self._characterBuffer)
-        self.flushCharacterBuffer()
-        if self._lastStart:
-            self._out.write(u'/>')
-            self._lastStart = False
-        else:
-            self._out.write('</%s>' % name)
-        self._currentXPath.pop()
-
-    def startElementNS(self, name, qname, attrs):
-
-        self.closeLastStart()
-        self.flushCharacterBuffer()
-        if name[0] is None:
-            # if the name was not namespace-scoped, use the unqualified part
-            name = name[1]
-        else:
-            # else try to restore the original prefix from the namespace
-            name = self._current_context[name[0]] + u":" + name[1]
-        self._out.write(u'<' + name)
-
-        for pair in self._undeclared_ns_maps:
-            self._out.write(u' xmlns:%s="%s"' % pair)
-        self._undeclared_ns_maps = []
-
-        for (name, value) in attrs.items():
-            name = self._current_context[name[0]] + ":" + name[1]
-            self._out.write(' %s=%s' % (name, quoteattr(value)))
-        self._out.write('>')
-        self._currentXPath.append(name)
-
-    def endElementNS(self, name, qname):
-
-        self.flushCharacterBuffer()
-        if name[0] is None:
-            name = name[1]
-        else:
-            name = self._current_context[name[0]] + u":" + name[1]
-        if self._lastStart:
-            self._out.write(u'/>')
-            self._lastStart = False
-        else:
-            self._out.write(u'</%s>' % name)
-        self._currentXPath.pop()
-
-    def characters(self, content):
-
-        self.closeLastStart()
-        self._characterBuffer.append(content)
-
-    def ignorableWhitespace(self, content):
-
-        self.closeLastStart()
-        self.flushCharacterBuffer()
-        self._out.write(content)
-
-    def resolveEntity(self, publicId, systemId):
-
-        loc, name = posixpath.split(systemId)
-        if loc == u"http://www.w3.org/TR/xhtml1/DTD" or loc == u"":
-            systemId = path.abspath(path.join(self._dtd, name))
-        return EntityResolver.resolveEntity(self, publicId, systemId)
+        super(FunctionsHandler, self).endElement(name)
 
     def processingInstruction(self, target, data):
 
@@ -416,12 +297,6 @@ class TransformerHandler(ContentHandler, EntityResolver):
             args[key] = val
         func(self, **args)
 
-def parseWithER(istream, handler):
-
-    parser = makeParser()
-    parser.setContentHandler(handler)
-    parser.setEntityResolver(handler)
-    parser.parse(istream)
 
 def main():
 
@@ -491,7 +366,7 @@ def main():
 
     # process file
     try:
-        transformer = TransformerHandler(ostream, outputEncoding, options.dtd, func)
+        transformer = FunctionsHandler(ostream, outputEncoding, options.dtd, func)
         parseWithER(istream, transformer)
     except Exception:
         if dst is not None:

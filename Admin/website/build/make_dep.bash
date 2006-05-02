@@ -49,10 +49,11 @@ do
     echo '	-$(TIDYCMD) $@' >> "$DEP_FILE"
     echo '	chmod $(TARGET_UMASK_FILE) $@' >> "$DEP_FILE"
     echo '	chgrp $(TARGET_GROUP) $@' >> "$DEP_FILE"
-    allhtml="$allhtml$outputfile "; \
+    allhtml="$allhtml$outputfile "
     echo >> "$DEP_FILE"
-done; \
+done
 echo "DEP_ALLHTML=$allhtml" >> "$DEP_FILE"
 echo >> "$DEP_FILE"
 echo 'allsite: $(DEP_ALLHTML) $(DEP_ALLSTATIC)' >> "$DEP_FILE"
+echo '	$(PYTHON) build/obfusmail.py --dtd="dtd/" --dstroot="$(OUTPUTROOT)" --dstdir="img"' "$allhtml" >> "$DEP_FILE"
 echo ".PHONY: allsite" >> "$DEP_FILE"
