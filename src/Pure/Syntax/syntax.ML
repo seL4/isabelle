@@ -213,17 +213,18 @@ fun extend_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     val SynExt.SynExt {xprods, consts = consts2, prmodes = prmodes2,
       parse_ast_translation, parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation, token_translation} = syn_ext;
+    fun if_inout xs = if inout then xs else [];
   in
     Syntax
-    ({input = if inout then xprods @ input else input,
-      lexicon = if inout then Scan.extend_lexicon lexicon (SynExt.delims_of xprods) else lexicon,
-      gram = if inout then Parser.extend_gram gram xprods else gram,
-      consts = Library.merge (op =) (consts1, consts2),
+    ({input = if_inout xprods @ input,
+      lexicon = Scan.extend_lexicon lexicon (if_inout (SynExt.delims_of xprods)),
+      gram = Parser.extend_gram gram (if_inout xprods),
+      consts = Library.merge (op =) (consts1, filter_out NameSpace.is_qualified consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
-        extend_trtab "parse ast translation" parse_ast_translation parse_ast_trtab,
-      parse_ruletab = extend_ruletab parse_rules parse_ruletab,
-      parse_trtab = extend_trtab "parse translation" parse_translation parse_trtab,
+        extend_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
+      parse_ruletab = extend_ruletab (if_inout parse_rules) parse_ruletab,
+      parse_trtab = extend_trtab "parse translation" (if_inout parse_translation) parse_trtab,
       print_trtab = extend_tr'tab print_translation print_trtab,
       print_ruletab = extend_ruletab print_rules print_ruletab,
       print_ast_trtab = extend_tr'tab print_ast_translation print_ast_trtab,
@@ -243,6 +244,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
       print_ast_trtab, tokentrtab, prtabs} = tabs;
     val input' = if inout then subtract (op =) xprods input else input;
+    fun if_inout xs = if inout then xs else [];
   in
     Syntax
     ({input = input',
@@ -250,9 +252,9 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       gram = if inout then Parser.make_gram input' else gram,
       consts = consts,
       prmodes = prmodes,
-      parse_ast_trtab = remove_trtab parse_ast_translation parse_ast_trtab,
-      parse_ruletab = remove_ruletab parse_rules parse_ruletab,
-      parse_trtab = remove_trtab parse_translation parse_trtab,
+      parse_ast_trtab = remove_trtab (if_inout parse_ast_translation) parse_ast_trtab,
+      parse_ruletab = remove_ruletab (if_inout parse_rules) parse_ruletab,
+      parse_trtab = remove_trtab (if_inout parse_translation) parse_trtab,
       print_trtab = remove_tr'tab print_translation print_trtab,
       print_ruletab = remove_ruletab print_rules print_ruletab,
       print_ast_trtab = remove_tr'tab print_ast_translation print_ast_trtab,
