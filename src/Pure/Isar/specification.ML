@@ -111,7 +111,7 @@ val definition_i = gen_defs cert_specification;
 
 (* abbreviation *)
 
-fun gen_abbrevs prep prmode args ctxt =
+fun gen_abbrevs prep mode args ctxt =
   let
     fun abbrev (raw_var, raw_prop) ctxt' =
       let
@@ -124,11 +124,14 @@ fun gen_abbrevs prep prmode args ctxt =
           else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote x'));
       in
         ctxt'
-        |> LocalTheory.abbrev prmode ((x, mx), rhs)
+        |> LocalTheory.abbrev mode ((x, mx), rhs)
         |> pair (x, T)
       end;
 
-    val (cs, abbrs_ctxt) = ctxt |> fold_map abbrev args;
+    val (cs, abbrs_ctxt) = ctxt
+      |> ProofContext.set_syntax_mode mode
+      |> fold_map abbrev args
+      ||> ProofContext.restore_syntax_mode ctxt;
     val _ = LocalTheory.print_consts ctxt (K false) cs;
   in abbrs_ctxt end;
 
