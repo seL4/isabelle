@@ -336,13 +336,14 @@ fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm prems) 1) i;
 (*      (handling meta-logical connectives in B properly before negating),   *)
 (*      then replaces meta-logical connectives in the premises (i.e. "==>",  *)
 (*      "!!" and "==") by connectives of the HOL object-logic (i.e. by       *)
-(*      "-->", "!", and "="), then performs beta-eta-normalization           *)
+(*      "-->", "!", and "="), then performs beta-eta-normalization on the    *)
+(*      subgoal                                                              *)
 (* ------------------------------------------------------------------------- *)
 
 (* int -> Tactical.tactic *)
 
 fun pre_cnf_tac i = rtac ccontr i THEN ObjectLogic.atomize_tac i THEN
-  (fn st => Seq.single (Thm.equal_elim (Drule.beta_eta_conversion (cprop_of st)) st));
+                      PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (Drule.beta_eta_conversion)));
 
 (* ------------------------------------------------------------------------- *)
 (* cnfsat_tac: checks if the empty clause "False" occurs among the premises; *)
