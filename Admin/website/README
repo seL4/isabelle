@@ -53,7 +53,7 @@ The layer itself is implemented by a small tool "pypager", written in python.
 You may add arbitrary files to the dir structure, but adhere to the following:
 * use XHTML, not loose HTML
 * only structural markup; if you need layout effects, use CSS
-  (browse the exiting files to get some inspirations)
+  (browse the existing files to get some inspirations)
 * any files ending with .html are considered as HTML files and are implicitly
   processed by the preprocessing layer
 * for HTML includes, it is most convenient to name them *.include.html to
@@ -67,7 +67,7 @@ You may add arbitrary files to the dir structure, but adhere to the following:
   in abc/def/itsme.html: <a href="//abc/ghi/itsyou.html">
                 becomes: <a href="../def/itsyou.html">
 
-  Further, targets are checked for existance.
+  Further, targets are checked for existence.
   This is a simple yet powerful thing easing to keep the pages consistent.
 * for the semantics of the processing instructions, see build/pypager.py
   source code
