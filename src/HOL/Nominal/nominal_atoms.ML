@@ -672,6 +672,8 @@ fun create_nom_typedecls ak_names thy =
        val dj_supp             = thm "Nominal.dj_supp";
        val fresh_left_ineq     = thm "Nominal.pt_fresh_left_ineq";
        val fresh_left          = thm "Nominal.pt_fresh_left";
+       val fresh_right_ineq    = thm "Nominal.pt_fresh_right_ineq";
+       val fresh_right         = thm "Nominal.pt_fresh_right";
        val fresh_bij_ineq      = thm "Nominal.pt_fresh_bij_ineq";
        val fresh_bij           = thm "Nominal.pt_fresh_bij";
        val pt_pi_rev           = thm "Nominal.pt_pi_rev";
@@ -779,6 +781,10 @@ fun create_nom_typedecls ak_names thy =
 	      let val thms1 = inst_pt_at [fresh_left]
 		  and thms2 = inst_pt_pt_at_cp [fresh_left_ineq]
 	      in [(("fresh_left", thms1 @ thms2),[])] end
+            ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [fresh_right]
+		  and thms2 = inst_pt_pt_at_cp [fresh_right_ineq]
+	      in [(("fresh_right", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_bij]
 		  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
