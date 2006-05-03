@@ -175,15 +175,14 @@ by (simp add: fsingleton_def2)
 lemma fstreams_prefix: "<a> ooo s << t ==> EX tt. t = <a> ooo tt &  s << tt"
 apply (simp add: fsingleton_def2)
 apply (insert stream_prefix [of "Def a" s t], auto)
-by (drule stream.inverts, auto)
+by (auto simp add: stream.inverts)
 
 lemma fstreams_prefix': "x << <a> ooo z = (x = <> |  (EX y. x = <a> ooo y &  y << z))"
 apply (auto, case_tac "x=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (simp add: fsingleton_def2, auto)
-apply (drule stream.inverts, auto)
+apply (auto simp add: stream.inverts)
 apply (drule ax_flat [rule_format], simp)
-apply (drule stream.inverts, auto)
 by (erule sconc_mono)
 
 lemma ft_fstreams[simp]: "ft$(<a> ooo s) = Def a"
@@ -201,7 +200,7 @@ by auto
 
 lemma fstreams_mono: "<a> ooo b << <a> ooo c ==> b << c"
 apply (simp add: fsingleton_def2)
-by (drule stream.inverts, auto)
+by (auto simp add: stream.inverts)
 
 lemma fsmap_UU[simp]: "fsmap f$UU = UU"
 by (simp add: fsmap_def)
@@ -223,22 +222,20 @@ apply (case_tac "s=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (case_tac "y=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
-apply (drule stream.inverts, auto)
-apply (simp add: less_lift, auto)
-apply (rule monofun_cfun, auto)
+apply (auto simp add: stream.inverts)
+apply (simp add: less_lift)
 apply (case_tac "s=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (erule_tac x="ya" in allE)
 apply (drule stream_prefix, auto)
 apply (case_tac "y=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
-apply (drule stream.inverts, auto)
+apply (auto simp add: stream.inverts)
 apply (simp add: less_lift)
-apply (drule stream.inverts, auto)+
 apply (erule_tac x="tt" in allE)
 apply (erule_tac x="yb" in allE, auto)
 apply (simp add: less_lift)
-by (rule monofun_cfun, auto)
+by (simp add: less_lift)
 
 lemma fstreams_lub_lemma1: "[| chain Y; lub (range Y) = <a> ooo s |] ==> EX j t. Y j = <a> ooo t"
 apply (subgoal_tac "lub(range Y) ~= UU")

@@ -81,15 +81,15 @@ by (insert stream.injects [of a s b t], auto)
 lemma stream_prefix:
   "[| a && s << t; a ~= UU  |] ==> EX b tt. t = b && tt &  b ~= UU &  s << tt"
 apply (insert stream.exhaust [of t], auto)
-by (drule stream.inverts, auto)
+by (auto simp add: stream.inverts)
 
 lemma stream_prefix':
   "b ~= UU ==> x << b && z =
    (x = UU |  (EX a y. x = a && y &  a ~= UU &  a << b &  y << z))"
 apply (case_tac "x=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1],auto)
-apply (drule stream.inverts,auto)
-by (intro monofun_cfun,auto)
+by (auto simp add: stream.inverts)
+
 
 (*
 lemma stream_prefix1: "[| x<<y; xs<<ys |] ==> x&&xs << y&&ys"
@@ -99,9 +99,9 @@ by (insert stream_prefix' [of y "x&&xs" ys],force)
 lemma stream_flat_prefix:
   "[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
 apply (case_tac "y=UU",auto)
-apply (drule stream.inverts,auto)
-apply (drule ax_flat [rule_format],simp)
-by (drule stream.inverts,auto)
+apply (auto simp add: stream.inverts)
+by (drule ax_flat [rule_format],simp)
+
 
 
 
@@ -324,7 +324,7 @@ lemma stream_finite_less: "stream_finite s ==> !t. t<<s --> stream_finite t"
 apply (erule stream_finite_ind [of s], auto)
 apply (case_tac "t=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1],auto)
-apply (drule stream.inverts, auto)
+apply (auto simp add: stream.inverts)
 apply (erule_tac x="y" in allE, simp)
 by (rule stream_finite_lemma1, simp)
 
@@ -456,7 +456,7 @@ apply (erule stream_finite_ind [of s], auto)
 apply (case_tac "t=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (erule_tac x="y" in allE, auto)
-by (drule stream.inverts, auto)
+by (auto simp add: stream.inverts)
 
 lemma slen_mono: "s << t ==> #s <= #t"
 apply (case_tac "stream_finite t")
@@ -486,7 +486,7 @@ apply (simp add: Suc_ile_eq)
 apply (case_tac "y=UU", clarsimp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)+
 apply (erule_tac x="ya" in allE, simp)
-apply (drule stream.inverts,auto)
+apply (auto simp add: stream.inverts)
 by (drule ax_flat [rule_format], simp)
 
 lemma slen_strict_mono_lemma:
@@ -494,7 +494,7 @@ lemma slen_strict_mono_lemma:
 apply (erule stream_finite_ind, auto)
 apply (case_tac "sa=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
-apply (drule stream.inverts, simp, simp, clarsimp)
+apply (simp add: stream.inverts, clarsimp)
 by (drule ax_flat [rule_format], simp)
 
 lemma slen_strict_mono: "[|stream_finite t; s ~= t; s << (t::'a::flat stream) |] ==> #s < #t"

@@ -53,23 +53,17 @@ lemma dnat_flat: "ALL x y::dnat. x<<y --> x=UU | x=y"
     apply fast
    apply (rule allI)
    apply (rule_tac x = y in dnat.casedist)
-     apply (fast intro!: UU_I)
+     apply simp
     apply simp
    apply (simp add: dnat.dist_les)
   apply (rule allI)
   apply (rule_tac x = y in dnat.casedist)
     apply (fast intro!: UU_I)
+   apply (thin_tac "ALL y. d << y --> d = UU | d = y")
    apply (simp add: dnat.dist_les)
-  apply (simp (no_asm_simp) add: dnat.rews)
-  apply (intro strip)
-  apply (subgoal_tac "d << da")
-   apply (erule allE)
-   apply (drule mp)
-    apply assumption
-   apply (erule disjE)
-    apply (tactic "contr_tac 1")
-   apply simp
-  apply (erule (1) dnat.inverts)
+  apply (simp (no_asm_simp) add: dnat.rews dnat.injects dnat.inverts)
+  apply (drule_tac x="da" in spec)
+  apply simp
   done
 
 end

@@ -82,7 +82,7 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
   IOA/meta_theory/CompoTraces.ML IOA/meta_theory/Sequence.ML \
   IOA/meta_theory/Seq.thy IOA/meta_theory/RefCorrectness.thy \
   IOA/meta_theory/Automata.thy IOA/meta_theory/Traces.ML \
-  IOA/meta_theory/Seq.ML IOA/meta_theory/RefMappings.ML \
+  IOA/meta_theory/RefMappings.ML \
   IOA/meta_theory/ShortExecutions.thy IOA/meta_theory/ShortExecutions.ML \
   IOA/meta_theory/IOA.thy \
   IOA/meta_theory/Sequence.thy IOA/meta_theory/Automata.ML \

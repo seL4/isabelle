@@ -281,16 +281,15 @@ qed"Cons_inject_eq";
 
 Goal "(a>>s<<b>>t) = (a = b & s<<t)";
 by (simp_tac (simpset() addsimps [Consq_def2]) 1);
-by (stac (Def_inject_less_eq RS sym) 1);
+by (simp_tac (simpset() addsimps [seq.inverts]) 1);
+(*by (stac (Def_inject_less_eq RS sym) 1);
 back();
 by (rtac iffI 1);
-(* 1 *)
 by (etac (hd seq.inverts) 1);
 by (REPEAT(rtac Def_not_UU 1));
-(* 2 *)
 by (Asm_full_simp_tac 1);
 by (etac conjE 1);
-by (etac monofun_cfun_arg 1);
+by (etac monofun_cfun_arg 1);*)
 qed"Cons_inject_less_eq";
 
 Goal "seq_take (Suc n)$(a>>x) = a>> (seq_take n$x)";
@@ -844,7 +843,7 @@ section "take_lemma";
 
 Goal "(!n. seq_take n$x = seq_take n$x') = (x = x')";
 by (rtac iffI 1);
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by Auto_tac;
 qed"seq_take_lemma";
 
@@ -932,7 +931,7 @@ Goal "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ; \
 \              ==> A x --> (f x)=(g x)";
 by (case_tac "Forall Q x" 1);
 by (auto_tac (claset() addSDs [divide_Seq3],simpset()));
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by Auto_tac;
 qed"take_lemma_principle2";
 
@@ -953,7 +952,7 @@ Goal
 \                             = seq_take (Suc n)$(g (s1 @@ y>>s2)) |] \
 \              ==> A x --> (f x)=(g x)";
 by (rtac impI 1);
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);
@@ -975,7 +974,7 @@ Goal
 \                             = seq_take n$(g (s1 @@ y>>s2)) |] \
 \              ==> A x --> (f x)=(g x)";
 by (rtac impI 1);
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);
@@ -998,7 +997,7 @@ Goal
 \                        = seq_take (Suc n)$(g (y>>s)) |] \
 \              ==> A x --> (f x)=(g x)";
 by (rtac impI 1);
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);

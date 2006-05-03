@@ -680,7 +680,7 @@ Goal "!! A B. [| compatible A B; compatible B A; \
 \ --> Filter (%a. a:act A)$(mksch A B$tr$schA$schB) = schA";
 
 by (strip_tac 1);
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by (rtac mp 1);
 by (assume_tac 2);
 back();back();back();back();
@@ -920,7 +920,7 @@ Goal "!! A B. [| compatible A B; compatible B A; \
 \ --> Filter (%a. a:act B)$(mksch A B$tr$schA$schB) = schB";
 
 by (strip_tac 1);
-by (resolve_tac seq.take_lemmas 1);
+by (resolve_tac [seq.take_lemmas] 1);
 by (rtac mp 1);
 by (assume_tac 2);
 back();back();back();back();
