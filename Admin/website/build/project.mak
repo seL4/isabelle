@@ -7,7 +7,7 @@ conf/distinfo.mak:
 	@echo 'If you have no makedist at hand, check out default $@ from CVS'; \
 	@false; \
 
-STATICDIRS=css img media misc
+STATICDIRS=css img media misc js
 STATICFILES=include/documentationdist.include.html
 OUTPUTDIST_REL=dist-$(DISTNAME)
 OUTPUTDIST=$(OUTPUTROOT)/$(OUTPUTDIST_REL)

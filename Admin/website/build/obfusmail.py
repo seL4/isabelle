@@ -23,6 +23,18 @@ from xhtmlparse import TransformerHandler, parseWithER
 # global configuration
 outputEncoding = 'UTF-8'
 
+def split_mail(mail):
+
+    mail_arg = mail.split("?", 2)
+    if len(mail_arg) == 2:
+        mail, arg = mail_arg
+    else:
+        mail = mail_arg[0]
+        arg = None
+    name, host = mail.split("@", 2) 
+
+    return ((name, host), arg)
+
 class FindHandler(TransformerHandler):
 
     class DevZero(object):
@@ -31,11 +43,12 @@ class FindHandler(TransformerHandler):
 
             pass
 
-    def __init__(self, dtd, filename, mails):
+    def __init__(self, dtd, filename, mails, encs):
 
-        super(FindHandler, self).__init__(self.DevZero(), outputEncoding, dtd)
+        super(FindHandler, self).__init__(self.DevZero(), 'UTF-8', dtd)
         self.filename = filename
         self.mails = mails
+        self.encs = encs
         self.pending_mail = None
 
     def startElement(self, name, attrs):
@@ -45,13 +58,18 @@ class FindHandler(TransformerHandler):
             if href.startswith(u'mailto:'):
                 self.pending_mail = href[7:]
         super(FindHandler, self).startElement(name, attrs)
+        if name == u'meta' and attrs.get(u'http-equiv', u'').lower() == u'content-type':
+            content = attrs.get(u'content', u'')
+            if content.startswith(u'text/html; charset='):
+                self.encs[self.filename] = content[19:]
 
     def endElement(self, name):
 
         if name == u'a':
             if self.pending_mail is not None:
-                if self.currentContent() != self.pending_mail:
-                    raise Exception("Inconsistent mail address: '%s' vs. '%s'" % (self.currentContent(), self.pending_mail))
+                baremail = "%s@%s" % split_mail(self.pending_mail)[0]
+                if self.currentContent() != baremail:
+                    raise Exception("In '%s', inconsistent mail address: '%s' vs. '%s'" % (self.filename, self.currentContent(), baremail))
                 self.mails[(self.filename, self.pending_mail)] = True
                 self.pending_mail = None
         super(FindHandler, self).endElement(name)
@@ -62,9 +80,9 @@ class FindHandler(TransformerHandler):
 
 class ReplaceHandler(TransformerHandler):
 
-    def __init__(self, out, dtd, filename, mails):
+    def __init__(self, out, dtd, filename, encoding, mails):
 
-        super(ReplaceHandler, self).__init__(out, outputEncoding, dtd)
+        super(ReplaceHandler, self).__init__(out, encoding, dtd)
         self.filename = filename
         self.pending_mail = None
         self.mails = mails
@@ -111,12 +129,17 @@ def obfuscate(mailaddr, htmlfile):
         if n != 0:
             raise Exception("shell cmd error: %s" % n)
 
-    name, host = mailaddr.split("@", 2)
-    imgname = (name + "_" + host).replace(".", "_"). replace("?", "_") + ".png"
+    ((name, host), arg) = split_mail(mailaddr)
+    baremail = "%s@%s" % (name, host)
+    imgname = (name + "_" + host).replace(".", "_") + ".png"
     imgfile = path.join(path.split(htmlfile)[0], imgname)
-    cmd("convert label:'%s' '%s'" % (mailaddr, imgfile))
-    mailsimple = u"{%s} AT [%s]" % (name, host)
-    mailscript = u" ".join(map(mk_line, ['<a href="', "mailto:", name, "@", host, '">']));
+    cmd("convert label:'%s' '%s'" % (baremail, imgfile))
+    if arg is not None:
+        mailsimple = u"{%s} AT [%s] WITH (%s)" % (name, host, arg)
+        mailscript = u" ".join(map(mk_line, ['<a href="', "mailto:", name, "@", host, "?", arg, '">']));
+    else:
+        mailsimple = u"{%s} AT [%s]" % (name, host)
+        mailscript = u" ".join(map(mk_line, ['<a href="', "mailto:", name, "@", host, '">']));
     mailimg = '<img src=%s style="vertical-align:middle" alt=%s />' % (quoteattr(imgname), quoteattr(mailsimple))
 
     return (mk_script(mailscript) + mailimg + mk_script(mk_line("</a>")))
@@ -139,22 +162,26 @@ def main():
 
     # find mails
     mails = {}
+    encs = {}
     for filename in filenames:
         istream = open(filename, 'r')
-        findhandler = FindHandler(options.dtd, filename, mails)
+        findhandler = FindHandler(options.dtd, filename, mails, encs)
         parseWithER(istream, findhandler)
         istream.close()
 
     # transform mails
     mails_subst = {}
+    filenames = {}
     for filename, mail in mails.iterkeys():
+        filenames[filename] = True
         mails_subst[(filename, mail)] = obfuscate(mail, filename)
 
     # transform pages
-    for filename in filenames:
+    for filename in filenames.iterkeys():
         istream = StringIO(open(filename, 'r').read())
         ostream = open(filename, 'wb')
-        replacehandler = ReplaceHandler(ostream, options.dtd, filename, mails_subst)
+        print "writing %s with %s" % (filename, encs.get(filename, outputEncoding))
+        replacehandler = ReplaceHandler(ostream, options.dtd, filename, encs.get(filename, outputEncoding), mails_subst)
         parseWithER(istream, replacehandler)
         ostream.close()
         istream.close()

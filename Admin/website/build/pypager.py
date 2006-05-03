@@ -273,7 +273,7 @@ class FunctionsHandler(TransformerHandler):
         if name == u"dummy:wrapper":
             return
         # this list is not exhaustive
-        for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href")):
+        for tagname, attrname in ((u"a", u"href"), (u"img", u"src"), (u"link", u"href"), (u"script", u"src")):
             if name == tagname:
                 attrs = self.transformAbsPath(attrs, attrname)
         super(FunctionsHandler, self).startElement(name, attrs)
