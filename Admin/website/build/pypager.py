@@ -218,7 +218,7 @@ class PathCalculator:
 
         loc = self.absDstPathOf(loc)
         loc = self.stripCommonPrefix(loc, self._dstRoot)
-        loc = self.stripCommonPrefix(loc, self._relLoc)
+        loc = posixpath.join(self._relRoot, loc)
         return loc
 
     def relLocOfThis(self):
