@@ -10,3 +10,6 @@
     * overview: Isabelle/HOL   
     * logics:   Isabelle system
   (to discuss)
+
+- world_map: automated generation from coordinate data
+- world_map: more content in HTML, less in java script

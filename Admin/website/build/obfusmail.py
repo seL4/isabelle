@@ -43,12 +43,11 @@ class FindHandler(TransformerHandler):
 
             pass
 
-    def __init__(self, dtd, filename, mails, encs):
+    def __init__(self, dtd, mails, enc):
 
         super(FindHandler, self).__init__(self.DevZero(), 'UTF-8', dtd)
-        self.filename = filename
         self.mails = mails
-        self.encs = encs
+        self.enc = enc
         self.pending_mail = None
 
     def startElement(self, name, attrs):
@@ -61,7 +60,7 @@ class FindHandler(TransformerHandler):
         if name == u'meta' and attrs.get(u'http-equiv', u'').lower() == u'content-type':
             content = attrs.get(u'content', u'')
             if content.startswith(u'text/html; charset='):
-                self.encs[self.filename] = content[19:]
+                self.enc = content[19:]
 
     def endElement(self, name):
 
@@ -69,8 +68,8 @@ class FindHandler(TransformerHandler):
             if self.pending_mail is not None:
                 baremail = "%s@%s" % split_mail(self.pending_mail)[0]
                 if self.currentContent() != baremail:
-                    raise Exception("In '%s', inconsistent mail address: '%s' vs. '%s'" % (self.filename, self.currentContent(), baremail))
-                self.mails[(self.filename, self.pending_mail)] = True
+                    raise Exception("Inconsistent mail address: '%s' vs. '%s'" % (self.currentContent(), baremail))
+                self.mails[self.pending_mail] = True
                 self.pending_mail = None
         super(FindHandler, self).endElement(name)
 
@@ -80,10 +79,9 @@ class FindHandler(TransformerHandler):
 
 class ReplaceHandler(TransformerHandler):
 
-    def __init__(self, out, dtd, filename, encoding, mails):
+    def __init__(self, out, dtd, encoding, mails):
 
         super(ReplaceHandler, self).__init__(out, encoding, dtd)
-        self.filename = filename
         self.pending_mail = None
         self.mails = mails
 
@@ -102,7 +100,7 @@ class ReplaceHandler(TransformerHandler):
         if name == u'a':
             if self.pending_mail is not None:
                 self.flushCharacterBuffer()
-                self._out.write(self.mails[(self.filename, self.pending_mail)])
+                self._out.write(self.mails[self.pending_mail])
                 self.pending_mail = None
                 return
 
@@ -148,7 +146,7 @@ def main():
 
     # parse command line
     cmdlineparser = optparse.OptionParser(
-        usage = '%prog [options] htmlfiles*',
+        usage = '%prog [options] htmlfile',
         conflict_handler = "error",
         description = '''Protecting mail adresses in html files by obfuscating''',
         add_help_option = True,
@@ -158,30 +156,28 @@ def main():
         type="string", default=".",
         help="local mirror of XHTML DTDs", metavar='location')
 
-    options, filenames = cmdlineparser.parse_args(sys.argv[1:])
+    options, (filename,) = cmdlineparser.parse_args(sys.argv[1:])
 
     # find mails
     mails = {}
-    encs = {}
-    for filename in filenames:
-        istream = open(filename, 'r')
-        findhandler = FindHandler(options.dtd, filename, mails, encs)
-        parseWithER(istream, findhandler)
-        istream.close()
+    enc = outputEncoding
+    istream = open(filename, 'r')
+    findhandler = FindHandler(options.dtd, mails, enc)
+    parseWithER(istream, findhandler)
+    enc = findhandler.enc
+    istream.close()
 
-    # transform mails
-    mails_subst = {}
-    filenames = {}
-    for filename, mail in mails.iterkeys():
-        filenames[filename] = True
-        mails_subst[(filename, mail)] = obfuscate(mail, filename)
-
-    # transform pages
-    for filename in filenames.iterkeys():
+    if mails:
+        # transform mails
+        mails_subst = {}
+        for mail in mails.iterkeys():
+            mails_subst[mail] = obfuscate(mail, filename)
+    
+        # transform pages
         istream = StringIO(open(filename, 'r').read())
         ostream = open(filename, 'wb')
-        print "writing %s with %s" % (filename, encs.get(filename, outputEncoding))
-        replacehandler = ReplaceHandler(ostream, options.dtd, filename, encs.get(filename, outputEncoding), mails_subst)
+        print "writing %s with %s" % (filename, enc)
+        replacehandler = ReplaceHandler(ostream, options.dtd, enc, mails_subst)
         parseWithER(istream, replacehandler)
         ostream.close()
         istream.close()

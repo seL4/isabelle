@@ -4,12 +4,95 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title>World map</title>
+    <title>Overview</title>
     <?include file="//include/htmlheader.include.html"?>
 </head>
 
 <body class="main">
+    <?include file="//include/header.include.html"?>
+    <div class="hr"><hr/></div>
+    <?include file="//include/navigation.include.html"?>
+    <div class="hr"><hr/></div>
+    <div id="content">
+
+      <h2>What is Isabelle?</h2> 
+      <p>
+      Isabelle is a generic proof assistant. It allows mathematical
+      formulas to be expressed in a formal language and provides tools
+      for proving those formulas in a logical calculus.  The main
+      application is the formalization of mathematical proofs and in
+      particular <em>formal verification</em>, which includes proving
+      the correctness of computer hardware or software and proving
+      properties of computer languages and protocols.</p>
     
+      <p>Compared with similar tools, Isabelle's distinguishing feature is its
+      flexibility. Most proof assistants are built around a single formal calculus,
+      typically higher-order logic. Isabelle has the capacity to accept a variety
+      of formal calculi. The distributed version supports higher-order logic but
+      also axiomatic set theory and several other formalisms. See
+      <a href="logics.html">logics</a> for more details.</p>
+
+      <p>Isabelle is a joint project between Lawrence C. Paulson
+      (University of Cambridge, UK) and Tobias Nipkow (Technical
+      University of Munich, Germany).</p>
+
+      <p>Isabelle is distributed <em>freely</em> as Open Source
+      Software <!--a href="//dist/Isabelle/COPYRIGHT"-->BSD
+      license<!--/a-->; see the <a
+      href="installation.html">installation instructions</a>.</p>
+
+      <h2>Preview of Isabelle</h2>
+
+        <a href="//media/pg_preview.mov">
+            <img class="left" src="//img/screenshot_isabelle_pg.png" alt="Isabelle Screenshot"
+                width="250" height="277" />
+        </a>
+
+        <p>Here is a <a href="//media/pg_preview.mov">hyperlinked preview</a> demonstrating
+        Isabelle and ProofGeneral, in <a href="http://www.apple.com/quicktime/download/">QuickTime
+        format</a> and in <a href="//media/pg_preview.pdf">PDF</a>.</p>
+        <br clear="all"/>
+
+      <h2>What Isabelle offers</h2>
+
+      <p>Isabelle provides excellent notational support: new notations
+      can be introduced, using normal mathematical symbols. Proofs can
+      be written in a structured notation based upon traditional proof
+      style, or more straightforwardly as sequences of
+      commands. Definitions and proofs may include TeX source, from
+      which Isabelle can automatically generate typeset documents.</p>
+
+      <p>The main limitation of all such proof systems is that proving
+      theorems requires much effort from an expert user. Isabelle
+      incorporates some tools to improve the user's productivity by
+      automating some parts of the proof process. In particular,
+      Isabelle's <em>classical reasoner</em> can perform long chains
+      of reasoning steps to prove formulas. The <em>simplifier</em>
+      can reason with and about equations. Linear <em>arithmetic</em>
+      facts are proved automatically.</p>
+
+      <p>Isabelle comes with a large theory library of formally
+      verified mathematics, including elementary number theory (for
+      example, Gauss's law of quadratic reciprocity), analysis (basic
+      properties of limits, derivatives and integrals), algebra (up to
+      Sylow's theorem) and set theory (the relative consistency of the
+      Axiom of Choice). Also provided are numerous examples arising
+      from research into formal verification.</p>
+
+      <p>With <em>Isar</em>, Isabelle offers a concise proof formulation language
+      which enables a user to write proof scripts naturally understandable for
+      both humans <em>and</em> computers.</p>
+      
+      <p>Isabelle is closely integrated with the <a href=
+      "http://proofgeneral.inf.ed.ac.uk/">ProofGeneral</a> user interface, which
+      eases the task of writing and maintaining proof scripts.</p>
+
+      <p>Ample <a href="documentation.html">documentation</a> is available
+      about using Isabelle and its inner concepts, including a
+      <a href="http://www4.in.tum.de/~nipkow/LNCS2283/">Tutorial</a> published by
+      Springer-Verlag.</p>
+
+    </div>
     <div class="hr"><hr/></div>
     <?include file="//include/footer.include.html"?>
 </body>

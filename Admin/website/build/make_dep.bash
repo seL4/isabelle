@@ -46,6 +46,7 @@ do
     echo '	-chgrp $(TARGET_GROUP) $(dir $@)' >> "$DEP_FILE"
     echo '	-[ -e $@ ] && rm $@' >> "$DEP_FILE"
     echo '	$(PYTHON) build/pypager.py --dtd="dtd/" $(FORCE_ENC_CMD) --srcroot="." --dstroot="$(OUTPUTROOT)" distname="$(DISTNAME)" $< $@' >> "$DEP_FILE"
+    echo '	$(PYTHON) build/obfusmail.py --dtd="dtd/" $@' >> "$DEP_FILE"
     echo '	-$(TIDYCMD) $@' >> "$DEP_FILE"
     echo '	chmod $(TARGET_UMASK_FILE) $@' >> "$DEP_FILE"
     echo '	chgrp $(TARGET_GROUP) $@' >> "$DEP_FILE"
@@ -55,5 +56,4 @@ done
 echo "DEP_ALLHTML=$allhtml" >> "$DEP_FILE"
 echo >> "$DEP_FILE"
 echo 'allsite: $(DEP_ALLHTML) $(DEP_ALLSTATIC)' >> "$DEP_FILE"
-echo '	$(PYTHON) build/obfusmail.py --dtd="dtd/"' "$allhtml" >> "$DEP_FILE"
 echo ".PHONY: allsite" >> "$DEP_FILE"
