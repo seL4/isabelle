@@ -143,7 +143,7 @@ ul.shellcmd li:before {
     font-weight: bold;
 }
 
-/* the faq */
+/* faqs */
 dl.faq dt {
     background-color: #8080F0;
     padding: 3px;
@@ -154,6 +154,21 @@ dl.faq dt {
 dl.faq dd {
     padding: 3px;
     margin-top: 3px;
+}
+
+/* generic celled tables */
+table.celled {
+    margin-top: 2ex;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    border-spacing: 4px;
+}
+
+table.celled tr td {
+    text-align: left;
+    background-color: #C0C0E0;
+    padding: 0.4ex 1em 0.4ex 1em;
 }
 
 /* download tables */

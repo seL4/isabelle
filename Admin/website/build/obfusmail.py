@@ -100,6 +100,7 @@ class ReplaceHandler(TransformerHandler):
         if name == u'a':
             if self.pending_mail is not None:
                 self.flushCharacterBuffer()
+                self._lastStart = False
                 self._out.write(self.mails[self.pending_mail])
                 self.pending_mail = None
                 return
@@ -140,7 +141,8 @@ def obfuscate(mailaddr, htmlfile):
         mailscript = u" ".join(map(mk_line, ['<a href="', "mailto:", name, "@", host, '">']));
     mailimg = '<img src=%s style="vertical-align:middle" alt=%s />' % (quoteattr(imgname), quoteattr(mailsimple))
 
-    return (mk_script(mailscript) + mailimg + mk_script(mk_line("</a>")))
+    result = (mk_script(mailscript) + mailimg + mk_script(mk_line("</a>")))
+    return result
 
 def main():
 
