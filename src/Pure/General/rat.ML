@@ -10,6 +10,7 @@ sig
   type rat
   exception DIVZERO
   val zero: rat
+  val one: rat
   val rat_of_int: int -> rat
   val rat_of_intinf: IntInf.int -> rat
   val rat_of_quotient: IntInf.int * IntInf.int -> rat
@@ -39,6 +40,8 @@ datatype rat = Rat of bool * IntInf.int * IntInf.int;
 exception DIVZERO;
 
 val zero = Rat (true, 0, 1);
+
+val one = Rat (true, 1, 1);
 
 fun rat_of_intinf i =
   if i < 0
