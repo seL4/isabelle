@@ -1351,6 +1351,16 @@ lemma pt_fresh_bij1:
   shows "(pi\<bullet>a)\<sharp>(pi\<bullet>x)"
 using a by (simp add: pt_fresh_bij[OF pt, OF at])
 
+lemma pt_fresh_bij2:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     a:  "(pi\<bullet>a)\<sharp>(pi\<bullet>x)"
+  shows  "a\<sharp>x"
+using a by (simp add: pt_fresh_bij[OF pt, OF at])
+
 lemma pt_perm_fresh1:
   fixes a :: "'x"
   and   b :: "'x"
