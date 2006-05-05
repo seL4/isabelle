@@ -156,6 +156,27 @@ dl.faq dd {
     margin-top: 3px;
 }
 
+/* faked columns */
+table.column {
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.column tr td.column {
+    width: 50%;
+    vertical-align: top;
+    padding: 1em;
+}
+
+/* centered areas */
+div.center {
+    position: relative;
+    text-align: center;
+    width: 100%;
+}
+
 /* generic celled tables */
 table.celled {
     margin-top: 2ex;

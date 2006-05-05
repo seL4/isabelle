@@ -47,6 +47,12 @@ div#header a#univ_tum {
     right: 40px;
 }
 
+body.thesis div#header a#info_logo {
+    position: absolute;
+    top: 25px;
+    right: 40px;
+}
+
 div#header a#univ_cambridge {
     position: absolute;
     top: 25px;

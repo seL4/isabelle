@@ -68,7 +68,40 @@ div#footer {
     border-top: 2px solid #000000;
 }
 
-/* mirrorlist */
+/* mirrorlist layout */
 div.mirrorlist {
     display: none;
+}
+
+/* thesis announcement */
+body.thesis div#header {
+    height: 108px; 
+}
+
+body.thesis div#header p {
+    font-family: Arial,Helvetica,Verdana,sans-serif;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    margin: 0px;
+}
+
+body.thesis div#header h1 {
+    position: absolute;
+    top: 20px;
+    left: 0px;
+    right: 0px;
+    margin: 0px;
+    font-size: 3ex;
+}
+
+body.thesis div#header a#isabelle_logo {
+    position: absolute;
+    left: 0px;
+}
+
+body.thesis div#header a#info_logo {
+    position: absolute;
+    right: 0px;
 }
