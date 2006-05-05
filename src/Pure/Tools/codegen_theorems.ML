@@ -439,9 +439,9 @@ fun get_funs thy (c, ty) =
       |> filter_typ;
     val thms = case thms_funs
      of [] =>
-          Defs.specifications_of (Theory.defs_of thy) c
-          |> map (PureThy.get_thms thy o Name o fst o snd)
-          |> flat
+          Theory.definitions_of thy c
+          (* FIXME avoid dynamic name space lookup!? (via Thm.get_axiom_i etc.??) *)
+          |> maps (PureThy.get_thms thy o Name o #name)
           |> append (getf_first_list (map (fn f => f thy) (the_funs_extrs thy)) (c, ty))
           |> map (dest_fun thy)
           |> filter_typ

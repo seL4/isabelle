@@ -127,9 +127,9 @@ fun name_of_idf thy shallow idf =
 
 type deftab = (typ * thm) list Symtab.table;
 
-fun is_overloaded thy c = case Defs.specifications_of (Theory.defs_of thy) c
- of [] => true
-  | [(ty, _)] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
+fun is_overloaded thy c = case Theory.definitions_of thy c
+ of [] => true   (* FIXME false (!?) *)
+  | [{lhs = ty, ...}] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
   | _ => true;
 
 structure InstNameMangler = NameManglerFun (
@@ -152,9 +152,9 @@ structure ConstNameMangler = NameManglerFun (
     let
       val c' = idf_of_name thy nsp_overl c;
       val prefix = 
-        case (AList.lookup (Sign.typ_equiv thy)
-            (Defs.specifications_of (Theory.defs_of thy) c)) ty
-         of SOME (_, thyname) => NameSpace.append thyname nsp_overl
+        case (find_first (fn {lhs, ...} => Sign.typ_equiv thy (ty, lhs))
+            (Theory.definitions_of thy c))
+         of SOME {module, ...} => NameSpace.append module nsp_overl
           | NONE => if c = "op ="
               then
                 NameSpace.append
@@ -930,17 +930,17 @@ fun mk_tabs thy =
       |> Symtab.fold
           (fn (c, _) =>
             let
-              val deftab = Defs.specifications_of (Theory.defs_of thy) c
+              val deftab = Theory.definitions_of thy c
               val is_overl = (is_none o ClassPackage.lookup_const_class thy) c
-               andalso case deftab
+               andalso case deftab   (* is_overloaded (!?) *)
                of [] => false
-                | [(ty, _)] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
+                | [{lhs = ty, ...}] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
                 | _ => true;
             in if is_overl then (fn (overltab1, overltab2) => (
               overltab1
-              |> Symtab.update_new (c, map fst deftab),
+              |> Symtab.update_new (c, map #lhs deftab),
               overltab2
-              |> fold_map (fn (ty, _) => ConstNameMangler.declare thy (c, ty)) deftab
+              |> fold_map (fn {lhs = ty, ...} => ConstNameMangler.declare thy (c, ty)) deftab
               |-> (fn _ => I))) else I
             end) ((#2 o #constants o Consts.dest o #consts o Sign.rep_sg) thy)
       |> (fn (overltab1, overltab2) =>
