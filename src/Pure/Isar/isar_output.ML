@@ -439,10 +439,7 @@ val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.spli
 fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
 
 fun pretty_term_typ ctxt t =
-  (Syntax.const Syntax.constrainC $
-    ProofContext.extern_skolem ctxt t $
-    Syntax.term_of_typ (! show_sorts) (Term.fastype_of t))
-  |> ProofContext.pretty_term ctxt;
+  ProofContext.pretty_term ctxt (TypeInfer.constrain t (Term.fastype_of t));
 
 fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of;
 
