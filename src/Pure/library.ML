@@ -53,6 +53,7 @@ sig
   val perhaps: ('a -> 'a option) -> 'a -> 'a
   val eq_opt: ('a * 'b -> bool) -> 'a option * 'b option -> bool
   val merge_opt: ('a * 'a -> bool) -> 'a option * 'a option -> 'a option
+  val string_of_option: ('a -> string) -> 'a option -> string
 
   (*exceptions*)
   val try: ('a -> 'b) -> 'a -> 'b option
@@ -88,6 +89,7 @@ sig
   val apfst: ('a -> 'b) -> 'a * 'c -> 'b * 'c
   val apsnd: ('a -> 'b) -> 'c * 'a -> 'c * 'b
   val pairself: ('a -> 'b) -> 'a * 'a -> 'b * 'b
+  val string_of_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
 
   (*booleans*)
   val equal: ''a -> ''a -> bool
@@ -102,6 +104,7 @@ sig
   val change: 'a ref -> ('a -> 'a) -> unit
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val conditional: bool -> (unit -> unit) -> unit
+  val string_of_bool: bool -> string
 
   (*lists*)
   exception UnequalLengths
@@ -154,6 +157,7 @@ sig
   val prefixes: 'a list -> 'a list list
   val suffixes1: 'a list -> 'a list list
   val suffixes: 'a list -> 'a list list
+  val string_of_list: ('a -> string) -> 'a list -> string
 
   (*integers*)
   val gcd: IntInf.int * IntInf.int -> IntInf.int
@@ -369,6 +373,9 @@ fun merge_opt _ (NONE, y) = y
   | merge_opt _ (x, NONE) = x
   | merge_opt eq (SOME x, SOME y) = if eq (x, y) then SOME y else raise Option;
 
+fun string_of_option f NONE     = "NONE"
+  | string_of_option f (SOME x) = "SOME " ^ f x;
+
 
 (* exceptions *)
 
@@ -425,7 +432,6 @@ fun assert_all pred list msg =
   in ass list end;
 
 
-
 (** pairs **)
 
 fun pair x y = (x, y);
@@ -445,6 +451,7 @@ fun apfst f (x, y) = (f x, y);
 fun apsnd f (x, y) = (x, f y);
 fun pairself f (x, y) = (f x, f y);
 
+fun string_of_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
 
 (** booleans **)
@@ -454,12 +461,10 @@ fun pairself f (x, y) = (f x, f y);
 fun equal x y = x = y;
 fun not_equal x y = x <> y;
 
-
 (* operators for combining predicates *)
 
 fun p orf q = fn x => p x orelse q x;
 fun p andf q = fn x => p x andalso q x;
-
 
 (* predicates on lists *)
 
@@ -474,7 +479,6 @@ fun forall (pred: 'a -> bool) : 'a list -> bool =
   let fun boolf [] = true
         | boolf (x :: xs) = pred x andalso boolf xs
   in boolf end;
-
 
 (* flags *)
 
@@ -493,11 +497,13 @@ fun setmp flag value f x =
     val _ = flag := orig_value;
   in release result end;
 
-
 (* conditional execution *)
 
 fun conditional b f = if b then f () else ();
 
+(* convert a bool to a string *)
+
+fun string_of_bool b = if b then "true" else "false";
 
 
 (** lists **)
@@ -847,6 +853,11 @@ fun read_int cs = read_radixint (10, cs);
 
 fun oct_char s = chr (#1 (read_radixint (8, explode s)));
 
+(* convert a list to a string *)
+
+fun string_of_list f xs =
+  let val fxs = separate ", " (map f xs)
+  in  String.concat ("[" :: fxs @ ["]"])  end;
 
 
 (** strings **)
