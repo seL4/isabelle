@@ -104,7 +104,7 @@ exception EQN of string * typ * string;
 
 fun cycle g (xs, x) =
   if x mem xs then xs
-  else Library.foldl (cycle g) (x :: xs, List.concat (Graph.find_paths (fst g) (x, x)));
+  else Library.foldl (cycle g) (x :: xs, List.concat (Graph.irreducible_paths (fst g) (x, x)));
 
 fun add_rec_funs thy defs gr dep eqs module =
   let

@@ -162,7 +162,7 @@ fun the_superclasses thy class =
 fun get_superclass_derivation thy (subclass, superclass) =
   if subclass = superclass
     then SOME [subclass]
-    else case Graph.find_paths ((fst o fst o ClassData.get) thy) (subclass, superclass)
+    else case Graph.irreducible_paths ((fst o fst o ClassData.get) thy) (subclass, superclass)
       of [] => NONE
        | (p::_) => (SOME o filter (is_operational_class thy)) p;
 
