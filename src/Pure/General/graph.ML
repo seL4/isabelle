@@ -30,7 +30,6 @@ sig
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
   val subgraph: key list -> 'a T -> 'a T
-  val find_paths: 'a T -> key * key -> key list list
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -40,6 +39,7 @@ sig
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUPS*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a T * 'a T -> 'a T                                               (*exception DUPS*)
+  val irreducible_paths: 'a T -> key * key -> key list list
   exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception CYCLES*)
   val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception CYCLES*)
@@ -149,19 +149,6 @@ fun subgraph keys (Graph tab) =
   in Table.empty |> Table.fold subg tab |> Graph end;
 
 
-(* paths *)
-
-fun find_paths G (x, y) =
-  let
-    val (_, X) = reachable (imm_succs G) [x];
-    fun paths ps p =
-      if not (null ps) andalso eq_key (p, x) then [p :: ps]
-      else if member_keys X p andalso not (member_key ps p)
-      then maps (paths (p :: ps)) (imm_preds G p)
-      else [];
-  in paths [] y end;
-
-
 (* nodes *)
 
 fun new_node (x, info) (Graph tab) =
@@ -215,6 +202,28 @@ fun gen_merge add eq (Graph tab1, G2 as Graph tab2) =
 fun merge eq GG = gen_merge add_edge eq GG;
 
 
+(* irreducible paths -- Hasse diagram *)
+
+fun irreducible_preds G X path z =
+  let
+    fun red x x' = is_edge G (x, x') andalso not (eq_key (x', z));
+    fun irreds [] xs' = xs'
+      | irreds (x :: xs) xs' =
+          if not (member_keys X x) orelse eq_key (x, z) orelse member_key path x orelse
+            exists (red x) xs orelse exists (red x) xs'
+          then irreds xs xs'
+          else irreds xs (x :: xs');
+  in irreds (imm_preds G z) [] end;
+
+fun irreducible_paths G (x, y) =
+  let
+    val (_, X) = reachable (imm_succs G) [x];
+    fun paths path z =
+      if eq_key (x, z) then cons (z :: path)
+      else fold (paths (z :: path)) (irreducible_preds G X path z);
+  in if eq_key (x, y) andalso not (is_edge G (x, x)) then [[]] else paths [] y [] end;
+
+
 (* maintain acyclic graphs *)
 
 exception CYCLES of key list list;
@@ -222,7 +231,7 @@ exception CYCLES of key list list;
 fun add_edge_acyclic (x, y) G =
   if is_edge G (x, y) then G
   else
-    (case find_paths G (y, x) of
+    (case irreducible_paths G (y, x) of
       [] => add_edge (x, y) G
     | cycles => raise CYCLES (map (cons x) cycles));
 
