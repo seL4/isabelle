@@ -16,17 +16,14 @@ subsection {* Type @{text ind} *}
 
 typedecl ind
 
-consts
-  Zero_Rep      :: ind
-  Suc_Rep       :: "ind => ind"
-
-axioms
+axiomatization
+  Zero_Rep :: ind and
+  Suc_Rep :: "ind => ind"
+where
   -- {* the axiom of infinity in 2 parts *}
-  inj_Suc_Rep:          "inj Suc_Rep"
+  inj_Suc_Rep:          "inj Suc_Rep" and
   Suc_Rep_not_Zero_Rep: "Suc_Rep x \<noteq> Zero_Rep"
-finalconsts
-  Zero_Rep
-  Suc_Rep
+
 
 subsection {* Type nat *}
 
