@@ -9,23 +9,26 @@ are only tracked for non-overloaded definitions!
 signature DEFS =
 sig
   type T
-  val define: (string -> typ) -> (bool * string) * string
-    -> string * typ -> (string * typ) list -> T -> T
+  val define: (string -> typ) -> bool -> string -> string ->
+    string * typ -> (string * typ) list -> T -> T
   val empty: T
-  val specifications_of: T -> string -> (typ * (string * string)) list
+  val specifications_of: T -> string ->
+   (serial * {is_def: bool, module: string, name: string, lhs: typ, rhs: (string * typ) list}) list
   val merge: Pretty.pp -> T * T -> T
 end
 
 structure Defs: DEFS =
 struct
 
+
 (** datatype T **)
+
+type spec = {is_def: bool, module: string, name: string, lhs: typ, rhs: (string * typ) list};
 
 datatype T = Defs of
  {consts: typ Graph.T,
     (*constant declarations and dependencies*)
-  specified: (bool * string * string * typ) Inttab.table Symtab.table};
-    (*is proper definition?, theory name, specification name and const type*)
+  specified: spec Inttab.table Symtab.table};
 
 fun make_defs (consts, specified) = Defs {consts = consts, specified = specified};
 fun map_defs f (Defs {consts, specified}) = make_defs (f (consts, specified));
@@ -37,10 +40,11 @@ fun disjoint_types T U =
   (Type.raw_unify (T, Logic.incr_tvar (maxidx_of_typ T + 1) U) Vartab.empty; false)
     handle Type.TUNIFY => true;
 
-fun check_specified c (i, (_, a, _, T)) = Inttab.forall (fn (j, (_, b, _, U)) =>
-  i = j orelse not (Type.could_unify (T, U)) orelse disjoint_types T U orelse
-    error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
-      " for constant " ^ quote c));
+fun check_specified c (i, {lhs = T, name = a, ...}: spec) =
+  Inttab.forall (fn (j, {lhs = U, name = b, ...}: spec) =>
+    i = j orelse not (Type.could_unify (T, U)) orelse disjoint_types T U orelse
+      error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
+        " for constant " ^ quote c));
 
 
 (* define consts *)
@@ -49,14 +53,14 @@ fun err_cyclic cycles =
   error ("Cyclic dependency of constants:\n" ^
     cat_lines (map (space_implode " -> " o map quote o rev) cycles));
 
-fun define const_type ((is_def, thyname), name) lhs rhs = map_defs (fn (consts, specified) =>
+fun define const_type is_def module name lhs rhs = map_defs (fn (consts, specified) =>
   let
     fun declare (a, _) = Graph.default_node (a, const_type a);
     fun add_deps (a, bs) G = Graph.add_deps_acyclic (a, bs) G
       handle Graph.CYCLES cycles => err_cyclic cycles;
 
     val (c, T) = lhs;
-    val spec = (serial (), (is_def, name, thyname, T));
+    val spec = (serial (), {is_def = is_def, module = module, name = name, lhs = T, rhs = rhs});
     val no_overloading = Type.raw_instance (const_type c, T);
 
     val consts' =
@@ -69,10 +73,7 @@ fun define const_type ((is_def, thyname), name) lhs rhs = map_defs (fn (consts, 
   in (consts', specified') end);
 
 fun specifications_of (Defs {specified, ...}) c =
-  (map_filter
-    (fn (_, (false, _, _, _)) => NONE
-      | (_, (true, specname, thyname, ty)) => SOME (ty, (specname, thyname))) o Inttab.dest
-    o the_default Inttab.empty o Symtab.lookup specified) c;
+  Inttab.dest (the_default Inttab.empty (Symtab.lookup specified c));
 
 
 (* empty and merge *)
