@@ -371,6 +371,13 @@ fun type_tr' show_sorts (*"TYPE"*) (Type ("itself", [T])) ts =
   | type_tr' _ _ _ = raise Match;
 
 
+(* type constraints *)
+
+fun type_constraint_tr' show_sorts (*"_type_constraint_"*) (Type ("fun", [T, _])) (t :: ts) =
+      Term.list_comb (Lexicon.const SynExt.constrainC $ t $ TypeExt.term_of_typ show_sorts T, ts)
+  | type_constraint_tr' _ _ _ = raise Match;
+
+
 (* dependent / nondependent quantifiers *)
 
 fun variant_abs' (x, T, B) =
@@ -444,7 +451,8 @@ val pure_trfuns =
    ("_index", index_ast_tr')]);
 
 val pure_trfunsT =
-  [("_mk_ofclass", mk_ofclass_tr'), ("TYPE", type_tr')];
+  [("_mk_ofclass", mk_ofclass_tr'), ("TYPE", type_tr'),
+   ("_type_constraint_", type_constraint_tr')];
 
 fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);

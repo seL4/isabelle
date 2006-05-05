@@ -569,6 +569,7 @@ val proto_pure =
     ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
     ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy", "type => idt",        Mixfix ("'_()\\<Colon>_", [], 0)),
+    ("_type_constraint_", "'a",           NoSyn),
     ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
     ("==",       "['a, 'a] => prop",      InfixrName ("\\<equiv>", 2)),
     ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),

@@ -173,7 +173,8 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
           (ps, PVar (xi, snd (pretyp_of (K true) ([], T))))
       | pre_of (ps, Var (xi, T)) = constrain (ps, PVar (xi, var_param xi)) T
       | pre_of (ps, Free (x, T)) = constrain (ps, PFree (x, var_param (x, ~1))) T
-      | pre_of (ps, Const ("_type_constraint_", T) $ t) = constrain (pre_of (ps, t)) T
+      | pre_of (ps, Const ("_type_constraint_", Type ("fun", [T, _])) $ t) =
+          constrain (pre_of (ps, t)) T
       | pre_of (ps, Bound i) = (ps, PBound i)
       | pre_of (ps, Abs (x, T, t)) =
           let
@@ -431,7 +432,7 @@ fun basic_infer_types pp tsig const_type used freeze is_param ts Ts =
 
 fun constrain t T =
   if T = dummyT then t
-  else Const ("_type_constraint_", T) $ t;
+  else Const ("_type_constraint_", T --> T) $ t;
 
 
 (* user parameters *)
