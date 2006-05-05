@@ -394,7 +394,7 @@ lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
 lemma less_add: "(N, M0 + {#a#}) \<in> mult1 r ==>
     (\<exists>M. (M, M0) \<in> mult1 r \<and> N = M + {#a#}) \<or>
     (\<exists>K. (\<forall>b. b :# K --> (b, a) \<in> r) \<and> N = M0 + K)"
-  (concl is "?case1 (mult1 r) \<or> ?case2")
+  (is "_ \<Longrightarrow> ?case1 (mult1 r) \<or> ?case2")
 proof (unfold mult1_def)
   let ?r = "\<lambda>K a. \<forall>b. b :# K --> (b, a) \<in> r"
   let ?R = "\<lambda>N M. \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and> ?r K a"

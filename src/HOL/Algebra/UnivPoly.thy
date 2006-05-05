@@ -297,7 +297,7 @@ proof (rule up_eqI)
     then have "k <= n ==>
       (\<Oplus>j \<in> {..k}. (\<Oplus>i \<in> {..j}. a i \<otimes> b (j-i)) \<otimes> c (n-j)) =
       (\<Oplus>j \<in> {..k}. a j \<otimes> (\<Oplus>i \<in> {..k-j}. b i \<otimes> c (n-j-i)))"
-      (concl is "?eq k")
+      (is "_ \<Longrightarrow> ?eq k")
     proof (induct k)
       case 0 then show ?case by (simp add: Pi_def m_assoc)
     next
@@ -344,7 +344,7 @@ proof (rule up_eqI)
     then have "k <= n ==>
       (\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) =
       (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))"
-      (concl is "?eq k")
+      (is "_ \<Longrightarrow> ?eq k")
     proof (induct k)
       case 0 then show ?case by (simp add: Pi_def)
     next
