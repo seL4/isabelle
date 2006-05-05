@@ -213,7 +213,7 @@ fun arity_number (TSig {types = (_, types), ...}) a =
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
   | arity_sorts pp (TSig {classes, arities, ...}) a S =
       Sorts.mg_domain (#2 classes, arities) a S
-        handle Sorts.DOMAIN d => Sorts.domain_error pp d;
+        handle Sorts.CLASS_ERROR err => Sorts.class_error pp err;
 
 
 
@@ -385,7 +385,7 @@ fun unify (tsig as TSig {classes = (_, classes), arities, ...}) TU (tyenv, maxid
     fun gen_tyvar S = TVar (("'a", inc tyvar_count), S);
 
     fun mg_domain a S =
-      Sorts.mg_domain (classes, arities) a S handle Sorts.DOMAIN _ => raise TUNIFY;
+      Sorts.mg_domain (classes, arities) a S handle Sorts.CLASS_ERROR _ => raise TUNIFY;
 
     fun meet (_, []) tye = tye
       | meet (TVar (xi, S'), S) tye =
@@ -542,15 +542,18 @@ fun new_decl naming (c, decl) (space, types) =
 
 fun the_decl (_, types) = fst o the o Symtab.lookup types;
 
-fun change_types f = map_tsig (fn (classes, default, types, arities) =>
-  (classes, default, f types, arities));
+fun map_types f = map_tsig (fn (classes, default, types, arities) =>
+  let
+    val (space', tab') = f types;
+    val _ = assert (NameSpace.intern space' "dummy" = "dummy") "Illegal declaration of dummy type";
+  in (classes, default, (space', tab'), arities) end);
 
 fun syntactic types (Type (c, Ts)) =
       (case Symtab.lookup types c of SOME (Nonterminal, _) => true | _ => false)
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 
-fun add_abbrev naming (a, vs, rhs) tsig = tsig |> change_types (fn types =>
+fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg = cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote a);
     val rhs' = strip_sorts (no_tvars (cert_typ_syntax tsig rhs))
@@ -567,12 +570,12 @@ fun add_abbrev naming (a, vs, rhs) tsig = tsig |> change_types (fn types =>
 
 in
 
-fun add_types naming ps = change_types (fold (new_decl naming) (ps |> map (fn (c, n) =>
+fun add_types naming ps = map_types (fold (new_decl naming) (ps |> map (fn (c, n) =>
   if n < 0 then err_neg_args c else (c, LogicalType n))));
 
 val add_abbrevs = fold o add_abbrev;
 
-fun add_nonterminals naming = change_types o fold (new_decl naming) o map (rpair Nonterminal);
+fun add_nonterminals naming = map_types o fold (new_decl naming) o map (rpair Nonterminal);
 
 fun merge_types (types1, types2) =
   NameSpace.merge_tables (Library.eq_snd (op =)) (types1, types2) handle Symtab.DUPS (d :: _) =>
