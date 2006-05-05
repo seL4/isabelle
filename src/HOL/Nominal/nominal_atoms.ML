@@ -648,12 +648,13 @@ fun create_nom_typedecls ak_names thy =
          |> discrete_cp_inst "List.char" (thm "perm_char_def")
         end;
 
-
+ 
        (* abbreviations for some lemmas *)
        (*===============================*)
        val abs_fun_pi          = thm "Nominal.abs_fun_pi";
        val abs_fun_pi_ineq     = thm "Nominal.abs_fun_pi_ineq";
        val abs_fun_eq          = thm "Nominal.abs_fun_eq";
+       val abs_fun_eq'         = thm "Nominal.abs_fun_eq'";
        val dj_perm_forget      = thm "Nominal.dj_perm_forget";
        val dj_pp_forget        = thm "Nominal.dj_perm_perm_forget";
        val fresh_iff           = thm "Nominal.fresh_abs_fun_iff";
@@ -743,6 +744,7 @@ fun create_nom_typedecls ak_names thy =
            in
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
+            ||>> PureThy.add_thmss [(("alpha'", inst_pt_at [abs_fun_eq']),[])]
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij]),[])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_pt_at [pt_pi_rev];

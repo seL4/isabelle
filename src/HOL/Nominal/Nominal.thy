@@ -2536,6 +2536,53 @@ next
   qed
 qed
 
+lemma abs_fun_eq': 
+  fixes x :: "'a"
+  and   y :: "'a"
+  and   c :: "'x"
+  and   a :: "'x"
+  and   b :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+      and at: "at TYPE('x)"
+      and fr: "c\<noteq>a" "c\<noteq>b" "c\<sharp>x" "c\<sharp>y" 
+  shows "([a].x = [b].y) = ([(a,c)]\<bullet>x = [(b,c)]\<bullet>y)"
+proof (rule iffI)
+  assume eq0: "[a].x = [b].y"
+  show "[(a,c)]\<bullet>x = [(b,c)]\<bullet>y"
+  proof (cases "a=b")
+    case True then show ?thesis using eq0 by (simp add: pt_bij[OF pt, OF at] abs_fun_eq[OF pt, OF at])
+  next
+    case False 
+    have ineq: "a\<noteq>b" by fact
+    with eq0 have eq: "x=[(a,b)]\<bullet>y" and fr': "a\<sharp>y" by (simp_all add: abs_fun_eq[OF pt, OF at])
+    from eq have "[(a,c)]\<bullet>x = [(a,c)]\<bullet>[(a,b)]\<bullet>y" by (simp add: pt_bij[OF pt, OF at])
+    also have "\<dots> = ([(a,c)]\<bullet>[(a,b)])\<bullet>([(a,c)]\<bullet>y)" by (rule pt_perm_compose[OF pt, OF at])
+    also have "\<dots> = [(c,b)]\<bullet>y" using ineq fr fr' 
+      by (simp add: pt_fresh_fresh[OF pt, OF at] at_calc[OF at])
+    also have "\<dots> = [(b,c)]\<bullet>y" by (rule pt3[OF pt], rule at_ds5[OF at])
+    finally show ?thesis by simp
+  qed
+next
+  assume eq: "[(a,c)]\<bullet>x = [(b,c)]\<bullet>y"
+  thus "[a].x = [b].y"
+  proof (cases "a=b")
+    case True then show ?thesis using eq by (simp add: pt_bij[OF pt, OF at] abs_fun_eq[OF pt, OF at])
+  next
+    case False
+    have ineq: "a\<noteq>b" by fact
+    from fr have "([(a,c)]\<bullet>c)\<sharp>([(a,c)]\<bullet>x)" by (simp add: pt_fresh_bij[OF pt, OF at])
+    hence "a\<sharp>([(b,c)]\<bullet>y)" using eq fr by (simp add: at_calc[OF at])
+    hence fr0: "a\<sharp>y" using ineq fr by (simp add: pt_fresh_left[OF pt, OF at] at_calc[OF at])
+    from eq have "x = (rev [(a,c)])\<bullet>([(b,c)]\<bullet>y)" by (rule pt_bij1[OF pt, OF at])
+    also have "\<dots> = [(a,c)]\<bullet>([(b,c)]\<bullet>y)" by simp
+    also have "\<dots> = ([(a,c)]\<bullet>[(b,c)])\<bullet>([(a,c)]\<bullet>y)" by (rule pt_perm_compose[OF pt, OF at])
+    also have "\<dots> = [(b,a)]\<bullet>y" using ineq fr fr0  
+      by (simp add: pt_fresh_fresh[OF pt, OF at] at_calc[OF at])
+    also have "\<dots> = [(a,b)]\<bullet>y" by (rule pt3[OF pt], rule at_ds5[OF at])
+    finally show ?thesis using ineq fr0 by (simp add: abs_fun_eq[OF pt, OF at])
+  qed
+qed
+
 lemma abs_fun_supp_approx:
   fixes x :: "'a"
   and   a :: "'x"
