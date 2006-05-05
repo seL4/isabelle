@@ -113,8 +113,8 @@ val extern = NameSpace.extern o space_of;
 
 fun extern_early consts c =
   (case try (the_const consts) c of
-    SOME (_, true) => extern consts c
-  | _ => Syntax.constN ^ c);
+    SOME (_, false) => Syntax.constN ^ c
+  | _ => extern consts c);
 
 
 (* read_const *)
