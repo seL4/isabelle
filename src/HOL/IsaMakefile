@@ -120,7 +120,17 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   antisym_setup.ML arith_data.ML blastdata.ML cladata.ML			\
   document/root.tex hologic.ML simpdata.ML ResAtpMethods.thy 			\
   Tools/res_atp_provers.ML Tools/res_atp_methods.ML	\
-  Tools/res_hol_clause.ML
+  Tools/res_hol_clause.ML	\
+  Tools/function_package/fundef_common.ML 	\
+  Tools/function_package/fundef_lib.ML 	\
+  Tools/function_package/context_tree.ML 	\
+  Tools/function_package/fundef_prep.ML 	\
+  Tools/function_package/fundef_proof.ML 	\
+  Tools/function_package/termination.ML 	\
+  Tools/function_package/fundef_package.ML 	\
+  Tools/function_package/auto_term.ML 	\
+  Tools/function_package/fundef_datatype.ML 	\
+  FunDef.thy Accessible_Part.thy 
 	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
 
 
@@ -184,7 +194,7 @@ $(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy \
 
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
-$(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
+$(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/SetsAndFunctions.thy Library/BigO.thy \
   Library/EfficientNat.thy Library/ExecutableSet.thy Library/ExecutableRat.thy \
   Library/FuncSet.thy Library/Library.thy \
@@ -480,7 +490,7 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
 
 HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
 
-$(LOG)/HOL-Lambda.gz: $(OUT)/HOL Library/Accessible_Part.thy \
+$(LOG)/HOL-Lambda.gz: $(OUT)/HOL \
   Lambda/Commutation.thy Lambda/Eta.thy Lambda/InductTermi.thy Lambda/Lambda.thy \
   Lambda/ListApplication.thy Lambda/ListBeta.thy Lambda/ListOrder.thy \
   Lambda/ParRed.thy Lambda/StrongNorm.thy Lambda/Type.thy \
@@ -740,7 +750,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML Nominal/Nominal.thy		\
 
 HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 
-$(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal Library/Accessible_Part.thy	\
+$(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/ROOT.ML Nominal/Examples/CR.thy Nominal/Examples/Class.thy	\
   Nominal/Examples/Fsub.thy Nominal/Examples/Lambda_mu.thy			\
   Nominal/Examples/Iteration.thy Nominal/Examples/Lam_substs.thy		\

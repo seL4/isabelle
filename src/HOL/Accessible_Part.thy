@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Accessible_Part.thy
+(*  Title:      HOL/Accessible_Part.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -7,7 +7,7 @@
 header {* The accessible part of a relation *}
 
 theory Accessible_Part
-imports Main
+imports Wellfounded_Recursion
 begin
 
 subsection {* Inductive definition *}
@@ -74,5 +74,50 @@ theorem acc_wfD: "wf r ==> x \<in> acc r"
 theorem wf_acc_iff: "wf r = (\<forall>x. x \<in> acc r)"
   apply (blast intro: acc_wfI dest: acc_wfD)
   done
+
+
+(* Smaller relations have bigger accessible parts: *)
+lemma acc_subset:
+  assumes sub:"R1 \<subseteq> R2"
+  shows "acc R2 \<subseteq> acc R1"
+proof
+  fix x assume "x \<in> acc R2"
+  thus "x \<in> acc R1"
+  proof (induct x) -- "acc-induction"
+    fix x
+    assume ih: "\<And>y. (y, x) \<in> R2 \<Longrightarrow> y \<in> acc R1"
+    
+    with sub show "x \<in> acc R1"
+      by (blast intro:accI)
+  qed
+qed
+
+
+
+(* This is a generalized induction theorem that works on
+    subsets of the accessible part. *)
+lemma acc_subset_induct:
+  assumes subset: "D \<subseteq> acc R"
+  assumes dcl: "\<And>x z. \<lbrakk>x \<in> D; (z, x)\<in>R\<rbrakk> \<Longrightarrow> z \<in> D"
+
+  assumes "x \<in> D"
+  assumes istep: "\<And>x. \<lbrakk>x \<in> D; (\<And>z. (z, x)\<in>R \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
+shows "P x"
+proof -
+  from `x \<in> D` and subset 
+  have "x \<in> acc R" ..
+
+  thus "P x" using `x \<in> D`
+  proof (induct x)
+    fix x
+    assume "x \<in> D"
+      and "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<in> D \<Longrightarrow> P y"
+
+    with dcl and istep show "P x" by blast
+  qed
+qed
+
+
+
 
 end

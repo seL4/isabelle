@@ -1,7 +1,6 @@
 (*<*)
 theory Library
 imports
-  Accessible_Part
   BigO
   Continuity
   EfficientNat

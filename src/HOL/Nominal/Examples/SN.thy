@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory SN
-imports Lam_substs Accessible_Part
+imports Lam_substs
 begin
 
 text {* Strong Normalisation proof from the Proofs and Types book *}

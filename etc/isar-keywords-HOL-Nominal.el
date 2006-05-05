@@ -82,6 +82,7 @@
     "fix"
     "from"
     "full_prf"
+    "function"
     "global"
     "guess"
     "have"
@@ -174,6 +175,7 @@
     "subsubsection"
     "syntax"
     "term"
+    "termination"
     "text"
     "text_raw"
     "then"
@@ -423,11 +425,13 @@
 (defconst isar-keywords-theory-goal
   '("ax_specification"
     "corollary"
+    "function"
     "instance"
     "interpretation"
     "lemma"
     "recdef_tc"
     "specification"
+    "termination"
     "theorem"
     "typedef"))
 

@@ -1914,12 +1914,12 @@ proof -
 	   next
 	     case Some
 	     with dynM
-	     have termination: "?Termination"
+	     have "termination": "?Termination"
 	       by (auto)
 	     with Some dynM
 	     have "?Dynmethd_def dynC sig=Some dynM"
 	      by (auto simp add: dynmethd_dynC_def)
-	     with subclseq_super_statC statM dynM termination
+	     with subclseq_super_statC statM dynM "termination"
 	     show ?thesis
 	       by (auto simp add: dynmethd_def)
 	   qed

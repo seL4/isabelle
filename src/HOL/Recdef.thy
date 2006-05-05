@@ -18,6 +18,7 @@ uses
   ("../TFL/tfl.ML")
   ("../TFL/post.ML")
   ("Tools/recdef_package.ML")
+  ("Tools/function_package/auto_term.ML")
 begin
 
 lemma tfl_eq_True: "(x = True) --> x"
@@ -94,5 +95,9 @@ proof
     by (rule insert_None_conv_UNIV)
   finally show "finite (UNIV :: 'a option set)" .
 qed
+
+
+use "Tools/function_package/auto_term.ML"
+setup FundefAutoTerm.setup
 
 end
