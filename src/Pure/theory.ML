@@ -39,6 +39,8 @@ sig
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of : theory -> Defs.T
+  val definitions_of: theory -> string ->
+    {module: string, name: string, lhs: typ, rhs: (string * typ) list} list
   val self_ref: theory -> theory_ref
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory                     (*exception TERM*)
@@ -147,6 +149,12 @@ val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
 
 val defs_of = #defs o rep_theory;
+
+fun definitions_of thy c =
+  Defs.specifications_of (defs_of thy) c
+  |> map_filter (fn (_, {is_def, module, name, lhs, rhs}) =>
+    if is_def then SOME {module = module, name = name, lhs = lhs, rhs = rhs} else NONE);
+
 
 fun requires thy name what =
   if Context.exists_name name thy then ()
@@ -258,9 +266,8 @@ fun check_def thy overloaded (bname, tm) defs =
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
   in
-    defs |> Defs.define (Sign.the_const_type thy)
-      ((true, Context.theory_name thy), name) (prep_const thy lhs_const)
-      (map (prep_const thy) rhs_consts)
+    defs |> Defs.define (Sign.the_const_type thy) true (Context.theory_name thy)
+      name (prep_const thy lhs_const) (map (prep_const thy) rhs_consts)
   end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
@@ -295,8 +302,8 @@ fun gen_add_finals prep_term overloaded args thy =
     fun const_of (Const const) = const
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = Defs.define (Sign.the_const_type thy)
-      ((false, Context.theory_name thy), c ^ " axiom") (prep_const thy (c, T)) [];
+    fun specify (c, T) = Defs.define (Sign.the_const_type thy) false (Context.theory_name thy)
+      (c ^ " axiom") (prep_const thy (c, T)) [];
     val finalize = specify o check_overloading thy overloaded o
       const_of o Sign.no_vars (Sign.pp thy) o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
