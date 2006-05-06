@@ -29,8 +29,8 @@ datatype ctx_tree
 
 (* A record containing all the relevant symbols and types needed during the proof.
    This is set up at the beginning and does not change. *)
-type naming_context =
-     { f: term, fvarname: string, fvar: term, domT: typ, ranT: typ,
+datatype naming_context =
+   Names of { f: term, fvarname: string, fvar: term, domT: typ, ranT: typ,
        G: term, R: term, acc_R: term, h: term, y: term, x: term, z: term, a:term, P: term, 
        D: term, Pbool:term,
        glrs: (term list * term list * term * term) list,
@@ -41,10 +41,11 @@ type naming_context =
      }
 
 
-type rec_call_info = 
-     {RI: thm, RIvs: (string * typ) list, lRI: thm, lRIq: thm, Gh: thm, Gh': thm} 
+datatype rec_call_info = 
+  RCInfo of {RI: thm, RIvs: (string * typ) list, lRI: thm, lRIq: thm, Gh: thm, Gh': thm} 
 
-type clause_info =
+datatype clause_info =
+  ClauseInfo of 
      {
       no: int,
 
@@ -72,11 +73,12 @@ type clause_info =
      }
 
 
-type curry_info =
-     { argTs: typ list, curry_ss: simpset }
+datatype curry_info =
+  Curry of { argTs: typ list, curry_ss: simpset }
 
 
-type prep_result =
+datatype prep_result =
+  Prep of
      {
       names: naming_context, 
       complete : term,
@@ -84,7 +86,8 @@ type prep_result =
       clauses: clause_info list
      }
 
-type fundef_result =
+datatype fundef_result =
+  FundefResult of
      {
       f: term,
       G : term,

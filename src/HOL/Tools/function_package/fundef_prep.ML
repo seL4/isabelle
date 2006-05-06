@@ -87,7 +87,7 @@ fun mk_primed_vars thy glrs =
 
 fun mk_clause_info thy (names:naming_context) (no, (qs,gs,lhs,rhs)) (GI,tree) RIs =
     let
-	val {domT, G, R, h, f, fvar, used, x, ...} = names
+	val Names {domT, G, R, h, f, fvar, used, x, ...} = names
 				 
 	val zv = Var (("z",0), domT) (* for generating h_assums *)
 	val xv = Var (("x",0), domT)
@@ -130,19 +130,20 @@ fun mk_clause_info thy (names:naming_context) (no, (qs,gs,lhs,rhs)) (GI,tree) RI
 		val Gh = assume (cterm_of thy Gh_term)
 		val Gh' = assume (cterm_of thy (rename_vars Gh_term))
 	    in
-		{RI=RI, RIvs=RIvs, lRI=lRI, lRIq=lRIq, Gh=Gh, Gh'=Gh'}
+		RCInfo {RI=RI, RIvs=RIvs, lRI=lRI, lRIq=lRIq, Gh=Gh, Gh'=Gh'}
 	    end
 
 	val case_hyp = assume (cterm_of thy (Trueprop (mk_eq (x, lhs))))
     in
-	{
-	 no=no,
-	 qs=qs, gs=gs, lhs=lhs, rhs=rhs,		 
-	 cqs=cqs, cvqs=cvqs, ags=ags,		 
-	 cqs'=cqs', ags'=ags', lhs'=lhs', rhs'=rhs', ordcqs' = ordcqs',
-	 GI=GI, lGI=lGI, RCs=map mk_call_info RIs,
-	 tree=tree, case_hyp = case_hyp
-	}
+	ClauseInfo
+	    {
+	     no=no,
+	     qs=qs, gs=gs, lhs=lhs, rhs=rhs,		 
+	     cqs=cqs, cvqs=cvqs, ags=ags,		 
+	     cqs'=cqs', ags'=ags', lhs'=lhs', rhs'=rhs', ordcqs' = ordcqs',
+	     GI=GI, lGI=lGI, RCs=map mk_call_info RIs,
+	     tree=tree, case_hyp = case_hyp
+	    }
     end
 
 
@@ -191,7 +192,7 @@ fun setup_context (f, glrs, used) fname congs thy =
 
 	val ([f_def], thy) = PureThy.add_defs_i false [((fxname ^ "_def", f_eq), [])] thy
     in
-	({f=f, glrs=glrs, glrs'=glrs', fvar=fvar, fvarname=fvarname, domT=domT, ranT=ranT, G=G, R=R, acc_R=acc_R, h=h, x=x, y=y, z=z, a=a, D=D, P=P, Pbool=Pbool, f_def=f_def, used=allused, trees=trees}, thy)
+	(Names {f=f, glrs=glrs, glrs'=glrs', fvar=fvar, fvarname=fvarname, domT=domT, ranT=ranT, G=G, R=R, acc_R=acc_R, h=h, x=x, y=y, z=z, a=a, D=D, P=P, Pbool=Pbool, f_def=f_def, used=allused, trees=trees}, thy)
     end
 
 
@@ -222,7 +223,7 @@ fun extract_Ris thy congs f R tree (qs, gs, lhs, rhs) =
 
 fun mk_GIntro thy names (qs, gs, lhs, rhs) Ris =
     let
-	val { domT, R, G, f, fvar, h, y, Pbool, ... } = names
+	val Names { domT, R, G, f, fvar, h, y, Pbool, ... } = names
 
 	val z = Var (("z",0), domT)
 	val x = Var (("x",0), domT)
@@ -241,7 +242,7 @@ fun mk_GIntro thy names (qs, gs, lhs, rhs) Ris =
 
 fun mk_completeness names glrs =
     let
-	val {domT, x, Pbool, ...} = names
+	val Names {domT, x, Pbool, ...} = names
 
 	fun mk_case (qs, gs, lhs, _) = Trueprop Pbool
 						|> curry Logic.mk_implies (Trueprop (mk_eq (x, lhs)))
@@ -255,7 +256,7 @@ fun mk_completeness names glrs =
 
 fun extract_conditions thy names trees congs =
     let
-	val {f, G, R, acc_R, domT, ranT, f_def, x, z, fvarname, glrs, glrs', ...} = names
+	val Names {f, G, R, acc_R, domT, ranT, f_def, x, z, fvarname, glrs, glrs', ...} = names
 
 	val (vRiss, preRiss, Riss) = split_list3 (map2 (extract_Ris thy congs f R) trees glrs)
 	val Gis = map2 (mk_GIntro thy names) glrs preRiss
@@ -294,7 +295,7 @@ fun inductive_def defs (thy, const) =
 fun prepare_fundef congs eqs fname thy =
     let
 	val (names, thy) = setup_context (analyze_eqs eqs) fname congs thy
-	val {G, R, glrs, trees, ...} = names
+	val Names {G, R, glrs, trees, ...} = names
 
 	val {G_intros, vRiss, R_intross, complete, compat} = extract_conditions thy names trees congs
 
@@ -304,7 +305,7 @@ fun prepare_fundef congs eqs fname thy =
 	val n = length glrs
 	val clauses = map3 (mk_clause_info thy names) ((1 upto n) ~~ glrs) (G_intro_thms ~~ trees) (map2 (curry op ~~) vRiss R_intro_thmss)
     in
-	({names = names, complete=complete, compat=compat, clauses = clauses},
+	(Prep {names = names, complete=complete, compat=compat, clauses = clauses},
 	 thy) 
     end
 
@@ -346,7 +347,7 @@ fun prepare_fundef_curried congs eqs thy =
 		val g_to_f_ss = HOL_basic_ss addsimps [symmetric f_def]
 		val eqs_tupled = map (Pattern.rewrite_term thy [(f, f_lambda)] []) eqs
 	    in
-		(SOME {curry_ss = g_to_f_ss, argTs = caTs}, fxname, prepare_fundef congs eqs_tupled fxname thy)
+		(SOME (Curry {curry_ss = g_to_f_ss, argTs = caTs}), fxname, prepare_fundef congs eqs_tupled fxname thy)
 	    end
     end
 

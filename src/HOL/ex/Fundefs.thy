@@ -58,7 +58,7 @@ function
 by pat_completeness auto
 
 lemma nz_is_zero: (* A lemma we need to prove termination *)
-  assumes trm: "x \<in> nz.dom"
+  assumes trm: "x \<in> nz_dom"
   shows "nz x = 0"
 using trm
 by induct auto

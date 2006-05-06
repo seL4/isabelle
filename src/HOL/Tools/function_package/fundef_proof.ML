@@ -42,10 +42,10 @@ val acc_subset_induct = thm "acc_subset_induct"
 
 
     
-fun mk_simp thy (names:naming_context) f_iff graph_is_function clause valthm =
+fun mk_simp thy names f_iff graph_is_function clause valthm =
     let
-	val {R, acc_R, domT, z, ...} = names
-	val {qs, cqs, gs, lhs, rhs, ...} = clause
+	val Names {R, acc_R, domT, z, ...} = names
+	val ClauseInfo {qs, cqs, gs, lhs, rhs, ...} = clause
 	val lhs_acc = cterm_of thy (Trueprop (mk_mem (lhs, acc_R))) (* "lhs : acc R" *)
 	val z_smaller = cterm_of thy (Trueprop (mk_relmemT domT domT (z, lhs) R)) (* "(z, lhs) : R" *)
     in
@@ -65,9 +65,9 @@ fun mk_simp thy (names:naming_context) f_iff graph_is_function clause valthm =
 
 
 
-fun mk_partial_induct_rule thy (names:naming_context) complete_thm clauses =
+fun mk_partial_induct_rule thy names complete_thm clauses =
     let
-	val {domT, R, acc_R, x, z, a, P, D, ...} = names
+	val Names {domT, R, acc_R, x, z, a, P, D, ...} = names
 
 	val x_D = assume (cterm_of thy (Trueprop (mk_mem (x, D))))
 	val a_D = cterm_of thy (Trueprop (mk_mem (a, D)))
@@ -92,14 +92,14 @@ fun mk_partial_induct_rule thy (names:naming_context) complete_thm clauses =
 
 	fun prove_case clause =
 	    let
-		val {qs, cqs, ags, gs, lhs, rhs, case_hyp, RCs, ...} = clause
+		val ClauseInfo {qs, cqs, ags, gs, lhs, rhs, case_hyp, RCs, ...} = clause
 								       
 		val replace_x_ss = HOL_basic_ss addsimps [case_hyp]
 		val lhs_D = simplify replace_x_ss x_D (* lhs : D *)
 		val sih = full_simplify replace_x_ss aihyp
 					
 					(* FIXME: Variable order destroyed by forall_intr_vars *)
-		val P_recs = map (fn {lRI, RIvs, ...} => (lRI RS sih) |> forall_intr_vars) RCs   (*  [P rec1, P rec2, ... ]  *)
+		val P_recs = map (fn RCInfo {lRI, RIvs, ...} => (lRI RS sih) |> forall_intr_vars) RCs   (*  [P rec1, P rec2, ... ]  *)
 			     
 		val step = Trueprop (P $ lhs)
 				    |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
@@ -183,16 +183,16 @@ fun lookup_compat_thm i j cts =
 
 
 (* recover the order of Vars *)
-fun get_var_order thy (clauses: clause_info list) =
-    map (fn ({cqs,...}, {cqs',...}) => map (cterm_of thy o free_to_var o term_of) (cqs @ cqs')) (upairs clauses)
+fun get_var_order thy clauses =
+    map (fn (ClauseInfo {cqs,...}, ClauseInfo {cqs',...}) => map (cterm_of thy o free_to_var o term_of) (cqs @ cqs')) (upairs clauses)
 
 
 (* Returns "Gsi, Gsj', lhs_i = lhs_j' |-- rhs_j'_f = rhs_i_f" *)
 (* if j < i, then turn around *)
 fun get_compat_thm thy cts clausei clausej =
     let 
-	val {no=i, cqs=qsi, ags=gsi, lhs=lhsi, ...} = clausei
-	val {no=j, cqs'=qsj', ags'=gsj', lhs'=lhsj', ...} = clausej
+	val ClauseInfo {no=i, cqs=qsi, ags=gsi, lhs=lhsi, ...} = clausei
+	val ClauseInfo {no=j, cqs'=qsj', ags'=gsj', lhs'=lhsj', ...} = clausej
 
 	val lhsi_eq_lhsj' = cterm_of thy (Trueprop (mk_eq (lhsi, lhsj')))
     in if j < i then
@@ -227,14 +227,14 @@ the complete requantification at the end to replace the variables. One should fi
 here. *)
 fun mk_replacement_lemma thy (names:naming_context) ih_elim clause = 
     let 
-	val {fvar, f, x, y, h, Pbool, G, ranT, domT, R, ...} = names 
-	val {qs,cqs,ags,lhs,rhs,cqs',ags',case_hyp, RCs, tree, ...} = clause
+	val Names {fvar, f, x, y, h, Pbool, G, ranT, domT, R, ...} = names 
+	val ClauseInfo {qs,cqs,ags,lhs,rhs,cqs',ags',case_hyp, RCs, tree, ...} = clause
 
 	val ih_elim_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_elim
 
-	val Ris = map #lRIq RCs
-	val h_assums = map #Gh RCs
-	val h_assums' = map #Gh' RCs
+	val Ris = map (fn RCInfo {lRIq, ...} => lRIq) RCs
+	val h_assums = map (fn RCInfo {Gh, ...} => Gh) RCs
+	val h_assums' = map (fn RCInfo {Gh', ...} => Gh') RCs
 
 	val ih_elim_case_inst = instantiate' [] [NONE, SOME (cterm_of thy h)] ih_elim_case (* Should be done globally *)
 
@@ -255,15 +255,15 @@ fun mk_replacement_lemma thy (names:naming_context) ih_elim clause =
 
 
 
-fun mk_uniqueness_clause thy (names:naming_context) compat_store (clausei:clause_info) (clausej:clause_info) RLj =
+fun mk_uniqueness_clause thy names compat_store clausei clausej RLj =
     let
-	val {f, h, y, ...} = names
-	val {no=i, lhs=lhsi, case_hyp, ...} = clausei
-	val {no=j, ags'=gsj', lhs'=lhsj', rhs'=rhsj', RCs=RCsj, ordcqs'=ordcqs'j, ...} = clausej
+	val Names {f, h, y, ...} = names
+	val ClauseInfo {no=i, lhs=lhsi, case_hyp, ...} = clausei
+	val ClauseInfo {no=j, ags'=gsj', lhs'=lhsj', rhs'=rhsj', RCs=RCsj, ordcqs'=ordcqs'j, ...} = clausej
 
 	val rhsj'h = Pattern.rewrite_term thy [(f,h)] [] rhsj'
 	val compat = get_compat_thm thy compat_store clausei clausej
-	val Ghsj' = map (fn {Gh', ...} => Gh') RCsj
+	val Ghsj' = map (fn RCInfo {Gh', ...} => Gh') RCsj
 
 	val y_eq_rhsj'h = assume (cterm_of thy (Trueprop (mk_eq (y, rhsj'h))))
 	val lhsi_eq_lhsj' = assume (cterm_of thy (Trueprop (mk_eq (lhsi, lhsj')))) (* lhs_i = lhs_j' |-- lhs_i = lhs_j'	*)
@@ -286,17 +286,17 @@ fun mk_uniqueness_clause thy (names:naming_context) compat_store (clausei:clause
 
 
 
-fun mk_uniqueness_case thy (names:naming_context) ihyp ih_intro G_cases compat_store clauses rep_lemmas (clausei:clause_info) =
+fun mk_uniqueness_case thy names ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
     let
-	val {x, y, G, fvar, f, ranT, ...} = names
-	val {lhs, rhs, qs, cqs, ags, case_hyp, lGI, RCs, ...} = clausei
+	val Names {x, y, G, fvar, f, ranT, ...} = names
+	val ClauseInfo {lhs, rhs, qs, cqs, ags, case_hyp, lGI, RCs, ...} = clausei
 
 	val ih_intro_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_intro
 
-	fun prep_RC ({lRIq,RIvs, ...} : rec_call_info) = lRIq
-							     |> fold (forall_elim o cterm_of thy o Free) RIvs
-							     |> (fn it => it RS ih_intro_case)
-							     |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
+	fun prep_RC (RCInfo {lRIq,RIvs, ...}) = lRIq
+						    |> fold (forall_elim o cterm_of thy o Free) RIvs
+						    |> (fn it => it RS ih_intro_case)
+						    |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
 
 	val existence = lGI |> instantiate ([], [(cterm_of thy (free_to_var fvar), cterm_of thy f)])
 			    |> fold (curry op COMP o prep_RC) RCs 
@@ -340,10 +340,10 @@ fun mk_uniqueness_case thy (names:naming_context) ihyp ih_intro G_cases compat_s
 
 
 (* Does this work with Guards??? *)
-fun mk_domain_intro thy (names:naming_context) R_cases clause =
+fun mk_domain_intro thy names R_cases clause =
     let
-	val {z, R, acc_R, ...} = names
-	val {qs, gs, lhs, rhs, ...} = clause
+	val Names {z, R, acc_R, ...} = names
+	val ClauseInfo {qs, gs, lhs, rhs, ...} = clause
 
 	val z_lhs = cterm_of thy (HOLogic.mk_prod (z,lhs))
 	val z_acc = cterm_of thy (HOLogic.mk_mem (z,acc_R))
@@ -368,10 +368,10 @@ fun mk_domain_intro thy (names:naming_context) R_cases clause =
 
 
 
-fun mk_nest_term_case thy (names:naming_context) R' ihyp clause =
+fun mk_nest_term_case thy names R' ihyp clause =
     let
-	val {x, z, ...} = names
-	val {qs,cqs,ags,lhs,rhs,tree,case_hyp,...} = clause
+	val Names {x, z, ...} = names
+	val ClauseInfo {qs,cqs,ags,lhs,rhs,tree,case_hyp,...} = clause
 
 	val ih_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ihyp
 
@@ -421,9 +421,9 @@ fun mk_nest_term_case thy (names:naming_context) R' ihyp clause =
     end
 
 
-fun mk_nest_term_rule thy (names:naming_context) clauses =
+fun mk_nest_term_rule thy names clauses =
     let
-	val { R, acc_R, domT, x, z, ... } = names
+	val Names { R, acc_R, domT, x, z, ... } = names
 
 	val R_elim = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const R))))))
 
@@ -469,8 +469,8 @@ fun mk_nest_term_rule thy (names:naming_context) clauses =
 
 fun mk_partial_rules thy congs data complete_thm compat_thms =
     let
-	val {names, clauses, complete, compat, ...} = data
-	val {G, R, acc_R, domT, ranT, f, f_def, x, z, fvarname, ...}:naming_context = names
+	val Prep {names, clauses, complete, compat, ...} = data
+	val Names {G, R, acc_R, domT, ranT, f, f_def, x, z, fvarname, ...}:naming_context = names
 
 (*	val _ = Output.debug "closing derivation: completeness"
 	val _ = Output.debug (Proofterm.size_of_proof (proof_of complete_thm))
@@ -541,7 +541,7 @@ fun mk_partial_rules thy congs data complete_thm compat_thms =
 	val _ = Output.debug "Proving domain introduction rules"
 	val dom_intros = map (mk_domain_intro thy names R_cases) clauses
     in 
-	{f=f, G=G, R=R, compatibility=compat_thms, completeness=complete_thm, 
+	FundefResult {f=f, G=G, R=R, compatibility=compat_thms, completeness=complete_thm, 
 	 psimps=psimps, subset_pinduct=subset_pinduct, simple_pinduct=simple_pinduct, total_intro=total_intro,
 	 dom_intros=dom_intros}
     end
@@ -566,9 +566,9 @@ fun curry_induct_rule thy argTs induct =
 
 fun mk_partial_rules_curried thy congs NONE data complete_thm compat_thms =
     mk_partial_rules thy congs data complete_thm compat_thms 
-  | mk_partial_rules_curried thy congs (SOME {curry_ss, argTs}) data complete_thm compat_thms =
+  | mk_partial_rules_curried thy congs (SOME (Curry {curry_ss, argTs})) data complete_thm compat_thms =
     let
-	val {f, G, R, compatibility, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} =
+	val FundefResult {f, G, R, compatibility, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} =
 	    mk_partial_rules thy congs data complete_thm compat_thms 
 	val cpsimps = map (simplify curry_ss) psimps
 	val cpinduct = full_simplify curry_ss simple_pinduct
@@ -576,7 +576,7 @@ fun mk_partial_rules_curried thy congs NONE data complete_thm compat_thms =
 	val cdom_intros = map (full_simplify curry_ss) dom_intros
 	val ctotal_intro = full_simplify curry_ss total_intro
     in
-	{f=f, G=G, R=R, compatibility=compat_thms, completeness=complete_thm, 
+	FundefResult {f=f, G=G, R=R, compatibility=compat_thms, completeness=complete_thm, 
 	 psimps=cpsimps, subset_pinduct=subset_pinduct, simple_pinduct=cpinduct, total_intro=ctotal_intro, dom_intros=cdom_intros}
     end
 

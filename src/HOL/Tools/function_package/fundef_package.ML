@@ -26,19 +26,18 @@ open FundefCommon
 val True_implies = thm "True_implies"
 
 
-(*#> FundefTermination.setup #> FundefDatatype.setup*)
-
 fun fundef_afterqed congs curry_info name data natts thmss thy =
     let
 	val (complete_thm :: compat_thms) = map hd thmss
 	val fundef_data = FundefProof.mk_partial_rules_curried thy congs curry_info data (freezeT complete_thm) (map freezeT compat_thms)
-	val {psimps, subset_pinduct, simple_pinduct, total_intro, dom_intros, ...} = fundef_data
+	val FundefResult {psimps, subset_pinduct, simple_pinduct, total_intro, dom_intros, ...} = fundef_data
 
 	val (names, attsrcs) = split_list natts
 	val atts = map (map (Attrib.attribute thy)) attsrcs
 
-	val accR = (#acc_R(#names(data)))
-	val dom_abbrev = Logic.mk_equals (Free ("dom", fastype_of accR), accR)
+	val Prep {names = Names {acc_R=accR, ...}, ...} = data
+	val dom_abbrev = Logic.mk_equals (Free (name ^ "_dom", fastype_of accR), accR)
+	val (_, thy) = LocalTheory.mapping NONE (Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)]) thy
 
 	val thy = thy |> Theory.add_path name 
 
@@ -46,7 +45,6 @@ fun fundef_afterqed congs curry_info name data natts thmss thy =
 	val (_, thy) = PureThy.add_thms ((names ~~ psimps) ~~ atts) thy;
 	val thy = thy |> Theory.parent_path
 
-	val (_, thy) = LocalTheory.mapping NONE (Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)]) thy
 	val (_, thy) = PureThy.add_thms [(("cases", complete_thm), [RuleCases.case_names names])] thy
 	val (_, thy) = PureThy.add_thmss [(("domintros", dom_intros), [])] thy
 	val (_, thy) = PureThy.add_thms [(("termination", total_intro), [])] thy
@@ -64,7 +62,7 @@ fun add_fundef eqns_atts thy =
 	val congs = get_fundef_congs (Context.Theory thy)
 
 	val (curry_info, name, (data, thy)) = FundefPrep.prepare_fundef_curried congs (map (Sign.read_prop thy) eqns) thy
-	val {complete, compat, ...} = data
+	val Prep {complete, compat, ...} = data
 
 	val props = (complete :: compat) (*(complete :: fst (chop 110 compat))*)
     in
@@ -78,7 +76,7 @@ fun total_termination_afterqed name thmss thy =
     let
 	val totality = hd (hd thmss)
 
-	val {psimps, simple_pinduct, ... }
+	val FundefResult {psimps, simple_pinduct, ... }
 	  = the (get_fundef_data name thy)
 
 	val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies])
@@ -133,7 +131,7 @@ fun fundef_setup_termination_proof name NONE thy =
 	val name = if name = "" then get_last_fundef thy else name
 	val data = the (get_fundef_data name thy)
 
-	val {total_intro, ...} = data
+	val FundefResult {total_intro, ...} = data
 	val goal = FundefTermination.mk_total_termination_goal data
     in
 	thy |> ProofContext.init
