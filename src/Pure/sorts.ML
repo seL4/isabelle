@@ -48,7 +48,8 @@ sig
   val of_sort_derivation: Pretty.pp -> classes * arities ->
     {classrel: 'a * class -> class -> 'a,
      constructor: string -> ('a * class) list list -> class -> 'a,
-     variable: typ -> ('a * class) list} -> typ * sort -> 'a list   (*exception CLASS_ERROR*)
+     variable: typ -> ('a * class) list} ->
+    typ * sort -> 'a list   (*exception CLASS_ERROR*)
   val witness_sorts: classes * arities -> string list ->
     sort list -> sort list -> (typ * sort) list
 end;
@@ -323,7 +324,7 @@ fun of_sort_derivation pp (classes, arities) {classrel, constructor, variable} =
 
 (* witness_sorts *)
 
-fun witness_sorts (classes, arities) log_types hyps sorts =
+fun witness_sorts (classes, arities) types hyps sorts =
   let
     fun le S1 S2 = sort_le classes (S1, S2);
     fun get_solved S2 (T, S1) = if le S1 S2 then SOME (T, S2) else NONE;
@@ -339,7 +340,7 @@ fun witness_sorts (classes, arities) log_types hyps sorts =
             | NONE =>
                 (case get_first (get_hyp S) hyps of
                   SOME w => (SOME w, (w :: solved, failed))
-                | NONE => witn_types path log_types S (solved, failed)))
+                | NONE => witn_types path types S (solved, failed)))
 
     and witn_sorts path x = fold_map (witn_sort path) x
 
@@ -359,10 +360,6 @@ fun witness_sorts (classes, arities) log_types hyps sorts =
                 end
           | NONE => witn_types path ts S solved_failed);
 
-    fun double_check TS =
-      if of_sort (classes, arities) TS then TS
-      else sys_error "FIXME Bad sort witness";
-
-  in map_filter (Option.map double_check) (#1 (witn_sorts [] sorts ([], []))) end;
+  in map_filter I (#1 (witn_sorts [] sorts ([], []))) end;
 
 end;
