@@ -177,7 +177,7 @@ fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
   let
     val (goal, att) =
       gen_prepare_pcpodef prep_term pcpo def name typ set opt_morphs thy;
-  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, ([], [])) thy end;
+  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, []) thy end;
 
 fun pcpodef_proof x = gen_pcpodef_proof read_term true x;
 fun pcpodef_proof_i x = gen_pcpodef_proof cert_term true x;

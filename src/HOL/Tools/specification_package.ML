@@ -231,7 +231,7 @@ fun process_spec axiomatic cos alt_props thy =
     in
       IsarThy.theorem_i PureThy.internalK
         ("", [add_spec axiomatic (zip3 names cnames overloaded), post_proc])
-        (HOLogic.mk_Trueprop ex_prop, ([], [])) thy
+        (HOLogic.mk_Trueprop ex_prop, []) thy
     end
 
 

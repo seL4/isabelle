@@ -47,23 +47,15 @@ sig
   val fix: (string * string option) list -> state -> state
   val fix_i: (string * typ option) list -> state -> state
   val assm: ProofContext.export ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
-    state -> state
+    ((string * Attrib.src list) * (string * string list) list) list -> state -> state
   val assm_i: ProofContext.export ->
-    ((string * attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val assume: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
-    state -> state
-  val assume_i: ((string * attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val presume: ((string * Attrib.src list) * (string * (string list * string list)) list) list
-    -> state -> state
-  val presume_i: ((string * attribute list) * (term * (term list * term list)) list) list
-    -> state -> state
-  val def: ((string * Attrib.src list) * (string * (string * string list))) list ->
-    state -> state
-  val def_i: ((string * attribute list) * (string * (term * term list))) list ->
-    state -> state
+    ((string * attribute list) * (term * term list) list) list -> state -> state
+  val assume: ((string * Attrib.src list) * (string * string list) list) list -> state -> state
+  val assume_i: ((string * attribute list) * (term * term list) list) list -> state -> state
+  val presume: ((string * Attrib.src list) * (string * string list) list) list -> state -> state
+  val presume_i: ((string * attribute list) * (term * term list) list) list -> state -> state
+  val def: ((string * Attrib.src list) * (string * (string * string list))) list -> state -> state
+  val def_i: ((string * attribute list) * (string * (term * term list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val get_thmss: state -> (thmref * Attrib.src list) list -> thm list
@@ -114,25 +106,19 @@ sig
   val global_done_proof: state -> context * theory
   val global_skip_proof: bool -> state -> context * theory
   val have: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
-    bool -> state -> state
+    ((string * Attrib.src list) * (string * string list) list) list -> bool -> state -> state
   val have_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((string * attribute list) * (term * (term list * term list)) list) list ->
-    bool -> state -> state
+    ((string * attribute list) * (term * term list) list) list -> bool -> state -> state
   val show: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
-    bool -> state -> state
+    ((string * Attrib.src list) * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((string * attribute list) * (term * (term list * term list)) list) list ->
-    bool -> state -> state
+    ((string * attribute list) * (term * term list) list) list -> bool -> state -> state
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string option -> string * Attrib.src list ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
-    context -> state
+    ((string * Attrib.src list) * (string * string list) list) list -> context -> state
   val theorem_i: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string option -> string * attribute list ->
-    ((string * attribute list) * (term * (term list * term list)) list) list ->
-    context -> state
+    ((string * attribute list) * (term * term list) list) list -> context -> state
 end;
 
 structure Proof: PROOF =
@@ -580,7 +566,7 @@ fun gen_def fix prep_att prep_binds args state =
   in
     state'
     |> fix (map (rpair NONE) xs)
-    |> assm_i LocalDefs.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, ([], []))]) eqs)
+    |> assm_i LocalDefs.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, [])]) eqs)
   end;
 
 in
@@ -681,7 +667,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
     val atts = map (prep_att (theory_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> ProofContext.apply_case (ProofContext.get_case ctxt name xs));
-    val assumptions = asms |> map (fn (a, ts) => ((a, atts), map (rpair ([], [])) ts));
+    val assumptions = asms |> map (fn (a, ts) => ((a, atts), map (rpair []) ts));
   in
     state'
     |> map_context (ProofContext.qualified_names #> ProofContext.no_base_names)

@@ -283,7 +283,7 @@ fun def_class prep_class prep_att prep_propp
       |> map_term_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
       |> Logic.close_form;
 
-    val axiomss = prep_propp (ctxt, map (map (rpair ([], [])) o snd) raw_specs)
+    val axiomss = prep_propp (ctxt, map (map (rpair []) o snd) raw_specs)
       |> snd |> map (map (prep_axiom o fst));
     val name_atts = Attrib.map_specs (prep_att thy) raw_specs |> map fst;
 

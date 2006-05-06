@@ -8,14 +8,14 @@ Explicit data structures for some Isar language elements.
 signature ELEMENT =
 sig
   datatype ('typ, 'term) stmt =
-    Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
+    Shows of ((string * Attrib.src list) * ('term * 'term list) list) list |
     Obtains of (string * ((string * 'typ option) list * 'term list)) list
   type statement  (*= (string, string) stmt*)
   type statement_i  (*= (typ, term) stmt*)
   datatype ('typ, 'term, 'fact) ctxt =
     Fixes of (string * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
-    Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
+    Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
     Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
     Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
   type context (*= (string, string, thmref) ctxt*)
@@ -49,7 +49,7 @@ struct
 (** conclusions **)
 
 datatype ('typ, 'term) stmt =
-  Shows of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
+  Shows of ((string * Attrib.src list) * ('term * 'term list) list) list |
   Obtains of (string * ((string * 'typ option) list * 'term list)) list;
 
 type statement = (string, string) stmt;
@@ -64,7 +64,7 @@ type statement_i = (typ, term) stmt;
 datatype ('typ, 'term, 'fact) ctxt =
   Fixes of (string * 'typ option * mixfix) list |
   Constrains of (string * 'typ) list |
-  Assumes of ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list |
+  Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
   Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
   Notes of ((string * Attrib.src list) * ('fact * Attrib.src list) list) list;
 
@@ -76,8 +76,7 @@ fun map_ctxt {name, var, typ, term, fact, attrib} =
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
    | Constrains xs => Constrains (xs |> map (fn (x, T) => (#1 (var (x, NoSyn)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
-      ((name a, map attrib atts), propps |> map (fn (t, (ps, qs)) =>
-        (term t, (map term ps, map term qs))))))
+      ((name a, map attrib atts), propps |> map (fn (t, ps) => (term t, map term ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
       ((name a, map attrib atts), (term t, map term ps))))
    | Notes facts => Notes (facts |> map (fn ((a, atts), bs) =>
@@ -255,10 +254,11 @@ fun pretty_stmt ctxt =
 
     fun prt_var (x, SOME T) = Pretty.block [Pretty.str (x ^ " ::"), Pretty.brk 1, prt_typ T]
       | prt_var (x, NONE) = Pretty.str x;
+    val prt_vars =  separate (Pretty.keyword "and") o map prt_var;
 
     fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
       | prt_obtain (_, (xs, ts)) = Pretty.block (Pretty.breaks
-          (map prt_var xs @ [Pretty.keyword "where"] @ prt_terms ts));
+          (prt_vars xs @ [Pretty.keyword "where"] @ prt_terms ts));
   in
     fn Shows shows => pretty_items "shows" "and" (map prt_show shows)
      | Obtains obtains => pretty_items "obtains" "|" (map prt_obtain obtains)
@@ -349,9 +349,9 @@ fun pretty_statement ctxt kind raw_th =
     val (asms, cases) = take_suffix (fn prem => thesis aconv Logic.strip_assums_concl prem) prems;
   in
     pretty_ctxt ctxt (Fixes (map (fn (x, T) => (x, SOME T, NoSyn)) fixes)) @
-    pretty_ctxt ctxt (Assumes (map (fn t => (("", []), [(t, ([], []))])) asms)) @
+    pretty_ctxt ctxt (Assumes (map (fn t => (("", []), [(t, [])])) asms)) @
     pretty_stmt ctxt
-     (if null cases then Shows [(("", []), [(concl, ([], []))])]
+     (if null cases then Shows [(("", []), [(concl, [])])]
       else Obtains (#1 (fold_map obtain cases (ctxt |> ProofContext.declare_term prop))))
   end |> thm_name kind raw_th;
 

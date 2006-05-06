@@ -24,18 +24,16 @@ sig
     theory -> Proof.context * theory
   val declare_theorems: xstring option ->
     (thmref * Attrib.src list) list -> theory -> Proof.context * theory
-  val have: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+  val have: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val hence: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+  val hence: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val show: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+  val show: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val thus: ((string * Attrib.src list) * (string * (string list * string list)) list) list ->
+  val thus: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val theorem: string -> string * Attrib.src list -> string * (string list * string list) ->
-    theory -> Proof.state
-  val theorem_i: string -> string * attribute list -> term * (term list * term list) ->
-    theory -> Proof.state
+  val theorem: string -> string * Attrib.src list -> string * string list -> theory -> Proof.state
+  val theorem_i: string -> string * attribute list -> term * term list -> theory -> Proof.state
   val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text * Method.text option ->
     Toplevel.transition -> Toplevel.transition

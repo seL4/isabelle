@@ -56,13 +56,13 @@ sig
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
-    (string * (string list * string list)) list list -> Proof.context ->
+    (string * string list) list list -> Proof.context ->
     string option * (cterm list * Proof.context) * (cterm list * Proof.context) *
-      (term * (term list * term list)) list list
+      (term * term list) list list
   val cert_context_statement: string option -> Element.context_i element list ->
-    (term * (term list * term list)) list list -> Proof.context ->
+    (term * term list) list list -> Proof.context ->
     string option * (cterm list * Proof.context) * (cterm list * Proof.context) *
-      (term * (term list * term list)) list list
+      (term * term list) list list
 
   (* Diagnostic functions *)
   val print_locales: theory -> unit
@@ -864,7 +864,7 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
         ctxt |> ProofContext.add_assms_i LocalDefs.def_export
           (defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end))
+            in ((if name = "" then Thm.def_name c else name, atts), [(t', ps)]) end))
       in ((ctxt', Assumed axs), []) end
   | activate_elem _ ((ctxt, Derived ths), Defines defs) =
       ((ctxt, Derived ths), [])
@@ -947,7 +947,7 @@ fun declare_ext_elem prep_vars (ctxt, Fixes fixes) =
       let val (_, ctxt') = prep_vars (map (fn (x, T) => (x, SOME T, NoSyn)) csts) ctxt
       in (ctxt', []) end
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
-  | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
+  | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, ps)]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
 
 fun declare_elems prep_vars (ctxt, (((name, ps), Assumed _), elems)) =
@@ -1024,7 +1024,7 @@ fun declare_ext_elem prep_vars (ctxt, Fixes fixes) =
       let val (_, ctxt') = prep_vars (map (fn (x, T) => (x, SOME T, NoSyn)) csts) ctxt
       in (ctxt', []) end
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
-  | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
+  | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, ps)]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
 
 fun declare_elems prep_vars (ctxt, (((name, ps), Assumed _), elems)) =
@@ -1136,7 +1136,7 @@ fun closeup _ false elem = elem
       in
         (case elem of
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
-            (a, map (fn (t, (ps, qs)) => (close_frees t, (no_binds ps, no_binds qs))) propps)))
+            (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn (a, (t, ps)) =>
             (a, (close_frees (#2 (LocalDefs.cert_def ctxt t)), no_binds ps))))
         | e => e)
@@ -1149,7 +1149,7 @@ fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
   | finish_ext_elem _ close (Assumes asms, propp) =
       close (Assumes (map #1 asms ~~ propp))
   | finish_ext_elem _ close (Defines defs, propp) =
-      close (Defines (map #1 defs ~~ map (fn [(t, (ps, []))] => (t, ps)) propp))
+      close (Defines (map #1 defs ~~ map (fn [(t, ps)] => (t, ps)) propp))
   | finish_ext_elem _ _ (Notes facts, _) = Notes facts;
 
 
@@ -1667,7 +1667,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             thy |> def_pred aname parms defs exts exts';
           val elemss' =
             change_elemss axioms elemss
-            @ [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, ([], []))])]])];
+            @ [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
         in
           def_thy
           |> PureThy.note_thmss_qualified "" aname [((introN, []), [([intro], [])])]
@@ -2145,7 +2145,7 @@ fun prep_registration_in_locale target expr thy =
   in (propss, activate) end;
 
 fun prep_propp propss = propss |> map (fn ((name, _), props) =>
-  (("", []), map (rpair ([], []) o Logic.protect) props));
+  (("", []), map (rpair [] o Logic.protect) props));
 
 fun prep_result propps thmss =
   ListPair.map (fn ((_, props), thms) => (props ~~ thms)) (propps, thmss);

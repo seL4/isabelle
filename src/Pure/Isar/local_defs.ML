@@ -84,7 +84,7 @@ fun add_def (x, t) ctxt =
   in
     ctxt
     |> ProofContext.add_fixes_i [(x, NONE, NoSyn)] |> snd
-    |> ProofContext.add_assms_i def_export [(("", []), [(eq, ([], []))])]
+    |> ProofContext.add_assms_i def_export [(("", []), [(eq, [])])]
     |>> (fn [(_, [th])] => (x', th))
   end;
 

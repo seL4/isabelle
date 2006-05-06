@@ -40,19 +40,18 @@ similar, but derives these elements from the course of reasoning!
 signature OBTAIN =
 sig
   val obtain: string -> (string * string option) list ->
-    ((string * Attrib.src list) * (string * (string list * string list)) list) list
+    ((string * Attrib.src list) * (string * string list) list) list
     -> bool -> Proof.state -> Proof.state
   val obtain_i: string -> (string * typ option) list ->
-    ((string * attribute list) * (term * (term list * term list)) list) list
+    ((string * attribute list) * (term * term list) list) list
     -> bool -> Proof.state -> Proof.state
   val guess: (string * string option) list -> bool -> Proof.state -> Proof.state
   val guess_i: (string * typ option) list -> bool -> Proof.state -> Proof.state
   val statement: (string * ((string * 'typ option) list * 'term list)) list ->
     (('typ, 'term, 'fact) Element.ctxt list *
-      ((string * Attrib.src list) * ('term * ('term list * 'term list)) list) list) *
-    (((string * Attrib.src list) * (term * (term list * term list)) list) list -> Proof.context ->
-      (((string * Attrib.src list) * (term * (term list * term list)) list) list * thm list) *
-        Proof.context)
+      ((string * Attrib.src list) * ('term * 'term list) list) list) *
+    (((string * Attrib.src list) * (term * term list) list) list -> Proof.context ->
+      (((string * Attrib.src list) * (term * term list) list) list * thm list) * Proof.context)
 end;
 
 structure Obtain: OBTAIN =
@@ -151,13 +150,13 @@ fun gen_obtain prep_att prep_vars prep_propp
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, ([], []))])] int
+    |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, [])])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(thesisN, NONE)]
-    |> Proof.assume_i [((that_name, [ContextRules.intro_query NONE]), [(that_prop, ([], []))])]
+    |> Proof.assume_i [((that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
-    ||> Proof.show_i NONE after_qed [(("", []), [(thesis, ([], []))])] false
+    ||> Proof.show_i NONE after_qed [(("", []), [(thesis, [])])] false
     |-> Proof.refine_insert
   end;
 
@@ -246,7 +245,7 @@ fun gen_guess prep_vars raw_vars int state =
         val ps = map dest_Free ts;
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
-          |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), ([], [])));
+          |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), []));
         val _ = conditional (null asms) (fn () => error "Trivial result -- nothing guessed");
       in
         Proof.fix_i (map (apsnd SOME) parms)
@@ -285,7 +284,7 @@ fun statement cases =
       cases |> map_index (fn (i, ("", _)) => string_of_int (i + 1) | (_, (name, _)) => name);
     val elems = cases |> map (fn (_, (vars, _)) =>
       Element.Constrains (vars |> map_filter (fn (x, SOME T) => SOME (x, T) | _ => NONE)));
-    val concl = cases |> map (fn (_, (_, props)) => (("", []), map (rpair ([], [])) props));
+    val concl = cases |> map (fn (_, (_, props)) => (("", []), map (rpair []) props));
 
     fun mk_stmt stmt ctxt =
       let
@@ -306,14 +305,14 @@ fun statement cases =
           in
             ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
             ctxt' |> ProofContext.add_assms_i ProofContext.assume_export
-              [((name, [ContextRules.intro_query NONE]), [(asm, ([], []))])]
+              [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;
         val (ths, ctxt') = ctxt
           |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (cases ~~ stmt)
           |-> (fn ths => ProofContext.note_thmss_i [((thatN, []), [(ths, [])])] #> #2 #> pair ths);
-      in (([(("", atts), [(thesis, ([], []))])], ths), ctxt') end;
+      in (([(("", atts), [(thesis, [])])], ths), ctxt') end;
   in ((elems, concl), mk_stmt) end;
 
 end;

@@ -46,7 +46,7 @@ fun prep_specification prep_vars prep_propp prep_att raw_vars raw_specs ctxt =
     val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
     val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
     val ((specs, vs), specs_ctxt) =
-      prep_propp (params_ctxt, map (map (rpair ([], [])) o snd) raw_specs)
+      prep_propp (params_ctxt, map (map (rpair []) o snd) raw_specs)
       |> swap |>> map (map fst)
       ||>> fold_map ProofContext.inferred_param xs;
 

@@ -271,7 +271,7 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
     fun att (thy, th) =
       let val ((th', _), thy') = att_result th thy
       in (thy', th') end;
-  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, ([goal_pat], [])) thy end;
+  in IsarThy.theorem_i PureThy.internalK ("", [att]) (goal, [goal_pat]) thy end;
 
 in
 

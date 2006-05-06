@@ -68,7 +68,7 @@ fun add_fundef eqns_atts thy =
     in
 	thy |> ProofContext.init
 	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs curry_info name data natts) NONE ("", [])
-	    (map (fn t => (("", []), [(t, ([], []))])) props)
+	    (map (fn t => (("", []), [(t, [])])) props)
     end
 
 
@@ -138,7 +138,7 @@ fun fundef_setup_termination_proof name NONE thy =
 	    |> ProofContext.note_thmss_i [(("termination_intro", 
 					    [ContextRules.intro_query NONE]), [([total_intro], [])])] |> snd
 	    |> Proof.theorem_i PureThy.internalK NONE (total_termination_afterqed name) NONE ("", [])
-	    [(("", []), [(goal, ([], []))])]
+	    [(("", []), [(goal, [])])]
     end	
   | fundef_setup_termination_proof name (SOME (dom_name, dom)) thy =
     let
@@ -148,7 +148,7 @@ fun fundef_setup_termination_proof name NONE thy =
     in
 	thy |> ProofContext.init
 	    |> Proof.theorem_i PureThy.internalK NONE (K I) NONE ("", [])
-	    [(("", []), [(subs, ([], [])), (dcl, ([], []))])]
+	    [(("", []), [(subs, []), (dcl, [])])]
     end	
 
 

@@ -818,7 +818,7 @@ qed
 lemma Cons_eq_filterD:
  "x#xs = filter P ys \<Longrightarrow>
   \<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs"
-  (concl is "\<exists>us vs. ?P ys us vs")
+  (is "_ \<Longrightarrow> \<exists>us vs. ?P ys us vs")
 proof(induct ys)
   case Nil thus ?case by simp
 next

@@ -88,21 +88,21 @@ sig
   val auto_bind_facts: term list -> context -> context
   val match_bind: bool -> (string list * string) list -> context -> term list * context
   val match_bind_i: bool -> (term list * term) list -> context -> term list * context
-  val read_propp: context * (string * (string list * string list)) list list
-    -> context * (term * (term list * term list)) list list
-  val cert_propp: context * (term * (term list * term list)) list list
-    -> context * (term * (term list * term list)) list list
-  val read_propp_schematic: context * (string * (string list * string list)) list list
-    -> context * (term * (term list * term list)) list list
-  val cert_propp_schematic: context * (term * (term list * term list)) list list
-    -> context * (term * (term list * term list)) list list
-  val bind_propp: context * (string * (string list * string list)) list list
+  val read_propp: context * (string * string list) list list
+    -> context * (term * term list) list list
+  val cert_propp: context * (term * term list) list list
+    -> context * (term * term list) list list
+  val read_propp_schematic: context * (string * string list) list list
+    -> context * (term * term list) list list
+  val cert_propp_schematic: context * (term * term list) list list
+    -> context * (term * term list) list list
+  val bind_propp: context * (string * string list) list list
     -> context * (term list list * (context -> context))
-  val bind_propp_i: context * (term * (term list * term list)) list list
+  val bind_propp_i: context * (term * term list) list list
     -> context * (term list list * (context -> context))
-  val bind_propp_schematic: context * (string * (string list * string list)) list list
+  val bind_propp_schematic: context * (string * string list) list list
     -> context * (term list list * (context -> context))
-  val bind_propp_schematic_i: context * (term * (term list * term list)) list list
+  val bind_propp_schematic_i: context * (term * term list) list list
     -> context * (term list list * (context -> context))
   val fact_tac: thm list -> int -> tactic
   val some_fact_tac: context -> int -> tactic
@@ -142,10 +142,10 @@ sig
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
   val add_assms: export ->
-    ((string * attribute list) * (string * (string list * string list)) list) list ->
+    ((string * attribute list) * (string * string list) list) list ->
     context -> (bstring * thm list) list * context
   val add_assms_i: export ->
-    ((string * attribute list) * (term * (term list * term list)) list) list ->
+    ((string * attribute list) * (term * term list) list) list ->
     context -> (bstring * thm list) list * context
   val assume_export: export
   val presume_export: export
@@ -833,11 +833,12 @@ end;
 
 (* simult_matches *)
 
-fun simult_matches ctxt [] = []
-  | simult_matches ctxt pairs =
+fun simult_matches _ (_, []) = []
+  | simult_matches ctxt (t, pats) =
       let
         fun fail () = error "Pattern match failed!";
 
+        val pairs = map (rpair t) pats;
         val maxidx = fold (fn (t1, t2) => fn i =>
           Int.max (Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2), i)) pairs ~1;
         val envs = Unify.smash_unifiers (theory_of ctxt, Envir.empty maxidx,
@@ -885,8 +886,8 @@ local
 fun prep_bind prep_pats (raw_pats, t) ctxt =
   let
     val ctxt' = declare_term t ctxt;
-    val pats = prep_pats (fastype_of t) ctxt' raw_pats;
-    val binds = simult_matches ctxt' (map (rpair t) pats);
+    val pats = prep_pats (Term.fastype_of t) ctxt' raw_pats;
+    val binds = simult_matches ctxt' (t, pats);
   in (binds, ctxt') end;
 
 fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
@@ -919,23 +920,18 @@ local
 
 fun prep_propp schematic prep_props prep_pats (context, args) =
   let
-    fun prep (_, (raw_pats1, raw_pats2)) (ctxt, prop :: props) =
-          let
-            val ctxt' = declare_term prop ctxt;
-            val pats = prep_pats ctxt' (raw_pats1 @ raw_pats2);    (*simultaneous type inference!*)
-          in ((prop, chop (length raw_pats1) pats), (ctxt', props)) end
+    fun prep (_, raw_pats) (ctxt, prop :: props) =
+          let val ctxt' = declare_term prop ctxt
+          in ((prop, prep_pats ctxt' raw_pats), (ctxt', props)) end
       | prep _ _ = sys_error "prep_propp";
     val (propp, (context', _)) = (fold_map o fold_map) prep args
       (context, prep_props schematic context (maps (map fst) args));
   in (context', propp) end;
 
-fun matches ctxt (prop, (pats1, pats2)) =
-  simult_matches ctxt (map (rpair prop) pats1 @ map (rpair (Logic.strip_imp_concl prop)) pats2);
-
 fun gen_bind_propp prepp (ctxt, raw_args) =
   let
     val (ctxt', args) = prepp (ctxt, raw_args);
-    val binds = flat (flat (map (map (matches ctxt')) args));
+    val binds = flat (flat (map (map (simult_matches ctxt')) args));
     val propss = map (map #1) args;
 
     (*generalize result: context evaluated now, binds added later*)

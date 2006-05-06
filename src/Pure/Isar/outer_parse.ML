@@ -65,7 +65,7 @@ sig
   val simple_fixes: token list -> (string * string option) list * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
-  val propp: token list -> (string * (string list * string list)) * token list
+  val propp: token list -> (string * string list) * token list
   val termp: token list -> (string * string list) * token list
   val arguments: token list -> Args.T list * token list
   val attribs: token list -> Attrib.src list * token list
@@ -91,7 +91,7 @@ sig
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
   val statement: token list ->
-    ((bstring * Attrib.src list) * (string * (string list * string list)) list) list * token list
+    ((bstring * Attrib.src list) * (string * string list) list) list * token list
   val general_statement: token list ->
     (Element.context Locale.element list * Element.statement) * OuterLex.token list
   val statement_keyword: token list -> string * token list
@@ -281,11 +281,8 @@ val prop = group "proposition" trm;
 
 val is_terms = Scan.repeat1 ($$$ "is" |-- term);
 val is_props = Scan.repeat1 ($$$ "is" |-- prop);
-val concl_props = $$$ "concl" |-- !!! is_props;
-val any_props = concl_props >> pair [] || is_props -- Scan.optional concl_props [];
 
-val propp = prop -- Scan.optional ($$$ "(" |-- !!! (any_props --| $$$ ")")) ([], []);
-val propp' = prop -- Scan.optional ($$$ "(" |-- !!! (is_props --| $$$ ")")) [];
+val propp = prop -- Scan.optional ($$$ "(" |-- !!! (is_props --| $$$ ")")) [];
 val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 
@@ -363,7 +360,7 @@ val loc_element =
     >> Element.Constrains ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
     >> Element.Assumes ||
-  $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
+  $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp))
     >> Element.Defines ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
     >> Element.Notes;

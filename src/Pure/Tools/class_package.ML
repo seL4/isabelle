@@ -301,7 +301,7 @@ fun gen_instance mk_prop add_thm after_qed inst thy =
   thy
   |> ProofContext.init
   |> Proof.theorem_i PureThy.internalK NONE (after_qed oo (fold o fold) add_thm) NONE ("", [])
-       (map (fn t => (("", []), [(t, ([], []))])) (mk_prop thy inst));
+       (map (fn t => (("", []), [(t, [])])) (mk_prop thy inst));
 
 in
 
