@@ -129,6 +129,10 @@ top-level lemma.
 * Isar: 'obtain' takes an optional case name for the local context
 introduction rule (default "that").
 
+* Isar: removed obsolete 'concl is' patterns.  INCOMPATIBILITY, use
+explicit (is "_ ==> ?foo") in the rare cases where this still happens
+to occur.
+
 * Isar/locales: new derived specification elements 'definition',
 'abbreviation', 'axiomatization', which support type-inference, admit
 object-level specifications (equality, equivalence).  See also the
