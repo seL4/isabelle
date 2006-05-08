@@ -1,5 +1,5 @@
 (*<*)
-theory termination imports examples begin
+theory "termination" imports examples begin
 (*>*)
 
 text{*
