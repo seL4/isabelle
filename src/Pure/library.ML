@@ -374,7 +374,7 @@ fun merge_opt _ (NONE, y) = y
   | merge_opt eq (SOME x, SOME y) = if eq (x, y) then SOME y else raise Option;
 
 fun string_of_option f NONE     = "NONE"
-  | string_of_option f (SOME x) = "SOME " ^ f x;
+  | string_of_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
 
 (* exceptions *)
