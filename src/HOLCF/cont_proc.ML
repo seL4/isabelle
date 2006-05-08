@@ -24,12 +24,23 @@ val cont_A = thm "cont2cont_Rep_CFun";
 val cont_L = thm "cont2cont_LAM";
 val cont_R = thm "cont_Rep_CFun2";
 
+(* checks whether a term contains no dangling bound variables *)
+val is_closed_term =
+  let
+    fun bound_less i (t $ u) =
+          bound_less i t andalso bound_less i u
+      | bound_less i (Abs (_, _, t)) = bound_less (i+1) t
+      | bound_less i (Bound n) = n < i
+      | bound_less i _ = true; (* Const, Free, and Var are OK *)
+  in bound_less 0 end;
+
 (* checks whether a term is written entirely in the LCF sublanguage *)
-fun is_lcf_term (Const("Cfun.Rep_CFun",_) $ t $ u) = is_lcf_term t andalso is_lcf_term u
-  | is_lcf_term (Const("Cfun.Abs_CFun",_) $ Abs (_,_,t)) = is_lcf_term t
-  | is_lcf_term (_ $ _) = false
-  | is_lcf_term (Abs _) = false
-  | is_lcf_term _ = true; (* Const, Free, Var, and Bound are OK *)
+fun is_lcf_term (Const ("Cfun.Rep_CFun", _) $ t $ u) =
+      is_lcf_term t andalso is_lcf_term u
+  | is_lcf_term (Const ("Cfun.Abs_CFun", _) $ Abs (_, _, t)) = is_lcf_term t
+  | is_lcf_term (Const ("Cfun.Abs_CFun", _) $ _) = false
+  | is_lcf_term (Bound _) = true
+  | is_lcf_term t = is_closed_term t;
 
 (*
   efficiently generates a cont thm for every LAM abstraction in a term,
@@ -51,26 +62,29 @@ local
     | zip (x::xs) (y::ys) = (ap x    y   ) :: zip xs ys
 
   fun lam [] = ([], cont_K)
-    | lam (x::ys) = let
-        (* should use "standard" for thms that are used multiple times *)
-        (* it seems to allow for sharing in explicit proof objects *)
-        val x' = standard (k x);
-        val Lx = x' RS cont_L;
-        in (map (fn y => SOME (k y RS Lx)) ys, x') end;
+    | lam (x::ys) =
+    let
+      (* should use "standard" for thms that are used multiple times *)
+      (* it seems to allow for sharing in explicit proof objects *)
+      val x' = standard (k x);
+      val Lx = x' RS cont_L;
+    in (map (fn y => SOME (k y RS Lx)) ys, x') end;
 
   (* first list: cont thm for each dangling bound variable *)
   (* second list: cont thm for each LAM in t *)
   (* if b = false, only return cont thm for outermost LAMs *)
-  fun cont_thms1 b (Const _ $ f $ t) = let
-        val (cs1,ls1) = cont_thms1 b f;
-        val (cs2,ls2) = cont_thms1 b t;
-        in (zip cs1 cs2, if b then ls1 @ ls2 else []) end
-    | cont_thms1 b (Const _ $ Abs (_,_,t)) = let
-        val (cs,ls) = cont_thms1 b t;
-        val (cs',l) = lam cs;
-        in (cs',l::ls) end
+  fun cont_thms1 b (Const ("Cfun.Rep_CFun", _) $ f $ t) =
+    let
+      val (cs1,ls1) = cont_thms1 b f;
+      val (cs2,ls2) = cont_thms1 b t;
+    in (zip cs1 cs2, if b then ls1 @ ls2 else []) end
+    | cont_thms1 b (Const ("Cfun.Abs_CFun", _) $ Abs (_, _, t)) =
+    let
+      val (cs, ls) = cont_thms1 b t;
+      val (cs', l) = lam cs;
+    in (cs', l::ls) end
     | cont_thms1 _ (Bound n) = (var n, [])
-    | cont_thms1 _ _ = ([],[]);
+    | cont_thms1 _ _ = ([], []);
 in
   (* precondition: is_lcf_term t = true *)
   fun cont_thms t = snd (cont_thms1 false t);
@@ -87,17 +101,30 @@ end;
 local
   val rules = [cont_K, cont_I, cont_R, cont_A, cont_L];
   
-  fun cont_tac_of_term (Const("Cont.cont",_) $ f) =
+  val prev_cont_thms : thm list ref = ref [];
+
+  fun old_cont_tac i thm =
+    case !prev_cont_thms of
+      [] => no_tac thm
+    | (c::cs) => (prev_cont_thms := cs; rtac c i thm);
+
+  fun new_cont_tac f' i thm =
+    case all_cont_thms f' of
+      [] => no_tac thm
+    | (c::cs) => (prev_cont_thms := cs; rtac c i thm);
+
+  fun cont_tac_of_term (Const ("Cont.cont", _) $ f) =
     let
-      val f' = Const("Cfun.Abs_CFun",dummyT) $ f;
+      val f' = Const ("Cfun.Abs_CFun", dummyT) $ f;
     in
       if is_lcf_term f'
-        then rtac (hd (cont_thms f'))
-        else REPEAT_ALL_NEW (resolve_tac rules)
+      then old_cont_tac ORELSE' new_cont_tac f'
+      else REPEAT_ALL_NEW (resolve_tac rules)
     end
     | cont_tac_of_term _ = K no_tac;
 in
-  val cont_tac = SUBGOAL (fn (t,i) => cont_tac_of_term (HOLogic.dest_Trueprop t) i);
+  val cont_tac =
+    SUBGOAL (fn (t, i) => cont_tac_of_term (HOLogic.dest_Trueprop t) i);
 end;
 
 local
@@ -106,10 +133,13 @@ local
       val tr = instantiate' [] [SOME (cterm_of thy t)] Eq_TrueI;
     in Option.map fst (Seq.pull (cont_tac 1 tr)) end
 in
-  fun cont_proc thy = Simplifier.simproc thy "cont_proc" ["cont f"] solve_cont;
+  fun cont_proc thy =
+    Simplifier.simproc thy "cont_proc" ["cont f"] solve_cont;
 end;
 
 val setup =
-  (fn thy => (Simplifier.change_simpset_of thy (fn ss => ss addsimprocs [cont_proc thy]); thy));
+  (fn thy =>
+    (Simplifier.change_simpset_of thy
+      (fn ss => ss addsimprocs [cont_proc thy]); thy));
 
 end;
