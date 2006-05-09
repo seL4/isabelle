@@ -364,6 +364,8 @@ apply (rule iffI)
  apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
+subsection {* legacy ML bindings *}
+
 ML
 {*
 val zle_diff1_eq = thm "zle_diff1_eq";

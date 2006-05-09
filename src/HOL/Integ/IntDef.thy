@@ -890,6 +890,10 @@ lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
 lemma [code]: "nat i = nat_aux 0 i"
   by (simp add: nat_aux_def)
 
+lemma [code unfolt]:
+  "neg k = (k < 0)"
+  unfolding neg_def ..
+
 consts_code
   "0" :: "int"                       ("0")
   "1" :: "int"                       ("1")
@@ -908,9 +912,6 @@ code_syntax_const
   "0 :: int"
     ml (target_atom "(0:IntInf.int)")
     haskell (target_atom "0")
-  "1 :: int"
-    ml (target_atom "(1:IntInf.int)")
-    haskell (target_atom "1")
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
     ml (infixl 8 "+")
     haskell (infixl 6 "+")
@@ -929,9 +930,6 @@ code_syntax_const
   "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
     ml (infix 6 "<=")
     haskell (infix 4 "<=")
-  "neg :: int \<Rightarrow> bool"
-    ml ("_/ </ 0")
-    haskell ("_/ </ 0")
 
 ML {*
 fun mk_int_to_nat bin =
@@ -956,10 +954,11 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
 *}
 
 setup {*
-  Codegen.add_codegen "number_of_codegen" number_of_codegen #>
-  CodegenPackage.add_appconst
-    ("Numeral.number_of", ((1, 1), CodegenPackage.appgen_number_of mk_int_to_nat bin_to_int "IntDef.int" "nat")) #>
-  CodegenPackage.set_int_tyco "IntDef.int"
+  Codegen.add_codegen "number_of_codegen" number_of_codegen
+  #> CodegenPackage.add_appconst
+       ("Numeral.number_of", ((1, 1),
+          CodegenPackage.appgen_number_of bin_to_int))
+  #> CodegenPackage.set_int_tyco "IntDef.int"
 *}
 
 quickcheck_params [default_type = int]
