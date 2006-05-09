@@ -55,7 +55,7 @@ recdef fac "measure nat"
   "fac j = (if j <= 0 then 1 else j * (fac (j - 1)))"
 
 code_generate
-  "0::int" "1::int" k
+  "0::int" k
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
   "op - :: int \<Rightarrow> int \<Rightarrow> int"
   "op * :: int \<Rightarrow> int \<Rightarrow> int"
