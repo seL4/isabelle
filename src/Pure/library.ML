@@ -4,8 +4,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Basic library: functions, options, pairs, booleans, lists, integers,
-strings, lists as sets, association lists, generic
-tables, balanced trees, orders, current directory, misc.
+strings, lists as sets, balanced trees, orders, current directory, misc.
 *)
 
 infix 1 |> |-> ||> ||>> |>> |>>> #> #->;
@@ -249,7 +248,6 @@ sig
   val is_equal: order -> bool
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
-  val eq_ord: ('a -> order) -> 'a -> bool
   val int_ord: int * int -> order
   val string_ord: string * string -> order
   val fast_string_ord: string * string -> order

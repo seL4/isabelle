@@ -136,7 +136,7 @@ fun declare_multi ctxt xs (tabs as (tab_f, tab_r)) =
 
 fun merge ((tab_f_1, tab_r_1), (tab_f_2, tab_r_2)) =
   (Srctab.merge (op = : string * string -> bool) (tab_f_1, tab_f_2),
-   Symtab.merge (eq_ord ord) (tab_r_1, tab_r_2));
+   Symtab.merge (is_equal o ord) (tab_r_1, tab_r_2));
 
 fun dest (tab_f, _) = Srctab.dest tab_f;
 
