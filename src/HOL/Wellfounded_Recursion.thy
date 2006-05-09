@@ -288,18 +288,14 @@ attach {*
 fun wfrec f x = f (wfrec f) x;
 *}
 
-code_primconst wfrec
-ml {*
-fun `_` f x = f (`_` f) x;
-*}
-haskell {*
-`_` f x = f (`_` f) x
+setup {*
+  CodegenPackage.add_appconst ("wfrec", ((3, 3), CodegenPackage.appgen_wfrec))
 *}
 
-(* code_syntax_const
+code_syntax_const
   wfrec
-    ml ("{*wfrec*}?")
-    haskell ("{*wfrec*}?") *)
+    ml ("let fun wfrec f x = f (wfrec f) x in wfrec _ _ end;")
+    haskell ("wfrec _ _ where wfrec f x = f (wfrec f) x")
 
 subsection{*Variants for TFL: the Recdef Package*}
 
