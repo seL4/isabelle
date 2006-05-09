@@ -302,9 +302,9 @@ fun eq_ityp ((sctxt1, ty1), (sctxt2, ty2)) =
   let
     exception NO_MATCH;
     fun eq_sctxt subs sctxt1 sctxt2 =
-      map (fn (v, sort) => case AList.lookup (op =) subs v
+      map (fn (v : string, sort : string list) => case AList.lookup (op =) subs v
        of NONE => raise NO_MATCH
-        | SOME v' => case AList.lookup (op =) sctxt2 v'
+        | SOME (v' : string) => case AList.lookup (op =) sctxt2 v'
            of NONE => raise NO_MATCH
             | SOME sort' => if sort <> sort' then raise NO_MATCH else ()) sctxt1
     fun eq (ITyVar v1) (ITyVar v2) subs =
@@ -430,7 +430,7 @@ datatype 'dst transact_res = Succeed of 'dst | Fail of string list * exn option;
 type 'dst transact_fin = 'dst transact_res * module;
 exception FAIL of string list * exn option;
 
-val eq_def = (op =);
+val eq_def = (op =) : def * def -> bool;
 
 (* simple diagnosis *)
 
@@ -697,7 +697,7 @@ fun merge_module modl12 =
     fun join_module _ (Module m1, Module m2) =
           Module (merge_module (m1, m2))
       | join_module name (Def d1, Def d2) =
-          if eq_def (d1, d2) then Def d1 else raise Graph.DUP name
+          if eq_def (d1, d2) then Def d1 else Def d1 (*raise Graph.DUP name*)
       | join_module name _ = raise Graph.DUP name
   in Graph.join join_module modl12 end;
 
@@ -949,7 +949,7 @@ fun start_transact init f modl =
       handle FAIL (msgs, NONE) =>
         (error o cat_lines) ("code generation failed, while:" :: msgs))
       handle FAIL (msgs, SOME e) =>
-        ((writeln o cat_lines) ("code generation failed, while:" :: msgs); raise e);
+        ((Output.error_msg o cat_lines) ("code generation failed, while:" :: msgs); raise e);
   in
     (init, modl)
     |> handle_fail f

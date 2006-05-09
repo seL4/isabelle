@@ -259,23 +259,6 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     |> K ()
   end;
 
-fun replace_invalid s =
-  let
-    fun replace_invalid c =
-      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
-        andalso not (NameSpace.separator = c)
-      then c
-      else "_";
-    fun contract "_" (acc as "_" :: _) = acc
-      | contract c acc = c :: acc;
-    fun contract_underscores s =
-      implode (fold_rev contract (explode s) []);
-  in
-    s
-    |> translate_string replace_invalid
-    |> contract_underscores
-  end;
-
 fun abstract_validator keywords name =
   let
     fun replace_invalid c =
@@ -385,10 +368,10 @@ structure NameMangler = NameManglerFun (
   type src = string;
   val ord = string_ord;
   fun mk reserved_ml (name, 0) =
-        (replace_invalid o NameSpace.base) name
+        (CodegenTheorems.proper_name o NameSpace.base) name
     | mk reserved_ml (name, i) =
-        (replace_invalid o NameSpace.base) name ^ replicate_string i "'";
-  fun is_valid reserved_ml = not o member (op =) reserved_ml;
+        (CodegenTheorems.proper_name o NameSpace.base) name ^ replicate_string i "'";
+  fun is_valid reserved_ml = not o member (op = : string * string -> bool) reserved_ml;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
 );
@@ -1036,19 +1019,16 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             fun mk_cons (co, tys) =
               (Pretty.block o Pretty.breaks) (
                 (str o resolv_here) co
-                :: map (hs_from_type NOBR) tys
+                :: map (hs_from_type BR) tys
               )
           in
-            Pretty.block ((
+            Pretty.block (
               str "data "
               :: hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt))
               :: str " ="
               :: Pretty.brk 1
               :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs)
-            ) @ [
-              Pretty.brk 1,
-              str "deriving Show"
-            ])
+            )
           end |> SOME
       | hs_from_def (_, CodegenThingol.Datatypecons _) =
           NONE

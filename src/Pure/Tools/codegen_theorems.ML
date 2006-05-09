@@ -11,145 +11,75 @@ sig
   val add_preproc: (theory -> thm list -> thm list) -> theory -> theory;
   val add_fun_extr: (theory -> string * typ -> thm list) -> theory -> theory;
   val add_datatype_extr: (theory -> string
-     -> (((string * sort) list * (string * typ list) list) * tactic) option)
+    -> (((string * sort) list * (string * typ list) list) * tactic) option)
     -> theory -> theory;
   val add_fun: thm -> theory -> theory;
-  val add_pred: thm -> theory -> theory;
+  val del_fun: thm -> theory -> theory;
   val add_unfold: thm -> theory -> theory;
-  val del_def: thm -> theory -> theory;
   val del_unfold: thm -> theory -> theory;
   val purge_defs: string * typ -> theory -> theory;
+  val notify_dirty: theory -> theory;
 
+  val proper_name: string -> string;
   val common_typ: theory -> (thm -> typ) -> thm list -> thm list;
-  val preprocess: theory -> (thm -> typ) option -> thm list -> thm list;
-  val preprocess_fun: theory -> thm list -> (typ * thm list) option;
+  val preprocess: theory -> thm list -> (typ * thm list) option;
   val preprocess_term: theory -> term -> term;
+
   val get_funs: theory -> string * typ -> (typ * thm list) option;
   val get_datatypes: theory -> string
     -> (((string * sort) list * (string * typ list) list) * thm list) option;
 
+  (*
+  type thmtab;
+  val get_thmtab: (string * typ) list -> theory -> thmtab * theory;
+  val get_cons: thmtab -> string -> string option;
+  val get_dtyp: thmtab -> string -> (string * sort) list * (string * typ list) list;
+  val get_thms: thmtab -> string * typ -> typ * thm list;
+  *)
+  
+  val print_thms: theory -> unit;
+
+  val init_obj: (thm * thm) * (thm * thm) -> theory -> theory;
   val debug: bool ref;
   val debug_msg: ('a -> string) -> 'a -> 'a;
 
-  val print_thms: theory -> unit;
-  val init_obj: theory -> string -> string * (thm list -> tactic) -> string * (thm list -> tactic)
-    -> string * (thm list -> tactic) -> string * (thm list -> tactic) -> unit;
 end;
 
 structure CodegenTheorems: CODEGEN_THEOREMS =
 struct
 
-(** auxiliary **)
+(** preliminaries **)
+
+(* diagnostics *)
 
 val debug = ref false;
 fun debug_msg f x = (if !debug then Output.debug (f x) else (); x);
 
 
-(** object logic **)
+(* auxiliary *)
 
-val obj_bool_ref : string option ref = ref NONE;
-val obj_true_ref : string option ref = ref NONE;
-val obj_false_ref : string option ref = ref NONE;
-val obj_and_ref : string option ref = ref NONE;
-val obj_eq_ref : string option ref = ref NONE;
-val obj_eq_elim_ref : thm option ref = ref NONE;
-fun idem c = (the o !) c;
-
-fun mk_tf sel =
+fun proper_name s =
   let
-    val bool_typ = Type (idem obj_bool_ref, []);
-    val name = idem
-      (if sel then obj_true_ref else obj_false_ref);
+    fun replace_invalid c =
+      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
+        andalso not (NameSpace.separator = c)
+      then c
+      else "_";
+    fun contract "_" (acc as "_" :: _) = acc
+      | contract c acc = c :: acc;
+    fun contract_underscores s =
+      implode (fold_rev contract (explode s) []);
+    fun ensure_char s =
+      if forall (Char.isDigit o the o Char.fromString) (explode s)
+        then prefix "x" s
+        else s
   in
-    Const (name, bool_typ)
-  end handle Option => error "no object logic setup for code theorems";
-
-fun mk_obj_conj (x, y) =
-  let
-    val bool_typ = Type (idem obj_bool_ref, []);
-  in
-    Const (idem obj_and_ref, bool_typ --> bool_typ --> bool_typ) $ x $ y
-  end handle Option => error "no object logic setup for code theorems";
-
-fun mk_obj_eq (x, y) =
-  let
-    val bool_typ = Type (idem obj_bool_ref, []);
-  in
-    Const (idem obj_eq_ref, type_of x --> type_of y --> bool_typ) $ x $ y
-  end handle Option => error "no object logic setup for code theorems";
-
-fun is_obj_eq c =
-  c = idem obj_eq_ref
-    handle Option => error "no object logic setup for code theorems";
-
-fun mk_bool_eq ((x, y), rhs) =
-  let
-    val bool_typ = Type (idem obj_bool_ref, []);
-  in
-    Logic.mk_equals (
-      (mk_obj_eq (x, y)),
-      rhs
-    )
-  end handle Option => error "no object logic setup for code theorems";
-
-fun elim_obj_eq thm = rewrite_rule [idem obj_eq_elim_ref] thm
-  handle Option => error "no object logic setup for code theorems";
-
-fun init_obj thy bohl (truh, truh_tac) (fals, fals_tac) (ant, ant_tac) (eq, eq_tac) =
-  let
-    val _ = if (is_some o !) obj_bool_ref
-      then error "already set" else ()
-    val bool_typ = Type (bohl, []);
-    val free_typ  = TFree ("'a", Sign.defaultS thy);
-    val var_x = Free ("x", free_typ);
-    val var_y = Free ("y", free_typ);
-    val prop_P = Free ("P", bool_typ);
-    val prop_Q = Free ("Q", bool_typ);
-    val _ = Goal.prove thy [] []
-      (ObjectLogic.ensure_propT thy (Const (truh, bool_typ))) truh_tac;
-    val _ = Goal.prove thy ["P"] [ObjectLogic.ensure_propT thy (Const (fals, bool_typ))]
-      (ObjectLogic.ensure_propT thy prop_P) fals_tac;
-    val _ = Goal.prove thy ["P", "Q"] [ObjectLogic.ensure_propT thy prop_P, ObjectLogic.ensure_propT thy prop_Q]
-      (ObjectLogic.ensure_propT thy (Const (ant, bool_typ --> bool_typ --> bool_typ) $ prop_P $ prop_Q)) ant_tac;
-    val atomize_eq = Goal.prove thy ["x", "y"] []
-      (Logic.mk_equals (
-        Logic.mk_equals (var_x, var_y),
-        ObjectLogic.ensure_propT thy
-          (Const (eq, free_typ --> free_typ --> bool_typ) $ var_x $ var_y))) eq_tac;
-  in
-    obj_bool_ref := SOME bohl;
-    obj_true_ref := SOME truh;
-    obj_false_ref := SOME fals;
-    obj_and_ref := SOME ant;
-    obj_eq_ref := SOME eq;
-    obj_eq_elim_ref := SOME (Thm.symmetric atomize_eq)
+    s
+    |> translate_string replace_invalid
+    |> contract_underscores
+    |> ensure_char
   end;
 
-
-(** auxiliary **)
-
-fun destr_fun thy thm =
-  case try (
-    prop_of
-    #> ObjectLogic.drop_judgment thy
-    #> Logic.dest_equals
-    #> fst
-    #> strip_comb
-    #> fst
-    #> dest_Const
-  ) (elim_obj_eq thm)
-   of SOME c_ty => SOME (c_ty, thm)
-    | NONE => NONE;
-
-fun dest_fun thy thm =
-  case destr_fun thy thm
-   of SOME x => x
-    | NONE => error ("not a function equation: " ^ string_of_thm thm);
-
-fun dest_pred thm =
-  case try (fst o dest_Const o fst o strip_comb o snd o Logic.dest_implies o prop_of) thm
-   of SOME c => SOME (c, thm)
-    | NONE => NONE;
 
 fun getf_first [] _ = NONE
   | getf_first (f::fs) x = case f x
@@ -160,217 +90,471 @@ fun getf_first_list [] x = []
   | getf_first_list (f::fs) x = case f x
      of [] => getf_first_list fs x
       | xs => xs;
-      
+
+
+(* object logic setup *)
+
+structure CodegenTheoremsSetup = TheoryDataFun
+(struct
+  val name = "Pure/CodegenTheoremsSetup";
+  type T = ((string * thm) * ((string * string) * (string * string))) option;
+  val empty = NONE;
+  val copy = I;
+  val extend = I;
+  fun merge pp = merge_opt (eq_pair (eq_pair (op =) eq_thm)
+    (eq_pair (eq_pair (op =) (op =)) (eq_pair (op =) (op =)))) : T * T -> T;
+  fun print thy data = ();
+end);
+
+val _ = Context.add_setup CodegenTheoremsSetup.init;
+
+fun init_obj ((TrueI, FalseE), (conjI, atomize_eq)) thy =
+  case CodegenTheoremsSetup.get thy
+   of SOME _ => error "code generator already set up for object logic"
+    | NONE => 
+        let
+          fun strip_implies t = (Logic.strip_imp_prems t, Logic.strip_imp_concl t);
+          fun dest_TrueI thm =
+            Drule.plain_prop_of thm
+            |> ObjectLogic.drop_judgment thy
+            |> Term.dest_Const
+            |> apsnd (
+                  Term.dest_Type
+                  #> fst
+              );
+          fun dest_FalseE thm =
+            Drule.plain_prop_of thm
+            |> Logic.dest_implies
+            |> apsnd (
+                 ObjectLogic.drop_judgment thy
+                 #> Term.dest_Var
+               )
+            |> fst
+            |> ObjectLogic.drop_judgment thy
+            |> Term.dest_Const
+            |> fst;
+          fun dest_conjI thm =
+            Drule.plain_prop_of thm
+            |> strip_implies
+            |> apfst (map (ObjectLogic.drop_judgment thy #> Term.dest_Var))
+            |> apsnd (
+                 ObjectLogic.drop_judgment thy
+                 #> Term.strip_comb
+                 #> apsnd (map Term.dest_Var)
+                 #> apfst Term.dest_Const
+               )
+            |> (fn (v1, ((conj, _), v2)) => if v1 = v2 then conj else error "wrong premise")
+          fun dest_atomize_eq thm =
+            Drule.plain_prop_of thm
+            |> Logic.dest_equals
+            |> apfst (
+                 ObjectLogic.drop_judgment thy
+                 #> Term.strip_comb
+                 #> apsnd (map Term.dest_Var)
+                 #> apfst Term.dest_Const
+               )
+            |> apsnd (
+                 Logic.dest_equals
+                 #> apfst Term.dest_Var
+                 #> apsnd Term.dest_Var
+               )
+            |> (fn (((eq, _), v2), (v1a as (_, TVar (_, sort)), v1b)) =>
+                 if [v1a, v1b] = v2 andalso sort = Sign.defaultS thy then eq else error "wrong premise")
+        in
+          ((dest_TrueI TrueI, [dest_FalseE FalseE, dest_conjI conjI, dest_atomize_eq atomize_eq])
+          handle _ => error "bad code generator setup")
+          |> (fn ((tr, b), [fl, con, eq]) => CodegenTheoremsSetup.put
+               (SOME ((b, atomize_eq), ((tr, fl), (con, eq)))) thy)
+        end;
+
+fun get_obj thy =
+  case CodegenTheoremsSetup.get thy
+   of SOME ((b, atomize), x) => ((Type (b, []), atomize) ,x)
+    | NONE => error "no object logic setup for code theorems";
+
+fun mk_true thy =
+  let
+    val ((b, _), ((tr, fl), (con, eq))) = get_obj thy;
+  in Const (tr, b) end;
+
+fun mk_false thy =
+  let
+    val ((b, _), ((tr, fl), (con, eq))) = get_obj thy;
+  in Const (fl, b) end;
+
+fun mk_obj_conj thy (x, y) =
+  let
+    val ((b, _), ((tr, fl), (con, eq))) = get_obj thy;
+  in Const (con, b --> b --> b) $ x $ y end;
+
+fun mk_obj_eq thy (x, y) =
+  let
+    val ((b, _), ((tr, fl), (con, eq))) = get_obj thy;
+  in Const (eq, type_of x --> type_of y --> b) $ x $ y end;
+
+fun is_obj_eq thy c =
+  let
+    val ((b, _), ((tr, fl), (con, eq))) = get_obj thy;
+  in c = eq end;
+
+fun mk_func thy ((x, y), rhs) =
+  Logic.mk_equals (
+    (mk_obj_eq thy (x, y)),
+    rhs
+  );
+
+
+(* theorem purification *)
+
+fun err_thm msg thm =
+  error (msg ^ ": " ^ string_of_thm thm);
+
+fun abs_norm thy thm =
+  let
+    fun expvars t =
+      let
+        val lhs = (fst o Logic.dest_equals) t;
+        val tys = (fst o strip_type o type_of) lhs;
+        val used = fold_aterms (fn Var ((v, _), _) => insert (op =) v | _ => I) lhs [];
+        val vs = Term.invent_names used "x" (length tys);
+      in
+        map2 (fn v => fn ty => Var ((v, 0), ty)) vs tys
+      end;
+    fun expand ct thm =
+      Thm.combination thm (Thm.reflexive ct);
+    fun beta_norm thm =
+      thm
+      |> prop_of
+      |> Logic.dest_equals
+      |> fst
+      |> cterm_of thy
+      |> Thm.beta_conversion true
+      |> Thm.symmetric
+      |> (fn thm' => Thm.transitive thm' thm);
+  in
+    thm
+    |> fold (expand o cterm_of thy) ((expvars o prop_of) thm)
+    |> beta_norm
+  end;
+
+fun canonical_tvars thy thm =
+  let
+    fun mk_inst (v_i as (v, i), (v', sort)) (s as (maxidx, set, acc)) =
+      if v = v' orelse member (op =) set v then s
+        else let
+          val ty = TVar (v_i, sort)
+        in
+          (maxidx + 1, v :: set,
+            (ctyp_of thy ty, ctyp_of thy (TVar ((v', maxidx), sort))) :: acc)
+        end;
+    val lower_name = (prefix "'" o implode o map (Char.toString o Char.toLower o the o Char.fromString)
+      o explode o proper_name o unprefix "'");
+    fun tvars_of thm = (fold_types o fold_atyps)
+      (fn TVar (v_i as (v, i), sort) => cons (v_i, (lower_name v, sort))
+        | _ => I) (prop_of thm) [];
+    val maxidx = Thm.maxidx_of thm + 1;
+    val (_, _, inst) = fold mk_inst (tvars_of thm) (maxidx + 1, [], []);
+  in Thm.instantiate (inst, []) thm end;
+
+fun canonical_vars thy thm =
+  let
+    fun mk_inst (v_i as (v, i), (v', ty)) (s as (maxidx, set, acc)) =
+      if v = v' orelse member (op =) set v then s
+        else let
+          val t = if i = ~1 then Free (v, ty) else Var (v_i, ty)
+        in 
+          (maxidx + 1,  v :: set,
+            (cterm_of thy t, cterm_of thy (Var ((v', maxidx), ty))) :: acc)
+        end;
+    val lower_name = (implode o map (Char.toString o Char.toLower o the o Char.fromString)
+      o explode o proper_name);
+    fun vars_of thm = fold_aterms
+      (fn Var (v_i as (v, i), ty) => cons (v_i, (lower_name v, ty))
+        | _ => I) (prop_of thm) [];
+    val maxidx = Thm.maxidx_of thm + 1;
+    val (_, _, inst) = fold mk_inst (vars_of thm) (maxidx + 1, [], []);
+  in Thm.instantiate ([], inst) thm end;
+
+fun make_eq thy = 
+  let
+    val ((_, atomize), _) = get_obj thy;
+  in rewrite_rule [atomize] end;
+
+fun dest_eq thy thm =
+  case try (make_eq thy #> Drule.plain_prop_of
+   #> ObjectLogic.drop_judgment thy #> Logic.dest_equals) thm
+   of SOME eq => (eq, thm)
+    | NONE => err_thm "not an equation" thm;
+
+fun dest_fun thy thm =
+  let
+    fun dest_fun' ((lhs, _), thm) =
+      case try (dest_Const o fst o strip_comb) lhs
+       of SOME (c, ty) => (c, (ty, thm))
+        | NONE => err_thm "not a function equation" thm;
+  in
+    thm
+    |> debug_msg (prefix "[cg_thm] dest_fun " o Pretty.output o Display.pretty_thm)
+    |> dest_eq thy
+    |> dest_fun'
+  end;
+
+
 
 (** theory data **)
 
-datatype procs = Procs of {
+(* data structures *)
+
+fun merge' eq (xys as (xs, ys)) =
+  if eq_list eq (xs, ys) then (false, xs) else (true, merge eq xys);
+
+fun alist_merge' eq_key eq (xys as (xs, ys)) =
+  if eq_list (eq_pair eq_key eq) (xs, ys) then (false, xs) else (true, AList.merge eq_key eq xys);
+
+fun list_symtab_join' eq (xyt as (xt, yt)) =
+  let
+    val xc = Symtab.keys xt;
+    val yc = Symtab.keys yt;
+    val zc = filter (member (op =) yc) xc;
+    val wc = subtract (op =) zc xc @ subtract (op =) zc yc;
+    fun same_thms c = if eq_list eq_thm ((the o Symtab.lookup xt) c, (the o Symtab.lookup yt) c)
+      then NONE else SOME c;
+  in (wc @ map_filter same_thms zc, Symtab.join (K (merge eq)) xyt) end;
+
+datatype notify = Notify of (serial * (string option -> theory -> theory)) list;
+
+val mk_notify = Notify;
+fun map_notify f (Notify notify) = mk_notify (f notify);
+fun merge_notify pp (Notify notify1, Notify notify2) =
+  mk_notify (AList.merge (op =) (K true) (notify1, notify2));
+
+datatype preproc = Preproc of {
   preprocs: (serial * (theory -> thm list -> thm list)) list,
-  notify: (serial * (string option -> theory -> theory)) list
+  unfolds: thm list
 };
 
-fun mk_procs (preprocs, notify) = Procs { preprocs = preprocs, notify = notify };
-fun map_procs f (Procs { preprocs, notify }) = mk_procs (f (preprocs, notify));
-fun merge_procs _ (Procs { preprocs = preprocs1, notify = notify1 },
-  Procs { preprocs = preprocs2, notify = notify2 }) =
-    mk_procs (AList.merge (op =) (K true) (preprocs1, preprocs2),
-      AList.merge (op =) (K true) (notify1, notify2));
+fun mk_preproc (preprocs, unfolds) =
+  Preproc { preprocs = preprocs, unfolds = unfolds };
+fun map_preproc f (Preproc { preprocs, unfolds }) =
+  mk_preproc (f (preprocs, unfolds));
+fun merge_preproc _ (Preproc { preprocs = preprocs1, unfolds = unfolds1 },
+  Preproc { preprocs = preprocs2, unfolds = unfolds2 }) =
+    let
+      val (dirty1, preprocs) = alist_merge' (op =) (K true) (preprocs1, preprocs2);
+      val (dirty2, unfolds) = merge' eq_thm (unfolds1, unfolds2);
+    in (dirty1 orelse dirty2, mk_preproc (preprocs, unfolds)) end;
 
 datatype extrs = Extrs of {
   funs: (serial * (theory -> string * typ -> thm list)) list,
   datatypes: (serial * (theory -> string -> (((string * sort) list * (string * typ list) list) * tactic) option)) list
 };
 
-fun mk_extrs (funs, datatypes) = Extrs { funs = funs, datatypes = datatypes };
-fun map_extrs f (Extrs { funs, datatypes }) = mk_extrs (f (funs, datatypes));
+fun mk_extrs (funs, datatypes) =
+  Extrs { funs = funs, datatypes = datatypes };
+fun map_extrs f (Extrs { funs, datatypes }) =
+  mk_extrs (f (funs, datatypes));
 fun merge_extrs _ (Extrs { funs = funs1, datatypes = datatypes1 },
   Extrs { funs = funs2, datatypes = datatypes2 }) =
-    mk_extrs (AList.merge (op =) (K true) (funs1, funs2),
-      AList.merge (op =) (K true) (datatypes1, datatypes2));
+    let
+      val (dirty1, funs) = alist_merge' (op =) (K true) (funs1, funs2);
+      val (dirty2, datatypes) = alist_merge' (op =) (K true) (datatypes1, datatypes2);
+    in (dirty1 orelse dirty2, mk_extrs (funs, datatypes)) end;
 
-datatype codethms = Codethms of {
-  funs: thm list Symtab.table,
-  preds: thm list Symtab.table,
-  unfolds: thm list
+datatype funthms = Funthms of {
+  dirty: string list,
+  funs: thm list Symtab.table
 };
 
-fun mk_codethms ((funs, preds), unfolds) =
-  Codethms { funs = funs, preds = preds, unfolds = unfolds };
-fun map_codethms f (Codethms { funs, preds, unfolds }) =
-  mk_codethms (f ((funs, preds), unfolds));
-fun merge_codethms _ (Codethms { funs = funs1, preds = preds1, unfolds = unfolds1 },
-  Codethms { funs = funs2, preds = preds2, unfolds = unfolds2 }) =
-    mk_codethms ((Symtab.join (K (uncurry (fold (insert eq_thm)))) (funs1, funs2),
-        Symtab.join (K (uncurry (fold (insert eq_thm)))) (preds1, preds2)),
-          fold (insert eq_thm) unfolds1 unfolds2);
-
-datatype codecache = Codecache of {
-  funs: thm list Symtab.table,
-  datatypes: (string * typ list) list Symtab.table
-};
-
-fun mk_codecache (funs, datatypes) = Codecache { funs = funs, datatypes = datatypes };
-fun map_codecache f (Extrs { funs, datatypes }) = Codecache (f (funs, datatypes));
-fun merge_codecache _ (Codecache { funs = funs1, datatypes = datatypes1 },
-  Extrs { funs = funs2, datatypes = datatypes2 }) =
-    mk_codecache (Symtab.empty, Symtab.empty);
+fun mk_funthms (dirty, funs) =
+  Funthms { dirty = dirty, funs = funs };
+fun map_funthms f (Funthms { dirty, funs }) =
+  mk_funthms (f (dirty, funs));
+fun merge_funthms _ (Funthms { dirty = dirty1, funs = funs1 },
+  Funthms { dirty = dirty2, funs = funs2 }) =
+    let
+      val (dirty3, funs) = list_symtab_join' eq_thm (funs1, funs2);
+    in mk_funthms (merge (op =) (merge (op =) (dirty1, dirty2), dirty3), funs) end;
 
 datatype T = T of {
-  procs: procs,
+  dirty: bool,
+  notify: notify,
+  preproc: preproc,
   extrs: extrs,
-  codethms: codethms
+  funthms: funthms
 };
 
-fun mk_T (procs, (extrs, codethms)) = T { procs = procs, extrs = extrs, codethms = codethms };
-fun map_T f (T { procs, extrs, codethms }) = mk_T (f (procs, (extrs, codethms)));
-fun merge_T pp (T { procs = procs1, extrs = extrs1, codethms = codethms1 },
-  T { procs = procs2, extrs = extrs2, codethms = codethms2 }) =
-    mk_T (merge_procs pp (procs1, procs2), (merge_extrs pp (extrs1, extrs2), merge_codethms pp (codethms1, codethms2)));
+fun mk_T ((dirty, notify), (preproc, (extrs, funthms))) =
+  T { dirty = dirty, notify = notify, preproc = preproc, extrs = extrs, funthms = funthms };
+fun map_T f (T { dirty, notify, preproc, extrs, funthms }) =
+  mk_T (f ((dirty, notify), (preproc, (extrs, funthms))));
+fun merge_T pp (T { dirty = dirty1, notify = notify1, preproc = preproc1, extrs = extrs1, funthms = funthms1 },
+  T { dirty = dirty2, notify = notify2, preproc = preproc2, extrs = extrs2, funthms = funthms2 }) =
+    let
+      val (dirty3, preproc) = merge_preproc pp (preproc1, preproc2);
+      val (dirty4, extrs) = merge_extrs pp (extrs1, extrs2);
+    in
+      mk_T ((dirty1 orelse dirty2 orelse dirty3 orelse dirty4, merge_notify pp (notify1, notify2)),
+        (preproc, (extrs, merge_funthms pp (funthms1, funthms2))))
+    end;
 
-structure CodegenTheorems = TheoryDataFun
+
+(* setup *)
+
+structure CodegenTheoremsData = TheoryDataFun
 (struct
-  val name = "Pure/CodegenTheorems";
+  val name = "Pure/CodegenTheoremsData";
   type T = T;
-  val empty = mk_T (mk_procs ([], []),
-    (mk_extrs ([], []), mk_codethms ((Symtab.empty, Symtab.empty), [])));
+  val empty = mk_T ((false, mk_notify []), (mk_preproc ([], []),
+    (mk_extrs ([], []), mk_funthms ([], Symtab.empty))));
   val copy = I;
   val extend = I;
   val merge = merge_T;
   fun print (thy : theory) (data : T) =
     let
       val pretty_thm = ProofContext.pretty_thm (ProofContext.init thy);
-      val codethms = (fn T { codethms, ... } => codethms) data;
-      val funs = (Symtab.dest o (fn Codethms { funs, ... } => funs)) codethms;
-      val preds = (Symtab.dest o (fn Codethms { preds, ... } => preds)) codethms;
-      val unfolds = (fn Codethms { unfolds, ... } => unfolds) codethms;
+      val funthms = (fn T { funthms, ... } => funthms) data;
+      val funs = (Symtab.dest o (fn Funthms { funs, ... } => funs)) funthms;
+      val preproc = (fn T { preproc, ... } => preproc) data;
+      val unfolds = (fn Preproc { unfolds, ... } => unfolds) preproc;
     in
       (Pretty.writeln o Pretty.block o Pretty.fbreaks) ([
         Pretty.str "code generation theorems:",
         Pretty.str "function theorems:" ] @
-        Pretty.fbreaks (
+        (*Pretty.fbreaks ( *)
           map (fn (c, thms) => 
             (Pretty.block o Pretty.fbreaks) (
               Pretty.str c :: map pretty_thm thms
             )
           ) funs
-        ) @ [
-        Pretty.str "predicate theorems:" ] @
-        Pretty.fbreaks (
-          map (fn (c, thms) => 
-            (Pretty.block o Pretty.fbreaks) (
-              Pretty.str c :: map pretty_thm thms
-            )
-          ) preds
-        ) @ [
-        Pretty.str "unfolding theorems:",
-        (Pretty.block o Pretty.fbreaks o map pretty_thm) unfolds
-      ])
+        (*) *) @ [
+        Pretty.fbrk,
+        Pretty.block (
+          Pretty.str "unfolding theorems:"
+          :: Pretty.fbrk
+          :: (Pretty.fbreaks o map pretty_thm) unfolds
+      )])
     end;
 end);
 
-val _ = Context.add_setup CodegenTheorems.init;
-val print_thms = CodegenTheorems.print;
+val _ = Context.add_setup CodegenTheoremsData.init;
+val print_thms = CodegenTheoremsData.print;
+
+
+(* accessors *)
 
 local
-  val the_procs = (fn T { procs = Procs procs, ... } => procs) o CodegenTheorems.get
-  val the_extrs = (fn T { extrs = Extrs extrs, ... } => extrs) o CodegenTheorems.get
-  val the_codethms = (fn T { codethms = Codethms codethms, ... } => codethms) o CodegenTheorems.get
+  val the_preproc = (fn T { preproc = Preproc preproc, ... } => preproc) o CodegenTheoremsData.get;
+  val the_extrs = (fn T { extrs = Extrs extrs, ... } => extrs) o CodegenTheoremsData.get;
+  val the_funthms = (fn T { funthms = Funthms funthms, ... } => funthms) o CodegenTheoremsData.get;
 in
-  val the_preprocs = (fn { preprocs, ... } => map snd preprocs) o the_procs;
-  val the_notify = (fn { notify, ... } => map snd notify) o the_procs;
+  val is_dirty = (fn T { dirty = dirty, ... } => dirty) o CodegenTheoremsData.get;
+  val the_dirty_consts = (fn { dirty = dirty, ... } => dirty) o the_funthms;
+  val the_notify = (fn T { notify = Notify notify, ... } => map snd notify) o CodegenTheoremsData.get;
+  val the_preprocs = (fn { preprocs, ... } => map snd preprocs) o the_preproc;
+  val the_unfolds = (fn { unfolds, ... } => unfolds) o the_preproc;
   val the_funs_extrs = (fn { funs, ... } => map snd funs) o the_extrs;
   val the_datatypes_extrs = (fn { datatypes, ... } => map snd datatypes) o the_extrs;
-  val the_funs = (fn { funs, ... } => funs) o the_codethms;
-  val the_preds = (fn { preds, ... } => preds) o the_codethms;
-  val the_unfolds = (fn { unfolds, ... } => unfolds) o the_codethms;
+  val the_funs = (fn { funs, ... } => funs) o the_funthms;
 end (*local*);
 
+val map_data = CodegenTheoremsData.map o map_T;
+
+(* notifiers *)
+
 fun add_notify f =
-  CodegenTheorems.map (map_T (fn (procs, codethms) =>
-    (procs |> map_procs (fn (preprocs, notify) =>
-      (preprocs, (serial (), f) :: notify)), codethms)));
+  map_data (fn ((dirty, notify), x) =>
+    ((dirty, notify |> map_notify (cons (serial (), f))), x));
+
+fun get_reset_dirty thy =
+  let
+    val dirty = is_dirty thy;
+    val dirty_const = if dirty then [] else the_dirty_consts thy;
+  in
+    thy
+    |> map_data (fn ((_, notify), (procs, (extrs, funthms))) =>
+         ((false, notify), (procs, (extrs, funthms |> map_funthms (fn (_, funs) => ([], funs))))))
+    |> pair (dirty, dirty_const)
+  end;
 
 fun notify_all c thy =
-  fold (fn f => f c) (the_notify thy) thy;
+  thy
+  |> get_reset_dirty
+  |-> (fn (true, _) => fold (fn f => f NONE) (the_notify thy)
+        | (false, cs) => let val cs' = case c of NONE => cs | SOME c => c::cs
+            in fold (fn f => fold (f o SOME) cs') (the_notify thy) end);
+
+fun notify_dirty thy =
+  thy
+  |> get_reset_dirty
+  |-> (fn (true, _) => fold (fn f => f NONE) (the_notify thy)
+        | (false, cs) => fold (fn f => fold (f o SOME) cs) (the_notify thy));
+
+
+(* modifiers *)
 
 fun add_preproc f =
-  CodegenTheorems.map (map_T (fn (procs, codethms) =>
-    (procs |> map_procs (fn (preprocs, notify) =>
-      ((serial (), f) :: preprocs, notify)), codethms)))
+  map_data (fn (x, (preproc, y)) =>
+    (x, (preproc |> map_preproc (fn (preprocs, unfolds) => ((serial (), f) :: preprocs, unfolds)), y)))
   #> notify_all NONE;
 
 fun add_fun_extr f =
-  CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-    (procs, (extrs |> map_extrs (fn (funs, datatypes) =>
-      ((serial (), f) :: funs, datatypes)), codethms))))
+  map_data (fn (x, (preproc, (extrs, funthms))) =>
+    (x, (preproc, (extrs |> map_extrs (fn (funs, datatypes) =>
+      ((serial (), f) :: funs, datatypes)), funthms))))
   #> notify_all NONE;
 
 fun add_datatype_extr f =
-  CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-    (procs, (extrs |> map_extrs (fn (funs, datatypes) =>
-      (funs, (serial (), f) :: datatypes)), codethms))))
+  map_data (fn (x, (preproc, (extrs, funthms))) =>
+    (x, (preproc, (extrs |> map_extrs (fn (funs, datatypes) =>
+      (funs, (serial (), f) :: datatypes)), funthms))))
   #> notify_all NONE;
 
 fun add_fun thm thy =
-  case destr_fun thy thm
-   of SOME ((c, _), _) =>
-        thy
-        |> CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-           (procs, (extrs, codethms |> map_codethms (fn ((funs, preds), unfolds) =>
-            ((funs |> Symtab.default (c, []) |> Symtab.map_entry c (fn thms => thms @ [thm]), preds), unfolds))))))
-        |> notify_all (SOME c)
-    | NONE => tap (fn _ => warning ("not a function equation: " ^ string_of_thm thm)) thy;
+  case dest_fun thy thm
+   of (c, _) =>
+    thy
+    |> map_data (fn (x, (preproc, (extrs, funthms))) =>
+        (x, (preproc, (extrs, funthms |> map_funthms (fn (dirty, funs) =>
+          (dirty, funs |> Symtab.default (c, []) |> Symtab.map_entry c (fn thms => thms @ [thm])))))))
+    |> notify_all (SOME c);
 
-fun add_pred thm thy =
-  case dest_pred thm
-   of SOME (c, _) =>
-        thy
-        |> CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-          (procs, (extrs, codethms |> map_codethms (fn ((funs, preds), unfolds) =>
-            ((funs, preds |> Symtab.default (c, []) |> Symtab.map_entry c (fn thms => thms @ [thm])), unfolds))))))
-        |> notify_all (SOME c)
-    | NONE => tap (fn _ => warning ("not a predicate clause: " ^ string_of_thm thm)) thy;
+fun del_fun thm thy =
+  case dest_fun thy thm
+   of (c, _) =>
+    thy
+    |> map_data (fn (x, (preproc, (extrs, funthms))) =>
+        (x, (preproc, (extrs, funthms |> map_funthms (fn (dirty, funs) =>
+          (dirty, funs |> Symtab.map_entry c (remove eq_thm thm)))))))
+    |> notify_all (SOME c);
 
-fun add_unfold thm =
-  CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-    (procs, (extrs, codethms |> map_codethms (fn (defs, unfolds) =>
-      (defs, thm :: unfolds))))))
-  #> notify_all NONE;
-
-fun del_def thm thy =
-  case destr_fun thy thm
-   of SOME ((c, _), thm) =>
-        thy
-        |> CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-           (procs, (extrs, codethms |> map_codethms (fn ((funs, preds), unfolds) =>
-            ((funs |> Symtab.map_entry c (remove eq_thm thm), preds), unfolds))))))
-        |> notify_all (SOME c)
-    | NONE => case dest_pred thm
-   of SOME (c, thm) =>
-        thy
-        |> CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-           (procs, (extrs, codethms |> map_codethms (fn ((funs, preds), unfolds) =>
-            ((funs, preds |> Symtab.map_entry c (remove eq_thm thm)), unfolds))))))
-        |> notify_all (SOME c)
-    | NONE => error ("no code theorem to delete");
+fun add_unfold thm thy =
+  thy
+  |> tap (fn thy => dest_eq thy thm)
+  |> map_data (fn (x, (preproc, y)) =>
+       (x, (preproc |> map_preproc (fn (preprocs, unfolds) =>
+         (preprocs, thm :: unfolds)), y)))
+  |> notify_all NONE;
 
 fun del_unfold thm = 
-  CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-    (procs, (extrs, codethms |> map_codethms (fn (defs, unfolds) =>
-      (defs, remove eq_thm thm unfolds))))))
+  map_data (fn (x, (preproc, y)) =>
+       (x, (preproc |> map_preproc (fn (preprocs, unfolds) =>
+         (preprocs, remove eq_thm thm unfolds)), y)))
   #> notify_all NONE;
 
 fun purge_defs (c, ty) thy =
   thy
-  |> CodegenTheorems.map (map_T (fn (procs, (extrs, codethms)) =>
-      (procs, (extrs, codethms |> map_codethms (fn ((funs, preds), unfolds) =>
-        ((funs |> Symtab.map_entry c
-            (filter (fn thm => Sign.typ_instance thy ((snd o fst o dest_fun thy) thm, ty))),
-          preds |> Symtab.update (c, [])), unfolds))))))
+  |> map_data (fn (x, (preproc, (extrs, funthms))) =>
+      (x, (preproc, (extrs, funthms |> map_funthms (fn (dirty, funs) =>
+        (dirty, funs |> Symtab.map_entry c
+            (filter (fn thm => Sign.typ_instance thy
+              ((fst o snd o dest_fun thy) thm, ty)))))))))
   |> notify_all (SOME c);
 
 
-(** preprocessing **)
+
+(** theorem handling **)
+
+(* preprocessing *)
 
 fun common_typ thy _ [] = []
   | common_typ thy _ [thm] = [thm]
@@ -379,7 +563,7 @@ fun common_typ thy _ [] = []
         fun incr_thm thm max =
           let
             val thm' = incr_indexes max thm;
-            val max' = (maxidx_of_typ o type_of o prop_of) thm' + 1;
+            val max' = (maxidx_of_typ o type_of o Drule.plain_prop_of) thm' + 1;
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
         val (ty1::tys) = map extract_typ thms;
@@ -389,72 +573,106 @@ fun common_typ thy _ [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms end;
 
-fun preprocess thy extract_typ thms =
-  thms
-  |> map (Thm.transfer thy)
-  |> fold (fn f => f thy) (the_preprocs thy)
-  |> map (rewrite_rule (the_unfolds thy))
-  |> (if is_some extract_typ then common_typ thy (the extract_typ) else I)
-  |> Conjunction.intr_list
-  |> Drule.zero_var_indexes
-  |> Conjunction.elim_list
-  |> map Drule.unvarifyT
-  |> map Drule.unvarify;
+fun extr_typ thy thm = case dest_fun thy thm
+ of (_, (ty, _)) => ty;
 
-fun preprocess_fun thy thms =
+fun tap_typ thy [] = NONE
+  | tap_typ thy (thms as (thm::_)) = SOME (extr_typ thy thm, thms);
+
+fun preprocess' thy extr_ty thms =
   let
-    fun tap_typ [] = NONE
-      | tap_typ (thms as (thm::_)) = SOME ((snd o fst o dest_fun thy) thm, thms)
+    fun burrow_thms f [] = []
+      | burrow_thms f thms = 
+          thms
+          |> Conjunction.intr_list
+          |> f
+          |> Conjunction.elim_list;
   in
     thms
-    |> map elim_obj_eq
-    |> preprocess thy (SOME (snd o fst o dest_fun thy))
-    |> tap_typ
+    |> map (make_eq thy)
+    |> map (Thm.transfer thy)
+    |> fold (fn f => f thy) (the_preprocs thy)
+    |> map (rewrite_rule (map (make_eq thy) (the_unfolds thy)))
+    |> debug_msg (fn _ => "[cg_thm] filter")
+    |> debug_msg (commas o map string_of_thm)
+    |> debug_msg (fn _ => "[cg_thm] extr_typ")
+    |> debug_msg (commas o map string_of_thm)
+    |> debug_msg (fn _ => "[cg_thm] common_typ / abs_norm")
+    |> debug_msg (commas o map string_of_thm)
+    |> (if extr_ty then common_typ thy (extr_typ thy) #> map (abs_norm thy) else I)
+    |> burrow_thms (
+        debug_msg (fn _ => "[cg_thm] canonical tvars")
+        #> debug_msg (string_of_thm)
+        #> canonical_tvars thy
+        #> debug_msg (fn _ => "[cg_thm] canonical vars")
+        #> debug_msg (string_of_thm)
+        #> canonical_vars thy
+        #> debug_msg (fn _ => "[cg_thm] zero indices")
+        #> debug_msg (string_of_thm)
+        #> Drule.zero_var_indexes
+       )
+    |> map Drule.unvarifyT
+    |> map Drule.unvarify
   end;
 
-fun preprocess_term thy t =
+fun preprocess thy = preprocess' thy true #> tap_typ thy;
+
+fun preprocess_term thy raw_t =
   let
-    val x = Free (variant (add_term_names (t, [])) "a", fastype_of t);
+    val t = (Term.map_term_types Type.varifyT o Logic.varify) raw_t;
+    val x = variant (add_term_names (t, [])) "a";
+    val t_eq = Logic.mk_equals (Free (x, fastype_of t), t);
     (*fake definition*)
-    val eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
-      (Logic.mk_equals (x, t));
-    fun err () = error "preprocess_term: bad preprocessor"
-  in case map prop_of (preprocess thy NONE [eq]) of
-      [Const ("==", _) $ x' $ t'] => if x = x' then t' else err ()
-    | _ => err ()
+    val thm_eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
+      t_eq;
+    fun err ts' = error ("preprocess_term: bad preprocessor; started with "
+        ^ (quote o Sign.string_of_term thy) t_eq ^ ", ended up with "
+        ^ (quote o commas o map (Sign.string_of_term thy)) ts'
+      )
+  in case preprocess' thy false [thm_eq]
+   of [thm] => (case Drule.plain_prop_of thm
+       of t_res as (Const ("==", _) $ Free (x', _) $ t') => if x = x' then t' else err [t_res]
+        | t_res => err [t_res])
+    | thms => (err o map Drule.plain_prop_of) thms
   end;
 
 
-(** retrieval **)
+(* retrieval *)
 
 fun get_funs thy (c, ty) =
   let
-    val filter_typ = map_filter (fn ((_, ty'), thm) =>
-      if Sign.typ_instance thy (ty', ty)
-        orelse Sign.typ_instance thy (ty, ty')
-      then SOME thm else debug_msg (fn _ => "dropping " ^ string_of_thm thm) NONE);
-    val thms_funs = 
+    val _ = debug_msg (fn _ => "[cg_thm] const (1) " ^ c ^ " :: " ^ Sign.string_of_typ thy ty) ()
+    val filter_typ = map_filter (fn (_, (ty', thm)) =>
+      if Sign.typ_instance thy (ty, ty')
+      then SOME thm else debug_msg (fn _ => "[cg_thm] dropping " ^ string_of_thm thm) NONE);
+    fun get_funs (c, ty) =
       (these o Symtab.lookup (the_funs thy)) c
+      |> debug_msg (fn _ => "[cg_thm] trying funs")
       |> map (dest_fun thy)
       |> filter_typ;
-    val thms = case thms_funs
-     of [] =>
-          Theory.definitions_of thy c
-          (* FIXME avoid dynamic name space lookup!? (via Thm.get_axiom_i etc.??) *)
-          |> maps (PureThy.get_thms thy o Name o #name)
-          |> append (getf_first_list (map (fn f => f thy) (the_funs_extrs thy)) (c, ty))
-          |> map (dest_fun thy)
-          |> filter_typ
-      | thms => thms
+    fun get_extr (c, ty) =
+      getf_first_list (map (fn f => f thy) (the_funs_extrs thy)) (c, ty)
+      |> debug_msg (fn _ => "[cg_thm] trying extr")
+      |> map (dest_fun thy)
+      |> filter_typ;
+    fun get_spec (c, ty) =
+      Theory.definitions_of thy c
+      |> debug_msg (fn _ => "[cg_thm] trying spec")
+      (* FIXME avoid dynamic name space lookup!? (via Thm.get_axiom_i etc.??) *)
+      |> maps (PureThy.get_thms thy o Name o #name)
+      |> map_filter (try (dest_fun thy))
+      |> filter_typ;
   in
-    thms
-    |> preprocess_fun thy
+    getf_first_list [get_funs, get_extr, get_spec] (c, ty)
+    |> debug_msg (fn _ => "[cg_thm] const (2) " ^ c ^ " :: " ^ Sign.string_of_typ thy ty)
+    |> preprocess thy
   end;
 
 fun get_datatypes thy dtco =
   let
-    val truh = mk_tf true;
-    val fals = mk_tf false;
+    val _ = debug_msg (fn _ => "[cg_thm] datatype " ^ dtco) ()
+    val truh = mk_true thy;
+    val fals = mk_false thy;
     fun mk_lhs vs ((co1, tys1), (co2, tys2)) =
       let
         val dty = Type (dtco, map TFree vs);
@@ -467,22 +685,22 @@ fun get_datatypes thy dtco =
         ((frees1, frees2), (zip_co co1 xs1 tys1, zip_co co2 xs2 tys2))
       end;
     fun mk_rhs [] [] = truh
-      | mk_rhs xs ys = foldr1 mk_obj_conj (map2 (curry mk_obj_eq) xs ys);
+      | mk_rhs xs ys = foldr1 (mk_obj_conj thy) (map2 (curry (mk_obj_eq thy)) xs ys);
     fun mk_eq vs (args as ((co1, _), (co2, _))) (inj, dist) =
       if co1 = co2
         then let
           val ((fs1, fs2), lhs) = mk_lhs vs args;
           val rhs = mk_rhs fs1 fs2;
-        in (mk_bool_eq (lhs, rhs) :: inj, dist) end
+        in (mk_func thy (lhs, rhs) :: inj, dist) end
         else let
           val (_, lhs) = mk_lhs vs args;
-        in (inj, mk_bool_eq (lhs, fals) :: dist) end;
+        in (inj, mk_func thy (lhs, fals) :: dist) end;
     fun mk_eqs (vs, cos) =
       let val cos' = rev cos 
       in (op @) (fold (mk_eq vs) (product cos' cos') ([], [])) end;
     fun mk_eq_thms tac vs_cos =
-      map (fn t => (Goal.prove thy [] []
-        (ObjectLogic.ensure_propT thy t) (K tac))) (mk_eqs vs_cos);
+      map (fn t => Goal.prove thy [] []
+        (ObjectLogic.ensure_propT thy t) (K tac) |> standard) (mk_eqs vs_cos);
   in
     case getf_first (map (fn f => f thy) (the_datatypes_extrs thy)) dtco
      of NONE => NONE
@@ -490,11 +708,48 @@ fun get_datatypes thy dtco =
   end;
 
 fun get_eq thy (c, ty) =
-  if is_obj_eq c
+  if is_obj_eq thy c
   then case get_datatypes thy ((fst o dest_Type o hd o fst o strip_type) ty)
    of SOME (_, thms) => thms
     | _ => []
   else [];
+
+type thmtab = ((thm list Typtab.table Symtab.table
+  * string Symtab.table)
+  * ((string * sort) list * (string * typ list) list) Symtab.table);
+
+(*
+fun mk_thmtab thy cs =
+  let
+    fun add_c (c, ty) gr =
+    (*
+      Das ist noch viel komplizierter: Zyklen
+      und die aktuellen Instantiierungen muss man auch noch mitschleppen
+      man sieht: man braucht zusätzlich ein Mapping
+        c ~> [ty] (Symtab)
+      wobei dort immer die bislang allgemeinsten... ???
+    *)
+    (*
+      thm holen für bestimmten typ
+      typ dann behalten
+      typ normalisieren
+      damit haben wir den key
+      hier den check machen, ob schon prozessiert wurde
+      NEIN:
+        ablegen
+        consts der rechten Seiten
+        in die Rekursion gehen für alles
+      JA:
+        fertig
+    *)
+  in fold add_c cs Constgraph.empty end;
+
+fun get_thmtab cs thy =
+  thy
+  |> get_reset_dirty
+  |-> (fn _ => I)
+  |> `mk_thmtab;
+*)
 
 
 (** code attributes and setup **)
@@ -506,7 +761,6 @@ local
 in
   val _ = map (Context.add_setup o add_simple_attribute) [
     ("fun", add_fun),
-    ("pred", add_pred),
     ("unfold", (fn thm => Codegen.add_unfold thm #> add_unfold thm)),
     ("unfolt", add_unfold),
     ("nofold", del_unfold)

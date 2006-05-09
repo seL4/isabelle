@@ -13,8 +13,8 @@ sig
     -> (string * typ) * term list -> CodegenThingol.transact
     -> CodegenThingol.iexpr * CodegenThingol.transact;
 
-  val add_appconst: string * ((int * int) * appgen) -> theory -> theory;
-  val add_appconst_i: xstring * ((int * int) * appgen) -> theory -> theory;
+  val add_appconst: xstring * ((int * int) * appgen) -> theory -> theory;
+  val add_appconst_i: string * ((int * int) * appgen) -> theory -> theory;
   val add_prim_class: xstring -> (string * string)
     -> theory -> theory;
   val add_prim_tyco: xstring -> (string * string)
@@ -46,19 +46,12 @@ sig
     -> appgen;
   val appgen_split: (int -> term -> term list * term)
     -> appgen;
-  val appgen_number_of: (term -> term) -> (theory -> term -> IntInf.int) -> string -> string
-    -> appgen;
+  val appgen_number_of: (theory -> term -> IntInf.int) -> appgen;
   val appgen_wfrec: appgen;
-  val add_case_const: (theory -> string -> (string * int) list option) -> xstring
-    -> theory -> theory;
-  val add_case_const_i: (theory -> string -> (string * int) list option) -> string
-    -> theory -> theory;
+  val add_case_const: string -> (string * int) list -> theory -> theory;
 
   val print_code: theory -> unit;
   val rename_inconsistent: theory -> theory;
-  val ensure_datatype_case_consts: (theory -> string list)
-    -> (theory -> string -> (string * int) list option)
-    -> theory -> theory;
 
   (*debugging purpose only*)
   structure InstNameMangler: NAME_MANGLER;
@@ -324,7 +317,7 @@ fun merge_target_data
 
 structure CodegenData = TheoryDataFun
 (struct
-  val name = "Pure/codegen_package";
+  val name = "Pure/CodegenPackage";
   type T = {
     modl: module,
     gens: gens,
@@ -826,25 +819,20 @@ fun appgen_let strip_abs thy tabs (app as ((c, ty), [dt, ct])) trns =
         trns
         |> appgen_default thy tabs app;
 
-fun appgen_number_of mk_int_to_nat bin_to_int tyco_int tyco_nat thy tabs ((_,
-  Type (_, [_, ty as Type (tyco, [])])), [bin]) trns =
-    if tyco = tyco_nat then
-      trns
-      |> exprgen_term thy tabs (mk_int_to_nat bin) (*should be a preprocessor's work*)
-    else
-      let
-        val i = bin_to_int thy bin;
-        val _ = if i < 0 then error ("negative numeral: " ^ IntInf.toString i) else ();
-          (*should be a preprocessor's work*)
-      in
-        trns
-        |> exprgen_type thy tabs ty
-        |-> (fn ty => pair (CodegenThingol.INum ((i, ty), ())))
-      end;
+fun appgen_number_of bin_to_int thy tabs ((_, Type (_, [_, ty])), [bin]) trns =
+  let
+    val i = bin_to_int thy bin;
+      (*preprocessor eliminates nat and negative numerals*)
+    val _ = if i < 0 then error ("negative numeral: " ^ IntInf.toString i) else ();
+  in
+    trns
+    |> exprgen_type thy tabs ty
+    |-> (fn ty => pair (CodegenThingol.INum ((i, ty), ())))
+  end;
 
 fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
   let
-    val ty_def = (op ---> o apfst tl o strip_type o Sign.the_const_type thy) c;
+    val ty_def = (op ---> o apfst tl o strip_type o Type.unvarifyT o Sign.the_const_type thy) c;
     val ty' = (op ---> o apfst tl o strip_type) ty;
     val idf = idf_of_const thy tabs (c, ty);
   in
@@ -858,17 +846,6 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
     ||>> exprgen_term thy tabs tx
     |-> (fn ((((_, ls), [ty]), tf), tx) => pair (IConst (idf, (ls, ty)) `$ tf `$ tx))
   end;
-
-fun eqextr_eq f fals thy tabs ("op =", ty) =
-      (case ty
-       of Type ("fun", [Type (dtco, _), _]) =>
-            (case f thy dtco
-             of [] => NONE
-              | [eq] => SOME ((the o CodegenTheorems.preprocess_fun thy) [eq], NONE)
-              | eqs => SOME ((the o CodegenTheorems.preprocess_fun thy) eqs, SOME fals))
-        | _ => NONE) |> Option.map (fn ((ty, eqs), default) => ((eqs, default), ty))
-  | eqextr_eq f fals thy tabs _ =
-      NONE;
 
 fun appgen_datatype_case cos thy tabs (app as ((_, ty), ts)) trns =
   let
@@ -898,19 +875,13 @@ fun appgen_datatype_case cos thy tabs (app as ((_, ty), ts)) trns =
     |-> (fn (((de, dty), bses), e0) => pair (ICase (((de, dty), bses), e0)))
   end;
 
-fun gen_add_case_const prep_c get_case_const_data raw_c thy =
+fun add_case_const c cos thy =
   let
-    val c = prep_c thy raw_c;
-    val (tys, dty) = (split_last o fst o strip_type o Sign.the_const_type thy) c;
-    val cos = (the o get_case_const_data thy) c;
     val n_eta = length cos + 1;
   in
     thy
     |> add_appconst_i (c, ((n_eta, n_eta), appgen_datatype_case cos))
   end;
-
-val add_case_const = gen_add_case_const Sign.intern_const;
-val add_case_const_i = gen_add_case_const (K I);
 
 
 
@@ -1006,9 +977,12 @@ does not make sense:
 *)
 
 fun expand_module init gen arg thy =
-  (#modl o CodegenData.get) thy
-  |> start_transact init (gen thy (mk_tabs thy) arg)
-  |-> (fn x:'a => fn modl => (x, map_module (K modl) thy));
+  thy
+  |> CodegenTheorems.notify_dirty
+  |> `(#modl o CodegenData.get)
+  |> (fn (modl, thy) =>
+        (start_transact init (gen thy (mk_tabs thy) arg) modl, thy))
+  |-> (fn (x, modl) => map_module (K modl) #> pair x);
 
 fun rename_inconsistent thy =
   let
@@ -1033,19 +1007,6 @@ fun rename_inconsistent thy =
       then (warning ("code generator alias already defined for " ^ quote src ^ ", will not overwrite"); thy)
       else add_alias (src, dst) thy
   in fold add inconsistent thy end;
-
-fun ensure_datatype_case_consts get_datatype_case_consts get_case_const_data thy =
-  let
-    fun ensure case_c thy =
-      if
-        Symtab.defined ((#appconst o #gens o CodegenData.get) thy) case_c
-      then
-        (warning ("case constant " ^ quote case_c ^ " already present in application table, will not overwrite"); thy)
-      else
-        add_case_const_i get_case_const_data case_c thy;
-  in
-    fold ensure (get_datatype_case_consts thy) thy
-  end;
 
 fun codegen_term t thy =
   thy
