@@ -86,20 +86,14 @@ fun brackify fxy_ctxt ps =
 fun brackify_infix infx fxy_ctxt ps =
   gen_brackify (eval_fxy (INFX infx) fxy_ctxt) (Pretty.breaks ps);
 
-fun from_app mk_app from_expr const_syntax fxy ((c, ty), es) =
-  let
-    fun mk NONE es =
-          brackify fxy (mk_app c es)
-      | mk (SOME ((i, k), pr)) es =
-          (*if i <= length es then*)
-            let
-              val (es1, es2) = chop k es;
-            in
-              brackify fxy (pr fxy from_expr es1 :: map (from_expr BR) es2)
-            end
-          (*else
-            error ("illegal const_syntax")*)
-  in mk (const_syntax c) es end;
+fun from_app mk_app from_expr const_syntax fxy (const as (c, _), es) =
+  case (const_syntax c)
+   of NONE => brackify fxy (mk_app c es)
+    | SOME ((i, k), pr) =>
+        if i <= length es
+          then case chop k es of (es1, es2) =>
+            brackify fxy (pr fxy from_expr es1 :: map (from_expr BR) es2)
+          else from_expr fxy (CodegenThingol.eta_expand (const, es) i);
 
 fun fillin_mixfix fxy_this ms fxy_ctxt pr args =
   let
@@ -218,7 +212,7 @@ fun parse_targetdef s =
     | (p, ss) => error ("Malformed definition: " ^ quote s ^ " - " ^ commas ss);
 
 
-(* abstract serializer *)
+(* generic abstract serializer *)
 
 type serializer = 
     string list list
@@ -231,7 +225,7 @@ type serializer =
     * OuterParse.token list;
 
 fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
-    postprocess preprocess (class_syntax, tyco_syntax, const_syntax)
+    postprocess (class_syntax, tyco_syntax, const_syntax)
     select module =
   let
     fun pretty_of_prim resolv (name, primdef) =
@@ -251,8 +245,6 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     module
     |> debug_msg (fn _ => "selecting submodule...")
     |> (if is_some select then (CodegenThingol.project_module o the) select else I)
-    |> debug_msg (fn _ => "preprocessing...")
-    |> preprocess
     |> debug_msg (fn _ => "serializing...")
     |> CodegenThingol.serialize (from_defs (pretty_of_prim, (class_syntax : string -> string option, tyco_syntax, const_syntax)))
          from_module' validator postproc nspgrp name_root
@@ -371,7 +363,7 @@ structure NameMangler = NameManglerFun (
         (CodegenTheorems.proper_name o NameSpace.base) name
     | mk reserved_ml (name, i) =
         (CodegenTheorems.proper_name o NameSpace.base) name ^ replicate_string i "'";
-  fun is_valid reserved_ml = not o member (op = : string * string -> bool) reserved_ml;
+  fun is_valid (reserved_ml : string list) = not o member (op =) reserved_ml;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
 );
@@ -499,12 +491,18 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
             str "=>",
             ml_from_expr NOBR e
           ]
-      | ml_from_expr fxy (INum ((n, ty), _)) =
+      | ml_from_expr fxy (INum (n, _)) =
           brackify BR [
             (str o IntInf.toString) n,
-            str ":",
-            ml_from_type NOBR ty
+            str ":IntInf.int"
           ]
+      | ml_from_expr _ (IChar (c, _)) =
+          (str o prefix "#" o quote)
+            (let val i = (Char.ord o the o Char.fromString) c
+              in if i < 32 
+                then prefix "\\" c
+                else c
+              end)
       | ml_from_expr fxy (IAbs (((ve, vty), be), _)) =
           brackify BR [
             str "fn",
@@ -552,10 +550,10 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
         [(str o resolv) f, Pretty.enum "," "(" ")" (map (ml_from_expr BR) es)]
       else
         (str o resolv) f :: map (ml_from_expr BR) es
-    and ml_from_app fxy ((c, (lss, ty)), es) =
+    and ml_from_app fxy (app_expr as ((c, (lss, ty)), es)) =
       case map (ml_from_sortlookup BR) lss
        of [] =>
-            from_app ml_mk_app ml_from_expr const_syntax fxy ((c, ty), es)
+            from_app ml_mk_app ml_from_expr const_syntax fxy app_expr
         | lss =>
             brackify fxy (
               (str o resolv) c
@@ -574,6 +572,24 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
       in
         Pretty.chunks (p_init @ [Pretty.block ([p_last, str ";"])])
       end;
+    fun eta_expand_poly_fun (funn as (_, (_::_, _))) =
+          funn
+      | eta_expand_poly_fun (funn as (eqs, sctxt_ty as (_, ty))) =
+          let
+            fun no_eta (_::_, _) = I
+              | no_eta (_, _ `|-> _) = I
+              | no_eta (_, IAbs (_, _)) = I
+              | no_eta ([], e) = K false;
+            fun has_tyvars (_ `%% tys) =
+                  exists has_tyvars tys
+              | has_tyvars (ITyVar _) =
+                  true
+              | has_tyvars (ty1 `-> ty2) =
+                  has_tyvars ty1 orelse has_tyvars ty2;
+          in if (not o has_tyvars) ty orelse fold no_eta eqs true
+            then funn
+            else (map (fn ([], rhs) => ([IVar "x"], rhs `$ IVar "x")) eqs, sctxt_ty)
+          end;
     fun ml_from_funs (defs as def::defs_tl) =
       let
         fun mk_definer [] [] = "val"
@@ -608,10 +624,11 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               :: map (mk_eq "|") eq_tl
             )
           end;
+        val def' :: defs' = map (apsnd eta_expand_poly_fun o constructive_fun) defs
       in
         chunk_defs (
-          (mk_fun (the (fold check_args defs NONE)) o constructive_fun) def
-          :: map (mk_fun "and" o constructive_fun) defs_tl
+          (mk_fun (the (fold check_args defs NONE))) def'
+          :: map (mk_fun "and") defs'
         )
       end;
     fun ml_from_datatypes (defs as (def::defs_tl)) =
@@ -818,14 +835,6 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
                   let val l = AList.lookup (op =) cs s |> the |> length
                   in if l >= 2 then l else 0 end
                 else 0;
-    fun preprocess const_syntax module =
-      module
-      |> debug_msg (fn _ => "eta-expanding...")
-      |> CodegenThingol.eta_expand (eta_expander module const_syntax)
-      |> debug_msg (fn _ => "eta-expanding polydefs...")
-      |> CodegenThingol.eta_expand_poly
-      (*|> debug 3 (fn _ => "unclashing expression/type variables...")
-      |> CodegenThingol.unclash_vars_tvars*);
     val parse_multi =
       OuterParse.name
       #-> (fn "dir" => 
@@ -838,7 +847,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
      || parse_internal serializer
      || parse_single_file serializer)
     >> (fn seri => fn (class_syntax, tyco_syntax, const_syntax) => seri 
-         (preprocess const_syntax) (class_syntax, tyco_syntax, const_syntax))
+         (class_syntax, tyco_syntax, const_syntax))
   end;
 
 fun mk_flat_ml_resolver names =
@@ -926,13 +935,15 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
               hs_from_expr NOBR e
             ])
           end
-      | hs_from_expr fxy (INum ((n, ty), _)) =
-          brackify BR [
-            (str o (fn s => if nth_string s 0 = "~"
-              then enclose "(" ")" ("negate " ^ unprefix "~" s) else s) o IntInf.toString) n,
-            str "::",
-            hs_from_type NOBR ty
-          ]
+      | hs_from_expr fxy (INum (n, _)) =
+          (str o IntInf.toString) n
+      | hs_from_expr fxy (IChar (c, _)) =
+          (str o enclose "'" "'")
+            (let val i = (Char.ord o the o Char.fromString) c
+              in if i < 32 
+                then Library.prefix "\\" c
+                else c
+              end)
       | hs_from_expr fxy (e as IAbs _) =
           let
             val (es, e) = CodegenThingol.unfold_abs e
@@ -975,8 +986,8 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
           ] end
     and hs_mk_app c es =
       (str o resolv) c :: map (hs_from_expr BR) es
-    and hs_from_app fxy ((c, (ty, ls)), es) =
-      from_app hs_mk_app hs_from_expr const_syntax fxy ((c, ty), es);
+    and hs_from_app fxy =
+      from_app hs_mk_app hs_from_expr const_syntax fxy
     fun hs_from_funeqs (def as (name, _)) =
       let
         fun from_eq (args, rhs) =
@@ -1101,15 +1112,11 @@ fun hs_from_thingol target nsps_upper nspgrp =
       const_syntax c
       |> Option.map (fst o fst)
       |> the_default 0;
-    fun preprocess const_syntax module =
-      module
-      |> debug_msg (fn _ => "eta-expanding...")
-      |> CodegenThingol.eta_expand (eta_expander const_syntax)
   in
     (Scan.optional (OuterParse.name >> (fn "no_typs" => false | s => Scan.fail_with (fn _ => "illegal flag: " ^ quote s) true)) true
     #-> (fn with_typs => parse_multi_file ((K o K) NONE) "hs" (serializer with_typs)))
     >> (fn (seri) => fn (class_syntax, tyco_syntax, const_syntax) => seri 
-         (preprocess const_syntax) (class_syntax, tyco_syntax, const_syntax))
+         (class_syntax, tyco_syntax, const_syntax))
   end;
 
 end; (* local *)

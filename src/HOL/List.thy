@@ -265,6 +265,12 @@ lemma length_induct:
 by (rule measure_induct [of length]) iprover
 
 
+subsubsection {* @{text null} *}
+
+lemma null_empty: "null xs = (xs = [])"
+  by (cases xs) simp_all
+
+
 subsubsection {* @{text length} *}
 
 text {*
@@ -1080,6 +1086,18 @@ done
 lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
 by(induct xs)(auto simp:neq_Nil_conv)
 
+lemma last_code [code]:
+  "last (x # xs) = (if null xs then x else last xs)"
+by (cases xs) simp_all
+
+declare last.simps [code del]
+
+lemma butlast_code [code]:
+  "butlast [] = []"
+  "butlast (x # xs) = (if null xs then [] else x # butlast xs)"
+by (simp, cases xs) simp_all
+
+declare butlast.simps [code del]
 
 subsubsection {* @{text take} and @{text drop} *}
 
@@ -1441,17 +1459,23 @@ subsubsection {* @{text list_all2} *}
 
 lemma list_all2_lengthD [intro?]: 
   "list_all2 P xs ys ==> length xs = length ys"
-by (simp add: list_all2_def)
+  by (simp add: list_all2_def)
 
-lemma list_all2_Nil [iff,code]: "list_all2 P [] ys = (ys = [])"
-by (simp add: list_all2_def)
+lemma list_all2_Nil [iff]: "list_all2 P [] ys = (ys = [])"
+  by (simp add: list_all2_def)
 
-lemma list_all2_Nil2[iff]: "list_all2 P xs [] = (xs = [])"
-by (simp add: list_all2_def)
+lemma list_all2_Nil2 [iff]: "list_all2 P xs [] = (xs = [])"
+  by (simp add: list_all2_def)
 
-lemma list_all2_Cons [iff,code]:
-"list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
-by (auto simp add: list_all2_def)
+lemma list_all2_Nil_code [code]: "list_all2 P [] ys = null ys"
+  unfolding null_empty by simp
+
+lemma list_all2_Nil2_code [code]: "list_all2 P xs [] = null xs"
+  unfolding null_empty by simp
+
+lemma list_all2_Cons [iff, code]:
+  "list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
+  by (auto simp add: list_all2_def)
 
 lemma list_all2_Cons1:
 "list_all2 P (x # xs) ys = (\<exists>z zs. ys = z # zs \<and> P x z \<and> list_all2 P xs zs)"
@@ -2174,15 +2198,15 @@ qed
 
 subsubsection {* @{const splice} *}
 
-lemma splice_Nil2[simp]:
+lemma splice_Nil2 [simp, code]:
  "splice xs [] = xs"
 by (cases xs) simp_all
 
-lemma splice_Cons_Cons[simp]:
+lemma splice_Cons_Cons [simp, code]:
  "splice (x#xs) (y#ys) = x # y # splice xs ys"
 by simp
 
-declare splice.simps(2)[simp del]
+declare splice.simps(2) [simp del, code del]
 
 subsubsection{*Sets of Lists*}
 
@@ -2666,24 +2690,35 @@ fun list_codegen thy defs gr dep thyname b t =
     (gr, HOLogic.dest_list t)
   in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
-fun dest_nibble (Const (s, _)) = int_of_nibble (unprefix "List.nibble.Nibble" s)
-  | dest_nibble _ = raise Match;
+fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
+      let
+        fun dest_nibble (Const (s, _)) = (int_of_nibble o unprefix "List.nibble.Nibble") s
+          | dest_nibble _ = raise Match;
+      in
+        (SOME (dest_nibble c1 * 16 + dest_nibble c2)
+        handle Fail _ => NONE | Match => NONE)
+      end
+  | dest_char _ = NONE;
 
-fun char_codegen thy defs gr dep thyname b (Const ("List.char.Char", _) $ c1 $ c2) =
-    (let val c = chr (dest_nibble c1 * 16 + dest_nibble c2)
-     in if Symbol.is_printable c then SOME (gr, Pretty.quote (Pretty.str c))
-       else NONE
-     end handle Fail _ => NONE | Match => NONE)
-  | char_codegen thy defs gr dep thyname b _ = NONE;
+fun char_codegen thy defs gr dep thyname b t =
+  case (Option.map chr o dest_char) t 
+   of SOME c =>
+        if Symbol.is_printable c
+        then SOME (gr, (Pretty.quote o Pretty.str) c)
+        else NONE
+    | NONE => NONE;
 
 in
 
 val list_codegen_setup =
-  Codegen.add_codegen "list_codegen" list_codegen #>
-  Codegen.add_codegen "char_codegen" char_codegen #>
-  fold (CodegenPackage.add_pretty_list "Nil" "Cons") [
-    ("ml", (7, "::")),
-    ("haskell", (5, ":"))];
+  Codegen.add_codegen "list_codegen" list_codegen
+  #> Codegen.add_codegen "char_codegen" char_codegen
+  #> fold (CodegenPackage.add_pretty_list "Nil" "Cons") [
+       ("ml", (7, "::")),
+       ("haskell", (5, ":"))
+     ]
+  #> CodegenPackage.add_appconst
+       ("List.char.Char", ((2, 2), CodegenPackage.appgen_char dest_char));
 
 end;
 *}
@@ -2728,6 +2763,11 @@ code_syntax_const
   Nil
     ml (target_atom "[]")
     haskell (target_atom "[]")
+
+code_syntax_tyco
+  char
+    ml (target_atom "char")
+    haskell (target_atom "Char")
 
 setup list_codegen_setup
 

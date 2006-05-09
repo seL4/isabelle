@@ -1410,8 +1410,5 @@ code_syntax_const
   "op =" (* an intermediate solution for polymorphic equality *)
     ml (infixl 6 "=")
     haskell (infixl 4 "==")
-  arbitrary
-    ml ("raise/ (Fail/ \"non-defined-result\")")
-    haskell ("error/ \"non-defined result\"")
 
 end

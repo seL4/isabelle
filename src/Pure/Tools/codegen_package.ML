@@ -47,6 +47,7 @@ sig
   val appgen_split: (int -> term -> term list * term)
     -> appgen;
   val appgen_number_of: (theory -> term -> IntInf.int) -> appgen;
+  val appgen_char: (term -> int option) -> appgen;
   val appgen_wfrec: appgen;
   val add_case_const: string -> (string * int) list -> theory -> theory;
 
@@ -827,8 +828,19 @@ fun appgen_number_of bin_to_int thy tabs ((_, Type (_, [_, ty])), [bin]) trns =
   in
     trns
     |> exprgen_type thy tabs ty
-    |-> (fn ty => pair (CodegenThingol.INum ((i, ty), ())))
+    |-> (fn _ => pair (CodegenThingol.INum (i, ())))
   end;
+
+fun appgen_char char_to_index thy tabs (app as ((_, ty), _)) trns =
+  case (char_to_index o list_comb o apfst Const) app
+   of SOME i =>
+        trns
+        |> exprgen_type thy tabs ty
+        ||>> appgen_default thy tabs app
+        |-> (fn (_, e0) => pair (IChar (chr i, e0)))
+    | NONE =>
+        trns
+        |> appgen_default thy tabs app;
 
 fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
   let
