@@ -9,9 +9,7 @@ signature DATATYPE_CODEGEN =
 sig
   val get_datatype_spec_thms: theory -> string
     -> (((string * sort) list * (string * typ list) list) * tactic) option
-  val get_case_const_data: theory -> string -> (string * int) list option
   val get_all_datatype_cons: theory -> (string * string) list
-  val get_datatype_case_consts: theory -> string list
   val setup: theory -> theory
 end;
 
@@ -331,17 +329,13 @@ fun get_all_datatype_cons thy =
       ((snd o the oo DatatypePackage.get_datatype_spec) thy dtco))
         (DatatypePackage.get_datatypes thy) [];
 
-fun get_case_const_data thy c =
-  case find_first (fn (_, {index, descr, case_name, ...}) =>
-      case_name = c
-    ) ((Symtab.dest o DatatypePackage.get_datatypes) thy)
-   of NONE => NONE
-    | SOME (_, {index, descr, ...}) =>
-        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
-
-fun get_datatype_case_consts thy =
-  Symtab.fold (fn (_, {case_name, ...}) => cons case_name)
-    (DatatypePackage.get_datatypes thy) [];
+fun add_datatype_case_const dtco thy =
+  let
+    val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco
+  in
+    CodegenPackage.add_case_const case_name
+      ((map (apsnd length) o #3 o the o AList.lookup (op =) descr) index) thy
+  end;
 
 val setup = 
   add_codegen "datatype" datatype_codegen #>
@@ -352,8 +346,6 @@ val setup =
     DatatypePackage.get_datatype_spec #>
   CodegenPackage.set_get_all_datatype_cons
     get_all_datatype_cons #>
-  CodegenPackage.ensure_datatype_case_consts
-    get_datatype_case_consts
-    get_case_const_data;
+  DatatypeHooks.add add_datatype_case_const
 
 end;

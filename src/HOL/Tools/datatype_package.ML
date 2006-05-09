@@ -139,14 +139,6 @@ fun get_datatype_constrs thy dtco =
         in SOME (map mk_co cos) end
     | NONE => NONE;
 
-fun get_case_const_data thy c =
-  case find_first (fn (_, {index, descr, case_name, ...}) =>
-      case_name = c
-    ) ((Symtab.dest o get_datatypes) thy)
-   of NONE => NONE
-    | SOME (_, {index, descr, ...}) =>
-        (SOME o map (apsnd length) o #3 o the o AList.lookup (op =) descr) index;
-
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
       val params = rename_wrt_term Bi (Logic.strip_params Bi);
@@ -717,9 +709,10 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       |> put_datatypes (fold Symtab.update dt_infos dt_info)
       |> add_cases_induct dt_infos induct
       |> Theory.parent_path
-      |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
+      |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
+      |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> fold (CodegenPackage.add_case_const_i get_case_const_data) case_names';
+      |> fold (DatatypeHooks.invoke o fst) dt_infos;
   in
     ({distinct = distinct,
       inject = inject,
@@ -778,7 +771,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       |> Theory.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> fold (CodegenPackage.add_case_const_i get_case_const_data) case_names;
+      |> fold (DatatypeHooks.invoke o fst) dt_infos;
   in
     ({distinct = distinct,
       inject = inject,
@@ -876,15 +869,18 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
 
     val simps = List.concat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
-    val thy11 = thy10 |>
-      Theory.add_advanced_trfuns ([], [], make_case_tr' case_names descr, []) |>
-      add_rules simps case_thms size_thms rec_thms inject distinct
-        weak_case_congs (Simplifier.attrib (op addcongs)) |> 
-      put_datatypes (fold Symtab.update dt_infos dt_info) |>
-      add_cases_induct dt_infos induction' |>
-      Theory.parent_path |>
-      (snd o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
-      DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
+    val thy11 =
+      thy10
+      |> Theory.add_advanced_trfuns ([], [], make_case_tr' case_names descr, [])
+      |> add_rules simps case_thms size_thms rec_thms inject distinct
+           weak_case_congs (Simplifier.attrib (op addcongs))
+      |> put_datatypes (fold Symtab.update dt_infos dt_info)
+      |> add_cases_induct dt_infos induction'
+      |> Theory.parent_path
+      |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
+      |> snd
+      |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
+      |> fold (DatatypeHooks.invoke o fst) dt_infos;
   in
     ({distinct = distinct,
       inject = inject,
