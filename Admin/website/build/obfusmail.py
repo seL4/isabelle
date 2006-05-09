@@ -132,7 +132,11 @@ def obfuscate(mailaddr, htmlfile):
     baremail = "%s@%s" % (name, host)
     imgname = (name + "_" + host).replace(".", "_") + ".png"
     imgfile = path.join(path.split(htmlfile)[0], imgname)
+    mod = os.stat(htmlfile).st_mode
+    gid = os.stat(htmlfile).st_gid
     cmd("convert label:'%s' '%s'" % (baremail, imgfile))
+    os.chmod(imgfile, mod)
+    os.chown(imgfile, -1, gid)
     if arg is not None:
         mailsimple = u"{%s} AT [%s] WITH (%s)" % (name, host, arg)
         mailscript = u" ".join(map(mk_line, ['<a href="', "mailto:", name, "@", host, "?", arg, '">']));
@@ -174,7 +178,7 @@ def main():
         mails_subst = {}
         for mail in mails.iterkeys():
             mails_subst[mail] = obfuscate(mail, filename)
-    
+
         # transform pages
         istream = StringIO(open(filename, 'r').read())
         ostream = open(filename, 'wb')
