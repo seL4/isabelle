@@ -61,7 +61,7 @@ fun del_thm thm thy =
   end handle TERM _ => (warn thm; thy);
 
 val del = Thm.declaration_attribute
-  (fn thm => Context.map_theory (del_thm thm #> CodegenTheorems.del_def thm))
+  (fn thm => Context.map_theory (del_thm thm #> CodegenTheorems.del_fun thm))
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =
