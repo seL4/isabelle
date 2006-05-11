@@ -26,14 +26,12 @@ open FundefCommon
 val True_implies = thm "True_implies"
 
 
-fun fundef_afterqed congs curry_info name data natts thmss thy =
+fun fundef_afterqed congs curry_info name data names atts thmss thy =
     let
 	val (complete_thm :: compat_thms) = map hd thmss
 	val fundef_data = FundefProof.mk_partial_rules_curried thy congs curry_info data (freezeT complete_thm) (map freezeT compat_thms)
 	val FundefResult {psimps, subset_pinduct, simple_pinduct, total_intro, dom_intros, ...} = fundef_data
 
-	val (names, attsrcs) = split_list natts
-	val atts = map (map (Attrib.attribute thy)) attsrcs
 
 	val Prep {names = Names {acc_R=accR, ...}, ...} = data
 	val dom_abbrev = Logic.mk_equals (Free (name ^ "_dom", fastype_of accR), accR)
@@ -55,19 +53,25 @@ fun fundef_afterqed congs curry_info name data natts thmss thy =
 	add_fundef_data name fundef_data thy
     end
 
-fun add_fundef eqns_atts thy =
+fun gen_add_fundef prep_att eqns_atts thy =
     let
 	val (natts, eqns) = split_list eqns_atts
+	val (names, raw_atts) = split_list natts
+
+	val atts = map (map (prep_att thy)) raw_atts
 
 	val congs = get_fundef_congs (Context.Theory thy)
 
-	val (curry_info, name, (data, thy)) = FundefPrep.prepare_fundef_curried congs (map (Sign.read_prop thy) eqns) thy
+	val t_eqns = map (Sign.read_prop thy) eqns
+			 |> map (term_of o cterm_of thy) (* HACK to prevent strange things from happening with abbreviations *)
+
+	val (curry_info, name, (data, thy)) = FundefPrep.prepare_fundef_curried congs t_eqns thy
 	val Prep {complete, compat, ...} = data
 
 	val props = (complete :: compat) (*(complete :: fst (chop 110 compat))*)
     in
 	thy |> ProofContext.init
-	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs curry_info name data natts) NONE ("", [])
+	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs curry_info name data names atts) NONE ("", [])
 	    (map (fn t => (("", []), [(t, [])])) props)
     end
 
@@ -151,6 +155,8 @@ fun fundef_setup_termination_proof name NONE thy =
 	    [(("", []), [(subs, []), (dcl, [])])]
     end	
 
+
+val add_fundef = gen_add_fundef Attrib.attribute
 
 
 
