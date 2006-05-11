@@ -57,11 +57,10 @@ fun declare_edge (i, j) =
 
 fun propagate_deps insts deps =
   let
-    fun insts_of c = map (fn a => Instance (c, a)) (Symtab.lookup_list insts c);
-    fun inst_edge (Constant c) (Constant d) = fold declare_edge (product (insts_of c) (insts_of d))
-      | inst_edge (Constant c) j = fold (fn i => declare_edge (i, j)) (insts_of c)
-      | inst_edge i (Constant c) = fold (fn j => declare_edge (i, j)) (insts_of c)
-      | inst_edge (Instance _) (Instance _) = I;
+    fun inst_item (Constant c) = Symtab.lookup_list insts c
+      | inst_item (Instance _) = [];
+    fun inst_edge i j =
+      fold declare_edge (tl (product (i :: inst_item i) (j :: inst_item j)));
   in Items.fold (fn (i, (_, (_, js))) => fold (inst_edge i) js) deps deps end;
 
 
@@ -71,7 +70,7 @@ type spec = {is_def: bool, module: string, name: string, lhs: typ, rhs: (string 
 
 datatype T = Defs of
  {specs: (bool * spec Inttab.table) Symtab.table,
-  insts: string list Symtab.table,
+  insts: item list Symtab.table,
   deps: unit Items.T};
 
 fun no_overloading_of (Defs {specs, ...}) c =
@@ -105,7 +104,7 @@ fun disjoint_specs c (i, {lhs = T, name = a, ...}: spec) =
 fun cycle_msg css =
   let
     fun prt_cycle items = Pretty.block (flat
-      (separate [Pretty.str " -> ", Pretty.brk 1] (map (single o pretty_item) items)));
+      (separate [Pretty.str " ->", Pretty.brk 1] (map (single o pretty_item) items)));
   in Pretty.string_of (Pretty.big_list "Cyclic dependency of constants:" (map prt_cycle css)) end;
 
 
@@ -123,14 +122,6 @@ fun merge
 
 (* define *)
 
-fun struct_less T (Type (_, Us)) = exists (struct_le T) Us
-  | struct_less _ _ = false
-and struct_le T U = T = U orelse struct_less T U;
-
-fun structs_le Ts Us = forall (fn U => exists (fn T => struct_le T U) Ts) Us;
-fun structs_less Ts Us = Ts <> Us andalso structs_le Ts Us;
-
-
 fun define const_typargs is_def module name lhs rhs defs = defs
     |> map_defs (fn (specs, insts, deps) =>
   let
@@ -147,12 +138,12 @@ fun define const_typargs is_def module name lhs rhs defs = defs
     val lhs' = make_item (c, if no_overloading then [] else args);
     val rhs' = rhs |> map_filter (fn (c', T') =>
       let val args' = const_typargs (c', T') in
-        if structs_less args' args then NONE
+        if forall Term.is_TVar args' then NONE
         else SOME (make_item (c', if no_overloading_of defs c' then [] else args'))
       end);
 
-    val insts' = insts
-      |> fold (fn Instance ca => Symtab.insert_list (op =) ca | _ => I) (lhs' :: rhs');
+    val insts' = insts |> fold (fn i as Instance (c, _) =>
+        Symtab.insert_list (op =) (c, i) | _ => I) (lhs' :: rhs');
     val deps' = deps
       |> fold (fn r => declare_edge (r, lhs')) rhs'
       |> propagate_deps insts'
