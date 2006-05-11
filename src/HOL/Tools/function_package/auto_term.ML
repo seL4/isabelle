@@ -24,7 +24,7 @@ fun auto_term_tac tc_intro_rule relstr wf_rules ss =
     (resolve_tac [tc_intro_rule] 1)                    (* produce the usual goals *)
         THEN (instantiate_tac [("R", relstr)])    (* instantiate with the given relation *)
 	THEN (ALLGOALS 
-		  (fn 1 => ares_tac wf_rules 1    (* Solve wellfoundedness *)
+		  (fn 1 => REPEAT (ares_tac wf_rules 1)    (* Solve wellfoundedness *)
 		    | i => asm_simp_tac ss i))    (* Simplify termination conditions *)
 
 fun mk_termination_meth relstr ctxt =
