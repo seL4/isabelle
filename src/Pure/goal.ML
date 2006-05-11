@@ -139,13 +139,16 @@ fun prove_multi thy xs asms props tac =
     val casms = map cert_safe asms;
     val prems = map (norm_hhf o Thm.assume) casms;
 
-    val goal = init (cert_safe prop);
+    val cprop = cert_safe prop;
+    val goal = init cprop;
     val goal' = case SINGLE (tac prems) goal of SOME goal' => goal' | _ => err "Tactic failed.";
     val raw_result = finish goal' handle THM (msg, _, _) => err msg;
 
     val prop' = Thm.prop_of raw_result;
-    val _ = conditional (not (Pattern.matches thy (Envir.beta_norm prop, prop'))) (fn () =>
-      err ("Proved a different theorem: " ^ Sign.string_of_term thy prop'));
+    val _ =
+      if not (Pattern.matches thy (Envir.beta_norm (Thm.term_of cprop), prop'))
+      then err ("Proved a different theorem: " ^ Sign.string_of_term thy prop')
+      else ();
   in
     hd (Conjunction.elim_precise [length props] raw_result)
     |> map
