@@ -162,8 +162,8 @@ val add_fundef = gen_add_fundef Attrib.attribute
 
 (* congruence rules *)
 
-val cong_add = Thm.declaration_attribute (map_fundef_congs o cons o safe_mk_meta_eq);
-val cong_del = Thm.declaration_attribute (map_fundef_congs o remove (op =) o safe_mk_meta_eq);
+val cong_add = Thm.declaration_attribute (map_fundef_congs o Drule.add_rule o safe_mk_meta_eq);
+val cong_del = Thm.declaration_attribute (map_fundef_congs o Drule.del_rule o safe_mk_meta_eq);
 
 
 (* setup *)

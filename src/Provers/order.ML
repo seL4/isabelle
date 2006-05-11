@@ -734,7 +734,7 @@ end;
 in
   (* looking for x <= y: any path from x to y is sufficient *)
   case subgoal of (Le (x, y, _)) => (
-  if sccGraph = [] then raise Cannot else ( 
+  if null sccGraph then raise Cannot else ( 
    let 
     val xi = getIndex x ntc
     val yi = getIndex y ntc
@@ -758,7 +758,7 @@ in
  (* looking for x < y: particular path required, which is not necessarily
     found by normal dfs *)
  |   (Less (x, y, _)) => (
-  if sccGraph = [] then raise Cannot else (
+  if null sccGraph then raise Cannot else (
    let 
     val xi = getIndex x ntc
     val yi = getIndex y ntc
@@ -780,9 +780,9 @@ in
  )
 | (NotEq (x, y, _)) => (
   (* if there aren't any edges that are candidate for a ~= raise Cannot *)
-  if neqE = [] then raise Cannot
+  if null neqE then raise Cannot
   (* if there aren't any edges that are candidate for <= then just search a edge in neqE that implies the subgoal *)
-  else if sccSubgraphs = [] then (
+  else if null sccSubgraphs then (
      (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
        ( SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
           if  (x aconv x' andalso y aconv y') then p 

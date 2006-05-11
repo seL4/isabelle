@@ -281,8 +281,8 @@ val bin_simps = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym,
 
 (*Binary arithmetic BUT NOT ADDITION since it may collapse adjacent terms
   during re-arrangement*)
-val non_add_bin_simps = 
-    bin_simps \\ [add_number_of_left, number_of_add RS sym];
+val non_add_bin_simps =
+  subtract Thm.eq_thm [add_number_of_left, number_of_add RS sym] bin_simps;
 
 (*To evaluate binary negations of coefficients*)
 val minus_simps = [numeral_m1_eq_minus_1 RS sym, number_of_minus RS sym,

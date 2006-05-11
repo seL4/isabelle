@@ -108,7 +108,7 @@ structure FundefData = TheoryDataFun
   val empty = ("", Symtab.empty);
   val copy = I;
   val extend = I;
-  fun merge _ ((l1,tab1),(l2,tab2)) = (l1, Symtab.merge (op =) (tab1, tab2))
+  fun merge _ ((l1,tab1),(l2,tab2)) = (l1, Symtab.merge (K true) (tab1, tab2))
 
   fun print _ _ = ();
 end);

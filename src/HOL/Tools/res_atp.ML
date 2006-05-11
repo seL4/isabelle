@@ -269,9 +269,7 @@ fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
 
 fun cnf_hyps_thms ctxt = 
     let val ths = ProofContext.prems_of ctxt
-    in
-	ResClause.union_all (map ResAxioms.skolem_thm ths)
-    end;
+    in fold (fold (insert Thm.eq_thm) o ResAxioms.skolem_thm) ths [] end;
 
 
 (**** write to files ****)

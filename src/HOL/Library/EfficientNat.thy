@@ -208,7 +208,7 @@ fun remove_suc_clause thy thms =
             (Thm.forall_intr (cert v) th'))
         in
           remove_suc_clause thy (map (fn th''' =>
-            if th''' = th then th'' else th''') thms)
+            if (op = o pairself prop_of) (th''', th) then th'' else th''') thms)
         end
   end;
 

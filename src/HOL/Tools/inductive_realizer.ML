@@ -436,7 +436,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** add realizers to theory **)
 
     val rintr_thms = List.concat (map (fn (_, rs) => map (fn r => List.nth
-      (#intrs ind_info, find_index_eq r intrs)) rs) rss);
+      (#intrs ind_info, find_index (fn th => eq_thm (th, r)) intrs)) rs) rss);
     val thy4 = Library.foldl add_ind_realizer (thy3, subsets Ps);
     val thy5 = Extraction.add_realizers_i
       (map (mk_realizer thy4 vs params')

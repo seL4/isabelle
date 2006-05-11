@@ -72,6 +72,7 @@ fun message s = if ! quiet_mode then () else writeln s;
 
 (* theory data *)
 
+(* FIXME self-descriptive record type *)
 type typedef_info = (typ * typ * string * string) * (thm option * thm * thm);
 
 structure TypedefData = TheoryDataFun
@@ -81,7 +82,7 @@ structure TypedefData = TheoryDataFun
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ (tabs: T * T) = Symtab.merge (op =) tabs;
+  fun merge _ tabs : T = Symtab.merge (K true) tabs;
   fun print _ _ = ();
 end);
 

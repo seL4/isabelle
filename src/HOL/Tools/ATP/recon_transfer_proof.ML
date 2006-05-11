@@ -131,10 +131,10 @@ fun assoc_out_of_order a [] = raise Noassoc
 fun get_assoc_snds [] xs assocs= assocs
 |   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_out_of_order x ys))])
 
-fun add_if_not_inlist [] xs newlist = newlist
-|   add_if_not_inlist (y::ys) xs newlist = if (not (y mem xs)) then 
-                                      add_if_not_inlist ys xs (y::newlist)
-                                        else add_if_not_inlist ys xs (newlist)
+fun add_if_not_inlist eq [] xs newlist = newlist
+|   add_if_not_inlist eq (y::ys) xs newlist =
+    if not (member eq xs y) then add_if_not_inlist eq ys xs (y::newlist)
+    else add_if_not_inlist eq ys xs newlist
 
 (*Flattens a list of list of strings to one string*)
 fun onestr ls = String.concat (map String.concat ls);
@@ -245,9 +245,9 @@ fun get_axioms_used proof_steps thms names_arr  =
      val ax_with_vars = ListPair.zip (ax_metas,ax_vars)
 
      (* get list of extra axioms as thms with their variables *)
-     val extra_metas = add_if_not_inlist metas ax_metas []
+     val extra_metas = add_if_not_inlist Thm.eq_thm metas ax_metas []
      val extra_vars = map thm_vars extra_metas
-     val extra_with_vars = if (not (extra_metas = []) ) 
+     val extra_with_vars = if not (null extra_metas)
 			   then ListPair.zip (extra_metas,extra_vars)
 			   else []
  in
@@ -339,7 +339,7 @@ fun spass_reconstruct proofstr probfile toParent ppid thms names_arr =
       val num_cls_vars =  map (addvars vars) numcls_strs;
       val reconIsaAxStr = origAxs_to_string (ListPair.zip (ax_nums,ax_with_vars)) ""
       
-      val extra_nums = if (not (extra_with_vars = [])) then (1 upto (length extra_with_vars))
+      val extra_nums = if not (null extra_with_vars) then (1 upto (length extra_with_vars))
                        else []
       val reconExtraAxStr = extraAxs_to_string ( ListPair.zip (extra_nums,extra_with_vars)) ""
       val frees_str = "["^(thmvars_to_string frees "")^"]"
