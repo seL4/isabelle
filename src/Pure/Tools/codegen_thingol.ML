@@ -616,11 +616,11 @@ fun map_defs f =
 
 fun fold_defs f =
   let
-    fun fol prfix (name, Def def) =
+    fun fol prfix (name, (Def def, _)) =
           f (NameSpace.pack (prfix @ [name]), def)
-      | fol prfix (name, Module modl) =
-          Graph.fold_nodes (fol (prfix @ [name])) modl
-  in Graph.fold_nodes (fol []) end;
+      | fol prfix (name, (Module modl, _)) =
+          Graph.fold (fol (prfix @ [name])) modl
+  in Graph.fold (fol []) end;
 
 fun add_deps f modl =
   modl
@@ -742,9 +742,9 @@ fun imports_of modl name =
   let
     (*fun submodules prfx modl =
       cons prfx
-      #> Graph.fold_nodes
-          (fn (m, Module modl) => submodules (prfx @ [m]) modl
-            | (_, Def _) => I) modl;
+      #> Graph.fold
+          (fn (m, (Module modl, _)) => submodules (prfx @ [m]) modl
+            | (_, (Def _, _)) => I) modl;
     fun get_modl name =
       fold (fn n => fn modl => (dest_modl oo Graph.get_node) modl n) name modl*)
     fun imports prfx [] modl =
