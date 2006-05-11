@@ -23,39 +23,28 @@ instance erat :: times ..
 instance erat :: inverse ..
 instance erat :: ord ..
 
-consts
+definition
   norm :: "erat \<Rightarrow> erat"
-  common :: "(int * int) * (int * int) \<Rightarrow> (int * int) * int"
-  of_quotient :: "int * int \<Rightarrow> erat"
-  of_rat :: "rat \<Rightarrow> erat"
-  to_rat :: "erat \<Rightarrow> rat"
-
-defs
-  norm_def [simp]: "norm r == case r of (Rat a p q) \<Rightarrow>
+  norm_def [simp]: "norm r = (case r of (Rat a p q) \<Rightarrow>
      if p = 0 then Rat True 0 1
      else
        let
          absp = abs p
        in let
          m = zgcd (absp, q)
-       in Rat (a = (0 <= p)) (absp div m) (q div m)"
-  common_def [simp]: "common r == case r of ((p1, q1), (p2, q2)) \<Rightarrow>
+       in Rat (a = (0 <= p)) (absp div m) (q div m))"
+  common :: "(int * int) * (int * int) \<Rightarrow> (int * int) * int"
+  common_def [simp]: "common r = (case r of ((p1, q1), (p2, q2)) \<Rightarrow>
        let q' = q1 * q2 div int (gcd (nat q1, nat q2))
-       in ((p1 * (q' div q1), p2 * (q' div q2)), q')"
-  of_quotient_def [simp]: "of_quotient r == case r of (a, b) \<Rightarrow>
-       norm (Rat True a b)"
-  of_rat_def [simp]: "of_rat r == of_quotient (THE s. s : Rep_Rat r)"
-  to_rat_def [simp]: "to_rat r == case r of (Rat a p q) \<Rightarrow>
-       if a then Fract p q else Fract (uminus p) q"
-
-consts
-  zero :: erat
-  one :: erat
-  add :: "erat \<Rightarrow> erat \<Rightarrow> erat"
-  neg :: "erat \<Rightarrow> erat"
-  mult :: "erat \<Rightarrow> erat \<Rightarrow> erat"
-  inv :: "erat \<Rightarrow> erat"
-  le :: "erat \<Rightarrow> erat \<Rightarrow> bool"
+       in ((p1 * (q' div q1), p2 * (q' div q2)), q'))"
+  of_quotient :: "int * int \<Rightarrow> erat"
+  of_quotient_def [simp]: "of_quotient r = (case r of (a, b) \<Rightarrow>
+       norm (Rat True a b))"
+  of_rat :: "rat \<Rightarrow> erat"
+  of_rat_def [simp]: "of_rat r = of_quotient (THE s. s : Rep_Rat r)"
+  to_rat :: "erat \<Rightarrow> rat"
+  to_rat_def [simp]: "to_rat r = (case r of (Rat a p q) \<Rightarrow>
+       if a then Fract p q else Fract (uminus p) q)"
 
 defs (overloaded)
   zero_rat_def [simp]: "0 == Rat False 0 1"
@@ -86,6 +75,9 @@ code_syntax_tyco rat
   haskell (target_atom "{*erat*}")
 
 code_syntax_const
+  "arbitrary :: erat"
+    ml ("raise/ (Fail/ \"non-defined rational number\")")
+    haskell ("error/ \"non-defined rational number\"")
   Fract
     ml ("{*of_quotient*}")
     haskell ("{*of_quotient*}")
