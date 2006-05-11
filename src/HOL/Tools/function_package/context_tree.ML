@@ -12,7 +12,7 @@ sig
     type ctx_tree
 
     (* FIXME: This interface is a mess and needs to be cleaned up! *)
-    val cong_deps : thm -> int FundefCommon.IntGraph.T
+    val cong_deps : thm -> int IntGraph.T
     val add_congs : thm list
 
     val mk_tree: theory -> (thm * FundefCommon.depgraph) list -> term -> term -> FundefCommon.ctx_tree

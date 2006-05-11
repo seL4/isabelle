@@ -14,9 +14,6 @@ val acc_const_name = "Accessible_Part.acc"
 
 
 
-(* Partial orders to represent dependencies *)
-structure IntGraph = GraphFun(type key = int val ord = int_ord);
-
 type depgraph = int IntGraph.T
 
 
