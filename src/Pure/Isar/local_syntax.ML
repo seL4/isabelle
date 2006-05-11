@@ -126,7 +126,7 @@ fun extern_term syntax =
   let
     val (structs, fixes) = idents_of syntax;
     fun map_free (t as Free (x, T)) =
-          let val i = Library.find_index_eq x structs + 1 in
+          let val i = find_index (fn s => s = x) structs + 1 in
             if i = 0 andalso member (op =) fixes x then
               Const (Syntax.fixedN ^ x, T)
             else if i = 1 andalso not (! show_structs) then

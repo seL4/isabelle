@@ -364,7 +364,7 @@ fun elim(ineqs,hist) =
          val c = hd sclist
          val (SOME(eq as Lineq(_,_,ceq,_)),othereqs) =
                extract_first (fn Lineq(_,_,l,_) => c mem l) eqs
-         val v = find_index_eq c ceq
+         val v = find_index (fn x => x = c) ceq
          val (ioth,roth) = List.partition (fn (Lineq(_,_,l,_)) => el v l = 0)
                                      (othereqs @ noneqs)
          val others = map (elim_var v eq) roth @ ioth

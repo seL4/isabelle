@@ -113,7 +113,7 @@ fun disambiguate_names thy prf =
             val prop' = the_default (Bound 0) (AList.lookup (op =) thms' s);
             val ps = remove (op =) prop' (map fst (the (Symtab.lookup thms s)))
           in if prop = prop' then prf' else
-            PThm ((s ^ "_" ^ string_of_int (length ps - find_index_eq prop ps), tags),
+            PThm ((s ^ "_" ^ string_of_int (length ps - find_index (fn p => p = prop) ps), tags),
               prf, prop, Ts)
           end
       | rename prf = prf
