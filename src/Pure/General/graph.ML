@@ -16,11 +16,11 @@ sig
   val empty: 'a T
   val keys: 'a T -> key list
   val dest: 'a T -> (key * key list) list
+  val fold: (key * ('a * (key list * key list)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
-  val fold_nodes: (key * 'b -> 'a -> 'a) -> 'b T -> 'a -> 'a
-  val fold_map_nodes: (key * 'b -> 'a -> 'c * 'a) -> 'b T -> 'a -> 'c T * 'a
+  val fold_map_nodes: (key * 'a -> 'b -> 'c * 'b) -> 'a T -> 'b -> 'c T * 'b
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val map_node_yield: key -> ('a -> 'b * 'a) -> 'a T -> 'b * 'a T
@@ -85,8 +85,10 @@ val empty = Graph Table.empty;
 fun keys (Graph tab) = Table.keys tab;
 fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, succs)) (Table.dest tab);
 
-fun minimals (Graph tab) = Table.fold (fn (m, (_, ([], _))) => cons m | _ => I) tab [];
-fun maximals (Graph tab) = Table.fold (fn (m, (_, (_, []))) => cons m | _ => I) tab [];
+fun fold_graph f (Graph tab) = Table.fold f tab;
+
+fun minimals G = fold_graph (fn (m, (_, ([], _))) => cons m | _ => I) G [];
+fun maximals G = fold_graph (fn (m, (_, (_, []))) => cons m | _ => I) G [];
 
 fun get_entry (Graph tab) x =
   (case Table.lookup tab x of
@@ -103,8 +105,6 @@ fun map_entry_yield x f (G as Graph tab) =
 (* nodes *)
 
 fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
-
-fun fold_nodes f (Graph tab) = Table.fold (fn (k, (i, ps)) => f (k, i)) tab;
 
 fun fold_map_nodes f (Graph tab) =
   apfst Graph o Table.fold_map (fn (k, (i, ps)) => f (k, i) #> apfst (rpair ps)) tab;
@@ -141,12 +141,12 @@ fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
   (flat (rev (fst (reachable (imm_succs G) (keys G)))))));
 
 (*subgraph induced by node subset*)
-fun subgraph keys (Graph tab) =
+fun subgraph keys G =
   let
     val select = member eq_key keys;
     fun subg (k, (i, (preds, succs))) =
       K (select k) ? Table.update (k, (i, (filter select preds, filter select succs)));
-  in Table.empty |> Table.fold subg tab |> Graph end;
+  in Graph (fold_graph subg G Table.empty) end;
 
 
 (* nodes *)
@@ -251,8 +251,11 @@ fun merge_trans_acyclic eq (G1, G2) =
   |> fold add_edge_trans_acyclic (diff_edges G1 G2)
   |> fold add_edge_trans_acyclic (diff_edges G2 G1);
 
+
+(*final declarations of this structure!*)
+val fold = fold_graph;
+
 end;
 
-
-(*graphs indexed by strings*)
 structure Graph = GraphFun(type key = string val ord = fast_string_ord);
+structure IntGraph = GraphFun(type key = int val ord = int_ord);
