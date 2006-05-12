@@ -89,7 +89,7 @@ fun map_defs f (Defs {specs, insts, deps}) = make_defs (f (specs, insts, deps));
 val empty = make_defs (Symtab.empty, Symtab.empty, Items.empty);
 
 
-(* merge *)
+(* disjoint specs *)
 
 fun disjoint_types T U =
   (Type.raw_unify (T, Logic.incr_tvar (maxidx_of_typ T + 1) U) Vartab.empty; false)
@@ -101,12 +101,14 @@ fun disjoint_specs c (i, {lhs = T, name = a, ...}: spec) =
       error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
         " for constant " ^ quote c));
 
+
+(* merge *)
+
 fun cycle_msg css =
   let
     fun prt_cycle items = Pretty.block (flat
       (separate [Pretty.str " ->", Pretty.brk 1] (map (single o pretty_item) items)));
   in Pretty.string_of (Pretty.big_list "Cyclic dependency of constants:" (map prt_cycle css)) end;
-
 
 fun merge
    (Defs {specs = specs1, insts = insts1, deps = deps1},
@@ -122,12 +124,15 @@ fun merge
 
 (* define *)
 
+fun pure_args args = forall Term.is_TVar args andalso not (has_duplicates (op =) args);
+
 fun define const_typargs is_def module name lhs rhs defs = defs
     |> map_defs (fn (specs, insts, deps) =>
   let
     val (c, T) = lhs;
     val args = const_typargs lhs;
-    val no_overloading = forall Term.is_TVar args andalso not (has_duplicates (op =) args);
+    val no_overloading = pure_args args;
+    val rec_args = (case args of [Type (_, Ts)] => if pure_args Ts then Ts else [] | _ => []);
 
     val spec = (serial (), {is_def = is_def, module = module, name = name, lhs = T, rhs = rhs});
     val specs' = specs
@@ -135,10 +140,10 @@ fun define const_typargs is_def module name lhs rhs defs = defs
       |> Symtab.map_entry c (fn (_, sps) =>
           (disjoint_specs c spec sps; (no_overloading, Inttab.update spec sps)));
 
-    val lhs' = make_item (c, if no_overloading then [] else args);
+    val lhs' = make_item (c, args);
     val rhs' = rhs |> map_filter (fn (c', T') =>
       let val args' = const_typargs (c', T') in
-        if forall Term.is_TVar args' then NONE
+        if gen_subset (op =) (args', rec_args) then NONE
         else SOME (make_item (c', if no_overloading_of defs c' then [] else args'))
       end);
 
