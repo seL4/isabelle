@@ -6,7 +6,7 @@
 header {* Partial orders *}
 
 theory Porder
-imports Datatype
+imports Finite_Set
 begin
 
 subsection {* Type class for partial orders *}
@@ -210,6 +210,47 @@ apply (unfold finite_chain_def)
 apply (erule conjE)
 apply (erule LeastI2_ex)
 apply (erule (1) lub_finch1)
+done
+
+lemma finch_imp_finite_range: "finite_chain Y \<Longrightarrow> finite (range Y)"
+ apply (unfold finite_chain_def, clarify)
+ apply (rule_tac f="Y" and n="Suc i" in nat_seg_image_imp_finite)
+ apply (rule equalityI)
+  apply (rule subsetI)
+  apply (erule rangeE, rename_tac j)
+  apply (rule_tac x=i and y=j in linorder_le_cases)
+   apply (subgoal_tac "Y j = Y i", simp)
+   apply (simp add: max_in_chain_def)
+  apply simp
+ apply fast
+done
+
+lemma finite_tord_has_max [rule_format]:
+  "finite S \<Longrightarrow> S \<noteq> {} \<longrightarrow> tord S \<longrightarrow> (\<exists>y\<in>S. \<forall>x\<in>S. x \<sqsubseteq> y)"
+ apply (erule finite_induct, simp)
+ apply (rename_tac a S, clarify)
+ apply (case_tac "S = {}", simp)
+ apply (drule (1) mp)
+ apply (drule mp, simp add: tord_def)
+ apply (erule bexE, rename_tac z)
+ apply (subgoal_tac "a \<sqsubseteq> z \<or> z \<sqsubseteq> a")
+  apply (erule disjE)
+   apply (rule_tac x="z" in bexI, simp, simp)
+  apply (rule_tac x="a" in bexI)
+   apply (clarsimp elim!: rev_trans_less)
+  apply simp
+ apply (simp add: tord_def)
+done
+
+lemma finite_range_imp_finch:
+  "\<lbrakk>chain Y; finite (range Y)\<rbrakk> \<Longrightarrow> finite_chain Y"
+ apply (subgoal_tac "\<exists>y\<in>range Y. \<forall>x\<in>range Y. x \<sqsubseteq> y")
+  apply (clarsimp, rename_tac i)
+  apply (subgoal_tac "max_in_chain i Y")
+   apply (simp add: finite_chain_def exI)
+  apply (simp add: max_in_chain_def po_eq_conv chain_mono3)
+ apply (erule finite_tord_has_max, simp)
+ apply (erule chain_tord)
 done
 
 lemma bin_chain: "x \<sqsubseteq> y \<Longrightarrow> chain (\<lambda>i. if i=0 then x else y)"
