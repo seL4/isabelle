@@ -586,7 +586,9 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
                   true
               | has_tyvars (ty1 `-> ty2) =
                   has_tyvars ty1 orelse has_tyvars ty2;
-          in if (not o has_tyvars) ty orelse fold no_eta eqs true
+          in if (null o fst o CodegenThingol.unfold_fun) ty
+              orelse (not o has_tyvars) ty
+              orelse fold no_eta eqs true
             then funn
             else (map (fn ([], rhs) => ([IVar "x"], rhs `$ IVar "x")) eqs, sctxt_ty)
           end;
