@@ -832,12 +832,12 @@ next
     {
       assume nlini: "linearize i = None"
       from nlini have "linearize (Add i j) = None" 
-	by (simp add: Let_def measure_def inv_image_def) then have ?thesis using prems by auto}
+	by (simp add: inv_image_def) then have ?thesis using prems by auto}
     moreover 
     { assume nlinj: "linearize j = None"
 	and lini: "\<exists> li. linearize i = Some li"
-      from nlinj lini have "linearize (Add i j) = None" 
-	by (simp add: Let_def measure_def inv_image_def, auto) with prems  have ?thesis by auto}
+      from nlinj lini have "linearize (Add i j) = None"
+	by (simp add: inv_image_def, auto) with prems  have ?thesis by auto}
     moreover 
     { assume lini: "\<exists>li. linearize i = Some li"
 	and linj: "\<exists>lj. linearize j = Some lj"
@@ -846,7 +846,7 @@ next
       from linj obtain "lj" where  "linearize j = Some lj" by blast
       have linlj: "islinintterm lj" by (simp!)
       moreover from lini linj have "linearize (Add i j) = Some (lin_add (li,lj))" 
-	by (simp add: measure_def inv_image_def, auto!)
+	by (auto!)
       moreover from linli linlj have "islinintterm(lin_add (li,lj))" by (simp add: lin_add_lin)
       ultimately have ?thesis by simp  }
     ultimately show ?thesis by blast
@@ -858,14 +858,14 @@ next
     moreover 
     {
       assume nlini: "linearize i = None"
-      from nlini have "linearize (Sub i j) = None" by (simp add: Let_def measure_def inv_image_def) then have ?thesis by (auto!)
+      from nlini have "linearize (Sub i j) = None" by simp then have ?thesis by (auto!)
     }
     moreover 
     {
       assume lini: "\<exists> li. linearize i = Some li"
 	and nlinj: "linearize j = None"
       from nlinj lini have "linearize (Sub i j) = None" 
-	by (simp add: Let_def measure_def inv_image_def, auto) then have ?thesis by (auto!)
+	by auto then have ?thesis by (auto!)
     }
     moreover 
     {
@@ -876,7 +876,7 @@ next
       from linj obtain "lj" where  "linearize j = Some lj" by blast
       have linlj: "islinintterm lj" by (simp!)
       moreover from lini linj have "linearize (Sub i j) = Some (lin_add (li,lin_neg lj))" 
-	by (simp add: measure_def inv_image_def, auto!)
+	by (auto!)
       moreover from linli linlj have "islinintterm(lin_add (li,lin_neg lj))" by (simp add: lin_add_lin lin_neg_lin)
       ultimately have ?thesis by simp
     }
@@ -893,8 +893,7 @@ next
     moreover 
     {
       assume nlini: "linearize i = None"
-      from nlini have "linearize (Mult i j) = None" 
-	by (simp add: Let_def measure_def inv_image_def)  
+      from nlini have "linearize (Mult i j) = None" by (simp)
       with prems have ?thesis by auto }
     moreover 
     {  assume lini: "\<exists> li. linearize i = Some li"
@@ -902,7 +901,7 @@ next
       from lini obtain "li" where "linearize i = Some li" by blast 
       moreover from nlinj lini have "linearize (Mult i j) = None"
 	using prems
-	by (cases li ) (auto simp add: Let_def measure_def inv_image_def)
+	by (cases li) (auto)
       with prems have ?thesis by auto}
     moreover 
     { assume lini: "\<exists>li. linearize i = Some li"
@@ -914,7 +913,7 @@ next
       have linlj: "islinintterm (Cst bj)" by simp 
       moreover from lini linj prems 
       have "linearize (Mult i j) = Some (lin_mul (bj,li))"
-	by (cases li) (auto simp add: measure_def inv_image_def)
+	by (cases li) auto
       moreover from linli linlj have "islinintterm(lin_mul (bj,li))" by (simp add: lin_mul_lin)
       ultimately have ?thesis by simp  }
     moreover 
@@ -926,7 +925,7 @@ next
       from linj  obtain "lj" where  "linearize j = Some lj" by blast
       from prems have linlj: "islinintterm lj" by simp
       moreover from lini linj prems have "linearize (Mult i j) = Some (lin_mul (bi,lj))" 
-	by (simp add: measure_def inv_image_def) 
+	by simp 
       moreover from linli linlj have "islinintterm(lin_mul (bi,lj))" by (simp add: lin_mul_lin)
       ultimately have ?thesis by simp }
     moreover 
@@ -936,7 +935,7 @@ next
       moreover 
       from ljnc obtain "lj" where "linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)" by blast
       ultimately have "linearize (Mult i j) = None"
-	by (cases li, auto simp add: measure_def inv_image_def) (cases lj, auto)+
+	by (cases li, auto) (cases lj, auto)+
       with prems have ?thesis by simp }
     ultimately show ?thesis by blast
   qed
@@ -987,14 +986,13 @@ next
     moreover 
     {
       assume nlini: "linearize i = None"
-      from nlini have "linearize (Add i j) = None" by (simp add: Let_def measure_def inv_image_def) then have ?thesis using prems by auto
+      from nlini have "linearize (Add i j) = None" by simp then have ?thesis using prems by auto
     }
     moreover 
     {
       assume nlinj: "linearize j = None"
 	and lini: "\<exists> li. linearize i = Some li"
-      from nlinj lini have "linearize (Add i j) = None" 
-	by (simp add: Let_def measure_def inv_image_def, auto) 
+      from nlinj lini have "linearize (Add i j) = None"	by auto 
       then have ?thesis using prems by auto
     }
     moreover 
@@ -1010,7 +1008,7 @@ next
       from linj2 have "islinintterm (the (linearize j))" by (simp add: linearize_linear1)
       then have linlj: "islinintterm lj" using prems by simp
       moreover from lini linj have "linearize (Add i j) = Some (lin_add (li,lj))"
-	using prems by (simp add: measure_def inv_image_def)
+	using prems by simp
       moreover from linli linlj have "I_intterm ats (lin_add (li,lj)) = I_intterm ats (Add li lj)" by (simp add: lin_add_corr)
       ultimately have ?thesis using prems by simp
     }
@@ -1023,14 +1021,14 @@ next
     moreover 
     {
       assume nlini: "linearize i = None"
-      from nlini have "linearize (Sub i j) = None" by (simp add: Let_def measure_def inv_image_def) then have ?thesis using prems by auto
+      from nlini have "linearize (Sub i j) = None" by simp then have ?thesis using prems by auto
     }
     moreover 
     {
       assume lini: "\<exists> li. linearize i = Some li"
 	and nlinj: "linearize j = None"
       from nlinj lini have "linearize (Sub i j) = None" 
-	by (simp add: Let_def measure_def inv_image_def, auto) with prems have ?thesis by auto
+	by auto with prems have ?thesis by auto
     }
     moreover 
     {
@@ -1045,7 +1043,7 @@ next
       from linj2 have "islinintterm (the (linearize j))" by (simp add: linearize_linear1)
       with prems have linlj: "islinintterm lj" by simp
       moreover from prems have "linearize (Sub i j) = Some (lin_add (li,lin_neg lj))" 
-	by (simp add: measure_def inv_image_def)
+	by simp
       moreover from linlj have linnlj:"islinintterm (lin_neg lj)" by (simp add: lin_neg_lin)
       moreover from linli linnlj have "I_intterm ats (lin_add (li,lin_neg lj)) = I_intterm ats (Add li (lin_neg lj))" by (simp only: lin_add_corr[OF linli linnlj])
       moreover from linli linlj linnlj have "I_intterm ats (Add li (lin_neg lj)) = I_intterm ats (Sub li lj)" 
@@ -1065,7 +1063,7 @@ next
     moreover 
     {
       assume nlini: "linearize i = None"
-      from nlini have "linearize (Mult i j) = None" by (simp add: Let_def measure_def inv_image_def) with prems  have ?thesis by auto
+      from nlini have "linearize (Mult i j) = None" by simp with prems  have ?thesis by auto
     }
     moreover 
     {
@@ -1074,7 +1072,7 @@ next
 
       from lini obtain "li" where "linearize i = Some li" by blast 
       moreover from prems have "linearize (Mult i j) = None" 
-	by (cases li) (simp_all add: Let_def measure_def inv_image_def)
+	by (cases li) simp_all
       with prems have ?thesis by auto
     }
     moreover 
@@ -1090,7 +1088,7 @@ next
       from linj  obtain "bj" where  "linearize j = Some (Cst bj)" by blast
       have linlj: "islinintterm (Cst bj)" by simp
       moreover from prems have "linearize (Mult i j) = Some (lin_mul (bj,li))"
- 	by (cases li) (auto simp add: measure_def inv_image_def) 
+ 	by (cases li) auto
       then have lm1: "I_intterm ats (the(linearize (Mult i j))) = I_intterm ats (lin_mul (bj,li))" by simp
       moreover from linli linlj have "I_intterm ats (lin_mul(bj,li)) = I_intterm ats (Mult li (Cst bj))" by (simp add: lin_mul_corr)
       with prems 
@@ -1100,7 +1098,7 @@ next
       moreover have "I_intterm ats i = I_intterm ats (the (linearize i))"  
 	using lini2 lini "6.hyps" by simp
 	moreover have "I_intterm ats j = I_intterm ats (the (linearize j))"
-	  using prems by (cases li) (auto simp add: measure_def inv_image_def)
+	  using prems by (cases li) auto
       ultimately have ?thesis by auto }
     moreover 
     { assume lini: "\<exists>bi. linearize i = Some (Cst bi)"
@@ -1113,8 +1111,8 @@ next
       from linj  obtain "lj" where  "linearize j = Some lj" by blast
       from linj2 have "islinintterm (the (linearize j))" by (simp add: linearize_linear1) 
       then have linlj: "islinintterm lj" by (simp!)
-      moreover from linli lini linj have "linearize (Mult i j) = Some (lin_mul (bi,lj))" 	apply (simp add: measure_def inv_image_def) 
-	apply auto by (case_tac "li::intterm",auto!)
+      moreover from linli lini linj have "linearize (Mult i j) = Some (lin_mul (bi,lj))"
+	by (case_tac "li::intterm",auto!)
       then have lm1: "I_intterm ats (the(linearize (Mult i j))) = I_intterm ats (lin_mul (bi,lj))" by simp
       moreover from linli linlj have "I_intterm ats (lin_mul(bi,lj)) = I_intterm ats (Mult (Cst bi) lj)" by (simp add: lin_mul_corr)
       then have "I_intterm ats (lin_mul(bi,lj)) = I_intterm ats (Mult (the (linearize i)) lj)" by (auto!)
@@ -1132,7 +1130,7 @@ next
       moreover 
       from ljnc obtain "lj" where "\<exists> lj. linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)" by blast
       ultimately have "linearize (Mult i j) = None"
-	apply (simp add: measure_def inv_image_def)
+	apply simp
 	apply (case_tac "linearize i", auto)
 	apply (case_tac a)
 	apply (auto!)
@@ -4495,12 +4493,12 @@ next
   with prems have nv0a':"novar0I a'" by simp
   have lina': "islinintterm a'" using prems by (simp add: linearize_linear)
   from linab have "\<exists> b'. ?lb = Some b'"
-    by (cases ?la, auto simp add: measure_def inv_image_def) (cases ?lb, auto)
+    by (cases ?la, auto) (cases ?lb, auto)
   then obtain "b'" where "?lb = Some b'" by blast
   with prems have nv0b':"novar0I b'" by simp
   have linb': "islinintterm b'" using prems by (simp add: linearize_linear)
   then show ?case using prems lina' linb' nv0a' nv0b'
-    by (auto simp add: measure_def inv_image_def lin_add_novar0)
+    by (auto simp add: lin_add_novar0)
 next 
   case (Sub a b)
     let ?la = "linearize a"
@@ -4511,32 +4509,30 @@ next
   with prems have nv0a':"novar0I a'" by simp
   have lina': "islinintterm a'" using prems by (simp add: linearize_linear)
   from linab have "\<exists> b'. ?lb = Some b'"
-    by (cases ?la, auto simp add: measure_def inv_image_def) (cases ?lb, auto)
+    by (cases ?la, auto) (cases ?lb, auto)
   then obtain "b'" where "?lb = Some b'" by blast
   with prems have nv0b':"novar0I b'" by simp
   have linb': "islinintterm b'" using prems by (simp add: linearize_linear)
   then show ?case using prems lina' linb' nv0a' nv0b'
-    by (auto simp add: 
-      measure_def inv_image_def lin_add_novar0 lin_neg_novar0 lin_neg_lin)
+    by (auto simp add: lin_add_novar0 lin_neg_novar0 lin_neg_lin)
 next 
   case (Mult a b)     
   let ?la = "linearize a"
   let ?lb = "linearize b"
   from prems have linab: "linearize (Mult a b) = Some t'" by simp
-  then have "\<exists> a'. ?la = Some a'"
-    by (cases ?la, auto simp add: measure_def inv_image_def)
+  then have "\<exists> a'. ?la = Some a'" by (cases ?la, auto)
   then obtain "a'" where "?la = Some a'" by blast
   with prems have nv0a':"novar0I a'" by simp
   have lina': "islinintterm a'" using prems by (simp add: linearize_linear)
   from prems linab have "\<exists> b'. ?lb = Some b'"
-    apply (cases ?la, auto simp add: measure_def inv_image_def) 
-    by (cases "a'",auto simp add: measure_def inv_image_def) (cases ?lb, auto)+
+    apply (cases ?la, auto)
+    by (cases "a'",auto) (cases ?lb, auto)+
   then obtain "b'" where "?lb = Some b'" by blast
   with prems have nv0b':"novar0I b'" by simp
   have linb': "islinintterm b'" using prems by (simp add: linearize_linear)
   then show ?case using prems lina' linb' nv0a' nv0b' 
-    by (cases "a'",auto simp add: measure_def inv_image_def lin_mul_novar0)
-  (cases "b'",auto simp add: measure_def inv_image_def lin_mul_novar0)
+    by (cases "a'",auto simp add: lin_mul_novar0)
+  (cases "b'",auto simp add: lin_mul_novar0)
 qed auto
 
 
@@ -4650,7 +4646,7 @@ proof(induct p rule: psimpl.induct)
 	  assume lxcst: "\<exists> i. lx = Cst i"
 	  from lxcst obtain "i" where lxi: "lx = Cst i" by blast
 	  with feq have "qinterp ats (Le l r) = (i \<le> 0)" by simp
-	  then have ?case using prems by (simp add: measure_def inv_image_def)
+	  then have ?case using prems by simp
 	}
 	moreover 
 	{
@@ -4659,7 +4655,7 @@ proof(induct p rule: psimpl.induct)
 	    Cst i \<Rightarrow> (if i \<le> 0 then T else F)
 	    | _ \<Rightarrow> (Le lx (Cst 0))) = (Le lx (Cst 0))" 
 	    by (case_tac "lx::intterm", auto)
-	  with prems lxlin feq have ?case by (auto simp add: measure_def inv_image_def)
+	  with prems lxlin feq have ?case by auto
 	}
 	ultimately show ?thesis  by blast
       qed
@@ -4690,7 +4686,7 @@ next
 	  assume lxcst: "\<exists> i. lx = Cst i"
 	  from lxcst obtain "i" where lxi: "lx = Cst i" by blast
 	  with feq have "qinterp ats (Eq l r) = (i = 0)" by simp
-	  then have ?case using prems by (simp add: measure_def inv_image_def)
+	  then have ?case using prems by simp
 	}
 	moreover 
 	{
@@ -4699,7 +4695,7 @@ next
 	    Cst i \<Rightarrow> (if i = 0 then T else F)
 	    | _ \<Rightarrow> (Eq lx (Cst 0))) = (Eq lx (Cst 0))" 
 	    by (case_tac "lx::intterm", auto)
-	  with prems lxlin feq have ?case by (auto simp add: measure_def inv_image_def)
+	  with prems lxlin feq have ?case by auto
 	}
 	ultimately show ?thesis  by blast
       qed
@@ -4738,14 +4734,13 @@ next
     let ?sf = "psimpl f"
   let ?sg = "psimpl g"
   show ?case using prems 
-    by (cases ?sf, simp_all add: Let_def measure_def inv_image_def) 
-  (cases ?sg, simp_all)+
+    by (cases ?sf, simp_all add: Let_def) (cases ?sg, simp_all)+
 next
   case (5 f g)
       let ?sf = "psimpl f"
   let ?sg = "psimpl g"
   show ?case using prems
-    apply (cases ?sf, simp_all add: Let_def measure_def inv_image_def) 
+    apply (cases ?sf, simp_all add: Let_def) 
     apply (cases ?sg, simp_all)
     apply (cases ?sg, simp_all)
     apply (cases ?sg, simp_all)
@@ -4765,9 +4760,9 @@ next
   let ?sf = "psimpl f"
   let ?sg = "psimpl g"
   show ?case using prems 
-    apply(simp add: Let_def measure_def inv_image_def)
+    apply(simp add: Let_def)
     apply(cases ?sf,simp_all)
-    apply (simp_all add: Let_def measure_def inv_image_def)
+    apply (simp_all add: Let_def)
     apply(cases ?sg, simp_all)
     apply(cases ?sg, simp_all)
     apply(cases ?sg, simp_all)
@@ -4820,8 +4815,7 @@ proof (induct p rule: psimpl.induct)
   have "?ls = None \<or> (\<exists> x. ?ls = Some x)" by auto
   moreover
   {
-    assume "?ls = None" then have ?case 
-      using prems by (simp add: measure_def inv_image_def)
+    assume "?ls = None" then have ?case using prems by simp
   }
   moreover {
     assume "\<exists> x. ?ls = Some x"
@@ -4833,7 +4827,7 @@ proof (induct p rule: psimpl.induct)
       by (simp add: linearize_novar0[OF nv0s, where t'="x"])
     then have ?case
       using prems
-      by (cases "x") (auto simp add: measure_def inv_image_def)
+      by (cases "x") auto
   }
   ultimately show ?case by blast
 next
@@ -4842,8 +4836,7 @@ next
   have "?ls = None \<or> (\<exists> x. ?ls = Some x)" by auto
   moreover
   {
-    assume "?ls = None" then have ?case 
-      using prems by (simp add: measure_def inv_image_def)
+    assume "?ls = None" then have ?case using prems by simp
   }
   moreover {
     assume "\<exists> x. ?ls = Some x"
@@ -4853,9 +4846,7 @@ next
     ultimately have nv0s: "novar0I (Sub l r)" by simp
     from prems have "novar0I x" 
       by (simp add: linearize_novar0[OF nv0s, where t'="x"])
-    then have ?case
-      using prems
-      by (cases "x") (auto simp add: measure_def inv_image_def)
+    then have ?case using prems by (cases "x") auto
   }
   ultimately show ?case by blast
 next
@@ -4878,41 +4869,31 @@ next
   case (4 f g)
   let ?sf = "psimpl f"
   let ?sg = "psimpl g"
-  show ?case 
-    using prems 
-    by (cases ?sf, simp_all add: Let_def measure_def inv_image_def)
-  (cases ?sg,simp_all)+
+  show ?case using prems 
+    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
 next
   case (5 f g)
   let ?sf = "psimpl f"
   let ?sg = "psimpl g"
-  show ?case 
-    using prems 
-    by (cases ?sf, simp_all add: Let_def measure_def inv_image_def)
-  (cases ?sg,simp_all)+
+  show ?case using prems
+    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
 next
   case (6 f g)
   let ?sf = "psimpl f"
   let ?sg = "psimpl g"
-  show ?case 
-    using prems 
-    by (cases ?sf, simp_all add: Let_def measure_def inv_image_def)
-  (cases ?sg,simp_all)+
+  show ?case using prems
+    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
 next
   case (7 f g)
   let ?sf = "psimpl f"
   let ?sg = "psimpl g"
-  show ?case 
-    using prems 
-    by (cases ?sf, simp_all add: Let_def measure_def inv_image_def)
-  (cases ?sg,simp_all)+
-
+  show ?case using prems
+    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
 next
   case (8 f)
   let ?sf = "psimpl f"
   from prems have nv0sf:"novar0 ?sf" by simp
-  show ?case using prems nv0sf 
-    by (cases ?sf, auto simp add: Let_def measure_def inv_image_def)
+  show ?case using prems nv0sf by (cases ?sf, auto simp add: Let_def)
 qed simp_all
 
 (* implements a disj of p applied to all elements of the list*)
@@ -5554,7 +5535,7 @@ constdefs pa:: "QF \<Rightarrow> QF option"
 
 lemma psimpl_qfree: "isqfree p \<Longrightarrow> isqfree (psimpl p)"
 apply(induct p rule: isqfree.induct)
-apply(auto simp add: Let_def measure_def inv_image_def)
+apply(auto simp add: Let_def)
 apply (simp_all cong del: QF.weak_case_cong add: Let_def)
 apply (case_tac "psimpl p", auto)
 apply (case_tac "psimpl q", auto)
@@ -5670,7 +5651,7 @@ lemma [code]: "linearize (Mult i j) =
     | (Some lj) \<Rightarrow> (case lj of 
         Cst b \<Rightarrow> Some (lin_mul (b,li))
       | _ \<Rightarrow> None))))"
-by (simp add: measure_def inv_image_def)
+by simp
 
 lemma [code]: "psimpl (And p q) = 
   (let p'= psimpl p
@@ -5683,7 +5664,7 @@ lemma [code]: "psimpl (And p q) =
                    | T \<Rightarrow> p'
                    | _ \<Rightarrow> (And p' q'))))"
 
-by (simp add: measure_def inv_image_def)
+by simp
 
 lemma [code]: "psimpl (Or p q) = 
   (let p'= psimpl p
@@ -5696,7 +5677,7 @@ lemma [code]: "psimpl (Or p q) =
                    | F \<Rightarrow> p'
                    | _ \<Rightarrow> (Or p' q'))))"
 
-by (simp add: measure_def inv_image_def)
+by simp
 
 lemma [code]: "psimpl (Imp p q) = 
   (let p'= psimpl p
@@ -5713,7 +5694,7 @@ lemma [code]: "psimpl (Imp p q) =
                      F \<Rightarrow> NOT p'
                    | T \<Rightarrow> T
                    | _ \<Rightarrow> (Imp p' q'))))"
-by (simp add: measure_def inv_image_def)
+by simp
 
 declare zdvd_iff_zmod_eq_0 [code]
 

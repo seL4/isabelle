@@ -73,6 +73,9 @@ done
 
 subsubsection{*Finally, All Measures are Wellfounded.*}
 
+lemma in_measure[simp]: "((x,y) : measure f) = (f x < f y)"
+by (auto simp:measure_def inv_image_def)
+
 lemma wf_measure [iff]: "wf (measure f)"
 apply (unfold measure_def)
 apply (rule wf_less_than [THEN wf_inv_image])
@@ -91,9 +94,8 @@ proof -
     proof (rule step)
       fix y
       assume "f y < f x"
-      then have "(y, x) \<in> measure f"
-        by (simp add: measure_def inv_image_def)
-      then show "P y" by (rule less)
+      hence "(y, x) \<in> measure f" by simp
+      thus "P y" by (rule less)
     qed
   qed
 qed

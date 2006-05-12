@@ -105,7 +105,7 @@ text "To discharge the termination condition, we will prove
 lemma ninety_one_inv: "n < ninety_one n + 11"
 apply (rule_tac x=n in tfl_indinv_wfrec [OF ninety_one_def])
 apply force
-apply (auto simp add: indinv_def measure_def inv_image_def)
+apply (auto simp add: indinv_def inv_image_def)
 apply (frule_tac x="x+11" in spec)
 apply (frule_tac x="f (x + 11)" in spec)
 by arith
@@ -125,6 +125,6 @@ theorem def_ninety_one:
                    then x - 10
                    else ninety_one (ninety_one (x+11)))"
 by (subst ninety_one.simps,
-    simp add: ninety_one_tc measure_def inv_image_def)
+    simp add: ninety_one_tc inv_image_def)
 
 end

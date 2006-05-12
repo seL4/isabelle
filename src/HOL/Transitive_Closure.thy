@@ -267,7 +267,7 @@ inductive_cases tranclE: "(a, b) : r^+"
 lemma trancl_unfold: "r^+ = r Un (r O r^+)"
   by (auto intro: trancl_into_trancl elim: tranclE)
 
-lemma trans_trancl: "trans(r^+)"
+lemma trans_trancl[simp]: "trans(r^+)"
   -- {* Transitivity of @{term "r^+"} *}
 proof (rule transI)
   fix x y z
@@ -277,6 +277,14 @@ proof (rule transI)
 qed
 
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
+
+lemma trancl_id[simp]: "trans r \<Longrightarrow> r^+ = r"
+apply(auto)
+apply(erule trancl_induct)
+apply assumption
+apply(unfold trans_def)
+apply(blast)
+done
 
 lemma rtrancl_trancl_trancl: assumes r: "(x, y) \<in> r^*"
   shows "!!z. (y, z) \<in> r^+ ==> (x, z) \<in> r^+" using r

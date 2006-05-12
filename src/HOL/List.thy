@@ -2428,7 +2428,7 @@ by (unfold lenlex_def) blast
 lemma lenlex_conv:
     "lenlex r = {(xs,ys). length xs < length ys |
                  length xs = length ys \<and> (xs, ys) : lex r}"
-by (simp add: lenlex_def diag_def lex_prod_def measure_def inv_image_def)
+by (simp add: lenlex_def diag_def lex_prod_def inv_image_def)
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
 by (simp add: lex_conv)
