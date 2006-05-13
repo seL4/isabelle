@@ -12,6 +12,8 @@ sig
     -> theory -> theory * thm list
   val add_primrec_i: string -> ((bstring * term) * attribute list) list
     -> theory -> theory * thm list
+  val add_primrec_unchecked_i: string -> ((bstring * term) * attribute list) list
+    -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -221,7 +223,7 @@ fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
     |> RuleCases.save induction
   end;
 
-fun add_primrec_i alt_name eqns_atts thy =
+fun gen_primrec unchecked alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
     val sg = Theory.sign_of thy;
@@ -247,7 +249,9 @@ fun add_primrec_i alt_name eqns_atts thy =
     val primrec_name =
       if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
     val (defs_thms', thy') = thy |> Theory.add_path primrec_name |>
-      (if eq_set (nameTs1, nameTs2) then (PureThy.add_defs_i false o map Thm.no_attributes) defs'
+      (if eq_set (nameTs1, nameTs2) then
+         ((if unchecked then PureThy.add_defs_unchecked_i else PureThy.add_defs_i) false o
+           map Thm.no_attributes) defs'
        else primrec_err ("functions " ^ commas_quote (map fst nameTs2) ^
          "\nare not mutually recursive"));
     val rewrites = (map mk_meta_eq rec_rewrites) @ defs_thms';
@@ -265,6 +269,8 @@ fun add_primrec_i alt_name eqns_atts thy =
     (thy''', simps')
   end;
 
+val add_primrec_i = gen_primrec false;
+val add_primrec_unchecked_i = gen_primrec true;
 
 fun add_primrec alt_name eqns thy =
   let
