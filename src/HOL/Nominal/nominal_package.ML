@@ -247,7 +247,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (thy2, perm_simps) = thy1 |>
       Theory.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
         (List.drop (perm_names_types, length new_type_names))) |>
-      PrimrecPackage.add_primrec_i "" perm_eqs;
+      PrimrecPackage.add_primrec_unchecked_i "" perm_eqs;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
@@ -565,7 +565,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val T = Type (Sign.intern_type thy name, tvs');
           val Const (_, Type (_, [U])) = c
         in apfst (pair r o hd)
-          (PureThy.add_defs_i true [(("prm_" ^ name ^ "_def", Logic.mk_equals
+          (PureThy.add_defs_unchecked_i true [(("prm_" ^ name ^ "_def", Logic.mk_equals
             (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
              Const (Sign.intern_const thy ("Abs_" ^ name), U --> T) $
                (Const ("Nominal.perm", permT --> U --> U) $ pi $

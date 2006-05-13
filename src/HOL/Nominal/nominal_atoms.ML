@@ -94,8 +94,8 @@ fun create_nom_typedecls ak_names thy =
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
         thy |> Theory.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
-            |> (#2 o PureThy.add_defs_i true [((name, def2),[])])
-            |> PrimrecPackage.add_primrec_i "" [(("", def1),[])]            
+            |> (#2 o PureThy.add_defs_unchecked_i true [((name, def2),[])])
+            |> PrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]            
       end) (thy2, ak_names_types);
     
     (* declares a permutation function for every atom-kind acting  *)
@@ -123,7 +123,7 @@ fun create_nom_typedecls ak_names thy =
                     Const (swap_name, swapT) $ x $ (Const (qu_prm_name, prmT) $ xs $ a)));
       in
         thy |> Theory.add_consts_i [(prm_name, mk_permT T --> T --> T, NoSyn)] 
-            |> PrimrecPackage.add_primrec_i "" [(("", def1), []),(("", def2), [])]
+            |> PrimrecPackage.add_primrec_unchecked_i "" [(("", def1), []),(("", def2), [])]
       end) (thy3, ak_names_types);
     
     (* defines permutation functions for all combinations of atom-kinds; *)
@@ -148,7 +148,7 @@ fun create_nom_typedecls ak_names thy =
           val def = Logic.mk_equals
                     (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
         in
-          PureThy.add_defs_i true [((name, def),[])] thy'
+          PureThy.add_defs_unchecked_i true [((name, def),[])] thy'
         end) ak_names_types thy) ak_names_types thy4;
     
     (* proves that every atom-kind is an instance of at *)
