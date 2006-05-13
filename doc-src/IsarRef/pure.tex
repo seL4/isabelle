@@ -237,6 +237,43 @@ preceding the actual theory definition.
 
 \subsection{Primitive constants and definitions}\label{sec:consts}
 
+Definitions essentially express abbreviations within the logic.  The
+simplest form of a definition is $f :: \sigma \equiv t$, where $f$ is
+a newly declared constant.  Isabelle also allows derived forms where
+the arguments of~$f$ appear on the left, abbreviating a string of
+$\lambda$-abstractions, e.g.\ $f \equiv \lambda x\, y. t$ may be
+written more conveniently as $f \, x \, y \equiv t$.  Moreover,
+definitions may be weakened by adding arbitrary pre-conditions: $A
+\Imp f \, x\, y \equiv t$.
+
+\medskip The built-in well-formedness conditions for definitional
+specifications are:
+\begin{itemize}
+\item Arguments (on the left-hand side) must be distinct variables.
+\item All variables on the right-hand side must also appear on the
+  left-hand side.
+\item All type variables on the right-hand side must also appear on
+  the left-hand side; this prohibits $0::nat \equiv length
+  ([]::\alpha\, list)$ for example.
+\item The definition must not be recursive.  Most object-logics
+  provide definitional principles that can be used to express
+  recursion safely.
+\end{itemize}
+
+Overloading means that a constant being declared as $c :: \alpha\,
+decl$ may be defined separately on type instances $c ::
+(\vec\beta)\,t\,decl$ for each type constructor $t$.  The RHS may
+mention overloaded constants recursively at type instances
+corresponding to the immediate argument types $\vec\beta$.  This
+scheme covers the disciplined overloading of Haskell98, although
+Isabelle does not demand an exact correspondence to type class and
+instance declarations.
+
+There is an internal dependency graph of all overloaded and
+non-overloaded definitions, which ensures that the collection of
+interdependent constants in a theory can still be interpreted in terms
+of the basic logic.
+
 \indexisarcmd{consts}\indexisarcmd{defs}\indexisarcmd{constdefs}\indexoutertoken{constdecl}
 \begin{matharray}{rcl}
   \isarcmd{consts} & : & \isartrans{theory}{theory} \\
@@ -247,7 +284,7 @@ preceding the actual theory definition.
 \begin{rail}
   'consts' ((name '::' type mixfix?) +)
   ;
-  'defs' ('(' 'overloaded' ')')? (axmdecl prop +)
+  'defs' ('(' 'unchecked'? 'overloaded'? ')')? \\ (axmdecl prop +)
   ;
 \end{rail}
 
@@ -267,15 +304,19 @@ preceding the actual theory definition.
 \item [$\CONSTS~c::\sigma$] declares constant $c$ to have any instance of type
   scheme $\sigma$.  The optional mixfix annotations may attach concrete syntax
   to the constants declared.
-
-\item [$\DEFS~name: eqn$] introduces $eqn$ as a definitional axiom for some
-  existing constant.  See \cite[\S6]{isabelle-ref} for more details on the
-  form of equations admitted as constant definitions.
   
-  The $(overloaded)$ option declares definitions to be potentially overloaded.
-  Unless this option is given, a warning message would be issued for any
-  definitional equation with a more special type than that of the
-  corresponding constant declaration.
+\item [$\DEFS~name: eqn$] introduces $eqn$ as a definitional axiom for
+  some existing constant.
+  
+  The $(unchecked)$ option disables global dependency checks for this
+  definition, which is occasionally useful for exotic overloading.  It
+  is at the discretion of the user to avoid malformed theory
+  specifications!
+  
+  The $(overloaded)$ option declares definitions to be potentially
+  overloaded.  Unless this option is given, a warning message would be
+  issued for any definitional equation with a more special type than
+  that of the corresponding constant declaration.
   
 \item [$\CONSTDEFS$] provides a streamlined combination of constants
   declarations and definitions: type-inference takes care of the most general
