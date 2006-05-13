@@ -248,7 +248,7 @@ end;
 local
 
 fun add_def (name, prop) =
-  Theory.add_defs_i false [(name, prop)] #> (fn thy =>
+  Theory.add_defs_i false false [(name, prop)] #> (fn thy =>
     let
       val th = Thm.get_axiom_i thy (Sign.full_name thy name);
       val cert = Thm.cterm_of thy;

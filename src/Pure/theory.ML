@@ -49,8 +49,8 @@ sig
   val assert_super: theory -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
-  val add_defs: bool -> (bstring * string) list -> theory -> theory
-  val add_defs_i: bool -> (bstring * term) list -> theory -> theory
+  val add_defs: bool -> bool -> (bstring * string) list -> theory -> theory
+  val add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
@@ -254,7 +254,7 @@ fun check_overloading thy overloaded (c, T) =
 
 (* check_def *)
 
-fun check_def thy overloaded (bname, tm) defs =
+fun check_def thy unchecked overloaded (bname, tm) defs =
   let
     val pp = Sign.pp thy;
     fun prt_const (c, T) =
@@ -266,7 +266,7 @@ fun check_def thy overloaded (bname, tm) defs =
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
   in
-    defs |> Defs.define (Sign.const_typargs thy) true (Context.theory_name thy)
+    defs |> Defs.define (Sign.const_typargs thy) unchecked true (Context.theory_name thy)
       name (prep_const thy lhs_const) (map (prep_const thy) rhs_consts)
   end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
@@ -278,10 +278,10 @@ fun check_def thy overloaded (bname, tm) defs =
 
 local
 
-fun gen_add_defs prep_axm overloaded raw_axms thy =
+fun gen_add_defs prep_axm unchecked overloaded raw_axms thy =
   let val axms = map (prep_axm thy) raw_axms in
     thy
-    |> map_defs (fold (check_def thy overloaded) axms)
+    |> map_defs (fold (check_def thy unchecked overloaded) axms)
     |> add_axioms_i axms
   end;
 
@@ -302,7 +302,7 @@ fun gen_add_finals prep_term overloaded args thy =
     fun const_of (Const const) = const
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = Defs.define (Sign.const_typargs thy) false (Context.theory_name thy)
+    fun specify (c, T) = Defs.define (Sign.const_typargs thy) false false (Context.theory_name thy)
       (c ^ " axiom") (prep_const thy (c, T)) [];
     val finalize = specify o check_overloading thy overloaded o
       const_of o Sign.no_vars (Sign.pp thy) o prep_term thy;

@@ -170,7 +170,7 @@ fun declare_skofuns s th thy =
 		val thy' = Theory.add_consts_i [(cname, cT, NoSyn)] thy
 		           (*Theory is augmented with the constant, then its def*)
 		val cdef = cname ^ "_def"
-		val thy'' = Theory.add_defs_i false [(cdef, def)] thy'
+		val thy'' = Theory.add_defs_i false false [(cdef, def)] thy'
 	    in dec_sko (subst_bound (list_comb(c,args), p)) 
 	               (n+1, (thy'', get_axiom thy'' cdef :: axs)) 
 	    end
