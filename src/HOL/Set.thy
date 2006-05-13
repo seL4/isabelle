@@ -169,7 +169,7 @@ typed_print_translation {*
     fun less_tr' _ (Type ("fun", (Type ("set", _) :: _))) ts =
           list_comb (Syntax.const "_setless", ts)
       | less_tr' _ _ _ = raise Match;
-  in [("Orderings.less_eq", le_tr'), ("Orderings.less", less_tr')] end
+  in [("less_eq", le_tr'), ("less", less_tr')] end
 *}
 
 
@@ -209,26 +209,26 @@ print_translation {*
 let
   fun
     all_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-             Const("op -->",_) $ (Const ("Orderings.less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+             Const("op -->",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
   (if v=v' andalso T="set"
    then Syntax.const "_setlessAll" $ Syntax.mark_bound v' $ n $ P
    else raise Match)
 
   | all_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-             Const("op -->",_) $ (Const ("Orderings.less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+             Const("op -->",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
   (if v=v' andalso T="set"
    then Syntax.const "_setleAll" $ Syntax.mark_bound v' $ n $ P
    else raise Match);
 
   fun
     ex_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-            Const("op &",_) $ (Const ("Orderings.less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+            Const("op &",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
   (if v=v' andalso T="set"
    then Syntax.const "_setlessEx" $ Syntax.mark_bound v' $ n $ P
    else raise Match)
 
   | ex_tr' [Const ("_bound",_) $ Free (v,Type(T,_)), 
-            Const("op &",_) $ (Const ("Orderings.less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
+            Const("op &",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
   (if v=v' andalso T="set"
    then Syntax.const "_setleEx" $ Syntax.mark_bound v' $ n $ P
    else raise Match)

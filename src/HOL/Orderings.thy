@@ -543,35 +543,35 @@ let
     if v=v' andalso not (v mem (map fst (Term.add_frees n [])))
     then Syntax.const q $ Syntax.mark_bound v' $ n $ P else raise Match;
   fun all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("Orderings.less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op -->",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_lessAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("Orderings.less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op -->",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_leAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("Orderings.less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op -->",_) $ (Const ("less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_gtAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op -->",_) $ (Const ("Orderings.less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op -->",_) $ (Const ("less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_geAll" n P;
 
   fun ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("Orderings.less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op &",_) $ (Const ("less",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_lessEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("Orderings.less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
+               Const("op &",_) $ (Const ("less_eq",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] =
     mk v v' "_leEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("Orderings.less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op &",_) $ (Const ("less",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_gtEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_),
-               Const("op &",_) $ (Const ("Orderings.less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
+               Const("op &",_) $ (Const ("less_eq",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] =
     mk v v' "_geEx" n P
 in
 [("ALL ", all_tr'), ("EX ", ex_tr')]
