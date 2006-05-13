@@ -8,14 +8,12 @@ Derived theory and proof operations.
 signature ISAR_THY =
 sig
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> theory
-  val add_defs: bool * ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val add_defs_i: bool * ((bstring * term) * attribute list) list -> theory -> theory
+  val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
   val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
   val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
   val theorems: string ->
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
-    -> theory -> (string * thm list) list * theory 
+    -> theory -> (string * thm list) list * theory
   val theorems_i: string ->
     ((bstring * attribute list) * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
@@ -59,9 +57,10 @@ fun add_axms f args thy =
   f (map (fn (x, srcs) => (x, map (Attrib.attribute thy) srcs)) args) thy;
 
 val add_axioms = add_axms (snd oo PureThy.add_axioms);
-val add_axioms_i = snd oo PureThy.add_axioms_i;
-fun add_defs (x, args) = add_axms (snd oo PureThy.add_defs x) args;
-fun add_defs_i (x, args) = (snd oo PureThy.add_defs_i x) args;
+
+fun add_defs ((unchecked, overloaded), args) =
+  add_axms
+    (snd oo (if unchecked then PureThy.add_defs_unchecked else PureThy.add_defs) overloaded) args;
 
 
 (* theorems *)
