@@ -15,7 +15,7 @@ sig
   val empty: T
   val merge: T * T -> T
   val define: (string * typ -> typ list) ->
-    bool -> string -> string -> string * typ -> (string * typ) list -> T -> T
+    bool -> bool -> string -> string -> string * typ -> (string * typ) list -> T -> T
 end
 
 structure Defs: DEFS =
@@ -50,17 +50,12 @@ fun item_ord (Constant c, Constant c') = fast_string_ord (c, c')
 
 structure Items = GraphFun(type key = item val ord = item_ord);
 
-fun declare_edge (i, j) =
-  Items.default_node (i, ()) #>
-  Items.default_node (j, ()) #>
-  Items.add_edge_acyclic (i, j);
-
 fun propagate_deps insts deps =
   let
     fun inst_item (Constant c) = Symtab.lookup_list insts c
       | inst_item (Instance _) = [];
     fun inst_edge i j =
-      fold declare_edge (tl (product (i :: inst_item i) (j :: inst_item j)));
+      fold Items.add_edge_acyclic (tl (product (i :: inst_item i) (j :: inst_item j)));
   in Items.fold (fn (i, (_, (_, js))) => fold (inst_edge i) js) deps deps end;
 
 
@@ -126,7 +121,7 @@ fun merge
 
 fun pure_args args = forall Term.is_TVar args andalso not (has_duplicates (op =) args);
 
-fun define const_typargs is_def module name lhs rhs defs = defs
+fun define const_typargs unchecked is_def module name lhs rhs defs = defs
     |> map_defs (fn (specs, insts, deps) =>
   let
     val (c, T) = lhs;
@@ -134,27 +129,27 @@ fun define const_typargs is_def module name lhs rhs defs = defs
     val no_overloading = pure_args args;
     val rec_args = (case args of [Type (_, Ts)] => if pure_args Ts then Ts else [] | _ => []);
 
+    val lhs' = make_item (c, args);
+    val rhs' =
+      if unchecked then []
+      else rhs |> map_filter (fn (c', T') =>
+        let val args' = const_typargs (c', T') in
+          if gen_subset (op =) (args', rec_args) then NONE
+          else SOME (make_item (c', if no_overloading_of defs c' then [] else args'))
+        end);
+
     val spec = (serial (), {is_def = is_def, module = module, name = name, lhs = T, rhs = rhs});
     val specs' = specs
       |> Symtab.default (c, (false, Inttab.empty))
       |> Symtab.map_entry c (fn (_, sps) =>
           (disjoint_specs c spec sps; (no_overloading, Inttab.update spec sps)));
-
-    val lhs' = make_item (c, args);
-    val rhs' = rhs |> map_filter (fn (c', T') =>
-      let val args' = const_typargs (c', T') in
-        if gen_subset (op =) (args', rec_args) then NONE
-        else SOME (make_item (c', if no_overloading_of defs c' then [] else args'))
-      end);
-
     val insts' = insts |> fold (fn i as Instance (c, _) =>
         Symtab.insert_list (op =) (c, i) | _ => I) (lhs' :: rhs');
     val deps' = deps
-      |> fold (fn r => declare_edge (r, lhs')) rhs'
+      |> fold (Items.default_node o rpair ()) (lhs' :: rhs')
+      |> Items.add_deps_acyclic (lhs', rhs')
       |> propagate_deps insts'
-      handle Items.CYCLES cycles =>
-        if no_overloading then error (cycle_msg cycles)
-        else (warning (cycle_msg cycles ^ "\nUnchecked overloaded specification: " ^ name); deps);
+      handle Items.CYCLES cycles => error (cycle_msg cycles);
 
   in (specs', insts', deps') end);
 
