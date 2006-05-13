@@ -84,6 +84,10 @@ sig
     theory -> thm list * theory
   val add_defs_i: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
+  val add_defs_unchecked: bool -> ((bstring * string) * attribute list) list ->
+    theory -> thm list * theory
+  val add_defs_unchecked_i: bool -> ((bstring * term) * attribute list) list ->
+    theory -> thm list * theory
   val add_defss: bool -> ((bstring * string list) * attribute list) list ->
     theory -> thm list list * theory
   val add_defss_i: bool -> ((bstring * term list) * attribute list) list ->
@@ -466,14 +470,16 @@ local
   fun add_singles add = fold_map (add_single add);
   fun add_multis add = fold_map (add_multi add);
 in
-  val add_axioms    = add_singles Theory.add_axioms;
-  val add_axioms_i  = add_singles Theory.add_axioms_i;
-  val add_axiomss   = add_multis Theory.add_axioms;
-  val add_axiomss_i = add_multis Theory.add_axioms_i;
-  val add_defs      = add_singles o Theory.add_defs;
-  val add_defs_i    = add_singles o Theory.add_defs_i;
-  val add_defss     = add_multis o Theory.add_defs;
-  val add_defss_i   = add_multis o Theory.add_defs_i;
+  val add_axioms           = add_singles Theory.add_axioms;
+  val add_axioms_i         = add_singles Theory.add_axioms_i;
+  val add_axiomss          = add_multis Theory.add_axioms;
+  val add_axiomss_i        = add_multis Theory.add_axioms_i;
+  val add_defs             = add_singles o (Theory.add_defs false);
+  val add_defs_i           = add_singles o (Theory.add_defs_i false);
+  val add_defs_unchecked   = add_singles o (Theory.add_defs true);
+  val add_defs_unchecked_i = add_singles o (Theory.add_defs_i true);
+  val add_defss            = add_multis o (Theory.add_defs false);
+  val add_defss_i          = add_multis o (Theory.add_defs_i false);
 end;
 
 
