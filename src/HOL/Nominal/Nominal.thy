@@ -26,7 +26,7 @@ constdefs
   "perm_aux pi x \<equiv> pi\<bullet>x"
 
 (* permutation on sets *)
-defs (overloaded)
+defs (unchecked overloaded)
   perm_set_def:  "pi\<bullet>(X::'a set) \<equiv> {pi\<bullet>a | a. a\<in>X}"
 
 lemma perm_empty:
@@ -42,40 +42,48 @@ lemma perm_insert:
   by (auto simp add: perm_set_def)
 
 (* permutation on units and products *)
-primrec (perm_unit)
-  "pi\<bullet>()    = ()"
+defs (unchecked overloaded)
+  perm_unit_def: "pi\<bullet>u == (case u of () \<Rightarrow> ())"
+  perm_prod_def: "pi\<bullet>p == prod_rec (\<lambda>a b pi. (pi \<bullet> a, pi \<bullet> b)) p pi"
 
-primrec (perm_prod)
-  "pi\<bullet>(a,b) = (pi\<bullet>a,pi\<bullet>b)"
+lemma [simp]:
+  "pi\<bullet>() = ()" by (simp add: perm_unit_def)
+
+lemma [simp]:
+  "pi\<bullet>(a,b) = (pi\<bullet>a,pi\<bullet>b)" by (simp add: perm_prod_def)
 
 lemma perm_fst:
   "pi\<bullet>(fst x) = fst (pi\<bullet>x)"
- by (cases x, simp)
+ by (cases x) simp
 
 lemma perm_snd:
   "pi\<bullet>(snd x) = snd (pi\<bullet>x)"
- by (cases x, simp)
+ by (cases x) simp
 
 (* permutation on lists *)
-primrec (perm_list)
-  perm_nil_def:  "pi\<bullet>[]     = []"
-  perm_cons_def: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
+defs (unchecked overloaded)
+  perm_list_def: "pi\<bullet>list \<equiv> list_rec (\<lambda>_. []) (\<lambda>x _ xs pi. pi\<bullet>x # xs pi) list pi"
+
+lemma
+  perm_nil_def [simp]:  "pi\<bullet>[]     = []" and
+  perm_cons_def [simp]: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
+  by (simp_all add: perm_list_def)
 
 lemma perm_append:
   fixes pi :: "'x prm"
   and   l1 :: "'a list"
   and   l2 :: "'a list"
   shows "pi\<bullet>(l1@l2) = (pi\<bullet>l1)@(pi\<bullet>l2)"
-  by (induct l1, auto)
+  by (induct l1) auto
 
 lemma perm_rev:
   fixes pi :: "'x prm"
   and   l  :: "'a list"
   shows "pi\<bullet>(rev l) = rev (pi\<bullet>l)"
-  by (induct l, simp_all add: perm_append)
+  by (induct l) (simp_all add: perm_append)
 
 (* permutation on functions *)
-defs (overloaded)
+defs (unchecked overloaded)
   perm_fun_def: "pi\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
 
 (* permutation on bools *)
@@ -85,37 +93,46 @@ primrec (perm_bool)
 
 lemma perm_bool:
   shows "pi\<bullet>(b::bool) = b"
-  by (cases "b", auto)
+  by (cases b) auto
 
 (* permutation on options *)
-
-primrec (perm_option)
-  perm_some_def:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
-  perm_none_def:  "pi\<bullet>None    = None"
+defs (unchecked overloaded)
+  perm_option_def: "pi\<bullet>opt \<equiv> option_rec (\<lambda>_. None) (\<lambda>x pi. Some (pi \<bullet> x)) opt pi"
+lemma
+  perm_some_def [simp]:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)" and
+  perm_none_def [simp]:  "pi\<bullet>None    = None"
+  by (simp_all add: perm_option_def)
 
 (* a "private" copy of the option type used in the abstraction function *)
 datatype 'a noption = nSome 'a | nNone
 
-primrec (perm_noption)
-  perm_nSome_def: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
-  perm_nNone_def: "pi\<bullet>nNone    = nNone"
+defs (unchecked overloaded)
+  perm_noption_def: "pi\<bullet>opt \<equiv> noption_rec (\<lambda>x pi. nSome (pi \<bullet> x)) (\<lambda>_. nNone) opt pi"
+
+lemma
+  perm_nSome_def [simp]: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)" and
+  perm_nNone_def [simp]: "pi\<bullet>nNone    = nNone"
+  by (simp_all add: perm_noption_def)
 
 (* a "private" copy of the product type used in the nominal induct method *)
 datatype ('a,'b) nprod = nPair 'a 'b
 
-primrec (perm_nprod)
-  perm_nProd_def: "pi\<bullet>(nPair x1 x2)  = nPair (pi\<bullet>x1) (pi\<bullet>x2)"
+defs (unchecked overloaded)
+  perm_nprod_def: "pi\<bullet>p \<equiv> nprod_rec (\<lambda>x1 x2 pi. nPair (pi \<bullet> x1) (pi \<bullet> x2)) p pi"
+lemma [simp]:
+  "pi\<bullet>(nPair x1 x2)  = nPair (pi\<bullet>x1) (pi\<bullet>x2)"
+  by (simp add: perm_nprod_def)
 
 (* permutation on characters (used in strings) *)
-defs (overloaded)
+defs (unchecked overloaded)
   perm_char_def: "pi\<bullet>(s::char) \<equiv> s"
 
 (* permutation on ints *)
-defs (overloaded)
+defs (unchecked overloaded)
   perm_int_def:    "pi\<bullet>(i::int) \<equiv> i"
 
 (* permutation on nats *)
-defs (overloaded)
+defs (unchecked overloaded)
   perm_nat_def:    "pi\<bullet>(i::nat) \<equiv> i"
 
 section {* permutation equality *}
