@@ -181,9 +181,15 @@ val axiomsP =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
     (Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarThy.add_axioms));
 
+val opt_unchecked_overloaded =
+  Scan.optional (P.$$$ "(" |-- P.!!!
+    (((P.$$$ "unchecked" >> K true) -- Scan.optional (P.$$$ "overloaded" >> K true) false ||
+      P.$$$ "overloaded" >> K (false, true)) --| P.$$$ ")")) (false, false);
+
 val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
-    (opt_overloaded -- Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarThy.add_defs));
+    (opt_unchecked_overloaded -- Scan.repeat1 P.spec_name
+      >> (Toplevel.theory o IsarThy.add_defs));
 
 
 (* constant definitions and abbreviations *)
@@ -870,7 +876,7 @@ val _ = OuterSyntax.add_keywords
   "begin", "binder", "concl", "constrains", "defines", "fixes",
   "imports", "in", "includes", "infix", "infixl", "infixr", "is",
   "notes", "obtains", "open", "output", "overloaded", "shows",
-  "structure", "uses", "where", "|", "\\<equiv>",
+  "structure", "unchecked", "uses", "where", "|", "\\<equiv>",
   "\\<leftharpoondown>", "\\<rightharpoonup>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
 
