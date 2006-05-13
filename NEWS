@@ -37,6 +37,21 @@ check the given source text as ML type/structure, printing verbatim.
 * Command 'no_translations' removes translation rules from theory
 syntax.
 
+* Overloaded definitions are now actually checked for acyclic
+dependencies.  Overloading of some constant c :: 'a decl is restricted
+to schematic instances c :: ('b)t decl, for any type constructor t.
+The RHS may mention overloaded constants recursively at type instances
+corresponding to the immediate argument types 'b.  This scheme covers
+the disciplined overloading of Haskell98, although Isabelle does not
+demand an exact correspondence to type class and instance
+declarations.  There is an internal dependency graph of all overloaded
+and non-overloaded definitions, which ensures that the collection of
+interdependent constants in a theory can still be interpreted in terms
+of the basic logic.
+
+INCOMPATIBILITY, use ``defs (unchecked overloaded)'' to admit more
+exotic overloading schemes -- at the discretion of the user!
+
 * Isar: improper proof element 'guess' is like 'obtain', but derives
 the obtained context from the course of reasoning!  For example:
 
