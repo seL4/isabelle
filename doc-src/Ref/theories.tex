@@ -181,30 +181,6 @@ Chapters~\ref{Defining-Logics} and \ref{chap:syntax} explain mixfix
 declarations, translation rules and the \texttt{ML} section in more detail.
 
 
-\subsection{Definitions}\indexbold{definitions}
-
-\textbf{Definitions} are intended to express abbreviations.  The simplest
-form of a definition is $f \equiv t$, where $f$ is a constant.
-Isabelle also allows a derived forms where the arguments of~$f$ appear
-on the left, abbreviating a string of $\lambda$-abstractions.
-
-Isabelle makes the following checks on definitions:
-\begin{itemize}
-\item Arguments (on the left-hand side) must be distinct variables.
-\item All variables on the right-hand side must also appear on the left-hand
-  side. 
-\item All type variables on the right-hand side must also appear on
-  the left-hand side; this prohibits definitions such as {\tt
-    (zero::nat) == length ([]::'a list)}.
-\item The definition must not be recursive.  Most object-logics provide
-  definitional principles that can be used to express recursion safely.
-\end{itemize}
-These checks are intended to catch the sort of errors that might be made
-accidentally.  Misspellings, for instance, might result in additional
-variables appearing on the right-hand side.  More elaborate checks could be
-made, but the cost might be overly strict rules on declaration order, etc.
-
-
 \subsection{*Classes and arities}
 \index{classes!context conditions}\index{arities!context conditions}
 
