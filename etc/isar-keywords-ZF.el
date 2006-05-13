@@ -47,6 +47,7 @@
     "code_primclass"
     "code_primconst"
     "code_primtyco"
+    "code_purge"
     "code_serialize"
     "code_syntax_const"
     "code_syntax_tyco"
@@ -239,6 +240,7 @@
     "target_atom"
     "type_elims"
     "type_intros"
+    "unchecked"
     "uses"
     "where"))
 
@@ -351,6 +353,7 @@
     "code_primclass"
     "code_primconst"
     "code_primtyco"
+    "code_purge"
     "code_serialize"
     "code_syntax_const"
     "code_syntax_tyco"
