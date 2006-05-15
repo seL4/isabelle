@@ -847,6 +847,38 @@ apply(rule pt3[OF pt])
 apply(rule at_ds8[OF at])
 done
 
+section {* disjointness properties *}
+(*=================================*)
+lemma dj_perm_forget:
+  fixes pi::"'y prm"
+  and   x ::"'x"
+  assumes dj: "disjoint TYPE('x) TYPE('y)"
+  shows "pi\<bullet>x=x" 
+  using dj by (simp_all add: disjoint_def)
+
+lemma dj_perm_perm_forget:
+  fixes pi1::"'x prm"
+  and   pi2::"'y prm"
+  assumes dj: "disjoint TYPE('x) TYPE('y)"
+  shows "pi2\<bullet>pi1=pi1"
+  using dj by (induct pi1, auto simp add: disjoint_def)
+
+lemma dj_cp:
+  fixes pi1::"'x prm"
+  and   pi2::"'y prm"
+  and   x  ::"'a"
+  assumes cp: "cp TYPE ('a) TYPE('x) TYPE('y)"
+  and     dj: "disjoint TYPE('y) TYPE('x)"
+  shows "pi1\<bullet>(pi2\<bullet>x) = (pi2)\<bullet>(pi1\<bullet>x)"
+  by (simp add: cp1[OF cp] dj_perm_perm_forget[OF dj])
+
+lemma dj_supp:
+  fixes a::"'x"
+  assumes dj: "disjoint TYPE('x) TYPE('y)"
+  shows "(supp a) = ({}::'y set)"
+apply(simp add: supp_def dj_perm_forget[OF dj])
+done
+
 section {* permutation type instances *}
 (* ===================================*)
 
@@ -1398,6 +1430,32 @@ proof
   hence "b\<in>(supp ([(a,b)]\<bullet>x))" by (simp add: pt_perm_supp[OF pt,OF at])
   with a2' neg show False by simp
 qed
+
+(* the next two lemmas are needed in the proof *)
+(* of the structural induction principle       *)
+lemma pt_fresh_aux:
+  fixes a::"'x"
+  and   b::"'x"
+  and   c::"'x"
+  and   x::"'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE ('x)"
+  assumes a1: "c\<noteq>a" and  a2: "a\<sharp>x" and a3: "c\<sharp>x"
+  shows "c\<sharp>([(a,b)]\<bullet>x)"
+using a1 a2 a3 by (simp_all add: pt_fresh_left[OF pt, OF at] at_calc[OF at])
+
+lemma pt_fresh_aux_ineq:
+  fixes pi::"'x prm"
+  and   c::"'y"
+  and   x::"'a"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  and     dj:  "disjoint TYPE('y) TYPE('x)"
+  assumes a: "c\<sharp>x"
+  shows "c\<sharp>(pi\<bullet>x)"
+using a by (simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj])
 
 -- "three helper lemmas for the perm_fresh_fresh-lemma"
 lemma comprehension_neg_UNIV: "{b. \<not> P b} = UNIV - {b. P b}"
@@ -2082,38 +2140,6 @@ lemma pt_list_set_fresh:
   shows "a\<sharp>(set xs) = a\<sharp>xs"
 by (simp add: fresh_def pt_list_set_supp[OF pt, OF at, OF fs])
  
-section {* disjointness properties *}
-(*=================================*)
-lemma dj_perm_forget:
-  fixes pi::"'y prm"
-  and   x ::"'x"
-  assumes dj: "disjoint TYPE('x) TYPE('y)"
-  shows "pi\<bullet>x=x"
-  using dj by (simp add: disjoint_def)
-
-lemma dj_perm_perm_forget:
-  fixes pi1::"'x prm"
-  and   pi2::"'y prm"
-  assumes dj: "disjoint TYPE('x) TYPE('y)"
-  shows "pi2\<bullet>pi1=pi1"
-  using dj by (induct pi1, auto simp add: disjoint_def)
-
-lemma dj_cp:
-  fixes pi1::"'x prm"
-  and   pi2::"'y prm"
-  and   x  ::"'a"
-  assumes cp: "cp TYPE ('a) TYPE('x) TYPE('y)"
-  and     dj: "disjoint TYPE('y) TYPE('x)"
-  shows "pi1\<bullet>(pi2\<bullet>x) = (pi2)\<bullet>(pi1\<bullet>x)"
-  by (simp add: cp1[OF cp] dj_perm_perm_forget[OF dj])
-
-lemma dj_supp:
-  fixes a::"'x"
-  assumes dj: "disjoint TYPE('x) TYPE('y)"
-  shows "(supp a) = ({}::'y set)"
-apply(simp add: supp_def dj_perm_forget[OF dj])
-done
-
 section {* composition instances *}
 (* ============================= *)
 
@@ -2910,5 +2936,15 @@ method_setup finite_guess =
 method_setup finite_guess_debug =
   {* finite_gs_meth_debug *}
   {* tactic for deciding whether something has finite support including debuging facilities *}
+
+(* FIXME: this code has not yet been checked in
+method_setup fresh_guess =
+  {* fresh_gs_meth *}
+  {* tactic for deciding whether an atom is fresh for something*}
+
+method_setup fresh_guess_debug =
+  {* fresh_gs_meth_debug *}
+  {* tactic for deciding whether an atom is fresh for something including debuging facilities *}
+*)
 
 end
