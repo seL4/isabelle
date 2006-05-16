@@ -21,6 +21,7 @@ sig
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val extern_early: T -> string -> xstring
+  val syntax: T -> string * mixfix -> string * typ * mixfix
   val read_const: T -> string -> term
   val certify: Pretty.pp -> Type.tsig -> T -> term -> term          (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
@@ -104,7 +105,7 @@ fun constraint (consts as Consts ({constraints, ...}, _)) c =
   | NONE => #1 (#1 (the_const consts c)));
 
 
-(* name space *)
+(* name space and syntax *)
 
 fun space_of (Consts ({decls = (space, _), ...}, _)) = space;
 
@@ -115,6 +116,12 @@ fun extern_early consts c =
   (case try (the_const consts) c of
     SOME (_, false) => Syntax.constN ^ c
   | _ => extern consts c);
+
+fun syntax consts (c, mx) =
+  let
+    val ((T, _), early) = the_const consts c handle TYPE (msg, _, _) => error msg;
+    val c' = if early then NameSpace.base c else #1 (Syntax.mixfix_const c mx);
+  in (c', T, mx) end;
 
 
 (* read_const *)
