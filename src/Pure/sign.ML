@@ -23,8 +23,6 @@ sig
   val del_modesyntax_i: (string * bool) -> (bstring * typ * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_abbrevs: string * bool -> (bstring * string * mixfix) list -> theory -> theory
-  val add_abbrevs_i: string * bool -> (bstring * term * mixfix) list -> theory -> theory
   val add_const_constraint: xstring * string option -> theory -> theory
   val add_const_constraint_i: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
@@ -193,6 +191,9 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
+  val add_const_syntax: string * bool -> (string * mixfix) list -> theory -> theory
+  val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
+  val add_abbrevs: string * bool -> (bstring * term * mixfix) list -> theory -> theory
   include SIGN_THEORY
 end
 
@@ -710,41 +711,47 @@ val add_syntax_i = add_modesyntax_i Syntax.default_mode;
 val del_modesyntax = gen_syntax Syntax.remove_const_gram (read_typ_syntax o no_def_sort);
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
 
+fun add_const_syntax prmode args thy =
+  thy |> add_modesyntax_i prmode (map (Consts.syntax (consts_of thy)) args);
+
 
 (* add constants *)
 
 local
 
-fun gen_add_consts prep_typ raw_args thy =
+fun gen_add_consts prep_typ early raw_args thy =
   let
     val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
-    fun prep (c, T, mx) = ((c, prepT T, mx) handle TYPE (msg, _, _) => error msg)
-      handle ERROR msg =>
-        cat_error msg ("in declaration of constant " ^ quote (Syntax.const_name c mx));
+    fun prep (raw_c, raw_T, raw_mx) =
+      let
+        val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
+        val (c', b) = if early then (c, true) else Syntax.mixfix_const (full_name thy c) mx;
+        val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
+          cat_error msg ("in declaration of constant " ^ quote c);
+      in (((c, T), b), (c', T, mx)) end;
     val args = map prep raw_args;
-    val decls = args |> map (fn (c, T, mx) => ((Syntax.const_name c mx, T), true));
   in
     thy
-    |> map_consts (fold (Consts.declare (naming_of thy)) decls)
-    |> add_syntax_i args
+    |> map_consts (fold (Consts.declare (naming_of thy) o #1) args)
+    |> map_syn (Syntax.extend_consts (map (#1 o #1 o #1) args))
+    |> add_syntax_i (map #2 args)
   end;
 
 in
 
-val add_consts = gen_add_consts (read_typ o no_def_sort);
-val add_consts_i = gen_add_consts certify_typ;
+val add_consts = gen_add_consts (read_typ o no_def_sort) true;
+val add_consts_i = gen_add_consts certify_typ true;
+val add_consts_authentic = gen_add_consts certify_typ false;
 
 end;
 
 
 (* add abbreviations *)
 
-local
-
-fun gen_abbrevs prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
+fun add_abbrevs (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
   let
-    val prep_tm =
-      Compress.term thy o Logic.varify o no_vars (pp thy) o Term.no_dummy_patterns o prep_term thy;
+    val prep_tm = Compress.term thy o Logic.varify o no_vars (pp thy) o
+      Term.no_dummy_patterns o cert_term_abbrev thy;
 
     val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
     val (c', b) = Syntax.mixfix_const (full_name thy c) mx;
@@ -757,13 +764,6 @@ fun gen_abbrevs prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn 
     |> map_syn (Syntax.extend_consts [c])
     |> add_modesyntax_i (mode, inout) [(c', T, mx)]
   end);
-
-in
-
-val add_abbrevs = gen_abbrevs read_term;
-val add_abbrevs_i = gen_abbrevs cert_term_abbrev;
-
-end;
 
 
 (* add constraints *)
