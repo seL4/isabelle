@@ -65,7 +65,16 @@ fun is_alpha_space_digit_or_neg ch =
     (ch = "~") orelse (ReconOrderClauses.is_alpha ch) orelse 
     (ReconOrderClauses.is_digit ch) orelse ( ch = " ");
 
-fun lit_string_with_nums t = let val termstr = Term.str_of_term t
+fun string_of_term (Const(s,_)) = s
+  | string_of_term (Free(s,_)) = s
+  | string_of_term (Var(ix,_)) = Term.string_of_vname ix
+  | string_of_term (Bound i) = string_of_int i
+  | string_of_term (Abs(x,_,t)) = "%" ^ x ^ ". " ^ string_of_term t
+  | string_of_term (s $ t) =
+      "(" ^ string_of_term s ^ " " ^ string_of_term t ^ ")"
+
+(* FIXME string_of_term is quite unreliable here *)
+fun lit_string_with_nums t = let val termstr = string_of_term t
                                  val exp_term = explode termstr
                              in
                                  implode(List.filter is_alpha_space_digit_or_neg exp_term)
