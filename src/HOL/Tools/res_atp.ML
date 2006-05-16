@@ -194,7 +194,9 @@ fun term_lg [] (lg,seen) = (lg,seen)
     let val (f,args) = strip_comb tm
 	val (lg',seen') = if f mem seen then (FOL,seen) 
 			  else fn_lg f (FOL,seen)
-	val _ = if is_fol_logic lg' then () else warning ("Found a HOL term: " ^ (Term.str_of_term f))
+	val _ =
+          if is_fol_logic lg' then ()
+          else warning ("Found a HOL term: " ^ Display.raw_string_of_term f)
 	 in
 	     term_lg (args@tms) (lg',seen')
     end
@@ -215,7 +217,9 @@ fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
     let val (pred,args) = strip_comb P
 	val (lg',seen') = if pred mem seen then (lg,seen) 
 			  else pred_lg pred (lg,seen)
-	val _ = if is_fol_logic lg' then () else warning ("Found a HOL predicate: " ^ (Term.str_of_term pred))
+	val _ =
+          if is_fol_logic lg' then ()
+          else warning ("Found a HOL predicate: " ^ Display.raw_string_of_term pred)
     in
 	term_lg args (lg',seen')
     end;
@@ -223,7 +227,9 @@ fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
 fun lits_lg [] (lg,seen) = (lg,seen)
   | lits_lg (lit::lits) (FOL,seen) =
     let val (lg,seen') = lit_lg lit (FOL,seen)
-	val _ =  if is_fol_logic lg then () else warning ("Found a HOL literal: " ^ (Term.str_of_term lit))
+	val _ =
+          if is_fol_logic lg then ()
+          else warning ("Found a HOL literal: " ^ Display.raw_string_of_term lit)
     in
 	lits_lg lits (lg,seen')
     end
@@ -246,7 +252,9 @@ fun logic_of_clause tm (lg,seen) =
 fun logic_of_clauses [] (lg,seen) = (lg,seen)
   | logic_of_clauses (cls::clss) (FOL,seen) =
     let val (lg,seen') = logic_of_clause cls (FOL,seen)
-	val _ = if is_fol_logic lg then () else warning ("Found a HOL clause: " ^ (Term.str_of_term cls))
+	val _ =
+          if is_fol_logic lg then ()
+          else warning ("Found a HOL clause: " ^ Display.raw_string_of_term cls)
     in
 	logic_of_clauses clss (lg,seen')
     end
