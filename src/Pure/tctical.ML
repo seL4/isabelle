@@ -486,12 +486,12 @@ local
 
 fun print_vars_terms thy (n,thm) =
   let
+    fun typed ty = " has type: " ^ Sign.string_of_typ thy ty;
     fun find_vars thy (Const (c, ty)) =
         (case Term.typ_tvars ty
          of [] => I
-          | _ => insert (op =) (c ^ " has type: " ^ (Sign.string_of_typ thy ty)))
-      | find_vars thy (t as Var _) =
-          insert (op =) ("Var " ^ (Term.str_of_term t))
+          | _ => insert (op =) (c ^ typed ty))
+      | find_vars thy (Var (xi, ty)) = insert (op =) (Term.string_of_vname xi ^ typed ty)
       | find_vars _ (Free _) = I
       | find_vars _ (Bound _) = I
       | find_vars thy (Abs (_, _, t)) = find_vars thy t
