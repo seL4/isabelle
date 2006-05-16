@@ -38,10 +38,6 @@ sig
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
 
-  (*old options -- invalidated*)
-  datatype invalid = None of invalid
-  exception OPTION of invalid
-
   (*options*)
   val the: 'a option -> 'a
   val these: 'a list option -> 'a list
@@ -50,9 +46,7 @@ sig
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
   val perhaps: ('a -> 'a option) -> 'a -> 'a
-  val eq_opt: ('a * 'b -> bool) -> 'a option * 'b option -> bool
   val merge_opt: ('a * 'a -> bool) -> 'a option * 'a option -> 'a option
-  val string_of_option: ('a -> string) -> 'a option -> string
 
   (*exceptions*)
   val try: ('a -> 'b) -> 'a -> 'b option
@@ -103,7 +97,6 @@ sig
   val change: 'a ref -> ('a -> 'a) -> unit
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val conditional: bool -> (unit -> unit) -> unit
-  val string_of_bool: bool -> string
 
   (*lists*)
   exception UnequalLengths
@@ -156,7 +149,6 @@ sig
   val prefixes: 'a list -> 'a list list
   val suffixes1: 'a list -> 'a list list
   val suffixes: 'a list -> 'a list list
-  val string_of_list: ('a -> string) -> 'a list -> string
 
   (*integers*)
   val gcd: IntInf.int * IntInf.int -> IntInf.int
@@ -196,6 +188,8 @@ sig
   val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
+  val string_of_list: ('a -> string) -> 'a list -> string
+  val string_of_option: ('a -> string) -> 'a option -> string
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -272,6 +266,7 @@ sig
   val pwd: unit -> string
 
   (*misc*)
+  val divide_and_conquer: ('a -> 'a list * ('b list -> 'b)) -> 'a -> 'b
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
@@ -340,10 +335,6 @@ fun funpow n f x =
 
 (** options **)
 
-(*invalidate former constructors to prevent accidental use as match-all patterns!*)
-datatype invalid = None of invalid;
-exception OPTION of invalid;
-
 val the = Option.valOf;
 
 fun these (SOME x) = x
@@ -363,16 +354,9 @@ fun is_none (SOME _) = false
 
 fun perhaps f x = the_default x (f x);
 
-fun eq_opt eq (NONE, NONE) = true
-  | eq_opt eq (SOME x, SOME y) = eq (x, y)
-  | eq_opt _ _ = false;
-
 fun merge_opt _ (NONE, y) = y
   | merge_opt _ (x, NONE) = x
   | merge_opt eq (SOME x, SOME y) = if eq (x, y) then SOME y else raise Option;
-
-fun string_of_option f NONE     = "NONE"
-  | string_of_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
 
 (* exceptions *)
@@ -478,6 +462,7 @@ fun forall (pred: 'a -> bool) : 'a list -> bool =
         | boolf (x :: xs) = pred x andalso boolf xs
   in boolf end;
 
+
 (* flags *)
 
 fun set flag = (flag := true; true);
@@ -495,13 +480,10 @@ fun setmp flag value f x =
     val _ = flag := orig_value;
   in release result end;
 
+
 (* conditional execution *)
 
 fun conditional b f = if b then f () else ();
-
-(* convert a bool to a string *)
-
-fun string_of_bool b = if b then "true" else "false";
 
 
 (** lists **)
@@ -851,11 +833,6 @@ fun read_int cs = read_radixint (10, cs);
 
 fun oct_char s = chr (#1 (read_radixint (8, explode s)));
 
-(* convert a list to a string *)
-
-fun string_of_list f xs =
-  let val fxs = separate ", " (map f xs)
-  in  String.concat ("[" :: fxs @ ["]"])  end;
 
 
 (** strings **)
@@ -942,6 +919,11 @@ fun replicate_string 0 _ = ""
   | replicate_string k a =
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
+
+fun string_of_list f = enclose "[" "]" o commas o map f;
+
+fun string_of_option f NONE = "NONE"
+  | string_of_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
 
 
@@ -1143,11 +1125,6 @@ fun make_ord rel (x, y) =
   else if rel (y, x) then GREATER
   else EQUAL;
 
-fun eq_ord ord xy =
-  case ord xy
-   of EQUAL => true
-    | _ => false;
-
 val int_ord = Int.compare;
 val string_ord = String.compare;
 
@@ -1244,7 +1221,12 @@ val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
 
+
 (** misc **)
+
+fun divide_and_conquer decomp x =
+  let val (ys, recomb) = decomp x
+  in recomb (map (divide_and_conquer decomp) ys) end;
 
 (*Partition list into elements that satisfy predicate and those that don't.
   Preserves order of elements in both lists.*)
