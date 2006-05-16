@@ -15,14 +15,12 @@ sig
     Nonterminal
   type tsig
   val rep_tsig: tsig ->
-   {classes: NameSpace.T * Sorts.classes,
+   {classes: NameSpace.T * Sorts.algebra,
     default: sort,
     types: (decl * stamp) NameSpace.table,
-    arities: Sorts.arities,
     log_types: string list,
     witness: (typ * sort) option}
   val empty_tsig: tsig
-  val classes: tsig -> class list
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
   val universal_witness: tsig -> (typ * sort) option
@@ -98,57 +96,51 @@ fun str_of_decl (LogicalType _) = "logical type constructor"
 
 datatype tsig =
   TSig of {
-    classes: NameSpace.T * Sorts.classes,   (*declared classes with proper subclass relation*)
+    classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
     types: (decl * stamp) NameSpace.table,  (*declared types*)
-    arities: Sorts.arities,                 (*image specification of types wrt. sorts*)
     log_types: string list,                 (*logical types sorted by number of arguments*)
     witness: (typ * sort) option};          (*witness for non-emptiness of strictest sort*)
 
 fun rep_tsig (TSig comps) = comps;
 
-fun make_tsig (classes, default, types, arities, log_types, witness) =
-  TSig {classes = classes, default = default, types = types, arities = arities,
+fun make_tsig (classes, default, types, log_types, witness) =
+  TSig {classes = classes, default = default, types = types,
     log_types = log_types, witness = witness};
 
-fun build_tsig (classes, default, types, arities) =
+fun build_tsig ((space, classes), default, types) =
   let
     val log_types =
       Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (snd types) []
       |> Library.sort (Library.int_ord o pairself snd) |> map fst;
     val witness =
-      (case Sorts.witness_sorts (snd classes, arities) log_types [] [Graph.keys (snd classes)] of
+      (case Sorts.witness_sorts classes log_types [] [Sorts.classes classes] of
         [w] => SOME w | _ => NONE);
-  in make_tsig (classes, default, types, arities, log_types, witness) end;
+  in make_tsig ((space, classes), default, types, log_types, witness) end;
 
-fun map_tsig f (TSig {classes, default, types, arities, log_types = _, witness = _}) =
-  build_tsig (f (classes, default, types, arities));
+fun map_tsig f (TSig {classes, default, types, log_types = _, witness = _}) =
+  build_tsig (f (classes, default, types));
 
 val empty_tsig =
-  build_tsig ((NameSpace.empty, Graph.empty), [], NameSpace.empty_table, Symtab.empty);
+  build_tsig ((NameSpace.empty, Sorts.empty_algebra), [], NameSpace.empty_table);
 
 
 (* classes and sorts *)
 
-fun classes (TSig {classes = (_, C), ...}) = Graph.keys C;
 fun defaultS (TSig {default, ...}) = default;
 fun logical_types (TSig {log_types, ...}) = log_types;
 fun universal_witness (TSig {witness, ...}) = witness;
 
 fun eq_sort (TSig {classes, ...}) = Sorts.sort_eq (#2 classes);
 fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
-fun of_sort (TSig {classes, arities, ...}) = Sorts.of_sort (#2 classes, arities);
+fun of_sort (TSig {classes, ...}) = Sorts.of_sort (#2 classes);
 fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 
-fun cert_class (TSig {classes, ...}) c =
-  if can (Graph.get_node (#2 classes)) c then c
-  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+fun cert_class (TSig {classes, ...}) = Sorts.certify_class (#2 classes);
+fun cert_sort (TSig {classes, ...}) = Sorts.certify_sort (#2 classes);
 
-fun cert_sort (tsig as TSig {classes, ...}) =
-  Sorts.norm_sort (#2 classes) o map (cert_class tsig);
-
-fun witness_sorts (tsig as TSig {classes, arities, log_types, ...}) =
-  Sorts.witness_sorts (#2 classes, arities) log_types;
+fun witness_sorts (tsig as TSig {classes, log_types, ...}) =
+  Sorts.witness_sorts (#2 classes) log_types;
 
 
 (* certified types *)
@@ -211,9 +203,8 @@ fun arity_number (TSig {types = (_, types), ...}) a =
   | _ => error (undecl_type a));
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
-  | arity_sorts pp (TSig {classes, arities, ...}) a S =
-      Sorts.mg_domain (#2 classes, arities) a S
-        handle Sorts.CLASS_ERROR err => Sorts.class_error pp err;
+  | arity_sorts pp (TSig {classes, ...}) a S = Sorts.mg_domain (#2 classes) a S
+      handle Sorts.CLASS_ERROR err => Sorts.class_error pp err;
 
 
 
@@ -379,13 +370,13 @@ fun devar tye (T as TVar v) =
   | devar tye T = T;
 
 (*order-sorted unification*)
-fun unify (tsig as TSig {classes = (_, classes), arities, ...}) TU (tyenv, maxidx) =
+fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
   let
     val tyvar_count = ref maxidx;
     fun gen_tyvar S = TVar (("'a", inc tyvar_count), S);
 
-    fun mg_domain a S =
-      Sorts.mg_domain (classes, arities) a S handle Sorts.CLASS_ERROR _ => raise TUNIFY;
+    fun mg_domain a S = Sorts.mg_domain classes a S
+      handle Sorts.CLASS_ERROR _ => raise TUNIFY;
 
     fun meet (_, []) tye = tye
       | meet (TVar (xi, S'), S) tye =
@@ -470,22 +461,22 @@ fun eq_type tye (T, T') =
 (* classes *)
 
 fun add_class pp naming (c, cs) tsig =
-  tsig |> map_tsig (fn ((space, classes), default, types, arities) =>
+  tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val c' = NameSpace.full naming c;
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
       val space' = space |> NameSpace.declare naming c';
       val classes' = classes |> Sorts.add_class pp (c', cs');
-    in ((space', classes'), default, types, arities) end);
+    in ((space', classes'), default, types) end);
 
-fun hide_classes fully cs = map_tsig (fn ((space, classes), default, types, arities) =>
-  ((fold (NameSpace.hide fully) cs space, classes), default, types, arities));
+fun hide_classes fully cs = map_tsig (fn ((space, classes), default, types) =>
+  ((fold (NameSpace.hide fully) cs space, classes), default, types));
 
 
 (* arities *)
 
-fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn (classes, default, types, arities) =>
+fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), default, types) =>
   let
     val _ =
       (case Symtab.lookup (#2 types) t of
@@ -494,27 +485,25 @@ fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn (classes, default, types
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
       handle TYPE (msg, _, _) => error msg;
-    val arities' = arities |> Sorts.add_arities pp (#2 classes) ((t, map (fn c' => (c', Ss')) S'));
-  in (classes, default, types, arities') end);
+    val classes' = classes |> Sorts.add_arities pp ((t, map (fn c' => (c', Ss')) S'));
+  in ((space, classes'), default, types) end);
 
 
 (* classrel *)
 
 fun add_classrel pp rel tsig =
-  tsig |> map_tsig (fn ((space, classes), default, types, arities) =>
+  tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val rel' = pairself (cert_class tsig) rel
         handle TYPE (msg, _, _) => error msg;
       val classes' = classes |> Sorts.add_classrel pp rel;
-      val default' = default |> Sorts.norm_sort classes';
-      val arities' = arities |> Sorts.rebuild_arities pp classes';
-    in ((space, classes'), default', types, arities') end);
+    in ((space, classes'), default, types) end);
 
 
 (* default sort *)
 
-fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types, arities) =>
-  (classes, cert_sort tsig S handle TYPE (msg, _, _) => error msg, types, arities));
+fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
+  (classes, cert_sort tsig S handle TYPE (msg, _, _) => error msg, types));
 
 
 (* types *)
@@ -542,11 +531,11 @@ fun new_decl naming (c, decl) (space, types) =
 
 fun the_decl (_, types) = fst o the o Symtab.lookup types;
 
-fun map_types f = map_tsig (fn (classes, default, types, arities) =>
+fun map_types f = map_tsig (fn (classes, default, types) =>
   let
     val (space', tab') = f types;
     val _ = assert (NameSpace.intern space' "dummy" = "dummy") "Illegal declaration of dummy type";
-  in (classes, default, (space', tab'), arities) end);
+  in (classes, default, (space', tab')) end);
 
 fun syntactic types (Type (c, Ts)) =
       (case Symtab.lookup types c of SOME (Nonterminal, _) => true | _ => false)
@@ -583,8 +572,8 @@ fun merge_types (types1, types2) =
 
 end;
 
-fun hide_types fully cs = map_tsig (fn (classes, default, (space, types), arities) =>
-  (classes, default, (fold (NameSpace.hide fully) cs space, types), arities));
+fun hide_types fully cs = map_tsig (fn (classes, default, (space, types)) =>
+  (classes, default, (fold (NameSpace.hide fully) cs space, types)));
 
 
 (* merge type signatures *)
@@ -592,15 +581,14 @@ fun hide_types fully cs = map_tsig (fn (classes, default, (space, types), aritie
 fun merge_tsigs pp (tsig1, tsig2) =
   let
     val (TSig {classes = (space1, classes1), default = default1, types = types1,
-      arities = arities1, log_types = _, witness = _}) = tsig1;
+      log_types = _, witness = _}) = tsig1;
     val (TSig {classes = (space2, classes2), default = default2, types = types2,
-      arities = arities2, log_types = _, witness = _}) = tsig2;
+      log_types = _, witness = _}) = tsig2;
 
     val space' = NameSpace.merge (space1, space2);
-    val classes' = Sorts.merge_classes pp (classes1, classes2);
+    val classes' = Sorts.merge_algebra pp (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
     val types' = merge_types (types1, types2);
-    val arities' = Sorts.merge_arities pp classes' (arities1, arities2);
-  in build_tsig ((space', classes'), default', types', arities') end;
+  in build_tsig ((space', classes'), default', types') end;
 
 end;

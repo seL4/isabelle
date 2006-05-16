@@ -392,8 +392,7 @@ fun derive_type _ (_, []) = []
               | _ => I) typ [];
         val hyps = vars
           |> map (fn (T, S) => (T, Drule.sort_triv thy (T, S) ~~ S));
-        val ths = (typ, sort)
-          |> Sorts.of_sort_derivation (Sign.pp thy) (Sign.classes_of thy, Sign.arities_of thy)
+        val ths = (typ, sort) |> Sorts.of_sort_derivation (Sign.pp thy) (Sign.classes_of thy)
            {classrel =
               fn (th, c1) => fn c2 => th RS the_classrel thy (c1, c2),
             constructor =

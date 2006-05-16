@@ -689,12 +689,8 @@ fun classrelClauses_of_aux n sub [] = []
 
 fun classrelClauses_of (sub,sups) = classrelClauses_of_aux 0 sub sups;
 
-val classrel_of = #2 o #classes o Type.rep_tsig o Sign.tsig_of;
-
-fun classrel_clauses_classrel (C: Sorts.classes) =
-  map classrelClauses_of (Graph.dest C);
-
-val classrel_clauses_thy = List.concat o classrel_clauses_classrel o classrel_of;
+val classrel_clauses_thy =
+  maps classrelClauses_of o Graph.dest o #classes o Sorts.rep_algebra o Sign.classes_of;
 
 
 (** Isabelle arities **)
@@ -713,8 +709,9 @@ fun multi_arity_clause [] = []
       multi_arity_clause tc_arlists 
 
 fun arity_clause_thy thy =
-  let val arities =
-    Symtab.dest (Sign.arities_of thy) |> map (apsnd (map (fn (c, (_, Ss)) => (c, Ss))));
+  let val arities = thy |> Sign.classes_of
+    |> Sorts.rep_algebra |> #arities |> Symtab.dest
+    |> map (apsnd (map (fn (c, (_, Ss)) => (c, Ss))));
   in multi_arity_clause (rev arities) end;
 
 

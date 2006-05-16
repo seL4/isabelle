@@ -94,8 +94,7 @@ sig
   val declare_name: theory -> string -> NameSpace.T -> NameSpace.T
   val syn_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
-  val classes_of: theory -> Sorts.classes
-  val arities_of: theory -> Sorts.arities
+  val classes_of: theory -> Sorts.algebra
   val classes: theory -> class list
   val super_classes: theory -> class -> class list
   val defaultS: theory -> sort
@@ -267,10 +266,9 @@ val syn_of = #syn o rep_sg;
 (* type signature *)
 
 val tsig_of = #tsig o rep_sg;
-val classes_of = snd o #classes o Type.rep_tsig o tsig_of;
-val arities_of = #arities o Type.rep_tsig o tsig_of;
-val classes = Type.classes o tsig_of;
-val super_classes = Graph.imm_succs o classes_of;
+val classes_of = #2 o #classes o Type.rep_tsig o tsig_of;
+val classes = Sorts.classes o classes_of;
+val super_classes = Sorts.super_classes o classes_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;

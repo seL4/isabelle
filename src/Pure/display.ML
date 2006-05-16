@@ -212,9 +212,11 @@ fun pretty_full_theory thy =
     val {axioms, defs = _, oracles} = Theory.rep_theory thy;
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {constants, constraints} = Consts.dest consts;
-    val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
+    val {classes = (class_space, class_algebra),
+      default, types, log_types = _, witness} = Type.rep_tsig tsig;
+    val {classes, arities} = Sorts.rep_algebra class_algebra;
 
-    val clsses = NameSpace.dest_table (apsnd (Symtab.make o Graph.dest) classes);
+    val clsses = NameSpace.dest_table (class_space, Symtab.make (Graph.dest classes));
     val tdecls = NameSpace.dest_table types;
     val arties = NameSpace.dest_table (Sign.type_space thy, arities);
     val cnsts = NameSpace.extern_table constants;
