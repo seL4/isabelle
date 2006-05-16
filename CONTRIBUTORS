@@ -2,13 +2,18 @@
 Contributions to Isabelle
 -------------------------
 
-* October 2005: Martin Wildmoser, TUM
-  Sketch for Isar 'guess' element.
+* May 2006: Amine Chaieb, TUM
+  HOL-Complex: Ferrante and Rackoff Algorithm for linear real
+  arithmetic.
 
 * February 2006: Benjamin Porter, NICTA
   HOL and HOL-Complex: generalied mean value theorem, continuum is
   not denumerable, harmonic and arithmetic series, and denumerability
   of rationals.
+
+* October 2005: Martin Wildmoser, TUM
+  Sketch for Isar 'guess' element.
+
 
 Contributions to Isabelle 2005
 ------------------------------
