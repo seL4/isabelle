@@ -5,13 +5,16 @@
 
 \subsection{Derived specifications}
 
+\indexisarcmd{axiomatization}
 \indexisarcmd{definition}\indexisaratt{defn}
-\indexisarcmd{abbreviation}\indexisarcmd{axiomatization}
+\indexisarcmd{abbreviation}
+\indexisarcmd{const-syntax}
 \begin{matharray}{rcll}
+  \isarcmd{axiomatization} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
   \isarcmd{definition} & : & \isarkeep{local{\dsh}theory} \\
   defn & : & \isaratt \\
   \isarcmd{abbreviation} & : & \isarkeep{local{\dsh}theory} \\
-  \isarcmd{axiomatization} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
+  \isarcmd{const_syntax} & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
 These specification mechanisms provide a slightly more abstract view
@@ -21,12 +24,13 @@ than the underlying primitives of $\CONSTS$, $\DEFS$ (see
 available, and result names need not be given.
 
 \begin{rail}
+  'axiomatization' locale? consts? ('where' specs)?
+  ;
   'definition' locale? (constdecl? constdef +)
   ;
-
   'abbreviation' locale? mode? (constdecl? prop +)
   ;
-  'axiomatization' locale? consts? ('where' specs)?
+  'const\_syntax' locale? mode? (nameref mixfix +)
   ;
 
   consts: ((name ('::' type)? structmixfix? | vars) + 'and')
@@ -37,6 +41,16 @@ available, and result names need not be given.
 
 \begin{descr}
   
+\item $\isarkeyword{axiomatization} ~ c@1 \dots c@n ~
+  \isarkeyword{where} ~ A@1 \dots A@m$ introduces several constants
+  simultaneously and states axiomatic properties for these.  The
+  constants are marked as being specified once and for all, which
+  prevents additional specifications being issued later on.
+  
+  Note that axiomatic specifications are only appropriate when
+  declaring a new logical system.  Normal applications should only use
+  definitional mechanisms!
+
 \item $\isarkeyword{definition}~c~\isarkeyword{where}~eq$ produces an
   internal definition $c \equiv t$ according to the specification
   given as $eq$, which is then turned into a proven fact.  The given
@@ -70,16 +84,12 @@ available, and result names need not be given.
   that affects the concrete syntax declared for abbreviations, cf.\ 
   $\isarkeyword{syntax}$ in \S\ref{sec:syn-trans}.
   
-\item $\isarkeyword{axiomatization} ~ c@1 \dots c@n ~
-  \isarkeyword{where} ~ A@1 \dots A@m$ introduces several constants
-  simultaneously and states axiomatic properties for these.  The
-  constants are marked as being specified once and for all, which
-  prevents additional specifications being issued later on.
+\item $\isarkeyword{const_syntax}~c~mx$ associates mixfix syntax with
+  an existing constant $c$.  This is a robust interface to the
+  underlying $\isarkeyword{syntax}$ primitive (\S\ref{sec:syn-trans}).
+  Type declaration and internal syntactic representation of given
+  constants is retrieved from the context.
   
-  Note that axiomatic specifications are only appropriate when
-  declaring a new logical system.  Normal applications should only use
-  definitional mechanisms!
-
 \end{descr}
 
 Any of these specifications support an optional target locale context
