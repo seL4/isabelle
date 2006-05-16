@@ -48,7 +48,7 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymle}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G%
 \end{isabelle}%
 \end{isamarkuptxt}%
@@ -157,7 +157,7 @@ this is what we get:
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isasymle}\ f\ A\ {\isasyminter}\ f\ B%
+\ \ \ \ \ mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isasymsubseteq}\ f\ A\ {\isasyminter}\ f\ B%
 \end{isabelle}
 \rulename{mono_Int}%
 \end{isamarkuptext}%
