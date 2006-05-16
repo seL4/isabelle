@@ -7,22 +7,20 @@ header {* Euler's criterion *}
 
 theory Euler imports Residues EvenOdd begin
 
-constdefs
+definition
   MultInvPair :: "int => int => int => int set"
-  "MultInvPair a p j == {StandardRes p j, StandardRes p (a * (MultInv p j))}"
+  "MultInvPair a p j = {StandardRes p j, StandardRes p (a * (MultInv p j))}"
+
   SetS        :: "int => int => int set set"
-  "SetS        a p   ==  ((MultInvPair a p) ` (SRStar p))"
+  "SetS        a p   =  (MultInvPair a p ` SRStar p)"
 
-(****************************************************************)
-(*                                                              *)
-(* Property for MultInvPair                                     *)
-(*                                                              *)
-(****************************************************************)
 
-lemma MultInvPair_prop1a: "[| zprime p; 2 < p; ~([a = 0](mod p));
-                              X \<in> (SetS a p); Y \<in> (SetS a p);
-                              ~((X \<inter> Y) = {}) |] ==> 
-                           X = Y"
+subsection {* Property for MultInvPair *}
+
+lemma MultInvPair_prop1a:
+  "[| zprime p; 2 < p; ~([a = 0](mod p));
+      X \<in> (SetS a p); Y \<in> (SetS a p);
+      ~((X \<inter> Y) = {}) |] ==> X = Y"
   apply (auto simp add: SetS_def)
   apply (drule StandardRes_SRStar_prop1a)+ defer 1
   apply (drule StandardRes_SRStar_prop1a)+
@@ -35,16 +33,16 @@ lemma MultInvPair_prop1a: "[| zprime p; 2 < p; ~([a = 0](mod p));
   apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)
   apply (drule MultInv_zcong_prop2, auto simp add: zcong_sym)
   apply (drule MultInv_zcong_prop3, auto simp add: zcong_sym)
-done
+  done
 
-lemma MultInvPair_prop1b: "[| zprime p; 2 < p; ~([a = 0](mod p));
-                              X \<in> (SetS a p); Y \<in> (SetS a p);
-                              X \<noteq> Y |] ==>
-                              X \<inter> Y = {}"
+lemma MultInvPair_prop1b:
+  "[| zprime p; 2 < p; ~([a = 0](mod p));
+      X \<in> (SetS a p); Y \<in> (SetS a p);
+      X \<noteq> Y |] ==> X \<inter> Y = {}"
   apply (rule notnotD)
   apply (rule notI)
   apply (drule MultInvPair_prop1a, auto)
-done
+  done
 
 lemma MultInvPair_prop1c: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==>  
     \<forall>X \<in> SetS a p. \<forall>Y \<in> SetS a p. X \<noteq> Y --> X\<inter>Y = {}"
@@ -56,7 +54,7 @@ lemma MultInvPair_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==>
     SRStar_mult_prop2)
   apply (frule StandardRes_SRStar_prop3)
   apply (rule bexI, auto)
-done
+  done
 
 lemma MultInvPair_distinct: "[| zprime p; 2 < p; ~([a = 0] (mod p)); 
                                 ~([j = 0] (mod p)); 
@@ -97,11 +95,8 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (drule MultInvPair_distinct)
 by auto
 
-(****************************************************************)
-(*                                                              *)
-(* Properties of SetS                                           *)
-(*                                                              *)
-(****************************************************************)
+
+subsection {* Properties of SetS *}
 
 lemma SetS_finite: "2 < p ==> finite (SetS a p)"
   by (auto simp add: SetS_def SRStar_finite [of p] finite_imageI)
@@ -115,7 +110,7 @@ lemma SetS_elems_card: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (auto simp add: SetS_def)
   apply (frule StandardRes_SRStar_prop1a)
   apply (rule MultInvPair_card_two, auto)
-done
+  done
 
 lemma Union_SetS_finite: "2 < p ==> finite (Union (SetS a p))"
   by (auto simp add: SetS_finite SetS_elems_finite finite_Union)
@@ -136,10 +131,9 @@ proof -
       by (auto simp add: prems SetS_finite SetS_elems_finite
                          MultInvPair_prop1c [of p a] card_Union_disjoint)
     also have "... = int(setsum (%x.2) (SetS a p))"
-      apply (insert prems)
-      apply (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite 
+      using prems
+      by (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite 
         card_setsum_aux simp del: setsum_constant)
-    done
     also have "... = 2 * int(card( SetS a p))"
       by (auto simp add: prems SetS_finite setsum_const2)
     finally show ?thesis .
@@ -164,7 +158,7 @@ lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (frule_tac p = p and x = x in MultInv_prop2, auto)
   apply (drule_tac a = "x * MultInv p x" and b = 1 in zcong_zmult_prop2)
   apply (auto simp add: zmult_ac)
-done
+  done
 
 lemma aux1: "[| 0 < x; (x::int) < a; x \<noteq> (a - 1) |] ==> x < a - 1"
   by arith
@@ -237,13 +231,7 @@ lemma zfact_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
   apply (auto simp add: Union_SetS_setprod_prop2)
   done
 
-(****************************************************************)
-(*                                                              *)
-(*  Prove the first part of Euler's Criterion:                  *)
-(*    ~(QuadRes p x) |] ==>                                     *)
-(*                   [x^(nat (((p) - 1) div 2)) = -1](mod p)    *)
-(*                                                              *)
-(****************************************************************)
+text {* \medskip Prove the first part of Euler's Criterion: *}
 
 lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p)); 
     ~(QuadRes p x) |] ==> 
@@ -254,12 +242,7 @@ lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p));
   apply (rule zcong_trans, auto)
   done
 
-(********************************************************************)
-(*                                                                  *)
-(* Prove another part of Euler Criterion:                           *)
-(*        [a = 0] (mod p) ==> [0 = a ^ nat ((p - 1) div 2)] (mod p) *)
-(*                                                                  *)
-(********************************************************************)
+text {* \medskip Prove another part of Euler Criterion: *}
 
 lemma aux_1: "0 < p ==> (a::int) ^ nat (p) = a * a ^ (nat (p) - 1)"
 proof -
@@ -289,20 +272,15 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma Euler_part2: "[| 2 < p; zprime p; [a = 0] (mod p) |] ==> [0 = a ^ nat ((p - 1) div 2)] (mod p)"
+lemma Euler_part2:
+    "[| 2 < p; zprime p; [a = 0] (mod p) |] ==> [0 = a ^ nat ((p - 1) div 2)] (mod p)"
   apply (frule zprime_zOdd_eq_grt_2)
   apply (frule aux_2, auto)
   apply (frule_tac a = a in aux_1, auto)
   apply (frule zcong_zmult_prop1, auto)
   done
 
-(****************************************************************)
-(*                                                              *)
-(* Prove the final part of Euler's Criterion:                   *)
-(*           QuadRes p x |] ==>                                 *)
-(*                      [x^(nat (((p) - 1) div 2)) = 1](mod p)  *)
-(*                                                              *)
-(****************************************************************)
+text {* \medskip Prove the final part of Euler's Criterion: *}
 
 lemma aux__1: "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> ~(p dvd y)"
   apply (subgoal_tac "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> 
@@ -329,11 +307,8 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
   apply (auto intro: Little_Fermat simp add: zprime_zOdd_eq_grt_2)
   done
 
-(********************************************************************)
-(*                                                                  *)
-(* Finally show Euler's Criterion                                   *)
-(*                                                                  *)
-(********************************************************************)
+
+text {* \medskip Finally show Euler's Criterion: *}
 
 theorem Euler_Criterion: "[| 2 < p; zprime p |] ==> [(Legendre a p) =
     a^(nat (((p) - 1) div 2))] (mod p)"

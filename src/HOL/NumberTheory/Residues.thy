@@ -7,45 +7,33 @@ header {* Residue Sets *}
 
 theory Residues imports Int2 begin
 
-text{*Note.  This theory is being revised.  See the web page
-\url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}
+text {*
+  \medskip Define the residue of a set, the standard residue,
+  quadratic residues, and prove some basic properties. *}
 
-(*****************************************************************)
-(*                                                               *)
-(* Define the residue of a set, the standard residue, quadratic  *)
-(* residues, and prove some basic properties.                    *)
-(*                                                               *)
-(*****************************************************************)
-
-constdefs
+definition
   ResSet      :: "int => int set => bool"
-  "ResSet m X == \<forall>y1 y2. (((y1 \<in> X) & (y2 \<in> X) & [y1 = y2] (mod m)) --> 
-    y1 = y2)"
+  "ResSet m X = (\<forall>y1 y2. (y1 \<in> X & y2 \<in> X & [y1 = y2] (mod m) --> y1 = y2))"
 
   StandardRes :: "int => int => int"
-  "StandardRes m x == x mod m"
+  "StandardRes m x = x mod m"
 
   QuadRes     :: "int => int => bool"
-  "QuadRes m x == \<exists>y. ([(y ^ 2) = x] (mod m))"
+  "QuadRes m x = (\<exists>y. ([(y ^ 2) = x] (mod m)))"
 
   Legendre    :: "int => int => int"      
-  "Legendre a p == (if ([a = 0] (mod p)) then 0
+  "Legendre a p = (if ([a = 0] (mod p)) then 0
                      else if (QuadRes p a) then 1
                      else -1)"
 
   SR          :: "int => int set"
-  "SR p == {x. (0 \<le> x) & (x < p)}"
+  "SR p = {x. (0 \<le> x) & (x < p)}"
 
   SRStar      :: "int => int set"
-  "SRStar p == {x. (0 < x) & (x < p)}"
+  "SRStar p = {x. (0 < x) & (x < p)}"
 
-(******************************************************************)
-(*                                                                *)
-(* Some useful properties of StandardRes                          *)
-(*                                                                *)
-(******************************************************************)
 
-subsection {* Properties of StandardRes *}
+subsection {* Some useful properties of StandardRes *}
 
 lemma StandardRes_prop1: "[x = StandardRes m x] (mod m)"
   by (auto simp add: StandardRes_def zcong_zmod)
@@ -72,11 +60,6 @@ lemma StandardRes_eq_zcong:
    "(StandardRes m x = 0) = ([x = 0](mod m))"
   by (auto simp add: StandardRes_def zcong_eq_zdvd_prop dvd_def) 
 
-(******************************************************************)
-(*                                                                *)
-(* Some useful stuff relating StandardRes and SRStar and SR       *)
-(*                                                                *)
-(******************************************************************)
 
 subsection {* Relations between StandardRes, SRStar, and SR *}
 
@@ -132,11 +115,6 @@ lemma SRStar_card: "2 < p ==> int(card(SRStar p)) = p - 1"
 lemma SRStar_finite: "2 < p ==> finite( SRStar p)"
   by (auto simp add: SRStar_def bdd_int_set_l_l_finite)
 
-(******************************************************************)
-(*                                                                *)
-(* Some useful stuff about ResSet and StandardRes                 *)
-(*                                                                *)
-(******************************************************************)
 
 subsection {* Properties relating ResSets with StandardRes *}
 
@@ -175,14 +153,13 @@ lemma StandardRes_prod: "[| finite X; 0 < m |]
   apply (auto intro!: zcong_zmult simp add: StandardRes_prop1)
   done
 
-lemma ResSet_image: "[| 0 < m; ResSet m A; \<forall>x \<in> A. \<forall>y \<in> A. ([f x = f y](mod m) --> x = y) |] ==> ResSet m (f ` A)"
+lemma ResSet_image:
+  "[| 0 < m; ResSet m A; \<forall>x \<in> A. \<forall>y \<in> A. ([f x = f y](mod m) --> x = y) |] ==>
+    ResSet m (f ` A)"
   by (auto simp add: ResSet_def)
 
-(****************************************************************)
-(*                                                              *)
-(* Property for SRStar                                          *)
-(*                                                              *)
-(****************************************************************)
+
+subsection {* Property for SRStar *}
 
 lemma ResSet_SRStar_prop: "ResSet p (SRStar p)"
   by (auto simp add: SRStar_def ResSet_def zcong_zless_imp_eq)

@@ -29,15 +29,15 @@ text {*
   (and similar for @{term A}).
 *}
 
-constdefs
+definition
   bijP :: "('a => 'a => bool) => 'a set => bool"
-  "bijP P F == \<forall>a b. a \<in> F \<and> P a b --> b \<in> F"
+  "bijP P F = (\<forall>a b. a \<in> F \<and> P a b --> b \<in> F)"
 
   uniqP :: "('a => 'a => bool) => bool"
-  "uniqP P == \<forall>a b c d. P a b \<and> P c d --> (a = c) = (b = d)"
+  "uniqP P = (\<forall>a b c d. P a b \<and> P c d --> (a = c) = (b = d))"
 
   symP :: "('a => 'a => bool) => bool"
-  "symP P == \<forall>a b. P a b = P b a"
+  "symP P = (\<forall>a b. P a b = P b a)"
 
 consts
   bijER :: "('a => 'a => bool) => 'a set set"

@@ -7,20 +7,13 @@ header {*Parity: Even and Odd Integers*}
 
 theory EvenOdd imports Int2 begin
 
-text{*Note.  This theory is being revised.  See the web page
-\url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}
-
-constdefs
+definition
   zOdd    :: "int set"
-  "zOdd == {x. \<exists>k. x = 2 * k + 1}"
+  "zOdd = {x. \<exists>k. x = 2 * k + 1}"
   zEven   :: "int set"
-  "zEven == {x. \<exists>k. x = 2 * k}"
+  "zEven = {x. \<exists>k. x = 2 * k}"
 
-(***********************************************************)
-(*                                                         *)
-(* Some useful properties about even and odd               *)
-(*                                                         *)
-(***********************************************************)
+subsection {* Some useful properties about even and odd *}
 
 lemma zOddI [intro?]: "x = 2 * k + 1 \<Longrightarrow> x \<in> zOdd"
   and zOddE [elim?]: "x \<in> zOdd \<Longrightarrow> (!!k. x = 2 * k + 1 \<Longrightarrow> C) \<Longrightarrow> C"

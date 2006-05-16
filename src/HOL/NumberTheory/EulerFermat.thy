@@ -19,18 +19,15 @@ subsection {* Definitions and lemmas *}
 
 consts
   RsetR :: "int => int set set"
-  BnorRset :: "int * int => int set"
-  norRRset :: "int => int set"
-  noXRRset :: "int => int => int set"
-  phi :: "int => nat"
-  is_RRset :: "int set => int => bool"
-  RRset2norRR :: "int set => int => int => int"
 
 inductive "RsetR m"
   intros
     empty [simp]: "{} \<in> RsetR m"
     insert: "A \<in> RsetR m ==> zgcd (a, m) = 1 ==>
       \<forall>a'. a' \<in> A --> \<not> zcong a a' m ==> insert a A \<in> RsetR m"
+
+consts
+  BnorRset :: "int * int => int set"
 
 recdef BnorRset
   "measure ((\<lambda>(a, m). nat a) :: int * int => nat)"
@@ -40,20 +37,27 @@ recdef BnorRset
     in (if zgcd (a, m) = 1 then insert a na else na)
     else {})"
 
-defs
-  norRRset_def: "norRRset m == BnorRset (m - 1, m)"
-  noXRRset_def: "noXRRset m x == (\<lambda>a. a * x) ` norRRset m"
-  phi_def: "phi m == card (norRRset m)"
-  is_RRset_def: "is_RRset A m == A \<in> RsetR m \<and> card A = phi m"
-  RRset2norRR_def:
-    "RRset2norRR A m a ==
+definition
+  norRRset :: "int => int set"
+  "norRRset m = BnorRset (m - 1, m)"
+
+  noXRRset :: "int => int => int set"
+  "noXRRset m x = (\<lambda>a. a * x) ` norRRset m"
+
+  phi :: "int => nat"
+  "phi m = card (norRRset m)"
+
+  is_RRset :: "int set => int => bool"
+  "is_RRset A m = (A \<in> RsetR m \<and> card A = phi m)"
+
+  RRset2norRR :: "int set => int => int => int"
+  "RRset2norRR A m a =
      (if 1 < m \<and> is_RRset A m \<and> a \<in> A then
         SOME b. zcong a b m \<and> b \<in> norRRset m
       else 0)"
 
-constdefs
   zcongm :: "int => int => int => bool"
-  "zcongm m == \<lambda>a b. zcong a b m"
+  "zcongm m = (\<lambda>a b. zcong a b m)"
 
 lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"
   -- {* LCP: not sure why this lemma is needed now *}

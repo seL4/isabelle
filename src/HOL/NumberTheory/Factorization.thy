@@ -11,15 +11,15 @@ theory Factorization imports Primes Permutation begin
 
 subsection {* Definitions *}
 
-consts
+definition
   primel :: "nat list => bool "
+  "primel xs = (\<forall>p \<in> set xs. prime p)"
+
+consts
   nondec :: "nat list => bool "
   prod :: "nat list => nat"
   oinsert :: "nat => nat list => nat list"
   sort :: "nat list => nat list"
-
-defs
-  primel_def: "primel xs == \<forall>p \<in> set xs. prime p"
 
 primrec
   "nondec [] = True"
@@ -41,12 +41,12 @@ primrec
 subsection {* Arithmetic *}
 
 lemma one_less_m: "(m::nat) \<noteq> m * k ==> m \<noteq> Suc 0 ==> Suc 0 < m"
-  apply (case_tac m)
+  apply (cases m)
    apply auto
   done
 
 lemma one_less_k: "(m::nat) \<noteq> m * k ==> Suc 0 < m * k ==> Suc 0 < k"
-  apply (case_tac k)
+  apply (cases k)
    apply auto
   done
 
@@ -55,7 +55,7 @@ lemma mult_left_cancel: "(0::nat) < k ==> k * n = k * m ==> n = m"
   done
 
 lemma mn_eq_m_one: "(0::nat) < m ==> m * n = m ==> n = Suc 0"
-  apply (case_tac n)
+  apply (cases n)
    apply auto
   done
 
@@ -116,9 +116,8 @@ lemma primes_eq: "prime p ==> prime q ==> p dvd q ==> p = q"
   done
 
 lemma primel_one_empty: "primel xs ==> prod xs = Suc 0 ==> xs = []"
-  apply (unfold primel_def prime_def)
-  apply (case_tac xs)
-   apply simp_all
+  apply (cases xs)
+   apply (simp_all add: primel_def prime_def)
   done
 
 lemma prime_g_one: "prime p ==> Suc 0 < p"
@@ -131,25 +130,25 @@ lemma prime_g_zero: "prime p ==> 0 < p"
   apply auto
   done
 
-lemma primel_nempty_g_one [rule_format]:
-    "primel xs --> xs \<noteq> [] --> Suc 0 < prod xs"
-  apply (unfold primel_def prime_def)
+lemma primel_nempty_g_one:
+    "primel xs \<Longrightarrow> xs \<noteq> [] \<Longrightarrow> Suc 0 < prod xs"
   apply (induct xs)
-   apply (auto elim: one_less_mult)
+   apply simp
+  apply (fastsimp simp: primel_def prime_def elim: one_less_mult)
   done
 
 lemma primel_prod_gz: "primel xs ==> 0 < prod xs"
-  apply (unfold primel_def prime_def)
   apply (induct xs)
-   apply auto
+   apply (auto simp: primel_def prime_def)
   done
 
 
 subsection {* Sorting *}
 
-lemma nondec_oinsert [rule_format]: "nondec xs --> nondec (oinsert x xs)"
+lemma nondec_oinsert: "nondec xs \<Longrightarrow> nondec (oinsert x xs)"
   apply (induct xs)
-   apply (case_tac [2] xs)
+   apply simp
+   apply (case_tac xs)
     apply (simp_all cong del: list.weak_case_cong)
   done
 
@@ -163,7 +162,7 @@ lemma x_less_y_oinsert: "x \<le> y ==> l = y # ys ==> x # l = oinsert x l"
   apply simp_all
   done
 
-lemma nondec_sort_eq [rule_format]: "nondec xs --> xs = sort xs"
+lemma nondec_sort_eq [rule_format]: "nondec xs \<longrightarrow> xs = sort xs"
   apply (induct xs)
    apply safe
     apply simp_all
@@ -185,7 +184,7 @@ subsection {* Permutation *}
 
 lemma perm_primel [rule_format]: "xs <~~> ys ==> primel xs --> primel ys"
   apply (unfold primel_def)
-  apply (erule perm.induct)
+  apply (induct set: perm)
      apply simp
     apply simp
    apply (simp (no_asm))
@@ -193,13 +192,13 @@ lemma perm_primel [rule_format]: "xs <~~> ys ==> primel xs --> primel ys"
   apply blast
   done
 
-lemma perm_prod [rule_format]: "xs <~~> ys ==> prod xs = prod ys"
-  apply (erule perm.induct)
+lemma perm_prod: "xs <~~> ys ==> prod xs = prod ys"
+  apply (induct set: perm)
      apply (simp_all add: mult_ac)
   done
 
 lemma perm_subst_oinsert: "xs <~~> ys ==> oinsert a xs <~~> oinsert a ys"
-  apply (erule perm.induct)
+  apply (induct set: perm)
      apply auto
   done
 
@@ -214,7 +213,7 @@ lemma perm_sort: "xs <~~> sort xs"
   done
 
 lemma perm_sort_eq: "xs <~~> ys ==> sort xs = sort ys"
-  apply (erule perm.induct)
+  apply (induct set: perm)
      apply (simp_all add: oinsert_x_y)
   done
 

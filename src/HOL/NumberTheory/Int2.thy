@@ -7,18 +7,12 @@ header {*Integers: Divisibility and Congruences*}
 
 theory Int2 imports Finite2 WilsonRuss begin
 
-text{*Note.  This theory is being revised.  See the web page
-\url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}
+definition
+  MultInv :: "int => int => int"
+  "MultInv p x = x ^ nat (p - 2)"
 
-constdefs
-  MultInv :: "int => int => int" 
-  "MultInv p x == x ^ nat (p - 2)"
 
-(*****************************************************************)
-(*                                                               *)
-(* Useful lemmas about dvd and powers                            *)
-(*                                                               *)
-(*****************************************************************)
+subsection {* Useful lemmas about dvd and powers *}
 
 lemma zpower_zdvd_prop1:
   "0 < n \<Longrightarrow> p dvd y \<Longrightarrow> p dvd ((y::int) ^ n)"
@@ -32,7 +26,7 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma zprime_zdvd_zmult_better: "[| zprime p;  p dvd (m * n) |] ==> 
+lemma zprime_zdvd_zmult_better: "[| zprime p;  p dvd (m * n) |] ==>
     (p dvd m) | (p dvd n)"
   apply (cases "0 \<le> m")
   apply (simp add: zprime_zdvd_zmult)
@@ -83,11 +77,8 @@ proof-
     by arith
 qed
 
-(*****************************************************************)
-(*                                                               *)
-(* Useful properties of congruences                              *)
-(*                                                               *)
-(*****************************************************************)
+
+subsection {* Useful properties of congruences *}
 
 lemma zcong_eq_zdvd_prop: "[x = 0](mod p) = (p dvd x)"
   by (auto simp add: zcong_def)
@@ -101,7 +92,7 @@ lemma zcong_shift: "[a = b] (mod m) ==> [a + c = b + c] (mod m)"
 lemma zcong_zpower: "[x = y](mod m) ==> [x^z = y^z](mod m)"
   by (induct z) (auto simp add: zcong_zmult)
 
-lemma zcong_eq_trans: "[| [a = b](mod m); b = c; [c = d](mod m) |] ==> 
+lemma zcong_eq_trans: "[| [a = b](mod m); b = c; [c = d](mod m) |] ==>
     [a = d](mod m)"
   apply (erule zcong_trans)
   apply simp
@@ -110,7 +101,7 @@ lemma zcong_eq_trans: "[| [a = b](mod m); b = c; [c = d](mod m) |] ==>
 lemma aux1: "a - b = (c::int) ==> a = c + b"
   by auto
 
-lemma zcong_zmult_prop1: "[a = b](mod m) ==> ([c = a * d](mod m) = 
+lemma zcong_zmult_prop1: "[a = b](mod m) ==> ([c = a * d](mod m) =
     [c = b * d] (mod m))"
   apply (auto simp add: zcong_def dvd_def)
   apply (rule_tac x = "ka + k * d" in exI)
@@ -121,17 +112,17 @@ lemma zcong_zmult_prop1: "[a = b](mod m) ==> ([c = a * d](mod m) =
   apply (auto simp add: int_distrib)
   done
 
-lemma zcong_zmult_prop2: "[a = b](mod m) ==> 
+lemma zcong_zmult_prop2: "[a = b](mod m) ==>
     ([c = d * a](mod m) = [c = d * b] (mod m))"
   by (auto simp add: zmult_ac zcong_zmult_prop1)
 
-lemma zcong_zmult_prop3: "[| zprime p; ~[x = 0] (mod p); 
+lemma zcong_zmult_prop3: "[| zprime p; ~[x = 0] (mod p);
     ~[y = 0] (mod p) |] ==> ~[x * y = 0] (mod p)"
   apply (auto simp add: zcong_def)
   apply (drule zprime_zdvd_zmult_better, auto)
   done
 
-lemma zcong_less_eq: "[| 0 < x; 0 < y; 0 < m; [x = y] (mod m); 
+lemma zcong_less_eq: "[| 0 < x; 0 < y; 0 < m; [x = y] (mod m);
     x < m; y < m |] ==> x = y"
   apply (simp add: zcong_zmod_eq)
   apply (subgoal_tac "(x mod m) = x")
@@ -141,7 +132,7 @@ lemma zcong_less_eq: "[| 0 < x; 0 < y; 0 < m; [x = y] (mod m);
   apply auto
   done
 
-lemma zcong_neg_1_impl_ne_1: "[| 2 < p; [x = -1] (mod p) |] ==> 
+lemma zcong_neg_1_impl_ne_1: "[| 2 < p; [x = -1] (mod p) |] ==>
     ~([x = 1] (mod p))"
 proof
   assume "2 < p" and "[x = 1] (mod p)" and "[x = -1] (mod p)"
@@ -162,18 +153,18 @@ qed
 lemma zcong_zero_equiv_div: "[a = 0] (mod m) = (m dvd a)"
   by (auto simp add: zcong_def)
 
-lemma zcong_zprime_prod_zero: "[| zprime p; 0 < a |] ==> 
-    [a * b = 0] (mod p) ==> [a = 0] (mod p) | [b = 0] (mod p)" 
+lemma zcong_zprime_prod_zero: "[| zprime p; 0 < a |] ==>
+    [a * b = 0] (mod p) ==> [a = 0] (mod p) | [b = 0] (mod p)"
   by (auto simp add: zcong_zero_equiv_div zprime_zdvd_zmult)
 
 lemma zcong_zprime_prod_zero_contra: "[| zprime p; 0 < a |] ==>
   ~[a = 0](mod p) & ~[b = 0](mod p) ==> ~[a * b = 0] (mod p)"
-  apply auto 
+  apply auto
   apply (frule_tac a = a and b = b and p = p in zcong_zprime_prod_zero)
   apply auto
   done
 
-lemma zcong_not_zero: "[| 0 < x; x < m |] ==> ~[x = 0] (mod m)" 
+lemma zcong_not_zero: "[| 0 < x; x < m |] ==> ~[x = 0] (mod m)"
   by (auto simp add: zcong_zero_equiv_div zdvd_not_zless)
 
 lemma zcong_zero: "[| 0 \<le> x; x < m; [x = 0](mod m) |] ==> x = 0"
@@ -186,17 +177,14 @@ lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. (zgcd(x,y) =
     ==> zgcd (setprod id A,y) = 1"
   by (induct set: Finites) (auto simp add: zgcd_zgcd_zmult)
 
-(*****************************************************************)
-(*                                                               *)
-(* Some properties of MultInv                                    *)
-(*                                                               *)
-(*****************************************************************)
 
-lemma MultInv_prop1: "[| 2 < p; [x = y] (mod p) |] ==> 
+subsection {* Some properties of MultInv *}
+
+lemma MultInv_prop1: "[| 2 < p; [x = y] (mod p) |] ==>
     [(MultInv p x) = (MultInv p y)] (mod p)"
   by (auto simp add: MultInv_def zcong_zpower)
 
-lemma MultInv_prop2: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==> 
+lemma MultInv_prop2: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
   [(x * (MultInv p x)) = 1] (mod p)"
 proof (simp add: MultInv_def zcong_eq_zdvd_prop)
   assume "2 < p" and "zprime p" and "~ p dvd x"
@@ -208,11 +196,11 @@ proof (simp add: MultInv_def zcong_eq_zdvd_prop)
   finally have "[x * x ^ nat (p - 2) = x ^ nat (p - 1)] (mod p)"
     by (rule ssubst, auto)
   also from prems have "[x ^ nat (p - 1) = 1] (mod p)"
-    by (auto simp add: Little_Fermat) 
+    by (auto simp add: Little_Fermat)
   finally (zcong_trans) show "[x * x ^ nat (p - 2) = 1] (mod p)" .
 qed
 
-lemma MultInv_prop2a: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==> 
+lemma MultInv_prop2a: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
     [(MultInv p x) * x = 1] (mod p)"
   by (auto simp add: MultInv_prop2 zmult_ac)
 
@@ -222,15 +210,15 @@ lemma aux_1: "2 < p ==> ((nat p) - 2) = (nat (p - 2))"
 lemma aux_2: "2 < p ==> 0 < nat (p - 2)"
   by auto
 
-lemma MultInv_prop3: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==> 
+lemma MultInv_prop3: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
     ~([MultInv p x = 0](mod p))"
   apply (auto simp add: MultInv_def zcong_eq_zdvd_prop aux_1)
   apply (drule aux_2)
   apply (drule zpower_zdvd_prop2, auto)
   done
 
-lemma aux__1: "[| 2 < p; zprime p; ~([x = 0](mod p))|] ==> 
-    [(MultInv p (MultInv p x)) = (x * (MultInv p x) * 
+lemma aux__1: "[| 2 < p; zprime p; ~([x = 0](mod p))|] ==>
+    [(MultInv p (MultInv p x)) = (x * (MultInv p x) *
       (MultInv p (MultInv p x)))] (mod p)"
   apply (drule MultInv_prop2, auto)
   apply (drule_tac k = "MultInv p (MultInv p x)" in zcong_scalar, auto)
@@ -246,17 +234,17 @@ lemma aux__2: "[| 2 < p; zprime p; ~([x = 0](mod p))|] ==>
   apply (auto simp add: zmult_ac)
   done
 
-lemma MultInv_prop4: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==> 
+lemma MultInv_prop4: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
     [(MultInv p (MultInv p x)) = x] (mod p)"
   apply (frule aux__1, auto)
   apply (drule aux__2, auto)
   apply (drule zcong_trans, auto)
   done
 
-lemma MultInv_prop5: "[| 2 < p; zprime p; ~([x = 0](mod p)); 
-    ~([y = 0](mod p)); [(MultInv p x) = (MultInv p y)] (mod p) |] ==> 
+lemma MultInv_prop5: "[| 2 < p; zprime p; ~([x = 0](mod p));
+    ~([y = 0](mod p)); [(MultInv p x) = (MultInv p y)] (mod p) |] ==>
     [x = y] (mod p)"
-  apply (drule_tac a = "MultInv p x" and b = "MultInv p y" and 
+  apply (drule_tac a = "MultInv p x" and b = "MultInv p y" and
     m = p and k = x in zcong_scalar)
   apply (insert MultInv_prop2 [of p x], simp)
   apply (auto simp only: zcong_sym [of "MultInv p x * x"])
@@ -268,43 +256,43 @@ lemma MultInv_prop5: "[| 2 < p; zprime p; ~([x = 0](mod p));
   apply (auto simp add: zcong_sym)
   done
 
-lemma MultInv_zcong_prop1: "[| 2 < p; [j = k] (mod p) |] ==> 
+lemma MultInv_zcong_prop1: "[| 2 < p; [j = k] (mod p) |] ==>
     [a * MultInv p j = a * MultInv p k] (mod p)"
   by (drule MultInv_prop1, auto simp add: zcong_scalar2)
 
-lemma aux___1: "[j = a * MultInv p k] (mod p) ==> 
+lemma aux___1: "[j = a * MultInv p k] (mod p) ==>
     [j * k = a * MultInv p k * k] (mod p)"
   by (auto simp add: zcong_scalar)
 
-lemma aux___2: "[|2 < p; zprime p; ~([k = 0](mod p)); 
+lemma aux___2: "[|2 < p; zprime p; ~([k = 0](mod p));
     [j * k = a * MultInv p k * k] (mod p) |] ==> [j * k = a] (mod p)"
-  apply (insert MultInv_prop2a [of p k] zcong_zmult_prop2 
+  apply (insert MultInv_prop2a [of p k] zcong_zmult_prop2
     [of "MultInv p k * k" 1 p "j * k" a])
   apply (auto simp add: zmult_ac)
   done
 
-lemma aux___3: "[j * k = a] (mod p) ==> [(MultInv p j) * j * k = 
+lemma aux___3: "[j * k = a] (mod p) ==> [(MultInv p j) * j * k =
      (MultInv p j) * a] (mod p)"
   by (auto simp add: zmult_assoc zcong_scalar2)
 
-lemma aux___4: "[|2 < p; zprime p; ~([j = 0](mod p)); 
+lemma aux___4: "[|2 < p; zprime p; ~([j = 0](mod p));
     [(MultInv p j) * j * k = (MultInv p j) * a] (mod p) |]
        ==> [k = a * (MultInv p j)] (mod p)"
-  apply (insert MultInv_prop2a [of p j] zcong_zmult_prop1 
+  apply (insert MultInv_prop2a [of p j] zcong_zmult_prop1
     [of "MultInv p j * j" 1 p "MultInv p j * a" k])
   apply (auto simp add: zmult_ac zcong_sym)
   done
 
-lemma MultInv_zcong_prop2: "[| 2 < p; zprime p; ~([k = 0](mod p)); 
-    ~([j = 0](mod p)); [j = a * MultInv p k] (mod p) |] ==> 
+lemma MultInv_zcong_prop2: "[| 2 < p; zprime p; ~([k = 0](mod p));
+    ~([j = 0](mod p)); [j = a * MultInv p k] (mod p) |] ==>
     [k = a * MultInv p j] (mod p)"
   apply (drule aux___1)
   apply (frule aux___2, auto)
   by (drule aux___3, drule aux___4, auto)
 
-lemma MultInv_zcong_prop3: "[| 2 < p; zprime p; ~([a = 0](mod p)); 
+lemma MultInv_zcong_prop3: "[| 2 < p; zprime p; ~([a = 0](mod p));
     ~([k = 0](mod p)); ~([j = 0](mod p));
-    [a * MultInv p j = a * MultInv p k] (mod p) |] ==> 
+    [a * MultInv p j = a * MultInv p k] (mod p) |] ==>
       [j = k] (mod p)"
   apply (auto simp add: zcong_eq_zdvd_prop [of a p])
   apply (frule zprime_imp_zrelprime, auto)

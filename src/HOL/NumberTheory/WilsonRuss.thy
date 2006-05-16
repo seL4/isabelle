@@ -15,12 +15,12 @@ text {*
 
 subsection {* Definitions and lemmas *}
 
-consts
+definition
   inv :: "int => int => int"
-  wset :: "int * int => int set"
+  "inv p a = (a^(nat (p - 2))) mod p"
 
-defs
-  inv_def: "inv p a == (a^(nat (p - 2))) mod p"
+consts
+  wset :: "int * int => int set"
 
 recdef wset
   "measure ((\<lambda>(a, p). nat a) :: int * int => nat)"
@@ -81,7 +81,8 @@ lemma inv_not_1:
       apply (rule_tac [2] zcong_zless_imp_eq, auto)
   done
 
-lemma inv_not_p_minus_1_aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
+lemma inv_not_p_minus_1_aux:
+    "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   apply (unfold zcong_def)
   apply (simp add: OrderedGroup.diff_diff_eq diff_diff_eq2 zdiff_zmult_distrib2)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
@@ -163,7 +164,8 @@ declare wset.simps [simp del]
 
 lemma wset_induct:
   assumes "!!a p. P {} a p"
-    and "!!a p. 1 < (a::int) \<Longrightarrow> P (wset (a - 1, p)) (a - 1) p ==> P (wset (a, p)) a p"
+    and "!!a p. 1 < (a::int) \<Longrightarrow>
+      P (wset (a - 1, p)) (a - 1) p ==> P (wset (a, p)) a p"
   shows "P (wset (u, v)) u v"
   apply (rule wset.induct, safe)
    prefer 2

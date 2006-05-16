@@ -31,18 +31,18 @@ recdef xzgcda
 		      s, s' - (r' div r) * s, 
 		      t, t' - (r' div r) * t))"
 
-constdefs
+definition
   zgcd :: "int * int => int"
-  "zgcd == \<lambda>(x,y). int (gcd (nat (abs x), nat (abs y)))"
+  "zgcd = (\<lambda>(x,y). int (gcd (nat (abs x), nat (abs y))))"
 
   zprime :: "int \<Rightarrow> bool"
-  "zprime p == 1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p)"
+  "zprime p = (1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p))"
 
   xzgcd :: "int => int => int * int * int"
-  "xzgcd m n == xzgcda (m, n, m, n, 1, 0, 0, 1)"
+  "xzgcd m n = xzgcda (m, n, m, n, 1, 0, 0, 1)"
 
   zcong :: "int => int => int => bool"    ("(1[_ = _] '(mod _'))")
-  "[a = b] (mod m) == m dvd (a - b)"
+  "[a = b] (mod m) = (m dvd (a - b))"
 
 
 

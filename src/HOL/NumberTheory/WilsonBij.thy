@@ -17,15 +17,14 @@ text {*
 
 subsection {* Definitions and lemmas *}
 
-constdefs
+definition
   reciR :: "int => int => int => bool"
-  "reciR p ==
-    \<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1"
+  "reciR p = (\<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1)"
   inv :: "int => int => int"
-  "inv p a ==
-    if zprime p \<and> 0 < a \<and> a < p then
+  "inv p a =
+    (if zprime p \<and> 0 < a \<and> a < p then
       (SOME x. 0 \<le> x \<and> x < p \<and> zcong (a * x) 1 p)
-    else 0"
+     else 0)"
 
 
 text {* \medskip Inverse *}

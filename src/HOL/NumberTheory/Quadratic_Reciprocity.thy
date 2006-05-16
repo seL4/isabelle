@@ -9,12 +9,10 @@ theory Quadratic_Reciprocity
 imports Gauss
 begin
 
-(***************************************************************)
-(*                                                             *)
-(*  Lemmas leading up to the proof of theorem 3.3 in           *)
-(*  Niven and Zuckerman's presentation                         *)
-(*                                                             *)
-(***************************************************************)
+text {*
+  Lemmas leading up to the proof of theorem 3.3 in Niven and
+  Zuckerman's presentation.
+*}
 
 lemma (in GAUSS) QRLemma1: "a * setsum id A =
   p * setsum (%x. ((x * a) div p)) A + setsum id D + setsum id E"
@@ -149,11 +147,8 @@ lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
   apply (auto simp add: GAUSS_def)
   done
 
-(******************************************************************)
-(*                                                                *)
-(* Stuff about S, S1 and S2...                                    *)
-(*                                                                *)
-(******************************************************************)
+
+subsection {* Stuff about S, S1 and S2 *}
 
 locale QRTEMP =
   fixes p     :: "int"

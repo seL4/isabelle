@@ -9,23 +9,17 @@ theory Finite2
 imports IntFact
 begin
 
-text{*These are useful for combinatorial and number-theoretic counting
-arguments.*}
+text{*
+  These are useful for combinatorial and number-theoretic counting
+  arguments.
+*}
 
-text{*Note.  This theory is being revised.  See the web page
-\url{http://www.andrew.cmu.edu/~avigad/isabelle}.*}
-
-(******************************************************************)
-(*                                                                *)
-(* Useful properties of sums and products                         *)
-(*                                                                *)
-(******************************************************************)
 
 subsection {* Useful properties of sums and products *}
 
 lemma setsum_same_function_zcong:
-assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
-shows "[setsum f S = setsum g S] (mod m)"
+  assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
+  shows "[setsum f S = setsum g S] (mod m)"
 proof cases
   assume "finite S"
   thus ?thesis using a by induct (simp_all add: zcong_zadd)
@@ -34,8 +28,8 @@ next
 qed
 
 lemma setprod_same_function_zcong:
-assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
-shows "[setprod f S = setprod g S] (mod m)"
+  assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
+  shows "[setprod f S = setprod g S] (mod m)"
 proof cases
   assume "finite S"
   thus ?thesis using a by induct (simp_all add: zcong_zmult)
@@ -59,12 +53,6 @@ lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
   by (induct set: Finites) (auto simp add: zadd_zmult_distrib2)
 
 
-(******************************************************************)
-(*                                                                *)
-(* Cardinality of some explicit finite sets                       *)
-(*                                                                *)
-(******************************************************************)
-
 subsection {* Cardinality of explicit finite sets *}
 
 lemma finite_surjI: "[| B \<subseteq> f ` A; finite A |] ==> finite B"
@@ -80,19 +68,19 @@ proof -
 qed
 
 lemma  bdd_int_set_l_finite: "finite {x::int. 0 \<le> x & x < n}"
-apply (subgoal_tac " {(x :: int). 0 \<le> x & x < n} \<subseteq>
-    int ` {(x :: nat). x < nat n}")
-apply (erule finite_surjI)
-apply (auto simp add: bdd_nat_set_l_finite image_def)
-apply (rule_tac x = "nat x" in exI, simp)
-done
+  apply (subgoal_tac " {(x :: int). 0 \<le> x & x < n} \<subseteq>
+      int ` {(x :: nat). x < nat n}")
+   apply (erule finite_surjI)
+   apply (auto simp add: bdd_nat_set_l_finite image_def)
+  apply (rule_tac x = "nat x" in exI, simp)
+  done
 
 lemma bdd_int_set_le_finite: "finite {x::int. 0 \<le> x & x \<le> n}"
-apply (subgoal_tac "{x. 0 \<le> x & x \<le> n} = {x. 0 \<le> x & x < n + 1}")
-apply (erule ssubst)
-apply (rule bdd_int_set_l_finite)
-apply auto
-done
+  apply (subgoal_tac "{x. 0 \<le> x & x \<le> n} = {x. 0 \<le> x & x < n + 1}")
+   apply (erule ssubst)
+   apply (rule bdd_int_set_l_finite)
+  apply auto
+  done
 
 lemma bdd_int_set_l_l_finite: "finite {x::int. 0 < x & x < n}"
 proof -
@@ -192,7 +180,7 @@ lemma int_card_bdd_int_set_l_l: "0 < n ==>
     int(card {x. 0 < x & x < n}) = n - 1"
   apply (auto simp add: card_bdd_int_set_l_l)
   apply (subgoal_tac "Suc 0 \<le> nat n")
-  apply (auto simp add: zdiff_int [symmetric])
+   apply (auto simp add: zdiff_int [symmetric])
   apply (subgoal_tac "0 < nat n", arith)
   apply (simp add: zero_less_nat_eq)
   done
@@ -201,11 +189,6 @@ lemma int_card_bdd_int_set_l_le: "0 \<le> n ==>
     int(card {x. 0 < x & x \<le> n}) = n"
   by (auto simp add: card_bdd_int_set_l_le)
 
-(******************************************************************)
-(*                                                                *)
-(* Cartesian products of finite sets                              *)
-(*                                                                *)
-(******************************************************************)
 
 subsection {* Cardinality of finite cartesian products *}
 
@@ -214,35 +197,29 @@ lemma insert_Sigma [simp]: "(insert x A) <*> B = ({ x } <*> B) \<union> (A <*> B
   by blast
  *)
 
-(******************************************************************)
-(*                                                                *)
-(* Sums and products over finite sets                             *)
-(*                                                                *)
-(******************************************************************)
-
-subsection {* Lemmas for counting arguments *}
+text {* Lemmas for counting arguments. *}
 
 lemma setsum_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A;
     g ` B \<subseteq> A; inj_on g B |] ==> setsum g B = setsum (g \<circ> f) A"
-apply (frule_tac h = g and f = f in setsum_reindex)
-apply (subgoal_tac "setsum g B = setsum g (f ` A)")
-apply (simp add: inj_on_def)
-apply (subgoal_tac "card A = card B")
-apply (drule_tac A = "f ` A" and B = B in card_seteq)
-apply (auto simp add: card_image)
-apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
-apply (frule_tac A = B and B = A and f = g in card_inj_on_le)
-apply auto
-done
+  apply (frule_tac h = g and f = f in setsum_reindex)
+  apply (subgoal_tac "setsum g B = setsum g (f ` A)")
+   apply (simp add: inj_on_def)
+  apply (subgoal_tac "card A = card B")
+   apply (drule_tac A = "f ` A" and B = B in card_seteq)
+     apply (auto simp add: card_image)
+  apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
+  apply (frule_tac A = B and B = A and f = g in card_inj_on_le)
+    apply auto
+  done
 
 lemma setprod_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A;
     g ` B \<subseteq> A; inj_on g B |] ==> setprod g B = setprod (g \<circ> f) A"
   apply (frule_tac h = g and f = f in setprod_reindex)
   apply (subgoal_tac "setprod g B = setprod g (f ` A)")
-  apply (simp add: inj_on_def)
+   apply (simp add: inj_on_def)
   apply (subgoal_tac "card A = card B")
-  apply (drule_tac A = "f ` A" and B = B in card_seteq)
-  apply (auto simp add: card_image)
+   apply (drule_tac A = "f ` A" and B = B in card_seteq)
+     apply (auto simp add: card_image)
   apply (frule_tac A = A and B = B and f = f in card_inj_on_le, auto)
   apply (frule_tac A = B and B = A and f = g in card_inj_on_le, auto)
   done
