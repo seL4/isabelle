@@ -428,6 +428,14 @@ as greatest fixed-point.
 association lists.
 
 
+*** HOL-Complex ***
+
+* Theory Real: new method ferrack implements quantifier elimination
+for linear arithmetic over the reals. The quantifier elimination
+feature is used only for decision, for compatibility with arith. This
+means a goal is either solved or left unchanged, no simplification.
+
+
 *** ML ***
 
 * Pure/library:
@@ -462,6 +470,8 @@ functions for alists, tables, etc:
 
 Note that fold_index starts counting at index 0, not 1 like foldln
 used to.
+
+* Pure/library: general ``divide_and_conquer'' combinator on lists.
 
 * Pure/General/name_mangler.ML provides a functor for generic name
 mangling (bijective mapping from any expression values to strings).
