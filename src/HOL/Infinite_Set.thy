@@ -346,29 +346,24 @@ text {*
   so we introduce corresponding binders and their proof rules.
 *}
 
-consts
+definition
   Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"      (binder "INF " 10)
-  Alm_all  :: "('a \<Rightarrow> bool) \<Rightarrow> bool"      (binder "MOST " 10)
-
-defs
   INF_def:  "Inf_many P \<equiv> infinite {x. P x}"
+  Alm_all  :: "('a \<Rightarrow> bool) \<Rightarrow> bool"      (binder "MOST " 10)
   MOST_def: "Alm_all P \<equiv> \<not>(INF x. \<not> P x)"
 
-abbreviation (xsymbols)
-  Inf_many1  (binder "\<exists>\<^sub>\<infinity>" 10)
-  "Inf_many1 == Inf_many"
-  Alm_all1  (binder "\<forall>\<^sub>\<infinity>" 10)
-  "Alm_all1 == Alm_all"
+const_syntax (xsymbols)
+  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10)
+  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
-abbreviation (HTML output)
-  Inf_many2  (binder "\<exists>\<^sub>\<infinity>" 10)
-  "Inf_many2 == Inf_many"
-  Alm_all2  (binder "\<forall>\<^sub>\<infinity>" 10)
-  "Alm_all2 == Alm_all"
+const_syntax (HTML output)
+  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10)
+  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
 lemma INF_EX:
   "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
-proof (unfold INF_def, rule ccontr)
+  unfolding INF_def
+proof (rule ccontr)
   assume inf: "infinite {x. P x}"
     and notP: "\<not>(\<exists>x. P x)"
   from notP have "{x. P x} = {}" by simp
@@ -418,7 +413,7 @@ text {*
   These simplify the reasoning about deterministic automata.
 *}
 
-constdefs
+definition
   atmost_one :: "'a set \<Rightarrow> bool"
   "atmost_one S \<equiv> \<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x=y"
 

@@ -24,13 +24,11 @@ abbreviation (xsymbols)
   square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999)
   "x\<twosuperior> == x^2"
 
-abbreviation (latex output)
-  square1  ("(_\<twosuperior>)" [1000] 999)
-  "square1 x == x^2"
+const_syntax (latex output)
+  square  ("(_\<twosuperior>)" [1000] 999)
 
-abbreviation (HTML output)
-  square2  ("(_\<twosuperior>)" [1000] 999)
-  "square2 x == x^2"
+const_syntax (HTML output)
+  square  ("(_\<twosuperior>)" [1000] 999)
 
 
 subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}

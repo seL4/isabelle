@@ -113,13 +113,11 @@ abbreviation
   Times :: "['a set, 'b set] => ('a * 'b) set"  (infixr "<*>" 80)
   "A <*> B == Sigma A (%_. B)"
 
-abbreviation (xsymbols)
-  Times1  (infixr "\<times>" 80)
-  "Times1 == Times"
+const_syntax (xsymbols)
+  Times  (infixr "\<times>" 80)
 
-abbreviation (HTML output)
-  Times2  (infixr "\<times>" 80)
-  "Times2 == Times"
+const_syntax (HTML output)
+  Times  (infixr "\<times>" 80)
 
 
 subsubsection {* Concrete syntax *}

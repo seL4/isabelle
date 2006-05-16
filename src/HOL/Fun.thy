@@ -48,16 +48,14 @@ constdefs
   comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
   "f o g == %x. f(g(x))"
 
+const_syntax (xsymbols)
+  comp  (infixl "\<circ>" 55)
+
+const_syntax (HTML output)
+  comp  (infixl "\<circ>" 55)
+
 text{*compatibility*}
 lemmas o_def = comp_def
-
-abbreviation (xsymbols)
-  comp1  (infixl "\<circ>" 55)
-  "comp1 == comp"
-
-abbreviation (HTML output)
-  comp2  (infixl "\<circ>" 55)
-  "comp2 == comp"
 
 constdefs
   inj_on :: "['a => 'b, 'a set] => bool"         (*injective*)

@@ -62,11 +62,9 @@ abbreviation
   beta_reds :: "[dB, dB] => bool"  (infixl "->>" 50)
   "s ->> t == (s, t) \<in> beta^*"
 
-abbreviation (latex)
-  beta_red1 :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
-  "op \<rightarrow>\<^sub>\<beta> == op ->"
-  beta_reds1 :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
-  "op \<rightarrow>\<^sub>\<beta>\<^sup>* == op ->>"
+const_syntax (latex)
+  beta_red  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+  beta_reds  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
 
 inductive beta
   intros
@@ -100,9 +98,7 @@ lemma rtrancl_beta_AppR:
 
 lemma rtrancl_beta_App [intro]:
     "[| s \<rightarrow>\<^sub>\<beta>\<^sup>* s'; t \<rightarrow>\<^sub>\<beta>\<^sup>* t' |] ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'"
-  apply (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR
-    intro: rtrancl_trans)
-  done
+  by (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR intro: rtrancl_trans)
 
 
 subsection {* Substitution-lemmas *}

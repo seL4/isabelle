@@ -17,21 +17,23 @@ subsection {* Order signatures and orders *}
 axclass
   ord < type
 
-syntax
-  "less"        :: "['a::ord, 'a] => bool"             ("op <")
-  "less_eq"     :: "['a::ord, 'a] => bool"             ("op <=")
-
 consts
-  "less"        :: "['a::ord, 'a] => bool"             ("(_/ < _)"  [50, 51] 50)
-  "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ <= _)" [50, 51] 50)
+  less  :: "['a::ord, 'a] => bool"
+  less_eq  :: "['a::ord, 'a] => bool"
 
-syntax (xsymbols)
-  "less_eq"     :: "['a::ord, 'a] => bool"             ("op \<le>")
-  "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
+const_syntax
+  less  ("op <")
+  less  ("(_/ < _)"  [50, 51] 50)
+  less_eq  ("op <=")
+  less_eq  ("(_/ <= _)" [50, 51] 50)
 
-syntax (HTML output)
-  "less_eq"     :: "['a::ord, 'a] => bool"             ("op \<le>")
-  "less_eq"     :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
+const_syntax (xsymbols)
+  less_eq  ("op \<le>")
+  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
+
+const_syntax (HTML output)
+  less_eq  ("op \<le>")
+  less_eq  ("(_/ \<le> _)"  [50, 51] 50)
 
 abbreviation (input)
   greater  (infixl ">" 50)
@@ -39,13 +41,8 @@ abbreviation (input)
   greater_eq  (infixl ">=" 50)
   "x >= y == y <= x"
 
-abbreviation (xsymbols)
-  greater_eq1  (infixl "\<ge>" 50)
-  "x \<ge> y == x >= y"
-
-abbreviation (HTML output)
-  greater_eq2  (infixl "\<ge>" 50)
-  "greater_eq2 == greater_eq"
+const_syntax (xsymbols)
+  greater_eq  (infixl "\<ge>" 50)
 
 
 subsection {* Monotonicity *}

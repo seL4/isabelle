@@ -23,9 +23,8 @@ abbreviation
   funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr "->" 60)
   "A -> B == Pi A (%_. B)"
 
-abbreviation (xsymbols)
-  funcset1  (infixr "\<rightarrow>" 60)
-  "funcset1 == funcset"
+const_syntax (xsymbols)
+  funcset  (infixr "\<rightarrow>" 60)
 
 syntax
   "@Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)

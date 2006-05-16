@@ -34,11 +34,11 @@ consts
   Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
   Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
   image         :: "('a => 'b) => 'a set => 'b set"      (infixr "`" 90)
+  "op :"        :: "'a => 'a set => bool"                -- "membership"
 
-syntax
-  "op :"        :: "'a => 'a set => bool"                ("op :")
-consts
-  "op :"        :: "'a => 'a set => bool"                ("(_/ : _)" [50, 51] 50)  -- "membership"
+const_syntax
+  "op :"  ("op :")
+  "op :"  ("(_/ : _)" [50, 51] 50)
 
 local
 
@@ -51,10 +51,62 @@ abbreviation
   range :: "('a => 'b) => 'b set"             -- "of function"
   "range f == f ` UNIV"
 
-syntax
-  "op ~:"       :: "'a => 'a set => bool"                 ("op ~:")  -- "non-membership"
-  "op ~:"       :: "'a => 'a set => bool"                 ("(_/ ~: _)" [50, 51] 50)
+abbreviation
+  "not_mem x A == ~ (x : A)"                  -- "non-membership"
 
+const_syntax
+  not_mem  ("op ~:")
+  not_mem  ("(_/ ~: _)" [50, 51] 50)
+
+const_syntax (xsymbols)
+  "op Int"  (infixl "\<inter>" 70)
+  "op Un"  (infixl "\<union>" 65)
+  "op :"  ("op \<in>")
+  "op :"  ("(_/ \<in> _)" [50, 51] 50)
+  not_mem  ("op \<notin>")
+  not_mem  ("(_/ \<notin> _)" [50, 51] 50)
+  Union  ("\<Union>_" [90] 90)
+  Inter  ("\<Inter>_" [90] 90)
+
+const_syntax (HTML output)
+  "op Int"  (infixl "\<inter>" 70)
+  "op Un"  (infixl "\<union>" 65)
+  "op :"  ("op \<in>")
+  "op :"  ("(_/ \<in> _)" [50, 51] 50)
+  not_mem  ("op \<notin>")
+  not_mem  ("(_/ \<notin> _)" [50, 51] 50)
+
+abbreviation
+  subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  "subset == less"
+  subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  "subset_eq == less_eq"
+
+const_syntax (output)
+  subset  ("op <")
+  subset  ("(_/ < _)" [50, 51] 50)
+  subset_eq  ("op <=")
+  subset_eq  ("(_/ <= _)" [50, 51] 50)
+
+const_syntax (xsymbols)
+  subset  ("op \<subset>")
+  subset  ("(_/ \<subset> _)" [50, 51] 50)
+  subset_eq  ("op \<subseteq>")
+  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
+
+const_syntax (HTML output)
+  subset  ("op \<subset>")
+  subset  ("(_/ \<subset> _)" [50, 51] 50)
+  subset_eq  ("op \<subseteq>")
+  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
+
+abbreviation (input)
+  supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"    (infixl "\<supset>" 50)
+  "supset == greater"
+  supset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "\<supseteq>" 50)
+  "supset_eq == greater_eq"
+
+syntax
   "@Finset"     :: "args => 'a set"                       ("{(_)}")
   "@Coll"       :: "pttrn => bool => 'a set"              ("(1{_./ _})")
   "@SetCompr"   :: "'a => idts => bool => 'a set"         ("(1{_ |/_./ _})")
@@ -63,18 +115,15 @@ syntax
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" 10)
   "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" 10)
   "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" 10)
-
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3EX _:_./ _)" [0, 0, 10] 10)
   "_Bleast"       :: "id => 'a set => bool => 'a"      ("(3LEAST _:_./ _)" [0, 0, 10] 10)
-
 
 syntax (HOL)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3! _:_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3? _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
   "{x. P}"      == "Collect (%x. P)"
@@ -91,41 +140,12 @@ translations
   "EX x:A. P"   == "Bex A (%x. P)"
   "LEAST x:A. P" => "LEAST x. x:A & P"
 
-
-syntax (output)
-  "_setle"      :: "'a set => 'a set => bool"             ("op <=")
-  "_setle"      :: "'a set => 'a set => bool"             ("(_/ <= _)" [50, 51] 50)
-  "_setless"    :: "'a set => 'a set => bool"             ("op <")
-  "_setless"    :: "'a set => 'a set => bool"             ("(_/ < _)" [50, 51] 50)
-
 syntax (xsymbols)
-  "_setle"      :: "'a set => 'a set => bool"             ("op \<subseteq>")
-  "_setle"      :: "'a set => 'a set => bool"             ("(_/ \<subseteq> _)" [50, 51] 50)
-  "_setless"    :: "'a set => 'a set => bool"             ("op \<subset>")
-  "_setless"    :: "'a set => 'a set => bool"             ("(_/ \<subset> _)" [50, 51] 50)
-  "op Int"      :: "'a set => 'a set => 'a set"           (infixl "\<inter>" 70)
-  "op Un"       :: "'a set => 'a set => 'a set"           (infixl "\<union>" 65)
-  "op :"        :: "'a => 'a set => bool"                 ("op \<in>")
-  "op :"        :: "'a => 'a set => bool"                 ("(_/ \<in> _)" [50, 51] 50)
-  "op ~:"       :: "'a => 'a set => bool"                 ("op \<notin>")
-  "op ~:"       :: "'a => 'a set => bool"                 ("(_/ \<notin> _)" [50, 51] 50)
-  Union         :: "'a set set => 'a set"                 ("\<Union>_" [90] 90)
-  Inter         :: "'a set set => 'a set"                 ("\<Inter>_" [90] 90)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
   "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST_\<in>_./ _)" [0, 0, 10] 10)
 
 syntax (HTML output)
-  "_setle"      :: "'a set => 'a set => bool"             ("op \<subseteq>")
-  "_setle"      :: "'a set => 'a set => bool"             ("(_/ \<subseteq> _)" [50, 51] 50)
-  "_setless"    :: "'a set => 'a set => bool"             ("op \<subset>")
-  "_setless"    :: "'a set => 'a set => bool"             ("(_/ \<subset> _)" [50, 51] 50)
-  "op Int"      :: "'a set => 'a set => 'a set"           (infixl "\<inter>" 70)
-  "op Un"       :: "'a set => 'a set => 'a set"           (infixl "\<union>" 65)
-  "op :"        :: "'a => 'a set => bool"                 ("op \<in>")
-  "op :"        :: "'a => 'a set => bool"                 ("(_/ \<in> _)" [50, 51] 50)
-  "op ~:"       :: "'a => 'a set => bool"                 ("op \<notin>")
-  "op ~:"       :: "'a => 'a set => bool"                 ("(_/ \<notin> _)" [50, 51] 50)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
 
@@ -135,47 +155,25 @@ syntax (xsymbols)
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" 10)
   "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" 10)
   "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" 10)
-(*
-syntax (xsymbols)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" 10)
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" 10)
-*)
+
 syntax (latex output)
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" 10)
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" 10)
   "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" 10)
   "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" 10)
 
-text{* Note the difference between ordinary xsymbol syntax of indexed
-unions and intersections (e.g.\ @{text"\<Union>a\<^isub>1\<in>A\<^isub>1. B"})
-and their \LaTeX\ rendition: @{term"\<Union>a\<^isub>1\<in>A\<^isub>1. B"}. The
-former does not make the index expression a subscript of the
-union/intersection symbol because this leads to problems with nested
-subscripts in Proof General.  *}
-
-
-translations
-  "op \<subseteq>" => "op <= :: _ set => _ set => bool"
-  "op \<subset>" => "op <  :: _ set => _ set => bool"
-
-typed_print_translation {*
-  let
-    fun le_tr' _ (Type ("fun", (Type ("set", _) :: _))) ts =
-          list_comb (Syntax.const "_setle", ts)
-      | le_tr' _ _ _ = raise Match;
-
-    fun less_tr' _ (Type ("fun", (Type ("set", _) :: _))) ts =
-          list_comb (Syntax.const "_setless", ts)
-      | less_tr' _ _ _ = raise Match;
-  in [("less_eq", le_tr'), ("less", less_tr')] end
-*}
+text{*
+  Note the difference between ordinary xsymbol syntax of indexed
+  unions and intersections (e.g.\ @{text"\<Union>a\<^isub>1\<in>A\<^isub>1. B"})
+  and their \LaTeX\ rendition: @{term"\<Union>a\<^isub>1\<in>A\<^isub>1. B"}. The
+  former does not make the index expression a subscript of the
+  union/intersection symbol because this leads to problems with nested
+  subscripts in Proof General. *}
 
 
 subsubsection "Bounded quantifiers"
 
-syntax
+syntax (output)
   "_setlessAll" :: "[idt, 'a, bool] => bool"  ("(3ALL _<_./ _)"  [0, 0, 10] 10)
   "_setlessEx"  :: "[idt, 'a, bool] => bool"  ("(3EX _<_./ _)"  [0, 0, 10] 10)
   "_setleAll"   :: "[idt, 'a, bool] => bool"  ("(3ALL _<=_./ _)" [0, 0, 10] 10)
@@ -187,7 +185,7 @@ syntax (xsymbols)
   "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
 
-syntax (HOL)
+syntax (HOL output)
   "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3! _<_./ _)"  [0, 0, 10] 10)
   "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
   "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)

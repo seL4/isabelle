@@ -52,14 +52,45 @@ local
 consts
   If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" 10)
 
+
 subsubsection {* Additional concrete syntax *}
+
+const_syntax (output)
+  "op ="  (infix "=" 50)
+
+abbreviation
+  not_equal     :: "['a, 'a] => bool"               (infixl "~=" 50)
+  "x ~= y == ~ (x = y)"
+
+const_syntax (output)
+  not_equal  (infix "~=" 50)
+
+const_syntax (xsymbols)
+  Not  ("\<not> _" [40] 40)
+  "op &"  (infixr "\<and>" 35)
+  "op |"  (infixr "\<or>" 30)
+  "op -->"  (infixr "\<longrightarrow>" 25)
+  not_equal  (infix "\<noteq>" 50)
+
+const_syntax (HTML output)
+  Not  ("\<not> _" [40] 40)
+  "op &"  (infixr "\<and>" 35)
+  "op |"  (infixr "\<or>" 30)
+  not_equal  (infix "\<noteq>" 50)
+
+abbreviation (iff)
+  iff :: "[bool, bool] => bool"  (infixr "<->" 25)
+  "A <-> B == A = B"
+
+const_syntax (xsymbols)
+  iff  (infixr "\<longleftrightarrow>" 25)
+
 
 nonterminals
   letbinds  letbind
   case_syn  cases_syn
 
 syntax
-  "_not_equal"  :: "['a, 'a] => bool"                    (infixl "~=" 50)
   "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)
 
   "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
@@ -73,7 +104,6 @@ syntax
   "_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
 
 translations
-  "x ~= y"                == "~ (x = y)"
   "THE x. P"              == "The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
@@ -85,31 +115,14 @@ print_translation {*
      in Syntax.const "_The" $ x $ t end)]
 *}
 
-syntax (output)
-  "="           :: "['a, 'a] => bool"                    (infix 50)
-  "_not_equal"  :: "['a, 'a] => bool"                    (infix "~=" 50)
-
 syntax (xsymbols)
-  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
-  "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
-  "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
-  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
   "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 (*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \<orelse> _")*)
 
-syntax (xsymbols output)
-  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
-
 syntax (HTML output)
-  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
-  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
-  "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
-  "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
-  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
   "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
@@ -118,14 +131,6 @@ syntax (HOL)
   "ALL "        :: "[idts, bool] => bool"                ("(3! _./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3? _./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3?! _./ _)" [0, 10] 10)
-
-abbreviation (iff)
-  iff :: "[bool, bool] => bool"  (infixr "<->" 25)
-  "A <-> B == A = B"
-
-abbreviation (xsymbols)
-  iff1  (infixr "\<longleftrightarrow>" 25)
-  "A \<longleftrightarrow> B == A <-> B"
 
 
 subsubsection {* Axioms and basic definitions *}
@@ -180,6 +185,7 @@ finalconsts
   "op -->"
   The
   arbitrary
+
 
 subsubsection {* Generic algebraic operations *}
 

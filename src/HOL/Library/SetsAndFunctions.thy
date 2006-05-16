@@ -58,7 +58,7 @@ constdefs
   elt_set_times :: "'a::times => 'a set => 'a set"  (infixl "*o" 80)
   "a *o B == {c. EX b:B. c = a * b}"
 
-abbreviation (inout)
+abbreviation (input)
   elt_set_eq :: "'a => 'a set => bool"      (infix "=o" 50)
   "x =o A == x : A"
 

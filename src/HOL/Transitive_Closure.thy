@@ -36,20 +36,19 @@ inductive "r^+"
     r_into_trancl [intro, Pure.intro]: "(a, b) : r ==> (a, b) : r^+"
     trancl_into_trancl [Pure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a,c) : r^+"
 
-syntax
-  "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^=)" [1000] 999)
-translations
-  "r^=" == "r \<union> Id"
+abbreviation
+  reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^=)" [1000] 999)
+  "r^= == r \<union> Id"
 
-syntax (xsymbols)
-  rtrancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>*)" [1000] 999)
-  trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>+)" [1000] 999)
-  "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>=)" [1000] 999)
+const_syntax (xsymbols)
+  rtrancl  ("(_\<^sup>*)" [1000] 999)
+  trancl  ("(_\<^sup>+)" [1000] 999)
+  reflcl  ("(_\<^sup>=)" [1000] 999)
 
-syntax (HTML output)
-  rtrancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>*)" [1000] 999)
-  trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>+)" [1000] 999)
-  "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>=)" [1000] 999)
+const_syntax (HTML output)
+  rtrancl  ("(_\<^sup>*)" [1000] 999)
+  trancl  ("(_\<^sup>+)" [1000] 999)
+  reflcl  ("(_\<^sup>=)" [1000] 999)
 
 
 subsection {* Reflexive-transitive closure *}

@@ -15,13 +15,11 @@ definition
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_<_:_>" [90, 0, 0] 91)
   "e<i:a> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
 
-abbreviation (xsymbols)
-  shift1  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
-  "e\<langle>i:a\<rangle> == e<i:a>"
+const_syntax (xsymbols)
+  shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 
-abbreviation (HTML output)
-  shift2  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
-  "shift2 == shift"
+const_syntax (HTML output)
+  shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 
 lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
   by (simp add: shift_def)
@@ -62,16 +60,12 @@ abbreviation
     ("_ ||- _ : _" [50, 50, 50] 50)
   "env ||- ts : Ts == typings env ts Ts"
 
-abbreviation (xsymbols)
-  typing_rel1 :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
-  "env \<turnstile> t : T == env |- t : T"
+const_syntax (xsymbols)
+  typing_rel  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 
-abbreviation (latex)
-  funs2 :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "\<Rrightarrow>" 200)
-  "op \<Rrightarrow> == op =>>"
-  typings_rel2 :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
-    ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
-  "env \<tturnstile> ts : Ts == env ||- ts : Ts"
+const_syntax (latex)
+  funs  (infixr "\<Rrightarrow>" 200)
+  typings_rel  ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
 
 inductive typing
   intros

@@ -12,13 +12,14 @@ begin
 
 subsection {* Definitions *}
 
-constdefs
+definition
   converse :: "('a * 'b) set => ('b * 'a) set"    ("(_^-1)" [1000] 999)
   "r^-1 == {(y, x). (x, y) : r}"
-syntax (xsymbols)
-  converse :: "('a * 'b) set => ('b * 'a) set"    ("(_\<inverse>)" [1000] 999)
 
-constdefs
+const_syntax (xsymbols)
+  converse  ("(_\<inverse>)" [1000] 999)
+
+definition
   rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 60)
   "r O s == {(x,z). EX y. (x, y) : s & (y, z) : r}"
 

@@ -228,9 +228,8 @@ abbreviation
   par_eta_red :: "[dB, dB] => bool"   (infixl "=e>" 50)
   "s =e> t == (s, t) \<in> par_eta"
 
-abbreviation (xsymbols)
-  par_eta_red1 :: "[dB, dB] => bool"   (infixl "\<Rightarrow>\<^sub>\<eta>" 50)
-  "op \<Rightarrow>\<^sub>\<eta> == op =e>"
+const_syntax (xsymbols)
+  par_eta_red  (infixl "\<Rightarrow>\<^sub>\<eta>" 50)
 
 inductive par_eta
 intros
@@ -300,7 +299,8 @@ theorem eta_expand_beta:
   assumes u: "u => u'"
   shows "t => t' \<Longrightarrow> eta_expand k (Abs t) \<degree> u => t'[u'/0]"
 proof (induct k fixing: t t')
-  case 0 with u show ?case by simp
+  case 0
+  with u show ?case by simp
 next
   case (Suc k)
   hence "Abs (lift t (Suc 0)) \<degree> Var 0 => lift t' (Suc 0)[Var 0/0]"
@@ -387,7 +387,7 @@ qed
 subsection {* Eta-postponement theorem *}
 
 text {*
-Based on a proof by Masako Takahashi \cite{Takahashi-IandC}.
+  Based on a proof by Masako Takahashi \cite{Takahashi-IandC}.
 *}
 
 theorem par_eta_beta: "s \<Rightarrow>\<^sub>\<eta> t \<Longrightarrow> t => u \<Longrightarrow> \<exists>t'. s => t' \<and> t' \<Rightarrow>\<^sub>\<eta> u"
@@ -428,7 +428,7 @@ proof (induct t fixing: s u taking: "size :: dB \<Rightarrow> nat" rule: measure
       and qq: "q \<Rightarrow>\<^sub>\<eta> q'" and rr: "r \<Rightarrow>\<^sub>\<eta> r'"
       by (blast dest: par_eta_elim_app par_eta_elim_abs)
     from beta have "size q' < size t" and "size r' < size t" by simp_all
-    with beta(2,3) qq rr obtain t' t'' where "q => t'" and
+    with beta(2-3) qq rr obtain t' t'' where "q => t'" and
       "t' \<Rightarrow>\<^sub>\<eta> q''" and "r => t''" and "t'' \<Rightarrow>\<^sub>\<eta> r''"
       by (blast dest: less(1))
     with s beta show ?thesis

@@ -365,9 +365,8 @@ abbreviation
   rtyping_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |-\<^sub>R _ : _" [50, 50, 50] 50)
   "e |-\<^sub>R t : T == (e, t, T) \<in> rtyping"
 
-abbreviation (xsymbols)
-  rtyping_rel1 :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
-  "e \<turnstile>\<^sub>R t : T == e |-\<^sub>R t : T"
+const_syntax (xsymbols)
+  rtyping_rel  ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
 
 inductive rtyping
   intros

@@ -15,13 +15,19 @@ begin
 types ('a,'b) "~=>" = "'a => 'b option" (infixr 0)
 translations (type) "a ~=> b " <= (type) "a => b option"
 
+syntax (xsymbols)
+  "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
+
 abbreviation
   empty     ::  "'a ~=> 'b"
   "empty == %x. None"
 
-constdefs
+definition
   map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "o'_m" 55)
   "f o_m g  == (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
+
+const_syntax (xsymbols)
+  map_comp  (infixl "\<circ>\<^sub>m" 55)
 
 consts
 map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)" (infixl "++" 100)
@@ -31,6 +37,9 @@ ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
 map_upds:: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
 map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
+
+const_syntax (latex output)
+  restrict_map  ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
 
 nonterminals
   maplets maplet
@@ -44,16 +53,8 @@ syntax
   "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
 
 syntax (xsymbols)
-  "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
-
-  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)" (infixl "\<circ>\<^sub>m" 55)
-
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[\<mapsto>]/ _")
-
-syntax (latex output)
-  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
-  --"requires amssymb!"
 
 translations
   "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
