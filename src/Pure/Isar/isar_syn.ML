@@ -218,8 +218,14 @@ val abbreviationP =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
     (P.opt_locale_target -- opt_mode --
       Scan.repeat1 (Scan.option constdecl -- P.prop)
-    >> (fn ((loc, revert), args) =>
-         Toplevel.local_theory loc (Specification.abbreviation revert args)));
+    >> (fn ((loc, mode), args) =>
+        Toplevel.local_theory loc (Specification.abbreviation mode args)));
+
+val const_syntaxP =
+  OuterSyntax.command "const_syntax" "constant syntax" K.thy_decl
+    (P.opt_locale_target -- opt_mode -- Scan.repeat1 (P.xname -- P.mixfix)
+    >> (fn ((loc, mode), args) =>
+        Toplevel.local_theory loc (Specification.const_syntax mode args)));
 
 
 (* constant specifications *)
@@ -890,11 +896,12 @@ val _ = OuterSyntax.add_parsers [
   classesP, classrelP, defaultsortP, axclassP, typedeclP, typeabbrP,
   nontermP, aritiesP, judgmentP, constsP, finalconstsP, syntaxP,
   no_syntaxP, translationsP, no_translationsP, axiomsP, defsP,
-  constdefsP, definitionP, abbreviationP, axiomatizationP, theoremsP,
-  lemmasP, declareP, globalP, localP, hideP, useP, mlP, ml_commandP,
-  ml_setupP, setupP, method_setupP, parse_ast_translationP,
-  parse_translationP, print_translationP, typed_print_translationP,
-  print_ast_translationP, token_translationP, oracleP, localeP,
+  constdefsP, definitionP, abbreviationP, const_syntaxP,
+  axiomatizationP, theoremsP, lemmasP, declareP, globalP, localP,
+  hideP, useP, mlP, ml_commandP, ml_setupP, setupP, method_setupP,
+  parse_ast_translationP, parse_translationP, print_translationP,
+  typed_print_translationP, print_ast_translationP,
+  token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
