@@ -148,20 +148,18 @@ introduction rule (default "that").
 explicit (is "_ ==> ?foo") in the rare cases where this still happens
 to occur.
 
-* Isar/locales: new derived specification elements 'definition',
-'abbreviation', 'axiomatization', which support type-inference, admit
+* Isar/locales: new derived specification elements 'axiomatization',
+'definition', 'abbreviation', which support type-inference, admit
 object-level specifications (equality, equivalence).  See also the
 isar-ref manual.  Examples:
-
-  definition
-    "f x y = x + y + 1"
-    "g x = f x x"
-
-  thm f_def g_def
 
   axiomatization
     eq  (infix "===" 50)
     where eq_refl: "x === x" and eq_subst: "x === y ==> P x ==> P y"
+
+  definition
+    "f x y = x + y + 1"
+    "g x = f x x"
 
   abbreviation
     neq  (infix "=!=" 50)
@@ -179,6 +177,11 @@ Presently, abbreviations are only available 'in' a target locale, but
 not inherited by general import expressions.  Also note that
 'abbreviation' may be used as a type-safe replacement for 'syntax' +
 'translations' in common applications.
+
+* Isar/locales: 'const_syntax' provides a robust interface to the
+'syntax' primitive that also works in a locale context.  Type
+declaration and internal syntactic representation of given constants
+retrieved from the context.
 
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
