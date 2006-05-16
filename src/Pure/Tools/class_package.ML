@@ -70,15 +70,6 @@ datatype class_data = ClassData of {
 };
 
 fun rep_classdata (ClassData c) = c;
-fun eq_classdata (ClassData {
-  name_locale = name_locale1, name_axclass = name_axclass1, intro = intro1,
-    var = var1, consts = consts1}, ClassData {
-  name_locale = name_locale2, name_axclass = name_axclass2, intro = intro2,
-    var = var2, consts = consts2}) =
-  name_locale1 = name_locale2 andalso name_axclass1 = name_axclass2
-  andalso eq_opt eq_thm (intro1, intro2) andalso var1 = var2
-  andalso eq_list (eq_pair (op =) (eq_pair (op =) (Type.eq_type Vartab.empty)))
-    (consts1, consts2);
 
 structure ClassData = TheoryDataFun (
   struct
@@ -91,7 +82,7 @@ structure ClassData = TheoryDataFun (
     val copy = I;
     val extend = I;
     fun merge _ (((g1, c1), f1) : T, ((g2, c2), f2)) =
-      ((Graph.merge eq_classdata (g1, g2), Symtab.join (fn _ => AList.merge (op =) (op =)) (c1, c2)),
+      ((Graph.merge (K true) (g1, g2), Symtab.join (fn _ => AList.merge (op =) (op =)) (c1, c2)),
        Symtab.merge (op =) (f1, f2));
     fun print thy ((gr, _), _) =
       let
