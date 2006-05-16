@@ -204,6 +204,8 @@ class PathCalculator:
 
         if loc.startswith("//"):
             return path.join(self._dstRoot, loc[2:])
+        elif loc.startswith("http:") or loc.startswith("https:"):
+            return loc
         else:
             return path.join(self._dstRoot, self._relLoc, loc)
 
@@ -216,10 +218,13 @@ class PathCalculator:
 
     def relDstPathOf(self, loc):
 
-        loc = self.absDstPathOf(loc)
-        loc = self.stripCommonPrefix(loc, self._dstRoot)
-        loc = posixpath.join(self._relRoot, loc)
-        return loc
+        if loc.startswith("http:") or loc.startswith("https:"):
+            return loc
+        else:
+            loc = self.absDstPathOf(loc)
+            loc = self.stripCommonPrefix(loc, self._dstRoot)
+            loc = posixpath.join(self._relRoot, loc)
+            return loc
 
     def relLocOfThis(self):
 
