@@ -24,6 +24,8 @@ sig
   val restore_naming: local_theory -> local_theory
   val naming: local_theory -> local_theory
   val mapping: xstring option -> (local_theory -> local_theory) -> theory -> local_theory * theory
+  val syntax: string * bool -> (string * mixfix) list -> local_theory -> local_theory
+  val abbrevs: string * bool -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
   val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
   val consts_restricted: (string * typ -> bool) ->
     ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
@@ -41,7 +43,6 @@ sig
   val def_finish: (local_theory -> term -> thm -> thm) ->
     (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
-  val abbrev: string * bool -> (bstring * mixfix) * term -> local_theory -> local_theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -164,6 +165,22 @@ fun mapping loc f =
 
 (** local theory **)
 
+(* term syntax *)
+
+fun term_syntax add_thy add_ctxt prmode args ctxt = ctxt |>
+  (case locale_of ctxt of
+    NONE => theory (add_thy prmode args)
+  | SOME (loc, _) =>
+      locale (Locale.add_term_syntax loc (add_ctxt prmode args)) #>
+      add_ctxt prmode args);
+
+val syntax = term_syntax Sign.add_const_syntax ProofContext.add_const_syntax;
+
+fun abbrevs prmode args =
+  term_syntax Sign.add_abbrevs ProofContext.add_abbrevs
+    prmode (map (fn ((x, mx), rhs) => (x, rhs, mx)) args);
+
+
 (* consts *)
 
 fun consts_restricted pred decls ctxt =
@@ -172,18 +189,16 @@ fun consts_restricted pred decls ctxt =
     val params = filter pred (params_of ctxt);
     val ps = map Free params;
     val Ps = map #2 params;
-    val abbrevs = decls |> map (fn ((c, T), mx) =>
-      let val t = Term.list_comb (Const (Sign.full_name thy c, Ps ---> T), ps)
-      in (c, t, mx) end);
+    val abbrs = decls |> map (fn ((c, T), mx) =>
+      ((c, mx), Term.list_comb (Const (Sign.full_name thy c, Ps ---> T), ps)));
   in
     ctxt |>
     (case locale_of ctxt of
-      NONE => theory (Sign.add_consts_i (map (fn ((c, T), mx) => (c, T, mx)) decls))
+      NONE => theory (Sign.add_consts_authentic (map (fn ((c, T), mx) => (c, T, mx)) decls))
     | SOME (loc, _) =>
         theory (Sign.add_consts_i (map (fn ((c, T), _) => (c, Ps ---> T, NoSyn)) decls)) #>
-        locale (Locale.add_abbrevs loc Syntax.default_mode abbrevs) #>
-        ProofContext.add_abbrevs_i Syntax.default_mode abbrevs)
-    |> pair (map #2 abbrevs)
+        abbrevs Syntax.default_mode abbrs)
+    |> pair (map #2 abbrs)
   end;
 
 val consts = consts_restricted (K true);
@@ -276,19 +291,5 @@ fun def_finish finish (var, spec) ctxt =
 val def = def_finish (K (K I));
 
 end;
-
-
-(* constant abbreviations *)
-
-fun abbrev prmode ((x, mx), rhs) ctxt =
-  let val abbrevs = [(x, rhs, mx)] in
-    ctxt |>
-    (case locale_of ctxt of
-      NONE =>
-        theory (Sign.add_abbrevs_i prmode abbrevs)
-    | SOME (loc, _) =>
-        locale (Locale.add_abbrevs loc prmode abbrevs) #>
-        ProofContext.add_abbrevs_i prmode abbrevs)
-  end;
 
 end;
