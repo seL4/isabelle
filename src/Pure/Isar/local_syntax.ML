@@ -14,9 +14,10 @@ sig
   val structs_of: T -> string list
   val init: theory -> T
   val rebuild: theory -> T -> T
+  val add_syntax: theory -> (bool * (string * typ * mixfix)) list -> T -> T
   val set_mode: string * bool -> T -> T
   val restore_mode: T -> T -> T
-  val add_syntax: theory -> (bool * (string * typ * mixfix)) list -> T -> T
+  val add_modesyntax: theory -> string * bool -> (bool * (string * typ * mixfix)) list -> T -> T
   val extern_term: T -> term -> term
 end;
 
@@ -73,14 +74,6 @@ fun rebuild thy (syntax as Syntax {mode, mixfixes, idents, ...}) =
   else build_syntax thy mode mixfixes idents;
 
 
-(* syntax mode *)
-
-fun set_mode mode = map_syntax (fn (thy_syntax, local_syntax, _, mixfixes, idents) =>
-  (thy_syntax, local_syntax, mode, mixfixes, idents));
-
-fun restore_mode (Syntax {mode, ...}) = set_mode mode;
-
-
 (* mixfix declarations *)
 
 local
@@ -118,6 +111,17 @@ fun add_syntax thy raw_decls (syntax as (Syntax {mode, mixfixes, idents = (struc
       in build_syntax thy mode mixfixes' (structs', fixes') end);
 
 end;
+
+
+(* syntax mode *)
+
+fun set_mode mode = map_syntax (fn (thy_syntax, local_syntax, _, mixfixes, idents) =>
+  (thy_syntax, local_syntax, mode, mixfixes, idents));
+
+fun restore_mode (Syntax {mode, ...}) = set_mode mode;
+
+fun add_modesyntax thy mode args syntax =
+  syntax |> set_mode mode |> add_syntax thy args |> restore_mode syntax;
 
 
 (* extern_term *)
