@@ -14,6 +14,7 @@ sig
   val theory_of: context -> theory
   val init: theory -> context
   val full_name: context -> bstring -> string
+  val consts_of: context -> Consts.T
   val set_body: bool -> context -> context
   val restore_body: context -> context -> context
   val set_syntax_mode: string * bool -> context -> context
@@ -155,8 +156,8 @@ sig
   val apply_case: RuleCases.T -> context -> (string * term list) list * context
   val get_case: context -> string -> string option list -> RuleCases.T
   val expand_abbrevs: bool -> context -> context
-  val add_abbrevs: string * bool -> (bstring * string * mixfix) list -> context -> context
-  val add_abbrevs_i: string * bool -> (bstring * term * mixfix) list -> context -> context
+  val add_const_syntax: string * bool -> (string * mixfix) list -> context -> context
+  val add_abbrevs: string * bool -> (bstring * term * mixfix) list -> context -> context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -1108,17 +1109,23 @@ val cert_vars_legacy = prep_vars cert_typ true true;
 end;
 
 
+(* const syntax *)
+
+fun add_const_syntax prmode args ctxt =
+  ctxt |> map_syntax
+    (LocalSyntax.add_modesyntax (theory_of ctxt) prmode
+      (map (pair false o Consts.syntax (consts_of ctxt)) args));
+
+
 (* abbreviations *)
 
 val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
 
-local
-
-fun gen_abbrevs prep_vars prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
+fun add_abbrevs prmode = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
   let
-    val ([(c, _, mx)], _) = prep_vars [(raw_c, NONE, raw_mx)] ctxt;
+    val ([(c, _, mx)], _) = cert_vars [(raw_c, NONE, raw_mx)] ctxt;
     val (c', b) = Syntax.mixfix_const (full_name ctxt c) mx;
-    val [t] = polymorphic ctxt [prep_term (ctxt |> expand_abbrevs false) raw_t];
+    val [t] = polymorphic ctxt [cert_term (ctxt |> expand_abbrevs false) raw_t];
     val T = Term.fastype_of t;
     val _ =
       if null (hidden_polymorphism t T) then ()
@@ -1127,19 +1134,9 @@ fun gen_abbrevs prep_vars prep_term (mode, inout) = fold (fn (raw_c, raw_t, raw_
     ctxt
     |> declare_term t
     |> map_consts
-      (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode ((c, t), b)))
-    |> map_syntax (fn syntax => syntax
-        |> LocalSyntax.set_mode (mode, inout)
-        |> LocalSyntax.add_syntax (theory_of ctxt) [(false, (c', T, mx))]
-        |> LocalSyntax.restore_mode syntax)
+      (apsnd (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) (#1 prmode) ((c, t), b)))
+    |> map_syntax (LocalSyntax.add_modesyntax (theory_of ctxt) prmode [(false, (c', T, mx))])
   end);
-
-in
-
-val add_abbrevs = gen_abbrevs read_vars read_term;
-val add_abbrevs_i = gen_abbrevs cert_vars cert_term;
-
-end;
 
 
 (* fixes *)
