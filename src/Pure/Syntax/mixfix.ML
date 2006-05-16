@@ -30,7 +30,6 @@ sig
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
   val const_mixfix: string -> mixfix -> string * mixfix
-  val mixfix_const: string -> mixfix -> string * bool
   val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
   val mixfix_content: mixfix -> string list list
@@ -129,9 +128,6 @@ fun fix_mixfix c (Infix p) = InfixName (c, p)
   | fix_mixfix _ mx = mx;
 
 fun const_mixfix c mx = (const_name c mx, fix_mixfix c mx);
-
-fun mixfix_const c NoSyn = (c, true)
-  | mixfix_const c _ = (Lexicon.constN ^ c, false);
 
 fun map_mixfix _ NoSyn = NoSyn
   | map_mixfix f (Mixfix (sy, ps, p)) = Mixfix (f sy, ps, p)

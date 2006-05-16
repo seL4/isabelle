@@ -120,7 +120,7 @@ fun extern_early consts c =
 fun syntax consts (c, mx) =
   let
     val ((T, _), early) = the_const consts c handle TYPE (msg, _, _) => error msg;
-    val c' = if early then NameSpace.base c else #1 (Syntax.mixfix_const c mx);
+    val c' = if early then NameSpace.base c else Syntax.constN ^ c;
   in (c', T, mx) end;
 
 

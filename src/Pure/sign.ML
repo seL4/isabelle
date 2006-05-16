@@ -725,7 +725,7 @@ fun gen_add_consts prep_typ early raw_args thy =
     fun prep (raw_c, raw_T, raw_mx) =
       let
         val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-        val (c', b) = if early then (c, true) else Syntax.mixfix_const (full_name thy c) mx;
+        val (c', b) = if early then (c, true) else (Syntax.constN ^ full_name thy c, false);
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote c);
       in (((c, T), b), (c', T, mx)) end;
@@ -754,13 +754,13 @@ fun add_abbrevs (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
       Term.no_dummy_patterns o cert_term_abbrev thy;
 
     val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-    val (c', b) = Syntax.mixfix_const (full_name thy c) mx;
+    val c' = Syntax.constN ^ full_name thy c;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val T = Term.fastype_of t;
   in
     thy
-    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), b))
+    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), false))
     |> map_syn (Syntax.extend_consts [c])
     |> add_modesyntax_i (mode, inout) [(c', T, mx)]
   end);
