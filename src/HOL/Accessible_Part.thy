@@ -76,48 +76,42 @@ theorem wf_acc_iff: "wf r = (\<forall>x. x \<in> acc r)"
   done
 
 
-(* Smaller relations have bigger accessible parts: *)
+text {* Smaller relations have bigger accessible parts: *}
+
 lemma acc_subset:
-  assumes sub:"R1 \<subseteq> R2"
+  assumes sub: "R1 \<subseteq> R2"
   shows "acc R2 \<subseteq> acc R1"
 proof
   fix x assume "x \<in> acc R2"
-  thus "x \<in> acc R1"
-  proof (induct x) -- "acc-induction"
+  then show "x \<in> acc R1"
+  proof (induct x)
     fix x
     assume ih: "\<And>y. (y, x) \<in> R2 \<Longrightarrow> y \<in> acc R1"
-    
     with sub show "x \<in> acc R1"
       by (blast intro:accI)
   qed
 qed
 
 
+text {* This is a generalized induction theorem that works on
+  subsets of the accessible part. *}
 
-(* This is a generalized induction theorem that works on
-    subsets of the accessible part. *)
 lemma acc_subset_induct:
   assumes subset: "D \<subseteq> acc R"
-  assumes dcl: "\<And>x z. \<lbrakk>x \<in> D; (z, x)\<in>R\<rbrakk> \<Longrightarrow> z \<in> D"
-
-  assumes "x \<in> D"
-  assumes istep: "\<And>x. \<lbrakk>x \<in> D; (\<And>z. (z, x)\<in>R \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
-shows "P x"
+    and dcl: "\<And>x z. \<lbrakk>x \<in> D; (z, x)\<in>R\<rbrakk> \<Longrightarrow> z \<in> D"
+    and "x \<in> D"
+    and istep: "\<And>x. \<lbrakk>x \<in> D; (\<And>z. (z, x)\<in>R \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
+  shows "P x"
 proof -
   from `x \<in> D` and subset 
   have "x \<in> acc R" ..
-
-  thus "P x" using `x \<in> D`
+  then show "P x" using `x \<in> D`
   proof (induct x)
     fix x
     assume "x \<in> D"
       and "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<in> D \<Longrightarrow> P y"
-
     with dcl and istep show "P x" by blast
   qed
 qed
-
-
-
 
 end
