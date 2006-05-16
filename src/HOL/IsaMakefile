@@ -156,11 +156,11 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML Library/Zorn.thy			\
-  Real/Lubs.thy Real/rat_arith.ML						\
-  Real/Rational.thy Real/PReal.thy Real/RComplete.thy				\
-  Real/ROOT.ML Real/Real.thy Real/real_arith.ML Real/RealDef.thy		\
-  Real/RealPow.thy Real/document/root.tex					\
-  Real/Float.thy Real/Float.ML                                                  \
+  Real/ContNotDenum.thy Real/Ferrante_Rackoff.thy Real/Float.ML			\
+  Real/Float.thy Real/Lubs.thy Real/PReal.thy Real/RComplete.thy		\
+  Real/ROOT.ML Real/Rational.thy Real/Real.thy Real/RealDef.thy			\
+  Real/RealPow.thy Real/document/root.tex Real/ferrante_rackoff_proof.ML	\
+  Real/ferrante_rackoff.ML Real/rat_arith.ML Real/real_arith.ML			\
   Hyperreal/StarDef.thy Hyperreal/StarClasses.thy				\
   Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy			\
   Hyperreal/Filter.thy Hyperreal/HSeries.thy Hyperreal/transfer.ML		\
@@ -185,7 +185,7 @@ HOL-Complex-ex: HOL-Complex $(LOG)/HOL-Complex-ex.gz
 
 $(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy \
   Complex/ex/ROOT.ML Complex/ex/document/root.tex \
-  Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy \
+  Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy Complex/ex/Ferrante_Rackoff_Ex.thy \
   Complex/ex/NSPrimes.thy Complex/ex/Sqrt.thy Complex/ex/Sqrt_Script.thy
 	@cd Complex; $(ISATOOL) usedir $(OUT)/HOL-Complex ex
 

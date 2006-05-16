@@ -1,4 +1,7 @@
+
+(* $Id$ *)
+
 theory Real
-imports ContNotDenum RealPow
+imports ContNotDenum Ferrante_Rackoff
 begin
 end
