@@ -209,9 +209,6 @@ sig
   val adhoc_freeze_vars: term -> term * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
-  val str_of_sort: sort -> string
-  val str_of_typ: typ -> string
-  val str_of_term: term -> string
 end;
 
 structure Term: TERM =
@@ -1334,37 +1331,6 @@ fun string_of_vname (x, i) =
 
 fun string_of_vname' (x, ~1) = x
   | string_of_vname' xi = string_of_vname xi;
-
-fun str_of_sort [] = "{}"
-  | str_of_sort [c] = c
-  | str_of_sort cs = (enclose "{" "}" o commas) cs
-
-fun str_of_typ (Type ("fun", [ty1, ty2])) =
-      "(" ^ str_of_typ ty1 ^ " => " ^ str_of_typ ty2 ^ ")"
-  | str_of_typ (Type ("dummy", [])) =
-      "_"
-  | str_of_typ (Type (tyco, _)) =
-      tyco
-  | str_of_typ (Type (tyco, tys)) =
-      (enclose "(" ")" o space_implode " ") (tyco :: map str_of_typ tys)
-  | str_of_typ (TFree (v, sort)) =
-      v ^ "::" ^ str_of_sort sort
-  | str_of_typ (TVar (vi, sort)) =
-      string_of_vname vi ^ "::" ^ str_of_sort sort;
-
-val str_of_term =
-  let
-    fun typed (s, ty) = s ^ "::" ^ str_of_typ ty;
-    fun bound vs i = case AList.lookup (op =) vs i
-     of SOME v => enclose "[" "]" (string_of_int i ^ " ~> " ^ v)
-      | NONE => (enclose "[" "]" o string_of_int) i
-    fun str vs (Const (c, _)) = c
-      | str vs (Free (v, ty)) = typed (v, ty)
-      | str vs (Var (vi, ty)) = typed (string_of_vname vi, ty)
-      | str vs (Bound i) = bound vs i
-      | str vs (Abs (x, ty, t)) = "(%" ^ typed (x, ty) ^ ". " ^ str ((length vs, x)::vs) t ^ ")"
-      | str vs (t1 $ t2) = "(" ^ str vs t1 ^ " " ^ str vs t2 ^ ")";
-  in str [] end;
 
 end;
 
