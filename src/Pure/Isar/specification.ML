@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Common theory/locale specifications --- with type-inference and
+Common local_theory specifications --- with type-inference and
 toplevel polymorphism.
 *)
 
@@ -32,10 +32,13 @@ sig
     local_theory -> local_theory
   val abbreviation_i: string * bool -> ((string * typ option * mixfix) option * term) list ->
     local_theory -> local_theory
+  val const_syntax: string * bool -> (xstring * mixfix) list -> local_theory -> local_theory
+  val const_syntax_i: string * bool -> (string * mixfix) list -> local_theory -> local_theory
 end;
 
 structure Specification: SPECIFICATION =
 struct
+
 
 (* prepare specification *)
 
@@ -124,18 +127,28 @@ fun gen_abbrevs prep mode args ctxt =
           else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote x'));
       in
         ctxt'
-        |> LocalTheory.abbrev mode ((x, mx), rhs)
+        |> LocalTheory.abbrevs mode [((x, mx), rhs)]
         |> pair (x, T)
       end;
 
-    val (cs, abbrs_ctxt) = ctxt
+    val (cs, result_ctxt) = ctxt
       |> ProofContext.set_syntax_mode mode
       |> fold_map abbrev args
       ||> ProofContext.restore_syntax_mode ctxt;
     val _ = LocalTheory.print_consts ctxt (K false) cs;
-  in abbrs_ctxt end;
+  in result_ctxt end;
 
 val abbreviation = gen_abbrevs read_specification;
 val abbreviation_i = gen_abbrevs cert_specification;
+
+
+(* const syntax *)
+
+fun gen_syntax intern_const mode raw_args ctxt =
+  let val args = raw_args |> map (apfst (intern_const (ProofContext.consts_of ctxt)))
+  in ctxt |> LocalTheory.syntax mode args end;
+
+val const_syntax = gen_syntax Consts.intern;
+val const_syntax_i = gen_syntax (K I);
 
 end;
