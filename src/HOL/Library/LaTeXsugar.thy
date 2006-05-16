@@ -10,9 +10,10 @@ imports Main
 begin
 
 (* LOGIC *)
+const_syntax (latex output)
+  If  ("(\<^raw:\textsf{>if\<^raw:}> (_)/ \<^raw:\textsf{>then\<^raw:}> (_)/ \<^raw:\textsf{>else\<^raw:}> (_))" 10)
+
 syntax (latex output)
-  If            :: "[bool, 'a, 'a] => 'a"
-  ("(\<^raw:\textsf{>if\<^raw:}> (_)/ \<^raw:\textsf{>then\<^raw:}> (_)/ \<^raw:\textsf{>else\<^raw:}> (_))" 10)
 
   "_Let"        :: "[letbinds, 'a] => 'a"
   ("(\<^raw:\textsf{>let\<^raw:}> (_)/ \<^raw:\textsf{>in\<^raw:}> (_))" 10)
@@ -51,16 +52,16 @@ translations
 (* LISTS *)
 
 (* Cons *)
-syntax (latex)
-  Cons :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" ("_\<cdot>/_" [66,65] 65)
+const_syntax (latex)
+  Cons  ("_\<cdot>/_" [66,65] 65)
 
 (* length *)
-syntax (latex output)
-  length :: "'a list \<Rightarrow> nat" ("|_|")
+const_syntax (latex output)
+  length  ("|_|")
 
 (* nth *)
-syntax (latex output)
-  nth :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^raw:\ensuremath{_{[\mathit{>_\<^raw:}]}}>" [1000,0] 1000)
+const_syntax (latex output)
+  nth  ("_\<^raw:\ensuremath{_{[\mathit{>_\<^raw:}]}}>" [1000,0] 1000)
 
 (* DUMMY *)
 consts DUMMY :: 'a ("\<^raw:\_>")

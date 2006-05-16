@@ -17,9 +17,9 @@ translations
 
 
 (* aligning equations *)
-syntax (tab output)
-  "op =" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50)
-  "==" :: "prop \<Rightarrow> prop \<Rightarrow> prop" ("(_) \<^raw:}\putisatab\isa{\ >\<equiv>\<^raw:}\putisatab\isa{> (_)")
+const_syntax (tab output)
+  "op ="  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50)
+  "=="  ("(_) \<^raw:}\putisatab\isa{\ >\<equiv>\<^raw:}\putisatab\isa{> (_)")
 
 (* Let *)
 translations 
