@@ -136,8 +136,6 @@ fun projections rule =
   ProjectRule.projections rule
   |> map (standard #> RuleCases.save rule);
 
-fun norm_sort thy = Sorts.norm_sort (snd (#classes (Type.rep_tsig (Sign.tsig_of thy))));
-
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
     (* this theory is used just for parsing *)
@@ -1102,7 +1100,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val pnames = if length descr'' = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr'');
     val ind_sort = if null dt_atomTs then HOLogic.typeS
-      else norm_sort thy9 (map (fn T => Sign.intern_class thy9 ("fs_" ^
+      else Sign.certify_sort thy9 (map (fn T => Sign.intern_class thy9 ("fs_" ^
         Sign.base_name (fst (dest_Type T)))) dt_atomTs);
     val fsT = TFree ("'n", ind_sort);
     val fsT' = TFree ("'n", HOLogic.typeS);
