@@ -304,7 +304,7 @@ fun write_subgoal_file mode ctxt conjectures user_thms n =
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
 	val user_rules = map ResAxioms.pairname user_thms
-	val (names_arr,axclauses_as_thms) = ResClasimp.get_clasimp_atp_lemmas ctxt (map prop_of goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
+	val axclauses_as_thms = ResClasimp.get_clasimp_atp_lemmas ctxt (map prop_of goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
 	val thy = ProofContext.theory_of ctxt
 	val prob_logic = case mode of Auto => problem_logic_goals [map prop_of goal_cls]
 				    | Fol => FOL
@@ -398,9 +398,9 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 fun write_problem_files pf (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
-      val (names_arr, axclauses) = ResClasimp.get_clasimp_atp_lemmas ctxt goals [] (true,true,true) (!run_relevance_filter) (* no user supplied rules here, because no user invocation *)
+      val axclauses = ResClasimp.get_clasimp_atp_lemmas ctxt goals [] (true,true,true) (!run_relevance_filter) (* no user supplied rules here, because no user invocation *)
       val _ = Output.debug ("claset, simprules and atprules total clauses = " ^ 
-                     Int.toString (Array.length names_arr))
+                     Int.toString (length axclauses))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals n =
 	  if n=0 then []
@@ -425,8 +425,9 @@ fun write_problem_files pf (ctxt,th)  =
       fun write_all [] _ = []
 	| write_all (subgoal::subgoals) k =
 	  (writer goals_logic subgoal (pf k) (axclauses,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
+      val thm_names = Array.fromList (map (#1 o #2) axclauses)
   in
-      (write_all neg_subgoals (length goals), names_arr)
+      (write_all neg_subgoals (length goals), thm_names)
   end;
 
 val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
@@ -449,8 +450,8 @@ val isar_atp = setmp print_mode []
   else
     let
       val _ = kill_last_watcher()
-      val (files,names_arr) = write_problem_files prob_pathname (ctxt,th)
-      val (childin, childout, pid) = Watcher.createWatcher (th, names_arr)
+      val (files,thm_names) = write_problem_files prob_pathname (ctxt,th)
+      val (childin, childout, pid) = Watcher.createWatcher (th, thm_names)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
       Output.debug ("problem files: " ^ space_implode ", " files); 

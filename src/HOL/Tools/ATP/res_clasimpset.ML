@@ -12,7 +12,7 @@ signature RES_CLASIMP =
       Proof.context ->
       Term.term list ->
       (string * Thm.thm) list ->
-      (bool * bool * bool) -> bool -> string Array.array * (thm * (string * int)) list
+      (bool * bool * bool) -> bool -> (thm * (string * int)) list
   end;
   
 structure ResClasimp : RES_CLASIMP =
@@ -281,10 +281,12 @@ fun get_clasimp_atp_lemmas ctxt goals user_thms (use_claset, use_simpset', use_a
 	  if run_filter 
 	  then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals
 	  else cls_thms_list
-      val all_relevant_cls_thms_list = insert_thms (List.concat user_cls_thms) relevant_cls_thms_list (*ensure all user supplied rules are output*)	  
+      val all_relevant_cls_thms_list = 
+            insert_thms (List.concat user_cls_thms) relevant_cls_thms_list 
+            (*ensure all user supplied rules are output*)
     in
-	(Array.fromList (map fst (map snd all_relevant_cls_thms_list)), all_relevant_cls_thms_list)
-end;
+	all_relevant_cls_thms_list
+    end;
 
 
 	
