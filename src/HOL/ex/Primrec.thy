@@ -46,8 +46,8 @@ constdefs
   SC :: "nat list => nat"
   "SC l == Suc (zeroHd l)"
 
-  CONST :: "nat => nat list => nat"
-  "CONST k l == k"
+  CONSTANT :: "nat => nat list => nat"
+  "CONSTANT k l == k"
 
   PROJ :: "nat => nat list => nat"
   "PROJ i l == zeroHd (drop i l)"
@@ -66,7 +66,7 @@ consts PRIMREC :: "(nat list => nat) set"
 inductive PRIMREC
   intros
     SC: "SC \<in> PRIMREC"
-    CONST: "CONST k \<in> PRIMREC"
+    CONSTANT: "CONSTANT k \<in> PRIMREC"
     PROJ: "PROJ i \<in> PRIMREC"
     COMP: "g \<in> PRIMREC ==> fs \<in> lists PRIMREC ==> COMP g fs \<in> PRIMREC"
     PREC: "f \<in> PRIMREC ==> g \<in> PRIMREC ==> PREC f g \<in> PRIMREC"
@@ -78,8 +78,8 @@ lemma SC [simp]: "SC (x # l) = Suc x"
   apply (simp add: SC_def)
   done
 
-lemma CONST [simp]: "CONST k l = k"
-  apply (simp add: CONST_def)
+lemma CONSTANT [simp]: "CONSTANT k l = k"
+  apply (simp add: CONSTANT_def)
   done
 
 lemma PROJ_0 [simp]: "PROJ 0 (x # l) = x"
@@ -148,7 +148,7 @@ lemma ack_less_ack_Suc1 [iff]: "ack (i, j) < ack (Suc i, j)"
   done
 
 
-text {* PROPERTY A 4'? Extra lemma needed for @{term CONST} case, constant functions *}
+text {* PROPERTY A 4'? Extra lemma needed for @{term CONSTANT} case, constant functions *}
 
 lemma less_ack1 [iff]: "i < ack (i, j)"
   apply (induct i)
@@ -251,7 +251,7 @@ lemma SC_case: "SC l < ack (1, list_add l)"
   apply (simp_all add: le_add1 le_imp_less_Suc)
   done
 
-lemma CONST_case: "CONST k l < ack (k, list_add l)"
+lemma CONSTANT_case: "CONSTANT k l < ack (k, list_add l)"
   apply simp
   done
 
@@ -336,7 +336,7 @@ lemma PREC_case:
 
 lemma ack_bounds_PRIMREC: "f \<in> PRIMREC ==> \<exists>k. \<forall>l. f l < ack (k, list_add l)"
   apply (erule PRIMREC.induct)
-      apply (blast intro: SC_case CONST_case PROJ_case COMP_case PREC_case)+
+      apply (blast intro: SC_case CONSTANT_case PROJ_case COMP_case PREC_case)+
   done
 
 lemma ack_not_PRIMREC: "(\<lambda>l. case l of [] => 0 | x # l' => ack (x, x)) \<notin> PRIMREC"

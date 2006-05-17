@@ -21,8 +21,8 @@ constdefs
   SC :: "i"
   "SC == \<lambda>l \<in> list(nat). list_case(0, \<lambda>x xs. succ(x), l)"
 
-  CONST :: "i=>i"
-  "CONST(k) == \<lambda>l \<in> list(nat). k"
+  CONSTANT :: "i=>i"
+  "CONSTANT(k) == \<lambda>l \<in> list(nat). k"
 
   PROJ :: "i=>i"
   "PROJ(i) == \<lambda>l \<in> list(nat). list_case(0, \<lambda>x xs. x, drop(i,l))"
@@ -40,7 +40,7 @@ consts
   ACK :: "i=>i"
 primrec
   "ACK(0) = SC"
-  "ACK(succ(i)) = PREC (CONST (ACK(i) ` [1]), COMP(ACK(i), [PROJ(0)]))"
+  "ACK(succ(i)) = PREC (CONSTANT (ACK(i) ` [1]), COMP(ACK(i), [PROJ(0)]))"
 
 syntax
   ack :: "[i,i]=>i"
@@ -55,8 +55,8 @@ text {*
 lemma SC: "[| x \<in> nat;  l \<in> list(nat) |] ==> SC ` (Cons(x,l)) = succ(x)"
   by (simp add: SC_def)
 
-lemma CONST: "l \<in> list(nat) ==> CONST(k) ` l = k"
-  by (simp add: CONST_def)
+lemma CONSTANT: "l \<in> list(nat) ==> CONSTANT(k) ` l = k"
+  by (simp add: CONSTANT_def)
 
 lemma PROJ_0: "[| x \<in> nat;  l \<in> list(nat) |] ==> PROJ(0) ` (Cons(x,l)) = x"
   by (simp add: PROJ_def)
@@ -83,12 +83,12 @@ inductive
   domains prim_rec \<subseteq> "list(nat)->nat"
   intros
     "SC \<in> prim_rec"
-    "k \<in> nat ==> CONST(k) \<in> prim_rec"
+    "k \<in> nat ==> CONSTANT(k) \<in> prim_rec"
     "i \<in> nat ==> PROJ(i) \<in> prim_rec"
     "[| g \<in> prim_rec; fs\<in>list(prim_rec) |] ==> COMP(g,fs) \<in> prim_rec"
     "[| f \<in> prim_rec; g \<in> prim_rec |] ==> PREC(f,g) \<in> prim_rec"
   monos list_mono
-  con_defs SC_def CONST_def PROJ_def COMP_def PREC_def
+  con_defs SC_def CONSTANT_def PROJ_def COMP_def PREC_def
   type_intros nat_typechecks list.intros
     lam_type list_case_type drop_type List.map_type
     apply_type rec_type
@@ -118,12 +118,12 @@ lemma ack_0: "j \<in> nat ==> ack(0,j) = succ(j)"
 
 lemma ack_succ_0: "ack(succ(i), 0) = ack(i,1)"
   -- {* PROPERTY A 2 *}
-  by (simp add: CONST PREC_0)
+  by (simp add: CONSTANT PREC_0)
 
 lemma ack_succ_succ:
   "[| i\<in>nat;  j\<in>nat |] ==> ack(succ(i), succ(j)) = ack(i, ack(succ(i), j))"
   -- {* PROPERTY A 3 *}
-  by (simp add: CONST PREC_succ COMP_1 PROJ_0)
+  by (simp add: CONSTANT PREC_succ COMP_1 PROJ_0)
 
 lemmas [simp] = ack_0 ack_succ_0 ack_succ_succ ack_type
   and [simp del] = ACK.simps
@@ -245,16 +245,16 @@ lemma SC_case: "l \<in> list(nat) ==> SC ` l < ack(1, list_add(l))"
   done
 
 lemma lt_ack1: "[| i \<in> nat; j \<in> nat |] ==> i < ack(i,j)"
-  -- {* PROPERTY A 4'? Extra lemma needed for @{text CONST} case, constant functions. *}
+  -- {* PROPERTY A 4'? Extra lemma needed for @{text CONSTANT} case, constant functions. *}
   apply (induct_tac i)
    apply (simp add: nat_0_le)
   apply (erule lt_trans1 [OF succ_leI ack_lt_ack_succ1])
    apply auto
   done
 
-lemma CONST_case:
-    "[| l \<in> list(nat);  k \<in> nat |] ==> CONST(k) ` l < ack(k, list_add(l))"
-  by (simp add: CONST_def lt_ack1)
+lemma CONSTANT_case:
+    "[| l \<in> list(nat);  k \<in> nat |] ==> CONSTANT(k) ` l < ack(k, list_add(l))"
+  by (simp add: CONSTANT_def lt_ack1)
 
 lemma PROJ_case [rule_format]:
     "l \<in> list(nat) ==> \<forall>i \<in> nat. PROJ(i) ` l < ack(0, list_add(l))"
@@ -359,7 +359,7 @@ lemma PREC_case:
 lemma ack_bounds_prim_rec:
     "f \<in> prim_rec ==> \<exists>k \<in> nat. \<forall>l \<in> list(nat). f`l < ack(k, list_add(l))"
   apply (induct set: prim_rec)
-  apply (auto intro: SC_case CONST_case PROJ_case COMP_case PREC_case)
+  apply (auto intro: SC_case CONSTANT_case PROJ_case COMP_case PREC_case)
   done
 
 theorem ack_not_prim_rec:
