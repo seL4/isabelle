@@ -24,6 +24,7 @@ sig
   val restore_naming: local_theory -> local_theory
   val naming: local_theory -> local_theory
   val mapping: xstring option -> (local_theory -> local_theory) -> theory -> local_theory * theory
+  val term_syntax: (Context.generic -> Context.generic) -> local_theory -> local_theory
   val syntax: string * bool -> (string * mixfix) list -> local_theory -> local_theory
   val abbrevs: string * bool -> ((bstring * mixfix) * term) list -> local_theory -> local_theory
   val consts: ((bstring * typ) * mixfix) list -> local_theory -> term list * local_theory
@@ -167,18 +168,18 @@ fun mapping loc f =
 
 (* term syntax *)
 
-fun term_syntax add_thy add_ctxt prmode args ctxt = ctxt |>
+fun term_syntax f ctxt = ctxt |>
   (case locale_of ctxt of
-    NONE => theory (add_thy prmode args)
+    NONE => theory (Context.theory_map f)
   | SOME (loc, _) =>
-      locale (Locale.add_term_syntax loc (add_ctxt prmode args)) #>
-      add_ctxt prmode args);
+      locale (Locale.add_term_syntax loc (Context.proof_map f)) #>
+      Context.proof_map f);
 
-val syntax = term_syntax Sign.add_const_syntax ProofContext.add_const_syntax;
+fun syntax x y =
+  term_syntax (Context.mapping (Sign.add_const_syntax x y) (ProofContext.add_const_syntax x y));
 
-fun abbrevs prmode args =
-  term_syntax Sign.add_abbrevs ProofContext.add_abbrevs
-    prmode (map (fn ((x, mx), rhs) => (x, rhs, mx)) args);
+fun abbrevs x y =
+  term_syntax (Context.mapping (Sign.add_abbrevs x y) (ProofContext.add_abbrevs x y));
 
 
 (* consts *)
