@@ -50,7 +50,7 @@ datatype kind =
 
 type decl =
   (typ * kind) *
-  bool; (*early externing*)
+  bool; (*authentic syntax*)
 
 datatype T = Consts of
  {decls: (decl * stamp) NameSpace.table,
@@ -61,8 +61,8 @@ datatype T = Consts of
 fun eq_consts (Consts (_, s1), Consts (_, s2)) = s1 = s2;
 
 fun make_consts (decls, constraints, rev_abbrevs, expand_abbrevs) =
-  Consts ({decls = decls, constraints = constraints,
-    expand_abbrevs = expand_abbrevs, rev_abbrevs = rev_abbrevs}, stamp ());
+  Consts ({decls = decls, constraints = constraints, rev_abbrevs = rev_abbrevs,
+    expand_abbrevs = expand_abbrevs}, stamp ());
 
 fun map_consts f (Consts ({decls, constraints, rev_abbrevs, expand_abbrevs}, _)) =
   make_consts (f (decls, constraints, rev_abbrevs, expand_abbrevs));
@@ -114,13 +114,13 @@ val extern = NameSpace.extern o space_of;
 
 fun extern_early consts c =
   (case try (the_const consts) c of
-    SOME (_, false) => Syntax.constN ^ c
+    SOME (_, true) => Syntax.constN ^ c
   | _ => extern consts c);
 
 fun syntax consts (c, mx) =
   let
-    val ((T, _), early) = the_const consts c handle TYPE (msg, _, _) => error msg;
-    val c' = if early then NameSpace.base c else Syntax.constN ^ c;
+    val ((T, _), authentic) = the_const consts c handle TYPE (msg, _, _) => error msg;
+    val c' = if authentic then Syntax.constN ^ c else NameSpace.base c;
   in (c', T, mx) end;
 
 
@@ -201,7 +201,7 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs, expand_abbre
 
 (* declarations *)
 
-fun declare naming ((c, declT), early) =
+fun declare naming ((c, declT), authentic) =
     map_consts (fn (decls, constraints, rev_abbrevs, expand_abbrevs) =>
   let
     fun args_of (Type (_, Ts)) pos = args_of_list Ts 0 pos
@@ -209,7 +209,7 @@ fun declare naming ((c, declT), early) =
       | args_of (TFree _) _ = I
     and args_of_list (T :: Ts) i is = args_of T (i :: is) #> args_of_list Ts (i + 1) is
       | args_of_list [] _ _ = I;
-    val decl = (((declT, LogicalConst (map #2 (rev (args_of declT [] [])))), early), stamp ());
+    val decl = (((declT, LogicalConst (map #2 (rev (args_of declT [] [])))), authentic), stamp ());
   in (extend_decls naming (c, decl) decls, constraints, rev_abbrevs, expand_abbrevs) end);
 
 
@@ -247,7 +247,7 @@ fun rev_abbrev const rhs =
 
 in
 
-fun abbreviate pp tsig naming mode ((c, raw_rhs), early) consts =
+fun abbreviate pp tsig naming mode ((c, raw_rhs), authentic) consts =
   let
     val rhs = raw_rhs
       |> Term.map_term_types (Type.cert_typ tsig)
@@ -259,7 +259,7 @@ fun abbreviate pp tsig naming mode ((c, raw_rhs), early) consts =
     consts |> map_consts (fn (decls, constraints, rev_abbrevs, expand_abbrevs) =>
       let
         val decls' = decls
-          |> extend_decls naming (c, (((T, Abbreviation rhs'), early), stamp ()));
+          |> extend_decls naming (c, (((T, Abbreviation rhs'), authentic), stamp ()));
         val rev_abbrevs' = rev_abbrevs
           |> fold (curry Symtab.update_list mode) (rev_abbrev (NameSpace.full naming c, T) rhs);
       in (decls', constraints, rev_abbrevs', expand_abbrevs) end)
