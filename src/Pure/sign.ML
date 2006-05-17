@@ -191,9 +191,9 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
-  val add_const_syntax: string * bool -> (string * mixfix) list -> theory -> theory
   val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
-  val add_abbrevs: string * bool -> (bstring * term * mixfix) list -> theory -> theory
+  val add_const_syntax: string * bool -> (string * mixfix) list -> theory -> theory
+  val add_abbrevs: string * bool -> ((bstring * mixfix) * term) list -> theory -> theory
   include SIGN_THEORY
 end
 
@@ -719,16 +719,16 @@ fun add_const_syntax prmode args thy =
 
 local
 
-fun gen_add_consts prep_typ early raw_args thy =
+fun gen_add_consts prep_typ authentic raw_args thy =
   let
     val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (raw_c, raw_T, raw_mx) =
       let
         val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-        val (c', b) = if early then (c, true) else (Syntax.constN ^ full_name thy c, false);
+        val c' = if authentic then Syntax.constN ^ full_name thy c else c;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote c);
-      in (((c, T), b), (c', T, mx)) end;
+      in (((c, T), authentic), (c', T, mx)) end;
     val args = map prep raw_args;
   in
     thy
@@ -739,16 +739,16 @@ fun gen_add_consts prep_typ early raw_args thy =
 
 in
 
-val add_consts = gen_add_consts (read_typ o no_def_sort) true;
-val add_consts_i = gen_add_consts certify_typ true;
-val add_consts_authentic = gen_add_consts certify_typ false;
+val add_consts = gen_add_consts (read_typ o no_def_sort) false;
+val add_consts_i = gen_add_consts certify_typ false;
+val add_consts_authentic = gen_add_consts certify_typ true;
 
 end;
 
 
 (* add abbreviations *)
 
-fun add_abbrevs (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
+fun add_abbrevs (mode, inout) = fold (fn ((raw_c, raw_mx), raw_t) => fn thy =>
   let
     val prep_tm = Compress.term thy o Logic.varify o no_vars (pp thy) o
       Term.no_dummy_patterns o cert_term_abbrev thy;
@@ -760,7 +760,7 @@ fun add_abbrevs (mode, inout) = fold (fn (raw_c, raw_t, raw_mx) => fn thy =>
     val T = Term.fastype_of t;
   in
     thy
-    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), false))
+    |> map_consts (Consts.abbreviate (pp thy) (tsig_of thy) (naming_of thy) mode ((c, t), true))
     |> map_syn (Syntax.extend_consts [c])
     |> add_modesyntax_i (mode, inout) [(c', T, mx)]
   end);
