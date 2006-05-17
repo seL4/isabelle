@@ -157,7 +157,7 @@ sig
   val get_case: context -> string -> string option list -> RuleCases.T
   val expand_abbrevs: bool -> context -> context
   val add_const_syntax: string * bool -> (string * mixfix) list -> context -> context
-  val add_abbrevs: string * bool -> (bstring * term * mixfix) list -> context -> context
+  val add_abbrevs: string * bool -> ((bstring * mixfix) * term) list -> context -> context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: context -> unit
@@ -1109,19 +1109,33 @@ val cert_vars_legacy = prep_vars cert_typ true true;
 end;
 
 
-(* const syntax *)
+(* authentic constants *)
 
 fun add_const_syntax prmode args ctxt =
   ctxt |> map_syntax
     (LocalSyntax.add_modesyntax (theory_of ctxt) prmode
       (map (pair false o Consts.syntax (consts_of ctxt)) args));
 
+fun context_const_ast_tr context [Syntax.Variable c] =
+      let
+        val consts = Context.cases Sign.consts_of consts_of context;
+        val c' = Consts.intern consts c;
+        val _ = Consts.constraint consts c' handle TYPE (msg, _, _) => error msg;
+      in Syntax.Constant (Syntax.constN ^ c') end
+  | context_const_ast_tr _ asts = raise Syntax.AST ("const_ast_tr", asts);
+
+val _ = Context.add_setup
+ (Sign.add_syntax
+   [("_context_const", "id => 'a", Delimfix "CONST _"),
+    ("_context_const", "longid => 'a", Delimfix "CONST _")] #>
+  Sign.add_advanced_trfuns ([("_context_const", context_const_ast_tr)], [], [], []));
+
 
 (* abbreviations *)
 
 val expand_abbrevs = map_consts o apsnd o Consts.expand_abbrevs;
 
-fun add_abbrevs prmode = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
+fun add_abbrevs prmode = fold (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
   let
     val ([(c, _, mx)], _) = cert_vars [(raw_c, NONE, raw_mx)] ctxt;
     val c' = Syntax.constN ^ full_name ctxt c;
@@ -1134,7 +1148,7 @@ fun add_abbrevs prmode = fold (fn (raw_c, raw_t, raw_mx) => fn ctxt =>
     ctxt
     |> declare_term t
     |> map_consts (apsnd
-      (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) (#1 prmode) ((c, t), false)))
+      (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) (#1 prmode) ((c, t), true)))
     |> map_syntax (LocalSyntax.add_modesyntax (theory_of ctxt) prmode [(false, (c', T, mx))])
   end);
 
