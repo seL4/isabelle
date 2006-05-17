@@ -148,6 +148,16 @@ introduction rule (default "that").
 explicit (is "_ ==> ?foo") in the rare cases where this still happens
 to occur.
 
+* Pure: syntax "CONST name" produces a fully internalized constant
+according to the current context.  This is particularly useful for
+syntax translations that should refer to internal constant
+representations independently of name spaces.
+
+* Isar/locales: 'const_syntax' provides a robust interface to the
+'syntax' primitive that also works in a locale context.  Type
+declaration and internal syntactic representation of given constants
+retrieved from the context.
+
 * Isar/locales: new derived specification elements 'axiomatization',
 'definition', 'abbreviation', which support type-inference, admit
 object-level specifications (equality, equivalence).  See also the
@@ -178,10 +188,10 @@ not inherited by general import expressions.  Also note that
 'abbreviation' may be used as a type-safe replacement for 'syntax' +
 'translations' in common applications.
 
-* Isar/locales: 'const_syntax' provides a robust interface to the
-'syntax' primitive that also works in a locale context.  Type
-declaration and internal syntactic representation of given constants
-retrieved from the context.
+Concrete syntax is attached to specified constants in internal form,
+independently of name spaces.  The parse tree representation is
+slightly different -- use 'const_syntax' instead of raw 'syntax', and
+'translations' with explicit "CONST" markup to accommodate this.
 
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
