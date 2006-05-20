@@ -10,6 +10,8 @@ sig
   val quiet_mode: bool ref
   val add_primrec: string -> ((bstring * string) * Attrib.src list) list
     -> theory -> theory * thm list
+  val add_primrec_unchecked: string -> ((bstring * string) * Attrib.src list) list
+    -> theory -> theory * thm list
   val add_primrec_i: string -> ((bstring * term) * attribute list) list
     -> theory -> theory * thm list
   val add_primrec_unchecked_i: string -> ((bstring * term) * attribute list) list
@@ -223,7 +225,7 @@ fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
     |> RuleCases.save induction
   end;
 
-fun gen_primrec unchecked alt_name eqns_atts thy =
+fun gen_primrec_i unchecked alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
     val sg = Theory.sign_of thy;
@@ -269,10 +271,7 @@ fun gen_primrec unchecked alt_name eqns_atts thy =
     (thy''', simps')
   end;
 
-val add_primrec_i = gen_primrec false;
-val add_primrec_unchecked_i = gen_primrec true;
-
-fun add_primrec alt_name eqns thy =
+fun gen_primrec unchecked alt_name eqns thy =
   let
     val sign = Theory.sign_of thy;
     val ((names, strings), srcss) = apfst split_list (split_list eqns);
@@ -283,22 +282,33 @@ fun add_primrec alt_name eqns thy =
       handle TERM _ => primrec_eq_err sign "not a proper equation" eq) eqn_ts;
     val (_, eqn_ts') = InductivePackage.unify_consts (sign_of thy) rec_ts eqn_ts
   in
-    add_primrec_i alt_name (names ~~ eqn_ts' ~~ atts) thy
+    gen_primrec_i unchecked alt_name (names ~~ eqn_ts' ~~ atts) thy
   end;
+
+val add_primrec = gen_primrec false;
+val add_primrec_unchecked = gen_primrec true;
+val add_primrec_i = gen_primrec_i false;
+val add_primrec_unchecked_i = gen_primrec_i true;
 
 
 (* outer syntax *)
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val opt_unchecked_name =
+  Scan.optional (P.$$$ "(" |-- P.!!!
+    (((P.$$$ "unchecked" >> K true) -- Scan.optional P.name "" ||
+      P.name >> pair false) --| P.$$$ ")")) (false, "");
+
 val primrec_decl =
-  Scan.optional (P.$$$ "(" |-- P.name --| P.$$$ ")") "" --
-    Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
+  opt_unchecked_name -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
 
 val primrecP =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
-    (primrec_decl >> (fn (alt_name, eqns) =>
-      Toplevel.theory (#1 o add_primrec alt_name (map P.triple_swap eqns))));
+    (primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
+      Toplevel.theory (#1 o
+        (if unchecked then add_primrec_unchecked else add_primrec) alt_name
+          (map P.triple_swap eqns))));
 
 val _ = OuterSyntax.add_parsers [primrecP];
 
