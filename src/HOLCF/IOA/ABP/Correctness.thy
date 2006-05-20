@@ -10,13 +10,7 @@ imports IOA Env Impl Impl_finite
 begin
 
 consts
-
-reduce           :: "'a list => 'a list"
-
-abs              :: 'c
-system_ioa       :: "('m action, bool * 'm impl_state)ioa"
-system_fin_ioa   :: "('m action, bool * 'm impl_state)ioa"
-
+  reduce         :: "'a list => 'a list"
 primrec
   reduce_Nil:  "reduce [] = []"
   reduce_Cons: "reduce(x#xs) =
@@ -26,18 +20,18 @@ primrec
                               then reduce xs
                               else (x#(reduce xs))))"
 
+constdefs
+  abs where
+    "abs  ==
+      (%p.(fst(p),(fst(snd(p)),(fst(snd(snd(p))),
+       (reduce(fst(snd(snd(snd(p))))),reduce(snd(snd(snd(snd(p))))))))))"
 
-defs
-
-system_def:
+  system_ioa       :: "('m action, bool * 'm impl_state)ioa"
   "system_ioa == (env_ioa || impl_ioa)"
 
-system_fin_def:
+  system_fin_ioa   :: "('m action, bool * 'm impl_state)ioa"
   "system_fin_ioa == (env_ioa || impl_fin_ioa)"
 
-abs_def: "abs  ==
-        (%p.(fst(p),(fst(snd(p)),(fst(snd(snd(p))),
-         (reduce(fst(snd(snd(snd(p))))),reduce(snd(snd(snd(snd(p))))))))))"
 
 axioms
 
