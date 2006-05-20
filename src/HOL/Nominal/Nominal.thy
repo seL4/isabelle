@@ -42,15 +42,11 @@ lemma perm_insert:
   by (auto simp add: perm_set_def)
 
 (* permutation on units and products *)
-defs (unchecked overloaded)
-  perm_unit_def: "pi\<bullet>u == (case u of () \<Rightarrow> ())"
-  perm_prod_def: "pi\<bullet>p == prod_rec (\<lambda>a b pi. (pi \<bullet> a, pi \<bullet> b)) p pi"
-
-lemma [simp]:
-  "pi\<bullet>() = ()" by (simp add: perm_unit_def)
-
-lemma [simp]:
-  "pi\<bullet>(a,b) = (pi\<bullet>a,pi\<bullet>b)" by (simp add: perm_prod_def)
+primrec (unchecked perm_unit)
+  "pi\<bullet>()    = ()"
+  
+primrec (unchecked perm_prod)
+  "pi\<bullet>(a,b) = (pi\<bullet>a,pi\<bullet>b)"
 
 lemma perm_fst:
   "pi\<bullet>(fst x) = fst (pi\<bullet>x)"
@@ -61,13 +57,9 @@ lemma perm_snd:
  by (cases x) simp
 
 (* permutation on lists *)
-defs (unchecked overloaded)
-  perm_list_def: "pi\<bullet>list \<equiv> list_rec (\<lambda>_. []) (\<lambda>x _ xs pi. pi\<bullet>x # xs pi) list pi"
-
-lemma
-  perm_nil_def [simp]:  "pi\<bullet>[]     = []" and
-  perm_cons_def [simp]: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
-  by (simp_all add: perm_list_def)
+primrec (unchecked perm_list)
+  perm_nil_def:  "pi\<bullet>[]     = []"
+  perm_cons_def: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
 
 lemma perm_append:
   fixes pi :: "'x prm"
@@ -87,7 +79,7 @@ defs (unchecked overloaded)
   perm_fun_def: "pi\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
 
 (* permutation on bools *)
-primrec (perm_bool)
+primrec (unchecked perm_bool)
   perm_true_def:  "pi\<bullet>True  = True"
   perm_false_def: "pi\<bullet>False = False"
 
@@ -96,32 +88,22 @@ lemma perm_bool:
   by (cases b) auto
 
 (* permutation on options *)
-defs (unchecked overloaded)
-  perm_option_def: "pi\<bullet>opt \<equiv> option_rec (\<lambda>_. None) (\<lambda>x pi. Some (pi \<bullet> x)) opt pi"
-lemma
-  perm_some_def [simp]:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)" and
-  perm_none_def [simp]:  "pi\<bullet>None    = None"
-  by (simp_all add: perm_option_def)
+primrec (unchecked perm_option)
+  perm_some_def:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
+  perm_none_def:  "pi\<bullet>None    = None"
 
 (* a "private" copy of the option type used in the abstraction function *)
 datatype 'a noption = nSome 'a | nNone
 
-defs (unchecked overloaded)
-  perm_noption_def: "pi\<bullet>opt \<equiv> noption_rec (\<lambda>x pi. nSome (pi \<bullet> x)) (\<lambda>_. nNone) opt pi"
-
-lemma
-  perm_nSome_def [simp]: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)" and
-  perm_nNone_def [simp]: "pi\<bullet>nNone    = nNone"
-  by (simp_all add: perm_noption_def)
+primrec (unchecked perm_noption)
+  perm_nSome_def: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
+  perm_nNone_def: "pi\<bullet>nNone    = nNone"
 
 (* a "private" copy of the product type used in the nominal induct method *)
 datatype ('a,'b) nprod = nPair 'a 'b
 
-defs (unchecked overloaded)
-  perm_nprod_def: "pi\<bullet>p \<equiv> nprod_rec (\<lambda>x1 x2 pi. nPair (pi \<bullet> x1) (pi \<bullet> x2)) p pi"
-lemma [simp]:
-  "pi\<bullet>(nPair x1 x2)  = nPair (pi\<bullet>x1) (pi\<bullet>x2)"
-  by (simp add: perm_nprod_def)
+primrec (unchecked perm_nprod)
+  perm_nProd_def: "pi\<bullet>(nPair x1 x2)  = nPair (pi\<bullet>x1) (pi\<bullet>x2)"
 
 (* permutation on characters (used in strings) *)
 defs (unchecked overloaded)

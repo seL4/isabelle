@@ -167,7 +167,7 @@ datatype ty =
     TVar "string"
   | TArr "ty" "ty" (infix "\<rightarrow>" 200)
 
-primrec
+primrec (unchecked)
  "pi\<bullet>(TVar s) = TVar s"
  "pi\<bullet>(\<tau> \<rightarrow> \<sigma>) = (\<tau> \<rightarrow> \<sigma>)"
 
