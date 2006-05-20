@@ -358,6 +358,7 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
     thy
     |> Sign.primitive_class (bclass, super)
     |> ax_classrel prep_classrel (map (fn c => (class, c)) super)
+    |> Theory.add_finals_i false [Term.head_of (Logic.mk_inclass (Term.aT [], class))]
   end;
 
 in
