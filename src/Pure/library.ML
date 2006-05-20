@@ -288,7 +288,6 @@ sig
   val drop: int * 'a list -> 'a list
   val last_elem: 'a list -> 'a
   val seq: ('a -> unit) -> 'a list -> unit
-  val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
 end;
 
 structure Library: LIBRARY =
@@ -1228,18 +1227,6 @@ fun divide_and_conquer decomp x =
   let val (ys, recomb) = decomp x
   in recomb (map (divide_and_conquer decomp) ys) end;
 
-(*Partition list into elements that satisfy predicate and those that don't.
-  Preserves order of elements in both lists.*)
-val partition = List.partition;
-
-fun partition_eq (eq:'a * 'a -> bool) =
-  let
-    fun part [] = []
-      | part (x :: ys) =
-          let val (xs, xs') = partition (fn y => eq (x, y)) ys
-          in (x::xs)::(part xs') end
-  in part end;
-
 
 (*Partition a list into buckets  [ bi, b(i+1), ..., bj ]
    putting x in bk if p(k)(x) holds.  Preserve order of elements if possible.*)
@@ -1249,9 +1236,18 @@ fun partition_list p i j =
               (case xs of [] => []
                          | _ => raise Fail "partition_list")
             else
-            let val (ns, rest) = partition (p k) xs;
+            let val (ns, rest) = List.partition (p k) xs;
             in  ns :: part(k+1)rest  end
   in  part i end;
+
+fun partition_eq (eq:'a * 'a -> bool) =
+  let
+    fun part [] = []
+      | part (x :: ys) =
+          let val (xs, xs') = List.partition (fn y => eq (x, y)) ys
+          in (x::xs)::(part xs') end
+  in part end;
+
 
 
 (* generating identifiers *)
