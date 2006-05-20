@@ -148,7 +148,7 @@ fun normalize prt defs (c, args) deps =
 fun normalize_deps prt defs0 (Defs defs) =
   let
     fun norm const deps = perhaps (normalize prt defs0 const) deps;
-    fun norm_update (c, {reducts, ...}) =
+    fun norm_update (c, {reducts, ...}: def) =
       let val reducts' = reducts |> map (fn (args, deps) => (args, norm (c, args) deps)) in
         if reducts = reducts' then I
         else Symtab.map_entry c (map_def (fn (specs, pattern, restricts, reducts) =>
@@ -183,7 +183,7 @@ fun merge pp (Defs defs1, Defs defs2) =
     fun add_deps (c, args) pat deps defs =
       if AList.defined (op =) (reducts_of defs c) args then defs
       else dependencies (print_const pp) (c, args) pat deps defs;
-    fun add_def (c, {pattern, restricts, reducts, ...}) =
+    fun add_def (c, {pattern, restricts, reducts, ...}: def) =
       fold (fn (args, deps) => add_deps (c, args) (pattern, restricts) deps) reducts;
   in Defs (Symtab.join join_specs (defs1, defs2)) |> Symtab.fold add_def defs2 end;
 
