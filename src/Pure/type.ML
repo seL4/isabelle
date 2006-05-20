@@ -55,6 +55,7 @@ sig
   val typ_match: tsig -> typ * typ -> tyenv -> tyenv
   val typ_instance: tsig -> typ * typ -> bool
   val raw_match: typ * typ -> tyenv -> tyenv
+  val raw_matches: typ list * typ list -> tyenv -> tyenv
   val raw_instance: typ * typ -> bool
   exception TUNIFY
   val unify: tsig -> typ * typ -> tyenv * int -> tyenv * int
@@ -340,7 +341,8 @@ fun raw_match (TVar (v, S), T) subs =
       if x = y then subs else raise TYPE_MATCH
   | raw_match _ _ = raise TYPE_MATCH
 and raw_matches (T :: Ts, U :: Us) subs = raw_matches (Ts, Us) (raw_match (T, U) subs)
-  | raw_matches _ subs = subs;
+  | raw_matches ([], []) subs = subs
+  | raw_matches _ _ = raise TYPE_MATCH;
 
 fun raw_instance (T, U) =
   (raw_match (U, T) Vartab.empty; true) handle TYPE_MATCH => false;
