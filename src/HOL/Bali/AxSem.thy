@@ -435,7 +435,7 @@ consts
                                                 (   "_\<Turnstile>_:_" [61,0, 58] 57)
     ax_valids :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"
                                                 ("_,_|\<Turnstile>_"   [61,58,58] 57)
-    ax_derivs :: "prog \<Rightarrow> ('b triples \<times> 'a triples) set"
+    ax_derivs :: "prog \<Rightarrow> ('a triples \<times> 'a triples) set"
 
 syntax
 
