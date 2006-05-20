@@ -80,7 +80,7 @@ fun add_cong raw_thm congs =
 fun del_cong raw_thm congs =
   let
     val (c, thm) = prep_cong raw_thm;
-    val (del, rest) = Library.partition (Library.equal c o fst) congs;
+    val (del, rest) = List.partition (Library.equal c o fst) congs;
   in if null del then (warning ("No recdef congruence rule for " ^ quote c); congs) else rest end;
 
 val add_congs = foldr (uncurry add_cong);

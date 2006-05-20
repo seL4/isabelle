@@ -772,7 +772,7 @@ fun xml_to_proof thyname types terms prf thy =
 	    mk_proof (PTyDef(seg,protect_tyname name,x2p p))
 	  | x2p (xml as Elem("poracle",[],chldr)) =
 	    let
-		val (oracles,terms) = Library.partition (fn (Elem("oracle",_,_)) => true | _ => false) chldr
+		val (oracles,terms) = List.partition (fn (Elem("oracle",_,_)) => true | _ => false) chldr
 		val ors = map (fn (Elem("oracle",[("n",name)],[])) => name | xml => raise ERR "x2p" "bad oracle") oracles
 		val (c,asl) = case terms of
 				  [] => raise ERR "x2p" "Bad oracle description"
