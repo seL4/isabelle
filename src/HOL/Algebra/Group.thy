@@ -34,7 +34,7 @@ constdefs (structure G)
 consts
   pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a" (infixr "'(^')\<index>" 75)
 
-defs (overloaded)
+defs (unchecked overloaded)
   nat_pow_def: "pow G a n == nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a) n"
   int_pow_def: "pow G a z ==
     let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
