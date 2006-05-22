@@ -60,7 +60,9 @@ sig
   exception TUNIFY
   val unify: tsig -> typ * typ -> tyenv * int -> tyenv * int
   val raw_unify: typ * typ -> tyenv -> tyenv
+  val raw_unifys: typ list * typ list -> tyenv -> tyenv
   val could_unify: typ * typ -> bool
+  val could_unifys: typ list * typ list -> bool
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
@@ -437,7 +439,8 @@ fun raw_unify (ty1, ty2) tye =
       else raw_unifys (Ts, Us) tye
   | (T, U) => if T = U then tye else raise TUNIFY)
 and raw_unifys (T :: Ts, U :: Us) tye = raw_unifys (Ts, Us) (raw_unify (T, U) tye)
-  | raw_unifys _ tye = tye;
+  | raw_unifys ([], []) tye = tye
+  | raw_unifys _ _ = raise TUNIFY;
 
 (*fast unification filter*)
 fun could_unify (Type (a, Ts), Type (b, Us)) = a = b andalso could_unifys (Ts, Us)
@@ -446,7 +449,8 @@ fun could_unify (Type (a, Ts), Type (b, Us)) = a = b andalso could_unifys (Ts, U
   | could_unify (_, TVar _) = true
   | could_unify _ = false
 and could_unifys (T :: Ts, U :: Us) = could_unify (T, U) andalso could_unifys (Ts, Us)
-  | could_unifys _ = true;
+  | could_unifys ([], []) = true
+  | could_unifys _ = false;
 
 
 (*equality with respect to a type environment*)
