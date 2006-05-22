@@ -172,6 +172,8 @@ fun pretty_full_theory thy =
     val prt_typ_no_tvars = prt_typ o Type.freeze_type;
     fun prt_term t = Pretty.quote (Sign.pretty_term thy t);
     val prt_term_no_vars = prt_term o Logic.unvarify;
+    fun prt_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
+    val prt_const' = Defs.pretty_const (Sign.pp thy);
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -200,20 +202,24 @@ fun pretty_full_theory thy =
 
     val pretty_arities = maps (fn (t, ars) => map (prt_arity t) ars);
 
-    fun pretty_const (c, ty) = Pretty.block
-      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
-
     fun pretty_abbrev (c, (ty, t)) = Pretty.block
-      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty,
-        Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t];
+      (prt_const (c, ty) @ [Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t]);
 
-    fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
+    fun pretty_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
 
-    val {axioms, defs = _, oracles} = Theory.rep_theory thy;
+    fun pretty_reduct (lhs, rhs) = Pretty.block
+      ([prt_const' lhs, Pretty.str "  ->", Pretty.brk 2] @ Pretty.commas (map prt_const' rhs));
+
+    fun pretty_restrict (const, name) =
+      Pretty.block ([prt_const' const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
+
+    val {axioms, defs, oracles} = Theory.rep_theory thy;
+    val {restricts, reducts} = Defs.dest defs;
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {constants, constraints} = Consts.dest consts;
-    val {classes = (class_space, class_algebra),
-      default, types, log_types = _, witness} = Type.rep_tsig tsig;
+    val extern_const = NameSpace.extern (#1 constants);
+    val {classes, default, types, witness, ...} = Type.rep_tsig tsig;
+    val (class_space, class_algebra) = classes;
     val {classes, arities} = Sorts.rep_algebra class_algebra;
 
     val clsses = NameSpace.dest_table (class_space, Symtab.make (Graph.dest classes));
@@ -225,6 +231,11 @@ fun pretty_full_theory thy =
     val cnstrs = NameSpace.extern_table constraints;
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
+
+    val reds = reducts |> map_filter (fn (lhs, rhs) =>
+      if null rhs then NONE
+      else SOME (apfst extern_const lhs, map (apfst extern_const) rhs)) |> sort_wrt (#1 o #1);
+    val rests = restricts |> map (apfst (apfst extern_const)) |> sort_wrt (#1 o #1);
   in
     [Pretty.strs ("names:" :: Context.names_of thy),
       Pretty.strs ("theory data:" :: Context.theory_data_of thy),
@@ -236,10 +247,13 @@ fun pretty_full_theory thy =
       Pretty.big_list "syntactic types:" (map_filter (pretty_type true) tdecls),
       Pretty.big_list "logical types:" (map_filter (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities arties),
-      Pretty.big_list "logical consts:" (map pretty_const log_cnsts),
+      Pretty.big_list "logical consts:" (map (Pretty.block o prt_const) log_cnsts),
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
-      Pretty.big_list "constraints:" (map pretty_const cnstrs),
-      Pretty.big_list "axioms:" (map prt_axm axms),
+      Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
+      Pretty.big_list "axioms:" (map pretty_axm axms),
+      Pretty.big_list "definitions:"
+        [Pretty.big_list "open dependencies:" (map pretty_reduct reds),
+         Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)],
       Pretty.strs ("oracles:" :: (map #1 oras))]
   end;
 
