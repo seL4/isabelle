@@ -151,10 +151,16 @@ fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
 val defs_of = #defs o rep_theory;
 
 fun definitions_of thy c =
-  Defs.specifications_of (defs_of thy) c
-  |> map_filter (fn (_, {is_def, module, name, lhs, rhs}) =>
-    if is_def then SOME {module = module, name = name, lhs = lhs, rhs = rhs} else NONE);
-
+  let
+    val inst = Consts.instance (Sign.consts_of thy);
+    val defs = defs_of thy;
+  in
+    Defs.specifications_of defs c
+    |> map_filter (fn (_, {is_def, module, name, lhs, rhs}) =>
+      if is_def then SOME {module = module, name = name, lhs = inst (c, lhs),
+        rhs = map (fn (d, Us) => (d, inst (d, Us))) rhs}
+      else NONE)
+  end;
 
 fun requires thy name what =
   if Context.exists_name name thy then ()
