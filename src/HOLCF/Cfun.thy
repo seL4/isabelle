@@ -456,6 +456,9 @@ by (simp add: oo_def)
 lemma cfcomp2 [simp]: "(f oo g)\<cdot>x = f\<cdot>(g\<cdot>x)"
 by (simp add: cfcomp1)
 
+lemma cfcomp_strict [simp]: "\<bottom> oo f = \<bottom>"
+by (simp add: expand_cfun_eq)
+
 text {*
   Show that interpretation of (pcpo,@{text "_->_"}) is a category.
   The class of objects is interpretation of syntactical class pcpo.
