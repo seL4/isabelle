@@ -207,8 +207,12 @@ fun pretty_full_theory thy =
 
     fun pretty_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
 
+    fun pretty_finals reds = Pretty.block
+      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_const' o #1) reds));
+
     fun pretty_reduct (lhs, rhs) = Pretty.block
-      ([prt_const' lhs, Pretty.str "  ->", Pretty.brk 2] @ Pretty.commas (map prt_const' rhs));
+      ([prt_const' lhs, Pretty.str "  ->", Pretty.brk 2] @
+        Pretty.commas (map prt_const' (sort_wrt #1 rhs)));
 
     fun pretty_restrict (const, name) =
       Pretty.block ([prt_const' const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
@@ -232,9 +236,11 @@ fun pretty_full_theory thy =
     val axms = NameSpace.extern_table axioms;
     val oras = NameSpace.extern_table oracles;
 
-    val reds = reducts |> map_filter (fn (lhs, rhs) =>
-      if null rhs then NONE
-      else SOME (apfst extern_const lhs, map (apfst extern_const) rhs)) |> sort_wrt (#1 o #1);
+    val (reds0, (reds1, reds2)) = reducts |> map (fn (lhs, rhs) =>
+        (apfst extern_const lhs, map (apfst extern_const) rhs))
+      |> sort_wrt (#1 o #1)
+      |> List.partition (null o #2)
+      ||> List.partition (Defs.plain_args o #2 o #1);
     val rests = restricts |> map (apfst (apfst extern_const)) |> sort_wrt (#1 o #1);
   in
     [Pretty.strs ("names:" :: Context.names_of thy),
@@ -251,10 +257,12 @@ fun pretty_full_theory thy =
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
       Pretty.big_list "axioms:" (map pretty_axm axms),
+      Pretty.strs ("oracles:" :: (map #1 oras)),
       Pretty.big_list "definitions:"
-        [Pretty.big_list "open dependencies:" (map pretty_reduct reds),
-         Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)],
-      Pretty.strs ("oracles:" :: (map #1 oras))]
+        [pretty_finals reds0,
+         Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),
+         Pretty.big_list "overloaded:" (map pretty_reduct reds2),
+         Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)]]
   end;
 
 
