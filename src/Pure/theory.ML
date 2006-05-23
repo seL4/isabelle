@@ -49,6 +49,7 @@ sig
   val assert_super: theory -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
+  val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
   val add_defs: bool -> bool -> (bstring * string) list -> theory -> theory
   val add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
@@ -58,6 +59,7 @@ end
 
 structure Theory: THEORY =
 struct
+
 
 (** type theory **)
 
@@ -230,7 +232,34 @@ end;
 
 (** add constant definitions **)
 
-fun prep_const thy (c, T) = (c, Compress.typ thy (Type.varifyT T));
+(* dependencies *)
+
+fun dependencies thy unchecked is_def name lhs rhs =
+  let
+    val pp = Sign.pp thy;
+    val consts = Sign.consts_of thy;
+
+    val lhs_vars = Term.add_tfreesT (#2 lhs) [];
+    val rhs_extras = fold (#2 #> Term.fold_atyps (fn TFree v =>
+      if member (op =) lhs_vars v then I else insert (op =) v | _ => I)) rhs [];
+    val _ =
+      if null rhs_extras then ()
+      else error ("Specification depends on extra type variables: " ^
+        commas_quote (map (Pretty.string_of_typ pp o TFree) rhs_extras) ^
+        "\nThe error(s) above occurred in " ^ quote name);
+
+    fun prep const =
+      let val Const (c, T) = Sign.no_vars pp (Const const)
+      in (c, Compress.typ thy (Type.varifyT T)) end;
+  in
+    Defs.define pp consts unchecked is_def (Context.theory_name thy) name (prep lhs) (map prep rhs)
+  end;
+
+fun add_deps a raw_lhs raw_rhs thy =
+  let
+    val lhs :: rhs = map (dest_Const o Sign.cert_term thy o Const) (raw_lhs :: raw_rhs);
+    val name = if a = "" then (#1 lhs ^ " axiom") else a;
+  in thy |> map_defs (dependencies thy false false name lhs rhs) end;
 
 
 (* check_overloading *)
@@ -266,10 +295,7 @@ fun check_def thy unchecked overloaded (bname, tm) defs =
     val (lhs_const, rhs) = Sign.cert_def (Sign.pp thy) tm;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
-  in
-    defs |> Defs.define (Sign.pp thy) (Sign.consts_of thy) unchecked true (Context.theory_name thy)
-      name (prep_const thy lhs_const) (map (prep_const thy) rhs_consts)
-  end
+  in defs |> dependencies thy unchecked true name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
     Pretty.fbrk, Pretty.quote (Sign.pretty_term thy tm)]));
@@ -303,10 +329,8 @@ fun gen_add_finals prep_term overloaded args thy =
     fun const_of (Const const) = const
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = Defs.define (Sign.pp thy) (Sign.consts_of thy) false false
-      (Context.theory_name thy) (c ^ " axiom") (prep_const thy (c, T)) [];
-    val finalize = specify o check_overloading thy overloaded o
-      const_of o Sign.no_vars (Sign.pp thy) o prep_term thy;
+    fun specify (c, T) = dependencies thy false false (c ^ " axiom") (c, T) [];
+    val finalize = specify o check_overloading thy overloaded o const_of o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
 
 in
