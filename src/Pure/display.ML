@@ -208,7 +208,7 @@ fun pretty_full_theory thy =
     fun pretty_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
 
     fun pretty_finals reds = Pretty.block
-      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_const' o #1) reds));
+      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_const' o fst) reds));
 
     fun pretty_reduct (lhs, rhs) = Pretty.block
       ([prt_const' lhs, Pretty.str "  ->", Pretty.brk 2] @
