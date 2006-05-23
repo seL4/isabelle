@@ -350,6 +350,9 @@ fun ax_classrel prep =
 fun ax_arity prep =
   axiomatize arityN add_arity (fn thy => prep thy #> Logic.mk_arities);
 
+fun class_const c =
+  (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
+
 fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
   let
     val class = Sign.full_name thy bclass;
@@ -358,7 +361,7 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
     thy
     |> Sign.primitive_class (bclass, super)
     |> ax_classrel prep_classrel (map (fn c => (class, c)) super)
-    |> Theory.add_finals_i false [Term.head_of (Logic.mk_inclass (Term.aT [], class))]
+    |> Theory.add_deps "" (class_const class) (map class_const super)
   end;
 
 in
