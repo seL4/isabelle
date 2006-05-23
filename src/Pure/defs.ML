@@ -36,6 +36,9 @@ fun pretty_const pp (c, args) =
       else [Pretty.list "(" ")" (map (Pretty.typ pp o Type.freeze_type) args)];
   in Pretty.block (Pretty.str c :: prt_args) end;
 
+fun plain_args args =
+  forall Term.is_TVar args andalso not (has_duplicates (op =) args);
+
 fun disjoint_args (Ts, Us) =
   not (Type.could_unifys (Ts, Us)) orelse
     ((Type.raw_unifys (Ts, map (Logic.incr_tvar (maxidx_of_typs Ts + 1)) Us) Vartab.empty; false)
@@ -197,9 +200,6 @@ fun merge pp (Defs defs1, Defs defs2) =
 
 
 (* define *)
-
-fun plain_args args =
-  forall Term.is_TVar args andalso not (has_duplicates (op =) args);
 
 fun define pp consts unchecked is_def module name lhs rhs (Defs defs) =
   let
