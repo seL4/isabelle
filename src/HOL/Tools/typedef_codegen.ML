@@ -28,16 +28,16 @@ fun typedef_codegen thy defs gr dep module brack t =
         val id = Codegen.mk_qual_id module (Codegen.get_const_id s gr'')
       in SOME (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
     fun lookup f T =
-      (case TypedefPackage.get_typedef_info thy (get_name T) of
+      (case TypedefPackage.get_info thy (get_name T) of
         NONE => ""
-      | SOME (s, _) => f s);
+      | SOME info => f info);
   in
     (case strip_comb t of
        (Const (s, Type ("fun", [T, U])), ts) =>
-         if lookup #4 T = s andalso
+         if lookup #Rep_name T = s andalso
            is_none (Codegen.get_assoc_type thy (get_name T))
          then mk_fun s T ts
-         else if lookup #3 U = s andalso
+         else if lookup #Abs_name U = s andalso
            is_none (Codegen.get_assoc_type thy (get_name U))
          then mk_fun s U ts
          else NONE
@@ -49,9 +49,9 @@ fun mk_tyexpr [] s = Pretty.str s
   | mk_tyexpr ps s = Pretty.list "(" (") " ^ s) ps;
 
 fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
-      (case TypedefPackage.get_typedef_info thy s of
+      (case TypedefPackage.get_info thy s of
          NONE => NONE
-       | SOME ((newT as Type (tname, Us), oldT, Abs_name, Rep_name), _) =>
+       | SOME {abs_type as newT as Type (tname, Us), rep_type = oldT, Abs_name, Rep_name, ...} =>
            if is_some (Codegen.get_assoc_type thy tname) then NONE else
            let
              val module' = Codegen.if_library
@@ -104,8 +104,9 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
   | typedef_tycodegen thy defs gr dep module brack _ = NONE;
 
 fun typedef_type_extr thy tyco =
-  case TypedefPackage.get_typedef_info thy tyco
-   of SOME ((ty_abs, ty_rep, c_abs, c_rep), (SOME def, inject, _)) =>
+  case TypedefPackage.get_info thy tyco
+   of SOME {abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs, Rep_name = c_rep,
+     set_def = SOME def, Abs_inject = inject, ...} =>
         let
           val exists_thm =
             UNIV_I
@@ -122,8 +123,9 @@ fun typedef_type_extr thy tyco =
 fun typedef_fun_extr thy (c, ty) =
   case (fst o strip_type) ty
    of Type (tyco, _) :: _ =>
-    (case TypedefPackage.get_typedef_info thy tyco
-     of SOME ((ty_abs, ty_rep, c_abs, c_rep), (SOME def, _, inverse)) =>
+    (case TypedefPackage.get_info thy tyco
+     of SOME {abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs, Rep_name = c_rep,
+       set_def = SOME def, Abs_inverse = inverse, ...} =>
           if c = c_rep then
             let
               val exists_thm =
