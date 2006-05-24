@@ -54,9 +54,9 @@ fun match_args (Ts, Us) =
 type spec = {is_def: bool, module: string, name: string, lhs: args, rhs: (string * args) list};
 
 type def =
- {specs: spec Inttab.table,
-  restricts: (args * string) list,
-  reducts: (args * (string * args) list) list};
+ {specs: spec Inttab.table,                 (*source specifications*)
+  restricts: (args * string) list,          (*global restrictions imposed by incomplete patterns*)
+  reducts: (args * (string * args) list) list};  (*specifications as reduction system*)
 
 fun make_def (specs, restricts, reducts) =
   {specs = specs, restricts = restricts, reducts = reducts}: def;
@@ -69,12 +69,12 @@ fun map_def c f =
 
 datatype T = Defs of def Symtab.table;
 
-fun lookup_list which (Defs defs) c =
+fun lookup_list which defs c =
   (case Symtab.lookup defs c of
     SOME def => which def
   | NONE => []);
 
-val specifications_of = lookup_list (Inttab.dest o #specs);
+fun specifications_of (Defs defs) = lookup_list (Inttab.dest o #specs) defs;
 val restricts_of = lookup_list #restricts;
 val reducts_of = lookup_list #reducts;
 
@@ -111,7 +111,7 @@ fun update_specs c spec = map_def c (fn (specs, restricts, reducts) =>
 
 local
 
-fun contained U (Type (_, Ts)) = exists (fn T => T = U orelse contained U T) Ts
+fun contained (U as TVar _) (Type (_, Ts)) = exists (fn T => T = U orelse contained U T) Ts
   | contained _ _ = false;
 
 fun wellformed pp defs (c, args) (d, Us) =
@@ -121,7 +121,7 @@ fun wellformed pp defs (c, args) (d, Us) =
       error (s1 ^ " dependency of constant " ^ prt (c, args) ^ " -> " ^ prt (d, Us) ^ s2);
   in
     exists (fn U => exists (contained U) args) Us orelse
-    (c <> d andalso forall (member (op =) args) Us) orelse
+    (c <> d andalso forall is_TVar Us) orelse
     (if c = d andalso is_some (match_args (args, Us)) then err "Circular" "" else
       (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
         SOME (Ts, name) =>
@@ -147,12 +147,12 @@ fun reduction pp defs const deps =
     val _ = forall (wellformed pp defs const) (the_default deps deps');
   in deps' end;
 
-fun normalize_all pp =
+fun normalize pp =
   let
     fun norm_update (c, {reducts, ...}: def) (changed, defs) =
       let
         val reducts' = reducts |> map (fn (args, deps) =>
-          (args, perhaps (reduction pp (Defs defs) (c, args)) deps));
+          (args, perhaps (reduction pp defs (c, args)) deps));
       in
         if reducts = reducts' then (changed, defs)
         else (true, defs |> map_def c (fn (specs, restricts, reducts) =>
@@ -164,25 +164,15 @@ fun normalize_all pp =
       | (false, _) => defs);
   in norm_all end;
 
-fun normalize_single pp defs const =
-  let
-    fun norm deps =
-      (case reduction pp defs const deps of
-        NONE => deps
-      | SOME deps' => norm deps');
-  in norm end;
-
 in
 
-fun dependencies pp (c, args) restr deps (Defs defs) =
-  let
-    val deps' = normalize_single pp (Defs defs) (c, args) deps;
-    val defs' = defs |> map_def c (fn (specs, restricts, reducts) =>
-      let
-        val restricts' = Library.merge (op =) (restricts, restr);
-        val reducts' = insert (op =) (args, deps') reducts;
-      in (specs, restricts', reducts') end);
-  in Defs (normalize_all pp defs') end;
+fun dependencies pp (c, args) restr deps =
+  map_def c (fn (specs, restricts, reducts) =>
+    let
+      val restricts' = Library.merge (op =) (restricts, restr);
+      val reducts' = insert (op =) (args, deps) reducts;
+    in (specs, restricts', reducts') end)
+  #> normalize pp;
 
 end;
 
@@ -196,7 +186,7 @@ fun merge pp (Defs defs1, Defs defs2) =
       else dependencies pp (c, args) restr deps defs;
     fun add_def (c, {restricts, reducts, ...}: def) =
       fold (fn (args, deps) => add_deps (c, args) restricts deps) reducts;
-  in Defs (Symtab.join join_specs (defs1, defs2)) |> Symtab.fold add_def defs2 end;
+  in Defs (Symtab.join join_specs (defs1, defs2) |> Symtab.fold add_def defs2) end;
 
 
 (* define *)
@@ -213,6 +203,6 @@ fun define pp consts unchecked is_def module name lhs rhs (Defs defs) =
     val spec =
       (serial (), {is_def = is_def, module = module, name = name, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
-  in Defs defs' |> (if unchecked then I else dependencies pp (c, args) restr deps) end;
+  in Defs (defs' |> (if unchecked then I else dependencies pp (c, args) restr deps)) end;
 
 end;
