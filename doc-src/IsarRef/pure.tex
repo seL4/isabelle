@@ -264,15 +264,11 @@ Overloading means that a constant being declared as $c :: \alpha\,
 decl$ may be defined separately on type instances $c ::
 (\vec\beta)\,t\,decl$ for each type constructor $t$.  The RHS may
 mention overloaded constants recursively at type instances
-corresponding to the immediate argument types $\vec\beta$.  This
-scheme covers the disciplined overloading of Haskell98, although
-Isabelle does not demand an exact correspondence to type class and
-instance declarations.
-
-There is an internal dependency graph of all overloaded and
-non-overloaded definitions, which ensures that the collection of
-interdependent constants in a theory can still be interpreted in terms
-of the basic logic.
+corresponding to the immediate argument types $\vec\beta$.  Incomplete
+specification patterns impose global constraints on all occurrences,
+e.g. $d :: \alpha \times \alpha$ on the LHS means that all
+corresponding occurrences on some RHS need to be an instance of this,
+general $d :: \alpha \times \beta$ will be disallowed.
 
 \indexisarcmd{consts}\indexisarcmd{defs}\indexisarcmd{constdefs}\indexoutertoken{constdecl}
 \begin{matharray}{rcl}
