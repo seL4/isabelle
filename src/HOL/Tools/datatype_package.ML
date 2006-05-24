@@ -573,6 +573,11 @@ fun add_and_get_axiomss label tnames tss thy =
     in (Theory.parent_path thy'', axs::axss)
     end) (thy, []) (tnames ~~ tss) |> swap;
 
+fun specify_consts args thy =
+  let val specs =
+    args |> map (fn (c, T, mx) => Const (Sign.full_name thy (Syntax.const_name c mx), T));
+  in thy |> Theory.add_consts_i args |> Theory.add_finals_i false specs end;
+
 fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
   let
@@ -623,24 +628,22 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
       (** primrec combinators **)
 
-      Theory.add_consts_i (map (fn ((name, T), T') =>
-        (name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
-          (reccomb_names ~~ recTs ~~ rec_result_Ts)) |>
+      specify_consts (map (fn ((name, T), T') =>
+        (name, reccomb_fn_Ts @ [T] ---> T', NoSyn)) (reccomb_names ~~ recTs ~~ rec_result_Ts)) |>
 
       (** case combinators **)
 
-      Theory.add_consts_i (map (fn ((name, T), Ts) =>
-        (name, Ts @ [T] ---> freeT, NoSyn))
-          (case_names ~~ newTs ~~ case_fn_Ts));
+      specify_consts (map (fn ((name, T), Ts) =>
+        (name, Ts @ [T] ---> freeT, NoSyn)) (case_names ~~ newTs ~~ case_fn_Ts));
 
-    val reccomb_names' = map (Sign.intern_const thy2') reccomb_names;
-    val case_names' = map (Sign.intern_const thy2') case_names;
+    val reccomb_names' = map (Sign.full_name thy2') reccomb_names;
+    val case_names' = map (Sign.full_name thy2') case_names;
 
     val thy2 = thy2' |>
 
       (** size functions **)
 
-      (if no_size then I else Theory.add_consts_i (map (fn (s, T) =>
+      (if no_size then I else specify_consts (map (fn (s, T) =>
         (Sign.base_name s, T --> HOLogic.natT, NoSyn))
           (size_names ~~ Library.drop (length (hd descr), recTs)))) |>
 
@@ -650,7 +653,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       curry (Library.foldr (fn (((((_, (_, _, constrs)), T), tname),
         constr_syntax'), thy') => thy' |>
           add_path flat_names tname |>
-            Theory.add_consts_i (map (fn ((_, cargs), (cname, mx)) =>
+            specify_consts (map (fn ((_, cargs), (cname, mx)) =>
               (cname, map (typ_of_dtyp descr' sorts) cargs ---> T, mx))
                 (constrs ~~ constr_syntax')) |>
           parent_path flat_names))
