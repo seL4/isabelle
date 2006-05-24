@@ -71,7 +71,7 @@ datatype T = Defs of def Symtab.table;
 
 fun lookup_list which defs c =
   (case Symtab.lookup defs c of
-    SOME def => which def
+    SOME (def: def) => which def
   | NONE => []);
 
 fun specifications_of (Defs defs) = lookup_list (Inttab.dest o #specs) defs;
