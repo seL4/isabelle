@@ -677,6 +677,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (descr1, descr2) = chop (length new_type_names) descr'';
     val descr' = [descr1, descr2];
 
+    fun partition_cargs idxs xs = map (fn (i, j) =>
+      (List.take (List.drop (xs, i), j), List.nth (xs, i + j))) idxs;
+
     val typ_of_dtyp' = replace_types' o typ_of_dtyp descr sorts';
 
     val rep_names = map (fn s =>
@@ -1119,6 +1122,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val tnames = variantlist (DatatypeProp.make_tnames Ts, pnames);
         val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
+        val frees' = partition_cargs idxs frees;
         val z = (variant tnames "z", fsT);
 
         fun mk_prem ((dt, s), T) =
@@ -1129,11 +1133,24 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (make_pred fsT (body_index dt) U $ Bound l $ app_bnds (Free (s, T)) l))
           end;
 
+        fun mk_fresh1 xs [] = []
+          | mk_fresh1 xs ((y as (_, T)):: ys) = map (fn x => HOLogic.mk_Trueprop
+                (HOLogic.mk_not (HOLogic.mk_eq (Free y, Free x))))
+                  (filter (fn (_, U) => T = U) (rev xs)) @
+              mk_fresh1 (y :: xs) ys;
+
+        fun mk_fresh2 xss [] = []
+          | mk_fresh2 xss ((p as (ys, _)) :: yss) = List.concat (map (fn y as (_, T) =>
+                map (fn (_, x as (_, U)) => HOLogic.mk_Trueprop
+                  (Const ("Nominal.fresh", T --> U --> HOLogic.boolT) $ Free y $ Free x))
+                    (rev xss @ yss)) ys) @
+              mk_fresh2 (p :: xss) yss;
+
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
         val prems' = map (fn p as (_, T) => HOLogic.mk_Trueprop
-            (f T (Free p) (Free z)))
-          (map (curry List.nth frees) (List.concat (map (fn (m, n) =>
-             m upto m + n - 1) idxs)))
+            (f T (Free p) (Free z))) (List.concat (map fst frees')) @
+          mk_fresh1 [] (List.concat (map fst frees')) @
+          mk_fresh2 [] frees'
 
       in list_all_free (frees @ [z], Logic.list_implies (prems' @ prems,
         HOLogic.mk_Trueprop (make_pred fsT k T $ Free z $
@@ -1198,7 +1215,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           Const ("List.list.Nil", pT)
       end;
 
-    fun mk_fresh i i' j k p l vs _ _ =
+    fun mk_fresh i i' j k p l is vs _ _ =
       let
         val n = length vs;
         val Ts = map snd vs;
@@ -1206,18 +1223,25 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val f = the (AList.lookup op = fresh_fs T);
         val U = List.nth (Ts, n - i' - 1);
         val S = HOLogic.mk_setT T;
+        val prms' = map Bound (n - k downto n - k - p + 1);
         val prms = map (mk_ind_perm (n - i) k p (n - l) (("a", T) :: vs))
-            (j - 1 downto 0) @
-          map Bound (n - k downto n - k - p + 1)
+            (j - 1 downto 0) @ prms';
+        val bs = rev (List.mapPartial
+          (fn ((_, T'), i) => if T = T' then SOME (Bound i) else NONE)
+          (List.take (vs, n - k - p - 1) ~~ (1 upto n - k - p - 1)));
+        val ts = map (fn i =>
+          Const ("Nominal.supp", List.nth (Ts, n - i - 1) --> S) $
+            foldr (mk_perm (T :: Ts)) (Bound (n - i)) prms') is
       in
         HOLogic.mk_Trueprop (Const ("Ex", (T --> HOLogic.boolT) --> HOLogic.boolT) $
           Abs ("a", T, HOLogic.Not $
             (Const ("op :", T --> S --> HOLogic.boolT) $ Bound 0 $
-              (Const ("insert", T --> S --> S) $
-                (foldr (mk_perm (T :: Ts)) (Bound (n - i - j)) prms) $
-                (Const ("op Un", S --> S --> S) $ (f $ Bound (n - k - p)) $
-                   (Const ("Nominal.supp", U --> S) $
-                     foldr (mk_perm (T :: Ts)) (Bound (n - i')) prms))))))
+              (foldr (fn (t, u) => Const ("insert", T --> S --> S) $ t $ u)
+                (foldl (fn (t, u) => Const ("op Un", S --> S --> S) $ u $ t)
+                  (f $ Bound (n - k - p))
+                  (Const ("Nominal.supp", U --> S) $
+                     foldr (mk_perm (T :: Ts)) (Bound (n - i')) prms :: ts))
+                (foldr (mk_perm (T :: Ts)) (Bound (n - i - j)) prms :: bs)))))
       end;
 
     fun mk_fresh_constr is p vs _ concl =
@@ -1252,6 +1276,24 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val induct_aux_lemmas' = map (fn Type (s, _) =>
       PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "2")) RS sym) dt_atomTs;
 
+    val fresh_aux = PureThy.get_thms thy9 (Name "fresh_aux");
+
+    (**********************************************************************
+      The subgoals occurring in the proof of induct_aux have the
+      following parameters:
+
+        x_1 ... x_k p_1 ... p_m z b_1 ... b_n
+
+      where
+
+        x_i : constructor arguments (introduced by weak induction rule)
+        p_i : permutations (one for each atom type in the data type)
+        z   : freshness context
+        b_i : newly introduced names for binders (sufficiently fresh)
+    ***********************************************************************)
+
+    val _ = warning "proving strong induction theorem ...";
+
     val induct_aux = standard (Goal.prove thy9 [] ind_prems' ind_concl'
       (fn prems => EVERY
         ([mk_subgoal 1 (K (K (K aux_ind_concl))),
@@ -1269,7 +1311,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                      in
                        [mk_subgoal 1 (mk_fresh i (i + j) j'
                           (length cargs) (length dt_atomTs)
-                          (length cargs + length dt_atomTs + 1 + i - k)),
+                          (length cargs + length dt_atomTs + 1 + i - k)
+                          (List.mapPartial (fn (i', j) =>
+                             if i = i' then NONE else SOME (i' + j)) is)),
                         rtac at_finite_select 1,
                         rtac (PureThy.get_thm thy9 (Name ("at_" ^ atom ^ "_inst"))) 1,
                         asm_full_simp_tac (simpset_of thy9 addsimps
@@ -1286,14 +1330,19 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     alpha @ abs_perm @ abs_fresh @ [abs_fun_finite_supp] @
                     induct_aux_lemmas)) 1,
                  dtac sym 1,
-                 asm_full_simp_tac (simpset_of thy9
-                   addsimps induct_aux_lemmas'
-                   addsimprocs [perm_simproc]) 1,
+                 asm_full_simp_tac (simpset_of thy9) 1,
                  REPEAT (etac conjE 1)]
               else
                 []) @
              [(resolve_tac prems THEN_ALL_NEW
-                (atac ORELSE' ((REPEAT o etac allE) THEN' atac))) 1])
+                (atac ORELSE'
+                  SUBGOAL (fn (t, i) => case Logic.strip_assums_concl t of
+                      _ $ (Const ("Nominal.fresh", _) $ _ $ _) =>
+                        asm_simp_tac (simpset_of thy9 addsimps fresh_aux) i
+                    | _ =>
+                        asm_simp_tac (simpset_of thy9
+                        addsimps induct_aux_lemmas'
+                        addsimprocs [perm_simproc]) i))) 1])
                (constrs ~~ constrs'))) (descr'' ~~ ndescr)) @
          [REPEAT (eresolve_tac [conjE, allE_Nil] 1),
           REPEAT (etac allE 1),
@@ -1351,9 +1400,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (rec_set_names ~~ rec_set_Ts);
 
     (* introduction rules for graph of recursion function *)
-
-    fun partition_cargs idxs xs = map (fn (i, j) =>
-      (List.take (List.drop (xs, i), j), List.nth (xs, i + j))) idxs;
 
     fun mk_fresh_fun (a, t) = Const ("Nominal.fresh_fun",
       (fastype_of a --> fastype_of t) --> fastype_of t) $ lambda a t;
