@@ -51,7 +51,7 @@ c :: 'a => 'a => 'a, an instance c :: nat => nat => nat is represented
 as c(nat).  Overloading is essentially simultaneous structural
 recursion over such type arguments.  Incomplete specification patterns
 impose global constraints on all occurrences, e.g. c('a * 'a) on the
-LHS means that more general c('a * 'b) will be disallowed on the RHS.
+LHS means that more general c('a * 'b) will be disallowed on any RHS.
 Command 'print_theory' outputs the normalized system of recursive
 equations, see section "definitions".
 
