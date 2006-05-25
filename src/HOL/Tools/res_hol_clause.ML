@@ -703,15 +703,21 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
 
 
 fun init_funcs_tab funcs = 
-    case !typ_level of T_CONST => Symtab.update ("hEXTENT", 2) (Symtab.update ("fequal",1) funcs)
-		     | T_FULL => Symtab.update ("typeinfo",2) (Symtab.update ("hEXTENT",0) (Symtab.update ("fequal",0) funcs))
-		     | _ => Symtab.update ("hEXTENT",0) (Symtab.update ("fequal",0) funcs);
+    let val tp = !typ_level
+	val funcs1 = case tp of T_PARTIAL => Symtab.update ("hAPP",3) funcs
+				      | _ => Symtab.update ("hAPP",2) funcs
+	val funcs2 = case tp of T_FULL => Symtab.update ("typeinfo",2) funcs1
+				      | _ => funcs1
+    in
+	case tp of T_CONST => Symtab.update ("fequal",1) (Symtab.update ("hEXTENT",2) funcs2)
+			 | _ => Symtab.update ("fequal",0) (Symtab.update ("hEXTENT",0) funcs2)
+    end;
 
 
 fun add_funcs (CombConst(c,_,tvars),funcs) = 
     (case !typ_level of T_CONST => foldl ResClause.add_foltype_funcs (Symtab.update(c,length tvars) funcs) tvars
 		     | _ => foldl ResClause.add_foltype_funcs (Symtab.update(c,0) funcs) tvars)
-  | add_funcs (CombFree(_,ctp),funcs) = ResClause.add_foltype_funcs (ctp,funcs) 
+  | add_funcs (CombFree(v,ctp),funcs) = ResClause.add_foltype_funcs (ctp,Symtab.update (v,0) funcs) 
   | add_funcs (CombVar(_,ctp),funcs) = ResClause.add_foltype_funcs (ctp,funcs)
   | add_funcs (CombApp(P,Q,_),funcs) = add_funcs(P,add_funcs (Q,funcs))
   | add_funcs (Bool(t),funcs) = add_funcs (t,funcs);
