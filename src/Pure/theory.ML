@@ -238,6 +238,9 @@ fun dependencies thy unchecked is_def name lhs rhs =
   let
     val pp = Sign.pp thy;
     val consts = Sign.consts_of thy;
+    fun prep const =
+      let val Const (c, T) = Sign.no_vars pp (Const const)
+      in (c, Consts.typargs consts (c, Compress.typ thy (Type.varifyT T))) end;
 
     val lhs_vars = Term.add_tfreesT (#2 lhs) [];
     val rhs_extras = fold (#2 #> Term.fold_atyps (fn TFree v =>
@@ -247,13 +250,7 @@ fun dependencies thy unchecked is_def name lhs rhs =
       else error ("Specification depends on extra type variables: " ^
         commas_quote (map (Pretty.string_of_typ pp o TFree) rhs_extras) ^
         "\nThe error(s) above occurred in " ^ quote name);
-
-    fun prep const =
-      let val Const (c, T) = Sign.no_vars pp (Const const)
-      in (c, Compress.typ thy (Type.varifyT T)) end;
-  in
-    Defs.define pp consts unchecked is_def (Context.theory_name thy) name (prep lhs) (map prep rhs)
-  end;
+  in Defs.define pp unchecked is_def (Context.theory_name thy) name (prep lhs) (map prep rhs) end;
 
 fun add_deps a raw_lhs raw_rhs thy =
   let

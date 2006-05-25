@@ -18,8 +18,8 @@ sig
     reducts: ((string * typ list) * (string * typ list) list) list}
   val empty: T
   val merge: Pretty.pp -> T * T -> T
-  val define: Pretty.pp -> Consts.T ->
-    bool -> bool -> string -> string -> string * typ -> (string * typ) list -> T -> T
+  val define: Pretty.pp -> bool -> bool -> string -> string ->
+    string * typ list -> (string * typ list) list -> T -> T
 end
 
 structure Defs: DEFS =
@@ -191,11 +191,8 @@ fun merge pp (Defs defs1, Defs defs2) =
 
 (* define *)
 
-fun define pp consts unchecked is_def module name lhs rhs (Defs defs) =
+fun define pp unchecked is_def module name (c, args) deps (Defs defs) =
   let
-    fun typargs const = (#1 const, Consts.typargs consts const);
-    val (c, args) = typargs lhs;
-    val deps = map typargs rhs;
     val restr =
       if plain_args args orelse
         (case args of [Type (a, rec_args)] => plain_args rec_args | _ => false)
