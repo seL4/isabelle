@@ -505,6 +505,7 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 (**********************************************************************)
 (* convert clause into ATP specific formats:                          *)
 (* TPTP used by Vampire and E                                         *)
+(* DFG used by SPASS                                                  *)
 (**********************************************************************)
 
 val type_wrapper = "typeinfo";
@@ -629,6 +630,8 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
     string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
 
 
+(* tptp format *)
+
 fun tptp_literal (Literal(pol,pred)) =
     let val pred_string = string_of_combterm true pred
 	val pol_str = if pol then "++" else "--"
@@ -661,6 +664,77 @@ fun clause2tptp cls =
 	(cls_str,ctfree_lits)
     end;
 
+
+(* dfg format *)
+fun dfg_literal (Literal(pol,pred)) = ResClause.dfg_sign pol (string_of_combterm true pred);
+
+fun dfg_clause_aux (Clause{literals, ctypes_sorts, ...}) = 
+  let val lits = map dfg_literal literals
+      val (tvar_lits,tfree_lits) = ResClause.add_typs_aux ctypes_sorts
+      val tvar_lits_strs = 
+	  case !typ_level of T_NONE => [] 
+			    | _ => map ResClause.dfg_of_typeLit tvar_lits
+      val tfree_lits =
+          case !typ_level of T_NONE => []
+			    | _ => map ResClause.dfg_of_typeLit tfree_lits 
+  in
+      (tvar_lits_strs @ lits, tfree_lits)
+  end; 
+
+fun get_uvars (CombConst(_,_,_)) vars = vars
+  | get_uvars (CombFree(_,_)) vars = vars
+  | get_uvars (CombVar(v,tp)) vars = (v::vars)
+  | get_uvars (CombApp(P,Q,tp)) vars = get_uvars P (get_uvars Q vars)
+  | get_uvars (Bool(c)) vars = get_uvars c vars;
+
+
+fun get_uvars_l (Literal(_,c)) = get_uvars c [];
+
+fun dfg_vars (Clause {literals,...}) = ResClause.union_all (map get_uvars_l literals);
+ 
+fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+    let val (lits,tfree_lits) = dfg_clause_aux cls 
+        val vars = dfg_vars cls
+        val tvars = ResClause.get_tvar_strs ctypes_sorts
+	val knd = name_of_kind kind
+	val lits_str = commas lits
+	val cls_str = ResClause.gen_dfg_cls(clause_id, axiom_name, knd, lits_str, tvars@vars) 
+    in (cls_str, tfree_lits) end;
+
+
+fun init_funcs_tab funcs = 
+    case !typ_level of T_CONST => Symtab.update ("hEXTENT", 2) (Symtab.update ("fequal",1) funcs)
+		     | T_FULL => Symtab.update ("typeinfo",2) (Symtab.update ("hEXTENT",0) (Symtab.update ("fequal",0) funcs))
+		     | _ => Symtab.update ("hEXTENT",0) (Symtab.update ("fequal",0) funcs);
+
+
+fun add_funcs (CombConst(c,_,tvars),funcs) = 
+    (case !typ_level of T_CONST => foldl ResClause.add_foltype_funcs (Symtab.update(c,length tvars) funcs) tvars
+		     | _ => foldl ResClause.add_foltype_funcs (Symtab.update(c,0) funcs) tvars)
+  | add_funcs (CombFree(_,ctp),funcs) = ResClause.add_foltype_funcs (ctp,funcs) 
+  | add_funcs (CombVar(_,ctp),funcs) = ResClause.add_foltype_funcs (ctp,funcs)
+  | add_funcs (CombApp(P,Q,_),funcs) = add_funcs(P,add_funcs (Q,funcs))
+  | add_funcs (Bool(t),funcs) = add_funcs (t,funcs);
+
+
+fun add_literal_funcs (Literal(_,c), funcs) = add_funcs (c,funcs);
+
+fun add_clause_funcs (Clause {literals, ...}, funcs) =
+    foldl add_literal_funcs funcs literals
+    handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
+
+fun funcs_of_clauses clauses arity_clauses =
+    Symtab.dest (foldl ResClause.add_arityClause_funcs 
+                       (foldl add_clause_funcs (init_funcs_tab Symtab.empty) clauses)
+                       arity_clauses)
+
+fun preds_of clsrel_clauses arity_clauses = 
+    Symtab.dest
+	(foldl ResClause.add_classrelClause_preds 
+	       (foldl ResClause.add_arityClause_preds
+		      (Symtab.update ("hBOOL",1) Symtab.empty)
+		      arity_clauses)
+	       clsrel_clauses)
 
 
 (**********************************************************************)
@@ -732,6 +806,8 @@ fun hash_clause clause = xor_words (map hash_literal (get_literals clause));
 (* write clauses to files                                             *)
 (**********************************************************************)
 
+(* tptp format *)
+
 fun read_in fs = map (File.read o File.unpack_platform_path) fs; 
 
 fun get_helper_clauses_tptp () =
@@ -764,6 +840,51 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
 	List.app (curry TextIO.output out o ResClause.tptp_classrelClause) classrel_clauses;
 	List.app (curry TextIO.output out o ResClause.tptp_arity_clause) arity_clauses;
 	List.app (curry TextIO.output out) helper_clauses;
+	TextIO.closeOut out
+    end;
+
+
+(* dfg format *)
+fun get_helper_clauses_dfg () = 
+    let val tlevel = case !typ_level of T_FULL => (warning "Fully-typed HOL"; "~~/src/HOL/Tools/atp-inputs/full_")
+				      | T_PARTIAL => (warning "Partially-typed HOL"; "~~/src/HOL/Tools/atp-inputs/par_")
+				      | T_CONST => (warning "Const-only-typed HOL"; "~~/src/HOL/Tools/atp-inputs/const_")
+				      | T_NONE => (warning "Untyped HOL"; "~~/src/HOL/Tools/atp-inputs/u_")
+	val helpers = if !include_combS then (warning "Include combinator S"; ["helper1.dfg","comb_inclS.dfg"]) else
+		      if !include_min_comb then (warning "Include min combinators"; ["helper1.dfg","comb_noS.dfg"])
+		      else (warning "No combinator is used"; ["helper1.dfg"])
+	val t_helpers = map (curry (op ^) tlevel) helpers
+    in
+	read_in t_helpers
+    end;
+
+
+fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) =
+    let val _ = Output.debug ("Preparing to write the DFG file " ^ filename) 
+	val conjectures = make_conjecture_clauses thms
+	val axclauses' = make_axiom_clauses axclauses
+	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
+	val clss = conjectures @ axclauses'
+	val funcs = funcs_of_clauses clss arity_clauses
+	and preds = preds_of classrel_clauses arity_clauses
+	and probname = Path.pack (Path.base (Path.unpack filename))
+	val (axstrs,_) =  ListPair.unzip (map clause2dfg axclauses')
+	val tfree_clss = map ResClause.dfg_tfree_clause (ResClause.union_all tfree_litss)
+	val out = TextIO.openOut filename
+	val helper_clauses = get_helper_clauses_dfg ()
+    in
+	TextIO.output (out, ResClause.string_of_start probname); 
+	TextIO.output (out, ResClause.string_of_descrip probname); 
+	TextIO.output (out, ResClause.string_of_symbols (ResClause.string_of_funcs funcs) (ResClause.string_of_preds preds)); 
+	TextIO.output (out, "list_of_clauses(axioms,cnf).\n");
+	ResClause.writeln_strs out axstrs;
+	List.app (curry TextIO.output out o ResClause.dfg_classrelClause) classrel_clauses;
+	List.app (curry TextIO.output out o ResClause.dfg_arity_clause) arity_clauses;
+	ResClause.writeln_strs out helper_clauses;
+	TextIO.output (out, "end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n");
+	ResClause.writeln_strs out tfree_clss;
+	ResClause.writeln_strs out dfg_clss;
+	TextIO.output (out, "end_of_list.\n\nend_problem.\n");
 	TextIO.closeOut out
     end;
 
