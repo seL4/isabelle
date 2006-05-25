@@ -17,6 +17,11 @@ fun if_proof_E instr =
      (thisLine = "# Proof found!\n" orelse if_proof_E instr) 
   end;
 
+fun if_proof_spass instr = 
+    let val thisLine = TextIO.inputLine instr
+    in thisLine <> "" andalso 
+       (thisLine = "SPASS beiseite: Proof found.\n" orelse if_proof_spass instr) 
+    end;
 
 local 
 
@@ -44,6 +49,17 @@ fun call_eprover (file:string, time:int) =
   in if_proof_E instr
   end; 
 
+fun call_spass (file:string, time:int) =
+    let val _ = location file
+	val runtime = "-TimeLimit=" ^ (string_of_int time)
+	val spass = ResAtp.helper_path "SPASS_HOME" "SPASS"
+	val ch:(TextIO.instream,TextIO.outstream) Unix.proc =
+	    Unix.execute(spass, [runtime,"-Splits=0", "-FullRed=0", "-SOS=1",file])
+	val (instr,outstr) = Unix.streamsOf ch
+    in if_proof_spass instr
+    end;
+
+
 end
 
 fun vampire_o _ (file,time) = 
@@ -55,6 +71,12 @@ fun eprover_o _ (file,time) =
   if call_eprover (file,time) 
   then (warning file; ResAtp.cond_rm_tmp file; HOLogic.mk_Trueprop HOLogic.false_const)
   else (ResAtp.cond_rm_tmp file; raise Fail ("eprover oracle failed"));
+
+fun spass_o _ (file,time) =
+    if call_spass (file,time)
+    then (warning file; ResAtp.cond_rm_tmp file; HOLogic.mk_Trueprop HOLogic.false_const)
+    else (ResAtp.cond_rm_tmp file; raise Fail ("SPASS oracle failed"));
+
 
 end;
 
