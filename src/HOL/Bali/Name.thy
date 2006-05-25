@@ -84,7 +84,7 @@ translations
   (type) "'a qtname_scheme" <= (type) "\<lparr>pid::pname,tid::tname,\<dots>::'a\<rparr>"
 
 
-consts java_lang::pname --{* package java.lang *}
+axiomatization java_lang::pname --{* package java.lang *}
 
 consts 
   Object :: qtname
