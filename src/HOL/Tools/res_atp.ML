@@ -291,12 +291,10 @@ fun tptp_writer logic goals filename (axioms,classrels,arities) =
     then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
     else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities);
 
-(*2006-04-07: not working: goals has type thm list (not term list as above) and
-  axioms has type ResClause.clause list (not (thm * (string * int)) list as above)*)
 fun dfg_writer logic goals filename (axioms,classrels,arities) =
     if is_fol_logic logic 
     then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
-    else error "DFG output for higher-order translations is not implemented"
+    else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities);
 
 
 fun write_subgoal_file mode ctxt conjectures user_thms n =
@@ -312,7 +310,7 @@ fun write_subgoal_file mode ctxt conjectures user_thms n =
 	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
-        val writer = (*if !prover = "spass" then dfg_writer else*) tptp_writer 
+        val writer = if !prover = "spass" then dfg_writer else tptp_writer 
 	val file = atp_input_file()
     in
 	(writer prob_logic goal_cls file (axclauses_as_thms,classrel_clauses,arity_clauses);
@@ -421,7 +419,7 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
       val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
-      val writer = (*if !prover = "spass" then dfg_writer else*) tptp_writer 
+      val writer = if !prover = "spass" then dfg_writer else tptp_writer 
       fun write_all [] _ = []
 	| write_all (subgoal::subgoals) k =
 	  (writer goals_logic subgoal (pf k) (axclauses,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
