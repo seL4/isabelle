@@ -16,13 +16,16 @@ sig
    
   datatype mode = Auto | Fol | Hol
   val linkup_logic_mode : mode ref
-  val write_subgoal_file: mode -> Proof.context -> thm list -> thm list -> int -> string
+  val write_subgoal_file: bool -> mode -> Proof.context -> thm list -> thm list -> int -> string
   val vampire_time: int ref
   val eprover_time: int ref
+  val spass_time: int ref
   val run_vampire: int -> unit
   val run_eprover: int -> unit
+  val run_spass: int -> unit
   val vampireLimit: unit -> int
   val eproverLimit: unit -> int
+  val spassLimit: unit -> int
   val atp_method: (ProofContext.context -> thm list -> int -> Tactical.tactic) ->
 		  Method.src -> ProofContext.context -> Method.method
   val cond_rm_tmp: string -> unit
@@ -86,6 +89,8 @@ fun prob_pathname n = probfile_nosuffix n ^ "_" ^ Int.toString n;
 (*** ATP methods ***)
 val vampire_time = ref 60;
 val eprover_time = ref 60;
+val spass_time = ref 60;
+
 fun run_vampire time =  
     if (time >0) then vampire_time:= time
     else vampire_time:=60;
@@ -94,8 +99,14 @@ fun run_eprover time =
     if (time > 0) then eprover_time:= time
     else eprover_time:=60;
 
+fun run_spass time = 
+    if (time > 0) then spass_time:=time
+    else spass_time:=60;
+
+
 fun vampireLimit () = !vampire_time;
 fun eproverLimit () = !eprover_time;
+fun spassLimit () = !spass_time;
 
 val keep_atp_input = ref false;
 val fol_keep_types = ResClause.keep_types;
@@ -297,7 +308,7 @@ fun dfg_writer logic goals filename (axioms,classrels,arities) =
     else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities);
 
 
-fun write_subgoal_file mode ctxt conjectures user_thms n =
+fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
     let val conj_cls = make_clauses conjectures 
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
@@ -310,7 +321,7 @@ fun write_subgoal_file mode ctxt conjectures user_thms n =
 	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
-        val writer = if !prover = "spass" then dfg_writer else tptp_writer 
+        val writer = if dfg then dfg_writer else tptp_writer 
 	val file = atp_input_file()
     in
 	(writer prob_logic goal_cls file (axclauses_as_thms,classrel_clauses,arity_clauses);
