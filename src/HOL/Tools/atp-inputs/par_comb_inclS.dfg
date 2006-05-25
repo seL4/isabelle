@@ -1,0 +1,81 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%typed combinator reduction for partial-types (include S)
+
+clause(
+forall([A, B, P, Q],
+or( equal(hAPP(hAPP(c_COMBK,P,tc_fun(A,tc_fun(B,A))),Q,tc_fun(B,A)),P))),
+a1 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBS,P,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(tc_fun(A,B),tc_fun(A,C)))),Q,tc_fun(tc_fun(A,B),tc_fun(A,C))),R,tc_fun(A,C)),hAPP(hAPP(P,R,tc_fun(A,tc_fun(B,C))),hAPP(Q,R,tc_fun(A,B)),tc_fun(B,C))))),
+a2 ).
+
+clause(
+forall([P, T],
+or( equal(hAPP(c_COMBI,P,tc_fun(T,T)),P))),
+a3 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBB,P,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))),Q,tc_fun(tc_fun(C,A),tc_fun(C,B))),R,tc_fun(C,B)),hAPP(P,hAPP(Q,R,tc_fun(C,A)),tc_fun(A,B))))),
+a4 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBC,P,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))),Q,tc_fun(B,tc_fun(A,C))),R,tc_fun(A,C)),hAPP(hAPP(P,R,tc_fun(A,tc_fun(B,C))),Q,tc_fun(B,C))))),
+a5 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBK))),
+a6 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBS))),
+a7 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBB))),
+a8 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBC))),
+a9 ).
+
+clause(
+or( not(equal(c_COMBK,c_COMBS))),
+a10 ).
+
+clause(
+or( not(equal(c_COMBK,c_COMBB))),
+a11 ).
+
+clause(
+or( not(equal(c_COMBK,c_COMBC))),
+a12 ).
+
+clause(
+or( not(equal(c_COMBS,c_COMBB))),
+a13 ).
+
+clause(
+or( not(equal(c_COMBS,c_COMBC))),
+a14 ).
+
+clause(
+or( not(equal(c_COMBB,c_COMBC))),
+a15 ).
+
+clause(
+forall([A, X, Y],
+or( not(hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool)))),
+    equal(X,Y))),
+a16 ).
+
+clause(
+forall([A, X, Y],
+or( not(equal(X,Y)),
+    hBOOL(hAPP(hAPP(fequal,X,tc_fun(A,tc_fun(A,tc_bool))),Y,tc_fun(A,tc_bool))))),
+a17 ).
+

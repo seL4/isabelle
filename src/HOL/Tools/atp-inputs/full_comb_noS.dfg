@@ -1,0 +1,66 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%typed combinator reduction for full-types (no S)
+
+clause(
+forall([A, B, P, Q],
+or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(P,A)),tc_fun(B,A)),typeinfo(Q,B)),A),typeinfo(P,A)))),
+a1 ).
+
+clause(
+forall([P, T],
+or( equal(typeinfo(hAPP(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(P,T)),T),typeinfo(P,T)))),
+a3 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBB,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))),typeinfo(P,tc_fun(A,B))),tc_fun(tc_fun(C,A),tc_fun(C,B))),typeinfo(Q,tc_fun(C,A))),tc_fun(C,B)),typeinfo(R,C)),B),typeinfo(hAPP(typeinfo(P,tc_fun(A,B)),typeinfo(hAPP(typeinfo(Q,tc_fun(C,A)),typeinfo(R,C)),A)),B)))),
+a4 ).
+
+clause(
+forall([A, B, C, P, Q, R],
+or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBC,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))),typeinfo(P,tc_fun(A,tc_fun(B,C)))),tc_fun(B,tc_fun(A,C))),typeinfo(Q,B)),tc_fun(A,C)),typeinfo(R,A)),C),typeinfo(hAPP(typeinfo(hAPP(typeinfo(P,tc_fun(A,tc_fun(B,C))),typeinfo(R,A)),tc_fun(B,C)),typeinfo(Q,B)),C)))),
+a5 ).
+
+clause(
+forall([A, B, T],
+or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))))))),
+a6 ).
+
+clause(
+forall([A, B, C, T],
+or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBB,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))))))),
+a8 ).
+
+clause(
+forall([A, B, C, T],
+or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBC,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))))))),
+a9 ).
+
+clause(
+forall([A, A1, B, B1, C1],
+or( not(equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))))))),
+a11 ).
+
+clause(
+forall([A, A2, B, B2, C2],
+or( not(equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))))),
+a12 ).
+
+clause(
+forall([A1, A2, B1, B2, C1, C2],
+or( not(equal(typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))))),
+a15 ).
+
+clause(
+forall([A, X, Y],
+or( not(hBOOL(typeinfo(hAPP(typeinfo(hAPP(typeinfo(fequal,tc_fun(A,tc_fun(A,tc_bool))),typeinfo(X,A)),tc_fun(A,tc_bool)),typeinfo(Y,A)),tc_bool))),
+    equal(typeinfo(X,A),typeinfo(Y,A)))),
+a16 ).
+
+clause(
+forall([A, X, Y],
+or( not(equal(typeinfo(X,A),typeinfo(Y,A))),
+    hBOOL(typeinfo(hAPP(typeinfo(hAPP(typeinfo(fequal,tc_fun(A,tc_fun(A,tc_bool))),typeinfo(X,A)),tc_fun(A,tc_bool)),typeinfo(Y,A)),tc_bool)))),
+a17 ).
+

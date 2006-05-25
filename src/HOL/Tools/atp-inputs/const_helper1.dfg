@@ -1,0 +1,10 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%extensionality for const-types-only
+
+clause(
+forall([A, B, F, G],
+or( not(equal(hAPP(F,hAPP(hAPP(hEXTENT(A,B),F),G)),hAPP(G,hAPP(hAPP(hEXTENT(A,B),F),G)))),
+    equal(F,G))),
+a18 ).
+

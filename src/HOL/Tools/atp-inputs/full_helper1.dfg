@@ -1,0 +1,10 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%extensionality for full-types
+
+clause(
+forall([A, B, F, G],
+or( not(equal(typeinfo(hAPP(typeinfo(F,tc_fun(A,B)),typeinfo(hAPP(typeinfo(hAPP(typeinfo(hEXTENT,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),typeinfo(F,tc_fun(A,B))),tc_fun(tc_fun(A,B),A)),typeinfo(G,tc_fun(A,B))),A)),B),typeinfo(hAPP(typeinfo(G,tc_fun(A,B)),typeinfo(hAPP(typeinfo(hAPP(typeinfo(hEXTENT,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),typeinfo(F,tc_fun(A,B))),tc_fun(tc_fun(A,B),A)),typeinfo(G,tc_fun(A,B))),A)),B))),
+    equal(typeinfo(F,tc_fun(A,B)),typeinfo(G,tc_fun(A,B))))),
+a18 ).
+

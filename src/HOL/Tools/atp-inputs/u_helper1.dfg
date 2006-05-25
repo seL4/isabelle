@@ -1,0 +1,10 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%extensionality, untyped
+
+clause(
+forall([F, G],
+or( not(equal(hAPP(F,hAPP(hAPP(hEXTENT,F),G)),hAPP(G,hAPP(hAPP(hEXTENT,F),G)))),
+    equal(F,G))),
+a18 ).
+

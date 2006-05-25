@@ -1,0 +1,60 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%untyped combinator reduction (no S)
+
+clause(
+forall([P, Q],
+or( equal(hAPP(hAPP(c_COMBK,P),Q),P))),
+a1 ).
+
+clause(
+forall([P],
+or( equal(hAPP(c_COMBI,P),P))),
+a3 ).
+
+clause(
+forall([P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBB,P),Q),R),hAPP(P,hAPP(Q,R))))),
+a4 ).
+
+clause(
+forall([P, Q, R],
+or( equal(hAPP(hAPP(hAPP(c_COMBC,P),Q),R),hAPP(hAPP(P,R),Q)))),
+a5 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBK))),
+a6 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBB))),
+a8 ).
+
+clause(
+or( not(equal(c_COMBI,c_COMBC))),
+a9 ).
+
+clause(
+or( not(equal(c_COMBK,c_COMBB))),
+a11 ).
+
+clause(
+or( not(equal(c_COMBK,c_COMBC))),
+a12 ).
+
+clause(
+or( not(equal(c_COMBB,c_COMBC))),
+a15 ).
+
+clause(
+forall([X, Y],
+or( not(hBOOL(hAPP(hAPP(fequal,X),Y))),
+    equal(X,Y))),
+a16 ).
+
+clause(
+forall([X, Y],
+or( not(equal(X,Y)),
+    hBOOL(hAPP(hAPP(fequal,X),Y)))),
+a17 ).
+

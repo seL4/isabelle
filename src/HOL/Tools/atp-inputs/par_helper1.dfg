@@ -1,0 +1,9 @@
+%ID: $Id$
+%Author: Jia Meng, NICTA
+%extensionality for partial types
+
+clause(
+forall([A, B, F, G],
+or( not(equal(hAPP(F,hAPP(hAPP(hEXTENT,F,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),G,tc_fun(tc_fun(A,B),A)),tc_fun(A,B)),hAPP(G,hAPP(hAPP(hEXTENT,F,tc_fun(tc_fun(A,B),tc_fun(tc_fun(A,B),A))),G,tc_fun(tc_fun(A,B),A)),tc_fun(A,B)))),
+    equal(F,G))),
+a18 ).
