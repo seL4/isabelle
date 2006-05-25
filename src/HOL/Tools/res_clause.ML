@@ -23,7 +23,7 @@ signature RES_CLAUSE =
   val clause_prefix : string 
   val clause2tptp : clause -> string * string list
   val const_prefix : string
-  val dfg_write_file: thm list -> string -> (clause list * classrelClause list * arityClause list) -> unit
+  val dfg_write_file:  thm list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
   val fixed_var_prefix : string
   val gen_tptp_cls : int * string * string * string -> string
   val gen_tptp_type_cls : int * string * string * string * int -> string
@@ -61,7 +61,23 @@ signature RES_CLAUSE =
   val types_ord : fol_type list * fol_type list -> order
   val union_all : ''a list list -> ''a list
   val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
-  end;
+  val dfg_sign: bool -> string -> string
+  val dfg_of_typeLit: type_literal -> string
+  val get_tvar_strs: (typ_var * sort) list -> string list
+  val gen_dfg_cls: int * string * string * string * string list -> string
+  val add_foltype_funcs: fol_type * int Symtab.table -> int Symtab.table
+  val add_arityClause_funcs: arityClause * int Symtab.table -> int Symtab.table
+  val add_arityClause_preds: arityClause * int Symtab.table -> int Symtab.table
+  val add_classrelClause_preds : classrelClause * int Symtab.table -> int Symtab.table
+  val dfg_tfree_clause : string -> string
+  val string_of_start: string -> string
+  val string_of_descrip : string -> string
+  val string_of_symbols: string -> string -> string
+  val string_of_funcs: (string * int) list -> string
+  val string_of_preds: (string * Int.int) list -> string
+  val dfg_classrelClause: classrelClause -> string
+  val dfg_arity_clause: arityClause -> string
+end;
 
 structure ResClause : RES_CLAUSE =
 struct
@@ -928,16 +944,17 @@ fun dfg_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) =
   end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
-fun dfg_write_file ths filename (axclauses,classrel_clauses,arity_clauses) = 
+fun dfg_write_file thms filename (axclauses,classrel_clauses,arity_clauses) = 
   let 
     val _ = Output.debug ("Preparing to write the DFG file " ^ filename)
-    val conjectures = make_conjecture_clauses ths
+    val conjectures = make_conjecture_clauses thms
+    val axclauses' = make_axiom_clauses axclauses
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
-    val clss = conjectures @ axclauses
+    val clss = conjectures @ axclauses'
     val funcs = funcs_of_clauses clss arity_clauses
     and preds = preds_of_clauses clss classrel_clauses arity_clauses
     and probname = Path.pack (Path.base (Path.unpack filename))
-    val (axstrs, _) = ListPair.unzip (map clause2dfg axclauses)
+    val (axstrs, _) = ListPair.unzip (map clause2dfg axclauses')
     val tfree_clss = map dfg_tfree_clause (union_all tfree_litss) 
     val out = TextIO.openOut filename
   in
