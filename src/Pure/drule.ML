@@ -348,19 +348,17 @@ fun strip_shyps_warning thm =
     thm'
   end;
 
-(*Generalization over a list of variables, IGNORING bad ones*)
-fun forall_intr_list [] th = th
-  | forall_intr_list (y::ys) th =
-        let val gth = forall_intr_list ys th
-        in  forall_intr y gth   handle THM _ =>  gth  end;
+(*Generalization over a list of variables*)
+val forall_intr_list = fold_rev forall_intr;
 
 (*Generalization over all suitable Free variables*)
 fun forall_intr_frees th =
-    let val {prop,thy,...} = rep_thm th
-    in  forall_intr_list
-         (map (cterm_of thy) (sort Term.term_ord (term_frees prop)))
-         th
-    end;
+    let
+      val {prop, hyps, tpairs, thy,...} = rep_thm th;
+      val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
+      val frees = Term.fold_aterms (fn Free v =>
+        if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
+    in fold (forall_intr o cterm_of thy o Free) frees th end;
 
 (*Generalization over Vars -- canonical order*)
 fun forall_intr_vars th =
