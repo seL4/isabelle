@@ -236,8 +236,8 @@ fun pretty_items _ _ [] = []
 
 fun pretty_name_atts ctxt (name, atts) sep =
   if name = "" andalso null atts then []
-  else [Pretty.block (Pretty.breaks (Pretty.str (ProofContext.extern_thm ctxt name) ::
-    Args.pretty_attribs ctxt atts @ [Pretty.str sep]))];
+  else [Pretty.block
+    (Pretty.breaks (Pretty.str name :: Args.pretty_attribs ctxt atts @ [Pretty.str sep]))];
 
 
 (* pretty_stmt *)
