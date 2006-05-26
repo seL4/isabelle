@@ -159,18 +159,10 @@ fun refl_clause th =
 
 (*** The basic CNF transformation ***)
 
-(*Generation of unique names -- maxidx cannot be relied upon to increase!
-  Cannot rely on "variant", since variables might coincide when literals
-  are joined to make a clause...
-  19 chooses "U" as the first variable name*)
-val name_ref = ref 19;
-
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, call "generalize". *)
 fun freeze_spec th =
-  let val names = add_term_names (prop_of th, [])
-      val newname = (name_ref := !name_ref + 1;
-		     variant names (radixstring(26, "A", !name_ref)))
+  let val newname = gensym "A_"
       val spec' = read_instantiate [("x", newname)] spec
   in  th RS spec'  end;
 
@@ -207,7 +199,6 @@ fun cnf skoths (th,ths) =
 	  | _ => (*no work to do*) th::ths 
       and cnf_nil th = cnf_aux (th,[])
   in 
-    name_ref := 19;  (*It's safe to reset this in a top-level call to cnf*)
     cnf_aux (th,ths)
   end;
 
