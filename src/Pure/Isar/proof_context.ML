@@ -113,7 +113,6 @@ sig
   val get_thms_closure: context -> thmref -> thm list
   val valid_thms: context -> string * thm list -> bool
   val lthms_containing: context -> FactIndex.spec -> (string * thm list) list
-  val extern_thm: context -> string -> xstring
   val no_base_names: context -> context
   val qualified_names: context -> context
   val sticky_prefix: string -> context -> context
@@ -1016,8 +1015,6 @@ fun lthms_containing ctxt spec =
 
 
 (* name space operations *)
-
-val extern_thm = NameSpace.extern o #1 o #1 o thms_of;
 
 val no_base_names   = map_naming NameSpace.no_base_names;
 val qualified_names = map_naming NameSpace.qualified_names;
