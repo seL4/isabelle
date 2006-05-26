@@ -860,11 +860,12 @@ fun activate_elem _ ((ctxt, mode), Fixes fixes) =
   | activate_elem _ ((ctxt, Assumed axs), Defines defs) =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
-        val (_, ctxt') =
-        ctxt |> ProofContext.add_assms_i LocalDefs.def_export
-          (defs' |> map (fn ((name, atts), (t, ps)) =>
+        val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in ((if name = "" then Thm.def_name c else name, atts), [(t', ps)]) end))
+            in (t', ((if name = "" then Thm.def_name c else name, atts), [(t', ps)])) end);
+        val (_, ctxt') =
+          ctxt |> fold (ProofContext.fix_frees o #1) asms
+          |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
       in ((ctxt', Assumed axs), []) end
   | activate_elem _ ((ctxt, Derived ths), Defines defs) =
       ((ctxt, Derived ths), [])
