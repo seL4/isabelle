@@ -111,24 +111,26 @@ fun update_specs c spec = map_def c (fn (specs, restricts, reducts) =>
 
 local
 
+val prt = Pretty.string_of oo pretty_const;
+fun err pp (c, args) (d, Us) s1 s2 =
+  error (s1 ^ " dependency of constant " ^ prt pp (c, args) ^ " -> " ^ prt pp (d, Us) ^ s2);
+
 fun contained (U as TVar _) (Type (_, Ts)) = exists (fn T => T = U orelse contained U T) Ts
   | contained _ _ = false;
 
+fun acyclic pp defs (c, args) (d, Us) =
+  c <> d orelse
+  exists (fn U => exists (contained U) args) Us orelse
+  is_none (match_args (args, Us)) orelse
+  err pp (c, args) (d, Us) "Circular" "";
+
 fun wellformed pp defs (c, args) (d, Us) =
-  let
-    val prt = Pretty.string_of o pretty_const pp;
-    fun err s1 s2 =
-      error (s1 ^ " dependency of constant " ^ prt (c, args) ^ " -> " ^ prt (d, Us) ^ s2);
-  in
-    exists (fn U => exists (contained U) args) Us orelse
-    (c <> d andalso forall is_TVar Us) orelse
-    (if c = d andalso is_some (match_args (args, Us)) then err "Circular" "" else
-      (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
-        SOME (Ts, name) =>
-          is_some (match_args (Ts, Us)) orelse
-          err "Malformed" ("\n(restriction " ^ prt (d, Ts) ^ " from " ^ quote name ^ ")")
-      | NONE => true))
-  end;
+  forall is_TVar Us orelse
+  (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
+    SOME (Ts, name) =>
+      err pp (c, args) (d, Us) "Malformed"
+        ("\n(restriction " ^ prt pp (d, Ts) ^ " from " ^ quote name ^ ")")
+  | NONE => true);
 
 fun reduction pp defs const deps =
   let
@@ -144,7 +146,7 @@ fun reduction pp defs const deps =
     val deps' =
       if forall (is_none o #1) reds then NONE
       else SOME (fold_rev add reds []);
-    val _ = forall (wellformed pp defs const) (the_default deps deps');
+    val _ = forall (acyclic pp defs const) (the_default deps deps');
   in deps' end;
 
 fun normalize pp =
@@ -162,7 +164,9 @@ fun normalize pp =
       (case Symtab.fold norm_update defs (false, defs) of
         (true, defs') => norm_all defs'
       | (false, _) => defs);
-  in norm_all end;
+    fun check defs (c, {reducts, ...}: def) =
+      reducts |> forall (fn (args, deps) => forall (wellformed pp defs (c, args)) deps);
+  in norm_all #> (fn defs => tap (Symtab.forall (check defs)) defs) end;
 
 in
 
