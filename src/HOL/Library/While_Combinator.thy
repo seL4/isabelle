@@ -35,7 +35,7 @@ recdef_tc while_aux_tc: while_aux
   apply blast
   done
 
-constdefs
+definition
   while :: "('a => bool) => ('a => 'a) => 'a => 'a"
   "while b c s == while_aux (b, c, s)"
 
@@ -88,7 +88,8 @@ theorem while_rule_lemma:
     and terminate: "!!s. P s ==> \<not> b s ==> Q s"
     and wf: "wf {(t, s). P s \<and> b s \<and> t = c s}"
   shows "P s \<Longrightarrow> Q (while b c s)"
-  apply (induct s rule: wf [THEN wf_induct])
+  using wf
+  apply (induct s)
   apply simp
   apply (subst while_unfold)
   apply (simp add: invariant terminate)
@@ -101,13 +102,13 @@ theorem while_rule:
       wf r;
       !!s. [| P s; b s  |] ==> (c s, s) \<in> r |] ==>
    Q (while b c s)"
-apply (rule while_rule_lemma)
-prefer 4 apply assumption
-apply blast
-apply blast
-apply(erule wf_subset)
-apply blast
-done
+  apply (rule while_rule_lemma)
+     prefer 4 apply assumption
+    apply blast
+   apply blast
+  apply (erule wf_subset)
+  apply blast
+  done
 
 text {*
  \medskip An application: computation of the @{term lfp} on finite
@@ -142,12 +143,11 @@ text{* Cannot use @{thm[source]set_eq_subset} because it leads to
 looping because the antisymmetry simproc turns the subset relationship
 back into equality. *}
 
-lemma seteq: "(A = B) = ((!a : A. a:B) & (!b:B. b:A))"
-  by blast
-
 theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) =
   P {0, 4, 2}"
 proof -
+  have seteq: "!!A B. (A = B) = ((!a : A. a:B) & (!b:B. b:A))"
+    by blast
   have aux: "!!f A B. {f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
     apply blast
     done

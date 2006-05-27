@@ -24,12 +24,12 @@ primrec
   "sorted le (x#xs) = ((\<forall>y \<in> set xs. le x y) & sorted le xs)"
 
 
-constdefs
+definition
   total  :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
-   "total r == (\<forall>x y. r x y | r y x)"
+   "total r = (\<forall>x y. r x y | r y x)"
   
   transf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) => bool"
-   "transf f == (\<forall>x y z. f x y & f y z --> f x z)"
+   "transf f = (\<forall>x y z. f x y & f y z --> f x z)"
 
 
 
@@ -44,8 +44,8 @@ apply(blast)
 done
 
 lemma sorted_append [simp]:
- "sorted le (xs@ys) = 
-  (sorted le xs & sorted le ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. le x y))"
-by (induct xs, auto)
+  "sorted le (xs@ys) = 
+    (sorted le xs & sorted le ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. le x y))"
+  by (induct xs) auto
 
 end

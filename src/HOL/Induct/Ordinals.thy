@@ -31,11 +31,11 @@ primrec
   "iter f 0 = id"
   "iter f (Suc n) = f \<circ> (iter f n)"
 
-constdefs
+definition
   OpLim :: "(nat => (ordinal => ordinal)) => (ordinal => ordinal)"
-  "OpLim F a == Limit (\<lambda>n. F n a)"
+  "OpLim F a = Limit (\<lambda>n. F n a)"
   OpItw :: "(ordinal => ordinal) => (ordinal => ordinal)"    ("\<Squnion>")
-  "\<Squnion>f == OpLim (iter f)"
+  "\<Squnion>f = OpLim (iter f)"
 
 consts
   cantor :: "ordinal => ordinal => ordinal"
@@ -51,9 +51,9 @@ primrec
   "\<nabla>f (Succ a) = f (Succ (\<nabla>f a))"
   "\<nabla>f (Limit h) = Limit (\<lambda>n. \<nabla>f (h n))"
 
-constdefs
+definition
   deriv :: "(ordinal => ordinal) => (ordinal => ordinal)"
-  "deriv f == \<nabla>(\<Squnion>f)"
+  "deriv f = \<nabla>(\<Squnion>f)"
 
 consts
   veblen :: "ordinal => ordinal => ordinal"
@@ -62,9 +62,9 @@ primrec
   "veblen (Succ a) = \<nabla>(OpLim (iter (veblen a)))"
   "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
 
-constdefs
-  "veb a == veblen a Zero"
-  "\<epsilon>\<^isub>0 == veb Zero"
-  "\<Gamma>\<^isub>0 == Limit (\<lambda>n. iter veb n Zero)"
+definition
+  "veb a = veblen a Zero"
+  "\<epsilon>\<^isub>0 = veb Zero"
+  "\<Gamma>\<^isub>0 = Limit (\<lambda>n. iter veb n Zero)"
 
 end

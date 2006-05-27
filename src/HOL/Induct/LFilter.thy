@@ -19,12 +19,12 @@ inductive "findRel p"
 
 declare findRel.intros [intro]
 
-constdefs
+definition
   find    :: "['a => bool, 'a llist] => 'a llist"
-    "find p l == @l'. (l,l'): findRel p | (l' = LNil & l ~: Domain(findRel p))"
+  "find p l = (SOME l'. (l,l'): findRel p | (l' = LNil & l ~: Domain(findRel p)))"
 
   lfilter :: "['a => bool, 'a llist] => 'a llist"
-    "lfilter p l == llist_corec l (%l. case find p l of
+  "lfilter p l = llist_corec l (%l. case find p l of
                                             LNil => None
                                           | LCons y z => Some(y,z))"
 

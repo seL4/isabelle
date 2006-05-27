@@ -14,12 +14,12 @@ locale lub =
 
 lemmas [elim?] = lub.least lub.upper
 
-constdefs
+definition
   the_lub :: "'a::order set \<Rightarrow> 'a"
-  "the_lub A \<equiv> The (lub A)"
+  "the_lub A = The (lub A)"
 
-syntax (xsymbols)
-  the_lub :: "'a::order set \<Rightarrow> 'a"    ("\<Squnion>_" [90] 90)
+const_syntax (xsymbols)
+  the_lub  ("\<Squnion>_" [90] 90)
 
 lemma the_lub_equality [elim?]:
   includes lub

@@ -31,15 +31,15 @@ text {*
   such infimum and supremum elements.
 *}
 
-consts
+definition
   Meet :: "'a::complete_lattice set \<Rightarrow> 'a"
+  "Meet A = (THE inf. is_Inf A inf)"
   Join :: "'a::complete_lattice set \<Rightarrow> 'a"
-syntax (xsymbols)
-  Meet :: "'a::complete_lattice set \<Rightarrow> 'a"    ("\<Sqinter>_" [90] 90)
-  Join :: "'a::complete_lattice set \<Rightarrow> 'a"    ("\<Squnion>_" [90] 90)
-defs
-  Meet_def: "\<Sqinter>A \<equiv> THE inf. is_Inf A inf"
-  Join_def: "\<Squnion>A \<equiv> THE sup. is_Sup A sup"
+  "Join A = (THE sup. is_Sup A sup)"
+
+const_syntax (xsymbols)
+  Meet  ("\<Sqinter>_" [90] 90)
+  Join  ("\<Squnion>_" [90] 90)
 
 text {*
   Due to unique existence of bounds, the complete lattice operations
@@ -142,11 +142,11 @@ text {*
   greatest elements.
 *}
 
-constdefs
+definition
   bottom :: "'a::complete_lattice"    ("\<bottom>")
-  "\<bottom> \<equiv> \<Sqinter>UNIV"
+  "\<bottom> = \<Sqinter>UNIV"
   top :: "'a::complete_lattice"    ("\<top>")
-  "\<top> \<equiv> \<Squnion>UNIV"
+  "\<top> = \<Squnion>UNIV"
 
 lemma bottom_least [intro?]: "\<bottom> \<sqsubseteq> x"
 proof (unfold bottom_def)

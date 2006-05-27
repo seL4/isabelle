@@ -20,14 +20,14 @@ datatype
 text{*The equivalence relation, which makes PLUS associative.*}
 consts  exprel :: "(freeExp * freeExp) set"
 
-syntax
-  "_exprel" :: "[freeExp, freeExp] => bool"  (infixl "~~" 50)
-syntax (xsymbols)
-  "_exprel" :: "[freeExp, freeExp] => bool"  (infixl "\<sim>" 50)
-syntax (HTML output)
-  "_exprel" :: "[freeExp, freeExp] => bool"  (infixl "\<sim>" 50)
-translations
-  "X \<sim> Y" == "(X,Y) \<in> exprel"
+abbreviation
+  exp_rel :: "[freeExp, freeExp] => bool"  (infixl "~~" 50)
+  "X ~~ Y == (X,Y) \<in> exprel"
+
+const_syntax (xsymbols)
+  exp_rel  (infixl "\<sim>" 50)
+const_syntax (HTML output)
+  exp_rel  (infixl "\<sim>" 50)
 
 text{*The first rule is the desired equation. The next three rules
 make the equations applicable to subterms. The last two rules are symmetry
@@ -159,16 +159,16 @@ typedef (Exp)  exp = "UNIV//exprel"
 
 text{*The abstract message constructors*}
 
-constdefs
+definition
   Var :: "nat \<Rightarrow> exp"
-  "Var N == Abs_Exp(exprel``{VAR N})"
+  "Var N = Abs_Exp(exprel``{VAR N})"
 
   Plus :: "[exp,exp] \<Rightarrow> exp"
-   "Plus X Y ==
+   "Plus X Y =
        Abs_Exp (\<Union>U \<in> Rep_Exp X. \<Union>V \<in> Rep_Exp Y. exprel``{PLUS U V})"
 
   FnCall :: "[nat, exp list] \<Rightarrow> exp"
-   "FnCall F Xs ==
+   "FnCall F Xs =
        Abs_Exp (\<Union>Us \<in> listset (map Rep_Exp Xs). exprel `` {FNCALL F Us})"
 
 
@@ -206,8 +206,9 @@ done
 subsection{*Every list of abstract expressions can be expressed in terms of a
   list of concrete expressions*}
 
-constdefs Abs_ExpList :: "freeExp list => exp list"
-    "Abs_ExpList Xs == map (%U. Abs_Exp(exprel``{U})) Xs"
+definition
+  Abs_ExpList :: "freeExp list => exp list"
+  "Abs_ExpList Xs = map (%U. Abs_Exp(exprel``{U})) Xs"
 
 lemma Abs_ExpList_Nil [simp]: "Abs_ExpList [] == []"
 by (simp add: Abs_ExpList_def)
@@ -283,9 +284,9 @@ by (cases X, cases Y, cases Z, simp add: Plus exprel.ASSOC)
 
 subsection{*The Abstract Function to Return the Set of Variables*}
 
-constdefs
+definition
   vars :: "exp \<Rightarrow> nat set"
-   "vars X == \<Union>U \<in> Rep_Exp X. freevars U"
+  "vars X = (\<Union>U \<in> Rep_Exp X. freevars U)"
 
 lemma vars_respects: "freevars respects exprel"
 by (simp add: congruent_def exprel_imp_eq_freevars) 
@@ -349,9 +350,9 @@ done
 
 subsection{*Injectivity of @{term FnCall}*}
 
-constdefs
+definition
   fun :: "exp \<Rightarrow> nat"
-   "fun X == contents (\<Union>U \<in> Rep_Exp X. {freefun U})"
+  "fun X = contents (\<Union>U \<in> Rep_Exp X. {freefun U})"
 
 lemma fun_respects: "(%U. {freefun U}) respects exprel"
 by (simp add: congruent_def exprel_imp_eq_freefun) 
@@ -361,9 +362,9 @@ apply (cases Xs rule: eq_Abs_ExpList)
 apply (simp add: FnCall fun_def UN_equiv_class [OF equiv_exprel fun_respects])
 done
 
-constdefs
+definition
   args :: "exp \<Rightarrow> exp list"
-   "args X == contents (\<Union>U \<in> Rep_Exp X. {Abs_ExpList (freeargs U)})"
+  "args X = contents (\<Union>U \<in> Rep_Exp X. {Abs_ExpList (freeargs U)})"
 
 text{*This result can probably be generalized to arbitrary equivalence
 relations, but with little benefit here.*}
@@ -396,9 +397,9 @@ subsection{*The Abstract Discriminator*}
 text{*However, as @{text FnCall_Var_neq_Var} illustrates, we don't need this
 function in order to prove discrimination theorems.*}
 
-constdefs
+definition
   discrim :: "exp \<Rightarrow> int"
-   "discrim X == contents (\<Union>U \<in> Rep_Exp X. {freediscrim U})"
+  "discrim X = contents (\<Union>U \<in> Rep_Exp X. {freediscrim U})"
 
 lemma discrim_respects: "(\<lambda>U. {freediscrim U}) respects exprel"
 by (simp add: congruent_def exprel_imp_eq_freediscrim) 

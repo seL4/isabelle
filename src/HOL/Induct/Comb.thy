@@ -23,7 +23,11 @@ text {* Datatype definition of combinators @{text S} and @{text K}. *}
 
 datatype comb = K
               | S
-              | "##" comb comb (infixl 90)
+              | Ap comb comb (infixl "##" 90)
+
+const_syntax (xsymbols)
+  Ap  (infixl "\<bullet>" 90)
+
 
 text {*
   Inductive definition of contractions, @{text "-1->"} and
@@ -32,15 +36,12 @@ text {*
 
 consts
   contract  :: "(comb*comb) set"
-  "-1->"    :: "[comb,comb] => bool"   (infixl 50)
-  "--->"    :: "[comb,comb] => bool"   (infixl 50)
 
-translations
-  "x -1-> y" == "(x,y) \<in> contract"
-  "x ---> y" == "(x,y) \<in> contract^*"
-
-syntax (xsymbols)
-  "op ##" :: "[comb,comb] => comb"  (infixl "\<bullet>" 90)
+abbreviation
+  contract_rel1 :: "[comb,comb] => bool"   (infixl "-1->" 50)
+  "x -1-> y == (x,y) \<in> contract"
+  contract_rel :: "[comb,comb] => bool"   (infixl "--->" 50)
+  "x ---> y == (x,y) \<in> contract^*"
 
 inductive contract
   intros
@@ -56,12 +57,12 @@ text {*
 
 consts
   parcontract :: "(comb*comb) set"
-  "=1=>"      :: "[comb,comb] => bool"   (infixl 50)
-  "===>"      :: "[comb,comb] => bool"   (infixl 50)
 
-translations
-  "x =1=> y" == "(x,y) \<in> parcontract"
-  "x ===> y" == "(x,y) \<in> parcontract^*"
+abbreviation
+  parcontract_rel1 :: "[comb,comb] => bool"   (infixl "=1=>" 50)
+  "x =1=> y == (x,y) \<in> parcontract"
+  parcontract_rel :: "[comb,comb] => bool"   (infixl "===>" 50)
+  "x ===> y == (x,y) \<in> parcontract^*"
 
 inductive parcontract
   intros
@@ -74,15 +75,15 @@ text {*
   Misc definitions.
 *}
 
-constdefs
+definition
   I :: comb
-  "I == S##K##K"
+  "I = S##K##K"
 
   diamond   :: "('a * 'a)set => bool"	
     --{*confluence; Lambda/Commutation treats this more abstractly*}
-  "diamond(r) == \<forall>x y. (x,y) \<in> r --> 
+  "diamond(r) = (\<forall>x y. (x,y) \<in> r --> 
                   (\<forall>y'. (x,y') \<in> r --> 
-                    (\<exists>z. (y,z) \<in> r & (y',z) \<in> r))"
+                    (\<exists>z. (y,z) \<in> r & (y',z) \<in> r)))"
 
 
 subsection {*Reflexive/Transitive closure preserves Church-Rosser property*}

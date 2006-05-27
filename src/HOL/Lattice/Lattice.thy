@@ -24,15 +24,15 @@ text {*
   infimum and supremum elements.
 *}
 
-consts
+definition
   meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "&&" 70)
+  "x && y = (THE inf. is_inf x y inf)"
   join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "||" 65)
-syntax (xsymbols)
-  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<sqinter>" 70)
-  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<squnion>" 65)
-defs
-  meet_def: "x && y \<equiv> THE inf. is_inf x y inf"
-  join_def: "x || y \<equiv> THE sup. is_sup x y sup"
+  "x || y = (THE sup. is_sup x y sup)"
+
+const_syntax (xsymbols)
+  meet  (infixl "\<sqinter>" 70)
+  join  (infixl "\<squnion>" 65)
 
 text {*
   Due to unique existence of bounds, the lattice operations may be
@@ -336,11 +336,11 @@ text {*
   are a (degenerate) example of lattice structures.
 *}
 
-constdefs
+definition
   minimum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a"
-  "minimum x y \<equiv> (if x \<sqsubseteq> y then x else y)"
+  "minimum x y = (if x \<sqsubseteq> y then x else y)"
   maximum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a"
-  "maximum x y \<equiv> (if x \<sqsubseteq> y then y else x)"
+  "maximum x y = (if x \<sqsubseteq> y then y else x)"
 
 lemma is_inf_minimum: "is_inf x y (minimum x y)"
 proof

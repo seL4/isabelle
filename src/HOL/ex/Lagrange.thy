@@ -16,8 +16,9 @@ rings.
 The enterprising reader might consider proving all of Lagrange's
 theorem.  *}
 
-constdefs sq :: "'a::times => 'a"
-         "sq x == x*x"
+definition
+  sq :: "'a::times => 'a"
+  "sq x == x*x"
 
 text {* The following lemma essentially shows that every natural
 number is the sum of four squares, provided all prime numbers are.
@@ -26,7 +27,6 @@ a priori, nothing to do with nat. *}
 
 ML"Delsimprocs[ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]"
 
--- {* once a slow step, but now (2001) just three seconds! *}
 lemma Lagrange_lemma:
  "!!x1::'a::comm_ring.
   (sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =

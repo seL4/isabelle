@@ -22,9 +22,9 @@ text {*
 
 types 'a graph = "('a \<times> real) set"
 
-constdefs
+definition
   graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph"
-  "graph F f \<equiv> {(x, f x) | x. x \<in> F}"
+  "graph F f = {(x, f x) | x. x \<in> F}"
 
 lemma graphI [intro]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
   by (unfold graph_def) blast
@@ -65,12 +65,12 @@ text {*
   funct}.
 *}
 
-constdefs
+definition
   "domain" :: "'a graph \<Rightarrow> 'a set"
-  "domain g \<equiv> {x. \<exists>y. (x, y) \<in> g}"
+  "domain g = {x. \<exists>y. (x, y) \<in> g}"
 
   funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
-  "funct g \<equiv> \<lambda>x. (SOME y. (x, y) \<in> g)"
+  "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
 
 text {*
   The following lemma states that @{text g} is the graph of a function
@@ -101,12 +101,12 @@ text {*
   @{text p}, is defined as follows.
 *}
 
-constdefs
+definition
   norm_pres_extensions ::
     "'a::{plus, minus, zero} set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real)
       \<Rightarrow> 'a graph set"
     "norm_pres_extensions E p F f
-      \<equiv> {g. \<exists>H h. g = graph H h
+      = {g. \<exists>H h. g = graph H h
           \<and> linearform H h
           \<and> H \<unlhd> E
           \<and> F \<unlhd> H

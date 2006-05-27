@@ -52,9 +52,9 @@ lemma prime_not_square:
 
 subsection {* The set of rational numbers *}
 
-constdefs
+definition
   rationals :: "real set"    ("\<rat>")
-  "\<rat> \<equiv> {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
+  "\<rat> = {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
 
 
 subsection {* Main theorem *}

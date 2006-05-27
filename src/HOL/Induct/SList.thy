@@ -36,12 +36,12 @@ theory SList imports NatArith Sexp Hilbert_Choice begin
 
 
 (* Defining the Concrete Constructors *)
-constdefs
+definition
   NIL  :: "'a item"
-   "NIL == In0(Numb(0))"
+   "NIL = In0(Numb(0))"
 
   CONS :: "['a item, 'a item] => 'a item"
-   "CONS M N == In1(Scons M N)"
+   "CONS M N = In1(Scons M N)"
 
 consts
   list      :: "'a item set => 'a item set"
@@ -55,12 +55,12 @@ typedef (List)
   'a list = "list(range Leaf) :: 'a item set" 
   by (blast intro: list.NIL_I)
 
-constdefs
+definition
   List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b"
-   "List_case c d == Case(%x. c)(Split(d))"
+   "List_case c d = Case(%x. c)(Split(d))"
   
   List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b"
-   "List_rec M c d == wfrec (trancl pred_sexp)
+   "List_rec M c d = wfrec (trancl pred_sexp)
                             (%g. List_case c (%x y. d x y (g y))) M"
 
 
@@ -72,20 +72,20 @@ constdefs
 
 (*Declaring the abstract list constructors*)
 
-constdefs
+definition
   Nil       :: "'a list"
-   "Nil  == Abs_List(NIL)"
+   "Nil  = Abs_List(NIL)"
 
   "Cons"       :: "['a, 'a list] => 'a list"           (infixr "#" 65)
-   "x#xs == Abs_List(CONS (Leaf x)(Rep_List xs))"
+   "x#xs = Abs_List(CONS (Leaf x)(Rep_List xs))"
 
   (* list Recursion -- the trancl is Essential; see list.ML *)
   list_rec  :: "['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b"
-   "list_rec l c d ==
+   "list_rec l c d =
       List_rec(Rep_List l) c (%x y r. d(inv Leaf x)(Abs_List y) r)"
 
   list_case :: "['b, ['a, 'a list]=>'b, 'a list] => 'b"
-   "list_case a f xs == list_rec xs a (%x xs r. f x xs)"
+   "list_case a f xs = list_rec xs a (%x xs r. f x xs)"
 
 (* list Enumeration *)
 consts
@@ -110,83 +110,82 @@ translations
   
 (* Generalized Map Functionals *)
 
-constdefs
+definition
   Rep_map   :: "('b => 'a item) => ('b list => 'a item)"
-   "Rep_map f xs == list_rec xs  NIL(%x l r. CONS(f x) r)"
+   "Rep_map f xs = list_rec xs  NIL(%x l r. CONS(f x) r)"
 
   Abs_map   :: "('a item => 'b) => 'a item => 'b list"
-   "Abs_map g M  == List_rec M Nil (%N L r. g(N)#r)"
+   "Abs_map g M  = List_rec M Nil (%N L r. g(N)#r)"
 
 
 (**** Function definitions ****)
 
-constdefs
+definition
 
   null      :: "'a list => bool"
-  "null xs  == list_rec xs True (%x xs r. False)"
+  "null xs  = list_rec xs True (%x xs r. False)"
 
   hd        :: "'a list => 'a"
-  "hd xs    == list_rec xs (@x. True) (%x xs r. x)"
+  "hd xs    = list_rec xs (@x. True) (%x xs r. x)"
 
   tl        :: "'a list => 'a list"
-  "tl xs    == list_rec xs (@xs. True) (%x xs r. xs)"
+  "tl xs    = list_rec xs (@xs. True) (%x xs r. xs)"
 
   (* a total version of tl: *)
   ttl       :: "'a list => 'a list"
-  "ttl xs   == list_rec xs [] (%x xs r. xs)"
+  "ttl xs   = list_rec xs [] (%x xs r. xs)"
 
   member :: "['a, 'a list] => bool"    (infixl "mem" 55)
-  "x mem xs == list_rec xs False (%y ys r. if y=x then True else r)"
+  "x mem xs = list_rec xs False (%y ys r. if y=x then True else r)"
 
   list_all  :: "('a => bool) => ('a list => bool)"
-  "list_all P xs == list_rec xs True(%x l r. P(x) & r)"
+  "list_all P xs = list_rec xs True(%x l r. P(x) & r)"
 
   map       :: "('a=>'b) => ('a list => 'b list)"
-  "map f xs == list_rec xs [] (%x l r. f(x)#r)"
+  "map f xs = list_rec xs [] (%x l r. f(x)#r)"
 
 
-constdefs
   append    :: "['a list, 'a list] => 'a list"   (infixr "@" 65)
-  "xs@ys == list_rec xs ys (%x l r. x#r)"
+  "xs@ys = list_rec xs ys (%x l r. x#r)"
 
   filter    :: "['a => bool, 'a list] => 'a list"
-  "filter P xs == list_rec xs []  (%x xs r. if P(x)then x#r else r)"
+  "filter P xs = list_rec xs []  (%x xs r. if P(x)then x#r else r)"
 
   foldl     :: "[['b,'a] => 'b, 'b, 'a list] => 'b"
-  "foldl f a xs == list_rec xs (%a. a)(%x xs r.%a. r(f a x))(a)"
+  "foldl f a xs = list_rec xs (%a. a)(%x xs r.%a. r(f a x))(a)"
 
   foldr     :: "[['a,'b] => 'b, 'b, 'a list] => 'b"
-  "foldr f a xs     == list_rec xs a (%x xs r. (f x r))"
+  "foldr f a xs     = list_rec xs a (%x xs r. (f x r))"
 
   length    :: "'a list => nat"
-  "length xs== list_rec xs 0 (%x xs r. Suc r)"
+  "length xs = list_rec xs 0 (%x xs r. Suc r)"
 
   drop      :: "['a list,nat] => 'a list"
-  "drop t n == (nat_rec(%x. x)(%m r xs. r(ttl xs)))(n)(t)"
+  "drop t n = (nat_rec(%x. x)(%m r xs. r(ttl xs)))(n)(t)"
 
   copy      :: "['a, nat] => 'a list"      (* make list of n copies of x *)
-  "copy t   == nat_rec [] (%m xs. t # xs)"
+  "copy t   = nat_rec [] (%m xs. t # xs)"
 
   flat      :: "'a list list => 'a list"
-  "flat     == foldr (op @) []"
+  "flat     = foldr (op @) []"
 
   nth       :: "[nat, 'a list] => 'a"
-  "nth      == nat_rec hd (%m r xs. r(tl xs))"
+  "nth      = nat_rec hd (%m r xs. r(tl xs))"
 
   rev       :: "'a list => 'a list"
-  "rev xs   == list_rec xs [] (%x xs xsa. xsa @ [x])"
+  "rev xs   = list_rec xs [] (%x xs xsa. xsa @ [x])"
 
 (* miscellaneous definitions *)
   zipWith   :: "['a * 'b => 'c, 'a list * 'b list] => 'c list"
-  "zipWith f S == (list_rec (fst S)  (%T.[])
+  "zipWith f S = (list_rec (fst S)  (%T.[])
                             (%x xs r. %T. if null T then [] 
                                           else f(x,hd T) # r(tl T)))(snd(S))"
 
   zip       :: "'a list * 'b list => ('a*'b) list"
-  "zip      == zipWith  (%s. s)"
+  "zip      = zipWith  (%s. s)"
 
   unzip     :: "('a*'b) list => ('a list * 'b list)"
-  "unzip    == foldr(% (a,b)(c,d).(a#c,b#d))([],[])"
+  "unzip    = foldr(% (a,b)(c,d).(a#c,b#d))([],[])"
 
 
 consts take      :: "['a list,nat] => 'a list"
@@ -425,9 +424,9 @@ lemma Abs_map_CONS [simp]:
     "[| M: sexp;  N: sexp |] ==> Abs_map g (CONS M N) = g(M) # Abs_map g N"
 by (simp add: Abs_map_def)
 
-(*Eases the use of primitive recursion.  NOTE USE OF == *)
+(*Eases the use of primitive recursion.*)
 lemma def_list_rec_NilCons:
-    "[| !!xs. f(xs) == list_rec xs c h  |] 
+    "[| !!xs. f(xs) = list_rec xs c h  |] 
      ==> f [] = c & f(x#xs) = h x xs (f xs)"
 by simp 
 
@@ -475,11 +474,11 @@ declare def_list_rec_NilCons [OF list_all_def, simp]
 (** nth **)
 
 lemma def_nat_rec_0_eta:
-    "[| !!n. f == nat_rec c h |] ==> f(0) = c"
+    "[| !!n. f = nat_rec c h |] ==> f(0) = c"
 by simp
 
 lemma def_nat_rec_Suc_eta:
-    "[| !!n. f == nat_rec c h |] ==> f(Suc(n)) = h n (f n)"
+    "[| !!n. f = nat_rec c h |] ==> f(Suc(n)) = h n (f n)"
 by simp
 
 declare def_nat_rec_0_eta [OF nth_def, simp]

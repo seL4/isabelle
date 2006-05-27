@@ -9,15 +9,15 @@ theory FuncSet
 imports Main
 begin
 
-constdefs
+definition
   Pi :: "['a set, 'a => 'b set] => ('a => 'b) set"
-  "Pi A B == {f. \<forall>x. x \<in> A --> f x \<in> B x}"
+  "Pi A B = {f. \<forall>x. x \<in> A --> f x \<in> B x}"
 
   extensional :: "'a set => ('a => 'b) set"
-  "extensional A == {f. \<forall>x. x~:A --> f x = arbitrary}"
+  "extensional A = {f. \<forall>x. x~:A --> f x = arbitrary}"
 
   "restrict" :: "['a => 'b, 'a set] => ('a => 'b)"
-  "restrict f A == (%x. if x \<in> A then f x else arbitrary)"
+  "restrict f A = (%x. if x \<in> A then f x else arbitrary)"
 
 abbreviation
   funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr "->" 60)
@@ -27,24 +27,24 @@ const_syntax (xsymbols)
   funcset  (infixr "\<rightarrow>" 60)
 
 syntax
-  "@Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
-  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3%_:_./ _)" [0,0,3] 3)
+  "_Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
+  "_lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3%_:_./ _)" [0,0,3] 3)
 
 syntax (xsymbols)
-  "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
-  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
+  "_Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
+  "_lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
 syntax (HTML output)
-  "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
-  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
+  "_Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
+  "_lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
 translations
   "PI x:A. B" == "Pi A (%x. B)"
   "%x:A. f" == "restrict (%x. f) A"
 
-constdefs
+definition
   "compose" :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
-  "compose A g f == \<lambda>x\<in>A. g (f x)"
+  "compose A g f = (\<lambda>x\<in>A. g (f x))"
 
 
 subsection{*Basic Properties of @{term Pi}*}
@@ -62,7 +62,7 @@ lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
   by (simp add: Pi_def)
 
 lemma funcset_image: "f \<in> A\<rightarrow>B ==> f ` A \<subseteq> B"
-by (auto simp add: Pi_def)
+  by (auto simp add: Pi_def)
 
 lemma Pi_eq_empty: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
 apply (simp add: Pi_def, auto)
@@ -133,7 +133,7 @@ lemma compose_Id:
   by (auto simp add: expand_fun_eq compose_def extensional_def Pi_def)
 
 lemma image_restrict_eq [simp]: "(restrict f A) ` A = f ` A"
-  by (auto simp add: restrict_def) 
+  by (auto simp add: restrict_def)
 
 
 subsection{*Bijections Between Sets*}
@@ -141,21 +141,21 @@ subsection{*Bijections Between Sets*}
 text{*The basic definition could be moved to @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
 
-constdefs
-  bij_betw :: "['a => 'b, 'a set, 'b set] => bool"         (*bijective*)
-    "bij_betw f A B == inj_on f A & f ` A = B"
+definition
+  bij_betw :: "['a => 'b, 'a set, 'b set] => bool"         -- {* bijective *}
+  "bij_betw f A B = (inj_on f A & f ` A = B)"
 
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
-by (simp add: bij_betw_def)
+  by (simp add: bij_betw_def)
 
 lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
-by (auto simp add: bij_betw_def inj_on_Inv Pi_def)
+  by (auto simp add: bij_betw_def inj_on_Inv Pi_def)
 
 lemma bij_betw_Inv: "bij_betw f A B \<Longrightarrow> bij_betw (Inv A f) B A"
-apply (auto simp add: bij_betw_def inj_on_Inv Inv_mem) 
-apply (simp add: image_compose [symmetric] o_def) 
-apply (simp add: image_def Inv_f_f) 
-done
+  apply (auto simp add: bij_betw_def inj_on_Inv Inv_mem)
+  apply (simp add: image_compose [symmetric] o_def)
+  apply (simp add: image_def Inv_f_f)
+  done
 
 lemma inj_on_compose:
     "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
@@ -163,9 +163,9 @@ lemma inj_on_compose:
 
 lemma bij_betw_compose:
     "[| bij_betw f A B; bij_betw g B C |] ==> bij_betw (compose A g f) A C"
-apply (simp add: bij_betw_def compose_eq inj_on_compose)
-apply (auto simp add: compose_def image_def)
-done
+  apply (simp add: bij_betw_def compose_eq inj_on_compose)
+  apply (auto simp add: compose_def image_def)
+  done
 
 lemma bij_betw_restrict_eq [simp]:
      "bij_betw (restrict f A) A B = bij_betw f A B"
@@ -210,13 +210,13 @@ lemma compose_id_Inv:
 subsection{*Cardinality*}
 
 lemma card_inj: "[|f \<in> A\<rightarrow>B; inj_on f A; finite B|] ==> card(A) \<le> card(B)"
-apply (rule card_inj_on_le)
-apply (auto simp add: Pi_def)
-done
+  apply (rule card_inj_on_le)
+    apply (auto simp add: Pi_def)
+  done
 
 lemma card_bij:
      "[|f \<in> A\<rightarrow>B; inj_on f A;
         g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
-by (blast intro: card_inj order_antisym)
+  by (blast intro: card_inj order_antisym)
 
 end

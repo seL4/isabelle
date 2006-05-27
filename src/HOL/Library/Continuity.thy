@@ -11,9 +11,9 @@ begin
 
 subsection "Chains"
 
-constdefs
+definition
   up_chain :: "(nat => 'a set) => bool"
-  "up_chain F == \<forall>i. F i \<subseteq> F (Suc i)"
+  "up_chain F = (\<forall>i. F i \<subseteq> F (Suc i))"
 
 lemma up_chainI: "(!!i. F i \<subseteq> F (Suc i)) ==> up_chain F"
   by (simp add: up_chain_def)
@@ -21,10 +21,10 @@ lemma up_chainI: "(!!i. F i \<subseteq> F (Suc i)) ==> up_chain F"
 lemma up_chainD: "up_chain F ==> F i \<subseteq> F (Suc i)"
   by (simp add: up_chain_def)
 
-lemma up_chain_less_mono [rule_format]:
-    "up_chain F ==> x < y --> F x \<subseteq> F y"
-  apply (induct_tac y)
-  apply (blast dest: up_chainD elim: less_SucE)+
+lemma up_chain_less_mono:
+    "up_chain F ==> x < y ==> F x \<subseteq> F y"
+  apply (induct y)
+   apply (blast dest: up_chainD elim: less_SucE)+
   done
 
 lemma up_chain_mono: "up_chain F ==> x \<le> y ==> F x \<subseteq> F y"
@@ -33,9 +33,9 @@ lemma up_chain_mono: "up_chain F ==> x \<le> y ==> F x \<subseteq> F y"
   done
 
 
-constdefs
+definition
   down_chain :: "(nat => 'a set) => bool"
-  "down_chain F == \<forall>i. F (Suc i) \<subseteq> F i"
+  "down_chain F = (\<forall>i. F (Suc i) \<subseteq> F i)"
 
 lemma down_chainI: "(!!i. F (Suc i) \<subseteq> F i) ==> down_chain F"
   by (simp add: down_chain_def)
@@ -43,10 +43,10 @@ lemma down_chainI: "(!!i. F (Suc i) \<subseteq> F i) ==> down_chain F"
 lemma down_chainD: "down_chain F ==> F (Suc i) \<subseteq> F i"
   by (simp add: down_chain_def)
 
-lemma down_chain_less_mono [rule_format]:
-    "down_chain F ==> x < y --> F y \<subseteq> F x"
-  apply (induct_tac y)
-  apply (blast dest: down_chainD elim: less_SucE)+
+lemma down_chain_less_mono:
+    "down_chain F ==> x < y ==> F y \<subseteq> F x"
+  apply (induct y)
+   apply (blast dest: down_chainD elim: less_SucE)+
   done
 
 lemma down_chain_mono: "down_chain F ==> x \<le> y ==> F y \<subseteq> F x"
@@ -57,9 +57,9 @@ lemma down_chain_mono: "down_chain F ==> x \<le> y ==> F y \<subseteq> F x"
 
 subsection "Continuity"
 
-constdefs
+definition
   up_cont :: "('a set => 'a set) => bool"
-  "up_cont f == \<forall>F. up_chain F --> f (\<Union>(range F)) = \<Union>(f ` range F)"
+  "up_cont f = (\<forall>F. up_chain F --> f (\<Union>(range F)) = \<Union>(f ` range F))"
 
 lemma up_contI:
     "(!!F. up_chain F ==> f (\<Union>(range F)) = \<Union>(f ` range F)) ==> up_cont f"
@@ -84,10 +84,10 @@ lemma up_cont_mono: "up_cont f ==> mono f"
   done
 
 
-constdefs
+definition
   down_cont :: "('a set => 'a set) => bool"
-  "down_cont f ==
-    \<forall>F. down_chain F --> f (Inter (range F)) = Inter (f ` range F)"
+  "down_cont f =
+    (\<forall>F. down_chain F --> f (Inter (range F)) = Inter (f ` range F))"
 
 lemma down_contI:
   "(!!F. down_chain F ==> f (Inter (range F)) = Inter (f ` range F)) ==>
@@ -114,9 +114,9 @@ lemma down_cont_mono: "down_cont f ==> mono f"
 
 subsection "Iteration"
 
-constdefs
+definition
   up_iterate :: "('a set => 'a set) => nat => 'a set"
-  "up_iterate f n == (f^n) {}"
+  "up_iterate f n = (f^n) {}"
 
 lemma up_iterate_0 [simp]: "up_iterate f 0 = {}"
   by (simp add: up_iterate_def)
@@ -166,9 +166,9 @@ lemma UNION_up_iterate_is_lfp:
   done
 
 
-constdefs
+definition
   down_iterate :: "('a set => 'a set) => nat => 'a set"
-  "down_iterate f n == (f^n) UNIV"
+  "down_iterate f n = (f^n) UNIV"
 
 lemma down_iterate_0 [simp]: "down_iterate f 0 = UNIV"
   by (simp add: down_iterate_def)

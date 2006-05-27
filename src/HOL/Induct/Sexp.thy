@@ -17,20 +17,20 @@ inductive sexp
     NumbI:  "Numb(i) \<in> sexp"
     SconsI: "[| M \<in> sexp;  N \<in> sexp |] ==> Scons M N \<in> sexp"
 
-constdefs
+definition
 
   sexp_case :: "['a=>'b, nat=>'b, ['a item, 'a item]=>'b, 
                 'a item] => 'b"
-   "sexp_case c d e M == THE z. (EX x.   M=Leaf(x) & z=c(x))  
+   "sexp_case c d e M = (THE z. (EX x.   M=Leaf(x) & z=c(x))  
                             | (EX k.   M=Numb(k) & z=d(k))  
-                            | (EX N1 N2. M = Scons N1 N2  & z=e N1 N2)"
+                            | (EX N1 N2. M = Scons N1 N2  & z=e N1 N2))"
 
   pred_sexp :: "('a item * 'a item)set"
-     "pred_sexp == \<Union>M \<in> sexp. \<Union>N \<in> sexp. {(M, Scons M N), (N, Scons M N)}"
+     "pred_sexp = (\<Union>M \<in> sexp. \<Union>N \<in> sexp. {(M, Scons M N), (N, Scons M N)})"
 
   sexp_rec  :: "['a item, 'a=>'b, nat=>'b,      
                 ['a item, 'a item, 'b, 'b]=>'b] => 'b"
-   "sexp_rec M c d e == wfrec pred_sexp
+   "sexp_rec M c d e = wfrec pred_sexp
              (%g. sexp_case c d (%N1 N2. e N1 N2 (g N1) (g N2))) M"
 
 

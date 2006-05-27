@@ -22,14 +22,14 @@ text{*The equivalence relation, which makes encryption and decryption inverses
 provided the keys are the same.*}
 consts  msgrel :: "(freemsg * freemsg) set"
 
-syntax
-  "_msgrel" :: "[freemsg, freemsg] => bool"  (infixl "~~" 50)
-syntax (xsymbols)
-  "_msgrel" :: "[freemsg, freemsg] => bool"  (infixl "\<sim>" 50)
-syntax (HTML output)
-  "_msgrel" :: "[freemsg, freemsg] => bool"  (infixl "\<sim>" 50)
-translations
-  "X \<sim> Y" == "(X,Y) \<in> msgrel"
+abbreviation
+  msg_rel :: "[freemsg, freemsg] => bool"  (infixl "~~" 50)
+  "X ~~ Y == (X,Y) \<in> msgrel"
+
+const_syntax (xsymbols)
+  msg_rel  (infixl "\<sim>" 50)
+const_syntax (HTML output)
+  msg_rel  (infixl "\<sim>" 50)
 
 text{*The first two rules are the desired equations. The next four rules
 make the equations applicable to subterms. The last two rules are symmetry
@@ -142,20 +142,20 @@ typedef (Msg)  msg = "UNIV//msgrel"
 
 
 text{*The abstract message constructors*}
-constdefs
+definition
   Nonce :: "nat \<Rightarrow> msg"
-  "Nonce N == Abs_Msg(msgrel``{NONCE N})"
+  "Nonce N = Abs_Msg(msgrel``{NONCE N})"
 
   MPair :: "[msg,msg] \<Rightarrow> msg"
-   "MPair X Y ==
+   "MPair X Y =
        Abs_Msg (\<Union>U \<in> Rep_Msg X. \<Union>V \<in> Rep_Msg Y. msgrel``{MPAIR U V})"
 
   Crypt :: "[nat,msg] \<Rightarrow> msg"
-   "Crypt K X ==
+   "Crypt K X =
        Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{CRYPT K U})"
 
   Decrypt :: "[nat,msg] \<Rightarrow> msg"
-   "Decrypt K X ==
+   "Decrypt K X =
        Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{DECRYPT K U})"
 
 
@@ -227,9 +227,9 @@ by (cases X, simp add: Crypt Decrypt DC)
 
 subsection{*The Abstract Function to Return the Set of Nonces*}
 
-constdefs
+definition
   nonces :: "msg \<Rightarrow> nat set"
-   "nonces X == \<Union>U \<in> Rep_Msg X. freenonces U"
+   "nonces X = (\<Union>U \<in> Rep_Msg X. freenonces U)"
 
 lemma nonces_congruent: "freenonces respects msgrel"
 by (simp add: congruent_def msgrel_imp_eq_freenonces) 
@@ -262,9 +262,9 @@ done
 
 subsection{*The Abstract Function to Return the Left Part*}
 
-constdefs
+definition
   left :: "msg \<Rightarrow> msg"
-   "left X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
+   "left X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
 
 lemma left_congruent: "(\<lambda>U. msgrel `` {freeleft U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eqv_freeleft) 
@@ -296,9 +296,9 @@ done
 
 subsection{*The Abstract Function to Return the Right Part*}
 
-constdefs
+definition
   right :: "msg \<Rightarrow> msg"
-   "right X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
+   "right X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
 
 lemma right_congruent: "(\<lambda>U. msgrel `` {freeright U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eqv_freeright) 
@@ -431,9 +431,9 @@ subsection{*The Abstract Discriminator*}
 text{*However, as @{text Crypt_Nonce_neq_Nonce} above illustrates, we don't
 need this function in order to prove discrimination theorems.*}
 
-constdefs
+definition
   discrim :: "msg \<Rightarrow> int"
-   "discrim X == contents (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
+   "discrim X = contents (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
 
 lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eq_freediscrim) 

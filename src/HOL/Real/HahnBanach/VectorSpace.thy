@@ -18,10 +18,10 @@ text {*
 consts
   prod  :: "real \<Rightarrow> 'a::{plus, minus, zero} \<Rightarrow> 'a"     (infixr "'(*')" 70)
 
-syntax (xsymbols)
-  prod  :: "real \<Rightarrow> 'a \<Rightarrow> 'a"                          (infixr "\<cdot>" 70)
-syntax (HTML output)
-  prod  :: "real \<Rightarrow> 'a \<Rightarrow> 'a"                          (infixr "\<cdot>" 70)
+const_syntax (xsymbols)
+  prod  (infixr "\<cdot>" 70)
+const_syntax (HTML output)
+  prod  (infixr "\<cdot>" 70)
 
 
 subsection {* Vector space laws *}

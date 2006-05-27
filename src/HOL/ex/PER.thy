@@ -44,9 +44,9 @@ text {*
   \emph{any} other one.
 *}
 
-constdefs
-  domain :: "'a::partial_equiv set"
-  "domain == {x. x \<sim> x}"
+definition
+  "domain" :: "'a::partial_equiv set"
+  "domain = {x. x \<sim> x}"
 
 lemma domainI [intro]: "x \<sim> x ==> x \<in> domain"
   by (unfold domain_def) blast
@@ -164,9 +164,9 @@ text {*
   representation of elements of a quotient type.
 *}
 
-constdefs
+definition
   eqv_class :: "('a::partial_equiv) => 'a quot"    ("\<lfloor>_\<rfloor>")
-  "\<lfloor>a\<rfloor> == Abs_quot {x. a \<sim> x}"
+  "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
@@ -231,9 +231,9 @@ lemma eqv_class_eq [simp]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<s
 
 subsection {* Picking representing elements *}
 
-constdefs
+definition
   pick :: "'a::partial_equiv quot => 'a"
-  "pick A == SOME a. A = \<lfloor>a\<rfloor>"
+  "pick A = (SOME a. A = \<lfloor>a\<rfloor>)"
 
 theorem pick_eqv' [intro?, simp]: "a \<in> domain ==> pick \<lfloor>a\<rfloor> \<sim> a"
 proof (unfold pick_def)

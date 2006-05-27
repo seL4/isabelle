@@ -46,48 +46,48 @@ typedef (LList)
   'a llist = "llist(range Leaf) :: 'a item set"
   by (blast intro: llist.NIL_I)
 
-constdefs
+definition
   list_Fun   :: "['a item set, 'a item set] => 'a item set"
     --{*Now used exclusively for abbreviating the coinduction rule*}
-     "list_Fun A X == {z. z = NIL | (\<exists>M a. z = CONS a M & a \<in> A & M \<in> X)}"
+     "list_Fun A X = {z. z = NIL | (\<exists>M a. z = CONS a M & a \<in> A & M \<in> X)}"
 
   LListD_Fun :: 
       "[('a item * 'a item)set, ('a item * 'a item)set] => 
        ('a item * 'a item)set"
-    "LListD_Fun r X ==   
+    "LListD_Fun r X =   
        {z. z = (NIL, NIL) |   
            (\<exists>M N a b. z = (CONS a M, CONS b N) & (a, b) \<in> r & (M, N) \<in> X)}"
 
   LNil :: "'a llist"
      --{*abstract constructor*}
-    "LNil == Abs_LList NIL"
+    "LNil = Abs_LList NIL"
 
   LCons :: "['a, 'a llist] => 'a llist"
      --{*abstract constructor*}
-    "LCons x xs == Abs_LList(CONS (Leaf x) (Rep_LList xs))"
+    "LCons x xs = Abs_LList(CONS (Leaf x) (Rep_LList xs))"
 
   llist_case :: "['b, ['a, 'a llist]=>'b, 'a llist] => 'b"
-    "llist_case c d l == 
+    "llist_case c d l =
        List_case c (%x y. d (inv Leaf x) (Abs_LList y)) (Rep_LList l)"
 
   LList_corec_fun :: "[nat, 'a=> ('b item * 'a) option, 'a] => 'b item"
-    "LList_corec_fun k f == 
+    "LList_corec_fun k f ==
      nat_rec (%x. {})                         
              (%j r x. case f x of None    => NIL
                                 | Some(z,w) => CONS z (r w)) 
              k"
 
   LList_corec     :: "['a, 'a => ('b item * 'a) option] => 'b item"
-    "LList_corec a f == \<Union>k. LList_corec_fun k f a"
+    "LList_corec a f = (\<Union>k. LList_corec_fun k f a)"
 
   llist_corec     :: "['a, 'a => ('b * 'a) option] => 'b llist"
-    "llist_corec a f == 
+    "llist_corec a f =
        Abs_LList(LList_corec a 
                  (%z. case f z of None      => None
                                 | Some(v,w) => Some(Leaf(v), w)))"
 
   llistD_Fun :: "('a llist * 'a llist)set => ('a llist * 'a llist)set"
-    "llistD_Fun(r) ==    
+    "llistD_Fun(r) =   
         prod_fun Abs_LList Abs_LList `         
                 LListD_Fun (diag(range Leaf))   
                             (prod_fun Rep_LList Rep_LList ` r)"
@@ -101,27 +101,27 @@ translations
 
 subsubsection{* Sample function definitions.  Item-based ones start with @{text L} *}
 
-constdefs
+definition
   Lmap       :: "('a item => 'b item) => ('a item => 'b item)"
-    "Lmap f M == LList_corec M (List_case None (%x M'. Some((f(x), M'))))"
+    "Lmap f M = LList_corec M (List_case None (%x M'. Some((f(x), M'))))"
 
   lmap       :: "('a=>'b) => ('a llist => 'b llist)"
-    "lmap f l == llist_corec l (%z. case z of LNil => None 
+    "lmap f l = llist_corec l (%z. case z of LNil => None 
                                            | LCons y z => Some(f(y), z))"
 
   iterates   :: "['a => 'a, 'a] => 'a llist"
-    "iterates f a == llist_corec a (%x. Some((x, f(x))))"     
+    "iterates f a = llist_corec a (%x. Some((x, f(x))))"     
 
   Lconst     :: "'a item => 'a item"
     "Lconst(M) == lfp(%N. CONS M N)"
 
   Lappend    :: "['a item, 'a item] => 'a item"
-   "Lappend M N == LList_corec (M,N)                                         
+   "Lappend M N = LList_corec (M,N)                                         
      (split(List_case (List_case None (%N1 N2. Some((N1, (NIL,N2))))) 
                       (%M1 M2 N. Some((M1, (M2,N))))))"
 
   lappend    :: "['a llist, 'a llist] => 'a llist"
-    "lappend l n == llist_corec (l,n)                                         
+    "lappend l n = llist_corec (l,n)                                         
        (split(llist_case (llist_case None (%n1 n2. Some((n1, (LNil,n2))))) 
                          (%l1 l2 n. Some((l1, (l2,n))))))"
 
@@ -198,6 +198,7 @@ done
 declare LList_corec_fun_def [THEN def_nat_rec_0, simp]
         LList_corec_fun_def [THEN def_nat_rec_Suc, simp]
 
+
 subsubsection{* The directions of the equality are proved separately *}
 
 lemma LList_corec_subset1: 
@@ -226,7 +227,7 @@ by (rule equalityI LList_corec_subset1 LList_corec_subset2)+
 
 text{*definitional version of same*}
 lemma def_LList_corec: 
-     "[| !!x. h(x) == LList_corec x f |]      
+     "[| !!x. h(x) = LList_corec x f |]      
       ==> h(a) = (case f a of None => NIL | Some(z,w) => CONS z (h w))"
 by (simp add: LList_corec)
 
@@ -652,7 +653,7 @@ done
 
 text{*definitional version of same*}
 lemma def_llist_corec: 
-     "[| !!x. h(x) == llist_corec x f |] ==>      
+     "[| !!x. h(x) = llist_corec x f |] ==>      
       h(a) = (case f a of None => LNil | Some(z,w) => LCons z (h w))"
 by (simp add: llist_corec)
 

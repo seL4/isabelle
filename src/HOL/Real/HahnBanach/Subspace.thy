@@ -22,10 +22,10 @@ locale subspace = var U + var V +
     and add_closed [iff]: "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x + y \<in> U"
     and mult_closed [iff]: "x \<in> U \<Longrightarrow> a \<cdot> x \<in> U"
 
-declare vectorspace.intro [intro?] subspace.intro [intro?]
+const_syntax (symbols)
+  subspace  (infix "\<unlhd>" 50)
 
-syntax (symbols)
-  subspace :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"    (infix "\<unlhd>" 50)
+declare vectorspace.intro [intro?] subspace.intro [intro?]
 
 lemma subspace_subset [elim]: "U \<unlhd> V \<Longrightarrow> U \<subseteq> V"
   by (rule subspace.subset)
@@ -130,9 +130,9 @@ text {*
   scalar multiples of @{text x}.
 *}
 
-constdefs
+definition
   lin :: "('a::{minus, plus, zero}) \<Rightarrow> 'a set"
-  "lin x \<equiv> {a \<cdot> x | a. True}"
+  "lin x = {a \<cdot> x | a. True}"
 
 lemma linI [intro]: "y = a \<cdot> x \<Longrightarrow> y \<in> lin x"
   by (unfold lin_def) blast

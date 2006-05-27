@@ -13,9 +13,9 @@ lemma [simp]: "bv_to_nat [b] = bitval b"
 lemma bv_to_nat_helper': "bv \<noteq> [] ==> bv_to_nat bv = bitval (hd bv) * 2 ^ (length bv - 1) + bv_to_nat (tl bv)"
   by (cases bv,simp_all add: bv_to_nat_helper)
 
-constdefs
+definition
   half_adder :: "[bit,bit] => bit list"
-  "half_adder a b == [a bitand b,a bitxor b]"
+  "half_adder a b = [a bitand b,a bitxor b]"
 
 lemma half_adder_correct: "bv_to_nat (half_adder a b) = bitval a + bitval b"
   apply (simp add: half_adder_def)
@@ -26,10 +26,10 @@ lemma half_adder_correct: "bv_to_nat (half_adder a b) = bitval a + bitval b"
 lemma [simp]: "length (half_adder a b) = 2"
   by (simp add: half_adder_def)
 
-constdefs
+definition
   full_adder :: "[bit,bit,bit] => bit list"
-  "full_adder a b c == 
-      let x = a bitxor b in [a bitand b bitor c bitand x,x bitxor c]"
+  "full_adder a b c =
+      (let x = a bitxor b in [a bitand b bitor c bitand x,x bitxor c])"
 
 lemma full_adder_correct:
      "bv_to_nat (full_adder a b c) = bitval a + bitval b + bitval c"

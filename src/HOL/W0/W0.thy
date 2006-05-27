@@ -11,9 +11,9 @@ section {* Universal error monad *}
 
 datatype 'a maybe = Ok 'a | Fail
 
-constdefs
+definition
   bind :: "'a maybe \<Rightarrow> ('a \<Rightarrow> 'b maybe) \<Rightarrow> 'b maybe"    (infixl "\<bind>" 60)
-  "m \<bind> f \<equiv> case m of Ok r \<Rightarrow> f r | Fail \<Rightarrow> Fail"
+  "m \<bind> f = (case m of Ok r \<Rightarrow> f r | Fail \<Rightarrow> Fail)"
 
 syntax
   "_bind" :: "patterns \<Rightarrow> 'a maybe \<Rightarrow> 'b \<Rightarrow> 'c"    ("(_ := _;//_)" 0)
@@ -84,16 +84,16 @@ primrec (free_tv_list)
   "free_tv [] = {}"
   "free_tv (x # xs) = free_tv x \<union> free_tv xs"
 
-constdefs
+definition
   dom :: "subst \<Rightarrow> nat set"
-  "dom s \<equiv> {n. s n \<noteq> TVar n}"
+  "dom s = {n. s n \<noteq> TVar n}"
   -- {* domain of a substitution *}
 
   cod :: "subst \<Rightarrow> nat set"
-  "cod s \<equiv> \<Union>m \<in> dom s. free_tv (s m)"
+  "cod s = (\<Union>m \<in> dom s. free_tv (s m))"
   -- {* codomain of a substitutions: the introduced variables *}
 
-defs
+defs (overloaded)
   free_tv_subst: "free_tv s \<equiv> dom s \<union> cod s"
 
 text {*
@@ -102,16 +102,16 @@ text {*
   than any type variable occuring in the type structure.
 *}
 
-constdefs
+definition
   new_tv :: "nat \<Rightarrow> 'a::type_struct \<Rightarrow> bool"
-  "new_tv n ts \<equiv> \<forall>m. m \<in> free_tv ts \<longrightarrow> m < n"
+  "new_tv n ts = (\<forall>m. m \<in> free_tv ts \<longrightarrow> m < n)"
 
 
 subsubsection {* Identity substitution *}
 
-constdefs
+definition
   id_subst :: subst
-  "id_subst \<equiv> \<lambda>n. TVar n"
+  "id_subst = (\<lambda>n. TVar n)"
 
 lemma app_subst_id_te [simp]:
   "$id_subst = (\<lambda>t::typ. t)"
@@ -218,35 +218,36 @@ lemma new_tv_list: "new_tv n x = (\<forall>y \<in> set x. new_tv n y)"
   by (induct x) simp_all
 
 lemma subst_te_new_tv [simp]:
-  "new_tv n (t::typ) \<longrightarrow> $(\<lambda>x. if x = n then t' else s x) t = $s t"
+  "new_tv n (t::typ) \<Longrightarrow> $(\<lambda>x. if x = n then t' else s x) t = $s t"
   -- {* substitution affects only variables occurring freely *}
   by (induct t) simp_all
 
 lemma subst_tel_new_tv [simp]:
-  "new_tv n (ts::typ list) \<longrightarrow> $(\<lambda>x. if x = n then t else s x) ts = $s ts"
+  "new_tv n (ts::typ list) \<Longrightarrow> $(\<lambda>x. if x = n then t else s x) ts = $s ts"
   by (induct ts) simp_all
 
 lemma new_tv_le: "n \<le> m \<Longrightarrow> new_tv n (t::typ) \<Longrightarrow> new_tv m t"
   -- {* all greater variables are also new *}
 proof (induct t)
   case (TVar n)
-  thus ?case by (auto intro: less_le_trans)
+  then show ?case by (auto intro: less_le_trans)
 next
   case TFun
-  thus ?case by simp
+  then show ?case by simp
 qed
 
 lemma [simp]: "new_tv n t \<Longrightarrow> new_tv (Suc n) (t::typ)"
   by (rule lessI [THEN less_imp_le [THEN new_tv_le]])
 
 lemma new_tv_list_le:
-  "n \<le> m \<Longrightarrow> new_tv n (ts::typ list) \<Longrightarrow> new_tv m ts"
+  assumes "n \<le> m"
+  shows "new_tv n (ts::typ list) \<Longrightarrow> new_tv m ts"
 proof (induct ts)
   case Nil
-  thus ?case by simp
+  then show ?case by simp
 next
   case Cons
-  thus ?case by (auto intro: new_tv_le)
+  with `n \<le> m` show ?case by (auto intro: new_tv_le)
 qed
 
 lemma [simp]: "new_tv n ts \<Longrightarrow> new_tv (Suc n) (ts::typ list)"
@@ -397,31 +398,27 @@ inductive has_type
 text {* Type assigment is closed wrt.\ substitution. *}
 
 lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t"
-proof -
-  assume "a |- e :: t"
-  thus ?thesis (is "?P a e t")
-  proof induct
-    case (Var a n)
-    hence "n < length (map ($ s) a)" by simp
-    hence "map ($ s) a |- Var n :: map ($ s) a ! n"
-      by (rule has_type.Var)
-    also have "map ($ s) a ! n = $ s (a ! n)"
-      by (rule nth_map)
-    also have "map ($ s) a = $ s a"
-      by (simp only: app_subst_list)
-    finally show "?P a (Var n) (a ! n)" .
-  next
-    case (Abs a e t1 t2)
-    hence "$ s t1 # map ($ s) a |- e :: $ s t2"
-      by (simp add: app_subst_list)
-    hence "map ($ s) a |- Abs e :: $ s t1 -> $ s t2"
-      by (rule has_type.Abs)
-    thus "?P a (Abs e) (t1 -> t2)"
-      by (simp add: app_subst_list)
-  next
-    case App
-    thus ?case by (simp add: has_type.App)
-  qed
+proof (induct set: has_type)
+  case (Var a n)
+  then have "n < length (map ($ s) a)" by simp
+  then have "map ($ s) a |- Var n :: map ($ s) a ! n"
+    by (rule has_type.Var)
+  also have "map ($ s) a ! n = $ s (a ! n)"
+    by (rule nth_map)
+  also have "map ($ s) a = $ s a"
+    by (simp only: app_subst_list)
+  finally show ?case .
+next
+  case (Abs a e t1 t2)
+  then have "$ s t1 # map ($ s) a |- e :: $ s t2"
+    by (simp add: app_subst_list)
+  then have "map ($ s) a |- Abs e :: $ s t1 -> $ s t2"
+    by (rule has_type.Abs)
+  then show ?case
+    by (simp add: app_subst_list)
+next
+  case App
+  then show ?case by (simp add: has_type.App)
 qed
 
 
@@ -442,52 +439,48 @@ primrec
      u := mgu ($ s2 t1) (t2 -> TVar m2);
      Ok ($u o $s2 o s1, $u (TVar m2), Suc m2))"
 
-theorem W_correct: "!!a s t m n. Ok (s, t, m) = \<W> e a n ==> $s a |- e :: t"
-  (is "PROP ?P e")
-proof (induct e)
-  fix a s t m n
-  {
-    fix i
-    assume "Ok (s, t, m) = \<W> (Var i) a n"
-    thus "$s a |- Var i :: t" by (simp add: has_type.Var split: if_splits)
-  next
-    fix e assume hyp: "PROP ?P e"
-    assume "Ok (s, t, m) = \<W> (Abs e) a n"
-    then obtain t' where "t = s n -> t'"
-        and "Ok (s, t', m) = \<W> e (TVar n # a) (Suc n)"
-      by (auto split: bind_splits)
-    with hyp show "$s a |- Abs e :: t"
-      by (force intro: has_type.Abs)
-  next
-    fix e1 e2 assume hyp1: "PROP ?P e1" and hyp2: "PROP ?P e2"
-    assume "Ok (s, t, m) = \<W> (App e1 e2) a n"
-    then obtain s1 t1 n1 s2 t2 n2 u where
+theorem W_correct: "Ok (s, t, m) = \<W> e a n ==> $s a |- e :: t"
+proof (induct e fixing: a s t m n)
+  case (Var i)
+  from `Ok (s, t, m) = \<W> (Var i) a n`
+  show "$s a |- Var i :: t" by (simp add: has_type.Var split: if_splits)
+next
+  case (Abs e)
+  from `Ok (s, t, m) = \<W> (Abs e) a n`
+  obtain t' where "t = s n -> t'"
+      and "Ok (s, t', m) = \<W> e (TVar n # a) (Suc n)"
+    by (auto split: bind_splits)
+  with Abs.hyps show "$s a |- Abs e :: t"
+    by (force intro: has_type.Abs)
+next
+  case (App e1 e2)
+  from `Ok (s, t, m) = \<W> (App e1 e2) a n`
+  obtain s1 t1 n1 s2 t2 n2 u where
           s: "s = $u o $s2 o s1"
-        and t: "t = u n2"
-        and mgu_ok: "mgu ($s2 t1) (t2 -> TVar n2) = Ok u"
-        and W1_ok: "Ok (s1, t1, n1) = \<W> e1 a n"
-        and W2_ok: "Ok (s2, t2, n2) = \<W> e2 ($s1 a) n1"
-      by (auto split: bind_splits simp: that)
-    show "$s a |- App e1 e2 :: t"
-    proof (rule has_type.App)
-      from s have s': "$u ($s2 ($s1 a)) = $s a"
-        by (simp add: subst_comp_tel o_def)
-      show "$s a |- e1 :: $u t2 -> t"
-      proof -
-        from W1_ok have "$s1 a |- e1 :: t1" by (rule hyp1)
-        hence "$u ($s2 ($s1 a)) |- e1 :: $u ($s2 t1)"
-          by (intro has_type_subst_closed)
-        with s' t mgu_ok show ?thesis by simp
-      qed
-      show "$s a |- e2 :: $u t2"
-      proof -
-        from W2_ok have "$s2 ($s1 a) |- e2 :: t2" by (rule hyp2)
-        hence "$u ($s2 ($s1 a)) |- e2 :: $u t2"
-          by (rule has_type_subst_closed)
-        with s' show ?thesis by simp
-      qed
+      and t: "t = u n2"
+      and mgu_ok: "mgu ($s2 t1) (t2 -> TVar n2) = Ok u"
+      and W1_ok: "Ok (s1, t1, n1) = \<W> e1 a n"
+      and W2_ok: "Ok (s2, t2, n2) = \<W> e2 ($s1 a) n1"
+    by (auto split: bind_splits simp: that)
+  show "$s a |- App e1 e2 :: t"
+  proof (rule has_type.App)
+    from s have s': "$u ($s2 ($s1 a)) = $s a"
+      by (simp add: subst_comp_tel o_def)
+    show "$s a |- e1 :: $u t2 -> t"
+    proof -
+      from W1_ok have "$s1 a |- e1 :: t1" by (rule App.hyps)
+      then have "$u ($s2 ($s1 a)) |- e1 :: $u ($s2 t1)"
+        by (intro has_type_subst_closed)
+      with s' t mgu_ok show ?thesis by simp
     qed
-  }
+    show "$s a |- e2 :: $u t2"
+    proof -
+      from W2_ok have "$s2 ($s1 a) |- e2 :: t2" by (rule App.hyps)
+      then have "$u ($s2 ($s1 a)) |- e2 :: $u t2"
+        by (rule has_type_subst_closed)
+      with s' show ?thesis by simp
+    qed
+  qed
 qed
 
 

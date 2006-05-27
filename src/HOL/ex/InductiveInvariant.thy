@@ -14,14 +14,16 @@ text {* A formalization of some of the results in \emph{Inductive
 
 text "S is an inductive invariant of the functional F with respect to the wellfounded relation r."
 
-constdefs indinv :: "('a * 'a) set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool"
-         "indinv r S F == \<forall>f x. (\<forall>y. (y,x) : r --> S y (f y)) --> S x (F f x)"
+definition
+  indinv :: "('a * 'a) set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool"
+  "indinv r S F = (\<forall>f x. (\<forall>y. (y,x) : r --> S y (f y)) --> S x (F f x))"
 
 
 text "S is an inductive invariant of the functional F on set D with respect to the wellfounded relation r."
 
-constdefs indinv_on :: "('a * 'a) set => 'a set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool"
-         "indinv_on r D S F == \<forall>f. \<forall>x\<in>D. (\<forall>y\<in>D. (y,x) \<in> r --> S y (f y)) --> S x (F f x)"
+definition
+  indinv_on :: "('a * 'a) set => 'a set => ('a => 'b => bool) => (('a => 'b) => ('a => 'b)) => bool"
+  "indinv_on r D S F = (\<forall>f. \<forall>x\<in>D. (\<forall>y\<in>D. (y,x) \<in> r --> S y (f y)) --> S x (F f x))"
 
 
 text "The key theorem, corresponding to theorem 1 of the paper. All other results
@@ -29,15 +31,16 @@ text "The key theorem, corresponding to theorem 1 of the paper. All other result
       derived from this theorem."
 
 theorem indinv_wfrec:
-  assumes WF:  "wf r" and
-          INV: "indinv r S F"
+  assumes wf:  "wf r" and
+          inv: "indinv r S F"
   shows        "S x (wfrec r F x)"
-proof (induct_tac x rule: wf_induct [OF WF])
+  using wf
+proof (induct x)
   fix x
-  assume  IHYP: "\<forall>y. (y,x) \<in> r --> S y (wfrec r F y)"
-  then have     "\<forall>y. (y,x) \<in> r --> S y (cut (wfrec r F) r x y)" by (simp add: tfl_cut_apply)
-  with INV have "S x (F (cut (wfrec r F) r x) x)" by (unfold indinv_def, blast)
-  thus "S x (wfrec r F x)" using WF by (simp add: wfrec)
+  assume  IHYP: "!!y. (y,x) \<in> r \<Longrightarrow> S y (wfrec r F y)"
+  then have     "!!y. (y,x) \<in> r \<Longrightarrow> S y (cut (wfrec r F) r x y)" by (simp add: tfl_cut_apply)
+  with inv have "S x (F (cut (wfrec r F) r x) x)" by (unfold indinv_def, blast)
+  thus "S x (wfrec r F x)" using wf by (simp add: wfrec)
 qed
 
 theorem indinv_on_wfrec:

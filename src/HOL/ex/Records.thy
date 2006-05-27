@@ -50,11 +50,11 @@ defs
 
 subsubsection {* Record selection and record update *}
 
-constdefs
+definition
   getX :: "'a point_scheme => nat"
-  "getX r == xpos r"
+  "getX r = xpos r"
   setX :: "'a point_scheme => nat => 'a point_scheme"
-  "setX r n == r (| xpos := n |)"
+  "setX r n = r (| xpos := n |)"
 
 
 subsubsection {* Some lemmas about records *}
@@ -144,16 +144,16 @@ text {*
  \medskip Concrete records are type instances of record schemes.
 *}
 
-constdefs
+definition
   foo5 :: nat
-  "foo5 == getX (| xpos = 1, ypos = 0 |)"
+  "foo5 = getX (| xpos = 1, ypos = 0 |)"
 
 
 text {* \medskip Manipulating the ``@{text "..."}'' (more) part. *}
 
-constdefs
+definition
   incX :: "'a point_scheme => 'a point_scheme"
-  "incX r == (| xpos = xpos r + 1, ypos = ypos r, ... = point.more r |)"
+  "incX r = (| xpos = xpos r + 1, ypos = ypos r, ... = point.more r |)"
 
 lemma "incX r = setX r (Suc (getX r))"
   by (simp add: getX_def setX_def incX_def)
@@ -161,9 +161,9 @@ lemma "incX r = setX r (Suc (getX r))"
 
 text {* An alternative definition. *}
 
-constdefs
+definition
   incX' :: "'a point_scheme => 'a point_scheme"
-  "incX' r == r (| xpos := xpos r + 1 |)"
+  "incX' r = r (| xpos := xpos r + 1 |)"
 
 
 subsection {* Coloured points: record extension *}
@@ -193,9 +193,9 @@ text {*
  Functions on @{text point} schemes work for @{text cpoints} as well.
 *}
 
-constdefs
+definition
   foo10 :: nat
-  "foo10 == getX (| xpos = 2, ypos = 0, colour = Blue |)"
+  "foo10 = getX (| xpos = 2, ypos = 0, colour = Blue |)"
 
 
 subsubsection {* Non-coercive structural subtyping *}
@@ -205,9 +205,9 @@ text {*
  Great!
 *}
 
-constdefs
+definition
   foo11 :: cpoint
-  "foo11 == setX (| xpos = 2, ypos = 0, colour = Blue |) 0"
+  "foo11 = setX (| xpos = 2, ypos = 0, colour = Blue |) 0"
 
 
 subsection {* Other features *}

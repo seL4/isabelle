@@ -15,24 +15,23 @@ text{*
   \cite{Abrial-Laffitte}.
 *}
 
-constdefs
+definition
   chain     ::  "'a set set => 'a set set set"
-  "chain S  == {F. F \<subseteq> S & (\<forall>x \<in> F. \<forall>y \<in> F. x \<subseteq> y | y \<subseteq> x)}"
+  "chain S  = {F. F \<subseteq> S & (\<forall>x \<in> F. \<forall>y \<in> F. x \<subseteq> y | y \<subseteq> x)}"
 
   super     ::  "['a set set,'a set set] => 'a set set set"
-  "super S c == {d. d \<in> chain S & c \<subset> d}"
+  "super S c = {d. d \<in> chain S & c \<subset> d}"
 
   maxchain  ::  "'a set set => 'a set set set"
-  "maxchain S == {c. c \<in> chain S & super S c = {}}"
+  "maxchain S = {c. c \<in> chain S & super S c = {}}"
 
   succ      ::  "['a set set,'a set set] => 'a set set"
-  "succ S c ==
-    if c \<notin> chain S | c \<in> maxchain S
-    then c else SOME c'. c' \<in> super S c"
+  "succ S c =
+    (if c \<notin> chain S | c \<in> maxchain S
+    then c else SOME c'. c' \<in> super S c)"
 
 consts
   TFin :: "'a set set => 'a set set set"
-
 inductive "TFin S"
   intros
     succI:        "x \<in> TFin S ==> succ S x \<in> TFin S"
@@ -64,7 +63,7 @@ lemma TFin_induct:
              !!x. [| x \<in> TFin S; P(x) |] ==> P(succ S x);
              !!Y. [| Y \<subseteq> TFin S; Ball Y P |] ==> P(Union Y) |]
           ==> P(n)"
-  apply (erule TFin.induct)
+  apply (induct set: TFin)
    apply blast+
   done
 

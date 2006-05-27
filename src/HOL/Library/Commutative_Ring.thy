@@ -47,16 +47,16 @@ primrec
 
 text {* Create polynomial normalized polynomials given normalized inputs. *}
 
-constdefs
+definition
   mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
-  "mkPinj x P \<equiv> (case P of
+  "mkPinj x P = (case P of
     Pc c \<Rightarrow> Pc c |
     Pinj y P \<Rightarrow> Pinj (x + y) P |
     PX p1 y p2 \<Rightarrow> Pinj x P)"
 
-constdefs
+definition
   mkPX :: "'a::{comm_ring,recpower} pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
-  "mkPX P i Q == (case P of
+  "mkPX P i Q = (case P of
     Pc c \<Rightarrow> (if (c = 0) then (mkPinj 1 Q) else (PX P i Q)) |
     Pinj j R \<Rightarrow> PX P i Q |
     PX P2 i2 Q2 \<Rightarrow> (if (Q2 = (Pc 0)) then (PX P2 (i+i2) Q) else (PX P i Q)) )"
@@ -127,9 +127,9 @@ primrec
   "neg (PX P x Q) = PX (neg P) x (neg Q)"
 
 text {* Substraction *}
-constdefs
+definition
   sub :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
-  "sub p q \<equiv> add (p, neg q)"
+  "sub p q = add (p, neg q)"
 
 text {* Square for Fast Exponentation *}
 primrec
@@ -315,11 +315,6 @@ proof -
   thus ?thesis by (simp only: norm_ci)
 qed
 
-
-text {* Code generation *}
-(*
-Does not work, since no generic ring operations implementation is there
-generate_code ("ring.ML") test = "norm"*)
 
 use "comm_ring.ML"
 setup CommRing.setup

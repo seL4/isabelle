@@ -30,16 +30,15 @@ inductive domino
 
 text {* \medskip Sets of squares of the given colour*}
 
-constdefs
+definition
   coloured :: "nat => (nat \<times> nat) set"
-   "coloured b == {(i, j). (i + j) mod 2 = b}"
+  "coloured b = {(i, j). (i + j) mod 2 = b}"
 
-syntax whites  :: "(nat \<times> nat) set"
-       blacks  :: "(nat \<times> nat) set"
-
-translations
-  "whites" == "coloured 0"
-  "blacks" == "coloured (Suc 0)"
+abbreviation
+  whites  :: "(nat \<times> nat) set"
+  "whites == coloured 0"
+  blacks  :: "(nat \<times> nat) set"
+  "blacks == coloured (Suc 0)"
 
 
 text {* \medskip The union of two disjoint tilings is a tiling *}

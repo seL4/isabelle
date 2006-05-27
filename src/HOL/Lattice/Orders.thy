@@ -21,8 +21,8 @@ text {*
 axclass leq < type
 consts
   leq :: "'a::leq \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "[=" 50)
-syntax (xsymbols)
-  leq :: "'a::leq \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "\<sqsubseteq>" 50)
+const_syntax (xsymbols)
+  leq  (infixl "\<sqsubseteq>" 50)
 
 axclass quasi_order < leq
   leq_refl [intro?]: "x \<sqsubseteq> x"

@@ -79,7 +79,7 @@ theorem iff2 [elim]: "A = B \<Longrightarrow> B \<Longrightarrow> A"
 
 subsubsection {* Derived connectives *}
 
-constdefs
+definition
   false :: o    ("\<bottom>")
   "\<bottom> \<equiv> \<forall>A. A"
   true :: o    ("\<top>")

@@ -42,24 +42,24 @@ primrec
 
 text {* The set of primitive recursive functions of type @{typ "nat list => nat"}. *}
 
-constdefs
+definition
   SC :: "nat list => nat"
-  "SC l == Suc (zeroHd l)"
+  "SC l = Suc (zeroHd l)"
 
   CONSTANT :: "nat => nat list => nat"
-  "CONSTANT k l == k"
+  "CONSTANT k l = k"
 
   PROJ :: "nat => nat list => nat"
-  "PROJ i l == zeroHd (drop i l)"
+  "PROJ i l = zeroHd (drop i l)"
 
   COMP :: "(nat list => nat) => (nat list => nat) list => nat list => nat"
-  "COMP g fs l == g (map (\<lambda>f. f l) fs)"
+  "COMP g fs l = g (map (\<lambda>f. f l) fs)"
 
   PREC :: "(nat list => nat) => (nat list => nat) => nat list => nat"
-  "PREC f g l ==
-    case l of
+  "PREC f g l =
+    (case l of
       [] => 0
-    | x # l' => nat_rec (f l') (\<lambda>y r. g (r # y # l')) x"
+    | x # l' => nat_rec (f l') (\<lambda>y r. g (r # y # l')) x)"
   -- {* Note that @{term g} is applied first to @{term "PREC f g y"} and then to @{term y}! *}
 
 consts PRIMREC :: "(nat list => nat) set"

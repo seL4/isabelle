@@ -34,17 +34,14 @@ subsection {* Commands *}
 
 text{* Execution of commands *}
 consts  exec    :: "((exp*state) * (nat*state)) set => ((com*state)*state)set"
-syntax "@exec"  :: "((exp*state) * (nat*state)) set =>
-                    [com*state,state] => bool"     ("_/ -[_]-> _" [50,0,50] 50)
 
-translations  "csig -[eval]-> s" == "(csig,s) \<in> exec eval"
+abbreviation
+  exec_rel  ("_/ -[_]-> _" [50,0,50] 50)
+  "csig -[eval]-> s == (csig,s) \<in> exec eval"
 
-syntax  eval'   :: "[exp*state,nat*state] =>
-                    ((exp*state) * (nat*state)) set => bool"
-                                           ("_/ -|[_]-> _" [50,0,50] 50)
-
-translations
-    "esig -|[eval]-> ns" => "(esig,ns) \<in> eval"
+abbreviation (input)
+  generic_rel  ("_/ -|[_]-> _" [50,0,50] 50)
+  "esig -|[eval]-> ns == (esig,ns) \<in> eval"
 
 text{*Command execution.  Natural numbers represent Booleans: 0=True, 1=False*}
 inductive "exec eval"
@@ -105,12 +102,12 @@ done
 subsection {* Expressions *}
 
 text{* Evaluation of arithmetic expressions *}
-consts  eval    :: "((exp*state) * (nat*state)) set"
-       "-|->"   :: "[exp*state,nat*state] => bool"         (infixl 50)
+consts
+  eval    :: "((exp*state) * (nat*state)) set"
 
-translations
-    "esig -|-> (n,s)" <= "(esig,n,s) \<in> eval"
-    "esig -|-> ns"    == "(esig,ns ) \<in> eval"
+abbreviation
+  eval_rel :: "[exp*state,nat*state] => bool"         (infixl "-|->" 50)
+  "esig -|-> ns == (esig, ns) \<in> eval"
 
 inductive eval
   intros

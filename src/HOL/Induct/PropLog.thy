@@ -28,10 +28,10 @@ subsection {* The proof system *}
 
 consts
   thms  :: "'a pl set => 'a pl set"
-  "|-"  :: "['a pl set, 'a pl] => bool"   (infixl 50)
 
-translations
-  "H |- p" == "p \<in> thms(H)"
+abbreviation
+  thm_rel :: "['a pl set, 'a pl] => bool"   (infixl "|-" 50)
+  "H |- p == p \<in> thms H"
 
 inductive "thms(H)"
   intros
@@ -72,9 +72,9 @@ text {*
   is @{text p}.
 *}
 
-constdefs
+definition
   sat :: "['a pl set, 'a pl] => bool"   (infixl "|=" 50)
-    "H |= p  ==  (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) --> tt[[p]])"
+    "H |= p  =  (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) --> tt[[p]])"
 
 
 subsection {* Proof theory of propositional logic *}

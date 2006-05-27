@@ -11,25 +11,24 @@ imports Main
 begin
 
 text{*
-  An injective function from @{text "\<nat>\<twosuperior>"} to @{text
-  \<nat>}.  Definition and proofs are from \cite[page
-  85]{Oberschelp:1993}.
+  An injective function from @{text "\<nat>\<twosuperior>"} to @{text \<nat>}.  Definition
+  and proofs are from \cite[page 85]{Oberschelp:1993}.
 *}
 
-constdefs
+definition
   nat2_to_nat:: "(nat * nat) \<Rightarrow> nat"
-  "nat2_to_nat pair \<equiv> let (n,m) = pair in (n+m) * Suc (n+m) div 2 + n"
+  "nat2_to_nat pair = (let (n,m) = pair in (n+m) * Suc (n+m) div 2 + n)"
 
 lemma dvd2_a_x_suc_a: "2 dvd a * (Suc a)"
 proof (cases "2 dvd a")
   case True
-  thus ?thesis by (rule dvd_mult2)
+  then show ?thesis by (rule dvd_mult2)
 next
   case False
-  hence "Suc (a mod 2) = 2" by (simp add: dvd_eq_mod_eq_0)
-  hence "Suc a mod 2 = 0" by (simp add: mod_Suc)
-  hence "2 dvd Suc a" by (simp only:dvd_eq_mod_eq_0)
-  thus ?thesis by (rule dvd_mult)
+  then have "Suc (a mod 2) = 2" by (simp add: dvd_eq_mod_eq_0)
+  then have "Suc a mod 2 = 0" by (simp add: mod_Suc)
+  then have "2 dvd Suc a" by (simp only:dvd_eq_mod_eq_0)
+  then show ?thesis by (rule dvd_mult)
 qed
 
 lemma
@@ -37,7 +36,7 @@ lemma
   shows nat2_to_nat_help: "u+v \<le> x+y"
 proof (rule classical)
   assume "\<not> ?thesis"
-  hence contrapos: "x+y < u+v"
+  then have contrapos: "x+y < u+v"
     by simp
   have "nat2_to_nat (x,y) < (x+y) * Suc (x+y) div 2 + Suc (x + y)"
     by (unfold nat2_to_nat_def) (simp add: Let_def)
@@ -48,7 +47,7 @@ proof (rule classical)
   proof -
     have "2 dvd (x+y)*Suc(x+y)"
       by (rule dvd2_a_x_suc_a)
-    hence "(x+y)*Suc(x+y) mod 2 = 0"
+    then have "(x+y)*Suc(x+y) mod 2 = 0"
       by (simp only: dvd_eq_mod_eq_0)
     also
     have "2 * Suc(x+y) mod 2 = 0"
@@ -56,7 +55,7 @@ proof (rule classical)
     ultimately have
       "((x+y)*Suc(x+y) mod 2 + 2 * Suc(x+y) mod 2) div 2 = 0"
       by simp
-    thus ?thesis
+    then show ?thesis
       by simp
   qed
   also have "\<dots> = ((x+y)*Suc(x+y) + 2*Suc(x+y)) div 2"
@@ -75,7 +74,7 @@ theorem nat2_to_nat_inj: "inj nat2_to_nat"
 proof -
   {
     fix u v x y assume "nat2_to_nat (u,v) = nat2_to_nat (x,y)"
-    hence "u+v \<le> x+y" by (rule nat2_to_nat_help)
+    then have "u+v \<le> x+y" by (rule nat2_to_nat_help)
     also from prems [symmetric] have "x+y \<le> u+v"
       by (rule nat2_to_nat_help)
     finally have eq: "u+v = x+y" .
@@ -86,9 +85,9 @@ proof -
     with ux have "(u,v) = (x,y)"
       by simp
   }
-  hence "\<And>x y. nat2_to_nat x = nat2_to_nat y \<Longrightarrow> x=y"
+  then have "\<And>x y. nat2_to_nat x = nat2_to_nat y \<Longrightarrow> x=y"
     by fast
-  thus ?thesis
+  then show ?thesis
     by (unfold inj_on_def) simp
 qed
 

@@ -529,8 +529,9 @@ recdef islintn "measure (\<lambda> (n,t). (size t))"
 "islintn (n0, Add (Mult (Cst i) (Var n)) r) = (i \<noteq> 0 \<and> n0 \<le> n \<and> islintn (n+1,r))"
 "islintn (n0, t) = False"
 
-constdefs islint :: "intterm \<Rightarrow> bool"
-  "islint t \<equiv> islintn(0,t)"
+definition
+  islint :: "intterm \<Rightarrow> bool"
+  "islint t = islintn(0,t)"
 
 (* And the equivalence to the first definition *)
 lemma islinintterm_eq_islint: "islinintterm t = islint t"
@@ -728,8 +729,9 @@ lemma lin_mul_lintn:
   by (induct l t rule: lin_mul.induct) simp_all
 
 (* lin_neg neagtes a linear term *)
-constdefs lin_neg :: "intterm \<Rightarrow> intterm"
-"lin_neg i == lin_mul ((-1::int),i)"
+definition
+  lin_neg :: "intterm \<Rightarrow> intterm"
+  "lin_neg i = lin_mul ((-1::int),i)"
 
 (* lin_neg has the semantics of Neg *)
 lemma lin_neg_corr:
@@ -1622,11 +1624,13 @@ using linform_isqfree linform_lin
 by simp
 
 (* Definitions and lemmas about gcd and lcm *)
-constdefs lcm :: "nat \<times> nat \<Rightarrow> nat"
-  "lcm \<equiv> (\<lambda>(m,n). m*n div gcd(m,n))"
+definition
+  lcm :: "nat \<times> nat \<Rightarrow> nat"
+  "lcm = (\<lambda>(m,n). m*n div gcd(m,n))"
 
-constdefs ilcm :: "int \<Rightarrow> int \<Rightarrow> int"
-  "ilcm \<equiv> \<lambda>i.\<lambda>j. int (lcm(nat(abs i),nat(abs j)))"
+definition
+  ilcm :: "int \<Rightarrow> int \<Rightarrow> int"
+  "ilcm = (\<lambda>i.\<lambda>j. int (lcm(nat(abs i),nat(abs j))))"
 
 (* ilcm_dvd12 are needed later *)
 lemma lcm_dvd1: 
@@ -1874,8 +1878,9 @@ recdef adjustcoeff "measure (\<lambda>(l,p). size p)"
 
 
 (* unitycoeff expects a quantifier free formula an transforms it to an equivalent formula where the bound variable occurs only with coeffitient 1  or -1 *)
-constdefs unitycoeff :: "QF \<Rightarrow> QF"
-  "unitycoeff p == 
+definition
+  unitycoeff :: "QF \<Rightarrow> QF"
+  "unitycoeff p =
   (let l = formlcm p;
        p' = adjustcoeff (l,p)
    in (if l=1 then p' else 
@@ -5085,8 +5090,9 @@ by (cases f, auto) (cases g, auto)+
 
 
 (* An implementation of sets trough lists *)
-constdefs list_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  "list_insert x xs \<equiv> (if x mem xs then xs else x#xs)"
+definition
+  list_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  "list_insert x xs = (if x mem xs then xs else x#xs)"
 
 lemma list_insert_set: "set (list_insert x xs) = set (x#xs)"
 by(induct xs) (auto simp add: list_insert_def)
@@ -5362,8 +5368,8 @@ qed
 (* An implementation of cooper's method for both plus/minus/infinity *)
 
 (* unify the formula *)
-constdefs unify:: "QF \<Rightarrow> (QF \<times> intterm list)"
-  "unify p \<equiv> 
+definition unify:: "QF \<Rightarrow> (QF \<times> intterm list)"
+  "unify p =
   (let q = unitycoeff p;
        B = list_set(bset q);
        A = list_set (aset q)
@@ -5477,8 +5483,9 @@ proof-
     using qB_def by simp
 qed
 (* An implementation of cooper's method *)
-constdefs cooper:: "QF \<Rightarrow> QF option"
-"cooper p \<equiv> lift_un (\<lambda>q. decrvars(explode_minf (unify q))) (linform (nnf p))"
+definition
+  cooper:: "QF \<Rightarrow> QF option"
+  "cooper p = lift_un (\<lambda>q. decrvars(explode_minf (unify q))) (linform (nnf p))"
 
 (* cooper eliminates quantifiers *)
 lemma cooper_qfree: "(\<And> q q'. \<lbrakk>isqfree q ; cooper q = Some q'\<rbrakk> \<Longrightarrow>  isqfree q')"
@@ -5530,8 +5537,9 @@ proof-
 qed  
 
 (* A decision procedure for Presburger Arithmetics *)
-constdefs pa:: "QF \<Rightarrow> QF option"
-"pa p \<equiv> lift_un psimpl (qelim(cooper, p))"
+definition
+  pa:: "QF \<Rightarrow> QF option"
+  "pa p \<equiv> lift_un psimpl (qelim(cooper, p))"
 
 lemma psimpl_qfree: "isqfree p \<Longrightarrow> isqfree (psimpl p)"
 apply(induct p rule: isqfree.induct)

@@ -13,8 +13,6 @@ text {* Conversions between nibbles and integers in [0..15]. *}
 
 consts
   nibble_to_int:: "nibble \<Rightarrow> int"
-  int_to_nibble:: "int \<Rightarrow> nibble"
-
 primrec
   "nibble_to_int Nibble0 = 0"
   "nibble_to_int Nibble1 = 1"
@@ -33,25 +31,25 @@ primrec
   "nibble_to_int NibbleE = 14"
   "nibble_to_int NibbleF = 15"
 
-defs
-  int_to_nibble_def:
-    "int_to_nibble x \<equiv> (let y = x mod 16 in
-       if y = 0 then Nibble0 else
-       if y = 1 then Nibble1 else
-       if y = 2 then Nibble2 else
-       if y = 3 then Nibble3 else
-       if y = 4 then Nibble4 else
-       if y = 5 then Nibble5 else
-       if y = 6 then Nibble6 else
-       if y = 7 then Nibble7 else
-       if y = 8 then Nibble8 else
-       if y = 9 then Nibble9 else
-       if y = 10 then NibbleA else
-       if y = 11 then NibbleB else
-       if y = 12 then NibbleC else
-       if y = 13 then NibbleD else
-       if y = 14 then NibbleE else
-       NibbleF)"
+definition
+  int_to_nibble :: "int \<Rightarrow> nibble"
+  "int_to_nibble x \<equiv> (let y = x mod 16 in
+    if y = 0 then Nibble0 else
+    if y = 1 then Nibble1 else
+    if y = 2 then Nibble2 else
+    if y = 3 then Nibble3 else
+    if y = 4 then Nibble4 else
+    if y = 5 then Nibble5 else
+    if y = 6 then Nibble6 else
+    if y = 7 then Nibble7 else
+    if y = 8 then Nibble8 else
+    if y = 9 then Nibble9 else
+    if y = 10 then NibbleA else
+    if y = 11 then NibbleB else
+    if y = 12 then NibbleC else
+    if y = 13 then NibbleD else
+    if y = 14 then NibbleE else
+    NibbleF)"
 
 lemma int_to_nibble_nibble_to_int: "int_to_nibble(nibble_to_int x) = x"
   by (cases x) (auto simp: int_to_nibble_def Let_def)
@@ -93,15 +91,9 @@ defs (overloaded)
 lemmas char_ord_defs = char_less_def char_le_def
 
 instance char :: order
-  apply intro_classes
-     apply (unfold char_ord_defs)
-     apply (auto simp: char_to_int_pair_eq order_less_le)
-  done
+  by default (auto simp: char_ord_defs char_to_int_pair_eq order_less_le)
 
-instance char::linorder
-  apply intro_classes
-  apply (unfold char_le_def)
-  apply auto
-  done
+instance char :: linorder
+  by default (auto simp: char_le_def)
 
 end

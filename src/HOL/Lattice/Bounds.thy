@@ -15,18 +15,18 @@ text {*
   number of elements.
 *}
 
-constdefs
+definition
   is_inf :: "'a::partial_order \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-  "is_inf x y inf \<equiv> inf \<sqsubseteq> x \<and> inf \<sqsubseteq> y \<and> (\<forall>z. z \<sqsubseteq> x \<and> z \<sqsubseteq> y \<longrightarrow> z \<sqsubseteq> inf)"
+  "is_inf x y inf = (inf \<sqsubseteq> x \<and> inf \<sqsubseteq> y \<and> (\<forall>z. z \<sqsubseteq> x \<and> z \<sqsubseteq> y \<longrightarrow> z \<sqsubseteq> inf))"
 
   is_sup :: "'a::partial_order \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-  "is_sup x y sup \<equiv> x \<sqsubseteq> sup \<and> y \<sqsubseteq> sup \<and> (\<forall>z. x \<sqsubseteq> z \<and> y \<sqsubseteq> z \<longrightarrow> sup \<sqsubseteq> z)"
+  "is_sup x y sup = (x \<sqsubseteq> sup \<and> y \<sqsubseteq> sup \<and> (\<forall>z. x \<sqsubseteq> z \<and> y \<sqsubseteq> z \<longrightarrow> sup \<sqsubseteq> z))"
 
   is_Inf :: "'a::partial_order set \<Rightarrow> 'a \<Rightarrow> bool"
-  "is_Inf A inf \<equiv> (\<forall>x \<in> A. inf \<sqsubseteq> x) \<and> (\<forall>z. (\<forall>x \<in> A. z \<sqsubseteq> x) \<longrightarrow> z \<sqsubseteq> inf)"
+  "is_Inf A inf = ((\<forall>x \<in> A. inf \<sqsubseteq> x) \<and> (\<forall>z. (\<forall>x \<in> A. z \<sqsubseteq> x) \<longrightarrow> z \<sqsubseteq> inf))"
 
   is_Sup :: "'a::partial_order set \<Rightarrow> 'a \<Rightarrow> bool"
-  "is_Sup A sup \<equiv> (\<forall>x \<in> A. x \<sqsubseteq> sup) \<and> (\<forall>z. (\<forall>x \<in> A. x \<sqsubseteq> z) \<longrightarrow> sup \<sqsubseteq> z)"
+  "is_Sup A sup = ((\<forall>x \<in> A. x \<sqsubseteq> sup) \<and> (\<forall>z. (\<forall>x \<in> A. x \<sqsubseteq> z) \<longrightarrow> sup \<sqsubseteq> z))"
 
 text {*
   These definitions entail the following basic properties of boundary

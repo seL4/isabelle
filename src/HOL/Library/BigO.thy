@@ -38,10 +38,9 @@ rather than as an @{text "intro!"} rule, for example, using
 
 subsection {* Definitions *}
 
-constdefs 
-
+definition
   bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"    ("(1O'(_'))")
-  "O(f::('a => 'b)) == 
+  "O(f::('a => 'b)) =
       {h. EX c. ALL x. abs (h x) <= c * abs (f x)}"
 
 lemma bigo_pos_const: "(EX (c::'a::ordered_idom). 
@@ -735,10 +734,10 @@ done
 
 subsection {* Less than or equal to *}
 
-constdefs 
+definition
   lesso :: "('a => 'b::ordered_idom) => ('a => 'b) => ('a => 'b)"
       (infixl "<o" 70)
-  "f <o g == (%x. max (f x - g x) 0)"
+  "f <o g = (%x. max (f x - g x) 0)"
 
 lemma bigo_lesseq1: "f =o O(h) ==> ALL x. abs (g x) <= abs (f x) ==>
     g =o O(h)"

@@ -56,17 +56,17 @@ consts
   bitor  :: "bit => bit => bit" (infixr "bitor"  30)
   bitxor :: "bit => bit => bit" (infixr "bitxor" 30)
 
-syntax (xsymbols)
-  bitnot :: "bit => bit"        ("\<not>\<^sub>b _" [40] 40)
-  bitand :: "bit => bit => bit" (infixr "\<and>\<^sub>b" 35)
-  bitor  :: "bit => bit => bit" (infixr "\<or>\<^sub>b" 30)
-  bitxor :: "bit => bit => bit" (infixr "\<oplus>\<^sub>b" 30)
+const_syntax (xsymbols)
+  bitnot ("\<not>\<^sub>b _" [40] 40)
+  bitand (infixr "\<and>\<^sub>b" 35)
+  bitor  (infixr "\<or>\<^sub>b" 30)
+  bitxor (infixr "\<oplus>\<^sub>b" 30)
 
-syntax (HTML output)
-  bitnot :: "bit => bit"        ("\<not>\<^sub>b _" [40] 40)
-  bitand :: "bit => bit => bit" (infixr "\<and>\<^sub>b" 35)
-  bitor  :: "bit => bit => bit" (infixr "\<or>\<^sub>b" 30)
-  bitxor :: "bit => bit => bit" (infixr "\<oplus>\<^sub>b" 30)
+const_syntax (HTML output)
+  bitnot ("\<not>\<^sub>b _" [40] 40)
+  bitand (infixr "\<and>\<^sub>b" 35)
+  bitor  (infixr "\<or>\<^sub>b" 30)
+  bitxor (infixr "\<oplus>\<^sub>b" 30)
 
 primrec
   bitnot_zero: "(bitnot \<zero>) = \<one>"
@@ -141,13 +141,13 @@ proof (induct w,simp_all add: empty)
     by (cases b,auto intro!: zero one)
 qed
 
-constdefs
+definition
   bv_msb :: "bit list => bit"
-  "bv_msb w == if w = [] then \<zero> else hd w"
+  "bv_msb w = (if w = [] then \<zero> else hd w)"
   bv_extend :: "[nat,bit,bit list]=>bit list"
-  "bv_extend i b w == (replicate (i - length w) b) @ w"
+  "bv_extend i b w = (replicate (i - length w) b) @ w"
   bv_not :: "bit list => bit list"
-  "bv_not w == map bitnot w"
+  "bv_not w = map bitnot w"
 
 lemma bv_length_extend [simp]: "length w \<le> i ==> length (bv_extend i b w) = i"
   by (simp add: bv_extend_def)
@@ -176,9 +176,9 @@ lemma bv_msb_one_length [simp,intro]: "bv_msb w = \<one> ==> 0 < length w"
 lemma length_bv_not [simp]: "length (bv_not w) = length w"
   by (induct w,simp_all)
 
-constdefs
+definition
   bv_to_nat :: "bit list => nat"
-  "bv_to_nat == foldl (%bn b. 2 * bn + bitval b) 0"
+  "bv_to_nat = foldl (%bn b. 2 * bn + bitval b) 0"
 
 lemma bv_to_nat_Nil [simp]: "bv_to_nat [] = 0"
   by (simp add: bv_to_nat_def)
@@ -326,9 +326,9 @@ proof -
     ..
 qed
 
-constdefs
+definition
   norm_unsigned :: "bit list => bit list"
-  "norm_unsigned == rem_initial \<zero>"
+  "norm_unsigned = rem_initial \<zero>"
 
 lemma norm_unsigned_Nil [simp]: "norm_unsigned [] = []"
   by (simp add: norm_unsigned_def)
@@ -349,9 +349,9 @@ recdef nat_to_bv_helper "measure (\<lambda>n. n)"
   "nat_to_bv_helper n = (%bs. (if n = 0 then bs
                                else nat_to_bv_helper (n div 2) ((if n mod 2 = 0 then \<zero> else \<one>)#bs)))"
 
-constdefs
+definition
   nat_to_bv :: "nat => bit list"
-  "nat_to_bv n == nat_to_bv_helper n []"
+  "nat_to_bv n = nat_to_bv_helper n []"
 
 lemma nat_to_bv0 [simp]: "nat_to_bv 0 = []"
   by (simp add: nat_to_bv_def)
@@ -400,7 +400,7 @@ proof -
       assume "k \<le> j" and "j < i"
       with a
       show "P j"
-	by auto
+        by auto
     qed
     show "\<forall> j. k \<le> j \<and> j < i + 1 --> P j"
     proof auto
@@ -409,18 +409,18 @@ proof -
       assume ji: "j \<le> i"
       show "P j"
       proof (cases "j = i")
-	assume "j = i"
-	with pi
-	show "P j"
-	  by simp
+        assume "j = i"
+        with pi
+        show "P j"
+          by simp
       next
-	assume "j ~= i"
-	with ji
-	have "j < i"
-	  by simp
-	with kj and a
-	show "P j"
-	  by blast
+        assume "j ~= i"
+        with ji
+        have "j < i"
+          by simp
+        with kj and a
+        show "P j"
+          by blast
       qed
     qed
   qed
@@ -446,39 +446,39 @@ proof -
       fix l
       show "nat_to_bv_helper n l = nat_to_bv_helper n [] @ l"
       proof (cases "n < 0")
-	assume "n < 0"
-	thus ?thesis
-	  by (simp add: nat_to_bv_helper.simps)
+        assume "n < 0"
+        thus ?thesis
+          by (simp add: nat_to_bv_helper.simps)
       next
-	assume "~n < 0"
-	show ?thesis
-	proof (rule n_div_2_cases [of n])
-	  assume [simp]: "n = 0"
-	  show ?thesis
-	    apply (simp only: nat_to_bv_helper.simps [of n])
-	    apply simp
-	    done
-	next
-	  assume n2n: "n div 2 < n"
-	  assume [simp]: "0 < n"
-	  hence n20: "0 \<le> n div 2"
-	    by arith
-	  from ind [of "n div 2"] and n2n n20
-	  have ind': "\<forall>l. nat_to_bv_helper (n div 2) l = nat_to_bv_helper (n div 2) [] @ l"
-	    by blast
-	  show ?thesis
-	    apply (simp only: nat_to_bv_helper.simps [of n])
-	    apply (cases "n=0")
-	    apply simp
-	    apply (simp only: if_False)
-	    apply simp
-	    apply (subst spec [OF ind',of "\<zero>#l"])
-	    apply (subst spec [OF ind',of "\<one>#l"])
-	    apply (subst spec [OF ind',of "[\<one>]"])
-	    apply (subst spec [OF ind',of "[\<zero>]"])
-	    apply simp
-	    done
-	qed
+        assume "~n < 0"
+        show ?thesis
+        proof (rule n_div_2_cases [of n])
+          assume [simp]: "n = 0"
+          show ?thesis
+            apply (simp only: nat_to_bv_helper.simps [of n])
+            apply simp
+            done
+        next
+          assume n2n: "n div 2 < n"
+          assume [simp]: "0 < n"
+          hence n20: "0 \<le> n div 2"
+            by arith
+          from ind [of "n div 2"] and n2n n20
+          have ind': "\<forall>l. nat_to_bv_helper (n div 2) l = nat_to_bv_helper (n div 2) [] @ l"
+            by blast
+          show ?thesis
+            apply (simp only: nat_to_bv_helper.simps [of n])
+            apply (cases "n=0")
+            apply simp
+            apply (simp only: if_False)
+            apply simp
+            apply (subst spec [OF ind',of "\<zero>#l"])
+            apply (subst spec [OF ind',of "\<one>#l"])
+            apply (subst spec [OF ind',of "[\<one>]"])
+            apply (subst spec [OF ind',of "[\<zero>]"])
+            apply simp
+            done
+        qed
       qed
     qed
   qed
@@ -511,14 +511,14 @@ proof -
       fix l2
       show "bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
       proof -
-	have "(2::nat) ^ (length xs + length l2) = 2 ^ length xs * 2 ^ length l2"
-	  by (induct "length xs",simp_all)
-	hence "bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 =
-	  bitval x * 2 ^ length xs * 2 ^ length l2 + bv_to_nat xs * 2 ^ length l2"
-	  by simp
-	also have "... = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
-	  by (simp add: ring_distrib)
-	finally show ?thesis .
+        have "(2::nat) ^ (length xs + length l2) = 2 ^ length xs * 2 ^ length l2"
+          by (induct "length xs",simp_all)
+        hence "bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 =
+          bitval x * 2 ^ length xs * 2 ^ length l2 + bv_to_nat xs * 2 ^ length l2"
+          by simp
+        also have "... = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
+          by (simp add: ring_distrib)
+        finally show ?thesis .
       qed
     qed
   qed
@@ -553,15 +553,15 @@ proof (induct n rule: less_induct)
       apply (simp add: ind' split del: split_if)
       apply (cases "n mod 2 = 0")
       proof simp_all
-	assume "n mod 2 = 0"
-	with mod_div_equality [of n 2]
-	show "n div 2 * 2 = n"
-	  by simp
+        assume "n mod 2 = 0"
+        with mod_div_equality [of n 2]
+        show "n div 2 * 2 = n"
+          by simp
       next
-	assume "n mod 2 = Suc 0"
-	with mod_div_equality [of n 2]
-	show "Suc (n div 2 * 2) = n"
-	  by simp
+        assume "n mod 2 = Suc 0"
+        with mod_div_equality [of n 2]
+        show "Suc (n div 2 * 2) = n"
+          by simp
       qed
   qed
 qed
@@ -715,41 +715,41 @@ proof -
       assume ind: "\<forall>ys. length ys < length xs --> ?P ys"
       show "?P xs"
       proof (cases xs)
-	assume [simp]: "xs = []"
-	show ?thesis
-	  by (simp add: nat_to_bv_non0)
+        assume [simp]: "xs = []"
+        show ?thesis
+          by (simp add: nat_to_bv_non0)
       next
-	fix y ys
-	assume [simp]: "xs = y # ys"
-	show ?thesis
-	  apply simp
-	  apply (subst bv_to_nat_dist_append)
-	  apply simp
-	proof -
-	  have "nat_to_bv (2 * 2 ^ length ys + (bv_to_nat (rev ys) * 2 + bitval y)) =
-	    nat_to_bv (2 * (2 ^ length ys + bv_to_nat (rev ys)) + bitval y)"
-	    by (simp add: add_ac mult_ac)
-	  also have "... = nat_to_bv (2 * (bv_to_nat (\<one>#rev ys)) + bitval y)"
-	    by simp
-	  also have "... = norm_unsigned (\<one>#rev ys) @ [y]"
-	  proof -
-	    from ind
-	    have "nat_to_bv (2 ^ length (rev ys) + bv_to_nat (rev ys)) = \<one> # rev ys"
-	      by auto
-	    hence [simp]: "nat_to_bv (2 ^ length ys + bv_to_nat (rev ys)) = \<one> # rev ys"
-	      by simp
-	    show ?thesis
-	      apply (subst nat_helper1)
-	      apply simp_all
-	      done
-	  qed
-	  also have "... = (\<one>#rev ys) @ [y]"
-	    by simp
-	  also have "... = \<one> # rev ys @ [y]"
-	    by simp
-	  finally show "nat_to_bv (2 * 2 ^ length ys + (bv_to_nat (rev ys) * 2 + bitval y)) = \<one> # rev ys @ [y]"
-	    .
-	qed
+        fix y ys
+        assume [simp]: "xs = y # ys"
+        show ?thesis
+          apply simp
+          apply (subst bv_to_nat_dist_append)
+          apply simp
+        proof -
+          have "nat_to_bv (2 * 2 ^ length ys + (bv_to_nat (rev ys) * 2 + bitval y)) =
+            nat_to_bv (2 * (2 ^ length ys + bv_to_nat (rev ys)) + bitval y)"
+            by (simp add: add_ac mult_ac)
+          also have "... = nat_to_bv (2 * (bv_to_nat (\<one>#rev ys)) + bitval y)"
+            by simp
+          also have "... = norm_unsigned (\<one>#rev ys) @ [y]"
+          proof -
+            from ind
+            have "nat_to_bv (2 ^ length (rev ys) + bv_to_nat (rev ys)) = \<one> # rev ys"
+              by auto
+            hence [simp]: "nat_to_bv (2 ^ length ys + bv_to_nat (rev ys)) = \<one> # rev ys"
+              by simp
+            show ?thesis
+              apply (subst nat_helper1)
+              apply simp_all
+              done
+          qed
+          also have "... = (\<one>#rev ys) @ [y]"
+            by simp
+          also have "... = \<one> # rev ys @ [y]"
+            by simp
+          finally show "nat_to_bv (2 * 2 ^ length ys + (bv_to_nat (rev ys) * 2 + bitval y)) = \<one> # rev ys @ [y]"
+            .
+        qed
       qed
     qed
   qed
@@ -856,9 +856,9 @@ qed
 
 subsection {* Unsigned Arithmetic Operations *}
 
-constdefs
+definition
   bv_add :: "[bit list, bit list ] => bit list"
-  "bv_add w1 w2 == nat_to_bv (bv_to_nat w1 + bv_to_nat w2)"
+  "bv_add w1 w2 = nat_to_bv (bv_to_nat w1 + bv_to_nat w2)"
 
 lemma bv_add_type1 [simp]: "bv_add (norm_unsigned w1) w2 = bv_add w1 w2"
   by (simp add: bv_add_def)
@@ -893,13 +893,13 @@ proof (unfold bv_add_def,rule length_nat_to_bv_upper_limit)
     proof
       assume "(2::nat) ^ length w1 - 1 \<le> 2 ^ length w2 - 1"
       hence "((2::nat) ^ length w1 - 1) + 1 \<le> (2 ^ length w2 - 1) + 1"
-	by (rule add_right_mono)
+        by (rule add_right_mono)
       hence "(2::nat) ^ length w1 \<le> 2 ^ length w2"
-	by simp
+        by simp
       hence "length w1 \<le> length w2"
-	by simp
+        by simp
       thus False
-	by simp
+        by simp
     qed
     thus ?thesis
       by (simp add: diff_mult_distrib2 split: split_max)
@@ -908,9 +908,9 @@ proof (unfold bv_add_def,rule length_nat_to_bv_upper_limit)
     by arith
 qed
 
-constdefs
+definition
   bv_mult :: "[bit list, bit list ] => bit list"
-  "bv_mult w1 w2 == nat_to_bv (bv_to_nat w1 * bv_to_nat w2)"
+  "bv_mult w1 w2 = nat_to_bv (bv_to_nat w1 * bv_to_nat w2)"
 
 lemma bv_mult_type1 [simp]: "bv_mult (norm_unsigned w1) w2 = bv_mult w1 w2"
   by (simp add: bv_mult_def)
@@ -968,11 +968,11 @@ lemma norm_signed11 [simp]: "norm_signed (\<one>#\<one>#xs) = norm_signed (\<one
 
 lemmas [simp del] = norm_signed_Cons
 
-constdefs
+definition
   int_to_bv :: "int => bit list"
-  "int_to_bv n == if 0 \<le> n
+  "int_to_bv n = (if 0 \<le> n
                  then norm_signed (\<zero>#nat_to_bv (nat n))
-                 else norm_signed (bv_not (\<zero>#nat_to_bv (nat (-n- 1))))"
+                 else norm_signed (bv_not (\<zero>#nat_to_bv (nat (-n- 1)))))"
 
 lemma int_to_bv_ge0 [simp]: "0 \<le> n ==> int_to_bv n = norm_signed (\<zero> # nat_to_bv (nat n))"
   by (simp add: int_to_bv_def)
@@ -1003,9 +1003,11 @@ next
   qed
 qed
 
-constdefs
+definition
   bv_to_int :: "bit list => int"
-  "bv_to_int w == case bv_msb w of \<zero> => int (bv_to_nat w) | \<one> => - int (bv_to_nat (bv_not w) + 1)"
+  "bv_to_int w =
+    (case bv_msb w of \<zero> => int (bv_to_nat w)
+    | \<one> => - int (bv_to_nat (bv_not w) + 1))"
 
 lemma bv_to_int_Nil [simp]: "bv_to_int [] = 0"
   by (simp add: bv_to_int_def)
@@ -1232,23 +1234,23 @@ proof -
       assume "norm_unsigned w' = []"
       with weq and w0
       show False
-	by (simp add: norm_empty_bv_to_nat_zero)
+        by (simp add: norm_empty_bv_to_nat_zero)
     next
       assume w'0: "norm_unsigned w' \<noteq> []"
       have "0 < bv_to_nat w'"
       proof (rule ccontr)
-	assume "~ (0 < bv_to_nat w')"
-	hence "bv_to_nat w' = 0"
-	  by arith
-	hence "norm_unsigned w' = []"
-	  by (simp add: bv_to_nat_zero_imp_empty)
-	with w'0
-	show False
-	  by simp
+        assume "~ (0 < bv_to_nat w')"
+        hence "bv_to_nat w' = 0"
+          by arith
+        hence "norm_unsigned w' = []"
+          by (simp add: bv_to_nat_zero_imp_empty)
+        with w'0
+        show False
+          by simp
       qed
       with bv_to_nat_lower_limit [of w']
       show "2 ^ (length (norm_unsigned w') - Suc 0) \<le> int (bv_to_nat w')"
-	by (simp add: int_nat_two_exp)
+        by (simp add: int_nat_two_exp)
     qed
   next
     fix w'
@@ -1327,47 +1329,47 @@ proof -
     proof (rule bit_list_cases [of "norm_signed w"])
       assume "norm_signed w = []"
       hence "bv_to_int (norm_signed w) = 0"
-	by simp
+        by simp
       with w0
       show ?thesis
-	by simp
+        by simp
     next
       fix w'
       assume nw: "norm_signed w = \<zero> # w'"
       from msbw
       have "bv_msb (norm_signed w) = \<one>"
-	by simp
+        by simp
       with nw
       show ?thesis
-	by simp
+        by simp
     next
       fix w'
       assume weq: "norm_signed w = \<one> # w'"
       show ?thesis
       proof (rule bit_list_cases [of w'])
-	assume w'eq: "w' = []"
-	from w0
-	have "bv_to_int (norm_signed w) < -1"
-	  by simp
-	with w'eq and weq
-	show ?thesis
-	  by simp
+        assume w'eq: "w' = []"
+        from w0
+        have "bv_to_int (norm_signed w) < -1"
+          by simp
+        with w'eq and weq
+        show ?thesis
+          by simp
       next
-	fix w''
-	assume w'eq: "w' = \<zero> # w''"
-	show ?thesis
-	  apply (simp add: weq w'eq)
-	  apply (subgoal_tac "- int (bv_to_nat (bv_not w'')) + -1 < 0 + 0")
-	  apply (simp add: int_nat_two_exp)
-	  apply (rule add_le_less_mono)
-	  apply simp_all
-	  done
+        fix w''
+        assume w'eq: "w' = \<zero> # w''"
+        show ?thesis
+          apply (simp add: weq w'eq)
+          apply (subgoal_tac "- int (bv_to_nat (bv_not w'')) + -1 < 0 + 0")
+          apply (simp add: int_nat_two_exp)
+          apply (rule add_le_less_mono)
+          apply simp_all
+          done
       next
-	fix w''
-	assume w'eq: "w' = \<one> # w''"
-	with weq and msb_tl
-	show ?thesis
-	  by simp
+        fix w''
+        assume w'eq: "w' = \<one> # w''"
+        with weq and msb_tl
+        show ?thesis
+          by simp
       qed
     qed
   qed
@@ -1396,7 +1398,7 @@ proof (rule ccontr)
     proof (rule bv_to_int_lower_limit_gt0)
       from w0
       show "0 < bv_to_int (int_to_bv i)"
-	by simp
+        by simp
     qed
     thus ?thesis
       by simp
@@ -1586,9 +1588,9 @@ subsection {* Signed Arithmetic Operations *}
 
 subsubsection {* Conversion from unsigned to signed *}
 
-constdefs
+definition
   utos :: "bit list => bit list"
-  "utos w == norm_signed (\<zero> # w)"
+  "utos w = norm_signed (\<zero> # w)"
 
 lemma utos_type [simp]: "utos (norm_unsigned w) = utos w"
   by (simp add: utos_def norm_signed_Cons)
@@ -1610,9 +1612,9 @@ qed
 
 subsubsection {* Unary minus *}
 
-constdefs
+definition
   bv_uminus :: "bit list => bit list"
-  "bv_uminus w == int_to_bv (- bv_to_int w)"
+  "bv_uminus w = int_to_bv (- bv_to_int w)"
 
 lemma bv_uminus_type [simp]: "bv_uminus (norm_signed w) = bv_uminus w"
   by (simp add: bv_uminus_def)
@@ -1636,16 +1638,16 @@ proof -
     proof (simp add: bv_uminus_def,rule length_int_to_bv_upper_limit_gt0,simp_all)
       from prems
       show "bv_to_int w < 0"
-	by simp
+        by simp
     next
       have "-(2^(length w - 1)) \<le> bv_to_int w"
-	by (rule bv_to_int_lower_range)
+        by (rule bv_to_int_lower_range)
       hence "- bv_to_int w \<le> 2^(length w - 1)"
-	by simp
+        by simp
       also from lw have "... < 2 ^ length w"
-	by simp
+        by simp
       finally show "- bv_to_int w < 2 ^ length w"
-	by simp
+        by simp
     qed
   next
     assume p: "- bv_to_int w = 1"
@@ -1674,10 +1676,10 @@ proof -
       apply simp
     proof -
       have "bv_to_int w < 2 ^ (length w - 1)"
-	by (rule bv_to_int_upper_range)
+        by (rule bv_to_int_upper_range)
       also have "... \<le> 2 ^ length w" by simp
       finally show "bv_to_int w \<le> 2 ^ length w"
-	by simp
+        by simp
     qed
   qed
 qed
@@ -1709,9 +1711,9 @@ proof -
   qed
 qed
 
-constdefs
+definition
   bv_sadd :: "[bit list, bit list ] => bit list"
-  "bv_sadd w1 w2 == int_to_bv (bv_to_int w1 + bv_to_int w2)"
+  "bv_sadd w1 w2 = int_to_bv (bv_to_int w1 + bv_to_int w2)"
 
 lemma bv_sadd_type1 [simp]: "bv_sadd (norm_signed w1) w2 = bv_sadd w1 w2"
   by (simp add: bv_sadd_def)
@@ -1756,10 +1758,10 @@ proof -
       assume [simp]: "w1 = []"
       show "w2 \<noteq> []"
       proof (rule ccontr,simp)
-	assume [simp]: "w2 = []"
-	from p
-	show False
-	  by simp
+        assume [simp]: "w2 = []"
+        from p
+        show False
+          by simp
       qed
     qed
   qed
@@ -1784,18 +1786,18 @@ proof -
     proof simp
       from bv_to_int_upper_range [of w2]
       have "bv_to_int w2 \<le> 2 ^ (length w2 - 1)"
-	by simp
+        by simp
       with bv_to_int_upper_range [of w1]
       have "bv_to_int w1 + bv_to_int w2 < (2 ^ (length w1 - 1)) + (2 ^ (length w2 - 1))"
-	by (rule zadd_zless_mono)
+        by (rule zadd_zless_mono)
       also have "... \<le> 2 ^ max (length w1) (length w2)"
-	apply (rule adder_helper)
-	apply (rule helper)
-	using p
-	apply simp
-	done
+        apply (rule adder_helper)
+        apply (rule helper)
+        using p
+        apply simp
+        done
       finally show "?Q < 2 ^ max (length w1) (length w2)"
-	.
+        .
     qed
   next
     assume p: "?Q < -1"
@@ -1805,26 +1807,26 @@ proof -
       apply (rule p)
     proof -
       have "(2 ^ (length w1 - 1)) + 2 ^ (length w2 - 1) \<le> (2::int) ^ max (length w1) (length w2)"
-	apply (rule adder_helper)
-	apply (rule helper)
-	using p
-	apply simp
-	done
+        apply (rule adder_helper)
+        apply (rule helper)
+        using p
+        apply simp
+        done
       hence "-((2::int) ^ max (length w1) (length w2)) \<le> - (2 ^ (length w1 - 1)) + -(2 ^ (length w2 - 1))"
-	by simp
+        by simp
       also have "- (2 ^ (length w1 - 1)) + -(2 ^ (length w2 - 1)) \<le> ?Q"
-	apply (rule add_mono)
-	apply (rule bv_to_int_lower_range [of w1])
-	apply (rule bv_to_int_lower_range [of w2])
-	done
+        apply (rule add_mono)
+        apply (rule bv_to_int_lower_range [of w1])
+        apply (rule bv_to_int_lower_range [of w2])
+        done
       finally show "- (2^max (length w1) (length w2)) \<le> ?Q" .
     qed
   qed
 qed
 
-constdefs
+definition
   bv_sub :: "[bit list, bit list] => bit list"
-  "bv_sub w1 w2 == bv_sadd w1 (bv_uminus w2)"
+  "bv_sub w1 w2 = bv_sadd w1 (bv_uminus w2)"
 
 lemma bv_sub_type1 [simp]: "bv_sub (norm_signed w1) w2 = bv_sub w1 w2"
   by (simp add: bv_sub_def)
@@ -1878,18 +1880,18 @@ next
     proof simp
       from bv_to_int_lower_range [of w2]
       have v2: "- bv_to_int w2 \<le> 2 ^ (length w2 - 1)"
-	by simp
+        by simp
       have "bv_to_int w1 + - bv_to_int w2 < (2 ^ (length w1 - 1)) + (2 ^ (length w2 - 1))"
-	apply (rule zadd_zless_mono)
-	apply (rule bv_to_int_upper_range [of w1])
-	apply (rule v2)
-	done
+        apply (rule zadd_zless_mono)
+        apply (rule bv_to_int_upper_range [of w1])
+        apply (rule v2)
+        done
       also have "... \<le> 2 ^ max (length w1) (length w2)"
-	apply (rule adder_helper)
-	apply (rule lmw)
-	done
+        apply (rule adder_helper)
+        apply (rule lmw)
+        done
       finally show "?Q < 2 ^ max (length w1) (length w2)"
-	by simp
+        by simp
     qed
   next
     assume p: "?Q < -1"
@@ -1899,26 +1901,26 @@ next
       apply (rule p)
     proof simp
       have "(2 ^ (length w1 - 1)) + 2 ^ (length w2 - 1) \<le> (2::int) ^ max (length w1) (length w2)"
-	apply (rule adder_helper)
-	apply (rule lmw)
-	done
+        apply (rule adder_helper)
+        apply (rule lmw)
+        done
       hence "-((2::int) ^ max (length w1) (length w2)) \<le> - (2 ^ (length w1 - 1)) + -(2 ^ (length w2 - 1))"
-	by simp
+        by simp
       also have "- (2 ^ (length w1 - 1)) + -(2 ^ (length w2 - 1)) \<le> bv_to_int w1 + -bv_to_int w2"
-	apply (rule add_mono)
-	apply (rule bv_to_int_lower_range [of w1])
-	using bv_to_int_upper_range [of w2]
-	apply simp
-	done
+        apply (rule add_mono)
+        apply (rule bv_to_int_lower_range [of w1])
+        using bv_to_int_upper_range [of w2]
+        apply simp
+        done
       finally show "- (2^max (length w1) (length w2)) \<le> ?Q"
-	by simp
+        by simp
     qed
   qed
 qed
 
-constdefs
+definition
   bv_smult :: "[bit list, bit list] => bit list"
-  "bv_smult w1 w2 == int_to_bv (bv_to_int w1 * bv_to_int w2)"
+  "bv_smult w1 w2 = int_to_bv (bv_to_int w1 * bv_to_int w2)"
 
 lemma bv_smult_type1 [simp]: "bv_smult (norm_signed w1) w2 = bv_smult w1 w2"
   by (simp add: bv_smult_def)
@@ -1963,58 +1965,58 @@ proof -
       assume bi1: "0 < bv_to_int w1"
       assume bi2: "0 < bv_to_int w2"
       show ?thesis
-	apply (simp add: bv_smult_def)
-	apply (rule length_int_to_bv_upper_limit_gt0)
-	apply (rule p)
+        apply (simp add: bv_smult_def)
+        apply (rule length_int_to_bv_upper_limit_gt0)
+        apply (rule p)
       proof simp
-	have "?Q < 2 ^ (length w1 - 1) * 2 ^ (length w2 - 1)"
-	  apply (rule mult_strict_mono)
-	  apply (rule bv_to_int_upper_range)
-	  apply (rule bv_to_int_upper_range)
-	  apply (rule zero_less_power)
-	  apply simp
-	  using bi2
-	  apply simp
-	  done
-	also have "... \<le> 2 ^ (length w1 + length w2 - Suc 0)"
-	  apply simp
-	  apply (subst zpower_zadd_distrib [symmetric])
-	  apply simp
-	  apply arith
-	  done
-	finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)"
-	  .
+        have "?Q < 2 ^ (length w1 - 1) * 2 ^ (length w2 - 1)"
+          apply (rule mult_strict_mono)
+          apply (rule bv_to_int_upper_range)
+          apply (rule bv_to_int_upper_range)
+          apply (rule zero_less_power)
+          apply simp
+          using bi2
+          apply simp
+          done
+        also have "... \<le> 2 ^ (length w1 + length w2 - Suc 0)"
+          apply simp
+          apply (subst zpower_zadd_distrib [symmetric])
+          apply simp
+          apply arith
+          done
+        finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)"
+          .
       qed
     next
       assume bi1: "bv_to_int w1 < 0"
       assume bi2: "bv_to_int w2 < 0"
       show ?thesis
-	apply (simp add: bv_smult_def)
-	apply (rule length_int_to_bv_upper_limit_gt0)
-	apply (rule p)
+        apply (simp add: bv_smult_def)
+        apply (rule length_int_to_bv_upper_limit_gt0)
+        apply (rule p)
       proof simp
-	have "-bv_to_int w1 * -bv_to_int w2 \<le> 2 ^ (length w1 - 1) * 2 ^(length w2 - 1)"
-	  apply (rule mult_mono)
-	  using bv_to_int_lower_range [of w1]
-	  apply simp
-	  using bv_to_int_lower_range [of w2]
-	  apply simp
-	  apply (rule zero_le_power,simp)
-	  using bi2
-	  apply simp
-	  done
-	hence "?Q \<le> 2 ^ (length w1 - 1) * 2 ^(length w2 - 1)"
-	  by simp
-	also have "... < 2 ^ (length w1 + length w2 - Suc 0)"
-	  apply simp
-	  apply (subst zpower_zadd_distrib [symmetric])
-	  apply simp
-	  apply (cut_tac lmw)
-	  apply arith
-	  apply (cut_tac p)
-	  apply arith
-	  done
-	finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)" .
+        have "-bv_to_int w1 * -bv_to_int w2 \<le> 2 ^ (length w1 - 1) * 2 ^(length w2 - 1)"
+          apply (rule mult_mono)
+          using bv_to_int_lower_range [of w1]
+          apply simp
+          using bv_to_int_lower_range [of w2]
+          apply simp
+          apply (rule zero_le_power,simp)
+          using bi2
+          apply simp
+          done
+        hence "?Q \<le> 2 ^ (length w1 - 1) * 2 ^(length w2 - 1)"
+          by simp
+        also have "... < 2 ^ (length w1 + length w2 - Suc 0)"
+          apply simp
+          apply (subst zpower_zadd_distrib [symmetric])
+          apply simp
+          apply (cut_tac lmw)
+          apply arith
+          apply (cut_tac p)
+          apply arith
+          done
+        finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)" .
       qed
     qed
   next
@@ -2025,60 +2027,60 @@ proof -
       apply (rule p)
     proof simp
       have "(2::int) ^ (length w1 - 1) * 2 ^(length w2 - 1) \<le> 2 ^ (length w1 + length w2 - Suc 0)"
-	apply simp
-	apply (subst zpower_zadd_distrib [symmetric])
-	apply simp
-	apply (cut_tac lmw)
-	apply arith
-	apply (cut_tac p)
-	apply arith
-	done
+        apply simp
+        apply (subst zpower_zadd_distrib [symmetric])
+        apply simp
+        apply (cut_tac lmw)
+        apply arith
+        apply (cut_tac p)
+        apply arith
+        done
       hence "-((2::int) ^ (length w1 + length w2 - Suc 0)) \<le> -(2^(length w1 - 1) * 2 ^ (length w2 - 1))"
-	by simp
+        by simp
       also have "... \<le> ?Q"
       proof -
-	from p
-	have q: "bv_to_int w1 * bv_to_int w2 < 0"
-	  by simp
-	thus ?thesis
-	proof (simp add: mult_less_0_iff,safe)
-	  assume bi1: "0 < bv_to_int w1"
-	  assume bi2: "bv_to_int w2 < 0"
-	  have "-bv_to_int w2 * bv_to_int w1 \<le> ((2::int)^(length w2 - 1)) * (2 ^ (length w1 - 1))"
-	    apply (rule mult_mono)
-	    using bv_to_int_lower_range [of w2]
-	    apply simp
-	    using bv_to_int_upper_range [of w1]
-	    apply simp
-	    apply (rule zero_le_power,simp)
-	    using bi1
-	    apply simp
-	    done
-	  hence "-?Q \<le> ((2::int)^(length w1 - 1)) * (2 ^ (length w2 - 1))"
-	    by (simp add: zmult_ac)
-	  thus "-(((2::int)^(length w1 - Suc 0)) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
-	    by simp
-	next
-	  assume bi1: "bv_to_int w1 < 0"
-	  assume bi2: "0 < bv_to_int w2"
-	  have "-bv_to_int w1 * bv_to_int w2 \<le> ((2::int)^(length w1 - 1)) * (2 ^ (length w2 - 1))"
-	    apply (rule mult_mono)
-	    using bv_to_int_lower_range [of w1]
-	    apply simp
-	    using bv_to_int_upper_range [of w2]
-	    apply simp
-	    apply (rule zero_le_power,simp)
-	    using bi2
-	    apply simp
-	    done
-	  hence "-?Q \<le> ((2::int)^(length w1 - 1)) * (2 ^ (length w2 - 1))"
-	    by (simp add: zmult_ac)
-	  thus "-(((2::int)^(length w1 - Suc 0)) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
-	    by simp
-	qed
+        from p
+        have q: "bv_to_int w1 * bv_to_int w2 < 0"
+          by simp
+        thus ?thesis
+        proof (simp add: mult_less_0_iff,safe)
+          assume bi1: "0 < bv_to_int w1"
+          assume bi2: "bv_to_int w2 < 0"
+          have "-bv_to_int w2 * bv_to_int w1 \<le> ((2::int)^(length w2 - 1)) * (2 ^ (length w1 - 1))"
+            apply (rule mult_mono)
+            using bv_to_int_lower_range [of w2]
+            apply simp
+            using bv_to_int_upper_range [of w1]
+            apply simp
+            apply (rule zero_le_power,simp)
+            using bi1
+            apply simp
+            done
+          hence "-?Q \<le> ((2::int)^(length w1 - 1)) * (2 ^ (length w2 - 1))"
+            by (simp add: zmult_ac)
+          thus "-(((2::int)^(length w1 - Suc 0)) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
+            by simp
+        next
+          assume bi1: "bv_to_int w1 < 0"
+          assume bi2: "0 < bv_to_int w2"
+          have "-bv_to_int w1 * bv_to_int w2 \<le> ((2::int)^(length w1 - 1)) * (2 ^ (length w2 - 1))"
+            apply (rule mult_mono)
+            using bv_to_int_lower_range [of w1]
+            apply simp
+            using bv_to_int_upper_range [of w2]
+            apply simp
+            apply (rule zero_le_power,simp)
+            using bi2
+            apply simp
+            done
+          hence "-?Q \<le> ((2::int)^(length w1 - 1)) * (2 ^ (length w2 - 1))"
+            by (simp add: zmult_ac)
+          thus "-(((2::int)^(length w1 - Suc 0)) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
+            by simp
+        qed
       qed
       finally show "-(2 ^ (length w1 + length w2 - Suc 0)) \<le> ?Q"
-	.
+        .
     qed
   qed
 qed
@@ -2110,35 +2112,35 @@ proof -
     proof (simp add: zero_less_mult_iff,safe)
       assume biw2: "0 < bv_to_int w2"
       show ?thesis
-	apply (simp add: bv_smult_def)
-	apply (rule length_int_to_bv_upper_limit_gt0)
-	apply (rule p)
+        apply (simp add: bv_smult_def)
+        apply (rule length_int_to_bv_upper_limit_gt0)
+        apply (rule p)
       proof simp
-	have "?Q < 2 ^ length w1 * 2 ^ (length w2 - 1)"
-	  apply (rule mult_strict_mono)
-	  apply (simp add: bv_to_int_utos int_nat_two_exp)
-	  apply (rule bv_to_nat_upper_range)
-	  apply (rule bv_to_int_upper_range)
-	  apply (rule zero_less_power,simp)
-	  using biw2
-	  apply simp
-	  done
-	also have "... \<le> 2 ^ (length w1 + length w2 - Suc 0)"
- 	  apply simp
-	  apply (subst zpower_zadd_distrib [symmetric])
-	  apply simp
-	  apply (cut_tac lmw)
-	  apply arith
-	  using p
-	  apply auto
-	  done
-	finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)"
-	  .
+        have "?Q < 2 ^ length w1 * 2 ^ (length w2 - 1)"
+          apply (rule mult_strict_mono)
+          apply (simp add: bv_to_int_utos int_nat_two_exp)
+          apply (rule bv_to_nat_upper_range)
+          apply (rule bv_to_int_upper_range)
+          apply (rule zero_less_power,simp)
+          using biw2
+          apply simp
+          done
+        also have "... \<le> 2 ^ (length w1 + length w2 - Suc 0)"
+          apply simp
+          apply (subst zpower_zadd_distrib [symmetric])
+          apply simp
+          apply (cut_tac lmw)
+          apply arith
+          using p
+          apply auto
+          done
+        finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)"
+          .
       qed
     next
       assume "bv_to_int (utos w1) < 0"
       thus ?thesis
-	by (simp add: bv_to_int_utos)
+        by (simp add: bv_to_int_utos)
     qed
   next
     assume p: "?Q = -1"
@@ -2156,48 +2158,48 @@ proof -
       apply (rule p)
     proof simp
       have "(2::int) ^ length w1 * 2 ^(length w2 - 1) \<le> 2 ^ (length w1 + length w2 - Suc 0)"
-	apply simp
-	apply (subst zpower_zadd_distrib [symmetric])
-	apply simp
-	apply (cut_tac lmw)
-	apply arith
-	apply (cut_tac p)
-	apply arith
-	done
+        apply simp
+        apply (subst zpower_zadd_distrib [symmetric])
+        apply simp
+        apply (cut_tac lmw)
+        apply arith
+        apply (cut_tac p)
+        apply arith
+        done
       hence "-((2::int) ^ (length w1 + length w2 - Suc 0)) \<le> -(2^ length w1 * 2 ^ (length w2 - 1))"
-	by simp
+        by simp
       also have "... \<le> ?Q"
       proof -
-	from p
-	have q: "bv_to_int (utos w1) * bv_to_int w2 < 0"
-	  by simp
-	thus ?thesis
-	proof (simp add: mult_less_0_iff,safe)
-	  assume bi1: "0 < bv_to_int (utos w1)"
-	  assume bi2: "bv_to_int w2 < 0"
-	  have "-bv_to_int w2 * bv_to_int (utos w1) \<le> ((2::int)^(length w2 - 1)) * (2 ^ length w1)"
-	    apply (rule mult_mono)
-	    using bv_to_int_lower_range [of w2]
-	    apply simp
-	    apply (simp add: bv_to_int_utos)
-	    using bv_to_nat_upper_range [of w1]
-	    apply (simp add: int_nat_two_exp)
-	    apply (rule zero_le_power,simp)
-	    using bi1
-	    apply simp
-	    done
-	  hence "-?Q \<le> ((2::int)^length w1) * (2 ^ (length w2 - 1))"
-	    by (simp add: zmult_ac)
-	  thus "-(((2::int)^length w1) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
-	    by simp
-	next
-	  assume bi1: "bv_to_int (utos w1) < 0"
-	  thus "-(((2::int)^length w1) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
-	    by (simp add: bv_to_int_utos)
-	qed
+        from p
+        have q: "bv_to_int (utos w1) * bv_to_int w2 < 0"
+          by simp
+        thus ?thesis
+        proof (simp add: mult_less_0_iff,safe)
+          assume bi1: "0 < bv_to_int (utos w1)"
+          assume bi2: "bv_to_int w2 < 0"
+          have "-bv_to_int w2 * bv_to_int (utos w1) \<le> ((2::int)^(length w2 - 1)) * (2 ^ length w1)"
+            apply (rule mult_mono)
+            using bv_to_int_lower_range [of w2]
+            apply simp
+            apply (simp add: bv_to_int_utos)
+            using bv_to_nat_upper_range [of w1]
+            apply (simp add: int_nat_two_exp)
+            apply (rule zero_le_power,simp)
+            using bi1
+            apply simp
+            done
+          hence "-?Q \<le> ((2::int)^length w1) * (2 ^ (length w2 - 1))"
+            by (simp add: zmult_ac)
+          thus "-(((2::int)^length w1) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
+            by simp
+        next
+          assume bi1: "bv_to_int (utos w1) < 0"
+          thus "-(((2::int)^length w1) * (2 ^ (length w2 - Suc 0))) \<le> ?Q"
+            by (simp add: bv_to_int_utos)
+        qed
       qed
       finally show "-(2 ^ (length w1 + length w2 - Suc 0)) \<le> ?Q"
-	.
+        .
     qed
   qed
 qed
@@ -2207,13 +2209,13 @@ lemma bv_smult_sym: "bv_smult w1 w2 = bv_smult w2 w1"
 
 subsection {* Structural operations *}
 
-constdefs
+definition
   bv_select :: "[bit list,nat] => bit"
-  "bv_select w i == w ! (length w - 1 - i)"
+  "bv_select w i = w ! (length w - 1 - i)"
   bv_chop :: "[bit list,nat] => bit list * bit list"
-  "bv_chop w i == let len = length w in (take (len - i) w,drop (len - i) w)"
+  "bv_chop w i = (let len = length w in (take (len - i) w,drop (len - i) w))"
   bv_slice :: "[bit list,nat*nat] => bit list"
-  "bv_slice w == \<lambda>(b,e). fst (bv_chop (snd (bv_chop w (b+1))) e)"
+  "bv_slice w = (\<lambda>(b,e). fst (bv_chop (snd (bv_chop w (b+1))) e))"
 
 lemma bv_select_rev:
   assumes notnull: "n < length w"
@@ -2230,36 +2232,36 @@ proof -
       assume "xs = []"
       with notx
       show ?thesis
-	by simp
+        by simp
     next
       fix y ys
       assume [simp]: "xs = y # ys"
       show ?thesis
       proof (auto simp add: nth_append)
-	assume noty: "n < length ys"
-	from spec [OF ind,of ys]
-	have "\<forall>n. n < length ys --> ys ! (length ys - Suc n) = rev ys ! n"
-	  by simp
-	hence "n < length ys --> ys ! (length ys - Suc n) = rev ys ! n"
-	  ..
-	hence "ys ! (length ys - Suc n) = rev ys ! n"
-	  ..
-	thus "(y # ys) ! (length ys - n) = rev ys ! n"
-	  by (simp add: nth_Cons' noty linorder_not_less [symmetric])
+        assume noty: "n < length ys"
+        from spec [OF ind,of ys]
+        have "\<forall>n. n < length ys --> ys ! (length ys - Suc n) = rev ys ! n"
+          by simp
+        hence "n < length ys --> ys ! (length ys - Suc n) = rev ys ! n"
+          ..
+        hence "ys ! (length ys - Suc n) = rev ys ! n"
+          ..
+        thus "(y # ys) ! (length ys - n) = rev ys ! n"
+          by (simp add: nth_Cons' noty linorder_not_less [symmetric])
       next
-	assume "~ n < length ys"
-	hence x: "length ys \<le> n"
-	  by simp
-	from notx
-	have "n < Suc (length ys)"
-	  by simp
-	hence "n \<le> length ys"
-	  by simp
-	with x
-	have "length ys = n"
-	  by simp
-	thus "y = [y] ! (n - length ys)"
-	  by simp
+        assume "~ n < length ys"
+        hence x: "length ys \<le> n"
+          by simp
+        from notx
+        have "n < Suc (length ys)"
+          by simp
+        hence "n \<le> length ys"
+          by simp
+        with x
+        have "length ys = n"
+          by simp
+        thus "y = [y] ! (n - length ys)"
+          by simp
       qed
     qed
   qed
@@ -2284,9 +2286,9 @@ lemma bv_chop_length_snd [simp]: "length (snd (bv_chop w i)) = min i (length w)"
 lemma bv_slice_length [simp]: "[| j \<le> i; i < length w |] ==> length (bv_slice w (i,j)) = i - j + 1"
   by (auto simp add: bv_slice_def,arith)
 
-constdefs
+definition
   length_nat :: "nat => nat"
-  "length_nat x == LEAST n. x < 2 ^ n"
+  "length_nat x = (LEAST n. x < 2 ^ n)"
 
 lemma length_nat: "length (nat_to_bv n) = length_nat n"
   apply (simp add: length_nat_def)
@@ -2316,9 +2318,12 @@ lemma length_nat_non0:
   apply (simp_all add: n0)
   done
 
-constdefs
+definition
   length_int :: "int => nat"
-  "length_int x == if 0 < x then Suc (length_nat (nat x)) else if x = 0 then 0 else Suc (length_nat (nat (-x - 1)))"
+  "length_int x =
+    (if 0 < x then Suc (length_nat (nat x))
+    else if x = 0 then 0
+    else Suc (length_nat (nat (-x - 1))))"
 
 lemma length_int: "length (int_to_bv i) = length_int i"
 proof (cases "0 < i")
@@ -2410,12 +2415,11 @@ lemma bv_slice_bv_slice:
   shows       "bv_slice w (j,i) = bv_slice (bv_slice w (l,k)) (j-k,i-k)"
 proof -
   def w1  == "fst (bv_chop w (Suc l))"
-  def w2  == "fst (bv_chop (snd (bv_chop w (Suc l))) (Suc j))"
-  def w3  == "fst (bv_chop (snd (bv_chop (snd (bv_chop w (Suc l))) (Suc j))) i)"
-  def w4  == "fst (bv_chop (snd (bv_chop (snd (bv_chop (snd (bv_chop w (Suc l))) (Suc j))) i)) k)"
-  def w5  == "snd (bv_chop (snd (bv_chop (snd (bv_chop (snd (bv_chop w (Suc l))) (Suc j))) i)) k)"
-
-  note w_defs = w1_def w2_def w3_def w4_def w5_def
+  and w2  == "fst (bv_chop (snd (bv_chop w (Suc l))) (Suc j))"
+  and w3  == "fst (bv_chop (snd (bv_chop (snd (bv_chop w (Suc l))) (Suc j))) i)"
+  and w4  == "fst (bv_chop (snd (bv_chop (snd (bv_chop (snd (bv_chop w (Suc l))) (Suc j))) i)) k)"
+  and w5  == "snd (bv_chop (snd (bv_chop (snd (bv_chop (snd (bv_chop w (Suc l))) (Suc j))) i)) k)"
+  note w_defs = this
 
   have w_def: "w = w1 @ w2 @ w3 @ w4 @ w5"
     by (simp add: w_defs append_bv_chop_id)
@@ -2443,12 +2447,14 @@ lemma bv_to_nat_extend [simp]: "bv_to_nat (bv_extend n \<zero> w) = bv_to_nat w"
   apply (simp add: bv_extend_def)
   apply (subst bv_to_nat_dist_append)
   apply simp
-  apply (induct "n - length w",simp_all)
+  apply (induct "n - length w")
+   apply simp_all
   done
 
 lemma bv_msb_extend_same [simp]: "bv_msb w = b ==> bv_msb (bv_extend n b w) = b"
   apply (simp add: bv_extend_def)
-  apply (induct "n - length w",simp_all)
+  apply (induct "n - length w")
+   apply simp_all
   done
 
 lemma bv_to_int_extend [simp]:
@@ -2632,18 +2638,21 @@ setup setup_word
 declare bv_to_nat1 [simp del]
 declare bv_to_nat_helper [simp del]
 
-constdefs
+definition
   bv_mapzip :: "[bit => bit => bit,bit list, bit list] => bit list"
-  "bv_mapzip f w1 w2 == let g = bv_extend (max (length w1) (length w2)) \<zero>
-                        in map (split f) (zip (g w1) (g w2))"
+  "bv_mapzip f w1 w2 =
+    (let g = bv_extend (max (length w1) (length w2)) \<zero>
+     in map (split f) (zip (g w1) (g w2)))"
 
-lemma bv_length_bv_mapzip [simp]: "length (bv_mapzip f w1 w2) = max (length w1) (length w2)"
+lemma bv_length_bv_mapzip [simp]:
+  "length (bv_mapzip f w1 w2) = max (length w1) (length w2)"
   by (simp add: bv_mapzip_def Let_def split: split_max)
 
 lemma bv_mapzip_Nil [simp]: "bv_mapzip f [] [] = []"
   by (simp add: bv_mapzip_def Let_def)
 
-lemma bv_mapzip_Cons [simp]: "length w1 = length w2 ==> bv_mapzip f (x#w1) (y#w2) = f x y # bv_mapzip f w1 w2"
+lemma bv_mapzip_Cons [simp]: "length w1 = length w2 ==>
+    bv_mapzip f (x#w1) (y#w2) = f x y # bv_mapzip f w1 w2"
   by (simp add: bv_mapzip_def Let_def)
 
 end

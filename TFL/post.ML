@@ -156,7 +156,7 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
 
 (*lcp: curry the predicate of the induction rule*)
 fun curry_rule rl =
-  SplitRule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl)), rl);
+  SplitRule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer =

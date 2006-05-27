@@ -19,20 +19,20 @@ text {*
 
 datatype inat = Fin nat | Infty
 
+const_syntax (xsymbols)
+  Infty  ("\<infinity>")
+
+const_syntax (HTML output)
+  Infty  ("\<infinity>")
+
 instance inat :: "{ord, zero}" ..
 
-consts
+definition
   iSuc :: "inat => inat"
+  "iSuc i = (case i of Fin n => Fin (Suc n) | \<infinity> => \<infinity>)"
 
-syntax (xsymbols)
-  Infty :: inat    ("\<infinity>")
-
-syntax (HTML output)
-  Infty :: inat    ("\<infinity>")
-
-defs
+defs (overloaded)
   Zero_inat_def: "0 == Fin 0"
-  iSuc_def: "iSuc i == case i of Fin n  => Fin (Suc n) | \<infinity> => \<infinity>"
   iless_def: "m < n ==
     case m of Fin m1 => (case n of Fin n1 => m1 < n1 | \<infinity> => True)
     | \<infinity>  => False"
@@ -114,7 +114,6 @@ lemma iSuc_mono [simp]: "(iSuc n < iSuc m) = (n < m)"
   by (simp add: inat_defs split:inat_splits, arith?)
 
 
-(* ----------------------------------------------------------------------- *)
 
 lemma ile_def2: "(m \<le> n) = (m < n \<or> m = (n::inat))"
   by (simp add: inat_defs split:inat_splits, arith?)

@@ -71,12 +71,12 @@ text{*To define recdef style functions we need an ordering on the Brouwer
   ordinals.  Start with a predecessor relation and form its transitive 
   closure. *} 
 
-constdefs
+definition
   brouwer_pred :: "(brouwer * brouwer) set"
-  "brouwer_pred == \<Union>i. {(m,n). n = Succ m \<or> (EX f. n = Lim f & m = f i)}"
+  "brouwer_pred = (\<Union>i. {(m,n). n = Succ m \<or> (EX f. n = Lim f & m = f i)})"
 
   brouwer_order :: "(brouwer * brouwer) set"
-  "brouwer_order == brouwer_pred^+"
+  "brouwer_order = brouwer_pred^+"
 
 lemma wf_brouwer_pred: "wf brouwer_pred"
   by(unfold wf_def brouwer_pred_def, clarify, induct_tac x, blast+)
