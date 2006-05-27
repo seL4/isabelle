@@ -34,7 +34,7 @@ structure TransferData = GenericDataFun
    {intros = Drule.merge_rules (intros1, intros2),
     unfolds = Drule.merge_rules (unfolds1, unfolds2),
     refolds = Drule.merge_rules (refolds1, refolds2),
-    consts = merge_lists consts1 consts2};
+    consts = Library.merge (op =) (consts1, consts2)} : T;
   fun print _ _ = ();
 end);
 
@@ -46,7 +46,7 @@ fun unstar_typ (Type ("StarDef.star",[t])) = unstar_typ t
 
 fun unstar_term consts term =
   let
-    fun unstar (Const(a,T) $ t) = if (a mem consts) then (unstar t)
+    fun unstar (Const(a,T) $ t) = if member (op =) consts a then (unstar t)
           else (Const(a,unstar_typ T) $ unstar t)
       | unstar (f $ t) = unstar f $ unstar t
       | unstar (Const(a,T)) = Const(a,unstar_typ T)
@@ -56,17 +56,17 @@ fun unstar_term consts term =
     unstar term
   end
 
-val atomizers = map thm ["atomize_all", "atomize_imp", "atomize_eq"]
-
 fun transfer_thm_of ctxt ths t =
   let
     val thy = ProofContext.theory_of ctxt;
     val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt)
-    val (_$_$t') = concl_of (Tactic.rewrite true unfolds (cterm_of thy t))
+    val meta = LocalDefs.meta_rewrite_rule (Context.Proof ctxt)
+    val unfolds' = map meta unfolds and refolds' = map meta refolds;
+    val (_$_$t') = concl_of (Tactic.rewrite true unfolds' (cterm_of thy t))
     val u = unstar_term consts t'
     val tac =
-      rewrite_goals_tac (ths @ refolds @ unfolds) THEN
-      rewrite_goals_tac atomizers THEN
+      rewrite_goals_tac (ths @ refolds' @ unfolds') THEN
+      ALLGOALS ObjectLogic.full_atomize_tac THEN
       match_tac [transitive_thm] 1 THEN
       resolve_tac [transfer_start] 1 THEN
       REPEAT_ALL_NEW (resolve_tac intros) 1 THEN
@@ -80,6 +80,7 @@ fun transfer_tac ctxt ths =
             in rewrite_goals_tac [tr] th end))
 
 local
+
 fun map_intros f = TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=f intros, unfolds=unfolds, refolds=refolds, consts=consts})
