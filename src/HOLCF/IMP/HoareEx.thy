@@ -16,9 +16,9 @@ text {*
 
 types assn = "state => bool"
 
-constdefs
+definition
   hoare_valid :: "[assn, com, assn] => bool"    ("|= {(1_)}/ (_)/ {(1_)}" 50)
-  "|= {A} c {B} == \<forall>s t. A s \<and> D c $(Discr s) = Def t --> B t"
+  "|= {A} c {B} = (\<forall>s t. A s \<and> D c $(Discr s) = Def t --> B t)"
 
 lemma WHILE_rule_sound:
     "|= {A} c {A} ==> |= {A} \<WHILE> b \<DO> c {\<lambda>s. A s \<and> \<not> b s}"
