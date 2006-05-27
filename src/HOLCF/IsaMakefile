@@ -139,7 +139,7 @@ $(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML IOA/Modelcheck/Cockp
 
 IOA-Storage: IOA $(LOG)/IOA-Storage.gz
 
-$(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.thy IOA/Storage/Correctness.ML \
+$(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.thy \
   IOA/Storage/Correctness.thy IOA/Storage/Impl.thy \
   IOA/Storage/ROOT.ML IOA/Storage/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Storage
@@ -149,9 +149,7 @@ $(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.thy IOA/Storage/Correctness
 
 IOA-ex: IOA $(LOG)/IOA-ex.gz
 
-$(LOG)/IOA-ex.gz: $(OUT)/IOA IOA/ex/ROOT.ML \
-  IOA/ex/TrivEx.thy IOA/ex/TrivEx.ML \
-  IOA/ex/TrivEx2.thy IOA/ex/TrivEx2.ML 
+$(LOG)/IOA-ex.gz: $(OUT)/IOA IOA/ex/ROOT.ML IOA/ex/TrivEx.thy IOA/ex/TrivEx2.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ex
 
 

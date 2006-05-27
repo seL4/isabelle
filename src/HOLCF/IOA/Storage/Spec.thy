@@ -33,6 +33,4 @@ trans_def: "spec_trans ==
 
 ioa_def: "spec_ioa == (spec_sig, {({},False)}, spec_trans,{},{})"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

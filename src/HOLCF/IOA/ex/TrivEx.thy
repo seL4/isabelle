@@ -59,6 +59,26 @@ axioms
 MC_result:
   "validIOA A_ioa (<>[] <%(b,a,c). b>)"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemma h_abs_is_abstraction:
+  "is_abstraction h_abs C_ioa A_ioa"
+apply (unfold is_abstraction_def)
+apply (rule conjI)
+txt {* start states *}
+apply (simp (no_asm) add: h_abs_def starts_of_def C_ioa_def A_ioa_def)
+txt {* step case *}
+apply (rule allI)+
+apply (rule imp_conj_lemma)
+apply (simp (no_asm) add: trans_of_def C_ioa_def A_ioa_def C_trans_def A_trans_def)
+apply (induct_tac "a")
+apply (simp add: h_abs_def)
+done
+
+lemma TrivEx_abstraction: "validIOA C_ioa (<>[] <%(n,a,m). n~=0>)"
+apply (rule AbsRuleT1)
+apply (rule h_abs_is_abstraction)
+apply (rule MC_result)
+apply (tactic "abstraction_tac 1")
+apply (simp add: h_abs_def)
+done
 
 end

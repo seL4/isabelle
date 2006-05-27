@@ -39,6 +39,4 @@ lemma in_impl_asig:
     Free l : actions(impl_sig) "
   by (simp add: Impl.sig_def actions_def asig_projections)
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end
