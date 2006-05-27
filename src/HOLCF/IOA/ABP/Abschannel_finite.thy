@@ -59,6 +59,4 @@ ch_fin_trans_def: "ch_fin_trans ==
 
 ch_fin_ioa_def: "ch_fin_ioa == (ch_fin_asig, {[]}, ch_fin_trans,{},{})"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

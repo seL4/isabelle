@@ -85,8 +85,6 @@ srch_actions_def: "srch_actions (akt) ==
             S_ack(b) => None |
             R_ack(b) => None"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end
 
 

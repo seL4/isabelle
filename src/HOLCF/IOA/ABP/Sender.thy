@@ -49,6 +49,4 @@ sender_ioa    :: "('m action, 'm sender_state)ioa"
 "sender_ioa ==
  (sender_asig, {([],True)}, sender_trans,{},{})"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

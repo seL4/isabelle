@@ -105,9 +105,9 @@ IOA-ABP: IOA $(LOG)/IOA-ABP.gz
 
 $(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
   IOA/ABP/Abschannel_finite.thy IOA/ABP/Action.thy \
-  IOA/ABP/Check.ML IOA/ABP/Correctness.ML IOA/ABP/Correctness.thy \
+  IOA/ABP/Check.ML IOA/ABP/Correctness.thy \
   IOA/ABP/Env.thy IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy \
-  IOA/ABP/Lemmas.ML IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
+  IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
   IOA/ABP/ROOT.ML IOA/ABP/Receiver.thy IOA/ABP/Sender.thy \
   IOA/ABP/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ABP

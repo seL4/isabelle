@@ -14,6 +14,4 @@ datatype 'm action =
   | S_pkt "'m packet" | R_pkt "'m packet"
   | S_ack bool | R_ack bool
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

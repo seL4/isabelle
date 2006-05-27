@@ -51,6 +51,4 @@ receiver_ioa :: "('m action, 'm receiver_state)ioa"
 "receiver_ioa ==
  (receiver_asig, {([],False)}, receiver_trans,{},{})"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

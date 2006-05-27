@@ -19,6 +19,4 @@ constdefs
   msg :: "'msg packet => 'msg"
   "msg == snd"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

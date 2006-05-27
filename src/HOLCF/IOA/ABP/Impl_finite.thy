@@ -32,6 +32,4 @@ constdefs
  rsch_fin        :: "'m impl_fin_state => bool list"
  "rsch_fin == snd o snd o snd"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

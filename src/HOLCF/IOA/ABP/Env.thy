@@ -38,6 +38,4 @@ env_ioa    :: "('m action, 'm env_state)ioa"
 consts
   "next"     :: "'m env_state => bool"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end
