@@ -18,6 +18,11 @@ constdefs
   msg :: "'msg packet => 'msg"
   "msg == snd"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+text {* Instantiation of a tautology? *}
+lemma eq_packet_imp_eq_hdr: "!x. x = packet --> hdr(x) = hdr(packet)"
+  by simp
+
+declare hdr_def [simp] msg_def [simp]
 
 end

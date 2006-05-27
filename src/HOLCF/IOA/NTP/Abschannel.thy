@@ -94,6 +94,48 @@ srch_actions_def: "srch_actions (akt) ==
            C_r_s => None |
            C_r_r(m) => None"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemmas unfold_renaming =
+  srch_asig_def rsch_asig_def rsch_ioa_def srch_ioa_def ch_ioa_def
+  ch_asig_def srch_actions_def rsch_actions_def rename_def rename_set_def asig_of_def
+  actions_def srch_trans_def rsch_trans_def ch_trans_def starts_of_def
+  trans_of_def asig_projections
+
+lemma in_srch_asig: 
+     "S_msg(m) ~: actions(srch_asig)        &     
+       R_msg(m) ~: actions(srch_asig)        &     
+       S_pkt(pkt) : actions(srch_asig)    &     
+       R_pkt(pkt) : actions(srch_asig)    &     
+       S_ack(b) ~: actions(srch_asig)     &     
+       R_ack(b) ~: actions(srch_asig)     &     
+       C_m_s ~: actions(srch_asig)           &     
+       C_m_r ~: actions(srch_asig)           &     
+       C_r_s ~: actions(srch_asig)  & C_r_r(m) ~: actions(srch_asig)"
+
+  by (simp add: unfold_renaming)
+
+lemma in_rsch_asig: 
+      "S_msg(m) ~: actions(rsch_asig)         &  
+       R_msg(m) ~: actions(rsch_asig)         &  
+       S_pkt(pkt) ~: actions(rsch_asig)    &  
+       R_pkt(pkt) ~: actions(rsch_asig)    &  
+       S_ack(b) : actions(rsch_asig)       &  
+       R_ack(b) : actions(rsch_asig)       &  
+       C_m_s ~: actions(rsch_asig)            &  
+       C_m_r ~: actions(rsch_asig)            &  
+       C_r_s ~: actions(rsch_asig)            &  
+       C_r_r(m) ~: actions(rsch_asig)"
+  by (simp add: unfold_renaming)
+
+lemma srch_ioa_thm: "srch_ioa =  
+    (srch_asig, {{|}}, srch_trans,srch_wfair,srch_sfair)"
+apply (simp (no_asm) add: srch_asig_def srch_trans_def asig_of_def trans_of_def wfair_of_def sfair_of_def srch_wfair_def srch_sfair_def)
+apply (simp (no_asm) add: unfold_renaming)
+done
+
+lemma rsch_ioa_thm: "rsch_ioa =  
+     (rsch_asig, {{|}}, rsch_trans,rsch_wfair,rsch_sfair)"
+apply (simp (no_asm) add: rsch_asig_def rsch_trans_def asig_of_def trans_of_def wfair_of_def sfair_of_def rsch_wfair_def rsch_sfair_def)
+apply (simp (no_asm) add: unfold_renaming)
+done
 
 end

@@ -87,6 +87,19 @@ receiver_trans_def: "receiver_trans ==
 receiver_ioa_def: "receiver_ioa ==
  (receiver_asig, {([],{|},{|},False,False)}, receiver_trans,{},{})"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemma in_receiver_asig:
+  "S_msg(m) ~: actions(receiver_asig)"
+  "R_msg(m) : actions(receiver_asig)"
+  "S_pkt(pkt) ~: actions(receiver_asig)"
+  "R_pkt(pkt) : actions(receiver_asig)"
+  "S_ack(b) : actions(receiver_asig)"
+  "R_ack(b) ~: actions(receiver_asig)"
+  "C_m_s ~: actions(receiver_asig)"
+  "C_m_r : actions(receiver_asig)"
+  "C_r_s ~: actions(receiver_asig)"
+  "C_r_r(m) : actions(receiver_asig)"
+  by (simp_all add: receiver_asig_def actions_def asig_projections)
+
+lemmas receiver_projections = rq_def rsent_def rrcvd_def rbit_def rsending_def
 
 end

@@ -7,6 +7,4 @@ subdirectory), performed in the I/O automata formalization by Olaf
 Mueller.
 *)
 
-goals_limit := 1;
-
-time_use_thy "Correctness";
+use_thy "Correctness";

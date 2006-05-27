@@ -116,13 +116,10 @@ $(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
 
 IOA-NTP: IOA $(LOG)/IOA-NTP.gz
 
-$(LOG)/IOA-NTP.gz: $(OUT)/IOA IOA/NTP/Abschannel.ML \
-  IOA/NTP/Abschannel.thy IOA/NTP/Action.thy \
-  IOA/NTP/Correctness.ML IOA/NTP/Correctness.thy IOA/NTP/Impl.ML \
-  IOA/NTP/Impl.thy IOA/NTP/Lemmas.ML IOA/NTP/Lemmas.thy \
-  IOA/NTP/Multiset.ML IOA/NTP/Multiset.thy IOA/NTP/Packet.ML \
-  IOA/NTP/Packet.thy IOA/NTP/ROOT.ML IOA/NTP/Receiver.ML \
-  IOA/NTP/Receiver.thy IOA/NTP/Sender.ML IOA/NTP/Sender.thy \
+$(LOG)/IOA-NTP.gz: $(OUT)/IOA \
+  IOA/NTP/Abschannel.thy IOA/NTP/Action.thy IOA/NTP/Correctness.thy \
+  IOA/NTP/Impl.thy IOA/NTP/Lemmas.thy IOA/NTP/Multiset.thy \
+  IOA/NTP/Packet.thy IOA/NTP/ROOT.ML IOA/NTP/Receiver.thy IOA/NTP/Sender.thy \
   IOA/NTP/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
 

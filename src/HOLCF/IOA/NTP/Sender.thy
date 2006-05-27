@@ -83,6 +83,19 @@ sender_trans_def: "sender_trans ==
 sender_ioa_def: "sender_ioa ==
  (sender_asig, {([],{|},{|},False,True)}, sender_trans,{},{})"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemma in_sender_asig: 
+  "S_msg(m) : actions(sender_asig)"
+  "R_msg(m) ~: actions(sender_asig)"
+  "S_pkt(pkt) : actions(sender_asig)"
+  "R_pkt(pkt) ~: actions(sender_asig)"
+  "S_ack(b) ~: actions(sender_asig)"
+  "R_ack(b) : actions(sender_asig)"
+  "C_m_s : actions(sender_asig)"
+  "C_m_r ~: actions(sender_asig)"
+  "C_r_s : actions(sender_asig)"
+  "C_r_r(m) ~: actions(sender_asig)"
+  by (simp_all add: sender_asig_def actions_def asig_projections)
+
+lemmas sender_projections = sq_def ssent_def srcvd_def sbit_def ssending_def
 
 end
