@@ -47,6 +47,56 @@ is_asig_def:
 mk_ext_asig_def:
   "mk_ext_asig(triple) == (inputs(triple), outputs(triple), {})"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas asig_projections = asig_inputs_def asig_outputs_def asig_internals_def
+
+lemma asig_triple_proj: 
+ "(outputs    (a,b,c) = b)   &  
+  (inputs     (a,b,c) = a) &  
+  (internals  (a,b,c) = c)"
+  apply (simp add: asig_projections)
+  done
+
+lemma int_and_ext_is_act: "[| a~:internals(S) ;a~:externals(S)|] ==> a~:actions(S)"
+apply (simp add: externals_def actions_def)
+done
+
+lemma ext_is_act: "[|a:externals(S)|] ==> a:actions(S)"
+apply (simp add: externals_def actions_def)
+done
+
+lemma int_is_act: "[|a:internals S|] ==> a:actions S"
+apply (simp add: asig_internals_def actions_def)
+done
+
+lemma inp_is_act: "[|a:inputs S|] ==> a:actions S"
+apply (simp add: asig_inputs_def actions_def)
+done
+
+lemma out_is_act: "[|a:outputs S|] ==> a:actions S"
+apply (simp add: asig_outputs_def actions_def)
+done
+
+lemma ext_and_act: "(x: actions S & x : externals S) = (x: externals S)"
+apply (fast intro!: ext_is_act)
+done
+
+lemma not_ext_is_int: "[|is_asig S;x: actions S|] ==> (x~:externals S) = (x: internals S)"
+apply (simp add: actions_def is_asig_def externals_def)
+apply blast
+done
+
+lemma not_ext_is_int_or_not_act: "is_asig S ==> (x~:externals S) = (x: internals S | x~:actions S)"
+apply (simp add: actions_def is_asig_def externals_def)
+apply blast
+done
+
+lemma int_is_not_ext: 
+ "[| is_asig (S); x:internals S |] ==> x~:externals S"
+apply (unfold externals_def actions_def is_asig_def)
+apply simp
+apply blast
+done
+
 
 end

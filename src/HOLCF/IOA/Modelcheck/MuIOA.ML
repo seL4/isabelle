@@ -5,12 +5,13 @@
 
 exception SimFailureExn of string;
 
-val ioa_simps = [asig_of_def,starts_of_def,trans_of_def];
-val asig_simps = [asig_inputs_def,asig_outputs_def,asig_internals_def,actions_def];
-val comp_simps = [par_def,asig_comp_def];
-val restrict_simps = [restrict_def,restrict_asig_def];
-val hide_simps = [hide_def,hide_asig_def];
-val rename_simps = [rename_def,rename_set_def];
+val ioa_simps = [thm "asig_of_def", thm "starts_of_def", thm "trans_of_def"];
+val asig_simps = [thm "asig_inputs_def", thm "asig_outputs_def",
+  thm "asig_internals_def", thm "actions_def"];
+val comp_simps = [thm "par_def", thm "asig_comp_def"];
+val restrict_simps = [thm "restrict_def", thm "restrict_asig_def"];
+val hide_simps = [thm "hide_def", thm "hide_asig_def"];
+val rename_simps = [thm "rename_def", thm "rename_set_def"];
 
 local
 

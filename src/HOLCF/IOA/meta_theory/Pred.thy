@@ -67,6 +67,4 @@ OR_def:
 IMPLIES_def:
   "(P .--> Q) s == (P s) --> (Q s)"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

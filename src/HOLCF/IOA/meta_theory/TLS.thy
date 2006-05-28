@@ -86,6 +86,118 @@ mkfin_nil:
 mkfin_cons:
   "(mkfin (a>>s)) = (a>>(mkfin s))"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas [simp del] = ex_simps all_simps split_paired_Ex
+declare Let_def [simp]
+
+ML_setup {* change_claset (fn cs => cs delSWrapper "split_all_tac") *}
+
+
+subsection {* ex2seqC *}
+
+lemma ex2seqC_unfold: "ex2seqC  = (LAM ex. (%s. case ex of  
+       nil =>  (s,None,s)>>nil    
+     | x##xs => (flift1 (%pr.  
+                 (s,Some (fst pr), snd pr)>> (ex2seqC$xs) (snd pr))   
+                 $x)   
+       ))"
+apply (rule trans)
+apply (rule fix_eq2)
+apply (rule ex2seqC_def)
+apply (rule beta_cfun)
+apply (simp add: flift1_def)
+done
+
+lemma ex2seqC_UU: "(ex2seqC $UU) s=UU"
+apply (subst ex2seqC_unfold)
+apply simp
+done
+
+lemma ex2seqC_nil: "(ex2seqC $nil) s = (s,None,s)>>nil"
+apply (subst ex2seqC_unfold)
+apply simp
+done
+
+lemma ex2seqC_cons: "(ex2seqC $((a,t)>>xs)) s =  
+           (s,Some a,t)>> ((ex2seqC$xs) t)"
+apply (rule trans)
+apply (subst ex2seqC_unfold)
+apply (simp add: Consq_def flift1_def)
+apply (simp add: Consq_def flift1_def)
+done
+
+declare ex2seqC_UU [simp] ex2seqC_nil [simp] ex2seqC_cons [simp]
+
+
+
+declare mkfin_UU [simp] mkfin_nil [simp] mkfin_cons [simp]
+
+lemma ex2seq_UU: "ex2seq (s, UU) = (s,None,s)>>nil"
+apply (simp add: ex2seq_def)
+done
+
+lemma ex2seq_nil: "ex2seq (s, nil) = (s,None,s)>>nil"
+apply (simp add: ex2seq_def)
+done
+
+lemma ex2seq_cons: "ex2seq (s, (a,t)>>ex) = (s,Some a,t) >> ex2seq (t, ex)"
+apply (simp add: ex2seq_def)
+done
+
+declare ex2seqC_UU [simp del] ex2seqC_nil [simp del] ex2seqC_cons [simp del]
+declare ex2seq_UU [simp] ex2seq_nil [simp] ex2seq_cons [simp]
+
+
+lemma ex2seq_nUUnnil: "ex2seq exec ~= UU & ex2seq exec ~= nil"
+apply (tactic {* pair_tac "exec" 1 *})
+apply (tactic {* Seq_case_simp_tac "y" 1 *})
+apply (tactic {* pair_tac "a" 1 *})
+done
+
+
+subsection {* Interface TL -- TLS *}
+
+(* uses the fact that in executions states overlap, which is lost in 
+   after the translation via ex2seq !! *)
+
+lemma TL_TLS: 
+ "[| ! s a t. (P s) & s-a--A-> t --> (Q t) |] 
+   ==> ex |== (Init (%(s,a,t). P s) .& Init (%(s,a,t). s -a--A-> t)  
+              .--> (Next (Init (%(s,a,t).Q s))))"
+apply (unfold Init_def Next_def temp_sat_def satisfies_def IMPLIES_def AND_def)
+
+apply (tactic "clarify_tac set_cs 1")
+apply (simp split add: split_if)
+(* TL = UU *)
+apply (rule conjI)
+apply (tactic {* pair_tac "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac "y" 1 *})
+apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* Seq_case_simp_tac "s" 1 *})
+apply (tactic {* pair_tac "a" 1 *})
+(* TL = nil *)
+apply (rule conjI)
+apply (tactic {* pair_tac "ex" 1 *})
+apply (tactic {* Seq_case_tac "y" 1 *})
+apply (simp add: unlift_def)
+apply fast
+apply (simp add: unlift_def)
+apply fast
+apply (simp add: unlift_def)
+apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* Seq_case_simp_tac "s" 1 *})
+apply (tactic {* pair_tac "a" 1 *})
+(* TL =cons *)
+apply (simp add: unlift_def)
+
+apply (tactic {* pair_tac "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac "y" 1 *})
+apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* Seq_case_simp_tac "s" 1 *})
+apply blast
+apply fastsimp
+apply (tactic {* pair_tac "a" 1 *})
+ apply fastsimp
+done
 
 end

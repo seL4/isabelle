@@ -214,19 +214,19 @@ ML {* val tac2 = asm_full_simp_tac (ss addsimps [thm "inv2_def"]) *}
   apply (tactic "EVERY1 [tac2,tac2,tac2,tac2]")
   txt {* 6 *}
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv1_def"]
-                               (thm "inv1" RS invariantE) RS conjunct1] 1 *})
+                               (thm "inv1" RS thm "invariantE") RS conjunct1] 1 *})
 
   txt {* 6 - 5 *}
   apply (tactic "EVERY1 [tac2,tac2]")
 
   txt {* 4 *}
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv1_def"]
-                                (thm "inv1" RS invariantE) RS conjunct1] 1 *})
+                                (thm "inv1" RS thm "invariantE") RS conjunct1] 1 *})
   apply (tactic "tac2 1")
 
   txt {* 3 *}
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv1_def"]
-    (thm "inv1" RS invariantE)] 1 *})
+    (thm "inv1" RS thm "invariantE")] 1 *})
 
   apply (tactic "tac2 1")
   apply (tactic {* fold_tac [rewrite_rule [thm "Packet.hdr_def"] (thm "Impl.hdr_sum_def")] *})
@@ -235,7 +235,7 @@ ML {* val tac2 = asm_full_simp_tac (ss addsimps [thm "inv2_def"]) *}
   txt {* 2 *}
   apply (tactic "tac2 1")
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv1_def"]
-                               (thm "inv1" RS invariantE) RS conjunct1] 1 *})
+                               (thm "inv1" RS thm "invariantE") RS conjunct1] 1 *})
   apply (intro strip)
   apply (erule conjE)+
   apply simp
@@ -243,7 +243,7 @@ ML {* val tac2 = asm_full_simp_tac (ss addsimps [thm "inv2_def"]) *}
   txt {* 1 *}
   apply (tactic "tac2 1")
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv1_def"]
-                               (thm "inv1" RS invariantE) RS conjunct2] 1 *})
+                               (thm "inv1" RS thm "invariantE") RS conjunct2] 1 *})
   apply (intro strip)
   apply (erule conjE)+
   apply (tactic {* fold_tac  [rewrite_rule[thm "Packet.hdr_def"] (thm "Impl.hdr_sum_def")] *})
@@ -291,13 +291,13 @@ ML {* val tac3 = asm_full_simp_tac (ss addsimps [thm "inv3_def"]) *}
   apply (rule imp_disjL [THEN iffD1])
   apply (rule impI)
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv2_def"]
-    (thm "inv2" RS invariantE)] 1 *})
+    (thm "inv2" RS thm "invariantE")] 1 *})
   apply simp
   apply (erule conjE)+
   apply (rule_tac j = "count (ssent (sen s)) (~sbit (sen s))" and
     k = "count (rsent (rec s)) (sbit (sen s))" in le_trans)
   apply (tactic {* forward_tac [rewrite_rule [thm "inv1_def"]
-                                (thm "inv1" RS invariantE) RS conjunct2] 1 *})
+                                (thm "inv1" RS thm "invariantE") RS conjunct2] 1 *})
   apply (simp add: hdr_sum_def Multiset.count_def)
   apply (rule add_le_mono)
   apply (rule countm_props)
@@ -312,7 +312,7 @@ ML {* val tac3 = asm_full_simp_tac (ss addsimps [thm "inv3_def"]) *}
   apply (rule imp_disjL [THEN iffD1])
   apply (rule impI)
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv2_def"]
-    (thm "inv2" RS invariantE)] 1 *})
+    (thm "inv2" RS thm "invariantE")] 1 *})
   apply simp
   done
 
@@ -338,7 +338,7 @@ ML {* val tac4 =  asm_full_simp_tac (ss addsimps [thm "inv4_def"]) *}
 
   apply (intro strip, (erule conjE)+)
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv2_def"]
-                               (thm "inv2" RS invariantE)] 1 *})
+                               (thm "inv2" RS thm "invariantE")] 1 *})
   apply simp
 
   txt {* 1 *}
@@ -346,9 +346,9 @@ ML {* val tac4 =  asm_full_simp_tac (ss addsimps [thm "inv4_def"]) *}
   apply (intro strip, (erule conjE)+)
   apply (rule ccontr)
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv2_def"]
-                               (thm "inv2" RS invariantE)] 1 *})
+                               (thm "inv2" RS thm "invariantE")] 1 *})
   apply (tactic {* forward_tac [rewrite_rule [thm "Impl.inv3_def"]
-                               (thm "inv3" RS invariantE)] 1 *})
+                               (thm "inv3" RS thm "invariantE")] 1 *})
   apply simp
   apply (erule_tac x = "m" in allE)
   apply simp

@@ -75,27 +75,17 @@ $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstreams.thy \
 
 IOA: HOLCF $(OUT)/IOA
 
-$(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
-  IOA/meta_theory/Asig.ML IOA/meta_theory/Asig.thy \
-  IOA/meta_theory/CompoScheds.thy IOA/meta_theory/CompoExecs.ML \
-  IOA/meta_theory/CompoTraces.thy IOA/meta_theory/CompoScheds.ML \
-  IOA/meta_theory/CompoTraces.ML IOA/meta_theory/Sequence.ML \
-  IOA/meta_theory/Seq.thy IOA/meta_theory/RefCorrectness.thy \
-  IOA/meta_theory/Automata.thy IOA/meta_theory/Traces.ML \
-  IOA/meta_theory/RefMappings.ML \
-  IOA/meta_theory/ShortExecutions.thy IOA/meta_theory/ShortExecutions.ML \
-  IOA/meta_theory/IOA.thy \
-  IOA/meta_theory/Sequence.thy IOA/meta_theory/Automata.ML \
-  IOA/meta_theory/CompoExecs.thy IOA/meta_theory/RefMappings.thy \
-  IOA/meta_theory/RefCorrectness.ML IOA/meta_theory/Compositionality.ML \
-  IOA/meta_theory/Compositionality.thy \
-  IOA/meta_theory/TL.thy IOA/meta_theory/TL.ML IOA/meta_theory/TLS.thy \
-  IOA/meta_theory/TLS.ML IOA/meta_theory/LiveIOA.thy IOA/meta_theory/LiveIOA.ML \
-  IOA/meta_theory/Pred.thy IOA/meta_theory/Abstraction.thy \
-  IOA/meta_theory/Abstraction.ML \
-  IOA/meta_theory/Simulations.thy IOA/meta_theory/Simulations.ML \
-  IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/SimCorrectness.ML \
-  IOA/meta_theory/ioa_package.ML 
+$(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy        \
+  IOA/meta_theory/Asig.thy IOA/meta_theory/CompoScheds.thy	       \
+  IOA/meta_theory/CompoTraces.thy IOA/meta_theory/Seq.thy	       \
+  IOA/meta_theory/RefCorrectness.thy IOA/meta_theory/Automata.thy      \
+  IOA/meta_theory/ShortExecutions.thy IOA/meta_theory/IOA.thy	       \
+  IOA/meta_theory/Sequence.thy IOA/meta_theory/CompoExecs.thy	       \
+  IOA/meta_theory/RefMappings.thy IOA/meta_theory/Compositionality.thy \
+  IOA/meta_theory/TL.thy IOA/meta_theory/TLS.thy		       \
+  IOA/meta_theory/LiveIOA.thy IOA/meta_theory/Pred.thy		       \
+  IOA/meta_theory/Abstraction.thy IOA/meta_theory/Simulations.thy      \
+  IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/ioa_package.ML
 	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
 
 

@@ -62,6 +62,30 @@ is_prophecy_relation_def:
   "is_prophecy_relation R C A == is_backward_simulation R C A &
                                  is_ref_map (%x.(@y. (x,y):(R^-1))) A C"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemma set_non_empty: "(A~={}) = (? x. x:A)"
+apply auto
+done
+
+lemma Int_non_empty: "(A Int B ~= {}) = (? x. x: A & x:B)"
+apply (simp add: set_non_empty)
+done
+
+
+lemma Sim_start_convert: 
+"(R``{x} Int S ~= {}) = (? y. (x,y):R & y:S)"
+apply (unfold Image_def)
+apply (simp add: Int_non_empty)
+done
+
+declare Sim_start_convert [simp]
+
+
+lemma ref_map_is_simulation: 
+"!! f. is_ref_map f C A ==> is_simulation {p. (snd p) = f (fst p)} C A"
+
+apply (unfold is_ref_map_def is_simulation_def)
+apply simp
+done
 
 end

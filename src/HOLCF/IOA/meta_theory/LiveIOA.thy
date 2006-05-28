@@ -57,6 +57,45 @@ is_live_ref_map_def:
             (! exec : executions (fst CL). (exec |== (snd CL)) -->
                                            ((corresp_ex (fst AM) f exec) |== (snd AM)))"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+declare split_paired_Ex [simp del]
+
+lemma live_implements_trans: 
+"!!LC. [| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |]  
+      ==> live_implements (A,LA) (C,LC)"
+apply (unfold live_implements_def)
+apply auto
+done
+
+
+subsection "Correctness of live refmap"
+	
+lemma live_implements: "[| inp(C)=inp(A); out(C)=out(A);  
+                   is_live_ref_map f (C,M) (A,L) |]  
+                ==> live_implements (C,M) (A,L)"
+apply (simp add: is_live_ref_map_def live_implements_def livetraces_def liveexecutions_def)
+apply (tactic "safe_tac set_cs")
+apply (rule_tac x = "corresp_ex A f ex" in exI)
+apply (tactic "safe_tac set_cs")
+  (* Traces coincide, Lemma 1 *)
+  apply (tactic {* pair_tac "ex" 1 *})
+  apply (erule lemma_1 [THEN spec, THEN mp])
+  apply (simp (no_asm) add: externals_def)
+  apply (auto)[1]
+  apply (simp add: executions_def reachable.reachable_0)
+ 
+  (* corresp_ex is execution, Lemma 2 *)
+  apply (tactic {* pair_tac "ex" 1 *})
+  apply (simp add: executions_def)
+  (* start state *) 
+  apply (rule conjI)
+  apply (simp add: is_ref_map_def corresp_ex_def)
+  (* is-execution-fragment *)
+  apply (erule lemma_2 [THEN spec, THEN mp])
+  apply (simp add: reachable.reachable_0)
+
+ (* Liveness *)
+apply auto
+done
 
 end

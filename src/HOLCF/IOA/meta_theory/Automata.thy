@@ -252,6 +252,453 @@ was_enabled_def:
 set_was_enabled_def:
   "set_was_enabled A W t == ? w:W. was_enabled A w t"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+declare split_paired_Ex [simp del]
+
+lemmas ioa_projections = asig_of_def starts_of_def trans_of_def wfair_of_def sfair_of_def
+
+
+subsection "asig_of, starts_of, trans_of"
+
+lemma ioa_triple_proj: 
+ "((asig_of (x,y,z,w,s)) = x)   &  
+  ((starts_of (x,y,z,w,s)) = y) &  
+  ((trans_of (x,y,z,w,s)) = z)  &  
+  ((wfair_of (x,y,z,w,s)) = w) &  
+  ((sfair_of (x,y,z,w,s)) = s)"
+  apply (simp add: ioa_projections)
+  done
+
+lemma trans_in_actions: 
+  "[| is_trans_of A; (s1,a,s2):trans_of(A) |] ==> a:act A"
+apply (unfold is_trans_of_def actions_def is_asig_def)
+  apply (erule allE, erule impE, assumption)
+  apply simp
+done
+
+lemma starts_of_par: 
+"starts_of(A || B) = {p. fst(p):starts_of(A) & snd(p):starts_of(B)}"
+  apply (simp add: par_def ioa_projections)
+done
+
+lemma trans_of_par: 
+"trans_of(A || B) = {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr))  
+             in (a:act A | a:act B) &  
+                (if a:act A then        
+                   (fst(s),a,fst(t)):trans_of(A)  
+                 else fst(t) = fst(s))             
+                &                                   
+                (if a:act B then                     
+                   (snd(s),a,snd(t)):trans_of(B)      
+                 else snd(t) = snd(s))}"
+
+apply (simp add: par_def ioa_projections)
+done
+
+
+subsection "actions and par"
+
+lemma actions_asig_comp: 
+  "actions(asig_comp a b) = actions(a) Un actions(b)"
+  apply (simp (no_asm) add: actions_def asig_comp_def asig_projections)
+  apply blast
+  done
+
+lemma asig_of_par: "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)"
+  apply (simp add: par_def ioa_projections)
+  done
+
+
+lemma externals_of_par: "ext (A1||A2) =     
+   (ext A1) Un (ext A2)"
+apply (simp add: externals_def asig_of_par asig_comp_def
+  asig_inputs_def asig_outputs_def Un_def set_diff_def)
+apply blast
+done
+
+lemma actions_of_par: "act (A1||A2) =     
+   (act A1) Un (act A2)"
+apply (simp add: actions_def asig_of_par asig_comp_def
+  asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_def)
+apply blast
+done
+
+lemma inputs_of_par: "inp (A1||A2) = 
+          ((inp A1) Un (inp A2)) - ((out A1) Un (out A2))"
+apply (simp add: actions_def asig_of_par asig_comp_def
+  asig_inputs_def asig_outputs_def Un_def set_diff_def)
+done
+
+lemma outputs_of_par: "out (A1||A2) = 
+          (out A1) Un (out A2)"
+apply (simp add: actions_def asig_of_par asig_comp_def
+  asig_outputs_def Un_def set_diff_def)
+done
+
+lemma internals_of_par: "int (A1||A2) = 
+          (int A1) Un (int A2)"
+apply (simp add: actions_def asig_of_par asig_comp_def
+  asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_def)
+done
+
+
+subsection "actions and compatibility"
+
+lemma compat_commute: "compatible A B = compatible B A"
+apply (simp add: compatible_def Int_commute)
+apply auto
+done
+
+lemma ext1_is_not_int2: 
+ "[| compatible A1 A2; a:ext A1|] ==> a~:int A2"
+apply (unfold externals_def actions_def compatible_def)
+apply simp
+apply blast
+done
+
+(* just commuting the previous one: better commute compatible *)
+lemma ext2_is_not_int1: 
+ "[| compatible A2 A1 ; a:ext A1|] ==> a~:int A2"
+apply (unfold externals_def actions_def compatible_def)
+apply simp
+apply blast
+done
+
+lemmas ext1_ext2_is_not_act2 = ext1_is_not_int2 [THEN int_and_ext_is_act, standard]
+lemmas ext1_ext2_is_not_act1 = ext2_is_not_int1 [THEN int_and_ext_is_act, standard]
+
+lemma intA_is_not_extB: 
+ "[| compatible A B; x:int A |] ==> x~:ext B"
+apply (unfold externals_def actions_def compatible_def)
+apply simp
+apply blast
+done
+
+lemma intA_is_not_actB: 
+"[| compatible A B; a:int A |] ==> a ~: act B"
+apply (unfold externals_def actions_def compatible_def is_asig_def asig_of_def)
+apply simp
+apply blast
+done
+
+(* the only one that needs disjointness of outputs and of internals and _all_ acts *)
+lemma outAactB_is_inpB: 
+"[| compatible A B; a:out A ;a:act B|] ==> a : inp B"
+apply (unfold asig_outputs_def asig_internals_def actions_def asig_inputs_def 
+    compatible_def is_asig_def asig_of_def)
+apply simp
+apply blast
+done
+
+(* needed for propagation of input_enabledness from A,B to A||B *)
+lemma inpAAactB_is_inpBoroutB: 
+"[| compatible A B; a:inp A ;a:act B|] ==> a : inp B | a: out B"
+apply (unfold asig_outputs_def asig_internals_def actions_def asig_inputs_def 
+    compatible_def is_asig_def asig_of_def)
+apply simp
+apply blast
+done
+
+
+subsection "input_enabledness and par"
+
+
+(* ugly case distinctions. Heart of proof:
+     1. inpAAactB_is_inpBoroutB ie. internals are really hidden.
+     2. inputs_of_par: outputs are no longer inputs of par. This is important here *)
+lemma input_enabled_par: 
+"[| compatible A B; input_enabled A; input_enabled B|]  
+      ==> input_enabled (A||B)"
+apply (unfold input_enabled_def)
+apply (simp add: Let_def inputs_of_par trans_of_par)
+apply (tactic "safe_tac set_cs")
+apply (simp add: inp_is_act)
+prefer 2
+apply (simp add: inp_is_act)
+(* a: inp A *)
+apply (case_tac "a:act B")
+(* a:act B *)
+apply (erule_tac x = "a" in allE)
+apply simp
+apply (drule inpAAactB_is_inpBoroutB)
+apply assumption
+apply assumption
+apply (erule_tac x = "a" in allE)
+apply simp
+apply (erule_tac x = "aa" in allE)
+apply (erule_tac x = "b" in allE)
+apply (erule exE)
+apply (erule exE)
+apply (rule_tac x = " (s2,s2a) " in exI)
+apply (simp add: inp_is_act)
+(* a~: act B*)
+apply (simp add: inp_is_act)
+apply (erule_tac x = "a" in allE)
+apply simp
+apply (erule_tac x = "aa" in allE)
+apply (erule exE)
+apply (rule_tac x = " (s2,b) " in exI)
+apply simp
+
+(* a:inp B *)
+apply (case_tac "a:act A")
+(* a:act A *)
+apply (erule_tac x = "a" in allE)
+apply (erule_tac x = "a" in allE)
+apply (simp add: inp_is_act)
+apply (frule_tac A1 = "A" in compat_commute [THEN iffD1])
+apply (drule inpAAactB_is_inpBoroutB)
+back
+apply assumption
+apply assumption
+apply simp
+apply (erule_tac x = "aa" in allE)
+apply (erule_tac x = "b" in allE)
+apply (erule exE)
+apply (erule exE)
+apply (rule_tac x = " (s2,s2a) " in exI)
+apply (simp add: inp_is_act)
+(* a~: act B*)
+apply (simp add: inp_is_act)
+apply (erule_tac x = "a" in allE)
+apply (erule_tac x = "a" in allE)
+apply simp
+apply (erule_tac x = "b" in allE)
+apply (erule exE)
+apply (rule_tac x = " (aa,s2) " in exI)
+apply simp
+done
+
+
+subsection "invariants"
+
+lemma invariantI:
+  "[| !!s. s:starts_of(A) ==> P(s);      
+      !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |]  
+   ==> invariant A P"
+apply (unfold invariant_def)
+apply (rule allI)
+apply (rule impI)
+apply (rule_tac xa = "s" in reachable.induct)
+apply assumption
+apply blast
+apply blast
+done
+
+lemma invariantI1:
+ "[| !!s. s : starts_of(A) ==> P(s);  
+     !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t)  
+  |] ==> invariant A P"
+  apply (blast intro: invariantI)
+  done
+
+lemma invariantE: "[| invariant A P; reachable A s |] ==> P(s)"
+  apply (unfold invariant_def)
+  apply blast
+  done
+
+
+subsection "restrict"
+
+
+lemmas reachable_0 = reachable.reachable_0
+  and reachable_n = reachable.reachable_n
+
+lemma cancel_restrict_a: "starts_of(restrict ioa acts) = starts_of(ioa) &      
+          trans_of(restrict ioa acts) = trans_of(ioa)"
+apply (simp add: restrict_def ioa_projections)
+done
+
+lemma cancel_restrict_b: "reachable (restrict ioa acts) s = reachable ioa s"
+apply (rule iffI)
+apply (erule reachable.induct)
+apply (simp add: cancel_restrict_a reachable_0)
+apply (erule reachable_n)
+apply (simp add: cancel_restrict_a)
+(* <--  *)
+apply (erule reachable.induct)
+apply (rule reachable_0)
+apply (simp add: cancel_restrict_a)
+apply (erule reachable_n)
+apply (simp add: cancel_restrict_a)
+done
+
+lemma acts_restrict: "act (restrict A acts) = act A"
+apply (simp (no_asm) add: actions_def asig_internals_def
+  asig_outputs_def asig_inputs_def externals_def asig_of_def restrict_def restrict_asig_def)
+apply auto
+done
+
+lemma cancel_restrict: "starts_of(restrict ioa acts) = starts_of(ioa) &      
+          trans_of(restrict ioa acts) = trans_of(ioa) &  
+          reachable (restrict ioa acts) s = reachable ioa s &  
+          act (restrict A acts) = act A"
+  apply (simp (no_asm) add: cancel_restrict_a cancel_restrict_b acts_restrict)
+  done
+
+
+subsection "rename"
+
+lemma trans_rename: "s -a--(rename C f)-> t ==> (? x. Some(x) = f(a) & s -x--C-> t)"
+apply (simp add: Let_def rename_def trans_of_def)
+done
+
+
+lemma reachable_rename: "[| reachable (rename C g) s |] ==> reachable C s"
+apply (erule reachable.induct)
+apply (rule reachable_0)
+apply (simp add: rename_def ioa_projections)
+apply (drule trans_rename)
+apply (erule exE)
+apply (erule conjE)
+apply (erule reachable_n)
+apply assumption
+done
+
+
+subsection "trans_of(A||B)"
+
+
+lemma trans_A_proj: "[|(s,a,t):trans_of (A||B); a:act A|]  
+              ==> (fst s,a,fst t):trans_of A"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_B_proj: "[|(s,a,t):trans_of (A||B); a:act B|]  
+              ==> (snd s,a,snd t):trans_of B"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_A_proj2: "[|(s,a,t):trans_of (A||B); a~:act A|] 
+              ==> fst s = fst t"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_B_proj2: "[|(s,a,t):trans_of (A||B); a~:act B|] 
+              ==> snd s = snd t"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_AB_proj: "(s,a,t):trans_of (A||B)  
+               ==> a :act A | a :act B"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_AB: "[|a:act A;a:act B; 
+       (fst s,a,fst t):trans_of A;(snd s,a,snd t):trans_of B|] 
+   ==> (s,a,t):trans_of (A||B)"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_A_notB: "[|a:act A;a~:act B; 
+       (fst s,a,fst t):trans_of A;snd s=snd t|] 
+   ==> (s,a,t):trans_of (A||B)"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemma trans_notA_B: "[|a~:act A;a:act B; 
+       (snd s,a,snd t):trans_of B;fst s=fst t|] 
+   ==> (s,a,t):trans_of (A||B)"
+apply (simp add: Let_def par_def trans_of_def)
+done
+
+lemmas trans_of_defs1 = trans_AB trans_A_notB trans_notA_B
+  and trans_of_defs2 = trans_A_proj trans_B_proj trans_A_proj2 trans_B_proj2 trans_AB_proj
+
+
+lemma trans_of_par4: 
+"((s,a,t) : trans_of(A || B || C || D)) =                                     
+  ((a:actions(asig_of(A)) | a:actions(asig_of(B)) | a:actions(asig_of(C)) |   
+    a:actions(asig_of(D))) &                                                  
+   (if a:actions(asig_of(A)) then (fst(s),a,fst(t)):trans_of(A)               
+    else fst t=fst s) &                                                       
+   (if a:actions(asig_of(B)) then (fst(snd(s)),a,fst(snd(t))):trans_of(B)     
+    else fst(snd(t))=fst(snd(s))) &                                           
+   (if a:actions(asig_of(C)) then                                             
+      (fst(snd(snd(s))),a,fst(snd(snd(t)))):trans_of(C)                       
+    else fst(snd(snd(t)))=fst(snd(snd(s)))) &                                 
+   (if a:actions(asig_of(D)) then                                             
+      (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                       
+    else snd(snd(snd(t)))=snd(snd(snd(s)))))"
+  apply (simp (no_asm) add: par_def actions_asig_comp Pair_fst_snd_eq Let_def ioa_projections)
+  done
+
+
+subsection "proof obligation generator for IOA requirements"
+
+(* without assumptions on A and B because is_trans_of is also incorporated in ||def *)
+lemma is_trans_of_par: "is_trans_of (A||B)"
+apply (unfold is_trans_of_def)
+apply (simp add: Let_def actions_of_par trans_of_par)
+done
+
+lemma is_trans_of_restrict: 
+"is_trans_of A ==> is_trans_of (restrict A acts)"
+apply (unfold is_trans_of_def)
+apply (simp add: cancel_restrict acts_restrict)
+done
+
+lemma is_trans_of_rename: 
+"is_trans_of A ==> is_trans_of (rename A f)"
+apply (unfold is_trans_of_def restrict_def restrict_asig_def)
+apply (simp add: Let_def actions_def trans_of_def asig_internals_def
+  asig_outputs_def asig_inputs_def externals_def asig_of_def rename_def rename_set_def)
+apply blast
+done
+
+lemma is_asig_of_par: "[| is_asig_of A; is_asig_of B; compatible A B|]   
+          ==> is_asig_of (A||B)"
+apply (simp add: is_asig_of_def asig_of_par asig_comp_def compatible_def
+  asig_internals_def asig_outputs_def asig_inputs_def actions_def is_asig_def)
+apply (simp add: asig_of_def)
+apply auto
+done
+
+lemma is_asig_of_restrict: 
+"is_asig_of A ==> is_asig_of (restrict A f)"
+apply (unfold is_asig_of_def is_asig_def asig_of_def restrict_def restrict_asig_def 
+           asig_internals_def asig_outputs_def asig_inputs_def externals_def o_def)
+apply simp
+apply auto
+done
+
+lemma is_asig_of_rename: "is_asig_of A ==> is_asig_of (rename A f)"
+apply (simp add: is_asig_of_def rename_def rename_set_def asig_internals_def
+  asig_outputs_def asig_inputs_def actions_def is_asig_def asig_of_def)
+apply auto
+apply (drule_tac [!] s = "Some ?x" in sym)
+apply auto
+done
+
+lemmas [simp] = is_asig_of_par is_asig_of_restrict
+  is_asig_of_rename is_trans_of_par is_trans_of_restrict is_trans_of_rename
+
+
+lemma compatible_par: 
+"[|compatible A B; compatible A C |]==> compatible A (B||C)"
+apply (unfold compatible_def)
+apply (simp add: internals_of_par outputs_of_par actions_of_par)
+apply auto
+done
+
+(*  better derive by previous one and compat_commute *)
+lemma compatible_par2: 
+"[|compatible A C; compatible B C |]==> compatible (A||B) C"
+apply (unfold compatible_def)
+apply (simp add: internals_of_par outputs_of_par actions_of_par)
+apply auto
+done
+
+lemma compatible_restrict: 
+"[| compatible A B; (ext B - S) Int ext A = {}|]  
+      ==> compatible A (restrict B S)"
+apply (unfold compatible_def)
+apply (simp add: ioa_triple_proj asig_triple_proj externals_def
+  restrict_def restrict_asig_def actions_def)
+apply auto
+done
+
+
+declare split_paired_Ex [simp]
 
 end
