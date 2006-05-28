@@ -136,6 +136,142 @@ def_g:          "def_g g == (? f.
                         is_f f  &
                         g = (LAM x. cfst$(f$<x,fix$(LAM  k. csnd$(f$<x,k>))>)))"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+(* first some logical trading *)
+
+lemma lemma1:
+"is_g(g) =
+  (? f. is_f(f) &  (!x.(? z. <g$x,z> = f$<x,z> &
+                   (! w y. <y,w> = f$<x,w>  --> z << w))))"
+apply (simp add: is_g is_net_g)
+apply fast
+done
+
+lemma lemma2:
+"(? f. is_f(f) &  (!x. (? z. <g$x,z> = f$<x,z> &
+                  (!w y. <y,w> = f$<x,w>  --> z << w))))
+  =
+  (? f. is_f(f) &  (!x. ? z.
+        g$x = cfst$(f$<x,z>) &
+          z = csnd$(f$<x,z>) &
+        (! w y.  <y,w> = f$<x,w> --> z << w)))"
+apply (rule iffI)
+apply (erule exE)
+apply (rule_tac x = "f" in exI)
+apply (erule conjE)+
+apply (erule conjI)
+apply (intro strip)
+apply (erule allE)
+apply (erule exE)
+apply (rule_tac x = "z" in exI)
+apply (erule conjE)+
+apply (rule conjI)
+apply (rule_tac [2] conjI)
+prefer 3 apply (assumption)
+apply (drule sym)
+apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (drule sym)
+apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (erule exE)
+apply (rule_tac x = "f" in exI)
+apply (erule conjE)+
+apply (erule conjI)
+apply (intro strip)
+apply (erule allE)
+apply (erule exE)
+apply (rule_tac x = "z" in exI)
+apply (erule conjE)+
+apply (rule conjI)
+prefer 2 apply (assumption)
+apply (rule trans)
+apply (rule_tac [2] surjective_pairing_Cprod2)
+apply (erule subst)
+apply (erule subst)
+apply (rule refl)
+done
+
+lemma lemma3: "def_g(g) --> is_g(g)"
+apply (tactic {* simp_tac (HOL_ss addsimps [thm "def_g", thm "lemma1", thm "lemma2"]) 1 *})
+apply (rule impI)
+apply (erule exE)
+apply (rule_tac x = "f" in exI)
+apply (erule conjE)+
+apply (erule conjI)
+apply (intro strip)
+apply (rule_tac x = "fix$ (LAM k. csnd$ (f$<x,k>))" in exI)
+apply (rule conjI)
+ apply (tactic "asm_simp_tac HOLCF_ss 1")
+ apply (rule trans)
+  apply (rule_tac [2] surjective_pairing_Cprod2)
+ apply (rule cfun_arg_cong)
+ apply (rule trans)
+  apply (rule fix_eq)
+ apply (simp (no_asm))
+apply (intro strip)
+apply (rule fix_least)
+apply (simp (no_asm))
+apply (erule exE)
+apply (drule sym)
+back
+apply simp
+done
+
+lemma lemma4: "is_g(g) --> def_g(g)"
+apply (tactic {* simp_tac (HOL_ss delsimps (thms "ex_simps" @ thms "all_simps")
+  addsimps [thm "lemma1", thm "lemma2", thm "def_g"]) 1 *})
+apply (rule impI)
+apply (erule exE)
+apply (rule_tac x = "f" in exI)
+apply (erule conjE)+
+apply (erule conjI)
+apply (rule ext_cfun)
+apply (erule_tac x = "x" in allE)
+apply (erule exE)
+apply (erule conjE)+
+apply (subgoal_tac "fix$ (LAM k. csnd$ (f$<x, k>)) = z")
+ apply simp
+apply (subgoal_tac "! w y. f$<x, w> = <y, w> --> z << w")
+apply (rule sym)
+apply (rule fix_eqI)
+apply simp
+apply (rule allI)
+apply (tactic "simp_tac HOLCF_ss 1")
+apply (intro strip)
+apply (subgoal_tac "f$<x, za> = <cfst$ (f$<x,za>) ,za>")
+apply fast
+apply (rule trans)
+apply (rule surjective_pairing_Cprod2 [symmetric])
+apply (erule cfun_arg_cong)
+apply (intro strip)
+apply (erule allE)+
+apply (erule mp)
+apply (erule sym)
+done
+
+(* now we assemble the result *)
+
+lemma loopback_eq: "def_g = is_g"
+apply (rule ext)
+apply (rule iffI)
+apply (erule lemma3 [THEN mp])
+apply (erule lemma4 [THEN mp])
+done
+
+lemma L2:
+"(? f.
+  is_f(f::'b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream))
+  -->
+  (? g. def_g(g::'b stream -> 'c stream ))"
+apply (simp add: def_g)
+done
+
+theorem conservative_loopback:
+"(? f.
+  is_f(f::'b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream))
+  -->
+  (? g. is_g(g::'b stream -> 'c stream ))"
+apply (rule loopback_eq [THEN subst])
+apply (rule L2)
+done
 
 end

@@ -52,11 +52,9 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
 
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
-$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.ML ex/Dagstuhl.thy \
-  ex/Dnat.thy ex/Fix2.ML ex/Fix2.thy ex/Focus_ex.ML \
-  ex/Focus_ex.thy ex/Hoare.ML ex/Hoare.thy ex/Loop.ML ex/Loop.thy \
-  ex/ROOT.ML ex/Fixrec_ex.thy \
-  ../HOL/Library/Nat_Infinity.thy 
+$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.thy \
+  ex/Dnat.thy ex/Fix2.thy ex/Focus_ex.thy ex/Hoare.thy ex/Loop.thy \
+  ex/ROOT.ML ex/Fixrec_ex.thy ../HOL/Library/Nat_Infinity.thy
 	@$(ISATOOL) usedir $(OUT)/HOLCF ex
 
 
