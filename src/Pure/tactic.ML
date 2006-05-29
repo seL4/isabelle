@@ -133,10 +133,10 @@ fun trace_goalno_tac tac i st =
 
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic tac rl =
-  let val (st, thaw) = freeze_thaw (zero_var_indexes rl)
+  let val (st, thaw) = freeze_thaw_robust (zero_var_indexes rl)
   in case Seq.pull (tac st)  of
         NONE        => raise THM("rule_by_tactic", 0, [rl])
-      | SOME(st',_) => Thm.varifyT (thaw st')
+      | SOME(st',_) => Thm.varifyT (thaw 0 st')
   end;
 
 (*** Basic tactics ***)
