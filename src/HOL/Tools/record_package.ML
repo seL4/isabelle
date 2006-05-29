@@ -83,6 +83,10 @@ val AbsN = "Abs_";
 
 fun but_last xs = fst (split_last xs);
 
+fun varifyT midx =
+  let fun varify (a, S) = TVar ((a, midx + 1), S);
+  in map_type_tfree varify end;
+
 (* messages *)
 
 val quiet_mode = ref false;
@@ -410,13 +414,12 @@ fun get_extT_fields thy T =
     val recname = let val (nm::recn::rst) = rev (NameSpace.unpack name)
                   in NameSpace.pack (rev (nm::rst)) end;
     val midx = maxidx_of_typs (moreT::Ts);
-    fun varify (a, S) = TVar ((a, midx), S);
-    val varifyT = map_type_tfree varify;
+    val varifyT = varifyT midx;
     val {records,extfields,...} = RecordsData.get thy;
     val (flds,(more,_)) = split_last (Symtab.lookup_list extfields name);
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
-    val (subst,_) = fold (Sign.typ_unify thy) (but_last args ~~ but_last Ts) (Vartab.empty,0);
+    val subst = fold (Sign.typ_match thy) (but_last args ~~ but_last Ts) (Vartab.empty);
     val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
   in (flds',(more,moreT)) end;
 
@@ -566,12 +569,16 @@ fun gen_ext_type_tr sep mark sfx more context t =
                        val flds' = but_last flds;
                        val types = map snd flds';
                        val (args,rest) = splitargs (map fst flds') fargs;
-                       val vartypes = map Type.varifyT types;
                        val argtypes = map to_type args;
-                       val (subst,_) = fold (Sign.typ_unify thy) (vartypes ~~ argtypes)
-                                            (Vartab.empty,0);
+                       val midx =  fold (fn T => fn i => Int.max (maxidx_of_typ T, i)) 
+                                    argtypes 0;
+                       val varifyT = varifyT midx;
+                       val vartypes = map varifyT types;
+
+                       val subst = fold (Sign.typ_match thy) (vartypes ~~ argtypes)
+                                            Vartab.empty;
                        val alphas' = map ((Syntax.term_of_typ (! Syntax.show_sorts)) o
-                                          Envir.norm_type subst o Type.varifyT)
+                                          Envir.norm_type subst o varifyT)
                                          (but_last alphas);
 
                        val more' = mk_ext rest;
@@ -683,6 +690,7 @@ fun gen_record_tr' name =
 fun print_translation names =
   map (gen_field_tr' updateN record_update_tr') names;
 
+
 (* record_type_abbr_tr' tries to reconstruct the record name type abbreviation from *)
 (* the (nested) extension types.                                                    *)
 fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context tm =
@@ -709,13 +717,16 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context tm
 
       val T = fixT (Sign.intern_typ thy
                       (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm));
+      val midx = maxidx_of_typ T;
+      val varifyT = varifyT midx;
 
       fun mk_type_abbr subst name alphas =
-          let val abbrT = Type (name, map (fn a => TVar ((a, 0), Sign.defaultS thy)) alphas);
+          let val abbrT = Type (name, map (fn a => varifyT (TFree (a, Sign.defaultS thy))) alphas);
           in Syntax.term_of_typ (! Syntax.show_sorts)
                (Sign.extern_typ thy (Envir.norm_type subst abbrT)) end;
 
-      fun unify rT T = fst (Sign.typ_unify thy (Type.varifyT rT,T) (Vartab.empty,0));
+      fun match rT T = (Sign.typ_match thy (varifyT rT,T) 
+                                                Vartab.empty);
 
    in if !print_record_type_abbr
       then (case last_extT T of
@@ -723,9 +734,9 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context tm
               => if name = lastExt
                  then
                   (let
-                     val subst = unify schemeT T
+                     val subst = match schemeT T
                    in
-                    if HOLogic.is_unitT (Envir.norm_type subst (TVar((zeta,0),Sign.defaultS thy)))
+                    if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree(zeta,Sign.defaultS thy))))
                     then mk_type_abbr subst abbr alphas
                     else mk_type_abbr subst (suffix schemeN abbr) (alphas@[zeta])
                    end handle TUNIFY => default_tr' context tm)
@@ -740,6 +751,7 @@ fun record_type_tr' sep mark record record_scheme context t =
     fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
 
     val T = Sign.intern_typ thy (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts t)) I t)
+    val varifyT = varifyT (Term.maxidx_of_typ T)
 
     fun term_of_type T = Syntax.term_of_typ (!Syntax.show_sorts) (Sign.extern_typ thy T);
 
@@ -757,10 +769,10 @@ fun record_type_tr' sep mark record record_scheme context t =
                                 val flds' = apfst (Sign.extern_const thy) f
                                             ::map (apfst NameSpace.base) fs;
                                 val (args',more) = split_last args;
-                                val alphavars = map Type.varifyT (but_last alphas);
-                                val (subst,_)= fold (Sign.typ_unify thy) (alphavars~~args')
-                                                    (Vartab.empty,0);
-                                val flds'' =map (apsnd (Envir.norm_type subst o Type.varifyT))
+                                val alphavars = map varifyT (but_last alphas);
+                                val subst= fold (Sign.typ_match thy) (alphavars~~args')
+                                                    Vartab.empty;
+                                val flds'' =map (apsnd (Envir.norm_type subst o varifyT))
                                                 flds';
                               in flds''@field_lst more end
                               handle TUNIFY         => [("",T)]
