@@ -207,7 +207,7 @@ fun term_lg [] (lg,seen) = (lg,seen)
 			  else fn_lg f (FOL,seen)
 	val _ =
           if is_fol_logic lg' then ()
-          else warning ("Found a HOL term: " ^ Display.raw_string_of_term f)
+          else Output.debug ("Found a HOL term: " ^ Display.raw_string_of_term f)
 	 in
 	     term_lg (args@tms) (lg',seen')
     end
@@ -230,7 +230,7 @@ fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
 			  else pred_lg pred (lg,seen)
 	val _ =
           if is_fol_logic lg' then ()
-          else warning ("Found a HOL predicate: " ^ Display.raw_string_of_term pred)
+          else Output.debug ("Found a HOL predicate: " ^ Display.raw_string_of_term pred)
     in
 	term_lg args (lg',seen')
     end;
@@ -240,7 +240,7 @@ fun lits_lg [] (lg,seen) = (lg,seen)
     let val (lg,seen') = lit_lg lit (FOL,seen)
 	val _ =
           if is_fol_logic lg then ()
-          else warning ("Found a HOL literal: " ^ Display.raw_string_of_term lit)
+          else Output.debug ("Found a HOL literal: " ^ Display.raw_string_of_term lit)
     in
 	lits_lg lits (lg,seen')
     end
@@ -265,7 +265,7 @@ fun logic_of_clauses [] (lg,seen) = (lg,seen)
     let val (lg,seen') = logic_of_clause cls (FOL,seen)
 	val _ =
           if is_fol_logic lg then ()
-          else warning ("Found a HOL clause: " ^ Display.raw_string_of_term cls)
+          else Output.debug ("Found a HOL clause: " ^ Display.raw_string_of_term cls)
     in
 	logic_of_clauses clss (lg,seen')
     end
@@ -325,16 +325,16 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val file = atp_input_file()
     in
 	(writer prob_logic goal_cls file (axclauses_as_thms,classrel_clauses,arity_clauses);
-	 warning ("Writing to " ^ file);
+	 Output.debug ("Writing to " ^ file);
 	 file)
     end;
 
 
 (**** remove tmp files ****)
 fun cond_rm_tmp file = 
-    if !keep_atp_input then warning "ATP input kept..." 
-    else if !destdir <> "" then warning ("ATP input kept in directory " ^ (!destdir))
-    else (warning "deleting ATP inputs..."; OS.FileSys.remove file);
+    if !keep_atp_input then Output.debug "ATP input kept..." 
+    else if !destdir <> "" then Output.debug ("ATP input kept in directory " ^ (!destdir))
+    else (Output.debug "deleting ATP inputs..."; OS.FileSys.remove file);
 
 
 (****** setup ATPs as Isabelle methods ******)
