@@ -425,8 +425,7 @@ qed
 section {* Correctness and completeness of the type inference algorithm W *}
 
 consts
-  W :: "expr \<Rightarrow> typ list \<Rightarrow> nat \<Rightarrow> (subst \<times> typ \<times> nat) maybe"  ("\<W>")
-
+  "\<W>" :: "expr \<Rightarrow> typ list \<Rightarrow> nat \<Rightarrow> (subst \<times> typ \<times> nat) maybe"
 primrec
   "\<W> (Var i) a n =
     (if i < length a then Ok (id_subst, a ! i, n) else Fail)"
@@ -468,14 +467,14 @@ next
       by (simp add: subst_comp_tel o_def)
     show "$s a |- e1 :: $u t2 -> t"
     proof -
-      from W1_ok have "$s1 a |- e1 :: t1" by (rule App.hyps)
+      from W1_ok have "$s1 a |- e1 :: t1" by (rule App.hyps(1))
       then have "$u ($s2 ($s1 a)) |- e1 :: $u ($s2 t1)"
         by (intro has_type_subst_closed)
       with s' t mgu_ok show ?thesis by simp
     qed
     show "$s a |- e2 :: $u t2"
     proof -
-      from W2_ok have "$s2 ($s1 a) |- e2 :: t2" by (rule App.hyps)
+      from W2_ok have "$s2 ($s1 a) |- e2 :: t2" by (rule App.hyps(2))
       then have "$u ($s2 ($s1 a)) |- e2 :: $u t2"
         by (rule has_type_subst_closed)
       with s' show ?thesis by simp
@@ -785,7 +784,7 @@ text {*
 *}
 
 consts
-  I :: "expr \<Rightarrow> typ list \<Rightarrow> nat \<Rightarrow> subst \<Rightarrow> (subst \<times> typ \<times> nat) maybe"  ("\<I>")
+  "\<I>" :: "expr \<Rightarrow> typ list \<Rightarrow> nat \<Rightarrow> subst \<Rightarrow> (subst \<times> typ \<times> nat) maybe"
 primrec
   "\<I> (Var i) a n s = (if i < length a then Ok (s, a ! i, n) else Fail)"
   "\<I> (Abs e) a n s = ((s, t, m) := \<I> e (TVar n # a) (Suc n) s;
