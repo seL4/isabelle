@@ -512,7 +512,7 @@ val type_wrapper = "typeinfo";
 
 datatype type_level = T_FULL | T_PARTIAL | T_CONST | T_NONE;
 
-val typ_level = ref T_FULL;
+val typ_level = ref T_CONST;
 
 fun full_types () = (typ_level:=T_FULL);
 fun partial_types () = (typ_level:=T_PARTIAL);
@@ -830,17 +830,26 @@ fun hash_clause clause = xor_words (map hash_literal (get_literals clause));
 fun read_in fs = map (File.read o File.unpack_platform_path) fs; 
 
 fun get_helper_clauses_tptp () =
-    let val tlevel = case !typ_level of T_FULL => (warning "Fully-typed HOL"; "~~/src/HOL/Tools/atp-inputs/full_")
-				      | T_PARTIAL => (warning "Partially-typed HOL"; "~~/src/HOL/Tools/atp-inputs/par_")
-				      | T_CONST => (warning "Const-only-typed HOL"; "~~/src/HOL/Tools/atp-inputs/const_")
-				      | T_NONE => (warning "Untyped HOL"; "~~/src/HOL/Tools/atp-inputs/u_")
-	val helpers = if !include_combS then (warning "Include combinator S"; ["helper1.tptp","comb_inclS.tptp"]) else
-		     if !include_min_comb then (warning "Include min combinators"; ["helper1.tptp","comb_noS.tptp"])
-		     else (warning "No combinator is used"; ["helper1.tptp"])
-	val t_helpers = map (curry (op ^) tlevel) helpers
-    in
-	read_in t_helpers
-    end;
+  let val tlevel = case !typ_level of 
+		       T_FULL => (Output.debug "Fully-typed HOL"; 
+				  "~~/src/HOL/Tools/atp-inputs/full_")
+		     | T_PARTIAL => (Output.debug "Partially-typed HOL"; 
+				     "~~/src/HOL/Tools/atp-inputs/par_")
+		     | T_CONST => (Output.debug "Const-only-typed HOL"; 
+				   "~~/src/HOL/Tools/atp-inputs/const_")
+		     | T_NONE => (Output.debug "Untyped HOL"; 
+				  "~~/src/HOL/Tools/atp-inputs/u_")
+      val helpers = if !include_combS 
+                    then (Output.debug "Include combinator S"; 
+                          ["helper1.tptp","comb_inclS.tptp"]) 
+                    else if !include_min_comb 
+                    then (Output.debug "Include min combinators"; 
+                          ["helper1.tptp","comb_noS.tptp"])
+		    else (Output.debug "No combinator is used"; ["helper1.tptp"])
+      val t_helpers = map (curry (op ^) tlevel) helpers
+  in
+      read_in t_helpers
+  end;
 	
 						  
 (* write TPTP format to a single file *)
@@ -865,17 +874,26 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
 
 (* dfg format *)
 fun get_helper_clauses_dfg () = 
-    let val tlevel = case !typ_level of T_FULL => (warning "Fully-typed HOL"; "~~/src/HOL/Tools/atp-inputs/full_")
-				      | T_PARTIAL => (warning "Partially-typed HOL"; "~~/src/HOL/Tools/atp-inputs/par_")
-				      | T_CONST => (warning "Const-only-typed HOL"; "~~/src/HOL/Tools/atp-inputs/const_")
-				      | T_NONE => (warning "Untyped HOL"; "~~/src/HOL/Tools/atp-inputs/u_")
-	val helpers = if !include_combS then (warning "Include combinator S"; ["helper1.dfg","comb_inclS.dfg"]) else
-		      if !include_min_comb then (warning "Include min combinators"; ["helper1.dfg","comb_noS.dfg"])
-		      else (warning "No combinator is used"; ["helper1.dfg"])
-	val t_helpers = map (curry (op ^) tlevel) helpers
-    in
-	read_in t_helpers
-    end;
+ let val tlevel = case !typ_level of 
+                      T_FULL => (Output.debug "Fully-typed HOL"; 
+                                 "~~/src/HOL/Tools/atp-inputs/full_")
+		    | T_PARTIAL => (Output.debug "Partially-typed HOL"; 
+		                    "~~/src/HOL/Tools/atp-inputs/par_")
+		    | T_CONST => (Output.debug "Const-only-typed HOL"; 
+		                  "~~/src/HOL/Tools/atp-inputs/const_")
+		    | T_NONE => (Output.debug "Untyped HOL"; 
+		                 "~~/src/HOL/Tools/atp-inputs/u_")
+     val helpers = if !include_combS 
+                   then (Output.debug "Include combinator S"; 
+                         ["helper1.dfg","comb_inclS.dfg"]) else
+		   if !include_min_comb 
+		   then (Output.debug "Include min combinators"; 
+		         ["helper1.dfg","comb_noS.dfg"])
+		   else (Output.debug "No combinator is used"; ["helper1.dfg"])
+     val t_helpers = map (curry (op ^) tlevel) helpers
+ in
+     read_in t_helpers
+ end;
 
 
 fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) =
