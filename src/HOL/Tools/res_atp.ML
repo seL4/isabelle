@@ -388,7 +388,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 	       let val Eprover = helper_path "E_HOME" "eproof"
 	       in
 		  ("E", Eprover, 
-		     "--tptp-in%-l5%-xAuto%-tAuto%--cpu-limit=" ^ time, probfile) ::
+		     "--tptp-in%-l5%-xAuto%-tAuto%--silent%--cpu-limit=" ^ time, probfile) ::
 		   make_atp_list xs (n+1)
 	       end
 	     else error ("Invalid prover name: " ^ !prover)
