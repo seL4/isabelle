@@ -583,7 +583,7 @@ fun gen_ext_type_tr sep mark sfx more context t =
 
                        val more' = mk_ext rest;
                      in list_comb (Syntax.const (suffix sfx ext),alphas'@[more'])
-                     end handle TUNIFY => raise
+                     end handle TYPE_MATCH => raise
                            TERM (msg ^ "type is no proper record (extension)", [t]))
                | NONE => raise TERM (msg ^ "no fields defined for " ^ ext,[t]))
           | NONE => raise TERM (msg ^ name ^" is no proper field",[t]))
@@ -739,7 +739,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT context tm
                     if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree(zeta,Sign.defaultS thy))))
                     then mk_type_abbr subst abbr alphas
                     else mk_type_abbr subst (suffix schemeN abbr) (alphas@[zeta])
-                   end handle TUNIFY => default_tr' context tm)
+                   end handle TYPE_MATCH => default_tr' context tm)
                  else raise Match (* give print translation of specialised record a chance *)
             | _ => raise Match)
        else default_tr' context tm
@@ -775,7 +775,7 @@ fun record_type_tr' sep mark record record_scheme context t =
                                 val flds'' =map (apsnd (Envir.norm_type subst o varifyT))
                                                 flds';
                               in flds''@field_lst more end
-                              handle TUNIFY         => [("",T)]
+                              handle TYPE_MATCH     => [("",T)]
                                    | UnequalLengths => [("",T)])
                          | NONE => [("",T)])
                    | NONE => [("",T)])
