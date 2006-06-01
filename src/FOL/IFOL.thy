@@ -117,6 +117,9 @@ axioms
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 
+lemmas strip = impI allI
+
+
 text{*Thanks to Stephan Merz*}
 theorem subst:
   assumes eq: "a = b" and p: "P(a)"
