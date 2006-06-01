@@ -370,7 +370,8 @@ lemma induct2:
   shows "P(FIX(f),FIX(g))"
   apply (rule FIX1 [THEN ssubst, of _ f g])
   apply (rule FIX2 [THEN ssubst, of _ f g])
-  apply (rule induct [OF 1, where ?f = "%x. <f(FST(x)),g(SND(x))>"])
+  apply (rule induct [where ?f = "%x. <f(FST(x)),g(SND(x))>"])
+  apply (rule 1)
   apply simp
   apply (rule 2)
   apply (simp add: expand_all_PROD)
