@@ -1,0 +1,37 @@
+
+Installation Notes for the Nominal Datatype Package
+===================================================
+
+The nominal datatype package is part of the development
+snapshots of Isabelle. Get the sources from
+
+    http://isabelle.in.tum.de/devel/
+
+Follow the instructions in INSTALL for how a snap-shot 
+can be set up. The building process needs to be started
+inside the [ISABELLE_HOME] directory with the command:
+
+   ./build -m HOL-Nominal
+
+After the build completes, install the files with the command
+
+   ./bin/isatool install -p /usr/local/bin
+
+The sources sources of the nominal datatype package
+can be found in the directory
+
+    [ISABELLE_HOME]/src/HOL/Nominal
+
+The examples are in
+
+    [ISABELLE_HOME]/src/HOL/Nominal/Examples
+
+Starting Isabelle with the Nominal Datatype Package Preloaded
+=============================================================
+
+Isabelle including the Proof-General interface can be started
+
+  Isabelle -L HOL-Nominal <<theory file to be opened>> &
+
+This automatically loads the correct keyword file needed
+for the nominal datatype package. 
