@@ -63,10 +63,9 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.thy \
 HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 
 $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstreams.thy \
-  FOCUS/Fstream.thy FOCUS/Fstream.ML \
-  FOCUS/FOCUS.thy FOCUS/FOCUS.ML \
-  FOCUS/Stream_adm.thy FOCUS/Stream_adm.ML  ../HOL/Library/Continuity.thy \
-  FOCUS/Buffer.thy FOCUS/Buffer.ML FOCUS/Buffer_adm.thy FOCUS/Buffer_adm.ML
+  FOCUS/Fstream.thy FOCUS/FOCUS.thy \
+  FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
+  FOCUS/Buffer.thy FOCUS/Buffer_adm.thy
 	@$(ISATOOL) usedir $(OUT)/HOLCF FOCUS
 
 ## IOA
