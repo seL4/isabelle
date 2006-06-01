@@ -474,10 +474,8 @@ fun freeze_thaw_robust th =
    case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
-         let fun newName (Var(ix,_), pairs) =
-                   let val v = gensym (string_of_indexname ix)
-                   in  ((ix,v)::pairs)  end;
-             val alist = foldr newName [] vars
+         let fun newName (Var(ix,_)) = (ix, gensym (string_of_indexname ix))
+             val alist = map newName vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),
                   cterm_of thy (Free(((the o AList.lookup (op =) alist) v), T)))
@@ -489,7 +487,8 @@ fun freeze_thaw_robust th =
  end;
 
 (*Basic version of the function above. No option to rename Vars apart in thaw.
-  The Frees created from Vars have nice names.*)
+  The Frees created from Vars have nice names. FIXME: does not check for 
+  clashes with variables in the assumptions, so delete and use freeze_thaw_robust instead?*)
 fun freeze_thaw th =
  let val fth = freezeT th
      val {prop, tpairs, thy, ...} = rep_thm fth
