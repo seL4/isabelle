@@ -15,6 +15,12 @@ axioms
   p_strict:     "p(UU) = UU"
   p_s:          "p(s(x),y) = s(p(x,y))"
 
-ML {* use_legacy_bindings (the_context ()) *}
+declare p_strict [simp] p_s [simp]
+
+lemma example: "p(FIX(s),y) = FIX(s)"
+  apply (tactic {* induct_tac "s" 1 *})
+  apply (simp (no_asm))
+  apply (simp (no_asm))
+  done
 
 end
