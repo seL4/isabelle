@@ -9,6 +9,9 @@ uses
   ("nominal_permeq.ML")
 begin 
 
+(* FIXME: this needs to be corrected in nominal_package *)
+ML {* reset NameSpace.unique_names; *}
+
 section {* Permutations *}
 (*======================*)
 
