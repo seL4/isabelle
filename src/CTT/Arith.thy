@@ -12,27 +12,32 @@ begin
 
 subsection {* Arithmetic operators and their definitions *}
 
-consts
-  "#+"  :: "[i,i]=>i"   (infixr 65)
-  "-"   :: "[i,i]=>i"   (infixr 65)
-  "|-|" :: "[i,i]=>i"   (infixr 65)
-  "#*"  :: "[i,i]=>i"   (infixr 70)
-  div   :: "[i,i]=>i"   (infixr 70)
-  mod   :: "[i,i]=>i"   (infixr 70)
+definition
+  add :: "[i,i]=>i"   (infixr "#+" 65)
+  "a#+b == rec(a, b, %u v. succ(v))"
 
-syntax (xsymbols)
-  "op #*"      :: "[i, i] => i"   (infixr "#\<times>" 70)
+  diff :: "[i,i]=>i"   (infixr "-" 65)
+  "a-b == rec(b, a, %u v. rec(v, 0, %x y. x))"
 
-syntax (HTML output)
-  "op #*"      :: "[i, i] => i"   (infixr "#\<times>" 70)
+  absdiff :: "[i,i]=>i"   (infixr "|-|" 65)
+  "a|-|b == (a-b) #+ (b-a)"
 
-defs
-  add_def:     "a#+b == rec(a, b, %u v. succ(v))"
-  diff_def:    "a-b == rec(b, a, %u v. rec(v, 0, %x y. x))"
-  absdiff_def: "a|-|b == (a-b) #+ (b-a)"
-  mult_def:    "a#*b == rec(a, 0, %u v. b #+ v)"
-  mod_def:     "a mod b == rec(a, 0, %u v. rec(succ(v) |-| b, 0, %x y. succ(v)))"
-  div_def:     "a div b == rec(a, 0, %u v. rec(succ(u) mod b, succ(v), %x y. v))"
+  mult :: "[i,i]=>i"   (infixr "#*" 70)
+  "a#*b == rec(a, 0, %u v. b #+ v)"
+
+  mod :: "[i,i]=>i"   (infixr "mod" 70)
+  "a mod b == rec(a, 0, %u v. rec(succ(v) |-| b, 0, %x y. succ(v)))"
+
+  div :: "[i,i]=>i"   (infixr "div" 70)
+  "a div b == rec(a, 0, %u v. rec(succ(u) mod b, succ(v), %x y. v))"
+
+
+const_syntax (xsymbols)
+  mult  (infixr "#\<times>" 70)
+
+const_syntax (HTML output)
+  mult (infixr "#\<times>" 70)
+
 
 lemmas arith_defs = add_def diff_def absdiff_def mult_def mod_def div_def
 

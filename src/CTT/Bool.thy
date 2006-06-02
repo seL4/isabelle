@@ -10,7 +10,7 @@ theory Bool
 imports CTT
 begin
 
-constdefs
+definition
   Bool :: "t"
   "Bool == T+T"
 
