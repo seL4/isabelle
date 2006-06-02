@@ -161,12 +161,12 @@ done
 lemma slen_fscons_eq_rev:
         "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a~> y | #y < Fin (Suc n))"
 apply (simp add: fscons_def2 slen_scons_eq_rev)
-apply (tactic "step_tac (HOL_cs addSEs [DefE]) 1")
-apply (tactic "step_tac (HOL_cs addSEs [DefE]) 1")
-apply (tactic "step_tac (HOL_cs addSEs [DefE]) 1")
-apply (tactic "step_tac (HOL_cs addSEs [DefE]) 1")
-apply (tactic "step_tac (HOL_cs addSEs [DefE]) 1")
-apply (tactic "step_tac (HOL_cs addSEs [DefE]) 1")
+apply (tactic {* step_tac (HOL_cs addSEs [thm "DefE"]) 1 *})
+apply (tactic {* step_tac (HOL_cs addSEs [thm "DefE"]) 1 *})
+apply (tactic {* step_tac (HOL_cs addSEs [thm "DefE"]) 1 *})
+apply (tactic {* step_tac (HOL_cs addSEs [thm "DefE"]) 1 *})
+apply (tactic {* step_tac (HOL_cs addSEs [thm "DefE"]) 1 *})
+apply (tactic {* step_tac (HOL_cs addSEs [thm "DefE"]) 1 *})
 apply (erule contrapos_np)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done

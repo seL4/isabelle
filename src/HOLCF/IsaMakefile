@@ -27,11 +27,11 @@ HOLCF: HOL $(OUT)/HOLCF
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
-$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.ML Cfun.thy Cont.ML Cont.thy	\
-  Cprod.ML Cprod.thy Discrete.thy Domain.thy Fix.ML Fix.thy Fixrec.thy	\
-  Ffun.ML Ffun.thy HOLCF.ML HOLCF.thy Lift.ML Lift.thy One.ML One.thy	\
-  Pcpo.ML Pcpo.thy Porder.ML Porder.thy ROOT.ML Sprod.ML Sprod.thy	\
-  Ssum.ML Ssum.thy Tr.ML Tr.thy Up.ML Pcpodef.thy pcpodef_package.ML	\
+$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.thy Cont.thy	\
+  Cprod.thy Discrete.thy Domain.thy Fix.thy Fixrec.thy	\
+  Ffun.thy HOLCF.ML HOLCF.thy Lift.thy One.thy	\
+  Pcpo.thy Porder.thy ROOT.ML Sprod.thy	\
+  Ssum.thy Tr.thy Pcpodef.thy pcpodef_package.ML	\
   Up.thy adm_tac.ML cont_consts.ML cont_proc.ML fixrec_package.ML	\
   domain/axioms.ML domain/extender.ML domain/library.ML			\
   domain/syntax.ML domain/theorems.ML holcf_logic.ML ex/Stream.thy	\
@@ -115,10 +115,10 @@ $(LOG)/IOA-NTP.gz: $(OUT)/IOA \
 
 IOA-Modelcheck: IOA $(LOG)/IOA-Modelcheck.gz
 
-$(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML IOA/Modelcheck/Cockpit.ML\
+$(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML \
   IOA/Modelcheck/Cockpit.thy IOA/Modelcheck/MuIOA.ML IOA/Modelcheck/MuIOA.thy \
   IOA/Modelcheck/MuIOAOracle.ML IOA/Modelcheck/MuIOAOracle.thy \
-  IOA/Modelcheck/Ring3.ML IOA/Modelcheck/Ring3.thy 
+  IOA/Modelcheck/Ring3.thy 
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Modelcheck
 
 

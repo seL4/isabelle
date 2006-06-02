@@ -19,14 +19,16 @@ text {*
   \medskip Expand fixed point properties.
 *}
 
-ML_setup {*
-bind_thm ("iterator_def2", fix_prover2 (the_context ()) (thm "iterator_def" RS eq_reflection)
-        "iterator = (LAM n f x. case n of dzero => x | dsucc$m => f$(iterator$m$f$x))");
-*}
+lemma iterator_def2:
+  "iterator = (LAM n f x. case n of dzero => x | dsucc$m => f$(iterator$m$f$x))"
+  apply (rule trans)
+  apply (rule fix_eq2)
+  apply (rule iterator_def [THEN eq_reflection])
+  apply (rule beta_cfun)
+  apply simp
+  done
 
-text {*
-  \medskip Recursive properties.
-*}
+text {* \medskip Recursive properties. *}
 
 lemma iterator1: "iterator $ UU $ f $ x = UU"
   apply (subst iterator_def2)

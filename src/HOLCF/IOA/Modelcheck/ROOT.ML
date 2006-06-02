@@ -5,9 +5,6 @@
 Modelchecker setup for I/O automata.
 *)
 
-goals_limit := 1;
-
-use "../../../HOL/Modelcheck/mucke_oracle.ML";
 with_path "../../../HOL/Modelcheck" time_use_thy "MuIOAOracle";
 
 (*examples*)

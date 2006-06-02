@@ -89,6 +89,32 @@ automaton Info_before_Al =
     "Ack a"
       post info_at_NONE:="True"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemmas aut_simps =
+  cockpit_def cockpit_asig_def cockpit_trans_def
+  cockpit_initial_def cockpit_hide_def
+  Al_before_Ack_def Al_before_Ack_asig_def
+  Al_before_Ack_initial_def Al_before_Ack_trans_def
+  Info_while_Al_def Info_while_Al_asig_def
+  Info_while_Al_initial_def Info_while_Al_trans_def
+  Info_before_Al_def Info_before_Al_asig_def
+  Info_before_Al_initial_def Info_before_Al_trans_def
+
+
+(* to prove, that info is always set at the recent alarm *)
+lemma cockpit_implements_Info_while_Al: "cockpit =<| Info_while_Al"
+apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+done
+
+(* to prove that before any alarm arrives (and after each acknowledgment),
+   info remains at None *)
+lemma cockpit_implements_Info_before_Al: "cockpit =<| Info_before_Al"
+apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+done
+
+(* to prove that before any alarm would be acknowledged, it must be arrived *)
+lemma cockpit_implements_Al_before_Ack: "cockpit_hide =<| Al_before_Ack"
+apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+apply auto
+done
 
 end

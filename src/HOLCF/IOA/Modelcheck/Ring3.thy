@@ -104,6 +104,18 @@ automaton one_leader =
       pre "leader=id2 | leader=Leader"
       post leader:="id2"
 
-ML {* use_legacy_bindings (the_context ()) *}
+lemmas aut_simps =
+  Greater_def one_leader_def
+  one_leader_asig_def one_leader_trans_def one_leader_initial_def
+  ring_def aut0_asig_def aut0_trans_def aut0_initial_def aut0_def
+  aut1_asig_def aut1_trans_def aut1_initial_def aut1_def
+  aut2_asig_def aut2_trans_def aut2_initial_def aut2_def
+
+(* property to prove: at most one (of 3) members of the ring will
+	declare itself to leader *)
+lemma at_most_one_leader: "ring =<| one_leader"
+apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+apply auto
+done
 
 end

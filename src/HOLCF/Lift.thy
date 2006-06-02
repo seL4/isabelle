@@ -185,13 +185,15 @@ lemmas cont_lemmas_ext [simp] =
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 
 ML {*
-val cont_lemmas2 = cont_lemmas1 @ thms "cont_lemmas_ext";
+local
+  val cont_lemmas2 = thms "cont_lemmas1" @ thms "cont_lemmas_ext";
+  val flift1_def = thm "flift1_def";
+in
 
 fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = REPEAT (cont_tac i);
 
-local val flift1_def = thm "flift1_def"
-in fun cont_tacRs ss i =
+fun cont_tacRs ss i =
   simp_tac ss i THEN
   REPEAT (cont_tac i)
 end;

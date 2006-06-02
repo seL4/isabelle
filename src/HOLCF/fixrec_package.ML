@@ -16,6 +16,10 @@ end;
 structure FixrecPackage: FIXREC_PACKAGE =
 struct
 
+val fix_eq2 = thm "fix_eq2";
+val def_fix_ind = thm "def_fix_ind";
+
+
 fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
 fun fixrec_eq_err thy s eq =
   fixrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term thy eq));

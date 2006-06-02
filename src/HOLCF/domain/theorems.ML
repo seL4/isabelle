@@ -12,6 +12,33 @@ structure Domain_Theorems = struct
 
 local
 
+val adm_impl_admw = thm "adm_impl_admw";
+val antisym_less_inverse = thm "antisym_less_inverse";
+val beta_cfun = thm "beta_cfun";
+val cfun_arg_cong = thm "cfun_arg_cong";
+val ch2ch_Rep_CFunL = thm "ch2ch_Rep_CFunL";
+val ch2ch_Rep_CFunR = thm "ch2ch_Rep_CFunR";
+val chain_iterate = thm "chain_iterate";
+val compact_ONE = thm "compact_ONE";
+val compact_sinl = thm "compact_sinl";
+val compact_sinr = thm "compact_sinr";
+val compact_spair = thm "compact_spair";
+val compact_up = thm "compact_up";
+val contlub_cfun_arg = thm "contlub_cfun_arg";
+val contlub_cfun_fun = thm "contlub_cfun_fun";
+val fix_def2 = thm "fix_def2";
+val injection_eq = thm "injection_eq";
+val injection_less = thm "injection_less";
+val lub_equal = thm "lub_equal";
+val monofun_cfun_arg = thm "monofun_cfun_arg";
+val retraction_strict = thm "retraction_strict";
+val spair_eq = thm "spair_eq";
+val spair_less = thm "spair_less";
+val sscase1 = thm "sscase1";
+val ssplit1 = thm "ssplit1";
+val strictify1 = thm "strictify1";
+val wfix_ind = thm "wfix_ind";
+
 open Domain_Library;
 infixr 0 ===>;
 infixr 0 ==>;
@@ -603,7 +630,7 @@ val n_eqs = length eqs;
 (* ----- theorems concerning finite approximation and finite induction ------ *)
 
 local
-  val iterate_Cprod_ss = simpset_of Fix.thy;
+  val iterate_Cprod_ss = simpset_of (theory "Fix");
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =
     (if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
