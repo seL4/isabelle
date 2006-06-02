@@ -26,8 +26,8 @@ CTT: Pure $(OUT)/CTT
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/CTT: $(OUT)/Pure $(SRC)/Provers/typedsimp.ML Arith.ML Arith.thy \
-  Bool.ML Bool.thy CTT.ML CTT.thy Main.thy ROOT.ML rew.ML
+$(OUT)/CTT: $(OUT)/Pure $(SRC)/Provers/typedsimp.ML Arith.thy \
+  Bool.thy CTT.thy Main.thy ROOT.ML rew.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure CTT
 
 
@@ -35,8 +35,8 @@ $(OUT)/CTT: $(OUT)/Pure $(SRC)/Provers/typedsimp.ML Arith.ML Arith.thy \
 
 CTT-ex: CTT $(LOG)/CTT-ex.gz
 
-$(LOG)/CTT-ex.gz: $(OUT)/CTT ex/ROOT.ML ex/elim.ML ex/equal.ML \
-  ex/synth.ML ex/typechk.ML
+$(LOG)/CTT-ex.gz: $(OUT)/CTT ex/ROOT.ML ex/Elimination.thy \
+  ex/Equality.thy ex/Synthesis.thy ex/Typechecking.thy
 	@$(ISATOOL) usedir $(OUT)/CTT ex
 
 

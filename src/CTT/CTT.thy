@@ -8,6 +8,7 @@ header {* Constructive Type Theory *}
 
 theory CTT
 imports Pure
+uses "~~/src/Provers/typedsimp.ML" ("rew.ML")
 begin
 
 typedecl i
@@ -57,36 +58,35 @@ consts
   pair      :: "[i,i]=>i"           ("(1<_,/_>)")
 
 syntax
-  "@PROD"   :: "[idt,t,t]=>t"       ("(3PROD _:_./ _)" 10)
-  "@SUM"    :: "[idt,t,t]=>t"       ("(3SUM _:_./ _)" 10)
-  "@-->"    :: "[t,t]=>t"           ("(_ -->/ _)" [31,30] 30)
-  "@*"      :: "[t,t]=>t"           ("(_ */ _)" [51,50] 50)
-
+  "_PROD"   :: "[idt,t,t]=>t"       ("(3PROD _:_./ _)" 10)
+  "_SUM"    :: "[idt,t,t]=>t"       ("(3SUM _:_./ _)" 10)
 translations
-  "PROD x:A. B" => "Prod(A, %x. B)"
-  "A --> B"     => "Prod(A, %_. B)"
-  "SUM x:A. B"  => "Sum(A, %x. B)"
-  "A * B"       => "Sum(A, %_. B)"
+  "PROD x:A. B" == "Prod(A, %x. B)"
+  "SUM x:A. B"  == "Sum(A, %x. B)"
 
-print_translation {*
-  [("Prod", dependent_tr' ("@PROD", "@-->")),
-   ("Sum", dependent_tr' ("@SUM", "@*"))]
-*}
+abbreviation
+  Arrow     :: "[t,t]=>t"           (infixr "-->" 30)
+  "A --> B == PROD _:A. B"
+  Times     :: "[t,t]=>t"           (infixr "*" 50)
+  "A * B == SUM _:A. B"
 
+const_syntax (xsymbols)
+  Elem  ("(_ /\<in> _)" [10,10] 5)
+  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
+  Arrow  (infixr "\<longrightarrow>" 30)
+  Times  (infixr "\<times>" 50)
+
+const_syntax (HTML output)
+  Elem  ("(_ /\<in> _)" [10,10] 5)
+  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
+  Times  (infixr "\<times>" 50)
 
 syntax (xsymbols)
-  "@-->"    :: "[t,t]=>t"           ("(_ \<longrightarrow>/ _)" [31,30] 30)
-  "@*"      :: "[t,t]=>t"           ("(_ \<times>/ _)"          [51,50] 50)
-  Elem      :: "[i, t]=>prop"       ("(_ /\<in> _)" [10,10] 5)
-  Eqelem    :: "[i,i,t]=>prop"      ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
   "@SUM"    :: "[idt,t,t] => t"     ("(3\<Sigma> _\<in>_./ _)" 10)
   "@PROD"   :: "[idt,t,t] => t"     ("(3\<Pi> _\<in>_./ _)"    10)
   "lam "    :: "[idts, i] => i"     ("(3\<lambda>\<lambda>_./ _)" 10)
 
 syntax (HTML output)
-  "@*"      :: "[t,t]=>t"           ("(_ \<times>/ _)"          [51,50] 50)
-  Elem      :: "[i, t]=>prop"       ("(_ /\<in> _)" [10,10] 5)
-  Eqelem    :: "[i,i,t]=>prop"      ("(2_ =/ _ \<in>/ _)" [10,10,10] 5)
   "@SUM"    :: "[idt,t,t] => t"     ("(3\<Sigma> _\<in>_./ _)" 10)
   "@PROD"   :: "[idt,t,t] => t"     ("(3\<Pi> _\<in>_./ _)"    10)
   "lam "    :: "[idts, i] => i"     ("(3\<lambda>\<lambda>_./ _)" 10)
@@ -273,6 +273,233 @@ axioms
   TEL: "[| p = q : T;  c = d : C(tt) |] ==> c = d : C(p)"
   TC: "p : T ==> p = tt : T"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+subsection "Tactics and derived rules for Constructive Type Theory"
+
+(*Formation rules*)
+lemmas form_rls = NF ProdF SumF PlusF EqF FF TF
+  and formL_rls = ProdFL SumFL PlusFL EqFL
+
+(*Introduction rules
+  OMITTED: EqI, because its premise is an eqelem, not an elem*)
+lemmas intr_rls = NI0 NI_succ ProdI SumI PlusI_inl PlusI_inr TI
+  and intrL_rls = NI_succL ProdIL SumIL PlusI_inlL PlusI_inrL
+
+(*Elimination rules
+  OMITTED: EqE, because its conclusion is an eqelem,  not an elem
+           TE, because it does not involve a constructor *)
+lemmas elim_rls = NE ProdE SumE PlusE FE
+  and elimL_rls = NEL ProdEL SumEL PlusEL FEL
+
+(*OMITTED: eqC are TC because they make rewriting loop: p = un = un = ... *)
+lemmas comp_rls = NC0 NC_succ ProdC SumC PlusC_inl PlusC_inr
+
+(*rules with conclusion a:A, an elem judgement*)
+lemmas element_rls = intr_rls elim_rls
+
+(*Definitions are (meta)equality axioms*)
+lemmas basic_defs = fst_def snd_def
+
+(*Compare with standard version: B is applied to UNSIMPLIFIED expression! *)
+lemma SumIL2: "[| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)"
+apply (rule sym_elem)
+apply (rule SumIL)
+apply (rule_tac [!] sym_elem)
+apply assumption+
+done
+
+lemmas intrL2_rls = NI_succL ProdIL SumIL2 PlusI_inlL PlusI_inrL
+
+(*Exploit p:Prod(A,B) to create the assumption z:B(a).
+  A more natural form of product elimination. *)
+lemma subst_prodE:
+  assumes "p: Prod(A,B)"
+    and "a: A"
+    and "!!z. z: B(a) ==> c(z): C(z)"
+  shows "c(p`a): C(p`a)"
+apply (rule prems ProdE)+
+done
+
+
+subsection {* Tactics for type checking *}
+
+ML {*
+
+local
+
+fun is_rigid_elem (Const("CTT.Elem",_) $ a $ _) = not(is_Var (head_of a))
+  | is_rigid_elem (Const("CTT.Eqelem",_) $ a $ _ $ _) = not(is_Var (head_of a))
+  | is_rigid_elem (Const("CTT.Type",_) $ a) = not(is_Var (head_of a))
+  | is_rigid_elem _ = false
+
+in
+
+(*Try solving a:A or a=b:A by assumption provided a is rigid!*)
+val test_assume_tac = SUBGOAL(fn (prem,i) =>
+    if is_rigid_elem (Logic.strip_assums_concl prem)
+    then  assume_tac i  else  no_tac)
+
+fun ASSUME tf i = test_assume_tac i  ORELSE  tf i
+
+end;
+
+*}
+
+(*For simplification: type formation and checking,
+  but no equalities between terms*)
+lemmas routine_rls = form_rls formL_rls refl_type element_rls
+
+ML {*
+local
+  val routine_rls = thms "routine_rls";
+  val form_rls = thms "form_rls";
+  val intr_rls = thms "intr_rls";
+  val element_rls = thms "element_rls";
+  val equal_rls = form_rls @ element_rls @ thms "intrL_rls" @
+    thms "elimL_rls" @ thms "refl_elem"
+in
+
+fun routine_tac rls prems = ASSUME (filt_resolve_tac (prems @ rls) 4);
+
+(*Solve all subgoals "A type" using formation rules. *)
+val form_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac(form_rls) 1));
+
+(*Type checking: solve a:A (a rigid, A flexible) by intro and elim rules. *)
+fun typechk_tac thms =
+  let val tac = filt_resolve_tac (thms @ form_rls @ element_rls) 3
+  in  REPEAT_FIRST (ASSUME tac)  end
+
+(*Solve a:A (a flexible, A rigid) by introduction rules.
+  Cannot use stringtrees (filt_resolve_tac) since
+  goals like ?a:SUM(A,B) have a trivial head-string *)
+fun intr_tac thms =
+  let val tac = filt_resolve_tac(thms@form_rls@intr_rls) 1
+  in  REPEAT_FIRST (ASSUME tac)  end
+
+(*Equality proving: solve a=b:A (where a is rigid) by long rules. *)
+fun equal_tac thms =
+  REPEAT_FIRST (ASSUME (filt_resolve_tac (thms @ equal_rls) 3))
+
+end
+
+*}
+
+
+subsection {* Simplification *}
+
+(*To simplify the type in a goal*)
+lemma replace_type: "[| B = A;  a : A |] ==> a : B"
+apply (rule equal_types)
+apply (rule_tac [2] sym_type)
+apply assumption+
+done
+
+(*Simplify the parameter of a unary type operator.*)
+lemma subst_eqtyparg:
+  assumes "a=c : A"
+    and "!!z. z:A ==> B(z) type"
+  shows "B(a)=B(c)"
+apply (rule subst_typeL)
+apply (rule_tac [2] refl_type)
+apply (rule prems)
+apply assumption
+done
+
+(*Simplification rules for Constructive Type Theory*)
+lemmas reduction_rls = comp_rls [THEN trans_elem]
+
+ML {*
+local
+  val EqI = thm "EqI";
+  val EqE = thm "EqE";
+  val NE = thm "NE";
+  val FE = thm "FE";
+  val ProdI = thm "ProdI";
+  val SumI = thm "SumI";
+  val SumE = thm "SumE";
+  val PlusE = thm "PlusE";
+  val PlusI_inl = thm "PlusI_inl";
+  val PlusI_inr = thm "PlusI_inr";
+  val subst_prodE = thm "subst_prodE";
+  val intr_rls = thms "intr_rls";
+in
+
+(*Converts each goal "e : Eq(A,a,b)" into "a=b:A" for simplification.
+  Uses other intro rules to avoid changing flexible goals.*)
+val eqintr_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac(EqI::intr_rls) 1))
+
+(** Tactics that instantiate CTT-rules.
+    Vars in the given terms will be incremented!
+    The (rtac EqE i) lets them apply to equality judgements. **)
+
+fun NE_tac (sp: string) i =
+  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] NE i
+
+fun SumE_tac (sp: string) i =
+  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] SumE i
+
+fun PlusE_tac (sp: string) i =
+  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] PlusE i
+
+(** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
+
+(*Finds f:Prod(A,B) and a:A in the assumptions, concludes there is z:B(a) *)
+fun add_mp_tac i =
+    rtac subst_prodE i  THEN  assume_tac i  THEN  assume_tac i
+
+(*Finds P-->Q and P in the assumptions, replaces implication by Q *)
+fun mp_tac i = etac subst_prodE i  THEN  assume_tac i
+
+(*"safe" when regarded as predicate calculus rules*)
+val safe_brls = sort (make_ord lessb)
+    [ (true,FE), (true,asm_rl),
+      (false,ProdI), (true,SumE), (true,PlusE) ]
+
+val unsafe_brls =
+    [ (false,PlusI_inl), (false,PlusI_inr), (false,SumI),
+      (true,subst_prodE) ]
+
+(*0 subgoals vs 1 or more*)
+val (safe0_brls, safep_brls) =
+    List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls
+
+fun safestep_tac thms i =
+    form_tac  ORELSE
+    resolve_tac thms i  ORELSE
+    biresolve_tac safe0_brls i  ORELSE  mp_tac i  ORELSE
+    DETERM (biresolve_tac safep_brls i)
+
+fun safe_tac thms i = DEPTH_SOLVE_1 (safestep_tac thms i)
+
+fun step_tac thms = safestep_tac thms  ORELSE'  biresolve_tac unsafe_brls
+
+(*Fails unless it solves the goal!*)
+fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms)
+
+end
+*}
+
+use "rew.ML"
+
+
+subsection {* The elimination rules for fst/snd *}
+
+lemma SumE_fst: "p : Sum(A,B) ==> fst(p) : A"
+apply (unfold basic_defs)
+apply (erule SumE)
+apply assumption
+done
+
+(*The first premise must be p:Sum(A,B) !!*)
+lemma SumE_snd:
+  assumes major: "p: Sum(A,B)"
+    and "A type"
+    and "!!x. x:A ==> B(x) type"
+  shows "snd(p) : B(fst(p))"
+  apply (unfold basic_defs)
+  apply (rule major [THEN SumE])
+  apply (rule SumC [THEN subst_eqtyparg, THEN replace_type])
+  apply (tactic {* typechk_tac (thms "prems") *})
+  done
 
 end
