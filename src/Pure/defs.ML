@@ -149,6 +149,8 @@ fun reduction pp defs const deps =
     val _ = forall (acyclic pp defs const) (the_default deps deps');
   in deps' end;
 
+in
+
 fun normalize pp =
   let
     fun norm_update (c, {reducts, ...}: def) (changed, defs) =
@@ -167,8 +169,6 @@ fun normalize pp =
     fun check defs (c, {reducts, ...}: def) =
       reducts |> forall (fn (args, deps) => forall (wellformed pp defs (c, args)) deps);
   in norm_all #> (fn defs => tap (Symtab.forall (check defs)) defs) end;
-
-in
 
 fun dependencies pp (c, args) restr deps =
   map_def c (fn (specs, restricts, reducts) =>
@@ -190,7 +190,10 @@ fun merge pp (Defs defs1, Defs defs2) =
       else dependencies pp (c, args) restr deps defs;
     fun add_def (c, {restricts, reducts, ...}: def) =
       fold (fn (args, deps) => add_deps (c, args) restricts deps) reducts;
-  in Defs (Symtab.join join_specs (defs1, defs2) |> Symtab.fold add_def defs2) end;
+  in
+    Defs (Symtab.join join_specs (defs1, defs2)
+      |> normalize pp |> Symtab.fold add_def defs2)
+  end;
 
 
 (* define *)
