@@ -429,36 +429,22 @@ apply (rule_tac [2] x = "- n" in exI, auto)
 done
 
 
-ML
-{*
-val real_sum_of_halves = thm "real_sum_of_halves";
-val posreal_complete = thm "posreal_complete";
-val real_isLub_unique = thm "real_isLub_unique";
-val posreals_complete = thm "posreals_complete";
-val reals_complete = thm "reals_complete";
-val reals_Archimedean = thm "reals_Archimedean";
-val reals_Archimedean2 = thm "reals_Archimedean2";
-val reals_Archimedean3 = thm "reals_Archimedean3";
-*}
-
-
 subsection{*Floor and Ceiling Functions from the Reals to the Integers*}
 
-constdefs
-
+definition
   floor :: "real => int"
-   "floor r == (LEAST n::int. r < real (n+1))"
+  "floor r = (LEAST n::int. r < real (n+1))"
 
   ceiling :: "real => int"
-    "ceiling r == - floor (- r)"
+  "ceiling r = - floor (- r)"
 
-syntax (xsymbols)
-  floor :: "real => int"     ("\<lfloor>_\<rfloor>")
-  ceiling :: "real => int"   ("\<lceil>_\<rceil>")
+const_syntax (xsymbols)
+  floor  ("\<lfloor>_\<rfloor>")
+  ceiling  ("\<lceil>_\<rceil>")
 
-syntax (HTML output)
-  floor :: "real => int"     ("\<lfloor>_\<rfloor>")
-  ceiling :: "real => int"   ("\<lceil>_\<rceil>")
+const_syntax (HTML output)
+  floor  ("\<lfloor>_\<rfloor>")
+  ceiling  ("\<lceil>_\<rceil>")
 
 
 lemma number_of_less_real_of_int_iff [simp]:
@@ -946,11 +932,11 @@ done
 
 subsection {* Versions for the natural numbers *}
 
-constdefs
+definition
   natfloor :: "real => nat"
-  "natfloor x == nat(floor x)"
+  "natfloor x = nat(floor x)"
   natceiling :: "real => nat"
-  "natceiling x == nat(ceiling x)"
+  "natceiling x = nat(ceiling x)"
 
 lemma natfloor_zero [simp]: "natfloor 0 = 0"
   by (unfold natfloor_def, simp)
@@ -1299,56 +1285,5 @@ proof -
   finally show ?thesis
     by simp
 qed
-
-ML
-{*
-val number_of_less_real_of_int_iff = thm "number_of_less_real_of_int_iff";
-val number_of_less_real_of_int_iff2 = thm "number_of_less_real_of_int_iff2";
-val number_of_le_real_of_int_iff = thm "number_of_le_real_of_int_iff";
-val number_of_le_real_of_int_iff2 = thm "number_of_le_real_of_int_iff2";
-val floor_zero = thm "floor_zero";
-val floor_real_of_nat_zero = thm "floor_real_of_nat_zero";
-val floor_real_of_nat = thm "floor_real_of_nat";
-val floor_minus_real_of_nat = thm "floor_minus_real_of_nat";
-val floor_real_of_int = thm "floor_real_of_int";
-val floor_minus_real_of_int = thm "floor_minus_real_of_int";
-val reals_Archimedean6 = thm "reals_Archimedean6";
-val reals_Archimedean6a = thm "reals_Archimedean6a";
-val reals_Archimedean_6b_int = thm "reals_Archimedean_6b_int";
-val reals_Archimedean_6c_int = thm "reals_Archimedean_6c_int";
-val real_lb_ub_int = thm "real_lb_ub_int";
-val lemma_floor = thm "lemma_floor";
-val real_of_int_floor_le = thm "real_of_int_floor_le";
-(*val floor_le = thm "floor_le";
-val floor_le2 = thm "floor_le2";
-*)
-val lemma_floor2 = thm "lemma_floor2";
-val real_of_int_floor_cancel = thm "real_of_int_floor_cancel";
-val floor_eq = thm "floor_eq";
-val floor_eq2 = thm "floor_eq2";
-val floor_eq3 = thm "floor_eq3";
-val floor_eq4 = thm "floor_eq4";
-val floor_number_of_eq = thm "floor_number_of_eq";
-val real_of_int_floor_ge_diff_one = thm "real_of_int_floor_ge_diff_one";
-val real_of_int_floor_add_one_ge = thm "real_of_int_floor_add_one_ge";
-val ceiling_zero = thm "ceiling_zero";
-val ceiling_real_of_nat = thm "ceiling_real_of_nat";
-val ceiling_real_of_nat_zero = thm "ceiling_real_of_nat_zero";
-val ceiling_floor = thm "ceiling_floor";
-val floor_ceiling = thm "floor_ceiling";
-val real_of_int_ceiling_ge = thm "real_of_int_ceiling_ge";
-(*
-val ceiling_le = thm "ceiling_le";
-val ceiling_le2 = thm "ceiling_le2";
-*)
-val real_of_int_ceiling_cancel = thm "real_of_int_ceiling_cancel";
-val ceiling_eq = thm "ceiling_eq";
-val ceiling_eq2 = thm "ceiling_eq2";
-val ceiling_eq3 = thm "ceiling_eq3";
-val ceiling_real_of_int = thm "ceiling_real_of_int";
-val ceiling_number_of_eq = thm "ceiling_number_of_eq";
-val real_of_int_ceiling_diff_one_le = thm "real_of_int_ceiling_diff_one_le";
-val real_of_int_ceiling_le_add_one = thm "real_of_int_ceiling_le_add_one";
-*}
 
 end

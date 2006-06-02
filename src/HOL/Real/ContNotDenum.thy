@@ -36,8 +36,9 @@ text {* This section formalises some properties of closed intervals. *}
 
 subsection {* Definition *}
 
-constdefs closed_int :: "real \<Rightarrow> real \<Rightarrow> real set"
-  "closed_int x y \<equiv> {z. x \<le> z \<and> z \<le> y}"
+definition
+  closed_int :: "real \<Rightarrow> real \<Rightarrow> real set"
+  "closed_int x y = {z. x \<le> z \<and> z \<le> y}"
 
 subsection {* Properties *}
 
@@ -48,9 +49,9 @@ proof -
   {
     fix x::real
     assume "x \<in> closed_int x1 y1"
-    hence "x \<ge> x1 \<and> x \<le> y1" by (unfold closed_int_def, simp)
+    hence "x \<ge> x1 \<and> x \<le> y1" by (simp add: closed_int_def)
     with xy have "x \<ge> x0 \<and> x \<le> y0" by auto
-    hence "x \<in> closed_int x0 y0" by (unfold closed_int_def, simp)
+    hence "x \<in> closed_int x0 y0" by (simp add: closed_int_def)
   }
   thus ?thesis by auto
 qed

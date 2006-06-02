@@ -14,12 +14,12 @@ subsection {* Rational numbers *}
 
 subsubsection {* Equivalence of fractions *}
 
-constdefs
+definition
   fraction :: "(int \<times> int) set"
-   "fraction \<equiv> {x. snd x \<noteq> 0}"
+  "fraction = {x. snd x \<noteq> 0}"
 
   ratrel :: "((int \<times> int) \<times> (int \<times> int)) set"
-   "ratrel \<equiv> {(x,y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
+  "ratrel = {(x,y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
 
 lemma fraction_iff [simp]: "(x \<in> fraction) = (snd x \<noteq> 0)"
 by (simp add: fraction_def)
@@ -78,9 +78,9 @@ by (simp add: Rat_def quotientI)
 declare Abs_Rat_inject [simp]  Abs_Rat_inverse [simp]
 
 
-constdefs
+definition
   Fract :: "int \<Rightarrow> int \<Rightarrow> rat"
-  "Fract a b \<equiv> Abs_Rat (ratrel``{(a,b)})"
+  "Fract a b = Abs_Rat (ratrel``{(a,b)})"
 
 theorem Rat_cases [case_names Fract, cases type: rat]:
   "(!!a b. q = Fract a b ==> b \<noteq> 0 ==> C) ==> C"
@@ -455,12 +455,9 @@ defs (overloaded)
     --{*the type constraint is essential!*}
 
 instance rat :: number_ring
-by (intro_classes, simp add: rat_number_of_def) 
-
-declare diff_rat_def [symmetric]
+  by default (simp add: rat_number_of_def) 
 
 use "rat_arith.ML"
-
 setup rat_arith_setup
 
 end

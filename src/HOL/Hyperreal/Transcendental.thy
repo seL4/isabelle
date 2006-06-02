@@ -11,44 +11,44 @@ theory Transcendental
 imports NthRoot Fact HSeries EvenOdd Lim
 begin
 
-constdefs
-    root :: "[nat,real] => real"
-    "root n x == (@u. ((0::real) < x --> 0 < u) & (u ^ n = x))"
+definition
+  root :: "[nat,real] => real"
+  "root n x = (SOME u. ((0::real) < x --> 0 < u) & (u ^ n = x))"
 
-    sqrt :: "real => real"
-    "sqrt x == root 2 x"
+  sqrt :: "real => real"
+  "sqrt x = root 2 x"
 
-    exp :: "real => real"
-    "exp x == \<Sum>n. inverse(real (fact n)) * (x ^ n)"
+  exp :: "real => real"
+  "exp x = (\<Sum>n. inverse(real (fact n)) * (x ^ n))"
 
-    sin :: "real => real"
-    "sin x == \<Sum>n. (if even(n) then 0 else
-             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n"
+  sin :: "real => real"
+  "sin x = (\<Sum>n. (if even(n) then 0 else
+             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
  
-    diffs :: "(nat => real) => nat => real"
-    "diffs c == (%n. real (Suc n) * c(Suc n))"
+  diffs :: "(nat => real) => nat => real"
+  "diffs c = (%n. real (Suc n) * c(Suc n))"
 
-    cos :: "real => real"
-    "cos x == \<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
-                          else 0) * x ^ n"
+  cos :: "real => real"
+  "cos x = (\<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
+                            else 0) * x ^ n)"
   
-    ln :: "real => real"
-    "ln x == (@u. exp u = x)"
+  ln :: "real => real"
+  "ln x = (SOME u. exp u = x)"
 
-    pi :: "real"
-    "pi == 2 * (@x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
+  pi :: "real"
+  "pi = 2 * (@x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
 
-    tan :: "real => real"
-    "tan x == (sin x)/(cos x)"
+  tan :: "real => real"
+  "tan x = (sin x)/(cos x)"
 
-    arcsin :: "real => real"
-    "arcsin y == (@x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
+  arcsin :: "real => real"
+  "arcsin y = (SOME x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
 
-    arcos :: "real => real"
-    "arcos y == (@x. 0 \<le> x & x \<le> pi & cos x = y)"
+  arcos :: "real => real"
+  "arcos y = (SOME x. 0 \<le> x & x \<le> pi & cos x = y)"
      
-    arctan :: "real => real"
-    "arctan y == (@x. -(pi/2) < x & x < pi/2 & tan x = y)"
+  arctan :: "real => real"
+  "arctan y = (SOME x. -(pi/2) < x & x < pi/2 & tan x = y)"
 
 
 lemma real_root_zero [simp]: "root (Suc n) 0 = 0"
@@ -2578,298 +2578,5 @@ apply (drule LIM_fun_less_zero)
 apply (drule_tac [3] LIM_fun_gt_zero)
 apply force+
 done
-
-ML
-{*
-val inverse_unique = thm "inverse_unique";
-val real_root_zero = thm "real_root_zero";
-val real_root_pow_pos = thm "real_root_pow_pos";
-val real_root_pow_pos2 = thm "real_root_pow_pos2";
-val real_root_pos = thm "real_root_pos";
-val real_root_pos2 = thm "real_root_pos2";
-val real_root_pos_pos = thm "real_root_pos_pos";
-val real_root_pos_pos_le = thm "real_root_pos_pos_le";
-val real_root_one = thm "real_root_one";
-val root_2_eq = thm "root_2_eq";
-val real_sqrt_zero = thm "real_sqrt_zero";
-val real_sqrt_one = thm "real_sqrt_one";
-val real_sqrt_pow2_iff = thm "real_sqrt_pow2_iff";
-val real_sqrt_pow2 = thm "real_sqrt_pow2";
-val real_sqrt_abs_abs = thm "real_sqrt_abs_abs";
-val real_pow_sqrt_eq_sqrt_pow = thm "real_pow_sqrt_eq_sqrt_pow";
-val real_pow_sqrt_eq_sqrt_abs_pow2 = thm "real_pow_sqrt_eq_sqrt_abs_pow2";
-val real_sqrt_pow_abs = thm "real_sqrt_pow_abs";
-val not_real_square_gt_zero = thm "not_real_square_gt_zero";
-val real_sqrt_gt_zero = thm "real_sqrt_gt_zero";
-val real_sqrt_ge_zero = thm "real_sqrt_ge_zero";
-val sqrt_eqI = thm "sqrt_eqI";
-val real_sqrt_mult_distrib = thm "real_sqrt_mult_distrib";
-val real_sqrt_mult_distrib2 = thm "real_sqrt_mult_distrib2";
-val real_sqrt_sum_squares_ge_zero = thm "real_sqrt_sum_squares_ge_zero";
-val real_sqrt_sum_squares_mult_ge_zero = thm "real_sqrt_sum_squares_mult_ge_zero";
-val real_sqrt_sum_squares_mult_squared_eq = thm "real_sqrt_sum_squares_mult_squared_eq";
-val real_sqrt_abs = thm "real_sqrt_abs";
-val real_sqrt_abs2 = thm "real_sqrt_abs2";
-val real_sqrt_pow2_gt_zero = thm "real_sqrt_pow2_gt_zero";
-val real_sqrt_not_eq_zero = thm "real_sqrt_not_eq_zero";
-val real_inv_sqrt_pow2 = thm "real_inv_sqrt_pow2";
-val real_sqrt_eq_zero_cancel = thm "real_sqrt_eq_zero_cancel";
-val real_sqrt_eq_zero_cancel_iff = thm "real_sqrt_eq_zero_cancel_iff";
-val real_sqrt_sum_squares_ge1 = thm "real_sqrt_sum_squares_ge1";
-val real_sqrt_sum_squares_ge2 = thm "real_sqrt_sum_squares_ge2";
-val real_sqrt_ge_one = thm "real_sqrt_ge_one";
-val summable_exp = thm "summable_exp";
-val summable_sin = thm "summable_sin";
-val summable_cos = thm "summable_cos";
-val exp_converges = thm "exp_converges";
-val sin_converges = thm "sin_converges";
-val cos_converges = thm "cos_converges";
-val powser_insidea = thm "powser_insidea";
-val powser_inside = thm "powser_inside";
-val diffs_minus = thm "diffs_minus";
-val diffs_equiv = thm "diffs_equiv";
-val less_add_one = thm "less_add_one";
-val termdiffs_aux = thm "termdiffs_aux";
-val termdiffs = thm "termdiffs";
-val exp_fdiffs = thm "exp_fdiffs";
-val sin_fdiffs = thm "sin_fdiffs";
-val sin_fdiffs2 = thm "sin_fdiffs2";
-val cos_fdiffs = thm "cos_fdiffs";
-val cos_fdiffs2 = thm "cos_fdiffs2";
-val DERIV_exp = thm "DERIV_exp";
-val DERIV_sin = thm "DERIV_sin";
-val DERIV_cos = thm "DERIV_cos";
-val exp_zero = thm "exp_zero";
-(* val exp_ge_add_one_self = thm "exp_ge_add_one_self"; *)
-val exp_gt_one = thm "exp_gt_one";
-val DERIV_exp_add_const = thm "DERIV_exp_add_const";
-val DERIV_exp_minus = thm "DERIV_exp_minus";
-val DERIV_exp_exp_zero = thm "DERIV_exp_exp_zero";
-val exp_add_mult_minus = thm "exp_add_mult_minus";
-val exp_mult_minus = thm "exp_mult_minus";
-val exp_mult_minus2 = thm "exp_mult_minus2";
-val exp_minus = thm "exp_minus";
-val exp_add = thm "exp_add";
-val exp_ge_zero = thm "exp_ge_zero";
-val exp_not_eq_zero = thm "exp_not_eq_zero";
-val exp_gt_zero = thm "exp_gt_zero";
-val inv_exp_gt_zero = thm "inv_exp_gt_zero";
-val abs_exp_cancel = thm "abs_exp_cancel";
-val exp_real_of_nat_mult = thm "exp_real_of_nat_mult";
-val exp_diff = thm "exp_diff";
-val exp_less_mono = thm "exp_less_mono";
-val exp_less_cancel = thm "exp_less_cancel";
-val exp_less_cancel_iff = thm "exp_less_cancel_iff";
-val exp_le_cancel_iff = thm "exp_le_cancel_iff";
-val exp_inj_iff = thm "exp_inj_iff";
-val exp_total = thm "exp_total";
-val ln_exp = thm "ln_exp";
-val exp_ln_iff = thm "exp_ln_iff";
-val ln_mult = thm "ln_mult";
-val ln_inj_iff = thm "ln_inj_iff";
-val ln_one = thm "ln_one";
-val ln_inverse = thm "ln_inverse";
-val ln_div = thm "ln_div";
-val ln_less_cancel_iff = thm "ln_less_cancel_iff";
-val ln_le_cancel_iff = thm "ln_le_cancel_iff";
-val ln_realpow = thm "ln_realpow";
-val ln_add_one_self_le_self = thm "ln_add_one_self_le_self";
-val ln_less_self = thm "ln_less_self";
-val ln_ge_zero = thm "ln_ge_zero";
-val ln_gt_zero = thm "ln_gt_zero";
-val ln_less_zero = thm "ln_less_zero";
-val exp_ln_eq = thm "exp_ln_eq";
-val sin_zero = thm "sin_zero";
-val cos_zero = thm "cos_zero";
-val DERIV_sin_sin_mult = thm "DERIV_sin_sin_mult";
-val DERIV_sin_sin_mult2 = thm "DERIV_sin_sin_mult2";
-val DERIV_sin_realpow2 = thm "DERIV_sin_realpow2";
-val DERIV_sin_realpow2a = thm "DERIV_sin_realpow2a";
-val DERIV_cos_cos_mult = thm "DERIV_cos_cos_mult";
-val DERIV_cos_cos_mult2 = thm "DERIV_cos_cos_mult2";
-val DERIV_cos_realpow2 = thm "DERIV_cos_realpow2";
-val DERIV_cos_realpow2a = thm "DERIV_cos_realpow2a";
-val DERIV_cos_realpow2b = thm "DERIV_cos_realpow2b";
-val DERIV_cos_cos_mult3 = thm "DERIV_cos_cos_mult3";
-val DERIV_sin_circle_all = thm "DERIV_sin_circle_all";
-val DERIV_sin_circle_all_zero = thm "DERIV_sin_circle_all_zero";
-val sin_cos_squared_add = thm "sin_cos_squared_add";
-val sin_cos_squared_add2 = thm "sin_cos_squared_add2";
-val sin_cos_squared_add3 = thm "sin_cos_squared_add3";
-val sin_squared_eq = thm "sin_squared_eq";
-val cos_squared_eq = thm "cos_squared_eq";
-val real_gt_one_ge_zero_add_less = thm "real_gt_one_ge_zero_add_less";
-val abs_sin_le_one = thm "abs_sin_le_one";
-val sin_ge_minus_one = thm "sin_ge_minus_one";
-val sin_le_one = thm "sin_le_one";
-val abs_cos_le_one = thm "abs_cos_le_one";
-val cos_ge_minus_one = thm "cos_ge_minus_one";
-val cos_le_one = thm "cos_le_one";
-val DERIV_fun_pow = thm "DERIV_fun_pow";
-val DERIV_fun_exp = thm "DERIV_fun_exp";
-val DERIV_fun_sin = thm "DERIV_fun_sin";
-val DERIV_fun_cos = thm "DERIV_fun_cos";
-val DERIV_intros = thms "DERIV_intros";
-val sin_cos_add = thm "sin_cos_add";
-val sin_add = thm "sin_add";
-val cos_add = thm "cos_add";
-val sin_cos_minus = thm "sin_cos_minus";
-val sin_minus = thm "sin_minus";
-val cos_minus = thm "cos_minus";
-val sin_diff = thm "sin_diff";
-val sin_diff2 = thm "sin_diff2";
-val cos_diff = thm "cos_diff";
-val cos_diff2 = thm "cos_diff2";
-val sin_double = thm "sin_double";
-val cos_double = thm "cos_double";
-val sin_paired = thm "sin_paired";
-val sin_gt_zero = thm "sin_gt_zero";
-val sin_gt_zero1 = thm "sin_gt_zero1";
-val cos_double_less_one = thm "cos_double_less_one";
-val cos_paired = thm "cos_paired";
-val cos_two_less_zero = thm "cos_two_less_zero";
-val cos_is_zero = thm "cos_is_zero";
-val pi_half = thm "pi_half";
-val cos_pi_half = thm "cos_pi_half";
-val pi_half_gt_zero = thm "pi_half_gt_zero";
-val pi_half_less_two = thm "pi_half_less_two";
-val pi_gt_zero = thm "pi_gt_zero";
-val pi_neq_zero = thm "pi_neq_zero";
-val pi_not_less_zero = thm "pi_not_less_zero";
-val pi_ge_zero = thm "pi_ge_zero";
-val minus_pi_half_less_zero = thm "minus_pi_half_less_zero";
-val sin_pi_half = thm "sin_pi_half";
-val cos_pi = thm "cos_pi";
-val sin_pi = thm "sin_pi";
-val sin_cos_eq = thm "sin_cos_eq";
-val minus_sin_cos_eq = thm "minus_sin_cos_eq";
-val cos_sin_eq = thm "cos_sin_eq";
-val sin_periodic_pi = thm "sin_periodic_pi";
-val sin_periodic_pi2 = thm "sin_periodic_pi2";
-val cos_periodic_pi = thm "cos_periodic_pi";
-val sin_periodic = thm "sin_periodic";
-val cos_periodic = thm "cos_periodic";
-val cos_npi = thm "cos_npi";
-val sin_npi = thm "sin_npi";
-val sin_npi2 = thm "sin_npi2";
-val cos_two_pi = thm "cos_two_pi";
-val sin_two_pi = thm "sin_two_pi";
-val sin_gt_zero2 = thm "sin_gt_zero2";
-val sin_less_zero = thm "sin_less_zero";
-val pi_less_4 = thm "pi_less_4";
-val cos_gt_zero = thm "cos_gt_zero";
-val cos_gt_zero_pi = thm "cos_gt_zero_pi";
-val cos_ge_zero = thm "cos_ge_zero";
-val sin_gt_zero_pi = thm "sin_gt_zero_pi";
-val sin_ge_zero = thm "sin_ge_zero";
-val cos_total = thm "cos_total";
-val sin_total = thm "sin_total";
-val reals_Archimedean4 = thm "reals_Archimedean4";
-val cos_zero_lemma = thm "cos_zero_lemma";
-val sin_zero_lemma = thm "sin_zero_lemma";
-val cos_zero_iff = thm "cos_zero_iff";
-val sin_zero_iff = thm "sin_zero_iff";
-val tan_zero = thm "tan_zero";
-val tan_pi = thm "tan_pi";
-val tan_npi = thm "tan_npi";
-val tan_minus = thm "tan_minus";
-val tan_periodic = thm "tan_periodic";
-val add_tan_eq = thm "add_tan_eq";
-val tan_add = thm "tan_add";
-val tan_double = thm "tan_double";
-val tan_gt_zero = thm "tan_gt_zero";
-val tan_less_zero = thm "tan_less_zero";
-val DERIV_tan = thm "DERIV_tan";
-val LIM_cos_div_sin = thm "LIM_cos_div_sin";
-val tan_total_pos = thm "tan_total_pos";
-val tan_total = thm "tan_total";
-val arcsin_pi = thm "arcsin_pi";
-val arcsin = thm "arcsin";
-val sin_arcsin = thm "sin_arcsin";
-val arcsin_bounded = thm "arcsin_bounded";
-val arcsin_lbound = thm "arcsin_lbound";
-val arcsin_ubound = thm "arcsin_ubound";
-val arcsin_lt_bounded = thm "arcsin_lt_bounded";
-val arcsin_sin = thm "arcsin_sin";
-val arcos = thm "arcos";
-val cos_arcos = thm "cos_arcos";
-val arcos_bounded = thm "arcos_bounded";
-val arcos_lbound = thm "arcos_lbound";
-val arcos_ubound = thm "arcos_ubound";
-val arcos_lt_bounded = thm "arcos_lt_bounded";
-val arcos_cos = thm "arcos_cos";
-val arcos_cos2 = thm "arcos_cos2";
-val arctan = thm "arctan";
-val tan_arctan = thm "tan_arctan";
-val arctan_bounded = thm "arctan_bounded";
-val arctan_lbound = thm "arctan_lbound";
-val arctan_ubound = thm "arctan_ubound";
-val arctan_tan = thm "arctan_tan";
-val arctan_zero_zero = thm "arctan_zero_zero";
-val cos_arctan_not_zero = thm "cos_arctan_not_zero";
-val tan_sec = thm "tan_sec";
-val DERIV_sin_add = thm "DERIV_sin_add";
-val cos_2npi = thm "cos_2npi";
-val cos_3over2_pi = thm "cos_3over2_pi";
-val sin_2npi = thm "sin_2npi";
-val sin_3over2_pi = thm "sin_3over2_pi";
-val cos_pi_eq_zero = thm "cos_pi_eq_zero";
-val DERIV_cos_add = thm "DERIV_cos_add";
-val isCont_cos = thm "isCont_cos";
-val isCont_sin = thm "isCont_sin";
-val isCont_exp = thm "isCont_exp";
-val sin_zero_abs_cos_one = thm "sin_zero_abs_cos_one";
-val exp_eq_one_iff = thm "exp_eq_one_iff";
-val cos_one_sin_zero = thm "cos_one_sin_zero";
-val real_root_less_mono = thm "real_root_less_mono";
-val real_root_le_mono = thm "real_root_le_mono";
-val real_root_less_iff = thm "real_root_less_iff";
-val real_root_le_iff = thm "real_root_le_iff";
-val real_root_eq_iff = thm "real_root_eq_iff";
-val real_root_pos_unique = thm "real_root_pos_unique";
-val real_root_mult = thm "real_root_mult";
-val real_root_inverse = thm "real_root_inverse";
-val real_root_divide = thm "real_root_divide";
-val real_sqrt_less_mono = thm "real_sqrt_less_mono";
-val real_sqrt_le_mono = thm "real_sqrt_le_mono";
-val real_sqrt_less_iff = thm "real_sqrt_less_iff";
-val real_sqrt_le_iff = thm "real_sqrt_le_iff";
-val real_sqrt_eq_iff = thm "real_sqrt_eq_iff";
-val real_sqrt_sos_less_one_iff = thm "real_sqrt_sos_less_one_iff";
-val real_sqrt_sos_eq_one_iff = thm "real_sqrt_sos_eq_one_iff";
-val real_divide_square_eq = thm "real_divide_square_eq";
-val real_sqrt_sum_squares_gt_zero1 = thm "real_sqrt_sum_squares_gt_zero1";
-val real_sqrt_sum_squares_gt_zero2 = thm "real_sqrt_sum_squares_gt_zero2";
-val real_sqrt_sum_squares_gt_zero3 = thm "real_sqrt_sum_squares_gt_zero3";
-val real_sqrt_sum_squares_gt_zero3a = thm "real_sqrt_sum_squares_gt_zero3a";
-val cos_x_y_ge_minus_one = thm "cos_x_y_ge_minus_one";
-val cos_x_y_ge_minus_one1a = thm "cos_x_y_ge_minus_one1a";
-val cos_x_y_le_one = thm "cos_x_y_le_one";
-val cos_x_y_le_one2 = thm "cos_x_y_le_one2";
-val cos_abs_x_y_ge_minus_one = thm "cos_abs_x_y_ge_minus_one";
-val cos_abs_x_y_le_one = thm "cos_abs_x_y_le_one";
-val minus_pi_less_zero = thm "minus_pi_less_zero";
-val arcos_ge_minus_pi = thm "arcos_ge_minus_pi";
-val sin_x_y_disj = thm "sin_x_y_disj";
-val cos_x_y_disj = thm "cos_x_y_disj";
-val real_sqrt_divide_less_zero = thm "real_sqrt_divide_less_zero";
-val polar_ex1 = thm "polar_ex1";
-val polar_ex2 = thm "polar_ex2";
-val polar_Ex = thm "polar_Ex";
-val real_sqrt_ge_abs1 = thm "real_sqrt_ge_abs1";
-val real_sqrt_ge_abs2 = thm "real_sqrt_ge_abs2";
-val real_sqrt_two_gt_zero = thm "real_sqrt_two_gt_zero";
-val real_sqrt_two_ge_zero = thm "real_sqrt_two_ge_zero";
-val real_sqrt_two_gt_one = thm "real_sqrt_two_gt_one";
-val STAR_exp_ln = thm "STAR_exp_ln";
-val hypreal_add_Infinitesimal_gt_zero = thm "hypreal_add_Infinitesimal_gt_zero";
-val NSDERIV_exp_ln_one = thm "NSDERIV_exp_ln_one";
-val DERIV_exp_ln_one = thm "DERIV_exp_ln_one";
-val isCont_inv_fun = thm "isCont_inv_fun";
-val isCont_inv_fun_inv = thm "isCont_inv_fun_inv";
-val LIM_fun_gt_zero = thm "LIM_fun_gt_zero";
-val LIM_fun_less_zero = thm "LIM_fun_less_zero";
-val LIM_fun_not_zero = thm "LIM_fun_not_zero";
-*}
   
 end 

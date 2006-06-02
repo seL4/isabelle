@@ -18,21 +18,20 @@ abbreviation
   hypreal_of_real :: "real => real star"
   "hypreal_of_real == star_of"
 
-constdefs
-
+definition
   omega   :: hypreal   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
-  "omega == star_n (%n. real (Suc n))"
+  "omega = star_n (%n. real (Suc n))"
 
   epsilon :: hypreal   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
-  "epsilon == star_n (%n. inverse (real (Suc n)))"
+  "epsilon = star_n (%n. inverse (real (Suc n)))"
 
-syntax (xsymbols)
-  omega   :: hypreal   ("\<omega>")
-  epsilon :: hypreal   ("\<epsilon>")
+const_syntax (xsymbols)
+  omega  ("\<omega>")
+  epsilon  ("\<epsilon>")
 
-syntax (HTML output)
-  omega   :: hypreal   ("\<omega>")
-  epsilon :: hypreal   ("\<epsilon>")
+const_syntax (HTML output)
+  omega  ("\<omega>")
+  epsilon  ("\<epsilon>")
 
 
 subsection{*Existence of Free Ultrafilter over the Naturals*}
@@ -301,61 +300,5 @@ by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff
 
 lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
 by (simp add: epsilon_def omega_def star_n_inverse)
-
-
-ML
-{*
-val omega_def = thm "omega_def";
-val epsilon_def = thm "epsilon_def";
-
-val FreeUltrafilterNat_Ex = thm "FreeUltrafilterNat_Ex";
-val FreeUltrafilterNat_mem = thm "FreeUltrafilterNat_mem";
-val FreeUltrafilterNat_finite = thm "FreeUltrafilterNat_finite";
-val FreeUltrafilterNat_not_finite = thm "FreeUltrafilterNat_not_finite";
-val FreeUltrafilterNat_empty = thm "FreeUltrafilterNat_empty";
-val FreeUltrafilterNat_Int = thm "FreeUltrafilterNat_Int";
-val FreeUltrafilterNat_subset = thm "FreeUltrafilterNat_subset";
-val FreeUltrafilterNat_Compl = thm "FreeUltrafilterNat_Compl";
-val FreeUltrafilterNat_Compl_mem = thm "FreeUltrafilterNat_Compl_mem";
-val FreeUltrafilterNat_Compl_iff1 = thm "FreeUltrafilterNat_Compl_iff1";
-val FreeUltrafilterNat_Compl_iff2 = thm "FreeUltrafilterNat_Compl_iff2";
-val FreeUltrafilterNat_UNIV = thm "FreeUltrafilterNat_UNIV";
-val FreeUltrafilterNat_Nat_set_refl = thm "FreeUltrafilterNat_Nat_set_refl";
-val FreeUltrafilterNat_P = thm "FreeUltrafilterNat_P";
-val FreeUltrafilterNat_Ex_P = thm "FreeUltrafilterNat_Ex_P";
-val FreeUltrafilterNat_all = thm "FreeUltrafilterNat_all";
-val FreeUltrafilterNat_Un = thm "FreeUltrafilterNat_Un";
-val starrel_iff = thm "starrel_iff";
-val starrel_in_hypreal = thm "starrel_in_hypreal";
-val Abs_star_inverse = thm "Abs_star_inverse";
-val lemma_starrel_refl = thm "lemma_starrel_refl";
-val hypreal_empty_not_mem = thm "hypreal_empty_not_mem";
-val Rep_hypreal_nonempty = thm "Rep_hypreal_nonempty";
-val inj_hypreal_of_real = thm "inj_hypreal_of_real";
-(* val eq_Abs_star = thm "eq_Abs_star"; *)
-val star_n_minus = thm "star_n_minus";
-val star_n_add = thm "star_n_add";
-val star_n_diff = thm "star_n_diff";
-val star_n_mult = thm "star_n_mult";
-val star_n_inverse = thm "star_n_inverse";
-val hypreal_mult_left_cancel = thm "hypreal_mult_left_cancel";
-val hypreal_mult_right_cancel = thm "hypreal_mult_right_cancel";
-val hypreal_not_refl2 = thm "hypreal_not_refl2";
-val star_n_less = thm "star_n_less";
-val hypreal_eq_minus_iff = thm "hypreal_eq_minus_iff";
-val star_n_le = thm "star_n_le";
-val star_n_zero_num = thm "star_n_zero_num";
-val star_n_one_num = thm "star_n_one_num";
-val hypreal_omega_gt_zero = thm "hypreal_omega_gt_zero";
-
-val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
-val lemma_finite_omega_set = thm"lemma_finite_omega_set";
-val not_ex_hypreal_of_real_eq_omega = thm"not_ex_hypreal_of_real_eq_omega";
-val hypreal_of_real_not_eq_omega = thm"hypreal_of_real_not_eq_omega";
-val not_ex_hypreal_of_real_eq_epsilon = thm"not_ex_hypreal_of_real_eq_epsilon";
-val hypreal_of_real_not_eq_epsilon = thm"hypreal_of_real_not_eq_epsilon";
-val hypreal_epsilon_not_zero = thm"hypreal_epsilon_not_zero";
-val hypreal_epsilon_inverse_omega = thm"hypreal_epsilon_inverse_omega";
-*}
 
 end

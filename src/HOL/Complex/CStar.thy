@@ -36,10 +36,6 @@ lemma starfun_capprox:
     "( *f* f) (hcomplex_of_complex a) @c= hcomplex_of_complex (f a)"
 by auto
 
-(*
-Goal "( *fNat* (%n. z ^ n)) N = (hcomplex_of_complex z) hcpow N"
-*)
-
 lemma starfunC_hcpow: "( *f* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
 apply (cases Z)
 apply (simp add: hcpow starfun hypnat_of_nat_eq)
@@ -92,22 +88,5 @@ done
 lemma starfunC_Idfun_capprox:
     "x @c= hcomplex_of_complex a ==> ( *f* (%x. x)) x @c= hcomplex_of_complex  a"
 by simp
-
-ML
-{*
-val STARC_SComplex_subset = thm "STARC_SComplex_subset";
-val STARC_hcomplex_of_complex_Int = thm "STARC_hcomplex_of_complex_Int";
-val lemma_not_hcomplexA = thm "lemma_not_hcomplexA";
-val starfun_capprox = thm "starfun_capprox";
-val starfunC_hcpow = thm "starfunC_hcpow";
-val starfun_mult_CFinite_capprox = thm "starfun_mult_CFinite_capprox";
-val starfun_add_capprox = thm "starfun_add_capprox";
-val starfunCR_cmod = thm "starfunCR_cmod";
-val starfun_inverse_inverse = thm "starfun_inverse_inverse";
-val starfun_n_diff = thm "starfun_n_diff";
-val starfunC_eq_Re_Im_iff = thm "starfunC_eq_Re_Im_iff";
-val starfunC_approx_Re_Im_iff = thm "starfunC_approx_Re_Im_iff";
-val starfunC_Idfun_capprox = thm "starfunC_Idfun_capprox";
-*}
 
 end

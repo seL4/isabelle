@@ -15,18 +15,18 @@ primrec
    sumc_Suc: "sumc m (Suc n) f = (if n < m then 0 else sumc m n f + f(n))"
 
 (*  
-constdefs
+definition
 
    needs convergence of complex sequences  
 
   csums  :: [nat=>complex,complex] => bool     (infixr 80)
-   "f sums s  == (%n. sumr 0 n f) ----C> s"
+   "f sums s  = (%n. sumr 0 n f) ----C> s"
   
    csummable :: (nat=>complex) => bool
-   "csummable f == (EX s. f csums s)"
+   "csummable f = (EX s. f csums s)"
 
    csuminf   :: (nat=>complex) => complex
-   "csuminf f == (@s. f csums s)"
+   "csuminf f = (@s. f csums s)"
 *)
 
 lemma sumc_Suc_zero [simp]: "sumc (Suc n) n f = 0"
@@ -172,35 +172,6 @@ apply (subgoal_tac "k = 0 | 0 < k", auto)
 apply (induct "n")
 apply (auto simp add: sumc_split_add add_commute)
 done
-
-ML
-{*
-val sumc_Suc_zero = thm "sumc_Suc_zero";
-val sumc_eq_bounds = thm "sumc_eq_bounds";
-val sumc_Suc_eq = thm "sumc_Suc_eq";
-val sumc_add_lbound_zero = thm "sumc_add_lbound_zero";
-val sumc_add = thm "sumc_add";
-val sumc_mult = thm "sumc_mult";
-val sumc_split_add = thm "sumc_split_add";
-val sumc_split_add_minus = thm "sumc_split_add_minus";
-val sumc_cmod = thm "sumc_cmod";
-val sumc_fun_eq = thm "sumc_fun_eq";
-val sumc_const = thm "sumc_const";
-val sumc_add_mult_const = thm "sumc_add_mult_const";
-val sumc_diff_mult_const = thm "sumc_diff_mult_const";
-val sumc_less_bounds_zero = thm "sumc_less_bounds_zero";
-val sumc_minus = thm "sumc_minus";
-val sumc_shift_bounds = thm "sumc_shift_bounds";
-val sumc_minus_one_complexpow_zero = thm "sumc_minus_one_complexpow_zero";
-val sumc_interval_const = thm "sumc_interval_const";
-val sumc_interval_const2 = thm "sumc_interval_const2";
-val sumr_cmod_ge_zero = thm "sumr_cmod_ge_zero";
-val rabs_sumc_cmod_cancel = thm "rabs_sumc_cmod_cancel";
-val sumc_one_lb_complexpow_zero = thm "sumc_one_lb_complexpow_zero";
-val sumc_diff = thm "sumc_diff";
-val sumc_subst = thm "sumc_subst";
-val sumc_group = thm "sumc_group";
-*}
 
 end
 

@@ -170,17 +170,4 @@ apply (drule_tac x = r in realpow_less)
 apply (drule_tac [4] x = y in realpow_less, auto)
 done
 
-ML
-{*
-val nth_realpow_isLub_ex = thm"nth_realpow_isLub_ex";
-val realpow_nth_ge = thm"realpow_nth_ge";
-val less_isLub_not_isUb = thm"less_isLub_not_isUb";
-val not_isUb_less_ex = thm"not_isUb_less_ex";
-val realpow_nth_le = thm"realpow_nth_le";
-val realpow_nth = thm"realpow_nth";
-val realpow_pos_nth = thm"realpow_pos_nth";
-val realpow_pos_nth2 = thm"realpow_pos_nth2";
-val realpow_pos_nth_unique = thm"realpow_pos_nth_unique";
-*}
-
 end

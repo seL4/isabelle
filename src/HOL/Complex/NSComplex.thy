@@ -13,66 +13,67 @@ begin
 
 types hcomplex = "complex star"
 
-syntax hcomplex_of_complex :: "real => real star"
-translations "hcomplex_of_complex" => "star_of :: complex => complex star"
+abbreviation
+  hcomplex_of_complex :: "complex => complex star"
+  "hcomplex_of_complex == star_of"
 
-constdefs
+definition
 
   (*--- real and Imaginary parts ---*)
 
   hRe :: "hcomplex => hypreal"
-  "hRe == *f* Re"
+  "hRe = *f* Re"
 
   hIm :: "hcomplex => hypreal"
-  "hIm == *f* Im"
+  "hIm = *f* Im"
 
 
   (*----------- modulus ------------*)
 
   hcmod :: "hcomplex => hypreal"
-  "hcmod == *f* cmod"
+  "hcmod = *f* cmod"
 
   (*------ imaginary unit ----------*)
 
   iii :: hcomplex
-  "iii == star_of ii"
+  "iii = star_of ii"
 
   (*------- complex conjugate ------*)
 
   hcnj :: "hcomplex => hcomplex"
-  "hcnj == *f* cnj"
+  "hcnj = *f* cnj"
 
   (*------------ Argand -------------*)
 
   hsgn :: "hcomplex => hcomplex"
-  "hsgn == *f* sgn"
+  "hsgn = *f* sgn"
 
   harg :: "hcomplex => hypreal"
-  "harg == *f* arg"
+  "harg = *f* arg"
 
   (* abbreviation for (cos a + i sin a) *)
   hcis :: "hypreal => hcomplex"
-  "hcis == *f* cis"
+  "hcis = *f* cis"
 
   (*----- injection from hyperreals -----*)
 
   hcomplex_of_hypreal :: "hypreal => hcomplex"
-  "hcomplex_of_hypreal == *f* complex_of_real"
+  "hcomplex_of_hypreal = *f* complex_of_real"
 
   (* abbreviation for r*(cos a + i sin a) *)
   hrcis :: "[hypreal, hypreal] => hcomplex"
-  "hrcis == *f2* rcis"
+  "hrcis = *f2* rcis"
 
   (*------------ e ^ (x + iy) ------------*)
 
   hexpi :: "hcomplex => hcomplex"
-  "hexpi == *f* expi"
+  "hexpi = *f* expi"
 
   HComplex :: "[hypreal,hypreal] => hcomplex"
-  "HComplex == *f2* Complex"
+  "HComplex = *f2* Complex"
 
   hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80)
-  "(z::hcomplex) hcpow (n::hypnat) == ( *f2* op ^) z n"
+  "(z::hcomplex) hcpow (n::hypnat) = ( *f2* op ^) z n"
 
 lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def hcmod_def iii_def hcnj_def hsgn_def harg_def hcis_def
@@ -920,159 +921,5 @@ by (transfer, simp)
 lemma hcomplex_number_of_hIm [simp]: 
       "hIm(number_of v :: hcomplex) = 0"
 by (transfer, simp)
-
-
-ML
-{*
-val iii_def = thm"iii_def";
-
-val hRe = thm"hRe";
-val hIm = thm"hIm";
-val hcomplex_hRe_hIm_cancel_iff = thm"hcomplex_hRe_hIm_cancel_iff";
-val hcomplex_hRe_zero = thm"hcomplex_hRe_zero";
-val hcomplex_hIm_zero = thm"hcomplex_hIm_zero";
-val hcomplex_hRe_one = thm"hcomplex_hRe_one";
-val hcomplex_hIm_one = thm"hcomplex_hIm_one";
-val inj_hcomplex_of_complex = thm"inj_hcomplex_of_complex";
-val hcomplex_of_complex_i = thm"hcomplex_of_complex_i";
-val star_n_add = thm"star_n_add";
-val hRe_add = thm"hRe_add";
-val hIm_add = thm"hIm_add";
-val hRe_minus = thm"hRe_minus";
-val hIm_minus = thm"hIm_minus";
-val hcomplex_add_minus_eq_minus = thm"hcomplex_add_minus_eq_minus";
-val hcomplex_diff_eq_eq = thm"hcomplex_diff_eq_eq";
-val hcomplex_mult_minus_one = thm"hcomplex_mult_minus_one";
-val hcomplex_mult_minus_one_right = thm"hcomplex_mult_minus_one_right";
-val hcomplex_mult_left_cancel = thm"hcomplex_mult_left_cancel";
-val hcomplex_mult_right_cancel = thm"hcomplex_mult_right_cancel";
-val hcomplex_add_divide_distrib = thm"hcomplex_add_divide_distrib";
-val hcomplex_of_hypreal = thm"hcomplex_of_hypreal";
-val hcomplex_of_hypreal_cancel_iff = thm"hcomplex_of_hypreal_cancel_iff";
-val hcomplex_of_hypreal_minus = thm"hcomplex_of_hypreal_minus";
-val hcomplex_of_hypreal_inverse = thm"hcomplex_of_hypreal_inverse";
-val hcomplex_of_hypreal_add = thm"hcomplex_of_hypreal_add";
-val hcomplex_of_hypreal_diff = thm"hcomplex_of_hypreal_diff";
-val hcomplex_of_hypreal_mult = thm"hcomplex_of_hypreal_mult";
-val hcomplex_of_hypreal_divide = thm"hcomplex_of_hypreal_divide";
-val hcomplex_of_hypreal_one = thm"hcomplex_of_hypreal_one";
-val hcomplex_of_hypreal_zero = thm"hcomplex_of_hypreal_zero";
-val hcomplex_of_hypreal_pow = thm"hcomplex_of_hypreal_pow";
-val hRe_hcomplex_of_hypreal = thm"hRe_hcomplex_of_hypreal";
-val hIm_hcomplex_of_hypreal = thm"hIm_hcomplex_of_hypreal";
-val hcomplex_of_hypreal_epsilon_not_zero = thm"hcomplex_of_hypreal_epsilon_not_zero";
-val hcmod = thm"hcmod";
-val hcmod_zero = thm"hcmod_zero";
-val hcmod_one = thm"hcmod_one";
-val hcmod_hcomplex_of_hypreal = thm"hcmod_hcomplex_of_hypreal";
-val hcomplex_of_hypreal_abs = thm"hcomplex_of_hypreal_abs";
-val hcnj = thm"hcnj";
-val hcomplex_hcnj_cancel_iff = thm"hcomplex_hcnj_cancel_iff";
-val hcomplex_hcnj_hcnj = thm"hcomplex_hcnj_hcnj";
-val hcomplex_hcnj_hcomplex_of_hypreal = thm"hcomplex_hcnj_hcomplex_of_hypreal";
-val hcomplex_hmod_hcnj = thm"hcomplex_hmod_hcnj";
-val hcomplex_hcnj_minus = thm"hcomplex_hcnj_minus";
-val hcomplex_hcnj_inverse = thm"hcomplex_hcnj_inverse";
-val hcomplex_hcnj_add = thm"hcomplex_hcnj_add";
-val hcomplex_hcnj_diff = thm"hcomplex_hcnj_diff";
-val hcomplex_hcnj_mult = thm"hcomplex_hcnj_mult";
-val hcomplex_hcnj_divide = thm"hcomplex_hcnj_divide";
-val hcnj_one = thm"hcnj_one";
-val hcomplex_hcnj_pow = thm"hcomplex_hcnj_pow";
-val hcomplex_hcnj_zero = thm"hcomplex_hcnj_zero";
-val hcomplex_hcnj_zero_iff = thm"hcomplex_hcnj_zero_iff";
-val hcomplex_mult_hcnj = thm"hcomplex_mult_hcnj";
-val hcomplex_hcmod_eq_zero_cancel = thm"hcomplex_hcmod_eq_zero_cancel";
-
-val hcmod_hcomplex_of_hypreal_of_nat = thm"hcmod_hcomplex_of_hypreal_of_nat";
-val hcmod_hcomplex_of_hypreal_of_hypnat = thm"hcmod_hcomplex_of_hypreal_of_hypnat";
-val hcmod_minus = thm"hcmod_minus";
-val hcmod_mult_hcnj = thm"hcmod_mult_hcnj";
-val hcmod_ge_zero = thm"hcmod_ge_zero";
-val hrabs_hcmod_cancel = thm"hrabs_hcmod_cancel";
-val hcmod_mult = thm"hcmod_mult";
-val hcmod_add_squared_eq = thm"hcmod_add_squared_eq";
-val hcomplex_hRe_mult_hcnj_le_hcmod = thm"hcomplex_hRe_mult_hcnj_le_hcmod";
-val hcomplex_hRe_mult_hcnj_le_hcmod2 = thm"hcomplex_hRe_mult_hcnj_le_hcmod2";
-val hcmod_triangle_squared = thm"hcmod_triangle_squared";
-val hcmod_triangle_ineq = thm"hcmod_triangle_ineq";
-val hcmod_triangle_ineq2 = thm"hcmod_triangle_ineq2";
-val hcmod_diff_commute = thm"hcmod_diff_commute";
-val hcmod_add_less = thm"hcmod_add_less";
-val hcmod_mult_less = thm"hcmod_mult_less";
-val hcmod_diff_ineq = thm"hcmod_diff_ineq";
-val hcpow = thm"hcpow";
-val hcomplex_of_hypreal_hyperpow = thm"hcomplex_of_hypreal_hyperpow";
-val hcmod_hcomplexpow = thm"hcmod_hcomplexpow";
-val hcmod_hcpow = thm"hcmod_hcpow";
-val hcpow_minus = thm"hcpow_minus";
-val hcmod_hcomplex_inverse = thm"hcmod_hcomplex_inverse";
-val hcmod_divide = thm"hcmod_divide";
-val hcpow_mult = thm"hcpow_mult";
-val hcpow_zero = thm"hcpow_zero";
-val hcpow_zero2 = thm"hcpow_zero2";
-val hcpow_not_zero = thm"hcpow_not_zero";
-val hcpow_zero_zero = thm"hcpow_zero_zero";
-val hcomplex_i_mult_eq = thm"hcomplex_i_mult_eq";
-val hcomplexpow_i_squared = thm"hcomplexpow_i_squared";
-val hcomplex_i_not_zero = thm"hcomplex_i_not_zero";
-val star_n_divide = thm"star_n_divide";
-val hsgn = thm"hsgn";
-val hsgn_zero = thm"hsgn_zero";
-val hsgn_one = thm"hsgn_one";
-val hsgn_minus = thm"hsgn_minus";
-val hsgn_eq = thm"hsgn_eq";
-val lemma_hypreal_P_EX2 = thm"lemma_hypreal_P_EX2";
-val hcmod_i = thm"hcmod_i";
-val hcomplex_eq_cancel_iff2 = thm"hcomplex_eq_cancel_iff2";
-val hRe_hsgn = thm"hRe_hsgn";
-val hIm_hsgn = thm"hIm_hsgn";
-val real_two_squares_add_zero_iff = thm"real_two_squares_add_zero_iff";
-val hRe_mult_i_eq = thm"hRe_mult_i_eq";
-val hIm_mult_i_eq = thm"hIm_mult_i_eq";
-val hcmod_mult_i = thm"hcmod_mult_i";
-val hcmod_mult_i2 = thm"hcmod_mult_i2";
-val harg = thm"harg";
-val cos_harg_i_mult_zero = thm"cos_harg_i_mult_zero";
-val hcomplex_of_hypreal_zero_iff = thm"hcomplex_of_hypreal_zero_iff";
-val complex_split_polar2 = thm"complex_split_polar2";
-val hcomplex_split_polar = thm"hcomplex_split_polar";
-val hcis = thm"hcis";
-val hcis_eq = thm"hcis_eq";
-val hrcis = thm"hrcis";
-val hrcis_Ex = thm"hrcis_Ex";
-val hRe_hcomplex_polar = thm"hRe_hcomplex_polar";
-val hRe_hrcis = thm"hRe_hrcis";
-val hIm_hcomplex_polar = thm"hIm_hcomplex_polar";
-val hIm_hrcis = thm"hIm_hrcis";
-val hcmod_complex_polar = thm"hcmod_complex_polar";
-val hcmod_hrcis = thm"hcmod_hrcis";
-val hcis_hrcis_eq = thm"hcis_hrcis_eq";
-val hrcis_mult = thm"hrcis_mult";
-val hcis_mult = thm"hcis_mult";
-val hcis_zero = thm"hcis_zero";
-val hrcis_zero_mod = thm"hrcis_zero_mod";
-val hrcis_zero_arg = thm"hrcis_zero_arg";
-val hcomplex_i_mult_minus = thm"hcomplex_i_mult_minus";
-val hcomplex_i_mult_minus2 = thm"hcomplex_i_mult_minus2";
-val hcis_hypreal_of_nat_Suc_mult = thm"hcis_hypreal_of_nat_Suc_mult";
-val NSDeMoivre = thm"NSDeMoivre";
-val hcis_hypreal_of_hypnat_Suc_mult = thm"hcis_hypreal_of_hypnat_Suc_mult";
-val NSDeMoivre_ext = thm"NSDeMoivre_ext";
-val DeMoivre2 = thm"DeMoivre2";
-val DeMoivre2_ext = thm"DeMoivre2_ext";
-val hcis_inverse = thm"hcis_inverse";
-val hrcis_inverse = thm"hrcis_inverse";
-val hRe_hcis = thm"hRe_hcis";
-val hIm_hcis = thm"hIm_hcis";
-val cos_n_hRe_hcis_pow_n = thm"cos_n_hRe_hcis_pow_n";
-val sin_n_hIm_hcis_pow_n = thm"sin_n_hIm_hcis_pow_n";
-val cos_n_hRe_hcis_hcpow_n = thm"cos_n_hRe_hcis_hcpow_n";
-val sin_n_hIm_hcis_hcpow_n = thm"sin_n_hIm_hcis_hcpow_n";
-val hexpi_add = thm"hexpi_add";
-val hRe_hcomplex_of_complex = thm"hRe_hcomplex_of_complex";
-val hIm_hcomplex_of_complex = thm"hIm_hcomplex_of_complex";
-val hcmod_hcomplex_of_complex = thm"hcmod_hcomplex_of_complex";
-*}
 
 end

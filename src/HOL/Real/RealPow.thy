@@ -37,8 +37,7 @@ by simp
 lemma realpow_two: "(r::real)^ (Suc (Suc 0)) = r * r"
 by simp
 
-text{*Legacy: weaker version of the theorem @{text power_strict_mono},
-used 6 times in NthRoot and Transcendental*}
+text{*Legacy: weaker version of the theorem @{text power_strict_mono}*}
 lemma realpow_less:
      "[|(0::real) < x; x < y; 0 < n|] ==> x ^ n < y ^ n"
 apply (rule power_strict_mono, auto) 
@@ -67,11 +66,9 @@ done
 lemma realpow_Suc_le_self: "[| 0 \<le> r; r \<le> (1::real) |] ==> r ^ Suc n \<le> r"
 by (insert power_decreasing [of 1 "Suc n" r], simp)
 
-text{*Used ONCE in Transcendental*}
 lemma realpow_Suc_less_one: "[| 0 < r; r < (1::real) |] ==> r ^ Suc n < 1"
 by (insert power_strict_decreasing [of 0 "Suc n" r], simp)
 
-text{*Used ONCE in Lim.ML*}
 lemma realpow_minus_mult [rule_format]:
      "0 < n --> (x::real) ^ (n - 1) * x = x ^ n" 
 apply (simp split add: nat_diff_split)
@@ -140,7 +137,6 @@ declare power_real_number_of [of _ "number_of w", standard, simp]
 
 subsection{*Various Other Theorems*}
 
-text{*Used several times in Hyperreal/Transcendental.ML*}
 lemma real_sum_squares_cancel_a: "x * x = -(y * y) ==> x = (0::real) & y=0"
   apply (auto dest: real_sum_squares_cancel simp add: real_add_eq_0_iff [symmetric])
   apply (auto dest: real_sum_squares_cancel simp add: add_commute)
@@ -171,7 +167,6 @@ apply (rule_tac c=x1 in mult_less_imp_less_right)
 apply (auto simp add: mult_ac)
 done
 
-text{*Used once: in Hyperreal/Transcendental.ML*}
 lemma real_mult_inverse_cancel2:
      "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
 apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
@@ -271,60 +266,5 @@ apply (subgoal_tac " (2::real) ^ 8 = 4 * (2 ^ 6) ")
 apply (simp (no_asm_simp) add: real_mult_assoc [symmetric])
 apply (auto simp add: realpow_num_eq_if)
 done
-
-
-ML
-{*
-val realpow_0 = thm "realpow_0";
-val realpow_Suc = thm "realpow_Suc";
-
-val realpow_not_zero = thm "realpow_not_zero";
-val realpow_zero_zero = thm "realpow_zero_zero";
-val realpow_two = thm "realpow_two";
-val realpow_less = thm "realpow_less";
-val realpow_two_le = thm "realpow_two_le";
-val abs_realpow_two = thm "abs_realpow_two";
-val realpow_two_abs = thm "realpow_two_abs";
-val two_realpow_ge_one = thm "two_realpow_ge_one";
-val two_realpow_gt = thm "two_realpow_gt";
-val realpow_Suc_le_self = thm "realpow_Suc_le_self";
-val realpow_Suc_less_one = thm "realpow_Suc_less_one";
-val realpow_minus_mult = thm "realpow_minus_mult";
-val realpow_two_mult_inverse = thm "realpow_two_mult_inverse";
-val realpow_two_minus = thm "realpow_two_minus";
-val realpow_two_disj = thm "realpow_two_disj";
-val realpow_real_of_nat = thm "realpow_real_of_nat";
-val realpow_real_of_nat_two_pos = thm "realpow_real_of_nat_two_pos";
-val realpow_increasing = thm "realpow_increasing";
-val zero_less_realpow_abs_iff = thm "zero_less_realpow_abs_iff";
-val zero_le_realpow_abs = thm "zero_le_realpow_abs";
-val real_of_int_power = thm "real_of_int_power";
-val power_real_number_of = thm "power_real_number_of";
-val real_sum_squares_cancel_a = thm "real_sum_squares_cancel_a";
-val real_mult_inverse_cancel2 = thm "real_mult_inverse_cancel2";
-val real_squared_diff_one_factored = thm "real_squared_diff_one_factored";
-val real_mult_is_one = thm "real_mult_is_one";
-val real_le_add_half_cancel = thm "real_le_add_half_cancel";
-val real_minus_half_eq = thm "real_minus_half_eq";
-val real_mult_inverse_cancel = thm "real_mult_inverse_cancel";
-val real_mult_inverse_cancel2 = thm "real_mult_inverse_cancel2";
-val inverse_real_of_nat_gt_zero = thm "inverse_real_of_nat_gt_zero";
-val inverse_real_of_nat_ge_zero = thm "inverse_real_of_nat_ge_zero";
-val real_sum_squares_not_zero = thm "real_sum_squares_not_zero";
-val real_sum_squares_not_zero2 = thm "real_sum_squares_not_zero2";
-
-val realpow_divide = thm "realpow_divide";
-val realpow_two_sum_zero_iff = thm "realpow_two_sum_zero_iff";
-val realpow_two_le_add_order = thm "realpow_two_le_add_order";
-val realpow_two_le_add_order2 = thm "realpow_two_le_add_order2";
-val real_sum_square_gt_zero = thm "real_sum_square_gt_zero";
-val real_sum_square_gt_zero2 = thm "real_sum_square_gt_zero2";
-val real_minus_mult_self_le = thm "real_minus_mult_self_le";
-val realpow_square_minus_le = thm "realpow_square_minus_le";
-val realpow_num_eq_if = thm "realpow_num_eq_if";
-val real_num_zero_less_two_pow = thm "real_num_zero_less_two_pow";
-val lemma_realpow_num_two_mono = thm "lemma_realpow_num_two_mono";
-*}
-
 
 end

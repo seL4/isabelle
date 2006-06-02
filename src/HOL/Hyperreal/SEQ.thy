@@ -12,56 +12,55 @@ theory SEQ
 imports NatStar
 begin
 
-constdefs
+definition
 
   LIMSEQ :: "[nat=>real,real] => bool"    ("((_)/ ----> (_))" [60, 60] 60)
     --{*Standard definition of convergence of sequence*}
-  "X ----> L == (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>X n + -L\<bar> < r))"
+  "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> \<bar>X n + -L\<bar> < r))"
 
   NSLIMSEQ :: "[nat=>real,real] => bool"    ("((_)/ ----NS> (_))" [60, 60] 60)
     --{*Nonstandard definition of convergence of sequence*}
-  "X ----NS> L == (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L)"
+  "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L)"
 
   lim :: "(nat => real) => real"
     --{*Standard definition of limit using choice operator*}
-  "lim X == (@L. (X ----> L))"
+  "lim X = (SOME L. (X ----> L))"
 
   nslim :: "(nat => real) => real"
     --{*Nonstandard definition of limit using choice operator*}
-  "nslim X == (@L. (X ----NS> L))"
+  "nslim X = (SOME L. (X ----NS> L))"
 
   convergent :: "(nat => real) => bool"
     --{*Standard definition of convergence*}
-  "convergent X == (\<exists>L. (X ----> L))"
+  "convergent X = (\<exists>L. (X ----> L))"
 
   NSconvergent :: "(nat => real) => bool"
     --{*Nonstandard definition of convergence*}
-  "NSconvergent X == (\<exists>L. (X ----NS> L))"
+  "NSconvergent X = (\<exists>L. (X ----NS> L))"
 
   Bseq :: "(nat => real) => bool"
     --{*Standard definition for bounded sequence*}
-  "Bseq X == \<exists>K>0.\<forall>n. \<bar>X n\<bar> \<le> K"
+  "Bseq X = (\<exists>K>0.\<forall>n. \<bar>X n\<bar> \<le> K)"
 
   NSBseq :: "(nat=>real) => bool"
     --{*Nonstandard definition for bounded sequence*}
-  "NSBseq X == (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
+  "NSBseq X = (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
 
   monoseq :: "(nat=>real)=>bool"
     --{*Definition for monotonicity*}
-  "monoseq X == (\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
+  "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
   subseq :: "(nat => nat) => bool"
     --{*Definition of subsequence*}
-  "subseq f == \<forall>m. \<forall>n>m. (f m) < (f n)"
+  "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
 
   Cauchy :: "(nat => real) => bool"
     --{*Standard definition of the Cauchy condition*}
-  "Cauchy X == \<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. abs((X m) + -(X n)) < e"
+  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. abs((X m) + -(X n)) < e)"
 
   NSCauchy :: "(nat => real) => bool"
     --{*Nonstandard definition*}
-  "NSCauchy X == (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite.
-                      ( *f* X) M \<approx> ( *f* X) N)"
+  "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
 
 
 
@@ -1194,126 +1193,5 @@ Goal "Bseq X ==> Bseq (%n. X (f n))";
 Goal "subseq f ==> n \<le> f(n)";
 Goal "subseq f ==> \<exists>n. N1 \<le> n & N2 \<le> f(n)";
  ---------------------------------------------------------------***)
-
-
-ML
-{*
-val Cauchy_def = thm"Cauchy_def";
-val SEQ_Infinitesimal = thm "SEQ_Infinitesimal";
-val LIMSEQ_iff = thm "LIMSEQ_iff";
-val NSLIMSEQ_iff = thm "NSLIMSEQ_iff";
-val LIMSEQ_NSLIMSEQ = thm "LIMSEQ_NSLIMSEQ";
-val NSLIMSEQ_finite_set = thm "NSLIMSEQ_finite_set";
-val Compl_less_set = thm "Compl_less_set";
-val FreeUltrafilterNat_NSLIMSEQ = thm "FreeUltrafilterNat_NSLIMSEQ";
-val HNatInfinite_NSLIMSEQ = thm "HNatInfinite_NSLIMSEQ";
-val NSLIMSEQ_LIMSEQ = thm "NSLIMSEQ_LIMSEQ";
-val LIMSEQ_NSLIMSEQ_iff = thm "LIMSEQ_NSLIMSEQ_iff";
-val NSLIMSEQ_const = thm "NSLIMSEQ_const";
-val LIMSEQ_const = thm "LIMSEQ_const";
-val NSLIMSEQ_add = thm "NSLIMSEQ_add";
-val LIMSEQ_add = thm "LIMSEQ_add";
-val NSLIMSEQ_mult = thm "NSLIMSEQ_mult";
-val LIMSEQ_mult = thm "LIMSEQ_mult";
-val NSLIMSEQ_minus = thm "NSLIMSEQ_minus";
-val LIMSEQ_minus = thm "LIMSEQ_minus";
-val LIMSEQ_minus_cancel = thm "LIMSEQ_minus_cancel";
-val NSLIMSEQ_minus_cancel = thm "NSLIMSEQ_minus_cancel";
-val NSLIMSEQ_add_minus = thm "NSLIMSEQ_add_minus";
-val LIMSEQ_add_minus = thm "LIMSEQ_add_minus";
-val LIMSEQ_diff = thm "LIMSEQ_diff";
-val NSLIMSEQ_diff = thm "NSLIMSEQ_diff";
-val NSLIMSEQ_inverse = thm "NSLIMSEQ_inverse";
-val LIMSEQ_inverse = thm "LIMSEQ_inverse";
-val NSLIMSEQ_mult_inverse = thm "NSLIMSEQ_mult_inverse";
-val LIMSEQ_divide = thm "LIMSEQ_divide";
-val NSLIMSEQ_unique = thm "NSLIMSEQ_unique";
-val LIMSEQ_unique = thm "LIMSEQ_unique";
-val limI = thm "limI";
-val nslimI = thm "nslimI";
-val lim_nslim_iff = thm "lim_nslim_iff";
-val convergentD = thm "convergentD";
-val convergentI = thm "convergentI";
-val NSconvergentD = thm "NSconvergentD";
-val NSconvergentI = thm "NSconvergentI";
-val convergent_NSconvergent_iff = thm "convergent_NSconvergent_iff";
-val NSconvergent_NSLIMSEQ_iff = thm "NSconvergent_NSLIMSEQ_iff";
-val convergent_LIMSEQ_iff = thm "convergent_LIMSEQ_iff";
-val subseq_Suc_iff = thm "subseq_Suc_iff";
-val monoseq_Suc = thm "monoseq_Suc";
-val monoI1 = thm "monoI1";
-val monoI2 = thm "monoI2";
-val mono_SucI1 = thm "mono_SucI1";
-val mono_SucI2 = thm "mono_SucI2";
-val BseqD = thm "BseqD";
-val BseqI = thm "BseqI";
-val Bseq_iff = thm "Bseq_iff";
-val Bseq_iff1a = thm "Bseq_iff1a";
-val NSBseqD = thm "NSBseqD";
-val NSBseqI = thm "NSBseqI";
-val Bseq_NSBseq = thm "Bseq_NSBseq";
-val real_seq_to_hypreal_HInfinite = thm "real_seq_to_hypreal_HInfinite";
-val HNatInfinite_skolem_f = thm "HNatInfinite_skolem_f";
-val NSBseq_Bseq = thm "NSBseq_Bseq";
-val Bseq_NSBseq_iff = thm "Bseq_NSBseq_iff";
-val NSconvergent_NSBseq = thm "NSconvergent_NSBseq";
-val convergent_Bseq = thm "convergent_Bseq";
-val Bseq_isUb = thm "Bseq_isUb";
-val Bseq_isLub = thm "Bseq_isLub";
-val NSBseq_isUb = thm "NSBseq_isUb";
-val NSBseq_isLub = thm "NSBseq_isLub";
-val Bmonoseq_LIMSEQ = thm "Bmonoseq_LIMSEQ";
-val Bmonoseq_NSLIMSEQ = thm "Bmonoseq_NSLIMSEQ";
-val Bseq_mono_convergent = thm "Bseq_mono_convergent";
-val NSBseq_mono_NSconvergent = thm "NSBseq_mono_NSconvergent";
-val convergent_minus_iff = thm "convergent_minus_iff";
-val Bseq_minus_iff = thm "Bseq_minus_iff";
-val Bseq_monoseq_convergent = thm "Bseq_monoseq_convergent";
-val Bseq_iff2 = thm "Bseq_iff2";
-val Bseq_iff3 = thm "Bseq_iff3";
-val BseqI2 = thm "BseqI2";
-val Cauchy_NSCauchy = thm "Cauchy_NSCauchy";
-val NSCauchy_Cauchy = thm "NSCauchy_Cauchy";
-val NSCauchy_Cauchy_iff = thm "NSCauchy_Cauchy_iff";
-val less_Suc_cancel_iff = thm "less_Suc_cancel_iff";
-val SUP_rabs_subseq = thm "SUP_rabs_subseq";
-val Cauchy_Bseq = thm "Cauchy_Bseq";
-val NSCauchy_NSBseq = thm "NSCauchy_NSBseq";
-val NSCauchy_NSconvergent_iff = thm "NSCauchy_NSconvergent_iff";
-val Cauchy_convergent_iff = thm "Cauchy_convergent_iff";
-val NSLIMSEQ_le = thm "NSLIMSEQ_le";
-val LIMSEQ_le = thm "LIMSEQ_le";
-val LIMSEQ_le_const = thm "LIMSEQ_le_const";
-val NSLIMSEQ_le_const = thm "NSLIMSEQ_le_const";
-val LIMSEQ_le_const2 = thm "LIMSEQ_le_const2";
-val NSLIMSEQ_le_const2 = thm "NSLIMSEQ_le_const2";
-val NSLIMSEQ_Suc = thm "NSLIMSEQ_Suc";
-val LIMSEQ_Suc = thm "LIMSEQ_Suc";
-val NSLIMSEQ_imp_Suc = thm "NSLIMSEQ_imp_Suc";
-val LIMSEQ_imp_Suc = thm "LIMSEQ_imp_Suc";
-val LIMSEQ_Suc_iff = thm "LIMSEQ_Suc_iff";
-val NSLIMSEQ_Suc_iff = thm "NSLIMSEQ_Suc_iff";
-val LIMSEQ_rabs_zero = thm "LIMSEQ_rabs_zero";
-val NSLIMSEQ_rabs_zero = thm "NSLIMSEQ_rabs_zero";
-val NSLIMSEQ_imp_rabs = thm "NSLIMSEQ_imp_rabs";
-val LIMSEQ_imp_rabs = thm "LIMSEQ_imp_rabs";
-val LIMSEQ_inverse_zero = thm "LIMSEQ_inverse_zero";
-val NSLIMSEQ_inverse_zero = thm "NSLIMSEQ_inverse_zero";
-val LIMSEQ_inverse_real_of_nat = thm "LIMSEQ_inverse_real_of_nat";
-val NSLIMSEQ_inverse_real_of_nat = thm "NSLIMSEQ_inverse_real_of_nat";
-val LIMSEQ_inverse_real_of_nat_add = thm "LIMSEQ_inverse_real_of_nat_add";
-val NSLIMSEQ_inverse_real_of_nat_add = thm "NSLIMSEQ_inverse_real_of_nat_add";
-val LIMSEQ_inverse_real_of_nat_add_minus = thm "LIMSEQ_inverse_real_of_nat_add_minus";
-val NSLIMSEQ_inverse_real_of_nat_add_minus = thm "NSLIMSEQ_inverse_real_of_nat_add_minus";
-val LIMSEQ_inverse_real_of_nat_add_minus_mult = thm "LIMSEQ_inverse_real_of_nat_add_minus_mult";
-val NSLIMSEQ_inverse_real_of_nat_add_minus_mult = thm "NSLIMSEQ_inverse_real_of_nat_add_minus_mult";
-val NSLIMSEQ_pow = thm "NSLIMSEQ_pow";
-val LIMSEQ_pow = thm "LIMSEQ_pow";
-val Bseq_realpow = thm "Bseq_realpow";
-val monoseq_realpow = thm "monoseq_realpow";
-val convergent_realpow = thm "convergent_realpow";
-val NSLIMSEQ_realpow_zero = thm "NSLIMSEQ_realpow_zero";
-*}
-
 
 end

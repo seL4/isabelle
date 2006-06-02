@@ -30,18 +30,17 @@ next
 qed
 
 
-constdefs
-
+definition
   exphr :: "real => hypreal"
     --{*define exponential function using standard part *}
-    "exphr x ==  st(sumhr (0, whn, %n. inverse(real (fact n)) * (x ^ n)))" 
+  "exphr x =  st(sumhr (0, whn, %n. inverse(real (fact n)) * (x ^ n)))"
 
   sinhr :: "real => hypreal"
-    "sinhr x == st(sumhr (0, whn, %n. (if even(n) then 0 else
+  "sinhr x = st(sumhr (0, whn, %n. (if even(n) then 0 else
              ((-1) ^ ((n - 1) div 2))/(real (fact n))) * (x ^ n)))"
   
   coshr :: "real => hypreal"
-    "coshr x == st(sumhr (0, whn, %n. (if even(n) then
+  "coshr x = st(sumhr (0, whn, %n. (if even(n) then
             ((-1) ^ (n div 2))/(real (fact n)) else 0) * x ^ n))"
 
 
@@ -615,99 +614,5 @@ apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto intro: Infinitesimal_SReal_divide 
             simp add: Infinitesimal_approx_minus [symmetric] numeral_2_eq_2)
 done
-
-ML
-{*
-val STAR_sqrt_zero = thm "STAR_sqrt_zero";
-val STAR_sqrt_one = thm "STAR_sqrt_one";
-val hypreal_sqrt_pow2_iff = thm "hypreal_sqrt_pow2_iff";
-val hypreal_sqrt_gt_zero_pow2 = thm "hypreal_sqrt_gt_zero_pow2";
-val hypreal_sqrt_pow2_gt_zero = thm "hypreal_sqrt_pow2_gt_zero";
-val hypreal_sqrt_not_zero = thm "hypreal_sqrt_not_zero";
-val hypreal_inverse_sqrt_pow2 = thm "hypreal_inverse_sqrt_pow2";
-val hypreal_sqrt_mult_distrib = thm "hypreal_sqrt_mult_distrib";
-val hypreal_sqrt_mult_distrib2 = thm "hypreal_sqrt_mult_distrib2";
-val hypreal_sqrt_approx_zero = thm "hypreal_sqrt_approx_zero";
-val hypreal_sqrt_approx_zero2 = thm "hypreal_sqrt_approx_zero2";
-val hypreal_sqrt_sum_squares = thm "hypreal_sqrt_sum_squares";
-val hypreal_sqrt_sum_squares2 = thm "hypreal_sqrt_sum_squares2";
-val hypreal_sqrt_gt_zero = thm "hypreal_sqrt_gt_zero";
-val hypreal_sqrt_ge_zero = thm "hypreal_sqrt_ge_zero";
-val hypreal_sqrt_hrabs = thm "hypreal_sqrt_hrabs";
-val hypreal_sqrt_hrabs2 = thm "hypreal_sqrt_hrabs2";
-val hypreal_sqrt_hyperpow_hrabs = thm "hypreal_sqrt_hyperpow_hrabs";
-val star_sqrt_HFinite = thm "star_sqrt_HFinite";
-val st_hypreal_sqrt = thm "st_hypreal_sqrt";
-val hypreal_sqrt_sum_squares_ge1 = thm "hypreal_sqrt_sum_squares_ge1";
-val HFinite_hypreal_sqrt = thm "HFinite_hypreal_sqrt";
-val HFinite_hypreal_sqrt_imp_HFinite = thm "HFinite_hypreal_sqrt_imp_HFinite";
-val HFinite_hypreal_sqrt_iff = thm "HFinite_hypreal_sqrt_iff";
-val HFinite_sqrt_sum_squares = thm "HFinite_sqrt_sum_squares";
-val Infinitesimal_hypreal_sqrt = thm "Infinitesimal_hypreal_sqrt";
-val Infinitesimal_hypreal_sqrt_imp_Infinitesimal = thm "Infinitesimal_hypreal_sqrt_imp_Infinitesimal";
-val Infinitesimal_hypreal_sqrt_iff = thm "Infinitesimal_hypreal_sqrt_iff";
-val Infinitesimal_sqrt_sum_squares = thm "Infinitesimal_sqrt_sum_squares";
-val HInfinite_hypreal_sqrt = thm "HInfinite_hypreal_sqrt";
-val HInfinite_hypreal_sqrt_imp_HInfinite = thm "HInfinite_hypreal_sqrt_imp_HInfinite";
-val HInfinite_hypreal_sqrt_iff = thm "HInfinite_hypreal_sqrt_iff";
-val HInfinite_sqrt_sum_squares = thm "HInfinite_sqrt_sum_squares";
-val HFinite_exp = thm "HFinite_exp";
-val exphr_zero = thm "exphr_zero";
-val coshr_zero = thm "coshr_zero";
-val STAR_exp_zero_approx_one = thm "STAR_exp_zero_approx_one";
-val STAR_exp_Infinitesimal = thm "STAR_exp_Infinitesimal";
-val STAR_exp_epsilon = thm "STAR_exp_epsilon";
-val STAR_exp_add = thm "STAR_exp_add";
-val exphr_hypreal_of_real_exp_eq = thm "exphr_hypreal_of_real_exp_eq";
-val starfun_exp_ge_add_one_self = thm "starfun_exp_ge_add_one_self";
-val starfun_exp_HInfinite = thm "starfun_exp_HInfinite";
-val starfun_exp_minus = thm "starfun_exp_minus";
-val starfun_exp_Infinitesimal = thm "starfun_exp_Infinitesimal";
-val starfun_exp_gt_one = thm "starfun_exp_gt_one";
-val starfun_ln_exp = thm "starfun_ln_exp";
-val starfun_exp_ln_iff = thm "starfun_exp_ln_iff";
-val starfun_exp_ln_eq = thm "starfun_exp_ln_eq";
-val starfun_ln_less_self = thm "starfun_ln_less_self";
-val starfun_ln_ge_zero = thm "starfun_ln_ge_zero";
-val starfun_ln_gt_zero = thm "starfun_ln_gt_zero";
-val starfun_ln_not_eq_zero = thm "starfun_ln_not_eq_zero";
-val starfun_ln_HFinite = thm "starfun_ln_HFinite";
-val starfun_ln_inverse = thm "starfun_ln_inverse";
-val starfun_exp_HFinite = thm "starfun_exp_HFinite";
-val starfun_exp_add_HFinite_Infinitesimal_approx = thm "starfun_exp_add_HFinite_Infinitesimal_approx";
-val starfun_ln_HInfinite = thm "starfun_ln_HInfinite";
-val starfun_exp_HInfinite_Infinitesimal_disj = thm "starfun_exp_HInfinite_Infinitesimal_disj";
-val starfun_ln_HFinite_not_Infinitesimal = thm "starfun_ln_HFinite_not_Infinitesimal";
-val starfun_ln_Infinitesimal_HInfinite = thm "starfun_ln_Infinitesimal_HInfinite";
-val starfun_ln_less_zero = thm "starfun_ln_less_zero";
-val starfun_ln_Infinitesimal_less_zero = thm "starfun_ln_Infinitesimal_less_zero";
-val starfun_ln_HInfinite_gt_zero = thm "starfun_ln_HInfinite_gt_zero";
-val HFinite_sin = thm "HFinite_sin";
-val STAR_sin_zero = thm "STAR_sin_zero";
-val STAR_sin_Infinitesimal = thm "STAR_sin_Infinitesimal";
-val HFinite_cos = thm "HFinite_cos";
-val STAR_cos_zero = thm "STAR_cos_zero";
-val STAR_cos_Infinitesimal = thm "STAR_cos_Infinitesimal";
-val STAR_tan_zero = thm "STAR_tan_zero";
-val STAR_tan_Infinitesimal = thm "STAR_tan_Infinitesimal";
-val STAR_sin_cos_Infinitesimal_mult = thm "STAR_sin_cos_Infinitesimal_mult";
-val HFinite_pi = thm "HFinite_pi";
-val lemma_split_hypreal_of_real = thm "lemma_split_hypreal_of_real";
-val STAR_sin_Infinitesimal_divide = thm "STAR_sin_Infinitesimal_divide";
-val lemma_sin_pi = thm "lemma_sin_pi";
-val STAR_sin_inverse_HNatInfinite = thm "STAR_sin_inverse_HNatInfinite";
-val Infinitesimal_pi_divide_HNatInfinite = thm "Infinitesimal_pi_divide_HNatInfinite";
-val pi_divide_HNatInfinite_not_zero = thm "pi_divide_HNatInfinite_not_zero";
-val STAR_sin_pi_divide_HNatInfinite_approx_pi = thm "STAR_sin_pi_divide_HNatInfinite_approx_pi";
-val STAR_sin_pi_divide_HNatInfinite_approx_pi2 = thm "STAR_sin_pi_divide_HNatInfinite_approx_pi2";
-val starfunNat_pi_divide_n_Infinitesimal = thm "starfunNat_pi_divide_n_Infinitesimal";
-val STAR_sin_pi_divide_n_approx = thm "STAR_sin_pi_divide_n_approx";
-val NSLIMSEQ_sin_pi = thm "NSLIMSEQ_sin_pi";
-val NSLIMSEQ_cos_one = thm "NSLIMSEQ_cos_one";
-val NSLIMSEQ_sin_cos_pi = thm "NSLIMSEQ_sin_cos_pi";
-val STAR_cos_Infinitesimal_approx = thm "STAR_cos_Infinitesimal_approx";
-val STAR_cos_Infinitesimal_approx2 = thm "STAR_cos_Infinitesimal_approx2";
-*}
-
 
 end

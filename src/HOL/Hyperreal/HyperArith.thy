@@ -23,14 +23,12 @@ lemma hrabs_add_less:
      "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)"
 by (simp add: abs_if split: split_if_asm)
 
-text{*used once in NSA*}
 lemma hrabs_less_gt_zero: "abs x < r ==> (0::hypreal) < r"
 by (blast intro!: order_le_less_trans abs_ge_zero)
 
 lemma hrabs_disj: "abs x = (x::hypreal) | abs x = -x"
 by (simp add: abs_if)
 
-(* Needed in Geom.ML *)
 lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = abs (x + - z) ==> y = z | x = y"
 by (simp add: abs_if split add: split_if_asm)
 
@@ -41,9 +39,9 @@ by (rule star_of_abs [symmetric])
 
 subsection{*Embedding the Naturals into the Hyperreals*}
 
-constdefs
+definition
   hypreal_of_nat   :: "nat => hypreal"
-   "hypreal_of_nat m == of_nat m"
+  "hypreal_of_nat m = of_nat m"
 
 lemma SNat_eq: "Nats = {n. \<exists>N. n = hypreal_of_nat N}"
 by (force simp add: hypreal_of_nat_def Nats_def) 
@@ -110,25 +108,5 @@ FIXME: we should declare this, as for type int, but many proofs would break.
 It replaces x+-y by x-y.
 Addsimps [symmetric hypreal_diff_def]
 *)
-
-ML
-{*
-val hypreal_of_nat_def = thm"hypreal_of_nat_def";
-
-val hrabs_add_less = thm "hrabs_add_less";
-val hrabs_disj = thm "hrabs_disj";
-val hrabs_add_lemma_disj = thm "hrabs_add_lemma_disj";
-val hypreal_of_real_hrabs = thm "hypreal_of_real_hrabs";
-val hypreal_of_nat_add = thm "hypreal_of_nat_add";
-val hypreal_of_nat_mult = thm "hypreal_of_nat_mult";
-val hypreal_of_nat_less_iff = thm "hypreal_of_nat_less_iff";
-val hypreal_of_nat_Suc = thm "hypreal_of_nat_Suc";
-val hypreal_of_nat_number_of = thm "hypreal_of_nat_number_of";
-val hypreal_of_nat_zero = thm "hypreal_of_nat_zero";
-val hypreal_of_nat_one = thm "hypreal_of_nat_one";
-val hypreal_of_nat_le_iff = thm"hypreal_of_nat_le_iff";
-val hypreal_of_nat_ge_zero = thm"hypreal_of_nat_ge_zero";
-val hypreal_of_nat = thm"hypreal_of_nat";
-*}
 
 end

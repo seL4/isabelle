@@ -31,17 +31,23 @@ by arith
 text{*A crude tactic to differentiate by proof.*}
 ML
 {*
+local
+val deriv_rulesI =
+  [thm "DERIV_Id", thm "DERIV_const", thm "DERIV_cos", thm "DERIV_cmult",
+  thm "DERIV_sin", thm "DERIV_exp", thm "DERIV_inverse", thm "DERIV_pow",
+  thm "DERIV_add", thm "DERIV_diff", thm "DERIV_mult", thm "DERIV_minus",
+  thm "DERIV_inverse_fun", thm "DERIV_quotient", thm "DERIV_fun_pow",
+  thm "DERIV_fun_exp", thm "DERIV_fun_sin", thm "DERIV_fun_cos",
+  thm "DERIV_Id", thm "DERIV_const", thm "DERIV_cos"];
+
+val DERIV_chain2 = thm "DERIV_chain2";
+
+in
+
 exception DERIV_name;
 fun get_fun_name (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _)) = f
 |   get_fun_name (_ $ (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _))) = f
 |   get_fun_name _ = raise DERIV_name;
-
-val deriv_rulesI = [DERIV_Id,DERIV_const,DERIV_cos,DERIV_cmult,
-                    DERIV_sin, DERIV_exp, DERIV_inverse,DERIV_pow,
-                    DERIV_add, DERIV_diff, DERIV_mult, DERIV_minus,
-                    DERIV_inverse_fun,DERIV_quotient,DERIV_fun_pow,
-                    DERIV_fun_exp,DERIV_fun_sin,DERIV_fun_cos,
-                    DERIV_Id,DERIV_const,DERIV_cos];
 
 val deriv_tac =
   SUBGOAL (fn (prem,i) =>
@@ -50,6 +56,8 @@ val deriv_tac =
                      DERIV_chain2) i) handle DERIV_name => no_tac));;
 
 val DERIV_tac = ALLGOALS(fn i => REPEAT(deriv_tac i));
+
+end
 *}
 
 lemma Maclaurin_lemma2:

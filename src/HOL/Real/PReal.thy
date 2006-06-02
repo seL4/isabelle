@@ -27,11 +27,11 @@ lemma interval_empty_iff:
 by (auto dest: dense)
 
 
-constdefs
+definition
   cut :: "rat set => bool"
-    "cut A == {} \<subset> A &
-              A < {r. 0 < r} &
-              (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u)))"
+  "cut A = ({} \<subset> A &
+            A < {r. 0 < r} &
+            (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
 
 
 lemma cut_of_rat: 
@@ -56,24 +56,24 @@ typedef preal = "{A. cut A}"
 
 instance preal :: "{ord, plus, minus, times, inverse}" ..
 
-constdefs
+definition
   preal_of_rat :: "rat => preal"
-     "preal_of_rat q == Abs_preal({x::rat. 0 < x & x < q})"
+  "preal_of_rat q = Abs_preal({x::rat. 0 < x & x < q})"
 
   psup       :: "preal set => preal"
-    "psup(P)   == Abs_preal(\<Union>X \<in> P. Rep_preal(X))"
+  "psup(P) = Abs_preal(\<Union>X \<in> P. Rep_preal(X))"
 
   add_set :: "[rat set,rat set] => rat set"
-    "add_set A B == {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x + y}"
+  "add_set A B = {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x + y}"
 
   diff_set :: "[rat set,rat set] => rat set"
-    "diff_set A B == {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
+  "diff_set A B = {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
 
   mult_set :: "[rat set,rat set] => rat set"
-    "mult_set A B == {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x * y}"
+  "mult_set A B = {w. \<exists>x \<in> A. \<exists>y \<in> B. w = x * y}"
 
   inverse_set :: "rat set => rat set"
-    "inverse_set A == {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
+  "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
 
 
 defs (overloaded)
@@ -163,11 +163,11 @@ text{*A positive fraction not in a positive real is an upper bound.
  Gleason p. 122 - Remark (1)*}
 
 lemma not_in_preal_ub:
-     assumes A: "A \<in> preal"
-         and notx: "x \<notin> A"
-         and y: "y \<in> A"
-         and pos: "0 < x"
-        shows "y < x"
+  assumes A: "A \<in> preal"
+    and notx: "x \<notin> A"
+    and y: "y \<in> A"
+    and pos: "0 < x"
+  shows "y < x"
 proof (cases rule: linorder_cases)
   assume "x<y"
   with notx show ?thesis
@@ -271,11 +271,11 @@ lemma add_set_lemma3:
 proof (unfold add_set_def, clarify)
   fix x::rat and y::rat
   assume A: "A \<in> preal" 
-     and B: "B \<in> preal"
-     and [simp]: "0 < z"
-     and zless: "z < x + y"
-     and x:  "x \<in> A"
-     and y:  "y \<in> B"
+    and B: "B \<in> preal"
+    and [simp]: "0 < z"
+    and zless: "z < x + y"
+    and x:  "x \<in> A"
+    and y:  "y \<in> B"
   have xpos [simp]: "0<x" by (rule preal_imp_pos [OF A x])
   have ypos [simp]: "0<y" by (rule preal_imp_pos [OF B y])
   have xypos [simp]: "0 < x+y" by (simp add: pos_add_strict)
@@ -394,16 +394,15 @@ proof -
 qed
 
 lemma mult_set_not_rat_set:
-   assumes A: "A \<in> preal" 
-       and B: "B \<in> preal"
-     shows "mult_set A B < {r. 0 < r}"
+  assumes A: "A \<in> preal" 
+    and B: "B \<in> preal"
+  shows "mult_set A B < {r. 0 < r}"
 proof
   show "mult_set A B \<subseteq> {r. 0 < r}"
     by (force simp add: mult_set_def
-              intro: preal_imp_pos [OF A] preal_imp_pos [OF B] mult_pos_pos)
-next
+      intro: preal_imp_pos [OF A] preal_imp_pos [OF B] mult_pos_pos)
   show "mult_set A B \<noteq> {r. 0 < r}"
-    by (insert preal_not_mem_mult_set_Ex [OF A B], blast)
+    using preal_not_mem_mult_set_Ex [OF A B] by blast
 qed
 
 
@@ -415,11 +414,11 @@ lemma mult_set_lemma3:
 proof (unfold mult_set_def, clarify)
   fix x::rat and y::rat
   assume A: "A \<in> preal" 
-     and B: "B \<in> preal"
-     and [simp]: "0 < z"
-     and zless: "z < x * y"
-     and x:  "x \<in> A"
-     and y:  "y \<in> B"
+    and B: "B \<in> preal"
+    and [simp]: "0 < z"
+    and zless: "z < x * y"
+    and x:  "x \<in> A"
+    and y:  "y \<in> B"
   have [simp]: "0<y" by (rule preal_imp_pos [OF B y])
   show "\<exists>x' \<in> A. \<exists>y' \<in> B. z = x' * y'"
   proof
@@ -560,10 +559,10 @@ lemma linorder_le_cases [case_names le ge]:
 
 lemma preal_add_mult_distrib_mean:
   assumes a: "a \<in> Rep_preal w"
-      and b: "b \<in> Rep_preal w"
-      and d: "d \<in> Rep_preal x"
-      and e: "e \<in> Rep_preal y"
-     shows "\<exists>c \<in> Rep_preal w. a * d + b * e = c * (d + e)"
+    and b: "b \<in> Rep_preal w"
+    and d: "d \<in> Rep_preal x"
+    and e: "e \<in> Rep_preal y"
+  shows "\<exists>c \<in> Rep_preal w. a * d + b * e = c * (d + e)"
 proof
   let ?c = "(a*d + b*e)/(d+e)"
   have [simp]: "0<a" "0<b" "0<d" "0<e" "0<d+e"
@@ -690,9 +689,9 @@ subsection{*Gleason's Lemma 9-3.4, page 122*}
 
 lemma Gleason9_34_exists:
   assumes A: "A \<in> preal"
-      and "\<forall>x\<in>A. x + u \<in> A"
-      and "0 \<le> z"
-     shows "\<exists>b\<in>A. b + (of_int z) * u \<in> A"
+    and "\<forall>x\<in>A. x + u \<in> A"
+    and "0 \<le> z"
+  shows "\<exists>b\<in>A. b + (of_int z) * u \<in> A"
 proof (cases z rule: int_cases)
   case (nonneg n)
   show ?thesis
@@ -717,11 +716,11 @@ proof (induct u, induct y)
   fix a::int and b::int
   fix c::int and d::int
   assume bpos [simp]: "0 < b"
-     and dpos [simp]: "0 < d"
-     and closed: "\<forall>x\<in>A. x + (Fract c d) \<in> A"
-     and upos: "0 < Fract c d"
-     and ypos: "0 < Fract a b"
-     and notin: "Fract a b \<notin> A"
+    and dpos [simp]: "0 < d"
+    and closed: "\<forall>x\<in>A. x + (Fract c d) \<in> A"
+    and upos: "0 < Fract c d"
+    and ypos: "0 < Fract a b"
+    and notin: "Fract a b \<notin> A"
   have cpos [simp]: "0 < c" 
     by (simp add: zero_less_Fract_iff [OF dpos, symmetric] upos) 
   have apos [simp]: "0 < a" 
@@ -752,8 +751,8 @@ qed
 
 lemma Gleason9_34:
   assumes A: "A \<in> preal"
-      and upos: "0 < u"
-    shows "\<exists>r \<in> A. r + u \<notin> A"
+    and upos: "0 < u"
+  shows "\<exists>r \<in> A. r + u \<notin> A"
 proof (rule ccontr, simp)
   assume closed: "\<forall>r\<in>A. r + u \<in> A"
   from preal_exists_bound [OF A]
@@ -768,8 +767,8 @@ subsection{*Gleason's Lemma 9-3.6*}
 
 lemma lemma_gleason9_36:
   assumes A: "A \<in> preal"
-      and x: "1 < x"
-    shows "\<exists>r \<in> A. r*x \<notin> A"
+    and x: "1 < x"
+  shows "\<exists>r \<in> A. r*x \<notin> A"
 proof -
   from preal_nonempty [OF A]
   obtain y where y: "y \<in> A" and  ypos: "0<y" ..
@@ -824,9 +823,9 @@ lemma Rep_preal_of_rat:
 by (simp add: preal_of_rat_def rat_mem_preal) 
 
 lemma subset_inverse_mult_lemma:
-      assumes xpos: "0 < x" and xless: "x < 1"
-         shows "\<exists>r u y. 0 < r & r < y & inverse y \<notin> Rep_preal R & 
-                        u \<in> Rep_preal R & x = r * u"
+  assumes xpos: "0 < x" and xless: "x < 1"
+  shows "\<exists>r u y. 0 < r & r < y & inverse y \<notin> Rep_preal R & 
+    u \<in> Rep_preal R & x = r * u"
 proof -
   from xpos and xless have "1 < inverse x" by (simp add: one_less_inverse_iff)
   from lemma_gleason9_36 [OF Rep_preal this]
@@ -858,11 +857,11 @@ apply (blast dest: subset_inverse_mult_lemma)
 done
 
 lemma inverse_mult_subset_lemma:
-     assumes rpos: "0 < r" 
-         and rless: "r < y"
-         and notin: "inverse y \<notin> Rep_preal R"
-         and q: "q \<in> Rep_preal R"
-     shows "r*q < 1"
+  assumes rpos: "0 < r" 
+    and rless: "r < y"
+    and notin: "inverse y \<notin> Rep_preal R"
+    and q: "q \<in> Rep_preal R"
+  shows "r*q < 1"
 proof -
   have "q < inverse y" using rpos rless
     by (simp add: not_in_preal_ub [OF Rep_preal notin] q)
@@ -961,7 +960,7 @@ apply (auto dest: Rep_preal [THEN preal_downwards_closed])
 done
 
 lemma diff_set_not_rat_set:
-     "diff_set (Rep_preal S) (Rep_preal R) < {r. 0 < r}" (is "?lhs < ?rhs")
+  "diff_set (Rep_preal S) (Rep_preal R) < {r. 0 < r}" (is "?lhs < ?rhs")
 proof
   show "?lhs \<subseteq> ?rhs" by (auto simp add: diff_set_def) 
   show "?lhs \<noteq> ?rhs" using diff_set_nonempty by blast
@@ -1007,11 +1006,11 @@ text{*proving that @{term "R + D \<le> S"}*}
 
 lemma less_add_left_lemma:
   assumes Rless: "R < S"
-      and a: "a \<in> Rep_preal R"
-      and cb: "c + b \<in> Rep_preal S"
-      and "c \<notin> Rep_preal R"
-      and "0 < b"
-      and "0 < c"
+    and a: "a \<in> Rep_preal R"
+    and cb: "c + b \<in> Rep_preal S"
+    and "c \<notin> Rep_preal R"
+    and "0 < b"
+    and "0 < c"
   shows "a + b \<in> Rep_preal S"
 proof -
   have "0<a" by (rule preal_imp_pos [OF Rep_preal a])
@@ -1039,8 +1038,8 @@ done
 
 lemma less_add_left_lemma2:
   assumes Rless: "R < S"
-      and x:     "x \<in> Rep_preal S"
-      and xnot: "x \<notin>  Rep_preal R"
+    and x:     "x \<in> Rep_preal S"
+    and xnot: "x \<notin>  Rep_preal R"
   shows "\<exists>u v z. 0 < v & 0 < z & u \<in> Rep_preal R & z \<notin> Rep_preal R & 
                      z + v \<in> Rep_preal S & x = u + v"
 proof -
@@ -1216,9 +1215,9 @@ done
 
 lemma preal_of_rat_add_lemma2:
   assumes "u < x + y"
-      and "0 < x"
-      and "0 < y"
-      and "0 < u"
+    and "0 < x"
+    and "0 < y"
+    and "0 < u"
   shows "\<exists>v w::rat. w < y & 0 < v & v < x & 0 < w & u = v + w"
 proof (intro exI conjI)
   show "u * x * inverse(x+y) < x" using prems 
@@ -1253,8 +1252,8 @@ done
 
 lemma preal_of_rat_mult_lemma2: 
   assumes xless: "x < y * z"
-      and xpos: "0 < x"
-      and ypos: "0 < y"
+    and xpos: "0 < x"
+    and ypos: "0 < y"
   shows "x * z * inverse y * inverse z < (z::rat)"
 proof -
   have "0 < y * z" using prems by simp
@@ -1270,9 +1269,9 @@ qed
 
 lemma preal_of_rat_mult_lemma3:
   assumes uless: "u < x * y"
-      and "0 < x"
-      and "0 < y"
-      and "0 < u"
+    and "0 < x"
+    and "0 < y"
+    and "0 < u"
   shows "\<exists>v w::rat. v < x & w < y & 0 < v & 0 < w & u = v * w"
 proof -
   from dense [OF uless] 
@@ -1316,38 +1315,5 @@ by (simp add: preal_of_rat_less_iff linorder_not_less [symmetric])
 lemma preal_of_rat_eq_iff:
       "[| 0 < x; 0 < y|] ==> (preal_of_rat x = preal_of_rat y) = (x = y)"
 by (simp add: preal_of_rat_le_iff order_eq_iff) 
-
-
-ML
-{*
-val mem_Rep_preal_Ex = thm"mem_Rep_preal_Ex";
-val preal_add_commute = thm"preal_add_commute";
-val preal_add_assoc = thm"preal_add_assoc";
-val preal_add_left_commute = thm"preal_add_left_commute";
-val preal_mult_commute = thm"preal_mult_commute";
-val preal_mult_assoc = thm"preal_mult_assoc";
-val preal_mult_left_commute = thm"preal_mult_left_commute";
-val preal_add_mult_distrib2 = thm"preal_add_mult_distrib2";
-val preal_add_mult_distrib = thm"preal_add_mult_distrib";
-val preal_self_less_add_left = thm"preal_self_less_add_left";
-val preal_self_less_add_right = thm"preal_self_less_add_right";
-val less_add_left = thm"less_add_left";
-val preal_add_less2_mono1 = thm"preal_add_less2_mono1";
-val preal_add_less2_mono2 = thm"preal_add_less2_mono2";
-val preal_add_right_less_cancel = thm"preal_add_right_less_cancel";
-val preal_add_left_less_cancel = thm"preal_add_left_less_cancel";
-val preal_add_right_cancel = thm"preal_add_right_cancel";
-val preal_add_left_cancel = thm"preal_add_left_cancel";
-val preal_add_left_cancel_iff = thm"preal_add_left_cancel_iff";
-val preal_add_right_cancel_iff = thm"preal_add_right_cancel_iff";
-val preal_psup_le = thm"preal_psup_le";
-val psup_le_ub = thm"psup_le_ub";
-val preal_complete = thm"preal_complete";
-val preal_of_rat_add = thm"preal_of_rat_add";
-val preal_of_rat_mult = thm"preal_of_rat_mult";
-
-val preal_add_ac = thms"preal_add_ac";
-val preal_mult_ac = thms"preal_mult_ac";
-*}
 
 end

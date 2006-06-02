@@ -11,19 +11,19 @@ theory HSeries
 imports Series
 begin
 
-constdefs 
+definition
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"
-   "sumhr == 
-      %(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N"
+  "sumhr = 
+      (%(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N)"
 
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80)
-   "f NSsums s  == (%n. setsum f {0..<n}) ----NS> s"
+  "f NSsums s = (%n. setsum f {0..<n}) ----NS> s"
 
   NSsummable :: "(nat=>real) => bool"
-   "NSsummable f == (\<exists>s. f NSsums s)"
+  "NSsummable f = (\<exists>s. f NSsums s)"
 
   NSsuminf   :: "(nat=>real) => real"
-   "NSsuminf f == (@s. f NSsums s)"
+  "NSsuminf f = (SOME s. f NSsums s)"
 
 
 lemma sumhr:
@@ -229,43 +229,5 @@ lemma NSsummable_rabs_comparison_test:
 apply (rule NSsummable_comparison_test)
 apply (auto)
 done
-
-ML
-{*
-val sumhr = thm "sumhr";
-val sumhr_zero = thm "sumhr_zero";
-val sumhr_if = thm "sumhr_if";
-val sumhr_Suc_zero = thm "sumhr_Suc_zero";
-val sumhr_eq_bounds = thm "sumhr_eq_bounds";
-val sumhr_Suc = thm "sumhr_Suc";
-val sumhr_add_lbound_zero = thm "sumhr_add_lbound_zero";
-val sumhr_add = thm "sumhr_add";
-val sumhr_mult = thm "sumhr_mult";
-val sumhr_split_add = thm "sumhr_split_add";
-val sumhr_split_diff = thm "sumhr_split_diff";
-val sumhr_hrabs = thm "sumhr_hrabs";
-val sumhr_fun_hypnat_eq = thm "sumhr_fun_hypnat_eq";
-val sumhr_less_bounds_zero = thm "sumhr_less_bounds_zero";
-val sumhr_minus = thm "sumhr_minus";
-val sumhr_shift_bounds = thm "sumhr_shift_bounds";
-val sumhr_hypreal_of_hypnat_omega = thm "sumhr_hypreal_of_hypnat_omega";
-val sumhr_hypreal_omega_minus_one = thm "sumhr_hypreal_omega_minus_one";
-val sumhr_minus_one_realpow_zero = thm "sumhr_minus_one_realpow_zero";
-val sumhr_interval_const = thm "sumhr_interval_const";
-val starfunNat_sumr = thm "starfunNat_sumr";
-val sumhr_hrabs_approx = thm "sumhr_hrabs_approx";
-val sums_NSsums_iff = thm "sums_NSsums_iff";
-val summable_NSsummable_iff = thm "summable_NSsummable_iff";
-val suminf_NSsuminf_iff = thm "suminf_NSsuminf_iff";
-val NSsums_NSsummable = thm "NSsums_NSsummable";
-val NSsummable_NSsums = thm "NSsummable_NSsums";
-val NSsums_unique = thm "NSsums_unique";
-val NSseries_zero = thm "NSseries_zero";
-val NSsummable_NSCauchy = thm "NSsummable_NSCauchy";
-val NSsummable_NSLIMSEQ_zero = thm "NSsummable_NSLIMSEQ_zero";
-val summable_LIMSEQ_zero = thm "summable_LIMSEQ_zero";
-val NSsummable_comparison_test = thm "NSsummable_comparison_test";
-val NSsummable_rabs_comparison_test = thm "NSsummable_rabs_comparison_test";
-*}
 
 end

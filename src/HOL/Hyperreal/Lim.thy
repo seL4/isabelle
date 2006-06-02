@@ -14,61 +14,58 @@ begin
 
 text{*Standard and Nonstandard Definitions*}
 
-constdefs
+definition
   LIM :: "[real=>real,real,real] => bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
-  "f -- a --> L ==
-     \<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s
-        --> \<bar>f x + -L\<bar> < r"
+  "f -- a --> L =
+     (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s
+        --> \<bar>f x + -L\<bar> < r)"
 
   NSLIM :: "[real=>real,real,real] => bool"
             ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
-  "f -- a --NS> L == (\<forall>x. (x \<noteq> hypreal_of_real a &
+  "f -- a --NS> L = (\<forall>x. (x \<noteq> hypreal_of_real a &
           x @= hypreal_of_real a -->
           ( *f* f) x @= hypreal_of_real L))"
 
   isCont :: "[real=>real,real] => bool"
-  "isCont f a == (f -- a --> (f a))"
+  "isCont f a = (f -- a --> (f a))"
 
   isNSCont :: "[real=>real,real] => bool"
     --{*NS definition dispenses with limit notions*}
-  "isNSCont f a == (\<forall>y. y @= hypreal_of_real a -->
+  "isNSCont f a = (\<forall>y. y @= hypreal_of_real a -->
          ( *f* f) y @= hypreal_of_real (f a))"
 
   deriv:: "[real=>real,real,real] => bool"
     --{*Differentiation: D is derivative of function f at x*}
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
-  "DERIV f x :> D == ((%h. (f(x + h) + -f x)/h) -- 0 --> D)"
+  "DERIV f x :> D = ((%h. (f(x + h) + -f x)/h) -- 0 --> D)"
 
   nsderiv :: "[real=>real,real,real] => bool"
           ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
-  "NSDERIV f x :> D == (\<forall>h \<in> Infinitesimal - {0}.
+  "NSDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
       (( *f* f)(hypreal_of_real x + h) +
        - hypreal_of_real (f x))/h @= hypreal_of_real D)"
 
   differentiable :: "[real=>real,real] => bool"   (infixl "differentiable" 60)
-  "f differentiable x == (\<exists>D. DERIV f x :> D)"
+  "f differentiable x = (\<exists>D. DERIV f x :> D)"
 
   NSdifferentiable :: "[real=>real,real] => bool"
                        (infixl "NSdifferentiable" 60)
-  "f NSdifferentiable x == (\<exists>D. NSDERIV f x :> D)"
+  "f NSdifferentiable x = (\<exists>D. NSDERIV f x :> D)"
 
   increment :: "[real=>real,real,hypreal] => hypreal"
-  "increment f x h == (@inc. f NSdifferentiable x &
+  "increment f x h = (@inc. f NSdifferentiable x &
            inc = ( *f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
 
   isUCont :: "(real=>real) => bool"
-  "isUCont f ==  \<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x + -y\<bar> < s --> \<bar>f x + -f y\<bar> < r"
+  "isUCont f =  (\<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x + -y\<bar> < s --> \<bar>f x + -f y\<bar> < r)"
 
   isNSUCont :: "(real=>real) => bool"
-  "isNSUCont f == (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
+  "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
 
 
 consts
   Bolzano_bisect :: "[real*real=>bool, real, real, nat] => (real*real)"
-    --{*Used in the proof of the Bolzano theorem*}
-
-
 primrec
   "Bolzano_bisect P a b 0 = (a,b)"
   "Bolzano_bisect P a b (Suc n) =
@@ -2371,203 +2368,5 @@ proof -
     "\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> (a-c) & \<bar>x + -(a-c)\<bar> < s --> \<bar>f (x+c) + -L\<bar> < r" by simp
   thus ?thesis by (fold LIM_def)
 qed
-
-
-
-ML
-{*
-val LIM_def = thm"LIM_def";
-val NSLIM_def = thm"NSLIM_def";
-val isCont_def = thm"isCont_def";
-val isNSCont_def = thm"isNSCont_def";
-val deriv_def = thm"deriv_def";
-val nsderiv_def = thm"nsderiv_def";
-val differentiable_def = thm"differentiable_def";
-val NSdifferentiable_def = thm"NSdifferentiable_def";
-val increment_def = thm"increment_def";
-val isUCont_def = thm"isUCont_def";
-val isNSUCont_def = thm"isNSUCont_def";
-
-val half_gt_zero_iff = thm "half_gt_zero_iff";
-val half_gt_zero = thms "half_gt_zero";
-val abs_diff_triangle_ineq = thm "abs_diff_triangle_ineq";
-val LIM_eq = thm "LIM_eq";
-val LIM_D = thm "LIM_D";
-val LIM_const = thm "LIM_const";
-val LIM_add = thm "LIM_add";
-val LIM_minus = thm "LIM_minus";
-val LIM_add_minus = thm "LIM_add_minus";
-val LIM_diff = thm "LIM_diff";
-val LIM_const_not_eq = thm "LIM_const_not_eq";
-val LIM_const_eq = thm "LIM_const_eq";
-val LIM_unique = thm "LIM_unique";
-val LIM_mult_zero = thm "LIM_mult_zero";
-val LIM_self = thm "LIM_self";
-val LIM_equal = thm "LIM_equal";
-val LIM_trans = thm "LIM_trans";
-val LIM_NSLIM = thm "LIM_NSLIM";
-val NSLIM_LIM = thm "NSLIM_LIM";
-val LIM_NSLIM_iff = thm "LIM_NSLIM_iff";
-val NSLIM_mult = thm "NSLIM_mult";
-val LIM_mult2 = thm "LIM_mult2";
-val NSLIM_add = thm "NSLIM_add";
-val LIM_add2 = thm "LIM_add2";
-val NSLIM_const = thm "NSLIM_const";
-val LIM_const2 = thm "LIM_const2";
-val NSLIM_minus = thm "NSLIM_minus";
-val LIM_minus2 = thm "LIM_minus2";
-val NSLIM_add_minus = thm "NSLIM_add_minus";
-val LIM_add_minus2 = thm "LIM_add_minus2";
-val NSLIM_inverse = thm "NSLIM_inverse";
-val LIM_inverse = thm "LIM_inverse";
-val NSLIM_zero = thm "NSLIM_zero";
-val LIM_zero2 = thm "LIM_zero2";
-val NSLIM_zero_cancel = thm "NSLIM_zero_cancel";
-val LIM_zero_cancel = thm "LIM_zero_cancel";
-val NSLIM_not_zero = thm "NSLIM_not_zero";
-val NSLIM_const_not_eq = thm "NSLIM_const_not_eq";
-val NSLIM_const_eq = thm "NSLIM_const_eq";
-val NSLIM_unique = thm "NSLIM_unique";
-val LIM_unique2 = thm "LIM_unique2";
-val NSLIM_mult_zero = thm "NSLIM_mult_zero";
-val LIM_mult_zero2 = thm "LIM_mult_zero2";
-val NSLIM_self = thm "NSLIM_self";
-val isNSContD = thm "isNSContD";
-val isNSCont_NSLIM = thm "isNSCont_NSLIM";
-val NSLIM_isNSCont = thm "NSLIM_isNSCont";
-val isNSCont_NSLIM_iff = thm "isNSCont_NSLIM_iff";
-val isNSCont_LIM_iff = thm "isNSCont_LIM_iff";
-val isNSCont_isCont_iff = thm "isNSCont_isCont_iff";
-val isCont_isNSCont = thm "isCont_isNSCont";
-val isNSCont_isCont = thm "isNSCont_isCont";
-val NSLIM_h_iff = thm "NSLIM_h_iff";
-val NSLIM_isCont_iff = thm "NSLIM_isCont_iff";
-val LIM_isCont_iff = thm "LIM_isCont_iff";
-val isCont_iff = thm "isCont_iff";
-val isCont_add = thm "isCont_add";
-val isCont_mult = thm "isCont_mult";
-val isCont_o = thm "isCont_o";
-val isCont_o2 = thm "isCont_o2";
-val isNSCont_minus = thm "isNSCont_minus";
-val isCont_minus = thm "isCont_minus";
-val isCont_inverse = thm "isCont_inverse";
-val isNSCont_inverse = thm "isNSCont_inverse";
-val isCont_diff = thm "isCont_diff";
-val isCont_const = thm "isCont_const";
-val isNSCont_const = thm "isNSCont_const";
-val isNSUContD = thm "isNSUContD";
-val isUCont_isCont = thm "isUCont_isCont";
-val isUCont_isNSUCont = thm "isUCont_isNSUCont";
-val isNSUCont_isUCont = thm "isNSUCont_isUCont";
-val DERIV_iff = thm "DERIV_iff";
-val DERIV_NS_iff = thm "DERIV_NS_iff";
-val DERIV_D = thm "DERIV_D";
-val NS_DERIV_D = thm "NS_DERIV_D";
-val DERIV_unique = thm "DERIV_unique";
-val NSDeriv_unique = thm "NSDeriv_unique";
-val differentiableD = thm "differentiableD";
-val differentiableI = thm "differentiableI";
-val NSdifferentiableD = thm "NSdifferentiableD";
-val NSdifferentiableI = thm "NSdifferentiableI";
-val LIM_I = thm "LIM_I";
-val DERIV_LIM_iff = thm "DERIV_LIM_iff";
-val DERIV_iff2 = thm "DERIV_iff2";
-val NSDERIV_NSLIM_iff = thm "NSDERIV_NSLIM_iff";
-val NSDERIV_NSLIM_iff2 = thm "NSDERIV_NSLIM_iff2";
-val NSDERIV_iff2 = thm "NSDERIV_iff2";
-val hypreal_not_eq_minus_iff = thm "hypreal_not_eq_minus_iff";
-val NSDERIVD5 = thm "NSDERIVD5";
-val NSDERIVD4 = thm "NSDERIVD4";
-val NSDERIVD3 = thm "NSDERIVD3";
-val NSDERIV_DERIV_iff = thm "NSDERIV_DERIV_iff";
-val NSDERIV_isNSCont = thm "NSDERIV_isNSCont";
-val DERIV_isCont = thm "DERIV_isCont";
-val NSDERIV_const = thm "NSDERIV_const";
-val DERIV_const = thm "DERIV_const";
-val NSDERIV_add = thm "NSDERIV_add";
-val DERIV_add = thm "DERIV_add";
-val NSDERIV_mult = thm "NSDERIV_mult";
-val DERIV_mult = thm "DERIV_mult";
-val NSDERIV_cmult = thm "NSDERIV_cmult";
-val DERIV_cmult = thm "DERIV_cmult";
-val NSDERIV_minus = thm "NSDERIV_minus";
-val DERIV_minus = thm "DERIV_minus";
-val NSDERIV_add_minus = thm "NSDERIV_add_minus";
-val DERIV_add_minus = thm "DERIV_add_minus";
-val NSDERIV_diff = thm "NSDERIV_diff";
-val DERIV_diff = thm "DERIV_diff";
-val incrementI = thm "incrementI";
-val incrementI2 = thm "incrementI2";
-val increment_thm = thm "increment_thm";
-val increment_thm2 = thm "increment_thm2";
-val increment_approx_zero = thm "increment_approx_zero";
-val NSDERIV_zero = thm "NSDERIV_zero";
-val NSDERIV_approx = thm "NSDERIV_approx";
-val NSDERIVD1 = thm "NSDERIVD1";
-val NSDERIVD2 = thm "NSDERIVD2";
-val NSDERIV_chain = thm "NSDERIV_chain";
-val DERIV_chain = thm "DERIV_chain";
-val DERIV_chain2 = thm "DERIV_chain2";
-val NSDERIV_Id = thm "NSDERIV_Id";
-val DERIV_Id = thm "DERIV_Id";
-val isCont_Id = thms "isCont_Id";
-val DERIV_cmult_Id = thm "DERIV_cmult_Id";
-val NSDERIV_cmult_Id = thm "NSDERIV_cmult_Id";
-val DERIV_pow = thm "DERIV_pow";
-val NSDERIV_pow = thm "NSDERIV_pow";
-val NSDERIV_inverse = thm "NSDERIV_inverse";
-val DERIV_inverse = thm "DERIV_inverse";
-val DERIV_inverse_fun = thm "DERIV_inverse_fun";
-val NSDERIV_inverse_fun = thm "NSDERIV_inverse_fun";
-val DERIV_quotient = thm "DERIV_quotient";
-val NSDERIV_quotient = thm "NSDERIV_quotient";
-val CARAT_DERIV = thm "CARAT_DERIV";
-val CARAT_NSDERIV = thm "CARAT_NSDERIV";
-val hypreal_eq_minus_iff3 = thm "hypreal_eq_minus_iff3";
-val starfun_if_eq = thm "starfun_if_eq";
-val CARAT_DERIVD = thm "CARAT_DERIVD";
-val f_inc_g_dec_Beq_f = thm "f_inc_g_dec_Beq_f";
-val f_inc_g_dec_Beq_g = thm "f_inc_g_dec_Beq_g";
-val f_inc_imp_le_lim = thm "f_inc_imp_le_lim";
-val lim_uminus = thm "lim_uminus";
-val g_dec_imp_lim_le = thm "g_dec_imp_lim_le";
-val Bolzano_bisect_le = thm "Bolzano_bisect_le";
-val Bolzano_bisect_fst_le_Suc = thm "Bolzano_bisect_fst_le_Suc";
-val Bolzano_bisect_Suc_le_snd = thm "Bolzano_bisect_Suc_le_snd";
-val eq_divide_2_times_iff = thm "eq_divide_2_times_iff";
-val Bolzano_bisect_diff = thm "Bolzano_bisect_diff";
-val Bolzano_nest_unique = thms "Bolzano_nest_unique";
-val not_P_Bolzano_bisect = thm "not_P_Bolzano_bisect";
-val not_P_Bolzano_bisect = thm "not_P_Bolzano_bisect";
-val lemma_BOLZANO2 = thm "lemma_BOLZANO2";
-val IVT = thm "IVT";
-val IVT2 = thm "IVT2";
-val IVT_objl = thm "IVT_objl";
-val IVT2_objl = thm "IVT2_objl";
-val isCont_bounded = thm "isCont_bounded";
-val isCont_has_Ub = thm "isCont_has_Ub";
-val isCont_eq_Ub = thm "isCont_eq_Ub";
-val isCont_eq_Lb = thm "isCont_eq_Lb";
-val isCont_Lb_Ub = thm "isCont_Lb_Ub";
-val DERIV_left_inc = thm "DERIV_left_inc";
-val DERIV_left_dec = thm "DERIV_left_dec";
-val DERIV_local_max = thm "DERIV_local_max";
-val DERIV_local_min = thm "DERIV_local_min";
-val DERIV_local_const = thm "DERIV_local_const";
-val Rolle = thm "Rolle";
-val MVT = thm "MVT";
-val DERIV_isconst_end = thm "DERIV_isconst_end";
-val DERIV_isconst1 = thm "DERIV_isconst1";
-val DERIV_isconst2 = thm "DERIV_isconst2";
-val DERIV_isconst_all = thm "DERIV_isconst_all";
-val DERIV_const_ratio_const = thm "DERIV_const_ratio_const";
-val DERIV_const_ratio_const2 = thm "DERIV_const_ratio_const2";
-val real_average_minus_first = thm "real_average_minus_first";
-val real_average_minus_second = thm "real_average_minus_second";
-val DERIV_const_average = thm "DERIV_const_average";
-val isCont_inj_range = thm "isCont_inj_range";
-val isCont_inverse_function = thm "isCont_inverse_function";
-*}
-
 
 end

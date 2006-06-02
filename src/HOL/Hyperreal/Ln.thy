@@ -6,7 +6,6 @@
 header {* Properties of ln *}
 
 theory Ln
-
 imports Transcendental
 begin
 
@@ -14,7 +13,7 @@ lemma exp_first_two_terms: "exp x = 1 + x + suminf (%n.
   inverse(real (fact (n+2))) * (x ^ (n+2)))"
 proof -
   have "exp x = suminf (%n. inverse(real (fact n)) * (x ^ n))"
-    by (unfold exp_def, simp)
+    by (simp add: exp_def)
   also from summable_exp have "... = (SUM n : {0..<2}. 
       inverse(real (fact n)) * (x ^ n)) + suminf (%n.
       inverse(real (fact (n+2))) * (x ^ (n+2)))" (is "_ = ?a + _")
@@ -477,4 +476,3 @@ proof -
 qed
 
 end
-

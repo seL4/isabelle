@@ -13,22 +13,21 @@ imports PReal
 uses ("real_arith.ML")
 begin
 
-constdefs
+definition
   realrel   ::  "((preal * preal) * (preal * preal)) set"
-  "realrel == {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
+  "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Real)  real = "UNIV//realrel"
   by (auto simp add: quotient_def)
 
 instance real :: "{ord, zero, one, plus, times, minus, inverse}" ..
 
-constdefs
+definition
 
   (** these don't use the overloaded "real" function: users don't see them **)
 
   real_of_preal :: "preal => real"
-  "real_of_preal m     ==
-           Abs_Real(realrel``{(m + preal_of_rat 1, preal_of_rat 1)})"
+  "real_of_preal m = Abs_Real(realrel``{(m + preal_of_rat 1, preal_of_rat 1)})"
 
 consts
    (*Overloaded constant denoting the Real subset of enclosing
@@ -38,8 +37,8 @@ consts
    (*overloaded constant for injecting other types into "real"*)
    real :: "'a => real"
 
-syntax (xsymbols)
-  Reals     :: "'a set"                   ("\<real>")
+const_syntax (xsymbols)
+  Reals  ("\<real>")
 
 
 defs (overloaded)
@@ -1018,7 +1017,6 @@ by (force simp add: Ring_and_Field.abs_less_iff)
 lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
 by (force simp add: OrderedGroup.abs_le_iff)
 
-(*FIXME: used only once, in SEQ.ML*)
 lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)
 
@@ -1030,27 +1028,11 @@ apply (simp add: linorder_not_less)
 apply (auto intro: abs_ge_self [THEN order_trans])
 done
  
-text{*Used only in Hyperreal/Lim.ML*}
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 apply (simp add: real_add_assoc)
 apply (rule_tac a1 = y in add_left_commute [THEN ssubst])
 apply (rule real_add_assoc [THEN subst])
 apply (rule abs_triangle_ineq)
 done
-
-
-ML
-{*
-val real_lbound_gt_zero = thm"real_lbound_gt_zero";
-val real_less_half_sum = thm"real_less_half_sum";
-val real_gt_half_sum = thm"real_gt_half_sum";
-
-val abs_interval_iff = thm"abs_interval_iff";
-val abs_le_interval_iff = thm"abs_le_interval_iff";
-val abs_add_one_gt_zero = thm"abs_add_one_gt_zero";
-val abs_add_one_not_less_self = thm"abs_add_one_not_less_self";
-val abs_sum_triangle_ineq = thm"abs_sum_triangle_ineq";
-*}
-
 
 end

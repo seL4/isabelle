@@ -9,34 +9,34 @@ theory NSCA
 imports NSComplex
 begin
 
-constdefs
+definition
 
    CInfinitesimal  :: "hcomplex set"
-   "CInfinitesimal == {x. \<forall>r \<in> Reals. 0 < r --> hcmod x < r}"
+   "CInfinitesimal = {x. \<forall>r \<in> Reals. 0 < r --> hcmod x < r}"
 
     capprox    :: "[hcomplex,hcomplex] => bool"  (infixl "@c=" 50)  
       --{*the ``infinitely close'' relation*}
-      "x @c= y == (x - y) \<in> CInfinitesimal"     
+      "x @c= y = ((x - y) \<in> CInfinitesimal)"     
   
    (* standard complex numbers reagarded as an embedded subset of NS complex *)
    SComplex  :: "hcomplex set"
-   "SComplex == {x. \<exists>r. x = hcomplex_of_complex r}"
+   "SComplex = {x. \<exists>r. x = hcomplex_of_complex r}"
 
    CFinite :: "hcomplex set"
-   "CFinite == {x. \<exists>r \<in> Reals. hcmod x < r}"
+   "CFinite = {x. \<exists>r \<in> Reals. hcmod x < r}"
 
    CInfinite :: "hcomplex set"
-   "CInfinite == {x. \<forall>r \<in> Reals. r < hcmod x}"
+   "CInfinite = {x. \<forall>r \<in> Reals. r < hcmod x}"
 
    stc :: "hcomplex => hcomplex"
     --{* standard part map*}
-   "stc x == (@r. x \<in> CFinite & r:SComplex & r @c= x)"
+   "stc x = (SOME r. x \<in> CFinite & r:SComplex & r @c= x)"
 
    cmonad    :: "hcomplex => hcomplex set"
-   "cmonad x  == {y. x @c= y}"
+   "cmonad x = {y. x @c= y}"
 
    cgalaxy   :: "hcomplex => hcomplex set"
-   "cgalaxy x == {y. (x - y) \<in> CFinite}"
+   "cgalaxy x = {y. (x - y) \<in> CFinite}"
 
 
 
@@ -1217,222 +1217,4 @@ lemma hcomplex_of_complex_approx_zero_iff2 [simp]:
      "(0 @c= hcomplex_of_complex z) = (z = 0)"
 by (simp add: star_of_zero [symmetric] del: star_of_zero)
 
-
-ML
-{*
-val SComplex_add = thm "SComplex_add";
-val SComplex_mult = thm "SComplex_mult";
-val SComplex_inverse = thm "SComplex_inverse";
-val SComplex_divide = thm "SComplex_divide";
-val SComplex_minus = thm "SComplex_minus";
-val SComplex_minus_iff = thm "SComplex_minus_iff";
-val SComplex_diff = thm "SComplex_diff";
-val SComplex_add_cancel = thm "SComplex_add_cancel";
-val SReal_hcmod_hcomplex_of_complex = thm "SReal_hcmod_hcomplex_of_complex";
-val SReal_hcmod_number_of = thm "SReal_hcmod_number_of";
-val SReal_hcmod_SComplex = thm "SReal_hcmod_SComplex";
-val SComplex_hcomplex_of_complex = thm "SComplex_hcomplex_of_complex";
-val SComplex_number_of = thm "SComplex_number_of";
-val SComplex_divide_number_of = thm "SComplex_divide_number_of";
-val SComplex_UNIV_complex = thm "SComplex_UNIV_complex";
-val SComplex_iff = thm "SComplex_iff";
-val hcomplex_of_complex_image = thm "hcomplex_of_complex_image";
-val inv_hcomplex_of_complex_image = thm "inv_hcomplex_of_complex_image";
-val SComplex_hcomplex_of_complex_image = thm "SComplex_hcomplex_of_complex_image";
-val SComplex_SReal_dense = thm "SComplex_SReal_dense";
-val SComplex_hcmod_SReal = thm "SComplex_hcmod_SReal";
-val SComplex_zero = thm "SComplex_zero";
-val SComplex_one = thm "SComplex_one";
-val CFinite_add = thm "CFinite_add";
-val CFinite_mult = thm "CFinite_mult";
-val CFinite_minus_iff = thm "CFinite_minus_iff";
-val SComplex_subset_CFinite = thm "SComplex_subset_CFinite";
-val HFinite_hcmod_hcomplex_of_complex = thm "HFinite_hcmod_hcomplex_of_complex";
-val CFinite_hcomplex_of_complex = thm "CFinite_hcomplex_of_complex";
-val CFiniteD = thm "CFiniteD";
-val CFinite_hcmod_iff = thm "CFinite_hcmod_iff";
-val CFinite_number_of = thm "CFinite_number_of";
-val CFinite_bounded = thm "CFinite_bounded";
-val CInfinitesimal_zero = thm "CInfinitesimal_zero";
-val hcomplex_sum_of_halves = thm "hcomplex_sum_of_halves";
-val CInfinitesimal_hcmod_iff = thm "CInfinitesimal_hcmod_iff";
-val one_not_CInfinitesimal = thm "one_not_CInfinitesimal";
-val CInfinitesimal_add = thm "CInfinitesimal_add";
-val CInfinitesimal_minus_iff = thm "CInfinitesimal_minus_iff";
-val CInfinitesimal_diff = thm "CInfinitesimal_diff";
-val CInfinitesimal_mult = thm "CInfinitesimal_mult";
-val CInfinitesimal_CFinite_mult = thm "CInfinitesimal_CFinite_mult";
-val CInfinitesimal_CFinite_mult2 = thm "CInfinitesimal_CFinite_mult2";
-val CInfinite_hcmod_iff = thm "CInfinite_hcmod_iff";
-val CInfinite_inverse_CInfinitesimal = thm "CInfinite_inverse_CInfinitesimal";
-val CInfinite_mult = thm "CInfinite_mult";
-val CInfinite_minus_iff = thm "CInfinite_minus_iff";
-val CFinite_sum_squares = thm "CFinite_sum_squares";
-val not_CInfinitesimal_not_zero = thm "not_CInfinitesimal_not_zero";
-val not_CInfinitesimal_not_zero2 = thm "not_CInfinitesimal_not_zero2";
-val CFinite_diff_CInfinitesimal_hcmod = thm "CFinite_diff_CInfinitesimal_hcmod";
-val hcmod_less_CInfinitesimal = thm "hcmod_less_CInfinitesimal";
-val hcmod_le_CInfinitesimal = thm "hcmod_le_CInfinitesimal";
-val CInfinitesimal_interval = thm "CInfinitesimal_interval";
-val CInfinitesimal_interval2 = thm "CInfinitesimal_interval2";
-val not_CInfinitesimal_mult = thm "not_CInfinitesimal_mult";
-val CInfinitesimal_mult_disj = thm "CInfinitesimal_mult_disj";
-val CFinite_CInfinitesimal_diff_mult = thm "CFinite_CInfinitesimal_diff_mult";
-val CInfinitesimal_subset_CFinite = thm "CInfinitesimal_subset_CFinite";
-val CInfinitesimal_hcomplex_of_complex_mult = thm "CInfinitesimal_hcomplex_of_complex_mult";
-val CInfinitesimal_hcomplex_of_complex_mult2 = thm "CInfinitesimal_hcomplex_of_complex_mult2";
-val mem_cinfmal_iff = thm "mem_cinfmal_iff";
-val capprox_minus_iff = thm "capprox_minus_iff";
-val capprox_minus_iff2 = thm "capprox_minus_iff2";
-val capprox_refl = thm "capprox_refl";
-val capprox_sym = thm "capprox_sym";
-val capprox_trans = thm "capprox_trans";
-val capprox_trans2 = thm "capprox_trans2";
-val capprox_trans3 = thm "capprox_trans3";
-val number_of_capprox_reorient = thm "number_of_capprox_reorient";
-val CInfinitesimal_capprox_minus = thm "CInfinitesimal_capprox_minus";
-val capprox_monad_iff = thm "capprox_monad_iff";
-val Infinitesimal_capprox = thm "Infinitesimal_capprox";
-val capprox_add = thm "capprox_add";
-val capprox_minus = thm "capprox_minus";
-val capprox_minus2 = thm "capprox_minus2";
-val capprox_minus_cancel = thm "capprox_minus_cancel";
-val capprox_add_minus = thm "capprox_add_minus";
-val capprox_mult1 = thm "capprox_mult1";
-val capprox_mult2 = thm "capprox_mult2";
-val capprox_mult_subst = thm "capprox_mult_subst";
-val capprox_mult_subst2 = thm "capprox_mult_subst2";
-val capprox_mult_subst_SComplex = thm "capprox_mult_subst_SComplex";
-val capprox_eq_imp = thm "capprox_eq_imp";
-val CInfinitesimal_minus_capprox = thm "CInfinitesimal_minus_capprox";
-val bex_CInfinitesimal_iff = thm "bex_CInfinitesimal_iff";
-val bex_CInfinitesimal_iff2 = thm "bex_CInfinitesimal_iff2";
-val CInfinitesimal_add_capprox = thm "CInfinitesimal_add_capprox";
-val CInfinitesimal_add_capprox_self = thm "CInfinitesimal_add_capprox_self";
-val CInfinitesimal_add_capprox_self2 = thm "CInfinitesimal_add_capprox_self2";
-val CInfinitesimal_add_minus_capprox_self = thm "CInfinitesimal_add_minus_capprox_self";
-val CInfinitesimal_add_cancel = thm "CInfinitesimal_add_cancel";
-val CInfinitesimal_add_right_cancel = thm "CInfinitesimal_add_right_cancel";
-val capprox_add_left_cancel = thm "capprox_add_left_cancel";
-val capprox_add_right_cancel = thm "capprox_add_right_cancel";
-val capprox_add_mono1 = thm "capprox_add_mono1";
-val capprox_add_mono2 = thm "capprox_add_mono2";
-val capprox_add_left_iff = thm "capprox_add_left_iff";
-val capprox_add_right_iff = thm "capprox_add_right_iff";
-val capprox_CFinite = thm "capprox_CFinite";
-val capprox_hcomplex_of_complex_CFinite = thm "capprox_hcomplex_of_complex_CFinite";
-val capprox_mult_CFinite = thm "capprox_mult_CFinite";
-val capprox_mult_hcomplex_of_complex = thm "capprox_mult_hcomplex_of_complex";
-val capprox_SComplex_mult_cancel_zero = thm "capprox_SComplex_mult_cancel_zero";
-val capprox_mult_SComplex1 = thm "capprox_mult_SComplex1";
-val capprox_mult_SComplex2 = thm "capprox_mult_SComplex2";
-val capprox_mult_SComplex_zero_cancel_iff = thm "capprox_mult_SComplex_zero_cancel_iff";
-val capprox_SComplex_mult_cancel = thm "capprox_SComplex_mult_cancel";
-val capprox_SComplex_mult_cancel_iff1 = thm "capprox_SComplex_mult_cancel_iff1";
-val capprox_hcmod_approx_zero = thm "capprox_hcmod_approx_zero";
-val capprox_approx_zero_iff = thm "capprox_approx_zero_iff";
-val capprox_minus_zero_cancel_iff = thm "capprox_minus_zero_cancel_iff";
-val Infinitesimal_hcmod_add_diff = thm "Infinitesimal_hcmod_add_diff";
-val approx_hcmod_add_hcmod = thm "approx_hcmod_add_hcmod";
-val capprox_hcmod_approx = thm "capprox_hcmod_approx";
-val CInfinitesimal_less_SComplex = thm "CInfinitesimal_less_SComplex";
-val SComplex_Int_CInfinitesimal_zero = thm "SComplex_Int_CInfinitesimal_zero";
-val SComplex_CInfinitesimal_zero = thm "SComplex_CInfinitesimal_zero";
-val SComplex_CFinite_diff_CInfinitesimal = thm "SComplex_CFinite_diff_CInfinitesimal";
-val hcomplex_of_complex_CFinite_diff_CInfinitesimal = thm "hcomplex_of_complex_CFinite_diff_CInfinitesimal";
-val hcomplex_of_complex_CInfinitesimal_iff_0 = thm "hcomplex_of_complex_CInfinitesimal_iff_0";
-val number_of_not_CInfinitesimal = thm "number_of_not_CInfinitesimal";
-val capprox_SComplex_not_zero = thm "capprox_SComplex_not_zero";
-val CFinite_diff_CInfinitesimal_capprox = thm "CFinite_diff_CInfinitesimal_capprox";
-val CInfinitesimal_ratio = thm "CInfinitesimal_ratio";
-val SComplex_capprox_iff = thm "SComplex_capprox_iff";
-val number_of_capprox_iff = thm "number_of_capprox_iff";
-val number_of_CInfinitesimal_iff = thm "number_of_CInfinitesimal_iff";
-val hcomplex_of_complex_approx_iff = thm "hcomplex_of_complex_approx_iff";
-val hcomplex_of_complex_capprox_number_of_iff = thm "hcomplex_of_complex_capprox_number_of_iff";
-val capprox_unique_complex = thm "capprox_unique_complex";
-val hcomplex_capproxD1 = thm "hcomplex_capproxD1";
-val hcomplex_capproxD2 = thm "hcomplex_capproxD2";
-val hcomplex_capproxI = thm "hcomplex_capproxI";
-val capprox_approx_iff = thm "capprox_approx_iff";
-val hcomplex_of_hypreal_capprox_iff = thm "hcomplex_of_hypreal_capprox_iff";
-val CFinite_HFinite_Re = thm "CFinite_HFinite_Re";
-val CFinite_HFinite_Im = thm "CFinite_HFinite_Im";
-val HFinite_Re_Im_CFinite = thm "HFinite_Re_Im_CFinite";
-val CFinite_HFinite_iff = thm "CFinite_HFinite_iff";
-val SComplex_Re_SReal = thm "SComplex_Re_SReal";
-val SComplex_Im_SReal = thm "SComplex_Im_SReal";
-val Reals_Re_Im_SComplex = thm "Reals_Re_Im_SComplex";
-val SComplex_SReal_iff = thm "SComplex_SReal_iff";
-val CInfinitesimal_Infinitesimal_iff = thm "CInfinitesimal_Infinitesimal_iff";
-val eq_Abs_star_Bex = thm "eq_Abs_star_Bex";
-val stc_part_Ex = thm "stc_part_Ex";
-val stc_part_Ex1 = thm "stc_part_Ex1";
-val CFinite_Int_CInfinite_empty = thm "CFinite_Int_CInfinite_empty";
-val CFinite_not_CInfinite = thm "CFinite_not_CInfinite";
-val not_CFinite_CInfinite = thm "not_CFinite_CInfinite";
-val CInfinite_CFinite_disj = thm "CInfinite_CFinite_disj";
-val CInfinite_CFinite_iff = thm "CInfinite_CFinite_iff";
-val CFinite_CInfinite_iff = thm "CFinite_CInfinite_iff";
-val CInfinite_diff_CFinite_CInfinitesimal_disj = thm "CInfinite_diff_CFinite_CInfinitesimal_disj";
-val CFinite_inverse = thm "CFinite_inverse";
-val CFinite_inverse2 = thm "CFinite_inverse2";
-val CInfinitesimal_inverse_CFinite = thm "CInfinitesimal_inverse_CFinite";
-val CFinite_not_CInfinitesimal_inverse = thm "CFinite_not_CInfinitesimal_inverse";
-val capprox_inverse = thm "capprox_inverse";
-val hcomplex_of_complex_capprox_inverse = thms "hcomplex_of_complex_capprox_inverse";
-val inverse_add_CInfinitesimal_capprox = thm "inverse_add_CInfinitesimal_capprox";
-val inverse_add_CInfinitesimal_capprox2 = thm "inverse_add_CInfinitesimal_capprox2";
-val inverse_add_CInfinitesimal_approx_CInfinitesimal = thm "inverse_add_CInfinitesimal_approx_CInfinitesimal";
-val CInfinitesimal_square_iff = thm "CInfinitesimal_square_iff";
-val capprox_CFinite_mult_cancel = thm "capprox_CFinite_mult_cancel";
-val capprox_CFinite_mult_cancel_iff1 = thm "capprox_CFinite_mult_cancel_iff1";
-val capprox_cmonad_iff = thm "capprox_cmonad_iff";
-val CInfinitesimal_cmonad_eq = thm "CInfinitesimal_cmonad_eq";
-val mem_cmonad_iff = thm "mem_cmonad_iff";
-val CInfinitesimal_cmonad_zero_iff = thm "CInfinitesimal_cmonad_zero_iff";
-val cmonad_zero_minus_iff = thm "cmonad_zero_minus_iff";
-val cmonad_zero_hcmod_iff = thm "cmonad_zero_hcmod_iff";
-val mem_cmonad_self = thm "mem_cmonad_self";
-val stc_capprox_self = thm "stc_capprox_self";
-val stc_SComplex = thm "stc_SComplex";
-val stc_CFinite = thm "stc_CFinite";
-val stc_SComplex_eq = thm "stc_SComplex_eq";
-val stc_hcomplex_of_complex = thm "stc_hcomplex_of_complex";
-val stc_eq_capprox = thm "stc_eq_capprox";
-val capprox_stc_eq = thm "capprox_stc_eq";
-val stc_eq_capprox_iff = thm "stc_eq_capprox_iff";
-val stc_CInfinitesimal_add_SComplex = thm "stc_CInfinitesimal_add_SComplex";
-val stc_CInfinitesimal_add_SComplex2 = thm "stc_CInfinitesimal_add_SComplex2";
-val CFinite_stc_CInfinitesimal_add = thm "CFinite_stc_CInfinitesimal_add";
-val stc_add = thm "stc_add";
-val stc_number_of = thm "stc_number_of";
-val stc_zero = thm "stc_zero";
-val stc_one = thm "stc_one";
-val stc_minus = thm "stc_minus";
-val stc_diff = thm "stc_diff";
-val lemma_stc_mult = thm "lemma_stc_mult";
-val stc_mult = thm "stc_mult";
-val stc_CInfinitesimal = thm "stc_CInfinitesimal";
-val stc_not_CInfinitesimal = thm "stc_not_CInfinitesimal";
-val stc_inverse = thm "stc_inverse";
-val stc_divide = thm "stc_divide";
-val stc_idempotent = thm "stc_idempotent";
-val CFinite_HFinite_hcomplex_of_hypreal = thm "CFinite_HFinite_hcomplex_of_hypreal";
-val SComplex_SReal_hcomplex_of_hypreal = thm "SComplex_SReal_hcomplex_of_hypreal";
-val stc_hcomplex_of_hypreal = thm "stc_hcomplex_of_hypreal";
-val CInfinitesimal_hcnj_iff = thm "CInfinitesimal_hcnj_iff";
-val CInfinite_HInfinite_iff = thm "CInfinite_HInfinite_iff";
-val hcomplex_split_CInfinitesimal_iff = thm "hcomplex_split_CInfinitesimal_iff";
-val hcomplex_split_CFinite_iff = thm "hcomplex_split_CFinite_iff";
-val hcomplex_split_SComplex_iff = thm "hcomplex_split_SComplex_iff";
-val hcomplex_split_CInfinite_iff = thm "hcomplex_split_CInfinite_iff";
-val hcomplex_split_capprox_iff = thm "hcomplex_split_capprox_iff";
-val complex_seq_to_hcomplex_CInfinitesimal = thm "complex_seq_to_hcomplex_CInfinitesimal";
-val CInfinitesimal_hcomplex_of_hypreal_epsilon = thm "CInfinitesimal_hcomplex_of_hypreal_epsilon";
-val hcomplex_of_complex_approx_zero_iff = thm "hcomplex_of_complex_approx_zero_iff";
-val hcomplex_of_complex_approx_zero_iff2 = thm "hcomplex_of_complex_approx_zero_iff2";
-*}
-
- 
 end

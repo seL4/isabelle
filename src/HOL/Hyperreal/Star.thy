@@ -10,26 +10,24 @@ theory Star
 imports NSA
 begin
 
-constdefs
+definition
     (* internal sets *)
-    starset_n :: "(nat => 'a set) => 'a star set"        ("*sn* _" [80] 80)
-    "*sn* As == Iset (star_n As)"
+  starset_n :: "(nat => 'a set) => 'a star set"        ("*sn* _" [80] 80)
+  "*sn* As = Iset (star_n As)"
 
-    InternalSets :: "'a star set set"
-    "InternalSets == {X. \<exists>As. X = *sn* As}"
+  InternalSets :: "'a star set set"
+  "InternalSets = {X. \<exists>As. X = *sn* As}"
 
-    (* nonstandard extension of function *)
-    is_starext  :: "['a star => 'a star, 'a => 'a] => bool"
-    "is_starext F f == (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
+  (* nonstandard extension of function *)
+  is_starext  :: "['a star => 'a star, 'a => 'a] => bool"
+  "is_starext F f = (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
                         ((y = (F x)) = ({n. Y n = f(X n)} : FreeUltrafilterNat)))"
-    (* internal functions *)
-    starfun_n :: "(nat => ('a => 'b)) => 'a star => 'b star"
-                 ("*fn* _" [80] 80)
-    "*fn* F == Ifun (star_n F)"
+  (* internal functions *)
+  starfun_n :: "(nat => ('a => 'b)) => 'a star => 'b star"   ("*fn* _" [80] 80)
+  "*fn* F = Ifun (star_n F)"
 
-    InternalFuns :: "('a star => 'b star) set"
-    "InternalFuns == {X. \<exists>F. X = *fn* F}"
-
+  InternalFuns :: "('a star => 'b star) set"
+  "InternalFuns = {X. \<exists>F. X = *fn* F}"
 
 
 (*--------------------------------------------------------
@@ -352,67 +350,5 @@ apply (rule ext, rule ccontr)
 apply (drule_tac x = "star_n (%n. xa)" in fun_cong)
 apply (auto simp add: starfun star_n_eq_iff)
 done
-
-ML
-{*
-val starset_n_def = thm"starset_n_def";
-val InternalSets_def = thm"InternalSets_def";
-val is_starext_def = thm"is_starext_def";
-val starfun_n_def = thm"starfun_n_def";
-val InternalFuns_def = thm"InternalFuns_def";
-
-val no_choice = thm "no_choice";
-val STAR_UNIV_set = thm "STAR_UNIV_set";
-val STAR_empty_set = thm "STAR_empty_set";
-val STAR_Un = thm "STAR_Un";
-val STAR_Int = thm "STAR_Int";
-val STAR_Compl = thm "STAR_Compl";
-val STAR_mem_Compl = thm "STAR_mem_Compl";
-val STAR_diff = thm "STAR_diff";
-val STAR_subset = thm "STAR_subset";
-val STAR_mem = thm "STAR_mem";
-val STAR_star_of_image_subset = thm "STAR_star_of_image_subset";
-val STAR_hypreal_of_real_Int = thm "STAR_hypreal_of_real_Int";
-val STAR_real_seq_to_hypreal = thm "STAR_real_seq_to_hypreal";
-val STAR_singleton = thm "STAR_singleton";
-val STAR_not_mem = thm "STAR_not_mem";
-val STAR_subset_closed = thm "STAR_subset_closed";
-val starset_n_starset = thm "starset_n_starset";
-val starfun_n_starfun = thm "starfun_n_starfun";
-val hrabs_is_starext_rabs = thm "hrabs_is_starext_rabs";
-val Rep_star_FreeUltrafilterNat = thm "Rep_star_FreeUltrafilterNat";
-val starfun = thm "starfun";
-val starfun_mult = thm "starfun_mult";
-val starfun_add = thm "starfun_add";
-val starfun_minus = thm "starfun_minus";
-val starfun_add_minus = thm "starfun_add_minus";
-val starfun_diff = thm "starfun_diff";
-val starfun_o2 = thm "starfun_o2";
-val starfun_o = thm "starfun_o";
-val starfun_const_fun = thm "starfun_const_fun";
-val starfun_Idfun_approx = thm "starfun_Idfun_approx";
-val starfun_Id = thm "starfun_Id";
-val is_starext_starfun = thm "is_starext_starfun";
-val is_starfun_starext = thm "is_starfun_starext";
-val is_starext_starfun_iff = thm "is_starext_starfun_iff";
-val starfun_eq = thm "starfun_eq";
-val starfun_approx = thm "starfun_approx";
-val starfun_lambda_cancel = thm "starfun_lambda_cancel";
-val starfun_lambda_cancel2 = thm "starfun_lambda_cancel2";
-val starfun_mult_HFinite_approx = thm "starfun_mult_HFinite_approx";
-val starfun_add_approx = thm "starfun_add_approx";
-val starfun_rabs_hrabs = thm "starfun_rabs_hrabs";
-val starfun_inverse_inverse = thm "starfun_inverse_inverse";
-val starfun_inverse = thm "starfun_inverse";
-val starfun_divide = thm "starfun_divide";
-val starfun_inverse2 = thm "starfun_inverse2";
-val starfun_mem_starset = thm "starfun_mem_starset";
-val hypreal_hrabs = thm "hypreal_hrabs";
-val STAR_rabs_add_minus = thm "STAR_rabs_add_minus";
-val STAR_starfun_rabs_add_minus = thm "STAR_starfun_rabs_add_minus";
-val Infinitesimal_FreeUltrafilterNat_iff2 = thm "Infinitesimal_FreeUltrafilterNat_iff2";
-val approx_FreeUltrafilterNat_iff = thm "approx_FreeUltrafilterNat_iff";
-val inj_starfun = thm "inj_starfun";
-*}
 
 end

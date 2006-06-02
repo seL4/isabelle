@@ -12,25 +12,25 @@ begin
 
 text{*Thanks to suggestions by James Margetson*}
 
-constdefs
+definition
 
   setle :: "['a set, 'a::ord] => bool"     (infixl "*<=" 70)
-    "S *<= x    == (ALL y: S. y <= x)"
+  "S *<= x = (ALL y: S. y <= x)"
 
   setge :: "['a::ord, 'a set] => bool"     (infixl "<=*" 70)
-    "x <=* S    == (ALL y: S. x <= y)"
+  "x <=* S = (ALL y: S. x <= y)"
 
   leastP      :: "['a =>bool,'a::ord] => bool"
-    "leastP P x == (P x & x <=* Collect P)"
+  "leastP P x = (P x & x <=* Collect P)"
 
   isUb        :: "['a set, 'a set, 'a::ord] => bool"
-    "isUb R S x   == S *<= x & x: R"
+  "isUb R S x = (S *<= x & x: R)"
 
   isLub       :: "['a set, 'a set, 'a::ord] => bool"
-    "isLub R S x  == leastP (isUb R S) x"
+  "isLub R S x = leastP (isUb R S) x"
 
   ubs         :: "['a set, 'a::ord set] => 'a set"
-    "ubs R S      == Collect (isUb R S)"
+  "ubs R S = Collect (isUb R S)"
 
 
 
@@ -105,36 +105,5 @@ lemma isLub_ubs: "isLub R S x ==> x <=* ubs R S"
 apply (simp add: ubs_def isLub_def)
 apply (erule leastPD2)
 done
-
-ML
-{*
-val setle_def = thm "setle_def";
-val setge_def = thm "setge_def";
-val leastP_def = thm "leastP_def";
-val isLub_def = thm "isLub_def";
-val isUb_def = thm "isUb_def";
-val ubs_def = thm "ubs_def";
-
-val setleI = thm "setleI";
-val setleD = thm "setleD";
-val setgeI = thm "setgeI";
-val setgeD = thm "setgeD";
-val leastPD1 = thm "leastPD1";
-val leastPD2 = thm "leastPD2";
-val leastPD3 = thm "leastPD3";
-val isLubD1 = thm "isLubD1";
-val isLubD1a = thm "isLubD1a";
-val isLub_isUb = thm "isLub_isUb";
-val isLubD2 = thm "isLubD2";
-val isLubD3 = thm "isLubD3";
-val isLubI1 = thm "isLubI1";
-val isLubI2 = thm "isLubI2";
-val isUbD = thm "isUbD";
-val isUbD2 = thm "isUbD2";
-val isUbD2a = thm "isUbD2a";
-val isUbI = thm "isUbI";
-val isLub_le_isUb = thm "isLub_le_isUb";
-val isLub_ubs = thm "isLub_ubs";
-*}
 
 end

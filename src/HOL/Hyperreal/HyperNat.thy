@@ -148,11 +148,10 @@ by (auto simp add: of_nat_eq_add Nats_def split: hypnat_diff_split)
 
 subsection{*Existence of an infinite hypernatural number*}
 
-consts whn :: hypnat
-
-defs
+definition
   (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
-  hypnat_omega_def:  "whn == star_n (%n::nat. n)"
+  whn :: hypnat
+  hypnat_omega_def: "whn = star_n (%n::nat. n)"
 
 text{*Existence of infinite number not corresponding to any natural number
 follows because member @{term FreeUltrafilterNat} is not finite.
@@ -201,11 +200,10 @@ by (simp add: hypnat_omega_gt_SHNat)
 
 subsection{*Infinite Hypernatural Numbers -- @{term HNatInfinite}*}
 
-constdefs
-
+definition
   (* the set of infinite hypernatural numbers *)
   HNatInfinite :: "hypnat set"
-  "HNatInfinite == {n. n \<notin> Nats}"
+  "HNatInfinite = {n. n \<notin> Nats}"
 
 lemma HNatInfinite_whn [simp]: "whn \<in> HNatInfinite"
 by (simp add: HNatInfinite_def)
@@ -327,9 +325,9 @@ done
 subsection{*Embedding of the Hypernaturals into the Hyperreals*}
 text{*Obtained using the nonstandard extension of the naturals*}
 
-constdefs
+definition
   hypreal_of_hypnat :: "hypnat => hypreal"
-   "hypreal_of_hypnat == *f* real"
+  "hypreal_of_hypnat = *f* real"
 
 declare hypreal_of_hypnat_def [transfer_unfold]
 
@@ -383,74 +381,5 @@ lemma HNatInfinite_hypreal_of_hypnat_gt_zero:
 apply (rule ccontr)
 apply (simp add: hypreal_of_hypnat_zero [symmetric] linorder_not_less)
 done
-
-
-ML
-{*
-val hypnat_of_nat_def = thm"hypnat_of_nat_def";
-val HNatInfinite_def = thm"HNatInfinite_def";
-val hypreal_of_hypnat_def = thm"hypreal_of_hypnat_def";
-val hypnat_omega_def = thm"hypnat_omega_def";
-
-val starrel_iff = thm "starrel_iff";
-val lemma_starrel_refl = thm "lemma_starrel_refl";
-val hypnat_minus_zero = thm "hypnat_minus_zero";
-val hypnat_diff_0_eq_0 = thm "hypnat_diff_0_eq_0";
-val hypnat_add_is_0 = thm "hypnat_add_is_0";
-val hypnat_diff_diff_left = thm "hypnat_diff_diff_left";
-val hypnat_diff_commute = thm "hypnat_diff_commute";
-val hypnat_diff_add_inverse = thm "hypnat_diff_add_inverse";
-val hypnat_diff_add_inverse2 = thm "hypnat_diff_add_inverse2";
-val hypnat_diff_cancel = thm "hypnat_diff_cancel";
-val hypnat_diff_cancel2 = thm "hypnat_diff_cancel2";
-val hypnat_diff_add_0 = thm "hypnat_diff_add_0";
-val hypnat_diff_mult_distrib = thm "hypnat_diff_mult_distrib";
-val hypnat_diff_mult_distrib2 = thm "hypnat_diff_mult_distrib2";
-val hypnat_mult_is_0 = thm "hypnat_mult_is_0";
-val hypnat_not_less0 = thm "hypnat_not_less0";
-val hypnat_less_one = thm "hypnat_less_one";
-val hypnat_add_diff_inverse = thm "hypnat_add_diff_inverse";
-val hypnat_le_add_diff_inverse = thm "hypnat_le_add_diff_inverse";
-val hypnat_le_add_diff_inverse2 = thm "hypnat_le_add_diff_inverse2";
-val hypnat_le0 = thm "hypnat_le0";
-val hypnat_add_self_le = thm "hypnat_add_self_le";
-val hypnat_add_one_self_less = thm "hypnat_add_one_self_less";
-val hypnat_neq0_conv = thm "hypnat_neq0_conv";
-val hypnat_gt_zero_iff = thm "hypnat_gt_zero_iff";
-val hypnat_gt_zero_iff2 = thm "hypnat_gt_zero_iff2";
-val SHNat_eq = thm"SHNat_eq"
-val hypnat_of_nat_one = thm "hypnat_of_nat_one";
-val hypnat_of_nat_Suc = thm "hypnat_of_nat_Suc";
-val SHNAT_omega_not_mem = thm "SHNAT_omega_not_mem";
-val cofinite_mem_FreeUltrafilterNat = thm "cofinite_mem_FreeUltrafilterNat";
-val hypnat_omega_gt_SHNat = thm "hypnat_omega_gt_SHNat";
-val hypnat_of_nat_less_whn = thm "hypnat_of_nat_less_whn";
-val hypnat_of_nat_le_whn = thm "hypnat_of_nat_le_whn";
-val hypnat_zero_less_hypnat_omega = thm "hypnat_zero_less_hypnat_omega";
-val hypnat_one_less_hypnat_omega = thm "hypnat_one_less_hypnat_omega";
-val HNatInfinite_whn = thm "HNatInfinite_whn";
-val HNatInfinite_iff = thm "HNatInfinite_iff";
-val HNatInfinite_FreeUltrafilterNat = thm "HNatInfinite_FreeUltrafilterNat";
-val FreeUltrafilterNat_HNatInfinite = thm "FreeUltrafilterNat_HNatInfinite";
-val HNatInfinite_FreeUltrafilterNat_iff = thm "HNatInfinite_FreeUltrafilterNat_iff";
-val HNatInfinite_gt_one = thm "HNatInfinite_gt_one";
-val zero_not_mem_HNatInfinite = thm "zero_not_mem_HNatInfinite";
-val HNatInfinite_not_eq_zero = thm "HNatInfinite_not_eq_zero";
-val HNatInfinite_ge_one = thm "HNatInfinite_ge_one";
-val HNatInfinite_add = thm "HNatInfinite_add";
-val HNatInfinite_SHNat_add = thm "HNatInfinite_SHNat_add";
-val HNatInfinite_SHNat_diff = thm "HNatInfinite_SHNat_diff";
-val HNatInfinite_add_one = thm "HNatInfinite_add_one";
-val HNatInfinite_is_Suc = thm "HNatInfinite_is_Suc";
-val HNat_hypreal_of_nat = thm "HNat_hypreal_of_nat";
-val hypreal_of_hypnat = thm "hypreal_of_hypnat";
-val hypreal_of_hypnat_zero = thm "hypreal_of_hypnat_zero";
-val hypreal_of_hypnat_one = thm "hypreal_of_hypnat_one";
-val hypreal_of_hypnat_add = thm "hypreal_of_hypnat_add";
-val hypreal_of_hypnat_mult = thm "hypreal_of_hypnat_mult";
-val hypreal_of_hypnat_less_iff = thm "hypreal_of_hypnat_less_iff";
-val hypreal_of_hypnat_ge_zero = thm "hypreal_of_hypnat_ge_zero";
-val HNatInfinite_inverse_Infinitesimal = thm "HNatInfinite_inverse_Infinitesimal";
-*}
 
 end

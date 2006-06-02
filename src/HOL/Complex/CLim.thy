@@ -33,79 +33,79 @@ apply auto
 apply (drule sym [THEN diff_eq_eq [THEN iffD2]], auto)
 done
 
-constdefs
+definition
 
   CLIM :: "[complex=>complex,complex,complex] => bool"
 				("((_)/ -- (_)/ --C> (_))" [60, 0, 60] 60)
-  "f -- a --C> L ==
-     \<forall>r. 0 < r -->
+  "f -- a --C> L =
+     (\<forall>r. 0 < r -->
 	     (\<exists>s. 0 < s & (\<forall>x. (x \<noteq> a & (cmod(x - a) < s)
-			  --> cmod(f x - L) < r)))"
+			  --> cmod(f x - L) < r))))"
 
   NSCLIM :: "[complex=>complex,complex,complex] => bool"
 			      ("((_)/ -- (_)/ --NSC> (_))" [60, 0, 60] 60)
-  "f -- a --NSC> L == (\<forall>x. (x \<noteq> hcomplex_of_complex a &
+  "f -- a --NSC> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
            		         x @c= hcomplex_of_complex a
                                    --> ( *f* f) x @c= hcomplex_of_complex L))"
 
   (* f: C --> R *)
   CRLIM :: "[complex=>real,complex,real] => bool"
 				("((_)/ -- (_)/ --CR> (_))" [60, 0, 60] 60)
-  "f -- a --CR> L ==
-     \<forall>r. 0 < r -->
+  "f -- a --CR> L =
+     (\<forall>r. 0 < r -->
 	     (\<exists>s. 0 < s & (\<forall>x. (x \<noteq> a & (cmod(x - a) < s)
-			  --> abs(f x - L) < r)))"
+			  --> abs(f x - L) < r))))"
 
   NSCRLIM :: "[complex=>real,complex,real] => bool"
 			      ("((_)/ -- (_)/ --NSCR> (_))" [60, 0, 60] 60)
-  "f -- a --NSCR> L == (\<forall>x. (x \<noteq> hcomplex_of_complex a &
+  "f -- a --NSCR> L = (\<forall>x. (x \<noteq> hcomplex_of_complex a &
            		         x @c= hcomplex_of_complex a
                                    --> ( *f* f) x @= hypreal_of_real L))"
 
 
   isContc :: "[complex=>complex,complex] => bool"
-  "isContc f a == (f -- a --C> (f a))"
+  "isContc f a = (f -- a --C> (f a))"
 
   (* NS definition dispenses with limit notions *)
   isNSContc :: "[complex=>complex,complex] => bool"
-  "isNSContc f a == (\<forall>y. y @c= hcomplex_of_complex a -->
+  "isNSContc f a = (\<forall>y. y @c= hcomplex_of_complex a -->
 			   ( *f* f) y @c= hcomplex_of_complex (f a))"
 
   isContCR :: "[complex=>real,complex] => bool"
-  "isContCR f a == (f -- a --CR> (f a))"
+  "isContCR f a = (f -- a --CR> (f a))"
 
   (* NS definition dispenses with limit notions *)
   isNSContCR :: "[complex=>real,complex] => bool"
-  "isNSContCR f a == (\<forall>y. y @c= hcomplex_of_complex a -->
+  "isNSContCR f a = (\<forall>y. y @c= hcomplex_of_complex a -->
 			   ( *f* f) y @= hypreal_of_real (f a))"
 
   (* differentiation: D is derivative of function f at x *)
   cderiv:: "[complex=>complex,complex,complex] => bool"
 			    ("(CDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
-  "CDERIV f x :> D == ((%h. (f(x + h) - f(x))/h) -- 0 --C> D)"
+  "CDERIV f x :> D = ((%h. (f(x + h) - f(x))/h) -- 0 --C> D)"
 
   nscderiv :: "[complex=>complex,complex,complex] => bool"
 			    ("(NSCDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
-  "NSCDERIV f x :> D == (\<forall>h \<in> CInfinitesimal - {0}.
+  "NSCDERIV f x :> D = (\<forall>h \<in> CInfinitesimal - {0}.
 			      (( *f* f)(hcomplex_of_complex x + h)
         			 - hcomplex_of_complex (f x))/h @c= hcomplex_of_complex D)"
 
   cdifferentiable :: "[complex=>complex,complex] => bool"
                      (infixl "cdifferentiable" 60)
-  "f cdifferentiable x == (\<exists>D. CDERIV f x :> D)"
+  "f cdifferentiable x = (\<exists>D. CDERIV f x :> D)"
 
   NSCdifferentiable :: "[complex=>complex,complex] => bool"
                         (infixl "NSCdifferentiable" 60)
-  "f NSCdifferentiable x == (\<exists>D. NSCDERIV f x :> D)"
+  "f NSCdifferentiable x = (\<exists>D. NSCDERIV f x :> D)"
 
 
   isUContc :: "(complex=>complex) => bool"
-  "isUContc f ==  (\<forall>r. 0 < r -->
+  "isUContc f =  (\<forall>r. 0 < r -->
 		      (\<exists>s. 0 < s & (\<forall>x y. cmod(x - y) < s
 			    --> cmod(f x - f y) < r)))"
 
   isNSUContc :: "(complex=>complex) => bool"
-  "isNSUContc f == (\<forall>x y. x @c= y --> ( *f* f) x @c= ( *f* f) y)"
+  "isNSUContc f = (\<forall>x y. x @c= y --> ( *f* f) x @c= ( *f* f) y)"
 
 
 
@@ -1019,157 +1019,5 @@ lemma CARAT_CDERIVD:
      "(\<forall>z. f z - f x = g z * (z - x)) & isNSContc g x & g x = l
       ==> NSCDERIV f x :> l"
 by (auto simp add: NSCDERIV_iff2 isNSContc_def cstarfun_if_eq); 
-
-
-ML
-{*
-val complex_add_minus_iff = thm "complex_add_minus_iff";
-val complex_add_eq_0_iff = thm "complex_add_eq_0_iff";
-val NSCLIM_NSCRLIM_Re = thm "NSCLIM_NSCRLIM_Re";
-val NSCLIM_NSCRLIM_Im = thm "NSCLIM_NSCRLIM_Im";
-val CLIM_NSCLIM = thm "CLIM_NSCLIM";
-val eq_Abs_star_ALL = thm "eq_Abs_star_ALL";
-val lemma_CLIM = thm "lemma_CLIM";
-val lemma_skolemize_CLIM2 = thm "lemma_skolemize_CLIM2";
-val lemma_csimp = thm "lemma_csimp";
-val NSCLIM_CLIM = thm "NSCLIM_CLIM";
-val CLIM_NSCLIM_iff = thm "CLIM_NSCLIM_iff";
-val CRLIM_NSCRLIM = thm "CRLIM_NSCRLIM";
-val lemma_CRLIM = thm "lemma_CRLIM";
-val lemma_skolemize_CRLIM2 = thm "lemma_skolemize_CRLIM2";
-val lemma_crsimp = thm "lemma_crsimp";
-val NSCRLIM_CRLIM = thm "NSCRLIM_CRLIM";
-val CRLIM_NSCRLIM_iff = thm "CRLIM_NSCRLIM_iff";
-val CLIM_CRLIM_Re = thm "CLIM_CRLIM_Re";
-val CLIM_CRLIM_Im = thm "CLIM_CRLIM_Im";
-val CLIM_cnj = thm "CLIM_cnj";
-val CLIM_cnj_iff = thm "CLIM_cnj_iff";
-val NSCLIM_add = thm "NSCLIM_add";
-val CLIM_add = thm "CLIM_add";
-val NSCLIM_mult = thm "NSCLIM_mult";
-val CLIM_mult = thm "CLIM_mult";
-val NSCLIM_const = thm "NSCLIM_const";
-val CLIM_const = thm "CLIM_const";
-val NSCLIM_minus = thm "NSCLIM_minus";
-val CLIM_minus = thm "CLIM_minus";
-val NSCLIM_diff = thm "NSCLIM_diff";
-val CLIM_diff = thm "CLIM_diff";
-val NSCLIM_inverse = thm "NSCLIM_inverse";
-val CLIM_inverse = thm "CLIM_inverse";
-val NSCLIM_zero = thm "NSCLIM_zero";
-val CLIM_zero = thm "CLIM_zero";
-val NSCLIM_zero_cancel = thm "NSCLIM_zero_cancel";
-val CLIM_zero_cancel = thm "CLIM_zero_cancel";
-val NSCLIM_not_zero = thm "NSCLIM_not_zero";
-val NSCLIM_not_zeroE = thms "NSCLIM_not_zeroE";
-val CLIM_not_zero = thm "CLIM_not_zero";
-val NSCLIM_const_eq = thm "NSCLIM_const_eq";
-val CLIM_const_eq = thm "CLIM_const_eq";
-val NSCLIM_unique = thm "NSCLIM_unique";
-val CLIM_unique = thm "CLIM_unique";
-val NSCLIM_mult_zero = thm "NSCLIM_mult_zero";
-val CLIM_mult_zero = thm "CLIM_mult_zero";
-val NSCLIM_self = thm "NSCLIM_self";
-val CLIM_self = thm "CLIM_self";
-val NSCLIM_NSCRLIM_iff = thm "NSCLIM_NSCRLIM_iff";
-val CLIM_CRLIM_iff = thm "CLIM_CRLIM_iff";
-val NSCLIM_NSCRLIM_iff2 = thm "NSCLIM_NSCRLIM_iff2";
-val NSCLIM_NSCRLIM_Re_Im_iff = thm "NSCLIM_NSCRLIM_Re_Im_iff";
-val CLIM_CRLIM_Re_Im_iff = thm "CLIM_CRLIM_Re_Im_iff";
-val isNSContcD = thm "isNSContcD";
-val isNSContc_NSCLIM = thm "isNSContc_NSCLIM";
-val NSCLIM_isNSContc = thm "NSCLIM_isNSContc";
-val isNSContc_NSCLIM_iff = thm "isNSContc_NSCLIM_iff";
-val isNSContc_CLIM_iff = thm "isNSContc_CLIM_iff";
-val isNSContc_isContc_iff = thm "isNSContc_isContc_iff";
-val isContc_isNSContc = thm "isContc_isNSContc";
-val isNSContc_isContc = thm "isNSContc_isContc";
-val NSCLIM_h_iff = thm "NSCLIM_h_iff";
-val NSCLIM_isContc_iff = thm "NSCLIM_isContc_iff";
-val CLIM_isContc_iff = thm "CLIM_isContc_iff";
-val isContc_iff = thm "isContc_iff";
-val isContc_add = thm "isContc_add";
-val isContc_mult = thm "isContc_mult";
-val isContc_o = thm "isContc_o";
-val isContc_o2 = thm "isContc_o2";
-val isNSContc_minus = thm "isNSContc_minus";
-val isContc_minus = thm "isContc_minus";
-val isContc_inverse = thm "isContc_inverse";
-val isNSContc_inverse = thm "isNSContc_inverse";
-val isContc_diff = thm "isContc_diff";
-val isContc_const = thm "isContc_const";
-val isNSContc_const = thm "isNSContc_const";
-val isNSContCRD = thm "isNSContCRD";
-val isNSContCR_NSCRLIM = thm "isNSContCR_NSCRLIM";
-val NSCRLIM_isNSContCR = thm "NSCRLIM_isNSContCR";
-val isNSContCR_NSCRLIM_iff = thm "isNSContCR_NSCRLIM_iff";
-val isNSContCR_CRLIM_iff = thm "isNSContCR_CRLIM_iff";
-val isNSContCR_isContCR_iff = thm "isNSContCR_isContCR_iff";
-val isContCR_isNSContCR = thm "isContCR_isNSContCR";
-val isNSContCR_isContCR = thm "isNSContCR_isContCR";
-val isNSContCR_cmod = thm "isNSContCR_cmod";
-val isContCR_cmod = thm "isContCR_cmod";
-val isContc_isContCR_Re = thm "isContc_isContCR_Re";
-val isContc_isContCR_Im = thm "isContc_isContCR_Im";
-val CDERIV_iff = thm "CDERIV_iff";
-val CDERIV_NSC_iff = thm "CDERIV_NSC_iff";
-val CDERIVD = thm "CDERIVD";
-val NSC_DERIVD = thm "NSC_DERIVD";
-val CDERIV_unique = thm "CDERIV_unique";
-val NSCDeriv_unique = thm "NSCDeriv_unique";
-val CDERIV_CLIM_iff = thm "CDERIV_CLIM_iff";
-val CDERIV_iff2 = thm "CDERIV_iff2";
-val NSCDERIV_NSCLIM_iff = thm "NSCDERIV_NSCLIM_iff";
-val NSCDERIV_NSCLIM_iff2 = thm "NSCDERIV_NSCLIM_iff2";
-val NSCDERIV_iff2 = thm "NSCDERIV_iff2";
-val NSCDERIV_CDERIV_iff = thm "NSCDERIV_CDERIV_iff";
-val NSCDERIV_isNSContc = thm "NSCDERIV_isNSContc";
-val CDERIV_isContc = thm "CDERIV_isContc";
-val NSCDERIV_const = thm "NSCDERIV_const";
-val CDERIV_const = thm "CDERIV_const";
-val NSCDERIV_add = thm "NSCDERIV_add";
-val CDERIV_add = thm "CDERIV_add";
-val lemma_nscderiv1 = thm "lemma_nscderiv1";
-val lemma_nscderiv2 = thm "lemma_nscderiv2";
-val NSCDERIV_mult = thm "NSCDERIV_mult";
-val CDERIV_mult = thm "CDERIV_mult";
-val NSCDERIV_cmult = thm "NSCDERIV_cmult";
-val CDERIV_cmult = thm "CDERIV_cmult";
-val NSCDERIV_minus = thm "NSCDERIV_minus";
-val CDERIV_minus = thm "CDERIV_minus";
-val NSCDERIV_add_minus = thm "NSCDERIV_add_minus";
-val CDERIV_add_minus = thm "CDERIV_add_minus";
-val NSCDERIV_diff = thm "NSCDERIV_diff";
-val CDERIV_diff = thm "CDERIV_diff";
-val NSCDERIV_zero = thm "NSCDERIV_zero";
-val NSCDERIV_capprox = thm "NSCDERIV_capprox";
-val NSCDERIVD1 = thm "NSCDERIVD1";
-val NSCDERIVD2 = thm "NSCDERIVD2";
-val lemma_complex_chain = thm "lemma_complex_chain";
-val NSCDERIV_chain = thm "NSCDERIV_chain";
-val CDERIV_chain = thm "CDERIV_chain";
-val CDERIV_chain2 = thm "CDERIV_chain2";
-val NSCDERIV_Id = thm "NSCDERIV_Id";
-val CDERIV_Id = thm "CDERIV_Id";
-val isContc_Id = thms "isContc_Id";
-val CDERIV_cmult_Id = thm "CDERIV_cmult_Id";
-val NSCDERIV_cmult_Id = thm "NSCDERIV_cmult_Id";
-val CDERIV_pow = thm "CDERIV_pow";
-val NSCDERIV_pow = thm "NSCDERIV_pow";
-val lemma_CDERIV_subst = thm "lemma_CDERIV_subst";
-val CInfinitesimal_add_not_zero = thm "CInfinitesimal_add_not_zero";
-val NSCDERIV_inverse = thm "NSCDERIV_inverse";
-val CDERIV_inverse = thm "CDERIV_inverse";
-val CDERIV_inverse_fun = thm "CDERIV_inverse_fun";
-val NSCDERIV_inverse_fun = thm "NSCDERIV_inverse_fun";
-val lemma_complex_mult_inverse_squared = thm "lemma_complex_mult_inverse_squared";
-val CDERIV_quotient = thm "CDERIV_quotient";
-val NSCDERIV_quotient = thm "NSCDERIV_quotient";
-val CLIM_equal = thm "CLIM_equal";
-val CLIM_trans = thm "CLIM_trans";
-val CARAT_CDERIV = thm "CARAT_CDERIV";
-val CARAT_NSCDERIV = thm "CARAT_NSCDERIV";
-val CARAT_CDERIVD = thm "CARAT_CDERIVD";
-*}
 
 end

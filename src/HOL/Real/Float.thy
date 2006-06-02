@@ -5,11 +5,11 @@
 
 theory Float imports Real begin
 
-constdefs  
+definition
   pow2 :: "int \<Rightarrow> real"
-  "pow2 a == if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a))))" 
+  "pow2 a = (if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a)))))"
   float :: "int * int \<Rightarrow> real"
-  "float x == (real (fst x)) * (pow2 (snd x))"
+  "float x = real (fst x) * pow2 (snd x)"
 
 lemma pow2_0[simp]: "pow2 0 = 1"
 by (simp add: pow2_def)
@@ -20,7 +20,7 @@ by (simp add: pow2_def)
 lemma pow2_neg: "pow2 x = inverse (pow2 (-x))"
 by (simp add: pow2_def)
 
-lemma pow2_add1: "pow2 (1 + a) = 2 * (pow2 a)" 
+lemma pow2_add1: "pow2 (1 + a) = 2 * (pow2 a)"
 proof -
   have h: "! n. nat (2 + int n) - Suc 0 = nat (1 + int n)" by arith
   have g: "! a b. a - -1 = a + (1::int)" by arith
@@ -30,7 +30,7 @@ proof -
     apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
     apply (auto simp add: h)
     apply arith
-    done  
+    done
   show ?thesis
   proof (induct a)
     case (1 n)
@@ -43,12 +43,12 @@ proof -
       apply (subst pow2_neg[of "-1 - int n"])
       apply (auto simp add: g pos)
       done
-  qed  
+  qed
 qed
-  
+
 lemma pow2_add: "pow2 (a+b) = (pow2 a) * (pow2 b)"
 proof (induct b)
-  case (1 n) 
+  case (1 n)
   show ?case
   proof (induct n)
     case 0
@@ -59,10 +59,10 @@ proof (induct b)
   qed
 next
   case (2 n)
-  show ?case 
+  show ?case
   proof (induct n)
     case 0
-    show ?case 
+    show ?case
       apply (auto)
       apply (subst pow2_neg[of "a + -1"])
       apply (subst pow2_neg[of "-1"])
@@ -73,7 +73,7 @@ next
       apply (simp)
       done
     case (Suc m)
-    have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith	
+    have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith
     have b: "int m - -2 = 1 + (int m + 1)" by arith
     show ?case
       apply (auto)
@@ -92,14 +92,14 @@ next
   qed
 qed
 
-lemma "float (a, e) + float (b, e) = float (a + b, e)"  
+lemma "float (a, e) + float (b, e) = float (a + b, e)"
 by (simp add: float_def ring_eq_simps)
 
-constdefs 
+definition
   int_of_real :: "real \<Rightarrow> int"
-  "int_of_real x == SOME y. real y = x"  
+  "int_of_real x = (SOME y. real y = x)"
   real_is_int :: "real \<Rightarrow> bool"
-  "real_is_int x == ? (u::int). x = real u" 
+  "real_is_int x = (EX (u::int). x = real u)"
 
 lemma real_is_int_def2: "real_is_int x = (x = real (int_of_real x))"
 by (auto simp add: real_is_int_def int_of_real_def)
@@ -110,7 +110,7 @@ by (simp add: float_def real_is_int_def2 pow2_add[symmetric])
 lemma pow2_int: "pow2 (int c) = (2::real)^c"
 by (simp add: pow2_def)
 
-lemma float_transfer_nat: "float (a, b) = float (a * 2^c, b - int c)" 
+lemma float_transfer_nat: "float (a, b) = float (a * 2^c, b - int c)"
 by (simp add: float_def pow2_int[symmetric] pow2_add[symmetric])
 
 lemma real_is_int_real[simp]: "real_is_int (real (x::int))"
@@ -141,7 +141,7 @@ done
 lemma real_is_int_rep: "real_is_int x \<Longrightarrow> ?! (a::int). real a = x"
 by (auto simp add: real_is_int_def)
 
-lemma int_of_real_mult: 
+lemma int_of_real_mult:
   assumes "real_is_int a" "real_is_int b"
   shows "(int_of_real (a*b)) = (int_of_real a) * (int_of_real b)"
 proof -
@@ -187,8 +187,8 @@ proof -
     also have "\<dots> = True" by (simp only: real_is_int_real)
     ultimately show ?thesis by auto
   qed
-  
-  { 
+
+  {
     fix x::int
     have "!! y. real_is_int ((number_of::bin\<Rightarrow>real) (Abs_Bin x))"
       apply (simp add: number_of_eq)
@@ -205,11 +205,11 @@ proof -
       assume rn: "(real_is_int (of_int (- (int (Suc n)))))"
       have s: "-(int (Suc (Suc n))) = -1 + - (int (Suc n))" by simp
       show "real_is_int (of_int (- (int (Suc (Suc n)))))"
-	apply (simp only: s of_int_add)
-	apply (rule real_is_int_add)
-	apply (simp add: neg1)
-	apply (simp only: rn)
-	done
+        apply (simp only: s of_int_add)
+        apply (rule real_is_int_add)
+        apply (simp add: neg1)
+        apply (simp only: rn)
+        done
     qed
   }
   note Abs_Bin = this
@@ -228,7 +228,7 @@ lemma int_of_real_0[simp]: "int_of_real (0::real) = (0::int)"
 by (simp add: int_of_real_def)
 
 lemma int_of_real_1[simp]: "int_of_real (1::real) = (1::int)"
-proof - 
+proof -
   have 1: "(1::real) = real (1::int)" by auto
   show ?thesis by (simp only: 1 int_of_real_real)
 qed
@@ -238,9 +238,9 @@ proof -
   have "real_is_int (number_of b)" by simp
   then have uu: "?! u::int. number_of b = real u" by (auto simp add: real_is_int_rep)
   then obtain u::int where u:"number_of b = real u" by auto
-  have "number_of b = real ((number_of b)::int)" 
+  have "number_of b = real ((number_of b)::int)"
     by (simp add: number_of_eq real_of_int_def)
-  have ub: "number_of b = real ((number_of b)::int)" 
+  have ub: "number_of b = real ((number_of b)::int)"
     by (simp add: number_of_eq real_of_int_def)
   from uu u ub have unb: "u = number_of b"
     by blast
@@ -255,10 +255,10 @@ lemma float_transfer_even: "even a \<Longrightarrow> float (a, b) = float (a div
 proof -
   fix q::int
   have a:"b - (-1\<Colon>int) = (1\<Colon>int) + b" by arith
-  show "(float (q, (b - (-1\<Colon>int)))) = (float (q, ((1\<Colon>int) + b)))" 
+  show "(float (q, (b - (-1\<Colon>int)))) = (float (q, ((1\<Colon>int) + b)))"
     by (simp add: a)
 qed
-    
+
 consts
   norm_float :: "int*int \<Rightarrow> int*int"
 
@@ -285,7 +285,7 @@ apply (rule abs_div_2_less)
 apply (auto)
 done
 
-ML {* simp_depth_limit := 2 *} 
+ML {* simp_depth_limit := 2 *}
 recdef norm_float "measure (% (a,b). nat (abs a))"
   "norm_float (a,b) = (if (a \<noteq> 0) & (even a) then norm_float (a div 2, b+1) else (if a=0 then (0,0) else (a,b)))"
 (hints simp: terminating_norm_float)
@@ -294,23 +294,23 @@ ML {* simp_depth_limit := 1000 *}
 lemma norm_float: "float x = float (norm_float x)"
 proof -
   {
-    fix a b :: int 
-    have norm_float_pair: "float (a,b) = float (norm_float (a,b))" 
+    fix a b :: int
+    have norm_float_pair: "float (a,b) = float (norm_float (a,b))"
     proof (induct a b rule: norm_float.induct)
       case (1 u v)
-      show ?case 
+      show ?case
       proof cases
-	assume u: "u \<noteq> 0 \<and> even u"
-	with prems have ind: "float (u div 2, v + 1) = float (norm_float (u div 2, v + 1))" by auto
-	with u have "float (u,v) = float (u div 2, v+1)" by (simp add: float_transfer_even) 
-	then show ?thesis
-	  apply (subst norm_float.simps)
-	  apply (simp add: ind)
-	  done
+        assume u: "u \<noteq> 0 \<and> even u"
+        with prems have ind: "float (u div 2, v + 1) = float (norm_float (u div 2, v + 1))" by auto
+        with u have "float (u,v) = float (u div 2, v+1)" by (simp add: float_transfer_even)
+        then show ?thesis
+          apply (subst norm_float.simps)
+          apply (simp add: ind)
+          done
       next
-	assume "~(u \<noteq> 0 \<and> even u)"
-	then show ?thesis
-	  by (simp add: prems float_def)
+        assume "~(u \<noteq> 0 \<and> even u)"
+        then show ?thesis
+          by (simp add: prems float_def)
       qed
     qed
   }
@@ -323,16 +323,16 @@ qed
 lemma pow2_int: "pow2 (int n) = 2^n"
   by (simp add: pow2_def)
 
-lemma float_add: 
-  "float (a1, e1) + float (a2, e2) = 
-  (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1) 
+lemma float_add:
+  "float (a1, e1) + float (a2, e2) =
+  (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1)
   else float (a1*2^(nat (e1-e2))+a2, e2))"
   apply (simp add: float_def ring_eq_simps)
   apply (auto simp add: pow2_int[symmetric] pow2_add[symmetric])
   done
 
 lemma float_mult:
-  "float (a1, e1) * float (a2, e2) = 
+  "float (a1, e1) * float (a2, e2) =
   (float (a1 * a2, e1 + e2))"
   by (simp add: float_def pow2_add)
 
@@ -345,7 +345,7 @@ lemma zero_less_pow2:
 proof -
   {
     fix y
-    have "0 <= y \<Longrightarrow> 0 < pow2 y"    
+    have "0 <= y \<Longrightarrow> 0 < pow2 y"
       by (induct y, induct_tac n, simp_all add: pow2_add)
   }
   note helper=this
@@ -360,7 +360,7 @@ qed
 lemma zero_le_float:
   "(0 <= float (a,b)) = (0 <= a)"
   apply (auto simp add: float_def)
-  apply (auto simp add: zero_le_mult_iff zero_less_pow2) 
+  apply (auto simp add: zero_le_mult_iff zero_less_pow2)
   apply (insert zero_less_pow2[of b])
   apply (simp_all)
   done
@@ -393,7 +393,7 @@ lemma float_nprt:
 
 lemma norm_0_1: "(0::_::number_ring) = Numeral0 & (1::_::number_ring) = Numeral1"
   by auto
-  
+
 lemma add_left_zero: "0 + a = (a::'a::comm_monoid_add)"
   by simp
 
@@ -451,19 +451,19 @@ lemma not_false_eq_true: "(~ False) = True" by simp
 lemma not_true_eq_false: "(~ True) = False" by simp
 
 
-lemmas binarith = 
+lemmas binarith =
   Pls_0_eq Min_1_eq
-  bin_pred_Pls bin_pred_Min bin_pred_1 bin_pred_0     
+  bin_pred_Pls bin_pred_Min bin_pred_1 bin_pred_0
   bin_succ_Pls bin_succ_Min bin_succ_1 bin_succ_0
   bin_add_Pls bin_add_Min bin_add_BIT_0 bin_add_BIT_10
-  bin_add_BIT_11 bin_minus_Pls bin_minus_Min bin_minus_1 
-  bin_minus_0 bin_mult_Pls bin_mult_Min bin_mult_1 bin_mult_0 
+  bin_add_BIT_11 bin_minus_Pls bin_minus_Min bin_minus_1
+  bin_minus_0 bin_mult_Pls bin_mult_Min bin_mult_1 bin_mult_0
   bin_add_Pls_right bin_add_Min_right
 
 lemma int_eq_number_of_eq: "(((number_of v)::int)=(number_of w)) = iszero ((number_of (bin_add v (bin_minus w)))::int)"
   by simp
 
-lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)" 
+lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)"
   by (simp only: iszero_number_of_Pls)
 
 lemma int_nonzero_number_of_Min: "~(iszero ((-1)::int))"
@@ -472,13 +472,13 @@ lemma int_nonzero_number_of_Min: "~(iszero ((-1)::int))"
 lemma int_iszero_number_of_0: "iszero ((number_of (w BIT bit.B0))::int) = iszero ((number_of w)::int)"
   by simp
 
-lemma int_iszero_number_of_1: "\<not> iszero ((number_of (w BIT bit.B1))::int)" 
+lemma int_iszero_number_of_1: "\<not> iszero ((number_of (w BIT bit.B1))::int)"
   by simp
 
 lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (bin_add x (bin_minus y)))::int)"
   by simp
 
-lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))" 
+lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
   by simp
 
 lemma int_neg_number_of_Min: "neg (-1::int)"
@@ -490,9 +490,9 @@ lemma int_neg_number_of_BIT: "neg ((number_of (w BIT x))::int) = neg ((number_of
 lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (bin_add y (bin_minus x)))::int))"
   by simp
 
-lemmas intarithrel = 
-  int_eq_number_of_eq 
-  lift_bool[OF int_iszero_number_of_Pls] nlift_bool[OF int_nonzero_number_of_Min] int_iszero_number_of_0 
+lemmas intarithrel =
+  int_eq_number_of_eq
+  lift_bool[OF int_iszero_number_of_Pls] nlift_bool[OF int_nonzero_number_of_Min] int_iszero_number_of_0
   lift_bool[OF int_iszero_number_of_1] int_less_number_of_eq_neg nlift_bool[OF int_not_neg_number_of_Pls] lift_bool[OF int_neg_number_of_Min]
   int_neg_number_of_BIT int_le_number_of_eq
 
@@ -512,8 +512,8 @@ lemmas intarith = int_number_of_add_sym int_number_of_minus_sym int_number_of_di
 
 lemmas natarith = add_nat_number_of diff_nat_number_of mult_nat_number_of eq_nat_number_of less_nat_number_of
 
-lemmas powerarith = nat_number_of zpower_number_of_even 
-  zpower_number_of_odd[simplified zero_eq_Numeral0_nring one_eq_Numeral1_nring]   
+lemmas powerarith = nat_number_of zpower_number_of_even
+  zpower_number_of_odd[simplified zero_eq_Numeral0_nring one_eq_Numeral1_nring]
   zpower_Pls zpower_Min
 
 lemmas floatarith[simplified norm_0_1] = float_add float_mult float_minus float_abs zero_le_float float_pprt float_nprt
@@ -522,4 +522,3 @@ lemmas floatarith[simplified norm_0_1] = float_add float_mult float_minus float_
 lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
 
 end
- 

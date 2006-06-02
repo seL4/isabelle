@@ -12,19 +12,19 @@ begin
 
 subsection {* A Free Ultrafilter over the Naturals *}
 
-constdefs
+definition
   FreeUltrafilterNat :: "nat set set"  ("\<U>")
-    "\<U> \<equiv> SOME U. freeultrafilter U"
+  "\<U> = (SOME U. freeultrafilter U)"
 
 lemma freeultrafilter_FUFNat: "freeultrafilter \<U>"
  apply (unfold FreeUltrafilterNat_def)
  apply (rule someI_ex)
  apply (rule freeultrafilter_Ex)
  apply (rule nat_infinite)
-done
+ done
 
 interpretation FUFNat: freeultrafilter [FreeUltrafilterNat]
-by (cut_tac [!] freeultrafilter_FUFNat, simp_all add: freeultrafilter_def)
+  using freeultrafilter_FUFNat by (simp_all add: freeultrafilter_def)
 
 text {* This rule takes the place of the old ultra tactic *}
 
@@ -35,16 +35,16 @@ by (simp add: Collect_imp_eq FUFNat.F.Un_iff FUFNat.F.Compl_iff)
 
 subsection {* Definition of @{text star} type constructor *}
 
-constdefs
+definition
   starrel :: "((nat \<Rightarrow> 'a) \<times> (nat \<Rightarrow> 'a)) set"
-    "starrel \<equiv> {(X,Y). {n. X n = Y n} \<in> \<U>}"
+  "starrel = {(X,Y). {n. X n = Y n} \<in> \<U>}"
 
 typedef 'a star = "(UNIV :: (nat \<Rightarrow> 'a) set) // starrel"
 by (auto intro: quotientI)
 
-constdefs
+definition
   star_n :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a star"
-  "star_n X \<equiv> Abs_star (starrel `` {X})"
+  "star_n X = Abs_star (starrel `` {X})"
 
 theorem star_cases [case_names star_n, cases type: star]:
   "(\<And>X. x = star_n X \<Longrightarrow> P) \<Longrightarrow> P"
@@ -156,9 +156,9 @@ by (simp add: atomize_eq)
 
 subsection {* Standard elements *}
 
-constdefs
+definition
   star_of :: "'a \<Rightarrow> 'a star"
-  "star_of x \<equiv> star_n (\<lambda>n. x)"
+  "star_of x == star_n (\<lambda>n. x)"
 
 text {* Transfer tactic should remove occurrences of @{term star_of} *}
 setup {* Transfer.add_const "StarDef.star_of" *}
@@ -170,7 +170,7 @@ by (transfer, rule refl)
 
 subsection {* Internal functions *}
 
-constdefs
+definition
   Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300)
   "Ifun f \<equiv> \<lambda>x. Abs_star
        (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
@@ -195,14 +195,14 @@ by (transfer, rule refl)
 
 text {* Nonstandard extensions of functions *}
 
-constdefs
+definition
   starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a star \<Rightarrow> 'b star)"
     ("*f* _" [80] 80)
-  "starfun f \<equiv> \<lambda>x. star_of f \<star> x"
+  "starfun f == \<lambda>x. star_of f \<star> x"
 
   starfun2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a star \<Rightarrow> 'b star \<Rightarrow> 'c star)"
     ("*f2* _" [80] 80)
-  "starfun2 f \<equiv> \<lambda>x y. star_of f \<star> x \<star> y"
+  "starfun2 f == \<lambda>x y. star_of f \<star> x \<star> y"
 
 declare starfun_def [transfer_unfold]
 declare starfun2_def [transfer_unfold]
@@ -223,9 +223,9 @@ by (transfer, rule refl)
 
 subsection {* Internal predicates *}
 
-constdefs
+definition
   unstar :: "bool star \<Rightarrow> bool"
-  "unstar b \<equiv> b = star_of True"
+  "unstar b = (b = star_of True)"
 
 lemma unstar_star_n: "unstar (star_n P) = ({n. P n} \<in> \<U>)"
 by (simp add: unstar_def star_of_def star_n_eq_iff)
@@ -240,14 +240,14 @@ lemma transfer_unstar [transfer_intro]:
   "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> {n. P n} \<in> \<U>"
 by (simp only: unstar_star_n)
 
-constdefs
+definition
   starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"
     ("*p* _" [80] 80)
-  "*p* P \<equiv> \<lambda>x. unstar (star_of P \<star> x)"
+  "*p* P = (\<lambda>x. unstar (star_of P \<star> x))"
 
   starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"
     ("*p2* _" [80] 80)
-  "*p2* P \<equiv> \<lambda>x y. unstar (star_of P \<star> x \<star> y)"
+  "*p2* P = (\<lambda>x y. unstar (star_of P \<star> x \<star> y))"
 
 declare starP_def [transfer_unfold]
 declare starP2_def [transfer_unfold]
@@ -268,9 +268,9 @@ by (transfer, rule refl)
 
 subsection {* Internal sets *}
 
-constdefs
+definition
   Iset :: "'a set star \<Rightarrow> 'a star set"
-  "Iset A \<equiv> {x. ( *p2* op \<in>) x A}"
+  "Iset A = {x. ( *p2* op \<in>) x A}"
 
 lemma Iset_star_n:
   "(star_n X \<in> Iset (star_n A)) = ({n. X n \<in> A n} \<in> \<U>)"
@@ -309,9 +309,10 @@ lemma transfer_Iset [transfer_intro]:
 by simp
 
 text {* Nonstandard extensions of sets. *}
-constdefs
+
+definition
   starset :: "'a set \<Rightarrow> 'a star set" ("*s* _" [80] 80)
-  "starset A \<equiv> Iset (star_of A)"
+  "starset A = Iset (star_of A)"
 
 declare starset_def [transfer_unfold]
 

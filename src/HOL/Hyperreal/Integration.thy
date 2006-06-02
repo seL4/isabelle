@@ -12,43 +12,43 @@ begin
 
 text{*We follow John Harrison in formalizing the Gauge integral.*}
 
-constdefs
+definition
 
   --{*Partitions and tagged partitions etc.*}
 
   partition :: "[(real*real),nat => real] => bool"
-  "partition == %(a,b) D. D 0 = a &
+  "partition = (%(a,b) D. D 0 = a &
                          (\<exists>N. (\<forall>n < N. D(n) < D(Suc n)) &
-                              (\<forall>n \<ge> N. D(n) = b))"
+                              (\<forall>n \<ge> N. D(n) = b)))"
 
   psize :: "(nat => real) => nat"
-  "psize D == SOME N. (\<forall>n < N. D(n) < D(Suc n)) &
-                      (\<forall>n \<ge> N. D(n) = D(N))"
+  "psize D = (SOME N. (\<forall>n < N. D(n) < D(Suc n)) &
+                      (\<forall>n \<ge> N. D(n) = D(N)))"
 
   tpart :: "[(real*real),((nat => real)*(nat =>real))] => bool"
-  "tpart == %(a,b) (D,p). partition(a,b) D &
-                          (\<forall>n. D(n) \<le> p(n) & p(n) \<le> D(Suc n))"
+  "tpart = (%(a,b) (D,p). partition(a,b) D &
+                          (\<forall>n. D(n) \<le> p(n) & p(n) \<le> D(Suc n)))"
 
   --{*Gauges and gauge-fine divisions*}
 
   gauge :: "[real => bool, real => real] => bool"
-  "gauge E g == \<forall>x. E x --> 0 < g(x)"
+  "gauge E g = (\<forall>x. E x --> 0 < g(x))"
 
   fine :: "[real => real, ((nat => real)*(nat => real))] => bool"
-  "fine == % g (D,p). \<forall>n. n < (psize D) --> D(Suc n) - D(n) < g(p n)"
+  "fine = (%g (D,p). \<forall>n. n < (psize D) --> D(Suc n) - D(n) < g(p n))"
 
   --{*Riemann sum*}
 
   rsum :: "[((nat=>real)*(nat=>real)),real=>real] => real"
-  "rsum == %(D,p) f. \<Sum>n=0..<psize(D). f(p n) * (D(Suc n) - D(n))"
+  "rsum = (%(D,p) f. \<Sum>n=0..<psize(D). f(p n) * (D(Suc n) - D(n)))"
 
   --{*Gauge integrability (definite)*}
 
-   Integral :: "[(real*real),real=>real,real] => bool"
-   "Integral == %(a,b) f k. \<forall>e > 0.
+  Integral :: "[(real*real),real=>real,real] => bool"
+  "Integral = (%(a,b) f k. \<forall>e > 0.
                                (\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
                                (\<forall>D p. tpart(a,b) (D,p) & fine(g)(D,p) -->
-                                         \<bar>rsum(D,p) f - k\<bar> < e))"
+                                         \<bar>rsum(D,p) f - k\<bar> < e)))"
 
 
 lemma partition_zero [simp]: "a = b ==> psize (%n. if n = 0 then a else b) = 0"

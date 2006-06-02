@@ -81,29 +81,29 @@ primrec
 
 text{*Other definitions*}
 
-constdefs
-   poly_minus :: "real list => real list"      ("-- _" [80] 80)
-   "-- p == (- 1) %* p"
+definition
+  poly_minus :: "real list => real list"      ("-- _" [80] 80)
+  "-- p = (- 1) %* p"
 
-   pderiv :: "real list => real list"
-   "pderiv p == if p = [] then [] else pderiv_aux 1 (tl p)"
+  pderiv :: "real list => real list"
+  "pderiv p = (if p = [] then [] else pderiv_aux 1 (tl p))"
 
-   divides :: "[real list,real list] => bool"  (infixl "divides" 70)
-   "p1 divides p2 == \<exists>q. poly p2 = poly(p1 *** q)"
+  divides :: "[real list,real list] => bool"  (infixl "divides" 70)
+  "p1 divides p2 = (\<exists>q. poly p2 = poly(p1 *** q))"
 
-   order :: "real => real list => nat"
-     --{*order of a polynomial*}
-   "order a p == (@n. ([-a, 1] %^ n) divides p &
+  order :: "real => real list => nat"
+    --{*order of a polynomial*}
+  "order a p = (SOME n. ([-a, 1] %^ n) divides p &
                       ~ (([-a, 1] %^ (Suc n)) divides p))"
 
-   degree :: "real list => nat"
+  degree :: "real list => nat"
      --{*degree of a polynomial*}
-   "degree p == length (pnormalize p)"
+  "degree p = length (pnormalize p)"
 
-   rsquarefree :: "real list => bool"
+  rsquarefree :: "real list => bool"
      --{*squarefree polynomials --- NB with respect to real roots only.*}
-   "rsquarefree p == poly p \<noteq> poly [] &
-                     (\<forall>a. (order a p = 0) | (order a p = 1))"
+  "rsquarefree p = (poly p \<noteq> poly [] &
+                     (\<forall>a. (order a p = 0) | (order a p = 1)))"
 
 
 
@@ -1025,136 +1025,5 @@ apply (rule_tac j = "abs a + abs (x * poly p x)" in real_le_trans)
 apply (rule abs_triangle_ineq)
 apply (auto intro!: mult_mono simp add: abs_mult, arith)
 done
-
-ML
-{*
-val padd_Nil2 = thm "padd_Nil2";
-val padd_Cons_Cons = thm "padd_Cons_Cons";
-val pminus_Nil = thm "pminus_Nil";
-val pmult_singleton = thm "pmult_singleton";
-val poly_ident_mult = thm "poly_ident_mult";
-val poly_simple_add_Cons = thm "poly_simple_add_Cons";
-val padd_commut = thm "padd_commut";
-val padd_assoc = thm "padd_assoc";
-val poly_cmult_distr = thm "poly_cmult_distr";
-val pmult_by_x = thm "pmult_by_x";
-val poly_add = thm "poly_add";
-val poly_cmult = thm "poly_cmult";
-val poly_minus = thm "poly_minus";
-val poly_mult = thm "poly_mult";
-val poly_exp = thm "poly_exp";
-val poly_add_rzero = thm "poly_add_rzero";
-val poly_mult_assoc = thm "poly_mult_assoc";
-val poly_mult_Nil2 = thm "poly_mult_Nil2";
-val poly_exp_add = thm "poly_exp_add";
-val pderiv_Nil = thm "pderiv_Nil";
-val pderiv_singleton = thm "pderiv_singleton";
-val pderiv_Cons = thm "pderiv_Cons";
-val DERIV_cmult2 = thm "DERIV_cmult2";
-val DERIV_pow2 = thm "DERIV_pow2";
-val lemma_DERIV_poly1 = thm "lemma_DERIV_poly1";
-val lemma_DERIV_poly = thm "lemma_DERIV_poly";
-val DERIV_add_const = thm "DERIV_add_const";
-val poly_DERIV = thm "poly_DERIV";
-val poly_differentiable = thm "poly_differentiable";
-val poly_isCont = thm "poly_isCont";
-val poly_IVT_pos = thm "poly_IVT_pos";
-val poly_IVT_neg = thm "poly_IVT_neg";
-val poly_MVT = thm "poly_MVT";
-val lemma_poly_pderiv_aux_add = thm "lemma_poly_pderiv_aux_add";
-val poly_pderiv_aux_add = thm "poly_pderiv_aux_add";
-val lemma_poly_pderiv_aux_cmult = thm "lemma_poly_pderiv_aux_cmult";
-val poly_pderiv_aux_cmult = thm "poly_pderiv_aux_cmult";
-val poly_pderiv_aux_minus = thm "poly_pderiv_aux_minus";
-val lemma_poly_pderiv_aux_mult1 = thm "lemma_poly_pderiv_aux_mult1";
-val lemma_poly_pderiv_aux_mult = thm "lemma_poly_pderiv_aux_mult";
-val lemma_poly_pderiv_add = thm "lemma_poly_pderiv_add";
-val poly_pderiv_add = thm "poly_pderiv_add";
-val poly_pderiv_cmult = thm "poly_pderiv_cmult";
-val poly_pderiv_minus = thm "poly_pderiv_minus";
-val lemma_poly_mult_pderiv = thm "lemma_poly_mult_pderiv";
-val poly_pderiv_mult = thm "poly_pderiv_mult";
-val poly_pderiv_exp = thm "poly_pderiv_exp";
-val poly_pderiv_exp_prime = thm "poly_pderiv_exp_prime";
-val lemma_poly_linear_rem = thm "lemma_poly_linear_rem";
-val poly_linear_rem = thm "poly_linear_rem";
-val poly_linear_divides = thm "poly_linear_divides";
-val lemma_poly_length_mult = thm "lemma_poly_length_mult";
-val lemma_poly_length_mult2 = thm "lemma_poly_length_mult2";
-val poly_length_mult = thm "poly_length_mult";
-val poly_cmult_length = thm "poly_cmult_length";
-val poly_add_length = thm "poly_add_length";
-val poly_root_mult_length = thm "poly_root_mult_length";
-val poly_mult_not_eq_poly_Nil = thm "poly_mult_not_eq_poly_Nil";
-val poly_mult_eq_zero_disj = thm "poly_mult_eq_zero_disj";
-val poly_normalized_nil = thm "poly_normalized_nil";
-val poly_roots_index_lemma = thm "poly_roots_index_lemma";
-val poly_roots_index_lemma2 = thms "poly_roots_index_lemma2";
-val poly_roots_index_length = thm "poly_roots_index_length";
-val poly_roots_finite_lemma = thm "poly_roots_finite_lemma";
-val real_finite_lemma = thm "real_finite_lemma";
-val poly_roots_finite = thm "poly_roots_finite";
-val poly_entire_lemma = thm "poly_entire_lemma";
-val poly_entire = thm "poly_entire";
-val poly_entire_neg = thm "poly_entire_neg";
-val fun_eq = thm "fun_eq";
-val poly_add_minus_zero_iff = thm "poly_add_minus_zero_iff";
-val poly_add_minus_mult_eq = thm "poly_add_minus_mult_eq";
-val poly_mult_left_cancel = thm "poly_mult_left_cancel";
-val real_mult_zero_disj_iff = thm "real_mult_zero_disj_iff";
-val poly_exp_eq_zero = thm "poly_exp_eq_zero";
-val poly_prime_eq_zero = thm "poly_prime_eq_zero";
-val poly_exp_prime_eq_zero = thm "poly_exp_prime_eq_zero";
-val poly_zero_lemma = thm "poly_zero_lemma";
-val poly_zero = thm "poly_zero";
-val pderiv_aux_iszero = thm "pderiv_aux_iszero";
-val pderiv_aux_iszero_num = thm "pderiv_aux_iszero_num";
-val pderiv_iszero = thm "pderiv_iszero";
-val pderiv_zero_obj = thm "pderiv_zero_obj";
-val pderiv_zero = thm "pderiv_zero";
-val poly_pderiv_welldef = thm "poly_pderiv_welldef";
-val poly_primes = thm "poly_primes";
-val poly_divides_refl = thm "poly_divides_refl";
-val poly_divides_trans = thm "poly_divides_trans";
-val poly_divides_exp = thm "poly_divides_exp";
-val poly_exp_divides = thm "poly_exp_divides";
-val poly_divides_add = thm "poly_divides_add";
-val poly_divides_diff = thm "poly_divides_diff";
-val poly_divides_diff2 = thm "poly_divides_diff2";
-val poly_divides_zero = thm "poly_divides_zero";
-val poly_divides_zero2 = thm "poly_divides_zero2";
-val poly_order_exists_lemma = thm "poly_order_exists_lemma";
-val poly_order_exists = thm "poly_order_exists";
-val poly_one_divides = thm "poly_one_divides";
-val poly_order = thm "poly_order";
-val some1_equalityD = thm "some1_equalityD";
-val order = thm "order";
-val order2 = thm "order2";
-val order_unique = thm "order_unique";
-val order_unique_lemma = thm "order_unique_lemma";
-val order_poly = thm "order_poly";
-val pexp_one = thm "pexp_one";
-val lemma_order_root = thm "lemma_order_root";
-val order_root = thm "order_root";
-val order_divides = thm "order_divides";
-val order_decomp = thm "order_decomp";
-val order_mult = thm "order_mult";
-val lemma_order_pderiv = thm "lemma_order_pderiv";
-val order_pderiv = thm "order_pderiv";
-val poly_squarefree_decomp_order = thm "poly_squarefree_decomp_order";
-val poly_squarefree_decomp_order2 = thm "poly_squarefree_decomp_order2";
-val order_root2 = thm "order_root2";
-val order_pderiv2 = thm "order_pderiv2";
-val rsquarefree_roots = thm "rsquarefree_roots";
-val pmult_one = thm "pmult_one";
-val poly_Nil_zero = thm "poly_Nil_zero";
-val rsquarefree_decomp = thm "rsquarefree_decomp";
-val poly_squarefree_decomp = thm "poly_squarefree_decomp";
-val poly_normalize = thm "poly_normalize";
-val lemma_degree_zero = thm "lemma_degree_zero";
-val degree_zero = thm "degree_zero";
-val poly_roots_finite_set = thm "poly_roots_finite_set";
-val poly_mono = thm "poly_mono";
-*}
 
 end

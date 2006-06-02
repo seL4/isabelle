@@ -10,15 +10,14 @@ theory Log
 imports Transcendental
 begin
 
-constdefs
-
+definition
   powr  :: "[real,real] => real"     (infixr "powr" 80)
     --{*exponentation with real exponent*}
-    "x powr a == exp(a * ln x)"
+  "x powr a = exp(a * ln x)"
 
   log :: "[real,real] => real"
     --{*logarithm of @{term x} to base @{term a}*}
-    "log a x == ln x / ln a"
+  "log a x = ln x / ln a"
 
 
 
@@ -272,40 +271,5 @@ lemma LIMSEQ_neg_powr: "0 < s ==> (%x. (real x) powr - s) ----> 0"
       by (simp add: powr_powr prems less_imp_neq [THEN not_sym])
     finally show "real n powr - s < r" .
   qed
-
-
-
-ML
-{*
-val powr_one_eq_one = thm "powr_one_eq_one";
-val powr_zero_eq_one = thm "powr_zero_eq_one";
-val powr_one_gt_zero_iff = thm "powr_one_gt_zero_iff";
-val powr_mult = thm "powr_mult";
-val powr_gt_zero = thm "powr_gt_zero";
-val powr_not_zero = thm "powr_not_zero";
-val powr_divide = thm "powr_divide";
-val powr_add = thm "powr_add";
-val powr_powr = thm "powr_powr";
-val powr_powr_swap = thm "powr_powr_swap";
-val powr_minus = thm "powr_minus";
-val powr_minus_divide = thm "powr_minus_divide";
-val powr_less_mono = thm "powr_less_mono";
-val powr_less_cancel = thm "powr_less_cancel";
-val powr_less_cancel_iff = thm "powr_less_cancel_iff";
-val powr_le_cancel_iff = thm "powr_le_cancel_iff";
-val log_ln = thm "log_ln";
-val powr_log_cancel = thm "powr_log_cancel";
-val log_powr_cancel = thm "log_powr_cancel";
-val log_mult = thm "log_mult";
-val log_eq_div_ln_mult_log = thm "log_eq_div_ln_mult_log";
-val log_base_10_eq1 = thm "log_base_10_eq1";
-val log_base_10_eq2 = thm "log_base_10_eq2";
-val log_one = thm "log_one";
-val log_eq_one = thm "log_eq_one";
-val log_inverse = thm "log_inverse";
-val log_divide = thm "log_divide";
-val log_less_cancel_iff = thm "log_less_cancel_iff";
-val log_le_cancel_iff = thm "log_le_cancel_iff";
-*}
 
 end

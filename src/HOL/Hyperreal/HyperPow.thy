@@ -18,14 +18,11 @@ by (rule power_0)
 lemma hpowr_Suc [simp]: "r ^ (Suc n) = (r::hypreal) * (r ^ n)"
 by (rule power_Suc)
 
-consts
-  "pow"  :: "[hypreal,hypnat] => hypreal"     (infixr "pow" 80)
-
-defs
-
+definition
   (* hypernatural powers of hyperreals *)
+  pow :: "[hypreal,hypnat] => hypreal"     (infixr "pow" 80)
   hyperpow_def [transfer_unfold]:
-  "(R::hypreal) pow (N::hypnat) == ( *f2* op ^) R N"
+  "(R::hypreal) pow (N::hypnat) = ( *f2* op ^) R N"
 
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
 by simp
@@ -234,55 +231,5 @@ done
 lemma Infinitesimal_hrealpow:
      "[| x \<in> Infinitesimal; 0 < n |] ==> x ^ n \<in> Infinitesimal"
 by (simp add: hrealpow_hyperpow_Infinitesimal_iff Infinitesimal_hyperpow)
-
-ML
-{*
-val hrealpow_two = thm "hrealpow_two";
-val hrealpow_two_le = thm "hrealpow_two_le";
-val hrealpow_two_le_add_order = thm "hrealpow_two_le_add_order";
-val hrealpow_two_le_add_order2 = thm "hrealpow_two_le_add_order2";
-val hypreal_add_nonneg_eq_0_iff = thm "hypreal_add_nonneg_eq_0_iff";
-val hypreal_three_squares_add_zero_iff = thm "hypreal_three_squares_add_zero_iff";
-val hrealpow_three_squares_add_zero_iff = thm "hrealpow_three_squares_add_zero_iff";
-val hrabs_hrealpow_two = thm "hrabs_hrealpow_two";
-val two_hrealpow_ge_one = thm "two_hrealpow_ge_one";
-val two_hrealpow_gt = thm "two_hrealpow_gt";
-val hrealpow = thm "hrealpow";
-val hrealpow_sum_square_expand = thm "hrealpow_sum_square_expand";
-val power_hypreal_of_real_number_of = thm "power_hypreal_of_real_number_of";
-val hrealpow_HFinite = thm "hrealpow_HFinite";
-val hyperpow = thm "hyperpow";
-val hyperpow_zero = thm "hyperpow_zero";
-val hyperpow_not_zero = thm "hyperpow_not_zero";
-val hyperpow_inverse = thm "hyperpow_inverse";
-val hyperpow_hrabs = thm "hyperpow_hrabs";
-val hyperpow_add = thm "hyperpow_add";
-val hyperpow_one = thm "hyperpow_one";
-val hyperpow_two = thm "hyperpow_two";
-val hyperpow_gt_zero = thm "hyperpow_gt_zero";
-val hyperpow_ge_zero = thm "hyperpow_ge_zero";
-val hyperpow_le = thm "hyperpow_le";
-val hyperpow_eq_one = thm "hyperpow_eq_one";
-val hrabs_hyperpow_minus_one = thm "hrabs_hyperpow_minus_one";
-val hyperpow_mult = thm "hyperpow_mult";
-val hyperpow_two_le = thm "hyperpow_two_le";
-val hrabs_hyperpow_two = thm "hrabs_hyperpow_two";
-val hyperpow_two_hrabs = thm "hyperpow_two_hrabs";
-val hyperpow_two_gt_one = thm "hyperpow_two_gt_one";
-val hyperpow_two_ge_one = thm "hyperpow_two_ge_one";
-val two_hyperpow_ge_one = thm "two_hyperpow_ge_one";
-val hyperpow_minus_one2 = thm "hyperpow_minus_one2";
-val hyperpow_less_le = thm "hyperpow_less_le";
-val hyperpow_SHNat_le = thm "hyperpow_SHNat_le";
-val hyperpow_realpow = thm "hyperpow_realpow";
-val hyperpow_SReal = thm "hyperpow_SReal";
-val hyperpow_zero_HNatInfinite = thm "hyperpow_zero_HNatInfinite";
-val hyperpow_le_le = thm "hyperpow_le_le";
-val hyperpow_Suc_le_self2 = thm "hyperpow_Suc_le_self2";
-val lemma_Infinitesimal_hyperpow = thm "lemma_Infinitesimal_hyperpow";
-val Infinitesimal_hyperpow = thm "Infinitesimal_hyperpow";
-val hrealpow_hyperpow_Infinitesimal_iff = thm "hrealpow_hyperpow_Infinitesimal_iff";
-val Infinitesimal_hrealpow = thm "Infinitesimal_hrealpow";
-*}
 
 end

@@ -18,13 +18,12 @@ lemma hpfinite_witness: "epsilon : {x. 0 \<le> x & x : HFinite}"
 by auto
 
 
-constdefs
-
-    powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80)
-    "x powhr a == starfun2 (op powr) x a"
+definition
+  powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80)
+  "x powhr a = starfun2 (op powr) x a"
   
-    hlog :: "[hypreal,hypreal] => hypreal"
-    "hlog a x == starfun2 log a x"
+  hlog :: "[hypreal,hypreal] => hypreal"
+  "hlog a x = starfun2 log a x"
 
 declare powhr_def [transfer_unfold]
 declare hlog_def [transfer_unfold]
@@ -155,42 +154,5 @@ by (transfer, simp)
 lemma hlog_le_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x \<le> hlog a y) = (x \<le> y)"
 by (simp add: linorder_not_less [symmetric])
-
-
-ML
-{*
-val powhr = thm "powhr";
-val powhr_one_eq_one = thm "powhr_one_eq_one";
-val powhr_mult = thm "powhr_mult";
-val powhr_gt_zero = thm "powhr_gt_zero";
-val powhr_not_zero = thm "powhr_not_zero";
-val powhr_divide = thm "powhr_divide";
-val powhr_add = thm "powhr_add";
-val powhr_powhr = thm "powhr_powhr";
-val powhr_powhr_swap = thm "powhr_powhr_swap";
-val powhr_minus = thm "powhr_minus";
-val powhr_minus_divide = thm "powhr_minus_divide";
-val powhr_less_mono = thm "powhr_less_mono";
-val powhr_less_cancel = thm "powhr_less_cancel";
-val powhr_less_cancel_iff = thm "powhr_less_cancel_iff";
-val powhr_le_cancel_iff = thm "powhr_le_cancel_iff";
-val hlog = thm "hlog";
-val hlog_starfun_ln = thm "hlog_starfun_ln";
-val powhr_hlog_cancel = thm "powhr_hlog_cancel";
-val hlog_powhr_cancel = thm "hlog_powhr_cancel";
-val hlog_mult = thm "hlog_mult";
-val hlog_as_starfun = thm "hlog_as_starfun";
-val hlog_eq_div_starfun_ln_mult_hlog = thm "hlog_eq_div_starfun_ln_mult_hlog";
-val powhr_as_starfun = thm "powhr_as_starfun";
-val HInfinite_powhr = thm "HInfinite_powhr";
-val hlog_hrabs_HInfinite_Infinitesimal = thm "hlog_hrabs_HInfinite_Infinitesimal";
-val hlog_HInfinite_as_starfun = thm "hlog_HInfinite_as_starfun";
-val hlog_one = thm "hlog_one";
-val hlog_eq_one = thm "hlog_eq_one";
-val hlog_inverse = thm "hlog_inverse";
-val hlog_divide = thm "hlog_divide";
-val hlog_less_cancel_iff = thm "hlog_less_cancel_iff";
-val hlog_le_cancel_iff = thm "hlog_le_cancel_iff";
-*}
 
 end

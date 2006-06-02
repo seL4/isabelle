@@ -182,51 +182,12 @@ apply (subgoal_tac "hypreal_of_hypnat N ~= 0")
 apply (simp_all add: HNatInfinite_not_eq_zero starfunNat_real_of_nat)
 done
 
-ML
-{*
-val starset_n_Un = thm "starset_n_Un";
-val InternalSets_Un = thm "InternalSets_Un";
-val starset_n_Int = thm "starset_n_Int";
-val InternalSets_Int = thm "InternalSets_Int";
-val starset_n_Compl = thm "starset_n_Compl";
-val InternalSets_Compl = thm "InternalSets_Compl";
-val starset_n_diff = thm "starset_n_diff";
-val InternalSets_diff = thm "InternalSets_diff";
-val NatStar_SHNat_subset = thm "NatStar_SHNat_subset";
-val NatStar_hypreal_of_real_Int = thm "NatStar_hypreal_of_real_Int";
-val starset_starset_n_eq = thm "starset_starset_n_eq";
-val InternalSets_starset_n = thm "InternalSets_starset_n";
-val InternalSets_UNIV_diff = thm "InternalSets_UNIV_diff";
-val starset_n_starset = thm "starset_n_starset";
-val starfun_const_fun = thm "starfun_const_fun";
-val starfun_le_mono = thm "starfun_le_mono";
-val starfun_less_mono = thm "starfun_less_mono";
-val starfun_shift_one = thm "starfun_shift_one";
-val starfun_abs = thm "starfun_abs";
-val starfun_pow = thm "starfun_pow";
-val starfun_pow2 = thm "starfun_pow2";
-val starfun_pow3 = thm "starfun_pow3";
-val starfunNat_real_of_nat = thm "starfunNat_real_of_nat";
-val starfun_inverse_real_of_nat_eq = thm "starfun_inverse_real_of_nat_eq";
-val starfun_n = thm "starfun_n";
-val starfun_n_mult = thm "starfun_n_mult";
-val starfun_n_add = thm "starfun_n_add";
-val starfun_n_add_minus = thm "starfun_n_add_minus";
-val starfun_n_const_fun = thm "starfun_n_const_fun";
-val starfun_n_minus = thm "starfun_n_minus";
-val starfun_n_eq = thm "starfun_n_eq";
-val starfun_eq_iff = thm "starfun_eq_iff";
-val starfunNat_inverse_real_of_nat_Infinitesimal = thm "starfunNat_inverse_real_of_nat_Infinitesimal";
-*}
-
-
 
 subsection{*Nonstandard Characterization of Induction*}
 
-
-constdefs
+definition
   hSuc :: "hypnat => hypnat"
-  "hSuc n == n + 1"
+  "hSuc n = n + 1"
 
 lemma starP: "(( *p* P) (star_n X)) = ({n. P (X n)} \<in> FreeUltrafilterNat)"
 by (rule starP_star_n)

@@ -11,42 +11,41 @@ theory NSA
 imports HyperArith "../Real/RComplete"
 begin
 
-constdefs
+definition
 
   Infinitesimal  :: "hypreal set"
-   "Infinitesimal == {x. \<forall>r \<in> Reals. 0 < r --> abs x < r}"
+  "Infinitesimal = {x. \<forall>r \<in> Reals. 0 < r --> abs x < r}"
 
   HFinite :: "hypreal set"
-   "HFinite == {x. \<exists>r \<in> Reals. abs x < r}"
+  "HFinite = {x. \<exists>r \<in> Reals. abs x < r}"
 
   HInfinite :: "hypreal set"
-   "HInfinite == {x. \<forall>r \<in> Reals. r < abs x}"
+  "HInfinite = {x. \<forall>r \<in> Reals. r < abs x}"
 
   approx :: "[hypreal, hypreal] => bool"    (infixl "@=" 50)
     --{*the `infinitely close' relation*}
-   "x @= y       == (x + -y) \<in> Infinitesimal"
+  "(x @= y) = ((x + -y) \<in> Infinitesimal)"
 
   st        :: "hypreal => hypreal"
     --{*the standard part of a hyperreal*}
-   "st           == (%x. @r. x \<in> HFinite & r \<in> Reals & r @= x)"
+  "st = (%x. @r. x \<in> HFinite & r \<in> Reals & r @= x)"
 
   monad     :: "hypreal => hypreal set"
-   "monad x      == {y. x @= y}"
+  "monad x = {y. x @= y}"
 
   galaxy    :: "hypreal => hypreal set"
-   "galaxy x     == {y. (x + -y) \<in> HFinite}"
+  "galaxy x = {y. (x + -y) \<in> HFinite}"
+
+const_syntax (xsymbols)
+  approx  (infixl "\<approx>" 50)
+
+const_syntax (HTML output)
+  approx  (infixl "\<approx>" 50)
 
 
 defs (overloaded)
-
-   SReal_def:      "Reals == {x. \<exists>r. x = hypreal_of_real r}"
-     --{*the standard real numbers as a subset of the hyperreals*}
-
-syntax (xsymbols)
-    approx :: "[hypreal, hypreal] => bool"    (infixl "\<approx>" 50)
-
-syntax (HTML output)
-    approx :: "[hypreal, hypreal] => bool"    (infixl "\<approx>" 50)
+  SReal_def:      "Reals == {x. \<exists>r. x = hypreal_of_real r}"
+    --{*the standard real numbers as a subset of the hyperreals*}
 
 
 
@@ -507,101 +506,16 @@ lemma one_approx_reorient: "(1 @= x) = (x @= 1)"
 by (blast intro: approx_sym)
 
 
-ML
-{*
-val SReal_add = thm "SReal_add";
-val SReal_mult = thm "SReal_mult";
-val SReal_inverse = thm "SReal_inverse";
-val SReal_divide = thm "SReal_divide";
-val SReal_minus = thm "SReal_minus";
-val SReal_minus_iff = thm "SReal_minus_iff";
-val SReal_add_cancel = thm "SReal_add_cancel";
-val SReal_hrabs = thm "SReal_hrabs";
-val SReal_hypreal_of_real = thm "SReal_hypreal_of_real";
-val SReal_number_of = thm "SReal_number_of";
-val Reals_0 = thm "Reals_0";
-val Reals_1 = thm "Reals_1";
-val SReal_divide_number_of = thm "SReal_divide_number_of";
-val SReal_epsilon_not_mem = thm "SReal_epsilon_not_mem";
-val SReal_omega_not_mem = thm "SReal_omega_not_mem";
-val SReal_UNIV_real = thm "SReal_UNIV_real";
-val SReal_iff = thm "SReal_iff";
-val hypreal_of_real_image = thm "hypreal_of_real_image";
-val inv_hypreal_of_real_image = thm "inv_hypreal_of_real_image";
-val SReal_hypreal_of_real_image = thm "SReal_hypreal_of_real_image";
-val SReal_dense = thm "SReal_dense";
-val hypreal_of_real_isUb_iff = thm "hypreal_of_real_isUb_iff";
-val hypreal_of_real_isLub1 = thm "hypreal_of_real_isLub1";
-val hypreal_of_real_isLub2 = thm "hypreal_of_real_isLub2";
-val hypreal_of_real_isLub_iff = thm "hypreal_of_real_isLub_iff";
-val lemma_isUb_hypreal_of_real = thm "lemma_isUb_hypreal_of_real";
-val lemma_isLub_hypreal_of_real = thm "lemma_isLub_hypreal_of_real";
-val lemma_isLub_hypreal_of_real2 = thm "lemma_isLub_hypreal_of_real2";
-val SReal_complete = thm "SReal_complete";
-val HFinite_add = thm "HFinite_add";
-val HFinite_mult = thm "HFinite_mult";
-val HFinite_minus_iff = thm "HFinite_minus_iff";
-val SReal_subset_HFinite = thm "SReal_subset_HFinite";
-val HFinite_hypreal_of_real = thm "HFinite_hypreal_of_real";
-val HFiniteD = thm "HFiniteD";
-val HFinite_hrabs_iff = thm "HFinite_hrabs_iff";
-val HFinite_number_of = thm "HFinite_number_of";
-val HFinite_0 = thm "HFinite_0";
-val HFinite_1 = thm "HFinite_1";
-val HFinite_bounded = thm "HFinite_bounded";
-val InfinitesimalD = thm "InfinitesimalD";
-val Infinitesimal_zero = thm "Infinitesimal_zero";
-val hypreal_sum_of_halves = thm "hypreal_sum_of_halves";
-val Infinitesimal_add = thm "Infinitesimal_add";
-val Infinitesimal_minus_iff = thm "Infinitesimal_minus_iff";
-val Infinitesimal_diff = thm "Infinitesimal_diff";
-val Infinitesimal_mult = thm "Infinitesimal_mult";
-val Infinitesimal_HFinite_mult = thm "Infinitesimal_HFinite_mult";
-val Infinitesimal_HFinite_mult2 = thm "Infinitesimal_HFinite_mult2";
-val HInfinite_inverse_Infinitesimal = thm "HInfinite_inverse_Infinitesimal";
-val HInfinite_mult = thm "HInfinite_mult";
-val HInfinite_add_ge_zero = thm "HInfinite_add_ge_zero";
-val HInfinite_add_ge_zero2 = thm "HInfinite_add_ge_zero2";
-val HInfinite_add_gt_zero = thm "HInfinite_add_gt_zero";
-val HInfinite_minus_iff = thm "HInfinite_minus_iff";
-val HInfinite_add_le_zero = thm "HInfinite_add_le_zero";
-val HInfinite_add_lt_zero = thm "HInfinite_add_lt_zero";
-val HFinite_sum_squares = thm "HFinite_sum_squares";
-val not_Infinitesimal_not_zero = thm "not_Infinitesimal_not_zero";
-val not_Infinitesimal_not_zero2 = thm "not_Infinitesimal_not_zero2";
-val Infinitesimal_hrabs_iff = thm "Infinitesimal_hrabs_iff";
-val HFinite_diff_Infinitesimal_hrabs = thm "HFinite_diff_Infinitesimal_hrabs";
-val hrabs_less_Infinitesimal = thm "hrabs_less_Infinitesimal";
-val hrabs_le_Infinitesimal = thm "hrabs_le_Infinitesimal";
-val Infinitesimal_interval = thm "Infinitesimal_interval";
-val Infinitesimal_interval2 = thm "Infinitesimal_interval2";
-val not_Infinitesimal_mult = thm "not_Infinitesimal_mult";
-val Infinitesimal_mult_disj = thm "Infinitesimal_mult_disj";
-val HFinite_Infinitesimal_not_zero = thm "HFinite_Infinitesimal_not_zero";
-val HFinite_Infinitesimal_diff_mult = thm "HFinite_Infinitesimal_diff_mult";
-val Infinitesimal_subset_HFinite = thm "Infinitesimal_subset_HFinite";
-val Infinitesimal_hypreal_of_real_mult = thm "Infinitesimal_hypreal_of_real_mult";
-val Infinitesimal_hypreal_of_real_mult2 = thm "Infinitesimal_hypreal_of_real_mult2";
-val mem_infmal_iff = thm "mem_infmal_iff";
-val approx_minus_iff = thm "approx_minus_iff";
-val approx_minus_iff2 = thm "approx_minus_iff2";
-val approx_refl = thm "approx_refl";
-val approx_sym = thm "approx_sym";
-val approx_trans = thm "approx_trans";
-val approx_trans2 = thm "approx_trans2";
-val approx_trans3 = thm "approx_trans3";
-val number_of_approx_reorient = thm "number_of_approx_reorient";
-val zero_approx_reorient = thm "zero_approx_reorient";
-val one_approx_reorient = thm "one_approx_reorient";
-
+ML {*
+local
 (*** re-orientation, following HOL/Integ/Bin.ML
      We re-orient x @=y where x is 0, 1 or a numeral, unless y is as well!
  ***)
 
 (*reorientation simprules using ==, for the following simproc*)
-val meta_zero_approx_reorient = zero_approx_reorient RS eq_reflection;
-val meta_one_approx_reorient = one_approx_reorient RS eq_reflection;
-val meta_number_of_approx_reorient = number_of_approx_reorient RS eq_reflection
+val meta_zero_approx_reorient = thm "zero_approx_reorient" RS eq_reflection;
+val meta_one_approx_reorient = thm "one_approx_reorient" RS eq_reflection;
+val meta_number_of_approx_reorient = thm "number_of_approx_reorient" RS eq_reflection
 
 (*reorientation simplification procedure: reorients (polymorphic)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
@@ -616,9 +530,11 @@ fun reorient_proc sg _ (_ $ t $ u) =
               | Const("Numeral.number_of", _) $ _ =>
                                  meta_number_of_approx_reorient);
 
+in
 val approx_reorient_simproc =
   Bin_Simprocs.prep_simproc
     ("reorient_simproc", ["0@=x", "1@=x", "number_of w @= x"], reorient_proc);
+end;
 
 Addsimprocs [approx_reorient_simproc];
 *}
@@ -2146,214 +2062,5 @@ by (auto intro!: bexI
 	 intro: order_less_trans FreeUltrafilterNat_subset 
 	 simp add: Infinitesimal_FreeUltrafilterNat_iff star_n_minus 
                    star_n_add star_n_inverse)
-
-
-ML
-{*
-val Infinitesimal_def = thm"Infinitesimal_def";
-val HFinite_def = thm"HFinite_def";
-val HInfinite_def = thm"HInfinite_def";
-val st_def = thm"st_def";
-val monad_def = thm"monad_def";
-val galaxy_def = thm"galaxy_def";
-val approx_def = thm"approx_def";
-val SReal_def = thm"SReal_def";
-
-val Infinitesimal_approx_minus = thm "Infinitesimal_approx_minus";
-val approx_monad_iff = thm "approx_monad_iff";
-val Infinitesimal_approx = thm "Infinitesimal_approx";
-val approx_add = thm "approx_add";
-val approx_minus = thm "approx_minus";
-val approx_minus2 = thm "approx_minus2";
-val approx_minus_cancel = thm "approx_minus_cancel";
-val approx_add_minus = thm "approx_add_minus";
-val approx_mult1 = thm "approx_mult1";
-val approx_mult2 = thm "approx_mult2";
-val approx_mult_subst = thm "approx_mult_subst";
-val approx_mult_subst2 = thm "approx_mult_subst2";
-val approx_mult_subst_SReal = thm "approx_mult_subst_SReal";
-val approx_eq_imp = thm "approx_eq_imp";
-val Infinitesimal_minus_approx = thm "Infinitesimal_minus_approx";
-val bex_Infinitesimal_iff = thm "bex_Infinitesimal_iff";
-val bex_Infinitesimal_iff2 = thm "bex_Infinitesimal_iff2";
-val Infinitesimal_add_approx = thm "Infinitesimal_add_approx";
-val Infinitesimal_add_approx_self = thm "Infinitesimal_add_approx_self";
-val Infinitesimal_add_approx_self2 = thm "Infinitesimal_add_approx_self2";
-val Infinitesimal_add_minus_approx_self = thm "Infinitesimal_add_minus_approx_self";
-val Infinitesimal_add_cancel = thm "Infinitesimal_add_cancel";
-val Infinitesimal_add_right_cancel = thm "Infinitesimal_add_right_cancel";
-val approx_add_left_cancel = thm "approx_add_left_cancel";
-val approx_add_right_cancel = thm "approx_add_right_cancel";
-val approx_add_mono1 = thm "approx_add_mono1";
-val approx_add_mono2 = thm "approx_add_mono2";
-val approx_add_left_iff = thm "approx_add_left_iff";
-val approx_add_right_iff = thm "approx_add_right_iff";
-val approx_HFinite = thm "approx_HFinite";
-val approx_hypreal_of_real_HFinite = thm "approx_hypreal_of_real_HFinite";
-val approx_mult_HFinite = thm "approx_mult_HFinite";
-val approx_mult_hypreal_of_real = thm "approx_mult_hypreal_of_real";
-val approx_SReal_mult_cancel_zero = thm "approx_SReal_mult_cancel_zero";
-val approx_mult_SReal1 = thm "approx_mult_SReal1";
-val approx_mult_SReal2 = thm "approx_mult_SReal2";
-val approx_mult_SReal_zero_cancel_iff = thm "approx_mult_SReal_zero_cancel_iff";
-val approx_SReal_mult_cancel = thm "approx_SReal_mult_cancel";
-val approx_SReal_mult_cancel_iff1 = thm "approx_SReal_mult_cancel_iff1";
-val approx_le_bound = thm "approx_le_bound";
-val Infinitesimal_less_SReal = thm "Infinitesimal_less_SReal";
-val Infinitesimal_less_SReal2 = thm "Infinitesimal_less_SReal2";
-val SReal_not_Infinitesimal = thm "SReal_not_Infinitesimal";
-val SReal_minus_not_Infinitesimal = thm "SReal_minus_not_Infinitesimal";
-val SReal_Int_Infinitesimal_zero = thm "SReal_Int_Infinitesimal_zero";
-val SReal_Infinitesimal_zero = thm "SReal_Infinitesimal_zero";
-val SReal_HFinite_diff_Infinitesimal = thm "SReal_HFinite_diff_Infinitesimal";
-val hypreal_of_real_HFinite_diff_Infinitesimal = thm "hypreal_of_real_HFinite_diff_Infinitesimal";
-val hypreal_of_real_Infinitesimal_iff_0 = thm "hypreal_of_real_Infinitesimal_iff_0";
-val number_of_not_Infinitesimal = thm "number_of_not_Infinitesimal";
-val one_not_Infinitesimal = thm "one_not_Infinitesimal";
-val approx_SReal_not_zero = thm "approx_SReal_not_zero";
-val HFinite_diff_Infinitesimal_approx = thm "HFinite_diff_Infinitesimal_approx";
-val Infinitesimal_ratio = thm "Infinitesimal_ratio";
-val SReal_approx_iff = thm "SReal_approx_iff";
-val number_of_approx_iff = thm "number_of_approx_iff";
-val hypreal_of_real_approx_iff = thm "hypreal_of_real_approx_iff";
-val hypreal_of_real_approx_number_of_iff = thm "hypreal_of_real_approx_number_of_iff";
-val approx_unique_real = thm "approx_unique_real";
-val hypreal_isLub_unique = thm "hypreal_isLub_unique";
-val hypreal_setle_less_trans = thm "hypreal_setle_less_trans";
-val hypreal_gt_isUb = thm "hypreal_gt_isUb";
-val st_part_Ex = thm "st_part_Ex";
-val st_part_Ex1 = thm "st_part_Ex1";
-val HFinite_Int_HInfinite_empty = thm "HFinite_Int_HInfinite_empty";
-val HFinite_not_HInfinite = thm "HFinite_not_HInfinite";
-val not_HFinite_HInfinite = thm "not_HFinite_HInfinite";
-val HInfinite_HFinite_disj = thm "HInfinite_HFinite_disj";
-val HInfinite_HFinite_iff = thm "HInfinite_HFinite_iff";
-val HFinite_HInfinite_iff = thm "HFinite_HInfinite_iff";
-val HInfinite_diff_HFinite_Infinitesimal_disj = thm "HInfinite_diff_HFinite_Infinitesimal_disj";
-val HFinite_inverse = thm "HFinite_inverse";
-val HFinite_inverse2 = thm "HFinite_inverse2";
-val Infinitesimal_inverse_HFinite = thm "Infinitesimal_inverse_HFinite";
-val HFinite_not_Infinitesimal_inverse = thm "HFinite_not_Infinitesimal_inverse";
-val approx_inverse = thm "approx_inverse";
-val hypreal_of_real_approx_inverse = thm "hypreal_of_real_approx_inverse";
-val inverse_add_Infinitesimal_approx = thm "inverse_add_Infinitesimal_approx";
-val inverse_add_Infinitesimal_approx2 = thm "inverse_add_Infinitesimal_approx2";
-val inverse_add_Infinitesimal_approx_Infinitesimal = thm "inverse_add_Infinitesimal_approx_Infinitesimal";
-val Infinitesimal_square_iff = thm "Infinitesimal_square_iff";
-val HFinite_square_iff = thm "HFinite_square_iff";
-val HInfinite_square_iff = thm "HInfinite_square_iff";
-val approx_HFinite_mult_cancel = thm "approx_HFinite_mult_cancel";
-val approx_HFinite_mult_cancel_iff1 = thm "approx_HFinite_mult_cancel_iff1";
-val approx_hrabs_disj = thm "approx_hrabs_disj";
-val monad_hrabs_Un_subset = thm "monad_hrabs_Un_subset";
-val Infinitesimal_monad_eq = thm "Infinitesimal_monad_eq";
-val mem_monad_iff = thm "mem_monad_iff";
-val Infinitesimal_monad_zero_iff = thm "Infinitesimal_monad_zero_iff";
-val monad_zero_minus_iff = thm "monad_zero_minus_iff";
-val monad_zero_hrabs_iff = thm "monad_zero_hrabs_iff";
-val mem_monad_self = thm "mem_monad_self";
-val approx_subset_monad = thm "approx_subset_monad";
-val approx_subset_monad2 = thm "approx_subset_monad2";
-val mem_monad_approx = thm "mem_monad_approx";
-val approx_mem_monad = thm "approx_mem_monad";
-val approx_mem_monad2 = thm "approx_mem_monad2";
-val approx_mem_monad_zero = thm "approx_mem_monad_zero";
-val Infinitesimal_approx_hrabs = thm "Infinitesimal_approx_hrabs";
-val less_Infinitesimal_less = thm "less_Infinitesimal_less";
-val Ball_mem_monad_gt_zero = thm "Ball_mem_monad_gt_zero";
-val Ball_mem_monad_less_zero = thm "Ball_mem_monad_less_zero";
-val approx_hrabs = thm "approx_hrabs";
-val approx_hrabs_zero_cancel = thm "approx_hrabs_zero_cancel";
-val approx_hrabs_add_Infinitesimal = thm "approx_hrabs_add_Infinitesimal";
-val approx_hrabs_add_minus_Infinitesimal = thm "approx_hrabs_add_minus_Infinitesimal";
-val hrabs_add_Infinitesimal_cancel = thm "hrabs_add_Infinitesimal_cancel";
-val hrabs_add_minus_Infinitesimal_cancel = thm "hrabs_add_minus_Infinitesimal_cancel";
-val Infinitesimal_add_hypreal_of_real_less = thm "Infinitesimal_add_hypreal_of_real_less";
-val Infinitesimal_add_hrabs_hypreal_of_real_less = thm "Infinitesimal_add_hrabs_hypreal_of_real_less";
-val Infinitesimal_add_hrabs_hypreal_of_real_less2 = thm "Infinitesimal_add_hrabs_hypreal_of_real_less2";
-val hypreal_of_real_le_add_Infininitesimal_cancel2 = thm"hypreal_of_real_le_add_Infininitesimal_cancel2";
-val hypreal_of_real_less_Infinitesimal_le_zero = thm "hypreal_of_real_less_Infinitesimal_le_zero";
-val Infinitesimal_add_not_zero = thm "Infinitesimal_add_not_zero";
-val Infinitesimal_square_cancel = thm "Infinitesimal_square_cancel";
-val HFinite_square_cancel = thm "HFinite_square_cancel";
-val Infinitesimal_square_cancel2 = thm "Infinitesimal_square_cancel2";
-val HFinite_square_cancel2 = thm "HFinite_square_cancel2";
-val Infinitesimal_sum_square_cancel = thm "Infinitesimal_sum_square_cancel";
-val HFinite_sum_square_cancel = thm "HFinite_sum_square_cancel";
-val Infinitesimal_sum_square_cancel2 = thm "Infinitesimal_sum_square_cancel2";
-val HFinite_sum_square_cancel2 = thm "HFinite_sum_square_cancel2";
-val Infinitesimal_sum_square_cancel3 = thm "Infinitesimal_sum_square_cancel3";
-val HFinite_sum_square_cancel3 = thm "HFinite_sum_square_cancel3";
-val monad_hrabs_less = thm "monad_hrabs_less";
-val mem_monad_SReal_HFinite = thm "mem_monad_SReal_HFinite";
-val st_approx_self = thm "st_approx_self";
-val st_SReal = thm "st_SReal";
-val st_HFinite = thm "st_HFinite";
-val st_SReal_eq = thm "st_SReal_eq";
-val st_hypreal_of_real = thm "st_hypreal_of_real";
-val st_eq_approx = thm "st_eq_approx";
-val approx_st_eq = thm "approx_st_eq";
-val st_eq_approx_iff = thm "st_eq_approx_iff";
-val st_Infinitesimal_add_SReal = thm "st_Infinitesimal_add_SReal";
-val st_Infinitesimal_add_SReal2 = thm "st_Infinitesimal_add_SReal2";
-val HFinite_st_Infinitesimal_add = thm "HFinite_st_Infinitesimal_add";
-val st_add = thm "st_add";
-val st_number_of = thm "st_number_of";
-val st_minus = thm "st_minus";
-val st_diff = thm "st_diff";
-val st_mult = thm "st_mult";
-val st_Infinitesimal = thm "st_Infinitesimal";
-val st_not_Infinitesimal = thm "st_not_Infinitesimal";
-val st_inverse = thm "st_inverse";
-val st_divide = thm "st_divide";
-val st_idempotent = thm "st_idempotent";
-val Infinitesimal_add_st_less = thm "Infinitesimal_add_st_less";
-val Infinitesimal_add_st_le_cancel = thm "Infinitesimal_add_st_le_cancel";
-val st_le = thm "st_le";
-val st_zero_le = thm "st_zero_le";
-val st_zero_ge = thm "st_zero_ge";
-val st_hrabs = thm "st_hrabs";
-val FreeUltrafilterNat_HFinite = thm "FreeUltrafilterNat_HFinite";
-val HFinite_FreeUltrafilterNat_iff = thm "HFinite_FreeUltrafilterNat_iff";
-val FreeUltrafilterNat_const_Finite = thm "FreeUltrafilterNat_const_Finite";
-val FreeUltrafilterNat_HInfinite = thm "FreeUltrafilterNat_HInfinite";
-val HInfinite_FreeUltrafilterNat_iff = thm "HInfinite_FreeUltrafilterNat_iff";
-val Infinitesimal_FreeUltrafilterNat = thm "Infinitesimal_FreeUltrafilterNat";
-val FreeUltrafilterNat_Infinitesimal = thm "FreeUltrafilterNat_Infinitesimal";
-val Infinitesimal_FreeUltrafilterNat_iff = thm "Infinitesimal_FreeUltrafilterNat_iff";
-val Infinitesimal_hypreal_of_nat_iff = thm "Infinitesimal_hypreal_of_nat_iff";
-val Suc_Un_eq = thm "Suc_Un_eq";
-val finite_nat_segment = thm "finite_nat_segment";
-val finite_real_of_nat_segment = thm "finite_real_of_nat_segment";
-val finite_real_of_nat_less_real = thm "finite_real_of_nat_less_real";
-val finite_real_of_nat_le_real = thm "finite_real_of_nat_le_real";
-val finite_rabs_real_of_nat_le_real = thm "finite_rabs_real_of_nat_le_real";
-val rabs_real_of_nat_le_real_FreeUltrafilterNat = thm "rabs_real_of_nat_le_real_FreeUltrafilterNat";
-val FreeUltrafilterNat_nat_gt_real = thm "FreeUltrafilterNat_nat_gt_real";
-val FreeUltrafilterNat_omega = thm "FreeUltrafilterNat_omega";
-val HInfinite_omega = thm "HInfinite_omega";
-val Infinitesimal_epsilon = thm "Infinitesimal_epsilon";
-val HFinite_epsilon = thm "HFinite_epsilon";
-val epsilon_approx_zero = thm "epsilon_approx_zero";
-val real_of_nat_less_inverse_iff = thm "real_of_nat_less_inverse_iff";
-val finite_inverse_real_of_posnat_gt_real = thm "finite_inverse_real_of_posnat_gt_real";
-val real_of_nat_inverse_le_iff = thm "real_of_nat_inverse_le_iff";
-val real_of_nat_inverse_eq_iff = thm "real_of_nat_inverse_eq_iff";
-val finite_inverse_real_of_posnat_ge_real = thm "finite_inverse_real_of_posnat_ge_real";
-val inverse_real_of_posnat_ge_real_FreeUltrafilterNat = thm "inverse_real_of_posnat_ge_real_FreeUltrafilterNat";
-val FreeUltrafilterNat_inverse_real_of_posnat = thm "FreeUltrafilterNat_inverse_real_of_posnat";
-val real_seq_to_hypreal_Infinitesimal = thm "real_seq_to_hypreal_Infinitesimal";
-val real_seq_to_hypreal_approx = thm "real_seq_to_hypreal_approx";
-val real_seq_to_hypreal_approx2 = thm "real_seq_to_hypreal_approx2";
-val real_seq_to_hypreal_Infinitesimal2 = thm "real_seq_to_hypreal_Infinitesimal2";
-val HInfinite_HFinite_add = thm "HInfinite_HFinite_add";
-val HInfinite_ge_HInfinite = thm "HInfinite_ge_HInfinite";
-val Infinitesimal_inverse_HInfinite = thm "Infinitesimal_inverse_HInfinite";
-val HInfinite_HFinite_not_Infinitesimal_mult = thm "HInfinite_HFinite_not_Infinitesimal_mult";
-val HInfinite_HFinite_not_Infinitesimal_mult2 = thm "HInfinite_HFinite_not_Infinitesimal_mult2";
-val HInfinite_gt_SReal = thm "HInfinite_gt_SReal";
-val HInfinite_gt_zero_gt_one = thm "HInfinite_gt_zero_gt_one";
-val not_HInfinite_one = thm "not_HInfinite_one";
-*}
 
 end

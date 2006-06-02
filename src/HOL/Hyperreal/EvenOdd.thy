@@ -86,24 +86,4 @@ done
 lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
 by (rule_tac t = n and n1 = 4 in mod_div_equality [THEN subst], simp)
 
-ML
-{*
-val even_nat_Suc = thm"Parity.even_nat_Suc";
-
-val even_mult_two_ex = thm "even_mult_two_ex";
-val odd_Suc_mult_two_ex = thm "odd_Suc_mult_two_ex";
-val even_add = thm "even_add";
-val odd_add = thm "odd_add";
-val Suc_n_div_2_gt_zero = thm "Suc_n_div_2_gt_zero";
-val div_2_gt_zero = thm "div_2_gt_zero";
-val even_num_iff = thm "even_num_iff";
-val nat_mod_div_trivial = thm "nat_mod_div_trivial";
-val nat_mod_mod_trivial = thm "nat_mod_mod_trivial";
-val mod_Suc_eq_Suc_mod = thm "mod_Suc_eq_Suc_mod";
-val even_even_mod_4_iff = thm "even_even_mod_4_iff";
-val lemma_odd_mod_4_div_2 = thm "lemma_odd_mod_4_div_2";
-val lemma_even_mod_4_div_2 = thm "lemma_even_mod_4_div_2";
-*}
-
 end
-

@@ -27,30 +27,30 @@ primrec "Im (Complex x y) = y"
 lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
   by (induct z) simp
 
-constdefs
+definition
 
   (*----------- modulus ------------*)
 
   cmod :: "complex => real"
-  "cmod z == sqrt(Re(z) ^ 2 + Im(z) ^ 2)"
+  "cmod z = sqrt(Re(z) ^ 2 + Im(z) ^ 2)"
 
   (*----- injection from reals -----*)
 
   complex_of_real :: "real => complex"
-  "complex_of_real r == Complex r 0"
+  "complex_of_real r = Complex r 0"
 
   (*------- complex conjugate ------*)
 
   cnj :: "complex => complex"
-  "cnj z == Complex (Re z) (-Im z)"
+  "cnj z = Complex (Re z) (-Im z)"
 
   (*------------ Argand -------------*)
 
   sgn :: "complex => complex"
-  "sgn z == z / complex_of_real(cmod z)"
+  "sgn z = z / complex_of_real(cmod z)"
 
   arg :: "complex => real"
-  "arg z == @a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi"
+  "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
 
 
 defs (overloaded)
@@ -81,19 +81,19 @@ defs (overloaded)
   complex_divide_def: "w / (z::complex) == w * inverse z"
 
 
-constdefs
+definition
 
   (* abbreviation for (cos a + i sin a) *)
   cis :: "real => complex"
-  "cis a == Complex (cos a) (sin a)"
+  "cis a = Complex (cos a) (sin a)"
 
   (* abbreviation for r*(cos a + i sin a) *)
   rcis :: "[real, real] => complex"
-  "rcis r a == complex_of_real r * cis a"
+  "rcis r a = complex_of_real r * cis a"
 
   (* e ^ (x + iy) *)
   expi :: "complex => complex"
-  "expi z == complex_of_real(exp (Re z)) * cis (Im z)"
+  "expi z = complex_of_real(exp (Re z)) * cis (Im z)"
 
 
 lemma complex_equality [intro?]: "Re z = Re w ==> Im z = Im w ==> z = w"
@@ -838,16 +838,16 @@ by (intro_classes, simp add: complex_number_of_def)
 
 
 lemma complex_of_real_of_nat [simp]: "complex_of_real (of_nat n) = of_nat n"
-by (induct n, simp_all) 
+  by (induct n) simp_all
 
 lemma complex_of_real_of_int [simp]: "complex_of_real (of_int z) = of_int z"
 proof (cases z)
   case (1 n)
-    thus ?thesis by simp
+  thus ?thesis by simp
 next
   case (2 n)
-    thus ?thesis 
-      by (simp only: of_int_minus complex_of_real_minus, simp)
+  thus ?thesis 
+    by (simp only: of_int_minus complex_of_real_minus, simp)
 qed
 
 
@@ -913,163 +913,6 @@ test "(a*(b*c)) / (d*(b::complex)*(x*a)) = (uu::complex)";
 FIXME: what do we do about this?
 test "a*(b*c)/(y*z) = d*(b::complex)*(x*a)/z";
 *)
-
-
-ML
-{*
-val complex_zero_def = thm"complex_zero_def";
-val complex_one_def = thm"complex_one_def";
-val complex_minus_def = thm"complex_minus_def";
-val complex_divide_def = thm"complex_divide_def";
-val complex_mult_def = thm"complex_mult_def";
-val complex_add_def = thm"complex_add_def";
-val complex_of_real_def = thm"complex_of_real_def";
-val i_def = thm"i_def";
-val expi_def = thm"expi_def";
-val cis_def = thm"cis_def";
-val rcis_def = thm"rcis_def";
-val cmod_def = thm"cmod_def";
-val cnj_def = thm"cnj_def";
-val sgn_def = thm"sgn_def";
-val arg_def = thm"arg_def";
-val complexpow_0 = thm"complexpow_0";
-val complexpow_Suc = thm"complexpow_Suc";
-
-val Re = thm"Re";
-val Im = thm"Im";
-val complex_Re_Im_cancel_iff = thm"complex_Re_Im_cancel_iff";
-val complex_Re_zero = thm"complex_Re_zero";
-val complex_Im_zero = thm"complex_Im_zero";
-val complex_Re_one = thm"complex_Re_one";
-val complex_Im_one = thm"complex_Im_one";
-val complex_Re_i = thm"complex_Re_i";
-val complex_Im_i = thm"complex_Im_i";
-val Re_complex_of_real = thm"Re_complex_of_real";
-val Im_complex_of_real = thm"Im_complex_of_real";
-val complex_minus = thm"complex_minus";
-val complex_Re_minus = thm"complex_Re_minus";
-val complex_Im_minus = thm"complex_Im_minus";
-val complex_add = thm"complex_add";
-val complex_Re_add = thm"complex_Re_add";
-val complex_Im_add = thm"complex_Im_add";
-val complex_add_commute = thm"complex_add_commute";
-val complex_add_assoc = thm"complex_add_assoc";
-val complex_add_zero_left = thm"complex_add_zero_left";
-val complex_add_zero_right = thm"complex_add_zero_right";
-val complex_diff = thm"complex_diff";
-val complex_mult = thm"complex_mult";
-val complex_mult_one_left = thm"complex_mult_one_left";
-val complex_mult_one_right = thm"complex_mult_one_right";
-val complex_inverse = thm"complex_inverse";
-val complex_of_real_one = thm"complex_of_real_one";
-val complex_of_real_zero = thm"complex_of_real_zero";
-val complex_of_real_eq_iff = thm"complex_of_real_eq_iff";
-val complex_of_real_minus = thm"complex_of_real_minus";
-val complex_of_real_inverse = thm"complex_of_real_inverse";
-val complex_of_real_add = thm"complex_of_real_add";
-val complex_of_real_diff = thm"complex_of_real_diff";
-val complex_of_real_mult = thm"complex_of_real_mult";
-val complex_of_real_divide = thm"complex_of_real_divide";
-val complex_of_real_pow = thm"complex_of_real_pow";
-val complex_mod = thm"complex_mod";
-val complex_mod_zero = thm"complex_mod_zero";
-val complex_mod_one = thm"complex_mod_one";
-val complex_mod_complex_of_real = thm"complex_mod_complex_of_real";
-val complex_of_real_abs = thm"complex_of_real_abs";
-val complex_cnj = thm"complex_cnj";
-val complex_cnj_cancel_iff = thm"complex_cnj_cancel_iff";
-val complex_cnj_cnj = thm"complex_cnj_cnj";
-val complex_cnj_complex_of_real = thm"complex_cnj_complex_of_real";
-val complex_mod_cnj = thm"complex_mod_cnj";
-val complex_cnj_minus = thm"complex_cnj_minus";
-val complex_cnj_inverse = thm"complex_cnj_inverse";
-val complex_cnj_add = thm"complex_cnj_add";
-val complex_cnj_diff = thm"complex_cnj_diff";
-val complex_cnj_mult = thm"complex_cnj_mult";
-val complex_cnj_divide = thm"complex_cnj_divide";
-val complex_cnj_one = thm"complex_cnj_one";
-val complex_cnj_pow = thm"complex_cnj_pow";
-val complex_add_cnj = thm"complex_add_cnj";
-val complex_diff_cnj = thm"complex_diff_cnj";
-val complex_cnj_zero = thm"complex_cnj_zero";
-val complex_cnj_zero_iff = thm"complex_cnj_zero_iff";
-val complex_mult_cnj = thm"complex_mult_cnj";
-val complex_mod_eq_zero_cancel = thm"complex_mod_eq_zero_cancel";
-val complex_mod_complex_of_real_of_nat = thm"complex_mod_complex_of_real_of_nat";
-val complex_mod_minus = thm"complex_mod_minus";
-val complex_mod_mult_cnj = thm"complex_mod_mult_cnj";
-val complex_mod_squared = thm"complex_mod_squared";
-val complex_mod_ge_zero = thm"complex_mod_ge_zero";
-val abs_cmod_cancel = thm"abs_cmod_cancel";
-val complex_mod_mult = thm"complex_mod_mult";
-val complex_mod_add_squared_eq = thm"complex_mod_add_squared_eq";
-val complex_Re_mult_cnj_le_cmod = thm"complex_Re_mult_cnj_le_cmod";
-val complex_Re_mult_cnj_le_cmod2 = thm"complex_Re_mult_cnj_le_cmod2";
-val real_sum_squared_expand = thm"real_sum_squared_expand";
-val complex_mod_triangle_squared = thm"complex_mod_triangle_squared";
-val complex_mod_minus_le_complex_mod = thm"complex_mod_minus_le_complex_mod";
-val complex_mod_triangle_ineq = thm"complex_mod_triangle_ineq";
-val complex_mod_triangle_ineq2 = thm"complex_mod_triangle_ineq2";
-val complex_mod_diff_commute = thm"complex_mod_diff_commute";
-val complex_mod_add_less = thm"complex_mod_add_less";
-val complex_mod_mult_less = thm"complex_mod_mult_less";
-val complex_mod_diff_ineq = thm"complex_mod_diff_ineq";
-val complex_Re_le_cmod = thm"complex_Re_le_cmod";
-val complex_mod_gt_zero = thm"complex_mod_gt_zero";
-val complex_mod_complexpow = thm"complex_mod_complexpow";
-val complex_mod_inverse = thm"complex_mod_inverse";
-val complex_mod_divide = thm"complex_mod_divide";
-val complexpow_i_squared = thm"complexpow_i_squared";
-val complex_i_not_zero = thm"complex_i_not_zero";
-val sgn_zero = thm"sgn_zero";
-val sgn_one = thm"sgn_one";
-val sgn_minus = thm"sgn_minus";
-val sgn_eq = thm"sgn_eq";
-val i_mult_eq = thm"i_mult_eq";
-val i_mult_eq2 = thm"i_mult_eq2";
-val Re_sgn = thm"Re_sgn";
-val Im_sgn = thm"Im_sgn";
-val complex_inverse_complex_split = thm"complex_inverse_complex_split";
-val cos_arg_i_mult_zero = thm"cos_arg_i_mult_zero";
-val complex_of_real_zero_iff = thm"complex_of_real_zero_iff";
-val rcis_Ex = thm"rcis_Ex";
-val Re_rcis = thm"Re_rcis";
-val Im_rcis = thm"Im_rcis";
-val complex_mod_rcis = thm"complex_mod_rcis";
-val complex_mod_sqrt_Re_mult_cnj = thm"complex_mod_sqrt_Re_mult_cnj";
-val complex_Re_cnj = thm"complex_Re_cnj";
-val complex_Im_cnj = thm"complex_Im_cnj";
-val complex_In_mult_cnj_zero = thm"complex_In_mult_cnj_zero";
-val complex_Re_mult = thm"complex_Re_mult";
-val complex_Re_mult_complex_of_real = thm"complex_Re_mult_complex_of_real";
-val complex_Im_mult_complex_of_real = thm"complex_Im_mult_complex_of_real";
-val complex_Re_mult_complex_of_real2 = thm"complex_Re_mult_complex_of_real2";
-val complex_Im_mult_complex_of_real2 = thm"complex_Im_mult_complex_of_real2";
-val cis_rcis_eq = thm"cis_rcis_eq";
-val rcis_mult = thm"rcis_mult";
-val cis_mult = thm"cis_mult";
-val cis_zero = thm"cis_zero";
-val rcis_zero_mod = thm"rcis_zero_mod";
-val rcis_zero_arg = thm"rcis_zero_arg";
-val complex_of_real_minus_one = thm"complex_of_real_minus_one";
-val complex_i_mult_minus = thm"complex_i_mult_minus";
-val cis_real_of_nat_Suc_mult = thm"cis_real_of_nat_Suc_mult";
-val DeMoivre = thm"DeMoivre";
-val DeMoivre2 = thm"DeMoivre2";
-val cis_inverse = thm"cis_inverse";
-val rcis_inverse = thm"rcis_inverse";
-val cis_divide = thm"cis_divide";
-val rcis_divide = thm"rcis_divide";
-val Re_cis = thm"Re_cis";
-val Im_cis = thm"Im_cis";
-val cos_n_Re_cis_pow_n = thm"cos_n_Re_cis_pow_n";
-val sin_n_Im_cis_pow_n = thm"sin_n_Im_cis_pow_n";
-val expi_add = thm"expi_add";
-val expi_zero = thm"expi_zero";
-val complex_Re_mult_eq = thm"complex_Re_mult_eq";
-val complex_Im_mult_eq = thm"complex_Im_mult_eq";
-val complex_expi_Ex = thm"complex_expi_Ex";
-*}
 
 end
 

@@ -16,15 +16,15 @@ begin
 declare atLeastLessThan_iff[iff]
 declare setsum_op_ivl_Suc[simp]
 
-constdefs
+definition
    sums  :: "(nat => real) => real => bool"     (infixr "sums" 80)
-   "f sums s  == (%n. setsum f {0..<n}) ----> s"
+   "f sums s = (%n. setsum f {0..<n}) ----> s"
 
    summable :: "(nat=>real) => bool"
-   "summable f == (\<exists>s. f sums s)"
+   "summable f = (\<exists>s. f sums s)"
 
    suminf   :: "(nat=>real) => real"
-   "suminf f == SOME s. f sums s"
+   "suminf f = (SOME s. f sums s)"
 
 syntax
   "_suminf" :: "idt => real => real"    ("\<Sum>_. _" [0, 10] 10)
@@ -499,49 +499,5 @@ lemma DERIV_sumr [rule_format (no_asm)]:
 apply (induct "n")
 apply (auto intro: DERIV_add)
 done
-
-ML
-{*
-val sums_def = thm"sums_def";
-val summable_def = thm"summable_def";
-val suminf_def = thm"suminf_def";
-
-val sumr_minus_one_realpow_zero = thm "sumr_minus_one_realpow_zero";
-val sumr_one_lb_realpow_zero = thm "sumr_one_lb_realpow_zero";
-val sumr_group = thm "sumr_group";
-val sums_summable = thm "sums_summable";
-val summable_sums = thm "summable_sums";
-val summable_sumr_LIMSEQ_suminf = thm "summable_sumr_LIMSEQ_suminf";
-val sums_unique = thm "sums_unique";
-val series_zero = thm "series_zero";
-val sums_mult = thm "sums_mult";
-val sums_divide = thm "sums_divide";
-val sums_diff = thm "sums_diff";
-val suminf_mult = thm "suminf_mult";
-val suminf_mult2 = thm "suminf_mult2";
-val suminf_diff = thm "suminf_diff";
-val sums_minus = thm "sums_minus";
-val sums_group = thm "sums_group";
-val sumr_pos_lt_pair_lemma = thm "sumr_pos_lt_pair_lemma";
-val sumr_pos_lt_pair = thm "sumr_pos_lt_pair";
-val series_pos_le = thm "series_pos_le";
-val series_pos_less = thm "series_pos_less";
-val sumr_geometric = thm "sumr_geometric";
-val geometric_sums = thm "geometric_sums";
-val summable_convergent_sumr_iff = thm "summable_convergent_sumr_iff";
-val summable_Cauchy = thm "summable_Cauchy";
-val summable_comparison_test = thm "summable_comparison_test";
-val summable_rabs_comparison_test = thm "summable_rabs_comparison_test";
-val summable_le = thm "summable_le";
-val summable_le2 = thm "summable_le2";
-val summable_rabs_cancel = thm "summable_rabs_cancel";
-val summable_rabs = thm "summable_rabs";
-val rabs_ratiotest_lemma = thm "rabs_ratiotest_lemma";
-val le_Suc_ex = thm "le_Suc_ex";
-val le_Suc_ex_iff = thm "le_Suc_ex_iff";
-val ratio_test_lemma2 = thm "ratio_test_lemma2";
-val ratio_test = thm "ratio_test";
-val DERIV_sumr = thm "DERIV_sumr";
-*}
 
 end
