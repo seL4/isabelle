@@ -9,9 +9,9 @@ theory Dnat imports HOLCF begin
 
 domain dnat = dzero | dsucc (dpred :: dnat)
 
-constdefs
+definition
   iterator :: "dnat -> ('a -> 'a) -> 'a -> 'a"
-  "iterator == fix $ (LAM h n f x.
+  "iterator = fix $ (LAM h n f x.
     case n of dzero => x
       | dsucc $ m => f $ (h $ m $ f $ x))"
 
@@ -20,7 +20,7 @@ text {*
 *}
 
 ML_setup {*
-bind_thm ("iterator_def2", fix_prover2 (the_context ()) (thm "iterator_def")
+bind_thm ("iterator_def2", fix_prover2 (the_context ()) (thm "iterator_def" RS eq_reflection)
         "iterator = (LAM n f x. case n of dzero => x | dsucc$m => f$(iterator$m$f$x))");
 *}
 

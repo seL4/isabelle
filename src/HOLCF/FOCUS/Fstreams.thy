@@ -12,44 +12,35 @@ defaultsort type
 
 types 'a fstream = "('a lift) stream"
 
-consts
-
+definition
   fsingleton    :: "'a => 'a fstream"  ("<_>" [1000] 999)
+  fsingleton_def2: "fsingleton = (%a. Def a && UU)"
+
   fsfilter      :: "'a set \<Rightarrow> 'a fstream \<rightarrow> 'a fstream"
+  "fsfilter A = sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A))"
+
   fsmap		:: "('a => 'b) => 'a fstream -> 'b fstream"
+  "fsmap f = smap$(flift2 f)"
 
   jth           :: "nat => 'a fstream => 'a"
+  "jth = (%n s. if Fin n < #s then THE a. i_th n s = Def a else arbitrary)"
 
   first         :: "'a fstream => 'a"
+  "first = (%s. jth 0 s)"
+
   last          :: "'a fstream => 'a"
+  "last = (%s. case #s of Fin n => (if n~=0 then jth (THE k. Suc k = n) s else arbitrary)
+              | Infty => arbitrary)"
 
 
-syntax
+abbreviation
+  emptystream :: "'a fstream" 			("<>")
+  "<> == \<bottom>"
+  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"	("(_'(C')_)" [64,63] 63)
+  "A(C)s == fsfilter A\<cdot>s"
 
-  "@emptystream":: "'a fstream" 			("<>")
-  "@fsfilter"	:: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"	("(_'(C')_)" [64,63] 63)
-
-syntax (xsymbols)
-
-  "@fsfilter"	:: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream" ("(_\<copyright>_)"
-								     [64,63] 63)
-translations
-
-  "<>"    => "\<bottom>"
-  "A(C)s" == "fsfilter A\<cdot>s"
-
-defs
-
-  fsingleton_def2:    "fsingleton  == %a. Def a && UU"
-
-  jth_def:            "jth == %n s. if Fin n < #s then THE a. i_th n s = Def a else arbitrary" 
-
-  first_def:          "first == %s. jth 0 s"
-  last_def:           "last == %s. case #s of Fin n => (if n~=0 then jth (THE k. Suc k = n) s else arbitrary)
-                              | Infty => arbitrary"
-
-  fsfilter_def:       "fsfilter A \<equiv> sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A))"
-  fsmap_def:   	      "fsmap f  == smap$(flift2 f)"
+const_syntax (xsymbols)
+  fsfilter'  ("(_\<copyright>_)" [64,63] 63)
 
 
 lemma ft_fsingleton[simp]: "ft$(<a>) = Def a"

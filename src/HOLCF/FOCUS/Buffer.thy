@@ -41,48 +41,50 @@ types
   SPSF11        = "State \<Rightarrow> SPF11"
   SPECS11       = "SPSF11 set"
 
-consts
+definition
 
   BufEq_F       :: "SPEC11 \<Rightarrow> SPEC11"
+  "BufEq_F B = {f. \<forall>d. f\<cdot>(Md d\<leadsto><>) = <> \<and>
+                (\<forall>x. \<exists>ff\<in>B. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x)}"
+
   BufEq         :: "SPEC11"
+  "BufEq = gfp BufEq_F"
+
   BufEq_alt     :: "SPEC11"
+  "BufEq_alt = gfp (\<lambda>B. {f. \<forall>d. f\<cdot>(Md d\<leadsto><> ) = <> \<and>
+                         (\<exists>ff\<in>B. (\<forall>x. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x))})"
 
   BufAC_Asm_F   :: " (M fstream set) \<Rightarrow> (M fstream set)"
+  "BufAC_Asm_F A = {s. s = <> \<or>
+                  (\<exists>d x. s = Md d\<leadsto>x \<and> (x = <> \<or> (ft\<cdot>x = Def \<bullet> \<and> (rt\<cdot>x)\<in>A)))}"
+
   BufAC_Asm     :: " (M fstream set)"
+  "BufAC_Asm = gfp BufAC_Asm_F"
+
   BufAC_Cmt_F   :: "((M fstream * D fstream) set) \<Rightarrow>
                     ((M fstream * D fstream) set)"
-  BufAC_Cmt     :: "((M fstream * D fstream) set)"
-  BufAC         :: "SPEC11"
-
-  BufSt_F       :: "SPECS11 \<Rightarrow> SPECS11"
-  BufSt_P       :: "SPECS11"
-  BufSt         :: "SPEC11"
-
-defs
-
-  BufEq_F_def:   "BufEq_F B \<equiv> {f. \<forall>d. f\<cdot>(Md d\<leadsto><>) = <> \<and>
-                                 (\<forall>x. \<exists>ff\<in>B. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x)}"
-  BufEq_def:     "BufEq     \<equiv> gfp BufEq_F"
-  BufEq_alt_def: "BufEq_alt \<equiv> gfp (\<lambda>B. {f. \<forall>d. f\<cdot>(Md d\<leadsto><> ) = <> \<and>
-                                 (\<exists>ff\<in>B. (\<forall>x. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x))})"
-  BufAC_Asm_F_def: "BufAC_Asm_F A \<equiv> {s. s = <> \<or>
-                  (\<exists>d x. s = Md d\<leadsto>x \<and> (x = <> \<or> (ft\<cdot>x = Def \<bullet> \<and> (rt\<cdot>x)\<in>A)))}"
-  BufAC_Asm_def: "BufAC_Asm \<equiv> gfp BufAC_Asm_F"
-
-  BufAC_Cmt_F_def: "BufAC_Cmt_F C \<equiv> {(s,t). \<forall>d x.
+  "BufAC_Cmt_F C = {(s,t). \<forall>d x.
                            (s = <>         \<longrightarrow>     t = <>                 ) \<and>
                            (s = Md d\<leadsto><>   \<longrightarrow>     t = <>                 ) \<and>
                            (s = Md d\<leadsto>\<bullet>\<leadsto>x \<longrightarrow> (ft\<cdot>t = Def d \<and> (x,rt\<cdot>t)\<in>C))}"
-  BufAC_Cmt_def: "BufAC_Cmt \<equiv> gfp BufAC_Cmt_F"
-  BufAC_def:     "BufAC \<equiv> {f. \<forall>x. x\<in>BufAC_Asm \<longrightarrow> (x,f\<cdot>x)\<in>BufAC_Cmt}"
 
-  BufSt_F_def:   "BufSt_F H \<equiv> {h. \<forall>s  . h s      \<cdot><>        = <>         \<and>
+  BufAC_Cmt     :: "((M fstream * D fstream) set)"
+  "BufAC_Cmt = gfp BufAC_Cmt_F"
+
+  BufAC         :: "SPEC11"
+  "BufAC = {f. \<forall>x. x\<in>BufAC_Asm \<longrightarrow> (x,f\<cdot>x)\<in>BufAC_Cmt}"
+
+  BufSt_F       :: "SPECS11 \<Rightarrow> SPECS11"
+  "BufSt_F H = {h. \<forall>s  . h s      \<cdot><>        = <>         \<and>
                                  (\<forall>d x. h \<currency>     \<cdot>(Md d\<leadsto>x) = h (Sd d)\<cdot>x \<and>
                                 (\<exists>hh\<in>H. h (Sd d)\<cdot>(\<bullet>   \<leadsto>x) = d\<leadsto>(hh \<currency>\<cdot>x)))}"
-  BufSt_P_def:   "BufSt_P \<equiv> gfp BufSt_F"
-  BufSt_def:     "BufSt \<equiv> {f. \<exists>h\<in>BufSt_P. f = h \<currency>}"
 
-ML {* use_legacy_bindings (the_context ()) *}
+  BufSt_P       :: "SPECS11"
+  "BufSt_P = gfp BufSt_F"
+
+  BufSt         :: "SPEC11"
+  "BufSt = {f. \<exists>h\<in>BufSt_P. f = h \<currency>}"
+
 
 lemma set_cong: "!!X. A = B ==> (x:A) = (x:B)"
 by (erule subst, rule refl)
@@ -100,7 +102,7 @@ fun prove_backw s thm eqs = B_prover s (rtac (thm RS iffD2)) eqs;
 lemma mono_BufEq_F: "mono BufEq_F"
 by (unfold mono_def BufEq_F_def, fast)
 
-lemmas BufEq_fix = mono_BufEq_F [THEN BufEq_def [THEN def_gfp_unfold]];
+lemmas BufEq_fix = mono_BufEq_F [THEN BufEq_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
 lemma BufEq_unfold: "(f:BufEq) = (!d. f\<cdot>(Md d\<leadsto><>) = <> &
                  (!x. ? ff:BufEq. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>(ff\<cdot>x)))"
@@ -125,7 +127,8 @@ by (drule BufEq_unfold [THEN iffD1], auto)
 lemma mono_BufAC_Asm_F: "mono BufAC_Asm_F"
 by (unfold mono_def BufAC_Asm_F_def, fast)
 
-lemmas BufAC_Asm_fix = mono_BufAC_Asm_F [THEN BufAC_Asm_def [THEN def_gfp_unfold]]
+lemmas BufAC_Asm_fix =
+  mono_BufAC_Asm_F [THEN BufAC_Asm_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
 lemma BufAC_Asm_unfold: "(s:BufAC_Asm) = (s = <> | (? d x. 
         s = Md d\<leadsto>x & (x = <> | (ft\<cdot>x = Def \<bullet> & (rt\<cdot>x):BufAC_Asm))))"
@@ -150,7 +153,8 @@ by (drule BufAC_Asm_unfold [THEN iffD1], auto)
 lemma mono_BufAC_Cmt_F: "mono BufAC_Cmt_F"
 by (unfold mono_def BufAC_Cmt_F_def, fast)
 
-lemmas BufAC_Cmt_fix = mono_BufAC_Cmt_F [THEN BufAC_Cmt_def [THEN def_gfp_unfold]]
+lemmas BufAC_Cmt_fix =
+  mono_BufAC_Cmt_F [THEN BufAC_Cmt_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
 lemma BufAC_Cmt_unfold: "((s,t):BufAC_Cmt) = (!d x. 
      (s = <>       -->      t = <>) & 
@@ -225,7 +229,8 @@ done
 lemma mono_BufSt_F: "mono BufSt_F"
 by (unfold mono_def BufSt_F_def, fast)
 
-lemmas BufSt_P_fix = mono_BufSt_F [THEN BufSt_P_def [THEN def_gfp_unfold]]
+lemmas BufSt_P_fix =
+  mono_BufSt_F [THEN BufSt_P_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
 lemma BufSt_P_unfold: "(h:BufSt_P) = (!s. h s\<cdot><> = <> & 
            (!d x. h \<currency>     \<cdot>(Md d\<leadsto>x)   =    h (Sd d)\<cdot>x & 

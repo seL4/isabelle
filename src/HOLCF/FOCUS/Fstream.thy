@@ -16,35 +16,27 @@ defaultsort type
 
 types 'a fstream = "'a lift stream"
 
-consts
-
+definition
   fscons        :: "'a     \<Rightarrow> 'a fstream \<rightarrow> 'a fstream"
+  "fscons a = (\<Lambda> s. Def a && s)"
+
   fsfilter      :: "'a set \<Rightarrow> 'a fstream \<rightarrow> 'a fstream"
+  "fsfilter A = (sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A)))"
 
-syntax
+abbreviation
+  emptystream   :: "'a fstream"                          ("<>")
+  "<> == \<bottom>"
 
-  "@emptystream":: "'a fstream"                           ("<>")
-  "@fscons"     :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_~>_)"    [66,65] 65)
-  "@fsfilter"   :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_'(C')_)" [64,63] 63)
+  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_~>_)"    [66,65] 65)
+  "a~>s == fscons a\<cdot>s"
 
-syntax (xsymbols)
+  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_'(C')_)" [64,63] 63)
+  "A(C)s == fsfilter A\<cdot>s"
 
-  "@fscons"     :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_\<leadsto>_)"
-                                                                     [66,65] 65)
-  "@fsfilter"   :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream" ("(_\<copyright>_)"
-                                                                     [64,63] 63)
-translations
+const_syntax (xsymbols)
+  fscons'  ("(_\<leadsto>_)"                                                 [66,65] 65)
+  fsfilter'  ("(_\<copyright>_)"                                               [64,63] 63)
 
-  "<>"    => "\<bottom>"
-  "a~>s"  == "fscons a\<cdot>s"
-  "A(C)s" == "fsfilter A\<cdot>s"
-
-defs
-
-  fscons_def:    "fscons a   \<equiv> \<Lambda> s. Def a && s"
-  fsfilter_def:  "fsfilter A \<equiv> sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A))"
-
-ML {* use_legacy_bindings (the_context ()) *}
 
 lemma Def_maximal: "a = Def d \<Longrightarrow> a\<sqsubseteq>b \<Longrightarrow> b = Def d"
 apply (rule flat_eq [THEN iffD1, symmetric])

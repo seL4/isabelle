@@ -108,33 +108,23 @@ typedecl ('a, 'b) tc
 arities tc:: (pcpo, pcpo) pcpo
 
 consts
+  Rf :: "('b stream * ('b,'c) tc stream * 'c stream * ('b,'c) tc stream) => bool"
 
-is_f     ::
- "('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) => bool"
-is_net_g :: "('b stream *('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) =>
-            'b stream => 'c stream => bool"
-is_g     :: "('b stream -> 'c stream) => bool"
-def_g    :: "('b stream -> 'c stream) => bool"
-Rf       ::
-"('b stream * ('b,'c) tc stream * 'c stream * ('b,'c) tc stream) => bool"
+definition
+  is_f :: "('b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) => bool"
+  "is_f f = (!i1 i2 o1 o2. f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2))"
 
-defs
-
-is_f:           "is_f f == (!i1 i2 o1 o2.
-                        f$<i1,i2> = <o1,o2> --> Rf(i1,i2,o1,o2))"
-
-is_net_g:       "is_net_g f x y == (? z.
+  is_net_g :: "('b stream *('b,'c) tc stream -> 'c stream * ('b,'c) tc stream) =>
+    'b stream => 'c stream => bool"
+  "is_net_g f x y == (? z.
                         <y,z> = f$<x,z> &
                         (!oy hz. <oy,hz> = f$<x,hz> --> z << hz))"
 
-is_g:           "is_g g  == (? f.
-                        is_f f  &
-                        (!x y. g$x = y --> is_net_g f x y))"
+  is_g :: "('b stream -> 'c stream) => bool"
+  "is_g g  == (? f. is_f f  & (!x y. g$x = y --> is_net_g f x y))"
 
-
-def_g:          "def_g g == (? f.
-                        is_f f  &
-                        g = (LAM x. cfst$(f$<x,fix$(LAM  k. csnd$(f$<x,k>))>)))"
+  def_g :: "('b stream -> 'c stream) => bool"
+  "def_g g == (? f. is_f f  & g = (LAM x. cfst$(f$<x,fix$(LAM  k. csnd$(f$<x,k>))>)))"
 
 
 (* first some logical trading *)
@@ -143,7 +133,7 @@ lemma lemma1:
 "is_g(g) =
   (? f. is_f(f) &  (!x.(? z. <g$x,z> = f$<x,z> &
                    (! w y. <y,w> = f$<x,w>  --> z << w))))"
-apply (simp add: is_g is_net_g)
+apply (simp add: is_g_def is_net_g_def)
 apply fast
 done
 
@@ -191,7 +181,7 @@ apply (rule refl)
 done
 
 lemma lemma3: "def_g(g) --> is_g(g)"
-apply (tactic {* simp_tac (HOL_ss addsimps [thm "def_g", thm "lemma1", thm "lemma2"]) 1 *})
+apply (tactic {* simp_tac (HOL_ss addsimps [thm "def_g_def", thm "lemma1", thm "lemma2"]) 1 *})
 apply (rule impI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)
@@ -218,7 +208,7 @@ done
 
 lemma lemma4: "is_g(g) --> def_g(g)"
 apply (tactic {* simp_tac (HOL_ss delsimps (thms "ex_simps" @ thms "all_simps")
-  addsimps [thm "lemma1", thm "lemma2", thm "def_g"]) 1 *})
+  addsimps [thm "lemma1", thm "lemma2", thm "def_g_def"]) 1 *})
 apply (rule impI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)
@@ -262,7 +252,7 @@ lemma L2:
   is_f(f::'b stream * ('b,'c) tc stream -> 'c stream * ('b,'c) tc stream))
   -->
   (? g. def_g(g::'b stream -> 'c stream ))"
-apply (simp add: def_g)
+apply (simp add: def_g_def)
 done
 
 theorem conservative_loopback:

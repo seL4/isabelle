@@ -28,15 +28,13 @@ consts
   b1 :: "'a -> tr"
   b2 :: "'a -> tr"
   g :: "'a -> 'a"
+
+definition
   p :: "'a -> 'a"
+  "p = fix$(LAM f. LAM x. If b1$x then f$(g$x) else x fi)"
+
   q :: "'a -> 'a"
-
-defs
-  p_def:  "p == fix$(LAM f. LAM x.
-                 If b1$x then f$(g$x) else x fi)"
-
-  q_def:  "q == fix$(LAM f. LAM x.
-                 If b1$x orelse b2$x then f$(g$x) else x fi)"
+  "q = fix$(LAM f. LAM x. If b1$x orelse b2$x then f$(g$x) else x fi)"
 
 
 (* --------- pure HOLCF logic, some little lemmas ------ *)
@@ -106,13 +104,13 @@ done
 
 lemma p_def3: "p$x = If b1$x then p$(g$x) else x fi"
 apply (rule trans)
-apply (rule p_def [THEN fix_eq3])
+apply (rule p_def [THEN eq_reflection, THEN fix_eq3])
 apply simp
 done
 
 lemma q_def3: "q$x = If b1$x orelse b2$x then q$(g$x) else x fi"
 apply (rule trans)
-apply (rule q_def [THEN fix_eq3])
+apply (rule q_def [THEN eq_reflection, THEN fix_eq3])
 apply simp
 done
 
@@ -233,7 +231,7 @@ done
 (* -------- results about p for case  (ALL k. b1$(iterate k$g$x)=TT) ------- *)
 
 lemma fernpass_lemma: "(ALL k. b1$(iterate k$g$x)=TT) ==> ALL k. p$(iterate k$g$x) = UU"
-apply (rule p_def [THEN def_fix_ind])
+apply (rule p_def [THEN eq_reflection, THEN def_fix_ind])
 apply (rule adm_all)
 apply (rule allI)
 apply (rule adm_eq)
@@ -258,7 +256,7 @@ done
 (* -------- results about q for case  (ALL k. b1$(iterate k$g$x)=TT) ------- *)
 
 lemma hoare_lemma17: "(ALL k. b1$(iterate k$g$x)=TT) ==> ALL k. q$(iterate k$g$x) = UU"
-apply (rule q_def [THEN def_fix_ind])
+apply (rule q_def [THEN eq_reflection, THEN def_fix_ind])
 apply (rule adm_all)
 apply (rule allI)
 apply (rule adm_eq)
@@ -288,7 +286,7 @@ apply (erule spec)
 done
 
 lemma hoare_lemma20: "(ALL y. b1$(y::'a)=TT) ==> ALL k. q$(iterate k$g$(x::'a)) = UU"
-apply (rule q_def [THEN def_fix_ind])
+apply (rule q_def [THEN eq_reflection, THEN def_fix_ind])
 apply (rule adm_all)
 apply (rule allI)
 apply (rule adm_eq)

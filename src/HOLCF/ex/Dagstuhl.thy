@@ -7,16 +7,16 @@ begin
 consts
   y  :: "'a"
 
-constdefs
+definition
   YS :: "'a stream"
-  "YS == fix$(LAM x. y && x)"
+  "YS = fix$(LAM x. y && x)"
   YYS :: "'a stream"
-  "YYS == fix$(LAM z. y && y && z)"
+  "YYS = fix$(LAM z. y && y && z)"
 
 lemma YS_def2: "YS = y && YS"
   apply (rule trans)
   apply (rule fix_eq2)
-  apply (rule YS_def)
+  apply (rule YS_def [THEN eq_reflection])
   apply (rule beta_cfun)
   apply simp
   done
@@ -24,14 +24,14 @@ lemma YS_def2: "YS = y && YS"
 lemma YYS_def2: "YYS = y && y && YYS"
   apply (rule trans)
   apply (rule fix_eq2)
-  apply (rule YYS_def)
+  apply (rule YYS_def [THEN eq_reflection])
   apply (rule beta_cfun)
   apply simp
   done
 
 
 lemma lemma3: "YYS << y && YYS"
-  apply (rule YYS_def [THEN def_fix_ind])
+  apply (rule YYS_def [THEN eq_reflection, THEN def_fix_ind])
   apply simp_all
   apply (rule monofun_cfun_arg)
   apply (rule monofun_cfun_arg)
@@ -77,7 +77,7 @@ lemma lemma6: "YYS << YS"
   done
 
 lemma lemma7: "YS << YYS"
-  apply (rule YS_def [THEN def_fix_ind])
+  apply (rule YS_def [THEN eq_reflection, THEN def_fix_ind])
   apply simp_all
   apply (subst lemma5 [symmetric])
   apply (erule monofun_cfun_arg)

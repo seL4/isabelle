@@ -11,46 +11,44 @@ begin
 
 domain 'a stream = "&&" (ft::'a) (lazy rt::"'a stream") (infixr 65)
 
-consts
-
+definition
   smap          :: "('a \<rightarrow> 'b) \<rightarrow> 'a stream \<rightarrow> 'b stream"
+  "smap = fix\<cdot>(\<Lambda> h f s. case s of x && xs \<Rightarrow> f\<cdot>x && h\<cdot>f\<cdot>xs)"
+
   sfilter       :: "('a \<rightarrow> tr) \<rightarrow> 'a stream \<rightarrow> 'a stream"
-  slen          :: "'a stream \<Rightarrow> inat"                   ("#_" [1000] 1000)
-
-defs
-
-  smap_def:     "smap    \<equiv> fix\<cdot>(\<Lambda> h f s. case s of x && xs \<Rightarrow> f\<cdot>x && h\<cdot>f\<cdot>xs)"
-  sfilter_def:  "sfilter \<equiv> fix\<cdot>(\<Lambda> h p s. case s of x && xs \<Rightarrow>
+  "sfilter = fix\<cdot>(\<Lambda> h p s. case s of x && xs \<Rightarrow>
                                      If p\<cdot>x then x && h\<cdot>p\<cdot>xs else h\<cdot>p\<cdot>xs fi)"
-  slen_def:     "#s \<equiv> if stream_finite s
-                      then Fin (LEAST n. stream_take n\<cdot>s = s) else \<infinity>"
+
+  slen          :: "'a stream \<Rightarrow> inat"                   ("#_" [1000] 1000)
+  "#s = (if stream_finite s then Fin (LEAST n. stream_take n\<cdot>s = s) else \<infinity>)"
+
 
 (* concatenation *)
 
-consts
-
+definition
   i_rt :: "nat => 'a stream => 'a stream" (* chops the first i elements *)
+  "i_rt = (%i s. iterate i$rt$s)"
+
   i_th :: "nat => 'a stream => 'a"        (* the i-th element *)
+  "i_th = (%i s. ft$(i_rt i s))"
 
   sconc         :: "'a stream => 'a stream => 'a stream" (infixr "ooo" 65)
-  constr_sconc  :: "'a stream => 'a stream => 'a stream" (* constructive *)
+  "s1 ooo s2 = (case #s1 of
+                  Fin n \<Rightarrow> (SOME s. (stream_take n$s=s1) & (i_rt n s = s2))
+               | \<infinity>     \<Rightarrow> s1)"
+
+consts
   constr_sconc' :: "nat => 'a stream => 'a stream => 'a stream"
-
-defs
-  i_rt_def: "i_rt == %i s. iterate i$rt$s"
-  i_th_def: "i_th == %i s. ft$(i_rt i s)"
-
-  sconc_def: "s1 ooo s2 == case #s1 of
-                       Fin n \<Rightarrow> (SOME s. (stream_take n$s=s1) & (i_rt n s = s2))
-                     | \<infinity>     \<Rightarrow> s1"
-
-  constr_sconc_def: "constr_sconc s1 s2 == case #s1 of
-                                             Fin n \<Rightarrow> constr_sconc' n s1 s2
-                                           | \<infinity>    \<Rightarrow> s1"
 primrec
   constr_sconc'_0:   "constr_sconc' 0 s1 s2 = s2"
   constr_sconc'_Suc: "constr_sconc' (Suc n) s1 s2 = ft$s1 &&
                                                     constr_sconc' n (rt$s1) s2"
+
+definition
+  constr_sconc  :: "'a stream => 'a stream => 'a stream" (* constructive *)
+  "constr_sconc s1 s2 = (case #s1 of
+                          Fin n \<Rightarrow> constr_sconc' n s1 s2
+                        | \<infinity>    \<Rightarrow> s1)"
 
 
 declare stream.rews [simp add]
@@ -519,7 +517,7 @@ by (simp add: slen_take_lemma4)
 section "smap"
 
 lemma smap_unfold: "smap = (\<Lambda> f t. case t of x&&xs \<Rightarrow> f$x && smap$f$xs)"
-by (insert smap_def [THEN fix_eq2], auto)
+by (insert smap_def [THEN eq_reflection, THEN fix_eq2], auto)
 
 lemma smap_empty [simp]: "smap\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (subst smap_unfold, simp)
@@ -538,7 +536,7 @@ section "sfilter"
 lemma sfilter_unfold:
  "sfilter = (\<Lambda> p s. case s of x && xs \<Rightarrow>
   If p\<cdot>x then x && sfilter\<cdot>p\<cdot>xs else sfilter\<cdot>p\<cdot>xs fi)"
-by (insert sfilter_def [THEN fix_eq2], auto)
+by (insert sfilter_def [THEN eq_reflection, THEN fix_eq2], auto)
 
 lemma strict_sfilter: "sfilter\<cdot>\<bottom> = \<bottom>"
 apply (rule ext_cfun)

@@ -235,7 +235,7 @@ done
 
 lemma adm_BufAC_Asm: "adm (\<lambda>x. x\<in>BufAC_Asm)"
 apply (rule def_gfp_admI)
-apply (rule BufAC_Asm_def)
+apply (rule BufAC_Asm_def [THEN eq_reflection])
 apply (safe)
 apply (unfold BufAC_Asm_F_def)
 apply (safe)
@@ -269,7 +269,7 @@ done
 
 lemma adm_non_BufAC_Asm': "adm (\<lambda>u. u \<notin> BufAC_Asm)" (* uses antitonP *)
 apply (rule def_gfp_adm_nonP)
-apply (rule BufAC_Asm_def)
+apply (rule BufAC_Asm_def [THEN eq_reflection])
 apply (unfold BufAC_Asm_F_def)
 apply (safe)
 apply (erule contrapos_np)
