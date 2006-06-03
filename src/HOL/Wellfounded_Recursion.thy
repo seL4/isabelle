@@ -42,11 +42,11 @@ lemma wfUNIVI:
    "(!!P x. (ALL x. (ALL y. (y,x) : r --> P(y)) --> P(x)) ==> P(x)) ==> wf(r)"
 by (unfold wf_def, blast)
 
-text{*Restriction to domain @{term A}.  
-  If @{term r} is well-founded over @{term A} then @{term "wf r"}*}
+text{*Restriction to domain @{term A} and range @{term B}.  If @{term r} is
+    well-founded over their intersection, then @{term "wf r"}*}
 lemma wfI: 
- "[| r <= A <*> A;   
-     !!x P. [| ALL x. (ALL y. (y,x) : r --> P y) --> P x;  x:A |] ==> P x |]   
+ "[| r \<subseteq> A <*> B; 
+     !!x P. [|\<forall>x. (\<forall>y. (y,x) : r --> P y) --> P x;  x : A; x : B |] ==> P x |]
   ==>  wf r"
 by (unfold wf_def, blast)
 
