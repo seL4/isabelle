@@ -37,6 +37,7 @@ sig
   val hol_no_types: unit -> unit
   val hol_typ_level: unit -> ResHolClause.type_level
   val run_relevance_filter: bool ref
+  val run_blacklist_filter: bool ref
   val invoke_atp_ml : ProofContext.context * thm -> unit
   val add_claset : unit -> unit
   val add_simpset : unit -> unit
@@ -147,6 +148,7 @@ val rm_atpset = (fn () => include_atpset:=false);
 
 (**** relevance filter ****)
 val run_relevance_filter = ref true;
+val run_blacklist_filter = ref true;
 
 (******************************************************************)
 (* detect whether a given problem (clauses) is FOL/HOL/HOLC/HOLCS *)
@@ -277,6 +279,280 @@ fun problem_logic_goals_aux [] (lg,seen) = lg
     
 fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
 
+(***************************************************************)
+(* Retrieving and filtering lemmas                             *)
+(***************************************************************)
+
+(*** white list and black list of lemmas ***)
+
+(*The rule subsetI is frequently omitted by the relevance filter.*)
+val whitelist = ref [subsetI]; 
+
+(*In general, these produce clauses that are prolific (match too many equality or
+  membership literals) and relate to seldom-used facts. Some duplicate other rules.
+  FIXME: this blacklist needs to be maintained using theory data and added to using
+  an attribute.*)
+val blacklist = ref
+  ["Datatype.prod.size",
+   "Divides.dvd_0_left_iff",
+   "Finite_Set.card_0_eq",
+   "Finite_Set.card_infinite",
+   "Finite_Set.Max_ge",
+   "Finite_Set.Max_in",
+   "Finite_Set.Max_le_iff",
+   "Finite_Set.Max_less_iff",
+   "Finite_Set.max.f_below_strict_below.below_f_conv", (*duplicates in Orderings.*)
+   "Finite_Set.max.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
+   "Finite_Set.Min_ge_iff",
+   "Finite_Set.Min_gr_iff",
+   "Finite_Set.Min_in",
+   "Finite_Set.Min_le",
+   "Finite_Set.min_max.below_inf_sup_Inf_Sup.inf_Sup_absorb", 
+   "Finite_Set.min_max.below_inf_sup_Inf_Sup.sup_Inf_absorb", 
+   "Finite_Set.min.f_below_strict_below.below_f_conv",        (*duplicates in Orderings.*)
+   "Finite_Set.min.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
+   "IntDef.Integ.Abs_Integ_inject",
+   "IntDef.Integ.Abs_Integ_inverse",
+   "IntDiv.zdvd_0_left",
+   "List.append_eq_append_conv",
+   "List.hd_Cons_tl",   (*Says everything is [] or Cons. Probably prolific.*)
+   "List.in_listsD",
+   "List.in_listsI",
+   "List.lists.Cons",
+   "List.listsE",
+   "Nat.less_one", (*not directional? obscure*)
+   "Nat.not_gr0",
+   "Nat.one_eq_mult_iff", (*duplicate by symmetry*)
+   "NatArith.of_nat_0_eq_iff",
+   "NatArith.of_nat_eq_0_iff",
+   "NatArith.of_nat_le_0_iff",
+   "NatSimprocs.divide_le_0_iff_number_of",  (*too many clauses*)
+   "NatSimprocs.divide_less_0_iff_number_of",
+   "NatSimprocs.equation_minus_iff_1",  (*not directional*)
+   "NatSimprocs.equation_minus_iff_number_of", (*not directional*)
+   "NatSimprocs.le_minus_iff_1", (*not directional*)
+   "NatSimprocs.le_minus_iff_number_of",  (*not directional*)
+   "NatSimprocs.less_minus_iff_1", (*not directional*)
+   "NatSimprocs.less_minus_iff_number_of", (*not directional*)
+   "NatSimprocs.minus_equation_iff_number_of", (*not directional*)
+   "NatSimprocs.minus_le_iff_1", (*not directional*)
+   "NatSimprocs.minus_le_iff_number_of", (*not directional*)
+   "NatSimprocs.minus_less_iff_1", (*not directional*)
+   "NatSimprocs.mult_le_cancel_left_number_of", (*excessive case analysis*)
+   "NatSimprocs.mult_le_cancel_right_number_of", (*excessive case analysis*)
+   "NatSimprocs.mult_less_cancel_left_number_of", (*excessive case analysis*)
+   "NatSimprocs.mult_less_cancel_right_number_of", (*excessive case analysis*)
+   "NatSimprocs.zero_le_divide_iff_number_of", (*excessive case analysis*)
+   "NatSimprocs.zero_less_divide_iff_number_of",
+   "OrderedGroup.abs_0_eq", (*duplicate by symmetry*)
+   "OrderedGroup.diff_eq_0_iff_eq", (*prolific?*)
+   "OrderedGroup.join_0_eq_0",
+   "OrderedGroup.meet_0_eq_0",
+   "OrderedGroup.pprt_eq_0",   (*obscure*)
+   "OrderedGroup.pprt_eq_id",   (*obscure*)
+   "OrderedGroup.pprt_mono",   (*obscure*)
+   "Parity.even_nat_power",   (*obscure, somewhat prolilfic*)
+   "Parity.power_eq_0_iff_number_of",
+   "Parity.power_le_zero_eq_number_of",   (*obscure and prolific*)
+   "Parity.power_less_zero_eq_number_of",
+   "Parity.zero_le_power_eq_number_of",   (*obscure and prolific*)
+   "Parity.zero_less_power_eq_number_of",   (*obscure and prolific*)
+   "Power.zero_less_power_abs_iff",
+   "Relation.diagI",
+   "Relation.ImageI",
+   "Ring_and_Field.divide_cancel_left", (*fields are seldom used & often prolific*)
+   "Ring_and_Field.divide_cancel_right",
+   "Ring_and_Field.divide_divide_eq_left",
+   "Ring_and_Field.divide_divide_eq_right",
+   "Ring_and_Field.divide_eq_0_iff",
+   "Ring_and_Field.divide_eq_1_iff",
+   "Ring_and_Field.divide_eq_eq_1",
+   "Ring_and_Field.divide_le_0_1_iff",
+   "Ring_and_Field.divide_le_eq_1_neg",  (*obscure and prolific*)
+   "Ring_and_Field.divide_le_eq_1_pos",  (*obscure and prolific*)
+   "Ring_and_Field.divide_less_0_1_iff",
+   "Ring_and_Field.divide_less_eq_1_neg",  (*obscure and prolific*)
+   "Ring_and_Field.divide_less_eq_1_pos",  (*obscure and prolific*)
+   "Ring_and_Field.eq_divide_eq_1", (*duplicate by symmetry*)
+   "Ring_and_Field.field_mult_cancel_left",
+   "Ring_and_Field.field_mult_cancel_right",
+   "Ring_and_Field.inverse_le_iff_le_neg",
+   "Ring_and_Field.inverse_le_iff_le",
+   "Ring_and_Field.inverse_less_iff_less_neg",
+   "Ring_and_Field.inverse_less_iff_less",
+   "Ring_and_Field.le_divide_eq_1_neg", (*obscure and prolific*)
+   "Ring_and_Field.le_divide_eq_1_pos", (*obscure and prolific*)
+   "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
+   "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
+   "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
+   "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
+   "Set.Diff_insert0",
+   "Set.disjoint_insert_1",
+   "Set.disjoint_insert_2",
+   "Set.empty_Union_conv", (*redundant with paramodulation*)
+   "Set.insert_disjoint_1",
+   "Set.insert_disjoint_2",
+   "Set.Int_UNIV", (*redundant with paramodulation*)
+   "Set.Inter_iff",              (*We already have InterI, InterE*)
+   "Set.Inter_UNIV_conv_1",
+   "Set.Inter_UNIV_conv_2",
+   "Set.psubsetE",    (*too prolific and obscure*)
+   "Set.psubsetI",
+   "Set.singleton_insert_inj_eq'",
+   "Set.singleton_insert_inj_eq",
+   "Set.singletonD",  (*these two duplicate some "insert" lemmas*)
+   "Set.singletonI",
+   "Set.Un_empty", (*redundant with paramodulation*)
+   "Set.Union_empty_conv", (*redundant with paramodulation*)
+   "Set.Union_iff",              (*We already have UnionI, UnionE*)
+   "SetInterval.atLeastAtMost_iff", (*obscure and prolific*)
+   "SetInterval.atLeastLessThan_iff", (*obscure and prolific*)
+   "SetInterval.greaterThanAtMost_iff", (*obscure and prolific*)
+   "SetInterval.greaterThanLessThan_iff", (*obscure and prolific*)
+   "SetInterval.ivl_subset"];  (*excessive case analysis*)
+
+
+(*These might be prolific but are probably OK, and min and max are basic.
+   "Orderings.max_less_iff_conj", 
+   "Orderings.min_less_iff_conj",
+   "Orderings.min_max.below_inf.below_inf_conv",
+   "Orderings.min_max.below_sup.above_sup_conv",
+Very prolific and somewhat obscure:
+   "Set.InterD",
+   "Set.UnionI",
+*)
+
+(*** retrieve lemmas from clasimpset and atpset, may filter them ***)
+
+(*The "name" of a theorem is its statement, if nothing else is available.*)
+val plain_string_of_thm =
+    setmp show_question_marks false 
+      (setmp print_mode [] 
+	(Pretty.setmp_margin 999 string_of_thm));
+	
+(*Returns the first substring enclosed in quotation marks, typically omitting 
+  the [.] of meta-level assumptions.*)
+val firstquoted = hd o (String.tokens (fn c => c = #"\""))
+	
+fun fake_thm_name th = 
+    Context.theory_name (theory_of_thm th) ^ "." ^ firstquoted (plain_string_of_thm th);
+
+fun put_name_pair ("",th) = (fake_thm_name th, th)
+  | put_name_pair (a,th)  = (a,th);
+
+(*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
+
+exception HASH_CLAUSE and HASH_STRING;
+
+(*Catches (for deletion) theorems automatically generated from other theorems*)
+fun insert_suffixed_names ht x = 
+     (Polyhash.insert ht (x^"_iff1", ()); 
+      Polyhash.insert ht (x^"_iff2", ()); 
+      Polyhash.insert ht (x^"_dest", ())); 
+
+fun make_banned_test xs = 
+  let val ht = Polyhash.mkTable (Polyhash.hash_string, op =)
+                                (6000, HASH_STRING)
+      fun banned s = isSome (Polyhash.peek ht s)
+  in  app (fn x => Polyhash.insert ht (x,())) (!blacklist);
+      app (insert_suffixed_names ht) (!blacklist @ xs); 
+      banned
+  end;
+
+(** a hash function from Term.term to int, and also a hash table **)
+val xor_words = List.foldl Word.xorb 0w0;
+
+fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
+  | hashw_term ((Free(_,_)), w) = w
+  | hashw_term ((Var(_,_)), w) = w
+  | hashw_term ((Bound _), w) = w
+  | hashw_term ((Abs(_,_,t)), w) = hashw_term (t, w)
+  | hashw_term ((P$Q), w) = hashw_term (Q, (hashw_term (P, w)));
+
+fun hashw_pred (P,w) = 
+    let val (p,args) = strip_comb P
+    in
+	List.foldl hashw_term w (p::args)
+    end;
+
+fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_pred(P,0w0))
+  | hash_literal P = hashw_pred(P,0w0);
+
+
+fun get_literals (Const("Trueprop",_)$P) lits = get_literals P lits
+  | get_literals (Const("op |",_)$P$Q) lits = get_literals Q (get_literals P lits)
+  | get_literals lit lits = (lit::lits);
+
+
+fun hash_term term = Word.toIntX (xor_words (map hash_literal (get_literals term [])));
+
+fun hash_thm  thm = hash_term (prop_of thm);
+
+fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
+(*Create a hash table for clauses, of the given size*)
+fun mk_clause_table n =
+      Polyhash.mkTable (hash_thm, equal_thm)
+                       (n, HASH_CLAUSE);
+
+(*Use a hash table to eliminate duplicates from xs*)
+fun make_unique ht xs = 
+      (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
+
+fun mem_thm thm [] = false
+  | mem_thm thm ((thm',name)::thms_names) = equal_thm (thm,thm') orelse mem_thm thm thms_names;
+
+fun insert_thms [] thms_names = thms_names
+  | insert_thms ((thm,name)::thms_names) thms_names' =
+      if mem_thm thm thms_names' then insert_thms thms_names thms_names' 
+      else insert_thms thms_names ((thm,name)::thms_names');
+
+fun display_thms [] = ()
+  | display_thms ((name,thm)::nthms) = 
+      let val nthm = name ^ ": " ^ (string_of_thm thm)
+      in Output.debug nthm; display_thms nthms  end;
+ 
+
+(* get lemmas from claset, simpset, atpset and extra supplied rules *)
+fun get_clasimp_atp_lemmas ctxt user_thms = 
+    let val claset_thms =
+	    if !include_claset then
+		map put_name_pair (ResAxioms.claset_rules_of_ctxt ctxt)
+	    else []
+	val simpset_thms = 
+	    if !include_simpset then 
+		map put_name_pair (ResAxioms.simpset_rules_of_ctxt ctxt)
+	    else []
+	val atpset_thms =
+	    if !include_atpset then
+		map put_name_pair (ResAxioms.atpset_rules_of_ctxt ctxt)
+	    else []
+	val _ = if !Output.show_debug_msgs then (Output.debug "ATP theorems: "; display_thms atpset_thms) else ()		 
+	val user_rules = 
+	    case user_thms of  (*use whitelist if there are no user-supplied rules*)
+		[] => map (put_name_pair o ResAxioms.pairname) (!whitelist)
+	      | _  => map put_name_pair user_thms
+    in
+	(claset_thms, simpset_thms, atpset_thms, user_rules)
+    end;
+
+(* remove lemmas that are banned from the backlist *)
+fun blacklist_filter thms = 
+    if !run_blacklist_filter then 
+	let val banned = make_banned_test (map #1 thms)
+	    fun ok (a,_) = not (banned a)
+	in
+	    filter ok thms
+	end
+    else
+	thms;
+
+(* filter axiom clauses, but keep supplied clauses and clauses in whitelist *)
+fun get_relevant_clauses ctxt cls_thms white_cls goals =
+    let val cls_thms_list = make_unique (mk_clause_table 2200) (List.concat (white_cls@cls_thms))
+	val relevant_cls_thms_list = if !run_relevance_filter then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals else cls_thms_list
+    in
+        insert_thms (List.concat white_cls) relevant_cls_thms_list 
+    end;
 
 (***************************************************************)
 (* ATP invocation methods setup                                *)
@@ -307,13 +583,15 @@ fun dfg_writer logic goals filename (axioms,classrels,arities) =
     then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
     else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities);
 
-
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
     let val conj_cls = make_clauses conjectures 
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
-	val user_rules = map ResAxioms.pairname user_thms
-	val axclauses_as_thms = ResClasimp.get_clasimp_atp_lemmas ctxt (map prop_of goal_cls) user_rules (!include_claset,!include_simpset,!include_atpset) (!run_relevance_filter)  
+	val (cla_thms,simp_thms,atp_thms,user_rules) = get_clasimp_atp_lemmas ctxt (map ResAxioms.pairname user_thms)
+	val rm_black_cls = blacklist_filter (cla_thms@simp_thms@atp_thms) 
+	val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_black_cls
+	val user_cls = ResAxioms.cnf_rules_pairs user_rules
+	val axclauses_as_thms = get_relevant_clauses ctxt cla_simp_atp_clauses user_cls (map prop_of goal_cls)
 	val thy = ProofContext.theory_of ctxt
 	val prob_logic = case mode of Auto => problem_logic_goals [map prop_of goal_cls]
 				    | Fol => FOL
@@ -407,7 +685,10 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 fun write_problem_files pf (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
-      val axclauses = ResClasimp.get_clasimp_atp_lemmas ctxt goals [] (true,true,true) (!run_relevance_filter) (* no user supplied rules here, because no user invocation *)
+      val (cla_thms,simp_thms,atp_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
+      val rm_blacklist_cls = blacklist_filter (cla_thms@simp_thms@atp_thms)
+      val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_blacklist_cls
+      val axclauses = get_relevant_clauses ctxt cla_simp_atp_clauses (ResAxioms.cnf_rules_pairs white_thms) goals 
       val _ = Output.debug ("claset, simprules and atprules total clauses = " ^ 
                      Int.toString (length axclauses))
       val thy = ProofContext.theory_of ctxt
