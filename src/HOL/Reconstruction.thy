@@ -19,7 +19,6 @@ uses 	 "Tools/polyhash.ML"
 	 "Tools/ATP/AtpCommunication.ML"
 	 "Tools/ATP/watcher.ML"
          "Tools/ATP/reduce_axiomsN.ML"
-	 "Tools/ATP/res_clasimpset.ML"
 	 "Tools/res_atp.ML"
 	 "Tools/reconstruction.ML"
 
