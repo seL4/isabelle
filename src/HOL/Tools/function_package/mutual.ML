@@ -129,7 +129,7 @@ fun prepare_fundef_mutual congs eqss thy =
 	val global_glrs = flat qglrss
 	val used = fold (fn (qs, _, _, _) => fold (curry op ins_string o fst o dest_Free) qs) global_glrs []
     in
-	(mutual, name, FundefPrep.prepare_fundef_new thy congs name (Const sum_const) global_glrs used)
+	(mutual, name, FundefPrep.prepare_fundef thy congs name (Const sum_const) global_glrs used)
     end
 
 

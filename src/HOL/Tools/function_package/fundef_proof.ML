@@ -12,9 +12,6 @@ sig
 
     val mk_partial_rules : theory -> thm list -> FundefCommon.prep_result 
 			   -> thm -> thm list -> FundefCommon.fundef_result
-
-    val mk_partial_rules_curried : theory -> thm list -> FundefCommon.curry_info option -> FundefCommon.prep_result 
-				   -> thm -> thm list -> FundefCommon.fundef_result
 end
 
 
@@ -540,39 +537,6 @@ fun mk_partial_rules thy congs data complete_thm compat_thms =
 	 dom_intros=dom_intros}
     end
 
-
-fun curry_induct_rule thy argTs induct =
-    let
-	val vnums = (1 upto (length argTs))
-	val avars = map2 (fn T => fn i => Var (("a",i), T)) argTs vnums
-	val atup = foldr1 HOLogic.mk_prod avars
-	val Q = Var (("P",1),argTs ---> HOLogic.boolT)
-	val P = tupled_lambda atup (list_comb (Q, avars))
-    in
-	induct |> freezeT
-	       |> instantiate' [] [SOME (cterm_of thy atup), SOME (cterm_of thy P)]
-	       |> zero_var_indexes
-	       |> full_simplify (HOL_basic_ss addsimps [split_apply])
-	       |> varifyT
-    end
-
-
-
-fun mk_partial_rules_curried thy congs NONE data complete_thm compat_thms =
-    mk_partial_rules thy congs data complete_thm compat_thms 
-  | mk_partial_rules_curried thy congs (SOME (Curry {curry_ss, argTs})) data complete_thm compat_thms =
-    let
-	val FundefResult {f, G, R, compatibility, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} =
-	    mk_partial_rules thy congs data complete_thm compat_thms 
-	val cpsimps = map (simplify curry_ss) psimps
-	val cpinduct = full_simplify curry_ss simple_pinduct
-				     |> curry_induct_rule thy argTs
-	val cdom_intros = map (full_simplify curry_ss) dom_intros
-	val ctotal_intro = full_simplify curry_ss total_intro
-    in
-	FundefResult {f=f, G=G, R=R, compatibility=compat_thms, completeness=complete_thm, 
-	 psimps=cpsimps, subset_pinduct=subset_pinduct, simple_pinduct=cpinduct, total_intro=ctotal_intro, dom_intros=cdom_intros}
-    end
 
 end
 

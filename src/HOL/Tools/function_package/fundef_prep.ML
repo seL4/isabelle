@@ -9,12 +9,8 @@ proof obligations.
 
 signature FUNDEF_PREP =
 sig
-    val prepare_fundef_curried : thm list -> term list -> theory
-				 -> FundefCommon.curry_info option * xstring * (FundefCommon.prep_result * theory)
-
-    val prepare_fundef_new : theory -> thm list -> string -> term -> FundefCommon.glrs -> string list
-			          -> FundefCommon.prep_result * theory
-
+    val prepare_fundef : theory -> thm list -> string -> term -> FundefCommon.glrs -> string list
+			 -> FundefCommon.prep_result * theory
 
 end
 
@@ -302,25 +298,7 @@ fun inductive_def defs (thy, const) =
  * Defines the function, the graph and the termination relation, synthesizes completeness
  * and comatibility conditions and returns everything.
  *)
-fun prepare_fundef congs eqs defname thy =
-    let
-	val (names, thy) = setup_context (analyze_eqs eqs) defname congs thy
-	val Names {G, R, glrs, trees, ...} = names
-
-	val {G_intros, vRiss, R_intross, complete, compat} = extract_conditions thy names trees congs
-
-	val (G_intro_thms, (thy, _)) = inductive_def G_intros (thy, G)
-	val (R_intro_thmss, (thy, _)) = fold_burrow inductive_def R_intross (thy, R)
-
-	val n = length glrs
-	val clauses = map3 (mk_clause_info thy names) ((1 upto n) ~~ glrs) (G_intro_thms ~~ trees) (map2 (curry op ~~) vRiss R_intro_thmss)
-    in
-	(Prep {names = names, complete=complete, compat=compat, clauses = clauses},
-	 thy) 
-    end
-
-
-fun prepare_fundef_new thy congs defname f glrs used =
+fun prepare_fundef thy congs defname f glrs used =
     let
 	val (names, thy) = setup_context (f, glrs, used) defname congs thy
 	val Names {G, R, glrs, trees, ...} = names
@@ -337,51 +315,6 @@ fun prepare_fundef_new thy congs defname f glrs used =
 	 thy) 
     end
 
-
-
-
-
-
-
-
-fun prepare_fundef_curried congs eqs thy =
-    let
-	val lhs1 = hd eqs
-		   |> dest_implies_list |> snd
-		   |> HOLogic.dest_Trueprop
-		   |> HOLogic.dest_eq |> fst
-
-	val (f, args) = strip_comb lhs1
-	val Const(fname, fT) = f
-	val fxname = Sign.extern_const thy fname
-    in
-	if (length args < 2)
-	then (NONE, fxname, (prepare_fundef congs eqs fxname thy))
-	else
-	    let
-		val (caTs, uaTs) = chop (length args) (binder_types fT)
-		val newtype = foldr1 HOLogic.mk_prodT caTs --> (uaTs ---> body_type fT)
-		val gxname = fxname ^ "_tupled"
-			     
-    		val thy = Sign.add_consts_i [(gxname, newtype, NoSyn)] thy
-		val gc = Const (Sign.intern_const thy gxname, newtype)
-			 
-		val vars = map2 (fn i => fn T => Free ("x"^(string_of_int i), T))
-				(1 upto (length caTs)) caTs
-
-		val f_lambda = fold_rev lambda vars (gc $ foldr1 HOLogic.mk_prod vars)
-			       
-		val def = Logic.mk_equals (fold (curry ((op $) o Library.swap)) vars f,
-					   gc $ foldr1 HOLogic.mk_prod vars)
-			  
-		val ([f_def], thy) = PureThy.add_defs_i false [((fxname ^ "_def", def), [])] thy
-				      
-		val g_to_f_ss = HOL_basic_ss addsimps [symmetric f_def]
-		val eqs_tupled = map (Pattern.rewrite_term thy [(f, f_lambda)] []) eqs
-	    in
-		(SOME (Curry {curry_ss = g_to_f_ss, argTs = caTs}), fxname, prepare_fundef congs eqs_tupled fxname thy)
-	    end
-    end
 
 
 
