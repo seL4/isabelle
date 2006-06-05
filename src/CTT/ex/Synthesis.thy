@@ -11,7 +11,7 @@ imports Arith
 begin
 
 text "discovery of predecessor function"
-lemma "?a : SUM pred:?A . Eq(N, pred`0, 0)    
+lemma "?a : SUM pred:?A . Eq(N, pred`0, 0)
                   *  (PROD n:N. Eq(N, pred ` succ(n), n))"
 apply (tactic "intr_tac []")
 apply (tactic eqintr_tac)
@@ -35,16 +35,16 @@ done
 text "An interesting use of the eliminator, when"
 (*The early implementation of unification caused non-rigid path in occur check
   See following example.*)
-lemma "?a : PROD i:N. Eq(?A, ?b(inl(i)), <0    ,   i>)   
+lemma "?a : PROD i:N. Eq(?A, ?b(inl(i)), <0    ,   i>)
                    * Eq(?A, ?b(inr(i)), <succ(0), i>)"
 apply (tactic "intr_tac []")
 apply (tactic eqintr_tac)
 apply (rule comp_rls)
 apply (tactic "rew_tac []")
-oops
+done
 
-(*Here we allow the type to depend on i.  
- This prevents the cycle in the first unification (no longer needed).  
+(*Here we allow the type to depend on i.
+ This prevents the cycle in the first unification (no longer needed).
  Requires flex-flex to preserve the dependence.
  Simpler still: make ?A into a constant type N*N.*)
 lemma "?a : PROD i:N. Eq(?A(i), ?b(inl(i)), <0   ,   i>)
@@ -54,7 +54,7 @@ oops
 text "A tricky combination of when and split"
 (*Now handled easily, but caused great problems once*)
 lemma [folded basic_defs]:
-  "?a : PROD i:N. PROD j:N. Eq(?A, ?b(inl(<i,j>)), i)    
+  "?a : PROD i:N. PROD j:N. Eq(?A, ?b(inl(<i,j>)), i)
                            *  Eq(?A, ?b(inr(<i,j>)), j)"
 apply (tactic "intr_tac []")
 apply (tactic eqintr_tac)
@@ -63,33 +63,33 @@ apply (rule_tac [4] comp_rls)
 apply (rule_tac [7] reduction_rls)
 apply (rule_tac [10] comp_rls)
 apply (tactic "typechk_tac []")
-oops
+done
 
 (*similar but allows the type to depend on i and j*)
-lemma "?a : PROD i:N. PROD j:N. Eq(?A(i,j), ?b(inl(<i,j>)), i)  
+lemma "?a : PROD i:N. PROD j:N. Eq(?A(i,j), ?b(inl(<i,j>)), i)
                           *   Eq(?A(i,j), ?b(inr(<i,j>)), j)"
 oops
 
 (*similar but specifying the type N simplifies the unification problems*)
-lemma "?a : PROD i:N. PROD j:N. Eq(N, ?b(inl(<i,j>)), i)   
+lemma "?a : PROD i:N. PROD j:N. Eq(N, ?b(inl(<i,j>)), i)
                           *   Eq(N, ?b(inr(<i,j>)), j)"
 oops
 
 
 text "Deriving the addition operator"
 lemma [folded arith_defs]:
-  "?c : PROD n:N. Eq(N, ?f(0,n), n)   
+  "?c : PROD n:N. Eq(N, ?f(0,n), n)
                   *  (PROD m:N. Eq(N, ?f(succ(m), n), succ(?f(m,n))))"
 apply (tactic "intr_tac []")
 apply (tactic eqintr_tac)
 apply (rule comp_rls)
 apply (tactic "rew_tac []")
-oops
+done
 
 text "The addition function -- using explicit lambdas"
 lemma [folded arith_defs]:
-  "?c : SUM plus : ?A .   
-         PROD x:N. Eq(N, plus`0`x, x)   
+  "?c : SUM plus : ?A .
+         PROD x:N. Eq(N, plus`0`x, x)
                 *  (PROD y:N. Eq(N, plus`succ(y)`x, succ(plus`y`x)))"
 apply (tactic "intr_tac []")
 apply (tactic eqintr_tac)

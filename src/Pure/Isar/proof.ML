@@ -144,7 +144,7 @@ and node =
     goal: goal option}
 and goal =
   Goal of
-   {statement: string * term list list,     (*goal kind and statement*)
+   {statement: string * term list list,     (*goal kind and statement, starting with vars*)
     using: thm list,                        (*goal facts*)
     goal: thm,                              (*subgoals ==> statement*)
     before_qed: Method.text option,
@@ -465,24 +465,25 @@ end;
 
 fun conclude_goal state goal propss =
   let
+    val thy = theory_of state;
     val ctxt = context_of state;
+    val string_of_term = ProofContext.string_of_term ctxt;
+    val string_of_thm = ProofContext.string_of_thm ctxt;
 
     val ngoals = Thm.nprems_of goal;
-    val _ = conditional (ngoals > 0) (fn () =>
-      error (Pretty.string_of (Pretty.chunks
+    val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
         (pretty_goals_local ctxt "" (true, ! show_main_goal) (! Display.goals_limit) goal @
-          [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
+          [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
+    val _ =
+      (case subtract (op aconv) (ProofContext.assms_of ctxt) (#hyps (Thm.rep_thm goal)) of
+        [] => ()
+      | hyps => error ("Additional hypotheses:\n" ^ cat_lines (map string_of_term hyps)));
 
-    val {hyps, thy, ...} = Thm.rep_thm goal;
-    val bad_hyps = subtract (op aconv) (ProofContext.assms_of ctxt) hyps;
-    val _ = conditional (not (null bad_hyps)) (fn () => error ("Additional hypotheses:\n" ^
-        cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
-
-    val th = Goal.conclude goal;
-    val _ = conditional (not (Pattern.matches thy
-        (Logic.mk_conjunction_list2 propss, Thm.prop_of th))) (fn () =>
-      error ("Proved a different theorem:\n" ^ ProofContext.string_of_thm ctxt th));
-  in Conjunction.elim_precise (map length propss) th end;
+    val (results, th) = `(Conjunction.elim_precise (map length propss)) (Goal.conclude goal)
+      handle THM _ => error ("Lost goal structure:\n" ^ string_of_thm goal);
+    val _ = Pattern.matches_seq thy (flat propss) (map Thm.prop_of (flat results)) orelse
+      error ("Proved a different theorem:\n" ^ string_of_thm th);
+  in results end;
 
 
 
@@ -759,15 +760,25 @@ fun goal_names target name names =
 
 (* generic goals *)
 
-fun check_tvars props state =
-  (case fold Term.add_tvars props [] of [] => ()
-  | tvars => error ("Goal statement contains illegal schematic type variable(s): " ^
-      commas (map (ProofContext.string_of_typ (context_of state) o TVar) tvars)));
+local
 
-fun check_vars props state =
-  (case fold Term.add_vars props [] of [] => ()
-  | vars => warning ("Goal statement contains unbound schematic variable(s): " ^
-      commas (map (ProofContext.string_of_term (context_of state) o Var) vars)));
+fun warn_tvars [] _ = ()
+  | warn_tvars vs state =
+      warning ("Goal statement contains unbound schematic type variable(s): " ^
+        commas (map (ProofContext.string_of_typ (context_of state) o TVar) vs));
+
+fun warn_vars [] _ = ()
+  | warn_vars vs state =
+      warning ("Goal statement contains unbound schematic variable(s): " ^
+        commas (map (ProofContext.string_of_term (context_of state) o Var) vs));
+
+fun refine_terms n =
+  refine (Method.Basic (K (Method.RAW_METHOD
+    (K (HEADGOAL (PRECISE_CONJUNCTS n
+      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI))))))))))
+  #> Seq.hd;
+
+in
 
 fun generic_goal prepp kind before_qed after_qed raw_propp state =
   let
@@ -782,15 +793,21 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
     val props = flat propss;
 
-    val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list2 propss));
+    val dest_var = Term.dest_Var o Logic.dest_term;
+    val explicit_vars = map dest_var (#1 (take_prefix (can dest_var) props));
+    val vars = rev ((fold o Term.fold_aterms) (fn Var v =>
+      if member (op =) explicit_vars v then I else insert (op =) v | _ => I) props []);
+
+    val propss' = map (Logic.mk_term o Var) vars :: propss;
+    val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list2 propss'));
     val after_qed' = after_qed |>> (fn after_local =>
       fn results => map_context after_ctxt #> after_local results);
   in
     goal_state
-    |> tap (check_tvars props)
-    |> tap (check_vars props)
+    |> tap (warn_tvars (fold Term.add_tvars props []))
+    |> tap (warn_vars vars)
     |> map_context (ProofContext.set_body true)
-    |> put_goal (SOME (make_goal ((kind, propss), [], goal, before_qed, after_qed')))
+    |> put_goal (SOME (make_goal ((kind, propss'), [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
     |> K chaining ? (`the_facts #-> using_facts)
@@ -798,6 +815,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     |> open_block
     |> put_goal NONE
     |> enter_backward
+    |> K (not (null vars)) ? refine_terms (length propss')
     |> K (null props) ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
 
@@ -809,17 +827,18 @@ fun generic_qed state =
     val outer_ctxt = context_of outer_state;
 
     val props =
-      flat stmt
+      flat (tl stmt)
       |> ProofContext.generalize goal_ctxt outer_ctxt;
     val results =
-      stmt
-      |> conclude_goal state goal
+      tl (conclude_goal state goal stmt)
       |> (Seq.map_list o Seq.map_list) (ProofContext.exports goal_ctxt outer_ctxt);
   in
     outer_state
     |> map_context (ProofContext.auto_bind_facts props)
     |> pair (after_qed, results)
   end;
+
+end;
 
 
 (* local goals *)

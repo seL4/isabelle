@@ -128,7 +128,6 @@ fun prove_multi thy xs asms props tac =
     fun err msg = cat_error msg
       ("The error(s) above occurred for the goal statement:\n" ^
         Sign.string_of_term thy (Term.list_all_free (params, statement)));
-
     fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm t)
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
 
@@ -139,19 +138,16 @@ fun prove_multi thy xs asms props tac =
     val casms = map cert_safe asms;
     val prems = map (norm_hhf o Thm.assume) casms;
 
-    val cprop = cert_safe prop;
-    val goal = init cprop;
-    val goal' = case SINGLE (tac prems) goal of SOME goal' => goal' | _ => err "Tactic failed.";
-    val raw_result = finish goal' handle THM (msg, _, _) => err msg;
-
-    val prop' = Thm.prop_of raw_result;
-    val _ =
-      if not (Pattern.matches thy (Envir.beta_norm (Thm.term_of cprop), prop'))
-      then err ("Proved a different theorem: " ^ Sign.string_of_term thy prop')
-      else ();
+    val res =
+      (case SINGLE (tac prems) (init (cert_safe prop)) of
+        NONE => err "Tactic failed."
+      | SOME res => res);
+    val [results] =
+      Conjunction.elim_precise [length props] (finish res) handle THM (msg, _, _) => err msg;
+    val _ = Pattern.matches_seq thy (map (Thm.term_of o cert_safe) props) (map Thm.prop_of results)
+      orelse err ("Proved a different theorem: " ^ Sign.string_of_term thy (Thm.prop_of res));
   in
-    hd (Conjunction.elim_precise [length props] raw_result)
-    |> map
+    results |> map
       (Drule.implies_intr_list casms
         #> Drule.forall_intr_list cparams
         #> norm_hhf
