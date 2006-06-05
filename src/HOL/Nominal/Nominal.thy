@@ -985,15 +985,6 @@ done
 section {* further lemmas for permutation types *}
 (*==============================================*)
 
-lemma perm_diff:
-  fixes X::"'a set"
-  and   Y::"'a set"
-  and   pi::"'x prm"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and     at: "at TYPE('x)"
-  shows "pi \<bullet> (X - Y) = (pi \<bullet> X) - (pi \<bullet> Y)"
-  by (auto simp add: perm_set_def pt_bij[OF pt, OF at])
-
 lemma pt_rev_pi:
   fixes pi :: "'x prm"
   and   x  :: "'a"
@@ -1170,6 +1161,16 @@ next
   and    "x\<in>(pi\<bullet>X)"
   thus "x\<in>(pi\<bullet>Y)" by (force simp add: pt_set_bij1a[OF pt, OF at])
 qed
+
+lemma pt_set_diff_eqvt:
+  fixes X::"'a set"
+  and   Y::"'a set"
+  and   pi::"'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi \<bullet> (X - Y) = (pi \<bullet> X) - (pi \<bullet> Y)"
+  by (auto simp add: perm_set_def pt_bij[OF pt, OF at])
+
 
 -- "some helper lemmas for the pt_perm_supp_ineq lemma"
 lemma Collect_permI: 
