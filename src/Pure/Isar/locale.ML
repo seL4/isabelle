@@ -63,6 +63,10 @@ sig
     (term * term list) list list -> Proof.context ->
     string option * (cterm list * Proof.context) * (cterm list * Proof.context) *
       (term * term list) list list
+  val read_expr: expr -> Element.context list -> Proof.context ->
+    Element.context_i list * Proof.context
+  val cert_expr: expr -> Element.context_i list -> Proof.context ->
+    Element.context_i list * Proof.context
 
   (* Diagnostic functions *)
   val print_locales: theory -> unit
@@ -117,6 +121,7 @@ end;
 structure Locale: LOCALE =
 struct
 
+
 (** locale elements and expressions **)
 
 datatype ctxt = datatype Element.ctxt;
@@ -134,9 +139,8 @@ datatype 'a element =
 fun map_elem f (Elem e) = Elem (f e)
   | map_elem _ (Expr e) = Expr e;
 
-type witness = term * thm;  (*hypothesis as fact*)
 type locale =
- {predicate: cterm list * witness list,
+ {predicate: cterm list * Element.witness list,
     (* CB: For locales with "(open)" this entry is ([], []).
        For new-style locales, which declare predicates, if the locale declares
        no predicates, this is also ([], []).
@@ -151,10 +155,8 @@ type locale =
   params: ((string * typ) * mixfix) list,                           (*all params*)
   lparams: string list,                                             (*local parmas*)
   term_syntax: ((Proof.context -> Proof.context) * stamp) list, (* FIXME depend on morphism *)
-  regs: ((string * string list) * (term * thm) list) list}
-    (* Registrations: indentifiers and witness theorems of locales interpreted
-       in the locale.
-    *)
+  regs: ((string * string list) * Element.witness list) list}
+    (* Registrations: indentifiers and witnesses of locales interpreted in the locale. *)
 
 
 (* CB: an internal (Int) locale element was either imported or included,
@@ -171,17 +173,17 @@ structure Registrations :
     type T
     val empty: T
     val join: T * T -> T
-    val dest: T -> (term list * ((string * Attrib.src list) * witness list)) list
+    val dest: T -> (term list * ((string * Attrib.src list) * Element.witness list)) list
     val lookup: theory -> T * term list ->
-      ((string * Attrib.src list) * witness list) option
+      ((string * Attrib.src list) * Element.witness list) option
     val insert: theory -> term list * (string * Attrib.src list) -> T ->
-      T * (term list * ((string * Attrib.src list) * witness list)) list
-    val add_witness: term list -> witness -> T -> T
+      T * (term list * ((string * Attrib.src list) * Element.witness list)) list
+    val add_witness: term list -> Element.witness -> T -> T
   end =
 struct
   (* a registration consists of theorems instantiating locale assumptions
      and prefix and attributes, indexed by parameter instantiation *)
-  type T = ((string * Attrib.src list) * witness list) Termtab.table;
+  type T = ((string * Attrib.src list) * Element.witness list) Termtab.table;
 
   val empty = Termtab.empty;
 
@@ -204,14 +206,14 @@ struct
     filter (fn (t', _) => Pattern.matches thy (t', t)) (Termtab.dest regs);
 
   (* look up registration, pick one that subsumes the query *)
-  fun lookup sign (regs, ts) =
+  fun lookup thy (regs, ts) =
     let
       val t = termify ts;
-      val subs = subsumers sign t regs;
+      val subs = subsumers thy t regs;
     in (case subs of
         [] => NONE
       | ((t', (attn, thms)) :: _) => let
-            val (tinst, inst) = Pattern.match sign (t', t) (Vartab.empty, Vartab.empty);
+            val (tinst, inst) = Pattern.match thy (t', t) (Vartab.empty, Vartab.empty);
             (* thms contain Frees, not Vars *)
             val tinst' = tinst |> Vartab.dest
                  |> map (fn ((x, 0), (_, T)) => (x, Type.unvarifyT T))
@@ -220,9 +222,7 @@ struct
                  |> map (fn ((x, 0), (_, t)) => (x, Logic.unvarify t))
                  |> Symtab.make;
           in
-            SOME (attn, map (fn (t, th) =>
-             (Element.inst_term (tinst', inst') t,
-              Element.inst_thm sign (tinst', inst') th)) thms)
+            SOME (attn, map (Element.inst_witness thy (tinst', inst')) thms)
           end)
     end;
 
@@ -432,18 +432,17 @@ fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
         Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts));
     fun prt_attn (prfx, atts) =
         Pretty.breaks (Pretty.str prfx :: Args.pretty_attribs ctxt atts);
-    fun prt_thm (_, th) = Pretty.quote (ProofContext.pretty_thm ctxt th);
-    fun prt_thms thms =
-        Pretty.enclose "[" "]" (Pretty.breaks (map prt_thm thms));
-    fun prt_reg (ts, (("", []), thms)) =
+    fun prt_witns witns = Pretty.enclose "[" "]"
+      (Pretty.breaks (map (prt_term o Element.witness_prop) witns));
+    fun prt_reg (ts, (("", []), witns)) =
         if show_wits
-          then Pretty.block [prt_inst ts, Pretty.fbrk, prt_thms thms]
+          then Pretty.block [prt_inst ts, Pretty.fbrk, prt_witns witns]
           else prt_inst ts
-      | prt_reg (ts, (attn, thms)) =
+      | prt_reg (ts, (attn, witns)) =
         if show_wits
           then Pretty.block ((prt_attn attn @
             [Pretty.str ":", Pretty.brk 1, prt_inst ts, Pretty.fbrk,
-              prt_thms thms]))
+              prt_witns witns]))
           else Pretty.block ((prt_attn attn @
             [Pretty.str ":", Pretty.brk 1, prt_inst ts]));
 
@@ -488,27 +487,6 @@ fun err_in_locale ctxt msg ids =
   in error err_msg end;
 
 fun err_in_locale' ctxt msg ids' = err_in_locale ctxt msg (map fst ids');
-
-
-
-(** witnesses -- protected facts **)
-
-fun assume_protected thy t =
-  (t, Goal.protect (Thm.assume (Thm.cterm_of thy t)));
-
-fun prove_protected thy t tac =
-  (t, Goal.prove thy [] [] (Logic.protect t) (fn _ =>
-    Tactic.rtac Drule.protectI 1 THEN tac));
-
-val conclude_protected = Goal.conclude #> Goal.norm_hhf;
-
-fun satisfy_protected pths thm =
-  let
-    fun satisfy chyp =
-      (case find_first (fn (t, _) => Thm.term_of chyp aconv t) pths of
-        NONE => I
-      | SOME (_, th) => Drule.implies_intr_protected [chyp] #> Goal.comp_hhf th);
-  in fold satisfy (#hyps (Thm.crep_thm thm)) thm end;
 
 
 
@@ -560,7 +538,7 @@ fun merge_syntax ctxt ids ss = Symtab.merge (op =) ss
 (* Distinction of assumed vs. derived identifiers.
    The former may have axioms relating assumptions of the context to
    assumptions of the specification fragment (for locales with
-   predicates).  The latter have witness theorems relating assumptions of the
+   predicates).  The latter have witnesses relating assumptions of the
    specification fragment to assumptions of other (assumed) specification
    fragments. *)
 
@@ -628,8 +606,7 @@ fun unify_elemss _ _ [] = []
         val envs = unify_parms ctxt fixed_parms (map (snd o fst o fst) elemss);
         fun inst ((((name, ps), mode), elems), env) =
           (((name, map (apsnd (Option.map (Element.instT_type env))) ps),
-              map_mode (map (fn (t, th) =>
-                (Element.instT_term env t, Element.instT_thm thy env th))) mode),
+              map_mode (map (Element.instT_witness thy env)) mode),
             map (Element.instT_ctxt thy env) elems);
       in map inst (elemss ~~ envs) end;
 
@@ -686,14 +663,12 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         (case duplicates (op =) ps' of
           [] => ((name, ps'),
                  if top then (map (Element.rename ren) parms,
-                   map_mode (map (fn (t, th) =>
-                     (Element.rename_term ren t, Element.rename_thm ren th))) mode)
+                   map_mode (map (Element.rename_witness ren)) mode)
                  else (parms, mode))
         | dups => err_in_locale ctxt ("Duplicate parameters: " ^ commas_quote dups) [(name, ps')])
       end;
 
-    (* add registrations of (name, ps), recursively;
-       adjust hyps of witness theorems *)
+    (* add registrations of (name, ps), recursively; adjust hyps of witnesses *)
 
     fun add_regs (name, ps) (ths, ids) =
         let
@@ -710,9 +685,10 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
           val new_ids = map fst new_regs;
           val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) ps) p)))) new_ids;
 
-          val new_ths = new_regs |> map (fn (_, ths') => ths' |> map (fn (t, th) =>
-           (t |> Element.instT_term env |> Element.rename_term ren,
-            th |> Element.instT_thm thy env |> Element.rename_thm ren |> satisfy_protected ths)));
+          val new_ths = new_regs |> map (#2 #> map
+            (Element.instT_witness thy env #>
+              Element.rename_witness ren #>
+              Element.satisfy_witness ths));
           val new_ids' = map (fn (id, ths) =>
               (id, ([], Derived ths))) (new_ids ~~ new_ths);
         in
@@ -823,7 +799,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
          val th' = Element.instT_thm thy env th;
        in (t', th') end;
     val final_elemss = map (fn ((id, mode), elems) =>
-         ((id, map_mode (map inst_th) mode), elems)) elemss';
+         ((id, map_mode (map (Element.map_witness inst_th)) mode), elems)) elemss';
 
   in ((prev_idents @ idents, syntax), final_elemss) end;
 
@@ -835,7 +811,7 @@ end;
 local
 
 fun axioms_export axs _ hyps =
-  satisfy_protected axs
+  Element.satisfy_thm axs
   #> Drule.implies_intr_list (Library.drop (length axs, hyps))
   #> Seq.single;
 
@@ -887,7 +863,8 @@ fun activate_elems (((name, ps), mode), elems) ctxt =
               val ctxt'' = put_local_registration (name, ps') ("", []) ctxt'
             in case mode of
                 Assumed axs =>
-                  fold (add_local_witness (name, ps') o assume_protected thy o #1) axs ctxt''
+                  fold (add_local_witness (name, ps') o
+                    Element.assume_witness thy o Element.witness_prop) axs ctxt''
               | Derived ths => fold (add_local_witness (name, ps')) ths ctxt''
             end
   in (ProofContext.restore_naming ctxt ctxt'', res) end;
@@ -1103,7 +1080,7 @@ fun eval_text _ _ _ (Fixes _) text = text
 (* for finish_elems (Int),
    remove redundant elements of derived identifiers,
    turn assumptions and definitions into facts,
-   adjust hypotheses of facts using witness theorems *)
+   adjust hypotheses of facts using witnesses *)
 
 fun finish_derived _ _ (Assumed _) (Fixes fixes) = SOME (Fixes fixes)
   | finish_derived _ _ (Assumed _) (Constrains csts) = SOME (Constrains csts)
@@ -1114,13 +1091,13 @@ fun finish_derived _ _ (Assumed _) (Fixes fixes) = SOME (Fixes fixes)
   | finish_derived _ _ (Derived _) (Constrains _) = NONE
   | finish_derived sign wits (Derived _) (Assumes asms) = asms
       |> map (apsnd (map (fn (a, _) => ([Thm.assume (cterm_of sign a)], []))))
-      |> Notes |> Element.map_ctxt_values I I (satisfy_protected wits) |> SOME
+      |> Notes |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
   | finish_derived sign wits (Derived _) (Defines defs) = defs
       |> map (apsnd (fn (d, _) => [([Thm.assume (cterm_of sign d)], [])]))
-      |> Notes |> Element.map_ctxt_values I I (satisfy_protected wits) |> SOME
+      |> Notes |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME
 
   | finish_derived _ wits _ (Notes facts) = (Notes facts)
-      |> Element.map_ctxt_values I I (satisfy_protected wits) |> SOME;
+      |> Element.map_ctxt_values I I (Element.satisfy_thm wits) |> SOME;
 
 (* CB: for finish_elems (Ext) *)
 
@@ -1292,11 +1269,11 @@ fun cert_facts x = prep_facts (K I) (K I) x;
 end;
 
 
-(* Get the specification of a locale *)
+(* specification of a locale *)
 
-(* The global specification is made from the parameters and global
-   assumptions, the local specification from the parameters and the local
-   assumptions. *)
+(*The global specification is made from the parameters and global
+  assumptions, the local specification from the parameters and the
+  local assumptions.*)
 
 local
 
@@ -1307,10 +1284,8 @@ fun gen_asms_of get thy name =
     val ((_, elemss, _), _) = read_elemss false ctxt [] raw_elemss [];
   in
     elemss |> get
-      |> map (fn (_, es) => map (fn Int e => e) es)
-      |> flat
-      |> map_filter (fn Assumes asms => SOME asms | _ => NONE)
-      |> flat
+      |> maps (fn (_, es) => map (fn Int e => e) es)
+      |> maps (fn Assumes asms => asms | _ => [])
       |> map (apsnd (map fst))
   end;
 
@@ -1333,7 +1308,7 @@ fun local_asms_of thy name =
 fun global_asms_of thy name =
   gen_asms_of I thy name;
 
-end (* local *)
+end;
 
 
 (* full context statements: import + elements + conclusion *)
@@ -1369,7 +1344,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val (ctxt, (elemss, _)) =
       activate_facts prep_facts (import_ctxt, qs);
     val stmt = distinct Term.aconv
-       (maps (fn ((_, Assumed axs), _) => maps (#hyps o Thm.rep_thm o #2) axs
+       (maps (fn ((_, Assumed axs), _) => maps Element.witness_hyps axs
                            | ((_, Derived _), _) => []) qs);
     val cstmt = map (cterm_of thy) stmt;
   in
@@ -1390,6 +1365,12 @@ fun prep_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
       prep_ctxt false fixed_params import elems concl ctxt;
   in (locale, (locale_stmt, locale_ctxt), (elems_stmt, elems_ctxt), concl') end;
 
+fun prep_expr prep import body ctxt =
+  let
+    val (((_, import_elemss), (ctxt', elemss, _)), _) = prep import body ctxt;
+    val all_elems = maps snd (import_elemss @ elemss);
+  in (all_elems, ctxt') end;
+
 in
 
 val read_ctxt = prep_context_statement intern_expr read_elemss read_facts;
@@ -1397,6 +1378,9 @@ val cert_ctxt = prep_context_statement (K I) cert_elemss cert_facts;
 
 fun read_context import body ctxt = #1 (read_ctxt true [] import (map Elem body) [] ctxt);
 fun cert_context import body ctxt = #1 (cert_ctxt true [] import (map Elem body) [] ctxt);
+
+val read_expr = prep_expr read_context;
+val cert_expr = prep_expr cert_context;
 
 val read_context_statement = prep_statement intern read_ctxt;
 val cert_context_statement = prep_statement (K I) cert_ctxt;
@@ -1408,10 +1392,8 @@ end;
 
 fun print_locale thy show_facts import body =
   let
-    val (((_, import_elemss), (ctxt, elemss, _)), _) =
-      read_context import body (ProofContext.init thy);
+    val (all_elems, ctxt) = read_expr import body (ProofContext.init thy);
     val prt_elem = Element.pretty_ctxt ctxt;
-    val all_elems = maps #2 (import_elemss @ elemss);
   in
     Pretty.big_list "locale elements:" (all_elems
       |> (if show_facts then I else filter (fn Notes _ => false | _ => true))
@@ -1436,11 +1418,11 @@ fun local_note_prefix_i prfx args ctxt =
   ctxt
   |> ProofContext.qualified_names
   |> ProofContext.sticky_prefix prfx
-  |> ProofContext.note_thmss_i args |> swap
-  |>> ProofContext.restore_naming ctxt;
+  |> ProofContext.note_thmss_i args
+  ||> ProofContext.restore_naming ctxt;
 
 
-(* collect witness theorems for global registration;
+(* collect witnesses for global registration;
    requires parameters and flattened list of (assumed!) identifiers
    instead of recomputing it from the target *)
 
@@ -1482,7 +1464,7 @@ fun note_thmss_registrations kind target args thy =
             (Element.inst_term insts) (Element.inst_thm thy insts);
         val args' = args |> map (fn ((n, atts), [(ths, [])]) =>
             ((n, map (Attrib.attribute_i thy) (map inst_atts atts @ atts2)),
-             [(map (Drule.standard o satisfy_protected prems o
+             [(map (Drule.standard o Element.satisfy_thm prems o
             Element.inst_thm thy insts) ths, [])]));
       in global_note_prefix_i kind prfx args' thy |> snd end;
   in fold activate regs thy end;
@@ -1626,7 +1608,7 @@ fun def_pred bname parms defs ts norm_ts thy =
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
       |> Conjunction.elim_precise [length ts] |> hd;
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
-      prove_protected defs_thy t
+      Element.prove_witness defs_thy t
        (Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
   in ((statement, intro, axioms), defs_thy) end;
@@ -1645,11 +1627,11 @@ fun change_elemss axioms elemss =
   let
     fun change (id as ("", _), es)=
           fold_map assumes_to_notes
-            (map (Element.map_ctxt_values I I (satisfy_protected axioms)) es)
+            (map (Element.map_ctxt_values I I (Element.satisfy_thm axioms)) es)
           #-> (fn es' => pair (id, es'))
       | change e = pair e;
   in
-    fst (fold_map change elemss (map (conclude_protected o snd) axioms))
+    fst (fold_map change elemss (map Element.conclude_witness axioms))
   end;
 
 in
@@ -1685,7 +1667,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           def_thy
           |> PureThy.note_thmss_qualified "" bname
                [((introN, []), [([intro], [])]),
-                ((axiomsN, []), [(map (Drule.standard o conclude_protected o #2) axioms, [])])]
+                ((axiomsN, []), [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
           |> snd
           |> pair ([cstatement], axioms)
         end;
@@ -1853,25 +1835,16 @@ fun smart_theorem kind NONE a [] (Element.Shows concl) =
 end;
 
 
+
 (** Interpretation commands **)
 
 local
 
 (* extract proof obligations (assms and defs) from elements *)
 
-fun extract_asms_elem (Fixes _) ts = ts
-  | extract_asms_elem (Constrains _) ts = ts
-  | extract_asms_elem (Assumes asms) ts =
-      ts @ maps (fn (_, ams) => map (fn (t, _) => t) ams) asms
-  | extract_asms_elem (Defines defs) ts =
-      ts @ map (fn (_, (def, _)) => def) defs
-  | extract_asms_elem (Notes _) ts = ts;
-
-fun extract_asms_elems ((id, Assumed _), elems) =
-      (id, fold extract_asms_elem elems [])
+fun extract_asms_elems ((id, Assumed _), elems) = (id, maps Element.prems_of elems)
   | extract_asms_elems ((id, Derived _), _) = (id, []);
 
-fun extract_asms_elemss elemss = map extract_asms_elems elemss;
 
 (* activate instantiated facts in theory or context *)
 
@@ -1887,7 +1860,7 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
               |> map (apfst (apsnd (fn a => a @ map (attrib thy_ctxt) atts)))
               (* discharge hyps *)
               |> map (apsnd (map (apfst (map disch))));
-          in fst (note prfx facts' thy_ctxt) end
+          in snd (note prfx facts' thy_ctxt) end
         | activate_elem _ _ _ thy_ctxt = thy_ctxt;
 
       fun activate_elems disch ((id, _), elems) thy_ctxt =
@@ -1903,20 +1876,18 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
         (* add registrations *)
         |> fold (fn ((id, _), _) => put_reg id attn) new_elemss
         (* add witnesses of Assumed elements *)
-        |> fold (fn (id, thms) => fold (add_wit id) thms)
-           (map fst propss ~~ thmss);
+        |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss);
 
       val prems = flat (map_filter
             (fn ((id, Assumed _), _) => Option.map snd (get_reg thy_ctxt' id)
               | ((_, Derived _), _) => NONE) all_elemss);
-      val disch = satisfy_protected prems;
-      val disch' = std o disch;  (* FIXME *)
-
       val thy_ctxt'' = thy_ctxt'
         (* add witnesses of Derived elements *)
-        |> fold (fn (id, thms) => fold (add_wit id o apsnd disch) thms)
+        |> fold (fn (id, thms) => fold (add_wit id o Element.satisfy_witness prems) thms)
            (map_filter (fn ((_, Assumed _), _) => NONE
               | ((id, Derived thms), _) => SOME (id, thms)) all_elemss)
+
+      val disch' = std o Element.satisfy_thm prems;  (* FIXME *)
     in
       thy_ctxt''
         (* add facts to theory or context *)
@@ -1926,12 +1897,12 @@ fun gen_activate_facts_elemss get_reg note attrib std put_reg add_wit
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
       (fn thy => fn (name, ps) =>
         get_global_registration thy (name, map Logic.varify ps))
-      (swap ooo global_note_prefix_i "")
+      (global_note_prefix_i "")
       Attrib.attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
-      (fn (n, ps) => fn (t, th) =>
-         add_global_witness (n, map Logic.varify ps)
-         (Logic.unvarify t, Drule.freeze_all th)) x;
+      (fn (n, ps) => add_global_witness (n, map Logic.varify ps) o
+        Element.map_witness (fn (t, th) => (Logic.unvarify t, Drule.freeze_all th))
+        (* FIXME *)) x;
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
       get_local_registration
@@ -2013,15 +1984,14 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val inst_elemss = (ids' ~~ all_elemss) |> map (fn (((n, ps), _), ((_, mode), elems)) =>
       ((n, map (Element.inst_term insts) ps),
         map (fn Int e => Element.inst_ctxt thy insts e) elems)
-      |> apfst (fn id => (id, map_mode (map (fn (t, th) =>
-          (Element.inst_term insts t, Element.inst_thm thy insts th))) mode)));
+      |> apfst (fn id => (id, map_mode (map (Element.inst_witness thy insts)) mode)));
 
     (* remove fragments already registered with theory or context *)
     val new_inst_elemss = filter (fn ((id, _), _) =>
           not (test_reg thy_ctxt id)) inst_elemss;
     val new_ids = map #1 new_inst_elemss;
 
-    val propss = extract_asms_elemss new_inst_elemss;
+    val propss = map extract_asms_elems new_inst_elemss;
 
     val bind_attrib = Attrib.crude_closure ctxt o Args.assignable;
     val attn' = apsnd (map (bind_attrib o Attrib.intern_src thy)) attn;
@@ -2063,7 +2033,7 @@ fun prep_registration_in_locale target expr thy =
         map (fn Int e => e) es) elemss
     (* extract assumptions and defs *)
     val ids_elemss = ids' ~~ elemss';
-    val propss = extract_asms_elemss ids_elemss;
+    val propss = map extract_asms_elems ids_elemss;
 
     (** activation function:
         - add registrations to the target locale
@@ -2075,7 +2045,7 @@ fun prep_registration_in_locale target expr thy =
         (fn (id, (_, Assumed _)) => SOME id | _ => NONE) target_ids;
 
     fun activate thmss thy = let
-        val satisfy = satisfy_protected (flat thmss);
+        val satisfy = Element.satisfy_thm (flat thmss);
         val ids_elemss_thmss = ids_elemss ~~ thmss;
         val regs = get_global_registrations thy target;
 
@@ -2088,7 +2058,7 @@ fun prep_registration_in_locale target expr thy =
             val (insts, wits) = collect_global_witnesses thy fixed t_ids vts;
             fun inst_parms ps = map
                   (the o AList.lookup (op =) (map #1 fixed ~~ vts)) ps;
-            val disch = satisfy_protected wits;
+            val disch = Element.satisfy_thm wits;
             val new_elemss = filter (fn (((name, ps), _), _) =>
                 not (test_global_registration thy (name, inst_parms ps))) (ids_elemss);
             fun activate_assumed_id (((_, Derived _), _), _) thy = thy
@@ -2099,8 +2069,8 @@ fun prep_registration_in_locale target expr thy =
                 then thy
                 else thy
                   |> put_global_registration (name, ps') (prfx, atts2)
-                  |> fold (fn (t, th) => fn thy => add_global_witness (name, ps')
-                     (Element.inst_term insts t, disch (Element.inst_thm thy insts th)) thy) thms
+                  |> fold (fn witn => fn thy => add_global_witness (name, ps')
+                     (Element.inst_witness thy insts witn) thy) thms
               end;
 
             fun activate_derived_id ((_, Assumed _), _) thy = thy
@@ -2111,9 +2081,10 @@ fun prep_registration_in_locale target expr thy =
                 then thy
                 else thy
                   |> put_global_registration (name, ps') (prfx, atts2)
-                  |> fold (fn (t, th) => fn thy => add_global_witness (name, ps')
+                  |> fold (fn witn => fn thy => add_global_witness (name, ps')
+                       (witn |> Element.map_witness (fn (t, th) =>  (* FIXME *)
                        (Element.inst_term insts t,
-                        disch (Element.inst_thm thy insts (satisfy th))) thy) ths
+                        disch (Element.inst_thm thy insts (satisfy th))))) thy) ths
               end;
 
             fun activate_elem (Notes facts) thy =
@@ -2145,17 +2116,10 @@ fun prep_registration_in_locale target expr thy =
   in (propss, activate) end;
 
 fun prep_propp propss = propss |> map (fn ((name, _), props) =>
-  (("", []), map (rpair [] o Logic.protect) props));
+  (("", []), map (rpair [] o Element.mark_witness) props));
 
 fun prep_result propps thmss =
-  ListPair.map (fn ((_, props), thms) => (props ~~ thms)) (propps, thmss);
-
-val refine_protected =
-  Proof.refine (Method.Basic (K (Method.RAW_METHOD
-    (K (ALLGOALS
-      (PRECISE_CONJUNCTS ~1 (ALLGOALS
-        (PRECISE_CONJUNCTS ~1 (ALLGOALS (Tactic.rtac Drule.protectI))))))))))
-  #> Seq.hd;
+  ListPair.map (fn ((_, props), thms) => map2 Element.make_witness props thms) (propps, thmss);
 
 fun goal_name thy kind target propss =
     kind ^ Proof.goal_names (Option.map (extern thy) target) ""
@@ -2171,7 +2135,7 @@ fun interpretation (prfx, atts) expr insts thy =
   in
     ProofContext.init thy
     |> Proof.theorem_i kind NONE after_qed NONE ("", []) (prep_propp propss)
-    |> refine_protected
+    |> Element.refine_witness
   end;
 
 fun interpretation_in_locale (raw_target, expr) thy =
@@ -2184,7 +2148,7 @@ fun interpretation_in_locale (raw_target, expr) thy =
     thy
     |> theorem_in_locale_no_target kind NONE after_qed target ("", []) []
       (Element.Shows (prep_propp propss))
-    |> refine_protected
+    |> Element.refine_witness
   end;
 
 fun interpret (prfx, atts) expr insts int state =
@@ -2201,7 +2165,7 @@ fun interpret (prfx, atts) expr insts int state =
     state
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
       kind NONE after_qed (prep_propp propss)
-    |> refine_protected
+    |> Element.refine_witness
   end;
 
 end;
