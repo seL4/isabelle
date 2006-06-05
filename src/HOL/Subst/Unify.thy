@@ -85,10 +85,7 @@ text{* This file defines a nested unification algorithm, then proves that it
 
 text{*The non-nested TC (terminiation condition).*}
 recdef_tc unify_tc1: unify (1)
-apply (simp add: unifyRel_def wf_lex_prod wf_finite_psubset, safe)
-apply (simp add: finite_psubset_def finite_vars_of lex_prod_def inv_image_def)
-apply (rule monotone_vars_of [THEN subset_iff_psubset_eq [THEN iffD1]])
-done
+  by (auto simp: unifyRel_def finite_psubset_def finite_vars_of)
 
 
 text{*Termination proof.*}
@@ -104,7 +101,7 @@ about term structure.*}
 lemma Rassoc:
   "((X,Y), (Comb A (Comb B C), Comb D (Comb E F))) \<in> unifyRel  ==>
    ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) \<in> unifyRel"
-by (simp add: less_eq inv_image_def add_assoc Un_assoc
+by (simp add: less_eq add_assoc Un_assoc
               unifyRel_def lex_prod_def)
 
 
@@ -117,15 +114,14 @@ lemma var_elimR:
 apply (case_tac "Var x = M", clarify, simp)
 apply (case_tac "x \<in> (vars_of N1 Un vars_of N2)")
 txt{*uterm_less case*}
-apply (simp add: less_eq unifyRel_def lex_prod_def inv_image_def)
+apply (simp add: less_eq unifyRel_def lex_prod_def)
 apply blast
 txt{*@{text finite_psubset} case*}
-apply (simp add: unifyRel_def lex_prod_def inv_image_def)
+apply (simp add: unifyRel_def lex_prod_def)
 apply (simp add: finite_psubset_def finite_vars_of psubset_def)
 apply blast
 txt{*Final case, also @{text finite_psubset}*}
-apply (simp add: finite_vars_of unifyRel_def finite_psubset_def lex_prod_def
-                 inv_image_def)
+apply (simp add: finite_vars_of unifyRel_def finite_psubset_def lex_prod_def)
 apply (cut_tac s = "[(x,M)]" and v = x and t = N2 in Var_elim)
 apply (cut_tac [3] s = "[(x,M)]" and v = x and t = N1 in Var_elim)
 apply (simp_all (no_asm_simp) add: srange_iff vars_iff_occseq)
@@ -156,7 +152,7 @@ txt{*Apply induction on this still-quantified formula*}
 apply (rule_tac u = M1 and v = M2 in unify_induct0)
       apply (simp_all (no_asm_simp) add: var_elimR unify_simps0)
  txt{*Const-Const case*}
- apply (simp add: unifyRel_def lex_prod_def inv_image_def less_eq)
+ apply (simp add: unifyRel_def lex_prod_def less_eq)
 txt{*Comb-Comb case*}
 apply (simp (no_asm_simp) split add: option.split)
 apply (intro strip)

@@ -834,12 +834,12 @@ next
     {
       assume nlini: "linearize i = None"
       from nlini have "linearize (Add i j) = None" 
-	by (simp add: inv_image_def) then have ?thesis using prems by auto}
+	by simp then have ?thesis using prems by auto}
     moreover 
     { assume nlinj: "linearize j = None"
 	and lini: "\<exists> li. linearize i = Some li"
       from nlinj lini have "linearize (Add i j) = None"
-	by (simp add: inv_image_def, auto) with prems  have ?thesis by auto}
+	by auto with prems have ?thesis by auto}
     moreover 
     { assume lini: "\<exists>li. linearize i = Some li"
 	and linj: "\<exists>lj. linearize j = Some lj"

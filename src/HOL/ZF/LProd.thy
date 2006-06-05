@@ -89,7 +89,7 @@ lemma wf_lprod[recdef_wf,simp,intro]:
   shows "wf (lprod R)"
 proof -
   have subset: "lprod (R^+) \<subseteq> inv_image (mult (R^+)) multiset_of"
-    by (auto simp add: inv_image_def lprod_implies_mult trans_trancl)
+    by (auto simp add: lprod_implies_mult trans_trancl)
   note lprodtrancl = wf_subset[OF wf_inv_image[where r="mult (R^+)" and f="multiset_of", 
     OF wf_mult[OF wf_trancl[OF wf_R]]], OF subset]
   note lprod = wf_subset[OF lprodtrancl, where p="lprod R", OF lprod_subset, simplified]
@@ -122,7 +122,7 @@ lemma [recdef_wf, simp, intro]:
   assumes wfR: "wf R" shows "wf (gprod_2_1 R)"
 proof -
   have "gprod_2_1 R \<subseteq> inv_image (lprod R) (\<lambda> (a,b). [a,b])"
-    by (auto simp add: inv_image_def gprod_2_1_def lprod_2_1 lprod_2_2)
+    by (auto simp add: gprod_2_1_def lprod_2_1 lprod_2_2)
   with wfR show ?thesis
     by (rule_tac wf_subset, auto)
 qed
@@ -131,7 +131,7 @@ lemma [recdef_wf, simp, intro]:
   assumes wfR: "wf R" shows "wf (gprod_2_2 R)"
 proof -
   have "gprod_2_2 R \<subseteq> inv_image (lprod R) (\<lambda> (a,b). [a,b])"
-    by (auto simp add: inv_image_def gprod_2_2_def lprod_2_3 lprod_2_4)
+    by (auto simp add: gprod_2_2_def lprod_2_3 lprod_2_4)
   with wfR show ?thesis
     by (rule_tac wf_subset, auto)
 qed

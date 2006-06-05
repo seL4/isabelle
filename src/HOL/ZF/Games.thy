@@ -323,7 +323,7 @@ proof -
   have option_of: "option_of = inv_image is_option_of Rep_game"
     apply (rule set_ext)
     apply (case_tac "x")
-    by (simp add: inv_image_def option_to_is_option_of) 
+    by (simp add: option_to_is_option_of) 
   show ?thesis
     apply (simp add: option_of)
     apply (auto intro: wf_inv_image wf_is_option_of)

@@ -79,7 +79,7 @@ done
 
 lemma (in Token) nodeOrder_eq: 
      "[| i<N; j<N |] ==> ((next i, i) \<in> nodeOrder j) = (i \<noteq> j)"
-apply (unfold nodeOrder_def next_def measure_def inv_image_def)
+apply (unfold nodeOrder_def next_def)
 apply (auto simp add: mod_Suc mod_geq)
 apply (auto split add: nat_diff_split simp add: linorder_neq_iff mod_geq)
 done

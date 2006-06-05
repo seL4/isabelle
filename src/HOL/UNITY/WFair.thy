@@ -492,7 +492,7 @@ lemma greaterThan_bounded_induct:
       ==> F \<in> A leadsTo ((A \<inter> (f-`(atLeast l))) \<union> B)"
 apply (rule_tac f = f and f1 = "%k. l - k" 
        in wf_less_than [THEN wf_inv_image, THEN leadsTo_wf_induct])
-apply (simp (no_asm) add: inv_image_def Image_singleton)
+apply (simp (no_asm) add:Image_singleton)
 apply clarify
 apply (case_tac "m<l")
  apply (blast intro: leadsTo_weaken_R diff_less_mono2)

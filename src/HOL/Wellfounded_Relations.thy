@@ -70,11 +70,13 @@ apply (erule (1) notE impE)
 apply blast
 done
 
+lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
+  by (auto simp:inv_image_def)
 
 subsubsection{*Finally, All Measures are Wellfounded.*}
 
 lemma in_measure[simp]: "((x,y) : measure f) = (f x < f y)"
-by (auto simp:measure_def inv_image_def)
+  by (simp add:measure_def)
 
 lemma wf_measure [iff]: "wf (measure f)"
 apply (unfold measure_def)
@@ -117,6 +119,10 @@ apply (drule spec, erule mp)
 apply (rule allI, rule impI)
 apply (drule spec, erule mp, blast) 
 done
+
+lemma in_lex_prod[simp]: 
+  "(((a,b),(a',b')): r <*lex*> s) = ((a,a'): r \<or> (a = a' \<and> (b, b') : s))"
+  by (auto simp:lex_prod_def)
 
 text{*Transitivity of WF combinators.*}
 lemma trans_lex_prod [intro!]: 
