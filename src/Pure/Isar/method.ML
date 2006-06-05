@@ -219,14 +219,15 @@ local
 fun asm_tac ths =
   foldr (op APPEND') (K no_tac) (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths);
 
-val refl_tac = SUBGOAL (fn (prop, i) =>
-  if can Logic.dest_equals (Logic.strip_assums_concl prop)
-  then Tactic.rtac Drule.reflexive_thm i else no_tac);
+fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
+  if cond (Logic.strip_assums_concl prop)
+  then Tactic.rtac rule i else no_tac);
 
 fun assm_tac ctxt =
   assume_tac APPEND'
   asm_tac (ProofContext.prems_of ctxt) APPEND'
-  refl_tac;
+  cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
+  cond_rtac (can Logic.dest_term) Drule.termI;
 
 fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ [fact] = asm_tac [fact]
