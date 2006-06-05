@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Makarius
 
-Explicit data structures for some Isar language elements.
+Explicit data structures for some Isar language elements, with derived
+logical operations.
 *)
 
 signature ELEMENT =
@@ -25,28 +26,49 @@ sig
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_values: (typ -> typ) -> (term -> term) -> (thm -> thm) -> context_i -> context_i
+  val params_of: ('typ, 'term, 'fact) ctxt -> (string * 'typ) list
+  val prems_of: ('typ, 'term, 'fact) ctxt -> 'term list
+  val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
+  val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
+  val pretty_statement: Proof.context -> string -> thm -> Pretty.T
+
+  type witness
+  val map_witness: (term * thm -> term * thm) -> witness -> witness
+  val witness_prop: witness -> term
+  val witness_hyps: witness -> term list
+  val assume_witness: theory -> term -> witness
+  val prove_witness: theory -> term -> tactic -> witness
+  val conclude_witness: witness -> thm
+  val mark_witness: term -> term
+  val make_witness: term -> thm -> witness
+  val refine_witness: Proof.state -> Proof.state
+
   val rename: (string * (string * mixfix option)) list -> string -> string
   val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
   val rename_thm: (string * (string * mixfix option)) list -> thm -> thm
+  val rename_witness: (string * (string * mixfix option)) list -> witness -> witness
   val rename_ctxt: (string * (string * mixfix option)) list -> context_i -> context_i
   val instT_type: typ Symtab.table -> typ -> typ
   val instT_term: typ Symtab.table -> term -> term
   val instT_thm: theory -> typ Symtab.table -> thm -> thm
+  val instT_witness: theory -> typ Symtab.table -> witness -> witness
   val instT_ctxt: theory -> typ Symtab.table -> context_i -> context_i
   val inst_term: typ Symtab.table * term Symtab.table -> term -> term
   val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
+  val inst_witness: theory -> typ Symtab.table * term Symtab.table -> witness -> witness
   val inst_ctxt: theory -> typ Symtab.table * term Symtab.table -> context_i -> context_i
-  val pretty_stmt: ProofContext.context -> statement_i -> Pretty.T list
-  val pretty_ctxt: ProofContext.context -> context_i -> Pretty.T list
-  val pretty_statement: ProofContext.context -> string -> thm -> Pretty.T
+  val satisfy_thm: witness list -> thm -> thm
+  val satisfy_witness: witness list -> witness -> witness
 end;
 
 structure Element: ELEMENT =
 struct
 
 
-(** conclusions **)
+(** language elements **)
+
+(* statement *)
 
 datatype ('typ, 'term) stmt =
   Shows of ((string * Attrib.src list) * ('term * 'term list) list) list |
@@ -56,10 +78,7 @@ type statement = (string, string) stmt;
 type statement_i = (typ, term) stmt;
 
 
-
-(** context elements **)
-
-(* datatype ctxt *)
+(* context *)
 
 datatype ('typ, 'term, 'fact) ctxt =
   Fixes of (string * 'typ option * mixfix) list |
@@ -86,144 +105,14 @@ fun map_ctxt_values typ term thm = map_ctxt
   {name = I, var = I, typ = typ, term = term, fact = map thm,
     attrib = Args.map_values I typ term thm};
 
+fun params_of (Fixes fixes) = fixes |> map
+    (fn (x, SOME T, _) => (x, T)
+      | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote x, []))
+  | params_of _ = [];
 
-
-(** logical operations **)
-
-(* derived rules *)
-
-fun instantiate_tfrees thy subst =
-  let
-    val certT = Thm.ctyp_of thy;
-    fun inst vs (a, T) = AList.lookup (op =) vs a
-      |> Option.map (fn v => (certT (TVar v), certT T));
-  in
-    Drule.tvars_intr_list (map fst subst) #->
-    (fn vs => Thm.instantiate (map_filter (inst vs) subst, []))
-  end;
-
-fun instantiate_frees thy subst =
-  let val cert = Thm.cterm_of thy in
-    Drule.forall_intr_list (map (cert o Free o fst) subst) #>
-    Drule.forall_elim_list (map (cert o snd) subst)
-  end;
-
-fun hyps_rule rule th =
-  let
-    val cterm_rule = Thm.reflexive #> rule #> Thm.cprop_of #> Drule.dest_equals #> #1;
-    val {hyps, ...} = Thm.crep_thm th;
-  in
-    Drule.implies_elim_list
-      (rule (Drule.implies_intr_list hyps th))
-      (map (Thm.assume o cterm_rule) hyps)
-  end;
-
-
-(* renaming *)
-
-fun rename ren x =
-  (case AList.lookup (op =) ren (x: string) of
-    NONE => x
-  | SOME (x', _) => x');
-
-fun rename_var ren (x, mx) =
-  (case (AList.lookup (op =) ren (x: string), mx) of
-    (NONE, _) => (x, mx)
-  | (SOME (x', NONE), Structure) => (x', mx)
-  | (SOME (x', SOME _), Structure) =>
-      error ("Attempt to change syntax of structure parameter " ^ quote x)
-  | (SOME (x', NONE), _) => (x', NoSyn)
-  | (SOME (x', SOME mx'), _) => (x', mx'));
-
-fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
-  | rename_term ren (t $ u) = rename_term ren t $ rename_term ren u
-  | rename_term ren (Abs (x, T, t)) = Abs (x, T, rename_term ren t)
-  | rename_term _ a = a;
-
-fun rename_thm ren th =
-  let
-    val subst = Drule.frees_of th
-      |> map_filter (fn (x, T) =>
-        let val x' = rename ren x
-        in if x = x' then NONE else SOME ((x, T), (Free (x', T))) end);
-  in
-    if null subst then th
-    else th |> hyps_rule (instantiate_frees (Thm.theory_of_thm th) subst)
-  end;
-
-fun rename_ctxt ren =
-  map_ctxt_values I (rename_term ren) (rename_thm ren)
-  #> map_ctxt {name = I, typ = I, term = I, fact = I, attrib = I, var = rename_var ren};
-
-
-(* type instantiation *)
-
-fun instT_type env =
-  if Symtab.is_empty env then I
-  else Term.map_type_tfree (fn (x, S) => the_default (TFree (x, S)) (Symtab.lookup env x));
-
-fun instT_term env =
-  if Symtab.is_empty env then I
-  else Term.map_term_types (instT_type env);
-
-fun instT_subst env th =
-  Drule.tfrees_of th
-  |> map_filter (fn (a, S) =>
-    let
-      val T = TFree (a, S);
-      val T' = the_default T (Symtab.lookup env a);
-    in if T = T' then NONE else SOME (a, T') end);
-
-fun instT_thm thy env th =
-  if Symtab.is_empty env then th
-  else
-    let val subst = instT_subst env th
-    in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
-
-fun instT_ctxt thy env =
-  map_ctxt_values (instT_type env) (instT_term env) (instT_thm thy env);
-
-
-(* type and term instantiation *)
-
-fun inst_term (envT, env) =
-  if Symtab.is_empty env then instT_term envT
-  else
-    let
-      val instT = instT_type envT;
-      fun inst (Const (x, T)) = Const (x, instT T)
-        | inst (Free (x, T)) =
-            (case Symtab.lookup env x of
-              NONE => Free (x, instT T)
-            | SOME t => t)
-        | inst (Var (xi, T)) = Var (xi, instT T)
-        | inst (b as Bound _) = b
-        | inst (Abs (x, T, t)) = Abs (x, instT T, inst t)
-        | inst (t $ u) = inst t $ inst u;
-    in Envir.beta_norm o inst end;
-
-fun inst_thm thy (envT, env) th =
-  if Symtab.is_empty env then instT_thm thy envT th
-  else
-    let
-      val substT = instT_subst envT th;
-      val subst = Drule.frees_of th
-        |> map_filter (fn (x, T) =>
-          let
-            val T' = instT_type envT T;
-            val t = Free (x, T');
-            val t' = the_default t (Symtab.lookup env x);
-          in if t aconv t' then NONE else SOME ((x, T'), t') end);
-    in
-      if null substT andalso null subst then th
-      else th |> hyps_rule
-       (instantiate_tfrees thy substT #>
-        instantiate_frees thy subst #>
-        Drule.fconv_rule (Thm.beta_conversion true))
-    end;
-
-fun inst_ctxt thy envs =
-  map_ctxt_values (instT_type (#1 envs)) (inst_term envs) (inst_thm thy envs);
+fun prems_of (Assumes asms) = maps (map fst o snd) asms
+  | prems_of (Defines defs) = map (fst o snd) defs
+  | prems_of _ = [];
 
 
 
@@ -356,5 +245,194 @@ fun pretty_statement ctxt kind raw_th =
   end |> thm_name kind raw_th;
 
 end;
+
+
+
+(** logical operations **)
+
+(* witnesses -- hypotheses as protected facts *)
+
+datatype witness = Witness of term * thm;
+
+fun map_witness f (Witness witn) = Witness (f witn);
+
+fun witness_prop (Witness (t, _)) = t;
+fun witness_hyps (Witness (_, th)) = #hyps (Thm.rep_thm th);
+
+fun assume_witness thy t =
+  Witness (t, Goal.protect (Thm.assume (Thm.cterm_of thy t)));
+
+fun prove_witness thy t tac =
+  Witness (t, Goal.prove thy [] [] (Logic.protect t) (fn _ =>
+    Tactic.rtac Drule.protectI 1 THEN tac));
+
+fun conclude_witness (Witness (_, th)) = Goal.norm_hhf (Goal.conclude th);
+
+val mark_witness = Logic.protect;
+
+fun make_witness t th = Witness (t, th);
+
+val refine_witness =
+  Proof.refine (Method.Basic (K (Method.RAW_METHOD
+    (K (ALLGOALS
+      (PRECISE_CONJUNCTS ~1 (ALLGOALS
+        (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI))))))))))
+  #> Seq.hd;
+
+
+(* derived rules *)
+
+fun instantiate_tfrees thy subst =
+  let
+    val certT = Thm.ctyp_of thy;
+    fun inst vs (a, T) = AList.lookup (op =) vs a
+      |> Option.map (fn v => (certT (TVar v), certT T));
+  in
+    Drule.tvars_intr_list (map fst subst) #->
+    (fn vs => Thm.instantiate (map_filter (inst vs) subst, []))
+  end;
+
+fun instantiate_frees thy subst =
+  let val cert = Thm.cterm_of thy in
+    Drule.forall_intr_list (map (cert o Free o fst) subst) #>
+    Drule.forall_elim_list (map (cert o snd) subst)
+  end;
+
+fun hyps_rule rule th =
+  let
+    val cterm_rule = Thm.reflexive #> rule #> Thm.cprop_of #> Drule.dest_equals #> #1;
+    val {hyps, ...} = Thm.crep_thm th;
+  in
+    Drule.implies_elim_list
+      (rule (Drule.implies_intr_list hyps th))
+      (map (Thm.assume o cterm_rule) hyps)
+  end;
+
+
+(* rename *)
+
+fun rename ren x =
+  (case AList.lookup (op =) ren (x: string) of
+    NONE => x
+  | SOME (x', _) => x');
+
+fun rename_var ren (x, mx) =
+  (case (AList.lookup (op =) ren (x: string), mx) of
+    (NONE, _) => (x, mx)
+  | (SOME (x', NONE), Structure) => (x', mx)
+  | (SOME (x', SOME _), Structure) =>
+      error ("Attempt to change syntax of structure parameter " ^ quote x)
+  | (SOME (x', NONE), _) => (x', NoSyn)
+  | (SOME (x', SOME mx'), _) => (x', mx'));
+
+fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
+  | rename_term ren (t $ u) = rename_term ren t $ rename_term ren u
+  | rename_term ren (Abs (x, T, t)) = Abs (x, T, rename_term ren t)
+  | rename_term _ a = a;
+
+fun rename_thm ren th =
+  let
+    val subst = Drule.frees_of th
+      |> map_filter (fn (x, T) =>
+        let val x' = rename ren x
+        in if x = x' then NONE else SOME ((x, T), (Free (x', T))) end);
+  in
+    if null subst then th
+    else th |> hyps_rule (instantiate_frees (Thm.theory_of_thm th) subst)
+  end;
+
+fun rename_witness ren =
+  map_witness (fn (t, th) => (rename_term ren t, rename_thm ren th));
+
+fun rename_ctxt ren =
+  map_ctxt_values I (rename_term ren) (rename_thm ren)
+  #> map_ctxt {name = I, typ = I, term = I, fact = I, attrib = I, var = rename_var ren};
+
+
+(* instantiate types *)
+
+fun instT_type env =
+  if Symtab.is_empty env then I
+  else Term.map_type_tfree (fn (x, S) => the_default (TFree (x, S)) (Symtab.lookup env x));
+
+fun instT_term env =
+  if Symtab.is_empty env then I
+  else Term.map_term_types (instT_type env);
+
+fun instT_subst env th =
+  Drule.tfrees_of th
+  |> map_filter (fn (a, S) =>
+    let
+      val T = TFree (a, S);
+      val T' = the_default T (Symtab.lookup env a);
+    in if T = T' then NONE else SOME (a, T') end);
+
+fun instT_thm thy env th =
+  if Symtab.is_empty env then th
+  else
+    let val subst = instT_subst env th
+    in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
+
+fun instT_witness thy env =
+  map_witness (fn (t, th) => (instT_term env t, instT_thm thy env th));
+
+fun instT_ctxt thy env =
+  map_ctxt_values (instT_type env) (instT_term env) (instT_thm thy env);
+
+
+(* instantiate types and terms *)
+
+fun inst_term (envT, env) =
+  if Symtab.is_empty env then instT_term envT
+  else
+    let
+      val instT = instT_type envT;
+      fun inst (Const (x, T)) = Const (x, instT T)
+        | inst (Free (x, T)) =
+            (case Symtab.lookup env x of
+              NONE => Free (x, instT T)
+            | SOME t => t)
+        | inst (Var (xi, T)) = Var (xi, instT T)
+        | inst (b as Bound _) = b
+        | inst (Abs (x, T, t)) = Abs (x, instT T, inst t)
+        | inst (t $ u) = inst t $ inst u;
+    in Envir.beta_norm o inst end;
+
+fun inst_thm thy (envT, env) th =
+  if Symtab.is_empty env then instT_thm thy envT th
+  else
+    let
+      val substT = instT_subst envT th;
+      val subst = Drule.frees_of th
+        |> map_filter (fn (x, T) =>
+          let
+            val T' = instT_type envT T;
+            val t = Free (x, T');
+            val t' = the_default t (Symtab.lookup env x);
+          in if t aconv t' then NONE else SOME ((x, T'), t') end);
+    in
+      if null substT andalso null subst then th
+      else th |> hyps_rule
+       (instantiate_tfrees thy substT #>
+        instantiate_frees thy subst #>
+        Drule.fconv_rule (Thm.beta_conversion true))
+    end;
+
+fun inst_witness thy envs =
+  map_witness (fn (t, th) => (inst_term envs t, inst_thm thy envs th));
+
+fun inst_ctxt thy envs =
+  map_ctxt_values (instT_type (#1 envs)) (inst_term envs) (inst_thm thy envs);
+
+
+(* satisfy hypotheses *)
+
+fun satisfy_thm witns thm = thm |> fold (fn hyp =>
+    (case find_first (fn Witness (t, _) => Thm.term_of hyp aconv t) witns of
+      NONE => I
+    | SOME (Witness (_, th)) => Drule.implies_intr_protected [hyp] #> Goal.comp_hhf th))
+  (#hyps (Thm.crep_thm thm));
+
+fun satisfy_witness witns = map_witness (apsnd (satisfy_thm witns));
 
 end;
