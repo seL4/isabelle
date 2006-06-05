@@ -5,10 +5,9 @@
 Examples of function definitions using the new "function" package.
 *)
 
-theory Fundefs
+theory Fundefs 
 imports Main
 begin
-
 
 section {* Very basic *}
 
@@ -22,7 +21,7 @@ by pat_completeness  -- {* shows that the patterns are complete *}
 
 text {* we get partial simp and induction rules: *}
 thm fib.psimps
-thm fib.pinduct
+thm pinduct
 
 text {* There is also a cases rule to distinguish cases along the definition *}
 thm fib.cases
@@ -41,6 +40,8 @@ consts add :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 function
   "add 0 y = y"
   "add (Suc x) y = Suc (add x y)"
+thm add_rel.cases
+
 by pat_completeness auto
 termination
   by (auto_term "measure fst")
@@ -49,7 +50,6 @@ thm add.induct -- {* Note the curried induction predicate *}
 
 
 section {* Nested recursion *}
-
 
 consts nz :: "nat \<Rightarrow> nat"
 function
@@ -61,7 +61,9 @@ lemma nz_is_zero: -- {* A lemma we need to prove termination *}
   assumes trm: "x \<in> nz_dom"
   shows "nz x = 0"
 using trm
-by induct auto
+apply induct 
+apply auto
+done
 
 termination nz
   apply (auto_term "less_than") -- {* Oops, it left us something to prove *}
@@ -69,6 +71,36 @@ termination nz
 
 thm nz.simps
 thm nz.induct
+
+text {* Here comes McCarthy's 91-function *}
+
+consts f91 :: "nat => nat"
+function 
+  "f91 n = (if 100 < n then n - 10 else f91 (f91 (n + 11)))"
+by pat_completeness auto
+
+(* Prove a lemma before attempting a termination proof *)
+lemma f91_estimate: 
+  assumes trm: "n : f91_dom" 
+  shows "n < f91 n + 11"
+using trm by induct auto
+
+(* Now go for termination *)
+termination
+proof
+  let ?R = "measure (%x. 101 - x)"
+  show "wf ?R" ..
+
+  fix n::nat assume "~ 100 < n" (* Inner call *)
+  thus "(n + 11, n) : ?R"
+    by simp arith
+
+  assume inner_trm: "n + 11 : f91_dom" (* Outer call *)
+  with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
+  with `~ 100 < n` show "(f91 (n + 11), n) : ?R"
+    by simp arith
+qed
+
 
 
 section {* More general patterns *}
@@ -84,7 +116,8 @@ function
   "gcd2 (Suc x) (Suc y) = (if x < y then gcd2 (Suc x) (y - x)
                                 else gcd2 (x - y) (Suc y))"
 by pat_completeness auto
-termination by (auto_term "measure (\<lambda>(x,y). x + y)")
+termination 
+  by (auto_term "measure (\<lambda>(x,y). x + y)")
 
 thm gcd2.simps
 thm gcd2.induct
@@ -116,5 +149,35 @@ termination by (auto_term "{}")
 thm ev.simps
 thm ev.induct
 thm ev.cases
+
+
+section {* Mutual Recursion *}
+
+
+consts
+  evn :: "nat \<Rightarrow> bool"
+  od :: "nat \<Rightarrow> bool"
+
+function
+  "evn 0 = True"
+  "evn (Suc n) = od n"
+and
+  "od 0 = False"
+  "od (Suc n) = evn n"
+  by pat_completeness auto
+
+thm evn.psimps
+thm od.psimps
+
+thm evn_od.pinduct
+thm evn_od.termination
+thm evn_od.domintros
+
+termination
+  by (auto_term "measure (sum_case (%n. n) (%n. n))")
+
+thm evn.simps
+thm od.simps
+
 
 end

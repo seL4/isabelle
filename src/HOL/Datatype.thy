@@ -6,8 +6,7 @@
 header {* Datatypes *}
 
 theory Datatype
-imports Datatype_Universe FunDef
-uses ("Tools/function_package/fundef_datatype.ML")
+imports Datatype_Universe
 begin
 
 subsection {* Representing primitive types *}
@@ -316,8 +315,6 @@ code_syntax_const
     haskell (target_atom "Just")
 
 
-use "Tools/function_package/fundef_datatype.ML"
-setup FundefDatatype.setup
 
 
 end

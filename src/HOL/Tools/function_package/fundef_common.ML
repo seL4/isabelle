@@ -22,6 +22,7 @@ datatype ctx_tree
   | Cong of (term * thm * depgraph * ((string * typ) list * thm list * ctx_tree) list)
   | RCall of (term * ctx_tree)
 
+type glrs = (term list * term list * term * term) list
 
 
 (* A record containing all the relevant symbols and types needed during the proof.
@@ -39,8 +40,18 @@ datatype naming_context =
 
 
 datatype rec_call_info = 
-  RCInfo of {RI: thm, RIvs: (string * typ) list, lRI: thm, lRIq: thm, Gh: thm, Gh': thm} 
-
+  RCInfo 
+  of {
+  RI: thm, 
+  RIvs: (string * typ) list,
+  lRI: thm, 
+  lRIq: thm, 
+  Gh: thm, 
+  Gh': thm,
+  GmAs: term list,
+  rcarg: term
+} 
+     
 datatype clause_info =
   ClauseInfo of 
      {
@@ -73,6 +84,36 @@ datatype clause_info =
 datatype curry_info =
   Curry of { argTs: typ list, curry_ss: simpset }
 
+type inj_proj = ((term -> term) * (term -> term))
+
+type qgar = (string * typ) list * term list * term list * term
+
+datatype mutual_part =
+  MutualPart of 
+	 {
+          f_name: string,
+	  const: string * typ,
+	  cargTs: typ list,
+	  pthA: SumTools.sum_path,
+	  pthR: SumTools.sum_path,
+	  qgars: qgar list,
+	  f_def: thm
+	 }
+	 
+
+datatype mutual_info =
+  Mutual of 
+	 { 
+	  name: string, 
+	  sum_const: string * typ,
+	  ST: typ,
+	  RST: typ,
+	  streeA: SumTools.sum_tree,
+	  streeR: SumTools.sum_tree,
+	  parts: mutual_part list,
+	  qglrss: (term list * term list * term * term) list list
+	 }
+
 
 datatype prep_result =
   Prep of
@@ -99,11 +140,28 @@ datatype fundef_result =
       dom_intros : thm list
      }
 
+datatype fundef_mresult =
+  FundefMResult of
+     {
+      f: term,
+      G : term,
+      R : term,
+
+      psimps : thm list list, 
+      subset_pinducts : thm list, 
+      simple_pinducts : thm list, 
+      cases : thm,
+      termination : thm,
+      domintros : thm list
+     }
+
+
+type result_with_names = fundef_mresult * mutual_info * string list list * attribute list list list
 
 structure FundefData = TheoryDataFun
 (struct
   val name = "HOL/function_def/data";
-  type T = string * fundef_result Symtab.table
+  type T = string * result_with_names Symtab.table
 
   val empty = ("", Symtab.empty);
   val copy = I;

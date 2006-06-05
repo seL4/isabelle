@@ -62,3 +62,6 @@ fun map3 _ [] [] [] = []
 fun upairs [] = []
   | upairs (x::xs) = map (pair x) (x::xs) @ upairs xs
 
+
+fun the_single [x] = x
+  | the_single _ = sys_error "the_single"

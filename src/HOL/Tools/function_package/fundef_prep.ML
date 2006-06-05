@@ -11,6 +11,11 @@ signature FUNDEF_PREP =
 sig
     val prepare_fundef_curried : thm list -> term list -> theory
 				 -> FundefCommon.curry_info option * xstring * (FundefCommon.prep_result * theory)
+
+    val prepare_fundef_new : theory -> thm list -> string -> term -> FundefCommon.glrs -> string list
+			          -> FundefCommon.prep_result * theory
+
+
 end
 
 
@@ -125,12 +130,17 @@ fun mk_clause_info thy (names:naming_context) (no, (qs,gs,lhs,rhs)) (GI,tree) RI
 		val RI = freezeT RI
 		val lRI = localize RI
 		val lRIq = fold_rev (forall_intr o cterm_of thy o mk_var0) RIvs lRI
+		val plRI = prop_of lRI
+		val GmAs = Logic.strip_imp_prems plRI
+		val rcarg = case Logic.strip_imp_concl plRI of
+				trueprop $ (memb $ (pair $ rcarg $ _) $ R) => rcarg
+			      | _ => raise Match
 			  
 		val Gh_term = Pattern.rewrite_term thy [rw_RI_to_h_assum, rw_f_to_h] [] (prop_of lRIq)
 		val Gh = assume (cterm_of thy Gh_term)
 		val Gh' = assume (cterm_of thy (rename_vars Gh_term))
 	    in
-		RCInfo {RI=RI, RIvs=RIvs, lRI=lRI, lRIq=lRIq, Gh=Gh, Gh'=Gh'}
+		RCInfo {RI=RI, RIvs=RIvs, lRI=lRI, lRIq=lRIq, Gh=Gh, Gh'=Gh', GmAs=GmAs, rcarg=rcarg}
 	    end
 
 	val case_hyp = assume (cterm_of thy (Trueprop (mk_eq (x, lhs))))
@@ -151,7 +161,7 @@ fun mk_clause_info thy (names:naming_context) (no, (qs,gs,lhs,rhs)) (GI,tree) RI
 
 (* Chooses fresh free names, declares G and R, defines f and returns a record
    with all the information *)  
-fun setup_context (f, glrs, used) fname congs thy =
+fun setup_context (f, glrs, used) defname congs thy =
     let
 	val trees = map (build_tree thy f congs) glrs
 	val allused = fold FundefCtxTree.add_context_varnames trees used
@@ -175,8 +185,8 @@ fun setup_context (f, glrs, used) fname congs thy =
 
 	val GT = mk_relT (domT, ranT)
 	val RT = mk_relT (domT, domT)
-	val G_name = fname ^ "_graph"
-	val R_name = fname ^ "_rel"
+	val G_name = defname ^ "_graph"
+	val R_name = defname ^ "_rel"
 
 	val glrs' = mk_primed_vars thy glrs
 
@@ -292,9 +302,9 @@ fun inductive_def defs (thy, const) =
  * Defines the function, the graph and the termination relation, synthesizes completeness
  * and comatibility conditions and returns everything.
  *)
-fun prepare_fundef congs eqs fname thy =
+fun prepare_fundef congs eqs defname thy =
     let
-	val (names, thy) = setup_context (analyze_eqs eqs) fname congs thy
+	val (names, thy) = setup_context (analyze_eqs eqs) defname congs thy
 	val Names {G, R, glrs, trees, ...} = names
 
 	val {G_intros, vRiss, R_intross, complete, compat} = extract_conditions thy names trees congs
@@ -308,6 +318,28 @@ fun prepare_fundef congs eqs fname thy =
 	(Prep {names = names, complete=complete, compat=compat, clauses = clauses},
 	 thy) 
     end
+
+
+fun prepare_fundef_new thy congs defname f glrs used =
+    let
+	val (names, thy) = setup_context (f, glrs, used) defname congs thy
+	val Names {G, R, glrs, trees, ...} = names
+
+	val {G_intros, vRiss, R_intross, complete, compat} = extract_conditions thy names trees congs
+
+	val (G_intro_thms, (thy, _)) = inductive_def G_intros (thy, G)
+	val (R_intro_thmss, (thy, _)) = fold_burrow inductive_def R_intross (thy, R)
+
+	val n = length glrs
+	val clauses = map3 (mk_clause_info thy names) ((1 upto n) ~~ glrs) (G_intro_thms ~~ trees) (map2 (curry op ~~) vRiss R_intro_thmss)
+    in
+	(Prep {names = names, complete=complete, compat=compat, clauses = clauses},
+	 thy) 
+    end
+
+
+
+
 
 
 

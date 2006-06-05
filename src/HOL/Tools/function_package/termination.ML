@@ -9,8 +9,8 @@ Termination goals...
 
 signature FUNDEF_TERMINATION =
 sig
-    val mk_total_termination_goal : FundefCommon.fundef_result -> term
-    val mk_partial_termination_goal : theory -> FundefCommon.fundef_result -> string -> term * term
+    val mk_total_termination_goal : FundefCommon.result_with_names -> term
+    val mk_partial_termination_goal : theory -> FundefCommon.result_with_names -> string -> term * term
 end
 
 structure FundefTermination : FUNDEF_TERMINATION =
@@ -20,20 +20,16 @@ struct
 open FundefCommon
 open FundefAbbrev
 
-fun mk_total_termination_goal data =
+fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _, _) =
     let
-	val FundefResult {R, f, ... } = data
-
 	val domT = domain_type (fastype_of f)
 	val x = Free ("x", domT)
     in
 	Trueprop (mk_mem (x, Const (acc_const_name, fastype_of R --> HOLogic.mk_setT domT) $ R))
     end
 
-fun mk_partial_termination_goal thy data dom =
+fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _, _) dom =
     let
-	val FundefResult {R, f, ... } = data
-
 	val domT = domain_type (fastype_of f)
 	val D = Sign.simple_read_term thy (Type.varifyT (HOLogic.mk_setT domT)) dom
 	val DT = type_of D

@@ -300,7 +300,7 @@ val setup =
   LocalRecdefData.init #>
   Attrib.add_attributes
    [(recdef_simpN, Attrib.add_del_args simp_add simp_del, "declaration of recdef simp rule"),
-    (recdef_congN, Attrib.add_del_args (FundefPackage.cong_add o cong_add) (FundefPackage.cong_del o cong_del), "declaration of recdef cong rule"),
+    (recdef_congN, Attrib.add_del_args cong_add cong_del, "declaration of recdef cong rule"),
     (recdef_wfN, Attrib.add_del_args wf_add wf_del, "declaration of recdef wf rule")];
 
 

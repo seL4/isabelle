@@ -6,7 +6,7 @@
 header {* TFL: recursive function definitions *}
 
 theory Recdef
-imports Wellfounded_Relations Datatype
+imports Wellfounded_Relations
 uses
   ("../TFL/casesplit.ML")
   ("../TFL/utils.ML")
@@ -18,7 +18,6 @@ uses
   ("../TFL/tfl.ML")
   ("../TFL/post.ML")
   ("Tools/recdef_package.ML")
-  ("Tools/function_package/auto_term.ML")
 begin
 
 lemma tfl_eq_True: "(x = True) --> x"
@@ -96,8 +95,5 @@ proof
   finally show "finite (UNIV :: 'a option set)" .
 qed
 
-
-use "Tools/function_package/auto_term.ML"
-setup FundefAutoTerm.setup
 
 end

@@ -6,7 +6,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports PreList
+imports PreList FunDef
 begin
 
 datatype 'a list =
@@ -498,7 +498,7 @@ by (induct xs) auto
 lemma map_eq_conv[simp]: "(map f xs = map g xs) = (!x : set xs. f x = g x)"
 by (induct xs) auto
 
-lemma map_cong [recdef_cong]:
+lemma map_cong [fundef_cong, recdef_cong]:
 "xs = ys ==> (!!x. x : set ys ==> f x = g x) ==> map f xs = map g ys"
 -- {* a congruence rule for @{text map} *}
 by simp
@@ -863,7 +863,7 @@ lemma Cons_eq_filter_iff:
   (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
 by(auto dest:Cons_eq_filterD)
 
-lemma filter_cong[recdef_cong]:
+lemma filter_cong[fundef_cong, recdef_cong]:
  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x) \<Longrightarrow> filter P xs = filter Q ys"
 apply simp
 apply(erule thin_rl)
@@ -1363,12 +1363,12 @@ apply(case_tac xs)
 apply(auto)
 done
 
-lemma takeWhile_cong [recdef_cong]:
+lemma takeWhile_cong [fundef_cong, recdef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> takeWhile P l = takeWhile Q k"
   by (induct k fixing: l, simp_all)
 
-lemma dropWhile_cong [recdef_cong]:
+lemma dropWhile_cong [fundef_cong, recdef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> dropWhile P l = dropWhile Q k"
   by (induct k fixing: l, simp_all)
@@ -1613,12 +1613,12 @@ by (induct xs) auto
 lemma foldr_append[simp]: "foldr f (xs @ ys) a = foldr f xs (foldr f ys a)"
 by (induct xs) auto
 
-lemma foldl_cong [recdef_cong]:
+lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
   ==> foldl f a l = foldl g b k"
   by (induct k fixing: a b l, simp_all)
 
-lemma foldr_cong [recdef_cong]:
+lemma foldr_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f x a = g x a |] 
   ==> foldr f l a = foldr g k b"
   by (induct k fixing: a b l, simp_all)

@@ -32,7 +32,7 @@ fun mk_termination_meth relstr ctxt =
 	val {simps, congs, wfs} = RecdefPackage.get_local_hints ctxt
 	val ss = local_simpset_of ctxt addsimps simps
 	    
-	val intro_rule = ProofContext.get_thm ctxt (Name "termination_intro")
+	val intro_rule = ProofContext.get_thm ctxt (Name "termination")
     in
 	Method.RAW_METHOD (K (auto_term_tac
 				  intro_rule

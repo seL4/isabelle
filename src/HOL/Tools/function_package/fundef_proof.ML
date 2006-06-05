@@ -10,6 +10,9 @@ Internal proofs.
 signature FUNDEF_PROOF =
 sig
 
+    val mk_partial_rules : theory -> thm list -> FundefCommon.prep_result 
+			   -> thm -> thm list -> FundefCommon.fundef_result
+
     val mk_partial_rules_curried : theory -> thm list -> FundefCommon.curry_info option -> FundefCommon.prep_result 
 				   -> thm -> thm list -> FundefCommon.fundef_result
 end
@@ -42,7 +45,7 @@ val acc_subset_induct = thm "acc_subset_induct"
 
 
     
-fun mk_simp thy names f_iff graph_is_function clause valthm =
+fun mk_psimp thy names f_iff graph_is_function clause valthm =
     let
 	val Names {R, acc_R, domT, z, ...} = names
 	val ClauseInfo {qs, cqs, gs, lhs, rhs, ...} = clause
@@ -56,10 +59,10 @@ fun mk_simp thy names f_iff graph_is_function clause valthm =
 	    |> (fn it => it COMP valthm)
 	    |> implies_intr lhs_acc 
 	    |> asm_simplify (HOL_basic_ss addsimps [f_iff])
-	    |> fold forall_intr cqs
+(*	    |> fold forall_intr cqs
 	    |> forall_elim_vars 0
 	    |> varifyT
-	    |> Drule.close_derivation
+	    |> Drule.close_derivation*)
     end
 
 
@@ -143,20 +146,23 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 		|> implies_intr a_D
 		|> implies_intr D_dcl
 		|> implies_intr D_subset
-		|> forall_intr_frees
-		|> forall_elim_vars 0
+
+	val subset_induct_all = fold_rev (forall_intr o cterm_of thy) [P, a, D] subset_induct_rule
 
 	val simple_induct_rule =
 	    subset_induct_rule
-		|> instantiate' [] [SOME (cterm_of thy acc_R)]
+		|> forall_intr (cterm_of thy D)
+		|> forall_elim (cterm_of thy acc_R)
 		|> (curry op COMP) subset_refl
 		|> (curry op COMP) (acc_downward
 					|> (instantiate' [SOME (ctyp_of thy domT)]
 							 (map (SOME o cterm_of thy) [x, R, z]))
 					|> forall_intr (cterm_of thy z)
 					|> forall_intr (cterm_of thy x))
+		|> forall_intr (cterm_of thy a)
+		|> forall_intr (cterm_of thy P)
     in
-	(varifyT subset_induct_rule, varifyT simple_induct_rule)
+	(subset_induct_all, simple_induct_rule)
     end
 
 
@@ -344,25 +350,13 @@ fun mk_domain_intro thy names R_cases clause =
     let
 	val Names {z, R, acc_R, ...} = names
 	val ClauseInfo {qs, gs, lhs, rhs, ...} = clause
-
-	val z_lhs = cterm_of thy (HOLogic.mk_prod (z,lhs))
-	val z_acc = cterm_of thy (HOLogic.mk_mem (z,acc_R))
-
-	val icases = R_cases 
-			 |> instantiate' [] [SOME z_lhs, SOME z_acc]
-			 |> forall_intr_frees
-			 |> forall_elim_vars 0
-
 	val goal = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs,acc_R)))
     in
 	Goal.init goal 
-		  |> SINGLE (resolve_tac [accI] 1) |> the
-		  |> SINGLE (eresolve_tac [icases] 1)  |> the
-		  |> SINGLE (CLASIMPSET auto_tac) |> the
+		  |> (SINGLE (resolve_tac [accI] 1)) |> print |> the
+		  |> (SINGLE (eresolve_tac [R_cases] 1))  |> print |> the
+		  |> (SINGLE (CLASIMPSET auto_tac)) |> print |> the
 		  |> Goal.conclude
-		  |> forall_intr_frees
-		  |> forall_elim_vars 0
-		  |> varifyT
     end
 
 
@@ -530,7 +524,7 @@ fun mk_partial_rules thy congs data complete_thm compat_thms =
 	val f_iff = (graph_is_function RS inst_ex1_iff)
 
 	val _ = Output.debug "Proving simplification rules"
-	val psimps  = map2 (mk_simp thy names f_iff graph_is_function) clauses values
+	val psimps  = map2 (mk_psimp thy names f_iff graph_is_function) clauses values
 
 	val _ = Output.debug "Proving partial induction rule"
 	val (subset_pinduct, simple_pinduct) = mk_partial_induct_rule thy names complete_thm clauses
