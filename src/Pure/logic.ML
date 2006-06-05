@@ -48,6 +48,8 @@ sig
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
+  val mk_term: term -> term
+  val dest_term: term -> term
   val occs: term * term -> bool
   val close_form: term -> term
   val combound: term * int * int -> term
@@ -316,13 +318,19 @@ fun mk_defpair lhs_rhs = mk_cond_defpair [] lhs_rhs;
 
 
 
-(** protected propositions **)
+(** protected propositions and embedded terms **)
 
 val protectC = Const ("prop", propT --> propT);
 fun protect t = protectC $ t;
 
 fun unprotect (Const ("prop", _) $ t) = t
   | unprotect t = raise TERM ("unprotect", [t]);
+
+
+fun mk_term t = Const ("ProtoPure.term", Term.fastype_of t --> propT) $ t;
+
+fun dest_term (Const ("ProtoPure.term", _) $ t) = t
+  | dest_term t = raise TERM ("dest_term", [t]);
 
 
 

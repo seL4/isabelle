@@ -21,6 +21,7 @@ sig
     sig
       val thy: theory
       val prop_def: thm
+      val term_def: thm
       val conjunction_def: thm
     end
 end;
@@ -585,6 +586,7 @@ val proto_pure =
     ("_DDDOT",   "logic",                 Delimfix "\\<dots>")]
   |> Theory.add_modesyntax ("", false)
    [("prop", "prop => prop", Mixfix ("_", [0], 0)),
+    ("ProtoPure.term", "'a => prop", Delimfix "TERM _"),
     ("ProtoPure.conjunction", "prop => prop => prop", InfixrName ("&&", 2))]
   |> Theory.add_modesyntax ("HTML", false)
    [("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
@@ -605,12 +607,14 @@ val proto_pure =
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
   |> Theory.add_consts
-   [("conjunction", "prop => prop => prop", NoSyn)]
+   [("term", "'a => prop", NoSyn),
+    ("conjunction", "prop => prop => prop", NoSyn)]
   |> (add_defs false o map Thm.no_attributes)
    [("prop_def", "prop(A) == A"),
+    ("term_def", "term(x) == (!!A. PROP A ==> PROP A)"),
     ("conjunction_def",
       "conjunction(A, B) == (!!C. (PROP A ==> PROP B ==> PROP C) ==> PROP C)")] |> snd
-  |> Sign.hide_consts false ["conjunction"]
+  |> Sign.hide_consts false ["conjunction", "term"]
   |> add_thmss [(("nothing", []), [])] |> snd
   |> Theory.add_axioms_i Proofterm.equality_axms
   |> Theory.end_theory;
@@ -619,6 +623,7 @@ structure ProtoPure =
 struct
   val thy = proto_pure;
   val prop_def = get_axiom thy "prop_def";
+  val term_def = get_axiom thy "term_def";
   val conjunction_def = get_axiom thy "conjunction_def";
 end;
 

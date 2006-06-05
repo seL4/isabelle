@@ -121,6 +121,9 @@ sig
   val protectD: thm
   val protect_cong: thm
   val implies_intr_protected: cterm list -> thm -> thm
+  val termI: thm
+  val mk_term: cterm -> thm
+  val dest_term: thm -> cterm
   val freeze_all: thm -> thm
   val tvars_of_terms: term list -> (indexname * sort) list
   val vars_of_terms: term list -> (indexname * typ) list
@@ -939,11 +942,12 @@ fun equal_abs_elim ca eqth =
 fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 
 
-(** protected propositions **)
+(** protected propositions and embedded terms **)
 
 local
   val A = cert (Free ("A", propT));
   val prop_def = #1 (freeze_thaw ProtoPure.prop_def);
+  val term_def = #1 (freeze_thaw ProtoPure.term_def);
 in
   val protect = Thm.capply (cert Logic.protectC);
   val protectI = store_thm "protectI" (PureThy.kind_rule PureThy.internalK (standard
@@ -951,6 +955,9 @@ in
   val protectD = store_thm "protectD" (PureThy.kind_rule PureThy.internalK (standard
       (Thm.equal_elim prop_def (Thm.assume (protect A)))));
   val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
+
+  val termI = store_thm "termI" (PureThy.kind_rule PureThy.internalK (standard
+      (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
 end;
 
 fun implies_intr_protected asms th =
@@ -960,6 +967,23 @@ fun implies_intr_protected asms th =
       (map (fn asm' => Thm.assume asm' RS protectD) asms')
     |> implies_intr_list asms'
   end;
+
+fun mk_term ct =
+  let
+    val {thy, T, ...} = Thm.rep_cterm ct;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+    val a = certT (TVar (("'a", 0), []));
+    val x = cert (Var (("x", 0), T));
+  in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;
+
+fun dest_term th =
+  let val cprop = Thm.cprop_of th in
+    if can Logic.dest_term (Thm.term_of cprop) then
+      #2 (Thm.dest_comb cprop)
+    else raise THM ("dest_term", 0, [th])
+  end;
+
 
 
 (** variations on instantiate **)
