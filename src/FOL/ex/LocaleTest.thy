@@ -53,7 +53,15 @@ locale LT = var mult (infixl "**" 60) +
 locale LU = LT mult (infixl "**" 60) + LT add (infixl "++" 55) + var h +
   assumes hom: "h(x ** y) = h(x) ++ h(y)"
 
+(*
+Graceful handling of type errors?
+locale LY = LT mult (infixl "**" 60) + LT add (binder "++" 55) + var h +
+  assumes "mult(x) == add"
+*)
+
 locale LV = LU _ add
+
+locale LW = LU _ mult (infixl "**" 60)
 
 
 subsection {* Constrains *}

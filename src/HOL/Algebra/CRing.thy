@@ -23,7 +23,8 @@ constdefs (structure R)
   a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y == x \<oplus> (\<ominus> y)"
 
-locale abelian_monoid = struct G +
+locale abelian_monoid =
+  fixes G (structure)
   assumes a_comm_monoid:
      "comm_monoid (| carrier = carrier G, mult = add G, one = zero G |)"
 
@@ -40,7 +41,7 @@ locale abelian_group = abelian_monoid +
 subsection {* Basic Properties *}
 
 lemma abelian_monoidI:
-  includes struct R
+  fixes R (structure)
   assumes a_closed:
       "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y \<in> carrier R"
     and zero_closed: "\<zero> \<in> carrier R"
@@ -54,7 +55,10 @@ lemma abelian_monoidI:
   by (auto intro!: abelian_monoid.intro comm_monoidI intro: prems)
 
 lemma abelian_groupI:
+(*
   includes struct R
+*)
+  fixes R (structure)
   assumes a_closed:
       "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y \<in> carrier R"
     and zero_closed: "zero R \<in> carrier R"
@@ -309,7 +313,10 @@ locale field = "domain" +
 subsection {* Basic Facts of Rings *}
 
 lemma ringI:
+(*
   includes struct R
+*)
+  fixes R (structure)
   assumes abelian_group: "abelian_group R"
     and monoid: "monoid R"
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
@@ -329,7 +336,10 @@ lemma (in ring) is_monoid:
   by (auto intro!: monoidI m_assoc)
 
 lemma cringI:
+(*
   includes struct R
+*)
+  fixes R (structure)
   assumes abelian_group: "abelian_group R"
     and comm_monoid: "comm_monoid R"
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
@@ -539,7 +549,10 @@ constdefs (structure R S)
       h \<one> = \<one>\<^bsub>S\<^esub>}"
 
 lemma ring_hom_memI:
+(*
   includes struct R + struct S
+*)
+  fixes R (structure) and S (structure)
   assumes hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
     and hom_mult: "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==>
       h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
@@ -554,25 +567,26 @@ lemma ring_hom_closed:
   by (auto simp add: ring_hom_def funcset_mem)
 
 lemma ring_hom_mult:
-  includes struct R + struct S
+  fixes R (structure) and S (structure)
   shows
     "[| h \<in> ring_hom R S; x \<in> carrier R; y \<in> carrier R |] ==>
     h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
     by (simp add: ring_hom_def)
 
 lemma ring_hom_add:
-  includes struct R + struct S
+  fixes R (structure) and S (structure)
   shows
     "[| h \<in> ring_hom R S; x \<in> carrier R; y \<in> carrier R |] ==>
     h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
     by (simp add: ring_hom_def)
 
 lemma ring_hom_one:
-  includes struct R + struct S
+  fixes R (structure) and S (structure)
   shows "h \<in> ring_hom R S ==> h \<one> = \<one>\<^bsub>S\<^esub>"
   by (simp add: ring_hom_def)
 
-locale ring_hom_cring = cring R + cring S + var h +
+locale ring_hom_cring = cring R + cring S +
+  fixes h
   assumes homh [simp, intro]: "h \<in> ring_hom R S"
   notes hom_closed [simp, intro] = ring_hom_closed [OF homh]
     and hom_mult [simp] = ring_hom_mult [OF homh]

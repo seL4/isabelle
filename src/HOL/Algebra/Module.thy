@@ -32,7 +32,7 @@ locale algebra = module R M + cring M +
       (a \<odot>\<^bsub>M\<^esub> x) \<otimes>\<^bsub>M\<^esub> y = a \<odot>\<^bsub>M\<^esub> (x \<otimes>\<^bsub>M\<^esub> y)"
 
 lemma moduleI:
-  includes struct R + struct M
+  fixes R (structure) and M (structure)
   assumes cring: "cring R"
     and abelian_group: "abelian_group M"
     and smult_closed:
@@ -53,7 +53,7 @@ lemma moduleI:
     module_axioms.intro prems)
 
 lemma algebraI:
-  includes struct R + struct M
+  fixes R (structure) and M (structure)
   assumes R_cring: "cring R"
     and M_cring: "cring M"
     and smult_closed:

@@ -196,6 +196,12 @@ independently of name spaces.  The parse tree representation is
 slightly different -- use 'const_syntax' instead of raw 'syntax', and
 'translations' with explicit "CONST" markup to accommodate this.
 
+* Isar/locales: improved parameter handling:
+- use of locales "var" and "struct" no longer necessary;
+- parameter renamings are no longer required to be injective.
+  This enables, for example, to define a locale for endomorphisms thus:
+  locale endom = homom mult mult h.
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals

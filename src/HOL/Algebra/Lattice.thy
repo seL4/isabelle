@@ -19,7 +19,8 @@ subsection {* Partial Orders *}
 record 'a order = "'a partial_object" +
   le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>\<index>" 50)
 
-locale partial_order = struct L +
+locale partial_order =
+  fixes L (structure)
   assumes refl [intro, simp]:
                   "x \<in> carrier L ==> x \<sqsubseteq> x"
     and anti_sym [intro]:
@@ -69,12 +70,12 @@ lemma Upper_closed [intro, simp]:
   by (unfold Upper_def) clarify
 
 lemma UpperD [dest]:
-  includes struct L
+  fixes L (structure)
   shows "[| u \<in> Upper L A; x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> u"
   by (unfold Upper_def) blast
 
 lemma Upper_memI:
-  includes struct L
+  fixes L (structure)
   shows "[| !! y. y \<in> A ==> y \<sqsubseteq> x; x \<in> carrier L |] ==> x \<in> Upper L A"
   by (unfold Upper_def) blast
 
@@ -90,12 +91,12 @@ lemma Lower_closed [intro, simp]:
   by (unfold Lower_def) clarify
 
 lemma LowerD [dest]:
-  includes struct L
+  fixes L (structure)
   shows "[| l \<in> Lower L A; x \<in> A; A \<subseteq> carrier L |] ==> l \<sqsubseteq> x"
   by (unfold Lower_def) blast
 
 lemma Lower_memI:
-  includes struct L
+  fixes L (structure)
   shows "[| !! y. y \<in> A ==> x \<sqsubseteq> y; x \<in> carrier L |] ==> x \<in> Lower L A"
   by (unfold Lower_def) blast
 
@@ -119,12 +120,12 @@ lemma (in partial_order) least_unique:
   by (unfold least_def) blast
 
 lemma least_le:
-  includes struct L
+  fixes L (structure)
   shows "[| least L x A; a \<in> A |] ==> x \<sqsubseteq> a"
   by (unfold least_def) fast
 
 lemma least_UpperI:
-  includes struct L
+  fixes L (structure)
   assumes above: "!! x. x \<in> A ==> x \<sqsubseteq> s"
     and below: "!! y. y \<in> Upper L A ==> s \<sqsubseteq> y"
     and L: "A \<subseteq> carrier L"  "s \<in> carrier L"
@@ -152,12 +153,12 @@ lemma (in partial_order) greatest_unique:
   by (unfold greatest_def) blast
 
 lemma greatest_le:
-  includes struct L
+  fixes L (structure)
   shows "[| greatest L x A; a \<in> A |] ==> a \<sqsubseteq> x"
   by (unfold greatest_def) fast
 
 lemma greatest_LowerI:
-  includes struct L
+  fixes L (structure)
   assumes below: "!! x. x \<in> A ==> i \<sqsubseteq> x"
     and above: "!! y. y \<in> Lower L A ==> y \<sqsubseteq> i"
     and L: "A \<subseteq> carrier L"  "i \<in> carrier L"
@@ -179,12 +180,12 @@ locale lattice = partial_order +
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
 lemma least_Upper_above:
-  includes struct L
+  fixes L (structure)
   shows "[| least L s (Upper L A); x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> s"
   by (unfold least_def) blast
 
 lemma greatest_Lower_above:
-  includes struct L
+  fixes L (structure)
   shows "[| greatest L i (Lower L A); x \<in> A; A \<subseteq> carrier L |] ==> i \<sqsubseteq> x"
   by (unfold greatest_def) blast
 
@@ -211,8 +212,7 @@ lemma (in partial_order) sup_of_singletonI:      (* only reflexivity needed ? *)
   by (rule least_UpperI) fast+
 
 lemma (in partial_order) sup_of_singleton [simp]:
-  includes struct L
-  shows "x \<in> carrier L ==> \<Squnion>{x} = x"
+  "x \<in> carrier L ==> \<Squnion>{x} = x"
   by (unfold sup_def) (blast intro: least_unique least_UpperI sup_of_singletonI)
 
 
@@ -400,7 +400,7 @@ proof (rule finite_sup_insertI)
 qed (simp_all add: L)
 
 lemma join_comm:
-  includes struct L
+  fixes L (structure)
   shows "x \<squnion> y = y \<squnion> x"
   by (unfold join_def) (simp add: insert_commute)
 
@@ -439,8 +439,7 @@ lemma (in partial_order) inf_of_singletonI:      (* only reflexivity needed ? *)
   by (rule greatest_LowerI) fast+
 
 lemma (in partial_order) inf_of_singleton [simp]:
-  includes struct L
-  shows "x \<in> carrier L ==> \<Sqinter> {x} = x"
+  "x \<in> carrier L ==> \<Sqinter> {x} = x"
   by (unfold inf_def) (blast intro: greatest_unique greatest_LowerI inf_of_singletonI)
 
 text {* Condition on A: infimum exists. *}
@@ -629,7 +628,7 @@ proof (rule finite_inf_insertI)
 qed (simp_all add: L)
 
 lemma meet_comm:
-  includes struct L
+  fixes L (structure)
   shows "x \<sqinter> y = y \<sqinter> x"
   by (unfold meet_def) (simp add: insert_commute)
 

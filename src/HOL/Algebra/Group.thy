@@ -40,7 +40,8 @@ defs (overloaded)
     let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
     in if neg z then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z)"
 
-locale monoid = struct G +
+locale monoid =
+  fixes G (structure)
   assumes m_closed [intro, simp]:
          "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> carrier G"
       and m_assoc:
@@ -51,7 +52,7 @@ locale monoid = struct G +
       and r_one [simp]: "x \<in> carrier G \<Longrightarrow> x \<otimes> \<one> = x"
 
 lemma monoidI:
-  includes struct G
+  fixes G (structure)
   assumes m_closed:
       "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
     and one_closed: "\<one> \<in> carrier G"
@@ -192,7 +193,7 @@ lemma (in group) is_group: "group G"
   by (rule group.intro [OF prems]) 
 
 theorem groupI:
-  includes struct G
+  fixes G (structure)
   assumes m_closed [simp]:
       "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
     and one_closed [simp]: "\<one> \<in> carrier G"
@@ -359,7 +360,8 @@ lemma (in group) int_pow_one [simp]:
 
 subsection {* Subgroups *}
 
-locale subgroup = var H + struct G + 
+locale subgroup =
+  fixes H and G (structure)
   assumes subset: "H \<subseteq> carrier G"
     and m_closed [intro, simp]: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> H"
     and  one_closed [simp]: "\<one> \<in> H"
@@ -600,7 +602,7 @@ qed
 lemmas (in comm_monoid) m_ac = m_assoc m_comm m_lcomm
 
 lemma comm_monoidI:
-  includes struct G
+  fixes G (structure)
   assumes m_closed:
       "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
     and one_closed: "\<one> \<in> carrier G"
@@ -645,7 +647,7 @@ lemma (in group) group_comm_groupI:
                   is_group prems)
 
 lemma comm_groupI:
-  includes struct G
+  fixes G (structure)
   assumes m_closed:
       "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
     and one_closed: "\<one> \<in> carrier G"

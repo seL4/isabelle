@@ -163,7 +163,8 @@ qed
 
 subsection {* Effect of operations on coefficients *}
 
-locale UP = struct R + struct P +
+locale UP =
+  fixes R (structure) and P (structure)
   defines P_def: "P == UP R"
 
 locale UP_cring = UP + cring R
@@ -1043,7 +1044,7 @@ constdefs (structure S)
 
 
 lemma (in UP) eval_on_carrier:
-  includes struct S
+  fixes S (structure)
   shows "p \<in> carrier P ==>
   eval R S phi s p = (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
   by (unfold eval_def, fold P_def) simp
@@ -1057,7 +1058,8 @@ text {* The universal property of the polynomial ring *}
 
 locale UP_pre_univ_prop = ring_hom_cring R S h + UP_cring R P
 
-locale UP_univ_prop = UP_pre_univ_prop + var s + var Eval +
+locale UP_univ_prop = UP_pre_univ_prop +
+  fixes s and Eval
   assumes indet_img_carrier [simp, intro]: "s \<in> carrier S"
   defines Eval_def: "Eval == eval R S h s"
 
