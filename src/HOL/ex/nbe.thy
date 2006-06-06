@@ -9,13 +9,19 @@ begin
 
 ML "reset quick_and_dirty"
 
+norm_by_eval "True \<longrightarrow> p"
+
+(* FIXME Eventually the code generator should be able to handle this
+by re-generating the existing code for "or":
+
 declare disj_assoc[code]
 
 norm_by_eval "(P | Q) | R"
 
-(*lemma[code]: "(P \<longrightarrow> P) = True" by blast
+lemma[code]: "(P \<longrightarrow> P) = True" by blast
 norm_by_eval "P \<longrightarrow> P"
-norm_by_eval "True \<longrightarrow> P"*)
+norm_by_eval "True \<longrightarrow> P"
+*)
 
 
 datatype n = Z | S n
@@ -55,27 +61,29 @@ primrec
 
 norm_by_eval "mul2 (S(S(S(S(S(S(S Z))))))) (S(S(S(S(S Z)))))"
 norm_by_eval "mul (S(S(S(S(S(S(S Z))))))) (S(S(S(S(S Z)))))"
-norm_by_eval "exp (S(S(S(S(S(S(S Z))))))) (S(S(S(S(S Z)))))"
+norm_by_eval "exp (S(S Z)) (S(S(S(S(S Z)))))"
 
 norm_by_eval "[] @ []"
 norm_by_eval "[] @ xs"
-norm_by_eval "[a,b,c] @ xs"
-norm_by_eval "[%a. a, %b. b, c] @ xs"
-norm_by_eval "[%a. a, %b. b, c] @ [u,v]"
-norm_by_eval "map f [x,y,z]"
+norm_by_eval "[] @ (xs:: 'b list)"
+norm_by_eval "[a::'d,b,c] @ xs"
+norm_by_eval "[%a::'x. a, %b. b, c] @ xs"
+norm_by_eval "[%a::'x. a, %b. b, c] @ [u,v]"
+norm_by_eval "map f (xs::'c list)"
+norm_by_eval "map f [x,y,z::'x]"
 norm_by_eval "map (%f. f True) [id,g,Not]"
 norm_by_eval "map (%f. f True) ([id,g,Not] @ fs)"
 norm_by_eval "rev[a,b,c]"
 norm_by_eval "rev(a#b#cs)"
 norm_by_eval "map map [f,g,h]"
-norm_by_eval "map (%F. F [a,b,c]) (map map [f,g,h])"
+norm_by_eval "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 norm_by_eval "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
 norm_by_eval "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
 norm_by_eval "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
 norm_by_eval "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
 norm_by_eval "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False"
 norm_by_eval "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs"
-norm_by_eval "let x = y in [x,x]"
+norm_by_eval "let x = y::'x in [x,x]"
 norm_by_eval "Let y (%x. [x,x])"
 norm_by_eval "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
 norm_by_eval "(%(x,y). add x y) (S z,S z)"
@@ -84,6 +92,7 @@ norm_by_eval "filter Not ([True,False,x]@xs)"
 
 norm_by_eval "0 + (n::nat)"
 norm_by_eval "0 + Suc(n)"
+norm_by_eval "0::nat"
 norm_by_eval "Suc(n) + Suc m"
 norm_by_eval "[] @ xs"
 norm_by_eval "(x#xs) @ ys"
@@ -92,14 +101,15 @@ norm_by_eval "%(xs, ys). xs @ ys"
 norm_by_eval "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f])"
 norm_by_eval "%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True"
 norm_by_eval "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
-norm_by_eval "rev [a, b, c]"
 
 norm_by_eval "case n of None \<Rightarrow> True | Some((x,y),(u,v)) \<Rightarrow> False"
 norm_by_eval "let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)"
 norm_by_eval "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z))"
 norm_by_eval "last[a,b,c]"
+norm_by_eval "last([a,b,c]@xs)"
+norm_by_eval " (0::nat) < (0::nat)"
 
-(*
+(* FIXME
   won't work since it relies on 
   polymorphically used ad-hoc overloaded function:
   norm_by_eval "max 0 (0::nat)"
