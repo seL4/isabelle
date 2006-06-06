@@ -96,6 +96,7 @@
     "instance"
     "interpret"
     "interpretation"
+    "invoke"
     "judgment"
     "kill"
     "kill_thy"
@@ -230,7 +231,9 @@
     "distinct"
     "file"
     "fixes"
+    "for"
     "hints"
+    "if"
     "imports"
     "in"
     "includes"
@@ -460,6 +463,7 @@
   '("have"
     "hence"
     "interpret"
+    "invoke"
     "show"
     "thus"))
 
