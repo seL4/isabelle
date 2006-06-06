@@ -1,7 +1,5 @@
 (*  Title:      Pure/Pure.thy
     ID:         $Id$
-
-The Pure theory.
 *)
 
 header {* The Pure theory *}
@@ -9,7 +7,7 @@ header {* The Pure theory *}
 theory Pure
 imports ProtoPure
 begin
-ML{*set Toplevel.debug*}
+
 setup  -- {* Common setup of internal components *}
 
 
