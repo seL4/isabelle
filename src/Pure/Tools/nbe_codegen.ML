@@ -141,6 +141,15 @@ fun generate defined (nm, CodegenThingol.Fun (eqns, _)) =
 
 open NBE_Eval;
 
+val tcount = ref 0;
+
+(* FIXME get rid of TVar case!!! *)
+fun varifyT ty =
+  let val ty' = map_type_tvar (fn ((s,i),S) => TypeInfer.param (!tcount + i) (s,S)) ty;
+      val _ = (tcount := !tcount + maxidx_of_typ ty + 1);
+      val ty'' = map_type_tfree (TypeInfer.param (!tcount)) ty'
+  in tcount := !tcount+1; ty'' end;
+
 fun nterm_to_term thy t =
   let
     fun consts_of (C s) = insert (op =) s
@@ -149,14 +158,14 @@ fun nterm_to_term thy t =
       | consts_of (A (t1, t2)) = consts_of t1 #> consts_of t2
       | consts_of (AbsN (_, t)) = consts_of t;
     val consts = consts_of t [];
-    val the_const = the o AList.lookup (op =)
-      (consts ~~ CodegenPackage.consts_of_idfs thy consts);
+    val ctab = consts ~~ CodegenPackage.consts_of_idfs thy consts;
+    val the_const = apsnd varifyT o the o AList.lookup (op =) ctab;
     fun to_term bounds (C s) = Const (the_const s)
       | to_term bounds (V s) = Free (s, dummyT)
       | to_term bounds (B i) = Bound (find_index (fn j => i = j) bounds)
       | to_term bounds (A (t1, t2)) = to_term bounds t1 $ to_term bounds t2
       | to_term bounds (AbsN (i, t)) =
           Abs("u", dummyT, to_term (i::bounds) t);
-  in to_term [] t end;
+  in tcount := 0; to_term [] t end;
 
 end;

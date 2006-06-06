@@ -25,17 +25,15 @@ sig
     | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm)
                                          (*functions*);
 
-  val nbe: Univ Symtab.table -> CodegenThingol.iexpr -> nterm;
-  val apply: Univ -> Univ -> Univ;
+  val nbe: Univ Symtab.table -> CodegenThingol.iexpr -> nterm
+  val apply: Univ -> Univ -> Univ
 
-  val to_term: Univ -> nterm;
+  val to_term: Univ -> nterm
 
-  val mk_Fun: string * (Univ list -> Univ) * int -> string * Univ;
-  val new_name: unit -> int;
+  val mk_Fun: string * (Univ list -> Univ) * int -> string * Univ
+  val new_name: unit -> int
 
-  (* For testing
-  val eval: (Univ list) -> term -> Univ
-  *)
+  val string_of_nterm: nterm -> string
 end;
 
 structure NBE_Eval: NBE_EVAL =
@@ -47,6 +45,14 @@ datatype nterm =
   | B of int
   | A of nterm * nterm
   | AbsN of int * nterm;
+
+fun string_of_nterm(C s) = "(C \"" ^ s ^ "\")"
+  | string_of_nterm(V s) = "(V \"" ^ s ^ "\")"
+  | string_of_nterm(B n) = "(B " ^ string_of_int n ^ ")"
+  | string_of_nterm(A(s,t)) =
+       "(A " ^ string_of_nterm s ^ string_of_nterm t ^ ")"
+  | string_of_nterm(AbsN(n,t)) =
+      "(Abs " ^ string_of_int n ^ " " ^ string_of_nterm t ^ ")";
 
 fun apps t args = foldr (fn (y,x) => A(x,y)) t args;
 
