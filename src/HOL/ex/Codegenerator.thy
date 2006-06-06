@@ -111,7 +111,7 @@ code_generate
   "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
   "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
 
-subsection {* heavy use of names *}
+subsection {* heavy usage of names *}
 
 definition
   f :: nat
