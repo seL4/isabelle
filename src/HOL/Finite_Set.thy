@@ -1595,7 +1595,7 @@ lemma insert_partition:
   \<Longrightarrow> x \<inter> \<Union> F = {}"
 by auto
 
-(* main cardinality theorem *)
+text{* main cardinality theorem *}
 lemma card_partition [rule_format]:
      "finite C ==>  
         finite (\<Union> C) -->  
@@ -1606,6 +1606,37 @@ apply (erule finite_induct, simp)
 apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition 
        finite_subset [of _ "\<Union> (insert x F)"])
 done
+
+
+text{*The form of a finite set of given cardinality*}
+
+lemma card_eq_SucD:
+  assumes cardeq: "card A = Suc k" and fin: "finite A" 
+  shows "\<exists>b B. A = insert b B & b \<notin> B & card B = k"
+proof -
+  have "card A \<noteq> 0" using cardeq by auto
+  then obtain b where b: "b \<in> A" using fin by auto
+  show ?thesis
+  proof (intro exI conjI)
+    show "A = insert b (A-{b})" using b by blast
+    show "b \<notin> A - {b}" by blast
+    show "card (A - {b}) = k" by (simp add: fin cardeq b card_Diff_singleton) 
+  qed
+qed
+
+
+lemma card_Suc_eq:
+  "finite A ==>
+   (card A = Suc k) = (\<exists>b B. A = insert b B & b \<notin> B & card B = k)"
+by (auto dest!: card_eq_SucD) 
+
+lemma card_1_eq:
+  "finite A ==> (card A = Suc 0) = (\<exists>x. A = {x})"
+by (auto dest!: card_eq_SucD) 
+
+lemma card_2_eq:
+  "finite A ==> (card A = Suc(Suc 0)) = (\<exists>x y. x\<noteq>y & A = {x,y})" 
+by (auto dest!: card_eq_SucD, blast) 
 
 
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
