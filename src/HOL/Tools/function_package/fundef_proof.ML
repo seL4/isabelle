@@ -350,9 +350,9 @@ fun mk_domain_intro thy names R_cases clause =
 	val goal = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs,acc_R)))
     in
 	Goal.init goal 
-		  |> (SINGLE (resolve_tac [accI] 1)) |> print |> the
-		  |> (SINGLE (eresolve_tac [R_cases] 1))  |> print |> the
-		  |> (SINGLE (CLASIMPSET auto_tac)) |> print |> the
+		  |> (SINGLE (resolve_tac [accI] 1)) |> the
+		  |> (SINGLE (eresolve_tac [R_cases] 1))  |> the
+		  |> (SINGLE (CLASIMPSET auto_tac)) |> the
 		  |> Goal.conclude
     end
 

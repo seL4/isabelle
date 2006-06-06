@@ -40,17 +40,17 @@ datatype naming_context =
 
 
 datatype rec_call_info = 
-  RCInfo 
-  of {
-  RI: thm, 
-  RIvs: (string * typ) list,
-  lRI: thm, 
-  lRIq: thm, 
-  Gh: thm, 
-  Gh': thm,
-  GmAs: term list,
-  rcarg: term
-} 
+  RCInfo of
+  {
+   RI: thm, 
+   RIvs: (string * typ) list,
+   lRI: thm, 
+   lRIq: thm, 
+   Gh: thm, 
+   Gh': thm,
+   GmAs: term list,
+   rcarg: term
+  } 
      
 datatype clause_info =
   ClauseInfo of 
@@ -79,10 +79,6 @@ datatype clause_info =
       tree: ctx_tree,
       case_hyp: thm
      }
-
-
-datatype curry_info =
-  Curry of { argTs: typ list, curry_ss: simpset }
 
 type inj_proj = ((term -> term) * (term -> term))
 

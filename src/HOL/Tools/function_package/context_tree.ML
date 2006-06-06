@@ -82,7 +82,6 @@ fun mk_branch t =
 
 
 
-exception CTREE_INTERNAL of string
 
 fun find_cong_rule thy ((r,dep)::rs) t =
     (let
@@ -95,7 +94,7 @@ fun find_cong_rule thy ((r,dep)::rs) t =
 	 (r, dep, branches)
      end
     handle Pattern.MATCH => find_cong_rule thy rs t)
-  | find_cong_rule thy [] _ = raise CTREE_INTERNAL "No cong rule found!" (* Should never happen *)
+  | find_cong_rule thy [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
 
 
 fun matchcall f (a $ b) = if a = f then SOME b else NONE

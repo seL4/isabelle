@@ -83,11 +83,11 @@ fun analyze_eqs thy eqss =
 	val sfun_type = ST --> RST
 
     	val thy = Sign.add_consts_i [(sfun_xname, sfun_type, NoSyn)] thy (* Add the sum function *)
-	val sfun = Const (Sign.intern_const thy sfun_xname, sfun_type)
+	val sfun = Const (Sign.full_name thy sfun_xname, sfun_type)
 
 	fun define (((((n, T), _), caTs), (pthA, pthR)), qgars) (thy, rews) = 
 	    let 
-		val fxname = Sign.extern_const thy n
+		val fxname = Sign.base_name n
 		val f = Const (n, T)
 		val vars = map_index (fn (i,T) => Free ("x" ^ string_of_int i, T)) caTs
 
@@ -99,9 +99,6 @@ fun analyze_eqs thy eqss =
 	    in
 		(MutualPart {f_name=fxname, const=(n, T),cargTs=caTs,pthA=pthA,pthR=pthR,qgars=qgars,f_def=f_def}, (thy, rews'))
 	    end
-
-	val _ = print pthsA
-	val _ = print pthsR
 
 	val (parts, (thy, rews)) = fold_map define (((consts ~~ caTss)~~ (pthsA ~~ pthsR)) ~~ qgarss) (thy, [])
 

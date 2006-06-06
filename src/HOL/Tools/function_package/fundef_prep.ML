@@ -46,29 +46,6 @@ fun build_tree thy f congs (qs, gs, lhs, rhs) =
     end
 
 
-fun analyze_eqs eqs =
-    let
-	fun dest_geq geq = 
-	    let
-		val qs = add_term_frees (geq, [])
-	    in
-		case dest_implies_list geq of
-		    (gs, Const ("Trueprop", _) $ (Const ("op =", _) $ (f $ lhs) $ rhs)) => 
-		    (f, (qs, gs, lhs, rhs))
-		  | _ => raise ERROR "Not a guarded equation"
-	    end
-			       
-	val (fs, glrs) = split_list (map dest_geq eqs)
-			 
-	val f = (hd fs) (* should be equal and a constant... check! *)
-
-	val used = fold (curry add_term_names) eqs [] (* all names in the eqs *)
-		   (* Must check for recursive calls in guards and new vars in rhss *)
-    in
-	(f, glrs, used)
-    end
-
-
 (* maps (qs,gs,lhs,ths) to (qs',gs',lhs',rhs') with primed variables *)
 fun mk_primed_vars thy glrs =
     let
@@ -162,8 +139,8 @@ fun setup_context (f, glrs, used) defname congs thy =
 	val trees = map (build_tree thy f congs) glrs
 	val allused = fold FundefCtxTree.add_context_varnames trees used
 
-	val Const (f_proper_name, fT) = f
-	val fxname = Sign.extern_const thy f_proper_name
+	val Const (f_fullname, fT) = f
+	val fname = Sign.base_name f_fullname
 
 	val domT = domain_type fT 
 	val ranT = range_type fT
@@ -188,15 +165,15 @@ fun setup_context (f, glrs, used) defname congs thy =
 
 	val thy = Sign.add_consts_i [(G_name, GT, NoSyn), (R_name, RT, NoSyn)] thy
 
-	val G = Const (Sign.intern_const thy G_name, GT)
-	val R = Const (Sign.intern_const thy R_name, RT)
+	val G = Const (Sign.full_name thy G_name, GT)
+	val R = Const (Sign.full_name thy R_name, RT)
 	val acc_R = Const (acc_const_name, (fastype_of R) --> HOLogic.mk_setT domT) $ R
 
 	val f_eq = Logic.mk_equals (f $ x, 
 				    Const ("The", (ranT --> boolT) --> ranT) $
 					  Abs ("y", ranT, mk_relmemT domT ranT (x, Bound 0) G))
 
-	val ([f_def], thy) = PureThy.add_defs_i false [((fxname ^ "_def", f_eq), [])] thy
+	val ([f_def], thy) = PureThy.add_defs_i false [((fname ^ "_def", f_eq), [])] thy
     in
 	(Names {f=f, glrs=glrs, glrs'=glrs', fvar=fvar, fvarname=fvarname, domT=domT, ranT=ranT, G=G, R=R, acc_R=acc_R, h=h, x=x, y=y, z=z, a=a, D=D, P=P, Pbool=Pbool, f_def=f_def, used=allused, trees=trees}, thy)
     end
@@ -262,7 +239,7 @@ fun mk_completeness names glrs =
 
 fun extract_conditions thy names trees congs =
     let
-	val Names {f, G, R, acc_R, domT, ranT, f_def, x, z, fvarname, glrs, glrs', ...} = names
+	val Names {f, R, glrs, glrs', ...} = names
 
 	val (vRiss, preRiss, Riss) = split_list3 (map2 (extract_Ris thy congs f R) trees glrs)
 	val Gis = map2 (mk_GIntro thy names) glrs preRiss
