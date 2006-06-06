@@ -501,6 +501,10 @@ consts_code
   arbitrary :: "'a"       ("(error \"arbitrary\")")
   arbitrary :: "'a \<Rightarrow> 'b" ("(fn '_ => error \"arbitrary\")")
 
+code_syntax_const
+  "arbitrary :: 'a"       ml (target_atom "(error \"arbitrary\")")
+  "arbitrary :: 'a \<Rightarrow> 'b" ml (target_atom "(fn '_ => error \"arbitrary\")")
+
 code_module Norm
 contains
   test = "type_NF"
