@@ -105,6 +105,8 @@ qed
 
 section {* More general patterns *}
 
+subsection {* Overlapping patterns *}
+
 text {* Currently, patterns must always be compatible with each other, since
 no automatich splitting takes place. But the following definition of
 gcd is ok, although patterns overlap: *}
@@ -121,6 +123,27 @@ termination
 
 thm gcd2.simps
 thm gcd2.induct
+
+
+subsection {* Guards *}
+
+text {* We can reformulate the above example using guarded patterns *}
+
+consts gcd3 :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+function
+  "gcd3 x 0 = x"
+  "gcd3 0 y = y"
+  "x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (Suc x) (y - x)"
+  "\<not> x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (x - y) (Suc y)"
+  apply (cases xa, case_tac a, auto)
+  apply (case_tac b, auto)
+  done
+termination 
+  by (auto_term "measure (\<lambda>(x,y). x + y)")
+
+thm gcd3.simps
+thm gcd3.induct
+
 
 
 text {* General patterns allow even strange definitions: *}

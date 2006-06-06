@@ -150,11 +150,13 @@ fun map_mutual2 f (Mutual {parts, ...}) =
 
 fun recover_mutual_psimp thy RST streeR all_f_defs (MutualPart {f_def, pthR, ...}) (_,_,args,_) sum_psimp =
     let
-	val [accCond] = cprems_of sum_psimp
-	val plain_eq = implies_elim sum_psimp (assume accCond)
+	val conds = cprems_of sum_psimp (* dom-condition and guards *)
+	val plain_eq = sum_psimp
+                         |> fold (implies_elim_swp o assume) conds
+
 	val x = Free ("x", RST)
 
-	val f_def_inst = instantiate' [] (map (SOME o cterm_of thy) args) f_def
+	val f_def_inst = instantiate' [] (map (SOME o cterm_of thy) args) (freezeT f_def) (* FIXME: freezeT *)
     in
 	reflexive (cterm_of thy (lambda x (SumTools.mk_proj streeR pthR x)))  (*  PR(x) == PR(x) *)
 		  |> (fn it => combination it (plain_eq RS eq_reflection))
@@ -163,7 +165,7 @@ fun recover_mutual_psimp thy RST streeR all_f_defs (MutualPart {f_def, pthR, ...
 		  |> simplify (HOL_basic_ss addsimps [SumTools.projl_inl, SumTools.projr_inr]) (*  f ... == ... *)
 		  |> simplify (HOL_basic_ss addsimps all_f_defs) (*  f ... == ... *)
 		  |> (fn it => it RS meta_eq_to_obj_eq)
-		  |> implies_intr accCond
+		  |> fold_rev implies_intr conds
     end
 
 

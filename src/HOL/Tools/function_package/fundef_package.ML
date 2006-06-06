@@ -116,7 +116,7 @@ fun total_termination_afterqed name (Mutual {parts, ...}) thmss thy =
 	val tsimps = map (map remove_domain_condition) psimps
 	val tinduct = map remove_domain_condition simple_pinducts
 
-        val thy = fold2 (add_simps "simps" [RecfunCodegen.add NONE]) (parts ~~ tsimps) (names ~~ atts) thy
+        val thy = fold2 (add_simps "simps" [(*RecfunCodegen.add NONE*)]) (parts ~~ tsimps) (names ~~ atts) thy
 
 	val thy = Theory.add_path name thy
 		  

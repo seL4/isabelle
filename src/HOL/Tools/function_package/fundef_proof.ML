@@ -347,7 +347,9 @@ fun mk_domain_intro thy names R_cases clause =
     let
 	val Names {z, R, acc_R, ...} = names
 	val ClauseInfo {qs, gs, lhs, rhs, ...} = clause
-	val goal = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs,acc_R)))
+	val goal = (HOLogic.mk_Trueprop (HOLogic.mk_mem (lhs,acc_R)))
+                     |> fold_rev (curry Logic.mk_implies) gs
+                     |> cterm_of thy
     in
 	Goal.init goal 
 		  |> (SINGLE (resolve_tac [accI] 1)) |> the
