@@ -132,6 +132,7 @@ sig
   val eq_list: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+  val zip_options: 'a list -> 'b option list -> ('a * 'b) list
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val separate: 'a -> 'a list -> 'a list
@@ -714,6 +715,10 @@ fun fold2 f =
       | fold_aux _ _ _ = raise UnequalLengths;
   in fold_aux end;
 
+fun zip_options (x :: xs) (SOME y :: ys) = (x, y) :: zip_options xs ys
+  | zip_options (_ :: xs) (NONE :: ys) = zip_options xs ys
+  | zip_options _ [] = []
+  | zip_options [] _ = raise UnequalLengths;
 
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
