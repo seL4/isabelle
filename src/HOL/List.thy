@@ -270,6 +270,9 @@ subsubsection {* @{text null} *}
 lemma null_empty: "null xs = (xs = [])"
   by (cases xs) simp_all
 
+(*lemma empty_null [code unfolt]:
+  "(xs = []) = null xs"
+using null_empty [symmetric] .*)
 
 subsubsection {* @{text length} *}
 
@@ -1086,19 +1089,6 @@ done
 lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
 by(induct xs)(auto simp:neq_Nil_conv)
 
-lemma last_code [code]:
-  "last (x # xs) = (if null xs then x else last xs)"
-by (cases xs) simp_all
-
-declare last.simps [code del]
-
-lemma butlast_code [code]:
-  "butlast [] = []"
-  "butlast (x # xs) = (if null xs then [] else x # butlast xs)"
-by (simp, cases xs) simp_all
-
-declare butlast.simps [code del]
-
 subsubsection {* @{text take} and @{text drop} *}
 
 lemma take_0 [simp]: "take 0 xs = []"
@@ -1461,17 +1451,11 @@ lemma list_all2_lengthD [intro?]:
   "list_all2 P xs ys ==> length xs = length ys"
   by (simp add: list_all2_def)
 
-lemma list_all2_Nil [iff]: "list_all2 P [] ys = (ys = [])"
+lemma list_all2_Nil [iff, code]: "list_all2 P [] ys = (ys = [])"
   by (simp add: list_all2_def)
 
-lemma list_all2_Nil2 [iff]: "list_all2 P xs [] = (xs = [])"
+lemma list_all2_Nil2 [iff, code]: "list_all2 P xs [] = (xs = [])"
   by (simp add: list_all2_def)
-
-lemma list_all2_Nil_code [code]: "list_all2 P [] ys = null ys"
-  unfolding null_empty by simp
-
-lemma list_all2_Nil2_code [code]: "list_all2 P xs [] = null xs"
-  unfolding null_empty by simp
 
 lemma list_all2_Cons [iff, code]:
   "list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
@@ -2750,7 +2734,7 @@ consts_code "Cons" ("(_ ::/ _)")
 
 code_alias
   "List.op @" "List.append"
-  "List.op mem" "List.member"
+  "List.op mem" "List.mem"
 
 code_generate Nil Cons
 

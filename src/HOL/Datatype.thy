@@ -218,6 +218,17 @@ lemma option_map_o_sum_case [simp]:
   apply (simp split add: sum.split)
   done
 
+
+consts
+  is_none :: "'a option \<Rightarrow> bool"
+primrec
+  "is_none None = True"
+  "is_none (Some x) = False"
+
+(* lemma is_none_none [code unfolt]:
+  "(x = None) = (is_none x)" 
+by (cases "x") simp_all *)
+
 lemmas [code] = imp_conv_disj
 
 subsubsection {* Codegenerator setup *}
