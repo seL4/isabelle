@@ -7,7 +7,7 @@ Once we have proved all the termination conditions, the \isacommand{recdef}
 recursion equations become simplification rules, just as with
 \isacommand{primrec}. In most cases this works fine, but there is a subtle
 problem that must be mentioned: simplification may not
-terminate because of automatic splitting of @{text if}.
+terminate because of automatic splitting of @{text "if"}.
 \index{*if expressions!splitting of}
 Let us look at an example:
 *}
@@ -26,7 +26,7 @@ rule. Of course the equation is nonterminating if we are allowed to unfold
 the recursive call inside the @{text else} branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does
 something else that leads to the same problem: it splits 
-each @{text if}-expression unless its
+each @{text "if"}-expression unless its
 condition simplifies to @{term True} or @{term False}.  For
 example, simplification reduces
 @{term[display]"gcd(m,n) = k"}
@@ -35,7 +35,7 @@ in one step to
 where the condition cannot be reduced further, and splitting leads to
 @{term[display]"(n=0 --> m=k) & (n ~= 0 --> gcd(n, m mod n)=k)"}
 Since the recursive call @{term"gcd(n, m mod n)"} is no longer protected by
-an @{text if}, it is unfolded again, which leads to an infinite chain of
+an @{text "if"}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
@@ -43,10 +43,10 @@ The most radical solution is to disable the offending theorem
 @{thm[source]split_if},
 as shown in \S\ref{sec:AutoCaseSplits}.  However, we do not recommend this
 approach: you will often have to invoke the rule explicitly when
-@{text if} is involved.
+@{text "if"} is involved.
 
 If possible, the definition should be given by pattern matching on the left
-rather than @{text if} on the right. In the case of @{term gcd} the
+rather than @{text "if"} on the right. In the case of @{term gcd} the
 following alternative definition suggests itself:
 *}
 
@@ -61,7 +61,7 @@ The order of equations is important: it hides the side condition
 @{prop"n ~= (0::nat)"}.  Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
-A simple alternative is to replace @{text if} by @{text case}, 
+A simple alternative is to replace @{text "if"} by @{text case}, 
 which is also available for @{typ bool} and is not split automatically:
 *}
 
@@ -88,7 +88,7 @@ done
 
 text{*\noindent
 Simplification terminates for these proofs because the condition of the @{text
-if} simplifies to @{term True} or @{term False}.
+"if"} simplifies to @{term True} or @{term False}.
 Now we can disable the original simplification rule:
 *}
 

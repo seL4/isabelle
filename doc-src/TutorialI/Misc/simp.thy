@@ -330,7 +330,7 @@ declare list.split [split del]
 text{*
 Polished proofs typically perform splitting within @{text simp} rather than 
 invoking the @{text split} method.  However, if a goal contains
-several @{text if} and @{text case} expressions, 
+several @{text "if"} and @{text case} expressions, 
 the @{text split} method can be
 helpful in selectively exploring the effects of splitting.
 

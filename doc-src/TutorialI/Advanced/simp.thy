@@ -42,7 +42,7 @@ actually \emph{prevents} simplification of some arguments:
 Only the first argument is simplified; the others remain unchanged.
 This makes simplification much faster and is faithful to the evaluation
 strategy in programming languages, which is why this is the default
-congruence rule for @{text if}. Analogous rules control the evaluation of
+congruence rule for @{text "if"}. Analogous rules control the evaluation of
 @{text case} expressions.
 
 You can declare your own congruence rules with the attribute \attrdx{cong},
@@ -170,7 +170,7 @@ P \longrightarrow Q &\mapsto& P \Longrightarrow Q \nonumber\\
 P \land Q &\mapsto& P,\ Q \nonumber\\
 \forall x.~P~x &\mapsto& P~\Var{x}\nonumber\\
 \forall x \in A.\ P~x &\mapsto& \Var{x} \in A \Longrightarrow P~\Var{x} \nonumber\\
-@{text if}\ P\ @{text then}\ Q\ @{text else}\ R &\mapsto&
+@{text "if"}\ P\ @{text then}\ Q\ @{text else}\ R &\mapsto&
  P \Longrightarrow Q,\ \neg P \Longrightarrow R \nonumber
 \end{eqnarray}
 Once this conversion process is finished, all remaining non-equations
