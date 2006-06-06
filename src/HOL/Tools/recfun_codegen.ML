@@ -9,7 +9,6 @@ signature RECFUN_CODEGEN =
 sig
   val add: string option -> attribute
   val del: attribute
-  val get_thm_equations: theory -> string * typ -> (thm list * typ) option
   val setup: theory -> theory
 end;
 
@@ -85,17 +84,6 @@ fun get_equations thy defs (s, T) =
                  | SOME ((_, (thyname, _)), _) => thyname)
              | SOME thyname => thyname)
        end);
-
-fun get_thm_equations thy (c, ty) =
-  Symtab.lookup (CodegenData.get thy) c
-  |> Option.map (fn thms => 
-       List.filter (fn (thm, _) => is_instance thy ty ((snd o const_of o prop_of) thm)) thms
-       |> del_redundant thy [])
-  |> Option.mapPartial (fn thms => if null thms then NONE else SOME thms)
-  |> Option.map (fn thms =>
-       (preprocess thy (map fst thms),
-          (snd o const_of o prop_of o fst o hd) thms))
-  |> (Option.map o apfst o map) (fn thm => thm RS HOL.eq_reflection);
 
 fun mk_suffix thy defs (s, T) = (case get_defn thy defs s T of
   SOME (_, SOME i) => " def" ^ string_of_int i | _ => "");
