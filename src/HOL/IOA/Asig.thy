@@ -46,6 +46,15 @@ is_asig_def:
 mk_ext_asig_def:
   "mk_ext_asig(triple) == (inputs(triple), outputs(triple), {})"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas asig_projections = asig_inputs_def asig_outputs_def asig_internals_def
+
+lemma int_and_ext_is_act: "[| a~:internals(S) ;a~:externals(S)|] ==> a~:actions(S)"
+  apply (simp add: externals_def actions_def)
+  done
+
+lemma ext_is_act: "[|a:externals(S)|] ==> a:actions(S)"
+  apply (simp add: externals_def actions_def)
+  done
 
 end

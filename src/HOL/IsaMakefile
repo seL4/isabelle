@@ -599,8 +599,8 @@ $(LOG)/HOL-Extraction.gz: $(OUT)/HOL Library/EfficientNat.thy \
 
 HOL-IOA: HOL $(LOG)/HOL-IOA.gz
 
-$(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.ML IOA/Asig.thy IOA/IOA.ML \
-  IOA/IOA.thy IOA/ROOT.ML IOA/Solve.ML IOA/Solve.thy
+$(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.thy IOA/IOA.thy \
+  IOA/ROOT.ML IOA/Solve.thy
 	@$(ISATOOL) usedir $(OUT)/HOL IOA
 
 
