@@ -51,25 +51,23 @@ fun nat i = if i < 0 then 0 else i;
 *}
   int ("(_)")
 
-code_primconst nat
-ml {*
-fun nat i = if i < 0 then 0 : IntInf.int else i;
-*}
-haskell {*
-nat i = if i < 0 then 0 else i
-*}
-
 code_syntax_tyco nat
-  ml (target_atom "IntInf.int")
-  haskell (target_atom "Integer")
+  ml (target_atom "{* int *}")
+  haskell (target_atom "{* int *}")
 
-code_syntax_const "0 :: nat"
-  ml (target_atom "(0:IntInf.int)")
-  haskell (target_atom "0")
-
-code_syntax_const Suc
-  ml (target_atom "(__ + 1)")
-  haskell (target_atom "(__ + 1)")
+code_syntax_const
+  "0 :: nat"
+    ml (target_atom "{* 0 :: int *}")
+    haskell (target_atom "{* 0 :: int *}")
+  Suc
+    ml (target_atom "(__ + 1)")
+    haskell (target_atom "(__ + 1)")
+  nat
+    ml ("{* abs :: int \<Rightarrow> int *}")
+    haskell ("{* abs :: int \<Rightarrow> int *}")
+  int
+    ml ("_")
+    haskell ("_")
 
 text {*
 Case analysis on natural numbers is rephrased using a conditional
@@ -87,8 +85,17 @@ Most standard arithmetic functions on natural numbers are implemented
 using their counterparts on the integers:
 *}
 
-lemma [code]: "m - n = nat (int m - int n)" by arith
-lemma [code]: "m + n = nat (int m + int n)" by arith
+declare
+  Nat.plus.simps [code del]
+  Nat.minus.simps [code del]
+  diff_0_eq_0 [code del]
+  diff_Suc_Suc [code del]
+  Nat.times.simps [code del]
+
+lemma [code]: "m + n = nat (int m + int n)"
+  by arith
+lemma [code]: "m - n = nat (int m - int n)"
+  by arith
 lemma [code]: "m * n = nat (int m * int n)"
   by (simp add: zmult_int)
 lemma [code]: "m div n = nat (int m div int n)"
@@ -97,6 +104,10 @@ lemma [code]: "m mod n = nat (int m mod int n)"
   by (simp add: zmod_int [symmetric])
 lemma [code]: "(m < n) = (int m < int n)"
   by simp
+lemma [code fun]:
+  "((0::nat) = 0) = True"
+  "(m = n) = (int m = int n)"
+  by simp_all
 
 subsection {* Preprocessors *}
 
@@ -124,8 +135,13 @@ for the canonical representation of natural numbers may no longer work.
 *}
 
 (*<*)
+
 ML {*
-val Suc_if_eq = thm "Suc_if_eq";
+local
+  val Suc_if_eq = thm "Suc_if_eq";
+  val Suc_clause = thm "Suc_clause";
+  fun contains_suc t = member (op =) (term_consts t) "Suc";
+in
 
 fun remove_suc thy thms =
   let
@@ -162,24 +178,23 @@ fun remove_suc thy thms =
           handle THM _ => NONE) thms of
             [] => NONE
           | thps =>
-              let val (ths1, ths2) = ListPair.unzip thps
+              let val (ths1, ths2) = split_list thps
               in SOME (gen_rems eq_thm (thms, th :: ths1) @ ths2) end
       end
   in
-    case Library.get_first mk_thms eqs of
+    case get_first mk_thms eqs of
       NONE => thms
     | SOME x => remove_suc thy x
   end;
 
 fun eqn_suc_preproc thy ths =
-  let val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of
+  let
+    val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of
   in
     if forall (can dest) ths andalso
-      exists (fn th => "Suc" mem term_consts (dest th)) ths
+      exists (contains_suc o dest) ths
     then remove_suc thy ths else ths
   end;
-
-val Suc_clause = thm "Suc_clause";
 
 fun remove_suc_clause thy thms =
   let
@@ -203,7 +218,7 @@ fun remove_suc_clause thy thms =
               (Drule.instantiate' []
                 [SOME (cert (lambda v (Abs ("x", HOLogic.natT,
                    abstract_over (Sucv,
-                     HOLogic.dest_Trueprop (prop_of th')))))),
+                     (HOLogic.dest_Trueprop o prop_of) th'))))),
                  SOME (cert v)] Suc_clause'))
             (Thm.forall_intr (cert v) th'))
         in
@@ -213,22 +228,29 @@ fun remove_suc_clause thy thms =
   end;
 
 fun clause_suc_preproc thy ths =
-  let val dest = fst o HOLogic.dest_mem o HOLogic.dest_Trueprop
+  let
+    val dest = fst o HOLogic.dest_mem o ObjectLogic.drop_judgment thy
   in
     if forall (can (dest o concl_of)) ths andalso
-      exists (fn th => "Suc" mem foldr add_term_consts
-        [] (List.mapPartial (try dest) (concl_of th :: prems_of th))) ths
+      exists (fn th => member (op =) (foldr add_term_consts
+        [] (List.mapPartial (try dest) (concl_of th :: prems_of th))) "Suc") ths
     then remove_suc_clause thy ths else ths
   end;
 
-val suc_preproc_setup =
-  Codegen.add_preprocessor eqn_suc_preproc
-  #> Codegen.add_preprocessor clause_suc_preproc
-  #> Codegen.add_preprocessor eqn_suc_preproc
-  #> Codegen.add_preprocessor clause_suc_preproc
+end; (*local*)
+
+fun lift_obj_eq f thy =
+  map (fn thm => thm RS meta_eq_to_obj_eq)
+  #> f thy
+  #> map (fn thm => thm RS HOL.eq_reflection)
 *}
 
-setup suc_preproc_setup
+setup {*
+  Codegen.add_preprocessor eqn_suc_preproc
+  #> Codegen.add_preprocessor clause_suc_preproc
+  #> CodegenTheorems.add_preproc (lift_obj_eq eqn_suc_preproc)
+  #> CodegenTheorems.add_preproc (lift_obj_eq clause_suc_preproc)
+*}
 (*>*)
 
 end
