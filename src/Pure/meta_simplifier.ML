@@ -332,6 +332,7 @@ fun mk_simproc name lhss proc =
       Proc {name = name, lhs = lhs, proc = proc, id = id}))
   end;
 
+(* FIXME avoid global thy and Logic.varify *)
 fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
 fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
 

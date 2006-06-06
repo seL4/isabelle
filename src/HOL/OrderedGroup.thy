@@ -8,7 +8,7 @@ header {* Ordered Groups *}
 
 theory OrderedGroup
 imports Inductive LOrder
-uses "../Provers/Arith/abel_cancel.ML"
+uses "~~/src/Provers/Arith/abel_cancel.ML"
 begin
 
 text {*

@@ -118,7 +118,7 @@ fun sum_proc sg ss t =
    handle Cancel => NONE;
 
  val rel_conv =
-     Simplifier.simproc_i (Theory.deref thy_ref) "cancel_relations"
-       (map Data.dest_eqI eqI_rules) rel_proc;
+     Simplifier.mk_simproc "cancel_relations"
+       (map (Thm.cterm_of (Theory.deref thy_ref) o Data.dest_eqI) eqI_rules) rel_proc;
 
 end;

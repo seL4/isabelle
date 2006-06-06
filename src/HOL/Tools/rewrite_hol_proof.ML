@@ -103,7 +103,7 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
  \  (allI % TYPE('a) % P %%  \
  \    (Lam x.  \
  \        iffD2 % P x % Q x %% (prf % x) %%  \
- \         (spec % TYPE('a) % ?Q % x %% prf')))",
+ \         (spec % TYPE('a) % Q % x %% prf')))",
 
    (* Ex *)
 

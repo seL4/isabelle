@@ -244,10 +244,10 @@ fun instantiate thy envT env thm =
 
 in
 
-fun read_instantiate mixed_insts (generic, thm) =
+fun read_instantiate mixed_insts (context, thm) =
   let
-    val thy = Context.theory_of generic;
-    val ctxt = Context.proof_of generic;
+    val thy = Context.theory_of context;
+    val ctxt = Context.proof_of context;
 
     val (type_insts, term_insts) = List.partition (is_tvar o fst) (map snd mixed_insts);
     val internal_insts = term_insts |> map_filter
@@ -316,7 +316,7 @@ fun read_instantiate mixed_insts (generic, thm) =
         else
           Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts''' xi)))) arg);
 
-  in (generic, thm''' |> RuleCases.save thm) end;
+  in (context, thm''' |> RuleCases.save thm) end;
 
 end;
 
@@ -344,7 +344,7 @@ end;
 
 local
 
-fun read_instantiate' (args, concl_args) (generic, thm) =
+fun read_instantiate' (args, concl_args) (context, thm) =
   let
     fun zip_vars _ [] = []
       | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
@@ -353,7 +353,7 @@ fun read_instantiate' (args, concl_args) (generic, thm) =
     val insts =
       zip_vars (Drule.vars_of_terms [Thm.prop_of thm]) args @
       zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
-  in read_instantiate insts (generic, thm) end;
+  in read_instantiate insts (context, thm) end;
 
 val value =
   Args.internal_term >> Args.Term ||
