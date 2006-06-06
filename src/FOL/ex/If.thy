@@ -9,8 +9,8 @@ header {* First-Order Logic: the 'if' example *}
 theory If imports FOL begin
 
 constdefs
-  if :: "[o,o,o]=>o"
-   "if(P,Q,R) == P&Q | ~P&R"
+  "if" :: "[o,o,o]=>o"
+  "if(P,Q,R) == P&Q | ~P&R"
 
 lemma ifI:
     "[| P ==> Q; ~P ==> R |] ==> if(P,Q,R)"

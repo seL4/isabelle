@@ -1124,11 +1124,11 @@ lemma if_eq_cancel: "(if x = y then y else x) = x"
 by (simplesubst split_if, blast)
 
 lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
-  -- {* This form is useful for expanding @{text if}s on the RIGHT of the @{text "==>"} symbol. *}
+  -- {* This form is useful for expanding @{text "if"}s on the RIGHT of the @{text "==>"} symbol. *}
   by (rule split_if)
 
 lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
-  -- {* And this form is useful for expanding @{text if}s on the LEFT. *}
+  -- {* And this form is useful for expanding @{text "if"}s on the LEFT. *}
   apply (simplesubst split_if, blast)
   done
 

@@ -14,7 +14,7 @@ consts
 
   one        :: "i"
 
-  if         :: "[i,i,i]=>i"           ("(3if _/ then _/ else _)" [0,0,60] 60)
+  "if"       :: "[i,i,i]=>i"           ("(3if _/ then _/ else _)" [0,0,60] 60)
 
   inl        :: "i=>i"
   inr        :: "i=>i"

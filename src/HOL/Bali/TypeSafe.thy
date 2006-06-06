@@ -3878,7 +3878,7 @@ theorem wellformed_eval_induct [consumes 4, case_names Abrupt Skip Expr Lab
                                P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2\<rbrakk> \<Longrightarrow> Q
                         \<rbrakk> \<Longrightarrow> Q 
                   \<rbrakk>\<Longrightarrow> P L accC (Norm s0) \<langle>c1;; c2\<rangle>\<^sub>s \<diamondsuit> s2" 
-    and    if: "\<And> b c1 c2 e s0 s1 s2 L accC E.
+    and  "if": "\<And> b c1 c2 e s0 s1 s2 L accC E.
                 \<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
                  G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2;
                  \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>e\<Colon>-PrimT Boolean;
@@ -4030,7 +4030,7 @@ proof -
     }
     with eval_e eval_then_else wt_e wt_then_else da_e P_e
     show ?case
-      by (rule if) iprover+
+      by (rule "if") iprover+
   next
     oops
 

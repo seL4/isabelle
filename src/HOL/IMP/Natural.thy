@@ -165,7 +165,7 @@ proof -
   }
   moreover
   -- "now the other direction:"
-  { fix s s' assume if: "\<langle>?if, s\<rangle> \<longrightarrow>\<^sub>c s'"
+  { fix s s' assume "if": "\<langle>?if, s\<rangle> \<longrightarrow>\<^sub>c s'"
     -- "again, if @{text b} is @{text False} in state @{text s}, then the False-branch"
     -- "of the @{text \<IF>} is executed, and both statements do nothing:"
     hence "\<not>b s \<Longrightarrow> s = s'" by simp
@@ -174,7 +174,7 @@ proof -
     -- "on the other hand, if @{text b} is @{text True} in state @{text s},"
     -- {* then this time only the @{text IfTrue} rule can have be used *}
     { assume b: "b s"
-      with if have "\<langle>c; ?w, s\<rangle> \<longrightarrow>\<^sub>c s'" by (cases set: evalc) auto
+      with "if" have "\<langle>c; ?w, s\<rangle> \<longrightarrow>\<^sub>c s'" by (cases set: evalc) auto
       -- "and for this, only the Semi-rule is applicable:"
       then obtain s'' where
         "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>c s''" and "\<langle>?w, s''\<rangle> \<longrightarrow>\<^sub>c s'" by (cases set: evalc) auto

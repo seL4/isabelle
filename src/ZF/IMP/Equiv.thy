@@ -69,7 +69,7 @@ lemma com2 [rule_format]: "c \<in> com ==> \<forall>x \<in> C(c). <c,fst(x)> -c-
    apply (frule Gamma_bnd_mono [OF C_subset], erule Fixedpt.induct, assumption)
    apply (unfold Gamma_def)
    apply force
-  txt {* @{text if} *}
+  txt {* @{text "if"} *}
   apply auto
   done
 

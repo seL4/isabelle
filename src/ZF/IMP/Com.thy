@@ -78,7 +78,7 @@ datatype com =
   | assignment ("x \<in> loc", "a \<in> aexp")       (infixl "\<ASSN>" 60)
   | semicolon ("c0 \<in> com", "c1 \<in> com")       ("_\<SEQ> _"  [60, 60] 10)
   | while ("b \<in> bexp", "c \<in> com")            ("\<WHILE> _ \<DO> _"  60)
-  | if ("b \<in> bexp", "c0 \<in> com", "c1 \<in> com")    ("\<IF> _ \<THEN> _ \<ELSE> _" 60)
+  | "if" ("b \<in> bexp", "c0 \<in> com", "c1 \<in> com")    ("\<IF> _ \<THEN> _ \<ELSE> _" 60)
 
 
 consts evalc :: i
