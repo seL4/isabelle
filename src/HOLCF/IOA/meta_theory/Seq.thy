@@ -114,26 +114,9 @@ inductive "sfinite"
     sfinite_0:  "nil:sfinite"
     sfinite_n:  "[|tr:sfinite;a~=UU|] ==> (a##tr) : sfinite"
 
-ML {* use_legacy_bindings (the_context ()) *}
-ML {*
-structure seq =
-struct
-  open seq
-  val injects = [injects]
-  val inverts = [inverts]
-  val finites = [finites]
-  val take_lemmas = [take_lemmas]
-end
-structure sfinite =
-struct
-  open sfinite
-  val elim = elims
-  val elims = [elims]
-end
-*}
-
 declare sfinite.intros [simp]
 declare seq.rews [simp]
+
 
 subsection {* recursive equations of operators *}
 
@@ -507,7 +490,5 @@ apply (erule seq.finite_ind)
  apply assumption
 apply simp
 done
-
-ML {* use_legacy_bindings (the_context ()) *}
 
 end
