@@ -1035,13 +1035,11 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
                 :: map (hs_from_type BR) tys
               )
           in
-            Pretty.block (
-              str "data "
-              :: hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt))
-              :: str " ="
-              :: Pretty.brk 1
-              :: separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs)
-            )
+            (Pretty.block o Pretty.breaks) [
+              str "data",
+              hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt)),
+              Pretty.block (separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs))
+            ]
           end |> SOME
       | hs_from_def (_, CodegenThingol.Datatypecons _) =
           NONE

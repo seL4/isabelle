@@ -493,7 +493,12 @@ fun const_of_idf thy (tabs as (_, (_, _, dtcontab))) idf =
     | NONE => case dest_nsp nsp_mem idf
        of SOME c => SOME (c, Sign.the_const_constraint thy c)
         | NONE => case co_of_idf thy tabs idf
-           of SOME (c, dtco) => SOME (c, Type (dtco, (the o AList.lookup (op =) ((snd o fst o the o CodegenTheorems.get_datatypes thy) dtco)) c))
+           of SOME (c, dtco) =>
+                let
+                  val (vars, cos) = (fst o the o CodegenTheorems.get_datatypes thy) dtco
+                in
+                  SOME (c, (the o AList.lookup (op =) cos) c ---> Type (dtco, map TFree vars))
+                end
             | NONE => NONE;
 
 fun set_int_tyco tyco thy =

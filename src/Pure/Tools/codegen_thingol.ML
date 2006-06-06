@@ -586,7 +586,7 @@ fun add_dep (name1, name2) modl =
       val add_edge =
         if null r1 andalso null r2
         then Graph.add_edge
-        else fn edge => (Graph.add_edge_acyclic edge
+        else fn edge => fn gr => (Graph.add_edge_acyclic edge gr
           handle Graph.CYCLES _ => error ("adding dependency "
             ^ quote name1 ^ " -> " ^ quote name2 ^ " would result in module dependency cycle"))
       fun add [] node =
