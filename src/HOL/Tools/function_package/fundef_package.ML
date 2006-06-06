@@ -116,7 +116,10 @@ fun total_termination_afterqed name (Mutual {parts, ...}) thmss thy =
 	val tsimps = map (map remove_domain_condition) psimps
 	val tinduct = map remove_domain_condition simple_pinducts
 
-        val thy = fold2 (add_simps "simps" [(*RecfunCodegen.add NONE*)]) (parts ~~ tsimps) (names ~~ atts) thy
+        val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) (flat tsimps)
+        val allatts = if has_guards then [] else [RecfunCodegen.add NONE]
+
+        val thy = fold2 (add_simps "simps" allatts) (parts ~~ tsimps) (names ~~ atts) thy
 
 	val thy = Theory.add_path name thy
 		  
