@@ -252,9 +252,8 @@ $(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Compiler0.thy IMP/Compiler.thy \
 
 HOL-IMPP: HOL $(LOG)/HOL-IMPP.gz
 
-$(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy IMPP/Com.ML \
-  IMPP/Natural.thy IMPP/Natural.ML IMPP/Hoare.thy IMPP/Hoare.ML \
-  IMPP/Misc.thy IMPP/Misc.ML IMPP/EvenOdd.thy IMPP/EvenOdd.ML
+$(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy \
+  IMPP/Natural.thy IMPP/Hoare.thy IMPP/Misc.thy IMPP/EvenOdd.thy
 	@$(ISATOOL) usedir $(OUT)/HOL IMPP
 
 

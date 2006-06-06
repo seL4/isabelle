@@ -85,6 +85,20 @@ constdefs
   WT_bodies :: bool
   "WT_bodies == !(pn,b):set bodies. WT b"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+ML {* val make_imp_tac = EVERY'[rtac mp, fn i => atac (i+1), etac thin_rl] *}
+
+lemma finite_dom_body: "finite (dom body)"
+apply (unfold body_def)
+apply (rule finite_dom_map_of)
+done
+
+lemma WT_bodiesD: "[| WT_bodies; body pn = Some b |] ==> WT b"
+apply (unfold WT_bodies_def body_def)
+apply (drule map_of_SomeD)
+apply fast
+done
+
+declare WTs_elim_cases [elim!]
 
 end
