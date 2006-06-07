@@ -518,7 +518,7 @@ fun map_prf f (Proof (thy_ref, data)) = Proof (thy_ref, f data);
 
 fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
   if not (subthy (deref thy_ref, thy')) then
-    error "transfer proof context: no a super theory"
+    error "transfer proof context: not a super theory"
   else Proof (self_ref thy', data);
 
 
