@@ -82,6 +82,7 @@ sig
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
   val locale_fixes: token list -> (string * string option * mixfix) list * token list
+  val locale_insts: token list -> string option list * token list
   val locale_target: token list -> xstring * token list
   val opt_locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
@@ -348,6 +349,9 @@ val locale_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K Structure |
 val locale_fixes =
   and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- locale_mixfix >> (single o triple1) ||
     params >> map Syntax.no_syn) >> flat;
+
+val locale_insts =
+  Scan.optional ($$$ "[" |-- !!! (Scan.repeat1 (maybe term) --| $$$ "]")) [];
 
 local
 
