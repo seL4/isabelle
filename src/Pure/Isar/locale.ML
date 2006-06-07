@@ -217,10 +217,10 @@ struct
             val (tinst, inst) = Pattern.match thy (t', t) (Vartab.empty, Vartab.empty);
             (* thms contain Frees, not Vars *)
             val tinst' = tinst |> Vartab.dest
-                 |> map (fn ((x, 0), (_, T)) => (x, Type.unvarifyT T))
+                 |> map (fn ((x, 0), (_, T)) => (x, Logic.legacy_unvarifyT T))
                  |> Symtab.make;
             val inst' = inst |> Vartab.dest
-                 |> map (fn ((x, 0), (_, t)) => (x, Logic.unvarify t))
+                 |> map (fn ((x, 0), (_, t)) => (x, Logic.legacy_unvarify t))
                  |> Symtab.make;
           in
             SOME (attn, map (Element.inst_witness thy (tinst', inst')) thms)
@@ -618,7 +618,7 @@ fun unify_elemss _ _ [] = []
 
 (* like unify_elemss, but does not touch mode, additional
    parameter c_parms for enforcing further constraints (eg. syntax) *)
-(* FIXME avoid code duplication *) (* FIXME: avoid stipulating comments *)
+(* FIXME avoid code duplication *)
 
 fun unify_elemss' _ _ [] [] = []
   | unify_elemss' _ [] [elems] [] = [elems]
@@ -633,6 +633,12 @@ fun unify_elemss' _ _ [] [] = []
       in map inst (elemss ~~ Library.take (length elemss, envs)) end;
 
 
+fun renaming xs parms = zip_options parms xs
+  handle Library.UnequalLengths =>
+    error ("Too many arguments in renaming: " ^
+      commas (map (fn NONE => "_" | SOME x => quote (fst x)) xs));
+
+
 (* params_of_expr:
    Compute parameters (with types and syntax) of locale expression.
 *)
@@ -640,12 +646,6 @@ fun unify_elemss' _ _ [] [] = []
 fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
   let
     val thy = ProofContext.theory_of ctxt;
-
-    fun renaming (SOME x :: xs) (y :: ys) = (y, x) :: renaming xs ys
-      | renaming (NONE :: xs) (y :: ys) = renaming xs ys
-      | renaming [] _ = []
-      | renaming xs [] = error ("Too many arguments in renaming: " ^
-          commas (map (fn NONE => "_" | SOME x => quote (fst x)) xs));
 
     fun merge_tenvs fixed tenv1 tenv2 =
         let
@@ -735,12 +735,6 @@ fun make_raw_params_elemss (params, tenv, syn) =
 fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
   let
     val thy = ProofContext.theory_of ctxt;
-
-    fun renaming (SOME x :: xs) (y :: ys) = (y, x) :: renaming xs ys
-      | renaming (NONE :: xs) (y :: ys) = renaming xs ys
-      | renaming [] _ = []
-      | renaming xs [] = error ("Too many arguments in renaming: " ^
-          commas (map (fn NONE => "_" | SOME x => quote (fst x)) xs));
 
     fun rename_parms top ren ((name, ps), (parms, mode)) =
         ((name, map (Element.rename ren) ps),
@@ -1495,7 +1489,7 @@ fun local_note_prefix_i prfx args ctxt =
 fun collect_global_witnesses thy parms ids vts = let
     val ts = map Logic.unvarify vts;
     val (parms, parmTs) = split_list parms;
-    val parmvTs = map Type.varifyT parmTs;
+    val parmvTs = map Logic.varifyT parmTs;
     val vtinst = fold (Sign.typ_match thy) (parmvTs ~~ map Term.fastype_of ts) Vartab.empty;
     val tinst = Vartab.dest vtinst |> map (fn ((x, 0), (_, T)) => (x, T))
         |> Symtab.make;
@@ -1967,7 +1961,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
       Attrib.attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => add_global_witness (n, map Logic.varify ps) o
-        Element.map_witness (fn (t, th) => (Logic.unvarify t, Drule.freeze_all th))
+        Element.map_witness (fn (t, th) => (Logic.legacy_unvarify t, Drule.freeze_all th))
         (* FIXME *)) x;
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
@@ -2000,7 +1994,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
          then error "More arguments than parameters in instantiation."
          else insts @ replicate (length parms - length insts) NONE;
     val (ps, pTs) = split_list parms;
-    val pvTs = map Type.varifyT pTs;
+    val pvTs = map Logic.legacy_varifyT pTs;
 
     (* instantiations given by user *)
     val given = map_filter (fn (_, (NONE, _)) => NONE
@@ -2020,7 +2014,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     val new_Tnames' = Term.invent_names used "'a" (length new_Tnames);
     val renameT =
           if is_local then I
-          else Type.unvarifyT o Term.map_type_tfree (fn (a, s) =>
+          else Logic.legacy_unvarifyT o Term.map_type_tfree (fn (a, s) =>
             TFree ((the o AList.lookup (op =) (new_Tnames ~~ new_Tnames')) a, s));
     val rename =
           if is_local then I
@@ -2207,7 +2201,7 @@ fun interpretation (prfx, atts) expr insts thy =
   in
     ProofContext.init thy
     |> Proof.theorem_i kind NONE after_qed NONE ("", []) (prep_propp propss)
-    |> Element.refine_witness
+    |> Element.refine_witness |> Seq.hd
   end;
 
 fun interpretation_in_locale (raw_target, expr) thy =
@@ -2220,7 +2214,7 @@ fun interpretation_in_locale (raw_target, expr) thy =
     thy
     |> theorem_in_locale_no_target kind NONE after_qed target ("", []) []
       (Element.Shows (prep_propp propss))
-    |> Element.refine_witness
+    |> Element.refine_witness |> Seq.hd
   end;
 
 fun interpret (prfx, atts) expr insts int state =
@@ -2237,7 +2231,7 @@ fun interpret (prfx, atts) expr insts int state =
     state
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
       kind NONE after_qed (prep_propp propss)
-    |> Element.refine_witness
+    |> Element.refine_witness |> Seq.hd
   end;
 
 end;
