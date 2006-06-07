@@ -15,6 +15,9 @@ discontinued altogether.  Note that ML proof scripts may still be used
 with Isar theories; migration is usually quite simple with the ML
 function use_legacy_bindings.  INCOMPATIBILITY.
 
+* Theory syntax: some popular names (e.g. "class", "if") are now
+keywords.  INCOMPATIBILITY, use double quotes.
+
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
 functions are now part of the OldGoals structure, which is *not* open
@@ -103,6 +106,10 @@ sub-goals, which need to exist.  For example, ``simp_all [3]''
 simplifies the first three sub-goals, while (rule foo, simp_all)[]
 simplifies all new goals that emerge from applying rule foo to the
 originally first one.
+
+* Isar: schematic goals are no longer restricted to higher-order
+patterns; e.g. ``lemma "?P(?x)" by (rule TrueI)'' now works as
+expected.
 
 * Isar: the conclusion of a long theorem statement is now either
 'shows' (a simultaneous conjunction, as before), or 'obtains'
@@ -523,6 +530,10 @@ declarations and definitions.
 * Pure/kernel: consts certification ignores sort constraints given in
 signature declarations.  (This information is not relevant to the
 logic, but only for type inference.)  IMPORTANT INTERNAL CHANGE.
+
+* Pure: Logic.(un)varify only works in a global context, which is now
+enforced instead of silently assumed.  INCOMPATIBILITY, may use
+Logic.legacy_(un)varify as temporary workaround.
 
 * Pure: axiomatic type classes are now purely definitional, with
 explicit proofs of class axioms and super class relations performed
