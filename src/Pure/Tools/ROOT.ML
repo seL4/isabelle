@@ -4,7 +4,8 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
-(*class package*)
+(*derived theory and proof elements*)
+use "invoke.ML";
 use "class_package.ML";
 
 (*code generator, 1st generation*)
@@ -24,7 +25,7 @@ use "am_compiler.ML";
 use "am_util.ML";
 use "compute.ML";
 
-(* norm-by-eval *)
+(*norm-by-eval*)
 use "nbe_eval.ML";
 use "nbe_codegen.ML";
 use "nbe.ML";
