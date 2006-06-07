@@ -8,12 +8,11 @@ Examples for First-Order Logic.
 
 time_use_thy "First_Order_Logic";
 time_use_thy "Natural_Numbers";
-time_use     "intro.ML";
+time_use_thy "Intro";
 time_use_thy "Nat";
-time_use     "foundn.ML";
+time_use_thy "Foundation";
 time_use_thy "Prolog";
 
-writeln"\n** Intuitionistic examples **\n";
 time_use_thy "Intuitionistic";
 
 val thy = IFOL.thy  and  tac = IntPr.fast_tac 1;
@@ -35,7 +34,6 @@ writeln"\n** Simplification examples **\n";
 time_use_thy "Nat2";
 time_use_thy "List";
 
-writeln"\n** How to declare an oracle **\n";
 time_use_thy "IffOracle";
 
 (*regression test for locales -- sets several global flags!*)
