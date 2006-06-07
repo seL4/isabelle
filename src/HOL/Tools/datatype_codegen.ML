@@ -337,6 +337,13 @@ fun add_datatype_case_const dtco thy =
       ((map (apsnd length) o #3 o the o AList.lookup (op =) descr) index) thy
   end;
 
+fun add_datatype_case_defs dtco thy =
+  let
+    val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
+  in
+    fold CodegenTheorems.add_fun case_rewrites thy
+  end;
+
 val setup = 
   add_codegen "datatype" datatype_codegen #>
   add_tycodegen "datatype" datatype_tycodegen #>
