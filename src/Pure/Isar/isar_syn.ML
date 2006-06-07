@@ -356,22 +356,19 @@ val localeP =
       >> (Toplevel.theory_context o (fn ((is_open, name), (expr, elems)) =>
              Locale.add_locale is_open name expr elems #> (fn ((_, ctxt), thy) => (ctxt, thy)))));
 
-val opt_inst =
-  Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) [];
-
 val interpretationP =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! P.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale)) ||
-     P.opt_thm_name ":" -- P.locale_expr -- opt_inst >> (fn ((x, y), z) =>
+     P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
       Toplevel.print o Toplevel.theory_to_proof (Locale.interpretation x y z)));
 
 val interpretP =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (P.opt_thm_name ":" -- P.locale_expr -- opt_inst >> (fn ((x, y), z) =>
+    (P.opt_thm_name ":" -- P.locale_expr -- P.locale_insts >> (fn ((x, y), z) =>
       Toplevel.print o Toplevel.proof' (Locale.interpret x y z)));
 
 
@@ -879,9 +876,9 @@ val welcomeP =
 val _ = OuterSyntax.add_keywords
  ["!", "!!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
   "=", "==", "=>", "?", "[", "]", "advanced", "and", "assumes",
-  "begin", "binder", "concl", "constrains", "defines", "fixes",
-  "imports", "in", "includes", "infix", "infixl", "infixr", "is",
-  "notes", "obtains", "open", "output", "overloaded", "shows",
+  "begin", "binder", "concl", "constrains", "defines", "fixes", "for",
+  "imports", "if", "in", "includes", "infix", "infixl", "infixr",
+  "is", "notes", "obtains", "open", "output", "overloaded", "shows",
   "structure", "unchecked", "uses", "where", "|", "\\<equiv>",
   "\\<leftharpoondown>", "\\<rightharpoonup>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
