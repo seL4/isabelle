@@ -20,7 +20,7 @@ time_use     "prop.ML";
 time_use     "quant.ML";
 
 writeln"\n** Classical examples **\n";
-time_use     "mini.ML";
+time_use_thy "Miniscope";
 time_use_thy "Classical";
 time_use_thy "If";
 
