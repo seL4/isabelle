@@ -56,7 +56,7 @@ end;
 functor SimpFun (Simp_data: SIMP_DATA) : SIMP = 
 struct
 
-local open Simp_data Logic in
+local open Simp_data in
 
 (*For taking apart reductions into left, right hand sides*)
 val lhs_of = #2 o dest_red;
@@ -76,17 +76,17 @@ fun lhs_insert_thm (th,net) =
   rewrite rules are not ordered.*)
 fun net_tac net =
   SUBGOAL(fn (prem,i) => 
-          resolve_tac (Net.unify_term net (strip_assums_concl prem)) i);
+          resolve_tac (Net.unify_term net (Logic.strip_assums_concl prem)) i);
 
 (*match subgoal i against possible theorems indexed by lhs in the net*)
 fun lhs_net_tac net =
   SUBGOAL(fn (prem,i) => 
           biresolve_tac (Net.unify_term net
-                       (lhs_of (strip_assums_concl prem))) i);
+                       (lhs_of (Logic.strip_assums_concl prem))) i);
 
 fun nth_subgoal i thm = List.nth(prems_of thm,i-1);
 
-fun goal_concl i thm = strip_assums_concl(nth_subgoal i thm);
+fun goal_concl i thm = Logic.strip_assums_concl (nth_subgoal i thm);
 
 fun lhs_of_eq i thm = lhs_of(goal_concl i thm)
 and rhs_of_eq i thm = rhs_of(goal_concl i thm);
@@ -151,7 +151,7 @@ fun cong_const cong =
       | _ => ""                 (*a placeholder distinct from const names*);
 
 (*true if the term is an atomic proposition (no ==> signs) *)
-val atomic = null o strip_assums_hyp;
+val atomic = null o Logic.strip_assums_hyp;
 
 (*ccs contains the names of the constants possessing congruence rules*)
 fun add_hidden_vars ccs =
@@ -381,8 +381,8 @@ fun variants_abs ([],P) = P
 (*Select subgoal i from proof state; substitute parameters, for printing*)
 fun prepare_goal i st =
     let val subgi = nth_subgoal i st
-        val params = rev(strip_params subgi)
-    in variants_abs (params, strip_assums_concl subgi) end;
+        val params = rev (Logic.strip_params subgi)
+    in variants_abs (params, Logic.strip_assums_concl subgi) end;
 
 (*print lhs of conclusion of subgoal i*)
 fun pr_goal_lhs i st =
@@ -426,8 +426,8 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
             SOME(thm',_) =>
                     let val ps = prems_of thm and ps' = prems_of thm';
                         val n = length(ps')-length(ps);
-                        val a = length(strip_assums_hyp(List.nth(ps,i-1)))
-                        val l = map (fn p => length(strip_assums_hyp(p)))
+                        val a = length(Logic.strip_assums_hyp(List.nth(ps,i-1)))
+                        val l = map (fn p => length(Logic.strip_assums_hyp(p)))
                                     (Library.take(n,Library.drop(i-1,ps')));
                     in (simp_refl(rev(l),a,REW::ss),thm',anet,ats,cs) end
           | NONE => (REW::ss,thm,anet,ats,cs);
