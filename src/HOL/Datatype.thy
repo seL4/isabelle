@@ -219,19 +219,19 @@ lemma option_map_o_sum_case [simp]:
   done
 
 
+subsubsection {* Codegenerator setup *}
+
 consts
   is_none :: "'a option \<Rightarrow> bool"
 primrec
   "is_none None = True"
   "is_none (Some x) = False"
 
-(* lemma is_none_none [code unfolt]:
+lemma is_none_none [code unfolt]:
   "(x = None) = (is_none x)" 
-by (cases "x") simp_all *)
+by (cases "x") simp_all
 
 lemmas [code] = imp_conv_disj
-
-subsubsection {* Codegenerator setup *}
 
 lemma [code fun]:
   "(\<not> True) = False" by (rule HOL.simp_thms)
@@ -260,8 +260,6 @@ declare
 lemma [code unfolt]:
   "1 == Suc 0" by simp
 
-code_generate True False Not "op &" "op |" If
-
 code_syntax_tyco bool
   ml (target_atom "bool")
   haskell (target_atom "Bool")
@@ -286,8 +284,6 @@ code_syntax_const
     ml (target_atom "(if __/ then __/ else __)")
     haskell (target_atom "(if __/ then __/ else __)")
 
-code_generate Pair
-
 code_syntax_tyco
   *
     ml (infix 2 "*")
@@ -298,8 +294,6 @@ code_syntax_const
     ml (target_atom "(__,/ __)")
     haskell (target_atom "(__,/ __)")
 
-code_generate Unity
-
 code_syntax_tyco
   unit
     ml (target_atom "unit")
@@ -309,8 +303,6 @@ code_syntax_const
   Unity
     ml (target_atom "()")
     haskell (target_atom "()")
-
-code_generate None Some
 
 code_syntax_tyco
   option
@@ -324,8 +316,5 @@ code_syntax_const
   Some
     ml (target_atom "SOME")
     haskell (target_atom "Just")
-
-
-
 
 end

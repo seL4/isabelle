@@ -270,9 +270,9 @@ subsubsection {* @{text null} *}
 lemma null_empty: "null xs = (xs = [])"
   by (cases xs) simp_all
 
-(*lemma empty_null [code unfolt]:
+lemma empty_null [code unfolt]:
   "(xs = []) = null xs"
-using null_empty [symmetric] .*)
+using null_empty [symmetric] .
 
 subsubsection {* @{text length} *}
 
@@ -2240,7 +2240,8 @@ text{* Only use @{text mem} for generating executable code.  Otherwise
 use @{prop"x : set xs"} instead --- it is much easier to reason about.
 The same is true for @{const list_all} and @{const list_ex}: write
 @{text"\<forall>x\<in>set xs"} and @{text"\<exists>x\<in>set xs"} instead because the HOL
-quantifiers are aleady known to the automatic provers. In fact, the declarations in the Code subsection make sure that @{text"\<in>"}, @{text"\<forall>x\<in>set xs"}
+quantifiers are aleady known to the automatic provers. In fact,
+the declarations in the code subsection make sure that @{text"\<in>"}, @{text"\<forall>x\<in>set xs"}
 and @{text"\<exists>x\<in>set xs"} are implemented efficiently.
 
 The functions @{const itrev}, @{const filtermap} and @{const
@@ -2735,8 +2736,6 @@ consts_code "Cons" ("(_ ::/ _)")
 code_alias
   "List.op @" "List.append"
   "List.op mem" "List.mem"
-
-code_generate Nil Cons
 
 code_syntax_tyco
   list

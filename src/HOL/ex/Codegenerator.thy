@@ -14,7 +14,7 @@ definition
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
   "xor p q = ((p | q) & \<not> (p & q))"
 
-code_generate xor
+code_generate (ml) xor
 
 subsection {* natural numbers *}
 
@@ -24,7 +24,9 @@ definition
   n :: nat
   "n = 42"
 
-code_generate
+code_generate (ml) n
+
+code_generate (ml)
   "0::nat" "one" n
   "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"
   "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -42,7 +44,7 @@ definition
   appl :: "('a \<Rightarrow> 'b) * 'a \<Rightarrow> 'b"
   "appl p = (let (f, x) = p in f x)"
 
-code_generate Pair fst snd Let split swap swapp appl
+code_generate (ml) Pair fst snd Let split swap swapp appl
 
 definition
   k :: "int"
@@ -54,7 +56,7 @@ consts
 recdef fac "measure nat"
   "fac j = (if j <= 0 then 1 else j * (fac (j - 1)))"
 
-code_generate
+code_generate (ml)
   "0::int" k
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
   "op - :: int \<Rightarrow> int \<Rightarrow> int"
@@ -65,11 +67,11 @@ code_generate
 
 subsection {* sums *}
 
-code_generate Inl Inr
+code_generate (ml) Inl Inr
 
 subsection {* options *}
 
-code_generate None Some
+code_generate (ml) None Some
 
 subsection {* lists *}
 
@@ -79,7 +81,7 @@ definition
   qs :: "nat list"
   "qs == rev ps"
 
-code_generate hd tl "op @" ps qs
+code_generate (ml) hd tl "op @" ps qs
 
 subsection {* mutual datatypes *}
 
@@ -96,11 +98,11 @@ primrec
   "mut2 mut2.Tip = mut2.Tip"
   "mut2 (mut2.Top x) = mut2.Top (mut1 x)"
 
-code_generate mut1 mut2
+code_generate (ml) mut1 mut2
 
 subsection {* equalities *}
 
-code_generate
+code_generate (ml)
   "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"
   "op = :: nat \<Rightarrow> nat \<Rightarrow> bool"
   "op = :: int \<Rightarrow> int \<Rightarrow> bool"
@@ -110,6 +112,7 @@ code_generate
   "op = :: 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   "op = :: mut1 \<Rightarrow> mut1 \<Rightarrow> bool"
   "op = :: mut2 \<Rightarrow> mut2 \<Rightarrow> bool"
+
 
 subsection {* heavy usage of names *}
 
@@ -126,7 +129,7 @@ code_alias
   "Codegenerator.g" "Mymod.A.f"
   "Codegenerator.h" "Mymod.A.B.f"
 
-code_generate f g h
+code_generate (ml) f g h
 
 code_serialize ml (-)
 
