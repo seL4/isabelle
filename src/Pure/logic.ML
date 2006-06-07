@@ -67,8 +67,14 @@ sig
   val set_rename_prefix: string -> unit
   val list_rename_params: string list * term -> term
   val assum_pairs: int * term -> (term*term)list
+  val varifyT: typ -> typ
+  val unvarifyT: typ -> typ
   val varify: term -> term
   val unvarify: term -> term
+  val legacy_varifyT: typ -> typ
+  val legacy_unvarifyT: typ -> typ
+  val legacy_varify: term -> term
+  val legacy_unvarify: term -> term
   val get_goal: term -> int -> term
   val goal_params: term -> int -> term * term list
   val prems_of_goal: term -> int -> term list
@@ -492,7 +498,7 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
       all T $ Abs(c, T, list_rename_params (cs, t))
   | list_rename_params (cs, B) = B;
 
-(*** Treatmsent of "assume", "erule", etc. ***)
+(*** Treatment of "assume", "erule", etc. ***)
 
 (*Strips assumptions in goal yielding
    HS = [Hn,...,H1],   params = [xm,...,x1], and B,
@@ -529,22 +535,46 @@ fun assum_pairs(nasms,A) =
   in  pairrev (Hs,[])
   end;
 
-(*Converts Frees to Vars and TFrees to TVars*)
-fun varify (Const(a, T)) = Const (a, Type.varifyT T)
-  | varify (Free (a, T)) = Var ((a, 0), Type.varifyT T)
-  | varify (Var (ixn, T)) = Var (ixn, Type.varifyT T)
-  | varify (t as Bound _) = t
-  | varify (Abs (a, T, body)) = Abs (a, Type.varifyT T, varify body)
-  | varify (f $ t) = varify f $ varify t;
 
-(*Inverse of varify.*)
-fun unvarify (Const (a, T)) = Const (a, Type.unvarifyT T)
-  | unvarify (Free (a, T)) = Free (a, Type.unvarifyT T)
-  | unvarify (Var ((a, 0), T)) = Free (a, Type.unvarifyT T)
-  | unvarify (Var (ixn, T)) = Var (ixn, Type.unvarifyT T)  (*non-0 index!*)
-  | unvarify (t as Bound _) = t
-  | unvarify (Abs (a, T, body)) = Abs (a, Type.unvarifyT T, unvarify body)
-  | unvarify (f $ t) = unvarify f $ unvarify t;
+(* global schematic variables *)
+
+fun bad_schematic xi = "Illegal schematic variable: " ^ quote (Term.string_of_vname xi);
+fun bad_fixed x = "Illegal fixed variable: " ^ quote x;
+
+fun varifyT ty = ty |> Term.map_atyps
+  (fn TFree (a, S) => TVar ((a, 0), S)
+    | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], []));
+
+fun unvarifyT ty = ty |> Term.map_atyps
+  (fn TVar ((a, 0), S) => TFree (a, S)
+    | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], [])
+    | TFree (a, _) => raise TYPE (bad_fixed a, [ty], []));
+
+fun varify tm =
+  tm |> Term.map_aterms
+    (fn Free (x, T) => Var ((x, 0), T)
+      | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
+      | t => t)
+  |> Term.map_term_types varifyT;
+
+fun unvarify tm =
+  tm |> Term.map_aterms
+    (fn Var ((x, 0), T) => Free (x, T)
+      | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
+      | Free (x, _) => raise TERM (bad_fixed x, [tm])
+      | t => t)
+  |> Term.map_term_types unvarifyT;
+
+val legacy_varifyT = Term.map_atyps (fn TFree (a, S) => TVar ((a, 0), S) | T => T);
+val legacy_unvarifyT = Term.map_atyps (fn TVar ((a, 0), S) => TFree (a, S) | T => T);
+
+val legacy_varify =
+  Term.map_aterms (fn Free (x, T) => Var ((x, 0), T) | t => t) #>
+  Term.map_term_types legacy_varifyT;
+
+val legacy_unvarify =
+  Term.map_aterms (fn Var ((x, 0), T) => Free (x, T) | t => t) #>
+  Term.map_term_types legacy_unvarifyT;
 
 
 (* goal states *)

@@ -605,7 +605,7 @@ fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
       |> fold_map (ensure_def_class thy tabs) clss
       |-> (fn clss => pair (Lookup (clss, (v |> unprefix "'", if j = 1 then ~1 else i))))
 and mk_fun thy tabs (c, ty) trns =
-  case CodegenTheorems.get_funs thy (c, Type.varifyT ty)
+  case CodegenTheorems.get_funs thy (c, Logic.legacy_varifyT ty)  (* FIXME *)
    of SOME (ty, eq_thms) =>
         let
           val sortctxt = ClassPackage.extract_sortctxt thy ty;
@@ -849,7 +849,7 @@ fun appgen_char char_to_index thy tabs (app as ((_, ty), _)) trns =
 
 fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
   let
-    val ty_def = (op ---> o apfst tl o strip_type o Type.unvarifyT o Sign.the_const_type thy) c;
+    val ty_def = (op ---> o apfst tl o strip_type o Logic.legacy_unvarifyT o Sign.the_const_type thy) c;
     val ty' = (op ---> o apfst tl o strip_type) ty;
     val idf = idf_of_const thy tabs (c, ty);
   in

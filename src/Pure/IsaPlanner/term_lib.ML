@@ -661,15 +661,15 @@ fun get_prems_of_sg_term t =
   fun change_vars_to_frees (a$b) =
         (change_vars_to_frees a) $ (change_vars_to_frees b)
     | change_vars_to_frees (Abs(s,ty,t)) =
-        (Abs(s,Type.varifyT ty,change_vars_to_frees t))
-    | change_vars_to_frees (Var((s,i),ty)) = (Free(s,Type.unvarifyT ty))
+        (Abs(s, Logic.legacy_varifyT ty,change_vars_to_frees t))
+    | change_vars_to_frees (Var((s,i),ty)) = (Free(s, Logic.legacy_unvarifyT ty))
     | change_vars_to_frees l = l;
 
   fun change_frees_to_vars (a$b) =
         (change_frees_to_vars a) $ (change_frees_to_vars b)
     | change_frees_to_vars (Abs(s,ty,t)) =
-        (Abs(s,Type.varifyT ty,change_frees_to_vars t))
-    | change_frees_to_vars (Free(s,ty)) = (Var((s,0),Type.varifyT ty))
+        (Abs(s, Logic.legacy_varifyT ty,change_frees_to_vars t))
+    | change_frees_to_vars (Free(s,ty)) = (Var((s,0), Logic.legacy_varifyT ty))
     | change_frees_to_vars l = l;
 
 

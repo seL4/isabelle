@@ -240,7 +240,7 @@ fun dependencies thy unchecked is_def name lhs rhs =
     val consts = Sign.consts_of thy;
     fun prep const =
       let val Const (c, T) = Sign.no_vars pp (Const const)
-      in (c, Consts.typargs consts (c, Compress.typ thy (Type.varifyT T))) end;
+      in (c, Consts.typargs consts (c, Compress.typ thy (Logic.varifyT T))) end;
 
     val lhs_vars = Term.add_tfreesT (#2 lhs) [];
     val rhs_extras = fold (#2 #> Term.fold_atyps (fn TFree v =>
@@ -267,7 +267,7 @@ fun check_overloading thy overloaded (c, T) =
       (case Sign.const_constraint thy c of
         NONE => error ("Undeclared constant " ^ quote c)
       | SOME declT => declT);
-    val T' = Type.varifyT T;
+    val T' = Logic.varifyT T;
 
     fun message txt =
       [Pretty.block [Pretty.str "Specification of constant ",

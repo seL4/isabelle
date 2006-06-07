@@ -40,8 +40,6 @@ sig
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
   val no_tvars: typ -> typ
-  val varifyT: typ -> typ
-  val unvarifyT: typ -> typ
   val varify: term * (string * sort) list -> term * ((string * sort) * indexname) list
   val freeze_thaw_type: typ -> typ * (typ -> typ)
   val freeze_type: typ -> typ
@@ -228,10 +226,7 @@ fun no_tvars T =
       commas_quote (map (Term.string_of_vname o #1) vs), [T], []));
 
 
-(* varify, unvarify *)
-
-val varifyT = map_type_tfree (fn (a, S) => TVar ((a, 0), S));
-val unvarifyT = map_type_tvar (fn ((a, 0), S) => TFree (a, S) | v => TVar v);
+(* varify *)
 
 fun varify (t, fixed) =
   let

@@ -60,9 +60,9 @@ fun dt_of_intrs thy vs intrs =
     val params = map dest_Var ts;
     val tname = space_implode "_" (Sign.base_name s ^ "T" :: vs);
     fun constr_of_intr intr = (Sign.base_name (Thm.name_of_thm intr),
-      map (Type.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
+      map (Logic.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
         filter_out (equal Extraction.nullT) (map
-          (Type.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
+          (Logic.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
             NoSyn);
   in (map (fn a => "'" ^ a) vs @ map (fst o fst) iTs, tname, NoSyn,
     map constr_of_intr intrs)

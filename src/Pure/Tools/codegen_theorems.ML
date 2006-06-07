@@ -619,7 +619,7 @@ fun preprocess thy = preprocess' thy true #> tap_typ thy;
 
 fun preprocess_term thy raw_t =
   let
-    val t = (Term.map_term_types Type.varifyT o Logic.varify) raw_t;
+    val t = Logic.legacy_varify raw_t;
     val x = variant (add_term_names (t, [])) "a";
     val t_eq = Logic.mk_equals (Free (x, fastype_of t), t);
     (*fake definition*)

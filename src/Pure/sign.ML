@@ -721,7 +721,7 @@ local
 
 fun gen_add_consts prep_typ authentic raw_args thy =
   let
-    val prepT = Compress.typ thy o Type.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
+    val prepT = Compress.typ thy o Logic.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (raw_c, raw_T, raw_mx) =
       let
         val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
@@ -755,7 +755,7 @@ fun add_abbrevs (mode, inout) = fold (fn ((raw_c, raw_mx), raw_t) => fn thy =>
 
     val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
     val c' = Syntax.constN ^ full_name thy c;
-    val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg)
+    val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val T = Term.fastype_of t;
   in
@@ -772,7 +772,7 @@ fun gen_add_constraint int_const prep_typ (raw_c, opt_T) thy =
   let
     val c = int_const thy raw_c;
     fun prepT raw_T =
-      let val T = Type.varifyT (Type.no_tvars (Term.no_dummyT (prep_typ thy raw_T)))
+      let val T = Logic.varifyT (Type.no_tvars (Term.no_dummyT (prep_typ thy raw_T)))
       in cert_term thy (Const (c, T)); T end
       handle TYPE (msg, _, _) => error msg;
   in thy |> map_consts (Consts.constrain (c, Option.map prepT opt_T)) end;

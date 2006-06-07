@@ -558,7 +558,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance thy T1 T2 =
-  Sign.typ_instance thy (T1, Type.varifyT T2);
+  Sign.typ_instance thy (T1, Logic.legacy_varifyT T2);
 
 fun get_assoc_code thy s T = Option.map snd (Library.find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));

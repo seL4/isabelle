@@ -499,7 +499,7 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
       in
         thy
         |> Sign.add_const_constraint_i (c, NONE)
-        |> pair (c, Type.unvarifyT ty)
+        |> pair (c, Logic.legacy_unvarifyT ty)
       end;
     fun check_defs0 thy raw_defs c_req =
       let
@@ -508,8 +508,8 @@ fun gen_instance_arity prep_arity prep_att add_defs tap_def do_proof raw_arity (
         val c_given = map get_c raw_defs;
         fun eq_c ((c1 : string, ty1), (c2, ty2)) =
           let
-            val ty1' = Type.varifyT ty1;
-            val ty2' = Type.varifyT ty2;
+            val ty1' = Logic.legacy_varifyT ty1;
+            val ty2' = Logic.legacy_varifyT ty2;
           in
             c1 = c2
             andalso Sign.typ_instance thy (ty1', ty2')
@@ -649,8 +649,8 @@ and pretty_lookup ls = (Pretty.enum "," "(" ")" o map pretty_lookup') ls;
 
 fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
   let
-    val typ_def = Type.varifyT raw_typ_def;
-    val typ_use = Type.varifyT raw_typ_use;
+    val typ_def = Logic.legacy_varifyT raw_typ_def;
+    val typ_use = Logic.legacy_varifyT raw_typ_use;
     val match_tab = Sign.typ_match thy (typ_def, typ_use) Vartab.empty;
     fun tab_lookup vname = (the o Vartab.lookup match_tab) (vname, 0);
     fun mk_class_deriv thy subclasses superclass =
@@ -682,14 +682,14 @@ fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
 fun extract_classlookup thy (c, raw_typ_use) =
   let
     val raw_typ_def = Sign.the_const_constraint thy c;
-    val typ_def = Type.varifyT raw_typ_def;
+    val typ_def = Logic.legacy_varifyT raw_typ_def;
     fun reorder_sortctxt ctxt =
       case lookup_const_class thy c
        of NONE => ctxt
         | SOME class =>
             let
               val data = the_class_data thy class;
-              val sign = (Type.varifyT o the o AList.lookup (op =) ((map snd o #consts) data)) c;
+              val sign = (Logic.legacy_varifyT o the o AList.lookup (op =) ((map snd o #consts) data)) c;
               val match_tab = Sign.typ_match thy (sign, typ_def) Vartab.empty;
               val v : string = case Vartab.lookup match_tab (#var data, 0)
                 of SOME (_, TVar ((v, _), _)) => v;

@@ -31,7 +31,7 @@ fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _, _) =
 fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _, _) dom =
     let
 	val domT = domain_type (fastype_of f)
-	val D = Sign.simple_read_term thy (Type.varifyT (HOLogic.mk_setT domT)) dom
+	val D = Sign.simple_read_term thy (Logic.varifyT (HOLogic.mk_setT domT)) dom
 	val DT = type_of D
 	val idomT = HOLogic.dest_setT DT
 

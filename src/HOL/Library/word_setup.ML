@@ -35,8 +35,8 @@ local
 		then SOME (Drule.cterm_instantiate [(cterm_of sg (Var(("bs",0),Type("List.list",[Type("Word.bit",[])]))),cterm_of sg t)] fast2_th)
 		else NONE
 	      | g _ _ _ = NONE
-  (*lcp**	    val simproc1 = Simplifier.simproc (sign_of thy) "nat_to_bv" ["Word.nat_to_bv (number_of ?w)"] f ***)
-	    val simproc2 = Simplifier.simproc (sign_of thy) "bv_to_nat" ["Word.bv_to_nat (?x # ?xs)"] g
+  (*lcp**	    val simproc1 = Simplifier.simproc (sign_of thy) "nat_to_bv" ["Word.nat_to_bv (number_of w)"] f ***)
+	    val simproc2 = Simplifier.simproc (sign_of thy) "bv_to_nat" ["Word.bv_to_nat (x # xs)"] g
 	in
 	  Simplifier.change_simpset_of thy (fn ss => ss addsimprocs [(*lcp*simproc1,**)simproc2]);
           thy
