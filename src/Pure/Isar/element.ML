@@ -26,12 +26,13 @@ sig
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_values: (typ -> typ) -> (term -> term) -> (thm -> thm) -> context_i -> context_i
-  val params_of: ('typ, 'term, 'fact) ctxt -> (string * 'typ) list
-  val prems_of: ('typ, 'term, 'fact) ctxt -> 'term list
+  val params_of: context_i -> (string * typ) list
+  val prems_of: context_i -> term list
+  val facts_of: theory -> context_i ->
+    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
-
   type witness
   val map_witness: (term * thm -> term * thm) -> witness -> witness
   val witness_prop: witness -> term
@@ -41,8 +42,7 @@ sig
   val conclude_witness: witness -> thm
   val mark_witness: term -> term
   val make_witness: term -> thm -> witness
-  val refine_witness: Proof.state -> Proof.state
-
+  val refine_witness: Proof.state -> Proof.state Seq.seq
   val rename: (string * (string * mixfix option)) list -> string -> string
   val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
@@ -105,6 +105,9 @@ fun map_ctxt_values typ term thm = map_ctxt
   {name = I, var = I, typ = typ, term = term, fact = map thm,
     attrib = Args.map_values I typ term thm};
 
+
+(* logical content *)
+
 fun params_of (Fixes fixes) = fixes |> map
     (fn (x, SOME T, _) => (x, T)
       | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote x, []))
@@ -113,6 +116,13 @@ fun params_of (Fixes fixes) = fixes |> map
 fun prems_of (Assumes asms) = maps (map fst o snd) asms
   | prems_of (Defines defs) = map (fst o snd) defs
   | prems_of _ = [];
+
+fun assume thy t = Goal.norm_hhf (Thm.assume (Thm.cterm_of thy t));
+
+fun facts_of thy (Assumes asms) = map (apsnd (map (fn (t, _) => ([assume thy t], [])))) asms
+  | facts_of thy (Defines defs) = map (apsnd (fn (t, _) => [([assume thy t], [])])) defs
+  | facts_of _ (Notes facts) = facts
+  | facts_of _ _ = [];
 
 
 
@@ -276,8 +286,7 @@ val refine_witness =
   Proof.refine (Method.Basic (K (Method.RAW_METHOD
     (K (ALLGOALS
       (PRECISE_CONJUNCTS ~1 (ALLGOALS
-        (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI))))))))))
-  #> Seq.hd;
+        (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI))))))))));
 
 
 (* derived rules *)
