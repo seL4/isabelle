@@ -20,7 +20,6 @@ sig
       * OuterParse.token list;
   val parse_syntax: ('b -> int) -> (string -> 'b -> 'a * 'b) -> OuterParse.token list ->
     ('b -> 'a pretty_syntax * 'b) * OuterParse.token list;
-  val parse_targetdef: string -> CodegenThingol.prim list;
   val pretty_list: string -> string -> int * string -> CodegenThingol.iexpr pretty_syntax;
   val serializers: {
     ml: string * (string * string * (string -> bool) -> serializer),
@@ -191,26 +190,6 @@ fun parse_syntax no_args reader =
     )
   end;
 
-fun newline_correct s =
-  s
-  |> Symbol.strip_blanks
-  |> space_explode "\n"
-  |> map (implode o (fn [] => []
-                      | (" "::xs) => xs
-                      | xs => xs) o explode)
-  |> space_implode "\n";
-
-fun parse_targetdef s =
-  case Scan.finite Symbol.stopper (Scan.repeat (
-         ($$ "`" |-- $$ "`" >> (CodegenThingol.Pretty o str))
-      || ($$ "`" |-- Scan.repeat1 (Scan.unless ($$ "`") (Scan.one Symbol.not_eof))
-            --| $$ "`" >> (fn ["_"] => CodegenThingol.Name | s => error ("malformed antiquote: " ^ implode s)))
-      || Scan.repeat1
-           (Scan.unless ($$ "`") (Scan.one Symbol.not_eof)) >> (CodegenThingol.Pretty o str o implode)
-    )) ((Symbol.explode o Symbol.strip_blanks) s)
-   of (p, []) => p
-    | (p, ss) => error ("Malformed definition: " ^ quote s ^ " - " ^ commas ss);
-
 
 (* generic abstract serializer *)
 
@@ -228,16 +207,6 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     postprocess (class_syntax, tyco_syntax, const_syntax)
     select module =
   let
-    fun pretty_of_prim resolv (name, primdef) =
-      let
-        fun pr (CodegenThingol.Pretty p) = p
-          | pr CodegenThingol.Name = (str o resolv) name;
-      in case AList.lookup (op = : string * string -> bool) primdef target
-       of NONE => error ("no primitive definition for " ^ quote name)
-        | SOME ps => (case map pr ps
-           of [] => NONE
-            | ps => (SOME o Pretty.block) ps)
-      end;
     fun from_module' resolv imps ((name_qual, name), defs) =
       from_module resolv imps ((name_qual, name), defs)
       |> postprocess (resolv name_qual);
@@ -246,7 +215,7 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
     |> debug_msg (fn _ => "selecting submodule...")
     |> (if is_some select then (CodegenThingol.project_module o the) select else I)
     |> debug_msg (fn _ => "serializing...")
-    |> CodegenThingol.serialize (from_defs (pretty_of_prim, (class_syntax : string -> string option, tyco_syntax, const_syntax)))
+    |> CodegenThingol.serialize (from_defs (class_syntax : string -> string option, tyco_syntax, const_syntax))
          from_module' validator postproc nspgrp name_root
     |> K ()
   end;
@@ -660,7 +629,7 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
   in (ml_from_funs, ml_from_datatypes) end;
 
 fun ml_from_defs (is_cons, needs_type)
-    (from_prim, (_, tyco_syntax, const_syntax)) resolver prefix defs =
+    (_, tyco_syntax, const_syntax) resolver prefix defs =
   let
     val resolv = resolver prefix;
     val (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) =
@@ -721,11 +690,7 @@ fun ml_from_defs (is_cons, needs_type)
           ]
         :: map from_membr_fun membrs)
       end
-    fun ml_from_def (name, CodegenThingol.Undef) =
-          error ("empty definition during serialization: " ^ quote name)
-      | ml_from_def (name, CodegenThingol.Prim prim) =
-          from_prim resolv (name, prim)
-      | ml_from_def (name, CodegenThingol.Typesyn (vs, ty)) =
+    fun ml_from_def (name, CodegenThingol.Typesyn (vs, ty)) =
         (map (fn (vname, []) => () | _ =>
             error "can't serialize sort constrained type declaration to ML") vs;
           Pretty.block [
@@ -867,7 +832,7 @@ end; (* local *)
 
 local
 
-fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax))
+fun hs_from_defs with_typs (class_syntax, tyco_syntax, const_syntax)
     resolver prefix defs =
   let
     val resolv = resolver "";
@@ -1002,11 +967,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             hs_from_expr NOBR rhs
           ]
       in Pretty.chunks ((map from_eq o fst o snd o constructive_fun) def) end;
-    fun hs_from_def (name, CodegenThingol.Undef) =
-          error ("empty statement during serialization: " ^ quote name)
-      | hs_from_def (name, CodegenThingol.Prim prim) =
-          from_prim resolv_here (name, prim)
-      | hs_from_def (name, CodegenThingol.Fun (def as (_, (sctxt, ty)))) =
+    fun hs_from_def (name, CodegenThingol.Fun (def as (_, (sctxt, ty)))) =
           let
             val body = hs_from_funeqs (name, def);
           in if with_typs then
@@ -1038,6 +999,7 @@ fun hs_from_defs with_typs (from_prim, (class_syntax, tyco_syntax, const_syntax)
             (Pretty.block o Pretty.breaks) [
               str "data",
               hs_from_sctxt_tycoexpr (sctxt, (resolv_here name, map (ITyVar o fst) sctxt)),
+              str "=",
               Pretty.block (separate (Pretty.block [Pretty.brk 1, str "| "]) (map mk_cons constrs))
             ]
           end |> SOME

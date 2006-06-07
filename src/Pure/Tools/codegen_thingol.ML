@@ -62,16 +62,11 @@ sig
   val resolve_tycos: (string -> string) -> itype * iexpr list -> itype * iexpr list;
   val resolve_consts: (string -> string) -> iexpr -> iexpr;
   val eta_expand: (string * (iclasslookup list list * itype)) * iexpr list -> int -> iexpr;
-  
 
   type funn = (iexpr list * iexpr) list * (sortcontext * itype);
   type datatyp = sortcontext * (string * itype list) list;
-  datatype prim =
-      Pretty of Pretty.T
-    | Name;
   datatype def =
-      Undef
-    | Prim of (string * prim list) list
+      Bot
     | Fun of funn
     | Typesyn of (vname * sort) list * itype
     | Datatype of datatyp
@@ -90,16 +85,15 @@ sig
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
   val get_def: module -> string -> def;
-  val add_prim: string -> (string * prim list) -> module -> module;
-  val ensure_prim: string -> string -> module -> module;
   val merge_module: module * module -> module;
   val diff_module: module * module -> (string * def) list;
   val project_module: string list -> module -> module;
   val purge_module: string list -> module -> module;
   val has_nsp: string -> string -> bool;
+  val ensure_bot: string -> module -> module;
   val succeed: 'a -> transact -> 'a transact_fin;
   val fail: string -> transact -> 'a transact_fin;
-  val ensure_def: (string * (string -> transact -> def transact_fin)) list -> string
+  val ensure_def: (string -> transact -> def transact_fin) -> bool -> string
     -> string -> transact -> transact;
   val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
 
@@ -394,13 +388,8 @@ fun eta_expand (c as (_, (_, ty)), es) k =
 type funn = (iexpr list * iexpr) list * (sortcontext * itype);
 type datatyp = sortcontext * (string * itype list) list;
 
-datatype prim =
-    Pretty of Pretty.T
-  | Name;
-
 datatype def =
-    Undef
-  | Prim of (string * prim list) list
+    Bot
   | Fun of funn
   | Typesyn of (vname * sort) list * itype
   | Datatype of datatyp
@@ -415,18 +404,15 @@ datatype def =
 datatype node = Def of def | Module of node Graph.T;
 type module = node Graph.T;
 type transact = Graph.key option * module;
-datatype 'dst transact_res = Succeed of 'dst | Fail of string list * exn option;
-type 'dst transact_fin = 'dst transact_res * module;
+type 'dst transact_fin = 'dst * module;
 exception FAIL of string list * exn option;
 
 val eq_def = (op =) : def * def -> bool;
 
 (* simple diagnosis *)
 
-fun pretty_def Undef =
-      Pretty.str "<UNDEF>"
-  | pretty_def (Prim prims) =
-      Pretty.str ("<PRIM " ^ (commas o map fst) prims ^ ">")
+fun pretty_def Bot =
+      Pretty.str "<Bot>"
   | pretty_def (Fun (eqs, (sortctxt, ty))) =
       Pretty.enum " |" "" "" (
         map (fn (ps, body) =>
@@ -565,6 +551,12 @@ fun get_def modl name =
                 get (Graph.get_node node m) ms
         in get (Module modl) modlname end;
 
+fun is_def modl name =
+  case try (get_def modl) name
+   of NONE => false
+    | SOME Bot => false
+    | _ => true;
+
 fun add_def (name, def) =
   let
     val (modl, base) = dest_name name;
@@ -574,6 +566,46 @@ fun add_def (name, def) =
           Graph.default_node (m, Module empty_module)
           #> Graph.map_node m (Module o add ms o dest_modl)
   in add modl end;
+
+fun map_def name f =
+  let
+    val (modl, base) = dest_name name;
+    fun mapp [] =
+          Graph.map_node base (Def o f o dest_def)
+      | mapp (m::ms) =
+          Graph.map_node m (Module o mapp ms o dest_modl)
+  in mapp modl end;
+
+fun ensure_bot name =
+  let
+    val (modl, base) = dest_name name;
+    fun ensure [] module =
+          (case try (Graph.get_node module) base
+           of NONE =>
+                module
+                |> Graph.new_node (base, Def Bot)
+            | SOME (Module _) => error ("module already present: " ^ quote name)
+            | _ => module)
+      | ensure (m::ms) module =
+          module
+          |> Graph.default_node (m, Module empty_module)
+          |> Graph.map_node m (Module o ensure ms o dest_modl)
+  in ensure modl end;
+
+fun add_def_incr strict (name, Bot) module =
+      (case try (get_def module) name
+       of NONE => if strict then error "attempted to add Bot to module"
+            else map_def name (K Bot) module
+        | SOME Bot => if strict then error "attempted to add Bot to module"
+            else map_def name (K Bot) module
+        | SOME _ => module)
+  | add_def_incr _ (name, def) module =
+      (case try (get_def module) name
+       of NONE => add_def (name, def) module
+        | SOME Bot => map_def name (K def) module
+        | SOME def' => if eq_def (def, def')
+            then module
+            else error ("tried to overwrite definition " ^ quote name));
 
 fun add_dep (name1, name2) modl =
   if name1 = name2 then modl
@@ -596,90 +628,6 @@ fun add_dep (name1, name2) modl =
             node
             |> Graph.map_node m (Module o add ms o dest_modl);
     in add ms modl end;
-
-fun map_def name f =
-  let
-    val (modl, base) = dest_name name;
-    fun mapp [] =
-          Graph.map_node base (Def o f o dest_def)
-      | mapp (m::ms) =
-          Graph.map_node m (Module o mapp ms o dest_modl)
-  in mapp modl end;
-
-fun map_defs f =
-  let
-    fun mapp (Def def) =
-          (Def o f) def
-      | mapp (Module modl) =
-          (Module o Graph.map_nodes mapp) modl
-  in dest_modl o mapp o Module end;
-
-fun fold_defs f =
-  let
-    fun fol prfix (name, (Def def, _)) =
-          f (NameSpace.pack (prfix @ [name]), def)
-      | fol prfix (name, (Module modl, _)) =
-          Graph.fold (fol (prfix @ [name])) modl
-  in Graph.fold (fol []) end;
-
-fun add_deps f modl =
-  modl
-  |> fold add_dep ([] |> fold_defs (append o f) modl);
-
-fun add_def_incr (name, Undef) module =
-      (case try (get_def module) name
-       of NONE => (error "attempted to add Undef to module")
-        | SOME Undef => (error "attempted to add Undef to module")
-        | SOME def' => map_def name (K def') module)
-  | add_def_incr (name, def) module =
-      (case try (get_def module) name
-       of NONE => add_def (name, def) module
-        | SOME Undef => map_def name (K def) module
-        | SOME def' => if eq_def (def, def')
-            then module
-            else error ("tried to overwrite definition " ^ name));
-
-fun add_prim name (target, primdef as _::_) =
-  let
-    val (modl, base) = dest_name name;
-    fun add [] module =
-          (case try (Graph.get_node module) base
-           of NONE =>
-                module
-                |> Graph.new_node (base, (Def o Prim) [(target, primdef)])
-            | SOME (Def (Prim prim)) =>
-                if AList.defined (op =) prim target
-                then error ("already primitive definition (" ^ target
-                  ^ ") present for " ^ name)
-                else
-                  module
-                  |> Graph.map_node base ((K o Def o Prim) (AList.update (op =)
-                       (target, primdef) prim))
-            | _ => error ("already non-primitive definition present for " ^ name))
-      | add (m::ms) module =
-          module
-          |> Graph.default_node (m, Module empty_module)
-          |> Graph.map_node m (Module o add ms o dest_modl)
-  in add modl end;
-
-fun ensure_prim name target =
-  let
-    val (modl, base) = dest_name name;
-    fun ensure [] module =
-          (case try (Graph.get_node module) base
-           of NONE =>
-                module
-                |> Graph.new_node (base, (Def o Prim) [(target, [])])
-            | SOME (Def (Prim prim)) =>
-                module
-                |> Graph.map_node base ((K o Def o Prim) (AList.default (op =)
-                     (target, []) prim))
-            | _ => module)
-      | ensure (m::ms) module =
-          module
-          |> Graph.default_node (m, Module empty_module)
-          |> Graph.map_node m (Module o ensure ms o dest_modl)
-  in ensure modl end;
 
 fun merge_module modl12 =
   let
@@ -784,10 +732,8 @@ fun check_funeqs eqs =
     end
   ) eqs NONE; eqs);
 
-fun check_prep_def modl Undef =
-      Undef
-  | check_prep_def modl (d as Prim _) =
-      d
+fun check_prep_def modl Bot =
+      Bot
   | check_prep_def modl (Fun (eqs, d)) =
       Fun (check_funeqs eqs, d)
   | check_prep_def modl (d as Typesyn _) =
@@ -837,7 +783,7 @@ fun check_prep_def modl Undef =
 fun postprocess_def (name, Datatype (_, constrs)) =
       (check_samemodule (name :: map fst constrs);
       fold (fn (co, _) =>
-        add_def_incr (co, Datatypecons name)
+        add_def_incr true (co, Datatypecons name)
         #> add_dep (co, name)
         #> add_dep (name, co)
       ) constrs
@@ -845,7 +791,7 @@ fun postprocess_def (name, Datatype (_, constrs)) =
   | postprocess_def (name, Class (_, (_, membrs))) =
       (check_samemodule (name :: map fst membrs);
       fold (fn (m, _) =>
-        add_def_incr (m, Classmember name)
+        add_def_incr true (m, Classmember name)
         #> add_dep (m, name)
         #> add_dep (name, m)
       ) membrs
@@ -853,57 +799,40 @@ fun postprocess_def (name, Datatype (_, constrs)) =
   | postprocess_def (name, Classinst (_, memdefs)) =
       (check_samemodule (name :: map (fst o fst o snd) memdefs);
       fold (fn (_, ((m', _), _)) =>
-        add_def_incr (m', Classinstmember)
+        add_def_incr true (m', Classinstmember)
       ) memdefs
       )
   | postprocess_def _ =
       I;
 
-fun succeed some (_, modl) = (Succeed some, modl);
-fun fail msg (_, modl) = (Fail ([msg], NONE), modl);
+fun succeed some (_, modl) = (some, modl);
+fun fail msg (_, modl) = raise FAIL ([msg], NONE);
 
-fun check_fail _ (Succeed dst, trns) = (dst, trns)
-  | check_fail msg (Fail (msgs, e), _) = raise FAIL (msg::msgs, e);
-
-fun select_generator _ src [] modl =
-      (SOME src, modl) |> fail ("no code generator available")
-  | select_generator mk_msg src gens modl =
-      let
-        fun handle_fail msgs f =
-          let
-            in
-              if ! soft_exc
-              then
-                (SOME src, modl) |> f
-                handle FAIL exc => (Fail exc, modl)
-                     | e => (Fail (msgs, SOME e), modl)
-              else
-                (SOME src, modl) |> f
-                handle FAIL exc => (Fail exc, modl)
-            end;
-        fun select msgs [(gname, gen)] =
-              handle_fail (msgs @ [mk_msg gname]) (gen src)
-          | select msgs ((gname, gen)::gens) =
-              let
-                val msgs' = msgs @ [mk_msg gname]
-              in case handle_fail msgs' (gen src)
-               of (Fail (_, NONE), _) =>
-                   select msgs' gens
-               | result => result
-          end;
-      in select [] gens end;
-
-fun ensure_def defgens msg name (dep, modl) =
+fun ensure_def defgen strict msg name (dep, modl) =
   let
-    val msg' = case dep
+    val msg' = (case dep
      of NONE => msg
-      | SOME dep => msg ^ ", with dependency " ^ quote dep;
+      | SOME dep => msg ^ ", with dependency " ^ quote dep)
+      ^ (if strict then " (strict)" else " (non-strict)");
     fun add_dp NONE = I
       | add_dp (SOME dep) =
           debug_msg (fn _ => "adding dependency " ^ quote dep ^ " -> " ^ quote name)
           #> add_dep (dep, name);
     fun prep_def def modl =
       (check_prep_def modl def, modl);
+    fun invoke_generator name defgen modl =
+      if ! soft_exc
+      then
+        defgen name (SOME name, modl)
+        handle FAIL exc =>
+                if strict then raise FAIL exc
+                else (Bot, modl)
+             | e => raise FAIL (["definition generator for " ^ quote name], SOME e)
+      else
+        defgen name (SOME name, modl)
+        handle FAIL exc =>
+                if strict then raise FAIL exc
+                else (Bot, modl);
   in
     modl
     |> (if can (get_def modl) name
@@ -911,19 +840,16 @@ fun ensure_def defgens msg name (dep, modl) =
           debug_msg (fn _ => "asserting node " ^ quote name)
           #> add_dp dep
         else
-          debug_msg (fn _ => "allocating node " ^ quote name)
-          #> add_def (name, Undef)
+          debug_msg (fn _ => "allocating node " ^ quote name ^ (if strict then " (strict)" else " (non-strict)"))
+          #> ensure_bot name
           #> add_dp dep
           #> debug_msg (fn _ => "creating node " ^ quote name)
-          #> select_generator (fn gname => "trying code generator "
-               ^ gname ^ " for definition of " ^ quote name) name defgens
-          #> debug_msg (fn _ => "checking creation of node " ^ quote name)
-          #> check_fail msg'
+          #> invoke_generator name defgen
           #-> (fn def => prep_def def)
           #-> (fn def =>
              debug_msg (fn _ => "addition of " ^ name ^ " := " ^ (Pretty.output o pretty_def) def)
           #> debug_msg (fn _ => "adding")
-          #> add_def_incr (name, def)
+          #> add_def_incr strict (name, def)
           #> debug_msg (fn _ => "postprocessing")
           #> postprocess_def (name, def)
           #> debug_msg (fn _ => "adding done")
@@ -1049,9 +975,10 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
     fun mk_contents prfx module =
       map_filter (seri prfx)
         ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
-    and seri prfx ([(name, Module modl)]) =
+    and seri prfx [(name, Module modl)] =
           seri_module (resolver []) (map (resolver []) (imports_of module (prfx @ [name])))
             (mk_name prfx name, mk_contents (prfx @ [name]) modl)
+      | seri prfx [(_, Def Bot)] = NONE
       | seri prfx ds =
           seri_defs sresolver (NameSpace.pack prfx)
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)

@@ -23,7 +23,6 @@ sig
   val proper_name: string -> string;
   val common_typ: theory -> (thm -> typ) -> thm list -> thm list;
   val preprocess: theory -> thm list -> (typ * thm list) option;
-  val preprocess_term: theory -> term -> term;
 
   val get_funs: theory -> string * typ -> (typ * thm list) option;
   val get_datatypes: theory -> string
@@ -579,7 +578,7 @@ fun extr_typ thy thm = case dest_fun thy thm
 fun tap_typ thy [] = NONE
   | tap_typ thy (thms as (thm::_)) = SOME (extr_typ thy thm, thms);
 
-fun preprocess' thy extr_ty thms =
+fun preprocess thy thms =
   let
     fun burrow_thms f [] = []
       | burrow_thms f thms = 
@@ -587,19 +586,27 @@ fun preprocess' thy extr_ty thms =
           |> Conjunction.intr_list
           |> f
           |> Conjunction.elim_list;
+    fun rewrite_rhs conv thm = (case (Drule.strip_comb o cprop_of) thm
+     of (ct', [ct1, ct2]) => (case term_of ct'
+         of Const ("==", _) =>
+              Thm.equal_elim (combination (combination (reflexive ct') (reflexive ct1)) (conv ct2)) thm
+          | _ => raise ERROR "rewrite_rhs")
+      | _ => raise ERROR "rewrite_rhs");
+    val unfold_thms = Tactic.rewrite true (map (make_eq thy) (the_unfolds thy));
   in
     thms
     |> map (make_eq thy)
     |> map (Thm.transfer thy)
     |> fold (fn f => f thy) (the_preprocs thy)
-    |> map (rewrite_rule (map (make_eq thy) (the_unfolds thy)))
+    |> map (rewrite_rhs unfold_thms)
     |> debug_msg (fn _ => "[cg_thm] filter")
     |> debug_msg (commas o map string_of_thm)
-    |> debug_msg (fn _ => "[cg_thm] extr_typ")
+    |> debug_msg (fn _ => "[cg_thm] common_typ")
     |> debug_msg (commas o map string_of_thm)
-    |> debug_msg (fn _ => "[cg_thm] common_typ / abs_norm")
+    |> common_typ thy (extr_typ thy)
+    |> debug_msg (fn _ => "[cg_thm] abs_norm")
     |> debug_msg (commas o map string_of_thm)
-    |> (if extr_ty then common_typ thy (extr_typ thy) #> map (abs_norm thy) else I)
+    |> map (abs_norm thy)
     |> burrow_thms (
         debug_msg (fn _ => "[cg_thm] canonical tvars")
         #> debug_msg (string_of_thm)
@@ -613,27 +620,7 @@ fun preprocess' thy extr_ty thms =
        )
     |> map Drule.unvarifyT
     |> map Drule.unvarify
-  end;
-
-fun preprocess thy = preprocess' thy true #> tap_typ thy;
-
-fun preprocess_term thy raw_t =
-  let
-    val t = Logic.legacy_varify raw_t;
-    val x = variant (add_term_names (t, [])) "a";
-    val t_eq = Logic.mk_equals (Free (x, fastype_of t), t);
-    (*fake definition*)
-    val thm_eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
-      t_eq;
-    fun err ts' = error ("preprocess_term: bad preprocessor; started with "
-        ^ (quote o Sign.string_of_term thy) t_eq ^ ", ended up with "
-        ^ (quote o commas o map (Sign.string_of_term thy)) ts'
-      )
-  in case preprocess' thy false [thm_eq]
-   of [thm] => (case Drule.plain_prop_of thm
-       of t_res as (Const ("==", _) $ Free (x', _) $ t') => if x = x' then t' else err [t_res]
-        | t_res => err [t_res])
-    | thms => (err o map Drule.plain_prop_of) thms
+    |> tap_typ thy
   end;
 
 
@@ -709,8 +696,11 @@ fun get_datatypes thy dtco =
 
 fun get_eq thy (c, ty) =
   if is_obj_eq thy c
-  then case get_datatypes thy ((fst o dest_Type o hd o fst o strip_type) ty)
-   of SOME (_, thms) => thms
+  then case strip_type ty
+   of (Type (tyco, _) :: _, _) =>
+     (case get_datatypes thy tyco
+       of SOME (_, thms) => thms
+        | _ => [])
     | _ => []
   else [];
 
