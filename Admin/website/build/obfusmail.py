@@ -135,8 +135,14 @@ def obfuscate(mailaddr, htmlfile):
     mod = os.stat(htmlfile).st_mode
     gid = os.stat(htmlfile).st_gid
     cmd("convert label:'%s' '%s'" % (baremail, imgfile))
-    os.chmod(imgfile, mod)
-    os.chown(imgfile, -1, gid)
+    try:
+        os.chmod(imgfile, mod)
+    except OSError:
+        pass
+    try:
+        os.chown(imgfile, -1, gid)
+    except OSError:
+        pass
     if arg is not None:
         mailsimple = u"{%s} AT [%s] WITH (%s)" % (name, host, arg)
         mailscript = u" ".join(map(mk_line, ['<a href="', "mailto:", name, "@", host, "?", arg, '">']));
