@@ -85,13 +85,6 @@ Most standard arithmetic functions on natural numbers are implemented
 using their counterparts on the integers:
 *}
 
-declare
-  Nat.plus.simps [code del]
-  Nat.minus.simps [code del]
-  diff_0_eq_0 [code del]
-  diff_Suc_Suc [code del]
-  Nat.times.simps [code del]
-
 lemma [code]: "m + n = nat (int m + int n)"
   by arith
 lemma [code]: "m - n = nat (int m - int n)"
@@ -218,7 +211,7 @@ fun remove_suc_clause thy thms =
               (Drule.instantiate' []
                 [SOME (cert (lambda v (Abs ("x", HOLogic.natT,
                    abstract_over (Sucv,
-                     (HOLogic.dest_Trueprop o prop_of) th'))))),
+                     HOLogic.dest_Trueprop (prop_of th')))))),
                  SOME (cert v)] Suc_clause'))
             (Thm.forall_intr (cert v) th'))
         in
@@ -229,7 +222,7 @@ fun remove_suc_clause thy thms =
 
 fun clause_suc_preproc thy ths =
   let
-    val dest = fst o HOLogic.dest_mem o ObjectLogic.drop_judgment thy
+    val dest = fst o HOLogic.dest_mem o HOLogic.dest_Trueprop
   in
     if forall (can (dest o concl_of)) ths andalso
       exists (fn th => member (op =) (foldr add_term_consts
