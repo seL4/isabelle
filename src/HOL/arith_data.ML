@@ -494,7 +494,7 @@ val comp_ss = HOL_basic_ss addsimps comp_arith addsimps simp_thms;
 *)
 fun raw_arith_tac ex i st =
   refute_tac (K true)
-   (REPEAT o split_tac (#splits (ArithTheoryData.get (Thm.theory_of_thm st))))
+   (REPEAT_DETERM o split_tac (#splits (ArithTheoryData.get (Thm.theory_of_thm st))))
 (*   (REPEAT o 
     (fn i =>(split_tac (#splits (ArithTheoryData.get(Thm.theory_of_thm st))) i)
 		THEN (simp_tac comp_ss i))) *)
