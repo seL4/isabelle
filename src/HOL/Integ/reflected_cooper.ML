@@ -91,11 +91,11 @@ fun term_of_qf vs t =
       | F => HOLogic.false_const
       | Lt(t1,t2) => Const("Orderings.less",[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Le(t1,t2) => Const("Orderings.less_equal",[iT,iT] ---> bT)$
+      | Le(t1,t2) => Const("Orderings.less_eq",[iT,iT] ---> bT)$
 			  (term_of_i vs t1)$(term_of_i vs t2)
       | Gt(t1,t2) => Const("Orderings.less",[iT,iT] ---> bT)$
 			   (term_of_i vs t2)$(term_of_i vs t1)
-      | Ge(t1,t2) => Const("Orderings.less_equal",[iT,iT] ---> bT)$
+      | Ge(t1,t2) => Const("Orderings.less_eq",[iT,iT] ---> bT)$
 			  (term_of_i vs t2)$(term_of_i vs t1)
       | Eq(t1,t2) => Const("op =",[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
