@@ -79,7 +79,10 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
-fun ferrack_tac q i = ObjectLogic.atomize_tac i THEN (fn st =>
+fun ferrack_tac q i = 
+    (ObjectLogic.atomize_tac i) 
+	THEN (REPEAT_DETERM (split_tac [split_min, split_max,abs_split] i))
+	THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
     val sg = sign_of_thm st
@@ -92,8 +95,7 @@ fun ferrack_tac q i = ObjectLogic.atomize_tac i THEN (fn st =>
     val ct = cterm_of sg (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
-      [simp_tac simpset0 1,
-       TRY (simp_tac simpset3 1), TRY (simp_tac context_ss 1)]
+      [simp_tac simpset0 1, TRY (simp_tac context_ss 1)]
       (trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
