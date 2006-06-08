@@ -29,7 +29,7 @@ b) the project layer
 This manages the dependencies between files; the tool of choice
 is
 
-    "make plus shell scripting"
+    "(g)make plus shell scripting"
 
 Project settings may be configured using a seperate configuration
 file.
@@ -77,25 +77,27 @@ You may add arbitrary files to the dir structure, but adhere to the following:
 =====================================
 
 To configure it the first time after checkout, just type
-> make phase=init
+> gmake phase=init
+
+Not: on GNU systems, just type make instead of gmake.
 
 Then, you may edit the project configuration file conf/localconf.mak.
 After a correct configuration, the build process may be started by
-> make
+> gmake
 
 The project layer tries to be smart about dependencies, but includes,
 embedded images and so on are not tracked; to built dependencies anew,
 do
-> make depends
+> gmake depends
 
 After adding or deleting files, an
-> make depends
+> gmake depends
 may also be neccessary. The same after changing something in the configuration.
 
 If nothing seems to be sensible any more, try
-> make clean
-> make depends
-> make
+> gmake clean
+> gmake depends
+> gmake
 
 
 (4) project-specific remarks
@@ -114,10 +116,10 @@ website build bed on sunbroy2:
 * log in to sunbroy2
 * go to ~isabelle/website_build
 * there do an CVS update if desired
-* do "make perms" to set file owner group (isabelle) and permissions
+* do "gmake perms" to set file owner group (isabelle) and permissions
   (rw-rw-r--, rwxrwsr-x)
 * do your changes
-* just type make - the website is built to the website synchronization cache
+* just type gmake - the website is built to the website synchronization cache
 * then do CVS commit
 * for updating the webpage in Munich, just use Admin/mirror-website
 * if the Isabelle distribution files themselves change, some handwired updating
