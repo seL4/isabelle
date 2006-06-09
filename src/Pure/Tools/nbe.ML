@@ -96,7 +96,7 @@ fun norm_by_eval raw_t thy = norm_by_eval_i (Sign.read_term thy raw_t) thy;
 structure P = OuterParse and K = OuterKeyword;
 
 val nbeP =
-  OuterSyntax.command "norm_by_eval" "normalization by evaluation" K.thy_decl
+  OuterSyntax.command "normal_form" "normalization by evaluation" K.thy_decl
     (P.term >> (fn t => Toplevel.theory (snd o norm_by_eval t)));
 
 val _ = OuterSyntax.add_parsers [nbeP];

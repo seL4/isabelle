@@ -143,7 +143,7 @@ open NBE_Eval;
 
 val tcount = ref 0;
 
-(* FIXME get rid of TVar case!!! *)
+(* FIXME get rid of TFree case!!! *)
 fun varifyT ty =
   let val ty' = map_type_tvar (fn ((s,i),S) => TypeInfer.param (!tcount + i) (s,S)) ty;
       val _ = (tcount := !tcount + maxidx_of_typ ty + 1);
