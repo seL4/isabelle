@@ -21,7 +21,7 @@ world_data[i++] = ['Kamal Kant Gupta', CAPTION, 'IIT Guwahati', STICKY, NOCLOSE]
 world_data[i++] = ['Yasuhiko Minamide', CAPTION, 'University of Tsukuba', STICKY, NOCLOSE];
 world_data[i++] = ['Gang Yu: <b>Formalizing Lambda-Calculus and Virtual Machine with Non-Local Control Operators</b>', CAPTION, 'Institute of Software, Beijing', STICKY, NOCLOSE];
 world_data[i++] = ['John Matthews', CAPTION, 'Galois Connections', STICKY, NOCLOSE];
-world_data[i++] = ['Slawomir Kokodynski: <b>IsarMathLib</b>', CAPTION, 'Newark, CA', STICKY, NOCLOSE];
+world_data[i++] = ['Slawomir Kolodynski: <b>IsarMathLib</b>', CAPTION, 'Newark, CA', STICKY, NOCLOSE];
 world_data[i++] = ['Robert Lamar', CAPTION, 'Stetson University', STICKY, NOCLOSE];
 world_data[i++] = ['<a href=\'http://www.andrew.cmu.edu/~avigad/isabelle/\'>Jeremy Avigad</a>, <a href=\'http://www.cs.cmu.edu/~seanmcl/research\'>Sean McLaughlin</a>', CAPTION, 'Carnegie Mellon University', STICKY, NOCLOSE];
 
