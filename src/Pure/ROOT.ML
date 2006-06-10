@@ -72,9 +72,6 @@ cd "Isar"; use "ROOT.ML"; cd "..";
 
 use "Proof/extraction.ML";
 
-(*the IsaPlanner subsystem*)
-cd "IsaPlanner"; use "ROOT.ML"; cd "..";
-
 cd "Tools"; use "ROOT.ML"; cd "..";
 
 (*configuration for Proof General*)
