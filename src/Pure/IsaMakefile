@@ -30,9 +30,6 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   General/position.ML General/pretty.ML General/rat.ML General/scan.ML		\
   General/seq.ML General/source.ML General/stack.ML General/symbol.ML		\
   General/table.ML General/url.ML General/xml.ML				\
-  IsaPlanner/focus_term_lib.ML IsaPlanner/isa_fterm.ML				\
-  IsaPlanner/isand.ML IsaPlanner/isaplib.ML IsaPlanner/rw_inst.ML		\
-  IsaPlanner/rw_tools.ML IsaPlanner/term_lib.ML IsaPlanner/upterm_lib.ML	\
   Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML Isar/attrib.ML			\
   Isar/auto_bind.ML Isar/calculation.ML Isar/constdefs.ML			\
   Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML			\
