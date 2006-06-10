@@ -13,6 +13,10 @@ use "hologic.ML";
 
 use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/hypsubst.ML";
+use "~~/src/Provers/IsaPlanner/zipper.ML";
+use "~~/src/Provers/IsaPlanner/isand.ML";
+use "~~/src/Provers/IsaPlanner/rw_tools.ML";
+use "~~/src/Provers/IsaPlanner/rw_inst.ML";
 use "~~/src/Provers/eqsubst.ML";
 use "~~/src/Provers/induct_method.ML";
 use "~~/src/Provers/classical.ML";

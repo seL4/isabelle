@@ -10,9 +10,13 @@ sig
   val setup : theory -> theory
 end;
 
-structure EqSubst: EQSUBST =
-struct
+structure EqSubst
+(* : EQSUBST *)
+= struct
 
+structure Z = Zipper;
+
+(* changes object "=" to meta "==" which prepares a given rewrite rule *)
 fun prep_meta_eq ctxt =
   let val (_, {mk_rews = {mk, ...}, ...}) = Simplifier.rep_ss (Simplifier.local_simpset_of ctxt)
   in mk #> map Drule.zero_var_indexes end;
@@ -29,7 +33,129 @@ fun prep_meta_eq ctxt =
   type searchinfo =
        theory
        * int (* maxidx *)
-       * BasicIsaFTerm.FcTerm (* focusterm to search under *)
+       * Zipper.T (* focusterm to search under *)
+
+
+(* skipping non-empty sub-sequences but when we reach the end
+   of the seq, remembering how much we have left to skip. *)
+datatype 'a skipseq = SkipMore of int
+  | SkipSeq of 'a Seq.seq Seq.seq;
+(* given a seqseq, skip the first m non-empty seq's, note deficit *)
+fun skipto_skipseq m s = 
+    let 
+      fun skip_occs n sq = 
+          case Seq.pull sq of 
+            NONE => SkipMore n
+          | SOME (h,t) => 
+            (case Seq.pull h of NONE => skip_occs n t
+             | SOME _ => if n <= 1 then SkipSeq (Seq.cons h t)
+                         else skip_occs (n - 1) t)
+    in (skip_occs m s) end;
+
+(* note: outerterm is the taget with the match replaced by a bound 
+         variable : ie: "P lhs" beocmes "%x. P x" 
+         insts is the types of instantiations of vars in lhs
+         and typinsts is the type instantiations of types in the lhs
+         Note: Final rule is the rule lifted into the ontext of the 
+         taget thm. *)
+fun mk_foo_match mkuptermfunc Ts t = 
+    let 
+      val ty = Term.type_of t
+      val bigtype = (rev (map snd Ts)) ---> ty
+      fun mk_foo 0 t = t
+        | mk_foo i t = mk_foo (i - 1) (t $ (Bound (i - 1)))
+      val num_of_bnds = (length Ts)
+      (* foo_term = "fooabs y0 ... yn" where y's are local bounds *)
+      val foo_term = mk_foo num_of_bnds (Bound num_of_bnds)
+    in Abs("fooabs", bigtype, mkuptermfunc foo_term) end;
+
+(* T is outer bound vars, n is number of locally bound vars *)
+(* THINK: is order of Ts correct...? or reversed? *)
+fun fakefree_badbounds Ts t = 
+    let val (FakeTs,Ts,newnames) = 
+            List.foldr (fn ((n,ty),(FakeTs,Ts,usednames)) => 
+                           let val newname = Term.variant usednames n
+                           in ((RWTools.mk_fake_bound_name newname,ty)::FakeTs,
+                               (newname,ty)::Ts, 
+                               newname::usednames) end)
+                       ([],[],[])
+                       Ts
+    in (FakeTs, Ts, Term.subst_bounds (map Free FakeTs, t)) end;
+
+(* before matching we need to fake the bound vars that are missing an
+abstraction. In this function we additionally construct the
+abstraction environment, and an outer context term (with the focus
+abstracted out) for use in rewriting with RWInst.rw *)
+fun prep_zipper_match z = 
+    let 
+      val t = Z.trm z  
+      val c = Z.ctxt z
+      val Ts = Z.C.nty_ctxt c
+      val (FakeTs', Ts', t') = fakefree_badbounds Ts t
+      val absterm = mk_foo_match (Z.C.apply c) Ts' t'
+    in
+      (t', (FakeTs', Ts', absterm))
+    end;
+
+(* Matching and Unification with exception handled *)
+fun clean_match thy (a as (pat, t)) =
+  let val (tyenv, tenv) = Pattern.match thy a (Vartab.empty, Vartab.empty)
+  in SOME (Vartab.dest tyenv, Vartab.dest tenv)
+  end handle Pattern.MATCH => NONE;
+(* given theory, max var index, pat, tgt; returns Seq of instantiations *)
+fun clean_unify sgn ix (a as (pat, tgt)) =
+    let
+      (* type info will be re-derived, maybe this can be cached
+         for efficiency? *)
+      val pat_ty = Term.type_of pat;
+      val tgt_ty = Term.type_of tgt;
+      (* is it OK to ignore the type instantiation info?
+         or should I be using it? *)
+      val typs_unify =
+          SOME (Sign.typ_unify sgn (pat_ty, tgt_ty) (Term.Vartab.empty, ix))
+            handle Type.TUNIFY => NONE;
+    in
+      case typs_unify of
+        SOME (typinsttab, ix2) =>
+        let
+      (* is it right to throw away the flexes?
+         or should I be using them somehow? *)
+          fun mk_insts env =
+            (Vartab.dest (Envir.type_env env),
+             Envir.alist_of env);
+          val initenv = Envir.Envir {asol = Vartab.empty,
+                                     iTs = typinsttab, maxidx = ix2};
+          val useq = (Unify.smash_unifiers (sgn,initenv,[a]))
+	            handle UnequalLengths => Seq.empty
+		               | Term.TERM _ => Seq.empty;
+          fun clean_unify' useq () =
+              (case (Seq.pull useq) of
+                 NONE => NONE
+               | SOME (h,t) => SOME (mk_insts h, Seq.make (clean_unify' t)))
+	      handle UnequalLengths => NONE
+                   | Term.TERM _ => NONE;
+        in
+          (Seq.make (clean_unify' useq))
+        end
+      | NONE => Seq.empty
+    end;
+
+(* Matching and Unification for zippers *)
+(* Note: Ts is a modified version of the original names of the outer
+bound variables. New names have been introduced to make sure they are
+unique w.r.t all names in the term and each other. usednames' is
+oldnames + new names. *)
+fun clean_match_z thy pat z = 
+    let val (t, (FakeTs,Ts,absterm)) = prep_zipper_match z in
+      case clean_match thy (pat, t) of 
+        NONE => NONE 
+      | SOME insts => SOME (insts, FakeTs, Ts, absterm) end;
+(* ix = max var index *)
+fun clean_unify_z sgn ix pat z = 
+    let val (t, (FakeTs, Ts,absterm)) = prep_zipper_match z in
+    Seq.map (fn insts => (insts, FakeTs, Ts, absterm)) 
+            (clean_unify sgn ix (t, pat)) end;
+
 
 (* FOR DEBUGGING...
 type trace_subst_errT = int (* subgoal *)
@@ -46,54 +172,45 @@ type trace_subst_errT = int (* subgoal *)
 val trace_subst_err = (ref NONE : trace_subst_errT option ref);
 val trace_subst_search = ref false;
 exception trace_subst_exp of trace_subst_errT;
- *)
+*)
+
+
+fun bot_left_leaf_of (l $ r) = bot_left_leaf_of l
+  | bot_left_leaf_of (Abs(s,ty,t)) = bot_left_leaf_of t
+  | bot_left_leaf_of x = x;
+
+fun valid_match_start z =
+    (case bot_left_leaf_of (Z.trm z) of 
+       Const _ => true
+     | Free _ => true
+     | Abs _ => true (* allowed to look inside abs... search decides if we actually consider the abstraction itself *)
+     | _ => false); (* avoid vars - always suceeds uninterestingly. *)
+                      
+(* search from top, left to right, then down *)
+val search_tlr_all = ZipperSearch.all_td_lr;
 
 (* search from top, left to right, then down *)
-fun search_tlr_all_f f ft =
-    let
-      fun maux ft =
-          let val t' = (IsaFTerm.focus_of_fcterm ft)
-            (* val _ =
-                if !trace_subst_search then
-                  (writeln ("Examining: " ^ (TermLib.string_of_term t'));
-                   TermLib.writeterm t'; ())
-                else (); *)
-          in
-          (case t' of
-            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft),
-                       Seq.cons (f ft) (maux (IsaFTerm.focus_right ft)))
-          | (Abs _) => Seq.cons (f ft) (maux (IsaFTerm.focus_abs ft))
-          | leaf => Seq.single (f ft)) end
-    in maux ft end;
-
-(* search from top, left to right, then down *)
-fun search_tlr_valid_f f ft =
-    let
-      fun maux ft =
-          let
-            val hereseq = if IsaFTerm.valid_match_start ft then f ft else Seq.empty
-          in
-          (case (IsaFTerm.focus_of_fcterm ft) of
-            (_ $ _) => Seq.append(maux (IsaFTerm.focus_left ft),
-                       Seq.cons hereseq (maux (IsaFTerm.focus_right ft)))
-          | (Abs _) => Seq.cons hereseq (maux (IsaFTerm.focus_abs ft))
-          | leaf => Seq.single hereseq)
-          end
-    in maux ft end;
+fun search_tlr_valid validf =
+    let 
+      fun sf_valid_td_lr z = 
+          let val here = if validf z then [Z.Here z] else [] in
+            case Z.trm z 
+             of _ $ _ => here @ [Z.LookIn (Z.move_down_left z),
+                                 Z.LookIn (Z.move_down_right z)]
+              | Abs _ => here @ [Z.LookIn (Z.move_down_abs z)]
+              | _ => here
+          end;
+    in Z.lzy_search sf_valid_td_lr end;
 
 (* search all unifications *)
-fun searchf_tlr_unify_all (sgn, maxidx, ft) lhs =
-    IsaFTerm.find_fcterm_matches
-      search_tlr_all_f
-      (IsaFTerm.clean_unify_ft sgn maxidx lhs)
-      ft;
+fun searchf_tlr_unify_all (sgn, maxidx, z) lhs =
+    Seq.map (clean_unify_z sgn maxidx lhs) 
+            (Z.limit_apply search_tlr_all z);
 
 (* search only for 'valid' unifiers (non abs subterms and non vars) *)
-fun searchf_tlr_unify_valid (sgn, maxidx, ft) lhs  =
-    IsaFTerm.find_fcterm_matches
-      search_tlr_valid_f
-      (IsaFTerm.clean_unify_ft sgn maxidx lhs)
-      ft;
+fun searchf_tlr_unify_valid (sgn, maxidx, z) lhs  =
+    Seq.map (clean_unify_z sgn maxidx lhs) 
+            (Z.limit_apply (search_tlr_valid valid_match_start) z);
 
 
 (* apply a substitution in the conclusion of the theorem th *)
@@ -124,9 +241,9 @@ fun prep_concl_subst i gth =
       val conclterm = Logic.strip_imp_concl fixedbody;
       val conclthm = trivify conclterm;
       val maxidx = Term.maxidx_of_term conclterm;
-      val ft = ((IsaFTerm.focus_right
-                 o IsaFTerm.focus_left
-                 o IsaFTerm.fcterm_of_term
+      val ft = ((Z.move_down_right (* ==> *)
+                 o Z.move_down_left (* Trueprop *)
+                 o Z.mktop
                  o Thm.prop_of) conclthm)
     in
       ((cfvs, conclthm), (sgn, maxidx, ft))
@@ -150,12 +267,14 @@ fun distinct_subgoals th =
 
 (* General substitution of multiple occurances using one of
    the given theorems*)
+
+
 exception eqsubst_occL_exp of
           string * (int list) * (thm list) * int * thm;
 fun skip_first_occs_search occ srchf sinfo lhs =
-    case (IsaPLib.skipto_seqseq occ (srchf sinfo lhs)) of
-      IsaPLib.skipmore _ => Seq.empty
-    | IsaPLib.skipseq ss => Seq.flat ss;
+    case (skipto_skipseq occ (srchf sinfo lhs)) of
+      SkipMore _ => Seq.empty
+    | SkipSeq ss => Seq.flat ss;
 
 fun eqsubst_tac ctxt occL thms i th =
     let val nprems = Thm.nprems_of th in
@@ -163,8 +282,10 @@ fun eqsubst_tac ctxt occL thms i th =
       let val thmseq = (Seq.of_list thms)
         fun apply_occ occ th =
             thmseq |> Seq.maps
-                    (fn r => eqsubst_tac' ctxt (skip_first_occs_search
-                                    occ searchf_tlr_unify_valid) r
+                    (fn r => eqsubst_tac' 
+                               ctxt 
+                               (skip_first_occs_search
+                                  occ searchf_tlr_unify_valid) r
                                  (i + ((Thm.nprems_of th) - nprems))
                                  th);
         val sortedoccL =
@@ -235,15 +356,15 @@ fun prep_subst_in_asm i gth j =
       val pth = trivify asmt;
       val maxidx = Term.maxidx_of_term asmt;
 
-      val ft = ((IsaFTerm.focus_right
-                 o IsaFTerm.fcterm_of_term
+      val ft = ((Z.move_down_right (* trueprop *)
+                 o Z.mktop
                  o Thm.prop_of) pth)
     in ((cfvs, j, asm_nprems, pth), (sgn, maxidx, ft)) end;
 
 (* prepare subst in every possible assumption *)
 fun prep_subst_in_asms i gth =
     map (prep_subst_in_asm i gth)
-        ((rev o IsaPLib.mk_num_list o length)
+        ((fn l => Library.upto (1, length l))
            (Logic.prems_of_goal (Thm.prop_of gth) i));
 
 
@@ -257,8 +378,8 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i th =
             fun occ_search occ [] = Seq.empty
               | occ_search occ ((asminfo, searchinfo)::moreasms) =
                 (case searchf searchinfo occ lhs of
-                   IsaPLib.skipmore i => occ_search i moreasms
-                 | IsaPLib.skipseq ss =>
+                   SkipMore i => occ_search i moreasms
+                 | SkipSeq ss =>
                    Seq.append (Seq.map (Library.pair asminfo)
                                        (Seq.flat ss),
                                occ_search 1 moreasms))
@@ -270,7 +391,7 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i th =
 
 
 fun skip_first_asm_occs_search searchf sinfo occ lhs =
-    IsaPLib.skipto_seqseq occ (searchf sinfo lhs);
+    skipto_skipseq occ (searchf sinfo lhs);
 
 fun eqsubst_asm_tac ctxt occL thms i th =
     let val nprems = Thm.nprems_of th
