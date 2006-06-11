@@ -557,8 +557,8 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg false (THM (msg, _, _)) = raised "THM" [msg]
   | exn_msg true (THM (msg, i, thms)) =
       raised ("THM " ^ string_of_int i) (msg :: map Display.string_of_thm thms)
-  | exn_msg _ Option = raised "Option" []
-  | exn_msg _ UnequalLengths = raised "UnequalLengths" []
+  | exn_msg _ Option.Option = raised "Option" []
+  | exn_msg _ Library.UnequalLengths = raised "UnequalLengths" []
   | exn_msg _ Empty = raised "Empty" []
   | exn_msg _ Subscript = raised "Subscript" []
   | exn_msg _ (Fail msg) = raised "Fail" [msg]

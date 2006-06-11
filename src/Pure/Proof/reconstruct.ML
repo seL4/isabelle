@@ -149,7 +149,7 @@ fun make_constraints_cprf sg env cprf =
                 NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
             val prop'' = subst_TVars (map fst tvars @ map snd fmap ~~ Ts)
-              (forall_intr_vfs prop') handle UnequalLengths =>
+              (forall_intr_vfs prop') handle Library.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^
                   quote (fst (get_name_tags [] prop prf)))
           in (prop'', change_type (SOME Ts) prf, [], env', vTs) end;

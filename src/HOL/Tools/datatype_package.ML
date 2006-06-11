@@ -181,7 +181,7 @@ local
 fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
   | prep_var _ = NONE;
 
-fun prep_inst (concl, xs) =	(*exception UnequalLengths *)
+fun prep_inst (concl, xs) =	(*exception Library.UnequalLengths *)
   let val vs = InductAttrib.vars_of concl
   in List.mapPartial prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
 
@@ -199,7 +199,7 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
 	    in (#induction (the_datatype sign tn), "Induction rule for type " ^ tn) 
 	    end
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
-    val insts = List.concat (map prep_inst (concls ~~ varss)) handle UnequalLengths =>
+    val insts = List.concat (map prep_inst (concls ~~ varss)) handle Library.UnequalLengths =>
       error (rule_name ^ " has different numbers of variables");
   in occs_in_prems (inst_tac insts rule) (map #2 insts) i end)
   i state;

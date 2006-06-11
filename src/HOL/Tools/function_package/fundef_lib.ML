@@ -54,7 +54,7 @@ fun implies_elim_swp a b = implies_elim b a
 
 fun map3 _ [] [] [] = []
   | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs
-  | map3 _ _ _ _ = raise UnequalLengths;
+  | map3 _ _ _ _ = raise Library.UnequalLengths;
 
 
 

@@ -664,7 +664,7 @@ fun record_tr' sep mark record record_scheme unit context t =
                           val flds' = Sign.extern_const thy f :: map NameSpace.base fs;
                           val (args',more) = split_last args;
                          in (flds'~~args')@field_lst more end
-                         handle UnequalLengths => [("",t)])
+                         handle Library.UnequalLengths => [("",t)])
                    | NONE => [("",t)])
              | NONE => [("",t)])
        | _ => [("",t)])
@@ -776,7 +776,7 @@ fun record_type_tr' sep mark record record_scheme context t =
                                                 flds';
                               in flds''@field_lst more end
                               handle TYPE_MATCH     => [("",T)]
-                                   | UnequalLengths => [("",T)])
+                                   | Library.UnequalLengths => [("",T)])
                          | NONE => [("",T)])
                    | NONE => [("",T)])
              | NONE => [("",T)])
