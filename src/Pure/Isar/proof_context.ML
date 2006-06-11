@@ -79,9 +79,10 @@ sig
   val monomorphic: context -> term list -> term list
   val polymorphic: context -> term list -> term list
   val hidden_polymorphism: term -> typ -> (indexname * sort) list
-  val export_standard: context -> context -> thm -> thm
-  val exports: context -> context -> thm -> thm Seq.seq
   val goal_exports: context -> context -> thm -> thm Seq.seq
+  val exports: context -> context -> thm -> thm Seq.seq
+  val export: context -> context -> thm -> thm
+  val export_standard: context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -141,6 +142,7 @@ sig
   val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
+  val import: bool -> thm list -> context -> thm list * context
   val add_assms: export ->
     ((string * attribute list) * (string * string list) list) list ->
     context -> (bstring * thm list) list * context
@@ -792,16 +794,19 @@ fun common_exports is_goal inner outer =
       end)
   end;
 
-fun export_standard inner outer =
+val goal_exports = common_exports true;
+val exports = common_exports false;
+
+fun export inner outer =
   let val exp = common_exports false inner outer in
     fn th =>
       (case Seq.pull (exp th) of
-        SOME (th', _) => th' |> Drule.local_standard
-      | NONE => sys_error "Failed to export theorem")
+        SOME (th', _) => th'
+      | NONE => raise THM ("Failed to export theorem", 0, [th]))
   end;
 
-val exports = common_exports false;
-val goal_exports = common_exports true;
+fun export_standard inner outer =
+  export inner outer #> Drule.local_standard;
 
 
 
@@ -1230,6 +1235,31 @@ fun bind_fixes xs ctxt =
       | bind (Abs (x, T, t)) = Abs (x, T, bind t)
       | bind a = a;
   in (bind, ctxt') end;
+
+
+(* import -- fixes schematic variables *)
+
+fun import is_open ths ctxt =
+  let
+    val rename = if is_open then I else Syntax.internal;
+    val thy = theory_of ctxt;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+
+    val tvars = rev (fold (Term.add_tvars o Thm.full_prop_of) ths []);
+    val tfrees =
+      map TFree (Term.invent_names (used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
+    val vars =
+      rev (fold (Term.add_vars o Thm.full_prop_of) ths [])
+      |> map (apsnd (Term.instantiateT (tvars ~~ tfrees)));
+
+    val (xs, ctxt') = ctxt
+      |> fold (declare_term o Logic.mk_type) tfrees
+      |> invent_fixes (Term.variantlist (map (rename o #1 o #1) vars, []));
+
+    val instT = map (certT o TVar) tvars ~~ map certT tfrees;
+    val inst = map (cert o Var) vars ~~ map (cert o Free) (xs ~~ map #2 vars);
+  in (map (Thm.instantiate (instT, inst)) ths, ctxt') end;
 
 
 
