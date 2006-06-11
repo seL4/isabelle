@@ -449,7 +449,7 @@ val unfoldingP =
 val fixP =
   OuterSyntax.command "fix" "fix local variables (Skolem constants)"
     (K.tag_proof K.prf_asm)
-    (P.simple_fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix)));
+    (P.fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix)));
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions"
@@ -465,19 +465,20 @@ val defP =
   OuterSyntax.command "def" "local definition"
     (K.tag_proof K.prf_asm)
     (P.and_list1
-      (P.opt_thm_name ":" -- (P.name -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
+      (P.opt_thm_name ":" --
+        ((P.name -- P.opt_mixfix) -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def)));
 
 val obtainP =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
-    (P.parname -- Scan.optional (P.simple_fixes --| P.$$$ "where") [] -- P.statement
+    (P.parname -- Scan.optional (P.fixes --| P.$$$ "where") [] -- P.statement
       >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain x y z)));
 
 val guessP =
   OuterSyntax.command "guess" "wild guessing (unstructured)"
     (K.tag_proof K.prf_asm_goal)
-    (Scan.optional P.simple_fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
+    (Scan.optional P.fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
 
 val letP =
   OuterSyntax.command "let" "bind text variables"

@@ -39,14 +39,14 @@ similar, but derives these elements from the course of reasoning!
 
 signature OBTAIN =
 sig
-  val obtain: string -> (string * string option) list ->
+  val obtain: string -> (string * string option * mixfix) list ->
     ((string * Attrib.src list) * (string * string list) list) list
     -> bool -> Proof.state -> Proof.state
-  val obtain_i: string -> (string * typ option) list ->
+  val obtain_i: string -> (string * typ option * mixfix) list ->
     ((string * attribute list) * (term * term list) list) list
     -> bool -> Proof.state -> Proof.state
-  val guess: (string * string option) list -> bool -> Proof.state -> Proof.state
-  val guess_i: (string * typ option) list -> bool -> Proof.state -> Proof.state
+  val guess: (string * string option * mixfix) list -> bool -> Proof.state -> Proof.state
+  val guess_i: (string * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
   val statement: (string * ((string * 'typ option) list * 'term list)) list ->
     (('typ, 'term, 'fact) Element.ctxt list *
       ((string * Attrib.src list) * ('term * 'term list) list) list) *
@@ -112,7 +112,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     (*obtain vars*)
-    val (vars, vars_ctxt) = prep_vars (map Syntax.no_syn raw_vars) ctxt;
+    val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
     val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
     val xs = map #1 vars;
 
@@ -145,14 +145,14 @@ fun gen_obtain prep_att prep_vars prep_propp
     fun after_qed _ =
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
-        Proof.fix_i (xs ~~ map #2 vars)
+        Proof.fix_i (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
         #> Proof.assm_i (K (obtain_export ctxt parms rule)) asms));
   in
     state
     |> Proof.enter_forward
     |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, [])])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix_i [(thesisN, NONE)]
+    |> Proof.fix_i [(thesisN, NONE, NoSyn)]
     |> Proof.assume_i [((that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
@@ -231,8 +231,7 @@ fun gen_guess prep_vars raw_vars int state =
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val (thesis_var, thesis) = bind_judgment ctxt AutoBind.thesisN;
-    val vars = ctxt |> prep_vars (map Syntax.no_syn raw_vars)
-      |-> fold_map inferred_type |> polymorphic;
+    val vars = ctxt |> prep_vars raw_vars |-> fold_map inferred_type |> polymorphic;
 
     fun check_result th =
       (case Thm.prems_of th of
@@ -254,7 +253,7 @@ fun gen_guess prep_vars raw_vars int state =
           |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), []));
         val _ = not (null asms) orelse error "Trivial result -- nothing guessed";
       in
-        Proof.fix_i (map (apsnd SOME) parms)
+        Proof.fix_i (map2 (fn (x, T) => fn (_, mx) => (x, SOME T, mx)) parms vars)
         #> Proof.assm_i (K (obtain_export ctxt ts rule)) [(("", []), asms)]
         #> Proof.add_binds_i AutoBind.no_facts
       end;
@@ -270,7 +269,7 @@ fun gen_guess prep_vars raw_vars int state =
     state
     |> Proof.enter_forward
     |> Proof.begin_block
-    |> Proof.fix_i [(AutoBind.thesisN, NONE)]
+    |> Proof.fix_i [(AutoBind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal print_result (K I) (apsnd (rpair I))
       "guess" before_qed after_qed [(("", []), [Logic.mk_term goal, goal])]
