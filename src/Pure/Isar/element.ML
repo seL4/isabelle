@@ -60,6 +60,7 @@ sig
   val inst_ctxt: theory -> typ Symtab.table * term Symtab.table -> context_i -> context_i
   val satisfy_thm: witness list -> thm -> thm
   val satisfy_witness: witness list -> witness -> witness
+  val satisfy_ctxt: witness list -> context_i -> context_i
 end;
 
 structure Element: ELEMENT =
@@ -443,5 +444,7 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
   (#hyps (Thm.crep_thm thm));
 
 fun satisfy_witness witns = map_witness (apsnd (satisfy_thm witns));
+
+fun satisfy_ctxt witns = map_ctxt_values I I (satisfy_thm witns);
 
 end;
