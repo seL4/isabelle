@@ -1159,7 +1159,7 @@ done
 
 lemma natceiling_eq: "real n < x ==> x <= real n + 1 ==> natceiling x = n + 1"
   apply (unfold natceiling_def)
-  apply (subst nat_int [THEN sym]);back;
+  apply (simplesubst nat_int [THEN sym]) back back
   apply (subgoal_tac "nat(int n) + 1 = nat(int n + 1)")
   apply (erule ssubst)
   apply (subst eq_nat_nat_iff)
