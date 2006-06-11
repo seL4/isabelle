@@ -327,6 +327,9 @@ fun prop_tr' tm =
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
+    fun is_term (Const ("ProtoPure.term", _) $ _) = true
+      | is_term _ = false;
+
     fun tr' _ (t as Const _) = t
       | tr' Ts (t as Const ("_bound", _) $ u) =
           if is_prop Ts u then aprop t else t
@@ -338,7 +341,7 @@ fun prop_tr' tm =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
       | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
-          if is_prop Ts t then Const ("_mk_ofclass", T) $ tr' Ts t1
+          if is_prop Ts t andalso not (is_term t) then Const ("_mk_ofclass", T) $ tr' Ts t1
           else tr' Ts t1 $ tr' Ts t2
       | tr' Ts (t as t1 $ t2) =
           (if is_Const (Term.head_of t) orelse not (is_prop Ts t)
