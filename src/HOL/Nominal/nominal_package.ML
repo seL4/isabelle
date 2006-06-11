@@ -1078,6 +1078,19 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun make_pred fsT i T =
       Free (List.nth (pnames, i), fsT --> T --> HOLogic.boolT);
 
+    fun mk_fresh1 xs [] = []
+      | mk_fresh1 xs ((y as (_, T)) :: ys) = map (fn x => HOLogic.mk_Trueprop
+            (HOLogic.mk_not (HOLogic.mk_eq (Free y, Free x))))
+              (filter (fn (_, U) => T = U) (rev xs)) @
+          mk_fresh1 (y :: xs) ys;
+
+    fun mk_fresh2 xss [] = []
+      | mk_fresh2 xss ((p as (ys, _)) :: yss) = List.concat (map (fn y as (_, T) =>
+            map (fn (_, x as (_, U)) => HOLogic.mk_Trueprop
+              (Const ("Nominal.fresh", T --> U --> HOLogic.boolT) $ Free y $ Free x))
+                (rev xss @ yss)) ys) @
+          mk_fresh2 (p :: xss) yss;
+
     fun make_ind_prem fsT f k T ((cname, cargs), idxs) =
       let
         val recs = List.filter is_rec_type cargs;
@@ -1096,19 +1109,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           in list_all (z :: map (pair "x") Us, HOLogic.mk_Trueprop
             (make_pred fsT (body_index dt) U $ Bound l $ app_bnds (Free (s, T)) l))
           end;
-
-        fun mk_fresh1 xs [] = []
-          | mk_fresh1 xs ((y as (_, T)):: ys) = map (fn x => HOLogic.mk_Trueprop
-                (HOLogic.mk_not (HOLogic.mk_eq (Free y, Free x))))
-                  (filter (fn (_, U) => T = U) (rev xs)) @
-              mk_fresh1 (y :: xs) ys;
-
-        fun mk_fresh2 xss [] = []
-          | mk_fresh2 xss ((p as (ys, _)) :: yss) = List.concat (map (fn y as (_, T) =>
-                map (fn (_, x as (_, U)) => HOLogic.mk_Trueprop
-                  (Const ("Nominal.fresh", T --> U --> HOLogic.boolT) $ Free y $ Free x))
-                    (rev xss @ yss)) ys) @
-              mk_fresh2 (p :: xss) yss;
 
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
         val prems' = map (fn p as (_, T) => HOLogic.mk_Trueprop
@@ -1345,12 +1345,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (rec_result_Ts, rec_fn_Ts) = DatatypeProp.make_primrec_Ts descr' sorts' used;
 
-    val permTs = map mk_permT dt_atomTs;
-    val perms = map Free
-      (DatatypeProp.indexify_names (replicate (length permTs) "pi") ~~ permTs);
-
     val rec_set_Ts = map (fn (T1, T2) => rec_fn_Ts ---> HOLogic.mk_setT
-      (HOLogic.mk_prodT (T1, permTs ---> T2))) (recTs ~~ rec_result_Ts);
+      (HOLogic.mk_prodT (T1, T2))) (recTs ~~ rec_result_Ts);
 
     val big_rec_name = big_name ^ "_rec_set";
     val rec_set_names = map (Sign.full_name (Theory.sign_of thy10))
@@ -1365,57 +1361,30 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (* introduction rules for graph of recursion function *)
 
-    fun mk_fresh_fun (a, t) = Const ("Nominal.fresh_fun",
-      (fastype_of a --> fastype_of t) --> fastype_of t) $ lambda a t;
-
     fun make_rec_intr T rec_set ((rec_intr_ts, l), ((cname, cargs), idxs)) =
       let
-        fun mk_prem ((dts, (dt, U)), (j, k, prems, t1s, t2s, t3s, atoms)) =
-          let
-            val free1 = mk_Free "x" U (j + length dts);
-            val Us = map snd dts;
-            val xs = Us ~~ (j upto j + length dts - 1);
-            val frees = map (uncurry (mk_Free "x")) xs;
-            val frees' = map (uncurry (mk_Free "x'")) xs;
-            val frees'' = Us ~~ (frees ~~ frees');
-            val pis = map (fn (T, p) =>
-              case filter (equal T o fst) frees'' of
-                [] => p
-              | xs => HOLogic.mk_binop "List.op @" (p,
-                HOLogic.mk_list (HOLogic.mk_prod o snd)
-                  (HOLogic.mk_prodT (T, T)) xs))
-                  (dt_atomTs ~~ perms)
-          in (case dt of
-             DtRec m =>
-               let val free2 = mk_Free "y"
-                 (permTs ---> List.nth (rec_result_Ts, m)) k
-               in (j + length dts + 1, k + 1,
-                   HOLogic.mk_Trueprop
-                     (HOLogic.mk_mem (HOLogic.mk_prod
-                       (free1, free2),
-                         List.nth (rec_sets, m))) :: prems,
-                   frees @ free1 :: t1s,
-                   frees' @ foldr (mk_perm []) free1 pis :: t2s,
-                   list_comb (free2, pis) :: t3s,
-                   frees' @ atoms)
-               end
-           | _ => (j + length dts + 1, k, prems,
-               frees @ free1 :: t1s,
-               frees' @ foldr (mk_perm []) free1 pis :: t2s,
-               t3s,
-               frees' @ atoms))
-          end;
-
         val Ts = map (typ_of_dtyp descr'' sorts') cargs;
-        val (_, _, prems, t1s, t2s, t3s, atoms) = foldr mk_prem (1, 1, [], [], [], [], [])
-          (partition_cargs idxs (cargs ~~ Ts))
-
-      in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop (HOLogic.mk_mem
-        (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), t1s),
-          foldr (uncurry lambda)
-            (foldr mk_fresh_fun
-              (list_comb (List.nth (rec_fns, l), t2s @ t3s)) atoms)
-            perms), rec_set)))], l + 1)
+        val frees = map (fn i => "x" ^ string_of_int i) (1 upto length Ts) ~~ Ts;
+        val frees' = partition_cargs idxs frees;
+        val recs = List.mapPartial
+          (fn ((_, DtRec i), (_, x)) => SOME (i, x) | _ => NONE)
+          (partition_cargs idxs cargs ~~ frees');
+        val frees'' = map (fn i => "y" ^ string_of_int i) (1 upto length recs) ~~
+          map (fn (i, _) => List.nth (rec_result_Ts, i)) recs;
+        val prems = map (fn ((i, x), y) => HOLogic.mk_Trueprop
+          (HOLogic.mk_mem (HOLogic.mk_prod (Free x, Free y),
+             List.nth (rec_sets, i)))) (recs ~~ frees'');
+        val prems' =
+          List.concat (map (fn p as (_, T) => map (fn f => HOLogic.mk_Trueprop
+            (Const ("Nominal.fresh", T --> fastype_of f --> HOLogic.boolT) $
+              Free p $ f)) rec_fns) (List.concat (map fst frees'))) @
+          mk_fresh1 [] (List.concat (map fst frees')) @
+          mk_fresh2 [] frees'
+      in (rec_intr_ts @ [Logic.list_implies (prems' @ prems,
+        HOLogic.mk_Trueprop (HOLogic.mk_mem
+          (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), map Free frees),
+            list_comb (List.nth (rec_fns, l), map Free (frees @ frees''))),
+             rec_set)))], l + 1)
       end;
 
     val (rec_intr_ts, _) = Library.foldl (fn (x, (((d, d'), T), rec_set)) =>
