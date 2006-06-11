@@ -61,8 +61,9 @@ sig
   val opt_infix': token list -> mixfix * token list
   val opt_mixfix': token list -> mixfix * token list
   val const: token list -> (string * string * mixfix) * token list
-  val fixes: token list -> (string * string option * mixfix) list * token list
   val simple_fixes: token list -> (string * string option) list * token list
+  val fixes: token list -> (string * string option * mixfix) list * token list
+  val for_fixes: token list -> (string * string option * mixfix) list * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
   val propp: token list -> (string * string list) * token list
@@ -268,6 +269,8 @@ val simple_fixes = and_list1 params >> flat;
 val fixes =
   and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- mixfix >> (single o triple1) ||
     params >> map Syntax.no_syn) >> flat;
+
+val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
 
 
 (* terms *)
