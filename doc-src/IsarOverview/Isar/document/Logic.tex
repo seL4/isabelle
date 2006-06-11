@@ -794,6 +794,46 @@ trigger $\lor$-introduction, requiring us to prove \isa{A}. A simple
 %
 \endisadelimproof
 %
+\begin{isamarkuptext}%
+Too many names can easily clutter a proof.  We already learned
+about \isa{this} as a means of avoiding explicit names. Another
+handy device is to refer to a fact not by name but by contents: for
+example, writing \isa{{\isacharbackquote}A\ {\isasymor}\ B{\isacharbackquote}} (enclosing the formula in back quotes)
+refers to the fact \isa{A\ {\isasymor}\ B}
+without the need to name it. Here is a simple example, a revised version
+of the previous proof%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}B\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymor}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent which continues as before.
+
+Clearly, this device of quoting facts by contents is only advisable
+for small formulae. In such cases it is superior to naming because the
+reader immediately sees what the fact is without needing to search for
+it in the preceding proof text.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Predicate calculus%
 }
 \isamarkuptrue%
@@ -991,7 +1031,7 @@ powerset:%
 \ {\isachardoublequoteopen}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{obtain}\isamarkupfalse%
-\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ y\ \isakeyword{where}\ {\isachardoublequoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
 \ False\isanewline
@@ -1000,7 +1040,7 @@ powerset:%
 \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ fy\ \isacommand{show}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
 \ False\ \isacommand{by}\isamarkupfalse%
 \ blast\isanewline
 \ \ \ \ \isacommand{next}\isamarkupfalse%
@@ -1008,7 +1048,7 @@ powerset:%
 \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ fy\ \isacommand{show}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
 \ False\ \isacommand{by}\isamarkupfalse%
 \ blast\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
@@ -1064,7 +1104,7 @@ consumption, here is a more detailed version; the beginning up to
 \ {\isachardoublequoteopen}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{obtain}\isamarkupfalse%
-\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ y\ \isakeyword{where}\ {\isachardoublequoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
 \ False\isanewline
@@ -1077,7 +1117,7 @@ consumption, here is a more detailed version; the beginning up to
 \ simp\isanewline
 \ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequoteclose}\ \ \ \ \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
+{\isacharparenleft}simp\ add{\isacharcolon}\ {\isacharbackquoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isacharbackquoteclose}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
 \ False\ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ contradiction\isanewline
@@ -1090,7 +1130,7 @@ consumption, here is a more detailed version; the beginning up to
 \ simp\isanewline
 \ \ \ \ \ \ \isacommand{hence}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequoteclose}\ \ \ \ \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
+{\isacharparenleft}simp\ add{\isacharcolon}\ {\isacharbackquoteopen}{\isacharquery}S\ {\isacharequal}\ f\ y{\isacharbackquoteclose}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
 \ False\ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ contradiction\isanewline

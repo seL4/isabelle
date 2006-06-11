@@ -247,6 +247,7 @@ abbreviations:
 \end{center}
 *}
 
+
 subsection{*Avoiding duplication*}
 
 text{* So far our examples have been a bit unnatural: normally we want to
@@ -346,6 +347,24 @@ proof -
   qed
 qed
 
+text{* Too many names can easily clutter a proof.  We already learned
+about @{text this} as a means of avoiding explicit names. Another
+handy device is to refer to a fact not by name but by contents: for
+example, writing @{text "`A \<or> B`"} (enclosing the formula in back quotes)
+refers to the fact @{text"A \<or> B"}
+without the need to name it. Here is a simple example, a revised version
+of the previous proof *}
+
+lemma assumes "A \<or> B" shows "B \<or> A"
+proof -
+  from `A \<or> B` show ?thesis
+(*<*)oops(*>*)
+text{*\noindent which continues as before.
+
+Clearly, this device of quoting facts by contents is only advisable
+for small formulae. In such cases it is superior to naming because the
+reader immediately sees what the fact is without needing to search for
+it in the preceding proof text. *}
 
 subsection{*Predicate calculus*}
 
@@ -415,14 +434,14 @@ proof
   show "?S \<notin> range f"
   proof
     assume "?S \<in> range f"
-    then obtain y where fy: "?S = f y" ..
+    then obtain y where "?S = f y" ..
     show False
     proof cases
       assume "y \<in> ?S"
-      with fy show False by blast
+      with `?S = f y` show False by blast
     next
       assume "y \<notin> ?S"
-      with fy show False by blast
+      with `?S = f y` show False by blast
     qed
   qed
 qed
@@ -450,17 +469,17 @@ proof
   show "?S \<notin> range f"
   proof
     assume "?S \<in> range f"
-    then obtain y where fy: "?S = f y" ..
+    then obtain y where "?S = f y" ..
     show False
     proof cases
       assume "y \<in> ?S"
       hence "y \<notin> f y"   by simp
-      hence "y \<notin> ?S"    by(simp add:fy)
+      hence "y \<notin> ?S"    by(simp add: `?S = f y`)
       thus False         by contradiction
     next
       assume "y \<notin> ?S"
       hence "y \<in> f y"   by simp
-      hence "y \<in> ?S"    by(simp add:fy)
+      hence "y \<in> ?S"    by(simp add: `?S = f y`)
       thus False         by contradiction
     qed
   qed
