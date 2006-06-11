@@ -44,8 +44,8 @@ sig
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
-  val fix: (string * string option) list -> state -> state
-  val fix_i: (string * typ option) list -> state -> state
+  val fix: (string * string option * mixfix) list -> state -> state
+  val fix_i: (string * typ option * mixfix) list -> state -> state
   val assm: ProofContext.export ->
     ((string * Attrib.src list) * (string * string list) list) list -> state -> state
   val assm_i: ProofContext.export ->
@@ -54,8 +54,10 @@ sig
   val assume_i: ((string * attribute list) * (term * term list) list) list -> state -> state
   val presume: ((string * Attrib.src list) * (string * string list) list) list -> state -> state
   val presume_i: ((string * attribute list) * (term * term list) list) list -> state -> state
-  val def: ((string * Attrib.src list) * (string * (string * string list))) list -> state -> state
-  val def_i: ((string * attribute list) * (string * (term * term list))) list -> state -> state
+  val def: ((string * Attrib.src list) *
+    ((string * mixfix) * (string * string list))) list -> state -> state
+  val def_i: ((string * attribute list) *
+    ((string * mixfix) * (term * term list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val get_thmss: state -> (thmref * Attrib.src list) list -> thm list
@@ -517,7 +519,7 @@ local
 
 fun gen_fix add_fixes args =
   assert_forward
-  #> map_context (snd o add_fixes (map Syntax.no_syn args))
+  #> map_context (snd o add_fixes args)
   #> put_facts NONE;
 
 in
@@ -554,19 +556,21 @@ end;
 
 local
 
-fun gen_def fix prep_att prep_binds args state =
+fun gen_def gen_fix prep_att prep_binds args state =
   let
     val _ = assert_forward state;
     val thy = theory_of state;
 
-    val ((raw_names, raw_atts), (xs, raw_rhss)) = args |> split_list |>> split_list ||> split_list;
+    val ((raw_names, raw_atts), (vars, raw_rhss)) =
+      args |> split_list |>> split_list ||> split_list;
+    val xs = map #1 vars;
     val names = map (fn ("", x) => Thm.def_name x | (name, _) => name) (raw_names ~~ xs);
     val atts = map (map (prep_att thy)) raw_atts;
     val (rhss, state') = state |> map_context_result (prep_binds false (map swap raw_rhss));
     val eqs = LocalDefs.mk_def (context_of state') (xs ~~ rhss);
   in
     state'
-    |> fix (map (rpair NONE) xs)
+    |> gen_fix (map (fn (x, mx) => (x, NONE, mx)) vars)
     |> assm_i LocalDefs.def_export ((names ~~ atts) ~~ map (fn eq => [(eq, [])]) eqs)
   end;
 
@@ -762,15 +766,15 @@ fun goal_names target name names =
 
 local
 
-fun warn_tvars [] _ = ()
-  | warn_tvars vs state =
-      warning ("Goal statement contains unbound schematic type variable(s): " ^
-        commas (map (ProofContext.string_of_typ (context_of state) o TVar) vs));
-
-fun warn_vars [] _ = ()
-  | warn_vars vs state =
-      warning ("Goal statement contains unbound schematic variable(s): " ^
-        commas (map (ProofContext.string_of_term (context_of state) o Var) vs));
+fun implicit_vars dest add props =
+  let
+    val (explicit_vars, props') = take_prefix (can dest) props |>> map dest;
+    val vars = rev (subtract (op =) explicit_vars (fold add props []));
+    val _ =
+      if null vars then ()
+      else warning ("Goal statement contains unbound schematic variable(s): " ^
+        commas_quote (map (Term.string_of_vname o fst) vars));
+  in (rev vars, props') end;
 
 fun refine_terms n =
   refine (Method.Basic (K (Method.RAW_METHOD
@@ -793,10 +797,9 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       |> map_context_result (fn ctxt => swap (prepp (ctxt, raw_propp)));
     val props = flat propss;
 
-    val dest_var = Term.dest_Var o Logic.dest_term;
-    val explicit_vars = map dest_var (#1 (take_prefix (can dest_var) props));
-    val vars = rev ((fold o Term.fold_aterms) (fn Var v =>
-      if member (op =) explicit_vars v then I else insert (op =) v | _ => I) props []);
+    val (_, props') =
+      implicit_vars (dest_TVar o Logic.dest_type o Logic.dest_term) Term.add_tvars props;
+    val (vars, _) = implicit_vars (dest_Var o Logic.dest_term) Term.add_vars props';
 
     val propss' = map (Logic.mk_term o Var) vars :: propss;
     val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list2 propss'));
@@ -804,8 +807,6 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       fn results => map_context after_ctxt #> after_local results);
   in
     goal_state
-    |> tap (warn_tvars (fold Term.add_tvars props []))
-    |> tap (warn_vars vars)
     |> map_context (ProofContext.set_body true)
     |> put_goal (SOME (make_goal ((kind, propss'), [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
