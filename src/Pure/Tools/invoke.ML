@@ -69,20 +69,16 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
           val params'' = map (Thm.term_of o Drule.dest_term) res_params;
           val elems' = elems |> map (Element.inst_ctxt thy
             (Symtab.make (map #1 types ~~ types''), Symtab.make (map #1 params ~~ params'')));
-
           val prems'' = map2 Element.make_witness (maps Element.prems_of elems') res_prems;
+
           val Element.Notes notes = 
             Element.Notes (maps (Element.facts_of thy) elems')
             |> Element.satisfy_ctxt prems''
             |> Element.map_ctxt_values I I (ProofContext.export ctxt'' ctxt);
-              (* FIXME export typs/terms *)
-
-          val _ = print notes;
-
+            (* FIXME export typs/terms *)
           val notes' = notes
             |> Attrib.map_facts (Attrib.attribute_i thy)
             |> map (fn ((a, atts), facts) => ((a, atts @ more_atts), facts));
-
         in
           ctxt
           |> ProofContext.sticky_prefix prfx
@@ -92,7 +88,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
         end) #> Proof.put_facts NONE);
   in
     state'
-    |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_schematic_i
+    |> Proof.local_goal (K (K ())) (K I) ProofContext.bind_propp_schematic_i
       "invoke" NONE after_qed propp
     |> Element.refine_witness
     |> Seq.hd

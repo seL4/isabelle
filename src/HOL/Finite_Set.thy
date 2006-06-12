@@ -499,10 +499,9 @@ lemmas (in ACIf) ACI = AC idem idem2
 text{* Interpretation of locales: *}
 
 interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
-by(auto intro: ACf.intro ACe_axioms.intro add_assoc add_commute)
+  by(auto intro: ACf.intro ACe_axioms.intro add_assoc add_commute)
 
 interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
-  apply -
    apply (fast intro: ACf.intro mult_assoc mult_commute)
   apply (fastsimp intro: ACe_axioms.intro mult_assoc mult_commute)
   done
@@ -511,7 +510,7 @@ interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
 lemma image_less_Suc: "h ` {i. i < Suc m} = insert (h m) (h ` {i. i < m})"
-by (auto simp add: less_Suc_eq) 
+  by (auto simp add: less_Suc_eq) 
 
 lemma insert_image_inj_on_eq:
      "[|insert (h m) A = h ` {i. i < Suc m}; h m \<notin> A; 
