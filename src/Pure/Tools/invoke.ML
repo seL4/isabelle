@@ -77,7 +77,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
             |> Element.map_ctxt_values I I (ProofContext.export ctxt'' ctxt);
               (* FIXME export typs/terms *)
 
-          val _ = PolyML.print notes;
+          val _ = print notes;
 
           val notes' = notes
             |> Attrib.map_facts (Attrib.attribute_i thy)
