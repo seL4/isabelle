@@ -67,6 +67,7 @@ sig
   val cert_prop: context -> term -> term
   val cert_term_pats: typ -> context -> term list -> term list
   val cert_prop_pats: context -> term list -> term list
+  val declare_typ: typ -> context -> context
   val declare_term: term -> context -> context
   val infer_type: context -> string -> typ
   val inferred_param: string -> context -> (string * typ) * context
@@ -613,13 +614,12 @@ val ins_types = fold_aterms
     | Var v => Vartab.update v
     | _ => I);
 
-val ins_sorts = fold_types (fold_atyps
+val ins_sorts = fold_atyps
   (fn TFree (x, S) => Vartab.update ((x, ~1), S)
     | TVar v => Vartab.update v
-    | _ => I));
+    | _ => I);
 
-val ins_used = fold_term_types (fn t =>
-  fold_atyps (fn TFree (x, _) => insert (op =) x | _ => I));
+val ins_used = fold_atyps (fn TFree (x, _) => insert (op =) x | _ => I);
 
 val ins_occs = fold_term_types (fn t =>
   fold_atyps (fn TFree (x, _) => Symtab.update_list (x, t) | _ => I));
@@ -631,10 +631,16 @@ fun ins_skolem def_ty = fold_rev (fn (x, x') =>
 
 in
 
+fun declare_typ T = map_defaults (fn (types, sorts, used, occ) =>
+ (types,
+  ins_sorts T sorts,
+  ins_used T used,
+  occ));
+
 fun declare_syntax t = map_defaults (fn (types, sorts, used, occ) =>
  (ins_types t types,
-  ins_sorts t sorts,
-  ins_used t used,
+  fold_types ins_sorts t sorts,
+  fold_types ins_used t used,
   occ));
 
 fun declare_var (x, opt_T, mx) ctxt =
@@ -838,28 +844,10 @@ end;
 
 (* simult_matches *)
 
-fun simult_matches _ (_, []) = []
-  | simult_matches ctxt (t, pats) =
-      let
-        fun fail () = error "Pattern match failed!";
-
-        val pairs = map (rpair t) pats;
-        val maxidx = fold (fn (t1, t2) => fn i =>
-          Int.max (Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2), i)) pairs ~1;
-        val envs = Unify.smash_unifiers (theory_of ctxt, Envir.empty maxidx,
-          map swap pairs);    (*prefer assignment of variables from patterns*)
-        val env =
-          (case Seq.pull envs of
-            NONE => fail ()
-          | SOME (env, _) => env);    (*ignore further results*)
-        val domain =
-          filter_out Term.is_replaced_dummy_pattern (map #1 (Drule.vars_of_terms (map #1 pairs)));
-        val _ =    (*may not assign variables from text*)
-          if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
-          then () else fail ();
-        fun norm_bind (xi, (_, t)) =
-          if member (op =) domain xi then SOME (xi, Envir.norm_term env t) else NONE;
-      in map_filter norm_bind (Envir.alist_of env) end;
+fun simult_matches ctxt (t, pats) =
+  (case Seq.pull (Unify.matchers (theory_of ctxt) (map (rpair t) pats)) of
+    NONE => error "Pattern match failed!"
+  | SOME (env, _) => map (apsnd snd) (Envir.alist_of env));
 
 
 (* add_binds(_i) *)
@@ -1254,7 +1242,7 @@ fun import is_open ths ctxt =
       |> map (apsnd (Term.instantiateT (tvars ~~ tfrees)));
 
     val (xs, ctxt') = ctxt
-      |> fold (declare_term o Logic.mk_type) tfrees
+      |> fold declare_typ tfrees
       |> invent_fixes (Term.variantlist (map (rename o #1 o #1) vars, []));
 
     val instT = map (certT o TVar) tvars ~~ map certT tfrees;
