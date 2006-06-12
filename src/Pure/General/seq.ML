@@ -19,10 +19,10 @@ sig
   val try: ('a -> 'b) -> 'a -> 'b seq
   val hd: 'a seq -> 'a
   val tl: 'a seq -> 'a seq
-  val chop: int * 'a seq -> 'a list * 'a seq
+  val chop: int -> 'a seq -> 'a list * 'a seq
   val list_of: 'a seq -> 'a list
   val of_list: 'a list -> 'a seq
-  val append: 'a seq * 'a seq -> 'a seq
+  val append: 'a seq -> 'a seq -> 'a seq
   val mapp: ('a -> 'b) -> 'a seq -> 'b seq -> 'b seq
   val interleave: 'a seq * 'a seq -> 'a seq
   val filter: ('a -> bool) -> 'a seq -> 'a seq
@@ -88,12 +88,12 @@ fun try f x =
 
 (*the list of the first n elements, paired with rest of sequence;
   if length of list is less than n, then sequence had less than n elements*)
-fun chop (n, xq) =
+fun chop n xq =
   if n <= 0 then ([], xq)
   else
     (case pull xq of
       NONE => ([], xq)
-    | SOME (x, xq') => apfst (Library.cons x) (chop (n - 1, xq')));
+    | SOME (x, xq') => apfst (Library.cons x) (chop (n - 1) xq'));
 
 (*conversion from sequence to list*)
 fun list_of xq =
@@ -106,7 +106,7 @@ fun of_list xs = fold_rev cons xs empty;
 
 
 (*sequence append:  put the elements of xq in front of those of yq*)
-fun append (xq, yq) =
+fun append xq yq =
   let
     fun copy s =
       make (fn () =>
@@ -147,7 +147,7 @@ fun flat xqq =
   make (fn () =>
     (case pull xqq of
       NONE => NONE
-    | SOME (xq, xqq') => pull (append (xq, flat xqq'))));
+    | SOME (xq, xqq') => pull (append xq (flat xqq'))));
 
 (*map the function f over the sequence, making a new sequence*)
 fun map f xq =
@@ -193,7 +193,7 @@ fun commute [] = single []
             (case pull (commute xqs) of
               NONE => NONE
             | SOME (xs, xsq) =>
-                SOME (x :: xs, append (map (Library.cons x) xsq, commute (xq' :: xqs))))));
+                SOME (x :: xs, append (map (Library.cons x) xsq) (commute (xq' :: xqs))))));
 
 fun map_list f = commute o List.map f;
 
@@ -212,7 +212,7 @@ fun op ORELSE (f, g) x =
   | some => make (fn () => some));
 
 fun op APPEND (f, g) x =
-  append (f x, make (fn () => pull (g x)));
+  append (f x) (make (fn () => pull (g x)));
 
 fun EVERY fs = foldr THEN succeed fs;
 fun FIRST fs = foldr ORELSE fail fs;
