@@ -275,12 +275,12 @@ theorem jumpNestingOk_eval:
      and wt: "Env\<turnstile>t\<Colon>T" 
      and wf: "wf_prog G"
      and  G: "prg Env = G"
-     and no_jmp: "\<forall> j. abrupt s0 = Some (Jump j) \<longrightarrow> j \<in> jmps"
+     and no_jmp: "\<forall>j. abrupt s0 = Some (Jump j) \<longrightarrow> j \<in> jmps"
                     (is "?Jmp jmps s0")
-  shows  "?Jmp jmps s1 \<and> 
+  shows  "(\<forall>j. fst s1 = Some (Jump j) \<longrightarrow> j \<in> jmps) \<and>
                  (normal s1 \<longrightarrow>
-                  (\<forall> w upd. v=In2 (w,upd)  
-                   \<longrightarrow>   (\<forall> s j val. 
+                  (\<forall> w upd. v=In2 (w,upd)
+                   \<longrightarrow>   (\<forall> s j val.
                           abrupt s \<noteq> Some (Jump j) \<longrightarrow>
                           abrupt (upd val s) \<noteq> Some (Jump j))))"
         (is "?Jmp jmps s1 \<and> ?Upd v s1")  
