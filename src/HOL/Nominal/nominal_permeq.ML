@@ -245,6 +245,39 @@ fun finite_guess_tac tactical ss i st =
     end
     handle Subscript => Seq.empty
 
+val supports_fresh_rule = thm "supports_fresh";
+
+fun fresh_guess_tac tactical ss i st =
+    let 
+	val goal = List.nth(cprems_of st, i-1)
+    in
+      case Logic.strip_assums_concl (term_of goal) of
+          _ $ (Const ("Nominal.fresh", Type ("fun", [T, _])) $ _ $ t) => 
+          let
+            val cert = Thm.cterm_of (sign_of_thm st);
+            val ps = Logic.strip_params (term_of goal);
+            val Ts = rev (map snd ps);
+            val vs = collect_vars 0 t [];
+            val s = foldr (fn (v, s) =>
+                HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
+              HOLogic.unit vs;
+            val s' = list_abs (ps,
+              Const ("Nominal.supp", fastype_of1 (Ts, s) --> (HOLogic.mk_setT T)) $ s);
+            val supports_fresh_rule' = Thm.lift_rule goal supports_fresh_rule;
+            val _ $ (_ $ S $ _) =
+              Logic.strip_assums_concl (hd (prems_of supports_fresh_rule'));
+            val supports_fresh_rule'' = Drule.cterm_instantiate
+              [(cert (head_of S), cert s')] supports_fresh_rule'
+          in
+            (tactical ("guessing of the right set that supports the goal",
+                      EVERY [compose_tac (false, supports_fresh_rule'', 3) i(*,
+                             asm_full_simp_tac ss (i+1),
+                             supports_tac tactical ss i*)])) st
+          end
+        | _ => Seq.empty
+    end
+    handle Subscript => Seq.empty
+
 in             
 
 fun simp_meth_setup tac =
@@ -259,6 +292,8 @@ val supports_meth           = simp_meth_setup (supports_tac NO_DEBUG_tac);
 val supports_meth_debug     = simp_meth_setup (supports_tac DEBUG_tac);
 val finite_gs_meth          = simp_meth_setup (finite_guess_tac NO_DEBUG_tac);
 val finite_gs_meth_debug    = simp_meth_setup (finite_guess_tac DEBUG_tac);
+val fresh_gs_meth           = simp_meth_setup (fresh_guess_tac NO_DEBUG_tac);
+val fresh_gs_meth_debug     = simp_meth_setup (fresh_guess_tac DEBUG_tac);
 
 end
 
