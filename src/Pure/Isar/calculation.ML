@@ -84,7 +84,7 @@ val sym_del =
 (* symmetric *)
 
 val symmetric = Thm.rule_attribute (fn x => fn th =>
-  (case Seq.chop (2, Drule.multi_resolves [th] (#2 (#1 (CalculationData.get x)))) of
+  (case Seq.chop 2 (Drule.multi_resolves [th] (#2 (#1 (CalculationData.get x)))) of
     ([th'], _) => th'
   | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
   | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));

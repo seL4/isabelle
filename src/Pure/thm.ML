@@ -951,7 +951,7 @@ fun equal_elim th1 th2 =
   Resulting sequence may contain multiple elements if the tpairs are
     not all flex-flex. *)
 fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
-  Unify.smash_unifiers (Theory.deref thy_ref, Envir.empty maxidx, tpairs)
+  Unify.smash_unifiers (Theory.deref thy_ref) tpairs (Envir.empty maxidx)
   |> Seq.map (fn env =>
       if Envir.is_empty env then th
       else
@@ -1426,7 +1426,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
              if Envir.is_empty env then (tpairs, (Bs @ As, C))
              else
              let val ntps = map (pairself normt) tpairs
-             in if Envir.above (smax, env) then
+             in if Envir.above env smax then
                   (*no assignments in state; normalize the rule only*)
                   if lifted
                   then (ntps, (Bs @ map (norm_term_skip env nlift) As, C))
@@ -1439,7 +1439,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
              Thm{thy_ref = thy_ref,
                  der = Pt.infer_derivs
                    ((if Envir.is_empty env then I
-                     else if Envir.above (smax, env) then
+                     else if Envir.above env smax then
                        (fn f => fn der => f (Pt.norm_proof' env der))
                      else
                        curry op oo (Pt.norm_proof' env))

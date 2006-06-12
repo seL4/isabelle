@@ -89,7 +89,7 @@ fun flatten t =
   let
     (* analogous to RS, but using matching instead of resolution *)
     fun matchres tha i thb =
-      case Seq.chop (2, biresolution true [(false,tha)] i thb) of
+      case Seq.chop 2 (biresolution true [(false,tha)] i thb) of
           ([th],_) => th
         | ([],_)   => raise THM("matchres: no match", i, [tha,thb])
         |      _   => raise THM("matchres: multiple unifiers", i, [tha,thb])

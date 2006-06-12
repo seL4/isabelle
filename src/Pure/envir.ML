@@ -21,7 +21,7 @@ sig
   val update: ((indexname * typ) * term) * env -> env
   val empty: int -> env
   val is_empty: env -> bool
-  val above: int * env -> bool
+  val above: env -> int -> bool
   val vupdate: ((indexname * typ) * term) * env -> env
   val alist_of: env -> (indexname * (typ * term)) list
   val norm_term: env -> term -> term
@@ -104,12 +104,9 @@ fun empty m = Envir{maxidx=m, asol=Vartab.empty, iTs=Vartab.empty};
 fun is_empty (Envir {asol, iTs, ...}) = Vartab.is_empty asol andalso Vartab.is_empty iTs;
 
 (*Determine if the least index updated exceeds lim*)
-fun above (lim, Envir {asol, iTs, ...}) =
-  (case (Vartab.min_key asol, Vartab.min_key iTs) of
-     (NONE, NONE) => true
-   | (SOME (_, i), NONE) => i > lim
-   | (NONE, SOME (_, i')) => i' > lim
-   | (SOME (_, i), SOME (_, i')) => i > lim andalso i' > lim);
+fun above (Envir {asol, iTs, ...}) lim =
+  (case Vartab.min_key asol of SOME (_, i) => i > lim | NONE => true) andalso
+  (case Vartab.min_key iTs of SOME (_, i) => i > lim | NONE => true);
 
 (*Update, checking Var-Var assignments: try to suppress higher indexes*)
 fun vupdate ((aU as (a, U), t), env as Envir {iTs, ...}) = case t of

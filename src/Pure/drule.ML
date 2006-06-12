@@ -434,7 +434,7 @@ fun implies_intr_hyps th =
   This step can lose information.*)
 fun flexflex_unique th =
   if null (tpairs_of th) then th else
-    case Seq.chop (2, flexflex_rule th) of
+    case Seq.chop 2 (flexflex_rule th) of
       ([th],_) => th
     | ([],_)   => raise THM("flexflex_unique: impossible constraints", 0, [th])
     |      _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
@@ -538,7 +538,7 @@ fun assume_ax thy sP =
 
 (*Resolution: exactly one resolvent must be produced.*)
 fun tha RSN (i,thb) =
-  case Seq.chop (2, biresolution false [(false,tha)] i thb) of
+  case Seq.chop 2 (biresolution false [(false,tha)] i thb) of
       ([th],_) => th
     | ([],_)   => raise THM("RSN: no unifiers", i, [tha,thb])
     |      _   => raise THM("RSN: multiple unifiers", i, [tha,thb]);

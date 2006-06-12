@@ -125,7 +125,7 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
              Envir.alist_of env);
           val initenv = Envir.Envir {asol = Vartab.empty,
                                      iTs = typinsttab, maxidx = ix2};
-          val useq = (Unify.smash_unifiers (sgn,initenv,[a]))
+          val useq = Unify.smash_unifiers sgn [a] initenv
 	            handle UnequalLengths => Seq.empty
 		               | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () =
@@ -380,9 +380,8 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i th =
                 (case searchf searchinfo occ lhs of
                    SkipMore i => occ_search i moreasms
                  | SkipSeq ss =>
-                   Seq.append (Seq.map (Library.pair asminfo)
-                                       (Seq.flat ss),
-                               occ_search 1 moreasms))
+                   Seq.append (Seq.map (Library.pair asminfo) (Seq.flat ss))
+                               (occ_search 1 moreasms))
                               (* find later substs also *)
           in
             occ_search skipocc asmpreps |> Seq.maps (apply_subst_in_asm i th r)

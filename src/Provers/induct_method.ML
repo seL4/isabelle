@@ -228,8 +228,8 @@ fun guess_instance rule i st =
         val rule' = Thm.incr_indexes (maxidx + 1) rule;
         val concl = Logic.strip_assums_concl goal;
       in
-        Unify.smash_unifiers (thy, Envir.empty (#maxidx (Thm.rep_thm rule')),
-          [(Thm.concl_of rule', concl)])
+        Unify.smash_unifiers thy [(Thm.concl_of rule', concl)]
+          (Envir.empty (#maxidx (Thm.rep_thm rule')))
         |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
       end
   end handle Subscript => Seq.empty;

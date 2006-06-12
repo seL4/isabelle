@@ -102,8 +102,7 @@ fun (tac1 ORELSE tac2) st =
   Like ORELSE, but allows backtracking on both tac1 and tac2.
   The tactic tac2 is not applied until needed.*)
 fun (tac1 APPEND tac2) st =
-  Seq.append(tac1 st,
-                  Seq.make(fn()=> Seq.pull (tac2 st)));
+  Seq.append (tac1 st) (Seq.make(fn()=> Seq.pull (tac2 st)));
 
 (*Like APPEND, but interleaves results of tac1 and tac2.*)
 fun (tac1 INTLEAVE tac2) st =

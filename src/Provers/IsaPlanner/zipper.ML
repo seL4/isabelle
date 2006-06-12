@@ -321,7 +321,7 @@ functor ZipperFUN(C : TRM_CTXT)
             (case lzy z
               of NONE => NONE
                | SOME (hz,mz) => 
-                 SOME (hz, Seq.append (mz, Seq.make (lzyl more))))
+                 SOME (hz, Seq.append mz (Seq.make (lzyl more))))
         and lzy z = lzyl (fsearch z) ()
       in Seq.make o lzyl o fsearch end;
 
@@ -335,7 +335,7 @@ functor ZipperFUN(C : TRM_CTXT)
           | lzyl a ((LookIn z) :: more) () =
             (case lzy a z
               of NONE => lzyl a more ()
-               | SOME(hz,mz) => SOME(hz,Seq.append(mz,Seq.make(lzyl a more))))
+               | SOME(hz,mz) => SOME(hz,Seq.append mz (Seq.make(lzyl a more))))
         and lzy a z = 
             let val (a2, slist) = (fsearch a z) in lzyl a2 slist () end
 
@@ -351,7 +351,7 @@ functor ZipperFUN(C : TRM_CTXT)
           | lzyl ((a, LookIn z) :: more) () =
             (case lzyl (fsearch a z) () of 
                NONE => lzyl more ()
-             | SOME (z,mz) => SOME (z,Seq.append(mz, Seq.make (lzyl more))))
+             | SOME (z,mz) => SOME (z,Seq.append mz (Seq.make (lzyl more))))
       in Seq.make (lzyl (fsearch a0 z)) end;
 
 

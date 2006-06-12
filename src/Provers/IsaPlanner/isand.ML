@@ -124,8 +124,7 @@ i.e. solves some subgoal of th that is identical to sol.
 fun solve_with sol th = 
     let fun solvei 0 = Seq.empty
           | solvei i = 
-            Seq.append (bicompose false (false,sol,0) i th, 
-                        solvei (i - 1))
+            Seq.append (bicompose false (false,sol,0) i th) (solvei (i - 1))
     in
       solvei (Thm.nprems_of th)
     end;

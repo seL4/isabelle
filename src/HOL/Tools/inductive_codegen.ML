@@ -225,7 +225,7 @@ fun modes_of modes t =
 datatype indprem = Prem of term list * term | Sidecond of term;
 
 fun select_mode_prem thy modes vs ps =
-  find_first (isSome o snd) (ps ~~ map
+  find_first (is_some o snd) (ps ~~ map
     (fn Prem (us, t) => find_first (fn Mode ((_, is), _) =>
           let
             val (in_ts, out_ts) = get_args is 1 us;
@@ -574,7 +574,7 @@ and mk_ind_def thy defs gr dep names module modecs factorcs intrs =
              [(split_prod [] ((the o AList.lookup (op =) factors) name) t, prems)]) clauses
         end;
 
-      fun check_set (Const (s, _)) = s mem names orelse isSome (get_clauses thy s)
+      fun check_set (Const (s, _)) = s mem names orelse is_some (get_clauses thy s)
         | check_set (Var ((s, _), _)) = s mem arg_vs
         | check_set _ = false;
 
@@ -746,13 +746,13 @@ end;
 infix 5 :->;
 infix 3 ++;
 
-fun s :-> f = Seq.flat (Seq.map f s);
+fun s :-> f = Seq.maps f s;
 
-fun s1 ++ s2 = Seq.append (s1, s2);
+fun s1 ++ s2 = Seq.append s1 s2;
 
 fun ?? b = if b then Seq.single () else Seq.empty;
 
-fun ?! s = isSome (Seq.pull s);    
+fun ?! s = is_some (Seq.pull s);
 
 fun equal__1 x = Seq.single x;
 
