@@ -456,6 +456,10 @@ as greatest fixed-point.
 * Library: added theory AssocList which implements (finite) maps as
 association lists.
 
+* New proof method "evaluation" for efficiently solving a goal
+  (i.e. a boolean expression) by compiling it to ML. The goal is
+  "proved" (via the oracle "Evaluation") if it evaluates to True.
+
 
 *** HOL-Complex ***
 
