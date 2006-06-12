@@ -2929,7 +2929,6 @@ method_setup finite_guess_debug =
   {* finite_gs_meth_debug *}
   {* tactic for deciding whether something has finite support including debuging facilities *}
 
-(* FIXME: this code has not yet been checked in
 method_setup fresh_guess =
   {* fresh_gs_meth *}
   {* tactic for deciding whether an atom is fresh for something*}
@@ -2937,6 +2936,5 @@ method_setup fresh_guess =
 method_setup fresh_guess_debug =
   {* fresh_gs_meth_debug *}
   {* tactic for deciding whether an atom is fresh for something including debuging facilities *}
-*)
 
 end
