@@ -105,7 +105,7 @@ fun compose_hhf tha i thb =
 fun compose_hhf_tac th i = PRIMSEQ (compose_hhf th i);
 
 fun comp_hhf tha thb =
-  (case Seq.chop (2, compose_hhf tha 1 thb) of
+  (case Seq.chop 2 (compose_hhf tha 1 thb) of
     ([th], _) => th
   | ([], _) => raise THM ("comp_hhf: no unifiers", 1, [tha, thb])
   | _  => raise THM ("comp_hhf: multiple unifiers", 1, [tha, thb]));
@@ -144,7 +144,7 @@ fun prove_multi thy xs asms props tac =
       | SOME res => res);
     val [results] =
       Conjunction.elim_precise [length props] (finish res) handle THM (msg, _, _) => err msg;
-    val _ = Pattern.matches_seq thy (map (Thm.term_of o cert_safe) props) (map Thm.prop_of results)
+    val _ = Unify.matches_list thy (map (Thm.term_of o cert_safe) props) (map Thm.prop_of results)
       orelse err ("Proved a different theorem: " ^ Sign.string_of_term thy (Thm.prop_of res));
   in
     results |> map

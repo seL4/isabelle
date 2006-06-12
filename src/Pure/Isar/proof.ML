@@ -483,7 +483,7 @@ fun conclude_goal state goal propss =
 
     val (results, th) = `(Conjunction.elim_precise (map length propss)) (Goal.conclude goal)
       handle THM _ => error ("Lost goal structure:\n" ^ string_of_thm goal);
-    val _ = Pattern.matches_seq thy (flat propss) (map Thm.prop_of (flat results)) orelse
+    val _ = Unify.matches_list thy (flat propss) (map Thm.prop_of (flat results)) orelse
       error ("Proved a different theorem:\n" ^ string_of_thm th);
   in results end;
 
