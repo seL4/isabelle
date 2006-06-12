@@ -229,8 +229,8 @@ functor ZipperFUN(C : TRM_CTXT)
   fun mktop t = (t, C.empty) : T
 
   val mk = I;
-  val set_trm = apfst o K;
-  val set_ctxt = apsnd o K;
+  fun set_trm x = apfst (K x);
+  fun set_ctxt x = apsnd (K x);
 
   fun goto_top (z as (t,c)) = 
       if C.is_empty c then z else (C.apply c t, C.empty);
@@ -243,11 +243,11 @@ functor ZipperFUN(C : TRM_CTXT)
   val ctxt = snd;
   val trm = fst;
 
-  val nty_ctxt = C.nty_ctxt o ctxt;
-  val ty_ctxt = C.ty_ctxt o ctxt;
+  fun nty_ctxt x = C.nty_ctxt (ctxt x);
+  fun ty_ctxt x = C.ty_ctxt (ctxt x);
 
-  val depth_of_ctxt = C.depth o ctxt;
-  val map_on_ctxt = apsnd o C.map;
+  fun depth_of_ctxt x = C.depth (ctxt x);
+  fun map_on_ctxt x = apsnd (C.map x);
   fun fold_on_ctxt f = C.fold f o ctxt;
 
   fun omove_up (t,(d::c)) = SOME (D.apply d t, c)
