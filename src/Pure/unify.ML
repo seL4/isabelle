@@ -650,11 +650,11 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
           in ((x, i - offset), (decr_indexesT T', decr_indexes t')) end;
 
         fun result env =
-          (warning "FIXME"; if Envir.above env maxidx then
+          if Envir.above env maxidx then
             SOME (Envir.Envir {maxidx = maxidx,
-              iTs = Vartab.make (map (PolyML.print o (norm_tvar env)) pat_tvars),
-              asol = Vartab.make (map (PolyML.print o (norm_var env)) pat_vars)})
-          else NONE);
+              iTs = Vartab.make (map (norm_tvar env) pat_tvars),
+              asol = Vartab.make (map (norm_var env) pat_vars)})
+          else NONE;
 
         val empty = Envir.empty maxidx';
       in

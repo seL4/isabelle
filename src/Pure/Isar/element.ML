@@ -310,7 +310,7 @@ fun instantiate_frees thy subst =
 
 fun hyps_rule rule th =
   let
-    val cterm_rule = Thm.reflexive #> rule #> Thm.cprop_of #> Drule.dest_equals #> #1;
+    val cterm_rule = Drule.mk_term #> rule #> Drule.dest_term;
     val {hyps, ...} = Thm.crep_thm th;
   in
     Drule.implies_elim_list
