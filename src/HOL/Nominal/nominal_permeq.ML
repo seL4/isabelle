@@ -268,11 +268,16 @@ fun fresh_guess_tac tactical ss i st =
               Logic.strip_assums_concl (hd (prems_of supports_fresh_rule'));
             val supports_fresh_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_fresh_rule'
+            val fresh_def   = thm "Nominal.fresh_def";
+	    val fresh_prod  = thm "Nominal.fresh_prod";
+            val fresh_unit  = thm "Nominal.fresh_unit";
+	    val simps       = [symmetric fresh_def,fresh_prod,fresh_unit]
           in
             (tactical ("guessing of the right set that supports the goal",
-                      EVERY [compose_tac (false, supports_fresh_rule'', 3) i(*,
-                             asm_full_simp_tac ss (i+1),
-                             supports_tac tactical ss i*)])) st
+                      EVERY [compose_tac (false, supports_fresh_rule'', 3) i,
+                             asm_full_simp_tac (ss addsimps simps) (i+2),
+                             asm_full_simp_tac ss (i+1), 
+                             supports_tac tactical ss i])) st
           end
         | _ => Seq.empty
     end

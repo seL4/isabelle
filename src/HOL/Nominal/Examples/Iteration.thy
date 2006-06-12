@@ -4,13 +4,12 @@ theory Iteration
 imports "../Nominal"
 begin
 
-
 atom_decl name
 
 nominal_datatype lam = Var "name"
                      | App "lam" "lam"
                      | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
- 
+
 types 'a f1_ty  = "name\<Rightarrow>('a::pt_name)"
       'a f2_ty  = "'a\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
       'a f3_ty  = "name\<Rightarrow>'a\<Rightarrow>('a::pt_name)"
@@ -46,8 +45,7 @@ lemma it_total:
   assumes a: "finite ((supp (f1,f2,f3))::name set)"
   and     b: "\<exists>(a::name). a\<sharp>f3 \<and> (\<forall>(y::'a::pt_name). a\<sharp>f3 a y)"
   shows "\<exists>r. (t,r)\<in>it f1 f2 f3"
-apply(rule_tac lam.induct'[of "\<lambda>_. (supp (f1,f2,f3))::name set" 
-                              "\<lambda>z. \<lambda>t. \<exists>r. (t,r)\<in>it f1 f2 f3", simplified])
+apply(rule_tac lam.induct'[of "\<lambda>_. (supp (f1,f2,f3))" "\<lambda>z. \<lambda>t. \<exists>r. (t,r)\<in>it f1 f2 f3", simplified])
 apply(fold fresh_def)
 apply(auto intro: it.intros a)
 done
@@ -119,17 +117,9 @@ next
       apply(perm_simp add: calc_atm fresh_prod)
       done      
     have fs3: "c\<sharp>f3 a1 r1" using fresh it1 a
-      apply(rule_tac S="supp (f3,a1,r1)" in supports_fresh)
-      apply(supports_simp)
-      apply(simp add: supp_prod fs_name1 it_fin_supp[OF a])
-      apply(simp add: fresh_def[symmetric] fresh_prod fresh_atm)
-      done
+      by (fresh_guess add: supp_prod fs_name1 it_fin_supp[OF a] fresh_atm)
     have fs4: "c\<sharp>f3 a2 r2" using fresh it2 a
-      apply(rule_tac S="supp (f3,a2,r2)" in supports_fresh)
-      apply(supports_simp)
-      apply(simp add: supp_prod fs_name1 it_fin_supp[OF a])
-      apply(simp add: fresh_def[symmetric] fresh_prod fresh_atm)
-      done
+      by (fresh_guess add: supp_prod fs_name1 it_fin_supp[OF a] fresh_atm)
     have "f3 a1 r1 = [(a1,c)]\<bullet>(f3 a1 r1)" using fs1 fs3 by perm_simp
     also have "\<dots> = f3 c ([(a1,c)]\<bullet>r1)" using f1 fresh by (perm_simp add: calc_atm fresh_prod)
     also have "\<dots> = f3 c ([(a2,c)]\<bullet>r2)" using eq4 by simp

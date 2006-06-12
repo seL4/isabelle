@@ -235,6 +235,10 @@ lemma fresh_singleton:
   shows "a\<sharp>{x} = a\<sharp>x"
   by (simp add: fresh_def supp_singleton)
 
+lemma fresh_unit:
+  shows "a\<sharp>()"
+  by (simp add: fresh_def supp_unit)
+
 lemma fresh_prod:
   fixes a :: "'x"
   and   x :: "'a"
