@@ -196,7 +196,7 @@ fun classical_rule rule =
         |> Seq.hd
         |> Drule.zero_var_indexes
         |> Thm.put_name_tags (Thm.get_name_tags rule);
-    in if Drule.weak_eq_thm (rule, rule'') then rule else rule'' end
+    in if Drule.equiv_thm (rule, rule'') then rule else rule'' end
   else rule;
 
 
