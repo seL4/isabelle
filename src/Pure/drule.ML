@@ -58,7 +58,7 @@ sig
   val cterm_instantiate: (cterm*cterm)list -> thm -> thm
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
-  val weak_eq_thm: thm * thm -> bool
+  val equiv_thm: thm * thm -> bool
   val size_of_thm: thm -> int
   val reflexive_thm: thm
   val symmetric_thm: thm
@@ -116,6 +116,7 @@ sig
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
+  val unvarify: thm -> thm
   val protect: cterm -> cterm
   val protectI: thm
   val protectD: thm
@@ -136,8 +137,6 @@ sig
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
-  val unvarifyT: thm -> thm
-  val unvarify: thm -> thm
   val tvars_intr_list: string list -> thm -> (string * (indexname * sort)) list * thm
   val incr_indexes: thm -> thm -> thm
   val incr_indexes2: thm -> thm -> thm -> thm
@@ -471,7 +470,7 @@ val local_standard =
   Similar code in type/freeze_thaw*)
 
 fun freeze_thaw_robust th =
- let val fth = freezeT th
+ let val fth = Thm.freezeT th
      val {prop, tpairs, thy, ...} = rep_thm fth
  in
    case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
@@ -493,7 +492,7 @@ fun freeze_thaw_robust th =
   The Frees created from Vars have nice names. FIXME: does not check for 
   clashes with variables in the assumptions, so delete and use freeze_thaw_robust instead?*)
 fun freeze_thaw th =
- let val fth = freezeT th
+ let val fth = Thm.freezeT th
      val {prop, tpairs, thy, ...} = rep_thm fth
  in
    case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
@@ -604,8 +603,9 @@ val del_rule = remove eq_thm_prop;
 fun add_rule th = cons th o del_rule th;
 val merge_rules = Library.merge eq_thm_prop;
 
-(*weak_eq_thm: ignores variable renaming and (some) type variable renaming*)
-val weak_eq_thm = Thm.eq_thm o pairself (forall_intr_vars o freezeT);
+(*pattern equivalence*)
+fun equiv_thm ths =
+  Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
 
 
 (*** Meta-Rewriting Rules ***)
@@ -942,12 +942,32 @@ fun equal_abs_elim ca eqth =
 fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 
 
+(* global schematic variables *)
+
+fun unvarify th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+
+    val prop = Thm.full_prop_of th;
+    val _ = map Logic.unvarify (prop :: Thm.hyps_of th)
+      handle TERM (msg, _) => raise THM (msg, 0, [th]);
+
+    val instT0 = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
+    val instT = map (fn (v, T) => (certT (TVar v), certT T)) instT0;
+    val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
+      let val T' = Term.instantiateT instT0 T
+      in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
+  in Thm.instantiate (instT, inst) th end;
+
+
 (** protected propositions and embedded terms **)
 
 local
   val A = cert (Free ("A", propT));
-  val prop_def = #1 (freeze_thaw ProtoPure.prop_def);
-  val term_def = #1 (freeze_thaw ProtoPure.term_def);
+  val prop_def = unvarify ProtoPure.prop_def;
+  val term_def = unvarify ProtoPure.term_def;
 in
   val protect = Thm.capply (cert Logic.protectC);
   val protectI = store_thm "protectI" (PureThy.kind_rule PureThy.internalK (standard
@@ -1059,25 +1079,6 @@ fun rename_bvars' xs thm =
       ([], prop') => equal_elim (reflexive (cterm_of thy prop')) thm
     | _ => error "More names than abstractions in theorem"
   end;
-
-
-
-(* unvarify(T) *)
-
-(*assume thm in standard form, i.e. no frees, 0 var indexes*)
-
-fun unvarifyT thm =
-  let
-    val cT = Thm.ctyp_of (Thm.theory_of_thm thm);
-    val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) (tvars_of thm);
-  in instantiate' tfrees [] thm end;
-
-fun unvarify raw_thm =
-  let
-    val thm = unvarifyT raw_thm;
-    val ct = Thm.cterm_of (Thm.theory_of_thm thm);
-    val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) (vars_of thm);
-  in instantiate' [] frees thm end;
 
 
 (* tvars_intr_list *)
