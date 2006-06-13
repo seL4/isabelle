@@ -316,22 +316,20 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
 
 (* add_cases_induct *)
 
-fun add_cases_induct infos induction =
+fun add_cases_induct infos induction thy =
   let
-    val n = length (HOLogic.dest_concls (Thm.concl_of induction));
-    fun proj i = ProjectRule.project induction (i + 1);
+    val inducts = ProjectRule.projections (ProofContext.init thy) induction;
 
     fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
-      [(("", proj index), [InductAttrib.induct_type name]),
+      [(("", nth inducts index), [InductAttrib.induct_type name]),
        (("", exhaustion), [InductAttrib.cases_type name])];
     fun unnamed_rule i =
-      (("", proj i), [PureThy.kind_internal, InductAttrib.induct_type ""]);
+      (("", nth inducts i), [PureThy.kind_internal, InductAttrib.induct_type ""]);
   in
-    PureThy.add_thms
+    thy |> PureThy.add_thms
       (List.concat (map named_rules infos) @
-        map unnamed_rule (length infos upto n - 1)) #> snd #>
-    PureThy.add_thmss [(("inducts",
-      map (proj #> standard #> RuleCases.save induction) (0 upto n - 1)), [])] #> snd
+        map unnamed_rule (length infos upto length inducts - 1)) |> snd
+    |> PureThy.add_thmss [(("inducts", inducts), [])] |> snd
   end;
 
 
@@ -801,7 +799,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       ||>> apply_theorems [raw_induction];
     val sign = Theory.sign_of thy1;
 
-    val induction' = freezeT induction;
+    val induction' = Thm.freezeT induction;
 
     fun err t = error ("Ill-formed predicate in induction rule: " ^
       Sign.string_of_term sign t);

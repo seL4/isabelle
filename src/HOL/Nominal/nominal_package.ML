@@ -133,7 +133,7 @@ val allE_Nil = read_instantiate_sg (the_context()) [("x", "[]")] allE;
 val meta_spec = thm "meta_spec";
 
 fun projections rule =
-  ProjectRule.projections rule
+  ProjectRule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
   |> map (standard #> RuleCases.save rule);
 
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =

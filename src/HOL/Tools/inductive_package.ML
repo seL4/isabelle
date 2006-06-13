@@ -436,17 +436,19 @@ fun add_cases_induct no_elim no_induct coind names elims induct =
     val cases_specs = if no_elim then [] else map2 cases_spec names elims;
 
     val induct_att = if coind then InductAttrib.coinduct_set else InductAttrib.induct_set;
-    val induct_specs =
-      if no_induct then I
+    fun induct_specs thy =
+      if no_induct then thy
       else
         let
-          val rules = names ~~ map (ProjectRule.project induct) (1 upto length names);
+          val ctxt = ProofContext.init thy;
+          val rules = names ~~ ProjectRule.projects ctxt (1 upto length names) induct;
           val inducts = map (RuleCases.save induct o standard o #2) rules;
         in
-          PureThy.add_thms (rules |> map (fn (name, th) =>
-            (("", th), [RuleCases.consumes 1, induct_att name]))) #> snd #>
-          PureThy.add_thmss
-            [((coind_prefix coind ^ "inducts", inducts), [RuleCases.consumes 1])] #> snd
+          thy
+          |> PureThy.add_thms (rules |> map (fn (name, th) =>
+            (("", th), [RuleCases.consumes 1, induct_att name]))) |> snd
+          |> PureThy.add_thmss
+            [((coind_prefix coind ^ "inducts", inducts), [RuleCases.consumes 1])] |> snd
         end;
   in Library.apply cases_specs #> induct_specs end;
 
