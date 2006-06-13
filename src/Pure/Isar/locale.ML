@@ -1961,7 +1961,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
       Attrib.attribute_i Drule.standard
       (fn (name, ps) => put_global_registration (name, map Logic.varify ps))
       (fn (n, ps) => add_global_witness (n, map Logic.varify ps) o
-        Element.map_witness (fn (t, th) => (Logic.legacy_unvarify t, Drule.freeze_all th))
+        Element.map_witness (fn (t, th) => (Logic.legacy_unvarify t, Drule.unvarify th))
         (* FIXME *)) x;
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss

@@ -2029,7 +2029,7 @@ fun new_specification thyname thmname names hth thy =
 				 names'
 				 (thy1,th)
 	    val _ = ImportRecorder.add_specification names' th
-	    val res' = Drule.freeze_all res
+	    val res' = Drule.unvarify res
 	    val hth = HOLThm(rens,res')
 	    val rew = rewrite_hol4_term (concl_of res') thy'
 	    val th  = equal_elim rew res'
