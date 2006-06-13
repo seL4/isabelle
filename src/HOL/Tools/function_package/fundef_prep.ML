@@ -91,7 +91,7 @@ fun mk_clause_info thy (names:naming_context) (no, (qs,gs,lhs,rhs)) (GI,tree) RI
 	val localize = instantiate ([], cvqs ~~ cqs) 
 					   #> fold implies_elim_swp ags
 
-	val GI = freezeT GI
+	val GI = Thm.freezeT GI
 	val lGI = localize GI
 
 	val ordcqs' = map (cterm_of thy o Pattern.rewrite_term thy ((fvar,h)::(qs ~~ qs')) [] o var_to_free) (term_vars (prop_of GI))
@@ -100,7 +100,7 @@ fun mk_clause_info thy (names:naming_context) (no, (qs,gs,lhs,rhs)) (GI,tree) RI
 	    let
 		fun mk_var0 (v,T) = Var ((v,0),T)
 
-		val RI = freezeT RI
+		val RI = Thm.freezeT RI
 		val lRI = localize RI
 		val lRIq = fold_rev (forall_intr o cterm_of thy o mk_var0) RIvs lRI
 		val plRI = prop_of lRI

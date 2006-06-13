@@ -31,8 +31,7 @@ struct
 val trace_bound = ref 25  (*tracing starts above this depth, 0 for full*)
 and search_bound = ref 30 (*unification quits above this depth*)
 and trace_simp = ref false  (*print dpairs before calling SIMPL*)
-and trace_types = ref false (*announce potential incompleteness
-          of type unification*)
+and trace_types = ref false (*announce potential incompleteness of type unification*)
 
 type binderlist = (string*typ) list;
 
@@ -650,7 +649,7 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
           in ((x, i - offset), (decr_indexesT T', decr_indexes t')) end;
 
         fun result env =
-          if Envir.above env maxidx then
+          if Envir.above env maxidx then   (* FIXME proper handling of generated vars!? *)
             SOME (Envir.Envir {maxidx = maxidx,
               iTs = Vartab.make (map (norm_tvar env) pat_tvars),
               asol = Vartab.make (map (norm_var env) pat_vars)})
@@ -658,7 +657,8 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
 
         val empty = Envir.empty maxidx';
       in
-        Seq.append (pattern_matchers thy pairs empty)
+        Seq.append
+          (pattern_matchers thy pairs empty)
           (Seq.map_filter result (smash_unifiers thy pairs' empty))
       end;
 

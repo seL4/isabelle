@@ -51,7 +51,7 @@ fun add_simps label moreatts (MutualPart {f_name, ...}, psimps) (names, attss) t
 fun fundef_afterqed congs curry_info name data names atts thmss thy =
     let
 	val (complete_thm :: compat_thms) = map hd thmss
-	val fundef_data = FundefMutual.mk_partial_rules_mutual thy congs curry_info data (freezeT complete_thm) (map freezeT compat_thms)
+	val fundef_data = FundefMutual.mk_partial_rules_mutual thy congs curry_info data (Thm.freezeT complete_thm) (map Thm.freezeT compat_thms)
 	val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, ...} = fundef_data
         val Mutual {parts, ...} = curry_info
 

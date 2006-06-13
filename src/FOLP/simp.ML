@@ -222,7 +222,7 @@ fun add_norm_tags congs =
 
 fun normed_rews congs =
   let val add_norms = add_norm_tags congs;
-  in fn thm => map (varifyT o add_norms o mk_trans) (mk_rew_rules(freezeT thm))
+  in fn thm => map (varifyT o add_norms o mk_trans) (mk_rew_rules(Thm.freezeT thm))
   end;
 
 fun NORM norm_lhs_tac = EVERY'[rtac red2 , norm_lhs_tac, refl_tac];

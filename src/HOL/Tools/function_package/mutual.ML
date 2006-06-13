@@ -156,7 +156,7 @@ fun recover_mutual_psimp thy RST streeR all_f_defs (MutualPart {f_def, pthR, ...
 
 	val x = Free ("x", RST)
 
-	val f_def_inst = instantiate' [] (map (SOME o cterm_of thy) args) (freezeT f_def) (* FIXME: freezeT *)
+	val f_def_inst = instantiate' [] (map (SOME o cterm_of thy) args) (Thm.freezeT f_def) (* FIXME: freezeT *)
     in
 	reflexive (cterm_of thy (lambda x (SumTools.mk_proj streeR pthR x)))  (*  PR(x) == PR(x) *)
 		  |> (fn it => combination it (plain_eq RS eq_reflection))

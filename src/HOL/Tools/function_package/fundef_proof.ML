@@ -439,7 +439,7 @@ fun mk_nest_term_rule thy names clauses =
 	val (hyps,cases) = fold (mk_nest_term_case thy names R' ihyp_a) clauses ([],[])
     in
 	R_elim
-	    |> freezeT
+	    |> Thm.freezeT
 	    |> instantiate' [] [SOME (cterm_of thy (mk_prod (z,x))), SOME z_acc]
 	    |> curry op COMP (assume z_ltR_x)
 	    |> fold_rev (curry op COMP) cases
@@ -473,9 +473,9 @@ fun mk_partial_rules thy congs data complete_thm compat_thms =
 	val compat_thms = map Drule.close_derivation compat_thms
 (*	val _ = Output.debug "  done"*)
 
-	val complete_thm_fr = freezeT complete_thm
-	val compat_thms_fr = map freezeT compat_thms
-	val f_def_fr = freezeT f_def
+	val complete_thm_fr = Thm.freezeT complete_thm
+	val compat_thms_fr = map Thm.freezeT compat_thms
+	val f_def_fr = Thm.freezeT f_def
 
 	val instantiate_and_def = (instantiate' [SOME (ctyp_of thy domT), SOME (ctyp_of thy ranT)] 
 						[SOME (cterm_of thy f), SOME (cterm_of thy G)])
@@ -505,8 +505,8 @@ fun mk_partial_rules thy congs data complete_thm compat_thms =
 	val var_order = get_var_order thy clauses
 	val compat_store = store_compat_thms n (var_order ~~ compat_thms_fr)
 
-	val R_cases = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const R)))))) |> freezeT
-	val G_cases = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const G)))))) |> freezeT
+	val R_cases = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const R)))))) |> Thm.freezeT
+	val G_cases = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const G)))))) |> Thm.freezeT
 
 	val _ = Output.debug "Proving cases for unique existence..."
 	val (ex1s, values) = split_list (map (mk_uniqueness_case thy names ihyp ih_intro G_cases compat_store clauses repLemmas) clauses)

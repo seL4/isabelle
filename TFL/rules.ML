@@ -266,7 +266,7 @@ fun DISJ_CASESL disjth thl =
          | DL th (th1::rst) =
             let val tm = #2(D.dest_disj(D.drop_prop(cconcl th)))
              in DISJ_CASES th th1 (DL (ASSUME tm) rst) end
-   in DL (freezeT disjth) (organize eq tml thl)
+   in DL (Thm.freezeT disjth) (organize eq tml thl)
    end;
 
 

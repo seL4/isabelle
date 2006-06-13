@@ -83,7 +83,7 @@ fun proc_exprop axiomatic cos arg =
 end
 
 fun add_specification axiomatic cos arg =
-    arg |> apsnd freezeT
+    arg |> apsnd Thm.freezeT
         |> proc_exprop axiomatic cos
         |> apsnd standard
 
@@ -223,7 +223,7 @@ fun process_spec axiomatic cos alt_props thy =
                         then writeln "specification"
                         else ()
             in
-                arg |> apsnd freezeT
+                arg |> apsnd Thm.freezeT
                     |> process_all (zip3 alt_names rew_imps frees)
             end
             fun post_proc (context, th) =
