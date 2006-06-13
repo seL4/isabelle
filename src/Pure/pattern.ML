@@ -23,6 +23,7 @@ sig
   val first_order_match: theory -> term * term
     -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val matches: theory -> term * term -> bool
+  val equiv: theory -> term * term -> bool
   val matches_subterm: theory -> term * term -> bool
   val unify: theory -> term * term -> Envir.env -> Envir.env
   val first_order: term -> bool
@@ -404,6 +405,8 @@ let
 in mtch [] po envir' handle Pattern => first_order_match thy po envir' end;
 
 fun matches thy po = (match thy po (Vartab.empty, Vartab.empty); true) handle MATCH => false;
+
+fun equiv thy (t, u) = matches thy (t, u) andalso matches thy (u, t);
 
 
 (* Does pat match a subterm of obj? *)
