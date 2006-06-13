@@ -555,7 +555,8 @@ fun varify tm =
     (fn Free (x, T) => Var ((x, 0), T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | t => t)
-  |> Term.map_term_types varifyT;
+  |> Term.map_term_types varifyT
+  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 fun unvarify tm =
   tm |> Term.map_aterms
@@ -563,7 +564,8 @@ fun unvarify tm =
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])
       | t => t)
-  |> Term.map_term_types unvarifyT;
+  |> Term.map_term_types unvarifyT
+  handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 val legacy_varifyT = Term.map_atyps (fn TFree (a, S) => TVar ((a, 0), S) | T => T);
 val legacy_unvarifyT = Term.map_atyps (fn TVar ((a, 0), S) => TFree (a, S) | T => T);
