@@ -41,6 +41,7 @@ sig
   val string_of_term: context -> term -> string
   val string_of_thm: context -> thm -> string
   val used_types: context -> string list
+
   val default_type: context -> string -> typ option
   val read_typ: context -> string -> typ
   val read_typ_syntax: context -> string -> typ
@@ -67,8 +68,9 @@ sig
   val cert_prop: context -> term -> term
   val cert_term_pats: typ -> context -> term list -> term list
   val cert_prop_pats: context -> term list -> term list
-  val declare_typ: typ -> context -> context
+  val declare_type: typ -> context -> context
   val declare_term: term -> context -> context
+  val invent_types: sort list -> context -> (string * sort) list * context
   val infer_type: context -> string -> typ
   val inferred_param: string -> context -> (string * typ) * context
   val inferred_fixes: context -> (string * typ) list * context
@@ -143,6 +145,8 @@ sig
   val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
+  val import_types: bool -> typ list -> context -> typ list * context
+  val import_terms: bool -> term list -> context -> term list * context
   val import: bool -> thm list -> context -> thm list * context
   val add_assms: export ->
     ((string * attribute list) * (string * string list) list) list ->
@@ -605,7 +609,7 @@ val cert_prop_pats = map o gen_cert true true false;
 end;
 
 
-(* declare terms *)
+(* declare types/terms *)
 
 local
 
@@ -619,7 +623,8 @@ val ins_sorts = fold_atyps
     | TVar v => Vartab.update v
     | _ => I);
 
-val ins_used = fold_atyps (fn TFree (x, _) => insert (op =) x | _ => I);
+val ins_used = fold_atyps
+  (fn TFree (x, _) => insert (op =) x | _ => I);
 
 val ins_occs = fold_term_types (fn t =>
   fold_atyps (fn TFree (x, _) => Symtab.update_list (x, t) | _ => I));
@@ -631,7 +636,7 @@ fun ins_skolem def_ty = fold_rev (fn (x, x') =>
 
 in
 
-fun declare_typ T = map_defaults (fn (types, sorts, used, occ) =>
+fun declare_type T = map_defaults (fn (types, sorts, used, occ) =>
  (types,
   ins_sorts T sorts,
   ins_used T used,
@@ -657,6 +662,15 @@ fun declare_term t ctxt =
       ins_occs t occ));
 
 end;
+
+
+(* invent types *)
+
+fun invent_types Ss ctxt =
+  let
+    val tfrees = Term.invent_names (used_types ctxt) "'a" (length Ss) ~~ Ss;
+    val ctxt' = fold (declare_type o TFree) tfrees ctxt;
+  in (tfrees, ctxt') end;
 
 
 (* inferred types of parameters *)
@@ -754,17 +768,19 @@ fun generalize inner outer ts =
   in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
 
 
-(* polymorphic terms *)
+(* monomorphic vs. polymorphic terms *)
+
+fun monomorphic_inst ts ctxt =
+  let
+    val tvars = rev (fold Term.add_tvars ts []);
+    val (tfrees, ctxt') = invent_types (map #2 tvars) ctxt;
+  in (tvars ~~ map TFree tfrees, ctxt') end;
 
 fun monomorphic ctxt ts =
-  let
-    val tvars = fold Term.add_tvars ts [];
-    val tfrees = map TFree (rename_frees ctxt ts (map (pair "'" o #2) tvars));
-    val specialize = Term.instantiate ((tvars ~~ tfrees), []);
-  in map specialize ts end;
+  map (Term.instantiate (#1 (monomorphic_inst ts (fold declare_term ts ctxt)), [])) ts;
 
 fun polymorphic ctxt ts =
-  generalize (ctxt |> fold declare_term ts) ctxt ts;
+  generalize (fold declare_term ts ctxt) ctxt ts;
 
 fun hidden_polymorphism t T =
   let
@@ -1227,27 +1243,33 @@ fun bind_fixes xs ctxt =
 
 (* import -- fixes schematic variables *)
 
+fun import_inst is_open ts ctxt =
+  let
+    val (instT, ctxt') = monomorphic_inst ts ctxt;
+    val vars = map (apsnd (Term.instantiateT instT)) (rev (fold Term.add_vars ts []));
+    val rename = if is_open then I else Syntax.internal;
+    val (xs, ctxt'') = invent_fixes (Term.variantlist (map (rename o #1 o #1) vars, [])) ctxt';
+    val inst = vars ~~ map Free (xs ~~ map #2 vars);
+  in ((instT, inst), ctxt'') end;
+
+fun import_terms is_open ts ctxt =
+  let val (inst, ctxt') = import_inst is_open ts ctxt
+  in (map (Term.instantiate inst) ts, ctxt') end;
+
+fun import_types is_open Ts ctxt =
+  import_terms is_open (map Logic.mk_type Ts) ctxt
+  |>> map Logic.dest_type;
+
 fun import is_open ths ctxt =
   let
-    val rename = if is_open then I else Syntax.internal;
     val thy = theory_of ctxt;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
-
-    val tvars = rev (fold (Term.add_tvars o Thm.full_prop_of) ths []);
-    val tfrees =
-      map TFree (Term.invent_names (used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
-    val vars =
-      rev (fold (Term.add_vars o Thm.full_prop_of) ths [])
-      |> map (apsnd (Term.instantiateT (tvars ~~ tfrees)));
-
-    val (xs, ctxt') = ctxt
-      |> fold declare_typ tfrees
-      |> invent_fixes (Term.variantlist (map (rename o #1 o #1) vars, []));
-
-    val instT = map (certT o TVar) tvars ~~ map certT tfrees;
-    val inst = map (cert o Var) vars ~~ map (cert o Free) (xs ~~ map #2 vars);
-  in (map (Thm.instantiate (instT, inst)) ths, ctxt') end;
+    val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
+    val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
+    val inst' = map (fn (v, t) => (cert (Var v), cert t)) inst;
+    val ths' = map (Thm.instantiate (instT', inst')) ths;
+  in (ths', ctxt') end;
 
 
 
