@@ -51,7 +51,7 @@ by (induct xs rule: msort.induct) simp_all
 theorem multiset_of_msort: "multiset_of (msort xs) = multiset_of xs"
 apply (induct xs rule: msort.induct)
   apply simp_all
-apply (subst union_commute) back
+apply (subst union_commute)
 apply (simp del:multiset_of_append add:multiset_of_append[symmetric] union_assoc)
 apply (simp add: union_ac)
 done
