@@ -578,6 +578,9 @@ fun extr_typ thy thm = case dest_fun thy thm
 fun tap_typ thy [] = NONE
   | tap_typ thy (thms as (thm::_)) = SOME (extr_typ thy thm, thms);
 
+fun unvarify thy thms =
+  #1 (ProofContext.import true thms (ProofContext.init thy));
+
 fun preprocess thy thms =
   let
     fun burrow_thms f [] = []
@@ -618,8 +621,7 @@ fun preprocess thy thms =
         #> debug_msg (string_of_thm)
         #> Drule.zero_var_indexes
        )
-    |> map Drule.unvarifyT
-    |> map Drule.unvarify
+    |> unvarify thy
     |> tap_typ thy
   end;
 
