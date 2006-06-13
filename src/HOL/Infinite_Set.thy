@@ -11,7 +11,9 @@ begin
 
 subsection "Infinite Sets"
 
-text {* Some elementary facts about infinite sets, by Stefan Merz. *}
+text {* Some elementary facts about infinite sets, mostly by Stefan Merz.
+Beware! Because "infinite" merely abbreviates a negation, these lemmas may
+not work well with "blast". *}
 
 abbreviation
   infinite :: "'a set \<Rightarrow> bool"
@@ -22,9 +24,8 @@ text {*
   from an infinite set, the result is still infinite.
 *}
 
-lemma infinite_nonempty:
-  "\<not> (infinite {})"
-  by simp
+lemma infinite_imp_nonempty: "infinite S ==> S \<noteq> {}"
+  by auto
 
 lemma infinite_remove:
   "infinite S \<Longrightarrow> infinite (S - {a})"

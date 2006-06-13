@@ -698,7 +698,7 @@ proof -
   proof (rule_tac ccontr, drule_tac notnotD)
     assume "UNIV-{a} = ({}::'x set)"
     with inf2 have "infinite ({}::'x set)" by simp
-    then show "False" by (auto intro: infinite_nonempty)
+    then show "False" by auto
   qed
   hence "\<exists>(b::'x). b\<in>(UNIV-{a})" by blast
   then obtain b::"'x" where mem2: "b\<in>(UNIV-{a})" by blast
