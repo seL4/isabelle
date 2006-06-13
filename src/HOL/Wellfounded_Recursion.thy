@@ -86,24 +86,21 @@ apply (erule wf_trancl)
 done
 
 
-subsubsection{*Minimal-element characterization of well-foundedness*}
-
-lemma lemma1: "wf r ==> x:Q --> (EX z:Q. ALL y. (y,z):r --> y~:Q)"
-apply (unfold wf_def)
-apply (drule spec)
-apply (erule mp [THEN spec], blast)
-done
-
-lemma lemma2: "(ALL Q x. x:Q --> (EX z:Q. ALL y. (y,z):r --> y~:Q)) ==> wf r"
-apply (unfold wf_def, clarify)
-apply (drule_tac x = "{x. ~ P x}" in spec, blast)
-done
-
-lemma wf_eq_minimal: "wf r = (ALL Q x. x:Q --> (EX z:Q. ALL y. (y,z):r --> y~:Q))"
-by (blast intro!: lemma1 lemma2)
-
 subsubsection{*Other simple well-foundedness results*}
 
+
+text{*Minimal-element characterization of well-foundedness*}
+lemma wf_eq_minimal: "wf r = (\<forall>Q x. x\<in>Q --> (\<exists>z\<in>Q. \<forall>y. (y,z)\<in>r --> y\<notin>Q))"
+proof (intro iffI strip)
+  fix Q::"'a set" and x
+  assume "wf r" and "x \<in> Q"
+  thus "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
+    by (unfold wf_def, 
+        blast dest: spec [of _ "%x. x\<in>Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y,z) \<in> r \<longrightarrow> y\<notin>Q)"]) 
+next
+  assume "\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)"
+  thus "wf r" by (unfold wf_def, force)
+qed
 
 text{*Well-foundedness of subsets*}
 lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
@@ -114,6 +111,12 @@ done
 text{*Well-foundedness of the empty relation*}
 lemma wf_empty [iff]: "wf({})"
 by (simp add: wf_def)
+
+lemma wf_Int1: "wf r ==> wf (r Int r')"
+by (erule wf_subset, rule Int_lower1)
+
+lemma wf_Int2: "wf r ==> wf (r' Int r)"
+by (erule wf_subset, rule Int_lower2)
 
 text{*Well-foundedness of insert*}
 lemma wf_insert [iff]: "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)"

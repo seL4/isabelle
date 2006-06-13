@@ -750,6 +750,26 @@ lemma nat_mult_1_right: "n * (1::nat) = n"
 
 subsection {* Additional theorems about "less than" *}
 
+text{*An induction rule for estabilishing binary relations*}
+lemma less_Suc_induct: 
+  assumes less:  "i < j"
+     and  step:  "!!i. P i (Suc i)"
+     and  trans: "!!i j k. P i j ==> P j k ==> P i k"
+  shows "P i j"
+proof -
+  from less obtain k where j: "j = Suc(i+k)" by (auto dest: less_imp_Suc_add) 
+  have "P i (Suc(i+k))"
+  proof (induct k)
+    case 0 
+    show ?case by (simp add: step) 
+  next
+    case (Suc k)
+    thus ?case by (auto intro: prems)
+  qed
+  thus "P i j" by (simp add: j) 
+qed
+
+
 text {* A [clumsy] way of lifting @{text "<"}
   monotonicity to @{text "\<le>"} monotonicity *}
 lemma less_mono_imp_le_mono:

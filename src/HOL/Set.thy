@@ -785,6 +785,9 @@ lemma singleton_conv2 [simp]: "{x. a = x} = {a}"
 lemma diff_single_insert: "A - {x} \<subseteq> B ==> x \<in> A ==> A \<subseteq> insert x B"
   by blast
 
+lemma doubleton_eq_iff: "({a,b} = {c,d}) = (a=c & b=d | a=d & b=c)"
+  by (blast elim: equalityE)
+
 
 subsubsection {* Unions of families *}
 

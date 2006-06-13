@@ -236,6 +236,9 @@ lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
    apply (subst insert_Diff, simp_all)
   done
 
+lemma finite_Diff_singleton [simp]: "finite (A - {a}) = finite A"
+  by simp
+
 
 text {* Image and Inverse Image over Finite Sets *}
 
