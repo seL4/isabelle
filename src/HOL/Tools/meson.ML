@@ -72,7 +72,7 @@ fun resolve1 (tha,thb) = Seq.hd (biresolution false [(false,tha)] 1 thb);
 (*raises exception if no rules apply -- unlike RL*)
 fun tryres (th, rls) = 
   let fun tryall [] = raise THM("tryres", 0, th::rls)
-        | tryall (rl::rls) = (resolve1(th,rl) handle Option => tryall rls)
+        | tryall (rl::rls) = (resolve1(th,rl) handle Option.Option => tryall rls)
   in  tryall rls  end;
   
 (*Permits forward proof from rules that discharge assumptions*)
@@ -84,7 +84,7 @@ fun forward_res nf st =
 
 (*Are any of the constants in "bs" present in the term?*)
 fun has_consts bs =
-  let fun has (Const(a,_)) = a mem bs
+  let fun has (Const(a,_)) = member (op =) bs a
 	| has (Const ("Hilbert_Choice.Eps",_) $ _) = false
 		     (*ignore constants within @-terms*)
 	| has (f$u) = has f orelse has u
@@ -266,7 +266,7 @@ fun has_bool (Type("bool",_)) = true
 (*Is the string the name of a connective? It doesn't matter if this list is
   incomplete, since when actually called, the only connectives likely to
   remain are & | Not.*)  
-fun is_conn c = c mem_string
+val is_conn = member (op =)
     ["Trueprop", "HOL.tag", "op &", "op |", "op -->", "op =", "Not", 
      "All", "Ex", "Ball", "Bex"];
 
@@ -336,7 +336,7 @@ fun has_reps [] = false
   | has_reps [_] = false
   | has_reps [t,u] = (t aconv u)
   | has_reps ts = (Library.foldl ins_term (Net.empty, ts);  false)
-		  handle INSERT => true;
+		  handle Net.INSERT => true;
 
 (*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
 fun TRYING_eq_assume_tac 0 st = Seq.single st
