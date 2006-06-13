@@ -75,7 +75,6 @@ signature BASIC_THM =
   val eq_thms: thm list * thm list -> bool
   val theory_of_thm: thm -> theory
   val sign_of_thm: thm -> theory    (*obsolete*)
-  val maxidx_of: thm -> int
   val prop_of: thm -> term
   val proof_of: thm -> Proofterm.proof
   val tpairs_of: thm -> (term * term) list
@@ -116,7 +115,6 @@ signature BASIC_THM =
   val unconstrainT: ctyp -> thm -> thm
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
-  val freezeT: thm -> thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -149,6 +147,8 @@ sig
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
   val terms_of_tpairs: (term * term) list -> term list
+  val maxidx_of: thm -> int
+  val hyps_of: thm -> term list
   val full_prop_of: thm -> term
   val get_name_tags: thm -> string * tag list
   val put_name_tags: string * tag list -> thm -> thm
@@ -161,6 +161,7 @@ sig
   val cterm_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_incr_indexes: int -> cterm -> cterm
+  val freezeT: thm -> thm
 end;
 
 structure Thm: THM =
@@ -446,6 +447,7 @@ fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
 val sign_of_thm = theory_of_thm;
 
 fun maxidx_of (Thm {maxidx, ...}) = maxidx;
+fun hyps_of (Thm {hyps, ...}) = hyps;
 fun prop_of (Thm {prop, ...}) = prop;
 fun proof_of (Thm {der = (_, proof), ...}) = proof;
 fun tpairs_of (Thm {tpairs, ...}) = tpairs;
