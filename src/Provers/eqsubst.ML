@@ -7,11 +7,117 @@ A proof method to perform a substiution using an equation.
 
 signature EQSUBST =
 sig
-  val setup : theory -> theory
+  (* a type abriviation for match information *)
+  type match =
+       ((indexname * (sort * typ)) list (* type instantiations *)
+        * (indexname * (typ * term)) list) (* term instantiations *)
+       * (string * typ) list (* fake named type abs env *)
+       * (string * typ) list (* type abs env *)
+       * term (* outer term *)
+
+  type searchinfo =
+       theory
+       * int (* maxidx *)
+       * Zipper.T (* focusterm to search under *)
+
+    exception eqsubst_occL_exp of
+       string * int list * Thm.thm list * int * Thm.thm
+    
+    (* low level substitution functions *)
+    val apply_subst_in_asm :
+       int ->
+       Thm.thm ->
+       Thm.thm ->
+       (Thm.cterm list * int * 'a * Thm.thm) * match -> Thm.thm Seq.seq
+    val apply_subst_in_concl :
+       int ->
+       Thm.thm ->
+       Thm.cterm list * Thm.thm ->
+       Thm.thm -> match -> Thm.thm Seq.seq
+
+    (* matching/unification within zippers *)
+    val clean_match_z :
+       Context.theory -> Term.term -> Zipper.T -> match option
+    val clean_unify_z :
+       Context.theory -> int -> Term.term -> Zipper.T -> match Seq.seq
+
+    (* skipping things in seq seq's *)
+
+   (* skipping non-empty sub-sequences but when we reach the end
+      of the seq, remembering how much we have left to skip. *)
+    datatype 'a skipseq = SkipMore of int
+      | SkipSeq of 'a Seq.seq Seq.seq;
+
+    val skip_first_asm_occs_search :
+       ('a -> 'b -> 'c Seq.seq Seq.seq) ->
+       'a -> int -> 'b -> 'c skipseq
+    val skip_first_occs_search :
+       int -> ('a -> 'b -> 'c Seq.seq Seq.seq) -> 'a -> 'b -> 'c Seq.seq
+    val skipto_skipseq : int -> 'a Seq.seq Seq.seq -> 'a skipseq
+
+    (* tactics *)
+    val eqsubst_asm_tac :
+       Proof.context ->
+       int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+    val eqsubst_asm_tac' :
+       Proof.context ->
+       (searchinfo -> int -> Term.term -> match skipseq) ->
+       int -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+    val eqsubst_tac :
+       Proof.context ->
+       int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+    val eqsubst_tac' :
+       Proof.context ->
+       (searchinfo -> Term.term -> match Seq.seq) 
+       -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+
+
+    val fakefree_badbounds :
+       (string * Term.typ) list ->
+       Term.term ->
+       (string * Term.typ) list * (string * Term.typ) list * Term.term
+
+    val mk_foo_match :
+       (Term.term -> Term.term) ->
+       ('a * Term.typ) list -> Term.term -> Term.term
+
+    (* preparing substitution *)
+    val prep_meta_eq : Proof.context -> Thm.thm -> Thm.thm list
+    val prep_concl_subst :
+       int -> Thm.thm -> (Thm.cterm list * Thm.thm) * searchinfo
+    val prep_subst_in_asm :
+       int -> Thm.thm -> int ->
+       (Thm.cterm list * int * int * Thm.thm) * searchinfo
+    val prep_subst_in_asms :
+       int -> Thm.thm ->
+       ((Thm.cterm list * int * int * Thm.thm) * searchinfo) list
+    val prep_zipper_match :
+       Zipper.T -> Term.term * ((string * Term.typ) list * (string * Term.typ) list * Term.term)
+
+    (* search for substitutions *)
+    val valid_match_start : Zipper.T -> bool
+    val search_lr_all : Zipper.T -> Zipper.T Seq.seq
+    val search_lr_valid : (Zipper.T -> bool) -> Zipper.T -> Zipper.T Seq.seq
+    val searchf_lr_unify_all :
+       searchinfo -> Term.term -> match Seq.seq Seq.seq
+    val searchf_lr_unify_valid :
+       searchinfo -> Term.term -> match Seq.seq Seq.seq
+
+
+    (* syntax tools *)
+    val ith_syntax : Args.T list -> int list * Args.T list
+    val options_syntax : Args.T list -> bool * Args.T list
+
+    (* Isar level hooks *)
+    val eqsubst_asm_meth : Proof.context -> int list -> Thm.thm list -> Method.method
+    val eqsubst_meth : Proof.context -> int list -> Thm.thm list -> Method.method
+    val subst_meth : Method.src -> ProofContext.context -> Method.method
+    val setup : theory -> theory
+
 end;
 
 structure EqSubst
-(* : EQSUBST *)
+: EQSUBST
 = struct
 
 structure Z = Zipper;
@@ -187,30 +293,31 @@ fun valid_match_start z =
      | _ => false); (* avoid vars - always suceeds uninterestingly. *)
                       
 (* search from top, left to right, then down *)
-val search_tlr_all = ZipperSearch.all_td_lr;
+val search_lr_all = ZipperSearch.all_bl_ur;
 
 (* search from top, left to right, then down *)
-fun search_tlr_valid validf =
+fun search_lr_valid validf =
     let 
       fun sf_valid_td_lr z = 
           let val here = if validf z then [Z.Here z] else [] in
             case Z.trm z 
-             of _ $ _ => here @ [Z.LookIn (Z.move_down_left z),
-                                 Z.LookIn (Z.move_down_right z)]
+             of _ $ _ => [Z.LookIn (Z.move_down_left z)] 
+                         @ here 
+                         @ [Z.LookIn (Z.move_down_right z)]
               | Abs _ => here @ [Z.LookIn (Z.move_down_abs z)]
               | _ => here
           end;
     in Z.lzy_search sf_valid_td_lr end;
 
 (* search all unifications *)
-fun searchf_tlr_unify_all (sgn, maxidx, z) lhs =
+fun searchf_lr_unify_all (sgn, maxidx, z) lhs =
     Seq.map (clean_unify_z sgn maxidx lhs) 
-            (Z.limit_apply search_tlr_all z);
+            (Z.limit_apply search_lr_all z);
 
 (* search only for 'valid' unifiers (non abs subterms and non vars) *)
-fun searchf_tlr_unify_valid (sgn, maxidx, z) lhs  =
+fun searchf_lr_unify_valid (sgn, maxidx, z) lhs  =
     Seq.map (clean_unify_z sgn maxidx lhs) 
-            (Z.limit_apply (search_tlr_valid valid_match_start) z);
+            (Z.limit_apply (search_lr_valid valid_match_start) z);
 
 
 (* apply a substitution in the conclusion of the theorem th *)
@@ -285,7 +392,7 @@ fun eqsubst_tac ctxt occL thms i th =
                     (fn r => eqsubst_tac' 
                                ctxt 
                                (skip_first_occs_search
-                                  occ searchf_tlr_unify_valid) r
+                                  occ searchf_lr_unify_valid) r
                                  (i + ((Thm.nprems_of th) - nprems))
                                  th);
         val sortedoccL =
@@ -401,7 +508,7 @@ fun eqsubst_asm_tac ctxt occL thms i th =
             thmseq |> Seq.maps
                     (fn r =>
                         eqsubst_asm_tac' ctxt (skip_first_asm_occs_search
-                                            searchf_tlr_unify_valid) occK r
+                                            searchf_lr_unify_valid) occK r
                                          (i + ((Thm.nprems_of th) - nprems))
                                          th);
         val sortedoccs =

@@ -452,7 +452,7 @@ fun sf_all_bl_ru z =
       | _ => [Z.Here z];
 
 val all_td_lr = Z.lzy_search sf_all_td_lr;
-val all_td_rl = Z.lzy_search sf_all_td_lr;
+val all_td_rl = Z.lzy_search sf_all_td_rl;
 val all_bl_ur = Z.lzy_search sf_all_bl_ru;
 val all_bl_ru = Z.lzy_search sf_all_bl_ur;
 
