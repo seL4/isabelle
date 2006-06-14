@@ -15,7 +15,7 @@ sig
       ((string -> string option)
         * (string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iexpr pretty_syntax option)
-      -> string list option
+      -> string list * string list option
       -> CodegenThingol.module -> unit)
       * OuterParse.token list;
   val parse_syntax: ('b -> int) -> (string -> 'b -> 'a * 'b) -> OuterParse.token list ->
@@ -199,13 +199,13 @@ type serializer =
     ((string -> string option)
       * (string -> itype pretty_syntax option)
       * (string -> iexpr pretty_syntax option)
-    -> string list option
+    -> string list * string list option
     -> CodegenThingol.module -> unit)
     * OuterParse.token list;
 
 fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, validator, postproc)
     postprocess (class_syntax, tyco_syntax, const_syntax)
-    select module =
+    (drop: string list, select) module =
   let
     fun from_module' resolv imps ((name_qual, name), defs) =
       from_module resolv imps ((name_qual, name), defs)
@@ -463,7 +463,8 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
       | ml_from_expr fxy (INum (n, _)) =
           brackify BR [
             (str o IntInf.toString) n,
-            str ":IntInf.int"
+            str ":",
+            str "IntInf.int"
           ]
       | ml_from_expr _ (IChar (c, _)) =
           (str o prefix "#" o quote)
@@ -810,11 +811,9 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
                   o quote o suffix ".ML" o translate_string (fn "." => "/" | s => s)) "ML" serializer
             | _ => Scan.fail ());
   in
-    (parse_multi
-     || parse_internal serializer
-     || parse_single_file serializer)
-    >> (fn seri => fn (class_syntax, tyco_syntax, const_syntax) => seri 
-         (class_syntax, tyco_syntax, const_syntax))
+    parse_multi
+    || parse_internal serializer
+    || parse_single_file serializer
   end;
 
 fun mk_flat_ml_resolver names =
@@ -1077,8 +1076,6 @@ fun hs_from_thingol target nsps_upper nspgrp =
   in
     (Scan.optional (OuterParse.name >> (fn "no_typs" => false | s => Scan.fail_with (fn _ => "illegal flag: " ^ quote s) true)) true
     #-> (fn with_typs => parse_multi_file ((K o K) NONE) "hs" (serializer with_typs)))
-    >> (fn (seri) => fn (class_syntax, tyco_syntax, const_syntax) => seri 
-         (class_syntax, tyco_syntax, const_syntax))
   end;
 
 end; (* local *)

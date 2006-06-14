@@ -7,7 +7,7 @@ Theorems used for code generation.
 
 signature CODEGEN_THEOREMS =
 sig
-  val add_notify: (string option -> theory -> theory) -> theory -> theory;
+  val add_notify: ((string * typ) list option -> theory -> theory) -> theory -> theory;
   val add_preproc: (theory -> thm list -> thm list) -> theory -> theory;
   val add_fun_extr: (theory -> string * typ -> thm list) -> theory -> theory;
   val add_datatype_extr: (theory -> string
@@ -274,6 +274,15 @@ fun canonical_vars thy thm =
     val (_, _, inst) = fold mk_inst (vars_of thm) (maxidx + 1, [], []);
   in Thm.instantiate ([], inst) thm end;
 
+fun drop_redundant thy eqs =
+  let
+    val matches = curry (Pattern.matches thy o
+      pairself (fst o Logic.dest_equals o prop_of))
+    fun drop eqs [] = eqs
+      | drop eqs (eq::eqs') =
+          drop (eq::eqs) (filter_out (matches eq) eqs')
+  in drop [] eqs end;
+
 fun make_eq thy = 
   let
     val ((_, atomize), _) = get_obj thy;
@@ -293,7 +302,6 @@ fun dest_fun thy thm =
         | NONE => err_thm "not a function equation" thm;
   in
     thm
-    |> debug_msg (prefix "[cg_thm] dest_fun " o Pretty.output o Display.pretty_thm)
     |> dest_eq thy
     |> dest_fun'
   end;
@@ -320,7 +328,7 @@ fun list_symtab_join' eq (xyt as (xt, yt)) =
       then NONE else SOME c;
   in (wc @ map_filter same_thms zc, Symtab.join (K (merge eq)) xyt) end;
 
-datatype notify = Notify of (serial * (string option -> theory -> theory)) list;
+datatype notify = Notify of (serial * ((string * typ) list option -> theory -> theory)) list;
 
 val mk_notify = Notify;
 fun map_notify f (Notify notify) = mk_notify (f notify);
@@ -422,7 +430,7 @@ structure CodegenTheoremsData = TheoryDataFun
         (*Pretty.fbreaks ( *)
           map (fn (c, thms) => 
             (Pretty.block o Pretty.fbreaks) (
-              Pretty.str c :: map pretty_thm thms
+              Pretty.str c :: map pretty_thm (rev thms)
             )
           ) funs
         (*) *) @ [
@@ -460,6 +468,9 @@ val map_data = CodegenTheoremsData.map o map_T;
 
 (* notifiers *)
 
+fun all_typs thy c =
+  map (pair c) (Sign.the_const_type thy c :: (map (#lhs) o Theory.definitions_of thy) c);
+
 fun add_notify f =
   map_data (fn ((dirty, notify), x) =>
     ((dirty, notify |> map_notify (cons (serial (), f))), x));
@@ -479,14 +490,14 @@ fun notify_all c thy =
   thy
   |> get_reset_dirty
   |-> (fn (true, _) => fold (fn f => f NONE) (the_notify thy)
-        | (false, cs) => let val cs' = case c of NONE => cs | SOME c => c::cs
-            in fold (fn f => fold (f o SOME) cs') (the_notify thy) end);
+        | (false, cs) => let val cs' = case c of NONE => cs | SOME c => insert (op =) c cs
+            in fold (fn f => f (SOME (maps (all_typs thy) cs'))) (the_notify thy) end);
 
 fun notify_dirty thy =
   thy
   |> get_reset_dirty
   |-> (fn (true, _) => fold (fn f => f NONE) (the_notify thy)
-        | (false, cs) => fold (fn f => fold (f o SOME) cs) (the_notify thy));
+        | (false, cs) => fold (fn f => f (SOME (maps (all_typs thy) cs))) (the_notify thy));
 
 
 (* modifiers *)
@@ -514,7 +525,7 @@ fun add_fun thm thy =
     thy
     |> map_data (fn (x, (preproc, (extrs, funthms))) =>
         (x, (preproc, (extrs, funthms |> map_funthms (fn (dirty, funs) =>
-          (dirty, funs |> Symtab.default (c, []) |> Symtab.map_entry c (fn thms => thms @ [thm])))))))
+          (dirty, funs |> Symtab.default (c, []) |> Symtab.map_entry c (cons thm)))))))
     |> notify_all (SOME c);
 
 fun del_fun thm thy =
@@ -572,15 +583,6 @@ fun common_typ thy _ [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms end;
 
-fun extr_typ thy thm = case dest_fun thy thm
- of (_, (ty, _)) => ty;
-
-fun tap_typ thy [] = NONE
-  | tap_typ thy (thms as (thm::_)) = SOME (extr_typ thy thm, thms);
-
-fun unvarify thy thms =
-  #1 (ProofContext.import true thms (ProofContext.init thy));
-
 fun preprocess thy thms =
   let
     fun burrow_thms f [] = []
@@ -589,12 +591,20 @@ fun preprocess thy thms =
           |> Conjunction.intr_list
           |> f
           |> Conjunction.elim_list;
+    fun extr_typ thm = case dest_fun thy thm
+     of (_, (ty, _)) => ty;
+    fun tap_typ [] = NONE
+     | tap_typ (thms as (thm::_)) = SOME (extr_typ thm, thms);
+    fun cmp_thms (thm1, thm2) =
+      not (Sign.typ_instance thy (extr_typ thm1, extr_typ thm2));
     fun rewrite_rhs conv thm = (case (Drule.strip_comb o cprop_of) thm
      of (ct', [ct1, ct2]) => (case term_of ct'
          of Const ("==", _) =>
               Thm.equal_elim (combination (combination (reflexive ct') (reflexive ct1)) (conv ct2)) thm
           | _ => raise ERROR "rewrite_rhs")
       | _ => raise ERROR "rewrite_rhs");
+    fun unvarify thms =
+      #1 (ProofContext.import true thms (ProofContext.init thy));
     val unfold_thms = Tactic.rewrite true (map (make_eq thy) (the_unfolds thy));
   in
     thms
@@ -602,11 +612,12 @@ fun preprocess thy thms =
     |> map (Thm.transfer thy)
     |> fold (fn f => f thy) (the_preprocs thy)
     |> map (rewrite_rhs unfold_thms)
-    |> debug_msg (fn _ => "[cg_thm] filter")
+    |> debug_msg (fn _ => "[cg_thm] sorting")
     |> debug_msg (commas o map string_of_thm)
+    |> sort (make_ord cmp_thms)
     |> debug_msg (fn _ => "[cg_thm] common_typ")
     |> debug_msg (commas o map string_of_thm)
-    |> common_typ thy (extr_typ thy)
+    |> common_typ thy extr_typ
     |> debug_msg (fn _ => "[cg_thm] abs_norm")
     |> debug_msg (commas o map string_of_thm)
     |> map (abs_norm thy)
@@ -621,8 +632,9 @@ fun preprocess thy thms =
         #> debug_msg (string_of_thm)
         #> Drule.zero_var_indexes
        )
-    |> unvarify thy
-    |> tap_typ thy
+    |> drop_redundant thy
+    |> unvarify
+    |> tap_typ
   end;
 
 

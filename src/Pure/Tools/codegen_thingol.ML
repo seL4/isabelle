@@ -28,7 +28,7 @@ sig
     | IVar of vname
     | `$ of iexpr * iexpr
     | `|-> of (vname * itype) * iexpr
-    | INum of IntInf.int (*positive!*) * unit
+    | INum of IntInf.int (*positive!*) * iexpr
     | IChar of string (*length one!*) * iexpr
     | IAbs of ((iexpr * itype) * iexpr) * iexpr
         (* (((binding expression (ve), binding type (vty)),
@@ -90,11 +90,11 @@ sig
   val project_module: string list -> module -> module;
   val purge_module: string list -> module -> module;
   val has_nsp: string -> string -> bool;
-  val ensure_bot: string -> module -> module;
-  val succeed: 'a -> transact -> 'a transact_fin;
-  val fail: string -> transact -> 'a transact_fin;
   val ensure_def: (string -> transact -> def transact_fin) -> bool -> string
     -> string -> transact -> transact;
+  val succeed: 'a -> transact -> 'a transact_fin;
+  val fail: string -> transact -> 'a transact_fin;
+  val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: string option -> (transact -> 'a * transact) -> module -> 'a * module;
 
   val debug: bool ref;
@@ -166,7 +166,7 @@ datatype iexpr =
   | IVar of vname
   | `$ of iexpr * iexpr
   | `|-> of (vname * itype) * iexpr
-  | INum of IntInf.int (*positive!*) * unit
+  | INum of IntInf.int (*positive!*) * iexpr
   | IChar of string (*length one!*) * iexpr
   | IAbs of ((iexpr * itype) * iexpr) * iexpr
   | ICase of ((iexpr * itype) * (iexpr * iexpr) list) * iexpr;
@@ -321,7 +321,7 @@ fun map_pure f (e as IConst _) =
   | map_pure f (e as _ `|-> _) =
       f e
   | map_pure _ (INum _) =
-      error ("sorry, no pure representation of numerals so far")
+      error ("sorry, no pure representation for numerals so far")
   | map_pure f (IChar (_, e0)) =
       f e0
   | map_pure f (IAbs (_, e0)) =
@@ -619,8 +619,9 @@ fun add_dep (name1, name2) modl =
         if null r1 andalso null r2
         then Graph.add_edge
         else fn edge => fn gr => (Graph.add_edge_acyclic edge gr
-          handle Graph.CYCLES _ => error ("adding dependency "
-            ^ quote name1 ^ " -> " ^ quote name2 ^ " would result in module dependency cycle"))
+          handle Graph.CYCLES _ =>
+            error ("adding dependency "
+              ^ quote name1 ^ " -> " ^ quote name2 ^ " would result in module dependency cycle"))
       fun add [] node =
             node
             |> add_edge (s1, s2)
@@ -634,7 +635,7 @@ fun merge_module modl12 =
     fun join_module _ (Module m1, Module m2) =
           Module (merge_module (m1, m2))
       | join_module name (Def d1, Def d2) =
-          if eq_def (d1, d2) then Def d1 else Def d1 (*raise Graph.DUP name*)
+          if eq_def (d1, d2) then Def d1 else Def Bot
       | join_module name _ = raise Graph.DUP name
   in Graph.join join_module modl12 end;
 
@@ -655,9 +656,7 @@ fun diff_module modl12 =
         ((AList.make (Graph.get_node modl1) o flat o Graph.strong_conn) modl1)
   in diff_modl [] modl12 [] end;
 
-local 
-
-fun project_trans f names modl =
+fun project_module names modl =
   let
     datatype pathnode = PN of (string list * (string * pathnode) list);
     fun mk_ipath ([], base) (PN (defs, modls)) =
@@ -669,7 +668,7 @@ fun project_trans f names modl =
           |> (pair defs #> PN);
     fun select (PN (defs, modls)) (Module module) =
       module
-      |> f (Graph.all_succs module (defs @ map fst modls))
+      |> Graph.subgraph (Graph.all_succs module (defs @ map fst modls))
       |> fold (fn (name, modls) => Graph.map_node name (select modls)) modls
       |> Module;
   in
@@ -679,36 +678,50 @@ fun project_trans f names modl =
     |> dest_modl
   end;
 
-in
-
-val project_module = project_trans Graph.subgraph;
-val purge_module = project_trans Graph.del_nodes;
-
-end; (*local*)
-
-fun imports_of modl name =
+fun purge_module names modl =
   let
-    (*fun submodules prfx modl =
-      cons prfx
-      #> Graph.fold
-          (fn (m, (Module modl, _)) => submodules (prfx @ [m]) modl
-            | (_, (Def _, _)) => I) modl;
-    fun get_modl name =
-      fold (fn n => fn modl => (dest_modl oo Graph.get_node) modl n) name modl*)
-    fun imports prfx [] modl =
-          []
-      | imports prfx (m::ms) modl =
-          map (cons m) (imports (prfx @ [m]) ms ((dest_modl oo Graph.get_node) modl m))
-          @ map single (Graph.imm_succs modl m)
+    fun split_names names =
+      fold
+        (fn ([], name) => apfst (cons name)
+          | (m::ms, name) => apsnd (AList.default (op =) (m : string, [])
+              #> AList.map_entry (op =) m (cons (ms, name))))
+        names ([], []);
+    fun purge names (Module modl) =
+      let
+        val (ndefs, nmodls) = split_names names;
+      in
+        modl 
+        |> Graph.del_nodes (Graph.all_preds modl ndefs)
+        |> fold (fn (nmodl, names') => Graph.map_node nmodl (purge names')) nmodls
+        |> Module
+      end;
   in
-    modl
-    |> imports [] name 
-    (*|> cons name
-    |> map (fn name => submodules name (get_modl name) [])
-    |> flat
-    |> remove (op =) name*)
-    |> map NameSpace.pack
+    Module modl
+    |> purge (map dest_name names)
+    |> dest_modl
   end;
+
+fun allimports_of modl =
+  let
+    fun imps_of prfx (Module modl) imps tab =
+          let
+            val this = NameSpace.pack prfx;
+            val name_con = (rev o Graph.strong_conn) modl;
+          in
+            tab
+            |> pair []
+            |> fold (fn names => fn (imps', tab) =>
+                tab
+                |> fold_map (fn name => 
+                     imps_of (prfx @ [name]) (Graph.get_node modl name) (imps' @ imps)) names
+                |-> (fn imps'' => pair (flat imps'' @ imps'))) name_con
+            |-> (fn imps' => 
+               Symtab.update_new (this, imps' @ imps)
+            #> pair (this :: imps'))
+          end
+      | imps_of prfx (Def _) imps tab =
+          ([], tab);
+  in snd (imps_of [] (Module modl) [] Symtab.empty) end;
 
 fun check_samemodule names =
   fold (fn name =>
@@ -805,14 +818,14 @@ fun postprocess_def (name, Datatype (_, constrs)) =
   | postprocess_def _ =
       I;
 
-fun succeed some (_, modl) = (some, modl);
-fun fail msg (_, modl) = raise FAIL ([msg], NONE);
+
+(* transaction protocol *)
 
 fun ensure_def defgen strict msg name (dep, modl) =
   let
     val msg' = (case dep
      of NONE => msg
-      | SOME dep => msg ^ ", with dependency " ^ quote dep)
+      | SOME dep => msg ^ ", required for " ^ quote dep)
       ^ (if strict then " (strict)" else " (non-strict)");
     fun add_dp NONE = I
       | add_dp (SOME dep) =
@@ -821,18 +834,13 @@ fun ensure_def defgen strict msg name (dep, modl) =
     fun prep_def def modl =
       (check_prep_def modl def, modl);
     fun invoke_generator name defgen modl =
-      if ! soft_exc
-      then
-        defgen name (SOME name, modl)
-        handle FAIL exc =>
-                if strict then raise FAIL exc
-                else (Bot, modl)
-             | e => raise FAIL (["definition generator for " ^ quote name], SOME e)
-      else
-        defgen name (SOME name, modl)
-        handle FAIL exc =>
-                if strict then raise FAIL exc
-                else (Bot, modl);
+      defgen name (SOME name, modl)
+      handle FAIL (msgs, exc) =>
+              if strict then raise FAIL (msg' :: msgs, exc)
+              else (Bot, modl)
+           | e => raise if ! soft_exc
+                then FAIL (["definition generator for " ^ quote name, msg'], SOME e)
+                else e;
   in
     modl
     |> (if can (get_def modl) name
@@ -857,6 +865,14 @@ fun ensure_def defgen strict msg name (dep, modl) =
     |> pair dep
   end;
 
+fun succeed some (_, modl) = (some, modl);
+
+fun fail msg (_, modl) = raise FAIL ([msg], NONE);
+
+fun message msg f trns =
+  f trns handle FAIL (msgs, exc) =>
+    raise FAIL (msg :: msgs, exc);
+
 fun start_transact init f modl =
   let
     fun handle_fail f x =
@@ -866,9 +882,11 @@ fun start_transact init f modl =
       handle FAIL (msgs, SOME e) =>
         ((Output.error_msg o cat_lines) ("code generation failed, while:" :: msgs); raise e);
   in
-    (init, modl)
+    modl
+    |> (if is_some init then ensure_bot (the init) else I)
+    |> pair init
     |> handle_fail f
-    |-> (fn x => fn (_, module) => (x, module))
+    |-> (fn x => fn (_, modl) => (x, modl))
   end;
 
 
@@ -966,6 +984,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
 
 fun serialize seri_defs seri_module validate postprocess nsp_conn name_root module =
   let
+    val imptab = allimports_of module;
     val resolver = mk_deresolver module nsp_conn postprocess validate;
     fun sresolver s = (resolver o NameSpace.unpack) s
     fun mk_name prfx name =
@@ -976,14 +995,14 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
       map_filter (seri prfx)
         ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
     and seri prfx [(name, Module modl)] =
-          seri_module (resolver []) (map (resolver []) (imports_of module (prfx @ [name])))
+          seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) (NameSpace.pack (prfx @ [name]))))
             (mk_name prfx name, mk_contents (prfx @ [name]) modl)
       | seri prfx [(_, Def Bot)] = NONE
       | seri prfx ds =
           seri_defs sresolver (NameSpace.pack prfx)
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
-    seri_module (resolver []) (imports_of module [])
+    seri_module (resolver []) ((the o Symtab.lookup imptab) "")
       (*map (resolver []) (Graph.strong_conn module |> flat |> rev)*)
       (("", name_root), (mk_contents [] module))
   end;

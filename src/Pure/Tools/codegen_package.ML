@@ -8,22 +8,6 @@ intermediate language ("Thin-gol").
 
 signature CODEGEN_PACKAGE =
 sig
-  type auxtab;
-  type appgen = theory -> auxtab
-    -> (string * typ) * term list -> CodegenThingol.transact
-    -> CodegenThingol.iexpr * CodegenThingol.transact;
-
-  val add_appconst: xstring * ((int * int) * appgen) -> theory -> theory;
-  val add_appconst_i: string * ((int * int) * appgen) -> theory -> theory;
-  val add_pretty_list: string -> string -> string * (int * string)
-    -> theory -> theory;
-  val add_alias: string * string -> theory -> theory;
-  val set_get_all_datatype_cons : (theory -> (string * string) list)
-    -> theory -> theory;
-  val set_get_datatype: (theory -> string -> ((string * sort) list * (string * typ list) list) option)
-    -> theory -> theory;
-  val set_int_tyco: string -> theory -> theory;
-
   val codegen_term: term -> theory -> CodegenThingol.iexpr * theory;
   val is_dtcon: string -> bool;
   val consts_of_idfs: theory -> string list -> (string * typ) list;
@@ -33,6 +17,18 @@ sig
     -> ((string * CodegenThingol.funn) list -> Pretty.T)
         * ((string * CodegenThingol.datatyp) list -> Pretty.T);
 
+  val add_pretty_list: string -> string -> string * (int * string)
+    -> theory -> theory;
+  val add_alias: string * string -> theory -> theory;
+  val set_get_all_datatype_cons : (theory -> (string * string) list)
+    -> theory -> theory;
+  val set_get_datatype: (theory -> string -> ((string * sort) list * (string * typ list) list) option)
+    -> theory -> theory;
+  val set_int_tyco: string -> theory -> theory;
+
+  type appgen;
+  val add_appconst: xstring * ((int * int) * appgen) -> theory -> theory;
+  val add_appconst_i: string * ((int * int) * appgen) -> theory -> theory;
   val appgen_default: appgen;
   val appgen_let: (int -> term -> term list * term)
     -> appgen;
@@ -51,7 +47,8 @@ sig
   structure ConstNameMangler: NAME_MANGLER;
   structure DatatypeconsNameMangler: NAME_MANGLER;
   structure CodegenData: THEORY_DATA;
-  val mk_tabs: theory -> string option -> auxtab;
+  type auxtab;
+  val mk_tabs: theory -> string list option -> auxtab;
   val alias_get: theory -> string -> string;
   val idf_of_name: theory -> string -> string -> string;
   val idf_of_const: theory -> auxtab -> string * typ -> string;
@@ -200,7 +197,7 @@ structure DatatypeconsNameMangler = NameManglerFun (
   fun re_mangle _ dst = error ("no such datatype constructor: " ^ quote dst);
 );
 
-type auxtab = (string option * deftab)
+type auxtab = (bool * string list option * deftab)
   * (InstNameMangler.T * (typ list Symtab.table * ConstNameMangler.T)
   * DatatypeconsNameMangler.T);
 type eqextr = theory -> auxtab
@@ -398,7 +395,7 @@ fun co_of_idf thy (tabs as (_, (_, _, dtcontab))) idf =
       in SOME (c, dtco) end
     | NONE => NONE;
 
-fun idf_of_const thy (tabs as (deftab, (_, (overltab1, overltab2), _)))
+fun idf_of_const thy (tabs as (_, (_, (overltab1, overltab2), _)))
       (c, ty) =
   let
     fun get_overloaded (c, ty) =
@@ -416,6 +413,24 @@ fun idf_of_const thy (tabs as (deftab, (_, (overltab1, overltab2), _)))
   in case get_datatypecons (c, ty)
    of SOME idf => idf
     | NONE => case get_overloaded (c, ty)
+   of SOME idf => idf
+    | NONE => case ClassPackage.lookup_const_class thy c
+   of SOME _ => idf_of_name thy nsp_mem c
+    | NONE => idf_of_name thy nsp_const c
+  end;
+
+fun idf_of_const' thy (tabs as (_, (_, (overltab1, overltab2), _)))
+      (c, ty) =
+  let
+    fun get_overloaded (c, ty) =
+      (case Symtab.lookup overltab1 c
+       of SOME tys =>
+            (case find_first (curry (Sign.typ_instance thy) ty) tys
+             of SOME ty' => ConstNameMangler.get thy overltab2
+                  (c, ty') |> SOME
+              | _ => NONE)
+        | _ => NONE)
+  in case get_overloaded (c, ty)
    of SOME idf => idf
     | NONE => case ClassPackage.lookup_const_class thy c
    of SOME _ => idf_of_name thy nsp_mem c
@@ -508,16 +523,16 @@ fun set_int_tyco tyco thy =
 
 (* definition and expression generators *)
 
-fun check_strict thy f x (tabs as ((SOME target, deftab), tabs')) =
-      thy
-      |> CodegenData.get
-      |> #target_data
-      |> (fn data => (the oo Symtab.lookup) data target)
-      |> f
-      |> (fn tab => Symtab.lookup tab x)
-      |> is_none
-  | check_strict _ _ _ (tabs as ((NONE, _), _)) =
-      false;
+fun check_strict thy f x ((false, _, _), _) =
+      false
+  | check_strict thy f x ((_, SOME targets, _), _) =
+      exists (
+        is_none o (fn tab => Symtab.lookup tab x) o f o the o (Symtab.lookup ((#target_data o CodegenData.get) thy))
+      ) targets
+  | check_strict thy f x ((true, _, _), _) =
+      true;
+
+fun no_strict ((_, targets, deftab), tabs') = ((false, targets, deftab), tabs');
 
 fun ensure_def_class thy tabs cls trns =
   let
@@ -610,12 +625,12 @@ and mk_fun thy tabs (c, ty) trns =
   case CodegenTheorems.get_funs thy (c, Logic.legacy_varifyT ty)  (* FIXME *)
    of SOME (ty, eq_thms) =>
         let
+          val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
           val sortctxt = ClassPackage.extract_sortctxt thy ty;
           fun dest_eqthm eq_thm =
             let
               val ((t, args), rhs) =
-                (apfst strip_comb o Logic.dest_equals
-                  o prop_of) eq_thm;
+                (apfst strip_comb o Logic.dest_equals o prop_of) eq_thm;
             in case t
              of Const (c', _) => if c' = c then (args, rhs)
                  else error ("illegal function equation for " ^ quote c
@@ -625,13 +640,14 @@ and mk_fun thy tabs (c, ty) trns =
           fun exprgen_eq (args, rhs) trns =
             trns
             |> fold_map (exprgen_term thy tabs) args
-            ||>> exprgen_term thy tabs rhs
+            ||>> exprgen_term thy tabs rhs;
         in
           trns
+          |> message msg (fn trns => trns
           |> fold_map (exprgen_eq o dest_eqthm) eq_thms
           ||>> exprgen_type thy tabs ty
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
-          |-> (fn ((eqs, ity), sortctxt) => (pair o SOME) ((eqs, (sortctxt, ity)), ty))
+          |-> (fn ((eqs, ity), sortctxt) => (pair o SOME) ((eqs, (sortctxt, ity)), ty)))
         end
     | NONE => (NONE, trns)
 and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
@@ -827,16 +843,19 @@ fun appgen_let strip_abs thy tabs (app as ((c, ty), [dt, ct])) trns =
         trns
         |> appgen_default thy tabs app;
 
-fun appgen_number_of bin_to_int thy tabs ((_, Type (_, [_, ty])), [bin]) trns =
-  let
-    val i = bin_to_int thy bin;
-      (*preprocessor eliminates nat and negative numerals*)
-    val _ = if i < 0 then error ("negative numeral: " ^ IntInf.toString i) else ();
-  in
-    trns
-    |> exprgen_type thy tabs ty
-    |-> (fn _ => pair (CodegenThingol.INum (i, ())))
-  end;
+fun appgen_number_of int_of_bin thy tabs (app as (c as (_, ty), [bin])) trns =
+  case try (int_of_bin thy) bin
+   of SOME i => if i < 0 then error ("negative numeral: " ^ IntInf.toString i)
+                (*preprocessor eliminates nat and negative numerals*)
+      else
+        trns
+        |> pair (CodegenThingol.INum (i, IVar ""))
+        (*|> exprgen_term thy (no_strict tabs) (Const c)
+        ||>> exprgen_term thy (no_strict tabs) bin
+        |-> (fn (e1, e2) => pair (CodegenThingol.INum (i, e1 `$ e2)))*)
+    | NONE =>
+        trns
+        |> appgen_default thy tabs app;
 
 fun appgen_char char_to_index thy tabs (app as ((_, ty), _)) trns =
   case (char_to_index o list_comb o apfst Const) app
@@ -856,7 +875,7 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
     val idf = idf_of_const thy tabs (c, ty);
   in
     trns
-    |> ensure_def ((K o succeed) Bot) true ("generating wfrec") idf
+    |> ensure_def ((K o fail) "no extraction of wfrec") false ("generating wfrec") idf
     |> exprgen_type thy tabs ty'
     ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
            (ClassPackage.extract_classlookup thy (c, ty))
@@ -906,7 +925,7 @@ fun add_case_const c cos thy =
 
 (** theory interface **)
 
-fun mk_tabs thy target =
+fun mk_tabs thy targets =
   let
     fun mk_insttab thy =
       InstNameMangler.empty
@@ -970,7 +989,7 @@ fun mk_tabs thy target =
     val insttab = mk_insttab thy;
     val overltabs = mk_overltabs thy;
     val dtcontab = mk_dtcontab thy;
-  in ((target, Symtab.empty), (insttab, overltabs, dtcontab)) end;
+  in ((true, targets, Symtab.empty), (insttab, overltabs, dtcontab)) end;
 
 fun get_serializer target =
   case Symtab.lookup (!serializers) target
@@ -981,26 +1000,25 @@ fun map_module f =
   map_codegen_data (fn (modl, gens, target_data, logic_data) =>
     (f modl, gens, target_data, logic_data));
 
-(*fun delete_defs NONE thy =
+fun purge_defs NONE thy =
       map_module (K CodegenThingol.empty_module) thy
-  | delete_defs (SOME c) thy =
+  | purge_defs (SOME cs) thy =
       let
         val tabs = mk_tabs thy NONE;
+        val idfs = map (idf_of_const' thy tabs) cs;
+        val _ = writeln ("purging " ^ commas idfs);
+        fun purge idfs modl =
+          CodegenThingol.purge_module (filter (can (get_def modl)) idfs) modl
       in
-        map_module (CodegenThingol.purge_module []) thy
+        map_module (purge idfs) thy
       end;
-does not make sense:
-* primitve definitions have to be kept
-* *all* overloaded defintitions for a constant have to be purged
-* precondition: improved representation of definitions hidden by customary serializations
-*)
 
-fun expand_module target init gen arg thy =
+fun expand_module targets init gen arg thy =
   thy
   |> CodegenTheorems.notify_dirty
   |> `(#modl o CodegenData.get)
   |> (fn (modl, thy) =>
-        (start_transact init (gen thy (mk_tabs thy target) arg) modl, thy))
+        (start_transact init (gen thy (mk_tabs thy targets) arg) modl, thy))
   |-> (fn (x, modl) => map_module (K modl) #> pair x);
 
 fun rename_inconsistent thy =
@@ -1009,7 +1027,7 @@ fun rename_inconsistent thy =
       let
         val thy = theory thyname;
         fun own_tables get =
-          (get thy)
+          get thy
           |> fold (Symtab.fold (Symtab.remove (K true)) o get) (Theory.parents_of thy)
           |> Symtab.keys;
         val names = own_tables (#2 o #types o Type.rep_tsig o Sign.tsig_of)
@@ -1053,8 +1071,6 @@ fun get_ml_fun_datatype thy resolv =
 
 
 (** target languages **)
-
-val ensure_bot = map_module o CodegenThingol.ensure_bot;
 
 (* syntax *)
 
@@ -1110,7 +1126,6 @@ fun parse_syntax_tyco raw_tyco =
         val tyco = prep_tyco thy raw_tyco;
       in
         thy
-        |> ensure_bot tyco
         |> reader
         |-> (fn pretty => map_codegen_data
           (fn (modl, gens, target_data, logic_data) =>
@@ -1155,7 +1170,6 @@ fun parse_syntax_const raw_const =
         val c = prep_const thy raw_const;
       in
         thy
-        |> ensure_bot c
         |> reader
         |-> (fn pretty => add_pretty_syntax_const c target pretty)
       end;
@@ -1184,17 +1198,23 @@ fun add_pretty_list raw_nil raw_cons (target, seri) thy =
 
 
 
+(** code basis change notifications **)
+
+val _ = Context.add_setup (CodegenTheorems.add_notify purge_defs);
+
+
+
 (** toplevel interface **)
 
 local
 
-fun generate_code target (SOME raw_consts) thy =
+fun generate_code targets (SOME raw_consts) thy =
       let
         val consts = map (read_const thy) raw_consts;
-        val _ = case target of SOME target => (get_serializer target; ()) | _ => ();
+        val _ = case targets of SOME targets => (map get_serializer targets; ()) | _ => ();
       in
         thy
-        |> expand_module target NONE (fold_map oo ensure_def_const) consts
+        |> expand_module targets NONE (fold_map oo ensure_def_const) consts
         |-> (fn cs => pair (SOME cs))
       end
   | generate_code _ NONE thy =
@@ -1210,14 +1230,19 @@ fun serialize_code target seri raw_consts thy =
           |> CodegenData.get
           |> #target_data
           |> (fn data => (the oo Symtab.lookup) data target);
-        in (seri (
-          (Symtab.lookup o #syntax_class) target_data,
-          (Option.map fst oo Symtab.lookup o #syntax_tyco) target_data,
-          (Option.map fst oo Symtab.lookup o #syntax_const) target_data
-        ) cs module : unit; thy) end;
+        val s_class = #syntax_class target_data
+        val s_tyco = #syntax_tyco target_data
+        val s_const = #syntax_const target_data
+      in
+        (seri (
+          Symtab.lookup s_class,
+          (Option.map fst oo Symtab.lookup) s_tyco,
+          (Option.map fst oo Symtab.lookup) s_const
+        ) ([] (*TODO: add seri_defs here*), cs) module : unit; thy)
+      end;
   in
     thy
-    |> generate_code (SOME target) raw_consts
+    |> generate_code (SOME [target]) raw_consts
     |-> (fn cs => serialize cs)
   end;
 
@@ -1232,20 +1257,19 @@ and K = OuterKeyword
 in
 
 val (generateK, serializeK,
-     primclassK, primtycoK, primconstK,
      syntax_classK, syntax_tycoK, syntax_constK,
      purgeK, aliasK) =
   ("code_generate", "code_serialize",
-   "code_primclass", "code_primtyco", "code_primconst",
-   "code_syntax_class", "code_syntax_tyco", "code_syntax_const",
+   "code_classapp", "code_typapp", "code_constapp",
    "code_purge", "code_alias");
 
 val generateP =
   OuterSyntax.command generateK "generate executable code for constants" K.thy_decl (
-    Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")")
+    (Scan.option (P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")")
+    >> (fn SOME ["-"] => SOME [] | ts => ts))
     -- Scan.repeat1 P.term
-    >> (fn (target, raw_consts) =>
-          Toplevel.theory (generate_code target (SOME raw_consts) #> snd))
+    >> (fn (targets, raw_consts) =>
+          Toplevel.theory (generate_code targets (SOME raw_consts) #> snd))
   );
 
 val serializeP =
@@ -1262,7 +1286,7 @@ val serializeP =
   );
 
 val syntax_classP =
-  OuterSyntax.command syntax_tycoK "define code syntax for class" K.thy_decl (
+  OuterSyntax.command syntax_classK "define code syntax for class" K.thy_decl (
     Scan.repeat1 (
       P.xname
       -- Scan.repeat1 (
@@ -1309,7 +1333,8 @@ val aliasP =
       >> (Toplevel.theory oo fold) add_alias
   );
 
-val _ = OuterSyntax.add_parsers [generateP, serializeP, syntax_tycoP, syntax_constP,
+val _ = OuterSyntax.add_parsers [generateP, serializeP,
+  syntax_classP, syntax_tycoP, syntax_constP,
   purgeP, aliasP];
 
 end; (* local *)
