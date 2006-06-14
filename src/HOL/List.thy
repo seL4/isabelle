@@ -2737,17 +2737,17 @@ code_alias
   "List.op @" "List.append"
   "List.op mem" "List.mem"
 
-code_syntax_tyco
+code_typapp
   list
     ml ("_ list")
     haskell (target_atom "[_]")
 
-code_syntax_const
+code_constapp
   Nil
     ml (target_atom "[]")
     haskell (target_atom "[]")
 
-code_syntax_tyco
+code_typapp
   char
     ml (target_atom "char")
     haskell (target_atom "Char")

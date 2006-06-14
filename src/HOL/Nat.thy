@@ -601,7 +601,8 @@ lemma add_0_right [simp]: "m + 0 = (m::nat)"
 lemma add_Suc_right [simp]: "m + Suc n = Suc (m + n)"
   by (induct m) simp_all
 
-lemma [code]: "Suc m + n = m + Suc n" by simp
+lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
+  by simp
 
 
 text {* Associative law for addition *}

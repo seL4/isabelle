@@ -1412,7 +1412,7 @@ code_alias
   Not "HOL.not"
   arbitrary "HOL.arbitrary"
 
-code_syntax_const
+code_constapp
   "op =" (* an intermediate solution for polymorphic equality *)
     ml (infixl 6 "=")
     haskell (infixl 4 "==")

@@ -257,14 +257,11 @@ declare
   fst_conv [code]
   snd_conv [code]
 
-lemma [code unfolt]:
-  "1 == Suc 0" by simp
-
-code_syntax_tyco bool
+code_typapp bool
   ml (target_atom "bool")
   haskell (target_atom "Bool")
 
-code_syntax_const
+code_constapp
   True
     ml (target_atom "true")
     haskell (target_atom "True")
@@ -284,32 +281,32 @@ code_syntax_const
     ml (target_atom "(if __/ then __/ else __)")
     haskell (target_atom "(if __/ then __/ else __)")
 
-code_syntax_tyco
+code_typapp
   *
     ml (infix 2 "*")
     haskell (target_atom "(__,/ __)")
 
-code_syntax_const
+code_constapp
   Pair
     ml (target_atom "(__,/ __)")
     haskell (target_atom "(__,/ __)")
 
-code_syntax_tyco
+code_typapp
   unit
     ml (target_atom "unit")
     haskell (target_atom "()")
 
-code_syntax_const
+code_constapp
   Unity
     ml (target_atom "()")
     haskell (target_atom "()")
 
-code_syntax_tyco
+code_typapp
   option
     ml ("_ option")
     haskell ("Maybe _")
 
-code_syntax_const
+code_constapp
   None
     ml (target_atom "NONE")
     haskell (target_atom "Nothing")
