@@ -81,9 +81,11 @@ section {* type serializations *}
 types_code
   rat ("{*erat*}")
 
-code_syntax_tyco rat
-  ml (target_atom "{*erat*}")
-  haskell (target_atom "{*erat*}")
+code_generate (ml, haskell) Rat
+
+code_typapp rat
+  ml ("{*erat*}")
+  haskell ("{*erat*}")
 
 
 section {* const serializations *}
@@ -101,10 +103,23 @@ consts_code
   Orderings.less_eq :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*op <= :: erat \<Rightarrow> erat \<Rightarrow> bool*}")
   "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("{*eq_rat*}")
 
-code_syntax_const
+code_constapp
   "arbitrary :: erat"
     ml ("raise/ (Fail/ \"non-defined rational number\")")
     haskell ("error/ \"non-defined rational number\"")
+
+code_generate (ml, haskell)
+  of_quotient
+  "0::erat"
+  "1::erat"
+  "op + :: erat \<Rightarrow> erat \<Rightarrow> erat"
+  "uminus :: erat \<Rightarrow> erat"
+  "op * :: erat \<Rightarrow> erat \<Rightarrow> erat"
+  "inverse :: erat \<Rightarrow> erat"
+  "op <= :: erat \<Rightarrow> erat \<Rightarrow> bool"
+  eq_rat
+
+code_constapp
   Fract
     ml ("{*of_quotient*}")
     haskell ("{*of_quotient*}")
@@ -137,4 +152,3 @@ code_syntax_const
     haskell ("{*eq_rat*}")
 
 end
-

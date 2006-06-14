@@ -51,23 +51,38 @@ fun nat i = if i < 0 then 0 else i;
 *}
   int ("(_)")
 
-code_syntax_tyco nat
-  ml (target_atom "{* int *}")
-  haskell (target_atom "{* int *}")
+code_typapp nat
+  ml (target_atom "IntInf.int")
+  haskell (target_atom "Integer")
 
-code_syntax_const
-  "0 :: nat"
-    ml (target_atom "{* 0 :: int *}")
-    haskell (target_atom "{* 0 :: int *}")
-  Suc
-    ml (target_atom "(__ + 1)")
-    haskell (target_atom "(__ + 1)")
+definition
+  "nat_of_int (k::int) = (if k < 0 then - k else k)"
+
+lemma
+  "nat_of_int = abs"
+by (simp add: expand_fun_eq nat_of_int_def zabs_def)
+
+code_generate (ml, haskell) "abs :: int \<Rightarrow> int"
+
+code_constapp
   nat
     ml ("{* abs :: int \<Rightarrow> int *}")
     haskell ("{* abs :: int \<Rightarrow> int *}")
   int
     ml ("_")
     haskell ("_")
+
+text {*
+  Eliminate @{const "0::nat"} and @{const "Suc"}
+  by unfolding in place.
+*}
+
+lemma [code unfolt]:
+  "0 = nat 0"
+  "Suc = (op +) 1"
+by (simp_all add: expand_fun_eq)
+
+declare elim_one_nat [code nofold]
 
 text {*
 Case analysis on natural numbers is rephrased using a conditional
@@ -98,9 +113,8 @@ lemma [code]: "m mod n = nat (int m mod int n)"
 lemma [code]: "(m < n) = (int m < int n)"
   by simp
 lemma [code fun]:
-  "((0::nat) = 0) = True"
   "(m = n) = (int m = int n)"
-  by simp_all
+  by simp
 
 subsection {* Preprocessors *}
 

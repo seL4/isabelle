@@ -234,7 +234,7 @@ fun gen_set' aG i j = frequency
 and gen_set aG i = gen_set' aG i i;
 *}
 
-code_syntax_tyco set
+code_typapp set
   ml ("_ list")
   haskell (target_atom "[_]")
 
@@ -261,7 +261,11 @@ code_alias
   "ExecutableSet.insertl" "List.insertl"
   "ExecutableSet.drop_first" "List.drop_first"
 
-code_syntax_const
+code_generate (ml, haskell) 
+  insertl unionl intersect flip subtract map_distinct
+  unions intersects map_union map_inter Blall Blex
+
+code_constapp
   "{}"
     ml (target_atom "[]")
     haskell (target_atom "[]")
