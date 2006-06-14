@@ -15,7 +15,7 @@ world_data[i++] = ['Peter Lammich', CAPTION, 'Institut f&uuml;r Informatik, Univ
 world_data[i++] = ['Till Mossakowski: <b>Heterogeneous Tool Set</b>', CAPTION, 'University of Bremen, DFKI Lab Bremen', STICKY, NOCLOSE];
 world_data[i++] = ['J&oslash;rgen Villadsen', CAPTION, 'Technical University of Denmark', STICKY, NOCLOSE];
 world_data[i++] = ['See the zoomed in section of the map for details.', CAPTION, 'Europe', STICKY, NOCLOSE];
-world_data[i++] = ['<a href=\'http://users.rsise.anu.edu.au/~jeremy/\'>Jeremy Dawson</a>, <a href=\'http://users.rsise.anu.edu.au/~michaeln/\'>Michael Norrish</a>', CAPTION, 'ANU, NICTA', STICKY, NOCLOSE];
+world_data[i++] = ['<a href=\'http://users.rsise.anu.edu.au/~jeremy/\'>Jeremy Dawson</a>, <a href="http://users.rsise.anu.edu.au/~jiameng/">Jia Meng</a>, <a href=\'http://users.rsise.anu.edu.au/~michaeln/\'>Michael Norrish</a>', CAPTION, 'ANU, NICTA', STICKY, NOCLOSE];
 world_data[i++] = ['<a href=\'http://www.cse.unsw.edu.au/~kleing/\'>Gerwin Klein</a> et al.: <b>L4.verified</b>', CAPTION, 'NICTA, UNSW', STICKY, NOCLOSE];
 world_data[i++] = ['Kamal Kant Gupta', CAPTION, 'IIT Guwahati', STICKY, NOCLOSE];
 world_data[i++] = ['Yasuhiko Minamide', CAPTION, 'University of Tsukuba', STICKY, NOCLOSE];
