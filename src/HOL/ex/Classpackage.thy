@@ -314,9 +314,9 @@ definition
   "x = ((2::nat) \<otimes> \<one> \<otimes> 3, (2::int) \<otimes> \<one> \<otimes> \<div> 3, [1::nat, 2] \<otimes> \<one> \<otimes> [1, 2, 3])"
   "y = (2 :: int, \<div> 2 :: int) \<otimes> \<one> \<otimes> (3, \<div> 3)"
 
-code_generate "op \<otimes>" "\<one>" "inv"
-code_generate x
-code_generate y
+code_generate (ml, haskell) "op \<otimes>" "\<one>" "inv"
+code_generate (ml, haskell) x
+code_generate (ml, haskell) y
 
 code_serialize ml (-)
 
