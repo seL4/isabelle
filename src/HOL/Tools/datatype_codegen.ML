@@ -10,6 +10,8 @@ sig
   val get_datatype_spec_thms: theory -> string
     -> (((string * sort) list * (string * typ list) list) * tactic) option
   val get_all_datatype_cons: theory -> (string * string) list
+  val add_datatype_case_const: string -> theory -> theory
+  val add_datatype_case_defs: string -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -353,6 +355,7 @@ val setup =
     DatatypePackage.get_datatype_spec #>
   CodegenPackage.set_get_all_datatype_cons
     get_all_datatype_cons #>
-  DatatypeHooks.add add_datatype_case_const
+  DatatypeHooks.add add_datatype_case_const #>
+  DatatypeHooks.add add_datatype_case_defs
 
 end;
