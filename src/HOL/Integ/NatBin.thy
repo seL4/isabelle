@@ -781,13 +781,6 @@ by (simp add: nat_mult_div_cancel1)
 
 subsection {* code generator setup *}
 
-lemma number_of_eval [code fun]:
-  "number_of Numeral.Pls = (0::int)"
-  and "number_of Numeral.Min = uminus (1::int)"
-  and "number_of (n BIT bit.B0) = (2::int) * number_of n"
-  and "number_of (n BIT bit.B1) = (2::int) * number_of n + 1"
-  by simp_all
-
 lemma elim_nat [code unfolt]:
   "(number_of n :: nat) = nat (number_of n)"
   by simp
@@ -798,6 +791,10 @@ lemma elim_zero [code unfolt]:
 
 lemma elim_one [code unfolt]:
   "(1::int) = number_of (Numeral.Pls BIT bit.B1)" 
+  by simp
+
+lemma elim_one_nat [code unfolt]:
+  "1 = Suc 0"
   by simp
 
 lemmas [code unfolt] =

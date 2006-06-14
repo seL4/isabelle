@@ -902,14 +902,11 @@ consts_code
   "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                              ("(_ < 0)")
 
-code_syntax_tyco int
+code_typapp int
   ml (target_atom "IntInf.int")
   haskell (target_atom "Integer")
 
-code_syntax_const
-  "0 :: int"
-    ml (target_atom "(0:IntInf.int)")
-    haskell (target_atom "0")
+code_constapp
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
     ml (infixl 8 "+")
     haskell (infixl 6 "+")
@@ -938,6 +935,15 @@ fun bin_to_int thy bin = HOLogic.dest_binum bin
   handle TERM _
     => error ("not a number: " ^ Sign.string_of_term thy bin);
 
+fun appgen_number thy tabs (app as ((_, ty), _)) =
+  let
+    val _ = case strip_type ty
+     of (_, Type (ty', [])) => if ty' = "IntDef.int" then ()
+       else error ("not integer type: " ^ quote ty');
+  in
+    CodegenPackage.appgen_number_of bin_to_int thy tabs app
+  end;
+
 fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
       Type ("fun", [_, T as Type ("IntDef.int", [])])) $ bin) =
         (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
@@ -955,7 +961,7 @@ setup {*
   Codegen.add_codegen "number_of_codegen" number_of_codegen
   #> CodegenPackage.add_appconst
        ("Numeral.number_of", ((1, 1),
-          CodegenPackage.appgen_number_of bin_to_int))
+          appgen_number))
   #> CodegenPackage.set_int_tyco "IntDef.int"
 *}
 
