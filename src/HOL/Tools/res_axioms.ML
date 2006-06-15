@@ -44,88 +44,65 @@ fun elimRule_tac th =
 
 exception ELIMR2FOL of string;
 
-(* functions used to construct a formula *)
-
-fun make_disjs [x] = x
-  | make_disjs (x :: xs) = HOLogic.mk_disj(x, make_disjs xs)
-
-fun make_conjs [x] = x
-  | make_conjs (x :: xs) =  HOLogic.mk_conj(x, make_conjs xs)
-
 fun add_EX tm [] = tm
   | add_EX tm ((x,xtp)::xs) = add_EX (HOLogic.exists_const xtp $ Abs(x,xtp,tm)) xs;
 
-fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_))) (Const("Trueprop",_) $ Free(q,_)) = (p = q)
+(*Checks for the premise ~P when the conclusion is P.*)
+fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_))) 
+           (Const("Trueprop",_) $ Free(q,_)) = (p = q)
   | is_neg _ _ = false;
 
-
-exception STRIP_CONCL;
-
-
+(*FIXME: What if dest_Trueprop fails?*)
 fun strip_concl' prems bvs (Const ("==>",_) $ P $ Q) =
-      let val P' = HOLogic.dest_Trueprop P
-  	  val prems' = P'::prems
-      in
-	strip_concl' prems' bvs  Q
-      end
+      strip_concl' (HOLogic.dest_Trueprop P :: prems) bvs  Q
   | strip_concl' prems bvs P = 
       let val P' = HOLogic.Not $ (HOLogic.dest_Trueprop P)
-      in
-	add_EX (make_conjs (P'::prems)) bvs
-      end;
-
+      in add_EX (foldr1 HOLogic.mk_conj (P'::prems)) bvs end;
 
 fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body)) = 
       strip_concl prems ((x,xtp)::bvs) concl body
   | strip_concl prems bvs concl (Const ("==>",_) $ P $ Q) =
       if (is_neg P concl) then (strip_concl' prems bvs Q)
       else strip_concl (HOLogic.dest_Trueprop P::prems) bvs  concl Q
-  | strip_concl prems bvs concl _ = add_EX (make_conjs prems) bvs;
+  | strip_concl prems bvs concl _ = add_EX (foldr1 HOLogic.mk_conj prems) bvs;
  
-
-fun trans_elim (main,others,concl) =
-    let val others' = map (strip_concl [] [] concl) others
-	val disjs = make_disjs others'
+fun trans_elim (major,minors,concl) =
+    let val disjs = foldr1 HOLogic.mk_disj (map (strip_concl [] [] concl) minors)
     in
-	HOLogic.mk_imp (HOLogic.dest_Trueprop main, disjs)
+	HOLogic.mk_imp (HOLogic.dest_Trueprop major, disjs)
     end;
 
-
-(* aux function of elim2Fol, take away predicate variable. *)
-fun elimR2Fol_aux prems concl = 
-    let val nprems = length prems
-	val main = hd prems
-    in
-	if (nprems = 1) then HOLogic.Not $ (HOLogic.dest_Trueprop main)
-        else trans_elim (main, tl prems, concl)
-    end;
-
-    
 (* convert an elim rule into an equivalent formula, of type term. *)
 fun elimR2Fol elimR = 
-    let val elimR' = Drule.freeze_all elimR
-	val (prems,concl) = (prems_of elimR', concl_of elimR')
-    in
-	case concl of Const("Trueprop",_) $ Free(_,Type("bool",[])) 
-		      => HOLogic.mk_Trueprop (elimR2Fol_aux prems concl)
-                    | Free(x,Type("prop",[])) => HOLogic.mk_Trueprop(elimR2Fol_aux prems concl) 
-		    | _ => raise ELIMR2FOL("Not an elimination rule!")
-    end;
-
+  let val elimR' = Drule.freeze_all elimR
+      val (prems,concl) = (prems_of elimR', concl_of elimR')
+      val _ = case concl of 
+		  Const("Trueprop",_) $ Free(_,Type("bool",[])) => ()
+		| Free(_, Type("prop",[])) => ()
+		| _ => raise ELIMR2FOL "elimR2Fol: Not an elimination rule!"
+      val th = case prems of
+      		  [] => raise ELIMR2FOL "elimR2Fol: No premises!"
+      		| [major] => HOLogic.Not $ (HOLogic.dest_Trueprop major)
+      		| major::minors => trans_elim (major, minors, concl)
+  in HOLogic.mk_Trueprop th end
+  handle exn => 
+    (warning ("elimR2Fol raised exception " ^ Toplevel.exn_message exn);
+     concl_of elimR);
 
 (* check if a rule is an elim rule *)
 fun is_elimR th = 
-    case (concl_of th) of (Const ("Trueprop", _) $ Var (idx,_)) => true
-			 | Var(indx,Type("prop",[])) => true
-			 | _ => false;
+    case concl_of th of Const ("Trueprop", _) $ Var _ => true
+		      | Var(_,Type("prop",[])) => true
+		      | _ => false;
 
 (* convert an elim-rule into an equivalent theorem that does not have the 
    predicate variable.  Leave other theorems unchanged.*) 
 fun transform_elim th =
   if is_elimR th then
-    let val tm = elimR2Fol th
-	val ctm = cterm_of (sign_of_thm th) tm	
+    let val ctm = cterm_of (sign_of_thm th) (elimR2Fol th)
     in Goal.prove_raw [] ctm (fn _ => elimRule_tac th) end
+    handle exn => (warning ("transform_elim failed: " ^ Toplevel.exn_message exn ^ 
+                            " for theorem " ^ string_of_thm th); th)
  else th;
 
 
@@ -303,12 +280,12 @@ fun skolem_cache ((name,th), thy) = #2 (skolem_cache_thm ((name,th), thy));
 
 
 (*Exported function to convert Isabelle theorems into axiom clauses*) 
-fun cnf_axiom_g cnf (name,th) =
+fun cnf_axiom (name,th) =
   case name of
-	"" => cnf th (*no name, so can't cache*)
+	"" => skolem_thm th (*no name, so can't cache*)
       | s  => case Symtab.lookup (!clause_cache) s of
 		NONE => 
-		  let val cls = cnf th
+		  let val cls = skolem_thm th
 		  in change clause_cache (Symtab.update (s, (th, cls))); cls end
 	      | SOME(th',cls) =>
 		  if eq_thm(th,th') then cls
@@ -319,13 +296,8 @@ fun cnf_axiom_g cnf (name,th) =
 
 fun pairname th = (Thm.name_of_thm th, th);
 
-
-val cnf_axiom = cnf_axiom_g skolem_thm;
-
-
 fun meta_cnf_axiom th = 
     map Meson.make_meta_clause (cnf_axiom (pairname th));
-
 
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
@@ -374,33 +346,26 @@ fun atpset_rules_of_ctxt ctxt = map pairname (ResAtpSet.atp_rules_of_ctxt ctxt);
 
 (**** Translate a set of classical/simplifier rules into CNF (still as type "thm")  ****)
 
-(* classical rules *)
-fun cnf_rules_g cnf_axiom [] err_list = ([],err_list)
-  | cnf_rules_g cnf_axiom ((name,th) :: ths) err_list = 
-      let val (ts,es) = cnf_rules_g cnf_axiom ths err_list
+(* classical rules: works for both FOL and HOL *)
+fun cnf_rules [] err_list = ([],err_list)
+  | cnf_rules ((name,th) :: ths) err_list = 
+      let val (ts,es) = cnf_rules ths err_list
       in  (cnf_axiom (name,th) :: ts,es) handle  _ => (ts, (th::es))  end;  
 
-
-(*works for both FOL and HOL*)
-val cnf_rules = cnf_rules_g cnf_axiom;
-
-fun cnf_rules_pairs_aux [] = []
-  | cnf_rules_pairs_aux ((name,th)::ths) =
-    let val ts = cnf_rules_pairs_aux ths
-	fun pair_name_cls k (n, []) = []
-	  | pair_name_cls k (n, cls::clss) =
-	    (cls, (n,k))::(pair_name_cls (k+1) (n, clss))
-    in
-	(pair_name_cls 0 (name, cnf_axiom(name,th)))::ts
-	handle THM _ => ts | ResClause.CLAUSE _ => ts | ResHolClause.LAM2COMB _ => ts
-    end;
+fun pair_name_cls k (n, []) = []
+  | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
+ 	    
+fun cnf_rules_pairs_aux pairs [] = pairs
+  | cnf_rules_pairs_aux pairs ((name,th)::ths) =
+      let val pairs' = (pair_name_cls 0 (name, cnf_axiom(name,th))) :: pairs
+		       handle THM _ => pairs | ResClause.CLAUSE _ => pairs
+			    | ResHolClause.LAM2COMB _ => pairs
+      in  cnf_rules_pairs_aux pairs' ths  end;
     
-
-fun cnf_rules_pairs thms = rev (cnf_rules_pairs_aux thms);
+val cnf_rules_pairs = cnf_rules_pairs_aux [];
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
-
 
 (*These should include any plausibly-useful theorems, especially if they need
   Skolem functions. FIXME: this list is VERY INCOMPLETE*)

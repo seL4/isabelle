@@ -123,7 +123,8 @@ fun is_taut th =
   in  exists taut_poslit poslits
       orelse
       exists (fn t => mem_term (t, neglits)) (HOLogic.false_const :: poslits)
-  end;
+  end
+  handle TERM _ => false;	(*probably dest_Trueprop on a weird theorem*)		      
 
 
 (*** To remove trivial negated equality literals from clauses ***)
@@ -154,10 +155,19 @@ fun notequal_lits_count (Const ("op |", _) $ P $ Q) =
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
 fun refl_clause th = 
   let val neqs = notequal_lits_count (HOLogic.dest_Trueprop (concl_of th))
-  in  zero_var_indexes (refl_clause_aux neqs th)  end;
+  in  zero_var_indexes (refl_clause_aux neqs th)  end
+  handle TERM _ => th;	(*probably dest_Trueprop on a weird theorem*)		      
 
 
 (*** The basic CNF transformation ***)
+
+(*Estimate the number of clauses in order to detect infeasible theorems*)
+fun nclauses (Const("Trueprop",_) $ t) = nclauses t
+  | nclauses (Const("op &",_) $ t $ u) = nclauses t + nclauses u
+  | nclauses (Const("Ex", _) $ Abs (_,_,t)) = nclauses t
+  | nclauses (Const("All",_) $ Abs (_,_,t)) = nclauses t
+  | nclauses (Const("op |",_) $ t $ u) = nclauses t * nclauses u
+  | nclauses _ = 1; (* literal *)
 
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, call "generalize". *)
@@ -179,7 +189,7 @@ val has_meta_conn =
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
 fun cnf skoths (th,ths) =
   let fun cnf_aux (th,ths) =
-        if has_meta_conn (prop_of th) then ths (*meta-level: ignore*)
+  	if has_meta_conn (prop_of th) then ths (*meta-level: ignore*)
         else if not (has_consts ["All","Ex","op &"] (prop_of th))  
 	then th::ths (*no work to do, terminate*)
 	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
@@ -199,7 +209,9 @@ fun cnf skoths (th,ths) =
 	  | _ => (*no work to do*) th::ths 
       and cnf_nil th = cnf_aux (th,[])
   in 
-    cnf_aux (th,ths)
+    if nclauses (concl_of th) > 20 
+    then (Output.debug ("cnf is ignoring: " ^ string_of_thm th); ths)
+    else cnf_aux (th,ths)
   end;
 
 (*Convert all suitable free variables to schematic variables, 
@@ -379,15 +391,18 @@ fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val tag_True = thm "tag_True";
 val tag_False = thm "tag_False";
-val nnf_simps = [Ex1_def,Ball_def,Bex_def,tag_True,tag_False]
+val nnf_simps =
+     [simp_implies_def, Ex1_def, Ball_def, Bex_def, tag_True, tag_False, if_True, 
+      if_False, if_cancel, if_eq_cancel, cases_simp];
+val nnf_extra_simps =
+      thms"split_ifs" @ ex_simps @ all_simps @ simp_thms;
 
 val nnf_ss =
-    HOL_basic_ss addsimps
-     (nnf_simps @ [if_True, if_False, if_cancel, if_eq_cancel, cases_simp] @
-      thms"split_ifs" @ ex_simps @ all_simps @ simp_thms)
-     addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc];
+    HOL_basic_ss addsimps nnf_extra_simps 
+                 addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc];
 
-fun make_nnf th = th |> simplify nnf_ss
+fun make_nnf th = th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
+                     |> simplify nnf_ss  (*But this doesn't simplify premises...*)
                      |> make_nnf1
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for

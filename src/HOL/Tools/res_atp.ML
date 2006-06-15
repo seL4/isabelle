@@ -39,10 +39,12 @@ sig
   val run_relevance_filter: bool ref
   val run_blacklist_filter: bool ref
   val invoke_atp_ml : ProofContext.context * thm -> unit
+  val add_all : unit -> unit
   val add_claset : unit -> unit
   val add_simpset : unit -> unit
   val add_clasimp : unit -> unit
   val add_atpset : unit -> unit
+  val rm_all : unit -> unit
   val rm_claset : unit -> unit
   val rm_simpset : unit -> unit
   val rm_atpset : unit -> unit
@@ -133,13 +135,16 @@ fun atp_input_file () =
 	else error ("No such directory: " ^ !destdir)
     end;
 
+val include_all = ref false;
 val include_simpset = ref false;
 val include_claset = ref false; 
 val include_atpset = ref true;
+val add_all = (fn () => include_all:=true);
 val add_simpset = (fn () => include_simpset:=true);
 val add_claset = (fn () => include_claset:=true);
 val add_clasimp = (fn () => (include_simpset:=true;include_claset:=true));
 val add_atpset = (fn () => include_atpset:=true);
+val rm_all = (fn () => include_all:=false);
 val rm_simpset = (fn () => include_simpset:=false);
 val rm_claset = (fn () => include_claset:=false);
 val rm_clasimp = (fn () => (include_simpset:=false;include_claset:=false));
@@ -512,47 +517,55 @@ fun display_thms [] = ()
       in Output.debug nthm; display_thms nthms  end;
  
 
+fun all_facts_of ctxt =
+  FactIndex.find (ProofContext.fact_index_of ctxt) ([], [])
+  |> maps #2 |> map (`Thm.name_of_thm);
+
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt user_thms = 
-    let val claset_thms =
-	    if !include_claset then
-		map put_name_pair (ResAxioms.claset_rules_of_ctxt ctxt)
-	    else []
-	val simpset_thms = 
-	    if !include_simpset then 
-		map put_name_pair (ResAxioms.simpset_rules_of_ctxt ctxt)
-	    else []
-	val atpset_thms =
-	    if !include_atpset then
-		map put_name_pair (ResAxioms.atpset_rules_of_ctxt ctxt)
-	    else []
-	val _ = if !Output.show_debug_msgs then (Output.debug "ATP theorems: "; display_thms atpset_thms) else ()		 
-	val user_rules = 
-	    case user_thms of  (*use whitelist if there are no user-supplied rules*)
-		[] => map (put_name_pair o ResAxioms.pairname) (!whitelist)
-	      | _  => map put_name_pair user_thms
-    in
-	(claset_thms, simpset_thms, atpset_thms, user_rules)
-    end;
+  let val included_thms =
+	if !include_all 
+	then (tap (fn ths => Output.debug ("Including all " ^ Int.toString (length ths) ^
+	                                   " theorems")) 
+	          (all_facts_of ctxt @ PureThy.all_thms_of (ProofContext.theory_of ctxt)))
+	else 
+	let val claset_thms =
+		if !include_claset then ResAxioms.claset_rules_of_ctxt ctxt
+		else []
+	    val simpset_thms = 
+		if !include_simpset then ResAxioms.simpset_rules_of_ctxt ctxt
+		else []
+	    val atpset_thms =
+		if !include_atpset then ResAxioms.atpset_rules_of_ctxt ctxt
+		else []
+	    val _ = if !Output.show_debug_msgs 
+		    then (Output.debug "ATP theorems: "; display_thms atpset_thms) 
+		    else ()		 
+	in  claset_thms @ simpset_thms @ atpset_thms  end
+      val user_rules = map (put_name_pair o ResAxioms.pairname)
+			   (if null user_thms then !whitelist else user_thms)
+  in
+      (map put_name_pair included_thms, user_rules)
+  end;
 
 (* remove lemmas that are banned from the backlist *)
 fun blacklist_filter thms = 
-    if !run_blacklist_filter then 
-	let val banned = make_banned_test (map #1 thms)
-	    fun ok (a,_) = not (banned a)
-	in
-	    filter ok thms
-	end
-    else
-	thms;
+  if !run_blacklist_filter then 
+      let val banned = make_banned_test (map #1 thms)
+	  fun ok (a,_) = not (banned a)
+      in  filter ok thms  end
+  else thms;
 
 (* filter axiom clauses, but keep supplied clauses and clauses in whitelist *)
 fun get_relevant_clauses ctxt cls_thms white_cls goals =
-    let val cls_thms_list = make_unique (mk_clause_table 2200) (List.concat (white_cls@cls_thms))
-	val relevant_cls_thms_list = if !run_relevance_filter then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals else cls_thms_list
-    in
-        insert_thms (List.concat white_cls) relevant_cls_thms_list 
-    end;
+ let val cls_thms_list = make_unique (mk_clause_table 2200) (List.concat (white_cls@cls_thms))
+     val relevant_cls_thms_list = 
+	 if !run_relevance_filter 
+	 then ReduceAxiomsN.relevance_filter (ProofContext.theory_of ctxt) cls_thms_list goals 
+	 else cls_thms_list
+ in
+     insert_thms (List.concat white_cls) relevant_cls_thms_list 
+ end;
 
 (***************************************************************)
 (* ATP invocation methods setup                                *)
@@ -587,8 +600,8 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
     let val conj_cls = make_clauses conjectures 
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
-	val (cla_thms,simp_thms,atp_thms,user_rules) = get_clasimp_atp_lemmas ctxt (map ResAxioms.pairname user_thms)
-	val rm_black_cls = blacklist_filter (cla_thms@simp_thms@atp_thms) 
+	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
+	val rm_black_cls = blacklist_filter included_thms 
 	val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_black_cls
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
 	val axclauses_as_thms = get_relevant_clauses ctxt cla_simp_atp_clauses user_cls (map prop_of goal_cls)
@@ -685,8 +698,8 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 fun write_problem_files pf (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
-      val (cla_thms,simp_thms,atp_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
-      val rm_blacklist_cls = blacklist_filter (cla_thms@simp_thms@atp_thms)
+      val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
+      val rm_blacklist_cls = blacklist_filter included_thms
       val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_blacklist_cls
       val axclauses = get_relevant_clauses ctxt cla_simp_atp_clauses (ResAxioms.cnf_rules_pairs white_thms) goals 
       val _ = Output.debug ("claset, simprules and atprules total clauses = " ^ 
