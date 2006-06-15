@@ -389,6 +389,13 @@ for example "A -> B" => "Pi A (%_. B)".
 
 *** HOL ***
 
+* New top level command 'normal_form' computes the normal form of a term
+that may contain free variables. For example 'normal_form "rev[a,b,c]"'
+prints '[b,c,a]'. This command is suitable for heavy-duty computations
+because the functions are compiled to ML first.
+INCOMPATIBILITY: new keywords 'normal_form' must quoted when used as
+an identifier.
+
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
