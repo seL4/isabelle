@@ -18,7 +18,6 @@ sig
   val theory_of: state -> theory
   val sign_of: state -> theory    (*obsolete*)
   val map_context: (context -> context) -> state -> state
-  val warn_extra_tfrees: state -> state -> state
   val add_binds_i: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val put_thms_internal: string * thm list option -> state -> state
@@ -202,7 +201,6 @@ fun map_context f =
 fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
 
-val warn_extra_tfrees = map_context o ProofContext.warn_extra_tfrees o context_of;
 val add_binds_i = map_context o ProofContext.add_binds_i;
 val put_thms = map_context oo ProofContext.put_thms;
 val put_thms_internal = map_context o ProofContext.put_thms_internal;
@@ -807,7 +805,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
       fn results => map_context after_ctxt #> after_local results);
   in
     goal_state
-    |> map_context (ProofContext.set_body true)
+    |> map_context (Variable.set_body true)
     |> put_goal (SOME (make_goal ((kind, propss'), [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
@@ -829,7 +827,7 @@ fun generic_qed state =
 
     val props =
       flat (tl stmt)
-      |> ProofContext.generalize goal_ctxt outer_ctxt;
+      |> Variable.generalize goal_ctxt outer_ctxt;
     val results =
       tl (conclude_goal state goal stmt)
       |> (Seq.map_list o Seq.map_list) (ProofContext.exports goal_ctxt outer_ctxt);
@@ -855,7 +853,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
   in
     state
     |> generic_goal prepp (kind ^ goal_names NONE "" names) before_qed (after_qed', K I) propp
-    |> warn_extra_tfrees state
+    |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
 fun local_qed txt =

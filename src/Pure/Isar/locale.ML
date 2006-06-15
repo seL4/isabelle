@@ -513,11 +513,8 @@ fun err_in_expr _ msg (Merge []) = error msg
 (* parameter types *)
 
 fun frozen_tvars ctxt Ts =
-  let
-    val tvars = rev (fold Term.add_tvarsT Ts []);
-    val tfrees = map TFree
-      (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
-  in map (fn ((xi, S), T) => (xi, (S, T))) (tvars ~~ tfrees) end;
+  #1 (Variable.monomorphic_inst (map Logic.mk_type Ts) ctxt)
+  |> map (fn ((xi, S), T) => (xi, (S, T)));
 
 fun unify_frozen ctxt maxidx Ts Us =
   let
@@ -1058,7 +1055,7 @@ fun declare_elemss prep_vars fixed_params raw_elemss ctxt =
        Parameters new in context elements must receive types that are
        distinct from types of parameters in target (fixed_params).  *)
     val ctxt_with_fixed =
-      fold ProofContext.declare_term (map Free fixed_params) ctxt;
+      fold Variable.declare_term (map Free fixed_params) ctxt;
     val int_elemss =
       raw_elemss
       |> map_filter (fn (id, Int es) => SOME (id, es) | _ => NONE)
@@ -1141,8 +1138,7 @@ fun closeup _ false elem = elem
   | closeup ctxt true elem =
       let
         fun close_frees t =
-          let val frees = rev (filter_out (ProofContext.is_fixed ctxt o #1)
-            (Term.add_frees t []))
+          let val frees = rev (filter_out (Variable.is_fixed ctxt o #1) (Term.add_frees t []))
           in Term.list_all_free (frees, t) end;
 
         fun no_binds [] = []
@@ -1226,9 +1222,9 @@ fun prep_elemss prep_vars prepp do_close context fixed_params raw_elemss raw_con
         (* CB: add type information from fixed_params to context (declare_term) *)
         (* CB: process patterns (conclusion and external elements only) *)
         val (ctxt, all_propp) =
-          prepp (fold ProofContext.declare_term (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
+          prepp (fold Variable.declare_term (map Free fixed_params) raw_ctxt, raw_concl @ raw_propp);
         (* CB: add type information from conclusion and external elements to context *)
-        val ctxt = fold ProofContext.declare_term (maps (map fst) all_propp) ctxt;
+        val ctxt = fold Variable.declare_term (maps (map fst) all_propp) ctxt;
         (* CB: resolve schematic variables (patterns) in conclusion and external elements. *)
         val all_propp' = map2 (curry (op ~~))
           (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
@@ -1241,8 +1237,8 @@ fun prep_elemss prep_vars prepp do_close context fixed_params raw_elemss raw_con
     (* CB: obtain all parameters from identifier part of raw_elemss *)
     val xs = map #1 (params_of' raw_elemss);
     val typing = unify_frozen ctxt 0
-      (map (ProofContext.default_type raw_ctxt) xs)
-      (map (ProofContext.default_type ctxt) xs);
+      (map (Variable.default_type raw_ctxt) xs)
+      (map (Variable.default_type ctxt) xs);
     val parms = param_types (xs ~~ typing);
     (* CB: parms are the parameters from raw_elemss, with correct typing. *)
 
