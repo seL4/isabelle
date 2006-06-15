@@ -1,6 +1,8 @@
-
 Contributions to Isabelle
 -------------------------
+
+* May 2006: Klaus Aehlig, LMU
+  Command 'normal_form': normalization by evaluation.
 
 * May 2006: Amine Chaieb, TUM
   HOL-Complex: Ferrante and Rackoff Algorithm for linear real
