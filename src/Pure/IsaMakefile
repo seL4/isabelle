@@ -66,7 +66,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   library.ML logic.ML meta_simplifier.ML net.ML old_goals.ML pattern.ML		\
   proof_general.ML proofterm.ML pure_thy.ML search.ML sign.ML			\
   simplifier.ML sorts.ML tactic.ML tctical.ML term.ML theory.ML thm.ML		\
-  type.ML type_infer.ML unify.ML
+  type.ML type_infer.ML variable.ML unify.ML
 	@./mk
 
 

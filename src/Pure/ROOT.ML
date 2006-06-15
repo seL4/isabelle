@@ -47,6 +47,7 @@ use "fact_index.ML";
 use "pure_thy.ML";
 use "display.ML";
 use "drule.ML";
+use "variable.ML";
 use "tctical.ML";
 use "search.ML";
 use "meta_simplifier.ML";
