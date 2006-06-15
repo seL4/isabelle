@@ -407,6 +407,46 @@ lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) = (\<exists>m. \<
 by (simp add: MOST_def INF_nat_le)
 
 
+subsection "Enumeration of an Infinite Set"
+
+text{*The set's element type must be wellordered (e.g. the natural numbers)*}
+consts
+  enumerate   :: "'a::wellorder set => (nat => 'a::wellorder)"
+
+primrec
+  enumerate_0:   "enumerate S 0       = (LEAST n. n \<in> S)"
+  enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
+
+lemma enumerate_Suc':
+   "enumerate S (Suc n) = enumerate (S - {enumerate S 0}) n"
+by simp
+
+lemma enumerate_in_set [rule_format]: "\<forall>S. infinite S --> enumerate S n : S"
+apply (induct n) 
+ apply (force intro: LeastI dest!:infinite_imp_nonempty)
+apply (auto iff: finite_Diff_singleton) 
+done
+
+declare enumerate_0 [simp del] enumerate_Suc [simp del]
+
+lemma enumerate_step [rule_format]:
+     "\<forall>S. infinite S --> enumerate S n < enumerate S (Suc n)"
+apply (induct n, clarify) 
+ apply (rule order_le_neq_trans)
+  apply (simp add: enumerate_0 Least_le enumerate_in_set) 
+ apply (simp only: enumerate_Suc') 
+ apply (subgoal_tac "enumerate (S - {enumerate S 0}) 0 : S - {enumerate S 0}")
+  apply (blast intro: sym)
+ apply (simp add: enumerate_in_set del: Diff_iff) 
+apply (simp add: enumerate_Suc') 
+done
+
+lemma enumerate_mono: "[|m<n; infinite S|] ==> enumerate S m < enumerate S n"
+apply (erule less_Suc_induct) 
+apply (auto intro: enumerate_step) 
+done
+
+
 subsection "Miscellaneous"
 
 text {*
