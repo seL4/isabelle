@@ -214,10 +214,10 @@ fun thm_name kind th prts =
 
 fun obtain prop ctxt =
   let
-    val xs = ProofContext.rename_frees ctxt [] (Logic.strip_params prop);
+    val xs = Variable.rename_wrt ctxt [] (Logic.strip_params prop);
     val args = rev (map Free xs);
     val As = Logic.strip_assums_hyp prop |> map (fn t => Term.subst_bounds (args, t));
-    val ctxt' = ctxt |> fold ProofContext.declare_term args;
+    val ctxt' = ctxt |> fold Variable.declare_term args;
   in (("", (map (apsnd SOME) xs, As)), ctxt') end;
 
 in
@@ -235,12 +235,12 @@ fun pretty_statement ctxt kind raw_th =
 
     val raw_prop =
       Thm.prop_of th
-      |> singleton (ProofContext.monomorphic ctxt)
+      |> singleton (Variable.monomorphic ctxt)
       |> K (ObjectLogic.is_elim th) ? standard_thesis
       |> Term.zero_var_indexes;
 
     val vars = Term.add_vars raw_prop [];
-    val frees = ProofContext.rename_frees ctxt [raw_prop] (map (apfst fst) vars);
+    val frees = Variable.rename_wrt ctxt [raw_prop] (map (apfst fst) vars);
     val fixes = rev (filter_out (fn (x, _) => x = AutoBind.thesisN) frees);
 
     val prop = Term.instantiate ([], vars ~~ map Free frees) raw_prop;
@@ -252,7 +252,7 @@ fun pretty_statement ctxt kind raw_th =
     pretty_ctxt ctxt (Assumes (map (fn t => (("", []), [(t, [])])) asms)) @
     pretty_stmt ctxt
      (if null cases then Shows [(("", []), [(concl, [])])]
-      else Obtains (#1 (fold_map obtain cases (ctxt |> ProofContext.declare_term prop))))
+      else Obtains (#1 (fold_map obtain cases (ctxt |> Variable.declare_term prop))))
   end |> thm_name kind raw_th;
 
 end;

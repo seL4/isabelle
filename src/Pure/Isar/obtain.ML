@@ -121,7 +121,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
-    val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
+    val _ = Variable.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     (*obtain statements*)
     val thesisN = Term.variant xs AutoBind.thesisN;
@@ -220,7 +220,7 @@ fun inferred_type (x, _, mx) ctxt =
   in ((x, T, mx), ctxt') end;
 
 fun polymorphic (vars, ctxt) =
-  let val Ts = map Logic.dest_type (ProofContext.polymorphic ctxt (map (Logic.mk_type o #2) vars))
+  let val Ts = map Logic.dest_type (Variable.polymorphic ctxt (map (Logic.mk_type o #2) vars))
   in map2 (fn (x, _, mx) => fn T => ((x, T), mx)) vars Ts end;
 
 fun gen_guess prep_vars raw_vars int state =
@@ -308,7 +308,7 @@ fun statement cases =
             val props = map fst propp;
             val (parms, ctxt'') =
               ctxt'
-              |> fold ProofContext.declare_term props
+              |> fold Variable.declare_term props
               |> fold_map ProofContext.inferred_param xs;
             val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
           in

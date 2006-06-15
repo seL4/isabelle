@@ -40,7 +40,7 @@ fun cert_def ctxt eq =
     fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^ display_term eq);
     val ((lhs, _), eq') = eq
       |> Sign.no_vars pp
-      |> Logic.dest_def pp Term.is_Free (ProofContext.is_fixed ctxt) (K true)
+      |> Logic.dest_def pp Term.is_Free (Variable.is_fixed ctxt) (K true)
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
@@ -157,7 +157,7 @@ fun derived_def ctxt conditional prop =
         val thy' = ProofContext.theory_of ctxt';
         val prop' = Term.subst_atomic [(Free (c, T), t)] prop;
         val frees = Term.fold_aterms (fn Free (x, _) =>
-          if ProofContext.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
+          if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
       in
         Goal.prove thy' frees [] prop' (K (ALLGOALS
           (meta_rewrite_tac ctxt' THEN'

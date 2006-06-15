@@ -63,7 +63,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
       Seq.map (Proof.map_context (fn ctxt =>
         let
           val ([res_types, res_params, res_prems], ctxt'') =
-            fold_burrow (ProofContext.import false) results ctxt';
+            fold_burrow (Variable.import false) results ctxt';
 
           val types'' = map (Logic.dest_type o Thm.term_of o Drule.dest_term) res_types;
           val params'' = map (Thm.term_of o Drule.dest_term) res_params;
@@ -99,7 +99,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
 (* FIXME *)
 fun read_terms ctxt args =
   #1 (ProofContext.read_termTs ctxt (K false) (K NONE) (K NONE) [] args)
-  |> ProofContext.polymorphic ctxt;
+  |> Variable.polymorphic ctxt;
 
 (* FIXME *)
 fun cert_terms ctxt args = map fst args;

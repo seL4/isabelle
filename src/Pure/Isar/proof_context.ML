@@ -4,7 +4,7 @@
 
 The key concept of Isar proof contexts: elevates primitive local
 reasoning Gamma |- phi to a structured concept, with generic context
-elements, polymorphic abbreviations, and extra-logical data.
+elements.
 *)
 
 signature PROOF_CONTEXT =
@@ -15,15 +15,11 @@ sig
   val init: theory -> context
   val full_name: context -> bstring -> string
   val consts_of: context -> Consts.T
-  val set_body: bool -> context -> context
-  val restore_body: context -> context -> context
   val set_syntax_mode: string * bool -> context -> context
   val restore_syntax_mode: context -> context -> context
   val assms_of: context -> term list
   val prems_of: context -> thm list
   val fact_index_of: context -> FactIndex.T
-  val is_fixed: context -> string -> bool
-  val is_known: context -> string -> bool
   val transfer: theory -> context -> context
   val map_theory: (theory -> theory) -> context -> context
   val pretty_term: context -> term -> Pretty.T
@@ -40,9 +36,6 @@ sig
   val string_of_typ: context -> typ -> string
   val string_of_term: context -> term -> string
   val string_of_thm: context -> thm -> string
-  val used_types: context -> string list
-
-  val default_type: context -> string -> typ option
   val read_typ: context -> string -> typ
   val read_typ_syntax: context -> string -> typ
   val read_typ_abbrev: context -> string -> typ
@@ -68,25 +61,15 @@ sig
   val cert_prop: context -> term -> term
   val cert_term_pats: typ -> context -> term list -> term list
   val cert_prop_pats: context -> term list -> term list
-  val declare_type: typ -> context -> context
-  val declare_term: term -> context -> context
-  val invent_types: sort list -> context -> (string * sort) list * context
   val infer_type: context -> string -> typ
   val inferred_param: string -> context -> (string * typ) * context
   val inferred_fixes: context -> (string * typ) list * context
   val read_tyname: context -> string -> typ
   val read_const: context -> string -> term
-  val rename_frees: context -> term list -> (string * 'a) list -> (string * 'a) list
-  val warn_extra_tfrees: context -> context -> context
-  val generalize: context -> context -> term list -> term list
-  val monomorphic: context -> term list -> term list
-  val polymorphic: context -> term list -> term list
-  val hidden_polymorphism: term -> typ -> (indexname * sort) list
   val goal_exports: context -> context -> thm -> thm Seq.seq
   val exports: context -> context -> thm -> thm Seq.seq
   val export: context -> context -> thm -> thm
   val export_standard: context -> context -> thm -> thm
-  val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
   val auto_bind_goal: term list -> context -> context
@@ -141,13 +124,9 @@ sig
   val add_fixes: (string * string option * mixfix) list -> context -> string list * context
   val add_fixes_i: (string * typ option * mixfix) list -> context -> string list * context
   val add_fixes_legacy: (string * typ option * mixfix) list -> context -> string list * context
-  val invent_fixes: string list -> context -> string list * context
   val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
-  val import_types: bool -> typ list -> context -> typ list * context
-  val import_terms: bool -> term list -> context -> term list * context
-  val import: bool -> thm list -> context -> thm list * context
   val add_assms: export ->
     ((string * attribute list) * (string * string list) list) list ->
     context -> (bstring * thm list) list * context
@@ -198,22 +177,15 @@ datatype ctxt =
    {naming: NameSpace.naming,                     (*local naming conventions*)
     syntax: LocalSyntax.T,                        (*local syntax*)
     consts: Consts.T * Consts.T,                  (*global/local consts*)
-    fixes: bool * (string * string) list,         (*fixes: !!x. _ with proof body flag*)
     assms:
       ((cterm list * export) list *               (*assumes and views: A ==> _*)
         (string * thm list) list),                (*prems: A |- A*)
-    binds: (typ * term) Vartab.table,             (*term bindings*)
     thms: thm list NameSpace.table * FactIndex.T, (*local thms*)
-    cases: (string * (RuleCases.T * bool)) list,  (*local contexts*)
-    defaults:
-      typ Vartab.table *                          (*type constraints*)
-      sort Vartab.table *                         (*default sorts*)
-      string list *                               (*used type variables*)
-      term list Symtab.table};                    (*type variable occurrences*)
+    cases: (string * (RuleCases.T * bool)) list}; (*local contexts*)
 
-fun make_ctxt (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =
-  Ctxt {naming = naming, syntax = syntax, consts = consts, fixes = fixes, assms = assms,
-    binds = binds, thms = thms, cases = cases, defaults = defaults};
+fun make_ctxt (naming, syntax, consts, assms, thms, cases) =
+  Ctxt {naming = naming, syntax = syntax, consts = consts, assms = assms,
+    thms = thms, cases = cases};
 
 val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
 
@@ -223,9 +195,8 @@ structure ContextData = ProofDataFun
   type T = ctxt;
   fun init thy =
     make_ctxt (local_naming, LocalSyntax.init thy,
-      (Sign.consts_of thy, Sign.consts_of thy), (false, []), ([], []),
-      Vartab.empty, (NameSpace.empty_table, FactIndex.empty), [],
-      (Vartab.empty, Vartab.empty, [], Symtab.empty));
+      (Sign.consts_of thy, Sign.consts_of thy), ([], []),
+      (NameSpace.empty_table, FactIndex.empty), []);
   fun print _ _ = ();
 );
 
@@ -234,44 +205,32 @@ val _ = Context.add_setup ContextData.init;
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {naming, syntax, consts, fixes, assms, binds, thms, cases, defaults} =>
-    make_ctxt (f (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults)));
+  ContextData.map (fn Ctxt {naming, syntax, consts, assms, thms, cases} =>
+    make_ctxt (f (naming, syntax, consts, assms, thms, cases)));
 
 fun map_naming f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (f naming, syntax, consts, fixes, assms, binds, thms, cases, defaults));
+  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
+    (f naming, syntax, consts, assms, thms, cases));
 
 fun map_syntax f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, f syntax, consts, fixes, assms, binds, thms, cases, defaults));
+  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
+    (naming, f syntax, consts, assms, thms, cases));
 
 fun map_consts f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, f consts, fixes, assms, binds, thms, cases, defaults));
-
-fun map_fixes f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, consts, f fixes, assms, binds, thms, cases, defaults));
+  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
+    (naming, syntax, f consts, assms, thms, cases));
 
 fun map_assms f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, consts, fixes, f assms, binds, thms, cases, defaults));
-
-fun map_binds f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, consts, fixes, assms, f binds, thms, cases, defaults));
+  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
+    (naming, syntax, consts, f assms, thms, cases));
 
 fun map_thms f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, consts, fixes, assms, binds, f thms, cases, defaults));
+  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
+    (naming, syntax, consts, assms, f thms, cases));
 
 fun map_cases f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, consts, fixes, assms, binds, thms, f cases, defaults));
-
-fun map_defaults f =
-  map_context (fn (naming, syntax, consts, fixes, assms, binds, thms, cases, defaults) =>
-    (naming, syntax, consts, fixes, assms, binds, thms, cases, f defaults));
+  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
+    (naming, syntax, consts, assms, thms, f cases));
 
 val naming_of = #naming o rep_context;
 val full_name = NameSpace.full o naming_of;
@@ -283,29 +242,14 @@ val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
 val consts_of = #2 o #consts o rep_context;
 
-val is_body = #1 o #fixes o rep_context;
-fun set_body b = map_fixes (fn (_, fixes) => (b, fixes));
-fun restore_body ctxt = set_body (is_body ctxt);
-
-val fixes_of = #2 o #fixes o rep_context;
-val fixed_names_of = map #2 o fixes_of;
-
 val assumptions_of = #1 o #assms o rep_context;
 val assms_of = map Thm.term_of o maps #1 o assumptions_of;
 val prems_of = maps #2 o #2 o #assms o rep_context;
-
-val binds_of = #binds o rep_context;
 
 val thms_of = #thms o rep_context;
 val fact_index_of = #2 o thms_of;
 
 val cases_of = #cases o rep_context;
-
-val defaults_of = #defaults o rep_context;
-val type_occs_of = #4 o defaults_of;
-
-fun is_fixed ctxt x = exists (fn (_, y) => x = y) (fixes_of ctxt);
-fun is_known ctxt x = Vartab.defined (#1 (defaults_of ctxt)) (x, ~1) orelse is_fixed ctxt x;
 
 
 (* transfer *)
@@ -385,31 +329,12 @@ val string_of_thm = Pretty.string_of oo pretty_thm;
 
 
 
-(** default sorts and types **)
-
-val def_sort = Vartab.lookup o #2 o defaults_of;
-
-fun def_type ctxt pattern xi =
-  let val {binds, defaults = (types, _, _, _), ...} = rep_context ctxt in
-    (case Vartab.lookup types xi of
-      NONE =>
-        if pattern then NONE
-        else Vartab.lookup binds xi |> Option.map (TypeInfer.polymorphicT o #1)
-    | some => some)
-  end;
-
-val used_types = #3 o defaults_of;
-
-fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
-
-
-
 (** prepare types **)
 
 local
 
 fun read_typ_aux read ctxt s =
-  read (syn_of ctxt) (Context.Proof ctxt) (def_sort ctxt) s;
+  read (syn_of ctxt) (Context.Proof ctxt) (Variable.def_sort ctxt) s;
 
 fun cert_typ_aux cert ctxt raw_T =
   cert (theory_of ctxt) raw_T handle TYPE (msg, _, _) => error msg;
@@ -428,7 +353,7 @@ end;
 
 (* internalize Skolem constants *)
 
-val lookup_skolem = AList.lookup (op =) o fixes_of;
+val lookup_skolem = AList.lookup (op =) o Variable.fixes_of;
 fun get_skolem ctxt x = the_default x (lookup_skolem ctxt x);
 
 fun no_skolem internal x =
@@ -455,7 +380,7 @@ fun intern_skolem ctxt internal =
 (* externalize Skolem constants -- approximation only! *)
 
 fun rev_skolem ctxt =
-  let val rev_fixes = map Library.swap (fixes_of ctxt)
+  let val rev_fixes = map Library.swap (Variable.fixes_of ctxt)
   in AList.lookup (op =) rev_fixes end;
 
 fun revert_skolem ctxt x =
@@ -513,17 +438,14 @@ fun read_props_thy freeze pp syn thy defaults =
 fun certify_consts ctxt =
   Consts.certify (pp ctxt) (tsig_of ctxt) (consts_of ctxt);
 
-fun expand_binds ctxt schematic =
-  let
-    val binds = binds_of ctxt;
+fun reject_schematic (Var (xi, _)) =
+      error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi)
+  | reject_schematic (Abs (_, _, t)) = reject_schematic t
+  | reject_schematic (t $ u) = (reject_schematic t; reject_schematic u)
+  | reject_schematic _ = ();
 
-    fun expand_var (xi, T) =
-      (case Vartab.lookup binds xi of
-        SOME t => Envir.expand_atom T t
-      | NONE =>
-          if schematic then Var (xi, T)
-          else error ("Unbound schematic variable: " ^ Syntax.string_of_vname xi));
-  in Envir.beta_norm o Term.map_aterms (fn Var v => expand_var v | a => a) end;
+fun expand_binds ctxt schematic =
+  Variable.expand_binds ctxt #> (if schematic then I else tap reject_schematic);
 
 
 (* dummy patterns *)
@@ -548,9 +470,9 @@ fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 fun gen_read' read app pattern schematic
     ctxt internal more_types more_sorts more_used s =
   let
-    val types = append_env (def_type ctxt pattern) more_types;
-    val sorts = append_env (def_sort ctxt) more_sorts;
-    val used = used_types ctxt @ more_used;
+    val types = append_env (Variable.def_type ctxt pattern) more_types;
+    val sorts = append_env (Variable.def_sort ctxt) more_sorts;
+    val used = Variable.used_types ctxt @ more_used;
   in
     (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) s
       handle TERM (msg, _) => error msg)
@@ -586,8 +508,6 @@ end;
 
 (* certify terms *)
 
-val test = ref (NONE: (context * term) option);
-
 local
 
 fun gen_cert prop pattern schematic ctxt t = t
@@ -609,92 +529,29 @@ val cert_prop_pats = map o gen_cert true true false;
 end;
 
 
-(* declare types/terms *)
-
-local
-
-val ins_types = fold_aterms
-  (fn Free (x, T) => Vartab.update ((x, ~1), T)
-    | Var v => Vartab.update v
-    | _ => I);
-
-val ins_sorts = fold_atyps
-  (fn TFree (x, S) => Vartab.update ((x, ~1), S)
-    | TVar v => Vartab.update v
-    | _ => I);
-
-val ins_used = fold_atyps
-  (fn TFree (x, _) => insert (op =) x | _ => I);
-
-val ins_occs = fold_term_types (fn t =>
-  fold_atyps (fn TFree (x, _) => Symtab.update_list (x, t) | _ => I));
-
-fun ins_skolem def_ty = fold_rev (fn (x, x') =>
-  (case def_ty x' of
-    SOME T => Vartab.update ((x, ~1), T)
-  | NONE => I));
-
-in
-
-fun declare_type T = map_defaults (fn (types, sorts, used, occ) =>
- (types,
-  ins_sorts T sorts,
-  ins_used T used,
-  occ));
-
-fun declare_syntax t = map_defaults (fn (types, sorts, used, occ) =>
- (ins_types t types,
-  fold_types ins_sorts t sorts,
-  fold_types ins_used t used,
-  occ));
-
-fun declare_var (x, opt_T, mx) ctxt =
-  let val T = (case opt_T of SOME T => T | NONE => TypeInfer.mixfixT mx)
-  in ((x, T, mx), ctxt |> declare_syntax (Free (x, T))) end;
-
-fun declare_term t ctxt =
-  ctxt
-  |> declare_syntax t
-  |> map_defaults (fn (types, sorts, used, occ) =>
-     (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types,
-      sorts,
-      used,
-      ins_occs t occ));
-
-end;
-
-
-(* invent types *)
-
-fun invent_types Ss ctxt =
-  let
-    val tfrees = Term.invent_names (used_types ctxt) "'a" (length Ss) ~~ Ss;
-    val ctxt' = fold (declare_type o TFree) tfrees ctxt;
-  in (tfrees, ctxt') end;
-
-
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
   (case try (fn () =>
-      Sign.infer_types (pp ctxt) (theory_of ctxt) (consts_of ctxt) (def_type ctxt false)
-        (def_sort ctxt) (used_types ctxt) true ([Free (x, dummyT)], TypeInfer.logicT)) () of
+      Sign.infer_types (pp ctxt) (theory_of ctxt) (consts_of ctxt) (Variable.def_type ctxt false)
+        (Variable.def_sort ctxt) (Variable.used_types ctxt) true
+        ([Free (x, dummyT)], TypeInfer.logicT)) () of
     SOME (Free (_, T), _) => T
   | _ => error ("Failed to infer type of fixed variable " ^ quote x));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x
-  in ((x, T), ctxt |> declare_syntax (Free (x, T))) end;
+  in ((x, T), ctxt |> Variable.declare_syntax (Free (x, T))) end;
 
 fun inferred_fixes ctxt =
-  fold_map inferred_param (rev (fixed_names_of ctxt)) ctxt;
+  fold_map inferred_param (rev (Variable.fixed_names_of ctxt)) ctxt;
 
 
 (* type and constant names *)
 
 fun read_tyname ctxt c =
-  if member (op =) (used_types ctxt) c then
-    TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (def_sort ctxt (c, ~1)))
+  if member (op =) (Variable.used_types ctxt) c then
+    TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (Variable.def_sort ctxt (c, ~1)))
   else Sign.read_tyname (theory_of ctxt) c;
 
 fun read_const ctxt c =
@@ -703,100 +560,13 @@ fun read_const ctxt c =
   | NONE => Consts.read_const (consts_of ctxt) c);
 
 
-(* renaming term/type frees *)
-
-fun rename_frees ctxt ts frees =
-  let
-    val (types, sorts, _, _) = defaults_of (ctxt |> fold declare_syntax ts);
-    fun rename (x, X) xs =
-      let
-        fun used y = y = "" orelse y = "'" orelse member (op =) xs y orelse
-          Vartab.defined types (y, ~1) orelse Vartab.defined sorts (y, ~1);
-        val x' = Term.variant_name used x;
-      in ((x', X), x' :: xs) end;
-  in #1 (fold_map rename frees []) end;
-
-
-
-(** Hindley-Milner polymorphism **)
-
-(* warn_extra_tfrees *)
-
-fun warn_extra_tfrees ctxt1 ctxt2 =
-  let
-    fun occs_typ a (Type (_, Ts)) = exists (occs_typ a) Ts
-      | occs_typ a (TFree (b, _)) = a = b
-      | occs_typ _ (TVar _) = false;
-    fun occs_free a (Free (x, _)) =
-          (case def_type ctxt1 false (x, ~1) of
-            SOME T => if occs_typ a T then I else cons (a, x)
-          | NONE => cons (a, x))
-      | occs_free _ _ = I;
-
-    val occs1 = type_occs_of ctxt1 and occs2 = type_occs_of ctxt2;
-    val extras = Symtab.fold (fn (a, ts) =>
-      if Symtab.defined occs1 a then I else fold (occs_free a) ts) occs2 [];
-    val tfrees = map #1 extras |> sort_distinct string_ord;
-    val frees = map #2 extras |> sort_distinct string_ord;
-  in
-    if null extras then ()
-    else warning ("Introduced fixed type variable(s): " ^ commas tfrees ^ " in " ^
-      space_implode " or " (map (string_of_term ctxt2 o Syntax.free) frees));
-    ctxt2
-  end;
-
-
-(* generalize type variables *)
-
-fun generalize_tfrees inner outer =
-  let
-    val extra_fixes = subtract (op =) (fixed_names_of outer) (fixed_names_of inner);
-    fun still_fixed (Free (x, _)) = not (member (op =) extra_fixes x)
-      | still_fixed _ = false;
-    val occs_inner = type_occs_of inner;
-    val occs_outer = type_occs_of outer;
-    fun add a gen =
-      if Symtab.defined occs_outer a orelse
-        exists still_fixed (Symtab.lookup_list occs_inner a)
-      then gen else a :: gen;
-  in fn tfrees => fold add tfrees [] end;
-
-fun generalize inner outer ts =
-  let
-    val tfrees = generalize_tfrees inner outer (map #1 (fold Term.add_tfrees ts []));
-    fun gen (x, S) = if member (op =) tfrees x then TVar ((x, 0), S) else TFree (x, S);
-  in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
-
-
-(* monomorphic vs. polymorphic terms *)
-
-fun monomorphic_inst ts ctxt =
-  let
-    val tvars = rev (fold Term.add_tvars ts []);
-    val (tfrees, ctxt') = invent_types (map #2 tvars) ctxt;
-  in (tvars ~~ map TFree tfrees, ctxt') end;
-
-fun monomorphic ctxt ts =
-  map (Term.instantiate (#1 (monomorphic_inst ts (fold declare_term ts ctxt)), [])) ts;
-
-fun polymorphic ctxt ts =
-  generalize (fold declare_term ts ctxt) ctxt ts;
-
-fun hidden_polymorphism t T =
-  let
-    val tvarsT = Term.add_tvarsT T [];
-    val extra_tvars = Term.fold_types (Term.fold_atyps
-      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
-  in extra_tvars end;
-
-
 
 (** export theorems **)
 
 fun common_exports is_goal inner outer =
   let
-    val gen = generalize_tfrees inner outer;
-    val fixes = subtract (op =) (fixed_names_of outer) (fixed_names_of inner);
+    val gen = Variable.generalize_tfrees inner outer;
+    val fixes = subtract (op =) (Variable.fixed_names_of outer) (Variable.fixed_names_of inner);
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in
@@ -834,30 +604,6 @@ fun export_standard inner outer =
 
 (** bindings **)
 
-(* delete_update_binds *)
-
-local
-
-val del_bind = map_binds o Vartab.delete_safe;
-
-fun upd_bind ((x, i), t) =
-  let
-    val T = Term.fastype_of t;
-    val t' =
-      if null (hidden_polymorphism t T) then t
-      else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
-  in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
-
-fun del_upd_bind (xi, NONE) = del_bind xi
-  | del_upd_bind (xi, SOME t) = upd_bind (xi, t);
-
-in
-
-val delete_update_binds = fold del_upd_bind;
-
-end;
-
-
 (* simult_matches *)
 
 fun simult_matches ctxt (t, pats) =
@@ -871,7 +617,7 @@ fun simult_matches ctxt (t, pats) =
 local
 
 fun gen_bind prep (xi as (x, _), raw_t) ctxt =
-  ctxt |> delete_update_binds [(xi, Option.map (prep ctxt) raw_t)];
+  ctxt |> Variable.add_binds [(xi, Option.map (prep ctxt) raw_t)];
 
 in
 
@@ -894,7 +640,7 @@ local
 
 fun prep_bind prep_pats (raw_pats, t) ctxt =
   let
-    val ctxt' = declare_term t ctxt;
+    val ctxt' = Variable.declare_term t ctxt;
     val pats = prep_pats (Term.fastype_of t) ctxt' raw_pats;
     val binds = simult_matches ctxt' (t, pats);
   in (binds, ctxt') end;
@@ -905,13 +651,13 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
     val (binds, ctxt') =
       apfst flat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
     val binds' =
-      if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
+      if gen then map #1 binds ~~ Variable.generalize ctxt' ctxt (map #2 binds)
       else binds;
     val binds'' = map (apsnd SOME) binds';
     val ctxt'' =
-      warn_extra_tfrees ctxt
+      tap (Variable.warn_extra_tfrees ctxt)
        (if gen then
-          ctxt (*sic!*) |> fold declare_term (map #2 binds') |> add_binds_i binds''
+          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> add_binds_i binds''
         else ctxt' |> add_binds_i binds'');
   in (ts, ctxt'') end;
 
@@ -930,7 +676,7 @@ local
 fun prep_propp schematic prep_props prep_pats (context, args) =
   let
     fun prep (_, raw_pats) (ctxt, prop :: props) =
-          let val ctxt' = declare_term prop ctxt
+          let val ctxt' = Variable.declare_term prop ctxt
           in ((prop, prep_pats ctxt' raw_pats), (ctxt', props)) end
       | prep _ _ = sys_error "prep_propp";
     val (propp, (context', _)) = (fold_map o fold_map) prep args
@@ -944,7 +690,7 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
     val propss = map (map #1) args;
 
     (*generalize result: context evaluated now, binds added later*)
-    val gen = generalize ctxt' ctxt;
+    val gen = Variable.generalize ctxt' ctxt;
     fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map SOME (gen (map #2 binds)));
   in (ctxt' |> add_binds_i (map (apsnd SOME) binds), (propss, gen_binds)) end;
 
@@ -1039,7 +785,7 @@ fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
 fun put_thms _ ("", NONE) ctxt = ctxt
   | put_thms do_index ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
       let
-        val index' = FactIndex.add_local do_index (is_known ctxt) ("", ths) index;
+        val index' = FactIndex.add_local do_index (Variable.is_declared ctxt) ("", ths) index;
       in (facts, index') end)
   | put_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
@@ -1051,7 +797,7 @@ fun put_thms _ ("", NONE) ctxt = ctxt
         val name = full_name ctxt bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
         val tab' = Symtab.update (name, ths) tab;
-        val index' = FactIndex.add_local do_index (is_known ctxt) (name, ths) index;
+        val index' = FactIndex.add_local do_index (Variable.is_declared ctxt) (name, ths) index;
       in ((space', tab'), index') end);
 
 fun put_thms_internal thms ctxt =
@@ -1086,6 +832,10 @@ end;
 (** parameters **)
 
 (* variables *)
+
+fun declare_var (x, opt_T, mx) ctxt =
+  let val T = (case opt_T of SOME T => T | NONE => TypeInfer.mixfixT mx)
+  in ((x, T, mx), ctxt |> Variable.declare_syntax (Free (x, T))) end;
 
 local
 
@@ -1145,14 +895,14 @@ fun add_abbrevs prmode = fold (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
   let
     val ([(c, _, mx)], _) = cert_vars [(raw_c, NONE, raw_mx)] ctxt;
     val c' = Syntax.constN ^ full_name ctxt c;
-    val [t] = polymorphic ctxt [cert_term (ctxt |> expand_abbrevs false) raw_t];
+    val [t] = Variable.polymorphic ctxt [cert_term (ctxt |> expand_abbrevs false) raw_t];
     val T = Term.fastype_of t;
     val _ =
-      if null (hidden_polymorphism t T) then ()
+      if null (Variable.hidden_polymorphism t T) then ()
       else error ("Extra type variables on rhs of abbreviation: " ^ quote c);
   in
     ctxt
-    |> declare_term t
+    |> Variable.declare_term t
     |> map_consts (apsnd
       (Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) (#1 prmode) ((c, t), true)))
     |> map_syntax (LocalSyntax.add_modesyntax (theory_of ctxt) prmode [(false, (c', T, mx))])
@@ -1174,20 +924,12 @@ fun no_dups _ [] = ()
 
 fun gen_fixes prep raw_vars ctxt =
   let
-    val thy = theory_of ctxt;
-
-    val (ys, zs) = split_list (fixes_of ctxt);
     val (vars, ctxt') = prep raw_vars ctxt;
-    val xs = map #1 vars;
-    val _ = no_dups ctxt (duplicates (op =) xs);
-    val xs' =
-      if is_body ctxt then Term.variantlist (map Syntax.skolem xs, zs)
-      else (no_dups ctxt (xs inter_string ys); no_dups ctxt (xs inter_string zs); xs);
+    val (xs', ctxt'') = Variable.add_fixes (map #1 vars) ctxt';
   in
-    ctxt'
-    |> map_fixes (fn (b, fixes) => (b, rev (xs ~~ xs') @ fixes))
+    ctxt''
     |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-    |-> (map_syntax o LocalSyntax.add_syntax thy o map prep_mixfix)
+    |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix)
     |> pair xs'
   end;
 
@@ -1200,32 +942,24 @@ val add_fixes_legacy = gen_fixes cert_vars_legacy;
 end;
 
 
-(* invent fixes *)
-
-fun invent_fixes xs ctxt =
-  ctxt
-  |> set_body true
-  |> add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs)
-  ||> restore_body ctxt;
-
-
 (* fixes vs. frees *)
 
 fun fix_frees t ctxt =
   let
-    fun add (Free (x, T)) = if is_fixed ctxt x then I else insert (op =) (x, SOME T, NoSyn)
+    fun add (Free (x, T)) =
+          if Variable.is_fixed ctxt x then I else insert (op =) (x, SOME T, NoSyn)
       | add _ = I;
     val fixes = rev (fold_aterms add t []);
   in
     ctxt
-    |> declare_term t
-    |> set_body false
+    |> Variable.declare_term t
+    |> Variable.set_body false
     |> (snd o add_fixes_i fixes)
-    |> restore_body ctxt
+    |> Variable.restore_body ctxt
   end;
 
 fun auto_fixes (arg as (ctxt, (propss, x))) =
-  if is_body ctxt then arg
+  if Variable.is_body ctxt then arg
   else ((fold o fold) fix_frees propss ctxt, (propss, x));
 
 fun bind_fixes xs ctxt =
@@ -1239,37 +973,6 @@ fun bind_fixes xs ctxt =
       | bind (Abs (x, T, t)) = Abs (x, T, bind t)
       | bind a = a;
   in (bind, ctxt') end;
-
-
-(* import -- fixes schematic variables *)
-
-fun import_inst is_open ts ctxt =
-  let
-    val (instT, ctxt') = monomorphic_inst ts ctxt;
-    val vars = map (apsnd (Term.instantiateT instT)) (rev (fold Term.add_vars ts []));
-    val rename = if is_open then I else Syntax.internal;
-    val (xs, ctxt'') = invent_fixes (Term.variantlist (map (rename o #1 o #1) vars, [])) ctxt';
-    val inst = vars ~~ map Free (xs ~~ map #2 vars);
-  in ((instT, inst), ctxt'') end;
-
-fun import_terms is_open ts ctxt =
-  let val (inst, ctxt') = import_inst is_open ts ctxt
-  in (map (Term.instantiate inst) ts, ctxt') end;
-
-fun import_types is_open Ts ctxt =
-  import_terms is_open (map Logic.mk_type Ts) ctxt
-  |>> map Logic.dest_type;
-
-fun import is_open ths ctxt =
-  let
-    val thy = theory_of ctxt;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-    val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
-    val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
-    val inst' = map (fn (v, t) => (cert (Var v), cert t)) inst;
-    val ths' = map (Thm.instantiate (instT', inst')) ths;
-  in (ths', ctxt') end;
 
 
 
@@ -1302,7 +1005,7 @@ fun gen_assms prepp exp args ctxt =
       |> map_assms (fn (asms, prems) => (asms @ [(new_asms, exp)], prems @ new_prems))
     val ctxt4 = ctxt3
       |> put_thms_internal (AutoBind.premsN, SOME (prems_of ctxt3));
-  in (map #3 results, warn_extra_tfrees ctxt ctxt4) end;
+  in (map #3 results, tap (Variable.warn_extra_tfrees ctxt) ctxt4) end;
 
 in
 
@@ -1375,7 +1078,7 @@ fun fix (x, T) ctxt =
   let
     val (bind, ctxt') = bind_fixes [x] ctxt;
     val t = bind (Free (x, T));
-  in (t, ctxt' |> declare_syntax t) end;
+  in (t, ctxt' |> Variable.declare_syntax t) end;
 
 in
 
@@ -1446,7 +1149,7 @@ fun pretty_consts ctxt =
 
 fun pretty_binds ctxt =
   let
-    val binds = binds_of ctxt;
+    val binds = Variable.binds_of ctxt;
     fun prt_bind (xi, (T, t)) = pretty_term_no_abbrevs ctxt (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
@@ -1521,7 +1224,8 @@ fun pretty_ctxt ctxt =
       if x = x' then Pretty.str x
       else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
     val fixes =
-      rev (filter_out ((can Syntax.dest_internal orf member (op =) structs) o #1) (fixes_of ctxt));
+      rev (filter_out ((can Syntax.dest_internal orf member (op =) structs) o #1)
+        (Variable.fixes_of ctxt));
     val prt_fixes = if null fixes then []
       else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
         Pretty.commas (map prt_fix fixes))];
@@ -1562,7 +1266,7 @@ fun pretty_context ctxt =
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
 
-    val (types, sorts, used, _) = defaults_of ctxt;
+    val (types, sorts, used, _) = Variable.defaults_of ctxt;
   in
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @

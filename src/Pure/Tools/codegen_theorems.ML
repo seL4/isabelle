@@ -604,7 +604,7 @@ fun preprocess thy thms =
           | _ => raise ERROR "rewrite_rhs")
       | _ => raise ERROR "rewrite_rhs");
     fun unvarify thms =
-      #1 (ProofContext.import true thms (ProofContext.init thy));
+      #1 (Variable.import true thms (ProofContext.init thy));
     val unfold_thms = Tactic.rewrite true (map (make_eq thy) (the_unfolds thy));
   in
     thms
