@@ -26,10 +26,10 @@ $(OUTPUTDIST): $(ISABELLE_DIST)
 	$(COPY) -vRud $</[^w]* $@
 	-chgrp -hR $(TARGET_GROUP) $@
 	-chmod -R u+w,g-w,o-w $@
-	rm -f $@/Isabelle && ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
+	( cd $@ && rm -f Isabelle && ln -s $(DISTNAME) Isabelle )
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
-	( cd $(OUTPUTROOT) && rm -f dist && ln -s $(OUTPUTDIST_REL) dist)
+	( cd $(OUTPUTROOT) && rm -f dist && ln -s $(OUTPUTDIST_REL) dist )
 
 else
 
@@ -38,10 +38,10 @@ $(OUTPUTDIST): $(ISABELLE_DIST) SYNC_ALWAYS
 	$(RSYNC) -v --exclude='/website/' -rlt --delete --delete-after $</ $@
 	-chgrp -hR $(TARGET_GROUP) $@
 	-chmod -R u+w,g-w,o-w $@
-	rm -f $@/Isabelle &&  ln -s $(ISABELLE_DIST)/$(DISTNAME) $@/Isabelle
+	( cd $@ && rm -f Isabelle && ln -s $(DISTNAME) Isabelle )
 	-chgrp -h $(TARGET_GROUP) $@/Isabelle
 	-chmod u+w,g-w,o-w $@/Isabelle
-	( cd $(OUTPUTROOT) && rm -f dist && ln -s $(OUTPUTDIST_REL) dist)
+	( cd $(OUTPUTROOT) && rm -f dist && ln -s $(OUTPUTDIST_REL) dist )
 
 SYNC_ALWAYS:
 
