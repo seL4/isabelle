@@ -58,10 +58,16 @@ end;
 signature TRM_CTXT =
 sig
   structure D : TRM_CTXT_DATA
-  type T = D.dtrm list
+  type T = D.dtrm list;
 
-  val empty : T
-  val is_empty : T -> bool
+  val empty : T;
+  val is_empty : T -> bool;
+
+  val add_abs : D.Trm.aname * D.Trm.typ -> T -> T;
+  val add_appl : D.Trm.T -> T -> T;
+  val add_appr : D.Trm.T -> T -> T;
+
+  val add_dtrm : D.dtrm -> T -> T;
 
   val eq_path : T * T -> bool
 
@@ -187,6 +193,12 @@ struct
 
   val empty = [];
   val is_empty = List.null;
+
+  fun add_abs d l = (D.Abs d) :: l;
+  fun add_appl d l = (D.AppL d) :: l;
+  fun add_appr d l = (D.AppR d) :: l;
+
+  fun add_dtrm d l = d::l;
 
   fun eq_path ([], []) = true
     | eq_path ([], _::_) = false
