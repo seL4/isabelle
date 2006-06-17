@@ -513,7 +513,7 @@ fun err_in_expr _ msg (Merge []) = error msg
 (* parameter types *)
 
 fun frozen_tvars ctxt Ts =
-  #1 (Variable.monomorphic_inst (map Logic.mk_type Ts) ctxt)
+  #1 (Variable.importT_inst (map Logic.mk_type Ts) ctxt)
   |> map (fn ((xi, S), T) => (xi, (S, T)));
 
 fun unify_frozen ctxt maxidx Ts Us =
@@ -1794,8 +1794,8 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.add_setup
- (add_locale_i true "var" empty [Fixes [(Syntax.internal "x", NONE, NoSyn)]] #> snd #>
-  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", NONE, Structure)]] #> snd);
+ (add_locale_i true "var" empty [Fixes [(Term.internal "x", NONE, NoSyn)]] #> snd #>
+  add_locale_i true "struct" empty [Fixes [(Term.internal "S", NONE, Structure)]] #> snd);
 
 
 
@@ -1853,7 +1853,7 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
       elems_ctxt' |> mk_stmt (map (apsnd (K []) o fst) concl ~~ propp);
 
     fun after_qed' results =
-      let val loc_results = results |> (map o map)
+      let val loc_results = results |> map
           (ProofContext.export_standard goal_ctxt loc_ctxt') in
         curry (locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)) loc_ctxt
         #-> (fn res =>
