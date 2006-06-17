@@ -66,10 +66,10 @@ sig
   val inferred_fixes: context -> (string * typ) list * context
   val read_tyname: context -> string -> typ
   val read_const: context -> string -> term
-  val goal_exports: context -> context -> thm -> thm Seq.seq
-  val exports: context -> context -> thm -> thm Seq.seq
-  val export: context -> context -> thm -> thm
-  val export_standard: context -> context -> thm -> thm
+  val goal_exports: context -> context -> thm list -> thm list Seq.seq
+  val exports: context -> context -> thm list -> thm list Seq.seq
+  val export: context -> context -> thm list -> thm list
+  val export_standard: context -> context -> thm list -> thm list
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
   val auto_bind_goal: term list -> context -> context
@@ -357,9 +357,9 @@ val lookup_skolem = AList.lookup (op =) o Variable.fixes_of;
 fun get_skolem ctxt x = the_default x (lookup_skolem ctxt x);
 
 fun no_skolem internal x =
-  if can Syntax.dest_skolem x then
+  if can Term.dest_skolem x then
     error ("Illegal reference to internal Skolem constant: " ^ quote x)
-  else if not internal andalso can Syntax.dest_internal x then
+  else if not internal andalso can Term.dest_internal x then
     error ("Illegal reference to internal variable: " ^ quote x)
   else x;
 
@@ -386,7 +386,7 @@ fun rev_skolem ctxt =
 fun revert_skolem ctxt x =
   (case rev_skolem ctxt x of
     SOME x' => x'
-  | NONE => perhaps (try Syntax.dest_skolem) x);
+  | NONE => perhaps (try Term.dest_skolem) x);
 
 fun extern_skolem ctxt =
   let
@@ -565,40 +565,25 @@ fun read_const ctxt c =
 
 fun common_exports is_goal inner outer =
   let
-    val gen = Variable.generalize_tfrees inner outer;
-    val fixes = subtract (op =) (Variable.fixed_names_of outer) (Variable.fixed_names_of inner);
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
-    val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
+    val exp_asms = rev (map (fn (cprops, exp) => exp is_goal cprops) asms);
   in
-    Goal.norm_hhf_protect
-    #> Seq.EVERY (rev exp_asms)
-    #> Seq.map (fn rule =>
-      let
-        val thy = Thm.theory_of_thm rule;
-        val prop = Thm.full_prop_of rule;
-        val frees = map (Thm.cterm_of thy) (map_filter (Term.find_free prop) fixes);
-        val tfrees = gen (Term.add_term_tfree_names (prop, []));
-      in
-        rule
-        |> Drule.forall_intr_list frees
-        |> Goal.norm_hhf_protect
-        |> Drule.tvars_intr_list tfrees |> #2
-      end)
+    map Goal.norm_hhf_protect
+    #> Seq.map_list (Seq.EVERY exp_asms)
+    #> Seq.map (Variable.export inner outer)
+    #> Seq.map (map Goal.norm_hhf_protect)
   end;
 
 val goal_exports = common_exports true;
 val exports = common_exports false;
 
-fun export inner outer =
-  let val exp = common_exports false inner outer in
-    fn th =>
-      (case Seq.pull (exp th) of
-        SOME (th', _) => th'
-      | NONE => raise THM ("Failed to export theorem", 0, [th]))
-  end;
+fun export inner outer ths =
+  (case Seq.pull (common_exports false inner outer ths) of
+    SOME (ths', _) => ths'
+  | NONE => raise THM ("Failed to export theorems", 0, ths));
 
 fun export_standard inner outer =
-  export inner outer #> Drule.local_standard;
+  export inner outer #> map Drule.local_standard;
 
 
 
@@ -651,7 +636,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
     val (binds, ctxt') =
       apfst flat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
     val binds' =
-      if gen then map #1 binds ~~ Variable.generalize ctxt' ctxt (map #2 binds)
+      if gen then map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds)
       else binds;
     val binds'' = map (apsnd SOME) binds';
     val ctxt'' =
@@ -690,7 +675,7 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
     val propss = map (map #1) args;
 
     (*generalize result: context evaluated now, binds added later*)
-    val gen = Variable.generalize ctxt' ctxt;
+    val gen = Variable.exportT_terms ctxt' ctxt;
     fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map SOME (gen (map #2 binds)));
   in (ctxt' |> add_binds_i (map (apsnd SOME) binds), (propss, gen_binds)) end;
 
@@ -915,7 +900,7 @@ local
 
 fun prep_mixfix (x, T, mx) =
   if mx <> NoSyn andalso mx <> Structure andalso
-      (can Syntax.dest_internal x orelse can Syntax.dest_skolem x) then
+      (can Term.dest_internal x orelse can Term.dest_skolem x) then
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
   else (true, (x, T, mx));
 
@@ -1045,7 +1030,7 @@ fun add_view outer view = map_assms (fn (asms, prems) =>
     val asms' = asms1 @ [(view, assume_export)] @ asms2;
   in (asms', prems) end);
 
-fun export_view view inner outer = export_standard (add_view outer view inner) outer;
+fun export_view view inner outer = singleton (export_standard (add_view outer view inner) outer);
 
 
 
@@ -1224,7 +1209,7 @@ fun pretty_ctxt ctxt =
       if x = x' then Pretty.str x
       else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
     val fixes =
-      rev (filter_out ((can Syntax.dest_internal orf member (op =) structs) o #1)
+      rev (filter_out ((can Term.dest_internal orf member (op =) structs) o #1)
         (Variable.fixes_of ctxt));
     val prt_fixes = if null fixes then []
       else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
