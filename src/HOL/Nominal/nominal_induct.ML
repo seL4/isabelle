@@ -30,10 +30,10 @@ val split_all_tuples =
 (* prepare rule *)
 
 (*conclusions: ?P avoiding_struct ... insts*)
-fun inst_mutual_rule thy insts avoiding rules =
+fun inst_mutual_rule ctxt insts avoiding rules =
   let
     val (concls, rule) =
-      (case RuleCases.mutual_rule rules of
+      (case RuleCases.mutual_rule ctxt rules of
         NONE => error "Failed to join given rules into one mutual rule"
       | SOME res => res);
     val (cases, consumes) = RuleCases.get rule;
@@ -57,14 +57,14 @@ fun inst_mutual_rule thy insts avoiding rules =
       end;
      val substs =
        map2 subst insts rules |> List.concat |> distinct (op =)
-       |> map (pairself (Thm.cterm_of thy));
+       |> map (pairself (Thm.cterm_of (ProofContext.theory_of ctxt)));
   in (((cases, concls), consumes), Drule.cterm_instantiate substs rule) end;
 
 fun rename_params_rule internal xs rule =
   let
     val tune =
-      if internal then Syntax.internal
-      else fn x => the_default x (try Syntax.dest_internal x);
+      if internal then Term.internal
+      else fn x => the_default x (try Term.dest_internal x);
     val n = length xs;
     fun rename prem =
       let
@@ -97,7 +97,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
   in
     (fn i => fn st =>
       rules
-      |> inst_mutual_rule thy insts avoiding
+      |> inst_mutual_rule ctxt insts avoiding
       |> RuleCases.consume (List.concat defs) facts
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
@@ -113,7 +113,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac (rename_params_rule false [] rule') i THEN
-                  PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
+                  PRIMSEQ (Seq.singleton (ProofContext.exports defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES InductMethod.rulify_tac
   end;
 
