@@ -179,7 +179,7 @@ fun casesplit_name vstr i th =
       val freets = Term.term_frees gt;
       fun getter x =
           let val (n,ty) = Term.dest_Free x in
-            (if vstr = n orelse vstr = Syntax.dest_skolem n
+            (if vstr = n orelse vstr = Term.dest_skolem n
              then SOME (n,ty) else NONE )
             handle Fail _ => NONE (* dest_skolem *)
           end;
