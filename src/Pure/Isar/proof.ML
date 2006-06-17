@@ -230,7 +230,7 @@ fun export_facts inner outer =
     NONE => Seq.single (put_facts NONE outer)
   | SOME thms =>
       thms
-      |> Seq.map_list (ProofContext.exports (context_of inner) (context_of outer))
+      |> ProofContext.exports (context_of inner) (context_of outer)
       |> Seq.map (fn ths => put_facts (SOME ths) outer));
 
 
@@ -444,19 +444,17 @@ fun refine_tac rule =
         Tactic.etac Drule.protectI i
       else all_tac)));
 
-fun refine_goal print_rule inner raw_rule state =
-  let val (outer, (_, goal)) = get_goal state in
-    raw_rule
-    |> ProofContext.goal_exports inner outer
-    |> Seq.maps (fn rule =>
-      (print_rule outer rule;
-        Seq.lift set_goal (FINDGOAL (refine_tac rule) goal) state))
-  end;
-
 in
 
-fun refine_goals print_rule inner raw_rules =
-  Seq.EVERY (map (refine_goal print_rule inner) raw_rules);
+fun refine_goals print_rule inner raw_rules state =
+  let
+    val (outer, (_, goal)) = get_goal state;
+    fun refine rule st = (print_rule outer rule; FINDGOAL (refine_tac rule) st);
+  in
+    raw_rules
+    |> ProofContext.goal_exports inner outer
+    |> Seq.maps (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
+  end;
 
 end;
 
@@ -827,10 +825,10 @@ fun generic_qed state =
 
     val props =
       flat (tl stmt)
-      |> Variable.generalize goal_ctxt outer_ctxt;
+      |> Variable.exportT_terms goal_ctxt outer_ctxt;
     val results =
       tl (conclude_goal state goal stmt)
-      |> (Seq.map_list o Seq.map_list) (ProofContext.exports goal_ctxt outer_ctxt);
+      |> Seq.map_list (ProofContext.exports goal_ctxt outer_ctxt);
   in
     outer_state
     |> map_context (ProofContext.auto_bind_facts props)
@@ -884,8 +882,8 @@ fun global_goal print_results prep_att prepp
     fun after_qed' results =
       (case target of NONE => I
       | SOME prfx => store_results (NameSpace.base prfx)
-          (map (map (ProofContext.export_standard ctxt thy_ctxt
-            #> Drule.strip_shyps_warning)) results))
+          (map (ProofContext.export_standard ctxt thy_ctxt
+            #> map Drule.strip_shyps_warning) results))
       #> after_qed results;
   in
     init ctxt
