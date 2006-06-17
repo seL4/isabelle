@@ -77,6 +77,7 @@ sig
   val freezeT : term -> proof -> proof
   val rotate_proof : term list -> term -> int -> proof -> proof
   val permute_prems_prf : term list -> int -> int -> proof -> proof
+  val generalize: string list * string list -> int -> proof -> proof
   val instantiate : ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
   val lift_proof : term -> int -> term -> proof -> proof
@@ -651,6 +652,12 @@ fun permute_prems_prf prems j k prf =
   in mk_AbsP (n, proof_combP (prf,
     map PBound ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
   end;
+
+
+(***** generalization *****)
+
+fun generalize (tfrees, frees) idx prf =
+  map_proof_terms (Term.generalize (tfrees, frees) idx) (Term.generalizeT tfrees idx) prf;
 
 
 (***** instantiation *****)
