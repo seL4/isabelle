@@ -376,11 +376,11 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
 
     val ruleq =
       (case opt_rule of
-        SOME rs => Seq.single (inst_rule (RuleCases.strict_mutual_rule rs))
+        SOME rs => Seq.single (inst_rule (RuleCases.strict_mutual_rule ctxt rs))
       | NONE =>
           (find_inductS ctxt facts @
             map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts))
-          |> map_filter RuleCases.mutual_rule
+          |> map_filter (RuleCases.mutual_rule ctxt)
           |> tap (trace_rules ctxt InductAttrib.inductN o map #2)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
@@ -404,7 +404,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac rule' i THEN
-                  PRIMSEQ (ProofContext.exports defs_ctxt ctxt)) st'))))
+                  PRIMSEQ (Seq.singleton (ProofContext.exports defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
 
