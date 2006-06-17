@@ -373,7 +373,7 @@ val forall_elim_vars = PureThy.forall_elim_vars;
 fun outer_params t =
   let
     val vs = Term.strip_all_vars t;
-    val clean_name = perhaps (try Syntax.dest_skolem) #> perhaps (try Syntax.dest_internal);
+    val clean_name = perhaps (try Term.dest_skolem) #> perhaps (try Term.dest_internal);
   in Term.variantlist (map (clean_name o #1) vs, []) ~~ map #2 vs end;
 
 (*generalize outermost parameters*)
@@ -1088,7 +1088,7 @@ fun tvars_intr_list tfrees thm =
     (gen_rems (op = o apfst fst) (tfrees_of thm, tfrees)) thm);
 
 
-(* increment var indexes *)
+(* var indexes *)
 
 fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 

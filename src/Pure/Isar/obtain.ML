@@ -200,7 +200,7 @@ fun unify_params ctxt vars raw_rule =
 
     val xs = map (apsnd norm_type) vars;
     val ys = map (apsnd norm_type) (Library.drop (m, params));
-    val ys' = map Syntax.internal (Term.variantlist (map fst ys, map fst xs)) ~~ map #2 ys;
+    val ys' = map Term.internal (Term.variantlist (map fst ys, map fst xs)) ~~ map #2 ys;
 
     val instT =
       fold (Term.add_tvarsT o #2) params []
