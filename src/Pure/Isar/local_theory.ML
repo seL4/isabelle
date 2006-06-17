@@ -11,7 +11,7 @@ signature LOCAL_THEORY =
 sig
   val params_of: local_theory -> (string * typ) list
   val hyps_of: local_theory -> term list
-  val standard: local_theory -> thm -> thm
+  val standard: local_theory -> thm list -> thm list
   val pretty_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
   val quiet_mode: bool ref
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
@@ -75,7 +75,7 @@ val hyps_of = #hyps o Data.get;
 
 fun standard ctxt =
   (case #locale (Data.get ctxt) of
-    NONE => Drule.standard
+    NONE => map Drule.standard
   | SOME (_, (_, loc_ctxt)) => ProofContext.export_standard ctxt loc_ctxt);
 
 
@@ -210,7 +210,7 @@ val consts = consts_restricted (K true);
 fun notes kind facts ctxt =
   let
     val attrib = Attrib.attribute_i (ProofContext.theory_of ctxt);
-    val facts' = map (apsnd (map (apfst (map (standard ctxt))))) facts;
+    val facts' = map (apsnd (map (apfst (standard ctxt)))) facts;  (* FIXME burrow standard *)
   in
     ctxt |>
     (case locale_of ctxt of
