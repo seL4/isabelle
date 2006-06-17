@@ -26,10 +26,6 @@ sig
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
-  val internal: string -> string
-  val dest_internal: string -> string
-  val skolem: string -> string
-  val dest_skolem: string -> string
   val read_nat: string -> int option
   val read_xnum: string -> IntInf.int
   val read_idents: string -> string list
@@ -351,12 +347,6 @@ fun read_variable str =
 
 
 (* specific identifiers *)
-
-val internal = suffix "_";
-val dest_internal = unsuffix "_";
-
-val skolem = suffix "__";
-val dest_skolem = unsuffix "__";
 
 val constN = "\\<^const>";
 val fixedN = "\\<^fixed>";
