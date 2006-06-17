@@ -131,6 +131,7 @@ sig
     (*note reversed order of args wrt. variant!*)
   val add_term_consts: term * string list -> string list
   val term_consts: term -> string list
+  val exists_subtype: (typ -> bool) -> typ -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
   val add_term_free_names: term * string list -> string list
@@ -185,6 +186,12 @@ sig
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
   val tvar_ord: (indexname * sort) * (indexname * sort) -> order
   val var_ord: (indexname * typ) * (indexname * typ) -> order
+  val internal: string -> string
+  val dest_internal: string -> string
+  val skolem: string -> string
+  val dest_skolem: string -> string
+  val generalize: string list * string list -> int -> term -> term
+  val generalizeT: string list -> int -> typ -> typ
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> term -> term
   val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
@@ -974,6 +981,60 @@ fun subst_vars ([], []) tm = tm
       in subst tm end;
 
 
+(* internal identifiers *)
+
+val internal = suffix "_";
+val dest_internal = unsuffix "_";
+
+val skolem = suffix "__";
+val dest_skolem = unsuffix "__";
+
+
+(* generalization of fixed variables *)
+
+local exception SAME in
+
+fun generalizeT_same [] _ _ = raise SAME
+  | generalizeT_same tfrees idx ty =
+      let
+        fun gen_typ (Type (a, Ts)) = Type (a, gen_typs Ts)
+          | gen_typ (TFree (a, S)) =
+              if member (op =) tfrees a then TVar ((a, idx), S)
+              else raise SAME
+          | gen_typ _ = raise SAME
+        and gen_typs (T :: Ts) =
+            (gen_typ T :: (gen_typs Ts handle SAME => Ts)
+              handle SAME => T :: gen_typs Ts)
+          | gen_typs [] = raise SAME;
+      in gen_typ ty end;
+
+fun generalize ([], []) _ tm = tm
+  | generalize (tfrees, frees) idx tm =
+      let
+        fun var ((x, i), T) =
+          (case try dest_internal x of
+            NONE => Var ((x, i), T)
+          | SOME x' => var ((x', i + 1), T));
+
+        val genT = generalizeT_same tfrees idx;
+        fun gen (Free (x, T)) =
+              if member (op =) frees x then var ((x, idx), genT T handle SAME => T)
+              else Free (x, genT T)
+          | gen (Var (xi, T)) = Var (xi, genT T)
+          | gen (Const (c, T)) = Const (c, genT T)
+          | gen (Bound _) = raise SAME
+          | gen (Abs (x, T, t)) =
+              (Abs (x, genT T, gen t handle SAME => t)
+                handle SAME => Abs (x, T, gen t))
+          | gen (t $ u) = (gen t $ (gen u handle SAME => u) handle SAME => t $ gen u);
+      in gen tm handle SAME => tm end;
+
+fun generalizeT tfrees i ty =
+  generalizeT_same tfrees i ty handle SAME => ty;
+
+end;
+
+
 (* instantiation of schematic variables (types before terms) *)
 
 local exception SAME in
@@ -1094,14 +1155,13 @@ fun invent_names _ _ 0 = []
       end;
 
 
-(** Consts etc. **)
+(* substructure *)
 
-fun add_term_consts (Const (c, _), cs) = insert (op =) c cs
-  | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
-  | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
-  | add_term_consts (_, cs) = cs;
-
-fun term_consts t = add_term_consts(t,[]);
+fun exists_subtype P =
+  let
+    fun ex ty = P ty orelse
+      (case ty of Type (_, Ts) => exists ex Ts | _ => false);
+  in ex end;
 
 fun exists_subterm P =
   let
@@ -1111,6 +1171,16 @@ fun exists_subterm P =
       | Abs (_, _, t) => ex t
       | _ => false);
   in ex end;
+
+
+(** Consts etc. **)
+
+fun add_term_consts (Const (c, _), cs) = insert (op =) c cs
+  | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
+  | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
+  | add_term_consts (_, cs) = cs;
+
+fun term_consts t = add_term_consts(t,[]);
 
 fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
 
