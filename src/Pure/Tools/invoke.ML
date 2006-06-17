@@ -74,7 +74,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
           val Element.Notes notes = 
             Element.Notes (maps (Element.facts_of thy) elems')
             |> Element.satisfy_ctxt prems''
-            |> Element.map_ctxt_values I I (ProofContext.export ctxt'' ctxt);
+            |> Element.map_ctxt_values I I (singleton (ProofContext.export ctxt'' ctxt));
             (* FIXME export typs/terms *)
           val notes' = notes
             |> Attrib.map_facts (Attrib.attribute_i thy)
