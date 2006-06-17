@@ -42,8 +42,8 @@ sig
   val get: thm -> (string * string list) list * int
   val rename_params: string list list -> thm -> thm
   val params: string list list -> attribute
-  val mutual_rule: thm list -> (int list * thm) option
-  val strict_mutual_rule: thm list -> int list * thm
+  val mutual_rule: Context.proof -> thm list -> (int list * thm) option
+  val strict_mutual_rule: Context.proof -> thm list -> int list * thm
 end;
 
 structure RuleCases: RULE_CASES =
@@ -63,7 +63,7 @@ val case_conclN = "case";
 val case_hypsN = "hyps";
 val case_premsN = "prems";
 
-val strip_params = map (apfst (perhaps (try Syntax.dest_skolem))) o Logic.strip_params;
+val strip_params = map (apfst (perhaps (try Term.dest_skolem))) o Logic.strip_params;
 
 local
 
@@ -91,7 +91,7 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
 
 fun extract_case is_open thy (case_outline, raw_prop) name concls =
   let
-    val rename = if is_open then I else (apfst Syntax.internal);
+    val rename = if is_open then I else (apfst Term.internal);
 
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
     val len = length props;
@@ -316,38 +316,38 @@ local
 fun equal_cterms ts us =
   list_ord (Term.fast_term_ord o pairself Thm.term_of) (ts, us) = EQUAL;
 
-fun prep_rule th =
+fun prep_rule n th =
   let
-    val n = get_consumes th;
-    val th' = Drule.freeze_all (Thm.permute_prems 0 n th);
+    val th' = Thm.permute_prems 0 n th;
     val prems = Library.take (Thm.nprems_of th' - n, Drule.cprems_of th');
     val th'' = Drule.implies_elim_list th' (map Thm.assume prems);
   in (prems, (n, th'')) end;
 
 in
 
-fun mutual_rule [] = NONE
-  | mutual_rule [th] = SOME ([0], th)
-  | mutual_rule raw_rules =
+fun mutual_rule _ [] = NONE
+  | mutual_rule _ [th] = SOME ([0], th)
+  | mutual_rule ctxt (ths as th :: _) =
       let
-        val rules as (prems, _) :: _ = map prep_rule raw_rules;
-        val (ns, ths) = split_list (map #2 rules);
+        val (ths', ctxt') = Variable.import true ths ctxt;
+        val rules as (prems, _) :: _ = map (prep_rule (get_consumes th)) ths';
+        val (ns, rls) = split_list (map #2 rules);
       in
         if not (forall (equal_cterms prems o #1) rules) then NONE
         else
           SOME (ns,
-            ths
+            rls
             |> foldr1 (uncurry Conjunction.intr)
             |> Drule.implies_intr_list prems
-            |> Drule.standard'
-            |> save (hd raw_rules)
+            |> singleton (Variable.export ctxt' ctxt)
+            |> save th
             |> put_consumes (SOME 0))
       end;
 
 end;
 
-fun strict_mutual_rule ths =
-  (case mutual_rule ths of
+fun strict_mutual_rule ctxt ths =
+  (case mutual_rule ctxt ths of
     NONE => error "Failed to join given rules into one mutual rule"
   | SOME res => res);
 
