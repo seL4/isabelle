@@ -43,7 +43,7 @@ fun projects ctxt is raw_rule =
       |> proj i
       |> prems 0 |-> (fn k =>
         Thm.permute_prems 0 (~ k)
-        #> ProofContext.export ctxt' ctxt
+        #> singleton (Variable.export ctxt' ctxt)
         #> Drule.zero_var_indexes
         #> RuleCases.save raw_rule
         #> RuleCases.add_consumes k);
