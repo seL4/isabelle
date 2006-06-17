@@ -109,6 +109,7 @@ signature BASIC_THM =
   val equal_intr: thm -> thm -> thm
   val equal_elim: thm -> thm -> thm
   val flexflex_rule: thm -> thm Seq.seq
+  val generalize: string list * string list -> int -> thm -> thm
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val trivial: cterm -> thm
   val class_triv: theory -> class -> thm
@@ -148,6 +149,7 @@ sig
   val simple_fact: 'a -> ('a * 'b list) list
   val terms_of_tpairs: (term * term) list -> term list
   val maxidx_of: thm -> int
+  val maxidx_thm: thm -> int -> int
   val hyps_of: thm -> term list
   val full_prop_of: thm -> term
   val get_name_tags: thm -> string * tag list
@@ -447,6 +449,7 @@ fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
 val sign_of_thm = theory_of_thm;
 
 fun maxidx_of (Thm {maxidx, ...}) = maxidx;
+fun maxidx_thm th i = Int.max (maxidx_of th, i);
 fun hyps_of (Thm {hyps, ...}) = hyps;
 fun prop_of (Thm {prop, ...}) = prop;
 fun proof_of (Thm {der = (_, proof), ...}) = proof;
@@ -971,6 +974,45 @@ fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) 
             tpairs = tpairs',
             prop = prop'}
         end);
+
+
+(*Generalization of fixed variables
+           A
+  --------------------
+  A[?'a/'a, ?x/x, ...]
+*)
+
+fun generalize ([], []) _ th = th
+  | generalize (tfrees, frees) idx th =
+      let
+        val Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop} = th;
+        val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
+
+        val bad_type = if null tfrees then K false else
+          Term.exists_subtype (fn TFree (a, _) => member (op =) tfrees a | _ => false);
+        fun bad_term (Free (x, T)) = bad_type T orelse member (op =) frees x
+          | bad_term (Var (_, T)) = bad_type T
+          | bad_term (Const (_, T)) = bad_type T
+          | bad_term (Abs (_, T, t)) = bad_type T orelse bad_term t
+          | bad_term (t $ u) = bad_term t orelse bad_term u
+          | bad_term (Bound _) = false;
+        val _ = exists bad_term hyps andalso
+          raise THM ("generalize: variable free in assumptions", 0, [th]);
+
+        val gen = Term.generalize (tfrees, frees) idx;
+        val prop' = gen prop;
+        val tpairs' = map (pairself gen) tpairs;
+        val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
+      in
+        Thm {
+          thy_ref = thy_ref,
+          der = Pt.infer_derivs' (Pt.generalize (tfrees, frees) idx) der,
+          maxidx = maxidx',
+          shyps = shyps,
+          hyps = hyps,
+          tpairs = tpairs',
+          prop = prop'}
+      end;
 
 
 (*Instantiation of Vars
