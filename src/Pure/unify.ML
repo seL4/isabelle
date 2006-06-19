@@ -658,8 +658,8 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
         val empty = Envir.empty maxidx';
       in
         Seq.append
-          (pattern_matchers thy pairs empty)
           (Seq.map_filter result (smash_unifiers thy pairs' empty))
+          (pattern_matchers thy pairs empty)
       end;
 
 fun matches_list thy ps os =
