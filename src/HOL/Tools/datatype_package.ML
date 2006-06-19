@@ -799,7 +799,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       ||>> apply_theorems [raw_induction];
     val sign = Theory.sign_of thy1;
 
-    val induction' = Thm.freezeT induction;
+    val ([induction'], _) = Variable.importT [induction] (Variable.thm_context induction);
 
     fun err t = error ("Ill-formed predicate in induction rule: " ^
       Sign.string_of_term sign t);
