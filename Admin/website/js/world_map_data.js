@@ -24,6 +24,14 @@ world_data[i++] = ['John Matthews', CAPTION, 'Galois Connections', STICKY, NOCLO
 world_data[i++] = ['Slawomir Kolodynski: <b>IsarMathLib</b>', CAPTION, 'Newark, CA', STICKY, NOCLOSE];
 world_data[i++] = ['Robert Lamar', CAPTION, 'Stetson University', STICKY, NOCLOSE];
 world_data[i++] = ['<a href=\'http://www.andrew.cmu.edu/~avigad/isabelle/\'>Jeremy Avigad</a>, <a href=\'http://www.cs.cmu.edu/~seanmcl/research\'>Sean McLaughlin</a>', CAPTION, 'Carnegie Mellon University', STICKY, NOCLOSE];
+world_data[i++] = ['Elsa L. Gunter', CAPTION, 'University of Illinois, Urbana-Champaign', STICKY, NOCLOSE];
+world_data[i++] = ['Sidi O Ehmety', CAPTION, 'University of Nouakchott', STICKY, NOCLOSE];
+world_data[i++] = ['Wolfgang Paul et al.', CAPTION, 'Saarland University', STICKY, NOCLOSE];
+world_data[i++] = ['Daniel Wasserrab: <b>CoreC++</b>', CAPTION, 'Universit&auml;t Passau', STICKY, NOCLOSE];
+world_data[i++] = ['', CAPTION, 'University of Edinburgh, School of Informatics', STICKY, NOCLOSE];
+world_data[i++] = ['J. Dalinger, L. Petrova', CAPTION, 'Khabarovsk State University of Technology', STICKY, NOCLOSE];
+world_data[i++] = ['Viktor Kuncak: <b>Jahob</b>', CAPTION, 'Massachusetts Institute of Technology', STICKY, NOCLOSE];
+world_data[i++] = ['Dave MacQueen', CAPTION, 'University of Chicago', STICKY, NOCLOSE];
 
 function world_click(i) {
     var entry = world_data[i];
