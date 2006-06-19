@@ -28,7 +28,7 @@ world_data[i++] = ['Elsa L. Gunter', CAPTION, 'University of Illinois, Urbana-Ch
 world_data[i++] = ['Sidi O Ehmety', CAPTION, 'University of Nouakchott', STICKY, NOCLOSE];
 world_data[i++] = ['Wolfgang Paul et al.', CAPTION, 'Saarland University', STICKY, NOCLOSE];
 world_data[i++] = ['Daniel Wasserrab: <b>CoreC++</b>', CAPTION, 'Universit&auml;t Passau', STICKY, NOCLOSE];
-world_data[i++] = ['', CAPTION, 'University of Edinburgh, School of Informatics', STICKY, NOCLOSE];
+world_data[i++] = ['David Aspinall: <b><a href=\'http://proofgeneral.inf.ed.ac.uk/\'>Proof General</a></b><br>Lucas Dixon: <b><a href=\'http://isaplanner.sourceforge.net/\'>IsaPlanner</a></b><br>Jacques Fleuriot: <b>HOL-Hyperreal</b>', CAPTION, 'University of Edinburgh, School of Informatics', STICKY, NOCLOSE];
 world_data[i++] = ['J. Dalinger, L. Petrova', CAPTION, 'Khabarovsk State University of Technology', STICKY, NOCLOSE];
 world_data[i++] = ['Viktor Kuncak: <b>Jahob</b>', CAPTION, 'Massachusetts Institute of Technology', STICKY, NOCLOSE];
 world_data[i++] = ['Dave MacQueen', CAPTION, 'University of Chicago', STICKY, NOCLOSE];
