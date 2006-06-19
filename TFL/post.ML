@@ -170,9 +170,7 @@ fun tracing true _ = ()
   | tracing false msg = writeln msg;
 
 fun simplify_defn strict thy cs ss congs wfs id pats def0 =
-   let
-       val ([def1], _) = Variable.importT [def0] (Variable.thm_context def0);
-       val def = def1 RS meta_eq_to_obj_eq;
+   let val def = Thm.freezeT def0 RS meta_eq_to_obj_eq
        val {theory,rules,rows,TCs,full_pats_TCs} =
            Prim.post_definition congs (thy, (def,pats))
        val {lhs=f,rhs} = S.dest_eq (concl def)

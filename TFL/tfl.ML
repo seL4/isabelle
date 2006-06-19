@@ -555,7 +555,7 @@ fun lazyR_def thy fid tflCongs eqns =
        thy
        |> PureThy.add_defs_i false
             [Thm.no_attributes (fid ^ "_def", defn)]
-     val ([def], _) = Variable.importT [def0] (Variable.thm_context def0);
+     val def = Thm.freezeT def0;
      val dummy = if !trace then writeln ("DEF = " ^ string_of_thm def)
                            else ()
      (* val fconst = #lhs(S.dest_eq(concl def))  *)
