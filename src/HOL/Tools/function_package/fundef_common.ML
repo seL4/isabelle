@@ -34,22 +34,20 @@ datatype naming_context =
        glrs: (term list * term list * term * term) list,
        glrs': (term list * term list * term * term) list,
        f_def: thm,
-       used: string list,
-       trees: ctx_tree list
+       ctx: ProofContext.context
      }
 
 
 datatype rec_call_info = 
   RCInfo of
   {
-   RI: thm, 
-   RIvs: (string * typ) list,
-   lRI: thm, 
-   lRIq: thm, 
+   RIvs: (string * typ) list,  (* Call context: fixes and assumes *)
+   CCas: thm list,
+   rcarg: term,                 (* The recursive argument *)
+
+   llRI: thm,
    Gh: thm, 
-   Gh': thm,
-   GmAs: term list,
-   rcarg: term
+   Gh': thm
   } 
      
 datatype clause_info =
@@ -57,30 +55,27 @@ datatype clause_info =
      {
       no: int,
 
+      tree: ctx_tree,
+      case_hyp: thm,
+
       qs: term list, 
       gs: term list,
       lhs: term,
       rhs: term,
 
       cqs: cterm list,
-      cvqs: cterm list,
       ags: thm list,
       
       cqs': cterm list, 
       ags': thm list,
       lhs': term,
       rhs': term,
-      ordcqs': cterm list, 
 
-      GI: thm,
       lGI: thm,
       RCs: rec_call_info list,
 
-      tree: ctx_tree,
-      case_hyp: thm
+      ordcqs': cterm list
      }
-
-type inj_proj = ((term -> term) * (term -> term))
 
 type qgar = (string * typ) list * term list * term list * term
 
@@ -115,9 +110,13 @@ datatype prep_result =
   Prep of
      {
       names: naming_context, 
-      complete : term,
-      compat : term list,
-      clauses: clause_info list
+      goal: term,
+      goalI: thm,
+      values: thm list,
+      clauses: clause_info list,
+
+      R_cases: thm,
+      ex1_iff: thm
      }
 
 datatype fundef_result =
@@ -127,7 +126,6 @@ datatype fundef_result =
       G : term,
       R : term,
       completeness : thm,
-      compatibility : thm list,
 
       psimps : thm list, 
       subset_pinduct : thm, 

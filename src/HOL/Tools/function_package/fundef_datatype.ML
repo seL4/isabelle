@@ -126,35 +126,34 @@ fun prove_completeness thy x P qss pats =
     in
 	o_alg thy P 2 [x] (map2 (pair o single) pats assums)
 	      |> fold_rev implies_intr hyps
-	      |> zero_var_indexes
-	      |> forall_intr_frees
-	      |> forall_elim_vars 0 
     end
 
 
 
 fun pat_complete_tac i thm =
     let 
+      val thy = theory_of_thm thm
+
 	val subgoal = nth (prems_of thm) (i - 1)
-	val assums = Logic.strip_imp_prems subgoal
-	val _ $ P = Logic.strip_imp_concl subgoal
+
+        val ([P, x], subgf) = dest_all_all subgoal
+
+	val assums = Logic.strip_imp_prems subgf
 		    
 	fun pat_of assum = 
 	    let
 		val (qs, imp) = dest_all_all assum
 	    in
 		case Logic.dest_implies imp of 
-		    (_ $ (_ $ x $ pat), _) => (x, (qs, pat))
+		    (_ $ (_ $ _ $ pat), _) => (qs, pat)
 		  | _ => raise COMPLETENESS
 	    end
 
-	val (x, (qss, pats)) = 
-	    case (map pat_of assums) of
-		[] => raise COMPLETENESS
-	      | rs as ((x,_) :: _) 
-		=> (x, split_list (snd (split_list rs)))
+	val (qss, pats) = split_list (map pat_of assums)
 
-	val complete_thm = prove_completeness (theory_of_thm thm) x P qss pats
+	val complete_thm = prove_completeness thy x P qss pats
+                                              |> forall_intr (cterm_of thy x)
+                                              |> forall_intr (cterm_of thy P)
     in
 	Seq.single (Drule.compose_single(complete_thm, i, thm))
     end

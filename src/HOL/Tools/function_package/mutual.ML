@@ -14,7 +14,7 @@ sig
                               (FundefCommon.mutual_info * string * (FundefCommon.prep_result * theory))
 
 
-  val mk_partial_rules_mutual : theory -> thm list -> FundefCommon.mutual_info -> FundefCommon.prep_result -> thm -> thm list ->
+  val mk_partial_rules_mutual : theory -> FundefCommon.mutual_info -> FundefCommon.prep_result -> thm -> 
                                 FundefCommon.fundef_mresult
 end
 
@@ -217,10 +217,10 @@ fun mutual_induct_rules thy induct all_f_defs (Mutual {qglrss, RST, parts, stree
 
 
 
-fun mk_partial_rules_mutual thy congs (m as Mutual {qglrss, RST, parts, streeR, ...}) data complete_thm compat_thms =
+fun mk_partial_rules_mutual thy (m as Mutual {qglrss, RST, parts, streeR, ...}) data result =
     let
-	val result = FundefProof.mk_partial_rules thy congs data complete_thm compat_thms 
-	val FundefResult {f, G, R, compatibility, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} = result
+	val result = FundefProof.mk_partial_rules thy data result
+	val FundefResult {f, G, R, completeness, psimps, subset_pinduct,simple_pinduct,total_intro,dom_intros} = result
 
 	val sum_psimps = Library.unflat qglrss psimps
 

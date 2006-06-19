@@ -10,8 +10,8 @@ Internal proofs.
 signature FUNDEF_PROOF =
 sig
 
-    val mk_partial_rules : theory -> thm list -> FundefCommon.prep_result 
-			   -> thm -> thm list -> FundefCommon.fundef_result
+    val mk_partial_rules : theory -> FundefCommon.prep_result 
+			   -> thm -> FundefCommon.fundef_result
 end
 
 
@@ -37,8 +37,8 @@ val ex1_implies_un = thm "fundef_ex1_uniqueness"
 val ex1_implies_iff = thm "fundef_ex1_iff"
 val acc_subset_induct = thm "acc_subset_induct"
 
-
-
+val conjunctionD1 = thm "conjunctionD1"
+val conjunctionD2 = thm "conjunctionD2"
 
 
     
@@ -56,10 +56,6 @@ fun mk_psimp thy names f_iff graph_is_function clause valthm =
 	    |> (fn it => it COMP valthm)
 	    |> implies_intr lhs_acc 
 	    |> asm_simplify (HOL_basic_ss addsimps [f_iff])
-(*	    |> fold forall_intr cqs
-	    |> forall_elim_vars 0
-	    |> varifyT
-	    |> Drule.close_derivation*)
     end
 
 
@@ -88,7 +84,7 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 					   $ Trueprop (P $ Bound 0))
 		       |> cterm_of thy
 
-	val aihyp = assume ihyp |> forall_elim_vars 0
+	val aihyp = assume ihyp
 
 	fun prove_case clause =
 	    let
@@ -98,8 +94,13 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 		val lhs_D = simplify replace_x_ss x_D (* lhs : D *)
 		val sih = full_simplify replace_x_ss aihyp
 					
-					(* FIXME: Variable order destroyed by forall_intr_vars *)
-		val P_recs = map (fn RCInfo {lRI, RIvs, ...} => (lRI RS sih) |> forall_intr_vars) RCs   (*  [P rec1, P rec2, ... ]  *)
+                fun mk_Prec (RCInfo {llRI, RIvs, CCas, rcarg, ...}) =
+                    sih |> forall_elim (cterm_of thy rcarg)
+                        |> implies_elim_swp llRI
+                        |> fold_rev (implies_intr o cprop_of) CCas
+                        |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
+
+                val P_recs = map mk_Prec RCs   (*  [P rec1, P rec2, ... ]  *)
 			     
 		val step = Trueprop (P $ lhs)
 				    |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
@@ -128,6 +129,7 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 	val (cases, steps) = split_list (map prove_case clauses)
 
 	val istep =  complete_thm
+                       |> forall_elim_vars 0
 			 |> fold (curry op COMP) cases (*  P x  *)
 			 |> implies_intr ihyp
 			 |> implies_intr (cprop_of x_D)
@@ -164,8 +166,6 @@ fun mk_partial_induct_rule thy names complete_thm clauses =
 
 
 
-
-
 (***********************************************)
 (* Compat thms are stored in normal form (with vars) *)
 
@@ -187,7 +187,7 @@ fun lookup_compat_thm i j cts =
 
 (* recover the order of Vars *)
 fun get_var_order thy clauses =
-    map (fn (ClauseInfo {cqs,...}, ClauseInfo {cqs',...}) => map (cterm_of thy o free_to_var o term_of) (cqs @ cqs')) (upairs clauses)
+    map (fn (ClauseInfo {cqs,...}, ClauseInfo {cqs',...}) => map (cterm_of thy o free_to_var o term_of) (cqs @ cqs')) (unordered_pairs clauses)
 
 
 (* Returns "Gsi, Gsj', lhs_i = lhs_j' |-- rhs_j'_f = rhs_i_f" *)
@@ -225,6 +225,8 @@ fun get_compat_thm thy cts clausei clausej =
 
 
 
+
+
 (* Generates the replacement lemma with primed variables. A problem here is that one should not do
 the complete requantification at the end to replace the variables. One should find a way to be more efficient
 here. *)
@@ -235,7 +237,7 @@ fun mk_replacement_lemma thy (names:naming_context) ih_elim clause =
 
 	val ih_elim_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_elim
 
-	val Ris = map (fn RCInfo {lRIq, ...} => lRIq) RCs
+	val Ris = map (fn RCInfo {llRI, ...} => llRI) RCs
 	val h_assums = map (fn RCInfo {Gh, ...} => Gh) RCs
 	val h_assums' = map (fn RCInfo {Gh', ...} => Gh') RCs
 
@@ -252,7 +254,7 @@ fun mk_replacement_lemma thy (names:naming_context) ih_elim clause =
 				|> fold implies_elim_swp ags'
 				|> fold implies_elim_swp h_assums'
     in
-	replace_lemma
+      replace_lemma
     end
 
 
@@ -296,10 +298,9 @@ fun mk_uniqueness_case thy names ihyp ih_intro G_cases compat_store clauses rep_
 
 	val ih_intro_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_intro
 
-	fun prep_RC (RCInfo {lRIq,RIvs, ...}) = lRIq
-						    |> fold (forall_elim o cterm_of thy o Free) RIvs
-						    |> (fn it => it RS ih_intro_case)
-						    |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
+	fun prep_RC (RCInfo {llRI, RIvs, CCas, ...}) = (llRI RS ih_intro_case)
+                                                            |> fold_rev (implies_intr o cprop_of) CCas
+						            |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
 
 	val existence = lGI |> instantiate ([], [(cterm_of thy (free_to_var fvar), cterm_of thy f)])
 			    |> fold (curry op COMP o prep_RC) RCs 
@@ -353,7 +354,7 @@ fun mk_domain_intro thy names R_cases clause =
     in
 	Goal.init goal 
 		  |> (SINGLE (resolve_tac [accI] 1)) |> the
-		  |> (SINGLE (eresolve_tac [R_cases] 1))  |> the
+		  |> (SINGLE (eresolve_tac [forall_elim_vars 0 R_cases] 1))  |> the
 		  |> (SINGLE (CLASIMPSET auto_tac)) |> the
 		  |> Goal.conclude
     end
@@ -453,74 +454,32 @@ fun mk_nest_term_rule thy names clauses =
 	    |> fold implies_intr hyps
 	    |> implies_intr wfR'
 	    |> forall_intr (cterm_of thy R')
-	    |> forall_elim_vars 0
-	    |> varifyT
     end
 
 
 
 
-fun mk_partial_rules thy congs data complete_thm compat_thms =
+fun mk_partial_rules thy data provedgoal =
     let
-	val Prep {names, clauses, complete, compat, ...} = data
+	val Prep {names, clauses, values, R_cases, ex1_iff, ...} = data
 	val Names {G, R, acc_R, domT, ranT, f, f_def, x, z, fvarname, ...}:naming_context = names
 
-(*	val _ = Output.debug "closing derivation: completeness"
-	val _ = Output.debug (Proofterm.size_of_proof (proof_of complete_thm))
-	val _ = Output.debug (map (Proofterm.size_of_proof o proof_of) compat_thms)*)
-	val complete_thm = Drule.close_derivation complete_thm
-(*	val _ = Output.debug "closing derivation: compatibility"*)
-	val compat_thms = map Drule.close_derivation compat_thms
-(*	val _ = Output.debug "  done"*)
+        val _ = print "Closing Derivation"
 
-	val complete_thm_fr = Thm.freezeT complete_thm
-	val compat_thms_fr = map Thm.freezeT compat_thms
-	val f_def_fr = Thm.freezeT f_def
+	val provedgoal = Drule.close_derivation provedgoal
 
-	val instantiate_and_def = (instantiate' [SOME (ctyp_of thy domT), SOME (ctyp_of thy ranT)] 
-						[SOME (cterm_of thy f), SOME (cterm_of thy G)])
-				      #> curry op COMP (forall_intr_vars f_def_fr)
-			  
-	val inst_ex1_ex = instantiate_and_def ex1_implies_ex
-	val inst_ex1_un = instantiate_and_def ex1_implies_un
-	val inst_ex1_iff = instantiate_and_def ex1_implies_iff
+        val _ = print "Getting gif"
 
-	(* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
-	val ihyp = all domT $ Abs ("z", domT, 
-				   implies $ Trueprop (mk_relmemT domT domT (Bound 0, x) R)
-					   $ Trueprop (Const ("Ex1", (ranT --> boolT) --> boolT) $
-							     Abs ("y", ranT, mk_relmemT domT ranT (Bound 1, Bound 0) G)))
-		       |> cterm_of thy
-		   
-	val ihyp_thm = assume ihyp
-			      |> forall_elim_vars 0
-		       
-	val ih_intro = ihyp_thm RS inst_ex1_ex
-	val ih_elim = ihyp_thm RS inst_ex1_un
+        val graph_is_function = (provedgoal COMP conjunctionD1)
+                                  |> forall_elim_vars 0
 
-	val _ = Output.debug "Proving Replacement lemmas..."
-	val repLemmas = map (mk_replacement_lemma thy names ih_elim) clauses
+        val _ = print "Getting cases"
 
-	val n = length clauses
-	val var_order = get_var_order thy clauses
-	val compat_store = store_compat_thms n (var_order ~~ compat_thms_fr)
+        val complete_thm = provedgoal COMP conjunctionD2
 
-	val R_cases = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const R)))))) |> Thm.freezeT
-	val G_cases = hd (#elims (snd (the (InductivePackage.get_inductive thy (fst (dest_Const G)))))) |> Thm.freezeT
+        val _ = print "making f_iff"
 
-	val _ = Output.debug "Proving cases for unique existence..."
-	val (ex1s, values) = split_list (map (mk_uniqueness_case thy names ihyp ih_intro G_cases compat_store clauses repLemmas) clauses)
-
-	val _ = Output.debug "Proving: Graph is a function"
-	val graph_is_function = complete_thm_fr
-				    |> fold (curry op COMP) ex1s
-				    |> implies_intr (ihyp)
-				    |> implies_intr (cterm_of thy (Trueprop (mk_mem (x, acc_R))))
-				    |> forall_intr (cterm_of thy x)
-				    |> (fn it => Drule.compose_single (it, 2, acc_induct_rule)) (* "EX! y. (?x,y):G" *)
-				    |> Drule.close_derivation
-
-	val f_iff = (graph_is_function RS inst_ex1_iff)
+	val f_iff = (graph_is_function RS ex1_iff) 
 
 	val _ = Output.debug "Proving simplification rules"
 	val psimps  = map2 (mk_psimp thy names f_iff graph_is_function) clauses values
@@ -534,7 +493,7 @@ fun mk_partial_rules thy congs data complete_thm compat_thms =
 	val _ = Output.debug "Proving domain introduction rules"
 	val dom_intros = map (mk_domain_intro thy names R_cases) clauses
     in 
-	FundefResult {f=f, G=G, R=R, compatibility=compat_thms, completeness=complete_thm, 
+	FundefResult {f=f, G=G, R=R, completeness=complete_thm, 
 	 psimps=psimps, subset_pinduct=subset_pinduct, simple_pinduct=simple_pinduct, total_intro=total_intro,
 	 dom_intros=dom_intros}
     end

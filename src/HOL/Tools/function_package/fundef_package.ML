@@ -48,12 +48,11 @@ fun add_simps label moreatts (MutualPart {f_name, ...}, psimps) (names, attss) t
 
 
 
-fun fundef_afterqed congs curry_info name data names atts thmss thy =
+fun fundef_afterqed congs mutual_info name data names atts [[result]] thy =
     let
-	val (complete_thm :: compat_thms) = map hd thmss
-	val fundef_data = FundefMutual.mk_partial_rules_mutual thy congs curry_info data (Thm.freezeT complete_thm) (map Thm.freezeT compat_thms)
-	val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, ...} = fundef_data
-        val Mutual {parts, ...} = curry_info
+	val fundef_data = FundefMutual.mk_partial_rules_mutual thy mutual_info data result
+	val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
+        val Mutual {parts, ...} = mutual_info
 
 	val Prep {names = Names {acc_R=accR, ...}, ...} = data
 	val dom_abbrev = Logic.mk_equals (Free (name ^ "_dom", fastype_of accR), accR)
@@ -62,13 +61,13 @@ fun fundef_afterqed congs curry_info name data names atts thmss thy =
         val thy = fold2 (add_simps "psimps" []) (parts ~~ psimps) (names ~~ atts) thy
 
 	val thy = thy |> Theory.add_path name
-	val (_, thy) = PureThy.add_thms [(("cases", complete_thm), [RuleCases.case_names (flat names)])] thy
+	val (_, thy) = PureThy.add_thms [(("cases", cases), [RuleCases.case_names (flat names)])] thy
 	val (_, thy) = PureThy.add_thmss [(("domintros", domintros), [])] thy
-	val (_, thy) = PureThy.add_thms [(("termination", termination), [])] thy
+	val (_, thy) = PureThy.add_thms [(("termination", standard termination), [])] thy
 	val (_,thy) = PureThy.add_thmss [(("pinduct", map standard simple_pinducts), [RuleCases.case_names (flat names), InductAttrib.induct_set ""])] thy
 	val thy = thy |> Theory.parent_path
     in
-	add_fundef_data name (fundef_data, curry_info, names, atts) thy
+	add_fundef_data name (fundef_data, mutual_info, names, atts) thy
     end
 
 fun gen_add_fundef prep_att eqns_attss thy =
@@ -93,14 +92,14 @@ fun gen_add_fundef prep_att eqns_attss thy =
 	val t_eqns = map (map (Sign.read_prop thy)) eqns
 			 |> map (map (term_of o cterm_of thy)) (* HACK to prevent strange things from happening with abbreviations *)
 
-	val (curry_info, name, (data, thy)) = FundefMutual.prepare_fundef_mutual congs t_eqns thy
-	val Prep {complete, compat, ...} = data
-
-	val props = (complete :: compat) (*(complete :: fst (chop 110 compat))*)
+	val (mutual_info, name, (data, thy)) = FundefMutual.prepare_fundef_mutual congs t_eqns thy
+	val Prep {goal, goalI, ...} = data
     in
 	thy |> ProofContext.init
-	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs curry_info name data names atts) NONE ("", [])
-	    (map (fn t => (("", []), [(t, [])])) props)
+	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs mutual_info name data names atts) NONE ("", [])
+	    [(("", []), [(goal, [])])]
+            |> Proof.refine (Method.primitive_text (fn _ => goalI))
+            |> Seq.hd
     end
 
 
@@ -167,7 +166,7 @@ fun fundef_setup_termination_proof name NONE thy =
     in
 	thy |> ProofContext.init
 	    |> ProofContext.note_thmss_i [(("termination", 
-					    [ContextRules.intro_query NONE]), [([termination], [])])] |> snd
+					    [ContextRules.intro_query NONE]), [([standard termination], [])])] |> snd
 	    |> Proof.theorem_i PureThy.internalK NONE (total_termination_afterqed name mutual) NONE ("", [])
 	    [(("", []), [(goal, [])])]
     end	

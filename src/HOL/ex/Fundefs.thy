@@ -135,8 +135,8 @@ function
   "gcd3 0 y = y"
   "x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (Suc x) (y - x)"
   "\<not> x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (x - y) (Suc y)"
-  apply (cases xa, case_tac a, auto)
-  apply (case_tac b, auto)
+  apply (case_tac x, case_tac a, auto)
+  apply (case_tac ba, auto)
   done
 termination 
   by (auto_term "measure (\<lambda>(x,y). x + y)")
@@ -152,6 +152,8 @@ function
   "ev (2 * n) = True"
   "ev (2 * n + 1) = False"
 proof -  -- {* completeness is more difficult here \dots *}
+  fix P :: bool
+    and x :: nat
   assume c1: "\<And>n. x = 2 * n \<Longrightarrow> P"
     and c2: "\<And>n. x = 2 * n + 1 \<Longrightarrow> P"
   have divmod: "x = 2 * (x div 2) + (x mod 2)" by auto

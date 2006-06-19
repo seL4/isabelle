@@ -15,7 +15,7 @@ sig
     val cong_deps : thm -> int IntGraph.T
     val add_congs : thm list
 
-    val mk_tree: theory -> (thm * FundefCommon.depgraph) list -> term -> term -> FundefCommon.ctx_tree
+    val mk_tree: theory -> (thm * FundefCommon.depgraph) list -> term -> ProofContext.context -> term -> FundefCommon.ctx_tree
 
     val add_context_varnames : FundefCommon.ctx_tree -> string list -> string list
 
@@ -70,45 +70,40 @@ val add_congs = map (fn c => c RS eq_reflection) [cong, ext]
 
 
 (* Called on the INSTANTIATED branches of the congruence rule *)
-fun mk_branch t = 
+fun mk_branch ctx t = 
     let
-	val (fixes, impl) = dest_all_all t
+	val (ctx', fixes, impl) = dest_all_all_ctx ctx t
 	val (assumes, term) = dest_implies_list impl
     in
-	(map dest_Free fixes, assumes, rhs_of term)
+      (ctx', fixes, assumes, rhs_of term)
     end
 
-
-
-
-
-
-fun find_cong_rule thy ((r,dep)::rs) t =
+fun find_cong_rule thy ctx ((r,dep)::rs) t =
     (let
 	val (c, subs) = (meta_rhs_of (concl_of r), prems_of r)
 
 	val subst = Pattern.match thy (c, t) (Vartab.empty, Vartab.empty)
 
-	val branches = map (mk_branch o Envir.beta_norm o Envir.subst_vars subst) subs
+	val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_vars subst) subs
      in
 	 (r, dep, branches)
      end
-    handle Pattern.MATCH => find_cong_rule thy rs t)
-  | find_cong_rule thy [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
+    handle Pattern.MATCH => find_cong_rule thy ctx rs t)
+  | find_cong_rule thy _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
 
 
 fun matchcall f (a $ b) = if a = f then SOME b else NONE
   | matchcall f _ = NONE
 
-fun mk_tree thy congs f t =
+fun mk_tree thy congs f ctx t =
     case matchcall f t of
-	SOME arg => RCall (t, mk_tree thy congs f arg)
+	SOME arg => RCall (t, mk_tree thy congs f ctx arg)
       | NONE => 
 	if not (exists_Const (curry op = (dest_Const f)) t) then Leaf t
 	else 
-	    let val (r, dep, branches) = find_cong_rule thy congs t in
-		Cong (t, r, dep, map (fn (fixes, assumes, st) => 
-					 (fixes, map (assume o cterm_of thy) assumes, mk_tree thy congs f st)) branches)
+	    let val (r, dep, branches) = find_cong_rule thy ctx congs t in
+		Cong (t, r, dep, map (fn (ctx', fixes, assumes, st) => 
+					 (fixes, map (assume o cterm_of thy) assumes, mk_tree thy congs f ctx' st)) branches)
 	    end
 		
 		
@@ -121,7 +116,7 @@ fun add_context_varnames (Leaf _) = I
 fun compose (fs1, as1) (fs2, as2) = (fs1 @ fs2, as1 @ as2)
 
 fun export_term (fixes, assumes) =
-    fold_rev (curry Logic.mk_implies) assumes #> fold (mk_forall o Free) fixes
+    fold_rev (curry Logic.mk_implies) assumes #> fold_rev (mk_forall o Free) fixes
 
 fun export_thm thy (fixes, assumes) =
     fold_rev (implies_intr o cterm_of thy) assumes
@@ -194,18 +189,17 @@ fun rewrite_by_tree thy f h ih x tr =
 	fun rewrite_help fix f_as h_as x (Leaf t) = (reflexive (cterm_of thy t), x)
 	  | rewrite_help fix f_as h_as x (RCall (_ $ arg, st)) =
 	    let
-		val (inner, (Ri,ha)::x') = rewrite_help fix f_as h_as x st
+		val (inner, (lRi,ha)::x') = rewrite_help fix f_as h_as x st
 					   
 					   (* Need not use the simplifier here. Can use primitive steps! *)
 		val rew_ha = if is_refl inner then I else simplify (HOL_basic_ss addsimps [inner])
 			     
 		val h_a_eq_h_a' = combination (reflexive (cterm_of thy h)) inner
-		val iRi = import_thm thy (fix, f_as) Ri (* a < lhs *)
 		val iha = import_thm thy (fix, h_as) ha (* (a', h a') : G *)
 				     |> rew_ha
 
 		val inst_ih = instantiate' [] [SOME (cterm_of thy arg)] ih
-		val eq = implies_elim (implies_elim inst_ih iRi) iha
+		val eq = implies_elim (implies_elim inst_ih lRi) iha
 			 
 		val h_a'_eq_f_a' = eq RS eq_reflection
 		val result = transitive h_a_eq_h_a' h_a'_eq_f_a'
