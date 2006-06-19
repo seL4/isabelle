@@ -24,6 +24,8 @@ sig
   val declare_type: typ -> Context.proof -> Context.proof
   val declare_syntax: term -> Context.proof -> Context.proof
   val declare_term: term -> Context.proof -> Context.proof
+  val declare_thm: thm -> Context.proof -> Context.proof
+  val thm_context: thm -> Context.proof
   val rename_wrt: Context.proof -> term list -> (string * 'a) list -> (string * 'a) list
   val add_fixes: string list -> Context.proof -> string list * Context.proof
   val invent_fixes: string list -> Context.proof -> string list * Context.proof
@@ -41,6 +43,8 @@ sig
   val import_terms: bool -> term list -> Context.proof -> term list * Context.proof
   val importT: thm list -> Context.proof -> thm list * Context.proof
   val import: bool -> thm list -> Context.proof -> thm list * Context.proof
+  val tradeT: Context.proof -> (thm list -> thm list) -> thm list -> thm list
+  val trade: Context.proof -> (thm list -> thm list) -> thm list -> thm list
   val warn_extra_tfrees: Context.proof -> Context.proof -> unit
   val monomorphic: Context.proof -> term list -> term list
   val polymorphic: Context.proof -> term list -> term list
@@ -181,6 +185,9 @@ fun declare_term t ctxt =
       used,
       ins_occs t occ));
 
+fun declare_thm th = fold declare_term (Thm.full_prop_of th :: Thm.hyps_of th);
+fun thm_context th = Context.init_proof (Thm.theory_of_thm th) |> declare_thm th;
+
 end;
 
 
@@ -263,9 +270,10 @@ fun export_terms inner outer ts =
 
 fun gen_export inst inner outer ths =
   let
-    val maxidx = fold Thm.maxidx_thm ths ~1;
-    val inner' = fold (declare_occs o Thm.full_prop_of) ths inner;
-  in map (Thm.generalize (inst inner' outer) (maxidx + 1)) ths end;
+    val ths' = map Thm.adjust_maxidx_thm ths;
+    val maxidx = fold Thm.maxidx_thm ths' ~1;
+    val inner' = fold (declare_occs o Thm.full_prop_of) ths' inner;
+  in map (Thm.generalize (inst inner' outer) (maxidx + 1)) ths' end;
 
 val exportT = gen_export (rpair [] oo exportT_inst);
 val export = gen_export export_inst;
@@ -316,6 +324,16 @@ fun import is_open ths ctxt =
     val inst' = map (fn (v, t) => (cert (Var v), cert t)) inst;
     val ths' = map (Thm.instantiate (instT', inst')) ths;
   in (ths', ctxt') end;
+
+
+(* import/export *)
+
+fun gen_trade imp exp ctxt f ths =
+  let val (ths', ctxt') = imp ths ctxt
+  in exp ctxt' ctxt (f ths') end;
+
+val tradeT = gen_trade importT exportT;
+val trade = gen_trade (import true) export;
 
 
 
