@@ -334,17 +334,16 @@ theorem norm_HahnBanach:
      \<and> (\<forall>x \<in> F. g x = f x)
      \<and> \<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
 proof -
-  have E: "vectorspace E" .
-  have E_norm: "normed_vectorspace E norm" ..
+  have E: "vectorspace E" by intro_locales
+  have E_norm: "normed_vectorspace E norm" by rule intro_locales
   have FE: "F \<unlhd> E" .
-  have F: "vectorspace F" ..
+  have F: "vectorspace F" by rule intro_locales
   have linearform: "linearform F f" .
   have F_norm: "normed_vectorspace F norm"
-    by (rule subspace_normed_vs [OF E_norm])
+    by (rule subspace_normed_vs)
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
     by (rule normed_vectorspace.fn_norm_ge_zero
-      [OF F_norm continuous.intro, folded B_def fn_norm_def])
-
+      [OF F_norm (* continuous.intro*), folded B_def fn_norm_def])
   txt {* We define a function @{text p} on @{text E} as follows:
     @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"} *}
   def p \<equiv> "\<lambda>x. \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
@@ -393,7 +392,7 @@ proof -
     fix x assume "x \<in> F"
     show "\<bar>f x\<bar> \<le> p x"
       by (unfold p_def) (rule normed_vectorspace.fn_norm_le_cong
-        [OF F_norm continuous.intro, folded B_def fn_norm_def])
+        [OF F_norm, folded B_def fn_norm_def])
   qed
 
   txt {* Using the fact that @{text p} is a seminorm and @{text f} is bounded
@@ -466,7 +465,7 @@ proof -
 	using g_cont
 	by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
     next
-      show "continuous F norm f" by (rule continuous.intro)
+      show "continuous F norm f" .
     qed
   qed
   with linearformE a g_cont show ?thesis by blast

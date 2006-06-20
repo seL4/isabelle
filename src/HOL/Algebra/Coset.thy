@@ -305,7 +305,7 @@ lemma (in normal) rcos_mult_step3:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
       \<Longrightarrow> (H <#> (H #> x)) #> y = H #> (x \<otimes> y)"
 by (simp add: setmult_rcos_assoc coset_mult_assoc
-              subgroup_mult_id subset prems)
+              subgroup_mult_id normal.axioms subset prems)
 
 lemma (in normal) rcos_sum:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
@@ -315,7 +315,7 @@ by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
   -- {* generalizes @{text subgroup_mult_id} *}
   by (auto simp add: RCOSETS_def subset
-        setmult_rcos_assoc subgroup_mult_id prems)
+        setmult_rcos_assoc subgroup_mult_id normal.axioms prems)
 
 
 subsubsection{*An Equivalence Relation*}
@@ -504,7 +504,7 @@ qed
 
 lemma (in normal) rcosets_inv_mult_group_eq:
      "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
-by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset prems)
+by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal.axioms prems)
 
 theorem (in normal) factorgroup_is_group:
   "group (G Mod H)"
@@ -552,8 +552,8 @@ done
 
 text{*The kernel of a homomorphism is a normal subgroup*}
 lemma (in group_hom) normal_kernel: "(kernel G H h) \<lhd> G"
-apply (simp add: group.normal_inv_iff subgroup_kernel group.intro prems)
-apply (simp add: kernel_def)  
+apply (simp add: G.normal_inv_iff subgroup_kernel)
+apply (simp add: kernel_def)
 done
 
 lemma (in group_hom) FactGroup_nonempty:

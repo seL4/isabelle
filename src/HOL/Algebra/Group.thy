@@ -189,8 +189,7 @@ locale group = monoid +
   assumes Units: "carrier G <= Units G"
 
 
-lemma (in group) is_group: "group G"
-  by (rule group.intro [OF prems]) 
+lemma (in group) is_group: "group G" .
 
 theorem groupI:
   fixes G (structure)
@@ -468,7 +467,7 @@ lemma inv_DirProd [simp]:
       and h: "h \<in> carrier H"
   shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
   apply (rule group.inv_equality [OF DirProd_group])
-  apply (simp_all add: prems group_def group.l_inv)
+  apply (simp_all add: prems group.l_inv)
   done
 
 text{*This alternative proof of the previous result demonstrates interpret.
@@ -643,8 +642,7 @@ lemma (in group) group_comm_groupI:
   assumes m_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==>
       x \<otimes> y = y \<otimes> x"
   shows "comm_group G"
-  by (fast intro: comm_group.intro comm_monoid_axioms.intro
-                  is_group prems)
+  by intro_locales (simp_all add: m_comm)
 
 lemma comm_groupI:
   fixes G (structure)
@@ -679,7 +677,7 @@ lemma (in group) subgroup_self:
 
 lemma (in group) subgroup_imp_group:
   "subgroup H G ==> group (G(| carrier := H |))"
-  using subgroup.subgroup_is_group [OF _ group.intro] .
+  by (rule subgroup.subgroup_is_group)
 
 lemma (in group) is_monoid [intro, simp]:
   "monoid G"

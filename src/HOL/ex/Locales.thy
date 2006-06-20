@@ -481,7 +481,7 @@ proof
 	semigroup_product_def semigroup.defs)
     moreover
     have "semigroup ?G'" and "semigroup ?H'"
-      using prems by (simp_all add: semigroup_def semigroup.defs)
+      using prems by (simp_all add: semigroup_def semigroup.defs G.assoc H.assoc)
     then have "semigroup (semigroup_product ?G' ?H')" ..
     ultimately show ?thesis by (simp add: I_def semigroup_def)
   qed

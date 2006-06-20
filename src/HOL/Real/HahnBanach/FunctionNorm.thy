@@ -164,7 +164,7 @@ lemma (in normed_vectorspace) fn_norm_ub [iff?]:
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF continuous.intro])
+    by (unfold B_def fn_norm_def) (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
@@ -174,7 +174,7 @@ lemma (in normed_vectorspace) fn_norm_leastB:
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF continuous.intro])
+    by (unfold B_def fn_norm_def) (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
@@ -188,7 +188,7 @@ proof -
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF continuous.intro])
+    by (unfold B_def fn_norm_def) (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
@@ -207,11 +207,10 @@ lemma (in normed_vectorspace) fn_norm_le_cong:
 proof cases
   assume "x = 0"
   then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
-  also have "f 0 = 0" ..
+  also have "f 0 = 0" by rule intro_locales
   also have "\<bar>\<dots>\<bar> = 0" by simp
   also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
-      by (unfold B_def fn_norm_def)
-        (rule fn_norm_ge_zero [OF continuous.intro])
+      by (unfold B_def fn_norm_def) (rule fn_norm_ge_zero)
     have "0 \<le> norm x" ..
   with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
   finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
@@ -225,7 +224,7 @@ next
     from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
       by (auto simp add: B_def real_divide_def)
     then show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
-      by (unfold B_def fn_norm_def) (rule fn_norm_ub [OF continuous.intro])
+      by (unfold B_def fn_norm_def) (rule fn_norm_ub)
   qed
   finally show ?thesis .
 qed

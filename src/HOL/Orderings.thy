@@ -388,7 +388,7 @@ text{* Instantiate locales: *}
 
 interpretation min_max:
   lower_semilattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply(rule lower_semilattice_axioms.intro)
+apply intro_locales
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
 apply(simp add:min_def linorder_not_le order_less_imp_le)
@@ -396,8 +396,7 @@ done
 
 interpretation min_max:
   upper_semilattice["op \<le>" "max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply -
-apply(rule upper_semilattice_axioms.intro)
+apply intro_locales
 apply(simp add: max_def linorder_not_le order_less_imp_le)
 apply(simp add: max_def linorder_not_le order_less_imp_le)
 apply(simp add: max_def linorder_not_le order_less_imp_le)
@@ -405,11 +404,11 @@ done
 
 interpretation min_max:
   lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-.
+  by intro_locales
 
 interpretation min_max:
   distrib_lattice["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max"]
-apply(rule distrib_lattice_axioms.intro)
+apply intro_locales
 apply(rule_tac x=x and y=y in linorder_le_cases)
 apply(rule_tac x=x and y=z in linorder_le_cases)
 apply(rule_tac x=y and y=z in linorder_le_cases)

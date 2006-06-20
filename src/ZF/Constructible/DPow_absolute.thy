@@ -294,7 +294,7 @@ lemma M_DPow_axioms_L: "M_DPow_axioms(L)"
 
 theorem M_DPow_L: "PROP M_DPow(L)"
   apply (rule M_DPow.intro)
-       apply (rule M_satisfies.axioms [OF M_satisfies_L])+
+   apply (rule M_satisfies_L)
   apply (rule M_DPow_axioms_L)
   done
 
@@ -596,10 +596,10 @@ lemma M_Lset_axioms_L: "M_Lset_axioms(L)"
   done
 
 theorem M_Lset_L: "PROP M_Lset(L)"
-apply (rule M_Lset.intro) 
-     apply (rule M_DPow.axioms [OF M_DPow_L])+
-apply (rule M_Lset_axioms_L) 
-done
+  apply (rule M_Lset.intro) 
+   apply (rule M_DPow_L)
+  apply (rule M_Lset_axioms_L) 
+  done
 
 text{*Finally: the point of the whole theory!*}
 lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]

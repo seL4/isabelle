@@ -16,20 +16,38 @@ fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
 val cring_ss = HOL_ss settermless termless_ring;
 
 fun cring_normalise ctxt = let
-    fun ring_filter t = (case HOLogic.dest_Trueprop t of
-        Const ("CRing.ring_axioms", _) $ Free (s, _) => [s]
+    fun filter p t = (case HOLogic.dest_Trueprop t of
+        Const (p', _) $ Free (s, _) => if p = p' then [s] else []
       | _ => [])
       handle TERM _ => [];
-    fun comm_filter t = (case HOLogic.dest_Trueprop t of
-        Const ("Group.comm_monoid_axioms", _) $ Free (s, _) => [s]
+    fun filter21 p t = (case HOLogic.dest_Trueprop t of
+        Const (p', _) $ Free (s, _) $ _ => if p = p' then [s] else []
+      | _ => [])
+      handle TERM _ => [];
+    fun filter22 p t = (case HOLogic.dest_Trueprop t of
+        Const (p', _) $ _ $ Free (s, _) => if p = p' then [s] else []
+      | _ => [])
+      handle TERM _ => [];
+    fun filter31 p t = (case HOLogic.dest_Trueprop t of
+        Const (p', _) $ Free (s, _) $ _ $ _ => if p = p' then [s] else []
+      | _ => [])
+      handle TERM _ => [];
+    fun filter32 p t = (case HOLogic.dest_Trueprop t of
+        Const (p', _) $ _ $ Free (s, _) $ _ => if p = p' then [s] else []
       | _ => [])
       handle TERM _ => [];
 
     val prems = ProofContext.prems_of ctxt;
-    val rings = List.concat (map (ring_filter o #prop o rep_thm) prems);
-    val comms = List.concat (map (comm_filter o #prop o rep_thm) prems);
-    val non_comm_rings = rings \\ comms;
-    val comm_rings = rings inter_string comms;
+    val non_comm_rings = List.concat (map (filter "CRing.ring" o #prop o rep_thm) prems);
+    val comm_rings = List.concat (map (filter "CRing.cring" o #prop o rep_thm) prems) @
+        List.concat (map (filter "CRing.domain" o #prop o rep_thm) prems) @
+        List.concat (map (filter21 "Module.module" o #prop o rep_thm) prems) @
+        List.concat (map (filter21 "Module.algebra" o #prop o rep_thm) prems) @
+        List.concat (map (filter22 "Module.algebra" o #prop o rep_thm) prems) @
+        List.concat (map (filter "UnivPoly.UP_cring" o #prop o rep_thm) prems) @
+        List.concat (map (filter "UnivPoly.UP_domain" o #prop o rep_thm) prems) @
+        List.concat (map (filter31 "CRing.ring_hom_cring" o #prop o rep_thm) prems) @
+        List.concat (map (filter32 "CRing.ring_hom_cring" o #prop o rep_thm) prems);
     val _ = tracing
       ("Non-commutative rings in proof context: " ^ commas non_comm_rings ^
        "\nCommutative rings in proof context: " ^ commas comm_rings);

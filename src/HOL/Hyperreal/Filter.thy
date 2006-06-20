@@ -68,10 +68,11 @@ locale freeultrafilter = ultrafilter +
 lemma (in freeultrafilter) finite: "finite A \<Longrightarrow> A \<notin> F"
 by (erule contrapos_pn, erule infinite)
 
-lemma (in freeultrafilter) filter: "filter F" .
+lemma (in freeultrafilter) filter: "filter F" by intro_locales
 
 lemma (in freeultrafilter) ultrafilter: "ultrafilter F"
-by (rule ultrafilter.intro)
+  by intro_locales
+
 
 subsection {* Collect properties *}
 
@@ -385,7 +386,8 @@ proof -
     with U show "infinite A" by (rule mem_superfrechet_all_infinite)
   qed
   from fil ultra free have "freeultrafilter U"
-    by (rule freeultrafilter.intro)
+    by (rule freeultrafilter.intro [OF ultrafilter.intro])
+    (* FIXME: intro_locales should use chained facts *)
   thus ?thesis ..
 qed
 

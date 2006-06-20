@@ -502,13 +502,10 @@ lemmas (in ACIf) ACI = AC idem idem2
 text{* Interpretation of locales: *}
 
 interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
-  by(auto intro: ACf.intro ACe_axioms.intro add_assoc add_commute)
+  by intro_locales (auto intro: add_assoc add_commute)
 
 interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
-   apply (fast intro: ACf.intro mult_assoc mult_commute)
-  apply (fastsimp intro: ACe_axioms.intro mult_assoc mult_commute)
-  done
-
+  by intro_locales (auto intro: mult_assoc mult_commute)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
@@ -1312,7 +1309,7 @@ lemma setprod_empty [simp]: "setprod f {} = 1"
 
 lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
     setprod f (insert a A) = f a * setprod f A"
-by (simp add: setprod_def)
+  by (simp add: setprod_def)
 
 lemma setprod_infinite [simp]: "~ finite A ==> setprod f A = 1"
   by (simp add: setprod_def)
@@ -1983,7 +1980,7 @@ lemma (in ACf) fold1Set_equality: "(A, y) : fold1Set f ==> fold1 f A = y"
 declare
   empty_foldSetE [rule del]   foldSet.intros [rule del]
   empty_fold1SetE [rule del]  insert_fold1SetE [rule del]
-  -- {* No more proves involve these relations. *}
+  -- {* No more proofs involve these relations. *}
 
 subsubsection{* Semi-Lattices *}
 
@@ -2061,7 +2058,7 @@ using lin[of y z] by (auto simp:below_def ACI)
 
 
 lemma (in ACIfSLlin) strict_above_f_conv:
- "x \<cdot> y \<sqsubset> z = (x \<sqsubset> z \<or> y \<sqsubset> z)"
+  "x \<cdot> y \<sqsubset> z = (x \<sqsubset> z \<or> y \<sqsubset> z)"
 apply(simp add: strict_below_def above_f_conv)
 using lin[of y z] lin[of x z] by (auto simp:below_def ACI)
 
@@ -2206,6 +2203,7 @@ done
 
 lemma (in Lattice) ACIfSL_inf: "ACIfSL inf (op \<sqsubseteq>)"
 apply(rule ACIfSL.intro)
+apply(rule ACIf.intro)
 apply(rule ACf_inf)
 apply(rule ACIf.axioms[OF ACIf_inf])
 apply(rule ACIfSL_axioms.intro)
@@ -2216,7 +2214,9 @@ apply(rule inf_le2)
 done
 
 lemma (in Lattice) ACIfSL_sup: "ACIfSL sup (%x y. y \<sqsubseteq> x)"
+(* FIXME: insert ACf_sup and use intro_locales *)
 apply(rule ACIfSL.intro)
+apply(rule ACIf.intro)
 apply(rule ACf_sup)
 apply(rule ACIf.axioms[OF ACIf_sup])
 apply(rule ACIfSL_axioms.intro)
@@ -2370,43 +2370,43 @@ apply(auto simp:min_def)
 done
 
 interpretation min: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply(rule ACIf_axioms.intro)
+apply intro_locales
 apply(auto simp:min_def)
 done
 
 interpretation max: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply(rule ACf.intro)
+apply intro_locales
 apply(auto simp:max_def)
 done
 
 interpretation max: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply(rule ACIf_axioms.intro)
+apply intro_locales
 apply(auto simp:max_def)
 done
 
 interpretation min:
   ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
 apply(simp add:order_less_le)
-apply(rule ACIfSL_axioms.intro)
+apply intro_locales
 apply(auto simp:min_def)
 done
 
 interpretation min:
   ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
-apply(rule ACIfSLlin_axioms.intro)
+apply intro_locales
 apply(auto simp:min_def)
 done
 
 interpretation max:
   ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
 apply(simp add:order_less_le eq_sym_conv)
-apply(rule ACIfSL_axioms.intro)
+apply intro_locales
 apply(auto simp:max_def)
 done
 
 interpretation max:
   ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
-apply(rule ACIfSLlin_axioms.intro)
+apply intro_locales
 apply(auto simp:max_def)
 done
 
@@ -2415,12 +2415,14 @@ interpretation min_max:
 apply -
 apply(rule Min_def)
 apply(rule Max_def)
+apply intro_locales
 done
 
 
 interpretation min_max:
   Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
-.
+  by intro_locales
+
 
 text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}

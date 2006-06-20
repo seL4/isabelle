@@ -654,7 +654,7 @@ text {* Introduction rule: the usual definition of total order *}
 lemma (in partial_order) total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "total_order L"
-proof (rule total_order.intro)
+proof (intro_locales!)
   show "lattice_axioms L"
   proof (rule lattice_axioms.intro)
     fix x y
@@ -716,7 +716,7 @@ lemma (in partial_order) complete_latticeI:
     and inf_exists:
     "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
   shows "complete_lattice L"
-proof (rule complete_lattice.intro)
+proof (intro_locales!)
   show "lattice_axioms L"
     by (rule lattice_axioms.intro) (blast intro: sup_exists inf_exists)+
 qed (assumption | rule complete_lattice_axioms.intro)+

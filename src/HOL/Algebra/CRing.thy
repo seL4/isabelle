@@ -80,7 +80,8 @@ by (rule comm_monoid.axioms, rule a_comm_monoid)
 
 lemma (in abelian_group) a_group:
   "group (| carrier = carrier G, mult = add G, one = zero G |)"
-by (simp add: group_def a_monoid comm_group.axioms a_comm_group) 
+  by (simp add: group_def a_monoid)
+    (simp add: comm_group.axioms group.axioms a_comm_group)
 
 lemmas monoid_record_simps = partial_object.simps monoid.simps
 
@@ -336,16 +337,13 @@ lemma (in ring) is_monoid:
   by (auto intro!: monoidI m_assoc)
 
 lemma cringI:
-(*
-  includes struct R
-*)
   fixes R (structure)
   assumes abelian_group: "abelian_group R"
     and comm_monoid: "comm_monoid R"
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
   shows "cring R"
-  proof (rule cring.intro)
+  proof (intro cring.intro ring.intro)
     show "ring_axioms R"
     -- {* Right-distributivity follows from left-distributivity and
           commutativity. *}

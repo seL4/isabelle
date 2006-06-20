@@ -89,8 +89,7 @@ locale group = monoid +
   assumes inv_ex:
      "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> & x \<cdot> y = \<one>"
 
-lemma (in group) is_group [simp]: "group(G)"
-  by (rule group.intro [OF prems]) 
+lemma (in group) is_group [simp]: "group(G)" .
 
 theorem groupI:
   includes struct G
@@ -328,7 +327,7 @@ lemma inv_DirProdGroup [simp]:
       and h: "h \<in> carrier(H)"
   shows "inv \<^bsub>G \<Otimes> H\<^esub> <g, h> = <inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h>"
   apply (rule group.inv_equality [OF DirProdGroup_group])
-  apply (simp_all add: prems group_def group.l_inv)
+  apply (simp_all add: prems group.l_inv)
   done
 
 subsection {* Isomorphisms *}
@@ -636,8 +635,7 @@ lemma normal_imp_subgroup: "H \<lhd> G ==> subgroup(H,G)"
 
 lemma (in group) normalI: 
   "subgroup(H,G) \<Longrightarrow> (\<forall>x \<in> carrier(G). H #> x = x <# H) \<Longrightarrow> H \<lhd> G";
-apply (simp add: normal_def normal_axioms_def, auto) 
-  by (blast intro: prems)
+  by (simp add: normal_def normal_axioms_def)
 
 lemma (in normal) inv_op_closed1:
      "\<lbrakk>x \<in> carrier(G); h \<in> H\<rbrakk> \<Longrightarrow> (inv x) \<cdot> h \<cdot> x \<in> H"
@@ -822,8 +820,8 @@ by (insert coset_eq, simp add: normal_def)
 lemma (in normal) rcos_mult_step3:
      "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk>
       \<Longrightarrow> (H <#> (H #> x)) #> y = H #> (x \<cdot> y)"
-by (simp add: setmult_rcos_assoc coset_mult_assoc
-              subgroup_mult_id subset prems)
+  by (simp add: setmult_rcos_assoc coset_mult_assoc
+              subgroup_mult_id subset prems normal.axioms)
 
 lemma (in normal) rcos_sum:
      "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk>
@@ -833,7 +831,7 @@ by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
   -- {* generalizes @{text subgroup_mult_id} *}
   by (auto simp add: RCOSETS_def subset
-        setmult_rcos_assoc subgroup_mult_id prems)
+        setmult_rcos_assoc subgroup_mult_id prems normal.axioms)
 
 
 subsubsection{*Two distinct right cosets are disjoint*}
@@ -1008,7 +1006,7 @@ qed
 
 lemma (in normal) rcosets_inv_mult_group_eq:
      "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
-by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset prems)
+by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset prems normal.axioms)
 
 theorem (in normal) factorgroup_is_group:
   "group (G Mod H)"

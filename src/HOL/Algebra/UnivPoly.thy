@@ -397,8 +397,8 @@ text {*
 *}
 
 interpretation UP_cring < cring P
-  using UP_cring
-  by - (erule cring.axioms)+
+  by (intro_locales!)
+    (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms UP_cring)+
 
 
 subsection {* Polynomials form an Algebra *}
@@ -441,8 +441,8 @@ lemma (in UP_cring) UP_algebra:
     UP_smult_assoc1 UP_smult_assoc2)
 
 interpretation UP_cring < algebra R P
-  using UP_algebra
-  by - (erule algebra.axioms)+
+  by (intro_locales!)
+    (rule module.axioms algebra.axioms UP_algebra)+
 
 
 subsection {* Further lemmas involving monomials *}
@@ -945,8 +945,7 @@ text {*
 *}
 
 interpretation UP_domain < "domain" P
-  using UP_domain
-  by (rule domain.axioms)
+  by (intro_locales!) (rule domain.axioms UP_domain)+
 
 
 subsection {* Evaluation Homomorphism and Universal Property*}
@@ -1148,9 +1147,15 @@ qed
 text {* Interpretation of ring homomorphism lemmas. *}
 
 interpretation UP_univ_prop < ring_hom_cring P S Eval
-  by (unfold Eval_def)
-    (fast intro!: ring_hom_cring.intro UP_cring cring.axioms prems
-      intro: ring_hom_cring_axioms.intro eval_ring_hom)
+  apply (unfold Eval_def)
+  apply (intro_locales!)
+  apply (rule ring_hom_cring.axioms)
+  apply (rule ring_hom_cring.intro)
+  apply intro_locales
+  apply (rule eval_ring_hom)
+  apply rule
+  done
+
 
 text {* Further properties of the evaluation homomorphism. *}
 
@@ -1220,8 +1225,8 @@ lemma (in UP_pre_univ_prop) eval_monom:
   assumes R: "r \<in> carrier R" and S: "s \<in> carrier S"
   shows "eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
 proof -
-  from S interpret UP_univ_prop [R S h P s _]
-    by (auto intro!: UP_univ_prop_axioms.intro)
+  interpret UP_univ_prop [R S h P s _]
+    by (auto! intro: UP_univ_prop.intro UP_univ_prop_axioms.intro)
   from R
   show ?thesis by (rule Eval_monom)
 qed
@@ -1271,7 +1276,7 @@ lemma (in UP_pre_univ_prop) ring_homD:
 proof (rule ring_hom_cring.intro)
   show "ring_hom_cring_axioms P S Phi"
   by (rule ring_hom_cring_axioms.intro) (rule Phi)
-qed (auto intro: P.cring cring.axioms)
+qed intro_locales
 
 theorem (in UP_pre_univ_prop) UP_universal_property:
   assumes S: "s \<in> carrier S"
@@ -1291,9 +1296,9 @@ lemma UP_pre_univ_propI:
   assumes "cring R"
     and "cring S"
     and "h \<in> ring_hom R S"
-  shows "UP_pre_univ_prop R S h "
-  by (fast intro: UP_pre_univ_prop.intro ring_hom_cring_axioms.intro
-    cring.axioms prems)
+  shows "UP_pre_univ_prop R S h"
+  by (auto intro!: UP_pre_univ_prop.intro ring_hom_cring.intro
+    ring_hom_cring_axioms.intro UP_cring.intro)
 
 constdefs
   INTEG :: "int ring"
@@ -1315,8 +1320,10 @@ text {*
 *}
 
 interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id]
+  apply simp
   using INTEG_id_eval
-  by - (erule UP_pre_univ_prop.axioms)+
+  apply simp
+  done
 
 lemma INTEG_closed [intro, simp]:
   "z \<in> carrier INTEG"

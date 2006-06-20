@@ -42,6 +42,7 @@ sig
   val conclude_witness: witness -> thm
   val mark_witness: term -> term
   val make_witness: term -> thm -> witness
+  val dest_witness: witness -> term * thm
   val refine_witness: Proof.state -> Proof.state Seq.seq
   val rename: (string * (string * mixfix option)) list -> string -> string
   val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
@@ -282,6 +283,8 @@ fun conclude_witness (Witness (_, th)) = Goal.norm_hhf (Goal.conclude th);
 val mark_witness = Logic.protect;
 
 fun make_witness t th = Witness (t, th);
+
+fun dest_witness (Witness w) = w;
 
 val refine_witness =
   Proof.refine (Method.Basic (K (Method.RAW_METHOD

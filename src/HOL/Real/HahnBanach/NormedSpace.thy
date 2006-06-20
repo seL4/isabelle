@@ -97,11 +97,11 @@ lemma subspace_normed_vs [intro?]:
   includes subspace F E + normed_vectorspace E
   shows "normed_vectorspace F norm"
 proof
-  show "vectorspace F" by (rule vectorspace)
-  have "seminorm E norm" . with subset show "seminorm F norm"
-    by (simp add: seminorm_def)
-  have "norm_axioms E norm" . with subset show "norm_axioms F norm"
-    by (simp add: norm_axioms_def)
+  show "vectorspace F" by (rule vectorspace) intro_locales
+next
+  have "NormedSpace.norm E norm" by intro_locales
+  with subset show "NormedSpace.norm F norm"
+    by (simp add: norm_def seminorm_def norm_axioms_def)
 qed
 
 end

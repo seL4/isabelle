@@ -104,7 +104,10 @@ locale ID = IA + IB + fixes d defines def_D: "d == (a = b)"
 
 theorem (in IA)
   includes ID
-  shows True ..
+  shows True
+  print_interps! IA
+  print_interps! ID
+  ..
 
 theorem (in ID) True ..
 
@@ -112,7 +115,7 @@ typedecl i
 arities i :: "term"
 
 
-interpretation i1: IC ["X::i" "Y::i"] by (auto intro: IA.intro IC_axioms.intro)
+interpretation i1: IC ["X::i" "Y::i"] by (intro_locales) auto
 
 print_interps IA  (* output: i1 *)
 
@@ -125,9 +128,8 @@ ML {* check_thm "i1.a.asm_A" *}
 (* without prefix *)
 
 interpretation IC ["W::i" "Z::i"] .  (* subsumed by i1: IC *)
-interpretation IC ["W::'a" "Z::i"] by (auto intro: IA.intro IC_axioms.intro)
+interpretation IC ["W::'a" "Z::i"] by intro_locales auto
   (* subsumes i1: IA and i1: IC *)
-
 
 print_interps IA  (* output: <no prefix>, i1 *)
 
@@ -136,13 +138,14 @@ thm asm_C thm a_b.asm_C thm LocaleTest.a_b.asm_C thm LocaleTest.a_b.asm_C
 
 ML {* check_thm "asm_C" *}
 
-interpretation i2: ID [X "Y::i" "Y = X"] by (simp add: eq_commute)
+interpretation i2: ID [X "Y::i" "Y = X"]
+  by (simp add: eq_commute) intro_locales
 
 print_interps IA  (* output: <no prefix>, i1 *)
 print_interps ID  (* output: i2 *)
 
 
-interpretation i3: ID [X "Y::i"] .
+interpretation i3: ID [X "Y::i"] by simp intro_locales
 
 (* duplicate: thm not added *)
 
@@ -191,10 +194,10 @@ theorem True
 proof -
   fix alpha::i and beta::'a and gamma::o
   (* FIXME: omitting type of beta leads to error later at interpret i6 *)
-  have alpha_A: "IA(alpha)" by (auto intro: IA.intro)
+  have alpha_A: "IA(alpha)" by intro_locales simp
   interpret i5: IA [alpha] .  (* subsumed *)
   print_interps IA  (* output: <no prefix>, i1 *)
-  interpret i6: IC [alpha beta] by (auto intro: IC_axioms.intro)
+  interpret i6: IC [alpha beta] by intro_locales auto
   print_interps IA   (* output: <no prefix>, i1 *)
   print_interps IC   (* output: <no prefix>, i1, i6 *)
   interpret i11: IF [gamma] by (fast intro: IF.intro)
@@ -203,11 +206,12 @@ qed rule
 
 theorem (in IA) True
 proof -
-  print_interps IA
+  print_interps! IA
   fix beta and gamma
   interpret i9: ID [a beta _]
-    (* no proof obligation for IA !!! *)
-    apply - apply (rule refl) apply assumption done
+    apply - apply assumption
+    apply intro_locales
+    apply (rule refl) done
 qed rule
 
 
@@ -316,7 +320,7 @@ lemmas (in IL4) AC = comm assoc lcomm
 lemma "(x::i) # y # z # w = y # x # w # z"
 proof -
   interpret my: IL4 ["op #"]
-    by (auto intro: IL3.intro IL4_axioms.intro i_assoc i_comm)
+    by (auto intro: IL4.intro IL3.intro IL4_axioms.intro i_assoc i_comm)
   show ?thesis by (simp only: my.OP.AC)  (* or simply AC *)
 qed
 
@@ -399,7 +403,7 @@ interpretation Rlgrp < Rrgrp
 
 (* effect on printed locale *)
 
-print_locale Rlgrp
+print_locale! Rlgrp
 
 (* use of derived theorem *)
 
@@ -452,11 +456,6 @@ interpretation RA5 < RA5 B C A _ _
 print_facts
 print_interps RA5
   using A_B_C_D_E.eq apply (blast intro: RA5.intro) done
-
-lemma (in RA5) True
-print_facts
-print_interps RA5
-  ..
 
 interpretation RA5 < RA5 _ C D B _ .
   (* Any even permutation of parameters is subsumed by the above. *)
@@ -529,7 +528,7 @@ proof
 qed simp
 
 interpretation Rplgrp < Rprgrp
-  proof (rule Rprgrp_axioms.intro)
+  proof intro_locales
     {
       fix x
       have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -546,7 +545,7 @@ interpretation Rplgrp < Rprgrp
 
 (* effect on printed locale *)
 
-print_locale Rplgrp
+print_locale! Rplgrp
 
 (* use of derived theorem *)
 
@@ -559,7 +558,7 @@ lemma (in Rplgrp)
 (* circular interpretation *)
 
 interpretation Rprgrp < Rplgrp
-  proof (rule Rplgrp_axioms.intro)
+  proof intro_locales
     {
       fix x
       have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
@@ -576,8 +575,8 @@ interpretation Rprgrp < Rplgrp
 
 (* effect on printed locale *)
 
-print_locale Rprgrp
-print_locale Rplgrp
+print_locale! Rprgrp
+print_locale! Rplgrp
 
 subsection {* Interaction of Interpretation in Theories and Locales:
   in Locale, then in Theory *}
@@ -656,27 +655,16 @@ proof
 qed simp
 
 interpretation Rqrgrp < Rprgrp
-proof -
-  show "Rpsemi(op **)"
-    apply (rule Rpsemi.intro) apply (rule assoc) done
-next
-  show "Rprgrp_axioms(op **, one, inv)"
-    apply (rule Rprgrp_axioms.intro) apply (rule rone) apply (rule rinv) done
-qed
+  apply intro_locales
+  apply (rule assoc)
+  apply (rule rone)
+  apply (rule rinv)
+  done
 
 interpretation R2: Rqlgrp ["op #" "rone" "rinv"] 
-proof -
-  apply_end (rule Rqsemi.intro)
-  fix x y z
-  {
-    show "(x # y) # z = x # (y # z)" by (rule i_assoc)
-  next
-  apply_end (rule Rqlgrp_axioms.intro)
-    show "rone # x = x" by (rule r_one)
-  next
-    show "rinv(x) # x = rone" by (rule r_inv)
-  }
-qed
+  apply intro_locales  (* FIXME: intro_locales is too eager and shouldn't
+                          solve this. *)
+  done
 
 print_interps Rqsemi
 print_interps Rqlgrp
@@ -684,7 +672,7 @@ print_interps Rplgrp  (* no interpretations yet *)
 
 
 interpretation Rqlgrp < Rqrgrp
-  proof (rule Rqrgrp_axioms.intro)
+  proof intro_locales
     {
       fix x
       have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -718,12 +706,12 @@ locale Rtriv2 = var x + var y +
   assumes x: "x = x" and y: "y = y"
 
 interpretation Rtriv2 < Rtriv x
-  apply (rule Rtriv.intro)
+  apply intro_locales
   apply (rule x)
   done
 
 interpretation Rtriv2 < Rtriv y
-  apply (rule Rtriv.intro)
+  apply intro_locales
   apply (rule y)
   done
 
@@ -733,7 +721,7 @@ locale Rtriv3 = var x + var y + var z +
   assumes x: "x = x" and y: "y = y" and z: "z = z"
 
 interpretation Rtriv3 < Rtriv2 x y
-  apply (rule Rtriv2.intro)
+  apply intro_locales
   apply (rule x)
   apply (rule y)
   done
@@ -741,7 +729,7 @@ interpretation Rtriv3 < Rtriv2 x y
 print_locale Rtriv3
 
 interpretation Rtriv3 < Rtriv2 x z
-  apply (rule Rtriv2.intro)
+  apply intro_locales
   apply (rule x_y_z.x)
   apply (rule z)
   done
@@ -774,7 +762,8 @@ interpretation Rpair_semi < Rpsemi prodP (infixl "***" 65)
 proof (rule Rpsemi.intro)
   fix x y z
   show "(x *** y) *** z = x *** (y *** z)"
-    by (unfold P_def) (simp add: assoc)
+    apply (simp only: P_def) apply (simp add: assoc) (* FIXME: unfold P_def fails *)
+    done
 qed
 
 locale Rsemi_rev = Rpsemi + var rprod (infixl "++" 65) +

@@ -122,10 +122,10 @@ lemma M_ordertype_axioms_L: "M_ordertype_axioms(L)"
   done
 
 theorem M_ordertype_L: "PROP M_ordertype(L)"
-apply (rule M_ordertype.intro)
-     apply (rule M_basic.axioms [OF M_basic_L])+
-apply (rule M_ordertype_axioms_L) 
-done
+  apply (rule M_ordertype.intro)
+   apply (rule M_basic_L)
+  apply (rule M_ordertype_axioms_L) 
+  done
 
 
 subsection{*The Locale @{text "M_wfrank"}*}
@@ -224,7 +224,7 @@ lemma M_wfrank_axioms_L: "M_wfrank_axioms(L)"
 
 theorem M_wfrank_L: "PROP M_wfrank(L)"
   apply (rule M_wfrank.intro)
-     apply (rule M_trancl.axioms [OF M_trancl_L])+
+   apply (rule M_trancl_L)
   apply (rule M_wfrank_axioms_L) 
   done
 

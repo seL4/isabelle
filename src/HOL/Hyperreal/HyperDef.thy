@@ -58,6 +58,9 @@ lemma FreeUltrafilterNat_finite: "finite x ==> x \<notin> FreeUltrafilterNat"
 by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.finite])
 
 lemma FreeUltrafilterNat_not_finite: "x \<in> FreeUltrafilterNat ==> ~ finite x"
+thm FreeUltrafilterNat_mem
+thm freeultrafilter.infinite
+thm FreeUltrafilterNat_mem [THEN freeultrafilter.infinite]
 by (rule FreeUltrafilterNat_mem [THEN freeultrafilter.infinite])
 
 lemma FreeUltrafilterNat_empty [simp]: "{} \<notin> FreeUltrafilterNat"

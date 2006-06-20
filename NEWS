@@ -209,6 +209,23 @@ slightly different -- use 'const_syntax' instead of raw 'syntax', and
   This enables, for example, to define a locale for endomorphisms thus:
   locale endom = homom mult mult h.
 
+* Isar/locales: changed the way locales with predicates are defined.
+Instead of accumulating the specification, the imported expression is
+now an interpretation.
+INCOMPATIBILITY: different normal form of locale expressions.
+In particular, in interpretations of locales with predicates,
+goals repesenting already interpreted fragments are not removed
+automatically.  Use method intro_locales; see below.
+
+* Isar/locales: new method intro_locales.  Backward reasoning for locale
+predicates.  In addition the method is aware of interpretations and
+discharges corresponding goals.  Optional argument `!' prevents
+unfolding of predicates to assumptions.
+
+* Isar/locales: the order in which locale fragments are accumulated
+has changed.  This enables to override declarations from fragments
+due to interpretations -- for example, unwanted simp rules.
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals

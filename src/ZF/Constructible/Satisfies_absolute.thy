@@ -473,9 +473,10 @@ theorem (in M_satisfies) Formula_Rec_M:
 			 satisfies_b(A), satisfies_is_b(M,A), 
 			 satisfies_c(A), satisfies_is_c(M,A), 
 			 satisfies_d(A), satisfies_is_d(M,A))"
-apply (rule Formula_Rec.intro, assumption+)
-apply (erule Formula_Rec_axioms_M) 
-done
+  apply (rule Formula_Rec.intro)
+   apply (rule M_satisfies.axioms) apply assumption
+  apply (erule Formula_Rec_axioms_M) 
+  done
 
 lemmas (in M_satisfies) 
     satisfies_closed' = Formula_Rec.formula_rec_closed [OF Formula_Rec_M]
@@ -1010,10 +1011,10 @@ lemma M_satisfies_axioms_L: "M_satisfies_axioms(L)"
   done
 
 theorem M_satisfies_L: "PROP M_satisfies(L)"
-apply (rule M_satisfies.intro) 
-     apply (rule M_eclose.axioms [OF M_eclose_L])+
-apply (rule M_satisfies_axioms_L) 
-done
+  apply (rule M_satisfies.intro)
+   apply (rule M_eclose_L)
+  apply (rule M_satisfies_axioms_L)
+  done
 
 text{*Finally: the point of the whole theory!*}
 lemmas satisfies_closed = M_satisfies.satisfies_closed [OF M_satisfies_L]
