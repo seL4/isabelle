@@ -398,7 +398,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, v, mapp_this))
     #> prove_interpretation_i (NameSpace.base name_locale, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
-          ((ALLGOALS o resolve_tac) ax_axioms)
+          ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
     #> pair ctxt
     )))))
   end;
