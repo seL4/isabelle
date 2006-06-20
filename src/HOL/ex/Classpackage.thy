@@ -218,7 +218,7 @@ proof -
 qed
 
 interpretation group < monoid
-proof
+proof -
   fix x :: "'a"
   from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
 qed
@@ -226,7 +226,7 @@ qed
 instance group < monoid
 proof
   fix x :: "'a::group"
-  from group.mult_one.neutr [standard] show "x \<otimes> \<one> = x" .
+  from group.neutr show "x \<otimes> \<one> = x" .
 qed
 
 lemma (in group) all_inv [intro]:
@@ -290,7 +290,7 @@ definition (in group)
 
 abbreviation (in group)
   abbrev_pow :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75)
-  "x \<^loc>\<up> k == pow k x"
+  "x \<^loc>\<up> k \<equiv> pow k x"
 
 lemma (in group) int_pow_zero:
   "x \<^loc>\<up> (0::int) = \<^loc>\<one>"
@@ -305,16 +305,16 @@ instance group_prod_def: (group, group) * :: group
               ((x1::'a::group) \<otimes> y1, (x2::'b::group) \<otimes> y2))"
   mult_one_def: "\<one> == (\<one>::'a::group, \<one>::'b::group)"
   mult_inv_def: "\<div> x == let (x1, x2) = x in (\<div> x1, \<div> x2)"
-by default (simp_all add: split_paired_all group_prod_def semigroup.assoc monoidl.neutl group.invl)
+by default (simp_all add: split_paired_all group_prod_def assoc neutl invl)
 
 instance group_comm_prod_def: (group_comm, group_comm) * :: group_comm
-by default (simp_all add: split_paired_all group_prod_def semigroup.assoc monoidl.neutl group.invl monoid_comm.comm)
+by default (simp_all add: split_paired_all group_prod_def assoc neutl invl comm)
 
 definition
   "x = ((2::nat) \<otimes> \<one> \<otimes> 3, (2::int) \<otimes> \<one> \<otimes> \<div> 3, [1::nat, 2] \<otimes> \<one> \<otimes> [1, 2, 3])"
   "y = (2 :: int, \<div> 2 :: int) \<otimes> \<one> \<otimes> (3, \<div> 3)"
 
-code_generate (ml, haskell) "op \<otimes>" "\<one>" "inv"
+code_generate "op \<otimes>" "\<one>" "inv"
 code_generate (ml, haskell) x
 code_generate (ml, haskell) y
 

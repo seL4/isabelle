@@ -63,7 +63,6 @@ struct
 datatype class_data = ClassData of {
   name_locale: string,
   name_axclass: string,
-  intro: thm option,
   var: string,
   consts: (string * (string * typ)) list
     (*locale parameter ~> toplevel const*)
@@ -86,7 +85,7 @@ structure ClassData = TheoryDataFun (
        Symtab.merge (op =) (f1, f2));
     fun print thy ((gr, _), _) =
       let
-        fun pretty_class gr (name, ClassData {name_locale, name_axclass, intro, var, consts}) =
+        fun pretty_class gr (name, ClassData {name_locale, name_axclass, var, consts}) =
           (Pretty.block o Pretty.fbreaks) [
             Pretty.str ("class " ^ name ^ ":"),
             (Pretty.block o Pretty.fbreaks) (
@@ -165,11 +164,6 @@ fun the_ancestry thy classes =
       |> fold ancestry (the_superclasses thy class);
   in fold ancestry classes [] end;
 
-fun the_intros thy =
-  let
-    val gr = (fst o fst o ClassData.get) thy;
-  in (map_filter (#intro o rep_classdata o Graph.get_node gr) o Graph.keys) gr end;
-
 fun subst_clsvar v ty_subst =
   map_type_tfree (fn u as (w, _) =>
     if w = v then ty_subst else TFree u);
@@ -210,13 +204,12 @@ fun get_classtab thy =
 
 (* updaters *)
 
-fun add_class_data (class, (superclasses, name_locale, name_axclass, intro, var, consts)) =
+fun add_class_data (class, (superclasses, name_locale, name_axclass, var, consts)) =
   ClassData.map (fn ((gr, tab), consttab) => ((
     gr
     |> Graph.new_node (class, ClassData {
          name_locale = name_locale,
          name_axclass = name_axclass,
-         intro = intro,
          var = var,
          consts = consts
        })
@@ -262,12 +255,9 @@ fun read_sort thy =
 
 (* tactics and methods *)
 
-fun class_intros thy =
-  AxClass.class_intros thy @ the_intros thy;
-
 fun intro_classes_tac facts st =
   (ALLGOALS (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (class_intros (Thm.theory_of_thm st))))
+      REPEAT_ALL_NEW (resolve_tac (AxClass.class_intros (Thm.theory_of_thm st))))
     THEN Tactic.distinct_subgoals_tac) st;
 
 fun default_intro_classes_tac [] = intro_classes_tac []
@@ -309,27 +299,6 @@ end;
 (* classes and instances *)
 
 local
-
-fun intro_incr thy name expr =
-  let
-    fun fish_thm basename =
-      try (PureThy.get_thm thy) ((Name o NameSpace.append basename) "intro");
-  in if expr = Locale.empty
-    then fish_thm name
-    else fish_thm (name ^ "_axioms")
-  end;
-
-fun add_locale name expr body thy =
-  thy
-  |> Locale.add_locale true name expr body
-  ||>> `(fn thy => intro_incr thy name expr)
-  |-> (fn ((name, ctxt), intro) => pair ((name, intro), ctxt));
-
-fun add_locale_i name expr body thy =
-  thy
-  |> Locale.add_locale_i true name expr body
-  ||>> `(fn thy => intro_incr thy name expr)
-  |-> (fn ((name, ctxt), intro) => pair ((name, intro), ctxt));
 
 fun add_axclass_i (name, supsort) axs thy =
   let
@@ -404,7 +373,7 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
           map_aterms (fn Free (c, ty) => Const ((fst o the o AList.lookup (op =) cs_mapp) c, ty)
                        | t => t)
         fun prep_asm ((name, atts), ts) =
-          ((name, map (Attrib.attribute thy) atts), map subst_assume ts)
+          ((NameSpace.base name |> print, map (Attrib.attribute thy) atts), map subst_assume ts)
       in
         (map prep_asm o Locale.local_asms_of thy) name_locale
       end;
@@ -416,17 +385,17 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
   in
     thy
     |> add_locale bname expr raw_elems
-    |-> (fn ((name_locale, intro), ctxt) =>
+    |-> (fn (name_locale, ctxt) =>
           `(fn thy => extract_tyvar_consts thy name_locale)
     #-> (fn (v, (raw_cs_sup, raw_cs_this)) =>
           add_consts v raw_cs_sup raw_cs_this
     #-> (fn mapp_this =>
           `(fn thy => extract_assumes thy name_locale (mapp_sup @ mapp_this))
     #-> (fn loc_axioms =>
-          add_axclass_i (bname, supsort) (map (apfst (apfst (K ""))) loc_axioms)
+          add_axclass_i (bname, supsort) loc_axioms
     #-> (fn (name_axclass, (_, ax_axioms)) =>
           fold (add_global_constraint v name_axclass) mapp_this
-    #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, intro, v, mapp_this))
+    #> add_class_data (name_locale, (supclasses, name_locale, name_axclass, v, mapp_this))
     #> prove_interpretation_i (NameSpace.base name_locale, [])
           (Locale.Locale name_locale) (map (SOME o mk_const thy name_axclass v) (map snd (mapp_sup @ mapp_this)))
           ((ALLGOALS o resolve_tac) ax_axioms)
@@ -436,8 +405,8 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
 
 in
 
-val class = gen_class add_locale intern_class;
-val class_i = gen_class add_locale_i certify_class;
+val class = gen_class (Locale.add_locale false) intern_class;
+val class_i = gen_class (Locale.add_locale_i false) certify_class;
 
 end; (* local *)
 
