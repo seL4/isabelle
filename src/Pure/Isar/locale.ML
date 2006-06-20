@@ -542,8 +542,8 @@ fun unify_frozen ctxt maxidx Ts Us =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map_filter I Vs));
   in map (Option.map (Envir.norm_type unifier')) Vs end;
 
-fun params_of elemss = distinct (eq_fst (op =)) (maps (snd o fst) elemss);
-fun params_of' elemss = distinct (eq_fst (op =)) (maps (snd o fst o fst) elemss);
+fun params_of elemss = distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst) elemss);
+fun params_of' elemss = distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst o fst) elemss);
 fun params_syn_of syn elemss =
   distinct (eq_fst (op =)) (maps (snd o fst) elemss) |>
     map (apfst (fn x => (x, the (Symtab.lookup syn x))));
@@ -554,7 +554,7 @@ fun params_syn_of syn elemss =
 fun param_types ps = map_filter (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
 
 
-fun merge_syntax ctxt ids ss = Symtab.merge (op =) ss
+fun merge_syntax ctxt ids ss = Symtab.merge (op = : mixfix * mixfix -> bool) ss
   handle Symtab.DUPS xs => err_in_locale ctxt
     ("Conflicting syntax for parameter(s): " ^ commas_quote xs) (map fst ids);
 
@@ -664,7 +664,7 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
         end;
 
     fun merge_syn expr syn1 syn2 =
-        Symtab.merge (op =) (syn1, syn2)
+        Symtab.merge (op = : mixfix * mixfix -> bool) (syn1, syn2)
         handle Symtab.DUPS xs => err_in_expr ctxt
           ("Conflicting syntax for parameter(s): " ^ commas_quote xs) expr;
             
@@ -1177,7 +1177,7 @@ fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
    If so, which are these??? *)
 
 fun finish_parms parms (((name, ps), mode), elems) =
-  (((name, map (fn (x, _) => (x, AList.lookup (op =) parms x)) ps), mode), elems);
+  (((name, map (fn (x, _) => (x, AList.lookup (op = : string * string -> bool) parms x)) ps), mode), elems);
 
 fun finish_elems ctxt parms _ ((text, wits), ((id, Int e), _)) =
       let
@@ -1445,8 +1445,8 @@ fun cert_context import body ctxt = #1 (cert_ctxt true [] import (map Elem body)
 val read_expr = prep_expr read_context;
 val cert_expr = prep_expr cert_context;
 
-val read_context_statement = prep_statement intern read_ctxt;
-val cert_context_statement = prep_statement (K I) cert_ctxt;
+fun read_context_statement raw_locale = prep_statement intern read_ctxt raw_locale ;
+fun cert_context_statement raw_locale = prep_statement (K I) cert_ctxt raw_locale ;
 
 end;
 
