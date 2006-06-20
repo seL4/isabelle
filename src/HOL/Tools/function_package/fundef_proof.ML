@@ -398,11 +398,15 @@ fun mk_nest_term_case thy names R' ihyp clause =
 
 		val zx_eq_arg_lhs = cterm_of thy (Trueprop (mk_eq (mk_prod (z,x), mk_prod (arg,lhs))))
 
-		val z_acc' = z_acc COMP (assume zx_eq_arg_lhs COMP Pair_inject)
+		val z_acc' = (z_acc COMP (assume zx_eq_arg_lhs COMP Pair_inject))
+                               |> FundefCtxTree.export_thm thy ([], (term_of zx_eq_arg_lhs) :: map prop_of (ags @ assumes))
+
+                val occvars = fold (OrdList.insert Term.term_ord) (term_frees (prop_of z_acc')) [] 
+                val ordvars = fold (OrdList.insert Term.term_ord) (map Free fixes @ qs) [] (* FIXME... remove when inductive behaves nice *)
+                                   |> OrdList.inter Term.term_ord occvars
 
 		val ethm = z_acc'
-			       |> FundefCtxTree.export_thm thy (fixes, (term_of zx_eq_arg_lhs) :: map prop_of (ags @ assumes))
-			       |> fold_rev forall_intr cqs
+			       |> FundefCtxTree.export_thm thy (map dest_Free ordvars, [])
 
 
 		val sub' = sub @ [(([],[]), acc)]
