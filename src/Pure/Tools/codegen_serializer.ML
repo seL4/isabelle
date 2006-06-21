@@ -267,7 +267,7 @@ fun constructive_fun (name, (eqs, ty)) =
       else (warning ("in function " ^ quote name ^ ", throwing away one "
         ^ "non-executable function clause"); NONE)
   in case map_filter check_eq eqs
-   of [] => error ("in function " ^ quote name ^ ", no"
+   of [] => error ("in function " ^ quote name ^ ", no "
         ^ "executable function clauses found")
     | eqs => (name, (eqs, ty))
   end;
