@@ -90,7 +90,6 @@ fun gen_add_fundef prep_att eqns_attss thy =
 	val congs = get_fundef_congs (Context.Theory thy)
 
 	val t_eqns = map (map (Sign.read_prop thy)) eqns
-			 |> map (map (term_of o cterm_of thy)) (* HACK to prevent strange things from happening with abbreviations *)
 
 	val (mutual_info, name, (data, thy)) = FundefMutual.prepare_fundef_mutual congs t_eqns thy
 	val Prep {goal, goalI, ...} = data
@@ -160,6 +159,7 @@ fun fundef_setup_termination_proof name NONE thy =
     let
 	val name = if name = "" then get_last_fundef thy else name
 	val data = the (get_fundef_data name thy)
+                   handle Option.Option => raise ERROR ("No such function definition: " ^ name)
 
 	val (res as FundefMResult {termination, ...}, mutual, _, _) = data
 	val goal = FundefTermination.mk_total_termination_goal data
