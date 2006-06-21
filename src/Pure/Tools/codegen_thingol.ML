@@ -1002,7 +1002,7 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
           seri_defs sresolver (NameSpace.pack prfx)
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
-    seri_module (resolver []) ((the o Symtab.lookup imptab) "")
+    seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) ""))
       (*map (resolver []) (Graph.strong_conn module |> flat |> rev)*)
       (("", name_root), (mk_contents [] module))
   end;
