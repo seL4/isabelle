@@ -166,7 +166,7 @@ lemma (in monoid) nat_pow_mult:
 proof (induct n)
   case 0 with neutl npow_def show ?case by simp
 next
-  case (Suc n) with prems assoc npow_def show ?case by simp
+  case (Suc n) with Suc.hyps assoc npow_def show ?case by simp
 qed
 
 lemma (in monoid) nat_pow_pow:
