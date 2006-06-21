@@ -86,4 +86,10 @@ lemmas [fundef_cong] =
   let_cong if_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
 
 
+lemma split_cong[fundef_cong]:
+  "\<lbrakk> \<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y; p = q \<rbrakk> 
+  \<Longrightarrow> split f p = split g q"
+  by (auto simp:split_def)
+
+
 end
