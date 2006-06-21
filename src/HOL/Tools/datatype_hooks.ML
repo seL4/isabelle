@@ -28,7 +28,7 @@ fun merge_T pp (T hooks1, T hooks2) =
 
 structure DatatypeHooksData = TheoryDataFun
 (struct
-  val name = "HOL/DatatypeHooks";
+  val name = "HOL/datatype_hooks";
   type T = T;
   val empty = T [];
   val copy = I;
