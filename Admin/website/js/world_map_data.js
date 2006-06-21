@@ -32,6 +32,7 @@ world_data[i++] = ['David Aspinall: <b><a href=\'http://proofgeneral.inf.ed.ac.u
 world_data[i++] = ['J. Dalinger, L. Petrova', CAPTION, 'Khabarovsk State University of Technology', STICKY, NOCLOSE];
 world_data[i++] = ['Viktor Kuncak: <b>Jahob</b>', CAPTION, 'Massachusetts Institute of Technology', STICKY, NOCLOSE];
 world_data[i++] = ['Dave MacQueen', CAPTION, 'University of Chicago', STICKY, NOCLOSE];
+world_data[i++] = ['Jes&uacute;s Aranzay', CAPTION, 'Universidad de La Rioja', STICKY, NOCLOSE];
 
 function world_click(i) {
     var entry = world_data[i];
