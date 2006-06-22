@@ -16,7 +16,7 @@ text {*
 
 method_setup depth_solve = {*
   Method.thms_args (fn thms => Method.METHOD (fn facts =>
-  (DEPTH_SOLVE (HEADGOAL (ares_tac (PolyML.print (facts @ thms)))))))
+  (DEPTH_SOLVE (HEADGOAL (ares_tac (facts @ thms))))))
 *} ""
 
 method_setup depth_solve1 = {*
