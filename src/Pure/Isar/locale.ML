@@ -5,7 +5,7 @@
 Locales -- Isar proof contexts as meta-level predicates, with local
 syntax and implicit structures.
 
-Draws some basic ideas from Florian Kammueller's original version of
+Draws basic ideas from Florian Kammueller's original version of
 locales, but uses the richer infrastructure of Isar instead of the raw
 meta-logic.  Furthermore, we provide structured import of contexts
 (with merge and rename operations), as well as type-inference of the
@@ -20,6 +20,12 @@ See also:
 [1] Clemens Ballarin. Locales and Locale Expressions in Isabelle/Isar.
     In Stefano Berardi et al., Types for Proofs and Programs: International
     Workshop, TYPES 2003, Torino, Italy, LNCS 3085, pages 34-50, 2004.
+[2] Clemens Ballarin. Interpretation of Locales in Isabelle: Managing
+    Dependencies between Locales. Technical Report TUM-I0607, Technische
+    Universitaet Muenchen, 2006.
+[3] Clemens Ballarin. Interpretation of Locales in Isabelle: Theories and
+    Proof Contexts. In J.M. Borwein and W.M. Farmer, MKM 2006, LNAI 4108,
+    pages 31-43, 2006.
 *)
 
 (* TODO:
@@ -153,7 +159,7 @@ fun map_elem f (Elem e) = Elem (f e)
 
 type locale =
  {axiom: Element.witness list,
-    (* For locales that define predicates this is [A [A]], where a is the locale
+    (* For locales that define predicates this is [A [A]], where A is the locale
        specification.  Otherwise []. *)
   import: expr,                                                     (*dynamic import*)
   elems: (Element.context_i * stamp) list,
@@ -1203,6 +1209,29 @@ fun finish_elemss ctxt parms do_close =
 end;
 
 
+(* Remove duplicate Defines elements: temporary workaround to fix Afp/Category. *)
+
+fun defs_ord (defs1, defs2) =
+    list_ord (fn ((_, (d1, _)), (_, (d2, _))) =>
+      Term.fast_term_ord (d1, d2)) (defs1, defs2);
+structure Defstab =
+    TableFun(type key = ((string * Attrib.src list) * (term * term list)) list
+        val ord = defs_ord);
+
+fun rem_dup_defs es ds =
+    fold_map (fn e as (Defines defs) => (fn ds =>
+                 if Defstab.defined ds defs
+                 then (Defines [], ds)
+                 else (e, Defstab.update (defs, ()) ds))
+               | e => (fn ds => (e, ds))) es ds;
+fun rem_dup_elemss (Int es) ds = apfst Int (rem_dup_defs es ds)
+  | rem_dup_elemss (Ext e) ds = (Ext e, ds);
+fun rem_dup_defines raw_elemss =
+    fold_map (fn (id as (_, (Assumed _)), es) => (fn ds =>
+                     apfst (pair id) (rem_dup_elemss es ds))
+               | (id as (_, (Derived _)), es) => (fn ds =>
+                     ((id, es), ds))) raw_elemss Defstab.empty |> #1;
+
 (* CB: type inference and consistency checks for locales.
 
    Works by building a context (through declare_elemss), extracting the
@@ -1221,6 +1250,7 @@ fun prep_elemss prep_vars prepp do_close context fixed_params raw_elemss raw_con
        empty list if there is no target. *)
     (* CB: raw_elemss are list of pairs consisting of identifiers and
        context elements, the latter marked as internal or external. *)
+    val raw_elemss = rem_dup_defines raw_elemss;
     val (raw_ctxt, raw_proppss) = declare_elemss prep_vars fixed_params raw_elemss context;
     (* CB: raw_ctxt is context with additional fixed variables derived from
        the fixes elements in raw_elemss,
@@ -1755,21 +1785,21 @@ local
 
 (* turn Defines into Notes elements, accumulate definition terms *)
 
-fun defines_to_notes true thy (Defines defs) ts =
-    fold_map (fn (a, (def, _)) => fn ts =>
-      ((a, [([assume (cterm_of thy def)], [])]), ts @ [def])) defs ts
-    |> apfst (SOME o Notes)
-  | defines_to_notes false _ (Defines defs) ts =
-    fold (fn (_, (def, _)) => fn ts => ts @ [def]) defs ts |> pair NONE
-  | defines_to_notes _ _ e ts = (SOME e, ts);
+fun defines_to_notes is_ext thy (Defines defs) defns =
+    let
+      val defs' = map (fn (_, (def, _)) => (("", []), (def, []))) defs
+      val notes = map (fn (a, (def, _)) =>
+        (a, [([assume (cterm_of thy def)], [])])) defs
+    in (if is_ext then SOME (Notes notes) else NONE, defns @ [Defines defs']) end
+  | defines_to_notes _ _ e defns = (SOME e, defns);
 
-fun change_defines_elemss thy elemss ts =
+fun change_defines_elemss thy elemss defns =
   let
-    fun change (id as (n, _), es) ts =
+    fun change (id as (n, _), es) defns =
         let
-          val (es', ts') = fold_map (defines_to_notes (n="") thy) es ts
-        in ((id, map_filter I es'), ts') end
-  in fold_map change elemss ts end;
+          val (es', defns') = fold_map (defines_to_notes (n="") thy) es defns
+        in ((id, map_filter I es'), defns') end
+  in fold_map change elemss defns end;
 
 fun gen_add_locale prep_ctxt prep_expr
     do_predicate bname raw_import raw_body thy =
@@ -1795,9 +1825,12 @@ fun gen_add_locale prep_ctxt prep_expr
           pred_thy), (import, regs)) =
       if do_predicate then
         let
-          val (elemss', defs) = change_defines_elemss thy elemss [];
+          val (elemss', defns) = change_defines_elemss thy elemss [];
           val elemss'' = elemss' @
+(*
               [(("", []), [Defines (map (fn t => (("", []), (t, []))) defs)])];
+*)
+              [(("", []), defns)];
           val (((elemss''', predicate as (_, axioms), stmt'), intros), thy') =
             define_preds bname text elemss'' thy;
           fun mk_regs elemss wits =
