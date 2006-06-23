@@ -221,7 +221,7 @@ text {*
 *}
 
 lemma linorder_injI:
-  assumes hyp: "\<forall>x y. x < (y::'a::linorder) \<longrightarrow> f x \<noteq> f y"
+  assumes hyp: "!!x y. x < (y::'a::linorder) ==> f x \<noteq> f y"
   shows "inj f"
 proof (rule inj_onI)
   fix x y
@@ -295,8 +295,8 @@ proof -
   qed
   have inj: "inj pick"
   proof (rule linorder_injI)
-    show "\<forall>i j. i<(j::nat) \<longrightarrow> pick i \<noteq> pick j"
-    proof (clarify)
+    show "!!i j. i<(j::nat) ==> pick i \<noteq> pick j"
+    proof
       fix i j
       assume ij: "i<(j::nat)"
 	and eq: "pick i = pick j"
