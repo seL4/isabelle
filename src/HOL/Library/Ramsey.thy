@@ -25,7 +25,7 @@ lemma choice_n:
  proof (induct n)
    case 0 show ?case by (force intro: someI P0) 
  next
-   case (Suc n) thus ?case by (auto intro: someI2_ex [OF Pstep]) 
+   case Suc thus ?case by (auto intro: someI2_ex [OF Pstep]) 
  qed
 
 lemma dependent_choice: 
@@ -125,10 +125,8 @@ next
       qed
     qed
     from dependent_choice [OF transr propr0 proprstep]
-    obtain g where "(\<forall>n::nat. ?propr(g n)) & (\<forall>n m. n<m -->(g n, g m) \<in> ?ramr)"
-      .. --{*for some reason, can't derive the following directly from dc*}
-    hence pg: "!!n.  ?propr (g n)"
-      and rg: "!!n m. n<m ==> (g n, g m) \<in> ?ramr" by auto
+    obtain g where pg: "!!n::nat.  ?propr (g n)"
+      and rg: "!!n m. n<m ==> (g n, g m) \<in> ?ramr" by force
     let ?gy = "(\<lambda>n. let (y,Y,t) = g n in y)"
     let ?gt = "(\<lambda>n. let (y,Y,t) = g n in t)"
     have rangeg: "\<exists>k. range ?gt \<subseteq> {..<k}"
@@ -195,7 +193,7 @@ next
                by (simp add: card_Diff_singleton_if cardX ya)
              ultimately show ?thesis 
                using pg [of "LEAST x. x \<in> AA"] fields cardX
-               by (clarify, drule_tac x="X-{ya}" in spec, simp)
+	       by (clarsimp simp del:insert_Diff_single)
            qed
            also have "... = s'" using AA AAleast fields by auto
            finally show ?thesis .
@@ -215,7 +213,7 @@ theorem Ramsey:
       \<forall>X. X \<subseteq> Z & finite X & card X = r --> f X < s|]
   ==> \<exists>Y t. Y \<subseteq> Z & infinite Y & t < s 
             & (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X = t)"
-by (blast intro: ramsey_induction [unfolded part_def, rule_format]) 
+by (blast intro: ramsey_induction [unfolded part_def]) 
 
 end
 
