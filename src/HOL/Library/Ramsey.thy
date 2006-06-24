@@ -10,7 +10,7 @@ theory Ramsey imports Main begin
 
 subsection{*``Axiom'' of Dependent Choice*}
 
-consts choice :: "('a => bool) => (('a * 'a) set) => nat => 'a"
+consts choice :: "('a => bool) => ('a * 'a) set => nat => 'a"
   --{*An integer-indexed chain of choices*}
 primrec
   choice_0:   "choice P r 0 = (SOME x. P x)"
@@ -22,11 +22,11 @@ lemma choice_n:
   assumes P0: "P x0"
       and Pstep: "!!x. P x ==> \<exists>y. P y & (x,y) \<in> r"
   shows "P (choice P r n)"
- proof (induct n)
-   case 0 show ?case by (force intro: someI P0) 
- next
-   case Suc thus ?case by (auto intro: someI2_ex [OF Pstep]) 
- qed
+proof (induct n)
+  case 0 show ?case by (force intro: someI P0) 
+next
+  case Suc thus ?case by (auto intro: someI2_ex [OF Pstep]) 
+qed
 
 lemma dependent_choice: 
   assumes trans: "trans r"
@@ -51,10 +51,11 @@ qed
 
 subsection {*Partitions of a Set*}
 
-constdefs part :: "nat => nat => 'a set => ('a set => nat) => bool"
+definition
+  part :: "nat => nat => 'a set => ('a set => nat) => bool"
   --{*the function @{term f} partitions the @{term r}-subsets of the typically
        infinite set @{term Y} into @{term s} distinct categories.*}
-  "part r s Y f == \<forall>X. X \<subseteq> Y & finite X & card X = r --> f X < s"
+  "part r s Y f = (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X < s)"
 
 text{*For induction, we decrease the value of @{term r} in partitions.*}
 lemma part_Suc_imp_part:
@@ -66,7 +67,7 @@ lemma part_Suc_imp_part:
   done
 
 lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f" 
-  by (simp add: part_def, blast)
+  unfolding part_def by blast
   
 
 subsection {*Ramsey's Theorem: Infinitary Version*}
@@ -147,18 +148,15 @@ next
     have inj_gy: "inj ?gy"
     proof (rule linorder_injI)
       fix m and m'::nat assume less: "m < m'" show "?gy m \<noteq> ?gy m'"
-        using rg [OF less] pg [of m] by (cases "g m", cases "g m'", auto) 
+        using rg [OF less] pg [of m] by (cases "g m", cases "g m'") auto
     qed
     show ?thesis
     proof (intro exI conjI)
       show "?gy ` {n. ?gt n = s'} \<subseteq> YY" using pg
         by (auto simp add: Let_def split_beta) 
-    next
       show "infinite (?gy ` {n. ?gt n = s'})" using infeqs'
         by (blast intro: inj_gy [THEN subset_inj_on] dest: finite_imageD) 
-    next
       show "s' < s" by (rule less')
-    next
       show "\<forall>X. X \<subseteq> ?gy ` {n. ?gt n = s'} & finite X & card X = Suc r 
           --> f X = s'"
       proof -
@@ -216,4 +214,3 @@ theorem Ramsey:
 by (blast intro: ramsey_induction [unfolded part_def]) 
 
 end
-
