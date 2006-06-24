@@ -41,7 +41,7 @@ next
     by (auto intro: someI2_ex)
   show "\<forall>n m. n<m --> (choice P r n, choice P r m) \<in> r"
   proof (intro strip)
-    fix n and m::nat
+    fix n m :: nat
     assume less: "n<m"
     show "(choice P r n, choice P r m) \<in> r" using PSuc
       by (auto intro: less_Suc_induct [OF less] transD [OF trans])
@@ -73,7 +73,7 @@ lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f"
 subsection {*Ramsey's Theorem: Infinitary Version*}
 
 lemma ramsey_induction: 
-  fixes s::nat and r::nat
+  fixes s r :: nat
   shows
   "!!(YY::'a set) (f::'a set => nat). 
       [|infinite YY; part r s YY f|]
@@ -147,7 +147,7 @@ next
     with pg [of n'] have less': "s'<s" by (cases "g n'") auto
     have inj_gy: "inj ?gy"
     proof (rule linorder_injI)
-      fix m and m'::nat assume less: "m < m'" show "?gy m \<noteq> ?gy m'"
+      fix m m' :: nat assume less: "m < m'" show "?gy m \<noteq> ?gy m'"
         using rg [OF less] pg [of m] by (cases "g m", cases "g m'") auto
     qed
     show ?thesis
@@ -205,7 +205,7 @@ qed
 
 text{*Repackaging of Tom Ridge's final result*}
 theorem Ramsey:
-  fixes s::nat and r::nat and Z::"'a set" and f::"'a set => nat"
+  fixes s r :: nat and Z::"'a set" and f::"'a set => nat"
   shows
    "[|infinite Z;
       \<forall>X. X \<subseteq> Z & finite X & card X = r --> f X < s|]
