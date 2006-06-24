@@ -60,7 +60,7 @@ translations
   "_MapUpd m (_Maplets xy ms)"  == "_MapUpd (_MapUpd m xy) ms"
   "_MapUpd m (_maplet  x y)"    == "m(x:=Some y)"
   "_MapUpd m (_maplets x y)"    == "map_upds m x y"
-  "_Map ms"                     == "_MapUpd empty ms"
+  "_Map ms"                     == "_MapUpd (CONST empty) ms"
   "_Map (_Maplets ms1 ms2)"     <= "_MapUpd (_Map ms1) ms2"
   "_Maplets ms1 (_Maplets ms2 ms3)" <= "_Maplets (_Maplets ms1 ms2) ms3"
 
