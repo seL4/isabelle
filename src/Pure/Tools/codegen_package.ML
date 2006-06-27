@@ -219,7 +219,7 @@ val serializers = ref (
   |> Symtab.update (
        #haskell CodegenSerializer.serializers
        |> apsnd (fn seri => seri
-            [nsp_module, nsp_class, nsp_tyco, nsp_dtcon]
+            (nsp_dtcon, [nsp_module, nsp_class, nsp_tyco, nsp_dtcon])
             [[nsp_module], [nsp_class], [nsp_tyco], [nsp_const, nsp_overl, nsp_mem], [nsp_dtcon], [nsp_inst], [nsp_instmem]]
           )
      )
@@ -307,7 +307,7 @@ fun merge_target_data
 
 structure CodegenData = TheoryDataFun
 (struct
-  val name = "Pure/CodegenPackage";
+  val name = "Pure/codegen_package";
   type T = {
     modl: module,
     gens: gens,
@@ -541,7 +541,7 @@ fun ensure_def_class thy tabs cls trns =
        of SOME cls =>
             let
               val (v, cs) = (ClassPackage.the_consts_sign thy) cls;
-              val sortctxts = map (ClassPackage.extract_sortctxt thy o snd) cs;
+              val sortctxts = map (ClassPackage.sortcontext_of_typ thy o snd) cs;
               val idfs = map (idf_of_name thy nsp_mem o fst) cs;
             in
               trns
@@ -623,14 +623,15 @@ fun exprgen_classlookup thy tabs (ClassPackage.Instance (inst, ls)) trns =
       |-> (fn clss => pair (Lookup (clss, (v |> unprefix "'", if j = 1 then ~1 else i))))
 and mk_fun thy tabs (c, ty) trns =
   case CodegenTheorems.get_funs thy (c, Logic.legacy_varifyT ty)  (* FIXME *)
-   of SOME (ty, eq_thms) =>
+   of eq_thms as eq_thm :: _ =>
         let
           val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
-          val sortctxt = ClassPackage.extract_sortctxt thy ty;
+          val ty = (Logic.legacy_unvarifyT o CodegenTheorems.extr_typ thy) eq_thm
+          val sortcontext = ClassPackage.sortcontext_of_typ thy ty;
           fun dest_eqthm eq_thm =
             let
               val ((t, args), rhs) =
-                (apfst strip_comb o Logic.dest_equals o prop_of) eq_thm;
+                (apfst strip_comb o Logic.dest_equals o Logic.legacy_unvarify o prop_of) eq_thm;
             in case t
              of Const (c', _) => if c' = c then (args, rhs)
                  else error ("illegal function equation for " ^ quote c
@@ -645,11 +646,11 @@ and mk_fun thy tabs (c, ty) trns =
           trns
           |> message msg (fn trns => trns
           |> fold_map (exprgen_eq o dest_eqthm) eq_thms
+          ||>> fold_map (exprgen_tyvar_sort thy tabs) sortcontext
           ||>> exprgen_type thy tabs ty
-          ||>> fold_map (exprgen_tyvar_sort thy tabs) sortctxt
-          |-> (fn ((eqs, ity), sortctxt) => (pair o SOME) ((eqs, (sortctxt, ity)), ty)))
+          |-> (fn ((eqs, sortctxt), ty) => (pair o SOME) ((eqs, (sortctxt, ty)), map snd sortcontext)))
         end
-    | NONE => (NONE, trns)
+    | [] => (NONE, trns)
 and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
   let
     fun defgen_inst thy (tabs as (_, (insttab, _, _))) inst trns =
@@ -657,20 +658,24 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
        of SOME (_, (class, tyco)) =>
             let
               val (arity, memdefs) = ClassPackage.the_inst_sign thy (class, tyco);
+              val arity_typ = Type (tyco, (map TFree arity));
+              val operational_arity = map_filter (fn (v, sort) => case ClassPackage.operational_sort_of thy sort
+               of [] => NONE
+                | sort => SOME (v, sort)) arity;
               fun gen_suparity supclass trns =
                 trns
                 |> ensure_def_class thy tabs supclass
-                ||>> ensure_def_inst thy tabs (supclass, tyco)
-                ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
-                      (ClassPackage.extract_classlookup_inst thy (class, tyco) supclass)
-                |-> (fn ((supclass, inst), lss) => pair (supclass, (inst, lss)));
+                ||>> fold_map (exprgen_classlookup thy tabs)
+                      (ClassPackage.sortlookup thy ([supclass], arity_typ));
               fun gen_membr (m, ty) trns =
                 trns
                 |> mk_fun thy tabs (m, ty)
                 |-> (fn NONE => error ("could not derive definition for member "
                           ^ quote m ^ " :: " ^ Sign.string_of_typ thy ty)
-                      | SOME (funn, ty_decl) => (fold_map o fold_map) (exprgen_classlookup thy tabs)
-                       (ClassPackage.extract_classlookup_member thy (ty_decl, ty))
+                      | SOME (funn, sorts) => fold_map (fn (sort, sort_ctxt) =>
+                          fold_map (exprgen_classlookup thy tabs)
+                            (ClassPackage.sortlookup thy (sort, TFree sort_ctxt)))
+                            (sorts ~~ operational_arity)
                 #-> (fn lss =>
                        pair (idf_of_name thy nsp_mem m, ((idf_of_name thy nsp_instmem m, funn), lss))));
             in
@@ -783,7 +788,7 @@ and appgen_default thy tabs ((c, ty), ts) trns =
   |> ensure_def_const thy tabs (c, ty)
   ||>> exprgen_type thy tabs ty
   ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
-         (ClassPackage.extract_classlookup thy (c, ty))
+         (ClassPackage.sortlookups_const thy (c, ty))
   ||>> fold_map (exprgen_term thy tabs) ts
   |-> (fn (((c, ty), ls), es) =>
          pair (IConst (c, (ls, ty)) `$$ es))
@@ -878,7 +883,7 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
     |> ensure_def ((K o fail) "no extraction of wfrec") false ("generating wfrec") idf
     |> exprgen_type thy tabs ty'
     ||>> (fold_map o fold_map) (exprgen_classlookup thy tabs)
-           (ClassPackage.extract_classlookup thy (c, ty))
+           (ClassPackage.sortlookups_const thy (c, ty))
     ||>> exprgen_type thy tabs ty_def
     ||>> exprgen_term thy tabs tf
     ||>> exprgen_term thy tabs tx
@@ -1006,7 +1011,6 @@ fun purge_defs NONE thy =
       let
         val tabs = mk_tabs thy NONE;
         val idfs = map (idf_of_const' thy tabs) cs;
-        val _ = writeln ("purging " ^ commas idfs);
         fun purge idfs modl =
           CodegenThingol.purge_module (filter (can (get_def modl)) idfs) modl
       in

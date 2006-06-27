@@ -48,10 +48,9 @@ sig
   type sortcontext = (string * sort) list
   datatype classlookup = Instance of (class * string) * classlookup list list
                        | Lookup of class list * (string * (int * int))
-  val extract_sortctxt: theory -> typ -> sortcontext
-  val extract_classlookup: theory -> string * typ -> classlookup list list
-  val extract_classlookup_inst: theory -> class * string -> class -> classlookup list list
-  val extract_classlookup_member: theory -> typ * typ -> classlookup list list
+  val sortcontext_of_typ: theory -> typ -> sortcontext
+  val sortlookup: theory -> sort * typ -> classlookup list
+  val sortlookups_const: theory -> string * typ -> classlookup list list
 end;
 
 structure ClassPackage: CLASS_PACKAGE =
@@ -129,17 +128,13 @@ fun is_operational_class thy cls =
   |> Option.map (not o null o #consts)
   |> the_default false;
 
-fun operational_sort_of thy sort =
+fun operational_sort_of thy =
   let
     fun get_sort class =
       if is_operational_class thy class
       then [class]
       else operational_sort_of thy (Sign.super_classes thy class);
-  in
-    map get_sort sort
-    |> flat
-    |> Sign.certify_sort thy
-  end;
+  in Sign.certify_sort thy o maps get_sort end;
 
 fun the_superclasses thy class =
   if is_class thy class
@@ -193,7 +188,7 @@ fun the_inst_sign thy (class, tyco) =
       |> fold (fn (_, ty) => curry (gen_union (op =))
            ((map (fst o fst) o typ_tvars) ty @ (map fst o typ_tfrees) ty)) const_sign
       |> fold_map add_var arity;
-    val ty_inst = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) vsorts);
+    val ty_inst = Type (tyco, map TFree vsorts);
     val inst_signs = map (apsnd (subst_clsvar clsvar ty_inst)) const_sign;
   in (vsorts, inst_signs) end;
 
@@ -599,7 +594,7 @@ end; (* local *)
 
 type sortcontext = (string * sort) list;
 
-fun extract_sortctxt thy ty =
+fun sortcontext_of_typ thy ty =
   (typ_tfrees o fst o Type.freeze_thaw_type) ty
   |> map (apsnd (operational_sort_of thy))
   |> filter (not o null o snd);
@@ -613,75 +608,52 @@ fun pretty_lookup' (Instance ((class, tyco), lss)) =
         :: map pretty_lookup lss
       )
   | pretty_lookup' (Lookup (classes, (v, (i, j)))) =
-      Pretty.enum " <" "[" "]" (map Pretty.str classes @ [Pretty.str (v ^ "!" ^ string_of_int i ^ "/" ^ string_of_int j)])
+      Pretty.enum " <" "[" "]" (map Pretty.str classes @
+        [Pretty.str (v ^ "!" ^ string_of_int i ^ "/" ^ string_of_int j)])
 and pretty_lookup ls = (Pretty.enum "," "(" ")" o map pretty_lookup') ls;
 
-fun extract_lookup thy sortctxt raw_typ_def raw_typ_use =
+fun sortlookup thy (sort_decl, typ_ctxt) =
   let
-    val typ_def = Logic.legacy_varifyT raw_typ_def;
-    val typ_use = Logic.legacy_varifyT raw_typ_use;
-    val match_tab = Sign.typ_match thy (typ_def, typ_use) Vartab.empty;
-    fun tab_lookup vname = (the o Vartab.lookup match_tab) (vname, 0);
-    fun mk_class_deriv thy subclasses superclass =
-      let
-        val (i, (subclass::deriv)) = (the oo get_index) (fn subclass =>
-            get_superclass_derivation thy (subclass, superclass)
-          ) subclasses;
-      in (rev deriv, (i, length subclasses)) end;
-    fun mk_lookup (sort_def, (Type (tyco, tys))) =
-          map (fn class => Instance ((class, tyco),
-            map2 (curry mk_lookup)
-              (map (operational_sort_of thy) (Sign.arity_sorts thy tyco [class]))
-              tys)
-          ) sort_def
-      | mk_lookup (sort_def, TVar ((vname, _), sort_use)) =
-          let
-            fun mk_look class =
-              let val (deriv, classindex) = mk_class_deriv thy (operational_sort_of thy sort_use) class
-              in Lookup (deriv, (vname, classindex)) end;
-          in map mk_look sort_def end;
+    val pp = Sign.pp thy;
+    val algebra = Sorts.project_algebra pp (is_operational_class thy)
+      (Sign.classes_of thy);
+    fun classrel (l as Lookup (classes, p), _) class  =
+          Lookup (class :: classes, p)
+      | classrel (Instance ((_, tyco), lss), _) class =
+          Instance ((class, tyco), lss);
+    fun constructor tyco lss class =
+      Instance ((class, tyco), (map o map) fst lss)
+    fun variable (TFree (v, sort)) =
+          map_index (fn (n, class) => (Lookup ([], (v, (n, length sort))), class))
+            (operational_sort_of thy sort)
+      | variable (TVar _) = error "TVar encountered while deriving sortlookup";
   in
- sortctxt
-    |> map (tab_lookup o fst)
-    |> map (apfst (operational_sort_of thy))
-    |> filter (not o null o fst)
-    |> map mk_lookup
+    Sorts.of_sort_derivation pp algebra
+      {classrel = classrel, constructor = constructor, variable = variable}
+      (typ_ctxt, operational_sort_of thy sort_decl)
   end;
 
-fun extract_classlookup thy (c, raw_typ_use) =
+fun sortlookups_const thy (c, typ_ctxt) =
   let
-    val raw_typ_def = Sign.the_const_constraint thy c;
-    val typ_def = Logic.legacy_varifyT raw_typ_def;
-    fun reorder_sortctxt ctxt =
-      case lookup_const_class thy c
-       of NONE => ctxt
-        | SOME class =>
-            let
-              val data = the_class_data thy class;
-              val sign = (Logic.legacy_varifyT o the o AList.lookup (op =) ((map snd o #consts) data)) c;
-              val match_tab = Sign.typ_match thy (sign, typ_def) Vartab.empty;
-              val v : string = case Vartab.lookup match_tab (#var data, 0)
-                of SOME (_, TVar ((v, _), _)) => v;
-            in
-              (v, (the o AList.lookup (op =) ctxt) v) :: AList.delete (op =) v ctxt
-            end;
+    val typ_decl = case lookup_const_class thy c
+     of NONE => Sign.the_const_type thy c
+      | SOME class => case the_consts_sign thy class of (v, cs) =>
+          (Logic.legacy_varifyT o subst_clsvar v (TFree (v, [class])))
+          ((the o AList.lookup (op =) cs) c)
+    val vartab = typ_tvars typ_decl;
+    fun prep_vartab (v, (_, ty)) =
+      case (the o AList.lookup (op =) vartab) v
+       of [] => NONE
+        | sort => SOME (sort, ty);
   in
-    extract_lookup thy
-      (reorder_sortctxt (extract_sortctxt thy ((fst o Type.freeze_thaw_type) raw_typ_def)))
-      raw_typ_def raw_typ_use
+    Vartab.empty
+    |> Sign.typ_match thy (typ_decl, typ_ctxt)
+    |> Vartab.dest
+    |> map_filter prep_vartab
+    |> map (sortlookup thy)
+    |> filter_out null
   end;
 
-fun extract_classlookup_inst thy (class, tyco) supclass =
-  let
-    fun mk_typ class = Type (tyco, (map TFree o fst o the_inst_sign thy) (class, tyco))
-    val typ_def = mk_typ supclass;
-    val typ_use = mk_typ class;
-  in
-    extract_lookup thy (extract_sortctxt thy typ_def) typ_def typ_use
-  end;
-
-fun extract_classlookup_member thy (ty_decl, ty_use) =
-  extract_lookup thy (extract_sortctxt thy ty_decl) ty_decl ty_use;
 
 (* toplevel interface *)
 

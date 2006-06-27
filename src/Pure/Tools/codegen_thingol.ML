@@ -57,7 +57,7 @@ sig
     ((string * (iclasslookup list list * itype)) * iexpr list) option;
   val add_constnames: iexpr -> string list -> string list;
   val add_varnames: iexpr -> string list -> string list;
-  val is_pat: iexpr -> bool;
+  val is_pat: (string -> bool) -> iexpr -> bool;
   val map_pure: (iexpr -> 'a) -> iexpr -> 'a;
   val resolve_tycos: (string -> string) -> itype * iexpr list -> itype * iexpr list;
   val resolve_consts: (string -> string) -> iexpr -> iexpr;
@@ -74,7 +74,7 @@ sig
     | Class of class list * (vname * (string * (sortcontext * itype)) list)
     | Classmember of class
     | Classinst of ((class * (string * (vname * sort) list))
-          * (class * (string * iclasslookup list list)) list)
+          * (class * iclasslookup list) list)
         * (string * ((string * funn) * iclasslookup list list)) list
     | Classinstmember;
   type module;
@@ -304,13 +304,13 @@ fun instant_itype f =
       | instant y = map_itype instant y;
   in instant end;
 
-fun is_pat (e as IConst (_, ([], _))) = true
-  | is_pat (e as IVar _) = true
-  | is_pat (e as (e1 `$ e2)) =
-      is_pat e1 andalso is_pat e2
-  | is_pat (e as INum _) = true
-  | is_pat (e as IChar _) = true
-  | is_pat e = false;
+fun is_pat is_cons (e as IConst (c, ([], _))) = is_cons  c
+  | is_pat _ (e as IVar _) = true
+  | is_pat is_cons (e as (e1 `$ e2)) =
+      is_pat is_cons e1 andalso is_pat is_cons e2
+  | is_pat _ (e as INum _) = true
+  | is_pat _ (e as IChar _) = true
+  | is_pat _ _ = false;
 
 fun map_pure f (e as IConst _) =
       f e
@@ -397,7 +397,7 @@ datatype def =
   | Class of class list * (vname * (string * (sortcontext * itype)) list)
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
-        * (class * (string * iclasslookup list list)) list)
+        * (class * iclasslookup list) list)
       * (string * ((string * funn) * iclasslookup list list)) list
   | Classinstmember;
 
@@ -668,7 +668,7 @@ fun project_module names modl =
           |> (pair defs #> PN);
     fun select (PN (defs, modls)) (Module module) =
       module
-      |> Graph.subgraph (Graph.all_succs module (defs @ map fst modls))
+      |> Graph.project (member (op =) (Graph.all_succs module (defs @ map fst modls)))
       |> fold (fn (name, modls) => Graph.map_node name (select modls)) modls
       |> Module;
   in
@@ -1003,7 +1003,6 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
             (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
   in
     seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) ""))
-      (*map (resolver []) (Graph.strong_conn module |> flat |> rev)*)
       (("", name_root), (mk_contents [] module))
   end;
 

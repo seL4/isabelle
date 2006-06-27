@@ -21,10 +21,11 @@ sig
   val notify_dirty: theory -> theory;
 
   val proper_name: string -> string;
+  val extr_typ: theory -> thm -> typ;
   val common_typ: theory -> (thm -> typ) -> thm list -> thm list;
-  val preprocess: theory -> thm list -> (typ * thm list) option;
+  val preprocess: theory -> thm list -> thm list;
 
-  val get_funs: theory -> string * typ -> (typ * thm list) option;
+  val get_funs: theory -> string * typ -> thm list;
   val get_datatypes: theory -> string
     -> (((string * sort) list * (string * typ list) list) * thm list) option;
 
@@ -95,7 +96,7 @@ fun getf_first_list [] x = []
 
 structure CodegenTheoremsSetup = TheoryDataFun
 (struct
-  val name = "Pure/CodegenTheoremsSetup";
+  val name = "Pure/codegen_theorems_setup";
   type T = ((string * thm) * ((string * string) * (string * string))) option;
   val empty = NONE;
   val copy = I;
@@ -409,7 +410,7 @@ fun merge_T pp (T { dirty = dirty1, notify = notify1, preproc = preproc1, extrs 
 
 structure CodegenTheoremsData = TheoryDataFun
 (struct
-  val name = "Pure/CodegenTheoremsData";
+  val name = "Pure/codegen_theorems_data";
   type T = T;
   val empty = mk_T ((false, mk_notify []), (mk_preproc ([], []),
     (mk_extrs ([], []), mk_funthms ([], Symtab.empty))));
@@ -566,6 +567,9 @@ fun purge_defs (c, ty) thy =
 
 (* preprocessing *)
 
+fun extr_typ thy thm = case dest_fun thy thm
+ of (_, (ty, _)) => ty;
+
 fun common_typ thy _ [] = []
   | common_typ thy _ [thm] = [thm]
   | common_typ thy extract_typ thms =
@@ -591,12 +595,8 @@ fun preprocess thy thms =
           |> Conjunction.intr_list
           |> f
           |> Conjunction.elim_list;
-    fun extr_typ thm = case dest_fun thy thm
-     of (_, (ty, _)) => ty;
-    fun tap_typ [] = NONE
-     | tap_typ (thms as (thm::_)) = SOME (extr_typ thm, thms);
     fun cmp_thms (thm1, thm2) =
-      not (Sign.typ_instance thy (extr_typ thm1, extr_typ thm2));
+      not (Sign.typ_instance thy (extr_typ thy thm1, extr_typ thy thm2));
     fun rewrite_rhs conv thm = (case (Drule.strip_comb o cprop_of) thm
      of (ct', [ct1, ct2]) => (case term_of ct'
          of Const ("==", _) =>
@@ -617,7 +617,7 @@ fun preprocess thy thms =
     |> sort (make_ord cmp_thms)
     |> debug_msg (fn _ => "[cg_thm] common_typ")
     |> debug_msg (commas o map string_of_thm)
-    |> common_typ thy extr_typ
+    |> common_typ thy (extr_typ thy)
     |> debug_msg (fn _ => "[cg_thm] abs_norm")
     |> debug_msg (commas o map string_of_thm)
     |> map (abs_norm thy)
@@ -633,8 +633,6 @@ fun preprocess thy thms =
         #> Drule.zero_var_indexes
        )
     |> drop_redundant thy
-    |> unvarify
-    |> tap_typ
   end;
 
 
