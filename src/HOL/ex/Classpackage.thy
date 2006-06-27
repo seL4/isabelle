@@ -304,7 +304,7 @@ instance group_prod_def: (group, group) * :: group
   mult_prod_def: "x \<otimes> y == let (x1, x2) = x in (let (y1, y2) = y in
               ((x1::'a::group) \<otimes> y1, (x2::'b::group) \<otimes> y2))"
   mult_one_def: "\<one> == (\<one>::'a::group, \<one>::'b::group)"
-  mult_inv_def: "\<div> x == let (x1, x2) = x in (\<div> x1, \<div> x2)"
+  mult_inv_def: "\<div> x == let (x1::'a::group, x2::'b::group) = x in (\<div> x1, \<div> x2)"
 by default (simp_all add: split_paired_all group_prod_def assoc neutl invl)
 
 instance group_comm_prod_def: (group_comm, group_comm) * :: group_comm
