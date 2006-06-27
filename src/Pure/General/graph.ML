@@ -29,7 +29,7 @@ sig
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
-  val subgraph: key list -> 'a T -> 'a T
+  val project: (key -> bool) -> 'a T -> 'a T
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
@@ -141,11 +141,10 @@ fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
   (flat (rev (fst (reachable (imm_succs G) (keys G)))))));
 
 (*subgraph induced by node subset*)
-fun subgraph keys G =
+fun project proj G =
   let
-    val select = member eq_key keys;
     fun subg (k, (i, (preds, succs))) =
-      K (select k) ? Table.update (k, (i, (filter select preds, filter select succs)));
+      K (proj k) ? Table.update (k, (i, (filter proj preds, filter proj succs)));
   in Graph (fold_graph subg G Table.empty) end;
 
 
