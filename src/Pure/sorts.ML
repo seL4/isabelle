@@ -43,6 +43,7 @@ sig
   val add_arities: Pretty.pp -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
   val merge_algebra: Pretty.pp -> algebra * algebra -> algebra
+  val project_algebra: Pretty.pp -> (class -> bool) -> algebra -> algebra
   type class_error
   val class_error: Pretty.pp -> class_error -> 'a
   exception CLASS_ERROR of class_error
@@ -278,6 +279,23 @@ fun merge_algebra pp
       |> add_arities_table pp algebra0 arities2;
   in make_algebra (classes', arities') end;
 
+fun project_algebra pp proj (Algebra {classes, arities}) =
+  let
+    fun proj_sort S =
+      maps (fn c => if proj c then [c]
+        else proj_sort (Graph.imm_succs classes c)) S;
+  in
+    make_algebra (
+      classes
+      |> Graph.project proj,
+      arities
+      |> (Symtab.map o map_filter) (fn (c, (c0, Ss)) =>
+          if proj c
+          then SOME (c, (c, map proj_sort Ss))
+          else NONE)
+    ) |> rebuild_arities pp
+  end;
+
 
 
 (** sorts of types **)
@@ -330,7 +348,8 @@ fun of_sort algebra =
 fun of_sort_derivation pp algebra {classrel, constructor, variable} =
   let
     val {classes, arities} = rep_algebra algebra;
-    fun weaken_path (x, c1 :: c2 :: cs) = weaken_path (classrel (x, c1) c2, c2 :: cs)
+    fun weaken_path (x, c1 :: c2 :: cs) =
+          weaken_path (classrel (x, c1) c2, c2 :: cs)
       | weaken_path (x, _) = x;
     fun weaken (x, c1) c2 =
       (case Graph.irreducible_paths classes (c1, c2) of
