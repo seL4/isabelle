@@ -106,6 +106,42 @@ fun name_of_idf thy shallow idf =
   |> Option.map (alias_rev thy);
 
 
+(* theory name lookup *)
+
+fun thyname_of thy f x =
+  let
+    fun thy_of thy =
+      if f thy x
+      then SOME (the_default thy (get_first thy_of (Theory.parents_of thy)))
+      else NONE;
+  in Option.map Context.theory_name (thy_of thy) end;
+
+fun thyname_of_instance thy inst =
+  let
+    fun test_instance thy (class, tyco) =
+      can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
+  in case thyname_of thy test_instance inst
+   of SOME name => name
+    | NONE => error ("thyname_of_instance: no such instance: " ^ quote (fst inst) ^ ", " ^ quote (snd inst))
+  end;
+
+fun thyname_of_tyco thy tyco =
+  case thyname_of thy Sign.declared_tyname tyco
+   of SOME name => name
+    | NONE => error ("thyname_of_tyco: no such type constructor: " ^ quote tyco);
+
+fun thyname_of_thm thy thm =
+  let
+    fun thy_of thy =
+      if member eq_thm ((flat o map snd o NameSpace.dest_table o PureThy.theorems_of) thy) thm
+      then SOME thy
+      else get_first thy_of (Theory.parents_of thy)
+  in case thy_of thy
+   of SOME thy => Context.theory_name thy
+    | NONE => error ("thyname_of_thm: no such thm: " ^ string_of_thm thm)
+  end;
+
+
 (* code generator basics *)
 
 type deftab = (typ * thm) list Symtab.table;
@@ -117,11 +153,10 @@ fun is_overloaded thy c = case Theory.definitions_of thy c
 
 structure InstNameMangler = NameManglerFun (
   type ctxt = theory;
-  type src = string * (class * string);
-  val ord = prod_ord string_ord (prod_ord string_ord string_ord);
-  fun mk thy ((thyname, (cls, tyco)), i) =
-    (NameSpace.base o alias_get thy) cls ^ "_" ^ (NameSpace.base o alias_get thy) tyco ^ implode (replicate i "'")
-    |> NameSpace.append thyname;
+  type src = class * string;
+  val ord = prod_ord string_ord string_ord;
+  fun mk thy ((cls, tyco), i) =
+    (NameSpace.base o alias_get thy) cls ^ "_" ^ (NameSpace.base o alias_get thy) tyco ^ implode (replicate i "'");
   fun is_valid _ _ = true;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such instance: " ^ quote dst);
@@ -141,7 +176,7 @@ structure ConstNameMangler = NameManglerFun (
           | NONE => if c = "op ="
               then
                 NameSpace.append
-                  (((fn s => Codegen.thyname_of_type s thy) o fst o dest_Type o hd o fst o strip_type) ty)
+                  ((thyname_of_tyco thy o fst o dest_Type o hd o fst o strip_type) ty)
                   nsp_overl
               else
                 NameSpace.drop_base c';
@@ -198,7 +233,7 @@ structure DatatypeconsNameMangler = NameManglerFun (
 );
 
 type auxtab = (bool * string list option * deftab)
-  * (InstNameMangler.T * (typ list Symtab.table * ConstNameMangler.T)
+  * ((InstNameMangler.T * string Symtab.table Symtab.table) * (typ list Symtab.table * ConstNameMangler.T)
   * DatatypeconsNameMangler.T);
 type eqextr = theory -> auxtab
   -> string * typ -> (thm list * typ) option;
@@ -360,6 +395,7 @@ fun map_codegen_data f thy =
 
 val print_code = CodegenData.print;
 
+
 (* advanced name handling *)
 
 fun add_alias (src, dst) =
@@ -414,7 +450,7 @@ fun idf_of_const thy (tabs as (_, (_, (overltab1, overltab2), _)))
    of SOME idf => idf
     | NONE => case get_overloaded (c, ty)
    of SOME idf => idf
-    | NONE => case ClassPackage.lookup_const_class thy c
+    | NONE => case AxClass.class_of thy c
    of SOME _ => idf_of_name thy nsp_mem c
     | NONE => idf_of_name thy nsp_const c
   end;
@@ -432,7 +468,7 @@ fun idf_of_const' thy (tabs as (_, (_, (overltab1, overltab2), _)))
         | _ => NONE)
   in case get_overloaded (c, ty)
    of SOME idf => idf
-    | NONE => case ClassPackage.lookup_const_class thy c
+    | NONE => case AxClass.class_of thy c
    of SOME _ => idf_of_name thy nsp_mem c
     | NONE => idf_of_name thy nsp_const c
   end;
@@ -536,7 +572,7 @@ fun no_strict ((_, targets, deftab), tabs') = ((false, targets, deftab), tabs');
 
 fun ensure_def_class thy tabs cls trns =
   let
-    fun defgen_class thy (tabs as (_, (insttab, _, _))) cls trns =
+    fun defgen_class thy (tabs as (_, ((insttab, thynametab), _, _))) cls trns =
       case name_of_idf thy nsp_class cls
        of SOME cls =>
             let
@@ -651,11 +687,12 @@ and mk_fun thy tabs (c, ty) trns =
           |-> (fn ((eqs, sortctxt), ty) => (pair o SOME) ((eqs, (sortctxt, ty)), map snd sortcontext)))
         end
     | [] => (NONE, trns)
-and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
+and ensure_def_inst thy (tabs as (_, ((insttab, thynametab), _, _))) (cls, tyco) trns =
   let
-    fun defgen_inst thy (tabs as (_, (insttab, _, _))) inst trns =
-      case Option.map (InstNameMangler.rev thy insttab) (name_of_idf thy nsp_inst inst)
-       of SOME (_, (class, tyco)) =>
+    fun defgen_inst thy (tabs as (_, ((insttab, thynametab), _, _))) inst trns =
+      case Option.map (InstNameMangler.rev thy insttab o NameSpace.base)
+            (name_of_idf thy nsp_inst inst)
+       of SOME (class, tyco) =>
             let
               val (arity, memdefs) = ClassPackage.the_inst_sign thy (class, tyco);
               val arity_typ = Type (tyco, (map TFree arity));
@@ -669,13 +706,16 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
                       (ClassPackage.sortlookup thy ([supclass], arity_typ));
               fun gen_membr (m, ty) trns =
                 trns
+                |> tap (fn _ => writeln ("(1) " ^ m))
                 |> mk_fun thy tabs (m, ty)
+                |> tap (fn _ => writeln "(2)")
                 |-> (fn NONE => error ("could not derive definition for member "
                           ^ quote m ^ " :: " ^ Sign.string_of_typ thy ty)
                       | SOME (funn, sorts) => fold_map (fn (sort, sort_ctxt) =>
                           fold_map (exprgen_classlookup thy tabs)
                             (ClassPackage.sortlookup thy (sort, TFree sort_ctxt)))
-                            (sorts ~~ operational_arity)
+                            (print sorts ~~ print operational_arity)
+                #> tap (fn _ => writeln "(3)")
                 #-> (fn lss =>
                        pair (idf_of_name thy nsp_mem m, ((idf_of_name thy nsp_instmem m, funn), lss))));
             in
@@ -692,8 +732,9 @@ and ensure_def_inst thy (tabs as (_, (insttab, _, _))) (cls, tyco) trns =
             end
         | _ =>
             trns |> fail ("no class instance found for " ^ quote inst);
-    val (_, thyname) = (the o AList.lookup (op =) (ClassPackage.the_instances thy cls)) tyco;
-    val inst = idf_of_name thy nsp_inst (InstNameMangler.get thy insttab (thyname, (cls, tyco)));
+    val thyname = (the o Symtab.lookup ((the o Symtab.lookup thynametab) cls)) tyco;
+    val inst = (idf_of_name thy nsp_inst o NameSpace.append thyname o InstNameMangler.get thy insttab)
+      (cls, tyco);
   in
     trns
     |> debug_msg (fn _ => "generating instance " ^ quote cls ^ " / " ^ quote tyco)
@@ -719,7 +760,7 @@ and ensure_def_const thy (tabs as (_, (_, overltab, dtcontab))) (c, ty) trns =
        of SOME m =>
             trns
             |> debug_msg (fn _ => "trying defgen class member for " ^ quote m)
-            |> ensure_def_class thy tabs ((the o ClassPackage.lookup_const_class thy) m)
+            |> ensure_def_class thy tabs ((the o AxClass.class_of thy) m)
             |-> (fn cls => succeed Bot)
         | _ =>
             trns |> fail ("no class member found for " ^ quote m)
@@ -932,20 +973,32 @@ fun add_case_const c cos thy =
 
 fun mk_tabs thy targets =
   let
-    fun mk_insttab thy =
-      InstNameMangler.empty
-      |> Symtab.fold_map
-          (fn (cls, clsinsts) => fold_map
-            (fn (tyco, thyname) => InstNameMangler.declare thy (thyname, (cls, tyco))) clsinsts)
-                 (ClassPackage.get_classtab thy)
-      |-> (fn _ => I);
+    fun mk_insttab thy = 
+      let
+        val insts = Symtab.fold
+          (fn (tyco, classes) => cons (tyco, map fst classes))
+          ((#arities o Sorts.rep_algebra o Sign.classes_of) thy)
+          []
+      in (
+        InstNameMangler.empty
+        |> fold
+            (fn (tyco, classes) => fold
+              (fn class => InstNameMangler.declare thy (class, tyco) #> snd) classes)
+                insts,
+        Symtab.empty
+        |> fold
+            (fn (tyco, classes) => fold
+              (fn class => Symtab.default (class, Symtab.empty)
+                #> Symtab.map_entry class (Symtab.update (tyco, thyname_of_instance thy (class, tyco)))) classes)
+                  insts
+      ) end;
     fun mk_overltabs thy =
       (Symtab.empty, ConstNameMangler.empty)
       |> Symtab.fold
           (fn (c, _) =>
             let
               val deftab = Theory.definitions_of thy c
-              val is_overl = (is_none o ClassPackage.lookup_const_class thy) c
+              val is_overl = (is_none o AxClass.class_of thy) c
                andalso case deftab   (* is_overloaded (!?) *)
                of [] => false
                 | [{lhs = ty, ...}] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))

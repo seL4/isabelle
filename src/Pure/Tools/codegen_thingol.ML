@@ -834,13 +834,17 @@ fun ensure_def defgen strict msg name (dep, modl) =
     fun prep_def def modl =
       (check_prep_def modl def, modl);
     fun invoke_generator name defgen modl =
-      defgen name (SOME name, modl)
-      handle FAIL (msgs, exc) =>
+      if ! soft_exc (*that's ! isn't a "not"...*)
+      then defgen name (SOME name, modl)
+        handle FAIL (msgs, exc) =>
+                if strict then raise FAIL (msg' :: msgs, exc)
+                else (Bot, modl)
+             | e => raise 
+                FAIL (["definition generator for " ^ quote name, msg'], SOME e)
+      else defgen name (SOME name, modl)
+        handle FAIL (msgs, exc) =>
               if strict then raise FAIL (msg' :: msgs, exc)
-              else (Bot, modl)
-           | e => raise if ! soft_exc
-                then FAIL (["definition generator for " ^ quote name, msg'], SOME e)
-                else e;
+              else (Bot, modl);
   in
     modl
     |> (if can (get_def modl) name
