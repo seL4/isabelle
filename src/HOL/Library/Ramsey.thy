@@ -8,7 +8,9 @@ header "Ramsey's Theorem"
 theory Ramsey imports Main begin
 
 
-subsection{*``Axiom'' of Dependent Choice*}
+subsection{*Preliminaries*}
+
+subsubsection{*``Axiom'' of Dependent Choice*}
 
 consts choice :: "('a => bool) => ('a * 'a) set => nat => 'a"
   --{*An integer-indexed chain of choices*}
@@ -32,24 +34,23 @@ lemma dependent_choice:
   assumes trans: "trans r"
       and P0: "P x0"
       and Pstep: "!!x. P x ==> \<exists>y. P y & (x,y) \<in> r"
-  shows "\<exists>f::nat=>'a. (\<forall>n. P (f n)) & (\<forall>n m. n<m --> (f n, f m) \<in> r)"
-proof (intro exI conjI)
-  show "\<forall>n. P (choice P r n)" by (blast intro: choice_n [OF P0 Pstep]) 
+  obtains f :: "nat => 'a" where
+    "!!n. P (f n)" and "!!n m. n < m ==> (f n, f m) \<in> r"
+proof
+  fix n
+  show "P (choice P r n)" by (blast intro: choice_n [OF P0 Pstep])
 next
   have PSuc: "\<forall>n. (choice P r n, choice P r (Suc n)) \<in> r" 
     using Pstep [OF choice_n [OF P0 Pstep]]
     by (auto intro: someI2_ex)
-  show "\<forall>n m. n<m --> (choice P r n, choice P r m) \<in> r"
-  proof (intro strip)
-    fix n m :: nat
-    assume less: "n<m"
-    show "(choice P r n, choice P r m) \<in> r" using PSuc
-      by (auto intro: less_Suc_induct [OF less] transD [OF trans])
-  qed
-qed 
+  fix n m :: nat
+  assume less: "n < m"
+  show "(choice P r n, choice P r m) \<in> r" using PSuc
+    by (auto intro: less_Suc_induct [OF less] transD [OF trans])
+qed
 
 
-subsection {*Partitions of a Set*}
+subsubsection {*Partitions of a Set*}
 
 definition
   part :: "nat => nat => 'a set => ('a set => nat) => bool"
@@ -72,8 +73,8 @@ lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f"
 
 subsection {*Ramsey's Theorem: Infinitary Version*}
 
-lemma ramsey_induction: 
-  fixes s r :: nat
+lemma Ramsey_induction: 
+  fixes s and r::nat
   shows
   "!!(YY::'a set) (f::'a set => nat). 
       [|infinite YY; part r s YY f|]
@@ -127,7 +128,7 @@ next
     qed
     from dependent_choice [OF transr propr0 proprstep]
     obtain g where pg: "!!n::nat.  ?propr (g n)"
-      and rg: "!!n m. n<m ==> (g n, g m) \<in> ?ramr" by force
+      and rg: "!!n m. n<m ==> (g n, g m) \<in> ?ramr" by blast
     let ?gy = "(\<lambda>n. let (y,Y,t) = g n in y)"
     let ?gt = "(\<lambda>n. let (y,Y,t) = g n in t)"
     have rangeg: "\<exists>k. range ?gt \<subseteq> {..<k}"
@@ -177,8 +178,7 @@ next
            proof -
              have "X - {ya} \<subseteq> Ya"
              proof 
-               fix x
-               assume x: "x \<in> X - {ya}"
+               fix x assume x: "x \<in> X - {ya}"
                then obtain a' where xeq: "x = ?gy a'" and a': "a' \<in> AA" 
                  by (auto simp add: Xeq) 
                hence "a' \<noteq> (LEAST x. x \<in> AA)" using x fields by auto
@@ -203,7 +203,6 @@ next
 qed
 
 
-text{*Repackaging of Tom Ridge's final result*}
 theorem Ramsey:
   fixes s r :: nat and Z::"'a set" and f::"'a set => nat"
   shows
@@ -211,6 +210,129 @@ theorem Ramsey:
       \<forall>X. X \<subseteq> Z & finite X & card X = r --> f X < s|]
   ==> \<exists>Y t. Y \<subseteq> Z & infinite Y & t < s 
             & (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X = t)"
-by (blast intro: ramsey_induction [unfolded part_def]) 
+by (blast intro: Ramsey_induction [unfolded part_def])
+
+
+corollary Ramsey2:
+  fixes s::nat and Z::"'a set" and f::"'a set => nat"
+  assumes infZ: "infinite Z"
+      and part: "\<forall>x\<in>Z. \<forall>y\<in>Z. x\<noteq>y --> f{x,y} < s"
+  shows
+   "\<exists>Y t. Y \<subseteq> Z & infinite Y & t < s & (\<forall>x\<in>Y. \<forall>y\<in>Y. x\<noteq>y --> f{x,y} = t)"
+proof -
+  have part2: "\<forall>X. X \<subseteq> Z & finite X & card X = 2 --> f X < s"
+    by (auto simp add: numeral_2_eq_2 card_2_eq part) 
+  obtain Y t 
+    where "Y \<subseteq> Z" "infinite Y" "t < s"
+          "(\<forall>X. X \<subseteq> Y & finite X & card X = 2 --> f X = t)"
+    by (insert Ramsey [OF infZ part2]) auto
+  moreover from this have  "\<forall>x\<in>Y. \<forall>y\<in>Y. x \<noteq> y \<longrightarrow> f {x, y} = t" by auto
+  ultimately show ?thesis by iprover
+qed
+
+
+
+
+subsection {*Disjunctive Well-Foundedness*}
+
+text{*An application of Ramsey's theorem to program termination. See
+
+Andreas Podelski and Andrey Rybalchenko, Transition Invariants, 19th Annual
+IEEE Symposium on Logic in Computer Science (LICS'04), pages 32--41 (2004).
+*}
+
+constdefs
+  disj_wf         :: "('a * 'a)set => bool"
+  "disj_wf(r) == \<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r = (\<Union>i<n. T i)"
+
+  transition_idx :: "[nat => 'a, nat => ('a*'a)set, nat set] => nat"
+  "transition_idx s T A ==
+     LEAST k. \<exists>i j. A = {i,j} & i<j & (s j, s i) \<in> T k"
+
+
+lemma transition_idx_less:
+    "[|i<j; (s j, s i) \<in> T k; k<n|] ==> transition_idx s T {i,j} < n"
+apply (subgoal_tac "transition_idx s T {i, j} \<le> k", simp) 
+apply (simp add: transition_idx_def, blast intro: Least_le) 
+done
+
+lemma transition_idx_in:
+    "[|i<j; (s j, s i) \<in> T k|] ==> (s j, s i) \<in> T (transition_idx s T {i,j})"
+apply (simp add: transition_idx_def doubleton_eq_iff conj_disj_distribR 
+            cong: conj_cong) 
+apply (erule LeastI) 
+done
+
+text{*To be equal to the union of some well-founded relations is equivalent
+to being the subset of such a union.*}
+lemma disj_wf:
+     "disj_wf(r) = (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) & r \<subseteq> (\<Union>i<n. T i))"
+apply (auto simp add: disj_wf_def) 
+apply (rule_tac x="%i. T i Int r" in exI) 
+apply (rule_tac x=n in exI) 
+apply (force simp add: wf_Int1) 
+done
+
+theorem trans_disj_wf_implies_wf:
+  assumes transr: "trans r"
+      and dwf:    "disj_wf(r)"
+  shows "wf r"
+proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
+  assume "\<exists>s. \<forall>i. (s (Suc i), s i) \<in> r"
+  then obtain s where sSuc: "\<forall>i. (s (Suc i), s i) \<in> r" ..
+  have s: "!!i j. i < j ==> (s j, s i) \<in> r"
+  proof -
+    fix i and j::nat
+    assume less: "i<j"
+    thus "(s j, s i) \<in> r"
+    proof (rule less_Suc_induct)
+      show "\<And>i. (s (Suc i), s i) \<in> r" by (simp add: sSuc) 
+      show "\<And>i j k. \<lbrakk>(s j, s i) \<in> r; (s k, s j) \<in> r\<rbrakk> \<Longrightarrow> (s k, s i) \<in> r"
+        using transr by (unfold trans_def, blast) 
+    qed
+  qed    
+  from dwf
+  obtain T and n::nat where wfT: "\<forall>k<n. wf(T k)" and r: "r = (\<Union>k<n. T k)"
+    by (auto simp add: disj_wf_def)
+  have s_in_T: "\<And>i j. i<j ==> \<exists>k. (s j, s i) \<in> T k & k<n"
+  proof -
+    fix i and j::nat
+    assume less: "i<j"
+    hence "(s j, s i) \<in> r" by (rule s [of i j]) 
+    thus "\<exists>k. (s j, s i) \<in> T k & k<n" by (auto simp add: r)
+  qed    
+  have trless: "!!i j. i\<noteq>j ==> transition_idx s T {i,j} < n"
+    apply (auto simp add: linorder_neq_iff)
+    apply (blast dest: s_in_T transition_idx_less) 
+    apply (subst insert_commute)   
+    apply (blast dest: s_in_T transition_idx_less) 
+    done
+  have
+   "\<exists>K k. K \<subseteq> UNIV & infinite K & k < n & 
+          (\<forall>i\<in>K. \<forall>j\<in>K. i\<noteq>j --> transition_idx s T {i,j} = k)"
+    by (rule Ramsey2) (auto intro: trless nat_infinite) 
+  then obtain K and k 
+    where infK: "infinite K" and less: "k < n" and
+          allk: "\<forall>i\<in>K. \<forall>j\<in>K. i\<noteq>j --> transition_idx s T {i,j} = k"
+    by auto
+  have "\<forall>m. (s (enumerate K (Suc m)), s(enumerate K m)) \<in> T k"
+  proof
+    fix m::nat
+    let ?j = "enumerate K (Suc m)"
+    let ?i = "enumerate K m"
+    have jK: "?j \<in> K" by (simp add: enumerate_in_set infK) 
+    have iK: "?i \<in> K" by (simp add: enumerate_in_set infK) 
+    have ij: "?i < ?j" by (simp add: enumerate_step infK) 
+    have ijk: "transition_idx s T {?i,?j} = k" using iK jK ij 
+      by (simp add: allk)
+    obtain k' where "(s ?j, s ?i) \<in> T k'" "k'<n" 
+      using s_in_T [OF ij] by blast
+    thus "(s ?j, s ?i) \<in> T k" 
+      by (simp add: ijk [symmetric] transition_idx_in ij) 
+  qed
+  hence "~ wf(T k)" by (force simp add: wf_iff_no_infinite_down_chain) 
+  thus False using wfT less by blast
+qed
+
 
 end
