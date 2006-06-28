@@ -13,14 +13,14 @@ class semigroup =
   assumes assoc: "x \<^loc>\<otimes> y \<^loc>\<otimes> z = x \<^loc>\<otimes> (y \<^loc>\<otimes> z)"
 
 instance nat :: semigroup
-  "m \<otimes> n == (m::nat) + n"
+  "m \<otimes> n == m + n"
 proof
   fix m n q :: nat 
   from semigroup_nat_def show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)" by simp
 qed
 
 instance int :: semigroup
-  "k \<otimes> l == (k::int) + l"
+  "k \<otimes> l == k + l"
 proof
   fix k l j :: int
   from semigroup_int_def show "k \<otimes> l \<otimes> j = k \<otimes> (l \<otimes> j)" by simp
@@ -42,14 +42,14 @@ class monoidl = semigroup +
   assumes neutl: "\<^loc>\<one> \<^loc>\<otimes> x = x"
 
 instance nat :: monoidl
-  "\<one> == (0::nat)"
+  "\<one> == 0"
 proof
   fix n :: nat
   from semigroup_nat_def monoidl_nat_def show "\<one> \<otimes> n = n" by simp
 qed
 
 instance int :: monoidl
-  "\<one> == (0::int)"
+  "\<one> == 0"
 proof
   fix k :: int
   from semigroup_int_def monoidl_int_def show "\<one> \<otimes> k = k" by simp
@@ -223,6 +223,8 @@ proof -
   from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
 qed
 
+print_theorems
+
 instance group < monoid
 proof
   fix x :: "'a::group"
@@ -301,10 +303,10 @@ lemma (in group) int_pow_one:
 using pow_def nat_pow_one inv_one by simp
 
 instance group_prod_def: (group, group) * :: group
-  mult_prod_def: "x \<otimes> y == let (x1, x2) = x in (let (y1, y2) = y in
-              ((x1::'a::group) \<otimes> y1, (x2::'b::group) \<otimes> y2))"
-  mult_one_def: "\<one> == (\<one>::'a::group, \<one>::'b::group)"
-  mult_inv_def: "\<div> x == let (x1::'a::group, x2::'b::group) = x in (\<div> x1, \<div> x2)"
+  mult_prod_def: "x \<otimes> y == let (x1, x2) = x; (y1, y2) = y in
+              (x1 \<otimes> y1, x2 \<otimes> y2)"
+  mult_one_def: "\<one> == (\<one>, \<one>)"
+  mult_inv_def: "\<div> x == let (x1, x2) = x in (\<div> x1, \<div> x2)"
 by default (simp_all add: split_paired_all group_prod_def assoc neutl invl)
 
 instance group_comm_prod_def: (group_comm, group_comm) * :: group_comm
