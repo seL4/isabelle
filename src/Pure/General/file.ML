@@ -142,7 +142,7 @@ fun copy from to = conditional (not (eq (from, to))) (fn () =>
   in write target (read from) end);
 
 fun copy_dir from to = conditional (not (eq (from, to))) (fn () =>
-  (system_command ("cp -r " ^ shell_path from ^ "/. " ^ shell_path to); ()))
+  (system_command ("cp -r -f " ^ shell_path from ^ "/. " ^ shell_path to); ()))
 
 
 (* use ML files *)
