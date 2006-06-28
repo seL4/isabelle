@@ -12,6 +12,7 @@ sig
   val class_intros: theory -> thm list
   val params_of: theory -> class -> string list
   val all_params_of: theory -> sort -> string list
+  val class_of: theory -> string -> class option
   val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
@@ -132,6 +133,9 @@ fun get_params thy pred =
 
 fun params_of thy c = get_params thy (fn c' => c' = c);
 fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
+
+fun class_of thy =
+  AList.lookup (op =) (#2 (get_axclasses thy));
 
 
 (* maintain instances *)
