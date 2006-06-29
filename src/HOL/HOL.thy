@@ -1274,6 +1274,36 @@ setup eq_codegen_setup
 setup evaluation_oracle_setup
 
 
+ML {*
+local
+
+exception Normalization of term;
+
+fun normalization_oracle (thy, Normalization t) = Logic.mk_equals
+  (t, HOLogic.mk_Trueprop (NBE.norm_term thy (HOLogic.dest_Trueprop t)));
+
+fun normalization_conv ct =
+  let val {sign, t, ...} = rep_cterm ct
+  in Thm.invoke_oracle_i sign "HOL.Normalization" (sign, Normalization t) end;
+
+fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
+  (Drule.goals_conv (equal i) normalization_conv));
+
+val normalization_meth =
+  Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN rtac TrueI 1));
+
+in
+
+val normalization_oracle_setup =
+  Theory.add_oracle ("Normalization", normalization_oracle) #>
+  Method.add_method ("normalization", normalization_meth, "solve goal by normalization");
+
+end;
+*}
+
+setup normalization_oracle_setup
+
+
 subsection {* Other simple lemmas *}
 
 declare disj_absorb [simp] conj_absorb [simp]
