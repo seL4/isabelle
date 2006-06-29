@@ -204,6 +204,7 @@ datatype literal = Literal of polarity * combterm;
 datatype clause = 
 	 Clause of {clause_id: clause_id,
 		    axiom_name: axiom_name,
+		    th: thm,
 		    kind: kind,
 		    literals: literal list,
 		    ctypes_sorts: (ctyp_var * csort) list, 
@@ -281,11 +282,12 @@ fun isTaut (Clause {literals,...}) = exists isTrue literals;
 
 
 
-fun make_clause(clause_id,axiom_name,kind,literals,ctypes_sorts,ctvar_type_literals,ctfree_type_literals) =
+fun make_clause(clause_id,axiom_name,th,kind,literals,ctypes_sorts,ctvar_type_literals,ctfree_type_literals) =
     if forall isFalse literals
     then error "Problem too trivial for resolution (empty clause)"
     else
-	Clause {clause_id = clause_id, axiom_name = axiom_name, kind = kind,
+	Clause {clause_id = clause_id, axiom_name = axiom_name, 
+                th = th, kind = kind, 
 		literals = literals, ctypes_sorts = ctypes_sorts, 
 		ctvar_type_literals = ctvar_type_literals,
 		ctfree_type_literals = ctfree_type_literals};
@@ -466,12 +468,11 @@ fun literals_of_term P = literals_of_term1 ([],[]) P;
 (* making axiom and conjecture clauses *)
 fun make_axiom_clause thm (ax_name,cls_id) =
     let val term = prop_of thm
-	val term' = comb_of term
-	val (lits,ctypes_sorts) = literals_of_term term'
+	val (lits,ctypes_sorts) = literals_of_term (comb_of term)
 	val lits' = sort_lits lits
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
-	make_clause(cls_id,ax_name,Axiom,
+	make_clause(cls_id,ax_name,thm,Axiom,
 		    lits',ctypes_sorts,ctvar_lits,ctfree_lits)
     end;
 
@@ -486,11 +487,10 @@ fun make_axiom_clauses [] = []
 
 fun make_conjecture_clause n thm =
     let val t = prop_of thm
-	val t' = comb_of t
-	val (lits,ctypes_sorts) = literals_of_term t'
+	val (lits,ctypes_sorts) = literals_of_term (comb_of t)
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
-	make_clause(n,"conjecture",Conjecture,lits,ctypes_sorts,ctvar_lits,ctfree_lits)
+	make_clause(n,"conjecture",thm,Conjecture,lits,ctypes_sorts,ctvar_lits,ctfree_lits)
     end;
 
 
