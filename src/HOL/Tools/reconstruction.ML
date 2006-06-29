@@ -9,18 +9,6 @@
 structure Reconstruction =
 struct
 
-(**************************************************************)
-(* extra functions necessary for factoring and paramodulation *)
-(**************************************************************)
-
-fun mksubstlist [] sublist = sublist
-  | mksubstlist ((a, (_, b)) :: rest) sublist =
-      let val vartype = type_of b
-          val avar = Var(a,vartype)
-          val newlist = ((avar,b)::sublist)
-      in mksubstlist rest newlist end;
-
-
 (**** attributes ****)
 
 (** Binary resolution **)
@@ -34,21 +22,26 @@ val binary = Attrib.syntax
     >> (fn ((i, B), j) => Thm.rule_attribute (fn _ => fn A => binary_rule ((A, i), (B, j)))));
 
 
-fun inst_single sign t1 t2 cl =
-    let val ct1 = cterm_of sign t1 and ct2 = cterm_of sign t2
-    in  hd (Seq.list_of(distinct_subgoals_tac
-                            (cterm_instantiate [(ct1,ct2)] cl)))
-    end;
-
-fun inst_subst sign substs cl =
-    if (is_Var (fst(hd(substs))))
-    then inst_single sign (fst (hd substs)) (snd (hd substs)) cl
-    else if (is_Var (snd(hd(substs))))
-    then inst_single sign (snd (hd substs)) (fst (hd substs)) cl
-    else raise THM ("inst_subst", 0, [cl]);
-
-
 (** Factoring **)
+
+(*NB this code did not work at all before 29/6/2006. Even now its behaviour may
+  not be as expected. It unifies the designated literals
+  and then deletes ALL duplicates of literals (not just those designated)*)
+
+fun mksubstlist [] sublist = sublist
+  | mksubstlist ((a, (T, b)) :: rest) sublist =
+      mksubstlist rest ((Var(a,T), b)::sublist);
+
+fun reorient (x,y) = 
+      if is_Var x then (x,y)
+      else if is_Var y then (y,x)
+      else error "Reconstruction.reorient: neither term is a Var";
+
+fun inst_subst sign subst cl =
+  let val subst' = map (pairself (cterm_of sign) o reorient) subst
+  in 
+      Seq.hd(distinct_subgoals_tac (cterm_instantiate subst' cl))
+  end;
 
 fun factor_rule (cl, lit1, lit2) =
     let
