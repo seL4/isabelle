@@ -7,8 +7,8 @@ Preconditions: no Vars
 
 signature NBE =
 sig
-  val norm_by_eval_i: term -> theory -> term * theory;
-  val lookup: string -> NBE_Eval.Univ;
+  val norm_term: theory -> term -> term
+  val lookup: string -> NBE_Eval.Univ
   val update: string * NBE_Eval.Univ -> unit
   val trace_nbe: bool ref
 end;
@@ -18,13 +18,13 @@ struct
 
 structure NBE_Data = TheoryDataFun
 (struct
-  val name = "Pure/NBE";
-  type T = NBE_Eval.Univ Symtab.table;
-  val empty = Symtab.empty;
-  val copy = I;
-  val extend = I;
-  fun merge _ = Symtab.merge (K true);
-  fun print _ _ = ();
+  val name = "Pure/NBE"
+  type T = NBE_Eval.Univ Symtab.table
+  val empty = Symtab.empty
+  val copy = I
+  val extend = I
+  fun merge _ = Symtab.merge (K true)
+  fun print _ _ = ()
 end);
 
 val trace_nbe = ref false;
@@ -62,8 +62,9 @@ fun anno_vars (Ftab,Vtab) =
   subst_Frees (map (fn (s,T) =>   (s,   Free(s,T)))  Ftab)
 
 (* FIXME try to use isar_cmd/print_term to take care of context *)
-fun norm_by_eval_i t thy =
+fun norm_print_i thy t =
   let
+    val _ = nbe_trace (fn() => "Input:\n" ^ Display.raw_string_of_term t)
     val nbe_tab = NBE_Data.get thy;
     val modl_old = CodegenThingol.project_module (Symtab.keys nbe_tab)
       (CodegenPackage.get_root_module thy);
@@ -75,7 +76,6 @@ fun norm_by_eval_i t thy =
              Library.seq (use_show o NBE_Codegen.generate defined) diff);
     val thy'' = NBE_Data.put (!tab) thy';
     val nt' = NBE_Eval.nbe (!tab) t';
-    val _ = nbe_trace (fn() => "Input:\n" ^ Display.raw_string_of_term t)
     val _ =  nbe_trace (fn()=> "Normalized:\n" ^ NBE_Eval.string_of_nterm nt');
     val t' = NBE_Codegen.nterm_to_term thy'' nt';
     val _ = nbe_trace (fn()=>"Converted back:\n" ^ Display.raw_string_of_term t');
@@ -91,13 +91,15 @@ fun norm_by_eval_i t thy =
     val _ = writeln s
   in  (t''', thy'')  end;
 
-fun norm_by_eval raw_t thy = norm_by_eval_i (Sign.read_term thy raw_t) thy;
+fun norm_print s thy = norm_print_i thy (Sign.read_term thy s);
+
+fun norm_term thy t = fst (norm_print_i (Theory.copy thy) t);
 
 structure P = OuterParse and K = OuterKeyword;
 
 val nbeP =
   OuterSyntax.command "normal_form" "normalization by evaluation" K.thy_decl
-    (P.term >> (fn t => Toplevel.theory (snd o norm_by_eval t)));
+    (P.term >> (fn s => Toplevel.theory (snd o norm_print s)));
 
 val _ = OuterSyntax.add_parsers [nbeP];
 
