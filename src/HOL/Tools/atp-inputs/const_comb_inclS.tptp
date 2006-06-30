@@ -24,41 +24,10 @@ input_clause(a4,axiom,
 input_clause(a5,axiom,
 [++equal(hAPP(hAPP(hAPP(c_COMBC(A,B,C),P),Q),R),hAPP(hAPP(P,R),Q))]).
 
-%the combinators are all different
 input_clause(a6,axiom,
-[--equal(c_COMBI(T),c_COMBK(A,B))]).
-
-input_clause(a7,axiom,
-[--equal(c_COMBI(T),c_COMBS(A,B,C))]).
-
-input_clause(a8,axiom,
-[--equal(c_COMBI(T),c_COMBB(A,B,C))]).
-
-input_clause(a9,axiom,
-[--equal(c_COMBI(T),c_COMBC(A,B,C))]).
-
-input_clause(a10,axiom,
-[--equal(c_COMBK(A,B),c_COMBS(A3,B3,C3))]).
-
-input_clause(a11,axiom,
-[--equal(c_COMBK(A,B),c_COMBB(A1,B1,C1))]).
-
-input_clause(a12,axiom,
-[--equal(c_COMBK(A,B),c_COMBC(A2,B2,C2))]).
-
-input_clause(a13,axiom,
-[--equal(c_COMBS(A3,B3,C3),c_COMBB(A1,B1,C1))]).
-
-input_clause(a14,axiom,
-[--equal(c_COMBS(A3,B3,C3),c_COMBC(A2,B2,C2))]).
-
-input_clause(a15,axiom,
-[--equal(c_COMBB(A1,B1,C1),c_COMBC(A2,B2,C2))]).
-
-input_clause(a16,axiom,
 [--hBOOL(hAPP(hAPP(fequal(A),X),Y)),++equal(X,Y)]).
 
-input_clause(a17,axiom,
+input_clause(a7,axiom,
 [++hBOOL(hAPP(hAPP(fequal(A),X),Y)),--equal(X,Y)]).
 
 

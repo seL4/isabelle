@@ -28,64 +28,14 @@ or( equal(typeinfo(hAPP(typeinfo(hAPP(typeinfo(hAPP(typeinfo(c_COMBC,tc_fun(tc_f
 a5 ).
 
 clause(
-forall([A, B, T],
-or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))))))),
-a6 ).
-
-clause(
-forall([A, B, C, T],
-or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBS,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(tc_fun(A,B),tc_fun(A,C)))))))),
-a7 ).
-
-clause(
-forall([A, B, C, T],
-or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBB,tc_fun(tc_fun(A,B),tc_fun(tc_fun(C,A),tc_fun(C,B)))))))),
-a8 ).
-
-clause(
-forall([A, B, C, T],
-or( not(equal(typeinfo(c_COMBI,tc_fun(T,T)),typeinfo(c_COMBC,tc_fun(tc_fun(A,tc_fun(B,C)),tc_fun(B,tc_fun(A,C)))))))),
-a9 ).
-
-clause(
-forall([A, A3, B, B3, C3],
-or( not(equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBS,tc_fun(tc_fun(A3,tc_fun(B3,C3)),tc_fun(tc_fun(A3,B3),tc_fun(A3,C3)))))))),
-a10 ).
-
-clause(
-forall([A, A1, B, B1, C1],
-or( not(equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))))))),
-a11 ).
-
-clause(
-forall([A, A2, B, B2, C2],
-or( not(equal(typeinfo(c_COMBK,tc_fun(A,tc_fun(B,A))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))))),
-a12 ).
-
-clause(
-forall([A1, A3, B1, B3, C1, C3],
-or( not(equal(typeinfo(c_COMBS,tc_fun(tc_fun(A3,tc_fun(B3,C3)),tc_fun(tc_fun(A3,B3),tc_fun(A3,C3)))),typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))))))),
-a13 ).
-
-clause(
-forall([A2, A3, B2, B3, C2, C3],
-or( not(equal(typeinfo(c_COMBS,tc_fun(tc_fun(A3,tc_fun(B3,C3)),tc_fun(tc_fun(A3,B3),tc_fun(A3,C3)))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))))),
-a14 ).
-
-clause(
-forall([A1, A2, B1, B2, C1, C2],
-or( not(equal(typeinfo(c_COMBB,tc_fun(tc_fun(A1,B1),tc_fun(tc_fun(C1,A1),tc_fun(C1,B1)))),typeinfo(c_COMBC,tc_fun(tc_fun(A2,tc_fun(B2,C2)),tc_fun(B2,tc_fun(A2,C2)))))))),
-a15 ).
-
-clause(
 forall([A, X, Y],
 or( not(hBOOL(typeinfo(hAPP(typeinfo(hAPP(typeinfo(fequal,tc_fun(A,tc_fun(A,tc_bool))),typeinfo(X,A)),tc_fun(A,tc_bool)),typeinfo(Y,A)),tc_bool))),
     equal(typeinfo(X,A),typeinfo(Y,A)))),
-a16 ).
+a6 ).
 
 clause(
 forall([A, X, Y],
 or( not(equal(typeinfo(X,A),typeinfo(Y,A))),
     hBOOL(typeinfo(hAPP(typeinfo(hAPP(typeinfo(fequal,tc_fun(A,tc_fun(A,tc_bool))),typeinfo(X,A)),tc_fun(A,tc_bool)),typeinfo(Y,A)),tc_bool)))),
-a17 ).
+a7 ).
 

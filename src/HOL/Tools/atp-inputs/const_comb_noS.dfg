@@ -23,45 +23,15 @@ or( equal(hAPP(hAPP(hAPP(c_COMBC(A,B,C),P),Q),R),hAPP(hAPP(P,R),Q)))),
 a5 ).
 
 clause(
-forall([A, B, T],
-or( not(equal(c_COMBI(T),c_COMBK(A,B))))),
-a6 ).
-
-clause(
-forall([A, B, C, T],
-or( not(equal(c_COMBI(T),c_COMBB(A,B,C))))),
-a8 ).
-
-clause(
-forall([A, B, C, T],
-or( not(equal(c_COMBI(T),c_COMBC(A,B,C))))),
-a9 ).
-
-clause(
-forall([A, A1, B, B1, C1],
-or( not(equal(c_COMBK(A,B),c_COMBB(A1,B1,C1))))),
-a11 ).
-
-clause(
-forall([A, A2, B, B2, C2],
-or( not(equal(c_COMBK(A,B),c_COMBC(A2,B2,C2))))),
-a12 ).
-
-clause(
-forall([A1, A2, B1, B2, C1, C2],
-or( not(equal(c_COMBB(A1,B1,C1),c_COMBC(A2,B2,C2))))),
-a15 ).
-
-clause(
 forall([A, X, Y],
 or( not(hBOOL(hAPP(hAPP(fequal(A),X),Y))),
     equal(X,Y))),
-a16 ).
+a6 ).
 
 clause(
 forall([A, X, Y],
 or( not(equal(X,Y)),
     hBOOL(hAPP(hAPP(fequal(A),X),Y)))),
-a17 ).
+a7 ).
 
 

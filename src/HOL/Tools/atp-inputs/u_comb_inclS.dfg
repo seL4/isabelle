@@ -28,54 +28,14 @@ or( equal(hAPP(hAPP(hAPP(c_COMBC,P),Q),R),hAPP(hAPP(P,R),Q)))),
 a5 ).
 
 clause(
-or( not(equal(c_COMBI,c_COMBK))),
-a6 ).
-
-clause(
-or( not(equal(c_COMBI,c_COMBS))),
-a7 ).
-
-clause(
-or( not(equal(c_COMBI,c_COMBB))),
-a8 ).
-
-clause(
-or( not(equal(c_COMBI,c_COMBC))),
-a9 ).
-
-clause(
-or( not(equal(c_COMBK,c_COMBS))),
-a10 ).
-
-clause(
-or( not(equal(c_COMBK,c_COMBB))),
-a11 ).
-
-clause(
-or( not(equal(c_COMBK,c_COMBC))),
-a12 ).
-
-clause(
-or( not(equal(c_COMBS,c_COMBB))),
-a13 ).
-
-clause(
-or( not(equal(c_COMBS,c_COMBC))),
-a14 ).
-
-clause(
-or( not(equal(c_COMBB,c_COMBC))),
-a15 ).
-
-clause(
 forall([X, Y],
 or( not(hBOOL(hAPP(hAPP(fequal,X),Y))),
     equal(X,Y))),
-a16 ).
+a6 ).
 
 clause(
 forall([X, Y],
 or( not(equal(X,Y)),
     hBOOL(hAPP(hAPP(fequal,X),Y)))),
-a17 ).
+a7 ).
 
