@@ -1290,7 +1290,7 @@ fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
   (Drule.goals_conv (equal i) normalization_conv));
 
 val normalization_meth =
-  Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN rtac TrueI 1));
+  Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI,refl] 1));
 
 in
 
