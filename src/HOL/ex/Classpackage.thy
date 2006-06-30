@@ -61,8 +61,8 @@ proof
   fix xs :: "'a list"
   show "\<one> \<otimes> xs = xs"
   proof -
-    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys".
-    moreover from monoidl_list_def have "\<one> == []::'a list".
+    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys" .
+    moreover from monoidl_list_def have "\<one> == []::'a list" by simp
     ultimately show ?thesis by simp
   qed
 qed  
@@ -75,8 +75,8 @@ proof
   fix xs :: "'a list"
   show "xs \<otimes> \<one> = xs"
   proof -
-    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys".
-    moreover from monoidl_list_def have "\<one> == []::'a list".
+    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys" .
+    moreover from monoidl_list_def have "\<one> == []::'a list" by simp
     ultimately show ?thesis by simp
   qed
 qed  
