@@ -12,7 +12,7 @@ sig
   val is_dtcon: string -> bool;
   val consts_of_idfs: theory -> string list -> (string * typ) list;
   val idfs_of_consts: theory -> (string * typ) list -> string list;
-  val get_root_module: theory -> CodegenThingol.module;
+  val get_root_module: theory -> CodegenThingol.module * theory;
   val get_ml_fun_datatype: theory -> (string -> string)
     -> ((string * CodegenThingol.funn) list -> Pretty.T)
         * ((string * CodegenThingol.datatyp) list -> Pretty.T);
@@ -801,9 +801,9 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       trns
       |> exprgen_type thy tabs ty
       |-> (fn ty => pair (IVar v))
-  | exprgen_term thy tabs (Abs (abs as (_, ty, _))) trns =
+  | exprgen_term thy tabs (Abs (raw_v, ty, raw_t)) trns =
       let
-        val (v, t) = Term.variant_abs abs
+        val (v, t) = Term.variant_abs (CodegenTheorems.proper_name raw_v, ty, raw_t);
       in
         trns
         |> exprgen_type thy tabs ty
@@ -1113,7 +1113,10 @@ fun consts_of_idfs thy =
 fun idfs_of_consts thy =
   map (idf_of_const thy (mk_tabs thy NONE));
 
-val get_root_module = (#modl o CodegenData.get);
+fun get_root_module thy =
+  thy
+  |> CodegenTheorems.notify_dirty
+  |> `(#modl o CodegenData.get);
 
 fun get_ml_fun_datatype thy resolv =
   let

@@ -600,7 +600,8 @@ fun preprocess thy thms =
     fun rewrite_rhs conv thm = (case (Drule.strip_comb o cprop_of) thm
      of (ct', [ct1, ct2]) => (case term_of ct'
          of Const ("==", _) =>
-              Thm.equal_elim (combination (combination (reflexive ct') (reflexive ct1)) (conv ct2)) thm
+              Thm.equal_elim (combination (combination (reflexive ct') (reflexive ct1))
+                (conv ct2)) thm
           | _ => raise ERROR "rewrite_rhs")
       | _ => raise ERROR "rewrite_rhs");
     fun unvarify thms =

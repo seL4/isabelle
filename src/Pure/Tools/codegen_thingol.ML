@@ -17,8 +17,9 @@ signature BASIC_CODEGEN_THINGOL =
 sig
   type vname = string;
   type sortcontext = ClassPackage.sortcontext;
-  datatype iclasslookup = Instance of string * iclasslookup list list
-                        | Lookup of class list * (string * int);
+  datatype iclasslookup =
+      Instance of string * iclasslookup list list
+    | Lookup of class list * (vname * int);
   datatype itype =
       `%% of string * itype list
     | `-> of itype * itype
@@ -28,7 +29,7 @@ sig
     | IVar of vname
     | `$ of iexpr * iexpr
     | `|-> of (vname * itype) * iexpr
-    | INum of IntInf.int (*positive!*) * iexpr
+    | INum of IntInf.int (*non-negative!*) * iexpr
     | IChar of string (*length one!*) * iexpr
     | IAbs of ((iexpr * itype) * iexpr) * iexpr
         (* (((binding expression (ve), binding type (vty)),
@@ -153,8 +154,9 @@ fun get_prefix eq ([], ys) = ([], ([], ys))
 type vname = string;
 
 type sortcontext = ClassPackage.sortcontext;
-datatype iclasslookup = Instance of string * iclasslookup list list
-                      | Lookup of class list * (string * int);
+datatype iclasslookup =
+    Instance of string * iclasslookup list list
+  | Lookup of class list * (vname * int);
 
 datatype itype =
     `%% of string * itype list
@@ -166,7 +168,7 @@ datatype iexpr =
   | IVar of vname
   | `$ of iexpr * iexpr
   | `|-> of (vname * itype) * iexpr
-  | INum of IntInf.int (*positive!*) * iexpr
+  | INum of IntInf.int (*non-negative!*) * iexpr
   | IChar of string (*length one!*) * iexpr
   | IAbs of ((iexpr * itype) * iexpr) * iexpr
   | ICase of ((iexpr * itype) * (iexpr * iexpr) list) * iexpr;
