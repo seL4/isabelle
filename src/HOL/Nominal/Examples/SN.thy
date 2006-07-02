@@ -217,7 +217,7 @@ lemma valid_eqvt:
   shows   "valid (pi\<bullet>\<Gamma>)"
 using a
 apply(induct)
-apply(auto simp add: fresh_eqvt)
+apply(auto simp add: fresh_bij)
 done
 
 (* typing judgements *)
@@ -281,7 +281,7 @@ proof (induct)
     using typing.t1 by (force simp add: pt_list_set_pi[OF pt_name_inst, symmetric])
 next 
   case (t3 \<Gamma> \<sigma> \<tau> a t)
-  moreover have "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" by (simp add: fresh_eqvt)
+  moreover have "(pi\<bullet>a)\<sharp>(pi\<bullet>\<Gamma>)" by (simp add: fresh_bij)
   ultimately show "(pi\<bullet>\<Gamma>) \<turnstile> (pi\<bullet>Lam [a].t) :\<tau>\<rightarrow>\<sigma>" by force 
 qed (auto)
 

@@ -668,6 +668,7 @@ fun create_nom_typedecls ak_names thy =
        val pt_perm_compose'    = thm "Nominal.pt_perm_compose'";
        val perm_app            = thm "Nominal.pt_fun_app_eq";
        val at_fresh            = thm "Nominal.at_fresh";
+       val at_fresh_ineq       = thm "Nominal.at_fresh_ineq";
        val at_calc             = thms "Nominal.at_calc";
        val at_supp             = thm "Nominal.at_supp";
        val dj_supp             = thm "Nominal.dj_supp";
@@ -679,8 +680,11 @@ fun create_nom_typedecls ak_names thy =
        val fresh_bij           = thm "Nominal.pt_fresh_bij";
        val fresh_aux_ineq      = thm "Nominal.pt_fresh_aux_ineq";
        val fresh_aux           = thm "Nominal.pt_fresh_aux";
+       val fresh_eqvt          = thm "Nominal.pt_fresh_eqvt";
+       val all_eqvt            = thm "Nominal.pt_all_eqvt";
        val pt_pi_rev           = thm "Nominal.pt_pi_rev";
        val pt_rev_pi           = thm "Nominal.pt_rev_pi";
+       val at_exists_fresh     = thm "Nominal.at_exists_fresh";
   
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
@@ -761,7 +765,12 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("perm_compose'",inst_pt_at [pt_perm_compose']),[])] 
             ||>> PureThy.add_thmss [(("perm_app", inst_pt_at [perm_app]),[])]
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
-            ||>> PureThy.add_thmss [(("fresh_atm", inst_at [at_fresh]),[])]
+            ||>> PureThy.add_thmss [(("exists_fresh", inst_at [at_exists_fresh]),[])]
+            ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[])]
+            ||>> PureThy.add_thmss 
+	      let val thms1 = inst_at [at_fresh]
+		  val thms2 = inst_dj [at_fresh_ineq]
+	      in [(("fresh_atm", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss [(("calc_atm", inst_at at_calc),[])]
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_pi]
@@ -792,7 +801,10 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_bij]
 		  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
-	      in [(("fresh_eqvt", thms1 @ thms2),[])] end
+	      in [(("fresh_bij", thms1 @ thms2),[])] end
+            ||>> PureThy.add_thmss
+	      let val thms1 = inst_pt_at [fresh_eqvt]
+	      in [(("fresh_eqvt", thms1),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [fresh_aux]
 		  and thms2 = inst_pt_pt_at_cp_dj [fresh_aux_ineq]

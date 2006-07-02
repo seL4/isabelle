@@ -104,15 +104,11 @@ next
       done
     have fs1: "a1\<sharp>f3 a1 r1" using b f1
       apply(auto)
-      apply(case_tac "a=a1")
-      apply(simp)
       apply(rule_tac pi="[(a1,a)]" in pt_fresh_bij2[OF pt_name_inst, OF at_name_inst])
       apply(perm_simp add: calc_atm fresh_prod)
       done      
     have fs2: "a2\<sharp>f3 a2 r2" using b f2
       apply(auto)
-      apply(case_tac "a=a2")
-      apply(simp)
       apply(rule_tac pi="[(a2,a)]" in pt_fresh_bij2[OF pt_name_inst, OF at_name_inst])
       apply(perm_simp add: calc_atm fresh_prod)
       done      
@@ -155,7 +151,7 @@ proof -
   have fs_pi: "\<exists>(a::name). a\<sharp>(pi\<bullet>f3) \<and> (\<forall>(r::'a::pt_name). a\<sharp>(pi\<bullet>f3) a r)" 
   proof -
     from c obtain a where fs1: "a\<sharp>f3" and fs2: "\<forall>(r::'a::pt_name). a\<sharp>f3 a r" by force
-    have "(pi\<bullet>a)\<sharp>(pi\<bullet>f3)" using fs1 by (simp add: fresh_eqvt)
+    have "(pi\<bullet>a)\<sharp>(pi\<bullet>f3)" using fs1 by (simp add: fresh_bij)
     moreover
     have "\<forall>(r::'a::pt_name). (pi\<bullet>a)\<sharp>((pi\<bullet>f3) (pi\<bullet>a) r)" using fs2 by (perm_simp add: fresh_right)
     ultimately show "\<exists>(a::name). a\<sharp>(pi\<bullet>f3) \<and> (\<forall>(r::'a::pt_name). a\<sharp>(pi\<bullet>f3) a r)" by blast

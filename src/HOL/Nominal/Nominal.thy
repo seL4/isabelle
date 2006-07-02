@@ -87,6 +87,16 @@ lemma perm_bool:
   shows "pi\<bullet>(b::bool) = b"
   by (cases b) auto
 
+lemma perm_boolI:
+  assumes a: "P"
+  shows "pi\<bullet>P"
+  using a by (simp add: perm_bool)
+
+lemma perm_boolE:
+  assumes a: "pi\<bullet>P"
+  shows "P"
+  using a by (simp add: perm_bool)
+
 (* permutation on options *)
 primrec (unchecked perm_option)
   perm_some_def:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
@@ -865,6 +875,13 @@ lemma dj_supp:
 apply(simp add: supp_def dj_perm_forget[OF dj])
 done
 
+lemma at_fresh_ineq:
+  fixes a :: "'x"
+  and   b :: "'y"
+  assumes dj: "disjoint TYPE('y) TYPE('x)"
+  shows "a\<sharp>b" 
+  by (simp add: fresh_def dj_supp[OF dj])
+
 section {* permutation type instances *}
 (* ===================================*)
 
@@ -1406,6 +1423,15 @@ lemma pt_fresh_bij2:
   shows  "a\<sharp>x"
 using a by (simp add: pt_fresh_bij[OF pt, OF at])
 
+lemma pt_fresh_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>x) = (pi\<bullet>a)\<sharp>(pi\<bullet>x)"
+  by (simp add: perm_bool pt_fresh_bij[OF pt, OF at])
+
 lemma pt_perm_fresh1:
   fixes a :: "'x"
   and   b :: "'x"
@@ -1555,6 +1581,29 @@ proof -
   hence "((rev pi2)@(rev pi1))\<bullet>x = ((rev pi1)@(rev (pi1\<bullet>pi2)))\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp add: pt2[OF pt])
 qed
+
+section {* equivaraince for some connectives *}
+
+lemma pt_all_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). (pi\<bullet>P) x)"
+apply(auto simp add: perm_bool perm_fun_def)
+apply(drule_tac x="pi\<bullet>x" in spec)
+apply(simp add: pt_rev_pi[OF pt, OF at])
+done
+
+lemma imp_eqvt:
+  fixes pi::"'x prm"
+  shows "pi\<bullet>(A\<longrightarrow>B) = ((pi\<bullet>A)\<longrightarrow>(pi\<bullet>B))"
+  by (simp add: perm_bool)
+
+lemma conj_eqvt:
+  fixes pi::"'x prm"
+  shows "pi\<bullet>(A\<and>B) = ((pi\<bullet>A)\<and>(pi\<bullet>B))"
+  by (simp add: perm_bool)
 
 section {* facts about supports *}
 (*==============================*)

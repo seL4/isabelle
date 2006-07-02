@@ -178,7 +178,7 @@ next
   have "\<turnstile> (pi\<bullet>\<Gamma>) ok" by fact
   moreover
   have "X\<sharp>(domain \<Gamma>)" by fact
-  hence "(pi\<bullet>X)\<sharp>(domain (pi\<bullet>\<Gamma>))" by (simp add: fresh_eqvt domain_eqvt[symmetric])
+  hence "(pi\<bullet>X)\<sharp>(domain (pi\<bullet>\<Gamma>))" by (simp add: fresh_bij domain_eqvt[symmetric])
   moreover
   have "T closed_in \<Gamma>" by fact
   hence "(pi\<bullet>T) closed_in (pi\<bullet>\<Gamma>)" by (simp add: closed_in_eqvt)
@@ -341,7 +341,7 @@ apply(force intro: valid_eqvt
             dest: pt_set_bij2[OF pt_tyvrs_inst, OF at_tyvrs_inst]
             simp add: domain_eqvt)
 apply(force)
-apply(force intro!: S_Forall simp add: fresh_prod fresh_eqvt)
+apply(force intro!: S_Forall simp add: fresh_prod fresh_bij)
 done
 
 text {* The most painful part of the subtyping definition is the strengthening of the
