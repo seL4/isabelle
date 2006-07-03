@@ -1228,6 +1228,9 @@ val pwd = OS.FileSys.getDir;
 
 (** misc **)
 
+(* decompose the "problem" x into a list of subproblems ys and a recombination *)
+(* function recomb, solve the subproblems recursively, use recomb to combine   *)
+(* the recursive solutions for ys into an overall "solution" for x             *)
 fun divide_and_conquer decomp x =
   let val (ys, recomb) = decomp x
   in recomb (map (divide_and_conquer decomp) ys) end;
