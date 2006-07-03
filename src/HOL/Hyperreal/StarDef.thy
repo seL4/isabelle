@@ -176,7 +176,7 @@ definition
        (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
 
 lemma Ifun_congruent2:
-  "(\<lambda>F X. starrel``{\<lambda>n. F n (X n)}) respects2 starrel"
+  "congruent2 starrel starrel (\<lambda>F X. starrel``{\<lambda>n. F n (X n)})"
 by (auto simp add: congruent2_def equiv_starrel_iff elim!: ultra)
 
 lemma Ifun_star_n: "star_n F \<star> star_n X = star_n (\<lambda>n. F n (X n))"
