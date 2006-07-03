@@ -279,22 +279,14 @@ fun merge_algebra pp
       |> add_arities_table pp algebra0 arities2;
   in make_algebra (classes', arities') end;
 
-fun project_algebra pp proj (Algebra {classes, arities}) =
+fun project_algebra pp proj (algebra as Algebra {classes, arities}) =
   let
-    fun proj_sort S =
-      maps (fn c => if proj c then [c]
-        else proj_sort (Graph.imm_succs classes c)) S;
-  in
-    make_algebra (
-      classes
-      |> Graph.project proj,
-      arities
-      |> (Symtab.map o map_filter) (fn (c, (c0, Ss)) =>
-          if proj c
-          then SOME (c, (c, map proj_sort Ss))
-          else NONE)
-    ) |> rebuild_arities pp
-  end;
+    val proj_sort = norm_sort algebra o filter proj o Graph.all_succs classes;
+    fun proj_arity (c, (_, Ss)) =
+      if proj c then SOME (c, (c, map proj_sort Ss)) else NONE;
+    val classes' = classes |> Graph.project proj;
+    val arities' = arities |> (Symtab.map o map_filter) proj_arity;
+  in rebuild_arities pp (make_algebra (classes', arities')) end;
 
 
 
