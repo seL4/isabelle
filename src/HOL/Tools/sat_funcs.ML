@@ -78,14 +78,17 @@ val resolution_thm =  (* "[| P ==> False; ~P ==> False |] ==> False" *)
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
 (*      resolution over the list (starting with its head), i.e. with two raw *)
 (*      clauses                                                              *)
-(*        [| x1; ... ; a; ...; xn |] ==> False                               *)
+(*         x1; ... ; a; ...; xn |- False                                     *)
 (*      and                                                                  *)
-(*        [| y1; ... ; a'; ...; ym |] ==> False                              *)
-(*      (where a and a' are dual to each other), we first convert the first  *)
-(*      clause to                                                            *)
-(*        [| x1; ...; xn |] ==> a'                                           *)
-(*      (using swap_prem and perhaps notnotD), and then do a resolution with *)
-(*      the second clause to produce                                         *)
+(*        y1; ... ; a'; ...; ym |- False                                     *)
+(*      (where a and a' are dual to each other), we convert the first clause *)
+(*      to                                                                   *)
+(*        x1; ...; xn |- a ==> False ,                                       *)
+(*      the second clause to                                                 *)
+(*        y1; ...; ym |- a' ==> False                                        *)
+(*      and then perform resolution with                                     *)
+(*        [| ?P ==> False; ~?P ==> False |] ==> False                        *)
+(*      to produce                                                           *)
 (*        [| y1; ...; x1; ...; xn; ...; yn |] ==> False                      *)
 (*      amd finally remove duplicate literals.                               *)
 (* ------------------------------------------------------------------------- *)
@@ -102,28 +105,41 @@ fun resolve_raw_clauses [] =
 		fun is_neg (Const ("Not", _) $ _) = true
 		  | is_neg _                      = false
 
+		(* see the comments on the term order below for why this implementation is sound *)
+		(* (Term.term * Term.term -> order) -> Thm.cterm list -> Term.term -> Thm.cterm option *)
+		fun member _   []      _ = NONE
+		  | member ord (y::ys) x = (case term_of y of  (* "un-certifying" y is faster than certifying x *)
+			  Const ("Trueprop", _) $ y' =>
+				(* compare the order *)
+				(case ord (x, y') of
+				  LESS    => NONE
+				| EQUAL   => SOME y
+				| GREATER => member ord ys x)
+			| _                         =>
+				(* no need to continue in this case *)
+				NONE)
+
 		(* find out which two hyps are used in the resolution *)
-		(* Term.term list -> Term.term list -> Term.term * Term.term *)
+		(* Thm.cterm list -> Thm.cterm list -> Thm.cterm * Thm.cterm *)
 		fun res_hyps [] _ =
 			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
 		  | res_hyps _ [] =
 			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
-		  | res_hyps ((Const ("Trueprop", _) $ x) :: xs) ys =
-			let val dx = dual x in
+		  | res_hyps (x :: xs) ys =
+			(case term_of x of
+			  Const ("Trueprop", _) $ lit =>
 				(* hyps are implemented as ordered list in the kernel, and *)
 				(* stripping 'Trueprop' should not change the order        *)
-				if OrdList.member Term.fast_term_ord ys dx then
-					(x, dx)
-				else
-					res_hyps xs ys
-			end
-		  | res_hyps (_ :: xs) ys =
-			(* hyps are implemented as ordered list in the kernel, all hyps are of *)
-			(* the form 'Trueprop $ lit' or 'implies $ (negated clause) $ False',  *)
-			(* and the former are LESS than the latter according to the order --   *)
-			(* therefore there is no need to continue the search via               *)
-			(* 'res_hyps xs ys' here                                               *)
-			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+				(case member Term.fast_term_ord ys (dual lit) of
+				  SOME y => (x, y)
+				| NONE   => res_hyps xs ys)
+			| _ =>
+				(* hyps are implemented as ordered list in the kernel, all hyps are of *)
+				(* the form 'Trueprop $ lit' or 'implies $ (negated clause) $ False',  *)
+				(* and the former are LESS than the latter according to the order --   *)
+				(* therefore there is no need to continue the search via               *)
+				(* 'res_hyps xs ys' here                                               *)
+				raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, []))
 
 		(* Thm.thm -> Thm.thm -> Thm.thm *)
 		fun resolution c1 c2 =
@@ -133,35 +149,29 @@ fun resolve_raw_clauses [] =
 						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2))) ^ ")")
 				else ()
 
-			(* Term.term list -> Term.term list *)
-			fun dest_filter_Trueprop []                                  = []
-			  | dest_filter_Trueprop ((Const ("Trueprop", _) $ x) :: xs) = x :: dest_filter_Trueprop xs
-			  | dest_filter_Trueprop (_ :: xs)                           =      dest_filter_Trueprop xs
+			val hyps1     = (#hyps o crep_thm) c1
+			val hyps2     = (#hyps o crep_thm) c2
 
-			val hyps1    =                        (#hyps o rep_thm) c1
-			(* minor optimization: dest/filter over the second list outside 'res_hyps' to do it only once *)
-			val hyps2    = (dest_filter_Trueprop o #hyps o rep_thm) c2
+			val (l1, l2)  = res_hyps hyps1 hyps2  (* the two literals used for resolution *)
+			val l1_is_neg = (is_neg o HOLogic.dest_Trueprop o term_of) l1
 
-			val (l1, l2) = res_hyps hyps1 hyps2  (* the two literals used for resolution, with 'Trueprop' stripped *)
-			val is_neg   = is_neg l1
+			val c1'       = Thm.implies_intr l1 c1  (* Gamma1 |- l1 ==> False *)
+			val c2'       = Thm.implies_intr l2 c2  (* Gamma2 |- l2 ==> False *)
 
-			val c1'      = Thm.implies_intr (cterm_of (theory_of_thm c1) (HOLogic.mk_Trueprop l1)) c1  (* Gamma1 |- l1 ==> False *)
-			val c2'      = Thm.implies_intr (cterm_of (theory_of_thm c2) (HOLogic.mk_Trueprop l2)) c2  (* Gamma2 |- l2 ==> False *)
-
-			val res_thm  =  (* |- (lit ==> False) ==> (~lit ==> False) ==> False *)
+			val res_thm   =  (* |- (lit ==> False) ==> (~lit ==> False) ==> False *)
 				let
-					val P          = Var (("P", 0), HOLogic.boolT)
-					val (lit, thy) = if is_neg then (l2, theory_of_thm c2') else (l1, theory_of_thm c1')
-					val cterm      = cterm_of thy
+					val thy  = theory_of_thm (if l1_is_neg then c2' else c1')
+					val cP   = cterm_of thy (Var (("P", 0), HOLogic.boolT))
+					val cLit = (cterm_of thy o HOLogic.dest_Trueprop o term_of) (if l1_is_neg then l2 else l1)
 				in
-					Thm.instantiate ([], [(cterm P, cterm lit)]) resolution_thm
+					Thm.instantiate ([], [(cP, cLit)]) resolution_thm
 				end
 
 			val _ = if !trace_sat then
 					tracing ("Resolution theorem: " ^ string_of_thm res_thm)
 				else ()
 
-			val c_new    = Thm.implies_elim (Thm.implies_elim res_thm (if is_neg then c2' else c1')) (if is_neg then c1' else c2')  (* Gamma1, Gamma2 |- False *)
+			val c_new     = Thm.implies_elim (Thm.implies_elim res_thm (if l1_is_neg then c2' else c1')) (if l1_is_neg then c1' else c2')  (* Gamma1, Gamma2 |- False *)
 
 			val _ = if !trace_sat then
 					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ space_implode ", " (map (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new))) ^ ")")
