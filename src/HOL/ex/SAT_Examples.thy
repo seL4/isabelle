@@ -23,23 +23,31 @@ lemma "(a | b) & ~a \<Longrightarrow> b"
 by sat
 
 lemma "(a & b) | (c & d) \<Longrightarrow> (a & b) | (c & d)"
+(*
 apply (tactic {* cnf.cnf_rewrite_tac 1 *})
+*)
 by sat
 
 lemma "(a & b) | (c & d) \<Longrightarrow> (a & b) | (c & d)"
+(*
 apply (tactic {* cnf.cnfx_rewrite_tac 1 *})
 apply (erule exE | erule conjE)+
+*)
 by satx
 
 lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q) \<Longrightarrow>
   (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
+(*
 apply (tactic {* cnf.cnf_rewrite_tac 1 *})
+*)
 by sat
 
 lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q) \<Longrightarrow>
   (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
+(*
 apply (tactic {* cnf.cnfx_rewrite_tac 1 *})
 apply (erule exE | erule conjE)+
+*)
 by satx
 
 lemma "P=P=P=P=P=P=P=P=P=P"
