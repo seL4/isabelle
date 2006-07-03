@@ -221,14 +221,10 @@ locale congruent2 =
     "(y1,z1) \<in> r1 ==> (y2,z2) \<in> r2 ==> f y1 y2 = f z1 z2"
 
 text{*Abbreviation for the common case where the relations are identical*}
-syntax
-  RESPECTS2 ::"['a => 'b, ('a * 'a) set] => bool"  (infixr "respects2 " 80)
-translations
-  "f respects2 r" => "congruent2 r r f"
-(*
-Warning: cannot use "abbreviation" here because the two occurrences of
-r may need to be of different type (see Hyperreal/StarDef).
-*)
+abbreviation
+  RESPECTS2:: "['a => 'a => 'b, ('a * 'a)set] => bool" (infixr "respects2 " 80)
+  "f respects2 r == congruent2 r r f"
+
 
 lemma congruent2_implies_congruent:
     "equiv A r1 ==> congruent2 r1 r2 f ==> a \<in> A ==> congruent r2 (f a)"
