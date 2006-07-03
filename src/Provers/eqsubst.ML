@@ -285,13 +285,13 @@ fun bot_left_leaf_of (l $ r) = bot_left_leaf_of l
   | bot_left_leaf_of (Abs(s,ty,t)) = bot_left_leaf_of t
   | bot_left_leaf_of x = x;
 
+(* Avoid considering replacing terms which have a var at the head as
+   they always succeed trivially, and uninterestingly. *)
 fun valid_match_start z =
     (case bot_left_leaf_of (Z.trm z) of 
-       Const _ => true
-     | Free _ => true
-     | Abs _ => true (* allowed to look inside abs... search decides if we actually consider the abstraction itself *)
-     | _ => false); (* avoid vars - always suceeds uninterestingly. *)
-                      
+      Var _ => false 
+      | _ => true);
+
 (* search from top, left to right, then down *)
 val search_lr_all = ZipperSearch.all_bl_ur;
 

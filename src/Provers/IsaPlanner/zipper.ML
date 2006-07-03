@@ -91,17 +91,22 @@ sig
   type T
 
   val mktop : C.D.Trm.T -> T
-  val goto_top : T -> T
-  val at_top : T -> bool
   val mk : (C.D.Trm.T * C.T) -> T
-  val set_trm : C.D.Trm.T -> T -> T
-  val set_ctxt : C.T -> T -> T
+
+  val goto_top : T -> T 
+  val at_top : T -> bool
 
   val split : T -> T * C.T
   val add_outerctxt : C.T -> T -> T
 
+  val set_trm : C.D.Trm.T -> T -> T
+  val set_ctxt : C.T -> T -> T
+
   val ctxt : T -> C.T
   val trm : T -> C.D.Trm.T
+  val top_trm : T -> C.D.Trm.T
+
+  val zipto : C.T -> T -> T (* follow context down *)
 
   val nty_ctxt : T -> (C.D.Trm.aname * C.D.Trm.typ) list;
   val ty_ctxt : T -> C.D.Trm.typ list;
@@ -254,6 +259,7 @@ functor ZipperFUN(C : TRM_CTXT)
 
   val ctxt = snd;
   val trm = fst;
+  val top_trm = trm o goto_top;
 
   fun nty_ctxt x = C.nty_ctxt (ctxt x);
   fun ty_ctxt x = C.ty_ctxt (ctxt x);
@@ -321,10 +327,17 @@ functor ZipperFUN(C : TRM_CTXT)
       ((l,(D.AppR r)::c),(r,(D.AppL l)::c))
     | move_down_app z = raise move ("move_down_app",z);
 
+  (* follow the given path down the given zipper *)
+  (* implicit arguments: C.D.dtrm list, then T *)
+  val zipto = 
+      C.fold (fn C.D.Abs _ => move_down_abs 
+               | C.D.AppL _ => move_down_left
+               | C.D.AppR _ => move_down_right) 
 
   (* Note: interpretted as being examined depth first *)
   datatype zsearch = Here of T | LookIn of T;
 
+  (* lazy search *)
   fun lzy_search fsearch = 
       let 
         fun lzyl [] () = NONE
