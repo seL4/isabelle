@@ -69,24 +69,21 @@ struct
 *)
 fun obtain_export ctxt parms rule cprops thm =
   let
-    val {thy, prop, maxidx, ...} = Thm.rep_thm thm;
-    val cparms = map (Thm.cterm_of thy) parms;
-
-    val thm' = thm
-      |> Drule.implies_intr_protected cprops
-      |> Drule.forall_intr_list cparms
-      |> Drule.forall_elim_vars (maxidx + 1);
-    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.protectI);
-
+    val {thy, prop, ...} = Thm.rep_thm thm;
     val concl = Logic.strip_assums_concl prop;
-    val bads = parms inter (Term.term_frees concl);
+    val bads = Term.fold_aterms (fn v as Free (x, _) =>
+      if member (op =) parms x then insert (op aconv) v else I | _ => I) concl [];
+
+    val thm' = thm |> Drule.implies_intr_protected cprops;
+    val thm'' = thm' |> Thm.generalize ([], parms) (Thm.maxidx_of thm' + 1);
+    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.protectI);
   in
     if not (null bads) then
       error ("Conclusion contains obtained parameters: " ^
         space_implode " " (map (ProofContext.string_of_term ctxt) bads))
     else if not (ObjectLogic.is_judgment thy concl) then
-      error "Conclusion in obtained context must be object-logic judgments"
-    else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
+      error "Conclusion in obtained context must be object-logic judgment"
+    else (Tactic.rtac thm'' THEN' RANGE elim_tacs) 1 rule
   end;
 
 
@@ -129,15 +126,13 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     fun occs_var x = Library.get_first (fn t =>
       Term.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
-    val raw_parms = map occs_var xs;
-    val parms = map_filter I raw_parms;
-    val parm_names =
-      map_filter (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
+    val parms =
+      map_filter (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (map occs_var xs ~~ xs);
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
-      Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, thesis))
-      |> Library.curry Logic.list_rename_params (map #2 parm_names);
+      Term.list_all_free (map #1 parms, Logic.list_implies (asm_props, thesis))
+      |> Library.curry Logic.list_rename_params (map #2 parms);
     val obtain_prop =
       Logic.list_rename_params ([AutoBind.thesisN],
         Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
@@ -146,7 +141,7 @@ fun gen_obtain prep_att prep_vars prep_propp
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
         Proof.fix_i (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
-        #> Proof.assm_i (K (obtain_export ctxt parms rule)) asms));
+        #> Proof.assm_i (K (obtain_export ctxt (map (#1 o #1) parms) rule)) asms));
   in
     state
     |> Proof.enter_forward
@@ -173,15 +168,17 @@ end;
 
 local
 
-fun unify_params ctxt vars raw_rule =
+fun unify_params vars thesis_name raw_rule ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
+    val certT = Thm.ctyp_of thy;
+    val cert = Thm.cterm_of thy;
     val string_of_typ = ProofContext.string_of_typ ctxt;
     val string_of_term = setmp show_types true (ProofContext.string_of_term ctxt);
 
     fun err msg th = error (msg ^ ":\n" ^ ProofContext.string_of_thm ctxt th);
 
-    val maxidx = fold (Term.maxidx_typ o snd) vars ~1;
+    val maxidx = fold (Term.maxidx_typ o snd o fst) vars ~1;
     val rule = Thm.incr_indexes (maxidx + 1) raw_rule;
 
     val params = RuleCases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
@@ -194,26 +191,26 @@ fun unify_params ctxt vars raw_rule =
         err ("Failed to unify variable " ^
           string_of_term (Free (x, Envir.norm_type tyenv T)) ^ " against parameter " ^
           string_of_term (Syntax.mark_boundT (y, Envir.norm_type tyenv U)) ^ " in") rule;
-    val (tyenv, _) = fold unify (vars ~~ Library.take (m, params))
+    val (tyenv, _) = fold unify (map #1 vars ~~ Library.take (m, params))
       (Vartab.empty, Int.max (maxidx, Thm.maxidx_of rule));
     val norm_type = Envir.norm_type tyenv;
 
-    val xs = map (apsnd norm_type) vars;
+    val xs = map (apsnd norm_type o fst) vars;
     val ys = map (apsnd norm_type) (Library.drop (m, params));
     val ys' = map Term.internal (Term.variantlist (map fst ys, map fst xs)) ~~ map #2 ys;
+    val terms = map (Drule.mk_term o cert o Free) (xs @ ys');
 
     val instT =
       fold (Term.add_tvarsT o #2) params []
-      |> map (TVar #> (fn T => (Thm.ctyp_of thy T, Thm.ctyp_of thy (norm_type T))));
-    val rule' = rule |> Thm.instantiate (instT, []);
+      |> map (TVar #> (fn T => (certT T, certT (norm_type T))));
+    val (rule' :: terms', ctxt') =
+      Variable.import false (Thm.instantiate (instT, []) rule :: terms) ctxt;
 
-    val tvars = Drule.tvars_of rule';
-    val vars = subtract (op =) (Term.add_vars (Thm.concl_of rule') []) (Drule.vars_of rule');
-    val _ =
-      if null tvars andalso null vars then ()
-      else err ("Illegal schematic variable(s) " ^
-        commas (map (string_of_typ o TVar) tvars @ map (string_of_term o Var) vars) ^ " in") rule';
-  in (xs @ ys', rule') end;
+    val vars' =
+      map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
+      (map snd vars @ replicate (length ys) NoSyn);
+    val rule'' = Thm.generalize ([], [thesis_name]) (Thm.maxidx_of rule' + 1) rule';
+  in ((vars', rule''), ctxt') end;
 
 fun inferred_type (x, _, mx) ctxt =
   let val ((_, T), ctxt') = ProofContext.inferred_param x ctxt
@@ -230,7 +227,7 @@ fun gen_guess prep_vars raw_vars int state =
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    val (thesis_var, thesis) = bind_judgment ctxt AutoBind.thesisN;
+    val ((thesis_name, _), thesis) = bind_judgment ctxt AutoBind.thesisN;
     val vars = ctxt |> prep_vars raw_vars |-> fold_map inferred_type |> polymorphic;
 
     fun check_result th =
@@ -242,20 +239,23 @@ fun gen_guess prep_vars raw_vars int state =
       | [] => error "Goal solved -- nothing guessed."
       | _ => error ("Guess split into several cases:\n" ^ ProofContext.string_of_thm ctxt th));
 
-    fun guess_context [_, raw_rule] =
+    fun guess_context raw_rule state' =
       let
-        val (parms, rule) = unify_params ctxt (map #1 vars) raw_rule;
-        val (bind, _) = ProofContext.bind_fixes (map #1 parms) ctxt;
-        val ts = map (bind o Free) parms;
+        val ((parms, rule), ctxt') =
+          unify_params vars thesis_name raw_rule (Proof.context_of state');
+        val (bind, _) = ProofContext.bind_fixes (map (#1 o #1) parms) ctxt';
+        val ts = map (bind o Free o #1) parms;
         val ps = map dest_Free ts;
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
           |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), []));
         val _ = not (null asms) orelse error "Trivial result -- nothing guessed";
       in
-        Proof.fix_i (map2 (fn (x, T) => fn (_, mx) => (x, SOME T, mx)) parms vars)
-        #> Proof.assm_i (K (obtain_export ctxt ts rule)) [(("", []), asms)]
-        #> Proof.add_binds_i AutoBind.no_facts
+        state'
+        |> Proof.map_context (K ctxt')
+        |> Proof.fix_i (map (fn ((x, T), mx) => (x, SOME T, mx)) parms)
+        |> Proof.assm_i (K (obtain_export ctxt' (map #1 ps) rule)) [(("", []), asms)]
+        |> Proof.add_binds_i AutoBind.no_facts
       end;
 
     val goal = Var (("guess", 0), propT);
@@ -264,7 +264,7 @@ fun gen_guess prep_vars raw_vars int state =
     val before_qed = SOME (Method.primitive_text (Goal.conclude #> (fn th =>
       Goal.protect (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th))));
     fun after_qed [[_, res]] =
-      (check_result res; Proof.end_block #> Seq.map (`Proof.the_facts #-> guess_context));
+      (check_result res; Proof.end_block #> Seq.map (guess_context res));
   in
     state
     |> Proof.enter_forward
