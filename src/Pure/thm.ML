@@ -114,8 +114,6 @@ signature BASIC_THM =
   val trivial: cterm -> thm
   val class_triv: theory -> class -> thm
   val unconstrainT: ctyp -> thm -> thm
-  val varifyT: thm -> thm
-  val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -163,6 +161,8 @@ sig
   val cterm_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_incr_indexes: int -> cterm -> cterm
+  val varifyT: thm -> thm
+  val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
 end;
 
