@@ -1343,7 +1343,19 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val used = foldr add_typ_tfree_names [] recTs;
 
-    val (rec_result_Ts, rec_fn_Ts) = DatatypeProp.make_primrec_Ts descr' sorts' used;
+    val (rec_result_Ts', rec_fn_Ts') = DatatypeProp.make_primrec_Ts descr' sorts' used;
+
+    val rec_sort = if null dt_atomTs then HOLogic.typeS else 
+      let val names = map (Sign.base_name o fst o dest_Type) dt_atomTs
+      in Sign.certify_sort thy10 (map (Sign.intern_class thy10)
+        (map (fn s => "pt_" ^ s) names @
+         List.concat (map (fn s => List.mapPartial (fn s' =>
+           if s = s' then NONE
+           else SOME ("cp_" ^ s ^ "_" ^ s')) names) names)))
+      end;
+
+    val rec_result_Ts = map (fn TFree (s, _) => TFree (s, rec_sort)) rec_result_Ts';
+    val rec_fn_Ts = map (typ_subst_atomic (rec_result_Ts' ~~ rec_result_Ts)) rec_fn_Ts';
 
     val rec_set_Ts = map (fn (T1, T2) => rec_fn_Ts ---> HOLogic.mk_setT
       (HOLogic.mk_prodT (T1, T2))) (recTs ~~ rec_result_Ts);
@@ -1391,13 +1403,83 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       Library.foldl (make_rec_intr T rec_set) (x, #3 (snd d) ~~ snd d'))
         (([], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_sets);
 
-    val (thy11, {intrs = rec_intrs, elims = rec_elims, ...}) =
+    val (thy11, {intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_i false true big_rec_name false false false
            rec_sets (map (fn x => (("", x), [])) rec_intr_ts) []) thy10;
 
+    (** equivariance **)
+
+    val fresh_bij = PureThy.get_thms thy11 (Name "fresh_bij");
+    val perm_bij = PureThy.get_thms thy11 (Name "perm_bij");
+
+    val (rec_equiv_thms, rec_equiv_thms') = ListPair.unzip (map (fn aT =>
+      let
+        val permT = mk_permT aT;
+        val pi = Free ("pi", permT);
+        val rec_fns_pi = map (curry (mk_perm []) pi o uncurry (mk_Free "f"))
+          (rec_fn_Ts ~~ (1 upto (length rec_fn_Ts)));
+        val rec_sets_pi = map (fn c => list_comb (Const c, rec_fns_pi))
+          (rec_set_names ~~ rec_set_Ts);
+        val ps = map (fn ((((T, U), R), R'), i) =>
+          let
+            val x = Free ("x" ^ string_of_int i, T);
+            val y = Free ("y" ^ string_of_int i, U)
+          in
+            (HOLogic.mk_mem (HOLogic.mk_prod (x, y), R),
+             HOLogic.mk_mem (HOLogic.mk_prod (mk_perm [] (pi, x), mk_perm [] (pi, y)), R'))
+          end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ rec_sets_pi ~~ (1 upto length recTs));
+        val ths = map (fn th => standard (th RS mp)) (split_conj_thm
+          (Goal.prove thy11 [] []
+            (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps)))
+            (fn _ => rtac rec_induct 1 THEN REPEAT
+               (NominalPermeq.perm_simp_tac (simpset_of thy11) 1 THEN
+                (resolve_tac rec_intrs THEN_ALL_NEW
+                 asm_simp_tac (HOL_ss addsimps (fresh_bij @ perm_bij))) 1))))
+        val ths' = map (fn ((P, Q), th) => standard
+          (Goal.prove thy11 [] []
+            (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P))
+            (fn _ => dtac (Thm.instantiate ([],
+                 [(cterm_of thy11 (Var (("pi", 0), permT)),
+                   cterm_of thy11 (Const ("List.rev", permT --> permT) $ pi))]) th) 1 THEN
+               NominalPermeq.perm_simp_tac HOL_ss 1))) (ps ~~ ths)
+      in (ths, ths') end) dt_atomTs);
+
+    (** finite support **)
+
+    val rec_fin_supp_thms = map (fn aT =>
+      let
+        val name = Sign.base_name (fst (dest_Type aT));
+        val fs_name = PureThy.get_thm thy11 (Name ("fs_" ^ name ^ "1"));
+        val aset = HOLogic.mk_setT aT;
+        val finites = Const ("Finite_Set.Finites", HOLogic.mk_setT aset);
+        val fins = map (fn (f, T) => HOLogic.mk_Trueprop (HOLogic.mk_mem
+          (Const ("Nominal.supp", T --> aset) $ f, finites)))
+            (rec_fns ~~ rec_fn_Ts)
+      in
+        map (fn th => standard (th RS mp)) (split_conj_thm
+          (Goal.prove thy11 [] fins
+            (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
+              (map (fn (((T, U), R), i) =>
+                 let
+                   val x = Free ("x" ^ string_of_int i, T);
+                   val y = Free ("y" ^ string_of_int i, U)
+                 in
+                   HOLogic.mk_imp (HOLogic.mk_mem (HOLogic.mk_prod (x, y), R),
+                     HOLogic.mk_mem (Const ("Nominal.supp", U --> aset) $ y, finites))
+                 end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ (1 upto length recTs)))))
+            (fn fins => (rtac rec_induct THEN_ALL_NEW cut_facts_tac fins) 1 THEN REPEAT
+               (NominalPermeq.finite_guess_tac (HOL_ss addsimps [fs_name]) 1))))
+      end) dt_atomTs;
+
+    (* FIXME: theorems are stored in database for testing only *)
+    val (_, thy12) = PureThy.add_thmss
+      [(("rec_equiv", List.concat rec_equiv_thms), []),
+       (("rec_equiv'", List.concat rec_equiv_thms'), []),
+       (("rec_fin_supp", List.concat rec_fin_supp_thms), [])] thy11;
+
   in
-    thy11
+    thy12
   end;
 
 val add_nominal_datatype = gen_add_nominal_datatype read_typ true;
