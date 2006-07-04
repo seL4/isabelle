@@ -691,16 +691,19 @@ Isar.  These should be never used in proper proof texts!
 
 \subsection{Executable code}
 
-Isabelle/Pure provides a generic infrastructure to support code generation
-from executable specifications, both functional and relational programs.
-Isabelle/HOL instantiates these mechanisms in a way that is amenable to
-end-user applications.  See \cite{isabelle-HOL} for further information (this
-actually covers the new-style theory format as well).
+Isabelle/Pure provides a generic infrastructure to support code
+generation from executable specifications, both functional and
+relational programs.  Isabelle/HOL instantiates these mechanisms in a
+way that is amenable to end-user applications.  See
+\cite{isabelle-HOL} for further information (this actually covers the
+new-style theory format as well).
 
-\indexisarcmd{code-module}\indexisarcmd{code-library}\indexisarcmd{consts-code}\indexisarcmd{types-code}
+\indexisarcmd{value}\indexisarcmd{code-module}\indexisarcmd{code-library}
+\indexisarcmd{consts-code}\indexisarcmd{types-code}
 \indexisaratt{code}
 
 \begin{matharray}{rcl}
+  \isarcmd{value}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{code_module} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_library} & : & \isartrans{theory}{theory} \\
   \isarcmd{consts_code} & : & \isartrans{theory}{theory} \\
@@ -713,30 +716,20 @@ actually covers the new-style theory format as well).
 \railterm{verblbrace}
 \railterm{verbrbrace}
 
-\railalias{codemodule}{code\_module}
-\railterm{codemodule}
-
-\railalias{codelibrary}{code\_library}
-\railterm{codelibrary}
-
-\railalias{constscode}{consts\_code}
-\railterm{constscode}
-
-\railalias{typescode}{types\_code}
-\railterm{typescode}
-
 \begin{rail}
-( codemodule | codelibrary ) modespec ? name ? \\
+'value' term;
+
+( 'code\_module' | 'code\_library' ) modespec ? name ? \\
   ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
   'contains' ( ( name '=' term ) + | term + );
 
 modespec : '(' ( name * ) ')';
 
-constscode (codespec +);
+'consts\_code' (codespec +);
 
 codespec : name ( '::' type) ? template attachment ?;
 
-typescode (tycodespec +);
+'types\_code' (tycodespec +);
 
 tycodespec : name template attachment ?;
 
@@ -746,6 +739,11 @@ attachment: 'attach' modespec ? verblbrace text verbrbrace;
 
 'code' (name)?;
 \end{rail}
+
+\begin{descr}
+\item [$\isarkeyword{value}~t$] reads, evaluates and prints a term
+  using the code generator.
+\end{descr}
 
 
 \section{HOLCF}
