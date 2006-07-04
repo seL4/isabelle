@@ -839,12 +839,13 @@ but only \emph{before} issuing a follow-up claim.
 \item [$\WITH{\vec b}$] abbreviates ``$\FROM{\vec b~\AND~this}$''; thus the
   forward chaining is from earlier facts together with the current ones.
   
-\item [$\USING{\vec b}$] augments the facts being currently indicated for use
-  by a subsequent refinement step (such as $\APPLYNAME$ or $\PROOFNAME$).
+\item [$\USING{\vec b}$] augments the facts being currently indicated
+  for use by a subsequent refinement step (such as $\APPLYNAME$ or
+  $\PROOFNAME$).
   
-\item [$\isarcmd{unfolding}~\vec b$] is structurally similar to
-  $\USINGNAME$, but unfolds meta-level equations $\vec b$ throughout
-  the goal state and facts.
+\item [$\UNFOLDING{\vec b}$] is structurally similar to $\USINGNAME$,
+  but unfolds definitional equations $\vec b$ throughout the goal
+  state and facts.
 
 \end{descr}
 
