@@ -43,7 +43,6 @@ sig
   val standard': thm -> thm
   val rotate_prems: int -> thm -> thm
   val rearrange_prems: int list -> thm -> thm
-  val assume_ax: theory -> string -> thm
   val RSN: thm * (int * thm) -> thm
   val RS: thm * thm -> thm
   val RLN: thm list * (int * thm list) -> thm list
@@ -87,6 +86,7 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val generalize: string list * string list -> thm -> thm
   val dest_binop: cterm -> cterm * cterm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
@@ -137,7 +137,6 @@ sig
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
-  val tvars_intr_list: string list -> thm -> (string * (indexname * sort)) list * thm
   val incr_indexes: thm -> thm -> thm
   val incr_indexes2: thm -> thm -> thm -> thm
   val remdups_rl: thm
@@ -401,6 +400,8 @@ fun lift_all goal th =
     |> fold_rev (Thm.forall_intr o cert) ps
   end;
 
+(*direct generalization*)
+fun generalize names th = Thm.generalize names (Thm.maxidx_of th + 1) th;
 
 (*specialization over a list of cterms*)
 val forall_elim_list = fold forall_elim;
@@ -489,7 +490,7 @@ fun freeze_thaw_robust th =
  end;
 
 (*Basic version of the function above. No option to rename Vars apart in thaw.
-  The Frees created from Vars have nice names. FIXME: does not check for 
+  The Frees created from Vars have nice names. FIXME: does not check for
   clashes with variables in the assumptions, so delete and use freeze_thaw_robust instead?*)
 fun freeze_thaw th =
  let val fth = Thm.freezeT th
@@ -525,15 +526,6 @@ val rearrange_prems = let
      (map (fn q => if new<=q andalso q<p then q+1 else q) ps)
      (permute_prems (new+1) (new-p) (permute_prems new (p-new) thm))
   in rearr 0 end;
-
-(*Assume a new formula, read following the same conventions as axioms.
-  Generalizes over Free variables,
-  creates the assumption, and then strips quantifiers.
-  Example is [| ALL x:?A. ?P(x) |] ==> [| ?P(?a) |]
-             [ !(A,P,a)[| ALL x:A. P(x) |] ==> [| P(a) |] ]    *)
-fun assume_ax thy sP =
-  let val prop = Logic.close_form (term_of (read_cterm thy (sP, propT)))
-  in forall_elim_vars 0 (Thm.assume (cterm_of thy prop)) end;
 
 (*Resolution: exactly one resolvent must be produced.*)
 fun tha RSN (i,thb) =
@@ -1079,13 +1071,6 @@ fun rename_bvars' xs thm =
       ([], prop') => equal_elim (reflexive (cterm_of thy prop')) thm
     | _ => error "More names than abstractions in theorem"
   end;
-
-
-(* tvars_intr_list *)
-
-fun tvars_intr_list tfrees thm =
-  apfst (map (fn ((s, S), ixn) => (s, (ixn, S)))) (Thm.varifyT'
-    (gen_rems (op = o apfst fst) (tfrees_of thm, tfrees)) thm);
 
 
 (* var indexes *)
