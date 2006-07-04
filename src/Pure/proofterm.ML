@@ -40,6 +40,7 @@ sig
   val strip_combt : proof -> proof * term option list
   val strip_combP : proof -> proof * proof list
   val strip_thm : proof -> proof
+  val map_proof_terms_option : (term -> term option) -> (typ -> typ option) -> proof -> proof
   val map_proof_terms : (term -> term) -> (typ -> typ) -> proof -> proof
   val fold_proof_terms : (term * 'a -> 'a) -> (typ * 'a -> 'a) -> 'a * proof -> 'a
   val add_prf_names : string list * proof -> string list
@@ -258,31 +259,45 @@ fun strip_thm prf = (case strip_combt (fst (strip_combP prf)) of
 val mk_Abst = foldr (fn ((s, T:typ), prf) => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
+fun apsome f NONE = raise SAME
+  | apsome f (SOME x) = (case f x of NONE => raise SAME | some => some);
+
 fun apsome' f NONE = raise SAME
   | apsome' f (SOME x) = SOME (f x);
+
+fun map_proof_terms_option f g =
+  let
+    fun map_typs (T :: Ts) =
+          (case g T of
+            NONE => T :: map_typs Ts
+          | SOME T' => T' :: (map_typs Ts handle SAME => Ts))
+      | map_typs [] = raise SAME;
+
+    fun mapp (Abst (s, T, prf)) = (Abst (s, apsome g T, mapph prf)
+          handle SAME => Abst (s, T, mapp prf))
+      | mapp (AbsP (s, t, prf)) = (AbsP (s, apsome f t, mapph prf)
+          handle SAME => AbsP (s, t, mapp prf))
+      | mapp (prf % t) = (mapp prf % (apsome f t handle SAME => t)
+          handle SAME => prf % apsome f t)
+      | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
+          handle SAME => prf1 %% mapp prf2)
+      | mapp (PThm (a, prf, prop, SOME Ts)) =
+          PThm (a, prf, prop, SOME (map_typs Ts))
+      | mapp (PAxm (a, prop, SOME Ts)) =
+          PAxm (a, prop, SOME (map_typs Ts))
+      | mapp _ = raise SAME
+    and mapph prf = (mapp prf handle SAME => prf)
+
+  in mapph end;
 
 fun same f x =
   let val x' = f x
   in if x = x' then raise SAME else x' end;
 
 fun map_proof_terms f g =
-  let
-    fun mapp (Abst (s, T, prf)) = (Abst (s, apsome' (same g) T, mapph prf)
-          handle SAME => Abst (s, T, mapp prf))
-      | mapp (AbsP (s, t, prf)) = (AbsP (s, apsome' (same f) t, mapph prf)
-          handle SAME => AbsP (s, t, mapp prf))
-      | mapp (prf % t) = (mapp prf % Option.map f t
-          handle SAME => prf % apsome' (same f) t)
-      | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
-          handle SAME => prf1 %% mapp prf2)
-      | mapp (PThm (a, prf, prop, SOME Ts)) =
-          PThm (a, prf, prop, SOME (same (map g) Ts))
-      | mapp (PAxm (a, prop, SOME Ts)) =
-          PAxm (a, prop, SOME (same (map g) Ts))
-      | mapp _ = raise SAME
-    and mapph prf = (mapp prf handle SAME => prf)
-
-  in mapph end;
+  map_proof_terms_option
+   (fn t => SOME (same f t) handle SAME => NONE)
+   (fn T => SOME (same g T) handle SAME => NONE);
 
 fun fold_proof_terms f g (a, Abst (_, SOME T, prf)) = fold_proof_terms f g (g (T, a), prf)
   | fold_proof_terms f g (a, Abst (_, NONE, prf)) = fold_proof_terms f g (a, prf)
@@ -656,15 +671,18 @@ fun permute_prems_prf prems j k prf =
 
 (***** generalization *****)
 
-fun generalize (tfrees, frees) idx prf =
-  map_proof_terms (Term.generalize (tfrees, frees) idx) (Term.generalizeT tfrees idx) prf;
+fun generalize (tfrees, frees) idx =
+  map_proof_terms_option
+    (Term.generalize_option (tfrees, frees) idx)
+    (Term.generalizeT_option tfrees idx);
 
 
 (***** instantiation *****)
 
-fun instantiate (instT, inst) prf =
-  map_proof_terms (Term.instantiate (instT, map (apsnd remove_types) inst))
-    (Term.instantiateT instT) prf;
+fun instantiate (instT, inst) =
+  map_proof_terms_option
+    (Term.instantiate_option (instT, map (apsnd remove_types) inst))
+    (Term.instantiateT_option instT);
 
 
 (***** lifting *****)
