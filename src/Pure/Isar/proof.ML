@@ -31,6 +31,7 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val get_goal: state -> context * (thm list * thm)
+  val schematic_goal: state -> bool
   val show_main_goal: bool ref
   val verbose: bool ref
   val pretty_state: int -> state -> Pretty.T list
@@ -305,6 +306,13 @@ in val find_goal = find 0 end;
 fun get_goal state =
   let val (ctxt, (_, {using, goal, ...})) = find_goal state
   in (ctxt, (using, goal)) end;
+
+fun schematic_goal state =
+  let
+    val (_, (_, {statement = (_, propss), ...})) = find_goal state;
+    val tvars = fold (fold Term.add_tvars) propss [];
+    val vars = fold (fold Term.add_vars) propss [];
+  in not (null tvars andalso null vars) end;
 
 
 
