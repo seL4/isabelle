@@ -1100,15 +1100,6 @@ fun verb f x = if ! verbose then f (x ()) else [];
 
 fun setmp_verbose f x = Library.setmp verbose true f x;
 
-fun pretty_items prt name items =
-  let
-    fun prt_itms (name, [x]) = Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt x]
-      | prt_itms (name, xs) = Pretty.big_list (name ^ ":") (map prt xs);
-  in
-    if null items andalso not (! verbose) then []
-    else [Pretty.big_list name (map prt_itms items)]
-  end;
-
 
 (* local syntax *)
 
@@ -1148,7 +1139,15 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 (* local theorems *)
 
 fun pretty_lthms ctxt =
-  pretty_items (pretty_thm ctxt) "facts:" (NameSpace.extern_table (#1 (thms_of ctxt)));
+  let
+    val props = FactIndex.props (fact_index_of ctxt);
+    val facts =
+      (if null props then I else cons ("unnamed", props))
+      (NameSpace.extern_table (#1 (thms_of ctxt)));
+  in
+    if null facts andalso not (! verbose) then []
+    else [Pretty.big_list "facts:" (map (pretty_fact ctxt) facts)]
+  end;
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
