@@ -10,6 +10,7 @@ sig
   type spec
   type T
   val facts: T -> (string * thm list) list
+  val props: T -> thm list
   val could_unify: T -> term -> thm list
   val empty: T
   val add_global: (string * thm list) -> T -> T
@@ -53,6 +54,8 @@ datatype T = Index of
   props: thm Net.net};
 
 fun facts (Index {facts, ...}) = facts;
+fun props (Index {props, ...}) =
+  sort_distinct (Term.term_ord o pairself Thm.full_prop_of) (Net.content props);
 fun could_unify (Index {props, ...}) = Net.unify_term props;
 
 val empty =
