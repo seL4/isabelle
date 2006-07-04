@@ -6,17 +6,38 @@ Methods for simplifying permutations and
 for analysing equations involving permutations.
 *)
 
-local
+signature NOMINAL_PERMEQ =
+sig
+  val perm_simp_tac : simpset -> int -> tactic
+  val perm_full_simp_tac : simpset -> int -> tactic
+  val supports_tac : simpset -> int -> tactic
+  val finite_guess_tac : simpset -> int -> tactic
+  val fresh_guess_tac : simpset -> int -> tactic
 
-(* pulls out dynamically a thm via the simpset *)
-fun dynamic_thms ss name = ProofContext.get_thms (Simplifier.the_context ss) (Name name);
-fun dynamic_thm ss name = ProofContext.get_thm (Simplifier.the_context ss) (Name name);
+  val perm_eq_meth : Method.src -> ProofContext.context -> Method.method
+  val perm_eq_meth_debug : Method.src -> ProofContext.context -> Method.method
+  val perm_full_eq_meth : Method.src -> ProofContext.context -> Method.method
+  val perm_full_eq_meth_debug : Method.src -> ProofContext.context -> Method.method
+  val supports_meth : Method.src -> ProofContext.context -> Method.method
+  val supports_meth_debug : Method.src -> ProofContext.context -> Method.method
+  val finite_gs_meth : Method.src -> ProofContext.context -> Method.method
+  val finite_gs_meth_debug : Method.src -> ProofContext.context -> Method.method
+  val fresh_gs_meth : Method.src -> ProofContext.context -> Method.method
+  val fresh_gs_meth_debug : Method.src -> ProofContext.context -> Method.method
+end
+
+structure NominalPermeq : NOMINAL_PERMEQ =
+struct
+
+(* pulls out dynamically a thm via the proof state *)
+fun dynamic_thms st name = PureThy.get_thms (theory_of_thm st) (Name name);
+fun dynamic_thm st name = PureThy.get_thm (theory_of_thm st) (Name name);
 
 (* a tactic simplyfying permutations *)
 val perm_fun_def = thm "Nominal.perm_fun_def"
 val perm_eq_app = thm "Nominal.pt_fun_app_eq"
 
-fun perm_eval_tac ss i =
+fun perm_eval_tac ss i = ("general simplification step", fn st =>
     let
         fun perm_eval_simproc sg ss redex =
         let 
@@ -40,8 +61,8 @@ fun perm_eval_tac ss i =
               | _ => 
 		let
 		    val name = Sign.base_name n
-		    val at_inst     = dynamic_thm ss ("at_"^name^"_inst")
-		    val pt_inst     = dynamic_thm ss ("pt_"^name^"_inst")  
+		    val at_inst     = dynamic_thm st ("at_"^name^"_inst")
+		    val pt_inst     = dynamic_thm st ("pt_"^name^"_inst")  
 		in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end)
 
         (* case pi o (%x. f x) == (%x. pi o (f ((rev pi)o x))) *)
@@ -55,14 +76,14 @@ fun perm_eval_tac ss i =
 	    ["Nominal.perm pi x"] perm_eval_simproc;
 
       (* these lemmas are created dynamically according to the atom types *) 
-      val perm_swap        = dynamic_thms ss "perm_swap"
-      val perm_fresh       = dynamic_thms ss "perm_fresh_fresh"
-      val perm_bij         = dynamic_thms ss "perm_bij"
-      val perm_pi_simp     = dynamic_thms ss "perm_pi_simp"
+      val perm_swap        = dynamic_thms st "perm_swap"
+      val perm_fresh       = dynamic_thms st "perm_fresh_fresh"
+      val perm_bij         = dynamic_thms st "perm_bij"
+      val perm_pi_simp     = dynamic_thms st "perm_pi_simp"
       val ss' = ss addsimps (perm_swap@perm_fresh@perm_bij@perm_pi_simp)
     in
-	("general simplification step", asm_full_simp_tac (ss' addsimprocs [perm_eval]) i)
-    end;
+      asm_full_simp_tac (ss' addsimprocs [perm_eval]) i st
+    end);
 
 (* applies the perm_compose rule such that                             *)
 (*                                                                     *)
@@ -214,6 +235,9 @@ fun collect_vars i (Bound j) vs = if j < i then vs else Bound (j - i) ins vs
 
 val supports_rule = thm "supports_finite";
 
+val supp_prod = thm "supp_prod";
+val supp_unit = thm "supp_unit";
+
 fun finite_guess_tac tactical ss i st =
     let val goal = List.nth(cprems_of st, i-1)
     in
@@ -235,10 +259,11 @@ fun finite_guess_tac tactical ss i st =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));
             val supports_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_rule'
+            val ss' = ss addsimps [supp_prod, supp_unit, finite_Un, Finites.emptyI]
           in
             (tactical ("guessing of the right supports-set",
                       EVERY [compose_tac (false, supports_rule'', 2) i,
-                             asm_full_simp_tac ss (i+1),
+                             asm_full_simp_tac ss' (i+1),
                              supports_tac tactical ss i])) st
           end
         | _ => Seq.empty
@@ -283,8 +308,6 @@ fun fresh_guess_tac tactical ss i st =
     end
     handle Subscript => Seq.empty
 
-in             
-
 fun simp_meth_setup tac =
   Method.only_sectioned_args (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
   (Method.SIMPLE_METHOD' HEADGOAL o tac o local_simpset_of);
@@ -300,7 +323,11 @@ val finite_gs_meth_debug    = simp_meth_setup (finite_guess_tac DEBUG_tac);
 val fresh_gs_meth           = simp_meth_setup (fresh_guess_tac NO_DEBUG_tac);
 val fresh_gs_meth_debug     = simp_meth_setup (fresh_guess_tac DEBUG_tac);
 
+(* FIXME: get rid of "debug" versions? *)
+val perm_simp_tac = perm_simp_tac NO_DEBUG_tac;
+val perm_full_simp_tac = perm_full_simp_tac NO_DEBUG_tac;
+val supports_tac = supports_tac NO_DEBUG_tac;
+val finite_guess_tac = finite_guess_tac NO_DEBUG_tac;
+val fresh_guess_tac = fresh_guess_tac NO_DEBUG_tac;
+
 end
-
-
-
