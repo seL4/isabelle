@@ -464,9 +464,17 @@ fun local_theory loc f = theory_context (LocalTheory.mapping loc f);
 
 fun theory_to_proof f = app_current (fn int =>
   (fn Theory (thy, _) =>
-    if ! skip_proofs then
-      SkipProof ((History.init (undo_limit int) 0, #2 (Proof.global_skip_proof int (f thy))), thy)
-    else Proof (ProofHistory.init (undo_limit int) (f thy), thy)
+    let
+      val prf = f thy;
+      val schematic = Proof.schematic_goal prf;
+    in
+      if ! skip_proofs andalso schematic then
+        warning "Cannot skip proof of schematic goal statement"
+      else ();
+      if ! skip_proofs andalso not schematic then
+        SkipProof ((History.init (undo_limit int) 0, #2 (Proof.global_skip_proof int prf)), thy)
+      else Proof (ProofHistory.init (undo_limit int) prf, thy)
+    end
   | _ => raise UNDEF));
 
 fun proofs' f = map_current (fn int =>
