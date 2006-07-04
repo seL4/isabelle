@@ -880,7 +880,8 @@ fun add_abbrevs prmode = fold (fn ((raw_c, raw_mx), raw_t) => fn ctxt =>
   let
     val ([(c, _, mx)], _) = cert_vars [(raw_c, NONE, raw_mx)] ctxt;
     val c' = Syntax.constN ^ full_name ctxt c;
-    val [t] = Variable.polymorphic ctxt [cert_term (ctxt |> expand_abbrevs false) raw_t];
+    val t0 = cert_term (ctxt |> expand_abbrevs false) raw_t;
+    val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val T = Term.fastype_of t;
     val _ =
       if null (Variable.hidden_polymorphism t T) then ()
