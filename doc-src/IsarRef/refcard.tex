@@ -10,30 +10,30 @@
   $\ASSUME{a}{\vec\phi}$ & augment context by $\vec\phi \Imp \Box$ \\
   $\THEN$ & indicate forward chaining of facts \\
   $\HAVE{a}{\phi}$ & prove local result \\
-  $\SHOW{a}{\phi}$ & prove local result, establishing some goal \\
+  $\SHOW{a}{\phi}$ & prove local result, refining some goal \\
   $\USING{\vec a}$ & indicate use of additional facts \\
-  $\PROOF{m@1}~\dots~\QED{m@2}$ & apply proof methods \\
+  $\UNFOLDING{\vec a}$ & unfold definitional equations \\
+  $\PROOF{m@1}~\dots~\QED{m@2}$ & indicate proof structure and refinements \\
   $\BG~\dots~\EN$ & declare explicit blocks \\
-  $\NEXT$ & switch implicit blocks \\
+  $\NEXT$ & switch blocks \\
   $\NOTE{a}{\vec b}$ & reconsider facts \\
   $\LET{p = t}$ & \Text{abbreviate terms by higher-order matching} \\
 \end{tabular}
 
 \begin{matharray}{rcl}
-  theory{\dsh}stmt & = & \THEOREM{name}{prop} ~proof \\
-  & \Or & \LEMMA{name}{prop}~proof \\
-  & \Or & \TYPES~\dots \Or \CONSTS~\dots \Or \DEFS~\dots \Or \dots \\[1ex]
-  proof & = & prfx^*~\PROOF{method}~stmt^*~\QED{method} \\[1ex]
+  theory{\dsh}stmt & = & \THEOREM{name}{prop} ~proof \Or \isarkeyword{definition}~\dots \Or \dots \\[1ex]
+  proof & = & prfx^*~\PROOF{method}~stmt^*~\QED{method} \\
+  & \Or & prfx^*~\DONE \\[1ex]
   prfx & = & \APPLY{method} \\
   & \Or & \USING{name^+} \\
+  & \Or & \UNFOLDING{name^+} \\
   stmt & = & \BG~stmt^*~\EN \\
   & \Or & \NEXT \\
   & \Or & \NOTE{name}{name^+} \\
-  & \Or & \LET{term = term} \\[0.5ex]
+  & \Or & \LET{term = term} \\
   & \Or & \FIX{var^+} \\
   & \Or & \ASSUME{name}{prop^+}\\
-  & \Or & \THEN~goal{\dsh}stmt \\
-  & \Or & goal \\
+  & \Or & \THEN^?~goal \\
   goal & = & \HAVE{name}{prop}~proof \\
   & \Or & \SHOW{name}{prop}~proof \\
 \end{matharray}
