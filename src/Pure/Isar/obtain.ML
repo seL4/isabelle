@@ -74,8 +74,7 @@ fun obtain_export ctxt parms rule cprops thm =
     val bads = Term.fold_aterms (fn v as Free (x, _) =>
       if member (op =) parms x then insert (op aconv) v else I | _ => I) concl [];
 
-    val thm' = thm |> Drule.implies_intr_protected cprops;
-    val thm'' = thm' |> Thm.generalize ([], parms) (Thm.maxidx_of thm' + 1);
+    val thm' = thm |> Drule.implies_intr_protected cprops |> Drule.generalize ([], parms);
     val elim_tacs = replicate (length cprops) (Tactic.etac Drule.protectI);
   in
     if not (null bads) then
@@ -83,7 +82,7 @@ fun obtain_export ctxt parms rule cprops thm =
         space_implode " " (map (ProofContext.string_of_term ctxt) bads))
     else if not (ObjectLogic.is_judgment thy concl) then
       error "Conclusion in obtained context must be object-logic judgment"
-    else (Tactic.rtac thm'' THEN' RANGE elim_tacs) 1 rule
+    else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
   end;
 
 
@@ -209,14 +208,14 @@ fun unify_params vars thesis_name raw_rule ctxt =
     val vars' =
       map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
       (map snd vars @ replicate (length ys) NoSyn);
-    val rule'' = Thm.generalize ([], [thesis_name]) (Thm.maxidx_of rule' + 1) rule';
+    val rule'' = Drule.generalize ([], [thesis_name]) rule';
   in ((vars', rule''), ctxt') end;
 
 fun inferred_type (x, _, mx) ctxt =
   let val ((_, T), ctxt') = ProofContext.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 
-fun polymorphic (vars, ctxt) =
+fun polymorphic ctxt vars =
   let val Ts = map Logic.dest_type (Variable.polymorphic ctxt (map (Logic.mk_type o #2) vars))
   in map2 (fn (x, _, mx) => fn T => ((x, T), mx)) vars Ts end;
 
@@ -228,7 +227,7 @@ fun gen_guess prep_vars raw_vars int state =
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val ((thesis_name, _), thesis) = bind_judgment ctxt AutoBind.thesisN;
-    val vars = ctxt |> prep_vars raw_vars |-> fold_map inferred_type |> polymorphic;
+    val vars = ctxt |> prep_vars raw_vars |-> fold_map inferred_type |> fst |> polymorphic ctxt;
 
     fun check_result th =
       (case Thm.prems_of th of
