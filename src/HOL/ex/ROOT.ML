@@ -9,6 +9,7 @@ no_document time_use_thy "Codegenerator";
 
 time_use_thy "Higher_Order_Logic";
 time_use_thy "Abstract_NAT";
+time_use_thy "Guess";
 
 time_use_thy "Recdefs";
 time_use_thy "InductiveInvariant_examples";
