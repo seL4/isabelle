@@ -271,9 +271,8 @@ fun export_terms inner outer ts =
 fun gen_export inst inner outer ths =
   let
     val ths' = map Thm.adjust_maxidx_thm ths;
-    val maxidx = fold Thm.maxidx_thm ths' ~1;
     val inner' = fold (declare_occs o Thm.full_prop_of) ths' inner;
-  in map (Thm.generalize (inst inner' outer) (maxidx + 1)) ths' end;
+  in map (Thm.generalize (inst inner' outer) (fold Thm.maxidx_thm ths' ~1 + 1)) ths' end;
 
 val exportT = gen_export (rpair [] oo exportT_inst);
 val export = gen_export export_inst;
@@ -368,7 +367,12 @@ fun monomorphic ctxt ts =
   #1 (importT_terms ts (fold declare_term ts ctxt));
 
 fun polymorphic ctxt ts =
-  exportT_terms (fold declare_term ts ctxt) ctxt ts;
+  let
+    val ctxt' = fold declare_term ts ctxt;
+    val types = subtract (op =) (used_types ctxt) (used_types ctxt');
+    val idx = fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1;
+  in map (Term.generalize (types, []) idx) ts end;
+
 
 
 (** term bindings **)
