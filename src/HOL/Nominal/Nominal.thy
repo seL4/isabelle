@@ -2935,6 +2935,8 @@ qed
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
 use "nominal_atoms.ML"
+(* permutation equality tactic *)
+use "nominal_permeq.ML";
 use "nominal_package.ML"
 setup "NominalAtoms.setup"
 
@@ -2946,48 +2948,44 @@ method_setup nominal_induct =
   {* NominalInduct.nominal_induct_method *}
   {* nominal induction *}
 
-(*******************************)
-(* permutation equality tactic *)
-use "nominal_permeq.ML";
-
 method_setup perm_simp =
-  {* perm_eq_meth *}
+  {* NominalPermeq.perm_eq_meth *}
   {* simp rules and simprocs for analysing permutations *}
 
 method_setup perm_simp_debug =
-  {* perm_eq_meth_debug *}
-  {* simp rules and simprocs for analysing permutations including debuging facilities *}
+  {* NominalPermeq.perm_eq_meth_debug *}
+  {* simp rules and simprocs for analysing permutations including debugging facilities *}
 
 method_setup perm_full_simp =
-  {* perm_full_eq_meth *}
+  {* NominalPermeq.perm_full_eq_meth *}
   {* tactic for deciding equalities involving permutations *}
 
 method_setup perm_full_simp_debug =
-  {* perm_full_eq_meth_debug *}
-  {* tactic for deciding equalities involving permutations including debuging facilities *}
+  {* NominalPermeq.perm_full_eq_meth_debug *}
+  {* tactic for deciding equalities involving permutations including debugging facilities *}
 
 method_setup supports_simp =
-  {* supports_meth *}
+  {* NominalPermeq.supports_meth *}
   {* tactic for deciding whether something supports something else *}
 
 method_setup supports_simp_debug =
-  {* supports_meth_debug *}
-  {* tactic for deciding whether something supports something else including debuging facilities *}
+  {* NominalPermeq.supports_meth_debug *}
+  {* tactic for deciding whether something supports something else including debugging facilities *}
 
 method_setup finite_guess =
-  {* finite_gs_meth *}
+  {* NominalPermeq.finite_gs_meth *}
   {* tactic for deciding whether something has finite support *}
 
 method_setup finite_guess_debug =
-  {* finite_gs_meth_debug *}
-  {* tactic for deciding whether something has finite support including debuging facilities *}
+  {* NominalPermeq.finite_gs_meth_debug *}
+  {* tactic for deciding whether something has finite support including debugging facilities *}
 
 method_setup fresh_guess =
-  {* fresh_gs_meth *}
+  {* NominalPermeq.fresh_gs_meth *}
   {* tactic for deciding whether an atom is fresh for something*}
 
 method_setup fresh_guess_debug =
-  {* fresh_gs_meth_debug *}
-  {* tactic for deciding whether an atom is fresh for something including debuging facilities *}
+  {* NominalPermeq.fresh_gs_meth_debug *}
+  {* tactic for deciding whether an atom is fresh for something including debugging facilities *}
 
 end
