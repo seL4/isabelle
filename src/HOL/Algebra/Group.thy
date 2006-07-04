@@ -90,6 +90,14 @@ lemma (in monoid) Units_inv_closed [intro, simp]:
    apply (fast intro: inv_unique, fast)
   done
 
+lemma (in monoid) Units_l_inv_ex:
+  "x \<in> Units G ==> \<exists>y \<in> carrier G. y \<otimes> x = \<one>"
+  by (unfold Units_def) auto
+
+lemma (in monoid) Units_r_inv_ex:
+  "x \<in> Units G ==> \<exists>y \<in> carrier G. x \<otimes> y = \<one>"
+  by (unfold Units_def) auto
+
 lemma (in monoid) Units_l_inv:
   "x \<in> Units G ==> inv x \<otimes> x = \<one>"
   apply (unfold Units_def m_inv_def, auto)
@@ -270,6 +278,14 @@ qed
 lemma (in group) inv_closed [intro, simp]:
   "x \<in> carrier G ==> inv x \<in> carrier G"
   using Units_inv_closed by simp
+
+lemma (in group) l_inv_ex [simp]:
+  "x \<in> carrier G ==> \<exists>y \<in> carrier G. y \<otimes> x = \<one>"
+  using Units_l_inv_ex by simp
+
+lemma (in group) r_inv_ex [simp]:
+  "x \<in> carrier G ==> \<exists>y \<in> carrier G. x \<otimes> y = \<one>"
+  using Units_r_inv_ex by simp
 
 lemma (in group) l_inv [simp]:
   "x \<in> carrier G ==> inv x \<otimes> x = \<one>"

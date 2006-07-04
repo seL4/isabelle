@@ -55,9 +55,6 @@ lemma abelian_monoidI:
   by (auto intro!: abelian_monoid.intro comm_monoidI intro: prems)
 
 lemma abelian_groupI:
-(*
-  includes struct R
-*)
   fixes R (structure)
   assumes a_closed:
       "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y \<in> carrier R"
@@ -166,6 +163,17 @@ lemma (in abelian_group) minus_add:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> \<ominus> (x \<oplus> y) = \<ominus> x \<oplus> \<ominus> y"
   using comm_group.inv_mult [OF a_comm_group]
   by (simp add: a_inv_def)
+
+lemma (in abelian_group) minus_equality: 
+  "[| x \<in> carrier G; y \<in> carrier G; y \<oplus> x = \<zero> |] ==> \<ominus> x = y" 
+  using group.inv_equality [OF a_group] 
+  by (auto simp add: a_inv_def) 
+ 
+lemma (in abelian_monoid) minus_unique: 
+  "[| x \<in> carrier G; y \<in> carrier G; y' \<in> carrier G;
+      y \<oplus> x = \<zero>; x \<oplus> y' = \<zero> |] ==> y = y'" 
+  using monoid.inv_unique [OF a_monoid] 
+  by (simp add: a_inv_def) 
 
 lemmas (in abelian_monoid) a_ac = a_assoc a_comm a_lcomm
 
@@ -314,9 +322,6 @@ locale field = "domain" +
 subsection {* Basic Facts of Rings *}
 
 lemma ringI:
-(*
-  includes struct R
-*)
   fixes R (structure)
   assumes abelian_group: "abelian_group R"
     and monoid: "monoid R"
@@ -547,9 +552,6 @@ constdefs (structure R S)
       h \<one> = \<one>\<^bsub>S\<^esub>}"
 
 lemma ring_hom_memI:
-(*
-  includes struct R + struct S
-*)
   fixes R (structure) and S (structure)
   assumes hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
     and hom_mult: "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==>
