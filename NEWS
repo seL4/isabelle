@@ -215,12 +215,13 @@ now an interpretation.
 INCOMPATIBILITY: different normal form of locale expressions.
 In particular, in interpretations of locales with predicates,
 goals repesenting already interpreted fragments are not removed
-automatically.  Use method intro_locales; see below.
+automatically.  Use methods `intro_locales' and `unfold_locales'; see below.
 
-* Isar/locales: new method intro_locales.  Backward reasoning for locale
-predicates.  In addition the method is aware of interpretations and
-discharges corresponding goals.  Optional argument `!' prevents
-unfolding of predicates to assumptions.
+* Isar/locales: new methods `intro_locales' and `unfold_locales' provide
+backward reasoning on locales predicates.  The methods are aware of
+interpretations and discharge corresponding goals.  `intro_locales' is
+less aggressive then `unfold_locales' and does not unfold predicates to
+assumptions.
 
 * Isar/locales: the order in which locale fragments are accumulated
 has changed.  This enables to override declarations from fragments

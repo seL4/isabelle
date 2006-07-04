@@ -397,7 +397,7 @@ text {*
 *}
 
 interpretation UP_cring < cring P
-  by (intro_locales!)
+  by intro_locales
     (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms UP_cring)+
 
 
@@ -441,7 +441,7 @@ lemma (in UP_cring) UP_algebra:
     UP_smult_assoc1 UP_smult_assoc2)
 
 interpretation UP_cring < algebra R P
-  by (intro_locales!)
+  by intro_locales
     (rule module.axioms algebra.axioms UP_algebra)+
 
 
@@ -945,7 +945,7 @@ text {*
 *}
 
 interpretation UP_domain < "domain" P
-  by (intro_locales!) (rule domain.axioms UP_domain)+
+  by intro_locales (rule domain.axioms UP_domain)+
 
 
 subsection {* Evaluation Homomorphism and Universal Property*}
@@ -1148,10 +1148,10 @@ text {* Interpretation of ring homomorphism lemmas. *}
 
 interpretation UP_univ_prop < ring_hom_cring P S Eval
   apply (unfold Eval_def)
-  apply (intro_locales!)
+  apply intro_locales
   apply (rule ring_hom_cring.axioms)
   apply (rule ring_hom_cring.intro)
-  apply intro_locales
+  apply unfold_locales
   apply (rule eval_ring_hom)
   apply rule
   done
@@ -1276,7 +1276,7 @@ lemma (in UP_pre_univ_prop) ring_homD:
 proof (rule ring_hom_cring.intro)
   show "ring_hom_cring_axioms P S Phi"
   by (rule ring_hom_cring_axioms.intro) (rule Phi)
-qed intro_locales
+qed unfold_locales
 
 theorem (in UP_pre_univ_prop) UP_universal_property:
   assumes S: "s \<in> carrier S"

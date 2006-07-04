@@ -115,7 +115,7 @@ typedecl i
 arities i :: "term"
 
 
-interpretation i1: IC ["X::i" "Y::i"] by (intro_locales) auto
+interpretation i1: IC ["X::i" "Y::i"] by unfold_locales auto
 
 print_interps IA  (* output: i1 *)
 
@@ -128,7 +128,7 @@ ML {* check_thm "i1.a.asm_A" *}
 (* without prefix *)
 
 interpretation IC ["W::i" "Z::i"] .  (* subsumed by i1: IC *)
-interpretation IC ["W::'a" "Z::i"] by intro_locales auto
+interpretation IC ["W::'a" "Z::i"] by unfold_locales auto
   (* subsumes i1: IA and i1: IC *)
 
 print_interps IA  (* output: <no prefix>, i1 *)
@@ -139,13 +139,13 @@ thm asm_C thm a_b.asm_C thm LocaleTest.a_b.asm_C thm LocaleTest.a_b.asm_C
 ML {* check_thm "asm_C" *}
 
 interpretation i2: ID [X "Y::i" "Y = X"]
-  by (simp add: eq_commute) intro_locales
+  by (simp add: eq_commute) unfold_locales
 
 print_interps IA  (* output: <no prefix>, i1 *)
 print_interps ID  (* output: i2 *)
 
 
-interpretation i3: ID [X "Y::i"] by simp intro_locales
+interpretation i3: ID [X "Y::i"] by simp unfold_locales
 
 (* duplicate: thm not added *)
 
@@ -194,10 +194,10 @@ theorem True
 proof -
   fix alpha::i and beta::'a and gamma::o
   (* FIXME: omitting type of beta leads to error later at interpret i6 *)
-  have alpha_A: "IA(alpha)" by intro_locales simp
+  have alpha_A: "IA(alpha)" by unfold_locales simp
   interpret i5: IA [alpha] .  (* subsumed *)
   print_interps IA  (* output: <no prefix>, i1 *)
-  interpret i6: IC [alpha beta] by intro_locales auto
+  interpret i6: IC [alpha beta] by unfold_locales auto
   print_interps IA   (* output: <no prefix>, i1 *)
   print_interps IC   (* output: <no prefix>, i1, i6 *)
   interpret i11: IF [gamma] by (fast intro: IF.intro)
@@ -210,7 +210,7 @@ proof -
   fix beta and gamma
   interpret i9: ID [a beta _]
     apply - apply assumption
-    apply intro_locales
+    apply unfold_locales
     apply (rule refl) done
 qed rule
 
@@ -528,7 +528,7 @@ proof
 qed simp
 
 interpretation Rplgrp < Rprgrp
-  proof intro_locales
+  proof unfold_locales
     {
       fix x
       have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -558,7 +558,7 @@ lemma (in Rplgrp)
 (* circular interpretation *)
 
 interpretation Rprgrp < Rplgrp
-  proof intro_locales
+  proof unfold_locales
     {
       fix x
       have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
@@ -655,14 +655,14 @@ proof
 qed simp
 
 interpretation Rqrgrp < Rprgrp
-  apply intro_locales
+  apply unfold_locales
   apply (rule assoc)
   apply (rule rone)
   apply (rule rinv)
   done
 
 interpretation R2: Rqlgrp ["op #" "rone" "rinv"] 
-  apply intro_locales  (* FIXME: intro_locales is too eager and shouldn't
+  apply unfold_locales  (* FIXME: unfold_locales is too eager and shouldn't
                           solve this. *)
   done
 
@@ -672,7 +672,7 @@ print_interps Rplgrp  (* no interpretations yet *)
 
 
 interpretation Rqlgrp < Rqrgrp
-  proof intro_locales
+  proof unfold_locales
     {
       fix x
       have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -706,12 +706,12 @@ locale Rtriv2 = var x + var y +
   assumes x: "x = x" and y: "y = y"
 
 interpretation Rtriv2 < Rtriv x
-  apply intro_locales
+  apply unfold_locales
   apply (rule x)
   done
 
 interpretation Rtriv2 < Rtriv y
-  apply intro_locales
+  apply unfold_locales
   apply (rule y)
   done
 
@@ -721,7 +721,7 @@ locale Rtriv3 = var x + var y + var z +
   assumes x: "x = x" and y: "y = y" and z: "z = z"
 
 interpretation Rtriv3 < Rtriv2 x y
-  apply intro_locales
+  apply unfold_locales
   apply (rule x)
   apply (rule y)
   done
@@ -729,7 +729,7 @@ interpretation Rtriv3 < Rtriv2 x y
 print_locale Rtriv3
 
 interpretation Rtriv3 < Rtriv2 x z
-  apply intro_locales
+  apply unfold_locales
   apply (rule x_y_z.x)
   apply (rule z)
   done

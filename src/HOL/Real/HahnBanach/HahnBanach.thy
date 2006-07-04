@@ -334,10 +334,10 @@ theorem norm_HahnBanach:
      \<and> (\<forall>x \<in> F. g x = f x)
      \<and> \<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
 proof -
-  have E: "vectorspace E" by intro_locales
-  have E_norm: "normed_vectorspace E norm" by rule intro_locales
+  have E: "vectorspace E" by unfold_locales
+  have E_norm: "normed_vectorspace E norm" by rule unfold_locales
   have FE: "F \<unlhd> E" .
-  have F: "vectorspace F" by rule intro_locales
+  have F: "vectorspace F" by rule unfold_locales
   have linearform: "linearform F f" .
   have F_norm: "normed_vectorspace F norm"
     by (rule subspace_normed_vs)

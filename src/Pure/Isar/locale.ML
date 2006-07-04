@@ -2004,7 +2004,7 @@ fun all_witnesses ctxt =
 
 in
 
-fun intro_locales_tac (ctxt, eager) facts st =
+fun intro_locales_tac eager ctxt facts st =
   let
     val wits = all_witnesses ctxt |> map Thm.varifyT;
     val thy = ProofContext.theory_of ctxt;
@@ -2017,9 +2017,11 @@ fun intro_locales_tac (ctxt, eager) facts st =
 
 val _ = Context.add_setup (Method.add_methods
   [("intro_locales",
-    fn src => fn ctxt => Method.METHOD (intro_locales_tac
-      (Method.syntax (Scan.lift (Scan.optional (Args.bang >> K false) true)) src ctxt)),
-    "back-chain introduction rules of locales and discharge goals with interpretations")]);
+    Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac false ctxt)),
+    "back-chain introduction rules of locales without unfolding predicates"),
+   ("unfold_locales",
+    Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt)),
+    "back-chain all introduction rules of locales")]);
 
 end;
 

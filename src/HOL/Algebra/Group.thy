@@ -658,7 +658,7 @@ lemma (in group) group_comm_groupI:
   assumes m_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==>
       x \<otimes> y = y \<otimes> x"
   shows "comm_group G"
-  by intro_locales (simp_all add: m_comm)
+  by unfold_locales (simp_all add: m_comm)
 
 lemma comm_groupI:
   fixes G (structure)

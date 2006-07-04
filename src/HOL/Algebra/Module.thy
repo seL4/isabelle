@@ -73,7 +73,7 @@ lemma algebraI:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
       (a \<odot>\<^bsub>M\<^esub> x) \<otimes>\<^bsub>M\<^esub> y = a \<odot>\<^bsub>M\<^esub> (x \<otimes>\<^bsub>M\<^esub> y)"
   shows "algebra R M"
-apply (intro_locales!)
+apply intro_locales
 apply (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms prems)+
 apply (rule module_axioms.intro)
  apply (simp add: smult_closed)
@@ -88,11 +88,11 @@ done
 
 lemma (in algebra) R_cring:
   "cring R"
-  by intro_locales
+  by unfold_locales
 
 lemma (in algebra) M_cring:
   "cring M"
-  by intro_locales
+  by unfold_locales
 
 lemma (in algebra) module:
   "module R M"

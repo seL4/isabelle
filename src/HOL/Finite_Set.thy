@@ -502,10 +502,10 @@ lemmas (in ACIf) ACI = AC idem idem2
 text{* Interpretation of locales: *}
 
 interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
-  by intro_locales (auto intro: add_assoc add_commute)
+  by unfold_locales (auto intro: add_assoc add_commute)
 
 interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
-  by intro_locales (auto intro: mult_assoc mult_commute)
+  by unfold_locales (auto intro: mult_assoc mult_commute)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
@@ -2214,7 +2214,7 @@ apply(rule inf_le2)
 done
 
 lemma (in Lattice) ACIfSL_sup: "ACIfSL sup (%x y. y \<sqsubseteq> x)"
-(* FIXME: insert ACf_sup and use intro_locales *)
+(* FIXME: insert ACf_sup and use unfold_locales *)
 apply(rule ACIfSL.intro)
 apply(rule ACIf.intro)
 apply(rule ACf_sup)
@@ -2370,43 +2370,43 @@ apply(auto simp:min_def)
 done
 
 interpretation min: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply intro_locales
+apply unfold_locales
 apply(auto simp:min_def)
 done
 
 interpretation max: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply intro_locales
+apply unfold_locales
 apply(auto simp:max_def)
 done
 
 interpretation max: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply intro_locales
+apply unfold_locales
 apply(auto simp:max_def)
 done
 
 interpretation min:
   ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
 apply(simp add:order_less_le)
-apply intro_locales
+apply unfold_locales
 apply(auto simp:min_def)
 done
 
 interpretation min:
   ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
-apply intro_locales
+apply unfold_locales
 apply(auto simp:min_def)
 done
 
 interpretation max:
   ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
 apply(simp add:order_less_le eq_sym_conv)
-apply intro_locales
+apply unfold_locales
 apply(auto simp:max_def)
 done
 
 interpretation max:
   ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
-apply intro_locales
+apply unfold_locales
 apply(auto simp:max_def)
 done
 
@@ -2415,13 +2415,13 @@ interpretation min_max:
 apply -
 apply(rule Min_def)
 apply(rule Max_def)
-apply intro_locales
+apply unfold_locales
 done
 
 
 interpretation min_max:
   Distrib_Lattice ["op \<le>" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
-  by intro_locales
+  by unfold_locales
 
 
 text{* Now we instantiate the recursion equations and declare them

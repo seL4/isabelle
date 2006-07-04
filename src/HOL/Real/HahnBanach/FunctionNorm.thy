@@ -207,7 +207,7 @@ lemma (in normed_vectorspace) fn_norm_le_cong:
 proof cases
   assume "x = 0"
   then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
-  also have "f 0 = 0" by rule intro_locales
+  also have "f 0 = 0" by rule unfold_locales
   also have "\<bar>\<dots>\<bar> = 0" by simp
   also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
       by (unfold B_def fn_norm_def) (rule fn_norm_ge_zero)
