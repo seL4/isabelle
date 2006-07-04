@@ -192,9 +192,14 @@ sig
   val dest_skolem: string -> string
   val generalize: string list * string list -> int -> term -> term
   val generalizeT: string list -> int -> typ -> typ
+  val generalize_option: string list * string list -> int -> term -> term option
+  val generalizeT_option: string list -> int -> typ -> typ option
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> term -> term
   val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
+  val instantiate_option: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+    -> term -> term option
+  val instantiateT_option: ((indexname * sort) * typ) list -> typ -> typ option
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
@@ -1008,8 +1013,8 @@ fun generalizeT_same [] _ _ = raise SAME
           | gen_typs [] = raise SAME;
       in gen_typ ty end;
 
-fun generalize ([], []) _ tm = tm
-  | generalize (tfrees, frees) idx tm =
+fun generalize_same ([], []) _ _ = raise SAME
+  | generalize_same (tfrees, frees) idx tm =
       let
         fun var ((x, i), T) =
           (case try dest_internal x of
@@ -1027,10 +1032,13 @@ fun generalize ([], []) _ tm = tm
               (Abs (x, genT T, gen t handle SAME => t)
                 handle SAME => Abs (x, T, gen t))
           | gen (t $ u) = (gen t $ (gen u handle SAME => u) handle SAME => t $ gen u);
-      in gen tm handle SAME => tm end;
+      in gen tm end;
 
-fun generalizeT tfrees i ty =
-  generalizeT_same tfrees i ty handle SAME => ty;
+fun generalize names i tm = generalize_same names i tm handle SAME => tm;
+fun generalizeT names i ty = generalizeT_same names i ty handle SAME => ty;
+
+fun generalize_option names i tm = SOME (generalize_same names i tm) handle SAME => NONE;
+fun generalizeT_option names i ty = SOME (generalizeT_same names i ty) handle SAME => NONE;
 
 end;
 
@@ -1054,8 +1062,8 @@ fun instantiateT_same [] _ = raise SAME
           | subst_typs [] = raise SAME;
       in subst_typ ty end;
 
-fun instantiate ([], []) tm = tm
-  | instantiate (instT, inst) tm =
+fun instantiate_same ([], []) _ = raise SAME
+  | instantiate_same (instT, inst) tm =
       let
         val substT = instantiateT_same instT;
         fun subst (Const (c, T)) = Const (c, substT T)
@@ -1071,10 +1079,13 @@ fun instantiate ([], []) tm = tm
               (Abs (x, substT T, subst t handle SAME => t)
                 handle SAME => Abs (x, T, subst t))
           | subst (t $ u) = (subst t $ (subst u handle SAME => u) handle SAME => t $ subst u);
-      in subst tm handle SAME => tm end;
+      in subst tm end;
 
-fun instantiateT instT ty =
-  instantiateT_same instT ty handle SAME => ty;
+fun instantiate insts tm = instantiate_same insts tm handle SAME => tm;
+fun instantiateT insts ty = instantiateT_same insts ty handle SAME => ty;
+
+fun instantiate_option insts tm = SOME (instantiate_same insts tm) handle SAME => NONE;
+fun instantiateT_option insts ty = SOME (instantiateT_same insts ty) handle SAME => NONE;
 
 end;
 
