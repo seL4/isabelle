@@ -47,7 +47,7 @@ sig
 
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
-  val init: string -> theory -> cterm list * Proof.context
+  val init: string -> theory -> Proof.context
 
   (* The specification of a locale *)
 
@@ -63,12 +63,10 @@ sig
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
     (string * string list) list list -> Proof.context ->
-    string option * (cterm list * Proof.context) * (cterm list * Proof.context) *
-      (term * term list) list list
+    string option * Proof.context * Proof.context * (term * term list) list list
   val cert_context_statement: string option -> Element.context_i element list ->
     (term * term list) list list -> Proof.context ->
-    string option * (cterm list * Proof.context) * (cterm list * Proof.context) *
-      (term * term list) list list
+    string option * Proof.context * Proof.context * (term * term list) list list
   val read_expr: expr -> Element.context list -> Proof.context ->
     Element.context_i list * Proof.context
   val cert_expr: expr -> Element.context_i list -> Proof.context ->
@@ -95,7 +93,7 @@ sig
     theory -> ((string * thm list) list * (string * thm list) list) * (Proof.context * theory)
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    cterm list * Proof.context ->
+    Proof.context ->
     ((string * thm list) list * (string * thm list) list) * Proof.context
   val add_term_syntax: string -> (Proof.context -> Proof.context) ->
     cterm list * Proof.context -> Proof.context
@@ -1439,8 +1437,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       activate_facts false prep_facts (import_ctxt, qs);
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss, syn)),
-      (parms, spec, defs)), ([], concl))
-(* FIXME: change signature, remove [] *)
+      (parms, spec, defs)), concl)
   end;
 
 fun prep_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
@@ -1453,10 +1450,9 @@ fun prep_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
       | SOME name =>
           let val {params = ps, ...} = the_locale thy name
           in (map fst ps, Locale name) end);
-    val ((((locale_ctxt, _), (elems_ctxt, _, _)), _), ([], concl')) =
+    val ((((locale_ctxt, _), (elems_ctxt, _, _)), _), concl') =
       prep_ctxt false fixed_params import elems concl ctxt;
-  in (locale, ([], locale_ctxt), ([], elems_ctxt), concl') end;
-  (* FIXME: change signatures, remove empty statement lists *)
+  in (locale, locale_ctxt, elems_ctxt, concl') end;
 
 fun prep_expr prep import body ctxt =
   let
@@ -1582,16 +1578,16 @@ fun init loc =
 
 (* theory/locale results *)
 
-fun theory_results kind prefix results (view, ctxt) thy =
+fun theory_results kind prefix results ctxt thy =
   let
     val thy_ctxt = ProofContext.init thy;
-    val export = ProofContext.export_view view ctxt thy_ctxt;
+    val export = ProofContext.export_view [] ctxt thy_ctxt;
     val facts = map (fn (name, ths) => ((name, []), [(map export ths, [])])) results;
   in thy |> PureThy.note_thmss_qualified kind prefix facts end;
 
 local
 
-fun gen_thmss prep_facts global_results kind loc args (view, ctxt) thy =
+fun gen_thmss prep_facts global_results kind loc args ctxt thy =
   let
     val (ctxt', ([(_, [Notes args'])], facts)) =
       activate_facts true prep_facts (ctxt, [((("", []), Assumed []), [Ext (Notes args)])]);
@@ -1600,7 +1596,7 @@ fun gen_thmss prep_facts global_results kind loc args (view, ctxt) thy =
       |> change_locale loc (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
         (axiom, import, elems @ [(Notes args', stamp ())], params, lparams, term_syntax, regs, intros))
       |> note_thmss_registrations kind loc args'
-      |> global_results (map (#1 o #1) args' ~~ map #2 facts) (view, ctxt);
+      |> global_results (map (#1 o #1) args' ~~ map #2 facts) ctxt;
   in ((facts, facts'), (ProofContext.transfer thy' ctxt', thy')) end;
 
 fun gen_note prep_locale prep_facts kind raw_loc args thy =
@@ -1614,14 +1610,14 @@ in
 val note_thmss = gen_note intern read_facts;
 val note_thmss_i = gen_note (K I) cert_facts;
 
-fun add_thmss kind loc args (view, ctxt) =
+fun add_thmss kind loc args ctxt =
   gen_thmss cert_facts (theory_results kind "")
-    kind loc args (view, ctxt) (ProofContext.theory_of ctxt)
+    kind loc args ctxt (ProofContext.theory_of ctxt)
   ||> #1;
 
 fun locale_results kind loc args (ctxt, thy) =
   thy |> gen_thmss cert_facts (K (K (pair [])))
-    kind loc (map (apsnd Thm.simple_fact) args) ([], ctxt)
+    kind loc (map (apsnd Thm.simple_fact) args) ctxt
   |>> #1;
 
 end;
@@ -1907,9 +1903,9 @@ fun gen_theorem prep_src prep_elem prep_stmt
     val ((concl_elems, concl), mk_stmt) = conclusion (prep_src thy) raw_concl;
     val thy_ctxt = ProofContext.init thy;
     val elems = map (prep_elem thy) (raw_elems @ concl_elems);
-    val (_, _, (view, ctxt), propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
+    val (_, _, ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
     val ((stmt, facts), goal_ctxt) = ctxt
-      |> ProofContext.add_view thy_ctxt view
+      |> ProofContext.add_view thy_ctxt []
       |> mk_stmt (map fst concl ~~ propp);
   in
     global_goal kind before_qed after_qed (SOME "") (name, atts) stmt goal_ctxt
@@ -1928,13 +1924,13 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     val names = map (fst o fst) concl;
 
     val thy_ctxt = init_term_syntax loc (ProofContext.init thy);
-    val (_, (loc_view, loc_ctxt), (elems_view, elems_ctxt), propp) =
+    val (_, loc_ctxt, elems_ctxt, propp) =
       prep_stmt (SOME raw_loc) elems (map snd concl) thy_ctxt;
     val elems_ctxt' = elems_ctxt
-      |> ProofContext.add_view loc_ctxt elems_view
-      |> ProofContext.add_view thy_ctxt loc_view;
+      |> ProofContext.add_view loc_ctxt []
+      |> ProofContext.add_view thy_ctxt [];
     val loc_ctxt' = loc_ctxt
-      |> ProofContext.add_view thy_ctxt loc_view;
+      |> ProofContext.add_view thy_ctxt [];
 
     val ((stmt, facts), goal_ctxt) =
       elems_ctxt' |> mk_stmt (map (apsnd (K []) o fst) concl ~~ propp);

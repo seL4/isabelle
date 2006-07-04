@@ -132,7 +132,7 @@ fun locale f ctxt =
 fun init_i NONE thy = ProofContext.init thy
   | init_i (SOME loc) thy =
       thy
-      |> Locale.init loc
+      |> (fn thy => ([], Locale.init loc thy))
       ||>> ProofContext.inferred_fixes
       |> (fn ((view, params), ctxt) => Data.put
           {locale = SOME (loc, (view, ctxt)),
@@ -216,7 +216,7 @@ fun notes kind facts ctxt =
     (case locale_of ctxt of
       NONE => theory_result (PureThy.note_thmss_i kind (Attrib.map_facts attrib facts'))
     | SOME (loc, _) =>
-        locale_result (apfst #1 o Locale.add_thmss kind loc facts'))
+        locale_result (apfst #1 o (fn (_, ctxt) => Locale.add_thmss kind loc facts' ctxt)))
     ||> (#2 o ProofContext.note_thmss_i (Attrib.map_facts attrib facts))
   end;
 
