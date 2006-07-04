@@ -32,6 +32,7 @@ sig
   val entries: 'a net -> 'a list
   val subtract: ('b * 'a -> bool) -> 'a net -> 'b net -> 'b list
   val merge: ('a * 'a -> bool) -> 'a net * 'a net -> 'a net
+  val content: 'a net -> 'a list
 end;
 
 structure Net: NET =
@@ -239,5 +240,7 @@ fun dest (Leaf xs) = map (pair []) xs
       maps (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) (Symtab.dest atoms);
 
 fun merge eq (net1, net2) = fold (insert_safe eq) (dest net2) net1;
+
+fun content net = map #2 (dest net);
 
 end;
