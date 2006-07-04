@@ -773,9 +773,7 @@ fun create_nom_typedecls ak_names thy =
 	      in [(("fresh_atm", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = List.concat (List.concat perm_defs)
-                  val thms2 = List.concat prm_eqs
-                  val thms3 = List.concat swap_eqs
-              in [(("calc_atm", (inst_at at_calc) @ thms1 @ thms2 @ thms3 ),[])] end
+              in [(("calc_atm", (inst_at at_calc) @ thms1),[])] end
             ||>> PureThy.add_thmss
 	      let val thms1 = inst_pt_at [abs_fun_pi]
 		  and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]

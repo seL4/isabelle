@@ -271,6 +271,9 @@ fun finite_guess_tac tactical ss i st =
     handle Subscript => Seq.empty
 
 val supports_fresh_rule = thm "supports_fresh";
+val fresh_def           = thm "Nominal.fresh_def";
+val fresh_prod          = thm "Nominal.fresh_prod";
+val fresh_unit          = thm "Nominal.fresh_unit";
 
 fun fresh_guess_tac tactical ss i st =
     let 
@@ -293,15 +296,15 @@ fun fresh_guess_tac tactical ss i st =
               Logic.strip_assums_concl (hd (prems_of supports_fresh_rule'));
             val supports_fresh_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_fresh_rule'
-            val fresh_def   = thm "Nominal.fresh_def";
-	    val fresh_prod  = thm "Nominal.fresh_prod";
-            val fresh_unit  = thm "Nominal.fresh_unit";
-	    val simps       = [symmetric fresh_def,fresh_prod,fresh_unit]
+	    val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit]
+            val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,Finites.emptyI]
+            (* FIXME sometimes these rewrite rules are already in the ss, *)
+            (* which produces a warning                                   *)
           in
             (tactical ("guessing of the right set that supports the goal",
                       EVERY [compose_tac (false, supports_fresh_rule'', 3) i,
-                             asm_full_simp_tac (ss addsimps simps) (i+2),
-                             asm_full_simp_tac ss (i+1), 
+                             asm_full_simp_tac ss1 (i+2),
+                             asm_full_simp_tac ss2 (i+1), 
                              supports_tac tactical ss i])) st
           end
         | _ => Seq.empty
