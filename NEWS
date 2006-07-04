@@ -85,6 +85,9 @@ certain special cases of literal facts:
   have "!!x. P x ==> Q x" by fact  ==  note `!!x. P x ==> Q x`
   have "P a ==> Q a" by fact       ==  note `P a ==> Q a`
 
+* Isar: 'print_facts' prints all local facts of the current context,
+both named and unnamed ones.
+
 * Isar: 'def' now admits simultaneous definitions, e.g.:
 
   def x == "t" and y == "u"
