@@ -1422,7 +1422,7 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
 	val _ = message "INST_TYPE:"
 	val _ = if_debug pth hth
 	val tys_before = add_term_tfrees (prop_of th,[])
-	val th1 = varifyT th
+	val th1 = Thm.varifyT th
 	val tys_after = add_term_tvars (prop_of th1,[])
 	val tyinst = map (fn (bef, iS) =>
 			     (case try (Lib.assoc (TFree bef)) lambda of
