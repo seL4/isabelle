@@ -295,14 +295,22 @@ val refine_witness =
 
 (* derived rules *)
 
-fun instantiate_tfrees thy subst =
+fun instantiate_tfrees thy subst th =
   let
     val certT = Thm.ctyp_of thy;
-    fun inst vs (a, T) = AList.lookup (op =) vs a
-      |> Option.map (fn v => (certT (TVar v), certT T));
+    val idx = Thm.maxidx_of th + 1;
+    fun cert_inst (a, (S, T)) = (certT (TVar ((a, idx), S)), certT T);
+
+    fun add_inst (a, S) insts =
+      if AList.defined (op =) insts a then insts
+      else (case AList.lookup (op =) subst a of NONE => insts | SOME T => (a, (S, T)) :: insts);
+    val insts =
+      Term.fold_types (Term.fold_atyps (fn TFree v => add_inst v | _ => I))
+        (Thm.full_prop_of th) [];
   in
-    Drule.tvars_intr_list (map fst subst) #->
-    (fn vs => Thm.instantiate (map_filter (inst vs) subst, []))
+    th
+    |> Thm.generalize (map fst insts, []) idx
+    |> Thm.instantiate (map cert_inst insts, [])
   end;
 
 fun instantiate_frees thy subst =
