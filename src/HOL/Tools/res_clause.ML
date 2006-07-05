@@ -17,9 +17,7 @@ signature RES_CLAUSE =
   val arity_clause_thy: theory -> arityClause list 
   val ascii_of : string -> string
   val bracket_pack : string list -> string
-  val check_var_pairs: ''a * ''b -> (''a * ''b) list -> int
   val classrel_clauses_thy: theory -> classrelClause list 
-  val clause_eq : clause * clause -> bool
   val clause_prefix : string 
   val clause2tptp : clause -> string * string list
   val const_prefix : string
@@ -28,7 +26,6 @@ signature RES_CLAUSE =
   val gen_tptp_cls : int * string * string * string -> string
   val gen_tptp_type_cls : int * string * string * string * int -> string
   val get_axiomName : clause ->  string
-  val hash_clause : clause -> int
   val init : theory -> unit
   val isMeta : string -> bool
   val isTaut : clause -> bool
@@ -57,8 +54,6 @@ signature RES_CLAUSE =
   val tptp_tfree_clause : string -> string
   val tptp_write_file: thm list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
   val tvar_prefix : string
-  val types_eq: fol_type list * fol_type list -> (string*string) list * (string*string) list -> bool * ((string*string) list * (string*string) list)
-  val types_ord : fol_type list * fol_type list -> order
   val union_all : ''a list list -> ''a list
   val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
   val dfg_sign: bool -> string -> string
@@ -270,14 +265,6 @@ fun isTrue (Literal (pol,Predicate(pname,_,[]),_)) =
   
 fun isTaut (Clause {literals,...}) = exists isTrue literals;  
 
-fun make_clause (clause_id, axiom_name, th, kind, literals, types_sorts) =
-  if forall isFalse literals 
-  then error "Problem too trivial for resolution (empty clause)"
-  else
-     Clause {clause_id = clause_id, axiom_name = axiom_name, 
-             th = th, kind = kind, 
-             literals = literals, types_sorts = types_sorts};
-
 
 (*Declarations of the current theory--to allow suppressing types.*)
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
@@ -393,161 +380,6 @@ fun list_ord _ ([],[]) = EQUAL
       (case ord(x,y) of EQUAL => list_ord ord (xs,ys)
 	 	      | xy_ord => xy_ord);
 		     
-fun type_ord (AtomV(_),AtomV(_)) = EQUAL
-  | type_ord (AtomV(_),_) = LESS
-  | type_ord (AtomF(_),AtomV(_)) = GREATER
-  | type_ord (AtomF(f1),AtomF(f2)) = string_ord (f1,f2)
-  | type_ord (AtomF(_),_) = LESS
-  | type_ord (Comp(_,_),AtomV(_)) = GREATER
-  | type_ord (Comp(_,_),AtomF(_)) = GREATER
-  | type_ord (Comp(con1,args1),Comp(con2,args2)) = 
-      (case string_ord(con1,con2) of EQUAL => types_ord (args1,args2)
-		      | con_ord => con_ord)
-and
-    types_ord ([],[]) = EQUAL
-  | types_ord (tps1,tps2) = list_ord type_ord (tps1,tps2);
-
-
-fun term_ord (UVar _, UVar _) = EQUAL
-  | term_ord (UVar _, _) = LESS
-  | term_ord (Fun _, UVar _) = GREATER
-  | term_ord (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) = 
-     (case string_ord (f1,f2) of
-         EQUAL => 
-	   (case terms_ord (tms1,tms2) of EQUAL => types_ord (tps1,tps2)
-	      | tms_ord => tms_ord)
-       | fn_ord => fn_ord)
-
-and
-      terms_ord ([],[]) = EQUAL
-    | terms_ord (tms1,tms2) = list_ord term_ord (tms1,tms2);
-
-
-
-fun predicate_ord (Predicate(pname1,ftyps1,ftms1),Predicate(pname2,ftyps2,ftms2)) = 
-  case string_ord (pname1,pname2) of
-       EQUAL => (case terms_ord(ftms1,ftms2) of EQUAL => types_ord(ftyps1,ftyps2)
-				              | ftms_ord => ftms_ord)
-     | pname_ord => pname_ord
-			   
-
-fun literal_ord (Literal(false,_,_),Literal(true,_,_)) = LESS
-  | literal_ord (Literal(true,_,_),Literal(false,_,_)) = GREATER
-  | literal_ord (Literal(_,pred1,_),Literal(_,pred2,_)) = predicate_ord(pred1,pred2);
-
-fun sort_lits lits = sort literal_ord lits;
-
-
-(********** clause equivalence ******************)
-
-fun check_var_pairs (x,y) [] = 0 
-  | check_var_pairs (x,y) ((u,v)::w) =
-    if (x,y) = (u,v) then 1 
-    else
-	if x=u orelse y=v then 2 (*conflict*)
-	else check_var_pairs (x,y) w;
-
-fun type_eq (AtomV(v1),AtomV(v2)) (vars,tvars) =
-    (case check_var_pairs (v1,v2) tvars of 0 => (true,(vars,(v1,v2)::tvars))
-					 | 1 => (true,(vars,tvars))
-					 | 2 => (false,(vars,tvars)))
-  | type_eq (AtomV(_),_) vtvars = (false,vtvars)
-  | type_eq (AtomF(f1),AtomF(f2)) vtvars = (f1=f2,vtvars)
-  | type_eq (AtomF(_),_) vtvars = (false,vtvars)
-  | type_eq (Comp(con1,args1),Comp(con2,args2)) vtvars =
-      let val (eq1,vtvars1) = 
-	      if con1 = con2 then types_eq (args1,args2) vtvars
-	      else (false,vtvars)
-      in
-	  (eq1,vtvars1)
-      end
-  | type_eq (Comp(_,_),_) vtvars = (false,vtvars)
-
-and types_eq ([],[]) vtvars = (true,vtvars)
-  | types_eq (tp1::tps1,tp2::tps2) vtvars =
-      let val (eq1,vtvars1) = type_eq (tp1,tp2) vtvars
-	  val (eq2,vtvars2) = if eq1 then types_eq (tps1,tps2) vtvars1
-			      else (eq1,vtvars1)
-      in
-	  (eq2,vtvars2)
-      end;
-
-
-fun term_eq (UVar(v1,tp1),UVar(v2,tp2)) (vars,tvars) =
-    (case check_var_pairs (v1,v2) vars of 0 => type_eq (tp1,tp2) (((v1,v2)::vars),tvars)
-					| 1 => type_eq (tp1,tp2) (vars,tvars)
-					| 2 => (false,(vars,tvars)))
-  | term_eq (UVar _,_) vtvars = (false,vtvars)
-  | term_eq (Fun(f1,tps1,tms1),Fun(f2,tps2,tms2)) vtvars =
-      let val (eq1,vtvars1) = 
-	      if f1 = f2 then terms_eq (tms1,tms2) vtvars
-	      else (false,vtvars)
-	  val (eq2,vtvars2) =
-	      if eq1 then types_eq (tps1,tps2) vtvars1
-	      else (eq1,vtvars1)
-      in
-	  (eq2,vtvars2)
-      end
-  | term_eq (Fun(_,_,_),_) vtvars = (false,vtvars)
-
-and terms_eq ([],[]) vtvars = (true,vtvars)
-  | terms_eq (tm1::tms1,tm2::tms2) vtvars =
-      let val (eq1,vtvars1) = term_eq (tm1,tm2) vtvars
-	  val (eq2,vtvars2) = if eq1 then terms_eq (tms1,tms2) vtvars1
-				     else (eq1,vtvars1)
-      in
-	  (eq2,vtvars2)
-      end;
-					     
-
-fun pred_eq (Predicate(pname1,tps1,tms1),Predicate(pname2,tps2,tms2)) vtvars =
-    let val (eq1,vtvars1) = 
-	    if pname1 = pname2 then terms_eq (tms1,tms2) vtvars
-	    else (false,vtvars)
-	val (eq2,vtvars2) = 
-	    if eq1 then types_eq (tps1,tps2) vtvars1
-	    else (eq1,vtvars1)
-    in
-	(eq2,vtvars2)
-    end;
-					      
-
-fun lit_eq (Literal(pol1,pred1,_),Literal(pol2,pred2,_)) vtvars =
-    if (pol1 = pol2) then pred_eq (pred1,pred2) vtvars
-    else (false,vtvars);
-
-fun lits_eq ([],[]) vtvars = (true,vtvars)
-  | lits_eq (l1::ls1,l2::ls2) vtvars = 
-      let val (eq1,vtvars1) = lit_eq (l1,l2) vtvars
-      in
-	  if eq1 then lits_eq (ls1,ls2) vtvars1
-	  else (false,vtvars1)
-      end
-  | lits_eq _ vtvars = (false,vtvars);
-
-(*Equality of two clauses up to variable renaming*)
-fun clause_eq (Clause{literals=lits1,...}, Clause{literals=lits2,...}) =
-  #1 (lits_eq (lits1,lits2) ([],[]));
-
-
-(*** Hash function for clauses ***)
-
-val xor_words = List.foldl Word.xorb 0w0;
-
-fun hashw_term (UVar _, w) = w
-  | hashw_term (Fun(f,tps,args), w) = 
-      List.foldl hashw_term (Polyhash.hashw_string (f,w)) args;
-  
-fun hashw_pred (Predicate(pn,_,args), w) = 
-    List.foldl hashw_term (Polyhash.hashw_string (pn,w)) args;
-    
-fun hash1_literal (Literal(true,pred,_)) = hashw_pred (pred, 0w0)
-  | hash1_literal (Literal(false,pred,_)) = Word.notb (hashw_pred (pred, 0w0));
-  
-fun hash_clause (Clause{literals,...}) =
-  Word.toIntX (xor_words (map hash1_literal literals));
-
-
 (*Make literals for sorted type variables.  FIXME: can it use map?*) 
 fun sorts_on_typs (_, [])   = ([]) 
   | sorts_on_typs (v, "HOL.type" :: s) =
@@ -579,30 +411,6 @@ fun add_typs_aux [] = ([],[])
 	  (vss, fs union fss)
       end;
 
-
-(** make axiom and conjecture clauses. **)
-
-fun get_tvar_strs [] = []
-  | get_tvar_strs ((FOLTVar indx,s)::tss) = 
-      (make_schematic_type_var indx) ins (get_tvar_strs tss)
-  | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
-
-(* check if a clause is first-order before making a conjecture clause*)
-fun make_conjecture_clause n thm =
-    let val t = prop_of thm
-	val _ = check_is_fol_term t
-	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
-	val (lits,types_sorts) = literals_of_term t
-    in
-	make_clause(n, "conjecture", thm, Conjecture, lits, types_sorts)
-    end;
-    
-fun make_conjecture_clauses_aux _ [] = []
-  | make_conjecture_clauses_aux n (t::ts) =
-      make_conjecture_clause n t :: make_conjecture_clauses_aux (n+1) ts
-
-val make_conjecture_clauses = make_conjecture_clauses_aux 0
-
 (** Too general means, positive equality literal with a variable X as one operand,
   when X does not occur properly in the other operand. This rules out clearly
   inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
@@ -619,22 +427,57 @@ fun too_general_lit (Literal (true,Predicate("equal",_,[x,y]),_)) =
       too_general_terms (x,y) orelse too_general_terms(y,x)
   | too_general_lit _ = false;
 
+
+
+(** make axiom and conjecture clauses. **)
+
+exception MAKE_CLAUSE;
+fun make_clause (clause_id, axiom_name, th, kind) =
+    let val term = prop_of th
+	val (lits,types_sorts) = literals_of_term term
+    in if forall isFalse lits 
+       then error "Problem too trivial for resolution (empty clause)"
+       else
+	   case kind of Axiom => 
+			if forall too_general_lit lits then
+			    (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); raise MAKE_CLAUSE)
+			else Clause {clause_id = clause_id, axiom_name = axiom_name,th = th, kind = kind, literals = lits, types_sorts = types_sorts}
+		      | _ =>  Clause {clause_id = clause_id, axiom_name = axiom_name,th = th, kind = kind, literals = lits, types_sorts = types_sorts}
+    end;		     
+
+fun get_tvar_strs [] = []
+  | get_tvar_strs ((FOLTVar indx,s)::tss) = 
+      (make_schematic_type_var indx) ins (get_tvar_strs tss)
+  | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
+
+(* check if a clause is first-order before making a conjecture clause*)
+fun make_conjecture_clause n thm =
+    let val t = prop_of thm
+	val _ = check_is_fol_term t
+	    handle TERM("check_is_fol_term",_) => raise CLAUSE("Goal is not FOL",t)
+    in
+	make_clause(n, "conjecture", thm, Conjecture)
+    end;
+    
+fun make_conjecture_clauses_aux _ [] = []
+  | make_conjecture_clauses_aux n (t::ts) =
+      make_conjecture_clause n t :: make_conjecture_clauses_aux (n+1) ts
+
+val make_conjecture_clauses = make_conjecture_clauses_aux 0
+
+
+
 (*before converting an axiom clause to "clause" format, check if it is FOL*)
 fun make_axiom_clause thm (ax_name,cls_id) =
     let val term = prop_of thm
-	val (lits,types_sorts) = literals_of_term term
     in 
 	if not (Meson.is_fol_term term) then
-	   (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); 
-	    NONE)
-	else if forall too_general_lit lits then
-	   (Output.debug ("Omitting " ^ ax_name ^ ": equalities are too general"); 
-	    NONE)
-	else SOME (make_clause(cls_id, ax_name, thm, Axiom, sort_lits lits, types_sorts))
+	    (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); 
+	     NONE)
+	else (SOME (make_clause(cls_id, ax_name, thm, Axiom)) handle MAKE_CLAUSE => NONE)
     end
-    handle CLAUSE _ => NONE;
-
-
+	handle CLAUSE _ => NONE;
+    
 fun make_axiom_clauses [] = []
   | make_axiom_clauses ((thm,(name,id))::thms) =
     case make_axiom_clause thm (name,id) of SOME cls => if isTaut cls then make_axiom_clauses thms else cls :: make_axiom_clauses thms
@@ -776,8 +619,7 @@ fun add_foltype_funcs (AtomV _, funcs) = funcs
       foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
 fun add_folterm_funcs (UVar _, funcs) = funcs
-  | add_folterm_funcs (Fun(a,tys,[]), funcs) = Symtab.update (a,0) funcs
-      (*A constant is a special case: it has no type argument even if overloaded*)
+  | add_folterm_funcs (Fun(a,tys,[]), funcs) = Symtab.update (a,length tys) funcs
   | add_folterm_funcs (Fun(a,tys,tms), funcs) = 
       foldl add_foltype_funcs 
 	    (foldl add_folterm_funcs (Symtab.update (a, length tys + length tms) funcs) 
@@ -820,7 +662,7 @@ fun string_of_equality (typ,terms) =
       end
 and string_of_term (UVar(x,_)) = x
   | string_of_term (Fun("equal",[typ],terms)) = string_of_equality(typ,terms)
-  | string_of_term (Fun (name,typs,[])) = name (*Overloaded consts like 0 don't get types!*)
+  | string_of_term (Fun (name,typs,[])) = name ^ (paren_pack (map string_of_fol_type typs))
   | string_of_term (Fun (name,typs,terms)) = 
       let val terms_as_strings = map string_of_term terms
 	  val typs' = if !keep_types then map string_of_fol_type typs else []
