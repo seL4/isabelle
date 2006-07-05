@@ -60,6 +60,7 @@ echo "### cleaning up old isabelle-* directories" >> $DISTLOG 2>&1
 rm -rf $HOME/isabelle-*
 
 echo "### building distribution"  >> $DISTLOG 2>&1
+mkdir -p $DISTPREFIX
 $MAKEDIST - >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
