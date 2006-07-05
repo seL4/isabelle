@@ -176,16 +176,23 @@ local
 val Let_folded = thm "Let_folded";
 val Let_unfold = thm "Let_unfold";
 
-val f_Let_unfold = 
-      let val [(_$(f$_)$_)] = prems_of Let_unfold in cterm_of (sign_of (the_context ())) f end
-val f_Let_folded = 
-      let val [(_$(f$_)$_)] = prems_of Let_folded in cterm_of (sign_of (the_context ())) f end;
+val (f_Let_unfold,x_Let_unfold) = 
+      let val [(_$(f$x)$_)] = prems_of Let_unfold 
+      in (cterm_of (sign_of (the_context ())) f,cterm_of (sign_of (the_context ())) x) end
+val (f_Let_folded,x_Let_folded) = 
+      let val [(_$(f$x)$_)] = prems_of Let_folded 
+      in (cterm_of (sign_of (the_context ())) f, cterm_of (sign_of (the_context ())) x) end;
 val g_Let_folded = 
       let val [(_$_$(g$_))] = prems_of Let_folded in cterm_of (sign_of (the_context ())) g end;
 in
 val let_simproc =
   Simplifier.simproc (Theory.sign_of (the_context ())) "let_simp" ["Let x f"] 
    (fn sg => fn ss => fn t =>
+(* FIXME: very slow (replace t by t' in case below)
+     let val ctxt = Simplifier.the_context ss;
+         val ([t'],ctxt') = Variable.import_terms false [t] ctxt;
+     in Option.map (hd o Variable.export ctxt' ctxt o single)
+*)
       (case t of (Const ("Let",_)$x$f) => (* x and f are already in normal form *)
          if not (!use_let_simproc) then NONE
          else if is_Free x orelse is_Bound x orelse is_Const x 
@@ -202,7 +209,7 @@ val let_simproc =
            in (if (g aconv g') 
                then
                   let
-                    val rl = cterm_instantiate [(f_Let_unfold,cf)] Let_unfold;
+                    val rl = cterm_instantiate [(f_Let_unfold,cf),(x_Let_unfold,cx)] Let_unfold;
                   in SOME (rl OF [fx_g]) end 
                else if Term.betapply (f,x) aconv g then NONE (*avoid identity conversion*)
                else let 
@@ -210,12 +217,16 @@ val let_simproc =
                      val g'x = abs_g'$x;
                      val g_g'x = symmetric (beta_conversion false (cterm_of sg g'x));
                      val rl = cterm_instantiate
-                               [(f_Let_folded,cterm_of sg f),
+                               [(f_Let_folded,cterm_of sg f),(x_Let_folded,cx),
                                 (g_Let_folded,cterm_of sg abs_g')]
                                Let_folded; 
-                   in SOME (rl OF [transitive fx_g g_g'x]) end)
+                   in SOME (rl OF [transitive fx_g g_g'x]) 
+                   end)
            end
-        | _ => NONE))
+        | _ => NONE)
+ (*  FIXME: continue
+  end*)
+ )
 end
 
 (*** Case splitting ***)

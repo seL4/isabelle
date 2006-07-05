@@ -1079,7 +1079,7 @@ apply  (erule spec)
 apply (rule ax_escape, clarsimp)
 apply (erule_tac V = "?P \<longrightarrow> ?Q" in thin_rl)
 apply (drule spec,drule spec,drule spec, erule conseq12)
-apply (force simp add: init_lvars_def)
+apply (force simp add: init_lvars_def Let_def)
 done
 
 lemma ax_Methd1: 
