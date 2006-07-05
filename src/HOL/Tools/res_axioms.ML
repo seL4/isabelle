@@ -7,8 +7,6 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature RES_AXIOMS =
   sig
-  exception ELIMR2FOL of string
-  val tagging_enabled : bool
   val elimRule_tac : thm -> Tactical.tactic
   val elimR2Fol : thm -> term
   val transform_elim : thm -> thm
@@ -33,16 +31,11 @@ structure ResAxioms : RES_AXIOMS =
 struct
 
 
-val tagging_enabled = false (*compile_time option*)
-
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
 (* a tactic used to prove an elim-rule. *)
 fun elimRule_tac th =
-    ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac th 1) THEN
-    REPEAT(fast_tac HOL_cs 1);
-
-exception ELIMR2FOL of string;
+    (resolve_tac [impI,notI] 1) THEN (etac th 1) THEN REPEAT(blast_tac HOL_cs 1);
 
 fun add_EX tm [] = tm
   | add_EX tm ((x,xtp)::xs) = add_EX (HOLogic.exists_const xtp $ Abs(x,xtp,tm)) xs;
@@ -52,58 +45,57 @@ fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_)))
            (Const("Trueprop",_) $ Free(q,_)) = (p = q)
   | is_neg _ _ = false;
 
-(*FIXME: What if dest_Trueprop fails?*)
+exception ELIMR2FOL;
+
+(*Handles the case where the dummy "conclusion" variable appears negated in the
+  premises, so the final consequent must be kept.*)
 fun strip_concl' prems bvs (Const ("==>",_) $ P $ Q) =
       strip_concl' (HOLogic.dest_Trueprop P :: prems) bvs  Q
   | strip_concl' prems bvs P = 
       let val P' = HOLogic.Not $ (HOLogic.dest_Trueprop P)
       in add_EX (foldr1 HOLogic.mk_conj (P'::prems)) bvs end;
 
+(*Recurrsion over the minor premise of an elimination rule. Final consequent
+  is ignored, as it is the dummy "conclusion" variable.*)
 fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body)) = 
       strip_concl prems ((x,xtp)::bvs) concl body
   | strip_concl prems bvs concl (Const ("==>",_) $ P $ Q) =
       if (is_neg P concl) then (strip_concl' prems bvs Q)
       else strip_concl (HOLogic.dest_Trueprop P::prems) bvs  concl Q
-  | strip_concl prems bvs concl _ = add_EX (foldr1 HOLogic.mk_conj prems) bvs;
+  | strip_concl prems bvs concl Q = 
+      if concl aconv Q then add_EX (foldr1 HOLogic.mk_conj prems) bvs
+      else raise ELIMR2FOL (*expected conclusion not found!*)
  
-fun trans_elim (major,minors,concl) =
-    let val disjs = foldr1 HOLogic.mk_disj (map (strip_concl [] [] concl) minors)
-    in
-	HOLogic.mk_imp (HOLogic.dest_Trueprop major, disjs)
-    end;
+fun trans_elim (major,[],_) = HOLogic.Not $ major
+  | trans_elim (major,minors,concl) =
+      let val disjs = foldr1 HOLogic.mk_disj (map (strip_concl [] [] concl) minors)
+      in  HOLogic.mk_imp (major, disjs)  end;
 
 (* convert an elim rule into an equivalent formula, of type term. *)
 fun elimR2Fol elimR = 
   let val elimR' = Drule.freeze_all elimR
       val (prems,concl) = (prems_of elimR', concl_of elimR')
-      val _ = case concl of 
-		  Const("Trueprop",_) $ Free(_,Type("bool",[])) => ()
-		| Free(_, Type("prop",[])) => ()
-		| _ => raise ELIMR2FOL "elimR2Fol: Not an elimination rule!"
-      val th = case prems of
-      		  [] => raise ELIMR2FOL "elimR2Fol: No premises!"
-      		| [major] => HOLogic.Not $ (HOLogic.dest_Trueprop major)
-      		| major::minors => trans_elim (major, minors, concl)
-  in HOLogic.mk_Trueprop th end
-  handle exn => 
-    (warning ("elimR2Fol raised exception " ^ Toplevel.exn_message exn);
-     concl_of elimR);
-
-(* check if a rule is an elim rule *)
-fun is_elimR th = 
-    case concl_of th of Const ("Trueprop", _) $ Var _ => true
-		      | Var(_,Type("prop",[])) => true
-		      | _ => false;
+      val cv = case concl of    (*conclusion variable*)
+		  Const("Trueprop",_) $ (v as Free(_,Type("bool",[]))) => v
+		| v as Free(_, Type("prop",[])) => v
+		| _ => raise ELIMR2FOL
+  in case prems of
+      [] => raise ELIMR2FOL
+    | (Const("Trueprop",_) $ major) :: minors => 
+        if member (op aconv) (term_frees major) cv then raise ELIMR2FOL
+        else (trans_elim (major, minors, concl) handle TERM _ => raise ELIMR2FOL)
+    | _ => raise ELIMR2FOL
+  end;
 
 (* convert an elim-rule into an equivalent theorem that does not have the 
    predicate variable.  Leave other theorems unchanged.*) 
 fun transform_elim th =
-  if is_elimR th then
-    let val ctm = cterm_of (sign_of_thm th) (elimR2Fol th)
+    let val ctm = cterm_of (sign_of_thm th) (HOLogic.mk_Trueprop (elimR2Fol th))
     in Goal.prove_raw [] ctm (fn _ => elimRule_tac th) end
-    handle exn => (warning ("transform_elim failed: " ^ Toplevel.exn_message exn ^ 
-                            " for theorem " ^ string_of_thm th); th)
- else th;
+    handle ELIMR2FOL => th (*not an elimination rule*)
+         | exn => (warning ("transform_elim failed: " ^ Toplevel.exn_message exn ^ 
+                            " for theorem " ^ string_of_thm th); th) 
+
 
 
 (**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
@@ -157,7 +149,6 @@ fun declare_skofuns s th thy =
 	    in dec_sko (subst_bound (Free(fname,T), p)) (n, thx) end
 	| dec_sko (Const ("op &", _) $ p $ q) nthy = dec_sko q (dec_sko p nthy)
 	| dec_sko (Const ("op |", _) $ p $ q) nthy = dec_sko q (dec_sko p nthy)
-	| dec_sko (Const ("HOL.tag", _) $ p) nthy = dec_sko p nthy
 	| dec_sko (Const ("Trueprop", _) $ p) nthy = dec_sko p nthy
 	| dec_sko t nthx = nthx (*Do nothing otherwise*)
   in  #2 (dec_sko (#prop (rep_thm th)) (1, (thy,[])))  end;
@@ -185,7 +176,6 @@ fun assume_skofuns th =
 	    in dec_sko (subst_bound (Free(fname,T), p)) defs end
 	| dec_sko (Const ("op &", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
 	| dec_sko (Const ("op |", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
-	| dec_sko (Const ("HOL.tag", _) $ p) defs = dec_sko p defs
 	| dec_sko (Const ("Trueprop", _) $ p) defs = dec_sko p defs
 	| dec_sko t defs = defs (*Do nothing otherwise*)
   in  dec_sko (#prop (rep_thm th)) []  end;
@@ -305,14 +295,6 @@ fun meta_cnf_axiom th =
 (*Preserve the name of "th" after the transformation "f"*)
 fun preserve_name f th = Thm.name_thm (Thm.name_of_thm th, f th);
 
-(*Tags identify the major premise or conclusion, as hints to resolution provers.
-  However, they don't appear to help in recent tests, and they complicate the code.*)
-val tagI = thm "tagI";
-val tagD = thm "tagD";
-
-val tag_intro = preserve_name (fn th => th RS tagI);
-val tag_elim  = preserve_name (fn th => tagD RS th);
-
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
       val intros = safeIs @ hazIs
@@ -320,9 +302,7 @@ fun rules_of_claset cs =
   in
      Output.debug ("rules_of_claset intros: " ^ Int.toString(length intros) ^ 
             " elims: " ^ Int.toString(length elims));
-     if tagging_enabled 
-     then map pairname (map tag_intro intros @ map tag_elim elims)
-     else map pairname (intros @ elims)
+     map pairname (intros @ elims)
   end;
 
 fun rules_of_simpset ss =
