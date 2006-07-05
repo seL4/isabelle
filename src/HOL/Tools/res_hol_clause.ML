@@ -220,49 +220,6 @@ fun get_clause_id (Clause cls) = #clause_id cls;
 fun get_literals (c as Clause(cls)) = #literals cls;
 
 
-
-exception TERM_ORD of string
-
-fun term_ord (CombVar(_,_),CombVar(_,_)) = EQUAL
-  | term_ord (CombVar(_,_),_) = LESS
-  | term_ord (CombFree(_,_),CombVar(_,_)) = GREATER
-  | term_ord (CombFree(f1,tp1),CombFree(f2,tp2)) = 
-    let val ord1 = string_ord(f1,f2)
-    in
-	case ord1 of EQUAL => ResClause.types_ord ([tp1],[tp2])
-		   | _ => ord1
-    end
-  | term_ord (CombFree(_,_),_) = LESS
-  | term_ord (CombConst(_,_,_),CombVar(_,_)) = GREATER
-  | term_ord (CombConst(_,_,_),CombFree(_,_)) = GREATER
-  | term_ord (CombConst(c1,tp1,_),CombConst(c2,tp2,_)) = 
-    let val ord1 = string_ord (c1,c2)
-    in
-	case ord1 of EQUAL => ResClause.types_ord ([tp1],[tp2])
-		   | _ => ord1
-    end
-  | term_ord (CombConst(_,_,_),_) = LESS
-  | term_ord (CombApp(_,_,_),Bool(_)) = raise TERM_ORD("bool")
-  | term_ord (CombApp(f1,arg1,tp1),CombApp(f2,arg2,tp2)) =
-    let val ord1 = term_ord (f1,f2)
-	val ord2 = case ord1 of EQUAL => term_ord (arg1,arg2)
-			      | _ => ord1
-    in
-	case ord2 of EQUAL => ResClause.types_ord ([tp1],[tp2])
-		   | _ => ord2
-    end
-  | term_ord (CombApp(_,_,_),_) = GREATER
-  | term_ord (Bool(_),_) = raise TERM_ORD("bool");
-
-fun predicate_ord (Bool(t1),Bool(t2)) = term_ord (t1,t2)
-
-
-fun literal_ord (Literal(false,_),Literal(true,_)) = LESS
-  | literal_ord (Literal(true,_),Literal(false,_)) = GREATER
-  | literal_ord (Literal(_,pred1),Literal(_,pred2)) = predicate_ord(pred1,pred2);
-
-fun sort_lits lits = sort literal_ord lits;
-
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)
 (*********************************************************************)
@@ -279,18 +236,6 @@ fun isTrue (Literal (pol,Bool(CombConst(c,_,_)))) =
   | isTrue _ = false;
   
 fun isTaut (Clause {literals,...}) = exists isTrue literals;  
-
-
-
-fun make_clause(clause_id,axiom_name,th,kind,literals,ctypes_sorts,ctvar_type_literals,ctfree_type_literals) =
-    if forall isFalse literals
-    then error "Problem too trivial for resolution (empty clause)"
-    else
-	Clause {clause_id = clause_id, axiom_name = axiom_name, 
-                th = th, kind = kind, 
-		literals = literals, ctypes_sorts = ctypes_sorts, 
-		ctvar_type_literals = ctvar_type_literals,
-		ctfree_type_literals = ctfree_type_literals};
 
 fun type_of (Type (a, Ts)) =
     let val (folTypes,ts) = types_of Ts
@@ -466,16 +411,24 @@ fun literals_of_term P = literals_of_term1 ([],[]) P;
 
 
 (* making axiom and conjecture clauses *)
-fun make_axiom_clause thm (ax_name,cls_id) =
+fun make_clause(clause_id,axiom_name,kind,thm) =
     let val term = prop_of thm
-	val (lits,ctypes_sorts) = literals_of_term (comb_of term)
-	val lits' = sort_lits lits
+	val term' = comb_of term
+	val (lits,ctypes_sorts) = literals_of_term term'
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
-	make_clause(cls_id,ax_name,thm,Axiom,
-		    lits',ctypes_sorts,ctvar_lits,ctfree_lits)
+	if forall isFalse lits
+	then error "Problem too trivial for resolution (empty clause)"
+	else
+	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
+		    literals = lits, ctypes_sorts = ctypes_sorts, 
+		    ctvar_type_literals = ctvar_lits,
+		    ctfree_type_literals = ctfree_lits}
     end;
 
+
+fun make_axiom_clause thm (ax_name,cls_id) = make_clause(cls_id,ax_name,Axiom,thm);
+ 
 fun make_axiom_clauses [] = []
   | make_axiom_clauses ((thm,(name,id))::thms) =
     let val cls = make_axiom_clause thm (name,id)
@@ -485,15 +438,8 @@ fun make_axiom_clauses [] = []
     end;
 
 
-fun make_conjecture_clause n thm =
-    let val t = prop_of thm
-	val (lits,ctypes_sorts) = literals_of_term (comb_of t)
-	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
-    in
-	make_clause(n,"conjecture",thm,Conjecture,lits,ctypes_sorts,ctvar_lits,ctfree_lits)
-    end;
-
-
+fun make_conjecture_clause n thm = make_clause(n,"Conjecture",Conjecture,thm);
+ 
 
 fun make_conjecture_clauses_aux _ [] = []
   | make_conjecture_clauses_aux n (t::ts) =
@@ -755,71 +701,6 @@ fun preds_of clsrel_clauses arity_clauses =
 		      arity_clauses)
 	       clsrel_clauses)
 
-
-(**********************************************************************)
-(* clause equalities and hashing functions                            *)
-(**********************************************************************)
-
-
-fun combterm_eq (CombConst(c1,tp1,tps1),CombConst(c2,tp2,tps2)) vtvars =
-    let val (eq1,vtvars1) = if c1 = c2 then ResClause.types_eq (tps1,tps2) vtvars
-			    else (false,vtvars)
-    in
-	(eq1,vtvars1)
-    end
-  | combterm_eq (CombConst(_,_,_),_) vtvars = (false,vtvars)
-  | combterm_eq (CombFree(a1,tp1),CombFree(a2,tp2)) vtvars = 
-    if a1 = a2 then ResClause.types_eq ([tp1],[tp2]) vtvars
-    else (false,vtvars)
-  | combterm_eq (CombFree(_,_),_) vtvars = (false,vtvars)
-  | combterm_eq (CombVar(v1,tp1),CombVar(v2,tp2)) (vars,tvars) = 
-    (case ResClause.check_var_pairs(v1,v2) vars of 0 => ResClause.types_eq ([tp1],[tp2]) ((v1,v2)::vars,tvars)
-						 | 1 => ResClause.types_eq ([tp1],[tp2]) (vars,tvars)
-						 | 2 => (false,(vars,tvars)))
-  | combterm_eq (CombVar(_,_),_) vtvars = (false,vtvars)
-  | combterm_eq (CombApp(f1,arg1,tp1),CombApp(f2,arg2,tp2)) vtvars =
-    let val (eq1,vtvars1) = combterm_eq (f1,f2) vtvars
-	val (eq2,vtvars2) = if eq1 then combterm_eq (arg1,arg2) vtvars1
-			    else (eq1,vtvars1)
-    in
-	if eq2 then ResClause.types_eq ([tp1],[tp2]) vtvars2
-	else (eq2,vtvars2)
-    end
-  | combterm_eq (CombApp(_,_,_),_) vtvars = (false,vtvars)
-  | combterm_eq (Bool(t1),Bool(t2)) vtvars = combterm_eq (t1,t2) vtvars
-  | combterm_eq (Bool(_),_) vtvars = (false,vtvars);
-
-fun lit_eq (Literal(pol1,pred1),Literal(pol2,pred2)) vtvars =
-    if (pol1 = pol2) then combterm_eq (pred1,pred2) vtvars
-    else (false,vtvars);
-
-fun lits_eq ([],[]) vtvars = (true,vtvars)
-  | lits_eq (l1::ls1,l2::ls2) vtvars = 
-    let val (eq1,vtvars1) = lit_eq (l1,l2) vtvars
-    in
-	if eq1 then lits_eq (ls1,ls2) vtvars1
-	else (false,vtvars1)
-    end;
-
-fun clause_eq (cls1,cls2) =
-    let val lits1 = get_literals cls1
-	val lits2 = get_literals cls2
-    in
-	length lits1 = length lits2 andalso #1 (lits_eq (lits1,lits2) ([],[]))
-    end;
-
-val xor_words = List.foldl Word.xorb 0w0;
-
-fun hash_combterm (CombVar(_,_),w) = w
-  | hash_combterm (CombFree(f,_),w) = Polyhash.hashw_string(f,w)
-  | hash_combterm (CombConst(c,tp,tps),w) = Polyhash.hashw_string(c,w)
-  | hash_combterm (CombApp(f,arg,tp),w) = hash_combterm (arg, hash_combterm (f,w))
-  | hash_combterm (Bool(t),w) = hash_combterm (t,w);
-
-fun hash_literal (Literal(true,pred)) = hash_combterm(pred,0w0)
-  | hash_literal (Literal(false,pred)) = Word.notb(hash_combterm(pred,0w0));
-
-fun hash_clause clause = xor_words (map hash_literal (get_literals clause));
 
 (**********************************************************************)
 (* write clauses to files                                             *)
