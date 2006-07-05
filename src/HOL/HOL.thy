@@ -1401,30 +1401,6 @@ ML {*
 setup InductMethod.setup
 
 
-subsubsection {*Tags, for the ATP Linkup *}
-
-constdefs
-  tag :: "bool => bool"
-  "tag P == P"
-
-text{*These label the distinguished literals of introduction and elimination
-rules.*}
-
-lemma tagI: "P ==> tag P"
-by (simp add: tag_def)
-
-lemma tagD: "tag P ==> P"
-by (simp add: tag_def)
-
-text{*Applications of "tag" to True and False must go!*}
-
-lemma tag_True: "tag True = True"
-by (simp add: tag_def)
-
-lemma tag_False: "tag False = False"
-by (simp add: tag_def)
-
-
 subsection {* Code generator setup *}
 
 setup {*

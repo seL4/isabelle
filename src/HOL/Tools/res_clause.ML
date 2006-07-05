@@ -196,17 +196,9 @@ fun name_of_kind Axiom = "axiom"
 
 type clause_id = int;
 type axiom_name = string;
-
-
 type polarity = bool;
 
-(* "tag" is used for vampire specific syntax FIXME REMOVE *)
-type tag = bool; 
-
-
 (**** Isabelle FOL clauses ****)
-
-val tagged = ref false;
 
 type pred_name = string;
 
@@ -234,7 +226,7 @@ datatype fol_term = UVar of string * fol_type
                  | Fun of string * fol_type list * fol_term list;
 datatype predicate = Predicate of pred_name * fol_type list * fol_term list;
 
-datatype literal = Literal of polarity * predicate * tag;
+datatype literal = Literal of polarity * predicate;
 
 fun mk_typ_var_sort (TFree(a,s)) = (FOLTFree a,s)
   | mk_typ_var_sort (TVar(v,s)) = (FOLTVar v,s);
@@ -253,12 +245,12 @@ fun get_axiomName (Clause cls) = #axiom_name cls;
 
 exception CLAUSE of string * term;
 
-fun isFalse (Literal (pol,Predicate(pname,_,[]),_)) =
+fun isFalse (Literal (pol, Predicate(pname,_,[]))) =
       (pol andalso pname = "c_False") orelse
       (not pol andalso pname = "c_True")
   | isFalse _ = false;
 
-fun isTrue (Literal (pol,Predicate(pname,_,[]),_)) =
+fun isTrue (Literal (pol, Predicate(pname,_,[]))) =
       (pol andalso pname = "c_True") orelse
       (not pol andalso pname = "c_False")
   | isTrue _ = false;
@@ -352,20 +344,16 @@ fun pred_of (Const("op =", typ), args) =
 	  (Predicate(pname,predType,args'), union_all (ts1::ts2))
       end;
 
-(*Treatment of literals, possibly negated or tagged*)
-fun predicate_of ((Const("Not",_) $ P), polarity, tag) =
-      predicate_of (P, not polarity, tag)
-  | predicate_of ((Const("HOL.tag",_) $ P), polarity, tag) =
-      predicate_of (P, polarity, true)
-  | predicate_of (term,polarity,tag) =
-        (pred_of (strip_comb term), polarity, tag);
+(*Treatment of literals, possibly negated*)
+fun predicate_of ((Const("Not",_) $ P), polarity) = predicate_of (P, not polarity)
+  | predicate_of (term,polarity) = (pred_of (strip_comb term), polarity);
 
 fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
   | literals_of_term1 args (Const("op |",_) $ P $ Q) = 
       literals_of_term1 (literals_of_term1 args P) Q
   | literals_of_term1 (lits, ts) P =
-      let val ((pred, ts'), polarity, tag) = predicate_of (P,true,false)
-	  val lits' = Literal(polarity,pred,tag) :: lits
+      let val ((pred, ts'), polarity) = predicate_of (P,true)
+	  val lits' = Literal(polarity,pred) :: lits
       in
 	  (lits', ts union ts')
       end;
@@ -423,7 +411,7 @@ fun too_general_terms (UVar _, UVar _) = false
   | too_general_terms (Fun _, _) = false
   | too_general_terms (UVar (a,_), t) = not (occurs a t);
 
-fun too_general_lit (Literal (true,Predicate("equal",_,[x,y]),_)) =
+fun too_general_lit (Literal (true, Predicate("equal",_,[x,y]))) =
       too_general_terms (x,y) orelse too_general_terms(y,x)
   | too_general_lit _ = false;
 
@@ -433,17 +421,16 @@ fun too_general_lit (Literal (true,Predicate("equal",_,[x,y]),_)) =
 
 exception MAKE_CLAUSE;
 fun make_clause (clause_id, axiom_name, th, kind) =
-    let val term = prop_of th
-	val (lits,types_sorts) = literals_of_term term
-    in if forall isFalse lits 
-       then error "Problem too trivial for resolution (empty clause)"
-       else
-	   case kind of Axiom => 
-			if forall too_general_lit lits then
-			    (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); raise MAKE_CLAUSE)
-			else Clause {clause_id = clause_id, axiom_name = axiom_name,th = th, kind = kind, literals = lits, types_sorts = types_sorts}
-		      | _ =>  Clause {clause_id = clause_id, axiom_name = axiom_name,th = th, kind = kind, literals = lits, types_sorts = types_sorts}
-    end;		     
+  let val term = prop_of th
+      val (lits,types_sorts) = literals_of_term term
+  in if forall isFalse lits 
+     then error "Problem too trivial for resolution (empty clause)"
+     else if kind=Axiom andalso forall too_general_lit lits 
+     then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); 
+           raise MAKE_CLAUSE)
+     else Clause {clause_id = clause_id, axiom_name = axiom_name, th = th, 
+                  kind = kind, literals = lits, types_sorts = types_sorts}
+  end;		     
 
 fun get_tvar_strs [] = []
   | get_tvar_strs ((FOLTVar indx,s)::tss) = 
@@ -585,7 +572,7 @@ fun add_predicate_preds (Predicate(pname,tys,tms), preds) =
   if pname = "equal" then preds (*equality is built-in and requires no declaration*)
   else Symtab.update (pname, length tys + length tms) preds
 
-fun add_literal_preds (Literal(_,pred,_), preds) = add_predicate_preds (pred,preds)
+fun add_literal_preds (Literal(_,pred), preds) = add_predicate_preds (pred,preds)
 
 fun add_type_sort_preds ((FOLTVar indx,s), preds) = 
       update_many (preds, map pred_of_sort (sorts_on_typs (FOLTVar indx, s)))
@@ -629,7 +616,7 @@ fun add_folterm_funcs (UVar _, funcs) = funcs
 fun add_predicate_funcs (Predicate(_,tys,tms), funcs) = 
     foldl add_foltype_funcs (foldl add_folterm_funcs funcs tms) tys;
 
-fun add_literal_funcs (Literal(_,pred,_), funcs) = add_predicate_funcs (pred,funcs)
+fun add_literal_funcs (Literal(_,pred), funcs) = add_predicate_funcs (pred,funcs)
 
 fun add_arityClause_funcs (ArityClause {conclLit,...}, funcs) =
   let val TConsLit(_, (_, tcons, tvars)) = conclLit
@@ -691,7 +678,7 @@ fun writeln_strs os = List.app (fn s => TextIO.output (os,s));
 fun dfg_sign true s = s
   | dfg_sign false s = "not(" ^ s ^ ")"  
 
-fun dfg_literal (Literal(pol,pred,tag)) = dfg_sign pol (string_of_predicate pred)
+fun dfg_literal (Literal(pol,pred)) = dfg_sign pol (string_of_predicate pred)
 
 fun dfg_of_typeLit (LTVar (s,ty)) = "not(" ^ s ^ "(" ^ ty ^ "))"
   | dfg_of_typeLit (LTFree (s,ty)) = s ^ "(" ^ ty ^ ")";
@@ -716,7 +703,7 @@ fun dfg_clause_aux (Clause{literals, types_sorts, ...}) =
       (tvar_lits_strs @ lits, tfree_lits)
   end; 
 
-fun dfg_folterms (Literal(pol,pred,tag)) = 
+fun dfg_folterms (Literal(pol,pred)) = 
   let val Predicate (_, _, folterms) = pred
   in  folterms  end
 
@@ -821,14 +808,8 @@ fun dfg_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
 fun tptp_sign true s = "++" ^ s
   | tptp_sign false s = "--" ^ s
 
-fun tptp_literal (Literal(pol,pred,tag)) =  (*FIXME REMOVE TAGGING*)
-    let val pred_string = string_of_predicate pred
-	val tagged_pol = 
-	      if (tag andalso !tagged) then (if pol then "+++" else "---")
-	      else (if pol then "++" else "--")
-     in
-	tagged_pol ^ pred_string
-    end;
+fun tptp_literal (Literal(pol,pred)) = 
+      (if pol then "++" else "--") ^ string_of_predicate pred;
 
 fun tptp_of_typeLit (LTVar (s,ty)) = "--" ^ s ^ "(" ^ ty ^ ")"
   | tptp_of_typeLit (LTFree (s,ty)) = "++" ^ s ^ "(" ^ ty ^ ")";
