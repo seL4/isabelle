@@ -15,9 +15,8 @@ val include_min_comb = ref false;
 
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
-fun init thy = (include_combS:=false;include_min_comb:=false;const_typargs := Sign.const_typargs thy);
-
-
+fun init thy = (include_combS:=false; include_min_comb:=false;
+                const_typargs := Sign.const_typargs thy);
 
 (**********************************************************************)
 (* convert a Term.term with lambdas into a Term.term with combinators *) 
@@ -434,7 +433,7 @@ fun make_axiom_clauses [] = []
     let val cls = make_axiom_clause thm (name,id)
 	val clss = make_axiom_clauses thms
     in
-	if isTaut cls then clss else (cls::clss)
+	if isTaut cls then clss else (name,cls)::clss
     end;
 
 
@@ -737,7 +736,7 @@ fun get_helper_clauses_tptp () =
 (* when "get_helper_clauses" is called, "include_combS" and "include_min_comb" should have correct values already *)
 fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
     let val clss = make_conjecture_clauses thms
-	val axclauses' = make_axiom_clauses axclauses
+        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
 	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
 	val out = TextIO.openOut filename
@@ -749,7 +748,8 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
 	List.app (curry TextIO.output out o ResClause.tptp_classrelClause) classrel_clauses;
 	List.app (curry TextIO.output out o ResClause.tptp_arity_clause) arity_clauses;
 	List.app (curry TextIO.output out) helper_clauses;
-	TextIO.closeOut out
+	TextIO.closeOut out;
+	clnames
     end;
 
 
@@ -780,7 +780,7 @@ fun get_helper_clauses_dfg () =
 fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) =
     let val _ = Output.debug ("Preparing to write the DFG file " ^ filename) 
 	val conjectures = make_conjecture_clauses thms
-	val axclauses' = make_axiom_clauses axclauses
+        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
 	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
 	val clss = conjectures @ axclauses'
 	val funcs = funcs_of_clauses clss arity_clauses
@@ -803,7 +803,8 @@ fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) =
 	ResClause.writeln_strs out tfree_clss;
 	ResClause.writeln_strs out dfg_clss;
 	TextIO.output (out, "end_of_list.\n\nend_problem.\n");
-	TextIO.closeOut out
+	TextIO.closeOut out;
+	clnames
     end;
 
 end

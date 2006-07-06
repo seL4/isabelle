@@ -21,7 +21,8 @@ signature RES_CLAUSE =
   val clause_prefix : string 
   val clause2tptp : clause -> string * string list
   val const_prefix : string
-  val dfg_write_file:  thm list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
+  val dfg_write_file:  thm list -> string -> 
+       ((thm * (string * int)) list * classrelClause list * arityClause list) -> string list
   val fixed_var_prefix : string
   val gen_tptp_cls : int * string * string * string -> string
   val gen_tptp_type_cls : int * string * string * string * int -> string
@@ -52,7 +53,8 @@ signature RES_CLAUSE =
   val tptp_classrelClause : classrelClause -> string
   val tptp_of_typeLit : type_literal -> string
   val tptp_tfree_clause : string -> string
-  val tptp_write_file: thm list -> string -> ((thm * (string * int)) list * classrelClause list * arityClause list) -> unit
+  val tptp_write_file: thm list -> string -> 
+       ((thm * (string * int)) list * classrelClause list * arityClause list) -> string list
   val tvar_prefix : string
   val union_all : ''a list list -> ''a list
   val writeln_strs: TextIO.outstream -> TextIO.vector list -> unit
@@ -452,23 +454,18 @@ fun make_conjecture_clauses_aux _ [] = []
 
 val make_conjecture_clauses = make_conjecture_clauses_aux 0
 
-
-
 (*before converting an axiom clause to "clause" format, check if it is FOL*)
 fun make_axiom_clause thm (ax_name,cls_id) =
-    let val term = prop_of thm
-    in 
-	if not (Meson.is_fol_term term) then
-	    (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); 
-	     NONE)
-	else (SOME (make_clause(cls_id, ax_name, thm, Axiom)) handle MAKE_CLAUSE => NONE)
-    end
-	handle CLAUSE _ => NONE;
+  if Meson.is_fol_term (prop_of thm) 
+  then (SOME (make_clause(cls_id, ax_name, thm, Axiom)) handle MAKE_CLAUSE => NONE)
+  else (Output.debug ("Omitting " ^ ax_name ^ ": Axiom is not FOL"); NONE)
     
 fun make_axiom_clauses [] = []
   | make_axiom_clauses ((thm,(name,id))::thms) =
-    case make_axiom_clause thm (name,id) of SOME cls => if isTaut cls then make_axiom_clauses thms else cls :: make_axiom_clauses thms
-						    | NONE => make_axiom_clauses thms;
+      case make_axiom_clause thm (name,id) of 
+          SOME cls => if isTaut cls then make_axiom_clauses thms 
+                      else (name,cls) :: make_axiom_clauses thms
+        | NONE => make_axiom_clauses thms;
 
 (**** Isabelle arities ****)
 
@@ -777,7 +774,7 @@ fun dfg_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
   let 
     val _ = Output.debug ("Preparing to write the DFG file " ^ filename)
     val conjectures = make_conjecture_clauses thms
-    val axclauses' = make_axiom_clauses axclauses
+    val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
     val clss = conjectures @ axclauses'
     val funcs = funcs_of_clauses clss arity_clauses
@@ -798,7 +795,8 @@ fun dfg_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
     writeln_strs out tfree_clss;
     writeln_strs out dfg_clss;
     TextIO.output (out, "end_of_list.\n\nend_problem.\n");
-    TextIO.closeOut out
+    TextIO.closeOut out;
+    clnames
   end;
 
 
@@ -872,7 +870,7 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
   let
     val _ = Output.debug ("Preparing to write the TPTP file " ^ filename)
     val clss = make_conjecture_clauses thms
-    val axclauses' = make_axiom_clauses axclauses
+    val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
@@ -882,7 +880,8 @@ fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
     writeln_strs out tptp_clss;
     List.app (curry TextIO.output out o tptp_classrelClause) classrel_clauses;
     List.app (curry TextIO.output out o tptp_arity_clause) arity_clauses;
-    TextIO.closeOut out
+    TextIO.closeOut out;
+    clnames
   end;
 
 

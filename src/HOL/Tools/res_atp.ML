@@ -503,8 +503,8 @@ fun mk_clause_table n =
 fun make_unique ht xs = 
       (app (ignore o Polyhash.peekInsert ht) xs;  Polyhash.listItems ht);
 
-fun mem_thm thm [] = false
-  | mem_thm thm ((thm',name)::thms_names) = equal_thm (thm,thm') orelse mem_thm thm thms_names;
+fun mem_thm th [] = false
+  | mem_thm th ((th',_)::thms_names) = equal_thm (th,th') orelse mem_thm th thms_names;
 
 fun insert_thms [] thms_names = thms_names
   | insert_thms ((thm,name)::thms_names) thms_names' =
@@ -596,6 +596,7 @@ fun dfg_writer logic goals filename (axioms,classrels,arities) =
     then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
     else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities);
 
+(*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
     let val conj_cls = make_clauses conjectures 
 	val hyp_cls = cnf_hyps_thms ctxt
@@ -604,18 +605,20 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val rm_black_cls = blacklist_filter included_thms 
 	val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_black_cls
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
-	val axclauses_as_thms = get_relevant_clauses ctxt cla_simp_atp_clauses user_cls (map prop_of goal_cls)
+	val axclauses = get_relevant_clauses ctxt cla_simp_atp_clauses
+	                            user_cls (map prop_of goal_cls)
 	val thy = ProofContext.theory_of ctxt
-	val prob_logic = case mode of Auto => problem_logic_goals [map prop_of goal_cls]
-				    | Fol => FOL
-				    | Hol => HOL
+	val prob_logic = case mode of 
+                            Auto => problem_logic_goals [map prop_of goal_cls]
+			  | Fol => FOL
+			  | Hol => HOL
 	val keep_types = if is_fol_logic prob_logic then !fol_keep_types else is_typed_hol ()
 	val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
 	val arity_clauses = if keep_types then ResClause.arity_clause_thy thy else []
         val writer = if dfg then dfg_writer else tptp_writer 
 	val file = atp_input_file()
     in
-	(writer prob_logic goal_cls file (axclauses_as_thms,classrel_clauses,arity_clauses);
+	(writer prob_logic goal_cls file (axclauses,classrel_clauses,arity_clauses);
 	 Output.debug ("Writing to " ^ file);
 	 file)
     end;
@@ -690,35 +693,39 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
     Watcher.callResProvers(childout,atp_list);
     Output.debug "Sent commands to watcher!"
   end
+  
+fun trace_array fname =
+  let val path = File.tmp_path (Path.basic fname)
+  in  Array.app (File.append path o (fn s => s ^ "\n"))  end;
 
-(*We write out problem files for each subgoal. Argument pf generates filenames,
+(*We write out problem files for each subgoal. Argument probfile generates filenames,
   and allows the suppression of the suffix "_1" in problem-generation mode.
   FIXME: does not cope with &&, and it isn't easy because one could have multiple
   subgoals, each involving &&.*)
-fun write_problem_files pf (ctxt,th)  =
+fun write_problem_files probfile (ctxt,th)  =
   let val goals = Thm.prems_of th
       val _ = Output.debug ("number of subgoals = " ^ Int.toString (length goals))
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
       val rm_blacklist_cls = blacklist_filter included_thms
       val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_blacklist_cls
       val axclauses = get_relevant_clauses ctxt cla_simp_atp_clauses (ResAxioms.cnf_rules_pairs white_thms) goals 
-      val _ = Output.debug ("claset, simprules and atprules total clauses = " ^ 
-                     Int.toString (length axclauses))
+      val _ = Output.debug ("total clauses from thms = " ^ Int.toString (length axclauses))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals n =
 	  if n=0 then []
 	  else
-	      let val st = Seq.hd (EVERY'
-				       [rtac ccontr, ObjectLogic.atomize_tac, skolemize_tac] n th)
+	      let val st = Seq.hd (EVERY' [rtac ccontr, ObjectLogic.atomize_tac, 
+	                                   skolemize_tac] n th)
 		  val negs = Option.valOf (metahyps_thms n st)
 		  val negs_clauses = make_clauses negs
 	      in
-		  negs_clauses::(get_neg_subgoals (n - 1))
+		  negs_clauses :: get_neg_subgoals (n-1)
 	      end
       val neg_subgoals = get_neg_subgoals (length goals) 
-      val goals_logic = case !linkup_logic_mode of Auto => problem_logic_goals (map (map prop_of) neg_subgoals)
-						 | Fol => FOL
-						 | Hol => HOL
+      val goals_logic = case !linkup_logic_mode of
+                            Auto => problem_logic_goals (map (map prop_of) neg_subgoals)
+			  | Fol => FOL
+			  | Hol => HOL
       val keep_types = if is_fol_logic goals_logic then !ResClause.keep_types else is_typed_hol ()
       val classrel_clauses = if keep_types then ResClause.classrel_clauses_thy thy else []
       val _ = Output.debug ("classrel clauses = " ^ Int.toString (length classrel_clauses))
@@ -726,11 +733,15 @@ fun write_problem_files pf (ctxt,th)  =
       val _ = Output.debug ("arity clauses = " ^ Int.toString (length arity_clauses))
       val writer = if !prover = "spass" then dfg_writer else tptp_writer 
       fun write_all [] _ = []
-	| write_all (subgoal::subgoals) k =
-	  (writer goals_logic subgoal (pf k) (axclauses,classrel_clauses,arity_clauses); pf k):: (write_all subgoals (k - 1))
-      val thm_names = Array.fromList (map (#1 o #2) axclauses)
+	| write_all (sub::subgoals) k =
+	   (writer goals_logic sub (probfile k) (axclauses,classrel_clauses,arity_clauses),
+	    probfile k) :: write_all subgoals (k-1)
+      val (clnames::_, filenames) = ListPair.unzip (write_all neg_subgoals (length goals))
+      val thm_names = Array.fromList clnames
+      val _ = if !Output.show_debug_msgs 
+              then trace_array "thm_names" thm_names else ()
   in
-      (write_all neg_subgoals (length goals), thm_names)
+      (filenames, thm_names)
   end;
 
 val last_watcher_pid = ref (NONE : (TextIO.instream * TextIO.outstream * 
@@ -766,9 +777,9 @@ val isar_atp_writeonly = setmp print_mode []
       (fn (ctxt,th) =>
        if Thm.no_prems th then ()
        else 
-         let val pf = if Thm.nprems_of th = 1 then probfile_nosuffix 
-         	      else prob_pathname
-         in ignore (write_problem_files pf (ctxt,th)) end);
+         let val probfile = if Thm.nprems_of th = 1 then probfile_nosuffix 
+          	            else prob_pathname
+         in ignore (write_problem_files probfile (ctxt,th)) end);
 
 
 (** the Isar toplevel hook **)
