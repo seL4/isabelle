@@ -58,6 +58,7 @@ sig
   datatype text =
     Basic of (ProofContext.context -> method) |
     Source of src |
+    Source_i of src |
     Then of text list |
     Orelse of text list |
     Try of text |
@@ -72,6 +73,7 @@ sig
   val finish_text: text option * bool -> text
   exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> src -> ProofContext.context -> method
+  val method_i: theory -> src -> ProofContext.context -> method
   val add_methods: (bstring * (src -> ProofContext.context -> method) * string) list
     -> theory -> theory
   val add_method: bstring * (src -> ProofContext.context -> method) * string
@@ -504,6 +506,7 @@ type src = Args.src;
 datatype text =
   Basic of (ProofContext.context -> method) |
   Source of src |
+  Source_i of src |
   Then of text list |
   Orelse of text list |
   Try of text |
@@ -552,19 +555,18 @@ val print_methods = MethodsData.print;
 
 exception METHOD_FAIL of (string * Position.T) * exn;
 
-fun method thy =
+fun method_i thy =
   let
-    val (space, meths) = MethodsData.get thy;
+    val meths = #2 (MethodsData.get thy);
     fun meth src =
-      let
-        val ((raw_name, _), pos) = Args.dest_src src;
-        val name = NameSpace.intern space raw_name;
-      in
+      let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup meths name of
           NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
         | SOME ((mth, _), _) => transform_failure (curry METHOD_FAIL (name, pos)) (mth src))
       end;
   in meth end;
+
+fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (MethodsData.get thy)));
 
 
 (* add method *)
