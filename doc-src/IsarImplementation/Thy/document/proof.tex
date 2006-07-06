@@ -27,6 +27,51 @@
 }
 \isamarkuptrue%
 %
+\isamarkupsubsection{Local variables%
+}
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{Variable.declare-term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
+  \indexml{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context -> thm list * Proof.context| \\
+  \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
+  \indexml{Variable.trade}\verb|Variable.trade: Proof.context -> (thm list -> thm list) -> thm list -> thm list| \\
+  \indexml{Variable.monomorphic}\verb|Variable.monomorphic: Proof.context -> term list -> term list| \\
+  \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Variable.declare_term| FIXME
+
+  \item \verb|Variable.import| FIXME
+
+  \item \verb|Variable.export| FIXME
+
+  \item \verb|Variable.trade| composes \verb|Variable.import| and \verb|Variable.export|.
+
+  \item \verb|Variable.monomorphic| FIXME
+
+  \item \verb|Variable.polymorphic| FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
 \begin{isamarkuptext}%
 FIXME%
 \end{isamarkuptext}%

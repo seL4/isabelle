@@ -58,9 +58,8 @@ The Isar toplevel may be considered the centeral hub of the
   \isa{theory}, or \isa{proof}.  On entering the main Isar loop we
   start with an empty toplevel.  A theory is commenced by giving a
   \isa{{\isasymTHEORY}} header; within a theory we may issue theory
-  commands such as \isa{{\isasymCONSTS}} or \isa{{\isasymDEFS}}, or state a
-  \isa{{\isasymTHEOREM}} to be proven.  Now we are within a proof state,
-  with a rich collection of Isar proof commands for structured proof
+  commands such as \isa{{\isasymDEFINITION}}, or state a \isa{{\isasymTHEOREM}} to be proven.  Now we are within a proof state, with a
+  rich collection of Isar proof commands for structured proof
   composition, or unstructured proof scripts.  When the proof is
   concluded we get back to the theory, which is then updated by
   storing the resulting fact.  Further theory declarations or theorem
@@ -341,6 +340,7 @@ The {\ML} toplevel provides a read-compile-eval-print loop for
   \indexml{Isar.main}\verb|Isar.main: unit -> unit| \\
   \indexml{Isar.loop}\verb|Isar.loop: unit -> unit| \\
   \indexml{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
+  \indexml{Isar.context}\verb|Isar.context: unit -> Proof.context| \\
   \indexml{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
   \end{mldecls}
 
@@ -355,6 +355,8 @@ The {\ML} toplevel provides a read-compile-eval-print loop for
   \item \verb|Isar.state ()| and \verb|Isar.exn ()| get current
   toplevel state and optional error condition, respectively.  This
   only works after dropping out of the Isar toplevel loop.
+
+  \item \verb|Isar.context ()| produces the proof context from \verb|Isar.state ()| above.
 
   \end{description}%
 \end{isamarkuptext}%
