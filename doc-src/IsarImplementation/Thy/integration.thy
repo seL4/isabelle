@@ -37,9 +37,9 @@ text {* The Isar toplevel may be considered the centeral hub of the
   @{text theory}, or @{text proof}.  On entering the main Isar loop we
   start with an empty toplevel.  A theory is commenced by giving a
   @{text \<THEORY>} header; within a theory we may issue theory
-  commands such as @{text \<CONSTS>} or @{text \<DEFS>}, or state a
-  @{text \<THEOREM>} to be proven.  Now we are within a proof state,
-  with a rich collection of Isar proof commands for structured proof
+  commands such as @{text \<DEFINITION>}, or state a @{text
+  \<THEOREM>} to be proven.  Now we are within a proof state, with a
+  rich collection of Isar proof commands for structured proof
   composition, or unstructured proof scripts.  When the proof is
   concluded we get back to the theory, which is then updated by
   storing the resulting fact.  Further theory declarations or theorem
@@ -276,6 +276,7 @@ text %mlref {*
   @{index_ML Isar.main: "unit -> unit"} \\
   @{index_ML Isar.loop: "unit -> unit"} \\
   @{index_ML Isar.state: "unit -> Toplevel.state"} \\
+  @{index_ML Isar.context: "unit -> Proof.context"} \\
   @{index_ML Isar.exn: "unit -> (exn * string) option"} \\
   \end{mldecls}
 
@@ -290,6 +291,9 @@ text %mlref {*
   \item @{ML "Isar.state ()"} and @{ML "Isar.exn ()"} get current
   toplevel state and optional error condition, respectively.  This
   only works after dropping out of the Isar toplevel loop.
+
+  \item @{ML "Isar.context ()"} produces the proof context from @{ML
+  "Isar.state ()"} above.
 
   \end{description}
 *}
