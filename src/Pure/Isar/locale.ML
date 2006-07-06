@@ -95,8 +95,7 @@ sig
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context ->
     ((string * thm list) list * (string * thm list) list) * Proof.context
-  val add_term_syntax: string -> (Proof.context -> Proof.context) ->
-    cterm list * Proof.context -> Proof.context
+  val add_term_syntax: string -> (Proof.context -> Proof.context) -> Proof.context -> Proof.context
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string * Attrib.src list -> Element.context element list -> Element.statement ->
@@ -1562,7 +1561,7 @@ fun note_thmss_registrations kind target args thy =
 (* term syntax *)
 
 fun add_term_syntax loc syn =
-  snd #> syn #> ProofContext.map_theory (change_locale loc
+  syn #> ProofContext.map_theory (change_locale loc
     (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
       (axiom, import, elems, params, lparams, (syn, stamp ()) :: term_syntax, regs, intros)));
 
@@ -1581,7 +1580,7 @@ fun init loc =
 fun theory_results kind prefix results ctxt thy =
   let
     val thy_ctxt = ProofContext.init thy;
-    val export = ProofContext.export_view [] ctxt thy_ctxt;
+    val export = singleton (ProofContext.export_standard ctxt thy_ctxt);
     val facts = map (fn (name, ths) => ((name, []), [(map export ths, [])])) results;
   in thy |> PureThy.note_thmss_qualified kind prefix facts end;
 
@@ -1904,9 +1903,7 @@ fun gen_theorem prep_src prep_elem prep_stmt
     val thy_ctxt = ProofContext.init thy;
     val elems = map (prep_elem thy) (raw_elems @ concl_elems);
     val (_, _, ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
-    val ((stmt, facts), goal_ctxt) = ctxt
-      |> ProofContext.add_view thy_ctxt []
-      |> mk_stmt (map fst concl ~~ propp);
+    val ((stmt, facts), goal_ctxt) = mk_stmt (map fst concl ~~ propp) ctxt;
   in
     global_goal kind before_qed after_qed (SOME "") (name, atts) stmt goal_ctxt
     |> Proof.refine_insert facts
@@ -1926,18 +1923,13 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     val thy_ctxt = init_term_syntax loc (ProofContext.init thy);
     val (_, loc_ctxt, elems_ctxt, propp) =
       prep_stmt (SOME raw_loc) elems (map snd concl) thy_ctxt;
-    val elems_ctxt' = elems_ctxt
-      |> ProofContext.add_view loc_ctxt []
-      |> ProofContext.add_view thy_ctxt [];
-    val loc_ctxt' = loc_ctxt
-      |> ProofContext.add_view thy_ctxt [];
 
     val ((stmt, facts), goal_ctxt) =
-      elems_ctxt' |> mk_stmt (map (apsnd (K []) o fst) concl ~~ propp);
+      mk_stmt (map (apsnd (K []) o fst) concl ~~ propp) elems_ctxt;
 
     fun after_qed' results =
       let val loc_results = results |> map
-          (ProofContext.export_standard goal_ctxt loc_ctxt') in
+          (ProofContext.export_standard goal_ctxt loc_ctxt) in
         curry (locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)) loc_ctxt
         #-> (fn res =>
           if name = "" andalso null loc_atts then I

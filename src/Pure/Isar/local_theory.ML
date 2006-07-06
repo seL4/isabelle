@@ -56,7 +56,7 @@ structure Data = ProofDataFun
 (
   val name = "Pure/local_theory";
   type T =
-   {locale: (string * (cterm list * Proof.context)) option,
+   {locale: (string * Proof.context) option,
     params: (string * typ) list,
     hyps: term list,
     restore_naming: theory -> theory};
@@ -66,7 +66,7 @@ structure Data = ProofDataFun
 val _ = Context.add_setup Data.init;
 
 fun map_locale f = Data.map (fn {locale, params, hyps, restore_naming} =>
-  {locale = Option.map (fn (loc, (view, ctxt)) => (loc, (view, f ctxt))) locale,
+  {locale = Option.map (fn (loc, ctxt) => (loc, f ctxt)) locale,
     params = params, hyps = hyps, restore_naming = restore_naming});
 
 val locale_of = #locale o Data.get;
@@ -76,7 +76,7 @@ val hyps_of = #hyps o Data.get;
 fun standard ctxt =
   (case #locale (Data.get ctxt) of
     NONE => map Drule.standard
-  | SOME (_, (_, loc_ctxt)) => ProofContext.export_standard ctxt loc_ctxt);
+  | SOME (_, loc_ctxt) => ProofContext.export_standard ctxt loc_ctxt);
 
 
 (* print consts *)
@@ -116,9 +116,9 @@ fun theory f ctxt = #2 (theory_result (f #> pair ()) ctxt);
 fun locale_result f ctxt =
   (case locale_of ctxt of
     NONE => error "Local theory: no locale context"
-  | SOME (_, view_ctxt) =>
+  | SOME (_, loc_ctxt) =>
       let
-        val (res, loc_ctxt') = f view_ctxt;
+        val (res, loc_ctxt') = f loc_ctxt;
         val thy' = ProofContext.theory_of loc_ctxt';
       in (res, ctxt |> map_locale (K loc_ctxt') |> ProofContext.transfer thy') end);
 
@@ -132,10 +132,10 @@ fun locale f ctxt =
 fun init_i NONE thy = ProofContext.init thy
   | init_i (SOME loc) thy =
       thy
-      |> (fn thy => ([], Locale.init loc thy))
-      ||>> ProofContext.inferred_fixes
-      |> (fn ((view, params), ctxt) => Data.put
-          {locale = SOME (loc, (view, ctxt)),
+      |> Locale.init loc
+      |> ProofContext.inferred_fixes
+      |> (fn (params, ctxt) => Data.put
+          {locale = SOME (loc, ctxt),
            params = params,
            hyps = ProofContext.assms_of ctxt,
            restore_naming = Sign.restore_naming thy} ctxt);
@@ -145,7 +145,7 @@ fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
 fun restore ctxt =
   (case locale_of ctxt of
     NONE => ctxt
-  | SOME (_, (_, loc_ctxt)) => loc_ctxt |> Data.put (Data.get ctxt));
+  | SOME (_, loc_ctxt) => loc_ctxt |> Data.put (Data.get ctxt));
 
 fun exit ctxt = (ctxt, ProofContext.theory_of ctxt);
 
@@ -216,7 +216,7 @@ fun notes kind facts ctxt =
     (case locale_of ctxt of
       NONE => theory_result (PureThy.note_thmss_i kind (Attrib.map_facts attrib facts'))
     | SOME (loc, _) =>
-        locale_result (apfst #1 o (fn (_, ctxt) => Locale.add_thmss kind loc facts' ctxt)))
+        locale_result (apfst #1 o Locale.add_thmss kind loc facts'))
     ||> (#2 o ProofContext.note_thmss_i (Attrib.map_facts attrib facts))
   end;
 
