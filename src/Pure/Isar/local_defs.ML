@@ -56,9 +56,9 @@ fun mk_def ctxt args =
 
 (* export defs *)
 
-fun head_of_def cprop =
-  Term.head_of (#1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop))))
-  |> Thm.cterm_of (Thm.theory_of_cterm cprop);
+val head_of_def =
+  #1 o Term.dest_Free o Term.head_of o #1 o Logic.dest_equals o Term.strip_all_body o Thm.term_of;
+
 
 (*
   [x, x == t]
@@ -70,8 +70,7 @@ fun head_of_def cprop =
 fun def_export _ cprops thm =
   thm
   |> Drule.implies_intr_list cprops
-  |> Drule.forall_intr_list (map head_of_def cprops)
-  |> Drule.forall_elim_vars 0
+  |> Drule.generalize ([], map head_of_def cprops)
   |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
 
 
