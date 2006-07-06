@@ -146,7 +146,9 @@ local
 val get_thms = Context.cases PureThy.get_thms ProofContext.get_thms;
 
 fun gen_thm pick = Scan.depend (fn st =>
- (Scan.ahead Args.alt_name -- Args.named_fact (get_thms st o Fact)
+ (Args.internal_fact
+    >> (fn fact => ("<fact>", Name "", fact)) ||
+  Scan.ahead Args.alt_name -- Args.named_fact (get_thms st o Fact)
     >> (fn (s, fact) => ("", Fact s, fact)) ||
   Scan.ahead Args.name -- Args.named_fact (get_thms st o Name) -- Args.thm_sel
     >> (fn ((name, fact), sel) => (name, NameSelection (name, sel), fact)) ||
