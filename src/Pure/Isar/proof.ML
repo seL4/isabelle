@@ -423,6 +423,7 @@ fun apply_text cc text state =
 
     fun eval (Method.Basic m) = apply_method cc m
       | eval (Method.Source src) = apply_method cc (Method.method thy src)
+      | eval (Method.Source_i src) = apply_method cc (Method.method_i thy src)
       | eval (Method.Then txts) = Seq.EVERY (map eval txts)
       | eval (Method.Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Method.Try txt) = Seq.TRY (eval txt)
