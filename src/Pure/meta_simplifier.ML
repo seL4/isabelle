@@ -287,6 +287,9 @@ fun trace_named_thm a ss (th, name) =
 
 fun warn_thm a ss th = print_term true a ss (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
+fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
+  if is_some context then () else warn_thm a ss th; 
+
 end;
 
 
@@ -367,22 +370,26 @@ fun fallback_context _ (ss as Simpset ({context = SOME _, ...}, _)) = ss
       theory_context thy ss);
 
 
-(* addsimps *)
+(* maintain simp rules *)
 
 fun mk_rrule2 {thm, name, lhs, elhs, perm} =
   let
     val fo = Pattern.first_order (term_of elhs) orelse not (Pattern.pattern (term_of elhs))
   in {thm = thm, name = name, lhs = lhs, elhs = elhs, fo = fo, perm = perm} end;
 
-fun insert_rrule quiet (ss, rrule as {thm, name, lhs, elhs, perm}) =
+fun del_rrule (rrule as {thm, elhs, ...}) ss =
+  ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
+    (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds, context))
+  handle Net.DELETE => (cond_warn_thm "Rewrite rule not in simpset:" ss thm; ss);
+
+fun insert_rrule (rrule as {thm, name, lhs, elhs, perm}) ss =
  (trace_named_thm "Adding rewrite rule" ss (thm, name);
   ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
       val rules' = Net.insert_term eq_rrule (term_of elhs, rrule2) rules;
     in (rules', prems, bounds, context) end)
-  handle Net.INSERT =>
-    (if quiet then () else warn_thm "Ignoring duplicate rewrite rule:" ss thm; ss));
+  handle Net.INSERT => (cond_warn_thm "Ignoring duplicate rewrite rule:" ss thm; ss));
 
 fun vperm (Var _, Var _) = true
   | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
@@ -491,29 +498,22 @@ fun orient_rrule ss (thm, name) =
 fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
   maps (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms;
 
-fun orient_comb_simps comb mk_rrule (ss, thms) =
-  let
-    val rews = extract_rews (ss, thms);
-    val rrules = maps mk_rrule rews;
-  in Library.foldl comb (ss, rrules) end;
-
 fun extract_safe_rrules (ss, thm) =
   maps (orient_rrule ss) (extract_rews (ss, [thm]));
 
-(*add rewrite rules explicitly; do not reorient!*)
+
+(* add/del rules explicitly *)
+
+fun comb_simps comb mk_rrule (ss, thms) =
+  let
+    val rews = extract_rews (ss, thms);
+  in fold (fold comb o mk_rrule) rews ss end;
+
 fun ss addsimps thms =
-  orient_comb_simps (insert_rrule false) (mk_rrule ss) (ss, thms);
-
-
-(* delsimps *)
-
-fun del_rrule (ss, rrule as {thm, elhs, ...}) =
-  ss |> map_simpset1 (fn (rules, prems, bounds, context) =>
-    (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds, context))
-  handle Net.DELETE => (warn_thm "Rewrite rule not in simpset:" ss thm; ss);
+  comb_simps insert_rrule (mk_rrule ss) (ss, thms);
 
 fun ss delsimps thms =
-  orient_comb_simps del_rrule (map mk_rrule2 o mk_rrule ss) (ss, thms);
+  comb_simps del_rrule (map mk_rrule2 o mk_rrule ss) (ss, thms);
 
 
 (* congs *)
@@ -1038,7 +1038,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
         in (extract_safe_rrules (ss, asm), SOME asm) end
 
     and add_rrules (rrss, asms) ss =
-      Library.foldl (insert_rrule true) (ss, flat rrss) |> add_prems (map_filter I asms)
+      (fold o fold) insert_rrule rrss ss |> add_prems (map_filter I asms)
 
     and disch r (prem, eq) =
       let
