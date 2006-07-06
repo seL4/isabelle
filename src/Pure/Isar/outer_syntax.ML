@@ -10,6 +10,7 @@ sig
   structure Isar:
     sig
       val state: unit -> Toplevel.state
+      val context: unit -> Proof.context
       val exn: unit -> (exn * string) option
       val main: unit -> unit
       val loop: unit -> unit
@@ -323,6 +324,7 @@ fun gen_main term no_pos =
 structure Isar =
 struct
   val state = Toplevel.get_state;
+  val context = Context.proof_of o Toplevel.context_of o state;
   val exn = Toplevel.exn;
   fun main () = gen_main false false;
   fun loop () = gen_loop false false;
