@@ -615,8 +615,8 @@ fun smash_unifiers thy tus env =
 
 
 (*Pattern matching*)
-fun pattern_matchers thy pairs (Envir.Envir {asol = tenv, iTs = tyenv, maxidx}) =
-  let val (tyenv', tenv') = fold (Pattern.match thy) pairs (tyenv, tenv)
+fun first_order_matchers thy pairs (Envir.Envir {asol = tenv, iTs = tyenv, maxidx}) =
+  let val (tyenv', tenv') = fold (Pattern.first_order_match thy) pairs (tyenv, tenv)
   in Seq.single (Envir.Envir {asol = tenv', iTs = tyenv', maxidx = maxidx}) end
   handle Pattern.MATCH => Seq.empty;
 
@@ -659,7 +659,7 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
       in
         Seq.append
           (Seq.map_filter result (smash_unifiers thy pairs' empty))
-          (pattern_matchers thy pairs empty)
+          (first_order_matchers thy pairs empty)
       end;
 
 fun matches_list thy ps os =
