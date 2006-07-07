@@ -10,6 +10,7 @@ theory SAT_Examples imports Main
 
 begin
 
+(* ML {* sat.solver := "zchaff_with_proofs"; *} *)
 ML {* set sat.trace_sat; *}
 ML {* set quick_and_dirty; *}
 

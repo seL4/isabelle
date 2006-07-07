@@ -22,45 +22,57 @@ Proof reconstruction from SAT solvers.
 
     This does not work for goals containing schematic variables!
 
-       The tactic produces a clause representation of the given goal
-       in DIMACS format and invokes a SAT solver, which should return
-       a proof consisting of a sequence of resolution steps, indicating
-       the two input clauses, and resulting in new clauses, leading to
-       the empty clause (i.e., False).  The tactic replays this proof
-       in Isabelle and thus solves the overall goal.
+      The tactic produces a clause representation of the given goal
+      in DIMACS format and invokes a SAT solver, which should return
+      a proof consisting of a sequence of resolution steps, indicating
+      the two input clauses, and resulting in new clauses, leading to
+      the empty clause (i.e. "False").  The tactic replays this proof
+      in Isabelle and thus solves the overall goal.
 
-   There are two SAT tactics available. They differ in the CNF transformation
-   used. The "sat_tac" uses naive CNF transformation to transform the theorem
-   to be proved before giving it to SAT solver. The naive transformation in
-   some worst case can lead to explonential blow up in formula size.
-   The other tactic, the "satx_tac" uses the "definitional CNF transformation"
-   which produces formula of linear size increase compared to the input formula.
-   This transformation introduces new variables. See also cnf_funcs.ML for
-   more comments.
+  There are two SAT tactics available.  They differ in the CNF transformation
+  used. "sat_tac" uses naive CNF transformation to transform the theorem to be
+  proved before giving it to the SAT solver.  The naive transformation in the
+  worst case can lead to an exponential blow up in formula size.  The other
+  tactic, "satx_tac", uses "definitional CNF transformation" which attempts to
+  produce a formula of linear size increase compared to the input formula, at
+  the cost of possibly introducing new variables.  See cnf_funcs.ML for more
+  comments on the CNF transformation.
 
- Notes for the current revision:
-   - The current version supports only zChaff prover.
-   - The environment variable ZCHAFF_HOME must be set to point to
-     the directory where zChaff executable resides
-   - The environment variable ZCHAFF_VERSION must be set according to
-     the version of zChaff used. Current supported version of zChaff:
+  The SAT solver to be used can be set via the "solver" reference.  See
+  sat_solvers.ML for possible values, and etc/settings for required (solver-
+  dependent) configuration settings.  To replay SAT proofs in Isabelle, you
+  must of course use a proof-producing SAT solver in the first place.
+
+  Notes for the current revision:
+   - Currently zChaff is the only proof-producing SAT solver that is supported.
+   - The environment variable ZCHAFF_HOME must be set to point to the directory
+     where the zChaff executable resides.
+   - The environment variable ZCHAFF_VERSION must be set according to the
+     version of zChaff used.  Current supported version of zChaff:
      zChaff version 2004.11.15
    - zChaff must have been compiled with proof generation enabled
      (#define VERIFY_ON).
+
+  Proofs are replayed only if "!quick_and_dirty" is false.  If
+  "!quick_and_dirty" is true, the theorem (in case the SAT solver claims its
+  negation to be unsatisfiable) is proved via an oracle.
 *)
 
 signature SAT =
 sig
-	val trace_sat : bool ref  (* print trace messages *)
+	val trace_sat : bool ref    (* print trace messages *)
+	val solver    : string ref  (* name of SAT solver to be used *)
+	val counter   : int ref     (* number of resolution steps during last proof replay *)
 	val sat_tac   : int -> Tactical.tactic
 	val satx_tac  : int -> Tactical.tactic
-	val counter   : int ref  (* number of resolution steps during last proof replay *)
 end
 
 functor SATFunc (structure cnf : CNF) : SAT =
 struct
 
 val trace_sat = ref false;
+
+val solver = ref "zchaff_with_proofs";
 
 val counter = ref 0;
 
@@ -273,7 +285,7 @@ let
 		SkipProof.make_thm (the_context ()) (HOLogic.Trueprop $ HOLogic.false_const)
 	)
 in
-	case SatSolver.invoke_solver "zchaff_with_proofs" fm of
+	case SatSolver.invoke_solver (!solver) fm of
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
@@ -397,4 +409,4 @@ fun sat_tac i = pre_cnf_tac i THEN cnf.cnf_rewrite_tac i THEN cnfsat_tac i;
 
 fun satx_tac i = pre_cnf_tac i THEN cnf.cnfx_rewrite_tac i THEN cnfxsat_tac i;
 
-end;  (* of structure *)
+end;  (* of structure SATFunc *)
