@@ -225,7 +225,7 @@ fun mk_fol_type ("Var",x,_) = AtomV(x)
 datatype type_literal = LTVar of string * string | LTFree of string * string;
 
 datatype fol_term = UVar of string * fol_type
-                 | Fun of string * fol_type list * fol_term list;
+                  | Fun of string * fol_type list * fol_term list;
 datatype predicate = Predicate of pred_name * fol_type list * fol_term list;
 
 datatype literal = Literal of polarity * predicate;
@@ -319,7 +319,7 @@ fun term_of (Var(ind_nm,T)) =
       let val (folType, ts) = type_of T
       in
 	  if isMeta x then (UVar(make_schematic_var(x,0),folType), ts)
-	  else (Fun(make_fixed_var x, [folType], []), ts)
+	  else (Fun(make_fixed_var x, [], []), ts)  (*Frees don't need types!*)
       end
   | term_of app = 
       let val (f,args) = strip_comb app
@@ -602,8 +602,7 @@ fun add_foltype_funcs (AtomV _, funcs) = funcs
   | add_foltype_funcs (Comp(a,tys), funcs) = 
       foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
-fun add_folterm_funcs (UVar _, funcs) = funcs
-  | add_folterm_funcs (Fun(a,tys,[]), funcs) = Symtab.update (a,length tys) funcs
+fun add_folterm_funcs (UVar(_,ty), funcs) = add_foltype_funcs (ty, funcs)
   | add_folterm_funcs (Fun(a,tys,tms), funcs) = 
       foldl add_foltype_funcs 
 	    (foldl add_folterm_funcs (Symtab.update (a, length tys + length tms) funcs) 
@@ -615,12 +614,18 @@ fun add_predicate_funcs (Predicate(_,tys,tms), funcs) =
 
 fun add_literal_funcs (Literal(_,pred), funcs) = add_predicate_funcs (pred,funcs)
 
+(*TFrees are recorded as constants*)
+fun add_type_sort_funcs ((FOLTVar _, _), funcs) = funcs
+  | add_type_sort_funcs ((FOLTFree a, _), funcs) = 
+      Symtab.update (make_fixed_type_var a, 0) funcs
+
 fun add_arityClause_funcs (ArityClause {conclLit,...}, funcs) =
   let val TConsLit(_, (_, tcons, tvars)) = conclLit
   in  Symtab.update (tcons, length tvars) funcs  end;
 
-fun add_clause_funcs (Clause {literals, ...}, funcs) =
-  foldl add_literal_funcs funcs literals
+fun add_clause_funcs (Clause {literals, types_sorts, ...}, funcs) =
+  foldl add_literal_funcs (foldl add_type_sort_funcs funcs types_sorts)
+       literals
   handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
 
 fun funcs_of_clauses clauses arity_clauses = 
@@ -715,9 +720,8 @@ fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,types_sorts,...}) =
             (*"lits" includes the typing assumptions (TVars)*)
         val vars = dfg_vars cls
         val tvars = get_tvar_strs types_sorts
-	val knd = name_of_kind kind
-	val lits_str = commas lits
-	val cls_str = gen_dfg_cls(clause_id, axiom_name, knd, lits_str, tvars@vars) 
+	val cls_str = gen_dfg_cls(clause_id, axiom_name, name_of_kind kind, 
+	                           commas lits, tvars@vars) 
     in (cls_str, tfree_lits) end;
 
 fun string_of_arity (name, num) =  "(" ^ name ^ "," ^ Int.toString num ^ ")"
@@ -748,11 +752,7 @@ fun dfg_of_arLit (TConsLit(pol,(c,t,args))) =
   | dfg_of_arLit (TVarLit(pol,(c,str))) =
       dfg_sign pol (c ^ "(" ^ str ^ ")")
     
-fun dfg_classrelLits sub sup = 
-    let val tvar = "(T)"
-    in 
-	"not(" ^ sub ^ tvar ^ "), " ^ sup ^ tvar
-    end;
+fun dfg_classrelLits sub sup =  "not(" ^ sub ^ "(T)), " ^ sup ^ "(T)";
 
 fun dfg_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "clause(forall([T],\nor( " ^ dfg_classrelLits subclass superclass ^ ")),\n" ^
@@ -770,17 +770,17 @@ fun dfg_arity_clause (arcls as ArityClause{kind,conclLit,premLits,...}) =
   end;
 
 (* write out a subgoal in DFG format to the file "xxxx_N"*)
-fun dfg_write_file thms filename (axclauses,classrel_clauses,arity_clauses) = 
+fun dfg_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) = 
   let 
     val _ = Output.debug ("Preparing to write the DFG file " ^ filename)
     val conjectures = make_conjecture_clauses thms
-    val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+    val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
-    val clss = conjectures @ axclauses'
+    val clss = conjectures @ axclauses
     val funcs = funcs_of_clauses clss arity_clauses
     and preds = preds_of_clauses clss classrel_clauses arity_clauses
     and probname = Path.pack (Path.base (Path.unpack filename))
-    val (axstrs, _) = ListPair.unzip (map clause2dfg axclauses')
+    val (axstrs, _) = ListPair.unzip (map clause2dfg axclauses)
     val tfree_clss = map dfg_tfree_clause (union_all tfree_litss) 
     val out = TextIO.openOut filename
   in
@@ -866,16 +866,16 @@ fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
   "input_clause(" ^ axiom_name ^ ",axiom," ^ tptp_classrelLits subclass superclass ^ ").\n" 
 
 (* write out a subgoal as tptp clauses to the file "xxxx_N"*)
-fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
+fun tptp_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) =
   let
     val _ = Output.debug ("Preparing to write the TPTP file " ^ filename)
     val clss = make_conjecture_clauses thms
-    val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+    val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
     val tfree_clss = map tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
   in
-    List.app (curry TextIO.output out o #1 o clause2tptp) axclauses';
+    List.app (curry TextIO.output out o #1 o clause2tptp) axclauses;
     writeln_strs out tfree_clss;
     writeln_strs out tptp_clss;
     List.app (curry TextIO.output out o tptp_classrelClause) classrel_clauses;
