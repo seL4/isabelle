@@ -251,10 +251,10 @@ struct
 		fun parse_lines [] =
 			UNKNOWN
 		  | parse_lines (line::lines) =
-			if is_substring satisfiable line then
-				SATISFIABLE (parse_assignment [] lines)
-			else if is_substring unsatisfiable line then
+			if is_substring unsatisfiable line then
 				UNSATISFIABLE NONE
+			else if is_substring satisfiable line then
+				SATISFIABLE (parse_assignment [] lines)
 			else
 				parse_lines lines
 	in
@@ -538,6 +538,32 @@ let
 	end
 in
 	SatSolver.add_solver ("auto", auto_solver)
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* MiniSat 1.14                                                              *)
+(* (http://www.cs.chalmers.se/Cs/Research/FormalMethods/MiniSat/)            *)
+(* ------------------------------------------------------------------------- *)
+
+let
+	fun minisat fm =
+	let
+		val _          = if (getenv "MINISAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
+		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
+		val outpath    = File.tmp_path (Path.unpack "result")
+		val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.pack inpath) ^ " -r " ^ (Path.pack outpath) ^ " > /dev/null"
+		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
+		fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
+		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
+		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
+		val result     = SatSolver.make_external_solver cmd writefn readfn fm
+		val _          = try File.rm inpath
+		val _          = try File.rm outpath
+	in
+		result
+	end
+in
+	SatSolver.add_solver ("minisat", minisat)
 end;
 
 (* ------------------------------------------------------------------------- *)
