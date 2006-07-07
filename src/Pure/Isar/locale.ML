@@ -7,8 +7,8 @@ syntax and implicit structures.
 
 Draws basic ideas from Florian Kammueller's original version of
 locales, but uses the richer infrastructure of Isar instead of the raw
-meta-logic.  Furthermore, we provide structured import of contexts
-(with merge and rename operations), as well as type-inference of the
+meta-logic.  Furthermore, structured import of contexts (with merge
+and rename operations) are provided, as well as type-inference of the
 signature parts, and predicate definitions of the specification text.
 
 Interpretation enables the reuse of theorems of locales in other
@@ -95,7 +95,8 @@ sig
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context ->
     ((string * thm list) list * (string * thm list) list) * Proof.context
-  val add_term_syntax: string -> (Proof.context -> Proof.context) -> Proof.context -> Proof.context
+  val add_term_syntax: string -> (Proof.context -> Proof.context) ->
+    cterm list * Proof.context -> Proof.context
 
   val theorem: string -> Method.text option -> (thm list list -> theory -> theory) ->
     string * Attrib.src list -> Element.context element list -> Element.statement ->
@@ -547,9 +548,6 @@ fun unify_frozen ctxt maxidx Ts Us =
 
 fun params_of elemss = distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst) elemss);
 fun params_of' elemss = distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst o fst) elemss);
-fun params_syn_of syn elemss =
-  distinct (eq_fst (op =)) (maps (snd o fst) elemss) |>
-    map (apfst (fn x => (x, the (Symtab.lookup syn x))));
 
 
 (* CB: param_types has the following type:
@@ -624,22 +622,6 @@ fun unify_elemss _ _ [] = []
               map_mode (map (Element.instT_witness thy env)) mode),
             map (Element.instT_ctxt thy env) elems);
       in map inst (elemss ~~ envs) end;
-
-(* like unify_elemss, but does not touch mode, additional
-   parameter c_parms for enforcing further constraints (eg. syntax) *)
-(* FIXME avoid code duplication *)
-
-fun unify_elemss' _ _ [] [] = []
-  | unify_elemss' _ [] [elems] [] = [elems]
-  | unify_elemss' ctxt fixed_parms elemss c_parms =
-      let
-        val thy = ProofContext.theory_of ctxt;
-        val envs =
-          unify_parms ctxt fixed_parms (map (snd o fst o fst) elemss @ map single c_parms);
-        fun inst ((((name, ps), (ps', mode)), elems), env) =
-          (((name, map (apsnd (Option.map (Element.instT_type env))) ps), (ps', mode)),
-           map (Element.instT_ctxt thy env) elems);
-      in map inst (elemss ~~ Library.take (length elemss, envs)) end;
 
 
 fun renaming xs parms = zip_options parms xs
@@ -802,10 +784,9 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
        identify at top level (top = true);
        parms is accumulated list of parameters *)
           let
-            val {axiom, import, params, ...} =
-              the_locale thy name;
+            val {axiom, import, params, ...} = the_locale thy name;
             val ps = map (#1 o #1) params;
-            val (ids', parms', _) = identify false import;
+            val (ids', parms') = identify false import;
                 (* acyclic import dependencies *)
 
             val ids'' = ids' @ [((name, ps), ([], Assumed []))];
@@ -813,78 +794,59 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
             val (_, ids4) = chop (length ids' + 1) ids''';
             val ids5 = ids' @ ids4 @ [((name, ps), ([], Assumed []))];
             val ids_ax = if top then fst (fold_map (axiomify ps) ids5 axiom) else ids5;
-            val syn = Symtab.make (map (apfst fst) params);
-            in (ids_ax, merge_lists parms' ps, syn) end
+            in (ids_ax, merge_lists parms' ps) end
       | identify top (Rename (e, xs)) =
           let
-            val (ids', parms', syn') = identify top e;
+            val (ids', parms') = identify top e;
             val ren = renaming xs parms'
               handle ERROR msg => err_in_locale' ctxt msg ids';
 
             val ids'' = distinct (eq_fst (op =)) (map (rename_parms top ren) ids');
             val parms'' = distinct (op =) (maps (#2 o #1) ids'');
-            val syn'' = fold (Symtab.insert (op =))
-                (map (Element.rename_var ren) (Symtab.dest syn')) Symtab.empty;
-          in (ids'', parms'', syn'') end
+          in (ids'', parms'') end
       | identify top (Merge es) =
-          fold (fn e => fn (ids, parms, syn) =>
+          fold (fn e => fn (ids, parms) =>
                    let
-                     val (ids', parms', syn') = identify top e
+                     val (ids', parms') = identify top e
                    in
-                     (merge_alists ids ids',
-                      merge_lists parms parms',
-                      merge_syntax ctxt ids' (syn, syn'))
+                     (merge_alists ids ids', merge_lists parms parms')
                    end)
-            es ([], [], Symtab.empty);
+            es ([], []);
 
-
-    (* CB: enrich identifiers by parameter types and
-       the corresponding elements (with renamed parameters),
-       also takes care of parameter syntax *)
-
-    fun eval syn ((name, xs), axs) =
-      let
-        val {params = ps, lparams = qs, elems, ...} = the_locale thy name;
-        val ps' = map (apsnd SOME o #1) ps;
-        fun lookup_syn x = (case Symtab.lookup syn x of SOME Structure => NONE | opt => opt);
-        val ren = map #1 ps' ~~ map (fn x => (x, lookup_syn x)) xs;
-        val (params', elems') =
-          if null ren then (ps', map #1 elems)
-          else (map (apfst (Element.rename ren)) ps',
-            map (Element.rename_ctxt ren o #1) elems);
-        val elems'' = elems' |> map (Element.map_ctxt
-          {var = I, typ = I, term = I, fact = I, attrib = I,
-            name = NameSpace.qualified (space_implode "_" xs)});
-      in (((name, params'), axs), elems'') end;
-
-    (* type constraint for renamed parameter with syntax *)
-    fun mixfix_type mx =
-      SOME (Type.freeze_type (#1 (TypeInfer.paramify_dummies (TypeInfer.mixfixT mx) 0)));
-
-    (* compute identifiers and syntax, merge with previous ones *)
-    val (ids, _, syn) = identify true expr;
-    val idents = gen_rems (eq_fst (op =)) (ids, prev_idents);
-    val syntax = merge_syntax ctxt ids (syn, prev_syntax);
-    (* add types to params and unify them *)
-    val raw_elemss = map (eval syntax) idents;
-    val elemss = unify_elemss' ctxt [] raw_elemss (map (apsnd mixfix_type) (Symtab.dest syntax));
-    (* replace params in ids by params from axioms,
-       adjust types in mode *)
-    val all_params' = params_of' elemss;
-    val all_params = param_types all_params';
-    val elemss' = map (fn (((name, _), (ps, mode)), elems) =>
-         (((name, map (fn p => (p, AList.lookup (op =) all_params p)) ps), mode), elems))
-         elemss;
-    fun inst_th (t, th) = let
+    fun inst_wit all_params (t, th) = let
          val {hyps, prop, ...} = Thm.rep_thm th;
          val ps = map (apsnd SOME) (fold Term.add_frees (prop :: hyps) []);
          val [env] = unify_parms ctxt all_params [ps];
          val t' = Element.instT_term env t;
          val th' = Element.instT_thm thy env th;
        in (t', th') end;
-    val final_elemss = map (fn ((id, mode), elems) =>
-         ((id, map_mode (map (Element.map_witness inst_th)) mode), elems)) elemss';
 
+    fun eval all_params tenv syn ((name, params), (locale_params, mode)) =
+      let
+        val {params = ps_mx, elems = elems_stamped, ...} = the_locale thy name;
+        val elems = map fst elems_stamped;
+        val ps = map fst ps_mx;
+        fun lookup_syn x = (case Symtab.lookup syn x of SOME Structure => NONE | opt => opt);
+        val locale_params' = map (fn p => (p, Symtab.lookup tenv p |> the)) locale_params;
+        val mode' = map_mode (map (Element.map_witness (inst_wit all_params))) mode;
+        val ren = map fst ps ~~ map (fn p => (p, lookup_syn p)) params;
+        val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
+        val elems' = elems
+              |> map (Element.rename_ctxt ren)
+              |> map (Element.map_ctxt {var = I, typ = I, term = I, fact = I, attrib = I,
+                   name = NameSpace.qualified (space_implode "_" params)})
+              |> map (Element.instT_ctxt thy env)
+      in (((name, map (apsnd SOME) locale_params'), mode'), elems') end;
+
+    (* parameters, their types and syntax *)
+    val (all_params', tenv, syn) = params_of_expr ctxt [] expr ([], Symtab.empty, Symtab.empty);
+    val all_params = map (fn p => (p, Symtab.lookup tenv p |> the)) all_params';
+    (* compute identifiers and syntax, merge with previous ones *)
+    val (ids, _) = identify true expr;
+    val idents = gen_rems (eq_fst (op =)) (ids, prev_idents);
+    val syntax = merge_syntax ctxt ids (syn, prev_syntax);
+    (* type-instantiate elements *)
+    val final_elemss = map (eval all_params tenv syntax) idents;
   in ((prev_idents @ idents, syntax), final_elemss) end;
 
 end;
@@ -1422,10 +1384,10 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
 
     (* replace extended ids (for axioms) by ids *)
     val (import_ids', incl_ids) = chop (length import_ids) ids;
-    val add_ids = import_params_ids @ import_ids' @ incl_params_ids @ incl_ids;
+    val all_ids = import_params_ids @ import_ids' @ incl_params_ids @ incl_ids;
     val all_elemss' = map (fn (((_, ps), _), (((n, ps'), mode), elems)) =>
         (((n, map (fn p => (p, (the o AList.lookup (op =) ps') p)) ps), mode), elems))
-      (add_ids ~~ all_elemss);
+      (all_ids ~~ all_elemss);
     (* CB: all_elemss and parms contain the correct parameter types *)
 
     val (ps, qs) = chop (length raw_import_params_elemss + length raw_import_elemss) all_elemss';
@@ -1561,7 +1523,7 @@ fun note_thmss_registrations kind target args thy =
 (* term syntax *)
 
 fun add_term_syntax loc syn =
-  syn #> ProofContext.map_theory (change_locale loc
+  snd #> syn #> ProofContext.map_theory (change_locale loc
     (fn (axiom, import, elems, params, lparams, term_syntax, regs, intros) =>
       (axiom, import, elems, params, lparams, (syn, stamp ()) :: term_syntax, regs, intros)));
 
@@ -1580,7 +1542,7 @@ fun init loc =
 fun theory_results kind prefix results ctxt thy =
   let
     val thy_ctxt = ProofContext.init thy;
-    val export = singleton (ProofContext.export_standard ctxt thy_ctxt);
+    val export = ProofContext.export_view [] ctxt thy_ctxt;
     val facts = map (fn (name, ths) => ((name, []), [(map export ths, [])])) results;
   in thy |> PureThy.note_thmss_qualified kind prefix facts end;
 
@@ -1821,11 +1783,7 @@ fun gen_add_locale prep_ctxt prep_expr
       if do_predicate then
         let
           val (elemss', defns) = change_defines_elemss thy elemss [];
-          val elemss'' = elemss' @
-(*
-              [(("", []), [Defines (map (fn t => (("", []), (t, []))) defs)])];
-*)
-              [(("", []), defns)];
+          val elemss'' = elemss' @ [(("", []), defns)];
           val (((elemss''', predicate as (_, axioms), stmt'), intros), thy') =
             define_preds bname text elemss'' thy;
           fun mk_regs elemss wits =
@@ -1903,7 +1861,9 @@ fun gen_theorem prep_src prep_elem prep_stmt
     val thy_ctxt = ProofContext.init thy;
     val elems = map (prep_elem thy) (raw_elems @ concl_elems);
     val (_, _, ctxt, propp) = prep_stmt NONE elems (map snd concl) thy_ctxt;
-    val ((stmt, facts), goal_ctxt) = mk_stmt (map fst concl ~~ propp) ctxt;
+    val ((stmt, facts), goal_ctxt) = ctxt
+      |> ProofContext.add_view thy_ctxt []
+      |> mk_stmt (map fst concl ~~ propp);
   in
     global_goal kind before_qed after_qed (SOME "") (name, atts) stmt goal_ctxt
     |> Proof.refine_insert facts
@@ -1923,13 +1883,18 @@ fun gen_theorem_in_locale prep_locale prep_src prep_elem prep_stmt no_target
     val thy_ctxt = init_term_syntax loc (ProofContext.init thy);
     val (_, loc_ctxt, elems_ctxt, propp) =
       prep_stmt (SOME raw_loc) elems (map snd concl) thy_ctxt;
+    val elems_ctxt' = elems_ctxt
+      |> ProofContext.add_view loc_ctxt []
+      |> ProofContext.add_view thy_ctxt [];
+    val loc_ctxt' = loc_ctxt
+      |> ProofContext.add_view thy_ctxt [];
 
     val ((stmt, facts), goal_ctxt) =
-      mk_stmt (map (apsnd (K []) o fst) concl ~~ propp) elems_ctxt;
+      elems_ctxt' |> mk_stmt (map (apsnd (K []) o fst) concl ~~ propp);
 
     fun after_qed' results =
       let val loc_results = results |> map
-          (ProofContext.export_standard goal_ctxt loc_ctxt) in
+          (ProofContext.export_standard goal_ctxt loc_ctxt') in
         curry (locale_results kind loc ((names ~~ loc_attss) ~~ loc_results)) loc_ctxt
         #-> (fn res =>
           if name = "" andalso null loc_atts then I
