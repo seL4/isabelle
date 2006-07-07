@@ -1261,6 +1261,8 @@ val evaluation_meth =
 
 in
 
+val evaluation_conv = evaluation_conv;
+
 val eq_codegen_setup = Codegen.add_codegen "eq_codegen" eq_codegen;
 
 val evaluation_oracle_setup =
@@ -1293,6 +1295,8 @@ val normalization_meth =
   Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI,refl] 1));
 
 in
+
+val normalization_conv = normalization_conv;
 
 val normalization_oracle_setup =
   Theory.add_oracle ("Normalization", normalization_oracle) #>
