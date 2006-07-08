@@ -30,13 +30,9 @@ structure CooperProof : COOPER_PROOF =
 struct
 open CooperDec;
 
-(*
-val presburger_ss = simpset_of (theory "Presburger")
-  addsimps [zdiff_def] delsimps [symmetric zdiff_def];
-*)
+val presburger_ss = simpset ()
+  addsimps [diff_int_def] delsimps [thm "diff_int_def_symmetric"];
 
-val presburger_ss = simpset_of (theory "Presburger")
-  addsimps[diff_int_def] delsimps [thm"diff_int_def_symmetric"];
 val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
 
 (*Theorems that will be used later for the proofgeneration*)
@@ -44,7 +40,7 @@ val cboolT = ctyp_of (sign_of HOL.thy) HOLogic.boolT;
 val zdvd_iff_zmod_eq_0 = thm "zdvd_iff_zmod_eq_0";
 val unity_coeff_ex = thm "unity_coeff_ex";
 
-(* Thorems for proving the adjustment of the coeffitients*)
+(* Theorems for proving the adjustment of the coefficients*)
 
 val ac_lt_eq =  thm "ac_lt_eq";
 val ac_eq_eq = thm "ac_eq_eq";
@@ -194,7 +190,7 @@ fun qe_get_terms th = let val (_$(Const("op =",Type ("fun",[Type ("bool", []),_]
   (essentially) that are only to make at runtime.*)
 (* ------------------------------------------------------------------------- *)
 fun prove_elementar thy s fm2 =
-  Goal.prove thy [] [] (HOLogic.mk_Trueprop fm2) (fn _ => EVERY
+  Goal.prove (ProofContext.init thy) [] [] (HOLogic.mk_Trueprop fm2) (fn _ => EVERY
   (case s of
   (*"ss" like simplification with simpset*)
   "ss" =>
