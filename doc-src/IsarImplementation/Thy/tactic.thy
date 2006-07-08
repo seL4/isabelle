@@ -174,10 +174,6 @@ text %mlref {*
   the quantifier prefix into schematic variables, and generalizing
   implicit type-variables.
 
-  Any additional fixed variables or hypotheses not being mentioned in
-  the initial statement are left unchanged --- programmed proofs may
-  well occur in a larger context.
-
   \item @{ML Goal.prove_multi} is simular to @{ML Goal.prove}, but
   states several conclusions simultaneously.  @{ML
   Tactic.conjunction_tac} may be used to split these into individual
