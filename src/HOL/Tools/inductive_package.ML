@@ -460,16 +460,16 @@ fun add_cases_induct no_elim no_induct coind names elims induct =
 
 fun prove_mono setT fp_fun monos thy =
  (message "  Proving monotonicity ...";
-  standard (Goal.prove thy [] []   (*NO quick_and_dirty here!*)
+  Goal.prove_global thy [] []   (*NO quick_and_dirty here!*)
     (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun))
     (fn _ => EVERY [rtac monoI 1,
-      REPEAT (ares_tac (List.concat (map mk_mono monos) @ get_monos thy) 1)])));
+      REPEAT (ares_tac (List.concat (map mk_mono monos) @ get_monos thy) 1)]));
 
 
 (* prove introduction rules *)
 
-fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
+fun prove_intrs coind mono fp_def intr_ts rec_sets_defs ctxt =
   let
     val _ = clean_message "  Proving the introduction rules ...";
 
@@ -481,7 +481,7 @@ fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
       | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
 
     val intrs = (1 upto (length intr_ts) ~~ intr_ts) |> map (fn (i, intr) =>
-      rulify (SkipProof.prove thy [] [] intr (fn _ => EVERY
+      rulify (SkipProof.prove ctxt [] [] intr (fn _ => EVERY
        [rewrite_goals_tac rec_sets_defs,
         stac unfold 1,
         REPEAT (resolve_tac [vimageI2, CollectI] 1),
@@ -498,7 +498,7 @@ fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
 
 (* prove elimination rules *)
 
-fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
+fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs ctxt =
   let
     val _ = clean_message "  Proving the elimination rules ...";
 
@@ -506,7 +506,7 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
     val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @ map make_elim [Inl_inject, Inr_inject];
   in
     mk_elims cs cTs params intr_ts intr_names |> map (fn (t, cases) =>
-      SkipProof.prove thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+      SkipProof.prove ctxt [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
         (fn prems => EVERY
           [cut_facts_tac [hd prems] 1,
            rewrite_goals_tac rec_sets_defs,
@@ -593,9 +593,10 @@ val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
 (* prove induction rule *)
 
 fun prove_indrule cs cTs sumT rec_const params intr_ts mono
-    fp_def rec_sets_defs thy =
+    fp_def rec_sets_defs ctxt =
   let
     val _ = clean_message "  Proving the induction rule ...";
+    val thy = ProofContext.theory_of ctxt;
 
     val sum_case_rewrites =
       (if Context.theory_name thy = "Datatype" then
@@ -637,7 +638,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     (* simplification rules for vimage and Collect *)
 
     val vimage_simps = if length cs < 2 then [] else
-      map (fn c => standard (SkipProof.prove thy [] []
+      map (fn c => standard (SkipProof.prove ctxt [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq
           (mk_vimage cs sumT (HOLogic.Collect_const sumT $ ind_pred) c,
            HOLogic.Collect_const (HOLogic.dest_setT (fastype_of c)) $
@@ -651,7 +652,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
                 (writeln "raw_fp_induct = "; print_thm raw_fp_induct)
             else ();
 
-    val induct = standard (SkipProof.prove thy [] ind_prems ind_concl
+    val induct = standard (SkipProof.prove ctxt [] ind_prems ind_concl
       (fn prems => EVERY
         [rewrite_goals_tac [inductive_conj_def],
          rtac (impI RS allI) 1,
@@ -667,7 +668,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          EVERY (map (fn prem =>
            DEPTH_SOLVE_1 (ares_tac [rewrite_rule [inductive_conj_def] prem, conjI, refl] 1)) prems)]));
 
-    val lemma = standard (SkipProof.prove thy [] []
+    val lemma = standard (SkipProof.prove ctxt [] []
       (Logic.mk_implies (ind_concl, mutual_ind_concl)) (fn _ => EVERY
         [rewrite_goals_tac rec_sets_defs,
          REPEAT (EVERY
@@ -764,17 +765,18 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     val (thy1, rec_name, mono, fp_def, rec_sets_defs, rec_const, sumT) =
       mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
         params paramTs cTs cnames;
+    val ctxt1 = ProofContext.init thy1;
 
-    val (intrs, unfold) = prove_intrs coind mono fp_def intr_ts rec_sets_defs thy1;
+    val (intrs, unfold) = prove_intrs coind mono fp_def intr_ts rec_sets_defs ctxt1;
     val elims = if no_elim then [] else
-      prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy1;
+      prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs ctxt1;
     val raw_induct = if no_ind then Drule.asm_rl else
       if coind then standard (rule_by_tactic
         (rewrite_tac [mk_meta_eq vimage_Un] THEN
           fold_tac rec_sets_defs) (mono RS (fp_def RS def_Collect_coinduct)))
       else
         prove_indrule cs cTs sumT rec_const params intr_ts mono fp_def
-          rec_sets_defs thy1;
+          rec_sets_defs ctxt1;
     val induct =
       if coind then
         (raw_induct, [RuleCases.case_names [rec_name],
