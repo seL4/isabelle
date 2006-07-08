@@ -817,9 +817,9 @@ fun prove strict (ptm, tac) =
   let
     val {thy, t, ...} = Thm.rep_cterm ptm;
     val result =
-      if strict then Goal.prove thy [] [] t (K tac)
-      else Goal.prove thy [] [] t (K tac)
+      if strict then Goal.prove_global thy [] [] t (K tac)
+      else Goal.prove_global thy [] [] t (K tac)
         handle ERROR msg => (warning msg; raise RULES_ERR "prove" msg);
-  in #1 (freeze_thaw (standard result)) end;
+  in #1 (freeze_thaw result) end;
 
 end;

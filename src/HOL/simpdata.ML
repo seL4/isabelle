@@ -264,12 +264,12 @@ fun lift_meta_eq_to_obj_eq i st =
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)
-      in standard (Goal.prove (Thm.theory_of_thm st) []
+      in Goal.prove_global (Thm.theory_of_thm st) []
         [mk_simp_implies (Logic.mk_equals (x, y))]
         (mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))
         (fn prems => EVERY
          [rewrite_goals_tac [simp_implies_def],
-          REPEAT (ares_tac (meta_eq_to_obj_eq :: map (rewrite_rule [simp_implies_def]) prems) 1)]))
+          REPEAT (ares_tac (meta_eq_to_obj_eq :: map (rewrite_rule [simp_implies_def]) prems) 1)])
       end
   end;
 

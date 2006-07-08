@@ -163,7 +163,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
          (Abs_name, oldT --> newT, NoSyn)])
       |> add_def (Logic.mk_defpair (setC, set))
       ||>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
-          [apsnd (fn cond_axm => Drule.standard (nonempty RS cond_axm))])]
+          [apsnd (fn cond_axm => nonempty RS cond_axm)])]
       ||> Theory.add_deps "" (dest_Const RepC) typedef_deps
       ||> Theory.add_deps "" (dest_Const AbsC) typedef_deps
       |-> (fn (set_def, [type_definition]) => fn thy1 =>
@@ -243,7 +243,7 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val (cset, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     val _ = message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    val non_empty = Goal.prove thy [] [] goal (K tac) handle ERROR msg =>
+    val non_empty = Goal.prove_global thy [] [] goal (K tac) handle ERROR msg =>
       cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
   in
     Context.Theory thy

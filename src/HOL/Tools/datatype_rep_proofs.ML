@@ -278,20 +278,20 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val Abs_name = Sign.intern_const sg ("Abs_" ^ s);
 
         val inj_Abs_thm = 
-	    standard (Goal.prove sg [] []
-	      (HOLogic.mk_Trueprop 
-		(Const ("Fun.inj_on", [AbsT, UnivT] ---> HOLogic.boolT) $
-		 Const (Abs_name, AbsT) $ Const (rep_set_name, UnivT)))
-              (fn _ => EVERY [rtac inj_on_inverseI 1, etac thm1 1]));
+            Goal.prove_global sg [] []
+              (HOLogic.mk_Trueprop 
+                (Const ("Fun.inj_on", [AbsT, UnivT] ---> HOLogic.boolT) $
+                 Const (Abs_name, AbsT) $ Const (rep_set_name, UnivT)))
+              (fn _ => EVERY [rtac inj_on_inverseI 1, etac thm1 1]);
 
         val setT = HOLogic.mk_setT T
 
         val inj_Rep_thm =
-	    standard (Goal.prove sg [] []
-	      (HOLogic.mk_Trueprop
-		(Const ("Fun.inj_on", [RepT, setT] ---> HOLogic.boolT) $
-		 Const (Rep_name, RepT) $ Const ("UNIV", setT)))
-              (fn _ => EVERY [rtac inj_inverseI 1, rtac thm2 1]));
+            Goal.prove_global sg [] []
+              (HOLogic.mk_Trueprop
+                (Const ("Fun.inj_on", [RepT, setT] ---> HOLogic.boolT) $
+                 Const (Rep_name, RepT) $ Const ("UNIV", setT)))
+              (fn _ => EVERY [rtac inj_inverseI 1, rtac thm2 1]);
 
       in (inj_Abs_thm, inj_Rep_thm) end;
 
@@ -372,8 +372,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         (* prove characteristic equations *)
 
         val rewrites = def_thms @ (map mk_meta_eq rec_rewrites);
-        val char_thms' = map (fn eqn => standard (Goal.prove thy' [] [] eqn
-          (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1]))) eqns;
+        val char_thms' = map (fn eqn => Goal.prove_global thy' [] [] eqn
+          (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
 
       in (thy', char_thms' @ char_thms) end;
 
@@ -394,12 +394,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             val Ts = map (TFree o rpair HOLogic.typeS)
               (variantlist (replicate i "'t", used));
             val f = Free ("f", Ts ---> U)
-          in standard (Goal.prove sign [] [] (Logic.mk_implies
+          in Goal.prove_global sign [] [] (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.list_all
                (map (pair "x") Ts, HOLogic.mk_mem (app_bnds f i, S))),
              HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
                r $ (a $ app_bnds f i)), f))))
-            (fn _ => EVERY [REPEAT (rtac ext 1), REPEAT (etac allE 1), rtac thm 1, atac 1]))
+            (fn _ => EVERY [REPEAT (rtac ext 1), REPEAT (etac allE 1), rtac thm 1, atac 1])
           end
       in map (fn r => r RS subst) (thm :: map mk_thm arities) end;
 
@@ -427,7 +427,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val inj_thms' = map (fn r => r RS injD)
           (map snd newT_iso_inj_thms @ inj_thms);
 
-        val inj_thm = standard (Goal.prove thy5 [] []
+        val inj_thm = Goal.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
             [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
              REPEAT (EVERY
@@ -447,18 +447,18 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                          REPEAT (eresolve_tac (mp :: allE ::
                            map make_elim (Suml_inject :: Sumr_inject ::
                              Lim_inject :: fun_cong :: inj_thms')) 1),
-                         atac 1]))])])])]));
+                         atac 1]))])])])]);
 
         val inj_thms'' = map (fn r => r RS datatype_injI)
                              (split_conj_thm inj_thm);
 
         val elem_thm = 
-	    standard (Goal.prove thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
-	      (fn _ =>
-	       EVERY [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
-		rewrite_goals_tac rewrites,
-		REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
-                  ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]));
+            Goal.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
+              (fn _ =>
+               EVERY [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
+                rewrite_goals_tac rewrites,
+                REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
+                  ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
 
       in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
@@ -489,7 +489,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val iso_thms = if length descr = 1 then [] else
       Library.drop (length newTs, split_conj_thm
-        (standard (Goal.prove thy5 [] [] iso_t (fn _ => EVERY
+        (Goal.prove_global thy5 [] [] iso_t (fn _ => EVERY
            [(indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq choice_eq ::
@@ -500,7 +500,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                  List.concat (map (mk_funs_inv o #1) newT_iso_axms)) 1),
                TRY (hyp_subst_tac 1),
                rtac (sym RS range_eqI) 1,
-               resolve_tac iso_char_thms 1])]))));
+               resolve_tac iso_char_thms 1])])));
 
     val Abs_inverse_thms' =
       map #1 newT_iso_axms @
@@ -519,12 +519,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       let
         val inj_thms = map (fn (r, _) => r RS inj_onD) newT_iso_inj_thms;
         val rewrites = o_def :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
-      in standard (Goal.prove thy5 [] [] eqn (fn _ => EVERY
+      in Goal.prove_global thy5 [] [] eqn (fn _ => EVERY
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,
          rtac refl 1,
          resolve_tac rep_intrs 2,
-         REPEAT (resolve_tac iso_elem_thms 1)]))
+         REPEAT (resolve_tac iso_elem_thms 1)])
       end;
 
     (*--------------------------------------------------------------*)
@@ -541,8 +541,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun prove_distinct_thms (_, []) = []
       | prove_distinct_thms (dist_rewrites', t::_::ts) =
           let
-            val dist_thm = standard (Goal.prove thy5 [] [] t (fn _ =>
-              EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1]))
+            val dist_thm = Goal.prove_global thy5 [] [] t (fn _ =>
+              EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
           in dist_thm::(standard (dist_thm RS not_sym))::
             (prove_distinct_thms (dist_rewrites', ts))
           end;
@@ -562,7 +562,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         ((map (fn r => r RS injD) iso_inj_thms) @
           [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject,
            Lim_inject, Suml_inject, Sumr_inject]))
-      in standard (Goal.prove thy5 [] [] t (fn _ => EVERY
+      in Goal.prove_global thy5 [] [] t (fn _ => EVERY
         [rtac iffI 1,
          REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
          dresolve_tac rep_congs 1, dtac box_equals 1,
@@ -570,7 +570,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
          REPEAT (eresolve_tac inj_thms 1),
          REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (rtac ext 1),
            REPEAT (eresolve_tac (make_elim fun_cong :: inj_thms) 1),
-           atac 1]))]))
+           atac 1]))])
       end;
 
     val constr_inject = map (fn (ts, thms) => map (prove_constr_inj_thm thms) ts)
@@ -612,14 +612,14 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val cert = cterm_of (Theory.sign_of thy6);
 
-    val indrule_lemma = standard (Goal.prove thy6 [] []
+    val indrule_lemma = Goal.prove_global thy6 [] []
       (Logic.mk_implies
         (HOLogic.mk_Trueprop (mk_conj indrule_lemma_prems),
          HOLogic.mk_Trueprop (mk_conj indrule_lemma_concls))) (fn _ => EVERY
            [REPEAT (etac conjE 1),
             REPEAT (EVERY
               [TRY (rtac conjI 1), resolve_tac Rep_inverse_thms 1,
-               etac mp 1, resolve_tac iso_elem_thms 1])]));
+               etac mp 1, resolve_tac iso_elem_thms 1])]);
 
     val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
@@ -627,7 +627,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
 
     val dt_induct_prop = DatatypeProp.make_ind descr sorts;
-    val dt_induct = standard (Goal.prove thy6 []
+    val dt_induct = Goal.prove_global thy6 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn prems => EVERY
         [rtac indrule_lemma' 1,
@@ -636,7 +636,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
            [REPEAT (eresolve_tac Abs_inverse_thms 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
-                (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]));
+                (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 
     val ([dt_induct'], thy7) =
       thy6

@@ -72,9 +72,7 @@ fun pg'' thy defs t tacs =
     fun tac prems =
       rewrite_goals_tac defs THEN
       EVERY (tacs (map (rewrite_rule defs) prems));
-  in
-    standard (Goal.prove thy [] asms prop tac)
-  end;
+  in Goal.prove_global thy [] asms prop tac end;
 
 fun pg' thy defs t tacsf =
   let

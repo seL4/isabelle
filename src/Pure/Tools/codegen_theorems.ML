@@ -699,8 +699,8 @@ fun get_datatypes thy dtco =
       let val cos' = rev cos 
       in (op @) (fold (mk_eq vs) (product cos' cos') ([], [])) end;
     fun mk_eq_thms tac vs_cos =
-      map (fn t => Goal.prove thy [] []
-        (ObjectLogic.ensure_propT thy t) (K tac) |> standard) (mk_eqs vs_cos);
+      map (fn t => Goal.prove_global thy [] []
+        (ObjectLogic.ensure_propT thy t) (K tac)) (mk_eqs vs_cos);
   in
     case getf_first (map (fn f => f thy) (the_datatypes_extrs thy)) dtco
      of NONE => NONE

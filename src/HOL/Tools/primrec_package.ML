@@ -259,8 +259,8 @@ fun gen_primrec_i unchecked alt_name eqns_atts thy =
     val rewrites = (map mk_meta_eq rec_rewrites) @ defs_thms';
     val _ = message ("Proving equations for primrec function(s) " ^
       commas_quote (map fst nameTs1) ^ " ...");
-    val simps = map (fn (_, t) => standard (Goal.prove thy' [] [] t
-        (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1]))) eqns;
+    val simps = map (fn (_, t) => Goal.prove_global thy' [] [] t
+        (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
     val (simps', thy'') = PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts) thy';
     val thy''' = thy''
       |> (snd o PureThy.add_thmss [(("simps", simps'),

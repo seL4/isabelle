@@ -255,7 +255,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
       else map standard (List.drop (split_conj_thm
-        (Goal.prove thy2 [] []
+        (Goal.prove_global thy2 [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
             (map (fn (c as (s, T), x) =>
                let val [T1, T2] = binder_types T
@@ -275,7 +275,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val perm_empty_thms = List.concat (map (fn a =>
       let val permT = mk_permT (Type (a, []))
       in map standard (List.take (split_conj_thm
-        (Goal.prove thy2 [] []
+        (Goal.prove_global thy2 [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
             (map (fn ((s, T), x) => HOLogic.mk_eq
                 (Const (s, permT --> T --> T) $
@@ -307,7 +307,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val pt2_ax = PureThy.get_thm thy2
           (Name (NameSpace.map_base (fn s => "pt_" ^ s ^ "2") a));
       in List.take (map standard (split_conj_thm
-        (Goal.prove thy2 [] []
+        (Goal.prove_global thy2 [] []
              (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
                 (map (fn ((s, T), x) =>
                     let val perm = Const (s, permT --> T --> T)
@@ -343,7 +343,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val pt3_ax = PureThy.get_thm thy2
           (Name (NameSpace.map_base (fn s => "pt_" ^ s ^ "3") a));
       in List.take (map standard (split_conj_thm
-        (Goal.prove thy2 [] [] (Logic.mk_implies
+        (Goal.prove_global thy2 [] [] (Logic.mk_implies
              (HOLogic.mk_Trueprop (Const ("Nominal.prm_eq",
                 permT --> permT --> HOLogic.boolT) $ pi1 $ pi2),
               HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -393,7 +393,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 at_inst RS (pt_inst RS pt_perm_compose) RS sym,
                 at_inst RS (pt_inst RS pt_perm_compose_rev) RS sym]
             end))
-        val thms = split_conj_thm (standard (Goal.prove thy [] []
+        val thms = split_conj_thm (Goal.prove_global thy [] []
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
               (map (fn ((s, T), x) =>
                   let
@@ -408,7 +408,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                   end)
                 (perm_names ~~ Ts ~~ perm_indnames))))
           (fn _ => EVERY [indtac induction perm_indnames 1,
-             ALLGOALS (asm_full_simp_tac simps)])))
+             ALLGOALS (asm_full_simp_tac simps)]))
       in
         foldl (fn ((s, tvs), thy) => AxClass.prove_arity
             (s, replicate (length tvs) (cp_class :: classes), [cp_class])
@@ -517,7 +517,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (perm_indnames ~~ descr);
 
     fun mk_perm_closed name = map (fn th => standard (th RS mp))
-      (List.take (split_conj_thm (Goal.prove thy4 [] []
+      (List.take (split_conj_thm (Goal.prove_global thy4 [] []
         (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map
            (fn (S, x) =>
               let
@@ -766,12 +766,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let
         val inj_thms = map (fn r => r RS iffD1) abs_inject_thms;
         val rewrites = constr_defs @ map mk_meta_eq rep_inverse_thms
-      in standard (Goal.prove thy8 [] [] eqn (fn _ => EVERY
+      in Goal.prove_global thy8 [] [] eqn (fn _ => EVERY
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,
          rtac refl 3,
          resolve_tac rep_intrs 2,
-         REPEAT (resolve_tac rep_thms 1)]))
+         REPEAT (resolve_tac rep_thms 1)])
       end;
 
     val constr_rep_thmss = map (map prove_constr_rep_thm) constr_rep_eqns;
@@ -785,11 +785,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val permT = mk_permT (Type (atom, []));
         val pi = Free ("pi", permT);
       in
-        standard (Goal.prove thy8 [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq
+        Goal.prove_global thy8 [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Const ("Nominal.perm", permT --> U --> U) $ pi $ (Rep $ x),
              Rep $ (Const ("Nominal.perm", permT --> T --> T) $ pi $ x))))
           (fn _ => simp_tac (HOL_basic_ss addsimps (perm_defs @ Abs_inverse_thms @
-            perm_closed_thms @ Rep_thms)) 1))
+            perm_closed_thms @ Rep_thms)) 1)
       end) Rep_thms;
 
     val perm_rep_perm_thms = List.concat (map prove_perm_rep_perm
@@ -807,8 +807,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun prove_distinct_thms (_, []) = []
       | prove_distinct_thms (p as (rep_thms, dist_lemma), t::ts) =
           let
-            val dist_thm = standard (Goal.prove thy8 [] [] t (fn _ =>
-              simp_tac (simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1))
+            val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
+              simp_tac (simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
           in dist_thm::(standard (dist_thm RS not_sym))::
             (prove_distinct_thms (p, ts))
           end;
@@ -849,7 +849,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val (_, l_args, r_args) = foldr constr_arg (1, [], []) dts;
           val c = Const (cname, map fastype_of l_args ---> T)
         in
-          standard (Goal.prove thy8 [] []
+          Goal.prove_global thy8 [] []
             (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (perm (list_comb (c, l_args)), list_comb (c, r_args))))
             (fn _ => EVERY
@@ -860,7 +860,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                  (symmetric perm_fun_def :: abs_perm)) 1),
                TRY (simp_tac (HOL_basic_ss addsimps
                  (perm_fun_def :: perm_defs @ Rep_thms @ Abs_inverse_thms @
-                    perm_closed_thms)) 1)]))
+                    perm_closed_thms)) 1)])
         end) (constrs ~~ constr_rep_thms)) (atoms ~~ perm_closed_thmss))
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ constr_rep_thmss);
 
@@ -898,7 +898,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val Ts = map fastype_of args1;
           val c = Const (cname, Ts ---> T)
         in
-          standard (Goal.prove thy8 [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq
+          Goal.prove_global thy8 [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (HOLogic.mk_eq (list_comb (c, args1), list_comb (c, args2)),
                foldr1 HOLogic.mk_conj eqs)))
             (fn _ => EVERY
@@ -908,7 +908,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                   alpha @ abs_perm @ abs_fresh @ rep_inject_thms @
                   perm_rep_perm_thms)) 1),
                 TRY (asm_full_simp_tac (HOL_basic_ss addsimps (perm_fun_def ::
-                  expand_fun_eq :: rep_inject_thms @ perm_rep_perm_thms)) 1)]))
+                  expand_fun_eq :: rep_inject_thms @ perm_rep_perm_thms)) 1)])
         end) (constrs ~~ constr_rep_thms)
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ constr_rep_thmss);
 
@@ -946,7 +946,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           fun fresh t =
             Const ("Nominal.fresh", atomT --> fastype_of t --> HOLogic.boolT) $
               Free ("a", atomT) $ t;
-          val supp_thm = standard (Goal.prove thy8 [] []
+          val supp_thm = Goal.prove_global thy8 [] []
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (supp c,
                  if null dts then Const ("{}", HOLogic.mk_setT atomT)
@@ -955,15 +955,15 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::
                  symmetric empty_def :: Finites.emptyI :: simp_thms @
-                 abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1))
+                 abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1)
         in
           (supp_thm,
-           standard (Goal.prove thy8 [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq
+           Goal.prove_global thy8 [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (fresh c,
                if null dts then HOLogic.true_const
                else foldr1 HOLogic.mk_conj (map fresh args2))))
              (fn _ =>
-               simp_tac (simpset_of thy8 addsimps [fresh_def, supp_thm]) 1)))
+               simp_tac (simpset_of thy8 addsimps [fresh_def, supp_thm]) 1))
         end) atoms) constrs)
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ inject_thms ~~ perm_simps')));
 
@@ -985,14 +985,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (indrule_lemma_prems, indrule_lemma_concls) =
       Library.foldl mk_indrule_lemma (([], []), (descr'' ~~ recTs ~~ recTs'));
 
-    val indrule_lemma = standard (Goal.prove thy8 [] []
+    val indrule_lemma = Goal.prove_global thy8 [] []
       (Logic.mk_implies
         (HOLogic.mk_Trueprop (mk_conj indrule_lemma_prems),
          HOLogic.mk_Trueprop (mk_conj indrule_lemma_concls))) (fn _ => EVERY
            [REPEAT (etac conjE 1),
             REPEAT (EVERY
               [TRY (rtac conjI 1), full_simp_tac (HOL_basic_ss addsimps Rep_inverse_thms) 1,
-               etac mp 1, resolve_tac Rep_thms 1])]));
+               etac mp 1, resolve_tac Rep_thms 1])]);
 
     val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
@@ -1003,7 +1003,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val Abs_inverse_thms' = map (fn r => r RS subst) Abs_inverse_thms;
 
     val dt_induct_prop = DatatypeProp.make_ind descr' sorts';
-    val dt_induct = standard (Goal.prove thy8 []
+    val dt_induct = Goal.prove_global thy8 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn prems => EVERY
         [rtac indrule_lemma' 1,
@@ -1012,7 +1012,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
             simp_tac (HOL_basic_ss addsimps [symmetric r]) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
-                (prems ~~ constr_defs))]));
+                (prems ~~ constr_defs))]);
 
     val case_names_induct = mk_case_names_induct descr'';
 
@@ -1028,7 +1028,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
       in map standard (List.take
-        (split_conj_thm (Goal.prove thy8 [] [] (HOLogic.mk_Trueprop
+        (split_conj_thm (Goal.prove_global thy8 [] [] (HOLogic.mk_Trueprop
            (foldr1 HOLogic.mk_conj (map (fn (s, T) => HOLogic.mk_mem
              (Const ("Nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T),
               Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT atomT))))
@@ -1258,7 +1258,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "proving strong induction theorem ...";
 
-    val induct_aux = standard (Goal.prove thy9 [] ind_prems' ind_concl'
+    val induct_aux = Goal.prove_global thy9 [] ind_prems' ind_concl'
       (fn prems => EVERY
         ([mk_subgoal 1 (K (K (K aux_ind_concl))),
           indtac dt_induct tnames 1] @
@@ -1310,7 +1310,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                (constrs ~~ constrs'))) (descr'' ~~ ndescr)) @
          [REPEAT (eresolve_tac [conjE, allE_Nil] 1),
           REPEAT (etac allE 1),
-          REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac (simpset_of thy9) 1)])));
+          REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac (simpset_of thy9) 1)]));
 
     val induct_aux' = Thm.instantiate ([],
       map (fn (s, T) =>
@@ -1323,12 +1323,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           cterm_of thy9 (Const ("Nominal.supp", fastype_of f')))
         end) fresh_fs) induct_aux;
 
-    val induct = standard (Goal.prove thy9 [] ind_prems ind_concl
+    val induct = Goal.prove_global thy9 [] ind_prems ind_concl
       (fn prems => EVERY
          [rtac induct_aux' 1,
           REPEAT (resolve_tac induct_aux_lemmas 1),
           REPEAT ((resolve_tac prems THEN_ALL_NEW
-            (etac meta_spec ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)]))
+            (etac meta_spec ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)])
 
     val (_, thy10) = thy9 |>
       Theory.add_path big_name |>
@@ -1430,19 +1430,19 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
              HOLogic.mk_mem (HOLogic.mk_prod (mk_perm [] (pi, x), mk_perm [] (pi, y)), R'))
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ rec_sets_pi ~~ (1 upto length recTs));
         val ths = map (fn th => standard (th RS mp)) (split_conj_thm
-          (Goal.prove thy11 [] []
+          (Goal.prove_global thy11 [] []
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps)))
             (fn _ => rtac rec_induct 1 THEN REPEAT
                (NominalPermeq.perm_simp_tac (simpset_of thy11) 1 THEN
                 (resolve_tac rec_intrs THEN_ALL_NEW
                  asm_simp_tac (HOL_ss addsimps (fresh_bij @ perm_bij))) 1))))
-        val ths' = map (fn ((P, Q), th) => standard
-          (Goal.prove thy11 [] []
+        val ths' = map (fn ((P, Q), th) =>
+          Goal.prove_global thy11 [] []
             (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P))
             (fn _ => dtac (Thm.instantiate ([],
                  [(cterm_of thy11 (Var (("pi", 0), permT)),
                    cterm_of thy11 (Const ("List.rev", permT --> permT) $ pi))]) th) 1 THEN
-               NominalPermeq.perm_simp_tac HOL_ss 1))) (ps ~~ ths)
+               NominalPermeq.perm_simp_tac HOL_ss 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
 
     (** finite support **)
@@ -1458,7 +1458,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (rec_fns ~~ rec_fn_Ts)
       in
         map (fn th => standard (th RS mp)) (split_conj_thm
-          (Goal.prove thy11 [] fins
+          (Goal.prove_global thy11 [] fins
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
               (map (fn (((T, U), R), i) =>
                  let

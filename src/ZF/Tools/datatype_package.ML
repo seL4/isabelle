@@ -271,13 +271,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS trans;
 
   fun prove_case_eqn (arg, con_def) =
-    standard (Goal.prove thy1 [] []
+    Goal.prove_global thy1 [] []
       (Ind_Syntax.traceIt "next case equation = " thy1 (mk_case_eqn arg))
       (*Proves a single case equation.  Could use simp_tac, but it's slower!*)
       (fn _ => EVERY
         [rewtac con_def,
          rtac case_trans 1,
-         REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]));
+         REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
 
   val free_iffs = map standard (con_defs RL [Ind_Syntax.def_swap_iff]);
 
@@ -313,13 +313,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
         val recursor_trans = recursor_def RS def_Vrecursor RS trans;
 
         fun prove_recursor_eqn arg =
-          standard (Goal.prove thy1 [] []
+          Goal.prove_global thy1 [] []
             (Ind_Syntax.traceIt "next recursor equation = " thy1 (mk_recursor_eqn arg))
             (*Proves a single recursor equation.*)
             (fn _ => EVERY
               [rtac recursor_trans 1,
                simp_tac (rank_ss addsimps case_eqns) 1,
-               IF_UNSOLVED (simp_tac (rank_ss addsimps tl con_defs) 1)]));
+               IF_UNSOLVED (simp_tac (rank_ss addsimps tl con_defs) 1)]);
       in
          map prove_recursor_eqn (List.concat con_ty_lists ~~ recursor_cases)
       end
@@ -335,10 +335,10 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
   fun mk_free s =
     let val thy = theory_of_thm elim in (*Don't use thy1: it will be stale*)
-      standard (Goal.prove thy [] [] (Sign.read_prop thy s)
+      Goal.prove_global thy [] [] (Sign.read_prop thy s)
         (fn _ => EVERY
          [rewrite_goals_tac con_defs,
-          fast_tac (ZF_cs addSEs free_SEs @ Su.free_SEs) 1]))
+          fast_tac (ZF_cs addSEs free_SEs @ Su.free_SEs) 1])
     end;
 
   val simps = case_eqns @ recursor_eqns;

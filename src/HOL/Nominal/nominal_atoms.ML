@@ -175,7 +175,7 @@ fun create_nom_typedecls ak_names thy =
         val proof = fn _ => auto_tac (claset(),simp_s);
 
       in 
-        ((name, standard (Goal.prove thy5 [] [] statement proof)), []) 
+        ((name, Goal.prove_global thy5 [] [] statement proof), []) 
       end) ak_names_types);
 
     (* declares a perm-axclass for every atom-kind               *)
@@ -236,7 +236,7 @@ fun create_nom_typedecls ak_names thy =
 
         val proof = fn _ => auto_tac (claset(),simp_s);
       in 
-        ((name, standard (Goal.prove thy7 [] [] statement proof)), []) 
+        ((name, Goal.prove_global thy7 [] [] statement proof), []) 
       end) ak_names_types);
 
      (* declares an fs-axclass for every atom-kind       *)
@@ -281,7 +281,7 @@ fun create_nom_typedecls ak_names thy =
 
          val proof = fn _ => auto_tac (claset(),simp_s);
        in 
-         ((name, standard (Goal.prove thy11 [] [] statement proof)), []) 
+         ((name, Goal.prove_global thy11 [] [] statement proof), []) 
        end) ak_names_types);
 
        (* declares for every atom-kind combination an axclass            *)
@@ -332,7 +332,7 @@ fun create_nom_typedecls ak_names thy =
 
              val proof = fn _ => EVERY [auto_tac (claset(),simp_s), rtac cp1 1];
 	   in
-	     PureThy.add_thms [((name, standard (Goal.prove thy' [] [] statement proof)), [])] thy'
+	     PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
 	   end) 
            ak_names_types thy) ak_names_types thy12b;
        
@@ -363,7 +363,7 @@ fun create_nom_typedecls ak_names thy =
 
                  val proof = fn _ => auto_tac (claset(),simp_s);
 	       in
-		PureThy.add_thms [((name, standard (Goal.prove thy' [] [] statement proof)), [])] thy'
+		PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
 	       end
            else 
             ([],thy')))  (* do nothing branch, if ak_name = ak_name' *) 

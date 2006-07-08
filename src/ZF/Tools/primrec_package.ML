@@ -183,8 +183,8 @@ fun add_primrec_i args thy =
     val eqn_thms =
      (message ("Proving equations for primrec function " ^ fname);
       eqn_terms |> map (fn t =>
-        standard (Goal.prove thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)
-          (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1]))));
+        Goal.prove_global thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)
+          (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])));
 
     val (eqn_thms', thy2) =
       thy1
