@@ -56,19 +56,10 @@ fun setup_proof after_qed props thy =
   |> Proof.theorem_i PureThy.internalK NONE after_qed NONE ("", [])
        (map (fn t => (("", []), [(t, [])])) props);
 
-fun tactic_proof tac after_qed props thy =
-  let
-    val thms = Goal.prove_multi thy [] [] props (K tac);
-  in
-    thy
-    |> after_qed thms
-  end;
-
 in
 
 val simtype = gen_e_simtype setup_proof;
 val simtype_i = gen_i_simtype setup_proof;
-val prove_simtype = gen_i_simtype o tactic_proof;
 
 end; (*local*)
 
