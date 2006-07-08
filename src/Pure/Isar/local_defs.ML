@@ -144,21 +144,19 @@ val fold_tac     = meta Tactic.fold_goals_tac;
 
 fun derived_def ctxt conditional prop =
   let
-    val thy = ProofContext.theory_of ctxt;
     val ((c, T), rhs) = prop
-      |> Thm.cterm_of thy
+      |> Thm.cterm_of (ProofContext.theory_of ctxt)
       |> meta_rewrite (Context.Proof ctxt)
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> K conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
     fun prove ctxt' t def =
       let
-        val thy' = ProofContext.theory_of ctxt';
         val prop' = Term.subst_atomic [(Free (c, T), t)] prop;
         val frees = Term.fold_aterms (fn Free (x, _) =>
           if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop' [];
       in
-        Goal.prove thy' frees [] prop' (K (ALLGOALS
+        Goal.prove ctxt' frees [] prop' (K (ALLGOALS
           (meta_rewrite_tac ctxt' THEN'
             Tactic.rewrite_goal_tac [def] THEN'
             Tactic.resolve_tac [Drule.reflexive_thm])))

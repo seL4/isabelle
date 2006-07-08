@@ -9,7 +9,8 @@ signature SKIP_PROOF =
 sig
   val make_thm: theory -> term -> thm
   val cheat_tac: theory -> tactic
-  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove: ProofContext.context ->
+    string list -> term list -> term -> (thm list -> tactic) -> thm
 end;
 
 structure SkipProof: SKIP_PROOF =
@@ -34,8 +35,8 @@ fun make_thm thy prop =
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
 
-fun prove thy xs asms prop tac =
-  Goal.prove thy xs asms prop
-    (if ! quick_and_dirty then (K (cheat_tac thy)) else tac);
+fun prove ctxt xs asms prop tac =
+  Goal.prove ctxt xs asms prop
+    (if ! quick_and_dirty then (K (cheat_tac (ProofContext.theory_of ctxt))) else tac);
 
 end;

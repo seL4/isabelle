@@ -716,8 +716,7 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
 
 fun retrieve_thms _ pick ctxt (Fact s) =
       let
-        val thy = theory_of ctxt;
-        val th = Goal.prove thy [] [] (read_prop ctxt s) (K (ALLGOALS (some_fact_tac ctxt)))
+        val th = Goal.prove ctxt [] [] (read_prop ctxt s) (K (ALLGOALS (some_fact_tac ctxt)))
           handle ERROR msg => cat_error msg "Failed to retrieve literal fact.";
       in pick "" [th] end
   | retrieve_thms from_thy pick ctxt xthmref =

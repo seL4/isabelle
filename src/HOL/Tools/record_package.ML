@@ -818,11 +818,12 @@ val record_quick_and_dirty_sensitive = ref false;
 
 fun quick_and_dirty_prove stndrd thy asms prop tac =
   if !record_quick_and_dirty_sensitive andalso !quick_and_dirty
-  then Goal.prove thy [] [] (Logic.list_implies (map Logic.varify asms,Logic.varify prop))
+  then Goal.prove (ProofContext.init thy) [] []
+        (Logic.list_implies (map Logic.varify asms,Logic.varify prop))
         (K (SkipProof.cheat_tac HOL.thy))
         (* standard can take quite a while for large records, thats why
          * we varify the proposition manually here.*)
-  else let val prf = Goal.prove thy [] asms prop tac;
+  else let val prf = Goal.prove (ProofContext.init thy) [] asms prop tac;
        in if stndrd then standard prf else prf end;
 
 fun quick_and_dirty_prf noopt opt () =

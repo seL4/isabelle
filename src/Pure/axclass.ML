@@ -233,7 +233,8 @@ fun add_arity th thy =
 fun prove_classrel raw_rel tac thy =
   let
     val (c1, c2) = cert_classrel thy raw_rel;
-    val th = Goal.prove thy [] [] (Logic.mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
+    val th = Goal.prove (ProofContext.init thy) [] []
+        (Logic.mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
       cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
         quote (Sign.string_of_classrel thy [c1, c2]));
   in
@@ -246,7 +247,7 @@ fun prove_arity raw_arity tac thy =
   let
     val arity = Sign.cert_arity thy raw_arity;
     val props = Logic.mk_arities arity;
-    val ths = Goal.prove_multi thy [] [] props
+    val ths = Goal.prove_multi (ProofContext.init thy) [] [] props
       (fn _ => Tactic.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
         cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
           quote (Sign.string_of_arity thy arity));

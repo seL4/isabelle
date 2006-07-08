@@ -71,7 +71,7 @@ fun transfer_thm_of ctxt ths t =
       resolve_tac [transfer_start] 1 THEN
       REPEAT_ALL_NEW (resolve_tac intros) 1 THEN
       match_tac [reflexive_thm] 1
-  in Goal.prove thy [] [] (Logic.mk_equals (t,u)) (K tac) end
+  in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end
 
 fun transfer_tac ctxt ths =
     SUBGOAL (fn (t,i) =>
