@@ -13,14 +13,14 @@ sig
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
   (*rules*)
-  val prove_conv: tactic -> tactic -> theory -> term * term -> thm
+  val prove_conv: tactic -> tactic -> Proof.context -> term * term -> thm
   val norm_tac: tactic			(*AC0 etc.*)
   val multiply_tac: IntInf.int -> tactic	(*apply a ~~ b  ==  k * a ~~ k * b  (for k > 0)*)
 end;
 
 signature CANCEL_FACTOR =
 sig
-  val proc: theory -> thm list -> term -> thm option
+  val proc: simpset -> term -> thm option
 end;
 
 
@@ -54,7 +54,7 @@ fun div_sum d tks =
 
 (* the simplification procedure *)
 
-fun proc sg _ t =
+fun proc ss t =
   (case try Data.dest_bal t of
     NONE => NONE
   | SOME bal =>
@@ -68,7 +68,7 @@ fun proc sg _ t =
           in
             if d = 0 orelse d = 1 then NONE
             else SOME
-              (Data.prove_conv (Data.multiply_tac d) Data.norm_tac sg
+              (Data.prove_conv (Data.multiply_tac d) Data.norm_tac (Simplifier.the_context ss)
                 (t, Data.mk_bal (div_sum d tks, div_sum d uks)))
           end));
 

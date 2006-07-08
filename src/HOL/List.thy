@@ -449,7 +449,7 @@ fun butlast ((cons as Const("List.list.Cons",_) $ x) $ xs) =
 
 val rearr_ss = HOL_basic_ss addsimps [append_assoc, append_Nil, append_Cons];
 
-fun list_eq sg ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
+fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
   let
     val lastl = last lhs and lastr = last rhs;
     fun rearr conv =
@@ -460,7 +460,7 @@ fun list_eq sg ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
         val app = Const("List.op @",appT)
         val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
-        val thm = Goal.prove sg [] [] eq
+        val thm = Goal.prove (Simplifier.the_context ss) [] [] eq
           (K (simp_tac (Simplifier.inherit_context ss rearr_ss) 1));
       in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
 
@@ -473,7 +473,7 @@ fun list_eq sg ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
 in
 
 val list_eq_simproc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "list_eq" ["(xs::'a list) = ys"] list_eq;
+  Simplifier.simproc (Theory.sign_of (the_context ())) "list_eq" ["(xs::'a list) = ys"] (K list_eq);
 
 end;
 

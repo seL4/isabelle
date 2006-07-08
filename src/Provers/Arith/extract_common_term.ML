@@ -23,7 +23,7 @@ sig
   val dest_bal: term -> term * term
   val find_first: term -> term list -> term list
   (*proof tools*)
-  val prove_conv: tactic list -> theory -> 
+  val prove_conv: tactic list -> Proof.context -> 
                   thm list -> string list -> term * term -> thm option
   val norm_tac: simpset -> tactic                (*proves the result*)
   val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the result*)
@@ -32,7 +32,7 @@ end;
 
 functor ExtractCommonTermFun(Data: EXTRACT_COMMON_TERM_DATA):
   sig
-  val proc: theory -> simpset -> term -> thm option
+  val proc: simpset -> term -> thm option
   end 
 =
 struct
@@ -47,8 +47,9 @@ fun find_common (terms1,terms2) =
   in seek terms1 end;
 
 (*the simplification procedure*)
-fun proc thy ss t =
+fun proc ss t =
   let
+      val ctxt = Simplifier.the_context ss;
       val hyps = prems_of_ss ss;
       (*first freeze any Vars in the term to prevent flex-flex problems*)
       val (t', xs) = Term.adhoc_freeze_vars t;
@@ -60,7 +61,7 @@ fun proc thy ss t =
       and terms2' = Data.find_first u terms2
       and T = Term.fastype_of u
       val reshape = 
-	    Data.prove_conv [Data.norm_tac ss] thy hyps xs
+	    Data.prove_conv [Data.norm_tac ss] ctxt hyps xs
 	        (t', 
 		 Data.mk_bal (Data.mk_sum T (u::terms1'), 
 		              Data.mk_sum T (u::terms2')))

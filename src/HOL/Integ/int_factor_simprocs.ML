@@ -123,18 +123,18 @@ val ring_cancel_numeral_factors =
    [("ring_eq_cancel_numeral_factor",
      ["(l::'a::{ordered_idom,number_ring}) * m = n",
       "(l::'a::{ordered_idom,number_ring}) = m * n"],
-     EqCancelNumeralFactor.proc),
+     K EqCancelNumeralFactor.proc),
     ("ring_less_cancel_numeral_factor",
      ["(l::'a::{ordered_idom,number_ring}) * m < n",
       "(l::'a::{ordered_idom,number_ring}) < m * n"],
-     LessCancelNumeralFactor.proc),
+     K LessCancelNumeralFactor.proc),
     ("ring_le_cancel_numeral_factor",
      ["(l::'a::{ordered_idom,number_ring}) * m <= n",
       "(l::'a::{ordered_idom,number_ring}) <= m * n"],
-     LeCancelNumeralFactor.proc),
+     K LeCancelNumeralFactor.proc),
     ("int_div_cancel_numeral_factors",
      ["((l::int) * m) div n", "(l::int) div (m * n)"],
-     DivCancelNumeralFactor.proc)];
+     K DivCancelNumeralFactor.proc)];
 
 
 val field_cancel_numeral_factors =
@@ -142,12 +142,12 @@ val field_cancel_numeral_factors =
    [("field_eq_cancel_numeral_factor",
      ["(l::'a::{field,number_ring}) * m = n",
       "(l::'a::{field,number_ring}) = m * n"],
-     FieldEqCancelNumeralFactor.proc),
+     K FieldEqCancelNumeralFactor.proc),
     ("field_cancel_numeral_factor",
      ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
       "(l::'a::{division_by_zero,field,number_ring}) / (m * n)",
       "((number_of v)::'a::{division_by_zero,field,number_ring}) / (number_of w)"],
-     FieldDivCancelNumeralFactor.proc)]
+     K FieldDivCancelNumeralFactor.proc)]
 
 end;
 
@@ -280,9 +280,9 @@ structure DivideCancelFactor = ExtractCommonTermFun
 val int_cancel_factor =
   map Bin_Simprocs.prep_simproc
    [("ring_eq_cancel_factor", ["(l::int) * m = n", "(l::int) = m * n"],
-    EqCancelFactor.proc),
+    K EqCancelFactor.proc),
     ("int_divide_cancel_factor", ["((l::int) * m) div n", "(l::int) div (m*n)"],
-     DivideCancelFactor.proc)];
+     K DivideCancelFactor.proc)];
 
 (** Versions for all fields, including unordered ones (type complex).*)
 
@@ -309,11 +309,11 @@ val field_cancel_factor =
    [("field_eq_cancel_factor",
      ["(l::'a::{field,number_ring}) * m = n",
       "(l::'a::{field,number_ring}) = m * n"],
-     FieldEqCancelFactor.proc),
+     K FieldEqCancelFactor.proc),
     ("field_divide_cancel_factor",
      ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
       "(l::'a::{division_by_zero,field,number_ring}) / (m * n)"],
-     FieldDivideCancelFactor.proc)];
+     K FieldDivideCancelFactor.proc)];
 
 end;
 

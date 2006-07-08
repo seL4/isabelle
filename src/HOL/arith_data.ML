@@ -49,8 +49,9 @@ fun dest_sum tm =
 
 (* prove conversions *)
 
-fun prove_conv expand_tac norm_tac sg ss tu =  (* FIXME avoid standard *)
-  mk_meta_eq (standard (Goal.prove sg [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
+fun prove_conv expand_tac norm_tac ss tu =  (* FIXME avoid standard *)
+  mk_meta_eq (standard (Goal.prove (Simplifier.the_context ss) [] []
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
     (K (EVERY [expand_tac, norm_tac ss]))));
 
 val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
@@ -148,15 +149,15 @@ end);
 
 val nat_cancel_sums_add = map prep_simproc
   [("nateq_cancel_sums",
-     ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"], EqCancelSums.proc),
+     ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"], K EqCancelSums.proc),
    ("natless_cancel_sums",
-     ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"], LessCancelSums.proc),
+     ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"], K LessCancelSums.proc),
    ("natle_cancel_sums",
-     ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"], LeCancelSums.proc)];
+     ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"], K LeCancelSums.proc)];
 
 val nat_cancel_sums = nat_cancel_sums_add @
   [prep_simproc ("natdiff_cancel_sums",
-    ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"], DiffCancelSums.proc)];
+    ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"], K DiffCancelSums.proc)];
 
 end;
 

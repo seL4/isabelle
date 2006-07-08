@@ -223,22 +223,22 @@ val cancel_numerals =
      ["(l::nat) + m = n", "(l::nat) = m + n",
       "(l::nat) * m = n", "(l::nat) = m * n",
       "Suc m = n", "m = Suc n"],
-     EqCancelNumerals.proc),
+     K EqCancelNumerals.proc),
     ("natless_cancel_numerals",
      ["(l::nat) + m < n", "(l::nat) < m + n",
       "(l::nat) * m < n", "(l::nat) < m * n",
       "Suc m < n", "m < Suc n"],
-     LessCancelNumerals.proc),
+     K LessCancelNumerals.proc),
     ("natle_cancel_numerals",
      ["(l::nat) + m <= n", "(l::nat) <= m + n",
       "(l::nat) * m <= n", "(l::nat) <= m * n",
       "Suc m <= n", "m <= Suc n"],
-     LeCancelNumerals.proc),
+     K LeCancelNumerals.proc),
     ("natdiff_cancel_numerals",
      ["((l::nat) + m) - n", "(l::nat) - (m + n)",
       "(l::nat) * m - n", "(l::nat) - m * n",
       "Suc m - n", "m - Suc n"],
-     DiffCancelNumerals.proc)];
+     K DiffCancelNumerals.proc)];
 
 
 (*** Applying CombineNumeralsFun ***)
@@ -268,7 +268,7 @@ structure CombineNumeralsData =
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
-  prep_simproc ("nat_combine_numerals", ["(i::nat) + j", "Suc (i + j)"], CombineNumerals.proc);
+  prep_simproc ("nat_combine_numerals", ["(i::nat) + j", "Suc (i + j)"], K CombineNumerals.proc);
 
 
 (*** Applying CancelNumeralFactorFun ***)
@@ -331,16 +331,16 @@ val cancel_numeral_factors =
   map prep_simproc
    [("nateq_cancel_numeral_factors",
      ["(l::nat) * m = n", "(l::nat) = m * n"],
-     EqCancelNumeralFactor.proc),
+     K EqCancelNumeralFactor.proc),
     ("natless_cancel_numeral_factors",
      ["(l::nat) * m < n", "(l::nat) < m * n"],
-     LessCancelNumeralFactor.proc),
+     K LessCancelNumeralFactor.proc),
     ("natle_cancel_numeral_factors",
      ["(l::nat) * m <= n", "(l::nat) <= m * n"],
-     LeCancelNumeralFactor.proc),
+     K LeCancelNumeralFactor.proc),
     ("natdiv_cancel_numeral_factors",
      ["((l::nat) * m) div n", "(l::nat) div (m * n)"],
-     DivCancelNumeralFactor.proc)];
+     K DivCancelNumeralFactor.proc)];
 
 
 
@@ -413,16 +413,16 @@ val cancel_factor =
   map prep_simproc
    [("nat_eq_cancel_factor",
      ["(l::nat) * m = n", "(l::nat) = m * n"],
-     EqCancelFactor.proc),
+     K EqCancelFactor.proc),
     ("nat_less_cancel_factor",
      ["(l::nat) * m < n", "(l::nat) < m * n"],
-     LessCancelFactor.proc),
+     K LessCancelFactor.proc),
     ("nat_le_cancel_factor",
      ["(l::nat) * m <= n", "(l::nat) <= m * n"],
-     LeCancelFactor.proc),
+     K LeCancelFactor.proc),
     ("nat_divide_cancel_factor",
      ["((l::nat) * m) div n", "(l::nat) div (m * n)"],
-     DivideCancelFactor.proc)];
+     K DivideCancelFactor.proc)];
 
 end;
 

@@ -208,7 +208,7 @@ end;
 structure CancelDivMod = CancelDivModFun(CancelDivModData);
 
 val cancel_div_mod_proc = NatArithUtils.prep_simproc
-      ("cancel_div_mod", ["(m::nat) + n"], CancelDivMod.proc);
+      ("cancel_div_mod", ["(m::nat) + n"], K CancelDivMod.proc);
 
 Addsimprocs[cancel_div_mod_proc];
 *}

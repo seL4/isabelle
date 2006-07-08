@@ -163,8 +163,8 @@ ML {*
 	 "t - u::'a::ring",
 	 "t * u::'a::ring",
 	 "- t::'a::ring"];
-    fun proc sg ss t = 
-      let val rew = Goal.prove sg [] []
+    fun proc ss t = 
+      let val rew = Goal.prove (Simplifier.the_context ss) [] []
             (HOLogic.mk_Trueprop
               (HOLogic.mk_eq (t, Var (("x", Term.maxidx_of_term t + 1), fastype_of t))))
                 (fn _ => simp_tac (Simplifier.inherit_context ss ring_ss) 1)
@@ -175,7 +175,7 @@ ML {*
         else SOME rew 
     end;
   in
-    val ring_simproc = Simplifier.simproc (the_context ()) "ring" lhss proc;
+    val ring_simproc = Simplifier.simproc (the_context ()) "ring" lhss (K proc);
   end;
 *}
 

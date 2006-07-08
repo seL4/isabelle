@@ -275,17 +275,17 @@ val cancel_numerals =
      ["l $+ m = n", "l = m $+ n",
       "l $- m = n", "l = m $- n",
       "l $* m = n", "l = m $* n"],
-     EqCancelNumerals.proc),
+     K EqCancelNumerals.proc),
     ("intless_cancel_numerals",
      ["l $+ m $< n", "l $< m $+ n",
       "l $- m $< n", "l $< m $- n",
       "l $* m $< n", "l $< m $* n"],
-     LessCancelNumerals.proc),
+     K LessCancelNumerals.proc),
     ("intle_cancel_numerals",
      ["l $+ m $<= n", "l $<= m $+ n",
       "l $- m $<= n", "l $<= m $- n",
       "l $* m $<= n", "l $<= m $* n"],
-     LeCancelNumerals.proc)];
+     K LeCancelNumerals.proc)];
 
 
 (*version without the hyps argument*)
@@ -319,7 +319,7 @@ structure CombineNumeralsData =
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
-  prep_simproc ("int_combine_numerals", ["i $+ j", "i $- j"], CombineNumerals.proc);
+  prep_simproc ("int_combine_numerals", ["i $+ j", "i $- j"], K CombineNumerals.proc);
 
 
 
@@ -358,7 +358,7 @@ structure CombineNumeralsProdData =
 structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
 
 val combine_numerals_prod =
-  prep_simproc ("int_combine_numerals_prod", ["i $* j"], CombineNumeralsProd.proc);
+  prep_simproc ("int_combine_numerals_prod", ["i $* j"], K CombineNumeralsProd.proc);
 
 end;
 

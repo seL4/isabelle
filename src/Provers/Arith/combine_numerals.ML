@@ -27,7 +27,7 @@ sig
   (*rules*)
   val left_distrib: thm
   (*proof tools*)
-  val prove_conv: tactic list -> theory -> string list -> term * term -> thm option
+  val prove_conv: tactic list -> Proof.context -> string list -> term * term -> thm option
   val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
   val norm_tac: simpset -> tactic                (*proves the initial lemma*)
   val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
@@ -37,7 +37,7 @@ end;
 
 functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
   sig
-  val proc: theory -> simpset -> term -> thm option
+  val proc: simpset -> term -> thm option
   end 
 =
 struct
@@ -64,8 +64,10 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
 	| NONE => find_repeated (tab, t::past, terms);
 
 (*the simplification procedure*)
-fun proc thy ss t =
-  let (*first freeze any Vars in the term to prevent flex-flex problems*)
+fun proc ss t =
+  let
+      val ctxt = Simplifier.the_context ss;
+      (*first freeze any Vars in the term to prevent flex-flex problems*)
       val (t', xs) = Term.adhoc_freeze_vars t
       val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
       val T = Term.fastype_of u
@@ -73,7 +75,7 @@ fun proc thy ss t =
 		       i + #m + j + k == #m + i + (j + k) *)
 	    if m=0 orelse n=0 then   (*trivial, so do nothing*)
 		raise TERM("combine_numerals", []) 
-	    else Data.prove_conv [Data.norm_tac ss] thy xs
+	    else Data.prove_conv [Data.norm_tac ss] ctxt xs
 			(t', 
 			 Data.mk_sum T ([Data.mk_coeff(m,u),
 				         Data.mk_coeff(n,u)] @ terms))
@@ -81,7 +83,7 @@ fun proc thy ss t =
       Option.map (Data.simplify_meta_eq ss)
 	 (Data.prove_conv 
 	    [Data.trans_tac ss reshape, rtac Data.left_distrib 1,
-	     Data.numeral_simp_tac ss] thy xs
+	     Data.numeral_simp_tac ss] ctxt xs
 	    (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   handle TERM _ => NONE

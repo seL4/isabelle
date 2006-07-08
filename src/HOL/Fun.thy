@@ -494,10 +494,11 @@ in
   val fun_upd2_simproc =
     Simplifier.simproc (Theory.sign_of (the_context ()))
       "fun_upd2" ["f(v := w, x := y)"]
-      (fn sg => fn ss => fn t =>
+      (fn _ => fn ss => fn t =>
         case find_double t of (T, NONE) => NONE
         | (T, SOME rhs) =>
-            SOME (Goal.prove sg [] [] (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
+            SOME (Goal.prove (Simplifier.the_context ss) [] []
+              (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
 end;
 Addsimprocs[fun_upd2_simproc];
 

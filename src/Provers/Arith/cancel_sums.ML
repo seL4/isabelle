@@ -17,14 +17,14 @@ sig
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
   (*rules*)
-  val prove_conv: tactic -> (simpset -> tactic) -> theory -> simpset -> term * term -> thm
+  val prove_conv: tactic -> (simpset -> tactic) -> simpset -> term * term -> thm
   val norm_tac: simpset -> tactic            (*AC0 etc.*)
   val uncancel_tac: cterm -> tactic          (*apply A ~~ B  ==  x + A ~~ x + B*)
 end;
 
 signature CANCEL_SUMS =
 sig
-  val proc: theory -> simpset -> term -> thm option
+  val proc: simpset -> term -> thm option
 end;
 
 
@@ -58,19 +58,19 @@ fun uncancel_sums_tac _ [] = all_tac
 
 (* the simplification procedure *)
 
-fun proc thy ss t =
+fun proc ss t =
   (case try Data.dest_bal t of
     NONE => NONE
   | SOME bal =>
       let
+        val thy = ProofContext.theory_of (Simplifier.the_context ss);
         val (ts, us) = pairself (sort Term.term_ord o Data.dest_sum) bal;
         val (ts', us', vs) = cancel ts us [];
       in
         if null vs then NONE
         else SOME
-          (Data.prove_conv (uncancel_sums_tac thy vs) Data.norm_tac thy ss
+          (Data.prove_conv (uncancel_sums_tac thy vs) Data.norm_tac ss
             (t, Data.mk_bal (Data.mk_sum ts', Data.mk_sum us')))
       end);
-
 
 end;
