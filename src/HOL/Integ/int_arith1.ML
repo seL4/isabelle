@@ -372,7 +372,7 @@ val cancel_numerals =
       "(l::'a::number_ring) = m - n",
       "(l::'a::number_ring) * m = n",
       "(l::'a::number_ring) = m * n"],
-     EqCancelNumerals.proc),
+     K EqCancelNumerals.proc),
     ("intless_cancel_numerals",
      ["(l::'a::{ordered_idom,number_ring}) + m < n",
       "(l::'a::{ordered_idom,number_ring}) < m + n",
@@ -380,7 +380,7 @@ val cancel_numerals =
       "(l::'a::{ordered_idom,number_ring}) < m - n",
       "(l::'a::{ordered_idom,number_ring}) * m < n",
       "(l::'a::{ordered_idom,number_ring}) < m * n"],
-     LessCancelNumerals.proc),
+     K LessCancelNumerals.proc),
     ("intle_cancel_numerals",
      ["(l::'a::{ordered_idom,number_ring}) + m <= n",
       "(l::'a::{ordered_idom,number_ring}) <= m + n",
@@ -388,7 +388,7 @@ val cancel_numerals =
       "(l::'a::{ordered_idom,number_ring}) <= m - n",
       "(l::'a::{ordered_idom,number_ring}) * m <= n",
       "(l::'a::{ordered_idom,number_ring}) <= m * n"],
-     LeCancelNumerals.proc)];
+     K LeCancelNumerals.proc)];
 
 
 structure CombineNumeralsData =
@@ -422,7 +422,7 @@ val combine_numerals =
   Bin_Simprocs.prep_simproc
     ("int_combine_numerals", 
      ["(i::'a::number_ring) + j", "(i::'a::number_ring) - j"], 
-     CombineNumerals.proc);
+     K CombineNumerals.proc);
 
 end;
 
@@ -473,10 +473,8 @@ test "(i + j + -12 + (k::int)) - -15 = y";
 
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
-  val ss                = HOL_ss
-  val eq_reflection     = eq_reflection
-  val thy_ref = Theory.self_ref (the_context ())
-  val add_ac = mult_ac
+  val assoc_ss = HOL_ss addsimps mult_ac
+  val eq_reflection = eq_reflection
 end;
 
 structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
@@ -484,7 +482,7 @@ structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
 val assoc_fold_simproc =
   Bin_Simprocs.prep_simproc
    ("semiring_assoc_fold", ["(a::'a::comm_semiring_1_cancel) * b"],
-    Semiring_Times_Assoc.proc);
+    K Semiring_Times_Assoc.proc);
 
 Addsimprocs [assoc_fold_simproc];
 
