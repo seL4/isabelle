@@ -293,7 +293,7 @@ text %mlref {*
   only works after dropping out of the Isar toplevel loop.
 
   \item @{ML "Isar.context ()"} produces the proof context from @{ML
-  "Isar.state ()"} above.
+  "Isar.state ()"}.
 
   \end{description}
 *}
