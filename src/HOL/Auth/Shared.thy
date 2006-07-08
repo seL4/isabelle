@@ -264,11 +264,11 @@ by auto
 (*Specialized methods*)
 
 method_setup analz_freshK = {*
-    Method.no_args
+    Method.ctxt_args (fn ctxt =>
      (Method.METHOD
       (fn facts => EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
                           REPEAT_FIRST (rtac analz_image_freshK_lemma),
-                          ALLGOALS (asm_simp_tac analz_image_freshK_ss)])) *}
+                          ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss))]))) *}
     "for proving the Session Key Compromise theorem"
 
 method_setup possibility = {*

@@ -360,13 +360,13 @@ fun gen_possibility_tac ss state = state |>
                    resolve_tac [refl, conjI, Nonce_supply]))
 
 (*Tactic for possibility theorems (ML script version)*)
-fun possibility_tac state = gen_possibility_tac (simpset()) state
+fun possibility_tac state = gen_possibility_tac (simpset_of (Thm.theory_of_thm state)) state
 
 (*For harder protocols (such as SET_CR!), where we have to set up some
   nonces and keys initially*)
 fun basic_possibility_tac st = st |>
     REPEAT 
-    (ALLGOALS (asm_simp_tac (simpset() setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (simpset_of (Thm.theory_of_thm st) setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 *}

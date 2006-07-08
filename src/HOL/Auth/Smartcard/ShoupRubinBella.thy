@@ -844,15 +844,15 @@ val analz_image_Key_Un_Nonce= thm "analz_image_Key_Un_Nonce"
 *}
 
 method_setup sc_analz_freshK = {*
-    Method.no_args
+    Method.ctxt_args (fn ctxt =>
      (Method.METHOD
       (fn facts => EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
                           REPEAT_FIRST (rtac analz_image_freshK_lemma),
-                          ALLGOALS (asm_simp_tac (analz_image_freshK_ss
+                          ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss
                                     addsimps [knows_Spy_Inputs_secureM_srb_Spy,
                                               knows_Spy_Outpts_secureM_srb_Spy,
                                               shouprubin_assumes_securemeans, 
-                                              analz_image_Key_Un_Nonce]))])) *}
+                                              analz_image_Key_Un_Nonce]))]))) *}
     "for proving the Session Key Compromise theorem for smartcard protocols"
 
 
