@@ -364,15 +364,17 @@ fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
                              in (case (#distinct (the_datatype thy tname1)) of
                                  QuickAndDirty => SOME (Thm.invoke_oracle
                                    Datatype_thy distinctN (thy, ConstrDistinct eq_t))
-                               | FewConstrs thms => SOME (Goal.prove thy [] [] eq_t (K
-                                   (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
-                                    atac 2, resolve_tac thms 1, etac FalseE 1])))
-                               | ManyConstrs (thm, simpset) => SOME (Goal.prove thy [] [] eq_t (K
-                                   (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
-                                    full_simp_tac (Simplifier.inherit_context ss simpset) 1,
-                                    REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
-                                    eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
-                                    etac FalseE 1]))))
+                               | FewConstrs thms =>
+                                   SOME (Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
+                                     (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
+                                       atac 2, resolve_tac thms 1, etac FalseE 1])))
+                               | ManyConstrs (thm, simpset) =>
+                                   SOME (Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
+                                     (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
+                                      full_simp_tac (Simplifier.inherit_context ss simpset) 1,
+                                      REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
+                                      eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
+                                      etac FalseE 1]))))
                              end
                            else NONE
                         end
@@ -380,7 +382,7 @@ fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
                 else NONE
           | _ => NONE)
    | _ => NONE)
-  | distinct_proc thy _ _ = NONE;
+  | distinct_proc _ _ _ = NONE;
 
 val distinct_simproc =
   Simplifier.simproc HOL.thy distinctN ["s = t"] distinct_proc;
@@ -741,7 +743,8 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
     val (casedist_thms, thy3) = DatatypeAbsProofs.prove_casedist_thms new_type_names descr
       sorts induct case_names_exhausts thy2;
     val ((reccomb_names, rec_thms), thy4) = DatatypeAbsProofs.prove_primrec_thms
-      flat_names new_type_names descr sorts dt_info inject dist_rewrites dist_ss induct thy3;
+      flat_names new_type_names descr sorts dt_info inject dist_rewrites
+      (Simplifier.theory_context thy3 dist_ss) induct thy3;
     val ((case_thms, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
       flat_names new_type_names descr sorts reccomb_names rec_thms thy4;
     val (split_thms, thy7) = DatatypeAbsProofs.prove_split_thms new_type_names
@@ -840,7 +843,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction
         case_names_exhausts;
     val ((reccomb_names, rec_thms), thy3) = DatatypeAbsProofs.prove_primrec_thms
-      false new_type_names [descr] sorts dt_info inject distinct dist_ss induction thy2;
+      false new_type_names [descr] sorts dt_info inject distinct
+      (Simplifier.theory_context thy2 dist_ss) induction thy2;
     val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms false
       new_type_names [descr] sorts reccomb_names rec_thms thy3;
     val (split_thms, thy5) = DatatypeAbsProofs.prove_split_thms
