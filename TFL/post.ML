@@ -171,14 +171,14 @@ fun tracing true _ = ()
 
 fun simplify_defn strict thy cs ss congs wfs id pats def0 =
    let val def = Thm.freezeT def0 RS meta_eq_to_obj_eq
-       val {theory,rules,rows,TCs,full_pats_TCs} =
+       val {rules,rows,TCs,full_pats_TCs} =
            Prim.post_definition congs (thy, (def,pats))
        val {lhs=f,rhs} = S.dest_eq (concl def)
        val (_,[R,_]) = S.strip_comb rhs
        val dummy = Prim.trace_thms "congs =" congs
        (*the next step has caused simplifier looping in some cases*)
        val {induction, rules, tcs} =
-             proof_stage strict cs ss wfs theory
+             proof_stage strict cs ss wfs thy
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
