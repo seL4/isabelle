@@ -1644,20 +1644,21 @@ fun def_pred bname parms defs ts norm_ts thy =
         Theory.add_trfuns ([], [], map (aprop_tr' (length args)) (NameSpace.accesses' name), []))
       |> Theory.add_consts_i [(bname, predT, NoSyn)]
       |> PureThy.add_defs_i false [((Thm.def_name bname, Logic.mk_equals (head, body)), [])];
+    val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
 
-    val intro = Drule.standard (Goal.prove defs_thy [] norm_ts statement (fn _ =>
+    val intro = Goal.prove_global defs_thy [] norm_ts statement (fn _ =>
       Tactic.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      Tactic.compose_tac (false, Conjunction.intr_list (map (Thm.assume o cert) norm_ts), 0) 1));
+      Tactic.compose_tac (false, Conjunction.intr_list (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF [body_eq,
         Tactic.rewrite_rule [pred_def] (Thm.assume (cert statement))])
       |> Conjunction.elim_precise [length ts] |> hd;
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
-      Element.prove_witness defs_thy t
+      Element.prove_witness defs_ctxt t
        (Tactic.rewrite_goals_tac defs THEN
         Tactic.compose_tac (false, ax, 0) 1));
   in ((statement, intro, axioms), defs_thy) end;
