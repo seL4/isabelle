@@ -154,15 +154,17 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML Goal.prove: "theory -> string list -> term list -> term ->
+  @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
   (thm list -> tactic) -> thm"} \\
-  @{index_ML Goal.prove_multi: "theory -> string list -> term list -> term list ->
+  @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
   (thm list -> tactic) -> thm list"} \\
+  @{index_ML Goal.prove_global: "theory -> string list -> term list -> term ->
+  (thm list -> tactic) -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML Goal.prove}~@{text "thy xs As C tac"} states goal @{text
+  \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context of arbitrary-but-fixed parameters @{text "xs"}
   and hypotheses @{text "As"} and applies tactic @{text "tac"} to
   solve it.  The latter may depend on the local assumptions being
@@ -180,6 +182,10 @@ text %mlref {*
   states several conclusions simultaneously.  @{ML
   Tactic.conjunction_tac} may be used to split these into individual
   subgoals before commencing the actual proof.
+
+  \item @{ML Goal.prove_global} is a degraded version of @{ML
+  Goal.prove} for theory level goals; it includes a global @{ML
+  Drule.standard} for the result.
 
   \end{description}
 *}
