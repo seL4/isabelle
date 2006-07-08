@@ -22,9 +22,10 @@ sig
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
-  val prove_multi: theory -> string list -> term list -> term list ->
+  val prove_multi: Context.proof -> string list -> term list -> term list ->
     (thm list -> tactic) -> thm list
-  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove: Context.proof -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
@@ -116,27 +117,28 @@ fun comp_hhf tha thb =
 
 (* prove_multi *)
 
-fun prove_multi thy xs asms props tac =
+fun prove_multi ctxt xs asms props tac =
   let
+    val thy = Context.theory_of_proof ctxt;
+    val string_of_term = Sign.string_of_term thy;
+
     val prop = Logic.mk_conjunction_list props;
     val statement = Logic.list_implies (asms, prop);
-    val frees = Term.add_frees statement [];
-    val fixed_frees = filter_out (member (op =) xs o #1) frees;
-    val fixed_tfrees = fold (Term.add_tfreesT o #2) fixed_frees [];
-    val params = map_filter (fn x => Option.map (pair x) (AList.lookup (op =) frees x)) xs;
 
     fun err msg = cat_error msg
-      ("The error(s) above occurred for the goal statement:\n" ^
-        Sign.string_of_term thy (Term.list_all_free (params, statement)));
+      ("The error(s) above occurred for the goal statement:\n" ^ string_of_term statement);
     fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm t)
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
 
     val _ = cert_safe statement;
     val _ = Term.no_dummy_patterns statement handle TERM (msg, _) => err msg;
-
-    val cparams = map (cert_safe o Free) params;
     val casms = map cert_safe asms;
     val prems = map (norm_hhf o Thm.assume) casms;
+
+    val ctxt' = ctxt
+      |> Variable.set_body false
+      |> (snd o Variable.add_fixes xs)
+      |> fold Variable.declare_term (asms @ props);
 
     val res =
       (case SINGLE (tac prems) (init (cert_safe prop)) of
@@ -145,20 +147,21 @@ fun prove_multi thy xs asms props tac =
     val [results] =
       Conjunction.elim_precise [length props] (finish res) handle THM (msg, _, _) => err msg;
     val _ = Unify.matches_list thy (map (Thm.term_of o cert_safe) props) (map Thm.prop_of results)
-      orelse err ("Proved a different theorem: " ^ Sign.string_of_term thy (Thm.prop_of res));
+      orelse err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res));
   in
-    results |> map
-      (Drule.implies_intr_list casms
-        #> Drule.forall_intr_list cparams
-        #> norm_hhf
-        #> Thm.varifyT' fixed_tfrees
-        #-> K Drule.zero_var_indexes)
+    results
+    |> map (Drule.implies_intr_list casms)
+    |> Variable.export ctxt' ctxt
+    |> map (norm_hhf #> Drule.zero_var_indexes)
   end;
 
 
 (* prove *)
 
-fun prove thy xs asms prop tac = hd (prove_multi thy xs asms [prop] tac);
+fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
+
+fun prove_global thy xs asms prop tac =
+  Drule.standard (prove (Context.init_proof thy) xs asms prop tac);
 
 
 (* prove_raw -- no checks, no normalization of result! *)
