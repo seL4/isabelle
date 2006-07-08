@@ -244,8 +244,8 @@ fun cterm_of thy tm =
     val sorts = may_insert_term_sorts thy t [];
   in Cterm {thy_ref = Theory.self_ref thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
-fun merge_thys0 (Cterm {thy_ref = r1, ...}) (Cterm {thy_ref = r2, ...}) =
-  Theory.merge_refs (r1, r2);
+fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2, ...}) =
+  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise TERM (msg, [t1, t2]);
 
 (*Destruct application in cterms*)
 fun dest_comb (Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =

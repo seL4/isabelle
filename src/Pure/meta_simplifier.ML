@@ -553,7 +553,7 @@ fun add_cong (ss, thm) = ss |>
       val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
-      val a = the (cong_name (head_of (term_of lhs))) handle Option =>
+      val a = the (cong_name (head_of (term_of lhs))) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (alist, weak) = congs;
       val alist2 = overwrite_warn (alist, (a, {lhs = lhs, thm = thm}))
@@ -567,7 +567,7 @@ fun del_cong (ss, thm) = ss |>
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
         raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
-      val a = the (cong_name (head_of lhs)) handle Option =>
+      val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;
       val alist2 = List.filter (fn (x, _) => x <> a) alist;
@@ -1020,8 +1020,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                                 NONE => thm
                               | SOME thm' => transitive3 thm
                                   (combination thm' (reflexive cr))
-                           end handle TERM _ => error "congc result"
-                                    | Pattern.MATCH => appc ()))
+                           end handle Pattern.MATCH => appc ()))
                   | _ => appc ()
                end)
          | _ => NONE)
@@ -1170,7 +1169,7 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
     val _ = check_bounds ss ct;
     val res = bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ss ct
   in dec simp_depth; res end
-  handle exn => (dec simp_depth; raise exn);
+  handle exn => (dec simp_depth; raise exn);  (* FIXME avoid handling of generic exceptions *)
 
 (*Rewrite a cterm*)
 fun rewrite_aux _ _ [] ct = Thm.reflexive ct
