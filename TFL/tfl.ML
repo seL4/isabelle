@@ -15,8 +15,7 @@ sig
   val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
   val wfrec_definition0: theory -> string -> term -> term -> theory * thm
   val post_definition: thm list -> theory * (thm * pattern list) ->
-   {theory: theory,
-    rules: thm,
+   {rules: thm,
     rows: int list,
     TCs: term list list,
     full_pats_TCs: (term * term list) list}
@@ -448,8 +447,9 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
      (*case_ss causes minimal simplification: bodies of case expressions are
        not simplified. Otherwise large examples (Red-Black trees) are too
        slow.*)
-     val case_ss = HOL_basic_ss addcongs
-       (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) theory addsimps case_rewrites
+     val case_ss = Simplifier.theory_context theory
+       (HOL_basic_ss addcongs
+         (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) theory addsimps case_rewrites)
      val corollaries' = map (Simplifier.simplify case_ss) corollaries
      val extract = R.CONTEXT_REWRITE_RULE
                      (f, [R], cut_apply, meta_tflCongs@context_congs)
@@ -458,8 +458,7 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
      val mk_cond_rule = R.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
      val rules1 = R.LIST_CONJ(map mk_cond_rule rules0)
  in
- {theory = theory,
-  rules = rules1,
+ {rules = rules1,
   rows = rows,
   full_pats_TCs = merge (map pat_of pats) (ListPair.zip (given_pats, TCs)),
   TCs = TCs}
