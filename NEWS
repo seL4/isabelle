@@ -563,10 +563,6 @@ declarations and definitions.
 signature declarations.  (This information is not relevant to the
 logic, but only for type inference.)  IMPORTANT INTERNAL CHANGE.
 
-* Pure: Logic.(un)varify only works in a global context, which is now
-enforced instead of silently assumed.  INCOMPATIBILITY, may use
-Logic.legacy_(un)varify as temporary workaround.
-
 * Pure: axiomatic type classes are now purely definitional, with
 explicit proofs of class axioms and super class relations performed
 internally.  See Pure/axclass.ML for the main internal interfaces --
@@ -593,11 +589,24 @@ achieve the old behaviour.
 slightly more general idea of ``protecting'' meta-level rule
 statements.
 
+* Pure: Logic.(un)varify only works in a global context, which is now
+enforced instead of silently assumed.  INCOMPATIBILITY, may use
+Logic.legacy_(un)varify as temporary workaround.
+
+* Pure: structure Variable provides fundamental operations for proper
+treatment of fixed/schematic variables in a context.  For example,
+Variable.import introduces fixes for schematics of given facts and
+Variable.export reverses the effect (up to renaming) -- this replaces
+various freeze_thaw operations.
+
 * Pure: structure Goal provides simple interfaces for
 init/conclude/finish and tactical prove operations (replacing former
-Tactic.prove).  Note that OldGoals.prove_goalw_cterm has long been
-obsolete, it is ill-behaved in a local proof context (e.g. with local
-fixes/assumes or in a locale context).
+Tactic.prove).  Goal.prove is the canonical way to prove results
+within a given context; Goal.prove_global is a degraded version for
+theory level goals, including a global Drule.standard.  Note that
+OldGoals.prove_goalw_cterm has long been obsolete, since it is
+ill-behaved in a local proof context (e.g. with local fixes/assumes or
+in a locale context).
 
 * Isar: simplified treatment of user-level errors, using exception
 ERROR of string uniformly.  Function error now merely raises ERROR,
