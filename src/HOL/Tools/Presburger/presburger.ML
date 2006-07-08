@@ -30,7 +30,7 @@ fun trace_msg s = if !trace then tracing s else ();
 (*-----------------------------------------------------------------*)
 
 
-val presburger_ss = simpset_of (theory "Presburger");
+val presburger_ss = simpset ();
 val binarith = map thm
   ["Pls_0_eq", "Min_1_eq",
  "bin_pred_Pls","bin_pred_Min","bin_pred_1","bin_pred_0",
