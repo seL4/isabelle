@@ -38,7 +38,7 @@ sig
   val witness_prop: witness -> term
   val witness_hyps: witness -> term list
   val assume_witness: theory -> term -> witness
-  val prove_witness: theory -> term -> tactic -> witness
+  val prove_witness: Proof.context -> term -> tactic -> witness
   val conclude_witness: witness -> thm
   val mark_witness: term -> term
   val make_witness: term -> thm -> witness
@@ -274,8 +274,8 @@ fun witness_hyps (Witness (_, th)) = #hyps (Thm.rep_thm th);
 fun assume_witness thy t =
   Witness (t, Goal.protect (Thm.assume (Thm.cterm_of thy t)));
 
-fun prove_witness thy t tac =
-  Witness (t, Goal.prove thy [] [] (Logic.protect t) (fn _ =>
+fun prove_witness ctxt t tac =
+  Witness (t, Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
     Tactic.rtac Drule.protectI 1 THEN tac));
 
 fun conclude_witness (Witness (_, th)) = Goal.norm_hhf (Goal.conclude th);
