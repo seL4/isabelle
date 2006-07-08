@@ -195,15 +195,17 @@ In order to perform a complete tactical proof under program control,
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Goal.prove}\verb|Goal.prove: theory -> string list -> term list -> term ->|\isasep\isanewline%
+  \indexml{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
 \verb|  (thm list -> tactic) -> thm| \\
-  \indexml{Goal.prove-multi}\verb|Goal.prove_multi: theory -> string list -> term list -> term list ->|\isasep\isanewline%
+  \indexml{Goal.prove-multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
 \verb|  (thm list -> tactic) -> thm list| \\
+  \indexml{Goal.prove-global}\verb|Goal.prove_global: theory -> string list -> term list -> term ->|\isasep\isanewline%
+\verb|  (thm list -> tactic) -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|Goal.prove|~\isa{thy\ xs\ As\ C\ tac} states goal \isa{C} in the context of arbitrary-but-fixed parameters \isa{xs}
+  \item \verb|Goal.prove|~\isa{ctxt\ xs\ As\ C\ tac} states goal \isa{C} in the context of arbitrary-but-fixed parameters \isa{xs}
   and hypotheses \isa{As} and applies tactic \isa{tac} to
   solve it.  The latter may depend on the local assumptions being
   presented as facts.  The result is essentially \isa{{\isasymAnd}xs{\isachardot}\ As\ {\isasymLongrightarrow}\ C}, but is normalized by pulling \isa{{\isasymAnd}} before \isa{{\isasymLongrightarrow}}
@@ -218,6 +220,8 @@ In order to perform a complete tactical proof under program control,
   \item \verb|Goal.prove_multi| is simular to \verb|Goal.prove|, but
   states several conclusions simultaneously.  \verb|Tactic.conjunction_tac| may be used to split these into individual
   subgoals before commencing the actual proof.
+
+  \item \verb|Goal.prove_global| is a degraded version of \verb|Goal.prove| for theory level goals; it includes a global \verb|Drule.standard| for the result.
 
   \end{description}%
 \end{isamarkuptext}%

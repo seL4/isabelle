@@ -49,17 +49,30 @@
 
   \begin{description}
 
-  \item \verb|Variable.declare_term| FIXME
+  \item \verb|Variable.declare_term| declares a term as belonging to
+  the current context.  This fixes free type variables, but not term
+  variables; constraints for type and term variables are declared
+  uniformly.
 
-  \item \verb|Variable.import| FIXME
+  \item \verb|Variable.import| introduces new fixes for schematic type
+  and term variables occurring in given facts.  The effect may be
+  reversed (up to renaming) via \verb|Variable.export|.
 
-  \item \verb|Variable.export| FIXME
+  \item \verb|Variable.export| generalizes fixed type and term
+  variables according to the difference of the two contexts.  Note
+  that type variables occurring in term variables are still fixed,
+  even though they got introduced later (e.g.\ by type-inference).
 
-  \item \verb|Variable.trade| composes \verb|Variable.import| and \verb|Variable.export|.
+  \item \verb|Variable.trade| composes \verb|Variable.import| and \verb|Variable.export|, i.e.\ it provides a view on facts with all
+  variables being fixed in the current context.
 
-  \item \verb|Variable.monomorphic| FIXME
+  \item \verb|Variable.monomorphic| introduces fixed type variables for
+  the schematic of the given facts.
 
-  \item \verb|Variable.polymorphic| FIXME
+  \item \verb|Variable.polymorphic| generalizes type variables as far
+  as possible, even those occurring in fixed term variables.  This
+  operation essentially reverses the default policy of type-inference
+  to introduce local polymorphism entities in fixed form.
 
   \end{description}%
 \end{isamarkuptext}%
