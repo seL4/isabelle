@@ -488,6 +488,7 @@ association lists.
   (i.e. a boolean expression) by compiling it to ML. The goal is
   "proved" (via the oracle "Evaluation") if it evaluates to True.
 
+* Support for hex (0x20) and binary (0b1001) numerals. 
 
 *** HOL-Complex ***
 

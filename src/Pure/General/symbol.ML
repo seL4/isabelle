@@ -23,6 +23,7 @@ sig
   val malformed: symbol
   val is_ascii: symbol -> bool
   val is_ascii_letter: symbol -> bool
+  val is_hex_letter: symbol -> bool
   val is_ascii_digit: symbol -> bool
   val is_ascii_quasi: symbol -> bool
   val is_ascii_blank: symbol -> bool
@@ -124,6 +125,11 @@ fun is_ascii_letter s =
   is_char s andalso
    (ord "A" <= ord s andalso ord s <= ord "Z" orelse
     ord "a" <= ord s andalso ord s <= ord "z");
+
+fun is_hex_letter s =
+  is_char s andalso
+   (ord "A" <= ord s andalso ord s <= ord "F" orelse
+    ord "a" <= ord s andalso ord s <= ord "f");
 
 fun is_ascii_digit s =
   is_char s andalso ord "0" <= ord s andalso ord s <= ord "9";

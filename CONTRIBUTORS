@@ -1,6 +1,9 @@
 Contributions to Isabelle
 -------------------------
 
+* July 2006: Rafal Kolanski, NICTA
+  Hex (0xFF) and binary (0b1011) numerals.
+
 * May 2006: Klaus Aehlig, LMU
   Command 'normal_form': normalization by evaluation.
 

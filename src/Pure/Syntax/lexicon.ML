@@ -18,6 +18,8 @@ sig
   val scan_tvar: string list -> string * string list
   val scan_nat: string list -> string * string list
   val scan_int: string list -> string * string list
+  val scan_hex: string list -> string * string list
+  val scan_bin: string list -> string * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
   val indexname: string -> indexname
@@ -92,6 +94,8 @@ fun is_tid s =
 
 val scan_letter_letdigs = Scan.one Symbol.is_letter -- Scan.any Symbol.is_letdig >> op ::;
 val scan_digits1 = Scan.any1 Symbol.is_digit;
+val scan_hex1 = Scan.any1 (Symbol.is_digit orf Symbol.is_hex_letter);
+val scan_bin1 = Scan.any1 (fn s => s = "0" orelse s = "1");
 
 val scan_id = scan_letter_letdigs >> implode;
 val scan_longid = scan_id ^^ (Scan.repeat1 ($$ "." ^^ scan_id) >> implode);
@@ -99,6 +103,9 @@ val scan_tid = $$ "'" ^^ scan_id;
 
 val scan_nat = scan_digits1 >> implode;
 val scan_int = $$ "-" ^^ scan_nat || scan_nat;
+
+val scan_hex = ($$ "0") ^^ ($$ "x") ^^ (scan_hex1 >> implode);
+val scan_bin = ($$ "0") ^^ ($$ "b") ^^ (scan_bin1 >> implode);
 
 val scan_id_nat = scan_id ^^ Scan.optional ($$ "." ^^ scan_nat) "";
 val scan_var = $$ "?" ^^ scan_id_nat;
@@ -261,6 +268,8 @@ fun tokenize lex xids chs =
       scan_tvar >> pair TVarSy ||
       scan_var >> pair VarSy ||
       scan_tid >> pair TFreeSy ||
+      scan_hex >> pair NumSy ||
+      scan_bin >> pair NumSy ||
       scan_int >> pair NumSy ||
       $$ "#" ^^ scan_int >> pair XNumSy ||
       scan_longid >> pair LongIdentSy ||
