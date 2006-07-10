@@ -174,7 +174,7 @@ fun resolve_raw_clauses [] =
 				let
 					val thy  = theory_of_thm (if l1_is_neg then c2' else c1')
 					val cP   = cterm_of thy (Var (("P", 0), HOLogic.boolT))
-					val cLit = (cterm_of thy o HOLogic.dest_Trueprop o term_of) (if l1_is_neg then l2 else l1)
+					val cLit = snd (Thm.dest_comb (if l1_is_neg then l2 else l1))  (* strip Trueprop *)
 				in
 					Thm.instantiate ([], [(cP, cLit)]) resolution_thm
 				end
