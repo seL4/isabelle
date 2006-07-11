@@ -264,14 +264,14 @@ fun tokenize lex xids chs =
       if xids then $$ "_" ^^ scan_id || scan_id
       else scan_id;
 
+    val scan_num = scan_hex || scan_bin || scan_int;
+
     val scan_val =
       scan_tvar >> pair TVarSy ||
       scan_var >> pair VarSy ||
       scan_tid >> pair TFreeSy ||
-      scan_hex >> pair NumSy ||
-      scan_bin >> pair NumSy ||
-      scan_int >> pair NumSy ||
-      $$ "#" ^^ scan_int >> pair XNumSy ||
+      scan_num >> pair NumSy ||
+      $$ "#" ^^ scan_num >> pair XNumSy ||
       scan_longid >> pair LongIdentSy ||
       scan_xid >> pair IdentSy;
 
@@ -368,32 +368,33 @@ fun read_nat s =
     (Scan.read Symbol.stopper scan_digits1 (Symbol.explode s));
 
 
-(* read_xnum *)
+(* read_xnum: hex/bin/decimal *)
 
 local
 
-fun read_intinf cs : IntInf.int * string list =
-  let
-    val zero = ord "0";
-    val limit = zero + 10;
-    fun scan (num, []) = (num, [])
-      | scan (num, c :: cs) =
-          if zero <= ord c andalso ord c < limit
-          then scan (10 * num + IntInf.fromInt (ord c - zero), cs)
-          else (num, c :: cs)
-  in scan (0, cs) end;
+val ten = ord "0" + 10;
+val a = ord "a";
+val A = ord "A";
+val _ = assert (a > A) "Bad ASCII";
+
+fun remap_hex c =
+  let val x = ord c in
+    if x >= a then chr (x - a + ten)
+    else if x >= A then chr (x - A + ten)
+    else c
+  end;
 
 in
 
 fun read_xnum str =
   let
-    val (sign, digs) =
-      (case Symbol.explode str of
-        "#" :: "-" :: cs => (~1, cs)
-      | "#" :: cs => (1, cs)
-      | "-" :: cs => (~1, cs)
-      | cs => (1, cs));
-  in sign * #1 (read_intinf digs) end;
+    val (sign, radix, digs) =
+      (case Symbol.explode (perhaps (try (unprefix "#")) str) of
+        "0" :: "x" :: cs => (1, 16, map remap_hex cs)
+      | "0" :: "b" :: cs => (1, 2, cs)
+      | "-" :: cs => (~1, 10, cs)
+      | cs => (1, 10, cs));
+  in sign * #1 (Library.read_intinf radix digs) end;
 
 end;
 
