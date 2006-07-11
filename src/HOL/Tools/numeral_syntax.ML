@@ -35,36 +35,11 @@ fun dest_bin_str tm =
     else sign ^ implode (replicate zs "0") ^ num
   end;
 
+
 (* translation of integer numeral tokens to and from bitstrings *)
 
-(*additional translations of binary and hex numbers to normal numbers*)
-local
-
-(*get A => ord"0" + 10, etc*)
-fun remap_hex c =
-  let 
-    val zero = ord"0"; 
-    val a  = ord"a";
-    val ca = ord"A";
-    val x  = ord c;
-  in
-    if x >= a then chr (x - a + zero + 10)
-    else if x >= ca then chr (x - ca + zero + 10) 
-    else c
-  end;
-
-fun str_to_int' ("0" :: "x" :: ds) = read_radixint (16, map remap_hex ds) |> #1
-  | str_to_int' ("0" :: "b" :: ds) = read_radixint (2, ds) |> #1
-  | str_to_int' ds = implode ds |> IntInf.fromString |> valOf; 
-
-in
-
-val str_to_int = str_to_int' o explode;
-
-end;
-
 fun numeral_tr (*"_Numeral"*) [t as Const (str, _)] =
-      (Syntax.const "Numeral.number_of" $ (HOLogic.mk_binum (str_to_int str)))
+      (Syntax.const "Numeral.number_of" $ (HOLogic.mk_binum (Syntax.read_xnum str)))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
