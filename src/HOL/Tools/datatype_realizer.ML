@@ -63,7 +63,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
       (fn (j, ((i, (_, _, constrs)), T)) => foldl_map (fn (j, (cname, cargs)) =>
         let
           val Ts = map (typ_of_dtyp descr sorts) cargs;
-          val tnames = variantlist (DatatypeProp.make_tnames Ts, pnames);
+          val tnames = Name.variant_list pnames (DatatypeProp.make_tnames Ts);
           val recs = List.filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
@@ -171,8 +171,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     fun make_casedist_prem T (cname, cargs) =
       let
         val Ts = map (typ_of_dtyp descr sorts) cargs;
-        val frees = variantlist
-          (DatatypeProp.make_tnames Ts, ["P", "y"]) ~~ Ts;
+        val frees = Name.variant_list ["P", "y"] (DatatypeProp.make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
         val r = Free ("r" ^ NameSpace.base cname, Ts ---> rT)
       in (r, list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop

@@ -324,7 +324,7 @@ end;
 fun mk_elims cs cTs params intr_ts intr_names =
   let
     val used = foldr add_term_names [] intr_ts;
-    val [aname, pname] = variantlist (["a", "P"], used);
+    val [aname, pname] = Name.variant_list used ["a", "P"];
     val P = HOLogic.mk_Trueprop (Free (pname, HOLogic.boolT));
 
     fun dest_intr r =
@@ -359,8 +359,8 @@ fun mk_indrule cs cTs params intr_ts =
 
     (* predicates for induction rule *)
 
-    val preds = map Free (variantlist (if length cs < 2 then ["P"] else
-      map (fn i => "P" ^ string_of_int i) (1 upto length cs), used) ~~
+    val preds = map Free (Name.variant_list used (if length cs < 2 then ["P"] else
+      map (fn i => "P" ^ string_of_int i) (1 upto length cs)) ~~
         map (fn T => T --> HOLogic.boolT) cTs);
 
     (* transform an introduction rule into a premise for induction rule *)
@@ -697,7 +697,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
     val fp_name = if coind then gfp_name else lfp_name;
 
     val used = foldr add_term_names [] intr_ts;
-    val [sname, xname] = variantlist (["S", "x"], used);
+    val [sname, xname] = Name.variant_list used ["S", "x"];
 
     (* transform an introduction rule into a conjunction  *)
     (*   [| t : ... S_i ... ; ... |] ==> u : S_j          *)

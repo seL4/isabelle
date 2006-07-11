@@ -476,7 +476,7 @@ val distincts_le =
           val arg1 = (con1, args1);
           val arg2 =
             (con2, ListPair.map (fn (arg,vn) => upd_vname (K vn) arg)
-              (args2, variantlist (map vname args2,map vname args1)));
+              (args2, Name.variant_list (map vname args1) (map vname args2)));
         in [dist arg1 arg2, dist arg2 arg1] end;
     fun distincts []      = []
       | distincts (c::cs) = (map (distinct c) cs) :: distincts cs;

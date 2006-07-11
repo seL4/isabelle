@@ -219,7 +219,7 @@ fun pretty_case thy defs gr dep module brack constrs (c as Const (_, T)) ts =
           | pcase gr ((cname, cargs)::cs) (t::ts) (U::Us) =
               let
                 val j = length cargs;
-                val xs = variantlist (replicate j "x", names);
+                val xs = Name.variant_list names (replicate j "x");
                 val Us' = Library.take (j, fst (strip_type U));
                 val frees = map Free (xs ~~ Us');
                 val (gr0, cp) = invoke_codegen thy defs dep module false

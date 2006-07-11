@@ -142,7 +142,7 @@ fun pre_build pat rhs vs taken =
       in pre_build f rhs' (v::vs) taken' end
   | Const(c,T) =>
       let
-        val n = variant taken "v";
+        val n = Name.variant taken "v";
         fun result_type (Type("Cfun.->",[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);

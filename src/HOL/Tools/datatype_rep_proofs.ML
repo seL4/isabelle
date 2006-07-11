@@ -392,7 +392,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         fun mk_thm i =
           let
             val Ts = map (TFree o rpair HOLogic.typeS)
-              (variantlist (replicate i "'t", used));
+              (Name.variant_list used (replicate i "'t"));
             val f = Free ("f", Ts ---> U)
           in Goal.prove_global sign [] [] (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.list_all

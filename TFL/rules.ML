@@ -513,8 +513,8 @@ fun get ([],_,L) = rev L
             let val eq = Logic.strip_imp_concl body
                 val (f,args) = S.strip_comb (get_lhs eq)
                 val (vstrl,_) = S.strip_abs f
-                val names  = variantlist (map (#1 o dest_Free) vstrl,
-                                          add_term_names(body, []))
+                val names  =
+                  Name.variant_list (add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
             in get (rst, n+1, (names,n)::L) end
             handle TERM _ => get (rst, n+1, L)
               | U.ERR _ => get (rst, n+1, L);

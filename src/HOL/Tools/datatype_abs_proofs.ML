@@ -280,7 +280,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val recTs = get_rec_types descr' sorts;
     val used = foldr add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
-    val T' = TFree (variant used "'t", HOLogic.typeS);
+    val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
     fun mk_dummyT dt = binder_types (typ_of_dtyp descr' sorts dt) ---> T';
 

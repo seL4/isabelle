@@ -370,7 +370,7 @@ fun add_varnames (IConst _) =
 
 fun invent seed used =
   let
-    val x = Term.variant used seed
+    val x = Name.variant used seed
   in (x, x :: used) end;
 
 fun eta_expand (c as (_, (_, ty)), es) k =

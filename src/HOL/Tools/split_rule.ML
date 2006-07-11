@@ -81,7 +81,7 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
         fun mk_tuple (v as Var ((a, _), T)) (xs, insts) =
               let
                 val Ts = HOLogic.prodT_factors T;
-                val ys = Term.variantlist (replicate (length Ts) a, xs);
+                val ys = Name.variant_list xs (replicate (length Ts) a);
               in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple T
                 (map (Var o apfst (rpair 0)) (ys ~~ Ts))))::insts)
               end

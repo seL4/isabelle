@@ -735,7 +735,7 @@ fun get_defname thyname name thy =
 		then F defname                 (* name_def *)
 		else if not (pdefname mem used)
 		then F pdefname                (* name_primdef *)
-		else F (variant used pdefname) (* last resort *)
+		else F (Name.variant used pdefname) (* last resort *)
 	    end
     end
 

@@ -568,8 +568,8 @@ fun freeze_thaw_prf prf =
             (([], [], [], []), prf);
     val fs' = map (fst o dest_Free) fs;
     val vs' = map (fst o dest_Var) vs;
-    val names = vs' ~~ variantlist (map fst vs', fs');
-    val names' = Tvs ~~ variantlist (map fst Tvs, Tfs);
+    val names = vs' ~~ Name.variant_list fs' (map fst vs');
+    val names' = Tvs ~~ Name.variant_list Tfs (map fst Tvs);
     val rnames = map swap names;
     val rnames' = map swap names';
   in
@@ -607,7 +607,7 @@ fun varify_proof t fixed prf =
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ variantlist (map fst fs, map #1 ixns)
+    val fmap = fs ~~ Name.variant_list (map #1 ixns) (map fst fs)
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
@@ -619,7 +619,7 @@ fun varify_proof t fixed prf =
 local
 
 fun new_name (ix, (pairs,used)) =
-  let val v = variant used (string_of_indexname ix)
+  let val v = Name.variant used (string_of_indexname ix)
   in  ((ix, v) :: pairs, v :: used)  end;
 
 fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of

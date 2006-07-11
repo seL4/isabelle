@@ -1315,7 +1315,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val fieldTs = (map snd fields);
     val alphas_zeta = alphas@[zeta];
     val alphas_zetaTs = map (fn n => TFree (n, HOLogic.typeS)) alphas_zeta;
-    val vT = TFree (variant alphas_zeta "'v", HOLogic.typeS);
+    val vT = TFree (Name.variant alphas_zeta "'v", HOLogic.typeS);
     val extT_name = suffix ext_typeN name
     val extT = Type (extT_name, alphas_zetaTs);
     val repT = foldr1 HOLogic.mk_prodT (fieldTs@[moreT]);
@@ -1385,8 +1385,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val ext = mk_ext vars_more;
     val s     = Free (rN, extT);
     val w     = Free (wN, extT);
-    val P = Free (variant variants "P", extT-->HOLogic.boolT);
-    val C = Free (variant variants "C", HOLogic.boolT);
+    val P = Free (Name.variant variants "P", extT-->HOLogic.boolT);
+    val C = Free (Name.variant variants "C", HOLogic.boolT);
 
     val inject_prop =
       let val vars_more' = map (fn (Free (x,T)) => Free (x ^ "'",T)) vars_more;
@@ -1411,7 +1411,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     (*updates*)
     fun mk_upd_prop (i,(c,T)) =
-      let val x' = Free (variant variants (base c ^ "'"),T)
+      let val x' = Free (Name.variant variants (base c ^ "'"),T)
           val args' = nth_update (i, x') vars_more
       in mk_upd updN c x' ext === mk_ext args'  end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
@@ -1422,7 +1422,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
       in s === mk_ext args end;
 
     val split_meta_prop =
-      let val P = Free (variant variants "P", extT-->Term.propT) in
+      let val P = Free (Name.variant variants "P", extT-->Term.propT) in
         Logic.mk_equals
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
       end;
@@ -1479,7 +1479,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     fun upd_convs_prf_opt () =
       let
         fun mkrefl (c,T) = Thm.reflexive
-                            (cterm_of defs_thy (Free (variant variants (base c ^ "'"),T)));
+                            (cterm_of defs_thy (Free (Name.variant variants (base c ^ "'"),T)));
         val refls = map mkrefl fields_more;
         val constr_refl = Thm.reflexive (cterm_of defs_thy (head_of ext));
         val dest_convs' = map mk_meta_eq dest_convs;
@@ -1595,7 +1595,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val parent_names = map fst parent_fields;
     val parent_types = map snd parent_fields;
     val parent_fields_len = length parent_fields;
-    val parent_variants = variantlist (map base parent_names, [moreN, rN, rN ^ "'", wN]);
+    val parent_variants = Name.variant_list [moreN, rN, rN ^ "'", wN] (map base parent_names);
     val parent_vars = ListPair.map Free (parent_variants, parent_types);
     val parent_len = length parents;
     val parents_idx = (map #name parents) ~~ (0 upto (parent_len - 1));
@@ -1607,7 +1607,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val alphas_fields = foldr add_typ_tfree_names [] types;
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
-    val variants = variantlist (map fst bfields, moreN::rN::rN ^ "'"::wN::parent_variants);
+    val variants = Name.variant_list (moreN::rN::rN ^ "'"::wN::parent_variants) (map fst bfields);
     val vars = ListPair.map Free (variants, types);
     val named_vars = names ~~ vars;
     val idxs = 0 upto (len - 1);
@@ -1622,7 +1622,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val all_named_vars = (parent_names ~~ parent_vars) @ named_vars;
 
 
-    val zeta = variant alphas "'z";
+    val zeta = Name.variant alphas "'z";
     val moreT = TFree (zeta, HOLogic.typeS);
     val more = Free (moreN, moreT);
     val full_moreN = full moreN;
@@ -1779,9 +1779,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* prepare propositions *)
     val _ = timing_msg "record preparing propositions";
-    val P = Free (variant all_variants "P", rec_schemeT0-->HOLogic.boolT);
-    val C = Free (variant all_variants "C", HOLogic.boolT);
-    val P_unit = Free (variant all_variants "P", recT0-->HOLogic.boolT);
+    val P = Free (Name.variant all_variants "P", rec_schemeT0-->HOLogic.boolT);
+    val C = Free (Name.variant all_variants "C", HOLogic.boolT);
+    val P_unit = Free (Name.variant all_variants "P", recT0-->HOLogic.boolT);
 
     (*selectors*)
     val sel_conv_props =
@@ -1789,7 +1789,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (*updates*)
     fun mk_upd_prop (i,(c,T)) =
-      let val x' = Free (variant all_variants (base c ^ "'"),T)
+      let val x' = Free (Name.variant all_variants (base c ^ "'"),T)
           val args' = nth_update (parent_fields_len + i, x') all_vars_more
       in mk_upd updateN c x' r_rec0 === mk_rec args' 0  end;
     val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
@@ -1819,7 +1819,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (*split*)
     val split_meta_prop =
-      let val P = Free (variant all_variants "P", rec_schemeT0-->Term.propT) in
+      let val P = Free (Name.variant all_variants "P", rec_schemeT0-->Term.propT) in
         Logic.mk_equals
          (All [dest_Free r0] (P $ r0), All (map dest_Free all_vars_more) (P $ r_rec0))
       end;

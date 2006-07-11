@@ -108,7 +108,7 @@ fun make_ind descr sorts =
         val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr' sorts) recs;
-        val tnames = variantlist (make_tnames Ts, pnames);
+        val tnames = Name.variant_list pnames (make_tnames Ts);
         val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
@@ -136,7 +136,7 @@ fun make_casedists descr sorts =
     fun make_casedist_prem T (cname, cargs) =
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val frees = variantlist (make_tnames Ts, ["P", "y"]) ~~ Ts;
+        val frees = Name.variant_list ["P", "y"] (make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees
       in list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop
         (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
@@ -158,7 +158,7 @@ fun make_primrec_Ts descr sorts used =
   let
     val descr' = List.concat descr;
 
-    val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
+    val rec_result_Ts = map TFree (Name.variant_list used (replicate (length descr') "'t") ~~
       replicate (length descr') HOLogic.typeS);
 
     val reccomb_fn_Ts = List.concat (map (fn (i, (_, _, constrs)) =>
@@ -234,7 +234,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
     val recTs = get_rec_types descr' sorts;
     val used = foldr add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
-    val T' = TFree (variant used "'t", HOLogic.typeS);
+    val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -319,7 +319,7 @@ fun make_splits new_type_names descr sorts thy =
     val recTs = get_rec_types descr' sorts;
     val used' = foldr add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
-    val T' = TFree (variant used' "'t", HOLogic.typeS);
+    val T' = TFree (Name.variant used' "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);
 
     fun make_split (((_, (_, _, constrs)), T), comb_t) =
@@ -330,7 +330,7 @@ fun make_splits new_type_names descr sorts thy =
         fun process_constr (((cname, cargs), f), (t1s, t2s)) =
           let
             val Ts = map (typ_of_dtyp descr' sorts) cargs;
-            val frees = map Free (variantlist (make_tnames Ts, used) ~~ Ts);
+            val frees = map Free (Name.variant_list used (make_tnames Ts) ~~ Ts);
             val eqn = HOLogic.mk_eq (Free ("x", T),
               list_comb (Const (cname, Ts ---> T), frees));
             val P' = P $ list_comb (f, frees)
@@ -437,7 +437,7 @@ fun make_case_congs new_type_names descr sorts thy =
         fun mk_clause ((f, g), (cname, _)) =
           let
             val (Ts, _) = strip_type (fastype_of f);
-            val tnames = variantlist (make_tnames Ts, used);
+            val tnames = Name.variant_list used (make_tnames Ts);
             val frees = map Free (tnames ~~ Ts)
           in
             list_all_free (tnames ~~ Ts, Logic.mk_implies
@@ -472,7 +472,7 @@ fun make_nchotomys descr sorts =
     fun mk_eqn T (cname, cargs) =
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val tnames = variantlist (make_tnames Ts, ["v"]);
+        val tnames = Name.variant_list ["v"] (make_tnames Ts);
         val frees = tnames ~~ Ts
       in
         foldr (fn ((s, T'), t) => HOLogic.mk_exists (s, T', t))

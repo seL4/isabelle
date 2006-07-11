@@ -337,7 +337,7 @@ fun preprocess thy ths =
 
 fun preprocess_term thy t =
   let
-    val x = Free (variant (add_term_names (t, [])) "x", fastype_of t);
+    val x = Free (Name.variant (add_term_names (t, [])) "x", fastype_of t);
     (* fake definition *)
     val eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
       (Logic.mk_equals (x, t));
@@ -539,7 +539,7 @@ fun rename_terms ts =
     val (illegal, alt_names) = split_list (map_filter (fn s =>
       let val s' = mk_id s in if s = s' then NONE else SOME (s, s') end) names)
     val ps = (reserved @ illegal) ~~
-      variantlist (map (suffix "'") reserved @ alt_names, names);
+      Name.variant_list names (map (suffix "'") reserved @ alt_names);
 
     fun rename_id s = AList.lookup (op =) ps s |> the_default s;
 
@@ -688,9 +688,9 @@ fun mk_app _ p [] = p
          separate (Pretty.brk 1) (p :: ps) @ [Pretty.str ")"])
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
-fun new_names t xs = variantlist (map mk_id xs,
-  map (fst o fst o dest_Var) (term_vars t) union
-  add_term_names (t, ThmDatabase.ml_reserved));
+fun new_names t xs = Name.variant_list
+  (map (fst o fst o dest_Var) (term_vars t) union
+    add_term_names (t, ThmDatabase.ml_reserved)) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
 

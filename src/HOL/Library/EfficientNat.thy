@@ -153,7 +153,7 @@ in
 fun remove_suc thy thms =
   let
     val Suc_if_eq' = Thm.transfer thy Suc_if_eq;
-    val vname = variant (map fst
+    val vname = Name.variant (map fst
       (fold (add_term_varnames o Thm.full_prop_of) thms [])) "x";
     val cv = cterm_of Main.thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
@@ -206,7 +206,7 @@ fun eqn_suc_preproc thy ths =
 fun remove_suc_clause thy thms =
   let
     val Suc_clause' = Thm.transfer thy Suc_clause;
-    val vname = variant (map fst
+    val vname = Name.variant (map fst
       (fold (add_term_varnames o Thm.full_prop_of) thms [])) "x";
     fun find_var (t as Const ("Suc", _) $ (v as Var _)) = SOME (t, v)
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)

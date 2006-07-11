@@ -553,7 +553,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1))) thy |> (fn (r, thy) =>
         let
-          val permT = mk_permT (TFree (variant tvs "'a", HOLogic.typeS));
+          val permT = mk_permT (TFree (Name.variant tvs "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
           val tvs' = map (fn s => TFree (s, the (AList.lookup op = sorts' s))) tvs;
           val T = Type (Sign.intern_type thy name, tvs');
@@ -1096,11 +1096,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr'' sorts') cargs;
         val recTs' = map (typ_of_dtyp descr'' sorts') recs;
-        val tnames = variantlist (DatatypeProp.make_tnames Ts, pnames);
+        val tnames = Name.variant_list pnames (DatatypeProp.make_tnames Ts);
         val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val frees' = partition_cargs idxs frees;
-        val z = (variant tnames "z", fsT);
+        val z = (Name.variant tnames "z", fsT);
 
         fun mk_prem ((dt, s), T) =
           let
@@ -1126,7 +1126,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         Const ("Nominal.fresh", T --> fsT --> HOLogic.boolT) $ t $ u) i T)
           (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
     val tnames = DatatypeProp.make_tnames recTs;
-    val zs = variantlist (replicate (length descr'') "z", tnames);
+    val zs = Name.variant_list tnames (replicate (length descr'') "z");
     val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
       (map (fn ((((i, _), T), tname), z) =>
         make_pred fsT i T $ Free (z, fsT) $ Free (tname, T))

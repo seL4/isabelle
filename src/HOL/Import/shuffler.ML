@@ -253,7 +253,7 @@ fun freeze_thaw_term t =
 	val (type_inst,_) =
 	    Library.foldl (fn ((inst,used),(w as (v,_),S)) =>
 		      let
-			  val v' = variant used v
+			  val v' = Name.variant used v
 		      in
 			  ((w,TFree(v',S))::inst,v'::used)
 		      end)
@@ -322,7 +322,7 @@ fun eta_contract sg assumes origt =
 	      then
 		  let
 		      val cert = cterm_of sg
-		      val v = Free(variant (add_term_free_names(t,[])) "v",xT)
+		      val v = Free(Name.variant (add_term_free_names(t,[])) "v",xT)
 		      val cv = cert v
 		      val ct = cert t
 		      val th = (assume ct)
@@ -385,7 +385,7 @@ fun eta_expand sg assumes origt =
 		      Type("fun",[aT,bT]) =>
 		      let
 			  val cert = cterm_of sg
-			  val vname = variant (add_term_free_names(t,[])) "v"
+			  val vname = Name.variant (add_term_free_names(t,[])) "v"
 			  val v = Free(vname,aT)
 			  val cv = cert v
 			  val ct = cert t

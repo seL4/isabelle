@@ -1343,7 +1343,7 @@ fun rename_params_rule (cs, i) state =
     val short = length iparams - length cs;
     val newnames =
       if short < 0 then error "More names than abstractions!"
-      else variantlist (Library.take (short, iparams), cs) @ cs;
+      else Name.variant_list cs (Library.take (short, iparams)) @ cs;
     val freenames = map (#1 o dest_Free) (term_frees Bi);
     val newBi = Logic.list_rename_params (newnames, Bi);
   in

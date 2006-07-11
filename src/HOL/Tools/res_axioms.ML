@@ -145,7 +145,7 @@ fun declare_skofuns s th thy =
 	    end
 	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) (n, thx) =
 	    (*Universal quant: insert a free variable into body and continue*)
-	    let val fname = variant (add_term_names (p,[])) a
+	    let val fname = Name.variant (add_term_names (p,[])) a
 	    in dec_sko (subst_bound (Free(fname,T), p)) (n, thx) end
 	| dec_sko (Const ("op &", _) $ p $ q) nthy = dec_sko q (dec_sko p nthy)
 	| dec_sko (Const ("op |", _) $ p $ q) nthy = dec_sko q (dec_sko p nthy)
@@ -157,7 +157,7 @@ fun declare_skofuns s th thy =
 fun assume_skofuns th =
   let fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
 	    (*Existential: declare a Skolem function, then insert into body and continue*)
-	    let val name = variant (add_term_names (p,[])) (gensym "sko_")
+	    let val name = Name.variant (add_term_names (p,[])) (gensym "sko_")
                 val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
 		val args = term_frees xtp \\ skos  (*the formal parameters*)
 		val Ts = map type_of args
@@ -172,7 +172,7 @@ fun assume_skofuns th =
 	    end
 	| dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) defs =
 	    (*Universal quant: insert a free variable into body and continue*)
-	    let val fname = variant (add_term_names (p,[])) a
+	    let val fname = Name.variant (add_term_names (p,[])) a
 	    in dec_sko (subst_bound (Free(fname,T), p)) defs end
 	| dec_sko (Const ("op &", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
 	| dec_sko (Const ("op |", _) $ p $ q) defs = dec_sko q (dec_sko p defs)

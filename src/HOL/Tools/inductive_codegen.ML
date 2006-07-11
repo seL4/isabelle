@@ -343,7 +343,7 @@ fun conv_ntuple' fs T ps =
 
 fun mk_v ((names, vs), s) = (case AList.lookup (op =) vs s of
       NONE => ((names, (s, [s])::vs), s)
-    | SOME xs => let val s' = variant names s in
+    | SOME xs => let val s' = Name.variant names s in
         ((s'::names, AList.update (op =) (s, s'::xs) vs), s') end);
 
 fun distinct_v (nvs, Var ((s, 0), T)) =
@@ -407,7 +407,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
 
     fun check_constrt ((names, eqs), t) =
       if is_constrt thy t then ((names, eqs), t) else
-        let val s = variant names "x";
+        let val s = Name.variant names "x";
         in ((s::names, (s, t)::eqs), Var ((s, 0), fastype_of t)) end;
 
     fun compile_eq (gr, (s, t)) =

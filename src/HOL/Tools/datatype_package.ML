@@ -609,7 +609,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val size_names = DatatypeProp.indexify_names
       (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs)));
 
-    val freeT = TFree (variant used "'t", HOLogic.typeS);
+    val freeT = TFree (Name.variant used "'t", HOLogic.typeS);
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let val Ts = map (typ_of_dtyp descr' sorts) cargs

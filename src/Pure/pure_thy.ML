@@ -441,7 +441,7 @@ fun forall_elim_vars_aux strip_vars i th =
       (fn Var ((x, j), _) => if i = j then curry (op ins_string) x else I | _ => I);
     val used = fold (fn (t, u) => add_used t o add_used u) tpairs (add_used prop []);
     val vars = strip_vars prop;
-    val cvars = (Term.variantlist (map #1 vars, used), vars)
+    val cvars = (Name.variant_list used (map #1 vars), vars)
       |> ListPair.map (fn (x, (_, T)) => Thm.cterm_of thy (Var ((x, i), T)));
   in fold Thm.forall_elim cvars th end;
 

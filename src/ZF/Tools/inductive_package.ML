@@ -100,7 +100,7 @@ let
                Sign.string_of_term sign t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = variant (foldr add_term_names [] intr_tms);
+  val mk_variant = Name.variant (foldr add_term_names [] intr_tms);
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 

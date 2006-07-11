@@ -35,7 +35,7 @@ val set_of = fst o dest_Const o head_of o snd o HOLogic.dest_mem;
 fun strip_all t =
   let
     fun strip used (Const ("all", _) $ Abs (s, T, t)) =
-          let val s' = variant used s
+          let val s' = Name.variant used s
           in strip (s'::used) (subst_bound (Free (s', T), t)) end
       | strip used ((t as Const ("==>", _) $ P) $ Q) = t $ strip used Q
       | strip _ t = t;
@@ -152,7 +152,7 @@ fun fun_of_prem thy rsets vs params rule intr =
     fun fun_of ts rts args used (prem :: prems) =
           let
             val T = Extraction.etype_of thy vs [] prem;
-            val [x, r] = variantlist (["x", "r"], used)
+            val [x, r] = Name.variant_list used ["x", "r"]
           in if T = Extraction.nullT
             then fun_of ts rts args used prems
             else if is_rec prem then
@@ -248,7 +248,7 @@ fun add_dummies f [] _ thy =
     handle DatatypeAux.Datatype_Empty name' =>
       let
         val name = Sign.base_name name';
-        val dname = variant used "Dummy"
+        val dname = Name.variant used "Dummy"
       in
         thy
         |> add_dummies f (map (add_dummy name dname) dts) (dname :: used)
