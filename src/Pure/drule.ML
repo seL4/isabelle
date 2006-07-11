@@ -370,10 +370,8 @@ val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
 
 fun outer_params t =
-  let
-    val vs = Term.strip_all_vars t;
-    val clean_name = perhaps (try Term.dest_skolem) #> perhaps (try Term.dest_internal);
-  in Term.variantlist (map (clean_name o #1) vs, []) ~~ map #2 vs end;
+  let val vs = Term.strip_all_vars t
+  in Name.variant_list [] (map (Name.clean o #1) vs) ~~ map #2 vs end;
 
 (*generalize outermost parameters*)
 fun gen_all th =
@@ -500,7 +498,7 @@ fun freeze_thaw th =
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
-                   let val v = variant used (string_of_indexname ix)
+                   let val v = Name.variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
              val (alist, _) = foldr newName ([], Library.foldr add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
