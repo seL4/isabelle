@@ -1839,8 +1839,8 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.add_setup
- (add_locale_i true "var" empty [Fixes [(Term.internal "x", NONE, NoSyn)]] #> snd #>
-  add_locale_i true "struct" empty [Fixes [(Term.internal "S", NONE, Structure)]] #> snd);
+ (add_locale_i true "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #> snd #>
+  add_locale_i true "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #> snd);
 
 
 
@@ -2092,7 +2092,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
            commas_quote (map Syntax.string_of_vname vars'));
     (* replace new types (which are TFrees) by ones with new names *)
     val new_Tnames = foldr Term.add_term_tfree_names [] vs;
-    val new_Tnames' = Term.invent_names used "'a" (length new_Tnames);
+    val new_Tnames' = Name.invent_list used "'a" (length new_Tnames);
     val renameT =
           if is_local then I
           else Logic.legacy_unvarifyT o Term.map_type_tfree (fn (a, s) =>
