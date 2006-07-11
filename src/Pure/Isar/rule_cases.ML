@@ -63,7 +63,7 @@ val case_conclN = "case";
 val case_hypsN = "hyps";
 val case_premsN = "prems";
 
-val strip_params = map (apfst (perhaps (try Term.dest_skolem))) o Logic.strip_params;
+val strip_params = map (apfst (perhaps (try Name.dest_skolem))) o Logic.strip_params;
 
 local
 
@@ -91,7 +91,7 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
 
 fun extract_case is_open thy (case_outline, raw_prop) name concls =
   let
-    val rename = if is_open then I else (apfst Term.internal);
+    val rename = if is_open then I else (apfst Name.internal);
 
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
     val len = length props;
