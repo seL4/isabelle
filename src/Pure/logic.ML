@@ -232,7 +232,7 @@ fun dest_classrel tm =
 (* type arities *)
 
 fun mk_arities (t, Ss, S) =
-  let val T = Type (t, ListPair.map TFree (Term.invent_names [] "'a" (length Ss), Ss))
+  let val T = Type (t, ListPair.map TFree (Name.invent_list [] "'a" (length Ss), Ss))
   in map (fn c => mk_inclass (T, c)) S end;
 
 fun dest_arity tm =
@@ -486,7 +486,7 @@ fun flatten_params n A =
     let val params = strip_params A;
         val vars = if !auto_rename
                    then rename_vars (!rename_prefix, params)
-                   else ListPair.zip (variantlist(map #1 params,[]),
+                   else ListPair.zip (Name.variant_list [] (map #1 params),
                                       map #2 params)
     in  list_all (vars, remove_params (length vars) n A)
     end;
