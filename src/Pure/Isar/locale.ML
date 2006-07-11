@@ -183,7 +183,8 @@ structure Registrations :
     type T
     val empty: T
     val join: T * T -> T
-    val dest: T -> (term list * ((string * Attrib.src list) * Element.witness list)) list
+    val dest: theory -> T ->
+      (term list * ((string * Attrib.src list) * Element.witness list)) list
     val lookup: theory -> T * term list ->
       ((string * Attrib.src list) * Element.witness list) option
     val insert: theory -> term list * (string * Attrib.src list) -> T ->
@@ -191,8 +192,8 @@ structure Registrations :
     val add_witness: term list -> Element.witness -> T -> T
   end =
 struct
-  (* a registration consists of theorems instantiating locale assumptions
-     and prefix and attributes, indexed by parameter instantiation *)
+  (* a registration consists of theorems (actually, witnesses) instantiating locale
+     assumptions and prefix and attributes, indexed by parameter instantiation *)
   type T = ((string * Attrib.src list) * Element.witness list) Termtab.table;
 
   val empty = Termtab.empty;
@@ -209,11 +210,14 @@ struct
      thms are equal, no attempt to subsumption testing *)
   fun join (r1, r2) = Termtab.join (fn _ => fn (reg, _) => reg) (r1, r2);
 
-  fun dest regs = map (apfst untermify) (Termtab.dest regs);
+  fun dest_transfer thy regs =
+    Termtab.dest regs |> map (apsnd (apsnd (map (Element.transfer_witness thy))));
+
+  fun dest thy regs = dest_transfer thy regs |> map (apfst untermify);
 
   (* registrations that subsume t *)
   fun subsumers thy t regs =
-    filter (fn (t', _) => Pattern.matches thy (t', t)) (Termtab.dest regs);
+    filter (fn (t', _) => Pattern.matches thy (t', t)) (dest_transfer thy regs);
 
   (* look up registration, pick one that subsumes the query *)
   fun lookup thy (regs, ts) =
@@ -238,14 +242,14 @@ struct
 
   (* add registration if not subsumed by ones already present,
      additionally returns registrations that are strictly subsumed *)
-  fun insert sign (ts, attn) regs =
+  fun insert thy (ts, attn) regs =
     let
       val t = termify ts;
-      val subs = subsumers sign t regs ;
+      val subs = subsumers thy t regs ;
     in (case subs of
         [] => let
                 val sups =
-                  filter (fn (t', _) => Pattern.matches sign (t, t')) (Termtab.dest regs);
+                  filter (fn (t', _) => Pattern.matches thy (t, t')) (dest_transfer thy regs);
                 val sups' = map (apfst untermify) sups
               in (Termtab.update (t, (attn, [])) regs, sups') end
       | _ => (regs, []))
@@ -357,15 +361,15 @@ fun change_locale name f thy =
 
 (* retrieve registration from theory or context *)
 
-fun gen_get_registrations get thy_ctxt name =
+fun gen_get_registrations get thy_of thy_ctxt name =
   case Symtab.lookup (get thy_ctxt) name of
       NONE => []
-    | SOME reg => Registrations.dest reg;
+    | SOME reg => Registrations.dest (thy_of thy_ctxt) reg;
 
 val get_global_registrations =
-     gen_get_registrations (#3 o GlobalLocalesData.get);
+     gen_get_registrations (#3 o GlobalLocalesData.get) I;
 val get_local_registrations =
-     gen_get_registrations LocalLocalesData.get;
+     gen_get_registrations LocalLocalesData.get ProofContext.theory_of;
 
 fun gen_get_registration get thy_of thy_ctxt (name, ps) =
   case Symtab.lookup (get thy_ctxt) name of
@@ -466,7 +470,7 @@ fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
     (case loc_regs of
         NONE => Pretty.str ("no interpretations in " ^ msg)
       | SOME r => let
-            val r' = Registrations.dest r;
+            val r' = Registrations.dest thy r;
             val r'' = Library.sort_wrt (fn (_, ((prfx, _), _)) => prfx) r';
           in Pretty.big_list ("interpretations in " ^ msg ^ ":")
             (map prt_reg r'')
@@ -744,8 +748,9 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
           val ps'' = map (fn ((p, _), (_, T)) => (p, T)) (ps ~~ ps');
           val [env] = unify_parms ctxt ps [map (apsnd SOME) ps''];
             (* propagate parameter types, to keep them consistent *)
-          val regs' = map (fn ((name, ps), ths) =>
-              ((name, map (Element.rename ren) ps), ths)) regs;
+          val regs' = map (fn ((name, ps), wits) =>
+              ((name, map (Element.rename ren) ps),
+               map (Element.transfer_witness thy) wits)) regs;
           val new_regs = gen_rems (eq_fst (op =)) (regs', ids);
           val new_ids = map fst new_regs;
           val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) ps) p)))) new_ids;
@@ -1940,7 +1945,7 @@ fun all_witnesses ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     fun get registrations = Symtab.fold (fn (_, regs) => fn thms =>
-        (Registrations.dest regs |> map (fn (_, (_, wits)) =>
+        (Registrations.dest thy regs |> map (fn (_, (_, wits)) =>
           map Element.conclude_witness wits) |> flat) @ thms)
       registrations [];
     val globals = get (#3 (GlobalLocalesData.get thy));
