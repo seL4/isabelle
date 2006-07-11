@@ -163,7 +163,7 @@ sig
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
   val string_of_indexname: string * int -> string
-  val read_radixint: int * string list -> int * string list
+  val read_intinf: int -> string list -> IntInf.int * string list
   val read_int: string list -> int * string list
   val oct_char: string -> string
 
@@ -823,19 +823,20 @@ fun string_of_indexname (a,0) = a
 
 (* read integers *)
 
-fun read_radixint (radix: int, cs) : int * string list =
-  let val zero = ord"0"
-      val limit = zero+radix
-      fun scan (num,[]) = (num,[])
-        | scan (num, c::cs) =
-              if  zero <= ord c  andalso  ord c < limit
-              then scan(radix*num + ord c - zero, cs)
-              else (num, c::cs)
-  in  scan(0,cs)  end;
+fun read_intinf radix cs =
+  let
+    val zero = ord "0";
+    val limit = zero + radix;
+    fun scan (num, []) = (num, [])
+      | scan (num, c :: cs) =
+        if zero <= ord c andalso ord c < limit then
+          scan (IntInf.fromInt radix * num + IntInf.fromInt (ord c - zero), cs)
+        else (num, c :: cs);
+  in scan (0, cs) end;
 
-fun read_int cs = read_radixint (10, cs);
+fun read_int cs = apfst IntInf.toInt (read_intinf 10 cs);
 
-fun oct_char s = chr (#1 (read_radixint (8, explode s)));
+fun oct_char s = chr (IntInf.toInt (#1 (read_intinf 8 (explode s))));
 
 
 
