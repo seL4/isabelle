@@ -120,7 +120,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val _ = Variable.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     (*obtain statements*)
-    val thesisN = Term.variant xs AutoBind.thesisN;
+    val thesisN = Name.variant xs AutoBind.thesisN;
     val (thesis_var, thesis) = bind_judgment fix_ctxt thesisN;
 
     fun occs_var x = Library.get_first (fn t =>
@@ -196,7 +196,7 @@ fun unify_params vars thesis_name raw_rule ctxt =
 
     val xs = map (apsnd norm_type o fst) vars;
     val ys = map (apsnd norm_type) (Library.drop (m, params));
-    val ys' = map Term.internal (Term.variantlist (map fst ys, map fst xs)) ~~ map #2 ys;
+    val ys' = map Name.internal (Name.variant_list (map fst xs) (map fst ys)) ~~ map #2 ys;
     val terms = map (Drule.mk_term o cert o Free) (xs @ ys');
 
     val instT =
