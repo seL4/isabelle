@@ -1159,7 +1159,7 @@ proof (induct rule: full_nat_induct)
 	apply (rule ax_derivs.BinOp)
 	apply  (erule MGFnD [THEN ax_NormalD])
 	apply (rule allI)
-	apply (case_tac "need_second_arg binop__ v1")
+	apply (case_tac "need_second_arg binop v1")
 	apply  simp
 	apply  (erule MGFnD' [THEN conseq12])
 	apply  (fastsimp intro: eval.BinOp)
