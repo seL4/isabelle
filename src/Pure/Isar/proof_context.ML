@@ -1247,7 +1247,7 @@ fun pretty_context ctxt =
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
 
-    val (types, sorts, used, _, _) = Variable.defaults_of ctxt;
+    val (types, sorts, used, _) = Variable.defaults_of ctxt;
   in
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @
