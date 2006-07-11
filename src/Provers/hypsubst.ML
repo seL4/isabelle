@@ -74,7 +74,7 @@ fun loose (i,t) = member (op =) (add_loose_bnos (t, i, [])) 0;
   change it back (any Bound variable will do)*)
 fun contract t =
   (case Pattern.eta_contract_atom t of
-    Free (a, T) => if Term.is_bound a then Bound 0 else Free (a, T)
+    Free (a, T) => if Name.is_bound a then Bound 0 else Free (a, T)
   | t' => t');
 
 fun has_vars t = maxidx_of_term t <> ~1;
