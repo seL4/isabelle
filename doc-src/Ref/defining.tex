@@ -237,8 +237,8 @@ var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
 tid       & =   & \mbox{\tt '}id \\
 tvar      & =   & \mbox{\tt ?}tid ~~|~~
                   \mbox{\tt ?}tid\mbox{\tt .}nat \\
-num       & =   & nat ~~|~~ \mbox{\tt-}nat \\
-xnum      & =   & \mbox{\tt \#}nat ~~|~~ \mbox{\tt \#-}nat \\
+num       & =   & nat ~~|~~ \mbox{\tt-}nat ~~|~~ \verb,0x,\,hex^+ ~~|~~ \verb,0b,\,bin^+ \\
+xnum      & =   & \mbox{\tt \#}num \\
 xstr      & =   & \mbox{\tt ''~\dots~\tt ''} \\[1ex]
 letter & = & latin ~|~ \verb,\<,latin\verb,>, ~|~ \verb,\<,latin\,latin\verb,>, ~|~ greek ~| \\
       &   & \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
@@ -246,6 +246,8 @@ quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
 latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
 digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
 nat & = & digit^+ \\
+bin & = & \verb,0, ~|~ \verb,1, \\
+hex & = & digit  ~|~  \verb,a, ~|~ \dots ~|~ \verb,f, ~|~ \verb,A, ~|~ \dots ~|~ \verb,F, \\
 greek & = & \verb,\<alpha>, ~|~ \verb,\<beta>, ~|~ \verb,\<gamma>, ~|~ \verb,\<delta>, ~| \\
       &   & \verb,\<epsilon>, ~|~ \verb,\<zeta>, ~|~ \verb,\<eta>, ~|~ \verb,\<theta>, ~| \\
       &   & \verb,\<iota>, ~|~ \verb,\<kappa>, ~|~ \verb,\<mu>, ~|~ \verb,\<nu>, ~| \\
