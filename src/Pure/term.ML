@@ -103,7 +103,6 @@ sig
   val eq_ix: indexname * indexname -> bool
   val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
-  val xless: (string * int) * indexname -> bool
   val abstract_over: term * term -> term
   val lambda: term -> term -> term
   val absfree: string * typ * term -> term
@@ -853,10 +852,6 @@ fun subst_free [] = (fn t=>t)
                                  | _ => u)
       in  substf  end;
 
-(*a total, irreflexive ordering on index names*)
-fun xless ((a,i), (b,j): indexname) = i<j  orelse  (i=j andalso a<b);
-
-
 (*Abstraction of the term "body" over its occurrences of v,
     which must contain no loose bound variables.
   The resulting term is ready to become the body of an Abs.*)
@@ -928,7 +923,6 @@ fun typ_subst_TVars [] ty = ty
 fun subst_TVars [] tm = tm
   | subst_TVars inst tm = map_term_types (typ_subst_TVars inst) tm;
 
-(*see also Envir.norm_term*)
 fun subst_Vars [] tm = tm
   | subst_Vars inst tm =
       let
@@ -938,7 +932,6 @@ fun subst_Vars [] tm = tm
           | subst t = t;
       in subst tm end;
 
-(*see also Envir.norm_term*)
 fun subst_vars ([], []) tm = tm
   | subst_vars ([], inst) tm = subst_Vars inst tm
   | subst_vars (instT, inst) tm =
@@ -1241,10 +1234,9 @@ fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 fun zero_var_inst vars =
   fold (fn v as ((x, i), X) => fn (used, inst) =>
     let
-      val x' = Name.variant used (if Name.is_bound x then "u" else x);
-      val used' = x' :: used;
+      val ([x'], used') = Name.variants [if Name.is_bound x then "u" else x] used;
     in if x = x' andalso i = 0 then (used', inst) else (used', (v, ((x', 0), X)) :: inst) end)
-  vars ([], []) |> #2;
+  vars (Name.context, []) |> #2;
 
 fun zero_var_indexesT ty =
   instantiateT (map (apsnd TVar) (zero_var_inst (sort tvar_ord (add_tvarsT ty [])))) ty;
@@ -1304,6 +1296,8 @@ fun adhoc_freeze_vars tm =
     val (insts, xs) = split_list (map mk_inst (term_vars tm));
   in (subst_atomic insts tm, xs) end;
 
+
+(* display variables *)
 
 val show_question_marks = ref true;
 
