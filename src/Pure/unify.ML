@@ -87,7 +87,7 @@ fun occurs_terms (seen: (indexname list) ref,
   | occur (Bound _)  = false
   | occur (Free _)  = false
   | occur (Var (w, T))  =
-      if mem_ix (w, !seen) then false
+      if member (op =) (!seen) w then false
       else if eq_ix(v,w) then true
         (*no need to lookup: v has no assignment*)
       else (seen := w:: !seen;
@@ -150,7 +150,7 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
   | occur (Bound _)  = NoOcc
   | occur (Free _)  = NoOcc
   | occur (Var (w, T))  =
-      if mem_ix (w, !seen) then NoOcc
+      if member (op =) (!seen) w then NoOcc
       else if eq_ix(v,w) then Rigid
       else (seen := w:: !seen;
             case Envir.lookup (env, (w, T)) of
