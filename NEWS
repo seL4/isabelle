@@ -594,6 +594,17 @@ statements.
 enforced instead of silently assumed.  INCOMPATIBILITY, may use
 Logic.legacy_(un)varify as temporary workaround.
 
+* Pure: structure Name provides scalable operations for generating
+internal variable names, notably Name.variants etc.  This replaces
+some popular functions from term.ML:
+
+  Term.variant		->  Name.variant
+  Term.variantlist	->  Name.variant_list  (*canonical argument order*)
+  Term.invent_names	->  Name.invent_list
+
+Note that low-level renaming rarely occurs in new code -- operations
+from structure Variable are used instead (see below).
+
 * Pure: structure Variable provides fundamental operations for proper
 treatment of fixed/schematic variables in a context.  For example,
 Variable.import introduces fixes for schematics of given facts and
