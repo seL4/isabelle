@@ -218,7 +218,7 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));
                  in Envir.update (((G, Gty), lam js), Envir.update (((F, Fty), lam is), env'))
                  end;
-  in if xless(G,F) then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
+  in if Term.indexname_ord (G,F) = LESS then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
 fun unify_types thy (T,U) (env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env

@@ -112,7 +112,7 @@ fun above (Envir {asol, iTs, ...}) lim =
 fun vupdate ((aU as (a, U), t), env as Envir {iTs, ...}) = case t of
       Var (nT as (name', T)) =>
         if a = name' then env     (*cycle!*)
-        else if xless(a, name')  then
+        else if Term.indexname_ord (a, name') = LESS then
            (case lookup (env, nT) of  (*if already assigned, chase*)
                 NONE => update ((nT, Var (a, T)), env)
               | SOME u => vupdate ((aU, u), env))
