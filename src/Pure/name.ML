@@ -110,7 +110,8 @@ val variants = fold_map (fn name => fn ctxt =>
         NONE => x
       | SOME x' => vary (Symbol.bump_string (the_default x x')));
 
-    val (x, n) = clean_index (name, 0);
+    val (raw_x, n) = clean_index (name, 0);
+    val x = if raw_x = "" then "u" else raw_x;
     val (x', ctxt') =
       if is_none (declared ctxt x) then (x, declare x ctxt)
       else
