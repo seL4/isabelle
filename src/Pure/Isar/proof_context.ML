@@ -357,9 +357,9 @@ val lookup_skolem = AList.lookup (op =) o Variable.fixes_of;
 fun get_skolem ctxt x = the_default x (lookup_skolem ctxt x);
 
 fun no_skolem internal x =
-  if can Term.dest_skolem x then
+  if can Name.dest_skolem x then
     error ("Illegal reference to internal Skolem constant: " ^ quote x)
-  else if not internal andalso can Term.dest_internal x then
+  else if not internal andalso can Name.dest_internal x then
     error ("Illegal reference to internal variable: " ^ quote x)
   else x;
 
@@ -386,7 +386,7 @@ fun rev_skolem ctxt =
 fun revert_skolem ctxt x =
   (case rev_skolem ctxt x of
     SOME x' => x'
-  | NONE => perhaps (try Term.dest_skolem) x);
+  | NONE => perhaps (try Name.dest_skolem) x);
 
 fun extern_skolem ctxt =
   let
@@ -544,7 +544,7 @@ fun inferred_param x ctxt =
   in ((x, T), ctxt |> Variable.declare_syntax (Free (x, T))) end;
 
 fun inferred_fixes ctxt =
-  fold_map inferred_param (rev (Variable.fixed_names_of ctxt)) ctxt;
+  fold_map inferred_param (rev (map #2 (Variable.fixes_of ctxt))) ctxt;
 
 
 (* type and constant names *)
@@ -900,12 +900,9 @@ local
 
 fun prep_mixfix (x, T, mx) =
   if mx <> NoSyn andalso mx <> Structure andalso
-      (can Term.dest_internal x orelse can Term.dest_skolem x) then
+      (can Name.dest_internal x orelse can Name.dest_skolem x) then
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
   else (true, (x, T, mx));
-
-fun no_dups _ [] = ()
-  | no_dups ctxt dups = error ("Duplicate fixed variable(s): " ^ commas_quote dups);
 
 fun gen_fixes prep raw_vars ctxt =
   let
@@ -1208,7 +1205,7 @@ fun pretty_ctxt ctxt =
       if x = x' then Pretty.str x
       else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
     val fixes =
-      rev (filter_out ((can Term.dest_internal orf member (op =) structs) o #1)
+      rev (filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
         (Variable.fixes_of ctxt));
     val prt_fixes = if null fixes then []
       else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
@@ -1250,7 +1247,7 @@ fun pretty_context ctxt =
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
 
-    val (types, sorts, used, _) = Variable.defaults_of ctxt;
+    val (types, sorts, used, _, _) = Variable.defaults_of ctxt;
   in
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @
