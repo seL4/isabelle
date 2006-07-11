@@ -20,6 +20,7 @@ use "library.ML";
 cd "General"; use "ROOT.ML"; cd "..";
 
 (*fundamental structures*)
+use "name.ML";
 use "term.ML";
 use "General/pretty.ML";
 use "sorts.ML";
