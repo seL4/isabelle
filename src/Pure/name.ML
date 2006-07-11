@@ -56,11 +56,10 @@ val dest_internal = unsuffix "_";
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
 
-fun clean_index ("", i) = ("u", i + 1)
-  | clean_index (x, i) =
-      (case try dest_internal x of
-        NONE => (x, i)
-      | SOME x' => clean_index (x', i + 1));
+fun clean_index (x, i) =
+  (case try dest_internal x of
+    NONE => (x, i)
+  | SOME x' => clean_index (x', i + 1));
 
 fun clean x = #1 (clean_index (x, 0));
 
@@ -73,8 +72,11 @@ fun clean x = #1 (clean_index (x, 0));
 datatype context =
   Context of string option Symtab.table;    (*declared names with latest renaming*)
 
-fun declare x (Context tab) = Context (Symtab.default (x, NONE) tab);
-fun declare_renaming (x, x') (Context tab) = Context (Symtab.update (x, SOME x') tab);
+fun declare x (Context tab) =
+  Context (Symtab.default (clean x, NONE) tab);
+
+fun declare_renaming (x, x') (Context tab) =
+  Context (Symtab.update (clean x, SOME (clean x')) tab);
 
 fun declared (Context tab) = Symtab.lookup tab;
 
@@ -92,7 +94,7 @@ fun invents ctxt =
             if is_some (declared ctxt x) then invs x' n
             else x :: invs x' (n - 1)
           end;
-  in invs end;
+  in invs o clean end;
 
 val invent_list = invents o make_context;
 
