@@ -101,10 +101,6 @@ sig
   val betapply: term * term -> term
   val betapplys: term * term list -> term
   val eq_ix: indexname * indexname -> bool
-  val ins_ix: indexname * indexname list -> indexname list
-  val mem_ix: indexname * indexname list -> bool
-  val mem_term: term * term list -> bool
-  val ins_term: term * term list -> term list
   val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
   val xless: (string * int) * indexname -> bool
@@ -126,9 +122,6 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
-  val variant: string list -> string -> string
-  val variantlist: string list * string list -> string list
-    (*note reversed order of args wrt. variant!*)
   val add_term_consts: term * string list -> string list
   val term_consts: term -> string list
   val exists_subtype: (typ -> bool) -> typ -> bool
@@ -186,10 +179,6 @@ sig
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
   val tvar_ord: (indexname * sort) * (indexname * sort) -> order
   val var_ord: (indexname * typ) * (indexname * typ) -> order
-  val internal: string -> string
-  val dest_internal: string -> string
-  val skolem: string -> string
-  val dest_skolem: string -> string
   val generalize: string list * string list -> int -> term -> term
   val generalizeT: string list -> int -> typ -> typ
   val generalize_option: string list * string list -> int -> term -> term option
@@ -203,11 +192,7 @@ sig
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
-  val variant_name: (string -> bool) -> string -> string
-  val invent_names: string list -> string -> int -> string list
   val dest_abs: string * typ * term -> string * term
-  val bound: int -> string
-  val is_bound: string -> bool
   val zero_var_indexesT: typ -> typ
   val zero_var_indexes: term -> term
   val zero_var_indexes_inst: term ->
@@ -830,31 +815,15 @@ val betapplys = Library.foldl betapply;
 
 (** Specialized equality, membership, insertion etc. **)
 
-(* indexnames *)
+(* variables *)
 
 fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
-
-fun mem_ix (_, []) = false
-  | mem_ix (x, y :: ys) = eq_ix (x, y) orelse mem_ix (x, ys);
-
-fun ins_ix (x, xs) = if mem_ix (x, xs) then xs else x :: xs;
-
-
-(* variables *)
 
 fun eq_tvar ((xi, S: sort), (xi', S')) = eq_ix (xi, xi') andalso S = S';
 fun eq_var ((xi, T: typ), (xi', T')) = eq_ix (xi, xi') andalso T = T';
 
 val tvar_ord = prod_ord indexname_ord sort_ord;
 val var_ord = prod_ord indexname_ord typ_ord;
-
-
-(* terms *)
-
-fun mem_term (_, []) = false
-  | mem_term (t, t'::ts) = t aconv t' orelse mem_term (t, ts);
-
-fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
 
 
 (*A fast unification filter: true unless the two terms cannot be unified.
@@ -986,15 +955,6 @@ fun subst_vars ([], []) tm = tm
       in subst tm end;
 
 
-(* internal identifiers *)
-
-val internal = suffix "_";
-val dest_internal = unsuffix "_";
-
-val skolem = suffix "__";
-val dest_skolem = unsuffix "__";
-
-
 (* generalization of fixed variables *)
 
 local exception SAME in
@@ -1016,14 +976,10 @@ fun generalizeT_same [] _ _ = raise SAME
 fun generalize_same ([], []) _ _ = raise SAME
   | generalize_same (tfrees, frees) idx tm =
       let
-        fun var ((x, i), T) =
-          (case try dest_internal x of
-            NONE => Var ((x, i), T)
-          | SOME x' => var ((x', i + 1), T));
-
         val genT = generalizeT_same tfrees idx;
         fun gen (Free (x, T)) =
-              if member (op =) frees x then var ((x, idx), genT T handle SAME => T)
+              if member (op =) frees x then
+                Var (Name.clean_index (x, idx), genT T handle SAME => T)
               else Free (x, genT T)
           | gen (Var (xi, T)) = Var (xi, genT T)
           | gen (Const (c, T)) = Const (c, genT T)
@@ -1137,35 +1093,6 @@ fun maxidx_of_term t = maxidx_term t ~1;
 
 (**** Syntax-related declarations ****)
 
-(*** Printing ***)
-
-(*Makes a variant of a name distinct from already used names.  First
-  attaches the suffix and then increments this; preserves a suffix of
-  underscores "_". *)
-fun variant_name used name =
-  let
-    val (c, u) = pairself implode (Library.take_suffix (fn s => s = "_") (Symbol.explode name));
-    fun vary2 c = if used (c ^ u) then vary2 (Symbol.bump_string c) else c;
-    fun vary1 c = if used (c ^ u) then vary2 (Symbol.bump_init c) else c;
-  in vary1 (if c = "" then "u" else c) ^ u end;
-
-fun variant used_names = variant_name (member (op =) used_names);
-
-(*Create variants of the list of names, with priority to the first ones*)
-fun variantlist ([], used) = []
-  | variantlist(b::bs, used) =
-      let val b' = variant used b
-      in  b' :: variantlist (bs, b'::used)  end;
-
-(*Invent fresh names*)
-fun invent_names _ _ 0 = []
-  | invent_names used a n =
-      let val b = Symbol.bump_string a in
-        if a mem_string used then invent_names used b n
-        else a :: invent_names used b (n - 1)
-      end;
-
-
 (* substructure *)
 
 fun exists_subtype P =
@@ -1248,7 +1175,7 @@ fun term_tvars t = add_term_tvars(t,[]);
 (*special code to enforce left-to-right collection of TVar-indexnames*)
 
 fun add_typ_ixns(ixns,Type(_,Ts)) = Library.foldl add_typ_ixns (ixns,Ts)
-  | add_typ_ixns(ixns,TVar(ixn,_)) = if mem_ix (ixn, ixns) then ixns
+  | add_typ_ixns(ixns,TVar(ixn,_)) = if member (op =) ixns ixn then ixns
                                      else ixns@[ixn]
   | add_typ_ixns(ixns,TFree(_)) = ixns;
 
@@ -1285,7 +1212,7 @@ fun term_frees t = add_term_frees(t,[]);
 (*Given an abstraction over P, replaces the bound variable by a Free variable
   having a unique name -- SLOW!*)
 fun variant_abs (a,T,P) =
-  let val b = variant (add_term_names(P,[])) a
+  let val b = Name.variant (add_term_names(P,[])) a
   in  (b,  subst_bound (Free(b,T), P))  end;
 
 fun dest_abs (x, T, body) =
@@ -1296,28 +1223,14 @@ fun dest_abs (x, T, body) =
       | name_clash _ = false;
   in
     if name_clash body then
-      dest_abs (variant [x] x, T, body)    (*potentially slow, but rarely happens*)
+      dest_abs (Name.variant [x] x, T, body)    (*potentially slow, but rarely happens*)
     else (x, subst_bound (Free (x, T), body))
   end;
-
-(*names for numbered variables --
-  preserves order wrt. int_ord vs. string_ord, avoids allocating new strings*)
-local
-  val small_int = Vector.tabulate (1000, fn i =>
-    let val leading = if i < 10 then "00" else if i < 100 then "0" else ""
-    in ":" ^ leading ^ string_of_int i end);
-in
-  fun bound n =
-    if n < 1000 then Vector.sub (small_int, n)
-    else ":" ^ bound (n div 1000) ^ Vector.sub (small_int, n mod 1000);
-end;
-
-val is_bound = String.isPrefix ":";
 
 (* renames and reverses the strings in vars away from names *)
 fun rename_aTs names vars : (string*typ)list =
   let fun rename_aT (vars,(a,T)) =
-                (variant (map #1 vars @ names) a, T) :: vars
+                (Name.variant (map #1 vars @ names) a, T) :: vars
   in Library.foldl rename_aT ([],vars) end;
 
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
@@ -1328,7 +1241,7 @@ fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 fun zero_var_inst vars =
   fold (fn v as ((x, i), X) => fn (used, inst) =>
     let
-      val x' = variant used (if is_bound x then "u" else x);
+      val x' = Name.variant used (if Name.is_bound x then "u" else x);
       val used' = x' :: used;
     in if x = x' andalso i = 0 then (used', inst) else (used', (v, ((x', 0), X)) :: inst) end)
   vars ([], []) |> #2;
