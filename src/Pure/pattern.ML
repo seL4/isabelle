@@ -413,7 +413,7 @@ fun equiv thy (t, u) = matches thy (t, u) andalso matches thy (u, t);
 fun matches_subterm thy (pat,obj) =
   let fun msub(bounds,obj) = matches thy (pat,obj) orelse
             (case obj of
-              Abs(x,T,t) => let val y = variant bounds x
+              Abs(x,T,t) => let val y = Name.variant bounds x
                                 val f = Free(":" ^ y,T)
                             in msub(x::bounds,subst_bound(f,t)) end
             | s$t => msub(bounds,s) orelse msub(bounds,t)
@@ -442,7 +442,7 @@ fun rewrite_term thy rules procs tm =
 
     fun variant_absfree bounds (x, T, t) =
       let
-        val (x', t') = Term.dest_abs (Term.bound bounds, T, t);
+        val (x', t') = Term.dest_abs (Name.bound bounds, T, t);
         fun abs u = Abs (x, T, abstract_over (Free (x', T), u));
       in (abs, t') end;
 

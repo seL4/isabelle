@@ -258,7 +258,7 @@ fun prnt warn a = if warn then warning a else println a;
 fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
   let
     val used = Term.add_term_names (t, []);
-    val xs = rev (Term.variantlist (rev (map #2 bs), used));
+    val xs = rev (Name.variant_list used (rev (map #2 bs)));
     fun subst (((b, T), _), x') = (Free (b, T), Syntax.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 
@@ -964,7 +964,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
        (case term_of t0 of
            Abs (a, T, t) =>
              let
-                 val b = Term.bound (#1 bounds);
+                 val b = Name.bound (#1 bounds);
                  val (v, t') = Thm.dest_abs (SOME b) t0;
                  val b' = #1 (Term.dest_Free (Thm.term_of v));
                  val _ = conditional (b <> b') (fn () =>
@@ -1148,7 +1148,7 @@ fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
   let
     val Simpset ({bounds = (_, bounds), ...}, _) = ss;
     val bs = fold_aterms (fn Free (x, _) =>
-        if Term.is_bound x andalso not (AList.defined eq_bound bounds x)
+        if Name.is_bound x andalso not (AList.defined eq_bound bounds x)
         then insert (op =) x else I
       | _ => I) (term_of ct) [];
   in
