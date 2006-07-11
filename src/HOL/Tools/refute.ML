@@ -491,7 +491,7 @@ struct
 							end) class_axioms
 						(* Term.term list * (string * Term.term) list -> Term.term list *)
 						fun collect_axiom (axs, (axname, ax)) =
-							if mem_term (ax, axs) then
+							if member (op aconv) axs ax then
 								axs
 							else (
 								immediate_output (" " ^ axname);
@@ -561,7 +561,7 @@ struct
 					| NONE =>
 						(case get_typedefn axioms of
 						  SOME (axname, ax) => 
-							if mem_term (ax, axs) then
+							if member (op aconv) axs ax then
 								(* only collect relevant type axioms for the argument types *)
 								Library.foldl collect_type_axioms (axs, Ts)
 							else
@@ -592,7 +592,7 @@ struct
 				let
 					val ax = specialize_type (("The", T), (the o AList.lookup (op =) axioms) "HOL.the_eq_trivial")
 				in
-					if mem_term (ax, axs) then
+					if member (op aconv) axs ax then
 						collect_type_axioms (axs, T)
 					else
 						(immediate_output " HOL.the_eq_trivial";
@@ -603,7 +603,7 @@ struct
 					val ax = specialize_type (("Hilbert_Choice.Eps", T),
                       (the o AList.lookup (op =) axioms) "Hilbert_Choice.someI")
 				in
-					if mem_term (ax, axs) then
+					if member (op aconv) axs ax then
 						collect_type_axioms (axs, T)
 					else
 						(immediate_output " Hilbert_Choice.someI";
@@ -689,13 +689,13 @@ struct
 							val ofclass_ax = (SOME (specialize_type ((s, T), inclass)) handle Type.TYPE_MATCH => NONE)
 							val intro_ax   = (Option.map (fn t => specialize_type ((s, T), t))
 								(AList.lookup (op =) axioms (class ^ ".intro")) handle Type.TYPE_MATCH => NONE)
-							val axs'       = (case ofclass_ax of NONE => axs | SOME ax => if mem_term (ax, axs) then
+							val axs'       = (case ofclass_ax of NONE => axs | SOME ax => if member (op aconv) axs ax then
 									(* collect relevant type axioms *)
 									collect_type_axioms (axs, T)
 								else
 									(immediate_output (" " ^ Sign.string_of_term (sign_of thy) ax);
 									collect_term_axioms (ax :: axs, ax)))
-							val axs''      = (case intro_ax of NONE => axs' | SOME ax => if mem_term (ax, axs') then
+							val axs''      = (case intro_ax of NONE => axs' | SOME ax => if member (op aconv) axs' ax then
 									(* collect relevant type axioms *)
 									collect_type_axioms (axs', T)
 								else
@@ -713,7 +713,7 @@ struct
 					else (
 						case get_defn axioms of
 						  SOME (axname, ax) => 
-							if mem_term (ax, axs) then
+							if member (op aconv) axs ax then
 								(* collect relevant type axioms *)
 								collect_type_axioms (axs, T)
 							else

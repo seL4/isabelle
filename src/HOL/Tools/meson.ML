@@ -122,7 +122,7 @@ fun is_taut th =
   let val (poslits,neglits) = signed_lits th
   in  exists taut_poslit poslits
       orelse
-      exists (fn t => mem_term (t, neglits)) (HOLogic.false_const :: poslits)
+      exists (member (op aconv) neglits) (HOLogic.false_const :: poslits)
   end
   handle TERM _ => false;	(*probably dest_Trueprop on a weird theorem*)		      
 
