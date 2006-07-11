@@ -216,7 +216,7 @@ fun abs_norm thy thm =
         val lhs = (fst o Logic.dest_equals) t;
         val tys = (fst o strip_type o type_of) lhs;
         val used = fold_aterms (fn Var ((v, _), _) => insert (op =) v | _ => I) lhs [];
-        val vs = Term.invent_names used "x" (length tys);
+        val vs = Name.invent_list used "x" (length tys);
       in
         map2 (fn v => fn ty => Var ((v, 0), ty)) vs tys
       end;
@@ -676,7 +676,7 @@ fun get_datatypes thy dtco =
     fun mk_lhs vs ((co1, tys1), (co2, tys2)) =
       let
         val dty = Type (dtco, map TFree vs);
-        val (xs1, xs2) = chop (length tys1) (Term.invent_names [] "x" (length tys1 + length tys2));
+        val (xs1, xs2) = chop (length tys1) (Name.invent_list [] "x" (length tys1 + length tys2));
         val frees1 = map2 (fn x => fn ty => Free (x, ty)) xs1 tys1;
         val frees2 = map2 (fn x => fn ty => Free (x, ty)) xs2 tys2;
         fun zip_co co xs tys = list_comb (Const (co,

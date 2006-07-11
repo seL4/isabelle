@@ -194,8 +194,7 @@ fun rewrite_terms r =
   let
     fun rew_term Ts t =
       let
-        val frees = map Free (variantlist
-          (replicate (length Ts) "x", add_term_names (t, [])) ~~ Ts);
+        val frees = map Free (Name.invent_list (add_term_names (t, [])) "xa" (length Ts) ~~ Ts);
         val t' = r (subst_bounds (frees, t));
         fun strip [] t = t
           | strip (_ :: xs) (Abs (_, _, t)) = strip xs t;

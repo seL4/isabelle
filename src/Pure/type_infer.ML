@@ -245,7 +245,7 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
 
     val used' = fold add_names ts (fold add_namesT Ts used);
     val parms = rev (fold add_parms ts (fold add_parmsT Ts []));
-    val names = Term.invent_names used' (prfx ^ "'a") (length parms);
+    val names = Name.invent_list used' (prfx ^ "'a") (length parms);
   in
     ListPair.app elim (parms, names);
     (map simple_typ_of Ts, map simple_term_of ts)

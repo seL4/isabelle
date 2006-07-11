@@ -173,7 +173,7 @@ structure ConstNameMangler = NameManglerFun (
         case (find_first (fn {lhs, ...} => Sign.typ_equiv thy (ty, lhs))
             (Theory.definitions_of thy c))
          of SOME {module, ...} => NameSpace.append module nsp_overl
-          | NONE => if c = "op ="
+          | NONE => if c = "op ="   (* FIXME depends on object-logic!? *)
               then
                 NameSpace.append
                   ((thyname_of_tyco thy o fst o dest_Type o hd o fst o strip_type) ty)
@@ -839,7 +839,7 @@ and appgen thy tabs ((f, ty), ts) trns =
         if length ts < imin then
           let
             val d = imin - length ts;
-            val vs = Term.invent_names (add_term_names (Const (f, ty), [])) "x" d;
+            val vs = Name.invent_list (add_term_names (Const (f, ty), [])) "x" d;
             val tys = Library.take (d, ((fst o strip_type) ty));
           in
             trns
@@ -936,8 +936,8 @@ fun appgen_datatype_case cos thy tabs (app as ((_, ty), ts)) trns =
     val (ts', t) = split_last ts;
     val (tys, dty) = (split_last o fst o strip_type) ty;
     fun gen_names i =
-      variantlist (replicate i "x", foldr add_term_names
-       (map (fst o fst o dest_Var) (foldr add_term_vars [] ts)) ts);
+      Name.invent_list (foldr add_term_names
+       (map (fst o fst o dest_Var) (foldr add_term_vars [] ts)) ts) "xa" i;
     fun cg_case_d (((cname, i), ty), t) trns =
       let
         val vs = gen_names i;
@@ -1012,7 +1012,7 @@ fun mk_tabs thy targets =
             end) ((#2 o #constants o Consts.dest o #consts o Sign.rep_sg) thy)
       |> (fn (overltab1, overltab2) =>
             let
-              val c = "op =";
+              val c = "op =";   (* FIXME depends on object-logic!? *)
               val ty = Sign.the_const_type thy c;
               fun inst tyco =
                 let
@@ -1020,7 +1020,7 @@ fun mk_tabs thy targets =
                     tyco
                     |> Symtab.lookup ((snd o #types o Type.rep_tsig o Sign.tsig_of) thy)
                     |> (fn SOME (Type.LogicalType i, _) => i)
-                    |> Term.invent_names [] "'a"
+                    |> Name.invent_list [] "'a"
                     |> map (fn v => (TVar ((v, 0), Sign.defaultS thy)))
                     |> (fn tys => Type (tyco, tys))
                 in map_atyps (fn _ => ty_inst) ty end;

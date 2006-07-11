@@ -174,7 +174,7 @@ fun the_inst_sign thy (class, tyco) =
     val (clsvar, const_sign) = the_consts_sign thy class;
     fun add_var sort used =
       let
-        val v = hd (Term.invent_names used "'a" 1)
+        val [v] = Name.invent_list used "'a" 1
       in ((v, sort), v::used) end;
     val (vsorts, _) =
       [clsvar]
@@ -405,7 +405,8 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arity (raw_name
   let
     val pp = Sign.pp theory;
     val arity as (tyco, asorts, sort) = prep_arity theory ((fn ((x, y), z) => (x, y, z)) raw_arity);
-    val ty_inst = Type (tyco, map2 (curry TVar o rpair 0) (Term.invent_names [] "'a" (length asorts)) asorts)
+    val ty_inst =
+      Type (tyco, map2 (curry TVar o rpair 0) (Name.invent_list [] "'a" (length asorts)) asorts)
     val name = case raw_name
      of "" => Thm.def_name ((space_implode "_" o map NameSpace.base) sort ^ "_" ^ NameSpace.base tyco)
       | _ => raw_name;
@@ -473,7 +474,7 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arity (raw_name
     theory
     |> fold_map get_remove_contraint (map fst cs)
     ||>> add_defs defs
-    |-> (fn (cs, def_thms) => 
+    |-> (fn (cs, def_thms) =>
        fold register_def def_thms
     #> note_all
     #> do_proof (after_qed cs) arity)
@@ -525,9 +526,10 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
       in (export_name, map (Name o NameSpace.append thm_name_base) prop_names) end;
     val notes_tab_proto = map mk_thm_names prop_tab;
     fun test_note thy thmref =
-      can (Locale.note_thmss PureThy.corollaryK loc_name 
+      can (Locale.note_thmss PureThy.corollaryK loc_name
         [(("", []), [(thmref, [])])]) (Theory.copy thy);
-    val notes_tab = map_filter (fn (export_name, thm_names) => case filter (test_note theory) thm_names
+    val notes_tab = map_filter (fn (export_name, thm_names) =>
+     case filter (test_note theory) thm_names
      of [] => NONE
       | thm_names' => SOME (export_name, thm_names')) notes_tab_proto;
     val _ = writeln ("fishing for ");
