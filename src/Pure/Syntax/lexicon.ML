@@ -104,8 +104,8 @@ val scan_tid = $$ "'" ^^ scan_id;
 val scan_nat = scan_digits1 >> implode;
 val scan_int = $$ "-" ^^ scan_nat || scan_nat;
 
-val scan_hex = ($$ "0") ^^ ($$ "x") ^^ (scan_hex1 >> implode);
-val scan_bin = ($$ "0") ^^ ($$ "b") ^^ (scan_bin1 >> implode);
+val scan_hex = $$ "0" ^^ $$ "x" ^^ (scan_hex1 >> implode);
+val scan_bin = $$ "0" ^^ $$ "b" ^^ (scan_bin1 >> implode);
 
 val scan_id_nat = scan_id ^^ Scan.optional ($$ "." ^^ scan_nat) "";
 val scan_var = $$ "?" ^^ scan_id_nat;
