@@ -13,7 +13,7 @@ sig
   val fixes_of: Context.proof -> (string * string) list
   val binds_of: Context.proof -> (typ * term) Vartab.table
   val defaults_of: Context.proof ->
-    typ Vartab.table * sort Vartab.table * string list * string list Symtab.table * Name.context
+    typ Vartab.table * sort Vartab.table * string list * string list Symtab.table
   val used_types: Context.proof -> string list
   val is_declared: Context.proof -> string -> bool
   val is_fixed: Context.proof -> string -> bool
@@ -59,54 +59,56 @@ struct
 (** local context data **)
 
 datatype data = Data of
- {is_body: bool,                                (*inner body mode*)
-  fixes: (string * string) list * Name.context, (*term fixes -- extern/intern*)
-  binds: (typ * term) Vartab.table,             (*term bindings*)
+ {is_body: bool,                        (*inner body mode*)
+  names: Name.context,        		(*used type/term variable names*)
+  fixes: (string * string) list, 	(*term fixes -- extern/intern*)
+  binds: (typ * term) Vartab.table,     (*term bindings*)
   defaults:
-    typ Vartab.table *                          (*type constraints*)
-    sort Vartab.table *                         (*default sorts*)
-    string list *                               (*used type variables*)
-    string list Symtab.table *                  (*occurrences of type variables in term variables*)
-    Name.context};                              (*type/term variable names*)
+    typ Vartab.table *                  (*type constraints*)
+    sort Vartab.table *                 (*default sorts*)
+    string list *                       (*used type variables*)
+    string list Symtab.table};          (*occurrences of type variables in term variables*)
 
-fun make_data (is_body, fixes, binds, defaults) =
-  Data {is_body = is_body, fixes = fixes, binds = binds, defaults = defaults};
+fun make_data (is_body, names, fixes, binds, defaults) =
+  Data {is_body = is_body, names = names, fixes = fixes, binds = binds, defaults = defaults};
 
 structure Data = ProofDataFun
 (
   val name = "Pure/variable";
   type T = data;
   fun init thy =
-    make_data (false, ([], Name.context), Vartab.empty,
-      (Vartab.empty, Vartab.empty, [], Symtab.empty, Name.make_context ["", "'"]));
+    make_data (false, Name.make_context ["", "'"], [], Vartab.empty,
+      (Vartab.empty, Vartab.empty, [], Symtab.empty));
   fun print _ _ = ();
 );
 
 val _ = Context.add_setup Data.init;
 
 fun map_data f =
-  Data.map (fn Data {is_body, fixes, binds, defaults} =>
-    make_data (f (is_body, fixes, binds, defaults)));
+  Data.map (fn Data {is_body, names, fixes, binds, defaults} =>
+    make_data (f (is_body, names, fixes, binds, defaults)));
 
-fun map_fixes f = map_data (fn (is_body, fixes, binds, defaults) =>
-  (is_body, f fixes, binds, defaults));
+fun map_names f = map_data (fn (is_body, names, fixes, binds, defaults) =>
+  (is_body, f names, fixes, binds, defaults));
 
-fun map_binds f = map_data (fn (is_body, fixes, binds, defaults) =>
-  (is_body, fixes, f binds, defaults));
+fun map_fixes f = map_data (fn (is_body, names, fixes, binds, defaults) =>
+  (is_body, names, f fixes, binds, defaults));
 
-fun map_defaults f = map_data (fn (is_body, fixes, binds, defaults) =>
-  (is_body, fixes, binds, f defaults));
+fun map_binds f = map_data (fn (is_body, names, fixes, binds, defaults) =>
+  (is_body, names, fixes, f binds, defaults));
+
+fun map_defaults f = map_data (fn (is_body, names, fixes, binds, defaults) =>
+  (is_body, names, fixes, binds, f defaults));
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
 
 val is_body = #is_body o rep_data;
-fun set_body b = map_data (fn (_, fixes, binds, defaults) =>
-  (b, fixes, binds, defaults));
+fun set_body b = map_data (fn (_, names, fixes, binds, defaults) =>
+  (b, names, fixes, binds, defaults));
 fun restore_body ctxt = set_body (is_body ctxt);
 
-val fixes_of = #1 o #fixes o rep_data;
-val fixed_names_of = #2 o #fixes o rep_data;
-
+val names_of = #names o rep_data;
+val fixes_of = #fixes o rep_data;
 val binds_of = #binds o rep_data;
 
 val defaults_of = #defaults o rep_data;
@@ -125,7 +127,7 @@ fun is_fixed ctxt x = exists (fn (_, y) => x = y) (fixes_of ctxt);
 val def_sort = Vartab.lookup o #2 o defaults_of;
 
 fun def_type ctxt pattern xi =
-  let val {binds, defaults = (types, _, _, _, _), ...} = rep_data ctxt in
+  let val {binds, defaults = (types, _, _, _), ...} = rep_data ctxt in
     (case Vartab.lookup types xi of
       NONE =>
         if pattern then NONE
@@ -171,32 +173,32 @@ fun ins_names t =
 
 in
 
-fun declare_type T = map_defaults (fn (types, sorts, used, occ, names) =>
- (types,
-  ins_sorts T sorts,
-  ins_used T used,
-  occ,
-  ins_namesT T names));
+fun declare_type T = map_defaults (fn (types, sorts, used, occ) =>
+  (types,
+    ins_sorts T sorts,
+    ins_used T used,
+    occ)) #>
+  map_names (ins_namesT T);
 
-fun declare_syntax t = map_defaults (fn (types, sorts, used, occ, names) =>
- (ins_types t types,
-  fold_types ins_sorts t sorts,
-  fold_types ins_used t used,
-  occ,
-  ins_names t names));
+fun declare_syntax t = map_defaults (fn (types, sorts, used, occ) =>
+  (ins_types t types,
+    fold_types ins_sorts t sorts,
+    fold_types ins_used t used,
+    occ)) #>
+  map_names (ins_names t);
 
-fun declare_occs t = map_defaults (fn (types, sorts, used, occ, names) =>
-  (types, sorts, used, ins_occs t occ, names));
+fun declare_occs t = map_defaults (fn (types, sorts, used, occ) =>
+  (types, sorts, used, ins_occs t occ));
 
 fun declare_term t ctxt =
   ctxt
   |> declare_syntax t
-  |> map_defaults (fn (types, sorts, used, occ, names) =>
+  |> map_defaults (fn (types, sorts, used, occ) =>
      (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types,
       sorts,
       used,
-      ins_occs t occ,
-      ins_names t names));
+      ins_occs t occ))
+  |> map_names (ins_names t);
 
 fun declare_thm th = fold declare_term (Thm.full_prop_of th :: Thm.hyps_of th);
 fun thm_context th = Context.init_proof (Thm.theory_of_thm th) |> declare_thm th;
@@ -208,7 +210,7 @@ end;
 
 fun rename_wrt ctxt ts frees =
   let
-    val names = #5 (defaults_of (ctxt |> fold declare_syntax ts));
+    val names = names_of (ctxt |> fold declare_syntax ts);
     val xs = fst (Name.variants (map #1 frees) names);
   in xs ~~ map snd frees end;
 
@@ -221,8 +223,9 @@ local
 fun no_dups [] = ()
   | no_dups dups = error ("Duplicate fixed variable(s): " ^ commas_quote dups);
 
-fun new_fixes xs xs' names' =
-  map_fixes (fn (fixes, _) => (rev (xs ~~ xs') @ fixes, names')) #>
+fun new_fixes names' xs xs' =
+  map_names (K names') #>
+  map_fixes (fn fixes => (rev (xs ~~ xs') @ fixes)) #>
   fold (declare_syntax o Syntax.free) xs' #>
   pair xs';
 
@@ -235,25 +238,25 @@ fun add_fixes xs ctxt =
       | bads => error ("Illegal internal Skolem constant(s): " ^ commas_quote bads));
     val _ = no_dups (duplicates (op =) xs);
     val (ys, zs) = split_list (fixes_of ctxt);
-    val names = fixed_names_of ctxt;
+    val names = names_of ctxt;
     val (xs', names') =
       if is_body ctxt then Name.variants (map Name.skolem xs) names
       else (no_dups (xs inter_string ys); no_dups (xs inter_string zs);
         (xs, fold Name.declare xs names));
-  in ctxt |> new_fixes xs xs' names' end;
+  in ctxt |> new_fixes names' xs xs' end;
 
 fun invent_fixes raw_xs ctxt =
   let
-    val names = fixed_names_of ctxt;
+    val names = names_of ctxt;
     val (xs, names') = Name.variants (map Name.clean raw_xs) names;
     val xs' = map Name.skolem xs;
-  in ctxt |> new_fixes xs xs' names' end;
+  in ctxt |> new_fixes names' xs xs' end;
 
 end;
 
 fun invent_types Ss ctxt =
   let
-    val tfrees = Name.invents (#5 (defaults_of ctxt)) "'a" (length Ss) ~~ Ss;
+    val tfrees = Name.invents (names_of ctxt) "'a" (length Ss) ~~ Ss;
     val ctxt' = fold (declare_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 
