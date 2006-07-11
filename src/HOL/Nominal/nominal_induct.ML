@@ -63,8 +63,8 @@ fun inst_mutual_rule ctxt insts avoiding rules =
 fun rename_params_rule internal xs rule =
   let
     val tune =
-      if internal then Term.internal
-      else fn x => the_default x (try Term.dest_internal x);
+      if internal then Name.internal
+      else fn x => the_default x (try Name.dest_internal x);
     val n = length xs;
     fun rename prem =
       let
