@@ -203,7 +203,6 @@ sig
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
   val show_dummy_patterns: term -> term
-  val adhoc_freeze_vars: term -> term * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
 end;
@@ -1310,17 +1309,6 @@ fun show_dummy_patterns (Var (("_dummy_", _), T)) = Const ("dummy_pattern", T)
   | show_dummy_patterns (t $ u) = show_dummy_patterns t $ show_dummy_patterns u
   | show_dummy_patterns (Abs (x, T, t)) = Abs (x, T, show_dummy_patterns t)
   | show_dummy_patterns a = a;
-
-
-(* adhoc freezing *)
-
-fun adhoc_freeze_vars tm =
-  let
-    fun mk_inst (var as Var ((a, i), T)) =
-      let val x = a ^ Library.gensym "_" ^ string_of_int i
-      in ((var,  Free(x, T)), x) end;
-    val (insts, xs) = split_list (map mk_inst (term_vars tm));
-  in (subst_atomic insts tm, xs) end;
 
 
 (* display variables *)
