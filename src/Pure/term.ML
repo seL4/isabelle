@@ -163,6 +163,7 @@ sig
   val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
   val add_frees: term -> (string * typ) list -> (string * typ) list
+  val strip_abs_eta: int -> term -> (string * typ) list * term
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
   val sort_ord: sort * sort -> order
@@ -810,6 +811,31 @@ fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
   | betapply (f,u) = f$u;
 
 val betapplys = Library.foldl betapply;
+
+
+(*unfolding abstractions with substitution
+  of bound variables and implicit eta-expansion*)
+fun strip_abs_eta k t =
+  let
+    val used = fold_aterms (fn Free (v, _) => cons v | _ => I) t [];
+    fun strip_abs t (0, used) = (([], t), (0, used))
+      | strip_abs (Abs (v, T, t)) (k, used) =
+          let
+            val v' = Name.variant used v;
+            val t' = subst_bound (Free (v, T), t);
+            val ((vs, t''), (k', used')) = strip_abs t' (k - 1, v' :: used);
+          in (((v', T) :: vs, t''), (k', used')) end
+      | strip_abs t (k, used) = (([], t), (k, used));
+    fun expand_eta [] t _ = ([], t)
+      | expand_eta (T::Ts) t used =
+          let
+            val v = hd (Name.invent_list used "a" 1)
+            val (vs, t') = expand_eta Ts (t $ Free (v, T)) (v :: used);
+          in ((v, T) :: vs, t') end;
+    val ((vs1, t'), (k', used')) = strip_abs t (k, used);
+    val Ts = (fst o chop k' o fst o strip_type o fastype_of) t';
+    val (vs2, t'') = expand_eta Ts t' used';
+  in (vs1 @ vs2, t'') end;
 
 
 (** Specialized equality, membership, insertion etc. **)
