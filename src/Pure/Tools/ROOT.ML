@@ -11,13 +11,11 @@ use "class_package.ML";
 (*code generator, 1st generation*)
 use "../codegen.ML";
 
-(*code generator theorems*)
-use "codegen_theorems.ML";
-use "codegen_simtype.ML";
-
 (*code generator, 2nd generation*)
 use "codegen_thingol.ML";
 use "codegen_serializer.ML";
+use "codegen_theorems.ML";
+use "codegen_simtype.ML";
 use "codegen_package.ML";
 
 (*Steven Obua's evaluator*)

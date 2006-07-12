@@ -8,7 +8,7 @@ intermediate language ("Thin-gol").
 
 signature CODEGEN_PACKAGE =
 sig
-  val codegen_term: term -> theory -> CodegenThingol.iexpr * theory;
+  val codegen_term: term -> theory -> CodegenThingol.iterm * theory;
   val is_dtcon: string -> bool;
   val consts_of_idfs: theory -> string list -> (string * typ) list;
   val idfs_of_consts: theory -> (string * typ) list -> string list;
@@ -22,22 +22,19 @@ sig
   val add_alias: string * string -> theory -> theory;
   val set_get_all_datatype_cons : (theory -> (string * string) list)
     -> theory -> theory;
-  val set_get_datatype: (theory -> string -> ((string * sort) list * (string * typ list) list) option)
-    -> theory -> theory;
   val set_int_tyco: string -> theory -> theory;
 
   type appgen;
-  val add_appconst: xstring * ((int * int) * appgen) -> theory -> theory;
-  val add_appconst_i: string * ((int * int) * appgen) -> theory -> theory;
+  val add_appconst: xstring * appgen -> theory -> theory;
+  val add_appconst_i: string * appgen -> theory -> theory;
   val appgen_default: appgen;
-  val appgen_let: (int -> term -> term list * term)
-    -> appgen;
-  val appgen_split: (int -> term -> term list * term)
-    -> appgen;
   val appgen_number_of: (theory -> term -> IntInf.int) -> appgen;
   val appgen_char: (term -> int option) -> appgen;
+  val appgen_case: (theory -> term
+    -> ((string * typ) list * ((term * typ) * (term * term) list)) option)
+    -> appgen;
+  val appgen_let: appgen;
   val appgen_wfrec: appgen;
-  val add_case_const: string -> (string * int) list -> theory -> theory;
 
   val print_code: theory -> unit;
   val rename_inconsistent: theory -> theory;
@@ -240,7 +237,7 @@ type eqextr = theory -> auxtab
 type eqextr_default = theory -> auxtab
   -> string * typ -> ((thm list * term option) * typ) option;
 type appgen = theory -> auxtab
-  -> (string * typ) * term list -> transact -> iexpr * transact;
+  -> (string * typ) * term list -> transact -> iterm * transact;
 
 val serializers = ref (
   Symtab.empty
@@ -268,51 +265,33 @@ fun merge_opt _ (x1, NONE) = x1
   | merge_opt eq (SOME x1, SOME x2) =
       if eq (x1, x2) then SOME x1 else error ("incompatible options during merge");
 
-type gens = {
-  appconst: ((int * int) * (appgen * stamp)) Symtab.table,
-  eqextrs: (string * (eqextr_default * stamp)) list
-};
+type appgens = (int * (appgen * stamp)) Symtab.table
 
-fun map_gens f { appconst, eqextrs } =
-  let
-    val (appconst, eqextrs) =
-      f (appconst, eqextrs)
-  in { appconst = appconst, eqextrs = eqextrs } : gens end;
-
-fun merge_gens
-  ({ appconst = appconst1 , eqextrs = eqextrs1 },
-   { appconst = appconst2 , eqextrs = eqextrs2 }) =
-  { appconst = Symtab.merge
-      (fn ((bounds1, (_, stamp1)), (bounds2, (_, stamp2))) => bounds1 = bounds2
-         andalso stamp1 = stamp2)
-      (appconst1, appconst2),
-    eqextrs = AList.merge (op =) (eq_snd (op =)) (eqextrs1, eqextrs2)
-  } : gens;
+fun merge_appgens x =
+  Symtab.merge (fn ((bounds1, (_, stamp1)), (bounds2, (_, stamp2))) =>
+    bounds1 = bounds2 andalso stamp1 = stamp2) x
 
 type logic_data = {
   get_all_datatype_cons: ((theory -> (string * string) list) * stamp) option,
-  get_datatype: ((theory -> string -> ((string * sort) list * (string * typ list) list) option) * stamp) option,
   alias: string Symtab.table * string Symtab.table
 };
 
-fun map_logic_data f { get_all_datatype_cons, get_datatype, alias } =
+fun map_logic_data f { get_all_datatype_cons, alias } =
   let
-    val ((get_all_datatype_cons, get_datatype), alias) =
-      f ((get_all_datatype_cons, get_datatype), alias)
+    val (get_all_datatype_cons, alias) =
+      f (get_all_datatype_cons, alias)
   in { get_all_datatype_cons = get_all_datatype_cons,
-    get_datatype = get_datatype, alias = alias } : logic_data end;
+    alias = alias } : logic_data end;
 
 fun merge_logic_data
   ({ get_all_datatype_cons = get_all_datatype_cons1,
-       get_datatype = get_datatype1, alias = alias1 },
+       alias = alias1 },
    { get_all_datatype_cons = get_all_datatype_cons2,
-       get_datatype = get_datatype2, alias = alias2 }) =
+       alias = alias2 }) =
   let
   in
     { get_all_datatype_cons = merge_opt (eq_snd (op =))
         (get_all_datatype_cons1, get_all_datatype_cons2),
-      get_datatype = merge_opt (eq_snd (op =))
-        (get_datatype1, get_datatype2),
       alias = (Symtab.merge (op =) (fst alias1, fst alias2),
                Symtab.merge (op =) (snd alias1, snd alias2)) } : logic_data
   end;
@@ -320,7 +299,7 @@ fun merge_logic_data
 type target_data = {
   syntax_class: string Symtab.table,
   syntax_tyco: (itype CodegenSerializer.pretty_syntax * stamp) Symtab.table,
-  syntax_const: (iexpr CodegenSerializer.pretty_syntax * stamp) Symtab.table
+  syntax_const: (iterm CodegenSerializer.pretty_syntax * stamp) Symtab.table
 };
 
 fun map_target_data f { syntax_class, syntax_tyco, syntax_const } =
@@ -345,15 +324,14 @@ structure CodegenData = TheoryDataFun
   val name = "Pure/codegen_package";
   type T = {
     modl: module,
-    gens: gens,
+    appgens: appgens,
     logic_data: logic_data,
     target_data: target_data Symtab.table
   };
   val empty = {
     modl = empty_module,
-    gens = { appconst = Symtab.empty, eqextrs = [] } : gens,
+    appgens = Symtab.empty,
     logic_data = { get_all_datatype_cons = NONE,
-      get_datatype = NONE,
       alias = (Symtab.empty, Symtab.empty) } : logic_data,
     target_data =
       Symtab.empty
@@ -365,13 +343,13 @@ structure CodegenData = TheoryDataFun
   val copy = I;
   val extend = I;
   fun merge _ (
-    { modl = modl1, gens = gens1,
+    { modl = modl1, appgens = appgens1,
       target_data = target_data1, logic_data = logic_data1 },
-    { modl = modl2, gens = gens2,
+    { modl = modl2, appgens = appgens2,
       target_data = target_data2, logic_data = logic_data2 }
   ) = {
     modl = merge_module (modl1, modl2),
-    gens = merge_gens (gens1, gens2),
+    appgens = merge_appgens (appgens1, appgens2),
     logic_data = merge_logic_data (logic_data1, logic_data2),
     target_data = Symtab.join (K merge_target_data) (target_data1, target_data2)
   };
@@ -387,10 +365,10 @@ val _ = Context.add_setup CodegenData.init;
 
 fun map_codegen_data f thy =
   case CodegenData.get thy
-   of { modl, gens, target_data, logic_data } =>
-      let val (modl, gens, target_data, logic_data) =
-        f (modl, gens, target_data, logic_data)
-      in CodegenData.put { modl = modl, gens = gens,
+   of { modl, appgens, target_data, logic_data } =>
+      let val (modl, appgens, target_data, logic_data) =
+        f (modl, appgens, target_data, logic_data)
+      in CodegenData.put { modl = modl, appgens = appgens,
            target_data = target_data, logic_data = logic_data } thy end;
 
 val print_code = CodegenData.print;
@@ -450,7 +428,7 @@ fun idf_of_const thy (tabs as (_, (_, (overltab1, overltab2), _)))
    of SOME idf => idf
     | NONE => case get_overloaded (c, ty)
    of SOME idf => idf
-    | NONE => case AxClass.class_of thy c
+    | NONE => case AxClass.class_of_param thy c
    of SOME _ => idf_of_name thy nsp_mem c
     | NONE => idf_of_name thy nsp_const c
   end;
@@ -468,7 +446,7 @@ fun idf_of_const' thy (tabs as (_, (_, (overltab1, overltab2), _)))
         | _ => NONE)
   in case get_overloaded (c, ty)
    of SOME idf => idf
-    | NONE => case AxClass.class_of thy c
+    | NONE => case AxClass.class_of_param thy c
    of SOME _ => idf_of_name thy nsp_mem c
     | NONE => idf_of_name thy nsp_const c
   end;
@@ -488,17 +466,17 @@ fun recconst_of_idf thy (_, (_, (_, overltab2), _)) idf =
 
 (* further theory data accessors *)
 
-fun gen_add_appconst prep_const (raw_c, (bounds, ag)) thy =
+fun gen_add_appconst prep_const (raw_c, appgen) thy =
   let
     val c = prep_const thy raw_c;
+    val _ = writeln c;
+    val i = (length o fst o strip_type o Sign.the_const_type thy) c
+    val _ = (writeln o string_of_int) i;
   in map_codegen_data
-    (fn (modl, gens, target_data, logic_data) =>
+    (fn (modl, appgens, target_data, logic_data) =>
        (modl,
-        gens |> map_gens
-          (fn (appconst, eqextrs) =>
-            (appconst
-             |> Symtab.update (c, (bounds, (ag, stamp ()))),
-             eqextrs)), target_data, logic_data)) thy
+        appgens |> Symtab.update (c, (i, (appgen, stamp ()))),
+        target_data, logic_data)) thy
   end;
 
 val add_appconst = gen_add_appconst Sign.intern_const;
@@ -509,25 +487,11 @@ fun set_get_all_datatype_cons f =
     (fn (modl, gens, target_data, logic_data) =>
        (modl, gens, target_data,
         logic_data
-        |> map_logic_data ((apfst (fn (get_all_datatype_cons, get_datatype)
-             => (SOME (f, stamp ()), get_datatype))))));
+        |> map_logic_data (apfst (fn _ => SOME (f, stamp ())))));
 
 fun get_all_datatype_cons thy =
   case (#get_all_datatype_cons o #logic_data o CodegenData.get) thy
    of NONE => []
-    | SOME (f, _) => f thy;
-
-fun set_get_datatype f =
-  map_codegen_data
-    (fn (modl, gens, target_data, logic_data) =>
-       (modl, gens, target_data,
-        logic_data
-        |> map_logic_data ((apfst (fn (get_all_datatype_cons, get_datatype)
-             => (get_all_datatype_cons, SOME (f, stamp ())))))));
-
-fun get_datatype thy =
-  case (#get_datatype o #logic_data o CodegenData.get) thy
-   of NONE => K NONE
     | SOME (f, _) => f thy;
 
 fun const_of_idf thy (tabs as (_, (_, _, dtcontab))) idf =
@@ -678,10 +642,14 @@ and mk_fun thy tabs (c, ty) trns =
             trns
             |> fold_map (exprgen_term thy tabs) args
             ||>> exprgen_term thy tabs rhs;
+          fun checkvars (args, rhs) =
+            if CodegenThingol.vars_distinct args then (args, rhs)
+            else error ("repeated variables on left hand side of function")
         in
           trns
           |> message msg (fn trns => trns
           |> fold_map (exprgen_eq o dest_eqthm) eq_thms
+          |-> (fn eqs => pair (map checkvars eqs))
           ||>> fold_map (exprgen_tyvar_sort thy tabs) sortcontext
           ||>> exprgen_type thy tabs ty
           |-> (fn ((eqs, sortctxt), ty) => (pair o SOME) ((eqs, (sortctxt, ty)), map snd sortcontext)))
@@ -760,7 +728,7 @@ and ensure_def_const thy (tabs as (_, (_, overltab, dtcontab))) (c, ty) trns =
        of SOME m =>
             trns
             |> debug_msg (fn _ => "trying defgen class member for " ^ quote m)
-            |> ensure_def_class thy tabs ((the o AxClass.class_of thy) m)
+            |> ensure_def_class thy tabs ((the o AxClass.class_of_param thy) m)
             |-> (fn cls => succeed Bot)
         | _ =>
             trns |> fail ("no class member found for " ^ quote m)
@@ -803,7 +771,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       |-> (fn ty => pair (IVar v))
   | exprgen_term thy tabs (Abs (raw_v, ty, raw_t)) trns =
       let
-        val (v, t) = Term.variant_abs (CodegenTheorems.proper_name raw_v, ty, raw_t);
+        val (v, t) = Term.variant_abs (CodegenThingol.proper_name raw_v, ty, raw_t);
       in
         trns
         |> exprgen_type thy tabs ty
@@ -834,23 +802,22 @@ and appgen_default thy tabs ((c, ty), ts) trns =
   |-> (fn (((c, ty), ls), es) =>
          pair (IConst (c, (ls, ty)) `$$ es))
 and appgen thy tabs ((f, ty), ts) trns =
-  case Symtab.lookup ((#appconst o #gens o CodegenData.get) thy) f
-   of SOME ((imin, imax), (ag, _)) =>
-        if length ts < imin then
+  case Symtab.lookup ((#appgens o CodegenData.get) thy) f
+   of SOME (i, (ag, _)) =>
+        if length ts < i then
           let
-            val d = imin - length ts;
-            val vs = Name.invent_list (add_term_names (Const (f, ty), [])) "x" d;
-            val tys = Library.take (d, ((fst o strip_type) ty));
+            val tys = Library.take (i - length ts, ((fst o strip_type) ty));
+            val vs = CodegenThingol.give_names [f] tys;
           in
             trns
             |> fold_map (exprgen_type thy tabs) tys
-            ||>> ag thy tabs ((f, ty), ts @ map2 (curry Free) vs tys)
-            |-> (fn (tys, e) => pair (vs ~~ tys `|--> e))
+            ||>> ag thy tabs ((f, ty), ts @ map Free vs)
+            |-> (fn (tys, e) => pair (map2 (fn (v, _) => pair v) vs tys `|--> e))
           end
-        else if length ts > imax then
+        else if length ts > i then
           trns
-          |> ag thy tabs ((f, ty), Library.take (imax, ts))
-          ||>> fold_map (exprgen_term thy tabs) (Library.drop (imax, ts))
+          |> ag thy tabs ((f, ty), Library.take (i, ts))
+          ||>> fold_map (exprgen_term thy tabs) (Library.drop (i, ts))
           |-> (fn (e, es) => pair (e `$$ es))
         else
           trns
@@ -861,33 +828,6 @@ and appgen thy tabs ((f, ty), ts) trns =
 
 
 (* parametrized generators, for instantiation in HOL *)
-
-fun appgen_split strip_abs thy tabs (app as (c_ty, [t])) trns =
-  case strip_abs 1 (Const c_ty $ t)
-   of ([vt], bt) =>
-        trns
-        |> exprgen_term thy tabs vt
-        ||>> exprgen_type thy tabs (type_of vt)
-        ||>> exprgen_term thy tabs bt
-        ||>> appgen_default thy tabs app
-        |-> (fn (((ve, vty), be), e0) => pair (IAbs (((ve, vty), be), e0)))
-    | _ =>
-        trns
-        |> appgen_default thy tabs app;
-
-fun appgen_let strip_abs thy tabs (app as ((c, ty), [dt, ct])) trns =
-  case strip_abs 1 ct
-   of ([st], bt) =>
-        trns
-        |> exprgen_term thy tabs dt
-        ||>> exprgen_type thy tabs (type_of dt)
-        ||>> exprgen_term thy tabs st
-        ||>> exprgen_term thy tabs bt
-        ||>> appgen_default thy tabs app
-        |-> (fn ((((de, dty), se), be), e0) => pair (ICase (((de, dty), [(se, be)]), e0)))
-    | _ =>
-        trns
-        |> appgen_default thy tabs app;
 
 fun appgen_number_of int_of_bin thy tabs (app as (c as (_, ty), [bin])) trns =
   case try (int_of_bin thy) bin
@@ -914,6 +854,36 @@ fun appgen_char char_to_index thy tabs (app as ((_, ty), _)) trns =
         trns
         |> appgen_default thy tabs app;
 
+fun appgen_case dest_case_expr thy tabs (app as (c_ty, ts)) trns =
+  let
+    val _ = (writeln o fst) c_ty;
+    val _ = (writeln o Sign.string_of_typ thy o snd) c_ty;
+    val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
+    fun clausegen (dt, bt) trns =
+      trns
+      |> exprgen_term thy tabs dt
+      ||>> exprgen_term thy tabs bt;
+  in
+    trns
+    |> exprgen_term thy tabs st
+    ||>> exprgen_type thy tabs sty
+    ||>> fold_map clausegen ds
+    ||>> appgen_default thy tabs app
+    |-> (fn (((se, sty), ds), e0) => pair (ICase (((se, sty), ds), e0)))
+  end;
+
+fun appgen_let thy tabs (app as (_, [st, ct])) trns =
+  trns
+  |> exprgen_term thy tabs ct
+  ||>> exprgen_term thy tabs st
+  ||>> appgen_default thy tabs app
+  |-> (fn (((v, ty) `|-> be, se), e0) =>
+            pair (ICase (((se, ty), case be
+              of ICase (((IVar w, _), ds), _) => if v = w then ds else [(IVar v, be)]
+               | _ => [(IVar v, be)]
+            ), e0))
+        | (_, e0) => pair e0);
+
 fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
   let
     val ty_def = (op ---> o apfst tl o strip_type o Logic.legacy_unvarifyT o Sign.the_const_type thy) c;
@@ -929,42 +899,6 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
     ||>> exprgen_term thy tabs tf
     ||>> exprgen_term thy tabs tx
     |-> (fn ((((_, ls), ty), tf), tx) => pair (IConst (idf, (ls, ty)) `$ tf `$ tx))
-  end;
-
-fun appgen_datatype_case cos thy tabs (app as ((_, ty), ts)) trns =
-  let
-    val (ts', t) = split_last ts;
-    val (tys, dty) = (split_last o fst o strip_type) ty;
-    fun gen_names i =
-      Name.invent_list (foldr add_term_names
-       (map (fst o fst o dest_Var) (foldr add_term_vars [] ts)) ts) "xa" i;
-    fun cg_case_d (((cname, i), ty), t) trns =
-      let
-        val vs = gen_names i;
-        val tys = Library.take (i, (fst o strip_type) ty);
-        val frees = map2 (curry Free) vs tys;
-        val t' = Envir.beta_norm (list_comb (t, frees));
-      in
-        trns
-        |> exprgen_term thy tabs (list_comb (Const (cname, tys ---> dty), frees))
-        ||>> exprgen_term thy tabs t'
-        |-> (fn (ep, e) => pair (ep, e))
-      end;
-  in
-    trns
-    |> exprgen_term thy tabs t
-    ||>> exprgen_type thy tabs dty
-    ||>> fold_map cg_case_d ((cos ~~ tys) ~~ ts')
-    ||>> appgen_default thy tabs app
-    |-> (fn (((de, dty), bses), e0) => pair (ICase (((de, dty), bses), e0)))
-  end;
-
-fun add_case_const c cos thy =
-  let
-    val n_eta = length cos + 1;
-  in
-    thy
-    |> add_appconst_i (c, ((n_eta, n_eta), appgen_datatype_case cos))
   end;
 
 
@@ -998,7 +932,7 @@ fun mk_tabs thy targets =
           (fn (c, _) =>
             let
               val deftab = Theory.definitions_of thy c
-              val is_overl = (is_none o AxClass.class_of thy) c
+              val is_overl = (is_none o AxClass.class_of_param thy) c
                andalso case deftab   (* is_overloaded (!?) *)
                of [] => false
                 | [{lhs = ty, ...}] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
@@ -1102,8 +1036,9 @@ fun rename_inconsistent thy =
       else add_alias (src, dst) thy
   in fold add inconsistent thy end;
 
-fun codegen_term t =
-  expand_module NONE NONE exprgen_term t;
+fun codegen_term t thy =
+  thy
+  |> expand_module (SOME (Symtab.keys (#target_data (CodegenData.get thy)))) NONE exprgen_term t;
 
 val is_dtcon = has_nsp nsp_dtcon;
 

@@ -888,7 +888,7 @@ lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
 lemma [code]: "nat i = nat_aux 0 i"
   by (simp add: nat_aux_def)
 
-lemma [code unfolt]:
+lemma [code inline]:
   "neg k = (k < 0)"
   unfolding neg_def ..
 
@@ -959,9 +959,7 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
 
 setup {*
   Codegen.add_codegen "number_of_codegen" number_of_codegen
-  #> CodegenPackage.add_appconst
-       ("Numeral.number_of", ((1, 1),
-          appgen_number))
+  (* #> CodegenPackage.add_appconst ("Numeral.number_of", appgen_number) *)
   #> CodegenPackage.set_int_tyco "IntDef.int"
 *}
 

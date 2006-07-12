@@ -14,13 +14,13 @@ sig
       -> OuterParse.token list ->
       ((string -> string option)
         * (string -> CodegenThingol.itype pretty_syntax option)
-        * (string -> CodegenThingol.iexpr pretty_syntax option)
+        * (string -> CodegenThingol.iterm pretty_syntax option)
       -> string list * string list option
       -> CodegenThingol.module -> unit)
       * OuterParse.token list;
   val parse_syntax: ('b -> int) -> (string -> 'b -> 'a * 'b) -> OuterParse.token list ->
     ('b -> 'a pretty_syntax * 'b) * OuterParse.token list;
-  val pretty_list: string -> string -> int * string -> CodegenThingol.iexpr pretty_syntax;
+  val pretty_list: string -> string -> int * string -> CodegenThingol.iterm pretty_syntax;
   val serializers: {
     ml: string * (string * string * (string -> bool) -> serializer),
     haskell: string * (string * string list -> serializer)
@@ -28,7 +28,7 @@ sig
   val mk_flat_ml_resolver: string list -> string -> string;
   val ml_fun_datatype: string * string * (string -> bool)
     -> ((string -> CodegenThingol.itype pretty_syntax option)
-        * (string -> CodegenThingol.iexpr pretty_syntax option))
+        * (string -> CodegenThingol.iterm pretty_syntax option))
     -> (string -> string)
     -> ((string * CodegenThingol.funn) list -> Pretty.T)
         * ((string * CodegenThingol.datatyp) list -> Pretty.T);
@@ -198,7 +198,7 @@ type serializer =
     -> OuterParse.token list ->
     ((string -> string option)
       * (string -> itype pretty_syntax option)
-      * (string -> iexpr pretty_syntax option)
+      * (string -> iterm pretty_syntax option)
     -> string list * string list option
     -> CodegenThingol.module -> unit)
     * OuterParse.token list;
@@ -289,6 +289,12 @@ fun parse_internal serializer =
           | _ => SOME)
        | _ => Scan.fail ());
 
+fun parse_stdout serializer =
+  OuterParse.name
+  >> (fn "_" => serializer
+        (fn "" => (fn p => (Pretty.writeln p; NONE))
+          | _ => SOME)
+       | _ => Scan.fail ());
 
 (* list serializer *)
 
@@ -329,9 +335,9 @@ structure NameMangler = NameManglerFun (
   type src = string;
   val ord = string_ord;
   fun mk reserved_ml (name, 0) =
-        (CodegenTheorems.proper_name o NameSpace.base) name
+        (CodegenThingol.proper_name o NameSpace.base) name
     | mk reserved_ml (name, i) =
-        (CodegenTheorems.proper_name o NameSpace.base) name ^ replicate_string i "'";
+        (CodegenThingol.proper_name o NameSpace.base) name ^ replicate_string i "'";
   fun is_valid (reserved_ml : string list) = not o member (op =) reserved_ml;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
@@ -458,13 +464,15 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
                   ml_from_expr NOBR e1,
                   ml_from_expr BR e2
                 ])
-      | ml_from_expr fxy ((v, ty) `|-> e) =
-          brackify BR [
-            str "fn",
-            typify ty (str v),
-            str "=>",
-            ml_from_expr NOBR e
-          ]
+      | ml_from_expr fxy (e as _ `|-> _) =
+          let
+            val (es, be) = CodegenThingol.unfold_abs e;
+            fun mk_abs (e, ty) = (Pretty.block o Pretty.breaks) [
+                str "fn",
+                typify ty (ml_from_expr NOBR e),
+                str "=>"
+              ];
+          in brackify BR (map mk_abs es @ [ml_from_expr NOBR be]) end
       | ml_from_expr fxy (INum (n, _)) =
           brackify BR [
             (str o IntInf.toString) n,
@@ -475,16 +483,9 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           (str o prefix "#" o quote)
             (let val i = (Char.ord o the o Char.fromString) c
               in if i < 32 
-                then prefix "\\" c
+                then prefix "\\" (string_of_int i)
                 else c
               end)
-      | ml_from_expr fxy (IAbs (((ve, vty), be), _)) =
-          brackify BR [
-            str "fn",
-            typify vty (ml_from_expr NOBR ve),
-            str "=>",
-            ml_from_expr NOBR be
-          ]
       | ml_from_expr fxy (e as ICase ((_, [_]), _)) =
           let
             val (ves, be) = CodegenThingol.unfold_let e;
@@ -519,7 +520,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
             @ [str ")"]
           ) end
       | ml_from_expr _ e =
-          error ("dubious expression: " ^ (Pretty.output o CodegenThingol.pretty_iexpr) e)
+          error ("dubious expression: " ^ (Pretty.output o CodegenThingol.pretty_iterm) e)
     and ml_mk_app f es =
       if is_cons f andalso length es > 1 then
         [(str o resolv) f, Pretty.enum "," "(" ")" (map (ml_from_expr BR) es)]
@@ -553,7 +554,6 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           let
             fun no_eta (_::_, _) = I
               | no_eta (_, _ `|-> _) = I
-              | no_eta (_, IAbs (_, _)) = I
               | no_eta ([], e) = K false;
             fun has_tyvars (_ `%% tys) =
                   exists has_tyvars tys
@@ -816,6 +816,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
   in
     parse_multi
     || parse_internal serializer
+    || parse_stdout serializer
     || parse_single_file serializer
   end;
 
@@ -910,20 +911,9 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
           (str o enclose "'" "'")
             (let val i = (Char.ord o the o Char.fromString) c
               in if i < 32 
-                then Library.prefix "\\" c
+                then Library.prefix "\\" (string_of_int i)
                 else c
               end)
-      | hs_from_expr fxy (e as IAbs _) =
-          let
-            val (es, e) = CodegenThingol.unfold_abs e
-          in
-            brackify BR (
-              str "\\"
-              :: map (hs_from_expr BR o fst) es @ [
-              str "->",
-              hs_from_expr NOBR e
-            ])
-          end
       | hs_from_expr fxy (e as ICase ((_, [_]), _)) =
           let
             val (ps, body) = CodegenThingol.unfold_let e;

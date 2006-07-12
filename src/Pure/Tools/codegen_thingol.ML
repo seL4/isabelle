@@ -24,17 +24,14 @@ sig
       `%% of string * itype list
     | `-> of itype * itype
     | ITyVar of vname;
-  datatype iexpr =
+  datatype iterm =
       IConst of string * (iclasslookup list list * itype)
     | IVar of vname
-    | `$ of iexpr * iexpr
-    | `|-> of (vname * itype) * iexpr
-    | INum of IntInf.int (*non-negative!*) * iexpr
-    | IChar of string (*length one!*) * iexpr
-    | IAbs of ((iexpr * itype) * iexpr) * iexpr
-        (* (((binding expression (ve), binding type (vty)),
-                body expression (be)), native expression (e0)) *)
-    | ICase of ((iexpr * itype) * (iexpr * iexpr) list) * iexpr;
+    | `$ of iterm * iterm
+    | `|-> of (vname * itype) * iterm
+    | INum of IntInf.int (*non-negative!*) * iterm
+    | IChar of string (*length one!*) * iterm
+    | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
         (* ((discrimendum expression (de), discrimendum type (dty)),
                 [(selector expression (se), body expression (be))]),
                 native expression (e0)) *)
@@ -44,27 +41,31 @@ signature CODEGEN_THINGOL =
 sig
   include BASIC_CODEGEN_THINGOL;
   val `--> : itype list * itype -> itype;
-  val `$$ : iexpr * iexpr list -> iexpr;
-  val `|--> : (vname * itype) list * iexpr -> iexpr;
+  val `$$ : iterm * iterm list -> iterm;
+  val `|--> : (vname * itype) list * iterm -> iterm;
   val pretty_itype: itype -> Pretty.T;
-  val pretty_iexpr: iexpr -> Pretty.T;
+  val pretty_iterm: iterm -> Pretty.T;
   val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list;
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
   val unfold_fun: itype -> itype list * itype;
-  val unfold_app: iexpr -> iexpr * iexpr list;
-  val unfold_abs: iexpr -> (iexpr * itype) list * iexpr;
-  val unfold_let: iexpr -> ((iexpr * itype) * iexpr) list * iexpr;
-  val unfold_const_app: iexpr ->
-    ((string * (iclasslookup list list * itype)) * iexpr list) option;
-  val add_constnames: iexpr -> string list -> string list;
-  val add_varnames: iexpr -> string list -> string list;
-  val is_pat: (string -> bool) -> iexpr -> bool;
-  val map_pure: (iexpr -> 'a) -> iexpr -> 'a;
-  val resolve_tycos: (string -> string) -> itype * iexpr list -> itype * iexpr list;
-  val resolve_consts: (string -> string) -> iexpr -> iexpr;
-  val eta_expand: (string * (iclasslookup list list * itype)) * iexpr list -> int -> iexpr;
+  val unfold_app: iterm -> iterm * iterm list;
+  val unfold_abs: iterm -> (iterm * itype) list * iterm;
+  val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
+  val unfold_const_app: iterm ->
+    ((string * (iclasslookup list list * itype)) * iterm list) option;
+  val add_constnames: iterm -> string list -> string list;
+  val add_varnames: iterm -> string list -> string list;
+  val is_pat: (string -> bool) -> iterm -> bool;
+  val vars_distinct: iterm list -> bool;
+  val map_pure: (iterm -> 'a) -> iterm -> 'a;
+  val eta_expand: (string * (iclasslookup list list * itype)) * iterm list -> int -> iterm;
+  val proper_name: string -> string;
+  val invent_name: string list -> string;
+  val give_names: string list -> 'a list -> (string * 'a) list;
+  val resolve_tycos: (string -> string) -> itype * iterm list -> itype * iterm list;
+  val resolve_consts: (string -> string) -> iterm -> iterm;
 
-  type funn = (iexpr list * iexpr) list * (sortcontext * itype);
+  type funn = (iterm list * iterm) list * (sortcontext * itype);
   type datatyp = sortcontext * (string * itype list) list;
   datatype def =
       Bot
@@ -131,20 +132,27 @@ fun unfoldr dest x =
     | SOME (x1, x2) =>
         let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
 
-fun map_yield f [] = ([], [])
-  | map_yield f (x::xs) =
-      let
-        val (y, x') = f x
-        val (ys, xs') = map_yield f xs
-      in (y::ys, x'::xs') end;
-
-fun get_prefix eq ([], ys) = ([], ([], ys))
-  | get_prefix eq (xs, []) = ([], (xs, []))
-  | get_prefix eq (xs as x::xs', ys as y::ys') =
-      if eq (x, y) then
-        let val (ps', xys'') = get_prefix eq (xs', ys')
-        in (x::ps', xys'') end
-      else ([], (xs, ys));
+fun proper_name s =
+  let
+    fun replace_invalid c =
+      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
+        andalso not (NameSpace.separator = c)
+      then c
+      else "_";
+    fun contract "_" (acc as "_" :: _) = acc
+      | contract c acc = c :: acc;
+    fun contract_underscores s =
+      implode (fold_rev contract (explode s) []);
+    fun ensure_char s =
+      if forall (Char.isDigit o the o Char.fromString) (explode s)
+        then prefix "x" s
+        else s
+  in
+    s
+    |> translate_string replace_invalid
+    |> contract_underscores
+    |> ensure_char
+  end;
 
 
 (** language core - types, pattern, expressions **)
@@ -163,15 +171,14 @@ datatype itype =
   | `-> of itype * itype
   | ITyVar of vname;
 
-datatype iexpr =
+datatype iterm =
     IConst of string * (iclasslookup list list * itype)
   | IVar of vname
-  | `$ of iexpr * iexpr
-  | `|-> of (vname * itype) * iexpr
-  | INum of IntInf.int (*non-negative!*) * iexpr
-  | IChar of string (*length one!*) * iexpr
-  | IAbs of ((iexpr * itype) * iexpr) * iexpr
-  | ICase of ((iexpr * itype) * (iexpr * iexpr) list) * iexpr;
+  | `$ of iterm * iterm
+  | `|-> of (vname * itype) * iterm
+  | INum of IntInf.int * iterm
+  | IChar of string * iterm
+  | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
     (*see also signature*)
 
 (*
@@ -213,32 +220,29 @@ fun pretty_itype (tyco `%% tys) =
   | pretty_itype (ITyVar v) =
       Pretty.str v;
 
-fun pretty_iexpr (IConst (c, _)) =
+fun pretty_iterm (IConst (c, _)) =
       Pretty.str c
-  | pretty_iexpr (IVar v) =
+  | pretty_iterm (IVar v) =
       Pretty.str ("?" ^ v)
-  | pretty_iexpr (e1 `$ e2) =
+  | pretty_iterm (e1 `$ e2) =
       (Pretty.enclose "(" ")" o Pretty.breaks)
-        [pretty_iexpr e1, pretty_iexpr e2]
-  | pretty_iexpr ((v, ty) `|-> e) =
+        [pretty_iterm e1, pretty_iterm e2]
+  | pretty_iterm ((v, ty) `|-> e) =
       (Pretty.enclose "(" ")" o Pretty.breaks)
-        [Pretty.str v, Pretty.str "::", pretty_itype ty, Pretty.str "|->", pretty_iexpr e]
-  | pretty_iexpr (INum (n, _)) =
+        [Pretty.str v, Pretty.str "::", pretty_itype ty, Pretty.str "|->", pretty_iterm e]
+  | pretty_iterm (INum (n, _)) =
       (Pretty.str o IntInf.toString) n
-  | pretty_iexpr (IChar (c, _)) =
+  | pretty_iterm (IChar (c, _)) =
       (Pretty.str o quote) c
-  | pretty_iexpr (IAbs (((e1, _), e2), _)) =
-      (Pretty.enclose "(" ")" o Pretty.breaks)
-        [pretty_iexpr e1, Pretty.str "|->", pretty_iexpr e2]
-  | pretty_iexpr (ICase (((e, _), cs), _)) =
+  | pretty_iterm (ICase (((e, _), cs), _)) =
       (Pretty.enclose "(" ")" o Pretty.breaks) [
         Pretty.str "case",
-        pretty_iexpr e,
+        pretty_iterm e,
         Pretty.enclose "(" ")" (map (fn (p, e) =>
           (Pretty.block o Pretty.breaks) [
-            pretty_iexpr p,
+            pretty_iterm p,
             Pretty.str "=>",
-            pretty_iexpr e
+            pretty_iterm e
           ]
         ) cs)
       ];
@@ -252,8 +256,9 @@ val unfold_app = unfoldl
     | _ => NONE);
 
 val unfold_abs = unfoldr
-  (fn (v, ty) `|-> e => SOME ((IVar v, ty), e)
-    | IAbs (((e1, ty), e2), _) => SOME ((e1, ty), e2)
+  (fn (v, ty) `|-> (e as ICase (((IVar w, _), [(se, be)]), _)) => 
+        if v = w then SOME ((se, ty), be) else SOME ((IVar v, ty), e)
+    | (v, ty) `|-> e => SOME ((IVar v, ty), e)
     | _ => NONE)
 
 val unfold_let = unfoldr
@@ -326,8 +331,6 @@ fun map_pure f (e as IConst _) =
       error ("sorry, no pure representation for numerals so far")
   | map_pure f (IChar (_, e0)) =
       f e0
-  | map_pure f (IAbs (_, e0)) =
-      f e0
   | map_pure f (ICase (_, e0)) =
       f e0;
 
@@ -346,8 +349,6 @@ fun add_constnames (IConst (c, _)) =
       I
   | add_constnames (IChar _) =
       I
-  | add_constnames (IAbs (_, e)) =
-      add_constnames e
   | add_constnames (ICase (_, e)) =
       add_constnames e;
 
@@ -363,23 +364,41 @@ fun add_varnames (IConst _) =
       I
   | add_varnames (IChar _) =
       I
-  | add_varnames (IAbs (((ve, _), be), _)) =
-      add_varnames ve #> add_varnames be
   | add_varnames (ICase (((de, _), bses), _)) =
       add_varnames de #> fold (fn (be, se) => add_varnames be #> add_varnames se) bses;
 
-fun invent seed used =
+fun vars_distinct es =
   let
-    val x = Name.variant used seed
-  in (x, x :: used) end;
+    fun distinct _ NONE =
+          NONE
+      | distinct (IConst _) x =
+          x
+      | distinct (IVar v) (SOME vs) =
+          if member (op =) vs v then NONE else SOME (v::vs)
+      | distinct (e1 `$ e2) x =
+          x |> distinct e1 |> distinct e2
+      | distinct (_ `|-> e) x =
+          x |> distinct e
+      | distinct (INum _) x =
+          x
+      | distinct (IChar _) x =
+          x
+      | distinct (ICase (((de, _), bses), _)) x =
+          x |> distinct de |> fold (fn (be, se) => distinct be #> distinct se) bses;
+  in is_some (fold distinct es (SOME [])) end;
+
+fun invent_name used = hd (Name.invent_list used "a" 1);
+
+fun give_names used xs =
+  Name.invent_list used "a" (length xs) ~~ xs;
 
 fun eta_expand (c as (_, (_, ty)), es) k =
   let
     val j = length es;
     val l = k - j;
     val tys = (curry Library.take l o curry Library.drop j o fst o unfold_fun) ty;
-    val vs = [] |> fold add_varnames es |> fold_map invent (replicate l "x") |> fst;
-  in vs ~~ tys `|--> IConst c `$$ es @ map IVar vs end;
+    val vs_tys = give_names (fold add_varnames es []) tys;
+  in vs_tys `|--> IConst c `$$ es @ map (fn (v, _) => IVar v) vs_tys end;
 
 
 
@@ -387,7 +406,7 @@ fun eta_expand (c as (_, (_, ty)), es) k =
 
 (* type definitions *)
 
-type funn = (iexpr list * iexpr) list * (sortcontext * itype);
+type funn = (iterm list * iterm) list * (sortcontext * itype);
 type datatyp = sortcontext * (string * itype list) list;
 
 datatype def =
@@ -419,10 +438,10 @@ fun pretty_def Bot =
       Pretty.enum " |" "" "" (
         map (fn (ps, body) =>
           Pretty.block [
-            Pretty.enum "," "[" "]" (map pretty_iexpr ps),
+            Pretty.enum "," "[" "]" (map pretty_iterm ps),
             Pretty.str " |->",
             Pretty.brk 1,
-            pretty_iexpr body,
+            pretty_iterm body,
             Pretty.str "::",
             pretty_sortcontext sortctxt,
             Pretty.str "/",
@@ -615,8 +634,8 @@ fun add_dep (name1, name2) modl =
     let
       val m1 = dest_name name1 |> apsnd single |> (op @);
       val m2 = dest_name name2 |> apsnd single |> (op @);
-      val (ms, (r1, r2)) = get_prefix (op =) (m1, m2);
-      val (ms, (s1::r1, s2::r2)) = get_prefix (op =) (m1, m2);
+      val (ms, (r1, r2)) = chop_prefix (op =) (m1, m2);
+      val (ms, (s1::r1, s2::r2)) = chop_prefix (op =) (m1, m2);
       val add_edge =
         if null r1 andalso null r2
         then Graph.add_edge
@@ -979,7 +998,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
           in (p' :: ps', tab'') end;
     fun deresolv tab prefix name =
       let
-        val (common, (_, rem)) = get_prefix (op =) (prefix, NameSpace.unpack name);
+        val (common, (_, rem)) = chop_prefix (op =) (prefix, NameSpace.unpack name);
         val (_, SOME tab') = get_path_name common tab;
         val (name', _) = get_path_name rem tab';
       in NameSpace.pack name' end;

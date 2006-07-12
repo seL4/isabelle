@@ -20,7 +20,6 @@ sig
   val purge_defs: string * typ -> theory -> theory;
   val notify_dirty: theory -> theory;
 
-  val proper_name: string -> string;
   val extr_typ: theory -> thm -> typ;
   val common_typ: theory -> (thm -> typ) -> thm list -> thm list;
   val preprocess: theory -> thm list -> thm list;
@@ -57,29 +56,6 @@ fun debug_msg f x = (if !debug then Output.debug (f x) else (); x);
 
 
 (* auxiliary *)
-
-fun proper_name s =
-  let
-    fun replace_invalid c =
-      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
-        andalso not (NameSpace.separator = c)
-      then c
-      else "_";
-    fun contract "_" (acc as "_" :: _) = acc
-      | contract c acc = c :: acc;
-    fun contract_underscores s =
-      implode (fold_rev contract (explode s) []);
-    fun ensure_char s =
-      if forall (Char.isDigit o the o Char.fromString) (explode s)
-        then prefix "x" s
-        else s
-  in
-    s
-    |> translate_string replace_invalid
-    |> contract_underscores
-    |> ensure_char
-  end;
-
 
 fun getf_first [] _ = NONE
   | getf_first (f::fs) x = case f x
@@ -190,7 +166,7 @@ fun mk_obj_conj thy (x, y) =
 fun mk_obj_eq thy (x, y) =
   let
     val ((b, _), ((tr, fl), (con, eq))) = get_obj thy;
-  in Const (eq, type_of x --> type_of y --> b) $ x $ y end;
+  in Const (eq, fastype_of x --> fastype_of y --> b) $ x $ y end;
 
 fun is_obj_eq thy c =
   let
@@ -214,7 +190,7 @@ fun abs_norm thy thm =
     fun expvars t =
       let
         val lhs = (fst o Logic.dest_equals) t;
-        val tys = (fst o strip_type o type_of) lhs;
+        val tys = (fst o strip_type o fastype_of) lhs;
         val used = fold_aterms (fn Var ((v, _), _) => insert (op =) v | _ => I) lhs [];
         val vs = Name.invent_list used "x" (length tys);
       in
@@ -248,7 +224,7 @@ fun canonical_tvars thy thm =
             (ctyp_of thy ty, ctyp_of thy (TVar ((v', maxidx), sort))) :: acc)
         end;
     val lower_name = (prefix "'" o implode o map (Char.toString o Char.toLower o the o Char.fromString)
-      o explode o proper_name o unprefix "'");
+      o explode o CodegenThingol.proper_name o unprefix "'");
     fun tvars_of thm = (fold_types o fold_atyps)
       (fn TVar (v_i as (v, i), sort) => cons (v_i, (lower_name v, sort))
         | _ => I) (prop_of thm) [];
@@ -267,7 +243,7 @@ fun canonical_vars thy thm =
             (cterm_of thy t, cterm_of thy (Var ((v', maxidx), ty))) :: acc)
         end;
     val lower_name = (implode o map (Char.toString o Char.toLower o the o Char.fromString)
-      o explode o proper_name);
+      o explode o CodegenThingol.proper_name);
     fun vars_of thm = fold_aterms
       (fn Var (v_i as (v, i), ty) => cons (v_i, (lower_name v, ty))
         | _ => I) (prop_of thm) [];
@@ -577,7 +553,7 @@ fun common_typ thy _ [] = []
         fun incr_thm thm max =
           let
             val thm' = incr_indexes max thm;
-            val max' = (maxidx_of_typ o type_of o Drule.plain_prop_of) thm' + 1;
+            val max' = (maxidx_of_typ o fastype_of o Drule.plain_prop_of) thm' + 1;
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
         val (ty1::tys) = map extract_typ thms;
@@ -765,7 +741,7 @@ in
   val _ = map (Context.add_setup o add_simple_attribute) [
     ("fun", add_fun),
     ("unfold", (fn thm => Codegen.add_unfold thm #> add_unfold thm)),
-    ("unfolt", add_unfold),
+    ("inline", add_unfold),
     ("nofold", del_unfold)
   ]
 end; (*local*)

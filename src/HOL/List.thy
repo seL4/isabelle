@@ -270,7 +270,7 @@ subsubsection {* @{text null} *}
 lemma null_empty: "null xs = (xs = [])"
   by (cases xs) simp_all
 
-lemma empty_null [code unfolt]:
+lemma empty_null [code inline]:
   "(xs = []) = null xs"
 using null_empty [symmetric] .
 
@@ -2698,12 +2698,13 @@ in
 val list_codegen_setup =
   Codegen.add_codegen "list_codegen" list_codegen
   #> Codegen.add_codegen "char_codegen" char_codegen
+  #> CodegenPackage.add_appconst ("Numeral.number_of", appgen_number)
   #> fold (CodegenPackage.add_pretty_list "Nil" "Cons") [
        ("ml", (7, "::")),
        ("haskell", (5, ":"))
      ]
   #> CodegenPackage.add_appconst
-       ("List.char.Char", ((2, 2), CodegenPackage.appgen_char dest_char));
+       ("List.char.Char", CodegenPackage.appgen_char dest_char);
 
 end;
 *}

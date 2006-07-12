@@ -781,23 +781,23 @@ by (simp add: nat_mult_div_cancel1)
 
 subsection {* code generator setup *}
 
-lemma elim_nat [code unfolt]:
+lemma elim_nat [code inline]:
   "(number_of n :: nat) = nat (number_of n)"
   by simp
 
-lemma elim_zero [code unfolt]:
+lemma elim_zero [code inline]:
   "(0::int) = number_of (Numeral.Pls)" 
   by simp
 
-lemma elim_one [code unfolt]:
+lemma elim_one [code inline]:
   "(1::int) = number_of (Numeral.Pls BIT bit.B1)" 
   by simp
 
-lemma elim_one_nat [code unfolt]:
+lemma elim_one_nat [code inline]:
   "1 = Suc 0"
   by simp
 
-lemmas [code unfolt] =
+lemmas [code inline] =
   bin_minus_Pls bin_minus_Min bin_minus_1 bin_minus_0
   bin_pred_Pls  bin_pred_Min  bin_pred_1  bin_pred_0
 

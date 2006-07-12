@@ -77,7 +77,7 @@ text {*
   by unfolding in place.
 *}
 
-lemma [code unfolt]:
+lemma [code inline]:
   "0 = nat 0"
   "Suc = (op +) 1"
 by (simp_all add: expand_fun_eq)

@@ -29,7 +29,7 @@ fun gen_simtype prep_term do_proof (raw_repm, raw_absm) (raw_repi, raw_absi) raw
           else raise TYPE ("dest_fun", [ty], [])
       | dest_fun ty = raise TYPE ("dest_fun", [ty], []);
     val PROP = ObjectLogic.ensure_propT thy
-    val (ty_abs, ty_rep) = (dest_fun o type_of) repm;
+    val (ty_abs, ty_rep) = (dest_fun o fastype_of) repm;
     val (tyco_abs, ty_parms) = dest_Type ty_abs;
     val _ = if exists (fn TFree _ => false | _ => true) ty_parms then raise TYPE ("no TFree", ty_parms, []) else ();
     val repv = Free ("x", ty_rep);

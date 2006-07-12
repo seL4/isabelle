@@ -25,7 +25,7 @@ sig
     | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm)
                                          (*functions*);
 
-  val nbe: Univ Symtab.table -> CodegenThingol.iexpr -> nterm
+  val nbe: Univ Symtab.table -> CodegenThingol.iterm -> nterm
   val apply: Univ -> Univ -> Univ
 
   val to_term: Univ -> nterm

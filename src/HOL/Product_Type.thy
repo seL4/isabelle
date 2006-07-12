@@ -842,12 +842,10 @@ fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
   | _ => NONE);
 
 val prod_codegen_setup =
-  Codegen.add_codegen "let_codegen" let_codegen #>
-  Codegen.add_codegen "split_codegen" split_codegen #>
-  CodegenPackage.add_appconst
-    ("Let", ((2, 2), CodegenPackage.appgen_let strip_abs_split)) #>
-  CodegenPackage.add_appconst
-    ("split", ((1, 1), CodegenPackage.appgen_split strip_abs_split));
+  Codegen.add_codegen "let_codegen" let_codegen
+  #> Codegen.add_codegen "split_codegen" split_codegen
+  #> CodegenPackage.add_appconst
+       ("Let", CodegenPackage.appgen_let)
 
 *}
 

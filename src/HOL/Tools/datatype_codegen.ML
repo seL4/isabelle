@@ -1,6 +1,6 @@
 (*  Title:      HOL/datatype_codegen.ML
     ID:         $Id$
-    Author:     Stefan Berghofer, TU Muenchen
+    Author:     Stefan Berghofer & Florian Haftmann, TU Muenchen
 
 Code generator for inductive datatypes.
 *)
@@ -10,6 +10,8 @@ sig
   val get_datatype_spec_thms: theory -> string
     -> (((string * sort) list * (string * typ list) list) * tactic) option
   val get_all_datatype_cons: theory -> (string * string) list
+  val dest_case_expr: theory -> term
+    -> ((string * typ) list * ((term * typ) * (term * term) list)) option;
   val add_datatype_case_const: string -> theory -> theory
   val add_datatype_case_defs: string -> theory -> theory
   val setup: theory -> theory
@@ -304,6 +306,34 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
 
 (** code 2nd generation **)
 
+fun dtyp_of_case_const thy c =
+  get_first (fn (dtco, { case_name, ... }) => if case_name = c then SOME dtco else NONE)
+    ((Symtab.dest o DatatypePackage.get_datatypes) thy);
+
+fun dest_case_app cs ts tys =
+  let
+    val abs = CodegenThingol.give_names [] (Library.drop (length ts, tys));
+    val (ts', t) = split_last (ts @ map Free abs);
+    val (tys', sty) = split_last tys;
+    fun freenames_of t = fold_aterms
+      (fn Free (v, _) => insert (op =) v | _ => I) t [];
+    fun dest_case ((c, tys_decl), ty) t =
+      let
+        val (vs, t') = Term.strip_abs_eta (length tys_decl) t;
+        val c' = list_comb (Const (c, map snd vs ---> sty), map Free vs);
+      in (c', t') end;
+  in (abs, ((t, sty), map2 dest_case (cs ~~ tys') ts')) end;
+
+fun dest_case_expr thy t =
+  case strip_comb t
+   of (Const (c, ty), ts) =>
+        (case dtyp_of_case_const thy c
+         of SOME dtco =>
+              let val (vs, cs) = (the o DatatypePackage.get_datatype_spec thy) dtco;
+              in SOME (dest_case_app cs ts (Library.take (length cs + 1, (fst o strip_type) ty))) end
+          | _ => NONE)
+    | _ => NONE;
+
 fun datatype_tac thy dtco =
   let
     val ctxt = Context.init_proof thy;
@@ -333,10 +363,9 @@ fun get_all_datatype_cons thy =
 
 fun add_datatype_case_const dtco thy =
   let
-    val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco
+    val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco;
   in
-    CodegenPackage.add_case_const case_name
-      ((map (apsnd length) o #3 o the o AList.lookup (op =) descr) index) thy
+    CodegenPackage.add_appconst_i (case_name, CodegenPackage.appgen_case dest_case_expr) thy
   end;
 
 fun add_datatype_case_defs dtco thy =
@@ -351,8 +380,6 @@ val setup =
   add_tycodegen "datatype" datatype_tycodegen #>
   CodegenTheorems.add_datatype_extr
     get_datatype_spec_thms #>
-  CodegenPackage.set_get_datatype
-    DatatypePackage.get_datatype_spec #>
   CodegenPackage.set_get_all_datatype_cons
     get_all_datatype_cons #>
   DatatypeHooks.add add_datatype_case_const #>

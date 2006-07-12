@@ -227,9 +227,9 @@ primrec
   "is_none None = True"
   "is_none (Some x) = False"
 
-lemma is_none_none [code unfolt]:
+lemma is_none_none [code inline]:
   "(x = None) = (is_none x)" 
-by (cases "x") simp_all
+by (cases x) simp_all
 
 lemmas [code] = imp_conv_disj
 
@@ -256,6 +256,10 @@ declare
   if_False [code fun]
   fst_conv [code]
   snd_conv [code]
+
+lemma split_is_prod_case [code inline]:
+  "split = prod_case"
+by (simp add: expand_fun_eq split_def prod.cases)
 
 code_typapp bool
   ml (target_atom "bool")
