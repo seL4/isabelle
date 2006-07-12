@@ -190,7 +190,7 @@ val scan_blank =
 
 (* scan symbolic idents *)
 
-val sym_chars = explode "!#$%&*+-/:<=>?@^_|~";
+val sym_chars = explode "!#$%&*+-/<=>?@^_|~";
 fun is_sym_char s = s mem sym_chars;
 
 val scan_symid =
@@ -203,7 +203,7 @@ fun is_symid str =
   | SOME ss => forall is_sym_char ss
   | _ => false);
 
-val is_sid = is_symid orf Syntax.is_identifier;
+fun is_sid s = s = ":" orelse is_symid s orelse Syntax.is_identifier s;
 
 
 (* scan strings *)
