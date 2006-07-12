@@ -85,6 +85,10 @@ certain special cases of literal facts:
   have "!!x. P x ==> Q x" by fact  ==  note `!!x. P x ==> Q x`
   have "P a ==> Q a" by fact       ==  note `P a ==> Q a`
 
+* Isar: ":" (colon) is no longer a symbolic identifier character in
+outer syntax.  Thus symbolic identifiers may be used without
+additional white space in declarations like this: ``assume *: A''.
+
 * Isar: 'print_facts' prints all local facts of the current context,
 both named and unnamed ones.
 
