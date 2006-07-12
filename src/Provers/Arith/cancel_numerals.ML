@@ -36,8 +36,7 @@ sig
   val bal_add1: thm
   val bal_add2: thm
   (*proof tools*)
-  val prove_conv: tactic list -> Proof.context ->
-                  thm list -> string list -> term * term -> thm option
+  val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
   val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
   val norm_tac: simpset -> tactic                (*proves the initial lemma*)
   val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
@@ -69,41 +68,41 @@ fun find_common (terms1,terms2) =
 (*the simplification procedure*)
 fun proc ss t =
   let
-      val ctxt = Simplifier.the_context ss;
-      val hyps = prems_of_ss ss;
-      (*first freeze any Vars in the term to prevent flex-flex problems*)
-      val (t', xs) = Term.adhoc_freeze_vars t;
-      val (t1,t2) = Data.dest_bal t'
-      val terms1 = Data.dest_sum t1
-      and terms2 = Data.dest_sum t2
-      val u = find_common (terms1,terms2)
-      val (n1, terms1') = Data.find_first_coeff u terms1
-      and (n2, terms2') = Data.find_first_coeff u terms2
-      and T = Term.fastype_of u
-      fun newshape (i,terms) = Data.mk_sum T (Data.mk_coeff(i,u)::terms)
-      val reshape =  (*Move i*u to the front and put j*u into standard form
+    val ctxt = Simplifier.the_context ss
+    val prems = prems_of_ss ss
+    val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+    val export = singleton (Variable.export ctxt' ctxt)
+
+    val (t1,t2) = Data.dest_bal t'
+    val terms1 = Data.dest_sum t1
+    and terms2 = Data.dest_sum t2
+
+    val u = find_common (terms1, terms2)
+    val (n1, terms1') = Data.find_first_coeff u terms1
+    and (n2, terms2') = Data.find_first_coeff u terms2
+    and T = Term.fastype_of u
+
+    fun newshape (i,terms) = Data.mk_sum T (Data.mk_coeff(i,u)::terms)
+    val reshape =  (*Move i*u to the front and put j*u into standard form
                        i + #m + j + k == #m + i + (j + k) *)
-            if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
-                raise TERM("cancel_numerals", [])
-            else Data.prove_conv [Data.norm_tac ss] ctxt hyps xs
-                        (t',
-                         Data.mk_bal (newshape(n1,terms1'),
-                                      newshape(n2,terms2')))
+        if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
+          raise TERM("cancel_numerals", [])
+        else Data.prove_conv [Data.norm_tac ss] ctxt prems
+          (t', Data.mk_bal (newshape(n1,terms1'), newshape(n2,terms2')))
   in
-      Option.map (Data.simplify_meta_eq ss)
-       (if n2<=n1 then
-            Data.prove_conv
-               [Data.trans_tac ss reshape, rtac Data.bal_add1 1,
-                Data.numeral_simp_tac ss] ctxt hyps xs
-               (t', Data.mk_bal (newshape(n1-n2,terms1'),
-                                 Data.mk_sum T terms2'))
-        else
-            Data.prove_conv
-               [Data.trans_tac ss reshape, rtac Data.bal_add2 1,
-                Data.numeral_simp_tac ss] ctxt hyps xs
-               (t', Data.mk_bal (Data.mk_sum T terms1',
-                                 newshape(n2-n1,terms2'))))
+    Option.map (export o Data.simplify_meta_eq ss)
+      (if n2 <= n1 then
+         Data.prove_conv
+           [Data.trans_tac ss reshape, rtac Data.bal_add1 1,
+            Data.numeral_simp_tac ss] ctxt prems
+           (t', Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum T terms2'))
+       else
+         Data.prove_conv
+           [Data.trans_tac ss reshape, rtac Data.bal_add2 1,
+            Data.numeral_simp_tac ss] ctxt prems
+           (t', Data.mk_bal (Data.mk_sum T terms1', newshape(n2-n1,terms2'))))
   end
+  (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
                              Undeclared type constructor "Numeral.bin"*)

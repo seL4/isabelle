@@ -29,8 +29,7 @@ sig
   val neg_exchanges: bool  (*true if a negative coeff swaps the two operands,
                              as with < and <= but not = and div*)
   (*proof tools*)
-  val prove_conv: tactic list -> Proof.context -> 
-                  thm list -> string list -> term * term -> thm option
+  val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
   val trans_tac: simpset -> thm option -> tactic (*applies the initial lemma*)
   val norm_tac: simpset -> tactic                (*proves the initial lemma*)
   val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
@@ -41,43 +40,45 @@ end;
 functor CancelNumeralFactorFun(Data: CANCEL_NUMERAL_FACTOR_DATA):
   sig
   val proc: simpset -> term -> thm option
-  end 
+  end
 =
 struct
 
 (*the simplification procedure*)
 fun proc ss t =
   let
-      val ctxt = Simplifier.the_context ss;
-      val hyps = prems_of_ss ss;
-      (*first freeze any Vars in the term to prevent flex-flex problems*)
-      val (t', xs) = Term.adhoc_freeze_vars t;
-      val (t1,t2) = Data.dest_bal t' 
-      val (m1, t1') = Data.dest_coeff t1
-      and (m2, t2') = Data.dest_coeff t2
-      val d = (*if both are negative, also divide through by ~1*)
-          if (m1<0 andalso m2<=0) orelse
-             (m1<=0 andalso m2<0) then ~ (abs(gcd(m1,m2))) else abs (gcd(m1,m2))
-      val _ = if d=1 then   (*trivial, so do nothing*)
-		      raise TERM("cancel_numeral_factor", []) 
-              else ()
-      fun newshape (i,t) = Data.mk_coeff(d, Data.mk_coeff(i,t))
-      val n1 = m1 div d and n2 = m2 div d
-      val rhs = if d<0 andalso Data.neg_exchanges
-                then Data.mk_bal (Data.mk_coeff(n2,t2'), Data.mk_coeff(n1,t1'))
-                else Data.mk_bal (Data.mk_coeff(n1,t1'), Data.mk_coeff(n2,t2'))
-      val reshape =  (*Move d to the front and put the rest into standard form
-		       i * #m * j == #d * (#n * (j * k)) *)
-	    Data.prove_conv [Data.norm_tac ss] ctxt hyps xs
-	      (t',   Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
+    val ctxt = Simplifier.the_context ss;
+    val prems = prems_of_ss ss;
+    val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+    val export = singleton (Variable.export ctxt' ctxt)
+
+    val (t1,t2) = Data.dest_bal t'
+    val (m1, t1') = Data.dest_coeff t1
+    and (m2, t2') = Data.dest_coeff t2
+    val d = (*if both are negative, also divide through by ~1*)
+      if (m1<0 andalso m2<=0) orelse
+         (m1<=0 andalso m2<0) then ~ (abs(gcd(m1,m2))) else abs (gcd(m1,m2))
+    val _ = if d=1 then   (*trivial, so do nothing*)
+              raise TERM("cancel_numeral_factor", [])
+            else ()
+    fun newshape (i,t) = Data.mk_coeff(d, Data.mk_coeff(i,t))
+    val n1 = m1 div d and n2 = m2 div d
+    val rhs = if d<0 andalso Data.neg_exchanges
+              then Data.mk_bal (Data.mk_coeff(n2,t2'), Data.mk_coeff(n1,t1'))
+              else Data.mk_bal (Data.mk_coeff(n1,t1'), Data.mk_coeff(n2,t2'))
+    val reshape =  (*Move d to the front and put the rest into standard form
+                       i * #m * j == #d * (#n * (j * k)) *)
+      Data.prove_conv [Data.norm_tac ss] ctxt prems
+        (t', Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
   in
-      Option.map (Data.simplify_meta_eq ss)
-       (Data.prove_conv 
-	       [Data.trans_tac ss reshape, rtac Data.cancel 1,
-		Data.numeral_simp_tac ss] ctxt hyps xs (t', rhs))
+    Option.map (export o Data.simplify_meta_eq ss)
+      (Data.prove_conv
+         [Data.trans_tac ss reshape, rtac Data.cancel 1,
+          Data.numeral_simp_tac ss] ctxt prems (t', rhs))
   end
+  (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
-			     Undeclared type constructor "Numeral.bin"*)
+                             Undeclared type constructor "Numeral.bin"*)
 
 end;
