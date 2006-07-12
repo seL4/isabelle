@@ -223,8 +223,6 @@ proof -
   from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
 qed
 
-print_theorems
-
 instance group < monoid
 proof
   fix x :: "'a::group"

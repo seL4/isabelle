@@ -46,9 +46,6 @@ sig
   val sortcontext_of_typ: theory -> typ -> sortcontext
   val sortlookup: theory -> sort * typ -> classlookup list
   val sortlookups_const: theory -> string * typ -> classlookup list list
-
-  val use_instance2: bool ref;
-  val the_propnames: theory -> class -> string list
 end;
 
 structure ClassPackage: CLASS_PACKAGE =
@@ -205,6 +202,7 @@ fun add_inst_def ((class, tyco), thm) =
     Symtab.map_entry class (fn ClassData (classd, instd) =>
       ClassData (classd, Symtab.insert_list eq_thm (tyco, thm) instd))
   );
+
 
 (* name handling *)
 
@@ -517,30 +515,21 @@ fun gen_instance_sort prep_class prep_sort do_proof (raw_class, raw_sort) theory
     val const_names = (map (NameSpace.base o fst o snd)
       o maps (#consts o fst o the_class_data theory)
       o the_ancestry theory) [class];
-    val prop_tab = AList.make (the_propnames theory)
-      (the_ancestry theory sort);
-    fun mk_thm_names (superclass, prop_names) =
-      let
-        val thm_name_base = NameSpace.append "local" (space_implode "_" const_names);
-        val export_name = class ^ "_" ^ superclass;
-      in (export_name, map (Name o NameSpace.append thm_name_base) prop_names) end;
-    val notes_tab_proto = map mk_thm_names prop_tab;
-    fun test_note thy thmref =
-      can (Locale.note_thmss PureThy.corollaryK loc_name
-        [(("", []), [(thmref, [])])]) (Theory.copy thy);
-    val notes_tab = map_filter (fn (export_name, thm_names) =>
-     case filter (test_note theory) thm_names
-     of [] => NONE
-      | thm_names' => SOME (export_name, thm_names')) notes_tab_proto;
-    val _ = writeln ("fishing for ");
-    val _ = print notes_tab;
-    fun after_qed thy = thy;
-    fun after_qed''' thy =
-      fold (fn supclass =>
-        AxClass.prove_classrel (class, supclass)
-          (ALLGOALS (K (intro_classes_tac [])) THEN
-            (ALLGOALS o resolve_tac o flat) [])
-      ) sort thy;
+    fun get_thms thy =
+      the_ancestry thy sort
+      |> AList.make (the_propnames thy)
+      |> map (apsnd (map (NameSpace.append (loc_name))))
+      |> map_filter (fn (superclass, thm_names) =>
+          case map_filter (try (PureThy.get_thm thy o Name)) thm_names
+           of [] => NONE
+            | thms => SOME (superclass, thms));
+    fun after_qed thy =
+      thy
+      |> `get_thms
+      |-> fold (fn (supclass, thms) => I
+            AxClass.prove_classrel (class, supclass)
+              (ALLGOALS (K (intro_classes_tac [])) THEN
+                (ALLGOALS o ProofContext.fact_tac) thms))
   in
     theory
     |> do_proof after_qed (loc_name, loc_expr)
@@ -605,7 +594,7 @@ fun sortlookup thy (sort_decl, typ_ctxt) =
 
 fun sortlookups_const thy (c, typ_ctxt) =
   let
-    val typ_decl = case AxClass.class_of thy c
+    val typ_decl = case AxClass.class_of_param thy c
      of NONE => Sign.the_const_type thy c
       | SOME class => case the_consts_sign thy class of (v, cs) =>
           (Logic.legacy_varifyT o subst_clsvar v (TFree (v, [class])))
@@ -629,15 +618,13 @@ in
 
 val (classK, instanceK) = ("class", "instance")
 
-val use_instance2 = ref false;
-
-fun wrap_add_instance_sort (class, sort) thy =
-  if ! use_instance2
+fun wrap_add_instance_sort ((class, sort), use_interp) thy =
+  if use_interp
     andalso forall (is_some o lookup_class_data thy) (Sign.read_sort thy sort)
   then
     instance_sort (class, sort) thy
   else
-    axclass_instance_sort (class, sort) thy
+    axclass_instance_sort (class, sort) thy;
 
 val parse_inst =
   (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 P.sort --| P.$$$ ")")) [] -- P.xname --| P.$$$ "::" -- P.sort)
@@ -665,7 +652,7 @@ val classP =
 
 val instanceP =
   OuterSyntax.command instanceK "prove type arity or subclass relation" K.thy_goal ((
-      P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> wrap_add_instance_sort
+      P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) -- P.opt_keyword "open" >> wrap_add_instance_sort
       || P.opt_thm_name ":" -- (parse_inst -- Scan.repeat (P.opt_thm_name ":" -- P.prop))
            >> (fn (("", []), (((tyco, asorts), sort), [])) => axclass_instance_arity I (tyco, asorts, sort)
                 | (natts, (inst, defs)) => instance_arity inst natts defs)
