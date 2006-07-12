@@ -244,8 +244,8 @@ val del = $$$ "del";
 val colon = $$$ ":";
 val query = $$$ "?";
 val bang = $$$ "!";
-val query_colon = $$$ "?:";
-val bang_colon = $$$ "!:";
+val query_colon = $$$ "?" ^^ $$$ ":";
+val bang_colon = $$$ "!" ^^ $$$ ":";
 
 fun parens scan = $$$ "(" |-- scan --| $$$ ")";
 fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
