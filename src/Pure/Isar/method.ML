@@ -337,7 +337,7 @@ fun iprover_tac ctxt opt_lim =
 end;
 
 
-(* rule_tac etc. -- refer to dynamic goal state!! *)
+(* rule_tac etc. -- refer to dynamic goal state!! *)   (* FIXME cleanup!! *)
 
 fun bires_inst_tac bires_flag ctxt insts thm =
   let
@@ -420,9 +420,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
       end
            handle TERM (msg,_)   => (warning msg; no_tac st)
                 | THM  (msg,_,_) => (warning msg; no_tac st);
-  in
-    tac
-  end;
+  in tac end;
 
 local
 
@@ -433,19 +431,6 @@ fun gen_inst _ tac _ (quant, ([], thms)) =
         quant (insert_tac facts THEN' inst_tac ctxt insts thm))
   | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
 
-(* Preserve Var indexes of rl; increment revcut_rl instead.
-   Copied from tactic.ML *)
-fun make_elim_preserve rl =
-  let val {maxidx,...} = rep_thm rl
-      fun cvar xi = cterm_of ProtoPure.thy (Var(xi,propT));
-      val revcut_rl' =
-          instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
-                             (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
-      val arg = (false, rl, nprems_of rl)
-      val [th] = Seq.list_of (bicompose false arg 1 revcut_rl')
-  in  th  end
-  handle Bind => raise THM("make_elim_preserve", 1, [rl]);
-
 in
 
 val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
@@ -454,18 +439,18 @@ val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
 
 val cut_inst_meth =
   gen_inst
-    (fn ctxt => fn insts => bires_inst_tac false ctxt insts o make_elim_preserve)
+    (fn ctxt => fn insts => bires_inst_tac false ctxt insts o Tactic.make_elim_preserve)
     Tactic.cut_rules_tac;
 
 val dres_inst_meth =
   gen_inst
-    (fn ctxt => fn insts => bires_inst_tac true ctxt insts o make_elim_preserve)
+    (fn ctxt => fn insts => bires_inst_tac true ctxt insts o Tactic.make_elim_preserve)
     Tactic.dresolve_tac;
 
 val forw_inst_meth =
   gen_inst
     (fn ctxt => fn insts => fn rule =>
-       bires_inst_tac false ctxt insts (make_elim_preserve rule) THEN'
+       bires_inst_tac false ctxt insts (Tactic.make_elim_preserve rule) THEN'
        assume_tac)
     Tactic.forward_tac;
 
