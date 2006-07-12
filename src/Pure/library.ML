@@ -145,6 +145,7 @@ sig
   val equal_lists: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val chop_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val prefixes1: 'a list -> 'a list list
   val prefixes: 'a list -> 'a list list
@@ -750,6 +751,14 @@ fun take_prefix (pred : 'a -> bool)  (xs: 'a list) : 'a list * 'a list =
         | take (rxs, x :: xs) =
             if  pred x  then  take(x :: rxs, xs)  else  (rev rxs, x :: xs)
   in  take([], xs)  end;
+
+fun chop_prefix eq ([], ys) = ([], ([], ys))
+  | chop_prefix eq (xs, []) = ([], (xs, []))
+  | chop_prefix eq (xs as x::xs', ys as y::ys') =
+      if eq (x, y) then
+        let val (ps', xys'') = chop_prefix eq (xs', ys')
+        in (x::ps', xys'') end
+      else ([], (xs, ys));
 
 (* [x1, ..., xi, ..., xn]  --->  ([x1, ..., xi], [x(i+1), ..., xn])
    where xi is the last element that does not satisfy the predicate*)
