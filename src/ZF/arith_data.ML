@@ -12,8 +12,7 @@ sig
   val nat_cancel: simproc list
   (*tools for use in similar applications*)
   val gen_trans_tac: thm -> thm option -> tactic
-  val prove_conv: string -> tactic list -> Proof.context ->
-                  thm list -> string list -> term * term -> thm option
+  val prove_conv: string -> tactic list -> Proof.context -> thm list -> term * term -> thm option
   val simplify_meta_eq: thm list -> simpset -> thm -> thm
   (*debugging*)
   structure EqCancelNumeralsData   : CANCEL_NUMERALS_DATA
@@ -68,13 +67,13 @@ fun is_eq_thm th =
 
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 
-fun prove_conv name tacs ctxt hyps xs (t,u) =
+fun prove_conv name tacs ctxt prems (t,u) =
   if t aconv u then NONE
   else
-  let val hyps' = List.filter (not o is_eq_thm) hyps
-      val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
+  let val prems' = List.filter (not o is_eq_thm) prems
+      val goal = Logic.list_implies (map (#prop o Thm.rep_thm) prems',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
-  in SOME (hyps' MRS Goal.prove ctxt xs [] goal (K (EVERY tacs)))
+  in SOME (prems' MRS Goal.prove ctxt [] [] goal (K (EVERY tacs)))
       handle ERROR msg =>
         (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); NONE)
   end;

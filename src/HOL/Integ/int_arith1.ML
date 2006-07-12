@@ -92,14 +92,13 @@ val arith_special = thms"arith_special";
 
 structure Bin_Simprocs =
   struct
-  fun prove_conv tacs sg (hyps: thm list) xs (t, u) =
+  fun prove_conv tacs ctxt (_: thm list) (t, u) =
     if t aconv u then NONE
     else
       let val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
-      in SOME (Goal.prove sg xs [] eq (K (EVERY tacs))) end
+      in SOME (Goal.prove ctxt [] [] eq (K (EVERY tacs))) end
 
   fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
-  fun prove_conv_nohyps_novars tacs sg = prove_conv tacs sg [] [];
 
   fun prep_simproc (name, pats, proc) =
     Simplifier.simproc (Theory.sign_of (the_context())) name pats proc;
