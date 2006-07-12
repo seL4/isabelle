@@ -119,6 +119,7 @@ sig
   val eres_inst_tac'    : (indexname * string) list -> thm -> int -> tactic
   val res_inst_tac'     : (indexname * string) list -> thm -> int -> tactic
   val instantiate_tac'  : (indexname * string) list -> tactic
+  val make_elim_preserve: thm -> thm
 end;
 
 structure Tactic: TACTIC =
