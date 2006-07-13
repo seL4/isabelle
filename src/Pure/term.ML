@@ -816,20 +816,20 @@ val betapplys = Library.foldl betapply;
   of bound variables and implicit eta-expansion*)
 fun strip_abs_eta k t =
   let
-    val used = fold_aterms (fn Free (v, _) => cons v | _ => I) t [];
+    val used = fold_aterms (fn Free (v, _) => Name.declare v | _ => I) t Name.context;
     fun strip_abs t (0, used) = (([], t), (0, used))
       | strip_abs (Abs (v, T, t)) (k, used) =
           let
-            val v' = Name.variant used v;
+            val ([v'], used') = Name.variants [v] used;
             val t' = subst_bound (Free (v, T), t);
-            val ((vs, t''), (k', used')) = strip_abs t' (k - 1, v' :: used);
-          in (((v', T) :: vs, t''), (k', used')) end
+            val ((vs, t''), (k', used'')) = strip_abs t' (k - 1, used');
+          in (((v', T) :: vs, t''), (k', used'')) end
       | strip_abs t (k, used) = (([], t), (k, used));
     fun expand_eta [] t _ = ([], t)
       | expand_eta (T::Ts) t used =
           let
-            val v = hd (Name.invent_list used "a" 1)
-            val (vs, t') = expand_eta Ts (t $ Free (v, T)) (v :: used);
+            val ([v], used') = Name.variants [""] used;
+            val (vs, t') = expand_eta Ts (t $ Free (v, T)) used';
           in ((v, T) :: vs, t') end;
     val ((vs1, t'), (k', used')) = strip_abs t (k, used);
     val Ts = (fst o chop k' o fst o strip_type o fastype_of) t';
