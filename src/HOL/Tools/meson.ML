@@ -134,15 +134,19 @@ fun is_taut th =
   
 val not_refl_disj_D = thm"meson_not_refl_disj_D";
 
+(*Is either term a Var that does not properly occur in the other term?*)
+fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
+  | eliminable (u, t as Var _) = t aconv u orelse not (Logic.occs(t,u))
+  | eliminable _ = false;
+
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
        case HOLogic.dest_Trueprop (concl_of th) of
 	  (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) => 
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
 	| (Const ("op |", _) $ (Const("Not",_) $ (Const("op =",_) $ t $ u)) $ _) => 
-	    if is_Var t orelse is_Var u then (*Var inequation: delete or ignore*)
-		(refl_clause_aux (n-1) (th RS not_refl_disj_D)    (*delete*)
-		 handle THM _ => refl_clause_aux (n-1) (th RS disj_comm))  (*ignore*)
+	    if eliminable(t,u) 
+	    then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
 	    else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
 	| (Const ("op |", _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
 	| _ => (*not a disjunction*) th;
