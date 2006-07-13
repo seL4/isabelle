@@ -375,7 +375,8 @@ fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP 
 fun lookup_list tab key = these (lookup tab key);
 fun update_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 
-fun insert_list eq (key, x) = default (key, []) #> map_entry key (Library.insert eq x);
+fun insert_list eq (key, x) =
+  modify key (fn NONE => [x] | SOME xs => if Library.member eq xs x then raise SAME else x :: xs);
   
 fun remove_list eq (key, x) tab =
   map_entry key (fn xs => (case Library.remove eq x xs of [] => raise UNDEF key | ys => ys)) tab
