@@ -77,7 +77,7 @@ structure Data = ProofDataFun
   val name = "Pure/variable";
   type T = data;
   fun init thy =
-    make_data (false, Name.make_context ["", "'"], [], Vartab.empty,
+    make_data (false, Name.context, [], Vartab.empty,
       (Vartab.empty, Vartab.empty, [], Symtab.empty));
   fun print _ _ = ();
 );
@@ -148,8 +148,8 @@ val ins_types = fold_aterms
     | _ => I);
 
 val ins_sorts = fold_atyps
-  (fn TFree (x, S) => Vartab.update ((x, ~1), S)
-    | TVar v => Vartab.update v
+  (fn TFree (x, S) => Vartab.default ((x, ~1), S)
+    | TVar v => Vartab.default v
     | _ => I);
 
 val ins_used = fold_atyps
