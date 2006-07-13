@@ -17,7 +17,6 @@ sig
   val clean: string -> string
   type context
   val context: context
-  val make_context: string list -> context
   val declare: string -> context -> context
   val invents: context -> string -> int -> string list
   val invent_list: string list -> string -> int -> string list
@@ -80,7 +79,7 @@ fun declare_renaming (x, x') (Context tab) =
 
 fun declared (Context tab) = Symtab.lookup tab;
 
-val context = Context Symtab.empty;
+val context = Context Symtab.empty |> fold declare ["", "'"];
 fun make_context used = fold declare used context;
 
 
@@ -110,8 +109,7 @@ val variants = fold_map (fn name => fn ctxt =>
         NONE => x
       | SOME x' => vary (Symbol.bump_string (the_default x x')));
 
-    val (raw_x, n) = clean_index (name, 0);
-    val x = if raw_x = "" then "u" else raw_x;
+    val (x, n) = clean_index (name, 0);
     val (x', ctxt') =
       if is_none (declared ctxt x) then (x, declare x ctxt)
       else
