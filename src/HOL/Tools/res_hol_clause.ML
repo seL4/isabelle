@@ -437,7 +437,7 @@ fun make_axiom_clauses [] = []
     end;
 
 
-fun make_conjecture_clause n thm = make_clause(n,"Conjecture",Conjecture,thm);
+fun make_conjecture_clause n thm = make_clause(n,"conjecture",Conjecture,thm);
  
 
 fun make_conjecture_clauses_aux _ [] = []
