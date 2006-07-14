@@ -44,6 +44,8 @@ sig
   val skip_proofs: bool ref
   exception TERMINATE
   exception RESTART
+  val exn_message: exn -> string
+  val program: (unit -> 'a) -> 'a
   val checkpoint: state -> state
   val copy: state -> state
   type transition
@@ -64,9 +66,9 @@ sig
   val init: (bool -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
   val exit: transition -> transition
   val kill: transition -> transition
+  val history: (node History.T -> node History.T) -> transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
-  val history: (node History.T -> node History.T) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
   val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit)
     -> transition -> transition
@@ -93,11 +95,9 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
-  val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
-  val program: (unit -> 'a) -> 'a
   val set_state: state -> unit
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
@@ -247,11 +247,90 @@ exception RESTART;
 exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
 
+
+(* print exceptions *)
+
+local
+
+fun with_context f xs =
+  (case Context.get_context () of NONE => []
+  | SOME thy => map (f thy) xs);
+
+fun raised name [] = "exception " ^ name ^ " raised"
+  | raised name [msg] = "exception " ^ name ^ " raised: " ^ msg
+  | raised name msgs = cat_lines (("exception " ^ name ^ " raised:") :: msgs);
+
+fun exn_msg _ TERMINATE = "Exit."
+  | exn_msg _ RESTART = "Restart."
+  | exn_msg _ Interrupt = "Interrupt."
+  | exn_msg _ Output.TOPLEVEL_ERROR = "Error."
+  | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
+  | exn_msg _ (ERROR msg) = msg
+  | exn_msg detailed (EXCEPTION (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
+  | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
+  | exn_msg false (THEORY (msg, _)) = msg
+  | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
+  | exn_msg detailed (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
+      fail_msg detailed "simproc" ((name, Position.none), exn)
+  | exn_msg detailed (Attrib.ATTRIB_FAIL info) = fail_msg detailed "attribute" info
+  | exn_msg detailed (Method.METHOD_FAIL info) = fail_msg detailed "method" info
+  | exn_msg detailed (Antiquote.ANTIQUOTE_FAIL info) = fail_msg detailed "antiquotation" info
+  | exn_msg false (Syntax.AST (msg, _)) = raised "AST" [msg]
+  | exn_msg true (Syntax.AST (msg, asts)) =
+      raised "AST" (msg :: map (Pretty.string_of o Syntax.pretty_ast) asts)
+  | exn_msg false (TYPE (msg, _, _)) = raised "TYPE" [msg]
+  | exn_msg true (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
+        with_context Sign.string_of_typ Ts @ with_context Sign.string_of_term ts)
+  | exn_msg false (TERM (msg, _)) = raised "TERM" [msg]
+  | exn_msg true (TERM (msg, ts)) = raised "TERM" (msg :: with_context Sign.string_of_term ts)
+  | exn_msg false (THM (msg, _, _)) = raised "THM" [msg]
+  | exn_msg true (THM (msg, i, thms)) =
+      raised ("THM " ^ string_of_int i) (msg :: map Display.string_of_thm thms)
+  | exn_msg _ Option.Option = raised "Option" []
+  | exn_msg _ Library.UnequalLengths = raised "UnequalLengths" []
+  | exn_msg _ Empty = raised "Empty" []
+  | exn_msg _ Subscript = raised "Subscript" []
+  | exn_msg _ (Fail msg) = raised "Fail" [msg]
+  | exn_msg _ exn = General.exnMessage exn
+and fail_msg detailed kind ((name, pos), exn) =
+  "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_msg detailed exn;
+
+in
+
+fun exn_message exn = exn_msg (! debug) exn;
+
+fun print_exn NONE = ()
+  | print_exn (SOME (exn, s)) = Output.error_msg (cat_lines [exn_message exn, s]);
+
+end;
+
+
+(* controlled execution *)
+
+local
+
 fun debugging f x =
   if ! debug then
     setmp Library.do_transform_failure false
       exception_trace (fn () => f x)
   else f x;
+
+fun interruptible f x =
+  let val y = ref x
+  in raise_interrupt (fn () => y := f x) (); ! y end;
+
+in
+
+fun controlled_execution f =
+  f
+  |> debugging
+  |> interruptible
+  |> setmp Output.do_toplevel_errors false;
+
+fun program f =
+  Output.ML_errors (fn () => debugging f () handle exn => error (exn_message exn)) ();
+
+end;
 
 
 (* node transactions and recovery from stale theories *)
@@ -273,35 +352,28 @@ fun copy_node (Theory (thy, _)) = Theory (Theory.copy thy, NONE)
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
 
-fun interruptible f x =
-  let val y = ref x
-  in raise_interrupt (fn () => y := f x) (); ! y end;
-
 in
 
-fun transaction _ _ (State NONE) = raise UNDEF
-  | transaction hist f (State (SOME (node, term))) =
-      let
-        val cont_node = History.map checkpoint_node node;
-        val back_node = History.map copy_node cont_node;
-        fun state nd = State (SOME (nd, term));
-        fun normal_state nd = (state nd, NONE);
-        fun error_state nd exn = (state nd, SOME exn);
+fun transaction hist f (node, term) =
+  let
+    val cont_node = History.map checkpoint_node node;
+    val back_node = History.map copy_node cont_node;
+    fun state nd = State (SOME (nd, term));
+    fun normal_state nd = (state nd, NONE);
+    fun error_state nd exn = (state nd, SOME exn);
 
-        val (result, err) =
-          cont_node
-          |> (f
-              |> (if hist then History.apply_copy copy_node else History.map)
-              |> debugging
-              |> interruptible
-              |> setmp Output.do_toplevel_errors false)
-          |> normal_state
-          handle exn => error_state cont_node exn;
-      in
-        if is_stale result
-        then return (error_state back_node (the_default stale_theory err))
-        else return (result, err)
-      end;
+    val (result, err) =
+      cont_node
+      |> (f
+          |> (if hist then History.apply_copy copy_node else History.map)
+          |> controlled_execution)
+      |> normal_state
+      handle exn => error_state cont_node exn;
+  in
+    if is_stale result
+    then return (error_state back_node (the_default stale_theory err))
+    else return (result, err)
+  end;
 
 fun mapping f (State (SOME (node, term))) = State (SOME (History.map f node, term))
   | mapping _ state = state;
@@ -325,8 +397,8 @@ datatype trans =
                                                         (*init node; with exit/kill operation*)
   Exit |                                                (*conclude node*)
   Kill |                                                (*abort node*)
-  Keep of bool -> state -> unit |                       (*peek at state*)
   History of node History.T -> node History.T |         (*history operation (undo etc.)*)
+  Keep of bool -> state -> unit |                       (*peek at state*)
   Transaction of bool * (bool -> node -> node);         (*node transaction*)
 
 fun undo_limit int = if int then NONE else SOME 0;
@@ -343,11 +415,13 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr _ Kill (State NONE) = raise UNDEF
   | apply_tr _ Kill (State (SOME (node, (_, kill)))) =
       (kill (History.current node); State NONE)
-  | apply_tr int (Keep f) state =
-      (setmp Output.do_toplevel_errors false (raise_interrupt (f int)) state; state)
   | apply_tr _ (History _) (State NONE) = raise UNDEF
   | apply_tr _ (History f) (State (SOME (node, term))) = State (SOME (f node, term))
-  | apply_tr int (Transaction (hist, f)) state = transaction hist (fn x => f int x) state;
+  | apply_tr int (Keep f) state =
+      controlled_execution (fn x => tap (f int) x) state
+  | apply_tr _ (Transaction _) (State NONE) = raise UNDEF
+  | apply_tr int (Transaction (hist, f)) (State (SOME state)) =
+      transaction hist (fn x => f int x) state;
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
@@ -435,8 +509,8 @@ val reset = add_trans Reset;
 fun init f exit kill = add_trans (Init (f, (exit, kill)));
 val exit = add_trans Exit;
 val kill = add_trans Kill;
-val keep' = add_trans o Keep;
 val history = add_trans o History;
+val keep' = add_trans o Keep;
 fun map_current f = add_trans (Transaction (false, f));
 fun app_current f = add_trans (Transaction (true, f));
 
@@ -527,63 +601,6 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 (** toplevel transactions **)
 
-(* print exceptions *)
-
-local
-
-fun with_context f xs =
-  (case Context.get_context () of NONE => []
-  | SOME thy => map (f thy) xs);
-
-fun raised name [] = "exception " ^ name ^ " raised"
-  | raised name [msg] = "exception " ^ name ^ " raised: " ^ msg
-  | raised name msgs = cat_lines (("exception " ^ name ^ " raised:") :: msgs);
-
-fun exn_msg _ TERMINATE = "Exit."
-  | exn_msg _ RESTART = "Restart."
-  | exn_msg _ Interrupt = "Interrupt."
-  | exn_msg _ Output.TOPLEVEL_ERROR = "Error."
-  | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
-  | exn_msg _ (ERROR msg) = msg
-  | exn_msg detailed (EXCEPTION (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
-  | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
-  | exn_msg false (THEORY (msg, _)) = msg
-  | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
-  | exn_msg detailed (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
-      fail_msg detailed "simproc" ((name, Position.none), exn)
-  | exn_msg detailed (Attrib.ATTRIB_FAIL info) = fail_msg detailed "attribute" info
-  | exn_msg detailed (Method.METHOD_FAIL info) = fail_msg detailed "method" info
-  | exn_msg detailed (Antiquote.ANTIQUOTE_FAIL info) = fail_msg detailed "antiquotation" info
-  | exn_msg false (Syntax.AST (msg, _)) = raised "AST" [msg]
-  | exn_msg true (Syntax.AST (msg, asts)) =
-      raised "AST" (msg :: map (Pretty.string_of o Syntax.pretty_ast) asts)
-  | exn_msg false (TYPE (msg, _, _)) = raised "TYPE" [msg]
-  | exn_msg true (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
-        with_context Sign.string_of_typ Ts @ with_context Sign.string_of_term ts)
-  | exn_msg false (TERM (msg, _)) = raised "TERM" [msg]
-  | exn_msg true (TERM (msg, ts)) = raised "TERM" (msg :: with_context Sign.string_of_term ts)
-  | exn_msg false (THM (msg, _, _)) = raised "THM" [msg]
-  | exn_msg true (THM (msg, i, thms)) =
-      raised ("THM " ^ string_of_int i) (msg :: map Display.string_of_thm thms)
-  | exn_msg _ Option.Option = raised "Option" []
-  | exn_msg _ Library.UnequalLengths = raised "UnequalLengths" []
-  | exn_msg _ Empty = raised "Empty" []
-  | exn_msg _ Subscript = raised "Subscript" []
-  | exn_msg _ (Fail msg) = raised "Fail" [msg]
-  | exn_msg _ exn = General.exnMessage exn
-and fail_msg detailed kind ((name, pos), exn) =
-  "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_msg detailed exn;
-
-in
-
-fun exn_message exn = exn_msg (! debug) exn;
-
-fun print_exn NONE = ()
-  | print_exn (SOME (exn, s)) = Output.error_msg (cat_lines [exn_message exn, s]);
-
-end;
-
-
 (* apply transitions *)
 
 local
@@ -644,12 +661,6 @@ fun present_excursion trs res =
 fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
 
 end;
-
-
-(* toplevel program: independent of state *)
-
-fun program f =
-  Output.ML_errors (fn () => debugging f () handle exn => error (exn_message exn)) ();
 
 
 
