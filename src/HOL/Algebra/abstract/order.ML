@@ -7,8 +7,9 @@
 
 (*** Term order for commutative rings ***)
 
-fun ring_ord a =
-  find_index (fn a' => a = a') ["0", "HOL.plus", "HOL.uminus", "HOL.minus", "1", "HOL.times"];
+fun ring_ord (Const (a, _)) =
+    find_index (fn a' => a = a') ["0", "HOL.plus", "HOL.uminus", "HOL.minus", "1", "HOL.times"]
+  | ring_ord _ = ~1;
 
 fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
 

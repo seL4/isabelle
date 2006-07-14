@@ -172,7 +172,7 @@ sig
   val term_ord: term * term -> order
   val hd_ord: term * term -> order
   val termless: term * term -> bool
-  val term_lpo: (string -> int) -> term * term -> order
+  val term_lpo: (term -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val rename_abs: term -> term -> term -> term option
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
@@ -646,23 +646,26 @@ end;
   Without variables.  Const, Var, Bound, Free and Abs are treated all as
   constants.
 
-  f_ord maps strings to integers and serves two purposes:
+  f_ord maps terms to integers and serves two purposes:
   - Predicate on constant symbols.  Those that are not recognised by f_ord
     must be mapped to ~1.
   - Order on the recognised symbols.  These must be mapped to distinct
     integers >= 0.
-
+  The argument of f_ord is never an application.
 *)
 
 local
-fun dest_hd f_ord (Const (a, T)) =
-      let val ord = f_ord a in
-        if ord = ~1 then ((1, ((a, 0), T)), 0) else ((0, (("", ord), T)), 0)
+
+fun unrecognized (Const (a, T)) = ((1, ((a, 0), T)), 0)
+  | unrecognized (Free (a, T)) = ((1, ((a, 0), T)), 0)
+  | unrecognized (Var v) = ((1, v), 1)
+  | unrecognized (Bound i) = ((1, (("", i), dummyT)), 2)
+  | unrecognized (Abs (_, T, _)) = ((1, (("", 0), T)), 3);
+
+fun dest_hd f_ord t =
+      let val ord = f_ord t in
+        if ord = ~1 then unrecognized t else ((0, (("", ord), fastype_of t)), 0)
       end
-  | dest_hd _ (Free (a, T)) = ((1, ((a, 0), T)), 0)
-  | dest_hd _ (Var v) = ((1, v), 1)
-  | dest_hd _ (Bound i) = ((1, (("", i), dummyT)), 2)
-  | dest_hd _ (Abs (_, T, _)) = ((1, (("", 0), T)), 3);
 
 fun term_lpo f_ord (s, t) =
   let val (f, ss) = strip_comb s and (g, ts) = strip_comb t in

@@ -7,9 +7,10 @@
 
 (*** Term order for commutative rings ***)
 
-fun ring_ord a =
-  find_index_eq a ["CRing.ring.zero", "CRing.ring.add", "CRing.a_inv",
-  "CRing.minus", "Group.monoid.one", "Group.monoid.mult"];
+fun ring_ord (Const (a, _)) =
+    find_index_eq a ["CRing.ring.zero", "CRing.ring.add", "CRing.a_inv",
+      "CRing.minus", "Group.monoid.one", "Group.monoid.mult"]
+  | ring_ord _ = ~1;
 
 fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
 

@@ -1,6 +1,6 @@
 (*  Title:      HOL/OrderedGroup.ML
     ID:         $Id$
-    Author:     Steven Obua, Tobias Nipkow, Technische Universitaet Mnchen
+    Author:     Steven Obua, Tobias Nipkow, Technische Universitaet Muenchen
 *)
 
 structure ab_group_add_cancel_data :> ABEL_CANCEL  = 
@@ -8,7 +8,8 @@ struct
 
 (*** Term order for abelian groups ***)
 
-fun agrp_ord a = find_index (fn a' => a = a') ["0", "HOL.plus", "HOL.uminus", "HOL.minus"];
+fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a') ["0", "HOL.plus", "HOL.uminus", "HOL.minus"]
+  | agrp_ord _ = ~1;
 
 fun termless_agrp (a, b) = (Term.term_lpo agrp_ord (a, b) = LESS);
 
