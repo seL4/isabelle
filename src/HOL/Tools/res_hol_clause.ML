@@ -13,6 +13,10 @@ struct
 val include_combS = ref false;
 val include_min_comb = ref false;
 
+fun in_min_comb count_comb = if count_comb then include_min_comb:=true else ();
+ 
+fun in_combS count_comb = if count_comb then include_combS:=true else (); 
+
 val const_typargs = ref (Library.K [] : (string*typ -> typ list));
 
 fun init thy = (include_combS:=false; include_min_comb:=false;
@@ -42,115 +46,112 @@ fun decre_bndVar (Bound n) = Bound (n-1)
 
 
 (*******************************************)
-fun lam2comb (Abs(x,tp,Bound 0)) _ = 
+fun lam2comb (Abs(x,tp,Bound 0)) _ count_comb = 
     let val tpI = Type("fun",[tp,tp])
+	val _ = in_min_comb count_comb
     in 
-	include_min_comb:=true;
 	Const("COMBI",tpI) 
     end
-  | lam2comb (Abs(x,tp,Bound n)) Bnds = 
+  | lam2comb (Abs(x,tp,Bound n)) Bnds count_comb = 
     let val (Bound n') = decre_bndVar (Bound n)
 	val tb = List.nth(Bnds,n')
 	val tK = Type("fun",[tb,Type("fun",[tp,tb])])
+	val _ = in_min_comb count_comb 
     in
-	include_min_comb:=true;
 	Const("COMBK",tK) $ (Bound n')
     end
-  | lam2comb (Abs(x,t1,Const(c,t2))) _ = 
+  | lam2comb (Abs(x,t1,Const(c,t2))) _ count_comb = 
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+	val _ = in_min_comb count_comb 
     in 
-	include_min_comb:=true;
 	Const("COMBK",tK) $ Const(c,t2) 
     end
-  | lam2comb (Abs(x,t1,Free(v,t2))) _ =
+  | lam2comb (Abs(x,t1,Free(v,t2))) _ count_comb =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+	val _ = in_min_comb count_comb
     in
-	include_min_comb:=true;
 	Const("COMBK",tK) $ Free(v,t2)
     end
-  | lam2comb (Abs(x,t1,Var(ind,t2))) _=
+  | lam2comb (Abs(x,t1,Var(ind,t2))) _ count_comb =
     let val tK = Type("fun",[t2,Type("fun",[t1,t2])])
+	val _ = in_min_comb count_comb 
     in
-	include_min_comb:=true;
 	Const("COMBK",tK) $ Var(ind,t2)
     end
-  | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds =
+  | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) Bnds count_comb =
     let val nfreeP = not(is_free P 0)
 	val tr = Term.type_of1(t1::Bnds,P)
     in
 	if nfreeP then (decre_bndVar P)
 	else (
 	      let val tI = Type("fun",[t1,t1])
-		  val P' = lam2comb (Abs(x,t1,P)) Bnds
+		  val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
 		  val tp' = Term.type_of1(Bnds,P')
 		  val tS = Type("fun",[tp',Type("fun",[tI,tr])])
+		  val _ = in_min_comb count_comb
+		  val _ = in_combS count_comb
 	      in
-		  include_min_comb:=true;
-		  include_combS:=true;
 		  Const("COMBS",tS) $ P' $ Const("COMBI",tI)
 	      end)
     end
 	    
-  | lam2comb (t as (Abs(x,t1,P$Q))) Bnds =
+  | lam2comb (t as (Abs(x,t1,P$Q))) Bnds count_comb =
     let val (nfreeP,nfreeQ) = (not(is_free P 0),not(is_free Q 0))
 	val tpq = Term.type_of1(t1::Bnds, P$Q) 
     in
 	if(nfreeP andalso nfreeQ) then (
 	    let val tK = Type("fun",[tpq,Type("fun",[t1,tpq])])
 		val PQ' = decre_bndVar(P $ Q)
+		val _ = in_min_comb count_comb
 	    in 
-		include_min_comb:=true;
 		Const("COMBK",tK) $ PQ'
 	    end)
 	else (
 	      if nfreeP then (
-			       let val Q' = lam2comb (Abs(x,t1,Q)) Bnds
+			       let val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb
 				   val P' = decre_bndVar P
 				   val tp = Term.type_of1(Bnds,P')
 				   val tq' = Term.type_of1(Bnds, Q')
 				   val tB = Type("fun",[tp,Type("fun",[tq',Type("fun",[t1,tpq])])])
+				   val _ = in_min_comb count_comb
 			       in
-				   include_min_comb:=true;
 				   Const("COMBB",tB) $ P' $ Q' 
 			       end)
 	      else (
 		    if nfreeQ then (
-				    let val P' = lam2comb (Abs(x,t1,P)) Bnds
+				    let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
 					val Q' = decre_bndVar Q
 					val tq = Term.type_of1(Bnds,Q')
 					val tp' = Term.type_of1(Bnds, P')
 					val tC = Type("fun",[tp',Type("fun",[tq,Type("fun",[t1,tpq])])])
+					val _ = in_min_comb count_comb
 				    in
-					include_min_comb:=true;
 					Const("COMBC",tC) $ P' $ Q'
 				    end)
 		    else(
-			 let val P' = lam2comb (Abs(x,t1,P)) Bnds
-			     val Q' = lam2comb (Abs(x,t1,Q)) Bnds
+			 let val P' = lam2comb (Abs(x,t1,P)) Bnds count_comb
+			     val Q' = lam2comb (Abs(x,t1,Q)) Bnds count_comb 
 			     val tp' = Term.type_of1(Bnds,P')
 			     val tq' = Term.type_of1(Bnds,Q')
 			     val tS = Type("fun",[tp',Type("fun",[tq',Type("fun",[t1,tpq])])])
+			     val _ = in_min_comb count_comb
+			     val _ = in_combS count_comb
 			 in
-			     include_min_comb:=true;
-			     include_combS:=true;
 			     Const("COMBS",tS) $ P' $ Q'
 			 end)))
     end
-  | lam2comb (t as (Abs(x,t1,_))) _ = raise LAM2COMB (t);
-
-	     
+  | lam2comb (t as (Abs(x,t1,_))) _ _ = raise LAM2COMB (t);
 
 (*********************)
 
-fun to_comb (Abs(x,tp,b)) Bnds =
-    let val b' = to_comb b (tp::Bnds)
-    in lam2comb (Abs(x,tp,b')) Bnds end
-  | to_comb (P $ Q) Bnds = ((to_comb P Bnds) $ (to_comb Q Bnds))
-  | to_comb t _ = t;
+fun to_comb (Abs(x,tp,b)) Bnds count_comb =
+    let val b' = to_comb b (tp::Bnds) count_comb
+    in lam2comb (Abs(x,tp,b')) Bnds count_comb end
+  | to_comb (P $ Q) Bnds count_comb = ((to_comb P Bnds count_comb) $ (to_comb Q Bnds count_comb))
+  | to_comb t _ _ = t;
  
     
-fun comb_of t = to_comb t [];
-
+fun comb_of t count_comb = to_comb t [] count_comb;
 
 (* print a term containing combinators, used for debugging *)
 exception TERM_COMB of term;
@@ -408,16 +409,24 @@ fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
 
 fun literals_of_term P = literals_of_term1 ([],[]) P;
 
+(* forbid a clause that contains hBOOL(V) *)
+fun too_general [] = false
+  | too_general (lit::lits) = 
+    case lit of Literal(_,Bool(CombVar(_,_))) => true
+	      | _ => too_general lits;
+
 
 (* making axiom and conjecture clauses *)
-fun make_clause(clause_id,axiom_name,kind,thm) =
+exception TOO_GENERAL
+fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     let val term = prop_of thm
-	val term' = comb_of term
+	val term' = comb_of term is_user
 	val (lits,ctypes_sorts) = literals_of_term term'
 	val (ctvar_lits,ctfree_lits) = ResClause.add_typs_aux ctypes_sorts
     in
 	if forall isFalse lits
 	then error "Problem too trivial for resolution (empty clause)"
+	else if too_general lits then raise TOO_GENERAL
 	else
 	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
 		    literals = lits, ctypes_sorts = ctypes_sorts, 
@@ -426,18 +435,20 @@ fun make_clause(clause_id,axiom_name,kind,thm) =
     end;
 
 
-fun make_axiom_clause thm (ax_name,cls_id) = make_clause(cls_id,ax_name,Axiom,thm);
+fun make_axiom_clause thm (ax_name,cls_id,is_user) = make_clause(cls_id,ax_name,Axiom,thm,is_user);
  
-fun make_axiom_clauses [] = []
-  | make_axiom_clauses ((thm,(name,id))::thms) =
-    let val cls = make_axiom_clause thm (name,id)
-	val clss = make_axiom_clauses thms
+fun make_axiom_clauses [] user_lemmas = []
+  | make_axiom_clauses ((thm,(name,id))::thms) user_lemmas =
+    let val is_user = name mem user_lemmas
+	val cls = SOME (make_axiom_clause thm (name,id,is_user)) handle TOO_GENERAL => NONE
+	val clss = make_axiom_clauses thms user_lemmas
     in
-	if isTaut cls then clss else (name,cls)::clss
+	case cls of NONE => clss
+		  | SOME(cls') => if isTaut cls' then clss else (name,cls')::clss
     end;
 
 
-fun make_conjecture_clause n thm = make_clause(n,"conjecture",Conjecture,thm);
+fun make_conjecture_clause n thm = make_clause(n,"conjecture",Conjecture,thm,true);
  
 
 fun make_conjecture_clauses_aux _ [] = []
@@ -734,9 +745,9 @@ fun get_helper_clauses_tptp () =
 						  
 (* write TPTP format to a single file *)
 (* when "get_helper_clauses" is called, "include_combS" and "include_min_comb" should have correct values already *)
-fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) =
+fun tptp_write_file thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas=
     let val clss = make_conjecture_clauses thms
-        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses user_lemmas)
 	val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
 	val tfree_clss = map ResClause.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
 	val out = TextIO.openOut filename
@@ -777,10 +788,10 @@ fun get_helper_clauses_dfg () =
  end;
 
 
-fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) =
+fun dfg_write_file  thms filename (axclauses,classrel_clauses,arity_clauses) user_lemmas =
     let val _ = Output.debug ("Preparing to write the DFG file " ^ filename) 
 	val conjectures = make_conjecture_clauses thms
-        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses)
+        val (clnames,axclauses') = ListPair.unzip (make_axiom_clauses axclauses user_lemmas)
 	val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
 	val clss = conjectures @ axclauses'
 	val funcs = funcs_of_clauses clss arity_clauses
