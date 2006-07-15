@@ -586,15 +586,15 @@ datatype mode = Auto | Fol | Hol;
 
 val linkup_logic_mode = ref Auto;
 
-fun tptp_writer logic goals filename (axioms,classrels,arities) =
+fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
     if is_fol_logic logic 
     then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
-    else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities);
+    else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) user_lemmas;
 
-fun dfg_writer logic goals filename (axioms,classrels,arities) =
+fun dfg_writer logic goals filename (axioms,classrels,arities) user_lemmas =
     if is_fol_logic logic 
     then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
-    else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities);
+    else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities) user_lemmas;
 
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
@@ -602,6 +602,7 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
 	val hyp_cls = cnf_hyps_thms ctxt
 	val goal_cls = conj_cls@hyp_cls
 	val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
+	val user_lemmas_names = map #1 user_rules
 	val rm_black_cls = blacklist_filter included_thms 
 	val cla_simp_atp_clauses = ResAxioms.cnf_rules_pairs rm_black_cls
 	val user_cls = ResAxioms.cnf_rules_pairs user_rules
@@ -618,7 +619,7 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         val writer = if dfg then dfg_writer else tptp_writer 
 	val file = atp_input_file()
     in
-	(writer prob_logic goal_cls file (axclauses,classrel_clauses,arity_clauses);
+	(writer prob_logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
 	 Output.debug ("Writing to " ^ file);
 	 file)
     end;
@@ -734,7 +735,7 @@ fun write_problem_files probfile (ctxt,th)  =
       val writer = if !prover = "spass" then dfg_writer else tptp_writer 
       fun write_all [] _ = []
 	| write_all (sub::subgoals) k =
-	   (writer goals_logic sub (probfile k) (axclauses,classrel_clauses,arity_clauses),
+	   (writer goals_logic sub (probfile k) (axclauses,classrel_clauses,arity_clauses) [],
 	    probfile k) :: write_all subgoals (k-1)
       val (clnames::_, filenames) = ListPair.unzip (write_all neg_subgoals (length goals))
       val thm_names = Array.fromList clnames
