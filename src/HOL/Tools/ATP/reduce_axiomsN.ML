@@ -35,12 +35,12 @@ fun uni_type (CType(con1,args1)) (CType(con2,args2)) = con1=con2 andalso uni_typ
 and uni_types [] [] = true
   | uni_types (a1::as1) (a2::as2) = uni_type a1 a2 andalso uni_types as1 as2;
 
-
-fun uni_constants (c1,ctp1) (c2,ctp2) = (c1=c2) andalso uni_types ctp1 ctp2;
-
-fun uni_mem _ [] = false
-  | uni_mem (c,c_typ) ((c1,c_typ1)::ctyps) =
-      uni_constants (c1,c_typ1) (c,c_typ) orelse uni_mem (c,c_typ) ctyps;
+(*Is there a unifiable constant?*)
+fun uni_mem gctab (c,c_typ) =
+  case Symtab.lookup gctab c of
+      NONE => false
+    | SOME ctyps_list => exists (uni_types c_typ) ctyps_list;
+  
 
 fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs) 
   | const_typ_of (TFree _) = CTVar
@@ -52,20 +52,29 @@ fun const_with_typ thy (c,typ) =
     in (c, map const_typ_of tvars) end
     handle TYPE _ => (c,[]);   (*Variable (locale constant): monomorphic*)   
 
+fun add_const_typ_table ((c,ctyps), tab) =
+  case Symtab.lookup tab c of
+      NONE => Symtab.update (c, [ctyps]) tab
+    | SOME [] => tab  (*ignore!*)
+    | SOME ctyps_list => Symtab.update (c, ctyps ins ctyps_list) tab;
+
 (*Free variables are counted, as well as constants, to handle locales*)
-fun add_term_consts_typs_rm thy (Const(c, typ)) cs =
-      if (c mem standard_consts) then cs 
-      else const_with_typ thy (c,typ) ins cs   (*suppress multiples*)
-  | add_term_consts_typs_rm thy (Free(c, typ)) cs =
-      const_with_typ thy (c,typ) ins cs
-  | add_term_consts_typs_rm thy (t $ u) cs =
-      add_term_consts_typs_rm thy t (add_term_consts_typs_rm thy u cs)
-  | add_term_consts_typs_rm thy (Abs(_,_,t)) cs = add_term_consts_typs_rm thy t cs
-  | add_term_consts_typs_rm thy _ cs = cs;
+fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
+      add_const_typ_table (const_with_typ thy (c,typ), tab) 
+  | add_term_consts_typs_rm thy (Free(c, typ), tab) =
+      add_const_typ_table (const_with_typ thy (c,typ), tab) 
+  | add_term_consts_typs_rm thy (t $ u, tab) =
+      add_term_consts_typs_rm thy (t, add_term_consts_typs_rm thy (u, tab))
+  | add_term_consts_typs_rm thy (Abs(_,_,t), tab) = add_term_consts_typs_rm thy (t, tab)
+  | add_term_consts_typs_rm thy (_, tab) = tab;
 
-fun consts_typs_of_term thy t = add_term_consts_typs_rm thy t [];
+(*The empty list here indicates that the constant is being ignored*)
+fun add_standard_const (s,tab) = Symtab.update (s,[]) tab;
 
-fun get_goal_consts_typs thy cs = foldl (op union) [] (map (consts_typs_of_term thy) cs)
+val null_const_tab : const_typ list list Symtab.table = 
+    foldl add_standard_const Symtab.empty standard_consts;
+
+fun get_goal_consts_typs thy cs = foldl (add_term_consts_typs_rm thy) null_const_tab cs;
 
 
 (**** Constant / Type Frequencies ****)
@@ -121,12 +130,20 @@ fun consts_typs_weight ctab =
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a clause's chances of being picked.*)
 fun clause_weight ctab gctyps consts_typs =
-    let val rel = filter (fn s => uni_mem s gctyps) consts_typs
+    let val rel = filter (uni_mem gctyps) consts_typs
         val rel_weight = consts_typs_weight ctab rel
     in
 	rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
     
+fun add_consts_with_typs (c,[]) cpairs = cpairs
+  | add_consts_with_typs (c, ctyps_list) cpairs =
+      foldl (fn (ctyps,cpairs) => (c,ctyps)::cpairs) cpairs ctyps_list;
+
+fun consts_typs_of_term thy t = 
+  let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
+  in  Symtab.fold add_consts_with_typs tab []  end;
+
 fun pair_consts_typs_axiom thy (thm,name) =
     ((thm,name), (consts_typs_of_term thy (prop_of thm)));
 
@@ -141,8 +158,9 @@ fun defines thy (thm,(name,n)) gctypes =
 	fun defs lhs rhs =
             let val (rator,args) = strip_comb lhs
 		val ct = const_with_typ thy (dest_ConstFree rator)
-            in  forall is_Var args andalso uni_mem ct gctypes andalso
-                term_varnames rhs subset term_varnames lhs
+            in  forall is_Var args andalso 
+                term_varnames rhs subset term_varnames lhs andalso
+                uni_mem gctypes ct 
             end
 	    handle ConstFree => false
     in    
@@ -150,14 +168,14 @@ fun defines thy (thm,(name,n)) gctypes =
 		   defs lhs rhs andalso
 		   (Output.debug ("Definition found: " ^ name ^ "_" ^ Int.toString n); true)
 		 | _ => false
-    end
+    end;
 
 fun relevant_clauses thy ctab p rel_consts =
   let fun relevant (newrels,rejects) []  =
 	    if null newrels then [] 
 	    else 
-	      let val new_consts = map #2 newrels
-	          val rel_consts' = foldl (op union) rel_consts new_consts
+	      let val new_consts = List.concat (map #2 newrels)
+	          val rel_consts' = foldl add_const_typ_table rel_consts new_consts
                   val newp = p + (1.0-p) / !convergence
 	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
                  newrels @ relevant_clauses thy ctab newp rel_consts' rejects
