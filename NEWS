@@ -477,6 +477,9 @@ no longer need to be stated as "<prems> ==> False", equivalences (i.e.
 "=" on type bool) are handled, variable names of the form "lit_<n>"
 are no longer reserved, significant speedup.
 
+* Tactics 'sat' and 'satx' can now replay MiniSat proof traces.  zChaff is
+still supported as well.
+
 * inductive and datatype: provide projections of mutual rules, bundled
 as foo_bar.inducts;
 
