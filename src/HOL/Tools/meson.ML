@@ -82,13 +82,15 @@ fun forward_res nf st =
    | NONE => raise THM("forward_res", 0, [st]);
 
 
-(*Are any of the constants in "bs" present in the term?*)
-fun has_consts bs =
-  let fun has (Const(a,_)) = member (op =) bs a
-	| has (Const ("Hilbert_Choice.Eps",_) $ _) = false
-		     (*ignore constants within @-terms*)
-	| has (f$u) = has f orelse has u
-	| has (Abs(_,_,t)) = has t
+(*Are any of the logical connectives in "bs" present in the term?*)
+fun has_conns bs =
+  let fun has (Const(a,_)) = false
+        | has (Const("Trueprop",_) $ p) = has p
+        | has (Const("Not",_) $ p) = has p
+        | has (Const("op |",_) $ p $ q) = member (op =) bs "op |" orelse has p orelse has q
+        | has (Const("op &",_) $ p $ q) = member (op =) bs "op &" orelse has p orelse has q
+        | has (Const("All",_) $ Abs(_,_,p)) = member (op =) bs "All" orelse has p
+        | has (Const("Ex",_) $ Abs(_,_,p)) = member (op =) bs "Ex" orelse has p
 	| has _ = false
   in  has  end;
   
@@ -194,7 +196,7 @@ val has_meta_conn =
 fun cnf skoths (th,ths) =
   let fun cnf_aux (th,ths) =
   	if has_meta_conn (prop_of th) then ths (*meta-level: ignore*)
-        else if not (has_consts ["All","Ex","op &"] (prop_of th))  
+        else if not (has_conns ["All","Ex","op &"] (prop_of th))  
 	then th::ths (*no work to do, terminate*)
 	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
 	    Const ("op &", _) => (*conjunction*)
@@ -410,7 +412,7 @@ fun make_nnf th = th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
   clauses that arise from a subgoal.*)
 fun skolemize th =
-  if not (has_consts ["Ex"] (prop_of th)) then th
+  if not (has_conns ["Ex"] (prop_of th)) then th
   else (skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
                               disj_exD, disj_exD1, disj_exD2])))
     handle THM _ =>
