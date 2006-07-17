@@ -20,16 +20,6 @@ fun get_nth n (x::xs) = hd (Library.drop (n-1, x::xs))
 exception Not_in_list;  
 
 
-fun numlist 0 = []
-|   numlist n = (numlist (n - 1))@[n]
-
-fun butlast []= []
-|   butlast(x::xs) = if xs=[] then [] else (x::(butlast xs))
-
-
-fun minus a b = b - a;
-
-
 (* code to rearrange clauses so that they're the same as the parsed in SPASS version *)
 
  fun takeUntil ch [] res  = (res, [])
@@ -48,12 +38,12 @@ fun get_eq_strs str =  if eq_not_neq  str   (*not an inequality *)
                        then 
                            let val (left, right) = takeUntil "=" str []
                            in
-                               (butlast left, tl right)
+                               (#1 (split_last left), tl right)
                            end
                        else                  (* is an inequality *)
                            let val (left, right) = takeUntil "~" str []
                            in 
-                              (butlast left, tl (tl right))
+                              (#1 (split_last left), tl (tl right))
                            end
                 
 
@@ -69,10 +59,7 @@ fun is_var_pair (a,b) vars = (a mem vars) andalso (b mem vars)
 fun var_equiv vars (a,b)  = a=b orelse (is_var_pair (a,b) vars)
 
 fun all_true [] = false
-|   all_true xs = let val falselist = List.filter (equal false ) xs 
-                  in
-                      falselist = []
-                  end
+|   all_true xs = null (List.filter (equal false ) xs)
 
 
 
