@@ -613,8 +613,7 @@ fun to_isar_proof (frees, xs) =
 	val axioms = get_axioms axioms_and_steps
 	
 	val steps = Library.drop (origax_num, axioms_and_steps)
-	val firststeps = ReconOrderClauses.butlast steps
-	val laststep = List.last steps
+	val (firststeps, laststep) = split_last steps
 	
 	val isar_proof = 
 		("show \"[your goal]\"\n")^
