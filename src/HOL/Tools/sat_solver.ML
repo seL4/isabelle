@@ -699,7 +699,7 @@ let
 							val cid      = int_from_string id
 							val _        = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
 							val zero     = List.last lits handle List.Empty => raise INVALID_PROOF "File format error: \"R\" not terminated by \"0\"."
-							val ls       = sort int_ord (map int_from_string (butlast lits))
+							val ls       = sort int_ord (map int_from_string ((fst o split_last) lits))
 							val _        = if zero = "0" then () else raise INVALID_PROOF ("File format error: \"0\" expected (" ^ quote zero ^ " encountered).")
 							val proof_id = (* both 'ls' and the list of literals used as key in 'clauses' are sorted, *)
 							               (* so testing for equality should suffice -- barring duplicate literals    *)
@@ -727,7 +727,7 @@ let
 							fun unevens []             = raise INVALID_PROOF "File format error: \"C\" followed by an even number of IDs."
 							  | unevens (x :: [])      = x :: []
 							  | unevens (x :: _ :: xs) = x :: unevens xs
-							val rs       = (map sat_to_proof o unevens o map int_from_string o butlast) ids
+							val rs       = (map sat_to_proof o unevens o map int_from_string o fst o split_last) ids
 							val _        = if dot = "." then () else raise INVALID_PROOF ("File format error: \".\" expected (" ^ quote dot ^ " encountered).")
 							(* extend the mapping of clause IDs with this newly defined ID *)
 							val proof_id = inc next_id
