@@ -1373,35 +1373,54 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (* introduction rules for graph of recursion function *)
 
-    fun make_rec_intr T rec_set ((rec_intr_ts, l), ((cname, cargs), idxs)) =
+    val rec_preds = map (fn (a, T) =>
+      Free (a, T --> HOLogic.boolT)) (pnames ~~ rec_result_Ts);
+
+    fun make_rec_intr T p rec_set
+          ((rec_intr_ts, rec_prems, rec_prems', l), ((cname, cargs), idxs)) =
       let
         val Ts = map (typ_of_dtyp descr'' sorts') cargs;
         val frees = map (fn i => "x" ^ string_of_int i) (1 upto length Ts) ~~ Ts;
         val frees' = partition_cargs idxs frees;
         val recs = List.mapPartial
-          (fn ((_, DtRec i), (_, x)) => SOME (i, x) | _ => NONE)
+          (fn ((_, DtRec i), p) => SOME (i, p) | _ => NONE)
           (partition_cargs idxs cargs ~~ frees');
         val frees'' = map (fn i => "y" ^ string_of_int i) (1 upto length recs) ~~
           map (fn (i, _) => List.nth (rec_result_Ts, i)) recs;
-        val prems = map (fn ((i, x), y) => HOLogic.mk_Trueprop
+        val prems1 = map (fn ((i, (_, x)), y) => HOLogic.mk_Trueprop
           (HOLogic.mk_mem (HOLogic.mk_prod (Free x, Free y),
              List.nth (rec_sets, i)))) (recs ~~ frees'');
-        val prems' =
-          List.concat (map (fn p as (_, T) => map (fn f => HOLogic.mk_Trueprop
+        val prems2 =
+          map (fn f => map (fn p as (_, T) => HOLogic.mk_Trueprop
             (Const ("Nominal.fresh", T --> fastype_of f --> HOLogic.boolT) $
-              Free p $ f)) rec_fns) (List.concat (map fst frees'))) @
+              Free p $ f)) (List.concat (map fst frees'))) rec_fns;
+        val prems3 =
           mk_fresh1 [] (List.concat (map fst frees')) @
-          mk_fresh2 [] frees'
-      in (rec_intr_ts @ [Logic.list_implies (prems' @ prems,
-        HOLogic.mk_Trueprop (HOLogic.mk_mem
-          (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), map Free frees),
-            list_comb (List.nth (rec_fns, l), map Free (frees @ frees''))),
-             rec_set)))], l + 1)
+          mk_fresh2 [] frees';
+        val prems4 = map (fn ((i, _), y) =>
+          HOLogic.mk_Trueprop (List.nth (rec_preds, i) $ Free y)) (recs ~~ frees'');
+        val result = list_comb (List.nth (rec_fns, l), map Free (frees @ frees''));
+        val rec_freshs = map (fn p as (_, T) =>
+          Const ("Nominal.fresh", T --> fastype_of result --> HOLogic.boolT) $
+            Free p $ result) (List.concat (map (fst o snd) recs));
+        val P = HOLogic.mk_Trueprop (p $ result)
+      in
+        (rec_intr_ts @ [Logic.list_implies (List.concat prems2 @ prems3 @ prems1,
+           HOLogic.mk_Trueprop (HOLogic.mk_mem
+             (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), map Free frees),
+               result), rec_set)))],
+         rec_prems @ [list_all_free (frees @ frees'', Logic.list_implies (prems4, P))],
+         if null rec_freshs then rec_prems'
+         else rec_prems' @ [list_all_free (frees @ frees'',
+           Logic.list_implies (List.nth (prems2, l) @ prems3 @ [P],
+             HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_freshs)))],
+         l + 1)
       end;
 
-    val (rec_intr_ts, _) = Library.foldl (fn (x, (((d, d'), T), rec_set)) =>
-      Library.foldl (make_rec_intr T rec_set) (x, #3 (snd d) ~~ snd d'))
-        (([], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_sets);
+    val (rec_intr_ts, rec_prems, rec_prems', _) =
+      Library.foldl (fn (x, ((((d, d'), T), p), rec_set)) =>
+        Library.foldl (make_rec_intr T p rec_set) (x, #3 (snd d) ~~ snd d'))
+          (([], [], [], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets);
 
     val (thy11, {intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
@@ -1472,11 +1491,51 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                (NominalPermeq.finite_guess_tac (HOL_ss addsimps [fs_name]) 1))))
       end) dt_atomTs;
 
+    (** uniqueness **)
+
+    val fresh_prems = List.concat (map (fn aT =>
+      map (fn (f, T) => HOLogic.mk_Trueprop (HOLogic.mk_mem
+        (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ f,
+         Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT aT)))))
+           (rec_fns ~~ rec_fn_Ts)) dt_atomTs);
+
+    val fun_tuple = foldr1 HOLogic.mk_prod rec_fns;
+    val fun_tupleT = fastype_of fun_tuple;
+    val rec_unique_frees =
+      DatatypeProp.indexify_names (replicate (length recTs) "x") ~~ recTs;
+    val rec_unique_concls = map (fn ((x as (_, T), U), R) =>
+        Const ("Ex1", (U --> HOLogic.boolT) --> HOLogic.boolT) $
+          Abs ("y", U, HOLogic.mk_mem (HOLogic.pair_const T U $ Free x $ Bound 0, R)))
+      (rec_unique_frees ~~ rec_result_Ts ~~ rec_sets);
+    val induct_aux_rec = Drule.cterm_instantiate
+      (map (pairself (cterm_of thy11))
+         (map (fn (aT, f) => (Logic.varify f, Abs ("z", HOLogic.unitT,
+            Const ("Nominal.supp", fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
+              fresh_fs @
+          map (fn (((P, T), (x, U)), Q) =>
+           (Var ((P, 0), HOLogic.unitT --> Logic.varifyT T --> HOLogic.boolT),
+            Abs ("z", HOLogic.unitT, absfree (x, U, Q))))
+              (pnames ~~ recTs ~~ rec_unique_frees ~~ rec_unique_concls) @
+          map (fn (s, T) => (Var ((s, 0), Logic.varifyT T), Free (s, T)))
+            rec_unique_frees)) induct_aux;
+
+    val rec_unique = map standard (split_conj_thm (Goal.prove_global thy11 []
+      (fresh_prems @ rec_prems @ rec_prems')
+      (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_unique_concls))
+      (fn ths => EVERY
+         [rtac induct_aux_rec 1,
+          print_tac "after application of induction theorem",
+          setmp quick_and_dirty true (SkipProof.cheat_tac thy11) (** FIXME !! **)])));
+    
     (* FIXME: theorems are stored in database for testing only *)
-    val (_, thy12) = PureThy.add_thmss
-      [(("rec_equiv", List.concat rec_equiv_thms), []),
-       (("rec_equiv'", List.concat rec_equiv_thms'), []),
-       (("rec_fin_supp", List.concat rec_fin_supp_thms), [])] thy11;
+    val (_, thy12) = thy11 |>
+      Theory.add_path big_name |>
+      PureThy.add_thmss
+        [(("rec_equiv", List.concat rec_equiv_thms), []),
+         (("rec_equiv'", List.concat rec_equiv_thms'), []),
+         (("rec_fin_supp", List.concat rec_fin_supp_thms), []),
+         (("rec_unique", rec_unique), [])] ||>
+      Theory.parent_path;
 
   in
     thy12
