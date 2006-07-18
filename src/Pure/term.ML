@@ -192,6 +192,7 @@ sig
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
+  val declare_term_names: term -> Name.context -> Name.context
   val dest_abs: string * typ * term -> string * term
   val zero_var_indexesT: typ -> typ
   val zero_var_indexes: term -> term
@@ -1160,6 +1161,12 @@ fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
   | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
   | add_term_names (_, bs) = bs;
 
+fun declare_term_names (Const (a, _)) = Name.declare (NameSpace.base a)
+  | declare_term_names (Free (a, _)) = Name.declare a
+  | declare_term_names (t $ u) = declare_term_names t #> declare_term_names u
+  | declare_term_names (Abs (_, _, t)) = declare_term_names t
+  | declare_term_names _ = I;
+
 (*Accumulates the TVars in a type, suppressing duplicates. *)
 fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
   | add_typ_tvars(TFree(_),vs) = vs
@@ -1232,9 +1239,9 @@ fun term_frees t = add_term_frees(t,[]);
 
 (*Given an abstraction over P, replaces the bound variable by a Free variable
   having a unique name -- SLOW!*)
-fun variant_abs (a,T,P) =
-  let val b = Name.variant (add_term_names(P,[])) a
-  in  (b,  subst_bound (Free(b,T), P))  end;
+fun variant_abs (x, T, b) =
+  let val ([x'], _) = Name.variants [x] (declare_term_names b Name.context)
+  in (x', subst_bound (Free (x', T), b))  end;
 
 fun dest_abs (x, T, body) =
   let
@@ -1249,12 +1256,10 @@ fun dest_abs (x, T, body) =
   end;
 
 (* renames and reverses the strings in vars away from names *)
-fun rename_aTs names vars : (string*typ)list =
-  let fun rename_aT (vars,(a,T)) =
-                (Name.variant (map #1 vars @ names) a, T) :: vars
-  in Library.foldl rename_aT ([],vars) end;
+fun rename_aTs names vars =
+  rev (fst (Name.variants (map fst vars) names) ~~ map snd vars);
 
-fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
+fun rename_wrt_term t = rename_aTs (declare_term_names t Name.context);
 
 
 (* zero var indexes *)
