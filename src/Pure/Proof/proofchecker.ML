@@ -31,15 +31,14 @@ val beta_eta_convert =
 
 fun thm_of_proof thy prf =
   let
-    val names = add_prf_names ([], prf);
-    val sg = sign_of thy;
+    val names = Proofterm.fold_proof_terms Term.declare_term_names (K I) prf Name.context;
     val lookup = lookup_thm thy;
 
     fun thm_of_atom thm Ts =
       let
         val tvars = term_tvars (Thm.full_prop_of thm);
         val (fmap, thm') = Thm.varifyT' [] thm;
-        val ctye = map (pairself (Thm.ctyp_of sg))
+        val ctye = map (pairself (Thm.ctyp_of thy))
           (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)
       in
         Thm.instantiate (ctye, []) (forall_intr_vars (forall_intr_frees thm'))
@@ -51,8 +50,8 @@ fun thm_of_proof thy prf =
             val {prop, ...} = rep_thm thm;
             val _ = if prop aconv prop' then () else
               error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
-                Sign.string_of_term sg prop ^ "\n\n" ^
-                Sign.string_of_term sg prop');
+                Sign.string_of_term thy prop ^ "\n\n" ^
+                Sign.string_of_term thy prop');
           in thm_of_atom thm Ts end
 
       | thm_of _ _ (PAxm (name, _, SOME Ts)) =
@@ -62,35 +61,35 @@ fun thm_of_proof thy prf =
 
       | thm_of vs Hs (Abst (s, SOME T, prf)) =
           let
-            val x = Name.variant (names @ map fst vs) s;
+            val ([x], _) = Name.variants [s] (fold (Name.declare o fst) vs names);
             val thm = thm_of ((x, T) :: vs) Hs prf
           in
-            Thm.forall_intr (Thm.cterm_of sg (Free (x, T))) thm
+            Thm.forall_intr (Thm.cterm_of thy (Free (x, T))) thm
           end
 
       | thm_of vs Hs (prf % SOME t) =
           let
             val thm = thm_of vs Hs prf
-            val ct = Thm.cterm_of sg (Term.subst_bounds (map Free vs, t))
+            val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t))
           in Thm.forall_elim ct thm end
 
       | thm_of vs Hs (AbsP (s, SOME t, prf)) =
           let
-            val ct = Thm.cterm_of sg (Term.subst_bounds (map Free vs, t));
+            val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t));
             val thm = thm_of vs (Thm.assume ct :: Hs) prf
           in
             Thm.implies_intr ct thm
           end
 
       | thm_of vs Hs (prf %% prf') =
-          let 
+          let
             val thm = beta_eta_convert (thm_of vs Hs prf);
             val thm' = beta_eta_convert (thm_of vs Hs prf')
           in
             Thm.implies_elim thm thm'
           end
 
-      | thm_of _ _ (Hyp t) = Thm.assume (Thm.cterm_of sg t)
+      | thm_of _ _ (Hyp t) = Thm.assume (Thm.cterm_of thy t)
 
       | thm_of _ _ _ = error "thm_of_proof: partial proof term";
 
