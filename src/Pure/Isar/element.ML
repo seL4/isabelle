@@ -216,45 +216,38 @@ fun thm_name kind th prts =
 
 fun obtain prop ctxt =
   let
-    val xs = Variable.rename_wrt ctxt [] (Logic.strip_params prop);
-    val args = rev (map Free xs);
-    val As = Logic.strip_assums_hyp prop |> map (fn t => Term.subst_bounds (args, t));
-    val ctxt' = ctxt |> fold Variable.declare_term args;
-  in (("", (map (apsnd SOME) xs, As)), ctxt') end;
+    val ((xs, prop'), ctxt') = Variable.focus prop ctxt;
+    val As = Logic.strip_imp_prems (Thm.term_of prop');
+    fun var (x, T) = (ProofContext.revert_skolem ctxt' x, SOME T);
+  in (("", (map var xs, As)), ctxt') end;
 
 in
 
 fun pretty_statement ctxt kind raw_th =
   let
     val thy = ProofContext.theory_of ctxt;
+    val cert = Thm.cterm_of thy;
+
     val th = Goal.norm_hhf raw_th;
+    val is_elim = ObjectLogic.is_elim th;
 
-    fun standard_thesis t =
-      let
-        val C = ObjectLogic.drop_judgment thy (Thm.concl_of th);
-        val C' = Var ((AutoBind.thesisN, Thm.maxidx_of th + 1), Term.fastype_of C);
-      in Term.subst_atomic [(C, C')] t end;
-
-    val raw_prop =
-      Thm.prop_of th
-      |> singleton (Variable.monomorphic ctxt)
-      |> K (ObjectLogic.is_elim th) ? standard_thesis
-      |> Term.zero_var_indexes;
-
-    val vars = Term.add_vars raw_prop [];
-    val frees = Variable.rename_wrt ctxt [raw_prop] (map (apfst fst) vars);
-    val fixes = rev (filter_out (fn (x, _) => x = AutoBind.thesisN) frees);
-
-    val prop = Term.instantiate ([], vars ~~ map Free frees) raw_prop;
+    val ([th'], ctxt') = Variable.import true [th] ctxt;
+    val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
-    val thesis = ObjectLogic.fixed_judgment thy AutoBind.thesisN;
-    val (asms, cases) = take_suffix (fn prem => thesis aconv Logic.strip_assums_concl prem) prems;
+    val concl_term = ObjectLogic.drop_judgment thy concl;
+
+    val fixes = fold_aterms (fn v as Free (x, T) =>
+        if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
+        then insert (op =) (x, T) else I | _ => I) prop []
+      |> rev |> map (apfst (ProofContext.revert_skolem ctxt'));
+    val (assumes, cases) = take_suffix (fn prem =>
+      is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in
-    pretty_ctxt ctxt (Fixes (map (fn (x, T) => (x, SOME T, NoSyn)) fixes)) @
-    pretty_ctxt ctxt (Assumes (map (fn t => (("", []), [(t, [])])) asms)) @
-    pretty_stmt ctxt
+    pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (x, SOME T, NoSyn)) fixes)) @
+    pretty_ctxt ctxt' (Assumes (map (fn t => (("", []), [(t, [])])) assumes)) @
+    pretty_stmt ctxt'
      (if null cases then Shows [(("", []), [(concl, [])])]
-      else Obtains (#1 (fold_map obtain cases (ctxt |> Variable.declare_term prop))))
+      else Obtains (#1 (fold_map (obtain o cert) cases ctxt')))
   end |> thm_name kind raw_th;
 
 end;
