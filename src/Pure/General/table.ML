@@ -39,6 +39,7 @@ sig
   val update_new: (key * 'a) -> 'a table -> 'a table                   (*exception DUP*)
   val default: key * 'a -> 'a table -> 'a table
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
+  val map_default: (key * 'a) -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUPS*)
   val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUPS*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
@@ -246,6 +247,7 @@ fun update (key, x) tab = modify key (fn _ => x) tab;
 fun update_new (key, x) tab = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
 fun default (key, x) tab = modify key (fn NONE => x | SOME _ => raise SAME) tab;
 fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
+fun map_default (key, x) f = modify key (fn NONE => f x | SOME x => f x);
 
 
 (* delete *)
