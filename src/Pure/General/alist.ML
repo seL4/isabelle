@@ -20,8 +20,8 @@ sig
     -> ('b * 'c) list -> ('b * 'c) list
   val map_entry_yield: ('a * 'b -> bool) -> 'a -> ('c -> 'd * 'c)
     -> ('b * 'c) list -> 'd option * ('b * 'c) list
-  val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b option) ->
-    ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list         (*exception DUP*)
+  val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)
+    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
   val merge: ('a * 'a -> bool) -> ('b * 'b -> bool)
     -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
   val make: ('a -> 'b) -> 'a list -> ('a * 'b) list
@@ -94,14 +94,11 @@ fun join eq f (xs, ys) =
     fun add (y as (key, value)) xs =
       (case lookup eq xs key of
         NONE => cons y xs
-      | SOME value' =>
-          (case f key (value', value) of
-            SOME value'' => update eq (key, value'') xs
-          | NONE => raise DUP));
+      | SOME value' => update eq (key, f key (value', value)) xs);
   in fold_rev add ys xs end;
 
 fun merge eq_key eq_val =
-  join eq_key (K (fn (yx as (_, x)) => if eq_val yx then SOME x else NONE));
+  join eq_key (K (fn (yx as (_, x)) => if eq_val yx then x else raise DUP));
 
 fun make keyfun =
   let fun keypair x = (x, keyfun x)
