@@ -42,10 +42,7 @@ sig
   val strip_thm : proof -> proof
   val map_proof_terms_option : (term -> term option) -> (typ -> typ option) -> proof -> proof
   val map_proof_terms : (term -> term) -> (typ -> typ) -> proof -> proof
-  val fold_proof_terms : (term * 'a -> 'a) -> (typ * 'a -> 'a) -> 'a * proof -> 'a
-  val add_prf_names : string list * proof -> string list
-  val add_prf_tfree_names : string list * proof -> string list
-  val add_prf_tvar_ixns : indexname list * proof -> indexname list
+  val fold_proof_terms : (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
   val maxidx_of_proof : proof -> int
   val size_of_proof : proof -> int
   val change_type : typ list option -> proof -> proof
@@ -299,24 +296,19 @@ fun map_proof_terms f g =
    (fn t => SOME (same f t) handle SAME => NONE)
    (fn T => SOME (same g T) handle SAME => NONE);
 
-fun fold_proof_terms f g (a, Abst (_, SOME T, prf)) = fold_proof_terms f g (g (T, a), prf)
-  | fold_proof_terms f g (a, Abst (_, NONE, prf)) = fold_proof_terms f g (a, prf)
-  | fold_proof_terms f g (a, AbsP (_, SOME t, prf)) = fold_proof_terms f g (f (t, a), prf)
-  | fold_proof_terms f g (a, AbsP (_, NONE, prf)) = fold_proof_terms f g (a, prf)
-  | fold_proof_terms f g (a, prf % SOME t) = f (t, fold_proof_terms f g (a, prf))
-  | fold_proof_terms f g (a, prf % NONE) = fold_proof_terms f g (a, prf)
-  | fold_proof_terms f g (a, prf1 %% prf2) = fold_proof_terms f g
-      (fold_proof_terms f g (a, prf1), prf2)
-  | fold_proof_terms _ g (a, PThm (_, _, _, SOME Ts)) = foldr g a Ts
-  | fold_proof_terms _ g (a, PAxm (_, prop, SOME Ts)) = foldr g a Ts
-  | fold_proof_terms _ _ (a, _) = a;
+fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g prf
+  | fold_proof_terms f g (Abst (_, NONE, prf)) = fold_proof_terms f g prf
+  | fold_proof_terms f g (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms f g prf
+  | fold_proof_terms f g (AbsP (_, NONE, prf)) = fold_proof_terms f g prf
+  | fold_proof_terms f g (prf % SOME t) = fold_proof_terms f g prf #> f t
+  | fold_proof_terms f g (prf % NONE) = fold_proof_terms f g prf
+  | fold_proof_terms f g (prf1 %% prf2) =
+      fold_proof_terms f g prf1 #> fold_proof_terms f g prf2
+  | fold_proof_terms _ g (PThm (_, _, _, SOME Ts)) = fold g Ts  (* FIXME prop? *)
+  | fold_proof_terms _ g (PAxm (_, prop, SOME Ts)) = fold g Ts  (* FIXME prop? *)
+  | fold_proof_terms _ _ _ = I;
 
-val add_prf_names = fold_proof_terms add_term_names ((uncurry K) o swap);
-val add_prf_tfree_names = fold_proof_terms add_term_tfree_names add_typ_tfree_names;
-val add_prf_tvar_ixns = fold_proof_terms add_term_tvar_ixns (add_typ_ixns o swap);
-
-fun maxidx_of_proof prf = fold_proof_terms
-  (Int.max o apfst maxidx_of_term) (Int.max o apfst maxidx_of_typ) (~1, prf); 
+fun maxidx_of_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf ~1;
 
 fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof (AbsP (_, t, prf)) = 1 + size_of_proof prf
@@ -509,7 +501,7 @@ fun prf_subst_pbounds args prf =
   let
     val n = length args;
     fun subst (PBound i) Plev tlev =
- 	 (if i < Plev then raise SAME    (*var is locally bound*)
+         (if i < Plev then raise SAME    (*var is locally bound*)
           else incr_pboundvars Plev tlev (List.nth (args, i-Plev))
                  handle Subscript => PBound (i-n)  (*loose: change it*))
       | subst (AbsP (a, t, body)) Plev tlev = AbsP (a, t, subst body (Plev+1) tlev)
@@ -559,13 +551,13 @@ fun thaw names names' (t $ u) =
 fun freeze_thaw_prf prf =
   let
     val (fs, Tfs, vs, Tvs) = fold_proof_terms
-      (fn (t, (fs, Tfs, vs, Tvs)) =>
+      (fn t => fn (fs, Tfs, vs, Tvs) =>
          (add_term_frees (t, fs), add_term_tfree_names (t, Tfs),
           add_term_vars (t, vs), add_term_tvar_ixns (t, Tvs)))
-      (fn (T, (fs, Tfs, vs, Tvs)) =>
+      (fn T => fn (fs, Tfs, vs, Tvs) =>
          (fs, add_typ_tfree_names (T, Tfs),
           vs, add_typ_ixns (Tvs, T)))
-            (([], [], [], []), prf);
+      prf ([], [], [], []);
     val fs' = map (fst o dest_Free) fs;
     val vs' = map (fst o dest_Var) vs;
     val names = vs' ~~ Name.variant_list fs' (map fst vs');
@@ -715,9 +707,9 @@ fun lift_proof Bi inc prop prf =
           if b then (i-1, j, prf %% PBound i) else (i, j-1, prf %> Bound j);
 
     fun lift Us bs i j (Const ("==>", _) $ A $ B) =
-	    AbsP ("H", NONE (*A*), lift Us (true::bs) (i+1) j B)
+            AbsP ("H", NONE (*A*), lift Us (true::bs) (i+1) j B)
       | lift Us bs i j (Const ("all", _) $ Abs (a, T, t)) = 
-	    Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
+            Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
       | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
             map (fn k => (#3 (foldr mk_app (i-1, j-1, PBound k) bs)))
               (i + k - 1 downto i));
@@ -993,9 +985,9 @@ fun fomatch Ts tymatch j =
           else (tymatch (tyinsts, fn () => (T, fastype_of1 (Ts, t))),
             (ixn, t) :: insts)
       | (Free (a, T), Free (b, U)) =>
-	  if a=b then (tymatch (tyinsts, K (T, U)), insts) else raise PMatch
+          if a=b then (tymatch (tyinsts, K (T, U)), insts) else raise PMatch
       | (Const (a, T), Const (b, U))  =>
-	  if a=b then (tymatch (tyinsts, K (T, U)), insts) else raise PMatch
+          if a=b then (tymatch (tyinsts, K (T, U)), insts) else raise PMatch
       | (f $ t, g $ u) => mtch (mtch instsp (f, g)) (t, u)
       | (Bound i, Bound j) => if i=j then instsp else raise PMatch
       | _ => raise PMatch
