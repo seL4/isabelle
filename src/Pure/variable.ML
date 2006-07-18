@@ -17,6 +17,7 @@ sig
   val used_types: Context.proof -> string list
   val is_declared: Context.proof -> string -> bool
   val is_fixed: Context.proof -> string -> bool
+  val newly_fixed: Context.proof -> Context.proof -> string -> bool
   val def_sort: Context.proof -> indexname -> sort option
   val def_type: Context.proof -> bool -> indexname -> typ option
   val default_type: Context.proof -> string -> typ option
@@ -44,8 +45,8 @@ sig
   val import: bool -> thm list -> Context.proof -> thm list * Context.proof
   val tradeT: Context.proof -> (thm list -> thm list) -> thm list -> thm list
   val trade: Context.proof -> (thm list -> thm list) -> thm list -> thm list
+  val focus: cterm -> Context.proof -> ((string * typ) list * cterm) * Context.proof
   val warn_extra_tfrees: Context.proof -> Context.proof -> unit
-  val monomorphic: Context.proof -> term list -> term list
   val polymorphic: Context.proof -> term list -> term list
   val hidden_polymorphism: term -> typ -> (indexname * sort) list
   val add_binds: (indexname * term option) list -> Context.proof -> Context.proof
@@ -117,6 +118,7 @@ val type_occs_of = #4 o defaults_of;
 
 fun is_declared ctxt x = Vartab.defined (#1 (defaults_of ctxt)) (x, ~1);
 fun is_fixed ctxt x = exists (fn (_, y) => x = y) (fixes_of ctxt);
+fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
 
 
 
@@ -240,7 +242,7 @@ fun add_fixes xs ctxt =
     val (ys, zs) = split_list (fixes_of ctxt);
     val names = names_of ctxt;
     val (xs', names') =
-      if is_body ctxt then Name.variants (map Name.skolem xs) names
+      if is_body ctxt then Name.variants xs names |>> map Name.skolem
       else (no_dups (xs inter_string ys); no_dups (xs inter_string zs);
         (xs, fold Name.declare xs names));
   in ctxt |> new_fixes names' xs xs' end;
@@ -248,8 +250,8 @@ fun add_fixes xs ctxt =
 fun invent_fixes raw_xs ctxt =
   let
     val names = names_of ctxt;
-    val (xs, names') = Name.variants (map Name.clean raw_xs) names;
-    val xs' = map Name.skolem xs;
+    val xs = map Name.clean raw_xs;
+    val (xs', names') = Name.variants xs names |>> map Name.skolem;
   in ctxt |> new_fixes names' xs xs' end;
 
 end;
@@ -355,6 +357,23 @@ val tradeT = gen_trade importT exportT;
 val trade = gen_trade (import true) export;
 
 
+(* focus on outer params *)
+
+fun forall_elim_prop t prop =
+  Thm.beta_conversion false (Thm.capply (#2 (Thm.dest_comb prop)) t)
+  |> Thm.cprop_of |> Thm.dest_comb |> #2;
+
+fun focus goal ctxt =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_cterm goal);
+    val t = Thm.term_of goal;
+    val ps = rev (Term.rename_wrt_term t (Term.strip_all_vars t));   (*as they are printed :-*)
+    val (xs, Ts) = split_list ps;
+    val (xs', ctxt') = invent_fixes xs ctxt;
+    val ps' = xs' ~~ Ts;
+    val goal' = fold (forall_elim_prop o cert o Free) ps' goal;
+  in ((ps', goal'), ctxt') end;
+
 
 (** implicit polymorphism **)
 
@@ -381,7 +400,7 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
   end;
 
 
-(* monomorphic vs. polymorphic terms *)
+(* polymorphic terms *)
 
 fun monomorphic ctxt ts =
   #1 (importT_terms ts (fold declare_term ts ctxt));
