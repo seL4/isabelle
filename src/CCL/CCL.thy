@@ -150,6 +150,344 @@ What are the advantages of this approach?
         - wfd induction / coinduction and fixed point induction available
 *}
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas ccl_data_defs = apply_def fix_def
+  and [simp] = po_refl
+
+
+subsection {* Congruence Rules *}
+
+(*similar to AP_THM in Gordon's HOL*)
+lemma fun_cong: "(f::'a=>'b) = g ==> f(x)=g(x)"
+  by simp
+
+(*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
+lemma arg_cong: "x=y ==> f(x)=f(y)"
+  by simp
+
+lemma abstractn: "(!!x. f(x) = g(x)) ==> f = g"
+  apply (simp add: eq_iff)
+  apply (blast intro: po_abstractn)
+  done
+
+lemmas caseBs = caseBtrue caseBfalse caseBpair caseBlam caseBbot
+
+
+subsection {* Termination and Divergence *}
+
+lemma Trm_iff: "Trm(t) <-> ~ t = bot"
+  by (simp add: Trm_def Dvg_def)
+
+lemma Dvg_iff: "Dvg(t) <-> t = bot"
+  by (simp add: Trm_def Dvg_def)
+
+
+subsection {* Constructors are injective *}
+
+lemma eq_lemma: "[| x=a;  y=b;  x=y |] ==> a=b"
+  by simp
+
+ML {*
+  local
+    val arg_cong = thm "arg_cong";
+    val eq_lemma = thm "eq_lemma";
+    val ss = simpset_of (the_context ());
+  in
+    fun mk_inj_rl thy rews s =
+      let
+        fun mk_inj_lemmas r = [arg_cong] RL [r RS (r RS eq_lemma)]
+        val inj_lemmas = List.concat (map mk_inj_lemmas rews)
+        val tac = REPEAT (ares_tac [iffI, allI, conjI] 1 ORELSE
+          eresolve_tac inj_lemmas 1 ORELSE
+          asm_simp_tac (Simplifier.theory_context thy ss addsimps rews) 1)
+      in prove_goal thy s (fn _ => [tac]) end  
+  end
+*}
+
+ML {*
+  bind_thms ("ccl_injs",
+    map (mk_inj_rl (the_context ()) (thms "caseBs"))
+      ["<a,b> = <a',b'> <-> (a=a' & b=b')",
+       "(lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"])
+*}
+
+
+lemma pair_inject: "<a,b> = <a',b'> \<Longrightarrow> (a = a' \<Longrightarrow> b = b' \<Longrightarrow> R) \<Longrightarrow> R"
+  by (simp add: ccl_injs)
+
+
+subsection {* Constructors are distinct *}
+
+lemma lem: "t=t' ==> case(t,b,c,d,e) = case(t',b,c,d,e)"
+  by simp
+
+ML {*
+
+local
+  fun pairs_of f x [] = []
+    | pairs_of f x (y::ys) = (f x y) :: (f y x) :: (pairs_of f x ys)
+
+  fun mk_combs ff [] = []
+    | mk_combs ff (x::xs) = (pairs_of ff x xs) @ mk_combs ff xs
+
+  (* Doesn't handle binder types correctly *)
+  fun saturate thy sy name =
+       let fun arg_str 0 a s = s
+         | arg_str 1 a s = "(" ^ a ^ "a" ^ s ^ ")"
+         | arg_str n a s = arg_str (n-1) a ("," ^ a ^ (chr((ord "a")+n-1)) ^ s)
+           val T = Sign.the_const_type thy (Sign.intern_const thy sy);
+           val arity = length (fst (strip_type T))
+       in sy ^ (arg_str arity name "") end
+
+  fun mk_thm_str thy a b = "~ " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b")
+
+  val lemma = thm "lem";
+  val eq_lemma = thm "eq_lemma";
+  val distinctness = thm "distinctness";
+  fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL
+                           [distinctness RS notE,sym RS (distinctness RS notE)]
+in
+  fun mk_lemmas rls = List.concat (map mk_lemma (mk_combs pair rls))
+  fun mk_dstnct_rls thy xs = mk_combs (mk_thm_str thy) xs
+end
+
+*}
+
+ML {*
+
+val caseB_lemmas = mk_lemmas (thms "caseBs")
+
+val ccl_dstncts =
+        let fun mk_raw_dstnct_thm rls s =
+                  prove_goal (the_context ()) s (fn _=> [rtac notI 1,eresolve_tac rls 1])
+        in map (mk_raw_dstnct_thm caseB_lemmas)
+                (mk_dstnct_rls (the_context ()) ["bot","true","false","pair","lambda"]) end
+
+fun mk_dstnct_thms thy defs inj_rls xs =
+          let fun mk_dstnct_thm rls s = prove_goalw thy defs s
+                               (fn _ => [simp_tac (simpset_of thy addsimps (rls@inj_rls)) 1])
+          in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
+
+fun mkall_dstnct_thms thy defs i_rls xss = List.concat (map (mk_dstnct_thms thy defs i_rls) xss)
+
+(*** Rewriting and Proving ***)
+
+fun XH_to_I rl = rl RS iffD2
+fun XH_to_D rl = rl RS iffD1
+val XH_to_E = make_elim o XH_to_D
+val XH_to_Is = map XH_to_I
+val XH_to_Ds = map XH_to_D
+val XH_to_Es = map XH_to_E;
+
+bind_thms ("ccl_rews", thms "caseBs" @ ccl_injs @ ccl_dstncts);
+bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [notE]);
+bind_thms ("ccl_injDs", XH_to_Ds (thms "ccl_injs"));
+*}
+
+lemmas [simp] = ccl_rews
+  and [elim!] = pair_inject ccl_dstnctsEs
+  and [dest!] = ccl_injDs
+
+
+subsection {* Facts from gfp Definition of @{text "[="} and @{text "="} *}
+
+lemma XHlemma1: "[| A=B;  a:B <-> P |] ==> a:A <-> P"
+  by simp
+
+lemma XHlemma2: "(P(t,t') <-> Q) ==> (<t,t'> : {p. EX t t'. p=<t,t'> &  P(t,t')} <-> Q)"
+  by blast
+
+
+subsection {* Pre-Order *}
+
+lemma POgen_mono: "mono(%X. POgen(X))"
+  apply (unfold POgen_def SIM_def)
+  apply (rule monoI)
+  apply blast
+  done
+
+lemma POgenXH: 
+  "<t,t'> : POgen(R) <-> t= bot | (t=true & t'=true)  | (t=false & t'=false) |  
+           (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) |  
+           (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. <f(x),f'(x)> : R))"
+  apply (unfold POgen_def SIM_def)
+  apply (rule iff_refl [THEN XHlemma2])
+  done
+
+lemma poXH: 
+  "t [= t' <-> t=bot | (t=true & t'=true) | (t=false & t'=false) |  
+                 (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a [= a' & b [= b') |  
+                 (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x) [= f'(x)))"
+  apply (simp add: PO_iff del: ex_simps)
+  apply (rule POgen_mono
+    [THEN PO_def [THEN def_gfp_Tarski], THEN XHlemma1, unfolded POgen_def SIM_def])
+  apply (rule iff_refl [THEN XHlemma2])
+  done
+
+lemma po_bot: "bot [= b"
+  apply (rule poXH [THEN iffD2])
+  apply simp
+  done
+
+lemma bot_poleast: "a [= bot ==> a=bot"
+  apply (drule poXH [THEN iffD1])
+  apply simp
+  done
+
+lemma po_pair: "<a,b> [= <a',b'> <->  a [= a' & b [= b'"
+  apply (rule poXH [THEN iff_trans])
+  apply simp
+  done
+
+lemma po_lam: "lam x. f(x) [= lam x. f'(x) <-> (ALL x. f(x) [= f'(x))"
+  apply (rule poXH [THEN iff_trans])
+  apply fastsimp
+  done
+
+lemmas ccl_porews = po_bot po_pair po_lam
+
+lemma case_pocong:
+  assumes 1: "t [= t'"
+    and 2: "a [= a'"
+    and 3: "b [= b'"
+    and 4: "!!x y. c(x,y) [= c'(x,y)"
+    and 5: "!!u. d(u) [= d'(u)"
+  shows "case(t,a,b,c,d) [= case(t',a',b',c',d')"
+  apply (rule 1 [THEN po_cong, THEN po_trans])
+  apply (rule 2 [THEN po_cong, THEN po_trans])
+  apply (rule 3 [THEN po_cong, THEN po_trans])
+  apply (rule 4 [THEN po_abstractn, THEN po_abstractn, THEN po_cong, THEN po_trans])
+  apply (rule_tac f1 = "%d. case (t',a',b',c',d)" in
+    5 [THEN po_abstractn, THEN po_cong, THEN po_trans])
+  apply (rule po_refl)
+  done
+
+lemma apply_pocong: "[| f [= f';  a [= a' |] ==> f ` a [= f' ` a'"
+  unfolding ccl_data_defs
+  apply (rule case_pocong, (rule po_refl | assumption)+)
+  apply (erule po_cong)
+  done
+
+lemma npo_lam_bot: "~ lam x. b(x) [= bot"
+  apply (rule notI)
+  apply (drule bot_poleast)
+  apply (erule distinctness [THEN notE])
+  done
+
+lemma po_lemma: "[| x=a;  y=b;  x[=y |] ==> a[=b"
+  by simp
+
+lemma npo_pair_lam: "~ <a,b> [= lam x. f(x)"
+  apply (rule notI)
+  apply (rule npo_lam_bot [THEN notE])
+  apply (erule case_pocong [THEN caseBlam [THEN caseBpair [THEN po_lemma]]])
+  apply (rule po_refl npo_lam_bot)+
+  done
+
+lemma npo_lam_pair: "~ lam x. f(x) [= <a,b>"
+  apply (rule notI)
+  apply (rule npo_lam_bot [THEN notE])
+  apply (erule case_pocong [THEN caseBpair [THEN caseBlam [THEN po_lemma]]])
+  apply (rule po_refl npo_lam_bot)+
+  done
+
+ML {*
+
+local
+  fun mk_thm s = prove_goal (the_context ()) s (fn _ =>
+                          [rtac notI 1,dtac (thm "case_pocong") 1,etac rev_mp 5,
+                           ALLGOALS (simp_tac (simpset ())),
+                           REPEAT (resolve_tac [thm "po_refl", thm "npo_lam_bot"] 1)])
+in
+
+val npo_rls = [thm "npo_pair_lam", thm "npo_lam_pair"] @ map mk_thm
+            ["~ true [= false",          "~ false [= true",
+             "~ true [= <a,b>",          "~ <a,b> [= true",
+             "~ true [= lam x. f(x)","~ lam x. f(x) [= true",
+            "~ false [= <a,b>",          "~ <a,b> [= false",
+            "~ false [= lam x. f(x)","~ lam x. f(x) [= false"]
+end;
+
+bind_thms ("npo_rls", npo_rls);
+*}
+
+
+subsection {* Coinduction for @{text "[="} *}
+
+lemma po_coinduct: "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u"
+  apply (rule PO_def [THEN def_coinduct, THEN PO_iff [THEN iffD2]])
+   apply assumption+
+  done
+
+ML {*
+  local val po_coinduct = thm "po_coinduct"
+  in fun po_coinduct_tac s i = res_inst_tac [("R",s)] po_coinduct i end
+*}
+
+
+subsection {* Equality *}
+
+lemma EQgen_mono: "mono(%X. EQgen(X))"
+  apply (unfold EQgen_def SIM_def)
+  apply (rule monoI)
+  apply blast
+  done
+
+lemma EQgenXH: 
+  "<t,t'> : EQgen(R) <-> (t=bot & t'=bot)  | (t=true & t'=true)  |  
+                                             (t=false & t'=false) |  
+                 (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & <a,a'> : R & <b,b'> : R) |  
+                 (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x.<f(x),f'(x)> : R))"
+  apply (unfold EQgen_def SIM_def)
+  apply (rule iff_refl [THEN XHlemma2])
+  done
+
+lemma eqXH: 
+  "t=t' <-> (t=bot & t'=bot)  | (t=true & t'=true)  | (t=false & t'=false) |  
+                     (EX a a' b b'. t=<a,b> &  t'=<a',b'>  & a=a' & b=b') |  
+                     (EX f f'. t=lam x. f(x) &  t'=lam x. f'(x) & (ALL x. f(x)=f'(x)))"
+  apply (subgoal_tac "<t,t'> : EQ <-> (t=bot & t'=bot) | (t=true & t'=true) | (t=false & t'=false) | (EX a a' b b'. t=<a,b> & t'=<a',b'> & <a,a'> : EQ & <b,b'> : EQ) | (EX f f'. t=lam x. f (x) & t'=lam x. f' (x) & (ALL x. <f (x) ,f' (x) > : EQ))")
+  apply (erule rev_mp)
+  apply (simp add: EQ_iff [THEN iff_sym])
+  apply (rule EQgen_mono [THEN EQ_def [THEN def_gfp_Tarski], THEN XHlemma1,
+    unfolded EQgen_def SIM_def])
+  apply (rule iff_refl [THEN XHlemma2])
+  done
+
+lemma eq_coinduct: "[|  <t,u> : R;  R <= EQgen(R) |] ==> t = u"
+  apply (rule EQ_def [THEN def_coinduct, THEN EQ_iff [THEN iffD2]])
+   apply assumption+
+  done
+
+lemma eq_coinduct3:
+  "[|  <t,u> : R;  R <= EQgen(lfp(%x. EQgen(x) Un R Un EQ)) |] ==> t = u"
+  apply (rule EQ_def [THEN def_coinduct3, THEN EQ_iff [THEN iffD2]])
+  apply (rule EQgen_mono | assumption)+
+  done
+
+ML {*
+  local
+    val eq_coinduct = thm "eq_coinduct"
+    val eq_coinduct3 = thm "eq_coinduct3"
+  in
+    fun eq_coinduct_tac s i = res_inst_tac [("R",s)] eq_coinduct i
+    fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] eq_coinduct3 i
+  end
+*}
+
+
+subsection {* Untyped Case Analysis and Other Facts *}
+
+lemma cond_eta: "(EX f. t=lam x. f(x)) ==> t = lam x.(t ` x)"
+  by (auto simp: apply_def)
+
+lemma exhaustion: "(t=bot) | (t=true) | (t=false) | (EX a b. t=<a,b>) | (EX f. t=lam x. f(x))"
+  apply (cut_tac refl [THEN eqXH [THEN iffD1]])
+  apply blast
+  done
+
+lemma term_case:
+  "[| P(bot);  P(true);  P(false);  !!x y. P(<x,y>);  !!b. P(lam x. b(x)) |] ==> P(t)"
+  using exhaustion [of t] by blast
 
 end

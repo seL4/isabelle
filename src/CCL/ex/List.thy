@@ -43,6 +43,80 @@ axioms
                                    in split(p,%x y. qsortx(x) @ h$qsortx(y)))
                           in qsortx(l)"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas list_defs = map_def comp_def append_def filter_def flat_def
+  insert_def isort_def partition_def qsort_def
+
+lemma listBs [simp]:
+  "!!f g. (f o g) = (%a. f(g(a)))"
+  "!!a f g. (f o g)(a) = f(g(a))"
+  "!!f. map(f,[]) = []"
+  "!!f x xs. map(f,x$xs) = f(x)$map(f,xs)"
+  "!!m. [] @ m = m"
+  "!!x xs m. x$xs @ m = x$(xs @ m)"
+  "!!f. filter(f,[]) = []"
+  "!!f x xs. filter(f,x$xs) = if f`x then x$filter(f,xs) else filter(f,xs)"
+  "flat([]) = []"
+  "!!x xs. flat(x$xs) = x @ flat(xs)"
+  "!!a f. insert(f,a,[]) = a$[]"
+  "!!a f xs. insert(f,a,x$xs) = if f`a`x then a$x$xs else x$insert(f,a,xs)"
+  by (simp_all add: list_defs)
+
+lemma nmapBnil: "n:Nat ==> map(f) ^ n ` [] = []"
+  apply (erule Nat_ind)
+   apply simp_all
+  done
+
+lemma nmapBcons: "n:Nat ==> map(f)^n`(x$xs) = (f^n`x)$(map(f)^n`xs)"
+  apply (erule Nat_ind)
+   apply simp_all
+  done
+
+
+lemma mapT: "[| !!x. x:A==>f(x):B;  l : List(A) |] ==> map(f,l) : List(B)"
+  apply (unfold map_def)
+  apply (tactic "typechk_tac [] 1")
+  apply blast
+  done
+
+lemma appendT: "[| l : List(A);  m : List(A) |] ==> l @ m : List(A)"
+  apply (unfold append_def)
+  apply (tactic "typechk_tac [] 1")
+  done
+
+lemma appendTS:
+  "[| l : {l:List(A). m : {m:List(A).P(l @ m)}} |] ==> l @ m : {x:List(A). P(x)}"
+  by (blast intro!: SubtypeI appendT elim!: SubtypeE)
+
+lemma filterT: "[| f:A->Bool;   l : List(A) |] ==> filter(f,l) : List(A)"
+  apply (unfold filter_def)
+  apply (tactic "typechk_tac [] 1")
+  done
+
+lemma flatT: "l : List(List(A)) ==> flat(l) : List(A)"
+  apply (unfold flat_def)
+  apply (tactic {* typechk_tac [thm "appendT"] 1 *})
+  done
+
+lemma insertT: "[|  f : A->A->Bool; a:A; l : List(A) |] ==> insert(f,a,l) : List(A)"
+  apply (unfold insert_def)
+  apply (tactic "typechk_tac [] 1")
+  done
+
+lemma insertTS:
+  "[| f : {f:A->A->Bool. a : {a:A. l : {l:List(A).P(insert(f,a,l))}}} |] ==>  
+   insert(f,a,l)  : {x:List(A). P(x)}"
+  by (blast intro!: SubtypeI insertT elim!: SubtypeE)
+
+lemma partitionT:
+  "[| f:A->Bool;  l : List(A) |] ==> partition(f,l) : List(A)*List(A)"
+  apply (unfold partition_def)
+  apply (tactic "typechk_tac [] 1")
+  apply (tactic clean_ccs_tac)
+  apply (rule ListPRI [THEN wfstI, THEN ListPR_wf [THEN wmap_wf, THEN wfI]])
+    apply assumption+
+  apply (rule ListPRI [THEN wfstI, THEN ListPR_wf [THEN wmap_wf, THEN wfI]])
+   apply assumption+
+  done
 
 end

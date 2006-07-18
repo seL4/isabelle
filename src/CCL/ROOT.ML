@@ -14,7 +14,5 @@ set eta_contract;
 (* CCL - a computational logic for an untyped functional language *)
 (*                       with evaluation to weak head-normal form *)
 
-use_thy "CCL";
-use_thy "Hered";
 use_thy "Wfd";
 use_thy "Fix";

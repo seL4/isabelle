@@ -44,6 +44,35 @@ axioms
                                 (c mem lb = true --> c=blue)) &
                   Perm(l,lr @ lw @ lb)"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas flag_defs = Colour_def red_def white_def blue_def ccase_def
+
+lemma ColourXH: "a : Colour <-> (a=red | a=white | a=blue)"
+  unfolding simp_type_defs flag_defs by blast
+
+lemma redT: "red : Colour"
+  and whiteT: "white : Colour"
+  and blueT: "blue : Colour"
+  unfolding ColourXH by blast+
+
+ML {*
+bind_thm ("ccaseT", mk_ncanT_tac (the_context ())
+  (thms "flag_defs") (thms "case_rls") (thms "case_rls")
+  "[| c:Colour; c=red ==> r : C(red); c=white ==> w : C(white); c=blue ==> b : C(blue) |] ==> ccase(c,r,w,b) : C(c)");
+*}
+
+
+lemma "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)"
+  apply (unfold flag_def)
+  apply (tactic {* typechk_tac [thm "redT", thm "whiteT", thm "blueT", thm "ccaseT"] 1 *})
+  apply (tactic clean_ccs_tac)
+  apply (erule ListPRI [THEN ListPR_wf [THEN wfI]])
+  apply assumption
+  done
+
+lemma "flag : PROD l:List(Colour).{x:List(Colour)*List(Colour)*List(Colour).FLAG(x,l)}"
+  apply (unfold flag_def)
+  apply (tactic {* gen_ccs_tac [thm "redT", thm "whiteT", thm "blueT", thm "ccaseT"] 1 *})
+  oops
 
 end

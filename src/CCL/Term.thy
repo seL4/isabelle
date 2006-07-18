@@ -143,6 +143,183 @@ axioms
 
   napply_def: "f ^n` a == nrec(n,a,%x g. f(g))"
 
-ML {* use_legacy_bindings (the_context ()) *}
+
+lemmas simp_can_defs = one_def inl_def inr_def
+  and simp_ncan_defs = if_def when_def split_def fst_def snd_def thd_def
+lemmas simp_defs = simp_can_defs simp_ncan_defs
+
+lemmas ind_can_defs = zero_def succ_def nil_def cons_def
+  and ind_ncan_defs = ncase_def nrec_def lcase_def lrec_def
+lemmas ind_defs = ind_can_defs ind_ncan_defs
+
+lemmas data_defs = simp_defs ind_defs napply_def
+  and genrec_defs = letrec_def letrec2_def letrec3_def
+
+
+subsection {* Beta Rules, including strictness *}
+
+lemma letB: "~ t=bot ==> let x be t in f(x) = f(t)"
+  apply (unfold let_def)
+  apply (erule rev_mp)
+  apply (rule_tac t = "t" in term_case)
+      apply (simp_all add: caseBtrue caseBfalse caseBpair caseBlam)
+  done
+
+lemma letBabot: "let x be bot in f(x) = bot"
+  apply (unfold let_def)
+  apply (rule caseBbot)
+  done
+
+lemma letBbbot: "let x be t in bot = bot"
+  apply (unfold let_def)
+  apply (rule_tac t = t in term_case)
+      apply (rule caseBbot)
+     apply (simp_all add: caseBtrue caseBfalse caseBpair caseBlam)
+  done
+
+lemma applyB: "(lam x. b(x)) ` a = b(a)"
+  apply (unfold apply_def)
+  apply (simp add: caseBtrue caseBfalse caseBpair caseBlam)
+  done
+
+lemma applyBbot: "bot ` a = bot"
+  apply (unfold apply_def)
+  apply (rule caseBbot)
+  done
+
+lemma fixB: "fix(f) = f(fix(f))"
+  apply (unfold fix_def)
+  apply (rule applyB [THEN ssubst], rule refl)
+  done
+
+lemma letrecB:
+    "letrec g x be h(x,g) in g(a) = h(a,%y. letrec g x be h(x,g) in g(y))"
+  apply (unfold letrec_def)
+  apply (rule fixB [THEN ssubst], rule applyB [THEN ssubst], rule refl)
+  done
+
+lemmas rawBs = caseBs applyB applyBbot
+
+ML {*
+local
+  val letrecB = thm "letrecB"
+  val rawBs = thms "rawBs"
+  val data_defs = thms "data_defs"
+in
+
+fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
+           (fn _ => [stac letrecB 1,
+                     simp_tac (simpset () addsimps rawBs) 1]);
+fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
+
+fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
+           (fn _ => [simp_tac (simpset () addsimps rawBs
+                               setloop (stac letrecB)) 1]);
+fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
+
+end
+*}
+
+ML {*
+bind_thm ("ifBtrue", mk_beta_rl "if true then t else u = t");
+bind_thm ("ifBfalse", mk_beta_rl "if false then t else u = u");
+bind_thm ("ifBbot", mk_beta_rl "if bot then t else u = bot");
+
+bind_thm ("whenBinl", mk_beta_rl "when(inl(a),t,u) = t(a)");
+bind_thm ("whenBinr", mk_beta_rl "when(inr(a),t,u) = u(a)");
+bind_thm ("whenBbot", mk_beta_rl "when(bot,t,u) = bot");
+
+bind_thm ("splitB", mk_beta_rl "split(<a,b>,h) = h(a,b)");
+bind_thm ("splitBbot", mk_beta_rl "split(bot,h) = bot");
+bind_thm ("fstB", mk_beta_rl "fst(<a,b>) = a");
+bind_thm ("fstBbot", mk_beta_rl "fst(bot) = bot");
+bind_thm ("sndB", mk_beta_rl "snd(<a,b>) = b");
+bind_thm ("sndBbot", mk_beta_rl "snd(bot) = bot");
+bind_thm ("thdB", mk_beta_rl "thd(<a,<b,c>>) = c");
+bind_thm ("thdBbot", mk_beta_rl "thd(bot) = bot");
+
+bind_thm ("ncaseBzero", mk_beta_rl "ncase(zero,t,u) = t");
+bind_thm ("ncaseBsucc", mk_beta_rl "ncase(succ(n),t,u) = u(n)");
+bind_thm ("ncaseBbot", mk_beta_rl "ncase(bot,t,u) = bot");
+bind_thm ("nrecBzero", mk_beta_rl "nrec(zero,t,u) = t");
+bind_thm ("nrecBsucc", mk_beta_rl "nrec(succ(n),t,u) = u(n,nrec(n,t,u))");
+bind_thm ("nrecBbot", mk_beta_rl "nrec(bot,t,u) = bot");
+
+bind_thm ("lcaseBnil", mk_beta_rl "lcase([],t,u) = t");
+bind_thm ("lcaseBcons", mk_beta_rl "lcase(x$xs,t,u) = u(x,xs)");
+bind_thm ("lcaseBbot", mk_beta_rl "lcase(bot,t,u) = bot");
+bind_thm ("lrecBnil", mk_beta_rl "lrec([],t,u) = t");
+bind_thm ("lrecBcons", mk_beta_rl "lrec(x$xs,t,u) = u(x,xs,lrec(xs,t,u))");
+bind_thm ("lrecBbot", mk_beta_rl "lrec(bot,t,u) = bot");
+
+bind_thm ("letrec2B", raw_mk_beta_rl (thms "data_defs" @ [thm "letrec2_def"])
+  "letrec g x y be h(x,y,g) in g(p,q) = h(p,q,%u v. letrec g x y be h(x,y,g) in g(u,v))");
+
+bind_thm ("letrec3B", raw_mk_beta_rl (thms "data_defs" @ [thm "letrec3_def"])
+  "letrec g x y z be h(x,y,z,g) in g(p,q,r) = h(p,q,r,%u v w. letrec g x y z be h(x,y,z,g) in g(u,v,w))");
+
+bind_thm ("napplyBzero", mk_beta_rl "f^zero`a = a");
+bind_thm ("napplyBsucc", mk_beta_rl "f^succ(n)`a = f(f^n`a)");
+
+bind_thms ("termBs", [thm "letB", thm "applyB", thm "applyBbot", splitB,splitBbot,
+  fstB,fstBbot,sndB,sndBbot,thdB,thdBbot,
+  ifBtrue,ifBfalse,ifBbot,whenBinl,whenBinr,whenBbot,
+  ncaseBzero,ncaseBsucc,ncaseBbot,nrecBzero,nrecBsucc,nrecBbot,
+  lcaseBnil,lcaseBcons,lcaseBbot,lrecBnil,lrecBcons,lrecBbot,
+  napplyBzero,napplyBsucc]);
+*}
+
+
+subsection {* Constructors are injective *}
+
+ML {*
+
+bind_thms ("term_injs", map (mk_inj_rl (the_context ())
+  [thm "applyB", thm "splitB", thm "whenBinl", thm "whenBinr", thm "ncaseBsucc", thm "lcaseBcons"])
+    ["(inl(a) = inl(a')) <-> (a=a')",
+     "(inr(a) = inr(a')) <-> (a=a')",
+     "(succ(a) = succ(a')) <-> (a=a')",
+     "(a$b = a'$b') <-> (a=a' & b=b')"])
+*}
+
+
+subsection {* Constructors are distinct *}
+
+ML {*
+bind_thms ("term_dstncts",
+  mkall_dstnct_thms (the_context ()) (thms "data_defs") (thms "ccl_injs" @ thms "term_injs")
+    [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","op $"]]);
+*}
+
+
+subsection {* Rules for pre-order @{text "[="} *}
+
+ML {*
+
+local
+  fun mk_thm s = prove_goalw (the_context ()) (thms "data_defs") s (fn _ =>
+    [simp_tac (simpset () addsimps (thms "ccl_porews")) 1])
+in
+  val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
+                                "inr(b) [= inr(b') <-> b [= b'",
+                                "succ(n) [= succ(n') <-> n [= n'",
+                                "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"]
+end;
+
+bind_thms ("term_porews", term_porews);
+*}
+
+
+subsection {* Rewriting and Proving *}
+
+lemmas term_rews = termBs term_injs term_dstncts ccl_porews term_porews
+
+ML {*
+  bind_thms ("term_injDs", XH_to_Ds term_injs);
+*}
+
+lemmas [simp] = term_rews
+  and [elim!] = term_dstncts [THEN notE]
+  and [dest!] = term_injDs
 
 end
