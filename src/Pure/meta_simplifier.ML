@@ -257,8 +257,8 @@ fun prnt warn a = if warn then warning a else println a;
 
 fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
   let
-    val used = Term.add_term_names (t, []);
-    val xs = rev (Name.variant_list used (rev (map #2 bs)));
+    val names = Term.declare_term_names t Name.context;
+    val xs = rev (#1 (Name.variants (rev (map #2 bs)) names));
     fun subst (((b, T), _), x') = (Free (b, T), Syntax.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 

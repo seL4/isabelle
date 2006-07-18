@@ -383,9 +383,9 @@ fun type_constraint_tr' show_sorts (*"_type_constraint_"*) (Type ("fun", [T, _])
 
 (* dependent / nondependent quantifiers *)
 
-fun variant_abs' (x, T, B) =
-  let val x' = Name.variant (add_term_names (B, [])) x in
-    (x', subst_bound (mark_boundT (x', T), B))
+fun variant_abs' (x, T, b) =
+  let val ([x'], _) = Name.variants [x] (Term.declare_term_names b Name.context) in
+    (x', subst_bound (mark_boundT (x', T), b))
   end;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
