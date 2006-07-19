@@ -17,7 +17,9 @@ sig
   val clean: string -> string
   type context
   val context: context
+  val make_context: string list -> context
   val declare: string -> context -> context
+  val is_declared: context -> string -> bool
   val invents: context -> string -> int -> string list
   val invent_list: string list -> string -> int -> string list
   val variants: string list -> context -> string list * context
@@ -77,6 +79,7 @@ fun declare x (Context tab) =
 fun declare_renaming (x, x') (Context tab) =
   Context (Symtab.update (clean x, SOME (clean x')) tab);
 
+fun is_declared (Context tab) = Symtab.defined tab;
 fun declared (Context tab) = Symtab.lookup tab;
 
 val context = Context Symtab.empty |> fold declare ["", "'"];
@@ -90,7 +93,7 @@ fun invents ctxt =
     fun invs _ 0 = []
       | invs x n =
           let val x' = Symbol.bump_string x in
-            if is_some (declared ctxt x) then invs x' n
+            if is_declared ctxt x then invs x' n
             else x :: invs x' (n - 1)
           end;
   in invs o clean end;
@@ -111,7 +114,7 @@ val variants = fold_map (fn name => fn ctxt =>
 
     val (x, n) = clean_index (name, 0);
     val (x', ctxt') =
-      if is_none (declared ctxt x) then (x, declare x ctxt)
+      if not (is_declared ctxt x) then (x, declare x ctxt)
       else
         let
           val x0 = Symbol.bump_init x;
