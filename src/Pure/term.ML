@@ -146,7 +146,7 @@ sig
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
   val variant_abs: string * typ * term -> string * term
-  val rename_wrt_term: term -> (string * typ) list -> (string * typ) list
+  val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val show_question_marks: bool ref
 end;
 
@@ -194,6 +194,7 @@ sig
   val maxidx_term: term -> int -> int
   val declare_term_names: term -> Name.context -> Name.context
   val dest_abs: string * typ * term -> string * term
+  val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val zero_var_indexesT: typ -> typ
   val zero_var_indexes: term -> term
   val zero_var_indexes_inst: term ->
@@ -1161,11 +1162,10 @@ fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
   | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
   | add_term_names (_, bs) = bs;
 
-fun declare_term_names (Const (a, _)) = Name.declare (NameSpace.base a)
-  | declare_term_names (Free (a, _)) = Name.declare a
-  | declare_term_names (t $ u) = declare_term_names t #> declare_term_names u
-  | declare_term_names (Abs (_, _, t)) = declare_term_names t
-  | declare_term_names _ = I;
+val declare_term_names = fold_aterms
+  (fn Const (a, _) => Name.declare (NameSpace.base a)     (*expensive*)
+    | Free (a, _) => Name.declare a
+    | _ => I);
 
 (*Accumulates the TVars in a type, suppressing duplicates. *)
 fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
@@ -1255,11 +1255,13 @@ fun dest_abs (x, T, body) =
     else (x, subst_bound (Free (x, T), body))
   end;
 
-(* renames and reverses the strings in vars away from names *)
-fun rename_aTs names vars =
-  rev (fst (Name.variants (map fst vars) names) ~~ map snd vars);
 
-fun rename_wrt_term t = rename_aTs (declare_term_names t Name.context);
+(* renaming variables *)
+
+fun variant_frees t frees =
+  fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
+
+fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 
 
 (* zero var indexes *)
