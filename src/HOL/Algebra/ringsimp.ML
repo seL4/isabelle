@@ -1,68 +1,95 @@
 (*
-  Title:     Normalisation method for locale cring
+  Title:     Normalisation method for locales ring and cring
   Id:        $Id$
   Author:    Clemens Ballarin
   Copyright: TU Muenchen
 *)
 
-(*** Term order for commutative rings ***)
+signature ALGEBRA =
+sig
+  val print_structures: Context.generic -> unit
+  val setup: Theory.theory -> Theory.theory
+end;
 
-fun ring_ord (Const (a, _)) =
-    find_index_eq a ["CRing.ring.zero", "CRing.ring.add", "CRing.a_inv",
-      "CRing.minus", "Group.monoid.one", "Group.monoid.mult"]
-  | ring_ord _ = ~1;
+structure Algebra: ALGEBRA =
+struct
 
-fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
 
-val cring_ss = HOL_ss settermless termless_ring;
+(** Theory and context data **)
 
-fun cring_normalise ctxt = let
-    fun filter p t = (case HOLogic.dest_Trueprop t of
-        Const (p', _) $ Free (s, _) => if p = p' then [s] else []
-      | _ => [])
-      handle TERM _ => [];
-    fun filter21 p t = (case HOLogic.dest_Trueprop t of
-        Const (p', _) $ Free (s, _) $ _ => if p = p' then [s] else []
-      | _ => [])
-      handle TERM _ => [];
-    fun filter22 p t = (case HOLogic.dest_Trueprop t of
-        Const (p', _) $ _ $ Free (s, _) => if p = p' then [s] else []
-      | _ => [])
-      handle TERM _ => [];
-    fun filter31 p t = (case HOLogic.dest_Trueprop t of
-        Const (p', _) $ Free (s, _) $ _ $ _ => if p = p' then [s] else []
-      | _ => [])
-      handle TERM _ => [];
-    fun filter32 p t = (case HOLogic.dest_Trueprop t of
-        Const (p', _) $ _ $ Free (s, _) $ _ => if p = p' then [s] else []
-      | _ => [])
-      handle TERM _ => [];
+fun struct_eq ((s1, ts1), (s2, ts2)) =
+  (s1 = s2) andalso equal_lists (op aconv) (ts1, ts2);
 
-    val prems = ProofContext.prems_of ctxt;
-    val non_comm_rings = List.concat (map (filter "CRing.ring" o #prop o rep_thm) prems);
-    val comm_rings = List.concat (map (filter "CRing.cring" o #prop o rep_thm) prems) @
-        List.concat (map (filter "CRing.domain" o #prop o rep_thm) prems) @
-        List.concat (map (filter21 "Module.module" o #prop o rep_thm) prems) @
-        List.concat (map (filter21 "Module.algebra" o #prop o rep_thm) prems) @
-        List.concat (map (filter22 "Module.algebra" o #prop o rep_thm) prems) @
-        List.concat (map (filter "UnivPoly.UP_cring" o #prop o rep_thm) prems) @
-        List.concat (map (filter "UnivPoly.UP_domain" o #prop o rep_thm) prems) @
-        List.concat (map (filter31 "CRing.ring_hom_cring" o #prop o rep_thm) prems) @
-        List.concat (map (filter32 "CRing.ring_hom_cring" o #prop o rep_thm) prems);
-    val _ = tracing
-      ("Non-commutative rings in proof context: " ^ commas non_comm_rings ^
-       "\nCommutative rings in proof context: " ^ commas comm_rings);
-    val simps =
-      List.concat (map (fn s => ProofContext.get_thms ctxt (Name (s ^ ".ring_simprules")))
-        non_comm_rings) @
-      List.concat (map (fn s => ProofContext.get_thms ctxt (Name (s ^ ".cring_simprules")))
-        comm_rings);
-  in Method.SIMPLE_METHOD' HEADGOAL (asm_full_simp_tac (cring_ss addsimps simps))
-  end;
+structure AlgebraData = GenericDataFun
+(struct
+  val name = "Algebra/algebra";
+  type T = ((string * term list) * thm list) list;
+    (* Algebraic structures:
+       identifier of the structure, list of operations and simp rules,
+       identifier and operations identify the structure uniquely. *)
+  val empty = [];
+  val extend = I;
+  fun merge _ (structs1, structs2) = gen_merge_lists
+    (fn ((s1, _), (s2, _)) => struct_eq (s1, s2)) structs1 structs2;
+  fun print generic structs =
+    let
+      val ctxt = Context.proof_of generic;
+      val pretty_term = Pretty.quote o ProofContext.pretty_term ctxt;
+      fun pretty_struct ((s, ts), _) = Pretty.block
+        [Pretty.str s, Pretty.str ":", Pretty.brk 1,
+         Pretty.enclose "(" ")" (Pretty.breaks (map pretty_term ts))];
+    in
+      Pretty.big_list "Algebraic structures:" (map pretty_struct structs) |>
+        Pretty.writeln
+    end
+end);
 
-(*
-val ring_ss = HOL_basic_ss settermless termless_ring addsimps
-  [a_assoc, l_zero, l_neg, a_comm, m_assoc, l_one, l_distr, m_comm, minus_def,
-   r_zero, r_neg, r_neg2, r_neg1, minus_add, minus_minus, minus0,
-   a_lcomm, m_lcomm, (*r_one,*) r_distr, l_null, r_null, l_minus, r_minus];
-*)
+val print_structures = AlgebraData.print;
+
+
+(** Method **)
+
+fun struct_tac ((s, ts), simps) =
+  let
+    val ops = map (fst o Term.strip_comb) ts;
+    fun ord (Const (a, _)) = find_index (fn (Const (b, _)) => a=b | _ => false) ops
+      | ord (Free (a, _)) = find_index (fn (Free (b, _)) => a=b | _ => false) ops;
+    fun less (a, b) = (Term.term_lpo ord (a, b) = LESS);
+  in asm_full_simp_tac (HOL_ss settermless less addsimps simps) end;
+
+fun algebra_tac ctxt =
+  let val _ = print_structures (Context.Proof ctxt)
+  in EVERY' (map (fn s => TRY o struct_tac s) (AlgebraData.get (Context.Proof ctxt))) end;
+
+val method =
+  Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' HEADGOAL (algebra_tac ctxt))
+
+
+(** Attribute **)
+
+fun add_struct_thm s =
+  Thm.declaration_attribute (fn thm => fn ctxt =>
+    AlgebraData.map (fn structs => 
+      if AList.defined struct_eq structs s
+      then AList.map_entry struct_eq s (fn thms => thm :: thms) structs
+      else (s, [thm])::structs) ctxt);
+fun del_struct s =
+  Thm.declaration_attribute (fn _ => fn ctxt =>
+    AlgebraData.map (AList.delete struct_eq s) ctxt);
+
+val attribute = Attrib.syntax
+     (Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon ||
+        Scan.succeed true) -- Scan.lift Args.name -- 
+      Scan.repeat Args.term
+      >> (fn ((b, n), ts) => if b then add_struct_thm (n, ts) else del_struct (n, ts)));
+
+
+(** Setup **)
+
+val setup =
+  AlgebraData.init #>
+  Method.add_methods [("algebra", method, "normalisation of algebraic structure")] #>
+  Attrib.add_attributes [("algebra", attribute, "theorems controlling algebra method")];
+
+
+end;  (* struct *)

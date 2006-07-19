@@ -446,23 +446,31 @@ lemma (in ring) minus_eq:
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
   by (simp only: a_minus_def)
 
-lemmas (in ring) ring_simprules =
+text {* Setup algebra method:
+  compute distributive normal form in locale contexts *}
+
+use "ringsimp.ML"
+
+setup Algebra.setup
+
+lemmas (in ring) ring_simprules
+  [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
   a_closed zero_closed a_inv_closed minus_closed m_closed one_closed
   a_assoc l_zero l_neg a_comm m_assoc l_one l_distr minus_eq
   r_zero r_neg r_neg2 r_neg1 minus_add minus_minus minus_zero
   a_lcomm r_distr l_null r_null l_minus r_minus
 
-lemmas (in cring) cring_simprules =
+lemmas (in cring)
+  [algebra del: ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
+  _
+
+lemmas (in cring) cring_simprules
+  [algebra add: cring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
   a_closed zero_closed a_inv_closed minus_closed m_closed one_closed
   a_assoc l_zero l_neg a_comm m_assoc l_one l_distr m_comm minus_eq
   r_zero r_neg r_neg2 r_neg1 minus_add minus_minus minus_zero
   a_lcomm m_lcomm r_distr l_null r_null l_minus r_minus
 
-use "ringsimp.ML"
-
-method_setup algebra =
-  {* Method.ctxt_args cring_normalise *}
-  {* computes distributive normal form in locale context cring *}
 
 lemma (in cring) nat_pow_zero:
   "(n::nat) ~= 0 ==> \<zero> (^) n = \<zero>"

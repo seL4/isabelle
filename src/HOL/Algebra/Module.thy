@@ -106,11 +106,11 @@ lemma (in algebra) smult_l_null [simp]:
   "x \<in> carrier M ==> \<zero> \<odot>\<^bsub>M\<^esub> x = \<zero>\<^bsub>M\<^esub>"
 proof -
   assume M: "x \<in> carrier M"
-  note facts = M smult_closed
+  note facts = M smult_closed [OF R.zero_closed]
   from facts have "\<zero> \<odot>\<^bsub>M\<^esub> x = (\<zero> \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> \<zero> \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub> (\<zero> \<odot>\<^bsub>M\<^esub> x)" by algebra
   also from M have "... = (\<zero> \<oplus> \<zero>) \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub> (\<zero> \<odot>\<^bsub>M\<^esub> x)"
     by (simp add: smult_l_distr del: R.l_zero R.r_zero)
-  also from facts have "... = \<zero>\<^bsub>M\<^esub>" by algebra
+  also from facts have "... = \<zero>\<^bsub>M\<^esub>" apply algebra apply algebra done
   finally show ?thesis .
 qed
 
@@ -131,12 +131,15 @@ lemma (in algebra) smult_l_minus:
   "[| a \<in> carrier R; x \<in> carrier M |] ==> (\<ominus>a) \<odot>\<^bsub>M\<^esub> x = \<ominus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> x)"
 proof -
   assume RM: "a \<in> carrier R" "x \<in> carrier M"
-  note facts = RM smult_closed
+  from RM have a_smult: "a \<odot>\<^bsub>M\<^esub> x \<in> carrier M" by simp
+  from RM have ma_smult: "\<ominus>a \<odot>\<^bsub>M\<^esub> x \<in> carrier M" by simp
+  note facts = RM a_smult ma_smult
   from facts have "(\<ominus>a) \<odot>\<^bsub>M\<^esub> x = (\<ominus>a \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
     by algebra
   also from RM have "... = (\<ominus>a \<oplus> a) \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
     by (simp add: smult_l_distr)
-  also from facts smult_l_null have "... = \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)" by algebra
+  also from facts smult_l_null have "... = \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
+    apply algebra apply algebra done
   finally show ?thesis .
 qed
 
