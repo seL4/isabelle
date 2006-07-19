@@ -737,33 +737,40 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
                map_mode (map (Element.rename_witness ren)) mode)
          else (parms, mode));
 
-    (* add registrations of (name, ps), recursively; adjust hyps of witnesses *)
+    (* add (name, ps) and its registrations, recursively; adjust hyps of witnesses *)
 
-    fun add_regs (name, ps) (ths, ids) =
-        let
-          val {params, regs, ...} = the_locale thy name;
-          val ps' = map #1 params;
-          val ren = map #1 ps' ~~ map (fn (x, _) => (x, NONE)) ps;
-            (* dummy syntax, since required by rename *)
-          val ps'' = map (fn ((p, _), (_, T)) => (p, T)) (ps ~~ ps');
-          val [env] = unify_parms ctxt ps [map (apsnd SOME) ps''];
-            (* propagate parameter types, to keep them consistent *)
-          val regs' = map (fn ((name, ps), wits) =>
-              ((name, map (Element.rename ren) ps),
-               map (Element.transfer_witness thy) wits)) regs;
-          val new_regs = gen_rems (eq_fst (op =)) (regs', ids);
-          val new_ids = map fst new_regs;
-          val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) ps) p)))) new_ids;
+    fun add_with_regs ((name, pTs), mode) (wits, ids, visited) =
+        if member (fn (a, (b, _)) => a = b) visited (name, map #1 pTs)
+        then (wits, ids, visited)
+        else
+	  let
+	    val {params, regs, ...} = the_locale thy name;
+	    val pTs' = map #1 params;
+	    val ren = map #1 pTs' ~~ map (fn (x, _) => (x, NONE)) pTs;
+	      (* dummy syntax, since required by rename *)
+	    val pTs'' = map (fn ((p, _), (_, T)) => (p, T)) (pTs ~~ pTs');
+	    val [env] = unify_parms ctxt pTs [map (apsnd SOME) pTs''];
+	      (* propagate parameter types, to keep them consistent *)
+	    val regs' = map (fn ((name, ps), wits) =>
+		((name, map (Element.rename ren) ps),
+		 map (Element.transfer_witness thy) wits)) regs;
+	    val new_regs = regs';
+	    val new_ids = map fst new_regs;
+	    val new_idTs = map (apsnd (map (fn p => (p, (the o AList.lookup (op =) pTs) p)))) new_ids;
 
-          val new_ths = new_regs |> map (#2 #> map
-            (Element.instT_witness thy env #>
-              Element.rename_witness ren #>
-              Element.satisfy_witness ths));
-          val new_ids' = map (fn (id, ths) =>
-              (id, ([], Derived ths))) (new_ids ~~ new_ths);
-        in
-          fold add_regs new_idTs (ths @ flat new_ths, ids @ new_ids')
-        end;
+	    val new_wits = new_regs |> map (#2 #> map
+	      (Element.instT_witness thy env #> Element.rename_witness ren #>
+		Element.satisfy_witness wits));
+	    val new_ids' = map (fn (id, wits) =>
+		(id, ([], Derived wits))) (new_ids ~~ new_wits);
+	    val new_idTs' = map (fn ((n, pTs), (_, ([], mode))) =>
+		((n, pTs), mode)) (new_idTs ~~ new_ids');
+	    val new_id = ((name, map #1 pTs), ([], mode));
+	    val (wits', ids', visited') = fold add_with_regs new_idTs'
+              (wits @ flat new_wits, ids, visited @ [new_id]);
+	  in
+	    (wits', ids' @ [new_id], visited')
+	  end;
 
     (* distribute top-level axioms over assumed ids *)
 
@@ -793,11 +800,8 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
             val (ids', parms') = identify false import;
                 (* acyclic import dependencies *)
 
-            val ids'' = ids' @ [((name, ps), ([], Assumed []))];
-            val (_, ids''') = add_regs (name, map #1 params) ([], ids'');
-            val (_, ids4) = chop (length ids' + 1) ids''';
-            val ids5 = ids' @ ids4 @ [((name, ps), ([], Assumed []))];
-            val ids_ax = if top then fst (fold_map (axiomify ps) ids5 axiom) else ids5;
+            val (_, ids'', _) = add_with_regs ((name, map #1 params), Assumed []) ([], ids', ids');
+            val ids_ax = if top then fst (fold_map (axiomify ps) ids'' axiom) else ids'';
             in (ids_ax, merge_lists parms' ps) end
       | identify top (Rename (e, xs)) =
           let
