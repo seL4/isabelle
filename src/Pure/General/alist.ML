@@ -20,6 +20,8 @@ sig
     -> ('b * 'c) list -> ('b * 'c) list
   val map_entry_yield: ('a * 'b -> bool) -> 'a -> ('c -> 'd * 'c)
     -> ('b * 'c) list -> 'd option * ('b * 'c) list
+  val map_default: ('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)
+    -> ('a * 'b) list -> ('a * 'b) list
   val join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)
     -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list      (*exception DUP*)
   val merge: ('a * 'a -> bool) -> ('b * 'b -> bool)
@@ -43,6 +45,13 @@ fun find_index eq xs key =
           else find xs (i+1);
   in find xs 0 end;
 
+fun map_index eq key f_none f_some xs =
+  let
+    val i = find_index eq xs key;
+    fun mapp 0 (x::xs) = f_some x xs
+      | mapp i (x::xs) = x :: mapp (i-1) xs;
+  in (if i = ~1 then f_none else mapp i) xs end;
+
 fun lookup _ [] _ = NONE
   | lookup eq ((key, value)::xs) key' =
       if eq (key', key) then SOME value
@@ -52,29 +61,20 @@ fun defined _ [] _ = false
   | defined eq ((key, value)::xs) key' =
       eq (key', key) orelse defined eq xs key';
 
-fun update eq (x as (key, value)) xs =
-  let
-    val i = find_index eq xs key;
-    fun upd 0 (_::xs) = x :: xs
-      | upd i (x::xs) = x :: upd (i-1) xs;
-  in if i = ~1 then x::xs else upd i xs end;
+fun update eq (x as (key, value)) =
+  map_index eq key (cons x) (fn _ => cons x);
 
 fun default eq (key, value) xs =
-  if defined eq xs key then xs else (key, value)::xs;
+  if defined eq xs key then xs else (key, value) :: xs;
 
-fun delete eq key xs =
-  let
-    val i = find_index eq xs key;
-    fun del 0 (_::xs) = xs
-      | del i (x::xs) = x :: del (i-1) xs;
-  in if i = ~1 then xs else del i xs end;
+fun delete eq key =
+  map_index eq key I (K I);
 
-fun map_entry eq key f xs =
-  let
-    val i = find_index eq xs key;
-    fun mapp 0 ((x as (key, value))::xs) = (key, f value) :: xs
-      | mapp i (x::xs) = x :: mapp (i-1) xs;
-  in if i = ~1 then xs else mapp i xs end;
+fun map_entry eq key f =
+  map_index eq key I (fn (key, value) => cons (key, f value));
+
+fun map_default eq (key, value) f =
+  map_index eq key (cons (key, f value)) (fn (key, value) => cons (key, f value));
 
 fun map_entry_yield eq key f xs =
   let
