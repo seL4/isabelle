@@ -138,7 +138,7 @@ fun prove_multi ctxt xs asms props tac =
     val ctxt' = ctxt
       |> Variable.set_body false
       |> (snd o Variable.add_fixes xs)
-      |> fold Variable.declare_term (asms @ props);
+      |> fold Variable.declare_internal (asms @ props);
 
     val res =
       (case SINGLE (tac prems) (init (cert_safe prop)) of
