@@ -472,7 +472,7 @@ fun gen_read' read app pattern schematic
   let
     val types = append_env (Variable.def_type ctxt pattern) more_types;
     val sorts = append_env (Variable.def_sort ctxt) more_sorts;
-    val used = Variable.used_types ctxt @ more_used;
+    val used = fold Name.declare more_used (Variable.names_of ctxt);
   in
     (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used) s
       handle TERM (msg, _) => error msg)
@@ -534,14 +534,14 @@ end;
 fun infer_type ctxt x =
   (case try (fn () =>
       Sign.infer_types (pp ctxt) (theory_of ctxt) (consts_of ctxt) (Variable.def_type ctxt false)
-        (Variable.def_sort ctxt) (Variable.used_types ctxt) true
+        (Variable.def_sort ctxt) (Variable.names_of ctxt) true
         ([Free (x, dummyT)], TypeInfer.logicT)) () of
     SOME (Free (_, T), _) => T
   | _ => error ("Failed to infer type of fixed variable " ^ quote x));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x
-  in ((x, T), ctxt |> Variable.declare_syntax (Free (x, T))) end;
+  in ((x, T), ctxt |> Variable.declare_term (Free (x, T))) end;
 
 fun inferred_fixes ctxt =
   fold_map inferred_param (rev (map #2 (Variable.fixes_of ctxt))) ctxt;
@@ -550,7 +550,7 @@ fun inferred_fixes ctxt =
 (* type and constant names *)
 
 fun read_tyname ctxt c =
-  if member (op =) (Variable.used_types ctxt) c then
+  if Syntax.is_tid c then
     TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (Variable.def_sort ctxt (c, ~1)))
   else Sign.read_tyname (theory_of ctxt) c;
 
@@ -769,7 +769,7 @@ fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
 fun put_thms _ ("", NONE) ctxt = ctxt
   | put_thms do_index ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
       let
-        val index' = FactIndex.add_local do_index (Variable.is_declared ctxt) ("", ths) index;
+        val index' = FactIndex.add_local do_index ("", ths) index;
       in (facts, index') end)
   | put_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
       let
@@ -781,7 +781,7 @@ fun put_thms _ ("", NONE) ctxt = ctxt
         val name = full_name ctxt bname;
         val space' = NameSpace.declare (naming_of ctxt) name space;
         val tab' = Symtab.update (name, ths) tab;
-        val index' = FactIndex.add_local do_index (Variable.is_declared ctxt) (name, ths) index;
+        val index' = FactIndex.add_local do_index (name, ths) index;
       in ((space', tab'), index') end);
 
 fun put_thms_internal thms ctxt =
@@ -819,7 +819,7 @@ end;
 
 fun declare_var (x, opt_T, mx) ctxt =
   let val T = (case opt_T of SOME T => T | NONE => TypeInfer.mixfixT mx)
-  in ((x, T, mx), ctxt |> Variable.declare_syntax (Free (x, T))) end;
+  in ((x, T, mx), ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 local
 
@@ -1060,7 +1060,7 @@ fun fix (x, T) ctxt =
   let
     val (bind, ctxt') = bind_fixes [x] ctxt;
     val t = bind (Free (x, T));
-  in (t, ctxt' |> Variable.declare_syntax t) end;
+  in (t, ctxt' |> Variable.declare_constraints t) end;
 
 in
 
@@ -1247,7 +1247,7 @@ fun pretty_context ctxt =
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
 
-    val (types, sorts, used, _) = Variable.defaults_of ctxt;
+    val (types, sorts) = Variable.constraints_of ctxt;
   in
     verb single (K pretty_thy) @
     pretty_ctxt ctxt @
@@ -1256,8 +1256,7 @@ fun pretty_context ctxt =
     verb pretty_lthms (K ctxt) @
     verb pretty_cases (K ctxt) @
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
-    verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb single (fn () => Pretty.strs ("used type variable names:" :: rev used))
+    verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))
   end;
 
 
