@@ -14,7 +14,7 @@ sig
   val could_unify: T -> term -> thm list
   val empty: T
   val add_global: (string * thm list) -> T -> T
-  val add_local: bool -> (string -> bool) -> (string * thm list) -> T -> T
+  val add_local: bool -> (string * thm list) -> T -> T
   val find: T -> spec -> (string * thm list) list
 end;
 
@@ -29,17 +29,15 @@ type spec = string list * string list;
 val add_consts = fold_aterms
   (fn Const (c, _) => if c = Term.dummy_patternN then I else insert (op =) c | _ => I);
 
-fun add_frees known = fold_aterms
-  (fn Free (x, _) => if known x then insert (op =) x else I | _ => I);
+val add_frees = fold_aterms (fn Free (x, _) => insert (op =) x | _ => I);
 
-fun index_term known t (cs, xs) = (add_consts t cs, add_frees known t xs);
+fun index_term t (cs, xs) = (add_consts t cs, add_frees t xs);
 
-fun index_thm known th idx =
+fun index_thm th =
   let val {tpairs, hyps, prop, ...} = Thm.rep_thm th in
-    idx
-    |> index_term known prop
-    |> fold (index_term known) hyps
-    |> fold (fn (t, u) => index_term known t #> index_term known u) tpairs
+    index_term prop
+    #> fold index_term hyps
+    #> fold (fn (t, u) => index_term t #> index_term u) tpairs
   end;
 
 
@@ -61,10 +59,10 @@ fun could_unify (Index {props, ...}) = Net.unify_term props;
 val empty =
   Index {facts = [], consts = Symtab.empty, frees = Symtab.empty, props = Net.empty};
 
-fun add do_props do_index known (fact as (_, ths)) (Index {facts, consts, frees, props}) =
+fun add do_props do_index (fact as (_, ths)) (Index {facts, consts, frees, props}) =
   let
     val entry = (serial (), fact);
-    val (cs, xs) = fold (index_thm known) ths ([], []);
+    val (cs, xs) = fold index_thm ths ([], []);
 
     val (facts', consts', frees') =
       if do_index then
@@ -77,7 +75,7 @@ fun add do_props do_index known (fact as (_, ths)) (Index {facts, consts, frees,
       else props;
   in Index {facts = facts', consts = consts', frees = frees', props = props'} end;
 
-val add_global = add false true (K false);
+val add_global = add false true;
 val add_local = add true;
 
 
