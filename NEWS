@@ -497,6 +497,11 @@ association lists.
 
 * Support for hex (0x20) and binary (0b1001) numerals. 
 
+*** HOL-Algebra ***
+
+* Method algebra is now set up via an attribute.  For examples see CRing.thy.
+  INCOMPATIBILITY: the method is now weaker on combinations of algebraic structures.
+
 *** HOL-Complex ***
 
 * Theory Real: new method ferrack implements quantifier elimination
