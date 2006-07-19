@@ -304,8 +304,8 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms f g (prf % NONE) = fold_proof_terms f g prf
   | fold_proof_terms f g (prf1 %% prf2) =
       fold_proof_terms f g prf1 #> fold_proof_terms f g prf2
-  | fold_proof_terms _ g (PThm (_, _, _, SOME Ts)) = fold g Ts  (* FIXME prop? *)
-  | fold_proof_terms _ g (PAxm (_, prop, SOME Ts)) = fold g Ts  (* FIXME prop? *)
+  | fold_proof_terms _ g (PThm (_, _, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
   | fold_proof_terms _ _ _ = I;
 
 fun maxidx_of_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf ~1;
