@@ -28,35 +28,35 @@ val standard_consts =
 (*An abstraction of Isabelle types*)
 datatype const_typ =  CTVar | CType of string * const_typ list
 
-fun uni_type (CType(con1,args1)) (CType(con2,args2)) = con1=con2 andalso uni_types args1 args2
-  | uni_type (CType _) CTVar = true
-  | uni_type CTVar CTVar = true
-  | uni_type CTVar _ = false
-and uni_types [] [] = true
-  | uni_types (a1::as1) (a2::as2) = uni_type a1 a2 andalso uni_types as1 as2;
+(*Is the second type an instance of the first one?*)
+fun match_type (CType(con1,args1)) (CType(con2,args2)) = 
+      con1=con2 andalso match_types args1 args2
+  | match_type CTVar (CType _) = true
+  | match_type CTVar CTVar = true
+  | match_type _ CTVar = false
+and match_types [] [] = true
+  | match_types (a1::as1) (a2::as2) = match_type a1 a2 andalso match_types as1 as2;
 
 (*Is there a unifiable constant?*)
 fun uni_mem gctab (c,c_typ) =
   case Symtab.lookup gctab c of
       NONE => false
-    | SOME ctyps_list => exists (uni_types c_typ) ctyps_list;
+    | SOME ctyps_list => exists (match_types c_typ) ctyps_list;
   
-
 fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs) 
   | const_typ_of (TFree _) = CTVar
   | const_typ_of (TVar _) = CTVar
-
 
 fun const_with_typ thy (c,typ) = 
     let val tvars = Sign.const_typargs thy (c,typ)
     in (c, map const_typ_of tvars) end
     handle TYPE _ => (c,[]);   (*Variable (locale constant): monomorphic*)   
 
+(*Add a const/type pair to the table, but a [] entry means a standard connective,
+  which we ignore.*)
 fun add_const_typ_table ((c,ctyps), tab) =
-  case Symtab.lookup tab c of
-      NONE => Symtab.update (c, [ctyps]) tab
-    | SOME [] => tab  (*ignore!*)
-    | SOME ctyps_list => Symtab.update (c, ctyps ins ctyps_list) tab;
+  Symtab.map_default (c, [ctyps]) (fn [] => [] | ctyps_list => ctyps ins ctyps_list) 
+    tab;
 
 (*Free variables are counted, as well as constants, to handle locales*)
 fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
@@ -99,10 +99,9 @@ structure CTtab = TableFun(type key = const_typ list val ord = dict_ord const_ty
 fun count_axiom_consts thy ((thm,_), tab) = 
   let fun count_const (a, T, tab) =
 	let val (c, cts) = const_with_typ thy (a,T)
-	    val cttab = Option.getOpt (Symtab.lookup tab c, CTtab.empty)
-	    val n = Option.getOpt (CTtab.lookup cttab cts, 0)
-	in 
-	    Symtab.update (c, CTtab.update (cts, n+1) cttab) tab
+	in  (*Two-dimensional table update. Constant maps to types maps to count.*)
+	    Symtab.map_default (c, CTtab.empty) 
+	                       (CTtab.map_default (cts,0) (fn n => n+1)) tab
 	end
       fun count_term_consts (Const(a,T), tab) = count_const(a,T,tab)
 	| count_term_consts (Free(a,T), tab) = count_const(a,T,tab)
@@ -117,7 +116,7 @@ fun count_axiom_consts thy ((thm,_), tab) =
 
 fun const_weight ctab (c, cts) =
   let val pairs = CTtab.dest (Option.valOf (Symtab.lookup ctab c))
-      fun add ((cts',m), n) = if uni_types cts cts' then m+n else n
+      fun add ((cts',m), n) = if match_types cts cts' then m+n else n
   in  List.foldl add 0 pairs  end;
 
 fun add_ct_weight ctab ((c,T), w) =
@@ -136,13 +135,13 @@ fun clause_weight ctab gctyps consts_typs =
 	rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
     
-fun add_consts_with_typs (c,[]) cpairs = cpairs
-  | add_consts_with_typs (c, ctyps_list) cpairs =
+(*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
+fun add_expand_pairs (c, ctyps_list) cpairs =
       foldl (fn (ctyps,cpairs) => (c,ctyps)::cpairs) cpairs ctyps_list;
 
 fun consts_typs_of_term thy t = 
   let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
-  in  Symtab.fold add_consts_with_typs tab []  end;
+  in  Symtab.fold add_expand_pairs tab []  end;
 
 fun pair_consts_typs_axiom thy (thm,name) =
     ((thm,name), (consts_typs_of_term thy (prop_of thm)));
@@ -158,9 +157,8 @@ fun defines thy (thm,(name,n)) gctypes =
 	fun defs lhs rhs =
             let val (rator,args) = strip_comb lhs
 		val ct = const_with_typ thy (dest_ConstFree rator)
-            in  forall is_Var args andalso 
-                term_varnames rhs subset term_varnames lhs andalso
-                uni_mem gctypes ct 
+            in  forall is_Var args andalso uni_mem gctypes ct andalso
+                term_varnames rhs subset term_varnames lhs
             end
 	    handle ConstFree => false
     in    
@@ -180,11 +178,12 @@ fun relevant_clauses thy ctab p rel_consts =
 	      in Output.debug ("found relevant: " ^ Int.toString (length newrels));
                  newrels @ relevant_clauses thy ctab newp rel_consts' rejects
 	      end
-	| relevant (newrels,rejects) ((ax as (clsthm,consts_typs)) :: axs) =
+	| relevant (newrels,rejects) ((ax as (clsthm as (_,(name,n)),consts_typs)) :: axs) =
 	    let val weight = clause_weight ctab rel_consts consts_typs
 	    in
 	      if p <= weight orelse (!follow_defs andalso defines thy clsthm rel_consts)
-	      then relevant (ax::newrels, rejects) axs
+	      then (Output.debug name; Output.debug "\n";
+	            relevant (ax::newrels, rejects) axs)
 	      else relevant (newrels, ax::rejects) axs
 	    end
     in  Output.debug ("relevant_clauses: " ^ Real.toString p);
