@@ -60,7 +60,7 @@ fun inferT sg pre_tm =
     val pp = Sign.pp sg;
     val consts = Sign.consts_of sg;
     val (t, _) =
-      Sign.infer_types pp sg consts (K NONE) (K NONE) [] true
+      Sign.infer_types pp sg consts (K NONE) (K NONE) Name.context true
         ([pre_tm],propT);
   in t end;
 

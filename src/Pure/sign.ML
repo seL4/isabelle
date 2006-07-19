@@ -177,14 +177,14 @@ sig
   val read_tyname: theory -> string -> typ
   val read_const: theory -> string -> term
   val infer_types_simult: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
-    (indexname -> sort option) -> string list -> bool
+    (indexname -> sort option) -> Name.context -> bool
     -> (term list * typ) list -> term list * (indexname * typ) list
   val infer_types: Pretty.pp -> theory -> Consts.T -> (indexname -> typ option) ->
-    (indexname -> sort option) -> string list -> bool
+    (indexname -> sort option) -> Name.context -> bool
     -> term list * typ -> term * (indexname * typ) list
   val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Consts.T ->
     Context.generic -> (indexname -> typ option) * (indexname -> sort option) ->
-    string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
+    Name.context -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
     theory * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
@@ -574,7 +574,7 @@ val read_const = Consts.read_const o consts_of;
 (*
   def_type: partial map from indexnames to types (constrains Frees and Vars)
   def_sort: partial map from indexnames to sorts (constrains TFrees and TVars)
-  used: list of already used type variables
+  used: context of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars
 
   termss: lists of alternative parses (only one combination should be type-correct)
@@ -627,9 +627,9 @@ fun read_def_terms' pp is_logtype syn consts context (types, sorts) used freeze 
       in (Syntax.read context is_logtype syn T' s, T') end;
   in infer_types_simult pp thy consts types sorts used freeze (map read sTs) end;
 
-fun read_def_terms (thy, types, sorts) =
+fun read_def_terms (thy, types, sorts) used =
   read_def_terms' (pp thy) (is_logtype thy) (syn_of thy) (consts_of thy)
-    (Context.Theory thy) (types, sorts);
+    (Context.Theory thy) (types, sorts) (Name.make_context used);
 
 fun simple_read_term thy T s =
   let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]

@@ -195,7 +195,8 @@ fun read_def_axm (thy, types, sorts) used (name, str) =
   let
     val ts = Syntax.read (Context.Theory thy) (Sign.is_logtype thy) (Sign.syn_of thy) propT str;
     val (t, _) =
-      Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy) types sorts used true (ts, propT);
+      Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
+        types sorts (Name.make_context used) true (ts, propT);
   in cert_axm thy (name, t) end
   handle ERROR msg => err_in_axm msg name;
 
@@ -205,7 +206,8 @@ fun inferT_axm thy (name, pre_tm) =
   let
     val pp = Sign.pp thy;
     val (t, _) =
-      Sign.infer_types pp thy (Sign.consts_of thy) (K NONE) (K NONE) [] true ([pre_tm], propT);
+      Sign.infer_types pp thy (Sign.consts_of thy)
+        (K NONE) (K NONE) Name.context true ([pre_tm], propT);
   in (name, Sign.no_vars pp t) end
   handle ERROR msg => err_in_axm msg name;
 

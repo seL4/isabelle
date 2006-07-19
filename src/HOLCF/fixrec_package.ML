@@ -57,7 +57,7 @@ infix 9 `  ; fun f ` x = %%:"Cfun.Rep_CFun" $ f $ x;
 (* infers the type of a term *)  (* FIXME better avoid this low-level stuff *)
 (* similar to Theory.inferT_axm, but allows any type, not just propT *)
 fun infer sg t =
-  fst (Sign.infer_types (Sign.pp sg) sg (Sign.consts_of sg) (K NONE) (K NONE) [] true
+  fst (Sign.infer_types (Sign.pp sg) sg (Sign.consts_of sg) (K NONE) (K NONE) Name.context true
     ([t],dummyT));
 
 (* builds the expression (LAM v. rhs) *)

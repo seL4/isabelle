@@ -100,8 +100,7 @@ fun norm_print t thy =
         val vtab = var_tab t;
         val ty = type_of t;
         fun restrain ty t = Sign.infer_types (Sign.pp thy) thy (Sign.consts_of thy)
-            (K NONE) (K NONE)
-            [] false ([t], ty) |> fst;
+            (K NONE) (K NONE) Name.context false ([t], ty) |> fst;
         val _ = trace (fn () => "Normalized:\n" ^ NBE_Eval.string_of_nterm nt);
         val t' = NBE_Codegen.nterm_to_term thy nt;
         val _ = trace (fn () =>"Converted back:\n" ^ Display.raw_string_of_term t');
