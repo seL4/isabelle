@@ -9,6 +9,7 @@ signature LEXICON0 =
 sig
   val is_identifier: string -> bool
   val is_ascii_identifier: string -> bool
+  val is_tid: string -> bool
   val implode_xstr: string list -> string
   val explode_xstr: string -> string list
   val scan_id: string list -> string * string list
@@ -39,7 +40,6 @@ signature LEXICON =
 sig
   include LEXICON0
   val is_xid: string -> bool
-  val is_tid: string -> bool
   datatype token =
     Token of string |
     IdentSy of string |
