@@ -20,7 +20,7 @@ sig
   val infer_types: Pretty.pp
     -> Type.tsig -> (string -> typ option) -> (indexname -> typ option)
     -> (indexname -> sort option) -> (string -> string) -> (typ -> typ)
-    -> (sort -> sort) -> string list -> bool -> typ list -> term list
+    -> (sort -> sort) -> Name.context -> bool -> typ list -> term list
     -> term list * (indexname * typ) list
 end;
 
@@ -208,11 +208,11 @@ val add_parms = fold_pretyps add_parmsT;
 
 (* add_names *)
 
-fun add_namesT (PType (_, Ts)) xs = fold add_namesT Ts xs
-  | add_namesT (PTFree (x, _)) xs = x ins_string xs
-  | add_namesT (PTVar ((x, _), _)) xs = x ins_string xs
-  | add_namesT (Link (ref T)) xs = add_namesT T xs
-  | add_namesT (Param _) xs = xs;
+fun add_namesT (PType (_, Ts)) = fold add_namesT Ts
+  | add_namesT (PTFree (x, _)) = Name.declare x
+  | add_namesT (PTVar ((x, _), _)) = Name.declare x
+  | add_namesT (Link (ref T)) = add_namesT T
+  | add_namesT (Param _) = I;
 
 val add_names = fold_pretyps add_namesT;
 
@@ -245,7 +245,7 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
 
     val used' = fold add_names ts (fold add_namesT Ts used);
     val parms = rev (fold add_parms ts (fold add_parmsT Ts []));
-    val names = Name.invent_list used' (prfx ^ "'a") (length parms);
+    val names = Name.invents used' (prfx ^ "'a") (length parms);
   in
     ListPair.app elim (parms, names);
     (map simple_typ_of Ts, map simple_term_of ts)
@@ -340,7 +340,7 @@ fun infer pp tsig =
 
     fun prep_output bs ts Ts =
       let
-        val (Ts_bTs', ts') = typs_terms_of [] PTFree "??" (Ts @ map snd bs, ts);
+        val (Ts_bTs', ts') = typs_terms_of Name.context PTFree "??" (Ts @ map snd bs, ts);
         val (Ts', Ts'') = chop (length Ts) Ts_bTs';
         val xs = map Free (map fst bs ~~ Ts'');
         val ts'' = map (fn t => subst_bounds (xs, t)) ts';
@@ -522,7 +522,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
   const_type: name mapping and signature lookup
   def_type: partial map from indexnames to types (constrains Frees and Vars)
   def_sort: partial map from indexnames to sorts (constrains TFrees and TVars)
-  used: list of already used type variables
+  used: context of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars*)
 
 fun infer_types pp tsig const_type def_type def_sort
