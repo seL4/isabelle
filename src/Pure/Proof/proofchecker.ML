@@ -31,7 +31,8 @@ val beta_eta_convert =
 
 fun thm_of_proof thy prf =
   let
-    val names = Proofterm.fold_proof_terms Term.declare_term_names (K I) prf Name.context;
+    val prf_names = Proofterm.fold_proof_terms
+      (fold_aterms (fn Free (x, _) => Name.declare x | _ => I)) (K I) prf Name.context;
     val lookup = lookup_thm thy;
 
     fun thm_of_atom thm Ts =
@@ -59,32 +60,32 @@ fun thm_of_proof thy prf =
 
       | thm_of _ Hs (PBound i) = List.nth (Hs, i)
 
-      | thm_of vs Hs (Abst (s, SOME T, prf)) =
+      | thm_of (vs, names) Hs (Abst (s, SOME T, prf)) =
           let
-            val ([x], _) = Name.variants [s] (fold (Name.declare o fst) vs names);
-            val thm = thm_of ((x, T) :: vs) Hs prf
+            val ([x], names') = Name.variants [s] names;
+            val thm = thm_of ((x, T) :: vs, names') Hs prf
           in
             Thm.forall_intr (Thm.cterm_of thy (Free (x, T))) thm
           end
 
-      | thm_of vs Hs (prf % SOME t) =
+      | thm_of (vs, names) Hs (prf % SOME t) =
           let
-            val thm = thm_of vs Hs prf
-            val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t))
+            val thm = thm_of (vs, names) Hs prf;
+            val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t));
           in Thm.forall_elim ct thm end
 
-      | thm_of vs Hs (AbsP (s, SOME t, prf)) =
+      | thm_of (vs, names) Hs (AbsP (s, SOME t, prf)) =
           let
             val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t));
-            val thm = thm_of vs (Thm.assume ct :: Hs) prf
+            val thm = thm_of (vs, names) (Thm.assume ct :: Hs) prf;
           in
             Thm.implies_intr ct thm
           end
 
-      | thm_of vs Hs (prf %% prf') =
+      | thm_of vars Hs (prf %% prf') =
           let
-            val thm = beta_eta_convert (thm_of vs Hs prf);
-            val thm' = beta_eta_convert (thm_of vs Hs prf')
+            val thm = beta_eta_convert (thm_of vars Hs prf);
+            val thm' = beta_eta_convert (thm_of vars Hs prf');
           in
             Thm.implies_elim thm thm'
           end
@@ -93,6 +94,6 @@ fun thm_of_proof thy prf =
 
       | thm_of _ _ _ = error "thm_of_proof: partial proof term";
 
-  in beta_eta_convert (thm_of [] [] prf) end;
+  in beta_eta_convert (thm_of ([], prf_names) [] prf) end;
 
 end;
