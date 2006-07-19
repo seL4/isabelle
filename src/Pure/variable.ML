@@ -10,23 +10,22 @@ sig
   val is_body: Context.proof -> bool
   val set_body: bool -> Context.proof -> Context.proof
   val restore_body: Context.proof -> Context.proof -> Context.proof
+  val names_of: Context.proof -> Name.context
   val fixes_of: Context.proof -> (string * string) list
   val binds_of: Context.proof -> (typ * term) Vartab.table
-  val defaults_of: Context.proof ->
-    typ Vartab.table * sort Vartab.table * string list * string list Symtab.table
-  val used_types: Context.proof -> string list
+  val constraints_of: Context.proof -> typ Vartab.table * sort Vartab.table
   val is_declared: Context.proof -> string -> bool
   val is_fixed: Context.proof -> string -> bool
   val newly_fixed: Context.proof -> Context.proof -> string -> bool
-  val def_sort: Context.proof -> indexname -> sort option
-  val def_type: Context.proof -> bool -> indexname -> typ option
   val default_type: Context.proof -> string -> typ option
-  val declare_type: typ -> Context.proof -> Context.proof
-  val declare_syntax: term -> Context.proof -> Context.proof
+  val def_type: Context.proof -> bool -> indexname -> typ option
+  val def_sort: Context.proof -> indexname -> sort option
+  val declare_constraints: term -> Context.proof -> Context.proof
+  val declare_internal: term -> Context.proof -> Context.proof
   val declare_term: term -> Context.proof -> Context.proof
   val declare_thm: thm -> Context.proof -> Context.proof
   val thm_context: thm -> Context.proof
-  val rename_wrt: Context.proof -> term list -> (string * 'a) list -> (string * 'a) list
+  val variant_frees: Context.proof -> term list -> (string * 'a) list -> (string * 'a) list
   val add_fixes: string list -> Context.proof -> string list * Context.proof
   val invent_fixes: string list -> Context.proof -> string list * Context.proof
   val invent_types: sort list -> Context.proof -> (string * sort) list * Context.proof
@@ -56,67 +55,66 @@ end;
 structure Variable: VARIABLE =
 struct
 
-
 (** local context data **)
 
 datatype data = Data of
  {is_body: bool,                        (*inner body mode*)
-  names: Name.context,        		(*used type/term variable names*)
-  fixes: (string * string) list, 	(*term fixes -- extern/intern*)
+  names: Name.context,                  (*type/term variable names*)
+  fixes: (string * string) list,        (*term fixes -- extern/intern*)
   binds: (typ * term) Vartab.table,     (*term bindings*)
-  defaults:
+  type_occs: string list Symtab.table,  (*type variables -- possibly within term variables*)
+  constraints:
     typ Vartab.table *                  (*type constraints*)
-    sort Vartab.table *                 (*default sorts*)
-    string list *                       (*used type variables*)
-    string list Symtab.table};          (*occurrences of type variables in term variables*)
+    sort Vartab.table};                 (*default sorts*)
 
-fun make_data (is_body, names, fixes, binds, defaults) =
-  Data {is_body = is_body, names = names, fixes = fixes, binds = binds, defaults = defaults};
+fun make_data (is_body, names, fixes, binds, type_occs, constraints) =
+  Data {is_body = is_body, names = names, fixes = fixes, binds = binds,
+    type_occs = type_occs, constraints = constraints};
 
 structure Data = ProofDataFun
 (
   val name = "Pure/variable";
   type T = data;
   fun init thy =
-    make_data (false, Name.context, [], Vartab.empty,
-      (Vartab.empty, Vartab.empty, [], Symtab.empty));
+    make_data (false, Name.context, [], Vartab.empty, Symtab.empty, (Vartab.empty, Vartab.empty));
   fun print _ _ = ();
 );
 
 val _ = Context.add_setup Data.init;
 
 fun map_data f =
-  Data.map (fn Data {is_body, names, fixes, binds, defaults} =>
-    make_data (f (is_body, names, fixes, binds, defaults)));
+  Data.map (fn Data {is_body, names, fixes, binds, type_occs, constraints} =>
+    make_data (f (is_body, names, fixes, binds, type_occs, constraints)));
 
-fun map_names f = map_data (fn (is_body, names, fixes, binds, defaults) =>
-  (is_body, f names, fixes, binds, defaults));
+fun map_names f = map_data (fn (is_body, names, fixes, binds, type_occs, constraints) =>
+  (is_body, f names, fixes, binds, type_occs, constraints));
 
-fun map_fixes f = map_data (fn (is_body, names, fixes, binds, defaults) =>
-  (is_body, names, f fixes, binds, defaults));
+fun map_fixes f = map_data (fn (is_body, names, fixes, binds, type_occs, constraints) =>
+  (is_body, names, f fixes, binds, type_occs, constraints));
 
-fun map_binds f = map_data (fn (is_body, names, fixes, binds, defaults) =>
-  (is_body, names, fixes, f binds, defaults));
+fun map_binds f = map_data (fn (is_body, names, fixes, binds, type_occs, constraints) =>
+  (is_body, names, fixes, f binds, type_occs, constraints));
 
-fun map_defaults f = map_data (fn (is_body, names, fixes, binds, defaults) =>
-  (is_body, names, fixes, binds, f defaults));
+fun map_type_occs f = map_data (fn (is_body, names, fixes, binds, type_occs, constraints) =>
+  (is_body, names, fixes, binds, f type_occs, constraints));
+
+fun map_constraints f = map_data (fn (is_body, names, fixes, binds, type_occs, constraints) =>
+  (is_body, names, fixes, binds, type_occs, f constraints));
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
 
 val is_body = #is_body o rep_data;
-fun set_body b = map_data (fn (_, names, fixes, binds, defaults) =>
-  (b, names, fixes, binds, defaults));
+fun set_body b = map_data (fn (_, names, fixes, binds, type_occs, constraints) =>
+  (b, names, fixes, binds, type_occs, constraints));
 fun restore_body ctxt = set_body (is_body ctxt);
 
 val names_of = #names o rep_data;
 val fixes_of = #fixes o rep_data;
 val binds_of = #binds o rep_data;
+val type_occs_of = #type_occs o rep_data;
+val constraints_of = #constraints o rep_data;
 
-val defaults_of = #defaults o rep_data;
-val used_types = #3 o defaults_of;
-val type_occs_of = #4 o defaults_of;
-
-fun is_declared ctxt x = Vartab.defined (#1 (defaults_of ctxt)) (x, ~1);
+val is_declared = Name.is_declared o names_of;
 fun is_fixed ctxt x = exists (fn (_, y) => x = y) (fixes_of ctxt);
 fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
 
@@ -126,10 +124,10 @@ fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
 
 (* default sorts and types *)
 
-val def_sort = Vartab.lookup o #2 o defaults_of;
+fun default_type ctxt x = Vartab.lookup (#1 (constraints_of ctxt)) (x, ~1);
 
 fun def_type ctxt pattern xi =
-  let val {binds, defaults = (types, _, _, _), ...} = rep_data ctxt in
+  let val {binds, constraints = (types, _), ...} = rep_data ctxt in
     (case Vartab.lookup types xi of
       NONE =>
         if pattern then NONE
@@ -137,82 +135,70 @@ fun def_type ctxt pattern xi =
     | some => some)
   end;
 
-fun default_type ctxt x = Vartab.lookup (#1 (defaults_of ctxt)) (x, ~1);
+val def_sort = Vartab.lookup o #2 o constraints_of;
 
 
-(* declare types/terms *)
+(* names *)
 
-local
+val declare_type_names = map_names o
+  fold_types (fold_atyps (fn TFree (a, _) => Name.declare a | _ => I));
 
-val ins_types = fold_aterms
-  (fn Free (x, T) => Vartab.update ((x, ~1), T)
-    | Var v => Vartab.update v
-    | _ => I);
+fun declare_names t =
+  declare_type_names t #>
+  map_names (fold_aterms (fn Free (x, _) => Name.declare x | _ => I) t);
 
-val ins_sorts = fold_atyps
-  (fn TFree (x, S) => Vartab.default ((x, ~1), S)
-    | TVar v => Vartab.default v
-    | _ => I);
 
-val ins_used = fold_atyps
-  (fn TFree (x, _) => insert (op =) x | _ => I);
+(* type occurrences *)
 
-val ins_occs = fold_term_types (fn t =>
-  let val x = case t of Free (x, _) => x | _ => ""
-  in fold_atyps (fn TFree (a, _) => Symtab.insert_list (op =) (a, x) | _ => I) end);
+val declare_type_occs = map_type_occs o fold_term_types
+  (fn Free (x, _) => fold_atyps (fn TFree (a, _) => Symtab.insert_list (op =) (a, x) | _ => I)
+    | _ => fold_atyps (fn TFree (a, _) => Symtab.default (a, []) | _ => I));
 
-fun ins_skolem def_ty = fold_rev (fn (x, x') =>
-  (case def_ty x' of
-    SOME T => Vartab.update ((x, ~1), T)
-  | NONE => I));
 
-val ins_namesT = fold_atyps
-  (fn TFree (x, _) => Name.declare x | _ => I);
+(* constraints *)
 
-fun ins_names t =
-  fold_types ins_namesT t #>
-  fold_aterms (fn Free (x, _) => Name.declare x | _ => I) t;
+fun redeclare_skolems ctxt = ctxt |> map_constraints (apfst (fn types =>
+  let
+    fun decl (x, x') =
+      (case default_type ctxt x' of
+        SOME T => Vartab.update ((x, ~1), T)
+      | NONE => I);
+  in fold_rev decl (fixes_of ctxt) types end));
 
-in
+fun declare_constraints t = map_constraints (fn (types, sorts) =>
+  let
+    val types' = fold_aterms
+      (fn Free (x, T) => Vartab.update ((x, ~1), T)
+        | Var v => Vartab.update v
+        | _ => I) t types;
+    val sorts' = fold_types (fold_atyps
+      (fn TFree (x, S) => Vartab.update ((x, ~1), S)
+        | TVar v => Vartab.update v
+        | _ => I)) t sorts;
+  in (types', sorts') end)
+  #> declare_type_names t
+  #> redeclare_skolems;
 
-fun declare_type T = map_defaults (fn (types, sorts, used, occ) =>
-  (types,
-    ins_sorts T sorts,
-    ins_used T used,
-    occ)) #>
-  map_names (ins_namesT T);
 
-fun declare_syntax t = map_defaults (fn (types, sorts, used, occ) =>
-  (ins_types t types,
-    fold_types ins_sorts t sorts,
-    fold_types ins_used t used,
-    occ)) #>
-  map_names (ins_names t);
+(* common declarations *)
 
-fun declare_occs t = map_defaults (fn (types, sorts, used, occ) =>
-  (types, sorts, used, ins_occs t occ));
+fun declare_internal t =
+  declare_names t #>
+  declare_type_occs t;
 
-fun declare_term t ctxt =
-  ctxt
-  |> declare_syntax t
-  |> map_defaults (fn (types, sorts, used, occ) =>
-     (ins_skolem (fn x => Vartab.lookup types (x, ~1)) (fixes_of ctxt) types,
-      sorts,
-      used,
-      ins_occs t occ))
-  |> map_names (ins_names t);
+fun declare_term t =
+  declare_internal t #>
+  declare_constraints t;
 
-fun declare_thm th = fold declare_term (Thm.full_prop_of th :: Thm.hyps_of th);
-fun thm_context th = Context.init_proof (Thm.theory_of_thm th) |> declare_thm th;
-
-end;
+fun declare_thm th = fold declare_internal (Thm.full_prop_of th :: Thm.hyps_of th);
+fun thm_context th = declare_thm th (Context.init_proof (Thm.theory_of_thm th));
 
 
 (* renaming term/type frees *)
 
-fun rename_wrt ctxt ts frees =
+fun variant_frees ctxt ts frees =
   let
-    val names = names_of (ctxt |> fold declare_syntax ts);
+    val names = names_of (fold declare_names ts ctxt);
     val xs = fst (Name.variants (map #1 frees) names);
   in xs ~~ map snd frees end;
 
@@ -228,7 +214,7 @@ fun no_dups [] = ()
 fun new_fixes names' xs xs' =
   map_names (K names') #>
   map_fixes (fn fixes => (rev (xs ~~ xs') @ fixes)) #>
-  fold (declare_syntax o Syntax.free) xs' #>
+  fold (declare_constraints o Syntax.free) xs' #>
   pair xs';
 
 in
@@ -259,7 +245,7 @@ end;
 fun invent_types Ss ctxt =
   let
     val tfrees = Name.invents (names_of ctxt) "'a" (length Ss) ~~ Ss;
-    val ctxt' = fold (declare_type o TFree) tfrees ctxt;
+    val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 
 
@@ -268,32 +254,32 @@ fun invent_types Ss ctxt =
 
 fun export_inst inner outer =
   let
-    val types_outer = used_types outer;
+    val declared_outer = is_declared outer;
     val fixes_inner = fixes_of inner;
     val fixes_outer = fixes_of outer;
 
     val gen_fixes = map #2 (Library.take (length fixes_inner - length fixes_outer, fixes_inner));
-    val still_fixed = not o member (op =) ("" :: gen_fixes);
+    val still_fixed = not o member (op =) gen_fixes;
     val gen_fixesT =
       Symtab.fold (fn (a, xs) =>
-        if member (op =) types_outer a orelse exists still_fixed xs
+        if declared_outer a orelse exists still_fixed xs
         then I else cons a) (type_occs_of inner) [];
   in (gen_fixesT, gen_fixes) end;
 
 fun exportT_inst inner outer = #1 (export_inst inner outer);
 
 fun exportT_terms inner outer ts =
-  map (Term.generalize (exportT_inst (fold declare_occs ts inner) outer, [])
+  map (Term.generalize (exportT_inst (fold declare_type_occs ts inner) outer, [])
     (fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1)) ts;
 
 fun export_terms inner outer ts =
-  map (Term.generalize (export_inst (fold declare_occs ts inner) outer)
+  map (Term.generalize (export_inst (fold declare_type_occs ts inner) outer)
     (fold Term.maxidx_term ts ~1 + 1)) ts;
 
 fun gen_export inst inner outer ths =
   let
     val ths' = map Thm.adjust_maxidx_thm ths;
-    val inner' = fold (declare_occs o Thm.full_prop_of) ths' inner;
+    val inner' = fold (declare_type_occs o Thm.full_prop_of) ths' inner;
   in map (Thm.generalize (inst inner' outer) (fold Thm.maxidx_thm ths' ~1 + 1)) ths' end;
 
 val exportT = gen_export (rpair [] oo exportT_inst);
@@ -357,7 +343,7 @@ val tradeT = gen_trade importT exportT;
 val trade = gen_trade (import true) export;
 
 
-(* focus on outer params *)
+(* focus on outermost parameters *)
 
 fun forall_elim_prop t prop =
   Thm.beta_conversion false (Thm.capply (#2 (Thm.dest_comb prop)) t)
@@ -367,7 +353,7 @@ fun focus goal ctxt =
   let
     val cert = Thm.cterm_of (Thm.theory_of_cterm goal);
     val t = Thm.term_of goal;
-    val ps = rev (Term.rename_wrt_term t (Term.strip_all_vars t));   (*as they are printed :-*)
+    val ps = Term.variant_frees t (Term.strip_all_vars t);   (*as they are printed :-*)
     val (xs, Ts) = split_list ps;
     val (xs', ctxt') = invent_fixes xs ctxt;
     val ps' = xs' ~~ Ts;
@@ -382,13 +368,13 @@ fun focus goal ctxt =
 fun warn_extra_tfrees ctxt1 ctxt2 =
   let
     fun occs_typ a = Term.exists_subtype (fn TFree (b, _) => a = b | _ => false);
-    fun occs_free _ "" = I
-      | occs_free a x =
-          (case def_type ctxt1 false (x, ~1) of
-            SOME T => if occs_typ a T then I else cons (a, x)
-          | NONE => cons (a, x));
+    fun occs_free a x =
+      (case def_type ctxt1 false (x, ~1) of
+        SOME T => if occs_typ a T then I else cons (a, x)
+      | NONE => cons (a, x));
 
-    val occs1 = type_occs_of ctxt1 and occs2 = type_occs_of ctxt2;
+    val occs1 = type_occs_of ctxt1;
+    val occs2 = type_occs_of ctxt2;
     val extras = Symtab.fold (fn (a, xs) =>
       if Symtab.defined occs1 a then I else fold (occs_free a) xs) occs2 [];
     val tfrees = map #1 extras |> sort_distinct string_ord;
@@ -402,19 +388,14 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
 
 (* polymorphic terms *)
 
-fun monomorphic ctxt ts =
-  #1 (importT_terms ts (fold declare_term ts ctxt));
-
 fun polymorphic ctxt ts =
   let
     val ctxt' = fold declare_term ts ctxt;
-    val types = subtract (op =) (used_types ctxt) (used_types ctxt');
+    val occs = type_occs_of ctxt;
+    val occs' = type_occs_of ctxt';
+    val types = Symtab.fold (fn (a, _) => if Symtab.defined occs a then I else cons a) occs' [];
     val idx = fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1;
   in map (Term.generalize (types, []) idx) ts end;
-
-
-
-(** term bindings **)
 
 fun hidden_polymorphism t T =
   let
@@ -422,6 +403,10 @@ fun hidden_polymorphism t T =
     val extra_tvars = Term.fold_types (Term.fold_atyps
       (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
   in extra_tvars end;
+
+
+
+(** term bindings **)
 
 fun add_bind (xi, NONE) = map_binds (Vartab.delete_safe xi)
   | add_bind ((x, i), SOME t) =
