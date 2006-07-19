@@ -554,18 +554,13 @@ end;
 (* add "minisat_with_proofs" _before_ "minisat" to the available solvers, so *)
 (* that the latter is preferred by the "auto" solver                         *)
 
-(* There are two complications that must be dealt with in the code below:    *)
-(* 1. MiniSat introduces IDs for original clauses in the proof trace.  It    *)
-(*    does not in general follow the convention that the original clauses    *)
-(*    are numbered from 0 to n-1 (where n is the number of clauses in the    *)
-(*    formula).                                                              *)
-(* 2. MiniSat considers some problems (presumably those that can be solved   *)
-(*    by unit propagation alone) to be "trivial" and does not provide a      *)
-(*    proof for them.                                                        *)
+(* There is a complication that is dealt with in the code below: MiniSat     *)
+(* introduces IDs for original clauses in the proof trace.  It does not (in  *)
+(* general) follow the convention that the original clauses are numbered     *)
+(* from 0 to n-1 (where n is the number of clauses in the formula).          *)
 
 let
 	exception INVALID_PROOF of string
-	exception TRIVIAL_PROOF of SatSolver.proof
 	fun minisat_with_proofs fm =
 	let
 		val _          = if (getenv "MINISAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
@@ -577,10 +572,6 @@ let
 		fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
 		val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.pack inpath)) else ()
 		val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.pack outpath)) else ()
-		(* since MiniSat only generates proof traces for "non-trivial" problems, *)
-		(* an old proof trace must be deleted so that it is not mistaken as the  *)
-		(* proof trace for this (possibly trivial) problem                       *)
-		val _          = try File.rm proofpath
 		val cnf        = PropLogic.defcnf fm
 		val result     = SatSolver.make_external_solver cmd writefn readfn cnf
 		val _          = try File.rm inpath
@@ -588,6 +579,9 @@ let
 	in  case result of
 	  SatSolver.UNSATISFIABLE NONE =>
 		(let
+			(* string list *)
+			val proof_lines = ((split_lines o File.read) proofpath)
+				handle IO.Io _ => raise INVALID_PROOF "Could not read file \"result.prf\""
 			(* a simple representation of the CNF formula as list of clauses (paired with their ID), *)
 			(* where each clause is a sorted list of literals, where each literal is an int          *)
 			(* removes duplicates from an ordered list *)
@@ -605,72 +599,6 @@ let
 			  | cnf_to_clause_list fm                         = [(remove_dups o sort int_ord o clause_to_lit_list) fm]
 			(* (int list * int) list * int *)
 			val (clauses, length_clauses) = fold_map (fn clause => fn n => ((clause, n), n+1)) (cnf_to_clause_list cnf) 0
-			(* string list *)
-			val proof_lines = ((split_lines o File.read) proofpath)
-				handle IO.Io _ =>
-					(* the problem may be "trivial", i.e. provable by unit propagation only *)
-					let
-						val _ = tracing "Unable to read MiniSat proof file, searching for a proof by unit propagation only ..."
-						(* int list -> bool *)
-						fun is_empty_clause [] = true
-						  | is_empty_clause _  = false
-						(* int list -> bool *)
-						fun is_unit_clause [_] = true
-						  | is_unit_clause _   = false
-						(* int list -> int *)
-						fun unit_literal [l] = l
-						  | unit_literal _   = raise INVALID_PROOF "Error during unit propagation: clause is not a unit clause."
-						(* proof -> ... -> proof *)
-						fun proof_by_iterated_unit_propagation (clause_table, next_id) (units_new, units, clauses_done, clauses_todo) = (
-							case clauses_todo of
-							  [] =>
-								if units_new = [] then
-									(* no further unit propagation possible -- give up *)
-									raise INVALID_PROOF "Could not read file \"result.prf\", and no proof by unit propagation only found."
-								else
-									(* start over again, this time with the new unit clauses *)
-									proof_by_iterated_unit_propagation (clause_table, next_id) ([], units_new, [], clauses_done)
-							| (clause_lits, clause_id) :: clauses_todo' =>
-								let
-									(* resolve the given list of literals with all possible unit clauses, *)
-									(* return the remaining literals and the resolvents' IDs              *)
-									(* int list * int list -> int list * int list *)
-									fun resolve_loop ([],      rs) = ([], rs)
-									  | resolve_loop (l :: ls, rs) =
-										(case AList.lookup (op =) units (~l) of
-										  SOME unit_id => resolve_loop (ls, unit_id :: rs)
-										| NONE         => apfst (cons l) (resolve_loop (ls, rs)))
-									val (new_clause_lits, rs) = resolve_loop (clause_lits, [])
-								in
-									if rs = [] then
-										(* no resolution possible, clause remains unchanged -- continue with the next clause *)
-										proof_by_iterated_unit_propagation (clause_table, next_id)
-										  (units_new, units, (clause_lits, clause_id) :: clauses_done, clauses_todo')
-									else
-										let
-											(* we have a new clause -- add its derivation to the proof trace *)
-											val new_clause_table = Inttab.update_new (next_id, clause_id :: rs) clause_table
-											                         handle Inttab.DUP _ => raise INVALID_PROOF ("Error during unit propagation: internal clause ID " ^ Int.toString next_id ^ " already used.")
-										in
-											if is_empty_clause new_clause_lits then
-												(* proof found *)
-												(new_clause_table, next_id)
-											else if is_unit_clause new_clause_lits then
-												(* continue search with a new unit clause *)
-												proof_by_iterated_unit_propagation (new_clause_table, next_id + 1)
-												  ((unit_literal new_clause_lits, next_id + 1) :: units_new, units, (new_clause_lits, next_id + 1) :: clauses_done, clauses_todo')
-											else
-												(* continue search with a new clause *)
-												proof_by_iterated_unit_propagation (new_clause_table, next_id + 1)
-												  (units_new, units, (new_clause_lits, next_id + 1) :: clauses_done, clauses_todo')
-										end
-								end
-						)
-						val units = map (apfst unit_literal) (filter (is_unit_clause o fst) clauses)
-						val proof = proof_by_iterated_unit_propagation (Inttab.empty, length_clauses) ([], units, [], clauses)
-					in
-						raise TRIVIAL_PROOF proof
-					end  (* end of "trivial" proof search *)
 			(* string -> int *)
 			fun int_from_string s = (
 				case Int.fromString s of
@@ -698,9 +626,7 @@ let
 							val _        = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"R\" disallowed after \"X\"."
 							val cid      = int_from_string id
 							val _        = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
-							val zero     = List.last lits handle List.Empty => raise INVALID_PROOF "File format error: \"R\" not terminated by \"0\"."
-							val ls       = sort int_ord (map int_from_string ((fst o split_last) lits))
-							val _        = if zero = "0" then () else raise INVALID_PROOF ("File format error: \"0\" expected (" ^ quote zero ^ " encountered).")
+							val ls       = sort int_ord (map int_from_string lits)
 							val proof_id = (* both 'ls' and the list of literals used as key in 'clauses' are sorted, *)
 							               (* so testing for equality should suffice -- barring duplicate literals    *)
 							               case AList.lookup (op =) clauses ls of
@@ -722,13 +648,11 @@ let
 							val _        = if empty_id = ~1 then () else raise INVALID_PROOF "File format error: \"C\" disallowed after \"X\"."
 							val cid      = int_from_string id
 							val _        = if sep = "<=" then () else raise INVALID_PROOF ("File format error: \"<=\" expected (" ^ quote sep ^ " encountered).")
-							val dot      = List.last ids handle List.Empty => raise INVALID_PROOF "File format error: \"C\" not terminated by \".\"."
 							(* ignore the pivot literals in MiniSat's trace *)
 							fun unevens []             = raise INVALID_PROOF "File format error: \"C\" followed by an even number of IDs."
 							  | unevens (x :: [])      = x :: []
 							  | unevens (x :: _ :: xs) = x :: unevens xs
-							val rs       = (map sat_to_proof o unevens o map int_from_string o fst o split_last) ids
-							val _        = if dot = "." then () else raise INVALID_PROOF ("File format error: \".\" expected (" ^ quote dot ^ " encountered).")
+							val rs       = (map sat_to_proof o unevens o map int_from_string) ids
 							(* extend the mapping of clause IDs with this newly defined ID *)
 							val proof_id = inc next_id
 							val _        = clause_id_map := Inttab.update_new (cid, proof_id) (!clause_id_map)
@@ -777,8 +701,7 @@ let
 			val _                        = if empty_id <> ~1 then () else raise INVALID_PROOF "File format error: no conflicting clause specified."
 		in
 			SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id))
-		end handle TRIVIAL_PROOF proof => SatSolver.UNSATISFIABLE (SOME proof)
-		         | INVALID_PROOF reason => (warning reason; SatSolver.UNSATISFIABLE NONE))
+		end handle INVALID_PROOF reason => (warning reason; SatSolver.UNSATISFIABLE NONE))
 	| result =>
 		result
 	end
