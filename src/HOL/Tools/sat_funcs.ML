@@ -43,16 +43,6 @@ Proof reconstruction from SAT solvers.
   dependent) configuration settings.  To replay SAT proofs in Isabelle, you
   must of course use a proof-producing SAT solver in the first place.
 
-  Notes for the current revision:
-   - Currently zChaff is the only proof-producing SAT solver that is supported.
-   - The environment variable ZCHAFF_HOME must be set to point to the directory
-     where the zChaff executable resides.
-   - The environment variable ZCHAFF_VERSION must be set according to the
-     version of zChaff used.  Current supported version of zChaff:
-     zChaff version 2004.11.15
-   - zChaff must have been compiled with proof generation enabled
-     (#define VERIFY_ON).
-
   Proofs are replayed only if "!quick_and_dirty" is false.  If
   "!quick_and_dirty" is true, the theorem (in case the SAT solver claims its
   negation to be unsatisfiable) is proved via an oracle.
@@ -72,7 +62,7 @@ struct
 
 val trace_sat = ref false;
 
-val solver = ref "zchaff_with_proofs";
+val solver = ref "zchaff_with_proofs";  (* see HOL/Tools/sat_solver.ML for possible values *)
 
 val counter = ref 0;
 
@@ -101,8 +91,7 @@ val resolution_thm =  (* "[| P ==> False; ~P ==> False |] ==> False" *)
 (*      and then perform resolution with                                     *)
 (*        [| ?P ==> False; ~?P ==> False |] ==> False                        *)
 (*      to produce                                                           *)
-(*        [| y1; ...; x1; ...; xn; ...; yn |] ==> False                      *)
-(*      amd finally remove duplicate literals.                               *)
+(*        x1; ...; xn; y1; ...; ym |- False                                  *)
 (* ------------------------------------------------------------------------- *)
 
 (* Thm.thm list -> Thm.thm *)
@@ -119,14 +108,14 @@ fun resolve_raw_clauses [] =
 
 		(* see the comments on the term order below for why this implementation is sound *)
 		(* (Term.term * Term.term -> order) -> Thm.cterm list -> Term.term -> Thm.cterm option *)
-		fun member _   []      _ = NONE
-		  | member ord (y::ys) x = (case term_of y of  (* "un-certifying" y is faster than certifying x *)
+		fun member' _   []      _ = NONE
+		  | member' ord (y::ys) x = (case term_of y of  (* "un-certifying" y is faster than certifying x *)
 			  Const ("Trueprop", _) $ y' =>
 				(* compare the order *)
 				(case ord (x, y') of
 				  LESS    => NONE
 				| EQUAL   => SOME y
-				| GREATER => member ord ys x)
+				| GREATER => member' ord ys x)
 			| _                         =>
 				(* no need to continue in this case *)
 				NONE)
@@ -142,7 +131,7 @@ fun resolve_raw_clauses [] =
 			  Const ("Trueprop", _) $ lit =>
 				(* hyps are implemented as ordered list in the kernel, and *)
 				(* stripping 'Trueprop' should not change the order        *)
-				(case member Term.fast_term_ord ys (dual lit) of
+				(case member' Term.fast_term_ord ys (dual lit) of
 				  SOME y => (x, y)
 				| NONE   => res_hyps xs ys)
 			| _ =>
