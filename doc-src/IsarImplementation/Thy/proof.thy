@@ -18,7 +18,6 @@ text %mlref {*
   @{index_ML Variable.import: "bool -> thm list -> Proof.context -> thm list * Proof.context"} \\
   @{index_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
   @{index_ML Variable.trade: "Proof.context -> (thm list -> thm list) -> thm list -> thm list"} \\
-  @{index_ML Variable.monomorphic: "Proof.context -> term list -> term list"} \\
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
@@ -55,9 +54,6 @@ text %mlref {*
   \item @{ML Variable.trade} composes @{ML Variable.import} and @{ML
   Variable.export}, i.e.\ it provides a view on facts with all
   variables being fixed in the current context.
-
-  \item @{ML Variable.monomorphic}~@{text "ctxt ts"} introduces fixed
-  type variables for the schematic ones in @{text "ts"}.
 
   \item @{ML Variable.polymorphic}~@{text "ctxt ts"} generalizes type
   variables in @{text "ts"} as far as possible, even those occurring
