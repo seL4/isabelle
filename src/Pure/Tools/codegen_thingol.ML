@@ -32,9 +32,9 @@ sig
     | INum of IntInf.int (*non-negative!*) * iterm
     | IChar of string (*length one!*) * iterm
     | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
-        (* ((discrimendum expression (de), discrimendum type (dty)),
+        (*((discrimendum expression (de), discrimendum type (dty)),
                 [(selector expression (se), body expression (be))]),
-                native expression (e0)) *)
+                native expression (e0))*)
 end;
 
 signature CODEGEN_THINGOL =
@@ -59,9 +59,6 @@ sig
   val vars_distinct: iterm list -> bool;
   val map_pure: (iterm -> 'a) -> iterm -> 'a;
   val eta_expand: (string * (iclasslookup list list * itype)) * iterm list -> int -> iterm;
-  val proper_name: string -> string;
-  val invent_name: string list -> string;
-  val give_names: string list -> 'a list -> (string * 'a) list;
   val resolve_tycos: (string -> string) -> itype * iterm list -> itype * iterm list;
   val resolve_consts: (string -> string) -> iterm -> iterm;
 
@@ -132,27 +129,6 @@ fun unfoldr dest x =
     | SOME (x1, x2) =>
         let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
 
-fun proper_name s =
-  let
-    fun replace_invalid c =
-      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
-        andalso not (NameSpace.separator = c)
-      then c
-      else "_";
-    fun contract "_" (acc as "_" :: _) = acc
-      | contract c acc = c :: acc;
-    fun contract_underscores s =
-      implode (fold_rev contract (explode s) []);
-    fun ensure_char s =
-      if forall (Char.isDigit o the o Char.fromString) (explode s)
-        then prefix "x" s
-        else s
-  in
-    s
-    |> translate_string replace_invalid
-    |> contract_underscores
-    |> ensure_char
-  end;
 
 
 (** language core - types, pattern, expressions **)
@@ -387,17 +363,12 @@ fun vars_distinct es =
           x |> distinct de |> fold (fn (be, se) => distinct be #> distinct se) bses;
   in is_some (fold distinct es (SOME [])) end;
 
-fun invent_name used = hd (Name.invent_list used "a" 1);
-
-fun give_names used xs =
-  Name.invent_list used "a" (length xs) ~~ xs;
-
 fun eta_expand (c as (_, (_, ty)), es) k =
   let
     val j = length es;
     val l = k - j;
     val tys = (curry Library.take l o curry Library.drop j o fst o unfold_fun) ty;
-    val vs_tys = give_names (fold add_varnames es []) tys;
+    val vs_tys = Name.give_names (fold Name.declare (fold add_varnames es []) Name.context) "a" tys;
   in vs_tys `|--> IConst c `$$ es @ map (fn (v, _) => IVar v) vs_tys end;
 
 

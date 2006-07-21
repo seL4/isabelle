@@ -12,9 +12,9 @@ use "class_package.ML";
 use "../codegen.ML";
 
 (*code generator, 2nd generation*)
+use "codegen_theorems.ML";
 use "codegen_thingol.ML";
 use "codegen_serializer.ML";
-use "codegen_theorems.ML";
 use "codegen_simtype.ML";
 use "codegen_package.ML";
 

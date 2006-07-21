@@ -22,11 +22,11 @@ sig
     ('b -> 'a pretty_syntax * 'b) * OuterParse.token list;
   val pretty_list: string -> string -> int * string -> CodegenThingol.iterm pretty_syntax;
   val serializers: {
-    ml: string * (string * string * (string -> bool) -> serializer),
+    ml: string * (string * string -> serializer),
     haskell: string * (string * string list -> serializer)
   };
   val mk_flat_ml_resolver: string list -> string -> string;
-  val ml_fun_datatype: string * string * (string -> bool)
+  val ml_fun_datatype: string * string
     -> ((string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iterm pretty_syntax option))
     -> (string -> string)
@@ -335,9 +335,9 @@ structure NameMangler = NameManglerFun (
   type src = string;
   val ord = string_ord;
   fun mk reserved_ml (name, 0) =
-        (CodegenThingol.proper_name o NameSpace.base) name
+        (Name.alphanum o NameSpace.base) name
     | mk reserved_ml (name, i) =
-        (CodegenThingol.proper_name o NameSpace.base) name ^ replicate_string i "'";
+        (Name.alphanum o NameSpace.base) name ^ replicate_string i "'";
   fun is_valid (reserved_ml : string list) = not o member (op =) reserved_ml;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
@@ -770,17 +770,16 @@ fun ml_from_defs (is_cons, needs_type)
     | defs => error ("illegal mutual dependencies: " ^ (commas o map fst) defs)
   end;
 
-fun ml_annotators (nsp_dtcon, nsp_class, is_int_tyco) =
+fun ml_annotators (nsp_dtcon, nsp_class) =
   let
     fun needs_type tyco =
-      CodegenThingol.has_nsp tyco nsp_class
-      orelse is_int_tyco tyco;
+      CodegenThingol.has_nsp tyco nsp_class;
     fun is_cons c = CodegenThingol.has_nsp c nsp_dtcon;
   in (is_cons, needs_type) end;
 
 in
 
-fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
+fun ml_from_thingol target (nsp_dtcon, nsp_class) nspgrp =
   let
     fun ml_from_module resolv _ ((_, name), ps) =
       Pretty.chunks ([
@@ -791,7 +790,7 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class, is_int_tyco) nspgrp =
         str "",
         str ("end; (* struct " ^ name ^ " *)")
       ]);
-    val (is_cons, needs_type) = ml_annotators (nsp_dtcon, nsp_class, is_int_tyco);
+    val (is_cons, needs_type) = ml_annotators (nsp_dtcon, nsp_class);
     val serializer = abstract_serializer (target, nspgrp)
       "ROOT" (ml_from_defs (is_cons, needs_type), ml_from_module,
         abstract_validator reserved_ml, snd);
@@ -828,8 +827,8 @@ fun mk_flat_ml_resolver names =
       |-> (fn _ => I)
   in NameMangler.get reserved_ml mangler end;
 
-fun ml_fun_datatype (nsp_dtcon, nsp_class, is_int_tyco) =
-  ml_fun_datatyp (ml_annotators (nsp_dtcon, nsp_class, is_int_tyco));
+fun ml_fun_datatype (nsp_dtcon, nsp_class) =
+  ml_fun_datatyp (ml_annotators (nsp_dtcon, nsp_class));
 
 end; (* local *)
 
@@ -893,7 +892,7 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
                   hs_from_expr BR e2
                 ])
       | hs_from_expr fxy (IVar v) =
-          (str o String.implode o nth_map 0 Char.toLower o String.explode) v
+          str v
       | hs_from_expr fxy (e as _ `|-> _) =
           let
             val (es, e) = CodegenThingol.unfold_abs e

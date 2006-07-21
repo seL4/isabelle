@@ -223,8 +223,8 @@ fun canonical_tvars thy thm =
           (maxidx + 1, v :: set,
             (ctyp_of thy ty, ctyp_of thy (TVar ((v', maxidx), sort))) :: acc)
         end;
-    val lower_name = (prefix "'" o implode o map (Char.toString o Char.toLower o the o Char.fromString)
-      o explode o CodegenThingol.proper_name o unprefix "'");
+    val lower_name = implode o map (Char.toString o Char.toLower o the o Char.fromString)
+      o explode o Name.alphanum;
     fun tvars_of thm = (fold_types o fold_atyps)
       (fn TVar (v_i as (v, i), sort) => cons (v_i, (lower_name v, sort))
         | _ => I) (prop_of thm) [];
@@ -242,8 +242,8 @@ fun canonical_vars thy thm =
           (maxidx + 1,  v :: set,
             (cterm_of thy t, cterm_of thy (Var ((v', maxidx), ty))) :: acc)
         end;
-    val lower_name = (implode o map (Char.toString o Char.toLower o the o Char.fromString)
-      o explode o CodegenThingol.proper_name);
+    val lower_name = implode o map (Char.toString o Char.toLower o the o Char.fromString)
+      o explode o Name.alphanum;
     fun vars_of thm = fold_aterms
       (fn Var (v_i as (v, i), ty) => cons (v_i, (lower_name v, ty))
         | _ => I) (prop_of thm) [];
