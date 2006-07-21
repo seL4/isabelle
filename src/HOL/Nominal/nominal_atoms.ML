@@ -61,19 +61,19 @@ fun create_nom_typedecls ak_names thy =
     (* <ak>_infinite: infinite (UNIV::<ak_type> set) *)
     val (inf_axs,thy2) = PureThy.add_axioms_i (map (fn (ak_name, T) =>
       let 
-	val name = ak_name ^ "_infinite"
+    val name = ak_name ^ "_infinite"
         val axiom = HOLogic.mk_Trueprop (HOLogic.mk_not
                     (HOLogic.mk_mem (HOLogic.mk_UNIV T,
                      Const ("Finite_Set.Finites", HOLogic.mk_setT (HOLogic.mk_setT T)))))
       in
-	((name, axiom), []) 
+        ((name, axiom), []) 
       end) ak_names_types) thy1;
     
     (* declares a swapping function for every atom-kind, it is         *)
     (* const swap_<ak> :: <akT> * <akT> => <akT> => <akT>              *)
     (* swap_<ak> (a,b) c = (if a=c then b (else if b=c then a else c)) *)
     (* overloades then the general swap-function                       *) 
-    val (thy3, swap_eqs) = foldl_map (fn (thy, (ak_name, T)) =>
+    val (swap_eqs, thy3) = fold_map (fn (ak_name, T) => fn thy =>
       let
         val swapT = HOLogic.mk_prodT (T, T) --> T --> T;
         val swap_name = Sign.full_name (sign_of thy) ("swap_" ^ ak_name);
@@ -87,21 +87,22 @@ fun create_nom_typedecls ak_names thy =
 
         val name = "swap_"^ak_name^"_def";
         val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq
-		   (cswap_akname $ HOLogic.mk_prod (a,b) $ c,
+                (cswap_akname $ HOLogic.mk_prod (a,b) $ c,
                     cif $ HOLogic.mk_eq (a,c) $ b $ (cif $ HOLogic.mk_eq (b,c) $ a $ c)))
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
         thy |> Theory.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
-            |> (#2 o PureThy.add_defs_unchecked_i true [((name, def2),[])])
-            |> PrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]            
-      end) (thy2, ak_names_types);
+            |> PureThy.add_defs_unchecked_i true [((name, def2),[])]
+            |> snd
+            |> PrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]
+      end) ak_names_types thy2;
     
     (* declares a permutation function for every atom-kind acting  *)
     (* on such atoms                                               *)
     (* const <ak>_prm_<ak> :: (<akT> * <akT>)list => akT => akT    *)
     (* <ak>_prm_<ak> []     a = a                                  *)
     (* <ak>_prm_<ak> (x#xs) a = swap_<ak> x (perm xs a)            *)
-    val (thy4, prm_eqs) = foldl_map (fn (thy, (ak_name, T)) =>
+    val (prm_eqs, thy4) = fold_map (fn (ak_name, T) => fn thy =>
       let
         val swapT = HOLogic.mk_prodT (T, T) --> T --> T;
         val swap_name = Sign.full_name (sign_of thy) ("swap_" ^ ak_name)
@@ -122,7 +123,7 @@ fun create_nom_typedecls ak_names thy =
       in
         thy |> Theory.add_consts_i [(prm_name, mk_permT T --> T --> T, NoSyn)] 
             |> PrimrecPackage.add_primrec_unchecked_i "" [(("", def1), []),(("", def2), [])]
-      end) (thy3, ak_names_types);
+      end) ak_names_types thy3;
     
     (* defines permutation functions for all combinations of atom-kinds; *)
     (* there are a trivial cases and non-trivial cases                   *)

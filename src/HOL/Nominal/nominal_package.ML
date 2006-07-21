@@ -238,7 +238,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         end) constrs
       end) descr);
 
-    val (thy2, perm_simps) = thy1 |>
+    val (perm_simps, thy2) = thy1 |>
       Theory.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
         (List.drop (perm_names_types, length new_type_names))) |>
       PrimrecPackage.add_primrec_unchecked_i "" perm_eqs;
