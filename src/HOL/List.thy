@@ -2637,6 +2637,20 @@ fun int_of_nibble h =
 
 fun nibble_of_int i =
   if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
+
+fun term_of_string s =
+  let
+    val ty_n = Type ("List.nibble", []);
+    val ty_c = Type ("List.char", []);
+    val ty_l = Type ("List.list", [ty_c]);
+    fun mk_nib n = Const ("List.nibble.Nibble" ^ chr (n + (if n <= 9 then ord "0" else ord "A" - 10)), ty_n);
+    fun mk_char c =
+      if Symbol.is_ascii c andalso Symbol.is_printable c then
+        Const ("List.char.Char", ty_n --> ty_n --> ty_c) $ mk_nib (ord c div 16) $ mk_nib (ord c mod 16)
+      else error ("Printable ASCII character expected: " ^ quote c);
+    fun mk_string c t = Const ("List.list.Cons", ty_c --> ty_l --> ty_l)
+      $ mk_char c $ t;
+  in fold_rev mk_string (explode s) (Const ("List.list.Nil", ty_l)) end;
 *}
 
 print_ast_translation {*
