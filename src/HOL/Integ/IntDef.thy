@@ -908,22 +908,19 @@ code_typapp int
 
 code_constapp
   "op + :: int \<Rightarrow> int \<Rightarrow> int"
-    ml (infixl 8 "+")
+    ml ("IntInf.+ (_, _)")
     haskell (infixl 6 "+")
   "op * :: int \<Rightarrow> int \<Rightarrow> int"
-    ml (infixl 9 "*")
+    ml ("IntInf.* (_, _)")
     haskell (infixl 7 "*")
   "uminus :: int \<Rightarrow> int"
     ml (target_atom "~")
     haskell (target_atom "negate")
   "op = :: int \<Rightarrow> int \<Rightarrow> bool"
-    ml (infixl 6 "=")
+    ml ("(op =) (_ : IntInf.int, _)")
     haskell (infixl 4 "==")
-  "op < :: int \<Rightarrow> int \<Rightarrow> bool"
-    ml (infix 6 "<")
-    haskell (infix 4 "<")
   "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
-    ml (infix 6 "<=")
+    ml ("IntInf.<= (_, _)")
     haskell (infix 4 "<=")
 
 ML {*
@@ -960,7 +957,6 @@ fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of",
 setup {*
   Codegen.add_codegen "number_of_codegen" number_of_codegen
   (* #> CodegenPackage.add_appconst ("Numeral.number_of", appgen_number) *)
-  #> CodegenPackage.set_int_tyco "IntDef.int"
 *}
 
 quickcheck_params [default_type = int]
