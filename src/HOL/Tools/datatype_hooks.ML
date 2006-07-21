@@ -7,7 +7,7 @@ Hooks for datatype introduction.
 
 signature DATATYPE_HOOKS =
 sig
-  type hook = string -> theory -> theory;
+  type hook = string list -> theory -> theory;
   val add: hook -> theory -> theory;
   val invoke: hook;
   val setup: theory -> theory;
@@ -19,7 +19,7 @@ struct
 
 (* theory data *)
 
-type hook = string -> theory -> theory;
+type hook = string list -> theory -> theory;
 datatype T = T of (serial * hook) list;
 
 fun map_T f (T hooks) = T (f hooks);
@@ -43,8 +43,8 @@ end);
 fun add hook =
   DatatypeHooksData.map (map_T (cons (serial (), hook)));
 
-fun invoke dtco thy =
-  fold (fn (_, f) => f dtco) ((fn T hooks => hooks) (DatatypeHooksData.get thy)) thy;
+fun invoke dtcos thy =
+  fold (fn (_, f) => f dtcos) ((fn T hooks => hooks) (DatatypeHooksData.get thy)) thy;
 
 
 (* theory setup *)
