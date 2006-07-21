@@ -13,26 +13,26 @@ class semigroup =
   assumes assoc: "x \<^loc>\<otimes> y \<^loc>\<otimes> z = x \<^loc>\<otimes> (y \<^loc>\<otimes> z)"
 
 instance nat :: semigroup
-  "m \<otimes> n == m + n"
+  "m \<otimes> n \<equiv> m + n"
 proof
   fix m n q :: nat 
   from semigroup_nat_def show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)" by simp
 qed
 
 instance int :: semigroup
-  "k \<otimes> l == k + l"
+  "k \<otimes> l \<equiv> k + l"
 proof
   fix k l j :: int
   from semigroup_int_def show "k \<otimes> l \<otimes> j = k \<otimes> (l \<otimes> j)" by simp
 qed
 
 instance (type) list :: semigroup
-  "xs \<otimes> ys == xs @ ys"
+  "xs \<otimes> ys \<equiv> xs @ ys"
 proof
   fix xs ys zs :: "'a list"
   show "xs \<otimes> ys \<otimes> zs = xs \<otimes> (ys \<otimes> zs)"
   proof -
-    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys".
+    from semigroup_list_def have "\<And>xs ys\<Colon>'a list. xs \<otimes> ys \<equiv> xs @ ys" .
     thus ?thesis by simp
   qed
 qed
@@ -41,28 +41,25 @@ class monoidl = semigroup +
   fixes one :: 'a ("\<^loc>\<one>")
   assumes neutl: "\<^loc>\<one> \<^loc>\<otimes> x = x"
 
-instance nat :: monoidl
-  "\<one> == 0"
+instance monoidl_num_def: nat :: monoidl and int :: monoidl
+  "\<one> \<equiv> 0"
+  "\<one> \<equiv> 0"
 proof
   fix n :: nat
-  from semigroup_nat_def monoidl_nat_def show "\<one> \<otimes> n = n" by simp
-qed
-
-instance int :: monoidl
-  "\<one> == 0"
-proof
+  from monoidl_num_def show "\<one> \<otimes> n = n" by simp
+next
   fix k :: int
-  from semigroup_int_def monoidl_int_def show "\<one> \<otimes> k = k" by simp
+  from monoidl_num_def show "\<one> \<otimes> k = k" by simp
 qed
 
 instance (type) list :: monoidl
-  "\<one> == []"
+  "\<one> \<equiv> []"
 proof
   fix xs :: "'a list"
   show "\<one> \<otimes> xs = xs"
   proof -
-    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys" .
-    moreover from monoidl_list_def have "\<one> == []::'a list" by simp
+    from mult_list_def have "\<And>xs ys\<Colon>'a list. xs \<otimes> ys \<equiv> xs @ ys" .
+    moreover from monoidl_list_def have "\<one> \<equiv> []\<Colon>'a list" by simp
     ultimately show ?thesis by simp
   qed
 qed  
@@ -70,13 +67,13 @@ qed
 class monoid = monoidl +
   assumes neutr: "x \<^loc>\<otimes> \<^loc>\<one> = x"
 
-instance (type) list :: monoid
+instance monoid_list_def: (type) list :: monoid
 proof
   fix xs :: "'a list"
   show "xs \<otimes> \<one> = xs"
   proof -
-    from semigroup_list_def have "\<And>xs ys::'a list. xs \<otimes> ys == xs @ ys" .
-    moreover from monoidl_list_def have "\<one> == []::'a list" by simp
+    from mult_list_def have "\<And>xs ys\<Colon>'a list. xs \<otimes> ys \<equiv> xs @ ys" .
+    moreover from monoid_list_def have "\<one> \<equiv> []\<Colon>'a list" by simp
     ultimately show ?thesis by simp
   qed
 qed  
@@ -84,22 +81,19 @@ qed
 class monoid_comm = monoid +
   assumes comm: "x \<^loc>\<otimes> y = y \<^loc>\<otimes> x"
 
-instance nat :: monoid_comm
+instance monoid_comm_num_def: nat :: monoid_comm and int :: monoid_comm
 proof
   fix n :: nat
-  from semigroup_nat_def monoidl_nat_def show "n \<otimes> \<one> = n" by simp
+  from monoid_comm_num_def show "n \<otimes> \<one> = n" by simp
 next
   fix n m :: nat
-  from semigroup_nat_def monoidl_nat_def show "n \<otimes> m = m \<otimes> n" by simp
-qed
-
-instance int :: monoid_comm
-proof
+  from monoid_comm_num_def show "n \<otimes> m = m \<otimes> n" by simp
+next
   fix k :: int
-  from semigroup_int_def monoidl_int_def show "k \<otimes> \<one> = k" by simp
+  from monoid_comm_num_def show "k \<otimes> \<one> = k" by simp
 next
   fix k l :: int
-  from semigroup_int_def monoidl_int_def show "k \<otimes> l = l \<otimes> k" by simp
+  from monoid_comm_num_def show "k \<otimes> l = l \<otimes> k" by simp
 qed
 
 definition (in monoid)
@@ -150,7 +144,7 @@ definition (in monoid)
 
 abbreviation (in monoid)
   abbrev_npow :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75)
-  "x \<^loc>\<up> n == npow n x"
+  "x \<^loc>\<up> n \<equiv> npow n x"
 
 lemma (in monoid) npow_def:
   "x \<^loc>\<up> 0 = \<^loc>\<one>"
@@ -179,11 +173,11 @@ class group = monoidl +
 
 class group_comm = group + monoid_comm
 
-instance int :: group_comm
-  "\<div> k == - (k::int)"
+instance group_comm_int_def: int :: group_comm
+  "\<div> k \<equiv> - (k\<Colon>int)"
 proof
   fix k :: int
-  from semigroup_int_def monoidl_int_def group_comm_int_def show "\<div> k \<otimes> k = \<one>" by simp
+  from group_comm_int_def show "\<div> k \<otimes> k = \<one>" by simp
 qed
 
 lemma (in group) cancel:
@@ -225,12 +219,12 @@ qed
 
 instance group < monoid
 proof
-  fix x :: "'a::group"
+  fix x :: "'a\<Colon>group"
   from group.neutr show "x \<otimes> \<one> = x" .
 qed
 
 lemma (in group) all_inv [intro]:
-  "(x::'a) \<in> monoid.units (op \<^loc>\<otimes>) \<^loc>\<one>"
+  "(x\<Colon>'a) \<in> monoid.units (op \<^loc>\<otimes>) \<^loc>\<one>"
   unfolding units_def
 proof -
   fix x :: "'a"
@@ -293,31 +287,32 @@ abbreviation (in group)
   "x \<^loc>\<up> k \<equiv> pow k x"
 
 lemma (in group) int_pow_zero:
-  "x \<^loc>\<up> (0::int) = \<^loc>\<one>"
+  "x \<^loc>\<up> (0\<Colon>int) = \<^loc>\<one>"
 using npow_def pow_def by simp
 
 lemma (in group) int_pow_one:
-  "\<^loc>\<one> \<^loc>\<up> (k::int) = \<^loc>\<one>"
+  "\<^loc>\<one> \<^loc>\<up> (k\<Colon>int) = \<^loc>\<one>"
 using pow_def nat_pow_one inv_one by simp
 
 instance group_prod_def: (group, group) * :: group
-  mult_prod_def: "x \<otimes> y == let (x1, x2) = x; (y1, y2) = y in
+  mult_prod_def: "x \<otimes> y \<equiv> let (x1, x2) = x; (y1, y2) = y in
               (x1 \<otimes> y1, x2 \<otimes> y2)"
-  mult_one_def: "\<one> == (\<one>, \<one>)"
-  mult_inv_def: "\<div> x == let (x1, x2) = x in (\<div> x1, \<div> x2)"
+  mult_one_def: "\<one> \<equiv> (\<one>, \<one>)"
+  mult_inv_def: "\<div> x \<equiv> let (x1, x2) = x in (\<div> x1, \<div> x2)"
 by default (simp_all add: split_paired_all group_prod_def assoc neutl invl)
 
 instance group_comm_prod_def: (group_comm, group_comm) * :: group_comm
 by default (simp_all add: split_paired_all group_prod_def assoc neutl invl comm)
 
 definition
-  "x = ((2::nat) \<otimes> \<one> \<otimes> 3, (2::int) \<otimes> \<one> \<otimes> \<div> 3, [1::nat, 2] \<otimes> \<one> \<otimes> [1, 2, 3])"
-  "y = (2 :: int, \<div> 2 :: int) \<otimes> \<one> \<otimes> (3, \<div> 3)"
+  "x = ((2\<Colon>nat) \<otimes> \<one> \<otimes> 3, (2\<Colon>int) \<otimes> \<one> \<otimes> \<div> 3, [1\<Colon>nat, 2] \<otimes> \<one> \<otimes> [1, 2, 3])"
+  "y = (2 \<Colon> int, \<div> 2 \<Colon> int) \<otimes> \<one> \<otimes> (3, \<div> 3)"
 
-code_generate "op \<otimes>" "\<one>" "inv"
+code_generate "op \<otimes>" \<one> inv
 code_generate (ml, haskell) x
 code_generate (ml, haskell) y
 
+code_serialize ml (_)
 code_serialize ml (-)
 
 end
