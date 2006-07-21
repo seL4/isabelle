@@ -431,10 +431,12 @@ fun case_tr context [t, u] =
           val (_, (_, dts, constrs)) = List.nth (descr, index);
           fun find_case (cases, (s, dt)) =
             (case find_first (equal s o fst o fst) cases' of
-               NONE => (case default of
-                   NONE => case_error ("No clause for constructor " ^ s) (SOME tname) [u]
-                 | SOME t => (cases, list_abs (map (rpair dummyT) (DatatypeProp.make_tnames
-                     (map (typ_of_dtyp descr sorts) dt)), t)))
+               NONE => (cases, list_abs (map (rpair dummyT)
+                 (DatatypeProp.make_tnames (map (typ_of_dtyp descr sorts) dt)),
+                 case default of
+                   NONE => (warning ("No clause for constructor " ^ s ^
+                     " in case expression"); Const ("undefined", dummyT))
+                 | SOME t => t))
              | SOME (c as ((_, vs), t)) =>
                  if length dt <> length vs then
                     case_error ("Wrong number of arguments for constructor " ^ s)
@@ -484,10 +486,16 @@ fun case_tr' constrs context ts =
       (Library.foldl count_cases ([], cases));
     fun mk_case1 (cname, (vs, body), _) = Syntax.const "_case1" $
       list_comb (Syntax.const cname, vs) $ body;
+    fun is_undefined (Const ("undefined", _)) = true
+      | is_undefined _ = false;
   in
     Syntax.const "_case_syntax" $ x $
       foldr1 (fn (t, u) => Syntax.const "_case2" $ t $ u) (map mk_case1
-        (case cases' of
+        (case find_first (is_undefined o fst) cases' of
+           SOME (_, cnames) =>
+           if length cnames = length constrs then [hd cases]
+           else filter_out (fn (_, (_, body), _) => is_undefined body) cases
+         | NONE => case cases' of
            [] => cases
          | (default, cnames) :: _ =>
            if length cnames = 1 then cases
