@@ -35,6 +35,7 @@ consts
   True          :: bool
   False         :: bool
   arbitrary     :: 'a
+  undefined     :: 'a
 
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
@@ -185,6 +186,7 @@ finalconsts
   "op -->"
   The
   arbitrary
+  undefined
 
 
 subsubsection {* Generic algebraic operations *}
@@ -1281,15 +1283,21 @@ local
 
 exception Normalization of term;
 
-fun normalization_oracle (thy, Normalization t) = Logic.mk_equals
-  (t, HOLogic.mk_Trueprop (NBE.norm_term thy (HOLogic.dest_Trueprop t)));
+fun normalization_oracle (thy, Normalization t) =
+  Logic.mk_equals (t, NBE.norm_term thy t);
 
 fun normalization_conv ct =
   let val {sign, t, ...} = rep_cterm ct
   in Thm.invoke_oracle_i sign "HOL.Normalization" (sign, Normalization t) end;
 
+fun Trueprop_conv conv ct = (case term_of ct of
+    Const ("Trueprop", _) $ _ =>
+      let val (ct1, ct2) = Thm.dest_comb ct
+      in Thm.combination (Thm.reflexive ct1) (conv ct2) end
+  | _ => raise TERM ("Trueprop_conv", []));
+
 fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) normalization_conv));
+  (Drule.goals_conv (equal i) (Trueprop_conv normalization_conv)));
 
 val normalization_meth =
   Method.no_args (Method.METHOD (fn _ => normalization_tac 1 THEN resolve_tac [TrueI,refl] 1));
