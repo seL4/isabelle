@@ -312,7 +312,6 @@ code_generate "op \<otimes>" \<one> inv
 code_generate (ml, haskell) x
 code_generate (ml, haskell) y
 
-code_serialize ml (_)
 code_serialize ml (-)
 
 end

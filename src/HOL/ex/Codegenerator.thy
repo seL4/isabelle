@@ -2,7 +2,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Test and Examples for Code Generator *}
+header {* Test and Examples for code generator *}
 
 theory Codegenerator
 imports Main
@@ -46,6 +46,8 @@ definition
 
 code_generate (ml, haskell) Pair fst snd Let split swap swapp appl
 
+subsection {* integers *}
+
 definition
   k :: "int"
   "k = 42"
@@ -64,6 +66,8 @@ code_generate (ml, haskell)
   "op < :: int \<Rightarrow> int \<Rightarrow> bool"
   "op <= :: int \<Rightarrow> int \<Rightarrow> bool"
   fac
+  "op div :: int \<Rightarrow> int \<Rightarrow> int"
+  "op mod :: int \<Rightarrow> int \<Rightarrow> int"  
 
 subsection {* sums *}
 
