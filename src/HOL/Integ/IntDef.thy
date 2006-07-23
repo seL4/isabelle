@@ -914,7 +914,7 @@ code_constapp
     ml ("IntInf.* (_, _)")
     haskell (infixl 7 "*")
   "uminus :: int \<Rightarrow> int"
-    ml (target_atom "~")
+    ml (target_atom "IntInf.~")
     haskell (target_atom "negate")
   "op = :: int \<Rightarrow> int \<Rightarrow> bool"
     ml ("(op =) (_ : IntInf.int, _)")
