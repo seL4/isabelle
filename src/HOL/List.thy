@@ -2630,6 +2630,19 @@ parse_ast_translation {*
 *}
 
 ML {*
+structure HOList =
+struct
+
+local
+  val thy = the_context ();
+in
+  val typ_string = Type (Sign.intern_type thy "string", []);
+  fun typ_list ty = Type (Sign.intern_type thy "list", [ty]);
+  fun term_list ty f [] = Const (Sign.intern_const thy "Nil", typ_list ty)
+    | term_list ty f (x::xs) = Const (Sign.intern_const thy "Cons",
+        ty --> typ_list ty --> typ_list ty) $ f x $ term_list ty f xs;
+end;
+
 fun int_of_nibble h =
   if "0" <= h andalso h <= "9" then ord h - ord "0"
   else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
@@ -2638,7 +2651,7 @@ fun int_of_nibble h =
 fun nibble_of_int i =
   if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
 
-fun term_of_string s =
+fun term_string s =
   let
     val ty_n = Type ("List.nibble", []);
     val ty_c = Type ("List.char", []);
@@ -2651,13 +2664,15 @@ fun term_of_string s =
     fun mk_string c t = Const ("List.list.Cons", ty_c --> ty_l --> ty_l)
       $ mk_char c $ t;
   in fold_rev mk_string (explode s) (Const ("List.list.Nil", ty_l)) end;
+
+end;
 *}
 
 print_ast_translation {*
   let
     fun dest_nib (Syntax.Constant c) =
         (case explode c of
-          ["N", "i", "b", "b", "l", "e", h] => int_of_nibble h
+          ["N", "i", "b", "b", "l", "e", h] => HOList.int_of_nibble h
         | _ => raise Match)
       | dest_nib _ = raise Match;
 
@@ -2691,7 +2706,7 @@ fun list_codegen thy defs gr dep thyname b t =
 
 fun dest_char (Const ("List.char.Char", _) $ c1 $ c2) =
       let
-        fun dest_nibble (Const (s, _)) = (int_of_nibble o unprefix "List.nibble.Nibble") s
+        fun dest_nibble (Const (s, _)) = (HOList.int_of_nibble o unprefix "List.nibble.Nibble") s
           | dest_nibble _ = raise Match;
       in
         (SOME (dest_nibble c1 * 16 + dest_nibble c2)
@@ -2739,8 +2754,8 @@ val nibbleT = Type ("List.nibble", []);
 
 fun term_of_char c =
   Const ("List.char.Char", nibbleT --> nibbleT --> Type ("List.char", [])) $
-    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c div 16), nibbleT) $
-    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c mod 16), nibbleT);
+    Const ("List.nibble.Nibble" ^ HOList.nibble_of_int (ord c div 16), nibbleT) $
+    Const ("List.nibble.Nibble" ^ HOList.nibble_of_int (ord c mod 16), nibbleT);
 *}
 attach (test) {*
 fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
