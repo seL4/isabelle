@@ -22,11 +22,11 @@ sig
     ('b -> 'a pretty_syntax * 'b) * OuterParse.token list;
   val pretty_list: string -> string -> int * string -> CodegenThingol.iterm pretty_syntax;
   val serializers: {
-    ml: string * (string * string -> serializer),
+    ml: string * (string -> serializer),
     haskell: string * (string * string list -> serializer)
   };
   val mk_flat_ml_resolver: string list -> string -> string;
-  val ml_fun_datatype: string * string
+  val ml_fun_datatype: string
     -> ((string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iterm pretty_syntax option))
     -> (string -> string)
@@ -343,7 +343,7 @@ structure NameMangler = NameManglerFun (
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
 );
 
-fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
+fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
   let
     val ml_from_label =
       str o translate_string (fn "_" => "__" | "." => "_" | c => c)
@@ -434,24 +434,6 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
           end
       | ml_from_type fxy (ITyVar v) =
           str ("'" ^ v);
-    fun typify ty p =
-      let
-        fun needs_type_t (tyco `%% tys) =
-            needs_type tyco
-            orelse exists needs_type_t tys
-        | needs_type_t (ITyVar _) =
-            false
-        | needs_type_t (ty1 `-> ty2) =
-            needs_type_t ty1 orelse needs_type_t ty2;
-      in if needs_type_t ty
-        then
-          Pretty.enclose "(" ")" [
-            p,
-            str ":",
-            ml_from_type NOBR ty
-          ]
-        else p
-      end;
     fun ml_from_expr fxy (e as IConst x) =
           ml_from_app fxy (x, [])
       | ml_from_expr fxy (IVar v) =
@@ -469,7 +451,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
             val (es, be) = CodegenThingol.unfold_abs e;
             fun mk_abs (e, ty) = (Pretty.block o Pretty.breaks) [
                 str "fn",
-                typify ty (ml_from_expr NOBR e),
+                ml_from_expr NOBR e,
                 str "=>"
               ];
           in brackify BR (map mk_abs es @ [ml_from_expr NOBR be]) end
@@ -492,7 +474,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
             fun mk_val ((ve, vty), se) = Pretty.block [
                 (Pretty.block o Pretty.breaks) [
                   str "val",
-                  typify vty (ml_from_expr NOBR ve),
+                  ml_from_expr NOBR ve,
                   str "=",
                   ml_from_expr NOBR se
                 ],
@@ -514,7 +496,7 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               ]
           in brackify fxy (
             str "(case"
-            :: typify dty (ml_from_expr NOBR de)
+            :: ml_from_expr NOBR de
             :: mk_clause "of" bse
             :: map (mk_clause "|") bses
             @ [str ")"]
@@ -536,12 +518,12 @@ fun ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               :: (lss
               @ map (ml_from_expr BR) es)
             );
-  in (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) end;
+  in (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) end;
 
-fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
+fun ml_fun_datatyp is_cons (tyco_syntax, const_syntax) resolv =
   let
-    val (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) =
-      ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
+    val (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
+      ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv;
     fun chunk_defs ps =
       let
         val (p_init, p_last) = split_last ps
@@ -583,7 +565,6 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
               map (Pretty.block o single o Pretty.block o single);
             fun mk_arg e ty =
               ml_from_expr BR e
-              |> typify ty
             fun mk_eq definer (pats, expr) =
               (Pretty.block o Pretty.breaks) (
                 [str definer, (str o resolv) name]
@@ -634,14 +615,14 @@ fun ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv =
       end;
   in (ml_from_funs, ml_from_datatypes) end;
 
-fun ml_from_defs (is_cons, needs_type)
+fun ml_from_defs is_cons
     (_, tyco_syntax, const_syntax) resolver prefix defs =
   let
     val resolv = resolver prefix;
-    val (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, typify, ml_from_expr) =
-      ml_expr_seri (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
+    val (ml_from_label, ml_from_tyvar, ml_from_sortlookup, ml_from_tycoexpr, ml_from_type, ml_from_expr) =
+      ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv;
     val (ml_from_funs, ml_from_datatypes) =
-      ml_fun_datatyp (is_cons, needs_type) (tyco_syntax, const_syntax) resolv;
+      ml_fun_datatyp is_cons (tyco_syntax, const_syntax) resolv;
     val filter_datatype =
       map_filter
         (fn (name, CodegenThingol.Datatype info) => SOME (name, info)
@@ -770,16 +751,14 @@ fun ml_from_defs (is_cons, needs_type)
     | defs => error ("illegal mutual dependencies: " ^ (commas o map fst) defs)
   end;
 
-fun ml_annotators (nsp_dtcon, nsp_class) =
+fun ml_annotators nsp_dtcon =
   let
-    fun needs_type tyco =
-      CodegenThingol.has_nsp tyco nsp_class;
     fun is_cons c = CodegenThingol.has_nsp c nsp_dtcon;
-  in (is_cons, needs_type) end;
+  in is_cons end;
 
 in
 
-fun ml_from_thingol target (nsp_dtcon, nsp_class) nspgrp =
+fun ml_from_thingol target nsp_dtcon nspgrp =
   let
     fun ml_from_module resolv _ ((_, name), ps) =
       Pretty.chunks ([
@@ -790,9 +769,9 @@ fun ml_from_thingol target (nsp_dtcon, nsp_class) nspgrp =
         str "",
         str ("end; (* struct " ^ name ^ " *)")
       ]);
-    val (is_cons, needs_type) = ml_annotators (nsp_dtcon, nsp_class);
+    val is_cons = ml_annotators nsp_dtcon;
     val serializer = abstract_serializer (target, nspgrp)
-      "ROOT" (ml_from_defs (is_cons, needs_type), ml_from_module,
+      "ROOT" (ml_from_defs is_cons, ml_from_module,
         abstract_validator reserved_ml, snd);
     fun eta_expander module const_syntax s =
       case const_syntax s
@@ -827,8 +806,8 @@ fun mk_flat_ml_resolver names =
       |-> (fn _ => I)
   in NameMangler.get reserved_ml mangler end;
 
-fun ml_fun_datatype (nsp_dtcon, nsp_class) =
-  ml_fun_datatyp (ml_annotators (nsp_dtcon, nsp_class));
+fun ml_fun_datatype nsp_dtcon =
+  ml_fun_datatyp (ml_annotators nsp_dtcon);
 
 end; (* local *)
 

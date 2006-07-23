@@ -244,7 +244,7 @@ val serializers = ref (
   |> Symtab.update (
        #ml CodegenSerializer.serializers
        |> apsnd (fn seri => seri
-            (nsp_dtcon, nsp_class)
+            nsp_dtcon
             [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
           )
      )
@@ -1041,7 +1041,7 @@ fun get_ml_fun_datatype thy resolv =
     val target_data =
       ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
   in
-    CodegenSerializer.ml_fun_datatype (nsp_dtcon, nsp_class)
+    CodegenSerializer.ml_fun_datatype nsp_dtcon
       ((Option.map fst oo Symtab.lookup o #syntax_tyco) target_data,
       (Option.map fst oo Symtab.lookup o #syntax_const) target_data)
       resolv
