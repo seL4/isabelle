@@ -19,8 +19,8 @@ sig
     -> ((string * sort) list * (string * (string * typ list) list) list)
   val get_datatype_arities: theory -> string list -> sort
     -> (string * (((string * sort list) * sort)  * term list)) list option
-  val datatype_prove_arities : tactic -> string list -> sort
-    -> ((string * term list) list
+  val prove_arities: (thm list -> tactic) -> string list -> sort
+    -> (((string * sort list) * sort) list -> (string * term list) list
     -> ((bstring * attribute list) * term) list) -> theory -> theory
   val setup: theory -> theory
 end;
@@ -373,7 +373,7 @@ fun get_datatype_arities thy tycos sort =
     ) else NONE
   end;
 
-fun datatype_prove_arities tac tycos sort f thy =
+fun prove_arities tac tycos sort f thy =
   case get_datatype_arities thy tycos sort
    of NONE => thy
     | SOME insts => let
@@ -382,11 +382,11 @@ fun datatype_prove_arities tac tycos sort f thy =
             (Type (tyco, map TFree (Name.give_names Name.context "'a" asorts)), sort);
         val (arities, css) = (split_list o map_filter
           (fn (tyco, (arity, cs)) => if proven arity
-            then SOME (arity, (tyco, cs)) else NONE)) insts;
+            then NONE else SOME (arity, (tyco, cs)))) insts;
       in
         thy
-        |> ClassPackage.prove_instance_arity tac
-             arities ("", []) (f css)
+        |> K ((not o null) arities) ? ClassPackage.prove_instance_arity tac
+             arities ("", []) (f arities css)
       end;
 
 fun dtyp_of_case_const thy c =

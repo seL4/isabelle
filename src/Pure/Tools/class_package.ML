@@ -18,7 +18,7 @@ sig
   val instance_arity_i: ((string * sort list) * sort) list
     -> bstring * attribute list -> ((bstring * attribute list) * term) list
     -> theory -> Proof.state
-  val prove_instance_arity: tactic -> ((string * sort list) * sort) list
+  val prove_instance_arity: (thm list -> tactic) -> ((string * sort list) * sort) list
     -> bstring * attribute list -> ((bstring * attribute list) * term) list
     -> theory -> theory
   val instance_sort: string * string -> theory -> Proof.state
@@ -52,7 +52,7 @@ sig
   val sortlookups_const: theory -> string * typ -> classlookup list list
 end;
 
-structure ClassPackage: CLASS_PACKAGE =
+structure ClassPackage : CLASS_PACKAGE =
 struct
 
 
@@ -281,12 +281,12 @@ fun gen_instance mk_prop add_thm after_qed insts thy =
 
 in
 
-val axclass_instance_sort =
-  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel)) AxClass.add_classrel I o single;
 val axclass_instance_arity =
   gen_instance (Logic.mk_arities oo Sign.read_arity) AxClass.add_arity;
 val axclass_instance_arity_i =
   gen_instance (Logic.mk_arities oo Sign.cert_arity) AxClass.add_arity;
+val axclass_instance_sort =      
+  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel)) AxClass.add_classrel I o single;
 
 end;
 
@@ -511,21 +511,21 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
     |-> (fn (cs, def_thms) =>
        fold add_inst_def def_thms
     #> note_all
-    #> do_proof (after_qed cs) arities)
+    #> do_proof (map snd def_thms) (after_qed cs) arities)
   end;
 
 fun instance_arity' do_proof = gen_instance_arity Sign.read_arity Attrib.attribute
   read_def do_proof;
 fun instance_arity_i' do_proof = gen_instance_arity Sign.cert_arity (K I)
   read_def_i do_proof;
-fun tactic_proof tac after_qed arities =
-  fold (fn arity => AxClass.prove_arity arity tac) arities
+fun tactic_proof tac def_thms after_qed arities =
+  fold (fn arity => AxClass.prove_arity arity (tac def_thms)) arities
   #> after_qed;
 
 in
 
-val instance_arity = instance_arity' axclass_instance_arity_i;
-val instance_arity_i = instance_arity_i' axclass_instance_arity_i;
+val instance_arity = instance_arity' (K axclass_instance_arity_i);
+val instance_arity_i = instance_arity_i' (K axclass_instance_arity_i);
 val prove_instance_arity = instance_arity_i' o tactic_proof;
 
 end; (* local *)
