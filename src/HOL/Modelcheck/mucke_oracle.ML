@@ -51,7 +51,7 @@ local
 		        else (contains_if b) |
   contains_if _ = [];
 
-  fun find_replace_term (Abs(a,T,t)) = find_replace_term (snd(variant_abs(a,T,t))) |
+  fun find_replace_term (Abs(a,T,t)) = find_replace_term (snd(Syntax.variant_abs(a,T,t))) |
   find_replace_term (a $ b) = if ((contains_if (a $ b))=[]) then
   (if (snd(find_replace_term b)=[]) then (find_replace_term a) else (find_replace_term b))
   else (a $ b,contains_if(a $ b))|
@@ -167,7 +167,7 @@ error "unexpected type variable in type_to_string";
 fun type_of_term (Const(_,t)) = t |
 type_of_term (Free(_,t)) = t |
 type_of_term (Var(_,t)) = t |
-type_of_term (Abs(x,t,trm)) = Type("fun",[t,type_of_term(snd(variant_abs(x,t,trm)))]) |
+type_of_term (Abs(x,t,trm)) = Type("fun",[t,type_of_term(snd(Syntax.variant_abs(x,t,trm)))]) |
 type_of_term (a $ b) =
 let
  fun accept_fun_type (Type("fun",[x,y])) = (x,y) |
@@ -322,7 +322,7 @@ fun dest_atom (Const t) = dest_Const (Const t)
   | dest_atom (Free t)  = dest_Free (Free t);
 
 fun get_decls sign Clist (Abs(s,tp,trm)) = 
-    let val VarAbs = variant_abs(s,tp,trm);
+    let val VarAbs = Syntax.variant_abs(s,tp,trm);
     in get_decls sign (Const(fst VarAbs,tp)::Clist) (snd VarAbs)
     end
   | get_decls sign Clist ((Const("split",_)) $ trm) = get_decls sign Clist trm
@@ -429,7 +429,7 @@ in MuckeDeclTerm end;
 fun elim_quantifications sign ((Const("Ex",_)) $ Abs (str,tp,t)) =
     (let val ExConst = Const("_Ex",make_fun_type [tp,tp,tp,tp]);
      	 val TypeConst = Const (type_to_string_OUTPUT tp,tp);
-	 val VarAbs = variant_abs(str,tp,t);
+	 val VarAbs = Syntax.variant_abs(str,tp,t);
 	 val BoundConst = Const(fst VarAbs,tp);
 	 val t1 = ExConst $ TypeConst;
 	 val t2 = t1 $ BoundConst;
@@ -438,7 +438,7 @@ fun elim_quantifications sign ((Const("Ex",_)) $ Abs (str,tp,t)) =
   |  elim_quantifications sign ((Const("All",_)) $ Abs (str,tp,t)) =
     (let val AllConst = Const("_All",make_fun_type [tp,tp,tp,tp]);
     	 val TypeConst = Const (type_to_string_OUTPUT tp,tp);
-	 val VarAbs = variant_abs(str,tp,t);
+	 val VarAbs = Syntax.variant_abs(str,tp,t);
 	 val BoundConst = Const(fst VarAbs,tp);
 	 val t1 = AllConst $ TypeConst;
 	 val t2 = t1 $ BoundConst;
@@ -606,7 +606,7 @@ check_case sg tl trm = (false,0);
 fun enrich_case_with_terms sg [] t = t |
 enrich_case_with_terms sg [trm] (Abs(x,T,t)) =
 let
- val v = variant_abs(x,T,t);
+ val v = Syntax.variant_abs(x,T,t);
  val f = fst v;
  val s = snd v
 in
@@ -634,7 +634,7 @@ end;
 
 fun replace_termlist_with_constrs sg tl (a::l1) (c::l2) t = 
 let
- fun heart_of_trm (Abs(x,T,t)) = heart_of_trm(snd(variant_abs(x,T,t))) |
+ fun heart_of_trm (Abs(x,T,t)) = heart_of_trm(snd(Syntax.variant_abs(x,T,t))) |
  heart_of_trm t = t;
  fun replace_termlist_with_args _ _ trm _ [] _ ([],[]) = trm (* should never occur *) |
  replace_termlist_with_args sg _ trm _ [a] _ ([],[]) =
@@ -704,7 +704,7 @@ replace_case sg tl (a $ b) 1 = a $ (replace_case sg tl b 0) |
 replace_case sg tl (a $ b) n = (replace_case sg tl a (n-1)) $ (replace_case sg tl b 0) |
 replace_case sg tl (Abs(x,T,t)) _ = 
 let 
- val v = variant_abs(x,T,t);
+ val v = Syntax.variant_abs(x,T,t);
  val f = fst v;
  val s = snd v
 in
@@ -779,9 +779,9 @@ in
   else (constr_term_contains_var sg tl b x))
 end |
 constr_term_contains_var sg tl (Abs(y,ty,trm)) x =
-         constr_term_contains_var sg tl (snd(variant_abs(y,ty,trm))) x |
+         constr_term_contains_var sg tl (snd(Syntax.variant_abs(y,ty,trm))) x |
 constr_term_contains_var _ _ _ _ = false;
-val vt = variant_abs(x,ty,trm);
+val vt = Syntax.variant_abs(x,ty,trm);
 val tt = remove_vars sg tl (snd(vt))
 in
 if (constr_term_contains_var sg tl tt (fst vt))

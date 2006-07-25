@@ -78,7 +78,7 @@ extract_hd (a $ b) = extract_hd a |
 extract_hd (Const(s,_)) = s |
 extract_hd _ = raise malformed;
 (* delivers constructor term string from a prem of *.induct *)
-fun extract_constr thy (_ $ Abs(a,T,r)) = extract_constr thy (snd(variant_abs(a,T,r)))|
+fun extract_constr thy (_ $ Abs(a,T,r)) = extract_constr thy (snd(Syntax.variant_abs(a,T,r)))|
 extract_constr thy (Const("Trueprop",_) $ r) = extract_constr thy r |
 extract_constr thy (Var(_,_) $ r) =  delete_bold_string(string_of_term (sign_of thy) r) |
 extract_constr _ _ = raise malformed;

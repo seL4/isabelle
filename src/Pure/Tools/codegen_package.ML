@@ -756,7 +756,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       |-> (fn ty => pair (IVar v))
   | exprgen_term thy tabs (Abs (raw_v, ty, raw_t)) trns =
       let
-        val (v, t) = Term.variant_abs (Symbol.alphanum raw_v, ty, raw_t);
+        val (v, t) = Syntax.variant_abs (Symbol.alphanum raw_v, ty, raw_t);
       in
         trns
         |> exprgen_type thy tabs ty

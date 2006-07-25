@@ -675,7 +675,7 @@ fun coopermi vars1 fm =
   case fm of 
    Const ("Ex",_) $ Abs(x0,T,p0) => 
    let 
-    val (xn,p1) = variant_abs (x0,T,p0) 
+    val (xn,p1) = Syntax.variant_abs (x0,T,p0) 
     val x = Free (xn,T)  
     val vars = (xn::vars1) 
     val p = unitycoeff x  (posineq (simpl p1))
@@ -694,7 +694,7 @@ fun coopermi vars1 fm =
 fun cooperpi vars1 fm =
   case fm of
    Const ("Ex",_) $ Abs(x0,T,p0) => let 
-    val (xn,p1) = variant_abs (x0,T,p0)
+    val (xn,p1) = Syntax.variant_abs (x0,T,p0)
     val x = Free (xn,T)
     val vars = (xn::vars1)
     val p = unitycoeff x  (posineq (simpl p1))
@@ -759,7 +759,7 @@ exception STAGE_TRUE;
 fun cooper vars1 fm =
   case fm of
    Const ("Ex",_) $ Abs(x0,T,p0) => let 
-    val (xn,p1) = variant_abs (x0,T,p0)
+    val (xn,p1) = Syntax.variant_abs (x0,T,p0)
     val x = Free (xn,T)
     val vars = (xn::vars1)
 (*     val p = unitycoeff x  (posineq (simpl p1)) *)
@@ -794,7 +794,7 @@ fun cooper vars1 fm =
 fun cooper_w vars1 fm =
   case fm of
    Const ("Ex",_) $ Abs(x0,T,p0) => let 
-    val (xn,p1) = variant_abs (x0,T,p0)
+    val (xn,p1) = Syntax.variant_abs (x0,T,p0)
     val x = Free (xn,T)
     val vars = (xn::vars1)
 (*     val p = unitycoeff x  (posineq (simpl p1)) *)

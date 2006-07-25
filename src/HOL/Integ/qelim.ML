@@ -40,7 +40,7 @@ fun decomp_qe is_at afnp nfnp qfnp sg P =
    |(Const("op =", Type ("fun",[Type ("bool", []),_]))$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_eqI)
    |(Const("Not",_)$p) => ([p],fn [th] => th RS qe_Not)
    |(Const("Ex",_)$Abs(xn,xT,p)) => 
-      let val (xn1,p1) = variant_abs(xn,xT,p) 
+      let val (xn1,p1) = Syntax.variant_abs(xn,xT,p) 
       in ([p1],
         fn [th1_1] => 
           let val th2 = [th1_1,nfnp (snd (qe_get_terms th1_1))] MRS trans

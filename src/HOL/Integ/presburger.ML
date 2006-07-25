@@ -65,7 +65,7 @@ val comp_arith = binarith @ intarith @ intarithrel @ natarith
 	    @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
 
 fun cooper_pp sg (fm as e$Abs(xn,xT,p)) = 
-  let val (xn1,p1) = variant_abs (xn,xT,p)
+  let val (xn1,p1) = Syntax.variant_abs (xn,xT,p)
   in (CooperProof.cooper_prv sg (Free (xn1, xT)) p1) end;
 
 fun mnnf_pp sg fm = CooperProof.proof_of_cnnf sg fm

@@ -212,7 +212,7 @@ fun decomp_mpinf sg x (U,CU,uths) fm =
 fun ferrack_eq thy p = 
     case p of
         Const("Ex",_)$Abs(x1,T,p1) => 
-        let val (xn,fm) = variant_abs(x1,T,p1)
+        let val (xn,fm) = Syntax.variant_abs(x1,T,p1)
             val x = Free(xn,T)
             val (u,cu,uths,uf) = inusetthms thy x fm
             val (mi,pi,nmi,npi,lind) = divide_and_conquer (decomp_mpinf thy x (u,cu,uths)) fm
@@ -625,7 +625,7 @@ fun decomp_genqelim thy afnp nfnp qfnp (P,vs) =
         ([(A,vs),(B,vs)], fn [th1,th2] => [th1,th2] MRS qe_eqI)
       | (Const("Not",_)$p) => ([(p,vs)],fn [th] => th RS qe_Not)
       | (Const("Ex",_)$Abs(xn,xT,p)) => 
-        let val (xn1,p1) = variant_abs(xn,xT,p)
+        let val (xn1,p1) = Syntax.variant_abs(xn,xT,p)
             val x= Free(xn1,xT)
         in ([(p1,x::vs)],
             fn [th1_1] => 
