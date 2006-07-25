@@ -40,13 +40,25 @@ declare split_if_asm [split del]
 declare lvar_def [simp]
 
 ML {*
-fun inst1_tac s t st = case AList.lookup (op =) (rev (term_varnames (prop_of st))) s of
+local
+  val ax_Skip = thm "ax_Skip";
+  val ax_StatRef = thm "ax_StatRef";
+  val ax_MethdN = thm "ax_MethdN";
+  val ax_Alloc = thm "ax_Alloc";
+  val ax_Alloc_Arr = thm "ax_Alloc_Arr";
+  val ax_SXAlloc_Normal = thm "ax_SXAlloc_Normal";
+  val ax_derivs_intros = funpow 7 tl (thms "ax_derivs.intros");
+in
+
+fun inst1_tac s t st =
+  case AList.lookup (op =) (rev (Term.add_varnames (prop_of st) [])) s of
   SOME i => Tactic.instantiate_tac' [((s, i), t)] st | NONE => Seq.empty;
-val ax_tac = REPEAT o rtac allI THEN'
-             resolve_tac(thm "ax_Skip"::thm "ax_StatRef"::thm "ax_MethdN"::
-                         thm "ax_Alloc"::thm "ax_Alloc_Arr"::
-                         thm "ax_SXAlloc_Normal"::
-                         funpow 7 tl (thms "ax_derivs.intros"))
+
+val ax_tac =
+  REPEAT o rtac allI THEN'
+  resolve_tac (ax_Skip :: ax_StatRef :: ax_MethdN :: ax_Alloc ::
+    ax_Alloc_Arr :: ax_SXAlloc_Normal :: ax_derivs_intros);
+end;
 *}
 
 
