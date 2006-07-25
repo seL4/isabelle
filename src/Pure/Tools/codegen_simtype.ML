@@ -24,9 +24,7 @@ fun gen_simtype prep_term do_proof (raw_repm, raw_absm) (raw_repi, raw_absi) raw
     val absi = prep_term thy raw_absi;
     val (repe, repe_ty) = (dest_Const o prep_term thy) raw_repe;
     val repe_ty' = (snd o strip_type) repe_ty;
-    fun dest_fun (ty as Type (_, [ty1, ty2])) =
-          if is_funtype ty then (ty1, ty2)
-          else raise TYPE ("dest_fun", [ty], [])
+    fun dest_fun (Type ("fun", [ty1, ty2])) = (ty1, ty2)
       | dest_fun ty = raise TYPE ("dest_fun", [ty], []);
     val PROP = ObjectLogic.ensure_propT thy
     val (ty_abs, ty_rep) = (dest_fun o fastype_of) repm;
