@@ -397,14 +397,14 @@ fun vperm (Var _, Var _) = true
   | vperm (t, u) = (t = u);
 
 fun var_perm (t, u) =
-  vperm (t, u) andalso gen_eq_set (op =) (term_varnames t, term_varnames u);
+  vperm (t, u) andalso gen_eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
 
 (* FIXME: it seems that the conditions on extra variables are too liberal if
 prems are nonempty: does solving the prems really guarantee instantiation of
 all its Vars? Better: a dynamic check each time a rule is applied.
 *)
 fun rewrite_rule_extra_vars prems elhs erhs =
-  not (term_varnames erhs subset fold add_term_varnames prems (term_varnames elhs))
+  not (Term.add_vars erhs [] subset fold Term.add_vars (elhs :: prems) [])
   orelse
   not (term_tvars erhs subset (term_tvars elhs union maps term_tvars prems));
 
@@ -462,7 +462,7 @@ fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
   in case there are extra vars on the rhs*)
 fun rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm2) =
   let val rrule = {thm = thm, name = name, lhs = lhs, elhs = elhs, perm = false} in
-    if term_varnames rhs subset term_varnames lhs andalso
+    if Term.add_vars rhs [] subset Term.add_vars lhs [] andalso
       term_tvars rhs subset term_tvars lhs then [rrule]
     else mk_eq_True ss (thm2, name) @ [rrule]
   end;
@@ -811,7 +811,7 @@ fun uncond_skel ((_, weak), (lhs, rhs)) =
   while the premises are solved.*)
 
 fun cond_skel (args as (congs, (lhs, rhs))) =
-  if term_varnames rhs subset term_varnames lhs then uncond_skel args
+  if Term.add_vars rhs [] subset Term.add_vars lhs [] then uncond_skel args
   else skel0;
 
 (*

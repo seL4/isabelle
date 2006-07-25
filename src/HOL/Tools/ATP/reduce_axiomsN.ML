@@ -158,7 +158,7 @@ fun defines thy (thm,(name,n)) gctypes =
             let val (rator,args) = strip_comb lhs
 		val ct = const_with_typ thy (dest_ConstFree rator)
             in  forall is_Var args andalso uni_mem gctypes ct andalso
-                term_varnames rhs subset term_varnames lhs
+                Term.add_vars rhs [] subset Term.add_vars lhs []
             end
 	    handle ConstFree => false
     in    
