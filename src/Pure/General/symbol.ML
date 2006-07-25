@@ -27,6 +27,10 @@ sig
   val is_ascii_digit: symbol -> bool
   val is_ascii_quasi: symbol -> bool
   val is_ascii_blank: symbol -> bool
+  val is_ascii_lower: symbol -> bool
+  val is_ascii_upper: symbol -> bool
+  val to_ascii_lower: symbol -> symbol
+  val to_ascii_upper: symbol -> symbol
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
   val encode_raw: string -> string
@@ -142,6 +146,12 @@ fun is_ascii_quasi "_" = true
 val is_ascii_blank =
   fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\^M" => true
     | _ => false;
+
+fun is_ascii_lower s = is_char s andalso (ord "a" <= ord s andalso ord s <= ord "z");
+fun is_ascii_upper s = is_char s andalso (ord "A" <= ord s andalso ord s <= ord "Z");
+
+fun to_ascii_lower s = if is_ascii_upper s then chr (ord s + ord "a" - ord "A") else s;
+fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + ord "A" - ord "a") else s;
 
 
 (* encode_raw *)
@@ -482,6 +492,26 @@ fun bump_string str =
   in implode (rev ss' @ qs) end;
 
 
+(*turning arbitrary names into alphanumerics*)
+
+fun alphanum s =
+  let
+    fun replace_invalid c (last_inv, cs) =
+      if (is_ascii_letter c orelse is_ascii_digit c orelse c = "'")
+        andalso not ("." = c)   (* FIXME !? *)
+      then (false, if last_inv then c :: "_" :: cs else c :: cs)
+      else (true, cs);
+    fun prefix_num_empty [] = ["x"]
+      | prefix_num_empty (cs as c::_) =
+          if is_ascii_digit c
+          then "x" :: cs
+          else cs;
+    val (prefix, cs1) = case explode s of "'"::cs => ("'", cs) | cs => ("", cs);
+    val (_, cs2) = fold_rev replace_invalid cs1 (false, []);
+    val cs3 = prefix_num_empty cs2;
+  in implode (prefix :: cs3) end;
+
+
 
 (** print modes **)
 
@@ -515,26 +545,6 @@ fun symbol_output str =
       fun out s = if is_raw s then decode_raw s else s;
       val syms = sym_explode str;
     in (implode (map out syms), real (sym_length syms)) end;
-
-
-(*turning arbitrary names into alphanumerics*)
-
-fun alphanum s =
-  let
-    fun replace_invalid c (last_inv, cs) =
-      if ((Char.isAlphaNum o the o Char.fromString) c orelse c = "'")
-        andalso not ("." = c)
-      then (false, if last_inv then c :: "_" :: cs else c :: cs)
-      else (true, cs);
-    fun prefix_num_empty [] = ["x"]
-      | prefix_num_empty (cs as c::_) =
-          if (Char.isDigit o the o Char.fromString) c
-          then "x" :: cs
-          else cs;
-    val (prefix, cs1) = case explode s of "'"::cs => ("'", cs) | cs => ("", cs);
-    val (_, cs2) = fold_rev replace_invalid cs1 (false, []);
-    val cs3 = prefix_num_empty cs2;
-  in implode (prefix :: cs3) end;
 
 
 (*final declarations of this structure!*)
