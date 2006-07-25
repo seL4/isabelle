@@ -756,7 +756,7 @@ and exprgen_term thy tabs (Const (f, ty)) trns =
       |-> (fn ty => pair (IVar v))
   | exprgen_term thy tabs (Abs (raw_v, ty, raw_t)) trns =
       let
-        val (v, t) = Term.variant_abs (Name.alphanum raw_v, ty, raw_t);
+        val (v, t) = Term.variant_abs (Symbol.alphanum raw_v, ty, raw_t);
       in
         trns
         |> exprgen_type thy tabs ty
@@ -792,7 +792,7 @@ and appgen thy tabs ((f, ty), ts) trns =
         if length ts < i then
           let
             val tys = Library.take (i - length ts, ((fst o strip_type) ty));
-            val vs = Name.give_names (Name.declare f Name.context) "a" tys;
+            val vs = Name.names (Name.declare f Name.context) "a" tys;
           in
             trns
             |> fold_map (exprgen_type thy tabs) tys

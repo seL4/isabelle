@@ -60,6 +60,7 @@ sig
   val default_raw: string -> string
   val xsymbolsN: string
   val symbol_output: string -> string * real
+  val alphanum: string -> string
 end;
 
 structure Symbol: SYMBOL =
@@ -514,6 +515,26 @@ fun symbol_output str =
       fun out s = if is_raw s then decode_raw s else s;
       val syms = sym_explode str;
     in (implode (map out syms), real (sym_length syms)) end;
+
+
+(*turning arbitrary names into alphanumerics*)
+
+fun alphanum s =
+  let
+    fun replace_invalid c (last_inv, cs) =
+      if ((Char.isAlphaNum o the o Char.fromString) c orelse c = "'")
+        andalso not ("." = c)
+      then (false, if last_inv then c :: "_" :: cs else c :: cs)
+      else (true, cs);
+    fun prefix_num_empty [] = ["x"]
+      | prefix_num_empty (cs as c::_) =
+          if (Char.isDigit o the o Char.fromString) c
+          then "x" :: cs
+          else cs;
+    val (prefix, cs1) = case explode s of "'"::cs => ("'", cs) | cs => ("", cs);
+    val (_, cs2) = fold_rev replace_invalid cs1 (false, []);
+    val cs3 = prefix_num_empty cs2;
+  in implode (prefix :: cs3) end;
 
 
 (*final declarations of this structure!*)

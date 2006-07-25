@@ -364,7 +364,7 @@ fun get_datatype_arities thy tycos sort =
       in ClassPackage.assume_arities_of_sort thy arities (ty, sort) end;
     fun mk_cons tyco (c, tys) =
       let
-        val ts = Name.give_names Name.context "a" tys;
+        val ts = Name.names Name.context "a" tys;
         val ty = tys ---> Type (tyco, map TFree vs);
       in list_comb (Const (c, ty), map Free ts) end;
   in if forall (fn (_, cs) => forall (fn (_, tys) => forall typ_of_sort tys) cs) css
@@ -379,7 +379,7 @@ fun prove_arities tac tycos sort f thy =
     | SOME insts => let
         fun proven ((tyco, asorts), sort) =
           Sorts.of_sort (Sign.classes_of thy)
-            (Type (tyco, map TFree (Name.give_names Name.context "'a" asorts)), sort);
+            (Type (tyco, map TFree (Name.names Name.context "'a" asorts)), sort);
         val (arities, css) = (split_list o map_filter
           (fn (tyco, (arity, cs)) => if proven arity
             then NONE else SOME (arity, (tyco, cs)))) insts;
@@ -395,7 +395,7 @@ fun dtyp_of_case_const thy c =
 
 fun dest_case_app cs ts tys =
   let
-    val abs = Name.give_names Name.context "a" (Library.drop (length ts, tys));
+    val abs = Name.names Name.context "a" (Library.drop (length ts, tys));
     val (ts', t) = split_last (ts @ map Free abs);
     val (tys', sty) = split_last tys;
     fun freenames_of t = fold_aterms

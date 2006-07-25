@@ -21,12 +21,11 @@ sig
   val declare: string -> context -> context
   val is_declared: context -> string -> bool
   val invents: context -> string -> int -> string list
-  val give_names: context -> string -> 'a list -> (string * 'a) list
+  val names: context -> string -> 'a list -> (string * 'a) list
   val invent_list: string list -> string -> int -> string list
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
-  val alphanum: string -> string
 end;
 
 structure Name: NAME =
@@ -101,7 +100,7 @@ fun invents ctxt =
   in invs o clean end;
 
 val invent_list = invents o make_context;
-fun give_names ctxt x xs = invents ctxt x (length xs) ~~ xs;
+fun names ctxt x xs = invents ctxt x (length xs) ~~ xs;
 
 
 (* variants *)
@@ -130,25 +129,5 @@ val variants = fold_map (fn name => fn ctxt =>
 
 fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
-
-
-(*turning arbitrary names into alphanumerics*)
-
-fun alphanum s =
-  let
-    fun replace_invalid c (last_inv, cs) =
-      if ((Char.isAlphaNum o the o Char.fromString) c orelse c = "'")
-        andalso not (NameSpace.separator = c)
-      then (false, if last_inv then c :: "_" :: cs else c :: cs)
-      else (true, cs);
-    fun prefix_num_empty [] = ["x"]
-      | prefix_num_empty (cs as c::_) =
-          if (Char.isDigit o the o Char.fromString) c
-          then "x" :: cs
-          else cs;
-    val (prefix, cs1) = case explode s of "'"::cs => ("'", cs) | cs => ("", cs);
-    val (_, cs2) = fold_rev replace_invalid cs1 (false, []);
-    val cs3 = prefix_num_empty cs2;
-  in implode (prefix :: cs3) end;
 
 end;

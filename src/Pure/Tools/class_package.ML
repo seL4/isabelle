@@ -461,7 +461,7 @@ fun gen_instance_arity prep_arity prep_att read_def do_proof raw_arities (raw_na
       end;
     fun get_consts_sort (tyco, asorts, sort) =
       let
-        val ty = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) (Name.give_names Name.context "'a" asorts))
+        val ty = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) (Name.names Name.context "'a" asorts))
       in maps (get_consts_class tyco ty) (the_ancestry theory sort) end;
     val cs = maps get_consts_sort arities;
     fun read_defs defs cs thy_read =

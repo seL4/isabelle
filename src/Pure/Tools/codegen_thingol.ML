@@ -370,7 +370,7 @@ fun eta_expand (c as (_, (_, ty)), es) k =
     val j = length es;
     val l = k - j;
     val tys = (curry Library.take l o curry Library.drop j o fst o unfold_fun) ty;
-    val vs_tys = Name.give_names (fold Name.declare (fold add_varnames es []) Name.context) "a" tys;
+    val vs_tys = Name.names (fold Name.declare (fold add_varnames es []) Name.context) "a" tys;
   in vs_tys `|--> IConst c `$$ es @ map (fn (v, _) => IVar v) vs_tys end;
 
 

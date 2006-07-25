@@ -343,9 +343,9 @@ structure NameMangler = NameManglerFun (
   type src = string;
   val ord = string_ord;
   fun mk reserved_ml (name, 0) =
-        (Name.alphanum o NameSpace.base) name
+        (Symbol.alphanum o NameSpace.base) name
     | mk reserved_ml (name, i) =
-        (Name.alphanum o NameSpace.base) name ^ replicate_string i "'";
+        (Symbol.alphanum o NameSpace.base) name ^ replicate_string i "'";
   fun is_valid (reserved_ml : string list) = not o member (op =) reserved_ml;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
