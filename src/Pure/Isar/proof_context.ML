@@ -127,14 +127,15 @@ sig
   val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
+  val assume_export: export
+  val presume_export: export
+  val add_assumes: cterm list -> context -> thm list * context
   val add_assms: export ->
     ((string * attribute list) * (string * string list) list) list ->
     context -> (bstring * thm list) list * context
   val add_assms_i: export ->
     ((string * attribute list) * (term * term list) list) list ->
     context -> (bstring * thm list) list * context
-  val assume_export: export
-  val presume_export: export
   val add_view: context -> cterm list -> context -> context
   val export_view: cterm list -> context -> context -> thm -> thm
   val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
@@ -152,8 +153,6 @@ sig
   val prems_limit: int ref
   val pretty_ctxt: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
-  val debug: bool ref
-  val pprint_context: context -> pprint_args -> unit
 end;
 
 structure ProofContext: PROOF_CONTEXT =
@@ -179,7 +178,7 @@ datatype ctxt =
     consts: Consts.T * Consts.T,                  (*global/local consts*)
     assms:
       ((cterm list * export) list *               (*assumes and views: A ==> _*)
-        (string * thm list) list),                (*prems: A |- A*)
+        thm list),                                (*prems: A |- A*)
     thms: thm list NameSpace.table * FactIndex.T, (*local thms*)
     cases: (string * (RuleCases.T * bool)) list}; (*local contexts*)
 
@@ -244,7 +243,7 @@ val consts_of = #2 o #consts o rep_context;
 
 val assumptions_of = #1 o #assms o rep_context;
 val assms_of = map Thm.term_of o maps #1 o assumptions_of;
-val prems_of = maps #2 o #2 o #assms o rep_context;
+val prems_of = #2 o #assms o rep_context;
 
 val thms_of = #thms o rep_context;
 val fact_index_of = #2 o thms_of;
@@ -960,44 +959,7 @@ fun bind_fixes xs ctxt =
 
 (** assumptions **)
 
-(* generic assms *)
-
-local
-
-fun gen_assm ((name, attrs), props) ctxt =
-  let
-    val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
-    val asms = map (Goal.norm_hhf o Thm.assume) cprops;
-
-    val ths = map (fn th => ([th], [])) asms;
-    val ([(_, thms)], ctxt') =
-      ctxt
-      |> auto_bind_facts props
-      |> note_thmss_i [((name, attrs), ths)];
-  in ((cprops, (name, asms), (name, thms)), ctxt') end;
-
-fun gen_assms prepp exp args ctxt =
-  let
-    val (propss, ctxt1) = swap (prepp (ctxt, map snd args));
-    val (results, ctxt2) = fold_map gen_assm (map fst args ~~ propss) ctxt1;
-
-    val new_asms = maps #1 results;
-    val new_prems = map #2 results;
-    val ctxt3 = ctxt2
-      |> map_assms (fn (asms, prems) => (asms @ [(new_asms, exp)], prems @ new_prems))
-    val ctxt4 = ctxt3
-      |> put_thms_internal (AutoBind.premsN, SOME (prems_of ctxt3));
-  in (map #3 results, tap (Variable.warn_extra_tfrees ctxt) ctxt4) end;
-
-in
-
-val add_assms = gen_assms (apsnd #1 o bind_propp);
-val add_assms_i = gen_assms (apsnd #1 o bind_propp_i);
-
-end;
-
-
-(* basic assumptions *)
+(* basic exports *)
 
 (*
     [A]
@@ -1017,6 +979,46 @@ fun assume_export true = Seq.single oo Drule.implies_intr_protected
   A ==> B
 *)
 fun presume_export _ = assume_export false;
+
+
+(* plain assumptions *)
+
+fun new_prems new_asms new_prems =
+  map_assms (fn (asms, prems) => (asms @ [new_asms], prems @ new_prems)) #>
+  (fn ctxt => put_thms_internal (AutoBind.premsN, SOME (prems_of ctxt)) ctxt);
+
+fun add_assumes asms =
+  let val prems = map (Goal.norm_hhf o Thm.assume) asms
+  in new_prems (asms, assume_export) prems #> pair prems end;
+
+
+(* generic assms *)
+
+local
+
+fun gen_assm ((name, attrs), props) ctxt =
+  let
+    val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
+    val prems = map (Goal.norm_hhf o Thm.assume) cprops;
+    val ([(_, thms)], ctxt') =
+      ctxt
+      |> auto_bind_facts props
+      |> note_thmss_i [((name, attrs), map (fn th => ([th], [])) prems)];
+  in ((cprops, prems, (name, thms)), ctxt') end;
+
+fun gen_assms prepp exp args ctxt =
+  let
+    val (propss, ctxt1) = swap (prepp (ctxt, map snd args));
+    val (results, ctxt2) = fold_map gen_assm (map fst args ~~ propss) ctxt1;
+    val ctxt3 = new_prems (maps #1 results, exp) (maps #2 results) ctxt2;
+  in (map #3 results, tap (Variable.warn_extra_tfrees ctxt) ctxt3) end;
+
+in
+
+val add_assms = gen_assms (apsnd #1 o bind_propp);
+val add_assms_i = gen_assms (apsnd #1 o bind_propp_i);
+
+end;
 
 
 (* additional views *)
@@ -1258,14 +1260,5 @@ fun pretty_context ctxt =
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))
   end;
-
-
-(* toplevel pretty printing *)
-
-val debug = ref false;
-
-fun pprint_context ctxt = Pretty.pprint
- (if ! debug then Pretty.quote (Pretty.big_list "proof context:" (pretty_context ctxt))
-  else Pretty.str "<context>");
 
 end;
