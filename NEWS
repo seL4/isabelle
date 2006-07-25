@@ -37,6 +37,21 @@ check the given source text as ML type/structure, printing verbatim.
 
 *** Pure ***
 
+* class_package.ML offers a combination of axclasses and locales to achieve
+Haskell-like type classes in Isabelle. See HOL/ex/Classpackage.thy for examples.
+
+* Yet another code generator framework allows to generate executable code
+for ML and Haskell (including "class"es). Most basic use cases:
+
+    internal compilation:
+        code_serialize ml <list of constants (term syntax)> (-)
+    writing ML code to a file:
+        code_serialize ml <list of constants (term syntax)> (<filename>)
+    writing Haskell code to a bunch of files:
+        code_serialize haskell <list of constants (term syntax)> (<filename>)
+
+See HOL/ex/Codegenerator.thy for examples.
+
 * Command 'no_translations' removes translation rules from theory
 syntax.
 
