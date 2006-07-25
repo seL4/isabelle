@@ -42,7 +42,6 @@ sig
   val is_Free: term -> bool
   val is_Var: term -> bool
   val is_TVar: typ -> bool
-  val is_funtype: typ -> bool
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
@@ -76,9 +75,6 @@ sig
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
   val add_term_names: term * string list -> string list
-  val add_term_varnames: term -> indexname list -> indexname list
-  val term_varnames: term -> indexname list
-  val find_free: term -> string -> term option
   val aconv: term * term -> bool
   val aconvs: term list * term list -> bool
   structure Vartab: TABLE
@@ -145,7 +141,6 @@ sig
   val term_vars: term -> term list
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
-  val variant_abs: string * typ * term -> string * term
   val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val show_question_marks: bool ref
 end;
@@ -163,6 +158,7 @@ sig
   val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
   val add_frees: term -> (string * typ) list -> (string * typ) list
+  val add_varnames: term -> indexname list -> indexname list
   val strip_abs_eta: int -> term -> (string * typ) list * term
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
@@ -302,10 +298,6 @@ fun is_Var (Var _) = true
 
 fun is_TVar (TVar _) = true
   | is_TVar _ = false;
-
-(*Differs from proofterm/is_fun in its treatment of TVar*)
-fun is_funtype (Type("fun",[_,_])) = true
-  | is_funtype _ = false;
 
 
 (** Destructors **)
@@ -492,21 +484,10 @@ fun fold_types f = fold_term_types (K f);
 val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
 val add_tvars = fold_types add_tvarsT;
 val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
+val add_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
 val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
-
-(*collect variable names*)
-val add_term_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
-fun term_varnames t = add_term_varnames t [];
-
-fun find_free t x =
-  let
-    exception Found of term;
-    fun find (t as Free (x', _)) = if x = x' then raise Found t else I
-      | find _ = I;
-  in (fold_aterms find t (); NONE) handle Found v => SOME v end;
-
 
 
 (** Comparing terms, types, sorts etc. **)
@@ -842,9 +823,7 @@ fun strip_abs_eta k t =
   in (vs1 @ vs2, t'') end;
 
 
-(** Specialized equality, membership, insertion etc. **)
-
-(* variables *)
+(* comparing variables *)
 
 fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
 
@@ -1071,6 +1050,10 @@ end;
 
 (** Identifying first-order terms **)
 
+(*Differs from proofterm/is_fun in its treatment of TVar*)
+fun is_funtype (Type("fun",[_,_])) = true
+  | is_funtype _ = false;
+
 (*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
 fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
 
@@ -1237,11 +1220,8 @@ fun add_term_frees (t, frees: term list) = case t of
 
 fun term_frees t = add_term_frees(t,[]);
 
-(*Given an abstraction over P, replaces the bound variable by a Free variable
-  having a unique name -- SLOW!*)
-fun variant_abs (x, T, b) =
-  let val ([x'], _) = Name.variants [x] (declare_term_names b Name.context)
-  in (x', subst_bound (Free (x', T), b))  end;
+
+(* dest abstraction *)
 
 fun dest_abs (x, T, body) =
   let
