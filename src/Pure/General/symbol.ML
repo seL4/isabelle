@@ -79,7 +79,7 @@ struct
     (2) regular symbols: \<ident>
     (3) control symbols: \<^ident>
     (4) raw control symbols: \<^raw:...>, where "..." may be any printable
-        character excluding ">", or \<^raw000>
+        character (excluding ".", ">"), or \<^raw000>
 
   Output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools.
@@ -156,7 +156,8 @@ fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + ord "A" - ord "a") 
 
 (* encode_raw *)
 
-fun raw_chr c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">"
+fun raw_chr c =
+  ord space <= ord c andalso ord c <= ord "~" andalso c <> "." andalso c <> ">"
   orelse ord c >= 128;
 
 fun encode_raw str =

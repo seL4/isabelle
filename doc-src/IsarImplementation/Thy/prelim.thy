@@ -47,9 +47,10 @@ for example ``\verb,\,\verb,<alpha>,'',
 "ident"}\verb,>,'', for example ``\verb,\,\verb,<^bold>,'',
 
 \item or a raw control symbol ``\verb,\,\verb,<^raw:,@{text
-"\<dots>"}\verb,>,'' where ``@{text "\<dots>"}'' refers to any printable ASCII
-character (excluding ``\verb,>,'') or non-ASCII character, for example
-``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
+"\<dots>"}\verb,>,'' where ``@{text "\<dots>"}'' refers to any
+printable ASCII character (excluding ``\verb,.,'' and ``\verb,>,'') or
+non-ASCII character, for example ``\verb,\,\verb,<^raw:$\sum_{i =
+1}^n$>,'',
 
 \item or a numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
 "nnn"}\verb,>, where @{text "nnn"} are digits, for example
