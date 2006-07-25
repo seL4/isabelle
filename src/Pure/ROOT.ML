@@ -71,6 +71,7 @@ use "Isar/outer_lex.ML";
 
 (*the Isar system*)
 cd "Isar"; use "ROOT.ML"; cd "..";
+use "subgoal.ML";
 
 use "Proof/extraction.ML";
 
