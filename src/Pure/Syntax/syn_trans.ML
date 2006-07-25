@@ -21,6 +21,7 @@ sig
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
   val bound_vars: (string * typ) list -> term -> term
+  val variant_abs: string * typ * term -> string * term
   val variant_abs': string * typ * term -> string * term
 end;
 
@@ -383,10 +384,12 @@ fun type_constraint_tr' show_sorts (*"_type_constraint_"*) (Type ("fun", [T, _])
 
 (* dependent / nondependent quantifiers *)
 
-fun variant_abs' (x, T, b) =
-  let val ([x'], _) = Name.variants [x] (Term.declare_term_names b Name.context) in
-    (x', subst_bound (mark_boundT (x', T), b))
-  end;
+fun var_abs mark (x, T, b) =
+  let val ([x'], _) = Name.variants [x] (Term.declare_term_names b Name.context)
+  in (x', subst_bound (mark (x', T), b)) end;
+
+val variant_abs = var_abs Free;
+val variant_abs' = var_abs mark_boundT;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if Term.loose_bvar1 (B, 0) then
