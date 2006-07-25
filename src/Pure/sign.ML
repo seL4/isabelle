@@ -143,8 +143,6 @@ sig
   val string_of_sort: theory -> sort -> string
   val string_of_classrel: theory -> class list -> string
   val string_of_arity: theory -> arity -> string
-  val pprint_term: theory -> term -> pprint_args -> unit
-  val pprint_typ: theory -> typ -> pprint_args -> unit
   val pp: theory -> Pretty.pp
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
@@ -397,9 +395,6 @@ val string_of_typ = Pretty.string_of oo pretty_typ;
 val string_of_sort = Pretty.string_of oo pretty_sort;
 val string_of_classrel = Pretty.string_of oo pretty_classrel;
 val string_of_arity = Pretty.string_of oo pretty_arity;
-
-val pprint_term = (Pretty.pprint o Pretty.quote) oo pretty_term;
-val pprint_typ = (Pretty.pprint o Pretty.quote) oo pretty_typ;
 
 fun pp thy = Pretty.pp (pretty_term thy, pretty_typ thy, pretty_sort thy,
   pretty_classrel thy, pretty_arity thy);

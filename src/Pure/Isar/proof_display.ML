@@ -14,6 +14,13 @@ end
 signature PROOF_DISPLAY =
 sig
   include BASIC_PROOF_DISPLAY
+  val debug: bool ref
+  val pprint_context: ProofContext.context -> pprint_args -> unit
+  val pprint_typ: theory -> typ -> pprint_args -> unit
+  val pprint_term: theory -> term -> pprint_args -> unit
+  val pprint_ctyp: ctyp -> pprint_args -> unit
+  val pprint_cterm: cterm -> pprint_args -> unit
+  val pprint_thm: thm -> pprint_args -> unit
   val print_theorems_diff: theory -> theory -> unit
   val string_of_rule: ProofContext.context -> string -> thm -> string
   val print_results: bool -> ProofContext.context ->
@@ -24,6 +31,23 @@ end
 
 structure ProofDisplay: PROOF_DISPLAY =
 struct
+
+(* ML toplevel pretty printing *)
+
+val debug = ref false;
+
+fun pprint_context ctxt = Pretty.pprint
+ (if ! debug then
+    Pretty.quote (Pretty.big_list "proof context:" (ProofContext.pretty_context ctxt))
+  else Pretty.str "<context>");
+
+fun pprint pretty thy = Pretty.pprint o Pretty.quote o pretty (ProofContext.init thy);
+
+val pprint_typ = pprint ProofContext.pretty_typ;
+val pprint_term = pprint ProofContext.pretty_term;
+fun pprint_ctyp cT = pprint_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
+fun pprint_cterm ct = pprint_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
+fun pprint_thm th = pprint ProofContext.pretty_thm (Thm.theory_of_thm th) th;
 
 
 (* theorems and theory *)
@@ -107,4 +131,3 @@ end;
 
 structure BasicProofDisplay: BASIC_PROOF_DISPLAY = ProofDisplay;
 open BasicProofDisplay;
-

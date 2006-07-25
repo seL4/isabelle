@@ -38,11 +38,8 @@ sig
   val pretty_thms: thm list -> Pretty.T
   val pretty_thm_sg: theory -> thm -> Pretty.T
   val pretty_thms_sg: theory -> thm list -> Pretty.T
-  val pprint_thm: thm -> pprint_args -> unit
   val pretty_ctyp: ctyp -> Pretty.T
-  val pprint_ctyp: ctyp -> pprint_args -> unit
   val pretty_cterm: cterm -> Pretty.T
-  val pprint_cterm: cterm -> pprint_args -> unit
   val pretty_full_theory: theory -> Pretty.T list
   val pretty_goals_aux: Pretty.pp -> string -> bool * bool -> int -> thm -> Pretty.T list
   val pretty_goals: int -> thm -> Pretty.T list
@@ -111,7 +108,6 @@ val pretty_thm_no_quote = gen_pretty_thm false;
 
 
 val string_of_thm = Pretty.string_of o pretty_thm;
-val pprint_thm = Pretty.pprint o pretty_thm;
 
 fun pretty_thms [th] = pretty_thm th
   | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
@@ -135,9 +131,6 @@ fun prths ths = (prthq (Seq.of_list ths); ths);
 fun pretty_ctyp cT =
   let val {thy, T, ...} = rep_ctyp cT in Sign.pretty_typ thy T end;
 
-fun pprint_ctyp cT =
-  let val {thy, T, ...} = rep_ctyp cT in Sign.pprint_typ thy T end;
-
 fun string_of_ctyp cT =
   let val {thy, T, ...} = rep_ctyp cT in Sign.string_of_typ thy T end;
 
@@ -145,9 +138,6 @@ val print_ctyp = writeln o string_of_ctyp;
 
 fun pretty_cterm ct =
   let val {thy, t, ...} = rep_cterm ct in Sign.pretty_term thy t end;
-
-fun pprint_cterm ct =
-  let val {thy, t, ...} = rep_cterm ct in Sign.pprint_term thy t end;
 
 fun string_of_cterm ct =
   let val {thy, t, ...} = rep_cterm ct in Sign.string_of_term thy t end;
