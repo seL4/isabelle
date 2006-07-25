@@ -2782,6 +2782,9 @@ code_typapp
     ml (target_atom "char")
     haskell (target_atom "Char")
 
+code_constapp Char
+  ml (target_atom "(__,/ __)")
+
 setup list_codegen_setup
 
 setup CodegenPackage.rename_inconsistent
