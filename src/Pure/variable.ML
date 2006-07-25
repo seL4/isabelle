@@ -297,9 +297,9 @@ fun importT_inst ts ctxt =
 
 fun import_inst is_open ts ctxt =
   let
+    val ren = if is_open then I else Name.internal;
     val (instT, ctxt') = importT_inst ts ctxt;
     val vars = map (apsnd (Term.instantiateT instT)) (rev (fold Term.add_vars ts []));
-    val ren = if is_open then I else Name.internal;
     val (xs, ctxt'') = invent_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst = vars ~~ map Free (xs ~~ map #2 vars);
   in ((instT, inst), ctxt'') end;

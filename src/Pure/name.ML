@@ -99,8 +99,9 @@ fun invents ctxt =
           end;
   in invs o clean end;
 
-val invent_list = invents o make_context;
 fun names ctxt x xs = invents ctxt x (length xs) ~~ xs;
+
+val invent_list = invents o make_context;
 
 
 (* variants *)
