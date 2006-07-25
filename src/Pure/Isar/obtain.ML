@@ -99,6 +99,13 @@ val thatN = "that";
 
 local
 
+fun find_free t x =
+  let
+    exception Found of term;
+    fun find (t as Free (x', _)) = if x = x' then raise Found t else I
+      | find _ = I;
+  in (fold_aterms find t (); NONE) handle Found v => SOME v end;
+
 fun gen_obtain prep_att prep_vars prep_propp
     name raw_vars raw_asms int state =
   let
@@ -124,7 +131,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val (thesis_var, thesis) = bind_judgment fix_ctxt thesisN;
 
     fun occs_var x = Library.get_first (fn t =>
-      Term.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
+      find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
     val parms =
       map_filter (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (map occs_var xs ~~ xs);
 
