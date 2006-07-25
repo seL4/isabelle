@@ -504,7 +504,7 @@ structure Data = GenericDataFun
   type T = thm list;
   val empty = [];
   val extend = I;
-  fun merge _ (rules1, rules2) = gen_union Drule.eq_thm_prop (rules1, rules2);
+  fun merge _ = Drule.merge_rules;
   fun print _ _ = ();
 );
 

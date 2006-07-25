@@ -50,7 +50,7 @@ structure Data = GenericDataFun
   val extend = I;
 
   fun merge _ (TC {rules, net}, TC {rules = rules', net = net'}) =
-    TC {rules = gen_union Drule.eq_thm_prop (rules, rules'),
+    TC {rules = Drule.merge_rules (rules, rules'),
         net = Net.merge Drule.eq_thm_prop (net, net')};
 
   fun print context (TC {rules, ...}) =
