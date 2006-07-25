@@ -9,7 +9,7 @@ target languages (like ML or Haskell).
 signature CODEGEN_SERIALIZER =
 sig
   type 'a pretty_syntax;
-  type serializer = 
+  type serializer =
       string list list
       -> OuterParse.token list ->
       ((string -> string option)
@@ -26,6 +26,12 @@ sig
     haskell: string * (string * string list -> serializer)
   };
   val mk_flat_ml_resolver: string list -> string -> string;
+  val eval_term: string -> string list list
+      -> (string -> CodegenThingol.itype pretty_syntax option)
+            * (string -> CodegenThingol.iterm pretty_syntax option)
+      -> string list
+      -> (string * 'a ref) * CodegenThingol.iterm -> CodegenThingol.module
+      -> 'a;
   val ml_fun_datatype: string
     -> ((string -> CodegenThingol.itype pretty_syntax option)
         * (string -> CodegenThingol.iterm pretty_syntax option))
@@ -86,7 +92,7 @@ fun brackify_infix infx fxy_ctxt ps =
   gen_brackify (eval_fxy (INFX infx) fxy_ctxt) (Pretty.breaks ps);
 
 fun from_app mk_app from_expr const_syntax fxy (const as (c, _), es) =
-  case (const_syntax c)
+  case const_syntax c
    of NONE => brackify fxy (mk_app c es)
     | SOME ((i, k), pr) =>
         if i <= length es
@@ -193,7 +199,7 @@ fun parse_syntax no_args reader =
 
 (* generic abstract serializer *)
 
-type serializer = 
+type serializer =
     string list list
     -> OuterParse.token list ->
     ((string -> string option)
@@ -212,6 +218,8 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
       |> postprocess (resolv name_qual);
   in
     module
+    |> debug_msg (fn _ => "dropping shadowed defintions...")
+    |> CodegenThingol.delete_garbage drop
     |> debug_msg (fn _ => "selecting submodule...")
     |> (if is_some select then (CodegenThingol.project_module o the) select else I)
     |> debug_msg (fn _ => "serializing...")
@@ -227,7 +235,7 @@ fun abstract_validator keywords name =
       andalso not (NameSpace.separator = c)
       then c
       else "_"
-    fun suffix_it name =
+    fun suffix_it name=
       name
       |> member (op =) keywords ? suffix "'"
       |> (fn name' => if name = name' then name else suffix_it name')
@@ -363,7 +371,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
               case sort
                of [class] => mk_class class
                 | _ => Pretty.enum " *" "" "" (map mk_class sort),
-              str ")"
+            str ")"
             ]
           end;
     fun ml_from_sortlookup fxy lss =
@@ -464,7 +472,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
       | ml_from_expr _ (IChar (c, _)) =
           (str o prefix "#" o quote)
             (let val i = (Char.ord o the o Char.fromString) c
-              in if i < 32 
+              in if i < 32
                 then prefix "\\" (string_of_int i)
                 else c
               end)
@@ -474,7 +482,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
             fun mk_val ((ve, vty), se) = Pretty.block [
                 (Pretty.block o Pretty.breaks) [
                   str "val",
-                  ml_from_expr NOBR ve,
+            ml_from_expr NOBR ve,
                   str "=",
                   ml_from_expr NOBR se
                 ],
@@ -574,7 +582,7 @@ fun ml_fun_datatyp is_cons (tyco_syntax, const_syntax) resolv =
                      map ml_from_tyvar sortctxt
                      @ map2 mk_arg pats
                          ((curry Library.take (length pats) o fst o CodegenThingol.unfold_fun) ty))
-                @ [str "=", ml_from_expr NOBR expr]
+             @ [str "=", ml_from_expr NOBR expr]
               )
           in
             (Pretty.block o Pretty.fbreaks o shift) (
@@ -629,7 +637,7 @@ fun ml_from_defs is_cons
           | (name, CodegenThingol.Datatypecons _) => NONE
           | (name, def) => error ("datatype block containing illegal def: "
                 ^ (Pretty.output o CodegenThingol.pretty_def) def));
-    fun filter_class defs = 
+    fun filter_class defs =
       case map_filter
         (fn (name, CodegenThingol.Class info) => SOME (name, info)
           | (name, CodegenThingol.Classmember _) => NONE
@@ -659,7 +667,7 @@ fun ml_from_defs is_cons
         fun from_membr_fun (m, _) =
           (Pretty.block o Pretty.breaks) [
             str "fun",
-            (str o resolv) m, 
+            (str o resolv) m,
             Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ resolv name)],
             str "=",
             Pretty.block [str "#", ml_from_label m],
@@ -689,7 +697,7 @@ fun ml_from_defs is_cons
             ml_from_type NOBR ty,
             str ";"
             ]
-          ) |> SOME
+       ) |> SOME
       | ml_from_def (name, CodegenThingol.Classinst (((class, (tyco, arity)), suparities), memdefs)) =
           let
             val definer = if null arity then "val" else "fun"
@@ -756,9 +764,7 @@ fun ml_annotators nsp_dtcon =
     fun is_cons c = CodegenThingol.has_nsp c nsp_dtcon;
   in is_cons end;
 
-in
-
-fun ml_from_thingol target nsp_dtcon nspgrp =
+fun ml_serializer root_name target nsp_dtcon nspgrp =
   let
     fun ml_from_module resolv _ ((_, name), ps) =
       Pretty.chunks ([
@@ -770,23 +776,18 @@ fun ml_from_thingol target nsp_dtcon nspgrp =
         str ("end; (* struct " ^ name ^ " *)")
       ]);
     val is_cons = ml_annotators nsp_dtcon;
-    val serializer = abstract_serializer (target, nspgrp)
-      "ROOT" (ml_from_defs is_cons, ml_from_module,
-        abstract_validator reserved_ml, snd);
-    fun eta_expander module const_syntax s =
-      case const_syntax s
-       of SOME ((i, _), _) => i
-        | _ => if CodegenThingol.has_nsp s nsp_dtcon
-               then case CodegenThingol.get_def module s
-                of CodegenThingol.Datatypecons dtname =>
-                  case CodegenThingol.get_def module dtname
-                of CodegenThingol.Datatype (_, cs) =>
-                  let val l = AList.lookup (op =) cs s |> the |> length
-                  in if l >= 2 then l else 0 end
-                else 0;
+  in abstract_serializer (target, nspgrp)
+    root_name (ml_from_defs is_cons, ml_from_module,
+     abstract_validator reserved_ml, snd) end;
+
+in
+
+fun ml_from_thingol target nsp_dtcon nspgrp =
+  let
+    val serializer = ml_serializer "ROOT" target nsp_dtcon nspgrp
     val parse_multi =
       OuterParse.name
-      #-> (fn "dir" => 
+      #-> (fn "dir" =>
                parse_multi_file
                  (K o SOME o str o suffix ";" o prefix "val _ = use "
                   o quote o suffix ".ML" o translate_string (fn "." => "/" | s => s)) "ML" serializer
@@ -797,6 +798,19 @@ fun ml_from_thingol target nsp_dtcon nspgrp =
     || parse_stdout serializer
     || parse_single_file serializer
   end;
+
+fun eval_term nsp_dtcon nspgrp (syntax_tyco, syntax_const) hidden ((ref_name, reff), e) modl =
+  let
+    val (val_name, modl') = CodegenThingol.add_eval_def e modl;
+    val struct_name = "EVAL";
+    val serializer = ml_serializer struct_name "ml" nsp_dtcon nspgrp
+      (fn "" => (fn p => (use_text Context.ml_output false (Pretty.output p); NONE))
+        | _ => SOME) (K NONE, syntax_tyco, syntax_const) (hidden, SOME [val_name]);
+    val _ = serializer modl';
+    val val_name_struct = NameSpace.append struct_name val_name;
+    val _ = use_text Context.ml_output false ("val _ = (" ^ ref_name ^ " := " ^ val_name_struct ^ ")");
+    val value = ! reff;
+  in value end;
 
 fun mk_flat_ml_resolver names =
   let
@@ -810,6 +824,9 @@ fun ml_fun_datatype nsp_dtcon =
   ml_fun_datatyp (ml_annotators nsp_dtcon);
 
 end; (* local *)
+
+
+(** haskell serializer **)
 
 local
 
@@ -829,7 +846,7 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
               |> map (fn (v, cls) => str (from_class cls ^ " " ^ v))
               |> Pretty.enum "," "(" ")"
               |> (fn p => Pretty.block [p, str " => "])
-      in 
+      in
         vs
         |> map (fn (v, sort) => map (pair v) sort)
         |> flat
@@ -888,7 +905,7 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
       | hs_from_expr fxy (IChar (c, _)) =
           (str o enclose "'" "'")
             (let val i = (Char.ord o the o Char.fromString) c
-              in if i < 32 
+              in if i < 32
                 then Library.prefix "\\" (string_of_int i)
                 else c
               end)
@@ -995,7 +1012,7 @@ fun hs_from_defs (is_cons, with_typs) (class_syntax, tyco_syntax, const_syntax)
           end
       | hs_from_def (_, CodegenThingol.Classmember _) =
           NONE
-      | hs_from_def (_, CodegenThingol.Classinst (((clsname, (tyco, arity)), _), memdefs)) = 
+      | hs_from_def (_, CodegenThingol.Classinst (((clsname, (tyco, arity)), _), memdefs)) =
           Pretty.block [
             str "instance ",
             hs_from_sctxt arity,
@@ -1041,10 +1058,6 @@ fun hs_from_thingol target (nsp_dtcon, nsps_upper) nspgrp =
       end;
     fun serializer with_typs = abstract_serializer (target, nspgrp)
       "Main" (hs_from_defs (is_cons, with_typs), hs_from_module, abstract_validator reserved_hs, postproc);
-    fun eta_expander const_syntax c =
-      const_syntax c
-      |> Option.map (fst o fst)
-      |> the_default 0;
   in
     (Scan.optional (OuterParse.name >> (fn "no_typs" => false | s => Scan.fail_with (fn _ => "illegal flag: " ^ quote s) true)) true
     #-> (fn with_typs => parse_multi_file ((K o K) NONE) "hs" (serializer with_typs)))

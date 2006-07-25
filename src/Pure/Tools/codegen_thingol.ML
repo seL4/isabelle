@@ -67,7 +67,7 @@ sig
   datatype def =
       Bot
     | Fun of funn
-    | Typesyn of (vname * sort) list * itype
+    | Typesyn of sortcontext * itype
     | Datatype of datatyp
     | Datatypecons of string
     | Class of class list * (vname * (string * (sortcontext * itype)) list)
@@ -80,7 +80,7 @@ sig
   type transact;
   type 'dst transact_fin;
   val pretty_def: def -> Pretty.T;
-  val pretty_module: module -> Pretty.T; 
+  val pretty_module: module -> Pretty.T;
   val pretty_deps: module -> Pretty.T;
   val empty_module: module;
   val get_def: module -> string -> def;
@@ -88,6 +88,8 @@ sig
   val diff_module: module * module -> (string * def) list;
   val project_module: string list -> module -> module;
   val purge_module: string list -> module -> module;
+  val add_eval_def: iterm -> module -> string * module;
+  val delete_garbage: string list (*hidden definitions*) -> module -> module;
   val has_nsp: string -> string -> bool;
   val ensure_def: (string -> transact -> def transact_fin) -> bool -> string
     -> string -> transact -> transact;
@@ -232,7 +234,7 @@ val unfold_app = unfoldl
     | _ => NONE);
 
 val unfold_abs = unfoldr
-  (fn (v, ty) `|-> (e as ICase (((IVar w, _), [(se, be)]), _)) => 
+  (fn (v, ty) `|-> (e as ICase (((IVar w, _), [(se, be)]), _)) =>
         if v = w then SOME ((se, ty), be) else SOME ((IVar v, ty), e)
     | (v, ty) `|-> e => SOME ((IVar v, ty), e)
     | _ => NONE)
@@ -241,7 +243,7 @@ val unfold_let = unfoldr
   (fn ICase (((de, dty), [(se, be)]), _) => SOME (((se, dty), de), be)
     | _ => NONE);
 
-fun unfold_const_app e = 
+fun unfold_const_app e =
  case unfold_app e
   of (IConst x, es) => SOME (x, es)
    | _ => NONE;
@@ -323,8 +325,8 @@ fun add_constnames (IConst (c, _)) =
       add_constnames e
   | add_constnames (INum _) =
       I
-  | add_constnames (IChar _) =
-      I
+  | add_constnames (IChar (_, e)) =
+      add_constnames e
   | add_constnames (ICase (_, e)) =
       add_constnames e;
 
@@ -383,10 +385,10 @@ type datatyp = sortcontext * (string * itype list) list;
 datatype def =
     Bot
   | Fun of funn
-  | Typesyn of (vname * sort) list * itype
+  | Typesyn of sortcontext * itype
   | Datatype of datatyp
   | Datatypecons of string
-  | Class of class list * (vname * (string * (sortcontext * itype)) list)
+| Class of class list * (vname * (string * (sortcontext * itype)) list)
   | Classmember of class
   | Classinst of ((class * (string * (vname * sort) list))
         * (class * iclasslookup list) list)
@@ -633,7 +635,7 @@ fun merge_module modl12 =
 
 fun diff_module modl12 =
   let
-    fun diff_entry prefix modl2 (name, Def def1) = 
+    fun diff_entry prefix modl2 (name, Def def1) =
           let
             val e2 = try (Graph.get_node modl2) name
           in if is_some e2 andalso eq_def (def1, (dest_def o the) e2)
@@ -660,7 +662,7 @@ fun project_module names modl =
           |> (pair defs #> PN);
     fun select (PN (defs, modls)) (Module module) =
       module
-      |> Graph.project (member (op =) (Graph.all_succs module (defs @ map fst modls)))
+      |> Graph.project (member (op =) ((*!*) Graph.all_succs module (defs @ map fst modls)))
       |> fold (fn (name, modls) => Graph.map_node name (select modls)) modls
       |> Module;
   in
@@ -682,8 +684,10 @@ fun purge_module names modl =
       let
         val (ndefs, nmodls) = split_names names;
       in
-        modl 
+        modl
         |> Graph.del_nodes (Graph.all_preds modl ndefs)
+        |> Graph.del_nodes ndefs
+        |> Graph.del_nodes (Graph.all_preds modl (map fst nmodls))
         |> fold (fn (nmodl, names') => Graph.map_node nmodl (purge names')) nmodls
         |> Module
       end;
@@ -691,6 +695,145 @@ fun purge_module names modl =
     Module modl
     |> purge (map dest_name names)
     |> dest_modl
+  end;
+
+val add_deps_of_sortctxt =
+  fold (fn (v : vname, sort : sort) => fold (insert (op =)) sort);
+
+fun add_deps_of_classlookup (Instance (tyco, lss)) =
+      insert (op =) tyco
+      #> (fold o fold) add_deps_of_classlookup lss
+  | add_deps_of_classlookup (Lookup (clss, _)) =
+      fold (insert (op =)) clss;
+
+fun add_deps_of_type (tyco `%% tys) =
+      insert (op =) tyco
+      #> fold add_deps_of_type tys
+  | add_deps_of_type  (ty1 `-> ty2) =
+      add_deps_of_type ty1
+      #> add_deps_of_type ty2
+  | add_deps_of_type (ITyVar v) =
+      I;
+
+fun add_deps_of_term (IConst (c, (lss, ty))) =
+      insert (op =) c
+      #> add_deps_of_type ty
+      #> (fold o fold) add_deps_of_classlookup lss
+  | add_deps_of_term (IVar _) =
+      I
+  | add_deps_of_term (e1 `$ e2) =
+      add_deps_of_term e1 #> add_deps_of_term e2
+  | add_deps_of_term ((_, ty) `|-> e) =
+      add_deps_of_type ty
+      #> add_deps_of_term e
+  | add_deps_of_term (INum _) =
+      I
+  | add_deps_of_term (IChar (_, e)) =
+      add_deps_of_term e
+  | add_deps_of_term (ICase (_, e)) =
+      add_deps_of_term e;
+
+fun deps_of Bot =
+      []
+  | deps_of (Fun (eqs, (sctxt, ty))) =
+      []
+      |> add_deps_of_sortctxt sctxt
+      |> add_deps_of_type ty
+      |> fold (fn (lhs, rhs) => fold add_deps_of_term lhs #> add_deps_of_term rhs) eqs
+  | deps_of (Typesyn (sctxt, ty)) =
+      []
+      |> add_deps_of_sortctxt sctxt
+      |> add_deps_of_type ty
+  | deps_of (Datatype (sctxt, cos)) =
+      []
+      |> add_deps_of_sortctxt sctxt
+      |> fold (fn (c, tys) => insert (op =) c #> fold add_deps_of_type tys) cos
+  | deps_of (Datatypecons dtco) =
+      [dtco]
+  | deps_of (Class (supclss, (_, memdecls))) =
+      []
+      |> fold (insert (op =)) supclss
+      |> fold (fn (name, (sctxt, ty)) =>
+            insert (op =) name
+            #> add_deps_of_sortctxt sctxt
+            #> add_deps_of_type ty
+      ) memdecls
+  | deps_of (Classmember class) =
+      [class]
+  | deps_of (Classinst (((class, (tyco, sctxt)), suparities), memdefs)) =
+      []
+      |> insert (op =) class
+      |> insert (op =) tyco
+      |> add_deps_of_sortctxt sctxt
+      |> fold (fn (supclass, ls) =>
+            insert (op =) supclass
+            #> fold add_deps_of_classlookup ls
+      ) suparities
+      |> fold (fn (name, ((_, (eqs, (sctxt, ty))), lss)) =>
+            insert (op =) name
+            #> add_deps_of_sortctxt sctxt
+            #> add_deps_of_type ty
+            #> fold (fn (lhs, rhs) => fold add_deps_of_term lhs #> add_deps_of_term rhs) eqs
+            #> (fold o fold) add_deps_of_classlookup lss
+      ) memdefs
+  | deps_of Classinstmember =
+      [];
+
+fun delete_garbage hidden modl =
+  let
+    fun allnames modl =
+      let
+        val entries = AList.make (Graph.get_node modl) (Graph.keys modl)
+        fun is_def (name, Module _) = NONE
+          | is_def (name, _) = SOME name;
+        fun is_modl (name, Module modl) = SOME (name, modl)
+          | is_modl (name, _) = NONE;
+        val defs = map_filter is_def entries;
+        val modls = map_filter is_modl entries;
+      in
+        defs
+        @ maps (fn (name, modl) => map (NameSpace.append name) (allnames modl)) modls
+      end;
+    fun alldeps modl =
+      let
+        val entries = AList.make (Graph.get_node modl) (Graph.keys modl)
+        fun is_def (name, Module _) = NONE
+          | is_def (name, _) = SOME name;
+        fun is_modl (name, Module modl) = SOME (name, modl)
+          | is_modl (name, _) = NONE;
+        val defs = map_filter is_def entries;
+        val modls = map_filter is_modl entries;
+      in
+        maps (fn name => map (pair (name)) (Graph.imm_succs modl name)) defs
+        @ maps (fn (name, modl) => (map o pairself) (NameSpace.append name) (alldeps modl)) modls
+      end;
+    val names = subtract (op =) hidden (allnames modl);
+    (*val _ = writeln "HIDDEN";
+    val _ = (writeln o commas) hidden;
+    val _ = writeln "NAMES";
+    val _ = (writeln o commas) names;*)
+    fun is_bot name =
+      case get_def modl name of Bot => true | _ => false;
+    val bots = filter is_bot names;
+    val defs = filter (not o is_bot) names;
+    val expldeps =
+      Graph.empty
+      |> fold (fn name => Graph.new_node (name, ())) names
+      |> fold (fn name => fold (curry Graph.add_edge name)
+            (deps_of (get_def modl name) |> subtract (op =) hidden)) names
+    val bots' = fold (insert op =) bots (Graph.all_preds expldeps bots);
+    val selected = subtract (op =) bots' names;
+(*     val deps = filter (fn (x, y) => member (op =) selected x andalso member (op =) selected y)  *)
+    val adddeps = maps (fn (n, ns) => map (pair n) ns) (expldeps |> Graph.del_nodes bots' |> Graph.dest);
+    (*val _ = writeln "SELECTED";
+    val _ = (writeln o commas) selected;
+    val _ = writeln "DEPS";
+    val _ = (writeln o cat_lines o map (fn (x, y) => x ^ " -> " ^ y)) adddeps;*)
+  in
+    empty_module
+    |> fold (fn name => add_def (name, get_def modl name)) selected
+(*     |> fold ensure_bot (hidden @ bots')  *)
+    |> fold (fn (x, y) => (writeln ("adding " ^ x ^ " -> " ^ y); add_dep (x, y))) adddeps
   end;
 
 fun allimports_of modl =
@@ -704,10 +847,10 @@ fun allimports_of modl =
             |> pair []
             |> fold (fn names => fn (imps', tab) =>
                 tab
-                |> fold_map (fn name => 
+                |> fold_map (fn name =>
                      imps_of (prfx @ [name]) (Graph.get_node modl name) (imps' @ imps)) names
                 |-> (fn imps'' => pair (flat imps'' @ imps'))) name_con
-            |-> (fn imps' => 
+            |-> (fn imps' =>
                Symtab.update_new (this, imps' @ imps)
             #> pair (this :: imps'))
           end
@@ -769,7 +912,7 @@ fun check_prep_def modl Bot =
                 in if eq_ityp ((sortctxt'', ty''), (sortctxt', ty'))
                 then (m, ((m', (check_funeqs eqs, (sortctxt', ty'))), lss))
                 else
-                  error ("inconsistent type for member definition " ^ quote m ^ " [" ^ v ^ "]: "
+       error ("inconsistent type for member definition " ^ quote m ^ " [" ^ v ^ "]: "
                     ^ (Pretty.output o Pretty.block o Pretty.breaks) [
                       pretty_sortcontext sortctxt'',
                       Pretty.str "|=>",
@@ -826,12 +969,12 @@ fun ensure_def defgen strict msg name (dep, modl) =
     fun prep_def def modl =
       (check_prep_def modl def, modl);
     fun invoke_generator name defgen modl =
-      if ! soft_exc (*that's ! isn't a "not"...*)
+      if ! soft_exc (*that "!" isn't a "not"...*)
       then defgen name (SOME name, modl)
         handle FAIL (msgs, exc) =>
                 if strict then raise FAIL (msg' :: msgs, exc)
                 else (Bot, modl)
-             | e => raise 
+             | e => raise
                 FAIL (["definition generator for " ^ quote name, msg'], SOME e)
       else defgen name (SOME name, modl)
         handle FAIL (msgs, exc) =>
@@ -885,6 +1028,15 @@ fun start_transact init f modl =
     |-> (fn x => fn (_, modl) => (x, modl))
   end;
 
+fun add_eval_def e modl =
+  let
+    val name = hd (Name.invent_list (Graph.keys modl) "VALUE" 1);
+  in
+    modl
+    |> add_def (name, Fun ([([], e)], ([], "" `%% [])))
+    |> fold (curry add_dep name) (add_deps_of_term e [])
+    |> pair name
+  end;
 
 
 (** generic serialization **)
@@ -954,7 +1106,7 @@ fun mk_deresolver module nsp_conn postprocess validate =
           in ([p'], tab') end
       | get_path_name [p1, p2] tab =
           (case Symtab.lookup tab p1
-           of SOME (N (p', SOME tab')) => 
+           of SOME (N (p', SOME tab')) =>
                 let
                   val (ps', tab'') = get_path_name [p2] tab'
                 in (p' :: ps', tab'') end
@@ -987,16 +1139,19 @@ fun serialize seri_defs seri_module validate postprocess nsp_conn name_root modu
       let
         val name_qual = NameSpace.pack (prfx @ [name])
       in (name_qual, resolver prfx name_qual) end;
+    fun is_bot (_, (Def Bot)) = true
+      | is_bot _ = false;
     fun mk_contents prfx module =
       map_filter (seri prfx)
         ((map (AList.make (Graph.get_node module)) o rev o Graph.strong_conn) module)
     and seri prfx [(name, Module modl)] =
           seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) (NameSpace.pack (prfx @ [name]))))
             (mk_name prfx name, mk_contents (prfx @ [name]) modl)
-      | seri prfx [(_, Def Bot)] = NONE
       | seri prfx ds =
-          seri_defs sresolver (NameSpace.pack prfx)
-            (map (fn (name, Def def) => (fst (mk_name prfx name), def)) ds)
+          case filter_out is_bot ds
+           of [] => NONE
+            | ds' => seri_defs sresolver (NameSpace.pack prfx)
+                (map (fn (name, Def def) => (fst (mk_name prfx name), def (*|> tap (Pretty.writeln o pretty_def)*))) ds')
   in
     seri_module (resolver []) (map (resolver []) ((the o Symtab.lookup imptab) ""))
       (("", name_root), (mk_contents [] module))

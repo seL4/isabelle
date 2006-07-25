@@ -668,7 +668,7 @@ and ensure_def_inst thy (tabs as (_, ((insttab, thynametab), _, _))) (cls, tyco)
                       | SOME (funn, sorts) => fold_map (fn (sort, sort_ctxt) =>
                           fold_map (exprgen_classlookup thy tabs)
                             (ClassPackage.sortlookup thy (sort, TFree sort_ctxt)))
-                            (print sorts ~~ print operational_arity)
+                            (sorts ~~ operational_arity)
                 #-> (fn lss =>
                        pair (idf_of_name thy nsp_mem m, ((idf_of_name thy nsp_instmem m, funn), lss))));
             in
@@ -977,15 +977,18 @@ fun map_module f =
 
 fun purge_defs NONE thy =
       map_module (K CodegenThingol.empty_module) thy
+  | purge_defs (SOME []) thy =
+      thy
   | purge_defs (SOME cs) thy =
-      let
+      map_module (K CodegenThingol.empty_module) thy;
+      (*let
         val tabs = mk_tabs thy NONE;
         val idfs = map (idf_of_const' thy tabs) cs;
         fun purge idfs modl =
           CodegenThingol.purge_module (filter (can (get_def modl)) idfs) modl
       in
         map_module (purge idfs) thy
-      end;
+      end;*)
 
 fun expand_module targets init gen arg thy =
   thy
@@ -1065,7 +1068,7 @@ fun read_const thy raw_t =
 
 fun read_quote get reader gen raw thy =
   thy
-  |> expand_module NONE ((SOME o get) thy)
+  |> expand_module (SOME (Symtab.keys (#target_data (CodegenData.get thy)))) ((SOME o get) thy)
        (fn thy => fn tabs => gen thy tabs o single o reader thy) raw
   |-> (fn [x] => pair x);
 
@@ -1216,7 +1219,7 @@ fun serialize_code target seri raw_consts thy =
           Symtab.lookup s_class,
           (Option.map fst oo Symtab.lookup) s_tyco,
           (Option.map fst oo Symtab.lookup) s_const
-        ) ([] (*TODO: add seri_defs here*), cs) module : unit; thy)
+        ) (Symtab.keys s_class @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit; thy)
       end;
   in
     thy

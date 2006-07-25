@@ -33,6 +33,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val read_sort: theory -> string -> sort
   val operational_sort_of: theory -> sort -> sort
+  val operational_algebra: theory -> Sorts.algebra
   val the_superclasses: theory -> class -> class list
   val the_consts_sign: theory -> class -> string * (string * typ) list
   val the_inst_sign: theory -> class * string -> (string * sort) list * (string * typ) list
@@ -132,6 +133,10 @@ fun is_operational_class thy cls =
   lookup_class_data thy cls
   |> Option.map (not o null o #consts o fst)
   |> the_default false;
+
+fun operational_algebra thy =
+  Sorts.project_algebra (Sign.pp thy)
+    (is_operational_class thy) (Sign.classes_of thy);
 
 fun operational_sort_of thy =
   let

@@ -104,11 +104,7 @@ normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> 
 normal_form "last[a,b,c]"
 normal_form "last([a,b,c]@xs)"
 
-(* FIXME
-  won't work since it relies on 
-  polymorphically used ad-hoc overloaded function:
-  normal_form "max 0 (0::nat)"
-*)
+normal_form "max 0 x"
 
 text {*
   Numerals still take their time\<dots>

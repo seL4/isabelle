@@ -83,12 +83,11 @@ fun norm_print t thy =
     val _ = trace (fn () => "Input:\n" ^ Display.raw_string_of_term t);
     fun compile_term t thy =
       let
-        val (modl_this, thy') = CodegenPackage.get_root_module thy;
+        val thy' = CodegenPackage.purge_code thy;
         val nbe_tab = NBE_Data.get thy';
-        val modl_old = CodegenThingol.project_module (Symtab.keys nbe_tab) modl_this;
         val (t', thy'') = CodegenPackage.codegen_term t thy';
         val (modl_new, thy''') = CodegenPackage.get_root_module thy'';
-        val diff = CodegenThingol.diff_module (modl_new, modl_old);
+        val diff = CodegenThingol.diff_module (modl_new, CodegenThingol.empty_module);
         val _ = trace (fn () => "new definitions: " ^ (commas o map fst) diff);
         val _ = (tab := nbe_tab;
              Library.seq (use_code o NBE_Codegen.generate defined) diff);
