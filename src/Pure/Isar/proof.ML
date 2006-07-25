@@ -39,6 +39,7 @@ sig
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
+  val goal_tac: thm -> int -> tactic
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
@@ -444,28 +445,22 @@ end;
 
 (* refine via sub-proof *)
 
-local
-
-fun refine_tac rule =
+fun goal_tac rule =
   Tactic.norm_hhf_tac THEN' Tactic.rtac rule THEN_ALL_NEW
     (Tactic.norm_hhf_tac THEN' (SUBGOAL (fn (goal, i) =>
       if can Logic.unprotect (Logic.strip_assums_concl goal) then
         Tactic.etac Drule.protectI i
       else all_tac)));
 
-in
-
 fun refine_goals print_rule inner raw_rules state =
   let
     val (outer, (_, goal)) = get_goal state;
-    fun refine rule st = (print_rule outer rule; FINDGOAL (refine_tac rule) st);
+    fun refine rule st = (print_rule outer rule; FINDGOAL (goal_tac rule) st);
   in
     raw_rules
     |> ProofContext.goal_exports inner outer
     |> Seq.maps (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
   end;
-
-end;
 
 
 (* conclude_goal *)
