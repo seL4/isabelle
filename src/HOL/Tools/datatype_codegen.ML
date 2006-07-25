@@ -18,7 +18,7 @@ sig
   val get_datatype_mut_specs: theory -> string list
     -> ((string * sort) list * (string * (string * typ list) list) list)
   val get_datatype_arities: theory -> string list -> sort
-    -> (string * (((string * sort list) * sort)  * term list)) list option
+    -> (string * (((string * sort list) * sort) * term list)) list option
   val prove_arities: (thm list -> tactic) -> string list -> sort
     -> (((string * sort list) * sort) list -> (string * term list) list
     -> ((bstring * attribute list) * term) list) -> theory -> theory
