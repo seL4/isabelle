@@ -2090,7 +2090,7 @@ fun gen_prep_registration mk_ctxt is_local read_terms test_reg activate
     fun sorts (a, i) = AList.lookup (op =) tvars (a, i);
     val (vs, vinst) = read_terms thy_ctxt sorts used given_insts;
     val vars = foldl Term.add_term_tvar_ixns [] vs \\ map fst tvars;
-    val vars' = fold Term.add_term_varnames vs vars;
+    val vars' = fold Term.add_varnames vs vars;
     val _ = if null vars' then ()
          else error ("Illegal schematic variable(s) in instantiation: " ^
            commas_quote (map Syntax.string_of_vname vars'));
