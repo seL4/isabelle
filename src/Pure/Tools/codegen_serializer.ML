@@ -230,8 +230,8 @@ fun abstract_serializer (target, nspgrp) name_root (from_defs, from_module, vali
 
 fun abstract_validator keywords name =
   let
-    fun replace_invalid c =
-      if (Char.isAlphaNum o the o Char.fromString) c orelse c = "'"
+    fun replace_invalid c =  (* FIXME *)
+      if Symbol.is_ascii_letter c orelse Symbol.is_ascii_digit c orelse c = "'"
       andalso not (NameSpace.separator = c)
       then c
       else "_"
@@ -336,16 +336,14 @@ local
 
 val reserved_ml = ThmDatabase.ml_reserved @ [
   "bool", "int", "list", "unit", "option", "true", "false", "not", "None", "Some", "o"
-];
+];  (* FIXME None/Some no longer used *)
 
 structure NameMangler = NameManglerFun (
   type ctxt = string list;
   type src = string;
   val ord = string_ord;
-  fun mk reserved_ml (name, 0) =
-        (Symbol.alphanum o NameSpace.base) name
-    | mk reserved_ml (name, i) =
-        (Symbol.alphanum o NameSpace.base) name ^ replicate_string i "'";
+  fun mk reserved_ml (name, i) =
+    (Symbol.alphanum o NameSpace.base) name ^ replicate_string i "'";
   fun is_valid (reserved_ml : string list) = not o member (op =) reserved_ml;
   fun maybe_unique _ _ = NONE;
   fun re_mangle _ dst = error ("no such definition name: " ^ quote dst);
@@ -360,7 +358,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
           str "()"
       | ml_from_tyvar (v, sort) =
           let
-            val w = (Char.toString o Char.toUpper o the o Char.fromString) v;
+            val w = Symbol.to_ascii_upper v;
             fun mk_class class =
               str (prefix "'" v ^ " " ^ resolv class);
           in
@@ -400,10 +398,10 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
               )
           | from_classlookup fxy (Lookup (classes, (v, ~1))) =
               from_lookup BR classes
-                ((str o Char.toString o Char.toUpper o the o Char.fromString) v)
+                ((str o Symbol.to_ascii_upper) v)
           | from_classlookup fxy (Lookup (classes, (v, i))) =
               from_lookup BR (string_of_int (i+1) :: classes)
-                ((str o Char.toString o Char.toUpper o the o Char.fromString) v)
+                ((str o Symbol.to_ascii_upper) v)
       in case lss
        of [] => str "()"
         | [ls] => from_classlookup fxy ls
@@ -471,7 +469,7 @@ fun ml_expr_seri is_cons (tyco_syntax, const_syntax) resolv =
           ]
       | ml_from_expr _ (IChar (c, _)) =
           (str o prefix "#" o quote)
-            (let val i = (Char.ord o the o Char.fromString) c
+            (let val i = ord c
               in if i < 32
                 then prefix "\\" (string_of_int i)
                 else c
