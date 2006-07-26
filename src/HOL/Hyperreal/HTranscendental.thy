@@ -364,7 +364,7 @@ apply (cases x)
 apply (auto simp add: starfun HFinite_FreeUltrafilterNat_iff)
 apply (rule bexI [OF _ Rep_star_star_n], auto)
 apply (rule_tac x = "exp u" in exI)
-apply (ultra, arith)
+apply ultra
 done
 
 lemma starfun_exp_add_HFinite_Infinitesimal_approx:

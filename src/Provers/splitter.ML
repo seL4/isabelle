@@ -13,18 +13,23 @@ infix 4 addsplits delsplits;
 signature SPLITTER_DATA =
 sig
   val mk_eq         : thm -> thm
-  val meta_eq_to_iff: thm (* "x == y ==> x = y"                    *)
-  val iffD          : thm (* "[| P = Q; Q |] ==> P"                *)
-  val disjE         : thm (* "[| P | Q; P ==> R; Q ==> R |] ==> R" *)
-  val conjE         : thm (* "[| P & Q; [| P; Q |] ==> R |] ==> R" *)
-  val exE           : thm (* "[|  x. P x; !!x. P x ==> Q |] ==> Q" *)
-  val contrapos     : thm (* "[| ~ Q; P ==> Q |] ==> ~ P"          *)
-  val contrapos2    : thm (* "[| Q; ~ P ==> ~ Q |] ==> P"          *)
-  val notnotD       : thm (* "~ ~ P ==> P"                         *)
+  val meta_eq_to_iff: thm (* "x == y ==> x = y"                      *)
+  val iffD          : thm (* "[| P = Q; Q |] ==> P"                  *)
+  val disjE         : thm (* "[| P | Q; P ==> R; Q ==> R |] ==> R"   *)
+  val conjE         : thm (* "[| P & Q; [| P; Q |] ==> R |] ==> R"   *)
+  val exE           : thm (* "[| EX x. P x; !!x. P x ==> Q |] ==> Q" *)
+  val contrapos     : thm (* "[| ~ Q; P ==> Q |] ==> ~ P"            *)
+  val contrapos2    : thm (* "[| Q; ~ P ==> ~ Q |] ==> P"            *)
+  val notnotD       : thm (* "~ ~ P ==> P"                           *)
 end
 
 signature SPLITTER =
 sig
+  (* somewhat more internal functions *)
+  val cmap_of_split_thms : thm list -> (string * (typ * term * thm * typ * int) list) list
+  val split_posns        : (string * (typ * term * thm * typ * int) list) list -> theory -> typ list -> term ->
+    (thm * (typ * typ * int list) list * int list * typ * term) list  (* first argument is a "cmap", returns a list of "split packs" *)
+  (* the "real" interface, providing a number of tactics *)
   val split_tac       : thm list -> int -> tactic
   val split_inside_tac: thm list -> int -> tactic
   val split_asm_tac   : thm list -> int -> tactic
@@ -52,17 +57,41 @@ val Const (const_or , _) $ _ $ _ =
 val const_Trueprop = ObjectLogic.judgment_name (the_context ());
 
 
-fun split_format_err() = error("Wrong format for split rule");
+fun split_format_err () = error "Wrong format for split rule";
 
+(* thm -> (string * typ) * bool *)
 fun split_thm_info thm = case concl_of (Data.mk_eq thm) of
      Const("==", _) $ (Var _ $ t) $ c => (case strip_comb t of
        (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
      | _ => split_format_err ())
    | _ => split_format_err ();
 
+(* thm list -> (string * (typ * term * thm * typ * int) list) list *)
+fun cmap_of_split_thms thms =
+let
+  val splits = map Data.mk_eq thms
+  fun add_thm (cmap, thm) =
+        (case concl_of thm of _$(t as _$lhs)$_ =>
+           (case strip_comb lhs of (Const(a,aT),args) =>
+              let val info = (aT,lhs,thm,fastype_of t,length args)
+              in case AList.lookup (op =) cmap a of
+                   SOME infos => AList.update (op =) (a, info::infos) cmap
+                 | NONE => (a,[info])::cmap
+              end
+            | _ => split_format_err())
+         | _ => split_format_err())
+in
+  Library.foldl add_thm ([], splits)
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* mk_case_split_tac                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+(* (int * int -> order) -> thm list -> int -> tactic * <split_posns> *)
+
 fun mk_case_split_tac order =
 let
-
 
 (************************************************************
    Create lift-theorem "trlift" :
@@ -71,7 +100,8 @@ let
 
 *************************************************************)
 
-val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;
+val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;  (* (P == Q) ==> Q ==> P *)
+
 val lift =
   let val ct = read_cterm Pure.thy
            ("(!!x. (Q::('b::{})=>('c::{}))(x) == R(x)) ==> \
@@ -129,12 +159,12 @@ fun mk_cntxt_splitthm t tt T =
 
 
 (* add all loose bound variables in t to list is *)
-fun add_lbnos(is,t) = add_loose_bnos(t,0,is);
+fun add_lbnos (is,t) = add_loose_bnos (t,0,is);
 
 (* check if the innermost abstraction that needs to be removed
    has a body of type T; otherwise the expansion thm will fail later on
 *)
-fun type_test(T,lbnos,apsns) =
+fun type_test (T,lbnos,apsns) =
   let val (_,U,_) = List.nth(apsns, Library.foldl Int.min (hd lbnos, tl lbnos))
   in T=U end;
 
@@ -166,7 +196,7 @@ fun type_test(T,lbnos,apsns) =
           lifting is required before applying the split-theorem.
 ******************************************************************************)
 
-fun mk_split_pack(thm, T, T', n, ts, apsns, pos, TB, t) =
+fun mk_split_pack (thm, T, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
            val lbnos = Library.foldl add_lbnos ([],Library.take(n,ts))
@@ -198,26 +228,34 @@ fun mk_split_pack(thm, T, T', n, ts, apsns, pos, TB, t) =
    see Pure/pattern.ML for the full version;
 *)
 local
-exception MATCH
+  exception MATCH
 in
-fun typ_match sg (tyenv, TU) = (Sign.typ_match sg TU tyenv)
-                          handle Type.TYPE_MATCH => raise MATCH;
-fun fomatch sg args =
-  let
-    fun mtch tyinsts = fn
-        (Ts,Var(_,T), t)  => typ_match sg (tyinsts, (T, fastype_of1(Ts,t)))
-      | (_,Free (a,T), Free (b,U)) =>
-          if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
-      | (_,Const (a,T), Const (b,U))  =>
-          if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
-      | (_,Bound i, Bound j)  =>  if  i=j  then tyinsts else raise MATCH
-      | (Ts,Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (typ_match sg (tyinsts,(T,U))) (U::Ts,t,u)
-      | (Ts, f$t, g$u) => mtch (mtch tyinsts (Ts,f,g)) (Ts, t, u)
-      | _ => raise MATCH
-  in (mtch Vartab.empty args; true) handle MATCH => false end;
-end
+  (* Context.theory -> Type.tyenv * (Term.typ * Term.typ) -> Type.tyenv *)
+  fun typ_match sg (tyenv, TU) = (Sign.typ_match sg TU tyenv)
+                            handle Type.TYPE_MATCH => raise MATCH
+  (* Context.theory -> Term.typ list * Term.term * Term.term -> bool *)
+  fun fomatch sg args =
+    let
+      (* Type.tyenv -> Term.typ list * Term.term * Term.term -> Type.tyenv *)
+      fun mtch tyinsts = fn
+          (Ts, Var(_,T), t) =>
+            typ_match sg (tyinsts, (T, fastype_of1(Ts,t)))
+        | (_, Free (a,T), Free (b,U)) =>
+            if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
+        | (_, Const (a,T), Const (b,U)) =>
+            if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
+        | (_, Bound i, Bound j) =>
+            if i=j then tyinsts else raise MATCH
+        | (Ts, Abs(_,T,t), Abs(_,U,u)) =>
+            mtch (typ_match sg (tyinsts,(T,U))) (U::Ts,t,u)
+        | (Ts, f$t, g$u) =>
+            mtch (mtch tyinsts (Ts,f,g)) (Ts, t, u)
+        | _ => raise MATCH
+    in (mtch Vartab.empty args; true) handle MATCH => false end;
+end  (* local *)
 
+(* (string * (Term.typ * Term.term * Thm.thm * Term.typ * int) list) list -> Context.theory -> Term.typ list -> Term.term ->
+  (Thm.thm * (Term.typ * Term.typ * int list) list * int list * Term.typ * Term.term) list *)
 fun split_posns cmap sg Ts t =
   let
     val T' = fastype_of1 (Ts, t);
@@ -243,13 +281,11 @@ fun split_posns cmap sg Ts t =
           in snd(Library.foldl iter ((0, a), ts)) end
   in posns Ts [] [] t end;
 
+fun nth_subgoal i thm = List.nth (prems_of thm, i-1);
 
-fun nth_subgoal i thm = List.nth(prems_of thm,i-1);
-
-fun shorter((_,ps,pos,_,_),(_,qs,qos,_,_)) =
+fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
   prod_ord (int_ord o pairself length) (order o pairself length)
     ((ps, pos), (qs, qos));
-
 
 
 (************************************************************
@@ -261,8 +297,10 @@ fun select cmap state i =
       val goali = nth_subgoal i state
       val Ts = rev(map #2 (Logic.strip_params goali))
       val _ $ t $ _ = Logic.strip_assums_concl goali;
-  in (Ts,t, sort shorter (split_posns cmap sg Ts t)) end;
+  in (Ts, t, sort shorter (split_posns cmap sg Ts t)) end;
 
+fun exported_split_posns cmap sg Ts t =
+  sort shorter (split_posns cmap sg Ts t);
 
 (*************************************************************
    instantiate lift theorem
@@ -322,20 +360,11 @@ fun inst_split Ts t tt thm TB state i =
    i      : number of subgoal the tactic should be applied to
 *****************************************************************************)
 
+(* thm list -> int -> tactic *)
+
 fun split_tac [] i = no_tac
   | split_tac splits i =
-  let val splits = map Data.mk_eq splits;
-      fun add_thm(cmap,thm) =
-            (case concl_of thm of _$(t as _$lhs)$_ =>
-               (case strip_comb lhs of (Const(a,aT),args) =>
-                  let val info = (aT,lhs,thm,fastype_of t,length args)
-                  in case AList.lookup (op =) cmap a of
-                       SOME infos => AList.update (op =) (a, info::infos) cmap
-                     | NONE => (a,[info])::cmap
-                  end
-                | _ => split_format_err())
-             | _ => split_format_err())
-      val cmap = Library.foldl add_thm ([],splits);
+  let val cmap = cmap_of_split_thms splits
       fun lift_tac Ts t p st = rtac (inst_lift Ts t p st i) i st
       fun lift_split_tac state =
             let val (Ts, t, splits) = select cmap state i
@@ -352,12 +381,12 @@ fun split_tac [] i = no_tac
           (rtac meta_iffD i THEN lift_split_tac)
   end;
 
-in split_tac end;
+in (split_tac, exported_split_posns) end;  (* mk_case_split_tac *)
 
 
-val split_tac        = mk_case_split_tac              int_ord;
+val (split_tac, split_posns)        = mk_case_split_tac              int_ord;
 
-val split_inside_tac = mk_case_split_tac (rev_order o int_ord);
+val (split_inside_tac, _)           = mk_case_split_tac (rev_order o int_ord);
 
 
 (*****************************************************************************
@@ -378,7 +407,7 @@ fun split_asm_tac []     = K no_tac
               |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) =
                                         first_prem_is_disj t
               |   first_prem_is_disj _ = false;
-      (* does not work properly if the split variable is bound by a quantfier *)
+      (* does not work properly if the split variable is bound by a quantifier *)
               fun flat_prems_tac i = SUBGOAL (fn (t,i) =>
                            (if first_prem_is_disj t
                             then EVERY[etac Data.disjE i,rotate_tac ~1 i,
@@ -387,11 +416,11 @@ fun split_asm_tac []     = K no_tac
                             else all_tac)
                            THEN REPEAT (eresolve_tac [Data.conjE,Data.exE] i)
                            THEN REPEAT (dresolve_tac [Data.notnotD]   i)) i;
-          in if n<0 then no_tac else DETERM (EVERY'
+          in if n<0 then  no_tac  else (DETERM (EVERY'
                 [rotate_tac n, etac Data.contrapos2,
                  split_tac splits,
                  rotate_tac ~1, etac Data.contrapos, rotate_tac ~1,
-                 flat_prems_tac] i)
+                 flat_prems_tac] i))
           end;
   in SUBGOAL tac
   end;

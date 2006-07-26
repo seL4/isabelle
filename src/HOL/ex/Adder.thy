@@ -80,22 +80,7 @@ lemma cca_nonnull: "carry_chain_adder as bs c \<noteq> []"
 lemma cca_length [rule_format]:
      "\<forall>bs. length as = length bs --> 
            length (carry_chain_adder as bs c) = Suc (length bs)"
-      (is "?P as")
-proof (induct as,auto simp add: Let_def)
-  fix as :: "bit list"
-  fix xs :: "bit list"
-  assume ind: "?P as"
-  assume len: "Suc (length as) = length xs"
-  thus "Suc (length (carry_chain_adder as (tl xs) c) - Suc 0) = length xs"
-  proof (cases xs,simp_all)
-    fix b bs
-    assume [simp]: "xs = b # bs"
-    assume "length as = length bs"
-    with ind
-    show "length (carry_chain_adder as bs c) - Suc 0 = length bs"
-      by auto
-  qed
-qed
+  by (induct as,auto simp add: Let_def)
 
 lemma cca_correct [rule_format]:
      "\<forall>bs. length as = length bs --> 

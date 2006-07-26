@@ -1484,7 +1484,7 @@ apply (drule_tac x = 1 in spec, auto)
 apply (rule_tac x = s in exI, clarify)
 apply (rule_tac x = "\<bar>f x\<bar> + 1" in exI, clarify)
 apply (drule_tac x = "xa-x" in spec)
-apply (auto simp add: abs_ge_self, arith+)
+apply (auto simp add: abs_ge_self)
 done
 
 text{*Refine the above to existence of least upper bound*}
@@ -2236,6 +2236,8 @@ proof -
   thus ?thesis by simp
 qed
 
+ML {* val old_fast_arith_split_limit = !fast_arith_split_limit; fast_arith_split_limit := 0; *}
+
 lemma LIMSEQ_SEQ_conv2:
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
   shows "X -- a --> L"
@@ -2316,6 +2318,7 @@ proof (rule ccontr)
   ultimately show False by simp
 qed
 
+ML {* fast_arith_split_limit := old_fast_arith_split_limit; *}
 
 lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L) = (X -- a --> L)"

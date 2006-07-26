@@ -323,7 +323,6 @@ apply arith
 apply (drule add_strict_mono, assumption)
 apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric] 
                 mult_less_cancel_right)
-apply arith
 done
 
 lemma Integral_zero [simp]: "Integral(a,a) f 0"
@@ -423,7 +422,7 @@ apply (rule_tac y = "\<bar>(f (v) - f (x)) - (f' (x) * (v - x))\<bar> +
                      \<bar>(f (x) - f (u)) - (f' (x) * (x - u))\<bar>"
        in order_trans)
 apply (rule abs_triangle_ineq [THEN [2] order_trans])
-apply (simp add: right_diff_distrib, arith)
+apply (simp add: right_diff_distrib)
 apply (rule_tac t = "e* (v - u)" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
 apply (rule_tac y = "(e/2) * \<bar>v - x\<bar>" in order_trans)
@@ -434,7 +433,7 @@ apply (drule_tac x = u in spec, auto)
 apply (subgoal_tac "\<bar>f u - f x - f' x * (u - x)\<bar> = \<bar>f x - f u - f' x * (x - u)\<bar>")
 apply (rule order_trans)
 apply (auto simp add: abs_le_interval_iff)
-apply (simp add: right_diff_distrib, arith)
+apply (simp add: right_diff_distrib)
 done
 
 lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
@@ -577,7 +576,7 @@ apply (cut_tac m = na and n = "psize D" in less_linear)
 apply (auto dest: partition_lt_cancel)
 apply (rule_tac x=N and y=n in linorder_cases)
 apply (drule_tac x = n and P="%m. N \<le> m --> ?f m = ?g m" in spec, simp)
-apply (drule_tac n = n in partition_lt_gen, auto, arith)
+apply (drule_tac n = n in partition_lt_gen, auto)
 apply (drule_tac x = n in spec)
 apply (simp split: split_if_asm)
 done
@@ -741,7 +740,6 @@ lemma tpart_right1:
       ==> tpart(D n, b) (%x. D(x + n),%x. p(x + n))"
 apply (simp add: tpart_def partition_def, safe)
 apply (rule_tac x = "N - n" in exI, auto)
-apply (drule_tac x = "na + n" in spec, arith)+
 done
 
 lemma fine_right1:
@@ -752,7 +750,7 @@ lemma fine_right1:
       ==> fine ga (%x. D(x + n),%x. p(x + n))"
 apply (auto simp add: fine_def gauge_def)
 apply (drule_tac x = "na + n" in spec)
-apply (frule_tac n = n in tpart_partition [THEN better_lemma_psize_right_eq], auto, arith)
+apply (frule_tac n = n in tpart_partition [THEN better_lemma_psize_right_eq], auto)
 apply (simp add: tpart_def, safe)
 apply (subgoal_tac "D n \<le> p (na + n)")
 apply (drule_tac y = "p (na + n)" in order_le_imp_less_or_eq)
@@ -783,7 +781,7 @@ apply (drule fine_min)
 apply ((drule spec)+, auto)
 apply (drule_tac a = "\<bar>rsum (D, p) f - k1\<bar> * 2" and c = "\<bar>rsum (D, p) g - k2\<bar> * 2" in add_strict_mono, assumption)
 apply (auto simp only: rsum_add left_distrib [symmetric]
-                mult_2_right [symmetric] real_mult_less_iff1, arith)
+                mult_2_right [symmetric] real_mult_less_iff1)
 done
 
 lemma partition_lt_gen2:
@@ -834,7 +832,7 @@ apply (subgoal_tac "\<bar>(rsum (D,p) f - k1) - (rsum (D,p) g - k2)\<bar> < \<ba
 apply arith
 apply (drule add_strict_mono, assumption)
 apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric]
-                       real_mult_less_iff1, arith)
+                       real_mult_less_iff1)
 done
 
 lemma Integral_imp_Cauchy:
@@ -853,7 +851,7 @@ apply ((drule spec)+, auto)
 apply (erule_tac V = "0 < e" in thin_rl)
 apply (drule add_strict_mono, assumption)
 apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric]
-                       real_mult_less_iff1, arith)
+                       real_mult_less_iff1)
 done
 
 lemma Cauchy_iff2:

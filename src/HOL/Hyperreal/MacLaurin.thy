@@ -390,7 +390,7 @@ done
 
 lemma mod_exhaust_less_4:
      "m mod 4 = 0 | m mod 4 = 1 | m mod 4 = 2 | m mod 4 = (3::nat)"
-by (case_tac "m mod 4", auto, arith)
+by auto
 
 lemma Suc_Suc_mult_two_diff_two [rule_format, simp]:
      "0 < n --> Suc (Suc (2 * n - 2)) = 2*n"

@@ -1691,7 +1691,6 @@ done
 lemma drop_upt[simp]: "drop m [i..<j] = [i+m..<j]"
 apply(induct j)
 apply auto
-apply arith
 done
 
 lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..n]"

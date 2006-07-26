@@ -90,19 +90,10 @@ txt{*
 
 \noindent
 The inclusion remains to be proved. After unfolding some definitions, 
-we are left with simple arithmetic:
+we are left with simple arithmetic that is dispatched automatically.
 *}
 
-apply (clarify, simp add: measure_def inv_image_def)
-
-txt{*
-@{subgoals[display,indent=0,margin=65]}
-
-\noindent
-And that is dispatched automatically:
-*}
-
-by arith
+by (clarify, simp add: measure_def inv_image_def)
 
 text{*\noindent
 

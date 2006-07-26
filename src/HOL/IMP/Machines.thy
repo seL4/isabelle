@@ -168,11 +168,10 @@ apply(induct set: stepa1)
     apply fastsimp
    apply simp
   apply simp
-  apply arith
  apply simp
- apply arith
 apply(fastsimp simp add:exec01.JMPB)
 done
+
 (*
 lemma rev_take: "\<And>i. rev (take i xs) = drop (length xs - i) (rev xs)"
 apply(induct xs)
@@ -188,6 +187,7 @@ apply(case_tac i)
 apply simp_all
 done
 *)
+
 lemma direction2:
  "rpq \<turnstile> \<langle>sp,s\<rangle> -1\<rightarrow> \<langle>sp',t\<rangle> \<Longrightarrow>
   rpq = rev p @ q & sp = size p & sp' = size p' \<longrightarrow>

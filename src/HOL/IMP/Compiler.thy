@@ -101,7 +101,6 @@ apply(subgoal_tac "n \<le> size p1")
 apply(rule ccontr)
 apply(drule_tac f = length in arg_cong)
 apply simp
-apply arith
 done
 
 lemma reduce_exec1:
@@ -293,6 +292,6 @@ next
   with ob show "\<langle>?w,s\<rangle> \<longrightarrow>\<^sub>c t" by fast
 qed
 
-(* To Do: connect with Machine 0 using M_equiv *)
+(* TODO: connect with Machine 0 using M_equiv *)
 
 end

@@ -994,8 +994,6 @@ lemma mult_matrix_singleton_right[simp]:
   apply (subst foldseq_almostzero[of _ j])
   apply (simp add: prems)+
   apply (auto)
-  apply (insert ncols_le[of A j])
-  apply (arith)
   proof -
     fix k
     fix l

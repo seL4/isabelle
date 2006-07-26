@@ -972,13 +972,13 @@ proof -
     next
       case (Suc j)
       have R6: "!!i k. [| k <= j; i <= Suc j - k |] ==> g i \<in> carrier R"
-        using Suc by (auto intro!: funcset_mem [OF Rg]) arith
+        using Suc by (auto intro!: funcset_mem [OF Rg])
       have R8: "!!i k. [| k <= Suc j; i <= k |] ==> g (k - i) \<in> carrier R"
-        using Suc by (auto intro!: funcset_mem [OF Rg]) arith
+        using Suc by (auto intro!: funcset_mem [OF Rg])
       have R9: "!!i k. [| k <= Suc j |] ==> f k \<in> carrier R"
         using Suc by (auto intro!: funcset_mem [OF Rf])
       have R10: "!!i k. [| k <= Suc j; i <= Suc j - k |] ==> g i \<in> carrier R"
-        using Suc by (auto intro!: funcset_mem [OF Rg]) arith
+        using Suc by (auto intro!: funcset_mem [OF Rg])
       have R11: "g 0 \<in> carrier R"
         using Suc by (auto intro!: funcset_mem [OF Rg])
       from Suc show ?case

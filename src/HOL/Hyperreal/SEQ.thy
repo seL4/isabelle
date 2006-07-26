@@ -745,7 +745,6 @@ apply safe
 apply (simp add: Bseq_def, safe)
 apply (rule_tac x = "K + \<bar>X N\<bar> " in exI)
 apply auto
-apply arith
 apply (rule_tac x = N in exI, safe)
 apply (drule_tac x = n in spec, arith)
 apply (auto simp add: Bseq_iff2)
@@ -754,7 +753,7 @@ done
 lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> K) ==> Bseq f"
 apply (simp add: Bseq_def)
 apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
-apply (drule_tac [2] x = n in spec, arith+)
+apply (drule_tac x = n in spec, arith)
 done
 
 
@@ -824,9 +823,7 @@ text{*A Cauchy sequence is bounded -- this is the standard
 
 lemma lemmaCauchy: "\<forall>n \<ge> M. \<bar>X M + - X n\<bar> < (1::real)
           ==>  \<forall>n \<ge> M. \<bar>X n\<bar> < 1 + \<bar>X M\<bar>"
-apply safe
-apply (drule spec, auto, arith)
-done
+by auto
 
 lemma less_Suc_cancel_iff: "(n < Suc M) = (n \<le> M)"
 by auto

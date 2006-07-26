@@ -33,6 +33,7 @@ consts
   Pow           :: "'a set => 'a set set"                -- "powerset"
   Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
   Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
+  Bex1          :: "'a set => ('a => bool) => bool"      -- "bounded unique existential quantifiers"
   image         :: "('a => 'b) => 'a set => 'b set"      (infixr "`" 90)
   "op :"        :: "'a => 'a set => bool"                -- "membership"
 
@@ -117,11 +118,13 @@ syntax
   "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" 10)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3EX _:_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3EX! _:_./ _)" [0, 0, 10] 10)
   "_Bleast"       :: "id => 'a set => bool => 'a"      ("(3LEAST _:_./ _)" [0, 0, 10] 10)
 
 syntax (HOL)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3! _:_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3? _:_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3?! _:_./ _)" [0, 0, 10] 10)
 
 translations
   "{x, xs}"     == "insert x {xs}"
@@ -138,16 +141,19 @@ translations
   "INT x:A. B"  == "INTER A (%x. B)"
   "ALL x:A. P"  == "Ball A (%x. P)"
   "EX x:A. P"   == "Bex A (%x. P)"
+  "EX! x:A. P"  == "Bex1 A (%x. P)"
   "LEAST x:A. P" => "LEAST x. x:A & P"
 
 syntax (xsymbols)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
   "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST_\<in>_./ _)" [0, 0, 10] 10)
 
 syntax (HTML output)
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
   "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
 
 syntax (xsymbols)
   "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ \<in>/ _./ _})")
@@ -178,30 +184,35 @@ syntax (output)
   "_setlessEx"  :: "[idt, 'a, bool] => bool"  ("(3EX _<_./ _)"  [0, 0, 10] 10)
   "_setleAll"   :: "[idt, 'a, bool] => bool"  ("(3ALL _<=_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] => bool"  ("(3EX _<=_./ _)" [0, 0, 10] 10)
+  "_setleEx1"   :: "[idt, 'a, bool] => bool"  ("(3EX! _<=_./ _)" [0, 0, 10] 10)
 
 syntax (xsymbols)
   "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subset>_./ _)"  [0, 0, 10] 10)
   "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subset>_./ _)"  [0, 0, 10] 10)
   "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
+  "_setleEx1"   :: "[idt, 'a, bool] => bool"   ("(3\<exists>!_\<subseteq>_./ _)" [0, 0, 10] 10)
 
 syntax (HOL output)
   "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3! _<_./ _)"  [0, 0, 10] 10)
   "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
   "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
+  "_setleEx1"   :: "[idt, 'a, bool] => bool"   ("(3?! _<=_./ _)" [0, 0, 10] 10)
 
 syntax (HTML output)
   "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subset>_./ _)"  [0, 0, 10] 10)
   "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subset>_./ _)"  [0, 0, 10] 10)
   "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
+  "_setleEx1"   :: "[idt, 'a, bool] => bool"   ("(3\<exists>!_\<subseteq>_./ _)" [0, 0, 10] 10)
 
 translations
  "\<forall>A\<subset>B. P"   =>  "ALL A. A \<subset> B --> P"
- "\<exists>A\<subset>B. P"    =>  "EX A. A \<subset> B & P"
- "\<forall>A\<subseteq>B. P"  =>  "ALL A. A \<subseteq> B --> P"
+ "\<exists>A\<subset>B. P"   =>  "EX A. A \<subset> B & P"
+ "\<forall>A\<subseteq>B. P"   =>  "ALL A. A \<subseteq> B --> P"
  "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
+ "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
 
 print_translation {*
 let
@@ -316,6 +327,7 @@ finalconsts
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
   Bex_def:      "Bex A P        == EX x. x:A & P(x)"
+  Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
 
 defs (overloaded)
   subset_def:   "A <= B         == ALL x:A. x:B"

@@ -191,7 +191,7 @@ proof (simp add: MultInv_def zcong_eq_zdvd_prop)
   have "x * x ^ nat (p - 2) = x ^ (nat (p - 2) + 1)"
     by auto
   also from prems have "nat (p - 2) + 1 = nat (p - 2 + 1)"
-    by (simp only: nat_add_distrib, auto)
+    by (simp only: nat_add_distrib)
   also have "p - 2 + 1 = p - 1" by arith
   finally have "[x * x ^ nat (p - 2) = x ^ nat (p - 1)] (mod p)"
     by (rule ssubst, auto)

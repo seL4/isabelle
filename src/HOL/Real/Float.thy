@@ -28,9 +28,7 @@ proof -
     apply (auto, induct_tac n)
     apply (simp_all add: pow2_def)
     apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
-    apply (auto simp add: h)
-    apply arith
-    done
+    by (auto simp add: h)
   show ?thesis
   proof (induct a)
     case (1 n)

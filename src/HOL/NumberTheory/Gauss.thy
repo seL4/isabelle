@@ -104,8 +104,6 @@ lemma (in GAUSS) A_res: "ResSet p A"
   apply (auto simp add: A_def ResSet_def)
   apply (rule_tac m = p in zcong_less_eq)
   apply (insert p_g_2, auto)
-  apply (subgoal_tac [1-2] "(p - 1) div 2 < p")
-  apply (auto, auto simp add: p_minus_one_l)
   done
 
 lemma (in GAUSS) B_res: "ResSet p B"
@@ -255,6 +253,8 @@ lemma (in GAUSS) D_eq: "D = {x. \<exists>y \<in> A. ( x = StandardRes p (y*a) & 
 lemma (in GAUSS) D_leq: "x \<in> D ==> x \<le> (p - 1) div 2"
   by (auto simp add: D_eq)
 
+ML {* fast_arith_split_limit := 0; *} (*FIXME*)
+
 lemma (in GAUSS) F_ge: "x \<in> F ==> x \<le> (p - 1) div 2"
   apply (auto simp add: F_eq A_def)
 proof -
@@ -269,6 +269,8 @@ proof -
   finally show "p - StandardRes p (y * a) \<le> (p - 1) div 2"
     using zless_add1_eq [of "p - StandardRes p (y * a)" "(p - 1) div 2"] by auto
 qed
+
+ML {* fast_arith_split_limit := 9; *} (*FIXME*)
 
 lemma (in GAUSS) all_A_relprime: "\<forall>x \<in> A. zgcd(x, p) = 1"
   using p_prime p_minus_one_l by (auto simp add: A_def zless_zprime_imp_zrelprime)

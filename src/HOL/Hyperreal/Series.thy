@@ -274,10 +274,6 @@ lemma sumr_pos_lt_pair_lemma:
 apply (induct "no", auto)
 apply (drule_tac x = "Suc no" in spec)
 apply (simp add: add_ac)
-(* FIXME why does simp require a separate step to prove the (pure arithmetic)
-   left-over? With del cong: strong_setsum_cong it works!
-*)
-apply simp
 done
 
 lemma sumr_pos_lt_pair:
@@ -299,15 +295,7 @@ apply (subgoal_tac "suminf f + (f (n) + f (n + 1)) \<le>
 apply (rule_tac [2] y = "setsum f {0..<n+ Suc (Suc 0)}" in order_trans)
 prefer 3 apply assumption
 apply (rule_tac [2] y = "setsum f {0..<n} + (f (n) + f (n + 1))" in order_trans)
-apply simp_all 
-apply (subgoal_tac "suminf f \<le> setsum f {0..< Suc (Suc 0) * (Suc no) + n}")
-apply (rule_tac [2] y = "suminf f + (f (n) + f (n + 1))" in order_trans)
-prefer 3 apply simp
-apply (drule_tac [2] x = 0 in spec)
- prefer 2 apply simp 
-apply (subgoal_tac "0 \<le> setsum f {0 ..< Suc (Suc 0) * Suc no + n} + - suminf f")
-apply (simp add: abs_if)
-apply (auto simp add: linorder_not_less [symmetric])
+apply simp_all
 done
 
 text{*A summable series of positive terms has limit that is at least as

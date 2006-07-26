@@ -578,7 +578,6 @@ proof -
 	apply (insert n_less_u)
 	apply (insert u)
 	apply auto
-	apply arith
 	done
       ultimately show False by auto
     qed

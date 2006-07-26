@@ -324,9 +324,6 @@ lemma nat_intermed_int_val:
 apply (cut_tac n = "n-m" and f = "%i. f (i+m) " and k = k 
        in int_val_lemma)
 apply simp
-apply (erule impE)
- apply (intro strip)
- apply (erule_tac x = "i+m" in allE, arith)
 apply (erule exE)
 apply (rule_tac x = "i+m" in exI, arith)
 done

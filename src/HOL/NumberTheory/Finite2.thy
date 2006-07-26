@@ -179,10 +179,6 @@ qed
 lemma int_card_bdd_int_set_l_l: "0 < n ==>
     int(card {x. 0 < x & x < n}) = n - 1"
   apply (auto simp add: card_bdd_int_set_l_l)
-  apply (subgoal_tac "Suc 0 \<le> nat n")
-   apply (auto simp add: zdiff_int [symmetric])
-  apply (subgoal_tac "0 < nat n", arith)
-  apply (simp add: zero_less_nat_eq)
   done
 
 lemma int_card_bdd_int_set_l_le: "0 \<le> n ==>

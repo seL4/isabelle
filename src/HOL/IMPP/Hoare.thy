@@ -381,7 +381,6 @@ apply   fast
 apply (drule finite_subset)
 apply (erule finite_imageI)
 apply (simp (no_asm_simp))
-apply arith
 done
 
 lemma MGT_BodyN: "insert ({=}.BODY pn.{->}) G|-{=}. the (body pn) .{->} ==>  

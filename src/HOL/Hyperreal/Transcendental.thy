@@ -526,7 +526,7 @@ apply (auto simp del: setsum_op_ivl_Suc)
 apply (rule setsum_abs [THEN real_le_trans])
 apply (rule real_setsum_nat_ivl_bounded)
 apply (auto dest!: less_add_one intro!: mult_mono simp add: power_add abs_mult)
-apply (auto intro!: power_mono zero_le_power simp add: power_abs, arith+)
+apply (auto intro!: power_mono zero_le_power simp add: power_abs)
 done
 
 lemma lemma_termdiff4: 
@@ -576,8 +576,9 @@ apply (auto intro: summable_rabs summable_le simp add: sums_summable [THEN sumin
 done
 
 
-
 text{* FIXME: Long proofs*}
+
+ML {* val old_fast_arith_split_limit = !fast_arith_split_limit; fast_arith_split_limit := 0; *}  (* FIXME: rewrite proofs *)
 
 lemma termdiffs_aux:
      "[|summable (\<lambda>n. diffs (diffs c) n * K ^ n); \<bar>x\<bar> < \<bar>K\<bar> |]
@@ -640,6 +641,8 @@ apply (simp (no_asm) add: mult_assoc [symmetric])
 apply (rule lemma_termdiff3)
 apply (auto intro: abs_triangle_ineq [THEN order_trans], arith)
 done
+
+ML {* fast_arith_split_limit := old_fast_arith_split_limit; *}
 
 lemma termdiffs: 
     "[| summable(%n. c(n) * (K ^ n));  
@@ -748,7 +751,7 @@ apply (simp add: exp_def)
 apply (subst lemma_exp_ext)
 apply (subgoal_tac "DERIV (%u. \<Sum>n. inverse (real (fact n)) * u ^ n) x :> (\<Sum>n. diffs (%n. inverse (real (fact n))) n * x ^ n)")
 apply (rule_tac [2] K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: exp_converges [THEN sums_summable] simp add: exp_fdiffs, arith)
+apply (auto intro: exp_converges [THEN sums_summable] simp add: exp_fdiffs)
 done
 
 lemma lemma_sin_ext:
@@ -769,14 +772,14 @@ apply (simp add: cos_def)
 apply (subst lemma_sin_ext)
 apply (auto simp add: sin_fdiffs2 [symmetric])
 apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs, arith)
+apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs)
 done
 
 lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
 apply (subst lemma_cos_ext)
 apply (auto simp add: lemma_sin_minus cos_fdiffs2 [symmetric] minus_mult_left)
 apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus, arith)
+apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus)
 done
 
 
@@ -2533,7 +2536,7 @@ prefer 2 apply (assumption, assumption, safe)
 apply (rule_tac x = ea in exI, auto)
 apply (drule_tac x = "f (x) + xa" and P = "%y. \<bar>y - f x\<bar> \<le> ea \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> e \<and> f z = y)" in spec)
 apply auto
-apply (drule sym, auto, arith)
+apply (drule sym, auto)
 done
 
 lemma isCont_inv_fun_inv:

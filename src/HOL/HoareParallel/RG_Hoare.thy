@@ -361,11 +361,8 @@ apply(simp add:assum_def)
 apply clarify
 apply(frule_tac j=0 and k="j" and p=pre in stability)
       apply simp_all
-    apply arith
   apply(erule_tac x=i in allE,simp)
  apply(erule_tac i=j and f=f in unique_ctran_Basic,simp_all)
-  apply arith
- apply arith
 apply(case_tac "x!j")
 apply clarify
 apply simp
@@ -492,11 +489,8 @@ apply clarify
 apply(simp add:assum_def)
 apply clarify
 apply(frule_tac j=0 and k="j" and p=pre in stability,simp_all)
-   apply arith
   apply(erule_tac x=i in allE,simp)
  apply(erule_tac i=j in unique_ctran_Await,force,simp_all)
-  apply arith
- apply arith
 apply(case_tac "x!j")
 apply clarify
 apply simp
@@ -543,7 +537,6 @@ apply(case_tac "\<exists>i. Suc i<length x \<and> x!i -c\<rightarrow> x!Suc i")
     apply(simp add:assum_def)
    apply(simp add:assum_def)
   apply(erule_tac m="length x" in etran_or_ctran,simp+)
-  apply(case_tac x,simp+)
  apply(case_tac x, (simp add:last_length)+)
 apply(erule exE)
 apply(drule_tac n=i and P="\<lambda>i. ?H i \<and> (?J i,?I i)\<in> ctran" in Ex_first_occurrence)
@@ -555,18 +548,7 @@ apply(erule ctran.elims,simp_all)
  apply(erule_tac x="sa" in allE)
  apply(drule_tac c="drop (Suc m) x" in subsetD)
   apply simp
-  apply(rule conjI)
-   apply force
   apply clarify
-  apply(subgoal_tac "(Suc m) + i \<le> length x")
-   apply(subgoal_tac "(Suc m) + (Suc i) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule_tac x="Suc (m + i)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE)
-    apply(subgoal_tac "Suc (Suc (m + i)) < length x",simp)
-    apply arith
-   apply arith
-  apply arith
  apply simp
  apply clarify
  apply(case_tac "i\<le>m")
@@ -575,49 +557,33 @@ apply(erule ctran.elims,simp_all)
    apply(erule_tac x=i in allE, erule impE, assumption)
    apply simp+
  apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
-  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
-   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule mp)
-    apply arith
-   apply arith
-  apply arith
-  apply(case_tac "length (drop (Suc m) x)",simp)
-  apply(erule_tac x="sa" in allE)
-  back
-  apply(drule_tac c="drop (Suc m) x" in subsetD,simp)
-   apply(rule conjI)
-    apply force
-   apply clarify
-   apply(subgoal_tac "(Suc m) + i \<le> length x")
-    apply(subgoal_tac "(Suc m) + (Suc i) \<le> length x")
-     apply(rotate_tac -2)
-     apply simp
-     apply(erule_tac x="Suc (m + i)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE)
-     apply(subgoal_tac "Suc (Suc (m + i)) < length x")
-      apply simp
-     apply arith
-    apply arith
-   apply arith
-  apply simp
-  apply clarify
-  apply(case_tac "i\<le>m")
-   apply(drule le_imp_less_or_eq)
-   apply(erule disjE)
-    apply(erule_tac x=i in allE, erule impE, assumption)
-    apply simp
+ apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
+  apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
+   apply(rotate_tac -2)
    apply simp
-  apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
-  apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
-   apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
-    apply(rotate_tac -2)
-    apply simp
-    apply(erule mp)
-   apply arith
   apply arith
  apply arith
- done  
+apply(case_tac "length (drop (Suc m) x)",simp)
+apply(erule_tac x="sa" in allE)
+back
+apply(drule_tac c="drop (Suc m) x" in subsetD,simp)
+ apply clarify
+apply simp
+apply clarify
+apply(case_tac "i\<le>m")
+ apply(drule le_imp_less_or_eq)
+ apply(erule disjE)
+  apply(erule_tac x=i in allE, erule impE, assumption)
+  apply simp
+ apply simp
+apply(erule_tac x="i - (Suc m)" and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> (?I j)\<in>guar" in allE)
+apply(subgoal_tac "(Suc m)+(i - Suc m) \<le> length x")
+ apply(subgoal_tac "(Suc m)+Suc (i - Suc m) \<le> length x")
+  apply(rotate_tac -2)
+  apply simp
+ apply arith
+apply arith
+done
 
 subsubsection{* Soundness of the Sequential rule *}
 
@@ -862,8 +828,6 @@ apply(rule conjI,clarify)
       apply simp
       apply(erule mp)
       apply(case_tac ys,simp+)
-     apply arith
-    apply arith
    apply force
   apply arith
  apply force

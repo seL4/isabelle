@@ -50,8 +50,7 @@ lemma subst_not_free [simp]: "\<not> free s i \<Longrightarrow> s[t/i] = s[u/i]"
 lemma free_lift [simp]:
     "free (lift t k) i = (i < k \<and> free t i \<or> k < i \<and> free t (i - 1))"
   apply (induct t fixing: i k)
-    apply (auto cong: conj_cong)
-  apply arith
+  apply (auto cong: conj_cong)
   done
 
 lemma free_subst [simp]:

@@ -178,7 +178,7 @@ apply (drule lemma_csimp [THEN complex_seq_to_hcomplex_CInfinitesimal])
 apply (simp add: CInfinitesimal_hcmod_iff star_of_def
             Infinitesimal_FreeUltrafilterNat_iff star_n_diff hcmod,  blast)
 apply (drule_tac x = r in spec, clarify)
-apply (drule FreeUltrafilterNat_all, ultra, arith)
+apply (drule FreeUltrafilterNat_all, ultra)
 done
 
 

@@ -454,8 +454,10 @@ lemma max_of_list_append [simp]:
 apply (simp add: max_of_list_def)
 apply (induct xs)
 apply simp
+ML {* fast_arith_split_limit := 0; *}  (* FIXME *)
 apply simp
 apply arith
+ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 done
 
 
@@ -520,16 +522,7 @@ done
 lemma pc_succs_shift: "pc'\<in>set (succs i (pc'' + n))
  \<Longrightarrow> ((pc' - n) \<in>set (succs i pc''))"
 apply (induct i)
-apply simp+
-  (* case Goto *)
-apply arith
-  (* case Ifcmpeq *)
-apply simp
-apply (erule disjE)
-apply arith
-apply arith
-  (* case Throw *)
-apply simp
+apply (arith|simp)+
 done
 
 
@@ -537,16 +530,7 @@ lemma pc_succs_le: "\<lbrakk> pc' \<in> set (succs i (pc'' + n));
   \<forall> b. ((i = (Goto b) \<or> i=(Ifcmpeq b)) \<longrightarrow> 0 \<le> (int pc'' + b)) \<rbrakk> 
   \<Longrightarrow> n \<le> pc'"
 apply (induct i)
-apply simp+
-  (* case Goto *)
-apply arith
-  (* case Ifcmpeq *)
-apply simp
-apply (erule disjE)
-apply simp
-apply arith
-  (* case Throw *)
-apply simp
+apply (arith|simp)+
 done
 
 
@@ -975,7 +959,6 @@ apply simp
 apply (simp (no_asm_simp))+
 apply simp
 apply (simp add: max_ssize_def max_of_list_append) apply (simp (no_asm_simp) add: max_def)
-apply (simp (no_asm_simp))+
 
   (* show check_type \<dots> *)
 apply (subgoal_tac "((mt2 @ [Some sttp2]) ! length bc2) = Some sttp2")
@@ -2100,7 +2083,6 @@ apply (drule_tac ?bc1.0 = "[LitPush (Bool False)] @ compExpr jmb expr @ [Ifcmpeq
   apply (simp (no_asm_simp) only: int_outside_right nat_int, simp (no_asm_simp))
   apply (simp (no_asm_simp) only: int_outside_right nat_int, simp (no_asm_simp))
     (* \<dots> ! nat (int pc + i) = \<dots> ! pc *)
-  apply (simp (no_asm_simp) only: int_outside_right nat_int, simp (no_asm_simp))
   apply (simp (no_asm_simp) add: length_compTpExpr length_compTpStmt)
   apply (simp (no_asm_simp) add: pushST_def popST_def nochangeST_def)
   apply (simp only: compTpExpr_LT_ST compTpStmt_LT_ST)

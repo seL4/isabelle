@@ -231,7 +231,7 @@ recdef greatest_msg "measure size"
 "greatest_msg other = 0"
 
 lemma greatest_msg_is_greatest: "Nonce n:parts {X} ==> n <= greatest_msg X"
-by (induct X, auto, arith+)
+by (induct X, auto)
 
 subsubsection{*sets of keys*}
 

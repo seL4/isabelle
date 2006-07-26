@@ -35,7 +35,6 @@ lemma setsum_fun_mono [rule_format]:
       setsum f (lessThan n) <= setsum g (lessThan n)"
 apply (induct_tac "n")
 apply (auto simp add: lessThan_Suc)
-apply (drule_tac x = n in spec, arith)
 done
 
 lemma tokens_mono_prefix [rule_format]:

@@ -95,7 +95,7 @@ lemma greatest_is_greatest: "Nonce n:used evs ==> n <= greatest evs"
 apply (induct evs, auto simp: initState.simps)
 apply (drule used_sub_parts_used, safe)
 apply (drule greatest_msg_is_greatest, arith)
-by (simp, arith)
+by simp
 
 subsubsection{*function giving a new nonce*}
 

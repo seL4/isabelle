@@ -1066,10 +1066,7 @@ lemma natfloor_subtract [simp]: "real a <= x ==>
   apply (subgoal_tac "real a = real (int a)")
   apply (erule ssubst)
   apply simp
-  apply (subst nat_diff_distrib)
   apply simp
-  apply (rule le_floor)
-  apply simp_all
 done
 
 lemma natceiling_zero [simp]: "natceiling 0 = 0"
@@ -1206,13 +1203,7 @@ lemma natceiling_subtract [simp]: "real a <= x ==>
   apply (subgoal_tac "real a = real (int a)")
   apply (erule ssubst)
   apply simp
-  apply (subst nat_diff_distrib)
   apply simp
-  apply (rule order_trans)
-  prefer 2
-  apply (rule ceiling_mono2)
-  apply assumption
-  apply simp_all
 done
 
 lemma natfloor_div_nat: "1 <= x ==> 0 < y ==>

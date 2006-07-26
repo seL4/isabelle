@@ -558,17 +558,13 @@ done
 lemma decr_lemma: "0 < (d::int) \<Longrightarrow> x - (abs(x-z)+1) * d < z"
 apply(induct rule: int_gr_induct)
  apply simp
- apply arith
 apply (simp add:int_distrib)
-apply arith
 done
 
 lemma incr_lemma: "0 < (d::int) \<Longrightarrow> z < x + (abs(x-z)+1) * d"
 apply(induct rule: int_gr_induct)
  apply simp
- apply arith
 apply (simp add:int_distrib)
-apply arith
 done
 
 lemma  minusinfinity:

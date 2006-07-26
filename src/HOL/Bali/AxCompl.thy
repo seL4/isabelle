@@ -1421,7 +1421,6 @@ apply   fast
 apply (drule finite_subset)
 apply (erule finite_imageI)
 apply auto
-apply arith
 done
 
 

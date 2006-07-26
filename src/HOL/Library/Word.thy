@@ -1383,7 +1383,7 @@ lemma length_int_to_bv_upper_limit_gt0:
 proof (rule ccontr)
   from w0 wk
   have k1: "1 < k"
-    by (cases "k - 1",simp_all,arith)
+    by (cases "k - 1",simp_all)
   assume "~ length (int_to_bv i) \<le> k"
   hence "k < length (int_to_bv i)"
     by simp
@@ -1512,7 +1512,7 @@ lemma length_int_to_bv_upper_limit_lem1:
 proof (rule ccontr)
   from w1 wk
   have k1: "1 < k"
-    by (cases "k - 1",simp_all,arith)
+    by (cases "k - 1",simp_all)
   assume "~ length (int_to_bv i) \<le> k"
   hence "k < length (int_to_bv i)"
     by simp
@@ -1731,8 +1731,6 @@ proof -
   have "((2::int) ^ (length w1 - 1)) + (2 ^ (length w2 - 1)) \<le> 2 ^ (max (length w1) (length w2) - 1) + 2 ^ (max (length w1) (length w2) - 1)"
     apply (cases "length w1 \<le> length w2")
     apply (auto simp add: max_def)
-    apply arith
-    apply arith
     done
   also have "... = 2 ^ max (length w1) (length w2)"
   proof -
@@ -1982,7 +1980,6 @@ proof -
           apply simp
           apply (subst zpower_zadd_distrib [symmetric])
           apply simp
-          apply arith
           done
         finally show "?Q < 2 ^ (length w1 + length w2 - Suc 0)"
           .
@@ -2030,10 +2027,6 @@ proof -
         apply simp
         apply (subst zpower_zadd_distrib [symmetric])
         apply simp
-        apply (cut_tac lmw)
-        apply arith
-        apply (cut_tac p)
-        apply arith
         done
       hence "-((2::int) ^ (length w1 + length w2 - Suc 0)) \<le> -(2^(length w1 - 1) * 2 ^ (length w2 - 1))"
         by simp
@@ -2278,13 +2271,13 @@ lemma append_bv_chop_id: "fst (bv_chop w l) @ snd (bv_chop w l) = w"
   by (simp add: bv_chop_def Let_def)
 
 lemma bv_chop_length_fst [simp]: "length (fst (bv_chop w i)) = length w - i"
-  by (simp add: bv_chop_def Let_def,arith)
+  by (simp add: bv_chop_def Let_def)
 
 lemma bv_chop_length_snd [simp]: "length (snd (bv_chop w i)) = min i (length w)"
-  by (simp add: bv_chop_def Let_def,arith)
+  by (simp add: bv_chop_def Let_def)
 
 lemma bv_slice_length [simp]: "[| j \<le> i; i < length w |] ==> length (bv_slice w (i,j)) = i - j + 1"
-  by (auto simp add: bv_slice_def,arith)
+  by (auto simp add: bv_slice_def)
 
 definition
   length_nat :: "nat => nat"
@@ -2337,7 +2330,6 @@ proof (cases "0 < i")
     apply (drule norm_empty_bv_to_nat_zero)
     using prems
     apply simp
-    apply arith
     apply (cases "norm_unsigned (nat_to_bv (nat i))")
     apply (drule norm_empty_bv_to_nat_zero [of "nat_to_bv (nat i)"])
     using prems
@@ -2439,7 +2431,6 @@ proof -
     apply (subst bv_sliceI [where ?j = "i-k" and ?i = "j-k" and ?w = "w2 @ w3 @ w4" and ?w1.0 = w2 and ?w2.0 = w3 and ?w3.0 = w4])
     apply simp_all
     apply (simp_all add: w_defs min_def)
-    apply arith+
     done
 qed
 
@@ -2514,11 +2505,7 @@ lemma length_nat_pos [simp,intro!]: "0 < x ==> 0 < length_nat x"
 lemma length_int_mono_gt0: "[| 0 \<le> x ; x \<le> y |] ==> length_int x \<le> length_int y"
   by (cases "x = 0",simp_all add: length_int_gt0 nat_le_eq_zle)
 
-lemma length_int_mono_lt0: "[| x \<le> y ; y \<le> 0 |] ==> length_int y \<le> length_int x"
-  apply (cases "y = 0",simp_all add: length_int_lt0)
-  apply (subgoal_tac "nat (- y) - Suc 0 \<le> nat (- x) - Suc 0")
-  apply (simp add: length_nat_mono)
-  apply arith
+lemma length_int_mono_lt0: "[| x \<le> y ; y \<le> 0 |] ==> length_int y \<le> length_int x"  apply (cases "y = 0",simp_all add: length_int_lt0)
   done
 
 lemmas [simp] = length_nat_non0

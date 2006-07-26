@@ -166,8 +166,6 @@ val neq_simproc =
 end;
 
 
-
-
 (*** Simproc for Let ***)
 
 val use_let_simproc = ref true;

@@ -1024,15 +1024,9 @@ lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
 by (simp add: real_of_nat_ge_zero)
 
 lemma abs_add_one_not_less_self [simp]: "~ abs(x) + (1::real) < x"
-apply (simp add: linorder_not_less)
-apply (auto intro: abs_ge_self [THEN order_trans])
-done
+by simp
  
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
-apply (simp add: real_add_assoc)
-apply (rule_tac a1 = y in add_left_commute [THEN ssubst])
-apply (rule real_add_assoc [THEN subst])
-apply (rule abs_triangle_ineq)
-done
+by simp
 
 end

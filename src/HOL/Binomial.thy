@@ -33,9 +33,8 @@ lemma binomial_Suc_Suc [simp]:
 by simp
 
 lemma binomial_eq_0 [rule_format]: "\<forall>k. n < k --> (n choose k) = 0"
-apply (induct "n", auto)
-apply (erule allE)
-apply (erule mp, arith)
+apply (induct "n")
+apply auto
 done
 
 declare binomial_0 [simp del] binomial_Suc [simp del]

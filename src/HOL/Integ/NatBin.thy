@@ -88,11 +88,10 @@ done
 
 text{*Suggested by Matthias Daum*}
 lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
-apply (subgoal_tac "nat x div nat k < nat x") 
- apply (simp add: nat_div_distrib [symmetric])
+apply (subgoal_tac "nat x div nat k < nat x")
+ apply (simp (asm_lr) add: nat_div_distrib [symmetric])
 apply (rule Divides.div_less_dividend, simp_all) 
 done
-
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
 
@@ -148,7 +147,6 @@ lemma diff_nat_eq_if:
          else let d = z-z' in     
               if neg d then 0 else nat d)"
 apply (simp add: Let_def nat_diff_distrib [symmetric] neg_eq_less_0 not_neg_eq_ge_0)
-apply (simp add: diff_is_0_eq nat_le_eq_zle)
 done
 
 lemma diff_nat_number_of [simp]: 
@@ -628,7 +626,6 @@ lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
 
 lemma nat_number_of_Min: "number_of Numeral.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
-  apply (simp add: neg_nat)
   done
 
 lemma nat_number_of_BIT_1:
@@ -676,7 +673,7 @@ lemma of_nat_double:
 by (simp only: mult_2 nat_add_distrib of_nat_add) 
 
 lemma nat_numeral_m1_eq_0: "-1 = (0::nat)"
-by (simp only:  nat_number_of_def, simp)
+by (simp only: nat_number_of_def)
 
 lemma of_nat_number_of_lemma:
      "of_nat (number_of v :: nat) =  

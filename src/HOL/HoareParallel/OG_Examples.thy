@@ -298,7 +298,6 @@ apply oghoare
 --{* 98 verification conditions *}
 apply auto 
 --{* auto takes about 3 minutes !! *}
-apply arith+
 done
 
 text {* Easier Version: without AWAIT.  Apt and Olderog. page 256: *}
@@ -332,7 +331,6 @@ apply oghoare
 --{* 20 vc *}
 apply auto
 --{* auto takes aprox. 2 minutes. *}
-apply arith+
 done
 
 subsection {* Producer/Consumer *}

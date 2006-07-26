@@ -510,6 +510,12 @@ association lists.
   (i.e. a boolean expression) by compiling it to ML. The goal is
   "proved" (via the oracle "Evaluation") if it evaluates to True.
 
+* Linear arithmetic now splits certain operators (e.g. min, max, abs) also
+when invoked by the simplifier.  This results in the simplifier being more
+powerful on arithmetic goals.
+INCOMPATIBILTY: rewrite proofs.  Set fast_arith_split_limit to 0 to obtain
+the old behavior.
+
 * Support for hex (0x20) and binary (0b1001) numerals. 
 
 *** HOL-Algebra ***

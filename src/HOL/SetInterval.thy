@@ -301,7 +301,7 @@ next
   show "?B \<subseteq> ?A"
   proof
     fix n assume a: "n : ?B"
-    hence "n - k : {i..j}" by auto arith+
+    hence "n - k : {i..j}" by auto
     moreover have "n = (n - k) + k" using a by auto
     ultimately show "n : ?A" by blast
   qed
@@ -315,7 +315,7 @@ next
   show "?B \<subseteq> ?A"
   proof
     fix n assume a: "n : ?B"
-    hence "n - k : {i..<j}" by auto arith+
+    hence "n - k : {i..<j}" by auto
     moreover have "n = (n - k) + k" using a by auto
     ultimately show "n : ?A" by blast
   qed
@@ -384,7 +384,6 @@ lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
   apply (rule card_image)
   apply (simp add: inj_on_def)
   apply (auto simp add: image_def atLeastLessThan_def lessThan_def)
-  apply arith
   apply (rule_tac x = "x - l" in exI)
   apply arith
   done

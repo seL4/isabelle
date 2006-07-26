@@ -387,7 +387,7 @@ constdefs
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -
   have "(\<lambda>(x,y). {x-y}) respects intrel"
-    by (simp add: congruent_def, arith) 
+    by (simp add: congruent_def, arith)
   thus ?thesis
     by (simp add: nat_def UN_equiv_class [OF equiv_intrel])
 qed
