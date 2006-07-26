@@ -40,11 +40,12 @@ sig
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Context.proof
   val importT_terms: term list -> Context.proof -> term list * Context.proof
   val import_terms: bool -> term list -> Context.proof -> term list * Context.proof
-  val importT: thm list -> Context.proof -> thm list * Context.proof
-  val import: bool -> thm list -> Context.proof -> thm list * Context.proof
+  val importT: thm list -> Context.proof -> (ctyp list * thm list) * Context.proof
+  val import: bool -> thm list -> Context.proof ->
+    ((ctyp list * cterm list) * thm list) * Context.proof
   val tradeT: Context.proof -> (thm list -> thm list) -> thm list -> thm list
   val trade: Context.proof -> (thm list -> thm list) -> thm list -> thm list
-  val focus: cterm -> Context.proof -> ((string * typ) list * cterm) * Context.proof
+  val focus: cterm -> Context.proof -> (cterm list * cterm) * Context.proof
   val warn_extra_tfrees: Context.proof -> Context.proof -> unit
   val polymorphic: Context.proof -> term list -> term list
   val hidden_polymorphism: term -> typ -> (indexname * sort) list
@@ -319,7 +320,7 @@ fun importT ths ctxt =
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
     val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
     val ths' = map (Thm.instantiate (instT', [])) ths;
-  in (ths', ctxt') end;
+  in ((map #2 instT', ths'), ctxt') end;
 
 fun import is_open ths ctxt =
   let
@@ -330,13 +331,13 @@ fun import is_open ths ctxt =
     val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
     val inst' = map (fn (v, t) => (cert (Var v), cert t)) inst;
     val ths' = map (Thm.instantiate (instT', inst')) ths;
-  in (ths', ctxt') end;
+  in (((map #2 instT', map #2 inst'), ths'), ctxt') end;
 
 
 (* import/export *)
 
 fun gen_trade imp exp ctxt f ths =
-  let val (ths', ctxt') = imp ths ctxt
+  let val ((_, ths'), ctxt') = imp ths ctxt
   in exp ctxt' ctxt (f ths') end;
 
 val tradeT = gen_trade importT exportT;
@@ -356,8 +357,8 @@ fun focus goal ctxt =
     val ps = Term.variant_frees t (Term.strip_all_vars t);   (*as they are printed :-*)
     val (xs, Ts) = split_list ps;
     val (xs', ctxt') = invent_fixes xs ctxt;
-    val ps' = xs' ~~ Ts;
-    val goal' = fold (forall_elim_prop o cert o Free) ps' goal;
+    val ps' = ListPair.map (cert o Free) (xs', Ts);
+    val goal' = fold forall_elim_prop ps' goal;
   in ((ps', goal'), ctxt') end;
 
 
