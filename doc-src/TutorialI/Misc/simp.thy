@@ -134,8 +134,6 @@ Three modifiers influence the treatment of assumptions:
  means that the assumptions are simplified but are not
   used in the simplification of each other or the conclusion.
 \end{description}
-Both @{text"(no_asm_simp)"} and @{text"(no_asm_use)"} run forever on
-the problematic subgoal above.
 Only one of the modifiers is allowed, and it must precede all
 other modifiers.
 %\begin{warn}
