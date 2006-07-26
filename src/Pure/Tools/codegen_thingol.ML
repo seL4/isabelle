@@ -88,7 +88,7 @@ sig
   val diff_module: module * module -> (string * def) list;
   val project_module: string list -> module -> module;
   val purge_module: string list -> module -> module;
-  val add_eval_def: iterm -> module -> string * module;
+  val add_eval_def: string (*shallow name space*) * iterm -> module -> string * module;
   val delete_garbage: string list (*hidden definitions*) -> module -> module;
   val has_nsp: string -> string -> bool;
   val ensure_def: (string -> transact -> def transact_fin) -> bool -> string
@@ -833,7 +833,7 @@ fun delete_garbage hidden modl =
     empty_module
     |> fold (fn name => add_def (name, get_def modl name)) selected
 (*     |> fold ensure_bot (hidden @ bots')  *)
-    |> fold (fn (x, y) => (writeln ("adding " ^ x ^ " -> " ^ y); add_dep (x, y))) adddeps
+    |> fold (fn (x, y) => ((*writeln ("adding " ^ x ^ " -> " ^ y);*) add_dep (x, y))) adddeps
   end;
 
 fun allimports_of modl =
@@ -1028,13 +1028,14 @@ fun start_transact init f modl =
     |-> (fn x => fn (_, modl) => (x, modl))
   end;
 
-fun add_eval_def e modl =
+fun add_eval_def (shallow, e) modl =
   let
-    val name = hd (Name.invent_list (Graph.keys modl) "VALUE" 1);
+    val name = "VALUE";
+    val sname = NameSpace.pack [shallow, name];
   in
     modl
-    |> add_def (name, Fun ([([], e)], ([], "" `%% [])))
-    |> fold (curry add_dep name) (add_deps_of_term e [])
+    |> add_def (sname, Fun ([([], e)], ([("a", [])], ITyVar "a")))
+    |> fold (curry add_dep sname) (add_deps_of_term e [])
     |> pair name
   end;
 

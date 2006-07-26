@@ -64,7 +64,7 @@ val alias_ref = ref (fn thy : theory => fn s : string => s, fn thy : theory => f
 fun alias_get name = (fst o !) alias_ref name;
 fun alias_rev name = (snd o !) alias_ref name;
 
-val nsp_module = ""; (* a dummy by convention *)
+val nsp_module = ""; (*a dummy by convention*)
 val nsp_class = "class";
 val nsp_tyco = "tyco";
 val nsp_const = "const";
@@ -73,6 +73,7 @@ val nsp_dtcon = "dtcon";
 val nsp_mem = "mem";
 val nsp_inst = "inst";
 val nsp_instmem = "instmem";
+val nsp_eval = "EVAL"; (*only for evaluation*)
 
 fun add_nsp shallow name =
   name
@@ -1040,24 +1041,11 @@ fun get_root_module thy =
   |> CodegenTheorems.notify_dirty
   |> `(#modl o CodegenData.get);
 
-fun serialize_module module (target_data : target_data) cs seri =
-  let
-    val s_class = #syntax_class target_data
-    val s_tyco = #syntax_tyco target_data
-    val s_const = #syntax_const target_data
-  in
-    (seri (
-      Symtab.lookup s_class,
-      (Option.map fst oo Symtab.lookup) s_tyco,
-      (Option.map fst oo Symtab.lookup) s_const
-    ) (Symtab.keys s_class @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit)
-  end;
-
 fun eval_term (ref_spec, t) thy =
   let
     val target_data =
       ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
-    val eval = CodegenSerializer.eval_term nsp_dtcon [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
+    val eval = CodegenSerializer.eval_term nsp_eval nsp_dtcon [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem], [nsp_eval]]
       ((Option.map fst oo Symtab.lookup) (#syntax_tyco target_data),
        (Option.map fst oo Symtab.lookup) (#syntax_const target_data))
       (Symtab.keys (#syntax_tyco target_data) @ Symtab.keys (#syntax_const target_data))
@@ -1240,8 +1228,15 @@ fun serialize_code target seri raw_consts thy =
           |> CodegenData.get
           |> #target_data
           |> (fn data => (the oo Symtab.lookup) data target);
+        val s_class = #syntax_class target_data
+        val s_tyco = #syntax_tyco target_data
+        val s_const = #syntax_const target_data
       in
-        (serialize_module module target_data cs; thy)
+        (seri (
+          Symtab.lookup s_class,
+          (Option.map fst oo Symtab.lookup) s_tyco,
+          (Option.map fst oo Symtab.lookup) s_const
+        ) (Symtab.keys s_class @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit; thy)
       end;
   in
     thy

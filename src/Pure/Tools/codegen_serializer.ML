@@ -26,7 +26,7 @@ sig
     haskell: string * (string * string list -> serializer)
   };
   val mk_flat_ml_resolver: string list -> string -> string;
-  val eval_term: string -> string list list
+  val eval_term: string -> string -> string list list
       -> (string -> CodegenThingol.itype pretty_syntax option)
             * (string -> CodegenThingol.iterm pretty_syntax option)
       -> string list
@@ -797,16 +797,16 @@ fun ml_from_thingol target nsp_dtcon nspgrp =
     || parse_single_file serializer
   end;
 
-fun eval_term nsp_dtcon nspgrp (syntax_tyco, syntax_const) hidden ((ref_name, reff), e) modl =
+fun eval_term nsp_eval nsp_dtcon nspgrp (syntax_tyco, syntax_const) hidden ((ref_name, reff), e) modl =
   let
-    val (val_name, modl') = CodegenThingol.add_eval_def e modl;
+    val (val_name, modl') = CodegenThingol.add_eval_def (nsp_eval, e) modl;
     val struct_name = "EVAL";
     val serializer = ml_serializer struct_name "ml" nsp_dtcon nspgrp
       (fn "" => (fn p => (use_text Context.ml_output false (Pretty.output p); NONE))
-        | _ => SOME) (K NONE, syntax_tyco, syntax_const) (hidden, SOME [val_name]);
+        | _ => SOME) (K NONE, syntax_tyco, syntax_const) (hidden, SOME [NameSpace.pack [nsp_eval, val_name]]);
     val _ = serializer modl';
     val val_name_struct = NameSpace.append struct_name val_name;
-    val _ = use_text Context.ml_output false ("val _ = (" ^ ref_name ^ " := " ^ val_name_struct ^ ")");
+    val _ = use_text Context.ml_output false ("val _ = (" ^ ref_name ^ " := " ^ val_name_struct ^ "())");
     val value = ! reff;
   in value end;
 
