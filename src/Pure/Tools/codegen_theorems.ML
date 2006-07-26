@@ -581,7 +581,7 @@ fun preprocess thy thms =
     fun cmp_thms (thm1, thm2) =
       not (Sign.typ_instance thy (extr_typ thy thm1, extr_typ thy thm2));
     fun unvarify thms =
-      #1 (Variable.import true thms (ProofContext.init thy));
+      #2 (#1 (Variable.import true thms (ProofContext.init thy)));
     val unfold_thms = Tactic.rewrite true (map (make_eq thy) (the_unfolds thy));
   in
     thms

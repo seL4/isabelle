@@ -209,7 +209,7 @@ fun unify_params vars thesis_name raw_rule ctxt =
     val instT =
       fold (Term.add_tvarsT o #2) params []
       |> map (TVar #> (fn T => (certT T, certT (norm_type T))));
-    val (rule' :: terms', ctxt') =
+    val ((_, rule' :: terms'), ctxt') =
       Variable.import false (Thm.instantiate (instT, []) rule :: terms) ctxt;
 
     val vars' =
