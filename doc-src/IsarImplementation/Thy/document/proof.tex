@@ -46,7 +46,7 @@ FIXME%
 \begin{mldecls}
   \indexml{Variable.declare-term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
   \indexml{Variable.add-fixes}\verb|Variable.add_fixes: string list -> Proof.context -> string list * Proof.context| \\
-  \indexml{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context -> thm list * Proof.context| \\
+  \indexml{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context -> ((ctyp list * cterm list) * thm list) * Proof.context| \\
   \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
   \indexml{Variable.trade}\verb|Variable.trade: Proof.context -> (thm list -> thm list) -> thm list -> thm list| \\
   \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
