@@ -9,6 +9,7 @@ intermediate language ("Thin-gol").
 signature CODEGEN_PACKAGE =
 sig
   val codegen_term: term -> theory -> CodegenThingol.iterm * theory;
+  val eval_term: (string (*reference name!*) * 'a ref) * term -> theory -> 'a * theory;
   val is_dtcon: string -> bool;
   val consts_of_idfs: theory -> string list -> (string * typ) list;
   val idfs_of_consts: theory -> (string * typ) list -> string list;
@@ -166,7 +167,7 @@ structure ConstNameMangler = NameManglerFun (
   fun mk thy ((c, ty), i) =
     let
       val c' = idf_of_name thy nsp_overl c;
-      val prefix = 
+      val prefix =
         case (find_first (fn {lhs, ...} => Sign.typ_equiv thy (ty, lhs))
             (Theory.definitions_of thy c))
          of SOME {module, ...} => NameSpace.append module nsp_overl
@@ -373,7 +374,7 @@ fun map_codegen_data f thy =
 
 val print_code = CodegenData.print;
 
-val purge_code = map_codegen_data (fn (_, appgens, target_data, logic_data) => 
+val purge_code = map_codegen_data (fn (_, appgens, target_data, logic_data) =>
   (empty_module, appgens, target_data, logic_data));
 
 (* advanced name handling *)
@@ -890,7 +891,7 @@ fun appgen_wfrec thy tabs ((c, ty), [_, tf, tx]) trns =
 
 fun mk_tabs thy targets =
   let
-    fun mk_insttab thy = 
+    fun mk_insttab thy =
       let
         val insts = Symtab.fold
           (fn (tyco, classes) => cons (tyco, map fst classes))
@@ -916,7 +917,7 @@ fun mk_tabs thy targets =
             let
               val deftab = Theory.definitions_of thy c
               val is_overl = (is_none o AxClass.class_of_param thy) c
-               andalso case deftab   (* is_overloaded (!?) *)
+               andalso case deftab   (*is_overloaded (!?)*)
                of [] => false
                 | [{lhs = ty, ...}] => not (Sign.typ_equiv thy (ty, Sign.the_const_type thy c))
                 | _ => true;
@@ -1039,6 +1040,34 @@ fun get_root_module thy =
   |> CodegenTheorems.notify_dirty
   |> `(#modl o CodegenData.get);
 
+fun serialize_module module (target_data : target_data) cs seri =
+  let
+    val s_class = #syntax_class target_data
+    val s_tyco = #syntax_tyco target_data
+    val s_const = #syntax_const target_data
+  in
+    (seri (
+      Symtab.lookup s_class,
+      (Option.map fst oo Symtab.lookup) s_tyco,
+      (Option.map fst oo Symtab.lookup) s_const
+    ) (Symtab.keys s_class @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit)
+  end;
+
+fun eval_term (ref_spec, t) thy =
+  let
+    val target_data =
+      ((fn data => (the o Symtab.lookup data) "ml") o #target_data o CodegenData.get) thy;
+    val eval = CodegenSerializer.eval_term nsp_dtcon [[nsp_module], [nsp_class, nsp_tyco], [nsp_const, nsp_overl, nsp_dtcon, nsp_class, nsp_mem, nsp_inst, nsp_instmem]]
+      ((Option.map fst oo Symtab.lookup) (#syntax_tyco target_data),
+       (Option.map fst oo Symtab.lookup) (#syntax_const target_data))
+      (Symtab.keys (#syntax_tyco target_data) @ Symtab.keys (#syntax_const target_data))
+  in
+    thy
+    |> codegen_term t
+    ||>> `(#modl o CodegenData.get)
+    |-> (fn (t', modl) => `(fn _ => eval (ref_spec, t') modl))
+  end;
+
 fun get_ml_fun_datatype thy resolv =
   let
     val target_data =
@@ -1121,7 +1150,7 @@ fun parse_syntax_tyco raw_tyco =
       end;
   in
     CodegenSerializer.parse_syntax (fn thy => no_args_tyco thy raw_tyco)
-    (read_quote (fn thy => prep_tyco thy raw_tyco) read_typ 
+    (read_quote (fn thy => prep_tyco thy raw_tyco) read_typ
       (fn thy => fn tabs => fold_map (exprgen_type thy tabs)))
     #-> (fn reader => pair (mk reader))
   end;
@@ -1211,15 +1240,8 @@ fun serialize_code target seri raw_consts thy =
           |> CodegenData.get
           |> #target_data
           |> (fn data => (the oo Symtab.lookup) data target);
-        val s_class = #syntax_class target_data
-        val s_tyco = #syntax_tyco target_data
-        val s_const = #syntax_const target_data
       in
-        (seri (
-          Symtab.lookup s_class,
-          (Option.map fst oo Symtab.lookup) s_tyco,
-          (Option.map fst oo Symtab.lookup) s_const
-        ) (Symtab.keys s_class @ Symtab.keys s_tyco @ Symtab.keys s_const, cs) module : unit; thy)
+        (serialize_module module target_data cs; thy)
       end;
   in
     thy
