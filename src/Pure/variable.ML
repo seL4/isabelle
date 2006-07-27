@@ -27,6 +27,7 @@ sig
   val thm_context: thm -> Context.proof
   val variant_frees: Context.proof -> term list -> (string * 'a) list -> (string * 'a) list
   val add_fixes: string list -> Context.proof -> string list * Context.proof
+  val fix_frees: term -> Context.proof -> Context.proof
   val invent_fixes: string list -> Context.proof -> string list * Context.proof
   val invent_types: sort list -> Context.proof -> (string * sort) list * Context.proof
   val export_inst: Context.proof -> Context.proof -> string list * string list
@@ -233,6 +234,18 @@ fun add_fixes xs ctxt =
       else (no_dups (xs inter_string ys); no_dups (xs inter_string zs);
         (xs, fold Name.declare xs names));
   in ctxt |> new_fixes names' xs xs' end;
+
+fun fix_frees t ctxt =
+  let
+    val fixes = rev (fold_aterms (fn Free (x, _) =>
+      if is_fixed ctxt x then I else insert (op =) x | _ => I) t []);
+  in
+    ctxt
+    |> set_body false
+    |> (snd o add_fixes fixes)
+    |> restore_body ctxt
+    |> declare_term t
+  end;
 
 fun invent_fixes raw_xs ctxt =
   let
