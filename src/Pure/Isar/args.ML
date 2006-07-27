@@ -320,7 +320,7 @@ val thm_sel = parens (list1
   nat >> PureThy.Single));
 
 val bang_facts = Scan.peek (fn context =>
-  $$$ "!" >> K (ProofContext.prems_of (Context.proof_of context)) || Scan.succeed []);
+  $$$ "!" >> K (Assumption.prems_of (Context.proof_of context)) || Scan.succeed []);
 
 
 (* goal specification *)

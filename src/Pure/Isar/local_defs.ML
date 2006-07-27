@@ -10,7 +10,7 @@ sig
   val cert_def: ProofContext.context -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
   val mk_def: ProofContext.context -> (string * term) list -> term list
-  val def_export: ProofContext.export
+  val def_export: Assumption.export
   val add_def: string * term -> ProofContext.context ->
     ((string * typ) * thm) * ProofContext.context
   val print_rules: Context.generic -> unit

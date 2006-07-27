@@ -227,7 +227,7 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
 
 fun assm_tac ctxt =
   assume_tac APPEND'
-  asm_tac (ProofContext.prems_of ctxt) APPEND'
+  asm_tac (Assumption.prems_of ctxt) APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 

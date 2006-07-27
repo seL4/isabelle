@@ -319,7 +319,7 @@ fun statement cases =
             val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
           in
             ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
-            ctxt' |> ProofContext.add_assms_i ProofContext.assume_export
+            ctxt' |> ProofContext.add_assms_i Assumption.assume_export
               [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;

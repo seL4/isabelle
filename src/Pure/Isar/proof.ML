@@ -47,9 +47,9 @@ sig
   val let_bind_i: (term list * term) list -> state -> state
   val fix: (string * string option * mixfix) list -> state -> state
   val fix_i: (string * typ option * mixfix) list -> state -> state
-  val assm: ProofContext.export ->
+  val assm: Assumption.export ->
     ((string * Attrib.src list) * (string * string list) list) list -> state -> state
-  val assm_i: ProofContext.export ->
+  val assm_i: Assumption.export ->
     ((string * attribute list) * (term * term list) list) list -> state -> state
   val assume: ((string * Attrib.src list) * (string * string list) list) list -> state -> state
   val assume_i: ((string * attribute list) * (term * term list) list) list -> state -> state
@@ -476,10 +476,10 @@ fun conclude_goal state goal propss =
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
         (pretty_goals_local ctxt "" (true, ! show_main_goal) (! Display.goals_limit) goal @
           [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
-    val _ =
-      (case subtract (op aconv) (ProofContext.assms_of ctxt) (#hyps (Thm.rep_thm goal)) of
-        [] => ()
-      | hyps => error ("Additional hypotheses:\n" ^ cat_lines (map string_of_term hyps)));
+
+    val extra_hyps = Assumption.extra_hyps ctxt goal;
+    val _ = null extra_hyps orelse
+      error ("Additional hypotheses:\n" ^ cat_lines (map string_of_term extra_hyps));
 
     val (results, th) = `(Conjunction.elim_precise (map length propss)) (Goal.conclude goal)
       handle THM _ => error ("Lost goal structure:\n" ^ string_of_thm goal);
@@ -544,10 +544,10 @@ in
 
 val assm      = gen_assume ProofContext.add_assms Attrib.attribute;
 val assm_i    = gen_assume ProofContext.add_assms_i (K I);
-val assume    = assm ProofContext.assume_export;
-val assume_i  = assm_i ProofContext.assume_export;
-val presume   = assm ProofContext.presume_export;
-val presume_i = assm_i ProofContext.presume_export;
+val assume    = assm Assumption.assume_export;
+val assume_i  = assm_i Assumption.assume_export;
+val presume   = assm Assumption.presume_export;
+val presume_i = assm_i Assumption.presume_export;
 
 end;
 

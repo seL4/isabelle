@@ -576,7 +576,7 @@ fun get_relevant_clauses ctxt cls_thms white_cls goals =
 
 
 fun cnf_hyps_thms ctxt = 
-    let val ths = ProofContext.prems_of ctxt
+    let val ths = Assumption.prems_of ctxt
     in fold (fold (insert Thm.eq_thm) o ResAxioms.skolem_thm) ths [] end;
 
 
