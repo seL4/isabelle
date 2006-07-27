@@ -74,7 +74,7 @@ val C = read "PROP C";
 val ABC = read "PROP A ==> PROP B ==> PROP C";
 val A_B = read "PROP ProtoPure.conjunction(A, B)"
 
-val conjunction_def = #1 (freeze_thaw ProtoPure.conjunction_def);
+val conjunction_def = Drule.unvarify ProtoPure.conjunction_def;
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP

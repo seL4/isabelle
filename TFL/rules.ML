@@ -816,10 +816,11 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 fun prove strict (ptm, tac) =
   let
     val {thy, t, ...} = Thm.rep_cterm ptm;
-    val result =
-      if strict then Goal.prove_global thy [] [] t (K tac)
-      else Goal.prove_global thy [] [] t (K tac)
-        handle ERROR msg => (warning msg; raise RULES_ERR "prove" msg);
-  in #1 (freeze_thaw result) end;
+    val ctxt = ProofContext.init thy |> ProofContext.fix_frees t;
+  in
+    if strict then Goal.prove ctxt [] [] t (K tac)
+    else Goal.prove ctxt [] [] t (K tac)
+      handle ERROR msg => (warning msg; raise RULES_ERR "prove" msg)
+  end;
 
 end;
