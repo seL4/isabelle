@@ -34,9 +34,17 @@ setup Blast.setup
 lemma ex1_functional: "[| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
 by blast
 
-ML {*
-val ex1_functional = thm "ex1_functional";
-*}
+ML {* val ex1_functional = thm "ex1_functional" *}
+
+(* Elimination of True from asumptions: *)
+lemma True_implies_equals: "(True ==> PROP P) == PROP P"
+proof
+  assume "True \<Longrightarrow> PROP P"
+  from this and TrueI show "PROP P" .
+next
+  assume "PROP P"
+  then show "PROP P" .
+qed
 
 use "simpdata.ML"
 setup simpsetup

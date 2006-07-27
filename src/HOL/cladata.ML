@@ -52,8 +52,6 @@ structure BasicClassical: BASIC_CLASSICAL = Classical;
 
 open BasicClassical;
 
-val _ = bind_thm ("contrapos_np", inst "Pa" "?Q" Classical.swap);
-
 (*Propositional rules*)
 val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
                        addSEs [conjE,disjE,impCE,FalseE,iffCE];

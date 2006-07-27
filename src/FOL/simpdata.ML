@@ -6,14 +6,9 @@
 Simplification data for FOL.
 *)
 
+val ex1_functional = thm "ex1_functional";
+val True_implies_equals = thm "True_implies_equals";
 
-(* Elimination of True from asumptions: *)
-
-bind_thm ("True_implies_equals", prove_goal IFOL.thy
- "(True ==> PROP P) == PROP P"
-(K [rtac equal_intr_rule 1, atac 2,
-          METAHYPS (fn prems => resolve_tac prems 1) 1,
-          rtac TrueI 1]));
 
 
 (*** Rewrite rules ***)

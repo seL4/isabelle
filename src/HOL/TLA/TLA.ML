@@ -243,6 +243,7 @@ fun merge_act_box_tac i =
 *)
 bind_thm("all_box", standard((temp_unlift allT) RS sym));
 
+bind_thm ("contrapos_np", thm "contrapos_np");
 
 Goal "|- (<>(F | G)) = (<>F | <>G)";
 by (auto_tac (temp_css addsimps2 [dmd_def,split_box_conj]));
