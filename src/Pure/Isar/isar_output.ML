@@ -436,7 +436,7 @@ fun tweak_line s =
 
 val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
 
-fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
+fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.revert_skolems ctxt;
 
 fun pretty_term_typ ctxt t =
   ProofContext.pretty_term ctxt (TypeInfer.constrain t (Term.fastype_of t));
