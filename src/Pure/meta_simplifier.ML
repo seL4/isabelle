@@ -72,6 +72,8 @@ sig
   val addSSolver: simpset * solver -> simpset
   val setSolver: simpset * solver -> simpset
   val addSolver: simpset * solver -> simpset
+  val norm_hhf: thm -> thm
+  val norm_hhf_protect: thm -> thm
 end;
 
 signature META_SIMPLIFIER =
@@ -1199,6 +1201,26 @@ fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i  andalso  i <= nprems_of thm
   then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
   else raise THM("rewrite_goal_rule",i,[thm]);
+
+
+(* HHF normal form: !! before ==>, outermost !! generalized *)
+
+local
+
+fun gen_norm_hhf ss =
+  (not o Drule.is_norm_hhf o Thm.prop_of) ?
+    Drule.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss)
+  #> Thm.adjust_maxidx_thm
+  #> Drule.gen_all;
+
+val ss = theory_context ProtoPure.thy empty_ss addsimps [Drule.norm_hhf_eq];
+
+in
+
+val norm_hhf = gen_norm_hhf ss;
+val norm_hhf_protect = gen_norm_hhf (ss addeqcongs [Drule.protect_cong]);
+
+end;
 
 end;
 
