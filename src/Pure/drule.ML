@@ -67,8 +67,6 @@ sig
   val equals_cong: thm
   val imp_cong: thm
   val swap_prems_eq: thm
-  val equal_abs_elim: cterm  -> thm -> thm
-  val equal_abs_elim_list: cterm list -> thm -> thm
   val asm_rl: thm
   val cut_rl: thm
   val revcut_rl: thm
@@ -912,24 +910,6 @@ fun cterm_instantiate ctpairs0 th =
            raise THM("cterm_instantiate: incompatible theories",0,[th])
        | TYPE (msg, _, _) => raise THM(msg, 0, [th])
 end;
-
-
-(** Derived rules mainly for METAHYPS **)
-
-(*Given the term "a", takes (%x.t)==(%x.u) to t[a/x]==u[a/x]*)
-fun equal_abs_elim ca eqth =
-  let val {thy=thya, t=a, ...} = rep_cterm ca
-      and combth = combination eqth (reflexive ca)
-      val {thy,prop,...} = rep_thm eqth
-      val (abst,absu) = Logic.dest_equals prop
-      val cert = cterm_of (Theory.merge (thy,thya))
-  in  transitive (symmetric (beta_conversion false (cert (abst$a))))
-           (transitive combth (beta_conversion false (cert (absu$a))))
-  end
-  handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
-
-(*Calling equal_abs_elim with multiple terms*)
-fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 
 
 (* global schematic variables *)
