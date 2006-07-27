@@ -4,21 +4,18 @@
 
 The key concept of Isar proof contexts: elevates primitive local
 reasoning Gamma |- phi to a structured concept, with generic context
-elements.
+elements.  See also structure Variable and Assumption.
 *)
 
 signature PROOF_CONTEXT =
 sig
   type context (*= Context.proof*)
-  type export
   val theory_of: context -> theory
   val init: theory -> context
   val full_name: context -> bstring -> string
   val consts_of: context -> Consts.T
   val set_syntax_mode: string * bool -> context -> context
   val restore_syntax_mode: context -> context -> context
-  val assms_of: context -> term list
-  val prems_of: context -> thm list
   val fact_index_of: context -> FactIndex.T
   val transfer: theory -> context -> context
   val map_theory: (theory -> theory) -> context -> context
@@ -28,6 +25,7 @@ sig
   val pretty_classrel: context -> class list -> Pretty.T
   val pretty_arity: context -> arity -> Pretty.T
   val pp: context -> Pretty.pp
+  val legacy_pretty_thm: bool -> thm -> Pretty.T
   val pretty_thm: context -> thm -> Pretty.T
   val pretty_thms: context -> thm list -> Pretty.T
   val pretty_fact: context -> string * thm list -> Pretty.T
@@ -127,17 +125,12 @@ sig
   val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
-  val assume_export: export
-  val presume_export: export
-  val add_assumes: cterm list -> context -> thm list * context
-  val add_assms: export ->
+  val add_assms: Assumption.export ->
     ((string * attribute list) * (string * string list) list) list ->
     context -> (bstring * thm list) list * context
-  val add_assms_i: export ->
+  val add_assms_i: Assumption.export ->
     ((string * attribute list) * (term * term list) list) list ->
     context -> (bstring * thm list) list * context
-  val add_view: context -> cterm list -> context -> context
-  val export_view: cterm list -> context -> context -> thm -> thm
   val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
   val apply_case: RuleCases.T -> context -> (string * term list) list * context
   val get_case: context -> string -> string option list -> RuleCases.T
@@ -169,22 +162,16 @@ val init = Context.init_proof;
 
 (** Isar proof context information **)
 
-type export = bool -> cterm list -> thm -> thm Seq.seq;
-
 datatype ctxt =
   Ctxt of
    {naming: NameSpace.naming,                     (*local naming conventions*)
     syntax: LocalSyntax.T,                        (*local syntax*)
     consts: Consts.T * Consts.T,                  (*global/local consts*)
-    assms:
-      ((cterm list * export) list *               (*assumes and views: A ==> _*)
-        thm list),                                (*prems: A |- A*)
     thms: thm list NameSpace.table * FactIndex.T, (*local thms*)
     cases: (string * (RuleCases.T * bool)) list}; (*local contexts*)
 
-fun make_ctxt (naming, syntax, consts, assms, thms, cases) =
-  Ctxt {naming = naming, syntax = syntax, consts = consts, assms = assms,
-    thms = thms, cases = cases};
+fun make_ctxt (naming, syntax, consts, thms, cases) =
+  Ctxt {naming = naming, syntax = syntax, consts = consts, thms = thms, cases = cases};
 
 val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
 
@@ -194,7 +181,7 @@ structure ContextData = ProofDataFun
   type T = ctxt;
   fun init thy =
     make_ctxt (local_naming, LocalSyntax.init thy,
-      (Sign.consts_of thy, Sign.consts_of thy), ([], []),
+      (Sign.consts_of thy, Sign.consts_of thy),
       (NameSpace.empty_table, FactIndex.empty), []);
   fun print _ _ = ();
 );
@@ -204,32 +191,28 @@ val _ = Context.add_setup ContextData.init;
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {naming, syntax, consts, assms, thms, cases} =>
-    make_ctxt (f (naming, syntax, consts, assms, thms, cases)));
+  ContextData.map (fn Ctxt {naming, syntax, consts, thms, cases} =>
+    make_ctxt (f (naming, syntax, consts, thms, cases)));
 
 fun map_naming f =
-  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
-    (f naming, syntax, consts, assms, thms, cases));
+  map_context (fn (naming, syntax, consts, thms, cases) =>
+    (f naming, syntax, consts, thms, cases));
 
 fun map_syntax f =
-  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
-    (naming, f syntax, consts, assms, thms, cases));
+  map_context (fn (naming, syntax, consts, thms, cases) =>
+    (naming, f syntax, consts, thms, cases));
 
 fun map_consts f =
-  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
-    (naming, syntax, f consts, assms, thms, cases));
-
-fun map_assms f =
-  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
-    (naming, syntax, consts, f assms, thms, cases));
+  map_context (fn (naming, syntax, consts, thms, cases) =>
+    (naming, syntax, f consts, thms, cases));
 
 fun map_thms f =
-  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
-    (naming, syntax, consts, assms, f thms, cases));
+  map_context (fn (naming, syntax, consts, thms, cases) =>
+    (naming, syntax, consts, f thms, cases));
 
 fun map_cases f =
-  map_context (fn (naming, syntax, consts, assms, thms, cases) =>
-    (naming, syntax, consts, assms, thms, f cases));
+  map_context (fn (naming, syntax, consts, thms, cases) =>
+    (naming, syntax, consts, thms, f cases));
 
 val naming_of = #naming o rep_context;
 val full_name = NameSpace.full o naming_of;
@@ -240,10 +223,6 @@ val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
 val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
 val consts_of = #2 o #consts o rep_context;
-
-val assumptions_of = #1 o #assms o rep_context;
-val assms_of = map Thm.term_of o maps #1 o assumptions_of;
-val prems_of = #2 o #assms o rep_context;
 
 val thms_of = #thms o rep_context;
 val fact_index_of = #2 o thms_of;
@@ -303,8 +282,16 @@ fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
 fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
   pretty_classrel ctxt, pretty_arity ctxt);
 
+fun legacy_pretty_thm quote th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val pp =
+      if Theory.eq_thy (thy, ProtoPure.thy) then Sign.pp thy
+      else pp (init thy);
+  in Display.pretty_thm_aux pp quote false [] th end;
+
 fun pretty_thm ctxt th =
-  Display.pretty_thm_aux (pp ctxt) false true (assms_of ctxt) th;
+  Display.pretty_thm_aux (pp ctxt) false true (Assumption.assms_of ctxt) th;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
@@ -563,15 +550,8 @@ fun read_const ctxt c =
 (** export theorems **)
 
 fun common_exports is_goal inner outer =
-  let
-    val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
-    val exp_asms = rev (map (fn (cprops, exp) => exp is_goal cprops) asms);
-  in
-    map Goal.norm_hhf_protect
-    #> Seq.map_list (Seq.EVERY exp_asms)
-    #> Seq.map (Variable.export inner outer)
-    #> Seq.map (map Goal.norm_hhf_protect)
-  end;
+  Assumption.exports is_goal inner outer
+  #> Seq.map (Variable.export inner outer);
 
 val goal_exports = common_exports true;
 val exports = common_exports false;
@@ -959,59 +939,20 @@ fun bind_fixes xs ctxt =
 
 (** assumptions **)
 
-(* basic exports *)
-
-(*
-    [A]
-     :
-     B
-  --------
-  #A ==> B
-*)
-fun assume_export true = Seq.single oo Drule.implies_intr_protected
-  | assume_export false = Seq.single oo Drule.implies_intr_list;
-
-(*
-    [A]
-     :
-     B
-  -------
-  A ==> B
-*)
-fun presume_export _ = assume_export false;
-
-
-(* plain assumptions *)
-
-fun new_prems new_asms new_prems =
-  map_assms (fn (asms, prems) => (asms @ [new_asms], prems @ new_prems)) #>
-  (fn ctxt => put_thms_internal (AutoBind.premsN, SOME (prems_of ctxt)) ctxt);
-
-fun add_assumes asms =
-  let val prems = map (Goal.norm_hhf o Thm.assume) asms
-  in new_prems (asms, assume_export) prems #> pair prems end;
-
-
-(* generic assms *)
-
 local
-
-fun gen_assm ((name, attrs), props) ctxt =
-  let
-    val cprops = map (Thm.cterm_of (theory_of ctxt)) props;
-    val prems = map (Goal.norm_hhf o Thm.assume) cprops;
-    val ([(_, thms)], ctxt') =
-      ctxt
-      |> auto_bind_facts props
-      |> note_thmss_i [((name, attrs), map (fn th => ([th], [])) prems)];
-  in ((cprops, prems, (name, thms)), ctxt') end;
 
 fun gen_assms prepp exp args ctxt =
   let
+    val cert = Thm.cterm_of (theory_of ctxt);
     val (propss, ctxt1) = swap (prepp (ctxt, map snd args));
-    val (results, ctxt2) = fold_map gen_assm (map fst args ~~ propss) ctxt1;
-    val ctxt3 = new_prems (maps #1 results, exp) (maps #2 results) ctxt2;
-  in (map #3 results, tap (Variable.warn_extra_tfrees ctxt) ctxt3) end;
+    val _ = Variable.warn_extra_tfrees ctxt ctxt1;
+    val (premss, ctxt2) = fold_burrow (Assumption.add_assms exp o map cert) propss ctxt1;
+  in
+    ctxt2
+    |> auto_bind_facts (flat propss)
+    |> put_thms_internal (AutoBind.premsN, SOME (Assumption.prems_of ctxt2))
+    |> note_thmss_i (map fst args ~~ map (map (fn th => ([th], []))) premss)
+  end;
 
 in
 
@@ -1019,17 +960,6 @@ val add_assms = gen_assms (apsnd #1 o bind_propp);
 val add_assms_i = gen_assms (apsnd #1 o bind_propp_i);
 
 end;
-
-
-(* additional views *)
-
-fun add_view outer view = map_assms (fn (asms, prems) =>
-  let
-    val (asms1, asms2) = chop (length (assumptions_of outer)) asms;
-    val asms' = asms1 @ [(view, assume_export)] @ asms2;
-  in (asms', prems) end);
-
-fun export_view view inner outer = singleton (export_standard (add_view outer view inner) outer);
 
 
 
@@ -1215,7 +1145,7 @@ fun pretty_ctxt ctxt =
 
     (*prems*)
     val limit = ! prems_limit;
-    val prems = prems_of ctxt;
+    val prems = Assumption.prems_of ctxt;
     val len = length prems;
     val prt_prems = if null prems then []
       else [Pretty.big_list "prems:" ((if len <= limit then [] else [Pretty.str "..."]) @
