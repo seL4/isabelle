@@ -188,10 +188,9 @@ sig
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
-  val declare_term_names: term -> Name.context -> Name.context
   val dest_abs: string * typ * term -> string * term
+  val declare_term_names: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
-  val zero_var_indexesT: typ -> typ
   val zero_var_indexes: term -> term
   val zero_var_indexes_inst: term ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
@@ -1145,11 +1144,6 @@ fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
   | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
   | add_term_names (_, bs) = bs;
 
-val declare_term_names = fold_aterms
-  (fn Const (a, _) => Name.declare (NameSpace.base a)     (*expensive*)
-    | Free (a, _) => Name.declare a
-    | _ => I);
-
 (*Accumulates the TVars in a type, suppressing duplicates. *)
 fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
   | add_typ_tvars(TFree(_),vs) = vs
@@ -1238,6 +1232,13 @@ fun dest_abs (x, T, body) =
 
 (* renaming variables *)
 
+fun declare_term_names tm =
+  fold_aterms
+    (fn Const (a, _) => Name.declare (NameSpace.base a)
+      | Free (a, _) => Name.declare a
+      | _ => I) tm #>
+  fold_types (fold_atyps (fn TFree (a, _) => Name.declare a | _ => I)) tm;
+
 fun variant_frees t frees =
   fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
 
@@ -1247,21 +1248,17 @@ fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 (* zero var indexes *)
 
 fun zero_var_inst vars =
-  fold (fn v as ((x, i), X) => fn (used, inst) =>
+  fold (fn v as ((x, i), X) => fn (inst, used) =>
     let
       val ([x'], used') = Name.variants [if Name.is_bound x then "u" else x] used;
-    in if x = x' andalso i = 0 then (used', inst) else (used', (v, ((x', 0), X)) :: inst) end)
-  vars (Name.context, []) |> #2;
-
-fun zero_var_indexesT ty =
-  instantiateT (map (apsnd TVar) (zero_var_inst (sort tvar_ord (add_tvarsT ty [])))) ty;
+    in if x = x' andalso i = 0 then (inst, used') else ((v, ((x', 0), X)) :: inst, used') end)
+  vars ([], Name.context) |> #1;
 
 fun zero_var_indexes_inst tm =
   let
-    val instT = map (apsnd TVar) (zero_var_inst (sort tvar_ord (fold_types add_tvarsT tm [])));
-    val inst =
-      add_vars tm [] |> map (apsnd (instantiateT instT))
-      |> sort var_ord |> zero_var_inst |> map (apsnd Var);
+    val instT = zero_var_inst (sort tvar_ord (add_tvars tm [])) |> map (apsnd TVar);
+    val inst = zero_var_inst (sort var_ord (map (apsnd (instantiateT instT)) (add_vars tm [])))
+      |> map (apsnd Var);
   in (instT, inst) end;
 
 fun zero_var_indexes tm = instantiate (zero_var_indexes_inst tm) tm;
