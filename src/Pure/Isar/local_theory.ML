@@ -137,7 +137,7 @@ fun init_i NONE thy = ProofContext.init thy
       |> (fn (params, ctxt) => Data.put
           {locale = SOME (loc, ctxt),
            params = params,
-           hyps = ProofContext.assms_of ctxt,
+           hyps = Assumption.assms_of ctxt,
            restore_naming = Sign.restore_naming thy} ctxt);
 
 fun init loc thy = init_i (Option.map (Locale.intern thy) loc) thy;
