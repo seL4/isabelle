@@ -256,7 +256,7 @@ end  (* local *)
 
 (* (string * (Term.typ * Term.term * Thm.thm * Term.typ * int) list) list -> Context.theory -> Term.typ list -> Term.term ->
   (Thm.thm * (Term.typ * Term.typ * int list) list * int list * Term.typ * Term.term) list *)
-fun split_posns cmap sg Ts t =
+fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg Ts t =
   let
     val T' = fastype_of1 (Ts, t);
     fun posns Ts pos apsns (Abs (_, T, t)) =
