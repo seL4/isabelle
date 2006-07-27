@@ -622,14 +622,19 @@ fun read_def_terms' pp is_logtype syn consts context (types, sorts) used freeze 
       in (Syntax.read context is_logtype syn T' s, T') end;
   in infer_types_simult pp thy consts types sorts used freeze (map read sTs) end;
 
-fun read_def_terms (thy, types, sorts) used =
-  read_def_terms' (pp thy) (is_logtype thy) (syn_of thy) (consts_of thy)
-    (Context.Theory thy) (types, sorts) (Name.make_context used);
+fun read_def_terms (thy, types, sorts) used freeze sTs =
+  let
+    val pp = pp thy;
+    val consts = consts_of thy;
+    val cert_consts = Consts.certify pp (tsig_of thy) consts;
+    val (ts, inst) =
+      read_def_terms' pp (is_logtype thy) (syn_of thy) consts
+        (Context.Theory thy) (types, sorts) (Name.make_context used) freeze sTs;
+  in (map cert_consts ts, inst) end;
 
 fun simple_read_term thy T s =
   let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]
-  in t end
-  handle ERROR msg => cat_error msg ("The error(s) above occurred for term " ^ s);
+  in t end handle ERROR msg => cat_error msg ("The error(s) above occurred for term " ^ s);
 
 fun read_term thy = simple_read_term thy TypeInfer.logicT;
 fun read_prop thy = simple_read_term thy propT;
