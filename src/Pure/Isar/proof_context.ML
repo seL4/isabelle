@@ -42,7 +42,7 @@ sig
   val cert_typ_abbrev: context -> typ -> typ
   val get_skolem: context -> string -> string
   val revert_skolem: context -> string -> string
-  val extern_skolem: context -> term -> term
+  val revert_skolems: context -> term -> term
   val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
@@ -122,7 +122,6 @@ sig
   val add_fixes: (string * string option * mixfix) list -> context -> string list * context
   val add_fixes_i: (string * typ option * mixfix) list -> context -> string list * context
   val add_fixes_legacy: (string * typ option * mixfix) list -> context -> string list * context
-  val fix_frees: term -> context -> context
   val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
   val bind_fixes: string list -> context -> (term -> term) * context
   val add_assms: Assumption.export ->
@@ -363,28 +362,27 @@ fun intern_skolem ctxt internal =
   in intern end;
 
 
-(* externalize Skolem constants -- approximation only! *)
+(* revert Skolem constants -- approximation only! *)
 
-fun rev_skolem ctxt =
-  let val rev_fixes = map Library.swap (Variable.fixes_of ctxt)
-  in AList.lookup (op =) rev_fixes end;
-
-fun revert_skolem ctxt x =
-  (case rev_skolem ctxt x of
-    SOME x' => x'
-  | NONE => perhaps (try Name.dest_skolem) x);
-
-fun extern_skolem ctxt =
+fun revert_skolem ctxt =
   let
-    val revert = rev_skolem ctxt;
-    fun extern (t as Free (x, T)) =
-        (case revert x of
-          SOME x' => Free (if lookup_skolem ctxt x' = SOME x then x' else NameSpace.hidden x', T)
-        | NONE => t)
-      | extern (t $ u) = extern t $ extern u
-      | extern (Abs (x, T, t)) = Abs (x, T, extern t)
-      | extern a = a;
-  in extern end
+    val rev_fixes = map Library.swap (Variable.fixes_of ctxt);
+    val revert = AList.lookup (op =) rev_fixes;
+  in
+    fn x =>
+      (case revert x of
+        SOME x' => x'
+      | NONE => perhaps (try Name.dest_skolem) x)
+   end;
+
+fun revert_skolems ctxt =
+  let
+    val revert = revert_skolem ctxt;
+    fun reverts (Free (x, T)) = Free (revert x, T)
+      | reverts (t $ u) = reverts t $ reverts u
+      | reverts (Abs (x, T, t)) = Abs (x, T, reverts t)
+      | reverts a = a;
+  in reverts end
 
 
 
@@ -905,23 +903,9 @@ end;
 
 (* fixes vs. frees *)
 
-fun fix_frees t ctxt =
-  let
-    fun add (Free (x, T)) =
-          if Variable.is_fixed ctxt x then I else insert (op =) (x, SOME T, NoSyn)
-      | add _ = I;
-    val fixes = rev (fold_aterms add t []);
-  in
-    ctxt
-    |> Variable.declare_term t
-    |> Variable.set_body false
-    |> (snd o add_fixes_i fixes)
-    |> Variable.restore_body ctxt
-  end;
-
 fun auto_fixes (arg as (ctxt, (propss, x))) =
   if Variable.is_body ctxt then arg
-  else ((fold o fold) fix_frees propss ctxt, (propss, x));
+  else ((fold o fold) Variable.fix_frees propss ctxt, (propss, x));
 
 fun bind_fixes xs ctxt =
   let
