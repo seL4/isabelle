@@ -59,7 +59,6 @@ sig
   val delete_tagged_brl : (bool * thm) *
     (('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net) ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
-  val is_fact           : thm -> bool
   val lessb             : (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule    : thm * int * (string*string)list * thm -> thm
   val make_elim         : thm -> thm
@@ -373,18 +372,13 @@ fun bires_cut_tac arg i =
   while subgoal i+1,... are the premises of the rule.*)
 fun metacut_tac rule = bires_cut_tac [(false,rule)];
 
-(*Recognizes theorems that are not rules, but simple propositions*)
-fun is_fact rl =
-    case prems_of rl of
-        [] => true  |  _::_ => false;
-
 (*"Cut" a list of rules into the goal.  Their premises will become new
   subgoals.*)
 fun cut_rules_tac ths i = EVERY (map (fn th => metacut_tac th i) ths);
 
 (*As above, but inserts only facts (unconditional theorems);
   generates no additional subgoals. *)
-fun cut_facts_tac ths = cut_rules_tac  (List.filter is_fact ths);
+fun cut_facts_tac ths = cut_rules_tac (filter Thm.no_prems ths);
 
 (*Introduce the given proposition as a lemma and subgoal*)
 fun subgoal_tac sprop =
