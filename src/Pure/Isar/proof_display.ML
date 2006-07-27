@@ -32,7 +32,7 @@ end
 structure ProofDisplay: PROOF_DISPLAY =
 struct
 
-(* ML toplevel pretty printing *)
+(* toplevel pretty printing *)
 
 val debug = ref false;
 
@@ -47,7 +47,7 @@ val pprint_typ = pprint ProofContext.pretty_typ;
 val pprint_term = pprint ProofContext.pretty_term;
 fun pprint_ctyp cT = pprint_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 fun pprint_cterm ct = pprint_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
-fun pprint_thm th = pprint ProofContext.pretty_thm (Thm.theory_of_thm th) th;
+val pprint_thm = Pretty.pprint o ProofContext.legacy_pretty_thm true;
 
 
 (* theorems and theory *)

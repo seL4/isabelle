@@ -411,15 +411,9 @@ fun ml_file path str =
 
 local
 
-fun smart_pretty_thm th =
-  let val thy = Thm.theory_of_thm th in
-    if eq_thy (thy, ProtoPure.thy) then Display.pretty_thm_no_quote th
-    else ProofContext.pretty_thm (ProofContext.init thy) th
-  end;
-
 val string_of_thm =
   Output.output o Pretty.setmp_margin 80 Pretty.string_of o
-    setmp show_question_marks false smart_pretty_thm;
+    setmp show_question_marks false (ProofContext.legacy_pretty_thm false);
 
 fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
 
