@@ -7,10 +7,10 @@ Tactical operations depending on local subgoal structure.
 
 signature BASIC_SUBGOAL =
 sig
-  val SUBPROOF: Proof.context ->
+  val SUBPROOF:
     ({context: Proof.context, schematics: ctyp list * cterm list,
       params: cterm list, asms: cterm list, concl: cterm,
-      prems: thm list} -> tactic) -> int -> tactic
+      prems: thm list} -> tactic) -> Proof.context -> int -> tactic
 end
 
 signature SUBGOAL =
@@ -29,17 +29,17 @@ struct
 
 fun focus ctxt i st =
   let
-    val ((schematics, [st']), ctxt') = Variable.import true [Goal.norm_hhf st] ctxt;
+    val ((schematics, [st']), ctxt') = Variable.import true [norm_hhf st] ctxt;
     val ((params, goal), ctxt'') = Variable.focus (Thm.cprem_of st' i) ctxt';
     val asms = Drule.strip_imp_prems goal;
     val concl = Drule.strip_imp_concl goal;
-    val (prems, context) = ProofContext.add_assumes asms ctxt'';
+    val (prems, context) = Assumption.add_assumes asms ctxt'';
   in
     ({context = context, schematics = schematics, params = params,
       asms = asms, concl = concl, prems = prems}, Goal.init concl)
   end;
 
-fun SUBPROOF ctxt tac i st =
+fun SUBPROOF tac ctxt i st =
   if Thm.nprems_of st < i then Seq.empty
   else
     let
