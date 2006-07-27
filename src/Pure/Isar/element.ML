@@ -120,7 +120,7 @@ fun prems_of (Assumes asms) = maps (map fst o snd) asms
   | prems_of (Defines defs) = map (fst o snd) defs
   | prems_of _ = [];
 
-fun assume thy t = Goal.norm_hhf (Thm.assume (Thm.cterm_of thy t));
+fun assume thy t = Assumption.assume (Thm.cterm_of thy t);
 
 fun facts_of thy (Assumes asms) = map (apsnd (map (fn (t, _) => ([assume thy t], [])))) asms
   | facts_of thy (Defines defs) = map (apsnd (fn (t, _) => [([assume thy t], [])])) defs
@@ -228,7 +228,7 @@ fun pretty_statement ctxt kind raw_th =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val th = Goal.norm_hhf raw_th;
+    val th = norm_hhf raw_th;
     val is_elim = ObjectLogic.is_elim th;
 
     val ((_, [th']), ctxt') = Variable.import true [th] ctxt;
@@ -272,12 +272,11 @@ fun prove_witness ctxt t tac =
   Witness (t, Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
     Tactic.rtac Drule.protectI 1 THEN tac));
 
-fun conclude_witness (Witness (_, th)) = Goal.norm_hhf (Goal.conclude th);
+fun conclude_witness (Witness (_, th)) = norm_hhf (Goal.conclude th);
 
 val mark_witness = Logic.protect;
 
 fun make_witness t th = Witness (t, th);
-
 fun dest_witness (Witness w) = w;
 
 fun transfer_witness thy (Witness (t, th)) = Witness (t, Thm.transfer thy th);
