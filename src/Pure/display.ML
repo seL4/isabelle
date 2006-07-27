@@ -33,7 +33,6 @@ sig
   val raw_string_of_term: term -> string
   val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
   val pretty_thm_aux: Pretty.pp -> bool -> bool -> term list -> thm -> Pretty.T
-  val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val pretty_thms: thm list -> Pretty.T
   val pretty_thm_sg: theory -> thm -> Pretty.T
@@ -100,12 +99,8 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
-fun gen_pretty_thm quote th =
-  pretty_thm_aux (Sign.pp (Thm.theory_of_thm th)) quote false [] th;
-
-val pretty_thm = gen_pretty_thm true;
-val pretty_thm_no_quote = gen_pretty_thm false;
-
+fun pretty_thm th =
+  pretty_thm_aux (Sign.pp (Thm.theory_of_thm th)) true false [] th;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
 
