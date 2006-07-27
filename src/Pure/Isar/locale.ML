@@ -882,7 +882,7 @@ fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
         val ts = maps (map #1 o #2) asms';
         val (ps, qs) = chop (length ts) axs;
         val (_, ctxt') =
-          ctxt |> fold ProofContext.fix_frees ts
+          ctxt |> fold Variable.fix_frees ts
           |> ProofContext.add_assms_i (axioms_export (if ax_in_ctxt then ps else [])) asms';
       in ((ctxt', Assumed qs), []) end
   | activate_elem _ _ ((ctxt, Derived ths), Assumes asms) =
@@ -894,7 +894,7 @@ fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
             in (t', ((if name = "" then Thm.def_name c else name, atts), [(t', ps)])) end);
         val (_, ctxt') =
-          ctxt |> fold (ProofContext.fix_frees o #1) asms
+          ctxt |> fold (Variable.fix_frees o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
       in ((ctxt', Assumed axs), []) end
   | activate_elem _ _ ((ctxt, Derived ths), Defines defs) =

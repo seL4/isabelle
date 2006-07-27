@@ -249,7 +249,7 @@ fun add_axiom hyps (name, prop) thy =
 in
 
 fun axioms_finish finish = fold_map (fn ((name, atts), props) =>
-  fold ProofContext.fix_frees props
+  fold Variable.fix_frees props
   #> (fn ctxt => ctxt
     |> theory_result (fold_map (add_axiom (hyps_of ctxt)) (PureThy.name_multi name props))
     |-> (fn ths => note ((name, atts), map (finish ctxt) ths))));
