@@ -400,17 +400,22 @@ fun case_conclusion x =
 fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> RuleCases.params) x;
 
 
-(* rule_format *)
+(* rule format *)
 
 fun rule_format_att x = syntax (Args.mode "no_asm"
   >> (fn true => ObjectLogic.rule_format_no_asm | false => ObjectLogic.rule_format)) x;
+
+fun elim_format x = no_args (Thm.rule_attribute (K Tactic.make_elim)) x;
 
 
 (* misc rules *)
 
 fun standard x = no_args (Thm.rule_attribute (K Drule.standard)) x;
-fun elim_format x = no_args (Thm.rule_attribute (K Tactic.make_elim)) x;
-fun no_vars x = no_args (Thm.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
+
+fun no_vars x = no_args (Thm.rule_attribute (fn ctxt => fn th =>
+  let val ((_, [th']), _) = Variable.import true [th] (Context.proof_of ctxt)
+  in th' end)) x;
+
 fun eta_long x = no_args (Thm.rule_attribute (K (Drule.fconv_rule Drule.eta_long_conversion))) x;
 
 
