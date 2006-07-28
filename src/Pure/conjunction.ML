@@ -9,6 +9,7 @@ signature CONJUNCTION =
 sig
   val conjunction: cterm
   val mk_conjunction: cterm * cterm -> cterm
+  val mk_conjunction_list: cterm list -> cterm
   val dest_conjunction: cterm -> cterm * cterm
   val cong: thm -> thm -> thm
   val conv: int -> (int -> cterm -> thm) -> cterm -> thm
@@ -36,6 +37,11 @@ val cert = Thm.cterm_of ProtoPure.thy;
 
 val conjunction = cert Logic.conjunction;
 fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
+
+val true_prop = read "!!dummy. PROP dummy ==> PROP dummy";
+
+fun mk_conjunction_list [] = true_prop
+  | mk_conjunction_list ts = foldr1 mk_conjunction ts;
 
 fun dest_conjunction ct =
   (case Thm.term_of ct of
