@@ -51,11 +51,7 @@ fun proof_to_string (num,(step,clause_strs, thmvars)) =
  
 
 fun proofs_to_string [] str = str
-|   proofs_to_string (x::xs) str = let val newstr = proof_to_string x 
-                                   in
-                                       proofs_to_string xs (str^newstr)
-                                   end
-
+|   proofs_to_string (x::xs) str = proofs_to_string xs (str ^ proof_to_string x)
 
 
 fun init_proofstep_to_string (num, step, clause_strs) =
@@ -63,10 +59,8 @@ fun init_proofstep_to_string (num, step, clause_strs) =
  (clause_strs_to_string clause_strs "")^" "
 
 fun init_proofsteps_to_string [] str = str
-|   init_proofsteps_to_string (x::xs) str = let val newstr = init_proofstep_to_string x 
-                                   in
-                                       init_proofsteps_to_string xs (str^newstr)
-                                   end
+|   init_proofsteps_to_string (x::xs) str =
+      init_proofsteps_to_string xs (str ^ init_proofstep_to_string x)
   
 
 
@@ -82,10 +76,8 @@ fun origAx_to_string (num,(meta,thmvars)) =
 
 
 fun  origAxs_to_string [] str = str
-|   origAxs_to_string (x::xs) str = let val newstr = origAx_to_string x 
-                                   in
-                                       origAxs_to_string xs (str^newstr)
-                                   end
+|   origAxs_to_string (x::xs) str = 
+      origAxs_to_string xs (str ^ origAx_to_string x )
 
 
 (*** get a string representing the Isabelle ordered axioms not used in the spass proof***)
@@ -139,27 +131,19 @@ fun add_if_not_inlist eq [] xs newlist = newlist
 (*Flattens a list of list of strings to one string*)
 fun onestr ls = String.concat (map String.concat ls);
 
-fun is_clasimp_ax clasimp_num n = n <= clasimp_num 
 
-fun subone x = x - 1
+(**** retrieve the axioms that were obtained from the clasimpset ****)
 
-fun numstr [] = ""
-|   numstr (x::xs) = (string_of_int x)^"%"^(numstr xs)
-
-
-(* retrieve the axioms that were obtained from the clasimpset *)
-
-fun get_clasimp_cls (names_arr: string array) step_nums = 
-    let val clasimp_nums = List.filter (is_clasimp_ax (Array.length names_arr - 1)) 
-	                   (map subone step_nums)
+(*Get names of axioms used. Axioms are indexed from 1, while the array is indexed from 0*)
+fun get_axiom_names (names_arr: string array) step_nums = 
+    let fun is_axiom n = n <= Array.length names_arr 
+        fun index i = Array.sub(names_arr, i-1)
+        val axnums = List.filter is_axiom step_nums
+        val axnames = sort_distinct string_ord (map index axnums)
     in
-	map (fn x =>  Array.sub(names_arr, x)) clasimp_nums
+	if length axnums = length step_nums then "UNSOUND!!" :: axnames
+	else axnames
     end
-
-(* get names of clasimp axioms used*)
-fun get_axiom_names step_nums names_arr =
-  sort_distinct string_ord
-    (get_clasimp_cls names_arr step_nums);
 
  (*String contains multiple lines. We want those of the form 
      "253[0:Inp] et cetera..."
@@ -171,20 +155,23 @@ fun get_spass_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (inputno o toks) lines  end
 
-fun get_axiom_names_spass proofstr names_arr  =
-   get_axiom_names (get_spass_linenums proofstr) names_arr;
+fun get_axiom_names_spass proofstr names_arr =
+   get_axiom_names names_arr (get_spass_linenums proofstr);
     
- (*String contains multiple lines.
-  A list consisting of the first number in each line is returned. *)
-fun get_linenums proofstr = 
-  let val numerics = String.tokens (not o Char.isDigit)
-      fun firstno [] = NONE
-        | firstno (x::xs) = Int.fromString x
+ (*String contains multiple lines. We want those of the form 
+   "number : ...: ...: initial..." *)
+fun get_e_linenums proofstr = 
+  let val fields = String.fields (fn c => c = #":")
+      val nospaces = String.translate (fn c => if c = #" " then "" else str c)
+      fun initial s = String.isPrefix "initial" (nospaces s)
+      fun firstno (line :: _ :: _ :: rule :: _) = 
+            if initial rule then Int.fromString line else NONE
+        | firstno _ = NONE
       val lines = String.tokens (fn c => c = #"\n") proofstr
-  in  List.mapPartial (firstno o numerics) lines  end
+  in  List.mapPartial (firstno o fields) lines  end
 
-fun get_axiom_names_e proofstr names_arr  =
-   get_axiom_names (get_linenums proofstr) names_arr;
+fun get_axiom_names_e proofstr names_arr =
+   get_axiom_names names_arr (get_e_linenums proofstr);
     
  (*String contains multiple lines. We want those of the form 
      "*********** [448, input] ***********".
@@ -196,8 +183,8 @@ fun get_vamp_linenums proofstr =
       val lines = String.tokens (fn c => c = #"\n") proofstr
   in  List.mapPartial (inputno o toks) lines  end
 
-fun get_axiom_names_vamp proofstr names_arr  =
-   get_axiom_names (get_vamp_linenums proofstr) names_arr;
+fun get_axiom_names_vamp proofstr names_arr =
+   get_axiom_names names_arr (get_vamp_linenums proofstr);
     
 
 (***********************************************)
