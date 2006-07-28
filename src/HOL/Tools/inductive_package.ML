@@ -507,7 +507,7 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs ctxt =
   in
     mk_elims cs cTs params intr_ts intr_names |> map (fn (t, cases) =>
       SkipProof.prove ctxt [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-        (fn prems => EVERY
+        (fn {prems, ...} => EVERY
           [cut_facts_tac [hd prems] 1,
            rewrite_goals_tac rec_sets_defs,
            dtac (unfold RS subst) 1,
@@ -653,7 +653,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
             else ();
 
     val induct = standard (SkipProof.prove ctxt [] ind_prems ind_concl
-      (fn prems => EVERY
+      (fn {prems, ...} => EVERY
         [rewrite_goals_tac [inductive_conj_def],
          rtac (impI RS allI) 1,
          DETERM (etac raw_fp_induct 1),

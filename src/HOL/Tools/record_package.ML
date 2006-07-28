@@ -1438,7 +1438,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     fun induct_prf () =
       let val (assm, concl) = induct_prop
-      in prove_standard [assm] concl (fn prems =>
+      in prove_standard [assm] concl (fn {prems, ...} =>
            EVERY [try_param_tac rN abs_induct 1,
                   simp_tac (HOL_ss addsimps [split_paired_all]) 1,
                   resolve_tac (map (rewrite_rule [ext_def]) prems) 1])
@@ -1878,7 +1878,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun induct_prf () =
       let val (assm, concl) = induct_prop;
       in
-        prove_standard [assm] concl (fn prems =>
+        prove_standard [assm] concl (fn {prems, ...} =>
           try_param_tac rN induct_scheme 1
           THEN try_param_tac "more" unit_induct 1
           THEN resolve_tac prems 1)

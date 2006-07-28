@@ -9,8 +9,8 @@ signature SKIP_PROOF =
 sig
   val make_thm: theory -> term -> thm
   val cheat_tac: theory -> tactic
-  val prove: ProofContext.context ->
-    string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove: ProofContext.context -> string list -> term list -> term ->
+    ({prems: thm list, context: Context.proof} -> tactic) -> thm
 end;
 
 structure SkipProof: SKIP_PROOF =
