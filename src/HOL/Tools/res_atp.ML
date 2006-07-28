@@ -36,9 +36,9 @@ sig
   val hol_const_types_only: unit -> unit
   val hol_no_types: unit -> unit
   val hol_typ_level: unit -> ResHolClause.type_level
+  val include_all: bool ref
   val run_relevance_filter: bool ref
   val run_blacklist_filter: bool ref
-  val invoke_atp_ml : ProofContext.context * thm -> unit
   val add_all : unit -> unit
   val add_claset : unit -> unit
   val add_simpset : unit -> unit
@@ -139,16 +139,22 @@ val include_all = ref false;
 val include_simpset = ref false;
 val include_claset = ref false; 
 val include_atpset = ref true;
-val add_all = (fn () => include_all:=true);
-val add_simpset = (fn () => include_simpset:=true);
-val add_claset = (fn () => include_claset:=true);
-val add_clasimp = (fn () => (include_simpset:=true;include_claset:=true));
-val add_atpset = (fn () => include_atpset:=true);
-val rm_all = (fn () => include_all:=false);
-val rm_simpset = (fn () => include_simpset:=false);
-val rm_claset = (fn () => include_claset:=false);
-val rm_clasimp = (fn () => (include_simpset:=false;include_claset:=false));
-val rm_atpset = (fn () => include_atpset:=false);
+
+(*Tests show that follow_defs gives VERY poor results with "include_all"*)
+fun add_all() = (include_all:=true; ReduceAxiomsN.follow_defs := false);
+fun rm_all() = include_all:=false;
+
+fun add_simpset() = include_simpset:=true;
+fun rm_simpset() = include_simpset:=false;
+
+fun add_claset() = include_claset:=true;
+fun rm_claset() = include_claset:=false;
+
+fun add_clasimp() = (include_simpset:=true;include_claset:=true);
+fun rm_clasimp() = (include_simpset:=false;include_claset:=false);
+
+fun add_atpset() = include_atpset:=true;
+fun rm_atpset() = include_atpset:=false;
 
 
 (**** relevance filter ****)
