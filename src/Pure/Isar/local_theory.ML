@@ -75,7 +75,7 @@ val hyps_of = #hyps o Data.get;
 
 fun standard ctxt =
   (case #locale (Data.get ctxt) of
-    NONE => map Drule.standard
+    NONE => map Drule.standard   (* FIXME !? *)
   | SOME (_, loc_ctxt) => ProofContext.export_standard ctxt loc_ctxt);
 
 
