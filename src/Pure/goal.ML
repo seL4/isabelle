@@ -20,11 +20,12 @@ sig
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
-  val prove_multi: Context.proof -> string list -> term list -> term list ->
-    (thm list -> tactic) -> thm list
-  val prove: Context.proof -> string list -> term list -> term -> (thm list -> tactic) -> thm
-  val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
+  val prove_multi: Context.proof -> string list -> term list -> term list ->
+    ({prems: thm list, context: Context.proof} -> tactic) -> thm list
+  val prove: Context.proof -> string list -> term list -> term ->
+    ({prems: thm list, context: Context.proof} -> tactic) -> thm
+  val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
 end;
@@ -91,6 +92,14 @@ fun comp_hhf tha thb =
 
 (** tactical theorem proving **)
 
+(* prove_raw -- no checks, no normalization of result! *)
+
+fun prove_raw casms cprop tac =
+  (case SINGLE (tac (map Assumption.assume casms)) (init cprop) of
+    SOME th => Drule.implies_intr_list casms (finish th)
+  | NONE => error "Tactic failed.");
+
+
 (* prove_multi *)
 
 fun prove_multi ctxt xs asms props tac =
@@ -98,37 +107,34 @@ fun prove_multi ctxt xs asms props tac =
     val thy = Context.theory_of_proof ctxt;
     val string_of_term = Sign.string_of_term thy;
 
-    val prop = Logic.mk_conjunction_list props;
-    val statement = Logic.list_implies (asms, prop);
-
     fun err msg = cat_error msg
-      ("The error(s) above occurred for the goal statement:\n" ^ string_of_term statement);
-    fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm t)
+      ("The error(s) above occurred for the goal statement:\n" ^
+        string_of_term (Logic.list_implies (asms, Logic.mk_conjunction_list props)));
+
+    fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm (Term.no_dummy_patterns t))
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
-
-    val _ = cert_safe statement;
-    val _ = Term.no_dummy_patterns statement handle TERM (msg, _) => err msg;
     val casms = map cert_safe asms;
-    val prems = map (norm_hhf o Thm.assume) casms;
+    val cprops = map cert_safe props;
 
-    val ctxt' = ctxt
-      |> Variable.set_body false
-      |> (snd o Variable.add_fixes xs)
-      |> fold Variable.declare_internal (asms @ props);
+    val (prems, ctxt') = ctxt
+      |> Variable.add_fixes_direct xs
+      |> fold Variable.declare_internal (asms @ props)
+      |> Assumption.add_assumes casms;
 
+    val goal = init (Conjunction.mk_conjunction_list cprops);
     val res =
-      (case SINGLE (tac prems) (init (cert_safe prop)) of
+      (case SINGLE (tac {prems = prems, context = ctxt'}) goal of
         NONE => err "Tactic failed."
       | SOME res => res);
-    val [results] =
-      Conjunction.elim_precise [length props] (finish res) handle THM (msg, _, _) => err msg;
-    val _ = Unify.matches_list thy (map (Thm.term_of o cert_safe) props) (map Thm.prop_of results)
+    val [results] = Conjunction.elim_precise [length props] (finish res)
+      handle THM (msg, _, _) => err msg;
+    val _ = Unify.matches_list thy (map Thm.term_of cprops) (map Thm.prop_of results)
       orelse err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res));
   in
     results
-    |> map (Drule.implies_intr_list casms)
+    |> (Seq.hd o Assumption.exports false ctxt' ctxt)
     |> Variable.export ctxt' ctxt
-    |> map (norm_hhf #> Drule.zero_var_indexes)
+    |> map Drule.zero_var_indexes
   end;
 
 
@@ -137,15 +143,7 @@ fun prove_multi ctxt xs asms props tac =
 fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (Context.init_proof thy) xs asms prop tac);
-
-
-(* prove_raw -- no checks, no normalization of result! *)
-
-fun prove_raw casms cprop tac =
-  (case SINGLE (tac (map (norm_hhf o Thm.assume) casms)) (init cprop) of
-    SOME th => Drule.implies_intr_list casms (finish th)
-  | NONE => error "Tactic failed.");
+  Drule.standard (prove (Context.init_proof thy) xs asms prop (fn {prems, ...} => tac prems));
 
 
 
