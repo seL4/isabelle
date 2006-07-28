@@ -25,7 +25,7 @@ sig
   val pretty_classrel: context -> class list -> Pretty.T
   val pretty_arity: context -> arity -> Pretty.T
   val pp: context -> Pretty.pp
-  val legacy_pretty_thm: bool -> thm -> Pretty.T
+  val pretty_thm_legacy: bool -> thm -> Pretty.T
   val pretty_thm: context -> thm -> Pretty.T
   val pretty_thms: context -> thm list -> Pretty.T
   val pretty_fact: context -> string * thm list -> Pretty.T
@@ -281,7 +281,7 @@ fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
 fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
   pretty_classrel ctxt, pretty_arity ctxt);
 
-fun legacy_pretty_thm quote th =
+fun pretty_thm_legacy quote th =
   let
     val thy = Thm.theory_of_thm th;
     val pp =

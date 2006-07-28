@@ -413,7 +413,7 @@ local
 
 val string_of_thm =
   Output.output o Pretty.setmp_margin 80 Pretty.string_of o
-    setmp show_question_marks false (ProofContext.legacy_pretty_thm false);
+    setmp show_question_marks false (ProofContext.pretty_thm_legacy false);
 
 fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
 

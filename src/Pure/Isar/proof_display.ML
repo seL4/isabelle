@@ -47,7 +47,7 @@ val pprint_typ = pprint ProofContext.pretty_typ;
 val pprint_term = pprint ProofContext.pretty_term;
 fun pprint_ctyp cT = pprint_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 fun pprint_cterm ct = pprint_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
-val pprint_thm = Pretty.pprint o ProofContext.legacy_pretty_thm true;
+val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy true;
 
 
 (* theorems and theory *)
