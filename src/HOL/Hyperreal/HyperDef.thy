@@ -1,4 +1,4 @@
-(*  Title       : HOL/Real/Hyperreal/HyperDef.thy
+(*  Title       : HOL/Hyperreal/HyperDef.thy
     ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge

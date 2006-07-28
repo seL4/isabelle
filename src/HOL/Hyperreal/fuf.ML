@@ -1,4 +1,4 @@
-(*  Title       : HOL/Real/Hyperreal/fuf.ML
+(*  Title       : HOL/Hyperreal/fuf.ML
     ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
