@@ -466,15 +466,15 @@ fun mkthm (sg, ss) asms just =
         let val thm' = trace_thm "Simplified:" (full_simplify simpset' thm)
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk (Asm i) = trace_thm "Asm" (nth asms i)
-        | mk (Nat i) = trace_thm "Nat" (LA_Logic.mk_nat_thm sg (nth atoms i))
-        | mk (LessD(j)) = trace_thm "L" (hd([mk j] RL lessD))
-        | mk (NotLeD(j)) = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
-        | mk (NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))
-        | mk (NotLessD(j)) = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
-        | mk (Added(j1,j2)) = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
-        | mk (Multiplied(n,j)) = (trace_msg("*"^IntInf.toString n); trace_thm "*" (multn(n,mk j)))
-        | mk (Multiplied2(n,j)) = simp (trace_msg("**"^IntInf.toString n); trace_thm "**" (multn2(n,mk j)))
+      fun mk (Asm i)              = trace_thm "Asm" (nth asms i)
+        | mk (Nat i)              = trace_thm "Nat" (LA_Logic.mk_nat_thm sg (nth atoms i))
+        | mk (LessD j)            = trace_thm "L" (hd ([mk j] RL lessD))
+        | mk (NotLeD j)           = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
+        | mk (NotLeDD j)          = trace_thm "NLeD" (hd ([mk j RS LA_Logic.not_leD] RL lessD))
+        | mk (NotLessD j)         = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
+        | mk (Added (j1, j2))     = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
+        | mk (Multiplied (n, j))  = (trace_msg ("*" ^ IntInf.toString n); trace_thm "*" (multn (n, mk j)))
+        | mk (Multiplied2 (n, j)) = simp (trace_msg ("**" ^ IntInf.toString n); trace_thm "**" (multn2 (n, mk j)))
 
   in trace_msg "mkthm";
      let val thm = trace_thm "Final thm:" (mk just)
@@ -590,14 +590,13 @@ For variables n of type nat, a constraint 0 <= n is added.
 (*        failure as soon as a case could not be refuted; i.e. delay further *)
 (*        splitting until after a refutation for other cases has been found. *)
 
-(* Theory.theory -> bool -> typ list * term list -> (typ list * (decompT * int) list) list *)
+(* Theory.theory -> typ list * term list -> (typ list * (decompT * int) list) list *)
 
-fun split_items sg do_pre (Ts, terms) =
+fun split_items sg (Ts, terms) =
   let
 (*
-      val _ = trace_msg ("split_items: do_pre is " ^ Bool.toString do_pre ^ "\n" ^
-                         "  Ts    = " ^ string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
-                         "  terms = " ^ string_of_list (Sign.string_of_term sg) terms)
+      val _ = trace_msg ("split_items: Ts    = " ^ string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
+                         "             terms = " ^ string_of_list (Sign.string_of_term sg) terms)
 *)
       (* splits inequalities '~=' into '<' and '>'; this corresponds to *)
       (* 'REPEAT_DETERM (eresolve_tac neqE i)' at the theorem/tactic    *)
@@ -616,7 +615,7 @@ fun split_items sg do_pre (Ts, terms) =
 
       val result = (Ts, terms) |> (* user-defined preprocessing of the subgoal *)
                                   (* (typ list * term list) list *)
-                                  (if do_pre then LA_Data.pre_decomp sg else Library.single)
+                                  LA_Data.pre_decomp sg
                                |> (* compute the internal encoding of (in-)equalities *)
                                   (* (typ list * decompT option list) list *)
                                   map (apsnd (map (LA_Data.decomp sg)))
@@ -695,8 +694,38 @@ in refute end;
 
 (* Theory.theory -> (string * Term.typ) list -> bool -> bool -> term list -> injust list option *)
 
-fun refute sg params show_ex do_pre terms =
-  refutes sg params show_ex (split_items sg do_pre (map snd params, terms)) [];
+fun refute sg params show_ex terms =
+  refutes sg params show_ex (split_items sg (map snd params, terms)) [];
+
+(* ('a -> bool) -> 'a list -> int *)
+
+fun count P xs = length (List.filter P xs);
+
+(* The limit on the number of ~= allowed.
+   Because each ~= is split into two cases, this can lead to an explosion.
+*)
+val fast_arith_neq_limit = ref 9;
+
+(* Theory.theory -> (string * Term.typ) list -> bool -> bool -> Term.term list -> Term.term -> injust list option *)
+
+fun prove sg params show_ex Hs concl =
+  let
+    (* append the negated conclusion to 'Hs' -- this corresponds to     *)
+    (* 'DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i)' at the *)
+    (* theorem/tactic level                                             *)
+    val Hs' = Hs @ [LA_Logic.neg_prop concl]
+    (* decompT option -> bool *)
+    fun is_neq NONE                 = false
+      | is_neq (SOME (_,_,r,_,_,_)) = (r = "~=")
+  in
+    trace_msg "prove";
+    if count is_neq (map (LA_Data.decomp sg) Hs')
+      > !fast_arith_neq_limit then (
+      trace_msg ("fast_arith_neq_limit exceeded (current value is " ^ string_of_int (!fast_arith_neq_limit) ^ ")");
+      NONE
+    ) else
+      refute sg params show_ex Hs'
+  end;
 
 (* MetaSimplifier.simpset -> int * injust list -> Tactical.tactic *)
 
@@ -714,36 +743,6 @@ fun refute_tac ss (i, justs) =
        EVERY (map just1 justs)                                       (* prove every resulting subgoal, using its justification *)
     end  state;
 
-(* ('a -> bool) -> 'a list -> int *)
-
-fun count P xs = length (List.filter P xs);
-
-(* The limit on the number of ~= allowed.
-   Because each ~= is split into two cases, this can lead to an explosion.
-*)
-val fast_arith_neq_limit = ref 9;
-
-(* Theory.theory -> (string * Term.typ) list -> bool -> bool -> Term.term list -> Term.term -> injust list option *)
-
-fun prove sg params show_ex do_pre Hs concl =
-  let
-    (* append the negated conclusion to 'Hs' -- this corresponds to     *)
-    (* 'DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i)' at the *)
-    (* theorem/tactic level                                             *)
-    val Hs' = Hs @ [LA_Logic.neg_prop concl]
-    (* decompT option -> bool *)
-    fun is_neq NONE                 = false
-      | is_neq (SOME (_,_,r,_,_,_)) = (r = "~=")
-  in
-    trace_msg "prove";
-    if count is_neq (map (LA_Data.decomp sg) Hs')
-      > !fast_arith_neq_limit then (
-      trace_msg ("fast_arith_neq_limit exceeded (current value is " ^ string_of_int (!fast_arith_neq_limit) ^ ")");
-      NONE
-    ) else
-      refute sg params show_ex do_pre Hs'
-  end;
-
 (*
 Fast but very incomplete decider. Only premises and conclusions
 that are already (negated) (in)equations are taken into account.
@@ -753,7 +752,7 @@ fun simpset_lin_arith_tac ss show_ex i st = SUBGOAL (fn (A,_) =>
       val Hs     = Logic.strip_assums_hyp A
       val concl  = Logic.strip_assums_concl A
   in trace_thm ("Trying to refute subgoal " ^ string_of_int i) st;
-     case prove (Thm.sign_of_thm st) params show_ex true Hs concl of
+     case prove (Thm.sign_of_thm st) params show_ex Hs concl of
        NONE => (trace_msg "Refutation failed."; no_tac)
      | SOME js => (trace_msg "Refutation succeeded."; refute_tac ss (i, js))
   end) i st;
@@ -768,65 +767,13 @@ fun cut_lin_arith_tac ss i =
 
 (** Forward proof from theorems **)
 
-(* More tricky code. Needs to arrange the proofs of the multiple cases (due
-to splits of ~= premises) such that it coincides with the order of the cases
-generated by function split_items. *)
-
-datatype splittree = Tip of thm list
-                   | Spl of thm * cterm * splittree * cterm * splittree
-
-(* the cterm "(ct1 ==> ?R) ==> (ct2 ==> ?R) ==> ?R" is taken to (ct1, ct2) *)
-
-(* Thm.cterm -> Thm.cterm * Thm.cterm *)
-
-fun extract imp =
-let val (Il, r)    = Thm.dest_comb imp
-    val (_, imp1)  = Thm.dest_comb Il
-    val (Ict1, _)  = Thm.dest_comb imp1
-    val (_, ct1)   = Thm.dest_comb Ict1
-    val (Ir, _)    = Thm.dest_comb r
-    val (_, Ict2r) = Thm.dest_comb Ir
-    val (Ict2, _)  = Thm.dest_comb Ict2r
-    val (_, ct2)   = Thm.dest_comb Ict2
-in (ct1, ct2) end;
-
-(* Theory.theory -> Thm.thm list -> splittree *)
-
-fun splitasms sg asms =
-let val {neqE, ...} = Data.get sg
-    fun elim_neq (asms', []) = Tip (rev asms')
-      | elim_neq (asms', asm::asms) =
-      (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) neqE of
-        SOME spl =>
-          let val (ct1, ct2) = extract (cprop_of spl)
-              val thm1 = assume ct1
-              val thm2 = assume ct2
-          in Spl (spl, ct1, elim_neq (asms', asms@[thm1]), ct2, elim_neq (asms', asms@[thm2]))
-          end
-      | NONE => elim_neq (asm::asms', asms))
-in elim_neq ([], asms) end;
-
-(* Theory.theory * MetaSimplifier.simpset -> splittree -> injust list -> (Thm.thm, injust list) *)
-
-fun fwdproof ctxt (Tip asms) (j::js) = (mkthm ctxt asms j, js)
-  | fwdproof ctxt (Spl (thm, ct1, tree1, ct2, tree2)) js =
-    let val (thm1, js1) = fwdproof ctxt tree1 js
-        val (thm2, js2) = fwdproof ctxt tree2 js1
-        val thm1' = implies_intr ct1 thm1
-        val thm2' = implies_intr ct2 thm2
-    in (thm2' COMP (thm1' COMP thm), js2) end;
-(* needs handle THM _ => NONE ? *)
-
 (* Theory.theory * MetaSimplifier.simpset -> Thm.thm list -> Term.term -> injust list -> bool -> Thm.thm option *)
 
 fun prover (ctxt as (sg, ss)) thms Tconcl js pos =
-let 
-(* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv *)
-(* Use this code instead if lin_arith_prover calls prove with do_pre set to true *)
+let
     (* There is no "forward version" of 'pre_tac'.  Therefore we combine the     *)
     (* available theorems into a single proof state and perform "backward proof" *)
     (* using 'refute_tac'.                                                       *)
-(*
     val Hs    = map prop_of thms
     val Prop  = fold (curry Logic.mk_implies) (rev Hs) Tconcl
     val cProp = cterm_of sg Prop
@@ -835,15 +782,6 @@ let
                   |> Seq.hd
                   |> Goal.finish
                   |> fold (fn thA => fn thAB => implies_elim thAB thA) thms
-*)
-(* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ *)
-    val nTconcl       = LA_Logic.neg_prop Tconcl
-    val cnTconcl      = cterm_of sg nTconcl
-    val nTconclthm    = assume cnTconcl
-    val tree          = splitasms sg (thms @ [nTconclthm])
-    val (Falsethm, _) = fwdproof ctxt tree js
-    val contr         = if pos then LA_Logic.ccontr else LA_Logic.notI
-    val concl         = implies_intr cnTconcl Falsethm COMP contr
 in SOME (trace_thm "Proved by lin. arith. prover:"
           (LA_Logic.mk_Eq concl)) end
 (* in case concl contains ?-var, which makes assume fail: *)
@@ -867,10 +805,10 @@ let val thms = List.concat (map LA_Logic.atomize (prems_of_ss ss));
     val _ = map (trace_thm "thms:") thms
     val _ = trace_msg ("concl:" ^ Sign.string_of_term sg concl)
 *)
-in case prove sg [] false false Hs Tconcl of (* concl provable? *)
+in case prove sg [] false Hs Tconcl of (* concl provable? *)
      SOME js => prover (sg, ss) thms Tconcl js true
    | NONE => let val nTconcl = LA_Logic.neg_prop Tconcl
-          in case prove sg [] false false Hs nTconcl of (* ~concl provable? *)
+          in case prove sg [] false Hs nTconcl of (* ~concl provable? *)
                SOME js => prover (sg, ss) thms nTconcl js false
              | NONE => NONE
           end

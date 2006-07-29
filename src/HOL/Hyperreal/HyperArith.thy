@@ -11,12 +11,6 @@ imports HyperDef
 uses ("hypreal_arith.ML")
 begin
 
-subsection{*Numerals and Arithmetic*}
-
-use "hypreal_arith.ML"
-
-setup hypreal_arith_setup
-
 subsection{*Absolute Value Function for the Hyperreals*}
 
 lemma hrabs_add_less:
@@ -108,5 +102,33 @@ FIXME: we should declare this, as for type int, but many proofs would break.
 It replaces x+-y by x-y.
 Addsimps [symmetric hypreal_diff_def]
 *)
+
+
+subsection{*Numerals and Arithmetic*}
+
+lemma star_of_zero: "star_of 0 = 0"
+  by simp
+
+lemma star_of_one: "star_of 1 = 1"
+  by simp
+
+lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
+  by simp
+
+lemma star_of_minus: "star_of (- x) = - star_of x"
+  by simp
+
+lemma star_of_diff: "star_of (x - y) = star_of x - star_of y"
+  by simp
+
+lemma star_of_mult: "star_of (x * y) = star_of x * star_of y"
+  by simp
+
+lemma star_of_number_of: "star_of (number_of v) = number_of v"
+  by simp
+
+use "hypreal_arith.ML"
+
+setup hypreal_arith_setup
 
 end

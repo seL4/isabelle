@@ -102,18 +102,22 @@ val simps = [real_of_nat_zero, real_of_nat_Suc, real_of_nat_add,
        real_of_nat_mult, real_of_int_zero, real_of_one, real_of_int_add,
        real_of_int_minus, real_of_int_diff,
        real_of_int_mult, real_of_int_of_nat_eq,
-       real_of_nat_number_of, real_number_of];
+       real_of_nat_number_of, real_number_of]
 
-val int_inj_thms = [real_of_int_le_iff RS iffD2, real_of_int_less_iff RS iffD2,
-                    real_of_int_inject RS iffD2];
+val nat_inj_thms = [real_of_nat_le_iff RS iffD2,
+                    real_of_nat_inject RS iffD2]
+(* not needed because x < (y::nat) can be rewritten as Suc x <= y:
+                    real_of_nat_less_iff RS iffD2 *)
 
-val nat_inj_thms = [real_of_nat_le_iff RS iffD2, real_of_nat_less_iff RS iffD2,
-                    real_of_nat_inject RS iffD2];
+val int_inj_thms = [real_of_int_le_iff RS iffD2,
+                    real_of_int_inject RS iffD2]
+(* not needed because x < (y::int) can be rewritten as x + 1 <= y:
+                    real_of_int_less_iff RS iffD2 *)
 
 in
 
 val fast_real_arith_simproc =
- Simplifier.simproc (Theory.sign_of (the_context ()))
+ Simplifier.simproc (the_context ())
   "fast_real_arith" ["(m::real) < n","(m::real) <= n", "(m::real) = n"]
   Fast_Arith.lin_arith_prover;
 
@@ -128,11 +132,6 @@ val real_arith_setup =
   arith_inj_const ("RealDef.real", HOLogic.natT --> HOLogic.realT) #>
   arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT) #>
   (fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_real_arith_simproc]); thy));
-
-(* some thms for injection nat => real:
-real_of_nat_zero
-real_of_nat_add
-*)
 
 end;
 

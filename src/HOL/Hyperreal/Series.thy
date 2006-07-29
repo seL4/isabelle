@@ -323,6 +323,8 @@ text{*Sum of a geometric progression.*}
 
 lemmas sumr_geometric = geometric_sum [where 'a = real]
 
+ML {* fast_arith_split_limit := 0; *}  (* FIXME: needed because otherwise a premise gets simplified away *)
+
 lemma geometric_sums: "abs(x) < 1 ==> (%n. x ^ n) sums (1/(1 - x))"
 apply (case_tac "x = 1")
 apply (auto dest!: LIMSEQ_rabs_realpow_zero2 
@@ -332,6 +334,8 @@ apply (erule ssubst)
 apply (rule LIMSEQ_add, rule LIMSEQ_divide)
 apply (auto intro: LIMSEQ_const simp add: diff_minus minus_divide_right LIMSEQ_rabs_realpow_zero2)
 done
+
+ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 text{*Cauchy-type criterion for convergence of series (c.f. Harrison)*}
 

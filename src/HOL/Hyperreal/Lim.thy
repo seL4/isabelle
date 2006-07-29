@@ -1259,10 +1259,11 @@ apply (drule real_less_sum_gt_zero)
 apply (drule_tac x = "f n + - lim f" in spec, safe)
 apply (drule_tac P = "%na. no\<le>na --> ?Q na" and x = "no + n" in spec, auto)
 apply (subgoal_tac "lim f \<le> f (no + n) ")
-apply (induct_tac [2] "no")
-apply (auto intro: order_trans simp add: diff_minus abs_if)
 apply (drule_tac no=no and m=n in lemma_f_mono_add)
 apply (auto simp add: add_commute)
+apply (induct_tac "no")
+apply simp
+apply (auto intro: order_trans simp add: diff_minus abs_if)
 done
 
 lemma lim_uminus: "convergent g ==> lim (%x. - g x) = - (lim g)"

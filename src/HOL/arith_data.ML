@@ -241,17 +241,24 @@ type decompT = ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list
 
 (* Decomposition of terms *)
 
-fun nT (Type("fun",[N,_])) = N = HOLogic.natT
-  | nT _ = false;
+(* typ -> bool *)
 
-fun add_atom(t,m,(p,i)) = (case AList.lookup (op =) p t of NONE => ((t, m) :: p, i)
-                           | SOME n => (AList.update (op =) (t, Rat.add (n, m)) p, i));
+fun nT (Type ("fun", [N, _])) = (N = HOLogic.natT)
+  | nT _                      = false;
+
+fun add_atom (t, m, (p, i)) =
+  case AList.lookup (op =) p t of NONE   => ((t, m) :: p, i)
+                                | SOME n => (AList.update (op =) (t, Rat.add (n, m)) p, i);
 
 exception Zero;
 
-fun rat_of_term (numt,dent) =
-  let val num = HOLogic.dest_binum numt and den = HOLogic.dest_binum dent
-  in if den = 0 then raise Zero else Rat.rat_of_quotient (num,den) end;
+fun rat_of_term (numt, dent) =
+let
+  val num = HOLogic.dest_binum numt
+  val den = HOLogic.dest_binum dent
+in
+  if den = 0 then raise Zero else Rat.rat_of_quotient (num, den)
+end;
 
 (* Warning: in rare cases number_of encloses a non-numeral,
    in which case dest_binum raises TERM; hence all the handles below.
@@ -267,91 +274,104 @@ fun number_of_Sucs (Const("Suc",_) $ n) = number_of_Sucs n + 1
    their coefficients
 *)
 
+(* (string * Term.typ) list -> ... *)
+
 fun demult inj_consts =
 let
-fun demult((mC as Const("HOL.times",_)) $ s $ t,m) = ((case s of
-        Const("Numeral.number_of",_)$n
-        => demult(t,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum n)))
-      | Const("HOL.uminus",_)$(Const("Numeral.number_of",_)$n)
-        => demult(t,Rat.mult(m,Rat.rat_of_intinf(~(HOLogic.dest_binum n))))
-      | Const("Suc",_) $ _
-        => demult(t,Rat.mult(m,Rat.rat_of_int(number_of_Sucs s)))
-      | Const("HOL.times",_) $ s1 $ s2 => demult(mC $ s1 $ (mC $ s2 $ t),m)
-      | Const("HOL.divide",_) $ numt $ (Const("Numeral.number_of",_)$dent) =>
-          let val den = HOLogic.dest_binum dent
-          in if den = 0 then raise Zero
-             else demult(mC $ numt $ t,Rat.mult(m, Rat.inv(Rat.rat_of_intinf den)))
+  fun demult ((mC as Const ("HOL.times", _)) $ s $ t, m) = (
+      (case s of
+        Const ("Numeral.number_of", _) $ n =>
+          demult (t, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_binum n)))
+      | Const ("HOL.uminus", _) $ (Const ("Numeral.number_of", _) $ n) =>
+          demult (t, Rat.mult (m, Rat.rat_of_intinf (~(HOLogic.dest_binum n))))
+      | Const("Suc", _) $ _ =>
+          demult (t, Rat.mult (m, Rat.rat_of_int (number_of_Sucs s)))
+      | Const ("HOL.times", _) $ s1 $ s2 =>
+          demult (mC $ s1 $ (mC $ s2 $ t), m)
+      | Const ("HOL.divide", _) $ numt $ (Const ("Numeral.number_of", _) $ dent) =>
+          let
+            val den = HOLogic.dest_binum dent
+          in
+            if den = 0 then  raise Zero  else  demult (mC $ numt $ t, Rat.mult (m, Rat.inv (Rat.rat_of_intinf den)))
           end
-      | _ => atomult(mC,s,t,m)
-      ) handle TERM _ => atomult(mC,s,t,m))
-  | demult(atom as Const("HOL.divide",_) $ t $ (Const("Numeral.number_of",_)$dent), m) =
-      (let val den = HOLogic.dest_binum dent
-       in if den = 0 then raise Zero else demult(t,Rat.mult(m, Rat.inv(Rat.rat_of_intinf den))) end
-       handle TERM _ => (SOME atom,m))
-  | demult(Const("0",_),m) = (NONE, Rat.rat_of_int 0)
-  | demult(Const("1",_),m) = (NONE, m)
-  | demult(t as Const("Numeral.number_of",_)$n,m) =
-      ((NONE,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum n)))
-       handle TERM _ => (SOME t,m))
-  | demult(Const("HOL.uminus",_)$t, m) = demult(t,Rat.mult(m,Rat.rat_of_int(~1)))
-  | demult(t as Const f $ x, m) =
-      (if f mem inj_consts then SOME x else SOME t,m)
-  | demult(atom,m) = (SOME atom,m)
-
-and atomult(mC,atom,t,m) = (case demult(t,m) of (NONE,m') => (SOME atom,m')
-                            | (SOME t',m') => (SOME(mC $ atom $ t'),m'))
+      | _ =>
+          atomult (mC, s, t, m)
+      ) handle TERM _ => atomult (mC, s, t, m)
+    )
+    | demult (atom as Const("HOL.divide", _) $ t $ (Const ("Numeral.number_of", _) $ dent), m) = (
+      let
+        val den = HOLogic.dest_binum dent
+      in
+        if den = 0 then  raise Zero  else  demult (t, Rat.mult (m, Rat.inv (Rat.rat_of_intinf den)))
+      end
+        handle TERM _ => (SOME atom, m)
+    )
+    | demult(Const("0",_),m) = (NONE, Rat.rat_of_int 0)
+    | demult(Const("1",_),m) = (NONE, m)
+    | demult(t as Const("Numeral.number_of",_)$n,m) =
+        ((NONE,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum n)))
+         handle TERM _ => (SOME t,m))
+    | demult(Const("HOL.uminus",_)$t, m) = demult(t,Rat.mult(m,Rat.rat_of_int(~1)))
+    | demult(t as Const f $ x, m) =
+        (if f mem inj_consts then SOME x else SOME t,m)
+    | demult(atom,m) = (SOME atom,m)
+and
+  atomult (mC, atom, t, m) = (
+    case demult (t, m) of (NONE, m')    => (SOME atom, m')
+                        | (SOME t', m') => (SOME (mC $ atom $ t'), m')
+  )
 in demult end;
 
-fun decomp2 inj_consts (rel,lhs,rhs) =
+fun decomp2 inj_consts (rel, lhs, rhs) =
 let
-(* Turn term into list of summand * multiplicity plus a constant *)
-fun poly(Const("HOL.plus",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
-  | poly(all as Const("HOL.minus",T) $ s $ t, m, pi) =
-      if nT T then add_atom(all,m,pi) else poly(s,m,poly(t,Rat.neg m,pi))
-  | poly(all as Const("HOL.uminus",T) $ t, m, pi) =
-      if nT T then add_atom(all,m,pi) else poly(t,Rat.neg m,pi)
-  | poly(Const("0",_), _, pi) = pi
-  | poly(Const("1",_), m, (p,i)) = (p,Rat.add(i,m))
-  | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,Rat.add(i,m)))
-  | poly(t as Const("HOL.times",_) $ _ $ _, m, pi as (p,i)) =
-      (case demult inj_consts (t,m) of
-         (NONE,m') => (p,Rat.add(i,m))
-       | (SOME u,m') => add_atom(u,m',pi))
-  | poly(t as Const("HOL.divide",_) $ _ $ _, m, pi as (p,i)) =
-      (case demult inj_consts (t,m) of
-         (NONE,m') => (p,Rat.add(i,m'))
-       | (SOME u,m') => add_atom(u,m',pi))
-  | poly(all as (Const("Numeral.number_of",_)$t,m,(p,i))) =
-      ((p,Rat.add(i,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum t))))
-       handle TERM _ => add_atom all)
-  | poly(all as Const f $ x, m, pi) =
-      if f mem inj_consts then poly(x,m,pi) else add_atom(all,m,pi)
-  | poly x  = add_atom x;
+  (* Turn term into list of summand * multiplicity plus a constant *)
+  fun poly(Const("HOL.plus",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
+    | poly(all as Const("HOL.minus",T) $ s $ t, m, pi) =
+        if nT T then add_atom(all,m,pi) else poly(s,m,poly(t,Rat.neg m,pi))
+    | poly(all as Const("HOL.uminus",T) $ t, m, pi) =
+        if nT T then add_atom(all,m,pi) else poly(t,Rat.neg m,pi)
+    | poly(Const("0",_), _, pi) = pi
+    | poly(Const("1",_), m, (p,i)) = (p,Rat.add(i,m))
+    | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,Rat.add(i,m)))
+    | poly(t as Const("HOL.times",_) $ _ $ _, m, pi as (p,i)) =
+        (case demult inj_consts (t,m) of
+           (NONE,m') => (p,Rat.add(i,m))
+         | (SOME u,m') => add_atom(u,m',pi))
+    | poly(t as Const("HOL.divide",_) $ _ $ _, m, pi as (p,i)) =
+        (case demult inj_consts (t,m) of
+           (NONE,m') => (p,Rat.add(i,m'))
+         | (SOME u,m') => add_atom(u,m',pi))
+    | poly(all as (Const("Numeral.number_of",_)$t,m,(p,i))) =
+        ((p,Rat.add(i,Rat.mult(m,Rat.rat_of_intinf(HOLogic.dest_binum t))))
+         handle TERM _ => add_atom all)
+    | poly(all as Const f $ x, m, pi) =
+        if f mem inj_consts then poly(x,m,pi) else add_atom(all,m,pi)
+    | poly x  = add_atom x
+  val (p, i) = poly (lhs, Rat.rat_of_int 1, ([], Rat.rat_of_int 0))
+  val (q, j) = poly (rhs, Rat.rat_of_int 1, ([], Rat.rat_of_int 0))
+in
+  case rel of
+    "Orderings.less"    => SOME (p, i, "<", q, j)
+  | "Orderings.less_eq" => SOME (p, i, "<=", q, j)
+  | "op ="              => SOME (p, i, "=", q, j)
+  | _                   => NONE
+end handle Zero => NONE;
 
-val (p,i) = poly(lhs,Rat.rat_of_int 1,([],Rat.rat_of_int 0))
-and (q,j) = poly(rhs,Rat.rat_of_int 1,([],Rat.rat_of_int 0))
-
-  in case rel of
-       "Orderings.less"  => SOME(p,i,"<",q,j)
-     | "Orderings.less_eq" => SOME(p,i,"<=",q,j)
-     | "op ="  => SOME(p,i,"=",q,j)
-     | _       => NONE
-  end handle Zero => NONE;
-
-fun negate(SOME(x,i,rel,y,j,d)) = SOME(x,i,"~"^rel,y,j,d)
-  | negate NONE = NONE;
+fun negate (SOME (x, i, rel, y, j, d)) = SOME (x, i, "~" ^ rel, y, j, d)
+  | negate NONE                        = NONE;
 
 fun of_lin_arith_sort sg U =
-  Type.of_sort (Sign.tsig_of sg) (U,["Ring_and_Field.ordered_idom"])
+  Type.of_sort (Sign.tsig_of sg) (U, ["Ring_and_Field.ordered_idom"])
 
-fun allows_lin_arith sg discrete (U as Type(D,[])) =
-      if of_lin_arith_sort sg U
-      then (true, D mem discrete)
-      else (* special cases *)
-           if D mem discrete then (true,true) else (false,false)
-  | allows_lin_arith sg discrete U = (of_lin_arith_sort sg U, false);
+fun allows_lin_arith sg discrete (U as Type (D, [])) =
+  if of_lin_arith_sort sg U then
+    (true, D mem discrete)
+  else (* special cases *)
+    if D mem discrete then  (true, true)  else (false, false)
+  | allows_lin_arith sg discrete U =
+  (of_lin_arith_sort sg U, false);
 
-fun decomp1 (sg,discrete,inj_consts) (T,xxx) =
+fun decomp1 (sg, discrete, inj_consts) (T, xxx) =
   (case T of
      Type("fun",[U,_]) =>
        (case allows_lin_arith sg discrete U of
@@ -366,10 +386,13 @@ fun decomp2 data (_$(Const(rel,T)$lhs$rhs)) = decomp1 data (T,(rel,lhs,rhs))
   | decomp2 data _ = NONE
 
 fun decomp sg =
-  let val {discrete, inj_consts, ...} = ArithTheoryData.get sg
-  in decomp2 (sg,discrete,inj_consts) end
+let
+  val {discrete, inj_consts, ...} = ArithTheoryData.get sg
+in
+  decomp2 (sg,discrete,inj_consts)
+end;
 
-fun number_of(n,T) = HOLogic.number_of_const T $ (HOLogic.mk_binum n)
+fun number_of (n, T) = HOLogic.number_of_const T $ (HOLogic.mk_binum n);
 
 (*---------------------------------------------------------------------------*)
 (* code that performs certain goal transformations for linear arithmetic     *)

@@ -510,10 +510,13 @@ val add_rules =
      minus_mult_left RS sym, minus_mult_right RS sym,
      minus_add_distrib, minus_minus, mult_assoc,
      of_nat_0, of_nat_1, of_nat_Suc, of_nat_add, of_nat_mult,
-     of_int_0, of_int_1, of_int_add, of_int_mult, int_eq_of_nat];
+     of_int_0, of_int_1, of_int_add, of_int_mult, int_eq_of_nat]
+
+val nat_inj_thms = [zle_int RS iffD2,
+                    int_int_eq RS iffD2]
 
 val simprocs = [assoc_fold_simproc, Int_Numeral_Simprocs.combine_numerals]@
-               Int_Numeral_Simprocs.cancel_numerals;
+               Int_Numeral_Simprocs.cancel_numerals
 
 in
 
@@ -521,15 +524,15 @@ val int_arith_setup =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = [mult_strict_left_mono,mult_left_mono] @ mult_mono_thms,
-    inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
+    inj_thms = nat_inj_thms @ inj_thms,
     lessD = lessD @ [zless_imp_add1_zle],
     neqE = neqE,
     simpset = simpset addsimps add_rules
                       addsimprocs simprocs
                       addcongs [if_weak_cong]}) #>
-  arith_inj_const ("IntDef.of_nat", HOLogic.natT --> HOLogic.intT) #>
+  arith_inj_const ("NatArith.of_nat", HOLogic.natT --> HOLogic.intT) #>
   arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT) #>
-  arith_discrete "IntDef.int";
+  arith_discrete "IntDef.int"
 
 end;
 
@@ -540,7 +543,7 @@ val fast_int_arith_simproc =
       "(m::'a::{ordered_idom,number_ring}) <= n",
       "(m::'a::{ordered_idom,number_ring}) = n"] Fast_Arith.lin_arith_prover;
 
-Addsimprocs [fast_int_arith_simproc]
+Addsimprocs [fast_int_arith_simproc];
 
 
 (* Some test data
