@@ -289,7 +289,7 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     (* Transform the term*)
     val (t,np,nh) = prepare_for_presburger sg q g'
     (* Some simpsets for dealing with mod div abs and nat*)
-    val mod_div_simpset = HOL_basic_ss 
+    val mod_div_simpset = Simplifier.theory_context sg HOL_basic_ss
 			addsimps [refl,nat_mod_add_eq, nat_mod_add_left_eq, 
 				  nat_mod_add_right_eq, int_mod_add_eq, 
 				  int_mod_add_right_eq, int_mod_add_left_eq,
