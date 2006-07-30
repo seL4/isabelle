@@ -141,20 +141,14 @@ fun mk_lam_defs ([]:thm list) = ([]: thm list)
 
 end;
 
+
 (* first simplification, then model checking *)
 
-goalw (theory "Product_Type") [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
-  by (rtac ext 1);
-  by (stac (surjective_pairing RS sym) 1);
-  by (rtac refl 1);
-qed "pair_eta_expand";
+val pair_eta_expand = Thm.symmetric (mk_meta_eq (thm "split_eta"));
 
 val pair_eta_expand_proc =
-  Simplifier.simproc (Theory.sign_of (the_context ()))
-    "pair_eta_expand" ["f::'a*'b=>'c"]
-    (fn _ => fn _ => fn t =>
-      case t of Abs _ => SOME (mk_meta_eq pair_eta_expand)
-      | _ => NONE);
+  Simplifier.simproc (the_context ()) "pair_eta_expand" ["f::'a*'b=>'c"]
+  (fn _ => fn _ => fn t => case t of Abs _ => SOME pair_eta_expand | _ => NONE);
 
 val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 

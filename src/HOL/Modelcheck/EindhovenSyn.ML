@@ -10,15 +10,11 @@ fun mc_eindhoven_tac i state = SUBGOAL (fn (goal, _) =>
     val assertion = mc_eindhoven_oracle thy (Logic.strip_imp_concl goal);
   in cut_facts_tac [assertion] i THEN atac i end) i state;
 
-Goalw [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
-  by (rtac ext 1);
-  by (stac (surjective_pairing RS sym) 1);
-  by (rtac refl 1);
-qed "pair_eta_expand";
+val pair_eta_expand = Thm.symmetric (mk_meta_eq (thm "split_eta"));
 
 val pair_eta_expand_proc =
   Simplifier.simproc (the_context ()) "pair_eta_expand" ["f::'a*'b=>'c"]
-  (fn _ => fn _ => fn t => case t of Abs _ => SOME (mk_meta_eq pair_eta_expand) | _ => NONE);
+  (fn _ => fn _ => fn t => case t of Abs _ => SOME pair_eta_expand | _ => NONE);
 
 val Eindhoven_ss =
   simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
