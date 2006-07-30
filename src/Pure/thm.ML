@@ -38,7 +38,6 @@ signature BASIC_THM =
   val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
   val read_cterm: theory -> string * typ -> cterm
-  val adjust_maxidx: cterm -> cterm
   val read_def_cterm:
     theory * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> string * typ -> cterm * (indexname * typ) list
@@ -135,6 +134,7 @@ sig
   val dest_ctyp: ctyp -> ctyp list
   val dest_comb: cterm -> cterm * cterm
   val dest_abs: string option -> cterm -> cterm * cterm
+  val adjust_maxidx_cterm: int -> cterm -> cterm
   val capply: cterm -> cterm -> cterm
   val cabs: cterm -> cterm -> cterm
   val major_prem_of: thm -> term
@@ -156,7 +156,7 @@ sig
   val tags_of_thm: thm -> tag list
   val name_thm: string * thm -> thm
   val compress: thm -> thm
-  val adjust_maxidx_thm: thm -> thm
+  val adjust_maxidx_thm: int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
   val cterm_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val cterm_first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
@@ -263,10 +263,12 @@ fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, max
       end
   | dest_abs _ _ = raise CTERM "dest_abs";
 
-(*Makes maxidx precise: it is often too big*)
-fun adjust_maxidx (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
-  if maxidx = ~1 then ct
-  else Cterm {thy_ref = thy_ref, t = t, T = T, maxidx = maxidx_of_term t, sorts = sorts};
+fun adjust_maxidx_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
+  if maxidx = i then ct
+  else if maxidx < i then
+    Cterm {maxidx = i, thy_ref = thy_ref, t = t, T = T, sorts = sorts}
+  else
+    Cterm {maxidx = Int.max (maxidx_of_term t, i), thy_ref = thy_ref, t = t, T = T, sorts = sorts};
 
 (*Form cterm out of a function and an argument*)
 fun capply
@@ -495,7 +497,7 @@ fun transfer thy' thm =
 (*explicit weakening: maps |- B to A |- B*)
 fun weaken raw_ct th =
   let
-    val ct as Cterm {t = A, T, sorts, maxidx = maxidxA, ...} = adjust_maxidx raw_ct;
+    val ct as Cterm {t = A, T, sorts, maxidx = maxidxA, ...} = adjust_maxidx_cterm ~1 raw_ct;
     val Thm {der, maxidx, shyps, hyps, tpairs, prop, ...} = th;
   in
     if T <> propT then
@@ -608,14 +610,14 @@ fun compress (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
       prop = Compress.term thy prop}
   end;
 
-fun adjust_maxidx_thm (Thm {thy_ref, der, shyps, hyps, tpairs, prop, ...}) =
-  Thm {thy_ref = thy_ref,
-    der = der,
-    maxidx = maxidx_tpairs tpairs (maxidx_of_term prop),
-    shyps = shyps,
-    hyps = hyps,
-    tpairs = tpairs,
-    prop = prop};
+fun adjust_maxidx_thm i (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop}) =
+  if maxidx = i then th
+  else if maxidx < i then
+    Thm {maxidx = i, thy_ref = thy_ref, der = der, shyps = shyps,
+      hyps = hyps, tpairs = tpairs, prop = prop}
+  else
+    Thm {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i),
+      thy_ref = thy_ref, der = der, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop};
 
 
 
@@ -625,7 +627,7 @@ fun adjust_maxidx_thm (Thm {thy_ref, der, shyps, hyps, tpairs, prop, ...}) =
 
 (*The assumption rule A |- A*)
 fun assume raw_ct =
-  let val Cterm {thy_ref, t = prop, T, maxidx, sorts} = adjust_maxidx raw_ct in
+  let val Cterm {thy_ref, t = prop, T, maxidx, sorts} = adjust_maxidx_cterm ~1 raw_ct in
     if T <> propT then
       raise THM ("assume: prop", 0, [])
     else if maxidx <> ~1 then
