@@ -139,7 +139,7 @@ fun conjs m =
 val B = Free ("B", propT);
 
 fun comp_rule th rule =
-  Thm.adjust_maxidx_thm (th COMP
+  Thm.adjust_maxidx_thm ~1 (th COMP
     (rule |> Drule.forall_intr_frees |> Drule.forall_elim_vars (Thm.maxidx_of th + 1)));
 
 in

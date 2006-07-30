@@ -153,7 +153,7 @@ fun extract i n st =
   (if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st then Seq.empty
    else if n = 1 then Seq.single (Thm.cprem_of st i)
    else Seq.single (foldr1 Conjunction.mk_conjunction (map (Thm.cprem_of st) (i upto i + n - 1))))
-  |> Seq.map (Thm.adjust_maxidx #> init);
+  |> Seq.map (Thm.adjust_maxidx_cterm ~1 #> init);
 
 fun retrofit i n st' st =
   (if n = 1 then st

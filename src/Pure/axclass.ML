@@ -425,7 +425,7 @@ fun of_sort thy (typ, sort) cache =
       sort |> map (fn c =>
         Goal.finish (the (lookup_type cache' typ c) RS
           Goal.init (Thm.cterm_of thy (Logic.mk_inclass (typ, c))))
-        |> Thm.adjust_maxidx_thm);
+        |> Thm.adjust_maxidx_thm ~1);
   in (ths, cache') end;
 
 end;

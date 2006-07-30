@@ -1161,7 +1161,7 @@ fun check_bounds ss ct = conditional (! debug_bounds) (fn () =>
 
 fun rewrite_cterm mode prover raw_ss raw_ct =
   let
-    val ct = Thm.adjust_maxidx raw_ct;
+    val ct = Thm.adjust_maxidx_cterm ~1 raw_ct;
     val {thy, t, maxidx, ...} = Thm.rep_cterm ct;
     val ss = fallback_context thy raw_ss;
     val _ = inc simp_depth;
@@ -1210,7 +1210,7 @@ local
 fun gen_norm_hhf ss =
   (not o Drule.is_norm_hhf o Thm.prop_of) ?
     Drule.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss)
-  #> Thm.adjust_maxidx_thm
+  #> Thm.adjust_maxidx_thm ~1
   #> Drule.gen_all;
 
 val ss = theory_context ProtoPure.thy empty_ss addsimps [Drule.norm_hhf_eq];

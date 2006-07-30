@@ -416,7 +416,7 @@ fun zero_var_indexes th =
     val (instT, inst) = Term.zero_var_indexes_inst (Thm.full_prop_of th);
     val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
     val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
-  in Thm.adjust_maxidx_thm (Thm.instantiate (cinstT, cinst) th) end;
+  in Thm.adjust_maxidx_thm ~1 (Thm.instantiate (cinstT, cinst) th) end;
 
 
 (** Standard form of object-rule: no hypotheses, flexflex constraints,
