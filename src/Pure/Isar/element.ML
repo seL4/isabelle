@@ -63,6 +63,12 @@ sig
   val satisfy_thm: witness list -> thm -> thm
   val satisfy_witness: witness list -> witness -> witness
   val satisfy_ctxt: witness list -> context_i -> context_i
+  val satisfy_facts: witness list ->
+    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
+  val generalize_facts: Proof.context -> Proof.context ->
+    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
 end;
 
 structure Element: ELEMENT =
@@ -452,5 +458,24 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
 fun satisfy_witness witns = map_witness (apsnd (satisfy_thm witns));
 
 fun satisfy_ctxt witns = map_ctxt_values I I (satisfy_thm witns);
+
+fun satisfy_facts witns facts =
+  satisfy_ctxt witns (Notes facts) |> (fn Notes facts' => facts');
+
+
+(* generalize type/term parameters *)
+
+val maxidx_atts = fold Args.maxidx_values;
+
+fun generalize_facts inner outer facts =
+  let
+    val thy = ProofContext.theory_of inner;
+    val maxidx =
+      fold (fn ((_, atts), bs) => maxidx_atts atts #> fold (maxidx_atts o #2) bs) facts ~1;
+    val gen_thm = Thm.adjust_maxidx_thm maxidx #> singleton (Variable.export inner outer);
+    val gen_term = Thm.cterm_of thy #> Drule.mk_term #> gen_thm #> Drule.dest_term #> Thm.term_of;
+    val gen_typ = Logic.mk_type #> gen_term #> Logic.dest_type;
+    val Notes facts' = map_ctxt_values gen_typ gen_term gen_thm (Notes facts);
+  in facts' end;
 
 end;
