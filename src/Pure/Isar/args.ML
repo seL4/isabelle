@@ -29,6 +29,7 @@ sig
   val map_name: (string -> string) -> src -> src
   val map_values: (string -> string) -> (typ -> typ) -> (term -> term) -> (thm -> thm)
     -> src -> src
+  val maxidx_values: src -> int -> int
   val assignable: src -> src
   val assign: value option -> T -> unit
   val closure: src -> src
@@ -177,6 +178,12 @@ fun map_values f g h i = map_args (map_value
     | Term t => Term (h t)
     | Fact ths => Fact (map i ths)
     | Attribute att => Attribute att));
+
+fun maxidx_values (Src ((_, args), _)) = args |> fold
+  (fn (Arg (_, Value (SOME (Typ T)))) => Term.maxidx_typ T
+    | (Arg (_, Value (SOME (Term t)))) => Term.maxidx_term t
+    | (Arg (_, Value (SOME (Fact ths)))) => fold Thm.maxidx_thm ths
+    | _ => I);
 
 
 (* static binding *)
