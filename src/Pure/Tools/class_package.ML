@@ -357,9 +357,9 @@ fun gen_class add_locale prep_class bname raw_supclasses raw_elems thy =
     fun add_consts v raw_cs_sup raw_cs_this thy =
       let
         fun add_global_const ((c, ty), syn) thy =
-          thy
-          |> Sign.add_consts_i [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]
-          |> `(fn thy => (c, (Sign.intern_const thy c, ty)))
+          ((c, (Sign.full_name thy c, ty)),
+            thy
+            |> Sign.add_consts_i [(c, ty |> subst_clsvar v (TFree (v, Sign.defaultS thy)), syn)]);
       in
         thy
         |> fold_map add_global_const raw_cs_this
@@ -596,10 +596,13 @@ end; (* local *)
 
 type sortcontext = (string * sort) list;
 
-fun sortcontext_of_typ thy ty =
-  (typ_tfrees o fst o Type.freeze_thaw_type) ty
-  |> map (apsnd (operational_sort_of thy))
-  |> filter (not o null o snd);
+fun sortcontext_of_typ thy ty = fold_atyps
+  (fn TFree (a, S) =>
+    (case operational_sort_of thy S of
+      [] => I
+    | S' => insert (op =) (a, S'))
+  | T => raise TYPE ("Illegal schematic type variable", [T], [])) ty []
+  |> sort_wrt fst;   (* FIXME really required?!? *)
 
 datatype classlookup = Instance of (class * string) * classlookup list list
                      | Lookup of class list * (string * (int * int))
