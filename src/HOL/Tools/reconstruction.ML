@@ -81,18 +81,19 @@ val paramod = Attrib.syntax (Scan.lift Args.nat -- Attrib.thm -- Scan.lift Args.
 
 (** Demodulation: rewriting of a single literal (Non-Unit Rewriting, SPASS) **)
 
-fun demod_rule ((cl1, lit1), (cl2 , lit2)) =
+fun demod_rule ctxt ((cl1, lit1), (cl2 , lit2)) =
     let  val eq_lit_th = select_literal (lit1+1) cl1
          val mod_lit_th = select_literal (lit2+1) cl2
-         val (fmod_th,thaw) = Drule.freeze_thaw_robust mod_lit_th
+         val ((_, [fmod_th]), ctxt') = Variable.import true [mod_lit_th] ctxt
          val eqsubst = eq_lit_th RSN (2,rev_subst)
-         val newth = Seq.hd(biresolution false [(false, fmod_th)] 1 eqsubst)
-         val offset = #maxidx(rep_thm newth) + 1
-                          (*ensures "renaming apart" even when Vars are frozen*)
-    in Meson.negated_asm_of_head (thaw offset newth) end;
+         val newth =
+           Seq.hd (biresolution false [(false, fmod_th)] 1 eqsubst)
+           |> singleton (Variable.export ctxt' ctxt)
+    in Meson.negated_asm_of_head newth end;
 
 val demod = Attrib.syntax (Scan.lift Args.nat -- Attrib.thm -- Scan.lift Args.nat
-  >> (fn ((i, B), j) => Thm.rule_attribute (fn _ => fn A => demod_rule ((A, i), (B, j)))));
+  >> (fn ((i, B), j) => Thm.rule_attribute (fn context => fn A =>
+      demod_rule (Context.proof_of context) ((A, i), (B, j)))));
 
 
 (** Conversion of a theorem into clauses **)
