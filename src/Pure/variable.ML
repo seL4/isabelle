@@ -293,9 +293,8 @@ fun export_terms inner outer ts =
 
 fun gen_export inst inner outer ths =
   let
-    val ths' = map Thm.adjust_maxidx_thm ths;
-    val inner' = fold (declare_type_occs o Thm.full_prop_of) ths' inner;
-  in map (Thm.generalize (inst inner' outer) (fold Thm.maxidx_thm ths' ~1 + 1)) ths' end;
+    val inner' = fold (declare_type_occs o Thm.full_prop_of) ths inner;
+  in map (Thm.generalize (inst inner' outer) (fold Thm.maxidx_thm ths ~1 + 1)) ths end;
 
 val exportT = gen_export (rpair [] oo exportT_inst);
 val export = gen_export export_inst;
