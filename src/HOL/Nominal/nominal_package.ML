@@ -136,6 +136,8 @@ fun projections rule =
   ProjectRule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
   |> map (standard #> RuleCases.save rule);
 
+val supp_prod = thm "supp_prod";
+
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
     (* this theory is used just for parsing *)
@@ -1376,6 +1378,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rec_preds = map (fn (a, T) =>
       Free (a, T --> HOLogic.boolT)) (pnames ~~ rec_result_Ts);
 
+    fun mk_fresh3 rs [] = []
+      | mk_fresh3 rs ((p as (ys, z)) :: yss) = List.concat (map (fn y as (_, T) =>
+            List.mapPartial (fn ((_, (_, x)), r as (_, U)) => if z = x then NONE
+              else SOME (HOLogic.mk_Trueprop
+                (Const ("Nominal.fresh", T --> U --> HOLogic.boolT) $ Free y $ Free r)))
+                  rs) ys) @
+          mk_fresh3 rs yss;
+
     fun make_rec_intr T p rec_set
           ((rec_intr_ts, rec_prems, rec_prems', l), ((cname, cargs), idxs)) =
       let
@@ -1399,6 +1409,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           mk_fresh2 [] frees';
         val prems4 = map (fn ((i, _), y) =>
           HOLogic.mk_Trueprop (List.nth (rec_preds, i) $ Free y)) (recs ~~ frees'');
+        val prems5 = mk_fresh3 (recs ~~ frees'') frees';
         val result = list_comb (List.nth (rec_fns, l), map Free (frees @ frees''));
         val rec_freshs = map (fn p as (_, T) =>
           Const ("Nominal.fresh", T --> fastype_of result --> HOLogic.boolT) $
@@ -1412,7 +1423,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          rec_prems @ [list_all_free (frees @ frees'', Logic.list_implies (prems4, P))],
          if null rec_freshs then rec_prems'
          else rec_prems' @ [list_all_free (frees @ frees'',
-           Logic.list_implies (List.nth (prems2, l) @ prems3 @ [P],
+           Logic.list_implies (List.nth (prems2, l) @ prems3 @ prems5 @ [P],
              HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_freshs)))],
          l + 1)
       end;
@@ -1503,6 +1514,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val fun_tupleT = fastype_of fun_tuple;
     val rec_unique_frees =
       DatatypeProp.indexify_names (replicate (length recTs) "x") ~~ recTs;
+    val rec_unique_frees' =
+      DatatypeProp.indexify_names (replicate (length recTs) "y") ~~ rec_result_Ts;
     val rec_unique_concls = map (fn ((x as (_, T), U), R) =>
         Const ("Ex1", (U --> HOLogic.boolT) --> HOLogic.boolT) $
           Abs ("y", U, HOLogic.mk_mem (HOLogic.pair_const T U $ Free x $ Bound 0, R)))
@@ -1522,10 +1535,31 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rec_unique = map standard (split_conj_thm (Goal.prove_global thy11 []
       (fresh_prems @ rec_prems @ rec_prems')
       (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_unique_concls))
-      (fn ths => EVERY
-         [rtac induct_aux_rec 1,
-          print_tac "after application of induction theorem",
-          setmp quick_and_dirty true (SkipProof.cheat_tac thy11) (** FIXME !! **)])));
+      (fn ths =>
+         let
+           val k = length rec_fns;
+           val (finite_thss, ths1) = funpow (length dt_atomTs) (fn (xss, ys) =>
+             apfst (curry op @ xss o single) (chop k ys)) ([], ths);
+           val (P_ind_ths, ths2) = chop k ths1;
+           val P_ths = map (fn th => th RS mp) (split_conj_thm
+             (Goal.prove (Context.init_proof thy11)
+               (map fst (rec_unique_frees @ rec_unique_frees')) []
+               (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
+                  (map (fn (((x, y), S), P) => HOLogic.mk_imp (HOLogic.mk_mem
+                    (HOLogic.mk_prod (Free x, Free y), S), P $ (Free y)))
+                      (rec_unique_frees ~~ rec_unique_frees' ~~ rec_sets ~~ rec_preds))))
+               (fn _ =>
+                  rtac rec_induct 1 THEN
+                  REPEAT ((resolve_tac P_ind_ths THEN_ALL_NEW assume_tac) 1))))
+         in EVERY
+           ([rtac induct_aux_rec 1] @
+            List.concat (map (fn finite_ths =>
+              [cut_facts_tac finite_ths 1,
+               asm_simp_tac (HOL_ss addsimps [supp_prod, finite_Un]) 1]) finite_thss) @
+            [ALLGOALS (full_simp_tac (HOL_ss addsimps [symmetric fresh_def, supp_prod, Un_iff])),
+             print_tac "after application of induction theorem",
+             setmp quick_and_dirty true (SkipProof.cheat_tac thy11) (** FIXME !! **)])
+         end)));
     
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy12) = thy11 |>
