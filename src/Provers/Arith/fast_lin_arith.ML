@@ -52,10 +52,13 @@ mk_nat_thm(t) = "0 <= t"
 
 signature LIN_ARITH_DATA =
 sig
-  type decompT = (term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool  (* internal representation of linear (in-)equations *)
+  (* internal representation of linear (in-)equations: *)
+  type decompT = (term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool
   val decomp: theory -> term -> decompT option
-  val pre_decomp: theory -> typ list * term list -> (typ list * term list) list  (* preprocessing, performed on a representation of subgoals as list of premises *)
-  val pre_tac   : int -> Tactical.tactic                                         (* preprocessing, performed on the goal -- must do the same as 'pre_decomp' *)
+  (* preprocessing, performed on a representation of subgoals as list of premises: *)
+  val pre_decomp: theory -> typ list * term list -> (typ list * term list) list
+  (* preprocessing, performed on the goal -- must do the same as 'pre_decomp': *)
+  val pre_tac   : int -> Tactical.tactic
   val number_of: IntInf.int * typ -> term
 end;
 (*
@@ -400,12 +403,10 @@ fun elim (ineqs, hist) =
 (* Translate back a proof.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-(* string -> Thm.thm -> Thm.thm *)
-fun trace_thm msg th =
+fun trace_thm (msg : string) (th : thm) : thm =
     (if !trace then (tracing msg; tracing (Display.string_of_thm th)) else (); th);
 
-(* string -> unit *)
-fun trace_msg msg =
+fun trace_msg (msg : string) : unit =
     if !trace then tracing msg else ();
 
 (* FIXME OPTIMIZE!!!! (partly done already)
@@ -420,8 +421,7 @@ with 0 <= n.
 local
  exception FalseE of thm
 in
-(* Theory.theory * MetaSimplifier.simpset -> Thm.thm list -> injust -> Thm.thm *)
-fun mkthm (sg, ss) asms just =
+fun mkthm (sg:theory, ss:simpset) (asms:thm list) (just:injust) : thm =
   let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} =
           Data.get sg;
       val simpset' = Simplifier.inherit_context ss simpset;
@@ -495,8 +495,7 @@ end;
 fun coeff poly atom : IntInf.int =
   AList.lookup (op =) poly atom |> the_default 0;
 
-(* int list -> int *)
-fun lcms is = Library.foldl lcm (1, is);
+fun lcms (is:int list) : int = Library.foldl lcm (1, is);
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
@@ -563,9 +562,7 @@ fun trace_ex (sg, params, atoms, discr, n, hist : history) =
 
 (* ------------------------------------------------------------------------- *)
 
-(* Term.typ list -> int list -> Term.term * int -> lineq option *)
-
-fun mknat pTs ixs (atom, i) =
+fun mknat (pTs : typ list) (ixs : int list) (atom : term, i : int) : lineq option =
   if LA_Logic.is_nat (pTs, atom)
   then let val l = map (fn j => if j=i then 1 else 0) ixs
        in SOME (Lineq (0, Le, l, Nat i)) end
@@ -590,9 +587,7 @@ For variables n of type nat, a constraint 0 <= n is added.
 (*        failure as soon as a case could not be refuted; i.e. delay further *)
 (*        splitting until after a refutation for other cases has been found. *)
 
-(* Theory.theory -> typ list * term list -> (typ list * (decompT * int) list) list *)
-
-fun split_items sg (Ts, terms) =
+fun split_items sg (Ts : typ list, terms : term list) : (typ list * (LA_Data.decompT * int) list) list =
   let
 (*
       val _ = trace_msg ("split_items: Ts    = " ^ string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
@@ -601,71 +596,61 @@ fun split_items sg (Ts, terms) =
       (* splits inequalities '~=' into '<' and '>'; this corresponds to *)
       (* 'REPEAT_DETERM (eresolve_tac neqE i)' at the theorem/tactic    *)
       (* level                                                          *)
-      (* decompT option list -> decompT option list list *)
       fun elim_neq []              = [[]]
         | elim_neq (NONE :: ineqs) = map (cons NONE) (elim_neq ineqs)
         | elim_neq (SOME(ineq as (l,i,rel,r,j,d)) :: ineqs) =
           if rel = "~=" then elim_neq (ineqs @ [SOME (l, i, "<", r, j, d)]) @
                              elim_neq (ineqs @ [SOME (r, j, "<", l, i, d)])
           else map (cons (SOME ineq)) (elim_neq ineqs)
-      (* int -> decompT option list -> (decompT * int) list *)
+
       fun number_hyps _ []             = []
         | number_hyps n (NONE::xs)     = number_hyps (n+1) xs
         | number_hyps n ((SOME x)::xs) = (x, n) :: number_hyps (n+1) xs
 
       val result = (Ts, terms) |> (* user-defined preprocessing of the subgoal *)
-                                  (* (typ list * term list) list *)
                                   LA_Data.pre_decomp sg
                                |> (* compute the internal encoding of (in-)equalities *)
-                                  (* (typ list * decompT option list) list *)
                                   map (apsnd (map (LA_Data.decomp sg)))
                                |> (* splitting of inequalities *)
-                                  (* (typ list * decompT option list) list list *)
                                   map (fn (Ts, items) => map (pair Ts) (elim_neq items))
                                |> (* combine the list of lists of subgoals into a single list *)
-                                  (* (typ list * decompT option list) list *)
                                   List.concat
                                |> (* numbering of hypotheses, ignoring irrelevant ones *)
-                                  (* (typ list * (decompT * int) list) list *)
                                   map (apsnd (number_hyps 0))
 (*
-      val _ = trace_msg ("split_items: result has " ^ Int.toString (length result) ^ " subgoal(s)"
-                ^ "\n" ^ (cat_lines o fst) (fold_map (fn (Ts, items) => fn n =>
-                        ("  " ^ Int.toString n ^ ". Ts    = " ^ string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
-                         "    items = " ^ string_of_list
-                                            (string_of_pair
-                                              (fn (l, i, rel, r, j, d) =>
-                                                enclose "(" ")" (commas
-                                                  [string_of_list (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) l,
-                                                   Rat.string_of_rat i,
-                                                   rel,
-                                                   string_of_list (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) r,
-                                                   Rat.string_of_rat j,
-                                                   Bool.toString d]))
-                                              Int.toString) items, n+1)) result 1))
+      val _ = trace_msg ("split_items: result has " ^ Int.toString (length result) ^
+                " subgoal(s)" ^ "\n" ^ (cat_lines o fst) (fold_map (fn (Ts, items) => fn n =>
+                        ("  " ^ Int.toString n ^ ". Ts    = " ^
+                           string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
+                         "    items = " ^ string_of_list (string_of_pair 
+                           (fn (l, i, rel, r, j, d) => enclose "(" ")" (commas
+                             [string_of_list
+                                (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) l,
+                              Rat.string_of_rat i,
+                              rel,
+                              string_of_list
+                                (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) r,
+                              Rat.string_of_rat j,
+                              Bool.toString d]))
+                           Int.toString) items, n+1)) result 1))
 *)
   in result end;
 
-(* term list * (decompT * int) -> term list *)
-
-fun add_atoms (ats, ((lhs,_,_,rhs,_,_),_)) =
+fun add_atoms (ats : term list, ((lhs,_,_,rhs,_,_) : LA_Data.decompT, _)) : term list =
     (map fst lhs) union ((map fst rhs) union ats);
 
-(* (bool * term) list * (decompT * int) -> (bool * term) list *)
+fun add_datoms (dats : (bool * term) list, ((lhs,_,_,rhs,_,d) : LA_Data.decompT, _)) :
+  (bool * term) list =
+  (map (pair d o fst) lhs) union ((map (pair d o fst) rhs) union dats);
 
-fun add_datoms (dats, ((lhs,_,_,rhs,_,d),_)) =
-    (map (pair d o fst) lhs) union ((map (pair d o fst) rhs) union dats);
+fun discr (initems : (LA_Data.decompT * int) list) : bool list =
+  map fst (Library.foldl add_datoms ([],initems));
 
-(* (decompT * int) list -> bool list *)
-
-fun discr initems = map fst (Library.foldl add_datoms ([],initems));
-
-(* Theory.theory -> (string * typ) list -> bool -> (typ list * (decompT * int) list) list -> injust list -> injust list option *)
-
-fun refutes sg params show_ex =
+fun refutes (sg : theory) (params : (string * typ) list) (show_ex : bool) :
+  (typ list * (LA_Data.decompT * int) list) list -> injust list -> injust list option =
 let
-  (* (typ list * (decompT * int) list) list -> injust list -> injust list option *)
-  fun refute ((Ts, initems)::initemss) js =
+  fun refute ((Ts : typ list, initems : (LA_Data.decompT * int) list)::initemss)
+             (js : injust list) : injust list option =
     let val atoms = Library.foldl add_atoms ([], initems)
         val n = length atoms
         val mkleq = mklineq n atoms
@@ -675,7 +660,8 @@ let
         val ineqs = map mkleq initems @ natlineqs
     in case elim (ineqs, []) of
          Success j =>
-           (trace_msg ("Contradiction! (" ^ Int.toString (length js + 1) ^ ")"); refute initemss (js@[j]))
+           (trace_msg ("Contradiction! (" ^ Int.toString (length js + 1) ^ ")");
+            refute initemss (js@[j]))
        | Failure hist =>
            (if not show_ex then
               ()
@@ -692,62 +678,63 @@ let
     | refute [] js = SOME js
 in refute end;
 
-(* Theory.theory -> (string * Term.typ) list -> bool -> bool -> term list -> injust list option *)
-
-fun refute sg params show_ex terms =
+fun refute (sg : theory) (params : (string * Term.typ) list) (show_ex : bool) (terms : term list) :
+  injust list option =
   refutes sg params show_ex (split_items sg (map snd params, terms)) [];
 
-(* ('a -> bool) -> 'a list -> int *)
-
-fun count P xs = length (List.filter P xs);
+fun count (P : 'a -> bool) (xs : 'a list) : int = length (List.filter P xs);
 
 (* The limit on the number of ~= allowed.
    Because each ~= is split into two cases, this can lead to an explosion.
 *)
 val fast_arith_neq_limit = ref 9;
 
-(* Theory.theory -> (string * Term.typ) list -> bool -> bool -> Term.term list -> Term.term -> injust list option *)
-
-fun prove sg params show_ex Hs concl =
+fun prove (sg : theory) (params : (string * Term.typ) list) (show_ex : bool) (Hs : term list)
+          (concl : term) : injust list option =
   let
     (* append the negated conclusion to 'Hs' -- this corresponds to     *)
     (* 'DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i)' at the *)
     (* theorem/tactic level                                             *)
     val Hs' = Hs @ [LA_Logic.neg_prop concl]
-    (* decompT option -> bool *)
     fun is_neq NONE                 = false
       | is_neq (SOME (_,_,r,_,_,_)) = (r = "~=")
   in
     trace_msg "prove";
     if count is_neq (map (LA_Data.decomp sg) Hs')
       > !fast_arith_neq_limit then (
-      trace_msg ("fast_arith_neq_limit exceeded (current value is " ^ string_of_int (!fast_arith_neq_limit) ^ ")");
+      trace_msg ("fast_arith_neq_limit exceeded (current value is " ^
+                   string_of_int (!fast_arith_neq_limit) ^ ")");
       NONE
     ) else
       refute sg params show_ex Hs'
   end;
 
-(* MetaSimplifier.simpset -> int * injust list -> Tactical.tactic *)
-
-fun refute_tac ss (i, justs) =
+fun refute_tac (ss : simpset) (i : int, justs : injust list) : tactic =
   fn state =>
-    let val _ = trace_thm ("refute_tac (on subgoal " ^ Int.toString i ^ ", with " ^ Int.toString (length justs) ^ " justification(s)):") state
+    let val _ = trace_thm ("refute_tac (on subgoal " ^ Int.toString i ^ ", with " ^
+                             Int.toString (length justs) ^ " justification(s)):") state
         val sg          = theory_of_thm state
         val {neqE, ...} = Data.get sg
         fun just1 j =
-          REPEAT_DETERM (eresolve_tac neqE i) THEN                  (* eliminate inequalities *)
-            METAHYPS (fn asms => rtac (mkthm (sg, ss) asms j) 1) i  (* use theorems generated from the actual justifications *)
-    in DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN  (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
-       DETERM (LA_Data.pre_tac i) THEN                               (* user-defined preprocessing of the subgoal *)
+          (* eliminate inequalities *)
+          REPEAT_DETERM (eresolve_tac neqE i) THEN
+            (* use theorems generated from the actual justifications *)
+            METAHYPS (fn asms => rtac (mkthm (sg, ss) asms j) 1) i
+    in (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
+       DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN
+       (* user-defined preprocessing of the subgoal *)
+       DETERM (LA_Data.pre_tac i) THEN
        PRIMITIVE (trace_thm "State after pre_tac:") THEN
-       EVERY (map just1 justs)                                       (* prove every resulting subgoal, using its justification *)
+       (* prove every resulting subgoal, using its justification *)
+       EVERY (map just1 justs)
     end  state;
 
 (*
 Fast but very incomplete decider. Only premises and conclusions
 that are already (negated) (in)equations are taken into account.
 *)
-fun simpset_lin_arith_tac ss show_ex i st = SUBGOAL (fn (A,_) =>
+fun simpset_lin_arith_tac (ss : simpset) (show_ex : bool) (i : int) (st : thm) =
+  SUBGOAL (fn (A,_) =>
   let val params = rev (Logic.strip_params A)
       val Hs     = Logic.strip_assums_hyp A
       val concl  = Logic.strip_assums_concl A
@@ -757,19 +744,17 @@ fun simpset_lin_arith_tac ss show_ex i st = SUBGOAL (fn (A,_) =>
      | SOME js => (trace_msg "Refutation succeeded."; refute_tac ss (i, js))
   end) i st;
 
-fun lin_arith_tac show_ex i st =
+fun lin_arith_tac (show_ex : bool) (i : int) (st : thm) =
   simpset_lin_arith_tac (Simplifier.theory_context (Thm.theory_of_thm st) Simplifier.empty_ss)
     show_ex i st;
 
-fun cut_lin_arith_tac ss i =
+fun cut_lin_arith_tac (ss : simpset) (i : int) =
   cut_facts_tac (Simplifier.prems_of_ss ss) i THEN
   simpset_lin_arith_tac ss false i;
 
 (** Forward proof from theorems **)
 
-(* Theory.theory * MetaSimplifier.simpset -> Thm.thm list -> Term.term -> injust list -> bool -> Thm.thm option *)
-
-fun prover (ctxt as (sg, ss)) thms Tconcl js pos =
+fun prover (ctxt as (sg, ss)) thms (Tconcl : term) (js : injust list) (pos : bool) : thm option =
 let
     (* There is no "forward version" of 'pre_tac'.  Therefore we combine the     *)
     (* available theorems into a single proof state and perform "backward proof" *)
@@ -794,9 +779,7 @@ handle THM _ => NONE;
       dives into terms and will thus try the non-negated concl anyway.
 *)
 
-(* Theory.theory -> MetaSimplifier.simpset -> Term.term -> Thm.thm option *)
-
-fun lin_arith_prover sg ss concl =
+fun lin_arith_prover sg ss (concl : term) : thm option =
 let val thms = List.concat (map LA_Logic.atomize (prems_of_ss ss));
     val Hs = map prop_of thms
     val Tconcl = LA_Logic.mk_Trueprop concl
