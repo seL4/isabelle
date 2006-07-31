@@ -221,9 +221,7 @@ lemma MULT: "(!n. (0::nat) * n = 0) & (!m n. Suc m * n = m * n + n)"
   by simp
 
 lemma SUB: "(!m. (0::nat) - m = 0) & (!m n. (Suc m) - n = (if m < n then 0 else Suc (m - n)))"
-  apply simp
-  apply arith
-  done
+  by simp
 
 lemma MAX_DEF: "max (m::nat) n = (if m < n then n else m)"
   by (simp add: max_def)
