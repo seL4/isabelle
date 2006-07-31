@@ -9,6 +9,7 @@ uses
 ("Tools/function_package/fundef_proof.ML")
 ("Tools/function_package/termination.ML")
 ("Tools/function_package/mutual.ML")
+("Tools/function_package/pattern_split.ML")
 ("Tools/function_package/fundef_package.ML")
 ("Tools/function_package/fundef_datatype.ML")
 ("Tools/function_package/auto_term.ML")
@@ -71,6 +72,7 @@ use "Tools/function_package/fundef_prep.ML"
 use "Tools/function_package/fundef_proof.ML"
 use "Tools/function_package/termination.ML"
 use "Tools/function_package/mutual.ML"
+use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/fundef_package.ML"
 
 setup FundefPackage.setup

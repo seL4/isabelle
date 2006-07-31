@@ -150,7 +150,8 @@ datatype fundef_mresult =
      }
 
 
-type result_with_names = fundef_mresult * mutual_info * string list list * attribute list list list
+type fundef_spec = ((string * attribute list) * term list) list list
+type result_with_names = fundef_mresult * mutual_info * fundef_spec
 
 structure FundefData = TheoryDataFun
 (struct

@@ -92,13 +92,11 @@ proof
   show "wf ?R" ..
 
   fix n::nat assume "~ 100 < n" (* Inner call *)
-  thus "(n + 11, n) : ?R"
-    by simp arith
+  thus "(n + 11, n) : ?R" by simp 
 
   assume inner_trm: "n + 11 : f91_dom" (* Outer call *)
   with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
-  with `~ 100 < n` show "(f91 (n + 11), n) : ?R"
-    by simp arith
+  with `~ 100 < n` show "(f91 (n + 11), n) : ?R" by simp 
 qed
 
 
@@ -108,7 +106,7 @@ section {* More general patterns *}
 subsection {* Overlapping patterns *}
 
 text {* Currently, patterns must always be compatible with each other, since
-no automatich splitting takes place. But the following definition of
+no automatic splitting takes place. But the following definition of
 gcd is ok, although patterns overlap: *}
 
 consts gcd2 :: "nat \<Rightarrow> nat \<Rightarrow> nat"

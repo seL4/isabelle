@@ -1,3 +1,4 @@
+
 (*  Title:      HOL/Tools/function_package/fundef_package.ML
     ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
@@ -9,7 +10,7 @@ Isar commands.
 
 signature FUNDEF_PACKAGE = 
 sig
-    val add_fundef : ((bstring * Attrib.src list) * string) list list -> theory -> Proof.state (* Need an _i variant *)
+    val add_fundef : ((bstring * (Attrib.src list * bool)) * string) list list -> bool -> theory -> Proof.state (* Need an _i variant *)
 
     val cong_add: attribute
     val cong_del: attribute
@@ -27,17 +28,20 @@ open FundefCommon
 val True_implies = thm "True_implies"
 
 
-fun add_simps label moreatts (MutualPart {f_name, ...}, psimps) (names, attss) thy =
+fun add_simps label moreatts (MutualPart {f_name, ...}, psimps) spec_part thy =
     let 
+      val psimpss = Library.unflat (map snd spec_part) psimps
+      val (names, attss) = split_list (map fst spec_part) 
+
       val thy = thy |> Theory.add_path f_name 
                 
       val thy = thy |> Theory.add_path label
-      val spsimps = map standard psimps
-      val add_list = (names ~~ spsimps) ~~ attss
-      val (_, thy) = PureThy.add_thms add_list thy
+      val spsimpss = map (map standard) psimpss (* FIXME *)
+      val add_list = (names ~~ spsimpss) ~~ attss
+      val (_, thy) = PureThy.add_thmss add_list thy
       val thy = thy |> Theory.parent_path
                 
-      val (_, thy) = PureThy.add_thmss [((label, spsimps), Simplifier.simp_add :: moreatts)] thy
+      val (_, thy) = PureThy.add_thmss [((label, flat spsimpss), Simplifier.simp_add :: moreatts)] thy
       val thy = thy |> Theory.parent_path
     in
       thy
@@ -48,7 +52,7 @@ fun add_simps label moreatts (MutualPart {f_name, ...}, psimps) (names, attss) t
 
 
 
-fun fundef_afterqed congs mutual_info name data names atts [[result]] thy =
+fun fundef_afterqed congs mutual_info name data spec [[result]] thy =
     let
 	val fundef_data = FundefMutual.mk_partial_rules_mutual thy mutual_info data result
 	val FundefMResult {psimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = fundef_data
@@ -58,44 +62,43 @@ fun fundef_afterqed congs mutual_info name data names atts [[result]] thy =
 	val dom_abbrev = Logic.mk_equals (Free (name ^ "_dom", fastype_of accR), accR)
 	val (_, thy) = LocalTheory.mapping NONE (Specification.abbreviation_i ("", false) [(NONE, dom_abbrev)]) thy
 
-        val thy = fold2 (add_simps "psimps" []) (parts ~~ psimps) (names ~~ atts) thy
+        val thy = fold2 (add_simps "psimps" []) (parts ~~ psimps) spec thy
+
+        val casenames = flat (map (map (fst o fst)) spec)
 
 	val thy = thy |> Theory.add_path name
-	val (_, thy) = PureThy.add_thms [(("cases", cases), [RuleCases.case_names (flat names)])] thy
+	val (_, thy) = PureThy.add_thms [(("cases", cases), [RuleCases.case_names casenames])] thy
 	val (_, thy) = PureThy.add_thmss [(("domintros", domintros), [])] thy
 	val (_, thy) = PureThy.add_thms [(("termination", standard termination), [])] thy
-	val (_,thy) = PureThy.add_thmss [(("pinduct", map standard simple_pinducts), [RuleCases.case_names (flat names), InductAttrib.induct_set ""])] thy
+	val (_,thy) = PureThy.add_thmss [(("pinduct", map standard simple_pinducts), [RuleCases.case_names casenames, InductAttrib.induct_set ""])] thy
 	val thy = thy |> Theory.parent_path
     in
-	add_fundef_data name (fundef_data, mutual_info, names, atts) thy
+      add_fundef_data name (fundef_data, mutual_info, spec) thy
     end
 
-fun gen_add_fundef prep_att eqns_attss thy =
+fun gen_add_fundef prep_att eqns_attss preprocess thy =
     let
-	fun split eqns_atts =
-	    let 
-		val (natts, eqns) = split_list eqns_atts
-		val (names, raw_atts) = split_list natts
-		val atts = map (map (prep_att thy)) raw_atts
-	    in
-		((names, atts), eqns)
-	    end
+      fun prep_eqns neqs =
+          neqs
+            |> map (apsnd (Sign.read_prop thy))    
+            |> map (apfst (apsnd (apfst (map (prep_att thy)))))
+            |> FundefSplit.split_some_equations (ProofContext.init thy)
+      
+      val spec = map prep_eqns eqns_attss
+      val t_eqnss = map (flat o map snd) spec
 
+(*
+ val t_eqns = if preprocess then map (FundefSplit.split_all_equations (ProofContext.init thy)) t_eqns
+              else t_eqns
+*)
 
-	val (natts, eqns) = split_list (map split_list eqns_attss)
-	val (names, raw_atts) = split_list (map split_list natts)
+      val congs = get_fundef_congs (Context.Theory thy)
 
-	val atts = map (map (map (prep_att thy))) raw_atts
-
-	val congs = get_fundef_congs (Context.Theory thy)
-
-	val t_eqns = map (map (Sign.read_prop thy)) eqns
-
-	val (mutual_info, name, (data, thy)) = FundefMutual.prepare_fundef_mutual congs t_eqns thy
-	val Prep {goal, goalI, ...} = data
+      val (mutual_info, name, (data, thy)) = FundefMutual.prepare_fundef_mutual congs t_eqnss thy
+      val Prep {goal, goalI, ...} = data
     in
 	thy |> ProofContext.init
-	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs mutual_info name data names atts) NONE ("", [])
+	    |> Proof.theorem_i PureThy.internalK NONE (fundef_afterqed congs mutual_info name data spec) NONE ("", [])
 	    [(("", []), [(goal, [])])]
             |> Proof.refine (Method.primitive_text (fn _ => goalI))
             |> Seq.hd
@@ -106,7 +109,7 @@ fun total_termination_afterqed name (Mutual {parts, ...}) thmss thy =
     let
 	val totality = hd (hd thmss)
 
-	val (FundefMResult {psimps, simple_pinducts, ... }, Mutual {parts, ...}, names, atts)
+	val (FundefMResult {psimps, simple_pinducts, ... }, Mutual {parts, ...}, spec)
 	  = the (get_fundef_data name thy)
 
 	val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies])
@@ -117,7 +120,7 @@ fun total_termination_afterqed name (Mutual {parts, ...}) thmss thy =
         val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) (flat tsimps)
         val allatts = if has_guards then [] else [RecfunCodegen.add NONE]
 
-        val thy = fold2 (add_simps "simps" allatts) (parts ~~ tsimps) (names ~~ atts) thy
+        val thy = fold2 (add_simps "simps" allatts) (parts ~~ tsimps) spec thy
 
 	val thy = Theory.add_path name thy
 		  
@@ -161,7 +164,7 @@ fun fundef_setup_termination_proof name NONE thy =
 	val data = the (get_fundef_data name thy)
                    handle Option.Option => raise ERROR ("No such function definition: " ^ name)
 
-	val (res as FundefMResult {termination, ...}, mutual, _, _) = data
+	val (res as FundefMResult {termination, ...}, mutual, _) = data
 	val goal = FundefTermination.mk_total_termination_goal data
     in
 	thy |> ProofContext.init
@@ -206,13 +209,29 @@ val get_congs = FundefCommon.get_fundef_congs o Context.Theory
 
 local structure P = OuterParse and K = OuterKeyword in
 
+
+
+val star = Scan.one (fn t => (OuterLex.val_of t = "*"));
+
+
+val attribs_with_star = P.$$$ "[" |-- P.!!! ((P.list (star >> K NONE || P.attrib >> SOME)) 
+                                               >> (fn x => (map_filter I x, exists is_none x)))
+                              --| P.$$$ "]";
+
+val opt_attribs_with_star = Scan.optional attribs_with_star ([], false);
+
+fun opt_thm_name_star s =
+  Scan.optional ((P.name -- opt_attribs_with_star || (attribs_with_star >> pair "")) --| P.$$$ s) ("", ([], false));
+
+
 val function_decl =
-    Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
+    Scan.repeat1 (opt_thm_name_star ":" -- P.prop);
 
 val functionP =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
-    (P.and_list1 function_decl >> (fn eqnss =>
-      Toplevel.print o Toplevel.theory_to_proof (add_fundef eqnss)));
+  (((Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "pre" -- P.$$$ ")") >> K true) false) --    
+  P.and_list1 function_decl) >> (fn (prepr, eqnss) =>
+                                    Toplevel.print o Toplevel.theory_to_proof (add_fundef eqnss prepr)));
 
 val terminationP =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal

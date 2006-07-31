@@ -20,7 +20,7 @@ struct
 open FundefCommon
 open FundefAbbrev
 
-fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _, _) =
+fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _) =
     let
 	val domT = domain_type (fastype_of f)
 	val x = Free ("x", domT)
@@ -28,7 +28,7 @@ fun mk_total_termination_goal (FundefMResult {R, f, ... }, _, _, _) =
 	Trueprop (mk_mem (x, Const (acc_const_name, fastype_of R --> HOLogic.mk_setT domT) $ R))
     end
 
-fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _, _) dom =
+fun mk_partial_termination_goal thy (FundefMResult {R, f, ... }, _, _) dom =
     let
 	val domT = domain_type (fastype_of f)
 	val D = Sign.simple_read_term thy (Logic.varifyT (HOLogic.mk_setT domT)) dom
