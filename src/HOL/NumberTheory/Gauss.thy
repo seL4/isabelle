@@ -253,8 +253,6 @@ lemma (in GAUSS) D_eq: "D = {x. \<exists>y \<in> A. ( x = StandardRes p (y*a) & 
 lemma (in GAUSS) D_leq: "x \<in> D ==> x \<le> (p - 1) div 2"
   by (auto simp add: D_eq)
 
-ML {* fast_arith_split_limit := 0; *} (*FIXME*)
-
 lemma (in GAUSS) F_ge: "x \<in> F ==> x \<le> (p - 1) div 2"
   apply (auto simp add: F_eq A_def)
 proof -
@@ -269,8 +267,6 @@ proof -
   finally show "p - StandardRes p (y * a) \<le> (p - 1) div 2"
     using zless_add1_eq [of "p - StandardRes p (y * a)" "(p - 1) div 2"] by auto
 qed
-
-ML {* fast_arith_split_limit := 9; *} (*FIXME*)
 
 lemma (in GAUSS) all_A_relprime: "\<forall>x \<in> A. zgcd(x, p) = 1"
   using p_prime p_minus_one_l by (auto simp add: A_def zless_zprime_imp_zrelprime)
