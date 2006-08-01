@@ -5,9 +5,9 @@
 
 theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin;
 
-;skip_import_dir "/home/obua/tmp/cache"
+(*;skip_import_dir "/home/obua/tmp/cache"
 
-;skip_import on
+;skip_import on*)
 
 ;import_segment "hollight";
 
