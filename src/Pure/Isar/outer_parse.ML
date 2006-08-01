@@ -69,6 +69,7 @@ sig
   val propp: token list -> (string * string list) * token list
   val termp: token list -> (string * string list) * token list
   val arguments: token list -> Args.T list * token list
+  val attrib: token list -> Attrib.src * token list
   val attribs: token list -> Attrib.src list * token list
   val opt_attribs: token list -> Attrib.src list * token list
   val thm_name: string -> token list -> (bstring * Attrib.src list) * token list
