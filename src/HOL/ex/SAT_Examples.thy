@@ -503,8 +503,8 @@ using 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
 200 201 202 203 204
 by sat
 
-(* zchaff_with_proofs: 8705 resolution steps in +++ User 1.173  All 1.194 secs
-   minisat_with_proofs: 40790 resolution steps in +++ User 4.199  All 4.240 secs
+(* zchaff_with_proofs: 8705 resolution steps in +++ User 1.154  All 1.189 secs
+   minisat_with_proofs: 40790 resolution steps in +++ User 3.762  All 3.806 secs
    (as of 2006-08-01, on a 2.5 GHz Pentium 4)
 *)
 
