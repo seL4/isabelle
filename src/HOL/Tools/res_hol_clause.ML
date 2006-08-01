@@ -409,15 +409,24 @@ fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
 
 fun literals_of_term P = literals_of_term1 ([],[]) P;
 
+fun occurs a (CombVar(b,_)) = a = b
+  | occurs a (CombApp(t1,t2,_)) = (occurs a t1) orelse (occurs a t2)
+  | occurs _ _ = false
+
+fun too_general_terms (CombVar(v,_), t) = not (occurs v t)
+  | too_general_terms _ = false;
+
+fun too_general_lit (Literal(true,(Bool(CombApp(CombApp(CombConst("equal",tp,tps),t1,tp1),t2,tp2))))) = too_general_terms (t1,t2) orelse too_general_terms (t2,t1)
+  | too_general_lit _ = false;
+
 (* forbid a clause that contains hBOOL(V) *)
 fun too_general [] = false
   | too_general (lit::lits) = 
     case lit of Literal(_,Bool(CombVar(_,_))) => true
 	      | _ => too_general lits;
 
-
 (* making axiom and conjecture clauses *)
-exception TOO_GENERAL
+exception MAKE_CLAUSE
 fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     let val term = prop_of thm
 	val term' = comb_of term is_user
@@ -426,7 +435,10 @@ fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
     in
 	if forall isFalse lits
 	then error "Problem too trivial for resolution (empty clause)"
-	else if too_general lits then raise TOO_GENERAL
+	else if too_general lits then (Output.debug ("Omitting " ^ axiom_name ^ ": clause contains universal predicates"); raise MAKE_CLAUSE)
+	else
+	    if kind=Axiom andalso forall too_general_lit lits 
+	    then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); raise MAKE_CLAUSE) 
 	else
 	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
 		    literals = lits, ctypes_sorts = ctypes_sorts, 
@@ -440,7 +452,7 @@ fun make_axiom_clause thm (ax_name,cls_id,is_user) = make_clause(cls_id,ax_name,
 fun make_axiom_clauses [] user_lemmas = []
   | make_axiom_clauses ((thm,(name,id))::thms) user_lemmas =
     let val is_user = name mem user_lemmas
-	val cls = SOME (make_axiom_clause thm (name,id,is_user)) handle TOO_GENERAL => NONE
+	val cls = SOME (make_axiom_clause thm (name,id,is_user)) handle MAKE_CLAUSE => NONE
 	val clss = make_axiom_clauses thms user_lemmas
     in
 	case cls of NONE => clss
