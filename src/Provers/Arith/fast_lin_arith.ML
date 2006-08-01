@@ -23,19 +23,19 @@ Only take premises and conclusions into account that are already (negated)
 
 signature LIN_ARITH_LOGIC =
 sig
-  val conjI:            thm (* P ==> Q ==> P & Q *)
-  val ccontr:           thm (* (~ P ==> False) ==> P *)
-  val notI:             thm (* (P ==> False) ==> ~ P *)
-  val not_lessD:        thm (* ~(m < n) ==> n <= m *)
-  val not_leD:          thm (* ~(m <= n) ==> n < m *)
-  val sym:              thm (* x = y ==> y = x *)
-  val mk_Eq: thm -> thm
-  val atomize: thm -> thm list
-  val mk_Trueprop: term -> term
-  val neg_prop: term -> term
-  val is_False: thm -> bool
-  val is_nat: typ list * term -> bool
-  val mk_nat_thm: theory -> term -> thm
+  val conjI       : thm  (* P ==> Q ==> P & Q *)
+  val ccontr      : thm  (* (~ P ==> False) ==> P *)
+  val notI        : thm  (* (P ==> False) ==> ~ P *)
+  val not_lessD   : thm  (* ~(m < n) ==> n <= m *)
+  val not_leD     : thm  (* ~(m <= n) ==> n < m *)
+  val sym         : thm  (* x = y ==> y = x *)
+  val mk_Eq       : thm -> thm
+  val atomize     : thm -> thm list
+  val mk_Trueprop : term -> term
+  val neg_prop    : term -> term
+  val is_False    : thm -> bool
+  val is_nat      : typ list * term -> bool
+  val mk_nat_thm  : theory -> term -> thm
 end;
 (*
 mk_Eq(~in) = `in == False'
@@ -55,11 +55,12 @@ sig
   (* internal representation of linear (in-)equations: *)
   type decompT = (term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool
   val decomp: theory -> term -> decompT option
+  val domain_is_nat : term -> bool
   (* preprocessing, performed on a representation of subgoals as list of premises: *)
   val pre_decomp: theory -> typ list * term list -> (typ list * term list) list
   (* preprocessing, performed on the goal -- must do the same as 'pre_decomp': *)
   val pre_tac   : int -> Tactical.tactic
-  val number_of: IntInf.int * typ -> term
+  val number_of : IntInf.int * typ -> term
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
@@ -68,6 +69,8 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
          (y, respectively) into a list of summand * multiplicity
          pairs and a constant summand and d indicates if the domain
          is discrete.
+
+domain_is_nat(`x Rel y') t should yield true iff x is of type "nat".
 
 The relationship between pre_decomp and pre_tac is somewhat tricky.  The
 internal representation of a subgoal and the corresponding theorem must
@@ -466,8 +469,8 @@ fun mkthm (sg:theory, ss:simpset) (asms:thm list) (just:injust) : thm =
         let val thm' = trace_thm "Simplified:" (full_simplify simpset' thm)
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk (Asm i)              = trace_thm "Asm" (nth asms i)
-        | mk (Nat i)              = trace_thm "Nat" (LA_Logic.mk_nat_thm sg (nth atoms i))
+      fun mk (Asm i)              = trace_thm ("Asm " ^ Int.toString i) (nth asms i)
+        | mk (Nat i)              = trace_thm ("Nat " ^ Int.toString i) (LA_Logic.mk_nat_thm sg (nth atoms i))
         | mk (LessD j)            = trace_thm "L" (hd ([mk j] RL lessD))
         | mk (NotLeD j)           = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
         | mk (NotLeDD j)          = trace_thm "NLeD" (hd ([mk j RS LA_Logic.not_leD] RL lessD))
@@ -495,7 +498,7 @@ end;
 fun coeff poly atom : IntInf.int =
   AList.lookup (op =) poly atom |> the_default 0;
 
-fun lcms (is:int list) : int = Library.foldl lcm (1, is);
+fun lcms (is : int list) : int = Library.foldl lcm (1, is);
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
@@ -582,59 +585,88 @@ For variables n of type nat, a constraint 0 <= n is added.
 *)
 
 (* FIXME: To optimize, the splitting of cases and the search for refutations *)
-(*        should be intertwined: separate the first (fully split) case,      *)
+(*        could be intertwined: separate the first (fully split) case,       *)
 (*        refute it, continue with splitting and refuting.  Terminate with   *)
 (*        failure as soon as a case could not be refuted; i.e. delay further *)
 (*        splitting until after a refutation for other cases has been found. *)
 
-fun split_items sg (Ts : typ list, terms : term list) : (typ list * (LA_Data.decompT * int) list) list =
+fun split_items sg (Ts : typ list, terms : term list) :
+                (typ list * (LA_Data.decompT * int) list) list =
+let
+(*
+  val _ = if !trace then
+            trace_msg ("split_items: Ts    = " ^ string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
+                       "             terms = " ^ string_of_list (Sign.string_of_term sg) terms)
+          else ()
+*)
+  (* splits inequalities '~=' into '<' and '>'; this corresponds to *)
+  (* 'REPEAT_DETERM (eresolve_tac neqE i)' at the theorem/tactic    *)
+  (* level                                                          *)
+  (* FIXME: this is currently sensitive to the order of theorems in *)
+  (*        neqE:  The theorem for type "nat" must come first.  A   *)
+  (*        better (i.e. less likely to break when neqE changes)    *)
+  (*        implementation should *test* which theorem from neqE    *)
+  (*        can be applied, and split the premise accordingly.      *)
+  fun elim_neq (ineqs : (LA_Data.decompT option * bool) list) :
+               (LA_Data.decompT option * bool) list list =
   let
-(*
-      val _ = trace_msg ("split_items: Ts    = " ^ string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
-                         "             terms = " ^ string_of_list (Sign.string_of_term sg) terms)
-*)
-      (* splits inequalities '~=' into '<' and '>'; this corresponds to *)
-      (* 'REPEAT_DETERM (eresolve_tac neqE i)' at the theorem/tactic    *)
-      (* level                                                          *)
-      fun elim_neq []              = [[]]
-        | elim_neq (NONE :: ineqs) = map (cons NONE) (elim_neq ineqs)
-        | elim_neq (SOME(ineq as (l,i,rel,r,j,d)) :: ineqs) =
-          if rel = "~=" then elim_neq (ineqs @ [SOME (l, i, "<", r, j, d)]) @
-                             elim_neq (ineqs @ [SOME (r, j, "<", l, i, d)])
-          else map (cons (SOME ineq)) (elim_neq ineqs)
+    fun elim_neq' nat_only ([] : (LA_Data.decompT option * bool) list) :
+                  (LA_Data.decompT option * bool) list list =
+          [[]]
+      | elim_neq' nat_only ((NONE, is_nat) :: ineqs) =
+          map (cons (NONE, is_nat)) (elim_neq' nat_only ineqs)
+      | elim_neq' nat_only ((ineq as (SOME (l, i, rel, r, j, d), is_nat)) :: ineqs) =
+          if rel = "~=" andalso (not nat_only orelse is_nat) then
+            (* [| ?l ~= ?r; ?l < ?r ==> ?R; ?r < ?l ==> ?R |] ==> ?R *)
+            elim_neq' nat_only (ineqs @ [(SOME (l, i, "<", r, j, d), is_nat)]) @
+            elim_neq' nat_only (ineqs @ [(SOME (r, j, "<", l, i, d), is_nat)])
+          else
+            map (cons ineq) (elim_neq' nat_only ineqs)
+  in
+    ineqs |> elim_neq' true
+          |> map (elim_neq' false)
+          |> List.concat
+  end
 
-      fun number_hyps _ []             = []
-        | number_hyps n (NONE::xs)     = number_hyps (n+1) xs
-        | number_hyps n ((SOME x)::xs) = (x, n) :: number_hyps (n+1) xs
+  fun number_hyps _ []             = []
+    | number_hyps n (NONE::xs)     = number_hyps (n+1) xs
+    | number_hyps n ((SOME x)::xs) = (x, n) :: number_hyps (n+1) xs
 
-      val result = (Ts, terms) |> (* user-defined preprocessing of the subgoal *)
-                                  LA_Data.pre_decomp sg
-                               |> (* compute the internal encoding of (in-)equalities *)
-                                  map (apsnd (map (LA_Data.decomp sg)))
-                               |> (* splitting of inequalities *)
-                                  map (fn (Ts, items) => map (pair Ts) (elim_neq items))
-                               |> (* combine the list of lists of subgoals into a single list *)
-                                  List.concat
-                               |> (* numbering of hypotheses, ignoring irrelevant ones *)
-                                  map (apsnd (number_hyps 0))
+  val result = (Ts, terms)
+    |> (* user-defined preprocessing of the subgoal *)
+       (* (typ list * term list) list *)
+       LA_Data.pre_decomp sg
+    |> (* compute the internal encoding of (in-)equalities *)
+       (* (typ list * (LA_Data.decompT option * bool) list) list *)
+       map (apsnd (map (fn t => (LA_Data.decomp sg t, LA_Data.domain_is_nat t))))
+    |> (* splitting of inequalities *)
+       (* (typ list * (LA_Data.decompT option * bool) list list) list *)
+       map (apsnd elim_neq)
+    |> (* combine the list of lists of subgoals into a single list *)
+       map (fn (Ts, subgoals) => map (pair Ts o map fst) subgoals)
+    |> List.concat
+    |> (* numbering of hypotheses, ignoring irrelevant ones *)
+       map (apsnd (number_hyps 0))
 (*
-      val _ = trace_msg ("split_items: result has " ^ Int.toString (length result) ^
-                " subgoal(s)" ^ "\n" ^ (cat_lines o fst) (fold_map (fn (Ts, items) => fn n =>
-                        ("  " ^ Int.toString n ^ ". Ts    = " ^
-                           string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
-                         "    items = " ^ string_of_list (string_of_pair 
-                           (fn (l, i, rel, r, j, d) => enclose "(" ")" (commas
-                             [string_of_list
-                                (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) l,
-                              Rat.string_of_rat i,
-                              rel,
-                              string_of_list
-                                (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) r,
-                              Rat.string_of_rat j,
-                              Bool.toString d]))
-                           Int.toString) items, n+1)) result 1))
+  val _ = if !trace then
+            trace_msg ("split_items: result has " ^ Int.toString (length result) ^
+              " subgoal(s)" ^ "\n" ^ (cat_lines o fst) (fold_map (fn (Ts, items) => fn n =>
+                ("  " ^ Int.toString n ^ ". Ts    = " ^
+                   string_of_list (Sign.string_of_typ sg) Ts ^ "\n" ^
+                 "     items = " ^ string_of_list (string_of_pair 
+                   (fn (l, i, rel, r, j, d) => enclose "(" ")" (commas
+                     [string_of_list
+                        (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) l,
+                      Rat.string_of_rat i,
+                      rel,
+                      string_of_list
+                        (string_of_pair (Sign.string_of_term sg) Rat.string_of_rat) r,
+                      Rat.string_of_rat j,
+                      Bool.toString d]))
+                   Int.toString) items, n+1)) result 1))
+          else ()
 *)
-  in result end;
+in result end;
 
 fun add_atoms (ats : term list, ((lhs,_,_,rhs,_,_) : LA_Data.decompT, _)) : term list =
     (map fst lhs) union ((map fst rhs) union ats);
@@ -666,8 +698,9 @@ let
            (if not show_ex then
               ()
             else let
-              (* invent names for bound variables that are new, i.e. in Ts, but not in params *)
-              (* we assume that Ts still contains (map snd params) as a suffix                *)
+              (* invent names for bound variables that are new, i.e. in Ts,  *)
+              (* but not in params; we assume that Ts still contains (map    *)
+              (* snd params) as a suffix                                     *)
               val new_count = length Ts - length params - 1
               val new_names = map Name.bound (0 upto new_count)
               val params'   = (new_names @ map fst params) ~~ Ts
@@ -678,8 +711,8 @@ let
     | refute [] js = SOME js
 in refute end;
 
-fun refute (sg : theory) (params : (string * Term.typ) list) (show_ex : bool) (terms : term list) :
-  injust list option =
+fun refute (sg : theory) (params : (string * Term.typ) list) (show_ex : bool)
+           (terms : term list) : injust list option =
   refutes sg params show_ex (split_items sg (map snd params, terms)) [];
 
 fun count (P : 'a -> bool) (xs : 'a list) : int = length (List.filter P xs);
@@ -689,8 +722,8 @@ fun count (P : 'a -> bool) (xs : 'a list) : int = length (List.filter P xs);
 *)
 val fast_arith_neq_limit = ref 9;
 
-fun prove (sg : theory) (params : (string * Term.typ) list) (show_ex : bool) (Hs : term list)
-          (concl : term) : injust list option =
+fun prove (sg : theory) (params : (string * Term.typ) list) (show_ex : bool)
+          (Hs : term list) (concl : term) : injust list option =
   let
     (* append the negated conclusion to 'Hs' -- this corresponds to     *)
     (* 'DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i)' at the *)
@@ -718,6 +751,7 @@ fun refute_tac (ss : simpset) (i : int, justs : injust list) : tactic =
         fun just1 j =
           (* eliminate inequalities *)
           REPEAT_DETERM (eresolve_tac neqE i) THEN
+            PRIMITIVE (trace_thm "State after neqE:") THEN
             (* use theorems generated from the actual justifications *)
             METAHYPS (fn asms => rtac (mkthm (sg, ss) asms j) 1) i
     in (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
@@ -745,7 +779,8 @@ fun simpset_lin_arith_tac (ss : simpset) (show_ex : bool) (i : int) (st : thm) =
   end) i st;
 
 fun lin_arith_tac (show_ex : bool) (i : int) (st : thm) =
-  simpset_lin_arith_tac (Simplifier.theory_context (Thm.theory_of_thm st) Simplifier.empty_ss)
+  simpset_lin_arith_tac
+    (Simplifier.theory_context (Thm.theory_of_thm st) Simplifier.empty_ss)
     show_ex i st;
 
 fun cut_lin_arith_tac (ss : simpset) (i : int) =

@@ -410,6 +410,10 @@ in
   decomp_negation (sg, discrete, inj_consts)
 end;
 
+fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
+  | domain_is_nat (_ $ (Const ("Not", _) $ (Const (_, T) $ _ $ _))) = nT T
+  | domain_is_nat _                                                 = false;
+
 fun number_of (n : int, T : typ) =
   HOLogic.number_of_const T $ (HOLogic.mk_binum n);
 
