@@ -91,6 +91,7 @@ sig
   val strip_type: ctyp -> ctyp list * ctyp
   val beta_conv: cterm -> cterm -> cterm
   val plain_prop_of: thm -> term
+  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
   val close_derivation: thm -> thm
@@ -114,6 +115,7 @@ sig
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
+  val norm_hhf_cterm: cterm -> cterm
   val unvarify: thm -> thm
   val protect: cterm -> cterm
   val protectI: thm
@@ -123,16 +125,8 @@ sig
   val termI: thm
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
-  val freeze_all: thm -> thm
-  val tvars_of_terms: term list -> (indexname * sort) list
-  val vars_of_terms: term list -> (indexname * typ) list
-  val tvars_of: thm -> (indexname * sort) list
-  val vars_of: thm -> (indexname * typ) list
-  val tfrees_of: thm -> (string * sort) list
-  val frees_of: thm -> (string * typ) list
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
-  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
   val incr_indexes: thm -> thm -> thm
@@ -238,6 +232,10 @@ fun plain_prop_of raw_thm =
     else prop
   end;
 
+fun fold_terms f th =
+  let val {tpairs, prop, hyps, ...} = Thm.rep_thm th
+  in fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps end;
+
 
 
 (** reading of instantiations **)
@@ -308,20 +306,6 @@ fun add_used thm used =
 
 (** Standardization of rules **)
 
-(*vars in left-to-right order*)
-fun tvars_of_terms ts = rev (fold Term.add_tvars ts []);
-fun vars_of_terms ts = rev (fold Term.add_vars ts []);
-fun tvars_of thm = tvars_of_terms [Thm.full_prop_of thm];
-fun vars_of thm = vars_of_terms [Thm.full_prop_of thm];
-
-fun fold_terms f th =
-  let val {hyps, tpairs, prop, ...} = Thm.rep_thm th
-  in f prop #> fold (fn (t, u) => f t #> f u) tpairs #> fold f hyps end;
-
-fun tfrees_of th = rev (fold_terms Term.add_tfrees th []);
-fun frees_of th = rev (fold_terms Term.add_frees th []);
-
-
 (* type classes and sorts *)
 
 fun sort_triv thy (T, S) =
@@ -334,7 +318,8 @@ fun sort_triv thy (T, S) =
   in map class_triv S end;
 
 fun unconstrainTs th =
-  fold_rev (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar) (tvars_of th) th;
+  fold (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar)
+    (fold_terms Term.add_tvars th []) th;
 
 fun strip_shyps_warning thm =
   let
@@ -361,8 +346,8 @@ fun forall_intr_frees th =
 
 (*Generalization over Vars -- canonical order*)
 fun forall_intr_vars th =
-  let val cert = Thm.cterm_of (Thm.theory_of_thm th)
-  in forall_intr_list (map (cert o Var) (vars_of th)) th end;
+  fold forall_intr
+    (map (Thm.cterm_of (Thm.theory_of_thm th) o Var) (fold_terms Term.add_vars th [])) th;
 
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
@@ -389,7 +374,7 @@ fun lift_all goal th =
     val ps = outer_params (Thm.term_of goal)
       |> map (fn (x, T) => Var ((x, maxidx + 1), Logic.incr_tvar (maxidx + 1) T));
     val Ts = map Term.fastype_of ps;
-    val inst = vars_of th |> map (fn (xi, T) =>
+    val inst = fold_terms Term.add_vars th [] |> map (fn (xi, T) =>
       (cert (Var (xi, T)), cert (Term.list_comb (Var (xi, Ts ---> T), ps))));
   in
     th |> Thm.instantiate ([], inst)
@@ -864,6 +849,10 @@ fun norm_hhf thy t =
   if is_norm_hhf t then t
   else Pattern.rewrite_term thy [norm_hhf_prop] [] t;
 
+fun norm_hhf_cterm ct =
+  if is_norm_hhf (Thm.term_of ct) then ct
+  else cterm_fun (Pattern.rewrite_term (Thm.theory_of_cterm ct) [norm_hhf_prop] []) ct;
+
 
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)
@@ -877,7 +866,7 @@ fun read_instantiate_sg' thy sinsts th =
     in  instantiate (read_insts thy ts ts used sinsts) th  end;
 
 fun read_instantiate_sg thy sinsts th =
-  read_instantiate_sg' thy (map (apfst Syntax.indexname) sinsts) th;
+  read_instantiate_sg' thy (map (apfst Syntax.read_indexname) sinsts) th;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =
@@ -999,19 +988,20 @@ fun instantiate' cTs cts thm =
       (Thm.ctyp_of (Thm.theory_of_ctyp cT) (TVar v), cT)
         handle TYPE (msg, _, _) => err msg;
 
-    fun zip_vars _ [] = []
-      | zip_vars (_ :: vs) (NONE :: opt_ts) = zip_vars vs opt_ts
-      | zip_vars (v :: vs) (SOME t :: opt_ts) = (v, t) :: zip_vars vs opt_ts
-      | zip_vars [] _ = err "more instantiations than variables in thm";
+    fun zip_vars xs ys =
+      zip_options xs ys handle Library.UnequalLengths =>
+        err "more instantiations than variables in thm";
 
     (*instantiate types first!*)
     val thm' =
       if forall is_none cTs then thm
-      else Thm.instantiate (map tyinst_of (zip_vars (tvars_of thm) cTs), []) thm;
-    in
+      else Thm.instantiate
+        (map tyinst_of (zip_vars (rev (fold_terms Term.add_tvars thm [])) cTs), []) thm;
+    val thm'' = 
       if forall is_none cts then thm'
-      else Thm.instantiate ([], map inst_of (zip_vars (vars_of thm') cts)) thm'
-    end;
+      else Thm.instantiate
+        ([], map inst_of (zip_vars (rev (fold_terms Term.add_vars thm' [])) cts)) thm';
+    in thm'' end;
 
 
 
@@ -1057,27 +1047,6 @@ fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 
 fun incr_indexes2 th1 th2 =
   Thm.incr_indexes (Int.max (Thm.maxidx_of th1, Thm.maxidx_of th2) + 1);
-
-
-(* freeze_all *)
-
-(*freeze all (T)Vars; assumes thm in standard form*)
-
-fun freeze_all_TVars thm =
-  (case tvars_of thm of
-    [] => thm
-  | tvars =>
-      let val cert = Thm.ctyp_of (Thm.theory_of_thm thm)
-      in instantiate' (map (fn ((x, _), S) => SOME (cert (TFree (x, S)))) tvars) [] thm end);
-
-fun freeze_all_Vars thm =
-  (case vars_of thm of
-    [] => thm
-  | vars =>
-      let val cert = Thm.cterm_of (Thm.theory_of_thm thm)
-      in instantiate' [] (map (fn ((x, _), T) => SOME (cert (Free (x, T)))) vars) thm end);
-
-val freeze_all = freeze_all_Vars o freeze_all_TVars;
 
 
 
