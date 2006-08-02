@@ -6,7 +6,9 @@
 structure ReconTranslateProof =
 struct
 
-fun thm_vars thm = map (fn ((name,ix),_) => name) (Drule.vars_of thm);
+fun thm_varnames thm =
+  (Drule.fold_terms o Term.fold_aterms)
+    (fn Var ((x, _), _) => insert (op =) x | _ => I) thm [];
 
 exception Reflex_equal;
 
@@ -80,7 +82,7 @@ fun reconstruction_failed fname = error (fname ^ ": reconstruction failed")
 fun follow_axiom clauses  allvars (clausenum:int) thml clause_strs =  
     let val this_axiom = (the o AList.lookup (op =) clauses) clausenum
 	val (res, numlist, symlist, nsymlist) = (ReconOrderClauses.rearrange_clause this_axiom clause_strs allvars)         
-	val thmvars = thm_vars res
+	val thmvars = thm_varnames res
     in
 	(res, (Axiom,clause_strs,thmvars )  )
     end
@@ -96,7 +98,7 @@ fun follow_binary ((clause1, lit1), (clause2 , lit2)) allvars thml clause_strs =
 	val thm2 =  (the o AList.lookup (op =) thml) clause2
 	val res =   thm1 RSN ((lit2 +1), thm2)
 	val (res', numlist, symlist, nsymlist) = (ReconOrderClauses.rearrange_clause res clause_strs allvars)
-	val thmvars = thm_vars res
+	val thmvars = thm_varnames res
     in
        (res',  ((Binary ((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars) )
     end
@@ -115,7 +117,7 @@ fun follow_mrr ((clause1, lit1), (clause2 , lit2))  allvars thml clause_strs =
 	val res =   thm1 RSN ((lit2 +1), thm2)
 	val (res', numlist, symlist, nsymlist) = 
 	    (ReconOrderClauses.rearrange_clause res clause_strs allvars)
-	val thmvars = thm_vars res
+	val thmvars = thm_varnames res
     in
        (res',  ((MRR ((clause1, lit1), (clause2 , lit2))) ,clause_strs,thmvars))
     end
@@ -180,7 +182,7 @@ fun follow_factor clause lit1 lit2 allvars thml clause_strs =
 	     val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
 	     val (res', numlist, symlist, nsymlist) = 
 	         ReconOrderClauses.rearrange_clause res clause_strs allvars
-	     val thmvars = thm_vars res'
+	     val thmvars = thm_varnames res'
 	  in 
 		 (res',((Factor (clause,  lit1, lit2)),clause_strs,thmvars))
 	  end
@@ -192,7 +194,7 @@ fun follow_factor clause lit1 lit2 allvars thml clause_strs =
 	     val res = hd (Seq.list_of(delete_assump_tac  facthm (lit1 + 1)))
 	     val (res', numlist, symlist, nsymlist) = 
 	         ReconOrderClauses.rearrange_clause res clause_strs allvars
-	     val thmvars = thm_vars res'
+	     val thmvars = thm_varnames res'
 	  in 
 		 (res', ((Factor (clause,  lit1, lit2)),clause_strs, thmvars))         
 	  end
@@ -244,7 +246,7 @@ fun follow_standard_para ((clause1, lit1), (clause2 , lit2)) allvars thml clause
 		in 
 		   ReconOrderClauses.rearrange_clause newth' clause_strs allvars
 		end)
-      val thmvars = thm_vars res
+      val thmvars = thm_varnames res
    in 
      (res, ((Para((clause1, lit1), (clause2 , lit2))),clause_strs,thmvars))
    end
@@ -298,7 +300,7 @@ fun delete_assumps 0 th = th
 	  val newthm' = delete_assumps eq_lit_prem_num newthm
 	  val (res, numlist, symlist, nsymlist) =
 	      ReconOrderClauses.rearrange_clause newthm clause_strs allvars
-	  val thmvars = thm_vars res
+	  val thmvars = thm_varnames res
        in
 	   (res, ((Rewrite ((clause1, lit1),  (clause2, lit2))),clause_strs,thmvars))
        end
@@ -318,7 +320,7 @@ fun follow_obvious  (clause1, lit1)  allvars thml clause_strs =
 		     handle THM _ =>  hd (Seq.list_of(delete_assump_tac  th1 (lit1 + 1)))
 	val (res, numlist, symlist, nsymlist) =
 	    ReconOrderClauses.rearrange_clause newthm clause_strs allvars
-	val thmvars = thm_vars res
+	val thmvars = thm_varnames res
     in 
 	(res, ((Obvious (clause1, lit1)),clause_strs,thmvars))
     end
