@@ -14,18 +14,17 @@ end
 signature PROOF_DISPLAY =
 sig
   include BASIC_PROOF_DISPLAY
-  val debug: bool ref
-  val pprint_context: ProofContext.context -> pprint_args -> unit
+  val pprint_context: Proof.context -> pprint_args -> unit
   val pprint_typ: theory -> typ -> pprint_args -> unit
   val pprint_term: theory -> term -> pprint_args -> unit
   val pprint_ctyp: ctyp -> pprint_args -> unit
   val pprint_cterm: cterm -> pprint_args -> unit
   val pprint_thm: thm -> pprint_args -> unit
   val print_theorems_diff: theory -> theory -> unit
-  val string_of_rule: ProofContext.context -> string -> thm -> string
-  val print_results: bool -> ProofContext.context ->
+  val string_of_rule: Proof.context -> string -> thm -> string
+  val print_results: bool -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
-  val present_results: ProofContext.context ->
+  val present_results: Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
 end
 
@@ -34,10 +33,8 @@ struct
 
 (* toplevel pretty printing *)
 
-val debug = ref false;
-
 fun pprint_context ctxt = Pretty.pprint
- (if ! debug then
+ (if ! ProofContext.debug then
     Pretty.quote (Pretty.big_list "proof context:" (ProofContext.pretty_context ctxt))
   else Pretty.str "<context>");
 
