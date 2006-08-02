@@ -354,13 +354,15 @@ fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
 
 fun rename_thm ren th =
   let
-    val subst = Drule.frees_of th
-      |> map_filter (fn (x, T) =>
+    val thy = Thm.theory_of_thm th;
+    val subst = (Drule.fold_terms o Term.fold_aterms)
+      (fn Free (x, T) =>
         let val x' = rename ren x
-        in if x = x' then NONE else SOME ((x, T), (Free (x', T))) end);
+        in if x = x' then I else insert (eq_fst (op =)) ((x, T), Free (x', T)) end
+      | _ => I) th [];
   in
     if null subst then th
-    else th |> hyps_rule (instantiate_frees (Thm.theory_of_thm th) subst)
+    else th |> hyps_rule (instantiate_frees thy subst)
   end;
 
 fun rename_witness ren =
@@ -381,13 +383,11 @@ fun instT_term env =
   if Symtab.is_empty env then I
   else Term.map_term_types (instT_type env);
 
-fun instT_subst env th =
-  Drule.tfrees_of th
-  |> map_filter (fn (a, S) =>
-    let
-      val T = TFree (a, S);
-      val T' = the_default T (Symtab.lookup env a);
-    in if T = T' then NONE else SOME (a, T') end);
+fun instT_subst env th = (Drule.fold_terms o Term.fold_types o Term.fold_atyps)
+  (fn T as TFree (a, _) =>
+    let val T' = the_default T (Symtab.lookup env a)
+    in if T = T' then I else insert (op =) (a, T') end
+  | _ => I) th [];
 
 fun instT_thm thy env th =
   if Symtab.is_empty env then th
@@ -425,13 +425,14 @@ fun inst_thm thy (envT, env) th =
   else
     let
       val substT = instT_subst envT th;
-      val subst = Drule.frees_of th
-        |> map_filter (fn (x, T) =>
+      val subst = (Drule.fold_terms o Term.fold_aterms)
+       (fn Free (x, T) =>
           let
             val T' = instT_type envT T;
             val t = Free (x, T');
             val t' = the_default t (Symtab.lookup env x);
-          in if t aconv t' then NONE else SOME ((x, T'), t') end);
+          in if t aconv t' then I else insert (eq_fst (op =)) ((x, T'), t') end
+       | _ => I) th [];
     in
       if null substT andalso null subst then th
       else th |> hyps_rule
