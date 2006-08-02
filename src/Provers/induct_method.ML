@@ -404,7 +404,7 @@ fun induct_tac ctxt is_open def_insts fixing taking opt_rule facts =
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac rule' i THEN
-                  PRIMSEQ (Seq.singleton (ProofContext.exports defs_ctxt ctxt))) st'))))
+                  PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
 

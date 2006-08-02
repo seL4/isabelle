@@ -113,7 +113,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac (rename_params_rule false [] rule') i THEN
-                  PRIMSEQ (Seq.singleton (ProofContext.exports defs_ctxt ctxt))) st'))))
+                  PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES InductMethod.rulify_tac
   end;
 
