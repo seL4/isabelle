@@ -127,15 +127,18 @@ struct
 fun legacy_unvarifyT thm =
   let
     val cT = Thm.ctyp_of (Thm.theory_of_thm thm);
-    val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) (Drule.tvars_of thm);
+    val tvars = rev (Drule.fold_terms Term.add_tvars thm []);
+    val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) tvars;
   in Drule.instantiate' tfrees [] thm end;
 
 fun legacy_unvarify raw_thm =
   let
     val thm = legacy_unvarifyT raw_thm;
     val ct = Thm.cterm_of (Thm.theory_of_thm thm);
-    val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) (Drule.vars_of thm);
+    val vars = rev (Drule.fold_terms Term.add_vars thm []);
+    val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) vars;
   in Drule.instantiate' [] frees thm end;
+
 
 (** locale elements and expressions **)
 
@@ -866,8 +869,7 @@ local
 
 fun axioms_export axs _ hyps =
   Element.satisfy_thm axs
-  #> Drule.implies_intr_list (Library.drop (length axs, hyps))
-  #> Seq.single;
+  #> Drule.implies_intr_list (Library.drop (length axs, hyps));
 
 
 (* NB: derived ids contain only facts at this stage *)
