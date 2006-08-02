@@ -338,17 +338,12 @@ proof -
     apply (subst Rep_matrix_mult)
     apply (rule_tac j1=aa in ssubst[OF foldseq_almostzero])
     apply (simp_all)
-    apply (intro strip, rule conjI)
     apply (intro strip)
-    apply (drule_tac max_helper)
-    apply (simp)
-    apply (auto)
     apply (rule zero_imp_mult_zero)
     apply (rule disjI2)
     apply (rule nrows)
     apply (rule order_trans[of _ 1])
-    apply (simp)
-    apply (simp)
+    apply auto
     done
 qed
 

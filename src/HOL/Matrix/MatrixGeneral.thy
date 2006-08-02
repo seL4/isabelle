@@ -934,11 +934,10 @@ lemma move_matrix_singleton[simp]: "move_matrix (singleton_matrix u v x) j i =
   apply (subst Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply (case_tac "j + int u < 0")
-  apply (simp, arith)
+  apply simp
   apply (case_tac "i + int v < 0")
-  apply (simp add: neg_def, arith)
   apply (simp add: neg_def)
-  apply arith
+  apply (simp add: neg_def)
   done
 
 lemma Rep_take_columns[simp]:
