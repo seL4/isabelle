@@ -7,23 +7,22 @@ Local definitions.
 
 signature LOCAL_DEFS =
 sig
-  val cert_def: ProofContext.context -> term -> (string * typ) * term
+  val cert_def: Proof.context -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
-  val mk_def: ProofContext.context -> (string * term) list -> term list
+  val mk_def: Proof.context -> (string * term) list -> term list
   val def_export: Assumption.export
-  val add_def: string * term -> ProofContext.context ->
-    ((string * typ) * thm) * ProofContext.context
+  val add_def: string * term -> Proof.context -> ((string * typ) * thm) * Proof.context
   val print_rules: Context.generic -> unit
   val defn_add: attribute
   val defn_del: attribute
   val meta_rewrite_rule: Context.generic -> thm -> thm
-  val unfold: ProofContext.context -> thm list -> thm -> thm
-  val unfold_goals: ProofContext.context -> thm list -> thm -> thm
-  val unfold_tac: ProofContext.context -> thm list -> tactic
-  val fold: ProofContext.context -> thm list -> thm -> thm
-  val fold_tac: ProofContext.context -> thm list -> tactic
-  val derived_def: ProofContext.context -> bool -> term ->
-    ((string * typ) * term) * (ProofContext.context -> term -> thm -> thm)
+  val unfold: Proof.context -> thm list -> thm -> thm
+  val unfold_goals: Proof.context -> thm list -> thm -> thm
+  val unfold_tac: Proof.context -> thm list -> tactic
+  val fold: Proof.context -> thm list -> thm -> thm
+  val fold_tac: Proof.context -> thm list -> tactic
+  val derived_def: Proof.context -> bool -> term ->
+    ((string * typ) * term) * (Proof.context -> term -> thm -> thm)
 end;
 
 structure LocalDefs: LOCAL_DEFS =
@@ -67,11 +66,11 @@ val head_of_def =
   -----------
       B t
 *)
-fun def_export _ cprops thm =
+fun def_export _ defs thm =
   thm
-  |> Drule.implies_intr_list cprops
-  |> Drule.generalize ([], map head_of_def cprops)
-  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
+  |> Drule.implies_intr_list defs
+  |> Drule.generalize ([], map head_of_def defs)
+  |> funpow (length defs) (fn th => Drule.reflexive_thm RS th);
 
 
 (* add defs *)
