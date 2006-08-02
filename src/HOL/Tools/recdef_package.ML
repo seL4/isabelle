@@ -11,6 +11,7 @@ sig
   val print_recdefs: theory -> unit
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
+  val get_hints: Context.generic -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
   val simp_add: attribute
   val simp_del: attribute
   val cong_add: attribute
@@ -29,10 +30,6 @@ sig
   val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> theory -> Proof.state
   val recdef_tc_i: bstring * attribute list -> string -> int option -> theory -> Proof.state
   val setup: theory -> theory
-
-(* HACK: This has to be exported, since the new fundef-package uses the same hints *)
-  val get_local_hints: ProofContext.context -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
-  val get_global_hints: theory -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
 end;
 
 structure RecdefPackage: RECDEF_PACKAGE =
@@ -146,10 +143,16 @@ val get_local_hints = LocalRecdefData.get;
 val map_local_hints = LocalRecdefData.map;
 
 
-(* attributes *)
+(* generic data *)
+
+fun get_hints (Context.Theory thy) = get_global_hints thy
+  | get_hints (Context.Proof ctxt) = get_local_hints ctxt;
 
 fun map_hints f (Context.Theory thy) = Context.Theory (map_global_hints f thy)
   | map_hints f (Context.Proof ctxt) = Context.Proof (map_local_hints f ctxt);
+
+
+(* attributes *)
 
 fun attrib f = Thm.declaration_attribute (map_hints o f);
 
