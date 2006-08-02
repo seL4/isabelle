@@ -59,20 +59,20 @@ fun mk_tvar (Envir.Envir {iTs, asol, maxidx}, s) =
 
 val mk_abs = fold (fn T => fn u => Abs ("", T, u));
 
-fun unifyT sg env T U =
+fun unifyT thy env T U =
   let
     val Envir.Envir {asol, iTs, maxidx} = env;
-    val (iTs', maxidx') = Sign.typ_unify sg (T, U) (iTs, maxidx)
+    val (iTs', maxidx') = Sign.typ_unify thy (T, U) (iTs, maxidx)
   in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end
   handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
-    Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);
+    Sign.string_of_typ thy T ^ "\n\n" ^ Sign.string_of_typ thy U);
 
 fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar ixnS) =
       (case Type.lookup (iTs, ixnS) of NONE => T | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
-fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
-      (t as Const (s, T)) = if T = dummyT then (case Sign.const_type sg s of
+fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
+      (t as Const (s, T)) = if T = dummyT then (case Sign.const_type thy s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
         | SOME T => 
             let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T)
@@ -80,64 +80,64 @@ fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
               Envir.Envir {maxidx = maxidx + 1, asol = asol, iTs = iTs})
             end)
       else (t, T, vTs, env)
-  | infer_type sg env Ts vTs (t as Free (s, T)) =
+  | infer_type thy env Ts vTs (t as Free (s, T)) =
       if T = dummyT then (case Symtab.lookup vTs s of
           NONE =>
             let val (env', T) = mk_tvar (env, [])
             in (Free (s, T), T, Symtab.update_new (s, T) vTs, env') end
         | SOME T => (Free (s, T), T, vTs, env))
       else (t, T, vTs, env)
-  | infer_type sg env Ts vTs (Var _) = error "reconstruct_proof: internal error"
-  | infer_type sg env Ts vTs (Abs (s, T, t)) =
+  | infer_type thy env Ts vTs (Var _) = error "reconstruct_proof: internal error"
+  | infer_type thy env Ts vTs (Abs (s, T, t)) =
       let
         val (env', T') = if T = dummyT then mk_tvar (env, []) else (env, T);
-        val (t', U, vTs', env'') = infer_type sg env' (T' :: Ts) vTs t
+        val (t', U, vTs', env'') = infer_type thy env' (T' :: Ts) vTs t
       in (Abs (s, T', t'), T' --> U, vTs', env'') end
-  | infer_type sg env Ts vTs (t $ u) =
+  | infer_type thy env Ts vTs (t $ u) =
       let
-        val (t', T, vTs1, env1) = infer_type sg env Ts vTs t;
-        val (u', U, vTs2, env2) = infer_type sg env1 Ts vTs1 u;
+        val (t', T, vTs1, env1) = infer_type thy env Ts vTs t;
+        val (u', U, vTs2, env2) = infer_type thy env1 Ts vTs1 u;
       in (case chaseT env2 T of
-          Type ("fun", [U', V]) => (t' $ u', V, vTs2, unifyT sg env2 U U')
+          Type ("fun", [U', V]) => (t' $ u', V, vTs2, unifyT thy env2 U U')
         | _ =>
           let val (env3, V) = mk_tvar (env2, [])
-          in (t' $ u', V, vTs2, unifyT sg env3 T (U --> V)) end)
+          in (t' $ u', V, vTs2, unifyT thy env3 T (U --> V)) end)
       end
-  | infer_type sg env Ts vTs (t as Bound i) = (t, List.nth (Ts, i), vTs, env);
+  | infer_type thy env Ts vTs (t as Bound i) = (t, List.nth (Ts, i), vTs, env);
 
-fun cantunify sg (t, u) = error ("Non-unifiable terms:\n" ^
-  Sign.string_of_term sg t ^ "\n\n" ^ Sign.string_of_term sg u);
+fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
+  Sign.string_of_term thy t ^ "\n\n" ^ Sign.string_of_term thy u);
 
-fun decompose sg Ts (env, p as (t, u)) =
-  let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify sg p
-    else apsnd flat (foldl_map (decompose sg Ts) (uT env T U, ts ~~ us))
+fun decompose thy Ts (env, p as (t, u)) =
+  let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify thy p
+    else apsnd flat (foldl_map (decompose thy Ts) (uT env T U, ts ~~ us))
   in case pairself (strip_comb o Envir.head_norm env) p of
-      ((Const c, ts), (Const d, us)) => rigrig c d (unifyT sg) ts us
-    | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT sg) ts us
+      ((Const c, ts), (Const d, us)) => rigrig c d (unifyT thy) ts us
+    | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT thy) ts us
     | ((Bound i, ts), (Bound j, us)) =>
         rigrig (i, dummyT) (j, dummyT) (K o K) ts us
     | ((Abs (_, T, t), []), (Abs (_, U, u), [])) =>
-        decompose sg (T::Ts) (unifyT sg env T U, (t, u))
+        decompose thy (T::Ts) (unifyT thy env T U, (t, u))
     | ((Abs (_, T, t), []), _) =>
-        decompose sg (T::Ts) (env, (t, incr_boundvars 1 u $ Bound 0))
+        decompose thy (T::Ts) (env, (t, incr_boundvars 1 u $ Bound 0))
     | (_, (Abs (_, T, u), [])) =>
-        decompose sg (T::Ts) (env, (incr_boundvars 1 t $ Bound 0, u))
+        decompose thy (T::Ts) (env, (incr_boundvars 1 t $ Bound 0, u))
     | _ => (env, [(mk_abs Ts t, mk_abs Ts u)])
   end;
 
-fun make_constraints_cprf sg env cprf =
+fun make_constraints_cprf thy env cprf =
   let
     fun add_cnstrt Ts prop prf cs env vTs (t, u) =
       let
         val t' = mk_abs Ts t;
         val u' = mk_abs Ts u
       in
-        (prop, prf, cs, Pattern.unify sg (t', u') env, vTs)
+        (prop, prf, cs, Pattern.unify thy (t', u') env, vTs)
         handle Pattern.Pattern =>
-            let val (env', cs') = decompose sg [] (env, (t', u'))
+            let val (env', cs') = decompose thy [] (env, (t', u'))
             in (prop, prf, cs @ cs', env', vTs) end
         | Pattern.Unif =>
-            cantunify sg (Envir.norm_term env t', Envir.norm_term env u')
+            cantunify thy (Envir.norm_term env t', Envir.norm_term env u')
       end;
 
     fun mk_cnstrts_atom env vTs prop opTs prf =
@@ -169,7 +169,7 @@ fun make_constraints_cprf sg env cprf =
           end
       | mk_cnstrts env Ts Hs vTs (AbsP (s, SOME t, cprf)) =
           let
-            val (t', _, vTs', env') = infer_type sg env Ts vTs t;
+            val (t', _, vTs', env') = infer_type thy env Ts vTs t;
             val (u, prf, cnstrts, env'', vTs'') = mk_cnstrts env' Ts (t'::Hs) vTs' cprf;
           in (Logic.mk_implies (t', u), AbsP (s, SOME t', prf), cnstrts, env'', vTs'')
           end
@@ -192,11 +192,11 @@ fun make_constraints_cprf sg env cprf =
                 end)
           end
       | mk_cnstrts env Ts Hs vTs (cprf % SOME t) =
-          let val (t', U, vTs1, env1) = infer_type sg env Ts vTs t
+          let val (t', U, vTs1, env1) = infer_type thy env Ts vTs t
           in (case head_norm (mk_cnstrts env1 Ts Hs vTs1 cprf) of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env2, vTs2) =>
-               let val env3 = unifyT sg env2 T U
+               let val env3 = unifyT thy env2 T U
                in (betapply (f, t'), prf % SOME t', cnstrts, env3, vTs2)
                end
            | (u, prf, cnstrts, env2, vTs2) =>
@@ -255,11 +255,11 @@ fun upd_constrs env cs =
 (**** solution of constraints ****)
 
 fun solve _ [] bigenv = bigenv
-  | solve sg cs bigenv =
+  | solve thy cs bigenv =
       let
         fun search env [] = error ("Unsolvable constraints:\n" ^
               Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                Display.pretty_flexpair (Sign.pp sg) (pairself
+                Display.pretty_flexpair (Sign.pp thy) (pairself
                   (Envir.norm_term bigenv) p)) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
@@ -268,10 +268,10 @@ fun solve _ [] bigenv = bigenv
                   val tn2 = Envir.norm_term bigenv t2
                 in
                   if Pattern.pattern tn1 andalso Pattern.pattern tn2 then
-                    (Pattern.unify sg (tn1, tn2) env, ps) handle Pattern.Unif =>
-                       cantunify sg (tn1, tn2)
+                    (Pattern.unify thy (tn1, tn2) env, ps) handle Pattern.Unif =>
+                       cantunify thy (tn1, tn2)
                   else
-                    let val (env', cs') = decompose sg [] (env, (tn1, tn2))
+                    let val (env', cs') = decompose thy [] (env, (tn1, tn2))
                     in if cs' = [(tn1, tn2)] then
                          apsnd (cons (false, (tn1, tn2), vs)) (search env ps)
                        else search env' (map (fn q => (true, q, vs)) cs' @ ps)
@@ -281,22 +281,23 @@ fun solve _ [] bigenv = bigenv
         val Envir.Envir {maxidx, ...} = bigenv;
         val (env, cs') = search (Envir.empty maxidx) cs;
       in
-        solve sg (upd_constrs env cs') (merge_envs bigenv env)
+        solve thy (upd_constrs env cs') (merge_envs bigenv env)
       end;
 
 
 (**** reconstruction of proofs ****)
 
-fun reconstruct_proof sg prop cprf =
+fun reconstruct_proof thy prop cprf =
   let
     val (cprf' % SOME prop', thawf) = freeze_thaw_prf (cprf % SOME prop);
     val _ = message "Collecting constraints...";
-    val (t, prf, cs, env, _) = make_constraints_cprf sg
-      (Envir.empty (maxidx_of_proof cprf)) cprf';
+    val (t, prf, cs, env, _) = make_constraints_cprf thy
+      (Envir.empty (maxidx_proof cprf ~1)) cprf';
     val cs' = map (fn p => (true, p, op union
-      (pairself (map (fst o dest_Var) o term_vars) p))) (map (pairself (Envir.norm_term env)) ((t, prop')::cs));
+        (pairself (map (fst o dest_Var) o term_vars) p)))
+      (map (pairself (Envir.norm_term env)) ((t, prop')::cs));
     val _ = message ("Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
-    val env' = solve sg cs' env
+    val env' = solve thy cs' env
   in
     thawf (norm_proof env' prf)
   end;
@@ -332,7 +333,7 @@ val prop_of = prop_of' [];
 
 (**** expand and reconstruct subproofs ****)
 
-fun expand_proof sg thms prf =
+fun expand_proof thy thms prf =
   let
     fun expand maxidx prfs (AbsP (s, t, prf)) = 
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
@@ -361,11 +362,11 @@ fun expand_proof sg thms prf =
                 NONE =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
-                    val _ = message (Sign.string_of_term sg prop);
+                    val _ = message (Sign.string_of_term thy prop);
                     val prf' = forall_intr_vfs_prf prop
-                      (reconstruct_proof sg prop cprf);
+                      (reconstruct_proof thy prop cprf);
                     val (maxidx', prfs', prf) = expand
-                      (maxidx_of_proof prf') prfs prf'
+                      (maxidx_proof prf' ~1) prfs prf'
                   in (maxidx' + maxidx + 1, inc (maxidx + 1) prf,
                     ((a, prop), (maxidx', prf)) :: prfs')
                   end
@@ -382,6 +383,6 @@ fun expand_proof sg thms prf =
           end
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
-  in #3 (expand (maxidx_of_proof prf) [] prf) end;
+  in #3 (expand (maxidx_proof prf ~1) [] prf) end;
 
 end;
