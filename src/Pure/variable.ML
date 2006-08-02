@@ -7,52 +7,56 @@ Fixed type/term variables and polymorphic term abbreviations.
 
 signature VARIABLE =
 sig
-  val is_body: Context.proof -> bool
-  val set_body: bool -> Context.proof -> Context.proof
-  val restore_body: Context.proof -> Context.proof -> Context.proof
-  val names_of: Context.proof -> Name.context
-  val fixes_of: Context.proof -> (string * string) list
-  val binds_of: Context.proof -> (typ * term) Vartab.table
-  val constraints_of: Context.proof -> typ Vartab.table * sort Vartab.table
-  val is_declared: Context.proof -> string -> bool
-  val is_fixed: Context.proof -> string -> bool
-  val newly_fixed: Context.proof -> Context.proof -> string -> bool
-  val default_type: Context.proof -> string -> typ option
-  val def_type: Context.proof -> bool -> indexname -> typ option
-  val def_sort: Context.proof -> indexname -> sort option
-  val declare_constraints: term -> Context.proof -> Context.proof
-  val declare_internal: term -> Context.proof -> Context.proof
-  val declare_term: term -> Context.proof -> Context.proof
-  val declare_thm: thm -> Context.proof -> Context.proof
-  val thm_context: thm -> Context.proof
-  val variant_frees: Context.proof -> term list -> (string * 'a) list -> (string * 'a) list
-  val add_fixes: string list -> Context.proof -> string list * Context.proof
-  val add_fixes_direct: string list -> Context.proof -> Context.proof
-  val fix_frees: term -> Context.proof -> Context.proof
-  val invent_fixes: string list -> Context.proof -> string list * Context.proof
-  val invent_types: sort list -> Context.proof -> (string * sort) list * Context.proof
-  val export_inst: Context.proof -> Context.proof -> string list * string list
-  val exportT_inst: Context.proof -> Context.proof -> string list
-  val export_terms: Context.proof -> Context.proof -> term list -> term list
-  val exportT_terms: Context.proof -> Context.proof -> term list -> term list
-  val exportT: Context.proof -> Context.proof -> thm list -> thm list
-  val export: Context.proof -> Context.proof -> thm list -> thm list
-  val importT_inst: term list -> Context.proof -> ((indexname * sort) * typ) list * Context.proof
-  val import_inst: bool -> term list -> Context.proof ->
-    (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Context.proof
-  val importT_terms: term list -> Context.proof -> term list * Context.proof
-  val import_terms: bool -> term list -> Context.proof -> term list * Context.proof
-  val importT: thm list -> Context.proof -> (ctyp list * thm list) * Context.proof
-  val import: bool -> thm list -> Context.proof ->
-    ((ctyp list * cterm list) * thm list) * Context.proof
-  val tradeT: Context.proof -> (thm list -> thm list) -> thm list -> thm list
-  val trade: Context.proof -> (thm list -> thm list) -> thm list -> thm list
-  val focus: cterm -> Context.proof -> (cterm list * cterm) * Context.proof
-  val warn_extra_tfrees: Context.proof -> Context.proof -> unit
-  val polymorphic: Context.proof -> term list -> term list
+  val is_body: Proof.context -> bool
+  val set_body: bool -> Proof.context -> Proof.context
+  val restore_body: Proof.context -> Proof.context -> Proof.context
+  val names_of: Proof.context -> Name.context
+  val fixes_of: Proof.context -> (string * string) list
+  val binds_of: Proof.context -> (typ * term) Vartab.table
+  val constraints_of: Proof.context -> typ Vartab.table * sort Vartab.table
+  val is_declared: Proof.context -> string -> bool
+  val is_fixed: Proof.context -> string -> bool
+  val newly_fixed: Proof.context -> Proof.context -> string -> bool
+  val default_type: Proof.context -> string -> typ option
+  val def_type: Proof.context -> bool -> indexname -> typ option
+  val def_sort: Proof.context -> indexname -> sort option
+  val declare_constraints: term -> Proof.context -> Proof.context
+  val declare_internal: term -> Proof.context -> Proof.context
+  val declare_term: term -> Proof.context -> Proof.context
+  val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
+  val declare_thm: thm -> Proof.context -> Proof.context
+  val thm_context: thm -> Proof.context
+  val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
   val hidden_polymorphism: term -> typ -> (indexname * sort) list
-  val add_binds: (indexname * term option) list -> Context.proof -> Context.proof
-  val expand_binds: Context.proof -> term -> term
+  val add_binds: (indexname * term option) list -> Proof.context -> Proof.context
+  val expand_binds: Proof.context -> term -> term
+  val add_fixes: string list -> Proof.context -> string list * Proof.context
+  val add_fixes_direct: string list -> Proof.context -> Proof.context
+  val fix_frees: term -> Proof.context -> Proof.context
+  val invent_fixes: string list -> Proof.context -> string list * Proof.context
+  val invent_types: sort list -> Proof.context -> (string * sort) list * Proof.context
+  val export_inst: Proof.context -> Proof.context -> string list * string list
+  val exportT_inst: Proof.context -> Proof.context -> string list
+  val export_terms: Proof.context -> Proof.context -> term list -> term list
+  val exportT_terms: Proof.context -> Proof.context -> term list -> term list
+  val exportT: Proof.context -> Proof.context -> thm list -> thm list
+  val export_prf: Proof.context -> Proof.context -> Proofterm.proof -> Proofterm.proof
+  val export: Proof.context -> Proof.context -> thm list -> thm list
+  val importT_inst: term list -> Proof.context -> ((indexname * sort) * typ) list * Proof.context
+  val import_inst: bool -> term list -> Proof.context ->
+    (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
+  val importT_terms: term list -> Proof.context -> term list * Proof.context
+  val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
+  val importT: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
+  val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
+  val import: bool -> thm list -> Proof.context ->
+    ((ctyp list * cterm list) * thm list) * Proof.context
+  val tradeT: Proof.context -> (thm list -> thm list) -> thm list -> thm list
+  val trade: Proof.context -> (thm list -> thm list) -> thm list -> thm list
+  val focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context
+  val focus_subgoal: int -> thm -> Proof.context -> (cterm list * cterm) * Proof.context
+  val warn_extra_tfrees: Proof.context -> Proof.context -> unit
+  val polymorphic: Proof.context -> term list -> term list
 end;
 
 structure Variable: VARIABLE =
@@ -193,6 +197,8 @@ fun declare_term t =
   declare_internal t #>
   declare_constraints t;
 
+val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
+
 fun declare_thm th = fold declare_internal (Thm.full_prop_of th :: Thm.hyps_of th);
 fun thm_context th = declare_thm th (Context.init_proof (Thm.theory_of_thm th));
 
@@ -204,6 +210,38 @@ fun variant_frees ctxt ts frees =
     val names = names_of (fold declare_names ts ctxt);
     val xs = fst (Name.variants (map #1 frees) names);
   in xs ~~ map snd frees end;
+
+
+
+(** term bindings **)
+
+fun hidden_polymorphism t T =
+  let
+    val tvarsT = Term.add_tvarsT T [];
+    val extra_tvars = Term.fold_types (Term.fold_atyps
+      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
+  in extra_tvars end;
+
+fun add_bind (xi, NONE) = map_binds (Vartab.delete_safe xi)
+  | add_bind ((x, i), SOME t) =
+      let
+        val T = Term.fastype_of t;
+        val t' =
+          if null (hidden_polymorphism t T) then t
+          else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
+      in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
+
+val add_binds = fold add_bind;
+
+fun expand_binds ctxt =
+  let
+    val binds = binds_of ctxt;
+    fun expand (t as Var (xi, T)) =
+          (case Vartab.lookup binds xi of
+            SOME u => Envir.expand_atom T u
+          | NONE => t)
+      | expand t = t;
+  in Envir.beta_norm o Term.map_aterms expand end;
 
 
 
@@ -291,6 +329,14 @@ fun export_terms inner outer ts =
   map (Term.generalize (export_inst (fold declare_type_occs ts inner) outer)
     (fold Term.maxidx_term ts ~1 + 1)) ts;
 
+fun export_prf inner outer prf =
+  let
+    val insts = export_inst (declare_prf prf inner) outer;
+    val idx = Proofterm.maxidx_proof prf ~1 + 1;
+    val gen_term = Term.generalize_option insts idx;
+    val gen_typ = Term.generalizeT_option (#1 insts) idx;
+  in Proofterm.map_proof_terms_option gen_term gen_typ prf end;
+
 fun gen_export inst inner outer ths =
   let
     val inner' = fold (declare_type_occs o Thm.full_prop_of) ths inner;
@@ -335,6 +381,12 @@ fun importT ths ctxt =
     val ths' = map (Thm.instantiate (instT', [])) ths;
   in ((map #2 instT', ths'), ctxt') end;
 
+fun import_prf is_open prf ctxt =
+  let
+    val ts = rev (Proofterm.fold_proof_terms cons (cons o Logic.mk_type) prf []);
+    val (insts, ctxt') = import_inst is_open ts ctxt;
+  in (Proofterm.instantiate insts prf, ctxt') end;
+
 fun import is_open ths ctxt =
   let
     val thy = Context.theory_of_proof ctxt;
@@ -374,6 +426,17 @@ fun focus goal ctxt =
     val goal' = fold forall_elim_prop ps' goal;
   in ((ps', goal'), ctxt') end;
 
+fun focus_subgoal i st =
+  let
+    val all_vars = Drule.fold_terms Term.add_vars st [];
+    val no_binds = map (fn (xi, _) => (xi, NONE)) all_vars;
+  in
+    add_binds no_binds #>
+    fold (declare_constraints o Var) all_vars #>
+    focus (Thm.cprem_of st i)
+  end;
+
+
 
 (** implicit polymorphism **)
 
@@ -410,37 +473,5 @@ fun polymorphic ctxt ts =
     val types = Symtab.fold (fn (a, _) => if Symtab.defined occs a then I else cons a) occs' [];
     val idx = fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1;
   in map (Term.generalize (types, []) idx) ts end;
-
-fun hidden_polymorphism t T =
-  let
-    val tvarsT = Term.add_tvarsT T [];
-    val extra_tvars = Term.fold_types (Term.fold_atyps
-      (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
-  in extra_tvars end;
-
-
-
-(** term bindings **)
-
-fun add_bind (xi, NONE) = map_binds (Vartab.delete_safe xi)
-  | add_bind ((x, i), SOME t) =
-      let
-        val T = Term.fastype_of t;
-        val t' =
-          if null (hidden_polymorphism t T) then t
-          else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
-      in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
-
-val add_binds = fold add_bind;
-
-fun expand_binds ctxt =
-  let
-    val binds = binds_of ctxt;
-    fun expand (t as Var (xi, T)) =
-          (case Vartab.lookup binds xi of
-            SOME u => Envir.expand_atom T u
-          | NONE => t)
-      | expand t = t;
-  in Envir.beta_norm o Term.map_aterms expand end;
 
 end;
