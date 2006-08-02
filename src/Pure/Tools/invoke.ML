@@ -60,7 +60,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
        (("", []), map (rpair [] o Element.mark_witness) prems')];
     fun after_qed results =
       Proof.end_block #>
-      Seq.map (Proof.map_context (fn ctxt =>
+      Proof.map_context (fn ctxt =>
         let
           val ([res_types, res_params, res_prems], ctxt'') =
             fold_burrow (apfst snd oo Variable.import false) results ctxt';
@@ -82,7 +82,8 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
           |> ProofContext.qualified_names
           |> (snd o ProofContext.note_thmss_i notes)
           |> ProofContext.restore_naming ctxt
-        end) #> Proof.put_facts NONE);
+        end) #>
+      Proof.put_facts NONE #> Seq.single;
   in
     state'
     |> Proof.local_goal (K (K ())) (K I) ProofContext.bind_propp_schematic_i

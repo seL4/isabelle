@@ -506,7 +506,7 @@ val beginP =
 val endP =
   OuterSyntax.command "}" "end explicit proof block"
     (K.tag_proof K.prf_close)
-    (Scan.succeed (Toplevel.print o Toplevel.proofs Proof.end_block));
+    (Scan.succeed (Toplevel.print o Toplevel.proof Proof.end_block));
 
 val nextP =
   OuterSyntax.command "next" "enter next proof block"
