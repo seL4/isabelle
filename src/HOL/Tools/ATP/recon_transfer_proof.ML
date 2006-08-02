@@ -205,7 +205,7 @@ fun get_axioms_used proof_steps thms names_arr  =
 
      val clauses = make_clauses thms    (*FIXME: must this be repeated??*)
      
-     val vars = map thm_vars clauses
+     val vars = map thm_varnames clauses
     
      val distvars = distinct (op =) (fold append vars [])
      val clause_terms = map prop_of clauses  
@@ -228,12 +228,12 @@ fun get_axioms_used proof_steps thms names_arr  =
      (* get list of axioms as thms with their variables *)
 
      val ax_metas = get_assoc_snds ax_strs metas_and_strs []
-     val ax_vars = map thm_vars ax_metas
+     val ax_vars = map thm_varnames ax_metas
      val ax_with_vars = ListPair.zip (ax_metas,ax_vars)
 
      (* get list of extra axioms as thms with their variables *)
      val extra_metas = add_if_not_inlist Thm.eq_thm metas ax_metas []
-     val extra_vars = map thm_vars extra_metas
+     val extra_vars = map thm_varnames extra_metas
      val extra_with_vars = if not (null extra_metas)
 			   then ListPair.zip (extra_metas,extra_vars)
 			   else []
