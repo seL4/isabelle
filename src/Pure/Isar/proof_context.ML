@@ -9,148 +9,149 @@ elements.  See also structure Variable and Assumption.
 
 signature PROOF_CONTEXT =
 sig
-  type context (*= Context.proof*)
-  val theory_of: context -> theory
-  val init: theory -> context
-  val full_name: context -> bstring -> string
-  val consts_of: context -> Consts.T
-  val set_syntax_mode: string * bool -> context -> context
-  val restore_syntax_mode: context -> context -> context
-  val fact_index_of: context -> FactIndex.T
-  val transfer: theory -> context -> context
-  val map_theory: (theory -> theory) -> context -> context
-  val pretty_term: context -> term -> Pretty.T
-  val pretty_typ: context -> typ -> Pretty.T
-  val pretty_sort: context -> sort -> Pretty.T
-  val pretty_classrel: context -> class list -> Pretty.T
-  val pretty_arity: context -> arity -> Pretty.T
-  val pp: context -> Pretty.pp
+  val theory_of: Proof.context -> theory
+  val init: theory -> Proof.context
+  val full_name: Proof.context -> bstring -> string
+  val consts_of: Proof.context -> Consts.T
+  val set_syntax_mode: string * bool -> Proof.context -> Proof.context
+  val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
+  val fact_index_of: Proof.context -> FactIndex.T
+  val transfer: theory -> Proof.context -> Proof.context
+  val map_theory: (theory -> theory) -> Proof.context -> Proof.context
+  val pretty_term: Proof.context -> term -> Pretty.T
+  val pretty_typ: Proof.context -> typ -> Pretty.T
+  val pretty_sort: Proof.context -> sort -> Pretty.T
+  val pretty_classrel: Proof.context -> class list -> Pretty.T
+  val pretty_arity: Proof.context -> arity -> Pretty.T
+  val pp: Proof.context -> Pretty.pp
   val pretty_thm_legacy: bool -> thm -> Pretty.T
-  val pretty_thm: context -> thm -> Pretty.T
-  val pretty_thms: context -> thm list -> Pretty.T
-  val pretty_fact: context -> string * thm list -> Pretty.T
-  val pretty_proof: context -> Proofterm.proof -> Pretty.T
-  val pretty_proof_of: context -> bool -> thm -> Pretty.T
-  val string_of_typ: context -> typ -> string
-  val string_of_term: context -> term -> string
-  val string_of_thm: context -> thm -> string
-  val read_typ: context -> string -> typ
-  val read_typ_syntax: context -> string -> typ
-  val read_typ_abbrev: context -> string -> typ
-  val cert_typ: context -> typ -> typ
-  val cert_typ_syntax: context -> typ -> typ
-  val cert_typ_abbrev: context -> typ -> typ
-  val get_skolem: context -> string -> string
-  val revert_skolem: context -> string -> string
-  val revert_skolems: context -> term -> term
-  val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
+  val pretty_thm: Proof.context -> thm -> Pretty.T
+  val pretty_thms: Proof.context -> thm list -> Pretty.T
+  val pretty_fact: Proof.context -> string * thm list -> Pretty.T
+  val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
+  val pretty_proof_of: Proof.context -> bool -> thm -> Pretty.T
+  val string_of_typ: Proof.context -> typ -> string
+  val string_of_term: Proof.context -> term -> string
+  val string_of_thm: Proof.context -> thm -> string
+  val read_typ: Proof.context -> string -> typ
+  val read_typ_syntax: Proof.context -> string -> typ
+  val read_typ_abbrev: Proof.context -> string -> typ
+  val cert_typ: Proof.context -> typ -> typ
+  val cert_typ_syntax: Proof.context -> typ -> typ
+  val cert_typ_abbrev: Proof.context -> typ -> typ
+  val get_skolem: Proof.context -> string -> string
+  val revert_skolem: Proof.context -> string -> string
+  val revert_skolems: Proof.context -> term -> term
+  val read_termTs: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
-  val read_termTs_schematic: context -> (string -> bool) -> (indexname -> typ option)
+  val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
-  val read_term_legacy: context -> string -> term
-  val read_term: context -> string -> term
-  val read_prop: context -> string -> term
-  val read_prop_schematic: context -> string -> term
-  val read_term_pats: typ -> context -> string list -> term list
-  val read_prop_pats: context -> string list -> term list
-  val cert_term: context -> term -> term
-  val cert_prop: context -> term -> term
-  val cert_term_pats: typ -> context -> term list -> term list
-  val cert_prop_pats: context -> term list -> term list
-  val infer_type: context -> string -> typ
-  val inferred_param: string -> context -> (string * typ) * context
-  val inferred_fixes: context -> (string * typ) list * context
-  val read_tyname: context -> string -> typ
-  val read_const: context -> string -> term
-  val goal_exports: context -> context -> thm list -> thm list Seq.seq
-  val exports: context -> context -> thm list -> thm list Seq.seq
-  val export: context -> context -> thm list -> thm list
-  val export_standard: context -> context -> thm list -> thm list
-  val add_binds: (indexname * string option) list -> context -> context
-  val add_binds_i: (indexname * term option) list -> context -> context
-  val auto_bind_goal: term list -> context -> context
-  val auto_bind_facts: term list -> context -> context
-  val match_bind: bool -> (string list * string) list -> context -> term list * context
-  val match_bind_i: bool -> (term list * term) list -> context -> term list * context
-  val read_propp: context * (string * string list) list list
-    -> context * (term * term list) list list
-  val cert_propp: context * (term * term list) list list
-    -> context * (term * term list) list list
-  val read_propp_schematic: context * (string * string list) list list
-    -> context * (term * term list) list list
-  val cert_propp_schematic: context * (term * term list) list list
-    -> context * (term * term list) list list
-  val bind_propp: context * (string * string list) list list
-    -> context * (term list list * (context -> context))
-  val bind_propp_i: context * (term * term list) list list
-    -> context * (term list list * (context -> context))
-  val bind_propp_schematic: context * (string * string list) list list
-    -> context * (term list list * (context -> context))
-  val bind_propp_schematic_i: context * (term * term list) list list
-    -> context * (term list list * (context -> context))
+  val read_term_legacy: Proof.context -> string -> term
+  val read_term: Proof.context -> string -> term
+  val read_prop: Proof.context -> string -> term
+  val read_prop_schematic: Proof.context -> string -> term
+  val read_term_pats: typ -> Proof.context -> string list -> term list
+  val read_prop_pats: Proof.context -> string list -> term list
+  val cert_term: Proof.context -> term -> term
+  val cert_prop: Proof.context -> term -> term
+  val cert_term_pats: typ -> Proof.context -> term list -> term list
+  val cert_prop_pats: Proof.context -> term list -> term list
+  val infer_type: Proof.context -> string -> typ
+  val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
+  val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
+  val read_tyname: Proof.context -> string -> typ
+  val read_const: Proof.context -> string -> term
+  val goal_export: Proof.context -> Proof.context -> thm list -> thm list
+  val export: Proof.context -> Proof.context -> thm list -> thm list
+  val export_standard: Proof.context -> Proof.context -> thm list -> thm list
+  val add_binds: (indexname * string option) list -> Proof.context -> Proof.context
+  val add_binds_i: (indexname * term option) list -> Proof.context -> Proof.context
+  val auto_bind_goal: term list -> Proof.context -> Proof.context
+  val auto_bind_facts: term list -> Proof.context -> Proof.context
+  val match_bind: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
+  val match_bind_i: bool -> (term list * term) list -> Proof.context -> term list * Proof.context
+  val read_propp: Proof.context * (string * string list) list list
+    -> Proof.context * (term * term list) list list
+  val cert_propp: Proof.context * (term * term list) list list
+    -> Proof.context * (term * term list) list list
+  val read_propp_schematic: Proof.context * (string * string list) list list
+    -> Proof.context * (term * term list) list list
+  val cert_propp_schematic: Proof.context * (term * term list) list list
+    -> Proof.context * (term * term list) list list
+  val bind_propp: Proof.context * (string * string list) list list
+    -> Proof.context * (term list list * (Proof.context -> Proof.context))
+  val bind_propp_i: Proof.context * (term * term list) list list
+    -> Proof.context * (term list list * (Proof.context -> Proof.context))
+  val bind_propp_schematic: Proof.context * (string * string list) list list
+    -> Proof.context * (term list list * (Proof.context -> Proof.context))
+  val bind_propp_schematic_i: Proof.context * (term * term list) list list
+    -> Proof.context * (term list list * (Proof.context -> Proof.context))
   val fact_tac: thm list -> int -> tactic
-  val some_fact_tac: context -> int -> tactic
-  val get_thm: context -> thmref -> thm
-  val get_thm_closure: context -> thmref -> thm
-  val get_thms: context -> thmref -> thm list
-  val get_thms_closure: context -> thmref -> thm list
-  val valid_thms: context -> string * thm list -> bool
-  val lthms_containing: context -> FactIndex.spec -> (string * thm list) list
-  val no_base_names: context -> context
-  val qualified_names: context -> context
-  val sticky_prefix: string -> context -> context
-  val restore_naming: context -> context -> context
-  val hide_thms: bool -> string list -> context -> context
-  val put_thms: bool -> string * thm list option -> context -> context
-  val put_thms_internal: string * thm list option -> context -> context
+  val some_fact_tac: Proof.context -> int -> tactic
+  val get_thm: Proof.context -> thmref -> thm
+  val get_thm_closure: Proof.context -> thmref -> thm
+  val get_thms: Proof.context -> thmref -> thm list
+  val get_thms_closure: Proof.context -> thmref -> thm list
+  val valid_thms: Proof.context -> string * thm list -> bool
+  val lthms_containing: Proof.context -> FactIndex.spec -> (string * thm list) list
+  val no_base_names: Proof.context -> Proof.context
+  val qualified_names: Proof.context -> Proof.context
+  val sticky_prefix: string -> Proof.context -> Proof.context
+  val restore_naming: Proof.context -> Proof.context -> Proof.context
+  val hide_thms: bool -> string list -> Proof.context -> Proof.context
+  val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
+  val put_thms_internal: string * thm list option -> Proof.context -> Proof.context
   val note_thmss:
     ((bstring * attribute list) * (thmref * attribute list) list) list ->
-      context -> (bstring * thm list) list * context
+      Proof.context -> (bstring * thm list) list * Proof.context
   val note_thmss_i:
     ((bstring * attribute list) * (thm list * attribute list) list) list ->
-      context -> (bstring * thm list) list * context
-  val read_vars: (string * string option * mixfix) list -> context ->
-    (string * typ option * mixfix) list * context
-  val cert_vars: (string * typ option * mixfix) list -> context ->
-    (string * typ option * mixfix) list * context
-  val read_vars_legacy: (string * string option * mixfix) list -> context ->
-    (string * typ option * mixfix) list * context
-  val cert_vars_legacy: (string * typ option * mixfix) list -> context ->
-    (string * typ option * mixfix) list * context
-  val add_fixes: (string * string option * mixfix) list -> context -> string list * context
-  val add_fixes_i: (string * typ option * mixfix) list -> context -> string list * context
-  val add_fixes_legacy: (string * typ option * mixfix) list -> context -> string list * context
-  val auto_fixes: context * (term list list * 'a) -> context * (term list list * 'a)
-  val bind_fixes: string list -> context -> (term -> term) * context
+      Proof.context -> (bstring * thm list) list * Proof.context
+  val read_vars: (string * string option * mixfix) list -> Proof.context ->
+    (string * typ option * mixfix) list * Proof.context
+  val cert_vars: (string * typ option * mixfix) list -> Proof.context ->
+    (string * typ option * mixfix) list * Proof.context
+  val read_vars_legacy: (string * string option * mixfix) list -> Proof.context ->
+    (string * typ option * mixfix) list * Proof.context
+  val cert_vars_legacy: (string * typ option * mixfix) list -> Proof.context ->
+    (string * typ option * mixfix) list * Proof.context
+  val add_fixes: (string * string option * mixfix) list ->
+    Proof.context -> string list * Proof.context
+  val add_fixes_i: (string * typ option * mixfix) list ->
+    Proof.context -> string list * Proof.context
+  val add_fixes_legacy: (string * typ option * mixfix) list ->
+    Proof.context -> string list * Proof.context
+  val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
+  val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
     ((string * attribute list) * (string * string list) list) list ->
-    context -> (bstring * thm list) list * context
+    Proof.context -> (bstring * thm list) list * Proof.context
   val add_assms_i: Assumption.export ->
     ((string * attribute list) * (term * term list) list) list ->
-    context -> (bstring * thm list) list * context
-  val add_cases: bool -> (string * RuleCases.T option) list -> context -> context
-  val apply_case: RuleCases.T -> context -> (string * term list) list * context
-  val get_case: context -> string -> string option list -> RuleCases.T
-  val expand_abbrevs: bool -> context -> context
-  val add_const_syntax: string * bool -> (string * mixfix) list -> context -> context
-  val add_abbrevs: string * bool -> ((bstring * mixfix) * term) list -> context -> context
+    Proof.context -> (bstring * thm list) list * Proof.context
+  val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
+  val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
+  val get_case: Proof.context -> string -> string option list -> RuleCases.T
+  val expand_abbrevs: bool -> Proof.context -> Proof.context
+  val add_const_syntax: string * bool -> (string * mixfix) list -> Proof.context -> Proof.context
+  val add_abbrevs: string * bool -> ((bstring * mixfix) * term) list ->
+    Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
-  val print_syntax: context -> unit
-  val print_binds: context -> unit
-  val print_lthms: context -> unit
-  val print_cases: context -> unit
+  val print_syntax: Proof.context -> unit
+  val print_binds: Proof.context -> unit
+  val print_lthms: Proof.context -> unit
+  val print_cases: Proof.context -> unit
+  val debug: bool ref
   val prems_limit: int ref
-  val pretty_ctxt: context -> Pretty.T list
-  val pretty_context: context -> Pretty.T list
+  val pretty_ctxt: Proof.context -> Pretty.T list
+  val pretty_context: Proof.context -> Pretty.T list
 end;
 
 structure ProofContext: PROOF_CONTEXT =
 struct
-
-type context = Context.proof;
 
 val theory_of = Context.theory_of_proof;
 val tsig_of = Sign.tsig_of o theory_of;
@@ -547,17 +548,12 @@ fun read_const ctxt c =
 
 (** export theorems **)
 
-fun common_exports is_goal inner outer =
-  Assumption.exports is_goal inner outer
-  #> Seq.map (Variable.export inner outer);
+fun common_export is_goal inner outer =
+  map (Assumption.export is_goal inner outer) #>
+  Variable.export inner outer;
 
-val goal_exports = common_exports true;
-val exports = common_exports false;
-
-fun export inner outer ths =
-  (case Seq.pull (common_exports false inner outer ths) of
-    SOME (ths', _) => ths'
-  | NONE => raise THM ("Failed to export theorems", 0, ths));
+val goal_export = common_export true;
+val export = common_export false;
 
 fun export_standard inner outer =
   export inner outer #> map Drule.local_standard;
@@ -1007,6 +1003,8 @@ end;
 
 (** print context information **)
 
+val debug = ref false;
+
 val verbose = ref false;
 fun verb f x = if ! verbose then f (x ()) else [];
 
@@ -1107,35 +1105,36 @@ val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
 val prems_limit = ref 10;
 
 fun pretty_ctxt ctxt =
-  let
-    val prt_term = pretty_term ctxt;
+  if ! prems_limit < 0 andalso not (! debug) then []
+  else
+    let
+      val prt_term = pretty_term ctxt;
 
-    (*structures*)
-    val structs = LocalSyntax.structs_of (syntax_of ctxt);
-    val prt_structs = if null structs then []
-      else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
-        Pretty.commas (map Pretty.str structs))];
+      (*structures*)
+      val structs = LocalSyntax.structs_of (syntax_of ctxt);
+      val prt_structs = if null structs then []
+        else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
+          Pretty.commas (map Pretty.str structs))];
 
-    (*fixes*)
-    fun prt_fix (x, x') =
-      if x = x' then Pretty.str x
-      else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
-    val fixes =
-      rev (filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
-        (Variable.fixes_of ctxt));
-    val prt_fixes = if null fixes then []
-      else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
-        Pretty.commas (map prt_fix fixes))];
+      (*fixes*)
+      fun prt_fix (x, x') =
+        if x = x' then Pretty.str x
+        else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
+      val fixes =
+        rev (filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
+          (Variable.fixes_of ctxt));
+      val prt_fixes = if null fixes then []
+        else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
+          Pretty.commas (map prt_fix fixes))];
 
-    (*prems*)
-    val limit = ! prems_limit;
-    val prems = Assumption.prems_of ctxt;
-    val len = length prems;
-    val prt_prems = if null prems then []
-      else [Pretty.big_list "prems:" ((if len <= limit then [] else [Pretty.str "..."]) @
-        map (pretty_thm ctxt) (Library.drop (len - limit, prems)))];
-
-  in prt_structs @ prt_fixes @ prt_prems end;
+      (*prems*)
+      val limit = ! prems_limit;
+      val prems = Assumption.prems_of ctxt;
+      val len = length prems;
+      val prt_prems = if null prems then []
+        else [Pretty.big_list "prems:" ((if len <= limit then [] else [Pretty.str "..."]) @
+          map (pretty_thm ctxt) (Library.drop (len - limit, prems)))];
+    in prt_structs @ prt_fixes @ prt_prems end;
 
 
 (* main context *)
