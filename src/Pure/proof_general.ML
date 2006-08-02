@@ -503,6 +503,7 @@ end;
 
 local
 
+val pgipint = XML.element "pgipint" [] [];
 val pgipnat = XML.element "pgipint" [("min", "0")] [];
 fun pgipnatmax max = XML.element "pgipint" [("min", "0"), ("max", string_of_int max)] [];
 val pgipbool = XML.element "pgipbool" [] [];
@@ -510,6 +511,12 @@ val pgipbool = XML.element "pgipbool" [] [];
 fun with_default f = (f (), f);
 
 in
+
+fun int_option r = (pgipint,
+  with_default (fn () => string_of_int (! r)),
+  (fn s => (case Syntax.read_int s of
+      NONE => error ("int_option: illegal value: " ^ s)
+    | SOME i => r := i)));
 
 fun nat_option r = (pgipnat,
   with_default (fn () => string_of_int (! r)),
@@ -574,7 +581,7 @@ val preferences = ref
        nat_option goals_limit)),
      ("prems-limit",
       ("Setting for maximum number of premises printed",
-       nat_option ProofContext.prems_limit)),
+       int_option ProofContext.prems_limit)),
      ("print-depth",
       ("Setting for the ML print depth",
        print_depth_option)),
