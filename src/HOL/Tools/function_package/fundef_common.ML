@@ -34,7 +34,7 @@ datatype naming_context =
        glrs: (term list * term list * term * term) list,
        glrs': (term list * term list * term * term) list,
        f_def: thm,
-       ctx: ProofContext.context
+       ctx: Proof.context
      }
 
 

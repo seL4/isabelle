@@ -25,7 +25,7 @@ sig
   val map_facts: ('a -> 'att) ->
     (('c * 'a list) * ('d * 'a list) list) list ->
     (('c * 'att list) * ('d * 'att list) list) list
-  val crude_closure: Context.proof -> src -> src
+  val crude_closure: Proof.context -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
   val thm: Context.generic * Args.T list -> thm * (Context.generic * Args.T list)
   val thms: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
@@ -350,11 +350,11 @@ fun read_instantiate' (args, concl_args) (context, thm) =
   let
     fun zip_vars _ [] = []
       | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
-      | zip_vars ((x, _) :: xs) ((a, SOME t) :: rest) = (a, (x, t)) :: zip_vars xs rest
+      | zip_vars ((x, _) :: xs) ((arg, SOME t) :: rest) = (arg, (x, t)) :: zip_vars xs rest
       | zip_vars [] _ = error "More instantiations than variables in theorem";
     val insts =
-      zip_vars (Drule.vars_of_terms [Thm.prop_of thm]) args @
-      zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
+      zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
+      zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
   in read_instantiate insts (context, thm) end;
 
 val value =

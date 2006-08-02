@@ -12,7 +12,7 @@ sig
   type method
   val trace_rules: bool ref
   val print_methods: theory -> unit
-  val Method: bstring -> (Args.src -> ProofContext.context -> method) -> string -> unit
+  val Method: bstring -> (Args.src -> Proof.context -> method) -> string -> unit
 end;
 
 signature METHOD =
@@ -32,31 +32,31 @@ sig
   val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
   val defer: int option -> method
   val prefer: int -> method
-  val cheating: bool -> ProofContext.context -> method
+  val cheating: bool -> Proof.context -> method
   val intro: thm list -> method
   val elim: thm list -> method
-  val unfold: thm list -> ProofContext.context -> method
-  val fold: thm list -> ProofContext.context -> method
+  val unfold: thm list -> Proof.context -> method
+  val fold: thm list -> Proof.context -> method
   val atomize: bool -> method
   val this: method
-  val fact: thm list -> ProofContext.context -> method
-  val assumption: ProofContext.context -> method
-  val close: bool -> ProofContext.context -> method
-  val trace: ProofContext.context -> thm list -> unit
+  val fact: thm list -> Proof.context -> method
+  val assumption: Proof.context -> method
+  val close: bool -> Proof.context -> method
+  val trace: Proof.context -> thm list -> unit
   val rule_tac: thm list -> thm list -> int -> tactic
-  val some_rule_tac: thm list -> ProofContext.context -> thm list -> int -> tactic
+  val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
   val rule: thm list -> method
   val erule: int -> thm list -> method
   val drule: int -> thm list -> method
   val frule: int -> thm list -> method
-  val iprover_tac: ProofContext.context -> int option -> int -> tactic
-  val bires_inst_tac: bool -> ProofContext.context -> (indexname * string) list ->
+  val iprover_tac: Proof.context -> int option -> int -> tactic
+  val bires_inst_tac: bool -> Proof.context -> (indexname * string) list ->
     thm -> int -> tactic
-  val set_tactic: (ProofContext.context -> thm list -> tactic) -> unit
-  val tactic: string -> ProofContext.context -> method
+  val set_tactic: (Proof.context -> thm list -> tactic) -> unit
+  val tactic: string -> Proof.context -> method
   type src
   datatype text =
-    Basic of (ProofContext.context -> method) |
+    Basic of (Proof.context -> method) |
     Source of src |
     Source_i of src |
     Then of text list |
@@ -72,45 +72,45 @@ sig
   val sorry_text: bool -> text
   val finish_text: text option * bool -> text
   exception METHOD_FAIL of (string * Position.T) * exn
-  val method: theory -> src -> ProofContext.context -> method
-  val method_i: theory -> src -> ProofContext.context -> method
-  val add_methods: (bstring * (src -> ProofContext.context -> method) * string) list
+  val method: theory -> src -> Proof.context -> method
+  val method_i: theory -> src -> Proof.context -> method
+  val add_methods: (bstring * (src -> Proof.context -> method) * string) list
     -> theory -> theory
-  val add_method: bstring * (src -> ProofContext.context -> method) * string
+  val add_method: bstring * (src -> Proof.context -> method) * string
     -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
   val syntax: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
-    -> src -> ProofContext.context -> ProofContext.context * 'a
+    -> src -> Proof.context -> Proof.context * 'a
   val simple_args: (Args.T list -> 'a * Args.T list)
-    -> ('a -> ProofContext.context -> method) -> src -> ProofContext.context -> method
-  val ctxt_args: (ProofContext.context -> method) -> src -> ProofContext.context -> method
-  val no_args: method -> src -> ProofContext.context -> method
+    -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
+  val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
+  val no_args: method -> src -> Proof.context -> method
   type modifier
   val sectioned_args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (Args.T list -> modifier * Args.T list) list ->
-    ('a -> ProofContext.context -> 'b) -> src -> ProofContext.context -> 'b
+    ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
   val bang_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
-    (thm list -> ProofContext.context -> 'a) -> src -> ProofContext.context -> 'a
+    (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
   val bang_sectioned_args':
     (Args.T list -> modifier * Args.T list) list ->
     (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
-    ('a -> thm list -> ProofContext.context -> 'b) -> src -> ProofContext.context -> 'b
+    ('a -> thm list -> Proof.context -> 'b) -> src -> Proof.context -> 'b
   val only_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
-    (ProofContext.context -> 'a) -> src -> ProofContext.context -> 'a
-  val thms_ctxt_args: (thm list -> ProofContext.context -> 'a) -> src ->
-    ProofContext.context -> 'a
-  val thms_args: (thm list -> 'a) -> src -> ProofContext.context -> 'a
-  val thm_args: (thm -> 'a) -> src -> ProofContext.context -> 'a
+    (Proof.context -> 'a) -> src -> Proof.context -> 'a
+  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src ->
+    Proof.context -> 'a
+  val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
+  val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
   val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
-    -> src -> ProofContext.context -> method
+    -> src -> Proof.context -> method
   val goal_args': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
-    -> ('a -> int -> tactic) -> src -> ProofContext.context -> method
+    -> ('a -> int -> tactic) -> src -> Proof.context -> method
   val goal_args_ctxt: (Args.T list -> 'a * Args.T list) ->
-    (ProofContext.context -> 'a -> int -> tactic) -> src -> ProofContext.context -> method
+    (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
   val goal_args_ctxt': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
-    (ProofContext.context -> 'a -> int -> tactic) -> src -> ProofContext.context -> method
+    (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
 end;
 
 structure Method: METHOD =
@@ -467,12 +467,12 @@ end;
 
 (* ML tactics *)
 
-val tactic_ref = ref ((fn _ => raise Match): ProofContext.context -> thm list -> tactic);
+val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
 fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
   (Context.use_mltext
-    ("let fun tactic (ctxt: ProofContext.context) (facts: thm list) : tactic = \
+    ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic = \
        \let val thm = ProofContext.get_thm_closure ctxt o PureThy.Name\n\
        \  and thms = ProofContext.get_thms_closure ctxt o PureThy.Name in\n"
        ^ txt ^
@@ -489,7 +489,7 @@ fun tactic txt ctxt = METHOD (fn facts =>
 type src = Args.src;
 
 datatype text =
-  Basic of (ProofContext.context -> method) |
+  Basic of (Proof.context -> method) |
   Source of src |
   Source_i of src |
   Then of text list |
@@ -514,7 +514,7 @@ fun finish_text (NONE, immed) = Basic (close immed)
 structure MethodsData = TheoryDataFun
 (struct
   val name = "Isar/methods";
-  type T = (((src -> ProofContext.context -> method) * string) * stamp) NameSpace.table;
+  type T = (((src -> Proof.context -> method) * string) * stamp) NameSpace.table;
 
   val empty = NameSpace.empty_table;
   val copy = I;
@@ -577,7 +577,7 @@ fun method_setup (name, txt, cmt) =
   Context.use_let
     "val thm = PureThy.get_thm_closure (Context.the_context ()) o PureThy.Name;\n\
     \val thms = PureThy.get_thms_closure (Context.the_context ()) o PureThy.Name;\n\
-    \val method: bstring * (Method.src -> ProofContext.context -> Proof.method) * string"
+    \val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
     "Method.add_method method"
     ("(" ^ Library.quote name ^ ", " ^ txt ^ ", " ^ Library.quote cmt ^ ")");
 
@@ -592,7 +592,7 @@ fun syntax scan = Args.context_syntax "method" scan;
 fun simple_args scan f src ctxt : method =
   #2 (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
 
-fun ctxt_args (f: ProofContext.context -> method) src ctxt =
+fun ctxt_args (f: Proof.context -> method) src ctxt =
   #2 (syntax (Scan.succeed (f ctxt)) src ctxt);
 
 fun no_args m = ctxt_args (K m);
@@ -600,7 +600,7 @@ fun no_args m = ctxt_args (K m);
 
 (* sections *)
 
-type modifier = (ProofContext.context -> ProofContext.context) * attribute;
+type modifier = (Proof.context -> Proof.context) * attribute;
 
 local
 
@@ -643,7 +643,7 @@ val ruleN = "rule";
 
 fun modifier name kind kind' att =
   Args.$$$ name |-- (kind >> K NONE || kind' |-- Args.nat --| Args.colon >> SOME)
-    >> (pair (I: ProofContext.context -> ProofContext.context) o att);
+    >> (pair (I: Proof.context -> Proof.context) o att);
 
 val iprover_modifiers =
  [modifier destN Args.bang_colon Args.bang ContextRules.dest_bang,

@@ -14,16 +14,16 @@ sig
   val finite_guess_tac : simpset -> int -> tactic
   val fresh_guess_tac : simpset -> int -> tactic
 
-  val perm_eq_meth : Method.src -> ProofContext.context -> Method.method
-  val perm_eq_meth_debug : Method.src -> ProofContext.context -> Method.method
-  val perm_full_eq_meth : Method.src -> ProofContext.context -> Method.method
-  val perm_full_eq_meth_debug : Method.src -> ProofContext.context -> Method.method
-  val supports_meth : Method.src -> ProofContext.context -> Method.method
-  val supports_meth_debug : Method.src -> ProofContext.context -> Method.method
-  val finite_gs_meth : Method.src -> ProofContext.context -> Method.method
-  val finite_gs_meth_debug : Method.src -> ProofContext.context -> Method.method
-  val fresh_gs_meth : Method.src -> ProofContext.context -> Method.method
-  val fresh_gs_meth_debug : Method.src -> ProofContext.context -> Method.method
+  val perm_eq_meth : Method.src -> Proof.context -> Proof.method
+  val perm_eq_meth_debug : Method.src -> Proof.context -> Proof.method
+  val perm_full_eq_meth : Method.src -> Proof.context -> Proof.method
+  val perm_full_eq_meth_debug : Method.src -> Proof.context -> Proof.method
+  val supports_meth : Method.src -> Proof.context -> Proof.method
+  val supports_meth_debug : Method.src -> Proof.context -> Proof.method
+  val finite_gs_meth : Method.src -> Proof.context -> Proof.method
+  val finite_gs_meth_debug : Method.src -> Proof.context -> Proof.method
+  val fresh_gs_meth : Method.src -> Proof.context -> Proof.method
+  val fresh_gs_meth_debug : Method.src -> Proof.context -> Proof.method
 end
 
 structure NominalPermeq : NOMINAL_PERMEQ =

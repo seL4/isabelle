@@ -8,9 +8,9 @@ Type classes derived from primitive axclasses and locales.
 signature CLASS_PACKAGE =
 sig
   val class: bstring -> class list -> Element.context list -> theory
-    -> ProofContext.context * theory
+    -> Proof.context * theory
   val class_i: bstring -> class list -> Element.context_i list -> theory
-    -> ProofContext.context * theory
+    -> Proof.context * theory
   (*FIXME: in _i variants, bstring should be bstring option*)
   val instance_arity: ((xstring * string list) * string) list
     -> bstring * Attrib.src list -> ((bstring * Attrib.src list) * string) list

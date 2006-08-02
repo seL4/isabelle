@@ -15,7 +15,8 @@ sig
     val cong_deps : thm -> int IntGraph.T
     val add_congs : thm list
 
-    val mk_tree: theory -> (thm * FundefCommon.depgraph) list -> term -> ProofContext.context -> term -> FundefCommon.ctx_tree
+    val mk_tree: theory -> (thm * FundefCommon.depgraph) list ->
+      term -> Proof.context -> term -> FundefCommon.ctx_tree
 
     val add_context_varnames : FundefCommon.ctx_tree -> string list -> string list
 

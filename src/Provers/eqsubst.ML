@@ -109,9 +109,9 @@ sig
     val options_syntax : Args.T list -> bool * Args.T list
 
     (* Isar level hooks *)
-    val eqsubst_asm_meth : Proof.context -> int list -> Thm.thm list -> Method.method
-    val eqsubst_meth : Proof.context -> int list -> Thm.thm list -> Method.method
-    val subst_meth : Method.src -> ProofContext.context -> Method.method
+    val eqsubst_asm_meth : Proof.context -> int list -> Thm.thm list -> Proof.method
+    val eqsubst_meth : Proof.context -> int list -> Thm.thm list -> Proof.method
+    val subst_meth : Method.src -> Proof.context -> Proof.method
     val setup : theory -> theory
 
 end;

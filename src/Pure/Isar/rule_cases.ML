@@ -42,8 +42,8 @@ sig
   val get: thm -> (string * string list) list * int
   val rename_params: string list list -> thm -> thm
   val params: string list list -> attribute
-  val mutual_rule: Context.proof -> thm list -> (int list * thm) option
-  val strict_mutual_rule: Context.proof -> thm list -> int list * thm
+  val mutual_rule: Proof.context -> thm list -> (int list * thm) option
+  val strict_mutual_rule: Proof.context -> thm list -> int list * thm
 end;
 
 structure RuleCases: RULE_CASES =

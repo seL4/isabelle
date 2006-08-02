@@ -142,7 +142,7 @@ sig
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
   val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
   val theory_attributes: attribute list -> theory * thm -> theory * thm
-  val proof_attributes: attribute list -> Context.proof * thm -> Context.proof * thm
+  val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
   val terms_of_tpairs: (term * term) list -> term list

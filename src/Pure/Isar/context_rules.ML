@@ -10,16 +10,16 @@ signature CONTEXT_RULES =
 sig
   type netpair
   type T
-  val netpair_bang: ProofContext.context -> netpair
-  val netpair: ProofContext.context -> netpair
+  val netpair_bang: Proof.context -> netpair
+  val netpair: Proof.context -> netpair
   val orderlist: ((int * int) * 'a) list -> 'a list
   val find_rules_netpair: bool -> thm list -> term -> netpair -> thm list
-  val find_rules: bool -> thm list -> term -> ProofContext.context -> thm list list
+  val find_rules: bool -> thm list -> term -> Proof.context -> thm list list
   val print_rules: Context.generic -> unit
   val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val addWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
-  val Swrap: ProofContext.context -> (int -> tactic) -> int -> tactic
-  val wrap: ProofContext.context -> (int -> tactic) -> int -> tactic
+  val Swrap: Proof.context -> (int -> tactic) -> int -> tactic
+  val wrap: Proof.context -> (int -> tactic) -> int -> tactic
   val intro_bang: int option -> attribute
   val elim_bang: int option -> attribute
   val dest_bang: int option -> attribute

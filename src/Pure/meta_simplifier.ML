@@ -28,7 +28,7 @@ sig
    {rules: rrule Net.net,
     prems: thm list,
     bounds: int * ((string * typ) * string) list,
-    context: Context.proof option} *
+    context: Proof.context option} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews:
@@ -88,8 +88,8 @@ sig
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val inherit_context: simpset -> simpset -> simpset
-  val the_context: simpset -> Context.proof
-  val context: Context.proof -> simpset -> simpset
+  val the_context: simpset -> Proof.context
+  val context: Proof.context -> simpset -> simpset
   val theory_context: theory  -> simpset -> simpset
   val debug_bounds: bool ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
@@ -175,7 +175,7 @@ datatype simpset =
    {rules: rrule Net.net,
     prems: thm list,
     bounds: int * ((string * typ) * string) list,
-    context: Context.proof option} *
+    context: Proof.context option} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
     mk_rews: mk_rews,

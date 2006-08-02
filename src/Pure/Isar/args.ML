@@ -84,9 +84,9 @@ sig
   val opt_attribs: (string -> string) -> T list -> src list * T list
   val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'b * 'a
   val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
-    src -> ProofContext.context -> ProofContext.context * 'a
-  val pretty_src: ProofContext.context -> src -> Pretty.T
-  val pretty_attribs: ProofContext.context -> src list -> Pretty.T list
+    src -> Proof.context -> Proof.context * 'a
+  val pretty_src: Proof.context -> src -> Pretty.T
+  val pretty_attribs: Proof.context -> src list -> Pretty.T list
 end;
 
 structure Args: ARGS =

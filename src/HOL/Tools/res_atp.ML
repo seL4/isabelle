@@ -26,8 +26,8 @@ sig
   val vampireLimit: unit -> int
   val eproverLimit: unit -> int
   val spassLimit: unit -> int
-  val atp_method: (ProofContext.context -> thm list -> int -> Tactical.tactic) ->
-		  Method.src -> ProofContext.context -> Method.method
+  val atp_method: (Proof.context -> thm list -> int -> tactic) ->
+    Method.src -> Proof.context -> Proof.method
   val cond_rm_tmp: string -> unit
   val keep_atp_input: bool ref
   val fol_keep_types: bool ref

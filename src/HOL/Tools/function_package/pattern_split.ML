@@ -11,8 +11,8 @@ turns a specification with overlaps into an overlap-free specification.
 
 signature FUNDEF_SPLIT = 
 sig
-  val split_some_equations : ProofContext.context -> (('a * ('b * bool)) * Term.term) list 
-                             -> (('a * 'b) * Term.term list) list
+  val split_some_equations :
+    Proof.context -> (('a * ('b * bool)) * term) list -> (('a * 'b) * term list) list
 
 end
 
@@ -115,19 +115,4 @@ fun split_some_equations ctx eqns =
       split_aux [] eqns
     end
 
-
-
-
-
-
 end
-
-
-
-
-
-
-
-
-
-
