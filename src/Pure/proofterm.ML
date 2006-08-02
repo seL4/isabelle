@@ -43,7 +43,7 @@ sig
   val map_proof_terms_option : (term -> term option) -> (typ -> typ option) -> proof -> proof
   val map_proof_terms : (term -> term) -> (typ -> typ) -> proof -> proof
   val fold_proof_terms : (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
-  val maxidx_of_proof : proof -> int
+  val maxidx_proof : proof -> int -> int
   val size_of_proof : proof -> int
   val change_type : typ list option -> proof -> proof
   val prf_abstract_over : term -> proof -> proof
@@ -308,7 +308,7 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
   | fold_proof_terms _ _ _ = I;
 
-fun maxidx_of_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf ~1;
+fun maxidx_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf;
 
 fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof (AbsP (_, t, prf)) = 1 + size_of_proof prf
