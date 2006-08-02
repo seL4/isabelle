@@ -79,7 +79,7 @@ sig
   val invoke_case_i: string * string option list * attribute list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
-  val end_block: state -> state Seq.seq
+  val end_block: state -> state
   val proof: Method.text option -> state -> state Seq.seq
   val defer: int option -> state -> state Seq.seq
   val prefer: int -> state -> state Seq.seq
@@ -127,7 +127,7 @@ end;
 structure Proof: PROOF =
 struct
 
-type context = ProofContext.context;
+type context = Context.proof;
 type method = Method.method;
 
 
@@ -229,11 +229,11 @@ fun these_factss more_facts (named_factss, state) =
 
 fun export_facts inner outer =
   (case get_facts inner of
-    NONE => Seq.single (put_facts NONE outer)
+    NONE => put_facts NONE outer
   | SOME thms =>
       thms
-      |> ProofContext.exports (context_of inner) (context_of outer)
-      |> Seq.map (fn ths => put_facts (SOME ths) outer));
+      |> ProofContext.export (context_of inner) (context_of outer)
+      |> (fn ths => put_facts (SOME ths) outer));
 
 
 (* mode *)
@@ -458,8 +458,8 @@ fun refine_goals print_rule inner raw_rules state =
     fun refine rule st = (print_rule outer rule; FINDGOAL (goal_tac rule) st);
   in
     raw_rules
-    |> ProofContext.goal_exports inner outer
-    |> Seq.maps (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
+    |> ProofContext.goal_export inner outer
+    |> (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
   end;
 
 
@@ -832,7 +832,7 @@ fun generic_qed state =
       |> Variable.exportT_terms goal_ctxt outer_ctxt;
     val results =
       tl (conclude_goal state goal stmt)
-      |> Seq.map_list (ProofContext.exports goal_ctxt outer_ctxt);
+      |> burrow (ProofContext.export goal_ctxt outer_ctxt);
   in
     outer_state
     |> map_context (ProofContext.auto_bind_facts props)
@@ -859,9 +859,8 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
   end;
 
 fun local_qed txt =
-  end_proof false txt
-  #> Seq.map generic_qed
-  #> Seq.maps (uncurry (fn ((after_qed, _), results) => Seq.lifts after_qed results));
+  end_proof false txt #>
+  Seq.maps (generic_qed #-> (fn ((after_qed, _), results) => after_qed results));
 
 
 (* global goals *)
@@ -902,10 +901,9 @@ fun check_result msg sq =
 
 fun global_qeds txt =
   end_proof true txt
-  #> Seq.map generic_qed
-  #> Seq.maps (fn (((_, after_qed), results), state) =>
-    Seq.lift after_qed results (theory_of state)
-    |> Seq.map (fn thy => (ProofContext.transfer thy (context_of state), thy)))
+  #> Seq.map (generic_qed #> (fn (((_, after_qed), results), state) =>
+    after_qed results (theory_of state)
+    |> (fn thy => (ProofContext.transfer thy (context_of state), thy))))
   |> Seq.DETERM;   (*backtracking may destroy theory!*)
 
 fun global_qed txt =
