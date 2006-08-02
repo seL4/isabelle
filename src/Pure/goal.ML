@@ -21,10 +21,10 @@ sig
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
   val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
-  val prove_multi: Context.proof -> string list -> term list -> term list ->
-    ({prems: thm list, context: Context.proof} -> tactic) -> thm list
-  val prove: Context.proof -> string list -> term list -> term ->
-    ({prems: thm list, context: Context.proof} -> tactic) -> thm
+  val prove_multi: Proof.context -> string list -> term list -> term list ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm list
+  val prove: Proof.context -> string list -> term list -> term ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
@@ -39,7 +39,9 @@ struct
   -------- (init)
   C ==> #C
 *)
-fun init ct = Drule.instantiate' [] [SOME ct] Drule.protectI;
+val init =
+  let val A = #1 (Drule.dest_implies (Thm.cprop_of Drule.protectI))
+  in fn C => Thm.instantiate ([], [(A, C)]) Drule.protectI end;
 
 (*
    C
@@ -132,7 +134,7 @@ fun prove_multi ctxt xs asms props tac =
       orelse err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res));
   in
     results
-    |> (Seq.hd o Assumption.exports false ctxt' ctxt)
+    |> map (Assumption.export false ctxt' ctxt)
     |> Variable.export ctxt' ctxt
     |> map Drule.zero_var_indexes
   end;
