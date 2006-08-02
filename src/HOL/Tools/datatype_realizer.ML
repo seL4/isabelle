@@ -136,9 +136,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
         ((space_implode "_" (ind_name :: vs @ ["correctness"]), thm), [])
       ||> Theory.restore_naming thy;
 
-    val ivs = Drule.vars_of_terms
-      [Logic.varify (DatatypeProp.make_ind [descr] sorts)];
-    val rvs = Drule.vars_of_terms [prop_of thm'];
+    val ivs = rev (Term.add_vars (Logic.varify (DatatypeProp.make_ind [descr] sorts)) []);
+    val rvs = rev (Drule.fold_terms Term.add_vars thm' []);
     val ivs1 = map Var (filter_out (fn (_, T) =>
       tname_of (body_type T) mem ["set", "bool"]) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (AList.lookup (op =) rvs ixn))) ivs;

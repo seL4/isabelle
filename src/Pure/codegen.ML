@@ -534,7 +534,7 @@ fun thyname_of_const s thy = (case theory_of_const s thy of
 fun rename_terms ts =
   let
     val names = foldr add_term_names
-      (map (fst o fst) (Drule.vars_of_terms ts)) ts;
+      (map (fst o fst) (rev (fold Term.add_vars ts []))) ts;
     val reserved = names inter ThmDatabase.ml_reserved;
     val (illegal, alt_names) = split_list (map_filter (fn s =>
       let val s' = mk_id s in if s = s' then NONE else SOME (s, s') end) names)
