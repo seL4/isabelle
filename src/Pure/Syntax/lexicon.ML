@@ -23,13 +23,14 @@ sig
   val scan_bin: string list -> string * string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
-  val indexname: string -> indexname
+  val read_indexname: string -> indexname
   val read_var: string -> term
   val read_variable: string -> indexname option
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
   val read_nat: string -> int option
+  val read_int: string -> int option
   val read_xnum: string -> IntInf.int
   val read_idents: string -> string list
   val fixedN: string
@@ -328,10 +329,10 @@ end;
 
 (* indexname *)
 
-fun indexname cs =
-  (case Scan.read Symbol.stopper scan_indexname (Symbol.explode cs) of
+fun read_indexname s =
+  (case Scan.read Symbol.stopper scan_indexname (Symbol.explode s) of
     SOME xi => xi
-  | _ => error ("Lexical error in variable name: " ^ quote cs));
+  | _ => error ("Lexical error in variable name: " ^ quote s));
 
 
 (* read_var *)
@@ -361,11 +362,24 @@ val constN = "\\<^const>";
 val fixedN = "\\<^fixed>";
 
 
-(* read_nat *)
+(* read numbers *)
 
-fun read_nat s =
+local
+
+fun nat cs =
   Option.map (#1 o Library.read_int)
-    (Scan.read Symbol.stopper scan_digits1 (Symbol.explode s));
+    (Scan.read Symbol.stopper scan_digits1 cs);
+
+in
+
+val read_nat = nat o Symbol.explode;
+
+fun read_int s =
+  (case Symbol.explode s of
+    "-" :: cs => Option.map ~ (nat cs)
+  | cs => nat cs);
+
+end;
 
 
 (* read_xnum: hex/bin/decimal *)
