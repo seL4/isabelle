@@ -1611,16 +1611,13 @@ proof -
   qed
 qed
      
-lemma dom_locals_eval_mono_elim [consumes 1]: 
-  assumes   eval: "G\<turnstile> s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
-    hyps: "\<lbrakk>dom (locals (store s0)) \<subseteq> dom (locals (store s1));
-           \<And> vv s val. \<lbrakk>v=In2 vv; normal s1\<rbrakk> 
-                        \<Longrightarrow> dom (locals (store s)) 
-                             \<subseteq> dom (locals (store ((snd vv) val s)))\<rbrakk> \<Longrightarrow> P"
- shows "P"
-using eval
-proof (rule dom_locals_eval_mono [THEN conjE])
-qed (rule hyps,auto)
+lemma dom_locals_eval_mono_elim:
+  assumes   eval: "G\<turnstile> s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)"
+  obtains "dom (locals (store s0)) \<subseteq> dom (locals (store s1))" and
+    "\<And> vv s val. \<lbrakk>v=In2 vv; normal s1\<rbrakk> 
+                        \<Longrightarrow> dom (locals (store s))
+                             \<subseteq> dom (locals (store ((snd vv) val s)))"
+  using eval by (rule dom_locals_eval_mono [THEN conjE]) (rule that, auto)
 
 lemma halloc_no_abrupt:
   assumes halloc: "G\<turnstile>s0\<midarrow>halloc oi\<succ>a\<rightarrow>s1" and
@@ -2660,11 +2657,11 @@ proof -
       \<forall> Env T A. ?Wt Env t T \<longrightarrow>  ?Da Env s0 t A \<longrightarrow> prg Env = G 
        \<longrightarrow> ?NormalAssigned s1 A \<and> ?BreakAssigned s0 s1 A \<and> ?ResAssigned  s0 s1"
   -- {* Goal in object logic variant *} 
-  from eval
-  show "\<And> Env T A. \<lbrakk>?Wt Env t T; ?Da Env s0 t A; prg Env = G\<rbrakk> 
-        \<Longrightarrow> ?NormalAssigned s1 A \<and> ?BreakAssigned s0 s1 A \<and> ?ResAssigned s0 s1"
-        (is "PROP ?Hyp t s0 s1")
-  proof (induct)
+  let ?Hyp = "\<lambda>t s0 s1. (\<And> Env T A. \<lbrakk>?Wt Env t T; ?Da Env s0 t A; prg Env = G\<rbrakk> 
+        \<Longrightarrow> ?NormalAssigned s1 A \<and> ?BreakAssigned s0 s1 A \<and> ?ResAssigned s0 s1)"
+  from eval and wt da G
+  show ?thesis
+  proof (induct fixing: Env T A)
     case (Abrupt s t xc Env T A)
     have da: "Env\<turnstile> dom (locals s) \<guillemotright>t\<guillemotright> A" using Abrupt.prems by simp 
     have "?NormalAssigned (Some xc,s) A" 
