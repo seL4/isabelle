@@ -76,7 +76,7 @@ fun fundef_afterqed congs mutual_info name data spec [[result]] thy =
       add_fundef_data name (fundef_data, mutual_info, spec) thy
     end
 
-fun gen_add_fundef prep_att eqns_attss preprocess thy =
+fun gen_add_fundef prep_att eqns_attss (preprocess : bool) thy =
     let
       fun prep_eqns neqs =
           neqs
