@@ -498,7 +498,7 @@ end;
 fun coeff poly atom : IntInf.int =
   AList.lookup (op =) poly atom |> the_default 0;
 
-fun lcms (is : int list) : int = Library.foldl lcm (1, is);
+fun lcms (is : IntInf.int list) : IntInf.int = Library.foldl lcm (1, is);
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s

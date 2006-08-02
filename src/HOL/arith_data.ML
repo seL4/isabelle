@@ -414,7 +414,7 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
   | domain_is_nat (_ $ (Const ("Not", _) $ (Const (_, T) $ _ $ _))) = nT T
   | domain_is_nat _                                                 = false;
 
-fun number_of (n : int, T : typ) =
+fun number_of (n : IntInf.int, T : typ) =
   HOLogic.number_of_const T $ (HOLogic.mk_binum n);
 
 (*---------------------------------------------------------------------------*)
