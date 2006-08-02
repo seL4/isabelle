@@ -30,7 +30,7 @@ struct
 fun focus ctxt i st =
   let
     val ((schematics, [st']), ctxt') = Variable.import true [norm_hhf st] ctxt;
-    val ((params, goal), ctxt'') = Variable.focus (Thm.cprem_of st' i) ctxt';
+    val ((params, goal), ctxt'') = Variable.focus_subgoal i st' ctxt';
     val asms = Drule.strip_imp_prems goal;
     val concl = Drule.strip_imp_concl goal;
     val (prems, context) = Assumption.add_assumes asms ctxt'';
