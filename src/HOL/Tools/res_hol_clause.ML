@@ -174,6 +174,19 @@ fun string_of_term (Const(c,t)) = c
 (* data types for typed combinator expressions        *)
 (******************************************************)
 
+datatype type_level = T_FULL | T_PARTIAL | T_CONST | T_NONE;
+
+val typ_level = ref T_CONST;
+
+fun full_types () = (typ_level:=T_FULL);
+fun partial_types () = (typ_level:=T_PARTIAL);
+fun const_types_only () = (typ_level:=T_CONST);
+fun no_types () = (typ_level:=T_NONE);
+
+
+fun find_typ_level () = !typ_level;
+
+
 type axiom_name = string;
 datatype kind = Axiom | Conjecture;
 fun name_of_kind Axiom = "axiom"
@@ -437,7 +450,7 @@ fun make_clause(clause_id,axiom_name,kind,thm,is_user) =
 	then error "Problem too trivial for resolution (empty clause)"
 	else if too_general lits then (Output.debug ("Omitting " ^ axiom_name ^ ": clause contains universal predicates"); raise MAKE_CLAUSE)
 	else
-	    if kind=Axiom andalso forall too_general_lit lits 
+	    if (!typ_level <> T_FULL) andalso kind=Axiom andalso forall too_general_lit lits 
 	    then (Output.debug ("Omitting " ^ axiom_name ^ ": equalities are too general"); raise MAKE_CLAUSE) 
 	else
 	    Clause {clause_id = clause_id, axiom_name = axiom_name, th = thm, kind = kind,
@@ -477,18 +490,6 @@ val make_conjecture_clauses = make_conjecture_clauses_aux 0;
 (**********************************************************************)
 
 val type_wrapper = "typeinfo";
-
-datatype type_level = T_FULL | T_PARTIAL | T_CONST | T_NONE;
-
-val typ_level = ref T_CONST;
-
-fun full_types () = (typ_level:=T_FULL);
-fun partial_types () = (typ_level:=T_PARTIAL);
-fun const_types_only () = (typ_level:=T_CONST);
-fun no_types () = (typ_level:=T_NONE);
-
-
-fun find_typ_level () = !typ_level;
 
 fun wrap_type (c,t) = 
     case !typ_level of T_FULL => type_wrapper ^ (ResClause.paren_pack [c,t])
