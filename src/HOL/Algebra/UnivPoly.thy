@@ -511,7 +511,7 @@ proof (rule up_eqI)
       have f1: "(\<Oplus>i \<in> {..<n}. ?s i) = \<zero>"
         by (simp cong: R.finsum_cong add: Pi_def)
       from neq have f2: "(\<Oplus>i \<in> {n}. ?s i) = \<zero>"
-        by (simp cong: R.finsum_cong add: Pi_def) arith
+        by (simp cong: R.finsum_cong add: Pi_def)
       have f3: "n < k ==> (\<Oplus>i \<in> {n<..k}. ?s i) = \<zero>"
         by (simp cong: R.finsum_cong add: order_less_imp_not_eq Pi_def)
       show ?thesis

@@ -326,7 +326,6 @@ txt{*one subgoal left!*}
 apply (subst times_binomial_minus1_eq, simp, simp)
 apply (subst exponent_mult_add, simp)
 apply (simp (no_asm_simp) add: zero_less_binomial_iff)
-apply arith
 apply (simp del: bad_Sucs add: exponent_mult_add const_p_fac_right)
 done
 

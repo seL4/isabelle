@@ -187,6 +187,8 @@ proof -
     by (simp add: coeff_def up_add_def Abs_UP_inverse Rep_UP)
 qed
 
+ML {* fast_arith_split_limit := 0; *}  (* FIXME: rewrite proof *)
+
 lemma coeff_mult [simp]:
   "coeff (p * q) n = (setsum (%i. coeff p i * coeff q (n-i)) {..n}::'a::ring)"
 proof -
@@ -225,6 +227,8 @@ proof -
   then show ?thesis
     by (simp add: coeff_def up_mult_def Abs_UP_inverse Rep_UP)
 qed
+
+ML {* fast_arith_split_limit := 9; *}  (* FIXME *)
 
 lemma coeff_uminus [simp]: "coeff (-p) n = (-coeff p n::'a::ring)"
 by (unfold up_uminus_def) (simp add: ring_simps)
