@@ -181,7 +181,8 @@ fun remove_suc thy thms =
                Suc_if_eq')) (Thm.forall_intr cv' th)
       in
         case List.mapPartial (fn th'' =>
-            SOME (th'', standard (Drule.freeze_all th'' RS th'))
+            SOME (th'', singleton
+              (Variable.trade (Variable.thm_context th'') (fn [th'''] => [th''' RS th'])) th'')
           handle THM _ => NONE) thms of
             [] => NONE
           | thps =>
