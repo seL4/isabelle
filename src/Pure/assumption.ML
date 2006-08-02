@@ -11,13 +11,13 @@ sig
   val assume_export: export
   val presume_export: export
   val assume: cterm -> thm
-  val assms_of: Context.proof -> term list
-  val prems_of: Context.proof -> thm list
-  val extra_hyps: Context.proof -> thm -> term list
-  val add_assms: export -> cterm list -> Context.proof -> thm list * Context.proof
-  val add_assumes: cterm list -> Context.proof -> thm list * Context.proof
-  val add_view: Context.proof -> cterm list -> Context.proof -> Context.proof
-  val exports: bool -> Context.proof -> Context.proof -> thm list -> thm list Seq.seq
+  val assms_of: Proof.context -> term list
+  val prems_of: Proof.context -> thm list
+  val extra_hyps: Proof.context -> thm -> term list
+  val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
+  val add_assumes: cterm list -> Proof.context -> thm list * Proof.context
+  val add_view: Proof.context -> cterm list -> Proof.context -> Proof.context
+  val export: bool -> Proof.context -> Proof.context -> thm -> thm
 end;
 
 structure Assumption: ASSUMPTION =
@@ -25,7 +25,7 @@ struct
 
 (** basic rules **)
 
-type export = bool -> cterm list -> thm -> thm Seq.seq;
+type export = bool -> cterm list -> thm -> thm
 
 (*
     [A]
@@ -34,8 +34,8 @@ type export = bool -> cterm list -> thm -> thm Seq.seq;
   --------
   #A ==> B
 *)
-fun assume_export true = Seq.single oo Drule.implies_intr_protected
-  | assume_export false = Seq.single oo Drule.implies_intr_list;
+fun assume_export true = Drule.implies_intr_protected
+  | assume_export false = Drule.implies_intr_list;
 
 (*
     [A]
@@ -95,16 +95,13 @@ fun add_view outer view = map_data (fn (asms, prems) =>
   in (asms', prems) end);
 
 
-(* exports *)
+(* export *)
 
-fun exports is_goal inner outer =
-  let
-    val asms = rev (Library.drop (length (assumptions_of outer), assumptions_of inner));
-    val exp_asms = map (fn (exp, As) => exp is_goal As) asms;
-  in
-    map norm_hhf_protect
-    #> Seq.map_list (Seq.EVERY exp_asms)
-    #> Seq.map (map norm_hhf_protect)
+fun export is_goal inner outer =
+  let val asms = Library.drop (length (assumptions_of outer), assumptions_of inner) in
+    norm_hhf_protect
+    #> fold_rev (fn (e, As) => e is_goal As) asms
+    #> norm_hhf_protect
   end;
 
 end;
