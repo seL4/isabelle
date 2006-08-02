@@ -742,3 +742,6 @@ end;
 
 (*hide private interface*)
 structure Context: CONTEXT = Context;
+
+(*fake predeclaration*)
+structure Proof = struct type context = Context.proof end;
