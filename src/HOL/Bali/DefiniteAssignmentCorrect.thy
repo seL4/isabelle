@@ -4459,40 +4459,38 @@ proof -
   qed
 qed
 
-lemma da_good_approxE [consumes 4]:
-  "\<lbrakk>prg Env\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v, s1); Env\<turnstile>t\<Colon>T; Env\<turnstile> dom (locals (store s0)) \<guillemotright>t\<guillemotright> A;
-   wf_prog (prg Env);
-   \<lbrakk>normal s1 \<Longrightarrow> nrm A \<subseteq> dom (locals (store s1));
-     \<And> l. \<lbrakk>abrupt s1 = Some (Jump (Break l)); normal s0\<rbrakk>
-           \<Longrightarrow> brk A l \<subseteq> dom (locals (store s1));
-     \<lbrakk>abrupt s1 = Some (Jump Ret);normal s0\<rbrakk>\<Longrightarrow>Result \<in> dom (locals (store s1))
-   \<rbrakk> \<Longrightarrow> P
-  \<rbrakk> \<Longrightarrow> P"
-by (drule (3) da_good_approx) simp
+lemma da_good_approxE:
+  assumes
+    "prg Env\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v, s1)" and "Env\<turnstile>t\<Colon>T" and
+    "Env\<turnstile> dom (locals (store s0)) \<guillemotright>t\<guillemotright> A" and "wf_prog (prg Env)"
+  obtains
+    "normal s1 \<Longrightarrow> nrm A \<subseteq> dom (locals (store s1))" and
+    "\<And> l. \<lbrakk>abrupt s1 = Some (Jump (Break l)); normal s0\<rbrakk>
+           \<Longrightarrow> brk A l \<subseteq> dom (locals (store s1))" and
+    "\<lbrakk>abrupt s1 = Some (Jump Ret);normal s0\<rbrakk>\<Longrightarrow>Result \<in> dom (locals (store s1))"
+  using prems by - (drule (3) da_good_approx, simp)
 
 
 (* Same as above but with explicit environment; 
    It would be nicer to find a "normalized" way to right down those things
    in Bali.
 *)
-lemma da_good_approxE' [consumes 4]:
+lemma da_good_approxE':
   assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v, s1)"
      and    wt: "\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T"
      and    da: "\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile> dom (locals (store s0)) \<guillemotright>t\<guillemotright> A"
      and    wf: "wf_prog G"
-     and  elim: "\<lbrakk>normal s1 \<Longrightarrow> nrm A \<subseteq> dom (locals (store s1));
-                 \<And> l. \<lbrakk>abrupt s1 = Some (Jump (Break l)); normal s0\<rbrakk>
-                       \<Longrightarrow> brk A l \<subseteq> dom (locals (store s1));
-                  \<lbrakk>abrupt s1 = Some (Jump Ret);normal s0\<rbrakk>
-                  \<Longrightarrow>Result \<in> dom (locals (store s1))
-                 \<rbrakk> \<Longrightarrow> P"
-  shows "P"
+  obtains "normal s1 \<Longrightarrow> nrm A \<subseteq> dom (locals (store s1))" and
+    "\<And> l. \<lbrakk>abrupt s1 = Some (Jump (Break l)); normal s0\<rbrakk>
+                       \<Longrightarrow> brk A l \<subseteq> dom (locals (store s1))" and
+    "\<lbrakk>abrupt s1 = Some (Jump Ret);normal s0\<rbrakk>
+        \<Longrightarrow> Result \<in> dom (locals (store s1))"
 proof -
   from eval have "prg \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v, s1)" by simp
   moreover note wt da
   moreover from wf have "wf_prog (prg \<lparr>prg=G,cls=C,lcl=L\<rparr>)" by simp
-  ultimately show ?thesis
-    using elim by (rule da_good_approxE) iprover+
+  ultimately show thesis
+    using that by (rule da_good_approxE) iprover+
 qed
 
 ML {*
