@@ -73,7 +73,7 @@ fun trans_elim (major,[],_) = HOLogic.Not $ major
 
 (* convert an elim rule into an equivalent formula, of type term. *)
 fun elimR2Fol elimR = 
-  let val elimR' = Drule.freeze_all elimR
+  let val elimR' = #1 (Drule.freeze_thaw elimR)
       val (prems,concl) = (prems_of elimR', concl_of elimR')
       val cv = case concl of    (*conclusion variable*)
 		  Const("Trueprop",_) $ (v as Free(_,Type("bool",[]))) => v
@@ -197,7 +197,7 @@ fun c_variant_abs_multi (ct0, vars) =
   an existential formula by a use of that function. 
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun skolem_of_def def =  
-  let val (c,rhs) = Drule.dest_equals (cprop_of (Drule.freeze_all def))
+  let val (c,rhs) = Drule.dest_equals (cprop_of (#1 (Drule.freeze_thaw def)))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
       val (chilbert,cabs) = Thm.dest_comb ch
       val {sign,t, ...} = rep_cterm chilbert
@@ -217,7 +217,7 @@ fun skolem_of_def def =
 (*It now works for HOL too. *)
 fun to_nnf th = 
     th |> transfer_to_Reconstruction
-       |> transform_elim |> Drule.freeze_all
+       |> transform_elim |> Drule.freeze_thaw |> #1
        |> ObjectLogic.atomize_thm |> make_nnf;
 
 (*The cache prevents repeated clausification of a theorem, 
