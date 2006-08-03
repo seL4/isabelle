@@ -1,3 +1,10 @@
+(*  Title:      HOL/FunDef.thy
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+
+A package for general recursive function definitions. 
+*)
+
 theory FunDef
 imports Accessible_Part Datatype Recdef
 uses 
@@ -34,9 +41,6 @@ assumes ex1: "\<exists>!y. (x,y)\<in>G"
 shows "((x, y)\<in>G) = (f x = y)"
   apply (auto simp:ex1 f_def the1_equality)
   by (rule theI', rule ex1)
-
-lemma True_implies: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
-  by simp
 
 
 subsection {* Projections *}
