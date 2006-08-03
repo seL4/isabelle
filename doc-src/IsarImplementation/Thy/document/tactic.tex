@@ -196,9 +196,9 @@ In order to perform a complete tactical proof under program control,
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
-\verb|  (thm list -> tactic) -> thm| \\
+\verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm| \\
   \indexml{Goal.prove-multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
-\verb|  (thm list -> tactic) -> thm list| \\
+\verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm list| \\
   \indexml{Goal.prove-global}\verb|Goal.prove_global: theory -> string list -> term list -> term ->|\isasep\isanewline%
 \verb|  (thm list -> tactic) -> thm| \\
   \end{mldecls}

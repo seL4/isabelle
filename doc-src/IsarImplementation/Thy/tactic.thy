@@ -155,9 +155,9 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
-  (thm list -> tactic) -> thm"} \\
+  ({prems: thm list, context: Proof.context} -> tactic) -> thm"} \\
   @{index_ML Goal.prove_multi: "Proof.context -> string list -> term list -> term list ->
-  (thm list -> tactic) -> thm list"} \\
+  ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
   @{index_ML Goal.prove_global: "theory -> string list -> term list -> term ->
   (thm list -> tactic) -> thm"} \\
   \end{mldecls}
