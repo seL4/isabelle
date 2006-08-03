@@ -263,14 +263,14 @@ fun deps_thy name ml path =
 local
 
 fun try_ml_file name time =
-  let
-    val path = ThyLoad.ml_path name;
-    val tr = Toplevel.imperative (fn () =>
-      setmp OldGoals.legacy true (fn () => ThyInfo.load_file time path) ());
-    val tr_name = if time then "time_use" else "use";
-  in
+  let val path = ThyLoad.ml_path name in
     if is_none (ThyLoad.check_file NONE path) then ()
-    else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
+    else
+      let
+        val _ = warning ("Loading legacy ML script " ^ quote (Path.pack path));
+        val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
+        val tr_name = if time then "time_use" else "use";
+      in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end
   end;
 
 fun run_thy name path =
