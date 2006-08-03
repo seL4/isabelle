@@ -130,7 +130,6 @@ sig
   val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
   val add_term_tfrees: term * (string * sort) list -> (string * sort) list
   val add_term_tfree_names: term * string list -> string list
-  val add_term_tvarnames: term * string list -> string list
   val typ_tfrees: typ -> (string * sort) list
   val typ_tvars: typ -> (indexname * sort) list
   val term_tfrees: term -> (string * sort) list
@@ -1168,8 +1167,6 @@ val add_term_tvars = it_term_types add_typ_tvars;
 (*Accumulates the TFrees in a term, suppressing duplicates. *)
 val add_term_tfrees = it_term_types add_typ_tfrees;
 val add_term_tfree_names = it_term_types add_typ_tfree_names;
-
-val add_term_tvarnames = it_term_types add_typ_varnames;
 
 (*Non-list versions*)
 fun typ_tfrees T = add_typ_tfrees(T,[]);
