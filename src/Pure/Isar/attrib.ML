@@ -127,7 +127,6 @@ fun add_attributes raw_attrs thy =
         error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
   in AttributesData.map add thy end;
 
-(*implicit version*)
 fun Attribute name att cmt = Context.>> (add_attributes [(name, att, cmt)]);
 
 
@@ -207,174 +206,6 @@ val OF_att =
   syntax (thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => Bs MRS A)));
 
 
-(* read_instantiate: named instantiation of type and term variables *)
-
-local
-
-fun is_tvar (x, _) = (case Symbol.explode x of "'" :: _ => true | _ => false);
-
-fun error_var msg xi = error (msg ^ Syntax.string_of_vname xi);
-
-fun the_sort sorts xi = the (sorts xi)
-  handle Option.Option => error_var "No such type variable in theorem: " xi;
-
-fun the_type types xi = the (types xi)
-  handle Option.Option => error_var "No such variable in theorem: " xi;
-
-fun unify_types thy types (xi, u) (unifier, maxidx) =
-  let
-    val T = the_type types xi;
-    val U = Term.fastype_of u;
-    val maxidx' = Int.max (maxidx, Int.max (#2 xi, Term.maxidx_of_term u));
-  in
-    Sign.typ_unify thy (T, U) (unifier, maxidx')
-      handle Type.TUNIFY => error_var "Incompatible type for instantiation of " xi
-  end;
-
-fun typ_subst env = apsnd (Term.typ_subst_TVars env);
-fun subst env = apsnd (Term.subst_TVars env);
-
-fun instantiate thy envT env thm =
-  let
-    val (_, sorts) = Drule.types_sorts thm;
-    fun prepT (a, T) = (Thm.ctyp_of thy (TVar (a, the_sort sorts a)), Thm.ctyp_of thy T);
-    fun prep (xi, t) = pairself (Thm.cterm_of thy) (Var (xi, Term.fastype_of t), t);
-  in
-    Drule.instantiate (map prepT (distinct (op =) envT),
-      map prep (distinct (fn ((xi, t), (yj, u)) => xi = yj andalso t aconv u) env)) thm
-  end;
-
-in
-
-fun read_instantiate mixed_insts (context, thm) =
-  let
-    val thy = Context.theory_of context;
-    val ctxt = Context.proof_of context;
-
-    val (type_insts, term_insts) = List.partition (is_tvar o fst) (map snd mixed_insts);
-    val internal_insts = term_insts |> map_filter
-      (fn (xi, Args.Term t) => SOME (xi, t)
-      | (_, Args.Name _) => NONE
-      | (xi, _) => error_var "Term argument expected for " xi);
-    val external_insts = term_insts |> map_filter
-      (fn (xi, Args.Name s) => SOME (xi, s) | _ => NONE);
-
-
-    (* type instantiations *)
-
-    val sorts = #2 (Drule.types_sorts thm);
-
-    fun readT (xi, arg) =
-      let
-        val S = the_sort sorts xi;
-        val T =
-          (case arg of
-            Args.Name s => ProofContext.read_typ ctxt s
-          | Args.Typ T => T
-          | _ => error_var "Type argument expected for " xi);
-      in
-        if Sign.of_sort thy (T, S) then (xi, T)
-        else error_var "Incompatible sort for typ instantiation of " xi
-      end;
-
-    val type_insts' = map readT type_insts;
-    val thm' = instantiate thy type_insts' [] thm;
-
-
-    (* internal term instantiations *)
-
-    val types' = #1 (Drule.types_sorts thm');
-    val unifier = map (apsnd snd) (Vartab.dest (#1
-      (fold (unify_types thy types') internal_insts (Vartab.empty, 0))));
-
-    val type_insts'' = map (typ_subst unifier) type_insts';
-    val internal_insts'' = map (subst unifier) internal_insts;
-    val thm'' = instantiate thy unifier internal_insts'' thm';
-
-
-    (* external term instantiations *)
-
-    val types'' = #1 (Drule.types_sorts thm'');
-
-    val (xs, ss) = split_list external_insts;
-    val Ts = map (the_type types'') xs;
-    val (ts, inferred) = ProofContext.read_termTs ctxt (K false)
-        (K NONE) (K NONE) (Drule.add_used thm'' []) (ss ~~ Ts);
-
-    val type_insts''' = map (typ_subst inferred) type_insts'';
-    val internal_insts''' = map (subst inferred) internal_insts'';
-
-    val external_insts''' = xs ~~ ts;
-    val term_insts''' = internal_insts''' @ external_insts''';
-    val thm''' = instantiate thy inferred external_insts''' thm'';
-
-
-    (* assign internalized values *)
-
-    val _ =
-      mixed_insts |> List.app (fn (arg, (xi, _)) =>
-        if is_tvar xi then
-          Args.assign (SOME (Args.Typ (the (AList.lookup (op =) type_insts''' xi)))) arg
-        else
-          Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts''' xi)))) arg);
-
-  in (context, thm''' |> RuleCases.save thm) end;
-
-end;
-
-
-(* where: named instantiation *)
-
-local
-
-val value =
-  Args.internal_typ >> Args.Typ ||
-  Args.internal_term >> Args.Term ||
-  Args.name >> Args.Name;
-
-val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
-  >> (fn (xi, (a, v)) => (a, (xi, v)));
-
-in
-
-val where_att = syntax (Args.and_list (Scan.lift inst) >> read_instantiate);
-
-end;
-
-
-(* of: positional instantiation (term arguments only) *)
-
-local
-
-fun read_instantiate' (args, concl_args) (context, thm) =
-  let
-    fun zip_vars _ [] = []
-      | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
-      | zip_vars ((x, _) :: xs) ((arg, SOME t) :: rest) = (arg, (x, t)) :: zip_vars xs rest
-      | zip_vars [] _ = error "More instantiations than variables in theorem";
-    val insts =
-      zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
-      zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
-  in read_instantiate insts (context, thm) end;
-
-val value =
-  Args.internal_term >> Args.Term ||
-  Args.name >> Args.Name;
-
-val inst = Args.ahead -- Args.maybe value;
-val concl = Args.$$$ "concl" -- Args.colon;
-
-val insts =
-  Scan.repeat (Scan.unless concl inst) --
-  Scan.optional (concl |-- Scan.repeat inst) [];
-
-in
-
-val of_att = syntax (Scan.lift insts >> read_instantiate');
-
-end;
-
-
 (* rename_abs *)
 
 fun rename_abs src = syntax
@@ -435,8 +266,6 @@ val _ = Context.add_setup
     ("COMP", COMP_att, "direct composition with rules (no lifting)"),
     ("THEN", THEN_att, "resolution with rule"),
     ("OF", OF_att, "rule applied to facts"),
-    ("where", where_att, "named instantiation of theorem"),
-    ("of", of_att, "rule applied to terms"),
     ("rename_abs", rename_abs, "rename bound variables in abstractions"),
     ("unfolded", unfolded, "unfolded definitions"),
     ("folded", folded, "folded definitions"),
