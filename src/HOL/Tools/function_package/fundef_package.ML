@@ -25,8 +25,6 @@ struct
 
 open FundefCommon
 
-val True_implies = thm "True_implies"
-
 
 fun add_simps label moreatts (MutualPart {f_name, ...}, psimps) spec_part thy =
     let 
@@ -112,7 +110,7 @@ fun total_termination_afterqed name (Mutual {parts, ...}) thmss thy =
 	val (FundefMResult {psimps, simple_pinducts, ... }, Mutual {parts, ...}, spec)
 	  = the (get_fundef_data name thy)
 
-	val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies])
+	val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
 
 	val tsimps = map (map remove_domain_condition) psimps
 	val tinduct = map remove_domain_condition simple_pinducts
