@@ -20,7 +20,6 @@ qed
 
 consts
   ONE_ONE :: "('a => 'b) => bool"
-  ONTO    :: "('a => 'b) => bool"
 
 defs
   ONE_ONE_DEF: "ONE_ONE f == ALL x y. f x = f y --> x = y"

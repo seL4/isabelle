@@ -414,13 +414,14 @@ fun eta_expand sg assumes origt =
     handle e => (writeln "eta_expand internal error"; OldGoals.print_exn e)
 
 fun mk_tfree s = TFree("'"^s,[])
+fun mk_free s t = Free (s,t)
 val xT = mk_tfree "a"
 val yT = mk_tfree "b"
-val P  = Var(("P",0),xT-->yT-->propT)
-val Q  = Var(("Q",0),xT-->yT)
-val R  = Var(("R",0),xT-->yT)
-val S  = Var(("S",0),xT)
-val S'  = Var(("S'",0),xT)
+val P  = mk_free "P" (xT-->yT-->propT)
+val Q  = mk_free "Q" (xT-->yT)
+val R  = mk_free "R" (xT-->yT)
+val S  = mk_free "S" xT
+val S'  = mk_free "S'" xT
 in
 fun beta_simproc sg = Simplifier.simproc_i
 		      sg
@@ -488,23 +489,21 @@ be handy in its own right, for example for indexing terms. *)
 fun norm_term thy t =
     let
 	val sg = sign_of thy
-
 	val norms = ShuffleData.get thy
 	val ss = Simplifier.theory_context thy empty_ss
           setmksimps single
 	  addsimps (map (Thm.transfer sg) norms)
+          addsimprocs [quant_simproc sg, eta_expand_simproc sg,eta_contract_simproc sg]
 	fun chain f th =
 	    let
                 val rhs = snd (dest_equals (cprop_of th))
       	    in
 		transitive th (f rhs)
 	    end
-
 	val th =
-	    t |> disamb_bound sg
-	      |> chain (Simplifier.full_rewrite
-			    (ss addsimprocs [quant_simproc sg,eta_expand_simproc sg,eta_contract_simproc sg]))
-	      |> chain eta_conversion
+            t |> disamb_bound sg
+	      |> chain (Simplifier.full_rewrite ss)
+              |> chain eta_conversion
 	      |> strip_shyps
 	val _ = message ("norm_term: " ^ (string_of_thm th))
     in

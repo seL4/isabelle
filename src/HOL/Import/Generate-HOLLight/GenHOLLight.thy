@@ -31,7 +31,7 @@ ignore_thms
   TYDEF_sum
   DEF_INL
   DEF_INR
-  TYDEF_option;
+ (* TYDEF_option*);
 
 type_maps
   ind > Nat.ind
@@ -41,7 +41,7 @@ type_maps
   prod > "*"
   num > nat
   sum > "+"
-  option > Datatype.option;
+(*  option > Datatype.option*);
 
 const_renames
   "==" > "eqeq"
@@ -82,8 +82,10 @@ const_maps
   BIT0 > HOLLightCompat.NUMERAL_BIT0
   BIT1 > HOL4Compat.NUMERAL_BIT1
   INL > Sum_Type.Inl
-  INR > Sum_Type.Inr;
- (* HAS_SIZE > HOLLightCompat.HAS_SIZE; *)
+  INR > Sum_Type.Inr
+ (* NONE > Datatype.None
+  SOME > Datatype.Some;
+  HAS_SIZE > HOLLightCompat.HAS_SIZE; *)
 
 (*import_until "TYDEF_sum"
 
