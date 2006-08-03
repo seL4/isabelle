@@ -5,9 +5,13 @@
 This file is largely based on HOL/Finite_Set.thy.
 *)
 
-header {* Product Operator for Commutative Monoids *}
-
 theory FiniteProduct imports Group begin
+
+
+section {* Product Operator for Commutative Monoids *}
+
+
+subsection {* Inductive Definition of a Relation for Products over Sets *}
 
 text {* Instantiation of locale @{text LC} of theory @{text Finite_Set} is not
   possible, because here we have explicit typing rules like 
@@ -58,7 +62,8 @@ next
   then show ?case ..
 qed
 
-subsection {* Left-commutative operations *}
+
+subsection {* Left-Commutative Operations *}
 
 locale LCD =
   fixes B :: "'b set"
@@ -226,7 +231,8 @@ declare foldSetD_imp_finite [simp del]
 declare (in LCD)
   foldSetD_closed [rule del]
 
-subsection {* Commutative monoids *}
+
+subsection {* Commutative Monoids *}
 
 text {*
   We enter a more restrictive context, with @{text "f :: 'a => 'a => 'a"}
@@ -279,6 +285,7 @@ lemma (in ACeD) foldD_Un_disjoint:
     foldD D f e (A Un B) = foldD D f e A \<cdot> foldD D f e B"
   by (simp add: foldD_Un_Int
     left_commute LCD.foldD_closed [OF LCD.intro [of D]] Un_subset_iff)
+
 
 subsection {* Products over Finite Sets *}
 

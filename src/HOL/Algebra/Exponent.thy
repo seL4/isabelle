@@ -5,13 +5,14 @@
     exponent p s   yields the greatest power of p that divides s.
 *)
 
-header{*The Combinatorial Argument Underlying the First Sylow Theorem*}
-
 theory Exponent imports Main Primes begin
 
+
+section {*The Combinatorial Argument Underlying the First Sylow Theorem*}
 constdefs
   exponent      :: "[nat, nat] => nat"
   "exponent p s == if prime p then (GREATEST r. p^r dvd s) else 0"
+
 
 subsection{*Prime Theorems*}
 
@@ -196,7 +197,7 @@ apply (auto simp add: prime_iff not_divides_exponent_0)
 done
 
 
-subsection{*Lemmas for the Main Combinatorial Argument*}
+subsection{*Main Combinatorial Argument*}
 
 lemma le_extend_mult: "[| 0 < c; a <= b |] ==> a <= b * (c::nat)"
 apply (rule_tac P = "%x. x <= b * c" in subst)

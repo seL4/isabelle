@@ -4,7 +4,7 @@
     Author: Clemens Ballarin, started 15 April 1997
 *)
 
-theory RingHomo imports Ring begin
+theory RingHomo imports Ring2 begin
 
 constdefs
   homo  :: "('a::ring => 'b::ring) => bool"

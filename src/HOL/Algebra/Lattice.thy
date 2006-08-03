@@ -5,14 +5,16 @@
   Copyright: Clemens Ballarin
 *)
 
-header {* Orders and Lattices *}
-
 theory Lattice imports Main begin
+
+
+section {* Orders and Lattices *}
 
 text {* Object with a carrier set. *}
 
 record 'a partial_object =
   carrier :: "'a set"
+
 
 subsection {* Partial Orders *}
 
@@ -822,9 +824,10 @@ qed
 
 (* TODO: prove dual version *)
 
+
 subsection {* Examples *}
 
-subsubsection {* Powerset of a set is a complete lattice *}
+subsubsection {* Powerset of a Set is a Complete Lattice *}
 
 theorem powerset_is_complete_lattice:
   "complete_lattice (| carrier = Pow A, le = op \<subseteq> |)"

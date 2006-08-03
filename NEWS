@@ -521,7 +521,13 @@ the old behavior.
 *** HOL-Algebra ***
 
 * Method algebra is now set up via an attribute.  For examples see CRing.thy.
-  INCOMPATIBILITY: the method is now weaker on combinations of algebraic structures.
+  INCOMPATIBILITY: the method is now weaker on combinations of algebraic
+  structures.
+
+* Formalisation of ideals and the quotient construction over rings, contributed
+  by Stephan Hohe.
+
+* Renamed `CRing.thy' to `Ring.thy'.  INCOMPATIBILITY.
 
 *** HOL-Complex ***
 

@@ -6,18 +6,16 @@
 Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 *)
 
-header {* Groups *}
-
 theory Group imports FuncSet Lattice begin
 
 
 section {* Monoids and Groups *}
 
+subsection {* Definitions *}
+
 text {*
   Definitions follow \cite{Jacobson:1985}.
 *}
-
-subsection {* Definitions *}
 
 record 'a monoid =  "'a partial_object" +
   mult    :: "['a, 'a] \<Rightarrow> 'a" (infixl "\<otimes>\<index>" 70)
@@ -291,6 +289,7 @@ lemma (in group) l_inv [simp]:
   "x \<in> carrier G ==> inv x \<otimes> x = \<one>"
   using Units_l_inv by simp
 
+
 subsection {* Cancellation Laws and Basic Properties *}
 
 lemma (in group) l_cancel [simp]:
@@ -373,14 +372,18 @@ lemma (in group) int_pow_one [simp]:
   "\<one> (^) (z::int) = \<one>"
   by (simp add: int_pow_def2)
 
+
 subsection {* Subgroups *}
 
 locale subgroup =
   fixes H and G (structure)
   assumes subset: "H \<subseteq> carrier G"
     and m_closed [intro, simp]: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> H"
-    and  one_closed [simp]: "\<one> \<in> H"
+    and one_closed [simp]: "\<one> \<in> H"
     and m_inv_closed [intro,simp]: "x \<in> H \<Longrightarrow> inv x \<in> H"
+
+lemma (in subgroup) is_subgroup:
+  "subgroup H G" .
 
 declare (in subgroup) group.intro [intro]
 
@@ -439,6 +442,7 @@ qed
 lemma (in monoid) Units_subgroup:
   "subgroup (Units G) G"
 *)
+
 
 subsection {* Direct Products *}
 
@@ -524,9 +528,6 @@ apply (auto simp add: hom_def funcset_compose)
 apply (simp add: compose_def funcset_mem)
 done
 
-
-subsection {* Isomorphisms *}
-
 constdefs
   iso :: "_ => _ => ('a => 'b) set"  (infixr "\<cong>" 60)
   "G \<cong> H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
@@ -590,6 +591,7 @@ proof -
   with x show ?thesis by (simp del: H.r_inv)
 qed
 
+
 subsection {* Commutative Structures *}
 
 text {*
@@ -597,8 +599,6 @@ text {*
   are called \emph{commutative}, additive structures are called
   \emph{Abelian}.
 *}
-
-subsection {* Definition *}
 
 locale comm_monoid = monoid +
   assumes m_comm: "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk> \<Longrightarrow> x \<otimes> y = y \<otimes> x"
@@ -679,7 +679,8 @@ lemma (in comm_group) inv_mult:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv x \<otimes> inv y"
   by (simp add: m_ac inv_mult_group)
 
-subsection {* Lattice of subgroups of a group *}
+
+subsection {* The Lattice of Subgroups of a Group *}
 
 text_raw {* \label{sec:subgroup-lattice} *}
 

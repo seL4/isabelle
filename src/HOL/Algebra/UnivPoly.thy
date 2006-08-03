@@ -5,9 +5,10 @@
   Copyright: Clemens Ballarin
 *)
 
-header {* Univariate Polynomials *}
-
 theory UnivPoly imports Module begin
+
+
+section {* Univariate Polynomials *}
 
 text {*
   Polynomials are formalised as modules with additional operations for
@@ -161,7 +162,7 @@ next
 qed
 
 
-subsection {* Effect of operations on coefficients *}
+subsection {* Effect of Operations on Coefficients *}
 
 locale UP =
   fixes R (structure) and P (structure)
@@ -219,7 +220,8 @@ proof
   from prem and R show "p x = q x" by (simp add: UP_def)
 qed
 
-subsection {* Polynomials form a commutative ring. *}
+
+subsection {* Polynomials Form a Commutative Ring. *}
 
 text {* Operations are closed over @{term P}. *}
 
@@ -401,7 +403,7 @@ interpretation UP_cring < cring P
     (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms UP_cring)+
 
 
-subsection {* Polynomials form an Algebra *}
+subsection {* Polynomials Form an Algebra *}
 
 lemma (in UP_cring) UP_smult_l_distr:
   "[| a \<in> carrier R; b \<in> carrier R; p \<in> carrier P |] ==>
@@ -445,7 +447,7 @@ interpretation UP_cring < algebra R P
     (rule module.axioms algebra.axioms UP_algebra)+
 
 
-subsection {* Further lemmas involving monomials *}
+subsection {* Further Lemmas Involving Monomials *}
 
 lemma (in UP_cring) monom_zero [simp]:
   "monom P \<zero> n = \<zero>\<^bsub>P\<^esub>"
@@ -603,7 +605,7 @@ proof (rule inj_onI)
 qed
 
 
-subsection {* The degree function *}
+subsection {* The Degree Function *}
 
 constdefs (structure R)
   deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
@@ -887,7 +889,7 @@ proof -
 qed
 
 
-subsection {* Polynomials over an integral domain form an integral domain *}
+subsection {* Polynomials over Integral Domains *}
 
 lemma domainI:
   assumes cring: "cring R"
@@ -948,7 +950,7 @@ interpretation UP_domain < "domain" P
   by intro_locales (rule domain.axioms UP_domain)+
 
 
-subsection {* Evaluation Homomorphism and Universal Property*}
+subsection {* The Evaluation Homomorphism and Universal Property*}
 
 (* alternative congruence rule (possibly more efficient)
 lemma (in abelian_monoid) finsum_cong2:
@@ -1290,7 +1292,7 @@ theorem (in UP_pre_univ_prop) UP_universal_property:
   done
 
 
-subsection {* Sample application of evaluation homomorphism *}
+subsection {* Sample Application of Evaluation Homomorphism *}
 
 lemma UP_pre_univ_propI:
   assumes "cring R"

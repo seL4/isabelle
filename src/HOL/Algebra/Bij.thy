@@ -3,9 +3,10 @@
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)
 
-header {* Bijections of a Set, Permutation Groups, Automorphism Groups *}
-
 theory Bij imports Group begin
+
+
+section {* Bijections of a Set, Permutation Groups and Automorphism Groups *}
 
 constdefs
   Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"

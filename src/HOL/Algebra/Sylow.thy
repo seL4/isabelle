@@ -3,9 +3,10 @@
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)
 
-header {* Sylow's theorem *}
-
 theory Sylow imports Coset begin
+
+
+section {* Sylow's Theorem *}
 
 text {*
   See also \cite{Kammueller-Paulson:1999}.
@@ -50,8 +51,8 @@ apply (unfold RelM_def)
 apply (blast elim!: quotientE)
 done
 
-subsection{*Main Part of the Proof*}
 
+subsection{*Main Part of the Proof*}
 
 locale sylow_central = sylow +
   fixes H and M1 and M
@@ -265,7 +266,7 @@ apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_def)
 done
 
 
-subsubsection{*The opposite injection*}
+subsubsection{*The Opposite Injection*}
 
 lemma (in sylow_central) H_elem_map:
      "H1 \<in> rcosets H ==> \<exists>g. g \<in> carrier G & H #> g = H1"
@@ -361,6 +362,9 @@ text{*Needed because the locale's automatic definition refers to
   simply to @{term "group G"}.*}
 lemma sylow_eq: "sylow G p a m = (group G & sylow_axioms G p a m)"
 by (simp add: sylow_def group_def)
+
+
+subsection {* Sylow's Theorem *}
 
 theorem sylow_thm:
      "[| prime p;  group(G);  order(G) = (p^a) * m; finite (carrier G)|]

@@ -381,22 +381,27 @@ HOL-Algebra: HOL $(LOG)/HOL-Algebra.gz
 
 $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
   Library/Primes.thy Library/FuncSet.thy \
+  Algebra/AbelCoset.thy \
   Algebra/Bij.thy \
-  Algebra/CRing.thy \
   Algebra/Coset.thy \
   Algebra/Exponent.thy \
   Algebra/FiniteProduct.thy \
   Algebra/Group.thy \
+  Algebra/Ideal.thy \
   Algebra/Lattice.thy \
   Algebra/Module.thy \
+  Algebra/Ring.thy \
   Algebra/Sylow.thy \
   Algebra/UnivPoly.thy \
+  Algebra/IntRing.thy \
+  Algebra/QuotRing.thy \
+  Algebra/RingHom.thy \
   Algebra/abstract/Abstract.thy \
   Algebra/abstract/Factor.ML Algebra/abstract/Factor.thy \
   Algebra/abstract/Field.thy \
-  Algebra/abstract/Ideal.ML Algebra/abstract/Ideal.thy \
+  Algebra/abstract/Ideal2.ML Algebra/abstract/Ideal2.thy \
   Algebra/abstract/PID.thy \
-  Algebra/abstract/Ring.ML Algebra/abstract/Ring.thy \
+  Algebra/abstract/Ring2.ML Algebra/abstract/Ring2.thy \
   Algebra/abstract/RingHomo.ML Algebra/abstract/RingHomo.thy\
   Algebra/abstract/order.ML \
   Algebra/document/root.tex \

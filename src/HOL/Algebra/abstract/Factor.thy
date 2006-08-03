@@ -4,7 +4,7 @@
     Author: Clemens Ballarin, started 25 November 1997
 *)
 
-theory Factor imports Ring begin
+theory Factor imports Ring2 begin
 
 constdefs
   Factorisation :: "['a::ring, 'a list, 'a] => bool"

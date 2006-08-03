@@ -17,7 +17,7 @@ fun make_left_commute assoc commute s =
 
 (* addition *)
 
-qed_goal "a_lcomm" Ring.thy "!!a::'a::ring. a+(b+c) = b+(a+c)"
+qed_goal "a_lcomm" Ring2.thy "!!a::'a::ring. a+(b+c) = b+(a+c)"
   (make_left_commute a_assoc a_comm);
 
 val a_ac = [a_assoc, a_comm, a_lcomm];
@@ -74,7 +74,7 @@ qed "minus_add";
 
 (* multiplication *)
 
-qed_goal "m_lcomm" Ring.thy "!!a::'a::ring. a*(b*c) = b*(a*c)"
+qed_goal "m_lcomm" Ring2.thy "!!a::'a::ring. a*(b*c) = b*(a*c)"
   (make_left_commute m_assoc m_comm);
 
 val m_ac = [m_assoc, m_comm, m_lcomm];

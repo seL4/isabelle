@@ -4,9 +4,12 @@
     Copyright:  Clemens Ballarin
 *)
 
-header {* Modules over an Abelian Group *}
+theory Module imports Ring begin
 
-theory Module imports CRing begin
+
+section {* Modules over an Abelian Group *}
+
+subsection {* Definitions *}
 
 record ('a, 'b) module = "'b ring" +
   smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)

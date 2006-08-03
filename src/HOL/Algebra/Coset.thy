@@ -1,11 +1,13 @@
 (*  Title:      HOL/Algebra/Coset.thy
     ID:         $Id$
-    Author:     Florian Kammueller, with new proofs by L C Paulson
+    Author:     Florian Kammueller, with new proofs by L C Paulson, and
+                Stephan Hohe
 *)
 
-header{*Cosets and Quotient Groups*}
-
 theory Coset imports Group Exponent begin
+
+
+section {*Cosets and Quotient Groups*}
 
 constdefs (structure G)
   r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "#>\<index>" 60)
@@ -81,7 +83,7 @@ lemma (in group) coset_join2:
   --{*Alternative proof is to put @{term "x=\<one>"} in @{text repr_independence}.*}
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
-lemma (in group) r_coset_subset_G:
+lemma (in monoid) r_coset_subset_G:
      "[| H \<subseteq> carrier G; x \<in> carrier G |] ==> H #> x \<subseteq> carrier G"
 by (auto simp add: r_coset_def)
 
@@ -104,6 +106,254 @@ apply (simp add: r_coset_def)
 apply (blast intro: sym l_one subgroup.subset [THEN subsetD]
                     subgroup.one_closed)
 done
+
+text {* Opposite of @{thm [locale=group,source] "repr_independence"} *}
+lemma (in group) repr_independenceD:
+  includes subgroup H G
+  assumes ycarr: "y \<in> carrier G"
+      and repr:  "H #> x = H #> y"
+  shows "y \<in> H #> x"
+  by (subst repr, intro rcos_self)
+
+text {* Elements of a right coset are in the carrier *}
+lemma (in subgroup) elemrcos_carrier:
+  includes group
+  assumes acarr: "a \<in> carrier G"
+    and a': "a' \<in> H #> a"
+  shows "a' \<in> carrier G"
+proof -
+  from subset and acarr
+  have "H #> a \<subseteq> carrier G" by (rule r_coset_subset_G)
+  from this and a'
+  show "a' \<in> carrier G"
+    by fast
+qed
+
+lemma (in subgroup) rcos_const:
+  includes group
+  assumes hH: "h \<in> H"
+  shows "H #> h = H"
+  apply (unfold r_coset_def)
+  apply rule apply rule
+  apply clarsimp
+  apply (intro subgroup.m_closed)
+  apply assumption+
+  apply rule
+  apply simp
+proof -
+  fix h'
+  assume h'H: "h' \<in> H"
+  note carr = hH[THEN mem_carrier] h'H[THEN mem_carrier]
+  from carr
+  have a: "h' = (h' \<otimes> inv h) \<otimes> h" by (simp add: m_assoc)
+  from h'H hH
+  have "h' \<otimes> inv h \<in> H" by simp
+  from this and a
+  show "\<exists>x\<in>H. h' = x \<otimes> h" by fast
+qed
+
+text {* Step one for lemma @{text "rcos_module"} *}
+lemma (in subgroup) rcos_module_imp:
+  includes group
+  assumes xcarr: "x \<in> carrier G"
+      and x'cos: "x' \<in> H #> x"
+  shows "(x' \<otimes> inv x) \<in> H"
+proof -
+  from xcarr x'cos
+      have x'carr: "x' \<in> carrier G"
+      by (rule elemrcos_carrier[OF is_group])
+  from xcarr
+      have ixcarr: "inv x \<in> carrier G"
+      by simp
+  from x'cos
+      have "\<exists>h\<in>H. x' = h \<otimes> x"
+      unfolding r_coset_def
+      by fast
+  from this
+      obtain h
+        where hH: "h \<in> H"
+        and x': "x' = h \<otimes> x"
+      by auto
+  from hH and subset
+      have hcarr: "h \<in> carrier G" by fast
+  note carr = xcarr x'carr hcarr
+  from x' and carr
+      have "x' \<otimes> (inv x) = (h \<otimes> x) \<otimes> (inv x)" by fast
+  also from carr
+      have "\<dots> = h \<otimes> (x \<otimes> inv x)" by (simp add: m_assoc)
+  also from carr
+      have "\<dots> = h \<otimes> \<one>" by simp
+  also from carr
+      have "\<dots> = h" by simp
+  finally
+      have "x' \<otimes> (inv x) = h" by simp
+  from hH this
+      show "x' \<otimes> (inv x) \<in> H" by simp
+qed
+
+text {* Step two for lemma @{text "rcos_module"} *}
+lemma (in subgroup) rcos_module_rev:
+  includes group
+  assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
+      and xixH: "(x' \<otimes> inv x) \<in> H"
+  shows "x' \<in> H #> x"
+proof -
+  from xixH
+      have "\<exists>h\<in>H. x' \<otimes> (inv x) = h" by fast
+  from this
+      obtain h
+        where hH: "h \<in> H"
+        and hsym: "x' \<otimes> (inv x) = h"
+      by fast
+  from hH subset have hcarr: "h \<in> carrier G" by simp
+  note carr = carr hcarr
+  from hsym[symmetric] have "h \<otimes> x = x' \<otimes> (inv x) \<otimes> x" by fast
+  also from carr
+      have "\<dots> = x' \<otimes> ((inv x) \<otimes> x)" by (simp add: m_assoc)
+  also from carr
+      have "\<dots> = x' \<otimes> \<one>" by (simp add: l_inv)
+  also from carr
+      have "\<dots> = x'" by simp
+  finally
+      have "h \<otimes> x = x'" by simp
+  from this[symmetric] and hH
+      show "x' \<in> H #> x"
+      unfolding r_coset_def
+      by fast
+qed
+
+text {* Module property of right cosets *}
+lemma (in subgroup) rcos_module:
+  includes group
+  assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
+  shows "(x' \<in> H #> x) = (x' \<otimes> inv x \<in> H)"
+proof
+  assume "x' \<in> H #> x"
+  from this and carr
+      show "x' \<otimes> inv x \<in> H"
+      by (intro rcos_module_imp[OF is_group])
+next
+  assume "x' \<otimes> inv x \<in> H"
+  from this and carr
+      show "x' \<in> H #> x"
+      by (intro rcos_module_rev[OF is_group])
+qed
+
+text {* Right cosets are subsets of the carrier. *} 
+lemma (in subgroup) rcosets_carrier:
+  includes group
+  assumes XH: "X \<in> rcosets H"
+  shows "X \<subseteq> carrier G"
+proof -
+  from XH have "\<exists>x\<in> carrier G. X = H #> x"
+      unfolding RCOSETS_def
+      by fast
+  from this
+      obtain x
+        where xcarr: "x\<in> carrier G"
+        and X: "X = H #> x"
+      by fast
+  from subset and xcarr
+      show "X \<subseteq> carrier G"
+      unfolding X
+      by (rule r_coset_subset_G)
+qed
+
+text {* Multiplication of general subsets *}
+lemma (in monoid) set_mult_closed:
+  assumes Acarr: "A \<subseteq> carrier G"
+      and Bcarr: "B \<subseteq> carrier G"
+  shows "A <#> B \<subseteq> carrier G"
+apply rule apply (simp add: set_mult_def, clarsimp)
+proof -
+  fix a b
+  assume "a \<in> A"
+  from this and Acarr
+      have acarr: "a \<in> carrier G" by fast
+
+  assume "b \<in> B"
+  from this and Bcarr
+      have bcarr: "b \<in> carrier G" by fast
+
+  from acarr bcarr
+      show "a \<otimes> b \<in> carrier G" by (rule m_closed)
+qed
+
+lemma (in comm_group) mult_subgroups:
+  assumes subH: "subgroup H G"
+      and subK: "subgroup K G"
+  shows "subgroup (H <#> K) G"
+apply (rule subgroup.intro)
+   apply (intro set_mult_closed subgroup.subset[OF subH] subgroup.subset[OF subK])
+  apply (simp add: set_mult_def) apply clarsimp defer 1
+  apply (simp add: set_mult_def) defer 1
+  apply (simp add: set_mult_def, clarsimp) defer 1
+proof -
+  fix ha hb ka kb
+  assume haH: "ha \<in> H" and hbH: "hb \<in> H" and kaK: "ka \<in> K" and kbK: "kb \<in> K"
+  note carr = haH[THEN subgroup.mem_carrier[OF subH]] hbH[THEN subgroup.mem_carrier[OF subH]]
+              kaK[THEN subgroup.mem_carrier[OF subK]] kbK[THEN subgroup.mem_carrier[OF subK]]
+  from carr
+      have "(ha \<otimes> ka) \<otimes> (hb \<otimes> kb) = ha \<otimes> (ka \<otimes> hb) \<otimes> kb" by (simp add: m_assoc)
+  also from carr
+      have "\<dots> = ha \<otimes> (hb \<otimes> ka) \<otimes> kb" by (simp add: m_comm)
+  also from carr
+      have "\<dots> = (ha \<otimes> hb) \<otimes> (ka \<otimes> kb)" by (simp add: m_assoc)
+  finally
+      have eq: "(ha \<otimes> ka) \<otimes> (hb \<otimes> kb) = (ha \<otimes> hb) \<otimes> (ka \<otimes> kb)" .
+
+  from haH hbH have hH: "ha \<otimes> hb \<in> H" by (simp add: subgroup.m_closed[OF subH])
+  from kaK kbK have kK: "ka \<otimes> kb \<in> K" by (simp add: subgroup.m_closed[OF subK])
+  
+  from hH and kK and eq
+      show "\<exists>h'\<in>H. \<exists>k'\<in>K. (ha \<otimes> ka) \<otimes> (hb \<otimes> kb) = h' \<otimes> k'" by fast
+next
+  have "\<one> = \<one> \<otimes> \<one>" by simp
+  from subgroup.one_closed[OF subH] subgroup.one_closed[OF subK] this
+      show "\<exists>h\<in>H. \<exists>k\<in>K. \<one> = h \<otimes> k" by fast
+next
+  fix h k
+  assume hH: "h \<in> H"
+     and kK: "k \<in> K"
+
+  from hH[THEN subgroup.mem_carrier[OF subH]] kK[THEN subgroup.mem_carrier[OF subK]]
+      have "inv (h \<otimes> k) = inv h \<otimes> inv k" by (simp add: inv_mult_group m_comm)
+
+  from subgroup.m_inv_closed[OF subH hH] and subgroup.m_inv_closed[OF subK kK] and this
+      show "\<exists>ha\<in>H. \<exists>ka\<in>K. inv (h \<otimes> k) = ha \<otimes> ka" by fast
+qed
+
+lemma (in subgroup) lcos_module_rev:
+  includes group
+  assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
+      and xixH: "(inv x \<otimes> x') \<in> H"
+  shows "x' \<in> x <# H"
+proof -
+  from xixH
+      have "\<exists>h\<in>H. (inv x) \<otimes> x' = h" by fast
+  from this
+      obtain h
+        where hH: "h \<in> H"
+        and hsym: "(inv x) \<otimes> x' = h"
+      by fast
+
+  from hH subset have hcarr: "h \<in> carrier G" by simp
+  note carr = carr hcarr
+  from hsym[symmetric] have "x \<otimes> h = x \<otimes> ((inv x) \<otimes> x')" by fast
+  also from carr
+      have "\<dots> = (x \<otimes> (inv x)) \<otimes> x'" by (simp add: m_assoc[symmetric])
+  also from carr
+      have "\<dots> = \<one> \<otimes> x'" by simp
+  also from carr
+      have "\<dots> = x'" by simp
+  finally
+      have "x \<otimes> h = x'" by simp
+
+  from this[symmetric] and hH
+      show "x' \<in> x <# H"
+      unfolding l_coset_def
+      by fast
+qed
 
 
 subsection {* Normal subgroups *}
@@ -250,7 +500,7 @@ apply (auto simp add: subgroup.m_closed subgroup.one_closed
 done
 
 
-subsubsection {* Set of inverses of an @{text r_coset}. *}
+subsubsection {* Set of Inverses of an @{text r_coset}. *}
 
 lemma (in normal) rcos_inv:
   assumes x:     "x \<in> carrier G"
@@ -374,7 +624,7 @@ lemma (in subgroup) l_coset_eq_rcong:
 by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
 
 
-subsubsection{*Two distinct right cosets are disjoint*}
+subsubsection{*Two Distinct Right Cosets are Disjoint*}
 
 lemma (in group) rcos_equation:
   includes subgroup H G
@@ -393,6 +643,79 @@ lemma (in group) rcos_disjoint:
 apply (simp add: RCOSETS_def r_coset_def)
 apply (blast intro: rcos_equation prems sym)
 done
+
+subsection {* Further lemmas for @{text "r_congruent"} *}
+
+text {* The relation is a congruence *}
+
+lemma (in normal) congruent_rcong:
+  shows "congruent2 (rcong H) (rcong H) (\<lambda>a b. a \<otimes> b <# H)"
+proof (intro congruent2I[of "carrier G" _ "carrier G" _] equiv_rcong is_group)
+  fix a b c
+  assume abrcong: "(a, b) \<in> rcong H"
+    and ccarr: "c \<in> carrier G"
+
+  from abrcong
+      have acarr: "a \<in> carrier G"
+        and bcarr: "b \<in> carrier G"
+        and abH: "inv a \<otimes> b \<in> H"
+      unfolding r_congruent_def
+      by fast+
+
+  note carr = acarr bcarr ccarr
+
+  from ccarr and abH
+      have "inv c \<otimes> (inv a \<otimes> b) \<otimes> c \<in> H" by (rule inv_op_closed1)
+  moreover
+      from carr and inv_closed
+      have "inv c \<otimes> (inv a \<otimes> b) \<otimes> c = (inv c \<otimes> inv a) \<otimes> (b \<otimes> c)" 
+      by (force cong: m_assoc)
+  moreover 
+      from carr and inv_closed
+      have "\<dots> = (inv (a \<otimes> c)) \<otimes> (b \<otimes> c)"
+      by (simp add: inv_mult_group)
+  ultimately
+      have "(inv (a \<otimes> c)) \<otimes> (b \<otimes> c) \<in> H" by simp
+  from carr and this
+     have "(b \<otimes> c) \<in> (a \<otimes> c) <# H"
+     by (simp add: lcos_module_rev[OF is_group])
+  from carr and this and is_subgroup
+     show "(a \<otimes> c) <# H = (b \<otimes> c) <# H" by (intro l_repr_independence, simp+)
+next
+  fix a b c
+  assume abrcong: "(a, b) \<in> rcong H"
+    and ccarr: "c \<in> carrier G"
+
+  from ccarr have "c \<in> Units G" by (simp add: Units_eq)
+  hence cinvc_one: "inv c \<otimes> c = \<one>" by (rule Units_l_inv)
+
+  from abrcong
+      have acarr: "a \<in> carrier G"
+       and bcarr: "b \<in> carrier G"
+       and abH: "inv a \<otimes> b \<in> H"
+      by (unfold r_congruent_def, fast+)
+
+  note carr = acarr bcarr ccarr
+
+  from carr and inv_closed
+     have "inv a \<otimes> b = inv a \<otimes> (\<one> \<otimes> b)" by simp
+  also from carr and inv_closed
+      have "\<dots> = inv a \<otimes> (inv c \<otimes> c) \<otimes> b" by simp
+  also from carr and inv_closed
+      have "\<dots> = (inv a \<otimes> inv c) \<otimes> (c \<otimes> b)" by (force cong: m_assoc)
+  also from carr and inv_closed
+      have "\<dots> = inv (c \<otimes> a) \<otimes> (c \<otimes> b)" by (simp add: inv_mult_group)
+  finally
+      have "inv a \<otimes> b = inv (c \<otimes> a) \<otimes> (c \<otimes> b)" .
+  from abH and this
+      have "inv (c \<otimes> a) \<otimes> (c \<otimes> b) \<in> H" by simp
+
+  from carr and this
+     have "(c \<otimes> b) \<in> (c \<otimes> a) <# H"
+     by (simp add: lcos_module_rev[OF is_group])
+  from carr and this and is_subgroup
+     show "(c \<otimes> a) <# H = (c \<otimes> b) <# H" by (intro l_repr_independence, simp+)
+qed
 
 
 subsection {*Order of a Group and Lagrange's Theorem*}

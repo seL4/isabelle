@@ -20,6 +20,8 @@ use_thy "Bij";			(* Automorphism Groups *)
 (* Rings *)
 
 use_thy "UnivPoly";		(* Rings and polynomials *)
+use_thy "IntRing";		(* Ideals and residue classes *)
+
 
 (*** Old development, based on axiomatic type classes.
      Will be withdrawn in future. ***)

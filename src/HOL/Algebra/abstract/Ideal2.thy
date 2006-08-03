@@ -4,7 +4,7 @@
     Author: Clemens Ballarin, started 24 September 1999
 *)
 
-theory Ideal imports Ring begin
+theory Ideal2 imports Ring2 begin
 
 consts
   ideal_of      :: "('a::ring) set => 'a set"

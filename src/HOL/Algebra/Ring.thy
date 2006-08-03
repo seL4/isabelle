@@ -5,10 +5,11 @@
   Copyright: Clemens Ballarin
 *)
 
-header {* Abelian Groups *}
-
-theory CRing imports FiniteProduct
+theory Ring imports FiniteProduct
 uses ("ringsimp.ML") begin
+
+
+section {* Abelian Groups *}
 
 record 'a ring = "'a monoid" +
   zero :: 'a ("\<zero>\<index>")
@@ -177,6 +178,18 @@ lemma (in abelian_monoid) minus_unique:
 
 lemmas (in abelian_monoid) a_ac = a_assoc a_comm a_lcomm
 
+text {* Derive an @{text "abelian_group"} from a @{text "comm_group"} *}
+lemma comm_group_abelian_groupI:
+  fixes G (structure)
+  assumes cg: "comm_group \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  shows "abelian_group G"
+proof -
+  interpret comm_group ["\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"]
+    by (rule cg)
+  show "abelian_group G" by (unfold_locales)
+qed
+
+
 subsection {* Sums over Finite Sets *}
 
 text {*
@@ -299,7 +312,9 @@ text {*Usually, if this rule causes a failed congruence proof error,
    the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
    Adding @{thm [source] Pi_def} to the simpset is often useful. *}
 
+
 section {* The Algebraic Hierarchy of Rings *}
+
 
 subsection {* Basic Definitions *}
 
@@ -319,7 +334,8 @@ locale "domain" = cring +
 locale field = "domain" +
   assumes field_Units: "Units R = carrier R - {\<zero>}"
 
-subsection {* Basic Facts of Rings *}
+
+subsection {* Rings *}
 
 lemma ringI:
   fixes R (structure)
@@ -340,6 +356,12 @@ lemma (in ring) is_abelian_group:
 lemma (in ring) is_monoid:
   "monoid R"
   by (auto intro!: monoidI m_assoc)
+
+lemma (in ring) is_ring:
+  "ring R"
+  .
+
+lemmas ring_record_simps = monoid_record_simps ring.simps
 
 lemma cringI:
   fixes R (structure)
@@ -373,7 +395,11 @@ lemma (in cring) is_comm_monoid:
   "comm_monoid R"
   by (auto intro!: comm_monoidI m_assoc m_comm)
 
-subsection {* Normaliser for Rings *}
+lemma (in cring) is_cring:
+  "cring R"
+  .
+
+subsubsection {* Normaliser for Rings *}
 
 lemma (in abelian_group) r_neg2:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus> (\<ominus> x \<oplus> y) = y"
@@ -476,6 +502,37 @@ lemma (in cring) nat_pow_zero:
   "(n::nat) ~= 0 ==> \<zero> (^) n = \<zero>"
   by (induct n) simp_all
 
+lemma (in ring) one_zeroD:
+  assumes onezero: "\<one> = \<zero>"
+  shows "carrier R = {\<zero>}"
+proof (rule, rule)
+  fix x
+  assume xcarr: "x \<in> carrier R"
+  from xcarr
+      have "x = x \<otimes> \<one>" by simp
+  from this and onezero
+      have "x = x \<otimes> \<zero>" by simp
+  from this and xcarr
+      have "x = \<zero>" by simp
+  thus "x \<in> {\<zero>}" by fast
+qed fast
+
+lemma (in ring) one_zeroI:
+  assumes carrzero: "carrier R = {\<zero>}"
+  shows "\<one> = \<zero>"
+proof -
+  from one_closed and carrzero
+      show "\<one> = \<zero>" by simp
+qed
+
+lemma (in ring) one_zero:
+  shows "(carrier R = {\<zero>}) = (\<one> = \<zero>)"
+  by (rule, erule one_zeroI, erule one_zeroD)
+
+lemma (in ring) one_not_zero:
+  shows "(carrier R \<noteq> {\<zero>}) = (\<one> \<noteq> \<zero>)"
+  by (simp add: one_zero)
+
 text {* Two examples for use of method algebra *}
 
 lemma
@@ -489,7 +546,8 @@ lemma
   shows "[| a \<in> carrier R; b \<in> carrier R |] ==> a \<ominus> (a \<ominus> b) = b"
   by algebra
 
-subsection {* Sums over Finite Sets *}
+
+subsubsection {* Sums over Finite Sets *}
 
 lemma (in cring) finsum_ldistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
@@ -509,7 +567,8 @@ next
   case (insert x F) then show ?case by (simp add: Pi_def r_distr)
 qed
 
-subsection {* Facts of Integral Domains *}
+
+subsection {* Integral Domains *}
 
 lemma (in "domain") zero_not_one [simp]:
   "\<zero> ~= \<one>"
@@ -549,6 +608,71 @@ proof -
   from prem and R have "(a \<otimes> b = a \<otimes> c) = (b = c)" by (rule m_lcancel)
   with R show ?thesis by algebra
 qed
+
+
+subsection {* Fields *}
+
+text {* Field would not need to be derived from domain, the properties
+  for domain follow from the assumptions of field *}
+lemma (in cring) cring_fieldI:
+  assumes field_Units: "Units R = carrier R - {\<zero>}"
+  shows "field R"
+proof unfold_locales
+  from field_Units
+  have a: "\<zero> \<notin> Units R" by fast
+  have "\<one> \<in> Units R" by fast
+  from this and a
+  show "\<one> \<noteq> \<zero>" by force
+next
+  fix a b
+  assume acarr: "a \<in> carrier R"
+    and bcarr: "b \<in> carrier R"
+    and ab: "a \<otimes> b = \<zero>"
+  show "a = \<zero> \<or> b = \<zero>"
+  proof (cases "a = \<zero>", simp)
+    assume "a \<noteq> \<zero>"
+    from this and field_Units and acarr
+    have aUnit: "a \<in> Units R" by fast
+    from bcarr
+    have "b = \<one> \<otimes> b" by algebra
+    also from aUnit acarr
+    have "... = (inv a \<otimes> a) \<otimes> b" by (simp add: Units_l_inv)
+    also from acarr bcarr aUnit[THEN Units_inv_closed]
+    have "... = (inv a) \<otimes> (a \<otimes> b)" by algebra
+    also from ab and acarr bcarr aUnit
+    have "... = (inv a) \<otimes> \<zero>" by simp
+    also from aUnit[THEN Units_inv_closed]
+    have "... = \<zero>" by algebra
+    finally
+    have "b = \<zero>" .
+    thus "a = \<zero> \<or> b = \<zero>" by simp
+  qed
+qed
+
+text {* Another variant to show that something is a field *}
+lemma (in cring) cring_fieldI2:
+  assumes notzero: "\<zero> \<noteq> \<one>"
+  and invex: "\<And>a. \<lbrakk>a \<in> carrier R; a \<noteq> \<zero>\<rbrakk> \<Longrightarrow> \<exists>b\<in>carrier R. a \<otimes> b = \<one>"
+  shows "field R"
+  apply (rule cring_fieldI, simp add: Units_def)
+  apply (rule, clarsimp)
+  apply (simp add: notzero)
+proof (clarsimp)
+  fix x
+  assume xcarr: "x \<in> carrier R"
+    and "x \<noteq> \<zero>"
+  from this
+  have "\<exists>y\<in>carrier R. x \<otimes> y = \<one>" by (rule invex)
+  from this
+  obtain y
+    where ycarr: "y \<in> carrier R"
+    and xy: "x \<otimes> y = \<one>"
+    by fast
+  from xy xcarr ycarr have "y \<otimes> x = \<one>" by (simp add: m_comm)
+  from ycarr and this and xy
+  show "\<exists>y\<in>carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by fast
+qed
+
 
 subsection {* Morphisms *}
 
