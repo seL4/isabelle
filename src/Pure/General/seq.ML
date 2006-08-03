@@ -35,8 +35,6 @@ sig
   val singleton: ('a list -> 'b list seq) -> 'a -> 'b seq
   val print: (int -> 'a -> unit) -> int -> 'a seq -> unit
   val it_right : ('a * 'b seq -> 'b seq) -> 'a seq * 'b seq -> 'b seq
-  val commute: 'a seq list -> 'a list seq
-  val map_list: ('a -> 'b seq) -> 'a list -> 'b list seq
   val succeed: 'a -> 'a seq
   val fail: 'a -> 'b seq
   val THEN: ('a -> 'b seq) * ('b -> 'c seq) -> 'a -> 'c seq
@@ -186,20 +184,6 @@ fun it_right f (xq, yq) =
           NONE => pull yq
         | SOME (a, s') => pull (f (a, its s'))))
   in its xq end;
-
-(*turn a list of sequences into a sequence of lists*)
-fun commute [] = single []
-  | commute (xq :: xqs) =
-      make (fn () =>
-        (case pull xq of
-          NONE => NONE
-        | SOME (x, xq') =>
-            (case pull (commute xqs) of
-              NONE => NONE
-            | SOME (xs, xsq) =>
-                SOME (x :: xs, append (map (Library.cons x) xsq) (commute (xq' :: xqs))))));
-
-fun map_list f = commute o List.map f;
 
 
 
