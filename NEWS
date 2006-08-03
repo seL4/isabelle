@@ -518,6 +518,17 @@ the old behavior.
 
 * Support for hex (0x20) and binary (0b1001) numerals. 
 
+* New method:
+  reify eqs (t), where eqs are equations for an interpretation 
+ I :: 'a list => 'b => 'c and t::'c is an optional parameter,
+ computes a term s::'b and a list xs::'a list and proves the theorem
+  I xs s = t. This is also known as reification or quoting. The resulting theorem is applied to the subgoal to substitute t with I xs s.
+If t is omitted, the subgoal itself is reified.
+
+* New method:
+ reflection corr_thm eqs (t). The parameters eqs and (t) are as explained above. corr_thm is a theorem for 
+I vs (f t) = I vs t, where f is supposed to be a computable function (in the sense of code generattion). The method uses reify to compute s and xs as above then applies corr_thm and uses normalization by evaluation to "prove" f s = r and finally gets the theorem t = r, which is again applied to the subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
+
 *** HOL-Algebra ***
 
 * Method algebra is now set up via an attribute.  For examples see CRing.thy.
